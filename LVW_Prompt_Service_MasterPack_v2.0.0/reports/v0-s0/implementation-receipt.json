@@ -1,0 +1,53 @@
+{
+  "schema_version": "lvw.implementation-receipt/1",
+  "project_id": "lvw-prompt-service",
+  "stage_id": "V0-S0",
+  "workpack_id": "WP-S0-01+WP-S0-02",
+  "candidate_sha": "3fb04084c50f0ef9b6bd133fe77f90bea44e6ffa",
+  "spec_version": "1.1.0",
+  "acceptance_hash": "78b158e135be4da756e27ced9f57c74e78feb926bcaf95eda2e2a6992c9a7b42",
+  "gate_version": "lvw-gate/1",
+  "run_id": "v0-s0-live-20261027-01",
+  "environment": {
+    "executor": "local_authorized_runtime",
+    "provider": "ollama_loopback",
+    "model": "gemma4:26b@5571076f3d70050487b26b341705799e0ab29b808164f90d20d4cf84f699d251",
+    "dependency_fingerprint": "comfy=b0f4b7b294ce482a2e071d9d762c133d38c7aa07;prompt-assistant=47eb4843b905b8dfa973f856ba8adab242ee8d2598bd1b5f93f4af4070bf4c8f"
+  },
+  "changed_files": [
+    "reports/runtime-inventory.json", "reports/node-bindings.json", "reports/reuse-audit.md",
+    "reports/v0-s0/live-probe-receipt.json", "reports/v0-s0/failure-ledger.json",
+    "reports/v0-s0/implementation-receipt.json"
+  ],
+  "contract_changes": "none",
+  "production_paths": [
+    "ComfyUI /object_info/{class_type}",
+    "Prompt Assistant /prompt-assistant/api/models/list",
+    "Prompt Assistant /prompt-assistant/api/video/info",
+    "Ollama /api/show, /api/chat and /api/ps"
+  ],
+  "check_results": [
+    {"check": "live_registry", "status": "PASS"},
+    {"check": "single_image_feasibility", "status": "PASS_AFTER_RETRY"},
+    {"check": "bounded_four_frame_decode", "status": "PASS"},
+    {"check": "four_frame_contract_output", "status": "FAIL_AFTER_TWO_ATTEMPTS"},
+    {"check": "prompt_assistant_ollama_discovery", "status": "FAIL"},
+    {"check": "absolute_path_boundary", "status": "FAIL_SECURITY"},
+    {"check": "owned_cleanup", "status": "PASS"}
+  ],
+  "test_counts": {"denominator": 4, "pass": 0, "fail": 0, "blocked": 0, "skipped": 0, "not_run": 4},
+  "artifact_refs": [
+    "reports/runtime-inventory.json", "reports/node-bindings.json", "reports/reuse-audit.md",
+    "reports/v0-s0/live-probe-receipt.json", "reports/v0-s0/failure-ledger.json"
+  ],
+  "risks": [
+    "Prompt Assistant cannot currently discover or expose the local Ollama model.",
+    "Existing video routes violate the V0 absolute-path boundary.",
+    "Four-frame structured output failed twice.",
+    "Peak GPU use leaves limited margin below the 23 GiB gate.",
+    "The gate-owner context performed the probe because the designated external implementation harness was not authorized; independent review is mandatory."
+  ],
+  "implementation_session": "codex-gate-owner-live-probe-20261027",
+  "decision": "READY_FOR_INDEPENDENT_REVIEW_WITH_ROLE_DEVIATION",
+  "exact_stop_reason": "The frozen two-attempt budget for the four-frame probe was exhausted; evidence is ready for isolated review and S0 baseline adjudication, not product acceptance."
+}

@@ -4,19 +4,16 @@
   "stage_id": "V0-S0",
   "workpack_id": "WP-S0-01",
   "observed_at": "2026-10-27",
-  "collection_mode": "static_read_only_partial",
-  "authorization_status": "NOT_CONFIRMED_FOR_LIVE_PROBES",
-  "candidate_commit": "UNBORN_WORKTREE",
+  "collection_mode": "authorized_live_inventory",
+  "authorization_status": "GRANTED",
+  "authorization_ref": "reports/v0-s0/authorization.json",
+  "candidate_commit": "3fb04084c50f0ef9b6bd133fe77f90bea44e6ffa",
   "target": {
     "host_os": "Windows 11 build 26100",
     "shell_environment": "WSL2",
     "host_memory_bytes": 34104291328,
     "wsl_memory_limit_bytes": 16642998272,
-    "gpu": {
-      "name": "NVIDIA GeForce RTX 4090",
-      "memory_mib": 24564,
-      "driver": "616.92"
-    },
+    "gpu": {"name": "NVIDIA GeForce RTX 4090", "memory_mib": 24564, "driver": "616.92"},
     "system_drive": {
       "capacity_bytes": 1998975397888,
       "free_bytes_observed": 108604145664,
@@ -26,10 +23,12 @@
   "comfyui": {
     "root_alias": "COMFY_ROOT",
     "present": true,
+    "version": "0.37.0",
+    "frontend_version": "1.53.6",
     "git_commit": "b0f4b7b294ce482a2e071d9d762c133d38c7aa07",
     "git_branch": "master",
     "upstream_behind_count_observed": 191,
-    "working_tree": "dirty_or_line_ending_drift_observed",
+    "working_tree": "dirty_or_line_ending_drift_observed_before_probe",
     "files": {
       "main.py_sha256": "5a958d6975d8b6096887df7f5160cecf760e5b434a5471bb5f8efaae73bcfd96",
       "nodes.py_sha256": "4678d41906fa63780816748b38d9d7bb7364e5504ea4be91b6d8fcb842f5d891"
@@ -38,53 +37,72 @@
     "torch_version": "2.8.0+cu129",
     "torch_cuda_version": "12.9",
     "torch_cuda_available": true,
-    "service_running": false,
-    "live_registry_queried": false
+    "live_registry_queried": true,
+    "startup_profile": {
+      "listen": "127.0.0.1:8188",
+      "browser_auto_launch": false,
+      "api_nodes_disabled": true,
+      "custom_nodes_policy": "all disabled except prompt-assistant"
+    },
+    "service_started_by_run": true,
+    "service_running_at_end": false
   },
   "prompt_assistant": {
     "root_alias": "COMFY_ROOT/custom_nodes/prompt-assistant",
     "present": true,
     "version": "2.0.6",
     "license": "GPL-3.0",
-    "selected_source_fingerprint_sha256": "47eb4843b905b8dfa973f856ba8adab242ee8d2598bd1b5f93f4af4070bf4c8f",
+    "selected_source_fingerprint_before_and_after_sha256": "47eb4843b905b8dfa973f856ba8adab242ee8d2598bd1b5f93f4af4070bf4c8f",
     "registration_style": "ComfyUI V3 extension",
     "configured_current_llm_service": "zhipu",
     "configured_current_vlm_service": "zhipu",
+    "configured_remote_services_have_visible_keys": false,
     "ollama_entry_present": true,
-    "ollama_configured_model_counts": {
-      "llm": 0,
-      "vlm": 0
+    "ollama_configured_model_counts": {"llm": 0, "vlm": 0},
+    "ollama_model_discovery_endpoint": {
+      "llm_http_status": 500,
+      "vision_http_status": 500,
+      "stable_error": "NameError: ModelListService is not defined"
     },
     "secrets_recorded": false
   },
   "ollama": {
     "client_present": true,
-    "client_version": "0.32.8",
-    "service_running": false,
-    "models_queried": false
+    "version": "0.32.8",
+    "listen": "127.0.0.1:11434",
+    "model": {
+      "tag": "gemma4:26b",
+      "digest": "5571076f3d70050487b26b341705799e0ab29b808164f90d20d4cf84f699d251",
+      "size_bytes": 17987581215,
+      "parameter_size": "25.8B",
+      "quantization": "Q4_K_M",
+      "capabilities": ["completion", "vision", "tools", "thinking"]
+    },
+    "damaged_cache_entry_observed": "deepseek-r1:7b blob missing; not repaired or downloaded",
+    "service_started_by_run": true,
+    "service_running_at_end": false,
+    "loaded_models_at_end": 0
   },
-  "media_tools": {
-    "ffmpeg_present": true,
-    "ffprobe_present": true,
-    "ffmpeg_version": "6.1.1"
-  },
-  "process_observation": {
-    "comfyui_python_process_found": false,
-    "ollama_process_found": false,
-    "owned_processes_started": 0,
-    "cleanup_required": false
+  "media_tools": {"ffmpeg_present": true, "ffprobe_present": true, "ffmpeg_version": "6.1.1"},
+  "cleanup": {
+    "owned_comfyui_stopped": true,
+    "owned_ollama_stopped": true,
+    "owned_temporary_frames_removed": true,
+    "listeners_8188_11434_at_end": 0,
+    "owned_python_ollama_llama_server_processes_at_end": 0,
+    "gpu_memory_mib_at_end": 3839
   },
   "not_performed": [
-    "No service was started or reconfigured.",
-    "No model was downloaded or invoked.",
-    "No private media was read.",
-    "No live ComfyUI object_info registry was queried.",
-    "No V0 product acceptance case was executed."
+    "No software or model was downloaded or upgraded.",
+    "No Prompt Assistant, ComfyUI, Ollama or system configuration was changed.",
+    "No cloud or paid Provider was invoked.",
+    "No visible browser was started.",
+    "No V0 product acceptance case was marked PASS."
   ],
   "limitations": [
-    "The repository has no baseline commit, so evidence cannot yet bind to a candidate SHA.",
-    "Live node availability and exact installed Ollama models remain unverified.",
-    "The target ComfyUI worktree was already dirty; this inspection did not modify or normalize it.",
-    "This is inventory evidence only and is not a V0 acceptance receipt."
+    "The Prompt Assistant production configuration remains remote-provider-first and has no configured Ollama model entries.",
+    "The target ComfyUI worktree was dirty before this probe; only selected fingerprints were compared.",
+    "This inventory binds the application baseline, not the later evidence-only commit.",
+    "This is Stage feasibility evidence, not V0 release acceptance."
   ]
 }

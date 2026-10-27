@@ -1,0 +1,56 @@
+{
+  "schema_version": "lvw.failure-ledger/1",
+  "run_id": "v0-s0-live-20261027-01",
+  "candidate_sha": "3fb04084c50f0ef9b6bd133fe77f90bea44e6ffa",
+  "failures": [
+    {
+      "id": "CMD-SETUP-01",
+      "category": "tool_format",
+      "error": "Initial PowerShell/tasklist quoting was invalid.",
+      "effective_probe_attempt": false,
+      "disposition": "Corrected command quoting; no service or target state changed."
+    },
+    {
+      "id": "OLLAMA-CACHE-01",
+      "category": "environment",
+      "error": "A historical deepseek-r1:7b cache entry references a missing blob.",
+      "effective_probe_attempt": false,
+      "disposition": "Preserved; no repair, deletion or download. gemma4 inventory remained available."
+    },
+    {
+      "id": "PA-MODELS-01",
+      "category": "implementation_defect",
+      "error": "Prompt Assistant /models/list returns NameError because ModelListService is undefined.",
+      "effective_probe_attempt": false,
+      "disposition": "Do not rely on this route; preserve as Major finding."
+    },
+    {
+      "id": "IMAGE-01",
+      "category": "output_contract",
+      "error": "Empty content; output only in thinking; done_reason=length at 512 tokens.",
+      "effective_probe_attempt": true,
+      "disposition": "One bounded retry with think=false and 1024 tokens produced valid JSON."
+    },
+    {
+      "id": "VIDEO-01",
+      "category": "output_contract",
+      "error": "Malformed escaped property names; JSON parse failure.",
+      "effective_probe_attempt": true,
+      "disposition": "One bounded retry used native JSON Schema."
+    },
+    {
+      "id": "VIDEO-02",
+      "category": "output_contract",
+      "error": "done_reason=length at 1024 tokens; unterminated JSON string.",
+      "effective_probe_attempt": true,
+      "disposition": "Retry budget exhausted. No further request; require adapter and revised frozen output policy in implementation."
+    },
+    {
+      "id": "PATH-01",
+      "category": "security",
+      "error": "Absolute media path accepted and returned by Prompt Assistant video info route.",
+      "effective_probe_attempt": false,
+      "disposition": "Do not expose route; LVW must own allowlisted path mapping and response redaction."
+    }
+  ]
+}

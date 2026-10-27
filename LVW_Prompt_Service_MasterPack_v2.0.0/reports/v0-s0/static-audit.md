@@ -1,5 +1,7 @@
 # V0-S0 静态审计检查点
 
+> 历史快照：本文件记录授权前状态，已被 `live-probe-receipt.json` 与更新后的 runtime/node/reuse 报告取代，不代表当前坐标。
+
 - 坐标：V0-S0 / WP-S0-01（部分）
 - 状态：WAIT_AUTH
 - 已完成：本机运行时、ComfyUI、Prompt Assistant、Ollama 客户端、GPU、ffmpeg 的只读静态盘点；完成源码级节点与风险映射。

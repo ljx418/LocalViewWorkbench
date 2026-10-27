@@ -1,0 +1,131 @@
+{
+  "schema_version": "lvw.live-probe-receipt/1",
+  "project_id": "lvw-prompt-service",
+  "stage_id": "V0-S0",
+  "workpack_id": "WP-S0-02",
+  "run_id": "v0-s0-live-20261027-01",
+  "candidate_sha": "3fb04084c50f0ef9b6bd133fe77f90bea44e6ffa",
+  "spec_version": "1.1.0",
+  "acceptance_hash": "78b158e135be4da756e27ced9f57c74e78feb926bcaf95eda2e2a6992c9a7b42",
+  "gate_version": "lvw-gate/1",
+  "authorization_ref": "reports/v0-s0/authorization.json",
+  "environment": {
+    "comfyui": "0.37.0",
+    "prompt_assistant": "2.0.6",
+    "ollama": "0.32.8",
+    "model": "gemma4:26b",
+    "model_digest": "5571076f3d70050487b26b341705799e0ab29b808164f90d20d4cf84f699d251",
+    "gpu": "NVIDIA GeForce RTX 4090 24564 MiB",
+    "ffmpeg": "6.1.1"
+  },
+  "samples": {
+    "image": {
+      "alias": "TEST_SOURCE/image-sample",
+      "sha256": "b4bbd08a0fad67cc04e55d15bf2c48e9a76dcfd6dda147d8cc504452dfc78a42",
+      "bytes": 404368,
+      "width": 1080,
+      "height": 1357
+    },
+    "video": {
+      "alias": "TEST_SOURCE/video-sample",
+      "sha256": "694a50bfb871faed6540a577b25c8a61e629035062a23f982099a6911ff22152",
+      "bytes": 438707,
+      "width": 752,
+      "height": 1008,
+      "duration_seconds": 3.342993,
+      "video_codec": "h264",
+      "audio_codec": "aac",
+      "reported_frames": 75
+    }
+  },
+  "checks": [
+    {
+      "id": "LIVE-REGISTRY",
+      "status": "PASS",
+      "observation": "ImageCaptionNode and VideoCaptionNode were returned by the public ComfyUI object_info endpoint."
+    },
+    {
+      "id": "PA-OLLAMA-DISCOVERY",
+      "status": "FAIL",
+      "observation": "Both llm and vision model-list requests returned HTTP 500 with NameError: ModelListService is not defined."
+    },
+    {
+      "id": "IMAGE-PROBE-01",
+      "status": "FAIL",
+      "elapsed_seconds": 103.899,
+      "gpu_peak_mib": 22398,
+      "observation": "HTTP 200 but content was empty; useful text was placed in thinking and truncated at 512 tokens with done_reason=length."
+    },
+    {
+      "id": "IMAGE-PROBE-02",
+      "status": "PASS_FOR_FEASIBILITY",
+      "elapsed_seconds": 21.871,
+      "gpu_peak_mib": 22397,
+      "observation": "With think=false and 1024 output tokens, HTTP 200 returned complete parseable JSON with all requested keys and done_reason=stop."
+    },
+    {
+      "id": "VIDEO-BOUNDED-SAMPLING",
+      "status": "PASS_FOR_FEASIBILITY",
+      "method": "four uniform bin centers; four sequential ffmpeg single-frame decodes; long edge 768",
+      "frames": [
+        {"index": 0, "target_seconds": 0.417874, "width": 572, "height": 768, "sha256": "1881fc1ed9b17027ac8ffac61db02fac58a8a8eb53f49094c6a14a61480fad0a"},
+        {"index": 1, "target_seconds": 1.253622, "width": 572, "height": 768, "sha256": "7b758016ab6c8f669077531813b1c6a6eba69c646742dddb056a2f005b6a2504"},
+        {"index": 2, "target_seconds": 2.089371, "width": 572, "height": 768, "sha256": "f92085efdba424fb30110a64cc26315d64f738c11a09994e9a7cf75fc64a790b"},
+        {"index": 3, "target_seconds": 2.925119, "width": 572, "height": 768, "sha256": "50fef4a16d3730a1726b6d8840d8626535b98dd6df58c24f63fca5fe468fc5bf"}
+      ]
+    },
+    {
+      "id": "VIDEO-PROBE-01",
+      "status": "FAIL",
+      "elapsed_seconds": 19.435,
+      "gpu_peak_mib": 22725,
+      "observation": "Inference completed and stated sampling limitations, but the response contained malformed escaped keys and was not valid JSON."
+    },
+    {
+      "id": "VIDEO-PROBE-02",
+      "status": "FAIL",
+      "elapsed_seconds": 21.605,
+      "gpu_peak_mib": 22738,
+      "observation": "Ollama JSON Schema was supplied, but output reached 1024 tokens with done_reason=length and ended in an unterminated JSON string."
+    },
+    {
+      "id": "ABSOLUTE-PATH-BOUNDARY",
+      "status": "FAIL_SECURITY",
+      "observation": "The Prompt Assistant video info route accepted an absolute TEST_SOURCE path and returned an absolute path with HTTP 200."
+    },
+    {
+      "id": "MODEL-UNLOAD",
+      "status": "PASS_FOR_FEASIBILITY",
+      "observation": "After each keep_alive=0 request, /api/ps was empty at t=0 and t=5 seconds; GPU returned to approximately 4169-4175 MiB while ComfyUI remained running."
+    },
+    {
+      "id": "RUN-CLEANUP",
+      "status": "PASS",
+      "observation": "Owned ComfyUI and Ollama sessions stopped; ports 8188 and 11434 had no listeners; no ollama, python or llama-server process remained; temporary frames were deleted."
+    }
+  ],
+  "successful_image_output": {
+    "observation": [
+      "A person with dark hair in an updo and bangs is visible.",
+      "The person wears thin metal-framed glasses and a patterned shirt.",
+      "The background is plain and lighting is soft and even."
+    ],
+    "inference": ["The image appears to be a posed indoor portrait."],
+    "unknowns": ["Identity, exact location and time are unknown."],
+    "output_contract": "Complete JSON with observation, inference, unknowns, text_zh, text_en, image_prompt, video_prompt, tags and negative."
+  },
+  "retry_accounting": {
+    "image_effective_attempts": 2,
+    "video_effective_attempts": 2,
+    "limit_per_probe": 2,
+    "additional_attempts_performed": false
+  },
+  "product_acceptance": {
+    "V0-A01": "NOT_RUN",
+    "V0-A02": "NOT_RUN",
+    "V0-A09": "NOT_RUN",
+    "V0-A10": "NOT_RUN"
+  },
+  "allowed_claim": "Local runtime feasibility and reuse restrictions established.",
+  "forbidden_claims": ["V0-A01 PASS", "V0-A02 PASS", "V0-A09 PASS", "V0-A10 PASS", "V0 accepted"]
+}

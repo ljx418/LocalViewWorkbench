@@ -4,75 +4,104 @@
   "stage_id": "V0-S0",
   "workpack_id": "WP-S0-01",
   "observed_at": "2026-10-27",
-  "evidence_kind": "static_source_inspection",
-  "live_registry_verified": false,
+  "candidate_commit": "3fb04084c50f0ef9b6bd133fe77f90bea44e6ffa",
+  "evidence_kind": "live_public_registry_and_local_route_probe",
+  "live_registry_verified": true,
   "bindings": [
     {
       "capability": "image_caption",
       "component": "Prompt Assistant",
       "class_type": "ImageCaptionNode",
-      "source_registered": true,
-      "runtime_registered": "NOT_RUN",
-      "reuse_decision": "CONDITIONAL_REUSE",
-      "conditions": [
-        "Confirm the class through the live ComfyUI public registry.",
-        "Bind it behind the frozen V0 raw-result and failure contracts.",
-        "Prove the selected Ollama model and unload behavior with a real probe."
-      ]
+      "runtime_registered": true,
+      "display_name": "✨Image Caption (VLM)",
+      "category": "✨Prompt Assistant",
+      "required_input_types": {
+        "image": "IMAGE", "rule": "COMBO", "custom_rule": "BOOLEAN",
+        "custom_rule_content": "STRING", "user_prompt": "STRING",
+        "vlm_service": "COMBO", "ollama_auto_unload": "BOOLEAN", "seed": "INT"
+      },
+      "outputs": ["STRING", "STRING"],
+      "output_names": ["caption_text", "caption_list"],
+      "live_service_options": [
+        "智谱/glm-4.6V-Flash", "智谱/glm-4v-flash", "xFlow-API聚合/grok-4-1-fast-non-reasoning"
+      ],
+      "ollama_option_present": false,
+      "reuse_decision": "DO_NOT_REUSE_UNWRAPPED_FOR_V0",
+      "reason": "The public node is real, but the live configuration exposes no local Ollama model and defaults to unapproved remote providers."
     },
     {
       "capability": "video_caption",
       "component": "Prompt Assistant",
       "class_type": "VideoCaptionNode",
-      "source_registered": true,
-      "runtime_registered": "NOT_RUN",
-      "source_default_frame_count": 5,
+      "runtime_registered": true,
+      "display_name": "✨Video Caption (VLM)",
+      "optional_inputs": {"video_frames": "IMAGE", "video": "VIDEO"},
+      "outputs": ["STRING", "IMAGE"],
+      "output_names": ["caption_text", "preview_frames"],
+      "runtime_default_frame_count": 5,
+      "runtime_max_frame_count": 32,
       "v0_required_default_frame_count": 4,
-      "input_behavior": "Consumes IMAGE batches or VIDEO converted to a full image tensor before selection.",
+      "input_behavior": "Consumes an IMAGE batch or a VIDEO converted to a complete image batch before selection.",
       "reuse_decision": "DO_NOT_REUSE_AS_V0_VIDEO_OWNER",
-      "reason": "The frozen V0 contract requires bounded decoding without loading the entire video tensor, and a default of exactly four sampled frames."
+      "reason": "It does not prove bounded video decoding and its default denominator conflicts with V0."
+    },
+    {
+      "capability": "prompt_assistant_ollama_model_discovery",
+      "component": "Prompt Assistant route",
+      "route": "/prompt-assistant/api/models/list",
+      "runtime_registered": true,
+      "llm_http_status": 500,
+      "vision_http_status": 500,
+      "error": "NameError: ModelListService is not defined",
+      "reuse_decision": "BROKEN_DO_NOT_RELY_ON"
     },
     {
       "capability": "video_metadata_and_frame_preview",
       "component": "Prompt Assistant server routes",
-      "routes": [
-        "/prompt-assistant/api/video/info",
-        "/prompt-assistant/api/video/frame"
-      ],
-      "runtime_registered": "NOT_RUN",
-      "absolute_existing_path_accepted_by_source": true,
-      "absolute_path_returned_by_info_source": true,
+      "routes": ["/prompt-assistant/api/video/info", "/prompt-assistant/api/video/frame"],
+      "runtime_registered": true,
+      "absolute_existing_path_accepted": true,
+      "absolute_path_returned_by_info": true,
+      "probe_http_status": 200,
       "reuse_decision": "DO_NOT_EXPOSE_UNWRAPPED",
-      "reason": "The source behavior conflicts with V0 path-boundary and private absolute-path disclosure requirements."
+      "reason": "The observed behavior violates V0 path-boundary and absolute-path disclosure requirements."
     },
     {
       "capability": "cancel",
-      "component": "Prompt Assistant server route",
-      "route": "/prompt-assistant/api/vlm/cancel",
-      "runtime_registered": "NOT_RUN",
-      "reuse_decision": "REQUIRES_BEHAVIORAL_PROBE",
+      "component": "Prompt Assistant route",
+      "route": "/prompt-assistant/api/request/cancel",
+      "runtime_registered": true,
+      "reuse_decision": "REQUIRES_V0_S2_BEHAVIORAL_PROBE",
       "conditions": [
-        "Prove the cancel request reaches the production owner.",
-        "Prove the run reaches a durable terminal state.",
-        "Prove model and temporary-resource cleanup."
+        "Prove the cancel request reaches the owned production request.",
+        "Prove late results cannot overwrite current state.",
+        "Prove the model and temporary resources reach released state."
       ]
+    },
+    {
+      "capability": "native_local_vision",
+      "component": "Ollama public loopback API",
+      "route": "/api/chat",
+      "model": "gemma4:26b",
+      "model_digest": "5571076f3d70050487b26b341705799e0ab29b808164f90d20d4cf84f699d251",
+      "single_image_result": "PASS_AFTER_ONE_BOUNDED_RETRY",
+      "four_frame_result": "INFERENCE_COMPLETED_BUT_CONTRACT_JSON_FAILED_TWICE",
+      "reuse_decision": "REUSE_BEHIND_LVW_CONTRACT_ADAPTER",
+      "reason": "The local model and unload path work, but output normalization, bounded token policy and stable failure handling must be owned by LVW."
     }
   ],
   "unresolved_bindings": [
-    "Manual draft entry, editable draft state, and JSON/TXT export owner.",
-    "Bounded PTS-based video sampling owner.",
-    "Unified schema validation and stable failure-code owner.",
-    "Ollama model availability and digest.",
-    "Runtime class registry and public workflow wiring."
+    "Manual draft entry, editable draft state, adoption and JSON/TXT export owner.",
+    "Bounded video sampling and actual PTS owner.",
+    "Unified V0 schema validation and stable failure-code owner.",
+    "Production workflow wiring for the local Ollama adapter.",
+    "Cancel, late-result and resource-lock behavior, deferred to V0-S2."
   ],
   "gate_effect": {
-    "stage_pass_allowed": false,
+    "baseline_conclusion_available": true,
+    "stage_pass_allowed_before_independent_review": false,
     "product_case_pass_allowed": false,
-    "blocking_reasons": [
-      "Live public registry not queried.",
-      "No authorized real image or video probe.",
-      "Candidate SHA unavailable.",
-      "Independent review not performed."
-    ]
+    "recommended_stage_conclusion": "STAGE_BASELINE_COMPLETE_WITH_REUSE_RESTRICTIONS",
+    "major_findings": 4
   }
 }

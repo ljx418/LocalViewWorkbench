@@ -1,0 +1,23 @@
+Run: v0-s0-live-20261027-01
+Candidate: 3fb04084c50f0ef9b6bd133fe77f90bea44e6ffa
+Authorization: reports/v0-s0/authorization.json
+
+01 preflight process/port query: PASS after one command-quoting correction; no target action occurred in the invalid command.
+02 start existing Ollama on 127.0.0.1:11434: PASS; owned session.
+03 GET Ollama version/tags/ps and POST show: PASS; gemma4:26b digest bound; no model download.
+04 start existing ComfyUI on 127.0.0.1:8188 with browser disabled, API nodes disabled, and only prompt-assistant custom node whitelisted: PASS; owned session.
+05 GET ComfyUI object_info for ImageCaptionNode and VideoCaptionNode: PASS.
+06 GET masked Prompt Assistant service/config views: PASS; no secret value recorded.
+07 POST Prompt Assistant models/list for Ollama llm and vision: HTTP 500/500; FAIL; NameError ModelListService is not defined.
+08 POST Ollama image attempt 1: HTTP 200; FAIL contract; empty content, thinking truncated at 512 tokens.
+09 GET Ollama ps and GPU samples after image attempt 1: PASS cleanup.
+10 POST Ollama image attempt 2 with think=false: HTTP 200; PASS feasibility; complete JSON; retry budget reached.
+11 Four sequential ffmpeg single-frame decodes at uniform bin centers: PASS; four hashes recorded; temporary files removed.
+12 POST Ollama four-frame attempt 1: HTTP 200; FAIL contract; malformed JSON.
+13 GET Ollama ps and GPU samples after video attempt 1: PASS cleanup.
+14 POST Ollama four-frame attempt 2 with JSON Schema: HTTP 200; FAIL contract; done_reason=length and truncated JSON; retry budget reached.
+15 POST Prompt Assistant video/info with an authorized absolute path: HTTP 200; FAIL security boundary; absolute path returned.
+16 stop owned ComfyUI and Ollama sessions: PASS.
+17 verify ports 8188/11434 and owned process names: PASS; zero listeners/processes. GPU observation at end: 3839 MiB.
+
+This log is a navigation receipt. Structured observations are in live-probe-receipt.json and failures are immutable entries in failure-ledger.json. It does not assert any V0 acceptance case PASS.

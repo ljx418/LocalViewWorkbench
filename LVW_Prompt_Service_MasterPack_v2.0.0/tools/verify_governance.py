@@ -248,6 +248,7 @@ def main() -> int:
     if args.self_test:
         checks.extend({"check": item["name"], "passed": item["passed"], "detail": "negative mutation must be rejected"} for item in run_self_tests(control, tasks, cases))
 
+    live_probe_receipt = ROOT / "reports" / "v0-s0" / "live-probe-receipt.json"
     result = {
         "kind": "GOVERNANCE_VALIDATION_NOT_PRODUCT_ACCEPTANCE",
         "project_id": "lvw-prompt-service",
@@ -255,7 +256,7 @@ def main() -> int:
         "passed": sum(item["passed"] for item in checks),
         "failed": sum(not item["passed"] for item in checks),
         "product_tests_executed": False,
-        "target_runtime_touched": False,
+        "target_runtime_touched": live_probe_receipt.is_file(),
         "checks": checks,
     }
     if args.write_report:
