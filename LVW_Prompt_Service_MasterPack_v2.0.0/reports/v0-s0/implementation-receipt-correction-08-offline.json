@@ -1,0 +1,207 @@
+{
+  "schema_version": "lvw.implementation-receipt/1",
+  "spec_version": "2.7.0",
+  "project_id": "lvw-prompt-service",
+  "stage_id": "V0-S0",
+  "workpack_id": "WP-S0-22+WP-S0-23",
+  "workpack_ids": [
+    "WP-S0-22",
+    "WP-S0-23"
+  ],
+  "run_id": "v0-s0-correction-08-offline-20261027-01",
+  "stage_packet_commit": "f1aff22776be005fb6f6a79ac8dd2ba821105478",
+  "baseline_harness_candidate_sha": "82975aefdef2df84d6ec89285f3c450a47d78d89",
+  "candidate_sha": "0000000000000000000000000000000000000000",
+  "candidate_sha_status": "PENDING_ROOT_SEALING",
+  "evidence_commit": "0000000000000000000000000000000000000000",
+  "evidence_commit_status": "PENDING_ROOT_SEALING",
+  "acceptance_hash": "78b158e135be4da756e27ced9f57c74e78feb926bcaf95eda2e2a6992c9a7b42",
+  "acceptance_hash_binding": {
+    "algorithm": "sha256",
+    "target": "sorted fixed acceptance IDs V0-A01,V0-A02,V0-A09,V0-A10 joined by LF with a trailing LF",
+    "source": ".agent-governance/stages/V0-S0/04-acceptance-matrix.md"
+  },
+  "gate_version": "lvw-gate/1",
+  "implementation_owner_role": "codex_isolated_implementer",
+  "implementation_session": "/root/s0_rerun_implementer",
+  "decision": "READY_FOR_REVIEW",
+  "stage_pass_claim": false,
+  "exact_stop_reason": "WP_S0_22_23_OFFLINE_HARNESS_CORRECTION_COMPLETE",
+  "environment": {
+    "execution_mode": "offline deterministic fixtures only",
+    "repository_python": "python3",
+    "comfyui_process_starts": 0,
+    "ollama_process_starts": 0,
+    "network_calls": 0,
+    "model_calls": 0,
+    "real_media_reads": 0
+  },
+  "changed_files": [
+    "tools/v0_s0_live_probe.py",
+    "tools/test_v0_s0_live_probe.py",
+    "reports/v0-s0/implementation-receipt-correction-08-offline.json"
+  ],
+  "artifact_sha256": [
+    {
+      "path": "tools/v0_s0_live_probe.py",
+      "sha256": "5b7e3c60a37b75f0d8605f3c84fe9a6572a356ab7b3010201cfb34633c3e055e"
+    },
+    {
+      "path": "tools/test_v0_s0_live_probe.py",
+      "sha256": "3197e9c25afc1d94935b624c4cf6b12a3cf3eff1607d12b5272a096eaba7c638"
+    }
+  ],
+  "contract_changes": "none",
+  "target_configuration_changes": "none",
+  "implementation_change": {
+    "scope": "PowerShell encoding-safe owner enumeration and atomic terminal finalization only",
+    "powershell_capture": "Explicit UTF-8 OutputEncoding, binary stdout capture and strict UTF-8 decode",
+    "decode_failure": "Non-UTF-8 bytes produce WINDOWS_OWNER_ENUMERATION_FAILED with byte count/hash and no replacement decode",
+    "preflight_failure_artifact": "An initial fail-closed preflight-baseline is emitted before process/listener enumeration and overwritten with a stable terminal failure on any enumeration error",
+    "terminal_receipt": "Missing or unreadable preflight artifacts and final port/integrity/temp cleanup exceptions are fail-closed without masking the first exception; a terminal receipt is still generated",
+    "unchanged_boundaries": [
+      "existing 19 harness fixtures",
+      "120 second node timeout",
+      "4096 MiB pre-service limit",
+      "128 MiB sequential sample tolerance",
+      "23552 MiB live stop threshold",
+      "semantic and prompt-echo Oracle",
+      "product candidate and fixed product denominator"
+    ]
+  },
+  "commands": [
+    {
+      "logical_command": "python3 -B -m unittest -v tools/test_v0_s0_live_probe.py",
+      "exit_code": 0,
+      "tests_run": 24,
+      "result": "OK; original 19 fixtures retained"
+    },
+    {
+      "logical_command": "python3 -B - (AST parse tools/v0_s0_live_probe.py and tools/test_v0_s0_live_probe.py)",
+      "exit_code": 0,
+      "result": "AST PASS"
+    },
+    {
+      "logical_command": "python3 -B tools/v0_s0_live_probe.py --help",
+      "exit_code": 0,
+      "result": "PASS"
+    },
+    {
+      "logical_command": "python3 -B tools/v0_s0_live_probe.py --self-check",
+      "exit_code": 0,
+      "result": "PASS; service_started=false"
+    },
+    {
+      "logical_command": "python3 -B tools/verify_pack.py --schema",
+      "exit_code": 1,
+      "result": "1027 passed, 2 failed: root MANIFEST.sha256 entries for the two changed tool files remain pending root sealing",
+      "failure_disposition": "MANIFEST.sha256 is outside WP-S0-22/23 allowed paths and was not modified"
+    },
+    {
+      "logical_command": "python3 -B tools/verify_governance.py",
+      "exit_code": 0,
+      "result": "37 passed, 0 failed; not product acceptance"
+    },
+    {
+      "logical_command": "python3 -B tools/verify_governance.py --self-test",
+      "exit_code": 0,
+      "result": "42 passed, 0 failed; not product acceptance"
+    }
+  ],
+  "check_results": [
+    {
+      "check": "existing_harness_regression",
+      "status": "PASS_OFFLINE",
+      "tests_retained": 19
+    },
+    {
+      "check": "powershell_true_utf8_chinese_output",
+      "status": "PASS_OFFLINE",
+      "test": "test_powershell_utf8_chinese_process_json_decodes_strictly"
+    },
+    {
+      "check": "powershell_invalid_utf8_fail_closed",
+      "status": "PASS_OFFLINE",
+      "test": "test_powershell_invalid_utf8_returns_stable_failure",
+      "stable_code": "WINDOWS_OWNER_ENUMERATION_FAILED"
+    },
+    {
+      "check": "preflight_enumeration_failure_artifact",
+      "status": "PASS_OFFLINE",
+      "test": "test_preflight_enumeration_failure_emits_artifact_before_raise",
+      "service_starts": 0
+    },
+    {
+      "check": "early_preflight_exception_terminal_receipt",
+      "status": "PASS_OFFLINE",
+      "test": "test_early_preflight_exception_writes_complete_terminal_receipt_with_zero_starts",
+      "first_exception_preserved": true,
+      "service_starts": 0
+    },
+    {
+      "check": "secondary_final_cleanup_exception_terminal_receipt",
+      "status": "PASS_OFFLINE",
+      "test": "test_primary_preflight_error_survives_secondary_final_cleanup_exceptions",
+      "first_exception_preserved": true,
+      "cleanup_proven": false,
+      "service_starts": 0
+    },
+    {
+      "check": "governance_regression",
+      "status": "PASS_OFFLINE"
+    },
+    {
+      "check": "root_manifest_binding",
+      "status": "PENDING_ROOT_SEALING",
+      "affected_paths": [
+        "tools/v0_s0_live_probe.py",
+        "tools/test_v0_s0_live_probe.py"
+      ]
+    }
+  ],
+  "offline_test_counts": {
+    "repository_python": {
+      "pass": 24,
+      "fail": 0,
+      "total": 24
+    },
+    "executions_total": 24
+  },
+  "test_counts": {
+    "denominator": 4,
+    "pass": 0,
+    "fail": 0,
+    "blocked": 0,
+    "skipped": 0,
+    "not_run": 4
+  },
+  "product_acceptance": {
+    "V0-A01": "NOT_RUN",
+    "V0-A02": "NOT_RUN",
+    "V0-A09": "NOT_RUN",
+    "V0-A10": "NOT_RUN"
+  },
+  "external_actions": {
+    "comfyui_process_starts": 0,
+    "ollama_process_starts": 0,
+    "model_calls": 0,
+    "network_calls": 0,
+    "real_media_reads": 0,
+    "downloads_or_upgrades": 0,
+    "target_install_writes": 0,
+    "visible_browser_runs": 0,
+    "external_cost": 0
+  },
+  "production_path_status": "NOT_RUN_OFFLINE_WORKPACK",
+  "public_end_to_end_trace_refs": [],
+  "artifact_refs": [
+    "tools/v0_s0_live_probe.py",
+    "tools/test_v0_s0_live_probe.py"
+  ],
+  "raw_artifact_refs": [],
+  "risks": [
+    "The corrected encoding and finalization paths are proven only with deterministic offline fixtures; WP-S0-24 remains unauthorized.",
+    "Root MANIFEST.sha256 still binds the prior tool bytes and must be updated by the sealing owner before pack validation can pass.",
+    "The four fixed product acceptance cases remain NOT_RUN; this receipt is not a Stage PASS."
+  ]
+}

@@ -1,6 +1,8 @@
 import importlib.util
 import inspect
 from pathlib import Path
+import tempfile
+from types import SimpleNamespace
 import unittest
 from unittest import mock
 
@@ -77,6 +79,99 @@ class WindowsNativePreflightTests(unittest.TestCase):
     def test_live_run_orders_preflight_before_any_service_start(self):
         source = inspect.getsource(probe.Probe.run)
         self.assertLess(source.index("self.windows_native_preflight()"), source.index("self.start_services()"))
+
+    def test_powershell_utf8_chinese_process_json_decodes_strictly(self):
+        owner = object.__new__(probe.Probe)
+        owner.a = SimpleNamespace(powershell="powershell.exe")
+        payload = probe.json.dumps([{"Name": "python.exe", "CommandLine": "分析工具"}], ensure_ascii=False).encode("utf-8")
+        completed = SimpleNamespace(returncode=0, stdout=payload)
+        with mock.patch.object(probe.subprocess, "run", return_value=completed) as run:
+            result = owner.ps_json("fixture")
+        self.assertEqual(result[0]["CommandLine"], "分析工具")
+        self.assertIn("OutputEncoding", run.call_args.args[0][-1])
+
+    def test_powershell_invalid_utf8_returns_stable_failure(self):
+        owner = object.__new__(probe.Probe)
+        owner.a = SimpleNamespace(powershell="powershell.exe")
+        completed = SimpleNamespace(returncode=0, stdout=b'{"Name":"bad\xbb"}')
+        with mock.patch.object(probe.subprocess, "run", return_value=completed):
+            result = owner.ps_json("fixture")
+        self.assertEqual(result["error_code"], "WINDOWS_OWNER_ENUMERATION_FAILED")
+        self.assertEqual(result["subcode"], "POWERSHELL_UTF8_DECODE_FAILED")
+        self.assertNotIn("raw", result)
+
+    def test_preflight_enumeration_failure_emits_artifact_before_raise(self):
+        owner = object.__new__(probe.Probe)
+        owner.a = SimpleNamespace(windows_nvidia_smi="native", wsl_nvidia_smi="wsl",
+                                  comfy_python="C:/Comfy/python.exe", ollama="C:/Ollama/ollama.exe")
+        gpu = SimpleNamespace(returncode=0, stdout="24564, 1530, 22609\n")
+        owner.record = lambda *args, **kwargs: gpu
+        owner.ps_json = lambda script: {"error_code": "WINDOWS_OWNER_ENUMERATION_FAILED"}
+        owner.listeners = lambda: []
+        emitted = {}
+        owner.emit = lambda name, value: emitted.__setitem__(name, value)
+        with self.assertRaisesRegex(RuntimeError, "WINDOWS_OWNER_ENUMERATION_FAILED"):
+            owner.windows_native_preflight()
+        artifact = emitted["preflight-baseline.json"]
+        self.assertFalse(artifact["passed"])
+        self.assertEqual(artifact["service_starts"], 0)
+        self.assertEqual(artifact["stop_reasons"], ["WINDOWS_OWNER_ENUMERATION_FAILED"])
+
+    def test_early_preflight_exception_writes_complete_terminal_receipt_with_zero_starts(self):
+        with tempfile.TemporaryDirectory() as temp:
+            temp_path = Path(temp)
+            args = SimpleNamespace(
+                run_id="fixture-run", candidate_sha="a" * 40, authorization_commit="b" * 40,
+                evidence_dir=str(temp_path / "evidence"), receipt_path=str(temp_path / "receipt.json"),
+                self_check=False, comfy_root=str(temp_path / "comfy"), comfy_python=str(temp_path / "python.exe"),
+                ollama=str(temp_path / "ollama.exe"), test_source=str(temp_path / "samples"),
+                powershell="powershell.exe", windows_nvidia_smi="native", wsl_nvidia_smi="wsl",
+                spec_version="fixture", workpack_id="WP-FIXTURE")
+            owner = probe.Probe(args)
+            owner.root = temp_path
+            owner.record = lambda *args, **kwargs: SimpleNamespace(returncode=0, stdout="commit\n")
+            owner.windows_native_preflight = mock.Mock(side_effect=RuntimeError("WINDOWS_OWNER_ENUMERATION_FAILED"))
+            owner.start_services = mock.Mock()
+            owner.listeners = lambda *args, **kwargs: []
+            owner.target_integrity = lambda: []
+            self.assertEqual(owner.run(), 2)
+            receipt = probe.json.loads((temp_path / "receipt.json").read_text())
+            self.assertEqual(receipt["decision"], "BLOCKED")
+            self.assertEqual(receipt["exact_stop_reason"], "WINDOWS_OWNER_ENUMERATION_FAILED")
+            self.assertEqual(receipt["external_actions"]["ollama_process_starts"], 0)
+            self.assertEqual(receipt["external_actions"]["comfyui_process_starts"], 0)
+            self.assertEqual(receipt["external_actions"]["model_calls"], 0)
+            self.assertEqual(receipt["check_results"][0]["status"], "BLOCKED")
+            self.assertFalse(receipt["stage_pass_claim"])
+            owner.start_services.assert_not_called()
+
+    def test_primary_preflight_error_survives_secondary_final_cleanup_exceptions(self):
+        with tempfile.TemporaryDirectory() as temp:
+            temp_path = Path(temp)
+            args = SimpleNamespace(
+                run_id="fixture-run", candidate_sha="a" * 40, authorization_commit="b" * 40,
+                evidence_dir=str(temp_path / "evidence"), receipt_path=str(temp_path / "receipt.json"),
+                self_check=False, comfy_root=str(temp_path / "comfy"), comfy_python=str(temp_path / "python.exe"),
+                ollama=str(temp_path / "ollama.exe"), test_source=str(temp_path / "samples"),
+                powershell="powershell.exe", windows_nvidia_smi="native", wsl_nvidia_smi="wsl",
+                spec_version="fixture", workpack_id="WP-FIXTURE")
+            owner = probe.Probe(args)
+            owner.root = temp_path
+            owner.record = lambda *args, **kwargs: SimpleNamespace(returncode=0, stdout="commit\n")
+            owner.windows_native_preflight = mock.Mock(side_effect=RuntimeError("WINDOWS_OWNER_ENUMERATION_FAILED"))
+            owner.start_services = mock.Mock()
+            owner.listeners = mock.Mock(side_effect=RuntimeError("sensitive port detail"))
+            owner.target_integrity = mock.Mock(side_effect=RuntimeError("sensitive integrity detail"))
+            self.assertEqual(owner.run(), 2)
+            receipt = probe.json.loads((temp_path / "receipt.json").read_text())
+            cleanup = probe.json.loads((temp_path / "evidence" / "cleanup.json").read_text())
+            self.assertEqual(receipt["decision"], "BLOCKED")
+            self.assertEqual(receipt["exact_stop_reason"], "WINDOWS_OWNER_ENUMERATION_FAILED")
+            self.assertFalse(receipt["cleanup"]["proven"])
+            self.assertGreaterEqual(len(cleanup["secondary_cleanup_failures"]), 2)
+            self.assertEqual(receipt["external_actions"]["ollama_process_starts"], 0)
+            self.assertEqual(receipt["external_actions"]["comfyui_process_starts"], 0)
+            owner.start_services.assert_not_called()
 
 
 class CleanupCorrelationTests(unittest.TestCase):

@@ -262,16 +262,30 @@ class Probe:
             return e.code, e.read().decode("utf-8", "replace")
 
     def ps_json(self, script):
-        p = subprocess.run([self.a.powershell, "-NoProfile", "-Command", script], text=True,
-                           stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=False, timeout=30)
-        text = p.stdout.strip().lstrip("\ufeff")
+        utf8_script = ("[Console]::OutputEncoding=[System.Text.UTF8Encoding]::new($false);"
+                       "$OutputEncoding=[Console]::OutputEncoding;" + script)
+        try:
+            p = subprocess.run([self.a.powershell, "-NoProfile", "-Command", utf8_script,
+                                ], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=False, timeout=30)
+        except Exception as error:
+            return {"error_code": "WINDOWS_OWNER_ENUMERATION_FAILED",
+                    "subcode": type(error).__name__, "exit_code": None}
+        try:
+            text = p.stdout.decode("utf-8", "strict").strip().lstrip("\ufeff")
+        except UnicodeDecodeError as error:
+            return {"error_code": "WINDOWS_OWNER_ENUMERATION_FAILED",
+                    "subcode": "POWERSHELL_UTF8_DECODE_FAILED", "exit_code": p.returncode,
+                    "raw_bytes": len(p.stdout), "raw_sha256": hashlib.sha256(p.stdout).hexdigest(),
+                    "decode_start": error.start, "decode_end": error.end}
         if not text:
             return []
         try:
             result = json.loads(text)
             return result if isinstance(result, list) else [result]
         except json.JSONDecodeError:
-            return {"parse_error": self.redact(text), "exit_code": p.returncode}
+            return {"error_code": "WINDOWS_OWNER_ENUMERATION_FAILED",
+                    "subcode": "POWERSHELL_JSON_PARSE_FAILED", "exit_code": p.returncode,
+                    "raw_bytes": len(p.stdout), "raw_sha256": hashlib.sha256(p.stdout).hexdigest()}
 
     def listeners(self, ports=(8191, 11434)):
         joined = ",".join(map(str, ports))
@@ -296,11 +310,21 @@ class Probe:
                                                    "stop_reasons": ["GPU_PREFLIGHT_QUERY_FAILED"],
                                                    "windows_native_raw": native.stdout, "wsl_raw": wsl.stdout})
             raise RuntimeError("GPU_PREFLIGHT_QUERY_FAILED")
-        processes = self.ps_json(
-            "$x=Get-CimInstance Win32_Process | Select-Object Name,ProcessId,ParentProcessId,ExecutablePath,CommandLine;"
-            "$x | ConvertTo-Json -Compress"
-        )
-        listeners = self.listeners()
+        self.emit("preflight-baseline.json", {"passed": False, "service_starts": 0,
+                                               "status": "OWNER_ENUMERATION_IN_PROGRESS",
+                                               "stop_reasons": ["WINDOWS_OWNER_ENUMERATION_NOT_COMPLETE"],
+                                               "windows_native_raw": native.stdout, "wsl_raw": wsl.stdout})
+        try:
+            processes = self.ps_json(
+                "$x=Get-CimInstance Win32_Process | Select-Object Name,ProcessId,ParentProcessId,ExecutablePath,CommandLine;"
+                "$x | ConvertTo-Json -Compress"
+            )
+            listeners = self.listeners()
+        except Exception as error:
+            self.emit("preflight-baseline.json", {"passed": False, "service_starts": 0,
+                                                   "stop_reasons": ["WINDOWS_OWNER_ENUMERATION_FAILED"],
+                                                   "failure_subcode": type(error).__name__})
+            raise RuntimeError("WINDOWS_OWNER_ENUMERATION_FAILED") from error
         if not isinstance(processes, list) or not isinstance(listeners, list):
             self.emit("preflight-baseline.json", {"passed": False, "service_starts": 0,
                                                    "stop_reasons": ["WINDOWS_OWNER_ENUMERATION_FAILED"],
@@ -764,7 +788,8 @@ class Probe:
         terminal_ps_empty = ps.get("http_status") == 200 and not ps.get("parsed", {}).get("models")
         final_cleanup_proven = (not bool(self.cleanup.get("final_authorized_port_listeners")) and
                                 not self.cleanup.get("run_temp_removal", {}).get("exists_after", True) and
-                                self.cleanup.get("target_integrity_equal", False))
+                                self.cleanup.get("target_integrity_equal", False) and
+                                not self.cleanup.get("secondary_cleanup_failures"))
         document = evaluate_request_trace(log_text, planned_calls=planned_pairs,
                                           terminal_ps_empty=terminal_ps_empty,
                                           final_cleanup_proven=final_cleanup_proven)
@@ -817,6 +842,7 @@ class Probe:
 
     def run(self):
         pre_integrity = None
+        primary_stop_reason = None
         try:
             self.aliases.update({str(Path(self.a.comfy_root).resolve()): "COMFY_ROOT",
                                  str(Path(self.a.comfy_python).resolve()): "COMFY_PYTHON",
@@ -858,7 +884,8 @@ class Probe:
                                "GPU_THRESHOLD" in reason or "GPU_PREFLIGHT" in reason or
                                "STOP_CONDITION" in reason)
             self.decision = "NO_GO" if mandatory_no_go else "BLOCKED"
-            self.exact_stop_reason = reason if mandatory_no_go else type(e).__name__ + ": " + reason
+            self.exact_stop_reason = reason if mandatory_no_go or reason == "WINDOWS_OWNER_ENUMERATION_FAILED" else type(e).__name__ + ": " + reason
+            primary_stop_reason = self.exact_stop_reason
             self.events.append({"at": utc(), "event": "terminal_exception", "detail": self.exact_stop_reason})
         finally:
             if self.ollama_pid:
@@ -881,21 +908,61 @@ class Probe:
             if self.ollama_proc:
                 try: self.ollama_proc.wait(timeout=5)
                 except Exception: pass
-            final_ports = self.listeners()
-            post_integrity = self.target_integrity()
+            secondary_cleanup_failures = []
+            try:
+                final_ports = self.listeners()
+                if not isinstance(final_ports, list):
+                    raise RuntimeError("FINAL_PORT_ENUMERATION_INVALID")
+            except Exception as error:
+                detail = self.redact("FINAL_PORT_ENUMERATION_FAILED: " + type(error).__name__ + ": " + str(error))
+                secondary_cleanup_failures.append(detail)
+                self.events.append({"at": utc(), "event": "secondary_cleanup_failure", "detail": detail})
+                final_ports = {"error_code": "FINAL_PORT_ENUMERATION_FAILED"}
+            try:
+                post_integrity = self.target_integrity()
+            except Exception as error:
+                detail = self.redact("TARGET_INTEGRITY_CAPTURE_FAILED: " + type(error).__name__ + ": " + str(error))
+                secondary_cleanup_failures.append(detail)
+                self.events.append({"at": utc(), "event": "secondary_cleanup_failure", "detail": detail})
+                post_integrity = None
             integrity_equal = pre_integrity is not None and pre_integrity == post_integrity
-            temp_remove = {"attempted": bool(self.temp_w), "exists_before": bool(self.temp_u and self.temp_u.exists())}
+            try:
+                exists_before = bool(self.temp_u and self.temp_u.exists())
+            except Exception as error:
+                detail = self.redact("RUN_TEMP_STATE_FAILED: " + type(error).__name__ + ": " + str(error))
+                secondary_cleanup_failures.append(detail)
+                self.events.append({"at": utc(), "event": "secondary_cleanup_failure", "detail": detail})
+                exists_before = True
+            temp_remove = {"attempted": bool(self.temp_w), "exists_before": exists_before}
             if self.temp_w:
-                p = subprocess.run([self.a.powershell, "-NoProfile", "-Command",
-                                    "Remove-Item -LiteralPath '" + self.temp_w.replace("'", "''") + "' -Recurse -Force -ErrorAction SilentlyContinue"],
-                                   text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=False, timeout=60)
-                temp_remove.update({"exit_code": p.returncode, "output": self.redact(p.stdout)})
-            temp_remove["exists_after"] = bool(self.temp_u and self.temp_u.exists())
+                try:
+                    p = subprocess.run([self.a.powershell, "-NoProfile", "-Command",
+                                        "Remove-Item -LiteralPath '" + self.temp_w.replace("'", "''") + "' -Recurse -Force -ErrorAction SilentlyContinue"],
+                                       text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=False, timeout=60)
+                    temp_remove.update({"exit_code": p.returncode, "output": self.redact(p.stdout)})
+                except Exception as error:
+                    detail = self.redact("RUN_TEMP_REMOVAL_FAILED: " + type(error).__name__ + ": " + str(error))
+                    secondary_cleanup_failures.append(detail)
+                    self.events.append({"at": utc(), "event": "secondary_cleanup_failure", "detail": detail})
+                    temp_remove.update({"exit_code": None, "error_code": "RUN_TEMP_REMOVAL_FAILED"})
+            try:
+                temp_remove["exists_after"] = bool(self.temp_u and self.temp_u.exists())
+            except Exception as error:
+                detail = self.redact("RUN_TEMP_FINAL_STATE_FAILED: " + type(error).__name__ + ": " + str(error))
+                secondary_cleanup_failures.append(detail)
+                self.events.append({"at": utc(), "event": "secondary_cleanup_failure", "detail": detail})
+                temp_remove["exists_after"] = True
             self.cleanup = {"owned_process_stops": stops, "final_authorized_port_listeners": final_ports,
                             "target_integrity_pre": pre_integrity, "target_integrity_post": post_integrity,
-                            "target_integrity_equal": integrity_equal, "run_temp_removal": temp_remove}
-            if final_ports or temp_remove["exists_after"] or (pre_integrity is not None and not integrity_equal):
-                self.decision = "NO_GO"; self.exact_stop_reason = "CLEANUP_OR_TARGET_INTEGRITY_NOT_PROVEN"
+                            "target_integrity_equal": integrity_equal, "run_temp_removal": temp_remove,
+                            "secondary_cleanup_failures": secondary_cleanup_failures}
+            if (secondary_cleanup_failures or final_ports or temp_remove["exists_after"] or
+                    (pre_integrity is not None and not integrity_equal)):
+                if primary_stop_reason:
+                    self.events.append({"at": utc(), "event": "secondary_cleanup_failure",
+                                        "detail": "CLEANUP_OR_TARGET_INTEGRITY_NOT_PROVEN"})
+                else:
+                    self.decision = "NO_GO"; self.exact_stop_reason = "CLEANUP_OR_TARGET_INTEGRITY_NOT_PROVEN"
             self.emit("commands.json", {"commands": self.commands})
             self.emit("events.json", {"events": self.events})
             self.emit("resource-samples.json", {"gpu_stop_threshold_mib": GPU_STOP_MIB, "samples": self.resource_samples})
@@ -911,8 +978,13 @@ class Probe:
             self.sanitize_logs()
             request_trace_document = self.emit_request_trace()
             if any(self.attempts.values()) and not request_trace_document["all_started_calls_cleaned"]:
-                self.decision = "NO_GO"
-                self.exact_stop_reason = "OLLAMA_REQUEST_CLEANUP_CORRELATION_FAILED"
+                if primary_stop_reason:
+                    self.events.append({"at": utc(), "event": "secondary_cleanup_failure",
+                                        "detail": "OLLAMA_REQUEST_CLEANUP_CORRELATION_FAILED"})
+                    self.emit("events.json", {"events": self.events})
+                else:
+                    self.decision = "NO_GO"
+                    self.exact_stop_reason = "OLLAMA_REQUEST_CLEANUP_CORRELATION_FAILED"
             summary = {"schema_version": "lvw.live-probe/1", "run_id": self.run_id, "candidate_sha": self.candidate,
                        "authorization_commit": self.authorization_commit, "started_at": self.started, "ended_at": utc(),
                        "decision": self.decision, "stage_pass_claim": False, "exact_stop_reason": self.exact_stop_reason,
@@ -923,7 +995,8 @@ class Probe:
                        "pre_model_gate": self.pre_model_gate,
                        "cleanup_proven": not bool(self.cleanup.get("final_authorized_port_listeners")) and
                                          not self.cleanup.get("run_temp_removal", {}).get("exists_after", True) and
-                                         self.cleanup.get("target_integrity_equal", False)}
+                                         self.cleanup.get("target_integrity_equal", False) and
+                                         not self.cleanup.get("secondary_cleanup_failures")}
             self.emit("run-summary.json", summary)
             self.manifest()
             ev_rel = self.ev.relative_to(self.root).as_posix().rstrip("/") + "/"
@@ -936,6 +1009,14 @@ class Probe:
             request_trace = json.loads((self.ev / "ollama-request-trace.json").read_text(encoding="utf-8"))
             correction_files = sorted(p.relative_to(self.root).as_posix() for p in self.ev.iterdir() if p.is_file())
             receipt_rel = self.receipt_path.relative_to(self.root).as_posix()
+            preflight_path = self.ev / "preflight-baseline.json"
+            try:
+                preflight = json.loads(preflight_path.read_text(encoding="utf-8")) if preflight_path.exists() else {
+                    "passed": False, "status": "NOT_REACHED", "stop_reasons": [self.exact_stop_reason]}
+            except (OSError, json.JSONDecodeError) as error:
+                preflight = {"passed": False, "status": "ARTIFACT_UNREADABLE",
+                             "stop_reasons": ["WINDOWS_OWNER_ENUMERATION_FAILED"],
+                             "failure_subcode": type(error).__name__}
             raw_refs = [ev_rel + name for name in
                         ("ollama-live.log", "comfy-live.log", "ollama-version.json", "ollama-tags.json",
                          "ollama-show.json", "ollama-ps_start.json", "ollama-ps-final-before-stop.json",
@@ -981,7 +1062,7 @@ class Probe:
                 "cleanup": {"proven": summary["cleanup_proven"], "details": ev_rel + "cleanup.json"},
                 "check_results": [
                     {"check": "windows_native_service_preflight", "status": "PASS" if
-                     json.loads((self.ev / "preflight-baseline.json").read_text()).get("passed") else "FAIL"},
+                     preflight.get("passed") else "BLOCKED", "details": preflight},
                     {"check": "windows_native_no_cloud_server_raw", "status": "PASS" if self.no_cloud_reported_true else "FAIL"},
                     {"check": "pre_model_remote_tcp_gate", "status": "PASS" if self.pre_model_gate.get("passed") else "FAIL"},
                     {"check": "comfy_main_and_cwd_windows_path_conversion", "status": "PASS" if (self.ev / "comfy-path-conversion.json").exists() else "FAIL"},
@@ -989,11 +1070,11 @@ class Probe:
                     {"check": "public_comfy_video_route", "status": "PASS" if any(x.get("pass") for x in self.attempts["video"]) else "NOT_RUN_OR_FAIL"},
                     {"check": "cleanup_and_target_integrity", "status": "PASS" if summary["cleanup_proven"] else "FAIL"}],
                 "artifact_manifest": ev_rel + "artifact-manifest.json",
-                "artifact_refs": [ev_rel + "run-summary.json", ev_rel + "cleanup.json", ev_rel + "preflight-baseline.json",
-                                  ev_rel + "pre-model-gate.json",
-                                  ev_rel + "comfy-path-conversion.json",
-                                  ev_rel + "owned-ollama-remote-tcp.json", ev_rel + "resource-samples.json",
-                                  ev_rel + "ollama-request-trace.json", ev_rel + "artifact-manifest.json"],
+                "artifact_refs": [ev_rel + name for name in
+                                  ("run-summary.json", "cleanup.json", "preflight-baseline.json", "pre-model-gate.json",
+                                   "comfy-path-conversion.json", "owned-ollama-remote-tcp.json", "resource-samples.json",
+                                   "ollama-request-trace.json", "artifact-manifest.json")
+                                  if (self.ev / name).exists()],
                 "raw_artifact_refs": raw_refs,
                 "risks": ["Live semantic output remains model- and sample-specific; this receipt is not a Stage PASS.",
                           "The four fixed product acceptance cases remain NOT_RUN."]}
