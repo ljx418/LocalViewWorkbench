@@ -1,0 +1,159 @@
+{
+  "attempt": 1,
+  "ended_at": "2026-10-27T08:07:59Z",
+  "failure": "KeyError: '2'",
+  "history": {
+    "meta": {},
+    "outputs": {},
+    "prompt": [
+      0,
+      "619b460e-e019-47ae-b329-78dea0d418f9",
+      {
+        "1": {
+          "class_type": "LoadImage",
+          "inputs": {
+            "image": "image.png"
+          }
+        },
+        "2": {
+          "class_type": "LVWImagePromptBridge",
+          "inputs": {
+            "image": [
+              "1",
+              0
+            ],
+            "mode": "realistic",
+            "model": "gemma4:26b",
+            "timeout_seconds": 120,
+            "user_instruction": "Describe only visible evidence for prompt assistance."
+          }
+        }
+      },
+      {
+        "client_id": "v0-s0-correction-06-live-20261027-01",
+        "create_time": 1793088352409
+      },
+      [
+        "2"
+      ]
+    ],
+    "status": {
+      "completed": false,
+      "messages": [
+        [
+          "execution_start",
+          {
+            "prompt_id": "619b460e-e019-47ae-b329-78dea0d418f9",
+            "timestamp": 1793088352410
+          }
+        ],
+        [
+          "execution_cached",
+          {
+            "nodes": [],
+            "prompt_id": "619b460e-e019-47ae-b329-78dea0d418f9",
+            "timestamp": 1793088352411
+          }
+        ],
+        [
+          "execution_error",
+          {
+            "current_inputs": {
+              "image": [
+                "tensor([[[[0.9961, 0.9961, 0.9961],\n          [0.9961, 0.9961, 0.9961],\n          [0.9961, 0.9961, 0.9961],\n          ...,\n          [0.9961, 0.9961, 0.9961],\n          [0.9961, 0.9961, 0.9961],\n          [0.9961, 0.9961, 0.9961]],\n\n         [[0.9961, 0.9961, 0.9961],\n          [0.9961, 0.9961, 0.9961],\n          [0.9961, 0.9961, 0.9961],\n          ...,\n          [0.9961, 0.9961, 0.9961],\n          [0.9961, 0.9961, 0.9961],\n          [0.9961, 0.9961, 0.9961]],\n\n         [[0.9961, 0.9961, 0.9961],\n          [0.9961, 0.9961, 0.9961],\n          [0.9961, 0.9961, 0.9961],\n          ...,\n          [0.9961, 0.9961, 0.9961],\n          [0.9961, 0.9961, 0.9961],\n          [0.9961, 0.9961, 0.9961]],\n\n         ...,\n\n         [[0.9961, 0.9961, 0.9961],\n          [0.9961, 0.9961, 0.9961],\n          [0.9961, 0.9961, 0.9961],\n          ...,\n          [0.9961, 0.9961, 0.9961],\n          [0.9961, 0.9961, 0.9961],\n          [0.9961, 0.9961, 0.9961]],\n\n         [[0.9961, 0.9961, 0.9961],\n          [0.9961, 0.9961, 0.9961],\n          [0.9961, 0.9961, 0.9961],\n          ...,\n          [0.9961, 0.9961, 0.9961],\n          [0.9961, 0.9961, 0.9961],\n          [0.9961, 0.9961, 0.9961]],\n\n         [[0.9961, 0.9961, 0.9961],\n          [0.9961, 0.9961, 0.9961],\n          [0.9961, 0.9961, 0.9961],\n          ...,\n          [0.9961, 0.9961, 0.9961],\n          [0.9961, 0.9961, 0.9961],\n          [0.9961, 0.9961, 0.9961]]]])"
+              ],
+              "mode": [
+                "realistic"
+              ],
+              "model": [
+                "gemma4:26b"
+              ],
+              "timeout_seconds": [
+                120
+              ],
+              "user_instruction": [
+                "Describe only visible evidence for prompt assistance."
+              ]
+            },
+            "current_outputs": [
+              "2",
+              "1"
+            ],
+            "exception_message": "{\"code\":\"MODEL_TIMEOUT\",\"details\":{\"subcode\":\"OLLAMA_TIMEOUT\"},\"message\":\"Ollama request timed out\"}\n",
+            "exception_type": "RUN_TEMP\\custom_nodes\\lvw_v0_bridge.core.BridgeError",
+            "executed": [
+              "1"
+            ],
+            "node_id": "2",
+            "node_type": "LVWImagePromptBridge",
+            "prompt_id": "619b460e-e019-47ae-b329-78dea0d418f9",
+            "timestamp": 1793088472992,
+            "traceback": [
+              "  File \"WINDOWS_ABSOLUTE_PATH\", line 548, in execute\n    output_data, output_ui, has_subgraph, has_pending_tasks = await get_output_data(prompt_id, unique_id, obj, input_data_all, execution_block_cb=execution_block_cb, pre_execute_cb=pre_execute_cb, v3_data=v3_data)\n                                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n",
+              "  File \"WINDOWS_ABSOLUTE_PATH\", line 353, in get_output_data\n    return_values = await _async_map_node_over_list(prompt_id, unique_id, obj, input_data_all, obj.FUNCTION, allow_interrupt=True, execution_block_cb=execution_block_cb, pre_execute_cb=pre_execute_cb, v3_data=v3_data)\n                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n",
+              "  File \"WINDOWS_ABSOLUTE_PATH\", line 327, in _async_map_node_over_list\n    await process_inputs(input_dict, i)\n",
+              "  File \"WINDOWS_ABSOLUTE_PATH\", line 315, in process_inputs\n    result = f(**inputs)\n             ^^^^^^^^^^^\n",
+              "  File \"RUN_TEMP\\custom_nodes\\lvw_v0_bridge\\nodes.py\", line 36, in analyze\n    raw, suggestion = self._owner.analyze_image(image, model=model, user_instruction=user_instruction,\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n",
+              "  File \"RUN_TEMP\\custom_nodes\\lvw_v0_bridge\\core.py\", line 415, in analyze_image\n    call = call_one_frame(transport=self.transport, encoder=self.encoder, frame=frames[0], model=model,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n",
+              "  File \"RUN_TEMP\\custom_nodes\\lvw_v0_bridge\\core.py\", line 358, in call_one_frame\n    raise primary_error\n",
+              "  File \"RUN_TEMP\\custom_nodes\\lvw_v0_bridge\\core.py\", line 342, in call_one_frame\n    raw = transport.chat(payload, timeout_seconds)\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n",
+              "  File \"RUN_TEMP\\custom_nodes\\lvw_v0_bridge\\core.py\", line 310, in chat\n    return self._post(self.endpoint, payload, timeout_seconds)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n",
+              "  File \"RUN_TEMP\\custom_nodes\\lvw_v0_bridge\\core.py\", line 298, in _post\n    raise BridgeError(\"MODEL_TIMEOUT\", \"Ollama request timed out\", subcode=\"OLLAMA_TIMEOUT\") from exc\n"
+            ]
+          }
+        ]
+      ],
+      "status_str": "error"
+    }
+  },
+  "history_http_status": 200,
+  "kind": "image",
+  "pass": false,
+  "prompt_http_status": 200,
+  "prompt_id": "619b460e-e019-47ae-b329-78dea0d418f9",
+  "prompt_payload": {
+    "client_id": "v0-s0-correction-06-live-20261027-01",
+    "prompt": {
+      "1": {
+        "class_type": "LoadImage",
+        "inputs": {
+          "image": "image.png"
+        }
+      },
+      "2": {
+        "class_type": "LVWImagePromptBridge",
+        "inputs": {
+          "image": [
+            "1",
+            0
+          ],
+          "mode": "realistic",
+          "model": "gemma4:26b",
+          "timeout_seconds": 120,
+          "user_instruction": "Describe only visible evidence for prompt assistance."
+        }
+      }
+    }
+  },
+  "prompt_raw_response": "{\"prompt_id\": \"619b460e-e019-47ae-b329-78dea0d418f9\", \"number\": 0, \"node_errors\": {}}",
+  "resource_release_observations": [
+    {
+      "delay_seconds": 0,
+      "http_status": 200,
+      "parsed": {
+        "models": []
+      },
+      "raw_response": "{\"models\":[]}"
+    },
+    {
+      "delay_seconds": 5,
+      "http_status": 200,
+      "parsed": {
+        "models": []
+      },
+      "raw_response": "{\"models\":[]}"
+    }
+  ],
+  "route": "Comfy public /prompt",
+  "started_at": "2026-10-27T08:05:53Z"
+}

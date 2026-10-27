@@ -1,0 +1,179 @@
+{
+  "acceptance_hash": "78b158e135be4da756e27ced9f57c74e78feb926bcaf95eda2e2a6992c9a7b42",
+  "acceptance_hash_binding": {
+    "algorithm": "sha256",
+    "source": ".agent-governance/stages/V0-S0/04-acceptance-matrix.md",
+    "target": "sorted fixed acceptance IDs V0-A01,V0-A02,V0-A09,V0-A10 joined by LF with a trailing LF"
+  },
+  "artifact_manifest": "reports/v0-s0/correction-06/artifact-manifest.json",
+  "artifact_refs": [
+    "reports/v0-s0/correction-06/run-summary.json",
+    "reports/v0-s0/correction-06/cleanup.json",
+    "reports/v0-s0/correction-06/pre-model-gate.json",
+    "reports/v0-s0/correction-06/comfy-path-conversion.json",
+    "reports/v0-s0/correction-06/owned-ollama-remote-tcp.json",
+    "reports/v0-s0/correction-06/resource-samples.json",
+    "reports/v0-s0/correction-06/ollama-request-trace.json",
+    "reports/v0-s0/correction-06/artifact-manifest.json"
+  ],
+  "authorization_commit": "558bdb7d616d6fd908ff8de9a0de4ab59569afe7",
+  "candidate_sha": "138b4486fdaeb8d207ef6b5efb63a09865f174b9",
+  "changed_files": [
+    "reports/v0-s0/correction-06/artifact-manifest.json",
+    "reports/v0-s0/correction-06/attempt-image-1.json",
+    "reports/v0-s0/correction-06/candidate-materialization.json",
+    "reports/v0-s0/correction-06/cleanup.json",
+    "reports/v0-s0/correction-06/comfy-live.log",
+    "reports/v0-s0/correction-06/comfy-object-info.json",
+    "reports/v0-s0/correction-06/comfy-path-conversion.json",
+    "reports/v0-s0/correction-06/commands.json",
+    "reports/v0-s0/correction-06/events.json",
+    "reports/v0-s0/correction-06/media-derivatives.json",
+    "reports/v0-s0/correction-06/ollama-live.log",
+    "reports/v0-s0/correction-06/ollama-ps-after-image-1.json",
+    "reports/v0-s0/correction-06/ollama-ps-final-before-stop.json",
+    "reports/v0-s0/correction-06/ollama-ps_start.json",
+    "reports/v0-s0/correction-06/ollama-request-trace.json",
+    "reports/v0-s0/correction-06/ollama-show.json",
+    "reports/v0-s0/correction-06/ollama-tags.json",
+    "reports/v0-s0/correction-06/ollama-version.json",
+    "reports/v0-s0/correction-06/owned-ollama-remote-tcp.json",
+    "reports/v0-s0/correction-06/pre-model-gate.json",
+    "reports/v0-s0/correction-06/preflight-baseline.json",
+    "reports/v0-s0/correction-06/probe.py",
+    "reports/v0-s0/correction-06/resource-samples.json",
+    "reports/v0-s0/correction-06/run-summary.json",
+    "reports/v0-s0/correction-06/sample-verification.json",
+    "reports/v0-s0/implementation-receipt-correction-06-live.json"
+  ],
+  "check_results": [
+    {
+      "check": "windows_native_no_cloud_server_raw",
+      "status": "PASS"
+    },
+    {
+      "check": "pre_model_remote_tcp_gate",
+      "status": "PASS"
+    },
+    {
+      "check": "comfy_main_and_cwd_windows_path_conversion",
+      "status": "PASS"
+    },
+    {
+      "check": "public_comfy_image_route",
+      "status": "NOT_RUN_OR_FAIL"
+    },
+    {
+      "check": "public_comfy_video_route",
+      "status": "NOT_RUN_OR_FAIL"
+    },
+    {
+      "check": "cleanup_and_target_integrity",
+      "status": "PASS"
+    }
+  ],
+  "cleanup": {
+    "details": "reports/v0-s0/correction-06/cleanup.json",
+    "proven": true
+  },
+  "contract_changes": "none",
+  "decision": "NO_GO",
+  "effective_attempts": {
+    "image": 1,
+    "video": 0
+  },
+  "environment": {
+    "comfy_bind": "127.0.0.1:8191",
+    "comfy_main_and_cwd_conversion": "wslpath -w with Windows-drive-pattern and no-/mnt self-check",
+    "model": "gemma4:26b",
+    "model_digest": "5571076f3d70050487b26b341705799e0ab29b808164f90d20d4cf84f699d251",
+    "ollama_endpoint": "http://127.0.0.1:11434",
+    "ollama_start": "Windows-native PowerShell per-process environment wrapper",
+    "required_no_cloud_observed": true
+  },
+  "evidence_commit": "0000000000000000000000000000000000000000",
+  "evidence_commit_status": "PENDING_ROOT_SEALING",
+  "exact_stop_reason": "OLLAMA_REQUEST_TRACE_SEQUENCE_OR_CLEANUP_FAILED",
+  "external_actions": {
+    "comfyui_process_starts": 1,
+    "downloads_or_upgrades": 0,
+    "external_cost": 0,
+    "model_calls": 1,
+    "ollama_process_starts": 1,
+    "target_install_writes": 0,
+    "visible_browser_runs": 0
+  },
+  "gate_version": "lvw-gate/1",
+  "implementation_owner_role": "codex_isolated_implementer",
+  "implementation_session": "/root/s0_rerun_implementer",
+  "live_route_counts": {
+    "image": {
+      "pass": 0,
+      "total": 1
+    },
+    "video": {
+      "pass": 0,
+      "total": 0
+    }
+  },
+  "network": {
+    "evidence": "reports/v0-s0/correction-06/owned-ollama-remote-tcp.json",
+    "owned_ollama_non_loopback_remote_seen": false
+  },
+  "pre_model_gate": {
+    "minimum_samples": 5,
+    "minimum_seconds": 10,
+    "no_cloud_reported_true": true,
+    "non_loopback_count": 0,
+    "observed_seconds": 10.009284740999647,
+    "passed": true,
+    "sample_count": 9
+  },
+  "product_acceptance": {
+    "V0-A01": "NOT_RUN",
+    "V0-A02": "NOT_RUN",
+    "V0-A09": "NOT_RUN",
+    "V0-A10": "NOT_RUN"
+  },
+  "production_path_status": "PARTIAL_OR_FAILED_PUBLIC_COMFY_TRACE",
+  "project_id": "lvw-prompt-service",
+  "public_end_to_end_trace_refs": [
+    "reports/v0-s0/correction-06/attempt-image-1.json"
+  ],
+  "raw_artifact_refs": [
+    "reports/v0-s0/correction-06/ollama-live.log",
+    "reports/v0-s0/correction-06/comfy-live.log",
+    "reports/v0-s0/correction-06/ollama-version.json",
+    "reports/v0-s0/correction-06/ollama-tags.json",
+    "reports/v0-s0/correction-06/ollama-show.json",
+    "reports/v0-s0/correction-06/ollama-ps_start.json",
+    "reports/v0-s0/correction-06/ollama-ps-final-before-stop.json",
+    "reports/v0-s0/correction-06/owned-ollama-remote-tcp.json",
+    "reports/v0-s0/correction-06/resource-samples.json",
+    "reports/v0-s0/correction-06/pre-model-gate.json"
+  ],
+  "resource": {
+    "gpu_stop_threshold_mib": 23552,
+    "minimum_host_available_ram_mib": 11362,
+    "peak_gpu_used_mib": 23521
+  },
+  "risks": [
+    "Live semantic output remains model- and sample-specific; this receipt is not a Stage PASS.",
+    "The four fixed product acceptance cases remain NOT_RUN."
+  ],
+  "run_id": "v0-s0-correction-06-live-20261027-01",
+  "schema_version": "lvw.implementation-receipt/1",
+  "spec_version": "2.1.0",
+  "stage_id": "V0-S0",
+  "stage_pass_claim": false,
+  "target_configuration_changes": "none",
+  "test_counts": {
+    "blocked": 0,
+    "denominator": 4,
+    "fail": 0,
+    "not_run": 4,
+    "pass": 0,
+    "skipped": 0
+  },
+  "workpack_id": "WP-S0-16"
+}
