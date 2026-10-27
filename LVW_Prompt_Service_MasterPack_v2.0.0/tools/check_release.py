@@ -1,8 +1,18 @@
 #!/usr/bin/env python3
 """Fail-closed release evidence checker. Does not establish evidence truthfulness."""
 from pathlib import Path
-import argparse, json, hashlib, math, sys
+import argparse, json, hashlib, math, re, sys
 ROOT=Path(__file__).resolve().parents[1]
+
+def checked_artifact(root, item, label, errors):
+ try:
+  p=(root/item['path']).resolve()
+  if not p.is_relative_to(root) or not p.is_file():raise ValueError('outside root or missing')
+  if hashlib.sha256(p.read_bytes()).hexdigest()!=item['sha256']:raise ValueError('hash mismatch')
+  return p
+ except Exception as exc:
+  errors.append(label+': evidence '+str(exc));return None
+
 def main():
  ap=argparse.ArgumentParser();ap.add_argument('report',type=Path);ap.add_argument('--target',choices=['V0','V1','V2','V3'],required=True);ap.add_argument('--evidence-root',type=Path);args=ap.parse_args()
  errors=[]
@@ -14,20 +24,33 @@ def main():
   cid=c.get('case_id')
   if cid in seen:errors.append('duplicate case '+str(cid))
   seen[cid]=c
- for field in ['run_id','application_commit','target_environment']:
+ for field in ['run_id','application_commit','implementation_owner','target_environment']:
   if not report.get(field):errors.append('missing '+field)
+ commit=report.get('application_commit')
+ if not isinstance(commit,str) or not re.fullmatch(r'[0-9a-f]{40}',commit):errors.append('application_commit must be a full lowercase Git SHA')
+ expected_acceptance_hash=hashlib.sha256(('\n'.join(sorted(required))+'\n').encode()).hexdigest()
+ if report.get('acceptance_hash')!=expected_acceptance_hash:errors.append('acceptance_hash does not bind the fixed release denominator')
  for cid in required:
   c=seen.get(cid,{})
   if c.get('status')!='PASS':errors.append(cid+': not PASS')
+  if c.get('candidate_sha')!=commit:errors.append(cid+': candidate mismatch')
+  if c.get('run_id')!=report.get('run_id'):errors.append(cid+': run mismatch')
   if c.get('observed') is None:errors.append(cid+': no actual observations')
   evidence=c.get('evidence') or []
   if not evidence:errors.append(cid+': no evidence')
   for e in evidence:
-   try:
-    p=(root/e['path']).resolve()
-    if not p.is_relative_to(root) or not p.is_file():raise ValueError('outside root or missing')
-    if hashlib.sha256(p.read_bytes()).hexdigest()!=e['sha256']:raise ValueError('hash mismatch')
-   except Exception as exc:errors.append(cid+': evidence '+str(exc))
+   checked_artifact(root,e,cid,errors)
+ independent=report.get('independent_review') or {}
+ if independent.get('decision')!='PASS':errors.append('independent review is not PASS')
+ if not independent.get('reviewer') or independent.get('reviewer')==report.get('implementation_owner'):errors.append('independent reviewer missing or not separated')
+ if independent.get('candidate_sha')!=commit:errors.append('independent review candidate mismatch')
+ checked_artifact(root,independent,'independent review',errors)
+ signoff=report.get('human_signoff') or {}
+ if signoff.get('decision')!='APPROVED':errors.append('human signoff is not APPROVED')
+ for field in ('signer','signed_at'):
+  if not signoff.get(field):errors.append('human signoff missing '+field)
+ if signoff.get('scope')!=args.target+'_RELEASE':errors.append('human signoff scope mismatch')
+ if signoff.get('candidate_sha')!=commit:errors.append('human signoff candidate mismatch')
  m=report.get('metrics',{})
  def number(key):
   value=m.get(key)
@@ -55,5 +78,5 @@ def main():
  if m.get('oom_count')!=0:errors.append('oom_count must be measured as zero')
  if errors:
   print(json.dumps({'decision':args.target+'_NOT_ACCEPTED','errors':errors},ensure_ascii=False,indent=2));return 1
- print(json.dumps({'decision':'EVIDENCE_STRUCTURE_VALID','candidate_release':args.target+'_ACCEPTED','warning':'This checks evidence presence, hashes and numeric gates only. Human review must verify evidence authenticity, quality annotation and semantic assertions.'},ensure_ascii=False,indent=2));return 0
+ print(json.dumps({'decision':'EVIDENCE_STRUCTURE_VALID','candidate_release':args.target+'_ACCEPTED','warning':'This verifies signoff structure and binding, not signer identity or semantic authenticity; those remain human and independent-review responsibilities.'},ensure_ascii=False,indent=2));return 0
 if __name__=='__main__':sys.exit(main())
