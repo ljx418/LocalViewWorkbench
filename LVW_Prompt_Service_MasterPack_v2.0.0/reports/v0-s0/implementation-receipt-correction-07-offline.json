@@ -1,0 +1,208 @@
+{
+  "schema_version": "lvw.implementation-receipt/1",
+  "spec_version": "2.4.0",
+  "project_id": "lvw-prompt-service",
+  "stage_id": "V0-S0",
+  "workpack_id": "WP-S0-18+WP-S0-19",
+  "workpack_ids": [
+    "WP-S0-18",
+    "WP-S0-19"
+  ],
+  "run_id": "v0-s0-correction-07-offline-20261027-01",
+  "stage_packet_commit": "67a3473f9be39328f0cbd706e2284d14062a752f",
+  "baseline_candidate_sha": "138b4486fdaeb8d207ef6b5efb63a09865f174b9",
+  "candidate_sha": "0000000000000000000000000000000000000000",
+  "candidate_sha_status": "PENDING_ROOT_SEALING",
+  "evidence_commit": "0000000000000000000000000000000000000000",
+  "evidence_commit_status": "PENDING_ROOT_SEALING",
+  "acceptance_hash": "78b158e135be4da756e27ced9f57c74e78feb926bcaf95eda2e2a6992c9a7b42",
+  "acceptance_hash_binding": {
+    "algorithm": "sha256",
+    "target": "sorted fixed acceptance IDs V0-A01,V0-A02,V0-A09,V0-A10 joined by LF with a trailing LF",
+    "source": ".agent-governance/stages/V0-S0/04-acceptance-matrix.md"
+  },
+  "gate_version": "lvw-gate/1",
+  "implementation_owner_role": "codex_isolated_implementer",
+  "implementation_session": "/root/s0_rerun_implementer",
+  "decision": "READY_FOR_REVIEW",
+  "stage_pass_claim": false,
+  "exact_stop_reason": "WP_S0_18_19_OFFLINE_HARNESS_CORRECTION_COMPLETE",
+  "environment": {
+    "execution_mode": "offline deterministic fixtures only",
+    "repository_python": "python3",
+    "comfyui_process_starts": 0,
+    "ollama_process_starts": 0,
+    "network_calls": 0,
+    "model_calls": 0
+  },
+  "changed_files": [
+    "tools/v0_s0_live_probe.py",
+    "tools/test_v0_s0_live_probe.py",
+    "MANIFEST.sha256",
+    "reports/v0-s0/implementation-receipt-correction-07-offline.json"
+  ],
+  "artifact_sha256": [
+    {
+      "path": "tools/v0_s0_live_probe.py",
+      "sha256": "706b408b822609d7a0d361f1de5c13c683eff35071110ee3d7676fdd14838ace"
+    },
+    {
+      "path": "tools/test_v0_s0_live_probe.py",
+      "sha256": "2d50d7f4b01377c29f02a71631da91b18c2faf800c0209918c7df025c7464eed"
+    },
+    {
+      "path": "MANIFEST.sha256",
+      "sha256": "e47745d71bc77ddc3539457e18bb43d50ae4f80e78f331b550ccfc879cce65ca"
+    }
+  ],
+  "contract_changes": "none",
+  "target_configuration_changes": "none",
+  "implementation_change": {
+    "scope": "reusable V0-S0 live harness only",
+    "parameterized_bindings": [
+      "run_id",
+      "candidate_sha",
+      "authorization_commit",
+      "evidence_dir",
+      "receipt_path",
+      "spec_version",
+      "workpack_id"
+    ],
+    "service_preflight": "Before any service start, compare Windows-native and WSL GPU samples with exact total memory and <=128 MiB used/free deltas, require used <=4096 MiB, enumerate Win32_Process command lines and Windows listeners/PIDs, and reject any Comfy portable Python, Ollama, 8191 or 11434 owner.",
+    "cleanup_correlation": "Use chat/cleanup counts, cleanup HTTP 200, terminal /api/ps empty and final cleanup proof; retain raw server completion order only as diagnosis.",
+    "history_primary_error": "Preserve stable execution_error code/subcode such as MODEL_TIMEOUT/OLLAMA_TIMEOUT when history has no outputs.",
+    "unchanged_boundaries": [
+      "120 second node timeout",
+      "23552 MiB live stop threshold",
+      "semantic and prompt-echo Oracle",
+      "candidate bridge code",
+      "fixed product denominator"
+    ]
+  },
+  "commands": [
+    {
+      "logical_command": "python3 -B -m unittest -v tools/test_v0_s0_live_probe.py",
+      "exit_code": 0,
+      "tests_run": 19,
+      "result": "OK"
+    },
+    {
+      "logical_command": "python3 -B - (AST parse tools/v0_s0_live_probe.py and tools/test_v0_s0_live_probe.py)",
+      "exit_code": 0,
+      "result": "AST PASS"
+    },
+    {
+      "logical_command": "python3 -B tools/v0_s0_live_probe.py --help",
+      "exit_code": 0,
+      "result": "PASS"
+    },
+    {
+      "logical_command": "python3 -B tools/v0_s0_live_probe.py --self-check",
+      "exit_code": 0,
+      "result": "PASS; service_started=false"
+    },
+    {
+      "logical_command": "python3 -B tools/verify_pack.py --schema",
+      "exit_code": 0,
+      "result": "1015 passed, 0 failed; not product acceptance"
+    },
+    {
+      "logical_command": "python3 -B tools/verify_governance.py",
+      "exit_code": 0,
+      "result": "37 passed, 0 failed; not product acceptance"
+    },
+    {
+      "logical_command": "python3 -B tools/verify_governance.py --self-test",
+      "exit_code": 0,
+      "result": "42 passed, 0 failed; not product acceptance"
+    }
+  ],
+  "check_results": [
+    {
+      "check": "windows_native_clean_preflight",
+      "status": "PASS_OFFLINE",
+      "tests": [
+        "test_clean_baseline_passes",
+        "test_live_run_orders_preflight_before_any_service_start"
+      ]
+    },
+    {
+      "check": "windows_native_preflight_fail_closed",
+      "status": "PASS_OFFLINE",
+      "tests": [
+        "test_used_above_4096_fails_closed",
+        "test_windows_wsl_samples_within_128_mib_tolerance_pass",
+        "test_windows_wsl_samples_over_128_mib_tolerance_fail_closed",
+        "test_comfy_portable_python_fails_closed",
+        "test_ollama_process_fails_closed",
+        "test_port_owner_fails_closed"
+      ],
+      "service_starts_on_rejection": 0
+    },
+    {
+      "check": "cleanup_correlation_and_raw_completion_order",
+      "status": "PASS_OFFLINE",
+      "tests": [
+        "test_normal_chat_then_cleanup",
+        "test_timeout_cleanup_then_chat_499_is_cleaned",
+        "test_planned_one_with_empty_log_is_not_cleaned",
+        "test_planned_four_partial_one_pair_proves_started_call_cleaned",
+        "test_observed_calls_over_plan_is_not_cleaned",
+        "test_missing_cleanup_fails",
+        "test_non_200_cleanup_fails",
+        "test_nonempty_terminal_ps_fails"
+      ]
+    },
+    {
+      "check": "history_primary_error_preservation",
+      "status": "PASS_OFFLINE",
+      "tests": [
+        "test_history_error_preserves_model_timeout_primary_cause",
+        "test_public_attempt_keeps_history_primary_cause_without_keyerror"
+      ]
+    }
+  ],
+  "offline_test_counts": {
+    "repository_python": {
+      "pass": 19,
+      "fail": 0,
+      "total": 19
+    },
+    "executions_total": 19
+  },
+  "test_counts": {
+    "denominator": 4,
+    "pass": 0,
+    "fail": 0,
+    "blocked": 0,
+    "skipped": 0,
+    "not_run": 4
+  },
+  "product_acceptance": {
+    "V0-A01": "NOT_RUN",
+    "V0-A02": "NOT_RUN",
+    "V0-A09": "NOT_RUN",
+    "V0-A10": "NOT_RUN"
+  },
+  "external_actions": {
+    "comfyui_process_starts": 0,
+    "ollama_process_starts": 0,
+    "network_calls": 0,
+    "downloads_or_upgrades": 0,
+    "target_install_writes": 0,
+    "visible_browser_runs": 0,
+    "external_cost": 0
+  },
+  "production_path_status": "NOT_RUN_OFFLINE_WORKPACK",
+  "public_end_to_end_trace_refs": [],
+  "artifact_refs": [
+    "tools/v0_s0_live_probe.py",
+    "tools/test_v0_s0_live_probe.py"
+  ],
+  "raw_artifact_refs": [],
+  "risks": [
+    "All harness behavior is proven with deterministic fixtures; WP-S0-20 still requires a new candidate-bound live authorization.",
+    "Windows process and WDDM GPU enumeration remain external observations whose live bytes must be preserved by the future authorized run.",
+    "The four fixed product acceptance cases remain NOT_RUN; this receipt is not a Stage PASS."
+  ]
+}
