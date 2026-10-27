@@ -486,6 +486,11 @@ def main() -> int:
         check(
             "checkpoint_coordinate",
             (
+                execution["coordinate"].get("workpack_id") == "WP-S0-30"
+                and execution["coordinate"].get("gate") == "GATE4_REAL_ACCEPTANCE"
+                and execution["coordinate"].get("state") == "BLOCKED"
+            )
+            or (
                 execution["coordinate"].get("workpack_id") == "WP-S0-05"
                 and execution["coordinate"].get("gate") == "GATE3_CHECKPOINT"
             )
