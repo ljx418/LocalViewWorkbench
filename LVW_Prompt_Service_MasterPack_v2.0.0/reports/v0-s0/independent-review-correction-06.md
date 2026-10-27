@@ -4,18 +4,18 @@
 
 审查对象为 packet commit `576748229a2423b78668175d1d63d3c933c60928`，候选 `138b4486fdaeb8d207ef6b5efb63a09865f174b9`，授权 `558bdb7d616d6fd908ff8de9a0de4ab59569afe7`，原始证据 `d337866d5f6bbb49f04d75ec0b4b1b79ba5d587e`，封存收据 `25ac028db0573b6c6d0d11ed04574db5ae1b0b86`。本次只进行了离线只读复算，未启动 ComfyUI/Ollama、未调用模型或网络，也未修改候选、原始证据或治理文件。
 
-严重度计数：Fatal **0** / Major **2** / Minor **2**。
+严重度计数：Fatal **0** / Major **3** / Minor **2**。
 
-建议 root 将本轮 S0 出口保持为 **NO_GO**，不得给出 Stage PASS：correction-06 的真实 Comfy 公共图片路径到达了候选节点，但模型调用在 120 秒超时，未产生可用语义结果；授权要求在公共路径失败后停止，因此视频有效尝试为 0，候选所针对的视频 prompt-handoff 修复仍没有新的真实闭环证据。严格 trace 的 cleanup 判定是 harness 假阴性，但修正该假阴性只会把停止原因恢复为真实的 `MODEL_TIMEOUT`，不会把功能结果改为成功。
+建议 root 将本轮 S0 出口保持为 **NO_GO**，不得给出 Stage PASS：correction-06 的真实 Comfy 公共图片路径到达了候选节点，但模型调用在 120 秒超时，未产生可用语义结果；更早的资源样本已经显示 23127 MiB GPU 占用且没有 owner 归属，按冻结 mandatory stop 本应在图片调用前停止，所以该超时发生于受污染、不可归因的验证环境，不能归因于该占用或任何单一组件。授权要求在公共路径失败后停止，因此视频有效尝试为 0，候选所针对的视频 prompt-handoff 修复仍没有新的真实闭环证据。严格 trace 的 cleanup 判定是 harness 假阴性，但修正该假阴性只会去掉错误的 cleanup-failure 理由，不会把受污染环境中的功能结果改为成功。
 
 ## Findings
 
-### M-01 — 真实公共图片调用在 120 秒超时，无可用输出（Major；环境/模型性能边界）
+### M-01 — 真实公共图片调用在受污染环境中 120 秒超时，无可用输出（Major；环境/性能不可归因）
 
 - 位置：`reports/v0-s0/correction-06/attempt-image-1.json:40-106,109-158`；`reports/v0-s0/correction-06/ollama-live.log:276-282`。
 - 触发：通过 Comfy `POST /prompt` 提交 `LVWImagePromptBridge`，设置 `timeout_seconds=120`，随后读取同一 `prompt_id` 的 history。
 - 预期：公共入口在预算内形成可由内容 Oracle 检验的非空 raw/suggestion，或至少以准确的失败码 fail-closed。
-- 实际：`/prompt` HTTP 200 且 `node_errors={}`，history HTTP 200，证明请求真实到达 `LVWImagePromptBridge`；约 120.582 秒后 history 记录 `MODEL_TIMEOUT/OLLAMA_TIMEOUT`，节点无 outputs，图片结果为 false。候选正确 fail-closed，但没有功能成功。Ollama 最终记录 `/api/chat` HTTP 499、耗时 `2m2s`。现有证据只能把失败定位到候选的 120 秒 HTTP 等待与本机 Ollama/model 未及时完成之间，不能进一步证明是候选算法缺陷、模型实现缺陷或当时环境调度中的哪一种。
+- 实际：`/prompt` HTTP 200 且 `node_errors={}`，history HTTP 200，证明请求真实到达 `LVWImagePromptBridge`；约 120.582 秒后 history 记录 `MODEL_TIMEOUT/OLLAMA_TIMEOUT`，节点无 outputs，图片结果为 false。候选正确 fail-closed，但没有功能成功。Ollama 最终记录 `/api/chat` HTTP 499、耗时 `2m2s`。然而 M-03 证明调用发生前环境已存在无法归属的高 GPU 占用，因此本次超时只能作为“污染环境中的真实超时”保留，不能用来区分候选算法缺陷、模型实现缺陷、外部 GPU 占用或其他环境调度原因。
 - 证据：attempt 的 execution start `1793088352410`、error `1793088472992`；候选 `core.py:285-310,325-358` 将超时转换为稳定公共错误并保留 primary error；Ollama log 的 chat 499。
 - 复现/复算（只读）：`nl -ba reports/v0-s0/correction-06/attempt-image-1.json | sed -n '1,180p'`；`rg -n '/api/(chat|generate|ps)' reports/v0-s0/correction-06/ollama-live.log`；`git show 138b448:LVW_Prompt_Service_MasterPack_v2.0.0/LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/core.py`。
 
@@ -27,6 +27,16 @@
 - 实际：图片 1 次、视频 0 次；没有 correction-06 视频 `/prompt`、四次 `/api/chat`、history 输出或视频内容 Oracle。四个派生帧及其 hash 存在，只证明输入准备，不证明视频候选路径。历史 correction-05 的图片公共路径曾通过，但视频第 1 帧因 `PROMPT_ECHO` 被拒；correction-06 的新候选真实运行没有覆盖该历史失败，故不能宣称修复已在线验证。
 - 证据：run summary `effective_attempts={image:1,video:0}`；receipt `live_route_counts.video={pass:0,total:0}`；correction-05 `run-summary.json` 的 `VIDEO_SEMANTIC_ORACLE_PROMPT_ECHO`；correction-06 `media-derivatives.json` 仅记录派生帧。
 - 复现/复算（只读）：`sed -n '1,80p' reports/v0-s0/correction-06/run-summary.json`；`sed -n '1,190p' reports/v0-s0/implementation-receipt-correction-06-live.json`；`sed -n '1,100p' reports/v0-s0/correction-05/run-summary.json`。
+
+### M-03 — 未识别的模型前 GPU 高占用未触发 mandatory stop（Major；harness/授权边界）
+
+- 位置：`reports/v0-s0/correction-06/preflight-baseline.json:1-4`、`resource-samples.json:1-95`、`ollama-ps_start.json:1-7`、`probe.py:251-290,397-432,730-747`；`authorization-correction-06.json:41-45`。
+- 触发：preflight 只查询 `nvidia-smi --query-compute-apps`，结果为空；sampler 在 owned Ollama listener 建立后才开始，并立即观察到接近门限、但无法归属到具体 PID/model 的 GPU 总占用。
+- 预期：冻结授权把 `unknown listener/GPU owner` 列为 mandatory stop。运行必须在媒体模型调用前证明 GPU 占用 owner 已知；不仅要检查 `used < 23552`，也不能以空 compute-app 列表把大量未归属占用视为干净环境。
+- 实际：首个资源样本在 08:05:28 已为 23127 MiB，随后模型调用前持续约 23079–23446 MiB；`ollama-ps_start` 在 08:05:38 仍为 `models=[]`，图片 attempt 到 08:05:53 才开始，Ollama log 到 08:05:55 才记录启动 llama-server/model load。故高占用明确早于本次模型调用。因为没有服务启动前的总显存样本，也没有能解释该占用的 PID/owner 映射，不能断言它来自外部进程还是 daemon/GPU discovery；这种不可归因性本身即满足 unknown-owner 停止条件。harness 只在 `used >= 23552` 时设置 `resource_stop`，于是越过 mandatory stop 继续启动 Comfy 和图片调用。
+- 证据：preflight `gpu_compute_apps=""`；采样线程在 `start_services()` 的 Ollama listener 建立后才启动；首样本 23127 MiB；`/api/ps models=[]`；attempt start 08:05:53；Ollama model load 08:05:55。Ollama 自报 21.1 GiB available 与同窗口 `nvidia-smi memory.used` 的高值也不一致，进一步说明不能从当前证据建立可靠 owner/资源归因。
+- 复现/复算（只读）：`nl -ba reports/v0-s0/correction-06/probe.py | sed -n '245,290p;397,432p;717,747p'`；`nl -ba reports/v0-s0/correction-06/resource-samples.json | sed -n '1,110p'`；`rg -n 'inference compute|starting llama-server|loading model' reports/v0-s0/correction-06/ollama-live.log`；对比 attempt 和 `/api/ps` 时间。
+- correction-05 对比：同样的 preflight 只得到空 compute-app 列表，首个模型前样本为 4770 MiB、最低仍为 3830 MiB，`ollama-ps_start` 也为 `models=[]`；因此 correction-05 存在同类 owner 盲区，只是绝对占用远低于 correction-06，且其内容 Oracle 的 `PROMPT_ECHO` 失败不依赖资源归因。correction-05 的功能失败证据仍成立，但其“干净资源基线”结论不能继承。
 
 ### m-01 — strict trace 把并发超时日志完成顺序误判为 cleanup failure（Minor；harness 假阴性）
 
@@ -70,7 +80,7 @@
 ### 网络、资源与清理
 
 - Ollama server raw 明确报告 `OLLAMA_NO_CLOUD:true`。预模型窗口 10.009 秒、9 个样本、0 个非 loopback 连接；全窗口 74 个样本独立枚举也为 0 个非 loopback remote。该结论仅是本次 owned PID/观测窗口的事实，不是对所有外联的普遍证明。
-- 74 个资源样本独立复算：GPU 峰值 23521 MiB，严格小于 23552 MiB，余量仅 31 MiB；最低 host available RAM 11362 MiB。资源 stop 未触发，但单次失败 run 不能替代 V0-A09 的 10 次/P95 产品分母，31 MiB 余量也应保留为后续运行风险。
+- 74 个资源样本独立复算：GPU 峰值 23521 MiB，数值上严格小于 23552 MiB，余量仅 31 MiB；最低 host available RAM 11362 MiB。这个数值比较本身正确，但不能形成资源门禁 PASS：首样本在模型调用前已为 23127 MiB，owner 未知且 mandatory stop 被漏执行。`resource_stop=false` 只证明 harness 没有碰到数值阈值，不证明运行环境干净或峰值可归因。该单次污染环境中的失败 run 也不能替代 V0-A09 的 10 次/P95 产品分母。
 - cleanup 证据一致：模型 `/api/ps` 在图片后 0 秒、5 秒和最终停服前都为 HTTP 200 且 `models=[]`；Comfy listener PID 49404 与 Ollama listener PID 51392 均 stop exit 0 且 after 为空；两个 wrapper 在 stop 前已不存在（因此 taskkill exit 1，不表示残留）；最终授权端口为空；run-temp 删除 exit 0 且不存在；目标文件 pre/post size、mtime、SHA-256 全相等。
 - `commands.json` 保存确定性准备命令及 exit 0；两个长驻启动命令的 exit code 为 null，生命周期终态由 cleanup 的 owned PID/port 证据补足。未发现 target install 写入或非 owned PID 终止证据。
 
@@ -79,16 +89,16 @@
 - 公开证据使用 `TEST_SOURCE`、`RUN_TEMP`、`COMFY_ROOT`、`USER_PROFILE`、`WINDOWS_ABSOLUTE_PATH` 等别名；未发现 cookie、Bearer、API key、原媒体或未脱敏用户绝对路径。history 只含 Comfy 截断 tensor 展示，不包含可还原的完整原媒体字节。
 - 实现 receipt 标记实现会话 `/root/s0_rerun_implementer`；本报告由独立 reviewer 会话生成，且 root gate owner 未被替代。角色分离符合 WP-S0-17；本报告只给建议，不作正式 gate 裁决。
 - correction-06 授权预算为图片 1、视频 1；图片 1 次后按 mandatory stop 终止，没有越权重试。授权已过期，不可复用。
-- 历史证据未被后续提交改写：correction-03 在 owned Ollama 非 loopback 连接处以 0/0 停止；correction-04 通过 no-cloud/remote gate 后因 Comfy 路径启动失败而 0/0；correction-05 图片公共路径通过、视频第 1 帧被 `PROMPT_ECHO` Oracle 拒绝；correction-06 图片模型超时、视频 0 次。各次失败均保留，不能相互抵消。
+- 历史证据未被后续提交改写：correction-03 在 owned Ollama 非 loopback 连接处以 0/0 停止；correction-04 通过 no-cloud/remote gate 后因 Comfy 路径启动失败而 0/0；correction-05 图片公共路径通过、视频第 1 帧被 `PROMPT_ECHO` Oracle 拒绝；correction-06 图片模型超时、视频 0 次。correction-05/06 都有 preflight 只检查 compute-app 列表、不证明模型前总显存 owner 的同类盲区；correction-06 的模型前占用尤其接近停止阈值。各次失败及资源限制均须保留，不能相互抵消。
 
 ## 固定分母与假绿判断
 
 `V0-A01`、`V0-A02`、`V0-A09`、`V0-A10` 在 `plans/acceptance_cases.json`、execution control 和封存 receipt 中均保持 `NOT_RUN`；固定分母为 4，`pass=0/fail=0/blocked=0/not_run=4/skipped=0`。本轮 direct/local feasibility、公共图片请求被接受、资源阈值未越界或最终清理成功，均不构成任何产品用例 PASS。
 
-未发现假绿：receipt 将两条公共媒体路线写为 `NOT_RUN_OR_FAIL`，Stage claim 为 false，产品四项保持 NOT_RUN。发现一处明确的 **假阴性**：strict trace 以服务端完成日志顺序推断 cleanup 顺序。即使纠正它，本轮仍因图片 `MODEL_TIMEOUT` 和视频未运行而是 NO_GO。
+没有出现产品或 Stage PASS 假绿：receipt 将两条公共媒体路线写为 `NOT_RUN_OR_FAIL`，Stage claim 为 false，产品四项保持 NOT_RUN。但 receipt/run-summary 的 `resource_stop=false` 与“峰值低于门限”若被解释成完整资源门禁 PASS，会构成局部假绿风险，因为 unknown GPU owner 的独立 mandatory stop 已被漏掉。另有一处明确的 **假阴性**：strict trace 以服务端完成日志顺序推断 cleanup 顺序。即使纠正 cleanup 假阴性，本轮仍因污染环境中的图片 `MODEL_TIMEOUT`、违规越过 unknown-owner stop 和视频未运行而是 NO_GO。
 
 ## 建议与限制
 
-1. root 可采用 **NO_GO** 作为建议状态；这不是本 reviewer 的正式裁决，也不是 Stage PASS。
-2. 若继续纠偏，应先修复 harness 的 request correlation/首因保留，再建立新的、独立授权预算；不得复用 correction-06 授权。
-3. 后续真实运行必须重新证明图片语义成功及四帧视频完整公共 trace，并保留 `<23552 MiB`、no-cloud/remote 观察、每次调用 cleanup 和最终环境清理。不能通过放宽 120 秒、内容 Oracle、固定分母或资源阈值来换取通过；任何超时策略变更都应作为新的明确候选和授权审查。
+1. root 可采用 **NO_GO** 作为建议状态；这不是本 reviewer 的正式裁决，也不是 Stage PASS。当前 correction-06 功能/性能结果不应作为干净环境基线。
+2. 若继续纠偏，应先修复 harness 的 GPU owner 识别和服务启动前总显存采样，同时修复 request correlation/首因保留，再建立新的、独立授权预算；不得复用 correction-06 授权。
+3. 后续真实运行必须在任何 owned service 启动前记录总显存与可枚举 owner，并对无法解释的占用 fail-closed；随后重新证明图片语义成功及四帧视频完整公共 trace，并保留 `<23552 MiB`、no-cloud/remote 观察、每次调用 cleanup 和最终环境清理。不能通过放宽 120 秒、内容 Oracle、固定分母、unknown-owner stop 或资源阈值来换取通过；任何超时策略变更都应作为新的明确候选和授权审查。
