@@ -1,0 +1,66 @@
+{
+  "commands": [
+    {
+      "ended_at": "2026-10-27T07:31:23Z",
+      "exit_code": 0,
+      "logical_command": "git cat-file -t AUTHORIZATION_COMMIT",
+      "name": "verify_authorization_commit",
+      "output": "commit/n",
+      "started_at": "2026-10-27T07:31:23Z"
+    },
+    {
+      "ended_at": "2026-10-27T07:31:23Z",
+      "exit_code": 0,
+      "logical_command": "git cat-file -t CANDIDATE_SHA",
+      "name": "verify_candidate_commit",
+      "output": "commit/n",
+      "started_at": "2026-10-27T07:31:23Z"
+    },
+    {
+      "ended_at": "2026-10-27T07:31:30Z",
+      "exit_code": 0,
+      "logical_command": "POWERSHELL create RUN_TEMP under Windows GetTempPath",
+      "name": "create_windows_temp",
+      "output": "USER_PROFILE/AppData/Local/Temp/lvw-v0-s0-c03-be3bb7b705f748ad99bbea69bf6a6ce6",
+      "started_at": "2026-10-27T07:31:30Z"
+    },
+    {
+      "ended_at": "2026-10-27T07:31:31Z",
+      "exit_code": 0,
+      "logical_command": "ffmpeg -i TEST_SOURCE/image-sample -vf scale<=384 -frames:v 1 RUN_TEMP/input/image.png",
+      "name": "derive_image",
+      "output": "",
+      "started_at": "2026-10-27T07:31:31Z"
+    },
+    {
+      "ended_at": "2026-10-27T07:31:31Z",
+      "exit_code": 0,
+      "logical_command": "ffprobe count TEST_SOURCE/video-sample",
+      "name": "probe_video_frames",
+      "output": "75/n",
+      "started_at": "2026-10-27T07:31:31Z"
+    },
+    {
+      "ended_at": "2026-10-27T07:31:31Z",
+      "exit_code": 0,
+      "logical_command": "ffmpeg -i TEST_SOURCE/video-sample -vf select=four_ordered_frames,scale<=384 RUN_TEMP/input/frame-%02d.png",
+      "name": "derive_video_frames",
+      "output": "",
+      "started_at": "2026-10-27T07:31:31Z"
+    },
+    {
+      "ended_at": "2026-10-27T07:31:40Z",
+      "environment": {
+        "NO_PROXY": "127.0.0.1,localhost",
+        "OLLAMA_HOST": "127.0.0.1:11434",
+        "OLLAMA_NO_CLOUD_requested": "1"
+      },
+      "listener_confirmed": true,
+      "logical_command": "OLLAMA_EXE serve",
+      "name": "start_ollama",
+      "observed_runtime_note": "server log reported OLLAMA_NO_CLOUD=false; owned PID remote TCP observation therefore governs",
+      "owned_pid_stop_exit_code": 0,
+      "started_at": "2026-10-27T07:31:31Z"
+    }
+  ]
+}

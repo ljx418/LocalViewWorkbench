@@ -1,0 +1,162 @@
+{
+  "acceptance_hash": "78b158e135be4da756e27ced9f57c74e78feb926bcaf95eda2e2a6992c9a7b42",
+  "acceptance_hash_binding": {
+    "algorithm": "sha256",
+    "source": ".agent-governance/stages/V0-S0/04-acceptance-matrix.md",
+    "target": "sorted fixed acceptance IDs V0-A01,V0-A02,V0-A09,V0-A10 joined by LF with a trailing LF"
+  },
+  "artifact_manifest": "reports/v0-s0/correction-03/artifact-manifest.json",
+  "artifact_refs": [
+    "reports/v0-s0/correction-03/run-summary.json",
+    "reports/v0-s0/correction-03/cleanup.json",
+    "reports/v0-s0/correction-03/owned-ollama-remote-tcp.json",
+    "reports/v0-s0/correction-03/resource-samples.json",
+    "reports/v0-s0/correction-03/ollama-tags.json",
+    "reports/v0-s0/correction-03/artifact-manifest.json"
+  ],
+  "authorization_commit": "0d532410a5d365e86fd33a39e2abaefbd3336d27",
+  "candidate_sha": "078b51aab02fbfbcfd0efcfc7d38a2c9c6381f68",
+  "changed_files": [
+    "reports/v0-s0/correction-03/artifact-manifest.json",
+    "reports/v0-s0/correction-03/candidate-materialization.json",
+    "reports/v0-s0/correction-03/cleanup.json",
+    "reports/v0-s0/correction-03/commands.json",
+    "reports/v0-s0/correction-03/events.json",
+    "reports/v0-s0/correction-03/media-derivatives.json",
+    "reports/v0-s0/correction-03/ollama-live.log",
+    "reports/v0-s0/correction-03/ollama-ps-final-before-stop.json",
+    "reports/v0-s0/correction-03/ollama-ps_start.json",
+    "reports/v0-s0/correction-03/ollama-tags.json",
+    "reports/v0-s0/correction-03/ollama-version.json",
+    "reports/v0-s0/correction-03/owned-ollama-remote-tcp.json",
+    "reports/v0-s0/correction-03/preflight-baseline.json",
+    "reports/v0-s0/correction-03/probe.py",
+    "reports/v0-s0/correction-03/resource-samples.json",
+    "reports/v0-s0/correction-03/run-summary.json",
+    "reports/v0-s0/correction-03/sample-verification.json",
+    "reports/v0-s0/implementation-receipt-correction-03-live.json"
+  ],
+  "check_results": [
+    {
+      "check": "candidate_authorization_and_sample_hashes",
+      "status": "PASS"
+    },
+    {
+      "check": "authorized_ports_and_gpu_owner_preflight",
+      "status": "PASS"
+    },
+    {
+      "check": "model_tag_and_digest_via_api_tags",
+      "digest": "5571076f3d70050487b26b341705799e0ab29b808164f90d20d4cf84f699d251",
+      "status": "PASS"
+    },
+    {
+      "check": "owned_ollama_remote_tcp",
+      "result": "non-loopback 34.36.133.15:443 observed",
+      "status": "FAIL"
+    },
+    {
+      "check": "public_comfy_prompt_route",
+      "status": "NOT_RUN_STOP_CONDITION"
+    },
+    {
+      "check": "cleanup_and_target_integrity",
+      "status": "PASS"
+    }
+  ],
+  "cleanup": {
+    "details": "reports/v0-s0/correction-03/cleanup.json",
+    "proven": true
+  },
+  "commands_ref": "reports/v0-s0/correction-03/commands.json",
+  "contract_changes": "none",
+  "decision": "NO_GO",
+  "effective_attempts": {
+    "image": 0,
+    "video": 0
+  },
+  "environment": {
+    "comfy_bind": "127.0.0.1:8191",
+    "model": "gemma4:26b",
+    "model_digest": "5571076f3d70050487b26b341705799e0ab29b808164f90d20d4cf84f699d251",
+    "ollama_endpoint": "http://127.0.0.1:11434",
+    "route": "fresh Windows RUN_TEMP; sealed bridge candidate copied to RUN_TEMP/custom_nodes; target Comfy/Python read-only"
+  },
+  "evidence_commit": "0000000000000000000000000000000000000000",
+  "evidence_commit_status": "PENDING_ROOT_SEALING",
+  "evidence_gaps": [
+    "Ollama /api/show returned HTTP 200, but its raw body was not persisted because the first emitter version failed on escaped template text; persisted /api/tags independently proves the authorized model digest.",
+    "The mandatory remote-connection stop occurred before Comfy startup, so object_info, /prompt, history, semantic oracle, and model raw evidence do not exist.",
+    "Two resource/network samples are approximately three seconds apart because the Windows TCP query duration was added to the one-second wait."
+  ],
+  "exact_stop_reason": "OWNED_OLLAMA_PID_NON_LOOPBACK_REMOTE_CONNECTION",
+  "external_actions": {
+    "comfyui_process_starts": 0,
+    "downloads_or_upgrades": 0,
+    "external_cost": 0,
+    "model_calls": 0,
+    "ollama_process_starts": 1,
+    "target_install_writes": 0,
+    "visible_browser_runs": 0
+  },
+  "gate_version": "lvw-gate/1",
+  "implementation_owner_role": "codex_isolated_implementer",
+  "implementation_session": "/root/s0_rerun_implementer",
+  "network": {
+    "evidence": "reports/v0-s0/correction-03/owned-ollama-remote-tcp.json",
+    "owned_ollama_non_loopback_remote_seen": true
+  },
+  "live_route_counts": {
+    "image": {
+      "pass": 0,
+      "total": 0
+    },
+    "video": {
+      "pass": 0,
+      "total": 0
+    }
+  },
+  "project_id": "lvw-prompt-service",
+  "resource": {
+    "gpu_stop_threshold_mib": 23552,
+    "minimum_host_available_ram_mib": 11608,
+    "peak_gpu_used_mib": 6788
+  },
+  "production_path_status": "NOT_RUN_STOP_CONDITION_BEFORE_COMFY_START",
+  "product_acceptance": {
+    "V0-A01": "NOT_RUN",
+    "V0-A02": "NOT_RUN",
+    "V0-A09": "NOT_RUN",
+    "V0-A10": "NOT_RUN"
+  },
+  "public_end_to_end_trace_refs": [],
+  "raw_artifact_refs": [
+    "reports/v0-s0/correction-03/ollama-live.log",
+    "reports/v0-s0/correction-03/ollama-ps-final-before-stop.json",
+    "reports/v0-s0/correction-03/ollama-ps_start.json",
+    "reports/v0-s0/correction-03/ollama-tags.json",
+    "reports/v0-s0/correction-03/ollama-version.json",
+    "reports/v0-s0/correction-03/owned-ollama-remote-tcp.json",
+    "reports/v0-s0/correction-03/resource-samples.json"
+  ],
+  "risks": [
+    "Live semantic output remains model- and sample-specific; this receipt is not a Stage PASS.",
+    "Product V0 acceptance cases remain NOT_RUN.",
+    "Blocker: the run-owned Ollama process opened a non-loopback remote TCP connection before Comfy startup, forcing an authorized NO_GO stop."
+  ],
+  "run_id": "v0-s0-correction-03-live-20261027-01",
+  "schema_version": "lvw.implementation-receipt/1",
+  "spec_version": "1.7.0",
+  "stage_id": "V0-S0",
+  "stage_pass_claim": false,
+  "test_counts": {
+    "blocked": 0,
+    "denominator": 4,
+    "fail": 0,
+    "not_run": 4,
+    "pass": 0,
+    "skipped": 0
+  },
+  "target_configuration_changes": "none",
+  "workpack_id": "WP-S0-08"
+}
