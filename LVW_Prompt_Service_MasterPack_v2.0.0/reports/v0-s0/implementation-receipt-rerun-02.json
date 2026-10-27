@@ -1,0 +1,163 @@
+{
+  "schema_version": "lvw.implementation-receipt/1",
+  "project_id": "lvw-prompt-service",
+  "stage_id": "V0-S0",
+  "workpack_id": "WP-S0-04",
+  "run_id": "v0-s0-rerun-20261027-02",
+  "candidate_sha": "95be0cd82c5500b0a71e3597f5188b147f11e75f",
+  "implementation_owner_role": "codex_isolated_implementer",
+  "implementation_session": "/root/s0_rerun_implementer",
+  "authorization_ref": "reports/v0-s0/authorization-rerun-02.json",
+  "evidence_commit": "0000000000000000000000000000000000000000",
+  "evidence_commit_status": "PENDING_ROOT_SEALING; placeholder must be replaced only by root gate owner after evidence commit",
+  "changed_files": [
+    "reports/v0-s0/rerun-02/cleanup.json",
+    "reports/v0-s0/rerun-02/comfy-object-info-raw.json",
+    "reports/v0-s0/rerun-02/comfy-startup.log",
+    "reports/v0-s0/rerun-02/command-events.json",
+    "reports/v0-s0/rerun-02/config-integrity.json",
+    "reports/v0-s0/rerun-02/ffmpeg-frame-0.log",
+    "reports/v0-s0/rerun-02/ffmpeg-frame-1.log",
+    "reports/v0-s0/rerun-02/ffmpeg-frame-2.log",
+    "reports/v0-s0/rerun-02/ffmpeg-frame-3.log",
+    "reports/v0-s0/rerun-02/ffprobe-raw.json",
+    "reports/v0-s0/rerun-02/frame-hashes.json",
+    "reports/v0-s0/rerun-02/gpu-baseline.txt",
+    "reports/v0-s0/rerun-02/gpu-process-baseline.txt",
+    "reports/v0-s0/rerun-02/harness-failure-01-cleanup.json",
+    "reports/v0-s0/rerun-02/harness-failure-01-comfy-startup.log",
+    "reports/v0-s0/rerun-02/harness-failure-01-command-events.json",
+    "reports/v0-s0/rerun-02/harness-failure-01-gpu-baseline.txt",
+    "reports/v0-s0/rerun-02/harness-failure-01-gpu-process-baseline.txt",
+    "reports/v0-s0/rerun-02/harness-failure-01-harness-error.json",
+    "reports/v0-s0/rerun-02/harness-failure-01-masked-config-before.json",
+    "reports/v0-s0/rerun-02/harness-failure-01-ollama-startup.log",
+    "reports/v0-s0/rerun-02/harness-failure-01-sample-hashes.json",
+    "reports/v0-s0/rerun-02/harness-failure-02-cleanup.json",
+    "reports/v0-s0/rerun-02/harness-failure-02-comfy-startup.log",
+    "reports/v0-s0/rerun-02/harness-failure-02-command-events.json",
+    "reports/v0-s0/rerun-02/harness-failure-02-gpu-baseline.txt",
+    "reports/v0-s0/rerun-02/harness-failure-02-gpu-process-baseline.txt",
+    "reports/v0-s0/rerun-02/harness-failure-02-harness-error.json",
+    "reports/v0-s0/rerun-02/harness-failure-02-masked-config-before.json",
+    "reports/v0-s0/rerun-02/harness-failure-02-ollama-startup.log",
+    "reports/v0-s0/rerun-02/harness-failure-02-sample-hashes.json",
+    "reports/v0-s0/rerun-02/masked-config-after-start.json",
+    "reports/v0-s0/rerun-02/masked-config-before.json",
+    "reports/v0-s0/rerun-02/offline-self-check.json",
+    "reports/v0-s0/rerun-02/ollama-image-attempt-1-ps-t0.json",
+    "reports/v0-s0/rerun-02/ollama-image-attempt-1-ps-t5.json",
+    "reports/v0-s0/rerun-02/ollama-image-attempt-1-response.json",
+    "reports/v0-s0/rerun-02/ollama-image-attempt-1-validation.json",
+    "reports/v0-s0/rerun-02/ollama-ps-before-raw.json",
+    "reports/v0-s0/rerun-02/ollama-show-raw.json",
+    "reports/v0-s0/rerun-02/ollama-startup.log",
+    "reports/v0-s0/rerun-02/ollama-tags-raw.json",
+    "reports/v0-s0/rerun-02/ollama-version-raw.json",
+    "reports/v0-s0/rerun-02/ollama-video-attempt-1-ps-t0.json",
+    "reports/v0-s0/rerun-02/ollama-video-attempt-1-ps-t5.json",
+    "reports/v0-s0/rerun-02/ollama-video-attempt-1-response.json",
+    "reports/v0-s0/rerun-02/ollama-video-attempt-1-validation.json",
+    "reports/v0-s0/rerun-02/pa-models-list-llm-raw.json",
+    "reports/v0-s0/rerun-02/pa-models-list-vision-raw.json",
+    "reports/v0-s0/rerun-02/probe-summary.json",
+    "reports/v0-s0/rerun-02/probe.py",
+    "reports/v0-s0/rerun-02/resources-image-1.jsonl",
+    "reports/v0-s0/rerun-02/resources-video-1.jsonl",
+    "reports/v0-s0/rerun-02/sample-hashes.json",
+    "reports/v0-s0/rerun-02/seal.py",
+    "reports/v0-s0/rerun-02/artifact-manifest.json",
+    "reports/v0-s0/implementation-receipt-rerun-02.json"
+  ],
+  "contract_changes": [],
+  "target_configuration_changes": [],
+  "commands": [
+    {
+      "logical_command": "python3 -B reports/v0-s0/rerun-02/probe.py --comfy-root COMFY_ROOT --test-source TEST_SOURCE --comfy-python COMFY_PYTHON --ollama-exe OLLAMA_EXE",
+      "exit_codes": [
+        1,
+        1,
+        0
+      ],
+      "note": "Two pre-model harness/startup failures retained; final execution succeeded."
+    },
+    {
+      "logical_command": "python3 -B reports/v0-s0/rerun-02/seal.py",
+      "exit_code": 0
+    },
+    {
+      "logical_command": "python3 -B reports/v0-s0/rerun-02/seal.py --verify",
+      "exit_code": 0,
+      "status": "CONFIRMED_EXIT_0"
+    }
+  ],
+  "effective_attempts": {
+    "image": 1,
+    "video": 1,
+    "limit_each": 2,
+    "correction_retries_used": 0
+  },
+  "probe_results": {
+    "image": "HTTP_200_JSON_PARSE_AND_SCHEMA_PASS",
+    "video": "HTTP_200_JSON_PARSE_AND_SCHEMA_PASS",
+    "prompt_assistant_models_list_llm": "HTTP_500_MODELLISTSERVICE_NAMEERROR",
+    "prompt_assistant_models_list_vision": "HTTP_500_MODELLISTSERVICE_NAMEERROR",
+    "connected_public_entry": "NO_GO_NO_CONNECTED_PUBLIC_ENTRY_TO_LOCAL_MODEL"
+  },
+  "production_path": {
+    "comfy_registry": "observed separately through public /object_info",
+    "ollama_model": "called separately through local /api/chat",
+    "end_to_end_claim": false,
+    "exact_stop_reason": "NO_GO_NO_CONNECTED_PUBLIC_ENTRY_TO_LOCAL_MODEL"
+  },
+  "model": {
+    "tag": "gemma4:26b",
+    "digest": "5571076f3d70050487b26b341705799e0ab29b808164f90d20d4cf84f699d251"
+  },
+  "product_acceptance": {
+    "V0-A01": "NOT_RUN",
+    "V0-A02": "NOT_RUN",
+    "V0-A09": "NOT_RUN",
+    "V0-A10": "NOT_RUN"
+  },
+  "private_external_actions": {
+    "cloud_or_paid_provider_calls": 0,
+    "downloads_or_upgrades": 0,
+    "visible_browser_runs": 0,
+    "authorized_media_files_read": 2,
+    "effective_local_model_calls": 2,
+    "run_owned_services_started": 2
+  },
+  "cleanup": {
+    "owned_services_stopped": true,
+    "ports_8188_11434_empty": true,
+    "temporary_frames_removed": 4,
+    "post_attempt_api_ps_empty": true
+  },
+  "resource_summary": {
+    "image": {
+      "samples": 67,
+      "gpu_memory_mib_min": 10800,
+      "gpu_memory_mib_peak": 23523,
+      "host_mem_available_mib_min": 11284.742,
+      "host_mem_available_mib_max": 11340.305
+    },
+    "video": {
+      "samples": 79,
+      "gpu_memory_mib_min": 6814,
+      "gpu_memory_mib_peak": 23810,
+      "host_mem_available_mib_min": 11272.645,
+      "host_mem_available_mib_max": 11359.312
+    }
+  },
+  "risks": [
+    "No connected public Comfy/Prompt Assistant entry exposes the verified local Ollama model; direct Ollama feasibility cannot be promoted to E2E PASS.",
+    "Prompt Assistant models/list remains broken for both llm and vision with ModelListService undefined.",
+    "Comfy portable Python requires -s to avoid incompatible user-site pydantic shadowing; no package or configuration was changed.",
+    "Peak observed GPU memory was close to device capacity; these samples are a baseline, not V0-A09 performance acceptance.",
+    "A historical missing deepseek-r1 cache blob remains visible in Ollama startup logs and was not repaired or deleted."
+  ],
+  "decision": "NO_GO",
+  "stage_pass_claim": false,
+  "next_owner": "codex_isolated_reviewer"
+}

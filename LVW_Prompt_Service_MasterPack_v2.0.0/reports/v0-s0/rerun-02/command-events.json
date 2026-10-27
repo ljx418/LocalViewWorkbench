@@ -1,0 +1,576 @@
+[
+  {
+    "step": "gpu-baseline",
+    "started_at": "2026-10-27T14:44:51.648+08:00",
+    "ended_at": "2026-10-27T14:44:51.764+08:00",
+    "logical_command": [
+      "nvidia-smi",
+      "--query-gpu=name,memory.total,memory.used",
+      "--format=csv,noheader,nounits"
+    ],
+    "exit_code": 0
+  },
+  {
+    "step": "gpu-process-baseline",
+    "started_at": "2026-10-27T14:44:51.772+08:00",
+    "ended_at": "2026-10-27T14:44:51.845+08:00",
+    "logical_command": [
+      "nvidia-smi",
+      "--query-compute-apps=pid,process_name,used_gpu_memory",
+      "--format=csv,noheader,nounits"
+    ],
+    "exit_code": 0
+  },
+  {
+    "step": "start-ollama",
+    "started_at": "2026-10-27T14:44:53.844+08:00",
+    "ended_at": "2026-10-27T14:45:01.832+08:00",
+    "logical_command": [
+      "env",
+      "OLLAMA_NO_CLOUD=1",
+      "OLLAMA_EXE",
+      "serve"
+    ],
+    "exit_code": 0,
+    "note": {
+      "ready": true,
+      "owned_listener_pid": 5568
+    }
+  },
+  {
+    "step": "start-comfy",
+    "started_at": "2026-10-27T14:45:03.793+08:00",
+    "ended_at": "2026-10-27T14:45:22.827+08:00",
+    "logical_command": [
+      "COMFY_PYTHON",
+      "-s",
+      "COMFY_ROOT\\main.py",
+      "--listen",
+      "127.0.0.1",
+      "--port",
+      "8188",
+      "--disable-auto-launch",
+      "--disable-api-nodes",
+      "--disable-all-custom-nodes",
+      "--whitelist-custom-nodes",
+      "prompt-assistant"
+    ],
+    "exit_code": 0,
+    "note": {
+      "ready": true,
+      "owned_listener_pid": 41664
+    }
+  },
+  {
+    "step": "comfy-object-info",
+    "started_at": "2026-10-27T14:45:22.852+08:00",
+    "ended_at": "2026-10-27T14:45:22.960+08:00",
+    "logical_command": [
+      "HTTP",
+      "GET",
+      "http://127.0.0.1:8188/object_info"
+    ],
+    "exit_code": 0,
+    "http_status": 200,
+    "note": {
+      "method": "GET",
+      "url": "http://127.0.0.1:8188/object_info"
+    }
+  },
+  {
+    "step": "ollama-version",
+    "started_at": "2026-10-27T14:45:22.964+08:00",
+    "ended_at": "2026-10-27T14:45:22.969+08:00",
+    "logical_command": [
+      "HTTP",
+      "GET",
+      "http://127.0.0.1:11434/api/version"
+    ],
+    "exit_code": 0,
+    "http_status": 200,
+    "note": {
+      "method": "GET",
+      "url": "http://127.0.0.1:11434/api/version"
+    }
+  },
+  {
+    "step": "ollama-tags",
+    "started_at": "2026-10-27T14:45:22.974+08:00",
+    "ended_at": "2026-10-27T14:45:22.980+08:00",
+    "logical_command": [
+      "HTTP",
+      "GET",
+      "http://127.0.0.1:11434/api/tags"
+    ],
+    "exit_code": 0,
+    "http_status": 200,
+    "note": {
+      "method": "GET",
+      "url": "http://127.0.0.1:11434/api/tags"
+    }
+  },
+  {
+    "step": "ollama-show",
+    "started_at": "2026-10-27T14:45:22.985+08:00",
+    "ended_at": "2026-10-27T14:45:23.200+08:00",
+    "logical_command": [
+      "HTTP",
+      "POST",
+      "http://127.0.0.1:11434/api/show"
+    ],
+    "exit_code": 0,
+    "http_status": 200,
+    "note": {
+      "method": "POST",
+      "url": "http://127.0.0.1:11434/api/show",
+      "json_parameters": {
+        "model": "gemma4:26b"
+      }
+    }
+  },
+  {
+    "step": "ollama-ps-before",
+    "started_at": "2026-10-27T14:45:23.204+08:00",
+    "ended_at": "2026-10-27T14:45:23.216+08:00",
+    "logical_command": [
+      "HTTP",
+      "GET",
+      "http://127.0.0.1:11434/api/ps"
+    ],
+    "exit_code": 0,
+    "http_status": 200,
+    "note": {
+      "method": "GET",
+      "url": "http://127.0.0.1:11434/api/ps"
+    }
+  },
+  {
+    "step": "pa-models-list-llm",
+    "started_at": "2026-10-27T14:45:23.219+08:00",
+    "ended_at": "2026-10-27T14:45:23.223+08:00",
+    "logical_command": [
+      "HTTP",
+      "POST",
+      "http://127.0.0.1:8188/prompt-assistant/api/models/list"
+    ],
+    "exit_code": 0,
+    "http_status": 500,
+    "note": {
+      "method": "POST",
+      "url": "http://127.0.0.1:8188/prompt-assistant/api/models/list",
+      "json_parameters": {
+        "provider": "ollama",
+        "model_type": "llm",
+        "recommended": false
+      }
+    }
+  },
+  {
+    "step": "pa-models-list-vision",
+    "started_at": "2026-10-27T14:45:23.227+08:00",
+    "ended_at": "2026-10-27T14:45:23.231+08:00",
+    "logical_command": [
+      "HTTP",
+      "POST",
+      "http://127.0.0.1:8188/prompt-assistant/api/models/list"
+    ],
+    "exit_code": 0,
+    "http_status": 500,
+    "note": {
+      "method": "POST",
+      "url": "http://127.0.0.1:8188/prompt-assistant/api/models/list",
+      "json_parameters": {
+        "provider": "ollama",
+        "model_type": "vision",
+        "recommended": false
+      }
+    }
+  },
+  {
+    "step": "ffprobe-video",
+    "started_at": "2026-10-27T14:45:23.235+08:00",
+    "ended_at": "2026-10-27T14:45:23.282+08:00",
+    "logical_command": [
+      "ffprobe",
+      "-v",
+      "error",
+      "-show_entries",
+      "format=duration:stream=index,codec_type,codec_name,width,height,nb_frames",
+      "-of",
+      "json",
+      "TEST_SOURCE/视频-1.mp4"
+    ],
+    "exit_code": 0
+  },
+  {
+    "step": "extract-frame-0",
+    "started_at": "2026-10-27T14:45:23.286+08:00",
+    "ended_at": "2026-10-27T14:45:23.404+08:00",
+    "logical_command": [
+      "ffmpeg",
+      "-hide_banner",
+      "-loglevel",
+      "error",
+      "-ss",
+      "0.417874",
+      "-i",
+      "TEST_SOURCE/视频-1.mp4",
+      "-frames:v",
+      "1",
+      "-vf",
+      "scale='if(gt(iw,ih),768,-2)':'if(gt(iw,ih),-2,768)'",
+      "-y",
+      "RUN_TEMP/frame-0.png"
+    ],
+    "exit_code": 0
+  },
+  {
+    "step": "extract-frame-1",
+    "started_at": "2026-10-27T14:45:23.412+08:00",
+    "ended_at": "2026-10-27T14:45:23.520+08:00",
+    "logical_command": [
+      "ffmpeg",
+      "-hide_banner",
+      "-loglevel",
+      "error",
+      "-ss",
+      "1.253622",
+      "-i",
+      "TEST_SOURCE/视频-1.mp4",
+      "-frames:v",
+      "1",
+      "-vf",
+      "scale='if(gt(iw,ih),768,-2)':'if(gt(iw,ih),-2,768)'",
+      "-y",
+      "RUN_TEMP/frame-1.png"
+    ],
+    "exit_code": 0
+  },
+  {
+    "step": "extract-frame-2",
+    "started_at": "2026-10-27T14:45:23.530+08:00",
+    "ended_at": "2026-10-27T14:45:23.633+08:00",
+    "logical_command": [
+      "ffmpeg",
+      "-hide_banner",
+      "-loglevel",
+      "error",
+      "-ss",
+      "2.089371",
+      "-i",
+      "TEST_SOURCE/视频-1.mp4",
+      "-frames:v",
+      "1",
+      "-vf",
+      "scale='if(gt(iw,ih),768,-2)':'if(gt(iw,ih),-2,768)'",
+      "-y",
+      "RUN_TEMP/frame-2.png"
+    ],
+    "exit_code": 0
+  },
+  {
+    "step": "extract-frame-3",
+    "started_at": "2026-10-27T14:45:23.642+08:00",
+    "ended_at": "2026-10-27T14:45:23.750+08:00",
+    "logical_command": [
+      "ffmpeg",
+      "-hide_banner",
+      "-loglevel",
+      "error",
+      "-ss",
+      "2.925119",
+      "-i",
+      "TEST_SOURCE/视频-1.mp4",
+      "-frames:v",
+      "1",
+      "-vf",
+      "scale='if(gt(iw,ih),768,-2)':'if(gt(iw,ih),-2,768)'",
+      "-y",
+      "RUN_TEMP/frame-3.png"
+    ],
+    "exit_code": 0
+  },
+  {
+    "step": "image-attempt-1",
+    "started_at": "2026-10-27T14:45:23.772+08:00",
+    "ended_at": "2026-10-27T14:46:37.766+08:00",
+    "logical_command": [
+      "HTTP",
+      "POST",
+      "http://127.0.0.1:11434/api/chat"
+    ],
+    "exit_code": 0,
+    "http_status": 200,
+    "note": {
+      "method": "POST",
+      "url": "http://127.0.0.1:11434/api/chat",
+      "effective_attempt": 1,
+      "input_aliases": [
+        "TEST_SOURCE/image-sample"
+      ],
+      "json_parameters": {
+        "model": "gemma4:26b",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Analyze this image. Return only compact JSON matching the schema. Use short factual phrases; separate observations, inferences, and unknowns.",
+            "images": [
+              {
+                "base64_omitted": true,
+                "encoded_bytes": 539160
+              }
+            ]
+          }
+        ],
+        "stream": false,
+        "think": false,
+        "format": {
+          "type": "object",
+          "properties": {
+            "observations": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 6
+            },
+            "inferences": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 6
+            },
+            "unknowns": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 6
+            },
+            "image_prompt": {
+              "type": "string",
+              "maxLength": 800
+            },
+            "tags": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 6
+            }
+          },
+          "required": [
+            "observations",
+            "inferences",
+            "unknowns",
+            "image_prompt",
+            "tags"
+          ],
+          "additionalProperties": false
+        },
+        "options": {
+          "num_ctx": 4096,
+          "num_predict": 1536,
+          "temperature": 0.2
+        },
+        "keep_alive": 0
+      }
+    }
+  },
+  {
+    "step": "image-attempt-1-ps-t0",
+    "started_at": "2026-10-27T14:46:37.776+08:00",
+    "ended_at": "2026-10-27T14:46:38.197+08:00",
+    "logical_command": [
+      "HTTP",
+      "GET",
+      "http://127.0.0.1:11434/api/ps"
+    ],
+    "exit_code": 0,
+    "http_status": 200,
+    "note": {
+      "method": "GET",
+      "url": "http://127.0.0.1:11434/api/ps"
+    }
+  },
+  {
+    "step": "image-attempt-1-ps-t5",
+    "started_at": "2026-10-27T14:46:43.202+08:00",
+    "ended_at": "2026-10-27T14:46:43.207+08:00",
+    "logical_command": [
+      "HTTP",
+      "GET",
+      "http://127.0.0.1:11434/api/ps"
+    ],
+    "exit_code": 0,
+    "http_status": 200,
+    "note": {
+      "method": "GET",
+      "url": "http://127.0.0.1:11434/api/ps"
+    }
+  },
+  {
+    "step": "video-attempt-1",
+    "started_at": "2026-10-27T14:46:43.263+08:00",
+    "ended_at": "2026-10-27T14:48:12.650+08:00",
+    "logical_command": [
+      "HTTP",
+      "POST",
+      "http://127.0.0.1:11434/api/chat"
+    ],
+    "exit_code": 0,
+    "http_status": 200,
+    "note": {
+      "method": "POST",
+      "url": "http://127.0.0.1:11434/api/chat",
+      "effective_attempt": 1,
+      "input_aliases": [
+        "RUN_TEMP/frame-0.png",
+        "RUN_TEMP/frame-1.png",
+        "RUN_TEMP/frame-2.png",
+        "RUN_TEMP/frame-3.png"
+      ],
+      "json_parameters": {
+        "model": "gemma4:26b",
+        "messages": [
+          {
+            "role": "user",
+            "content": "These four images are ordered video frames. Return only compact JSON matching the schema. Describe visible change conservatively; do not claim full-video coverage.",
+            "images": [
+              {
+                "base64_omitted": true,
+                "encoded_bytes": 809732
+              },
+              {
+                "base64_omitted": true,
+                "encoded_bytes": 876028
+              },
+              {
+                "base64_omitted": true,
+                "encoded_bytes": 875008
+              },
+              {
+                "base64_omitted": true,
+                "encoded_bytes": 901332
+              }
+            ]
+          }
+        ],
+        "stream": false,
+        "think": false,
+        "format": {
+          "type": "object",
+          "properties": {
+            "observations": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 6
+            },
+            "motion": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 6
+            },
+            "unknowns": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 6
+            },
+            "video_prompt": {
+              "type": "string",
+              "maxLength": 800
+            },
+            "tags": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 6
+            }
+          },
+          "required": [
+            "observations",
+            "motion",
+            "unknowns",
+            "video_prompt",
+            "tags"
+          ],
+          "additionalProperties": false
+        },
+        "options": {
+          "num_ctx": 4096,
+          "num_predict": 1536,
+          "temperature": 0.2
+        },
+        "keep_alive": 0
+      }
+    }
+  },
+  {
+    "step": "video-attempt-1-ps-t0",
+    "started_at": "2026-10-27T14:48:12.658+08:00",
+    "ended_at": "2026-10-27T14:48:12.849+08:00",
+    "logical_command": [
+      "HTTP",
+      "GET",
+      "http://127.0.0.1:11434/api/ps"
+    ],
+    "exit_code": 0,
+    "http_status": 200,
+    "note": {
+      "method": "GET",
+      "url": "http://127.0.0.1:11434/api/ps"
+    }
+  },
+  {
+    "step": "video-attempt-1-ps-t5",
+    "started_at": "2026-10-27T14:48:17.852+08:00",
+    "ended_at": "2026-10-27T14:48:17.858+08:00",
+    "logical_command": [
+      "HTTP",
+      "GET",
+      "http://127.0.0.1:11434/api/ps"
+    ],
+    "exit_code": 0,
+    "http_status": 200,
+    "note": {
+      "method": "GET",
+      "url": "http://127.0.0.1:11434/api/ps"
+    }
+  },
+  {
+    "step": "stop-comfy",
+    "started_at": "2026-10-27T14:48:19.123+08:00",
+    "ended_at": "2026-10-27T14:48:19.408+08:00",
+    "logical_command": [
+      "taskkill.exe",
+      "/PID",
+      "41664",
+      "/T",
+      "/F"
+    ],
+    "exit_code": 0,
+    "note": "成功: 已终止 PID 43076 (属于 PID 41664 子进程)的进程。\r\n成功: 已终止 PID 41664 (属于 PID 32012 子进程)的进程。\r\n"
+  },
+  {
+    "step": "stop-ollama",
+    "started_at": "2026-10-27T14:48:20.717+08:00",
+    "ended_at": "2026-10-27T14:48:21.006+08:00",
+    "logical_command": [
+      "taskkill.exe",
+      "/PID",
+      "5568",
+      "/T",
+      "/F"
+    ],
+    "exit_code": 0,
+    "note": "成功: 已终止 PID 41644 (属于 PID 5568 子进程)的进程。\r\n成功: 已终止 PID 5568 (属于 PID 32012 子进程)的进程。\r\n"
+  }
+]

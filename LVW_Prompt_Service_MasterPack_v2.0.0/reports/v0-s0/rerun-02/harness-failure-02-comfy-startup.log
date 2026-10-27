@@ -1,0 +1,22 @@
+Traceback (most recent call last):
+  File "COMFY_ROOT\main.py", line 27, in <module>
+    from app.assets.manager import AssetManager, default_asset_manager
+  File "COMFY_ROOT\app\assets\manager.py", line 7, in <module>
+    from app.assets.api.routes import register_assets_routes
+  File "COMFY_ROOT\app\assets\api\routes.py", line 26, in <module>
+    from app.assets.api import schemas_in, schemas_out
+  File "COMFY_ROOT\app\assets\api\schemas_in.py", line 13, in <module>
+    from pydantic import (
+  File "USER_PROFILE\AppData\Roaming\Python\Python312\site-packages\pydantic\__init__.py", line 435, in __getattr__
+    module = import_module(module_name, package=package)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "ABSOLUTE_PATH_REDACTED", line 90, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "USER_PROFILE\AppData\Roaming\Python\Python312\site-packages\pydantic\main.py", line 36, in <module>
+    from ._internal import (
+  File "USER_PROFILE\AppData\Roaming\Python\Python312\site-packages\pydantic\_internal\_decorators.py", line 18, in <module>
+    from ._core_utils import get_type_ref
+  File "USER_PROFILE\AppData\Roaming\Python\Python312\site-packages\pydantic\_internal\_core_utils.py", line 9, in <module>
+    from pydantic_core import validate_core_schema as _validate_core_schema
+ImportError: cannot import name 'validate_core_schema' from 'pydantic_core' (ABSOLUTE_PATH_REDACTED
