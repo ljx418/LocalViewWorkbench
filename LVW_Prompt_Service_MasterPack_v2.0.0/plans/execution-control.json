@@ -6,27 +6,27 @@
   "target_version": "V0",
   "coordinate": {
     "stage_id": "V0-S0",
-    "workpack_id": "WP-S0-05",
-    "gate": "GATE3_CHECKPOINT",
-    "state": "NO_GO"
+    "workpack_id": "WP-S0-06",
+    "gate": "GATE1_IMPLEMENTATION",
+    "state": "RUNNING"
   },
   "last_passed_gate": {
-    "id": "WP_S0_04_EVIDENCE_SEALED",
-    "evidence": "reports/v0-s0/implementation-receipt-rerun-02.json",
-    "meaning": "isolated_implementation_evidence_sealed_not_stage_or_product_acceptance"
+    "id": "WP_S0_05_INDEPENDENT_REVIEW_COMPLETE",
+    "evidence": "reports/v0-s0/gate-decision-rerun-02.md",
+    "meaning": "independent_review_complete_with_no_go; not_stage_or_product_acceptance"
   },
-  "current_blocking_gate": "S0 corrective packet must close five Major findings before another checkpoint",
+  "current_blocking_gate": "correction-03 must close all five Major findings before another checkpoint",
   "stage_packet": ".agent-governance/stages/V0-S0/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/V0-S0/PAYLOAD_MANIFEST.sha256",
   "product_status": "NOT_RUN",
-  "allowed_claim": "V0_S0_NO_GO_WITH_EVIDENCE",
+  "allowed_claim": "V0_S0_CORRECTION_03_OFFLINE_IMPLEMENTATION_AUTHORIZED",
   "forbidden_claims": [
     "ENGINEERING_READY",
     "V0_ACCEPTED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "codex_sol",
-  "next_action": "Freeze one S0 corrective packet for the five independent Major findings; allow offline implementation first and require a new bounded runtime record before live verification.",
+  "next_owner": "codex_isolated_implementer",
+  "next_action": "Implement and test WP-S0-06/07 offline inside the frozen repository paths; do not start target services.",
   "evidence_root": "reports/",
-  "exact_stop_reason": "NO_GO_NO_CONNECTED_PUBLIC_ENTRY_TO_LOCAL_MODEL"
+  "exact_stop_reason": null
 }

@@ -14,6 +14,8 @@
 6. 独立审查者报告 Fatal/Major/Minor；Fatal/Major 必须为零才可由 Codex 给出 baseline 出口。
 7. 人类签署不在 S0 baseline 自动化范围；任何真实运行授权单独保存。
 
+correction-03 checkpoint 还必须一次性复算 R2-IR-01 至 R2-IR-07。公开入口、内容 oracle、`<23 GiB`、远程连接观察与每个失败 run 清理缺一不可；局部修复不得逐项换取提前 PASS。
+
 ## 允许裁决
 
 `STAGE_BASELINE_COMPLETE` 仅表示 S0 盘点和最小探测完成；产品用例仍为 NOT_RUN。否则使用 `NO_GO/BLOCKED/WAIT_BUDGET/WAIT_AUTH`。下一 Stage 必须另建并冻结 packet，不能自动推进。

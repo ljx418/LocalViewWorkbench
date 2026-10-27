@@ -25,3 +25,19 @@ Owner：`codex_isolated_implementer`。依赖首轮 WP-S0-03 独立审查和 `AU
 ## WP-S0-05：隔离复审与二次 checkpoint
 
 Owner：`codex_isolated_reviewer`。依赖 WP-S0-04。只读复算新 run、旧失败、角色身份、候选、manifest、raw、路径脱敏和清理。不得修改候选或由实现会话复审。之后由 root Codex 根据 Fatal/Major 裁决。
+
+## WP-S0-06：薄 bridge 离线实现
+
+Owner：`codex_isolated_implementer`。依赖 WP-S0-05 与 root 的 NO-GO 裁决。仅在仓库内新增 `LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/`：注册真实 Comfy 节点，唯一模型端点固定为 loopback Ollama；图片最多一张，视频基线最多四帧且逐帧请求；每帧缩放上限、`num_ctx`/`num_predict`、超时、`keep_alive=0` 明确。所有语义字段为空、提示回显、`done_reason=length`、非 JSON 和 schema 错误均 fail-closed，不得覆盖人工稿。禁止写目标 Comfy 安装、修改 Prompt Assistant、下载或启动服务。
+
+## WP-S0-07：离线合同与故障测试
+
+Owner：`codex_isolated_implementer`。依赖 WP-S0-06。用 fake loopback transport 测试公开节点 owner，而不是绕过核心：正常图片、顺序四帧、空语义、提示回显、非法 JSON、超帧、超像素、非 loopback、超时、逐请求 `keep_alive=0` 和 finally 清理。输出实现收据；只可报告 READY_FOR_REVIEW，不得报告 Stage PASS。
+
+## WP-S0-08：新鲜公开入口真实验证
+
+Owner：`codex_isolated_implementer`。依赖 WP-S0-07 和新的有限运行记录。把封存候选以可恢复方式挂载到独立测试位置，从 Comfy `/prompt` 真实公开入口驱动图片与四帧，保存 workflow、prompt/history trace、Ollama raw、内容 oracle、GPU/RAM、owned PID/端口/连接和每次失败/成功清理。图片/视频各最多两次有效尝试；不修改原安装的 Prompt Assistant 或永久配置。
+
+## WP-S0-09：隔离三次复审
+
+Owner：`codex_isolated_reviewer`。依赖 WP-S0-08。独立复算五个 Major、两个 Minor、生产 trace、资源阈值、无远程连接观察、逐次清理、候选/证据绑定和固定分母 NOT_RUN；root Codex 保留最终 S0 裁决。

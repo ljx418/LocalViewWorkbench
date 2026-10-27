@@ -379,13 +379,25 @@ def main() -> int:
         check("independent_major_count_parseable", major_count is not None)
         check(
             "independent_majors_block_exit",
-            major_count == 0 or control.get("state") == execution["coordinate"]["state"] in {"BLOCKED", "NO_GO"},
+            major_count == 0
+            or control.get("state") == execution["coordinate"]["state"] in {"BLOCKED", "NO_GO"}
+            or (
+                control.get("state") == execution["coordinate"]["state"] == "RUNNING"
+                and execution["coordinate"].get("workpack_id") in {"WP-S0-06", "WP-S0-07", "WP-S0-08"}
+                and execution.get("last_passed_gate", {}).get("id") == "WP_S0_05_INDEPENDENT_REVIEW_COMPLETE"
+            ),
             f"major_count={major_count}",
         )
         check(
             "checkpoint_coordinate",
-            execution["coordinate"].get("workpack_id") == "WP-S0-05"
-            and execution["coordinate"].get("gate") == "GATE3_CHECKPOINT",
+            (
+                execution["coordinate"].get("workpack_id") == "WP-S0-05"
+                and execution["coordinate"].get("gate") == "GATE3_CHECKPOINT"
+            )
+            or (
+                execution["coordinate"].get("workpack_id") in {"WP-S0-06", "WP-S0-07", "WP-S0-08"}
+                and execution["coordinate"].get("gate") in {"GATE1_IMPLEMENTATION", "GATE2_WORKPACK", "GATE4_REAL_ACCEPTANCE"}
+            ),
         )
 
     registry = load_json(GOV / "project-registry.json")
