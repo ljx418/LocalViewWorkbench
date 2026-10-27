@@ -1,0 +1,102 @@
+[1m[33m[WARNING][0m On windows we are currently forcing single GPU mode in ComfyUI due to a Nvidia related issue, if you want to disable this use: --cuda-device all
+[1m[33m[WARNING][0m --disable-api-nodes is deprecated and will be removed in a future version. It currently behaves like --offline. Use --offline to keep the frontend offline, or --disable-partner-nodes to only disable partner nodes.
+[32m[INFO][0m Adding extra search path checkpoints WINDOWS_ABSOLUTE_PATH
+[32m[INFO][0m Adding extra search path diffusion_models WINDOWS_ABSOLUTE_PATH
+[32m[INFO][0m Adding extra search path loras WINDOWS_ABSOLUTE_PATH
+[32m[INFO][0m Adding extra search path text_encoders WINDOWS_ABSOLUTE_PATH
+[32m[INFO][0m Adding extra search path clip_vision WINDOWS_ABSOLUTE_PATH
+[32m[INFO][0m Adding extra search path vae WINDOWS_ABSOLUTE_PATH
+[32m[INFO][0m Adding extra search path upscale_models WINDOWS_ABSOLUTE_PATH
+[32m[INFO][0m Adding extra search path audio_encoders WINDOWS_ABSOLUTE_PATH
+[32m[INFO][0m Adding extra search path model_patches WINDOWS_ABSOLUTE_PATH
+[32m[INFO][0m Adding extra search path diffusion_models WINDOWS_ABSOLUTE_PATH
+[32m[INFO][0m Adding extra search path diffusion_models WINDOWS_ABSOLUTE_PATH
+[32m[INFO][0m Adding extra search path loras WINDOWS_ABSOLUTE_PATH
+[32m[INFO][0m Adding extra search path checkpoints WINDOWS_ABSOLUTE_PATH
+[32m[INFO][0m Adding extra search path configs WINDOWS_ABSOLUTE_PATH
+[32m[INFO][0m Adding extra search path vae WINDOWS_ABSOLUTE_PATH
+[32m[INFO][0m Adding extra search path loras WINDOWS_ABSOLUTE_PATH
+[32m[INFO][0m Adding extra search path loras WINDOWS_ABSOLUTE_PATH
+[32m[INFO][0m Adding extra search path upscale_models WINDOWS_ABSOLUTE_PATH
+[32m[INFO][0m Adding extra search path upscale_models WINDOWS_ABSOLUTE_PATH
+[32m[INFO][0m Adding extra search path upscale_models WINDOWS_ABSOLUTE_PATH
+[32m[INFO][0m Adding extra search path embeddings WINDOWS_ABSOLUTE_PATH
+[32m[INFO][0m Adding extra search path hypernetworks WINDOWS_ABSOLUTE_PATH
+[32m[INFO][0m Adding extra search path controlnet WINDOWS_ABSOLUTE_PATH
+[32m[INFO][0m Setting base directory to: RUN_TEMP
+[1m[33m[WARNING][0m WARNING: You need pytorch with cu130 or higher to use optimized CUDA operations.
+WARNING WARNING WARNING
+If you are on nvidia 20 series and above it is required that you update your pytorch to cu130 or higher.
+
+[32m[INFO][0m Found comfy_kitchen backend hip: {'available': False, 'disabled': False, 'unavailable_reason': 'PyTorch ROCm/HIP runtime not available', 'capabilities': []}
+[32m[INFO][0m Found comfy_kitchen backend triton: {'available': False, 'disabled': True, 'unavailable_reason': "ImportError: No module named 'triton'", 'capabilities': []}
+[32m[INFO][0m Found comfy_kitchen backend cuda: {'available': True, 'disabled': True, 'unavailable_reason': None, 'capabilities': ['adaln', 'apply_rope', 'apply_rope1', 'apply_rope1_', 'apply_rope_', 'apply_rope_split_half', 'apply_rope_split_half1', 'apply_rope_split_half1_', 'apply_rope_split_half_', 'closest_point_on_mesh', 'connected_components', 'convrot_w4a4_linear', 'delaunay3d', 'dequantize_convrot_w4a4_weight', 'dequantize_int8_convrot_weight', 'dequantize_int8_convrot_weight_dtype', 'dequantize_int8_simple', 'dequantize_int8_simple_dtype', 'dequantize_nvfp4', 'dequantize_per_tensor_fp8', 'dequantize_w4a8_int8_weight', 'edge_collapse_checks', 'fp16_conv3d', 'fp16_conv3d_out', 'fp16_linear', 'gemv_awq_w4a16', 'group_norm_silu_pad3d', 'group_norm_silu_pad3d_out', 'mesh_bvh', 'min_cut', 'na3d', 'prepare_int4_weight_for_int8_linear', 'quantize_and_rotate_rowwise', 'quantize_convrot_w4a4_weight', 'quantize_int8_convrot_weight', 'quantize_int8_rowwise', 'quantize_int8_tensorwise', 'quantize_mxfp8', 'quantize_nvfp4', 'quantize_per_tensor_fp8', 'quantize_svdquant_w4a4', 'quantize_w4a8_int8_weight', 'rms_adaln', 'rms_rope', 'rms_rope1', 'rms_rope1_', 'rms_rope_', 'rms_rope_split_half', 'rms_rope_split_half1', 'rms_rope_split_half1_', 'rms_rope_split_half_', 'rotate_int8_convrot_weight', 'scaled_mm_svdquant_w4a4', 'sol_attn', 'stochastic_rounding_fp8', 'w4a8_int8_linear', 'w4a8_packed_linear']}
+[32m[INFO][0m Found comfy_kitchen backend eager: {'available': True, 'disabled': False, 'unavailable_reason': None, 'capabilities': ['adaln', 'apply_rope', 'apply_rope1', 'apply_rope1_', 'apply_rope_', 'apply_rope_split_half', 'apply_rope_split_half1', 'apply_rope_split_half1_', 'apply_rope_split_half_', 'convrot_w4a4_linear', 'dequantize_convrot_w4a4_weight', 'dequantize_int8_convrot_weight', 'dequantize_int8_convrot_weight_dtype', 'dequantize_int8_embedding', 'dequantize_int8_simple', 'dequantize_int8_simple_dtype', 'dequantize_mxfp8', 'dequantize_nvfp4', 'dequantize_per_tensor_fp8', 'dequantize_w4a8_int8_weight', 'fp16_conv3d', 'fp16_conv3d_out', 'fp16_linear', 'gemv_awq_w4a16', 'group_norm_silu_pad3d', 'group_norm_silu_pad3d_out', 'int8_linear', 'na3d', 'prepare_int4_weight_for_int8_linear', 'quantize_and_rotate_rowwise', 'quantize_convrot_w4a4_weight', 'quantize_int8_convrot_weight', 'quantize_int8_rowwise', 'quantize_int8_tensorwise', 'quantize_mxfp8', 'quantize_nvfp4', 'quantize_per_tensor_fp8', 'quantize_svdquant_w4a4', 'quantize_w4a8_int8_weight', 'rms_adaln', 'rms_rope', 'rms_rope1', 'rms_rope1_', 'rms_rope_', 'rms_rope_split_half', 'rms_rope_split_half1', 'rms_rope_split_half1_', 'rms_rope_split_half_', 'rotate_int8_convrot_weight', 'scaled_mm_mxfp8', 'scaled_mm_nvfp4', 'scaled_mm_svdquant_w4a4', 'sol_attn', 'stochastic_rounding_fp8', 'w4a8_int8_linear', 'w4a8_packed_linear']}
+[32m[INFO][0m Found comfy_kitchen backend ascend: {'available': False, 'disabled': False, 'unavailable_reason': "torch-npu is not installed: No module named 'torch_npu'", 'capabilities': []}
+[32m[INFO][0m Checkpoint files will always be loaded safely.
+[32m[INFO][0m Total VRAM 24564 MB, total RAM 32524 MB
+[32m[INFO][0m pytorch version: 2.8.0+cu129
+[32m[INFO][0m Set vram state to: NORMAL_VRAM
+[32m[INFO][0m Device: cuda:0 NVIDIA GeForce RTX 4090 : cudaMallocAsync
+[32m[INFO][0m Using async weight offloading with 2 streams
+[32m[INFO][0m Enabled pinned memory 13009.0
+[32m[INFO][0m Using pytorch attention
+[32m[INFO][0m aimdo: src-win/cuda-detour.c:38:INFO:aimdo_setup_hooks: installing 6 hooks
+[32m[INFO][0m aimdo: src/control.c:269:INFO:comfy-aimdo NVML pressure enabled
+[32m[INFO][0m aimdo: src-win/shmem-detect.c:80:INFO:comfy-aimdo WDDM adapter match: NVIDIA GeForce RTX 4090 runtime_luid=00000000:000147a9 dxgi_luid=00000000:000147a9
+[32m[INFO][0m aimdo: src/control.c:284:INFO:comfy-aimdo inited for GPU: NVIDIA GeForce RTX 4090 (VRAM: 24563 MB)
+[32m[INFO][0m DynamicVRAM support detected and enabled
+[32m[INFO][0m Python version: 3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]
+[32m[INFO][0m ComfyUI version: 0.42.0
+[32m[INFO][0m comfy-aimdo version: 0.5.6
+[32m[INFO][0m comfy-kitchen version: 0.2.39
+[1m[33m[WARNING][0m ****** User settings have been changed to be stored on the server instead of browser storage. ******
+[1m[33m[WARNING][0m ****** For multi-user setups add the --multi-user CLI argument to enable multiple user profiles. ******
+[32m[INFO][0m comfyui-frontend-package version: 1.55.18
+[32m[INFO][0m comfyui-workflow-templates version: 0.11.89
+[32m[INFO][0m comfyui-embedded-docs version: 0.5.14
+[32m[INFO][0m comfy-kitchen version: 0.2.39
+[32m[INFO][0m comfy-aimdo version: 0.5.6
+[32m[INFO][0m [Prompt Server] web root: COMFY_INSTALL_PARENT_WIN/python/Lib/site-packages/comfyui_frontend_package/static
+[32m[INFO][0m Asset seeder disabled
+[32m[INFO][0m No OpenGL_accelerate module loaded: No module named 'OpenGL_accelerate'
+[32m[INFO][0m 
+Import times for custom nodes:
+[32m[INFO][0m    0.0 seconds: RUN_TEMP/custom_nodes/lvw_v0_bridge
+[32m[INFO][0m 
+[32m[INFO][0m Using RAM pressure cache.
+[32m[INFO][0m Starting server
+
+[32m[INFO][0m To see the GUI go to: http://127.0.0.1:8191
+[32m[INFO][0m got prompt
+[32m[INFO][0m [32mPrompt executed in 17.56 seconds[0m
+[32m[INFO][0m got prompt
+[1m[31m[ERROR][0m !!! Exception during processing !!! {"code":"NO_USABLE_OUTPUT","details":{"prior_frame_raw_responses":[],"raw_response":"{/"model/":/"gemma4:26b/",/"created_at/":/"2026-10-27T07:50:27.1931144Z/",/"message/":{/"role/":/"assistant/",/"content/":/"{///"observations///": [//n  ///"The image shows a close-up of a young woman with long dark hair, wearing glasses and a blue denim shirt. She is looking towards the camera with a neutral expression. There is no visible change from the baseline frame.///"//n], ///"inferences///": [], ///"unknowns///": [], ///"prompt///": ///"Describe only visible evidence for prompt assistance.///", ///"tags///": [], ///"change///": ///"no visible change can be established///"}/"},/"done/":true,/"done_reason/":/"stop/",/"total_duration/":14263101300,/"load_duration/":12476199700,/"prompt_eval_count/":127,/"prompt_eval_duration/":697085000,/"eval_count/":97,/"eval_duration/":1074503000}","subcode":"PROMPT_ECHO"},"message":"model output echoed the normalized request instruction"}
+[1m[31m[ERROR][0m Traceback (most recent call last):
+  File "COMFY_ROOT_WIN/execution.py", line 548, in execute
+    output_data, output_ui, has_subgraph, has_pending_tasks = await get_output_data(prompt_id, unique_id, obj, input_data_all, execution_block_cb=execution_block_cb, pre_execute_cb=pre_execute_cb, v3_data=v3_data)
+                                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "COMFY_ROOT_WIN/execution.py", line 353, in get_output_data
+    return_values = await _async_map_node_over_list(prompt_id, unique_id, obj, input_data_all, obj.FUNCTION, allow_interrupt=True, execution_block_cb=execution_block_cb, pre_execute_cb=pre_execute_cb, v3_data=v3_data)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "COMFY_ROOT_WIN/execution.py", line 327, in _async_map_node_over_list
+    await process_inputs(input_dict, i)
+  File "COMFY_ROOT_WIN/execution.py", line 315, in process_inputs
+    result = f(**inputs)
+             ^^^^^^^^^^^
+  File "RUN_TEMP/custom_nodes/lvw_v0_bridge/nodes.py", line 51, in analyze
+    raw, suggestion = self._owner.analyze_video(frames, model=model, user_instruction=user_instruction,
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "RUN_TEMP/custom_nodes/lvw_v0_bridge/core.py", line 432, in analyze_video
+    call = call_one_frame(transport=self.transport, encoder=self.encoder, frame=frame, model=model,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "RUN_TEMP/custom_nodes/lvw_v0_bridge/core.py", line 352, in call_one_frame
+    raise primary_error
+  File "RUN_TEMP/custom_nodes/lvw_v0_bridge/core.py", line 337, in call_one_frame
+    parsed = parse_response(raw, instruction=instruction, user_instruction=user_instruction, video=video)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "RUN_TEMP/custom_nodes/lvw_v0_bridge/core.py", line 212, in parse_response
+    raise BridgeError("NO_USABLE_OUTPUT", "model output echoed the normalized request instruction",
+RUN_TEMP/custom_nodes/lvw_v0_bridge.core.BridgeError: {"code":"NO_USABLE_OUTPUT","details":{"prior_frame_raw_responses":[],"raw_response":"{/"model/":/"gemma4:26b/",/"created_at/":/"2026-10-27T07:50:27.1931144Z/",/"message/":{/"role/":/"assistant/",/"content/":/"{///"observations///": [//n  ///"The image shows a close-up of a young woman with long dark hair, wearing glasses and a blue denim shirt. She is looking towards the camera with a neutral expression. There is no visible change from the baseline frame.///"//n], ///"inferences///": [], ///"unknowns///": [], ///"prompt///": ///"Describe only visible evidence for prompt assistance.///", ///"tags///": [], ///"change///": ///"no visible change can be established///"}/"},/"done/":true,/"done_reason/":/"stop/",/"total_duration/":14263101300,/"load_duration/":12476199700,/"prompt_eval_count/":127,/"prompt_eval_duration/":697085000,/"eval_count/":97,/"eval_duration/":1074503000}","subcode":"PROMPT_ECHO"},"message":"model output echoed the normalized request instruction"}
+
+[32m[INFO][0m [32mPrompt executed in 14.58 seconds[0m

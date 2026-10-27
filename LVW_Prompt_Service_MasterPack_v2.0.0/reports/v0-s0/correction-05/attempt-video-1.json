@@ -1,0 +1,291 @@
+{
+  "attempt": 1,
+  "ended_at": "2026-10-27T07:50:33Z",
+  "failure": "BridgeError: NO_USABLE_OUTPUT/PROMPT_ECHO in video frame 1",
+  "history": {
+    "meta": {},
+    "outputs": {},
+    "prompt": [
+      1,
+      "0b8f6aeb-c993-4351-8050-2900a37f04f4",
+      {
+        "1": {
+          "class_type": "LoadImage",
+          "inputs": {
+            "image": "frame-01.png"
+          }
+        },
+        "2": {
+          "class_type": "LoadImage",
+          "inputs": {
+            "image": "frame-02.png"
+          }
+        },
+        "3": {
+          "class_type": "LoadImage",
+          "inputs": {
+            "image": "frame-03.png"
+          }
+        },
+        "4": {
+          "class_type": "LoadImage",
+          "inputs": {
+            "image": "frame-04.png"
+          }
+        },
+        "5": {
+          "class_type": "ImageBatch",
+          "inputs": {
+            "image1": [
+              "1",
+              0
+            ],
+            "image2": [
+              "2",
+              0
+            ]
+          }
+        },
+        "6": {
+          "class_type": "ImageBatch",
+          "inputs": {
+            "image1": [
+              "5",
+              0
+            ],
+            "image2": [
+              "3",
+              0
+            ]
+          }
+        },
+        "7": {
+          "class_type": "ImageBatch",
+          "inputs": {
+            "image1": [
+              "6",
+              0
+            ],
+            "image2": [
+              "4",
+              0
+            ]
+          }
+        },
+        "8": {
+          "class_type": "LVWVideoFramesPromptBridge",
+          "inputs": {
+            "frames": [
+              "7",
+              0
+            ],
+            "mode": "realistic",
+            "model": "gemma4:26b",
+            "timeout_seconds": 120,
+            "user_instruction": "Describe only visible evidence for prompt assistance."
+          }
+        }
+      },
+      {
+        "client_id": "v0-s0-correction-05-live-20261027-01",
+        "create_time": 1793087412834
+      },
+      [
+        "8"
+      ]
+    ],
+    "status": {
+      "completed": false,
+      "messages": [
+        [
+          "execution_start",
+          {
+            "prompt_id": "0b8f6aeb-c993-4351-8050-2900a37f04f4",
+            "timestamp": 1793087412835
+          }
+        ],
+        [
+          "execution_cached",
+          {
+            "nodes": [],
+            "prompt_id": "0b8f6aeb-c993-4351-8050-2900a37f04f4",
+            "timestamp": 1793087412839
+          }
+        ],
+        [
+          "execution_error",
+          {
+            "current_inputs": {
+              "frames": [
+                "DERIVED_TENSOR_REDACTED"
+              ],
+              "mode": [
+                "realistic"
+              ],
+              "model": [
+                "gemma4:26b"
+              ],
+              "timeout_seconds": [
+                120
+              ],
+              "user_instruction": [
+                "Describe only visible evidence for prompt assistance."
+              ]
+            },
+            "current_inputs_redacted": true,
+            "current_outputs": [
+              "4",
+              "8",
+              "1",
+              "5",
+              "3",
+              "6",
+              "7",
+              "2"
+            ],
+            "exception_message": "{\"code\":\"NO_USABLE_OUTPUT\",\"details\":{\"prior_frame_raw_responses\":[],\"raw_response\":\"{/\"model/\":/\"gemma4:26b/\",/\"created_at/\":/\"2026-10-27T07:50:27.1931144Z/\",/\"message/\":{/\"role/\":/\"assistant/\",/\"content/\":/\"{///\"observations///\": [//n  ///\"The image shows a close-up of a young woman with long dark hair, wearing glasses and a blue denim shirt. She is looking towards the camera with a neutral expression. There is no visible change from the baseline frame.///\"//n], ///\"inferences///\": [], ///\"unknowns///\": [], ///\"prompt///\": ///\"Describe only visible evidence for prompt assistance.///\", ///\"tags///\": [], ///\"change///\": ///\"no visible change can be established///\"}/\"},/\"done/\":true,/\"done_reason/\":/\"stop/\",/\"total_duration/\":14263101300,/\"load_duration/\":12476199700,/\"prompt_eval_count/\":127,/\"prompt_eval_duration/\":697085000,/\"eval_count/\":97,/\"eval_duration/\":1074503000}\",\"subcode\":\"PROMPT_ECHO\"},\"message\":\"model output echoed the normalized request instruction\"}\n",
+            "exception_type": "RUN_TEMP/custom_nodes/lvw_v0_bridge.core.BridgeError",
+            "executed": [
+              "4",
+              "1",
+              "5",
+              "3",
+              "6",
+              "7",
+              "2"
+            ],
+            "node_id": "8",
+            "node_type": "LVWVideoFramesPromptBridge",
+            "prompt_id": "0b8f6aeb-c993-4351-8050-2900a37f04f4",
+            "timestamp": 1793087427410,
+            "traceback": [
+              "  File \"COMFY_ROOT_WIN/execution.py\", line 548, in execute\n    output_data, output_ui, has_subgraph, has_pending_tasks = await get_output_data(prompt_id, unique_id, obj, input_data_all, execution_block_cb=execution_block_cb, pre_execute_cb=pre_execute_cb, v3_data=v3_data)\n                                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n",
+              "  File \"COMFY_ROOT_WIN/execution.py\", line 353, in get_output_data\n    return_values = await _async_map_node_over_list(prompt_id, unique_id, obj, input_data_all, obj.FUNCTION, allow_interrupt=True, execution_block_cb=execution_block_cb, pre_execute_cb=pre_execute_cb, v3_data=v3_data)\n                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n",
+              "  File \"COMFY_ROOT_WIN/execution.py\", line 327, in _async_map_node_over_list\n    await process_inputs(input_dict, i)\n",
+              "  File \"COMFY_ROOT_WIN/execution.py\", line 315, in process_inputs\n    result = f(**inputs)\n             ^^^^^^^^^^^\n",
+              "  File \"RUN_TEMP/custom_nodes/lvw_v0_bridge/nodes.py\", line 51, in analyze\n    raw, suggestion = self._owner.analyze_video(frames, model=model, user_instruction=user_instruction,\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n",
+              "  File \"RUN_TEMP/custom_nodes/lvw_v0_bridge/core.py\", line 432, in analyze_video\n    call = call_one_frame(transport=self.transport, encoder=self.encoder, frame=frame, model=model,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n",
+              "  File \"RUN_TEMP/custom_nodes/lvw_v0_bridge/core.py\", line 352, in call_one_frame\n    raise primary_error\n",
+              "  File \"RUN_TEMP/custom_nodes/lvw_v0_bridge/core.py\", line 337, in call_one_frame\n    parsed = parse_response(raw, instruction=instruction, user_instruction=user_instruction, video=video)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n",
+              "  File \"RUN_TEMP/custom_nodes/lvw_v0_bridge/core.py\", line 212, in parse_response\n    raise BridgeError(\"NO_USABLE_OUTPUT\", \"model output echoed the normalized request instruction\",\n"
+            ]
+          }
+        ]
+      ],
+      "status_str": "error"
+    }
+  },
+  "history_http_status": 200,
+  "kind": "video",
+  "pass": false,
+  "prompt_http_status": 200,
+  "prompt_id": "0b8f6aeb-c993-4351-8050-2900a37f04f4",
+  "prompt_payload": {
+    "client_id": "v0-s0-correction-05-live-20261027-01",
+    "prompt": {
+      "1": {
+        "class_type": "LoadImage",
+        "inputs": {
+          "image": "frame-01.png"
+        }
+      },
+      "2": {
+        "class_type": "LoadImage",
+        "inputs": {
+          "image": "frame-02.png"
+        }
+      },
+      "3": {
+        "class_type": "LoadImage",
+        "inputs": {
+          "image": "frame-03.png"
+        }
+      },
+      "4": {
+        "class_type": "LoadImage",
+        "inputs": {
+          "image": "frame-04.png"
+        }
+      },
+      "5": {
+        "class_type": "ImageBatch",
+        "inputs": {
+          "image1": [
+            "1",
+            0
+          ],
+          "image2": [
+            "2",
+            0
+          ]
+        }
+      },
+      "6": {
+        "class_type": "ImageBatch",
+        "inputs": {
+          "image1": [
+            "5",
+            0
+          ],
+          "image2": [
+            "3",
+            0
+          ]
+        }
+      },
+      "7": {
+        "class_type": "ImageBatch",
+        "inputs": {
+          "image1": [
+            "6",
+            0
+          ],
+          "image2": [
+            "4",
+            0
+          ]
+        }
+      },
+      "8": {
+        "class_type": "LVWVideoFramesPromptBridge",
+        "inputs": {
+          "frames": [
+            "7",
+            0
+          ],
+          "mode": "realistic",
+          "model": "gemma4:26b",
+          "timeout_seconds": 120,
+          "user_instruction": "Describe only visible evidence for prompt assistance."
+        }
+      }
+    }
+  },
+  "prompt_raw_response": "{\"prompt_id\": \"0b8f6aeb-c993-4351-8050-2900a37f04f4\", \"number\": 1, \"node_errors\": {}}",
+  "resource_release_observations": [
+    {
+      "delay_seconds": 0,
+      "http_status": 200,
+      "parsed": {
+        "models": []
+      },
+      "raw_response": "{\"models\":[]}"
+    },
+    {
+      "delay_seconds": 5,
+      "http_status": 200,
+      "parsed": {
+        "models": []
+      },
+      "raw_response": "{\"models\":[]}"
+    }
+  ],
+  "route": "Comfy public /prompt",
+  "semantic_stop": {
+    "code": "NO_USABLE_OUTPUT",
+    "frame_number": 1,
+    "remaining_frames_not_called": 3,
+    "subcode": "PROMPT_ECHO"
+  },
+  "started_at": "2026-10-27T07:50:13Z"
+}
