@@ -6,27 +6,27 @@
   "target_version": "V0",
   "coordinate": {
     "stage_id": "V0-S0",
-    "workpack_id": "WP-S0-22",
-    "gate": "GATE1_IMPLEMENTATION",
-    "state": "RUNNING"
+    "workpack_id": "WP-S0-24",
+    "gate": "GATE4_REAL_ACCEPTANCE",
+    "state": "WAIT_AUTH"
   },
   "last_passed_gate": {
-    "id": "WP_S0_21_INDEPENDENT_BLOCK_REVIEW_COMPLETE",
-    "evidence": "reports/v0-s0/independent-review-correction-07.md",
-    "meaning": "independent review confirmed two harness Major findings and zero effective media attempts"
+    "id": "WP_S0_23_CORRECTION_08_OFFLINE_HARNESS_SEALED",
+    "evidence": "reports/v0-s0/implementation-receipt-correction-08-offline.json",
+    "meaning": "encoding-safe and atomic-terminal harness passed 24 offline fixtures and was sealed at 57f7718"
   },
-  "current_blocking_gate": "PowerShell encoding and failure-finalization must pass offline negative fixtures before live authorization",
+  "current_blocking_gate": "WP-S0-24 requires a new explicit candidate-bound bounded local-runtime authorization",
   "stage_packet": ".agent-governance/stages/V0-S0/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/V0-S0/PAYLOAD_MANIFEST.sha256",
   "product_status": "NOT_RUN",
-  "allowed_claim": "V0_S0_CORRECTION_08_OFFLINE_HARNESS_WORK_AUTHORIZED",
+  "allowed_claim": "V0_S0_CORRECTION_08_OFFLINE_HARNESS_SEALED_WAIT_AUTH",
   "forbidden_claims": [
     "ENGINEERING_READY",
     "V0_ACCEPTED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "codex_isolated_implementer",
-  "next_action": "Execute WP-S0-22/23 offline encoding and failure-finalization correction; do not start services.",
+  "next_owner": "project_owner",
+  "next_action": "Explicitly authorize or decline WP-S0-24; no service start is permitted while waiting.",
   "evidence_root": "reports/",
-  "exact_stop_reason": null
+  "exact_stop_reason": "NEW_EXPLICIT_WP_S0_24_AUTHORIZATION_REQUIRED"
 }

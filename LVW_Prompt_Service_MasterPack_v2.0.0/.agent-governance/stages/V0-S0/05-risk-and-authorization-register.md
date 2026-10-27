@@ -46,3 +46,5 @@ WP-S0-17 与 root 的 Windows-native只读复核确认：非本轮 owned 的 Com
 该授权已产生终态 BLOCKED 收据并过期，不得复用。pre-service GPU 数值通过，但 CIM 输出解码失败导致 owner/port gate 未完成；服务和媒体尝试均为 0。是否签发纯 harness 编码纠偏及后续授权，必须等待 WP-S0-21 独立复审。
 
 WP-S0-21 已确认补建收据无假绿且有效媒体 0/0。WP-S0-22/23 仅离线修复 PowerShell UTF-8 与原子 failure-finalization。任何 WP-S0-24 运行仍需新授权；不得把旧授权恢复或延长。
+
+WP-S0-22/23 候选已封存为 `57f771823a625eabd3fd746d352f5936d37380a2`，离线收据证明 24/24 回归通过且外部动作全为 0。旧授权仍保持过期；当前状态为 `WAIT_AUTH`。WP-S0-24 的新授权必须显式绑定该 harness 候选、产品候选 `138b448...`、图片 1 次/视频 1 次预算、loopback/no-cloud/GPU/cleanup 门限与终态即过期规则。

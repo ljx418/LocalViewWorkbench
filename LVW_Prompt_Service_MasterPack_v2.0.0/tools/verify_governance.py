@@ -107,8 +107,11 @@ def validate_stage(control: dict, tasks: dict, cases: dict) -> list[str]:
     external = any(item.get("risk") == "external_private" for item in workpacks)
     state = control.get("state")
     if external and state == "WAIT_AUTH":
-        if control.get("authorization_records"):
-            errors.append("WAIT_AUTH must not claim active authorization records")
+        if not control.get("required_authorization") or control.get("next_owner") != "project_owner":
+            errors.append("WAIT_AUTH must identify the required authorization and human owner")
+        for record in control.get("authorization_records", []):
+            if not (ROOT / record).is_file():
+                errors.append(f"historical authorization record is missing: {record}")
     elif external:
         if state not in {"RUNNING", "CHECKPOINT", "STAGE_BASELINE_COMPLETE", "NO_GO", "BLOCKED", "WAIT_BUDGET"}:
             errors.append("external/private Stage has an invalid post-authorization state")
@@ -397,6 +400,12 @@ def main() -> int:
                     "WP_S0_19_HARNESS_CANDIDATE_SEALED",
                     "WP_S0_21_INDEPENDENT_BLOCK_REVIEW_COMPLETE",
                 }
+            )
+            or (
+                control.get("state") == execution["coordinate"]["state"] == "WAIT_AUTH"
+                and execution["coordinate"].get("workpack_id") == "WP-S0-24"
+                and execution.get("last_passed_gate", {}).get("id")
+                == "WP_S0_23_CORRECTION_08_OFFLINE_HARNESS_SEALED"
             ),
             f"major_count={major_count}",
         )
