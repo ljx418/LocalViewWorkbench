@@ -6,27 +6,33 @@
   "target_version": "V0",
   "coordinate": {
     "stage_id": "V0-S0",
-    "workpack_id": "WP-S0-01",
-    "gate": "GATE1_IMPLEMENTATION",
-    "state": "RUNNING"
+    "workpack_id": "WP-S0-03",
+    "gate": "GATE3_CHECKPOINT",
+    "state": "BLOCKED"
   },
   "last_passed_gate": {
     "id": "TARGET_RUNTIME_AUTHORIZED",
     "evidence": "reports/v0-s0/authorization.json",
     "meaning": "bounded_local_runtime_actions_authorized_not_product_acceptance"
   },
-  "current_blocking_gate": null,
+  "current_blocking_gate": {
+    "id": "V0-S0-INDEPENDENT-REVIEW-MAJORS",
+    "reason": "Independent review found Fatal 0 / Major 5 / Minor 2. Raw evidence, role separation, connected production trace, coordinate consistency and real-receipt verification are insufficient.",
+    "evidence": "reports/v0-s0/independent-review.md",
+    "retry_state": "Image and video each consumed two effective attempts; no repeat is allowed under the existing run budget.",
+    "required_authorization": "Any live rerun requires a new bounded authorization and a non-gate-owner implementation session."
+  },
   "stage_packet": ".agent-governance/stages/V0-S0/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/V0-S0/PAYLOAD_MANIFEST.sha256",
   "product_status": "NOT_RUN",
-  "allowed_claim": "V0_S0_AUTHORIZED_AND_RUNNING",
+  "allowed_claim": "V0_S0_LIVE_FEASIBILITY_OBSERVED_BUT_CHECKPOINT_BLOCKED",
   "forbidden_claims": [
     "ENGINEERING_READY",
     "V0_ACCEPTED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "claudecode_minimax",
-  "next_action": "Query the public ComfyUI registry and local Ollama model inventory, then execute one-image and bounded four-frame feasibility probes within the authorization receipt.",
+  "next_owner": "codex_sol",
+  "next_action": "Apply the offline correction package, preserve all failures, and request a new bounded rerun authorization plus a non-gate-owner implementation session only for evidence gaps that cannot be repaired offline.",
   "evidence_root": "reports/",
-  "exact_stop_reason": null
+  "exact_stop_reason": "Independent review blocks S0 exit. Existing live retry budgets are exhausted, and the gate owner cannot self-remedy the role-isolation or missing raw-evidence findings by asserting its own summary."
 }

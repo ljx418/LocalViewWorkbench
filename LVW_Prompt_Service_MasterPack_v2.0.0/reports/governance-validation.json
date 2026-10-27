@@ -2,8 +2,8 @@
   "kind": "GOVERNANCE_VALIDATION_NOT_PRODUCT_ACCEPTANCE",
   "project_id": "lvw-prompt-service",
   "stage_id": "V0-S0",
-  "passed": 27,
-  "failed": 0,
+  "passed": 40,
+  "failed": 3,
   "product_tests_executed": false,
   "target_runtime_touched": true,
   "checks": [
@@ -79,6 +79,86 @@
     },
     {
       "check": "fixed_cases_still_not_run",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "actual_implementation_receipt_exists",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "actual_live_receipt_exists",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "actual_implementation_receipt",
+      "passed": false,
+      "detail": "actual implementation owner is not an authorized implementation owner"
+    },
+    {
+      "check": "actual_implementation_receipt",
+      "passed": false,
+      "detail": "actual implementation owner collides with gate or review owner"
+    },
+    {
+      "check": "actual_retry_budget",
+      "passed": true,
+      "detail": "{\"image_effective_attempts\": 2, \"video_effective_attempts\": 2, \"limit_per_probe\": 2, \"additional_attempts_performed\": false}"
+    },
+    {
+      "check": "actual_product_denominator_not_promoted",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "actual_raw_evidence_refs",
+      "passed": false,
+      "detail": "raw command/HTTP/resource/cleanup artifacts are required"
+    },
+    {
+      "check": "actual_public_entry_disposition",
+      "passed": true,
+      "detail": "NO_GO_NO_CONNECTED_PUBLIC_ENTRY_TO_LOCAL_MODEL"
+    },
+    {
+      "check": "actual_evidence_manifest",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "actual_git_commit:candidate_sha",
+      "passed": true,
+      "detail": "3fb04084c50f0ef9b6bd133fe77f90bea44e6ffa"
+    },
+    {
+      "check": "actual_git_commit:evidence_commit",
+      "passed": true,
+      "detail": "08d41fc7970018ee1b9bf8853e508a7f084a0415"
+    },
+    {
+      "check": "actual_changed_files_receipt",
+      "passed": true,
+      "detail": "declared=[\"MANIFEST.sha256\", \"reports/governance-validation.json\", \"reports/node-bindings.json\", \"reports/reuse-audit.md\", \"reports/runtime-inventory.json\", \"reports/v0-s0/evidence-sha256.json\", \"reports/v0-s0/failure-ledger.json\", \"reports/v0-s0/implementation-receipt.json\", \"reports/v0-s0/live-probe-receipt.json\", \"reports/v0-s0/static-audit.md\", \"reports/v0-s0/steps_or_command.log\", \"tools/verify_governance.py\"]; actual=[\"MANIFEST.sha256\", \"reports/governance-validation.json\", \"reports/node-bindings.json\", \"reports/reuse-audit.md\", \"reports/runtime-inventory.json\", \"reports/v0-s0/evidence-sha256.json\", \"reports/v0-s0/failure-ledger.json\", \"reports/v0-s0/implementation-receipt.json\", \"reports/v0-s0/live-probe-receipt.json\", \"reports/v0-s0/static-audit.md\", \"reports/v0-s0/steps_or_command.log\", \"tools/verify_governance.py\"]"
+    },
+    {
+      "check": "independent_review_exists",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "independent_major_count_parseable",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "independent_majors_block_exit",
+      "passed": true,
+      "detail": "major_count=5"
+    },
+    {
+      "check": "checkpoint_coordinate",
       "passed": true,
       "detail": ""
     },

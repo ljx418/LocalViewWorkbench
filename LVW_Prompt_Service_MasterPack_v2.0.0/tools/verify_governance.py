@@ -7,6 +7,8 @@ import argparse
 import copy
 import hashlib
 import json
+import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -31,6 +33,7 @@ REQUIRED_RECEIPT_FIELDS = {
     "stage_id",
     "workpack_id",
     "candidate_sha",
+    "evidence_commit",
     "spec_version",
     "acceptance_hash",
     "gate_version",
@@ -40,6 +43,7 @@ REQUIRED_RECEIPT_FIELDS = {
     "test_counts",
     "artifact_refs",
     "risks",
+    "implementation_owner_role",
     "implementation_session",
     "decision",
 }
@@ -123,7 +127,11 @@ def validate_stage(control: dict, tasks: dict, cases: dict) -> list[str]:
     return errors
 
 
-def validate_receipt(receipt: dict, expected_candidate: str | None = None) -> list[str]:
+def validate_receipt(
+    receipt: dict,
+    expected_candidate: str | None = None,
+    control: dict | None = None,
+) -> list[str]:
     errors: list[str] = []
     missing = REQUIRED_RECEIPT_FIELDS - set(receipt)
     if missing:
@@ -135,9 +143,45 @@ def validate_receipt(receipt: dict, expected_candidate: str | None = None) -> li
         return errors
     if expected_candidate and receipt.get("candidate_sha") != expected_candidate:
         errors.append("receipt evidence belongs to a different candidate")
+    if not re.fullmatch(r"[0-9a-f]{40}", str(receipt.get("candidate_sha", ""))):
+        errors.append("receipt candidate_sha is not a full Git commit ID")
+    if not re.fullmatch(r"[0-9a-f]{40}", str(receipt.get("evidence_commit", ""))):
+        errors.append("receipt evidence_commit is not a full Git commit ID")
+    if control:
+        if receipt.get("acceptance_hash") != control.get("acceptance_hash"):
+            errors.append("receipt acceptance_hash differs from the frozen Stage denominator")
+        if counts.get("denominator") != len(control.get("fixed_acceptance_ids", [])):
+            errors.append("receipt denominator count differs from the frozen Stage denominator")
+        owner = receipt.get("implementation_owner_role")
+        roles = control.get("roles", {})
+        if owner not in set(roles.get("implementation_owners", [])):
+            errors.append("actual implementation owner is not an authorized implementation owner")
+        if owner in {roles.get("gate_owner"), roles.get("independent_reviewer")}:
+            errors.append("actual implementation owner collides with gate or review owner")
     if receipt.get("decision") == "PASS":
         if counts["pass"] != counts["denominator"] or any(counts[name] for name in ("fail", "blocked", "skipped", "not_run")):
             errors.append("PASS contains an incomplete or non-passing fixed denominator")
+    return errors
+
+
+def validate_evidence_manifest(path: Path, expected_candidate: str) -> list[str]:
+    errors: list[str] = []
+    if not path.is_file():
+        return ["evidence manifest is missing"]
+    manifest = load_json(path)
+    if manifest.get("candidate_commit") != expected_candidate:
+        errors.append("evidence manifest belongs to a different candidate")
+    for artifact in manifest.get("artifacts", []):
+        relative = artifact.get("path")
+        if not relative or Path(relative).is_absolute() or ".." in Path(relative).parts:
+            errors.append("evidence manifest contains an unsafe artifact path")
+            continue
+        target = ROOT / relative
+        actual = hashlib.sha256(target.read_bytes()).hexdigest() if target.is_file() else None
+        if actual != artifact.get("sha256"):
+            errors.append(f"evidence hash mismatch: {relative}")
+    if not manifest.get("artifacts"):
+        errors.append("evidence manifest contains no artifacts")
     return errors
 
 
@@ -230,6 +274,101 @@ def main() -> int:
     check("manifest_reference", (ROOT / execution["stage_packet_manifest"]).resolve() == (STAGE_DIR / "PAYLOAD_MANIFEST.sha256").resolve())
     case_status = {item["case_id"]: item["status"] for item in cases["cases"]}
     check("fixed_cases_still_not_run", all(case_status[item] == "NOT_RUN" for item in control["fixed_acceptance_ids"]))
+
+    actual_receipt_path = ROOT / "reports" / "v0-s0" / "implementation-receipt.json"
+    live_receipt_path = ROOT / "reports" / "v0-s0" / "live-probe-receipt.json"
+    check("actual_implementation_receipt_exists", actual_receipt_path.is_file())
+    check("actual_live_receipt_exists", live_receipt_path.is_file())
+    if actual_receipt_path.is_file() and live_receipt_path.is_file():
+        actual_receipt = load_json(actual_receipt_path)
+        live_receipt = load_json(live_receipt_path)
+        expected_candidate = live_receipt.get("candidate_sha")
+        for error in validate_receipt(actual_receipt, expected_candidate, control):
+            check("actual_implementation_receipt", False, error)
+        if not validate_receipt(actual_receipt, expected_candidate, control):
+            check("actual_implementation_receipt", True)
+
+        retry = live_receipt.get("retry_accounting", {})
+        retry_limit = control.get("budgets", {}).get("max_effective_retries_per_probe")
+        check(
+            "actual_retry_budget",
+            retry_limit is not None
+            and retry.get("image_effective_attempts", retry_limit + 1) <= retry_limit
+            and retry.get("video_effective_attempts", retry_limit + 1) <= retry_limit
+            and retry.get("additional_attempts_performed") is False,
+            json.dumps(retry, ensure_ascii=False),
+        )
+        check(
+            "actual_product_denominator_not_promoted",
+            all(live_receipt.get("product_acceptance", {}).get(item) == "NOT_RUN" for item in control["fixed_acceptance_ids"]),
+        )
+        raw_refs = actual_receipt.get("raw_artifact_refs", [])
+        check(
+            "actual_raw_evidence_refs",
+            bool(raw_refs) and all((ROOT / item).is_file() for item in raw_refs),
+            "raw command/HTTP/resource/cleanup artifacts are required",
+        )
+        path_status = actual_receipt.get("production_path_status")
+        trace_refs = actual_receipt.get("public_end_to_end_trace_refs", [])
+        check(
+            "actual_public_entry_disposition",
+            bool(trace_refs) or (path_status == "NO_GO_NO_CONNECTED_PUBLIC_ENTRY_TO_LOCAL_MODEL" and control.get("state") == "BLOCKED"),
+            str(path_status),
+        )
+
+        evidence_manifest = ROOT / "reports" / "v0-s0" / "evidence-sha256.json"
+        for error in validate_evidence_manifest(evidence_manifest, expected_candidate):
+            check("actual_evidence_manifest", False, error)
+        if not validate_evidence_manifest(evidence_manifest, expected_candidate):
+            check("actual_evidence_manifest", True)
+
+        git_root = ROOT.parent
+        for field in ("candidate_sha", "evidence_commit"):
+            commit_id = actual_receipt.get(field, "")
+            resolved = subprocess.run(
+                ["git", "-C", str(git_root), "cat-file", "-e", f"{commit_id}^{{commit}}"],
+                capture_output=True,
+                check=False,
+            )
+            check(f"actual_git_commit:{field}", resolved.returncode == 0, commit_id)
+
+        evidence_commit = actual_receipt.get("evidence_commit", "")
+        changed = subprocess.run(
+            ["git", "-C", str(git_root), "show", "--name-only", "--format=", evidence_commit],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        prefix = ROOT.name + "/"
+        actual_changed = {
+            line[len(prefix):]
+            for line in changed.stdout.splitlines()
+            if line.startswith(prefix)
+        }
+        check(
+            "actual_changed_files_receipt",
+            changed.returncode == 0 and set(actual_receipt.get("changed_files", [])) == actual_changed,
+            "declared=" + json.dumps(sorted(actual_receipt.get("changed_files", [])))
+            + "; actual=" + json.dumps(sorted(actual_changed)),
+        )
+
+    independent_review = ROOT / "reports" / "v0-s0" / "independent-review.md"
+    check("independent_review_exists", independent_review.is_file())
+    if independent_review.is_file():
+        review_text = independent_review.read_text(encoding="utf-8")
+        major_match = re.search(r"Major \*\*(\d+)\*\*", review_text)
+        major_count = int(major_match.group(1)) if major_match else None
+        check("independent_major_count_parseable", major_count is not None)
+        check(
+            "independent_majors_block_exit",
+            major_count == 0 or control.get("state") == execution["coordinate"]["state"] == "BLOCKED",
+            f"major_count={major_count}",
+        )
+        check(
+            "checkpoint_coordinate",
+            execution["coordinate"].get("workpack_id") == "WP-S0-03"
+            and execution["coordinate"].get("gate") == "GATE3_CHECKPOINT",
+        )
 
     registry = load_json(GOV / "project-registry.json")
     project = next((item for item in registry.get("projects", []) if item.get("project_id") == control["project_id"]), None)
