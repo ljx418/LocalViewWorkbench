@@ -1,0 +1,143 @@
+{
+  "attempt": 1,
+  "ended_at": "2026-10-27T11:11:41Z",
+  "history": {
+    "meta": {
+      "2": {
+        "display_node": "2",
+        "node_id": "2",
+        "parent_node": null,
+        "real_node_id": "2"
+      }
+    },
+    "outputs": {
+      "2": {
+        "text": [
+          "{\"model\":\"gemma4:26b\",\"created_at\":\"2026-10-27T11:11:34.613697Z\",\"message\":{\"role\":\"assistant\",\"content\":\"{\\n  \\\"observations\\\": [\\n    \\\"A person with dark hair tied in a high ponytail.\\\",\\n    \\\"The person is wearing clear-framed eyeglasses.\\\",\\n    \\\"The person is wearing a patterned shirt with blue, white, and light grey designs.\\\",\\n    \\\"The background is a plain, bright white/light color.\\\",\\n    \\\"Lighting is even and bright across the face.\\\"\\n  ],\\n  \\\"inferences\\\": [\\n    \\\"The person is looking directly at the camera.\\\"\\n  ],\\n  \\\"unknowns\\\": [\\n    \\\"The identity of the person.\\\",\\n    \\\"The specific location or setting beyond a plain background.\\\"\\n  ],\\n  \\\"prompt\\\": \\\"A close-up portrait of a person with dark hair in a high ponytail, wearing clear-framed glasses and a patterned shirt featuring blue and white motifs, set against a bright, plain white background with even lighting.\\\",\\n  \\\"tags\\\": [\\n    \\\"portrait\\\",\\n    \\\"person\\\",\\n    \\\"eyeglasses\\\",\\n    \\\"ponytail\\\",\\n    \\\"patterned shirt\\\",\\n    \\\"white background\\\"\\n  ]\\n}\"},\"done\":true,\"done_reason\":\"stop\",\"total_duration\":20903690700,\"load_duration\":18372238400,\"prompt_eval_count\":170,\"prompt_eval_duration\":790694000,\"eval_count\":233,\"eval_duration\":1711975000}",
+          "{\"schema_version\":\"lvw.prompt/1\",\"mode\":\"realistic\",\"domains\":{\"observation\":[\"A person with dark hair tied in a high ponytail.\",\"The person is wearing clear-framed eyeglasses.\",\"The person is wearing a patterned shirt with blue, white, and light grey designs.\",\"The background is a plain, bright white/light color.\",\"Lighting is even and bright across the face.\"],\"inference\":[\"The person is looking directly at the camera.\"],\"user_evidence\":[],\"creative_intent\":[\"A close-up portrait of a person with dark hair in a high ponytail, wearing clear-framed glasses and a patterned shirt featuring blue and white motifs, set against a bright, plain white background with even lighting.\"],\"unknowns\":[\"The identity of the person.\",\"The specific location or setting beyond a plain background.\"]},\"technical\":{\"duration_seconds\":null,\"aspect_ratio\":\"\",\"fps_intent\":null,\"camera_motion\":\"\",\"subject_action\":\"\",\"lighting\":\"\",\"composition\":\"\",\"style_notes\":\"\",\"beats\":[]},\"locked_fields\":[],\"text_zh\":\"\",\"text_en\":\"A close-up portrait of a person with dark hair in a high ponytail, wearing clear-framed glasses and a patterned shirt featuring blue and white motifs, set against a bright, plain white background with even lighting.\",\"tags\":[\"portrait\",\"person\",\"eyeglasses\",\"ponytail\",\"patterned shirt\",\"white background\"],\"negative\":\"\",\"template_id\":\"lvw-v0-bridge-compact\",\"template_version\":\"1.0.0\"}"
+        ]
+      }
+    },
+    "prompt": [
+      0,
+      "e5fcd11f-006e-4558-99c1-a2da434f7806",
+      {
+        "1": {
+          "class_type": "LoadImage",
+          "inputs": {
+            "image": "image.png"
+          }
+        },
+        "2": {
+          "class_type": "LVWImagePromptBridge",
+          "inputs": {
+            "image": [
+              "1",
+              0
+            ],
+            "mode": "realistic",
+            "model": "gemma4:26b",
+            "timeout_seconds": 120,
+            "user_instruction": "Describe only visible evidence for prompt assistance."
+          }
+        }
+      },
+      {
+        "client_id": "v0-s0-correction-08-live-20261027-01",
+        "create_time": 1793099473655
+      },
+      [
+        "2"
+      ]
+    ],
+    "status": {
+      "completed": true,
+      "messages": [
+        [
+          "execution_start",
+          {
+            "prompt_id": "e5fcd11f-006e-4558-99c1-a2da434f7806",
+            "timestamp": 1793099473656
+          }
+        ],
+        [
+          "execution_cached",
+          {
+            "nodes": [],
+            "prompt_id": "e5fcd11f-006e-4558-99c1-a2da434f7806",
+            "timestamp": 1793099473658
+          }
+        ],
+        [
+          "execution_success",
+          {
+            "prompt_id": "e5fcd11f-006e-4558-99c1-a2da434f7806",
+            "timestamp": 1793099494800
+          }
+        ]
+      ],
+      "status_str": "success"
+    }
+  },
+  "history_http_status": 200,
+  "history_ui": {
+    "raw_response": "{\"model\":\"gemma4:26b\",\"created_at\":\"2026-10-27T11:11:34.613697Z\",\"message\":{\"role\":\"assistant\",\"content\":\"{\\n  \\\"observations\\\": [\\n    \\\"A person with dark hair tied in a high ponytail.\\\",\\n    \\\"The person is wearing clear-framed eyeglasses.\\\",\\n    \\\"The person is wearing a patterned shirt with blue, white, and light grey designs.\\\",\\n    \\\"The background is a plain, bright white/light color.\\\",\\n    \\\"Lighting is even and bright across the face.\\\"\\n  ],\\n  \\\"inferences\\\": [\\n    \\\"The person is looking directly at the camera.\\\"\\n  ],\\n  \\\"unknowns\\\": [\\n    \\\"The identity of the person.\\\",\\n    \\\"The specific location or setting beyond a plain background.\\\"\\n  ],\\n  \\\"prompt\\\": \\\"A close-up portrait of a person with dark hair in a high ponytail, wearing clear-framed glasses and a patterned shirt featuring blue and white motifs, set against a bright, plain white background with even lighting.\\\",\\n  \\\"tags\\\": [\\n    \\\"portrait\\\",\\n    \\\"person\\\",\\n    \\\"eyeglasses\\\",\\n    \\\"ponytail\\\",\\n    \\\"patterned shirt\\\",\\n    \\\"white background\\\"\\n  ]\\n}\"},\"done\":true,\"done_reason\":\"stop\",\"total_duration\":20903690700,\"load_duration\":18372238400,\"prompt_eval_count\":170,\"prompt_eval_duration\":790694000,\"eval_count\":233,\"eval_duration\":1711975000}",
+    "suggestion": "{\"schema_version\":\"lvw.prompt/1\",\"mode\":\"realistic\",\"domains\":{\"observation\":[\"A person with dark hair tied in a high ponytail.\",\"The person is wearing clear-framed eyeglasses.\",\"The person is wearing a patterned shirt with blue, white, and light grey designs.\",\"The background is a plain, bright white/light color.\",\"Lighting is even and bright across the face.\"],\"inference\":[\"The person is looking directly at the camera.\"],\"user_evidence\":[],\"creative_intent\":[\"A close-up portrait of a person with dark hair in a high ponytail, wearing clear-framed glasses and a patterned shirt featuring blue and white motifs, set against a bright, plain white background with even lighting.\"],\"unknowns\":[\"The identity of the person.\",\"The specific location or setting beyond a plain background.\"]},\"technical\":{\"duration_seconds\":null,\"aspect_ratio\":\"\",\"fps_intent\":null,\"camera_motion\":\"\",\"subject_action\":\"\",\"lighting\":\"\",\"composition\":\"\",\"style_notes\":\"\",\"beats\":[]},\"locked_fields\":[],\"text_zh\":\"\",\"text_en\":\"A close-up portrait of a person with dark hair in a high ponytail, wearing clear-framed glasses and a patterned shirt featuring blue and white motifs, set against a bright, plain white background with even lighting.\",\"tags\":[\"portrait\",\"person\",\"eyeglasses\",\"ponytail\",\"patterned shirt\",\"white background\"],\"negative\":\"\",\"template_id\":\"lvw-v0-bridge-compact\",\"template_version\":\"1.0.0\"}"
+  },
+  "kind": "image",
+  "oracle": {
+    "envelope_count": 1,
+    "expected_model_calls": 1,
+    "pass": true,
+    "prompt_echo": false,
+    "semantic_observations_nonempty": true
+  },
+  "pass": true,
+  "prompt_http_status": 200,
+  "prompt_id": "e5fcd11f-006e-4558-99c1-a2da434f7806",
+  "prompt_payload": {
+    "client_id": "v0-s0-correction-08-live-20261027-01",
+    "prompt": {
+      "1": {
+        "class_type": "LoadImage",
+        "inputs": {
+          "image": "image.png"
+        }
+      },
+      "2": {
+        "class_type": "LVWImagePromptBridge",
+        "inputs": {
+          "image": [
+            "1",
+            0
+          ],
+          "mode": "realistic",
+          "model": "gemma4:26b",
+          "timeout_seconds": 120,
+          "user_instruction": "Describe only visible evidence for prompt assistance."
+        }
+      }
+    }
+  },
+  "prompt_raw_response": "{\"prompt_id\": \"e5fcd11f-006e-4558-99c1-a2da434f7806\", \"number\": 0, \"node_errors\": {}}",
+  "resource_release_observations": [
+    {
+      "delay_seconds": 0,
+      "http_status": 200,
+      "parsed": {
+        "models": []
+      },
+      "raw_response": "{\"models\":[]}"
+    },
+    {
+      "delay_seconds": 5,
+      "http_status": 200,
+      "parsed": {
+        "models": []
+      },
+      "raw_response": "{\"models\":[]}"
+    }
+  ],
+  "route": "Comfy public /prompt",
+  "started_at": "2026-10-27T11:11:13Z"
+}

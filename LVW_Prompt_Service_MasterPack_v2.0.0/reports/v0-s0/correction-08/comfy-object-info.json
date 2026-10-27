@@ -1,0 +1,251 @@
+{
+  "http_status": 200,
+  "raw_selected_public_object_info": {
+    "ImageBatch": {
+      "category": "image/batch",
+      "deprecated": true,
+      "description": "",
+      "display_name": "Batch Images (DEPRECATED)",
+      "has_intermediate_output": false,
+      "input": {
+        "required": {
+          "image1": [
+            "IMAGE"
+          ],
+          "image2": [
+            "IMAGE"
+          ]
+        }
+      },
+      "input_order": {
+        "required": [
+          "image1",
+          "image2"
+        ]
+      },
+      "is_input_list": false,
+      "name": "ImageBatch",
+      "output": [
+        "IMAGE"
+      ],
+      "output_is_list": [
+        false
+      ],
+      "output_name": [
+        "IMAGE"
+      ],
+      "output_node": false,
+      "python_module": "nodes",
+      "search_aliases": [
+        "combine images",
+        "merge images",
+        "stack images"
+      ]
+    },
+    "LVWImagePromptBridge": {
+      "category": "LVW/V0",
+      "description": "",
+      "display_name": "LVW V0 Image Prompt Bridge",
+      "has_intermediate_output": false,
+      "input": {
+        "required": {
+          "image": [
+            "IMAGE"
+          ],
+          "mode": [
+            [
+              "documentary",
+              "realistic",
+              "scifi",
+              "science",
+              "cinematic",
+              "stylized"
+            ],
+            {
+              "default": "realistic"
+            }
+          ],
+          "model": [
+            [
+              "gemma4:26b"
+            ],
+            {
+              "default": "gemma4:26b"
+            }
+          ],
+          "timeout_seconds": [
+            "INT",
+            {
+              "default": 120,
+              "max": 120,
+              "min": 1,
+              "step": 1
+            }
+          ],
+          "user_instruction": [
+            "STRING",
+            {
+              "default": "",
+              "multiline": true
+            }
+          ]
+        }
+      },
+      "input_order": {
+        "required": [
+          "image",
+          "model",
+          "user_instruction",
+          "mode",
+          "timeout_seconds"
+        ]
+      },
+      "is_input_list": false,
+      "name": "LVWImagePromptBridge",
+      "output": [
+        "STRING",
+        "STRING"
+      ],
+      "output_is_list": [
+        false,
+        false
+      ],
+      "output_name": [
+        "raw_response",
+        "suggestion"
+      ],
+      "output_node": true,
+      "python_module": "custom_nodes.lvw_v0_bridge",
+      "search_aliases": []
+    },
+    "LVWVideoFramesPromptBridge": {
+      "category": "LVW/V0",
+      "description": "",
+      "display_name": "LVW V0 Ordered Frames Prompt Bridge",
+      "has_intermediate_output": false,
+      "input": {
+        "required": {
+          "frames": [
+            "IMAGE"
+          ],
+          "mode": [
+            [
+              "documentary",
+              "realistic",
+              "scifi",
+              "science",
+              "cinematic",
+              "stylized"
+            ],
+            {
+              "default": "realistic"
+            }
+          ],
+          "model": [
+            [
+              "gemma4:26b"
+            ],
+            {
+              "default": "gemma4:26b"
+            }
+          ],
+          "timeout_seconds": [
+            "INT",
+            {
+              "default": 120,
+              "max": 120,
+              "min": 1,
+              "step": 1
+            }
+          ],
+          "user_instruction": [
+            "STRING",
+            {
+              "default": "",
+              "multiline": true
+            }
+          ]
+        }
+      },
+      "input_order": {
+        "required": [
+          "frames",
+          "model",
+          "user_instruction",
+          "mode",
+          "timeout_seconds"
+        ]
+      },
+      "is_input_list": false,
+      "name": "LVWVideoFramesPromptBridge",
+      "output": [
+        "STRING",
+        "STRING"
+      ],
+      "output_is_list": [
+        false,
+        false
+      ],
+      "output_name": [
+        "raw_response",
+        "suggestion"
+      ],
+      "output_node": true,
+      "python_module": "custom_nodes.lvw_v0_bridge",
+      "search_aliases": []
+    },
+    "LoadImage": {
+      "category": "image",
+      "description": "",
+      "display_name": "Load Image",
+      "essentials_category": "Basics",
+      "has_intermediate_output": false,
+      "input": {
+        "required": {
+          "image": [
+            [
+              "frame-01.png",
+              "frame-02.png",
+              "frame-03.png",
+              "frame-04.png",
+              "image.png"
+            ],
+            {
+              "image_upload": true
+            }
+          ]
+        }
+      },
+      "input_order": {
+        "required": [
+          "image"
+        ]
+      },
+      "is_input_list": false,
+      "name": "LoadImage",
+      "output": [
+        "IMAGE",
+        "MASK"
+      ],
+      "output_is_list": [
+        false,
+        false
+      ],
+      "output_name": [
+        "IMAGE",
+        "MASK"
+      ],
+      "output_node": false,
+      "python_module": "nodes",
+      "search_aliases": [
+        "load image",
+        "open image",
+        "import image",
+        "image input",
+        "upload image",
+        "read image",
+        "image loader"
+      ]
+    }
+  }
+}
