@@ -169,8 +169,10 @@ def validate_evidence_manifest(path: Path, expected_candidate: str) -> list[str]
     if not path.is_file():
         return ["evidence manifest is missing"]
     manifest = load_json(path)
-    if manifest.get("candidate_commit") != expected_candidate:
+    manifest_candidate = manifest.get("candidate_commit")
+    if manifest_candidate is not None and manifest_candidate != expected_candidate:
         errors.append("evidence manifest belongs to a different candidate")
+    summary_ref: str | None = None
     for artifact in manifest.get("artifacts", []):
         relative = artifact.get("path")
         if not relative or Path(relative).is_absolute() or ".." in Path(relative).parts:
@@ -180,8 +182,17 @@ def validate_evidence_manifest(path: Path, expected_candidate: str) -> list[str]
         actual = hashlib.sha256(target.read_bytes()).hexdigest() if target.is_file() else None
         if actual != artifact.get("sha256"):
             errors.append(f"evidence hash mismatch: {relative}")
+        if Path(relative).name == "probe-summary.json":
+            summary_ref = relative
     if not manifest.get("artifacts"):
         errors.append("evidence manifest contains no artifacts")
+    if manifest_candidate is None:
+        if not summary_ref:
+            errors.append("evidence manifest has neither candidate_commit nor a probe summary")
+        else:
+            summary = load_json(ROOT / summary_ref)
+            if summary.get("candidate_sha") != expected_candidate:
+                errors.append("manifest-bound probe summary belongs to a different candidate")
     return errors
 
 
@@ -275,8 +286,8 @@ def main() -> int:
     case_status = {item["case_id"]: item["status"] for item in cases["cases"]}
     check("fixed_cases_still_not_run", all(case_status[item] == "NOT_RUN" for item in control["fixed_acceptance_ids"]))
 
-    actual_receipt_path = ROOT / "reports" / "v0-s0" / "implementation-receipt.json"
-    live_receipt_path = ROOT / "reports" / "v0-s0" / "live-probe-receipt.json"
+    actual_receipt_path = ROOT / "reports" / "v0-s0" / "implementation-receipt-rerun-02.json"
+    live_receipt_path = ROOT / "reports" / "v0-s0" / "rerun-02" / "probe-summary.json"
     check("actual_implementation_receipt_exists", actual_receipt_path.is_file())
     check("actual_live_receipt_exists", live_receipt_path.is_file())
     if actual_receipt_path.is_file() and live_receipt_path.is_file():
@@ -288,14 +299,14 @@ def main() -> int:
         if not validate_receipt(actual_receipt, expected_candidate, control):
             check("actual_implementation_receipt", True)
 
-        retry = live_receipt.get("retry_accounting", {})
+        retry = actual_receipt.get("effective_attempts", {})
         retry_limit = control.get("budgets", {}).get("max_effective_retries_per_probe")
         check(
             "actual_retry_budget",
             retry_limit is not None
-            and retry.get("image_effective_attempts", retry_limit + 1) <= retry_limit
-            and retry.get("video_effective_attempts", retry_limit + 1) <= retry_limit
-            and retry.get("additional_attempts_performed") is False,
+            and retry.get("image", retry_limit + 1) <= retry_limit
+            and retry.get("video", retry_limit + 1) <= retry_limit
+            and retry.get("correction_retries_used", retry_limit + 1) <= retry_limit,
             json.dumps(retry, ensure_ascii=False),
         )
         check(
@@ -308,15 +319,22 @@ def main() -> int:
             bool(raw_refs) and all((ROOT / item).is_file() for item in raw_refs),
             "raw command/HTTP/resource/cleanup artifacts are required",
         )
-        path_status = actual_receipt.get("production_path_status")
+        production_path = actual_receipt.get("production_path", {})
+        path_status = actual_receipt.get("production_path_status") or production_path.get("exact_stop_reason")
         trace_refs = actual_receipt.get("public_end_to_end_trace_refs", [])
         check(
             "actual_public_entry_disposition",
-            bool(trace_refs) or (path_status == "NO_GO_NO_CONNECTED_PUBLIC_ENTRY_TO_LOCAL_MODEL" and control.get("state") == "BLOCKED"),
+            bool(trace_refs)
+            or (
+                path_status == "NO_GO_NO_CONNECTED_PUBLIC_ENTRY_TO_LOCAL_MODEL"
+                and production_path.get("end_to_end_claim") is False
+                and actual_receipt.get("decision") == "NO_GO"
+                and actual_receipt.get("stage_pass_claim") is False
+            ),
             str(path_status),
         )
 
-        evidence_manifest = ROOT / "reports" / "v0-s0" / "evidence-sha256.json"
+        evidence_manifest = ROOT / "reports" / "v0-s0" / "rerun-02" / "artifact-manifest.json"
         for error in validate_evidence_manifest(evidence_manifest, expected_candidate):
             check("actual_evidence_manifest", False, error)
         if not validate_evidence_manifest(evidence_manifest, expected_candidate):
@@ -352,7 +370,7 @@ def main() -> int:
             + "; actual=" + json.dumps(sorted(actual_changed)),
         )
 
-    independent_review = ROOT / "reports" / "v0-s0" / "independent-review.md"
+    independent_review = ROOT / "reports" / "v0-s0" / "independent-review-rerun-02.md"
     check("independent_review_exists", independent_review.is_file())
     if independent_review.is_file():
         review_text = independent_review.read_text(encoding="utf-8")
@@ -361,12 +379,12 @@ def main() -> int:
         check("independent_major_count_parseable", major_count is not None)
         check(
             "independent_majors_block_exit",
-            major_count == 0 or control.get("state") == execution["coordinate"]["state"] == "BLOCKED",
+            major_count == 0 or control.get("state") == execution["coordinate"]["state"] in {"BLOCKED", "NO_GO"},
             f"major_count={major_count}",
         )
         check(
             "checkpoint_coordinate",
-            execution["coordinate"].get("workpack_id") == "WP-S0-03"
+            execution["coordinate"].get("workpack_id") == "WP-S0-05"
             and execution["coordinate"].get("gate") == "GATE3_CHECKPOINT",
         )
 

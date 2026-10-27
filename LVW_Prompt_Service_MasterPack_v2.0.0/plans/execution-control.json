@@ -6,27 +6,27 @@
   "target_version": "V0",
   "coordinate": {
     "stage_id": "V0-S0",
-    "workpack_id": "WP-S0-04",
-    "gate": "GATE2_CORRECTION",
-    "state": "RUNNING"
+    "workpack_id": "WP-S0-05",
+    "gate": "GATE3_CHECKPOINT",
+    "state": "CHECKPOINT"
   },
   "last_passed_gate": {
-    "id": "TARGET_RUNTIME_AUTHORIZED",
-    "evidence": "reports/v0-s0/authorization.json",
-    "meaning": "bounded_local_runtime_actions_authorized_not_product_acceptance"
+    "id": "WP_S0_04_EVIDENCE_SEALED",
+    "evidence": "reports/v0-s0/implementation-receipt-rerun-02.json",
+    "meaning": "isolated_implementation_evidence_sealed_not_stage_or_product_acceptance"
   },
-  "current_blocking_gate": null,
+  "current_blocking_gate": "WP-S0-05 independent review and root gate decision",
   "stage_packet": ".agent-governance/stages/V0-S0/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/V0-S0/PAYLOAD_MANIFEST.sha256",
   "product_status": "NOT_RUN",
-  "allowed_claim": "V0_S0_CORRECTION_RUN_AUTHORIZED",
+  "allowed_claim": "V0_S0_IMPLEMENTATION_EVIDENCE_READY_FOR_INDEPENDENT_REVIEW",
   "forbidden_claims": [
     "ENGINEERING_READY",
     "V0_ACCEPTED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "codex_isolated_implementer",
-  "next_action": "Execute WP-S0-04 with a new run_id and machine-generated redacted raw evidence, then hand off to a separate isolated reviewer.",
+  "next_owner": "codex_isolated_reviewer",
+  "next_action": "Independently recompute WP-S0-04 evidence without starting services or inheriting the implementer's conclusions, then return Fatal/Major findings to root Codex.",
   "evidence_root": "reports/",
   "exact_stop_reason": null
 }

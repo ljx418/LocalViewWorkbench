@@ -1,12 +1,12 @@
-# V0-S0 Implementation Prompt
+# V0-S0 Independent Review Prompt
 
 ```text
 工作目录：LVW_Prompt_Service_MasterPack_v2.0.0。
-当前坐标：V0 / V0-S0 / WP-S0-04 / RUNNING。基线提交：3c69a23d07064a0db5cb05258b237be2415a314a。先读 AGENTS.md、本 Stage 全部文件、docs/13_V0_IMPLEMENTATION.md、plans/acceptance_cases.json、plans/execution-control.json、两份授权、首轮失败账本和独立审查。
+当前坐标：V0 / V0-S0 / WP-S0-05 / CHECKPOINT。候选提交：95be0cd82c5500b0a71e3597f5188b147f11e75f；原始证据提交：1d4d7303fb670f772825fc3aa488ecf1b1846a96；正式收据提交：511020e0b26e2fe3706094297fb7b433f5bd54ff。先读 AGENTS.md、本 Stage 全部文件、docs/13_V0_IMPLEMENTATION.md、plans/acceptance_cases.json、plans/execution-control.json、两份授权、首轮失败账本、首轮独立审查、rerun-02 原始证据和正式实现收据。
 
 授权仅覆盖现有本地 ComfyUI/Ollama 的 loopback 启停与查询、COMFY_ROOT/TEST_SOURCE、生成的非私有夹具、单图和有界四帧探测。禁止下载、升级、写配置、调用云/付费 Provider、启动可见浏览器、读取 Cookie 或推送远端。
 
-首轮 WP-S0-01/02 已停止且旧预算不得复用。新授权只允许 `codex_isolated_implementer` 执行 WP-S0-04：创建新 run_id，以确定性 harness 捕获 raw 与退出码，图片/视频各最多两次，保存至 `reports/v0-s0/rerun-02/`。禁止 root gate-owner 会话执行探测，禁止删除旧失败、改合同/分母、写目标配置、下载、外部 Provider 或进入 V0-S1。
+WP-S0-04 已结束并诚实报告 `NO_GO_NO_CONNECTED_PUBLIC_ENTRY_TO_LOCAL_MODEL`；图片与视频的直接 Ollama 结果只能作为可行性证据，不能冒充 Prompt Assistant→Ollama 端到端 PASS。只允许 `codex_isolated_reviewer` 离线执行 WP-S0-05：复算 artifact hash、提交绑定、命令/退出码、schema、资源、清理、脱敏、角色隔离及固定分母状态。禁止启动服务、调用模型、修改候选或原始证据、删除旧失败、改合同/分母或进入 V0-S1。
 
-交付：deterministic harness、raw redacted logs、changed files、contract changes or none、commands/exit codes、production path or explicit NO_GO、fixed denominator status、artifact hashes、private/external action count、risks、exact stop reason。最终状态只能写 READY_FOR_REVIEW 或明确的 WAIT/BLOCKED/NO_GO，不得宣布 Stage PASS。
+交付仅限 `reports/v0-s0/independent-review-rerun-02.md`。必须列出 Fatal/Major/Minor 计数、可复现证据和 S0 出口建议，并明确四个产品用例仍为 NOT_RUN。审查者不得直接修改候选，也不得宣布 Stage PASS；root Codex 保留门禁裁决。
 ```
