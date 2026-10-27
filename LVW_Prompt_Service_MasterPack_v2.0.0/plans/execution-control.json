@@ -8,25 +8,25 @@
     "stage_id": "V0-S0",
     "workpack_id": "WP-S0-24",
     "gate": "GATE4_REAL_ACCEPTANCE",
-    "state": "WAIT_AUTH"
+    "state": "RUNNING"
   },
   "last_passed_gate": {
     "id": "WP_S0_23_CORRECTION_08_OFFLINE_HARNESS_SEALED",
     "evidence": "reports/v0-s0/implementation-receipt-correction-08-offline.json",
     "meaning": "encoding-safe and atomic-terminal harness passed 24 offline fixtures and was sealed at 57f7718"
   },
-  "current_blocking_gate": "WP-S0-24 requires a new explicit candidate-bound bounded local-runtime authorization",
+  "current_blocking_gate": "authorized WP-S0-24 terminal receipt and cleanup evidence not yet produced",
   "stage_packet": ".agent-governance/stages/V0-S0/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/V0-S0/PAYLOAD_MANIFEST.sha256",
   "product_status": "NOT_RUN",
-  "allowed_claim": "V0_S0_CORRECTION_08_OFFLINE_HARNESS_SEALED_WAIT_AUTH",
+  "allowed_claim": "WP_S0_24_AUTHORIZED_RUNNING_NOT_STAGE_PASS",
   "forbidden_claims": [
     "ENGINEERING_READY",
     "V0_ACCEPTED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "project_owner",
-  "next_action": "Explicitly authorize or decline WP-S0-24; no service start is permitted while waiting.",
+  "next_owner": "codex_isolated_implementer",
+  "next_action": "Execute the single authorized WP-S0-24 run and generate a terminal receipt, then stop.",
   "evidence_root": "reports/",
-  "exact_stop_reason": "NEW_EXPLICIT_WP_S0_24_AUTHORIZATION_REQUIRED"
+  "exact_stop_reason": null
 }

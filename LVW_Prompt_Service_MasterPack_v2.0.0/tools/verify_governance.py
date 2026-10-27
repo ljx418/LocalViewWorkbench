@@ -399,6 +399,7 @@ def main() -> int:
                     "WP_S0_17_INDEPENDENT_NO_GO_REVIEW_COMPLETE",
                     "WP_S0_19_HARNESS_CANDIDATE_SEALED",
                     "WP_S0_21_INDEPENDENT_BLOCK_REVIEW_COMPLETE",
+                    "WP_S0_23_CORRECTION_08_OFFLINE_HARNESS_SEALED",
                 }
             )
             or (

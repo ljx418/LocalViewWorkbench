@@ -1,0 +1,51 @@
+{
+  "schema_version": "lvw.authorization/1",
+  "authorization_id": "AUTH-V0-S0-2026-10-27-08",
+  "project_id": "lvw-prompt-service",
+  "stage_id": "V0-S0",
+  "workpack_id": "WP-S0-24",
+  "granted_by": "project_owner",
+  "authorization_basis": [
+    "The project owner explicitly authorized WP-S0-24 in the current session.",
+    "The authorization binds product candidate 138b4486 and harness candidate 57f7718, fixed testSource samples, one image and one video effective attempt.",
+    "Correction-08 offline harness passed 24 fixtures and was sealed by b5c5b93724b97479b9c46c3cadd8b85f2796ff58."
+  ],
+  "product_candidate_sha": "138b4486fdaeb8d207ef6b5efb63a09865f174b9",
+  "harness_candidate_sha": "57f771823a625eabd3fd746d352f5936d37380a2",
+  "harness_receipt_commit": "b5c5b93724b97479b9c46c3cadd8b85f2796ff58",
+  "implementation_owner": "codex_isolated_implementer",
+  "allowed": {
+    "tool": "tools/v0_s0_live_probe.py materialized exactly from harness_candidate_sha",
+    "pre_service_gate": "Windows-native/WSL GPU total equal, used/free delta <=128 MiB, native used <=4096 MiB, no target Comfy/Ollama process and no 8191/11434 listener",
+    "ollama": "Windows-native per-process OLLAMA_NO_CLOUD=1 wrapper, literal loopback only",
+    "pre_model_gate": "OLLAMA_NO_CLOUD:true plus at least 10 seconds and 5 samples with zero owned non-loopback TCP",
+    "comfy": "fresh run-owned Windows temp base, sealed product candidate, 127.0.0.1:8191",
+    "samples": [
+      {"alias": "TEST_SOURCE/image-sample", "sha256": "b4bbd08a0fad67cc04e55d15bf2c48e9a76dcfd6dda147d8cc504452dfc78a42"},
+      {"alias": "TEST_SOURCE/video-sample", "sha256": "694a50bfb871faed6540a577b25c8a61e629035062a23f982099a6911ff22152"}
+    ],
+    "effective_attempts_max": {"image": 1, "video": 1},
+    "evidence_destination": "reports/v0-s0/correction-08/",
+    "ports": [8191, 11434],
+    "external_cost": 0,
+    "visible_browser_runs": 0
+  },
+  "forbidden": [
+    "product candidate, harness candidate, semantic oracle, contract, timeout or threshold changes",
+    "manual process termination outside run-owned PIDs",
+    "firewall, registry, hosts-file or permanent environment changes",
+    "cloud or paid provider calls, downloads or upgrades",
+    "permanent target installation writes, visible browser startup or remote Git push"
+  ],
+  "mandatory_stops": [
+    "pre-service GPU/process/port gate failure",
+    "no-cloud or remote-TCP pre-model gate failure",
+    "unknown listener/GPU owner or model/sample/candidate mismatch",
+    "GPU memory reaches or exceeds 23552 MiB",
+    "public prompt/history/semantic oracle failure",
+    "any per-call or final cleanup/target-integrity gap"
+  ],
+  "cleanup": "after each started model call require keep_alive=0 correlation and terminal /api/ps empty; stop owned wrapper/listener PIDs; prove ports empty; remove run-owned temp; verify target integrity",
+  "expires_when": "WP-S0-24 produces one terminal receipt or either single effective media attempt is consumed",
+  "does_not_authorize_stage_pass": true
+}
