@@ -1,0 +1,60 @@
+{
+  "schema_version": "lvw.authorization-request/1",
+  "request_id": "AUTH-REQUEST-V0-S0-WP-S0-29-01",
+  "status": "PENDING_PROJECT_OWNER_APPROVAL",
+  "is_authorization": false,
+  "project_id": "lvw-prompt-service",
+  "stage_id": "V0-S0",
+  "workpack_id": "WP-S0-29",
+  "requested_by": "codex_sol",
+  "requested_from": "project_owner",
+  "product_candidate_sha": "138b4486fdaeb8d207ef6b5efb63a09865f174b9",
+  "harness_candidate_sha": "d1f268f6c9c3996ba64d49c29343cd87aa7ec1d7",
+  "harness_file_sha256": "999cb17e42ef9f2fd4f2ba87e6cb2cf2c9009b0485d6a075b97957658e6fc810",
+  "allowed": {
+    "local_services": ["Windows-native Ollama", "run-owned temporary ComfyUI"],
+    "bind_addresses": ["127.0.0.1:11434", "127.0.0.1:8191"],
+    "samples": [
+      {"alias": "TEST_SOURCE/image-sample", "sha256": "b4bbd08a0fad67cc04e55d15bf2c48e9a76dcfd6dda147d8cc504452dfc78a42"},
+      {"alias": "TEST_SOURCE/video-sample", "sha256": "694a50bfb871faed6540a577b25c8a61e629035062a23f982099a6911ff22152"}
+    ],
+    "effective_attempts_max": {"image": 1, "video": 1},
+    "evidence_destination": "reports/v0-s0/correction-10/",
+    "external_cost": 0,
+    "visible_browser_runs": 0
+  },
+  "required_preconditions": [
+    "executed harness file SHA-256 equals the Git blob at harness_candidate_sha",
+    "Windows-native and WSL GPU samples agree within 128 MiB and used memory is <=4096 MiB",
+    "no target ComfyUI/Ollama process and no listener on 8191/11434",
+    "OLLAMA_NO_CLOUD is observed true and owned PID has no non-loopback connection for >=10 seconds and >=5 samples"
+  ],
+  "mandatory_stops": [
+    "candidate, harness, model or sample mismatch",
+    "pre-service identity, GPU, process or port gate failure",
+    "no-cloud or non-loopback network gate failure",
+    "GPU memory reaches or exceeds 23552 MiB",
+    "public prompt/history or semantic Oracle failure",
+    "per-call unload, final cleanup or target-integrity gap",
+    "privacy minimization violation"
+  ],
+  "forbidden": [
+    "cloud or paid provider calls",
+    "downloads, upgrades or permanent target configuration writes",
+    "visible browser startup",
+    "termination of non-owned processes",
+    "product, harness, contract, Oracle, timeout or threshold changes",
+    "remote Git push"
+  ],
+  "evidence_minimization": "persist only target process matches, aggregate process counts, authorized listener owner IDs and redacted diagnostics; never persist the complete process table or unrelated command lines",
+  "cleanup": "unload every started model call, require terminal /api/ps empty, stop run-owned PIDs, prove ports empty, remove run temp and verify target integrity",
+  "expires_when": "one terminal WP-S0-29 receipt is generated or either media attempt budget is consumed",
+  "approval": {
+    "decision": "PENDING",
+    "approved_by": null,
+    "approved_at": null,
+    "approval_commit": null
+  },
+  "does_not_authorize_execution": true,
+  "does_not_authorize_stage_pass": true
+}

@@ -110,6 +110,18 @@ def validate_stage(control: dict, tasks: dict, cases: dict) -> list[str]:
     if external and state == "WAIT_AUTH":
         if not control.get("required_authorization") or control.get("next_owner") != "project_owner":
             errors.append("WAIT_AUTH must identify the required authorization and human owner")
+        request_ref = control.get("authorization_request")
+        if request_ref:
+            request_path = ROOT / request_ref
+            if not request_path.is_file():
+                errors.append("authorization request file is missing")
+            else:
+                request = load_json(request_path)
+                if (request.get("status") != "PENDING_PROJECT_OWNER_APPROVAL"
+                        or request.get("is_authorization") is not False
+                        or request.get("does_not_authorize_execution") is not True
+                        or request.get("stage_id") != control.get("stage_id")):
+                    errors.append("WAIT_AUTH request is not a fail-closed pending request")
         for record in control.get("authorization_records", []):
             if not (ROOT / record).is_file():
                 errors.append(f"historical authorization record is missing: {record}")
