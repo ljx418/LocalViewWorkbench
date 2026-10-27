@@ -5,9 +5,9 @@ Project: lvw-prompt-service
 Design: 2.0.0
 Target version: V0
 Stage: V0-S0 / 现有环境与节点基线
-Stage state: GATE4_REAL_ACCEPTANCE / RUNNING
+Stage state: GATE3_CHECKPOINT / CHECKPOINT
 Product cases: NOT_RUN
-Last passed gate: WP_S0_28_CORRECTION_09_INDEPENDENT_REVIEW_COMPLETE
+Last passed gate: WP_S0_29_TERMINAL_EVIDENCE_SEALED
 Baseline commit: 3c69a23d07064a0db5cb05258b237be2415a314a
 Baseline product-control fingerprint: sha256:bd4875c1d53ce8a208e35cdb3b3b20110b290eb7f547eb1239b4eb1192764f4a
 ```
@@ -23,3 +23,5 @@ WP-S0-25 结论 Fatal 1 / Major 2 / Minor 0，root 正式裁决 `NO_GO`：证据
 WP-S0-28 已确认 correction-09 为 Fatal 0 / Major 0；root 已封存候选 `d1f268f` 与审查 `40f94d6`。这只关闭前瞻性 harness 缺陷，不追溯修复 correction-08。S0 baseline 仍需一次新鲜、身份闭合、最小化证据的 WP-S0-29 运行及 WP-S0-30 独立复审；当前无 live 授权。
 
 项目负责人已明确批准 `AUTH-REQUEST-V0-S0-WP-S0-29-01`，正式记录为 `AUTH-V0-S0-2026-10-27-10`。只允许一次 WP-S0-29；终态收据或任一媒体预算消耗后立即过期，随后必须进入 WP-S0-30，不能自动重跑。
+
+WP-S0-29 已在服务前因 GPU used 6044 MiB > 4096 MiB 停止，图片/视频 0/0、服务/模型 0，授权已随终态收据过期。身份与隐私最小化门禁通过；终态证据封存为 `620a724`。当前只允许 WP-S0-30 离线复审，不得恢复授权或重跑。

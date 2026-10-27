@@ -6,27 +6,27 @@
   "target_version": "V0",
   "coordinate": {
     "stage_id": "V0-S0",
-    "workpack_id": "WP-S0-29",
-    "gate": "GATE4_REAL_ACCEPTANCE",
-    "state": "RUNNING"
+    "workpack_id": "WP-S0-30",
+    "gate": "GATE3_CHECKPOINT",
+    "state": "CHECKPOINT"
   },
   "last_passed_gate": {
-    "id": "WP_S0_28_CORRECTION_09_INDEPENDENT_REVIEW_COMPLETE",
-    "evidence": "reports/v0-s0/independent-review-correction-09.md",
-    "meaning": "independent review found Fatal 0 and Major 0 in the prospective harness remediation"
+    "id": "WP_S0_29_TERMINAL_EVIDENCE_SEALED",
+    "evidence": "reports/v0-s0/implementation-receipt-correction-10-live.json",
+    "meaning": "identity-bound run stopped before services because GPU used 6044 MiB exceeded the frozen 4096 MiB gate"
   },
-  "current_blocking_gate": "the single authorized WP-S0-29 terminal receipt is not yet produced",
+  "current_blocking_gate": "WP-S0-30 independent review and root disposition are pending",
   "stage_packet": ".agent-governance/stages/V0-S0/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/V0-S0/PAYLOAD_MANIFEST.sha256",
   "product_status": "NOT_RUN",
-  "allowed_claim": "WP_S0_29_AUTHORIZED_RUNNING_NOT_STAGE_PASS",
+  "allowed_claim": "WP_S0_29_RESOURCE_STOP_EVIDENCE_SEALED_PENDING_REVIEW",
   "forbidden_claims": [
     "ENGINEERING_READY",
     "V0_ACCEPTED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "codex_isolated_implementer",
-  "next_action": "Execute exactly one WP-S0-29 run and generate a terminal receipt, then stop.",
+  "next_owner": "codex_isolated_reviewer",
+  "next_action": "Independently review identity, privacy, GPU owner/resource stop, zero starts and final evidence; do not rerun.",
   "evidence_root": "reports/",
-  "exact_stop_reason": null
+  "exact_stop_reason": "WP_S0_30_INDEPENDENT_REVIEW_REQUIRED"
 }

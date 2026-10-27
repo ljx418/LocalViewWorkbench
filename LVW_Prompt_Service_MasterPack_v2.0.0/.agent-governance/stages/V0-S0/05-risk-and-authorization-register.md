@@ -58,3 +58,5 @@ Correction-09 候选 `d1f268f` 已由 WP-S0-28 独立确认关闭隐私最小化
 待授权条款已固化为 `reports/v0-s0/authorization-correction-10.request.json`。该文件的 `status=PENDING_PROJECT_OWNER_APPROVAL`、`is_authorization=false`、`does_not_authorize_execution=true`，只能作为请求导航；不得加入 `authorization_records` 或触发运行。项目负责人明确同意后，root 必须另建正式授权记录并绑定其提交 SHA。
 
 项目负责人已用原文批准该请求；正式授权记录为 `reports/v0-s0/authorization-correction-10.json`。授权仅供 WP-S0-29 一次使用，不授权 Stage PASS、代码修改或重跑；终态后自动过期。
+
+WP-S0-29 已产生终态 `NO_GO` 收据并过期。服务前 Windows/WSL GPU used 均为 6044 MiB，超过 4096 MiB 门限；因此服务、模型和媒体尝试均为 0。不得把 0/0 解释为可恢复预算，也不得降低阈值；先由 WP-S0-30 独立复审 owner/资源/证据与终态清理语义。

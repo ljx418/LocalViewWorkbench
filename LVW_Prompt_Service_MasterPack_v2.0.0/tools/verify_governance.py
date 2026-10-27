@@ -471,9 +471,15 @@ def main() -> int:
             )
             or (
                 control.get("state") == execution["coordinate"]["state"] == "CHECKPOINT"
-                and execution["coordinate"].get("workpack_id") == "WP-S0-25"
-                and execution.get("last_passed_gate", {}).get("id")
-                == "WP_S0_24_TERMINAL_EVIDENCE_SEALED"
+                and (
+                    (execution["coordinate"].get("workpack_id") == "WP-S0-25"
+                     and execution.get("last_passed_gate", {}).get("id")
+                     == "WP_S0_24_TERMINAL_EVIDENCE_SEALED")
+                    or
+                    (execution["coordinate"].get("workpack_id") == "WP-S0-30"
+                     and execution.get("last_passed_gate", {}).get("id")
+                     == "WP_S0_29_TERMINAL_EVIDENCE_SEALED")
+                )
             ),
             f"major_count={major_count}",
         )
