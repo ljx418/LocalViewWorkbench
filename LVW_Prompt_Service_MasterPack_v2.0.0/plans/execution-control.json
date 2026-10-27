@@ -6,27 +6,27 @@
   "target_version": "V0",
   "coordinate": {
     "stage_id": "V0-S0",
-    "workpack_id": "WP-S0-24",
-    "gate": "GATE4_REAL_ACCEPTANCE",
-    "state": "RUNNING"
+    "workpack_id": "WP-S0-25",
+    "gate": "GATE3_CHECKPOINT",
+    "state": "CHECKPOINT"
   },
   "last_passed_gate": {
-    "id": "WP_S0_23_CORRECTION_08_OFFLINE_HARNESS_SEALED",
-    "evidence": "reports/v0-s0/implementation-receipt-correction-08-offline.json",
-    "meaning": "encoding-safe and atomic-terminal harness passed 24 offline fixtures and was sealed at 57f7718"
+    "id": "WP_S0_24_TERMINAL_EVIDENCE_SEALED",
+    "evidence": "reports/v0-s0/implementation-receipt-correction-08-live.json",
+    "meaning": "single authorized image/video run ended NO_GO and evidence was sealed at 8fa8140"
   },
-  "current_blocking_gate": "authorized WP-S0-24 terminal receipt and cleanup evidence not yet produced",
+  "current_blocking_gate": "WP-S0-25 independent review and root S0 decision are pending",
   "stage_packet": ".agent-governance/stages/V0-S0/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/V0-S0/PAYLOAD_MANIFEST.sha256",
   "product_status": "NOT_RUN",
-  "allowed_claim": "WP_S0_24_AUTHORIZED_RUNNING_NOT_STAGE_PASS",
+  "allowed_claim": "WP_S0_24_EVIDENCE_SEALED_PENDING_INDEPENDENT_REVIEW",
   "forbidden_claims": [
     "ENGINEERING_READY",
     "V0_ACCEPTED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "codex_isolated_implementer",
-  "next_action": "Execute the single authorized WP-S0-24 run and generate a terminal receipt, then stop.",
+  "next_owner": "codex_isolated_reviewer",
+  "next_action": "Independently recompute candidate, public traces, semantic oracle, resources, network, cleanup and history; do not modify candidate.",
   "evidence_root": "reports/",
-  "exact_stop_reason": null
+  "exact_stop_reason": "INDEPENDENT_REVIEW_REQUIRED_BEFORE_S0_DECISION"
 }
