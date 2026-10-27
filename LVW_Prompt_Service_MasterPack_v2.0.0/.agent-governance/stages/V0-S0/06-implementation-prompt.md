@@ -1,12 +1,12 @@
-# V0-S0 correction-03 Real Verification Prompt
+# V0-S0 correction-06 Offline Implementation Prompt
 
 ```text
 工作目录：LVW_Prompt_Service_MasterPack_v2.0.0。
-当前坐标：V0 / V0-S0 / WP-S0-12 / GATE4_REAL_ACCEPTANCE。候选提交：078b51aab02fbfbcfd0efcfc7d38a2c9c6381f68；WP-S0-10 证据/收据：78e7285ef8a2371c07207d99a7c46944aeaee873 / aa06455f04373cf1a168cbf2b403f400d96270b6。先读 AGENTS.md、本 Stage 全部文件、`reports/v0-s0/authorization-correction-05.json` 和 correction-04 raw/receipt。
+当前坐标：V0 / V0-S0 / WP-S0-14 / GATE1_IMPLEMENTATION。基线候选：078b51aab02fbfbcfd0efcfc7d38a2c9c6381f68；correction-05 原始证据/封存收据：03ce1c48a330effcc79efc9c2b336e4cc62893b4 / 1f8982b。先读 AGENTS.md、本 Stage 全部文件、`reports/v0-s0/correction-05/attempt-video-1.json` 和 live receipt。
 
-授权仅覆盖现有本地 ComfyUI/Ollama 的 loopback 启停与查询、COMFY_ROOT/TEST_SOURCE、生成的非私有夹具、单图和有界四帧探测。禁止下载、升级、写配置、调用云/付费 Provider、启动可见浏览器、读取 Cookie 或推送远端。
+本 Workpack 仅授权离线仓库编辑和测试。禁止启动 ComfyUI/Ollama、下载、升级、写目标配置、调用云/付费 Provider、启动可见浏览器、读取 Cookie 或推送远端。
 
-只允许 `codex_isolated_implementer` 按 `AUTH-V0-S0-2026-10-27-05` 执行 WP-S0-12。基于 correction-04 harness 新建 correction-05 harness，只把 Comfy `main.py` 和 cwd 经 `wslpath -w` 转换；继续用 Windows-native no-cloud wrapper，并重新证明至少 10 秒/5 样本 owned PID remote TCP 空集，之后才可启动 fresh temp-base Comfy 及各一次图片/视频尝试。
+只允许 `codex_isolated_implementer` 执行 WP-S0-14/15。最小修改 `_request_instruction`，明确 `prompt` 字段必须是基于当前可见事实的具体生成提示，且不得复制/改写请求指令或 `user_instruction`。保持现有 exact-echo Oracle 不变。新增公开 owner 测试，检查 outgoing 指令包含 grounding/anti-copy 义务，并证明用户指令回显与完整请求回显仍失败且清理。
 
-不得改候选、合同、阈值、目标配置或历史失败，不得改防火墙/注册表/永久环境，不得调用云/付费 Provider、下载、启动可见浏览器或 kill 非 owned 进程。遇到 no-cloud 未生效、远程连接、显存 `>=23552 MiB`、未知 owner 或清理缺口立即停止。交付仅限 `reports/v0-s0/correction-05/` 和新 live receipt；最终只能 READY_FOR_REVIEW 或明确 NO-GO/BLOCKED，不能宣布 Stage PASS。
+不得改产品合同、公共错误码、响应字段、阈值、目标配置、历史失败或 Oracle 门槛。运行仓库 Python 与 portable Python 的完整 bridge 测试；生成候选提交和 `reports/v0-s0/implementation-receipt-correction-06-offline.json`。最终只能 READY_FOR_REVIEW 或明确 NO-GO/BLOCKED，不能宣布 Stage PASS；WP-S0-16 另需新授权。
 ```

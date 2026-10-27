@@ -14,6 +14,10 @@
 
 路由是初始运营参数，不是能力排名。调整路由必须依据“通过独立验收的 Workpack 总成本”和可复现质量数据，不改变职责权限。
 
+## V0 临时路由覆盖
+
+因 Claude Code 当前无可用额度，项目负责人已授权在 V0 结束前由隔离的 Codex 实现实例临时承担 Claude Code + MiniMax 与 Claude Code + DeepSeek/DSH 的实现职责。该覆盖只改变执行载体，不改变权限边界：root Codex 仍是 Stage 门禁负责人；每个 Workpack 仍只有一个实现 owner；实现实例只能提交 `READY_FOR_REVIEW`；同一候选必须由未参与实现的隔离 Codex 审查实例复算，root 再作门禁裁决。额度恢复或 V0 结束时，本覆盖自动失效，后续路由须重新冻结。
+
 ## 预算规则
 
 - Sol 建议预留 20%–30% 用于 Stage 收口、复杂审查和裁决；比例可依据指标调整。

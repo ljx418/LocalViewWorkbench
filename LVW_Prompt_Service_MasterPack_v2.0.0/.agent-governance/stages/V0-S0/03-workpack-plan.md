@@ -57,3 +57,19 @@ Owner：`codex_isolated_implementer`。依赖 WP-S0-10 的 no-cloud PASS / Comfy
 ## WP-S0-13：correction-05 隔离复审
 
 Owner：`codex_isolated_reviewer`。依赖 WP-S0-12。统一复算 correction-03/04/05、公开生产 trace、semantic oracle、资源、网络、逐次清理和固定分母 NOT_RUN；root Codex 保留最终 S0 裁决。
+
+## WP-S0-14：视频 prompt 交接合同纠偏
+
+Owner：`codex_isolated_implementer`。依赖 WP-S0-12 的 `PROMPT_ECHO` 证据。只允许修改 bridge 的模型请求指令：明确 `prompt` 是基于可见事实的生成提示，不得复制系统请求或用户指令；不得放宽现有 exact-echo Oracle、响应 schema、公共错误码、媒体/资源限制或 loopback 边界。不得启动 ComfyUI/Ollama。
+
+## WP-S0-15：纠偏离线合同测试与收据
+
+Owner：`codex_isolated_implementer`。依赖 WP-S0-14。通过公开节点 owner 证明图片/四帧正常路径、请求明确包含 anti-copy 与 grounding 义务、用户指令回显和完整请求回显仍 fail-closed、每次已启动调用均清理。运行目标 Python 和 portable Python 测试，形成新候选与实现收据，只能 `READY_FOR_REVIEW`。
+
+## WP-S0-16：新候选真实视频闭环
+
+Owner：`codex_isolated_implementer`。依赖 WP-S0-15 和新的候选绑定有限运行记录。沿用 correction-05 的 Windows-native no-cloud、路径转换、网络/显存/清理门限；图片与四帧视频各最多一次有效尝试。旧授权不得复用，开始前必须由 root 冻结新授权文件。
+
+## WP-S0-17：correction-06 隔离复审
+
+Owner：`codex_isolated_reviewer`。依赖 WP-S0-16。独立复算候选、图片/四帧公共 trace、语义 Oracle、请求次数、资源、网络、逐次清理、历史失败不可改写和固定分母 NOT_RUN；root Codex 保留最终 S0 裁决。

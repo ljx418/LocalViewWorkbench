@@ -6,27 +6,27 @@
   "target_version": "V0",
   "coordinate": {
     "stage_id": "V0-S0",
-    "workpack_id": "WP-S0-12",
-    "gate": "GATE4_REAL_ACCEPTANCE",
+    "workpack_id": "WP-S0-14",
+    "gate": "GATE1_IMPLEMENTATION",
     "state": "RUNNING"
   },
   "last_passed_gate": {
-    "id": "WP_S0_10_NO_CLOUD_GATE_PASS_COMFY_PATH_BLOCKED",
-    "evidence": "reports/v0-s0/implementation-receipt-correction-04-live.json",
-    "meaning": "Windows-native no-cloud and remote-TCP gate passed; Comfy path failed before media attempts"
+    "id": "WP_S0_12_IMAGE_PUBLIC_PATH_PASS_VIDEO_ORACLE_STOP",
+    "evidence": "reports/v0-s0/implementation-receipt-correction-05-live.json",
+    "meaning": "public image path, no-cloud, resource and cleanup gates passed; video prompt echo was rejected"
   },
-  "current_blocking_gate": "correction-03 must close all five Major findings before another checkpoint",
+  "current_blocking_gate": "video prompt handoff must produce grounded non-echo output before independent checkpoint",
   "stage_packet": ".agent-governance/stages/V0-S0/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/V0-S0/PAYLOAD_MANIFEST.sha256",
   "product_status": "NOT_RUN",
-  "allowed_claim": "V0_S0_CORRECTION_05_WINDOWS_PATH_ROUTE_AUTHORIZED",
+  "allowed_claim": "V0_S0_CORRECTION_06_OFFLINE_IMPLEMENTATION_AUTHORIZED",
   "forbidden_claims": [
     "ENGINEERING_READY",
     "V0_ACCEPTED",
     "TARGET_HARDWARE_TESTED"
   ],
   "next_owner": "codex_isolated_implementer",
-  "next_action": "Execute WP-S0-12 with Windows-converted Comfy main/cwd paths and unchanged no-cloud/network/resource gates.",
+  "next_action": "Execute WP-S0-14/15 offline prompt-handoff correction and tests; do not start local services.",
   "evidence_root": "reports/",
   "exact_stop_reason": null
 }

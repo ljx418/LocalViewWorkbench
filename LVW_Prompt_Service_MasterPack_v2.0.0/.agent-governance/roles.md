@@ -13,6 +13,8 @@
 
 ## 权限不变量
 
+V0 期间的临时载体为：`codex_isolated_implementer` 代行主/补充实现，`codex_isolated_reviewer` 代行独立复算。两者必须是不同会话；root gate owner 不直接实现，也不把实现者自检当作独立审查。该临时授权不扩大外部运行、私有数据、付费 Provider 或环境写入权限。
+
 - 一个 Workpack 只有一个实现负责人。
 - 一个 Stage 只有一个门禁负责人。
 - 同一候选的实现会话与独立审查会话必须不同。

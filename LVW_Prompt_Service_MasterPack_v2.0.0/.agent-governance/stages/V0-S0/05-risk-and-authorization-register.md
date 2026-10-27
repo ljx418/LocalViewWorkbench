@@ -28,3 +28,7 @@ WP-S0-06/07 是纯离线仓库操作，现已授权。WP-S0-08 不复用 `AUTH-V
 该授权在 owned Ollama 出现非 loopback TCP 后以 0/0 有效媒体尝试终止，证据封存于 `9256c063128624672dfb5b258b7576406ff339ac`。离线诊断证明 WSL 环境变量未传入 Windows 子进程。`AUTH-V0-S0-2026-10-27-04` 只授权 Windows 原生进程内环境注入的新路线；server log 未报告 no-cloud true 或任一远程 TCP 出现时，仍须在模型调用前停止。
 
 correction-04 已证明 no-cloud true、10.02 秒/9 样本/0 非 loopback，但因 `main.py` 未转换为 Windows 路径在 Comfy 启动前终止。`AUTH-V0-S0-2026-10-27-05` 仅授权 correction-05 修正两个 Windows 路径参数并复用相同已证明的网络门禁；不增加媒体尝试或环境变更权限。
+
+correction-05 已完成且其运行预算耗尽：图片公共路径通过；视频第 1 帧因模型复制用户指令而由 `PROMPT_ECHO` Oracle 阻断。WP-S0-14/15 仅是离线仓库操作。任何 correction-06 真实运行必须在新候选提交后另立授权记录，旧授权不可解释为自动重试许可。
+
+项目负责人另行授权 V0 结束前由隔离 Codex 实现实例临时代行 Claude Code/DSH；这是角色载体授权，不是外部动作授权。root gate owner、实现实例和独立审查实例仍须隔离。
