@@ -8,25 +8,25 @@
     "stage_id": "V0-S0",
     "workpack_id": "WP-S0-25",
     "gate": "GATE3_CHECKPOINT",
-    "state": "CHECKPOINT"
+    "state": "NO_GO"
   },
   "last_passed_gate": {
-    "id": "WP_S0_24_TERMINAL_EVIDENCE_SEALED",
-    "evidence": "reports/v0-s0/implementation-receipt-correction-08-live.json",
-    "meaning": "single authorized image/video run ended NO_GO and evidence was sealed at 8fa8140"
+    "id": "WP_S0_25_INDEPENDENT_REVIEW_COMPLETE",
+    "evidence": "reports/v0-s0/independent-review-correction-08.md",
+    "meaning": "independent review found Fatal 1 and Major 2; root formally holds S0 at NO_GO"
   },
-  "current_blocking_gate": "WP-S0-25 independent review and root S0 decision are pending",
+  "current_blocking_gate": "R-03 privacy Fatal and two harness Major findings require offline remediation",
   "stage_packet": ".agent-governance/stages/V0-S0/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/V0-S0/PAYLOAD_MANIFEST.sha256",
   "product_status": "NOT_RUN",
-  "allowed_claim": "WP_S0_24_EVIDENCE_SEALED_PENDING_INDEPENDENT_REVIEW",
+  "allowed_claim": "V0_S0_NO_GO_PRIVACY_CONTAINED_CURRENT_TREE",
   "forbidden_claims": [
     "ENGINEERING_READY",
     "V0_ACCEPTED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "codex_isolated_reviewer",
-  "next_action": "Independently recompute candidate, public traces, semantic oracle, resources, network, cleanup and history; do not modify candidate.",
+  "next_owner": "codex_sol",
+  "next_action": "Freeze an offline remediation packet; no live rerun is authorized.",
   "evidence_root": "reports/",
-  "exact_stop_reason": "INDEPENDENT_REVIEW_REQUIRED_BEFORE_S0_DECISION"
+  "exact_stop_reason": "FATAL_PRIVACY_OVER_COLLECTION_AND_TWO_MAJOR_HARNESS_FINDINGS"
 }
