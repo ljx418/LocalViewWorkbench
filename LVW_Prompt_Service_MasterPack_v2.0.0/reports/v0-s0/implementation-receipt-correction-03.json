@@ -9,10 +9,10 @@
   ],
   "run_id": "v0-s0-correction-03-offline-20261027-01",
   "baseline_sha": "3a8f4d060f47dfb909ecd7d1a24e4c76f9e864be",
-  "candidate_sha": "0000000000000000000000000000000000000000",
-  "candidate_sha_status": "PENDING_ROOT_SEALING",
-  "evidence_commit": "0000000000000000000000000000000000000000",
-  "evidence_commit_status": "PENDING_ROOT_SEALING",
+  "candidate_sha": "078b51aab02fbfbcfd0efcfc7d38a2c9c6381f68",
+  "candidate_sha_status": "SEALED_OFFLINE_CANDIDATE_COMMIT",
+  "evidence_commit": "078b51aab02fbfbcfd0efcfc7d38a2c9c6381f68",
+  "evidence_commit_status": "SEALED_OFFLINE_CANDIDATE_COMMIT",
   "spec_version": "1.6.0",
   "acceptance_hash": "78b158e135be4da756e27ced9f57c74e78feb926bcaf95eda2e2a6992c9a7b42",
   "acceptance_hash_binding": {
@@ -142,9 +142,35 @@
       ],
       "failure_disposition": "The first two offline checker versions mishandled the repository-root prefix and Git's collapsed untracked-directory status; no implementation test or external action failed, and no file was changed by those read-only checks.",
       "final_result": "receipt JSON, artifact hashes, allowed scope, 23 offline tests, four NOT_RUN product cases, AST, corrected path removal, and no __pycache__ all verified"
+    },
+    {
+      "logical_command": "TARGET_COMFY_PYTHON -s -B (import registered nodes + torch CPU frame encode)",
+      "exit_code": 0,
+      "executor": "root gate verification",
+      "result": {
+        "registered_nodes": [
+          "LVWImagePromptBridge",
+          "LVWVideoFramesPromptBridge"
+        ],
+        "encoded_nonempty": true
+      }
     }
   ],
   "check_results": [
+    {
+      "check": "target_portable_python_offline_import_and_cpu_encode",
+      "status": "PASS_ROOT_GATE_VERIFICATION",
+      "executor": "root gate verification",
+      "evidence": {
+        "registered_node_count": 2,
+        "registered_nodes": [
+          "LVWImagePromptBridge",
+          "LVWVideoFramesPromptBridge"
+        ],
+        "encoded_nonempty": true,
+        "service_or_network_action": false
+      }
+    },
     {
       "check": "comfy_registration",
       "status": "PASS_OFFLINE",
