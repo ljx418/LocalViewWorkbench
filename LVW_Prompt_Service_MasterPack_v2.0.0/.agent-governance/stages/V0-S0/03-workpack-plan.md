@@ -49,3 +49,11 @@ Owner：`codex_isolated_implementer`。依赖 WP-S0-08 的网络 NO-GO 证据与
 ## WP-S0-11：correction-04 隔离复审
 
 Owner：`codex_isolated_reviewer`。依赖 WP-S0-10。独立复算 no-cloud 生效、完整窗口连接观察、public `/prompt` trace、semantic oracle、逐帧调用、资源、逐 run 清理和所有历史失败；root Codex 保留最终裁决。
+
+## WP-S0-12：Windows 路径转换纠偏与真实验证
+
+Owner：`codex_isolated_implementer`。依赖 WP-S0-10 的 no-cloud PASS / Comfy-path BLOCKED 证据与 `AUTH-V0-S0-2026-10-27-05`。仅将 Comfy `main.py` 与 cwd 经 `wslpath -w` 后传给 Windows Python；其他网络、资源、媒体、候选与清理门限完全沿用。成功后各执行一次真实图片/四帧 `/prompt`。
+
+## WP-S0-13：correction-05 隔离复审
+
+Owner：`codex_isolated_reviewer`。依赖 WP-S0-12。统一复算 correction-03/04/05、公开生产 trace、semantic oracle、资源、网络、逐次清理和固定分母 NOT_RUN；root Codex 保留最终 S0 裁决。

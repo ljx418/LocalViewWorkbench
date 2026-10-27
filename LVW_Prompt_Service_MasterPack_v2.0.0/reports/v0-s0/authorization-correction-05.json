@@ -1,0 +1,49 @@
+{
+  "schema_version": "lvw.authorization/1",
+  "authorization_id": "AUTH-V0-S0-2026-10-27-05",
+  "project_id": "lvw-prompt-service",
+  "stage_id": "V0-S0",
+  "workpack_id": "WP-S0-12",
+  "granted_by": "project_owner",
+  "authorization_basis": [
+    "The project owner explicitly authorized limited local ComfyUI/Ollama use and Codex implementation-role substitution through V0.",
+    "WP-S0-10 proved Windows-native no-cloud true and zero owned non-loopback TCP but stopped before Comfy because WSL paths were passed to Windows Python.",
+    "This record changes only deterministic path conversion and does not broaden external authority."
+  ],
+  "candidate_sha": "078b51aab02fbfbcfd0efcfc7d38a2c9c6381f68",
+  "prior_evidence_commit": "78e7285ef8a2371c07207d99a7c46944aeaee873",
+  "prior_receipt_commit": "aa06455f04373cf1a168cbf2b403f400d96270b6",
+  "implementation_owner": "codex_isolated_implementer",
+  "required_correction": "convert COMFY_ROOT/main.py and Comfy working directory through wslpath -w before passing them to Windows portable Python",
+  "allowed": {
+    "ollama": "same Windows-native per-process no-cloud wrapper proven in correction-04",
+    "pre_model_gate": "OLLAMA_NO_CLOUD:true plus at least 10 seconds and 5 samples with zero owned non-loopback TCP",
+    "comfy": "fresh run-owned Windows temp base, sealed candidate, 127.0.0.1:8191, Windows paths only",
+    "samples": [
+      {"alias": "TEST_SOURCE/image-sample", "sha256": "b4bbd08a0fad67cc04e55d15bf2c48e9a76dcfd6dda147d8cc504452dfc78a42"},
+      {"alias": "TEST_SOURCE/video-sample", "sha256": "694a50bfb871faed6540a577b25c8a61e629035062a23f982099a6911ff22152"}
+    ],
+    "effective_attempts_max": {"image": 1, "video": 1},
+    "evidence_destination": "reports/v0-s0/correction-05/",
+    "ports": [8191, 11434],
+    "external_cost": 0,
+    "visible_browser_runs": 0
+  },
+  "forbidden": [
+    "candidate or product contract changes",
+    "firewall, registry, hosts-file or permanent environment changes",
+    "cloud/paid provider calls, downloads or upgrades",
+    "permanent target installation writes",
+    "non-owned process termination, visible browser startup or remote Git push"
+  ],
+  "mandatory_stops": [
+    "no-cloud or remote-TCP pre-model gate failure",
+    "unknown listener/GPU owner or model/sample/candidate mismatch",
+    "GPU memory reaches or exceeds 23552 MiB",
+    "public prompt/history/semantic oracle failure",
+    "any per-run cleanup or target-integrity gap"
+  ],
+  "cleanup": "stop owned wrapper/listener PIDs, prove ports empty and /api/ps terminal state, remove run-owned temp, verify target integrity",
+  "expires_when": "WP-S0-12 produces one terminal receipt or either single effective media attempt is consumed",
+  "does_not_authorize_stage_pass": true
+}

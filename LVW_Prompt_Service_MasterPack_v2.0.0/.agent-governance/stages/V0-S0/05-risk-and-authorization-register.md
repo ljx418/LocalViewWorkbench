@@ -26,3 +26,5 @@ WP-S0-06/07 是纯离线仓库操作，现已授权。WP-S0-08 不复用 `AUTH-V
 `AUTH-V0-S0-2026-10-27-03` 已绑定候选 `078b51aab02fbfbcfd0efcfc7d38a2c9c6381f68` 与收据 `2df895318ae1278452a399622fb29f41eb3dce73`。它只允许 run-owned 临时 Comfy base、8191/11434 loopback、两份固定 hash 样本、每类最多两次有效尝试和远程连接观察；不允许永久安装写入。
 
 该授权在 owned Ollama 出现非 loopback TCP 后以 0/0 有效媒体尝试终止，证据封存于 `9256c063128624672dfb5b258b7576406ff339ac`。离线诊断证明 WSL 环境变量未传入 Windows 子进程。`AUTH-V0-S0-2026-10-27-04` 只授权 Windows 原生进程内环境注入的新路线；server log 未报告 no-cloud true 或任一远程 TCP 出现时，仍须在模型调用前停止。
+
+correction-04 已证明 no-cloud true、10.02 秒/9 样本/0 非 loopback，但因 `main.py` 未转换为 Windows 路径在 Comfy 启动前终止。`AUTH-V0-S0-2026-10-27-05` 仅授权 correction-05 修正两个 Windows 路径参数并复用相同已证明的网络门禁；不增加媒体尝试或环境变更权限。
