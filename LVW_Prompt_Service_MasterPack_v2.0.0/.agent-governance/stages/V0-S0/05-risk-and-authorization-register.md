@@ -36,3 +36,5 @@ correction-05 已完成且其运行预算耗尽：图片公共路径通过；视
 WP-S0-14/15 的新候选 `138b4486fdaeb8d207ef6b5efb63a09865f174b9` 已通过双解释器离线测试。`AUTH-V0-S0-2026-10-27-06` 为该 SHA 建立一次新的单图 1 次、四帧视频 1 次真实预算，继续使用 Windows-native no-cloud 与 correction-05 相同的网络、显存、清理和目标完整性门限；任一媒体尝试消耗或终态收据产生即过期。
 
 该授权已由 WP-S0-16 的单次图片尝试和终态收据消耗，不得复用。真实 chat 超时；卸载请求 200、chat 随后 499、最终模型/端口/PID/temp/目标完整性均清理。严格 trace 判定和最终清理证明之间的语义差异必须由 WP-S0-17 独立审查，不得由实现者自行改判。
+
+WP-S0-17 与 root 的 Windows-native只读复核确认：非本轮 owned 的 ComfyUI PID 48820 在 correction-06 前已由 PID 43252 / `Start_ComfyUI_Stable.bat` 启动，且仍在 GPU 进程清单中。不得终止非 owned 进程；在项目负责人关闭它并重新证明 GPU owner/总占用前，Stage 状态为 BLOCKED。

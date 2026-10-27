@@ -5,7 +5,7 @@ Project: lvw-prompt-service
 Design: 2.0.0
 Target version: V0
 Stage: V0-S0 / 现有环境与节点基线
-Stage state: GATE3_CHECKPOINT / RUNNING
+Stage state: GATE3_CHECKPOINT / BLOCKED
 Product cases: NOT_RUN
 Last passed gate: WP_S0_15_OFFLINE_CANDIDATE_SEALED
 Baseline commit: 3c69a23d07064a0db5cb05258b237be2415a314a
@@ -14,4 +14,4 @@ Baseline product-control fingerprint: sha256:bd4875c1d53ce8a208e35cdb3b3b20110b2
 
 上述 fingerprint 依次绑定 `plans/tasks.json`、`plans/acceptance_cases.json`、`plans/release_gates.json` 的路径和原始字节。基线提交是本地候选身份，不表示产品验收通过，也未推送远端。
 
-首轮授权和全部失败继续保存在 `reports/v0-s0/` 失败账本中。候选 `138b4486fdaeb8d207ef6b5efb63a09865f174b9` 的 WP-S0-16 单次真实运行已终止：no-cloud/远程连接/资源/最终清理门禁通过，但图片 chat 在 120 秒 `MODEL_TIMEOUT`，视频未运行；严格 trace 又因 cleanup 200 先于 chat 499 记账而判为顺序/清理失败。原始证据和封存收据为 `d337866d5f6bbb49f04d75ec0b4b1b79ba5d587e` / `25ac028`。当前只允许 WP-S0-17 独立复算真实超时、cleanup 语义、候选绑定及全部历史失败；不得重跑或进入 V0-S1。
+WP-S0-17 独立复审已完成并由 root 采纳为 Fatal 0 / Major 3 / Minor 2、NO-GO。后续 Windows-native 只读探测定位到非本轮 owned 的 ComfyUI PID 48820（父 PID 43252，`Start_ComfyUI_Stable.bat`），其启动早于 correction-06 且解释了模型前约 23 GiB 未归属占用。root 未终止或修改该进程。当前 Stage 因 `NON_OWNED_COMFY_GPU_OWNER_ACTIVE` 进入 BLOCKED；项目负责人关闭该 ComfyUI 后，必须先用 Windows-native GPU owner 枚举证明环境干净，再冻结任何新运行。不得重用旧授权或进入 V0-S1。
