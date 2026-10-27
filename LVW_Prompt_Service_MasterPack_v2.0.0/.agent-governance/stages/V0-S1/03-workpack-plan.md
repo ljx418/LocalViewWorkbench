@@ -6,7 +6,7 @@ Owner：可信执行器。依赖 V0-S0 正式出口和候选 commit。锁定 `v0
 
 ## WP-S1-01：独立人工编辑与导出
 
-Owner：`codex_isolated_implementer`（V0 临时代行）。实现纯 CPU 草稿状态、四输出视图、标签、复制、TXT/JSON 导出和显式来源标识。Ollama 停止时必须工作；空人工稿或缺少必要人工确认时按冻结规则阻断，不伪造分析成功。
+Owner：`codex_isolated_implementer`（V0 临时代行）。实现纯 CPU 草稿状态、四输出视图、标签、复制、TXT/JSON 导出和显式来源标识。Ollama 停止时必须工作；未分析、空人工字段或没有内容备注仍可导出合法的 `manual/not_requested` 结果，不伪造分析成功，也不引入审批状态。
 
 ## WP-S1-02：图片预处理与状态隔离
 
