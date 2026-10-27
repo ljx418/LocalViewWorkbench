@@ -32,3 +32,5 @@ correction-04 已证明 no-cloud true、10.02 秒/9 样本/0 非 loopback，但�
 correction-05 已完成且其运行预算耗尽：图片公共路径通过；视频第 1 帧因模型复制用户指令而由 `PROMPT_ECHO` Oracle 阻断。WP-S0-14/15 仅是离线仓库操作。任何 correction-06 真实运行必须在新候选提交后另立授权记录，旧授权不可解释为自动重试许可。
 
 项目负责人另行授权 V0 结束前由隔离 Codex 实现实例临时代行 Claude Code/DSH；这是角色载体授权，不是外部动作授权。root gate owner、实现实例和独立审查实例仍须隔离。
+
+WP-S0-14/15 的新候选 `138b4486fdaeb8d207ef6b5efb63a09865f174b9` 已通过双解释器离线测试。`AUTH-V0-S0-2026-10-27-06` 为该 SHA 建立一次新的单图 1 次、四帧视频 1 次真实预算，继续使用 Windows-native no-cloud 与 correction-05 相同的网络、显存、清理和目标完整性门限；任一媒体尝试消耗或终态收据产生即过期。

@@ -6,27 +6,27 @@
   "target_version": "V0",
   "coordinate": {
     "stage_id": "V0-S0",
-    "workpack_id": "WP-S0-14",
-    "gate": "GATE1_IMPLEMENTATION",
+    "workpack_id": "WP-S0-16",
+    "gate": "GATE4_REAL_ACCEPTANCE",
     "state": "RUNNING"
   },
   "last_passed_gate": {
-    "id": "WP_S0_12_IMAGE_PUBLIC_PATH_PASS_VIDEO_ORACLE_STOP",
-    "evidence": "reports/v0-s0/implementation-receipt-correction-05-live.json",
-    "meaning": "public image path, no-cloud, resource and cleanup gates passed; video prompt echo was rejected"
+    "id": "WP_S0_15_OFFLINE_CANDIDATE_SEALED",
+    "evidence": "reports/v0-s0/implementation-receipt-correction-06-offline.json",
+    "meaning": "grounded anti-copy handoff candidate sealed after repository and portable Python 24/24 suites"
   },
   "current_blocking_gate": "video prompt handoff must produce grounded non-echo output before independent checkpoint",
   "stage_packet": ".agent-governance/stages/V0-S0/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/V0-S0/PAYLOAD_MANIFEST.sha256",
   "product_status": "NOT_RUN",
-  "allowed_claim": "V0_S0_CORRECTION_06_OFFLINE_IMPLEMENTATION_AUTHORIZED",
+  "allowed_claim": "V0_S0_CORRECTION_06_LIVE_VERIFICATION_AUTHORIZED",
   "forbidden_claims": [
     "ENGINEERING_READY",
     "V0_ACCEPTED",
     "TARGET_HARDWARE_TESTED"
   ],
   "next_owner": "codex_isolated_implementer",
-  "next_action": "Execute WP-S0-14/15 offline prompt-handoff correction and tests; do not start local services.",
+  "next_action": "Execute bounded WP-S0-16 against candidate 138b448, then stop for independent review.",
   "evidence_root": "reports/",
   "exact_stop_reason": null
 }

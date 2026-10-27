@@ -392,6 +392,7 @@ def main() -> int:
                     "WP_S0_08_NETWORK_STOP_EVIDENCE_SEALED",
                     "WP_S0_10_NO_CLOUD_GATE_PASS_COMFY_PATH_BLOCKED",
                     "WP_S0_12_IMAGE_PUBLIC_PATH_PASS_VIDEO_ORACLE_STOP",
+                    "WP_S0_15_OFFLINE_CANDIDATE_SEALED",
                 }
             ),
             f"major_count={major_count}",

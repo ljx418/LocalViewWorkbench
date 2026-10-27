@@ -1,0 +1,50 @@
+{
+  "schema_version": "lvw.authorization/1",
+  "authorization_id": "AUTH-V0-S0-2026-10-27-06",
+  "project_id": "lvw-prompt-service",
+  "stage_id": "V0-S0",
+  "workpack_id": "WP-S0-16",
+  "granted_by": "project_owner",
+  "authorization_basis": [
+    "The project owner explicitly authorized limited local ComfyUI/Ollama start and probe, non-private media samples, and isolated Codex implementation-role substitution through V0.",
+    "The offline prompt-handoff correction is sealed as candidate 138b4486fdaeb8d207ef6b5efb63a09865f174b9 with receipt commit fa0c3d4.",
+    "This is a fresh single-use budget; it does not reuse or extend the consumed correction-05 authorization."
+  ],
+  "candidate_sha": "138b4486fdaeb8d207ef6b5efb63a09865f174b9",
+  "candidate_receipt_commit": "fa0c3d4",
+  "prior_evidence_commit": "03ce1c48a330effcc79efc9c2b336e4cc62893b4",
+  "prior_receipt_commit": "1f8982b",
+  "implementation_owner": "codex_isolated_implementer",
+  "required_correction": "verify that the terminal grounded anti-copy instruction prevents video prompt echo without weakening the semantic oracle",
+  "allowed": {
+    "ollama": "Windows-native per-process OLLAMA_NO_CLOUD=1 wrapper, literal loopback only",
+    "pre_model_gate": "OLLAMA_NO_CLOUD:true plus at least 10 seconds and 5 samples with zero owned non-loopback TCP",
+    "comfy": "fresh run-owned Windows temp base, sealed candidate, 127.0.0.1:8191, Windows paths only",
+    "samples": [
+      {"alias": "TEST_SOURCE/image-sample", "sha256": "b4bbd08a0fad67cc04e55d15bf2c48e9a76dcfd6dda147d8cc504452dfc78a42"},
+      {"alias": "TEST_SOURCE/video-sample", "sha256": "694a50bfb871faed6540a577b25c8a61e629035062a23f982099a6911ff22152"}
+    ],
+    "effective_attempts_max": {"image": 1, "video": 1},
+    "evidence_destination": "reports/v0-s0/correction-06/",
+    "ports": [8191, 11434],
+    "external_cost": 0,
+    "visible_browser_runs": 0
+  },
+  "forbidden": [
+    "candidate, semantic oracle, product contract or fixed-denominator changes",
+    "firewall, registry, hosts-file or permanent environment changes",
+    "cloud or paid provider calls, downloads or upgrades",
+    "permanent target installation writes",
+    "non-owned process termination, visible browser startup or remote Git push"
+  ],
+  "mandatory_stops": [
+    "no-cloud or remote-TCP pre-model gate failure",
+    "unknown listener/GPU owner or model/sample/candidate mismatch",
+    "GPU memory reaches or exceeds 23552 MiB",
+    "public prompt/history/semantic oracle failure",
+    "any per-run cleanup or target-integrity gap"
+  ],
+  "cleanup": "after every started model call request keep_alive=0; stop owned wrapper/listener PIDs; prove ports empty and /api/ps terminal state; remove run-owned temp; verify target integrity",
+  "expires_when": "WP-S0-16 produces one terminal receipt or either single effective media attempt is consumed",
+  "does_not_authorize_stage_pass": true
+}
