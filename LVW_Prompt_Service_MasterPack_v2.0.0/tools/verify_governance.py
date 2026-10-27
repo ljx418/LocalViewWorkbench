@@ -15,6 +15,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 GOV = ROOT / ".agent-governance"
 STAGE_DIR = GOV / "stages" / "V0-S0"
+NEXT_STAGE_DIR = GOV / "stages" / "V0-S1"
 
 REQUIRED_PACKET_FILES = {
     "00-coordinate.md",
@@ -223,6 +224,42 @@ def verify_manifest() -> list[str]:
     return errors
 
 
+def verify_prepared_stage(tasks: dict, cases: dict) -> list[str]:
+    errors: list[str] = []
+    if not NEXT_STAGE_DIR.is_dir():
+        return ["prepared V0-S1 packet is missing"]
+    inventory = {path.name for path in NEXT_STAGE_DIR.iterdir() if path.is_file()}
+    if inventory != REQUIRED_PACKET_FILES:
+        errors.append("prepared V0-S1 packet inventory differs from the standard packet")
+    manifest = NEXT_STAGE_DIR / "PAYLOAD_MANIFEST.sha256"
+    listed: set[str] = set()
+    for line in manifest.read_text(encoding="utf-8").splitlines() if manifest.is_file() else []:
+        try:
+            digest, name = line.split("  ", 1)
+        except ValueError:
+            errors.append("prepared V0-S1 manifest line is invalid")
+            continue
+        listed.add(name)
+        path = NEXT_STAGE_DIR / name
+        if not path.is_file() or hashlib.sha256(path.read_bytes()).hexdigest() != digest:
+            errors.append(f"prepared V0-S1 manifest mismatch: {name}")
+    if listed != REQUIRED_PACKET_FILES - {"PAYLOAD_MANIFEST.sha256"}:
+        errors.append("prepared V0-S1 manifest inventory is incomplete")
+    control = load_json(NEXT_STAGE_DIR / "stage-control.json")
+    planned = next(item for item in tasks["stages"] if item["stage_id"] == "V0-S1")
+    known = {item["case_id"] for item in cases["cases"]}
+    fixed = control.get("fixed_acceptance_ids", [])
+    if fixed != planned["work_on_cases"] or not set(fixed) <= known:
+        errors.append("prepared V0-S1 denominator differs from plans/tasks.json")
+    if control.get("acceptance_hash") != digest_ids(fixed):
+        errors.append("prepared V0-S1 acceptance hash is invalid")
+    if control.get("packet_status") != "DRAFT_NOT_FROZEN" or control.get("execution_authorized") is not False:
+        errors.append("prepared V0-S1 packet must remain non-executable")
+    if control.get("state") != "BLOCKED_BY_DEPENDENCY" or control.get("dependencies") != ["V0-S0:STAGE_BASELINE_COMPLETE"]:
+        errors.append("prepared V0-S1 packet does not preserve the S0 dependency")
+    return errors
+
+
 def run_self_tests(control: dict, tasks: dict, cases: dict) -> list[dict]:
     results: list[dict] = []
 
@@ -279,6 +316,10 @@ def main() -> int:
         check("stage_manifest", False, error)
     if not verify_manifest():
         check("stage_manifest", True)
+    for error in verify_prepared_stage(tasks, cases):
+        check("prepared_stage", False, error)
+    if not verify_prepared_stage(tasks, cases):
+        check("prepared_stage", True)
 
     execution = load_json(ROOT / "plans" / "execution-control.json")
     check("single_coordinate_stage", execution["coordinate"]["stage_id"] == control["stage_id"])
