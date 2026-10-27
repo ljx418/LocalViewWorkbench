@@ -6,27 +6,27 @@
   "target_version": "V0",
   "coordinate": {
     "stage_id": "V0-S0",
-    "workpack_id": "WP-S0-25",
-    "gate": "GATE3_CHECKPOINT",
-    "state": "NO_GO"
+    "workpack_id": "WP-S0-26",
+    "gate": "GATE1_IMPLEMENTATION",
+    "state": "RUNNING"
   },
   "last_passed_gate": {
     "id": "WP_S0_25_INDEPENDENT_REVIEW_COMPLETE",
     "evidence": "reports/v0-s0/independent-review-correction-08.md",
     "meaning": "independent review found Fatal 1 and Major 2; root formally holds S0 at NO_GO"
   },
-  "current_blocking_gate": "R-03 privacy Fatal and two harness Major findings require offline remediation",
+  "current_blocking_gate": "WP-S0-26/27 offline remediation and independent review are pending",
   "stage_packet": ".agent-governance/stages/V0-S0/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/V0-S0/PAYLOAD_MANIFEST.sha256",
   "product_status": "NOT_RUN",
-  "allowed_claim": "V0_S0_NO_GO_PRIVACY_CONTAINED_CURRENT_TREE",
+  "allowed_claim": "CORRECTION_09_OFFLINE_REMEDIATION_RUNNING",
   "forbidden_claims": [
     "ENGINEERING_READY",
     "V0_ACCEPTED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "codex_sol",
-  "next_action": "Freeze an offline remediation packet; no live rerun is authorized.",
+  "next_owner": "codex_isolated_implementer",
+  "next_action": "Implement and test privacy minimization, string camera_motion Oracle, and harness self-binding offline.",
   "evidence_root": "reports/",
-  "exact_stop_reason": "FATAL_PRIVACY_OVER_COLLECTION_AND_TWO_MAJOR_HARNESS_FINDINGS"
+  "exact_stop_reason": null
 }

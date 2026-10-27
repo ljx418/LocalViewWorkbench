@@ -105,3 +105,15 @@ Owner：`codex_isolated_implementer`。依赖 WP-S0-23 和新的明确授权。�
 ## WP-S0-25：最终 S0 隔离复审
 
 Owner：`codex_isolated_reviewer`。依赖 WP-S0-24。独立复算所有门禁和历史失败；root 根据 Fatal/Major 作 S0 正式裁决。
+
+## WP-S0-26：隐私最小化、Oracle 类型与 Harness 自绑定纠偏
+
+Owner：`codex_isolated_implementer`。依赖 WP-S0-25 与 root NO-GO。仅离线修改 live harness：preflight 只持久化目标进程/端口匹配及不可逆计数，不保存全量进程或命令行；`camera_motion` 严格按冻结 schema 的非空 string 验证；服务启动前必须把实际脚本 SHA-256 与指定 harness commit blob 复算一致并写入独立 artifact/receipt。禁止修改产品候选、合同、阈值、历史原始提交或启动服务。
+
+## WP-S0-27：三项发现离线负例与实现收据
+
+Owner：`codex_isolated_implementer`。依赖 WP-S0-26。新增全量进程命令行不得落盘、Base64-shaped user/path 不得进入 artifact、string camera_motion 通过/list 拒绝、harness hash match/mismatch fail-closed 且零服务启动测试；保留既有 24 项。输出 correction-09 offline receipt，只能 READY_FOR_REVIEW。
+
+## WP-S0-28：correction-09 独立离线复审
+
+Owner：`codex_isolated_reviewer`。依赖 WP-S0-27。独立复算 F-01/M-01/M-02 是否在新候选中关闭、旧泄漏是否仍隔离、历史结论是否未改写；不得启动服务或推断新的 live 授权。root 再决定 S0 的离线出口。
