@@ -1,0 +1,225 @@
+{
+  "acceptance_hash": "78b158e135be4da756e27ced9f57c74e78feb926bcaf95eda2e2a6992c9a7b42",
+  "acceptance_hash_binding": {
+    "algorithm": "sha256",
+    "source": ".agent-governance/stages/V0-S0/04-acceptance-matrix.md",
+    "target": "sorted fixed acceptance IDs V0-A01,V0-A02,V0-A09,V0-A10 joined by LF with a trailing LF"
+  },
+  "artifact_manifest": "reports/v0-s0/correction-10/artifact-manifest.json",
+  "artifact_refs": [
+    "reports/v0-s0/correction-10/run-summary.json",
+    "reports/v0-s0/correction-10/cleanup.json",
+    "reports/v0-s0/correction-10/preflight-baseline.json",
+    "reports/v0-s0/correction-10/pre-model-gate.json",
+    "reports/v0-s0/correction-10/harness-identity.json",
+    "reports/v0-s0/correction-10/owned-ollama-remote-tcp.json",
+    "reports/v0-s0/correction-10/resource-samples.json",
+    "reports/v0-s0/correction-10/ollama-request-trace.json",
+    "reports/v0-s0/correction-10/artifact-manifest.json"
+  ],
+  "authorization_commit": "0b870365b30decd977d92756417eda7de56175d6",
+  "candidate_sha": "138b4486fdaeb8d207ef6b5efb63a09865f174b9",
+  "changed_files": [
+    "reports/v0-s0/correction-10/artifact-manifest.json",
+    "reports/v0-s0/correction-10/cleanup.json",
+    "reports/v0-s0/correction-10/commands.json",
+    "reports/v0-s0/correction-10/events.json",
+    "reports/v0-s0/correction-10/harness-identity.json",
+    "reports/v0-s0/correction-10/ollama-request-trace.json",
+    "reports/v0-s0/correction-10/owned-ollama-remote-tcp.json",
+    "reports/v0-s0/correction-10/pre-model-gate.json",
+    "reports/v0-s0/correction-10/preflight-baseline.json",
+    "reports/v0-s0/correction-10/resource-samples.json",
+    "reports/v0-s0/correction-10/run-summary.json",
+    "reports/v0-s0/implementation-receipt-correction-10-live.json"
+  ],
+  "check_results": [
+    {
+      "check": "harness_runtime_identity",
+      "details": {
+        "executed_file_sha256": "999cb17e42ef9f2fd4f2ba87e6cb2cf2c9009b0485d6a075b97957658e6fc810",
+        "git_blob_object_id": "9fb8c73b3bb4d1fbcc54544fff723ddb0e187c7b",
+        "git_blob_sha256": "999cb17e42ef9f2fd4f2ba87e6cb2cf2c9009b0485d6a075b97957658e6fc810",
+        "harness_candidate_commit": "d1f268f6c9c3996ba64d49c29343cd87aa7ec1d7",
+        "matched": true,
+        "service_starts": 0
+      },
+      "status": "PASS"
+    },
+    {
+      "check": "windows_native_service_preflight",
+      "details": {
+        "authorized_port_listeners": [],
+        "logical_commands": [
+          "WINDOWS_NVIDIA_SMI query total,used,free",
+          "WSL_NVIDIA_SMI query total,used,free",
+          "POWERSHELL Get-CimInstance Win32_Process with command line",
+          "POWERSHELL Get-NetTCPConnection listeners 8191,11434 with owning PID"
+        ],
+        "maximum_allowed_used_mib": 4096,
+        "passed": false,
+        "service_starts": 0,
+        "stop_reasons": [
+          "GPU_PREFLIGHT_USED_ABOVE_4096_MIB"
+        ],
+        "target_process_count": 0,
+        "target_processes": [],
+        "windows_native_gpu": [
+          {
+            "free_mib": 18095,
+            "total_mib": 24564,
+            "used_mib": 6044
+          }
+        ],
+        "windows_process_count": 387,
+        "windows_wsl_match": true,
+        "windows_wsl_per_gpu_deltas": [
+          {
+            "free_delta_mib": 0,
+            "gpu_index": 0,
+            "total_matches": true,
+            "used_delta_mib": 0
+          }
+        ],
+        "windows_wsl_sample_tolerance_mib": 128,
+        "wsl_gpu": [
+          {
+            "free_mib": 18095,
+            "total_mib": 24564,
+            "used_mib": 6044
+          }
+        ]
+      },
+      "status": "BLOCKED"
+    },
+    {
+      "check": "windows_native_no_cloud_server_raw",
+      "status": "FAIL"
+    },
+    {
+      "check": "pre_model_remote_tcp_gate",
+      "status": "FAIL"
+    },
+    {
+      "check": "comfy_main_and_cwd_windows_path_conversion",
+      "status": "FAIL"
+    },
+    {
+      "check": "public_comfy_image_route",
+      "status": "NOT_RUN_OR_FAIL"
+    },
+    {
+      "check": "public_comfy_video_route",
+      "status": "NOT_RUN_OR_FAIL"
+    },
+    {
+      "check": "cleanup_and_target_integrity",
+      "status": "FAIL"
+    }
+  ],
+  "cleanup": {
+    "details": "reports/v0-s0/correction-10/cleanup.json",
+    "proven": false
+  },
+  "contract_changes": "none",
+  "decision": "NO_GO",
+  "effective_attempts": {
+    "image": 0,
+    "video": 0
+  },
+  "environment": {
+    "comfy_bind": "127.0.0.1:8191",
+    "comfy_main_and_cwd_conversion": "wslpath -w with Windows-drive-pattern and no-/mnt self-check",
+    "model": "gemma4:26b",
+    "model_digest": "5571076f3d70050487b26b341705799e0ab29b808164f90d20d4cf84f699d251",
+    "ollama_endpoint": "http://127.0.0.1:11434",
+    "ollama_start": "Windows-native PowerShell per-process environment wrapper",
+    "required_no_cloud_observed": false,
+    "service_preflight_gpu_max_used_mib": 4096
+  },
+  "evidence_commit": "0000000000000000000000000000000000000000",
+  "evidence_commit_status": "PENDING_ROOT_SEALING",
+  "exact_stop_reason": "WINDOWS_NATIVE_PREFLIGHT_FAILED:GPU_PREFLIGHT_USED_ABOVE_4096_MIB",
+  "external_actions": {
+    "comfyui_process_starts": 0,
+    "downloads_or_upgrades": 0,
+    "external_cost": 0,
+    "model_calls": 0,
+    "ollama_process_starts": 0,
+    "target_install_writes": 0,
+    "visible_browser_runs": 0
+  },
+  "gate_version": "lvw-gate/1",
+  "harness_candidate_sha": "d1f268f6c9c3996ba64d49c29343cd87aa7ec1d7",
+  "harness_identity": {
+    "executed_file_sha256": "999cb17e42ef9f2fd4f2ba87e6cb2cf2c9009b0485d6a075b97957658e6fc810",
+    "git_blob_object_id": "9fb8c73b3bb4d1fbcc54544fff723ddb0e187c7b",
+    "git_blob_sha256": "999cb17e42ef9f2fd4f2ba87e6cb2cf2c9009b0485d6a075b97957658e6fc810",
+    "harness_candidate_commit": "d1f268f6c9c3996ba64d49c29343cd87aa7ec1d7",
+    "matched": true,
+    "service_starts": 0
+  },
+  "implementation_owner_role": "codex_isolated_implementer",
+  "implementation_session": "/root/s0_rerun_implementer",
+  "live_route_counts": {
+    "image": {
+      "pass": 0,
+      "total": 0
+    },
+    "video": {
+      "pass": 0,
+      "total": 0
+    }
+  },
+  "network": {
+    "evidence": "reports/v0-s0/correction-10/owned-ollama-remote-tcp.json",
+    "owned_ollama_non_loopback_remote_seen": false
+  },
+  "pre_model_gate": {
+    "minimum_samples": 5,
+    "minimum_seconds": 10,
+    "no_cloud_reported_true": false,
+    "non_loopback_seen": false,
+    "passed": false,
+    "sample_count": 0,
+    "stop_reason": "WINDOWS_NATIVE_PREFLIGHT_FAILED:GPU_PREFLIGHT_USED_ABOVE_4096_MIB"
+  },
+  "product_acceptance": {
+    "V0-A01": "NOT_RUN",
+    "V0-A02": "NOT_RUN",
+    "V0-A09": "NOT_RUN",
+    "V0-A10": "NOT_RUN"
+  },
+  "production_path_status": "NOT_RUN_STOP_CONDITION_BEFORE_COMFY_START",
+  "project_id": "lvw-prompt-service",
+  "public_end_to_end_trace_refs": [],
+  "raw_artifact_refs": [
+    "reports/v0-s0/correction-10/owned-ollama-remote-tcp.json",
+    "reports/v0-s0/correction-10/resource-samples.json",
+    "reports/v0-s0/correction-10/pre-model-gate.json"
+  ],
+  "resource": {
+    "gpu_stop_threshold_mib": 23552,
+    "minimum_host_available_ram_mib": null,
+    "peak_gpu_used_mib": null
+  },
+  "risks": [
+    "Live semantic output remains model- and sample-specific; this receipt is not a Stage PASS.",
+    "The four fixed product acceptance cases remain NOT_RUN."
+  ],
+  "run_id": "v0-s0-correction-10-live-20261027-01",
+  "schema_version": "lvw.implementation-receipt/1",
+  "spec_version": "2.7.0",
+  "stage_id": "V0-S0",
+  "stage_pass_claim": false,
+  "target_configuration_changes": "none",
+  "test_counts": {
+    "blocked": 0,
+    "denominator": 4,
+    "fail": 0,
+    "not_run": 4,
+    "pass": 0,
+    "skipped": 0
+  },
+  "workpack_id": "WP-S0-29"
+}
