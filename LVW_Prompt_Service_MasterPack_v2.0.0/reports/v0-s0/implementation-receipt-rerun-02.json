@@ -8,8 +8,30 @@
   "implementation_owner_role": "codex_isolated_implementer",
   "implementation_session": "/root/s0_rerun_implementer",
   "authorization_ref": "reports/v0-s0/authorization-rerun-02.json",
-  "evidence_commit": "0000000000000000000000000000000000000000",
-  "evidence_commit_status": "PENDING_ROOT_SEALING; placeholder must be replaced only by root gate owner after evidence commit",
+  "evidence_commit": "1d4d7303fb670f772825fc3aa488ecf1b1846a96",
+  "evidence_commit_status": "SEALED_RAW_EVIDENCE_COMMIT",
+  "spec_version": "1.3.0",
+  "acceptance_hash": "78b158e135be4da756e27ced9f57c74e78feb926bcaf95eda2e2a6992c9a7b42",
+  "acceptance_hash_binding": {
+    "algorithm": "sha256",
+    "target": "sorted fixed acceptance IDs V0-A01,V0-A02,V0-A09,V0-A10 joined by LF with a trailing LF",
+    "source": ".agent-governance/stages/V0-S0/04-acceptance-matrix.md",
+    "source_file_sha256": "fec7c6360f544eb60e155af82db300f9b0773e50a61e0f4bda0ab915c92f7454"
+  },
+  "gate_version": "lvw-gate/1",
+  "environment": {
+    "executor": "codex_isolated_implementer on current_local_windows_wsl_host",
+    "provider": "local Ollama on 127.0.0.1:11434",
+    "model": "gemma4:26b",
+    "model_digest": "5571076f3d70050487b26b341705799e0ab29b808164f90d20d4cf84f699d251",
+    "comfyui": "0.37.0",
+    "prompt_assistant": "2.0.6",
+    "ollama": "0.32.8",
+    "ffmpeg": "6.1.1",
+    "gpu": "NVIDIA GeForce RTX 4090 24564 MiB",
+    "dependency_fingerprint": "b7df65658d8261e6bb82f28a22842d4924029c16a2c3eab4f806482ee3f4a801",
+    "dependency_fingerprint_binding": "sha256 of masked Prompt Assistant configuration source bytes before and after startup; unchanged"
+  },
   "changed_files": [
     "reports/v0-s0/rerun-02/cleanup.json",
     "reports/v0-s0/rerun-02/comfy-object-info-raw.json",
@@ -69,7 +91,7 @@
     "reports/v0-s0/rerun-02/artifact-manifest.json",
     "reports/v0-s0/implementation-receipt-rerun-02.json"
   ],
-  "contract_changes": [],
+  "contract_changes": "none",
   "target_configuration_changes": [],
   "commands": [
     {
@@ -104,6 +126,20 @@
     "prompt_assistant_models_list_vision": "HTTP_500_MODELLISTSERVICE_NAMEERROR",
     "connected_public_entry": "NO_GO_NO_CONNECTED_PUBLIC_ENTRY_TO_LOCAL_MODEL"
   },
+  "production_paths": [
+    {
+      "name": "comfy_prompt_assistant_public_registry",
+      "entry": "ComfyUI public /object_info",
+      "result": "ImageCaptionNode and VideoCaptionNode observed; configured vlm_service options did not expose local Ollama",
+      "connected_to_local_model": false
+    },
+    {
+      "name": "direct_local_ollama_feasibility",
+      "entry": "Ollama local /api/chat",
+      "result": "one image and one bounded four-frame request returned schema-valid JSON",
+      "connected_to_comfy_public_entry": false
+    }
+  ],
   "production_path": {
     "comfy_registry": "observed separately through public /object_info",
     "ollama_model": "called separately through local /api/chat",
@@ -120,6 +156,118 @@
     "V0-A09": "NOT_RUN",
     "V0-A10": "NOT_RUN"
   },
+  "check_results": [
+    {
+      "check": "raw_evidence_commit_binding",
+      "status": "PASS",
+      "evidence": "1d4d7303fb670f772825fc3aa488ecf1b1846a96"
+    },
+    {
+      "check": "authorized_sample_hashes",
+      "status": "PASS",
+      "evidence": "reports/v0-s0/rerun-02/sample-hashes.json"
+    },
+    {
+      "check": "comfy_public_registry_observation",
+      "status": "PASS_OBSERVATION_ONLY",
+      "evidence": "reports/v0-s0/rerun-02/comfy-object-info-raw.json"
+    },
+    {
+      "check": "prompt_assistant_local_model_discovery",
+      "status": "FAIL",
+      "evidence": [
+        "reports/v0-s0/rerun-02/pa-models-list-llm-raw.json",
+        "reports/v0-s0/rerun-02/pa-models-list-vision-raw.json"
+      ]
+    },
+    {
+      "check": "direct_ollama_image_feasibility",
+      "status": "PASS_FEASIBILITY_NOT_PRODUCT_ACCEPTANCE",
+      "evidence": "reports/v0-s0/rerun-02/ollama-image-attempt-1-validation.json"
+    },
+    {
+      "check": "direct_ollama_bounded_four_frame_feasibility",
+      "status": "PASS_FEASIBILITY_NOT_PRODUCT_ACCEPTANCE",
+      "evidence": "reports/v0-s0/rerun-02/ollama-video-attempt-1-validation.json"
+    },
+    {
+      "check": "connected_public_entry_to_local_model",
+      "status": "FAIL_NO_GO",
+      "evidence": "reports/v0-s0/rerun-02/probe-summary.json"
+    },
+    {
+      "check": "config_integrity",
+      "status": "PASS_UNCHANGED",
+      "evidence": "reports/v0-s0/rerun-02/config-integrity.json"
+    },
+    {
+      "check": "owned_process_and_temp_cleanup",
+      "status": "PASS",
+      "evidence": "reports/v0-s0/rerun-02/cleanup.json"
+    },
+    {
+      "check": "offline_json_hash_and_manifest_verification",
+      "status": "PASS",
+      "evidence": [
+        "reports/v0-s0/rerun-02/offline-self-check.json",
+        "reports/v0-s0/rerun-02/artifact-manifest.json"
+      ]
+    }
+  ],
+  "test_counts": {
+    "denominator": 4,
+    "pass": 0,
+    "fail": 0,
+    "blocked": 0,
+    "skipped": 0,
+    "not_run": 4
+  },
+  "artifact_refs": [
+    "reports/v0-s0/rerun-02/artifact-manifest.json",
+    "reports/v0-s0/rerun-02/offline-self-check.json",
+    "reports/v0-s0/rerun-02/probe-summary.json",
+    "reports/v0-s0/rerun-02/sample-hashes.json",
+    "reports/v0-s0/rerun-02/frame-hashes.json",
+    "reports/v0-s0/rerun-02/config-integrity.json",
+    "reports/v0-s0/rerun-02/cleanup.json"
+  ],
+  "raw_artifact_refs": [
+    "reports/v0-s0/rerun-02/command-events.json",
+    "reports/v0-s0/rerun-02/comfy-startup.log",
+    "reports/v0-s0/rerun-02/comfy-object-info-raw.json",
+    "reports/v0-s0/rerun-02/masked-config-before.json",
+    "reports/v0-s0/rerun-02/masked-config-after-start.json",
+    "reports/v0-s0/rerun-02/ollama-startup.log",
+    "reports/v0-s0/rerun-02/ollama-version-raw.json",
+    "reports/v0-s0/rerun-02/ollama-tags-raw.json",
+    "reports/v0-s0/rerun-02/ollama-show-raw.json",
+    "reports/v0-s0/rerun-02/ollama-ps-before-raw.json",
+    "reports/v0-s0/rerun-02/pa-models-list-llm-raw.json",
+    "reports/v0-s0/rerun-02/pa-models-list-vision-raw.json",
+    "reports/v0-s0/rerun-02/ffprobe-raw.json",
+    "reports/v0-s0/rerun-02/ffmpeg-frame-0.log",
+    "reports/v0-s0/rerun-02/ffmpeg-frame-1.log",
+    "reports/v0-s0/rerun-02/ffmpeg-frame-2.log",
+    "reports/v0-s0/rerun-02/ffmpeg-frame-3.log",
+    "reports/v0-s0/rerun-02/ollama-image-attempt-1-response.json",
+    "reports/v0-s0/rerun-02/ollama-image-attempt-1-ps-t0.json",
+    "reports/v0-s0/rerun-02/ollama-image-attempt-1-ps-t5.json",
+    "reports/v0-s0/rerun-02/resources-image-1.jsonl",
+    "reports/v0-s0/rerun-02/ollama-video-attempt-1-response.json",
+    "reports/v0-s0/rerun-02/ollama-video-attempt-1-ps-t0.json",
+    "reports/v0-s0/rerun-02/ollama-video-attempt-1-ps-t5.json",
+    "reports/v0-s0/rerun-02/resources-video-1.jsonl",
+    "reports/v0-s0/rerun-02/harness-failure-01-harness-error.json",
+    "reports/v0-s0/rerun-02/harness-failure-01-command-events.json",
+    "reports/v0-s0/rerun-02/harness-failure-01-comfy-startup.log",
+    "reports/v0-s0/rerun-02/harness-failure-01-ollama-startup.log",
+    "reports/v0-s0/rerun-02/harness-failure-01-cleanup.json",
+    "reports/v0-s0/rerun-02/harness-failure-02-harness-error.json",
+    "reports/v0-s0/rerun-02/harness-failure-02-command-events.json",
+    "reports/v0-s0/rerun-02/harness-failure-02-comfy-startup.log",
+    "reports/v0-s0/rerun-02/harness-failure-02-ollama-startup.log",
+    "reports/v0-s0/rerun-02/harness-failure-02-cleanup.json"
+  ],
   "private_external_actions": {
     "cloud_or_paid_provider_calls": 0,
     "downloads_or_upgrades": 0,
@@ -159,5 +307,6 @@
   ],
   "decision": "NO_GO",
   "stage_pass_claim": false,
+  "exact_stop_reason": "NO_GO_NO_CONNECTED_PUBLIC_ENTRY_TO_LOCAL_MODEL",
   "next_owner": "codex_isolated_reviewer"
 }
