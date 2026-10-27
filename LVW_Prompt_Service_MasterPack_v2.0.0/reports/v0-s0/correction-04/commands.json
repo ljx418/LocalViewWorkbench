@@ -1,0 +1,65 @@
+{
+  "commands": [
+    {
+      "ended_at": "2026-10-27T07:40:11Z",
+      "exit_code": 0,
+      "logical_command": "git cat-file -t AUTHORIZATION_COMMIT",
+      "name": "verify_authorization_commit",
+      "output": "commit\n",
+      "started_at": "2026-10-27T07:40:11Z"
+    },
+    {
+      "ended_at": "2026-10-27T07:40:11Z",
+      "exit_code": 0,
+      "logical_command": "git cat-file -t CANDIDATE_SHA",
+      "name": "verify_candidate_commit",
+      "output": "commit\n",
+      "started_at": "2026-10-27T07:40:11Z"
+    },
+    {
+      "ended_at": "2026-10-27T07:40:16Z",
+      "exit_code": 0,
+      "logical_command": "POWERSHELL create RUN_TEMP under Windows GetTempPath",
+      "name": "create_windows_temp",
+      "output": "USER_PROFILE/AppData/Local/Temp/lvw-v0-s0-c03-ad2fb11baa604712af1e61e97abc8645",
+      "started_at": "2026-10-27T07:40:16Z"
+    },
+    {
+      "ended_at": "2026-10-27T07:40:16Z",
+      "exit_code": 0,
+      "logical_command": "ffmpeg -i TEST_SOURCE/image-sample -vf scale<=384 -frames:v 1 RUN_TEMP/input/image.png",
+      "name": "derive_image",
+      "output": "",
+      "started_at": "2026-10-27T07:40:16Z"
+    },
+    {
+      "ended_at": "2026-10-27T07:40:17Z",
+      "exit_code": 0,
+      "logical_command": "ffprobe count TEST_SOURCE/video-sample",
+      "name": "probe_video_frames",
+      "output": "75\n",
+      "started_at": "2026-10-27T07:40:16Z"
+    },
+    {
+      "ended_at": "2026-10-27T07:40:17Z",
+      "exit_code": 0,
+      "logical_command": "ffmpeg -i TEST_SOURCE/video-sample -vf select=four_ordered_frames,scale<=384 RUN_TEMP/input/frame-%02d.png",
+      "name": "derive_video_frames",
+      "output": "",
+      "started_at": "2026-10-27T07:40:17Z"
+    },
+    {
+      "exit_code": null,
+      "logical_command": "POWERSHELL -NoProfile -Command set process OLLAMA_HOST=127.0.0.1:11434; set process OLLAMA_NO_CLOUD=1; set process NO_PROXY=127.0.0.1,localhost; write wrapper PID; OLLAMA_EXE serve",
+      "name": "start_ollama_windows_native_wrapper",
+      "started_at": "2026-10-27T07:40:17Z"
+    },
+    {
+      "ended_at": null,
+      "exit_code": null,
+      "logical_command": "COMFY_PYTHON -s COMFY_ROOT/main.py --base-directory RUN_TEMP --listen 127.0.0.1 --port 8191 --disable-auto-launch --disable-api-nodes --disable-all-custom-nodes --whitelist-custom-nodes lvw_v0_bridge",
+      "name": "start_comfy",
+      "started_at": "2026-10-27T07:40:30Z"
+    }
+  ]
+}
