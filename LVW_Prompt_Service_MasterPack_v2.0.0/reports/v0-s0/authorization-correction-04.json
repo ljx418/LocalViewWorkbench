@@ -1,0 +1,61 @@
+{
+  "schema_version": "lvw.authorization/1",
+  "authorization_id": "AUTH-V0-S0-2026-10-27-04",
+  "project_id": "lvw-prompt-service",
+  "stage_id": "V0-S0",
+  "workpack_id": "WP-S0-10",
+  "granted_by": "project_owner",
+  "authorization_basis": [
+    "The project owner explicitly authorized limited local ComfyUI/Ollama startup and the fixed testSource media.",
+    "The project owner authorized Codex implementation-role substitution until V0 completes.",
+    "Offline diagnosis proved WSL child environment variables were absent in Windows cmd.exe while Windows-native cmd and PowerShell assignment retained OLLAMA_NO_CLOUD=1."
+  ],
+  "candidate_sha": "078b51aab02fbfbcfd0efcfc7d38a2c9c6381f68",
+  "prior_stop_evidence_commit": "9256c063128624672dfb5b258b7576406ff339ac",
+  "prior_stop_receipt_commit": "cd42fd65d79041d230a6c651159911fa9b31ee35",
+  "implementation_owner": "codex_isolated_implementer",
+  "allowed": {
+    "ollama_start_route": "Windows-native environment assignment in a run-owned cmd.exe or PowerShell wrapper, then OLLAMA_EXE serve",
+    "required_environment": {
+      "OLLAMA_HOST": "127.0.0.1:11434",
+      "OLLAMA_NO_CLOUD": "1",
+      "NO_PROXY": "127.0.0.1,localhost"
+    },
+    "pre_model_network_gate": {
+      "startup_log_must_report": "OLLAMA_NO_CLOUD:true",
+      "minimum_remote_tcp_samples": 5,
+      "minimum_observation_seconds": 10,
+      "non_loopback_connections_allowed": 0
+    },
+    "comfy": "fresh run-owned Windows temp base, sealed candidate copy, 127.0.0.1:8191, original installation read-only",
+    "samples": [
+      {"alias": "TEST_SOURCE/image-sample", "sha256": "b4bbd08a0fad67cc04e55d15bf2c48e9a76dcfd6dda147d8cc504452dfc78a42"},
+      {"alias": "TEST_SOURCE/video-sample", "sha256": "694a50bfb871faed6540a577b25c8a61e629035062a23f982099a6911ff22152"}
+    ],
+    "effective_attempts_max": {"image": 1, "video": 1},
+    "ports": [8191, 11434],
+    "evidence_destination": "reports/v0-s0/correction-04/",
+    "external_cost": 0,
+    "visible_browser_runs": 0
+  },
+  "forbidden": [
+    "continuing when OLLAMA_NO_CLOUD is false or absent",
+    "continuing after any owned non-loopback TCP observation",
+    "firewall, hosts-file, registry or permanent environment modification",
+    "cloud or paid provider calls",
+    "downloads, upgrades or permanent target installation writes",
+    "killing non-owned processes",
+    "visible browser startup or remote Git push"
+  ],
+  "mandatory_stops": [
+    "unknown listener or GPU owner",
+    "candidate, model digest or sample hash mismatch",
+    "OLLAMA_NO_CLOUD not reported true",
+    "any owned non-loopback TCP connection",
+    "GPU memory reaches or exceeds 23552 MiB",
+    "public Comfy trace or per-run cleanup cannot be proven"
+  ],
+  "cleanup": "stop owned listener and wrapper PIDs, prove 8191/11434 empty, prove /api/ps terminal state, remove run-owned temp only, verify target integrity",
+  "expires_when": "WP-S0-10 produces one terminal receipt or either single effective attempt is consumed",
+  "does_not_authorize_stage_pass": true
+}

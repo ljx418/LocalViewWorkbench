@@ -383,9 +383,13 @@ def main() -> int:
             or control.get("state") == execution["coordinate"]["state"] in {"BLOCKED", "NO_GO"}
             or (
                 control.get("state") == execution["coordinate"]["state"] == "RUNNING"
-                and execution["coordinate"].get("workpack_id") in {"WP-S0-06", "WP-S0-07", "WP-S0-08"}
+                and execution["coordinate"].get("workpack_id") in {"WP-S0-06", "WP-S0-07", "WP-S0-08", "WP-S0-10"}
                 and execution.get("last_passed_gate", {}).get("id")
-                in {"WP_S0_05_INDEPENDENT_REVIEW_COMPLETE", "WP_S0_07_OFFLINE_CANDIDATE_SEALED"}
+                in {
+                    "WP_S0_05_INDEPENDENT_REVIEW_COMPLETE",
+                    "WP_S0_07_OFFLINE_CANDIDATE_SEALED",
+                    "WP_S0_08_NETWORK_STOP_EVIDENCE_SEALED",
+                }
             ),
             f"major_count={major_count}",
         )
@@ -396,8 +400,12 @@ def main() -> int:
                 and execution["coordinate"].get("gate") == "GATE3_CHECKPOINT"
             )
             or (
-                execution["coordinate"].get("workpack_id") in {"WP-S0-06", "WP-S0-07", "WP-S0-08"}
+                execution["coordinate"].get("workpack_id") in {"WP-S0-06", "WP-S0-07", "WP-S0-08", "WP-S0-10"}
                 and execution["coordinate"].get("gate") in {"GATE1_IMPLEMENTATION", "GATE2_WORKPACK", "GATE4_REAL_ACCEPTANCE"}
+            )
+            or (
+                execution["coordinate"].get("workpack_id") == "WP-S0-11"
+                and execution["coordinate"].get("gate") == "GATE3_CHECKPOINT"
             ),
         )
 

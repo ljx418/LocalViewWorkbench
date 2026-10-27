@@ -41,3 +41,11 @@ Owner：`codex_isolated_implementer`。依赖 WP-S0-07 和新的有限运行记�
 ## WP-S0-09：隔离三次复审
 
 Owner：`codex_isolated_reviewer`。依赖 WP-S0-08。独立复算五个 Major、两个 Minor、生产 trace、资源阈值、无远程连接观察、逐次清理、候选/证据绑定和固定分母 NOT_RUN；root Codex 保留最终 S0 裁决。
+
+## WP-S0-10：Windows 原生 no-cloud 启动纠偏与真实验证
+
+Owner：`codex_isolated_implementer`。依赖 WP-S0-08 的网络 NO-GO 证据与 `AUTH-V0-S0-2026-10-27-04`。先用 Windows 原生命令进程内设置 `OLLAMA_NO_CLOUD=1`，必须从 server raw 观察 true，并在至少 10 秒、5 个样本内确认 owned PID 无非 loopback TCP，之后才可启动临时 Comfy 与各一次图片/视频 `/prompt`。不得修改防火墙、注册表、永久环境或候选。
+
+## WP-S0-11：correction-04 隔离复审
+
+Owner：`codex_isolated_reviewer`。依赖 WP-S0-10。独立复算 no-cloud 生效、完整窗口连接观察、public `/prompt` trace、semantic oracle、逐帧调用、资源、逐 run 清理和所有历史失败；root Codex 保留最终裁决。
