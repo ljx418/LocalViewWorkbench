@@ -1,0 +1,209 @@
+{
+  "schema_version": "lvw.implementation-receipt/1",
+  "spec_version": "2.5.0",
+  "project_id": "lvw-prompt-service",
+  "stage_id": "V0-S0",
+  "workpack_id": "WP-S0-20",
+  "run_id": "v0-s0-correction-07-live-20261027-01",
+  "implementation_owner_role": "codex_isolated_implementer",
+  "implementation_session": "/root/s0_rerun_implementer",
+  "product_candidate_sha": "138b4486fdaeb8d207ef6b5efb63a09865f174b9",
+  "candidate_sha": "138b4486fdaeb8d207ef6b5efb63a09865f174b9",
+  "harness_candidate_sha": "82975aefdef2df84d6ec89285f3c450a47d78d89",
+  "harness_sha256": "706b408b822609d7a0d361f1de5c13c683eff35071110ee3d7676fdd14838ace",
+  "authorization_commit": "d264fc511756c3945118348b72735efa1fb03567",
+  "evidence_commit": "0000000000000000000000000000000000000000",
+  "evidence_commit_status": "PENDING_ROOT_SEALING",
+  "acceptance_hash": "78b158e135be4da756e27ced9f57c74e78feb926bcaf95eda2e2a6992c9a7b42",
+  "acceptance_hash_binding": {
+    "algorithm": "sha256",
+    "target": "sorted fixed acceptance IDs V0-A01,V0-A02,V0-A09,V0-A10 joined by LF with a trailing LF",
+    "source": ".agent-governance/stages/V0-S0/04-acceptance-matrix.md"
+  },
+  "gate_version": "lvw-gate/1",
+  "decision": "BLOCKED",
+  "stage_pass_claim": false,
+  "exact_stop_reason": "UnicodeDecodeError: 'utf-8' codec can't decode byte 0xbb in position 44087: invalid start byte",
+  "runtime_exception": "Windows Win32_Process/CIM enumeration output could not be decoded as UTF-8 before pre-service ownership classification; the sealed harness then raised FileNotFoundError while composing its receipt because preflight-baseline.json had not been emitted.",
+  "route_attempt_ordinal": 2,
+  "route_attempt_policy": "second and final same-route run; no rerun performed",
+  "changed_files": [
+    "reports/v0-s0/correction-07/artifact-manifest.json",
+    "reports/v0-s0/correction-07/cleanup.json",
+    "reports/v0-s0/correction-07/commands.json",
+    "reports/v0-s0/correction-07/events.json",
+    "reports/v0-s0/correction-07/ollama-request-trace.json",
+    "reports/v0-s0/correction-07/owned-ollama-remote-tcp.json",
+    "reports/v0-s0/correction-07/pre-model-gate.json",
+    "reports/v0-s0/correction-07/resource-samples.json",
+    "reports/v0-s0/correction-07/run-summary.json",
+    "reports/v0-s0/implementation-receipt-correction-07-live.json"
+  ],
+  "contract_changes": "none",
+  "target_configuration_changes": "none",
+  "environment": {
+    "execution_mode": "authorized sealed-harness live invocation stopped during pre-service gate",
+    "pre_service_windows_native_gpu": {
+      "total_mib": 24564,
+      "used_mib": 1584,
+      "free_mib": 22555
+    },
+    "pre_service_wsl_gpu": {
+      "total_mib": 24564,
+      "used_mib": 1584,
+      "free_mib": 22555
+    },
+    "gpu_sample_delta_mib": {
+      "used": 0,
+      "free": 0
+    },
+    "gpu_owner_gate_completed": false,
+    "comfyui_process_starts": 0,
+    "ollama_process_starts": 0,
+    "network_calls": 0,
+    "model_calls": 0
+  },
+  "effective_attempts": {
+    "image": 0,
+    "video": 0
+  },
+  "live_route_counts": {
+    "image": {
+      "pass": 0,
+      "total": 0
+    },
+    "video": {
+      "pass": 0,
+      "total": 0
+    }
+  },
+  "test_counts": {
+    "denominator": 4,
+    "pass": 0,
+    "fail": 0,
+    "blocked": 0,
+    "skipped": 0,
+    "not_run": 4
+  },
+  "product_acceptance": {
+    "V0-A01": "NOT_RUN",
+    "V0-A02": "NOT_RUN",
+    "V0-A09": "NOT_RUN",
+    "V0-A10": "NOT_RUN"
+  },
+  "production_path_status": "NOT_RUN_STOP_CONDITION_DURING_PRE_SERVICE_OWNER_GATE",
+  "public_end_to_end_trace_refs": [],
+  "pre_service_gate": {
+    "status": "BLOCKED_PROCESS_ENUMERATION_DECODE",
+    "service_starts": 0,
+    "gpu_samples_captured": true,
+    "process_owner_classification_completed": false,
+    "listener_classification_completed_before_exception": false
+  },
+  "resource": {
+    "pre_service_gpu_used_mib": 1584,
+    "pre_service_gpu_max_allowed_mib": 4096,
+    "live_gpu_stop_threshold_mib": 23552,
+    "model_window_peak_gpu_used_mib": null
+  },
+  "network": {
+    "owned_ollama_non_loopback_remote_seen": false,
+    "owned_ollama_window_started": false
+  },
+  "external_actions": {
+    "ollama_process_starts": 0,
+    "comfyui_process_starts": 0,
+    "model_calls": 0,
+    "network_calls": 0,
+    "downloads_or_upgrades": 0,
+    "target_install_writes": 0,
+    "visible_browser_runs": 0,
+    "external_cost": 0
+  },
+  "cleanup": {
+    "owned_service_cleanup_required": false,
+    "owned_service_pids": [],
+    "run_temp_created": false,
+    "final_authorized_port_listeners": [],
+    "target_integrity_pre_available": false,
+    "target_integrity_post_captured": true,
+    "proven": false,
+    "details": "reports/v0-s0/correction-07/cleanup.json"
+  },
+  "commands": [
+    {
+      "logical_command": "git archive HARNESS_CANDIDATE tools/v0_s0_live_probe.py to run-owned temp; byte-compare with git show; AST parse",
+      "exit_code": 0,
+      "result": "exact harness bytes and SHA-256 706b408b... verified"
+    },
+    {
+      "logical_command": "RUN_OWNED_HARNESS --help and --self-check",
+      "exit_code": 0,
+      "result": "PASS; service_started=false"
+    },
+    {
+      "logical_command": "RUN_OWNED_HARNESS with authorized WP-S0-20 bindings",
+      "exit_code": 1,
+      "result": "pre-service Win32_Process output UnicodeDecodeError; receipt composition subsequently FileNotFoundError; no service start"
+    }
+  ],
+  "check_results": [
+    {
+      "check": "sealed_harness_materialization",
+      "status": "PASS"
+    },
+    {
+      "check": "candidate_and_authorization_binding",
+      "status": "PASS"
+    },
+    {
+      "check": "pre_service_gpu_numeric_threshold",
+      "status": "PASS_OBSERVED"
+    },
+    {
+      "check": "pre_service_process_port_owner_gate",
+      "status": "BLOCKED_PROCESS_ENUMERATION_DECODE"
+    },
+    {
+      "check": "zero_service_start_on_incomplete_preflight",
+      "status": "PASS"
+    },
+    {
+      "check": "public_comfy_image_route",
+      "status": "NOT_RUN"
+    },
+    {
+      "check": "public_comfy_video_route",
+      "status": "NOT_RUN"
+    },
+    {
+      "check": "final_port_state",
+      "status": "PASS_EMPTY"
+    },
+    {
+      "check": "target_integrity_pair",
+      "status": "BLOCKED_PRE_SNAPSHOT_NOT_REACHED"
+    }
+  ],
+  "artifact_manifest": "reports/v0-s0/correction-07/artifact-manifest.json",
+  "artifact_refs": [
+    "reports/v0-s0/correction-07/run-summary.json",
+    "reports/v0-s0/correction-07/commands.json",
+    "reports/v0-s0/correction-07/events.json",
+    "reports/v0-s0/correction-07/cleanup.json",
+    "reports/v0-s0/correction-07/ollama-request-trace.json",
+    "reports/v0-s0/correction-07/artifact-manifest.json"
+  ],
+  "raw_artifact_refs": [
+    "reports/v0-s0/correction-07/commands.json",
+    "reports/v0-s0/correction-07/events.json",
+    "reports/v0-s0/correction-07/cleanup.json",
+    "reports/v0-s0/correction-07/run-summary.json"
+  ],
+  "risks": [
+    "The Windows process-owner gate did not complete because its output could not be decoded as UTF-8; no inference about absent target processes is made.",
+    "The sealed harness receipt-generation path assumes preflight-baseline.json exists after every pre-service exception and crashed when it did not.",
+    "The second and final same-route authorization produced a terminal receipt; no rerun is permitted.",
+    "The four fixed product acceptance cases remain NOT_RUN; this receipt is not a Stage PASS."
+  ]
+}
