@@ -44,3 +44,5 @@ WP-S0-17 与 root 的 Windows-native只读复核确认：非本轮 owned 的 Com
 `AUTH-V0-S0-2026-10-27-07` 已绑定产品候选 `138b448...`、harness `82975ae...` 和离线收据 `2f8ac30...`。它只允许一次图片和一次视频，且 pre-service gate 未通过时服务启动数必须为 0。任何有效媒体尝试或终态收据产生即过期；同路线再次失败后禁止继续重跑。
 
 该授权已产生终态 BLOCKED 收据并过期，不得复用。pre-service GPU 数值通过，但 CIM 输出解码失败导致 owner/port gate 未完成；服务和媒体尝试均为 0。是否签发纯 harness 编码纠偏及后续授权，必须等待 WP-S0-21 独立复审。
+
+WP-S0-21 已确认补建收据无假绿且有效媒体 0/0。WP-S0-22/23 仅离线修复 PowerShell UTF-8 与原子 failure-finalization。任何 WP-S0-24 运行仍需新授权；不得把旧授权恢复或延长。

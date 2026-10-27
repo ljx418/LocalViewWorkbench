@@ -5,13 +5,13 @@ Project: lvw-prompt-service
 Design: 2.0.0
 Target version: V0
 Stage: V0-S0 / 现有环境与节点基线
-Stage state: GATE3_CHECKPOINT / RUNNING
+Stage state: GATE1_IMPLEMENTATION / RUNNING
 Product cases: NOT_RUN
-Last passed gate: WP_S0_19_HARNESS_CANDIDATE_SEALED
+Last passed gate: WP_S0_21_INDEPENDENT_BLOCK_REVIEW_COMPLETE
 Baseline commit: 3c69a23d07064a0db5cb05258b237be2415a314a
 Baseline product-control fingerprint: sha256:bd4875c1d53ce8a208e35cdb3b3b20110b290eb7f547eb1239b4eb1192764f4a
 ```
 
 上述 fingerprint 依次绑定 `plans/tasks.json`、`plans/acceptance_cases.json`、`plans/release_gates.json` 的路径和原始字节。基线提交是本地候选身份，不表示产品验收通过，也未推送远端。
 
-WP-S0-20 在任何 service start 前因 Win32_Process/CIM 输出无法按 UTF-8 解码而 BLOCKED；Windows/WSL GPU 数值门禁为 1584 MiB 且一致，但 owner/port 分类未完成，所以 Ollama/Comfy/model/image/video 均 0。封存 harness 随后因缺少 `preflight-baseline.json` 在自动收据阶段发生二次异常。原始证据/收据为 `f196c4be0c6252cbb5a5df1c15486121f3c0486f` / `f4f9c01`。当前只允许 WP-S0-21 离线独立复算，不得重跑、修补证据或进入 V0-S1。
+WP-S0-21 独立复审已封存为 `b72c23e`，结论 Fatal 0 / Major 2 / Minor 0、BLOCKED：CIM 隐式 UTF-8 解码与缺失 preflight artifact 的收据二次崩溃均为 harness 缺陷；补建收据忠实、无假绿，服务/媒体 0/0，旧授权已过期但最终有效媒体预算未消耗。当前只允许 WP-S0-22/23 离线修复编码和 failure-finalization，不得启动服务、修改产品候选或进入 V0-S1。

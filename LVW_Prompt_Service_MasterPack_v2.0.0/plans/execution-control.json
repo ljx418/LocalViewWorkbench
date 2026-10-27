@@ -6,27 +6,27 @@
   "target_version": "V0",
   "coordinate": {
     "stage_id": "V0-S0",
-    "workpack_id": "WP-S0-21",
-    "gate": "GATE3_CHECKPOINT",
+    "workpack_id": "WP-S0-22",
+    "gate": "GATE1_IMPLEMENTATION",
     "state": "RUNNING"
   },
   "last_passed_gate": {
-    "id": "WP_S0_19_HARNESS_CANDIDATE_SEALED",
-    "evidence": "reports/v0-s0/implementation-receipt-correction-07-offline.json",
-    "meaning": "reusable Windows-native owner and cleanup-correlation harness passed 19 deterministic fixtures"
+    "id": "WP_S0_21_INDEPENDENT_BLOCK_REVIEW_COMPLETE",
+    "evidence": "reports/v0-s0/independent-review-correction-07.md",
+    "meaning": "independent review confirmed two harness Major findings and zero effective media attempts"
   },
-  "current_blocking_gate": "independent review must verify the zero-start encoding block and receipt fallback before any harness correction",
+  "current_blocking_gate": "PowerShell encoding and failure-finalization must pass offline negative fixtures before live authorization",
   "stage_packet": ".agent-governance/stages/V0-S0/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/V0-S0/PAYLOAD_MANIFEST.sha256",
   "product_status": "NOT_RUN",
-  "allowed_claim": "V0_S0_CORRECTION_07_PRE_SERVICE_BLOCK_EVIDENCE_SEALED",
+  "allowed_claim": "V0_S0_CORRECTION_08_OFFLINE_HARNESS_WORK_AUTHORIZED",
   "forbidden_claims": [
     "ENGINEERING_READY",
     "V0_ACCEPTED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "codex_isolated_reviewer",
-  "next_action": "Independently review the correction-07 pre-service decode block, zero-start proof and receipt fallback.",
+  "next_owner": "codex_isolated_implementer",
+  "next_action": "Execute WP-S0-22/23 offline encoding and failure-finalization correction; do not start services.",
   "evidence_root": "reports/",
-  "exact_stop_reason": "WINDOWS_CIM_OUTPUT_ENCODING_BLOCKED_BEFORE_SERVICE_START"
+  "exact_stop_reason": null
 }

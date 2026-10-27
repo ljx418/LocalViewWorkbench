@@ -89,3 +89,19 @@ Owner：`codex_isolated_implementer`。依赖 WP-S0-19、新候选绑定授权�
 ## WP-S0-21：correction-07 隔离复审
 
 Owner：`codex_isolated_reviewer`。依赖 WP-S0-20。独立复算 harness、preflight、候选、公共图片/视频 trace、语义、资源、网络、清理及全部历史失败；root 保留正式裁决。
+
+## WP-S0-22：PowerShell 编码与原子终态纠偏
+
+Owner：`codex_isolated_implementer`。依赖 WP-S0-21。仅修改可复用 harness：PowerShell 强制 UTF-8 输出，Python 以 bytes 接收后 strict UTF-8 解码；任何进程/端口枚举异常都先写 fail-closed `preflight-baseline.json`。finally/receipt 对所有未到达 artifact 使用显式 `NOT_REACHED`，不得二次异常或覆盖首因。
+
+## WP-S0-23：编码与 failure-finalization 离线负例
+
+Owner：`codex_isolated_implementer`。依赖 WP-S0-22。新增非 UTF-8 raw、PowerShell UTF-8、preflight 首段异常、缺 artifact receipt、原子 BLOCKED receipt 和既有 19 项回归；不得启动服务。封存 harness 与离线收据。
+
+## WP-S0-24：最终有效媒体尝试
+
+Owner：`codex_isolated_implementer`。依赖 WP-S0-23 和新的明确授权。有效媒体预算仍为图片 1、视频 1；产品候选不变。这是同路线最后一次有效媒体尝试，任何媒体失败后停止。
+
+## WP-S0-25：最终 S0 隔离复审
+
+Owner：`codex_isolated_reviewer`。依赖 WP-S0-24。独立复算所有门禁和历史失败；root 根据 Fatal/Major 作 S0 正式裁决。

@@ -2,7 +2,7 @@
   "schema_version": "lvw.stage-control/1",
   "project_id": "lvw-prompt-service",
   "stage_id": "V0-S0",
-  "stage_packet_version": "2.6.0",
+  "stage_packet_version": "2.7.0",
   "gate_version": "lvw-gate/1",
   "baseline": {
     "git_commit": "3c69a23d07064a0db5cb05258b237be2415a314a",
@@ -234,6 +234,42 @@
       "allowed_paths": ["reports/v0-s0/independent-review-correction-07.md"],
       "commands": ["offline isolated recomputation of correction-07 and all historical failures"],
       "output": "independent correction-07 findings; root Codex retains gate decision"
+    },
+    {
+      "id": "WP-S0-22",
+      "owner": "codex_isolated_implementer",
+      "depends_on": ["WP-S0-21"],
+      "risk": "offline_repository",
+      "allowed_paths": ["tools/v0_s0_live_probe.py"],
+      "commands": ["offline PowerShell encoding and atomic failure-finalization correction"],
+      "output": "encoding-safe fail-closed harness"
+    },
+    {
+      "id": "WP-S0-23",
+      "owner": "codex_isolated_implementer",
+      "depends_on": ["WP-S0-22"],
+      "risk": "offline_repository",
+      "allowed_paths": ["tools/test_v0_s0_live_probe.py", "reports/v0-s0/implementation-receipt-correction-08-offline.json"],
+      "commands": ["offline encoding/finalization fixtures plus full harness regression"],
+      "output": "sealed corrected harness and offline receipt"
+    },
+    {
+      "id": "WP-S0-24",
+      "owner": "codex_isolated_implementer",
+      "depends_on": ["WP-S0-23"],
+      "risk": "external_private",
+      "allowed_paths": ["reports/v0-s0/correction-08/", "reports/v0-s0/implementation-receipt-correction-08-live.json"],
+      "commands": ["newly authorized final effective media attempt"],
+      "output": "fresh complete preflight and public media evidence"
+    },
+    {
+      "id": "WP-S0-25",
+      "owner": "codex_isolated_reviewer",
+      "depends_on": ["WP-S0-24"],
+      "risk": "independent_review",
+      "allowed_paths": ["reports/v0-s0/independent-review-correction-08.md"],
+      "commands": ["offline isolated final S0 evidence recomputation"],
+      "output": "final independent S0 findings; root retains gate decision"
     }
   ],
   "forbidden_paths": ["contracts/", "plans/acceptance_cases.json", "plans/release_gates.json", "legacy/"],
@@ -257,7 +293,7 @@
     "product_cases_remain": "NOT_RUN",
     "next_stage_requires_new_packet": true
   },
-  "next_owner": "codex_isolated_reviewer",
+  "next_owner": "codex_isolated_implementer",
   "required_authorization": null,
   "remediation_findings": [
     "R2-IR-01 no connected Comfy or Prompt Assistant public production entry reaches the verified local Ollama model",
