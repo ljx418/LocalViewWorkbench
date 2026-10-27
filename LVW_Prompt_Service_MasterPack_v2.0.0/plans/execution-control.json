@@ -6,8 +6,8 @@
   "target_version": "V0",
   "coordinate": {
     "stage_id": "V0-S0",
-    "workpack_id": "WP-S0-20",
-    "gate": "GATE4_REAL_ACCEPTANCE",
+    "workpack_id": "WP-S0-21",
+    "gate": "GATE3_CHECKPOINT",
     "state": "RUNNING"
   },
   "last_passed_gate": {
@@ -15,18 +15,18 @@
     "evidence": "reports/v0-s0/implementation-receipt-correction-07-offline.json",
     "meaning": "reusable Windows-native owner and cleanup-correlation harness passed 19 deterministic fixtures"
   },
-  "current_blocking_gate": "final same-route live attempt must pass pre-service ownership, public image/video semantic and cleanup gates",
+  "current_blocking_gate": "independent review must verify the zero-start encoding block and receipt fallback before any harness correction",
   "stage_packet": ".agent-governance/stages/V0-S0/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/V0-S0/PAYLOAD_MANIFEST.sha256",
   "product_status": "NOT_RUN",
-  "allowed_claim": "V0_S0_CORRECTION_07_FINAL_LIVE_ATTEMPT_AUTHORIZED",
+  "allowed_claim": "V0_S0_CORRECTION_07_PRE_SERVICE_BLOCK_EVIDENCE_SEALED",
   "forbidden_claims": [
     "ENGINEERING_READY",
     "V0_ACCEPTED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "codex_isolated_implementer",
-  "next_action": "Execute one authorized WP-S0-20 run with sealed product and harness commits, then stop for independent review.",
+  "next_owner": "codex_isolated_reviewer",
+  "next_action": "Independently review the correction-07 pre-service decode block, zero-start proof and receipt fallback.",
   "evidence_root": "reports/",
-  "exact_stop_reason": null
+  "exact_stop_reason": "WINDOWS_CIM_OUTPUT_ENCODING_BLOCKED_BEFORE_SERVICE_START"
 }
