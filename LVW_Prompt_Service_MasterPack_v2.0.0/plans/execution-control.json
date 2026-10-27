@@ -8,25 +8,25 @@
     "stage_id": "V0-S0",
     "workpack_id": "WP-S0-29",
     "gate": "GATE4_REAL_ACCEPTANCE",
-    "state": "WAIT_AUTH"
+    "state": "RUNNING"
   },
   "last_passed_gate": {
     "id": "WP_S0_28_CORRECTION_09_INDEPENDENT_REVIEW_COMPLETE",
     "evidence": "reports/v0-s0/independent-review-correction-09.md",
     "meaning": "independent review found Fatal 0 and Major 0 in the prospective harness remediation"
   },
-  "current_blocking_gate": "a new explicit candidate-bound authorization is required for WP-S0-29",
+  "current_blocking_gate": "the single authorized WP-S0-29 terminal receipt is not yet produced",
   "stage_packet": ".agent-governance/stages/V0-S0/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/V0-S0/PAYLOAD_MANIFEST.sha256",
   "product_status": "NOT_RUN",
-  "allowed_claim": "CORRECTION_09_OFFLINE_REMEDIATION_SEALED_WAIT_AUTH",
+  "allowed_claim": "WP_S0_29_AUTHORIZED_RUNNING_NOT_STAGE_PASS",
   "forbidden_claims": [
     "ENGINEERING_READY",
     "V0_ACCEPTED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "project_owner",
-  "next_action": "Authorize or decline WP-S0-29; no service start is permitted while waiting.",
+  "next_owner": "codex_isolated_implementer",
+  "next_action": "Execute exactly one WP-S0-29 run and generate a terminal receipt, then stop.",
   "evidence_root": "reports/",
-  "exact_stop_reason": "NEW_EXPLICIT_WP_S0_29_AUTHORIZATION_REQUIRED"
+  "exact_stop_reason": null
 }

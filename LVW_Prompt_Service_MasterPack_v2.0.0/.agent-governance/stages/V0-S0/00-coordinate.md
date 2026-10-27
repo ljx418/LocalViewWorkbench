@@ -5,7 +5,7 @@ Project: lvw-prompt-service
 Design: 2.0.0
 Target version: V0
 Stage: V0-S0 / 现有环境与节点基线
-Stage state: GATE4_REAL_ACCEPTANCE / WAIT_AUTH
+Stage state: GATE4_REAL_ACCEPTANCE / RUNNING
 Product cases: NOT_RUN
 Last passed gate: WP_S0_28_CORRECTION_09_INDEPENDENT_REVIEW_COMPLETE
 Baseline commit: 3c69a23d07064a0db5cb05258b237be2415a314a
@@ -21,3 +21,5 @@ WP-S0-25 结论 Fatal 1 / Major 2 / Minor 0，root 正式裁决 `NO_GO`：证据
 项目负责人已授权继续修复。该授权仅开启 WP-S0-26/27 离线纠偏，不授权 live 重跑。实现范围冻结为隐私最小化、string `camera_motion` Oracle 和运行前 harness 自绑定；完成后必须进入 WP-S0-28 独立复审。
 
 WP-S0-28 已确认 correction-09 为 Fatal 0 / Major 0；root 已封存候选 `d1f268f` 与审查 `40f94d6`。这只关闭前瞻性 harness 缺陷，不追溯修复 correction-08。S0 baseline 仍需一次新鲜、身份闭合、最小化证据的 WP-S0-29 运行及 WP-S0-30 独立复审；当前无 live 授权。
+
+项目负责人已明确批准 `AUTH-REQUEST-V0-S0-WP-S0-29-01`，正式记录为 `AUTH-V0-S0-2026-10-27-10`。只允许一次 WP-S0-29；终态收据或任一媒体预算消耗后立即过期，随后必须进入 WP-S0-30，不能自动重跑。

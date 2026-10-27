@@ -56,3 +56,5 @@ WP-S0-24 已产生终态收据并消耗图片 1 次、视频 1 次预算，授�
 Correction-09 候选 `d1f268f` 已由 WP-S0-28 独立确认关闭隐私最小化、string Oracle 与 harness 自绑定三项前瞻性缺陷。旧 live 授权仍全部过期。WP-S0-29 只有在项目负责人另行明确绑定产品/harness SHA、固定样本、图片 1 次/视频 1 次、loopback/no-cloud、资源/清理门限和终态过期后才可执行。
 
 待授权条款已固化为 `reports/v0-s0/authorization-correction-10.request.json`。该文件的 `status=PENDING_PROJECT_OWNER_APPROVAL`、`is_authorization=false`、`does_not_authorize_execution=true`，只能作为请求导航；不得加入 `authorization_records` 或触发运行。项目负责人明确同意后，root 必须另建正式授权记录并绑定其提交 SHA。
+
+项目负责人已用原文批准该请求；正式授权记录为 `reports/v0-s0/authorization-correction-10.json`。授权仅供 WP-S0-29 一次使用，不授权 Stage PASS、代码修改或重跑；终态后自动过期。
