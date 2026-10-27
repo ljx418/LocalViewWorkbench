@@ -394,6 +394,7 @@ def main() -> int:
                     "WP_S0_12_IMAGE_PUBLIC_PATH_PASS_VIDEO_ORACLE_STOP",
                     "WP_S0_15_OFFLINE_CANDIDATE_SEALED",
                     "WP_S0_17_INDEPENDENT_NO_GO_REVIEW_COMPLETE",
+                    "WP_S0_19_HARNESS_CANDIDATE_SEALED",
                 }
             ),
             f"major_count={major_count}",

@@ -6,27 +6,27 @@
   "target_version": "V0",
   "coordinate": {
     "stage_id": "V0-S0",
-    "workpack_id": "WP-S0-18",
-    "gate": "GATE1_IMPLEMENTATION",
+    "workpack_id": "WP-S0-20",
+    "gate": "GATE4_REAL_ACCEPTANCE",
     "state": "RUNNING"
   },
   "last_passed_gate": {
-    "id": "WP_S0_17_INDEPENDENT_NO_GO_REVIEW_COMPLETE",
-    "evidence": "reports/v0-s0/independent-review-correction-06.md",
-    "meaning": "independent review confirmed three Major findings; user then cleared the non-owned GPU process"
+    "id": "WP_S0_19_HARNESS_CANDIDATE_SEALED",
+    "evidence": "reports/v0-s0/implementation-receipt-correction-07-offline.json",
+    "meaning": "reusable Windows-native owner and cleanup-correlation harness passed 19 deterministic fixtures"
   },
-  "current_blocking_gate": "reusable harness must close GPU-owner, timeout-cleanup and primary-error evidence defects before any live authorization",
+  "current_blocking_gate": "final same-route live attempt must pass pre-service ownership, public image/video semantic and cleanup gates",
   "stage_packet": ".agent-governance/stages/V0-S0/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/V0-S0/PAYLOAD_MANIFEST.sha256",
   "product_status": "NOT_RUN",
-  "allowed_claim": "V0_S0_CORRECTION_07_OFFLINE_HARNESS_WORK_AUTHORIZED",
+  "allowed_claim": "V0_S0_CORRECTION_07_FINAL_LIVE_ATTEMPT_AUTHORIZED",
   "forbidden_claims": [
     "ENGINEERING_READY",
     "V0_ACCEPTED",
     "TARGET_HARDWARE_TESTED"
   ],
   "next_owner": "codex_isolated_implementer",
-  "next_action": "Execute WP-S0-18/19 offline harness correction and tests; do not start local services.",
+  "next_action": "Execute one authorized WP-S0-20 run with sealed product and harness commits, then stop for independent review.",
   "evidence_root": "reports/",
   "exact_stop_reason": null
 }

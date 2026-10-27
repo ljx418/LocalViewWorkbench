@@ -40,3 +40,5 @@ WP-S0-14/15 的新候选 `138b4486fdaeb8d207ef6b5efb63a09865f174b9` 已通过双
 WP-S0-17 与 root 的 Windows-native只读复核确认：非本轮 owned 的 ComfyUI PID 48820 在 correction-06 前已由 PID 43252 / `Start_ComfyUI_Stable.bat` 启动，且仍在 GPU 进程清单中。不得终止非 owned 进程；在项目负责人关闭它并重新证明 GPU owner/总占用前，Stage 状态为 BLOCKED。
 
 项目负责人已关闭该进程；复检确认旧 PID/端口消失且 GPU used 降至 1530 MiB。BLOCKED 已解除，但这不是 live 授权。WP-S0-18/19 先离线固化 Windows-native preflight：服务前 used `<=4096 MiB`，不得存在目标 Comfy/Ollama/授权端口 owner；否则停止。WP-S0-20 必须另立单次授权，并作为同路线第二次且最后一次有效尝试。
+
+`AUTH-V0-S0-2026-10-27-07` 已绑定产品候选 `138b448...`、harness `82975ae...` 和离线收据 `2f8ac30...`。它只允许一次图片和一次视频，且 pre-service gate 未通过时服务启动数必须为 0。任何有效媒体尝试或终态收据产生即过期；同路线再次失败后禁止继续重跑。
