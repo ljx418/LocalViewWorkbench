@@ -1,0 +1,49 @@
+{
+  "schema_version": "lvw.authorization/1",
+  "authorization_id": "AUTH-V0-S0-2026-10-27-02",
+  "project_id": "lvw-prompt-service",
+  "stage_id": "V0-S0",
+  "issued_at": "2026-10-27",
+  "authorizer": "project_owner",
+  "status": "GRANTED",
+  "purpose": "Independent implementation-context rerun to close raw-evidence and role-separation findings from the first S0 review.",
+  "temporary_role_override": {
+    "effective_until": "V0 exit decision",
+    "implementation_owner": "codex_isolated_implementer",
+    "independent_reviewer": "codex_isolated_reviewer",
+    "reason": "Claude Code quota is unavailable; the project owner explicitly authorized Codex to temporarily replace Claude Code and DSH roles.",
+    "separation_rule": "Implementation and review use separate context-isolated sessions; the root Codex session remains gate owner and may not sign as independent reviewer."
+  },
+  "scope": {
+    "target_machine": "current_local_windows_wsl_host",
+    "readable_roots": ["COMFY_ROOT", "TEST_SOURCE", "PROJECT_ROOT"],
+    "allowed_services": [
+      "existing local ComfyUI on 127.0.0.1:8188",
+      "existing local Ollama on 127.0.0.1:11434"
+    ],
+    "allowed_inputs": [
+      "the same authorized image and video hashes recorded by run v0-s0-live-20261027-01",
+      "generated non-private fixtures when used only for negative checks"
+    ],
+    "allowed_actions": [
+      "start and stop existing local services",
+      "query public registries and local model inventory",
+      "rerun one-image and bounded four-frame probes",
+      "write a deterministic evidence harness under reports/v0-s0/rerun-02",
+      "capture redacted raw commands, exit codes, HTTP request metadata and responses, resource samples and cleanup observations"
+    ],
+    "max_effective_attempts": {"image": 2, "video": 2},
+    "evidence_root": "reports/v0-s0/rerun-02/",
+    "cleanup": "Stop only run-owned processes; delete only run-owned temporary media; retain failures and redacted raw logs."
+  },
+  "explicitly_not_authorized": [
+    "invoke Claude Code or any paid/cloud model provider",
+    "download or upgrade software or model weights",
+    "change Prompt Assistant, ComfyUI, Ollama or system configuration",
+    "read browser cookies or unrelated private directories",
+    "start a visible browser",
+    "push Git commits to a remote",
+    "delete or rewrite evidence from run v0-s0-live-20261027-01"
+  ],
+  "source": "Direct user authorization in the active project conversation."
+}

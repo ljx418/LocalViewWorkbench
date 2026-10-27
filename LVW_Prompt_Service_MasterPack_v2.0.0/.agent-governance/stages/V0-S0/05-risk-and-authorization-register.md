@@ -12,4 +12,8 @@
 | R-03 | 证据泄漏路径/媒体/凭据 | 隐私 | Fatal | 停止发布，清理本轮受控副本并保留脱敏事故记录 |
 | R-04 | 预算或重试耗尽 | 成本 | WAIT_BUDGET | 不降低分母；保存 checkpoint |
 
+## 纠偏授权
+
+`AUTH-V0-S0-2026-10-27-02` 建立新的 run 预算，并由人类明确批准两个隔离 Codex 会话临时替代 Claude Code 与 DSH。它不追溯修改首轮失败，不授权 root gate owner 充当实现者或独立审查者，也不授权任何云/付费 Provider。
+
 授权必须写明目标机器、允许根/端点、样本、Provider/网络、可见界面、最大重试/成本、证据目的地和清理。AUTH-01/02/03 已由 `reports/v0-s0/authorization.json` 固化；该授权不包含下载、升级、写配置、云/付费 Provider、可见浏览器或远端推送。

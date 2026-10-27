@@ -5,9 +5,10 @@
 | 对象 | 唯一 owner |
 |---|---|
 | PRD、架构、合同、Stage 门禁 | Codex + Sol |
-| WP-S0-01/02 实现运行与收据 | Claude Code + MiniMax |
+| WP-S0-01/02 原计划实现运行 | Claude Code + MiniMax（额度不可用；首轮发生角色偏差并已封存） |
+| WP-S0-04 纠偏实现运行与收据 | `codex_isolated_implementer`，与 root gate owner 隔离 |
 | 确定性文件/hash/分母校验 | 可信本地执行器 |
-| 独立复算 | 与实现会话隔离的 DeepSeek 实例；争议升级 Codex |
+| 独立复算 | `codex_isolated_reviewer`，与实现会话及 root gate owner 隔离；这是人类批准的临时 DSH 替代 |
 | 私有路径、真实媒体、服务调用授权 | 人类负责人 |
 
 ## 调用边界

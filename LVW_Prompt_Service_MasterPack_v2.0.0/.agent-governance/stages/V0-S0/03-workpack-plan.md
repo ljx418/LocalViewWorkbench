@@ -17,3 +17,11 @@ Owner：Claude Code + MiniMax。依赖 WP-S0-01、授权样本和本地服务预
 Owner：独立 DeepSeek 会话执行只读复算；Codex + Sol 裁决。核对生产入口、固定四项 Stage 分母、证据绑定、失败历史和清理。实现者不得参与独立签署。
 
 Workpack 按顺序执行。WP-S0-00 完成不能自动授权 WP-S0-01；S0 结束也不能自动进入 V0-S1。
+
+## WP-S0-04：独立上下文纠偏重跑
+
+Owner：`codex_isolated_implementer`。依赖首轮 WP-S0-03 独立审查和 `AUTH-V0-S0-2026-10-27-02`。使用同一获授权样本与本地服务，通过确定性 harness 保存脱敏 raw 命令、退出码、registry/HTTP/model 响应、GPU/RAM 序列及进程/端口清理。图片/视频各最多两次有效尝试；不得修改产品合同、目标配置或首轮失败证据。输出仅限 `reports/v0-s0/rerun-02/` 及新版实现收据。
+
+## WP-S0-05：隔离复审与二次 checkpoint
+
+Owner：`codex_isolated_reviewer`。依赖 WP-S0-04。只读复算新 run、旧失败、角色身份、候选、manifest、raw、路径脱敏和清理。不得修改候选或由实现会话复审。之后由 root Codex 根据 Fatal/Major 裁决。
