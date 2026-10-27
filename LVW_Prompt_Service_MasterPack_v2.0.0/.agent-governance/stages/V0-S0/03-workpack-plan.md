@@ -117,3 +117,11 @@ Owner：`codex_isolated_implementer`。依赖 WP-S0-26。新增全量进程命�
 ## WP-S0-28：correction-09 独立离线复审
 
 Owner：`codex_isolated_reviewer`。依赖 WP-S0-27。独立复算 F-01/M-01/M-02 是否在新候选中关闭、旧泄漏是否仍隔离、历史结论是否未改写；不得启动服务或推断新的 live 授权。root 再决定 S0 的离线出口。
+
+## WP-S0-29：身份闭合且证据最小化的 S0 证明运行
+
+Owner：`codex_isolated_implementer`。依赖 WP-S0-28 与新的明确授权。绑定产品候选 `138b448...`、harness 候选 `d1f268f...`、固定样本和图片/视频各一次预算；任何服务前必须通过 harness commit/blob/file 自绑定、GPU/owner/port gate。只保存目标匹配与不可逆计数；继续执行 no-cloud、非 loopback、资源、逐调用卸载和最终完整性门禁。终态即过期，禁止自动重跑。
+
+## WP-S0-30：S0 baseline 独立出口复审
+
+Owner：`codex_isolated_reviewer`。依赖 WP-S0-29。独立复算新鲜证据、身份、隐私、公开图片/四帧路径、Oracle、资源、网络和清理，并保留全部历史失败。仅 Fatal=0、Major=0 且 S0 固定四项都有阶段结论时，root 才可裁决 `STAGE_BASELINE_COMPLETE`；这仍不等于 V0 产品用例 PASS。
