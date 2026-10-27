@@ -71,6 +71,23 @@ class WindowsNativePreflightTests(unittest.TestCase):
         self.assertFalse(result["passed"])
         self.assertEqual(result["service_starts"], 0)
 
+    def test_preflight_persists_only_counts_and_minimal_target_matches(self):
+        encoded = "dXNlcj0xMjM0NTY3ODk="
+        processes = [
+            {"Name": "updater.exe", "ProcessId": 40, "ExecutablePath": r"C:\\Private\\updater.exe",
+             "CommandLine": "--user=" + encoded + " --path=QzpcUHJpdmF0ZQ=="},
+            {"Name": "ollama.exe", "ProcessId": 43, "ExecutablePath": OLLAMA,
+             "CommandLine": OLLAMA + " serve"},
+        ]
+        result = preflight(processes=processes)
+        persisted = probe.canonical(result)
+        self.assertEqual(result["windows_process_count"], 2)
+        self.assertEqual(result["target_process_count"], 1)
+        self.assertEqual(result["target_processes"], [{"process_id": 43, "match_kind": "OLLAMA_TARGET"}])
+        self.assertNotIn("CommandLine", persisted)
+        self.assertNotIn(encoded, persisted)
+        self.assertNotIn("Private", persisted)
+
     def test_gpu_csv_requires_total_used_free(self):
         self.assertEqual(probe.parse_gpu_csv("24564, 1530, 22609\n"), GPU_CLEAN)
         with self.assertRaisesRegex(ValueError, "GPU_PREFLIGHT_NATIVE_PARSE_FAILED"):
@@ -122,6 +139,7 @@ class WindowsNativePreflightTests(unittest.TestCase):
             temp_path = Path(temp)
             args = SimpleNamespace(
                 run_id="fixture-run", candidate_sha="a" * 40, authorization_commit="b" * 40,
+                harness_candidate_sha="c" * 40,
                 evidence_dir=str(temp_path / "evidence"), receipt_path=str(temp_path / "receipt.json"),
                 self_check=False, comfy_root=str(temp_path / "comfy"), comfy_python=str(temp_path / "python.exe"),
                 ollama=str(temp_path / "ollama.exe"), test_source=str(temp_path / "samples"),
@@ -130,6 +148,7 @@ class WindowsNativePreflightTests(unittest.TestCase):
             owner = probe.Probe(args)
             owner.root = temp_path
             owner.record = lambda *args, **kwargs: SimpleNamespace(returncode=0, stdout="commit\n")
+            owner.verify_harness_identity = mock.Mock(return_value={"matched": True})
             owner.windows_native_preflight = mock.Mock(side_effect=RuntimeError("WINDOWS_OWNER_ENUMERATION_FAILED"))
             owner.start_services = mock.Mock()
             owner.listeners = lambda *args, **kwargs: []
@@ -141,7 +160,8 @@ class WindowsNativePreflightTests(unittest.TestCase):
             self.assertEqual(receipt["external_actions"]["ollama_process_starts"], 0)
             self.assertEqual(receipt["external_actions"]["comfyui_process_starts"], 0)
             self.assertEqual(receipt["external_actions"]["model_calls"], 0)
-            self.assertEqual(receipt["check_results"][0]["status"], "BLOCKED")
+            self.assertEqual(next(x for x in receipt["check_results"] if
+                                  x["check"] == "windows_native_service_preflight")["status"], "BLOCKED")
             self.assertFalse(receipt["stage_pass_claim"])
             owner.start_services.assert_not_called()
 
@@ -150,6 +170,7 @@ class WindowsNativePreflightTests(unittest.TestCase):
             temp_path = Path(temp)
             args = SimpleNamespace(
                 run_id="fixture-run", candidate_sha="a" * 40, authorization_commit="b" * 40,
+                harness_candidate_sha="c" * 40,
                 evidence_dir=str(temp_path / "evidence"), receipt_path=str(temp_path / "receipt.json"),
                 self_check=False, comfy_root=str(temp_path / "comfy"), comfy_python=str(temp_path / "python.exe"),
                 ollama=str(temp_path / "ollama.exe"), test_source=str(temp_path / "samples"),
@@ -158,6 +179,7 @@ class WindowsNativePreflightTests(unittest.TestCase):
             owner = probe.Probe(args)
             owner.root = temp_path
             owner.record = lambda *args, **kwargs: SimpleNamespace(returncode=0, stdout="commit\n")
+            owner.verify_harness_identity = mock.Mock(return_value={"matched": True})
             owner.windows_native_preflight = mock.Mock(side_effect=RuntimeError("WINDOWS_OWNER_ENUMERATION_FAILED"))
             owner.start_services = mock.Mock()
             owner.listeners = mock.Mock(side_effect=RuntimeError("sensitive port detail"))
@@ -172,6 +194,68 @@ class WindowsNativePreflightTests(unittest.TestCase):
             self.assertEqual(receipt["external_actions"]["ollama_process_starts"], 0)
             self.assertEqual(receipt["external_actions"]["comfyui_process_starts"], 0)
             owner.start_services.assert_not_called()
+
+    def test_harness_identity_mismatch_is_stable_and_starts_no_services(self):
+        with tempfile.TemporaryDirectory() as temp:
+            temp_path = Path(temp)
+            executed = temp_path / "executed-probe.py"
+            executed.write_bytes(b"executed bytes")
+            args = SimpleNamespace(
+                run_id="fixture-run", candidate_sha="a" * 40, authorization_commit="b" * 40,
+                harness_candidate_sha="c" * 40,
+                evidence_dir=str(temp_path / "evidence"), receipt_path=str(temp_path / "receipt.json"),
+                self_check=False, comfy_root=str(temp_path / "comfy"), comfy_python=str(temp_path / "python.exe"),
+                ollama=str(temp_path / "ollama.exe"), test_source=str(temp_path / "samples"),
+                powershell="powershell.exe", windows_nvidia_smi="native", wsl_nvidia_smi="wsl",
+                spec_version="fixture", workpack_id="WP-FIXTURE")
+            owner = probe.Probe(args)
+            owner.root = temp_path
+            owner.record = lambda *args, **kwargs: SimpleNamespace(returncode=0, stdout="commit\n")
+            owner.windows_native_preflight = mock.Mock()
+            owner.start_services = mock.Mock()
+            owner.listeners = lambda *args, **kwargs: []
+            owner.target_integrity = lambda: []
+
+            def git_result(command, **kwargs):
+                if command[1] == "show":
+                    return SimpleNamespace(returncode=0, stdout=b"different sealed bytes")
+                return SimpleNamespace(returncode=0, stdout="d" * 40 + "\n")
+
+            with mock.patch.object(probe, "__file__", str(executed)), \
+                    mock.patch.object(probe.subprocess, "run", side_effect=git_result):
+                self.assertEqual(owner.run(), 2)
+            receipt = probe.json.loads((temp_path / "receipt.json").read_text())
+            identity = probe.json.loads((temp_path / "evidence" / "harness-identity.json").read_text())
+            self.assertEqual(receipt["exact_stop_reason"], "HARNESS_IDENTITY_MISMATCH")
+            self.assertFalse(identity["matched"])
+            self.assertEqual(identity["service_starts"], 0)
+            self.assertEqual(receipt["harness_identity"], identity)
+            owner.windows_native_preflight.assert_not_called()
+            owner.start_services.assert_not_called()
+
+    def test_harness_identity_records_matching_commit_blob_and_file_hashes(self):
+        with tempfile.TemporaryDirectory() as temp:
+            executed = Path(temp) / "executed-probe.py"
+            executed.write_bytes(b"identical sealed bytes")
+            owner = object.__new__(probe.Probe)
+            owner.root = Path(temp)
+            owner.harness_candidate_sha = "c" * 40
+            owner.commands = []
+            emitted = {}
+            owner.emit = lambda name, value: emitted.__setitem__(name, value)
+
+            def git_result(command, **kwargs):
+                if command[1] == "show":
+                    return SimpleNamespace(returncode=0, stdout=b"identical sealed bytes")
+                return SimpleNamespace(returncode=0, stdout="d" * 40 + "\n")
+
+            with mock.patch.object(probe, "__file__", str(executed)), \
+                    mock.patch.object(probe.subprocess, "run", side_effect=git_result):
+                identity = owner.verify_harness_identity()
+            self.assertTrue(identity["matched"])
+            self.assertEqual(identity["git_blob_sha256"], identity["executed_file_sha256"])
+            self.assertEqual(identity["git_blob_object_id"], "d" * 40)
+            self.assertEqual(emitted["harness-identity.json"], identity)
 
 
 class CleanupCorrelationTests(unittest.TestCase):
@@ -271,6 +355,33 @@ class HistoryFailureTests(unittest.TestCase):
         self.assertNotIn("KeyError", attempt["failure"])
         self.assertTrue(attempt["cleanup_failure"].startswith("RESOURCE_RELEASE_PENDING"))
         self.assertTrue(attempt["failure"].startswith("MODEL_TIMEOUT/OLLAMA_TIMEOUT"))
+
+
+class VideoOracleTests(unittest.TestCase):
+    def video_values(self, motion):
+        envelope = {"done": True, "done_reason": "stop", "message": {"content": probe.json.dumps({
+            "observations": ["A visible subject."], "inferences": [], "unknowns": [],
+            "prompt": "A concrete visible subject."})}}
+        raw = probe.json.dumps({"frame_raw_responses": [probe.json.dumps(envelope)] * 4})
+        suggestion = probe.json.dumps({"technical": {"camera_motion": motion},
+                                       "domains": {"observation": ["Four ordered frames."]}})
+        return raw, suggestion
+
+    def test_nonempty_string_camera_motion_passes(self):
+        owner = object.__new__(probe.Probe)
+        result = owner.oracle("video", *self.video_values("No visible change can be established."))
+        self.assertTrue(result["pass"])
+        self.assertEqual(result["envelope_count"], 4)
+
+    def test_list_camera_motion_is_rejected(self):
+        owner = object.__new__(probe.Probe)
+        with self.assertRaisesRegex(ValueError, "video suggestion has no camera_motion"):
+            owner.oracle("video", *self.video_values(["pan left"]))
+
+    def test_empty_string_camera_motion_is_rejected(self):
+        owner = object.__new__(probe.Probe)
+        with self.assertRaisesRegex(ValueError, "video suggestion has no camera_motion"):
+            owner.oracle("video", *self.video_values("  "))
 
 
 if __name__ == "__main__":

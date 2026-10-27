@@ -85,9 +85,11 @@ def evaluate_windows_preflight(native_gpu, wsl_gpu, processes, listeners, *, com
         executable = str(process.get("ExecutablePath") or "").casefold()
         name = str(process.get("Name") or "").casefold()
         command = str(process.get("CommandLine") or "").casefold()
-        if executable == ollama_norm or name.startswith("ollama") or executable == comfy_norm or (
+        if executable == ollama_norm or name.startswith("ollama"):
+            target_processes.append({"process_id": process.get("ProcessId"), "match_kind": "OLLAMA_TARGET"})
+        elif executable == comfy_norm or (
                 name in {"python.exe", "pythonw.exe"} and "comfyui" in command and "main.py" in command):
-            target_processes.append(process)
+            target_processes.append({"process_id": process.get("ProcessId"), "match_kind": "COMFY_TARGET"})
     if target_processes:
         reasons.append("GPU_PREFLIGHT_TARGET_PROCESS_PRESENT")
     if listeners:
@@ -100,9 +102,11 @@ def evaluate_windows_preflight(native_gpu, wsl_gpu, processes, listeners, *, com
         "windows_wsl_sample_tolerance_mib": PREFLIGHT_GPU_SAMPLE_TOLERANCE_MIB,
         "windows_wsl_per_gpu_deltas": gpu_deltas,
         "windows_wsl_match": gpu_samples_match,
-        "windows_processes": processes,
+        "windows_process_count": len(processes),
+        "target_process_count": len(target_processes),
         "target_processes": target_processes,
-        "authorized_port_listeners": listeners,
+        "authorized_port_listeners": [{"local_port": row.get("LocalPort"),
+                                        "owning_process": row.get("OwningProcess")} for row in listeners],
         "stop_reasons": reasons,
         "service_starts": 0,
     }
@@ -173,6 +177,7 @@ class Probe:
         self.run_id = args.run_id
         self.candidate = args.candidate_sha
         self.authorization_commit = args.authorization_commit
+        self.harness_candidate_sha = args.harness_candidate_sha
         self.ev = (self.root / (args.evidence_dir or ".")).resolve()
         self.receipt_path = (self.root / (args.receipt_path or "receipt.json")).resolve()
         if not args.self_check:
@@ -202,6 +207,7 @@ class Probe:
         self.cleanup = {}
         self.no_cloud_reported_true = False
         self.pre_model_gate = {}
+        self.harness_identity = {}
         self.decision = "BLOCKED"
         self.exact_stop_reason = "HARNESS_NOT_COMPLETED"
         self.started = utc()
@@ -328,8 +334,10 @@ class Probe:
         if not isinstance(processes, list) or not isinstance(listeners, list):
             self.emit("preflight-baseline.json", {"passed": False, "service_starts": 0,
                                                    "stop_reasons": ["WINDOWS_OWNER_ENUMERATION_FAILED"],
-                                                   "windows_processes": processes,
-                                                   "authorized_port_listeners": listeners})
+                                                   "process_enumeration_error": (processes.get("error_code")
+                                                                                 if isinstance(processes, dict) else None),
+                                                   "listener_enumeration_error": (listeners.get("error_code")
+                                                                                  if isinstance(listeners, dict) else None)})
             raise RuntimeError("WINDOWS_OWNER_ENUMERATION_FAILED")
         self.comfy_python_win = self.to_windows_path(Path(self.a.comfy_python))
         self.ollama_win = self.to_windows_path(Path(self.a.ollama))
@@ -353,6 +361,35 @@ class Probe:
         if not result["passed"]:
             raise RuntimeError("WINDOWS_NATIVE_PREFLIGHT_FAILED:" + ",".join(result["stop_reasons"]))
         return result
+
+    def verify_harness_identity(self):
+        repo_path = "LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s0_live_probe.py"
+        spec = f"{self.harness_candidate_sha}:{repo_path}"
+        started = utc()
+        blob = subprocess.run(["git", "show", spec], cwd=self.root.parent, stdout=subprocess.PIPE,
+                              stderr=subprocess.DEVNULL, check=False)
+        object_id = subprocess.run(["git", "rev-parse", spec], cwd=self.root.parent, text=True,
+                                   stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, check=False)
+        executed_path = Path(__file__).resolve()
+        blob_sha256 = hashlib.sha256(blob.stdout).hexdigest() if blob.returncode == 0 else None
+        file_sha256 = sha(executed_path)
+        matched = (blob.returncode == 0 and object_id.returncode == 0 and blob_sha256 == file_sha256)
+        self.commands.append({"name": "verify_harness_identity",
+                              "logical_command": "git show/rev-parse HARNESS_CANDIDATE:tools/v0_s0_live_probe.py; sha256 executed __file__",
+                              "started_at": started, "ended_at": utc(),
+                              "exit_code": 0 if matched else 1})
+        self.harness_identity = {
+            "harness_candidate_commit": self.harness_candidate_sha,
+            "git_blob_object_id": object_id.stdout.strip() if object_id.returncode == 0 else None,
+            "git_blob_sha256": blob_sha256,
+            "executed_file_sha256": file_sha256,
+            "matched": matched,
+            "service_starts": 0,
+        }
+        self.emit("harness-identity.json", self.harness_identity)
+        if not matched:
+            raise RuntimeError("HARNESS_IDENTITY_MISMATCH")
+        return self.harness_identity
 
     def locate_sample(self, expected_hash, expected_bytes):
         matches = []
@@ -678,8 +715,8 @@ class Probe:
             expected = 4
             if len(envelopes) != 4:
                 raise ValueError("video raw lacks four ordered frame responses")
-            motion = suggestion.get("technical", {}).get("camera_motion", [])
-            if not isinstance(motion, list) or not motion:
+            motion = suggestion.get("technical", {}).get("camera_motion", "")
+            if not isinstance(motion, str) or not motion.strip():
                 raise ValueError("video suggestion has no camera_motion")
         for envelope in envelopes:
             if envelope.get("done") is not True or envelope.get("done_reason") != "stop":
@@ -854,6 +891,7 @@ class Probe:
                                "git cat-file -t CANDIDATE_SHA", cwd=self.root.parent)
             if head.returncode or cand.returncode:
                 raise RuntimeError("authorization or candidate commit unavailable")
+            self.verify_harness_identity()
             self.windows_native_preflight()
             self.samples = {"image": self.locate_sample(IMAGE_HASH, 404368), "video": self.locate_sample(VIDEO_HASH, 438707)}
             self.emit("sample-verification.json", {k: {"alias": f"TEST_SOURCE/{k}-sample", "sha256": sha(v), "bytes": v.stat().st_size}
@@ -884,7 +922,8 @@ class Probe:
                                "GPU_THRESHOLD" in reason or "GPU_PREFLIGHT" in reason or
                                "STOP_CONDITION" in reason)
             self.decision = "NO_GO" if mandatory_no_go else "BLOCKED"
-            self.exact_stop_reason = reason if mandatory_no_go or reason == "WINDOWS_OWNER_ENUMERATION_FAILED" else type(e).__name__ + ": " + reason
+            self.exact_stop_reason = reason if mandatory_no_go or reason in {
+                "WINDOWS_OWNER_ENUMERATION_FAILED", "HARNESS_IDENTITY_MISMATCH"} else type(e).__name__ + ": " + reason
             primary_stop_reason = self.exact_stop_reason
             self.events.append({"at": utc(), "event": "terminal_exception", "detail": self.exact_stop_reason})
         finally:
@@ -1028,6 +1067,8 @@ class Probe:
                 "run_id": self.run_id, "implementation_owner_role": "codex_isolated_implementer",
                 "implementation_session": "/root/s0_rerun_implementer", "candidate_sha": self.candidate,
                 "authorization_commit": self.authorization_commit,
+                "harness_candidate_sha": self.harness_candidate_sha,
+                "harness_identity": self.harness_identity,
                 "evidence_commit": "0000000000000000000000000000000000000000",
                 "evidence_commit_status": "PENDING_ROOT_SEALING",
                 "acceptance_hash": "78b158e135be4da756e27ced9f57c74e78feb926bcaf95eda2e2a6992c9a7b42",
@@ -1061,6 +1102,8 @@ class Probe:
                                      "target_install_writes": 0, "visible_browser_runs": 0, "external_cost": 0},
                 "cleanup": {"proven": summary["cleanup_proven"], "details": ev_rel + "cleanup.json"},
                 "check_results": [
+                    {"check": "harness_runtime_identity", "status": "PASS" if
+                     self.harness_identity.get("matched") else "BLOCKED", "details": self.harness_identity},
                     {"check": "windows_native_service_preflight", "status": "PASS" if
                      preflight.get("passed") else "BLOCKED", "details": preflight},
                     {"check": "windows_native_no_cloud_server_raw", "status": "PASS" if self.no_cloud_reported_true else "FAIL"},
@@ -1072,7 +1115,7 @@ class Probe:
                 "artifact_manifest": ev_rel + "artifact-manifest.json",
                 "artifact_refs": [ev_rel + name for name in
                                   ("run-summary.json", "cleanup.json", "preflight-baseline.json", "pre-model-gate.json",
-                                   "comfy-path-conversion.json", "owned-ollama-remote-tcp.json", "resource-samples.json",
+                                   "harness-identity.json", "comfy-path-conversion.json", "owned-ollama-remote-tcp.json", "resource-samples.json",
                                    "ollama-request-trace.json", "artifact-manifest.json")
                                   if (self.ev / name).exists()],
                 "raw_artifact_refs": raw_refs,
@@ -1085,6 +1128,7 @@ class Probe:
 def main():
     p = argparse.ArgumentParser(description="Reusable bounded V0-S0 live probe")
     p.add_argument("--run-id"); p.add_argument("--candidate-sha"); p.add_argument("--authorization-commit")
+    p.add_argument("--harness-candidate-sha")
     p.add_argument("--evidence-dir"); p.add_argument("--receipt-path")
     p.add_argument("--spec-version", default="2.4.0"); p.add_argument("--workpack-id", default="WP-S0-20")
     p.add_argument("--comfy-root"); p.add_argument("--comfy-python")
@@ -1094,7 +1138,7 @@ def main():
     p.add_argument("--wsl-nvidia-smi", default="nvidia-smi")
     p.add_argument("--self-check", action="store_true")
     args = p.parse_args()
-    required = ("run_id", "candidate_sha", "authorization_commit", "evidence_dir", "receipt_path",
+    required = ("run_id", "candidate_sha", "authorization_commit", "harness_candidate_sha", "evidence_dir", "receipt_path",
                 "comfy_root", "comfy_python", "ollama", "test_source")
     if not args.self_check:
         missing = [name for name in required if not getattr(args, name)]

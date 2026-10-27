@@ -1,0 +1,194 @@
+{
+  "schema_version": "lvw.implementation-receipt/1",
+  "spec_version": "2.7.0",
+  "project_id": "lvw-prompt-service",
+  "stage_id": "V0-S0",
+  "workpack_id": "WP-S0-26+WP-S0-27",
+  "workpack_ids": [
+    "WP-S0-26",
+    "WP-S0-27"
+  ],
+  "run_id": "v0-s0-correction-09-offline-20261027-01",
+  "stage_packet_commit": "a9a4931adec6f5196e29692f973ac71e497655ca",
+  "baseline_harness_candidate_sha": "57f771823a625eabd3fd746d352f5936d37380a2",
+  "candidate_sha": "0000000000000000000000000000000000000000",
+  "candidate_sha_status": "PENDING_ROOT_SEALING",
+  "evidence_commit": "0000000000000000000000000000000000000000",
+  "evidence_commit_status": "PENDING_ROOT_SEALING",
+  "acceptance_hash": "78b158e135be4da756e27ced9f57c74e78feb926bcaf95eda2e2a6992c9a7b42",
+  "acceptance_hash_binding": {
+    "algorithm": "sha256",
+    "target": "sorted fixed acceptance IDs V0-A01,V0-A02,V0-A09,V0-A10 joined by LF with a trailing LF",
+    "source": ".agent-governance/stages/V0-S0/04-acceptance-matrix.md"
+  },
+  "gate_version": "lvw-gate/1",
+  "implementation_owner_role": "codex_isolated_implementer",
+  "implementation_session": "/root/s0_rerun_implementer",
+  "decision": "READY_FOR_REVIEW",
+  "stage_pass_claim": false,
+  "exact_stop_reason": "WP_S0_26_27_OFFLINE_CORRECTION_COMPLETE",
+  "environment": {
+    "execution_mode": "offline deterministic fixtures only",
+    "repository_python": "python3",
+    "comfyui_process_starts": 0,
+    "ollama_process_starts": 0,
+    "service_probes": 0,
+    "network_calls": 0,
+    "model_calls": 0,
+    "real_media_reads": 0
+  },
+  "changed_files": [
+    "tools/v0_s0_live_probe.py",
+    "tools/test_v0_s0_live_probe.py",
+    "reports/v0-s0/implementation-receipt-correction-09-offline.json"
+  ],
+  "artifact_sha256": [
+    {
+      "path": "tools/v0_s0_live_probe.py",
+      "sha256": "999cb17e42ef9f2fd4f2ba87e6cb2cf2c9009b0485d6a075b97957658e6fc810"
+    },
+    {
+      "path": "tools/test_v0_s0_live_probe.py",
+      "sha256": "faee610c84c38b320880a8fd7589812358515e4c030476d2d12ab86cda884c9b"
+    }
+  ],
+  "contract_changes": "none",
+  "target_configuration_changes": "none",
+  "implementation_change": {
+    "preflight_privacy": "Persist only irreversible process counts and minimal target PID/type matches; omit full process rows, command lines and paths from preflight artifacts and embedded receipt details",
+    "video_oracle": "Accept only non-empty string technical.camera_motion; reject list and empty string",
+    "harness_identity": "Before preflight or service start, bind the explicit harness candidate commit, Git blob object ID, blob SHA-256 and executed __file__ SHA-256; mismatch stops with HARNESS_IDENTITY_MISMATCH and zero service starts",
+    "unchanged_boundaries": [
+      "existing 24 harness fixtures",
+      "product candidate and contracts",
+      "GPU and timeout thresholds",
+      "fixed product denominator"
+    ]
+  },
+  "commands": [
+    {
+      "logical_command": "python3 -B -m unittest -v tools/test_v0_s0_live_probe.py",
+      "exit_code": 0,
+      "tests_run": 30,
+      "result": "OK; original 24 fixtures retained"
+    },
+    {
+      "logical_command": "python3 -B - (AST parse tools/v0_s0_live_probe.py and tools/test_v0_s0_live_probe.py)",
+      "exit_code": 0,
+      "result": "AST PASS"
+    },
+    {
+      "logical_command": "python3 -B tools/v0_s0_live_probe.py --help",
+      "exit_code": 0,
+      "result": "PASS"
+    },
+    {
+      "logical_command": "python3 -B tools/v0_s0_live_probe.py --self-check",
+      "exit_code": 0,
+      "result": "PASS; service_started=false"
+    },
+    {
+      "logical_command": "python3 -B tools/verify_pack.py --schema",
+      "exit_code": 1,
+      "result": "1054 passed, 2 failed: root MANIFEST.sha256 entries for the two changed tool files remain pending root sealing",
+      "failure_disposition": "MANIFEST.sha256 is outside WP-S0-26/27 allowed paths and was not modified"
+    },
+    {
+      "logical_command": "python3 -B tools/verify_governance.py",
+      "exit_code": 0,
+      "result": "37 passed, 0 failed; not product acceptance"
+    },
+    {
+      "logical_command": "python3 -B tools/verify_governance.py --self-test",
+      "exit_code": 0,
+      "result": "42 passed, 0 failed; not product acceptance"
+    }
+  ],
+  "check_results": [
+    {
+      "check": "preflight_minimal_persistence",
+      "status": "PASS_OFFLINE",
+      "test": "test_preflight_persists_only_counts_and_minimal_target_matches",
+      "full_process_rows_persisted": 0
+    },
+    {
+      "check": "camera_motion_schema_type",
+      "status": "PASS_OFFLINE",
+      "accepted": "non-empty string",
+      "rejected": [
+        "list",
+        "empty string"
+      ]
+    },
+    {
+      "check": "harness_runtime_identity",
+      "status": "PASS_OFFLINE",
+      "positive_fixture": "test_harness_identity_records_matching_commit_blob_and_file_hashes",
+      "negative_fixture": "test_harness_identity_mismatch_is_stable_and_starts_no_services",
+      "mismatch_service_starts": 0
+    },
+    {
+      "check": "existing_harness_regression",
+      "status": "PASS_OFFLINE",
+      "tests_retained": 24
+    },
+    {
+      "check": "governance_regression",
+      "status": "PASS_OFFLINE"
+    },
+    {
+      "check": "root_manifest_binding",
+      "status": "PENDING_ROOT_SEALING",
+      "affected_paths": [
+        "tools/v0_s0_live_probe.py",
+        "tools/test_v0_s0_live_probe.py"
+      ]
+    }
+  ],
+  "offline_test_counts": {
+    "repository_python": {
+      "pass": 30,
+      "fail": 0,
+      "total": 30
+    },
+    "executions_total": 30
+  },
+  "test_counts": {
+    "denominator": 4,
+    "pass": 0,
+    "fail": 0,
+    "blocked": 0,
+    "skipped": 0,
+    "not_run": 4
+  },
+  "product_acceptance": {
+    "V0-A01": "NOT_RUN",
+    "V0-A02": "NOT_RUN",
+    "V0-A09": "NOT_RUN",
+    "V0-A10": "NOT_RUN"
+  },
+  "external_actions": {
+    "comfyui_process_starts": 0,
+    "ollama_process_starts": 0,
+    "service_probes": 0,
+    "model_calls": 0,
+    "network_calls": 0,
+    "real_media_reads": 0,
+    "downloads_or_upgrades": 0,
+    "target_install_writes": 0,
+    "visible_browser_runs": 0,
+    "external_cost": 0
+  },
+  "production_path_status": "NOT_RUN_OFFLINE_WORKPACK",
+  "public_end_to_end_trace_refs": [],
+  "artifact_refs": [
+    "tools/v0_s0_live_probe.py",
+    "tools/test_v0_s0_live_probe.py"
+  ],
+  "raw_artifact_refs": [],
+  "risks": [
+    "The corrected paths are proven only by deterministic offline fixtures; no live authorization exists in WP-S0-26/27.",
+    "Root MANIFEST.sha256 will require sealing-owner refresh for the changed tool bytes.",
+    "The four fixed product acceptance cases remain NOT_RUN; this receipt is not a Stage PASS."
+  ]
+}
