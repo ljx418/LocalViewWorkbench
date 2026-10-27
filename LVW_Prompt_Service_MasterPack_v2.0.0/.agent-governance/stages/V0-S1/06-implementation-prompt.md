@@ -6,7 +6,7 @@
 只有在以下条件全部满足后，Codex 才能冻结并签发正式 S1 prompt：
 1. V0-S0 已得到 STAGE_BASELINE_COMPLETE；
 2. 有真实 live registry/node binding 和复用裁决；
-3. 仓库有明确 candidate baseline commit；
+3. 将 S0 正式出口 commit 写为 S1 accepted baseline；
 4. S1 packet 已改为正式版本并重新生成 manifest；
 5. 隔离 worktree、owner、预算和外部授权已记录。
 

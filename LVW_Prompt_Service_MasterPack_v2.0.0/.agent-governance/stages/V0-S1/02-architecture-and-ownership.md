@@ -5,9 +5,9 @@
 | 对象 | 唯一 owner |
 |---|---|
 | V0 合同、Stage packet、固定分母与门禁 | Codex + Sol |
-| S1 产品实现与实现收据 | Claude Code + MiniMax；边界清晰的测试/夹具可路由 DeepSeek |
+| S1 产品实现与实现收据 | V0 结束前由 `codex_isolated_implementer` 临时代行 Claude Code/DSH；每个 Workpack 单 owner |
 | 产品合同/工作流/收据的确定性校验 | 可信本地执行器 |
-| 隔离复算和反假绿审查 | 未参与实现的 DeepSeek 独立实例；争议升级 Codex |
+| 隔离复算和反假绿审查 | `codex_isolated_reviewer`，与实现上下文和写入权限隔离；root Codex 裁决 |
 | 本地服务、私有媒体、可见浏览器与付费调用授权 | 人类负责人 |
 
 ## 生产所有权
@@ -28,3 +28,5 @@ ComfyUI 原生 UI / LVW 静态面板
 `raw_response`、`suggestion`、`draft` 和 `draft_epoch` 是不同状态。模型回调只可更新与当前 run token 匹配的 raw/suggestion；不得直接写 draft。人工编辑与导出不进入 GPU 队列，不依赖模型健康。
 
 项目自有代码应落在增量包的 `custom_nodes/lvw_v0_bridge/` 和同源静态 JS 中；目标 ComfyUI 安装只在后续明确授权的安装/验收步骤中触碰。
+
+已验证的 S0 公共节点绑定为 `LVWImagePromptBridge` 与 `LVWVideoFramesPromptBridge`，入口为 Comfy public `/prompt`/`history`。S1 只能复用封存候选，不得把测试函数或新别名替代这些生产 owner；若正式 S0 出口改变绑定，S1 必须重新进入 Gate 0。
