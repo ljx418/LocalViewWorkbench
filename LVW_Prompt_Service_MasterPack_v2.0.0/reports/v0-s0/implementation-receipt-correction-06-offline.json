@@ -1,0 +1,193 @@
+{
+  "schema_version": "lvw.implementation-receipt/1",
+  "spec_version": "2.0.0",
+  "project_id": "lvw-prompt-service",
+  "stage_id": "V0-S0",
+  "workpack_id": "WP-S0-14+WP-S0-15",
+  "workpack_ids": [
+    "WP-S0-14",
+    "WP-S0-15"
+  ],
+  "run_id": "v0-s0-correction-06-offline-20261027-01",
+  "stage_packet_commit": "fbffc233fac55011ff89cd6edf8722a7455a60f0",
+  "baseline_candidate_sha": "078b51aab02fbfbcfd0efcfc7d38a2c9c6381f68",
+  "candidate_sha": "0000000000000000000000000000000000000000",
+  "candidate_sha_status": "PENDING_ROOT_SEALING",
+  "evidence_commit": "0000000000000000000000000000000000000000",
+  "evidence_commit_status": "PENDING_ROOT_SEALING",
+  "acceptance_hash": "78b158e135be4da756e27ced9f57c74e78feb926bcaf95eda2e2a6992c9a7b42",
+  "acceptance_hash_binding": {
+    "algorithm": "sha256",
+    "target": "sorted fixed acceptance IDs V0-A01,V0-A02,V0-A09,V0-A10 joined by LF with a trailing LF",
+    "source": ".agent-governance/stages/V0-S0/04-acceptance-matrix.md"
+  },
+  "gate_version": "lvw-gate/1",
+  "implementation_owner_role": "codex_isolated_implementer",
+  "implementation_session": "/root/s0_rerun_implementer",
+  "decision": "READY_FOR_REVIEW",
+  "stage_pass_claim": false,
+  "exact_stop_reason": "WP_S0_14_15_OFFLINE_IMPLEMENTATION_COMPLETE",
+  "environment": {
+    "execution_mode": "offline fake-transport tests through registered public node owners",
+    "repository_python": "python3",
+    "target_portable_python": "COMFY_PORTABLE_PYTHON",
+    "comfyui_process_starts": 0,
+    "ollama_process_starts": 0,
+    "network_calls": 0,
+    "model_calls": 0
+  },
+  "changed_files": [
+    "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/core.py",
+    "LVW_V0_RuntimePatch/tests/test_lvw_v0_bridge.py",
+    "MANIFEST.sha256",
+    "reports/v0-s0/implementation-receipt-correction-06-offline.json"
+  ],
+  "artifact_sha256": [
+    {
+      "path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/core.py",
+      "sha256": "fcaec75cbbd378ee1c5c367603790e9502a74668677062f24c0997301c418bc4"
+    },
+    {
+      "path": "LVW_V0_RuntimePatch/tests/test_lvw_v0_bridge.py",
+      "sha256": "c2a3b1b86f638071f913d6b010308070f64918ff4835e9742d64185c19a48957"
+    },
+    {
+      "path": "MANIFEST.sha256",
+      "sha256": "f089438d56c7887241829d0921580bcbcbf46f14d8caaa61692d1605da822a4a"
+    }
+  ],
+  "contract_changes": "none",
+  "target_configuration_changes": "none",
+  "implementation_change": {
+    "scope": "_request_instruction only",
+    "grounding_obligation": "prompt must be a concrete generation prompt grounded only in visible facts from the current image or frame",
+    "anti_copy_obligation": "prompt must not copy, quote, paraphrase, summarize, translate, or otherwise rewrite the request or user_instruction; this obligation is the final message suffix",
+    "user_instruction_role": "additional analysis constraint explicitly marked as not prompt content and placed before the final grounding/anti-copy suffix",
+    "unchanged_boundaries": [
+      "exact-echo Oracle",
+      "response schemas",
+      "public error codes",
+      "loopback-only endpoint",
+      "media limits",
+      "resource limits",
+      "per-started-call cleanup"
+    ]
+  },
+  "commands": [
+    {
+      "logical_command": "python3 -B -m unittest discover -s LVW_V0_RuntimePatch/tests -v",
+      "exit_code": 0,
+      "tests_run": 24,
+      "result": "OK"
+    },
+    {
+      "logical_command": "COMFY_PORTABLE_PYTHON -B -m unittest discover -s WINDOWS_PATH(LVW_V0_RuntimePatch/tests) -v",
+      "exit_code": 0,
+      "tests_run": 24,
+      "result": "OK"
+    },
+    {
+      "logical_command": "python3 - (AST parse every Python file under LVW_V0_RuntimePatch)",
+      "exit_code": 0,
+      "result": "AST_OK"
+    },
+    {
+      "logical_command": "python3 - (receipt/hash/AST/scope and initial contiguous-source-text assertion)",
+      "exit_code": 1,
+      "failure_disposition": "The source-text assertion incorrectly expected one contiguous physical literal across Python adjacent string literals; both complete test suites had already passed and no product or external action failed. Replaced by invoking _request_instruction and asserting its runtime string."
+    },
+    {
+      "logical_command": "python3 - (receipt/hash/AST/scope plus runtime _request_instruction grounding/anti-copy assertions)",
+      "exit_code": 0,
+      "result": "JSON_HASH_AST_SCOPE_RECEIPT_AND_RUNTIME_INSTRUCTION_OK"
+    }
+  ],
+  "check_results": [
+    {
+      "check": "public_owner_outgoing_instruction_grounding_and_anti_copy",
+      "status": "PASS_OFFLINE",
+      "test": "test_public_owner_instruction_requires_grounded_non_copy_prompt",
+      "result": "user_instruction appears exactly once before the final grounding/anti-copy suffix; the suffix is the message tail; the started call is cleaned"
+    },
+    {
+      "check": "normal_image_public_owner",
+      "status": "PASS_OFFLINE",
+      "test": "test_normal_image_through_public_owner"
+    },
+    {
+      "check": "ordered_four_frame_public_owner_and_per_call_cleanup",
+      "status": "PASS_OFFLINE",
+      "test": "test_four_video_frames_are_called_in_order_and_cleaned_each_time"
+    },
+    {
+      "check": "user_instruction_exact_echo_fail_closed_and_cleanup",
+      "status": "PASS_OFFLINE",
+      "test": "test_prompt_echo_is_rejected_and_cleaned"
+    },
+    {
+      "check": "full_request_exact_echo_fail_closed_and_cleanup",
+      "status": "PASS_OFFLINE",
+      "test": "test_full_request_instruction_echo_is_rejected"
+    },
+    {
+      "check": "frozen_public_error_codes",
+      "status": "PASS_OFFLINE",
+      "test": "test_frozen_error_code_copy_exactly_matches_contract"
+    },
+    {
+      "check": "repository_and_portable_python_full_suite",
+      "status": "PASS_OFFLINE",
+      "repository_tests": 24,
+      "portable_tests": 24
+    }
+  ],
+  "offline_test_counts": {
+    "repository_python": {
+      "pass": 24,
+      "fail": 0,
+      "total": 24
+    },
+    "portable_python": {
+      "pass": 24,
+      "fail": 0,
+      "total": 24
+    },
+    "executions_total": 48
+  },
+  "test_counts": {
+    "denominator": 4,
+    "pass": 0,
+    "fail": 0,
+    "blocked": 0,
+    "skipped": 0,
+    "not_run": 4
+  },
+  "product_acceptance": {
+    "V0-A01": "NOT_RUN",
+    "V0-A02": "NOT_RUN",
+    "V0-A09": "NOT_RUN",
+    "V0-A10": "NOT_RUN"
+  },
+  "external_actions": {
+    "comfyui_process_starts": 0,
+    "ollama_process_starts": 0,
+    "network_calls": 0,
+    "downloads_or_upgrades": 0,
+    "target_install_writes": 0,
+    "visible_browser_runs": 0,
+    "external_cost": 0
+  },
+  "production_path_status": "NOT_RUN_OFFLINE_WORKPACK",
+  "public_end_to_end_trace_refs": [],
+  "artifact_refs": [
+    "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/core.py",
+    "LVW_V0_RuntimePatch/tests/test_lvw_v0_bridge.py"
+  ],
+  "raw_artifact_refs": [],
+  "risks": [
+    "Instruction hardening is proven only with fake transport; a newly authorized WP-S0-16 live run is required to establish model behavior.",
+    "The exact-echo Oracle intentionally remains unchanged and does not claim general semantic-similarity detection.",
+    "The four fixed product acceptance cases remain NOT_RUN; this receipt is not a Stage PASS."
+  ],
+  "root_review_correction": "Moved the final grounding/anti-copy obligation after the optional Additional analysis constraint so user_instruction is not the message tail; the public owner test asserts ordering, single occurrence, terminal suffix, and cleanup."
+}

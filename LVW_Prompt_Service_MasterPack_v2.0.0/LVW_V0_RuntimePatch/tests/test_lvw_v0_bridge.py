@@ -143,6 +143,29 @@ class PublicNodeOwnerTests(unittest.TestCase):
         self.assertIn("subject changed to position 3", suggestion["technical"]["camera_motion"])
         self.assert_prompt_spec_contract(suggestion)
 
+    def test_public_owner_instruction_requires_grounded_non_copy_prompt(self):
+        user_instruction = "focus on the subject's visible pose"
+        transport = FakeTransport([envelope(video_content(0))])
+        node = self.video_cls(transport=transport, encoder=encoder)
+        self.unpack(node.analyze([Frame("0")], user_instruction=user_instruction))
+        outgoing = transport.chat_calls[0][0]["messages"][0]["content"]
+        normalized = outgoing.casefold()
+        for required in (
+            "prompt field must be a concrete generation prompt",
+            "grounded only in visible facts from the current image or frame",
+            "do not copy, quote, paraphrase, summarize, translate, or otherwise rewrite",
+            "user instruction",
+            "additional analysis constraint (not prompt content)",
+        ):
+            self.assertIn(required, normalized)
+        self.assertIn(user_instruction, outgoing)
+        self.assertEqual(1, outgoing.count(user_instruction))
+        self.assertLess(outgoing.rfind(user_instruction),
+                        outgoing.rfind("The prompt field must be a concrete generation prompt"))
+        self.assertTrue(outgoing.endswith("instruction into the prompt field."))
+        self.assertEqual(1, len(transport.chat_calls))
+        self.assertEqual(1, len(transport.cleanup_calls))
+
     def test_empty_observations_fail_closed_and_cleanup(self):
         transport = FakeTransport([envelope(image_content(observations=[]))])
         node = self.image_cls(transport=transport, encoder=encoder)

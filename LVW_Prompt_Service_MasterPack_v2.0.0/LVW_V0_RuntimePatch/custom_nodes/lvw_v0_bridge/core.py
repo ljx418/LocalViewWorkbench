@@ -145,7 +145,13 @@ def _request_instruction(*, video: bool, frame_index: int | None, previous_obser
             "observations must contain visible facts; separate inferences and unknowns."
         )
     if user_instruction.strip():
-        base += f" User instruction: {user_instruction.strip()}"
+        base += f" Additional analysis constraint (not prompt content): {user_instruction.strip()}"
+    base += (
+        " The prompt field must be a concrete generation prompt grounded only in visible facts from the current "
+        "image or frame, such as its subject, setting, action, composition, lighting, and color. Do not copy, "
+        "quote, paraphrase, summarize, translate, or otherwise rewrite any part of this request or the user "
+        "instruction into the prompt field."
+    )
     return base
 
 
