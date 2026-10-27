@@ -1,0 +1,19 @@
+# V0-S1 Draft Scope And Non-Goals
+
+## 目标
+
+- 首先交付完全不依赖 Ollama/GPU 的人工编辑、复制、TXT 和合法 JSON 导出路径。
+- 实现图片文件的受控读取、原文件 hash、EXIF 方向、RGBA 策略、像素/字节限额和预处理元数据。
+- 经 V0-S0 验证的公共入口连接单图真实视觉分析，保存 raw，并将 suggestion 与 draft 隔离。
+- 由一次模型结果在 CPU 上生成自然中文、自然英文、图像 Prompt、视频 Prompt和标签视图；切换视图不触发额外推理。
+- 对非法 JSON、明确未答、模型不可用、超时和 OOM fail-closed；已有人工稿可继续编辑和导出。
+- 交付真实可导入的 UI/API workflow、人工路径、模板、测试和候选绑定证据。
+
+## 非目标
+
+- 不实现视频抽帧、资源竞争/取消卸载完整闭环；它们属于 V0-S2。
+- 不执行 10 图/6 视频独立质量、完整性能、断网迁移或发布封装；它们属于 V0-S3。
+- 不建立数据库、独立 React/FastAPI 服务、远程 URL 媒体或云回退。
+- 不修改 Prompt Assistant 上游源码，除非另行提交带原文件 hash 的最小变更请求。
+- 不把设计别名伪装成真实 ComfyUI class type，不把内部函数单测冒充公共工作流验收。
+- 不在 S0 未出门时启动 S1 实现，不用 draft packet 宣布 Gate 0 通过。

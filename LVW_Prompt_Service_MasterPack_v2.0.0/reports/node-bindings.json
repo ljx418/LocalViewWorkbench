@@ -1,0 +1,78 @@
+{
+  "schema_version": "lvw.node-bindings/1",
+  "project_id": "lvw-prompt-service",
+  "stage_id": "V0-S0",
+  "workpack_id": "WP-S0-01",
+  "observed_at": "2026-10-27",
+  "evidence_kind": "static_source_inspection",
+  "live_registry_verified": false,
+  "bindings": [
+    {
+      "capability": "image_caption",
+      "component": "Prompt Assistant",
+      "class_type": "ImageCaptionNode",
+      "source_registered": true,
+      "runtime_registered": "NOT_RUN",
+      "reuse_decision": "CONDITIONAL_REUSE",
+      "conditions": [
+        "Confirm the class through the live ComfyUI public registry.",
+        "Bind it behind the frozen V0 raw-result and failure contracts.",
+        "Prove the selected Ollama model and unload behavior with a real probe."
+      ]
+    },
+    {
+      "capability": "video_caption",
+      "component": "Prompt Assistant",
+      "class_type": "VideoCaptionNode",
+      "source_registered": true,
+      "runtime_registered": "NOT_RUN",
+      "source_default_frame_count": 5,
+      "v0_required_default_frame_count": 4,
+      "input_behavior": "Consumes IMAGE batches or VIDEO converted to a full image tensor before selection.",
+      "reuse_decision": "DO_NOT_REUSE_AS_V0_VIDEO_OWNER",
+      "reason": "The frozen V0 contract requires bounded decoding without loading the entire video tensor, and a default of exactly four sampled frames."
+    },
+    {
+      "capability": "video_metadata_and_frame_preview",
+      "component": "Prompt Assistant server routes",
+      "routes": [
+        "/prompt-assistant/api/video/info",
+        "/prompt-assistant/api/video/frame"
+      ],
+      "runtime_registered": "NOT_RUN",
+      "absolute_existing_path_accepted_by_source": true,
+      "absolute_path_returned_by_info_source": true,
+      "reuse_decision": "DO_NOT_EXPOSE_UNWRAPPED",
+      "reason": "The source behavior conflicts with V0 path-boundary and private absolute-path disclosure requirements."
+    },
+    {
+      "capability": "cancel",
+      "component": "Prompt Assistant server route",
+      "route": "/prompt-assistant/api/vlm/cancel",
+      "runtime_registered": "NOT_RUN",
+      "reuse_decision": "REQUIRES_BEHAVIORAL_PROBE",
+      "conditions": [
+        "Prove the cancel request reaches the production owner.",
+        "Prove the run reaches a durable terminal state.",
+        "Prove model and temporary-resource cleanup."
+      ]
+    }
+  ],
+  "unresolved_bindings": [
+    "Manual draft entry, editable draft state, and JSON/TXT export owner.",
+    "Bounded PTS-based video sampling owner.",
+    "Unified schema validation and stable failure-code owner.",
+    "Ollama model availability and digest.",
+    "Runtime class registry and public workflow wiring."
+  ],
+  "gate_effect": {
+    "stage_pass_allowed": false,
+    "product_case_pass_allowed": false,
+    "blocking_reasons": [
+      "Live public registry not queried.",
+      "No authorized real image or video probe.",
+      "Candidate SHA unavailable.",
+      "Independent review not performed."
+    ]
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "schema_version": "lvw.execution-control/1",
+  "updated_at": "2026-10-27",
+  "project_id": "lvw-prompt-service",
+  "design_version": "2.0.0",
+  "target_version": "V0",
+  "coordinate": {
+    "stage_id": "V0-S0",
+    "workpack_id": "WP-S0-01",
+    "gate": "GATE0_READY",
+    "state": "WAIT_AUTH"
+  },
+  "last_passed_gate": {
+    "id": "DOCS_VALIDATED",
+    "evidence": "reports/validation.json",
+    "meaning": "document_and_contract_validation_not_product_acceptance"
+  },
+  "current_blocking_gate": {
+    "id": "V0-S0-TARGET-RUNTIME-AUTH",
+    "reason": "Static read-only inventory is recorded, but starting local ComfyUI/Ollama, querying live registries/models, and running media probes require explicit run-specific authorization.",
+    "required_authorization": "Authorize the discovered local ComfyUI root and Ollama service, non-private or named samples, at most two effective retries per probe, reports/v0-s0 as the evidence destination, and cleanup of only processes started by this run."
+  },
+  "stage_packet": ".agent-governance/stages/V0-S0/stage-control.json",
+  "stage_packet_manifest": ".agent-governance/stages/V0-S0/PAYLOAD_MANIFEST.sha256",
+  "product_status": "NOT_RUN",
+  "allowed_claim": "DOCS_VALIDATED_AND_V0_S0_PACKET_FROZEN",
+  "forbidden_claims": [
+    "ENGINEERING_READY",
+    "V0_ACCEPTED",
+    "TARGET_HARDWARE_TESTED"
+  ],
+  "next_owner": "human_authorizer",
+  "next_action": "Provide or decline bounded V0-S0 live-probe authorization; then query the public node registry and local Ollama models before one-image and four-frame probes.",
+  "evidence_root": "reports/",
+  "exact_stop_reason": "Static inventory and source-level reuse audit are complete. Live services, model queries, and real-media probes remain unexecuted because bounded authorization is not yet recorded."
+}

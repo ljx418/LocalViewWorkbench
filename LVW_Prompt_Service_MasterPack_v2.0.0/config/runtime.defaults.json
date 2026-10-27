@@ -1,0 +1,46 @@
+{
+  "schema_version": "lvw.config/1",
+  "model": {
+    "base_url": "http://127.0.0.1:11434",
+    "tag": "gemma4:26b",
+    "digest": null,
+    "num_ctx": 4096,
+    "num_predict": 1536,
+    "temperature": 0.2,
+    "keep_alive": 0,
+    "max_parallel": 1,
+    "request_timeout_seconds": 420,
+    "runtime_auto_download": false
+  },
+  "media": {
+    "max_image_bytes": 20971520,
+    "max_image_pixels": 40000000,
+    "image_long_edge": 1024,
+    "max_short_video_bytes": 268435456,
+    "max_short_video_seconds": 60,
+    "max_frame_pixels": 8294400,
+    "video_frame_long_edge": 768,
+    "default_frames": 4,
+    "advanced_frames_max": 8,
+    "advanced_profile_requires_validation": true,
+    "v2_long_video_seconds_max": 7200,
+    "v2_long_video_bytes_max": 21474836480
+  },
+  "security": {
+    "bind": "127.0.0.1",
+    "remote_urls_as_media": false,
+    "cloud_fallback": false,
+    "automatic_content_moderation": false,
+    "approval_required_for_manual_export": false
+  },
+  "storage": {
+    "v0_business_db": false,
+    "v1_sqlite": true,
+    "copy_original_media_by_default": false
+  },
+  "ui": {
+    "v0": "native ComfyUI",
+    "v1_v3": "React+TypeScript+Vite",
+    "python_ui_frameworks_allowed": false
+  }
+}

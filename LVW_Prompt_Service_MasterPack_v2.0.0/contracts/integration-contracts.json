@@ -1,0 +1,40 @@
+{
+  "version": "lvw.integrations/1",
+  "status": "PROPOSED_NOT_PEER_VERIFIED",
+  "handshake": [
+    "peer_id",
+    "app_version",
+    "supported_contract_versions",
+    "capabilities",
+    "auth_scope",
+    "workflow_hashes"
+  ],
+  "navia": {
+    "in": "NaviaEvidence",
+    "no_fetch": true,
+    "forbidden": [
+      "cookie",
+      "token",
+      "absolute_path",
+      "raw_browser_store"
+    ]
+  },
+  "narralens": {
+    "in": "NarralensBrief",
+    "out": "Suggestion",
+    "source_version_required": true,
+    "forbidden_writes": [
+      "production_status",
+      "approval",
+      "timeline",
+      "final_export"
+    ]
+  },
+  "comfy": {
+    "in": "ComfyRequest",
+    "ownership_check_before_interrupt": true,
+    "unknown_submit_state": "submission_unknown",
+    "blind_retry": false
+  },
+  "capability_missing": "BLOCKED; no simulated E2E PASS"
+}

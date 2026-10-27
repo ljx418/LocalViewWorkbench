@@ -1,0 +1,75 @@
+{
+  "schema_version": "lvw.stage-control/1",
+  "project_id": "lvw-prompt-service",
+  "stage_id": "V0-S1",
+  "stage_packet_version": "0.1.0-draft",
+  "packet_status": "DRAFT_NOT_FROZEN",
+  "gate_version": "lvw-gate/1",
+  "baseline": {
+    "git_commit": "PENDING_V0_S0_EXIT",
+    "product_control_sha256": "bd4875c1d53ce8a208e35cdb3b3b20110b290eb7f547eb1239b4eb1192764f4a"
+  },
+  "state": "BLOCKED_BY_DEPENDENCY",
+  "last_passed_gate": "NONE_FOR_V0_S1",
+  "dependencies": ["V0-S0:STAGE_BASELINE_COMPLETE"],
+  "authorities": [
+    "docs/13_V0_IMPLEMENTATION.md",
+    "contracts/v0-result.schema.json",
+    "contracts/errors.json",
+    "config/runtime.defaults.json",
+    "plans/tasks.json",
+    "plans/acceptance_cases.json"
+  ],
+  "roles": {
+    "gate_owner": "codex_sol",
+    "implementation_owners": ["claudecode_minimax"],
+    "supplemental_implementation": "deepseek_bounded_workpack",
+    "independent_reviewer": "deepseek_isolated_review",
+    "trusted_executor": "local_ci",
+    "human_authorizer": "project_owner"
+  },
+  "fixed_acceptance_ids": ["V0-A01", "V0-A03", "V0-A04", "V0-A05", "V0-A08"],
+  "acceptance_hash": "4b52485dbaa7daeccb31b5c91771b51f8106ab6e49267328990ad4da3b5f85c5",
+  "allowed_paths_draft": [
+    "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/",
+    "LVW_V0_RuntimePatch/workflows/image_reverse_prompt_v0.ui.json",
+    "LVW_V0_RuntimePatch/workflows/image_reverse_prompt_v0.api.json",
+    "LVW_V0_RuntimePatch/workflows/manual_prompt_v0.ui.json",
+    "LVW_V0_RuntimePatch/templates/",
+    "LVW_V0_RuntimePatch/tests/",
+    "LVW_V0_RuntimePatch/manifests/",
+    "reports/v0-s1/"
+  ],
+  "forbidden_paths": [
+    "contracts/",
+    "plans/acceptance_cases.json",
+    "plans/release_gates.json",
+    "legacy/",
+    "COMFY_ROOT/custom_nodes/prompt-assistant/"
+  ],
+  "budgets_draft": {
+    "implementation_write_slots": 1,
+    "independent_review_slots": 1,
+    "max_effective_retries_per_external_case": 2,
+    "downloads": 0,
+    "cloud_fallback_calls": 0
+  },
+  "mandatory_stops": [
+    "V0-S0 has not passed",
+    "candidate baseline commit is missing",
+    "live node binding is absent or changed",
+    "public contract or fixed denominator change",
+    "target write or model call lacks explicit authorization",
+    "candidate evidence mismatch",
+    "fatal or major false-green finding",
+    "secret private-path or original-media leak",
+    "two same-route failures without new evidence"
+  ],
+  "draft_exit_conditions": [
+    "Replace pending baseline with the V0-S0 accepted candidate commit.",
+    "Resolve live node bindings and permitted reuse path.",
+    "Record worktree and target-runtime authorizations.",
+    "Reissue as a non-draft packet and regenerate its manifest."
+  ],
+  "execution_authorized": false
+}

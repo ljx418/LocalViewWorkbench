@@ -1,0 +1,90 @@
+{
+  "schema_version": "lvw.runtime-inventory/1",
+  "project_id": "lvw-prompt-service",
+  "stage_id": "V0-S0",
+  "workpack_id": "WP-S0-01",
+  "observed_at": "2026-10-27",
+  "collection_mode": "static_read_only_partial",
+  "authorization_status": "NOT_CONFIRMED_FOR_LIVE_PROBES",
+  "candidate_commit": "UNBORN_WORKTREE",
+  "target": {
+    "host_os": "Windows 11 build 26100",
+    "shell_environment": "WSL2",
+    "host_memory_bytes": 34104291328,
+    "wsl_memory_limit_bytes": 16642998272,
+    "gpu": {
+      "name": "NVIDIA GeForce RTX 4090",
+      "memory_mib": 24564,
+      "driver": "616.92"
+    },
+    "system_drive": {
+      "capacity_bytes": 1998975397888,
+      "free_bytes_observed": 108604145664,
+      "warning": "Approximately 95 percent used; keep evidence and model downloads bounded."
+    }
+  },
+  "comfyui": {
+    "root_alias": "COMFY_ROOT",
+    "present": true,
+    "git_commit": "b0f4b7b294ce482a2e071d9d762c133d38c7aa07",
+    "git_branch": "master",
+    "upstream_behind_count_observed": 191,
+    "working_tree": "dirty_or_line_ending_drift_observed",
+    "files": {
+      "main.py_sha256": "5a958d6975d8b6096887df7f5160cecf760e5b434a5471bb5f8efaae73bcfd96",
+      "nodes.py_sha256": "4678d41906fa63780816748b38d9d7bb7364e5504ea4be91b6d8fcb842f5d891"
+    },
+    "python_version": "3.12.10",
+    "torch_version": "2.8.0+cu129",
+    "torch_cuda_version": "12.9",
+    "torch_cuda_available": true,
+    "service_running": false,
+    "live_registry_queried": false
+  },
+  "prompt_assistant": {
+    "root_alias": "COMFY_ROOT/custom_nodes/prompt-assistant",
+    "present": true,
+    "version": "2.0.6",
+    "license": "GPL-3.0",
+    "selected_source_fingerprint_sha256": "47eb4843b905b8dfa973f856ba8adab242ee8d2598bd1b5f93f4af4070bf4c8f",
+    "registration_style": "ComfyUI V3 extension",
+    "configured_current_llm_service": "zhipu",
+    "configured_current_vlm_service": "zhipu",
+    "ollama_entry_present": true,
+    "ollama_configured_model_counts": {
+      "llm": 0,
+      "vlm": 0
+    },
+    "secrets_recorded": false
+  },
+  "ollama": {
+    "client_present": true,
+    "client_version": "0.32.8",
+    "service_running": false,
+    "models_queried": false
+  },
+  "media_tools": {
+    "ffmpeg_present": true,
+    "ffprobe_present": true,
+    "ffmpeg_version": "6.1.1"
+  },
+  "process_observation": {
+    "comfyui_python_process_found": false,
+    "ollama_process_found": false,
+    "owned_processes_started": 0,
+    "cleanup_required": false
+  },
+  "not_performed": [
+    "No service was started or reconfigured.",
+    "No model was downloaded or invoked.",
+    "No private media was read.",
+    "No live ComfyUI object_info registry was queried.",
+    "No V0 product acceptance case was executed."
+  ],
+  "limitations": [
+    "The repository has no baseline commit, so evidence cannot yet bind to a candidate SHA.",
+    "Live node availability and exact installed Ollama models remain unverified.",
+    "The target ComfyUI worktree was already dirty; this inspection did not modify or normalize it.",
+    "This is inventory evidence only and is not a V0 acceptance receipt."
+  ]
+}

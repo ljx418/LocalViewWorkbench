@@ -1,0 +1,16 @@
+{
+  "schema_version": "agent-governance.project-registry/1",
+  "projects": [
+    {
+      "project_id": "lvw-prompt-service",
+      "workspace": ".",
+      "execution_control": "plans/execution-control.json",
+      "current_stage": "V0-S0",
+      "state": "WAIT_AUTH",
+      "write_slots": 0,
+      "review_slots": 1,
+      "resource_locks": ["target-windows", "single-gpu", "ollama", "comfyui"],
+      "next_action": "bounded target-runtime authorization or continued offline governance review"
+    }
+  ]
+}
