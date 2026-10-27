@@ -1,0 +1,47 @@
+{
+  "schema_version": "lvw.authorization/1",
+  "authorization_id": "AUTH-V0-S0-2026-10-27-01",
+  "project_id": "lvw-prompt-service",
+  "stage_id": "V0-S0",
+  "issued_at": "2026-10-27",
+  "authorizer": "project_owner",
+  "status": "GRANTED",
+  "scope": {
+    "target_machine": "current_local_windows_wsl_host",
+    "readable_roots": [
+      "COMFY_ROOT",
+      "TEST_SOURCE"
+    ],
+    "allowed_services": [
+      "existing local ComfyUI on loopback",
+      "existing local Ollama on loopback"
+    ],
+    "allowed_inputs": [
+      "authorized files under TEST_SOURCE",
+      "generated non-private image and video fixtures"
+    ],
+    "allowed_actions": [
+      "start and stop existing local services",
+      "query public ComfyUI registry and local Ollama model inventory",
+      "run one-image and bounded four-frame feasibility probes",
+      "record redacted hashes, versions, timing, resource and cleanup evidence"
+    ],
+    "max_effective_retries_per_probe": 2,
+    "evidence_root": "reports/v0-s0/",
+    "cleanup": "Stop only processes started by this run and remove only run-owned temporary files."
+  },
+  "explicitly_not_authorized": [
+    "download or upgrade software or model weights",
+    "change Prompt Assistant, ComfyUI, Ollama or system configuration",
+    "read browser cookies or unrelated private directories",
+    "invoke cloud or paid model providers",
+    "publish evidence or original media",
+    "push Git commits to a remote"
+  ],
+  "git_identity": {
+    "user_name": "ljx418",
+    "user_email": "1173696783@qq.com",
+    "scope": "local repository configuration and local commits"
+  },
+  "source": "Direct user authorization in the active project conversation."
+}

@@ -101,8 +101,19 @@ def validate_stage(control: dict, tasks: dict, cases: dict) -> list[str]:
         if not item.get("owner") or not item.get("allowed_paths") or not item.get("commands") or not item.get("output"):
             errors.append(f"{item.get('id')}: incomplete owner/scope/command/output")
     external = any(item.get("risk") == "external_private" for item in workpacks)
-    if external and control.get("state") != "WAIT_AUTH":
-        errors.append("external/private work exists but Stage is not WAIT_AUTH")
+    state = control.get("state")
+    if external and state == "WAIT_AUTH":
+        if control.get("authorization_records"):
+            errors.append("WAIT_AUTH must not claim active authorization records")
+    elif external:
+        if state not in {"RUNNING", "CHECKPOINT", "STAGE_BASELINE_COMPLETE", "NO_GO", "BLOCKED", "WAIT_BUDGET"}:
+            errors.append("external/private Stage has an invalid post-authorization state")
+        records = control.get("authorization_records", [])
+        if not records:
+            errors.append("post-authorization Stage is missing authorization_records")
+        for record in records:
+            if not (ROOT / record).is_file():
+                errors.append(f"authorization record is missing: {record}")
     if control.get("budgets", {}).get("max_effective_retries_per_probe", 99) > 2:
         errors.append("retry budget exceeds the frozen V0-S0 maximum")
     protected = set(control.get("forbidden_paths", []))
@@ -167,6 +178,7 @@ def run_self_tests(control: dict, tasks: dict, cases: dict) -> list[dict]:
 
     unauthorized = copy.deepcopy(control)
     unauthorized["state"] = "RUNNING"
+    unauthorized["authorization_records"] = []
     results.append({"name": "reject_unauthorized_external_run", "passed": bool(validate_stage(unauthorized, tasks, cases))})
 
     base_receipt = load_json(GOV / "templates" / "implementation-receipt.json")
@@ -212,7 +224,7 @@ def main() -> int:
 
     execution = load_json(ROOT / "plans" / "execution-control.json")
     check("single_coordinate_stage", execution["coordinate"]["stage_id"] == control["stage_id"])
-    check("single_coordinate_state", execution["coordinate"]["state"] == control["state"] == "WAIT_AUTH")
+    check("single_coordinate_state", execution["coordinate"]["state"] == control["state"])
     check("product_status_not_promoted", execution["product_status"] == "NOT_RUN")
     check("packet_reference", (ROOT / execution["stage_packet"]).resolve() == (STAGE_DIR / "stage-control.json").resolve())
     check("manifest_reference", (ROOT / execution["stage_packet_manifest"]).resolve() == (STAGE_DIR / "PAYLOAD_MANIFEST.sha256").resolve())
