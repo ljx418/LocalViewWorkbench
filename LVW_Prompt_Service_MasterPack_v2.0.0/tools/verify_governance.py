@@ -384,7 +384,7 @@ def main() -> int:
             or (
                 control.get("state") == execution["coordinate"]["state"] == "RUNNING"
                 and execution["coordinate"].get("workpack_id")
-                in {"WP-S0-06", "WP-S0-07", "WP-S0-08", "WP-S0-10", "WP-S0-12", "WP-S0-14", "WP-S0-15", "WP-S0-16", "WP-S0-17"}
+                in {"WP-S0-06", "WP-S0-07", "WP-S0-08", "WP-S0-10", "WP-S0-12", "WP-S0-14", "WP-S0-15", "WP-S0-16", "WP-S0-17", "WP-S0-18", "WP-S0-19", "WP-S0-20"}
                 and execution.get("last_passed_gate", {}).get("id")
                 in {
                     "WP_S0_05_INDEPENDENT_REVIEW_COMPLETE",
@@ -393,6 +393,7 @@ def main() -> int:
                     "WP_S0_10_NO_CLOUD_GATE_PASS_COMFY_PATH_BLOCKED",
                     "WP_S0_12_IMAGE_PUBLIC_PATH_PASS_VIDEO_ORACLE_STOP",
                     "WP_S0_15_OFFLINE_CANDIDATE_SEALED",
+                    "WP_S0_17_INDEPENDENT_NO_GO_REVIEW_COMPLETE",
                 }
             ),
             f"major_count={major_count}",
@@ -405,11 +406,11 @@ def main() -> int:
             )
             or (
                 execution["coordinate"].get("workpack_id")
-                in {"WP-S0-06", "WP-S0-07", "WP-S0-08", "WP-S0-10", "WP-S0-12", "WP-S0-14", "WP-S0-15", "WP-S0-16"}
+                in {"WP-S0-06", "WP-S0-07", "WP-S0-08", "WP-S0-10", "WP-S0-12", "WP-S0-14", "WP-S0-15", "WP-S0-16", "WP-S0-18", "WP-S0-19", "WP-S0-20"}
                 and execution["coordinate"].get("gate") in {"GATE1_IMPLEMENTATION", "GATE2_WORKPACK", "GATE4_REAL_ACCEPTANCE"}
             )
             or (
-                execution["coordinate"].get("workpack_id") in {"WP-S0-11", "WP-S0-13", "WP-S0-17"}
+                execution["coordinate"].get("workpack_id") in {"WP-S0-11", "WP-S0-13", "WP-S0-17", "WP-S0-21"}
                 and execution["coordinate"].get("gate") == "GATE3_CHECKPOINT"
             ),
         )

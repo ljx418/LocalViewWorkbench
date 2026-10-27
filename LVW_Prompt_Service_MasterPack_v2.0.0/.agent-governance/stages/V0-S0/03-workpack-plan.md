@@ -73,3 +73,19 @@ Owner：`codex_isolated_implementer`。依赖 WP-S0-15 和新的候选绑定有�
 ## WP-S0-17：correction-06 隔离复审
 
 Owner：`codex_isolated_reviewer`。依赖 WP-S0-16。独立复算候选、图片/四帧公共 trace、语义 Oracle、请求次数、资源、网络、逐次清理、历史失败不可改写和固定分母 NOT_RUN；root Codex 保留最终 S0 裁决。
+
+## WP-S0-18：可复用 live harness 纠偏
+
+Owner：`codex_isolated_implementer`。依赖 WP-S0-17 与 `gpu-owner-clearance.md`。从 correction-06 probe 提取可复用 `tools/v0_s0_live_probe.py`，在任何 owned service 前使用 Windows-native `nvidia-smi.exe` 与进程/端口枚举；baseline used 必须 `<=4096 MiB`，且不得存在 Comfy portable Python、Ollama 或 8191/11434 listener。超出或无法归属即 fail-closed。修复超时路径：保留 history 中的 `MODEL_TIMEOUT` 首因；cleanup 是否完成按同一调用计数、cleanup 200、终态 `/api/ps` 空及最终清理组合判断，服务端完成日志顺序只作诊断。
+
+## WP-S0-19：harness 离线负例与收据
+
+Owner：`codex_isolated_implementer`。依赖 WP-S0-18。不得启动服务。自测至少覆盖：干净 Windows baseline、>4096 MiB、未知目标进程/端口、正常 chat→cleanup、超时 cleanup→chat499 且终态空、缺 cleanup、history error 首因保留。执行 AST、help/self-check 和治理回归，生成离线收据，只能 READY_FOR_REVIEW。
+
+## WP-S0-20：correction-07 最终同路线真实尝试
+
+Owner：`codex_isolated_implementer`。依赖 WP-S0-19、新候选绑定授权与通过的服务前 GPU preflight。使用候选 `138b448...`，图片/视频各最多一次；这是该路线第二次且最后一次有效尝试。同类失败且无新证据后必须停止，不得继续重跑。
+
+## WP-S0-21：correction-07 隔离复审
+
+Owner：`codex_isolated_reviewer`。依赖 WP-S0-20。独立复算 harness、preflight、候选、公共图片/视频 trace、语义、资源、网络、清理及全部历史失败；root 保留正式裁决。

@@ -38,3 +38,5 @@ WP-S0-14/15 的新候选 `138b4486fdaeb8d207ef6b5efb63a09865f174b9` 已通过双
 该授权已由 WP-S0-16 的单次图片尝试和终态收据消耗，不得复用。真实 chat 超时；卸载请求 200、chat 随后 499、最终模型/端口/PID/temp/目标完整性均清理。严格 trace 判定和最终清理证明之间的语义差异必须由 WP-S0-17 独立审查，不得由实现者自行改判。
 
 WP-S0-17 与 root 的 Windows-native只读复核确认：非本轮 owned 的 ComfyUI PID 48820 在 correction-06 前已由 PID 43252 / `Start_ComfyUI_Stable.bat` 启动，且仍在 GPU 进程清单中。不得终止非 owned 进程；在项目负责人关闭它并重新证明 GPU owner/总占用前，Stage 状态为 BLOCKED。
+
+项目负责人已关闭该进程；复检确认旧 PID/端口消失且 GPU used 降至 1530 MiB。BLOCKED 已解除，但这不是 live 授权。WP-S0-18/19 先离线固化 Windows-native preflight：服务前 used `<=4096 MiB`，不得存在目标 Comfy/Ollama/授权端口 owner；否则停止。WP-S0-20 必须另立单次授权，并作为同路线第二次且最后一次有效尝试。

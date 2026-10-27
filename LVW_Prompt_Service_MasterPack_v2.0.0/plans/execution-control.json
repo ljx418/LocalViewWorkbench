@@ -6,27 +6,27 @@
   "target_version": "V0",
   "coordinate": {
     "stage_id": "V0-S0",
-    "workpack_id": "WP-S0-17",
-    "gate": "GATE3_CHECKPOINT",
-    "state": "BLOCKED"
+    "workpack_id": "WP-S0-18",
+    "gate": "GATE1_IMPLEMENTATION",
+    "state": "RUNNING"
   },
   "last_passed_gate": {
-    "id": "WP_S0_15_OFFLINE_CANDIDATE_SEALED",
-    "evidence": "reports/v0-s0/implementation-receipt-correction-06-offline.json",
-    "meaning": "grounded anti-copy handoff candidate sealed after repository and portable Python 24/24 suites"
+    "id": "WP_S0_17_INDEPENDENT_NO_GO_REVIEW_COMPLETE",
+    "evidence": "reports/v0-s0/independent-review-correction-06.md",
+    "meaning": "independent review confirmed three Major findings; user then cleared the non-owned GPU process"
   },
-  "current_blocking_gate": "non-owned ComfyUI PID 48820 / parent 43252 must be closed by the project owner, then Windows-native GPU ownership preflight must pass",
+  "current_blocking_gate": "reusable harness must close GPU-owner, timeout-cleanup and primary-error evidence defects before any live authorization",
   "stage_packet": ".agent-governance/stages/V0-S0/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/V0-S0/PAYLOAD_MANIFEST.sha256",
   "product_status": "NOT_RUN",
-  "allowed_claim": "V0_S0_NO_GO_BLOCKED_BY_NON_OWNED_GPU_PROCESS",
+  "allowed_claim": "V0_S0_CORRECTION_07_OFFLINE_HARNESS_WORK_AUTHORIZED",
   "forbidden_claims": [
     "ENGINEERING_READY",
     "V0_ACCEPTED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "project_owner",
-  "next_action": "Close the existing non-owned ComfyUI launched by Start_ComfyUI_Stable.bat; notify root for a read-only Windows-native GPU/port recheck.",
+  "next_owner": "codex_isolated_implementer",
+  "next_action": "Execute WP-S0-18/19 offline harness correction and tests; do not start local services.",
   "evidence_root": "reports/",
-  "exact_stop_reason": "NON_OWNED_COMFY_GPU_OWNER_ACTIVE_PID_48820"
+  "exact_stop_reason": null
 }
