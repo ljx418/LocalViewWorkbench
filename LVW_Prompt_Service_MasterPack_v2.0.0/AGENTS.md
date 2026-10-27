@@ -14,4 +14,4 @@
 11. 固定四权分离：Codex+Sol负责架构和Stage门禁；Claude Code+MiniMax/DeepSeek只实现冻结Workpack；隔离审查实例只读复算；人类负责高风险授权和最终体验签署。实现者只能报告READY_FOR_REVIEW，不能宣布Stage PASS。
 12. 每个并行写任务使用独立worktree/等效副本、端口、数据库、临时根和证据根。公共API/Schema/状态机/迁移默认串行。当前仓库首个commit前禁止并行写任务。
 13. 候选、规格、验收分母、门禁和证据必须以SHA/hash绑定。预算不足写WAIT_BUDGET，缺高风险授权写WAIT_AUTH；不得降低门槛。连续两次同路线无新证据即停止交接。
-14. 当前V0-S0真实盘点与模型/媒体探测处于WAIT_AUTH。未经逐次授权，不读目标机私有目录、不调用Comfy/Ollama、不运行真实媒体或可见浏览器。
+14. 任何真实盘点、模型/媒体探测或可见浏览器动作都以`plans/execution-control.json`和当前Stage的有限授权记录为准；不得从旧聊天或历史授权推断新预算。无匹配记录时进入WAIT_AUTH。

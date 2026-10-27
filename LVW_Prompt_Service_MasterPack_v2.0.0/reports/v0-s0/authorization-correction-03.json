@@ -1,0 +1,81 @@
+{
+  "schema_version": "lvw.authorization/1",
+  "authorization_id": "AUTH-V0-S0-2026-10-27-03",
+  "project_id": "lvw-prompt-service",
+  "stage_id": "V0-S0",
+  "workpack_id": "WP-S0-08",
+  "granted_by": "project_owner",
+  "authorization_basis": [
+    "User explicitly authorized limited local ComfyUI/Ollama startup and probing.",
+    "User authorized non-private test media under C:\\workSpace\\videoWorkLine\\testSource.",
+    "User authorized Codex to temporarily replace Claude Code and DSH implementation roles until V0 completes."
+  ],
+  "candidate_sha": "078b51aab02fbfbcfd0efcfc7d38a2c9c6381f68",
+  "receipt_sha": "2df895318ae1278452a399622fb29f41eb3dce73",
+  "implementation_owner": "codex_isolated_implementer",
+  "allowed": {
+    "comfyui": {
+      "source_root_alias": "COMFY_ROOT",
+      "main_file_read_only": true,
+      "portable_python_read_execute": true,
+      "bind": "127.0.0.1",
+      "port": 8191,
+      "base_directory": "fresh run-owned Windows temporary directory",
+      "candidate_mount": "copy the sealed bridge candidate only into the temporary base custom_nodes directory",
+      "permanent_install_write": false
+    },
+    "ollama": {
+      "endpoint": "http://127.0.0.1:11434",
+      "model": "gemma4:26b",
+      "digest": "5571076f3d70050487b26b341705799e0ab29b808164f90d20d4cf84f699d251",
+      "start_only_if_port_free": true,
+      "owned_process_only": true
+    },
+    "samples": [
+      {"alias": "TEST_SOURCE/image-sample", "sha256": "b4bbd08a0fad67cc04e55d15bf2c48e9a76dcfd6dda147d8cc504452dfc78a42", "bytes": 404368},
+      {"alias": "TEST_SOURCE/video-sample", "sha256": "694a50bfb871faed6540a577b25c8a61e629035062a23f982099a6911ff22152", "bytes": 438707}
+    ],
+    "media_derivatives": "run-owned 384-long-edge image and four ordered frames only",
+    "effective_attempts_max": {"image": 2, "video": 2},
+    "network": "loopback model and Comfy requests only; observe owned Ollama PID remote TCP connections during the run",
+    "evidence_destination": "reports/v0-s0/correction-03/",
+    "visible_browser_runs": 0,
+    "external_cost": 0
+  },
+  "forbidden": [
+    "cloud or paid provider calls",
+    "downloads or upgrades",
+    "permanent ComfyUI, Prompt Assistant or Ollama configuration writes",
+    "visible browser startup",
+    "Cookie or unrelated private data access",
+    "killing a process not owned by this run",
+    "remote Git push",
+    "modifying historical evidence"
+  ],
+  "mandatory_preflight": [
+    "verify candidate and receipt commits",
+    "verify both authorized sample hashes",
+    "verify ports 8191 and 11434 ownership before start",
+    "verify model tag and digest",
+    "create fresh isolated temporary base and evidence run_id",
+    "record GPU and process baseline"
+  ],
+  "cleanup": [
+    "stop every run-owned process in finally for every failed or successful route",
+    "verify final listeners and process identities",
+    "verify Ollama /api/ps and record any release-pending state",
+    "remove only the run-owned temporary base and derived media",
+    "prove target installation and configuration bytes were not changed"
+  ],
+  "stop_conditions": [
+    "unknown existing listener or GPU owner",
+    "candidate, model digest or sample hash mismatch",
+    "non-loopback request or remote connection from the owned Ollama PID",
+    "same-route failure twice without new evidence",
+    "GPU memory reaches or exceeds 23552 MiB",
+    "cleanup cannot prove the owned process and temporary directory terminal state",
+    "any secret, private path or original media would enter the evidence package"
+  ],
+  "expires_when": "WP-S0-08 reaches one terminal implementation receipt or the stated attempt budget is exhausted",
+  "does_not_authorize_stage_pass": true
+}

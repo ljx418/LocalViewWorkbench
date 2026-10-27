@@ -384,7 +384,8 @@ def main() -> int:
             or (
                 control.get("state") == execution["coordinate"]["state"] == "RUNNING"
                 and execution["coordinate"].get("workpack_id") in {"WP-S0-06", "WP-S0-07", "WP-S0-08"}
-                and execution.get("last_passed_gate", {}).get("id") == "WP_S0_05_INDEPENDENT_REVIEW_COMPLETE"
+                and execution.get("last_passed_gate", {}).get("id")
+                in {"WP_S0_05_INDEPENDENT_REVIEW_COMPLETE", "WP_S0_07_OFFLINE_CANDIDATE_SEALED"}
             ),
             f"major_count={major_count}",
         )

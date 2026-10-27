@@ -6,27 +6,27 @@
   "target_version": "V0",
   "coordinate": {
     "stage_id": "V0-S0",
-    "workpack_id": "WP-S0-06",
-    "gate": "GATE1_IMPLEMENTATION",
+    "workpack_id": "WP-S0-08",
+    "gate": "GATE4_REAL_ACCEPTANCE",
     "state": "RUNNING"
   },
   "last_passed_gate": {
-    "id": "WP_S0_05_INDEPENDENT_REVIEW_COMPLETE",
-    "evidence": "reports/v0-s0/gate-decision-rerun-02.md",
-    "meaning": "independent_review_complete_with_no_go; not_stage_or_product_acceptance"
+    "id": "WP_S0_07_OFFLINE_CANDIDATE_SEALED",
+    "evidence": "reports/v0-s0/implementation-receipt-correction-03.json",
+    "meaning": "offline bridge candidate and tests sealed; not_real_runtime_or_product_acceptance"
   },
   "current_blocking_gate": "correction-03 must close all five Major findings before another checkpoint",
   "stage_packet": ".agent-governance/stages/V0-S0/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/V0-S0/PAYLOAD_MANIFEST.sha256",
   "product_status": "NOT_RUN",
-  "allowed_claim": "V0_S0_CORRECTION_03_OFFLINE_IMPLEMENTATION_AUTHORIZED",
+  "allowed_claim": "V0_S0_CORRECTION_03_BOUNDED_REAL_VERIFICATION_AUTHORIZED",
   "forbidden_claims": [
     "ENGINEERING_READY",
     "V0_ACCEPTED",
     "TARGET_HARDWARE_TESTED"
   ],
   "next_owner": "codex_isolated_implementer",
-  "next_action": "Implement and test WP-S0-06/07 offline inside the frozen repository paths; do not start target services.",
+  "next_action": "Execute WP-S0-08 once with the finite authorization record, preserve fresh public-entry evidence and stop before independent review.",
   "evidence_root": "reports/",
   "exact_stop_reason": null
 }
