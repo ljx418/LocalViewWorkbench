@@ -8,7 +8,7 @@
 
 产品规格仍由本README、`docs/`、`contracts/`和`plans/`定义；[Agent Governance](.agent-governance/README.md)在其上增加角色隔离、Stage Packet、Workpack、候选/证据绑定、预算等待和反假绿门禁。唯一当前坐标为[execution-control.json](plans/execution-control.json)。
 
-当前是`V0-S1 / WP-S1-02 / GATE2_WORKPACK_RECEIPT / WAIT_AUTH`：V0-S0 已闭合，S1 packet 1.0.0、WP-S1-00 夹具、WP-S1-01 人工路径和 WP-S1-02 图片/状态 owner 已封存。WP-S1-03 正等待 `AUTH-REQUEST-V0-S1-WP-S1-03-01` 的逐次批准；批准前不准备候选，也不执行目标 Comfy 安装、GPU/端口探测、Ollama、真实图片或可见浏览器。产品固定验收仍为`NOT_RUN`；治理校验不是产品验收。
+当前是`V0-S1 / WP-S1-03 / GATE1_IMPLEMENTATION / RUNNING`：WP-S1-00/01/02 已封存，`AUTH-V0-S1-2026-10-28-01` 已授权一次受限本机运行。执行者必须先封存 workflow/API/harness 候选，再在单图片、单模型调用、loopback/no-cloud、零浏览器预算内运行并完整清理；授权于终态自动过期。产品固定验收仍为`NOT_RUN`；治理校验不是产品验收。
 
 ## 一套文档，不再多条互斥路线
 

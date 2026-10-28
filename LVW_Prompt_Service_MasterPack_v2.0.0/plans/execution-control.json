@@ -6,29 +6,30 @@
   "target_version": "V0",
   "coordinate": {
     "stage_id": "V0-S1",
-    "workpack_id": "WP-S1-02",
-    "gate": "GATE2_WORKPACK_RECEIPT",
-    "state": "WAIT_AUTH"
+    "workpack_id": "WP-S1-03",
+    "gate": "GATE1_IMPLEMENTATION",
+    "state": "RUNNING"
   },
   "last_passed_gate": {
     "id": "WP_S1_02_IMAGE_STATE_OWNERS_SEALED",
     "evidence": "reports/v0-s1/implementation-receipt-wp-s1-02.json",
     "meaning": "controlled image preprocessing and token-bound draft isolation passed 59 offline regression tests and gate-owner review on candidate 2776a0c"
   },
-  "current_blocking_gate": "WP-S1-03 requires project-owner approval of AUTH-REQUEST-V0-S1-WP-S1-03-01 before candidate preparation or any external action",
+  "current_blocking_gate": "WP-S1-03 must prepare and seal its exact execution candidate before the first authorized external action",
   "stage_packet": ".agent-governance/stages/V0-S1/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/V0-S1/PAYLOAD_MANIFEST.sha256",
   "product_status": "NOT_RUN",
-  "allowed_claim": "V0_S1_WP_S1_02_SEALED_WAIT_AUTH_PRODUCT_CASES_NOT_RUN",
+  "allowed_claim": "V0_S1_WP_S1_03_ONE_SHOT_AUTHORIZED_RUNNING_PRODUCT_CASES_NOT_RUN",
   "forbidden_claims": [
     "ENGINEERING_READY",
     "V0_ACCEPTED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "project_owner",
-  "next_action": "Approve or reject AUTH-REQUEST-V0-S1-WP-S1-03-01; no WP-S1-03 preparation or external action is allowed before approval is recorded.",
-  "required_authorization": "AUTH-REQUEST-V0-S1-WP-S1-03-01",
+  "next_owner": "codex_isolated_implementer",
+  "next_action": "Prepare and commit the exact WP-S1-03 workflow/API/harness candidate within the frozen allowlist; gate owner must verify hashes before the single live run.",
+  "required_authorization": "AUTH-V0-S1-2026-10-28-01",
   "authorization_request": "reports/v0-s1/authorization-wp-s1-03-01.request.json",
+  "authorization_record": "reports/v0-s1/authorization-wp-s1-03-01.json",
   "evidence_root": "reports/",
-  "exact_stop_reason": "WAIT_AUTH_WP_S1_03_NEW_ONE_SHOT_SCOPE_REQUIRED"
+  "exact_stop_reason": null
 }

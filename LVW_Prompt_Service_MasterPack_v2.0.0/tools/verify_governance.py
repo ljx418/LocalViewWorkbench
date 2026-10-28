@@ -129,6 +129,8 @@ def validate_stage(control: dict, tasks: dict, cases: dict) -> list[str]:
         if control.get("external_authorization") != "WAIT_AUTH_BEFORE_WP-S1-03":
             errors.append("offline-only Stage must keep external workpack at WAIT_AUTH")
     elif external:
+        if control.get("authorization_scope") != "WP-S1-03_ONE_SHOT_LIVE":
+            errors.append("post-authorization Stage has an unknown authorization scope")
         if state not in {"FROZEN_READY_OFFLINE", "RUNNING", "CHECKPOINT", "STAGE_BASELINE_COMPLETE", "NO_GO", "BLOCKED", "WAIT_BUDGET"}:
             errors.append("external/private Stage has an invalid post-authorization state")
         records = control.get("authorization_records", [])
@@ -370,8 +372,19 @@ def main_v0_s1(args: argparse.Namespace, execution: dict) -> int:
         ", ".join(manifest_errors),
     )
     check("packet_frozen", control.get("packet_status") == "FROZEN")
-    check("offline_scope_only", control.get("execution_authorized") is True and control.get("authorization_scope") == "OFFLINE_REPOSITORY_ONLY")
-    check("external_wait_auth", control.get("external_authorization") == "WAIT_AUTH_BEFORE_WP-S1-03")
+    authorization_records = control.get("authorization_records", [])
+    live_authorized = (
+        control.get("authorization_scope") == "WP-S1-03_ONE_SHOT_LIVE"
+        and isinstance(control.get("external_authorization"), str)
+        and control.get("external_authorization", "").startswith("AUTH-V0-S1-")
+        and bool(authorization_records)
+    )
+    offline_waiting = (
+        control.get("authorization_scope") == "OFFLINE_REPOSITORY_ONLY"
+        and control.get("external_authorization") == "WAIT_AUTH_BEFORE_WP-S1-03"
+    )
+    check("authorization_scope_valid", control.get("execution_authorized") is True and (offline_waiting or live_authorized))
+    check("external_authorization_state", offline_waiting or live_authorized)
     check("baseline_product_control_fingerprint", control.get("baseline", {}).get("product_control_sha256") == product_control_digest())
 
     bound_commits = [
@@ -420,7 +433,8 @@ def main_v0_s1(args: argparse.Namespace, execution: dict) -> int:
         check("reject_role_collision", bool(validate_stage(collision, tasks, cases)), "negative mutation must be rejected")
         broadened = copy.deepcopy(control)
         broadened["authorization_scope"] = "OFFLINE_AND_LIVE"
-        check("reject_broadened_scope", broadened.get("authorization_scope") != "OFFLINE_REPOSITORY_ONLY", "negative mutation must be rejected")
+        check("reject_unknown_authorization_scope", bool(validate_stage(broadened, tasks, cases)),
+              "negative mutation must be rejected")
 
     result = {
         "kind": "GOVERNANCE_VALIDATION_NOT_PRODUCT_ACCEPTANCE",
