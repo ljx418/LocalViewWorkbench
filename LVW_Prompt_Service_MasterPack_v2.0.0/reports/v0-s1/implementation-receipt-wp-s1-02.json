@@ -1,0 +1,183 @@
+{
+  "schema_version": "lvw.implementation-receipt/1",
+  "project_id": "lvw-prompt-service",
+  "stage_id": "V0-S1",
+  "workpack_id": "WP-S1-02",
+  "spec_version": "1.0.0",
+  "stage_packet_commit": "34515e763c2c8e1547a3a35a1914ae82db1ac939",
+  "baseline_head": "34515e763c2c8e1547a3a35a1914ae82db1ac939",
+  "candidate_sha": "0000000000000000000000000000000000000000",
+  "candidate_sha_status": "PENDING_ROOT_SEALING",
+  "evidence_commit": "0000000000000000000000000000000000000000",
+  "evidence_commit_status": "PENDING_ROOT_SEALING",
+  "acceptance_hash": "4b52485dbaa7daeccb31b5c91771b51f8106ab6e49267328990ad4da3b5f85c5",
+  "acceptance_hash_binding": {
+    "algorithm": "sha256",
+    "target": "sorted fixed acceptance IDs V0-A01,V0-A03,V0-A04,V0-A05,V0-A08 joined by LF with a trailing LF",
+    "source": ".agent-governance/stages/V0-S1/04-acceptance-matrix.md"
+  },
+  "gate_version": "lvw-gate/1",
+  "run_id": "v0-s1-wp-s1-02-offline-20261028-01",
+  "implementation_owner_role": "codex_isolated_implementer",
+  "implementation_session": "/root/s0_rerun_implementer",
+  "decision": "READY_FOR_REVIEW",
+  "stage_pass_claim": false,
+  "exact_stop_reason": "WP_S1_02_OFFLINE_IMAGE_AND_STATE_OWNERS_COMPLETE",
+  "environment": {
+    "mode": "offline_repository_only",
+    "python": "3.12",
+    "target_runtime_touched": false,
+    "network_calls": 0,
+    "model_calls": 0,
+    "gpu_probes": 0,
+    "real_media_reads": 0,
+    "synthetic_fixture_images": true,
+    "visible_browser_runs": 0
+  },
+  "changed_files": [
+    "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/__init__.py",
+    "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/nodes.py",
+    "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/image_input.py",
+    "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/state.py",
+    "LVW_V0_RuntimePatch/tests/test_lvw_v0_bridge.py",
+    "LVW_V0_RuntimePatch/tests/test_s1_image_state_owner.py",
+    "reports/v0-s1/implementation-receipt-wp-s1-02.json"
+  ],
+  "artifact_sha256": [
+    {"path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/__init__.py", "sha256": "c705493b22c47184659ef7dafef4bd7ca1f8c2a39d469b3b5d2aa1ae89110d4e"},
+    {"path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/nodes.py", "sha256": "c7a6d72f54f10f7b010d0160983d4466ecbd1cafefba57d33238150903a74e12"},
+    {"path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/image_input.py", "sha256": "b8e543f292818d05585d88d198eea24f949c8f882e82c4ea459452567f965316"},
+    {"path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/state.py", "sha256": "09d8da35847f90519afad904f0d8a06e8c24594e190f59a3d59098bfc182192f"},
+    {"path": "LVW_V0_RuntimePatch/tests/test_lvw_v0_bridge.py", "sha256": "ec35b463e56dc7ed2bfc1de8a04cf01d09952585fdeb514b81a67c212333f573"},
+    {"path": "LVW_V0_RuntimePatch/tests/test_s1_image_state_owner.py", "sha256": "24b69061d858013ca042bdaa68355eec6fccf0d4e8d0914e056ad1e71fe3d724"}
+  ],
+  "contract_changes": "none",
+  "target_configuration_changes": "none",
+  "implementation": {
+    "public_owners": ["LVWControlledImageInput", "LVWDraftStateOwner"],
+    "image_boundary": {
+      "authority": "Comfy input root plus safe relative reference",
+      "formats": ["JPEG", "PNG", "WEBP"],
+      "max_image_bytes": 20971520,
+      "max_image_pixels": 40000000,
+      "image_long_edge": 1024,
+      "exif_transpose_before_limits": true,
+      "rgba_strategy": "white_background",
+      "writes": 0
+    },
+    "state_boundary": {
+      "explicit_fields": ["run_token", "draft_epoch", "raw_response", "suggestion", "draft"],
+      "current_token_required_for_callbacks": true,
+      "automatic_draft_update": false,
+      "explicit_adopt_required": true,
+      "automatic_retries": 0
+    }
+  },
+  "commands": [
+    {
+      "logical_command": "PYTHONDONTWRITEBYTECODE=1 python3 -B -m unittest -v LVW_V0_RuntimePatch.tests.test_s1_image_state_owner",
+      "exit_code": 0,
+      "tests_run": 13,
+      "result": "OK"
+    },
+    {
+      "logical_command": "PYTHONDONTWRITEBYTECODE=1 python3 -B -m unittest discover -s LVW_V0_RuntimePatch/tests -p test_*.py",
+      "exit_code": 0,
+      "tests_run": 58,
+      "result": "OK; image, state, manual, bridge, and S1 fixture regression"
+    },
+    {
+      "logical_command": "TARGET_COMFY_PYTHON -B -m unittest discover -s LVW_V0_RuntimePatch/tests -p test_*.py",
+      "exit_code": 1,
+      "tests_run": 58,
+      "result": "56 passed, 2 errors; Windows account lacks symlink creation privilege in one existing manual fixture and one new image escape fixture",
+      "failure_disposition": "environment capability difference; both symlink rejection tests pass under repository Python and product target was not touched"
+    },
+    {
+      "logical_command": "python3 -B - (AST parse six changed Python files)",
+      "exit_code": 0,
+      "result": "PASS"
+    },
+    {
+      "logical_command": "PYTHONDONTWRITEBYTECODE=1 python3 -B tools/verify_pack.py --schema",
+      "exit_code": 1,
+      "result": "1118 passed, 3 failed; only root MANIFEST hashes for three modified tracked files",
+      "failure_disposition": "WP-S1-02 explicitly forbids root MANIFEST modification; gate owner sealing remains pending"
+    },
+    {
+      "logical_command": "PYTHONDONTWRITEBYTECODE=1 python3 -B tools/verify_governance.py",
+      "exit_code": 0,
+      "result": "18 passed, 0 failed; not product acceptance"
+    },
+    {
+      "logical_command": "PYTHONDONTWRITEBYTECODE=1 python3 -B tools/verify_governance.py --self-test",
+      "exit_code": 0,
+      "result": "21 passed, 0 failed; not product acceptance"
+    }
+  ],
+  "check_results": [
+    {"check": "public_image_owner_registration", "status": "PASS_OFFLINE", "test": "test_public_owner_is_registered_and_reachable"},
+    {"check": "actual_format_and_original_hash", "status": "PASS_OFFLINE", "test": "test_public_owner_is_registered_and_reachable"},
+    {"check": "image_byte_pixel_exact_one_over", "status": "PASS_OFFLINE", "test": "test_byte_and_pixel_boundaries_without_large_allocations"},
+    {"check": "exif_before_dimension_policy", "status": "PASS_OFFLINE", "test": "test_exif_transpose_precedes_dimension_recording"},
+    {"check": "rgba_white_composite", "status": "PASS_OFFLINE", "test": "test_rgba_is_composited_on_white_and_recorded"},
+    {"check": "long_edge_1024", "status": "PASS_OFFLINE", "test": "test_long_edge_is_bounded_and_recorded"},
+    {"check": "corrupt_and_unsupported_format", "status": "PASS_OFFLINE", "test": "test_corrupt_and_actual_format_fail_closed"},
+    {"check": "path_and_symlink_escape", "status": "PASS_OFFLINE_REPOSITORY_PYTHON", "test": "test_absolute_escape_parent_escape_and_symlink_are_rejected"},
+    {"check": "public_state_owner_registration", "status": "PASS_OFFLINE", "test": "test_public_owner_registered_and_callback_does_not_auto_write_draft"},
+    {"check": "explicit_adopt_epoch", "status": "PASS_OFFLINE", "test": "test_explicit_adopt_updates_draft_and_epoch"},
+    {"check": "stale_and_invalid_json_isolation", "status": "PASS_OFFLINE", "test": "test_stale_token_and_invalid_json_preserve_prior_state"},
+    {"check": "terminal_same_token_callback_rejection", "status": "PASS_OFFLINE", "test": "test_terminal_run_rejects_late_same_token_callback"},
+    {"check": "failure_partial_cancel_draft_preservation", "status": "PASS_OFFLINE", "test": "test_model_failures_partial_and_cancel_never_overwrite_manual_draft"},
+    {"check": "target_comfy_public_route", "status": "NOT_RUN_WAIT_AUTH"},
+    {"check": "pack_manifest_binding", "status": "PENDING_ROOT_SEALING"}
+  ],
+  "offline_test_counts": {
+    "wp_s1_02_focused": {"pass": 13, "fail": 0, "total": 13},
+    "repository_combined_regression": {"pass": 58, "fail": 0, "total": 58},
+    "portable_python_combined": {"pass": 56, "fail": 0, "error": 2, "total": 58}
+  },
+  "test_counts": {
+    "denominator": 5,
+    "pass": 0,
+    "fail": 0,
+    "blocked": 0,
+    "skipped": 0,
+    "not_run": 5
+  },
+  "product_acceptance": {
+    "V0-A01": "NOT_RUN",
+    "V0-A03": "NOT_RUN",
+    "V0-A04": "NOT_RUN",
+    "V0-A05": "NOT_RUN",
+    "V0-A08": "NOT_RUN"
+  },
+  "external_actions": {
+    "comfyui_process_starts": 0,
+    "ollama_process_starts": 0,
+    "gpu_probes": 0,
+    "network_calls": 0,
+    "model_calls": 0,
+    "real_media_reads": 0,
+    "downloads_or_upgrades": 0,
+    "target_install_writes": 0,
+    "visible_browser_runs": 0,
+    "external_cost": 0
+  },
+  "production_path": "Comfy project nodes LVWControlledImageInput -> controlled CPU preprocess metadata/IMAGE; LVWDraftStateOwner -> token-bound callback state -> explicit adopt only",
+  "production_path_status": "IMPLEMENTED_OFFLINE_TARGET_COMFY_ROUTE_NOT_RUN",
+  "artifact_refs": [
+    "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/image_input.py",
+    "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/state.py",
+    "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/nodes.py",
+    "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/__init__.py",
+    "LVW_V0_RuntimePatch/tests/test_s1_image_state_owner.py"
+  ],
+  "raw_artifact_refs": [],
+  "risks": [
+    "Target ComfyUI registration and public-route execution remain NOT_RUN until separately authorized.",
+    "The target portable Python account cannot create test symlinks, so its two symlink fixtures error during setup; repository Python executes and passes both rejection branches.",
+    "The root MANIFEST intentionally remains unchanged and verify_pack reports the three expected changed tracked hashes until gate-owner sealing.",
+    "All five fixed product acceptance cases remain NOT_RUN; this receipt is not a Stage PASS."
+  ]
+}

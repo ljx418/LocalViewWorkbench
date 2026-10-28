@@ -4,6 +4,8 @@ import json
 
 from .core import BridgeOwner, DEFAULT_MODEL, MAX_TIMEOUT_SECONDS
 from .manual import MANUAL_ACTIONS, ManualDraftOwner
+from .image_input import ControlledImageOwner
+from .state import ACTIONS as STATE_ACTIONS, transition
 
 
 class _NodeBase:
@@ -97,3 +99,64 @@ class LVWManualPromptOwner:
                   outputs["video_prompt"], json.dumps(outputs["tags"], ensure_ascii=False),
                   outputs["negative"], outputs["edit_instruction"], payload, status)
         return {"ui": {"text": [status, payload]}, "result": result}
+
+
+class LVWControlledImageInput:
+    """Controlled Comfy input-root image loader and deterministic CPU preprocessor."""
+
+    CATEGORY = "LVW/V0"
+    OUTPUT_NODE = False
+    RETURN_TYPES = ("IMAGE", "STRING")
+    RETURN_NAMES = ("image", "metadata")
+    FUNCTION = "load"
+
+    def __init__(self, owner=None):
+        self._owner = owner
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {"required": {"image_reference": ("STRING", {"default": ""})}}
+
+    def load(self, image_reference):
+        owner = self._owner
+        if owner is None:
+            try:
+                import folder_paths
+            except ImportError as exc:
+                from .core import BridgeError
+                raise BridgeError("MODEL_UNAVAILABLE", "Comfy input root is unavailable",
+                                  subcode="COMFY_INPUT_ROOT_UNAVAILABLE") from exc
+            owner = ControlledImageOwner(folder_paths.get_input_directory())
+        result = owner.preprocess(image_reference)
+        metadata = json.dumps(result.metadata, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+        return (result.image, metadata)
+
+
+class LVWDraftStateOwner:
+    """Explicit run-token state transition owner; callbacks never auto-edit draft."""
+
+    CATEGORY = "LVW/V0"
+    OUTPUT_NODE = True
+    RETURN_TYPES = ("STRING", "STRING")
+    RETURN_NAMES = ("state", "draft")
+    FUNCTION = "process"
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        multiline = {"default": "", "multiline": True}
+        return {"required": {
+            "state": ("STRING", multiline),
+            "action": (list(STATE_ACTIONS), {"default": "start_run"}),
+            "run_token": ("STRING", {"default": ""}),
+            "callback_payload": ("STRING", multiline),
+            "draft_payload": ("STRING", multiline),
+            "error_code": ("STRING", {"default": ""}),
+        }}
+
+    def process(self, state="", action="start_run", run_token="", callback_payload="",
+                draft_payload="", error_code=""):
+        value = transition(state, action=action, run_token=run_token, callback_payload=callback_payload,
+                           draft_payload=draft_payload, error_code=error_code)
+        state_json = json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+        draft_json = json.dumps(value["draft"], ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+        return {"ui": {"text": [state_json]}, "result": (state_json, draft_json)}
