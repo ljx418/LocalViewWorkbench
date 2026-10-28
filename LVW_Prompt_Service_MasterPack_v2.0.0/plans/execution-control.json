@@ -8,28 +8,28 @@
     "stage_id": "V0-S1",
     "workpack_id": "WP-S1-03",
     "gate": "GATE4_REAL_ACCEPTANCE",
-    "state": "RUNNING"
+    "state": "NO_GO"
   },
   "last_passed_gate": {
     "id": "WP_S1_03_TERMINAL_SERIALIZATION_CORRECTION_SEALED",
     "evidence": "reports/v0-s1/wp-s1-03-serialization-correction-seal.json",
     "meaning": "structured terminal redaction, fresh authorization ID and non-reusable live-03 evidence slot passed 78 offline tests on candidate 4a2fed4"
   },
-  "current_blocking_gate": "the authorized live-03 preflight and single effective image route must execute once and generate a terminal receipt",
+  "current_blocking_gate": "the public image route rejects the contract-sized preprocessed image because bridge MAX_LONG_EDGE=384 conflicts with the frozen image_long_edge=1024",
   "stage_packet": ".agent-governance/stages/V0-S1/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/V0-S1/PAYLOAD_MANIFEST.sha256",
   "product_status": "NOT_RUN",
-  "allowed_claim": "V0_S1_WP_S1_03_LIVE_03_AUTHORIZED_RUNNING_PRODUCT_CASES_NOT_RUN",
+  "allowed_claim": "V0_S1_WP_S1_03_LIVE_03_NO_GO_FRAME_LONG_EDGE_CONTRACT_MISMATCH_PRODUCT_CASES_NOT_RUN",
   "forbidden_claims": [
     "ENGINEERING_READY",
     "V0_ACCEPTED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "codex_isolated_implementer",
-  "next_action": "Execute the sealed live-03 harness exactly once; stop on any mandatory condition, preserve evidence, clean owned resources and expire authorization.",
-  "required_authorization": "AUTH-V0-S1-2026-10-28-03",
+  "next_owner": "codex_gate_owner",
+  "next_action": "Seal immutable live-03 NO_GO evidence, correct the 1024-versus-384 production-path mismatch and diagnostic minimization offline, then prepare a fresh authorization request.",
+  "required_authorization": "NEW_EXPLICIT_AUTHORIZATION_AFTER_CORRECTED_SEAL",
   "authorization_request": "reports/v0-s1/authorization-wp-s1-03-03.request.json",
   "authorization_record": "reports/v0-s1/authorization-wp-s1-03-03.json",
   "evidence_root": "reports/",
-  "exact_stop_reason": null
+  "exact_stop_reason": "PUBLIC_COMFY_ROUTE_FAILED:MEDIA_LIMIT_EXCEEDED:FRAME_LONG_EDGE_LIMIT"
 }

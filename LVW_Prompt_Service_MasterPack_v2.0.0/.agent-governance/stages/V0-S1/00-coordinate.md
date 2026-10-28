@@ -6,10 +6,10 @@ Design: 2.0.0
 Target version: V0
 Prepared stage: V0-S1 / 图片与独立人工路径
 Packet version: 1.0.0
-State: RUNNING / AUTHORIZED_LIVE_03
+State: NO_GO / LIVE_03_FRAME_LONG_EDGE_CONTRACT_MISMATCH
 Active coordinate: V0-S1 / WP-S1-03 / GATE4_REAL_ACCEPTANCE
 Last passed gate: WP_S1_03_TERMINAL_SERIALIZATION_CORRECTION_SEALED
-Exact stop reason: none
+Exact stop reason: PUBLIC_COMFY_ROUTE_FAILED:MEDIA_LIMIT_EXCEEDED:FRAME_LONG_EDGE_LIMIT
 Product cases: NOT_RUN
 Prepared-against commit: dfb00ad462d94628f1aa22045061f66a7629ec01
 Product bridge candidate: 138b4486fdaeb8d207ef6b5efb63a09865f174b9
@@ -41,3 +41,5 @@ live-02 已且仅已执行一次，但 harness 在运行完成后的终态证据
 终态序列化已在候选 `4a2fed4...` 离线修复：脱敏从“已编码 JSON 整串替换”改为“字符串叶节点递归脱敏后再编码”，并绑定新授权 ID、run ID 与不可复用的 live-03 证据槽。定向 18/18、完整离线回归 78/78、候选身份检查均通过，外部动作 0。`AUTH-REQUEST-V0-S1-WP-S1-03-03` 现等待项目负责人逐次明确批准；批准前禁止启动 ComfyUI/Ollama 或执行真实媒体路径。
 
 项目负责人已逐字批准 request-03，正式授权记录绑定请求提交 `60c49f0...` 与 SHA-256 `eecfe5d...`。仅可执行一次 live-03；任何 mandatory stop、有效图片尝试或终态收据都会使授权自动过期。
+
+live-03 已且仅已执行一次并以 `NO_GO` 终止：候选身份、GPU、精确本地模型、no-cloud、服务归属与完整清理均通过，但真实公开 `/prompt` 路径中 `LVWImagePromptBridge` 以 `MEDIA_LIMIT_EXCEEDED / FRAME_LONG_EDGE_LIMIT` 拒绝最长边大于 384 的张量。产品合同与受控输入 owner 均规定图片长边 1024，因此这是生产 owner 之间的边界不一致，不是样本替换理由。授权已自动过期，五项产品用例仍为 `NOT_RUN`；下一步只允许离线修正该不一致并重新封存。
