@@ -1,0 +1,185 @@
+{
+  "schema_version": "lvw.implementation-receipt/1",
+  "project_id": "lvw-prompt-service",
+  "stage_id": "V0-S1",
+  "workpack_id": "WP-S1-04-CHECKPOINT-PREPARATION",
+  "spec_version": "1.0.0",
+  "baseline_head": "9a3dff4ab5db534bbf7d8bfb94253a993fdcfe10",
+  "product_candidate": "1d48142b95466954ca4da264fa06762abf1522f2",
+  "candidate_sha": "0000000000000000000000000000000000000000",
+  "candidate_sha_status": "PENDING_ROOT_SEALING",
+  "evidence_commit": "0000000000000000000000000000000000000000",
+  "evidence_commit_status": "PENDING_ROOT_SEALING",
+  "acceptance_hash": "4b52485dbaa7daeccb31b5c91771b51f8106ab6e49267328990ad4da3b5f85c5",
+  "acceptance_hash_binding": {
+    "algorithm": "sha256",
+    "target": "sorted fixed acceptance IDs V0-A01,V0-A03,V0-A04,V0-A05,V0-A08 joined by LF with a trailing LF",
+    "source": ".agent-governance/stages/V0-S1/04-acceptance-matrix.md"
+  },
+  "gate_version": "lvw-gate/1",
+  "run_id": "v0-s1-stage-checkpoint-phase-a-offline-20261028-01",
+  "implementation_owner_role": "codex_isolated_implementer",
+  "implementation_session": "/root/s0_rerun_implementer",
+  "decision": "READY_FOR_REVIEW",
+  "stage_pass_claim": false,
+  "exact_stop_reason": "WAIT_AUTH_S1_FIXED_DENOMINATOR_NOT_RUN",
+  "environment": {
+    "mode": "offline_repository_only",
+    "target_runtime_touched": false,
+    "service_starts": 0,
+    "gpu_probes": 0,
+    "process_probes": 0,
+    "port_probes": 0,
+    "network_calls": 0,
+    "model_calls": 0,
+    "real_media_reads": 0,
+    "visible_browser_runs": 0,
+    "external_cost": 0
+  },
+  "changed_files": [
+    "LVW_V0_RuntimePatch/tests/test_s1_stage_checkpoint.py",
+    "reports/v0-s1/stage-checkpoint-phase-a/checkpoint.py",
+    "reports/v0-s1/implementation-receipt-stage-checkpoint-offline.json"
+  ],
+  "artifact_sha256": [
+    {
+      "path": "LVW_V0_RuntimePatch/tests/test_s1_stage_checkpoint.py",
+      "sha256": "57b895e11e41e4c04e6d9d4809332a5d6c9130afb7141542651ff51011b03add"
+    },
+    {
+      "path": "reports/v0-s1/stage-checkpoint-phase-a/checkpoint.py",
+      "sha256": "2519bb51bf51b9940e9bdff5559ef6e37ce458473fcf271c6786ea7285700ddc"
+    }
+  ],
+  "contract_changes": "none",
+  "target_configuration_changes": "none",
+  "implementation": {
+    "harness": "reports/v0-s1/stage-checkpoint-phase-a/checkpoint.py",
+    "default_live_behavior": "DENY_NO_LIVE_EXECUTION_BRANCH",
+    "product_candidate_binding": {
+      "candidate": "1d48142b95466954ca4da264fa06762abf1522f2",
+      "production_artifact_count": 8,
+      "python_inventory_exact": true,
+      "candidate_git_blob_equals_local_bytes": true
+    },
+    "fixed_denominator": ["V0-A01", "V0-A03", "V0-A04", "V0-A05", "V0-A08"],
+    "sequential_authorization_policy": "one fresh non-reusable evidence slot per case; terminalize before authorizing the next case",
+    "case_oracles": {
+      "V0-A01": "real image public workflow/API, controlled preprocess metadata, non-demo raw and suggestion, owned temp absent",
+      "V0-A03": "four outputs plus schema-valid JSON/TXT, zero extra model calls on view switch, raw unchanged",
+      "V0-A04": "Ollama stopped, exact 20,000-character manual draft, copy and atomic JSON/TXT export, injected write failure preserves draft/original and leaves no partial",
+      "V0-A05": "invalid JSON, explicit refusal, timeout, OOM and stale token preserve draft bytes/epoch; retry exact two and one-over three rejected; no infinite retry",
+      "V0-A08": "public manual export for unanalyzed empty no-content-note state, manual/null/not_requested/null tuple, approval has no permission effect, zero model/outbound, write failure preserves draft"
+    },
+    "common_live_proof": [
+      "loopback_only",
+      "ollama_no_cloud",
+      "fresh_non_reusable_evidence_slot",
+      "candidate_bytes_exact",
+      "target_pre_post_equal",
+      "owned_resources_terminal_absent",
+      "privacy_minimized"
+    ],
+    "privacy_rejections": ["private absolute path", "traceback", "current_inputs", "long Base64-shaped value"],
+    "combiner_result": "READY_FOR_INDEPENDENT_REVIEW_ONLY; never Stage PASS"
+  },
+  "future_external_authorization_budget": {
+    "policy": "sequential, each maximum applies only to its separately authorized case",
+    "V0-A01": {"image_attempts": 1, "model_calls": 1, "comfy_starts": 1, "ollama_starts": 1, "public_submissions": 1, "browser_runs": 0, "downloads": 0, "cloud_calls": 0},
+    "V0-A03": {"image_attempts": 0, "model_calls": 0, "comfy_starts": 0, "ollama_starts": 0, "public_submissions": 0, "browser_runs": 0, "downloads": 0, "cloud_calls": 0},
+    "V0-A04": {"image_attempts": 0, "model_calls": 0, "comfy_starts": 1, "ollama_starts": 0, "public_submissions": 5, "browser_runs": 0, "downloads": 0, "cloud_calls": 0},
+    "V0-A05": {"image_attempts": 0, "model_calls": 0, "comfy_starts": 1, "ollama_starts": 0, "public_submissions": 13, "browser_runs": 0, "downloads": 0, "cloud_calls": 0},
+    "V0-A08": {"image_attempts": 0, "model_calls": 0, "comfy_starts": 1, "ollama_starts": 0, "public_submissions": 1, "browser_runs": 0, "downloads": 0, "cloud_calls": 0}
+  },
+  "commands": [
+    {
+      "logical_command": "PYTHONDONTWRITEBYTECODE=1 python3 -B -m unittest -v LVW_V0_RuntimePatch.tests.test_s1_stage_checkpoint",
+      "exit_code": 0,
+      "tests_run": 10,
+      "result": "OK; production owners and synthetic evidence documents only"
+    },
+    {
+      "logical_command": "PYTHONDONTWRITEBYTECODE=1 python3 -B reports/v0-s1/stage-checkpoint-phase-a/checkpoint.py --self-check",
+      "exit_code": 0,
+      "result": "READY_FOR_REVIEW; five product cases NOT_RUN; all external action counts zero"
+    },
+    {
+      "logical_command": "PYTHONDONTWRITEBYTECODE=1 python3 -B -m unittest discover -s LVW_V0_RuntimePatch/tests -p test_*.py",
+      "exit_code": 0,
+      "tests_run": 97,
+      "result": "OK"
+    },
+    {
+      "logical_command": "python3 -B offline AST parse, --help and JSON validation",
+      "exit_code": 0,
+      "result": "PASS"
+    },
+    {
+      "logical_command": "PYTHONDONTWRITEBYTECODE=1 python3 -B tools/verify_pack.py --schema",
+      "exit_code": 0,
+      "result": "1175 passed, 0 failed; not product acceptance"
+    },
+    {
+      "logical_command": "PYTHONDONTWRITEBYTECODE=1 python3 -B tools/verify_governance.py",
+      "exit_code": 0,
+      "result": "17 passed, 0 failed; not product acceptance"
+    },
+    {
+      "logical_command": "PYTHONDONTWRITEBYTECODE=1 python3 -B tools/verify_governance.py --self-test",
+      "exit_code": 0,
+      "result": "20 passed, 0 failed; not product acceptance"
+    }
+  ],
+  "check_results": [
+    {"check": "fixed_denominator_hash", "status": "PASS_OFFLINE"},
+    {"check": "same_candidate_execution_artifact_bytes", "status": "PASS_OFFLINE"},
+    {"check": "public_owner_prechecks", "status": "PASS_OFFLINE_NOT_PRODUCT_PASS"},
+    {"check": "case_specific_oracle_enforcement", "status": "PASS_OFFLINE"},
+    {"check": "fresh_evidence_slot_and_complete_denominator", "status": "PASS_OFFLINE"},
+    {"check": "privacy_fail_closed", "status": "PASS_OFFLINE"},
+    {"check": "default_live_denial", "status": "PASS_OFFLINE"},
+    {"check": "real_image_public_route", "status": "NOT_RUN_WAIT_AUTH"},
+    {"check": "fixed_five_product_denominator", "status": "NOT_RUN_WAIT_AUTH"}
+  ],
+  "offline_test_counts": {
+    "checkpoint_focused": {"pass": 10, "fail": 0, "total": 10},
+    "repository_combined": {"pass": 97, "fail": 0, "total": 97}
+  },
+  "test_counts": {"denominator": 5, "pass": 0, "fail": 0, "blocked": 0, "skipped": 0, "not_run": 5},
+  "product_acceptance": {
+    "V0-A01": "NOT_RUN",
+    "V0-A03": "NOT_RUN",
+    "V0-A04": "NOT_RUN",
+    "V0-A05": "NOT_RUN",
+    "V0-A08": "NOT_RUN"
+  },
+  "external_actions": {
+    "comfyui_process_starts": 0,
+    "ollama_process_starts": 0,
+    "gpu_probes": 0,
+    "process_probes": 0,
+    "port_probes": 0,
+    "network_calls": 0,
+    "model_calls": 0,
+    "effective_image_attempts": 0,
+    "real_media_reads": 0,
+    "downloads_or_upgrades": 0,
+    "target_install_writes": 0,
+    "visible_browser_runs": 0,
+    "external_cost": 0
+  },
+  "production_path": "existing registered LVWControlledImageInput/LVWImagePromptBridge/LVWDraftStateOwner/LVWManualPromptOwner plus frozen image API and manual UI workflows; no checkpoint-only production bypass",
+  "production_path_status": "PREPARED_OFFLINE_FIXED_DENOMINATOR_NOT_RUN",
+  "artifact_refs": [
+    "reports/v0-s1/stage-checkpoint-phase-a/checkpoint.py",
+    "LVW_V0_RuntimePatch/tests/test_s1_stage_checkpoint.py"
+  ],
+  "raw_artifact_refs": [],
+  "risks": [
+    "All five fixed product cases remain NOT_RUN; offline owner calls and synthetic evidence validation are not product acceptance.",
+    "V0-A01 still requires one real authorized image attempt, one local model call, and public /prompt plus /history evidence.",
+    "V0-A04, V0-A05 and V0-A08 require separately authorized public-owner checkpoint traces if the gate owner requires target Comfy proof rather than the completed offline prechecks.",
+    "Every future case must use a fresh evidence slot and terminalize before the next authorization; no authorization record is created here.",
+    "The receipt candidate and evidence commits remain pending root sealing; any byte mismatch must stop before external action."
+  ]
+}
