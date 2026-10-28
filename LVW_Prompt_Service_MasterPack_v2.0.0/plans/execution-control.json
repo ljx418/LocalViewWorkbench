@@ -7,29 +7,29 @@
   "coordinate": {
     "stage_id": "V0-S1",
     "workpack_id": "WP-S1-03",
-    "gate": "GATE1_IMPLEMENTATION",
-    "state": "RUNNING"
+    "gate": "GATE4_REAL_ACCEPTANCE",
+    "state": "WAIT_AUTH"
   },
   "last_passed_gate": {
-    "id": "WP_S1_03_PHASE_A_CANDIDATE_SEALED",
-    "evidence": "reports/v0-s1/wp-s1-03-phase-a-seal.json",
-    "meaning": "workflow/API and identity-bound harness passed 76 offline tests and gate-owner review on candidate 65c909f; no live action has run"
+    "id": "WP_S1_03_TARGET_PATH_CORRECTION_SEALED",
+    "evidence": "reports/v0-s1/wp-s1-03-path-correction-seal.json",
+    "meaning": "aki-v2 target paths, fresh authorization ID and non-reusable live-02 evidence slot passed 77 offline tests on candidate 3c50159"
   },
-  "current_blocking_gate": "the sealed harness still binds the obsolete ComfyUI paths and must be corrected offline before a new one-shot request",
+  "current_blocking_gate": "AUTH-REQUEST-V0-S1-WP-S1-03-02 requires explicit project-owner approval before any external action",
   "stage_packet": ".agent-governance/stages/V0-S1/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/V0-S1/PAYLOAD_MANIFEST.sha256",
   "product_status": "NOT_RUN",
-  "allowed_claim": "V0_S1_WP_S1_03_OFFLINE_TARGET_PATH_CORRECTION_PRODUCT_CASES_NOT_RUN",
+  "allowed_claim": "V0_S1_WP_S1_03_CORRECTED_CANDIDATE_WAIT_AUTH_PRODUCT_CASES_NOT_RUN",
   "forbidden_claims": [
     "ENGINEERING_READY",
     "V0_ACCEPTED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "codex_isolated_implementer",
-  "next_action": "Update only the harness target-path bindings and deterministic tests to C:/ComfyUI-aki-v2, commit the correction, and stop before all external actions.",
-  "required_authorization": null,
-  "authorization_request": "reports/v0-s1/authorization-wp-s1-03-01.request.json",
-  "authorization_record": "reports/v0-s1/authorization-wp-s1-03-01.json",
+  "next_owner": "project_owner",
+  "next_action": "Approve or reject AUTH-REQUEST-V0-S1-WP-S1-03-02; no external action is allowed before approval is formally recorded.",
+  "required_authorization": "AUTH-REQUEST-V0-S1-WP-S1-03-02",
+  "authorization_request": "reports/v0-s1/authorization-wp-s1-03-02.request.json",
+  "authorization_record": null,
   "evidence_root": "reports/",
-  "exact_stop_reason": null
+  "exact_stop_reason": "WAIT_AUTH_WP_S1_03_LIVE_02"
 }

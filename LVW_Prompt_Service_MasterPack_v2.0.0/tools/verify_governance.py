@@ -444,6 +444,7 @@ def main_v0_s1(args: argparse.Namespace, execution: dict) -> int:
         collision["roles"]["independent_reviewer"] = collision["roles"]["implementation_owners"][0]
         check("reject_role_collision", bool(validate_stage(collision, tasks, cases)), "negative mutation must be rejected")
         broadened = copy.deepcopy(control)
+        broadened["state"] = "RUNNING"
         broadened["authorization_scope"] = "OFFLINE_AND_LIVE"
         check("reject_unknown_authorization_scope", bool(validate_stage(broadened, tasks, cases)),
               "negative mutation must be rejected")

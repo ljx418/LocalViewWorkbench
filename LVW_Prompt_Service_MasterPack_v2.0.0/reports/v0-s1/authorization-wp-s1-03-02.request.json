@@ -1,0 +1,93 @@
+{
+  "schema_version": "lvw.authorization-request/1",
+  "request_id": "AUTH-REQUEST-V0-S1-WP-S1-03-02",
+  "status": "PENDING_PROJECT_OWNER_APPROVAL",
+  "is_authorization": false,
+  "project_id": "lvw-prompt-service",
+  "stage_id": "V0-S1",
+  "workpack_id": "WP-S1-03",
+  "requested_by": "codex_sol",
+  "requested_from": "project_owner",
+  "prior_terminal_authorization": "AUTH-V0-S1-2026-10-28-01",
+  "prior_terminal_receipt": "reports/v0-s1/implementation-receipt-wp-s1-03-live.json",
+  "prior_terminal_reason": "AUTHORIZED_TARGET_PATH_NOT_PRESENT",
+  "candidate_sha": "3c5015959e67ecab6e2ba1762eb9bbbabae48e80",
+  "harness_path": "reports/v0-s1/wp-s1-03-phase-a/live_probe.py",
+  "harness_sha256": "fba396bb75309f1c1512918e994ba682ac1e2c092de716fa2a3c0dac0766196d",
+  "planned_authorization_id": "AUTH-V0-S1-2026-10-28-02",
+  "stage_packet_version": "1.0.0",
+  "acceptance_hash": "4b52485dbaa7daeccb31b5c91771b51f8106ab6e49267328990ad4da3b5f85c5",
+  "allowed": {
+    "local_services": ["Windows-native Ollama", "run-owned temporary ComfyUI using the existing aki-v2 target read-only"],
+    "bind_addresses": ["127.0.0.1:11434", "127.0.0.1:8191"],
+    "target_roots": {
+      "comfy_main": "C:/ComfyUI-aki-v2/ComfyUI/main.py (read-only)",
+      "comfy_python": "C:/ComfyUI-aki-v2/python/python.exe (execute-only)",
+      "runtime_base": "run-owned temporary directory outside the repository and target roots",
+      "input_and_output": "run-owned temporary directories only"
+    },
+    "samples": [
+      {"alias": "TEST_SOURCE/image-sample", "sha256": "b4bbd08a0fad67cc04e55d15bf2c48e9a76dcfd6dda147d8cc504452dfc78a42", "max_effective_attempts": 1}
+    ],
+    "model": "gemma4:26b",
+    "model_calls_max": 1,
+    "comfy_process_starts_max": 1,
+    "ollama_process_starts_max": 1,
+    "public_api_submissions_max": 8,
+    "visible_browser_runs": 0,
+    "external_cost": 0,
+    "run_id": "v0-s1-wp-s1-03-live-02",
+    "evidence_destination": "reports/v0-s1/wp-s1-03-live-02/"
+  },
+  "required_preconditions": [
+    "executed candidate equals candidate_sha and executed harness blob/file SHA-256 equals harness_sha256",
+    "the aki-v2 main.py and python.exe paths exist and normalize exactly to the authorized targets",
+    "the fresh evidence destination is absent and is atomically reserved before external actions",
+    "the authorized image SHA-256 matches before copying it into the run-owned input root",
+    "Windows-native and WSL GPU samples agree within 128 MiB and used memory is <=4096 MiB before service start",
+    "no target ComfyUI/Ollama process and no listener on 8191/11434 before service start",
+    "OLLAMA_NO_CLOUD is observed true and the owned Ollama PID has no non-loopback connection for at least 10 seconds and at least 5 samples",
+    "the exact local model gemma4:26b exists without download",
+    "all required workflow class_type values are present in the live target registry before the effective image attempt"
+  ],
+  "required_checks": [
+    "drive the real image through public Comfy /prompt and /history using LVWControlledImageInput and LVWImagePromptBridge",
+    "validate the real lvw.prompt/1 domains.observation and text_en semantic Oracle",
+    "prove distinct raw_response and suggestion, no automatic draft write, and explicit adopt draft_epoch increment through public state nodes",
+    "exercise the manual CPU public route after owned Ollama stop",
+    "prove per-call unload, terminal /api/ps empty, owned-only process cleanup, empty target ports, removed run temp and unchanged target fingerprints",
+    "leave all fixed product cases NOT_RUN pending independent WP-S1-04 review"
+  ],
+  "mandatory_stops": [
+    "candidate, harness, target path, model, sample, run ID or evidence destination mismatch",
+    "pre-service identity, GPU, process or port gate failure",
+    "no-cloud or non-loopback network gate failure",
+    "GPU memory reaches or exceeds 23552 MiB",
+    "public /prompt, /history, registry, semantic Oracle or state-isolation failure",
+    "model call, effective image attempt or public API submission budget would be exceeded",
+    "listener ownership cannot be re-proven immediately before termination",
+    "per-call unload, final cleanup, target integrity or privacy minimization gap"
+  ],
+  "forbidden": [
+    "cloud or paid provider calls",
+    "downloads, upgrades or permanent target configuration writes",
+    "writes under C:/ComfyUI-aki-v2/ComfyUI or C:/ComfyUI-aki-v2/python",
+    "visible browser startup",
+    "termination of non-owned or no-longer-proven processes",
+    "product contract, fixed denominator, owner, Oracle, timeout or threshold changes",
+    "use of any media other than the single hash-bound image",
+    "reuse of live-01 evidence or AUTH-V0-S1-2026-10-28-01",
+    "remote Git push"
+  ],
+  "evidence_minimization": "persist aliases, hashes, aggregate counts, authorized listener owner IDs and redacted diagnostics only; never persist private absolute sample paths, unrelated process tables, unrelated command lines or original media bytes",
+  "cleanup": "unload every started model call, require terminal /api/ps empty, re-prove listener ownership before each termination, stop run-owned PIDs, prove ports empty, remove run-owned base/input/output/temp, and prove aki-v2 target fingerprints unchanged",
+  "expires_when": "one terminal WP-S1-03 live-02 receipt is generated, the single effective image attempt is consumed, or any mandatory stop occurs",
+  "approval": {
+    "decision": "PENDING",
+    "approved_by": null,
+    "approved_at": null,
+    "approval_commit": null
+  },
+  "does_not_authorize_execution": true,
+  "does_not_authorize_stage_pass": true
+}
