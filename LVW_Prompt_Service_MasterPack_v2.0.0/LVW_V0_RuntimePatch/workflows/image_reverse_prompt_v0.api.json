@@ -1,0 +1,18 @@
+{
+  "1": {
+    "class_type": "LVWControlledImageInput",
+    "inputs": {
+      "image_reference": "AUTHORIZED_IMAGE_ALIAS"
+    }
+  },
+  "2": {
+    "class_type": "LVWImagePromptBridge",
+    "inputs": {
+      "image": ["1", 0],
+      "model": "gemma4:26b",
+      "user_instruction": "",
+      "mode": "realistic",
+      "timeout_seconds": 120
+    }
+  }
+}
