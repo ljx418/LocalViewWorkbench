@@ -1,0 +1,299 @@
+{
+  "schema_version": "lvw.implementation-receipt/1",
+  "project_id": "lvw-prompt-service",
+  "stage_id": "V0-S1",
+  "workpack_id": "WP-S1-03",
+  "spec_version": "1.0.0",
+  "authorization_id": "AUTH-V0-S1-2026-10-28-06",
+  "authorization_commit": "0142ab72a8b10246887f3a66f461c852f1168279",
+  "authorization_record_sha256": "e833f6c8c6653f0fda4c825f697a0d7e7f12723016bbf952c40d273e1bf7d4a4",
+  "authorization_request_sha256": "6f7cb3f14e4f59df2c04b53c1b5c15ba5aebe596c46816e431bdad57fedbd008",
+  "candidate_sha": "1d48142b95466954ca4da264fa06762abf1522f2",
+  "candidate_sha_status": "SEALED_EXECUTION_CANDIDATE",
+  "harness_sha256": "94953202138267ca988818a5ba75704d845c15e288fb406d8f7af21d1af4af52",
+  "evidence_commit": "0000000000000000000000000000000000000000",
+  "evidence_commit_status": "PENDING_ROOT_SEALING",
+  "acceptance_hash": "4b52485dbaa7daeccb31b5c91771b51f8106ab6e49267328990ad4da3b5f85c5",
+  "acceptance_hash_binding": {
+    "algorithm": "sha256",
+    "target": "sorted fixed acceptance IDs V0-A01,V0-A03,V0-A04,V0-A05,V0-A08 joined by LF with a trailing LF"
+  },
+  "gate_version": "lvw-gate/1",
+  "run_id": "v0-s1-wp-s1-03-live-06",
+  "implementation_owner_role": "codex_isolated_implementer",
+  "implementation_session": "/root/s0_rerun_implementer",
+  "decision": "READY_FOR_REVIEW",
+  "stage_pass_claim": false,
+  "authorization_status": "EXPIRED_TERMINAL",
+  "exact_stop_reason": "WP_S1_03_LIVE_ROUTE_COMPLETE",
+  "command_exit_code": 0,
+  "rerun_count": 0,
+  "attempts": {
+    "effective_image_attempts": 1,
+    "model_calls": 1
+  },
+  "service_starts": {
+    "ollama": 1,
+    "comfyui": 1
+  },
+  "public_api_submissions": 5,
+  "production_path_status": "LIVE_ROUTE_COMPLETE_READY_FOR_INDEPENDENT_REVIEW",
+  "environment": {
+    "mode": "one_shot_authorized_local_live",
+    "target_paths": "AUTHORIZED_AKI_V2_ALIASES_ONLY",
+    "sample": "TEST_SOURCE/image-sample",
+    "sample_sha256": "b4bbd08a0fad67cc04e55d15bf2c48e9a76dcfd6dda147d8cc504452dfc78a42",
+    "cloud_or_paid_calls": 0,
+    "downloads_or_upgrades": 0,
+    "visible_browser_runs": 0,
+    "external_cost": 0
+  },
+  "check_results": [
+    {
+      "check": "single_authorized_command",
+      "status": "EXECUTED_ONCE_EXIT_0_NO_RERUN",
+      "evidence": "reports/v0-s1/wp-s1-03-live-06/run-summary.json"
+    },
+    {
+      "check": "candidate_harness_and_execution_artifact_identity",
+      "status": "PASS_RECOMPUTED_7_OF_7",
+      "evidence": "reports/v0-s1/wp-s1-03-live-06/run-summary.json#evidence.identity"
+    },
+    {
+      "check": "pre_service_gpu_process_port_gate",
+      "status": "PASS",
+      "evidence": "reports/v0-s1/wp-s1-03-live-06/run-summary.json#evidence.preflight"
+    },
+    {
+      "check": "loopback_no_cloud_gate",
+      "status": "PASS",
+      "evidence": "reports/v0-s1/wp-s1-03-live-06/run-summary.json#evidence.network_gate"
+    },
+    {
+      "check": "exact_local_model_identity",
+      "status": "PASS",
+      "evidence": "reports/v0-s1/wp-s1-03-live-06/run-summary.json#evidence.model_identity"
+    },
+    {
+      "check": "public_comfy_prompt_history_semantic_oracle",
+      "status": "PASS",
+      "evidence": "reports/v0-s1/wp-s1-03-live-06/run-summary.json#evidence.image_oracle"
+    },
+    {
+      "check": "recomputable_state_transition_chain",
+      "status": "PASS_RECOMPUTED",
+      "evidence": "reports/v0-s1/wp-s1-03-live-06/run-summary.json#evidence.state_transitions"
+    },
+    {
+      "check": "manual_cpu_route_after_owned_ollama_stop",
+      "status": "PASS",
+      "evidence": "reports/v0-s1/wp-s1-03-live-06/run-summary.json#evidence.manual_cpu_oracle"
+    },
+    {
+      "check": "per_call_model_cleanup",
+      "status": "PASS_HTTP_200_TERMINAL_API_PS_EMPTY",
+      "evidence": "reports/v0-s1/wp-s1-03-live-06/run-summary.json#evidence.model_cleanup"
+    },
+    {
+      "check": "runtime_gpu_and_remote_connection_guard",
+      "status": "PASS",
+      "evidence": "reports/v0-s1/wp-s1-03-live-06/run-summary.json#evidence.runtime_guard"
+    },
+    {
+      "check": "recomputable_target_fingerprint_equality",
+      "status": "PASS_RECOMPUTED",
+      "evidence": "reports/v0-s1/wp-s1-03-live-06/run-summary.json#evidence.target_integrity"
+    },
+    {
+      "check": "owned_listener_and_wrapper_terminal_states",
+      "status": "PASS_RECOMPUTED",
+      "evidence": "reports/v0-s1/wp-s1-03-live-06/run-summary.json#cleanup"
+    },
+    {
+      "check": "in_run_post_cleanup_snapshot",
+      "status": "PASS_RECOMPUTED",
+      "evidence": "reports/v0-s1/wp-s1-03-live-06/run-summary.json#evidence.post_cleanup_snapshot"
+    },
+    {
+      "check": "post_terminal_owned_resource_absence",
+      "status": "PASS_READ_ONLY_RECHECK"
+    },
+    {
+      "check": "evidence_minimization_and_url_fidelity",
+      "status": "PASS_OFFLINE_SCAN"
+    },
+    {
+      "check": "fixed_product_acceptance",
+      "status": "NOT_RUN"
+    }
+  ],
+  "resource_observations": {
+    "preflight_gpu_count": 1,
+    "preflight_max_used_mib": 3881,
+    "preflight_limit_mib": 4096,
+    "runtime_max_used_mib": 4458,
+    "runtime_abort_threshold_mib": 23552,
+    "threshold_exceeded": false
+  },
+  "network_observations": {
+    "ollama_no_cloud": true,
+    "remote_tcp_samples": 5,
+    "nonloopback_connections_observed": 0
+  },
+  "recomputable_evidence": {
+    "execution_artifact_sha256": {
+      "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/__init__.py": "c705493b22c47184659ef7dafef4bd7ca1f8c2a39d469b3b5d2aa1ae89110d4e",
+      "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/core.py": "72b4f9f348b099dce689ab8318f26b7b598060deaae91e4bc344a82c151a638a",
+      "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/image_input.py": "860de54dd60825918e7797ed914bcf65d305b94566569f3b9f5204cdbbb5d766",
+      "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/manual.py": "dce77eee4057b4b2529507f881feb56e9fe431717ce80ae4ec2c9c6a9e7a5b2e",
+      "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/nodes.py": "ffc6b3ccead11029b234432e8ea82c739cae7693e519f51eda5c0dfa3df22125",
+      "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/state.py": "db5f50a715aa602fae3e38c980ba7282ad1f603b565be8c9c0e0db646e8c86fe",
+      "LVW_V0_RuntimePatch/workflows/image_reverse_prompt_v0.api.json": "aa69dc1d316494f20df4eed14e0ce8b04fb23345ff4b0fcb636ac4176dd997b1"
+    },
+    "execution_artifact_blob_local_equality": true,
+    "public_raw_sha256": "17fd9ad1e00a51064387412372afad2468d03d65e830c3fa941f25f0292b5121",
+    "public_suggestion_sha256": "56e2d997f365c69a60e9a0496a248b90a2efe854c906cd0aeef7638e33860b1e",
+    "run_token_sha256": "77d27b6ee831979fe82770238d724452925913008db41247576e380c4b40a76c",
+    "transition_actions": [
+      "start_run",
+      "model_success",
+      "adopt"
+    ],
+    "transition_statuses": [
+      "running",
+      "succeeded",
+      "succeeded"
+    ],
+    "draft_epochs": [
+      0,
+      0,
+      1
+    ],
+    "adopted_draft_sha256": "83768e772a470a31d623a240e09dad0fcf9798eb3613ba005a79c28de9f611c8",
+    "target_fingerprint_aliases": [
+      "comfy/cli_args.py",
+      "extra_model_paths.yaml",
+      "folder_paths.py",
+      "main.py",
+      "nodes.py",
+      "prompt_assistant_state"
+    ],
+    "target_pre_post_equal": true,
+    "owned_listener_terminal_count": 2,
+    "owned_wrapper_terminal_count": 2,
+    "all_owned_listeners_absent": true,
+    "all_owned_wrappers_exited": true,
+    "post_cleanup_snapshot": {
+      "target_listener_count": 0,
+      "target_process_match_count": 0,
+      "run_temp_absent": true
+    },
+    "offline_recomputation": "PASS"
+  },
+  "semantic_observations": {
+    "automatic_draft_write": false,
+    "draft_epoch_before": 0,
+    "draft_epoch_after_explicit_adopt": 1,
+    "manual_cpu_route_ollama_stopped": true
+  },
+  "cleanup": {
+    "in_run_proven": true,
+    "owned_count": 2,
+    "failures": [],
+    "final_target_listener_count": 0,
+    "owned_listener_terminal_states": [
+      {
+        "port": 11434,
+        "owned_listener_pid": 32728,
+        "lineage_reproven": true,
+        "stop_requested": true,
+        "terminal_absent": true
+      },
+      {
+        "port": 8191,
+        "owned_listener_pid": 32744,
+        "lineage_reproven": true,
+        "stop_requested": true,
+        "terminal_absent": true
+      }
+    ],
+    "owned_wrapper_terminal_states": [
+      {
+        "owner": "comfy",
+        "pid": 553987,
+        "poll_before": 255,
+        "poll_after": 255,
+        "terminate_requested": false,
+        "exited": true
+      },
+      {
+        "owner": "ollama_wrapper",
+        "pid": 553958,
+        "poll_before": 255,
+        "poll_after": 255,
+        "terminate_requested": false,
+        "exited": true
+      }
+    ],
+    "run_owned_temp_removed": true,
+    "target_integrity_comparison": "PASS",
+    "per_call_cleanup_http_status": 200,
+    "terminal_api_ps_model_count": 0,
+    "post_terminal_listener_count": 0,
+    "post_terminal_target_process_match_count": 0,
+    "post_terminal_run_temp_residual_count": 0,
+    "proven": true
+  },
+  "changed_files": [
+    "reports/v0-s1/wp-s1-03-live-06/run-summary.json",
+    "reports/v0-s1/wp-s1-03-live-06/artifact-manifest.json",
+    "reports/v0-s1/implementation-receipt-wp-s1-03-live-06.json"
+  ],
+  "contract_changes": "none",
+  "target_configuration_changes": "none",
+  "commands": [
+    {
+      "logical_command": "AUTHORIZED_WP_S1_03_LIVE_06_ONE_SHOT_COMMAND",
+      "exit_code": 0,
+      "result": "READY_FOR_REVIEW: WP_S1_03_LIVE_ROUTE_COMPLETE; invoked exactly once and not retried"
+    },
+    {
+      "logical_command": "offline artifact/blob, state-link, target-map, owned-terminal, snapshot and privacy recomputation",
+      "exit_code": 0,
+      "result": "PASS; seven execution artifacts, state links, target equality, owned terminal states, cleanup snapshot and evidence minimization independently recomputed"
+    },
+    {
+      "logical_command": "read-only Windows target listener/process and run-temp residual postcheck",
+      "exit_code": 0,
+      "result": "PASS; zero listeners on 8191/11434, zero matching Ollama/ComfyUI processes, zero run-owned temporary directories"
+    }
+  ],
+  "test_counts": {
+    "denominator": 5,
+    "pass": 0,
+    "fail": 0,
+    "blocked": 0,
+    "skipped": 0,
+    "not_run": 5
+  },
+  "product_acceptance": {
+    "V0-A01": "NOT_RUN",
+    "V0-A03": "NOT_RUN",
+    "V0-A04": "NOT_RUN",
+    "V0-A05": "NOT_RUN",
+    "V0-A08": "NOT_RUN"
+  },
+  "artifact_refs": [
+    "reports/v0-s1/wp-s1-03-live-06/run-summary.json",
+    "reports/v0-s1/wp-s1-03-live-06/artifact-manifest.json"
+  ],
+  "raw_artifact_refs": [
+    "reports/v0-s1/wp-s1-03-live-06/run-summary.json"
+  ],
+  "risks": [
+    "This implementation receipt is evidence for a fresh independent review only; all five fixed product acceptance cases remain NOT_RUN.",
+    "The one-shot authorization is terminal and expired; this run must not be repeated under the same authorization.",
+    "The evidence commit field remains pending because a Git commit cannot self-reference its own final object ID; root sealing may bind it after this implementation commit.",
+    "No Stage PASS, V0 acceptance, or target-hardware acceptance is claimed by this implementation owner."
+  ]
+}
