@@ -63,8 +63,8 @@ def _outputs(payload: str) -> dict:
     return value
 
 
-def transition(state_json: str, *, action: str, run_token: str, callback_payload: str = "",
-               draft_payload: str = "", error_code: str = "") -> dict:
+def transition(state_json: str, *, action: str, run_token: str, raw_response: str = "",
+               suggestion_payload: str = "", draft_payload: str = "", error_code: str = "") -> dict:
     state = _load_state(state_json)
     next_state = copy.deepcopy(state)
     if action == "start_run":
@@ -75,14 +75,17 @@ def transition(state_json: str, *, action: str, run_token: str, callback_payload
     elif action == "model_success":
         _active(state, run_token)
         try:
-            suggestion = json.loads(callback_payload)
+            suggestion = json.loads(suggestion_payload)
         except (TypeError, json.JSONDecodeError) as exc:
             raise BridgeError("PARSE_PARTIAL", "model callback is not valid JSON",
                               subcode="CALLBACK_JSON_INVALID") from exc
         if not isinstance(suggestion, dict):
             raise BridgeError("PARSE_PARTIAL", "model suggestion must be an object",
                               subcode="CALLBACK_SCHEMA_INVALID")
-        next_state.update(raw_response=callback_payload, suggestion=suggestion,
+        if not isinstance(raw_response, str) or not raw_response or raw_response == suggestion_payload:
+            raise BridgeError("PARSE_PARTIAL", "raw response and suggestion must be distinct non-empty values",
+                              subcode="RAW_SUGGESTION_NOT_DISTINCT")
+        next_state.update(raw_response=raw_response, suggestion=suggestion,
                           analysis_status="succeeded", failure_code=None)
     elif action in {"model_failure", "partial", "cancel"}:
         _active(state, run_token)
@@ -95,8 +98,8 @@ def transition(state_json: str, *, action: str, run_token: str, callback_payload
                                   subcode="STATE_FAILURE_CODE_UNSUPPORTED")
             status = "partial" if action == "partial" else "failed"
         next_state.update(analysis_status=status, failure_code=code)
-        if callback_payload:
-            next_state["raw_response"] = callback_payload
+        if raw_response:
+            next_state["raw_response"] = raw_response
     elif action == "adopt":
         _current(state, run_token)
         if state["analysis_status"] != "succeeded":

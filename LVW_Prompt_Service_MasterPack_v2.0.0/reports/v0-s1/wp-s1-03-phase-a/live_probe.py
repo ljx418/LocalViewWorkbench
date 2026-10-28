@@ -39,6 +39,11 @@ ALLOWED_EXACT = {
     "LVW_V0_RuntimePatch/workflows/image_reverse_prompt_v0.api.json",
 }
 PRODUCT_CASES = {key: "NOT_RUN" for key in ("V0-A01", "V0-A03", "V0-A04", "V0-A05", "V0-A08")}
+PROMPT_SPEC_KEYS = {"schema_version", "mode", "domains", "technical", "locked_fields", "text_zh", "text_en",
+                    "tags", "negative", "template_id", "template_version"}
+DOMAIN_KEYS = {"observation", "inference", "user_evidence", "creative_intent", "unknowns"}
+AUTHORIZED_COMFY_MAIN = "C:/ComfyUI/ComfyUI/main.py"
+AUTHORIZED_COMFY_PYTHON = "C:/ComfyUI/python/python.exe"
 
 
 class StopProbe(RuntimeError):
@@ -72,6 +77,62 @@ def redact(value: str, aliases: dict[str, str]) -> str:
     result = re.sub(r"(?i)[A-Z]:[/\\](?:[^\s\"']+[/\\])*[^\s\"']+", "<PRIVATE_WINDOWS_PATH>", result)
     result = re.sub(r"/mnt/[a-z]/(?:[^\s\"']+/)*[^\s\"']+", "<PRIVATE_WSL_PATH>", result)
     return result
+
+
+def normalized_windows_path(value: str) -> str:
+    path = str(value).replace("\\", "/")
+    match = re.fullmatch(r"/mnt/([a-zA-Z])/(.+)", path)
+    if match:
+        path = f"{match.group(1).upper()}:/{match.group(2)}"
+    path = re.sub(r"/+", "/", path).rstrip("/")
+    return path
+
+
+def validate_live_boundaries(args, *, reserve_evidence: bool) -> dict:
+    repo = Path(args.repo).resolve(strict=True)
+    evidence = Path(args.evidence_root)
+    expected = repo / "reports/v0-s1/wp-s1-03-live-01"
+    if evidence.resolve(strict=False) != expected:
+        raise StopProbe("EVIDENCE_ROOT_OUTSIDE_AUTHORIZED_BOUNDARY")
+    if normalized_windows_path(args.comfy_main).casefold() != AUTHORIZED_COMFY_MAIN.casefold():
+        raise StopProbe("AUTHORIZED_COMFY_MAIN_MISMATCH")
+    if normalized_windows_path(args.comfy_python).casefold() != AUTHORIZED_COMFY_PYTHON.casefold():
+        raise StopProbe("AUTHORIZED_COMFY_PYTHON_MISMATCH")
+    temp_parent = Path(args.temp_parent)
+    temp_resolved = temp_parent.resolve() if temp_parent.exists() else temp_parent
+    temp_windows = normalized_windows_path(str(temp_resolved)).casefold()
+    if (not temp_parent.is_dir() or temp_parent.is_symlink()
+            or not temp_resolved.as_posix().casefold().startswith("/mnt/c/")
+            or temp_windows.startswith("c:/comfyui/")
+            or temp_resolved == repo or repo in temp_resolved.parents):
+        raise StopProbe("RUN_TEMP_PARENT_FORBIDDEN")
+    if reserve_evidence:
+        try:
+            evidence.mkdir(parents=False, exist_ok=False)
+        except FileExistsError as exc:
+            raise StopProbe("EVIDENCE_ROOT_ALREADY_EXISTS") from exc
+    elif not evidence.is_dir():
+        raise StopProbe("EVIDENCE_ROOT_NOT_RESERVED")
+    return {"comfy_main": AUTHORIZED_COMFY_MAIN, "comfy_python": AUTHORIZED_COMFY_PYTHON,
+            "evidence_root": "REPO/reports/v0-s1/wp-s1-03-live-01", "temp_parent_valid": True}
+
+
+def ps_quote(value: str) -> str:
+    return "'" + str(value).replace("'", "''") + "'"
+
+
+def ollama_wrapper_text(exe: str, pid_file: str) -> str:
+    return (f"$PID | Set-Content -LiteralPath {ps_quote(pid_file)} -Encoding ascii\n"
+            "$env:OLLAMA_HOST='127.0.0.1:11434'\n$env:OLLAMA_NO_CLOUD='1'\n"
+            "$env:NO_PROXY='127.0.0.1,localhost'\nWrite-Output 'OLLAMA_NO_CLOUD=true'\n"
+            f"& {ps_quote(exe)} serve\nexit $LASTEXITCODE\n")
+
+
+def comfy_wrapper_text(python: str, main: str, base: str, pid_file: str) -> str:
+    return (f"$PID | Set-Content -LiteralPath {ps_quote(pid_file)} -Encoding ascii\n"
+            f"& {ps_quote(python)} -s -B {ps_quote(main)} --listen 127.0.0.1 --port 8191 "
+            f"--base-directory {ps_quote(base)} --disable-auto-launch --disable-api-nodes "
+            "--disable-all-custom-nodes --whitelist-custom-nodes lvw_v0_bridge\nexit $LASTEXITCODE\n")
 
 
 def run_local(command: list[str], *, cwd: Path | None = None) -> subprocess.CompletedProcess:
@@ -145,9 +206,14 @@ def validate_image_result(text: list[str]) -> dict:
         suggestion = json.loads(text[1])
     except json.JSONDecodeError as exc:
         raise StopProbe("PUBLIC_IMAGE_UI_JSON_INVALID") from exc
-    if not isinstance(raw, (dict, list)) or not isinstance(suggestion, dict):
+    if not isinstance(raw, dict) or not isinstance(suggestion, dict):
         raise StopProbe("PUBLIC_IMAGE_UI_SCHEMA_INVALID")
-    if not suggestion.get("observations") or not isinstance(suggestion.get("prompt"), str) or not suggestion["prompt"].strip():
+    domains = suggestion.get("domains")
+    if (set(suggestion) != PROMPT_SPEC_KEYS or suggestion.get("schema_version") != "lvw.prompt/1"
+            or not isinstance(domains, dict) or set(domains) != DOMAIN_KEYS
+            or not isinstance(domains.get("observation"), list) or not domains["observation"]
+            or not all(isinstance(item, str) and item.strip() for item in domains["observation"])
+            or not isinstance(suggestion.get("text_en"), str) or not suggestion["text_en"].strip()):
         raise StopProbe("PUBLIC_IMAGE_SEMANTIC_ORACLE_FAILED")
     return {"raw_sha256": sha256_bytes(text[0].encode()), "suggestion_sha256": sha256_bytes(text[1].encode())}
 
@@ -162,6 +228,7 @@ class SystemDriver:
         self.started_model_calls = 0
         self.owned = []
         self.listener_pids = set()
+        self.owned_listener_evidence = {}
         self.ollama_log = None
 
     def _json_request(self, url: str, *, payload=None, timeout=20):
@@ -178,6 +245,51 @@ class SystemDriver:
         if result.returncode != 0:
             raise StopProbe("WINDOWS_PREFLIGHT_COMMAND_FAILED")
         return result.stdout.strip()
+
+    def _windows_path(self, value: str, *, expected: str | None = None) -> str:
+        result = run_local(["wslpath", "-w", value])
+        if result.returncode != 0 or not result.stdout.strip():
+            raise StopProbe("WINDOWS_PATH_CONVERSION_FAILED")
+        converted = normalized_windows_path(result.stdout.strip())
+        if expected is not None and converted.casefold() != expected.casefold():
+            raise StopProbe("AUTHORIZED_TARGET_PATH_CONVERSION_MISMATCH")
+        return result.stdout.strip()
+
+    def _prove_listener_owned(self, port: int, wrapper_pid_file: Path, executable_name: str) -> int:
+        deadline = time.monotonic() + 20
+        while time.monotonic() < deadline and not wrapper_pid_file.exists():
+            time.sleep(0.25)
+        if not wrapper_pid_file.exists():
+            raise StopProbe("OWNED_WRAPPER_PID_MISSING")
+        wrapper_pid = int(wrapper_pid_file.read_text(encoding="ascii").strip())
+        listener_pid = self._listener_pid(port)
+        current = listener_pid
+        executable_ok = False
+        lineage = set()
+        for _ in range(8):
+            raw = self._powershell(
+                f"$x=Get-CimInstance Win32_Process -Filter \"ProcessId={current}\" -ErrorAction SilentlyContinue;"
+                "$x | Select-Object ProcessId,ParentProcessId,ExecutablePath | ConvertTo-Json -Compress")
+            if not raw:
+                break
+            row = json.loads(raw)
+            lineage.add(int(row["ProcessId"]))
+            if current == listener_pid:
+                executable_ok = normalized_windows_path(row.get("ExecutablePath", "")).casefold().endswith("/" + executable_name.casefold())
+            parent = int(row.get("ParentProcessId") or 0)
+            if wrapper_pid in {current, parent}:
+                lineage.add(wrapper_pid)
+                break
+            current = parent
+        if wrapper_pid not in lineage or not executable_ok:
+            raise StopProbe("LISTENER_OWNERSHIP_NOT_PROVEN")
+        self.listener_pids.add(listener_pid)
+        self.owned_listener_evidence[str(port)] = {"listener_pid": listener_pid, "wrapper_pid": wrapper_pid,
+                                                    "lineage_proven": True}
+        return listener_pid
+
+    def ownership_summary(self) -> dict:
+        return dict(self.owned_listener_evidence)
 
     def preflight(self) -> dict:
         gpu_native = self._powershell("& nvidia-smi --query-gpu=index,memory.total,memory.used,memory.free --format=csv,noheader,nounits")
@@ -207,13 +319,18 @@ class SystemDriver:
 
     def start_ollama(self, log_path: Path):
         self.ollama_log = log_path
-        script = ("$env:OLLAMA_HOST='127.0.0.1:11434';$env:OLLAMA_NO_CLOUD='1';"
-                  "$env:NO_PROXY='127.0.0.1,localhost';Write-Output 'OLLAMA_NO_CLOUD=true';"
-                  "& $args[0] serve")
+        base = log_path.parent
+        wrapper = base / "ollama-wrapper.ps1"
+        pid_file = base / "ollama-wrapper.pid"
+        win_exe = self._windows_path(self.args.ollama_exe)
+        if not normalized_windows_path(win_exe).casefold().endswith("/ollama.exe"):
+            raise StopProbe("OLLAMA_EXECUTABLE_PATH_INVALID")
+        wrapper.write_text(ollama_wrapper_text(win_exe, self._windows_path(str(pid_file))), encoding="utf-8")
         stream = log_path.open("w", encoding="utf-8")
-        process = subprocess.Popen([self.args.powershell, "-NoProfile", "-NonInteractive", "-Command", script,
-                                    "--", self.args.ollama_exe], stdout=stream, stderr=subprocess.STDOUT, text=True)
+        process = subprocess.Popen([self.args.powershell, "-NoProfile", "-NonInteractive", "-File",
+                                    self._windows_path(str(wrapper))], stdout=stream, stderr=subprocess.STDOUT, text=True)
         self.owned.append(("ollama_wrapper", process, stream))
+        self.ollama_wrapper_pid_file = pid_file
 
     def wait_json(self, url, timeout=60):
         deadline = time.monotonic() + timeout
@@ -228,7 +345,7 @@ class SystemDriver:
         self.wait_json(OLLAMA_URL + "/api/version")
         if self.ollama_log is None or "OLLAMA_NO_CLOUD=true" not in self.ollama_log.read_text(encoding="utf-8", errors="strict"):
             raise StopProbe("OLLAMA_NO_CLOUD_NOT_OBSERVED")
-        self.listener_pids.add(self._listener_pid(11434))
+        self._prove_listener_owned(11434, self.ollama_wrapper_pid_file, "ollama.exe")
         samples = []
         for _ in range(5):
             raw = self._powershell(
@@ -255,20 +372,30 @@ class SystemDriver:
         return int(values[0])
 
     def start_comfy(self, base: Path, log_path: Path):
-        win_main = run_local(["wslpath", "-w", self.args.comfy_main])
-        win_base = run_local(["wslpath", "-w", str(base)])
-        if win_main.returncode or win_base.returncode or "/mnt/" in win_main.stdout or "/mnt/" in win_base.stdout:
-            raise StopProbe("COMFY_WINDOWS_PATH_CONVERSION_FAILED")
+        win_main = self._windows_path(self.args.comfy_main, expected=AUTHORIZED_COMFY_MAIN)
+        win_python = self._windows_path(self.args.comfy_python, expected=AUTHORIZED_COMFY_PYTHON)
+        win_base = self._windows_path(str(base))
+        wrapper = base / "comfy-wrapper.ps1"
+        pid_file = base / "comfy-wrapper.pid"
+        wrapper.write_text(comfy_wrapper_text(win_python, win_main, win_base, self._windows_path(str(pid_file))),
+                           encoding="utf-8")
         stream = log_path.open("w", encoding="utf-8")
-        command = [self.args.comfy_python, "-s", "-B", win_main.stdout.strip(), "--listen", "127.0.0.1",
-                   "--port", "8191", "--base-directory", win_base.stdout.strip()]
-        process = subprocess.Popen(command, stdout=stream, stderr=subprocess.STDOUT, text=True)
+        process = subprocess.Popen([self.args.powershell, "-NoProfile", "-NonInteractive", "-File",
+                                    self._windows_path(str(wrapper))], stdout=stream, stderr=subprocess.STDOUT, text=True)
         self.owned.append(("comfy", process, stream))
         self.wait_json(COMFY_URL + "/object_info", timeout=120)
-        self.listener_pids.add(self._listener_pid(8191))
+        self._prove_listener_owned(8191, pid_file, "python.exe")
 
     def registry(self) -> dict:
         return self._json_request(COMFY_URL + "/object_info")[1]
+
+    def verify_model(self) -> dict:
+        tags = self._json_request(OLLAMA_URL + "/api/tags")[1].get("models", [])
+        matches = [item for item in tags if item.get("name") == MODEL or item.get("model") == MODEL]
+        if len(matches) != 1:
+            raise StopProbe("AUTHORIZED_MODEL_NOT_LOCALLY_PRESENT")
+        return {"model": MODEL, "local_exact_match_count": 1,
+                "digest": matches[0].get("digest")}
 
     def submit(self, graph: dict) -> str:
         if self.submissions >= MAX_PUBLIC_SUBMISSIONS:
@@ -314,6 +441,8 @@ class SystemDriver:
 
     def stop_ollama(self):
         pid = self._listener_pid(11434)
+        if pid not in self.listener_pids:
+            raise StopProbe("OLLAMA_LISTENER_OWNERSHIP_LOST")
         self._powershell(f"Stop-Process -Id {pid} -Force -ErrorAction Stop")
         self.listener_pids.discard(pid)
         for _ in range(20):
@@ -325,8 +454,24 @@ class SystemDriver:
         raise StopProbe("OLLAMA_STOP_NOT_PROVEN_BEFORE_MANUAL_ROUTE")
 
     def target_hashes(self) -> dict:
-        return {"comfy_main_sha256": sha256_file(Path(self.args.comfy_main)),
-                "comfy_python_sha256": sha256_file(Path(self.args.comfy_python))}
+        root = Path(self.args.comfy_main).parent
+        files = {
+            "main.py": root / "main.py", "folder_paths.py": root / "folder_paths.py",
+            "nodes.py": root / "nodes.py", "comfy/cli_args.py": root / "comfy/cli_args.py",
+            "extra_model_paths.yaml": root / "extra_model_paths.yaml",
+        }
+        result = {name: (sha256_file(path) if path.is_file() else "MISSING") for name, path in files.items()}
+        forbidden = root / "custom_nodes/prompt-assistant"
+        entries = []
+        if forbidden.is_dir():
+            for item in sorted(path for path in forbidden.rglob("*") if path.is_file()):
+                entries.append(item.relative_to(forbidden).as_posix() + ":" + sha256_file(item))
+        result["prompt_assistant_state"] = {
+            "exists": forbidden.exists(),
+            "file_count": len(entries),
+            "tree_sha256": sha256_bytes("\n".join(entries).encode()) if entries else None,
+        }
+        return result
 
     def cleanup(self) -> dict:
         failures = []
@@ -351,10 +496,10 @@ class SystemDriver:
                 "proven": not failures and listeners == 0}
 
 
-def state_graph(state: str, action: str, token: str, callback="", draft="", error="") -> dict:
+def state_graph(state: str, action: str, token: str, raw="", suggestion="", draft="", error="") -> dict:
     return {"1": {"class_type": "LVWDraftStateOwner", "inputs": {
-        "state": state, "action": action, "run_token": token, "callback_payload": callback,
-        "draft_payload": draft, "error_code": error}}}
+        "state": state, "action": action, "run_token": token, "raw_response": raw,
+        "suggestion_payload": suggestion, "draft_payload": draft, "error_code": error}}}
 
 
 def manual_graph() -> dict:
@@ -373,6 +518,7 @@ def execute(args, driver_factory=SystemDriver) -> tuple[int, dict]:
     driver = None
     before = None
     try:
+        result["evidence"]["authorized_boundaries"] = validate_live_boundaries(args, reserve_evidence=False)
         if args.authorization_id != AUTHORIZATION_ID:
             raise StopProbe("AUTHORIZATION_ID_MISMATCH")
         identity = candidate_identity(Path(args.repo), args.candidate_sha, args.harness_relative, args.harness_sha256)
@@ -394,10 +540,12 @@ def execute(args, driver_factory=SystemDriver) -> tuple[int, dict]:
         result["evidence"]["network_gate"] = driver.no_cloud_remote_gate()
         driver.start_comfy(base, base / "comfy.log")
         result["service_starts"]["comfy"] = 1
+        result["evidence"]["owned_listener_lineage"] = driver.ownership_summary()
         registry = driver.registry()
         missing = sorted(REQUIRED_NODES - set(registry))
         if missing:
             raise StopProbe("REQUIRED_PUBLIC_NODE_MISSING:" + ",".join(missing))
+        result["evidence"]["model_identity"] = driver.verify_model()
         graph = json.loads((Path(args.repo) / "LVW_V0_RuntimePatch/workflows/image_reverse_prompt_v0.api.json").read_text())
         graph["1"]["inputs"]["image_reference"] = alias
         result["attempts"]["image"] = 1
@@ -419,10 +567,11 @@ def execute(args, driver_factory=SystemDriver) -> tuple[int, dict]:
         token = args.run_id + "-image"
         start_id = driver.submit(state_graph("", "start_run", token))
         started = workflow_oracle(driver.history(start_id), start_id, "1")[0]
-        success_id = driver.submit(state_graph(started, "model_success", token, callback=image_text[1]))
+        success_id = driver.submit(state_graph(started, "model_success", token, raw=image_text[0], suggestion=image_text[1]))
         succeeded = workflow_oracle(driver.history(success_id), success_id, "1")[0]
         state = json.loads(succeeded)
-        if state["draft_epoch"] != 0 or any(state["draft"].values()) or state["raw_response"] != image_text[1]:
+        if (state["draft_epoch"] != 0 or any(state["draft"].values()) or state["raw_response"] != image_text[0]
+                or state["suggestion"] != json.loads(image_text[1]) or state["raw_response"] == image_text[1]):
             raise StopProbe("LIVE_STATE_ISOLATION_FAILED")
         adopted_payload = canonical_json({"natural_zh": "人工采纳", "natural_en": "", "image_prompt": "",
                                           "video_prompt": "", "tags": [], "negative": "", "edit_instruction": ""})
@@ -533,9 +682,13 @@ def main(argv=None):
     if not all(required):
         print(canonical_json({"decision": "BLOCKED", "exact_stop_reason": "LIVE_ARGUMENT_REQUIRED", "external_actions": 0}))
         return 2
+    try:
+        validate_live_boundaries(args, reserve_evidence=True)
+    except StopProbe as exc:
+        print(canonical_json({"decision": "NO_GO", "exact_stop_reason": exc.reason, "external_actions": 0}))
+        return 2
     code, result = execute(args)
     root = Path(args.evidence_root)
-    root.mkdir(parents=True, exist_ok=False)
     aliases = {str(Path(args.repo).resolve()): "REPO", str(Path(args.sample).resolve()): "TEST_SOURCE/image-sample",
                str(Path(args.temp_parent).resolve()): "RUN_TEMP_PARENT"}
     sanitized = json.loads(redact(canonical_json(result), aliases))

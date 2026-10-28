@@ -130,9 +130,10 @@ class DraftStateOwnerTests(unittest.TestCase):
     def setUp(self):
         self.node = LVWDraftStateOwner()
 
-    def call(self, state="", action="start_run", token="run-1", callback="", draft="", error=""):
+    def call(self, state="", action="start_run", token="run-1", raw="raw fixture", suggestion="", draft="", error=""):
         response = self.node.process(state=state, action=action, run_token=token,
-                                     callback_payload=callback, draft_payload=draft, error_code=error)
+                                     raw_response=raw, suggestion_payload=suggestion,
+                                     draft_payload=draft, error_code=error)
         self.assertEqual({"ui", "result"}, set(response))
         return response["result"][0]
 
@@ -145,16 +146,25 @@ class DraftStateOwnerTests(unittest.TestCase):
         self.assertIs(NODE_CLASS_MAPPINGS["LVWDraftStateOwner"], LVWDraftStateOwner)
         self.assertTrue(LVWDraftStateOwner.OUTPUT_NODE)
         started = self.call()
-        succeeded = self.call(started, action="model_success", callback='{"prompt":"visible subject"}')
+        succeeded = self.call(started, action="model_success", suggestion='{"prompt":"visible subject"}')
         value = json.loads(succeeded)
         self.assertEqual("succeeded", value["analysis_status"])
         self.assertEqual({"prompt": "visible subject"}, value["suggestion"])
+        self.assertEqual("raw fixture", value["raw_response"])
+        self.assertNotEqual(value["raw_response"], json.dumps(value["suggestion"]))
         self.assertEqual("", value["draft"]["natural_zh"])
         self.assertEqual(0, value["draft_epoch"])
 
+    def test_model_success_rejects_conflated_raw_and_suggestion(self):
+        started = self.call()
+        same = '{"prompt":"visible"}'
+        with self.assertRaises(BridgeError) as raised:
+            self.call(started, action="model_success", raw=same, suggestion=same)
+        self.assertEqual("PARSE_PARTIAL", raised.exception.code)
+
     def test_explicit_adopt_updates_draft_and_epoch(self):
         state = self.call()
-        state = self.call(state, action="model_success", callback='{"prompt":"visible"}')
+        state = self.call(state, action="model_success", suggestion='{"prompt":"visible"}')
         state = self.call(state, action="adopt", draft=self.draft_payload())
         value = json.loads(state)
         self.assertEqual("human draft", value["draft"]["natural_zh"])
@@ -162,27 +172,27 @@ class DraftStateOwnerTests(unittest.TestCase):
 
     def test_stale_token_and_invalid_json_preserve_prior_state(self):
         state = self.call()
-        for token, callback, expected in (("old", "{}", "ATTEMPT_STALE"), ("run-1", "{", "PARSE_PARTIAL")):
+        for token, suggestion, expected in (("old", "{}", "ATTEMPT_STALE"), ("run-1", "{", "PARSE_PARTIAL")):
             with self.subTest(token=token), self.assertRaises(BridgeError) as raised:
-                self.call(state, action="model_success", token=token, callback=callback)
+                self.call(state, action="model_success", token=token, suggestion=suggestion)
             self.assertEqual(expected, raised.exception.code)
         self.assertEqual("running", json.loads(state)["analysis_status"])
         with self.assertRaises(BridgeError) as raised:
             self.node.process(state=None, action="start_run", run_token="run-2",
-                              callback_payload="", draft_payload="", error_code="")
+                              raw_response="", suggestion_payload="", draft_payload="", error_code="")
         self.assertEqual("PARSE_PARTIAL", raised.exception.code)
 
     def test_terminal_run_rejects_late_same_token_callback(self):
         state = self.call()
-        succeeded = self.call(state, action="model_success", callback='{"prompt":"visible"}')
+        succeeded = self.call(state, action="model_success", suggestion='{"prompt":"visible"}')
         with self.assertRaises(BridgeError) as raised:
-            self.call(succeeded, action="model_success", callback='{"prompt":"late"}')
+            self.call(succeeded, action="model_success", suggestion='{"prompt":"late"}')
         self.assertEqual("ATTEMPT_STALE", raised.exception.code)
         self.assertEqual({"prompt": "visible"}, json.loads(succeeded)["suggestion"])
 
     def test_model_failures_partial_and_cancel_never_overwrite_manual_draft(self):
         state = self.call()
-        state = self.call(state, action="model_success", callback='{"prompt":"visible"}')
+        state = self.call(state, action="model_success", suggestion='{"prompt":"visible"}')
         adopted = self.call(state, action="adopt", draft=self.draft_payload("kept"))
         for action, code, status in (("model_failure", "MODEL_REFUSAL", "failed"),
                                      ("model_failure", "MODEL_TIMEOUT", "failed"),
@@ -193,7 +203,7 @@ class DraftStateOwnerTests(unittest.TestCase):
             with self.subTest(action=action, code=code):
                 running = self.call(adopted, action="start_run", token="next-run")
                 failed = self.call(running, action=action, token="next-run", error=code,
-                                   callback="safe raw fixture")
+                                   raw="safe raw fixture")
                 value = json.loads(failed)
                 self.assertEqual(status, value["analysis_status"])
                 self.assertEqual("kept", value["draft"]["natural_zh"])

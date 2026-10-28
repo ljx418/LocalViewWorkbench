@@ -148,15 +148,16 @@ class LVWDraftStateOwner:
             "state": ("STRING", multiline),
             "action": (list(STATE_ACTIONS), {"default": "start_run"}),
             "run_token": ("STRING", {"default": ""}),
-            "callback_payload": ("STRING", multiline),
+            "raw_response": ("STRING", multiline),
+            "suggestion_payload": ("STRING", multiline),
             "draft_payload": ("STRING", multiline),
             "error_code": ("STRING", {"default": ""}),
         }}
 
-    def process(self, state="", action="start_run", run_token="", callback_payload="",
+    def process(self, state="", action="start_run", run_token="", raw_response="", suggestion_payload="",
                 draft_payload="", error_code=""):
-        value = transition(state, action=action, run_token=run_token, callback_payload=callback_payload,
-                           draft_payload=draft_payload, error_code=error_code)
+        value = transition(state, action=action, run_token=run_token, raw_response=raw_response,
+                           suggestion_payload=suggestion_payload, draft_payload=draft_payload, error_code=error_code)
         state_json = json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
         draft_json = json.dumps(value["draft"], ensure_ascii=False, sort_keys=True, separators=(",", ":"))
         return {"ui": {"text": [state_json]}, "result": (state_json, draft_json)}

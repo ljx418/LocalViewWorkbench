@@ -37,6 +37,9 @@
   "changed_files": [
     "LVW_V0_RuntimePatch/workflows/image_reverse_prompt_v0.ui.json",
     "LVW_V0_RuntimePatch/workflows/image_reverse_prompt_v0.api.json",
+    "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/nodes.py",
+    "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/state.py",
+    "LVW_V0_RuntimePatch/tests/test_s1_image_state_owner.py",
     "LVW_V0_RuntimePatch/tests/test_s1_wp03_live_probe.py",
     "reports/v0-s1/wp-s1-03-phase-a/live_probe.py",
     "reports/v0-s1/implementation-receipt-wp-s1-03-phase-a.json"
@@ -44,8 +47,11 @@
   "artifact_sha256": [
     {"path": "LVW_V0_RuntimePatch/workflows/image_reverse_prompt_v0.ui.json", "sha256": "6047996a27abf9dd92901dafe35fa34f83a7f12924af72ce804b7b16df06e447"},
     {"path": "LVW_V0_RuntimePatch/workflows/image_reverse_prompt_v0.api.json", "sha256": "aa69dc1d316494f20df4eed14e0ce8b04fb23345ff4b0fcb636ac4176dd997b1"},
-    {"path": "LVW_V0_RuntimePatch/tests/test_s1_wp03_live_probe.py", "sha256": "e15bda1843968079c7b0b9833698bca3d7b771189493cbfe09553a2c6322178b"},
-    {"path": "reports/v0-s1/wp-s1-03-phase-a/live_probe.py", "sha256": "d3868a782da69eefb5b4e3dd4ce8ff4d7199d37f2b99d7d38422fb0609cb4702"}
+    {"path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/nodes.py", "sha256": "ffc6b3ccead11029b234432e8ea82c739cae7693e519f51eda5c0dfa3df22125"},
+    {"path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/state.py", "sha256": "db5f50a715aa602fae3e38c980ba7282ad1f603b565be8c9c0e0db646e8c86fe"},
+    {"path": "LVW_V0_RuntimePatch/tests/test_s1_image_state_owner.py", "sha256": "b66079b5b8fbb7edb0437b017e06042c42f40834b7ee1f5b01aa17e32b273fc9"},
+    {"path": "LVW_V0_RuntimePatch/tests/test_s1_wp03_live_probe.py", "sha256": "1030f4f256ac8cf48f7c23a0019d694a67acdc4a195722d3bffa584b22ed49b5"},
+    {"path": "reports/v0-s1/wp-s1-03-phase-a/live_probe.py", "sha256": "04380db0bffc5e0cdb2ce6519be8bcb857bc614de2157bfacd82a234fe3b0897"}
   ],
   "contract_changes": "none",
   "target_configuration_changes": "none",
@@ -54,6 +60,8 @@
     "ui_api_same_graph": true,
     "class_types": ["LVWControlledImageInput", "LVWImagePromptBridge"],
     "harness": "reports/v0-s1/wp-s1-03-phase-a/live_probe.py",
+    "state_success_inputs": ["raw_response", "suggestion_payload"],
+    "semantic_oracle": "frozen lvw.prompt/1 PromptSpec domains.observation plus text_en",
     "live_default": "DENY_UNLESS_EXPLICIT_EXECUTE_LIVE_AND_IDENTITY_BINDINGS",
     "identity_gates": [
       "authorization id",
@@ -70,6 +78,7 @@
       "zero target process matches",
       "zero listeners on 8191 and 11434",
       "observed OLLAMA_NO_CLOUD=true",
+      "exact local gemma4:26b tag present without download",
       "five samples over at least ten seconds with zero non-loopback Ollama connection",
       "required live object_info class types"
     ],
@@ -85,6 +94,7 @@
       "per-call keep_alive=0 unload",
       "terminal /api/ps empty",
       "only owned listener/process stop",
+      "Windows-native wrapper PID and listener executable/parent lineage proof",
       "final target ports empty",
       "run-owned temporary root removal",
       "target main/python fingerprints unchanged",
@@ -101,20 +111,20 @@
     {
       "logical_command": "PYTHONDONTWRITEBYTECODE=1 python3 -B -m unittest -v LVW_V0_RuntimePatch.tests.test_s1_wp03_live_probe",
       "exit_code": 0,
-      "tests_run": 8,
+      "tests_run": 14,
       "result": "OK; fake driver only"
     },
     {
       "logical_command": "PYTHONDONTWRITEBYTECODE=1 python3 -B -m unittest discover -s LVW_V0_RuntimePatch/tests -p test_*.py",
       "exit_code": 0,
-      "tests_run": 67,
+      "tests_run": 74,
       "result": "OK"
     },
     {
       "logical_command": "TARGET_PORTABLE_PYTHON -B -m unittest discover -s LVW_V0_RuntimePatch/tests -p test_*.py",
       "exit_code": 0,
-      "tests_run": 67,
-      "result": "65 passed, 2 skipped for unavailable symlink fixture privilege; skips are not product PASS"
+      "tests_run": 74,
+      "result": "71 passed, 3 skipped for two unavailable symlink fixture privileges and Windows-native lack of WSL path namespace; skips are not product PASS"
     },
     {
       "logical_command": "python3 -B offline AST and workflow JSON parse",
@@ -123,8 +133,9 @@
     },
     {
       "logical_command": "PYTHONDONTWRITEBYTECODE=1 python3 -B tools/verify_pack.py --schema",
-      "exit_code": 0,
-      "result": "1129 passed, 0 failed; not product acceptance"
+      "exit_code": 1,
+      "result": "1127 passed, 3 expected root MANIFEST hash mismatches for nodes.py, state.py and test_s1_image_state_owner.py",
+      "failure_disposition": "WP-S1-03 forbids root MANIFEST modification; root sealing remains pending"
     },
     {
       "logical_command": "PYTHONDONTWRITEBYTECODE=1 python3 -B tools/verify_governance.py",
@@ -142,6 +153,12 @@
     {"check": "default_deny_and_self_check_no_external", "status": "PASS_OFFLINE", "test": "test_self_check_is_offline_and_default_entry_refuses_live"},
     {"check": "candidate_changed_file_allowlist", "status": "PASS_OFFLINE", "test": "test_candidate_identity_rejects_outside_allowlist"},
     {"check": "candidate_blob_executed_harness_identity", "status": "PASS_OFFLINE", "test": "test_candidate_identity_binds_committed_blob_to_executed_harness"},
+    {"check": "real_prompt_spec_semantic_oracle", "status": "PASS_OFFLINE", "test": "test_semantic_oracle_requires_real_frozen_prompt_spec_shape"},
+    {"check": "authorized_target_and_evidence_boundaries", "status": "PASS_OFFLINE_WSL", "test": "test_authorized_paths_evidence_reservation_and_existing_refusal"},
+    {"check": "locked_down_quoted_wrappers", "status": "PASS_OFFLINE", "test": "test_wrapper_commands_are_quoted_locked_down_and_pid_bound"},
+    {"check": "unproven_listener_pid_rejection", "status": "PASS_OFFLINE", "test": "test_listener_pid_without_wrapper_lineage_is_rejected"},
+    {"check": "exact_local_model_required", "status": "PASS_OFFLINE", "test": "test_missing_exact_local_model_fails_without_download"},
+    {"check": "critical_target_integrity_set", "status": "PASS_OFFLINE", "test": "test_target_integrity_covers_frozen_critical_set_without_paths"},
     {"check": "single_attempt_state_adopt_manual_cleanup_route", "status": "PASS_SYNTHETIC_FAKE_DRIVER", "test": "test_success_route_enforces_one_attempt_state_adopt_manual_and_cleanup"},
     {"check": "failure_per_call_unload", "status": "PASS_SYNTHETIC_FAKE_DRIVER", "test": "test_image_failure_still_unloads_and_terminalizes"},
     {"check": "cleanup_false_green_rejection", "status": "PASS_SYNTHETIC_FAKE_DRIVER", "test": "test_cleanup_gap_downgrades_success"},
@@ -153,9 +170,9 @@
     {"check": "target_integrity_and_owned_cleanup", "status": "NOT_RUN_PHASE_A"}
   ],
   "offline_test_counts": {
-    "harness_focused": {"pass": 8, "fail": 0, "total": 8},
-    "repository_combined": {"pass": 67, "fail": 0, "total": 67},
-    "portable_combined": {"pass": 65, "fail": 0, "skipped": 2, "total": 67}
+    "harness_focused": {"pass": 14, "fail": 0, "total": 14},
+    "repository_combined": {"pass": 74, "fail": 0, "total": 74},
+    "portable_combined": {"pass": 71, "fail": 0, "skipped": 3, "total": 74}
   },
   "test_counts": {"denominator": 5, "pass": 0, "fail": 0, "blocked": 0, "skipped": 0, "not_run": 5},
   "product_acceptance": {
@@ -191,7 +208,8 @@
   "raw_artifact_refs": [],
   "risks": [
     "The workflow graph is statically bound only to registered project-owned class types; target object_info and target workflow execution remain NOT_RUN until the sealed one-shot live phase.",
-    "The live harness has only synthetic fake-driver coverage in Phase A; Windows process ownership, portable Comfy startup, real image semantics, resource telemetry and cleanup remain mandatory live gates.",
+    "The live harness has only synthetic fake-driver coverage in Phase A; Windows wrapper/listener lineage, portable Comfy startup, real image semantics, resource telemetry and cleanup remain mandatory live gates.",
+    "The root MANIFEST intentionally remains unchanged and verify_pack reports three expected changed tracked hashes until gate-owner sealing.",
     "Candidate and harness hashes are pending root sealing; live execution must refuse any mismatch.",
     "All five fixed product acceptance cases remain NOT_RUN; this receipt is not a Stage PASS."
   ]
