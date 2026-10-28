@@ -8,7 +8,7 @@
 
 产品规格仍由本README、`docs/`、`contracts/`和`plans/`定义；[Agent Governance](.agent-governance/README.md)在其上增加角色隔离、Stage Packet、Workpack、候选/证据绑定、预算等待和反假绿门禁。唯一当前坐标为[execution-control.json](plans/execution-control.json)。
 
-当前是`V0-S1 / WP-S1-03 / GATE4_REAL_ACCEPTANCE / RUNNING`：request-02 已逐字批准，候选 `3c50159...` 与 harness `fba396b...` 仅可执行一次 aki-v2 live-02。预算为单图片、单模型调用、各一次服务启动、loopback/no-cloud、零浏览器和零外部成本；任何 mandatory stop 或终态都会使授权自动过期，五项产品验收仍为`NOT_RUN`。
+当前是`V0-S1 / WP-S1-03 / GATE4_REAL_ACCEPTANCE / BLOCKED`：aki-v2 live-02 已且仅已执行一次，但终态证据序列化失败，关键内存结果不可恢复，因此不推断产品结果也不重跑。`AUTH-V0-S1-2026-10-28-02` 已自动过期；终端后资源缺席检查通过，但运行内目标完整性仍未知，五项产品验收保持`NOT_RUN`。下一步是离线修复证据写入、封存新候选并申请新的逐次授权。
 
 ## 一套文档，不再多条互斥路线
 

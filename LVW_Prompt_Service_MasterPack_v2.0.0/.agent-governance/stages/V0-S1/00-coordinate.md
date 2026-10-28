@@ -6,10 +6,10 @@ Design: 2.0.0
 Target version: V0
 Prepared stage: V0-S1 / 图片与独立人工路径
 Packet version: 1.0.0
-State: RUNNING / AUTHORIZED_LIVE_02
+State: BLOCKED / LIVE_02_TERMINAL_EVIDENCE_SERIALIZATION_FAILED
 Active coordinate: V0-S1 / WP-S1-03 / GATE4_REAL_ACCEPTANCE
 Last passed gate: WP_S1_03_TARGET_PATH_CORRECTION_SEALED
-Exact stop reason: none
+Exact stop reason: TERMINAL_EVIDENCE_SERIALIZATION_FAILED_AFTER_SINGLE_AUTHORIZED_RUN
 Product cases: NOT_RUN
 Prepared-against commit: dfb00ad462d94628f1aa22045061f66a7629ec01
 Product bridge candidate: 138b4486fdaeb8d207ef6b5efb63a09865f174b9
@@ -35,3 +35,5 @@ WP-S1-03 Phase A 候选 `65c909f...` 与 harness `322957e...` 已由门禁负责
 修正候选 `3c50159...` 与 harness `fba396b...` 已封存，绑定 aki-v2 精确路径、新授权 ID `AUTH-V0-S1-2026-10-28-02`、新 run ID 和不可复用的 `wp-s1-03-live-02` 证据槽；77/77 离线回归通过。当前等待项目负责人明确批准 `AUTH-REQUEST-V0-S1-WP-S1-03-02`。
 
 项目负责人已逐字批准 request-02，正式授权记录绑定请求提交 `83cea5b...` 与 SHA-256 `280ab61...`。仅可执行一次 live-02；任何 mandatory stop、有效图片尝试或终态收据都会使授权自动过期。
+
+live-02 已且仅已执行一次，但 harness 在运行完成后的终态证据序列化阶段触发 `JSONDecodeError`。内存中的路由结论、尝试计数、服务启动计数和目标前后指纹无法恢复，均保持 `UNKNOWN`；五项产品用例继续为 `NOT_RUN`。终端后检查确认 8191/11434 无监听、无匹配进程、无 run-owned 临时目录，但不能替代丢失的运行内目标完整性证明，因此 cleanup 不提升为已完全证明。`AUTH-V0-S1-2026-10-28-02` 已自动过期，禁止重跑；下一步仅允许离线修复序列化并重新封存候选，随后另行申请新的一次性授权。

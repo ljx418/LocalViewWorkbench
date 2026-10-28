@@ -8,28 +8,28 @@
     "stage_id": "V0-S1",
     "workpack_id": "WP-S1-03",
     "gate": "GATE4_REAL_ACCEPTANCE",
-    "state": "RUNNING"
+    "state": "BLOCKED"
   },
   "last_passed_gate": {
     "id": "WP_S1_03_TARGET_PATH_CORRECTION_SEALED",
     "evidence": "reports/v0-s1/wp-s1-03-path-correction-seal.json",
     "meaning": "aki-v2 target paths, fresh authorization ID and non-reusable live-02 evidence slot passed 77 offline tests on candidate 3c50159"
   },
-  "current_blocking_gate": "the authorized live-02 preflight and single effective image route must execute and generate a terminal receipt",
+  "current_blocking_gate": "the live-02 terminal result was lost during evidence serialization; a corrected harness must be sealed before any new authorization request",
   "stage_packet": ".agent-governance/stages/V0-S1/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/V0-S1/PAYLOAD_MANIFEST.sha256",
   "product_status": "NOT_RUN",
-  "allowed_claim": "V0_S1_WP_S1_03_LIVE_02_AUTHORIZED_RUNNING_PRODUCT_CASES_NOT_RUN",
+  "allowed_claim": "V0_S1_WP_S1_03_LIVE_02_BLOCKED_TERMINAL_EVIDENCE_LOST_PRODUCT_CASES_NOT_RUN",
   "forbidden_claims": [
     "ENGINEERING_READY",
     "V0_ACCEPTED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "codex_isolated_implementer",
-  "next_action": "Execute the sealed live-02 harness once; stop on any mandatory condition, preserve evidence, clean owned resources and expire authorization.",
-  "required_authorization": "AUTH-V0-S1-2026-10-28-02",
+  "next_owner": "codex_gate_owner",
+  "next_action": "Seal the immutable live-02 BLOCKED receipt, correct terminal evidence serialization offline, rerun frozen offline regression, and prepare a fresh one-shot authorization request without reusing live-02 evidence.",
+  "required_authorization": "NEW_EXPLICIT_AUTHORIZATION_AFTER_CORRECTED_SEAL",
   "authorization_request": "reports/v0-s1/authorization-wp-s1-03-02.request.json",
   "authorization_record": "reports/v0-s1/authorization-wp-s1-03-02.json",
   "evidence_root": "reports/",
-  "exact_stop_reason": null
+  "exact_stop_reason": "TERMINAL_EVIDENCE_SERIALIZATION_FAILED_AFTER_SINGLE_AUTHORIZED_RUN"
 }

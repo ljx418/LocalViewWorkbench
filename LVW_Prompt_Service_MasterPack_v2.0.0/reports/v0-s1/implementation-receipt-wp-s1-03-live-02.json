@@ -11,8 +11,8 @@
   "candidate_sha": "3c5015959e67ecab6e2ba1762eb9bbbabae48e80",
   "candidate_sha_status": "SEALED_EXECUTION_CANDIDATE",
   "harness_sha256": "fba396bb75309f1c1512918e994ba682ac1e2c092de716fa2a3c0dac0766196d",
-  "evidence_commit": "0000000000000000000000000000000000000000",
-  "evidence_commit_status": "PENDING_ROOT_SEALING",
+  "evidence_commit": "5bcb9eacf589420e39178b6e4d91f40fd62b5205",
+  "evidence_commit_status": "SEALED_RAW_EVIDENCE_COMMIT",
   "acceptance_hash": "4b52485dbaa7daeccb31b5c91771b51f8106ab6e49267328990ad4da3b5f85c5",
   "gate_version": "lvw-gate/1",
   "run_id": "v0-s1-wp-s1-03-live-02",
@@ -46,6 +46,13 @@
     "visible_browser_runs": 0,
     "external_cost": 0
   },
+  "check_results": [
+    {"check": "single_authorized_command", "status": "EXECUTED_ONCE_EXIT_1", "evidence": "reports/v0-s1/wp-s1-03-live-02/run-command-result.json"},
+    {"check": "terminal_evidence_serialization", "status": "FAIL", "evidence": "reports/v0-s1/wp-s1-03-live-02/failure.json"},
+    {"check": "post_terminal_owned_resource_absence", "status": "PASS", "evidence": "reports/v0-s1/wp-s1-03-live-02/post-terminal-cleanup.json"},
+    {"check": "in_run_target_integrity", "status": "UNKNOWN_NOT_PERSISTED"},
+    {"check": "fixed_product_acceptance", "status": "NOT_RUN"}
+  ],
   "failure": {
     "type": "json.decoder.JSONDecodeError",
     "phase": "terminal_evidence_serialization",
