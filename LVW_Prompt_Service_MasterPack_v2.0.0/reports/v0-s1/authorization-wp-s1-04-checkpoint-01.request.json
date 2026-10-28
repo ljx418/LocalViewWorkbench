@@ -1,0 +1,83 @@
+{
+  "schema_version": "lvw.authorization-request/1",
+  "request_id": "AUTH-REQUEST-V0-S1-WP-S1-04-CHECKPOINT-01",
+  "status": "PENDING_PROJECT_OWNER_APPROVAL",
+  "is_authorization": false,
+  "does_not_authorize_execution": true,
+  "does_not_authorize_stage_pass": true,
+  "project_id": "lvw-prompt-service",
+  "stage_id": "V0-S1",
+  "workpack_id": "WP-S1-04-CHECKPOINT-LIVE",
+  "requested_by": "codex_sol",
+  "requested_from": "project_owner",
+  "planned_authorization_id": "AUTH-V0-S1-2026-10-28-CHECKPOINT-01",
+  "product_candidate": "1d48142b95466954ca4da264fa06762abf1522f2",
+  "harness_candidate": "14bb63b83b74f6604698a08ecc2e17557dd4031c",
+  "harness_path": "reports/v0-s1/stage-checkpoint-phase-a/checkpoint.py",
+  "harness_sha256": "9b1b4ec4d585fabd3b041b992aeccd59a064f26a9cf93c08cf97ea62b90cdb41",
+  "lifecycle_relative": "reports/v0-s1/wp-s1-03-phase-a/live_probe.py",
+  "lifecycle_sha256": "94953202138267ca988818a5ba75704d845c15e288fb406d8f7af21d1af4af52",
+  "run_id": "v0-s1-stage-checkpoint-live-01",
+  "evidence_relative": "reports/v0-s1/stage-checkpoint-live-01",
+  "sample_alias": "TEST_SOURCE/image-sample",
+  "sample_sha256": "b4bbd08a0fad67cc04e55d15bf2c48e9a76dcfd6dda147d8cc504452dfc78a42",
+  "model": "gemma4:26b",
+  "model_digest": "5571076f3d70050487b26b341705799e0ab29b808164f90d20d4cf84f699d251",
+  "acceptance_ids": ["V0-A01", "V0-A03", "V0-A04", "V0-A05", "V0-A08"],
+  "acceptance_hash": "4b52485dbaa7daeccb31b5c91771b51f8106ab6e49267328990ad4da3b5f85c5",
+  "budget": {
+    "image_attempts": 1,
+    "model_calls": 1,
+    "comfy_starts": 1,
+    "ollama_starts": 1,
+    "planned_public_submissions": 24,
+    "max_public_submissions": 26,
+    "browser_runs": 0,
+    "downloads": 0,
+    "cloud_calls": 0,
+    "external_cost": 0
+  },
+  "target_bindings": {
+    "comfy_main": "C:/ComfyUI-aki-v2/ComfyUI/main.py",
+    "comfy_python": "C:/ComfyUI-aki-v2/python/python.exe",
+    "ollama_exe_alias": "OLLAMA_EXE",
+    "ollama_exe_basename": "ollama.exe",
+    "ollama_exe_sha256": "d15adaa9cc617da2c44142f36a36de19c76887ec342e4338f37e67fd730a1ced",
+    "powershell": "powershell.exe",
+    "temp_parent": "C:/Temp",
+    "comfy_url": "http://127.0.0.1:8191",
+    "ollama_url": "http://127.0.0.1:11434"
+  },
+  "allowed": [
+    "validate the hash-bound request, authorization, product candidate, harness, lifecycle, sample, model binary identity and target aliases before driver creation",
+    "start one run-owned Windows-native Ollama and one run-owned temporary ComfyUI on literal loopback only",
+    "read the fixed non-private test image once and make one local gemma4:26b model call",
+    "perform exactly 24 planned public /prompt submissions, with a hard maximum of 26, for V0-A01/A03/A04/A05/A08 on the same candidate",
+    "use the system clipboard only for the bounded A04 copy checks and fail closed if unavailable",
+    "write only run-owned temporary exports and minimized evidence, then completely clean them"
+  ],
+  "required_checks": [
+    "public image route, controlled preprocessing, real raw response and PromptSpec suggestion",
+    "four output views plus schema-valid JSON/TXT with zero extra model calls",
+    "Ollama-stopped 20000-character manual copy/export and deterministic atomic-write failure",
+    "public state-owner invalid JSON, refusal, timeout, OOM and stale-token paths with unchanged draft bytes/epoch and retry_count zero",
+    "public unanalyzed empty manual export with no approval/content-note permission gate",
+    "GPU, no-cloud, loopback, model ledger, target pre/post integrity, owned terminal substates, post-cleanup and privacy recomputation"
+  ],
+  "mandatory_stops": [
+    "any request/authorization/candidate/harness/lifecycle/sample/model/target/budget mismatch",
+    "GPU preflight above 4096 MiB, runtime at or above 23552 MiB, pre-existing target process/listener, or any non-loopback connection",
+    "any public route, Oracle, fixed-denominator, export, state, privacy, evidence serialization, cleanup or target-integrity failure",
+    "any action would exceed the frozen one-shot budget"
+  ],
+  "forbidden": [
+    "cloud, paid service, download, upgrade, visible browser or remote Git push",
+    "permanent ComfyUI/Ollama configuration or target installation writes",
+    "use of media other than the hash-bound sample",
+    "termination of non-owned processes, retry under the same authorization, reuse of old evidence, or lowering the frozen denominator/Oracle"
+  ],
+  "evidence_minimization": "Persist aliases, hashes, public prompt/history facts, bounded outputs and owned-resource states only; do not persist media bytes, tensors/current_inputs, traceback, private absolute paths, secrets, unrelated process tables or raw command lines.",
+  "cleanup": "Unload the model, prove /api/ps empty, re-prove owned listener lineage, stop only run-owned processes, remove run-owned temp/exports, prove ports/processes/temp absent and target alias maps equal.",
+  "expires_when": "one terminal V0-S1 fixed-denominator checkpoint receipt is generated, the single effective image attempt is consumed, or any mandatory stop occurs",
+  "approval": {"decision": "PENDING", "approved_by": null, "approved_at": null, "approval_commit": null}
+}

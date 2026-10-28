@@ -375,8 +375,14 @@ def main_v0_s1(args: argparse.Namespace, execution: dict) -> int:
     authorization_records = control.get("authorization_records", [])
     record_values = [load_json(ROOT / item) for item in authorization_records if (ROOT / item).is_file()]
     record_statuses = {item.get("status") for item in record_values}
+    live_scopes = {"WP-S1-03_ONE_SHOT_LIVE", "WP-S1-04_CHECKPOINT_ONE_SHOT_LIVE"}
+    checkpoint_waiting = (
+        control.get("authorization_scope") == "WP-S1-04_CHECKPOINT_ONE_SHOT_LIVE"
+        and control.get("external_authorization") == "WAIT_AUTH_REQUEST_V0_S1_WP_S1_04_CHECKPOINT_01"
+        and control.get("state") == "WAIT_AUTH"
+    )
     live_authorized = (
-        control.get("authorization_scope") == "WP-S1-03_ONE_SHOT_LIVE"
+        control.get("authorization_scope") in live_scopes
         and isinstance(control.get("external_authorization"), str)
         and control.get("external_authorization", "").startswith("AUTH-V0-S1-")
         and bool(authorization_records)
@@ -384,7 +390,7 @@ def main_v0_s1(args: argparse.Namespace, execution: dict) -> int:
         and "GRANTED_ONCE" in record_statuses
     )
     live_terminal = (
-        control.get("authorization_scope") == "WP-S1-03_ONE_SHOT_LIVE"
+        control.get("authorization_scope") in live_scopes
         and control.get("state") in {"CHECKPOINT", "NO_GO", "BLOCKED", "STAGE_BASELINE_COMPLETE"}
         and bool(authorization_records)
         and bool(record_statuses)
@@ -395,8 +401,8 @@ def main_v0_s1(args: argparse.Namespace, execution: dict) -> int:
         and control.get("external_authorization") == "WAIT_AUTH_BEFORE_WP-S1-03"
     )
     check("authorization_scope_valid", control.get("execution_authorized") is True
-          and (offline_waiting or live_authorized or live_terminal))
-    check("external_authorization_state", offline_waiting or live_authorized or live_terminal)
+          and (offline_waiting or checkpoint_waiting or live_authorized or live_terminal))
+    check("external_authorization_state", offline_waiting or checkpoint_waiting or live_authorized or live_terminal)
     check("baseline_product_control_fingerprint", control.get("baseline", {}).get("product_control_sha256") == product_control_digest())
 
     bound_commits = [

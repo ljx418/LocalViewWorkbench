@@ -6,10 +6,10 @@ Design: 2.0.0
 Target version: V0
 Prepared stage: V0-S1 / 图片与独立人工路径
 Packet version: 1.0.0
-State: CHECKPOINT / WAIT_AUTH_FIXED_DENOMINATOR_NOT_RUN
+State: WAIT_AUTH / CHECKPOINT_01_PENDING_PROJECT_OWNER
 Active coordinate: V0-S1 / WP-S1-04 / GATE5_INDEPENDENT_EXIT
-Last passed gate: WP_S1_04_LIVE_06_INDEPENDENT_REVIEW_ACCEPTED
-Exact stop reason: WAIT_AUTH_S1_FIXED_DENOMINATOR_NOT_RUN
+Last passed gate: WP_S1_04_CHECKPOINT_HARNESS_SEALED
+Exact stop reason: WAIT_AUTH_REQUEST_V0_S1_WP_S1_04_CHECKPOINT_01
 Product cases: NOT_RUN
 Prepared-against commit: dfb00ad462d94628f1aa22045061f66a7629ec01
 Product bridge candidate: 138b4486fdaeb8d207ef6b5efb63a09865f174b9
@@ -65,3 +65,5 @@ WP-S1-04 独立审查提交 `e8a4410...` 给出 Fatal 0 / Major 3 / Minor 1，�
 live-06 已且仅已执行一次并以 exit 0 / `READY_FOR_REVIEW` 完成。7/7 执行产物绑定、真实语义 Oracle、可复算状态链、目标前后指纹、owned listener/wrapper 终态和 post-cleanup 快照均封存；授权已过期，五项产品用例仍 `NOT_RUN`。当前进入全新 WP-S1-04 独立复算，尚未产生 Stage PASS。
 
 全新 WP-S1-04 独立复审提交 `9a3dff4...`，结论 Fatal 0 / Major 0 / Minor 0，旧 3 个 Major 与 1 个 Minor 全部闭合。root 仍裁决 `WAIT_AUTH`：冻结规则要求五项固定产品分母在同一候选上执行，而它们仍全部为 `NOT_RUN`。当前只允许离线准备并封存完整 checkpoint harness；live-06 授权已终态过期，任何后续目标运行必须使用新的逐次授权。
+
+固定分母 checkpoint harness 已以候选 `14bb63b...` 封存：harness `9b1b4ec4...` 与生命周期 `94953202...` 均绑定；定向 10/10、完整离线回归 97/97；默认拒绝 live，Ollama 可执行文件只以别名、basename 和内容哈希持久绑定。`AUTH-REQUEST-V0-S1-WP-S1-04-CHECKPOINT-01` 现等待项目负责人明确批准；批准前五项仍全部 `NOT_RUN`，禁止任何目标动作。
