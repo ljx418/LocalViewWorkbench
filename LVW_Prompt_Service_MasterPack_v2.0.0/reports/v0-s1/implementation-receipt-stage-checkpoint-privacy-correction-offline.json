@@ -1,0 +1,146 @@
+{
+  "schema_version": "lvw.implementation-receipt/1",
+  "project_id": "lvw-prompt-service",
+  "stage_id": "V0-S1",
+  "workpack_id": "WP-S1-04-CHECKPOINT-PRIVACY-CORRECTION-OFFLINE",
+  "spec_version": "1.0.0",
+  "baseline_head": "b1c03f8b5a7df7d0dda018430358e23878611249",
+  "review_finding": "independent report b1c03f8: Windows URL false-positive and future raw service-log persistence",
+  "candidate_sha": "0000000000000000000000000000000000000000",
+  "candidate_sha_status": "PENDING_ROOT_SEALING",
+  "evidence_commit": "0000000000000000000000000000000000000000",
+  "evidence_commit_status": "PENDING_ROOT_SEALING",
+  "acceptance_hash": "4b52485dbaa7daeccb31b5c91771b51f8106ab6e49267328990ad4da3b5f85c5",
+  "gate_version": "lvw-gate/1",
+  "run_id": "v0-s1-stage-checkpoint-privacy-correction-offline-20261028-01",
+  "implementation_owner_role": "codex_isolated_implementer",
+  "implementation_session": "/root/s0_rerun_implementer",
+  "decision": "READY_FOR_REVIEW",
+  "stage_pass_claim": false,
+  "exact_stop_reason": "OFFLINE_PRIVACY_CORRECTION_COMPLETE_HISTORICAL_CHECKPOINT_01_NO_GO_UNCHANGED",
+  "environment": {
+    "mode": "offline_repository_only",
+    "target_runtime_touched": false,
+    "service_starts": 0,
+    "gpu_probes": 0,
+    "process_probes": 0,
+    "port_probes": 0,
+    "network_calls": 0,
+    "model_calls": 0,
+    "real_media_reads": 0,
+    "visible_browser_runs": 0,
+    "external_cost": 0
+  },
+  "changed_files": [
+    "LVW_V0_RuntimePatch/tests/test_s1_stage_checkpoint.py",
+    "reports/v0-s1/stage-checkpoint-phase-a/checkpoint.py",
+    "reports/v0-s1/implementation-receipt-stage-checkpoint-privacy-correction-offline.json"
+  ],
+  "artifact_sha256": [
+    {
+      "path": "LVW_V0_RuntimePatch/tests/test_s1_stage_checkpoint.py",
+      "sha256": "9a956812193b916352333781edf1d6a99911aa42b303af4274dd3c1aaf9f2216"
+    },
+    {
+      "path": "reports/v0-s1/stage-checkpoint-phase-a/checkpoint.py",
+      "sha256": "aae3582b90853ed37f5915ce116113d8f239c6191594c06c3751973d12dfe800"
+    }
+  ],
+  "implementation": {
+    "windows_drive_privacy_rule": "requires a left lexical boundary before a drive letter; exact HTTP and HTTPS URL schemes are preserved while real C:/ and C:\\ paths remain forbidden",
+    "future_service_log_policy": "raw Comfy and Ollama logs are read only in run-owned memory, reduced to non-reversible counters, and never persisted in a live summary",
+    "persisted_service_log_facts": [
+      "ollama HTTP 200 chat/generate/ps counts",
+      "Comfy got-prompt count",
+      "loopback and no-cloud marker counts",
+      "traceback/current_inputs/secret/base64/path counts",
+      "aggregate rejected_diagnostic_count"
+    ],
+    "fail_closed_rule": "any traceback or forbidden diagnostic count forces NO_GO; the original diagnostic text is not serialized",
+    "verifier_rule": "raw service_logs are forbidden and the structured ledger is independently checked against the fixed public submission and model HTTP counts",
+    "historical_checkpoint_status": "stage-checkpoint-live-01 remains immutable NO_GO; this correction does not retroactively recognize PASS",
+    "authorization_effect": "none; this offline correction does not authorize a rerun"
+  },
+  "historical_evidence_unchanged": [
+    {
+      "path": "reports/v0-s1/stage-checkpoint-live-01/run-summary.json",
+      "sha256": "2e77a854668ce083408c7b6d8eca1b3b6b7a973f2484a51a2c8dacd92bffeffe"
+    },
+    {
+      "path": "reports/v0-s1/stage-checkpoint-live-01/implementation-receipt.json",
+      "sha256": "4258b23ba6bd54037b7165ddcff89400cb099ffbcc77ab6c58abbc8f8b3b4ca9"
+    },
+    {
+      "path": "reports/v0-s1/stage-checkpoint-live-01/artifact-manifest.json",
+      "sha256": "40295b2862b8e1ca876ed2fc878fb69e359e9d36a573db97adca8ba9a9d60487"
+    }
+  ],
+  "commands": [
+    {
+      "logical_command": "PYTHONDONTWRITEBYTECODE=1 python3 -B -m unittest -v LVW_V0_RuntimePatch.tests.test_s1_stage_checkpoint",
+      "exit_code": 0,
+      "tests_run": 13,
+      "result": "OK"
+    },
+    {
+      "logical_command": "PYTHONDONTWRITEBYTECODE=1 python3 -B -m unittest discover -s LVW_V0_RuntimePatch/tests -p test_*.py",
+      "exit_code": 0,
+      "tests_run": 100,
+      "result": "OK"
+    },
+    {
+      "logical_command": "PYTHONDONTWRITEBYTECODE=1 python3 -B checkpoint.py --self-check and --plan",
+      "exit_code": 0,
+      "result": "READY_FOR_REVIEW; product denominator 5 NOT_RUN; external actions zero"
+    },
+    {
+      "logical_command": "PYTHONDONTWRITEBYTECODE=1 python3 -B tools/verify_pack.py --schema",
+      "exit_code": 1,
+      "result": "1176 passed, 9 manifest mismatches caused by pre-existing unrelated root-gate working-tree edits outside this correction scope"
+    },
+    {
+      "logical_command": "PYTHONDONTWRITEBYTECODE=1 python3 -B tools/verify_governance.py and --self-test",
+      "exit_code": 1,
+      "result": "16/17 and 19/20; pre-existing baseline_product_control_fingerprint mismatch outside this correction scope"
+    },
+    {
+      "logical_command": "offline Python AST/JSON/hash/privacy/scope checks",
+      "exit_code": 0,
+      "result": "PASS"
+    }
+  ],
+  "check_results": [
+    {"check": "URL scheme exact preservation", "status": "PASS_OFFLINE"},
+    {"check": "real Windows drive path rejection", "status": "PASS_OFFLINE"},
+    {"check": "traceback forces NO_GO without raw diagnostic persistence", "status": "PASS_OFFLINE"},
+    {"check": "raw service_logs verifier rejection", "status": "PASS_OFFLINE"},
+    {"check": "structured service ledger recomputation", "status": "PASS_OFFLINE"},
+    {"check": "historical checkpoint-01 evidence byte identity", "status": "PASS_OFFLINE"},
+    {"check": "pack/governance clean baseline", "status": "PREEXISTING_OUT_OF_SCOPE_WORKTREE_DRIFT"}
+  ],
+  "offline_test_counts": {
+    "checkpoint_focused": {"pass": 13, "fail": 0, "total": 13},
+    "repository_combined": {"pass": 100, "fail": 0, "total": 100}
+  },
+  "test_counts": {"denominator": 5, "pass": 0, "fail": 0, "blocked": 0, "skipped": 0, "not_run": 5},
+  "product_acceptance": {
+    "V0-A01": "NOT_RUN",
+    "V0-A03": "NOT_RUN",
+    "V0-A04": "NOT_RUN",
+    "V0-A05": "NOT_RUN",
+    "V0-A08": "NOT_RUN"
+  },
+  "contract_changes": "none",
+  "target_configuration_changes": "none",
+  "artifact_refs": [
+    "reports/v0-s1/stage-checkpoint-phase-a/checkpoint.py",
+    "LVW_V0_RuntimePatch/tests/test_s1_stage_checkpoint.py",
+    "reports/v0-s1/implementation-receipt-stage-checkpoint-privacy-correction-offline.json"
+  ],
+  "raw_artifact_refs": [],
+  "risks": [
+    "The immutable checkpoint-01 evidence remains NO_GO and contains its original raw diagnostic material; it was not rewritten.",
+    "Future product acceptance remains NOT_RUN and requires a separate fresh one-shot authorization; this receipt grants none.",
+    "Pack and governance checks observe unrelated root-gate working-tree edits outside the three correction files; those edits were preserved and not staged."
+  ]
+}

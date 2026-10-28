@@ -375,11 +375,43 @@ def _privacy_scan(value, location="$") -> None:
             _privacy_scan(child, f"{location}[{index}]")
     elif isinstance(value, str):
         lowered = value.lower()
-        if ("/mnt/" in lowered or re.search(r"[a-zA-Z]:[\\/]", value) or
+        if ("/mnt/" in lowered or re.search(r"(?<![A-Za-z0-9_])[a-zA-Z]:[\\/]", value) or
                 "traceback (most recent call last)" in lowered or
                 "current_inputs" in lowered or
                 re.fullmatch(r"[A-Za-z0-9+/]{160,}={0,2}", value)):
             raise CheckpointError("CASE_PRIVACY_VIOLATION", location)
+
+
+def service_log_facts(ollama_text: str, comfy_text: str) -> dict:
+    """Reduce volatile service logs to non-reversible counters in memory."""
+    combined=f"{ollama_text}\n{comfy_text}"
+    lowered=combined.lower()
+    traceback_count=lowered.count("traceback (most recent call last)")
+    current_inputs_count=lowered.count("current_inputs")
+    secret_assignment_count=len(re.findall(
+        r"(?i)(?:authorization|bearer|token|password|api[_-]?key)\s*[:=]\s*[^\s,;]+",combined))
+    long_base64_count=len(re.findall(r"(?<![A-Za-z0-9+/])[A-Za-z0-9+/]{160,}={0,2}(?![A-Za-z0-9+/])",combined))
+    private_windows_path_count=len(re.findall(r"(?<![A-Za-z0-9_])[A-Za-z]:[\\/]",combined))
+    private_wsl_path_count=len(re.findall(r"(?<![A-Za-z0-9_])/mnt/[A-Za-z]/",combined,re.I))
+    rejected=traceback_count+current_inputs_count+secret_assignment_count+long_base64_count
+    ollama_lines=ollama_text.splitlines()
+    return {
+        "ollama_http_200": {
+            "chat":sum(' | 200 |' in line and '"/api/chat"' in line for line in ollama_lines),
+            "generate":sum(' | 200 |' in line and '"/api/generate"' in line for line in ollama_lines),
+            "ps":sum(' | 200 |' in line and '"/api/ps"' in line for line in ollama_lines),
+        },
+        "comfy_got_prompt_count":sum("got prompt" in line.lower() for line in comfy_text.splitlines()),
+        "ollama_no_cloud_marker_count":ollama_text.count("OLLAMA_NO_CLOUD=true"),
+        "loopback_marker_count":combined.count("127.0.0.1")+combined.count("::1"),
+        "traceback_count":traceback_count,
+        "current_inputs_count":current_inputs_count,
+        "secret_assignment_count":secret_assignment_count,
+        "long_base64_count":long_base64_count,
+        "private_windows_path_count":private_windows_path_count,
+        "private_wsl_path_count":private_wsl_path_count,
+        "rejected_diagnostic_count":rejected,
+    }
 
 
 def _load_proven_lifecycle(repo: Path):
@@ -898,22 +930,23 @@ def execute_live(args, *, driver_factory=CheckpointDriver) -> tuple[int, dict]:
             except Exception as exc:
                 result["cleanup"] = {"proven": False, "secondary_cleanup_failure": type(exc).__name__}
         if base is not None:
-            service_logs = {}
-            aliases = {str(base): "RUN_TEMP", str(repo): "REPO", str(Path(args.sample).resolve()): "TEST_SOURCE/image-sample"}
-            aliases.update({str(args.ollama_exe):AUTHORIZED_OLLAMA_EXE_ALIAS,
-                str(Path(args.ollama_exe).resolve()):AUTHORIZED_OLLAMA_EXE_ALIAS,
-                normalized_windows_path(args.ollama_exe):AUTHORIZED_OLLAMA_EXE_ALIAS})
-            for name in ("ollama.log", "comfy.log"):
-                path = base / name
-                if path.exists():
-                    service_logs[name] = lifecycle.redact(path.read_text(encoding="utf-8", errors="replace"), aliases)
-            result["service_logs"] = service_logs
-            ollama_log = service_logs.get("ollama.log", "")
-            result["model_http_ledger"] = {
-                "chat_200": sum(' | 200 |' in line and '"/api/chat"' in line for line in ollama_log.splitlines()),
-                "generate_200": sum(' | 200 |' in line and '"/api/generate"' in line for line in ollama_log.splitlines()),
-                "ps_200": sum(' | 200 |' in line and '"/api/ps"' in line for line in ollama_log.splitlines()),
+            ollama_log_path=base/"ollama.log"; comfy_log_path=base/"comfy.log"
+            ollama_text=ollama_log_path.read_text(encoding="utf-8",errors="replace") if ollama_log_path.exists() else ""
+            comfy_text=comfy_log_path.read_text(encoding="utf-8",errors="replace") if comfy_log_path.exists() else ""
+            facts=service_log_facts(ollama_text,comfy_text)
+            result["service_log_facts"]=facts
+            result["model_http_ledger"]={
+                "chat_200":facts["ollama_http_200"]["chat"],
+                "generate_200":facts["ollama_http_200"]["generate"],
+                "ps_200":facts["ollama_http_200"]["ps"],
             }
+            if facts["rejected_diagnostic_count"]:
+                if result["decision"]=="READY_FOR_REVIEW":
+                    result["decision"]="NO_GO"
+                    result["exact_stop_reason"]="SERVICE_LOG_FORBIDDEN_DIAGNOSTIC"
+                else:
+                    result["secondary_privacy_stop"]="SERVICE_LOG_FORBIDDEN_DIAGNOSTIC"
+            del ollama_text,comfy_text
             try:
                 shutil.rmtree(base); result["cleanup"]["run_owned_temp_removed"] = not base.exists()
             except Exception as exc:
@@ -938,6 +971,8 @@ def execute_live(args, *, driver_factory=CheckpointDriver) -> tuple[int, dict]:
 def verify_machine_facts(summary: dict, repo: Path) -> dict:
     """Recompute product Oracles from raw machine facts; ignore summary PASS flags."""
     _privacy_scan(summary)
+    if "service_logs" in summary:
+        raise CheckpointError("RAW_SERVICE_LOG_PERSISTENCE_FORBIDDEN","service_logs")
     verify_denominator()
     if summary.get("schema_version") != "lvw.s1-stage-checkpoint-live/1" or summary.get("acceptance_hash") != ACCEPTANCE_HASH:
         raise CheckpointError("MACHINE_SUMMARY_BINDING_INVALID", "schema/denominator")
@@ -1164,6 +1199,14 @@ def verify_machine_facts(summary: dict, repo: Path) -> dict:
     http_ledger=summary.get("model_http_ledger", {})
     if http_ledger != {"chat_200":1,"generate_200":2,"ps_200":1}:
         raise CheckpointError("MODEL_HTTP_LEDGER_INVALID", repr(http_ledger))
+    log_facts=summary.get("service_log_facts",{})
+    if (log_facts.get("ollama_http_200")!={"chat":1,"generate":2,"ps":1}
+            or log_facts.get("comfy_got_prompt_count")!=PLANNED_PUBLIC_SUBMISSIONS
+            or log_facts.get("ollama_no_cloud_marker_count",0)<1
+            or log_facts.get("loopback_marker_count",0)<1
+            or any(log_facts.get(key)!=0 for key in ("traceback_count","current_inputs_count",
+                "secret_assignment_count","long_base64_count","rejected_diagnostic_count"))):
+        raise CheckpointError("SERVICE_LOG_FACTS_INVALID","minimal ledger")
     integrity=summary.get("target_integrity", {})
     cleanup=summary.get("cleanup", {}); snapshot=summary.get("post_cleanup_snapshot", {})
     derived_cleanup=(integrity.get("pre")==integrity.get("post") and integrity.get("equal") is True
