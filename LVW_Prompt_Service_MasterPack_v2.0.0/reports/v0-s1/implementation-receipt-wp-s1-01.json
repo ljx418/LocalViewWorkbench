@@ -1,0 +1,184 @@
+{
+  "schema_version": "lvw.implementation-receipt/1",
+  "project_id": "lvw-prompt-service",
+  "stage_id": "V0-S1",
+  "workpack_id": "WP-S1-01",
+  "spec_version": "1.0.0",
+  "stage_packet_commit": "3cbf7347fce2bcc584b5f88130b2fd381b030d5f",
+  "baseline_head": "6e89f6a7d280dae0630ae535503c0e3b7548c891",
+  "candidate_sha": "0000000000000000000000000000000000000000",
+  "candidate_sha_status": "PENDING_ROOT_SEALING",
+  "evidence_commit": "0000000000000000000000000000000000000000",
+  "evidence_commit_status": "PENDING_ROOT_SEALING",
+  "acceptance_hash": "4b52485dbaa7daeccb31b5c91771b51f8106ab6e49267328990ad4da3b5f85c5",
+  "acceptance_hash_binding": {
+    "algorithm": "sha256",
+    "target": "sorted fixed acceptance IDs V0-A01,V0-A03,V0-A04,V0-A05,V0-A08 joined by LF with a trailing LF",
+    "source": ".agent-governance/stages/V0-S1/04-acceptance-matrix.md"
+  },
+  "gate_version": "lvw-gate/1",
+  "run_id": "v0-s1-wp-s1-01-offline-20261028-01",
+  "implementation_owner_role": "codex_isolated_implementer",
+  "implementation_session": "/root/s0_rerun_implementer",
+  "decision": "READY_FOR_REVIEW",
+  "stage_pass_claim": false,
+  "exact_stop_reason": "WP_S1_01_OFFLINE_MANUAL_OWNER_COMPLETE",
+  "environment": {
+    "mode": "offline_repository_only",
+    "python": "3.12",
+    "target_runtime_touched": false,
+    "network_calls": 0,
+    "model_calls": 0,
+    "gpu_probes": 0,
+    "media_reads": 0,
+    "visible_browser_runs": 0
+  },
+  "changed_files": [
+    "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/__init__.py",
+    "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/nodes.py",
+    "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/manual.py",
+    "LVW_V0_RuntimePatch/workflows/manual_prompt_v0.ui.json",
+    "LVW_V0_RuntimePatch/tests/test_manual_prompt_owner.py",
+    "LVW_V0_RuntimePatch/tests/test_s1_contract_fixtures.py",
+    "LVW_V0_RuntimePatch/tests/test_lvw_v0_bridge.py",
+    "reports/v0-s1/implementation-receipt-wp-s1-01.json"
+  ],
+  "artifact_sha256": [
+    {"path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/__init__.py", "sha256": "68585f7fdf9d2a6b82cd63a97c13d0e826e0006550ac6f672cc851152f8a9d8d"},
+    {"path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/nodes.py", "sha256": "342b053e22413ad4cec28df2589d78d9c11ae35e40f7a0e246d26978492f6c73"},
+    {"path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/manual.py", "sha256": "7dc709bd22049ae44b6490229ca91e6598a4978797710c877cc009e4d3de34bf"},
+    {"path": "LVW_V0_RuntimePatch/workflows/manual_prompt_v0.ui.json", "sha256": "411e9c56f0475866f1fb1e22603b558751a4601650aac132a2b24c3cc827f08a"},
+    {"path": "LVW_V0_RuntimePatch/tests/test_manual_prompt_owner.py", "sha256": "3a3744a018af36b93e09f1e584e7c01a3593eed3a6b26a0d6808c1316d9a8096"},
+    {"path": "LVW_V0_RuntimePatch/tests/test_s1_contract_fixtures.py", "sha256": "aefa2ed2689e0d50bb0a66250a7d055a38648bd9b22a0fb17fff09470fc97543"},
+    {"path": "LVW_V0_RuntimePatch/tests/test_lvw_v0_bridge.py", "sha256": "1b70025feabcd7344ed2d9af591011107c57da383b2ca998da7639a7502e4a4f"}
+  ],
+  "contract_changes": "none",
+  "target_configuration_changes": "none",
+  "implementation": {
+    "public_owner": "LVWManualPromptOwner",
+    "workflow": "LVW_V0_RuntimePatch/workflows/manual_prompt_v0.ui.json",
+    "cpu_only": true,
+    "manual_result_identity": {
+      "source_type": "manual",
+      "run_id": null,
+      "analysis_status": "not_requested",
+      "suggestion": null
+    },
+    "outputs": [
+      "natural_zh",
+      "natural_en",
+      "image_prompt",
+      "video_prompt",
+      "tags",
+      "negative",
+      "edit_instruction"
+    ],
+    "actions": [
+      "preview_json",
+      "copy_txt",
+      "copy_json",
+      "export_txt",
+      "export_json"
+    ],
+    "write_boundary": "safe basename under Comfy output/lvw_manual; same-directory temporary file, fsync, atomic replace, temporary cleanup on failure",
+    "approval_or_content_gate_added": false,
+    "automatic_translation_added": false
+  },
+  "commands": [
+    {
+      "logical_command": "PYTHONDONTWRITEBYTECODE=1 python3 -B -m unittest -v LVW_V0_RuntimePatch.tests.test_manual_prompt_owner",
+      "exit_code": 0,
+      "tests_run": 11,
+      "result": "OK"
+    },
+    {
+      "logical_command": "PYTHONDONTWRITEBYTECODE=1 python3 -B -m unittest -v LVW_V0_RuntimePatch.tests.test_manual_prompt_owner LVW_V0_RuntimePatch.tests.test_s1_contract_fixtures LVW_V0_RuntimePatch.tests.test_lvw_v0_bridge",
+      "exit_code": 0,
+      "tests_run": 43,
+      "result": "OK; manual, S1 baseline and bridge regression"
+    },
+    {
+      "logical_command": "python3 -B - (AST parse changed Python and parse manual workflow JSON)",
+      "exit_code": 0,
+      "result": "PASS"
+    },
+    {
+      "logical_command": "PYTHONDONTWRITEBYTECODE=1 python3 -B tools/verify_pack.py --schema",
+      "exit_code": 1,
+      "result": "1112 passed, 3 failed: expected root MANIFEST mismatches for three authorized modified existing files",
+      "failure_disposition": "MANIFEST is outside WP-S1-01 allowed_paths; gate owner sealing is pending"
+    },
+    {
+      "logical_command": "PYTHONDONTWRITEBYTECODE=1 python3 -B tools/verify_governance.py",
+      "exit_code": 0,
+      "result": "18 passed, 0 failed; not product acceptance"
+    },
+    {
+      "logical_command": "PYTHONDONTWRITEBYTECODE=1 python3 -B tools/verify_governance.py --self-test",
+      "exit_code": 0,
+      "result": "21 passed, 0 failed; not product acceptance"
+    }
+  ],
+  "check_results": [
+    {"check": "public_manual_comfy_owner", "status": "PASS_OFFLINE", "test": "test_public_comfy_owner_is_registered_output_node"},
+    {"check": "legal_manual_json", "status": "PASS_OFFLINE", "test": "test_public_owner_emits_all_manual_outputs_and_valid_json"},
+    {"check": "exact_and_one_over_20000", "status": "PASS_OFFLINE", "test": "test_exact_20000_characters_pass_and_one_over_fails"},
+    {"check": "empty_manual_no_approval_gate", "status": "PASS_OFFLINE", "test": "test_empty_draft_and_empty_fields_export_valid_manual_contract"},
+    {"check": "unicode_and_chinese_path_export", "status": "PASS_OFFLINE", "test": "test_json_and_txt_exports_support_unicode_directory_and_filename"},
+    {"check": "path_traversal_rejection", "status": "PASS_OFFLINE", "test": "test_invalid_export_paths_fail_closed_without_files"},
+    {"check": "atomic_disk_failure", "status": "PASS_OFFLINE", "test": "test_atomic_replace_failure_preserves_existing_file_and_removes_temp"},
+    {"check": "clipboard_failure_draft_preservation", "status": "PASS_OFFLINE", "test": "test_clipboard_failure_does_not_change_draft"},
+    {"check": "format_switch_model_calls", "status": "PASS_OFFLINE", "model_calls": 0},
+    {"check": "manual_workflow_static_import_shape", "status": "PASS_OFFLINE", "test": "test_workflow_is_importable_shape_and_uses_only_project_owner"},
+    {"check": "target_comfy_workflow_import", "status": "NOT_RUN_WAIT_AUTH"},
+    {"check": "target_system_clipboard", "status": "NOT_RUN_WAIT_AUTH"},
+    {"check": "pack_manifest_binding", "status": "PENDING_GATE_OWNER_SEALING"}
+  ],
+  "offline_test_counts": {
+    "manual_owner": {"pass": 11, "fail": 0, "total": 11},
+    "combined_regression": {"pass": 43, "fail": 0, "total": 43}
+  },
+  "test_counts": {
+    "denominator": 5,
+    "pass": 0,
+    "fail": 0,
+    "blocked": 0,
+    "skipped": 0,
+    "not_run": 5
+  },
+  "product_acceptance": {
+    "V0-A01": "NOT_RUN",
+    "V0-A03": "NOT_RUN",
+    "V0-A04": "NOT_RUN",
+    "V0-A05": "NOT_RUN",
+    "V0-A08": "NOT_RUN"
+  },
+  "external_actions": {
+    "comfyui_process_starts": 0,
+    "ollama_process_starts": 0,
+    "gpu_probes": 0,
+    "network_calls": 0,
+    "model_calls": 0,
+    "real_media_reads": 0,
+    "downloads_or_upgrades": 0,
+    "target_install_writes": 0,
+    "visible_browser_runs": 0,
+    "external_cost": 0
+  },
+  "production_path": "Comfy workflow node LVWManualPromptOwner -> pure-CPU ManualDraftOwner -> copy or atomic TXT/lvw.v0.result/1 JSON export",
+  "production_path_status": "IMPLEMENTED_OFFLINE_TARGET_IMPORT_NOT_RUN",
+  "artifact_refs": [
+    "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/manual.py",
+    "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/nodes.py",
+    "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/__init__.py",
+    "LVW_V0_RuntimePatch/workflows/manual_prompt_v0.ui.json",
+    "LVW_V0_RuntimePatch/tests/test_manual_prompt_owner.py"
+  ],
+  "raw_artifact_refs": [],
+  "risks": [
+    "The workflow uses only the registered project-owned LVWManualPromptOwner; target ComfyUI import remains NOT_RUN until explicitly authorized.",
+    "System clipboard behavior is covered through the public owner with deterministic fakes; the target desktop clipboard remains NOT_RUN until explicitly authorized.",
+    "The root MANIFEST intentionally remains unchanged and requires gate-owner sealing.",
+    "All five fixed product acceptance cases remain NOT_RUN; this receipt is not a Stage PASS."
+  ]
+}

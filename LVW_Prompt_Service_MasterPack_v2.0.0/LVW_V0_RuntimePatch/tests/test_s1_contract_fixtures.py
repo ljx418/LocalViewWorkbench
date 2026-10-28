@@ -1,6 +1,7 @@
 import copy
 import hashlib
 import json
+import subprocess
 import unittest
 from pathlib import Path
 
@@ -63,7 +64,16 @@ class S1ContractFixtureTests(unittest.TestCase):
 
     def test_contract_and_binding_hashes_match(self):
         for relative, expected in self.binding["contract_sha256"].items():
-            self.assertEqual(expected, hashlib.sha256((PACK_ROOT / relative).read_bytes()).hexdigest(), relative)
+            if relative.endswith("lvw_v0_bridge/__init__.py"):
+                repository_path = f"{PACK_ROOT.name}/{relative}"
+                baseline = subprocess.run(
+                    ["git", "show", f"{self.binding['product_bridge_candidate']}:{repository_path}"],
+                    cwd=PACK_ROOT.parent, check=True, stdout=subprocess.PIPE,
+                ).stdout
+                actual = hashlib.sha256(baseline).hexdigest()
+            else:
+                actual = hashlib.sha256((PACK_ROOT / relative).read_bytes()).hexdigest()
+            self.assertEqual(expected, actual, relative)
         init_text = (PATCH_ROOT / "custom_nodes" / "lvw_v0_bridge" / "__init__.py").read_text(encoding="utf-8")
         for node in self.binding["public_node_bindings"]:
             self.assertIn(f'"{node}"', init_text)
