@@ -8,7 +8,7 @@
 
 产品规格仍由本README、`docs/`、`contracts/`和`plans/`定义；[Agent Governance](.agent-governance/README.md)在其上增加角色隔离、Stage Packet、Workpack、候选/证据绑定、预算等待和反假绿门禁。唯一当前坐标为[execution-control.json](plans/execution-control.json)。
 
-当前是`V0-S1 / WP-S1-03 / GATE4_REAL_ACCEPTANCE / WAIT_AUTH`：live-03 的 1024/384 边界冲突已在候选 `b248b37...` 离线纠正，并增加跨 owner exact/one-over 与诊断最小化测试；定向 58/58、完整回归 79/79。新 harness `bcdb134...` 绑定不可复用的 live-04 证据槽，当前等待明确批准 `AUTH-REQUEST-V0-S1-WP-S1-03-04`；五项产品验收仍为`NOT_RUN`。
+当前是`V0-S1 / WP-S1-03 / GATE4_REAL_ACCEPTANCE / RUNNING`：request-04 已逐字批准，候选 `b248b37...` 与 harness `bcdb134...` 仅可执行一次 aki-v2 live-04。预算为单图片、单模型调用、各一次服务启动、loopback/no-cloud、零浏览器和零外部成本；任何 mandatory stop 或终态都会使授权自动过期，五项产品验收仍为`NOT_RUN`。
 
 ## 一套文档，不再多条互斥路线
 
