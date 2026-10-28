@@ -1,0 +1,13 @@
+{
+  "schema_version": "lvw.live-failure/1",
+  "phase": "terminal_evidence_serialization",
+  "exception_type": "json.decoder.JSONDecodeError",
+  "exception_message": "Expecting property name enclosed in double quotes: line 1 column 2733 (char 2732)",
+  "failing_operation": "json.loads(redact(canonical_json(result), aliases))",
+  "harness_line": 721,
+  "harness_exit_code": 1,
+  "raw_run_summary_persisted": false,
+  "artifact_manifest_persisted_by_harness": false,
+  "retry_performed": false,
+  "notes": "The one-shot run reached the terminal evidence-writing path, but the redacted serialized string was not valid JSON. In-memory attempts, service-start counts, target-integrity comparison, and route decision were not recoverable after process exit. No success claim is made."
+}

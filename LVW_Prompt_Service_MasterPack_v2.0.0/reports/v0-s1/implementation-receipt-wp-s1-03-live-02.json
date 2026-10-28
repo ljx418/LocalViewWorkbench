@@ -1,0 +1,121 @@
+{
+  "schema_version": "lvw.implementation-receipt/1",
+  "project_id": "lvw-prompt-service",
+  "stage_id": "V0-S1",
+  "workpack_id": "WP-S1-03",
+  "spec_version": "1.0.0",
+  "authorization_id": "AUTH-V0-S1-2026-10-28-02",
+  "authorization_commit": "f1bb240f50e79332feac4d144df0e807bd4c5a6a",
+  "authorization_record_sha256": "190a46a00715607472a0fda3589f9c0b198560281eea923974e45eb08ff6c9e0",
+  "authorization_request_sha256": "280ab61dbb09b14374a385f6f37e95889b8b995c3479262afe8d66e19991cfc5",
+  "candidate_sha": "3c5015959e67ecab6e2ba1762eb9bbbabae48e80",
+  "candidate_sha_status": "SEALED_EXECUTION_CANDIDATE",
+  "harness_sha256": "fba396bb75309f1c1512918e994ba682ac1e2c092de716fa2a3c0dac0766196d",
+  "evidence_commit": "0000000000000000000000000000000000000000",
+  "evidence_commit_status": "PENDING_ROOT_SEALING",
+  "acceptance_hash": "4b52485dbaa7daeccb31b5c91771b51f8106ab6e49267328990ad4da3b5f85c5",
+  "gate_version": "lvw-gate/1",
+  "run_id": "v0-s1-wp-s1-03-live-02",
+  "implementation_owner_role": "codex_isolated_implementer",
+  "implementation_session": "/root/s0_rerun_implementer",
+  "decision": "BLOCKED",
+  "stage_pass_claim": false,
+  "authorization_status": "EXPIRED_TERMINAL",
+  "exact_stop_reason": "TERMINAL_EVIDENCE_SERIALIZATION_FAILED_AFTER_SINGLE_AUTHORIZED_RUN",
+  "command_exit_code": 1,
+  "rerun_count": 0,
+  "attempts": {
+    "effective_image_attempts": null,
+    "model_calls": null,
+    "status": "UNKNOWN_NOT_PERSISTED_BEFORE_SERIALIZATION_FAILURE"
+  },
+  "service_starts": {
+    "ollama": null,
+    "comfyui": null,
+    "status": "UNKNOWN_NOT_PERSISTED_BEFORE_SERIALIZATION_FAILURE"
+  },
+  "public_api_submissions": null,
+  "production_path_status": "UNKNOWN_TERMINAL_RESULT_NOT_PERSISTED",
+  "environment": {
+    "mode": "one_shot_authorized_local_live",
+    "target_paths": "AUTHORIZED_AKI_V2_ALIASES_ONLY",
+    "sample": "TEST_SOURCE/image-sample",
+    "sample_sha256": "b4bbd08a0fad67cc04e55d15bf2c48e9a76dcfd6dda147d8cc504452dfc78a42",
+    "cloud_or_paid_calls": 0,
+    "downloads_or_upgrades": 0,
+    "visible_browser_runs": 0,
+    "external_cost": 0
+  },
+  "failure": {
+    "type": "json.decoder.JSONDecodeError",
+    "phase": "terminal_evidence_serialization",
+    "message": "Expecting property name enclosed in double quotes: line 1 column 2733 (char 2732)",
+    "raw_run_summary_persisted": false,
+    "in_memory_terminal_result_recoverable": false
+  },
+  "cleanup": {
+    "owned_resources_absent_at_postcheck": true,
+    "target_listener_count": 0,
+    "target_process_match_count": 0,
+    "run_temp_residual_count": 0,
+    "target_integrity_comparison": "UNKNOWN_NOT_PERSISTED",
+    "proven": false,
+    "reason": "Post-terminal absence checks passed, but the in-run before/after target fingerprint comparison was lost during terminal evidence serialization."
+  },
+  "changed_files": [
+    "reports/v0-s1/wp-s1-03-live-02/run-command-result.json",
+    "reports/v0-s1/wp-s1-03-live-02/failure.json",
+    "reports/v0-s1/wp-s1-03-live-02/post-terminal-cleanup.json",
+    "reports/v0-s1/wp-s1-03-live-02/artifact-manifest.json",
+    "reports/v0-s1/implementation-receipt-wp-s1-03-live-02.json"
+  ],
+  "contract_changes": "none",
+  "target_configuration_changes": "none",
+  "commands": [
+    {
+      "logical_command": "AUTHORIZED_WP_S1_03_LIVE_02_COMMAND",
+      "exit_code": 1,
+      "result": "Terminal evidence serialization JSONDecodeError; no rerun"
+    },
+    {
+      "logical_command": "offline evidence directory, run-temp residual, Windows listener and matching-process postcheck",
+      "exit_code": 0,
+      "result": "evidence directory reserved; zero run-temp residuals; zero listeners on 8191/11434; zero matching Ollama/ComfyUI processes"
+    },
+    {
+      "logical_command": "offline JSON and SHA-256 manifest validation",
+      "exit_code": 0,
+      "result": "PASS; manifest covers all three live-02 evidence artifacts and excludes only itself"
+    }
+  ],
+  "test_counts": {
+    "denominator": 5,
+    "pass": 0,
+    "fail": 0,
+    "blocked": 0,
+    "skipped": 0,
+    "not_run": 5
+  },
+  "product_acceptance": {
+    "V0-A01": "NOT_RUN",
+    "V0-A03": "NOT_RUN",
+    "V0-A04": "NOT_RUN",
+    "V0-A05": "NOT_RUN",
+    "V0-A08": "NOT_RUN"
+  },
+  "artifact_refs": [
+    "reports/v0-s1/wp-s1-03-live-02/run-command-result.json",
+    "reports/v0-s1/wp-s1-03-live-02/failure.json",
+    "reports/v0-s1/wp-s1-03-live-02/post-terminal-cleanup.json",
+    "reports/v0-s1/wp-s1-03-live-02/artifact-manifest.json"
+  ],
+  "raw_artifact_refs": [
+    "reports/v0-s1/wp-s1-03-live-02/failure.json"
+  ],
+  "risks": [
+    "The harness lost its in-memory terminal route result, attempt counts, service-start counts, and target-integrity comparison during evidence serialization; none are inferred.",
+    "Post-terminal checks prove current absence of target listeners, matching processes, and run-owned temporary directories, but cannot replace the missing in-run target-integrity proof.",
+    "The one-shot authorization is expired and this run must not be retried without a new authorization and corrected sealed harness.",
+    "All five fixed product acceptance cases remain NOT_RUN; this receipt is not a Stage PASS."
+  ]
+}
