@@ -6,10 +6,10 @@ Design: 2.0.0
 Target version: V0
 Prepared stage: V0-S1 / 图片与独立人工路径
 Packet version: 1.0.0
-State: FROZEN_READY_OFFLINE
-Active coordinate remains until activation commit: V0-S0 / GATE5_INDEPENDENT_EXIT / STAGE_BASELINE_COMPLETE
-Last passed gate: V0_S0_STAGE_BASELINE_COMPLETE
-Exact stop reason: STAGE_BOUNDARY_REQUIRES_S1_ACTIVATION
+State: RUNNING / OFFLINE_REPOSITORY_ONLY
+Active coordinate: V0-S1 / WP-S1-00 / GATE0_DOCUMENT_READY
+Last passed gate: V0_S1_GATE0_PACKET_FROZEN
+Exact stop reason: none
 Product cases: NOT_RUN
 Prepared-against commit: dfb00ad462d94628f1aa22045061f66a7629ec01
 Product bridge candidate: 138b4486fdaeb8d207ef6b5efb63a09865f174b9

@@ -8,7 +8,7 @@
 
 产品规格仍由本README、`docs/`、`contracts/`和`plans/`定义；[Agent Governance](.agent-governance/README.md)在其上增加角色隔离、Stage Packet、Workpack、候选/证据绑定、预算等待和反假绿门禁。唯一当前坐标为[execution-control.json](plans/execution-control.json)。
 
-当前是`V0-S0 / WP-S0-45 / GATE4_REAL_ACCEPTANCE / BLOCKED`：离线修复与独立审查已完成，最后通过门禁为`WP_S0_45_INDEPENDENT_REVIEW_COMPLETE`。最近一次逐次授权已在 preflight 检出非本运行所有的 GPU 占用超过冻结阈值后终止并自动过期；精确停止原因为`RESOURCE_BUSY_UNKNOWN_GPU_OWNER`。项目负责人需先释放该外部占用，再签发新的逐次授权，才能重新探测或调用 ComfyUI/Ollama/真实媒体。产品固定验收仍为`NOT_RUN`；运行`python3 tools/verify_governance.py --self-test`只验证制度结构与负例拒绝能力，不是产品验收。
+当前是`V0-S1 / WP-S1-00 / GATE0_DOCUMENT_READY / RUNNING`：V0-S0 已以 `STAGE_BASELINE_COMPLETE` 闭合，S1 packet 1.0.0 已冻结并仅授权离线仓库工作。WP-S1-03 的目标 Comfy 安装、Ollama、真实图片和可见浏览器仍为 `WAIT_AUTH`，不能复用 S0 授权。产品固定验收仍为`NOT_RUN`；运行`python3 tools/verify_governance.py --self-test`只验证制度结构与负例拒绝能力，不是产品验收。
 
 ## 一套文档，不再多条互斥路线
 

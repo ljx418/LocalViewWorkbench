@@ -7,7 +7,7 @@
 TARGET_VERSION=V0（可由项目负责人改为V1、V2、V3）。
 本包完整定义V0–V3，但不能跳过前序验收或把后续功能偷偷加入当前版本。
 
-先读.agent-governance/README.md、plans/execution-control.json和当前Stage Packet；校验Stage manifest、角色隔离、固定分母和授权状态。当前V0-S0停在WP-S0-45后的GATE4_REAL_ACCEPTANCE，精确原因为RESOURCE_BUSY_UNKNOWN_GPU_OWNER；最近一次逐次授权已自动过期。不得探测或终止未知GPU进程；项目负责人释放外部占用并重新逐次授权后，才能读取私有目录、调用Comfy/Ollama或运行真实媒体。
+先读.agent-governance/README.md、plans/execution-control.json和当前Stage Packet；校验Stage manifest、角色隔离、固定分母和授权状态。当前为V0-S1 / WP-S1-00，packet只授权离线仓库实现；S0 live授权已过期。WP-S1-03 的目标Comfy安装、Ollama、真实图片或可见浏览器必须等待新的逐次授权，不得从历史收据推断权限。
 
 先读README、docs/00、01、03、04、05、06、对应版本实现方案和plans/*.json；
 运行文档校验、只读盘点本机、备份将修改的工作流和配置。
