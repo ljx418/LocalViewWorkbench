@@ -1,0 +1,53 @@
+{
+  "schema_version": "lvw.implementation-receipt/1",
+  "project_id": "lvw-prompt-service",
+  "stage_id": "V0-S1",
+  "workpack_id": "WP-S1-03",
+  "spec_version": "1.0.0",
+  "candidate_sha": "4a2fed4b0a0cd53bccb02b8779facd6149120c8d",
+  "evidence_commit": "4a2fed4b0a0cd53bccb02b8779facd6149120c8d",
+  "evidence_commit_status": "SEALED_EXECUTION_CANDIDATE",
+  "acceptance_hash": "4b52485dbaa7daeccb31b5c91771b51f8106ab6e49267328990ad4da3b5f85c5",
+  "gate_version": "lvw-gate/1",
+  "run_id": "v0-s1-wp-s1-03-serialization-correction-offline-01",
+  "implementation_owner_role": "codex_isolated_implementer",
+  "implementation_session": "/root",
+  "decision": "READY_FOR_REVIEW",
+  "stage_pass_claim": false,
+  "exact_stop_reason": "WAIT_NEW_EXPLICIT_LIVE_03_AUTHORIZATION",
+  "environment": {
+    "mode": "offline_repository_only",
+    "target_runtime_touched": false,
+    "network_calls": 0,
+    "model_calls": 0,
+    "gpu_probes": 0,
+    "process_probes": 0,
+    "port_probes": 0,
+    "real_media_reads": 0,
+    "visible_browser_runs": 0
+  },
+  "changed_files": [
+    "reports/v0-s1/wp-s1-03-phase-a/live_probe.py",
+    "LVW_V0_RuntimePatch/tests/test_s1_wp03_live_probe.py"
+  ],
+  "contract_changes": "none",
+  "check_results": [
+    {"check": "structured_redaction_json_round_trip", "status": "PASS_OFFLINE", "test": "test_structured_redaction_preserves_json_with_windows_paths"},
+    {"check": "candidate_identity", "status": "PASS_OFFLINE", "evidence": "reports/v0-s1/wp-s1-03-serialization-correction-seal.json"},
+    {"check": "targeted_harness_regression", "status": "PASS_18_OF_18"},
+    {"check": "repository_offline_regression", "status": "PASS_78_OF_78"},
+    {"check": "fixed_product_acceptance", "status": "NOT_RUN"}
+  ],
+  "test_counts": {"denominator": 5, "pass": 0, "fail": 0, "blocked": 0, "skipped": 0, "not_run": 5},
+  "artifact_refs": [
+    "reports/v0-s1/wp-s1-03-serialization-correction-seal.json",
+    "reports/v0-s1/wp-s1-03-phase-a/live_probe.py",
+    "LVW_V0_RuntimePatch/tests/test_s1_wp03_live_probe.py"
+  ],
+  "raw_artifact_refs": [],
+  "risks": [
+    "The correction is proven offline only; no product acceptance case has run.",
+    "A fresh live-03 run still requires explicit project-owner authorization.",
+    "The immutable live-02 result remains BLOCKED and is not reused as positive evidence."
+  ]
+}

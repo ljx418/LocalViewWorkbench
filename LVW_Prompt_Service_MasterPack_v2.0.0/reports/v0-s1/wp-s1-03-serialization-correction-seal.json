@@ -1,0 +1,38 @@
+{
+  "schema_version": "lvw.gate-seal/1",
+  "project_id": "lvw-prompt-service",
+  "stage_id": "V0-S1",
+  "workpack_id": "WP-S1-03",
+  "gate": "TERMINAL_EVIDENCE_SERIALIZATION_CORRECTION_SEAL",
+  "decision": "READY_FOR_NEW_AUTHORIZATION",
+  "prior_terminal_evidence_commit": "5bcb9eacf589420e39178b6e4d91f40fd62b5205",
+  "prior_terminal_seal_commit": "06f374bdaa51a6ac9ffef0aee7fa0e40566f98c9",
+  "prior_terminal_reason": "TERMINAL_EVIDENCE_SERIALIZATION_FAILED_AFTER_SINGLE_AUTHORIZED_RUN",
+  "candidate_sha": "4a2fed4b0a0cd53bccb02b8779facd6149120c8d",
+  "candidate_base": "06f374bdaa51a6ac9ffef0aee7fa0e40566f98c9",
+  "harness_path": "reports/v0-s1/wp-s1-03-phase-a/live_probe.py",
+  "harness_sha256": "6d36759639b109a31ef1e385b55b49c9b5b2e142a7f1d0f0c43be2962e5cb2bf",
+  "test_sha256": "be1d4e19a776fc67821094fcccfe68a7431111a4c21a8cdad3857d10ab7de5bb",
+  "planned_authorization_id": "AUTH-V0-S1-2026-10-28-03",
+  "authorized_run_id": "v0-s1-wp-s1-03-live-03",
+  "authorized_evidence_relative": "reports/v0-s1/wp-s1-03-live-03",
+  "correction": {
+    "old_behavior": "redact regexes were applied to an already serialized JSON document and could corrupt JSON escape syntax",
+    "new_behavior": "redact recursively at JSON string leaves before json.dumps encodes the terminal document",
+    "candidate_identity": "PASS; exactly two allowlisted files differ from candidate_base",
+    "live_01_and_live_02_evidence_reuse": "FORBIDDEN"
+  },
+  "review": {
+    "offline_targeted": {"pass": 18, "fail": 0, "total": 18},
+    "offline_regression": {"pass": 78, "fail": 0, "total": 78},
+    "external_actions": 0
+  },
+  "fixed_product_cases": {
+    "V0-A01": "NOT_RUN",
+    "V0-A03": "NOT_RUN",
+    "V0-A04": "NOT_RUN",
+    "V0-A05": "NOT_RUN",
+    "V0-A08": "NOT_RUN"
+  },
+  "stage_pass_claim": false
+}

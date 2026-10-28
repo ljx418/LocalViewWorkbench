@@ -6,10 +6,10 @@ Design: 2.0.0
 Target version: V0
 Prepared stage: V0-S1 / 图片与独立人工路径
 Packet version: 1.0.0
-State: BLOCKED / LIVE_02_TERMINAL_EVIDENCE_SERIALIZATION_FAILED
+State: WAIT_AUTH / LIVE_03_REQUEST_PENDING
 Active coordinate: V0-S1 / WP-S1-03 / GATE4_REAL_ACCEPTANCE
-Last passed gate: WP_S1_03_TARGET_PATH_CORRECTION_SEALED
-Exact stop reason: TERMINAL_EVIDENCE_SERIALIZATION_FAILED_AFTER_SINGLE_AUTHORIZED_RUN
+Last passed gate: WP_S1_03_TERMINAL_SERIALIZATION_CORRECTION_SEALED
+Exact stop reason: WAIT_NEW_EXPLICIT_LIVE_03_AUTHORIZATION
 Product cases: NOT_RUN
 Prepared-against commit: dfb00ad462d94628f1aa22045061f66a7629ec01
 Product bridge candidate: 138b4486fdaeb8d207ef6b5efb63a09865f174b9
@@ -37,3 +37,5 @@ WP-S1-03 Phase A 候选 `65c909f...` 与 harness `322957e...` 已由门禁负责
 项目负责人已逐字批准 request-02，正式授权记录绑定请求提交 `83cea5b...` 与 SHA-256 `280ab61...`。仅可执行一次 live-02；任何 mandatory stop、有效图片尝试或终态收据都会使授权自动过期。
 
 live-02 已且仅已执行一次，但 harness 在运行完成后的终态证据序列化阶段触发 `JSONDecodeError`。内存中的路由结论、尝试计数、服务启动计数和目标前后指纹无法恢复，均保持 `UNKNOWN`；五项产品用例继续为 `NOT_RUN`。终端后检查确认 8191/11434 无监听、无匹配进程、无 run-owned 临时目录，但不能替代丢失的运行内目标完整性证明，因此 cleanup 不提升为已完全证明。`AUTH-V0-S1-2026-10-28-02` 已自动过期，禁止重跑；下一步仅允许离线修复序列化并重新封存候选，随后另行申请新的一次性授权。
+
+终态序列化已在候选 `4a2fed4...` 离线修复：脱敏从“已编码 JSON 整串替换”改为“字符串叶节点递归脱敏后再编码”，并绑定新授权 ID、run ID 与不可复用的 live-03 证据槽。定向 18/18、完整离线回归 78/78、候选身份检查均通过，外部动作 0。`AUTH-REQUEST-V0-S1-WP-S1-03-03` 现等待项目负责人逐次明确批准；批准前禁止启动 ComfyUI/Ollama 或执行真实媒体路径。
