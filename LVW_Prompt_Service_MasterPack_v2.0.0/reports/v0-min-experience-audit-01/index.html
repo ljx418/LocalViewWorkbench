@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LVW V0-Min｜陌生图片反推体验抽查</title>
+  <style>
+    :root {
+      --paper: #f1f0eb;
+      --paper-deep: #e4e1d8;
+      --ink: #17213a;
+      --navy: #111b34;
+      --navy-soft: #293654;
+      --gold: #a87d31;
+      --gold-light: #d7bd80;
+      --green: #2d6a50;
+      --red: #8a4436;
+      --white: #fffefa;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        linear-gradient(rgba(23,33,58,.035) 1px, transparent 1px),
+        var(--paper);
+      background-size: 100% 26px;
+      font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+      line-height: 1.68;
+    }
+    a { color: inherit; text-underline-offset: 4px; }
+    a:focus-visible { outline: 3px solid var(--gold); outline-offset: 4px; }
+    .masthead {
+      min-height: 92vh;
+      display: grid;
+      grid-template-columns: minmax(0, 1.12fr) minmax(340px, .88fr);
+      background: var(--navy);
+      color: var(--white);
+      border-bottom: 8px solid var(--gold);
+    }
+    .artifact {
+      position: relative;
+      min-height: 620px;
+      overflow: hidden;
+      background: #d6d7d6;
+    }
+    .artifact img {
+      width: 100%;
+      height: 100%;
+      min-height: 620px;
+      object-fit: cover;
+      display: block;
+    }
+    .artifact figcaption {
+      position: absolute;
+      left: 24px;
+      bottom: 22px;
+      max-width: calc(100% - 48px);
+      padding: 9px 13px;
+      color: var(--white);
+      background: rgba(17,27,52,.9);
+      border-left: 4px solid var(--gold-light);
+      font-size: .82rem;
+    }
+    .intro {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: clamp(40px, 7vw, 108px);
+      border-left: 1px solid rgba(215,189,128,.4);
+    }
+    .verdict {
+      align-self: flex-start;
+      margin-bottom: 34px;
+      padding: 7px 12px;
+      border: 1px solid var(--gold-light);
+      color: var(--gold-light);
+      font-weight: 700;
+      letter-spacing: .05em;
+    }
+    h1, h2, h3, blockquote {
+      font-family: "Noto Serif SC", "Source Han Serif SC", Georgia, serif;
+    }
+    h1 {
+      margin: 0 0 24px;
+      max-width: 10ch;
+      font-size: clamp(2.9rem, 6vw, 6.6rem);
+      line-height: .98;
+      letter-spacing: -.045em;
+      font-weight: 650;
+    }
+    .lede { max-width: 54ch; color: #dfe3ed; font-size: 1.08rem; }
+    .runline {
+      margin-top: 34px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(215,189,128,.35);
+      color: #bfc7d9;
+      font-size: .86rem;
+    }
+    main { width: min(1180px, calc(100% - 40px)); margin: 0 auto; }
+    section { padding: 82px 0; border-bottom: 1px solid #c8c3b6; }
+    .section-title {
+      display: grid;
+      grid-template-columns: minmax(180px, .33fr) 1fr;
+      gap: 40px;
+      align-items: start;
+      margin-bottom: 42px;
+    }
+    h2 { margin: 0; font-size: clamp(2rem, 4vw, 3.7rem); line-height: 1.05; }
+    .section-title p { margin: 0; max-width: 58ch; color: #4d5568; }
+    blockquote {
+      margin: 0;
+      padding: clamp(28px, 5vw, 64px);
+      background: var(--white);
+      border: 1px solid #c8c3b6;
+      border-left: 10px solid var(--gold);
+      color: var(--navy);
+      font-size: clamp(1.35rem, 2.5vw, 2.25rem);
+      line-height: 1.45;
+    }
+    .translation {
+      margin: 20px 0 0;
+      padding-left: 20px;
+      border-left: 3px solid var(--navy-soft);
+      color: #41495b;
+    }
+    .evidence-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: #bdb7a8;
+      border: 1px solid #bdb7a8;
+    }
+    .evidence-grid article { background: var(--paper); padding: 28px; }
+    h3 { margin: 0 0 16px; color: var(--navy); font-size: 1.35rem; }
+    ul { margin: 0; padding-left: 1.25em; }
+    li + li { margin-top: 10px; }
+    .score-layout {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      gap: clamp(36px, 7vw, 90px);
+      align-items: center;
+    }
+    .score {
+      width: 240px;
+      height: 240px;
+      display: grid;
+      place-content: center;
+      text-align: center;
+      border: 5px double var(--gold);
+      border-radius: 50%;
+      background: var(--navy);
+      color: var(--white);
+    }
+    .score strong { display: block; font: 650 4.5rem/1 Georgia, serif; }
+    .score span { color: var(--gold-light); }
+    .bars { display: grid; gap: 18px; }
+    .bar-label { display: flex; justify-content: space-between; gap: 20px; }
+    .track { height: 9px; margin-top: 6px; background: #d6d1c4; }
+    .fill { height: 100%; background: var(--navy-soft); }
+    .notes {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 42px;
+      margin-top: 54px;
+    }
+    .notes > div { padding-top: 20px; border-top: 4px solid var(--green); }
+    .notes > div:last-child { border-color: var(--red); }
+    .receipt {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      border: 1px solid #bdb7a8;
+      background: var(--white);
+    }
+    .receipt div { padding: 22px; border-right: 1px solid #d7d2c6; }
+    .receipt div:last-child { border: 0; }
+    .receipt strong { display: block; color: var(--navy); font-size: 1.35rem; }
+    .receipt span { color: #5d6474; font-size: .84rem; }
+    .source {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 50px;
+    }
+    code { overflow-wrap: anywhere; color: #465066; }
+    footer {
+      padding: 42px 20px;
+      text-align: center;
+      background: var(--navy);
+      color: #cbd1de;
+    }
+    @media (max-width: 850px) {
+      .masthead, .section-title, .score-layout, .source { grid-template-columns: 1fr; }
+      .artifact { min-height: 420px; }
+      .artifact img { min-height: 420px; }
+      .intro { border-left: 0; border-top: 1px solid rgba(215,189,128,.4); }
+      .evidence-grid, .receipt { grid-template-columns: 1fr 1fr; }
+      .score { margin: auto; }
+    }
+    @media (max-width: 560px) {
+      main { width: min(100% - 24px, 1180px); }
+      .evidence-grid, .notes, .receipt { grid-template-columns: 1fr; }
+      .receipt div { border-right: 0; border-bottom: 1px solid #d7d2c6; }
+      section { padding: 58px 0; }
+    }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  </style>
+</head>
+<body>
+  <header class="masthead">
+    <figure class="artifact">
+      <img src="assets/unseen-source.jpg" alt="浅灰背景上的深蓝色矩形布章，缝有两条金色横杠，边缘略有磨损">
+      <figcaption>随机公开样本 · Wikimedia Commons · CC0 · 未向模型提供馆藏说明</figcaption>
+    </figure>
+    <div class="intro">
+      <div class="verdict">体验抽查通过，有改进项</div>
+      <h1>陌生图片，能反推出什么？</h1>
+      <p class="lede">一次真实、单样本、单模型调用的 V0-Min 体验抽查。系统准确描述主体与光线，把不确定身份留在“未知”中，没有借用网页元数据作弊。</p>
+      <p class="runline">Gemma 4 26B · 本机 loopback · 1 张图 · 1 次调用 · 0 元外部成本</p>
+    </div>
+  </header>
+
+  <main>
+    <section>
+      <div class="section-title">
+        <h2>反推提示词</h2>
+        <p>这是产品真实公开路径返回的英文提示词，没有经过人工润色。下方中文仅用于阅读参考，不计入模型输出。</p>
+      </div>
+      <blockquote>“A close-up shot of a rectangular dark blue fabric patch featuring two horizontal, ribbed gold-colored bars outlined with fine stitching, centered on a plain light gray background under even, diffused lighting.”</blockquote>
+      <p class="translation"><strong>人工中文参考：</strong>一张近距离拍摄的物件照片：一块深蓝色矩形布章，上面有两条横向、带细密纹理的金色条带，边缘以精细缝线勾勒；主体居中放置在纯浅灰背景上，使用均匀柔和的漫射光。</p>
+    </section>
+
+    <section>
+      <div class="section-title">
+        <h2>模型如何理解画面</h2>
+        <p>结构化输出把视觉事实、语义推断和未知信息拆开。这个边界比“猜中具体物件名称”更重要。</p>
+      </div>
+      <div class="evidence-grid">
+        <article>
+          <h3>看见的</h3>
+          <ul>
+            <li>深蓝底的矩形纺织布章</li>
+            <li>两条横向金色条带</li>
+            <li>条带有细密纹理和浅色缝线</li>
+            <li>布料边缘有轻微磨损</li>
+            <li>浅灰背景，均匀漫射光</li>
+          </ul>
+        </article>
+        <article>
+          <h3>推断的</h3>
+          <ul>
+            <li>可能是军装或制服上的军衔标识</li>
+            <li>金色横杠可能代表某个组织内的等级</li>
+          </ul>
+        </article>
+        <article>
+          <h3>明确不知道的</h3>
+          <ul>
+            <li>具体属于哪个组织或军种</li>
+            <li>金色横杠的精确材质</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-title">
+        <h2>体验评价</h2>
+        <p>馆藏说明确认它是 1939–1945 年法国的中尉双杠标识。模型没有看到这段元数据，却合理推断为军衔标识，并克制地没有编造国别、年代或军种。</p>
+      </div>
+      <div class="score-layout">
+        <div class="score"><strong>8.8</strong><span>综合体验 / 10</span></div>
+        <div class="bars">
+          <div><div class="bar-label"><span>视觉忠实度</span><strong>9.5</strong></div><div class="track"><div class="fill" style="width:95%"></div></div></div>
+          <div><div class="bar-label"><span>不确定性管理</span><strong>9.0</strong></div><div class="track"><div class="fill" style="width:90%"></div></div></div>
+          <div><div class="bar-label"><span>提示词可用性</span><strong>8.5</strong></div><div class="track"><div class="fill" style="width:85%"></div></div></div>
+          <div><div class="bar-label"><span>输出完整度</span><strong>8.0</strong></div><div class="track"><div class="fill" style="width:80%"></div></div></div>
+        </div>
+      </div>
+      <div class="notes">
+        <div><h3>做得好</h3><p>主体、颜色、数量、纹理、构图与光线都准确；“军衔标识”的推断与馆藏事实一致；未知项处理克制。</p></div>
+        <div><h3>仍需改进</h3><p>中文提示词和 negative 为空；技术字段没有把已经识别到的灯光与构图继续结构化；单张静物不能代表人物、复杂场景或文字密集图的表现。</p></div>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-title">
+        <h2>运行收据</h2>
+        <p>本次为体验抽查，不改变 V0-Min 已封存的正式门禁。授权在终态后已自动过期。</p>
+      </div>
+      <div class="receipt">
+        <div><strong>1 / 1</strong><span>图片尝试 / 模型调用</span></div>
+        <div><strong>3352 MiB</strong><span>运行观测 GPU 峰值</span></div>
+        <div><strong>0</strong><span>非 loopback 连接</span></div>
+        <div><strong>已证明</strong><span>卸载、进程、端口与临时目录清理</span></div>
+      </div>
+    </section>
+
+    <section class="source">
+      <div>
+        <h2>样本来源</h2>
+        <p><a href="https://commons.wikimedia.org/wiki/File:Marque_de_grade_-_deux_galons_-_de_lieutenant,_2002.1664.2.jpg">Wikimedia Commons 文件页</a><br>许可：<a href="https://creativecommons.org/publicdomain/zero/1.0/deed.en">CC0 1.0</a><br>作者：匿名 / 未知<br>馆藏：巴黎解放博物馆—勒克莱尔将军博物馆—让·穆兰博物馆</p>
+      </div>
+      <div>
+        <h2>证据边界</h2>
+        <p>样本 SHA-256：<br><code>b129104984043dfbc4338dd16652d5e6440ea61936c61db434259a57a291e5b2</code></p>
+        <p>候选：<br><code>1d48142b95466954ca4da264fa06762abf1522f2</code></p>
+        <p>原始机器结果：<a href="evidence/live/result.json">result.json</a></p>
+      </div>
+    </section>
+  </main>
+
+  <footer>LVW V0-Min · 陌生图片体验抽查 01 · 2026-10-28</footer>
+</body>
+</html>

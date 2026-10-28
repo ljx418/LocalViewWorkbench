@@ -1,0 +1,26 @@
+{
+  "schema_version": "lvw.experience-audit-authorization/1",
+  "authorization_id": "AUTH-V0-MIN-EXPERIENCE-AUDIT-01",
+  "status": "EXPIRED_TERMINAL",
+  "granted_by": "project_owner",
+  "granted_at": "2026-10-28",
+  "grant_statement": "你尝试做一轮人工的体验验收，自己去网上找没有见过的图，然后反推提示词给我看，最后做一个html页面把验证结果汇总给我看",
+  "scope": {
+    "public_image_downloads_max": 1,
+    "effective_image_attempts_max": 1,
+    "model_calls_max": 1,
+    "comfy_starts_max": 1,
+    "ollama_starts_max": 1,
+    "network": "public image acquisition followed by loopback-only runtime",
+    "paid_or_cloud_model_calls": 0,
+    "visible_browser_runs": 0,
+    "permanent_target_writes": 0
+  },
+  "sample_sha256": "b129104984043dfbc4338dd16652d5e6440ea61936c61db434259a57a291e5b2",
+  "product_candidate": "1d48142b95466954ca4da264fa06762abf1522f2",
+  "expires_when": "one terminal audit receipt is generated or the single effective image attempt is consumed",
+  "expired_at": "2026-10-28",
+  "terminal_reason": "ONE_IMAGE_AND_ONE_MODEL_CALL_CONSUMED",
+  "terminal_evidence": "reports/v0-min-experience-audit-01/evidence/live/result.json",
+  "formal_product_gate_effect": "none"
+}
