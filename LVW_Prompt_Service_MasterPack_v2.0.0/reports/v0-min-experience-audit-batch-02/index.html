@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LVW V0-Min｜六类图片反推体验验证</title>
+  <style>
+    :root {
+      --paper: #f4f5f1;
+      --white: #fff;
+      --ink: #151b22;
+      --muted: #56616c;
+      --line: #c9ced0;
+      --blue: #234f9b;
+      --cyan: #70b9c4;
+      --orange: #d95d32;
+      --green: #176c57;
+      --amber: #9b5b00;
+      --red: #a52d2d;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+      line-height: 1.65;
+    }
+    a { color: var(--blue); text-underline-offset: 4px; }
+    a:focus-visible, summary:focus-visible { outline: 3px solid var(--orange); outline-offset: 4px; }
+    img { max-width: 100%; display: block; }
+    .hero {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: minmax(340px, .72fr) minmax(0, 1.28fr);
+      background: var(--ink);
+      color: var(--white);
+    }
+    .hero-copy {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: clamp(34px, 6vw, 84px);
+      border-right: 1px solid #414950;
+    }
+    .hero h1 {
+      margin: 32px 0;
+      max-width: 8ch;
+      font-size: clamp(3.4rem, 7vw, 7.8rem);
+      line-height: .9;
+      letter-spacing: -.06em;
+      font-weight: 720;
+    }
+    .hero-copy p { max-width: 48ch; color: #d4d9dd; }
+    .verdict {
+      align-self: flex-start;
+      padding: 7px 11px;
+      border: 1px solid #f0a48b;
+      color: #ffd2c4;
+      font-weight: 700;
+    }
+    .hero-note { padding-top: 22px; border-top: 1px solid #4d555d; font-size: .86rem; }
+    .contact {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(2, 1fr);
+      min-height: 100vh;
+    }
+    .contact figure { position: relative; margin: 0; min-height: 0; overflow: hidden; }
+    .contact img { width: 100%; height: 100%; object-fit: cover; filter: saturate(.92); }
+    .contact figure:nth-child(3) img,
+    .contact figure:nth-child(6) img { object-position: center 18%; }
+    .contact figcaption {
+      position: absolute;
+      inset: auto 0 0;
+      padding: 10px 13px;
+      color: var(--white);
+      background: linear-gradient(transparent, rgba(0,0,0,.82));
+      font-size: .78rem;
+    }
+    .contact .failed::after {
+      content: "动作语义误读";
+      position: absolute;
+      top: 18px;
+      right: -34px;
+      width: 160px;
+      padding: 6px 0;
+      text-align: center;
+      color: #fff;
+      background: var(--red);
+      transform: rotate(35deg);
+      font-weight: 700;
+      font-size: .76rem;
+    }
+    .rail {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding: 12px max(20px, calc((100vw - 1240px)/2));
+      background: rgba(244,245,241,.96);
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(8px);
+    }
+    .rail a {
+      flex: 0 0 auto;
+      padding: 7px 10px;
+      color: var(--ink);
+      border: 1px solid var(--line);
+      text-decoration: none;
+      font-size: .82rem;
+    }
+    .rail a:last-child { color: var(--red); border-color: #cf9a9a; }
+    main { width: min(1240px, calc(100% - 40px)); margin: 0 auto; }
+    .overview { padding: 86px 0; border-bottom: 1px solid var(--line); }
+    .overview h2, .closing h2 {
+      margin: 0 0 32px;
+      max-width: 14ch;
+      font-size: clamp(2.4rem, 5vw, 5.2rem);
+      line-height: 1;
+      letter-spacing: -.045em;
+    }
+    .matrix {
+      display: grid;
+      grid-template-columns: 1.25fr repeat(3, .75fr);
+      border-top: 3px solid var(--ink);
+    }
+    .matrix > div { padding: 17px 12px; border-bottom: 1px solid var(--line); }
+    .matrix .head { color: var(--muted); font-size: .78rem; font-weight: 700; }
+    .pass { color: var(--green); font-weight: 800; }
+    .note { color: var(--amber); font-weight: 800; }
+    .fail { color: var(--red); font-weight: 800; }
+    .specimen {
+      display: grid;
+      grid-template-columns: minmax(0, .9fr) minmax(360px, 1.1fr);
+      gap: clamp(36px, 7vw, 94px);
+      padding: 100px 0;
+      border-bottom: 1px solid var(--line);
+      scroll-margin-top: 65px;
+    }
+    .specimen:nth-of-type(even) .visual { order: 2; }
+    .visual { align-self: start; }
+    .visual img {
+      width: 100%;
+      max-height: 640px;
+      object-fit: contain;
+      background: #e3e5e2;
+      border: 1px solid #aeb5b8;
+    }
+    .caption { margin: 10px 0 0; color: var(--muted); font-size: .78rem; }
+    .category { color: var(--blue); font-weight: 750; }
+    .specimen h2 { margin: 10px 0 14px; font-size: clamp(2rem, 4vw, 4rem); line-height: 1.02; }
+    .scoreline { display: flex; align-items: baseline; gap: 14px; margin-bottom: 26px; }
+    .scoreline strong { font-size: 2.2rem; line-height: 1; }
+    .scoreline span { font-size: .85rem; }
+    blockquote {
+      margin: 0 0 28px;
+      padding: 22px 0 22px 22px;
+      border-left: 5px solid var(--cyan);
+      color: #263240;
+      font: 1.15rem/1.6 Georgia, "Times New Roman", serif;
+    }
+    .finding {
+      padding: 18px 20px;
+      background: var(--white);
+      border: 1px solid var(--line);
+    }
+    .finding strong { display: block; margin-bottom: 5px; }
+    .finding.failure { border-left: 6px solid var(--red); background: #fff7f4; }
+    details { margin-top: 20px; border-top: 1px solid var(--line); padding-top: 12px; }
+    summary { cursor: pointer; color: var(--blue); font-weight: 700; }
+    details ul { padding-left: 1.25em; }
+    .closing {
+      display: grid;
+      grid-template-columns: .8fr 1.2fr;
+      gap: clamp(40px, 8vw, 100px);
+      padding: 100px 0;
+    }
+    .closing-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+    .closing-grid section { padding-top: 16px; border-top: 4px solid var(--green); }
+    .closing-grid section:last-child { border-color: var(--red); }
+    .receipt {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 40px;
+      font-size: .88rem;
+    }
+    .receipt th, .receipt td { padding: 12px; text-align: left; border-bottom: 1px solid var(--line); }
+    footer { padding: 44px 20px; color: #d4d9dd; background: var(--ink); text-align: center; }
+    code { overflow-wrap: anywhere; }
+    @media (max-width: 900px) {
+      .hero { grid-template-columns: 1fr; }
+      .hero-copy { min-height: 68vh; border-right: 0; border-bottom: 1px solid #414950; }
+      .contact { min-height: 72vh; }
+      .specimen, .closing { grid-template-columns: 1fr; }
+      .specimen:nth-of-type(even) .visual { order: 0; }
+    }
+    @media (max-width: 600px) {
+      main { width: min(100% - 24px, 1240px); }
+      .contact { grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(3, 1fr); }
+      .matrix { grid-template-columns: 1fr .7fr; }
+      .matrix .optional { display: none; }
+      .closing-grid { grid-template-columns: 1fr; }
+      .specimen { padding: 68px 0; }
+      blockquote { font-size: 1rem; }
+    }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-copy">
+      <div class="verdict">批次结论：5 张可用，1 张语义失败</div>
+      <div>
+        <h1>六种画面，一次横测</h1>
+        <p>真实摄影、古典绘画与科幻海报依次进入同一条本地反推路径。运行层 6/6 完成；体验层没有假装全绿。</p>
+      </div>
+      <p class="hero-note">6 张公开图片 · 6 次模型调用 · 严格串行 · 本机 loopback · 无云模型 · 来源元数据未交给模型</p>
+    </div>
+    <div class="contact" aria-label="六张测试图片拼图">
+      <figure><img src="assets/landscape-dunes.jpg" alt="沙丘、远山和粉色暮光"><figcaption>自然风景摄影</figcaption></figure>
+      <figure><img src="assets/architecture-modern.jpg" alt="白色框架与玻璃幕墙的现代建筑"><figcaption>现代建筑摄影</figcaption></figure>
+      <figure><img src="assets/animal-macaw.jpg" alt="笼舍内并排站立的两只蓝色鹦鹉"><figcaption>动物特写摄影</figcaption></figure>
+      <figure><img src="assets/food-strawberries.jpg" alt="条纹布上的草莓与玻璃碗"><figcaption>食物静物摄影</figcaption></figure>
+      <figure class="failed"><img src="assets/art-yawning-portrait.jpg" alt="穿红衣、伸懒腰打哈欠的男子油画"><figcaption>古典人物绘画</figcaption></figure>
+      <figure><img src="assets/illustration-exoplanet-poster.jpg" alt="橙红熔岩行星与太空舱复古旅行海报"><figcaption>复古科幻海报</figcaption></figure>
+    </div>
+  </header>
+
+  <nav class="rail" aria-label="样本导航">
+    <a href="#landscape-dunes">风景</a><a href="#architecture-modern">建筑</a><a href="#animal-macaw">动物</a><a href="#food-strawberries">食物</a><a href="#illustration-exoplanet-poster">海报</a><a href="#art-yawning-portrait">人物语义失败</a>
+  </nav>
+
+  <main>
+    <section class="overview">
+      <h2>格式通过，不等于语义正确</h2>
+      <div class="matrix" role="table" aria-label="六类结果对比">
+        <div class="head">类别</div><div class="head">体验结论</div><div class="head optional">评分</div><div class="head optional">主要风险</div>
+        <div>自然风景摄影</div><div class="pass">PASS</div><div class="optional">9.4</div><div class="optional">时间点不确定</div>
+        <div>现代建筑摄影</div><div class="pass">PASS</div><div class="optional">9.1</div><div class="optional">建筑功能仅为推断</div>
+        <div>动物特写摄影</div><div class="note">带备注通过</div><div class="optional">8.6</div><div class="optional">标签拼写错误</div>
+        <div>食物静物摄影</div><div class="note">带备注通过</div><div class="optional">9.0</div><div class="optional">推断中有破损词</div>
+        <div>复古科幻海报</div><div class="note">带备注通过</div><div class="optional">8.7</div><div class="optional">小物体误称气球</div>
+        <div>古典人物绘画</div><div class="fail">语义失败</div><div class="optional">6.5</div><div class="optional">哈欠误判为喊叫</div>
+      </div>
+    </section>
+
+    <article class="specimen" id="landscape-dunes">
+      <div class="visual"><img src="assets/landscape-dunes.jpg" alt="浅色沙丘延伸至雪山，天空带粉色云彩"><p class="caption"><a href="https://commons.wikimedia.org/wiki/File:Utah_Dunes_Landscape_-_West_Desert_District.jpg">Wikimedia Commons</a> · Public domain · BLM Utah / Bob Wick</p></div>
+      <div><div class="category">自然风景摄影</div><h2>沙丘与雪山</h2><div class="scoreline"><strong>9.4</strong><span class="pass">PASS</span></div>
+        <blockquote>A wide-angle landscape photograph of undulating sand dunes in the foreground transitioning into a massive, rugged mountain range with snow-capped peaks in the background. The scene is illuminated by the warm, golden light of a setting sun, creating long shadows and highlighting the textures of the sand and rock. Sparse, dry yellowish shrubs are scattered across the dunes. The sky above the mountains features soft, streaky clouds tinged with pink and orange hues.</blockquote>
+        <div class="finding"><strong>人工判断</strong>大场景层次、沙纹、雪峰、稀疏植被和暖色长阴影均准确。模型把日落写进最终提示词，但在未知项中承认无法确认具体时间，风险较低。</div>
+        <details><summary>查看结构化判断</summary><ul><li>观察：沙丘、雪山、岩石纹理、黄色灌木、粉橙色云层。</li><li>推断：黄金时刻；邻接山脉的干旱区域。</li><li>未知：具体地点；究竟是日出还是日落。</li></ul><p><a href="evidence/landscape-dunes/result.json">机器结果 JSON</a></p></details>
+      </div>
+    </article>
+
+    <article class="specimen" id="architecture-modern">
+      <div class="visual"><img src="assets/architecture-modern.jpg" alt="蓝天下的现代两层玻璃建筑"><p class="caption"><a href="https://commons.wikimedia.org/wiki/File:Modern_architecture_in_Columbus,_Indiana_LCCN2013650710.tif">Wikimedia Commons</a> · Public domain · Carol M. Highsmith / Library of Congress</p></div>
+      <div><div class="category">现代建筑摄影</div><h2>玻璃、白框与柱廊</h2><div class="scoreline"><strong>9.1</strong><span class="pass">PASS</span></div>
+        <blockquote>A wide-angle, eye-level photograph of a modern two-story architectural structure featuring a large white rectangular frame and extensive glass windows. The building is supported by several white cylindrical columns. To the right, a reddish-brown brick wall features vertical lettering. In the foreground, there is a paved area transitioning into a dark mulched garden bed with small green bushes under bright, direct sunlight creating sharp shadows against a clear blue sky.</blockquote>
+        <div class="finding"><strong>人工判断</strong>几何结构、材质、白色圆柱、玻璃幕墙、砖墙与硬光阴影都可复现。模型猜测它可能是学校或图书馆，但将其保持在推断区，没有写死建筑身份。</div>
+        <details><summary>查看结构化判断</summary><ul><li>观察：两层建筑、白色矩形框、落地玻璃、圆柱、铺装与绿化。</li><li>推断：当代机构或教育设施。</li><li>未知：建筑名称和具体地点。</li></ul><p><a href="evidence/architecture-modern/result.json">机器结果 JSON</a></p></details>
+      </div>
+    </article>
+
+    <article class="specimen" id="animal-macaw">
+      <div class="visual"><img src="assets/animal-macaw.jpg" alt="两只蓝灰色鹦鹉并排站在金属网架上"><p class="caption"><a href="https://commons.wikimedia.org/wiki/File:Cropped_close-up_of_Spix%27s_Macaw_(Cyanopsitta_spixii)_at_Jurong_Bird_Park_in_Singapore.jpg">Wikimedia Commons</a> · CC BY-SA 4.0 · Evan Centanni</p></div>
+      <div><div class="category">动物特写摄影</div><h2>两只蓝灰鹦鹉</h2><div class="scoreline"><strong>8.6</strong><span class="note">带备注通过</span></div>
+        <blockquote>A close-up shot of two blue-gray parrots with light gray heads and teal bodies, perched side by side on a metallic wire platform inside an enclosure with a dark mesh background, illuminated by bright, diffused light from the upper left.</blockquote>
+        <div class="finding"><strong>人工判断</strong>数量、羽色、相对位置、笼舍和入射光都准确；没有冒充识别出斯皮克斯金刚鹦鹉。问题是 tags 中把 <code>aviary</code> 写成了 <code>avary</code>。</div>
+        <details><summary>查看结构化判断</summary><ul><li>观察：两只蓝灰鹦鹉、浅灰头部、深色喙、金属网架与后方网格。</li><li>推断：处于鸟舍或围栏内；可能是日间照明。</li><li>未知：具体物种和围栏外环境。</li></ul><p><a href="evidence/animal-macaw/result.json">机器结果 JSON</a></p></details>
+      </div>
+    </article>
+
+    <article class="specimen" id="food-strawberries">
+      <div class="visual"><img src="assets/food-strawberries.jpg" alt="深蓝条纹布上的红草莓和玻璃碗"><p class="caption"><a href="https://commons.wikimedia.org/wiki/File:Still_life_with_strawberries_in_a_crystal_bowl.jpg">Wikimedia Commons</a> · CC BY-SA 4.0 · W. Carter</p></div>
+      <div><div class="category">食物静物摄影</div><h2>草莓与侧光</h2><div class="scoreline"><strong>9.0</strong><span class="note">带备注通过</span></div>
+        <blockquote>A high-contrast still life photograph of ripe red strawberries in a clear glass bowl, set against a draped blue and white striped fabric. Some strawberries and green leaves are scattered around the base of the bowl on the textured cloth. Dramatic side lighting creates deep shadows and bright highlights on the fruit and the folds of the fabric.</blockquote>
+        <div class="finding"><strong>人工判断</strong>食物、玻璃反射、布料褶皱、色彩关系和侧光都很准确。结构化推断中出现破损词 <code>chiarosc_uro</code>，但最终提示词没有携带该错误。</div>
+        <details><summary>查看结构化判断</summary><ul><li>观察：玻璃碗、红草莓、散落果实与叶片、蓝白条纹布。</li><li>推断：棚拍式静物；刻意营造明暗对照。</li><li>未知：无。</li></ul><p><a href="evidence/food-strawberries/result.json">机器结果 JSON</a></p></details>
+      </div>
+    </article>
+
+    <article class="specimen" id="illustration-exoplanet-poster">
+      <div class="visual"><img src="assets/illustration-exoplanet-poster.jpg" alt="熔岩行星上的太空舱复古旅行海报"><p class="caption"><a href="https://commons.wikimedia.org/wiki/File:NASA_Poster_Illustration_of_Exoplanet_55_Cancri_e_(32076442077).jpg">Wikimedia Commons</a> · CC BY 2.0 · NASA/JPL-Caltech</p></div>
+      <div><div class="category">复古科幻海报</div><h2>55 Cancri e</h2><div class="scoreline"><strong>8.7</strong><span class="note">带备注通过</span></div>
+        <blockquote>A stylized travel poster for the exoplanet 55 Cancri e. The composition features a large transparent spherical capsule with an astronaut inside in the upper left foreground. Below, a vast, glowing landscape of orange and red molten lava stretches to the horizon. In the dark purple, starry sky, a crescent moon is visible in the top right, and a black balloon hangs from a thin line. The lighting is bright and warm, emanating from the lava below, creating high contrast against the dark sky.</blockquote>
+        <div class="finding"><strong>人工判断</strong>正确识别旅行海报、系外行星、熔岩色盘、球形舱和主要可见文字；小型悬挂图形被称为“气球”，且没有完整复述版式边框和文字层级。</div>
+        <details><summary>查看结构化判断</summary><ul><li>观察：透明球形舱、宇航员、熔岩地表、紫红星空、月牙和海报文字。</li><li>推断：系外行星概念艺术或旅行海报。</li><li>未知：具体数字绘画媒介；悬挂物的准确含义。</li></ul><p><a href="evidence/illustration-exoplanet-poster/result.json">机器结果 JSON</a></p></details>
+      </div>
+    </article>
+
+    <article class="specimen" id="art-yawning-portrait">
+      <div class="visual"><img src="assets/art-yawning-portrait.jpg" alt="穿红色外套、伸展双臂并打哈欠的男子油画"><p class="caption"><a href="https://commons.wikimedia.org/wiki/File:Joseph_Ducreux_(French)_-_Self-Portrait,_Yawning_-_Google_Art_Project.jpg">Wikimedia Commons</a> · Public domain · Joseph Ducreux</p></div>
+      <div><div class="category">古典人物绘画</div><h2>哈欠，被误读成喊叫</h2><div class="scoreline"><strong>6.5</strong><span class="fail">语义失败</span></div>
+        <blockquote>An oil painting of a man in an 18th-century red coat and tan waistcoat, with a white wig, captured mid-shout with his mouth wide open and eyes squinted. His right arm is raised high and his left arm is bent at the elbow with a clenched fist. The scene is set against a dark, plain background with dramatic lighting from the upper left casting highlights on his face and clothing.</blockquote>
+        <div class="finding failure"><strong>人工判断：不可直接采纳</strong>服饰、姿势、年代感和光线都描述准确，但核心动作从“打哈欠/伸懒腰”变成“喊叫”，并进一步推断愤怒、痛苦或胜利。这会直接改变人物情绪与生成结果，属于结构正确但语义失败。</div>
+        <details><summary>查看错误传播</summary><ul><li>观察层已经写成“yell or shout”。</li><li>推断层继续放大为 anger、pain 或 triumph。</li><li>最终提示词固定为 <code>captured mid-shout</code>。</li></ul><p><a href="evidence/art-yawning-portrait/result.json">机器结果 JSON</a></p></details>
+      </div>
+    </article>
+
+    <section class="closing">
+      <div><h2>这轮真正说明了什么</h2><p>系统已经能跨摄影、绘画和插画生成结构化英文反推提示词，但“看见了什么”和“人物正在做什么”不是同一个难度。后者需要额外的语义质量控制，不能只依赖 Schema 和非空检查。</p></div>
+      <div>
+        <div class="closing-grid">
+          <section><h3>稳定能力</h3><ul><li>主体、颜色、材质、空间关系与光线。</li><li>多数场景能把地点、物种等未知事实留空。</li><li>六次均完成本机路径、模型卸载和资源清理。</li></ul></section>
+          <section><h3>下一改进点</h3><ul><li>增加人物动作/表情的人工确认提示。</li><li>对破损词和 tag 拼写增加确定性检查。</li><li>补齐中文与 negative 输出。</li></ul></section>
+        </div>
+        <table class="receipt"><thead><tr><th>机器事实</th><th>结果</th></tr></thead><tbody><tr><td>图片尝试 / 模型调用</td><td>6 / 6</td></tr><tr><td>运行完成</td><td>6 / 6</td></tr><tr><td>非 loopback 连接</td><td>0</td></tr><tr><td>清理和目标完整性</td><td>6 / 6 通过</td></tr><tr><td>外部模型费用</td><td>0</td></tr><tr><td>正式产品门禁影响</td><td>无</td></tr></tbody></table>
+      </div>
+    </section>
+  </main>
+  <footer>LVW V0-Min · 六类图片体验验证 Batch 02 · 授权已终态过期</footer>
+</body>
+</html>

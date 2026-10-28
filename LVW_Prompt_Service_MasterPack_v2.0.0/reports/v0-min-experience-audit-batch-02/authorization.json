@@ -1,0 +1,35 @@
+{
+  "schema_version": "lvw.experience-audit-authorization/1",
+  "authorization_id": "AUTH-V0-MIN-EXPERIENCE-BATCH-02",
+  "status": "EXPIRED_TERMINAL",
+  "granted_by": "project_owner",
+  "granted_at": "2026-10-28",
+  "grant_statement": "多整点 不同类别、不同风格的图片 进行验证",
+  "scope": {
+    "categories": ["landscape", "architecture", "animal", "food", "portrait_art", "illustration_poster"],
+    "public_image_downloads_max": 6,
+    "effective_image_attempts_max": 6,
+    "model_calls_max": 6,
+    "comfy_starts_max": 6,
+    "ollama_starts_max": 6,
+    "execution": "strictly sequential",
+    "network": "public Wikimedia Commons acquisition followed by loopback-only runtime",
+    "paid_or_cloud_model_calls": 0,
+    "visible_browser_runs": 0,
+    "permanent_target_writes": 0
+  },
+  "product_candidate": "1d48142b95466954ca4da264fa06762abf1522f2",
+  "expires_when": "all six items reach a terminal receipt, six effective attempts are consumed, or a mandatory cleanup stop occurs",
+  "expired_at": "2026-10-28",
+  "terminal_reason": "SIX_IMAGE_AND_SIX_MODEL_CALL_BUDGET_CONSUMED",
+  "terminal_counts": {
+    "public_image_downloads": 6,
+    "effective_image_attempts": 6,
+    "model_calls": 6,
+    "comfy_starts": 6,
+    "ollama_starts": 6,
+    "terminal_results": 6
+  },
+  "terminal_evidence_root": "reports/v0-min-experience-audit-batch-02/evidence/",
+  "formal_product_gate_effect": "none"
+}

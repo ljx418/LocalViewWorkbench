@@ -1,0 +1,72 @@
+{
+  "schema_version": "lvw.experience-review-batch/1",
+  "batch_id": "v0-min-experience-audit-batch-02",
+  "decision": "MIXED_5_USABLE_1_SEMANTIC_FAILURE",
+  "reviewer": "codex experience reviewer",
+  "summary": {
+    "total": 6,
+    "usable": 5,
+    "semantic_failures": 1,
+    "runtime_failures": 0,
+    "cleanup_failures": 0,
+    "average_score": 8.55
+  },
+  "items": [
+    {
+      "id": "landscape-dunes",
+      "decision": "PASS",
+      "score": 9.4,
+      "strength": "Accurate large-scale scene hierarchy, dune texture, mountain snow, vegetation and golden-hour light.",
+      "limitation": "Sunrise versus sunset remains appropriately uncertain."
+    },
+    {
+      "id": "architecture-modern",
+      "decision": "PASS",
+      "score": 9.1,
+      "strength": "Strong geometry, materials, columns, glazing, landscaping and hard-sun description.",
+      "limitation": "The institutional/school function is only an inference and is kept outside observations."
+    },
+    {
+      "id": "animal-macaw",
+      "decision": "PASS_WITH_NOTES",
+      "score": 8.6,
+      "strength": "Correctly describes two blue-gray parrots, pose, enclosure and lighting without guessing the species.",
+      "limitation": "The generated tag 'avary' is misspelled and the wire surface is described somewhat generically."
+    },
+    {
+      "id": "food-strawberries",
+      "decision": "PASS_WITH_NOTES",
+      "score": 9.0,
+      "strength": "Accurate food, glass, textile, palette and dramatic side-light reconstruction.",
+      "limitation": "The inference contains malformed text 'chiarosc_uro', although the final prompt is clean."
+    },
+    {
+      "id": "art-yawning-portrait",
+      "decision": "FAIL_SEMANTIC_ACTION",
+      "score": 6.5,
+      "strength": "Accurate clothing, pose, palette, period cues and dramatic lighting.",
+      "limitation": "Misreads a yawn/stretch as shouting and then infers anger, pain or triumph; this changes the subject action and emotional intent."
+    },
+    {
+      "id": "illustration-exoplanet-poster",
+      "decision": "PASS_WITH_NOTES",
+      "score": 8.7,
+      "strength": "Recognizes the travel-poster genre, exoplanet setting, lava palette, astronaut capsule and major visible text.",
+      "limitation": "Calls a small suspended graphic a balloon and omits some poster-border and typographic hierarchy details."
+    }
+  ],
+  "cross_category_findings": {
+    "strong": [
+      "Consistent subject, palette, composition and lighting extraction across photos, painting and illustration.",
+      "Unknown locations/species are generally not hallucinated.",
+      "All six outputs preserve observation/inference/unknown separation and return a usable English prompt."
+    ],
+    "weak": [
+      "Fine-grained human action and emotion can be semantically wrong even when visual attributes are accurate.",
+      "Chinese prompt and negative prompt remain empty in every sample.",
+      "Minor malformed wording or tags can pass the structural Oracle."
+    ]
+  },
+  "source_metadata_was_not_given_to_model": true,
+  "formal_product_gate_effect": "none"
+}
