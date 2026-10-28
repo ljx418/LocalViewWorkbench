@@ -22,8 +22,8 @@ import time
 import urllib.error
 import urllib.request
 
-AUTHORIZATION_ID = "AUTH-V0-S1-2026-10-28-05"
-AUTHORIZED_START = "64ec38c22b6d200f18ca5c0d85f91faa1fadf206"
+AUTHORIZATION_ID = "AUTH-V0-S1-2026-10-28-06"
+AUTHORIZED_START = "d0155a34d163e743f95281788055d91e20c19e5f"
 PHASE_A_BASELINE = "0dcf693128fe0b8e8215407b7e628970f798e595"
 AUTHORIZED_SAMPLE_SHA256 = "b4bbd08a0fad67cc04e55d15bf2c48e9a76dcfd6dda147d8cc504452dfc78a42"
 MODEL = "gemma4:26b"
@@ -44,8 +44,8 @@ PROMPT_SPEC_KEYS = {"schema_version", "mode", "domains", "technical", "locked_fi
 DOMAIN_KEYS = {"observation", "inference", "user_evidence", "creative_intent", "unknowns"}
 AUTHORIZED_COMFY_MAIN = "C:/ComfyUI-aki-v2/ComfyUI/main.py"
 AUTHORIZED_COMFY_PYTHON = "C:/ComfyUI-aki-v2/python/python.exe"
-AUTHORIZED_EVIDENCE_RELATIVE = "reports/v0-s1/wp-s1-03-live-05"
-AUTHORIZED_RUN_ID = "v0-s1-wp-s1-03-live-05"
+AUTHORIZED_EVIDENCE_RELATIVE = "reports/v0-s1/wp-s1-03-live-06"
+AUTHORIZED_RUN_ID = "v0-s1-wp-s1-03-live-06"
 
 
 class StopProbe(RuntimeError):
@@ -77,7 +77,7 @@ def redact(value: str, aliases: dict[str, str]) -> str:
         if private:
             result = result.replace(private, alias).replace(private.replace("\\", "/"), alias)
     result = re.sub(r"(?i)(authorization|bearer|token|password|api[_-]?key)\s*[:=]\s*[^\s,;]+", r"\1=<REDACTED>", result)
-    result = re.sub(r"(?i)[A-Z]:[/\\](?:[^\s\"']+[/\\])*[^\s\"']+", "<PRIVATE_WINDOWS_PATH>", result)
+    result = re.sub(r"(?i)(?<![A-Z])[A-Z]:[/\\](?:[^\s\"']+[/\\])*[^\s\"']+", "<PRIVATE_WINDOWS_PATH>", result)
     result = re.sub(r"/mnt/[a-z]/(?:[^\s\"']+/)*[^\s\"']+", "<PRIVATE_WSL_PATH>", result)
     return result
 
@@ -164,6 +164,28 @@ def run_local(command: list[str], *, cwd: Path | None = None) -> subprocess.Comp
     return subprocess.run(command, cwd=cwd, capture_output=True, text=True, encoding="utf-8", errors="strict", timeout=60)
 
 
+def bind_execution_artifacts(repo: Path, candidate: str, prefix: str) -> dict:
+    bridge = "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge"
+    listed = subprocess.run(["git", "ls-tree", "-r", "--name-only", candidate, "--", bridge],
+                            cwd=repo, capture_output=True, text=True, encoding="utf-8", errors="strict", timeout=60)
+    if listed.returncode != 0:
+        raise StopProbe("EXECUTION_ARTIFACT_INVENTORY_UNAVAILABLE")
+    candidate_python = sorted(path for path in listed.stdout.splitlines() if path.endswith(".py"))
+    local_python = sorted(path.relative_to(repo).as_posix() for path in (repo / bridge).rglob("*.py"))
+    if candidate_python != local_python:
+        raise StopProbe("EXECUTION_ARTIFACT_INVENTORY_MISMATCH")
+    artifacts = candidate_python + ["LVW_V0_RuntimePatch/workflows/image_reverse_prompt_v0.api.json"]
+    hashes = {}
+    for relative in artifacts:
+        blob = subprocess.run(["git", "show", f"{candidate}:{prefix + relative}"], cwd=repo,
+                              capture_output=True, timeout=60)
+        local = repo / relative
+        if blob.returncode != 0 or not local.is_file() or sha256_bytes(blob.stdout) != sha256_file(local):
+            raise StopProbe("EXECUTION_ARTIFACT_IDENTITY_MISMATCH")
+        hashes[relative] = sha256_bytes(blob.stdout)
+    return hashes
+
+
 def candidate_identity(repo: Path, candidate: str, harness_relative: str, expected_harness_hash: str) -> dict:
     if not re.fullmatch(r"[a-f0-9]{40}", candidate):
         raise StopProbe("CANDIDATE_SHA_INVALID")
@@ -198,6 +220,7 @@ def candidate_identity(repo: Path, candidate: str, harness_relative: str, expect
         if blob.returncode != 0 or not local.is_file() or sha256_bytes(blob.stdout) != sha256_file(local):
             raise StopProbe("CANDIDATE_FILE_IDENTITY_MISMATCH")
         file_hashes[relative] = sha256_bytes(blob.stdout)
+    execution_hashes = bind_execution_artifacts(repo, candidate, prefix)
     harness_git_path = prefix + harness_relative
     blob = subprocess.run(["git", "show", f"{candidate}:{harness_git_path}"], cwd=repo, capture_output=True, timeout=60)
     if blob.returncode != 0:
@@ -207,6 +230,7 @@ def candidate_identity(repo: Path, candidate: str, harness_relative: str, expect
     if blob_hash != expected_harness_hash or file_hash != expected_harness_hash:
         raise StopProbe("HARNESS_IDENTITY_MISMATCH")
     return {"candidate_sha": candidate, "changed_file_count": len(files), "file_sha256": file_hashes,
+            "execution_artifact_sha256": execution_hashes,
             "harness_sha256": file_hash, "identity_match": True}
 
 
@@ -263,6 +287,58 @@ def validate_image_result(text: list[str]) -> dict:
     return {"raw_sha256": sha256_bytes(text[0].encode()), "suggestion_sha256": sha256_bytes(text[1].encode())}
 
 
+def state_transition_evidence(started_text: str, succeeded_text: str, adopted_text: str, *, token: str,
+                              raw_text: str, suggestion_text: str, adopted_payload: str) -> dict:
+    try:
+        started, succeeded, adopted = (json.loads(value) for value in (started_text, succeeded_text, adopted_text))
+        suggestion, chosen_draft = json.loads(suggestion_text), json.loads(adopted_payload)
+    except (TypeError, json.JSONDecodeError) as exc:
+        raise StopProbe("LIVE_STATE_TRANSITION_EVIDENCE_FAILED") from exc
+    states = (started, succeeded, adopted)
+    if any(not isinstance(state, dict) for state in states):
+        raise StopProbe("LIVE_STATE_TRANSITION_EVIDENCE_FAILED")
+    empty_draft = {"natural_zh": "", "natural_en": "", "image_prompt": "", "video_prompt": "",
+                   "tags": [], "negative": "", "edit_instruction": ""}
+    if not (
+        started.get("run_token") == succeeded.get("run_token") == adopted.get("run_token") == token
+        and started.get("analysis_status") == "running"
+        and started.get("draft_epoch") == 0 and started.get("draft") == empty_draft
+        and started.get("raw_response") is None and started.get("suggestion") is None
+        and succeeded.get("analysis_status") == "succeeded"
+        and succeeded.get("draft_epoch") == 0 and succeeded.get("draft") == empty_draft
+        and succeeded.get("raw_response") == raw_text and succeeded.get("suggestion") == suggestion
+        and adopted.get("analysis_status") == "succeeded"
+        and adopted.get("draft_epoch") == 1 and adopted.get("draft") == chosen_draft
+        and adopted.get("raw_response") == raw_text and adopted.get("suggestion") == suggestion
+    ):
+        raise StopProbe("LIVE_STATE_TRANSITION_EVIDENCE_FAILED")
+    token_hash = sha256_bytes(token.encode())
+    raw_hash = sha256_bytes(raw_text.encode())
+    suggestion_hash = sha256_bytes(suggestion_text.encode())
+    empty_draft_hash = sha256_bytes(canonical_json(empty_draft).encode())
+    adopted_draft_hash = sha256_bytes(canonical_json(chosen_draft).encode())
+    return {
+        "run_token_sha256": token_hash,
+        "public_raw_sha256": raw_hash,
+        "public_suggestion_sha256": suggestion_hash,
+        "transitions": [
+            {"action": "start_run", "analysis_status": "running", "run_token_sha256": token_hash,
+             "state_sha256": sha256_bytes(canonical_json(started).encode()), "draft_epoch": 0,
+             "draft_empty": True, "draft_sha256": empty_draft_hash,
+             "raw_response_empty": True, "suggestion_empty": True},
+            {"action": "model_success", "analysis_status": "succeeded", "run_token_sha256": token_hash,
+             "state_sha256": sha256_bytes(canonical_json(succeeded).encode()), "draft_epoch": 0,
+             "draft_empty": True, "draft_sha256": empty_draft_hash,
+             "raw_response_sha256": raw_hash, "suggestion_sha256": suggestion_hash},
+            {"action": "adopt", "analysis_status": "succeeded", "run_token_sha256": token_hash,
+             "state_sha256": sha256_bytes(canonical_json(adopted).encode()), "draft_epoch": 1,
+             "draft_empty": False, "draft_sha256": adopted_draft_hash,
+             "raw_response_sha256": raw_hash, "suggestion_sha256": suggestion_hash},
+        ],
+        "adopted_draft_sha256": adopted_draft_hash,
+    }
+
+
 class SystemDriver:
     """Narrow loopback/Windows-native driver.  Created only after live gates pass."""
 
@@ -275,6 +351,7 @@ class SystemDriver:
         self.listener_pids = set()
         self.listener_proofs = {}
         self.owned_listener_evidence = {}
+        self.listener_terminal_states = {}
         self.ollama_log = None
 
     def _json_request(self, url: str, *, payload=None, timeout=20):
@@ -509,6 +586,10 @@ class SystemDriver:
             count = int(self._powershell(
                 "$x=Get-NetTCPConnection -State Listen -LocalPort 11434 -ErrorAction SilentlyContinue; @($x).Count") or "0")
             if count == 0:
+                self.listener_terminal_states["11434"] = {
+                    "port": 11434, "owned_listener_pid": pid, "lineage_reproven": True,
+                    "stop_requested": True, "terminal_absent": True,
+                }
                 self.listener_proofs.pop(11434, None)
                 return
             time.sleep(0.5)
@@ -537,28 +618,65 @@ class SystemDriver:
     def cleanup(self) -> dict:
         failures = []
         for port, proof in sorted(self.listener_proofs.items()):
+            state = {"port": port, "owned_listener_pid": self.owned_listener_evidence.get(str(port), {}).get("listener_pid"),
+                     "lineage_reproven": False, "stop_requested": False, "terminal_absent": False}
             try:
                 if not self._listener_pid_values(port):
+                    state["terminal_absent"] = True
+                    self.listener_terminal_states[str(port)] = state
                     continue
                 pid = self._prove_listener_owned(port, proof["wrapper_pid_file"], proof["executable_name"])
+                state["owned_listener_pid"] = pid
+                state["lineage_reproven"] = True
+                state["stop_requested"] = True
                 self._powershell(f"Stop-Process -Id {pid} -Force -ErrorAction SilentlyContinue")
+                state["terminal_absent"] = not self._listener_pid_values(port)
+                if not state["terminal_absent"]:
+                    failures.append({"owner": f"listener_{port}", "error": "LISTENER_STILL_PRESENT"})
             except Exception as exc:
                 failures.append({"owner": f"listener_{port}", "error": type(exc).__name__})
+            self.listener_terminal_states[str(port)] = state
+        wrapper_states = []
         for name, process, stream in reversed(self.owned):
+            state = {"owner": name, "pid": getattr(process, "pid", None), "terminate_requested": False,
+                     "poll_before": None, "poll_after": None, "exited": False}
             try:
-                if process.poll() is None:
+                state["poll_before"] = process.poll()
+                if state["poll_before"] is None:
+                    state["terminate_requested"] = True
                     process.terminate()
                     process.wait(timeout=20)
+                state["poll_after"] = process.poll()
+                state["exited"] = state["poll_after"] is not None
+                if not state["exited"]:
+                    failures.append({"owner": name, "error": "OWNED_WRAPPER_STILL_RUNNING"})
             except Exception as exc:
                 failures.append({"owner": name, "error": type(exc).__name__})
             finally:
                 stream.close()
+                wrapper_states.append(state)
         raw = self._powershell(
             "$x=Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue | Where-Object {$_.LocalPort -in 8191,11434};"
             "@($x).Count")
         listeners = int(raw or "0")
+        listener_states = [self.listener_terminal_states[key] for key in sorted(self.listener_terminal_states)]
+        terminal = all(item["terminal_absent"] for item in listener_states) and all(item["exited"] for item in wrapper_states)
         return {"owned_count": len(self.owned), "failures": failures, "final_target_listener_count": listeners,
-                "proven": not failures and listeners == 0}
+                "owned_listener_terminal_states": listener_states, "owned_wrapper_terminal_states": wrapper_states,
+                "proven": not failures and listeners == 0 and terminal}
+
+    def post_cleanup_snapshot(self, run_base: Path) -> dict:
+        raw = self._powershell(
+            "$listeners=@(Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue | "
+            "Where-Object {$_.LocalPort -in 8191,11434});"
+            "$targets=@(Get-CimInstance Win32_Process -ErrorAction SilentlyContinue | Where-Object {"
+            "($_.Name -match 'ollama') -or (($_.Name -match 'python') -and ($_.CommandLine -match 'ComfyUI'))});"
+            "[ordered]@{target_listener_count=$listeners.Count;target_process_match_count=$targets.Count} | "
+            "ConvertTo-Json -Compress")
+        value = json.loads(raw)
+        return {"target_listener_count": int(value["target_listener_count"]),
+                "target_process_match_count": int(value["target_process_match_count"]),
+                "run_temp_absent": not run_base.exists()}
 
 
 def state_graph(state: str, action: str, token: str, raw="", suggestion="", draft="", error="") -> dict:
@@ -634,23 +752,18 @@ def execute(args, driver_factory=SystemDriver) -> tuple[int, dict]:
         started = workflow_oracle(driver.history(start_id), start_id, "1")[0]
         success_id = driver.submit(state_graph(started, "model_success", token, raw=image_text[0], suggestion=image_text[1]))
         succeeded = workflow_oracle(driver.history(success_id), success_id, "1")[0]
-        state = json.loads(succeeded)
-        if (state["draft_epoch"] != 0 or any(state["draft"].values()) or state["raw_response"] != image_text[0]
-                or state["suggestion"] != json.loads(image_text[1]) or state["raw_response"] == image_text[1]):
-            raise StopProbe("LIVE_STATE_ISOLATION_FAILED")
         adopted_payload = canonical_json({"natural_zh": "人工采纳", "natural_en": "", "image_prompt": "",
                                           "video_prompt": "", "tags": [], "negative": "", "edit_instruction": ""})
         adopt_id = driver.submit(state_graph(succeeded, "adopt", token, draft=adopted_payload))
-        adopted = json.loads(workflow_oracle(driver.history(adopt_id), adopt_id, "1")[0])
-        if adopted["draft_epoch"] != 1 or adopted["draft"]["natural_zh"] != "人工采纳":
-            raise StopProbe("LIVE_EXPLICIT_ADOPT_FAILED")
+        adopted = workflow_oracle(driver.history(adopt_id), adopt_id, "1")[0]
+        result["evidence"]["state_transitions"] = state_transition_evidence(
+            started, succeeded, adopted, token=token, raw_text=image_text[0], suggestion_text=image_text[1],
+            adopted_payload=adopted_payload)
         driver.stop_ollama()
         manual_id = driver.submit(manual_graph())
         manual_text = workflow_oracle(driver.history(manual_id), manual_id, "1")
         if not manual_text or "not_requested" not in "".join(manual_text):
             raise StopProbe("LIVE_MANUAL_CPU_ROUTE_FAILED")
-        result["evidence"]["state_oracle"] = {"draft_epoch_before": 0, "draft_epoch_after": 1,
-                                                "automatic_draft_write": False}
         result["evidence"]["manual_cpu_oracle"] = {"ollama_stopped": True, "history_ui_text": manual_text}
         result["decision"] = "READY_FOR_REVIEW"
         result["exact_stop_reason"] = "WP_S1_03_LIVE_ROUTE_COMPLETE"
@@ -680,8 +793,10 @@ def execute(args, driver_factory=SystemDriver) -> tuple[int, dict]:
             try:
                 cleanup = driver.cleanup()
                 after = driver.target_hashes() if before is not None else None
-                cleanup["target_integrity"] = "PASS" if before == after else "FAIL"
-                cleanup["proven"] = cleanup["proven"] and before == after
+                integrity = {"pre": before, "post": after, "equal": before is not None and before == after}
+                result["evidence"]["target_integrity"] = integrity
+                cleanup["target_integrity"] = "PASS" if integrity["equal"] else "FAIL"
+                cleanup["proven"] = cleanup["proven"] and integrity["equal"]
                 result["cleanup"] = cleanup
             except Exception as exc:
                 result["cleanup"] = {"proven": False, "secondary_cleanup_failure": type(exc).__name__}
@@ -693,6 +808,17 @@ def execute(args, driver_factory=SystemDriver) -> tuple[int, dict]:
             except Exception as exc:
                 result["cleanup"]["run_owned_temp_removed"] = False
                 result["cleanup"]["secondary_temp_cleanup_failure"] = type(exc).__name__
+                result["cleanup"]["proven"] = False
+        if driver is not None and base is not None:
+            try:
+                snapshot = driver.post_cleanup_snapshot(base)
+                result["evidence"]["post_cleanup_snapshot"] = snapshot
+                snapshot_clean = (snapshot.get("target_listener_count") == 0
+                                  and snapshot.get("target_process_match_count") == 0
+                                  and snapshot.get("run_temp_absent") is True)
+                result["cleanup"]["proven"] = result["cleanup"].get("proven", False) and snapshot_clean
+            except Exception as exc:
+                result["cleanup"]["secondary_post_cleanup_failure"] = type(exc).__name__
                 result["cleanup"]["proven"] = False
         if not result["cleanup"].get("proven", False) and result["decision"] == "READY_FOR_REVIEW":
             result["decision"] = "NO_GO"

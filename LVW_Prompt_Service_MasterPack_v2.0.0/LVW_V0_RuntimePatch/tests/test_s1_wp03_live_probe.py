@@ -25,6 +25,8 @@ class FakeDriver:
     instances = []
     fail_image = False
     cleanup_proven = True
+    target_drift = False
+    snapshot = {"target_listener_count": 0, "target_process_match_count": 0, "run_temp_absent": True}
 
     def __init__(self, args, evidence):
         self.args = args
@@ -32,10 +34,13 @@ class FakeDriver:
         self.graphs = {}
         self.unloads = 0
         self.ollama_stopped = False
+        self.target_hash_calls = 0
         self.__class__.instances.append(self)
 
     def target_hashes(self):
-        return {"main": "same", "python": "same"}
+        self.target_hash_calls += 1
+        value = "changed" if self.target_drift and self.target_hash_calls > 1 else "same"
+        return {"main": value, "python": "same"}
 
     def preflight(self):
         return {"gpu_count": 1, "max_used_mib": 1024, "process_match_count": 0, "target_listener_count": 0}
@@ -97,7 +102,11 @@ class FakeDriver:
         self.ollama_stopped = True
 
     def cleanup(self):
-        return {"proven": self.cleanup_proven, "failures": [], "final_target_listener_count": 0}
+        return {"proven": self.cleanup_proven, "failures": [], "final_target_listener_count": 0,
+                "owned_listener_terminal_states": [], "owned_wrapper_terminal_states": []}
+
+    def post_cleanup_snapshot(self, base):
+        return dict(self.snapshot)
 
 
 def live_args(repo, sample, temp_parent):
@@ -115,6 +124,9 @@ class WorkflowAndHarnessTests(unittest.TestCase):
         FakeDriver.instances.clear()
         FakeDriver.fail_image = False
         FakeDriver.cleanup_proven = True
+        FakeDriver.target_drift = False
+        FakeDriver.snapshot = {"target_listener_count": 0, "target_process_match_count": 0,
+                               "run_temp_absent": True}
 
     def test_ui_and_api_workflows_are_same_registered_project_graph(self):
         ui = json.loads((PACK_ROOT / "LVW_V0_RuntimePatch/workflows/image_reverse_prompt_v0.ui.json").read_text())
@@ -139,11 +151,11 @@ class WorkflowAndHarnessTests(unittest.TestCase):
                 mock.patch.object(probe.urllib.request, "urlopen", side_effect=AssertionError("network")):
             value = probe.self_check()
             self.assertEqual(0, value["live_actions"])
-            self.assertEqual("64ec38c22b6d200f18ca5c0d85f91faa1fadf206", probe.AUTHORIZED_START)
+            self.assertEqual("d0155a34d163e743f95281788055d91e20c19e5f", probe.AUTHORIZED_START)
             self.assertEqual("C:/ComfyUI-aki-v2/ComfyUI/main.py", value["authorized_targets"]["comfy_main"])
-            self.assertEqual("AUTH-V0-S1-2026-10-28-05", value["authorization"])
-            self.assertEqual("reports/v0-s1/wp-s1-03-live-05", value["authorized_evidence_relative"])
-            self.assertEqual("v0-s1-wp-s1-03-live-05", value["authorized_run_id"])
+            self.assertEqual("AUTH-V0-S1-2026-10-28-06", value["authorization"])
+            self.assertEqual("reports/v0-s1/wp-s1-03-live-06", value["authorized_evidence_relative"])
+            self.assertEqual("v0-s1-wp-s1-03-live-06", value["authorized_run_id"])
             output = StringIO()
             with contextlib.redirect_stdout(output):
                 code = probe.main([])
@@ -152,7 +164,7 @@ class WorkflowAndHarnessTests(unittest.TestCase):
 
     def test_expired_authorization_id_is_rejected_before_driver_creation(self):
         args = live_args(PACK_ROOT, "unused-sample", "/mnt/c/unused-temp")
-        args.authorization_id = "AUTH-V0-S1-2026-10-28-04"
+        args.authorization_id = "AUTH-V0-S1-2026-10-28-05"
         with mock.patch.object(probe, "validate_live_boundaries", return_value={}):
             code, result = probe.execute(args, driver_factory=lambda *_: self.fail("driver must not be created"))
         self.assertEqual(2, code)
@@ -205,13 +217,13 @@ class WorkflowAndHarnessTests(unittest.TestCase):
             args = live_args(repo, root / "sample.png", runtime)
             args.comfy_main = "/mnt/c/ComfyUI-aki-v2/ComfyUI/main.py"
             args.comfy_python = "/mnt/c/ComfyUI-aki-v2/python/python.exe"
-            args.run_id = "v0-s1-wp-s1-03-live-05"
-            for old in ("wp-s1-03-live-01", "wp-s1-03-live-03", "wp-s1-03-live-04"):
+            args.run_id = "v0-s1-wp-s1-03-live-06"
+            for old in ("wp-s1-03-live-01", "wp-s1-03-live-03", "wp-s1-03-live-04", "wp-s1-03-live-05"):
                 args.evidence_root = str(repo / "reports/v0-s1" / old)
                 with self.subTest(old=old), self.assertRaises(probe.StopProbe) as old_slot:
                     probe.validate_live_boundaries(args, reserve_evidence=True)
                 self.assertEqual("EVIDENCE_ROOT_OUTSIDE_AUTHORIZED_BOUNDARY", old_slot.exception.reason)
-            args.evidence_root = str(repo / "reports/v0-s1/wp-s1-03-live-05")
+            args.evidence_root = str(repo / "reports/v0-s1/wp-s1-03-live-06")
             value = probe.validate_live_boundaries(args, reserve_evidence=True)
             self.assertEqual(probe.AUTHORIZED_COMFY_MAIN, value["comfy_main"])
             with self.assertRaises(probe.StopProbe) as raised:
@@ -283,6 +295,7 @@ class WorkflowAndHarnessTests(unittest.TestCase):
                 result = driver.cleanup()
         self.assertFalse(result["proven"])
         self.assertEqual(1, result["final_target_listener_count"])
+        self.assertFalse(result["owned_listener_terminal_states"][0]["terminal_absent"])
         self.assertFalse(any("Stop-Process" in command for command in commands))
 
     def test_cleanup_treats_already_exited_wrapper_as_clean(self):
@@ -294,9 +307,24 @@ class WorkflowAndHarnessTests(unittest.TestCase):
         with mock.patch.object(driver, "_powershell", return_value="0"):
             result = driver.cleanup()
         self.assertTrue(result["proven"])
+        self.assertEqual([{"owner": "ollama_wrapper", "pid": process.pid, "terminate_requested": False,
+                           "poll_before": 0, "poll_after": 0, "exited": True}],
+                         result["owned_wrapper_terminal_states"])
         process.terminate.assert_not_called()
         process.wait.assert_not_called()
         stream.close.assert_called_once()
+
+    def test_cleanup_live_owned_wrapper_fails_closed(self):
+        driver = probe.SystemDriver(mock.Mock(), {})
+        process = mock.Mock(pid=321)
+        process.poll.return_value = None
+        stream = mock.Mock()
+        driver.owned.append(("comfy", process, stream))
+        with mock.patch.object(driver, "_powershell", return_value="0"):
+            result = driver.cleanup()
+        self.assertFalse(result["proven"])
+        self.assertEqual("OWNED_WRAPPER_STILL_RUNNING", result["failures"][0]["error"])
+        self.assertFalse(result["owned_wrapper_terminal_states"][0]["exited"])
 
     def test_missing_exact_local_model_fails_without_download(self):
         driver = probe.SystemDriver(mock.Mock(), {})
@@ -333,12 +361,63 @@ class WorkflowAndHarnessTests(unittest.TestCase):
         blob = HARNESS_PATH.read_bytes()
         changed = (git_path + "\n").encode()
         blob_result = mock.Mock(returncode=0, stdout=blob)
-        with mock.patch.object(probe, "run_local", side_effect=[
+        with mock.patch.object(probe, "bind_execution_artifacts", return_value={"owner.py": "a" * 64}), \
+                mock.patch.object(probe, "run_local", side_effect=[
                 completed(0, str(PACK_ROOT.parent).encode()), completed(0), completed(0), completed(0, changed)]), \
                 mock.patch.object(probe.subprocess, "run", side_effect=[blob_result, blob_result]):
             value = probe.candidate_identity(PACK_ROOT, "1" * 40, relative, probe.sha256_bytes(blob))
         self.assertTrue(value["identity_match"])
         self.assertEqual(probe.sha256_bytes(blob), value["file_sha256"][relative])
+        self.assertEqual({"owner.py": "a" * 64}, value["execution_artifact_sha256"])
+
+    def test_execution_artifact_binding_rejects_drifted_product_owner(self):
+        with tempfile.TemporaryDirectory() as temp:
+            repo = Path(temp)
+            bridge = repo / "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge"
+            workflow = repo / "LVW_V0_RuntimePatch/workflows/image_reverse_prompt_v0.api.json"
+            bridge.mkdir(parents=True)
+            workflow.parent.mkdir(parents=True)
+            (bridge / "core.py").write_bytes(b"local owner")
+            workflow.write_bytes(b"workflow")
+            listed = mock.Mock(returncode=0, stdout="LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/core.py\n")
+            owner_blob = mock.Mock(returncode=0, stdout=b"candidate owner")
+            with mock.patch.object(probe.subprocess, "run", side_effect=[listed, owner_blob]), \
+                    self.assertRaises(probe.StopProbe) as raised:
+                probe.bind_execution_artifacts(repo, "1" * 40, "")
+        self.assertEqual("EXECUTION_ARTIFACT_IDENTITY_MISMATCH", raised.exception.reason)
+
+    def test_execution_artifact_binding_rejects_drifted_workflow(self):
+        with tempfile.TemporaryDirectory() as temp:
+            repo = Path(temp)
+            bridge = repo / "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge"
+            workflow = repo / "LVW_V0_RuntimePatch/workflows/image_reverse_prompt_v0.api.json"
+            bridge.mkdir(parents=True)
+            workflow.parent.mkdir(parents=True)
+            (bridge / "core.py").write_bytes(b"owner")
+            workflow.write_bytes(b"local workflow")
+            listed = mock.Mock(returncode=0, stdout="LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/core.py\n")
+            owner_blob = mock.Mock(returncode=0, stdout=b"owner")
+            workflow_blob = mock.Mock(returncode=0, stdout=b"candidate workflow")
+            with mock.patch.object(probe.subprocess, "run", side_effect=[listed, owner_blob, workflow_blob]), \
+                    self.assertRaises(probe.StopProbe) as raised:
+                probe.bind_execution_artifacts(repo, "1" * 40, "")
+        self.assertEqual("EXECUTION_ARTIFACT_IDENTITY_MISMATCH", raised.exception.reason)
+
+    def test_execution_artifact_binding_rejects_extra_local_python(self):
+        with tempfile.TemporaryDirectory() as temp:
+            repo = Path(temp)
+            bridge = repo / "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge"
+            workflow = repo / "LVW_V0_RuntimePatch/workflows/image_reverse_prompt_v0.api.json"
+            bridge.mkdir(parents=True)
+            workflow.parent.mkdir(parents=True)
+            (bridge / "core.py").write_bytes(b"owner")
+            (bridge / "unsealed.py").write_bytes(b"extra")
+            workflow.write_bytes(b"workflow")
+            listed = mock.Mock(returncode=0, stdout="LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/core.py\n")
+            with mock.patch.object(probe.subprocess, "run", return_value=listed), \
+                    self.assertRaises(probe.StopProbe) as raised:
+                probe.bind_execution_artifacts(repo, "1" * 40, "")
+        self.assertEqual("EXECUTION_ARTIFACT_INVENTORY_MISMATCH", raised.exception.reason)
 
     def test_success_route_enforces_one_attempt_state_adopt_manual_and_cleanup(self):
         with tempfile.TemporaryDirectory() as temp:
@@ -358,8 +437,71 @@ class WorkflowAndHarnessTests(unittest.TestCase):
         self.assertEqual(1, driver.unloads)
         self.assertTrue(driver.ollama_stopped)
         self.assertTrue(result["cleanup"]["proven"])
+        state_evidence = result["evidence"]["state_transitions"]
+        self.assertEqual({"run_token_sha256", "public_raw_sha256", "public_suggestion_sha256",
+                          "transitions", "adopted_draft_sha256"}, set(state_evidence))
+        self.assertEqual(["start_run", "model_success", "adopt"],
+                         [item["action"] for item in state_evidence["transitions"]])
+        self.assertEqual(["running", "succeeded", "succeeded"],
+                         [item["analysis_status"] for item in state_evidence["transitions"]])
+        self.assertEqual([0, 0, 1], [item["draft_epoch"] for item in state_evidence["transitions"]])
+        self.assertEqual(state_evidence["public_raw_sha256"],
+                         state_evidence["transitions"][1]["raw_response_sha256"])
+        self.assertEqual(state_evidence["public_suggestion_sha256"],
+                         state_evidence["transitions"][1]["suggestion_sha256"])
+        integrity = result["evidence"]["target_integrity"]
+        self.assertEqual({"pre", "post", "equal"}, set(integrity))
+        self.assertTrue(integrity["equal"])
+        self.assertEqual(integrity["pre"], integrity["post"])
+        self.assertEqual(FakeDriver.snapshot, result["evidence"]["post_cleanup_snapshot"])
         self.assertEqual("EXPIRED_TERMINAL", result["authorization_status"])
         self.assertEqual(probe.PRODUCT_CASES, result["product_acceptance"])
+
+    def test_state_transition_evidence_rejects_false_state(self):
+        token = "run-token"
+        raw = "raw fixture"
+        suggestion = '{"prompt":"visible"}'
+        draft = probe.canonical_json({"natural_zh": "人工采纳", "natural_en": "", "image_prompt": "",
+                                      "video_prompt": "", "tags": [], "negative": "", "edit_instruction": ""})
+        started = transition("", action="start_run", run_token=token)
+        succeeded = transition(json.dumps(started), action="model_success", run_token=token,
+                               raw_response=raw, suggestion_payload=suggestion)
+        adopted = transition(json.dumps(succeeded), action="adopt", run_token=token, draft_payload=draft)
+        succeeded["draft"]["natural_zh"] = "unauthorized write"
+        with self.assertRaises(probe.StopProbe) as raised:
+            probe.state_transition_evidence(json.dumps(started), json.dumps(succeeded), json.dumps(adopted),
+                                            token=token, raw_text=raw, suggestion_text=suggestion,
+                                            adopted_payload=draft)
+        self.assertEqual("LIVE_STATE_TRANSITION_EVIDENCE_FAILED", raised.exception.reason)
+
+    def test_target_and_post_cleanup_negative_substates_fail_closed(self):
+        cases = {
+            "target_drift": (True, {"target_listener_count": 0, "target_process_match_count": 0,
+                                     "run_temp_absent": True}),
+            "live_process": (False, {"target_listener_count": 0, "target_process_match_count": 1,
+                                      "run_temp_absent": True}),
+            "listener": (False, {"target_listener_count": 1, "target_process_match_count": 0,
+                                  "run_temp_absent": True}),
+            "residual_temp": (False, {"target_listener_count": 0, "target_process_match_count": 0,
+                                       "run_temp_absent": False}),
+        }
+        for name, (drift, snapshot) in cases.items():
+            with self.subTest(name=name), tempfile.TemporaryDirectory() as temp:
+                FakeDriver.target_drift = drift
+                FakeDriver.snapshot = snapshot
+                root = Path(temp)
+                sample = root / "sample.png"
+                sample.write_bytes(b"synthetic")
+                with mock.patch.object(probe, "candidate_identity", return_value={"identity_match": True}), \
+                        mock.patch.object(probe, "sha256_file", return_value=probe.AUTHORIZED_SAMPLE_SHA256), \
+                        mock.patch.object(probe, "validate_live_boundaries", return_value={}):
+                    code, result = probe.execute(live_args(PACK_ROOT, sample, root), driver_factory=FakeDriver)
+                self.assertEqual(2, code)
+                self.assertEqual("NO_GO", result["decision"])
+                self.assertEqual("CLEANUP_OR_TARGET_INTEGRITY_NOT_PROVEN", result["exact_stop_reason"])
+                self.assertFalse(result["cleanup"]["proven"])
+                self.assertEqual(not drift, result["evidence"]["target_integrity"]["equal"])
+                self.assertEqual(snapshot, result["evidence"]["post_cleanup_snapshot"])
 
     def test_image_failure_still_unloads_and_terminalizes(self):
         FakeDriver.fail_image = True
@@ -421,6 +563,16 @@ class WorkflowAndHarnessTests(unittest.TestCase):
         self.assertNotIn("/mnt/c/private", value)
         self.assertNotIn("secret", value)
         self.assertIn("TEST_SOURCE/image-sample", value)
+
+    def test_redaction_preserves_urls_while_redacting_windows_paths(self):
+        value = probe.redact(
+            "http://127.0.0.1:8191 https://example.invalid/docs C:/Users/private/file.txt "
+            "D:\\private\\model.bin", {})
+        self.assertIn("http://127.0.0.1:8191", value)
+        self.assertIn("https://example.invalid/docs", value)
+        self.assertNotIn("C:/Users", value)
+        self.assertNotIn("D:\\private", value)
+        self.assertEqual(2, value.count("<PRIVATE_WINDOWS_PATH>"))
 
     def test_structured_redaction_preserves_json_with_windows_paths(self):
         value = {
