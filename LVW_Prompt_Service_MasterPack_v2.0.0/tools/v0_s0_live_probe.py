@@ -1112,8 +1112,7 @@ class Probe:
                             "target_integrity_comparison": target_integrity_comparison,
                             "secondary_cleanup_failures": secondary_cleanup_failures,
                             "proven": cleanup_proven}
-            if (secondary_cleanup_failures or final_ports or temp_remove["exists_after"] or
-                    (pre_integrity is not None and not integrity_equal)):
+            if not self.cleanup["proven"]:
                 if primary_stop_reason:
                     self.events.append({"at": utc(), "event": "secondary_cleanup_failure",
                                         "detail": "CLEANUP_OR_TARGET_INTEGRITY_NOT_PROVEN"})

@@ -27,7 +27,8 @@ def preflight(*, native=None, wsl=None, processes=None, listeners=None):
 
 class WindowsNativePreflightTests(unittest.TestCase):
     def run_owned_popen_fixture(self, *, ollama_proc=None, comfy_proc=None,
-                                ollama_wrapper_pid=None, ollama_stop_after=None):
+                                ollama_wrapper_pid=None, ollama_stop_after=None,
+                                functional_success=False, expected_rc=2):
         with tempfile.TemporaryDirectory() as temp:
             temp_path = Path(temp)
             sample = temp_path / "fixture.bin"
@@ -59,6 +60,11 @@ class WindowsNativePreflightTests(unittest.TestCase):
                 owner.comfy_proc = comfy_proc
                 owner.ollama_wrapper_pid = ollama_wrapper_pid
                 owner.reached_checks.add("no_cloud")
+                if functional_success:
+                    owner.no_cloud_reported_true = True
+                    owner.pre_model_gate = {"passed": True}
+                    owner.reached_checks.update({"remote_tcp", "path_conversion"})
+                    return
                 raise RuntimeError("OLLAMA_NO_CLOUD_TRUE_NOT_OBSERVED_IN_SERVER_RAW")
 
             owner.start_services = mock.Mock(side_effect=start_services)
@@ -68,7 +74,22 @@ class WindowsNativePreflightTests(unittest.TestCase):
                 "stop_attempted": bool(pid),
                 "after": list(ollama_stop_after or []) if pid == ollama_wrapper_pid and pid else [],
             })
-            self.assertEqual(owner.run(), 2)
+            if functional_success:
+                def attempt(kind, index):
+                    result = {"kind": kind, "pass": True}
+                    owner.attempts[kind].append(result)
+                    owner.reached_checks.add(kind + "_route")
+                    owner.emit(f"attempt-{kind}-{index}.json", result)
+                    return True
+
+                def emit_request_trace():
+                    document = {"visual_chat_count": 5, "all_started_calls_cleaned": True}
+                    owner.emit("ollama-request-trace.json", document)
+                    return document
+
+                owner.attempt = mock.Mock(side_effect=attempt)
+                owner.emit_request_trace = mock.Mock(side_effect=emit_request_trace)
+            self.assertEqual(owner.run(), expected_rc)
             receipt = probe.json.loads((temp_path / "receipt.json").read_text())
             cleanup = probe.json.loads((temp_path / "evidence" / "cleanup.json").read_text())
             return receipt, cleanup
@@ -246,10 +267,13 @@ class WindowsNativePreflightTests(unittest.TestCase):
             self.assertEqual(owner.run(), 2)
             receipt = probe.json.loads((temp_path / "receipt.json").read_text())
             cleanup = probe.json.loads((temp_path / "evidence" / "cleanup.json").read_text())
+            events = probe.json.loads((temp_path / "evidence" / "events.json").read_text())["events"]
             self.assertEqual(receipt["decision"], "BLOCKED")
             self.assertEqual(receipt["exact_stop_reason"], "WINDOWS_OWNER_ENUMERATION_FAILED")
             self.assertFalse(receipt["cleanup"]["proven"])
             self.assertGreaterEqual(len(cleanup["secondary_cleanup_failures"]), 2)
+            self.assertTrue(any(event.get("detail") == "CLEANUP_OR_TARGET_INTEGRITY_NOT_PROVEN"
+                                for event in events))
             statuses = {x["check"]: x["status"] for x in receipt["check_results"]}
             self.assertEqual(statuses["cleanup_and_target_integrity"], "FAIL")
             self.assertEqual(receipt["external_actions"]["ollama_process_starts"], 0)
@@ -446,6 +470,38 @@ class WindowsNativePreflightTests(unittest.TestCase):
         self.assertEqual(statuses["cleanup_and_target_integrity"], "PASS")
         self.assertEqual(cleanup["target_integrity_comparison"], "PASS")
         self.assertEqual(cleanup["secondary_cleanup_failures"], [])
+
+    def test_function_success_with_captured_pid_residual_is_no_go(self):
+        proc = mock.Mock()
+        proc.wait.return_value = 0
+        proc.poll.return_value = 0
+        receipt, cleanup = self.run_owned_popen_fixture(
+            ollama_proc=proc, ollama_wrapper_pid=123,
+            ollama_stop_after=[{"process_id": 123}],
+            functional_success=True, expected_rc=2,
+        )
+        statuses = {x["check"]: x["status"] for x in receipt["check_results"]}
+        self.assertFalse(cleanup["proven"])
+        self.assertEqual(statuses["cleanup_and_target_integrity"], "FAIL")
+        self.assertEqual(receipt["decision"], "NO_GO")
+        self.assertEqual(receipt["exact_stop_reason"], "CLEANUP_OR_TARGET_INTEGRITY_NOT_PROVEN")
+        self.assertNotEqual(receipt["production_path_status"],
+                            "PUBLIC_COMFY_IMAGE_AND_VIDEO_TRACE_COMPLETE_READY_FOR_REVIEW")
+
+    def test_function_success_with_clean_cleanup_is_ready(self):
+        proc = mock.Mock()
+        proc.wait.return_value = 0
+        proc.poll.return_value = 0
+        receipt, cleanup = self.run_owned_popen_fixture(
+            ollama_proc=proc, ollama_wrapper_pid=123, ollama_stop_after=[],
+            functional_success=True, expected_rc=0,
+        )
+        statuses = {x["check"]: x["status"] for x in receipt["check_results"]}
+        self.assertTrue(cleanup["proven"])
+        self.assertEqual(statuses["cleanup_and_target_integrity"], "PASS")
+        self.assertEqual(receipt["decision"], "READY_FOR_REVIEW")
+        self.assertEqual(receipt["production_path_status"],
+                         "PUBLIC_COMFY_IMAGE_AND_VIDEO_TRACE_COMPLETE_READY_FOR_REVIEW")
 
     def test_owned_popen_wait_exception_is_secondary_cleanup_failure(self):
         proc = mock.Mock()
