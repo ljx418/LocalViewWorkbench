@@ -8,7 +8,7 @@
 
 产品规格仍由本README、`docs/`、`contracts/`和`plans/`定义；[Agent Governance](.agent-governance/README.md)在其上增加角色隔离、Stage Packet、Workpack、候选/证据绑定、预算等待和反假绿门禁。唯一当前坐标为[execution-control.json](plans/execution-control.json)。
 
-当前是`V0-S1 / WP-S1-00 / GATE0_DOCUMENT_READY / RUNNING`：V0-S0 已以 `STAGE_BASELINE_COMPLETE` 闭合，S1 packet 1.0.0 已冻结并仅授权离线仓库工作。WP-S1-03 的目标 Comfy 安装、Ollama、真实图片和可见浏览器仍为 `WAIT_AUTH`，不能复用 S0 授权。产品固定验收仍为`NOT_RUN`；运行`python3 tools/verify_governance.py --self-test`只验证制度结构与负例拒绝能力，不是产品验收。
+当前是`V0-S1 / WP-S1-01 / GATE1_IMPLEMENTATION / RUNNING`：V0-S0 已以 `STAGE_BASELINE_COMPLETE` 闭合，S1 packet 1.0.0 已冻结，WP-S1-00 离线夹具已封存。当前仅进行离线人工编辑/导出实现；WP-S1-03 的目标 Comfy 安装、Ollama、真实图片和可见浏览器仍为 `WAIT_AUTH`，不能复用 S0 授权。产品固定验收仍为`NOT_RUN`；治理校验不是产品验收。
 
 ## 一套文档，不再多条互斥路线
 

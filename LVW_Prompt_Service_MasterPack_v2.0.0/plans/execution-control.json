@@ -6,16 +6,16 @@
   "target_version": "V0",
   "coordinate": {
     "stage_id": "V0-S1",
-    "workpack_id": "WP-S1-00",
-    "gate": "GATE0_DOCUMENT_READY",
+    "workpack_id": "WP-S1-01",
+    "gate": "GATE1_IMPLEMENTATION",
     "state": "RUNNING"
   },
   "last_passed_gate": {
-    "id": "V0_S1_GATE0_PACKET_FROZEN",
-    "evidence": ".agent-governance/stages/V0-S1/PAYLOAD_MANIFEST.sha256",
-    "meaning": "V0-S1 packet 1.0.0 is frozen against accepted S0 baseline dfb00ad with offline-only execution scope"
+    "id": "WP_S1_00_BASELINE_FIXTURES_SEALED",
+    "evidence": "reports/v0-s1/implementation-receipt-wp-s1-00.json",
+    "meaning": "contract, binding, denominator, boundary and late-callback fixtures passed 8 offline tests and are sealed to candidate 457b2e8"
   },
-  "current_blocking_gate": "WP-S1-00 baseline and contract fixtures are not yet sealed",
+  "current_blocking_gate": "WP-S1-01 manual editor and export candidate is not yet implemented",
   "stage_packet": ".agent-governance/stages/V0-S1/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/V0-S1/PAYLOAD_MANIFEST.sha256",
   "product_status": "NOT_RUN",
@@ -25,8 +25,8 @@
     "V0_ACCEPTED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "local_ci",
-  "next_action": "Execute WP-S1-00 offline baseline, contract and fixture checks; seal a receipt before implementation workpacks.",
+  "next_owner": "codex_isolated_implementer",
+  "next_action": "Implement WP-S1-01 manual draft, four outputs, copy and TXT/JSON export entirely offline; emit a Workpack receipt and stop for root review.",
   "evidence_root": "reports/",
   "exact_stop_reason": null
 }

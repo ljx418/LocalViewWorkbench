@@ -1,0 +1,54 @@
+{
+  "schema_version": "lvw.implementation-receipt/1",
+  "project_id": "lvw-prompt-service",
+  "stage_id": "V0-S1",
+  "workpack_id": "WP-S1-00",
+  "candidate_sha": "457b2e8bf6b06deab5b5c1b73fc03b433e3921d4",
+  "evidence_commit": "457b2e8bf6b06deab5b5c1b73fc03b433e3921d4",
+  "evidence_commit_status": "SEALED_BY_TRUSTED_EXECUTOR",
+  "spec_version": "1.0.0",
+  "acceptance_hash": "4b52485dbaa7daeccb31b5c91771b51f8106ab6e49267328990ad4da3b5f85c5",
+  "gate_version": "lvw-gate/1",
+  "run_id": "v0-s1-wp-s1-00-offline-20261028-01",
+  "environment": {
+    "mode": "offline_repository_only",
+    "python": "3.12",
+    "target_runtime_touched": false,
+    "network_calls": 0,
+    "model_calls": 0,
+    "media_reads": 0
+  },
+  "check_results": [
+    {"check": "s1_contract_fixtures", "status": "PASS", "count": 8, "command": "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest LVW_V0_RuntimePatch.tests.test_s1_contract_fixtures", "exit_code": 0},
+    {"check": "pack_schema", "status": "PASS", "count": 1112, "command": "PYTHONDONTWRITEBYTECODE=1 python3 tools/verify_pack.py --schema", "exit_code": 0},
+    {"check": "governance", "status": "PASS", "count": 21, "command": "PYTHONDONTWRITEBYTECODE=1 python3 tools/verify_governance.py --self-test", "exit_code": 0}
+  ],
+  "test_counts": {"denominator": 8, "pass": 8, "fail": 0, "blocked": 0, "skipped": 0, "not_run": 0},
+  "product_acceptance": {
+    "V0-A01": "NOT_RUN",
+    "V0-A03": "NOT_RUN",
+    "V0-A04": "NOT_RUN",
+    "V0-A05": "NOT_RUN",
+    "V0-A08": "NOT_RUN"
+  },
+  "artifact_refs": [
+    "LVW_V0_RuntimePatch/manifests/s1-baseline-bindings.json",
+    "LVW_V0_RuntimePatch/tests/fixtures/s1-contract-fixtures.json",
+    "LVW_V0_RuntimePatch/tests/test_s1_contract_fixtures.py"
+  ],
+  "changed_files": [
+    "LVW_V0_RuntimePatch/manifests/s1-baseline-bindings.json",
+    "LVW_V0_RuntimePatch/tests/fixtures/s1-contract-fixtures.json",
+    "LVW_V0_RuntimePatch/tests/test_s1_contract_fixtures.py"
+  ],
+  "contract_changes": "none",
+  "production_path": "fixtures bind the future manual/image production paths; no product path was executed in WP-S1-00",
+  "risks": [
+    "Fixtures and deterministic checks are not product acceptance.",
+    "WP-S1-03 remains WAIT_AUTH for target runtime, model and real image actions."
+  ],
+  "implementation_owner_role": "trusted_executor",
+  "implementation_session": "local_ci:/root",
+  "decision": "READY_FOR_REVIEW",
+  "stage_pass_claim": false
+}
