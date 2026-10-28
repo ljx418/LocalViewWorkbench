@@ -8,7 +8,7 @@
 
 产品规格仍由本README、`docs/`、`contracts/`和`plans/`定义；[Agent Governance](.agent-governance/README.md)在其上增加角色隔离、Stage Packet、Workpack、候选/证据绑定、预算等待和反假绿门禁。唯一当前坐标为[execution-control.json](plans/execution-control.json)。
 
-当前是`V0-S1 / WP-S1-03 / GATE4_REAL_ACCEPTANCE / NO_GO`：live-03 已且仅已执行一次，身份、GPU、本地模型、no-cloud 与清理均通过，但真实公开路径暴露出 1024 输入预处理与 bridge 384 长边门限不一致，终态为 `PUBLIC_COMFY_ROUTE_FAILED / FRAME_LONG_EDGE_LIMIT`。授权已过期且禁止重跑；五项产品验收保持`NOT_RUN`，下一步为离线纠正并重新封存。
+当前是`V0-S1 / WP-S1-03 / GATE4_REAL_ACCEPTANCE / WAIT_AUTH`：live-03 的 1024/384 边界冲突已在候选 `b248b37...` 离线纠正，并增加跨 owner exact/one-over 与诊断最小化测试；定向 58/58、完整回归 79/79。新 harness `bcdb134...` 绑定不可复用的 live-04 证据槽，当前等待明确批准 `AUTH-REQUEST-V0-S1-WP-S1-03-04`；五项产品验收仍为`NOT_RUN`。
 
 ## 一套文档，不再多条互斥路线
 

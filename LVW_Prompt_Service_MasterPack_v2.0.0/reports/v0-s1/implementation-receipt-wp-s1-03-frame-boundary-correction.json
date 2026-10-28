@@ -1,0 +1,39 @@
+{
+  "schema_version": "lvw.implementation-receipt/1",
+  "project_id": "lvw-prompt-service",
+  "stage_id": "V0-S1",
+  "workpack_id": "WP-S1-03",
+  "spec_version": "1.0.0",
+  "candidate_sha": "b248b373d323bbfa546df78c9355e7e30a2ec24c",
+  "evidence_commit": "b248b373d323bbfa546df78c9355e7e30a2ec24c",
+  "evidence_commit_status": "SEALED_EXECUTION_CANDIDATE",
+  "acceptance_hash": "4b52485dbaa7daeccb31b5c91771b51f8106ab6e49267328990ad4da3b5f85c5",
+  "gate_version": "lvw-gate/1",
+  "run_id": "v0-s1-wp-s1-03-frame-boundary-correction-offline-01",
+  "implementation_owner_role": "codex_isolated_implementer",
+  "implementation_session": "/root/s0_rerun_implementer",
+  "decision": "READY_FOR_REVIEW",
+  "stage_pass_claim": false,
+  "exact_stop_reason": "WAIT_NEW_EXPLICIT_LIVE_04_AUTHORIZATION",
+  "environment": {"mode":"offline_repository_only","target_runtime_touched":false,"network_calls":0,"model_calls":0,"gpu_probes":0,"process_probes":0,"port_probes":0,"real_media_reads":0,"visible_browser_runs":0},
+  "changed_files": [
+    "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/core.py",
+    "LVW_V0_RuntimePatch/tests/test_s1_image_state_owner.py",
+    "LVW_V0_RuntimePatch/tests/test_s1_wp03_live_probe.py",
+    "reports/v0-s1/wp-s1-03-phase-a/live_probe.py"
+  ],
+  "contract_changes": "none; implementation now matches frozen image_long_edge=1024",
+  "check_results": [
+    {"check":"controlled_owner_to_bridge_1024_exact","status":"PASS_OFFLINE"},
+    {"check":"bridge_1025_one_over","status":"PASS_REJECTED"},
+    {"check":"failure_diagnostic_minimization","status":"PASS_OFFLINE"},
+    {"check":"candidate_identity","status":"PASS_OFFLINE","evidence":"reports/v0-s1/wp-s1-03-frame-boundary-correction-seal.json"},
+    {"check":"targeted_regression","status":"PASS_58_OF_58"},
+    {"check":"repository_offline_regression","status":"PASS_79_OF_79"},
+    {"check":"fixed_product_acceptance","status":"NOT_RUN"}
+  ],
+  "test_counts": {"denominator":5,"pass":0,"fail":0,"blocked":0,"skipped":0,"not_run":5},
+  "artifact_refs": ["reports/v0-s1/wp-s1-03-frame-boundary-correction-seal.json","reports/v0-s1/wp-s1-03-phase-a/live_probe.py","LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/core.py","LVW_V0_RuntimePatch/tests/test_s1_image_state_owner.py","LVW_V0_RuntimePatch/tests/test_s1_wp03_live_probe.py"],
+  "raw_artifact_refs": [],
+  "risks": ["The corrected 1024 route is proven offline only and requires a fresh live run.","All five fixed product cases remain NOT_RUN.","The immutable live-03 NO_GO evidence is retained and cannot be used as a positive result."]
+}

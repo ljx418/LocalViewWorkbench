@@ -8,28 +8,28 @@
     "stage_id": "V0-S1",
     "workpack_id": "WP-S1-03",
     "gate": "GATE4_REAL_ACCEPTANCE",
-    "state": "NO_GO"
+    "state": "WAIT_AUTH"
   },
   "last_passed_gate": {
-    "id": "WP_S1_03_TERMINAL_SERIALIZATION_CORRECTION_SEALED",
-    "evidence": "reports/v0-s1/wp-s1-03-serialization-correction-seal.json",
-    "meaning": "structured terminal redaction, fresh authorization ID and non-reusable live-03 evidence slot passed 78 offline tests on candidate 4a2fed4"
+    "id": "WP_S1_03_FRAME_BOUNDARY_CORRECTION_SEALED",
+    "evidence": "reports/v0-s1/wp-s1-03-frame-boundary-correction-seal.json",
+    "meaning": "public bridge aligned to frozen 1024 image edge, minimized diagnostics and fresh live-04 slot passed 79 offline tests on candidate b248b37"
   },
-  "current_blocking_gate": "the public image route rejects the contract-sized preprocessed image because bridge MAX_LONG_EDGE=384 conflicts with the frozen image_long_edge=1024",
+  "current_blocking_gate": "project-owner approval of hash-bound AUTH-REQUEST-V0-S1-WP-S1-03-04 is required before any new local service, GPU, port, model or real-media action",
   "stage_packet": ".agent-governance/stages/V0-S1/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/V0-S1/PAYLOAD_MANIFEST.sha256",
   "product_status": "NOT_RUN",
-  "allowed_claim": "V0_S1_WP_S1_03_LIVE_03_NO_GO_FRAME_LONG_EDGE_CONTRACT_MISMATCH_PRODUCT_CASES_NOT_RUN",
+  "allowed_claim": "V0_S1_WP_S1_03_FRAME_BOUNDARY_CORRECTED_OFFLINE_WAIT_AUTH_LIVE_04_PRODUCT_CASES_NOT_RUN",
   "forbidden_claims": [
     "ENGINEERING_READY",
     "V0_ACCEPTED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "codex_gate_owner",
-  "next_action": "Seal immutable live-03 NO_GO evidence, correct the 1024-versus-384 production-path mismatch and diagnostic minimization offline, then prepare a fresh authorization request.",
-  "required_authorization": "NEW_EXPLICIT_AUTHORIZATION_AFTER_CORRECTED_SEAL",
-  "authorization_request": "reports/v0-s1/authorization-wp-s1-03-03.request.json",
+  "next_owner": "project_owner",
+  "next_action": "Review and explicitly approve or reject AUTH-REQUEST-V0-S1-WP-S1-03-04; no live action is permitted before approval.",
+  "required_authorization": "AUTH-REQUEST-V0-S1-WP-S1-03-04",
+  "authorization_request": "reports/v0-s1/authorization-wp-s1-03-04.request.json",
   "authorization_record": "reports/v0-s1/authorization-wp-s1-03-03.json",
   "evidence_root": "reports/",
-  "exact_stop_reason": "PUBLIC_COMFY_ROUTE_FAILED:MEDIA_LIMIT_EXCEEDED:FRAME_LONG_EDGE_LIMIT"
+  "exact_stop_reason": "WAIT_NEW_EXPLICIT_LIVE_04_AUTHORIZATION"
 }

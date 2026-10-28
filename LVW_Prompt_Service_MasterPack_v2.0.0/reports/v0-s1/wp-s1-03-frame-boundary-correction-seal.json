@@ -1,0 +1,35 @@
+{
+  "schema_version": "lvw.gate-seal/1",
+  "project_id": "lvw-prompt-service",
+  "stage_id": "V0-S1",
+  "workpack_id": "WP-S1-03",
+  "gate": "PUBLIC_FRAME_BOUNDARY_AND_DIAGNOSTIC_CORRECTION_SEAL",
+  "decision": "READY_FOR_NEW_AUTHORIZATION",
+  "prior_terminal_evidence_commit": "133e3576b23e12c7cb258679f90c9477c41d8dce",
+  "prior_terminal_seal_commit": "732aeda9effc52932411d7bca2b0d8536d05725b",
+  "prior_terminal_reason": "PUBLIC_COMFY_ROUTE_FAILED:MEDIA_LIMIT_EXCEEDED:FRAME_LONG_EDGE_LIMIT",
+  "candidate_sha": "b248b373d323bbfa546df78c9355e7e30a2ec24c",
+  "candidate_base": "732aeda9effc52932411d7bca2b0d8536d05725b",
+  "harness_path": "reports/v0-s1/wp-s1-03-phase-a/live_probe.py",
+  "harness_sha256": "bcdb1345d1e7d416fa70815117161c36347b640a903b7c459e80cc5117ba1b6b",
+  "planned_authorization_id": "AUTH-V0-S1-2026-10-28-04",
+  "authorized_run_id": "v0-s1-wp-s1-03-live-04",
+  "authorized_evidence_relative": "reports/v0-s1/wp-s1-03-live-04",
+  "correction": {
+    "frozen_image_long_edge": 1024,
+    "prior_bridge_long_edge": 384,
+    "corrected_bridge_long_edge": 1024,
+    "exact_1024": "PASS_OFFLINE_CROSS_OWNER",
+    "one_over_1025": "REJECTED_FRAME_LONG_EDGE_LIMIT",
+    "failure_diagnostic": "stable event/code/subcode/node facts only; tensor, current_inputs, traceback and private paths discarded",
+    "candidate_identity": "PASS; exactly four allowlisted files differ from candidate_base",
+    "prior_live_evidence_reuse": "FORBIDDEN"
+  },
+  "review": {
+    "offline_targeted": {"pass": 58, "fail": 0, "total": 58},
+    "offline_regression": {"pass": 79, "fail": 0, "total": 79},
+    "external_actions": 0
+  },
+  "fixed_product_cases": {"V0-A01":"NOT_RUN","V0-A03":"NOT_RUN","V0-A04":"NOT_RUN","V0-A05":"NOT_RUN","V0-A08":"NOT_RUN"},
+  "stage_pass_claim": false
+}
