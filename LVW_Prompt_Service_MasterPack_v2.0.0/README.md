@@ -8,7 +8,7 @@
 
 产品规格仍由本README、`docs/`、`contracts/`和`plans/`定义；[Agent Governance](.agent-governance/README.md)在其上增加角色隔离、Stage Packet、Workpack、候选/证据绑定、预算等待和反假绿门禁。唯一当前坐标为[execution-control.json](plans/execution-control.json)。
 
-当前是`V0-S0 / GATE0_READY / WAIT_AUTH`：文档和首个Stage Packet已冻结，但目标Windows、Comfy/Ollama、真实媒体和GPU探测没有在本轮执行。运行`python3 tools/verify_governance.py --self-test`只验证制度结构与负例拒绝能力，不是产品验收。
+当前是`V0-S0 / WP-S0-45 / GATE4_REAL_ACCEPTANCE / BLOCKED`：离线修复与独立审查已完成，最后通过门禁为`WP_S0_45_INDEPENDENT_REVIEW_COMPLETE`。最近一次逐次授权已在 preflight 检出非本运行所有的 GPU 占用超过冻结阈值后终止并自动过期；精确停止原因为`RESOURCE_BUSY_UNKNOWN_GPU_OWNER`。项目负责人需先释放该外部占用，再签发新的逐次授权，才能重新探测或调用 ComfyUI/Ollama/真实媒体。产品固定验收仍为`NOT_RUN`；运行`python3 tools/verify_governance.py --self-test`只验证制度结构与负例拒绝能力，不是产品验收。
 
 ## 一套文档，不再多条互斥路线
 
