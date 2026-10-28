@@ -1,32 +1,32 @@
 {
   "schema_version": "lvw.execution-control/1",
-  "updated_at": "2026-10-27",
+  "updated_at": "2026-10-28",
   "project_id": "lvw-prompt-service",
   "design_version": "2.0.0",
   "target_version": "V0",
   "coordinate": {
     "stage_id": "V0-S0",
-    "workpack_id": "WP-S0-30",
-    "gate": "GATE4_REAL_ACCEPTANCE",
-    "state": "BLOCKED"
+    "workpack_id": "WP-S0-31",
+    "gate": "GATE1_IMPLEMENTATION",
+    "state": "RUNNING"
   },
   "last_passed_gate": {
     "id": "WP_S0_30_INDEPENDENT_RESOURCE_STOP_REVIEW_COMPLETE",
     "evidence": "reports/v0-s0/independent-review-correction-10.md",
     "meaning": "independent review confirmed a trustworthy pre-service resource NO_GO with zero owned starts"
   },
-  "current_blocking_gate": "GPU used 6044 MiB exceeds 4096 MiB and the owner is outside the authorized run",
+  "current_blocking_gate": "live rerun remains blocked by unknown GPU owner; offline correction-11 is active and consumes no external authorization",
   "stage_packet": ".agent-governance/stages/V0-S0/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/V0-S0/PAYLOAD_MANIFEST.sha256",
   "product_status": "NOT_RUN",
-  "allowed_claim": "V0_S0_BLOCKED_RESOURCE_BUSY_UNKNOWN_GPU_OWNER",
+  "allowed_claim": "V0_S0_OFFLINE_RECEIPT_SEMANTICS_REMEDIATION_IN_PROGRESS",
   "forbidden_claims": [
     "ENGINEERING_READY",
     "V0_ACCEPTED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "project_owner",
-  "next_action": "Identify and normally close or release the unknown GPU owner, then report that external state changed.",
+  "next_owner": "codex_isolated_implementer",
+  "next_action": "Implement WP-S0-31/32 offline observable-state correction, seal a READY_FOR_REVIEW receipt, then hand off to the isolated reviewer.",
   "evidence_root": "reports/",
-  "exact_stop_reason": "RESOURCE_BUSY_UNKNOWN_GPU_OWNER"
+  "exact_stop_reason": "OFFLINE_CORRECTION_11_ACTIVE_LIVE_RESOURCE_BLOCK_RETAINED"
 }

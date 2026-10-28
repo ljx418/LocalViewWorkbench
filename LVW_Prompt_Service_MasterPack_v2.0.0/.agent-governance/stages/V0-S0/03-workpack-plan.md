@@ -125,3 +125,15 @@ Owner：`codex_isolated_implementer`。依赖 WP-S0-28 与新的明确授权。�
 ## WP-S0-30：S0 baseline 独立出口复审
 
 Owner：`codex_isolated_reviewer`。依赖 WP-S0-29。独立复算新鲜证据、身份、隐私、公开图片/四帧路径、Oracle、资源、网络和清理，并保留全部历史失败。仅 Fatal=0、Major=0 且 S0 固定四项都有阶段结论时，root 才可裁决 `STAGE_BASELINE_COMPLETE`；这仍不等于 V0 产品用例 PASS。
+
+## WP-S0-31：前置阻断后的可观察状态语义纠偏
+
+Owner：`codex_isolated_implementer`。依赖 WP-S0-30 的 Minor 发现。仅离线修改可复用 harness：身份或 Windows-native service preflight 在任何 owned service 启动前阻断时，no-cloud、remote TCP、Comfy 路径转换和图片/视频公开路由必须报告 `NOT_REACHED`，不得报告 `FAIL` 或 `NOT_RUN_OR_FAIL`。`cleanup.proven=false` 保持真实，同时分别报告 `owned_resources_absent=true` 与 `target_integrity_comparison=NOT_REACHED`；若 owned service 曾启动或相应检查确实执行，则失败仍必须报告 `FAIL`。禁止修改 correction-10 原始证据、产品候选、公共合同、GPU/超时阈值或启动服务。
+
+## WP-S0-32：状态分支离线负例与实现收据
+
+Owner：`codex_isolated_implementer`。依赖 WP-S0-31。新增至少覆盖 harness identity mismatch、GPU preflight stop、preflight 枚举异常、服务启动后的实际检查失败和成功清理的离线测试；证明前置阻断不会产生假失败、后置失败不会被伪装为未到达。保留全部既有 harness 回归，输出 correction-11 离线实现收据，只能 `READY_FOR_REVIEW`；固定四项产品分母保持 `NOT_RUN`。
+
+## WP-S0-33：correction-11 独立离线复审
+
+Owner：`codex_isolated_reviewer`。依赖 WP-S0-32。只读复算新状态机、负例、候选/收据绑定和历史 correction-10 不可改写；确认 Fatal/Major/Minor 以及是否可回到等待 GPU owner 释放的真实运行门禁。独立复审不得修改候选或推断 live 授权。
