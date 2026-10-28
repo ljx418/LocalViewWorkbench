@@ -6,10 +6,10 @@ Design: 2.0.0
 Target version: V0
 Prepared stage: V0-S1 / 图片与独立人工路径
 Packet version: 1.0.0
-State: NO_GO / AUTHORIZATION_EXPIRED
-Active coordinate: V0-S1 / WP-S1-03 / GATE4_REAL_ACCEPTANCE
+State: RUNNING / OFFLINE_TARGET_PATH_CORRECTION
+Active coordinate: V0-S1 / WP-S1-03 / GATE1_IMPLEMENTATION
 Last passed gate: WP_S1_03_PHASE_A_CANDIDATE_SEALED
-Exact stop reason: AUTHORIZED_TARGET_PATH_NOT_PRESENT
+Exact stop reason: none
 Product cases: NOT_RUN
 Prepared-against commit: dfb00ad462d94628f1aa22045061f66a7629ec01
 Product bridge candidate: 138b4486fdaeb8d207ef6b5efb63a09865f174b9
@@ -29,3 +29,5 @@ WP-S1-02 最终候选 `2776a0c...` 已封存：公共 `LVWControlledImageInput` 
 WP-S1-03 Phase A 候选 `65c909f...` 与 harness `322957e...` 已由门禁负责人封存：workflow/API、真实 PromptSpec Oracle、raw/suggestion 分离、Windows wrapper/PID lineage、清理重验证和默认拒绝路径通过 76/76 离线回归。当前只允许先执行授权前置检查；任一目标路径、身份、GPU、进程、端口或 no-cloud 条件失败都必须在图片尝试前终止。
 
 授权前置检查确认请求中绑定的 `COMFY_ROOT/main.py` 与 `COMFY_PYTHON` 均不存在，故在服务、GPU、端口、网络、模型和真实媒体动作前以 `NO_GO` 终止；`AUTH-V0-S1-2026-10-28-01` 已自动过期。候选仍封存有效，但不得搜索或替换为未授权路径；下一步由项目负责人提供实际路径后重新请求一次性授权。
+
+项目负责人现已提供并授权检查 `C:/ComfyUI-aki-v2`，其中真实目标为 `ComfyUI/main.py` 与 `python/python.exe`。当前仅授权离线修正 harness 路径绑定和负例测试；旧授权保持过期，ComfyUI/Ollama/GPU/端口/网络/真实媒体动作仍禁止，修正候选重新封存后再生成新请求。

@@ -8,7 +8,7 @@
 
 产品规格仍由本README、`docs/`、`contracts/`和`plans/`定义；[Agent Governance](.agent-governance/README.md)在其上增加角色隔离、Stage Packet、Workpack、候选/证据绑定、预算等待和反假绿门禁。唯一当前坐标为[execution-control.json](plans/execution-control.json)。
 
-当前是`V0-S1 / WP-S1-03 / GATE4_REAL_ACCEPTANCE / NO_GO`：Phase A 候选 `65c909f...` 与 harness `322957e...` 已封存，但授权绑定的 `C:/ComfyUI/ComfyUI/main.py` 和 `C:/ComfyUI/python/python.exe` 不存在；本次授权已在零服务启动、零图片/模型尝试下自动过期。必须由项目负责人提供实际目标路径并批准新请求后才能继续；五项产品验收仍为`NOT_RUN`。
+当前是`V0-S1 / WP-S1-03 / GATE1_IMPLEMENTATION / RUNNING`：上一授权已因旧目标路径不存在而零服务启动过期；项目负责人现已提供 `C:/ComfyUI-aki-v2`。当前只允许离线修正 harness 的 main/python 路径绑定及负例测试，所有 ComfyUI/Ollama/GPU/端口/网络/真实媒体动作仍未授权；修正候选封存后将生成新的精确一次性请求。五项产品验收仍为`NOT_RUN`。
 
 ## 一套文档，不再多条互斥路线
 

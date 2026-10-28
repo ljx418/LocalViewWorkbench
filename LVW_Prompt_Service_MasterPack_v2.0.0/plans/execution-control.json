@@ -7,29 +7,29 @@
   "coordinate": {
     "stage_id": "V0-S1",
     "workpack_id": "WP-S1-03",
-    "gate": "GATE4_REAL_ACCEPTANCE",
-    "state": "NO_GO"
+    "gate": "GATE1_IMPLEMENTATION",
+    "state": "RUNNING"
   },
   "last_passed_gate": {
     "id": "WP_S1_03_PHASE_A_CANDIDATE_SEALED",
     "evidence": "reports/v0-s1/wp-s1-03-phase-a-seal.json",
     "meaning": "workflow/API and identity-bound harness passed 76 offline tests and gate-owner review on candidate 65c909f; no live action has run"
   },
-  "current_blocking_gate": "the exact authorized ComfyUI main/python paths are absent; a corrected target identity and new one-shot authorization are required",
+  "current_blocking_gate": "the sealed harness still binds the obsolete ComfyUI paths and must be corrected offline before a new one-shot request",
   "stage_packet": ".agent-governance/stages/V0-S1/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/V0-S1/PAYLOAD_MANIFEST.sha256",
   "product_status": "NOT_RUN",
-  "allowed_claim": "V0_S1_WP_S1_03_NO_GO_TARGET_PATH_MISMATCH_PRODUCT_CASES_NOT_RUN",
+  "allowed_claim": "V0_S1_WP_S1_03_OFFLINE_TARGET_PATH_CORRECTION_PRODUCT_CASES_NOT_RUN",
   "forbidden_claims": [
     "ENGINEERING_READY",
     "V0_ACCEPTED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "project_owner",
-  "next_action": "Provide the actual existing ComfyUI main.py and portable python.exe paths; Codex will issue a corrected, newly hash-bound one-shot authorization request.",
-  "required_authorization": "NEW_ONE_SHOT_AUTHORIZATION_AFTER_TARGET_PATH_CORRECTION",
+  "next_owner": "codex_isolated_implementer",
+  "next_action": "Update only the harness target-path bindings and deterministic tests to C:/ComfyUI-aki-v2, commit the correction, and stop before all external actions.",
+  "required_authorization": null,
   "authorization_request": "reports/v0-s1/authorization-wp-s1-03-01.request.json",
   "authorization_record": "reports/v0-s1/authorization-wp-s1-03-01.json",
   "evidence_root": "reports/",
-  "exact_stop_reason": "AUTHORIZED_TARGET_PATH_NOT_PRESENT"
+  "exact_stop_reason": null
 }
