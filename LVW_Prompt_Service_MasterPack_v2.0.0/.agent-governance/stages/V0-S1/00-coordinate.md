@@ -6,10 +6,10 @@ Design: 2.0.0
 Target version: V0
 Prepared stage: V0-S1 / 图片与独立人工路径
 Packet version: 1.0.0
-State: WAIT_AUTH / CORRECTED_LIVE_02_CANDIDATE_SEALED
+State: RUNNING / AUTHORIZED_LIVE_02
 Active coordinate: V0-S1 / WP-S1-03 / GATE4_REAL_ACCEPTANCE
 Last passed gate: WP_S1_03_TARGET_PATH_CORRECTION_SEALED
-Exact stop reason: WAIT_AUTH_WP_S1_03_LIVE_02
+Exact stop reason: none
 Product cases: NOT_RUN
 Prepared-against commit: dfb00ad462d94628f1aa22045061f66a7629ec01
 Product bridge candidate: 138b4486fdaeb8d207ef6b5efb63a09865f174b9
@@ -33,3 +33,5 @@ WP-S1-03 Phase A 候选 `65c909f...` 与 harness `322957e...` 已由门禁负责
 项目负责人现已提供并授权检查 `C:/ComfyUI-aki-v2`，其中真实目标为 `ComfyUI/main.py` 与 `python/python.exe`。当前仅授权离线修正 harness 路径绑定和负例测试；旧授权保持过期，ComfyUI/Ollama/GPU/端口/网络/真实媒体动作仍禁止，修正候选重新封存后再生成新请求。
 
 修正候选 `3c50159...` 与 harness `fba396b...` 已封存，绑定 aki-v2 精确路径、新授权 ID `AUTH-V0-S1-2026-10-28-02`、新 run ID 和不可复用的 `wp-s1-03-live-02` 证据槽；77/77 离线回归通过。当前等待项目负责人明确批准 `AUTH-REQUEST-V0-S1-WP-S1-03-02`。
+
+项目负责人已逐字批准 request-02，正式授权记录绑定请求提交 `83cea5b...` 与 SHA-256 `280ab61...`。仅可执行一次 live-02；任何 mandatory stop、有效图片尝试或终态收据都会使授权自动过期。
