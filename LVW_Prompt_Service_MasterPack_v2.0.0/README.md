@@ -8,7 +8,7 @@
 
 产品规格仍由本README、`docs/`、`contracts/`和`plans/`定义；[Agent Governance](.agent-governance/README.md)在其上增加角色隔离、Stage Packet、Workpack、候选/证据绑定、预算等待和反假绿门禁。唯一当前坐标为[execution-control.json](plans/execution-control.json)。
 
-当前是`V0-S1 / WP-S1-03 / GATE4_REAL_ACCEPTANCE / WAIT_AUTH`：独立审查的 Fatal 0 / Major 3 / Minor 1 已在候选 `1d48142...` 一次性离线纠正，7 个执行产物完整绑定，并增加可复算状态、目标和清理终态证据；定向 27/27、完整回归 87/87。当前等待批准 `AUTH-REQUEST-V0-S1-WP-S1-03-06`，五项产品验收仍为`NOT_RUN`。
+当前是`V0-S1 / WP-S1-03 / GATE4_REAL_ACCEPTANCE / RUNNING`：request-06 已逐字批准，候选 `1d48142...` 与 harness `9495320...` 仅可执行一次 aki-v2 live-06；7 个执行产物和可复算状态/完整性/清理证据均为强制门禁。五项产品验收仍为`NOT_RUN`。
 
 ## 一套文档，不再多条互斥路线
 

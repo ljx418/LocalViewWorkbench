@@ -8,29 +8,29 @@
     "stage_id": "V0-S1",
     "workpack_id": "WP-S1-03",
     "gate": "GATE4_REAL_ACCEPTANCE",
-    "state": "WAIT_AUTH"
+    "state": "RUNNING"
   },
   "last_passed_gate": {
     "id": "WP_S1_04_EVIDENCE_RECOMPUTABILITY_CORRECTION_SEALED",
     "evidence": "reports/v0-s1/wp-s1-04-evidence-recomputability-correction-seal.json",
     "meaning": "all three Major and one Minor review findings corrected with seven execution artifacts bound and 87 offline tests on candidate 1d48142"
   },
-  "current_blocking_gate": "project-owner approval of hash-bound AUTH-REQUEST-V0-S1-WP-S1-03-06 is required before a fresh live run",
+  "current_blocking_gate": "the authorized live-06 production path must execute exactly once and emit independently recomputable terminal evidence",
   "stage_packet": ".agent-governance/stages/V0-S1/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/V0-S1/PAYLOAD_MANIFEST.sha256",
   "product_status": "NOT_RUN",
-  "allowed_claim": "V0_S1_INDEPENDENT_FINDINGS_CORRECTED_OFFLINE_WAIT_AUTH_LIVE_06_PRODUCT_CASES_NOT_RUN",
+  "allowed_claim": "V0_S1_WP_S1_03_LIVE_06_AUTHORIZED_RUNNING_PRODUCT_CASES_NOT_RUN",
   "forbidden_claims": [
     "ENGINEERING_READY",
     "V0_ACCEPTED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "project_owner",
-  "next_action": "Review and explicitly approve or reject AUTH-REQUEST-V0-S1-WP-S1-03-06; no live action is permitted before approval.",
-  "required_authorization": "AUTH-REQUEST-V0-S1-WP-S1-03-06",
+  "next_owner": "codex_isolated_implementer",
+  "next_action": "Execute sealed live-06 harness exactly once; preserve recomputable evidence, clean owned resources and expire authorization.",
+  "required_authorization": "AUTH-V0-S1-2026-10-28-06",
   "authorization_request": "reports/v0-s1/authorization-wp-s1-03-06.request.json",
   "authorization_request": "reports/v0-s1/authorization-wp-s1-03-05.request.json",
-  "authorization_record": "reports/v0-s1/authorization-wp-s1-03-05.json",
+  "authorization_record": "reports/v0-s1/authorization-wp-s1-03-06.json",
   "evidence_root": "reports/",
-  "exact_stop_reason": "WAIT_NEW_EXPLICIT_LIVE_06_AUTHORIZATION"
+  "exact_stop_reason": null
 }

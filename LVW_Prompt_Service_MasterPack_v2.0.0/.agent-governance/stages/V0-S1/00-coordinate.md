@@ -6,10 +6,10 @@ Design: 2.0.0
 Target version: V0
 Prepared stage: V0-S1 / 图片与独立人工路径
 Packet version: 1.0.0
-State: WAIT_AUTH / LIVE_06_REQUEST_PENDING
+State: RUNNING / AUTHORIZED_LIVE_06
 Active coordinate: V0-S1 / WP-S1-03 / GATE4_REAL_ACCEPTANCE
 Last passed gate: WP_S1_04_EVIDENCE_RECOMPUTABILITY_CORRECTION_SEALED
-Exact stop reason: WAIT_NEW_EXPLICIT_LIVE_06_AUTHORIZATION
+Exact stop reason: none
 Product cases: NOT_RUN
 Prepared-against commit: dfb00ad462d94628f1aa22045061f66a7629ec01
 Product bridge candidate: 138b4486fdaeb8d207ef6b5efb63a09865f174b9
@@ -59,3 +59,5 @@ live-05 已且仅已执行一次并以 exit 0 / `READY_FOR_REVIEW` 终态：真�
 WP-S1-04 独立审查提交 `e8a4410...` 给出 Fatal 0 / Major 3 / Minor 1，建议 `NO_GO`：执行的产品 owner/workflow 字节未全部绑定候选；live 状态转移原始最小证据不足以独立复算；目标前后指纹及 owned cleanup 终态子状态未封存；另有 URL 脱敏误伤。Stage 不得 PASS，需合并为一个离线纠偏包后重新授权真实运行。
 
 候选 `1d48142...` 已一次性纠正全部审查发现：绑定 6 个生产 owner 与 API workflow；封存可复算状态转移哈希；封存目标前后指纹、owned 终态和 post-cleanup 快照；URL 脱敏恢复。定向 27/27、完整回归 87/87，外部动作 0。当前等待明确批准 `AUTH-REQUEST-V0-S1-WP-S1-03-06`。
+
+项目负责人已逐字批准 request-06；正式授权绑定请求提交 `1db9918...` 与 SHA-256 `6f7cb3f...`。仅可执行一次 live-06，任何 mandatory stop、有效图片尝试或终态收据都会使授权自动过期。
