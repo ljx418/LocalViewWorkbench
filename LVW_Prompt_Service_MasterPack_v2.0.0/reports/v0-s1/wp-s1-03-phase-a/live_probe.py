@@ -228,6 +228,7 @@ class SystemDriver:
         self.started_model_calls = 0
         self.owned = []
         self.listener_pids = set()
+        self.listener_proofs = {}
         self.owned_listener_evidence = {}
         self.ollama_log = None
 
@@ -281,9 +282,16 @@ class SystemDriver:
                 lineage.add(wrapper_pid)
                 break
             current = parent
-        if wrapper_pid not in lineage or not executable_ok:
+        wrapper_raw = self._powershell(
+            f"$x=Get-CimInstance Win32_Process -Filter \"ProcessId={wrapper_pid}\" -ErrorAction SilentlyContinue;"
+            "$x | Select-Object ProcessId,ExecutablePath | ConvertTo-Json -Compress")
+        wrapper_row = json.loads(wrapper_raw) if wrapper_raw else {}
+        wrapper_executable = normalized_windows_path(wrapper_row.get("ExecutablePath", "")).casefold()
+        wrapper_ok = wrapper_executable.endswith("/powershell.exe") or wrapper_executable.endswith("/pwsh.exe")
+        if wrapper_pid not in lineage or not executable_ok or not wrapper_ok:
             raise StopProbe("LISTENER_OWNERSHIP_NOT_PROVEN")
         self.listener_pids.add(listener_pid)
+        self.listener_proofs[port] = {"wrapper_pid_file": wrapper_pid_file, "executable_name": executable_name}
         self.owned_listener_evidence[str(port)] = {"listener_pid": listener_pid, "wrapper_pid": wrapper_pid,
                                                     "lineage_proven": True}
         return listener_pid
@@ -361,15 +369,19 @@ class SystemDriver:
             time.sleep(2)
         return {"ollama_no_cloud": True, "duration_seconds_min": 10, "samples": samples}
 
-    def _listener_pid(self, port: int) -> int:
+    def _listener_pid_values(self, port: int) -> list[int]:
         raw = self._powershell(
             f"$x=Get-NetTCPConnection -State Listen -LocalPort {port} -ErrorAction SilentlyContinue;"
             "@($x | Select-Object -ExpandProperty OwningProcess -Unique) | ConvertTo-Json -Compress")
         values = json.loads(raw) if raw else []
         values = values if isinstance(values, list) else [values]
+        return [int(value) for value in values]
+
+    def _listener_pid(self, port: int) -> int:
+        values = self._listener_pid_values(port)
         if len(values) != 1:
             raise StopProbe("OWNED_LISTENER_PID_AMBIGUOUS")
-        return int(values[0])
+        return values[0]
 
     def start_comfy(self, base: Path, log_path: Path):
         win_main = self._windows_path(self.args.comfy_main, expected=AUTHORIZED_COMFY_MAIN)
@@ -440,15 +452,17 @@ class SystemDriver:
         return {"max_gpu_used_mib": max(values), "nonloopback_count": 0}
 
     def stop_ollama(self):
-        pid = self._listener_pid(11434)
-        if pid not in self.listener_pids:
+        proof = self.listener_proofs.get(11434)
+        if proof is None:
             raise StopProbe("OLLAMA_LISTENER_OWNERSHIP_LOST")
+        pid = self._prove_listener_owned(11434, proof["wrapper_pid_file"], proof["executable_name"])
         self._powershell(f"Stop-Process -Id {pid} -Force -ErrorAction Stop")
         self.listener_pids.discard(pid)
         for _ in range(20):
             count = int(self._powershell(
                 "$x=Get-NetTCPConnection -State Listen -LocalPort 11434 -ErrorAction SilentlyContinue; @($x).Count") or "0")
             if count == 0:
+                self.listener_proofs.pop(11434, None)
                 return
             time.sleep(0.5)
         raise StopProbe("OLLAMA_STOP_NOT_PROVEN_BEFORE_MANUAL_ROUTE")
@@ -475,15 +489,19 @@ class SystemDriver:
 
     def cleanup(self) -> dict:
         failures = []
-        for pid in sorted(self.listener_pids):
+        for port, proof in sorted(self.listener_proofs.items()):
             try:
+                if not self._listener_pid_values(port):
+                    continue
+                pid = self._prove_listener_owned(port, proof["wrapper_pid_file"], proof["executable_name"])
                 self._powershell(f"Stop-Process -Id {pid} -Force -ErrorAction SilentlyContinue")
             except Exception as exc:
-                failures.append({"owner": "listener", "error": type(exc).__name__})
+                failures.append({"owner": f"listener_{port}", "error": type(exc).__name__})
         for name, process, stream in reversed(self.owned):
             try:
-                process.terminate()
-                process.wait(timeout=20)
+                if process.poll() is None:
+                    process.terminate()
+                    process.wait(timeout=20)
             except Exception as exc:
                 failures.append({"owner": name, "error": type(exc).__name__})
             finally:

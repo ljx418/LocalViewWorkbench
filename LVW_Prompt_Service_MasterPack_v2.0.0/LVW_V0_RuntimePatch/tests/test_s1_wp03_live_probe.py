@@ -194,6 +194,43 @@ class WorkflowAndHarnessTests(unittest.TestCase):
         self.assertEqual("LISTENER_OWNERSHIP_NOT_PROVEN", raised.exception.reason)
         self.assertEqual(set(), driver.listener_pids)
 
+    def test_cleanup_revalidates_lineage_and_never_stops_takeover_pid(self):
+        driver = probe.SystemDriver(mock.Mock(), {})
+        commands = []
+        with tempfile.TemporaryDirectory() as temp:
+            pid_file = Path(temp, "wrapper.pid")
+            pid_file.write_text("100", encoding="ascii")
+            driver.listener_proofs[8191] = {"wrapper_pid_file": pid_file, "executable_name": "python.exe"}
+            wrong = json.dumps({"ProcessId": 200, "ParentProcessId": 50,
+                                "ExecutablePath": "C:/Windows/System32/not-owned.exe"})
+
+            def powershell(command):
+                commands.append(command)
+                if "Get-CimInstance" in command:
+                    return wrong
+                return "1"
+
+            with mock.patch.object(driver, "_listener_pid_values", return_value=[200]), \
+                    mock.patch.object(driver, "_listener_pid", return_value=200), \
+                    mock.patch.object(driver, "_powershell", side_effect=powershell):
+                result = driver.cleanup()
+        self.assertFalse(result["proven"])
+        self.assertEqual(1, result["final_target_listener_count"])
+        self.assertFalse(any("Stop-Process" in command for command in commands))
+
+    def test_cleanup_treats_already_exited_wrapper_as_clean(self):
+        driver = probe.SystemDriver(mock.Mock(), {})
+        process = mock.Mock()
+        process.poll.return_value = 0
+        stream = mock.Mock()
+        driver.owned.append(("ollama_wrapper", process, stream))
+        with mock.patch.object(driver, "_powershell", return_value="0"):
+            result = driver.cleanup()
+        self.assertTrue(result["proven"])
+        process.terminate.assert_not_called()
+        process.wait.assert_not_called()
+        stream.close.assert_called_once()
+
     def test_missing_exact_local_model_fails_without_download(self):
         driver = probe.SystemDriver(mock.Mock(), {})
         with mock.patch.object(driver, "_json_request", return_value=(200, {"models": [{"name": "other:tag"}]})), \

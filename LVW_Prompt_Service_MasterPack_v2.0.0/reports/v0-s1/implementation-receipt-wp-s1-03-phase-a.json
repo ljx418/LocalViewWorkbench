@@ -50,8 +50,8 @@
     {"path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/nodes.py", "sha256": "ffc6b3ccead11029b234432e8ea82c739cae7693e519f51eda5c0dfa3df22125"},
     {"path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/state.py", "sha256": "db5f50a715aa602fae3e38c980ba7282ad1f603b565be8c9c0e0db646e8c86fe"},
     {"path": "LVW_V0_RuntimePatch/tests/test_s1_image_state_owner.py", "sha256": "b66079b5b8fbb7edb0437b017e06042c42f40834b7ee1f5b01aa17e32b273fc9"},
-    {"path": "LVW_V0_RuntimePatch/tests/test_s1_wp03_live_probe.py", "sha256": "1030f4f256ac8cf48f7c23a0019d694a67acdc4a195722d3bffa584b22ed49b5"},
-    {"path": "reports/v0-s1/wp-s1-03-phase-a/live_probe.py", "sha256": "04380db0bffc5e0cdb2ce6519be8bcb857bc614de2157bfacd82a234fe3b0897"}
+    {"path": "LVW_V0_RuntimePatch/tests/test_s1_wp03_live_probe.py", "sha256": "78e2131cc9747c5b35494cfecbe33d509dc22d2a3efbb8e64dd1074ea436e463"},
+    {"path": "reports/v0-s1/wp-s1-03-phase-a/live_probe.py", "sha256": "322957efff7cd6b2c4c8fc3ea881a8d37e1da23c24ee21496c4ae8d4f69bed5d"}
   ],
   "contract_changes": "none",
   "target_configuration_changes": "none",
@@ -95,6 +95,8 @@
       "terminal /api/ps empty",
       "only owned listener/process stop",
       "Windows-native wrapper PID and listener executable/parent lineage proof",
+      "immediate listener lineage revalidation before every Stop-Process",
+      "already-exited owned wrappers accepted without terminate",
       "final target ports empty",
       "run-owned temporary root removal",
       "target main/python fingerprints unchanged",
@@ -111,20 +113,20 @@
     {
       "logical_command": "PYTHONDONTWRITEBYTECODE=1 python3 -B -m unittest -v LVW_V0_RuntimePatch.tests.test_s1_wp03_live_probe",
       "exit_code": 0,
-      "tests_run": 14,
+      "tests_run": 16,
       "result": "OK; fake driver only"
     },
     {
       "logical_command": "PYTHONDONTWRITEBYTECODE=1 python3 -B -m unittest discover -s LVW_V0_RuntimePatch/tests -p test_*.py",
       "exit_code": 0,
-      "tests_run": 74,
+      "tests_run": 76,
       "result": "OK"
     },
     {
       "logical_command": "TARGET_PORTABLE_PYTHON -B -m unittest discover -s LVW_V0_RuntimePatch/tests -p test_*.py",
       "exit_code": 0,
-      "tests_run": 74,
-      "result": "71 passed, 3 skipped for two unavailable symlink fixture privileges and Windows-native lack of WSL path namespace; skips are not product PASS"
+      "tests_run": 76,
+      "result": "73 passed, 3 skipped for two unavailable symlink fixture privileges and Windows-native lack of WSL path namespace; skips are not product PASS"
     },
     {
       "logical_command": "python3 -B offline AST and workflow JSON parse",
@@ -157,6 +159,8 @@
     {"check": "authorized_target_and_evidence_boundaries", "status": "PASS_OFFLINE_WSL", "test": "test_authorized_paths_evidence_reservation_and_existing_refusal"},
     {"check": "locked_down_quoted_wrappers", "status": "PASS_OFFLINE", "test": "test_wrapper_commands_are_quoted_locked_down_and_pid_bound"},
     {"check": "unproven_listener_pid_rejection", "status": "PASS_OFFLINE", "test": "test_listener_pid_without_wrapper_lineage_is_rejected"},
+    {"check": "cleanup_listener_lineage_revalidation", "status": "PASS_OFFLINE", "test": "test_cleanup_revalidates_lineage_and_never_stops_takeover_pid"},
+    {"check": "already_exited_wrapper_cleanup", "status": "PASS_OFFLINE", "test": "test_cleanup_treats_already_exited_wrapper_as_clean"},
     {"check": "exact_local_model_required", "status": "PASS_OFFLINE", "test": "test_missing_exact_local_model_fails_without_download"},
     {"check": "critical_target_integrity_set", "status": "PASS_OFFLINE", "test": "test_target_integrity_covers_frozen_critical_set_without_paths"},
     {"check": "single_attempt_state_adopt_manual_cleanup_route", "status": "PASS_SYNTHETIC_FAKE_DRIVER", "test": "test_success_route_enforces_one_attempt_state_adopt_manual_and_cleanup"},
@@ -170,9 +174,9 @@
     {"check": "target_integrity_and_owned_cleanup", "status": "NOT_RUN_PHASE_A"}
   ],
   "offline_test_counts": {
-    "harness_focused": {"pass": 14, "fail": 0, "total": 14},
-    "repository_combined": {"pass": 74, "fail": 0, "total": 74},
-    "portable_combined": {"pass": 71, "fail": 0, "skipped": 3, "total": 74}
+    "harness_focused": {"pass": 16, "fail": 0, "total": 16},
+    "repository_combined": {"pass": 76, "fail": 0, "total": 76},
+    "portable_combined": {"pass": 73, "fail": 0, "skipped": 3, "total": 76}
   },
   "test_counts": {"denominator": 5, "pass": 0, "fail": 0, "blocked": 0, "skipped": 0, "not_run": 5},
   "product_acceptance": {
