@@ -22,8 +22,8 @@ import time
 import urllib.error
 import urllib.request
 
-AUTHORIZATION_ID = "AUTH-V0-S1-2026-10-28-02"
-AUTHORIZED_START = "2776a0c59cd9dc3ccf1508fb26b18a52b6c531d0"
+AUTHORIZATION_ID = "AUTH-V0-S1-2026-10-28-03"
+AUTHORIZED_START = "06f374bdaa51a6ac9ffef0aee7fa0e40566f98c9"
 PHASE_A_BASELINE = "0dcf693128fe0b8e8215407b7e628970f798e595"
 AUTHORIZED_SAMPLE_SHA256 = "b4bbd08a0fad67cc04e55d15bf2c48e9a76dcfd6dda147d8cc504452dfc78a42"
 MODEL = "gemma4:26b"
@@ -44,8 +44,8 @@ PROMPT_SPEC_KEYS = {"schema_version", "mode", "domains", "technical", "locked_fi
 DOMAIN_KEYS = {"observation", "inference", "user_evidence", "creative_intent", "unknowns"}
 AUTHORIZED_COMFY_MAIN = "C:/ComfyUI-aki-v2/ComfyUI/main.py"
 AUTHORIZED_COMFY_PYTHON = "C:/ComfyUI-aki-v2/python/python.exe"
-AUTHORIZED_EVIDENCE_RELATIVE = "reports/v0-s1/wp-s1-03-live-02"
-AUTHORIZED_RUN_ID = "v0-s1-wp-s1-03-live-02"
+AUTHORIZED_EVIDENCE_RELATIVE = "reports/v0-s1/wp-s1-03-live-03"
+AUTHORIZED_RUN_ID = "v0-s1-wp-s1-03-live-03"
 
 
 class StopProbe(RuntimeError):
@@ -79,6 +79,25 @@ def redact(value: str, aliases: dict[str, str]) -> str:
     result = re.sub(r"(?i)[A-Z]:[/\\](?:[^\s\"']+[/\\])*[^\s\"']+", "<PRIVATE_WINDOWS_PATH>", result)
     result = re.sub(r"/mnt/[a-z]/(?:[^\s\"']+/)*[^\s\"']+", "<PRIVATE_WSL_PATH>", result)
     return result
+
+
+def redact_value(value, aliases: dict[str, str]):
+    """Redact JSON-compatible values without modifying JSON escape syntax.
+
+    Applying path regexes to an already serialized JSON document can consume a
+    backslash that belongs to JSON escaping and make the terminal evidence
+    unparsable.  Redact string leaves first, then let json.dumps encode them.
+    """
+    if isinstance(value, str):
+        return redact(value, aliases)
+    if isinstance(value, dict):
+        return {redact(key, aliases) if isinstance(key, str) else key: redact_value(item, aliases)
+                for key, item in value.items()}
+    if isinstance(value, list):
+        return [redact_value(item, aliases) for item in value]
+    if isinstance(value, tuple):
+        return [redact_value(item, aliases) for item in value]
+    return value
 
 
 def normalized_windows_path(value: str) -> str:
@@ -161,7 +180,7 @@ def candidate_identity(repo: Path, candidate: str, harness_relative: str, expect
     baseline = run_local(["git", "merge-base", "--is-ancestor", PHASE_A_BASELINE, candidate], cwd=repo)
     if baseline.returncode != 0:
         raise StopProbe("CANDIDATE_NOT_PHASE_A_DESCENDANT")
-    changed = run_local(["git", "diff", "--name-only", f"{PHASE_A_BASELINE}..{candidate}"], cwd=repo)
+    changed = run_local(["git", "diff", "--name-only", f"{AUTHORIZED_START}..{candidate}"], cwd=repo)
     if changed.returncode != 0:
         raise StopProbe("CANDIDATE_CHANGED_FILES_UNAVAILABLE")
     git_files = [line for line in changed.stdout.splitlines() if line]
@@ -718,7 +737,7 @@ def main(argv=None):
     root = Path(args.evidence_root)
     aliases = {str(Path(args.repo).resolve()): "REPO", str(Path(args.sample).resolve()): "TEST_SOURCE/image-sample",
                str(Path(args.temp_parent).resolve()): "RUN_TEMP_PARENT"}
-    sanitized = json.loads(redact(canonical_json(result), aliases))
+    sanitized = redact_value(result, aliases)
     (root / "run-summary.json").write_text(json.dumps(sanitized, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     manifest = {path.name: sha256_file(path) for path in sorted(root.iterdir()) if path.name != "artifact-manifest.json"}
     (root / "artifact-manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")

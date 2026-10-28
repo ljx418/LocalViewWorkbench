@@ -140,8 +140,8 @@ class WorkflowAndHarnessTests(unittest.TestCase):
             value = probe.self_check()
             self.assertEqual(0, value["live_actions"])
             self.assertEqual("C:/ComfyUI-aki-v2/ComfyUI/main.py", value["authorized_targets"]["comfy_main"])
-            self.assertEqual("reports/v0-s1/wp-s1-03-live-02", value["authorized_evidence_relative"])
-            self.assertEqual("v0-s1-wp-s1-03-live-02", value["authorized_run_id"])
+            self.assertEqual("reports/v0-s1/wp-s1-03-live-03", value["authorized_evidence_relative"])
+            self.assertEqual("v0-s1-wp-s1-03-live-03", value["authorized_run_id"])
             output = StringIO()
             with contextlib.redirect_stdout(output):
                 code = probe.main([])
@@ -169,12 +169,12 @@ class WorkflowAndHarnessTests(unittest.TestCase):
             args = live_args(repo, root / "sample.png", runtime)
             args.comfy_main = "/mnt/c/ComfyUI-aki-v2/ComfyUI/main.py"
             args.comfy_python = "/mnt/c/ComfyUI-aki-v2/python/python.exe"
-            args.run_id = "v0-s1-wp-s1-03-live-02"
+            args.run_id = "v0-s1-wp-s1-03-live-03"
             args.evidence_root = str(repo / "reports/v0-s1/wp-s1-03-live-01")
             with self.assertRaises(probe.StopProbe) as old_slot:
                 probe.validate_live_boundaries(args, reserve_evidence=True)
             self.assertEqual("EVIDENCE_ROOT_OUTSIDE_AUTHORIZED_BOUNDARY", old_slot.exception.reason)
-            args.evidence_root = str(repo / "reports/v0-s1/wp-s1-03-live-02")
+            args.evidence_root = str(repo / "reports/v0-s1/wp-s1-03-live-03")
             value = probe.validate_live_boundaries(args, reserve_evidence=True)
             self.assertEqual(probe.AUTHORIZED_COMFY_MAIN, value["comfy_main"])
             with self.assertRaises(probe.StopProbe) as raised:
@@ -358,6 +358,23 @@ class WorkflowAndHarnessTests(unittest.TestCase):
         self.assertNotIn("/mnt/c/private", value)
         self.assertNotIn("secret", value)
         self.assertIn("TEST_SOURCE/image-sample", value)
+
+    def test_structured_redaction_preserves_json_with_windows_paths(self):
+        value = {
+            "target": "C:\\ComfyUI-aki-v2\\ComfyUI\\main.py",
+            "nested": [
+                {"diagnostic": 'failed near "C:\\Temp\\lvw-s1-03-run\\output.json" token=secret'},
+                "/mnt/c/private/sample.png",
+            ],
+        }
+        aliases = {"/mnt/c/private/sample.png": "TEST_SOURCE/image-sample"}
+        sanitized = probe.redact_value(value, aliases)
+        encoded = json.dumps(sanitized, ensure_ascii=False)
+        self.assertEqual(sanitized, json.loads(encoded))
+        self.assertNotIn("ComfyUI-aki-v2", encoded)
+        self.assertNotIn("secret", encoded)
+        self.assertNotIn("/mnt/c/private", encoded)
+        self.assertEqual("TEST_SOURCE/image-sample", sanitized["nested"][1])
 
 
 def subprocess_result(code, stdout=b""):
