@@ -1,0 +1,12 @@
+{
+  "schema_version":"lvw.implementation-receipt/1","project_id":"lvw-prompt-service","stage_id":"V0-S1","workpack_id":"WP-S1-03","spec_version":"1.0.0",
+  "candidate_sha":"919f7fc47150bf164d8d90898fcc4dd69943568e","evidence_commit":"919f7fc47150bf164d8d90898fcc4dd69943568e","evidence_commit_status":"SEALED_EXECUTION_CANDIDATE",
+  "acceptance_hash":"4b52485dbaa7daeccb31b5c91771b51f8106ab6e49267328990ad4da3b5f85c5","gate_version":"lvw-gate/1","run_id":"v0-s1-wp-s1-03-gpu-evidence-correction-offline-01",
+  "implementation_owner_role":"codex_isolated_implementer","implementation_session":"/root/s0_rerun_implementer","decision":"READY_FOR_REVIEW","stage_pass_claim":false,"exact_stop_reason":"WAIT_GPU_RELEASE_AND_NEW_EXPLICIT_LIVE_05_AUTHORIZATION",
+  "environment":{"mode":"offline_repository_only","target_runtime_touched":false,"network_calls":0,"model_calls":0,"gpu_probes":0,"process_probes":0,"port_probes":0,"real_media_reads":0,"visible_browser_runs":0},
+  "changed_files":["reports/v0-s1/wp-s1-03-phase-a/live_probe.py","LVW_V0_RuntimePatch/tests/test_s1_wp03_live_probe.py"],"contract_changes":"none; GPU threshold remains 4096 MiB",
+  "check_results":[{"check":"gpu_threshold_aggregate_persistence","status":"PASS_OFFLINE"},{"check":"zero_action_fail_closed","status":"PASS_OFFLINE"},{"check":"candidate_identity","status":"PASS_OFFLINE","evidence":"reports/v0-s1/wp-s1-03-gpu-evidence-correction-seal.json"},{"check":"targeted_regression","status":"PASS_20_OF_20"},{"check":"repository_offline_regression","status":"PASS_80_OF_80"},{"check":"fixed_product_acceptance","status":"NOT_RUN"}],
+  "test_counts":{"denominator":5,"pass":0,"fail":0,"blocked":0,"skipped":0,"not_run":5},
+  "artifact_refs":["reports/v0-s1/wp-s1-03-gpu-evidence-correction-seal.json","reports/v0-s1/wp-s1-03-phase-a/live_probe.py","LVW_V0_RuntimePatch/tests/test_s1_wp03_live_probe.py"],"raw_artifact_refs":[],
+  "risks":["GPU release is an external-state prerequisite and is not proven by offline tests.","live-05 requires fresh explicit authorization.","All five fixed product cases remain NOT_RUN."]
+}

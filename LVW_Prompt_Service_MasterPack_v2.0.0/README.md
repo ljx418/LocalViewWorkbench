@@ -8,7 +8,7 @@
 
 产品规格仍由本README、`docs/`、`contracts/`和`plans/`定义；[Agent Governance](.agent-governance/README.md)在其上增加角色隔离、Stage Packet、Workpack、候选/证据绑定、预算等待和反假绿门禁。唯一当前坐标为[execution-control.json](plans/execution-control.json)。
 
-当前是`V0-S1 / WP-S1-03 / GATE4_REAL_ACCEPTANCE / NO_GO`：live-04 已且仅已执行一次，但在服务启动前因 GPU 已用显存超过冻结的 4096 MiB 门限安全停止；图片、模型、公开提交与服务启动均为 0，清理和目标完整性通过。授权已过期，五项产品验收保持`NOT_RUN`；下一步需释放 GPU 并重新封存新运行身份。
+当前是`V0-S1 / WP-S1-03 / GATE4_REAL_ACCEPTANCE / WAIT_AUTH`：live-04 在 GPU 门限安全停止后已终态封存；候选 `919f7fc...` 又补齐了精确聚合 GPU 停止证据，门限仍为 4096 MiB，离线回归 80/80。当前需项目负责人确认 GPU 已释放并批准 `AUTH-REQUEST-V0-S1-WP-S1-03-05`；五项产品验收仍为`NOT_RUN`。
 
 ## 一套文档，不再多条互斥路线
 

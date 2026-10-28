@@ -8,28 +8,28 @@
     "stage_id": "V0-S1",
     "workpack_id": "WP-S1-03",
     "gate": "GATE4_REAL_ACCEPTANCE",
-    "state": "NO_GO"
+    "state": "WAIT_AUTH"
   },
   "last_passed_gate": {
-    "id": "WP_S1_03_FRAME_BOUNDARY_CORRECTION_SEALED",
-    "evidence": "reports/v0-s1/wp-s1-03-frame-boundary-correction-seal.json",
-    "meaning": "public bridge aligned to frozen 1024 image edge, minimized diagnostics and fresh live-04 slot passed 79 offline tests on candidate b248b37"
+    "id": "WP_S1_03_GPU_EVIDENCE_CORRECTION_SEALED",
+    "evidence": "reports/v0-s1/wp-s1-03-gpu-evidence-correction-seal.json",
+    "meaning": "GPU stop now persists minimized aggregate values without changing 4096 MiB threshold; fresh live-05 slot passed 80 offline tests on candidate 919f7fc"
   },
-  "current_blocking_gate": "pre-service GPU used memory exceeded the frozen 4096 MiB start threshold before any service or image action",
+  "current_blocking_gate": "project-owner confirmation that GPU usage is released and explicit approval of AUTH-REQUEST-V0-S1-WP-S1-03-05 are both required",
   "stage_packet": ".agent-governance/stages/V0-S1/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/V0-S1/PAYLOAD_MANIFEST.sha256",
   "product_status": "NOT_RUN",
-  "allowed_claim": "V0_S1_WP_S1_03_LIVE_04_NO_GO_GPU_PREFLIGHT_ZERO_SERVICE_STARTS_PRODUCT_CASES_NOT_RUN",
+  "allowed_claim": "V0_S1_WP_S1_03_GPU_EVIDENCE_CORRECTED_OFFLINE_WAIT_GPU_RELEASE_AND_AUTH_LIVE_05_PRODUCT_CASES_NOT_RUN",
   "forbidden_claims": [
     "ENGINEERING_READY",
     "V0_ACCEPTED",
     "TARGET_HARDWARE_TESTED"
   ],
   "next_owner": "project_owner",
-  "next_action": "Release GPU usage, then authorize a fresh identity-bound run only after a new evidence slot and authorization request are sealed.",
-  "required_authorization": "GPU_RELEASE_AND_NEW_EXPLICIT_AUTHORIZATION",
-  "authorization_request": "reports/v0-s1/authorization-wp-s1-03-04.request.json",
+  "next_action": "Confirm GPU usage is released and explicitly approve or reject AUTH-REQUEST-V0-S1-WP-S1-03-05; no live action is permitted before both conditions.",
+  "required_authorization": "GPU_RELEASE_PLUS_AUTH-REQUEST-V0-S1-WP-S1-03-05",
+  "authorization_request": "reports/v0-s1/authorization-wp-s1-03-05.request.json",
   "authorization_record": "reports/v0-s1/authorization-wp-s1-03-04.json",
   "evidence_root": "reports/",
-  "exact_stop_reason": "GPU_PREFLIGHT_USED_MEMORY_EXCEEDED"
+  "exact_stop_reason": "WAIT_GPU_RELEASE_AND_NEW_EXPLICIT_LIVE_05_AUTHORIZATION"
 }
