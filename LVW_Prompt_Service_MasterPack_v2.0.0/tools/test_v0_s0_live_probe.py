@@ -28,7 +28,8 @@ def preflight(*, native=None, wsl=None, processes=None, listeners=None):
 class WindowsNativePreflightTests(unittest.TestCase):
     def run_owned_popen_fixture(self, *, ollama_proc=None, comfy_proc=None,
                                 ollama_wrapper_pid=None, ollama_stop_after=None,
-                                functional_success=False, expected_rc=2):
+                                functional_success=False, functional_failure=False,
+                                expected_rc=2):
         with tempfile.TemporaryDirectory() as temp:
             temp_path = Path(temp)
             sample = temp_path / "fixture.bin"
@@ -60,7 +61,7 @@ class WindowsNativePreflightTests(unittest.TestCase):
                 owner.comfy_proc = comfy_proc
                 owner.ollama_wrapper_pid = ollama_wrapper_pid
                 owner.reached_checks.add("no_cloud")
-                if functional_success:
+                if functional_success or functional_failure:
                     owner.no_cloud_reported_true = True
                     owner.pre_model_gate = {"passed": True}
                     owner.reached_checks.update({"remote_tcp", "path_conversion"})
@@ -74,9 +75,9 @@ class WindowsNativePreflightTests(unittest.TestCase):
                 "stop_attempted": bool(pid),
                 "after": list(ollama_stop_after or []) if pid == ollama_wrapper_pid and pid else [],
             })
-            if functional_success:
+            if functional_success or functional_failure:
                 def attempt(kind, index):
-                    result = {"kind": kind, "pass": True}
+                    result = {"kind": kind, "pass": functional_success}
                     owner.attempts[kind].append(result)
                     owner.reached_checks.add(kind + "_route")
                     owner.emit(f"attempt-{kind}-{index}.json", result)
@@ -92,6 +93,8 @@ class WindowsNativePreflightTests(unittest.TestCase):
             self.assertEqual(owner.run(), expected_rc)
             receipt = probe.json.loads((temp_path / "receipt.json").read_text())
             cleanup = probe.json.loads((temp_path / "evidence" / "cleanup.json").read_text())
+            receipt["_fixture_events"] = probe.json.loads(
+                (temp_path / "evidence" / "events.json").read_text())["events"]
             return receipt, cleanup
 
     def test_clean_baseline_passes(self):
@@ -502,6 +505,23 @@ class WindowsNativePreflightTests(unittest.TestCase):
         self.assertEqual(receipt["decision"], "READY_FOR_REVIEW")
         self.assertEqual(receipt["production_path_status"],
                          "PUBLIC_COMFY_IMAGE_AND_VIDEO_TRACE_COMPLETE_READY_FOR_REVIEW")
+
+    def test_public_route_failure_remains_primary_when_cleanup_fails(self):
+        proc = mock.Mock()
+        proc.wait.return_value = 0
+        proc.poll.return_value = 0
+        receipt, cleanup = self.run_owned_popen_fixture(
+            ollama_proc=proc, ollama_wrapper_pid=123,
+            ollama_stop_after=[{"process_id": 123}],
+            functional_failure=True, expected_rc=2,
+        )
+        self.assertFalse(cleanup["proven"])
+        self.assertEqual(receipt["decision"], "NO_GO")
+        self.assertEqual(receipt["exact_stop_reason"],
+                         "PUBLIC_COMFY_ROUTE_FAILED_WITHIN_ATTEMPT_BUDGET")
+        self.assertTrue(any(event.get("event") == "secondary_cleanup_failure" and
+                            event.get("detail") == "CLEANUP_OR_TARGET_INTEGRITY_NOT_PROVEN"
+                            for event in receipt["_fixture_events"]))
 
     def test_owned_popen_wait_exception_is_secondary_cleanup_failure(self):
         proc = mock.Mock()

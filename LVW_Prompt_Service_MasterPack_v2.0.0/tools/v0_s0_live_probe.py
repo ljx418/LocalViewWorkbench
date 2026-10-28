@@ -1023,6 +1023,9 @@ class Probe:
             primary_stop_reason = self.exact_stop_reason
             self.events.append({"at": utc(), "event": "terminal_exception", "detail": self.exact_stop_reason})
         finally:
+            if (primary_stop_reason is None and self.decision in {"NO_GO", "BLOCKED"} and
+                    self.exact_stop_reason and self.exact_stop_reason != "HARNESS_NOT_COMPLETED"):
+                primary_stop_reason = self.exact_stop_reason
             if self.ollama_pid:
                 try:
                     s, r = self.http("GET", "http://127.0.0.1:11434/api/ps", timeout=10)
@@ -1116,8 +1119,9 @@ class Probe:
                 if primary_stop_reason:
                     self.events.append({"at": utc(), "event": "secondary_cleanup_failure",
                                         "detail": "CLEANUP_OR_TARGET_INTEGRITY_NOT_PROVEN"})
-                else:
+                elif self.decision == "READY_FOR_REVIEW":
                     self.decision = "NO_GO"; self.exact_stop_reason = "CLEANUP_OR_TARGET_INTEGRITY_NOT_PROVEN"
+                    primary_stop_reason = self.exact_stop_reason
             self.emit("commands.json", {"commands": self.commands})
             self.emit("events.json", {"events": self.events})
             self.emit("resource-samples.json", {"gpu_stop_threshold_mib": GPU_STOP_MIB, "samples": self.resource_samples})

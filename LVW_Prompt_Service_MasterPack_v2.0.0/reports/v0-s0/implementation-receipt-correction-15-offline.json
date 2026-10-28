@@ -1,0 +1,201 @@
+{
+  "schema_version": "lvw.implementation-receipt/1",
+  "spec_version": "3.2.0",
+  "project_id": "lvw-prompt-service",
+  "stage_id": "V0-S0",
+  "workpack_id": "WP-S0-43+WP-S0-44",
+  "workpack_ids": [
+    "WP-S0-43",
+    "WP-S0-44"
+  ],
+  "run_id": "v0-s0-correction-15-offline-20261028-01",
+  "stage_packet_commit": "ffd0a67e5d189d676ed930b7a227adece24f6121",
+  "baseline_harness_candidate_sha": "c654f8e01bd059aa41a539c6aa8ac4f86f701320",
+  "candidate_sha": "0000000000000000000000000000000000000000",
+  "candidate_sha_status": "PENDING_ROOT_SEALING",
+  "evidence_commit": "0000000000000000000000000000000000000000",
+  "evidence_commit_status": "PENDING_ROOT_SEALING",
+  "acceptance_hash": "78b158e135be4da756e27ced9f57c74e78feb926bcaf95eda2e2a6992c9a7b42",
+  "acceptance_hash_binding": {
+    "algorithm": "sha256",
+    "target": "sorted fixed acceptance IDs V0-A01,V0-A02,V0-A09,V0-A10 joined by LF with a trailing LF",
+    "source": ".agent-governance/stages/V0-S0/04-acceptance-matrix.md"
+  },
+  "gate_version": "lvw-gate/1",
+  "implementation_owner_role": "codex_isolated_implementer",
+  "implementation_session": "/root/s0_rerun_implementer",
+  "decision": "READY_FOR_REVIEW",
+  "stage_pass_claim": false,
+  "exact_stop_reason": "WP_S0_43_44_OFFLINE_PRIMARY_SECONDARY_BINDING_COMPLETE",
+  "environment": {
+    "execution_mode": "offline deterministic fixtures only",
+    "repository_python": "python3",
+    "comfyui_process_starts": 0,
+    "ollama_process_starts": 0,
+    "service_probes": 0,
+    "network_calls": 0,
+    "model_calls": 0,
+    "real_media_reads": 0
+  },
+  "changed_files": [
+    "tools/v0_s0_live_probe.py",
+    "tools/test_v0_s0_live_probe.py",
+    "reports/v0-s0/implementation-receipt-correction-15-offline.json"
+  ],
+  "artifact_sha256": [
+    {
+      "path": "tools/v0_s0_live_probe.py",
+      "sha256": "4f3b150d261fd0d9f4a03dbe82051518e6208b4dd5f15eebff67ae310847f5d9"
+    },
+    {
+      "path": "tools/test_v0_s0_live_probe.py",
+      "sha256": "8fa6e08555f7cc6073a8688234664c1e1f85fa39826fcbe1f81a0433dfde3e38"
+    }
+  ],
+  "contract_changes": "none",
+  "target_configuration_changes": "none",
+  "implementation_change": {
+    "ordinary_primary_capture": "Before cleanup, an already determined NO_GO or BLOCKED decision with a valid reason is recorded as the primary stop reason even when no exception occurred",
+    "cleanup_secondary_binding": "A failed cleanup proof preserves that primary decision and reason and appends CLEANUP_OR_TARGET_INTEGRITY_NOT_PROVEN as a secondary cleanup event",
+    "ready_only_cleanup_downgrade": "Only a pre-cleanup READY_FOR_REVIEW decision can be downgraded to cleanup NO_GO",
+    "unchanged_boundaries": [
+      "correction-14 cleanup-proof final decision and exit binding",
+      "correction-13 single-authority cleanup proof formula and consumers",
+      "correction-12 owned-Popen terminal proof",
+      "correction-11 NOT_REACHED/FAIL observable-state semantics",
+      "product candidate and contracts",
+      "GPU, timeout and model thresholds",
+      "historical evidence and fixed product denominator"
+    ]
+  },
+  "commands": [
+    {
+      "logical_command": "python3 -B -m unittest -v tools/test_v0_s0_live_probe.py",
+      "exit_code": 0,
+      "tests_run": 43,
+      "result": "OK; all prior 42 fixtures retained"
+    },
+    {
+      "logical_command": "python3 -B - (AST parse tools/v0_s0_live_probe.py and tools/test_v0_s0_live_probe.py)",
+      "exit_code": 0,
+      "result": "AST PASS"
+    },
+    {
+      "logical_command": "python3 -B tools/v0_s0_live_probe.py --help",
+      "exit_code": 0,
+      "result": "PASS"
+    },
+    {
+      "logical_command": "python3 -B tools/v0_s0_live_probe.py --self-check",
+      "exit_code": 0,
+      "result": "PASS; service_started=false"
+    },
+    {
+      "logical_command": "python3 -B tools/verify_pack.py --schema",
+      "exit_code": 1,
+      "result": "1078 passed, 2 failed: expected root MANIFEST mismatches for the two authorized changed tool files",
+      "failure_disposition": "MANIFEST modification is forbidden in WP-S0-43/44; gate owner sealing is pending"
+    },
+    {
+      "logical_command": "python3 -B tools/verify_governance.py",
+      "exit_code": 0,
+      "result": "38 passed, 0 failed; not product acceptance"
+    },
+    {
+      "logical_command": "python3 -B tools/verify_governance.py --self-test",
+      "exit_code": 0,
+      "result": "43 passed, 0 failed; not product acceptance"
+    }
+  ],
+  "check_results": [
+    {
+      "check": "ordinary_public_route_primary_with_cleanup_failure",
+      "status": "PASS_OFFLINE",
+      "test": "test_public_route_failure_remains_primary_when_cleanup_fails",
+      "assertions": "decision remains NO_GO; exact reason remains PUBLIC_COMFY_ROUTE_FAILED_WITHIN_ATTEMPT_BUDGET; cleanup proof=false; stable cleanup secondary event exists"
+    },
+    {
+      "check": "exception_primary_preservation_regression",
+      "status": "PASS_OFFLINE",
+      "test": "test_primary_preflight_error_survives_secondary_final_cleanup_exceptions"
+    },
+    {
+      "check": "successful_function_cleanup_downgrade_regression",
+      "status": "PASS_OFFLINE",
+      "test": "test_function_success_with_captured_pid_residual_is_no_go"
+    },
+    {
+      "check": "successful_function_clean_exit_regression",
+      "status": "PASS_OFFLINE",
+      "test": "test_function_success_with_clean_cleanup_is_ready"
+    },
+    {
+      "check": "single_authority_cleanup_formula_regression",
+      "status": "PASS_OFFLINE",
+      "test": "test_cleanup_proof_authority_invariant"
+    },
+    {
+      "check": "full_harness_regression",
+      "status": "PASS_OFFLINE",
+      "tests": 43
+    },
+    {
+      "check": "pack_manifest_binding",
+      "status": "PENDING_GATE_OWNER_SEALING",
+      "expected_mismatches": [
+        "tools/v0_s0_live_probe.py",
+        "tools/test_v0_s0_live_probe.py"
+      ]
+    },
+    {
+      "check": "governance_regression",
+      "status": "PASS_OFFLINE"
+    }
+  ],
+  "offline_test_counts": {
+    "repository_python": {
+      "pass": 43,
+      "fail": 0,
+      "total": 43
+    },
+    "executions_total": 43
+  },
+  "test_counts": {
+    "denominator": 4,
+    "pass": 0,
+    "fail": 0,
+    "blocked": 0,
+    "skipped": 0,
+    "not_run": 4
+  },
+  "product_acceptance": {
+    "V0-A01": "NOT_RUN",
+    "V0-A02": "NOT_RUN",
+    "V0-A09": "NOT_RUN",
+    "V0-A10": "NOT_RUN"
+  },
+  "external_actions": {
+    "comfyui_process_starts": 0,
+    "ollama_process_starts": 0,
+    "service_probes": 0,
+    "model_calls": 0,
+    "network_calls": 0,
+    "real_media_reads": 0,
+    "downloads_or_upgrades": 0,
+    "target_install_writes": 0,
+    "visible_browser_runs": 0,
+    "external_cost": 0
+  },
+  "production_path_status": "NOT_RUN_OFFLINE_WORKPACK",
+  "public_end_to_end_trace_refs": [],
+  "artifact_refs": [
+    "tools/v0_s0_live_probe.py",
+    "tools/test_v0_s0_live_probe.py"
+  ],
+  "raw_artifact_refs": [],
+  "risks": [
+    "Primary/secondary terminal-cause binding is proven only with deterministic offline fixtures; no live authorization exists in WP-S0-43/44.",
+    "The root MANIFEST intentionally remains unchanged and requires gate-owner sealing after candidate review.",
+    "The four fixed product acceptance cases remain NOT_RUN; this receipt is not a Stage PASS."
+  ]
+}
