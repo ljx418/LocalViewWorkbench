@@ -1,3 +1,4 @@
+import errno
 import hashlib
 from io import BytesIO
 import json
@@ -115,6 +116,9 @@ class ControlledImageOwnerTests(unittest.TestCase):
             try:
                 (root / "link.png").symlink_to(outside_file)
             except OSError as exc:
+                if not (isinstance(exc, PermissionError) or getattr(exc, "winerror", None) == 1314
+                        or exc.errno in {errno.EPERM, errno.EACCES}):
+                    raise
                 self.skipTest(f"platform cannot create symlink fixture: {exc.winerror if hasattr(exc, 'winerror') else exc.errno}")
             for reference in (str(outside_file), "../outside/outside.png", "link.png", r"sub\file.png"):
                 with self.subTest(reference=reference), self.assertRaises(BridgeError) as raised:

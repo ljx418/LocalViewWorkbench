@@ -1,3 +1,4 @@
+import errno
 import json
 from pathlib import Path
 import tempfile
@@ -172,6 +173,9 @@ class ManualPromptOwnerTests(unittest.TestCase):
             try:
                 leaf.symlink_to(outside, target_is_directory=True)
             except OSError as exc:
+                if not (isinstance(exc, PermissionError) or getattr(exc, "winerror", None) == 1314
+                        or exc.errno in {errno.EPERM, errno.EACCES}):
+                    raise
                 self.skipTest(f"platform cannot create symlink fixture: {exc.winerror if hasattr(exc, 'winerror') else exc.errno}")
             owner = ManualDraftOwner(export_root=leaf, export_parent=parent,
                                      clipboard=RecordingClipboard(),

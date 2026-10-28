@@ -23,7 +23,7 @@
   "implementation_session": "/root/s0_rerun_implementer",
   "decision": "READY_FOR_REVIEW",
   "stage_pass_claim": false,
-  "exact_stop_reason": "WP_S1_02_REVIEW_CORRECTION_R_S1_03_COMPLETE",
+  "exact_stop_reason": "WP_S1_02_REVIEWER_CORRECTION_02_COMPLETE",
   "environment": {
     "mode": "offline_repository_only",
     "python": "3.12",
@@ -51,8 +51,8 @@
     {"path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/image_input.py", "sha256": "860de54dd60825918e7797ed914bcf65d305b94566569f3b9f5204cdbbb5d766"},
     {"path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/state.py", "sha256": "2b70414438ca49c92cbaa2b12791e5b2f3148e23618a4d6a38dfb41d39fa13c1"},
     {"path": "LVW_V0_RuntimePatch/tests/test_lvw_v0_bridge.py", "sha256": "ec35b463e56dc7ed2bfc1de8a04cf01d09952585fdeb514b81a67c212333f573"},
-    {"path": "LVW_V0_RuntimePatch/tests/test_manual_prompt_owner.py", "sha256": "35d0677244931989ecc3462f5452d5fccdc6281c4aae2dfb123f8eb47047df1f"},
-    {"path": "LVW_V0_RuntimePatch/tests/test_s1_image_state_owner.py", "sha256": "4cb57a40cf3125e8bdf6573acf965675da80da36e5357502c01aa2fa1ada61db"}
+    {"path": "LVW_V0_RuntimePatch/tests/test_manual_prompt_owner.py", "sha256": "e1876f91467d5d1fd58239509c5d96e222f2fdb52ee4b49cd9f2ca8e1ebbffb2"},
+    {"path": "LVW_V0_RuntimePatch/tests/test_s1_image_state_owner.py", "sha256": "6944830c65d29f2652009b8f18e3b123022d3a20e96e131cbb0b1efc919c9c50"}
   ],
   "contract_changes": "none",
   "target_configuration_changes": "none",
@@ -64,8 +64,8 @@
       "max_image_bytes": 20971520,
       "max_image_pixels": 40000000,
       "image_long_edge": 1024,
-      "exif_transpose_before_limits": true,
-      "pixel_limit_checked_before_full_decode": true,
+      "pixel_count_checked_before_full_decode": true,
+      "exif_transpose_before_resize_and_oriented_metadata": true,
       "rgba_strategy": "white_background",
       "writes": 0
     },
@@ -79,9 +79,9 @@
   },
   "commands": [
     {
-      "logical_command": "PYTHONDONTWRITEBYTECODE=1 python3 -B -m unittest -v LVW_V0_RuntimePatch.tests.test_s1_image_state_owner",
+      "logical_command": "PYTHONDONTWRITEBYTECODE=1 python3 -B -m unittest -v LVW_V0_RuntimePatch.tests.test_s1_image_state_owner LVW_V0_RuntimePatch.tests.test_manual_prompt_owner",
       "exit_code": 0,
-      "tests_run": 14,
+      "tests_run": 27,
       "result": "OK"
     },
     {
@@ -138,7 +138,7 @@
     {"check": "pack_manifest_binding", "status": "PENDING_ROOT_SEALING"}
   ],
   "offline_test_counts": {
-    "wp_s1_02_focused": {"pass": 14, "fail": 0, "total": 14},
+    "review_correction_focused": {"pass": 27, "fail": 0, "total": 27},
     "repository_combined_regression": {"pass": 59, "fail": 0, "total": 59},
     "portable_python_combined": {"pass": 57, "fail": 0, "error": 0, "skipped": 2, "total": 59}
   },
