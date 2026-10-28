@@ -6,10 +6,10 @@ Design: 2.0.0
 Target version: V0
 Prepared stage: V0-S1 / 图片与独立人工路径
 Packet version: 1.0.0
-State: RUNNING / CHECKPOINT_01_GRANTED_ONCE
+State: CHECKPOINT / CHECKPOINT_01_TERMINAL_NO_GO
 Active coordinate: V0-S1 / WP-S1-04 / GATE5_INDEPENDENT_EXIT
 Last passed gate: WP_S1_04_CHECKPOINT_HARNESS_SEALED
-Exact stop reason: AUTHORIZED_CHECKPOINT_01_PENDING_SINGLE_EXECUTION
+Exact stop reason: WAIT_FRESH_INDEPENDENT_CHECKPOINT_01_NO_GO_REVIEW
 Product cases: NOT_RUN
 Prepared-against commit: dfb00ad462d94628f1aa22045061f66a7629ec01
 Product bridge candidate: 138b4486fdaeb8d207ef6b5efb63a09865f174b9
@@ -69,3 +69,5 @@ live-06 已且仅已执行一次并以 exit 0 / `READY_FOR_REVIEW` 完成。7/7 
 固定分母 checkpoint harness 已以候选 `14bb63b...` 封存：harness `9b1b4ec4...` 与生命周期 `94953202...` 均绑定；定向 10/10、完整离线回归 97/97；默认拒绝 live，Ollama 可执行文件只以别名、basename 和内容哈希持久绑定。`AUTH-REQUEST-V0-S1-WP-S1-04-CHECKPOINT-01` 现等待项目负责人明确批准；批准前五项仍全部 `NOT_RUN`，禁止任何目标动作。
 
 项目负责人已明确批准 checkpoint-01 的完整范围。正式授权 `AUTH-V0-S1-2026-10-28-CHECKPOINT-01` 仅允许精确命令执行一次；任何终态收据、单次图片尝试消耗或 mandatory stop 都会自动过期，不得重试。目标收缩将在本次已封存证据终态后另行落盘，不会改写本请求的固定分母。
+
+checkpoint-01 已且仅已执行一次并以 `NO_GO / CASE_PRIVACY_VIOLATION` 终止：24/24 计划公共提交和五项产品 Oracle 产生候选结果，预算未超限，完整清理与目标完整性通过；但脱敏后的 Ollama 日志仍触发绝对路径隐私扫描。授权已自动过期，禁止重跑；当前先做全新离线独立复算，再按项目负责人指示正式收缩 V0 目标，历史失败不得改写。
