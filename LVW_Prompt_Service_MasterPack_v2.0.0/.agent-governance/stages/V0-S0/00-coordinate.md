@@ -49,3 +49,5 @@ WP-S0-42 确认成功出口假绿已关闭，但发现普通控制流的功能�
 WP-S0-43/44 候选已由 root 封存，离线回归 43/43；当前只允许 WP-S0-45 独立复审。产品四项仍为 NOT_RUN，未知 GPU owner 的 live blocker 仍保留。
 
 WP-S0-45 结论 Fatal 0 / Major 0 / Minor 0，确认 correction-15 关闭普通/异常首因与 cleanup 次因绑定缺口，且 correction-11 至 correction-14 的状态、proof、Popen、decision/exit 回归均保持。离线纠偏完成；S0 恢复 `RESOURCE_BUSY_UNKNOWN_GPU_OWNER` 阻塞，下一责任人为项目负责人。释放 GPU 资源后仍需新的单次 live 授权，旧授权不得复用。
+
+恢复分支已固化为 WP-S0-46/47，当前 harness 绑定 `81a77cc013243f859167bd00a1971ad1543c2e46`。新的不可执行请求为 `reports/v0-s0/authorization-correction-16.request.json`；它只有在项目负责人明确报告外部 GPU 占用已正常释放并逐次批准后，才能另建正式授权记录。旧 correction-10 请求及授权只作为历史证据，不能因请求文件保留 `PENDING` 发行态字段而重新生效。

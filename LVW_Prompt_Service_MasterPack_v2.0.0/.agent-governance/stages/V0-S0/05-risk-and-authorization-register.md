@@ -62,3 +62,5 @@ Correction-09 候选 `d1f268f` 已由 WP-S0-28 独立确认关闭隐私最小化
 WP-S0-29 已产生终态 `NO_GO` 收据并过期。服务前 Windows/WSL GPU used 均为 6044 MiB，超过 4096 MiB 门限；因此服务、模型和媒体尝试均为 0。不得把 0/0 解释为可恢复预算，也不得降低阈值；先由 WP-S0-30 独立复审 owner/资源/证据与终态清理语义。
 
 WP-S0-30 已确认身份、最小化证据、0 启动和资源停止可信。当前 `R-01` 状态为 `BLOCKED / RESOURCE_BUSY_UNKNOWN_GPU_OWNER`。项目负责人必须识别并正常关闭或释放占用；禁止 Agent 猜测 owner、kill 非 owned PID 或用提高 4096 MiB 门限制造通过。
+
+WP-S0-45 已关闭后续离线 harness 发现。correction-10 请求、正式授权和 WP-S0-29 终态收据组成不可改写的历史链；请求文件中的 `PENDING_PROJECT_OWNER_APPROVAL` 是签发时状态，不代表当前仍可批准或执行。新的恢复请求为 `reports/v0-s0/authorization-correction-16.request.json`，绑定产品 `138b4486...`、harness `81a77cc...` 及文件哈希 `4f3b150d...`。该请求本身不授权执行；项目负责人必须先明确报告外部 GPU 占用已正常释放，再逐次批准，新授权仍在 WP-S0-46 任一终态或媒体预算消耗后过期。

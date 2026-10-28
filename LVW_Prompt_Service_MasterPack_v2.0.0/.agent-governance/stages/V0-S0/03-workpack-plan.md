@@ -185,3 +185,11 @@ Owner：`codex_isolated_implementer`。依赖 WP-S0-43。新增完整 run fixtur
 ## WP-S0-45：correction-15 独立离线复审
 
 Owner：`codex_isolated_reviewer`。依赖 WP-S0-44。独立复算异常/非异常/成功三类 pre-cleanup 决策与 cleanup 次因绑定、前序回归、候选/收据及历史不变。Fatal/Major 必须为零才可建议关闭离线纠偏；不得修改候选、启动服务或宣布 Stage PASS。
+
+## WP-S0-46：资源释放后的身份闭合 S0 证明运行
+
+Owner：`codex_isolated_implementer`。依赖 WP-S0-45、项目负责人明确报告未知 GPU 占用已正常释放，以及对 `AUTH-REQUEST-V0-S0-WP-S0-46-01` 的新单次授权。绑定产品候选 `138b4486...`、harness 候选 `81a77cc...`、固定样本和图片/视频各一次预算；任何服务前必须重新执行身份、GPU/owner/port、loopback/no-cloud 门禁。只保存最小化证据，终态即过期；禁止复用 correction-10 授权、终止非 owned 进程或自动重跑。
+
+## WP-S0-47：correction-16 独立出口复审
+
+Owner：`codex_isolated_reviewer`。依赖 WP-S0-46。隔离复算新鲜候选/运行身份、固定样本、公开图片与四帧路径、语义 Oracle、资源/网络、终态清理及历史失败不可改写。只有 Fatal=0、Major=0 且 S0 固定四项都有可信结论时，root 才可裁决 `STAGE_BASELINE_COMPLETE`；该结论仍不等于 V0 产品用例 PASS。

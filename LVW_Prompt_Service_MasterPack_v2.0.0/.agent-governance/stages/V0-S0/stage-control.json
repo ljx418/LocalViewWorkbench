@@ -2,7 +2,7 @@
   "schema_version": "lvw.stage-control/1",
   "project_id": "lvw-prompt-service",
   "stage_id": "V0-S0",
-  "stage_packet_version": "3.2.0",
+  "stage_packet_version": "3.3.0",
   "gate_version": "lvw-gate/1",
   "baseline": {
     "git_commit": "3c69a23d07064a0db5cb05258b237be2415a314a",
@@ -352,6 +352,14 @@
     {
       "id": "WP-S0-45", "owner": "codex_isolated_reviewer", "depends_on": ["WP-S0-44"], "risk": "independent_review",
       "allowed_paths": ["reports/v0-s0/independent-review-correction-15.md"], "commands": ["offline independent primary-secondary terminal binding recomputation"], "output": "correction-15 independent findings; root retains decision"
+    },
+    {
+      "id": "WP-S0-46", "owner": "codex_isolated_implementer", "depends_on": ["WP-S0-45"], "risk": "external_private",
+      "allowed_paths": ["reports/v0-s0/correction-16/", "reports/v0-s0/implementation-receipt-correction-16-live.json"], "commands": ["one newly authorized identity-bound live S0 proof after project-owner resource release"], "output": "terminal correction-16 live receipt; authorization expires; product denominator remains NOT_RUN"
+    },
+    {
+      "id": "WP-S0-47", "owner": "codex_isolated_reviewer", "depends_on": ["WP-S0-46"], "risk": "independent_review",
+      "allowed_paths": ["reports/v0-s0/independent-review-correction-16.md"], "commands": ["offline independent correction-16 candidate, evidence, Oracle, resource, network and cleanup recomputation"], "output": "correction-16 independent findings; root retains Stage decision"
     }
   ],
   "forbidden_paths": ["contracts/", "plans/acceptance_cases.json", "plans/release_gates.json", "legacy/"],
@@ -376,8 +384,8 @@
     "next_stage_requires_new_packet": true
   },
   "next_owner": "project_owner",
-  "required_authorization": null,
-  "authorization_request": "reports/v0-s0/authorization-correction-10.request.json",
+  "required_authorization": "AUTH-REQUEST-V0-S0-WP-S0-46-01 after project-owner resource-release statement",
+  "authorization_request": "reports/v0-s0/authorization-correction-16.request.json",
   "remediation_findings": [
     "R2-IR-01 no connected Comfy or Prompt Assistant public production entry reaches the verified local Ollama model",
     "R2-IR-02 video output passes the type schema while all semantic arrays are empty and video_prompt echoes the instruction",
