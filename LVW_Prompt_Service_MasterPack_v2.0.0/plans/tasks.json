@@ -1,11 +1,11 @@
 {
   "design_version": "2.0.0",
-  "default_target": "V0",
+  "default_target": "V0-Min",
   "all_versions_fully_specified": true,
   "stages": [
     {
       "stage_id": "V0-S0",
-      "version": "V0",
+      "version": "V0-Min",
       "title": "现有环境与节点基线",
       "depends_on": [],
       "status": "NOT_RUN",
@@ -37,7 +37,7 @@
     },
     {
       "stage_id": "V0-S1",
-      "version": "V0",
+      "version": "V0-Min",
       "title": "图片与独立人工路径",
       "depends_on": [
         "V0-S0"
@@ -69,11 +69,11 @@
         "V0-A08"
       ],
       "stage_exit": "交付物真实存在、阶段用例通过；发布阶段按release_gates判定",
-      "release_target": null
+      "release_target": "V0-Min"
     },
     {
       "stage_id": "V0-S2",
-      "version": "V0",
+      "version": "V0.1",
       "title": "视频与资源清理",
       "depends_on": [
         "V0-S1"
@@ -103,11 +103,11 @@
         "V0-A10"
       ],
       "stage_exit": "交付物真实存在、阶段用例通过；发布阶段按release_gates判定",
-      "release_target": null
+      "release_target": "V0.1"
     },
     {
       "stage_id": "V0-S3",
-      "version": "V0",
+      "version": "V0.2",
       "title": "离线质量与增量包",
       "depends_on": [
         "V0-S2"
@@ -135,7 +135,7 @@
         "V0-A12"
       ],
       "stage_exit": "交付物真实存在、阶段用例通过；发布阶段按release_gates判定",
-      "release_target": "V0"
+      "release_target": "V0.2"
     },
     {
       "stage_id": "R0",

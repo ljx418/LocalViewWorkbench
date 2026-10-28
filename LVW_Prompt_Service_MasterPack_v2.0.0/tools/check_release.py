@@ -14,7 +14,7 @@ def checked_artifact(root, item, label, errors):
   errors.append(label+': evidence '+str(exc));return None
 
 def main():
- ap=argparse.ArgumentParser();ap.add_argument('report',type=Path);ap.add_argument('--target',choices=['V0','V1','V2','V3'],required=True);ap.add_argument('--evidence-root',type=Path);args=ap.parse_args()
+ ap=argparse.ArgumentParser();ap.add_argument('report',type=Path);ap.add_argument('--target',choices=['V0-Min','V0.1','V0.2','V0','V1','V2','V3'],required=True);ap.add_argument('--evidence-root',type=Path);args=ap.parse_args()
  errors=[]
  try:report=json.loads(args.report.read_text(encoding='utf-8'))
  except Exception as exc:print('NOT_ACCEPTED:',str(exc));return 2
@@ -59,18 +59,27 @@ def main():
  for key,limit,op in [('gpu_peak_gib',23,'lt'),('system_available_ram_gib_min',2,'ge'),('release_after_stop_seconds',30,'le'),('critical_hallucinations',0,'le')]:
   x=number(key)
   if x is not None and not (x<limit if op=='lt' else x>=limit if op=='ge' else x<=limit):errors.append(key+' outside gate')
- for key,limit in [('image_warm_seconds',180),('video4_warm_seconds',300)]:
+ performance_series=[('image_warm_seconds',180,1 if args.target=='V0-Min' else 10)]
+ if args.target!='V0-Min':performance_series.append(('video4_warm_seconds',300,1 if args.target=='V0.1' else 10))
+ for key,limit,minimum_count in performance_series:
   values=m.get(key)
-  if not isinstance(values,list) or len(values)<10 or any(isinstance(x,bool) or not isinstance(x,(int,float)) or not math.isfinite(x) or x<0 for x in values):errors.append(key+' needs >=10 valid measured samples');continue
+  if not isinstance(values,list) or len(values)<minimum_count or any(isinstance(x,bool) or not isinstance(x,(int,float)) or not math.isfinite(x) or x<0 for x in values):errors.append(key+' needs >='+str(minimum_count)+' valid measured samples');continue
   p95=sorted(values)[math.ceil(.95*len(values))-1]
   if p95>limit:errors.append(key+' P95 outside gate')
- for key in ['image_cold_seconds','video4_cold_seconds']:
+ cold_keys=['image_cold_seconds']+([] if args.target=='V0-Min' else ['video4_cold_seconds'])
+ for key in cold_keys:
   x=number(key)
   if x is not None and (x<0 or x>420):errors.append(key+' outside 420s timeout')
- for key,minimum in [('image_samples',10 if args.target=='V0' else 12),('image_usable',8 if args.target=='V0' else 10),('video_samples',6),('video_usable',5)]:
+ if args.target=='V0-Min': sample_minima=[('image_samples',1),('image_usable',1)]
+ elif args.target=='V0.1': sample_minima=[('image_samples',1),('image_usable',1),('video_samples',1),('video_usable',1)]
+ elif args.target in {'V0','V0.2'}: sample_minima=[('image_samples',10),('image_usable',8),('video_samples',6),('video_usable',5)]
+ else: sample_minima=[('image_samples',12),('image_usable',10),('video_samples',6),('video_usable',5)]
+ for key,minimum in sample_minima:
   x=number(key)
   if x is not None and (x<minimum or int(x)!=x):errors.append(key+' below required count')
- for part,ratio in [('image',.8 if args.target=='V0' else 10/12),('video',5/6)]:
+ ratios=[('image',1.0 if args.target in {'V0-Min','V0.1'} else (.8 if args.target in {'V0','V0.2'} else 10/12))]
+ if args.target!='V0-Min':ratios.append(('video',1.0 if args.target=='V0.1' else 5/6))
+ for part,ratio in ratios:
   used=m.get(part+'_usable');total=m.get(part+'_samples')
   if isinstance(used,(int,float)) and isinstance(total,(int,float)) and total>0:
    if used>total or used/total<ratio:errors.append(part+' usable proportion outside gate')

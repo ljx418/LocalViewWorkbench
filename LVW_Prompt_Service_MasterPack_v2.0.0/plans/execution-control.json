@@ -3,7 +3,7 @@
   "updated_at": "2026-10-28",
   "project_id": "lvw-prompt-service",
   "design_version": "2.0.0",
-  "target_version": "V0",
+  "target_version": "V0-Min",
   "coordinate": {
     "stage_id": "V0-S1",
     "workpack_id": "WP-S1-04",
@@ -11,26 +11,26 @@
     "state": "CHECKPOINT"
   },
   "last_passed_gate": {
-    "id": "WP_S1_04_CHECKPOINT_HARNESS_SEALED",
-    "evidence": "reports/v0-s1/implementation-receipt-stage-checkpoint-offline.json",
-    "meaning": "identity-bound one-shot five-case checkpoint harness is offline-verified; product denominator remains NOT_RUN pending explicit authorization"
+    "id": "V0_MIN_PRIVACY_CORRECTION_OFFLINE_SEALED",
+    "evidence": "reports/v0-s1/implementation-receipt-stage-checkpoint-privacy-correction-offline.json",
+    "meaning": "V0-Min scope is approved and the two checkpoint privacy findings are corrected offline without rewriting or rerunning historical NO_GO evidence"
   },
-  "current_blocking_gate": "fresh independent review must classify the terminal CASE_PRIVACY_VIOLATION without rerunning the expired authorization",
+  "current_blocking_gate": "fresh independent review must validate privacy correction candidate c713313 and the V0-Min rebaseline before root gate decision",
   "stage_packet": ".agent-governance/stages/V0-S1/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/V0-S1/PAYLOAD_MANIFEST.sha256",
   "product_status": "NOT_RUN",
-  "allowed_claim": "CHECKPOINT_01_TERMINAL_NO_GO_PRODUCT_ORACLES_CANDIDATE_ONLY_AUTH_EXPIRED",
+  "allowed_claim": "V0_MIN_SCOPE_REBASELINED_PRODUCT_FACTS_PASS_CANDIDATE_PRIVACY_CORRECTION_READY_FOR_REVIEW",
   "forbidden_claims": [
     "ENGINEERING_READY",
     "V0_ACCEPTED",
     "TARGET_HARDWARE_TESTED"
   ],
   "next_owner": "codex_isolated_reviewer",
-  "next_action": "Independently recompute checkpoint-01 identity, five product Oracles, privacy failure, budgets and cleanup; no external rerun.",
+  "next_action": "Independently review V0-Min contracts and offline privacy correction c713313 against the unchanged checkpoint-01 NO_GO evidence; no external rerun.",
   "required_authorization": "INDEPENDENT_REVIEW_NO_EXTERNAL_ACTION",
   "authorization_request": "reports/v0-s1/authorization-wp-s1-04-checkpoint-01.request.json",
   "authorization_record": "reports/v0-s1/authorization-wp-s1-04-checkpoint-01.json",
   "evidence_root": "reports/",
   "gate_decision": "reports/v0-s1/gate-decision-wp-s1-04-live-06.md",
-  "exact_stop_reason": "WAIT_FRESH_INDEPENDENT_CHECKPOINT_01_NO_GO_REVIEW"
+  "exact_stop_reason": "WAIT_FRESH_INDEPENDENT_V0_MIN_PRIVACY_CORRECTION_REVIEW"
 }

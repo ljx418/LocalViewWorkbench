@@ -17,7 +17,7 @@ PASS实际执行达标；FAIL执行未达标；BLOCKED缺可验证前置；NOT_R
 
 ## 版本门槛
 
-V0 12组；V1原A01–A12/F01–F05+Q01+X01–X03；V2 A13–A17/F06+X04–X06；V3 A18–A22/F07+X07–X09。所有版本继承前序正式合同回归，V0包仍按发布目录进行兼容复查。详细集合见release_gates。
+V0-Min 固定五组：V0-A01/A03/A04/A05/A08。V0.1 累加 A02/A07/A09/A10；V0.2 累加 A06/A11/A12，等于原 V0 十二组。旧 V0 门槛作为 V0.2 兼容别名保留。V1原A01–A12/F01–F05+Q01+X01–X03；V2 A13–A17/F06+X04–X06；V3 A18–A22/F07+X07–X09。所有版本继承前序正式合同回归，详细集合见release_gates。
 
 ## 业务评分
 
@@ -37,4 +37,4 @@ V2切镜算法独立评估：至少20个人工标注切点+连续镜头，±2源
 
 ## 发布结论
 
-Vn_ACCEPTED要求该版本全部必选及累计回归PASS。缺独立质量最多ENGINEERING_READY/QUALITY_PENDING；缺对端V3_INTEGRATION_BLOCKED。NOT_RUN/FAIL/BLOCKED不能当skip成功；诊断性optional用例须在执行前声明而非失败后改为可选。
+Vn_ACCEPTED要求该版本全部必选及累计回归PASS。V0-Min 不要求视频质量集；它只证明最简单图与人工闭环。V0.1/V0.2 才分别承担视频和完整发布质量。缺独立质量最多ENGINEERING_READY/QUALITY_PENDING；缺对端V3_INTEGRATION_BLOCKED。NOT_RUN/FAIL/BLOCKED/PASS_CANDIDATE_FOR_REVIEW不能当PASS；诊断性optional用例须在执行前声明而非失败后改为可选。

@@ -3,13 +3,13 @@
 ```text
 Project: lvw-prompt-service
 Design: 2.0.0
-Target version: V0
+Target version: V0-Min
 Prepared stage: V0-S1 / 图片与独立人工路径
-Packet version: 1.0.0
-State: CHECKPOINT / CHECKPOINT_01_TERMINAL_NO_GO
+Packet version: 1.1.0
+State: CHECKPOINT / V0_MIN_PRIVACY_CORRECTION_READY_FOR_REVIEW
 Active coordinate: V0-S1 / WP-S1-04 / GATE5_INDEPENDENT_EXIT
-Last passed gate: WP_S1_04_CHECKPOINT_HARNESS_SEALED
-Exact stop reason: WAIT_FRESH_INDEPENDENT_CHECKPOINT_01_NO_GO_REVIEW
+Last passed gate: V0_MIN_PRIVACY_CORRECTION_OFFLINE_SEALED
+Exact stop reason: WAIT_FRESH_INDEPENDENT_V0_MIN_PRIVACY_CORRECTION_REVIEW
 Product cases: NOT_RUN
 Prepared-against commit: dfb00ad462d94628f1aa22045061f66a7629ec01
 Product bridge candidate: 138b4486fdaeb8d207ef6b5efb63a09865f174b9
@@ -71,3 +71,7 @@ live-06 已且仅已执行一次并以 exit 0 / `READY_FOR_REVIEW` 完成。7/7 
 项目负责人已明确批准 checkpoint-01 的完整范围。正式授权 `AUTH-V0-S1-2026-10-28-CHECKPOINT-01` 仅允许精确命令执行一次；任何终态收据、单次图片尝试消耗或 mandatory stop 都会自动过期，不得重试。目标收缩将在本次已封存证据终态后另行落盘，不会改写本请求的固定分母。
 
 checkpoint-01 已且仅已执行一次并以 `NO_GO / CASE_PRIVACY_VIOLATION` 终止：24/24 计划公共提交和五项产品 Oracle 产生候选结果，预算未超限，完整清理与目标完整性通过；但脱敏后的 Ollama 日志仍触发绝对路径隐私扫描。授权已自动过期，禁止重跑；当前先做全新离线独立复算，再按项目负责人指示正式收缩 V0 目标，历史失败不得改写。
+
+独立复审 `b1c03f8...` 确认产品结构事实成立，但给出 Fatal 0 / Major 2 / Minor 0：Comfy 日志过采集 5 个已脱敏 traceback，路径扫描器又把 URL scheme 误判为盘符路径。原 checkpoint-01 保持 NO_GO；无需且禁止重跑。
+
+项目负责人正式批准目标收缩：当前目标为 V0-Min，固定分母仍是 A01/A03/A04/A05/A08；视频移至 V0.1，安装回滚与完整质量移至 V0.2，旧 V0 保留为 V0.2 兼容别名。离线隐私纠偏候选 `c713313...` 已修正两项 Major，定向 13/13、完整回归 100/100、外部动作 0；当前等待隔离独立复审，尚未产生 V0-Min PASS。

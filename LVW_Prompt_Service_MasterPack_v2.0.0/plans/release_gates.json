@@ -1,5 +1,23 @@
 {
   "gates": {
+    "V0-Min": {
+      "required_cases": ["V0-A01", "V0-A03", "V0-A04", "V0-A05", "V0-A08"],
+      "release_label": "V0_MIN_ACCEPTED",
+      "earlier_host_evidence": "V0-S0 baseline and identity-bound V0-S1 machine facts",
+      "all_must_pass": true
+    },
+    "V0.1": {
+      "required_cases": ["V0-A01", "V0-A02", "V0-A03", "V0-A04", "V0-A05", "V0-A07", "V0-A08", "V0-A09", "V0-A10"],
+      "release_label": "V0_1_ACCEPTED",
+      "earlier_host_evidence": "V0-Min cumulative regression plus minimal bounded video path",
+      "all_must_pass": true
+    },
+    "V0.2": {
+      "required_cases": ["V0-A01", "V0-A02", "V0-A03", "V0-A04", "V0-A05", "V0-A06", "V0-A07", "V0-A08", "V0-A09", "V0-A10", "V0-A11", "V0-A12"],
+      "release_label": "V0_2_ACCEPTED",
+      "earlier_host_evidence": "V0.1 cumulative regression plus packaging, migration and rollback",
+      "all_must_pass": true
+    },
     "V0": {
       "required_cases": [
         "V0-A01",
@@ -17,7 +35,8 @@
       ],
       "release_label": "V0_ACCEPTED",
       "earlier_host_evidence": null,
-      "all_must_pass": true
+      "all_must_pass": true,
+      "legacy_alias_for": "V0.2"
     },
     "V1": {
       "required_cases": [

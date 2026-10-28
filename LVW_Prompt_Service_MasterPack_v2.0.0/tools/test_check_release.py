@@ -9,11 +9,12 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 CHECKER = ROOT / "tools" / "check_release.py"
-REQUIRED = json.loads((ROOT / "plans" / "release_gates.json").read_text())["gates"]["V0"]["required_cases"]
+GATES = json.loads((ROOT / "plans" / "release_gates.json").read_text())["gates"]
 
 
 class ReleaseGateTests(unittest.TestCase):
-    def fixture(self, root):
+    def fixture(self, root, target="V0"):
+        required = GATES[target]["required_cases"]
         evidence = root / "evidence.json"
         review = root / "review.md"
         evidence.write_text("{}\n", encoding="utf-8")
@@ -26,14 +27,14 @@ class ReleaseGateTests(unittest.TestCase):
             "application_commit": commit,
             "implementation_owner": "isolated-implementer",
             "target_environment": "fixture",
-            "acceptance_hash": hashlib.sha256(("\n".join(sorted(REQUIRED)) + "\n").encode()).hexdigest(),
+            "acceptance_hash": hashlib.sha256(("\n".join(sorted(required)) + "\n").encode()).hexdigest(),
             "cases": [{"case_id": cid, "status": "PASS", "candidate_sha": commit, "run_id": run_id,
-                       "observed": {"fixture": True}, "evidence": [ref]} for cid in REQUIRED],
+                       "observed": {"fixture": True}, "evidence": [ref]} for cid in required],
             "independent_review": {"decision": "PASS", "reviewer": "isolated-reviewer",
                                    "candidate_sha": commit, "path": review.name,
                                    "sha256": hashlib.sha256(review.read_bytes()).hexdigest()},
             "human_signoff": {"decision": "APPROVED", "signer": "project-owner", "signed_at": "2026-10-27T00:00:00+08:00",
-                              "scope": "V0_RELEASE", "candidate_sha": commit},
+                              "scope": target+"_RELEASE", "candidate_sha": commit},
             "metrics": {"gpu_peak_gib": 22, "system_available_ram_gib_min": 3,
                         "release_after_stop_seconds": 20, "critical_hallucinations": 0,
                         "image_warm_seconds": [100] * 10, "video4_warm_seconds": [200] * 10,
@@ -43,10 +44,10 @@ class ReleaseGateTests(unittest.TestCase):
         }
         return report
 
-    def run_gate(self, report, root):
+    def run_gate(self, report, root, target="V0"):
         path = root / "report.json"
         path.write_text(json.dumps(report), encoding="utf-8")
-        return subprocess.run([sys.executable, str(CHECKER), str(path), "--target", "V0", "--evidence-root", str(root)],
+        return subprocess.run([sys.executable, str(CHECKER), str(path), "--target", target, "--evidence-root", str(root)],
                               text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=False)
 
     def test_complete_bound_report_passes_structure_gate(self):
@@ -73,6 +74,18 @@ class ReleaseGateTests(unittest.TestCase):
             root = Path(td); report = self.fixture(root); (root / "review.md").write_text("changed\n")
             result = self.run_gate(report, root)
             self.assertNotEqual(result.returncode, 0); self.assertIn("hash mismatch", result.stdout)
+
+    def test_v0_min_uses_five_case_image_manual_denominator(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td); report = self.fixture(root, "V0-Min")
+            report["metrics"].update(image_warm_seconds=[100], image_samples=1, image_usable=1)
+            for key in ("video4_warm_seconds", "video4_cold_seconds", "video_samples", "video_usable"):
+                report["metrics"].pop(key)
+            result = self.run_gate(report, root, "V0-Min")
+            self.assertEqual(result.returncode, 0, result.stdout)
+            report["cases"].pop()
+            result = self.run_gate(report, root, "V0-Min")
+            self.assertNotEqual(result.returncode, 0); self.assertIn("not PASS", result.stdout)
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
 # LVW Prompt Service｜V0–V3 全阶段统一开发基线
 
-**文档包 v2.0.0 · 2026-10-27 · 设计可指导实施，产品尚未验收。**
+**文档包 v2.0.0 · 2026-10-27 · 当前交付目标 V0-Min，产品尚未验收。**
 
 [打开 HTML 总览](START_HERE.html) · [交互原型](prototype/index.html) · [完整规范](FULL_SPEC.md) · [Codex 启动](CODEX_START.md) · [需求追踪](plans/requirements.json)。
 
@@ -8,7 +8,9 @@
 
 产品规格仍由本README、`docs/`、`contracts/`和`plans/`定义；[Agent Governance](.agent-governance/README.md)在其上增加角色隔离、Stage Packet、Workpack、候选/证据绑定、预算等待和反假绿门禁。唯一当前坐标为[execution-control.json](plans/execution-control.json)。
 
-当前是`V0-S1 / WP-S1-04 / GATE5_INDEPENDENT_EXIT / CHECKPOINT`：checkpoint-01 已且仅已执行一次并因脱敏后 Ollama 日志触发`CASE_PRIVACY_VIOLATION`而终态`NO_GO`；24/24 计划公共提交、五项产品 Oracle、预算、清理和目标完整性均已封存，但尚不能提升为 PASS。授权已过期，现等待无外部动作的独立复算；随后按项目负责人指示正式收缩 V0 目标，历史失败不会被改写。
+当前是`V0-Min / V0-S1 / WP-S1-04 / GATE5_INDEPENDENT_EXIT / CHECKPOINT`：checkpoint-01 原始终态保持`NO_GO`；独立复审确认五项产品结构事实成立，同时发现日志过采集与 URL/path 扫描假阳性两个 Major。离线纠偏候选`c713313...`已完成，定向13/13、完整回归100/100、外部动作0；当前等待隔离复审，尚未产生 V0-Min PASS。
+
+项目负责人已批准[目标收缩决策](docs/22_V0_MIN_REBASELINE.md)：当前只交付单图反推、独立人工稿、四输出和复制/JSON/TXT 的 V0-Min；视频移至 V0.1，安装回滚与完整质量移至 V0.2。原十二项 V0 门槛作为 V0.2 兼容别名保留。
 
 ## 一套文档，不再多条互斥路线
 
