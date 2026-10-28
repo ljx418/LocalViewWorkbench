@@ -1,14 +1,7 @@
-# V0-S1 Draft Implementation Prompt
+# V0-S1 Implementation Prompt
 
 ```text
-本文件是草案，当前禁止执行。唯一当前坐标仍为 V0-S0 / WAIT_AUTH。
-
-只有在以下条件全部满足后，Codex 才能冻结并签发正式 S1 prompt：
-1. V0-S0 已得到 STAGE_BASELINE_COMPLETE；
-2. 有真实 live registry/node binding 和复用裁决；
-3. 将 S0 正式出口 commit 写为 S1 accepted baseline；
-4. S1 packet 已改为正式版本并重新生成 manifest；
-5. 隔离 worktree、owner、预算和外部授权已记录。
+本文件已冻结。激活提交后只允许 WP-S1-00/01/02 的离线仓库实现；S0 live 授权已经过期，不得继承。WP-S1-03 的目标 Comfy 安装、Ollama 调用、真实图片或可见浏览器动作必须等待新的逐次授权。
 
 正式执行时先读 AGENTS.md、S1 全 packet、docs/13_V0_IMPLEMENTATION.md、contracts/v0-result.schema.json、contracts/errors.json、config/runtime.defaults.json、plans/acceptance_cases.json。
 

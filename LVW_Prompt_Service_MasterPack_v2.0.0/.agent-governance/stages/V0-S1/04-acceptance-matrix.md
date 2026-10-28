@@ -1,6 +1,6 @@
-# V0-S1 Draft Acceptance Matrix
+# V0-S1 Acceptance Matrix
 
-拟冻结分母：`V0-A01,V0-A03,V0-A04,V0-A05,V0-A08`
+冻结分母：`V0-A01,V0-A03,V0-A04,V0-A05,V0-A08`
 
 ```text
 sha256(sorted IDs joined by LF with trailing LF)

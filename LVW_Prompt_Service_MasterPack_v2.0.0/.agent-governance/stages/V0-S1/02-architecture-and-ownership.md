@@ -1,4 +1,4 @@
-# V0-S1 Draft Architecture And Ownership
+# V0-S1 Architecture And Ownership
 
 ## Owner
 
@@ -29,4 +29,4 @@ ComfyUI 原生 UI / LVW 静态面板
 
 项目自有代码应落在增量包的 `custom_nodes/lvw_v0_bridge/` 和同源静态 JS 中；目标 ComfyUI 安装只在后续明确授权的安装/验收步骤中触碰。
 
-已验证的 S0 公共节点绑定为 `LVWImagePromptBridge` 与 `LVWVideoFramesPromptBridge`，入口为 Comfy public `/prompt`/`history`。S1 只能复用封存候选，不得把测试函数或新别名替代这些生产 owner；若正式 S0 出口改变绑定，S1 必须重新进入 Gate 0。
+已验证的 S0 公共节点绑定为 `LVWImagePromptBridge` 与 `LVWVideoFramesPromptBridge`，入口为 Comfy public `/prompt`/`history`。S1 绑定 S0 出口 `dfb00ad...`、产品候选 `138b4486...` 与 Harness `81a77cc...`；不得把测试函数或新别名替代这些生产 owner。公共绑定变化必须停止并重新进入 Gate 0。

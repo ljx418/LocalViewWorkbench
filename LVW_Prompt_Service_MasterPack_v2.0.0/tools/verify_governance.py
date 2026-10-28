@@ -265,9 +265,41 @@ def verify_prepared_stage(tasks: dict, cases: dict) -> list[str]:
         errors.append("prepared V0-S1 denominator differs from plans/tasks.json")
     if control.get("acceptance_hash") != digest_ids(fixed):
         errors.append("prepared V0-S1 acceptance hash is invalid")
-    if control.get("packet_status") != "DRAFT_NOT_FROZEN" or control.get("execution_authorized") is not False:
-        errors.append("prepared V0-S1 packet must remain non-executable")
-    if control.get("state") != "BLOCKED_BY_DEPENDENCY" or control.get("dependencies") != ["V0-S0:STAGE_BASELINE_COMPLETE"]:
+    packet_status = control.get("packet_status")
+    if packet_status == "DRAFT_NOT_FROZEN":
+        if control.get("execution_authorized") is not False or control.get("state") != "BLOCKED_BY_DEPENDENCY":
+            errors.append("draft V0-S1 packet must remain non-executable")
+    elif packet_status == "FROZEN":
+        baseline = control.get("baseline", {})
+        bound_commits = [
+            baseline.get("git_commit"),
+            baseline.get("prepared_against_commit"),
+            baseline.get("product_bridge_candidate"),
+            baseline.get("harness_candidate"),
+            baseline.get("s0_evidence_commit"),
+            baseline.get("s0_independent_review_commit"),
+        ]
+        for commit in bound_commits:
+            if not isinstance(commit, str) or not re.fullmatch(r"[0-9a-f]{40}", commit):
+                errors.append("frozen V0-S1 packet has an invalid bound commit")
+                continue
+            exists = subprocess.run(
+                ["git", "-C", str(ROOT), "cat-file", "-e", f"{commit}^{{commit}}"],
+                capture_output=True,
+                check=False,
+            )
+            if exists.returncode != 0:
+                errors.append(f"frozen V0-S1 bound commit is missing: {commit}")
+        if (
+            control.get("execution_authorized") is not True
+            or control.get("authorization_scope") != "OFFLINE_REPOSITORY_ONLY"
+            or control.get("external_authorization") != "WAIT_AUTH_BEFORE_WP-S1-03"
+            or control.get("state") != "FROZEN_READY_OFFLINE"
+        ):
+            errors.append("frozen V0-S1 packet must authorize offline work only")
+    else:
+        errors.append("prepared V0-S1 packet status is invalid")
+    if control.get("dependencies") != ["V0-S0:STAGE_BASELINE_COMPLETE"]:
         errors.append("prepared V0-S1 packet does not preserve the S0 dependency")
     return errors
 

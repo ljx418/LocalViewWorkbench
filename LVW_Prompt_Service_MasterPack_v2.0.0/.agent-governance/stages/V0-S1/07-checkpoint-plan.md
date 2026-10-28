@@ -1,4 +1,4 @@
-# V0-S1 Draft Checkpoint Plan
+# V0-S1 Checkpoint Plan
 
 ## Gate 1：实现内循环
 

@@ -1,4 +1,4 @@
-# V0-S1 Draft Scope And Non-Goals
+# V0-S1 Scope And Non-Goals
 
 ## 目标
 
@@ -16,4 +16,4 @@
 - 不建立数据库、独立 React/FastAPI 服务、远程 URL 媒体或云回退。
 - 不修改 Prompt Assistant 上游源码，除非另行提交带原文件 hash 的最小变更请求。
 - 不把设计别名伪装成真实 ComfyUI class type，不把内部函数单测冒充公共工作流验收。
-- 不在 S0 未出门时启动 S1 实现，不用 draft packet 宣布 Gate 0 通过。
+- 不复用 S0 已过期的 live 授权；WP-S1-03 未获新授权时只允许离线实现和测试。

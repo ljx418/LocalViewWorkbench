@@ -1,21 +1,21 @@
-# V0-S1 Draft Coordinate
+# V0-S1 Coordinate
 
 ```text
 Project: lvw-prompt-service
 Design: 2.0.0
 Target version: V0
 Prepared stage: V0-S1 / 图片与独立人工路径
-Packet version: 0.2.0-draft
-State: DRAFT_BLOCKED_BY_V0-S0
-Active coordinate remains: V0-S0 / WP-S0-45 complete / GATE4_REAL_ACCEPTANCE / BLOCKED
-Last passed gate: WP_S0_45_INDEPENDENT_REVIEW_COMPLETE
-Exact stop reason: RESOURCE_BUSY_UNKNOWN_GPU_OWNER
+Packet version: 1.0.0
+State: FROZEN_READY_OFFLINE
+Active coordinate remains until activation commit: V0-S0 / GATE5_INDEPENDENT_EXIT / STAGE_BASELINE_COMPLETE
+Last passed gate: V0_S0_STAGE_BASELINE_COMPLETE
+Exact stop reason: STAGE_BOUNDARY_REQUIRES_S1_ACTIVATION
 Product cases: NOT_RUN
-Prepared-against commit: b5c78ec3bd1af4be9c9517e191e2fed0a948b05a
+Prepared-against commit: dfb00ad462d94628f1aa22045061f66a7629ec01
 Product bridge candidate: 138b4486fdaeb8d207ef6b5efb63a09865f174b9
-Accepted S1 baseline: PENDING_V0_S0_EXIT
+Accepted S1 baseline: dfb00ad462d94628f1aa22045061f66a7629ec01
 ```
 
-本目录是下一 Stage 文档准备线，不是已冻结或已授权的执行包。它不能改变 `plans/execution-control.json` 的唯一当前坐标，也不能绕过 V0-S0 的 live registry、真实探测、独立审查和 Stage 裁决。
+本目录是已冻结的 V0-S1 Stage packet。冻结提交完成前，它不改变 `plans/execution-control.json` 的唯一当前坐标；激活后只授权 packet 允许路径内的离线仓库工作，不能继承 S0 的 live 授权。
 
-V0-S0 已验证 public `/prompt` 可达 `LVWImagePromptBridge` / `LVWVideoFramesPromptBridge`，且离线修复已通过独立审查；但最近一次逐次授权在 preflight 检出非本运行所有的 GPU 占用后终止并过期，产品固定验收仍为 `NOT_RUN`。项目负责人必须先释放外部占用并重新逐次授权。冻结 V0-S1 前还必须以 V0-S0 正式出口提交替换 accepted baseline，并重新签发 packet/manifest；本草案不能自行跨 Stage。
+V0-S0 已以 `dfb00ad...` 正式闭合：public `/prompt`/`history` 可达 `LVWImagePromptBridge` / `LVWVideoFramesPromptBridge`，correction-16 独立复审 Fatal/Major/Minor 均为 0。S1 可执行 WP-S1-00/01/02 的离线实现；WP-S1-03 的目标 Comfy 安装、Ollama 调用和真实图片运行仍须新的逐次授权。产品固定验收仍为 `NOT_RUN`。

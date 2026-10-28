@@ -1,4 +1,4 @@
-# V0-S1 Draft Workpack Plan
+# V0-S1 Workpack Plan
 
 ## WP-S1-00：基线与合同夹具
 

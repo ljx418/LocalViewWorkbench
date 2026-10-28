@@ -1,10 +1,10 @@
-# V0-S1 Draft Risk And Authorization Register
+# V0-S1 Risk And Authorization Register
 
 | ID | 风险/动作 | 分类 | 默认状态 | 停止/处置 |
 |---|---|---|---|---|
-| PRE-01 | V0-S0 尚未正式出门 | Stage 依赖 | BLOCKED | 禁止冻结/执行 S1；只允许文档准备 |
-| PRE-02 | S1 accepted baseline 尚未由 S0 出口提交确定 | 证据绑定 | BLOCKED | 草案可更新；不产生正式实现或验收收据 |
-| AUTH-S1-01 | 在隔离 worktree 写产品代码 | 离线仓库 | 待 Stage 冻结 | 仅允许范围；一个 Workpack 一个 owner |
+| PRE-01 | V0-S0 尚未正式出门 | Stage 依赖 | SATISFIED | `dfb00ad...` 已裁决 `STAGE_BASELINE_COMPLETE` |
+| PRE-02 | S1 accepted baseline 尚未由 S0 出口提交确定 | 证据绑定 | SATISFIED | accepted baseline 固定为 `dfb00ad...` |
+| AUTH-S1-01 | 在隔离 worktree 写产品代码 | 离线仓库 | AUTHORIZED | 仅限 frozen allowed paths；一个 Workpack 一个 owner |
 | AUTH-S1-02 | 读取目标 Comfy 节点 registry/安装测试包 | 外部/私有 | WAIT_AUTH | 限定根、备份、hash、可逆卸载 |
 | AUTH-S1-03 | 调用本地 Ollama 与授权图片 | 私有/外部运行 | WAIT_AUTH | 限定样本、端点、模型、两次有效重试和清理 |
 | AUTH-S1-04 | 可见浏览器验收 | 高干扰 | WAIT_AUTH | 单独授权、静音、owned PID、结束清理 |
