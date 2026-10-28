@@ -6,10 +6,10 @@ Design: 2.0.0
 Target version: V0-Min
 Prepared stage: V0-S1 / 图片与独立人工路径
 Packet version: 1.1.0
-State: CHECKPOINT / V0_MIN_PRIVACY_CORRECTION_READY_FOR_REVIEW
+State: CHECKPOINT / V0_MIN_ENGINEERING_READY_HUMAN_SIGNOFF_PENDING
 Active coordinate: V0-S1 / WP-S1-04 / GATE5_INDEPENDENT_EXIT
-Last passed gate: V0_MIN_PRIVACY_CORRECTION_OFFLINE_SEALED
-Exact stop reason: WAIT_FRESH_INDEPENDENT_V0_MIN_PRIVACY_CORRECTION_REVIEW
+Last passed gate: V0_MIN_ENGINEERING_GATE_PASS
+Exact stop reason: WAIT_HUMAN_V0_MIN_EXPERIENCE_SIGNOFF
 Product cases: NOT_RUN
 Prepared-against commit: dfb00ad462d94628f1aa22045061f66a7629ec01
 Product bridge candidate: 138b4486fdaeb8d207ef6b5efb63a09865f174b9
@@ -75,3 +75,5 @@ checkpoint-01 已且仅已执行一次并以 `NO_GO / CASE_PRIVACY_VIOLATION` �
 独立复审 `b1c03f8...` 确认产品结构事实成立，但给出 Fatal 0 / Major 2 / Minor 0：Comfy 日志过采集 5 个已脱敏 traceback，路径扫描器又把 URL scheme 误判为盘符路径。原 checkpoint-01 保持 NO_GO；无需且禁止重跑。
 
 项目负责人正式批准目标收缩：当前目标为 V0-Min，固定分母仍是 A01/A03/A04/A05/A08；视频移至 V0.1，安装回滚与完整质量移至 V0.2，旧 V0 保留为 V0.2 兼容别名。离线隐私纠偏候选 `c713313...` 已修正两项 Major，定向 13/13、完整回归 100/100、外部动作 0；当前等待隔离独立复审，尚未产生 V0-Min PASS。
+
+最终隐私纠偏候选 `6fcd114...` 已将 Windows/WSL 路径计数纳入聚合拒绝、执行门禁与收据验证；定向 14/14、完整回归 101/101。全新独立复审 `5222e83...` 给出 Fatal 0 / Major 0 / Minor 0，root 因此裁决 `V0_MIN_ENGINEERING_READY`。checkpoint-01 的历史 `NO_GO` 不变，且无需、禁止新 live；当前只等待项目负责人完成人工体验签署，未签署前不得声明 `V0_MIN_ACCEPTED`。

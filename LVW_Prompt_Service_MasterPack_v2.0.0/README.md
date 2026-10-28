@@ -8,7 +8,7 @@
 
 产品规格仍由本README、`docs/`、`contracts/`和`plans/`定义；[Agent Governance](.agent-governance/README.md)在其上增加角色隔离、Stage Packet、Workpack、候选/证据绑定、预算等待和反假绿门禁。唯一当前坐标为[execution-control.json](plans/execution-control.json)。
 
-当前是`V0-Min / V0-S1 / WP-S1-04 / GATE5_INDEPENDENT_EXIT / CHECKPOINT`：checkpoint-01 原始终态保持`NO_GO`；独立复审确认五项产品结构事实成立，同时发现日志过采集与 URL/path 扫描假阳性两个 Major。离线纠偏候选`c713313...`已完成，定向13/13、完整回归100/100、外部动作0；当前等待隔离复审，尚未产生 V0-Min PASS。
+当前是`V0-Min / V0-S1 / WP-S1-04 / GATE5_INDEPENDENT_EXIT / CHECKPOINT`：checkpoint-01 原始终态保持`NO_GO`。最终隐私纠偏候选`6fcd114...`通过定向14/14、完整回归101/101；全新独立复审为 Fatal 0 / Major 0 / Minor 0。root 已裁决`V0_MIN_ENGINEERING_READY`，当前仅等待项目负责人人工体验签署；签署前不得声明`V0_MIN_ACCEPTED`，也未批准 V0.1、V0.2 或旧 V0 发布。
 
 项目负责人已批准[目标收缩决策](docs/22_V0_MIN_REBASELINE.md)：当前只交付单图反推、独立人工稿、四输出和复制/JSON/TXT 的 V0-Min；视频移至 V0.1，安装回滚与完整质量移至 V0.2。原十二项 V0 门槛作为 V0.2 兼容别名保留。
 

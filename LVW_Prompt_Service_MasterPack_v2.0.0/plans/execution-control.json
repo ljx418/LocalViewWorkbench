@@ -11,26 +11,28 @@
     "state": "CHECKPOINT"
   },
   "last_passed_gate": {
-    "id": "V0_MIN_PRIVACY_CORRECTION_OFFLINE_SEALED",
-    "evidence": "reports/v0-s1/implementation-receipt-stage-checkpoint-privacy-correction-offline.json",
-    "meaning": "V0-Min scope is approved and the two checkpoint privacy findings are corrected offline without rewriting or rerunning historical NO_GO evidence"
+    "id": "V0_MIN_ENGINEERING_GATE_PASS",
+    "evidence": "reports/v0-s1/gate-decision-v0-min.md",
+    "meaning": "V0-Min engineering gate passed after independent review; human experience sign-off remains absent"
   },
-  "current_blocking_gate": "fresh independent review must validate privacy correction candidate c713313 and the V0-Min rebaseline before root gate decision",
+  "current_blocking_gate": "project owner must provide V0-Min human experience sign-off",
   "stage_packet": ".agent-governance/stages/V0-S1/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/V0-S1/PAYLOAD_MANIFEST.sha256",
   "product_status": "NOT_RUN",
-  "allowed_claim": "V0_MIN_SCOPE_REBASELINED_PRODUCT_FACTS_PASS_CANDIDATE_PRIVACY_CORRECTION_READY_FOR_REVIEW",
+  "allowed_claim": "V0_MIN_ENGINEERING_READY_HUMAN_SIGNOFF_PENDING",
   "forbidden_claims": [
-    "ENGINEERING_READY",
     "V0_ACCEPTED",
+    "V0_MIN_ACCEPTED",
+    "V0.1_ACCEPTED",
+    "V0.2_ACCEPTED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "codex_isolated_reviewer",
-  "next_action": "Independently review V0-Min contracts and offline privacy correction c713313 against the unchanged checkpoint-01 NO_GO evidence; no external rerun.",
-  "required_authorization": "INDEPENDENT_REVIEW_NO_EXTERNAL_ACTION",
+  "next_owner": "project_owner",
+  "next_action": "Provide or decline the V0-Min human experience sign-off; this does not authorize V0.1, V0.2 or production release.",
+  "required_authorization": "HUMAN_V0_MIN_EXPERIENCE_SIGNOFF",
   "authorization_request": "reports/v0-s1/authorization-wp-s1-04-checkpoint-01.request.json",
   "authorization_record": "reports/v0-s1/authorization-wp-s1-04-checkpoint-01.json",
   "evidence_root": "reports/",
-  "gate_decision": "reports/v0-s1/gate-decision-wp-s1-04-live-06.md",
-  "exact_stop_reason": "WAIT_FRESH_INDEPENDENT_V0_MIN_PRIVACY_CORRECTION_REVIEW"
+  "gate_decision": "reports/v0-s1/gate-decision-v0-min.md",
+  "exact_stop_reason": "WAIT_HUMAN_V0_MIN_EXPERIENCE_SIGNOFF"
 }
