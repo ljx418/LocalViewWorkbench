@@ -119,6 +119,7 @@ class WindowsNativePreflightTests(unittest.TestCase):
 
     def test_preflight_enumeration_failure_emits_artifact_before_raise(self):
         owner = object.__new__(probe.Probe)
+        owner.reached_checks = set()
         owner.a = SimpleNamespace(windows_nvidia_smi="native", wsl_nvidia_smi="wsl",
                                   comfy_python="C:/Comfy/python.exe", ollama="C:/Ollama/ollama.exe")
         gpu = SimpleNamespace(returncode=0, stdout="24564, 1530, 22609\n")
@@ -149,7 +150,9 @@ class WindowsNativePreflightTests(unittest.TestCase):
             owner.root = temp_path
             owner.record = lambda *args, **kwargs: SimpleNamespace(returncode=0, stdout="commit\n")
             owner.verify_harness_identity = mock.Mock(return_value={"matched": True})
+            owner.harness_identity = {"matched": True}
             owner.windows_native_preflight = mock.Mock(side_effect=RuntimeError("WINDOWS_OWNER_ENUMERATION_FAILED"))
+            owner.reached_checks.update({"harness_identity", "service_preflight"})
             owner.start_services = mock.Mock()
             owner.listeners = lambda *args, **kwargs: []
             owner.target_integrity = lambda: []
@@ -160,8 +163,15 @@ class WindowsNativePreflightTests(unittest.TestCase):
             self.assertEqual(receipt["external_actions"]["ollama_process_starts"], 0)
             self.assertEqual(receipt["external_actions"]["comfyui_process_starts"], 0)
             self.assertEqual(receipt["external_actions"]["model_calls"], 0)
-            self.assertEqual(next(x for x in receipt["check_results"] if
-                                  x["check"] == "windows_native_service_preflight")["status"], "BLOCKED")
+            statuses = {x["check"]: x["status"] for x in receipt["check_results"]}
+            self.assertEqual(statuses["windows_native_service_preflight"], "FAIL")
+            self.assertTrue(all(statuses[name] == "NOT_REACHED" for name in (
+                "windows_native_no_cloud_server_raw", "pre_model_remote_tcp_gate",
+                "comfy_main_and_cwd_windows_path_conversion", "public_comfy_image_route",
+                "public_comfy_video_route", "cleanup_and_target_integrity")))
+            self.assertFalse(receipt["cleanup"]["proven"])
+            self.assertTrue(receipt["cleanup"]["owned_resources_absent"])
+            self.assertEqual(receipt["cleanup"]["target_integrity_comparison"], "NOT_REACHED")
             self.assertFalse(receipt["stage_pass_claim"])
             owner.start_services.assert_not_called()
 
@@ -180,7 +190,9 @@ class WindowsNativePreflightTests(unittest.TestCase):
             owner.root = temp_path
             owner.record = lambda *args, **kwargs: SimpleNamespace(returncode=0, stdout="commit\n")
             owner.verify_harness_identity = mock.Mock(return_value={"matched": True})
+            owner.harness_identity = {"matched": True}
             owner.windows_native_preflight = mock.Mock(side_effect=RuntimeError("WINDOWS_OWNER_ENUMERATION_FAILED"))
+            owner.reached_checks.update({"harness_identity", "service_preflight"})
             owner.start_services = mock.Mock()
             owner.listeners = mock.Mock(side_effect=RuntimeError("sensitive port detail"))
             owner.target_integrity = mock.Mock(side_effect=RuntimeError("sensitive integrity detail"))
@@ -191,6 +203,8 @@ class WindowsNativePreflightTests(unittest.TestCase):
             self.assertEqual(receipt["exact_stop_reason"], "WINDOWS_OWNER_ENUMERATION_FAILED")
             self.assertFalse(receipt["cleanup"]["proven"])
             self.assertGreaterEqual(len(cleanup["secondary_cleanup_failures"]), 2)
+            statuses = {x["check"]: x["status"] for x in receipt["check_results"]}
+            self.assertEqual(statuses["cleanup_and_target_integrity"], "FAIL")
             self.assertEqual(receipt["external_actions"]["ollama_process_starts"], 0)
             self.assertEqual(receipt["external_actions"]["comfyui_process_starts"], 0)
             owner.start_services.assert_not_called()
@@ -230,6 +244,13 @@ class WindowsNativePreflightTests(unittest.TestCase):
             self.assertFalse(identity["matched"])
             self.assertEqual(identity["service_starts"], 0)
             self.assertEqual(receipt["harness_identity"], identity)
+            statuses = {x["check"]: x["status"] for x in receipt["check_results"]}
+            self.assertEqual(statuses["harness_runtime_identity"], "FAIL")
+            self.assertTrue(all(status == "NOT_REACHED" for name, status in statuses.items()
+                                if name != "harness_runtime_identity"))
+            self.assertFalse(receipt["cleanup"]["proven"])
+            self.assertTrue(receipt["cleanup"]["owned_resources_absent"])
+            self.assertEqual(receipt["cleanup"]["target_integrity_comparison"], "NOT_REACHED")
             owner.windows_native_preflight.assert_not_called()
             owner.start_services.assert_not_called()
 
@@ -238,6 +259,7 @@ class WindowsNativePreflightTests(unittest.TestCase):
             executed = Path(temp) / "executed-probe.py"
             executed.write_bytes(b"identical sealed bytes")
             owner = object.__new__(probe.Probe)
+            owner.reached_checks = set()
             owner.root = Path(temp)
             owner.harness_candidate_sha = "c" * 40
             owner.commands = []
@@ -256,6 +278,64 @@ class WindowsNativePreflightTests(unittest.TestCase):
             self.assertEqual(identity["git_blob_sha256"], identity["executed_file_sha256"])
             self.assertEqual(identity["git_blob_object_id"], "d" * 40)
             self.assertEqual(emitted["harness-identity.json"], identity)
+
+    def test_gpu_preflight_stop_marks_only_reached_checks_failed(self):
+        with tempfile.TemporaryDirectory() as temp:
+            temp_path = Path(temp)
+            args = SimpleNamespace(
+                run_id="fixture-run", candidate_sha="a" * 40, authorization_commit="b" * 40,
+                harness_candidate_sha="c" * 40,
+                evidence_dir=str(temp_path / "evidence"), receipt_path=str(temp_path / "receipt.json"),
+                self_check=False, comfy_root=str(temp_path / "comfy"), comfy_python=str(temp_path / "python.exe"),
+                ollama=str(temp_path / "ollama.exe"), test_source=str(temp_path / "samples"),
+                powershell="powershell.exe", windows_nvidia_smi="native", wsl_nvidia_smi="wsl",
+                spec_version="fixture", workpack_id="WP-FIXTURE")
+            owner = probe.Probe(args)
+            owner.root = temp_path
+            owner.record = lambda *args, **kwargs: SimpleNamespace(returncode=0, stdout="commit\n")
+            owner.verify_harness_identity = mock.Mock(return_value={"matched": True})
+            owner.harness_identity = {"matched": True}
+            owner.windows_native_preflight = mock.Mock(
+                side_effect=RuntimeError("WINDOWS_NATIVE_PREFLIGHT_FAILED:GPU_PREFLIGHT_USED_ABOVE_4096_MIB"))
+            owner.reached_checks.update({"harness_identity", "service_preflight"})
+            owner.start_services = mock.Mock()
+            owner.listeners = lambda *args, **kwargs: []
+            owner.target_integrity = lambda: []
+            self.assertEqual(owner.run(), 2)
+            receipt = probe.json.loads((temp_path / "receipt.json").read_text())
+            statuses = {x["check"]: x["status"] for x in receipt["check_results"]}
+            self.assertEqual(receipt["decision"], "NO_GO")
+            self.assertEqual(statuses["harness_runtime_identity"], "PASS")
+            self.assertEqual(statuses["windows_native_service_preflight"], "FAIL")
+            self.assertTrue(all(statuses[name] == "NOT_REACHED" for name in (
+                "windows_native_no_cloud_server_raw", "pre_model_remote_tcp_gate",
+                "comfy_main_and_cwd_windows_path_conversion", "public_comfy_image_route",
+                "public_comfy_video_route", "cleanup_and_target_integrity")))
+            self.assertTrue(receipt["cleanup"]["owned_resources_absent"])
+            self.assertEqual(receipt["cleanup"]["target_integrity_comparison"], "NOT_REACHED")
+            owner.start_services.assert_not_called()
+
+    def test_started_service_actual_failure_remains_fail(self):
+        statuses = probe.observable_check_statuses(
+            reached_checks={"harness_identity", "service_preflight", "no_cloud"},
+            identity_matched=True, preflight_passed=True, no_cloud_passed=False,
+            remote_passed=False, path_passed=False, image_passed=False, video_passed=False,
+            cleanup_proven=False, owned_service_started=True, owned_resources_absent=True,
+            target_integrity_comparison="FAIL")
+        self.assertEqual(statuses["windows_native_no_cloud_server_raw"], "FAIL")
+        self.assertEqual(statuses["pre_model_remote_tcp_gate"], "NOT_REACHED")
+        self.assertEqual(statuses["cleanup_and_target_integrity"], "FAIL")
+
+    def test_successful_cleanup_and_reached_checks_pass(self):
+        reached = {"harness_identity", "service_preflight", "no_cloud", "remote_tcp",
+                   "path_conversion", "image_route", "video_route"}
+        statuses = probe.observable_check_statuses(
+            reached_checks=reached, identity_matched=True, preflight_passed=True,
+            no_cloud_passed=True, remote_passed=True, path_passed=True,
+            image_passed=True, video_passed=True, cleanup_proven=True,
+            owned_service_started=True, owned_resources_absent=True,
+            target_integrity_comparison="PASS")
+        self.assertTrue(all(status == "PASS" for status in statuses.values()))
 
 
 class CleanupCorrelationTests(unittest.TestCase):
@@ -330,6 +410,7 @@ class HistoryFailureTests(unittest.TestCase):
 
     def test_public_attempt_keeps_history_primary_cause_without_keyerror(self):
         owner = object.__new__(probe.Probe)
+        owner.reached_checks = set()
         owner.run_id = "fixture-run"
         owner.resource_stop = False
         owner.remote_stop = False

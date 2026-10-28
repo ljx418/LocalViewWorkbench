@@ -1,0 +1,201 @@
+{
+  "schema_version": "lvw.implementation-receipt/1",
+  "spec_version": "2.8.0",
+  "project_id": "lvw-prompt-service",
+  "stage_id": "V0-S0",
+  "workpack_id": "WP-S0-31+WP-S0-32",
+  "workpack_ids": [
+    "WP-S0-31",
+    "WP-S0-32"
+  ],
+  "run_id": "v0-s0-correction-11-offline-20261028-01",
+  "stage_packet_commit": "75ec3865b55dda0abf8ec888ecdabbf639daac79",
+  "baseline_harness_candidate_sha": "d1f268f6c9c3996ba64d49c29343cd87aa7ec1d7",
+  "candidate_sha": "0000000000000000000000000000000000000000",
+  "candidate_sha_status": "PENDING_ROOT_SEALING",
+  "evidence_commit": "0000000000000000000000000000000000000000",
+  "evidence_commit_status": "PENDING_ROOT_SEALING",
+  "acceptance_hash": "78b158e135be4da756e27ced9f57c74e78feb926bcaf95eda2e2a6992c9a7b42",
+  "acceptance_hash_binding": {
+    "algorithm": "sha256",
+    "target": "sorted fixed acceptance IDs V0-A01,V0-A02,V0-A09,V0-A10 joined by LF with a trailing LF",
+    "source": ".agent-governance/stages/V0-S0/04-acceptance-matrix.md"
+  },
+  "gate_version": "lvw-gate/1",
+  "implementation_owner_role": "codex_isolated_implementer",
+  "implementation_session": "/root/s0_rerun_implementer",
+  "decision": "READY_FOR_REVIEW",
+  "stage_pass_claim": false,
+  "exact_stop_reason": "WP_S0_31_32_OFFLINE_STATE_SEMANTICS_COMPLETE",
+  "environment": {
+    "execution_mode": "offline deterministic fixtures only",
+    "repository_python": "python3",
+    "comfyui_process_starts": 0,
+    "ollama_process_starts": 0,
+    "service_probes": 0,
+    "network_calls": 0,
+    "model_calls": 0,
+    "real_media_reads": 0
+  },
+  "changed_files": [
+    "tools/v0_s0_live_probe.py",
+    "tools/test_v0_s0_live_probe.py",
+    "reports/v0-s0/implementation-receipt-correction-11-offline.json"
+  ],
+  "artifact_sha256": [
+    {
+      "path": "tools/v0_s0_live_probe.py",
+      "sha256": "46066be5c08892b73113b9557dc72ef57b8dab459579e540989e0a9122370248"
+    },
+    {
+      "path": "tools/test_v0_s0_live_probe.py",
+      "sha256": "85712b09586d80b0988c1dc9cb97455d41f10110be5d07adf237fe1498456983"
+    }
+  ],
+  "contract_changes": "none",
+  "target_configuration_changes": "none",
+  "implementation_change": {
+    "pre_service_stop_semantics": "Identity or service-preflight failure before any owned service start marks all unexecuted downstream checks NOT_REACHED",
+    "actual_failure_semantics": "Any reached check remains PASS or FAIL; started-service and observed cleanup failures cannot be downgraded to NOT_REACHED",
+    "cleanup_substates": "cleanup.proven remains strict while owned_resources_absent and target_integrity_comparison are independently reported",
+    "unchanged_boundaries": [
+      "product candidate and contracts",
+      "GPU, timeout and model thresholds",
+      "network, semantic and cleanup Oracle",
+      "historical correction-10 evidence",
+      "fixed product denominator"
+    ]
+  },
+  "commands": [
+    {
+      "logical_command": "python3 -B -m unittest -v tools/test_v0_s0_live_probe.py",
+      "exit_code": 0,
+      "tests_run": 33,
+      "result": "OK; all prior 30 fixtures retained"
+    },
+    {
+      "logical_command": "python3 -B - (AST parse tools/v0_s0_live_probe.py and tools/test_v0_s0_live_probe.py)",
+      "exit_code": 0,
+      "result": "AST PASS"
+    },
+    {
+      "logical_command": "python3 -B tools/v0_s0_live_probe.py --help",
+      "exit_code": 0,
+      "result": "PASS"
+    },
+    {
+      "logical_command": "python3 -B tools/v0_s0_live_probe.py --self-check",
+      "exit_code": 0,
+      "result": "PASS; service_started=false"
+    },
+    {
+      "logical_command": "python3 -B tools/verify_pack.py --schema",
+      "exit_code": 1,
+      "result": "1070 passed, 2 failed: root MANIFEST.sha256 entries for the two changed tool files remain pending sealing",
+      "failure_disposition": "MANIFEST.sha256 is outside WP-S0-31/32 allowed paths and was not modified"
+    },
+    {
+      "logical_command": "python3 -B tools/verify_governance.py",
+      "exit_code": 0,
+      "result": "38 passed, 0 failed; not product acceptance"
+    },
+    {
+      "logical_command": "python3 -B tools/verify_governance.py --self-test",
+      "exit_code": 0,
+      "result": "43 passed, 0 failed; not product acceptance"
+    }
+  ],
+  "check_results": [
+    {
+      "check": "identity_mismatch_zero_start_branch",
+      "status": "PASS_OFFLINE",
+      "test": "test_harness_identity_mismatch_is_stable_and_starts_no_services"
+    },
+    {
+      "check": "gpu_preflight_zero_start_branch",
+      "status": "PASS_OFFLINE",
+      "test": "test_gpu_preflight_stop_marks_only_reached_checks_failed"
+    },
+    {
+      "check": "preflight_enumeration_exception_branch",
+      "status": "PASS_OFFLINE",
+      "tests": [
+        "test_preflight_enumeration_failure_emits_artifact_before_raise",
+        "test_early_preflight_exception_writes_complete_terminal_receipt_with_zero_starts"
+      ]
+    },
+    {
+      "check": "started_service_actual_failure_branch",
+      "status": "PASS_OFFLINE",
+      "test": "test_started_service_actual_failure_remains_fail"
+    },
+    {
+      "check": "successful_cleanup_branch",
+      "status": "PASS_OFFLINE",
+      "test": "test_successful_cleanup_and_reached_checks_pass"
+    },
+    {
+      "check": "full_harness_regression",
+      "status": "PASS_OFFLINE",
+      "tests": 33
+    },
+    {
+      "check": "governance_regression",
+      "status": "PASS_OFFLINE"
+    },
+    {
+      "check": "root_manifest_binding",
+      "status": "PENDING_ROOT_SEALING",
+      "affected_paths": [
+        "tools/v0_s0_live_probe.py",
+        "tools/test_v0_s0_live_probe.py"
+      ]
+    }
+  ],
+  "offline_test_counts": {
+    "repository_python": {
+      "pass": 33,
+      "fail": 0,
+      "total": 33
+    },
+    "executions_total": 33
+  },
+  "test_counts": {
+    "denominator": 4,
+    "pass": 0,
+    "fail": 0,
+    "blocked": 0,
+    "skipped": 0,
+    "not_run": 4
+  },
+  "product_acceptance": {
+    "V0-A01": "NOT_RUN",
+    "V0-A02": "NOT_RUN",
+    "V0-A09": "NOT_RUN",
+    "V0-A10": "NOT_RUN"
+  },
+  "external_actions": {
+    "comfyui_process_starts": 0,
+    "ollama_process_starts": 0,
+    "service_probes": 0,
+    "model_calls": 0,
+    "network_calls": 0,
+    "real_media_reads": 0,
+    "downloads_or_upgrades": 0,
+    "target_install_writes": 0,
+    "visible_browser_runs": 0,
+    "external_cost": 0
+  },
+  "production_path_status": "NOT_RUN_OFFLINE_WORKPACK",
+  "public_end_to_end_trace_refs": [],
+  "artifact_refs": [
+    "tools/v0_s0_live_probe.py",
+    "tools/test_v0_s0_live_probe.py"
+  ],
+  "raw_artifact_refs": [],
+  "risks": [
+    "State semantics are proven only with deterministic offline branches; no live authorization exists in WP-S0-31/32.",
+    "Root MANIFEST.sha256 is intentionally unchanged and may temporarily report changed-tool mismatches until sealing.",
+    "The four fixed product acceptance cases remain NOT_RUN; this receipt is not a Stage PASS."
+  ]
+}

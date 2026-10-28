@@ -170,6 +170,28 @@ def evaluate_request_trace(log_text: str, *, planned_calls: int, terminal_ps_emp
     }
 
 
+def observable_check_statuses(*, reached_checks, identity_matched, preflight_passed,
+                              no_cloud_passed, remote_passed, path_passed,
+                              image_passed, video_passed, cleanup_proven,
+                              owned_service_started, owned_resources_absent,
+                              target_integrity_comparison):
+    def status(name, passed):
+        return "NOT_REACHED" if name not in reached_checks else ("PASS" if passed else "FAIL")
+
+    cleanup_reached = (owned_service_started or not owned_resources_absent or
+                       target_integrity_comparison != "NOT_REACHED")
+    return {
+        "harness_runtime_identity": status("harness_identity", identity_matched),
+        "windows_native_service_preflight": status("service_preflight", preflight_passed),
+        "windows_native_no_cloud_server_raw": status("no_cloud", no_cloud_passed),
+        "pre_model_remote_tcp_gate": status("remote_tcp", remote_passed),
+        "comfy_main_and_cwd_windows_path_conversion": status("path_conversion", path_passed),
+        "public_comfy_image_route": status("image_route", image_passed),
+        "public_comfy_video_route": status("video_route", video_passed),
+        "cleanup_and_target_integrity": ("PASS" if cleanup_proven else "FAIL") if cleanup_reached else "NOT_REACHED",
+    }
+
+
 class Probe:
     def __init__(self, args):
         self.a = args
@@ -208,6 +230,7 @@ class Probe:
         self.no_cloud_reported_true = False
         self.pre_model_gate = {}
         self.harness_identity = {}
+        self.reached_checks = set()
         self.decision = "BLOCKED"
         self.exact_stop_reason = "HARNESS_NOT_COMPLETED"
         self.started = utc()
@@ -300,6 +323,7 @@ class Probe:
                             "$x | ConvertTo-Json -Compress")
 
     def windows_native_preflight(self):
+        self.reached_checks.add("service_preflight")
         query = "--query-gpu=memory.total,memory.used,memory.free"
         native = self.record(
             "windows_native_gpu_preflight",
@@ -363,6 +387,7 @@ class Probe:
         return result
 
     def verify_harness_identity(self):
+        self.reached_checks.add("harness_identity")
         repo_path = "LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s0_live_probe.py"
         spec = f"{self.harness_candidate_sha}:{repo_path}"
         started = utc()
@@ -548,6 +573,7 @@ class Probe:
         raise RuntimeError("Windows wrapper PID was not recorded")
 
     def wait_for_no_cloud_raw(self, timeout=30):
+        self.reached_checks.add("no_cloud")
         path = self.ev / "ollama-live.raw.log"
         end = time.time() + timeout
         while time.time() < end:
@@ -561,6 +587,7 @@ class Probe:
         raise RuntimeError("OLLAMA_NO_CLOUD_TRUE_NOT_OBSERVED_IN_SERVER_RAW")
 
     def enforce_pre_model_network_gate(self):
+        self.reached_checks.add("remote_tcp")
         gate_start = time.monotonic()
         start_index = len(self.remote_samples)
         while True:
@@ -587,6 +614,7 @@ class Probe:
         return converted
 
     def prepare_comfy_windows_paths(self, *, save_evidence):
+        self.reached_checks.add("path_conversion")
         self.comfy_main_win = self.to_windows_path(Path(self.a.comfy_root) / "main.py")
         self.comfy_cwd_win = self.to_windows_path(Path(self.a.comfy_root).parent)
         self.comfy_python_win = self.to_windows_path(Path(self.a.comfy_python))
@@ -735,6 +763,7 @@ class Probe:
                 "semantic_observations_nonempty": True, "prompt_echo": False}
 
     def attempt(self, kind, number):
+        self.reached_checks.add(kind + "_route")
         wf, out_node = self.workflow(kind)
         prompt_payload = {"prompt": wf, "client_id": self.run_id}
         rec = {"attempt": number, "kind": kind, "started_at": utc(), "route": "Comfy public /prompt",
@@ -991,9 +1020,24 @@ class Probe:
                 secondary_cleanup_failures.append(detail)
                 self.events.append({"at": utc(), "event": "secondary_cleanup_failure", "detail": detail})
                 temp_remove["exists_after"] = True
+            owned_service_started = any((self.ollama_proc, self.comfy_proc, self.ollama_pid,
+                                         self.ollama_wrapper_pid, self.comfy_pid, self.comfy_wrapper_pid))
+            resource_cleanup_failures = any(detail.startswith(("FINAL_PORT_", "RUN_TEMP_"))
+                                            for detail in secondary_cleanup_failures)
+            integrity_capture_failed = any(detail.startswith("TARGET_INTEGRITY_CAPTURE_FAILED")
+                                           for detail in secondary_cleanup_failures)
+            owned_resources_absent = (isinstance(final_ports, list) and not final_ports and
+                                      not temp_remove["exists_after"] and
+                                      all(not stop.get("after") for stop in stops) and
+                                      not resource_cleanup_failures)
+            target_integrity_comparison = ("FAIL" if integrity_capture_failed else
+                                           "NOT_REACHED" if pre_integrity is None else
+                                           "PASS" if integrity_equal else "FAIL")
             self.cleanup = {"owned_process_stops": stops, "final_authorized_port_listeners": final_ports,
                             "target_integrity_pre": pre_integrity, "target_integrity_post": post_integrity,
                             "target_integrity_equal": integrity_equal, "run_temp_removal": temp_remove,
+                            "owned_resources_absent": owned_resources_absent,
+                            "target_integrity_comparison": target_integrity_comparison,
                             "secondary_cleanup_failures": secondary_cleanup_failures}
             if (secondary_cleanup_failures or final_ports or temp_remove["exists_after"] or
                     (pre_integrity is not None and not integrity_equal)):
@@ -1011,6 +1055,8 @@ class Probe:
                                        "sample_count": len(self.remote_samples),
                                        "non_loopback_seen": self.remote_stop,
                                        "no_cloud_reported_true": self.no_cloud_reported_true,
+                                       "status": ("FAIL" if {"no_cloud", "remote_tcp"} & self.reached_checks
+                                                  else "NOT_REACHED"),
                                        "stop_reason": self.exact_stop_reason}
                 self.emit("pre-model-gate.json", self.pre_model_gate)
             self.emit("cleanup.json", self.cleanup)
@@ -1056,6 +1102,20 @@ class Probe:
                 preflight = {"passed": False, "status": "ARTIFACT_UNREADABLE",
                              "stop_reasons": ["WINDOWS_OWNER_ENUMERATION_FAILED"],
                              "failure_subcode": type(error).__name__}
+            check_statuses = observable_check_statuses(
+                reached_checks=self.reached_checks,
+                identity_matched=self.harness_identity.get("matched", False),
+                preflight_passed=preflight.get("passed", False),
+                no_cloud_passed=self.no_cloud_reported_true,
+                remote_passed=self.pre_model_gate.get("passed", False),
+                path_passed=(self.ev / "comfy-path-conversion.json").exists(),
+                image_passed=any(x.get("pass") for x in self.attempts["image"]),
+                video_passed=any(x.get("pass") for x in self.attempts["video"]),
+                cleanup_proven=summary["cleanup_proven"],
+                owned_service_started=bool(owned_service_started),
+                owned_resources_absent=owned_resources_absent,
+                target_integrity_comparison=target_integrity_comparison,
+            )
             raw_refs = [ev_rel + name for name in
                         ("ollama-live.log", "comfy-live.log", "ollama-version.json", "ollama-tags.json",
                          "ollama-show.json", "ollama-ps_start.json", "ollama-ps-final-before-stop.json",
@@ -1096,22 +1156,19 @@ class Probe:
                              "minimum_host_available_ram_mib": min((s["host_ram_mib"].get("MemAvailable") for s in self.resource_samples if s["host_ram_mib"].get("MemAvailable") is not None), default=None)},
                 "network": {"owned_ollama_non_loopback_remote_seen": self.remote_stop,
                             "evidence": ev_rel + "owned-ollama-remote-tcp.json"},
-                "external_actions": {"ollama_process_starts": int(self.ollama_wrapper_pid is not None),
-                                     "comfyui_process_starts": int(self.comfy_pid is not None),
+                "external_actions": {"ollama_process_starts": int(self.ollama_proc is not None),
+                                     "comfyui_process_starts": int(self.comfy_proc is not None),
                                      "model_calls": request_trace["visual_chat_count"], "downloads_or_upgrades": 0,
                                      "target_install_writes": 0, "visible_browser_runs": 0, "external_cost": 0},
-                "cleanup": {"proven": summary["cleanup_proven"], "details": ev_rel + "cleanup.json"},
+                "cleanup": {"proven": summary["cleanup_proven"],
+                            "owned_resources_absent": owned_resources_absent,
+                            "target_integrity_comparison": target_integrity_comparison,
+                            "details": ev_rel + "cleanup.json"},
                 "check_results": [
-                    {"check": "harness_runtime_identity", "status": "PASS" if
-                     self.harness_identity.get("matched") else "BLOCKED", "details": self.harness_identity},
-                    {"check": "windows_native_service_preflight", "status": "PASS" if
-                     preflight.get("passed") else "BLOCKED", "details": preflight},
-                    {"check": "windows_native_no_cloud_server_raw", "status": "PASS" if self.no_cloud_reported_true else "FAIL"},
-                    {"check": "pre_model_remote_tcp_gate", "status": "PASS" if self.pre_model_gate.get("passed") else "FAIL"},
-                    {"check": "comfy_main_and_cwd_windows_path_conversion", "status": "PASS" if (self.ev / "comfy-path-conversion.json").exists() else "FAIL"},
-                    {"check": "public_comfy_image_route", "status": "PASS" if any(x.get("pass") for x in self.attempts["image"]) else "NOT_RUN_OR_FAIL"},
-                    {"check": "public_comfy_video_route", "status": "PASS" if any(x.get("pass") for x in self.attempts["video"]) else "NOT_RUN_OR_FAIL"},
-                    {"check": "cleanup_and_target_integrity", "status": "PASS" if summary["cleanup_proven"] else "FAIL"}],
+                    {"check": name, "status": check_statuses[name], **(
+                        {"details": self.harness_identity} if name == "harness_runtime_identity" else
+                        {"details": preflight} if name == "windows_native_service_preflight" else {})}
+                    for name in check_statuses],
                 "artifact_manifest": ev_rel + "artifact-manifest.json",
                 "artifact_refs": [ev_rel + name for name in
                                   ("run-summary.json", "cleanup.json", "preflight-baseline.json", "pre-model-gate.json",
