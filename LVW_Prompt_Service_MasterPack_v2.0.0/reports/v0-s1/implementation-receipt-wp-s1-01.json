@@ -6,10 +6,10 @@
   "spec_version": "1.0.0",
   "stage_packet_commit": "3cbf7347fce2bcc584b5f88130b2fd381b030d5f",
   "baseline_head": "6e89f6a7d280dae0630ae535503c0e3b7548c891",
-  "candidate_sha": "0000000000000000000000000000000000000000",
-  "candidate_sha_status": "PENDING_ROOT_SEALING",
-  "evidence_commit": "0000000000000000000000000000000000000000",
-  "evidence_commit_status": "PENDING_ROOT_SEALING",
+  "candidate_sha": "a9c816e88179a6247fc960532a4e03228488bbde",
+  "candidate_sha_status": "SEALED_BY_GATE_OWNER",
+  "evidence_commit": "a9c816e88179a6247fc960532a4e03228488bbde",
+  "evidence_commit_status": "SEALED_BY_GATE_OWNER",
   "acceptance_hash": "4b52485dbaa7daeccb31b5c91771b51f8106ab6e49267328990ad4da3b5f85c5",
   "acceptance_hash_binding": {
     "algorithm": "sha256",
@@ -46,9 +46,9 @@
   "artifact_sha256": [
     {"path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/__init__.py", "sha256": "68585f7fdf9d2a6b82cd63a97c13d0e826e0006550ac6f672cc851152f8a9d8d"},
     {"path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/nodes.py", "sha256": "342b053e22413ad4cec28df2589d78d9c11ae35e40f7a0e246d26978492f6c73"},
-    {"path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/manual.py", "sha256": "7dc709bd22049ae44b6490229ca91e6598a4978797710c877cc009e4d3de34bf"},
+    {"path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/manual.py", "sha256": "dce77eee4057b4b2529507f881feb56e9fe431717ce80ae4ec2c9c6a9e7a5b2e"},
     {"path": "LVW_V0_RuntimePatch/workflows/manual_prompt_v0.ui.json", "sha256": "411e9c56f0475866f1fb1e22603b558751a4601650aac132a2b24c3cc827f08a"},
-    {"path": "LVW_V0_RuntimePatch/tests/test_manual_prompt_owner.py", "sha256": "3a3744a018af36b93e09f1e584e7c01a3593eed3a6b26a0d6808c1316d9a8096"},
+    {"path": "LVW_V0_RuntimePatch/tests/test_manual_prompt_owner.py", "sha256": "c2c4ff1e2a9dce2482491b19dee34408525a3a24944c76e09d9c89bec95ca1c7"},
     {"path": "LVW_V0_RuntimePatch/tests/test_s1_contract_fixtures.py", "sha256": "aefa2ed2689e0d50bb0a66250a7d055a38648bd9b22a0fb17fff09470fc97543"},
     {"path": "LVW_V0_RuntimePatch/tests/test_lvw_v0_bridge.py", "sha256": "1b70025feabcd7344ed2d9af591011107c57da383b2ca998da7639a7502e4a4f"}
   ],
@@ -88,13 +88,13 @@
     {
       "logical_command": "PYTHONDONTWRITEBYTECODE=1 python3 -B -m unittest -v LVW_V0_RuntimePatch.tests.test_manual_prompt_owner",
       "exit_code": 0,
-      "tests_run": 11,
+      "tests_run": 13,
       "result": "OK"
     },
     {
       "logical_command": "PYTHONDONTWRITEBYTECODE=1 python3 -B -m unittest -v LVW_V0_RuntimePatch.tests.test_manual_prompt_owner LVW_V0_RuntimePatch.tests.test_s1_contract_fixtures LVW_V0_RuntimePatch.tests.test_lvw_v0_bridge",
       "exit_code": 0,
-      "tests_run": 43,
+      "tests_run": 45,
       "result": "OK; manual, S1 baseline and bridge regression"
     },
     {
@@ -105,8 +105,8 @@
     {
       "logical_command": "PYTHONDONTWRITEBYTECODE=1 python3 -B tools/verify_pack.py --schema",
       "exit_code": 1,
-      "result": "1112 passed, 3 failed: expected root MANIFEST mismatches for three authorized modified existing files",
-      "failure_disposition": "MANIFEST is outside WP-S1-01 allowed_paths; gate owner sealing is pending"
+      "result": "1121 passed, 0 failed after gate-owner sealing and new-file manifest coverage",
+      "failure_disposition": "gate owner updated the three root MANIFEST entries after candidate sealing; final rerun is recorded by the sealing commit"
     },
     {
       "logical_command": "PYTHONDONTWRITEBYTECODE=1 python3 -B tools/verify_governance.py",
@@ -126,17 +126,19 @@
     {"check": "empty_manual_no_approval_gate", "status": "PASS_OFFLINE", "test": "test_empty_draft_and_empty_fields_export_valid_manual_contract"},
     {"check": "unicode_and_chinese_path_export", "status": "PASS_OFFLINE", "test": "test_json_and_txt_exports_support_unicode_directory_and_filename"},
     {"check": "path_traversal_rejection", "status": "PASS_OFFLINE", "test": "test_invalid_export_paths_fail_closed_without_files"},
+    {"check": "symlink_export_root_rejection", "status": "PASS_OFFLINE", "test": "test_symlink_export_root_is_rejected_without_external_write_or_draft_change"},
+    {"check": "windows_reserved_filename_rejection", "status": "PASS_OFFLINE", "test": "test_windows_reserved_and_trailing_basenames_are_rejected"},
     {"check": "atomic_disk_failure", "status": "PASS_OFFLINE", "test": "test_atomic_replace_failure_preserves_existing_file_and_removes_temp"},
     {"check": "clipboard_failure_draft_preservation", "status": "PASS_OFFLINE", "test": "test_clipboard_failure_does_not_change_draft"},
     {"check": "format_switch_model_calls", "status": "PASS_OFFLINE", "model_calls": 0},
     {"check": "manual_workflow_static_import_shape", "status": "PASS_OFFLINE", "test": "test_workflow_is_importable_shape_and_uses_only_project_owner"},
     {"check": "target_comfy_workflow_import", "status": "NOT_RUN_WAIT_AUTH"},
     {"check": "target_system_clipboard", "status": "NOT_RUN_WAIT_AUTH"},
-    {"check": "pack_manifest_binding", "status": "PENDING_GATE_OWNER_SEALING"}
+    {"check": "pack_manifest_binding", "status": "PASS_AFTER_GATE_OWNER_SEALING"}
   ],
   "offline_test_counts": {
-    "manual_owner": {"pass": 11, "fail": 0, "total": 11},
-    "combined_regression": {"pass": 43, "fail": 0, "total": 43}
+    "manual_owner": {"pass": 13, "fail": 0, "total": 13},
+    "combined_regression": {"pass": 45, "fail": 0, "total": 45}
   },
   "test_counts": {
     "denominator": 5,
@@ -178,7 +180,7 @@
   "risks": [
     "The workflow uses only the registered project-owned LVWManualPromptOwner; target ComfyUI import remains NOT_RUN until explicitly authorized.",
     "System clipboard behavior is covered through the public owner with deterministic fakes; the target desktop clipboard remains NOT_RUN until explicitly authorized.",
-    "The root MANIFEST intentionally remains unchanged and requires gate-owner sealing.",
+    "The root MANIFEST was updated by the gate owner after candidate sealing; this receipt remains bound to the implementation candidate.",
     "All five fixed product acceptance cases remain NOT_RUN; this receipt is not a Stage PASS."
   ]
 }
