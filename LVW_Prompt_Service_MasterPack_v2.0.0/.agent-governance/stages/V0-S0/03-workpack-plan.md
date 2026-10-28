@@ -161,3 +161,15 @@ Owner：`codex_isolated_implementer`。依赖 WP-S0-37。新增完整 run fixtur
 ## WP-S0-39：correction-13 独立离线复审
 
 Owner：`codex_isolated_reviewer`。依赖 WP-S0-38。独立复算单一公式、captured PID 残留、Popen 回归、候选/收据绑定和历史不变。Fatal/Major 必须为零才可建议结束离线纠偏；不得修改候选、启动服务或宣布 Stage PASS。
+
+## WP-S0-40：最终 decision 消费清理权威证明
+
+Owner：`codex_isolated_implementer`。依赖 WP-S0-39 的 M-01。仅离线修改 harness：finally 形成权威 `cleanup.proven` 后，false 且无更早首因必须强制 `NO_GO / CLEANUP_OR_TARGET_INTEGRITY_NOT_PROVEN` 与非零退出；若已有首因则保留首因并追加 secondary cleanup 事件。只有功能路径与 cleanup proof 同时通过才允许 `READY_FOR_REVIEW`。production status 必须使用最终 decision。禁止修改 proof 公式、历史 evidence、合同、阈值或启动服务。
+
+## WP-S0-41：成功路径出口绕过负例与实现收据
+
+Owner：`codex_isolated_implementer`。依赖 WP-S0-40。新增完整 run fixture 覆盖“功能全成功 + captured PID residual”必须 NO_GO/rc2/非 complete production status，以及“功能全成功 + clean cleanup”才 READY/rc0。保留 40 项回归，输出 correction-14 离线收据，只能 `READY_FOR_REVIEW`，产品四项保持 `NOT_RUN`。
+
+## WP-S0-42：correction-14 独立离线复审
+
+Owner：`codex_isolated_reviewer`。依赖 WP-S0-41。独立复算 proof 到 decision/exit/production status 的出口绑定、前序清理回归、候选/收据和历史不变。Fatal/Major 必须为零才可建议关闭离线纠偏；不得修改候选、启动服务或宣布 Stage PASS。
