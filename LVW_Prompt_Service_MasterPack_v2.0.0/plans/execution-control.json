@@ -7,15 +7,15 @@
   "coordinate": {
     "stage_id": "V0-S1",
     "workpack_id": "WP-S1-03",
-    "gate": "GATE1_IMPLEMENTATION",
+    "gate": "GATE4_REAL_ACCEPTANCE",
     "state": "RUNNING"
   },
   "last_passed_gate": {
-    "id": "WP_S1_02_IMAGE_STATE_OWNERS_SEALED",
-    "evidence": "reports/v0-s1/implementation-receipt-wp-s1-02.json",
-    "meaning": "controlled image preprocessing and token-bound draft isolation passed 59 offline regression tests and gate-owner review on candidate 2776a0c"
+    "id": "WP_S1_03_PHASE_A_CANDIDATE_SEALED",
+    "evidence": "reports/v0-s1/wp-s1-03-phase-a-seal.json",
+    "meaning": "workflow/API and identity-bound harness passed 76 offline tests and gate-owner review on candidate 65c909f; no live action has run"
   },
-  "current_blocking_gate": "WP-S1-03 must prepare and seal its exact execution candidate before the first authorized external action",
+  "current_blocking_gate": "authorized target-path and service preflight must pass before the single effective image attempt",
   "stage_packet": ".agent-governance/stages/V0-S1/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/V0-S1/PAYLOAD_MANIFEST.sha256",
   "product_status": "NOT_RUN",
@@ -26,7 +26,7 @@
     "TARGET_HARDWARE_TESTED"
   ],
   "next_owner": "codex_isolated_implementer",
-  "next_action": "Prepare and commit the exact WP-S1-03 workflow/API/harness candidate within the frozen allowlist; gate owner must verify hashes before the single live run.",
+  "next_action": "Run the hash-bound WP-S1-03 preflight and, only if every mandatory precondition passes, consume the single effective image attempt and generate terminal evidence.",
   "required_authorization": "AUTH-V0-S1-2026-10-28-01",
   "authorization_request": "reports/v0-s1/authorization-wp-s1-03-01.request.json",
   "authorization_record": "reports/v0-s1/authorization-wp-s1-03-01.json",

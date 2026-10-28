@@ -7,8 +7,8 @@ Target version: V0
 Prepared stage: V0-S1 / 图片与独立人工路径
 Packet version: 1.0.0
 State: RUNNING / WP-S1-03_ONE_SHOT_LIVE
-Active coordinate: V0-S1 / WP-S1-03 / GATE1_IMPLEMENTATION
-Last passed gate: WP_S1_02_IMAGE_STATE_OWNERS_SEALED
+Active coordinate: V0-S1 / WP-S1-03 / GATE4_REAL_ACCEPTANCE
+Last passed gate: WP_S1_03_PHASE_A_CANDIDATE_SEALED
 Exact stop reason: none
 Product cases: NOT_RUN
 Prepared-against commit: dfb00ad462d94628f1aa22045061f66a7629ec01
@@ -25,3 +25,5 @@ WP-S1-00 已以候选 `457b2e8...` 封存：合同/绑定/固定分母、合法�
 WP-S1-01 最终候选 `a9c816e...` 已封存：公共 `LVWManualPromptOwner`、纯 CPU 七输出、复制、原子 TXT/JSON 导出及路径边界通过 45/45 离线回归；外部动作均为 0。目标 Comfy 导入和系统剪贴板仍为 `NOT_RUN/WAIT_AUTH`，五项产品验收未提升。当前进入 WP-S1-02。
 
 WP-S1-02 最终候选 `2776a0c...` 已封存：公共 `LVWControlledImageInput` 与 `LVWDraftStateOwner`、解码前像素门禁、EXIF/RGBA/缩放记录、run-token 与 draft 隔离通过 59/59 离线回归。`AUTH-V0-S1-2026-10-28-01` 已按请求指纹正式记录；WP-S1-03 必须先封存精确执行候选，再在单图片/单模型调用预算内执行一次本机 loopback live run，并于终态自动过期。
+
+WP-S1-03 Phase A 候选 `65c909f...` 与 harness `322957e...` 已由门禁负责人封存：workflow/API、真实 PromptSpec Oracle、raw/suggestion 分离、Windows wrapper/PID lineage、清理重验证和默认拒绝路径通过 76/76 离线回归。当前只允许先执行授权前置检查；任一目标路径、身份、GPU、进程、端口或 no-cloud 条件失败都必须在图片尝试前终止。
