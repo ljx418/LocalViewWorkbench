@@ -44,6 +44,8 @@ PROMPT_SPEC_KEYS = {"schema_version", "mode", "domains", "technical", "locked_fi
 DOMAIN_KEYS = {"observation", "inference", "user_evidence", "creative_intent", "unknowns"}
 AUTHORIZED_COMFY_MAIN = "C:/ComfyUI-aki-v2/ComfyUI/main.py"
 AUTHORIZED_COMFY_PYTHON = "C:/ComfyUI-aki-v2/python/python.exe"
+AUTHORIZED_EVIDENCE_RELATIVE = "reports/v0-s1/wp-s1-03-live-02"
+AUTHORIZED_RUN_ID = "v0-s1-wp-s1-03-live-02"
 
 
 class StopProbe(RuntimeError):
@@ -91,9 +93,11 @@ def normalized_windows_path(value: str) -> str:
 def validate_live_boundaries(args, *, reserve_evidence: bool) -> dict:
     repo = Path(args.repo).resolve(strict=True)
     evidence = Path(args.evidence_root)
-    expected = repo / "reports/v0-s1/wp-s1-03-live-01"
+    expected = repo / AUTHORIZED_EVIDENCE_RELATIVE
     if evidence.resolve(strict=False) != expected:
         raise StopProbe("EVIDENCE_ROOT_OUTSIDE_AUTHORIZED_BOUNDARY")
+    if args.run_id != AUTHORIZED_RUN_ID:
+        raise StopProbe("AUTHORIZED_RUN_ID_MISMATCH")
     if normalized_windows_path(args.comfy_main).casefold() != AUTHORIZED_COMFY_MAIN.casefold():
         raise StopProbe("AUTHORIZED_COMFY_MAIN_MISMATCH")
     if normalized_windows_path(args.comfy_python).casefold() != AUTHORIZED_COMFY_PYTHON.casefold():
@@ -114,7 +118,8 @@ def validate_live_boundaries(args, *, reserve_evidence: bool) -> dict:
     elif not evidence.is_dir():
         raise StopProbe("EVIDENCE_ROOT_NOT_RESERVED")
     return {"comfy_main": AUTHORIZED_COMFY_MAIN, "comfy_python": AUTHORIZED_COMFY_PYTHON,
-            "evidence_root": "REPO/reports/v0-s1/wp-s1-03-live-01", "temp_parent_valid": True}
+            "evidence_root": "REPO/" + AUTHORIZED_EVIDENCE_RELATIVE,
+            "run_id": AUTHORIZED_RUN_ID, "temp_parent_valid": True}
 
 
 def ps_quote(value: str) -> str:
@@ -665,6 +670,8 @@ def self_check() -> dict:
     return {"offline_only": True, "workflow_classes": sorted(classes), "live_actions": 0,
             "authorization": AUTHORIZATION_ID,
             "authorized_targets": {"comfy_main": AUTHORIZED_COMFY_MAIN, "comfy_python": AUTHORIZED_COMFY_PYTHON},
+            "authorized_evidence_relative": AUTHORIZED_EVIDENCE_RELATIVE,
+            "authorized_run_id": AUTHORIZED_RUN_ID,
             "budgets": {"image": 1, "model_calls": 1, "submissions": 8}}
 
 
@@ -684,8 +691,8 @@ def parse_args(argv=None):
     parser.add_argument("--ollama-exe", default="")
     parser.add_argument("--powershell", default="powershell.exe")
     parser.add_argument("--temp-parent", default="")
-    parser.add_argument("--evidence-root", default="reports/v0-s1/wp-s1-03-live-01")
-    parser.add_argument("--run-id", default="v0-s1-wp-s1-03-live-01")
+    parser.add_argument("--evidence-root", default=AUTHORIZED_EVIDENCE_RELATIVE)
+    parser.add_argument("--run-id", default=AUTHORIZED_RUN_ID)
     return parser.parse_args(argv)
 
 

@@ -24,7 +24,7 @@
   "implementation_session": "/root/s0_rerun_implementer",
   "decision": "READY_FOR_REVIEW",
   "stage_pass_claim": false,
-  "exact_stop_reason": "WP_S1_03_OFFLINE_FRESH_AUTHORIZATION_BINDING_COMPLETE_LIVE_NOT_RUN",
+  "exact_stop_reason": "WP_S1_03_OFFLINE_FRESH_EVIDENCE_SLOT_BINDING_COMPLETE_LIVE_NOT_RUN",
   "environment": {
     "mode": "offline_repository_only",
     "target_runtime_touched": false,
@@ -52,8 +52,8 @@
     {"path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/nodes.py", "sha256": "ffc6b3ccead11029b234432e8ea82c739cae7693e519f51eda5c0dfa3df22125"},
     {"path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/state.py", "sha256": "db5f50a715aa602fae3e38c980ba7282ad1f603b565be8c9c0e0db646e8c86fe"},
     {"path": "LVW_V0_RuntimePatch/tests/test_s1_image_state_owner.py", "sha256": "b66079b5b8fbb7edb0437b017e06042c42f40834b7ee1f5b01aa17e32b273fc9"},
-    {"path": "LVW_V0_RuntimePatch/tests/test_s1_wp03_live_probe.py", "sha256": "d958f9b9863e31164e2903a6cd50707e8e03a960b5f3074bea27cbe0d6a0bbe3"},
-    {"path": "reports/v0-s1/wp-s1-03-phase-a/live_probe.py", "sha256": "b4524c605f382cfd374d9c7f5dc111871e3d17e4eef665b69f78ea87c34245b8"}
+    {"path": "LVW_V0_RuntimePatch/tests/test_s1_wp03_live_probe.py", "sha256": "5e1ffcfb408d3cd981fa2492c9fbf415e84139b07867217778768f81029d6e13"},
+    {"path": "reports/v0-s1/wp-s1-03-phase-a/live_probe.py", "sha256": "fba396bb75309f1c1512918e994ba682ac1e2c092de716fa2a3c0dac0766196d"}
   ],
   "contract_changes": "none",
   "target_configuration_changes": "none",
@@ -67,6 +67,11 @@
       "comfy_python": "C:/ComfyUI-aki-v2/python/python.exe",
       "old_C:/ComfyUI_paths": "REJECTED",
       "sibling_python_lib2to3_main": "REJECTED"
+    },
+    "authorized_live_binding": {
+      "evidence_relative": "reports/v0-s1/wp-s1-03-live-02",
+      "run_id": "v0-s1-wp-s1-03-live-02",
+      "prior_live_01": "REJECTED_NON_REUSABLE"
     },
     "state_success_inputs": ["raw_response", "suggestion_payload"],
     "semantic_oracle": "frozen lvw.prompt/1 PromptSpec domains.observation plus text_en",
@@ -166,6 +171,7 @@
     {"check": "candidate_blob_executed_harness_identity", "status": "PASS_OFFLINE", "test": "test_candidate_identity_binds_committed_blob_to_executed_harness"},
     {"check": "real_prompt_spec_semantic_oracle", "status": "PASS_OFFLINE", "test": "test_semantic_oracle_requires_real_frozen_prompt_spec_shape"},
     {"check": "authorized_target_and_evidence_boundaries", "status": "PASS_OFFLINE_WSL", "test": "test_authorized_paths_evidence_reservation_and_existing_refusal"},
+    {"check": "fresh_non_reusable_evidence_slot", "status": "PASS_OFFLINE_WSL", "test": "test_authorized_paths_evidence_reservation_and_existing_refusal"},
     {"check": "locked_down_quoted_wrappers", "status": "PASS_OFFLINE", "test": "test_wrapper_commands_are_quoted_locked_down_and_pid_bound"},
     {"check": "unproven_listener_pid_rejection", "status": "PASS_OFFLINE", "test": "test_listener_pid_without_wrapper_lineage_is_rejected"},
     {"check": "cleanup_listener_lineage_revalidation", "status": "PASS_OFFLINE", "test": "test_cleanup_revalidates_lineage_and_never_stops_takeover_pid"},
