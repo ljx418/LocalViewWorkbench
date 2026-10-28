@@ -45,11 +45,11 @@
   "artifact_sha256": [
     {
       "path": "LVW_V0_RuntimePatch/tests/test_s1_stage_checkpoint.py",
-      "sha256": "bbed2bf7835af23fffd54b357bf9d7b6b01135d59bbfca8419cfa848473be398"
+      "sha256": "0000184f21c6a8cc459226b62d741da6f801a4a84f485f0f88384de1ef3e2088"
     },
     {
       "path": "reports/v0-s1/stage-checkpoint-phase-a/checkpoint.py",
-      "sha256": "3ebd8dca9e74ff98e2e3c57b7a4442d9fa00d484dc104855a31c31ee54bbafd4"
+      "sha256": "4e30a250295f2a07c1713d8bbe272ded5395521fb9ab10abe6a41edb55b34d5a"
     }
   ],
   "contract_changes": "none",
@@ -64,9 +64,25 @@
       "authorization commit Git blobs and ancestry",
       "product candidate 1d48142 execution-artifact Git blobs equal local bytes",
       "future harness candidate Git blob equals executed harness SHA-256",
+      "lifecycle support local bytes equal future harness-candidate Git blob and request/authorization SHA-256",
+      "request remains PENDING_PROJECT_OWNER_APPROVAL with is_authorization=false and does_not_authorize_execution=true",
+      "authorization is GRANTED_ONCE and binds request ID/SHA, authorization ID, stage/workpack and terminal one-shot expiry",
       "fixed run ID and fresh non-reusable evidence root",
       "fixed sample SHA-256, exact local model digest, target paths and one-shot budget"
     ],
+    "lifecycle_support": {
+      "path": "reports/v0-s1/wp-s1-03-phase-a/live_probe.py",
+      "sha256": "94953202138267ca988818a5ba75704d845c15e288fb406d8f7af21d1af4af52"
+    },
+    "exact_future_target_bindings": {
+      "comfy_main": "C:/ComfyUI-aki-v2/ComfyUI/main.py",
+      "comfy_python": "C:/ComfyUI-aki-v2/python/python.exe",
+      "ollama_exe": "C:/Users/administrator/AppData/Local/Programs/Ollama/ollama.exe",
+      "powershell": "powershell.exe",
+      "temp_parent": "C:/Temp",
+      "comfy_url": "http://127.0.0.1:8191",
+      "ollama_url": "http://127.0.0.1:11434"
+    },
     "single_run_route": [
       "one public image graph: LVWControlledImageInput -> LVWImagePromptBridge plus public metadata output",
       "three A03 public LVWManualPromptOwner submissions for preview JSON, export JSON and export TXT",
@@ -106,7 +122,7 @@
     {
       "logical_command": "PYTHONDONTWRITEBYTECODE=1 python3 -B -m unittest -v LVW_V0_RuntimePatch.tests.test_s1_stage_checkpoint",
       "exit_code": 0,
-      "tests_run": 6,
+      "tests_run": 8,
       "result": "OK; fake public lifecycle and deterministic machine-fact mutations only"
     },
     {
@@ -122,7 +138,7 @@
     {
       "logical_command": "PYTHONDONTWRITEBYTECODE=1 python3 -B -m unittest discover -s LVW_V0_RuntimePatch/tests -p test_*.py",
       "exit_code": 0,
-      "tests_run": 93,
+      "tests_run": 95,
       "result": "OK"
     },
     {
@@ -156,8 +172,8 @@
     {"check": "fixed_five_product_denominator", "status": "NOT_RUN_WAIT_AUTH"}
   ],
   "offline_test_counts": {
-    "checkpoint_focused": {"pass": 6, "fail": 0, "total": 6},
-    "repository_combined": {"pass": 93, "fail": 0, "total": 93}
+    "checkpoint_focused": {"pass": 8, "fail": 0, "total": 8},
+    "repository_combined": {"pass": 95, "fail": 0, "total": 95}
   },
   "test_counts": {"denominator": 5, "pass": 0, "fail": 0, "blocked": 0, "skipped": 0, "not_run": 5},
   "product_acceptance": {

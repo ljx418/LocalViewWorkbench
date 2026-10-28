@@ -110,17 +110,30 @@ class StageCheckpointTests(unittest.TestCase):
             temp=Path(temp); request=temp/"request.json"; authorization=temp/"authorization.json"
             fields={"product_candidate":checkpoint.PRODUCT_CANDIDATE,"harness_candidate":"a"*40,
                     "harness_sha256":"b"*64,"run_id":checkpoint.AUTHORIZED_RUN_ID,
+                    "lifecycle_relative":checkpoint.LIFECYCLE_RELATIVE,"lifecycle_sha256":"c"*64,
                     "evidence_relative":checkpoint.AUTHORIZED_EVIDENCE_RELATIVE,
                     "sample_sha256":checkpoint.AUTHORIZED_SAMPLE_SHA256,"budget":checkpoint.ONE_SHOT_BUDGET,
-                    "acceptance_hash":checkpoint.ACCEPTANCE_HASH,"model_digest":checkpoint.AUTHORIZED_MODEL_DIGEST}
-            request.write_text(json.dumps(fields),encoding="utf-8")
-            auth=dict(fields,authorization_id="AUTH-FUTURE",status="AUTHORIZED",
+                    "acceptance_hash":checkpoint.ACCEPTANCE_HASH,"model_digest":checkpoint.AUTHORIZED_MODEL_DIGEST,
+                    "target_bindings":checkpoint.target_bindings()}
+            request_doc=dict(fields,schema_version="lvw.authorization-request/1",request_id="REQ-FUTURE",
+                status="PENDING_PROJECT_OWNER_APPROVAL",is_authorization=False,does_not_authorize_execution=True,
+                project_id="lvw-prompt-service",stage_id=checkpoint.AUTH_STAGE_ID,workpack_id=checkpoint.AUTH_WORKPACK_ID,
+                does_not_authorize_stage_pass=True)
+            request.write_text(json.dumps(request_doc),encoding="utf-8")
+            auth=dict(fields,schema_version="lvw.authorization/1",request_id="REQ-FUTURE",
+                      authorization_id="AUTH-FUTURE",status="GRANTED_ONCE",project_id="lvw-prompt-service",
+                      stage_id=checkpoint.AUTH_STAGE_ID,workpack_id=checkpoint.AUTH_WORKPACK_ID,
+                      expires_when=checkpoint.AUTH_EXPIRY,does_not_authorize_stage_pass=True,
                       request_sha256=sha256(request.read_bytes()).hexdigest())
             authorization.write_text(json.dumps(auth),encoding="utf-8")
             args=argparse.Namespace(request_record=str(request),authorization_record=str(authorization),
                 request_sha256=sha256(request.read_bytes()).hexdigest(),authorization_sha256=sha256(authorization.read_bytes()).hexdigest(),
                 harness_candidate="a"*40,harness_sha256="b"*64,authorization_id="AUTH-FUTURE",
-                authorization_commit="c"*40)
+                lifecycle_sha256="c"*64,authorization_commit="c"*40,
+                comfy_main=checkpoint.AUTHORIZED_COMFY_MAIN,comfy_python=checkpoint.AUTHORIZED_COMFY_PYTHON,
+                ollama_exe=checkpoint.AUTHORIZED_OLLAMA_EXE,powershell=checkpoint.AUTHORIZED_POWERSHELL,
+                temp_parent=checkpoint.AUTHORIZED_TEMP_PARENT,comfy_url=checkpoint.AUTHORIZED_COMFY_URL,
+                ollama_url=checkpoint.AUTHORIZED_OLLAMA_URL)
             mutated=json.loads(request.read_text()); mutated["budget"]["model_calls"]=2
             request.write_text(json.dumps(mutated),encoding="utf-8")
             args.request_sha256=sha256(request.read_bytes()).hexdigest()
@@ -128,13 +141,26 @@ class StageCheckpointTests(unittest.TestCase):
                 checkpoint.validate_authority(args,PACK_ROOT)
             self.assertEqual("AUTHORITY_BINDING_MISMATCH",raised.exception.code)
 
+    def test_target_argument_drift_is_rejected_without_loading_lifecycle(self):
+        values=dict(comfy_main=checkpoint.AUTHORIZED_COMFY_MAIN,comfy_python=checkpoint.AUTHORIZED_COMFY_PYTHON,
+            ollama_exe=checkpoint.AUTHORIZED_OLLAMA_EXE,powershell=checkpoint.AUTHORIZED_POWERSHELL,
+            temp_parent=checkpoint.AUTHORIZED_TEMP_PARENT,comfy_url=checkpoint.AUTHORIZED_COMFY_URL,
+            ollama_url=checkpoint.AUTHORIZED_OLLAMA_URL)
+        checkpoint.validate_target_args(argparse.Namespace(**values))
+        for key,bad in (("ollama_exe","C:/other/ollama.exe"),("powershell","pwsh.exe"),
+                        ("temp_parent","C:/OtherTemp"),("comfy_url","http://127.0.0.1:8192")):
+            broken=dict(values); broken[key]=bad
+            with self.subTest(key=key),self.assertRaises(checkpoint.CheckpointError) as raised:
+                checkpoint.validate_target_args(argparse.Namespace(**broken))
+            self.assertEqual("AUTHORIZED_TARGET_ARGUMENT_MISMATCH",raised.exception.code)
+
     def test_fake_public_lifecycle_generates_all_machine_facts_once(self):
         with tempfile.TemporaryDirectory() as temp:
             temp=Path(temp); sample=temp/"sample.bin"; sample.write_bytes(b"synthetic")
             args=argparse.Namespace(repo=PACK_ROOT,run_id=checkpoint.AUTHORIZED_RUN_ID,temp_parent=str(temp),
                 sample=str(sample),sample_sha256="pending",comfy_main="unused",comfy_python="unused",ollama_exe="unused",
                 powershell="unused",product_candidate=checkpoint.PRODUCT_CANDIDATE,harness_candidate="a"*40,
-                harness_sha256="b"*64,authorization_id="AUTH-FUTURE",request_record="",authorization_record="",
+                harness_sha256="b"*64,lifecycle_sha256="c"*64,authorization_id="AUTH-FUTURE",request_record="",authorization_record="",
                 request_sha256="",authorization_sha256="",authorization_commit="")
             sample_hash=sha256(sample.read_bytes()).hexdigest()
             args.sample_sha256=sample_hash
@@ -255,14 +281,36 @@ class StageCheckpointTests(unittest.TestCase):
         a08={"trace":a08_trace,"manual_input_keys":["natural_zh","natural_en","image_prompt","video_prompt","tags","negative","edit_instruction"],
              "model_calls_before":1,"model_calls_after":1,"export_sha256":sha256(empty.encode()).hexdigest()}
         harness_hash=sha256(HARNESS.read_bytes()).hexdigest()
+        lifecycle_hash=sha256((PACK_ROOT/checkpoint.LIFECYCLE_RELATIVE).read_bytes()).hexdigest()
+        common={"product_candidate":checkpoint.PRODUCT_CANDIDATE,"harness_candidate":"a"*40,
+            "harness_sha256":harness_hash,"lifecycle_relative":checkpoint.LIFECYCLE_RELATIVE,
+            "lifecycle_sha256":lifecycle_hash,"run_id":checkpoint.AUTHORIZED_RUN_ID,
+            "evidence_relative":checkpoint.AUTHORIZED_EVIDENCE_RELATIVE,
+            "sample_sha256":checkpoint.AUTHORIZED_SAMPLE_SHA256,"model_digest":checkpoint.AUTHORIZED_MODEL_DIGEST,
+            "budget":checkpoint.ONE_SHOT_BUDGET,"acceptance_hash":checkpoint.ACCEPTANCE_HASH,
+            "target_bindings":checkpoint.target_bindings()}
+        request_doc=dict(common,schema_version="lvw.authorization-request/1",request_id="REQ-FUTURE",
+            status="PENDING_PROJECT_OWNER_APPROVAL",is_authorization=False,does_not_authorize_execution=True,
+            project_id="lvw-prompt-service",stage_id=checkpoint.AUTH_STAGE_ID,workpack_id=checkpoint.AUTH_WORKPACK_ID,
+            does_not_authorize_stage_pass=True)
+        request_blob=json.dumps(request_doc,sort_keys=True,separators=(",",":")).encode()
+        auth_doc=dict(common,schema_version="lvw.authorization/1",request_id="REQ-FUTURE",
+            authorization_id="AUTH-FUTURE",status="GRANTED_ONCE",project_id="lvw-prompt-service",
+            stage_id=checkpoint.AUTH_STAGE_ID,workpack_id=checkpoint.AUTH_WORKPACK_ID,
+            expires_when=checkpoint.AUTH_EXPIRY,does_not_authorize_stage_pass=True,
+            request_sha256=sha256(request_blob).hexdigest())
+        auth_blob=json.dumps(auth_doc,sort_keys=True,separators=(",",":")).encode()
         return {"schema_version":"lvw.s1-stage-checkpoint-live/1","acceptance_hash":checkpoint.ACCEPTANCE_HASH,
             "run_id":checkpoint.AUTHORIZED_RUN_ID,"bindings":{"run_id":checkpoint.AUTHORIZED_RUN_ID,
-            "evidence_relative":checkpoint.AUTHORIZED_EVIDENCE_RELATIVE},"authorization_status":"EXPIRED_TERMINAL",
+            "evidence_relative":checkpoint.AUTHORIZED_EVIDENCE_RELATIVE,
+            "target_bindings_sha256":checkpoint.value_hash(checkpoint.target_bindings())},"authorization_status":"EXPIRED_TERMINAL",
             "identity":{"product_candidate":checkpoint.PRODUCT_CANDIDATE,"product_artifact_sha256":{"x":"y"},
-                        "harness_candidate":"a"*40,"harness_sha256":harness_hash},
+                        "harness_candidate":"a"*40,"harness_sha256":harness_hash,
+                        "lifecycle_relative":checkpoint.LIFECYCLE_RELATIVE,"lifecycle_sha256":lifecycle_hash},
             "authority":{"authorization_commit":"b"*40,"request_relative":"reports/v0-s1/request.json",
-                         "request_sha256":sha256(b"request").hexdigest(),"authorization_relative":"reports/v0-s1/auth.json",
-                         "authorization_sha256":sha256(b"auth").hexdigest()},
+                         "request_sha256":sha256(request_blob).hexdigest(),"authorization_relative":"reports/v0-s1/auth.json",
+                         "authorization_sha256":sha256(auth_blob).hexdigest(),"authorization_id":"AUTH-FUTURE"},
+            "_fixture_request":request_blob.decode(),"_fixture_authorization":auth_blob.decode(),
             "budget":checkpoint.ONE_SHOT_BUDGET,"observed":{"image_attempts":1,"model_calls":1,"comfy_starts":1,
             "ollama_starts":1,"public_submissions":24},"network_gate":{"ollama_no_cloud":True,
             "samples":[{"nonloopback_count":0} for _ in range(5)]},
@@ -281,10 +329,14 @@ class StageCheckpointTests(unittest.TestCase):
             "post_cleanup_snapshot":{"target_listener_count":0,"target_process_match_count":0,"run_temp_absent":True}}
 
     def verify(self, summary):
+        summary=copy.deepcopy(summary)
+        request_blob=summary.pop("_fixture_request","").encode()
+        authorization_blob=summary.pop("_fixture_authorization","").encode()
         def blob(_repo,_commit,relative):
             if relative.endswith("checkpoint.py"): return HARNESS.read_bytes()
-            if relative.endswith("request.json"): return b"request"
-            if relative.endswith("auth.json"): return b"auth"
+            if relative==checkpoint.LIFECYCLE_RELATIVE: return (PACK_ROOT/relative).read_bytes()
+            if relative.endswith("request.json"): return request_blob
+            if relative.endswith("auth.json"): return authorization_blob
             raise AssertionError(relative)
         with mock.patch.object(checkpoint,"bind_candidate",return_value={"x":"y"}), \
              mock.patch.object(checkpoint,"_commit_blob",side_effect=blob):
@@ -296,6 +348,8 @@ class StageCheckpointTests(unittest.TestCase):
         mutations=[
             lambda x:x["identity"].update(product_candidate="0"*40),
             lambda x:x["identity"].update(harness_sha256="0"*64),
+            lambda x:x["identity"].update(lifecycle_sha256="0"*64),
+            lambda x:x["identity"].update(lifecycle_relative="reports/v0-s1/wrong.py"),
             lambda x:x["authority"].update(request_sha256="0"*64),
             lambda x:x["observed"].update(model_calls=2),
             lambda x:x["bindings"].update(run_id="reused"),
@@ -322,6 +376,30 @@ class StageCheckpointTests(unittest.TestCase):
         for mutate in mutations:
             broken=copy.deepcopy(valid); mutate(broken)
             with self.subTest(mutation=mutate),self.assertRaises(checkpoint.CheckpointError): self.verify(broken)
+
+    def test_committed_authority_semantics_are_recomputed_not_hash_trusted(self):
+        def resign(value, mutate_request=None, mutate_authorization=None):
+            request=json.loads(value["_fixture_request"]); authorization=json.loads(value["_fixture_authorization"])
+            if mutate_request: mutate_request(request)
+            request_blob=json.dumps(request,sort_keys=True,separators=(",",":")).encode()
+            authorization["request_sha256"]=sha256(request_blob).hexdigest()
+            if mutate_authorization: mutate_authorization(authorization)
+            authorization_blob=json.dumps(authorization,sort_keys=True,separators=(",",":")).encode()
+            value["_fixture_request"]=request_blob.decode(); value["_fixture_authorization"]=authorization_blob.decode()
+            value["authority"]["request_sha256"]=sha256(request_blob).hexdigest()
+            value["authority"]["authorization_sha256"]=sha256(authorization_blob).hexdigest()
+        cases=(
+            (lambda r:r.update(status="GRANTED_ONCE"),None),
+            (lambda r:r.update(is_authorization=True),None),
+            (None,lambda a:a.update(status="AUTHORIZED")),
+            (None,lambda a:a.update(expires_when="reusable")),
+            (lambda r:r["target_bindings"].update(ollama_exe="C:/other/ollama.exe"),
+             lambda a:a["target_bindings"].update(ollama_exe="C:/other/ollama.exe")),
+        )
+        for request_mutation,authorization_mutation in cases:
+            value=self.valid_summary(); resign(value,request_mutation,authorization_mutation)
+            with self.subTest(case=(request_mutation,authorization_mutation)),self.assertRaises(checkpoint.CheckpointError):
+                self.verify(value)
 
     def test_summary_only_booleans_and_private_paths_cannot_pass(self):
         with self.assertRaises(checkpoint.CheckpointError): self.verify({"proof":True,"oracle":True})

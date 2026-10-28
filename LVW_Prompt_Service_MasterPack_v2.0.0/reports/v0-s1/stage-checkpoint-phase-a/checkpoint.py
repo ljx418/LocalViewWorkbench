@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
-"""Offline preparation and evidence oracle for the V0-S1 fixed denominator.
+"""Identity-bound producer and verifier for the V0-S1 fixed denominator.
 
-This module deliberately has no live execution branch.  A future, explicit,
-one-shot authorization may produce one case evidence document at a time; this
-harness verifies those documents and combines them only when all five bind the
-same product candidate.  ``--self-check`` calls the registered production
-owners for CPU-only prechecks and performs no service, GPU, port, network,
+Live execution is default-denied and exists only for a future committed request
+plus one-shot authorization.  Offline self-checks call registered production
+owners with synthetic fixtures and perform no service, GPU, port, network,
 browser, or real-media action.
 """
 
@@ -35,6 +33,18 @@ AUTHORIZED_RUN_ID = "v0-s1-stage-checkpoint-live-01"
 AUTHORIZED_EVIDENCE_RELATIVE = "reports/v0-s1/stage-checkpoint-live-01"
 AUTHORIZED_SAMPLE_SHA256 = "b4bbd08a0fad67cc04e55d15bf2c48e9a76dcfd6dda147d8cc504452dfc78a42"
 AUTHORIZED_MODEL_DIGEST = "5571076f3d70050487b26b341705799e0ab29b808164f90d20d4cf84f699d251"
+LIFECYCLE_RELATIVE = "reports/v0-s1/wp-s1-03-phase-a/live_probe.py"
+AUTHORIZED_COMFY_MAIN = "C:/ComfyUI-aki-v2/ComfyUI/main.py"
+AUTHORIZED_COMFY_PYTHON = "C:/ComfyUI-aki-v2/python/python.exe"
+AUTHORIZED_OLLAMA_EXE = "C:/Users/administrator/AppData/Local/Programs/Ollama/ollama.exe"
+AUTHORIZED_POWERSHELL = "powershell.exe"
+AUTHORIZED_TEMP_PARENT = "C:/Temp"
+AUTHORIZED_COMFY_URL = "http://127.0.0.1:8191"
+AUTHORIZED_OLLAMA_URL = "http://127.0.0.1:11434"
+AUTH_STAGE_ID = "V0-S1"
+AUTH_WORKPACK_ID = "WP-S1-04-CHECKPOINT-LIVE"
+AUTH_EXPIRY = ("one terminal V0-S1 fixed-denominator checkpoint receipt is generated, "
+               "the single effective image attempt is consumed, or any mandatory stop occurs")
 
 PRODUCTION_ARTIFACTS = (
     "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/__init__.py",
@@ -371,11 +381,31 @@ def _privacy_scan(value, location="$") -> None:
 
 
 def _load_proven_lifecycle(repo: Path):
-    path = repo / "reports/v0-s1/wp-s1-03-phase-a/live_probe.py"
+    path = repo / LIFECYCLE_RELATIVE
     spec = importlib.util.spec_from_file_location("lvw_s1_proven_live_lifecycle", path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
+
+
+def normalized_windows_path(value: str) -> str:
+    path = str(value).replace("\\", "/")
+    match = re.fullmatch(r"/mnt/([a-zA-Z])/(.+)", path)
+    if match:
+        path = f"{match.group(1).upper()}:/{match.group(2)}"
+    return re.sub(r"/+", "/", path).rstrip("/")
+
+
+def target_bindings() -> dict:
+    return {
+        "comfy_main": AUTHORIZED_COMFY_MAIN,
+        "comfy_python": AUTHORIZED_COMFY_PYTHON,
+        "ollama_exe": AUTHORIZED_OLLAMA_EXE,
+        "powershell": AUTHORIZED_POWERSHELL,
+        "temp_parent": AUTHORIZED_TEMP_PARENT,
+        "comfy_url": AUTHORIZED_COMFY_URL,
+        "ollama_url": AUTHORIZED_OLLAMA_URL,
+    }
 
 
 def _git_path(repo: Path, relative: str) -> str:
@@ -394,8 +424,55 @@ def _commit_blob(repo: Path, commit: str, relative: str) -> bytes:
     return process.stdout
 
 
+def validate_target_args(args) -> None:
+    actual = {
+        "comfy_main": normalized_windows_path(args.comfy_main),
+        "comfy_python": normalized_windows_path(args.comfy_python),
+        "ollama_exe": normalized_windows_path(args.ollama_exe),
+        "powershell": args.powershell,
+        "temp_parent": normalized_windows_path(args.temp_parent),
+        "comfy_url": args.comfy_url,
+        "ollama_url": args.ollama_url,
+    }
+    expected = target_bindings()
+    for key, value in expected.items():
+        if not isinstance(actual.get(key), str) or actual[key].casefold() != value.casefold():
+            raise CheckpointError("AUTHORIZED_TARGET_ARGUMENT_MISMATCH", key)
+
+
+def validate_authority_documents(request: dict, authorization: dict, *, expected: dict,
+                                 request_hash: str, authorization_id: str) -> None:
+    for name, document in (("request", request), ("authorization", authorization)):
+        for key, value in expected.items():
+            if document.get(key) != value:
+                raise CheckpointError("AUTHORITY_BINDING_MISMATCH", f"{name}:{key}")
+    request_id = request.get("request_id")
+    if (request.get("schema_version") != "lvw.authorization-request/1"
+            or request.get("status") != "PENDING_PROJECT_OWNER_APPROVAL"
+            or request.get("is_authorization") is not False
+            or request.get("does_not_authorize_execution") is not True
+            or request.get("project_id") != "lvw-prompt-service"
+            or request.get("stage_id") != AUTH_STAGE_ID
+            or request.get("workpack_id") != AUTH_WORKPACK_ID
+            or request.get("does_not_authorize_stage_pass") is not True
+            or not isinstance(request_id, str) or not request_id):
+        raise CheckpointError("AUTHORIZATION_REQUEST_SEMANTICS_INVALID", "request")
+    if (authorization.get("schema_version") != "lvw.authorization/1"
+            or authorization.get("status") != "GRANTED_ONCE"
+            or authorization.get("project_id") != "lvw-prompt-service"
+            or authorization.get("authorization_id") != authorization_id
+            or authorization.get("request_id") != request_id
+            or authorization.get("request_sha256") != request_hash
+            or authorization.get("stage_id") != AUTH_STAGE_ID
+            or authorization.get("workpack_id") != AUTH_WORKPACK_ID
+            or authorization.get("expires_when") != AUTH_EXPIRY
+            or authorization.get("does_not_authorize_stage_pass") is not True):
+        raise CheckpointError("AUTHORIZATION_NOT_GRANTED_ONCE_OR_BOUND", "authorization")
+
+
 def validate_authority(args, repo: Path) -> dict:
     """Bind a future formal request+authorization before any external action."""
+    validate_target_args(args)
     resolved_records = []
     for path in (Path(args.request_record), Path(args.authorization_record)):
         try:
@@ -405,8 +482,9 @@ def validate_authority(args, repo: Path) -> dict:
         if not relative.as_posix().startswith("reports/v0-s1/"):
             raise CheckpointError("AUTHORITY_RECORD_OUTSIDE_ALLOWED_PATH", path.name)
         resolved_records.append(path.resolve(strict=True))
-    request_bytes = Path(args.request_record).read_bytes()
-    authorization_bytes = Path(args.authorization_record).read_bytes()
+    request_path, authorization_path = resolved_records
+    request_bytes = request_path.read_bytes()
+    authorization_bytes = authorization_path.read_bytes()
     request_hash, authorization_hash = sha256(request_bytes).hexdigest(), sha256(authorization_bytes).hexdigest()
     if request_hash != args.request_sha256 or authorization_hash != args.authorization_sha256:
         raise CheckpointError("AUTHORITY_RECORD_HASH_MISMATCH", "request/authorization")
@@ -416,25 +494,21 @@ def validate_authority(args, repo: Path) -> dict:
         "product_candidate": PRODUCT_CANDIDATE,
         "harness_candidate": args.harness_candidate,
         "harness_sha256": args.harness_sha256,
+        "lifecycle_relative": LIFECYCLE_RELATIVE,
+        "lifecycle_sha256": args.lifecycle_sha256,
         "run_id": AUTHORIZED_RUN_ID,
         "evidence_relative": AUTHORIZED_EVIDENCE_RELATIVE,
         "sample_sha256": AUTHORIZED_SAMPLE_SHA256,
         "model_digest": AUTHORIZED_MODEL_DIGEST,
         "budget": ONE_SHOT_BUDGET,
         "acceptance_hash": ACCEPTANCE_HASH,
+        "target_bindings": target_bindings(),
     }
-    for name, document in (("request", request), ("authorization", authorization)):
-        for key, value in expected.items():
-            if document.get(key) != value:
-                raise CheckpointError("AUTHORITY_BINDING_MISMATCH", f"{name}:{key}")
-    if (authorization.get("authorization_id") != args.authorization_id
-            or authorization.get("status") != "AUTHORIZED"
-            or authorization.get("request_sha256") != request_hash):
-        raise CheckpointError("AUTHORIZATION_NOT_ACTIVE_OR_BOUND", "authorization")
+    validate_authority_documents(request, authorization, expected=expected,
+                                 request_hash=request_hash, authorization_id=args.authorization_id)
     if not re.fullmatch(r"[a-f0-9]{40}", args.authorization_commit):
         raise CheckpointError("AUTHORIZATION_COMMIT_INVALID", "authorization_commit")
-    for path, local in ((Path(args.request_record), request_bytes),
-                        (Path(args.authorization_record), authorization_bytes)):
+    for path, local in ((request_path, request_bytes), (authorization_path, authorization_bytes)):
         relative = path.resolve().relative_to(repo).as_posix()
         if _commit_blob(repo, args.authorization_commit, relative) != local:
             raise CheckpointError("AUTHORITY_COMMIT_BLOB_MISMATCH", relative)
@@ -457,6 +531,12 @@ def validate_live_identity(args, repo: Path) -> dict:
     local = Path(__file__).read_bytes()
     if sha256(blob).hexdigest() != args.harness_sha256 or sha256(local).hexdigest() != args.harness_sha256:
         raise CheckpointError("HARNESS_IDENTITY_MISMATCH", harness_relative)
+    lifecycle_path = repo / LIFECYCLE_RELATIVE
+    lifecycle_local = lifecycle_path.read_bytes()
+    lifecycle_blob = _commit_blob(repo, args.harness_candidate, LIFECYCLE_RELATIVE)
+    if (sha256(lifecycle_local).hexdigest() != args.lifecycle_sha256
+            or sha256(lifecycle_blob).hexdigest() != args.lifecycle_sha256):
+        raise CheckpointError("LIFECYCLE_IDENTITY_MISMATCH", LIFECYCLE_RELATIVE)
     allowed = {harness_relative, "LVW_V0_RuntimePatch/tests/test_s1_stage_checkpoint.py",
                "reports/v0-s1/implementation-receipt-stage-checkpoint-offline.json"}
     changed = subprocess.run(["git", "diff", "--name-only", f"14cdcffb6a34a4330012591652e7f85d20da2b7c..{args.harness_candidate}"],
@@ -468,7 +548,8 @@ def validate_live_identity(args, repo: Path) -> dict:
     if changed.returncode or not changed_files.issubset(allowed):
         raise CheckpointError("HARNESS_CANDIDATE_SCOPE_MISMATCH", "changed files")
     return {"product_candidate": PRODUCT_CANDIDATE, "product_artifact_sha256": artifacts,
-            "harness_candidate": args.harness_candidate, "harness_sha256": args.harness_sha256}
+            "harness_candidate": args.harness_candidate, "harness_sha256": args.harness_sha256,
+            "lifecycle_relative": LIFECYCLE_RELATIVE, "lifecycle_sha256": args.lifecycle_sha256}
 
 
 def validate_live_paths(args, repo: Path, *, reserve: bool) -> dict:
@@ -476,12 +557,7 @@ def validate_live_paths(args, repo: Path, *, reserve: bool) -> dict:
     expected = repo / AUTHORIZED_EVIDENCE_RELATIVE
     if evidence.resolve(strict=False) != expected or args.run_id != AUTHORIZED_RUN_ID:
         raise CheckpointError("RUN_OR_EVIDENCE_BINDING_MISMATCH", "run/evidence")
-    lifecycle = _load_proven_lifecycle(repo)
-    if (lifecycle.normalized_windows_path(args.comfy_main).casefold()
-            != lifecycle.AUTHORIZED_COMFY_MAIN.casefold()
-            or lifecycle.normalized_windows_path(args.comfy_python).casefold()
-            != lifecycle.AUTHORIZED_COMFY_PYTHON.casefold()):
-        raise CheckpointError("AUTHORIZED_TARGET_PATH_MISMATCH", "Comfy paths")
+    validate_target_args(args)
     temp_parent = Path(args.temp_parent)
     resolved = temp_parent.resolve(strict=True)
     if (not temp_parent.is_dir() or temp_parent.is_symlink() or repo == resolved
@@ -495,7 +571,8 @@ def validate_live_paths(args, repo: Path, *, reserve: bool) -> dict:
     elif not evidence.is_dir():
         raise CheckpointError("EVIDENCE_ROOT_NOT_RESERVED", evidence.name)
     return {"run_id": AUTHORIZED_RUN_ID, "evidence_relative": AUTHORIZED_EVIDENCE_RELATIVE,
-            "target_aliases": ["COMFY_ROOT/main.py", "COMFY_PYTHON"]}
+            "target_bindings_sha256": value_hash(target_bindings()),
+            "target_aliases": ["COMFY_ROOT/main.py", "COMFY_PYTHON", "OLLAMA_EXE", "RUN_TEMP_PARENT"]}
 
 
 def manual_public_graph(values: dict, action: str, filename: str) -> dict:
@@ -582,7 +659,7 @@ class CheckpointDriver:
 
 def execute_live(args, *, driver_factory=CheckpointDriver) -> tuple[int, dict]:
     repo = Path(args.repo).resolve(strict=True)
-    lifecycle = _load_proven_lifecycle(repo)
+    lifecycle = None
     result = {"schema_version": "lvw.s1-stage-checkpoint-live/1", "decision": "BLOCKED",
               "exact_stop_reason": None, "stage_pass_claim": False, "run_id": args.run_id,
               "acceptance_hash": ACCEPTANCE_HASH, "product_acceptance": {key: "NOT_RUN" for key in CASE_IDS},
@@ -594,6 +671,11 @@ def execute_live(args, *, driver_factory=CheckpointDriver) -> tuple[int, dict]:
         result["authority"] = validate_authority(args, repo)
         result["identity"] = validate_live_identity(args, repo)
         result["bindings"] = validate_live_paths(args, repo, reserve=False)
+        lifecycle = _load_proven_lifecycle(repo)
+        if (lifecycle.COMFY_URL != AUTHORIZED_COMFY_URL or lifecycle.OLLAMA_URL != AUTHORIZED_OLLAMA_URL
+                or lifecycle.AUTHORIZED_COMFY_MAIN != AUTHORIZED_COMFY_MAIN
+                or lifecycle.AUTHORIZED_COMFY_PYTHON != AUTHORIZED_COMFY_PYTHON):
+            raise CheckpointError("LIFECYCLE_TARGET_BINDING_MISMATCH", LIFECYCLE_RELATIVE)
         if (args.sample_sha256 != AUTHORIZED_SAMPLE_SHA256
                 or sha256(Path(args.sample).read_bytes()).hexdigest() != AUTHORIZED_SAMPLE_SHA256):
             raise CheckpointError("AUTHORIZED_SAMPLE_HASH_MISMATCH", "sample")
@@ -761,13 +843,17 @@ def execute_live(args, *, driver_factory=CheckpointDriver) -> tuple[int, dict]:
         result["product_acceptance"] = {key: "PASS_CANDIDATE_FOR_REVIEW" for key in CASE_IDS}
         result["decision"] = "READY_FOR_REVIEW"
         result["exact_stop_reason"] = "S1_FIXED_DENOMINATOR_CHECKPOINT_COMPLETE"
-    except (CheckpointError, lifecycle.StopProbe) as exc:
+    except CheckpointError as exc:
         result["decision"] = "NO_GO"
-        result["exact_stop_reason"] = getattr(exc, "code", getattr(exc, "reason", "CHECKPOINT_STOP"))
+        result["exact_stop_reason"] = exc.code
         result["failure"] = str(exc)
     except Exception as exc:
-        result["decision"] = "BLOCKED"; result["exact_stop_reason"] = "UNEXPECTED_HARNESS_EXCEPTION"
-        result["failure"] = type(exc).__name__
+        if lifecycle is not None and isinstance(exc, lifecycle.StopProbe):
+            result["decision"] = "NO_GO"; result["exact_stop_reason"] = exc.reason
+            result["failure"] = str(exc)
+        else:
+            result["decision"] = "BLOCKED"; result["exact_stop_reason"] = "UNEXPECTED_HARNESS_EXCEPTION"
+            result["failure"] = type(exc).__name__
     finally:
         if driver is not None:
             result["observed"]["public_submissions"] = driver.submissions
@@ -834,14 +920,37 @@ def verify_machine_facts(summary: dict, repo: Path) -> dict:
             or sha256(_commit_blob(repo, identity.get("harness_candidate", ""), harness_relative)).hexdigest() != harness_hash
             or sha256(Path(__file__).read_bytes()).hexdigest() != harness_hash):
         raise CheckpointError("MACHINE_IDENTITY_INVALID", "harness")
+    lifecycle_hash=identity.get("lifecycle_sha256")
+    if (identity.get("lifecycle_relative")!=LIFECYCLE_RELATIVE
+            or not re.fullmatch(r"[a-f0-9]{64}",str(lifecycle_hash))
+            or sha256((repo/LIFECYCLE_RELATIVE).read_bytes()).hexdigest()!=lifecycle_hash
+            or sha256(_commit_blob(repo,identity.get("harness_candidate",""),LIFECYCLE_RELATIVE)).hexdigest()!=lifecycle_hash):
+        raise CheckpointError("MACHINE_IDENTITY_INVALID","lifecycle")
     authority = summary.get("authority", {})
+    authority_blobs={}
     for relative_key, hash_key in (("request_relative", "request_sha256"),
                                    ("authorization_relative", "authorization_sha256")):
         relative = authority.get(relative_key, "")
+        blob=_commit_blob(repo, authority.get("authorization_commit", ""), relative) if isinstance(relative,str) else b""
         if (not isinstance(relative, str) or not relative.startswith("reports/v0-s1/")
-                or sha256(_commit_blob(repo, authority.get("authorization_commit", ""), relative)).hexdigest()
-                != authority.get(hash_key)):
+                or sha256(blob).hexdigest()!=authority.get(hash_key)):
             raise CheckpointError("MACHINE_AUTHORITY_INVALID", relative_key)
+        authority_blobs[relative_key]=blob
+    try:
+        request=json.loads(authority_blobs["request_relative"])
+        authorization=json.loads(authority_blobs["authorization_relative"])
+    except (KeyError,json.JSONDecodeError) as exc:
+        raise CheckpointError("MACHINE_AUTHORITY_INVALID","JSON") from exc
+    expected_authority={"product_candidate":PRODUCT_CANDIDATE,
+        "harness_candidate":identity.get("harness_candidate"),"harness_sha256":harness_hash,
+        "lifecycle_relative":LIFECYCLE_RELATIVE,"lifecycle_sha256":lifecycle_hash,
+        "run_id":AUTHORIZED_RUN_ID,"evidence_relative":AUTHORIZED_EVIDENCE_RELATIVE,
+        "sample_sha256":AUTHORIZED_SAMPLE_SHA256,"model_digest":AUTHORIZED_MODEL_DIGEST,
+        "budget":ONE_SHOT_BUDGET,"acceptance_hash":ACCEPTANCE_HASH,"target_bindings":target_bindings()}
+    validate_authority_documents(request,authorization,expected=expected_authority,
+        request_hash=authority.get("request_sha256",""),authorization_id=authority.get("authorization_id",""))
+    if summary.get("bindings",{}).get("target_bindings_sha256")!=value_hash(target_bindings()):
+        raise CheckpointError("MACHINE_SUMMARY_BINDING_INVALID","targets")
     if summary.get("budget") != ONE_SHOT_BUDGET or summary.get("observed") != {
         "image_attempts": 1, "model_calls": 1, "comfy_starts": 1, "ollama_starts": 1,
         "public_submissions": PLANNED_PUBLIC_SUBMISSIONS}:
@@ -1060,12 +1169,15 @@ def parse_args(argv=None):
     parser.add_argument("--product-candidate", default="")
     parser.add_argument("--harness-candidate", default="")
     parser.add_argument("--harness-sha256", default="")
+    parser.add_argument("--lifecycle-sha256", default="")
     parser.add_argument("--sample", default="")
     parser.add_argument("--sample-sha256", default=AUTHORIZED_SAMPLE_SHA256)
     parser.add_argument("--comfy-main", default="")
     parser.add_argument("--comfy-python", default="")
     parser.add_argument("--ollama-exe", default="")
     parser.add_argument("--powershell", default="powershell.exe")
+    parser.add_argument("--comfy-url", default=AUTHORIZED_COMFY_URL)
+    parser.add_argument("--ollama-url", default=AUTHORIZED_OLLAMA_URL)
     parser.add_argument("--temp-parent", default="")
     parser.add_argument("--evidence-root", default=AUTHORIZED_EVIDENCE_RELATIVE)
     parser.add_argument("--run-id", default=AUTHORIZED_RUN_ID)
@@ -1081,6 +1193,10 @@ def main(argv=None) -> int:
             verify_denominator()
             output = {"product_candidate": PRODUCT_CANDIDATE, "acceptance_ids": list(CASE_IDS),
                       "acceptance_hash": ACCEPTANCE_HASH, "one_shot_budget": ONE_SHOT_BUDGET,
+                      "lifecycle": {"relative": LIFECYCLE_RELATIVE,
+                                    "sha256": sha256((args.repo.resolve()/LIFECYCLE_RELATIVE).read_bytes()).hexdigest()},
+                      "target_bindings": target_bindings(), "authorization_status_required": "GRANTED_ONCE",
+                      "authorization_expiry_required": AUTH_EXPIRY,
                       "live_requirements": LIVE_REQUIREMENTS, "external_actions_now": 0,
                       "exact_stop_reason": "WAIT_AUTH_S1_FIXED_DENOMINATOR_NOT_RUN"}
         elif args.verify_evidence:
@@ -1089,6 +1205,7 @@ def main(argv=None) -> int:
             required = (args.authorization_id, args.authorization_record, args.authorization_sha256,
                         args.authorization_commit, args.request_record, args.request_sha256,
                         args.product_candidate, args.harness_candidate, args.harness_sha256,
+                        args.lifecycle_sha256,
                         args.sample, args.comfy_main, args.comfy_python, args.ollama_exe, args.temp_parent)
             if not all(required):
                 raise CheckpointError("LIVE_ARGUMENT_REQUIRED", "all identity/authority/target arguments")
@@ -1120,6 +1237,7 @@ def main(argv=None) -> int:
                 "stage_id": "V0-S1", "workpack_id": "WP-S1-04-CHECKPOINT-LIVE",
                 "candidate_sha": args.product_candidate, "harness_candidate": args.harness_candidate,
                 "harness_sha256": args.harness_sha256, "authorization_id": args.authorization_id,
+                "lifecycle_relative": LIFECYCLE_RELATIVE, "lifecycle_sha256": args.lifecycle_sha256,
                 "authorization_status": "EXPIRED_TERMINAL", "run_id": args.run_id,
                 "acceptance_hash": ACCEPTANCE_HASH, "decision": result["decision"],
                 "exact_stop_reason": result["exact_stop_reason"], "test_counts":
