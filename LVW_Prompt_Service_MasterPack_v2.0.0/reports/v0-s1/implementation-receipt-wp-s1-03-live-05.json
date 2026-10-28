@@ -1,0 +1,203 @@
+{
+  "schema_version": "lvw.implementation-receipt/1",
+  "project_id": "lvw-prompt-service",
+  "stage_id": "V0-S1",
+  "workpack_id": "WP-S1-03",
+  "spec_version": "1.0.0",
+  "authorization_id": "AUTH-V0-S1-2026-10-28-05",
+  "authorization_commit": "da1d7a459cb3378344a0a5e440b2f03793eaa48d",
+  "authorization_record_sha256": "b4daa3951b42f062619beaa0b1f2b4c61508aa781d6f7e7535d80000fe2a4183",
+  "authorization_request_sha256": "7fd042cab5b257e0bbe16b6daec22df958fb72a09c954a18bca4e719623e4b13",
+  "candidate_sha": "919f7fc47150bf164d8d90898fcc4dd69943568e",
+  "candidate_sha_status": "SEALED_EXECUTION_CANDIDATE",
+  "harness_sha256": "27a50fa125eada342e99ddaa135f25ae3ea14857d86ce3aff44448886f9e27ab",
+  "evidence_commit": "0000000000000000000000000000000000000000",
+  "evidence_commit_status": "PENDING_ROOT_SEALING",
+  "acceptance_hash": "4b52485dbaa7daeccb31b5c91771b51f8106ab6e49267328990ad4da3b5f85c5",
+  "acceptance_hash_binding": {
+    "algorithm": "sha256",
+    "target": "sorted fixed acceptance IDs V0-A01,V0-A03,V0-A04,V0-A05,V0-A08 joined by LF with a trailing LF"
+  },
+  "gate_version": "lvw-gate/1",
+  "run_id": "v0-s1-wp-s1-03-live-05",
+  "implementation_owner_role": "codex_isolated_implementer",
+  "implementation_session": "/root/s0_rerun_implementer",
+  "decision": "READY_FOR_REVIEW",
+  "stage_pass_claim": false,
+  "authorization_status": "EXPIRED_TERMINAL",
+  "exact_stop_reason": "WP_S1_03_LIVE_ROUTE_COMPLETE",
+  "command_exit_code": 0,
+  "rerun_count": 0,
+  "attempts": {
+    "effective_image_attempts": 1,
+    "model_calls": 1
+  },
+  "service_starts": {
+    "ollama": 1,
+    "comfyui": 1
+  },
+  "public_api_submissions": 5,
+  "production_path_status": "LIVE_ROUTE_COMPLETE_READY_FOR_INDEPENDENT_REVIEW",
+  "environment": {
+    "mode": "one_shot_authorized_local_live",
+    "target_paths": "AUTHORIZED_AKI_V2_ALIASES_ONLY",
+    "sample": "TEST_SOURCE/image-sample",
+    "sample_sha256": "b4bbd08a0fad67cc04e55d15bf2c48e9a76dcfd6dda147d8cc504452dfc78a42",
+    "cloud_or_paid_calls": 0,
+    "downloads_or_upgrades": 0,
+    "visible_browser_runs": 0,
+    "external_cost": 0
+  },
+  "check_results": [
+    {
+      "check": "single_authorized_command",
+      "status": "EXECUTED_ONCE_EXIT_0_NO_RERUN",
+      "evidence": "reports/v0-s1/wp-s1-03-live-05/run-summary.json"
+    },
+    {
+      "check": "candidate_and_harness_identity",
+      "status": "PASS",
+      "evidence": "reports/v0-s1/wp-s1-03-live-05/run-summary.json#evidence.identity"
+    },
+    {
+      "check": "pre_service_gpu_process_port_gate",
+      "status": "PASS",
+      "evidence": "reports/v0-s1/wp-s1-03-live-05/run-summary.json#evidence.preflight"
+    },
+    {
+      "check": "loopback_no_cloud_gate",
+      "status": "PASS",
+      "evidence": "reports/v0-s1/wp-s1-03-live-05/run-summary.json#evidence.network_gate"
+    },
+    {
+      "check": "exact_local_model_identity",
+      "status": "PASS",
+      "evidence": "reports/v0-s1/wp-s1-03-live-05/run-summary.json#evidence.model_identity"
+    },
+    {
+      "check": "public_comfy_prompt_history_semantic_oracle",
+      "status": "PASS",
+      "evidence": "reports/v0-s1/wp-s1-03-live-05/run-summary.json#evidence.image_oracle"
+    },
+    {
+      "check": "raw_suggestion_draft_isolation_and_explicit_adopt",
+      "status": "PASS",
+      "evidence": "reports/v0-s1/wp-s1-03-live-05/run-summary.json#evidence.state_oracle"
+    },
+    {
+      "check": "manual_cpu_route_after_owned_ollama_stop",
+      "status": "PASS",
+      "evidence": "reports/v0-s1/wp-s1-03-live-05/run-summary.json#evidence.manual_cpu_oracle"
+    },
+    {
+      "check": "per_call_model_cleanup",
+      "status": "PASS_HTTP_200_TERMINAL_API_PS_EMPTY",
+      "evidence": "reports/v0-s1/wp-s1-03-live-05/run-summary.json#evidence.model_cleanup"
+    },
+    {
+      "check": "runtime_gpu_and_remote_connection_guard",
+      "status": "PASS",
+      "evidence": "reports/v0-s1/wp-s1-03-live-05/run-summary.json#evidence.runtime_guard"
+    },
+    {
+      "check": "owned_cleanup_and_target_integrity",
+      "status": "PASS",
+      "evidence": "reports/v0-s1/wp-s1-03-live-05/run-summary.json#cleanup"
+    },
+    {
+      "check": "post_terminal_owned_resource_absence",
+      "status": "PASS_READ_ONLY_RECHECK"
+    },
+    {
+      "check": "fixed_product_acceptance",
+      "status": "NOT_RUN"
+    }
+  ],
+  "resource_observations": {
+    "preflight_gpu_count": 1,
+    "preflight_max_used_mib": 3649,
+    "preflight_limit_mib": 4096,
+    "runtime_max_used_mib": 3987,
+    "runtime_abort_threshold_mib": 23552,
+    "threshold_exceeded": false
+  },
+  "network_observations": {
+    "ollama_no_cloud": true,
+    "remote_tcp_samples": 5,
+    "nonloopback_connections_observed": 0
+  },
+  "semantic_observations": {
+    "image_raw_sha256": "56c816701d1c4f8e4037461d6424a01611cbf4b33f28280cc38966af4c28691c",
+    "image_suggestion_sha256": "bab2ec5df8db970307869e4dc44db7d3ea68bbc436a4eea114d10818ef620364",
+    "automatic_draft_write": false,
+    "draft_epoch_before": 0,
+    "draft_epoch_after_explicit_adopt": 1,
+    "manual_cpu_route_ollama_stopped": true
+  },
+  "cleanup": {
+    "in_run_proven": true,
+    "owned_count": 2,
+    "failures": [],
+    "final_target_listener_count": 0,
+    "run_owned_temp_removed": true,
+    "target_integrity_comparison": "PASS",
+    "per_call_cleanup_http_status": 200,
+    "terminal_api_ps_model_count": 0,
+    "post_terminal_listener_count": 0,
+    "post_terminal_target_process_match_count": 0,
+    "post_terminal_run_temp_residual_count": 0,
+    "proven": true
+  },
+  "changed_files": [
+    "reports/v0-s1/wp-s1-03-live-05/run-summary.json",
+    "reports/v0-s1/wp-s1-03-live-05/artifact-manifest.json",
+    "reports/v0-s1/implementation-receipt-wp-s1-03-live-05.json"
+  ],
+  "contract_changes": "none",
+  "target_configuration_changes": "none",
+  "commands": [
+    {
+      "logical_command": "AUTHORIZED_WP_S1_03_LIVE_05_ONE_SHOT_COMMAND",
+      "exit_code": 0,
+      "result": "READY_FOR_REVIEW: WP_S1_03_LIVE_ROUTE_COMPLETE; invoked exactly once and not retried"
+    },
+    {
+      "logical_command": "offline SHA-256 artifact-manifest and evidence-minimization validation",
+      "exit_code": 0,
+      "result": "PASS; run-summary hash matches manifest and forbidden diagnostic fields and private-path values are absent"
+    },
+    {
+      "logical_command": "read-only Windows target listener/process and run-temp residual postcheck",
+      "exit_code": 0,
+      "result": "PASS; zero listeners on 8191/11434, zero matching Ollama/ComfyUI processes, zero run-owned temporary directories"
+    }
+  ],
+  "test_counts": {
+    "denominator": 5,
+    "pass": 0,
+    "fail": 0,
+    "blocked": 0,
+    "skipped": 0,
+    "not_run": 5
+  },
+  "product_acceptance": {
+    "V0-A01": "NOT_RUN",
+    "V0-A03": "NOT_RUN",
+    "V0-A04": "NOT_RUN",
+    "V0-A05": "NOT_RUN",
+    "V0-A08": "NOT_RUN"
+  },
+  "artifact_refs": [
+    "reports/v0-s1/wp-s1-03-live-05/run-summary.json",
+    "reports/v0-s1/wp-s1-03-live-05/artifact-manifest.json"
+  ],
+  "raw_artifact_refs": [
+    "reports/v0-s1/wp-s1-03-live-05/run-summary.json"
+  ],
+  "risks": [
+    "This implementation receipt is evidence for independent review only; all five fixed product acceptance cases remain NOT_RUN.",
+    "The one-shot authorization is terminal and expired; this run must not be repeated under the same authorization.",
+    "The evidence commit field remains pending because a Git commit cannot self-reference its own final object ID; root sealing may bind it after this implementation commit.",
+    "No Stage PASS, V0 acceptance, or target-hardware acceptance is claimed by this implementation owner."
+  ]
+}
