@@ -8,7 +8,7 @@
 
 产品规格仍由本README、`docs/`、`contracts/`和`plans/`定义；[Agent Governance](.agent-governance/README.md)在其上增加角色隔离、Stage Packet、Workpack、候选/证据绑定、预算等待和反假绿门禁。唯一当前坐标为[execution-control.json](plans/execution-control.json)。
 
-当前是`V0-S1 / WP-S1-03 / GATE4_REAL_ACCEPTANCE / RUNNING`：request-04 已逐字批准，候选 `b248b37...` 与 harness `bcdb134...` 仅可执行一次 aki-v2 live-04。预算为单图片、单模型调用、各一次服务启动、loopback/no-cloud、零浏览器和零外部成本；任何 mandatory stop 或终态都会使授权自动过期，五项产品验收仍为`NOT_RUN`。
+当前是`V0-S1 / WP-S1-03 / GATE4_REAL_ACCEPTANCE / NO_GO`：live-04 已且仅已执行一次，但在服务启动前因 GPU 已用显存超过冻结的 4096 MiB 门限安全停止；图片、模型、公开提交与服务启动均为 0，清理和目标完整性通过。授权已过期，五项产品验收保持`NOT_RUN`；下一步需释放 GPU 并重新封存新运行身份。
 
 ## 一套文档，不再多条互斥路线
 
