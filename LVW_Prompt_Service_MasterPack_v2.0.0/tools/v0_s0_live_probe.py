@@ -170,6 +170,15 @@ def evaluate_request_trace(log_text: str, *, planned_calls: int, terminal_ps_emp
     }
 
 
+def derive_cleanup_proven(*, owned_resources_absent: bool,
+                          target_integrity_comparison: str,
+                          secondary_cleanup_failures) -> bool:
+    """Return the sole authoritative cleanup proof from terminal substates."""
+    return (owned_resources_absent and
+            target_integrity_comparison == "PASS" and
+            not secondary_cleanup_failures)
+
+
 def observable_check_statuses(*, reached_checks, identity_matched, preflight_passed,
                               no_cloud_passed, remote_passed, path_passed,
                               image_passed, video_passed, cleanup_proven,
@@ -913,10 +922,7 @@ class Probe:
         ps_path = self.ev / "ollama-ps-final-before-stop.json"
         ps = json.loads(ps_path.read_text(encoding="utf-8")) if ps_path.exists() else {}
         terminal_ps_empty = ps.get("http_status") == 200 and not ps.get("parsed", {}).get("models")
-        final_cleanup_proven = (not bool(self.cleanup.get("final_authorized_port_listeners")) and
-                                not self.cleanup.get("run_temp_removal", {}).get("exists_after", True) and
-                                self.cleanup.get("target_integrity_equal", False) and
-                                not self.cleanup.get("secondary_cleanup_failures"))
+        final_cleanup_proven = self.cleanup.get("proven", False)
         document = evaluate_request_trace(log_text, planned_calls=planned_pairs,
                                           terminal_ps_empty=terminal_ps_empty,
                                           final_cleanup_proven=final_cleanup_proven)
@@ -1093,13 +1099,19 @@ class Probe:
             target_integrity_comparison = ("FAIL" if integrity_capture_failed else
                                            "NOT_REACHED" if pre_integrity is None else
                                            "PASS" if integrity_equal else "FAIL")
+            cleanup_proven = derive_cleanup_proven(
+                owned_resources_absent=owned_resources_absent,
+                target_integrity_comparison=target_integrity_comparison,
+                secondary_cleanup_failures=secondary_cleanup_failures,
+            )
             self.cleanup = {"owned_process_stops": stops, "owned_popen_terminal_states": popen_states,
                             "final_authorized_port_listeners": final_ports,
                             "target_integrity_pre": pre_integrity, "target_integrity_post": post_integrity,
                             "target_integrity_equal": integrity_equal, "run_temp_removal": temp_remove,
                             "owned_resources_absent": owned_resources_absent,
                             "target_integrity_comparison": target_integrity_comparison,
-                            "secondary_cleanup_failures": secondary_cleanup_failures}
+                            "secondary_cleanup_failures": secondary_cleanup_failures,
+                            "proven": cleanup_proven}
             if (secondary_cleanup_failures or final_ports or temp_remove["exists_after"] or
                     (pre_integrity is not None and not integrity_equal)):
                 if primary_stop_reason:
@@ -1139,10 +1151,7 @@ class Probe:
                        "resource_stop": self.resource_stop, "non_loopback_remote_seen": self.remote_stop,
                        "no_cloud_reported_true": self.no_cloud_reported_true,
                        "pre_model_gate": self.pre_model_gate,
-                       "cleanup_proven": not bool(self.cleanup.get("final_authorized_port_listeners")) and
-                                         not self.cleanup.get("run_temp_removal", {}).get("exists_after", True) and
-                                         self.cleanup.get("target_integrity_equal", False) and
-                                         not self.cleanup.get("secondary_cleanup_failures")}
+                       "cleanup_proven": self.cleanup["proven"]}
             self.emit("run-summary.json", summary)
             self.manifest()
             ev_rel = self.ev.relative_to(self.root).as_posix().rstrip("/") + "/"
@@ -1172,7 +1181,7 @@ class Probe:
                 path_passed=(self.ev / "comfy-path-conversion.json").exists(),
                 image_passed=any(x.get("pass") for x in self.attempts["image"]),
                 video_passed=any(x.get("pass") for x in self.attempts["video"]),
-                cleanup_proven=summary["cleanup_proven"],
+                cleanup_proven=self.cleanup["proven"],
                 owned_service_started=bool(owned_service_started),
                 owned_resources_absent=owned_resources_absent,
                 target_integrity_comparison=target_integrity_comparison,
@@ -1221,7 +1230,7 @@ class Probe:
                                      "comfyui_process_starts": int(self.comfy_proc is not None),
                                      "model_calls": request_trace["visual_chat_count"], "downloads_or_upgrades": 0,
                                      "target_install_writes": 0, "visible_browser_runs": 0, "external_cost": 0},
-                "cleanup": {"proven": summary["cleanup_proven"],
+                "cleanup": {"proven": self.cleanup["proven"],
                             "owned_resources_absent": owned_resources_absent,
                             "target_integrity_comparison": target_integrity_comparison,
                             "details": ev_rel + "cleanup.json"},

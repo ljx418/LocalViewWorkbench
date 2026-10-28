@@ -1,0 +1,202 @@
+{
+  "schema_version": "lvw.implementation-receipt/1",
+  "spec_version": "3.0.0",
+  "project_id": "lvw-prompt-service",
+  "stage_id": "V0-S0",
+  "workpack_id": "WP-S0-37+WP-S0-38",
+  "workpack_ids": [
+    "WP-S0-37",
+    "WP-S0-38"
+  ],
+  "run_id": "v0-s0-correction-13-offline-20261028-01",
+  "stage_packet_commit": "e37c0f797267ea3e43aba01a1960d553568237bd",
+  "baseline_harness_candidate_sha": "000fa24ac62c414c8310a80bf721f4e39cfff049",
+  "candidate_sha": "0000000000000000000000000000000000000000",
+  "candidate_sha_status": "PENDING_ROOT_SEALING",
+  "evidence_commit": "0000000000000000000000000000000000000000",
+  "evidence_commit_status": "PENDING_ROOT_SEALING",
+  "acceptance_hash": "78b158e135be4da756e27ced9f57c74e78feb926bcaf95eda2e2a6992c9a7b42",
+  "acceptance_hash_binding": {
+    "algorithm": "sha256",
+    "target": "sorted fixed acceptance IDs V0-A01,V0-A02,V0-A09,V0-A10 joined by LF with a trailing LF",
+    "source": ".agent-governance/stages/V0-S0/04-acceptance-matrix.md"
+  },
+  "gate_version": "lvw-gate/1",
+  "implementation_owner_role": "codex_isolated_implementer",
+  "implementation_session": "/root/s0_rerun_implementer",
+  "decision": "READY_FOR_REVIEW",
+  "stage_pass_claim": false,
+  "exact_stop_reason": "WP_S0_37_38_OFFLINE_SINGLE_AUTHORITY_CLEANUP_PROOF_COMPLETE",
+  "environment": {
+    "execution_mode": "offline deterministic fixtures only",
+    "repository_python": "python3",
+    "comfyui_process_starts": 0,
+    "ollama_process_starts": 0,
+    "service_probes": 0,
+    "network_calls": 0,
+    "model_calls": 0,
+    "real_media_reads": 0
+  },
+  "changed_files": [
+    "tools/v0_s0_live_probe.py",
+    "tools/test_v0_s0_live_probe.py",
+    "reports/v0-s0/implementation-receipt-correction-13-offline.json"
+  ],
+  "artifact_sha256": [
+    {
+      "path": "tools/v0_s0_live_probe.py",
+      "sha256": "97d9b1c10cd488dba7bdb5c0ce1d171d8a90c74611657655e5c45e1a70aece37"
+    },
+    {
+      "path": "tools/test_v0_s0_live_probe.py",
+      "sha256": "c9c26357f4e8fdeb647e84df5641bc335c33a61ebf697b6de5bf44e8074509cb"
+    }
+  ],
+  "contract_changes": "none",
+  "target_configuration_changes": "none",
+  "implementation_change": {
+    "single_authority_formula": "cleanup.proven = owned_resources_absent and target_integrity_comparison == 'PASS' and not secondary_cleanup_failures",
+    "direct_consumers": [
+      "cleanup artifact",
+      "run summary",
+      "request trace",
+      "receipt cleanup field",
+      "cleanup check result"
+    ],
+    "captured_pid_residue": "Any nonempty owned_process_stops[].after makes owned_resources_absent false, therefore cleanup.proven false and the cleanup check FAIL",
+    "unchanged_boundaries": [
+      "correction-12 owned-Popen terminal proof",
+      "correction-11 NOT_REACHED/FAIL observable-state semantics",
+      "product candidate and contracts",
+      "GPU, timeout and model thresholds",
+      "historical evidence and fixed product denominator"
+    ]
+  },
+  "commands": [
+    {
+      "logical_command": "python3 -B -m unittest -v tools/test_v0_s0_live_probe.py",
+      "exit_code": 0,
+      "tests_run": 40,
+      "result": "OK; all prior 37 fixtures retained"
+    },
+    {
+      "logical_command": "python3 -B - (AST parse tools/v0_s0_live_probe.py and tools/test_v0_s0_live_probe.py)",
+      "exit_code": 0,
+      "result": "AST PASS"
+    },
+    {
+      "logical_command": "python3 -B tools/v0_s0_live_probe.py --help",
+      "exit_code": 0,
+      "result": "PASS"
+    },
+    {
+      "logical_command": "python3 -B tools/v0_s0_live_probe.py --self-check",
+      "exit_code": 0,
+      "result": "PASS; service_started=false"
+    },
+    {
+      "logical_command": "python3 -B tools/verify_pack.py --schema",
+      "exit_code": 1,
+      "result": "1074 passed, 2 failed: expected root MANIFEST mismatches for the two authorized changed tool files",
+      "failure_disposition": "MANIFEST modification is forbidden in WP-S0-37/38; gate owner sealing is pending"
+    },
+    {
+      "logical_command": "python3 -B tools/verify_governance.py",
+      "exit_code": 0,
+      "result": "38 passed, 0 failed; not product acceptance"
+    },
+    {
+      "logical_command": "python3 -B tools/verify_governance.py --self-test",
+      "exit_code": 0,
+      "result": "43 passed, 0 failed; not product acceptance"
+    }
+  ],
+  "check_results": [
+    {
+      "check": "single_authority_cleanup_formula",
+      "status": "PASS_OFFLINE",
+      "test": "test_cleanup_proof_authority_invariant",
+      "assertions": "proof true implies resources absent, target integrity PASS and no secondary cleanup failures"
+    },
+    {
+      "check": "captured_owned_pid_residual_complete_run",
+      "status": "PASS_OFFLINE",
+      "test": "test_captured_owned_pid_residual_fails_complete_run_cleanup",
+      "assertions": "nonempty stop_owned.after gives absence=false, proof=false and cleanup check=FAIL"
+    },
+    {
+      "check": "captured_owned_pid_clean_complete_run",
+      "status": "PASS_OFFLINE",
+      "test": "test_captured_owned_pid_absent_allows_complete_run_cleanup",
+      "assertions": "empty stop_owned.after with every other terminal substate clean gives cleanup PASS"
+    },
+    {
+      "check": "popen_and_not_reached_regression",
+      "status": "PASS_OFFLINE",
+      "tests_retained": 37
+    },
+    {
+      "check": "full_harness_regression",
+      "status": "PASS_OFFLINE",
+      "tests": 40
+    },
+    {
+      "check": "pack_manifest_binding",
+      "status": "PENDING_GATE_OWNER_SEALING",
+      "expected_mismatches": [
+        "tools/v0_s0_live_probe.py",
+        "tools/test_v0_s0_live_probe.py"
+      ]
+    },
+    {
+      "check": "governance_regression",
+      "status": "PASS_OFFLINE"
+    }
+  ],
+  "offline_test_counts": {
+    "repository_python": {
+      "pass": 40,
+      "fail": 0,
+      "total": 40
+    },
+    "executions_total": 40
+  },
+  "test_counts": {
+    "denominator": 4,
+    "pass": 0,
+    "fail": 0,
+    "blocked": 0,
+    "skipped": 0,
+    "not_run": 4
+  },
+  "product_acceptance": {
+    "V0-A01": "NOT_RUN",
+    "V0-A02": "NOT_RUN",
+    "V0-A09": "NOT_RUN",
+    "V0-A10": "NOT_RUN"
+  },
+  "external_actions": {
+    "comfyui_process_starts": 0,
+    "ollama_process_starts": 0,
+    "service_probes": 0,
+    "model_calls": 0,
+    "network_calls": 0,
+    "real_media_reads": 0,
+    "downloads_or_upgrades": 0,
+    "target_install_writes": 0,
+    "visible_browser_runs": 0,
+    "external_cost": 0
+  },
+  "production_path_status": "NOT_RUN_OFFLINE_WORKPACK",
+  "public_end_to_end_trace_refs": [],
+  "artifact_refs": [
+    "tools/v0_s0_live_probe.py",
+    "tools/test_v0_s0_live_probe.py"
+  ],
+  "raw_artifact_refs": [],
+  "risks": [
+    "Cleanup proof behavior is proven only with deterministic offline fixtures; no live authorization exists in WP-S0-37/38.",
+    "The root MANIFEST intentionally remains unchanged and requires gate-owner sealing after candidate review.",
+    "The four fixed product acceptance cases remain NOT_RUN; this receipt is not a Stage PASS."
+  ]
+}

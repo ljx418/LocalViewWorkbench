@@ -26,7 +26,8 @@ def preflight(*, native=None, wsl=None, processes=None, listeners=None):
 
 
 class WindowsNativePreflightTests(unittest.TestCase):
-    def run_owned_popen_fixture(self, *, ollama_proc=None, comfy_proc=None):
+    def run_owned_popen_fixture(self, *, ollama_proc=None, comfy_proc=None,
+                                ollama_wrapper_pid=None, ollama_stop_after=None):
         with tempfile.TemporaryDirectory() as temp:
             temp_path = Path(temp)
             sample = temp_path / "fixture.bin"
@@ -56,10 +57,17 @@ class WindowsNativePreflightTests(unittest.TestCase):
             def start_services():
                 owner.ollama_proc = ollama_proc
                 owner.comfy_proc = comfy_proc
+                owner.ollama_wrapper_pid = ollama_wrapper_pid
                 owner.reached_checks.add("no_cloud")
                 raise RuntimeError("OLLAMA_NO_CLOUD_TRUE_NOT_OBSERVED_IN_SERVER_RAW")
 
             owner.start_services = mock.Mock(side_effect=start_services)
+            owner.stop_owned = mock.Mock(side_effect=lambda pid, label: {
+                "label": label,
+                "pid": pid,
+                "stop_attempted": bool(pid),
+                "after": list(ollama_stop_after or []) if pid == ollama_wrapper_pid and pid else [],
+            })
             self.assertEqual(owner.run(), 2)
             receipt = probe.json.loads((temp_path / "receipt.json").read_text())
             cleanup = probe.json.loads((temp_path / "evidence" / "cleanup.json").read_text())
@@ -407,6 +415,38 @@ class WindowsNativePreflightTests(unittest.TestCase):
         proc.terminate.assert_not_called()
         proc.kill.assert_not_called()
 
+    def test_captured_owned_pid_residual_fails_complete_run_cleanup(self):
+        proc = mock.Mock()
+        proc.wait.return_value = 0
+        proc.poll.return_value = 0
+        receipt, cleanup = self.run_owned_popen_fixture(
+            ollama_proc=proc, ollama_wrapper_pid=123,
+            ollama_stop_after=[{"process_id": 123}],
+        )
+        statuses = {x["check"]: x["status"] for x in receipt["check_results"]}
+        self.assertFalse(receipt["cleanup"]["owned_resources_absent"])
+        self.assertFalse(receipt["cleanup"]["proven"])
+        self.assertFalse(cleanup["proven"])
+        self.assertEqual(statuses["cleanup_and_target_integrity"], "FAIL")
+        self.assertEqual(cleanup["target_integrity_comparison"], "PASS")
+        self.assertEqual(cleanup["secondary_cleanup_failures"], [])
+        self.assertEqual(cleanup["owned_process_stops"][3]["after"], [{"process_id": 123}])
+
+    def test_captured_owned_pid_absent_allows_complete_run_cleanup(self):
+        proc = mock.Mock()
+        proc.wait.return_value = 0
+        proc.poll.return_value = 0
+        receipt, cleanup = self.run_owned_popen_fixture(
+            ollama_proc=proc, ollama_wrapper_pid=123, ollama_stop_after=[],
+        )
+        statuses = {x["check"]: x["status"] for x in receipt["check_results"]}
+        self.assertTrue(receipt["cleanup"]["owned_resources_absent"])
+        self.assertTrue(receipt["cleanup"]["proven"])
+        self.assertTrue(cleanup["proven"])
+        self.assertEqual(statuses["cleanup_and_target_integrity"], "PASS")
+        self.assertEqual(cleanup["target_integrity_comparison"], "PASS")
+        self.assertEqual(cleanup["secondary_cleanup_failures"], [])
+
     def test_owned_popen_wait_exception_is_secondary_cleanup_failure(self):
         proc = mock.Mock()
         proc.wait.side_effect = [OSError("fixture wait error"), 0]
@@ -437,6 +477,27 @@ class WindowsNativePreflightTests(unittest.TestCase):
 
 
 class CleanupCorrelationTests(unittest.TestCase):
+    def test_cleanup_proof_authority_invariant(self):
+        cases = [
+            (True, "PASS", [], True),
+            (False, "PASS", [], False),
+            (True, "FAIL", [], False),
+            (True, "NOT_REACHED", [], False),
+            (True, "PASS", ["SECONDARY"], False),
+        ]
+        for absent, integrity, secondary, expected in cases:
+            with self.subTest(absent=absent, integrity=integrity, secondary=secondary):
+                proven = probe.derive_cleanup_proven(
+                    owned_resources_absent=absent,
+                    target_integrity_comparison=integrity,
+                    secondary_cleanup_failures=secondary,
+                )
+                self.assertEqual(proven, expected)
+                if proven:
+                    self.assertTrue(absent)
+                    self.assertEqual(integrity, "PASS")
+                    self.assertEqual(secondary, [])
+
     def test_planned_one_with_empty_log_is_not_cleaned(self):
         result = probe.evaluate_request_trace("", planned_calls=1, terminal_ps_empty=True,
                                               final_cleanup_proven=True)
