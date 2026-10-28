@@ -393,7 +393,8 @@ def service_log_facts(ollama_text: str, comfy_text: str) -> dict:
     long_base64_count=len(re.findall(r"(?<![A-Za-z0-9+/])[A-Za-z0-9+/]{160,}={0,2}(?![A-Za-z0-9+/])",combined))
     private_windows_path_count=len(re.findall(r"(?<![A-Za-z0-9_])[A-Za-z]:[\\/]",combined))
     private_wsl_path_count=len(re.findall(r"(?<![A-Za-z0-9_])/mnt/[A-Za-z]/",combined,re.I))
-    rejected=traceback_count+current_inputs_count+secret_assignment_count+long_base64_count
+    rejected=(traceback_count+current_inputs_count+secret_assignment_count+long_base64_count
+              +private_windows_path_count+private_wsl_path_count)
     ollama_lines=ollama_text.splitlines()
     return {
         "ollama_http_200": {
@@ -940,7 +941,10 @@ def execute_live(args, *, driver_factory=CheckpointDriver) -> tuple[int, dict]:
                 "generate_200":facts["ollama_http_200"]["generate"],
                 "ps_200":facts["ollama_http_200"]["ps"],
             }
-            if facts["rejected_diagnostic_count"]:
+            rejected_keys=("traceback_count","current_inputs_count","secret_assignment_count",
+                "long_base64_count","private_windows_path_count","private_wsl_path_count")
+            derived_rejected=sum(facts[key] for key in rejected_keys)
+            if derived_rejected or facts["rejected_diagnostic_count"]!=derived_rejected:
                 if result["decision"]=="READY_FOR_REVIEW":
                     result["decision"]="NO_GO"
                     result["exact_stop_reason"]="SERVICE_LOG_FORBIDDEN_DIAGNOSTIC"
@@ -1200,12 +1204,18 @@ def verify_machine_facts(summary: dict, repo: Path) -> dict:
     if http_ledger != {"chat_200":1,"generate_200":2,"ps_200":1}:
         raise CheckpointError("MODEL_HTTP_LEDGER_INVALID", repr(http_ledger))
     log_facts=summary.get("service_log_facts",{})
+    rejected_keys=("traceback_count","current_inputs_count","secret_assignment_count",
+        "long_base64_count","private_windows_path_count","private_wsl_path_count")
+    rejected_values=[log_facts.get(key) for key in rejected_keys]
+    invalid_rejected_values=any(not isinstance(value,int) or isinstance(value,bool) or value<0
+                                for value in rejected_values)
+    derived_rejected=sum(rejected_values) if not invalid_rejected_values else -1
     if (log_facts.get("ollama_http_200")!={"chat":1,"generate":2,"ps":1}
             or log_facts.get("comfy_got_prompt_count")!=PLANNED_PUBLIC_SUBMISSIONS
             or log_facts.get("ollama_no_cloud_marker_count",0)<1
             or log_facts.get("loopback_marker_count",0)<1
-            or any(log_facts.get(key)!=0 for key in ("traceback_count","current_inputs_count",
-                "secret_assignment_count","long_base64_count","rejected_diagnostic_count"))):
+            or invalid_rejected_values or derived_rejected!=0
+            or log_facts.get("rejected_diagnostic_count")!=derived_rejected):
         raise CheckpointError("SERVICE_LOG_FACTS_INVALID","minimal ledger")
     integrity=summary.get("target_integrity", {})
     cleanup=summary.get("cleanup", {}); snapshot=summary.get("post_cleanup_snapshot", {})

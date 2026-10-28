@@ -93,14 +93,54 @@ class FakeDriver:
     def post_cleanup_snapshot(self,_): return {"target_listener_count":0,"target_process_match_count":0,"run_temp_absent":True}
 
 
-class TracebackFakeDriver(FakeDriver):
-    def start_comfy(self, _base, log_path):
+class ServiceLogFakeDriver(FakeDriver):
+    EXTRA_LOG = ""
+    def start_ollama(self, log_path):
         Path(log_path).write_text(
-            "Traceback (most recent call last):\ncurrent_inputs=tensor(private)\n",
-            encoding="utf-8")
+            "OLLAMA_NO_CLOUD=true\n"
+            '[GIN] x | 200 | 1s | 127.0.0.1 | POST "/api/chat"\n'
+            '[GIN] x | 200 | 1s | 127.0.0.1 | POST "/api/generate"\n'
+            '[GIN] x | 200 | 1s | 127.0.0.1 | POST "/api/generate"\n'
+            '[GIN] x | 200 | 1s | 127.0.0.1 | GET "/api/ps"\n', encoding="utf-8")
+    def start_comfy(self, _base, log_path):
+        Path(log_path).write_text("\n".join(["got prompt"]*24)+"\n"+self.EXTRA_LOG,encoding="utf-8")
+
+
+class UrlLogFakeDriver(ServiceLogFakeDriver):
+    EXTRA_LOG = "http://127.0.0.1:8191 https://example.invalid/path\n"
+
+
+class WindowsPathLogFakeDriver(ServiceLogFakeDriver):
+    EXTRA_LOG = "C:/private/diagnostic.txt\n"
+
+
+class WslPathLogFakeDriver(ServiceLogFakeDriver):
+    EXTRA_LOG = "/mnt/c/private/diagnostic.txt\n"
+
+
+class TracebackFakeDriver(ServiceLogFakeDriver):
+    EXTRA_LOG = "Traceback (most recent call last):\ncurrent_inputs=tensor(private)\n"
 
 
 class StageCheckpointTests(unittest.TestCase):
+    def execute_fake(self, driver_factory):
+        with tempfile.TemporaryDirectory() as temp:
+            temp=Path(temp); sample=temp/"sample.bin"; sample.write_bytes(b"synthetic")
+            args=argparse.Namespace(repo=PACK_ROOT,run_id=checkpoint.AUTHORIZED_RUN_ID,temp_parent=str(temp),
+                sample=str(sample),sample_sha256=sha256(sample.read_bytes()).hexdigest(),
+                comfy_main="unused",comfy_python="unused",ollama_exe="unused",powershell="unused",
+                product_candidate=checkpoint.PRODUCT_CANDIDATE,harness_candidate="a"*40,
+                harness_sha256="b"*64,lifecycle_sha256="c"*64,authorization_id="AUTH-FUTURE",
+                request_record="",authorization_record="",request_sha256="",authorization_sha256="",
+                authorization_commit="")
+            artifacts=checkpoint.bind_candidate(PACK_ROOT)
+            with mock.patch.object(checkpoint,"AUTHORIZED_SAMPLE_SHA256",args.sample_sha256), \
+                 mock.patch.object(checkpoint,"validate_authority",return_value={"authorization_id":"AUTH-FUTURE"}), \
+                 mock.patch.object(checkpoint,"validate_live_identity",return_value={"product_candidate":checkpoint.PRODUCT_CANDIDATE,
+                    "product_artifact_sha256":artifacts,"harness_candidate":"a"*40,"harness_sha256":"b"*64}), \
+                 mock.patch.object(checkpoint,"validate_live_paths",return_value={"run_id":checkpoint.AUTHORIZED_RUN_ID}):
+                return checkpoint.execute_live(args,driver_factory=driver_factory)
+
     def test_offline_prechecks_keep_fixed_denominator_not_run(self):
         result=checkpoint.run_offline_prechecks(PACK_ROOT)
         self.assertEqual({"denominator":5,"pass":0,"fail":0,"blocked":0,"skipped":0,"not_run":5},
@@ -417,6 +457,8 @@ class StageCheckpointTests(unittest.TestCase):
             lambda x:x["model_call_ledger"].clear(),
             lambda x:x["model_http_ledger"].update(chat_200=2),
             lambda x:x["service_log_facts"].update(traceback_count=1,rejected_diagnostic_count=1),
+            lambda x:x["service_log_facts"].update(private_windows_path_count=1,rejected_diagnostic_count=0),
+            lambda x:x["service_log_facts"].update(rejected_diagnostic_count=1),
             lambda x:x.update(service_logs={"comfy.log":"got prompt"}),
             lambda x:x["target_integrity"].update(post={"x":"drift"}),
             lambda x:x["cleanup"].update(final_target_listener_count=1),
@@ -479,30 +521,43 @@ class StageCheckpointTests(unittest.TestCase):
         self.assertGreater(rejected["rejected_diagnostic_count"],0)
 
     def test_traceback_log_forces_no_go_without_persisting_raw_text(self):
-        with tempfile.TemporaryDirectory() as temp:
-            temp=Path(temp); sample=temp/"sample.bin"; sample.write_bytes(b"synthetic")
-            args=argparse.Namespace(repo=PACK_ROOT,run_id=checkpoint.AUTHORIZED_RUN_ID,temp_parent=str(temp),
-                sample=str(sample),sample_sha256=sha256(sample.read_bytes()).hexdigest(),
-                comfy_main="unused",comfy_python="unused",ollama_exe="unused",powershell="unused",
-                product_candidate=checkpoint.PRODUCT_CANDIDATE,harness_candidate="a"*40,
-                harness_sha256="b"*64,lifecycle_sha256="c"*64,authorization_id="AUTH-FUTURE",
-                request_record="",authorization_record="",request_sha256="",authorization_sha256="",
-                authorization_commit="")
-            artifacts=checkpoint.bind_candidate(PACK_ROOT)
-            with mock.patch.object(checkpoint,"AUTHORIZED_SAMPLE_SHA256",args.sample_sha256), \
-                 mock.patch.object(checkpoint,"validate_authority",return_value={"authorization_id":"AUTH-FUTURE"}), \
-                 mock.patch.object(checkpoint,"validate_live_identity",return_value={"product_candidate":checkpoint.PRODUCT_CANDIDATE,
-                    "product_artifact_sha256":artifacts,"harness_candidate":"a"*40,"harness_sha256":"b"*64}), \
-                 mock.patch.object(checkpoint,"validate_live_paths",return_value={"run_id":checkpoint.AUTHORIZED_RUN_ID}):
-                code,result=checkpoint.execute_live(args,driver_factory=TracebackFakeDriver)
-            self.assertEqual(2,code)
-            self.assertEqual("NO_GO",result["decision"])
-            self.assertEqual("SERVICE_LOG_FORBIDDEN_DIAGNOSTIC",result["exact_stop_reason"])
-            self.assertEqual(1,result["service_log_facts"]["traceback_count"])
-            self.assertNotIn("service_logs",result)
-            serialized=json.dumps(result,ensure_ascii=False)
-            self.assertNotIn("Traceback (most recent call last)",serialized)
-            self.assertNotIn("tensor(private)",serialized)
+        code,result=self.execute_fake(TracebackFakeDriver)
+        self.assertEqual(2,code)
+        self.assertEqual("NO_GO",result["decision"])
+        self.assertEqual("SERVICE_LOG_FORBIDDEN_DIAGNOSTIC",result["exact_stop_reason"])
+        self.assertEqual(1,result["service_log_facts"]["traceback_count"])
+        self.assertNotIn("service_logs",result)
+        serialized=json.dumps(result,ensure_ascii=False)
+        self.assertNotIn("Traceback (most recent call last)",serialized)
+        self.assertNotIn("tensor(private)",serialized)
+
+    def test_service_log_path_reducer_execute_and_verifier_are_fail_closed(self):
+        cases=(
+            (UrlLogFakeDriver,"private_windows_path_count",0,"private_wsl_path_count",0,0),
+            (WindowsPathLogFakeDriver,"private_windows_path_count",1,"private_wsl_path_count",0,2),
+            (WslPathLogFakeDriver,"private_windows_path_count",0,"private_wsl_path_count",1,2),
+            (TracebackFakeDriver,"traceback_count",1,"private_wsl_path_count",0,2),
+        )
+        for driver,key,value,other_key,other_value,expected_code in cases:
+            with self.subTest(driver=driver.__name__):
+                code,result=self.execute_fake(driver)
+                facts=result["service_log_facts"]
+                self.assertEqual(value,facts[key]); self.assertEqual(other_value,facts[other_key])
+                derived=sum(facts[name] for name in ("traceback_count","current_inputs_count",
+                    "secret_assignment_count","long_base64_count","private_windows_path_count",
+                    "private_wsl_path_count"))
+                self.assertEqual(derived,facts["rejected_diagnostic_count"])
+                self.assertEqual(expected_code,code)
+                if expected_code==0:
+                    self.assertEqual("READY_FOR_REVIEW",result["decision"])
+                else:
+                    self.assertEqual("NO_GO",result["decision"])
+                summary=self.valid_summary(); summary["service_log_facts"]=facts
+                if expected_code==0:
+                    self.verify(summary)
+                else:
+                    with self.assertRaises(checkpoint.CheckpointError) as raised: self.verify(summary)
+                    self.assertEqual("SERVICE_LOG_FACTS_INVALID",raised.exception.code)
 
     def test_current_harness_receipt_plan_and_selfcheck_have_no_private_user_path(self):
         receipt=PACK_ROOT/"reports/v0-s1/implementation-receipt-stage-checkpoint-offline.json"

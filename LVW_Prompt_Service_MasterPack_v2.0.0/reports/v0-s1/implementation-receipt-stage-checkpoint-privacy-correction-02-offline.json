@@ -1,0 +1,113 @@
+{
+  "schema_version": "lvw.implementation-receipt/1",
+  "project_id": "lvw-prompt-service",
+  "stage_id": "V0-S1",
+  "workpack_id": "WP-S1-04-CHECKPOINT-PRIVACY-CORRECTION-02-OFFLINE",
+  "spec_version": "1.0.0",
+  "baseline_head": "6df5995e41a7b50ac4d7c416e4c92dde071e3197",
+  "review_finding": "V0-Min independent review 6df5995 Major: absolute path counters were omitted from the rejection aggregate and verifier zero set",
+  "candidate_sha": "0000000000000000000000000000000000000000",
+  "candidate_sha_status": "PENDING_ROOT_SEALING",
+  "evidence_commit": "0000000000000000000000000000000000000000",
+  "evidence_commit_status": "PENDING_ROOT_SEALING",
+  "acceptance_hash": "4b52485dbaa7daeccb31b5c91771b51f8106ab6e49267328990ad4da3b5f85c5",
+  "gate_version": "lvw-gate/1",
+  "run_id": "v0-s1-stage-checkpoint-privacy-correction-02-offline-20261028-01",
+  "implementation_owner_role": "codex_isolated_implementer",
+  "implementation_session": "/root/s0_rerun_implementer",
+  "decision": "READY_FOR_REVIEW",
+  "stage_pass_claim": false,
+  "exact_stop_reason": "OFFLINE_PATH_DIAGNOSTIC_GATE_CORRECTED_PRODUCTS_NOT_RUN",
+  "environment": {
+    "mode": "offline_repository_only",
+    "target_runtime_touched": false,
+    "service_starts": 0,
+    "gpu_probes": 0,
+    "process_probes": 0,
+    "port_probes": 0,
+    "network_calls": 0,
+    "model_calls": 0,
+    "real_media_reads": 0,
+    "visible_browser_runs": 0,
+    "external_cost": 0
+  },
+  "changed_files": [
+    "LVW_V0_RuntimePatch/tests/test_s1_stage_checkpoint.py",
+    "reports/v0-s1/stage-checkpoint-phase-a/checkpoint.py",
+    "reports/v0-s1/implementation-receipt-stage-checkpoint-privacy-correction-02-offline.json"
+  ],
+  "artifact_sha256": [
+    {
+      "path": "LVW_V0_RuntimePatch/tests/test_s1_stage_checkpoint.py",
+      "sha256": "1e94d61a331e0ce96435500da28cd084d4113d9f12f0bd1f0fe10d9d91e2a8e0"
+    },
+    {
+      "path": "reports/v0-s1/stage-checkpoint-phase-a/checkpoint.py",
+      "sha256": "5832865dab2a0a24c86759a01e7eb946f24c63a02579393f464c646886c6f48d"
+    }
+  ],
+  "implementation": {
+    "rejected_components": [
+      "traceback_count",
+      "current_inputs_count",
+      "secret_assignment_count",
+      "long_base64_count",
+      "private_windows_path_count",
+      "private_wsl_path_count"
+    ],
+    "reducer": "rejected_diagnostic_count is the exact sum of all six components, including Windows and WSL absolute path counts",
+    "terminal_gate": "any nonzero derived component or aggregate mismatch forces NO_GO without persisting raw logs",
+    "verifier": "validates non-negative integer components, independently derives their sum, requires the derived value and persisted aggregate both equal zero",
+    "coverage": "URL has Windows/WSL counts 0/0 and passes; Windows path, WSL path and traceback each fail reducer-to-execute-to-verifier traversal",
+    "historical_checkpoint_status": "stage-checkpoint-live-01 remains immutable NO_GO and is not retroactively recognized as PASS",
+    "authorization_effect": "none; no live execution or rerun is authorized"
+  },
+  "historical_evidence_unchanged": [
+    {"path": "reports/v0-s1/stage-checkpoint-live-01/run-summary.json", "sha256": "2e77a854668ce083408c7b6d8eca1b3b6b7a973f2484a51a2c8dacd92bffeffe"},
+    {"path": "reports/v0-s1/stage-checkpoint-live-01/implementation-receipt.json", "sha256": "4258b23ba6bd54037b7165ddcff89400cb099ffbcc77ab6c58abbc8f8b3b4ca9"},
+    {"path": "reports/v0-s1/stage-checkpoint-live-01/artifact-manifest.json", "sha256": "40295b2862b8e1ca876ed2fc878fb69e359e9d36a573db97adca8ba9a9d60487"}
+  ],
+  "commands": [
+    {"logical_command": "PYTHONDONTWRITEBYTECODE=1 python3 -B -m unittest -v LVW_V0_RuntimePatch.tests.test_s1_stage_checkpoint", "exit_code": 0, "tests_run": 14, "result": "OK"},
+    {"logical_command": "PYTHONDONTWRITEBYTECODE=1 python3 -B -m unittest discover -s LVW_V0_RuntimePatch/tests -p test_*.py", "exit_code": 0, "tests_run": 101, "result": "OK"},
+    {"logical_command": "PYTHONDONTWRITEBYTECODE=1 python3 -B checkpoint.py --self-check", "exit_code": 0, "result": "READY_FOR_REVIEW; fixed product denominator 5 NOT_RUN; external actions zero"},
+    {"logical_command": "PYTHONDONTWRITEBYTECODE=1 python3 -B tools/verify_pack.py --schema", "exit_code": 0, "result": "1187 passed, 0 failed"},
+    {"logical_command": "PYTHONDONTWRITEBYTECODE=1 python3 -B tools/verify_governance.py", "exit_code": 0, "result": "17 passed, 0 failed"},
+    {"logical_command": "PYTHONDONTWRITEBYTECODE=1 python3 -B tools/verify_governance.py --self-test", "exit_code": 0, "result": "20 passed, 0 failed"},
+    {"logical_command": "offline AST, JSON, hash, privacy and scope checks", "exit_code": 0, "result": "PASS"}
+  ],
+  "check_results": [
+    {"check": "URL path counters 0/0 and pass", "status": "PASS_OFFLINE"},
+    {"check": "Windows path count 1 forces NO_GO and verifier rejection", "status": "PASS_OFFLINE"},
+    {"check": "WSL path count 1 forces NO_GO and verifier rejection", "status": "PASS_OFFLINE"},
+    {"check": "traceback count 1 forces NO_GO and verifier rejection", "status": "PASS_OFFLINE"},
+    {"check": "aggregate independently recomputed and mismatch rejected", "status": "PASS_OFFLINE"},
+    {"check": "raw future service logs absent", "status": "PASS_OFFLINE"},
+    {"check": "historical checkpoint-01 evidence bytes unchanged", "status": "PASS_OFFLINE"}
+  ],
+  "offline_test_counts": {
+    "checkpoint_focused": {"pass": 14, "fail": 0, "total": 14},
+    "repository_combined": {"pass": 101, "fail": 0, "total": 101}
+  },
+  "test_counts": {"denominator": 5, "pass": 0, "fail": 0, "blocked": 0, "skipped": 0, "not_run": 5},
+  "product_acceptance": {
+    "V0-A01": "NOT_RUN",
+    "V0-A03": "NOT_RUN",
+    "V0-A04": "NOT_RUN",
+    "V0-A05": "NOT_RUN",
+    "V0-A08": "NOT_RUN"
+  },
+  "contract_changes": "none",
+  "target_configuration_changes": "none",
+  "artifact_refs": [
+    "reports/v0-s1/stage-checkpoint-phase-a/checkpoint.py",
+    "LVW_V0_RuntimePatch/tests/test_s1_stage_checkpoint.py",
+    "reports/v0-s1/implementation-receipt-stage-checkpoint-privacy-correction-02-offline.json"
+  ],
+  "raw_artifact_refs": [],
+  "risks": [
+    "All product acceptance cases remain NOT_RUN; this correction has only synthetic offline coverage.",
+    "The immutable checkpoint-01 evidence remains NO_GO and retains its original bytes.",
+    "A future live run requires separate fresh authorization; this receipt authorizes none."
+  ]
+}
