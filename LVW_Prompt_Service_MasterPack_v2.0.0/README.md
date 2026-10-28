@@ -8,7 +8,7 @@
 
 产品规格仍由本README、`docs/`、`contracts/`和`plans/`定义；[Agent Governance](.agent-governance/README.md)在其上增加角色隔离、Stage Packet、Workpack、候选/证据绑定、预算等待和反假绿门禁。唯一当前坐标为[execution-control.json](plans/execution-control.json)。
 
-当前是`V0-S1 / WP-S1-03 / GATE4_REAL_ACCEPTANCE / RUNNING`：request-06 已逐字批准，候选 `1d48142...` 与 harness `9495320...` 仅可执行一次 aki-v2 live-06；7 个执行产物和可复算状态/完整性/清理证据均为强制门禁。五项产品验收仍为`NOT_RUN`。
+当前是`V0-S1 / WP-S1-04 / GATE5_INDEPENDENT_EXIT / CHECKPOINT`：live-06 已且仅已执行一次并以 exit 0 / `READY_FOR_REVIEW` 完成；7 个执行产物、状态转移、目标指纹和 owned 清理终态均已封存。授权已过期，现等待全新独立复算，五项产品验收仍为`NOT_RUN`，尚未产生 Stage PASS。
 
 ## 一套文档，不再多条互斥路线
 
