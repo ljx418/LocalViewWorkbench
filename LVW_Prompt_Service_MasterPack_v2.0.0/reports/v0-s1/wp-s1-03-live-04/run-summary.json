@@ -1,0 +1,57 @@
+{
+  "schema_version": "lvw.wp-s1-03-live/1",
+  "run_id": "v0-s1-wp-s1-03-live-04",
+  "authorization": "AUTH-V0-S1-2026-10-28-04",
+  "decision": "NO_GO",
+  "exact_stop_reason": "GPU_PREFLIGHT_USED_MEMORY_EXCEEDED",
+  "authorization_status": "EXPIRED_TERMINAL",
+  "attempts": {
+    "image": 0,
+    "model_calls": 0
+  },
+  "service_starts": {
+    "ollama": 0,
+    "comfy": 0
+  },
+  "public_submissions": 0,
+  "product_acceptance": {
+    "V0-A01": "NOT_RUN",
+    "V0-A03": "NOT_RUN",
+    "V0-A04": "NOT_RUN",
+    "V0-A05": "NOT_RUN",
+    "V0-A08": "NOT_RUN"
+  },
+  "stage_pass_claim": false,
+  "evidence": {
+    "authorized_boundaries": {
+      "comfy_main": "<PRIVATE_WINDOWS_PATH>",
+      "comfy_python": "<PRIVATE_WINDOWS_PATH>",
+      "evidence_root": "REPO/reports/v0-s1/wp-s1-03-live-04",
+      "run_id": "v0-s1-wp-s1-03-live-04",
+      "temp_parent_valid": true
+    },
+    "identity": {
+      "candidate_sha": "b248b373d323bbfa546df78c9355e7e30a2ec24c",
+      "changed_file_count": 4,
+      "file_sha256": {
+        "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/core.py": "72b4f9f348b099dce689ab8318f26b7b598060deaae91e4bc344a82c151a638a",
+        "LVW_V0_RuntimePatch/tests/test_s1_image_state_owner.py": "fa2699b4d4723ddb6d7f764fef0a63d99b0f6fbec2746f0d4ee7934f781468ac",
+        "LVW_V0_RuntimePatch/tests/test_s1_wp03_live_probe.py": "6c193f88c53eebb28fefc7dcc9bc963d393a702f72bb94198a35df7f4c943daa",
+        "reports/v0-s1/wp-s1-03-phase-a/live_probe.py": "bcdb1345d1e7d416fa70815117161c36347b640a903b7c459e80cc5117ba1b6b"
+      },
+      "harness_sha256": "bcdb1345d1e7d416fa70815117161c36347b640a903b7c459e80cc5117ba1b6b",
+      "identity_match": true
+    },
+    "failure": "GPU_PREFLIGHT_USED_MEMORY_EXCEEDED",
+    "service_logs": {}
+  },
+  "cleanup": {
+    "owned_count": 0,
+    "failures": [],
+    "final_target_listener_count": 0,
+    "proven": true,
+    "target_integrity": "PASS",
+    "run_owned_temp_removed": true
+  },
+  "external_cost": 0
+}

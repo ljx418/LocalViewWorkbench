@@ -1,0 +1,176 @@
+{
+  "schema_version": "lvw.implementation-receipt/1",
+  "project_id": "lvw-prompt-service",
+  "stage_id": "V0-S1",
+  "workpack_id": "WP-S1-03",
+  "spec_version": "1.0.0",
+  "authorization_id": "AUTH-V0-S1-2026-10-28-04",
+  "authorization_commit": "ceb625f4122279004d640d0f116f5bba2ddb120e",
+  "authorization_record_sha256": "f357ba3c65e0eab028fa9e1166458bb23f97006a7f6079c8e8dd01155a7b10c9",
+  "authorization_request_sha256": "8bd72776c0c5000b37a6fddbc1322b462b2dc3c24ea0e5f03c9e5d9126739d97",
+  "candidate_sha": "b248b373d323bbfa546df78c9355e7e30a2ec24c",
+  "candidate_sha_status": "SEALED_EXECUTION_CANDIDATE",
+  "harness_sha256": "bcdb1345d1e7d416fa70815117161c36347b640a903b7c459e80cc5117ba1b6b",
+  "evidence_commit": "0000000000000000000000000000000000000000",
+  "evidence_commit_status": "PENDING_ROOT_SEALING",
+  "acceptance_hash": "4b52485dbaa7daeccb31b5c91771b51f8106ab6e49267328990ad4da3b5f85c5",
+  "acceptance_hash_binding": {
+    "algorithm": "sha256",
+    "target": "sorted fixed acceptance IDs V0-A01,V0-A03,V0-A04,V0-A05,V0-A08 joined by LF with a trailing LF"
+  },
+  "gate_version": "lvw-gate/1",
+  "run_id": "v0-s1-wp-s1-03-live-04",
+  "implementation_owner_role": "codex_isolated_implementer",
+  "implementation_session": "/root/s0_rerun_implementer",
+  "decision": "NO_GO",
+  "stage_pass_claim": false,
+  "authorization_status": "EXPIRED_TERMINAL",
+  "exact_stop_reason": "GPU_PREFLIGHT_USED_MEMORY_EXCEEDED",
+  "command_exit_code": 2,
+  "rerun_count": 0,
+  "attempts": {
+    "effective_image_attempts": 0,
+    "model_calls": 0
+  },
+  "service_starts": {
+    "ollama": 0,
+    "comfyui": 0
+  },
+  "public_api_submissions": 0,
+  "production_path_status": "NOT_REACHED_PRE_SERVICE_GPU_GATE",
+  "environment": {
+    "mode": "one_shot_authorized_local_live",
+    "target_paths": "AUTHORIZED_AKI_V2_ALIASES_ONLY",
+    "sample": "TEST_SOURCE/image-sample",
+    "sample_sha256": "b4bbd08a0fad67cc04e55d15bf2c48e9a76dcfd6dda147d8cc504452dfc78a42",
+    "cloud_or_paid_calls": 0,
+    "downloads_or_upgrades": 0,
+    "visible_browser_runs": 0,
+    "external_cost": 0
+  },
+  "check_results": [
+    {
+      "check": "single_authorized_command",
+      "status": "EXECUTED_ONCE_EXIT_2_NO_RERUN",
+      "evidence": "reports/v0-s1/wp-s1-03-live-04/run-summary.json"
+    },
+    {
+      "check": "candidate_and_harness_identity",
+      "status": "PASS",
+      "evidence": "reports/v0-s1/wp-s1-03-live-04/run-summary.json#evidence.identity"
+    },
+    {
+      "check": "pre_service_gpu_used_memory_gate",
+      "status": "FAIL_GPU_PREFLIGHT_USED_MEMORY_EXCEEDED",
+      "evidence": "reports/v0-s1/wp-s1-03-live-04/run-summary.json#evidence.failure",
+      "exact_measurement": "NOT_PERSISTED_BY_HARNESS"
+    },
+    {
+      "check": "process_and_port_preflight_completion",
+      "status": "NOT_REACHED_AFTER_GPU_GATE_STOP"
+    },
+    {
+      "check": "loopback_no_cloud_gate",
+      "status": "NOT_REACHED_ZERO_SERVICE_STARTS"
+    },
+    {
+      "check": "exact_local_model_identity",
+      "status": "NOT_REACHED_ZERO_SERVICE_STARTS"
+    },
+    {
+      "check": "public_comfy_prompt_history_route",
+      "status": "NOT_REACHED_ZERO_EFFECTIVE_ATTEMPTS"
+    },
+    {
+      "check": "per_call_model_cleanup",
+      "status": "NOT_APPLICABLE_ZERO_MODEL_CALLS"
+    },
+    {
+      "check": "owned_cleanup_and_target_integrity",
+      "status": "PASS",
+      "evidence": "reports/v0-s1/wp-s1-03-live-04/run-summary.json#cleanup"
+    },
+    {
+      "check": "post_terminal_owned_resource_absence",
+      "status": "PASS_READ_ONLY_RECHECK"
+    },
+    {
+      "check": "fixed_product_acceptance",
+      "status": "NOT_RUN"
+    }
+  ],
+  "resource_observations": {
+    "preflight_limit_mib": 4096,
+    "preflight_used_memory": "EXCEEDED_LIMIT_EXACT_VALUE_NOT_PERSISTED",
+    "service_runtime_resource_sampling": "NOT_REACHED"
+  },
+  "network_observations": {
+    "no_cloud_gate": "NOT_REACHED_ZERO_SERVICE_STARTS",
+    "remote_tcp_sampling": "NOT_REACHED_ZERO_SERVICE_STARTS"
+  },
+  "cleanup": {
+    "in_run_proven": true,
+    "owned_count": 0,
+    "failures": [],
+    "final_target_listener_count": 0,
+    "run_owned_temp_removed": true,
+    "target_integrity_comparison": "PASS",
+    "post_terminal_listener_count": 0,
+    "post_terminal_target_process_match_count": 0,
+    "post_terminal_run_temp_residual_count": 0,
+    "proven": true
+  },
+  "changed_files": [
+    "reports/v0-s1/wp-s1-03-live-04/run-summary.json",
+    "reports/v0-s1/wp-s1-03-live-04/artifact-manifest.json",
+    "reports/v0-s1/implementation-receipt-wp-s1-03-live-04.json"
+  ],
+  "contract_changes": "none",
+  "target_configuration_changes": "none",
+  "commands": [
+    {
+      "logical_command": "AUTHORIZED_WP_S1_03_LIVE_04_ONE_SHOT_COMMAND",
+      "exit_code": 2,
+      "result": "NO_GO: GPU_PREFLIGHT_USED_MEMORY_EXCEEDED; invoked exactly once and not retried"
+    },
+    {
+      "logical_command": "offline SHA-256 artifact-manifest validation",
+      "exit_code": 0,
+      "result": "PASS; run-summary hash matches the harness-generated manifest"
+    },
+    {
+      "logical_command": "read-only Windows target listener/process and run-temp residual postcheck",
+      "exit_code": 0,
+      "result": "PASS; zero listeners on 8191/11434, zero matching Ollama/ComfyUI processes, zero run-owned temporary directories"
+    }
+  ],
+  "test_counts": {
+    "denominator": 5,
+    "pass": 0,
+    "fail": 0,
+    "blocked": 0,
+    "skipped": 0,
+    "not_run": 5
+  },
+  "product_acceptance": {
+    "V0-A01": "NOT_RUN",
+    "V0-A03": "NOT_RUN",
+    "V0-A04": "NOT_RUN",
+    "V0-A05": "NOT_RUN",
+    "V0-A08": "NOT_RUN"
+  },
+  "artifact_refs": [
+    "reports/v0-s1/wp-s1-03-live-04/run-summary.json",
+    "reports/v0-s1/wp-s1-03-live-04/artifact-manifest.json"
+  ],
+  "raw_artifact_refs": [
+    "reports/v0-s1/wp-s1-03-live-04/run-summary.json"
+  ],
+  "risks": [
+    "The pre-service GPU used-memory gate failed before any service start or effective image attempt; the public production path and semantic Oracle remain unexecuted.",
+    "The harness persisted only the stable GPU gate failure code, not the exact used-memory measurement; no numeric value is inferred in this receipt.",
+    "All five fixed product acceptance cases remain NOT_RUN, and this receipt is not a Stage PASS.",
+    "The one-shot authorization is terminal and expired; this run must not be retried under the same authorization.",
+    "The evidence commit field remains pending because a Git commit cannot self-reference its own final object ID; root sealing may bind it after this implementation commit."
+  ]
+}
