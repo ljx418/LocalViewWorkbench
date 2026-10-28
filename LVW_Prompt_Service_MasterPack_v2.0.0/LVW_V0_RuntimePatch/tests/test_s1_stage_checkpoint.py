@@ -1,7 +1,10 @@
 import argparse
 import copy
+from contextlib import redirect_stdout
+import errno
 import importlib.util
 from hashlib import sha256
+import io
 import json
 from pathlib import Path
 import tempfile
@@ -131,28 +134,54 @@ class StageCheckpointTests(unittest.TestCase):
                 harness_candidate="a"*40,harness_sha256="b"*64,authorization_id="AUTH-FUTURE",
                 lifecycle_sha256="c"*64,authorization_commit="c"*40,
                 comfy_main=checkpoint.AUTHORIZED_COMFY_MAIN,comfy_python=checkpoint.AUTHORIZED_COMFY_PYTHON,
-                ollama_exe=checkpoint.AUTHORIZED_OLLAMA_EXE,powershell=checkpoint.AUTHORIZED_POWERSHELL,
+                ollama_exe="IN_MEMORY_OLLAMA_PATH",powershell=checkpoint.AUTHORIZED_POWERSHELL,
                 temp_parent=checkpoint.AUTHORIZED_TEMP_PARENT,comfy_url=checkpoint.AUTHORIZED_COMFY_URL,
                 ollama_url=checkpoint.AUTHORIZED_OLLAMA_URL)
             mutated=json.loads(request.read_text()); mutated["budget"]["model_calls"]=2
             request.write_text(json.dumps(mutated),encoding="utf-8")
             args.request_sha256=sha256(request.read_bytes()).hexdigest()
-            with self.assertRaises(checkpoint.CheckpointError) as raised:
+            with mock.patch.object(checkpoint,"validate_ollama_executable",return_value={
+                    "alias":"OLLAMA_EXE","basename":"ollama.exe","sha256":checkpoint.AUTHORIZED_OLLAMA_EXE_SHA256}), \
+                    self.assertRaises(checkpoint.CheckpointError) as raised:
                 checkpoint.validate_authority(args,PACK_ROOT)
             self.assertEqual("AUTHORITY_BINDING_MISMATCH",raised.exception.code)
 
     def test_target_argument_drift_is_rejected_without_loading_lifecycle(self):
-        values=dict(comfy_main=checkpoint.AUTHORIZED_COMFY_MAIN,comfy_python=checkpoint.AUTHORIZED_COMFY_PYTHON,
-            ollama_exe=checkpoint.AUTHORIZED_OLLAMA_EXE,powershell=checkpoint.AUTHORIZED_POWERSHELL,
-            temp_parent=checkpoint.AUTHORIZED_TEMP_PARENT,comfy_url=checkpoint.AUTHORIZED_COMFY_URL,
-            ollama_url=checkpoint.AUTHORIZED_OLLAMA_URL)
-        checkpoint.validate_target_args(argparse.Namespace(**values))
-        for key,bad in (("ollama_exe","C:/other/ollama.exe"),("powershell","pwsh.exe"),
-                        ("temp_parent","C:/OtherTemp"),("comfy_url","http://127.0.0.1:8192")):
-            broken=dict(values); broken[key]=bad
-            with self.subTest(key=key),self.assertRaises(checkpoint.CheckpointError) as raised:
-                checkpoint.validate_target_args(argparse.Namespace(**broken))
-            self.assertEqual("AUTHORIZED_TARGET_ARGUMENT_MISMATCH",raised.exception.code)
+        with tempfile.TemporaryDirectory(dir=PACK_ROOT/"reports/v0-s1") as temp:
+            temp=Path(temp); valid=temp/"ollama.exe"; valid.write_bytes(b"fixture")
+            values=dict(comfy_main=checkpoint.AUTHORIZED_COMFY_MAIN,comfy_python=checkpoint.AUTHORIZED_COMFY_PYTHON,
+                ollama_exe=str(valid),powershell=checkpoint.AUTHORIZED_POWERSHELL,
+                temp_parent=checkpoint.AUTHORIZED_TEMP_PARENT,comfy_url=checkpoint.AUTHORIZED_COMFY_URL,
+                ollama_url=checkpoint.AUTHORIZED_OLLAMA_URL)
+            with mock.patch.object(checkpoint,"file_sha256",return_value=checkpoint.AUTHORIZED_OLLAMA_EXE_SHA256):
+                identity=checkpoint.validate_target_args(argparse.Namespace(**values))
+            self.assertEqual("OLLAMA_EXE",identity["alias"])
+            for key,bad in (("powershell","pwsh.exe"),("temp_parent","C:/OtherTemp"),
+                            ("comfy_url","http://127.0.0.1:8192")):
+                broken=dict(values); broken[key]=bad
+                with self.subTest(key=key),self.assertRaises(checkpoint.CheckpointError) as raised:
+                    checkpoint.validate_target_args(argparse.Namespace(**broken))
+                self.assertEqual("AUTHORIZED_TARGET_ARGUMENT_MISMATCH",raised.exception.code)
+
+    def test_ollama_binary_wrong_basename_hash_and_symlink_fail_closed(self):
+        with tempfile.TemporaryDirectory(dir=PACK_ROOT/"reports/v0-s1") as temp:
+            temp=Path(temp); wrong_name=temp/"other.exe"; wrong_name.write_bytes(b"fixture")
+            with self.assertRaises(checkpoint.CheckpointError): checkpoint.validate_ollama_executable(str(wrong_name))
+            wrong_hash=temp/"ollama.exe"; wrong_hash.write_bytes(b"wrong")
+            with self.assertRaises(checkpoint.CheckpointError) as raised:
+                checkpoint.validate_ollama_executable(str(wrong_hash))
+            self.assertEqual("AUTHORIZED_OLLAMA_EXECUTABLE_HASH_MISMATCH",raised.exception.code)
+            link=temp/"linked"; link.mkdir(); target=link/"target.exe"; target.write_bytes(b"fixture")
+            symlink=temp/"ollama-link.exe"
+            try: symlink.symlink_to(target)
+            except OSError as exc:
+                if not (isinstance(exc,PermissionError) or getattr(exc,"winerror",None)==1314
+                        or exc.errno in {errno.EPERM,errno.EACCES}):
+                    raise
+                self.skipTest(f"symlink unavailable: {exc}")
+            with self.assertRaises(checkpoint.CheckpointError) as raised:
+                checkpoint.validate_ollama_executable(str(symlink))
+            self.assertEqual("AUTHORIZED_OLLAMA_EXECUTABLE_INVALID",raised.exception.code)
 
     def test_fake_public_lifecycle_generates_all_machine_facts_once(self):
         with tempfile.TemporaryDirectory() as temp:
@@ -303,7 +332,9 @@ class StageCheckpointTests(unittest.TestCase):
         return {"schema_version":"lvw.s1-stage-checkpoint-live/1","acceptance_hash":checkpoint.ACCEPTANCE_HASH,
             "run_id":checkpoint.AUTHORIZED_RUN_ID,"bindings":{"run_id":checkpoint.AUTHORIZED_RUN_ID,
             "evidence_relative":checkpoint.AUTHORIZED_EVIDENCE_RELATIVE,
-            "target_bindings_sha256":checkpoint.value_hash(checkpoint.target_bindings())},"authorization_status":"EXPIRED_TERMINAL",
+            "target_bindings_sha256":checkpoint.value_hash(checkpoint.target_bindings()),
+            "ollama_executable_identity":{"alias":"OLLAMA_EXE","basename":"ollama.exe",
+                "sha256":checkpoint.AUTHORIZED_OLLAMA_EXE_SHA256}},"authorization_status":"EXPIRED_TERMINAL",
             "identity":{"product_candidate":checkpoint.PRODUCT_CANDIDATE,"product_artifact_sha256":{"x":"y"},
                         "harness_candidate":"a"*40,"harness_sha256":harness_hash,
                         "lifecycle_relative":checkpoint.LIFECYCLE_RELATIVE,"lifecycle_sha256":lifecycle_hash},
@@ -353,6 +384,7 @@ class StageCheckpointTests(unittest.TestCase):
             lambda x:x["authority"].update(request_sha256="0"*64),
             lambda x:x["observed"].update(model_calls=2),
             lambda x:x["bindings"].update(run_id="reused"),
+            lambda x:x["bindings"]["ollama_executable_identity"].update(sha256="0"*64),
             lambda x:x["preflight"].update(target_listener_count=1),
             lambda x:x["owned_listener_lineage"]["11434"].update(lineage_proven=False),
             lambda x:x["image_runtime_guard"].update(max_gpu_used_mib=23552),
@@ -406,6 +438,33 @@ class StageCheckpointTests(unittest.TestCase):
         value=self.valid_summary(); value["private"]="/"+"mnt/c/private/sample.jpg"
         with self.assertRaises(checkpoint.CheckpointError) as raised: self.verify(value)
         self.assertEqual("CASE_PRIVACY_VIOLATION",raised.exception.code)
+
+    def test_current_harness_receipt_plan_and_selfcheck_have_no_private_user_path(self):
+        receipt=PACK_ROOT/"reports/v0-s1/implementation-receipt-stage-checkpoint-offline.json"
+        buffer=io.StringIO()
+        with redirect_stdout(buffer): self.assertEqual(0,checkpoint.main(["--plan","--repo",str(PACK_ROOT)]))
+        plan=buffer.getvalue(); buffer=io.StringIO()
+        with redirect_stdout(buffer): self.assertEqual(0,checkpoint.main(["--self-check","--repo",str(PACK_ROOT)]))
+        selfcheck=buffer.getvalue()
+        for name,text in (("harness",HARNESS.read_text(encoding="utf-8")),
+                          ("receipt",receipt.read_text(encoding="utf-8")),("plan",plan),("selfcheck",selfcheck)):
+            lowered=text.lower()
+            with self.subTest(name=name):
+                self.assertNotIn("c:/users",lowered); self.assertNotIn("/users/",lowered)
+                self.assertNotIn("/mnt/c/users",lowered)
+        bindings=checkpoint.target_bindings()
+        self.assertEqual({"OLLAMA_EXE","ollama.exe",checkpoint.AUTHORIZED_OLLAMA_EXE_SHA256},
+            {bindings["ollama_exe_alias"],bindings["ollama_exe_basename"],bindings["ollama_exe_sha256"]})
+        self.assertNotIn("ollama_exe",bindings)
+        fixture=self.valid_summary()
+        for key in ("_fixture_request","_fixture_authorization"):
+            document=json.loads(fixture[key]); serialized=fixture[key].lower()
+            self.assertNotIn("c:/users",serialized); self.assertNotIn("/users/",serialized)
+            self.assertNotIn("/mnt/c/users",serialized)
+            self.assertNotIn("ollama_exe",document["target_bindings"])
+            self.assertEqual("OLLAMA_EXE",document["target_bindings"]["ollama_exe_alias"])
+            self.assertEqual(checkpoint.AUTHORIZED_OLLAMA_EXE_SHA256,
+                             document["target_bindings"]["ollama_exe_sha256"])
 
 
 if __name__=="__main__": unittest.main()

@@ -36,7 +36,9 @@ AUTHORIZED_MODEL_DIGEST = "5571076f3d70050487b26b341705799e0ab29b808164f90d20d4c
 LIFECYCLE_RELATIVE = "reports/v0-s1/wp-s1-03-phase-a/live_probe.py"
 AUTHORIZED_COMFY_MAIN = "C:/ComfyUI-aki-v2/ComfyUI/main.py"
 AUTHORIZED_COMFY_PYTHON = "C:/ComfyUI-aki-v2/python/python.exe"
-AUTHORIZED_OLLAMA_EXE = "C:/Users/administrator/AppData/Local/Programs/Ollama/ollama.exe"
+AUTHORIZED_OLLAMA_EXE_ALIAS = "OLLAMA_EXE"
+AUTHORIZED_OLLAMA_EXE_BASENAME = "ollama.exe"
+AUTHORIZED_OLLAMA_EXE_SHA256 = "d15adaa9cc617da2c44142f36a36de19c76887ec342e4338f37e67fd730a1ced"
 AUTHORIZED_POWERSHELL = "powershell.exe"
 AUTHORIZED_TEMP_PARENT = "C:/Temp"
 AUTHORIZED_COMFY_URL = "http://127.0.0.1:8191"
@@ -400,7 +402,9 @@ def target_bindings() -> dict:
     return {
         "comfy_main": AUTHORIZED_COMFY_MAIN,
         "comfy_python": AUTHORIZED_COMFY_PYTHON,
-        "ollama_exe": AUTHORIZED_OLLAMA_EXE,
+        "ollama_exe_alias": AUTHORIZED_OLLAMA_EXE_ALIAS,
+        "ollama_exe_basename": AUTHORIZED_OLLAMA_EXE_BASENAME,
+        "ollama_exe_sha256": AUTHORIZED_OLLAMA_EXE_SHA256,
         "powershell": AUTHORIZED_POWERSHELL,
         "temp_parent": AUTHORIZED_TEMP_PARENT,
         "comfy_url": AUTHORIZED_COMFY_URL,
@@ -424,20 +428,47 @@ def _commit_blob(repo: Path, commit: str, relative: str) -> bytes:
     return process.stdout
 
 
-def validate_target_args(args) -> None:
+def file_sha256(path: Path) -> str:
+    digest=sha256()
+    with path.open("rb") as stream:
+        for chunk in iter(lambda:stream.read(1024*1024),b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def validate_ollama_executable(value: str) -> dict:
+    supplied=Path(value)
+    if supplied.is_symlink():
+        raise CheckpointError("AUTHORIZED_OLLAMA_EXECUTABLE_INVALID","symlink")
+    try:
+        resolved=supplied.resolve(strict=True)
+    except OSError as exc:
+        raise CheckpointError("AUTHORIZED_OLLAMA_EXECUTABLE_INVALID","missing") from exc
+    if (not resolved.is_file() or resolved.is_symlink()
+            or not resolved.as_posix().casefold().startswith("/mnt/c/")
+            or resolved.name.casefold()!=AUTHORIZED_OLLAMA_EXE_BASENAME):
+        raise CheckpointError("AUTHORIZED_OLLAMA_EXECUTABLE_INVALID","type/mount/basename")
+    digest=file_sha256(resolved)
+    if digest!=AUTHORIZED_OLLAMA_EXE_SHA256:
+        raise CheckpointError("AUTHORIZED_OLLAMA_EXECUTABLE_HASH_MISMATCH",AUTHORIZED_OLLAMA_EXE_ALIAS)
+    return {"alias":AUTHORIZED_OLLAMA_EXE_ALIAS,"basename":AUTHORIZED_OLLAMA_EXE_BASENAME,
+            "sha256":digest}
+
+
+def validate_target_args(args) -> dict:
     actual = {
         "comfy_main": normalized_windows_path(args.comfy_main),
         "comfy_python": normalized_windows_path(args.comfy_python),
-        "ollama_exe": normalized_windows_path(args.ollama_exe),
         "powershell": args.powershell,
         "temp_parent": normalized_windows_path(args.temp_parent),
         "comfy_url": args.comfy_url,
         "ollama_url": args.ollama_url,
     }
-    expected = target_bindings()
+    expected = {key:value for key,value in target_bindings().items() if not key.startswith("ollama_exe_")}
     for key, value in expected.items():
         if not isinstance(actual.get(key), str) or actual[key].casefold() != value.casefold():
             raise CheckpointError("AUTHORIZED_TARGET_ARGUMENT_MISMATCH", key)
+    return validate_ollama_executable(args.ollama_exe)
 
 
 def validate_authority_documents(request: dict, authorization: dict, *, expected: dict,
@@ -557,7 +588,7 @@ def validate_live_paths(args, repo: Path, *, reserve: bool) -> dict:
     expected = repo / AUTHORIZED_EVIDENCE_RELATIVE
     if evidence.resolve(strict=False) != expected or args.run_id != AUTHORIZED_RUN_ID:
         raise CheckpointError("RUN_OR_EVIDENCE_BINDING_MISMATCH", "run/evidence")
-    validate_target_args(args)
+    ollama_identity=validate_target_args(args)
     temp_parent = Path(args.temp_parent)
     resolved = temp_parent.resolve(strict=True)
     if (not temp_parent.is_dir() or temp_parent.is_symlink() or repo == resolved
@@ -572,6 +603,7 @@ def validate_live_paths(args, repo: Path, *, reserve: bool) -> dict:
         raise CheckpointError("EVIDENCE_ROOT_NOT_RESERVED", evidence.name)
     return {"run_id": AUTHORIZED_RUN_ID, "evidence_relative": AUTHORIZED_EVIDENCE_RELATIVE,
             "target_bindings_sha256": value_hash(target_bindings()),
+            "ollama_executable_identity": ollama_identity,
             "target_aliases": ["COMFY_ROOT/main.py", "COMFY_PYTHON", "OLLAMA_EXE", "RUN_TEMP_PARENT"]}
 
 
@@ -868,6 +900,9 @@ def execute_live(args, *, driver_factory=CheckpointDriver) -> tuple[int, dict]:
         if base is not None:
             service_logs = {}
             aliases = {str(base): "RUN_TEMP", str(repo): "REPO", str(Path(args.sample).resolve()): "TEST_SOURCE/image-sample"}
+            aliases.update({str(args.ollama_exe):AUTHORIZED_OLLAMA_EXE_ALIAS,
+                str(Path(args.ollama_exe).resolve()):AUTHORIZED_OLLAMA_EXE_ALIAS,
+                normalized_windows_path(args.ollama_exe):AUTHORIZED_OLLAMA_EXE_ALIAS})
             for name in ("ollama.log", "comfy.log"):
                 path = base / name
                 if path.exists():
@@ -951,6 +986,10 @@ def verify_machine_facts(summary: dict, repo: Path) -> dict:
         request_hash=authority.get("request_sha256",""),authorization_id=authority.get("authorization_id",""))
     if summary.get("bindings",{}).get("target_bindings_sha256")!=value_hash(target_bindings()):
         raise CheckpointError("MACHINE_SUMMARY_BINDING_INVALID","targets")
+    if summary.get("bindings",{}).get("ollama_executable_identity")!={
+            "alias":AUTHORIZED_OLLAMA_EXE_ALIAS,"basename":AUTHORIZED_OLLAMA_EXE_BASENAME,
+            "sha256":AUTHORIZED_OLLAMA_EXE_SHA256}:
+        raise CheckpointError("MACHINE_SUMMARY_BINDING_INVALID","ollama executable identity")
     if summary.get("budget") != ONE_SHOT_BUDGET or summary.get("observed") != {
         "image_attempts": 1, "model_calls": 1, "comfy_starts": 1, "ollama_starts": 1,
         "public_submissions": PLANNED_PUBLIC_SUBMISSIONS}:
@@ -1227,7 +1266,10 @@ def main(argv=None) -> int:
             aliases = {str(repo): "REPO", str(Path(args.sample).resolve()): "TEST_SOURCE/image-sample",
                        str(Path(args.temp_parent).resolve()): "RUN_TEMP_PARENT",
                        str(Path(args.comfy_main)): "COMFY_ROOT/main.py",
-                       str(Path(args.comfy_python)): "COMFY_PYTHON", str(Path(args.ollama_exe)): "OLLAMA_EXE"}
+                       str(Path(args.comfy_python)): "COMFY_PYTHON",
+                       str(args.ollama_exe): AUTHORIZED_OLLAMA_EXE_ALIAS,
+                       str(Path(args.ollama_exe).resolve()): AUTHORIZED_OLLAMA_EXE_ALIAS,
+                       normalized_windows_path(args.ollama_exe): AUTHORIZED_OLLAMA_EXE_ALIAS}
             sanitized = lifecycle.redact_value(result, aliases)
             root = Path(args.evidence_root)
             summary_path = root / "run-summary.json"

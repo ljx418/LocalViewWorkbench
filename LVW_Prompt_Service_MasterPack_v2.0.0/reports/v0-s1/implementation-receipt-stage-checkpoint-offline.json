@@ -45,11 +45,11 @@
   "artifact_sha256": [
     {
       "path": "LVW_V0_RuntimePatch/tests/test_s1_stage_checkpoint.py",
-      "sha256": "0000184f21c6a8cc459226b62d741da6f801a4a84f485f0f88384de1ef3e2088"
+      "sha256": "1ed28795d1c85e13774ce1b6ab58281a2b5b2d1d8d81ce4105080d6af8dda6eb"
     },
     {
       "path": "reports/v0-s1/stage-checkpoint-phase-a/checkpoint.py",
-      "sha256": "4e30a250295f2a07c1713d8bbe272ded5395521fb9ab10abe6a41edb55b34d5a"
+      "sha256": "9b1b4ec4d585fabd3b041b992aeccd59a064f26a9cf93c08cf97ea62b90cdb41"
     }
   ],
   "contract_changes": "none",
@@ -77,12 +77,15 @@
     "exact_future_target_bindings": {
       "comfy_main": "C:/ComfyUI-aki-v2/ComfyUI/main.py",
       "comfy_python": "C:/ComfyUI-aki-v2/python/python.exe",
-      "ollama_exe": "C:/Users/administrator/AppData/Local/Programs/Ollama/ollama.exe",
+      "ollama_exe_alias": "OLLAMA_EXE",
+      "ollama_exe_basename": "ollama.exe",
+      "ollama_exe_sha256": "d15adaa9cc617da2c44142f36a36de19c76887ec342e4338f37e67fd730a1ced",
       "powershell": "powershell.exe",
       "temp_parent": "C:/Temp",
       "comfy_url": "http://127.0.0.1:8191",
       "ollama_url": "http://127.0.0.1:11434"
     },
+    "ollama_path_privacy": "the supplied CLI path exists only in memory; preflight requires a regular non-symlink file under the Windows mount with exact basename and digest, and serialization uses OLLAMA_EXE",
     "single_run_route": [
       "one public image graph: LVWControlledImageInput -> LVWImagePromptBridge plus public metadata output",
       "three A03 public LVWManualPromptOwner submissions for preview JSON, export JSON and export TXT",
@@ -122,7 +125,7 @@
     {
       "logical_command": "PYTHONDONTWRITEBYTECODE=1 python3 -B -m unittest -v LVW_V0_RuntimePatch.tests.test_s1_stage_checkpoint",
       "exit_code": 0,
-      "tests_run": 8,
+      "tests_run": 10,
       "result": "OK; fake public lifecycle and deterministic machine-fact mutations only"
     },
     {
@@ -138,7 +141,7 @@
     {
       "logical_command": "PYTHONDONTWRITEBYTECODE=1 python3 -B -m unittest discover -s LVW_V0_RuntimePatch/tests -p test_*.py",
       "exit_code": 0,
-      "tests_run": 95,
+      "tests_run": 97,
       "result": "OK"
     },
     {
@@ -172,8 +175,8 @@
     {"check": "fixed_five_product_denominator", "status": "NOT_RUN_WAIT_AUTH"}
   ],
   "offline_test_counts": {
-    "checkpoint_focused": {"pass": 8, "fail": 0, "total": 8},
-    "repository_combined": {"pass": 95, "fail": 0, "total": 95}
+    "checkpoint_focused": {"pass": 10, "fail": 0, "total": 10},
+    "repository_combined": {"pass": 97, "fail": 0, "total": 97}
   },
   "test_counts": {"denominator": 5, "pass": 0, "fail": 0, "blocked": 0, "skipped": 0, "not_run": 5},
   "product_acceptance": {
