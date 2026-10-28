@@ -8,7 +8,7 @@
 
 产品规格仍由本README、`docs/`、`contracts/`和`plans/`定义；[Agent Governance](.agent-governance/README.md)在其上增加角色隔离、Stage Packet、Workpack、候选/证据绑定、预算等待和反假绿门禁。唯一当前坐标为[execution-control.json](plans/execution-control.json)。
 
-当前是`V0-S1 / WP-S1-04 / GATE5_INDEPENDENT_EXIT / CHECKPOINT`：live-06 已且仅已执行一次并以 exit 0 / `READY_FOR_REVIEW` 完成；7 个执行产物、状态转移、目标指纹和 owned 清理终态均已封存。授权已过期，现等待全新独立复算，五项产品验收仍为`NOT_RUN`，尚未产生 Stage PASS。
+当前是`V0-S1 / WP-S1-04 / GATE5_INDEPENDENT_EXIT / CHECKPOINT`，正式门禁裁决为`WAIT_AUTH`：live-06 独立复审为 Fatal 0 / Major 0 / Minor 0，旧证据缺陷均已闭合；但冻结的五项产品验收仍全部为`NOT_RUN`，因此 root 未判 Stage PASS。当前先离线准备完整固定分母 checkpoint harness；任何后续目标运行都需新的逐次授权。
 
 ## 一套文档，不再多条互斥路线
 

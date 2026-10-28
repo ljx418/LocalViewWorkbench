@@ -11,26 +11,26 @@
     "state": "CHECKPOINT"
   },
   "last_passed_gate": {
-    "id": "WP_S1_04_EVIDENCE_RECOMPUTABILITY_CORRECTION_SEALED",
-    "evidence": "reports/v0-s1/wp-s1-04-evidence-recomputability-correction-seal.json",
-    "meaning": "all three Major and one Minor review findings corrected with seven execution artifacts bound and 87 offline tests on candidate 1d48142"
+    "id": "WP_S1_04_LIVE_06_INDEPENDENT_REVIEW_ACCEPTED",
+    "evidence": "reports/v0-s1/independent-review-wp-s1-04-live-06.md",
+    "meaning": "Fatal 0 Major 0 Minor 0 closes the prior evidence defects; this does not execute the five-case product denominator"
   },
-  "current_blocking_gate": "fresh independent review must recompute all prior Major findings against live-06 evidence before Stage decision",
+  "current_blocking_gate": "the frozen V0-A01/V0-A03/V0-A04/V0-A05/V0-A08 denominator remains NOT_RUN and requires a newly sealed checkpoint harness plus one-shot authorization",
   "stage_packet": ".agent-governance/stages/V0-S1/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/V0-S1/PAYLOAD_MANIFEST.sha256",
   "product_status": "NOT_RUN",
-  "allowed_claim": "V0_S1_LIVE_06_READY_FOR_FRESH_INDEPENDENT_REVIEW_PRODUCT_CASES_NOT_RUN",
+  "allowed_claim": "WP_S1_04_LIVE_06_EVIDENCE_ACCEPTED_S1_FIXED_DENOMINATOR_NOT_RUN",
   "forbidden_claims": [
     "ENGINEERING_READY",
     "V0_ACCEPTED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "codex_isolated_reviewer",
-  "next_action": "Perform fresh read-only WP-S1-04 review of candidate 1d48142 and evidence e45df30; no external rerun.",
-  "required_authorization": "INDEPENDENT_REVIEW_NO_EXTERNAL_RERUN",
+  "next_owner": "codex_isolated_implementer",
+  "next_action": "Prepare and test an offline-only complete five-case Stage checkpoint harness; root seals it before creating any new one-shot target authorization request.",
+  "required_authorization": "NONE_FOR_OFFLINE_PREPARATION_NEW_EXPLICIT_ONE_SHOT_AUTH_FOR_TARGET_CHECKPOINT",
   "authorization_request": "reports/v0-s1/authorization-wp-s1-03-06.request.json",
-  "authorization_request": "reports/v0-s1/authorization-wp-s1-03-05.request.json",
   "authorization_record": "reports/v0-s1/authorization-wp-s1-03-06.json",
   "evidence_root": "reports/",
-  "exact_stop_reason": "WAIT_FRESH_INDEPENDENT_WP_S1_04_REVIEW"
+  "gate_decision": "reports/v0-s1/gate-decision-wp-s1-04-live-06.md",
+  "exact_stop_reason": "WAIT_AUTH_S1_FIXED_DENOMINATOR_NOT_RUN"
 }
