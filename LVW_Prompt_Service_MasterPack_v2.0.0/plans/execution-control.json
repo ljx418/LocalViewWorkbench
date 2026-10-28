@@ -6,30 +6,31 @@
   "target_version": "V0",
   "coordinate": {
     "stage_id": "V0-S1",
-    "workpack_id": "WP-S1-04",
-    "gate": "GATE5_INDEPENDENT_EXIT",
-    "state": "NO_GO"
+    "workpack_id": "WP-S1-03",
+    "gate": "GATE4_REAL_ACCEPTANCE",
+    "state": "WAIT_AUTH"
   },
   "last_passed_gate": {
-    "id": "WP_S1_03_GPU_EVIDENCE_CORRECTION_SEALED",
-    "evidence": "reports/v0-s1/wp-s1-03-gpu-evidence-correction-seal.json",
-    "meaning": "GPU stop now persists minimized aggregate values without changing 4096 MiB threshold; fresh live-05 slot passed 80 offline tests on candidate 919f7fc"
+    "id": "WP_S1_04_EVIDENCE_RECOMPUTABILITY_CORRECTION_SEALED",
+    "evidence": "reports/v0-s1/wp-s1-04-evidence-recomputability-correction-seal.json",
+    "meaning": "all three Major and one Minor review findings corrected with seven execution artifacts bound and 87 offline tests on candidate 1d48142"
   },
-  "current_blocking_gate": "independent review found three Major evidence gaps: executed owner/workflow blob binding, recomputable live state transitions, and recomputable target/owned-cleanup terminal substates",
+  "current_blocking_gate": "project-owner approval of hash-bound AUTH-REQUEST-V0-S1-WP-S1-03-06 is required before a fresh live run",
   "stage_packet": ".agent-governance/stages/V0-S1/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/V0-S1/PAYLOAD_MANIFEST.sha256",
   "product_status": "NOT_RUN",
-  "allowed_claim": "V0_S1_WP_S1_04_INDEPENDENT_REVIEW_NO_GO_FATAL0_MAJOR3_MINOR1_PRODUCT_CASES_NOT_RUN",
+  "allowed_claim": "V0_S1_INDEPENDENT_FINDINGS_CORRECTED_OFFLINE_WAIT_AUTH_LIVE_06_PRODUCT_CASES_NOT_RUN",
   "forbidden_claims": [
     "ENGINEERING_READY",
     "V0_ACCEPTED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "codex_isolated_implementer",
-  "next_action": "Implement one offline correction package for M-01/M-02/M-03 and m-01, add negative tests, seal a new candidate, then request fresh live authorization.",
-  "required_authorization": "OFFLINE_CORRECTION_ONLY_THEN_NEW_EXPLICIT_LIVE_AUTHORIZATION",
+  "next_owner": "project_owner",
+  "next_action": "Review and explicitly approve or reject AUTH-REQUEST-V0-S1-WP-S1-03-06; no live action is permitted before approval.",
+  "required_authorization": "AUTH-REQUEST-V0-S1-WP-S1-03-06",
+  "authorization_request": "reports/v0-s1/authorization-wp-s1-03-06.request.json",
   "authorization_request": "reports/v0-s1/authorization-wp-s1-03-05.request.json",
   "authorization_record": "reports/v0-s1/authorization-wp-s1-03-05.json",
   "evidence_root": "reports/",
-  "exact_stop_reason": "INDEPENDENT_REVIEW_NO_GO_FATAL0_MAJOR3_MINOR1"
+  "exact_stop_reason": "WAIT_NEW_EXPLICIT_LIVE_06_AUTHORIZATION"
 }

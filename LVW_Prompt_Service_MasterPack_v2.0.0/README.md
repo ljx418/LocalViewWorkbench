@@ -8,7 +8,7 @@
 
 产品规格仍由本README、`docs/`、`contracts/`和`plans/`定义；[Agent Governance](.agent-governance/README.md)在其上增加角色隔离、Stage Packet、Workpack、候选/证据绑定、预算等待和反假绿门禁。唯一当前坐标为[execution-control.json](plans/execution-control.json)。
 
-当前是`V0-S1 / WP-S1-04 / GATE5_INDEPENDENT_EXIT / NO_GO`：live-05 真实路径本身完成，但独立审查 `e8a4410...` 发现 Fatal 0 / Major 3 / Minor 1；候选无法完整绑定执行的 owner/workflow，状态转移与目标/清理证据也不足以独立复算。Stage 不得 PASS，五项产品验收保持`NOT_RUN`；下一步为一次性离线纠偏后重新申请 live 授权。
+当前是`V0-S1 / WP-S1-03 / GATE4_REAL_ACCEPTANCE / WAIT_AUTH`：独立审查的 Fatal 0 / Major 3 / Minor 1 已在候选 `1d48142...` 一次性离线纠正，7 个执行产物完整绑定，并增加可复算状态、目标和清理终态证据；定向 27/27、完整回归 87/87。当前等待批准 `AUTH-REQUEST-V0-S1-WP-S1-03-06`，五项产品验收仍为`NOT_RUN`。
 
 ## 一套文档，不再多条互斥路线
 
