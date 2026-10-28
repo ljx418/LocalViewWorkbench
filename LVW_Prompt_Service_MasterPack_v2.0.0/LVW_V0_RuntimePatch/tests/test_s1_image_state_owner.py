@@ -10,9 +10,9 @@ from unittest import mock
 from PIL import Image
 
 from LVW_V0_RuntimePatch.custom_nodes.lvw_v0_bridge import NODE_CLASS_MAPPINGS
-from LVW_V0_RuntimePatch.custom_nodes.lvw_v0_bridge.core import BridgeError
+from LVW_V0_RuntimePatch.custom_nodes.lvw_v0_bridge.core import BridgeError, frame_dimensions
 from LVW_V0_RuntimePatch.custom_nodes.lvw_v0_bridge.image_input import (
-    ControlledImageOwner, MAX_IMAGE_BYTES, MAX_IMAGE_PIXELS,
+    ControlledImageOwner, IMAGE_LONG_EDGE, MAX_IMAGE_BYTES, MAX_IMAGE_PIXELS,
     validate_image_byte_count, validate_image_pixel_count,
 )
 from LVW_V0_RuntimePatch.custom_nodes.lvw_v0_bridge.nodes import (
@@ -85,14 +85,21 @@ class ControlledImageOwnerTests(unittest.TestCase):
             self.assertEqual("white_background", json.loads(metadata_json)["alpha_strategy"])
             self.assertTrue(all(abs(float(value) - 1.0) < 0.001 for value in image[0, 0, 0]))
 
-    def test_long_edge_is_bounded_and_recorded(self):
+    def test_controlled_owner_long_edge_matches_bridge_boundary(self):
         with tempfile.TemporaryDirectory() as temp:
             Path(temp, "wide.webp").write_bytes(image_bytes("WEBP", size=(1100, 11)))
             image, metadata_json = self.node(temp).load("wide.webp")
             metadata = json.loads(metadata_json)
-            self.assertEqual(1024, max(metadata["output_dimensions"]))
+            self.assertEqual(IMAGE_LONG_EDGE, max(metadata["output_dimensions"]))
             self.assertEqual("lanczos_long_edge_1024", metadata["resize_strategy"])
-            self.assertEqual(1024, max(int(image.shape[1]), int(image.shape[2])))
+            self.assertEqual(IMAGE_LONG_EDGE, max(int(image.shape[1]), int(image.shape[2])))
+            self.assertEqual(tuple(metadata["output_dimensions"]), frame_dimensions(image[0]))
+
+        one_over = mock.Mock(shape=(1, IMAGE_LONG_EDGE + 1, 3))
+        with self.assertRaises(BridgeError) as raised:
+            frame_dimensions(one_over)
+        self.assertEqual("MEDIA_LIMIT_EXCEEDED", raised.exception.code)
+        self.assertEqual("FRAME_LONG_EDGE_LIMIT", raised.exception.details["subcode"])
 
     def test_corrupt_and_actual_format_fail_closed(self):
         with tempfile.TemporaryDirectory() as temp:

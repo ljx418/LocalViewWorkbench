@@ -139,9 +139,11 @@ class WorkflowAndHarnessTests(unittest.TestCase):
                 mock.patch.object(probe.urllib.request, "urlopen", side_effect=AssertionError("network")):
             value = probe.self_check()
             self.assertEqual(0, value["live_actions"])
+            self.assertEqual("732aeda9effc52932411d7bca2b0d8536d05725b", probe.AUTHORIZED_START)
             self.assertEqual("C:/ComfyUI-aki-v2/ComfyUI/main.py", value["authorized_targets"]["comfy_main"])
-            self.assertEqual("reports/v0-s1/wp-s1-03-live-03", value["authorized_evidence_relative"])
-            self.assertEqual("v0-s1-wp-s1-03-live-03", value["authorized_run_id"])
+            self.assertEqual("AUTH-V0-S1-2026-10-28-04", value["authorization"])
+            self.assertEqual("reports/v0-s1/wp-s1-03-live-04", value["authorized_evidence_relative"])
+            self.assertEqual("v0-s1-wp-s1-03-live-04", value["authorized_run_id"])
             output = StringIO()
             with contextlib.redirect_stdout(output):
                 code = probe.main([])
@@ -150,7 +152,7 @@ class WorkflowAndHarnessTests(unittest.TestCase):
 
     def test_expired_authorization_id_is_rejected_before_driver_creation(self):
         args = live_args(PACK_ROOT, "unused-sample", "/mnt/c/unused-temp")
-        args.authorization_id = "AUTH-V0-S1-2026-10-28-01"
+        args.authorization_id = "AUTH-V0-S1-2026-10-28-03"
         with mock.patch.object(probe, "validate_live_boundaries", return_value={}):
             code, result = probe.execute(args, driver_factory=lambda *_: self.fail("driver must not be created"))
         self.assertEqual(2, code)
@@ -169,12 +171,13 @@ class WorkflowAndHarnessTests(unittest.TestCase):
             args = live_args(repo, root / "sample.png", runtime)
             args.comfy_main = "/mnt/c/ComfyUI-aki-v2/ComfyUI/main.py"
             args.comfy_python = "/mnt/c/ComfyUI-aki-v2/python/python.exe"
-            args.run_id = "v0-s1-wp-s1-03-live-03"
-            args.evidence_root = str(repo / "reports/v0-s1/wp-s1-03-live-01")
-            with self.assertRaises(probe.StopProbe) as old_slot:
-                probe.validate_live_boundaries(args, reserve_evidence=True)
-            self.assertEqual("EVIDENCE_ROOT_OUTSIDE_AUTHORIZED_BOUNDARY", old_slot.exception.reason)
-            args.evidence_root = str(repo / "reports/v0-s1/wp-s1-03-live-03")
+            args.run_id = "v0-s1-wp-s1-03-live-04"
+            for old in ("wp-s1-03-live-01", "wp-s1-03-live-03"):
+                args.evidence_root = str(repo / "reports/v0-s1" / old)
+                with self.subTest(old=old), self.assertRaises(probe.StopProbe) as old_slot:
+                    probe.validate_live_boundaries(args, reserve_evidence=True)
+                self.assertEqual("EVIDENCE_ROOT_OUTSIDE_AUTHORIZED_BOUNDARY", old_slot.exception.reason)
+            args.evidence_root = str(repo / "reports/v0-s1/wp-s1-03-live-04")
             value = probe.validate_live_boundaries(args, reserve_evidence=True)
             self.assertEqual(probe.AUTHORIZED_COMFY_MAIN, value["comfy_main"])
             with self.assertRaises(probe.StopProbe) as raised:
@@ -338,6 +341,32 @@ class WorkflowAndHarnessTests(unittest.TestCase):
         self.assertEqual("PUBLIC_COMFY_ROUTE_FAILED", result["exact_stop_reason"])
         self.assertEqual(1, FakeDriver.instances[0].unloads)
         self.assertEqual("EXPIRED_TERMINAL", result["authorization_status"])
+
+    def test_public_failure_diagnostic_keeps_only_stable_facts(self):
+        prompt_id = "prompt-fixture"
+        messages = [["execution_start", {"prompt_id": prompt_id, "timestamp": 123}],
+                    ["execution_error", {
+                        "node_id": "2", "node_type": "LVWImagePromptBridge",
+                        "exception_message": json.dumps({
+                            "code": "MEDIA_LIMIT_EXCEEDED",
+                            "details": {"subcode": "FRAME_LONG_EDGE_LIMIT", "private": "discard"},
+                            "message": "discard",
+                        }),
+                        "current_inputs": {"image": ["tensor([private pixels])"]},
+                        "traceback": ["C:/private/user/core.py"],
+                        "unrelated": {"full": "payload"},
+                    }]]
+        history = {prompt_id: {"status": {"status_str": "error", "messages": messages}, "outputs": {}}}
+        with self.assertRaises(probe.StopProbe) as raised:
+            probe.workflow_oracle(history, prompt_id, "2")
+        expected = {"events": [
+            {"event": "execution_start"},
+            {"event": "execution_error", "node_id": "2", "node_type": "LVWImagePromptBridge",
+             "code": "MEDIA_LIMIT_EXCEEDED", "subcode": "FRAME_LONG_EDGE_LIMIT"},
+        ]}
+        self.assertEqual("PUBLIC_COMFY_ROUTE_FAILED:" + probe.canonical_json(expected), raised.exception.reason)
+        for forbidden in ("tensor", "traceback", "C:/private", "payload", "timestamp", "prompt-fixture", "discard"):
+            self.assertNotIn(forbidden, raised.exception.reason)
 
     def test_cleanup_gap_downgrades_success(self):
         FakeDriver.cleanup_proven = False

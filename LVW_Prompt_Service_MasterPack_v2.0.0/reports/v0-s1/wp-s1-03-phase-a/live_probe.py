@@ -22,8 +22,8 @@ import time
 import urllib.error
 import urllib.request
 
-AUTHORIZATION_ID = "AUTH-V0-S1-2026-10-28-03"
-AUTHORIZED_START = "06f374bdaa51a6ac9ffef0aee7fa0e40566f98c9"
+AUTHORIZATION_ID = "AUTH-V0-S1-2026-10-28-04"
+AUTHORIZED_START = "732aeda9effc52932411d7bca2b0d8536d05725b"
 PHASE_A_BASELINE = "0dcf693128fe0b8e8215407b7e628970f798e595"
 AUTHORIZED_SAMPLE_SHA256 = "b4bbd08a0fad67cc04e55d15bf2c48e9a76dcfd6dda147d8cc504452dfc78a42"
 MODEL = "gemma4:26b"
@@ -44,8 +44,8 @@ PROMPT_SPEC_KEYS = {"schema_version", "mode", "domains", "technical", "locked_fi
 DOMAIN_KEYS = {"observation", "inference", "user_evidence", "creative_intent", "unknowns"}
 AUTHORIZED_COMFY_MAIN = "C:/ComfyUI-aki-v2/ComfyUI/main.py"
 AUTHORIZED_COMFY_PYTHON = "C:/ComfyUI-aki-v2/python/python.exe"
-AUTHORIZED_EVIDENCE_RELATIVE = "reports/v0-s1/wp-s1-03-live-03"
-AUTHORIZED_RUN_ID = "v0-s1-wp-s1-03-live-03"
+AUTHORIZED_EVIDENCE_RELATIVE = "reports/v0-s1/wp-s1-03-live-04"
+AUTHORIZED_RUN_ID = "v0-s1-wp-s1-03-live-04"
 
 
 class StopProbe(RuntimeError):
@@ -215,7 +215,27 @@ def workflow_oracle(history: dict, prompt_id: str, node_id: str) -> list[str]:
         raise StopProbe("PUBLIC_HISTORY_PROMPT_MISSING")
     if record.get("status", {}).get("status_str") not in {"success", "completed"}:
         messages = record.get("status", {}).get("messages", [])
-        raise StopProbe("PUBLIC_COMFY_ROUTE_FAILED:" + canonical_json(messages))
+        facts = []
+        for item in messages if isinstance(messages, list) else []:
+            if not (isinstance(item, (list, tuple)) and len(item) == 2 and isinstance(item[0], str)):
+                continue
+            fact = {"event": item[0]}
+            payload = item[1]
+            if isinstance(payload, dict):
+                for key in ("node_id", "node_type"):
+                    if isinstance(payload.get(key), str):
+                        fact[key] = payload[key]
+                try:
+                    error = json.loads(payload.get("exception_message", "").strip())
+                except (AttributeError, json.JSONDecodeError):
+                    error = {}
+                if isinstance(error, dict) and isinstance(error.get("code"), str):
+                    fact["code"] = error["code"]
+                    details = error.get("details")
+                    if isinstance(details, dict) and isinstance(details.get("subcode"), str):
+                        fact["subcode"] = details["subcode"]
+            facts.append(fact)
+        raise StopProbe("PUBLIC_COMFY_ROUTE_FAILED:" + canonical_json({"events": facts}))
     text = record.get("outputs", {}).get(node_id, {}).get("text")
     if not isinstance(text, list) or not all(isinstance(item, str) for item in text):
         raise StopProbe("PUBLIC_HISTORY_UI_TEXT_MISSING")

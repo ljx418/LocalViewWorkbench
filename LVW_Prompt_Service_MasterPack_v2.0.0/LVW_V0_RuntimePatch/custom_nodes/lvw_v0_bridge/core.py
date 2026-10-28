@@ -19,7 +19,7 @@ import urllib.parse
 import urllib.request
 
 CHAT_ENDPOINT = "http://127.0.0.1:11434/api/chat"
-MAX_LONG_EDGE = 384
+MAX_LONG_EDGE = 1024
 MAX_VIDEO_FRAMES = 4
 MAX_NUM_CTX = 2048
 MAX_NUM_PREDICT = 768
