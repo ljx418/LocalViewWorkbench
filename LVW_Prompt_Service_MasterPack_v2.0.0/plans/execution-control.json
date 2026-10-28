@@ -7,26 +7,26 @@
   "coordinate": {
     "stage_id": "V0-S0",
     "workpack_id": "WP-S0-45",
-    "gate": "GATE3_CHECKPOINT",
-    "state": "CHECKPOINT"
+    "gate": "GATE4_REAL_ACCEPTANCE",
+    "state": "BLOCKED"
   },
   "last_passed_gate": {
-    "id": "WP_S0_44_OFFLINE_CANDIDATE_SEALED",
-    "evidence": "reports/v0-s0/implementation-receipt-correction-15-offline.json",
-    "meaning": "root review and manifest sealing confirmed primary-secondary terminal binding is ready for independent review"
+    "id": "WP_S0_45_INDEPENDENT_REVIEW_COMPLETE",
+    "evidence": "reports/v0-s0/independent-review-correction-15.md",
+    "meaning": "independent review closed all correction-11 through correction-15 offline findings with Fatal 0, Major 0, Minor 0"
   },
-  "current_blocking_gate": "WP-S0-45 independent review is required; live rerun remains separately blocked by unknown GPU owner",
+  "current_blocking_gate": "GPU used 6044 MiB exceeds 4096 MiB and the owner is outside the authorized run",
   "stage_packet": ".agent-governance/stages/V0-S0/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/V0-S0/PAYLOAD_MANIFEST.sha256",
   "product_status": "NOT_RUN",
-  "allowed_claim": "V0_S0_CORRECTION_15_READY_FOR_INDEPENDENT_REVIEW",
+  "allowed_claim": "V0_S0_BLOCKED_RESOURCE_BUSY_UNKNOWN_GPU_OWNER",
   "forbidden_claims": [
     "ENGINEERING_READY",
     "V0_ACCEPTED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "codex_isolated_reviewer",
-  "next_action": "Independently recompute exception, ordinary failure and success cleanup terminal-cause binding; do not start services.",
+  "next_owner": "project_owner",
+  "next_action": "Identify and normally close or release the unknown GPU owner, then report that external state changed; a new one-shot live authorization is still required.",
   "evidence_root": "reports/",
-  "exact_stop_reason": "AWAITING_WP_S0_45_INDEPENDENT_REVIEW"
+  "exact_stop_reason": "RESOURCE_BUSY_UNKNOWN_GPU_OWNER"
 }
