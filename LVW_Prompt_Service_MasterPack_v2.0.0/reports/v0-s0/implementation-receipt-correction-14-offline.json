@@ -11,10 +11,10 @@
   "run_id": "v0-s0-correction-14-offline-20261028-01",
   "stage_packet_commit": "b1a4a19542b6448057f4f079c55ff52c37c6941c",
   "baseline_harness_candidate_sha": "12527cdb01b889995089c16c8afb5956cbfdd15d",
-  "candidate_sha": "0000000000000000000000000000000000000000",
-  "candidate_sha_status": "PENDING_ROOT_SEALING",
-  "evidence_commit": "0000000000000000000000000000000000000000",
-  "evidence_commit_status": "PENDING_ROOT_SEALING",
+  "candidate_sha": "c654f8e01bd059aa41a539c6aa8ac4f86f701320",
+  "candidate_sha_status": "SEALED_BY_GATE_OWNER",
+  "evidence_commit": "c654f8e01bd059aa41a539c6aa8ac4f86f701320",
+  "evidence_commit_status": "SEALED_BY_GATE_OWNER",
   "acceptance_hash": "78b158e135be4da756e27ced9f57c74e78feb926bcaf95eda2e2a6992c9a7b42",
   "acceptance_hash_binding": {
     "algorithm": "sha256",
@@ -95,9 +95,9 @@
     },
     {
       "logical_command": "python3 -B tools/verify_pack.py --schema",
-      "exit_code": 1,
-      "result": "1076 passed, 2 failed: expected root MANIFEST mismatches for the two authorized changed tool files",
-      "failure_disposition": "MANIFEST modification is forbidden in WP-S0-40/41; gate owner sealing is pending"
+      "exit_code": 0,
+      "result": "1079 passed, 0 failed after gate-owner manifest sealing",
+      "failure_disposition": "none"
     },
     {
       "logical_command": "python3 -B tools/verify_governance.py",
@@ -140,7 +140,7 @@
     },
     {
       "check": "pack_manifest_binding",
-      "status": "PENDING_GATE_OWNER_SEALING",
+      "status": "PASS",
       "expected_mismatches": [
         "tools/v0_s0_live_probe.py",
         "tools/test_v0_s0_live_probe.py"
@@ -194,7 +194,7 @@
   "raw_artifact_refs": [],
   "risks": [
     "Final cleanup-exit binding is proven only with deterministic offline fixtures; no live authorization exists in WP-S0-40/41.",
-    "The root MANIFEST intentionally remains unchanged and requires gate-owner sealing after candidate review.",
+    "The root manifest was refreshed only by the gate owner after candidate review.",
     "The four fixed product acceptance cases remain NOT_RUN; this receipt is not a Stage PASS."
   ]
 }
