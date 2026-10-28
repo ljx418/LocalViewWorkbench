@@ -26,6 +26,45 @@ def preflight(*, native=None, wsl=None, processes=None, listeners=None):
 
 
 class WindowsNativePreflightTests(unittest.TestCase):
+    def run_owned_popen_fixture(self, *, ollama_proc=None, comfy_proc=None):
+        with tempfile.TemporaryDirectory() as temp:
+            temp_path = Path(temp)
+            sample = temp_path / "fixture.bin"
+            sample.write_bytes(b"offline fixture")
+            args = SimpleNamespace(
+                run_id="fixture-run", candidate_sha="a" * 40, authorization_commit="b" * 40,
+                harness_candidate_sha="c" * 40,
+                evidence_dir=str(temp_path / "evidence"), receipt_path=str(temp_path / "receipt.json"),
+                self_check=False, comfy_root=str(temp_path / "comfy"), comfy_python=str(temp_path / "python.exe"),
+                ollama=str(temp_path / "ollama.exe"), test_source=str(temp_path / "samples"),
+                powershell="powershell.exe", windows_nvidia_smi="native", wsl_nvidia_smi="wsl",
+                spec_version="fixture", workpack_id="WP-FIXTURE")
+            owner = probe.Probe(args)
+            owner.root = temp_path
+            owner.record = lambda *args, **kwargs: SimpleNamespace(returncode=0, stdout="commit\n")
+            owner.verify_harness_identity = mock.Mock(return_value={"matched": True})
+            owner.harness_identity = {"matched": True}
+            owner.windows_native_preflight = mock.Mock(return_value={"passed": True})
+            owner.reached_checks.update({"harness_identity", "service_preflight"})
+            owner.locate_sample = mock.Mock(return_value=sample)
+            owner.target_integrity = mock.Mock(return_value=[])
+            owner.create_temp = mock.Mock()
+            owner.copy_candidate = mock.Mock()
+            owner.derive_media = mock.Mock()
+            owner.listeners = mock.Mock(return_value=[])
+
+            def start_services():
+                owner.ollama_proc = ollama_proc
+                owner.comfy_proc = comfy_proc
+                owner.reached_checks.add("no_cloud")
+                raise RuntimeError("OLLAMA_NO_CLOUD_TRUE_NOT_OBSERVED_IN_SERVER_RAW")
+
+            owner.start_services = mock.Mock(side_effect=start_services)
+            self.assertEqual(owner.run(), 2)
+            receipt = probe.json.loads((temp_path / "receipt.json").read_text())
+            cleanup = probe.json.loads((temp_path / "evidence" / "cleanup.json").read_text())
+            return receipt, cleanup
+
     def test_clean_baseline_passes(self):
         result = preflight()
         self.assertTrue(result["passed"])
@@ -336,6 +375,65 @@ class WindowsNativePreflightTests(unittest.TestCase):
             owned_service_started=True, owned_resources_absent=True,
             target_integrity_comparison="PASS")
         self.assertTrue(all(status == "PASS" for status in statuses.values()))
+
+    def test_lingering_owned_popen_fails_complete_run_cleanup(self):
+        proc = mock.Mock()
+        proc.wait.side_effect = probe.subprocess.TimeoutExpired(cmd="owned", timeout=5)
+        proc.poll.return_value = None
+        receipt, cleanup = self.run_owned_popen_fixture(ollama_proc=proc)
+        statuses = {x["check"]: x["status"] for x in receipt["check_results"]}
+        self.assertEqual(receipt["external_actions"]["ollama_process_starts"], 1)
+        self.assertFalse(receipt["cleanup"]["owned_resources_absent"])
+        self.assertFalse(receipt["cleanup"]["proven"])
+        self.assertEqual(statuses["cleanup_and_target_integrity"], "FAIL")
+        self.assertIn("OWNED_POPEN_WAIT_TIMEOUT:owned_ollama_popen", cleanup["secondary_cleanup_failures"])
+        self.assertIn("OWNED_POPEN_STILL_RUNNING:owned_ollama_popen", cleanup["secondary_cleanup_failures"])
+        self.assertFalse(cleanup["owned_popen_terminal_states"][1]["exited"])
+        proc.terminate.assert_called_once_with()
+        proc.kill.assert_called_once_with()
+
+    def test_owned_popen_normal_exit_proves_cleanup(self):
+        proc = mock.Mock()
+        proc.wait.return_value = 0
+        proc.poll.return_value = 0
+        receipt, cleanup = self.run_owned_popen_fixture(ollama_proc=proc)
+        statuses = {x["check"]: x["status"] for x in receipt["check_results"]}
+        self.assertEqual(receipt["external_actions"]["ollama_process_starts"], 1)
+        self.assertTrue(receipt["cleanup"]["owned_resources_absent"])
+        self.assertTrue(receipt["cleanup"]["proven"])
+        self.assertEqual(statuses["cleanup_and_target_integrity"], "PASS")
+        self.assertEqual(cleanup["secondary_cleanup_failures"], [])
+        self.assertTrue(cleanup["owned_popen_terminal_states"][1]["exited"])
+        proc.terminate.assert_not_called()
+        proc.kill.assert_not_called()
+
+    def test_owned_popen_wait_exception_is_secondary_cleanup_failure(self):
+        proc = mock.Mock()
+        proc.wait.side_effect = [OSError("fixture wait error"), 0]
+        proc.poll.side_effect = [None, 0, 0]
+        receipt, cleanup = self.run_owned_popen_fixture(ollama_proc=proc)
+        statuses = {x["check"]: x["status"] for x in receipt["check_results"]}
+        self.assertTrue(receipt["cleanup"]["owned_resources_absent"])
+        self.assertFalse(receipt["cleanup"]["proven"])
+        self.assertEqual(statuses["cleanup_and_target_integrity"], "FAIL")
+        self.assertIn("OWNED_POPEN_WAIT_FAILED:owned_ollama_popen", cleanup["secondary_cleanup_failures"])
+        proc.terminate.assert_called_once_with()
+
+    def test_two_owned_popens_require_both_to_exit(self):
+        comfy = mock.Mock()
+        comfy.wait.return_value = 0
+        comfy.poll.return_value = 0
+        ollama = mock.Mock()
+        ollama.wait.side_effect = probe.subprocess.TimeoutExpired(cmd="owned", timeout=5)
+        ollama.poll.return_value = None
+        receipt, cleanup = self.run_owned_popen_fixture(ollama_proc=ollama, comfy_proc=comfy)
+        states = {item["label"]: item for item in cleanup["owned_popen_terminal_states"]}
+        self.assertEqual(receipt["external_actions"]["ollama_process_starts"], 1)
+        self.assertEqual(receipt["external_actions"]["comfyui_process_starts"], 1)
+        self.assertTrue(states["owned_comfy_popen"]["exited"])
+        self.assertFalse(states["owned_ollama_popen"]["exited"])
+        self.assertFalse(receipt["cleanup"]["owned_resources_absent"])
+        self.assertFalse(receipt["cleanup"]["proven"])
 
 
 class CleanupCorrelationTests(unittest.TestCase):

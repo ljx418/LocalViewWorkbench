@@ -832,6 +832,67 @@ class Probe:
         after = self.ps_json(f"$p=Get-Process -Id {pid} -ErrorAction SilentlyContinue; $p|Select-Object Id,ProcessName,Path|ConvertTo-Json -Compress")
         return {"label": label, "pid": pid, "before": before, "stop_exit_code": p.returncode, "after": after}
 
+    def settle_owned_popen(self, proc, label, failures):
+        state = {"label": label, "assigned": proc is not None, "terminate_attempted": False,
+                 "kill_attempted": False, "returncode": None, "exited": proc is None}
+        if proc is None:
+            return state
+
+        def fail(code):
+            detail = code + ":" + label
+            if detail not in failures:
+                failures.append(detail)
+                self.events.append({"at": utc(), "event": "secondary_cleanup_failure", "detail": detail})
+
+        try:
+            proc.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            fail("OWNED_POPEN_WAIT_TIMEOUT")
+        except Exception:
+            fail("OWNED_POPEN_WAIT_FAILED")
+        try:
+            running = proc.poll() is None
+        except Exception:
+            fail("OWNED_POPEN_POLL_FAILED")
+            running = True
+        if running:
+            state["terminate_attempted"] = True
+            try:
+                proc.terminate()
+                proc.wait(timeout=2)
+            except subprocess.TimeoutExpired:
+                fail("OWNED_POPEN_TERMINATE_TIMEOUT")
+            except Exception:
+                fail("OWNED_POPEN_TERMINATE_FAILED")
+            try:
+                running = proc.poll() is None
+            except Exception:
+                fail("OWNED_POPEN_POLL_FAILED")
+                running = True
+        if running:
+            state["kill_attempted"] = True
+            try:
+                proc.kill()
+                proc.wait(timeout=2)
+            except subprocess.TimeoutExpired:
+                fail("OWNED_POPEN_KILL_TIMEOUT")
+            except Exception:
+                fail("OWNED_POPEN_KILL_FAILED")
+            try:
+                running = proc.poll() is None
+            except Exception:
+                fail("OWNED_POPEN_POLL_FAILED")
+                running = True
+        if running:
+            fail("OWNED_POPEN_STILL_RUNNING")
+        else:
+            try:
+                state["returncode"] = proc.poll()
+                state["exited"] = state["returncode"] is not None
+            except Exception:
+                fail("OWNED_POPEN_POLL_FAILED")
+        return state
+
     def sanitize_logs(self):
         for stem in ("ollama-live", "comfy-live"):
             raw = self.ev / (stem + ".raw.log")
@@ -970,13 +1031,11 @@ class Probe:
                      self.stop_owned(self.comfy_wrapper_pid, "owned_comfy_windows_wrapper"),
                      self.stop_owned(self.ollama_pid, "owned_ollama_listener"),
                      self.stop_owned(self.ollama_wrapper_pid, "owned_windows_wrapper")]
-            if self.comfy_proc:
-                try: self.comfy_proc.wait(timeout=5)
-                except Exception: pass
-            if self.ollama_proc:
-                try: self.ollama_proc.wait(timeout=5)
-                except Exception: pass
             secondary_cleanup_failures = []
+            popen_states = [self.settle_owned_popen(self.comfy_proc, "owned_comfy_popen",
+                                                    secondary_cleanup_failures),
+                            self.settle_owned_popen(self.ollama_proc, "owned_ollama_popen",
+                                                    secondary_cleanup_failures)]
             try:
                 final_ports = self.listeners()
                 if not isinstance(final_ports, list):
@@ -1029,11 +1088,13 @@ class Probe:
             owned_resources_absent = (isinstance(final_ports, list) and not final_ports and
                                       not temp_remove["exists_after"] and
                                       all(not stop.get("after") for stop in stops) and
+                                      all(state["exited"] for state in popen_states) and
                                       not resource_cleanup_failures)
             target_integrity_comparison = ("FAIL" if integrity_capture_failed else
                                            "NOT_REACHED" if pre_integrity is None else
                                            "PASS" if integrity_equal else "FAIL")
-            self.cleanup = {"owned_process_stops": stops, "final_authorized_port_listeners": final_ports,
+            self.cleanup = {"owned_process_stops": stops, "owned_popen_terminal_states": popen_states,
+                            "final_authorized_port_listeners": final_ports,
                             "target_integrity_pre": pre_integrity, "target_integrity_post": post_integrity,
                             "target_integrity_equal": integrity_equal, "run_temp_removal": temp_remove,
                             "owned_resources_absent": owned_resources_absent,
