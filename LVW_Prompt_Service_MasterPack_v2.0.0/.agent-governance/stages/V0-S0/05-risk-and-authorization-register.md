@@ -68,3 +68,5 @@ WP-S0-45 已关闭后续离线 harness 发现。correction-10 请求、正式授
 项目负责人已原文声明 GPU 已释放并批准 correction-16 请求。正式记录 `reports/v0-s0/authorization-correction-16.json` 只授权 WP-S0-46 一次运行，不授权修改候选/合同/阈值、终止非 owned 进程、自动重试或 Stage PASS；终态后必须转 WP-S0-47 独立复审。
 
 WP-S0-46 已产生终态收据并消耗图片 1 次、视频 1 次预算，授权现已过期且不得重跑。原始证据提交 `9d09f3b` 报告两条公开路径均通过、GPU 峰值 22288 MiB、5/5 unload、终态清理与目标完整性通过；这些实现者结论必须由 WP-S0-47 隔离复算，不能直接成为 Stage PASS。
+
+WP-S0-47 已独立复算为 Fatal 0 / Major 0 / Minor 0，root 据此裁决 `STAGE_BASELINE_COMPLETE`。视频变化描述的弱语义限制保留到产品质量验收，不能用本 Stage 的结构 Oracle 消除。S0 不再允许写入或 live 重跑；任何后续动作必须由 V0-S1 新 packet 重新定义范围与授权。

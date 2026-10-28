@@ -433,10 +433,20 @@ def main() -> int:
         major_match = re.search(r"Major \*\*(\d+)\*\*", review_text)
         major_count = int(major_match.group(1)) if major_match else None
         check("independent_major_count_parseable", major_count is not None)
+        correction16_review = ROOT / "reports" / "v0-s0" / "independent-review-correction-16.md"
+        correction16_text = correction16_review.read_text(encoding="utf-8") if correction16_review.is_file() else ""
+        correction16_major_match = re.search(r"Major\s+\**(\d+)", correction16_text)
+        correction16_major_count = int(correction16_major_match.group(1)) if correction16_major_match else None
+        check("correction16_independent_review_zero_major", correction16_major_count == 0)
         check(
             "independent_majors_block_exit",
             major_count == 0
             or control.get("state") == execution["coordinate"]["state"] in {"BLOCKED", "NO_GO"}
+            or (
+                control.get("state") == execution["coordinate"]["state"] == "STAGE_BASELINE_COMPLETE"
+                and execution.get("last_passed_gate", {}).get("id") == "V0_S0_STAGE_BASELINE_COMPLETE"
+                and correction16_major_count == 0
+            )
             or (
                 control.get("state") == execution["coordinate"]["state"] == "RUNNING"
                 and execution["coordinate"].get("workpack_id")
@@ -516,6 +526,11 @@ def main() -> int:
         check(
             "checkpoint_coordinate",
             (
+                execution["coordinate"].get("workpack_id") == "WP-S0-47"
+                and execution["coordinate"].get("gate") == "GATE5_INDEPENDENT_EXIT"
+                and execution["coordinate"].get("state") == "STAGE_BASELINE_COMPLETE"
+            )
+            or (
                 execution["coordinate"].get("workpack_id") in {"WP-S0-30", "WP-S0-45"}
                 and execution["coordinate"].get("gate") == "GATE4_REAL_ACCEPTANCE"
                 and execution["coordinate"].get("state") == "BLOCKED"

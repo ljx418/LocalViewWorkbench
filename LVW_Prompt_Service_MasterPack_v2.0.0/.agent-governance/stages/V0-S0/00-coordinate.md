@@ -5,9 +5,9 @@ Project: lvw-prompt-service
 Design: 2.0.0
 Target version: V0
 Stage: V0-S0 / 现有环境与节点基线
-Stage state: GATE4_REAL_ACCEPTANCE / BLOCKED
+Stage state: GATE5_INDEPENDENT_EXIT / STAGE_BASELINE_COMPLETE
 Product cases: NOT_RUN
-Last passed gate: WP_S0_45_INDEPENDENT_REVIEW_COMPLETE
+Last passed gate: V0_S0_STAGE_BASELINE_COMPLETE
 Baseline commit: 3c69a23d07064a0db5cb05258b237be2415a314a
 Baseline product-control fingerprint: sha256:bd4875c1d53ce8a208e35cdb3b3b20110b290eb7f547eb1239b4eb1192764f4a
 ```
@@ -55,3 +55,5 @@ WP-S0-45 结论 Fatal 0 / Major 0 / Minor 0，确认 correction-15 关闭普通/
 项目负责人已明确声明 GPU 已释放并批准 `AUTH-REQUEST-V0-S0-WP-S0-46-01`；正式单次授权记录为 `AUTH-V0-S0-2026-10-28-16`。当前仅允许隔离实现实例执行一次 WP-S0-46；任一终态收据或媒体预算消耗后授权自动过期，随后必须停止并进入 WP-S0-47 独立复审。
 
 WP-S0-46 已产生终态 `READY_FOR_REVIEW` 收据并封存原始证据提交 `9d09f3be7bc4d206eceb7fd7f3fc9127a690e278`：图片 1/1 PASS、视频 1/1 PASS；授权随终态自动过期且禁止重跑。当前进入 WP-S0-47 隔离复审；产品固定四项仍为 `NOT_RUN`，root 尚未作 S0 Stage 裁决。
+
+WP-S0-47 独立复审结论 Fatal 0 / Major 0 / Minor 0。root 正式裁决 `STAGE_BASELINE_COMPLETE`：仅证明冻结候选、固定样本与当前目标机上的环境、公开路径、资源、网络和清理基线，不能外推为产品质量 PASS。S0 固定四项仍为 `NOT_RUN`；授权保持过期。跨入 V0-S1 前必须重新冻结并封存 Stage packet。

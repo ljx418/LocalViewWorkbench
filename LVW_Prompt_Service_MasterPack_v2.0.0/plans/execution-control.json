@@ -7,26 +7,26 @@
   "coordinate": {
     "stage_id": "V0-S0",
     "workpack_id": "WP-S0-47",
-    "gate": "GATE3_CHECKPOINT",
-    "state": "CHECKPOINT"
+    "gate": "GATE5_INDEPENDENT_EXIT",
+    "state": "STAGE_BASELINE_COMPLETE"
   },
   "last_passed_gate": {
-    "id": "WP_S0_46_TERMINAL_EVIDENCE_SEALED",
-    "evidence": "reports/v0-s0/implementation-receipt-correction-16-live.json",
-    "meaning": "single authorized run produced image 1/1 PASS and video 1/1 PASS with identity, network, resource, unload and cleanup evidence sealed to commit 9d09f3b"
+    "id": "V0_S0_STAGE_BASELINE_COMPLETE",
+    "evidence": "reports/v0-s0/independent-review-correction-16.md",
+    "meaning": "WP-S0-47 independently recomputed correction-16 with Fatal 0, Major 0, Minor 0; this is an environment and feasibility baseline, not product acceptance"
   },
-  "current_blocking_gate": "WP-S0-47 independent review and root Stage disposition are pending",
+  "current_blocking_gate": "V0-S1 requires a newly frozen Stage packet before implementation",
   "stage_packet": ".agent-governance/stages/V0-S0/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/V0-S0/PAYLOAD_MANIFEST.sha256",
   "product_status": "NOT_RUN",
-  "allowed_claim": "WP_S0_46_TERMINAL_EVIDENCE_SEALED_PENDING_INDEPENDENT_REVIEW",
+  "allowed_claim": "V0_S0_STAGE_BASELINE_COMPLETE_PRODUCT_CASES_NOT_RUN",
   "forbidden_claims": [
     "ENGINEERING_READY",
     "V0_ACCEPTED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "codex_isolated_reviewer",
-  "next_action": "Independently recompute correction-16 candidate, identity, public routes, semantic Oracles, network, resource, unload, cleanup, privacy and evidence binding; do not rerun.",
+  "next_owner": "codex_sol",
+  "next_action": "Freeze V0-S1 against the accepted V0-S0 exit commit; do not implement across the Stage boundary before the new packet is sealed.",
   "evidence_root": "reports/",
-  "exact_stop_reason": "WP_S0_47_INDEPENDENT_REVIEW_REQUIRED"
+  "exact_stop_reason": "STAGE_BOUNDARY_REQUIRES_NEW_PACKET"
 }
