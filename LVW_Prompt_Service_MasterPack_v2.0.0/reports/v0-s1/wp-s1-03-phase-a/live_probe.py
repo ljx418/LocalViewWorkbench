@@ -22,8 +22,8 @@ import time
 import urllib.error
 import urllib.request
 
-AUTHORIZATION_ID = "AUTH-V0-S1-2026-10-28-04"
-AUTHORIZED_START = "732aeda9effc52932411d7bca2b0d8536d05725b"
+AUTHORIZATION_ID = "AUTH-V0-S1-2026-10-28-05"
+AUTHORIZED_START = "64ec38c22b6d200f18ca5c0d85f91faa1fadf206"
 PHASE_A_BASELINE = "0dcf693128fe0b8e8215407b7e628970f798e595"
 AUTHORIZED_SAMPLE_SHA256 = "b4bbd08a0fad67cc04e55d15bf2c48e9a76dcfd6dda147d8cc504452dfc78a42"
 MODEL = "gemma4:26b"
@@ -44,14 +44,15 @@ PROMPT_SPEC_KEYS = {"schema_version", "mode", "domains", "technical", "locked_fi
 DOMAIN_KEYS = {"observation", "inference", "user_evidence", "creative_intent", "unknowns"}
 AUTHORIZED_COMFY_MAIN = "C:/ComfyUI-aki-v2/ComfyUI/main.py"
 AUTHORIZED_COMFY_PYTHON = "C:/ComfyUI-aki-v2/python/python.exe"
-AUTHORIZED_EVIDENCE_RELATIVE = "reports/v0-s1/wp-s1-03-live-04"
-AUTHORIZED_RUN_ID = "v0-s1-wp-s1-03-live-04"
+AUTHORIZED_EVIDENCE_RELATIVE = "reports/v0-s1/wp-s1-03-live-05"
+AUTHORIZED_RUN_ID = "v0-s1-wp-s1-03-live-05"
 
 
 class StopProbe(RuntimeError):
-    def __init__(self, reason: str):
+    def __init__(self, reason: str, *, evidence: dict | None = None):
         super().__init__(reason)
         self.reason = reason
+        self.evidence = evidence or {}
 
 
 def canonical_json(value) -> str:
@@ -353,8 +354,10 @@ class SystemDriver:
         native, wsl = parse(gpu_native), parse(gpu_wsl.stdout)
         if len(native) != len(wsl) or any(a[:2] != b[:2] or max(abs(a[2]-b[2]), abs(a[3]-b[3])) > 128 for a, b in zip(native, wsl)):
             raise StopProbe("GPU_PREFLIGHT_WINDOWS_WSL_MISMATCH")
-        if any(row[2] > GPU_PRESTART_MAX_MIB for row in native):
-            raise StopProbe("GPU_PREFLIGHT_USED_MEMORY_EXCEEDED")
+        gpu_evidence = {"gpu_count": len(native), "max_used_mib": max(row[2] for row in native),
+                        "limit_mib": GPU_PRESTART_MAX_MIB}
+        if gpu_evidence["max_used_mib"] > GPU_PRESTART_MAX_MIB:
+            raise StopProbe("GPU_PREFLIGHT_USED_MEMORY_EXCEEDED", evidence={"preflight": gpu_evidence})
         listener_raw = self._powershell(
             "$x=Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue | Where-Object {$_.LocalPort -in 8191,11434};"
             "@($x | Select-Object LocalAddress,LocalPort,OwningProcess) | ConvertTo-Json -Compress")
@@ -654,6 +657,7 @@ def execute(args, driver_factory=SystemDriver) -> tuple[int, dict]:
     except StopProbe as exc:
         result["decision"] = "NO_GO"
         result["exact_stop_reason"] = exc.reason.split(":", 1)[0]
+        result["evidence"].update(exc.evidence)
         result["evidence"]["failure"] = str(exc)
     except Exception as exc:
         result["decision"] = "BLOCKED"
