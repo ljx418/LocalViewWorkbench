@@ -405,7 +405,22 @@ def main_v0_s1(args: argparse.Namespace, execution: dict) -> int:
     check("authorization_scope_valid", control.get("execution_authorized") is True
           and (offline_waiting or checkpoint_waiting or live_authorized or live_terminal))
     check("external_authorization_state", offline_waiting or checkpoint_waiting or live_authorized or live_terminal)
-    check("baseline_product_control_fingerprint", control.get("baseline", {}).get("product_control_sha256") == product_control_digest())
+    baseline_product_digest = control.get("baseline", {}).get("product_control_sha256")
+    current_product_digest = product_control_digest()
+    terminal_change = execution.get("terminal_product_control_change", {})
+    terminal_change_valid = (
+        control.get("state") == "PASS"
+        and execution.get("coordinate", {}).get("state") == "PASS"
+        and terminal_change.get("previous_sha256") == baseline_product_digest
+        and terminal_change.get("current_sha256") == current_product_digest
+        and isinstance(terminal_change.get("decision"), str)
+        and (ROOT / terminal_change["decision"]).is_file()
+    )
+    check(
+        "baseline_product_control_fingerprint",
+        baseline_product_digest == current_product_digest or terminal_change_valid,
+        "terminal approved control change" if terminal_change_valid else current_product_digest,
+    )
 
     bound_commits = [
         control.get("baseline", {}).get(name)

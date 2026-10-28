@@ -4,18 +4,18 @@
 
 ```text
 请读取 LVW_Prompt_Service_MasterPack_v2.0.0，按 AGENTS.md 实施。
-TARGET_VERSION=V0（可由项目负责人改为V1、V2、V3）。
+TARGET_VERSION=V1；NEXT_DELIVERY_TARGET=V1-R1a（项目负责人已批准提前实施简易前端切片）。
 本包完整定义V0–V3，但不能跳过前序验收或把后续功能偷偷加入当前版本。
 
-先读.agent-governance/README.md、plans/execution-control.json和当前Stage Packet；校验Stage manifest、角色隔离、固定分母和授权状态。当前为V0-S1 / WP-S1-00，packet只授权离线仓库实现；S0 live授权已过期。WP-S1-03 的目标Comfy安装、Ollama、真实图片或可见浏览器必须等待新的逐次授权，不得从历史收据推断权限。
+先读.agent-governance/README.md、plans/execution-control.json和当前Stage Packet；校验Stage manifest、角色隔离、固定分母和授权状态。V0-Min 已在 V0-S1 通过并保持未发布；下一步必须先为 R0/R1a 建立并冻结新 Stage Packet。历史 live 授权均不得推断为 R1a 的 Ollama、真实图片或浏览器授权。
 
 先读README、docs/00、01、03、04、05、06、对应版本实现方案和plans/*.json；
 运行文档校验、只读盘点本机、备份将修改的工作流和配置。
-V0从V0-S0开始：使用现有ComfyUI+Prompt Assistant+Ollama/gemma4:26b。
-真实绑定节点并交付图片、短视频和独立人工编辑/导出路径。
-不下载新模型、不升级整套环境、不建立V0数据库/独立SPA/MCP。
+保留已验收 V0-Min 证据，不改写历史失败或补报 V0.1/V0.2 PASS。
+按批准顺序先执行 R0 与 R1a：使用最终 React+TypeScript+Vite/FastAPI 架构交付单图简易前端，不创建 V0-Min.1 或一次性 HTML 产品。
+R1a 后再执行 V0-S2/V0-S3，补齐视频、资源、安装回滚和完整质量。
 
-V1正式使用React+TypeScript+Vite、FastAPI、SQLite和Ollama；
+V1正式使用React+TypeScript+Vite、FastAPI、SQLite和Ollama；R1a只实现最终合同的必要子集，不得声明V1已通过；
 V2加入镜头资产/真实PTS/FTS5/MCP/恢复；V3实现三个对端的薄集成。
 各版本共用模型适配、模板、合同和测试资产，禁止重复造基础平台。
 全阶段禁止Gradio/NiceGUI。

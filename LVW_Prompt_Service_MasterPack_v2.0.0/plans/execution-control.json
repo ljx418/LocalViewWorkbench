@@ -3,7 +3,8 @@
   "updated_at": "2026-10-28",
   "project_id": "lvw-prompt-service",
   "design_version": "2.0.0",
-  "target_version": "V0-Min",
+  "target_version": "V1",
+  "next_delivery_target": "V1-R1a",
   "coordinate": {
     "stage_id": "V0-S1",
     "workpack_id": "WP-S1-04",
@@ -24,17 +25,25 @@
     "V0_ACCEPTED",
     "V0.1_ACCEPTED",
     "V0.2_ACCEPTED",
+    "V1_ACCEPTED",
     "PRODUCTION_RELEASED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "project_owner",
-  "next_action": "Choose whether to stop at accepted V0-Min or separately authorize planning for V0.1; no further work is implied.",
-  "required_authorization": "NONE_V0_MIN_COMPLETE",
+  "next_owner": "codex_gate_owner",
+  "next_action": "Prepare and freeze the R0/R1a Stage Packet for the approved early V1 single-image frontend slice; V0.1/V0.2 follow after R1a, and no live Ollama/browser action is authorized by this planning decision.",
+  "required_authorization": "R0_R1A_STAGE_PACKET_REQUIRED_BEFORE_IMPLEMENTATION; LIVE_OLLAMA_OR_BROWSER_REQUIRES_SEPARATE_EXPLICIT_AUTHORIZATION",
   "authorization_request": "reports/v0-s1/authorization-wp-s1-04-checkpoint-01.request.json",
   "authorization_record": "reports/v0-s1/authorization-wp-s1-04-checkpoint-01.json",
   "evidence_root": "reports/",
   "gate_decision": "reports/v0-s1/gate-decision-v0-min.md",
   "human_signoff": "reports/v0-s1/human-signoff-v0-min.json",
   "product_acceptance": "reports/v0-s1/v0-min-acceptance.json",
-  "exact_stop_reason": "V0_MIN_COMPLETE_AWAIT_NEXT_VERSION_DIRECTION"
+  "route_change_decision": "docs/23_V1_EARLY_FRONTEND_SEQUENCE.md",
+  "terminal_product_control_change": {
+    "previous_sha256": "f9c8ca1c290261cd90a57184472084783c0a05cf432fed5b20ea3d4ed9314698",
+    "current_sha256": "22128ab0bd2488f4a5bc7bc7dda07cb1172096caa70d00d3e8c56bc970691b19",
+    "decision": "docs/23_V1_EARLY_FRONTEND_SEQUENCE.md",
+    "meaning": "V0-S1 remains immutable and terminal; the approved future-stage task graph changed after V0-Min acceptance"
+  },
+  "exact_stop_reason": "V0_MIN_COMPLETE_ROUTE_TO_R0_R1A_APPROVED_AWAIT_STAGE_PACKET"
 }

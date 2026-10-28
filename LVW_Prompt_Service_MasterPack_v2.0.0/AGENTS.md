@@ -1,7 +1,7 @@
 # Codex/Claude Code 实施约束
 
 0. 开工前先读`.agent-governance/README.md`与`plans/execution-control.json`。产品权威仍是README、docs/00、contracts、plans；治理层只约束角色、Stage/Workpack、候选、证据、预算和门禁，不得反向改写产品合同。
-1. 当前权威：本包README、docs/00、contracts、plans。legacy是历史，不执行其冲突开工指令。计划覆盖V0–V3；默认TARGET_VERSION=V0，用户明确选择更高版本后顺序执行并逐版出门。
+1. 当前权威：本包README、docs/00、contracts、plans。legacy是历史，不执行其冲突开工指令。计划覆盖V0–V3；当前 `TARGET_VERSION=V1`、`NEXT_DELIVERY_TARGET=V1-R1a`，按批准顺序提前实现最终架构的简易前端，但仍须逐版满足正式出门门禁。
 2. 先只读盘点、git状态和备份；用户给出的Windows/4090/Gemma4情况是待核实线索。不默认升级ComfyUI、PyTorch、CUDA或复制权重。
 3. V0用已装ComfyUI/Prompt Assistant/Ollama。必要新增仅一个薄扩展；节点/API从实际注册表读取，不编造class_type或把设计JSON冒充可运行图。
 4. V1独立React+TS+Vite/FastAPI/SQLite；不依赖Comfy进程，不引入Gradio/NiceGUI。V2增强资产/协议，V3仅薄集成。禁止提前建设微服务/向量库/多Agent平台。
@@ -15,3 +15,4 @@
 12. 每个并行写任务使用独立worktree/等效副本、端口、数据库、临时根和证据根。公共API/Schema/状态机/迁移默认串行。当前仓库首个commit前禁止并行写任务。
 13. 候选、规格、验收分母、门禁和证据必须以SHA/hash绑定。预算不足写WAIT_BUDGET，缺高风险授权写WAIT_AUTH；不得降低门槛。连续两次同路线无新证据即停止交接。
 14. 任何真实盘点、模型/媒体探测或可见浏览器动作都以`plans/execution-control.json`和当前Stage的有限授权记录为准；不得从旧聊天或历史授权推断新预算。无匹配记录时进入WAIT_AUTH。
+15. 当前路线决策见`docs/23_V1_EARLY_FRONTEND_SEQUENCE.md`：`R0/R1a`先于V0-S2/S3实施；R1a不是新版本、不得使用临时HTML或浏览器直连Ollama，也不得缩小V0.1/V0.2/V1固定分母。

@@ -4,11 +4,19 @@
 
 复用V0模板、样本、模型配置、预处理纯函数与已知失败；直调Ollama的图/4帧再测。确认Structured Outputs支持；不支持则保留raw和PARSE_PARTIAL，不自动换云。关闭Comfy后测试，证明独立性。模板搬运记录原许可。
 
-## R1：人工优先骨架
+R0 在当前批准顺序中紧接已验收 V0-Min，不再等待 V0-S3。它只复核独立服务所需接口、复用边界、依赖和许可；不得把尚未完成的 V0.1/V0.2 发布项改写成已通过。
+
+## R1a：单图简易前端提前切片
+
+R1a 在 R0 后、V0-S2 前执行，使用最终 React/FastAPI 工程交付第一条可用产品路径：受控单图上传→本地 Ollama 分析→raw/观察/推断/未知与建议→显式采纳→人工编辑四输出→复制/TXT/JSON。模型离线、失败或超时时，人工编辑与导出仍可用。
+
+后端只实现正式 OpenAPI 的必要子集，不新增临时 endpoint；浏览器不直连 Ollama。分析采用单 GPU、单请求的有界执行，保留 job 身份和明确终态，使 R2 能在不改变前端调用语义的前提下补齐 attempt/CAS、取消晚到、幂等和恢复。R1a 不宣称完整修订、CLI、便携包、视频、资产库或 V1 PASS。
+
+## R1：人工优先骨架完成
 
 FastAPI同源SPA、受控媒体multipart streaming、ShotSpec、六模式/四目标、纯CPU编译先落地。SQLite foreign_keys/WAL；shot可更新、revision append-only、job记录。初始DDL见contracts/storage.sql，生成迁移而非运行时随意改表。已存在介质hash相同可复用内容引用但业务asset不同。
 
-React和CLI共用Application Service。人工新建无媒体shot；保存传If-Match；同事务读取当前etag、验证、插入revision、更新head。冲突412显示当前版本，不覆盖。revision hash只针对规范化内容，服务器时间/随机ID不参与内容相同判定。
+R1 复用并扩展 R1a，不另建前端。React和CLI共用Application Service。人工新建无媒体shot；保存传If-Match；同事务读取当前etag、验证、插入revision、更新head。冲突412显示当前版本，不覆盖。revision hash只针对规范化内容，服务器时间/随机ID不参与内容相同判定。
 
 ## R2：模型与任务
 

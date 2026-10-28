@@ -8,6 +8,12 @@
 
 React+TypeScript+Vite+CSS Modules，同源FastAPI托管dist；构建产物本地，不使用CDN图标/字体/分析脚本。开发Vite代理仅开发用，生产无Node服务，无通配CORS。初期React hooks/fetch即可；路由/状态库仅有实际需求时ADR，不重复前端框架。
 
+### R1a 提前切片
+
+R1a 先交付同一工程中的单页工作台，只开放单图上传、单次分析、状态/错误、raw与结构化建议、显式采纳、四输出编辑、复制和TXT/JSON导出。它不是设计原型，也不是独立于V1的临时站点。目录、组件、API client、样式令牌和构建链必须可被R1–R5直接扩展。
+
+R1a 不提前建设Library、Integrations、批量、MCP、多项目或完整修订历史。可以先实现最终API的最小子集，但浏览器不得直连Ollama；任务轮询、错误码和响应字段必须与正式合同一致，后续R2补齐CAS、取消晚到和恢复时不更换前端调用语义。
+
 ```text
 src/
   api/{client,types}.ts

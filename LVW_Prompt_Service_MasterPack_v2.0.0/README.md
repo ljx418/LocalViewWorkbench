@@ -1,6 +1,6 @@
 # LVW Prompt Service｜V0–V3 全阶段统一开发基线
 
-**文档包 v2.0.0 · 2026-10-27 · 当前交付目标 V0-Min，产品尚未验收。**
+**文档包 v2.0.0 · 2026-10-28 · V0-Min 已验收未发布，下一交付目标为 V1-R1a 简易前端切片。**
 
 [打开 HTML 总览](START_HERE.html) · [交互原型](prototype/index.html) · [完整规范](FULL_SPEC.md) · [Codex 启动](CODEX_START.md) · [需求追踪](plans/requirements.json)。
 
@@ -12,6 +12,8 @@
 
 项目负责人已批准[目标收缩决策](docs/22_V0_MIN_REBASELINE.md)：当前只交付单图反推、独立人工稿、四输出和复制/JSON/TXT 的 V0-Min；视频移至 V0.1，安装回滚与完整质量移至 V0.2。原十二项 V0 门槛作为 V0.2 兼容别名保留。
 
+项目负责人随后批准[简易前端提前实施决策](docs/23_V1_EARLY_FRONTEND_SEQUENCE.md)：不新增 V0-Min.1，先执行 `R0 → R1a`，以最终 React/FastAPI 架构交付单图简易前端，再补 V0.1/V0.2，最后完成 R1/R2。该调整不改变任何版本固定分母，R1a 也不等于 V1 PASS。
+
 ## 一套文档，不再多条互斥路线
 
 | 阶段 | 用户能做什么 | 实现载体 |
@@ -21,7 +23,7 @@
 | **V2 / 创作资产服务** | 镜头切分、精确时间、风格配方、检索、批量恢复、Agent调用 | 复用现有后端，增加 PySceneDetect、FTS5、官方 MCP SDK |
 | **V3 / 项目群适配** | Navia证据 → LVW提示词 → Narralens建议；受控Comfy生成交接 | 薄适配、版本合同、GPU协调、迁移回滚及真实E2E |
 
-**完整包含V3本身，不只写“未来再做”。** 默认开工目标为V0；Codex通过`TARGET_VERSION`选择目标，按里程碑推进，不一次性混建全部功能。旧R0–R5仍保留，新增V0-S0–S3置于前面。
+**完整包含V3本身，不只写“未来再做”。** 当前批准的实施优先级为 `V0-Min(PASS) → R0 → R1a → V0.1 → V0.2 → R1/R2 → V2 → V3`；发布与验收顺序并未改变。Codex依据机器可读计划和冻结 Stage Packet 推进，不一次性混建全部功能。
 
 ## 不变的原则
 

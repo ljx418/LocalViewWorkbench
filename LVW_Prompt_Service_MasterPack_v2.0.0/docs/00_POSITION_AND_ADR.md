@@ -22,7 +22,8 @@ LVW = Visual Prompt & Creative Asset Service。核心是“观察什么、想创
 - ADR-08：V2 MCP官方SDK，按开工版本与客户端实测锁定；V3外部合同是提案，必须映射真实接口。
 - ADR-09：升级软件与数据分开，模型外置复用；V0增量包，V1独立运行包，V3完整恢复测试。
 - ADR-10：引用旧测试编号但不继承PASS。V0不替代V1，模拟不替代GPU/离线/真实对端。
+- ADR-11：V1 首个可保留垂直切片 `R1a` 提前到 V0.1/V0.2 之前实施；它使用最终 React/FastAPI 同源架构，不新增 V0-Min.1，不改变任何版本门禁，详见[路线决策](23_V1_EARLY_FRONTEND_SEQUENCE.md)。
 
 ## 优先级
 
-最新用户授权 > 本文件ADR > 当前plans/contracts/config > 当前docs > 只读legacy。发现同级矛盾先记录ADR，不自行扩大范围。V0的无数据库不削减V1修订/V2资产；V0依赖Comfy不改变V1独立运行。
+最新用户授权 > 本文件ADR > 当前plans/contracts/config > 当前docs > 只读legacy。发现同级矛盾先记录ADR，不自行扩大范围。V0的无数据库不削减V1修订/V2资产；V0依赖Comfy不改变V1独立运行。提前实现不等于提前验收：`R1a` 只提供 V1 早期切片，V1 正式 PASS 仍受完整累计门禁约束。
