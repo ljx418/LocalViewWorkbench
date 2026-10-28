@@ -1,0 +1,40 @@
+{
+  "authorized_port_listeners": [],
+  "logical_commands": [
+    "WINDOWS_NVIDIA_SMI query total,used,free",
+    "WSL_NVIDIA_SMI query total,used,free",
+    "POWERSHELL Get-CimInstance Win32_Process with command line",
+    "POWERSHELL Get-NetTCPConnection listeners 8191,11434 with owning PID"
+  ],
+  "maximum_allowed_used_mib": 4096,
+  "passed": true,
+  "service_starts": 0,
+  "stop_reasons": [],
+  "target_process_count": 0,
+  "target_processes": [],
+  "windows_native_gpu": [
+    {
+      "free_mib": 20453,
+      "total_mib": 24564,
+      "used_mib": 3686
+    }
+  ],
+  "windows_process_count": 365,
+  "windows_wsl_match": true,
+  "windows_wsl_per_gpu_deltas": [
+    {
+      "free_delta_mib": 0,
+      "gpu_index": 0,
+      "total_matches": true,
+      "used_delta_mib": 0
+    }
+  ],
+  "windows_wsl_sample_tolerance_mib": 128,
+  "wsl_gpu": [
+    {
+      "free_mib": 20453,
+      "total_mib": 24564,
+      "used_mib": 3686
+    }
+  ]
+}
