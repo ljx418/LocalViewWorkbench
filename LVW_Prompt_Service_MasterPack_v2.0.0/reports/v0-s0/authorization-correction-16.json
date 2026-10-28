@@ -1,0 +1,62 @@
+{
+  "schema_version": "lvw.authorization/1",
+  "authorization_id": "AUTH-V0-S0-2026-10-28-16",
+  "request_id": "AUTH-REQUEST-V0-S0-WP-S0-46-01",
+  "project_id": "lvw-prompt-service",
+  "stage_id": "V0-S0",
+  "workpack_id": "WP-S0-46",
+  "status": "GRANTED_ONCE",
+  "granted_by": "project_owner",
+  "granted_at": "2026-10-28T12:06:47+08:00",
+  "grant_statement": "GPU 已释放；批准 AUTH-REQUEST-V0-S0-WP-S0-46-01，按 authorization-correction-16.request.json 的完整范围执行一次，并在终态后自动过期。",
+  "external_state_statement": "GPU 已释放",
+  "request_path": "reports/v0-s0/authorization-correction-16.request.json",
+  "request_commit": "6a09200edd8f1a4b26e8dbd604ced31486e0f0ff",
+  "request_sha256": "2254983e2d24d8f57488a0301d150f7b9bdbfb01f6d8e76a70e8c126e7678d01",
+  "product_candidate_sha": "138b4486fdaeb8d207ef6b5efb63a09865f174b9",
+  "harness_candidate_sha": "81a77cc013243f859167bd00a1971ad1543c2e46",
+  "harness_file_sha256": "4f3b150d261fd0d9f4a03dbe82051518e6208b4dd5f15eebff67ae310847f5d9",
+  "implementation_owner": "codex_isolated_implementer",
+  "allowed": {
+    "local_services": ["Windows-native Ollama", "run-owned temporary ComfyUI"],
+    "bind_addresses": ["127.0.0.1:11434", "127.0.0.1:8191"],
+    "samples": [
+      {"alias": "TEST_SOURCE/image-sample", "sha256": "b4bbd08a0fad67cc04e55d15bf2c48e9a76dcfd6dda147d8cc504452dfc78a42"},
+      {"alias": "TEST_SOURCE/video-sample", "sha256": "694a50bfb871faed6540a577b25c8a61e629035062a23f982099a6911ff22152"}
+    ],
+    "effective_attempts_max": {"image": 1, "video": 1},
+    "evidence_destination": "reports/v0-s0/correction-16/",
+    "external_cost": 0,
+    "visible_browser_runs": 0
+  },
+  "required_preconditions": [
+    "project owner explicitly reports that the unknown GPU workload was normally closed or released",
+    "executed harness file SHA-256 equals the Git blob at harness_candidate_sha",
+    "Windows-native and WSL GPU samples agree within 128 MiB and used memory is <=4096 MiB",
+    "no target ComfyUI/Ollama process and no listener on 8191/11434",
+    "OLLAMA_NO_CLOUD is observed true and owned PID has no non-loopback connection for >=10 seconds and >=5 samples"
+  ],
+  "mandatory_stops": [
+    "external resource-release statement is absent",
+    "candidate, harness, model or sample mismatch",
+    "pre-service identity, GPU, process or port gate failure",
+    "no-cloud or non-loopback network gate failure",
+    "GPU memory reaches or exceeds 23552 MiB",
+    "public prompt/history or semantic Oracle failure",
+    "per-call unload, final cleanup or target-integrity gap",
+    "privacy minimization violation"
+  ],
+  "forbidden": [
+    "cloud or paid provider calls",
+    "downloads, upgrades or permanent target configuration writes",
+    "visible browser startup",
+    "termination of non-owned processes",
+    "product, harness, contract, Oracle, timeout or threshold changes",
+    "reuse or extension of any prior authorization",
+    "remote Git push"
+  ],
+  "evidence_minimization": "persist only target process matches, aggregate process counts, authorized listener owner IDs and redacted diagnostics; never persist the complete process table or unrelated command lines",
+  "cleanup": "unload every started model call, require terminal /api/ps empty, stop run-owned PIDs, prove ports empty, remove run temp and verify target integrity",
+  "expires_when": "one terminal WP-S0-46 receipt is generated or either media attempt budget is consumed",
+  "does_not_authorize_stage_pass": true
+}
