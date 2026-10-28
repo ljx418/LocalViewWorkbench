@@ -1,0 +1,176 @@
+{
+  "schema_version": "lvw.implementation-receipt/1",
+  "project_id": "lvw-prompt-service",
+  "stage_id": "V0-S1",
+  "workpack_id": "WP-S1-03",
+  "spec_version": "1.0.0",
+  "authorization_id": "AUTH-V0-S1-2026-10-28-03",
+  "authorization_commit": "33f819927c2fe824cc1d8b7399f157c3d779c2db",
+  "authorization_record_sha256": "f3cebf950d5c84508fc77a49af9caa6fe233861e819045ad68d4c69c617159a2",
+  "authorization_request_sha256": "eecfe5dd10879ae94f13a5ebd496165722f328fa729574ed857f0fc8666d7db4",
+  "candidate_sha": "4a2fed4b0a0cd53bccb02b8779facd6149120c8d",
+  "candidate_sha_status": "SEALED_EXECUTION_CANDIDATE",
+  "harness_sha256": "6d36759639b109a31ef1e385b55b49c9b5b2e142a7f1d0f0c43be2962e5cb2bf",
+  "evidence_commit": "0000000000000000000000000000000000000000",
+  "evidence_commit_status": "PENDING_ROOT_SEALING",
+  "acceptance_hash": "4b52485dbaa7daeccb31b5c91771b51f8106ab6e49267328990ad4da3b5f85c5",
+  "acceptance_hash_binding": {
+    "algorithm": "sha256",
+    "target": "sorted fixed acceptance IDs V0-A01,V0-A03,V0-A04,V0-A05,V0-A08 joined by LF with a trailing LF"
+  },
+  "gate_version": "lvw-gate/1",
+  "run_id": "v0-s1-wp-s1-03-live-03",
+  "implementation_owner_role": "codex_isolated_implementer",
+  "implementation_session": "/root/s0_rerun_implementer",
+  "decision": "NO_GO",
+  "stage_pass_claim": false,
+  "authorization_status": "EXPIRED_TERMINAL",
+  "exact_stop_reason": "PUBLIC_COMFY_ROUTE_FAILED",
+  "command_exit_code": 2,
+  "rerun_count": 0,
+  "attempts": {
+    "effective_image_attempts": 1,
+    "model_calls": 1
+  },
+  "service_starts": {
+    "ollama": 1,
+    "comfyui": 1
+  },
+  "public_api_submissions": 1,
+  "production_path_status": "PUBLIC_COMFY_ROUTE_FAILED_BEFORE_SUCCESSFUL_MODEL_INFERENCE",
+  "environment": {
+    "mode": "one_shot_authorized_local_live",
+    "target_paths": "AUTHORIZED_AKI_V2_ALIASES_ONLY",
+    "sample": "TEST_SOURCE/image-sample",
+    "sample_sha256": "b4bbd08a0fad67cc04e55d15bf2c48e9a76dcfd6dda147d8cc504452dfc78a42",
+    "cloud_or_paid_calls": 0,
+    "downloads_or_upgrades": 0,
+    "visible_browser_runs": 0,
+    "external_cost": 0
+  },
+  "check_results": [
+    {
+      "check": "single_authorized_command",
+      "status": "EXECUTED_ONCE_EXIT_2_NO_RERUN",
+      "evidence": "reports/v0-s1/wp-s1-03-live-03/run-summary.json"
+    },
+    {
+      "check": "candidate_and_harness_identity",
+      "status": "PASS",
+      "evidence": "reports/v0-s1/wp-s1-03-live-03/run-summary.json#evidence.identity"
+    },
+    {
+      "check": "pre_service_gpu_process_port_gate",
+      "status": "PASS",
+      "evidence": "reports/v0-s1/wp-s1-03-live-03/run-summary.json#evidence.preflight"
+    },
+    {
+      "check": "loopback_no_cloud_gate",
+      "status": "PASS",
+      "evidence": "reports/v0-s1/wp-s1-03-live-03/run-summary.json#evidence.network_gate"
+    },
+    {
+      "check": "exact_local_model_identity",
+      "status": "PASS",
+      "evidence": "reports/v0-s1/wp-s1-03-live-03/run-summary.json#evidence.model_identity"
+    },
+    {
+      "check": "public_comfy_prompt_history_route",
+      "status": "FAIL_MEDIA_LIMIT_EXCEEDED_FRAME_LONG_EDGE_LIMIT",
+      "evidence": "reports/v0-s1/wp-s1-03-live-03/run-summary.json#evidence.failure"
+    },
+    {
+      "check": "per_call_model_cleanup",
+      "status": "PASS_HTTP_200_TERMINAL_API_PS_EMPTY",
+      "evidence": "reports/v0-s1/wp-s1-03-live-03/run-summary.json#evidence.model_cleanup"
+    },
+    {
+      "check": "owned_cleanup_and_target_integrity",
+      "status": "PASS",
+      "evidence": "reports/v0-s1/wp-s1-03-live-03/run-summary.json#cleanup"
+    },
+    {
+      "check": "post_terminal_owned_resource_absence",
+      "status": "PASS_READ_ONLY_RECHECK"
+    },
+    {
+      "check": "fixed_product_acceptance",
+      "status": "NOT_RUN"
+    }
+  ],
+  "resource_observations": {
+    "preflight_gpu_count": 1,
+    "preflight_max_used_mib": 3704,
+    "resource_stop_threshold_mib": 23552,
+    "threshold_exceeded": false
+  },
+  "network_observations": {
+    "ollama_no_cloud": true,
+    "remote_tcp_samples": 5,
+    "nonloopback_connections_observed": 0
+  },
+  "cleanup": {
+    "in_run_proven": true,
+    "owned_count": 2,
+    "failures": [],
+    "final_target_listener_count": 0,
+    "run_owned_temp_removed": true,
+    "target_integrity_comparison": "PASS",
+    "post_terminal_listener_count": 0,
+    "post_terminal_target_process_match_count": 0,
+    "post_terminal_run_temp_residual_count": 0,
+    "proven": true
+  },
+  "changed_files": [
+    "reports/v0-s1/wp-s1-03-live-03/run-summary.json",
+    "reports/v0-s1/wp-s1-03-live-03/artifact-manifest.json",
+    "reports/v0-s1/implementation-receipt-wp-s1-03-live-03.json"
+  ],
+  "contract_changes": "none",
+  "target_configuration_changes": "none",
+  "commands": [
+    {
+      "logical_command": "AUTHORIZED_WP_S1_03_LIVE_03_ONE_SHOT_COMMAND",
+      "exit_code": 2,
+      "result": "NO_GO: PUBLIC_COMFY_ROUTE_FAILED; invoked exactly once and not retried"
+    },
+    {
+      "logical_command": "offline SHA-256 artifact-manifest validation",
+      "exit_code": 0,
+      "result": "PASS; run-summary hash matches the harness-generated manifest"
+    },
+    {
+      "logical_command": "read-only Windows target listener/process and run-temp residual postcheck",
+      "exit_code": 0,
+      "result": "PASS; zero listeners on 8191/11434, zero matching Ollama/ComfyUI processes, zero run-owned temporary directories"
+    }
+  ],
+  "test_counts": {
+    "denominator": 5,
+    "pass": 0,
+    "fail": 0,
+    "blocked": 0,
+    "skipped": 0,
+    "not_run": 5
+  },
+  "product_acceptance": {
+    "V0-A01": "NOT_RUN",
+    "V0-A03": "NOT_RUN",
+    "V0-A04": "NOT_RUN",
+    "V0-A05": "NOT_RUN",
+    "V0-A08": "NOT_RUN"
+  },
+  "artifact_refs": [
+    "reports/v0-s1/wp-s1-03-live-03/run-summary.json",
+    "reports/v0-s1/wp-s1-03-live-03/artifact-manifest.json"
+  ],
+  "raw_artifact_refs": [
+    "reports/v0-s1/wp-s1-03-live-03/run-summary.json"
+  ],
+  "risks": [
+    "The public Comfy route passed identity, preflight, local-model, loopback/no-cloud, and listener-lineage gates but rejected the image tensor because its longest edge exceeded the bridge's frozen 384-pixel limit.",
+    "No successful public route result or semantic Oracle result was produced; all five fixed product acceptance cases remain NOT_RUN.",
+    "The one-shot authorization is terminal and expired; this run was not and must not be retried under the same authorization.",
+    "The evidence commit field remains pending because a Git commit cannot self-reference its own final object ID; root sealing may bind it after this implementation commit."
+  ]
+}
