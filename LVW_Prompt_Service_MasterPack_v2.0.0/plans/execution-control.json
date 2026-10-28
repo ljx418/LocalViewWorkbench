@@ -8,28 +8,28 @@
     "stage_id": "V0-S1",
     "workpack_id": "WP-S1-03",
     "gate": "GATE4_REAL_ACCEPTANCE",
-    "state": "WAIT_AUTH"
+    "state": "RUNNING"
   },
   "last_passed_gate": {
     "id": "WP_S1_03_TERMINAL_SERIALIZATION_CORRECTION_SEALED",
     "evidence": "reports/v0-s1/wp-s1-03-serialization-correction-seal.json",
     "meaning": "structured terminal redaction, fresh authorization ID and non-reusable live-03 evidence slot passed 78 offline tests on candidate 4a2fed4"
   },
-  "current_blocking_gate": "project-owner approval of the hash-bound AUTH-REQUEST-V0-S1-WP-S1-03-03 is required before any new local service, GPU, port, model or real-media action",
+  "current_blocking_gate": "the authorized live-03 preflight and single effective image route must execute once and generate a terminal receipt",
   "stage_packet": ".agent-governance/stages/V0-S1/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/V0-S1/PAYLOAD_MANIFEST.sha256",
   "product_status": "NOT_RUN",
-  "allowed_claim": "V0_S1_WP_S1_03_SERIALIZATION_CORRECTED_OFFLINE_WAIT_AUTH_LIVE_03_PRODUCT_CASES_NOT_RUN",
+  "allowed_claim": "V0_S1_WP_S1_03_LIVE_03_AUTHORIZED_RUNNING_PRODUCT_CASES_NOT_RUN",
   "forbidden_claims": [
     "ENGINEERING_READY",
     "V0_ACCEPTED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "project_owner",
-  "next_action": "Review and explicitly approve or reject AUTH-REQUEST-V0-S1-WP-S1-03-03; no live action is permitted before approval.",
-  "required_authorization": "AUTH-REQUEST-V0-S1-WP-S1-03-03",
+  "next_owner": "codex_isolated_implementer",
+  "next_action": "Execute the sealed live-03 harness exactly once; stop on any mandatory condition, preserve evidence, clean owned resources and expire authorization.",
+  "required_authorization": "AUTH-V0-S1-2026-10-28-03",
   "authorization_request": "reports/v0-s1/authorization-wp-s1-03-03.request.json",
-  "authorization_record": "reports/v0-s1/authorization-wp-s1-03-02.json",
+  "authorization_record": "reports/v0-s1/authorization-wp-s1-03-03.json",
   "evidence_root": "reports/",
-  "exact_stop_reason": "WAIT_NEW_EXPLICIT_LIVE_03_AUTHORIZATION"
+  "exact_stop_reason": null
 }

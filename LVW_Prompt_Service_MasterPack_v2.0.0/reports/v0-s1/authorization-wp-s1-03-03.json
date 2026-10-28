@@ -1,0 +1,39 @@
+{
+  "schema_version": "lvw.authorization/1",
+  "authorization_id": "AUTH-V0-S1-2026-10-28-03",
+  "request_id": "AUTH-REQUEST-V0-S1-WP-S1-03-03",
+  "project_id": "lvw-prompt-service",
+  "stage_id": "V0-S1",
+  "workpack_id": "WP-S1-03",
+  "status": "GRANTED_ONCE",
+  "granted_by": "project_owner",
+  "granted_at": "2026-10-28T14:30:33+08:00",
+  "grant_statement": "批准 AUTH-REQUEST-V0-S1-WP-S1-03-03，按 authorization-wp-s1-03-03.request.json 的完整范围执行一次，并在终态后自动过期。",
+  "request_path": "reports/v0-s1/authorization-wp-s1-03-03.request.json",
+  "request_commit": "60c49f076d6cd8f5383e85833a38f3a39aa4e7bc",
+  "request_sha256": "eecfe5dd10879ae94f13a5ebd496165722f328fa729574ed857f0fc8666d7db4",
+  "candidate_sha": "4a2fed4b0a0cd53bccb02b8779facd6149120c8d",
+  "harness_path": "reports/v0-s1/wp-s1-03-phase-a/live_probe.py",
+  "harness_sha256": "6d36759639b109a31ef1e385b55b49c9b5b2e142a7f1d0f0c43be2962e5cb2bf",
+  "implementation_owner": "codex_isolated_implementer",
+  "scope": "the complete allowed, required_preconditions, required_checks, mandatory_stops, forbidden, evidence_minimization, cleanup and expiry clauses of the hash-bound request",
+  "budgets": {
+    "effective_image_attempts_max": 1,
+    "model_calls_max": 1,
+    "comfy_process_starts_max": 1,
+    "ollama_process_starts_max": 1,
+    "public_api_submissions_max": 8,
+    "visible_browser_runs": 0,
+    "external_cost": 0
+  },
+  "target_paths": {
+    "comfy_main": "C:/ComfyUI-aki-v2/ComfyUI/main.py",
+    "comfy_python": "C:/ComfyUI-aki-v2/python/python.exe"
+  },
+  "network": "literal loopback 127.0.0.1 ports 8191 and 11434 only; OLLAMA_NO_CLOUD required",
+  "sample": {"alias": "TEST_SOURCE/image-sample", "sha256": "b4bbd08a0fad67cc04e55d15bf2c48e9a76dcfd6dda147d8cc504452dfc78a42"},
+  "run_id": "v0-s1-wp-s1-03-live-03",
+  "evidence_destination": "reports/v0-s1/wp-s1-03-live-03/",
+  "expires_when": "one terminal WP-S1-03 live-03 receipt is generated, the single effective image attempt is consumed, or any mandatory stop occurs",
+  "does_not_authorize_stage_pass": true
+}
