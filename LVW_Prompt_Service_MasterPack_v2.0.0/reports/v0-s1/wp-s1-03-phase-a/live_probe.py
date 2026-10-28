@@ -24,7 +24,7 @@ import urllib.request
 
 AUTHORIZATION_ID = "AUTH-V0-S1-2026-10-28-01"
 AUTHORIZED_START = "2776a0c59cd9dc3ccf1508fb26b18a52b6c531d0"
-PHASE_A_BASELINE = "5ede28475e23dd98fe31821ad8dda92816f5d943"
+PHASE_A_BASELINE = "0dcf693128fe0b8e8215407b7e628970f798e595"
 AUTHORIZED_SAMPLE_SHA256 = "b4bbd08a0fad67cc04e55d15bf2c48e9a76dcfd6dda147d8cc504452dfc78a42"
 MODEL = "gemma4:26b"
 COMFY_URL = "http://127.0.0.1:8191"
@@ -42,8 +42,8 @@ PRODUCT_CASES = {key: "NOT_RUN" for key in ("V0-A01", "V0-A03", "V0-A04", "V0-A0
 PROMPT_SPEC_KEYS = {"schema_version", "mode", "domains", "technical", "locked_fields", "text_zh", "text_en",
                     "tags", "negative", "template_id", "template_version"}
 DOMAIN_KEYS = {"observation", "inference", "user_evidence", "creative_intent", "unknowns"}
-AUTHORIZED_COMFY_MAIN = "C:/ComfyUI/ComfyUI/main.py"
-AUTHORIZED_COMFY_PYTHON = "C:/ComfyUI/python/python.exe"
+AUTHORIZED_COMFY_MAIN = "C:/ComfyUI-aki-v2/ComfyUI/main.py"
+AUTHORIZED_COMFY_PYTHON = "C:/ComfyUI-aki-v2/python/python.exe"
 
 
 class StopProbe(RuntimeError):
@@ -663,7 +663,9 @@ def self_check() -> dict:
     if api["2"]["inputs"]["image"] != ["1", 0] or ui["links"] != [[1, 1, 0, 2, 0, "IMAGE"]]:
         raise StopProbe("WORKFLOW_IMAGE_LINK_MISMATCH")
     return {"offline_only": True, "workflow_classes": sorted(classes), "live_actions": 0,
-            "authorization": AUTHORIZATION_ID, "budgets": {"image": 1, "model_calls": 1, "submissions": 8}}
+            "authorization": AUTHORIZATION_ID,
+            "authorized_targets": {"comfy_main": AUTHORIZED_COMFY_MAIN, "comfy_python": AUTHORIZED_COMFY_PYTHON},
+            "budgets": {"image": 1, "model_calls": 1, "submissions": 8}}
 
 
 def parse_args(argv=None):
