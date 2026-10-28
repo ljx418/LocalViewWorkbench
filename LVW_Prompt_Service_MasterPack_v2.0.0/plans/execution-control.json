@@ -6,27 +6,27 @@
   "target_version": "V0",
   "coordinate": {
     "stage_id": "V0-S0",
-    "workpack_id": "WP-S0-36",
-    "gate": "GATE3_CHECKPOINT",
-    "state": "CHECKPOINT"
+    "workpack_id": "WP-S0-37",
+    "gate": "GATE1_IMPLEMENTATION",
+    "state": "RUNNING"
   },
   "last_passed_gate": {
-    "id": "WP_S0_35_OFFLINE_CANDIDATE_SEALED",
-    "evidence": "reports/v0-s0/implementation-receipt-correction-12-offline.json",
-    "meaning": "root review and manifest sealing confirmed the owned-Popen cleanup candidate is ready for independent review"
+    "id": "WP_S0_36_INDEPENDENT_MAJOR_REVIEW_COMPLETE",
+    "evidence": "reports/v0-s0/independent-review-correction-12.md",
+    "meaning": "independent review closed the Popen finding and found one captured-PID cleanup proof drift requiring correction-13"
   },
-  "current_blocking_gate": "WP-S0-36 independent review is required; live rerun remains separately blocked by unknown GPU owner",
+  "current_blocking_gate": "WP-S0-36 M-01 cleanup.proven can diverge from owned_resources_absent; live rerun remains separately blocked by unknown GPU owner",
   "stage_packet": ".agent-governance/stages/V0-S0/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/V0-S0/PAYLOAD_MANIFEST.sha256",
   "product_status": "NOT_RUN",
-  "allowed_claim": "V0_S0_CORRECTION_12_READY_FOR_INDEPENDENT_REVIEW",
+  "allowed_claim": "V0_S0_CORRECTION_13_OFFLINE_REMEDIATION_IN_PROGRESS",
   "forbidden_claims": [
     "ENGINEERING_READY",
     "V0_ACCEPTED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "codex_isolated_reviewer",
-  "next_action": "Independently reproduce lingering-Popen cleanup branches and verify candidate/receipt/history binding; do not start services.",
+  "next_owner": "codex_isolated_implementer",
+  "next_action": "Implement WP-S0-37/38 single-authority cleanup proof and captured-PID residue fixtures offline.",
   "evidence_root": "reports/",
-  "exact_stop_reason": "AWAITING_WP_S0_36_INDEPENDENT_REVIEW"
+  "exact_stop_reason": "CORRECTION_13_CLEANUP_PROOF_AUTHORITY_ACTIVE"
 }

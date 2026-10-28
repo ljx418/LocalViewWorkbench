@@ -5,9 +5,9 @@ Project: lvw-prompt-service
 Design: 2.0.0
 Target version: V0
 Stage: V0-S0 / 现有环境与节点基线
-Stage state: GATE3_CHECKPOINT / CHECKPOINT
+Stage state: GATE1_IMPLEMENTATION / RUNNING
 Product cases: NOT_RUN
-Last passed gate: WP_S0_35_OFFLINE_CANDIDATE_SEALED
+Last passed gate: WP_S0_36_INDEPENDENT_MAJOR_REVIEW_COMPLETE
 Baseline commit: 3c69a23d07064a0db5cb05258b237be2415a314a
 Baseline product-control fingerprint: sha256:bd4875c1d53ce8a208e35cdb3b3b20110b290eb7f547eb1239b4eb1192764f4a
 ```
@@ -35,3 +35,5 @@ WP-S0-31/32 候选已由 root 封存，离线回归 33/33、pack 1073/0、治理
 WP-S0-33 结论 Fatal 0 / Major 1 / Minor 0：Popen 已创建但 PID 未捕获、wait 超时且仍存活时，correction-11 仍可能把 cleanup 写成 PASS。root 已冻结 WP-S0-34/35/36 correction-12；只允许离线闭合 owned Popen 终态与负例，不授权 live 动作。
 
 WP-S0-34/35 候选已由 root 封存，离线回归 37/37；当前只允许 WP-S0-36 独立复审。产品四项仍为 NOT_RUN，未知 GPU owner 的 live blocker 仍保留。
+
+WP-S0-36 确认 Popen Major 已关闭，但发现 captured owned PID 的 stop-after 残留未进入 `cleanup.proven`，结论 Fatal 0 / Major 1 / Minor 0。root 已冻结 WP-S0-37/38/39，以单一权威公式闭合全部清理子状态；仍不授权 live 动作。

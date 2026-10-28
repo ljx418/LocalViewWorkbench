@@ -20,6 +20,8 @@ correction-11 checkpoint 必须逐分支证明：零 owned start 的身份/prefl
 
 correction-12 checkpoint 必须用完整 run fixture 证明：任何已创建但未证实退出的 owned Popen 都使 cleanup fail-closed；wait timeout/异常进入机器收据；正常退出才允许 absence/proven/PASS。只能操作 run-owned Popen，历史 correction-10/11 不可改写。
 
+correction-13 checkpoint 必须证明 `cleanup.proven` 只有一个权威公式；captured PID stop-after、Popen、端口/temp、integrity 与 secondary failure 任一不满足都不能 PASS。测试需覆盖 proof=true 的蕴含不变量，历史 correction-10/11/12 不可改写。
+
 ## 允许裁决
 
 `STAGE_BASELINE_COMPLETE` 仅表示 S0 盘点和最小探测完成；产品用例仍为 NOT_RUN。否则使用 `NO_GO/BLOCKED/WAIT_BUDGET/WAIT_AUTH`。下一 Stage 必须另建并冻结 packet，不能自动推进。

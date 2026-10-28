@@ -149,3 +149,15 @@ Owner：`codex_isolated_implementer`。依赖 WP-S0-34。新增完整 `Probe.run
 ## WP-S0-36：correction-12 独立离线复审
 
 Owner：`codex_isolated_reviewer`。依赖 WP-S0-35。隔离复算 M-01、完整 run-level 负例、owned 边界、候选/收据绑定和历史 evidence 不可改写。Fatal/Major 必须为零才可建议关闭离线纠偏；不得修改候选、启动服务或宣布 Stage PASS。
+
+## WP-S0-37：清理证明单一权威公式纠偏
+
+Owner：`codex_isolated_implementer`。依赖 WP-S0-36 的 M-01。仅离线修改 harness，使 `cleanup.proven` 不再平行重算子条件，而严格等于 `owned_resources_absent AND target_integrity_comparison == PASS AND secondary_cleanup_failures empty`。任何 captured owned PID 的 stop-after 非空、任何 lingering Popen、端口/temp 残留、完整性未比较/失败或 secondary failure 都必须使 proof=false 与 cleanup check=`FAIL`。禁止修改历史 evidence、合同、阈值或启动服务。
+
+## WP-S0-38：清理一致性完整负例与实现收据
+
+Owner：`codex_isolated_implementer`。依赖 WP-S0-37。新增完整 run fixture 覆盖 captured PID stop-after 非空与空终态；建立通用不变量测试：`cleanup.proven=true` 必然推出 resources absent、integrity PASS、secondary failures 为空。保留 37 项回归，输出 correction-13 离线收据，只能 `READY_FOR_REVIEW`，产品四项保持 `NOT_RUN`。
+
+## WP-S0-39：correction-13 独立离线复审
+
+Owner：`codex_isolated_reviewer`。依赖 WP-S0-38。独立复算单一公式、captured PID 残留、Popen 回归、候选/收据绑定和历史不变。Fatal/Major 必须为零才可建议结束离线纠偏；不得修改候选、启动服务或宣布 Stage PASS。
