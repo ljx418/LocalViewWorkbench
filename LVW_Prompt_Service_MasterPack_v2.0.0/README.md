@@ -8,7 +8,7 @@
 
 产品规格仍由本README、`docs/`、`contracts/`和`plans/`定义；[Agent Governance](.agent-governance/README.md)在其上增加角色隔离、Stage Packet、Workpack、候选/证据绑定、预算等待和反假绿门禁。唯一当前坐标为[execution-control.json](plans/execution-control.json)。
 
-当前是`V0-S1 / WP-S1-03 / GATE4_REAL_ACCEPTANCE / WAIT_AUTH`：live-04 在 GPU 门限安全停止后已终态封存；候选 `919f7fc...` 又补齐了精确聚合 GPU 停止证据，门限仍为 4096 MiB，离线回归 80/80。当前需项目负责人确认 GPU 已释放并批准 `AUTH-REQUEST-V0-S1-WP-S1-03-05`；五项产品验收仍为`NOT_RUN`。
+当前是`V0-S1 / WP-S1-03 / GATE4_REAL_ACCEPTANCE / RUNNING`：项目负责人已确认 GPU 释放并批准 request-05；候选 `919f7fc...` 与 harness `27a50fa...` 仅可执行一次 aki-v2 live-05。预算为单图片、单模型调用、各一次服务启动、loopback/no-cloud、零浏览器和零外部成本；五项产品验收仍为`NOT_RUN`。
 
 ## 一套文档，不再多条互斥路线
 

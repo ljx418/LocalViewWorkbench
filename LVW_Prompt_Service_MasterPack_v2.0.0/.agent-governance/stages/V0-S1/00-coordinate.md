@@ -6,10 +6,10 @@ Design: 2.0.0
 Target version: V0
 Prepared stage: V0-S1 / 图片与独立人工路径
 Packet version: 1.0.0
-State: WAIT_AUTH / WAIT_GPU_RELEASE_AND_LIVE_05_APPROVAL
+State: RUNNING / AUTHORIZED_LIVE_05
 Active coordinate: V0-S1 / WP-S1-03 / GATE4_REAL_ACCEPTANCE
 Last passed gate: WP_S1_03_GPU_EVIDENCE_CORRECTION_SEALED
-Exact stop reason: WAIT_GPU_RELEASE_AND_NEW_EXPLICIT_LIVE_05_AUTHORIZATION
+Exact stop reason: none
 Product cases: NOT_RUN
 Prepared-against commit: dfb00ad462d94628f1aa22045061f66a7629ec01
 Product bridge candidate: 138b4486fdaeb8d207ef6b5efb63a09865f174b9
@@ -51,3 +51,5 @@ live-03 已且仅已执行一次并以 `NO_GO` 终止：候选身份、GPU、精
 live-04 已且仅已执行一次，在服务启动前以 `GPU_PREFLIGHT_USED_MEMORY_EXCEEDED` 安全停止。图片尝试、模型调用、公开提交、Ollama 和 Comfy 启动均为 0；清理、端口空闲、临时目录移除及目标完整性均通过。harness 未持久化精确 MiB，因此不作数值推断。授权已自动过期，五项产品用例保持 `NOT_RUN`；需要项目负责人释放 GPU，并在新请求封存后重新逐次授权。
 
 候选 `919f7fc...` 已在不改变 4096 MiB 门限的前提下补齐 GPU 超限聚合证据，绑定新的 live-05 证据槽；定向 20/20、完整回归 80/80，外部动作 0。现在同时等待项目负责人确认 GPU 已释放并明确批准 `AUTH-REQUEST-V0-S1-WP-S1-03-05`。
+
+项目负责人已确认 GPU 释放并逐字批准 request-05，正式授权绑定请求提交 `70590f1...` 与 SHA-256 `7fd042c...`。仅可执行一次 live-05；任何 mandatory stop、有效图片尝试或终态收据都会使授权自动过期。
