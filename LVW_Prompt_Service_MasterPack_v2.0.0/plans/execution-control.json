@@ -6,27 +6,27 @@
   "target_version": "V0",
   "coordinate": {
     "stage_id": "V0-S0",
-    "workpack_id": "WP-S0-34",
-    "gate": "GATE1_IMPLEMENTATION",
-    "state": "RUNNING"
+    "workpack_id": "WP-S0-36",
+    "gate": "GATE3_CHECKPOINT",
+    "state": "CHECKPOINT"
   },
   "last_passed_gate": {
-    "id": "WP_S0_33_INDEPENDENT_MAJOR_REVIEW_COMPLETE",
-    "evidence": "reports/v0-s0/independent-review-correction-11.md",
-    "meaning": "independent review found one owned-Popen cleanup false-green path requiring correction-12"
+    "id": "WP_S0_35_OFFLINE_CANDIDATE_SEALED",
+    "evidence": "reports/v0-s0/implementation-receipt-correction-12-offline.json",
+    "meaning": "root review and manifest sealing confirmed the owned-Popen cleanup candidate is ready for independent review"
   },
-  "current_blocking_gate": "WP-S0-33 M-01 owned Popen can remain alive while cleanup reports PASS; live rerun remains separately blocked by unknown GPU owner",
+  "current_blocking_gate": "WP-S0-36 independent review is required; live rerun remains separately blocked by unknown GPU owner",
   "stage_packet": ".agent-governance/stages/V0-S0/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/V0-S0/PAYLOAD_MANIFEST.sha256",
   "product_status": "NOT_RUN",
-  "allowed_claim": "V0_S0_CORRECTION_12_OFFLINE_REMEDIATION_IN_PROGRESS",
+  "allowed_claim": "V0_S0_CORRECTION_12_READY_FOR_INDEPENDENT_REVIEW",
   "forbidden_claims": [
     "ENGINEERING_READY",
     "V0_ACCEPTED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "codex_isolated_implementer",
-  "next_action": "Implement WP-S0-34/35 owned-Popen terminal proof and run-level negative fixtures offline, then hand off to independent review.",
+  "next_owner": "codex_isolated_reviewer",
+  "next_action": "Independently reproduce lingering-Popen cleanup branches and verify candidate/receipt/history binding; do not start services.",
   "evidence_root": "reports/",
-  "exact_stop_reason": "CORRECTION_12_OWNED_POPEN_CLEANUP_ACTIVE"
+  "exact_stop_reason": "AWAITING_WP_S0_36_INDEPENDENT_REVIEW"
 }
