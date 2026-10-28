@@ -1,6 +1,7 @@
 # V0-Min Gate Decision
 
-- Decision: `PASS — V0_MIN_ENGINEERING_READY`
+- Engineering decision: `PASS — V0_MIN_ENGINEERING_READY`
+- Final product decision: `PASS — V0_MIN_ACCEPTED`
 - Candidate: `6fcd114f6e781d143f713e82996720180a94434b`
 - Independent review: `reports/v0-s1/independent-review-v0-min-privacy-correction-02.md`
 - Review result: Fatal 0 / Major 0 / Minor 0
@@ -19,16 +20,20 @@ aggregate. No further live run is required or authorized.
 
 ## Claim boundary
 
-Allowed claim: `V0_MIN_ENGINEERING_READY`.
+Allowed claim after project-owner sign-off: `V0_MIN_ACCEPTED`.
 
-Forbidden until the project owner signs: `V0_MIN_ACCEPTED`, `V0.1_ACCEPTED`,
-`V0.2_ACCEPTED`, `V0_ACCEPTED`, or production-release approval.
+Still forbidden: `V0.1_ACCEPTED`, `V0.2_ACCEPTED`, `V0_ACCEPTED`, or
+production-release approval.
 
 ## Remaining gate
 
-The only remaining V0-Min item is human experience/product sign-off. Codex does
-not substitute for that judgment.
+The project owner supplied the exact requested human experience/product
+sign-off for product candidate `1d48142b95466954ca4da264fa06762abf1522f2`.
+The signed scope accepts the V0-Min non-goals and explicitly excludes V0.1,
+V0.2, the legacy V0 alias and production release.
 
+- Sign-off: `reports/v0-s1/human-signoff-v0-min.json`
+- Acceptance receipt: `reports/v0-s1/v0-min-acceptance.json`
 - Next owner: `project_owner`
-- Required authorization/sign-off: `HUMAN_V0_MIN_EXPERIENCE_SIGNOFF`
-- Exact stop reason: `WAIT_HUMAN_V0_MIN_EXPERIENCE_SIGNOFF`
+- Required authorization/sign-off: `NONE_V0_MIN_COMPLETE`
+- Exact stop reason: `V0_MIN_COMPLETE_AWAIT_NEXT_VERSION_DIRECTION`

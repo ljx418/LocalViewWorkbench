@@ -133,7 +133,7 @@ def validate_stage(control: dict, tasks: dict, cases: dict) -> list[str]:
             "WP-S1-03_ONE_SHOT_LIVE", "WP-S1-04_CHECKPOINT_ONE_SHOT_LIVE"
         }:
             errors.append("post-authorization Stage has an unknown authorization scope")
-        if state not in {"FROZEN_READY_OFFLINE", "RUNNING", "CHECKPOINT", "STAGE_BASELINE_COMPLETE", "NO_GO", "BLOCKED", "WAIT_BUDGET"}:
+        if state not in {"FROZEN_READY_OFFLINE", "RUNNING", "CHECKPOINT", "STAGE_BASELINE_COMPLETE", "NO_GO", "BLOCKED", "WAIT_BUDGET", "PASS"}:
             errors.append("external/private Stage has an invalid post-authorization state")
         records = control.get("authorization_records", [])
         if not records:
@@ -393,7 +393,7 @@ def main_v0_s1(args: argparse.Namespace, execution: dict) -> int:
     )
     live_terminal = (
         control.get("authorization_scope") in live_scopes
-        and control.get("state") in {"CHECKPOINT", "NO_GO", "BLOCKED", "STAGE_BASELINE_COMPLETE"}
+        and control.get("state") in {"CHECKPOINT", "NO_GO", "BLOCKED", "STAGE_BASELINE_COMPLETE", "PASS"}
         and bool(authorization_records)
         and bool(record_statuses)
         and all(str(status).startswith("EXPIRED_") for status in record_statuses)
@@ -426,9 +426,52 @@ def main_v0_s1(args: argparse.Namespace, execution: dict) -> int:
     workpack_ids = {item.get("id") for item in control.get("workpacks", [])}
     current_workpack = execution.get("coordinate", {}).get("workpack_id")
     check("coordinate_workpack", current_workpack in workpack_ids, str(current_workpack))
-    check("product_status_not_promoted", execution.get("product_status") == "NOT_RUN")
+    stage_pass = control.get("state") == "PASS"
+    if stage_pass:
+        check("product_status_pass", execution.get("product_status") == "PASS")
+        acceptance_ref = execution.get("product_acceptance")
+        acceptance_path = ROOT / str(acceptance_ref or "")
+        check("v0_min_acceptance_exists", bool(acceptance_ref) and acceptance_path.is_file())
+        acceptance = load_json(acceptance_path) if acceptance_path.is_file() else {}
+        expected_ids = control.get("fixed_acceptance_ids", [])
+        accepted_cases = acceptance.get("cases", [])
+        accepted_ids = [item.get("case_id") for item in accepted_cases]
+        candidate = acceptance.get("product_candidate")
+        run_id = acceptance.get("run_id")
+        check("v0_min_acceptance_decision", acceptance.get("decision") == "V0_MIN_ACCEPTED")
+        check("v0_min_acceptance_denominator", accepted_ids == expected_ids
+              and acceptance.get("fixed_denominator") == expected_ids
+              and acceptance.get("acceptance_hash") == control.get("acceptance_hash"))
+        check("v0_min_acceptance_case_binding", bool(candidate) and bool(run_id)
+              and all(item.get("status") == "PASS"
+                      and item.get("candidate_sha") == candidate
+                      and item.get("run_id") == run_id
+                      and item.get("observed") for item in accepted_cases))
+        evidence_valid = True
+        for item in acceptance.get("evidence", []):
+            try:
+                evidence_path = (ROOT / item["path"]).resolve()
+                evidence_valid = (evidence_valid
+                                  and evidence_path.is_relative_to(ROOT.resolve())
+                                  and evidence_path.is_file()
+                                  and hashlib.sha256(evidence_path.read_bytes()).hexdigest() == item["sha256"])
+            except (KeyError, OSError, TypeError):
+                evidence_valid = False
+        check("v0_min_acceptance_evidence_binding", len(acceptance.get("evidence", [])) >= 5 and evidence_valid)
+        signoff_ref = execution.get("human_signoff")
+        signoff_path = ROOT / str(signoff_ref or "")
+        signoff = load_json(signoff_path) if signoff_path.is_file() else {}
+        check("v0_min_human_signoff", signoff.get("decision") == "APPROVED"
+              and signoff.get("scope") == "V0-Min_PRODUCT_ACCEPTANCE"
+              and signoff.get("product_candidate") == candidate
+              and signoff.get("external_action_authorized") is False)
+        check("v0_min_not_release_approval", acceptance.get("release_approved") is False
+              and {"V0.1", "V0.2", "V0 legacy alias", "production release"}
+              <= set(acceptance.get("not_approved", [])))
+    else:
+        check("product_status_not_promoted", execution.get("product_status") == "NOT_RUN")
     fixed_status = {item["case_id"]: item["status"] for item in cases["cases"]}
-    check("fixed_cases_still_not_run", all(fixed_status[item] == "NOT_RUN" for item in control.get("fixed_acceptance_ids", [])))
+    check("plan_case_baseline_unchanged", all(fixed_status[item] == "NOT_RUN" for item in control.get("fixed_acceptance_ids", [])))
     check("packet_reference", (ROOT / execution.get("stage_packet", "")).resolve() == (stage_dir / "stage-control.json").resolve())
     check("manifest_reference", (ROOT / execution.get("stage_packet_manifest", "")).resolve() == manifest.resolve())
 

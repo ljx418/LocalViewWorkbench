@@ -1,0 +1,97 @@
+{
+  "schema_version": "lvw.v0-min-acceptance/1",
+  "project_id": "lvw-prompt-service",
+  "stage_id": "V0-S1",
+  "target_version": "V0-Min",
+  "decision": "V0_MIN_ACCEPTED",
+  "decided_at": "2026-10-28T20:03:46+08:00",
+  "product_candidate": "1d48142b95466954ca4da264fa06762abf1522f2",
+  "privacy_correction_candidate": "6fcd114f6e781d143f713e82996720180a94434b",
+  "run_id": "v0-s1-stage-checkpoint-live-01",
+  "acceptance_hash": "4b52485dbaa7daeccb31b5c91771b51f8106ab6e49267328990ad4da3b5f85c5",
+  "fixed_denominator": [
+    "V0-A01",
+    "V0-A03",
+    "V0-A04",
+    "V0-A05",
+    "V0-A08"
+  ],
+  "cases": [
+    {
+      "case_id": "V0-A01",
+      "status": "PASS",
+      "candidate_sha": "1d48142b95466954ca4da264fa06762abf1522f2",
+      "run_id": "v0-s1-stage-checkpoint-live-01",
+      "observed": "Real public image path produced separately bound raw and suggestion facts with one image and one model-call budget."
+    },
+    {
+      "case_id": "V0-A03",
+      "status": "PASS",
+      "candidate_sha": "1d48142b95466954ca4da264fa06762abf1522f2",
+      "run_id": "v0-s1-stage-checkpoint-live-01",
+      "observed": "Four outputs and JSON/TXT reread hashes were produced without an additional model call."
+    },
+    {
+      "case_id": "V0-A04",
+      "status": "PASS",
+      "candidate_sha": "1d48142b95466954ca4da264fa06762abf1522f2",
+      "run_id": "v0-s1-stage-checkpoint-live-01",
+      "observed": "The 20,000-character manual draft and atomic JSON/TXT export path remained usable after Ollama stopped."
+    },
+    {
+      "case_id": "V0-A05",
+      "status": "PASS",
+      "candidate_sha": "1d48142b95466954ca4da264fa06762abf1522f2",
+      "run_id": "v0-s1-stage-checkpoint-live-01",
+      "observed": "Failure and late-callback paths preserved the accepted draft and performed no automatic retry."
+    },
+    {
+      "case_id": "V0-A08",
+      "status": "PASS",
+      "candidate_sha": "1d48142b95466954ca4da264fa06762abf1522f2",
+      "run_id": "v0-s1-stage-checkpoint-live-01",
+      "observed": "Manual export remained available without analysis, approval state, cloud fallback, or an NSFW gate."
+    }
+  ],
+  "evidence": [
+    {
+      "path": "reports/v0-s1/stage-checkpoint-live-01/run-summary.json",
+      "sha256": "2e77a854668ce083408c7b6d8eca1b3b6b7a973f2484a51a2c8dacd92bffeffe",
+      "historical_decision": "NO_GO / CASE_PRIVACY_VIOLATION",
+      "use": "non-leaking machine facts independently recomputed; historical decision remains unchanged"
+    },
+    {
+      "path": "reports/v0-s1/stage-checkpoint-live-01/artifact-manifest.json",
+      "sha256": "40295b2862b8e1ca876ed2fc878fb69e359e9d36a573db97adca8ba9a9d60487",
+      "use": "historical evidence identity"
+    },
+    {
+      "path": "reports/v0-s1/independent-review-stage-checkpoint-live-01.md",
+      "sha256": "f2cf53bf8591bd7c17ec32f8ff64ae4cb9253336b1d79e657a7bc41be6228cb5",
+      "use": "independent recomputation of product facts and original privacy findings"
+    },
+    {
+      "path": "reports/v0-s1/independent-review-v0-min-privacy-correction-02.md",
+      "sha256": "19e23327149cb8c8333d0bf70710796bf786dc944fd302d20fc9c879fef332e8",
+      "use": "fresh isolated closure of all privacy findings: Fatal 0 / Major 0 / Minor 0"
+    },
+    {
+      "path": "reports/v0-s1/human-signoff-v0-min.json",
+      "sha256": "18da4607ba5d7ec624aed8e5bebc6412ec20d5085773ac27bdb884822c45dd90",
+      "use": "project owner product-experience sign-off"
+    }
+  ],
+  "historical_checkpoint_rewritten": false,
+  "new_live_run_performed": false,
+  "release_approved": false,
+  "not_approved": [
+    "V0.1",
+    "V0.2",
+    "V0 legacy alias",
+    "production release"
+  ],
+  "open_fatal": 0,
+  "open_major": 0,
+  "open_minor": 0,
+  "exact_stop_reason": "V0_MIN_COMPLETE_AWAIT_NEXT_VERSION_DIRECTION"
+}

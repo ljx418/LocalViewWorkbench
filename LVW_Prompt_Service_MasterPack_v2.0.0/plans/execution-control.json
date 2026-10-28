@@ -8,31 +8,33 @@
     "stage_id": "V0-S1",
     "workpack_id": "WP-S1-04",
     "gate": "GATE5_INDEPENDENT_EXIT",
-    "state": "CHECKPOINT"
+    "state": "PASS"
   },
   "last_passed_gate": {
-    "id": "V0_MIN_ENGINEERING_GATE_PASS",
-    "evidence": "reports/v0-s1/gate-decision-v0-min.md",
-    "meaning": "V0-Min engineering gate passed after independent review; human experience sign-off remains absent"
+    "id": "V0_MIN_HUMAN_EXPERIENCE_SIGNOFF_PASS",
+    "evidence": "reports/v0-s1/v0-min-acceptance.json",
+    "meaning": "V0-Min product acceptance completed for the reduced image/manual scope; this is not production release approval"
   },
-  "current_blocking_gate": "project owner must provide V0-Min human experience sign-off",
+  "current_blocking_gate": null,
   "stage_packet": ".agent-governance/stages/V0-S1/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/V0-S1/PAYLOAD_MANIFEST.sha256",
-  "product_status": "NOT_RUN",
-  "allowed_claim": "V0_MIN_ENGINEERING_READY_HUMAN_SIGNOFF_PENDING",
+  "product_status": "PASS",
+  "allowed_claim": "V0_MIN_ACCEPTED_NOT_RELEASED",
   "forbidden_claims": [
     "V0_ACCEPTED",
-    "V0_MIN_ACCEPTED",
     "V0.1_ACCEPTED",
     "V0.2_ACCEPTED",
+    "PRODUCTION_RELEASED",
     "TARGET_HARDWARE_TESTED"
   ],
   "next_owner": "project_owner",
-  "next_action": "Provide or decline the V0-Min human experience sign-off; this does not authorize V0.1, V0.2 or production release.",
-  "required_authorization": "HUMAN_V0_MIN_EXPERIENCE_SIGNOFF",
+  "next_action": "Choose whether to stop at accepted V0-Min or separately authorize planning for V0.1; no further work is implied.",
+  "required_authorization": "NONE_V0_MIN_COMPLETE",
   "authorization_request": "reports/v0-s1/authorization-wp-s1-04-checkpoint-01.request.json",
   "authorization_record": "reports/v0-s1/authorization-wp-s1-04-checkpoint-01.json",
   "evidence_root": "reports/",
   "gate_decision": "reports/v0-s1/gate-decision-v0-min.md",
-  "exact_stop_reason": "WAIT_HUMAN_V0_MIN_EXPERIENCE_SIGNOFF"
+  "human_signoff": "reports/v0-s1/human-signoff-v0-min.json",
+  "product_acceptance": "reports/v0-s1/v0-min-acceptance.json",
+  "exact_stop_reason": "V0_MIN_COMPLETE_AWAIT_NEXT_VERSION_DIRECTION"
 }
