@@ -7,10 +7,10 @@
   "stage_packet_commit": "34515e763c2c8e1547a3a35a1914ae82db1ac939",
   "baseline_head": "34515e763c2c8e1547a3a35a1914ae82db1ac939",
   "review_correction_base": "981591f41316e3a730e052c91b638f3aa9829657",
-  "candidate_sha": "0000000000000000000000000000000000000000",
-  "candidate_sha_status": "PENDING_ROOT_SEALING",
-  "evidence_commit": "0000000000000000000000000000000000000000",
-  "evidence_commit_status": "PENDING_ROOT_SEALING",
+  "candidate_sha": "2776a0c59cd9dc3ccf1508fb26b18a52b6c531d0",
+  "candidate_sha_status": "SEALED_BY_GATE_OWNER",
+  "evidence_commit": "2776a0c59cd9dc3ccf1508fb26b18a52b6c531d0",
+  "evidence_commit_status": "SEALED_BY_GATE_OWNER",
   "acceptance_hash": "4b52485dbaa7daeccb31b5c91771b51f8106ab6e49267328990ad4da3b5f85c5",
   "acceptance_hash_binding": {
     "algorithm": "sha256",
@@ -135,7 +135,7 @@
     {"check": "terminal_same_token_callback_rejection", "status": "PASS_OFFLINE", "test": "test_terminal_run_rejects_late_same_token_callback"},
     {"check": "failure_partial_cancel_draft_preservation", "status": "PASS_OFFLINE", "test": "test_model_failures_partial_and_cancel_never_overwrite_manual_draft"},
     {"check": "target_comfy_public_route", "status": "NOT_RUN_WAIT_AUTH"},
-    {"check": "pack_manifest_binding", "status": "PENDING_ROOT_SEALING"}
+    {"check": "pack_manifest_binding", "status": "PASS_AFTER_ROOT_SEALING"}
   ],
   "offline_test_counts": {
     "review_correction_focused": {"pass": 27, "fail": 0, "total": 27},
@@ -182,7 +182,7 @@
   "risks": [
     "Target ComfyUI registration and public-route execution remain NOT_RUN until separately authorized.",
     "The target portable Python account cannot create test symlinks, so its two fixture branches are explicitly skipped and are not counted as product PASS; repository Python executes and passes both rejection branches.",
-    "The root MANIFEST intentionally remains unchanged and verify_pack reports the four expected changed tracked hashes until gate-owner sealing.",
+    "The gate owner must update the root MANIFEST in the sealing commit and rerun verify_pack; this receipt does not claim that pre-seal manifest mismatches passed.",
     "All five fixed product acceptance cases remain NOT_RUN; this receipt is not a Stage PASS."
   ]
 }

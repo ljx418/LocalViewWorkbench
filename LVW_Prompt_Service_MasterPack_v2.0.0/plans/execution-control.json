@@ -7,26 +7,28 @@
   "coordinate": {
     "stage_id": "V0-S1",
     "workpack_id": "WP-S1-02",
-    "gate": "GATE1_IMPLEMENTATION",
-    "state": "RUNNING"
+    "gate": "GATE2_WORKPACK_RECEIPT",
+    "state": "WAIT_AUTH"
   },
   "last_passed_gate": {
-    "id": "WP_S1_01_MANUAL_PATH_SEALED",
-    "evidence": "reports/v0-s1/implementation-receipt-wp-s1-01.json",
-    "meaning": "manual CPU owner, copy and atomic TXT/JSON export passed 45 offline regression tests and path-boundary review on candidate a9c816e"
+    "id": "WP_S1_02_IMAGE_STATE_OWNERS_SEALED",
+    "evidence": "reports/v0-s1/implementation-receipt-wp-s1-02.json",
+    "meaning": "controlled image preprocessing and token-bound draft isolation passed 59 offline regression tests and gate-owner review on candidate 2776a0c"
   },
-  "current_blocking_gate": "WP-S1-02 image preprocessing and draft-isolation candidate is not yet implemented",
+  "current_blocking_gate": "WP-S1-03 requires project-owner approval of AUTH-REQUEST-V0-S1-WP-S1-03-01 before candidate preparation or any external action",
   "stage_packet": ".agent-governance/stages/V0-S1/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/V0-S1/PAYLOAD_MANIFEST.sha256",
   "product_status": "NOT_RUN",
-  "allowed_claim": "V0_S1_OFFLINE_IMPLEMENTATION_RUNNING_PRODUCT_CASES_NOT_RUN",
+  "allowed_claim": "V0_S1_WP_S1_02_SEALED_WAIT_AUTH_PRODUCT_CASES_NOT_RUN",
   "forbidden_claims": [
     "ENGINEERING_READY",
     "V0_ACCEPTED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "codex_isolated_implementer",
-  "next_action": "Implement WP-S1-02 image preprocessing, run-token, raw/suggestion/draft isolation and failure-state tests entirely offline; emit a Workpack receipt.",
+  "next_owner": "project_owner",
+  "next_action": "Approve or reject AUTH-REQUEST-V0-S1-WP-S1-03-01; no WP-S1-03 preparation or external action is allowed before approval is recorded.",
+  "required_authorization": "AUTH-REQUEST-V0-S1-WP-S1-03-01",
+  "authorization_request": "reports/v0-s1/authorization-wp-s1-03-01.request.json",
   "evidence_root": "reports/",
-  "exact_stop_reason": null
+  "exact_stop_reason": "WAIT_AUTH_WP_S1_03_NEW_ONE_SHOT_SCOPE_REQUIRED"
 }

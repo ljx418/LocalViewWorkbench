@@ -1,0 +1,93 @@
+{
+  "schema_version": "lvw.authorization-request/1",
+  "request_id": "AUTH-REQUEST-V0-S1-WP-S1-03-01",
+  "status": "PENDING_PROJECT_OWNER_APPROVAL",
+  "is_authorization": false,
+  "project_id": "lvw-prompt-service",
+  "stage_id": "V0-S1",
+  "workpack_id": "WP-S1-03",
+  "requested_by": "codex_sol",
+  "requested_from": "project_owner",
+  "authorized_start_candidate_sha": "2776a0c59cd9dc3ccf1508fb26b18a52b6c531d0",
+  "stage_packet_version": "1.0.0",
+  "acceptance_hash": "4b52485dbaa7daeccb31b5c91771b51f8106ab6e49267328990ad4da3b5f85c5",
+  "allowed": {
+    "offline_candidate_preparation": {
+      "paths": [
+        "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/",
+        "LVW_V0_RuntimePatch/workflows/image_reverse_prompt_v0.ui.json",
+        "LVW_V0_RuntimePatch/workflows/image_reverse_prompt_v0.api.json",
+        "LVW_V0_RuntimePatch/tests/",
+        "reports/v0-s1/"
+      ],
+      "condition": "commit the prepared candidate and record its full SHA and changed-file allowlist before the first external action"
+    },
+    "local_services": ["Windows-native Ollama", "run-owned temporary ComfyUI using the existing target Python and main.py read-only"],
+    "bind_addresses": ["127.0.0.1:11434", "127.0.0.1:8191"],
+    "target_roots": {
+      "comfy_source": "C:/ComfyUI/ComfyUI (read-only)",
+      "comfy_python": "C:/ComfyUI/python/python.exe (execute only)",
+      "runtime_base": "run-owned temporary directory only",
+      "input_and_output": "run-owned temporary directories only"
+    },
+    "samples": [
+      {"alias": "TEST_SOURCE/image-sample", "sha256": "b4bbd08a0fad67cc04e55d15bf2c48e9a76dcfd6dda147d8cc504452dfc78a42", "max_effective_attempts": 1}
+    ],
+    "model": "gemma4:26b",
+    "model_calls_max": 1,
+    "comfy_process_starts_max": 1,
+    "ollama_process_starts_max": 1,
+    "public_api_submissions_max": 8,
+    "visible_browser_runs": 0,
+    "external_cost": 0,
+    "evidence_destination": "reports/v0-s1/wp-s1-03-live-01/"
+  },
+  "required_preconditions": [
+    "the prepared external-execution candidate is a committed descendant of authorized_start_candidate_sha and changes only the frozen WP-S1-03 allowlist",
+    "the executed custom-node bundle, workflow/API files and harness hashes equal the prepared candidate blobs",
+    "the authorized image SHA-256 matches before copying it into the run-owned input root",
+    "Windows-native and WSL GPU samples agree within 128 MiB and used memory is <=4096 MiB before service start",
+    "no target ComfyUI/Ollama process and no listener on 8191/11434 before service start",
+    "OLLAMA_NO_CLOUD is observed true and the owned Ollama PID has no non-loopback connection for at least 10 seconds and at least 5 samples",
+    "all workflow class_type values are present in the live target registry before the effective image attempt"
+  ],
+  "required_checks": [
+    "drive the real image through public Comfy /prompt and /history using LVWControlledImageInput and the bound visual owner",
+    "prove raw_response, suggestion, draft and draft_epoch isolation with the live registered nodes",
+    "exercise the manual CPU/export public route with Ollama unavailable without counting it as an image/model attempt",
+    "retain stable failure codes for corrupt/over-limit/stale/timeout/refusal/OOM fixtures without automatic retry or draft overwrite",
+    "bind all evidence to the prepared candidate, target fingerprints, run ID and fixed S1 denominator while leaving product cases NOT_RUN until independent review"
+  ],
+  "mandatory_stops": [
+    "prepared candidate, bundle, workflow, harness, model or sample mismatch",
+    "changed file falls outside the frozen WP-S1-03 allowlist",
+    "pre-service identity, GPU, process or port gate failure",
+    "no-cloud or non-loopback network gate failure",
+    "GPU memory reaches or exceeds 23552 MiB",
+    "public /prompt, /history, registry, semantic Oracle or state-isolation failure",
+    "model call, effective image attempt or public API submission budget would be exceeded",
+    "per-call unload, final cleanup, target integrity or privacy minimization gap"
+  ],
+  "forbidden": [
+    "cloud or paid provider calls",
+    "downloads, upgrades or permanent target configuration writes",
+    "writes under C:/ComfyUI/ComfyUI or C:/ComfyUI/python",
+    "visible browser startup",
+    "termination of non-owned processes",
+    "product contract, fixed denominator, owner, Oracle, timeout or threshold changes",
+    "use of any media other than the single hash-bound image",
+    "reuse or extension of the expired S0 authorization",
+    "remote Git push"
+  ],
+  "evidence_minimization": "persist aliases, hashes, aggregate counts, authorized listener owner IDs and redacted diagnostics only; never persist private absolute sample paths, unrelated process tables, unrelated command lines or original media bytes",
+  "cleanup": "unload every started model call, require terminal /api/ps empty, stop run-owned PIDs, prove ports empty, remove the run-owned base/input/output/temp bundle, and prove C:/ComfyUI target fingerprints unchanged",
+  "expires_when": "one terminal WP-S1-03 receipt is generated, the single effective image attempt is consumed, or any mandatory stop occurs",
+  "approval": {
+    "decision": "PENDING",
+    "approved_by": null,
+    "approved_at": null,
+    "approval_commit": null
+  },
+  "does_not_authorize_execution": true,
+  "does_not_authorize_stage_pass": true
+}
