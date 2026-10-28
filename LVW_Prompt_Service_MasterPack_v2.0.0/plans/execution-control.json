@@ -8,14 +8,14 @@
     "stage_id": "V0-S1",
     "workpack_id": "WP-S1-04",
     "gate": "GATE5_INDEPENDENT_EXIT",
-    "state": "WAIT_AUTH"
+    "state": "RUNNING"
   },
   "last_passed_gate": {
     "id": "WP_S1_04_CHECKPOINT_HARNESS_SEALED",
     "evidence": "reports/v0-s1/implementation-receipt-stage-checkpoint-offline.json",
     "meaning": "identity-bound one-shot five-case checkpoint harness is offline-verified; product denominator remains NOT_RUN pending explicit authorization"
   },
-  "current_blocking_gate": "AUTH-REQUEST-V0-S1-WP-S1-04-CHECKPOINT-01 requires explicit project-owner approval before the five-case target checkpoint",
+  "current_blocking_gate": "single authorized checkpoint-01 execution must reach a terminal receipt; no retry is allowed",
   "stage_packet": ".agent-governance/stages/V0-S1/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/V0-S1/PAYLOAD_MANIFEST.sha256",
   "product_status": "NOT_RUN",
@@ -25,12 +25,12 @@
     "V0_ACCEPTED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "project_owner",
-  "next_action": "Approve or reject AUTH-REQUEST-V0-S1-WP-S1-04-CHECKPOINT-01 exactly as sealed; no target action is allowed before approval.",
-  "required_authorization": "AUTH-REQUEST-V0-S1-WP-S1-04-CHECKPOINT-01",
+  "next_owner": "codex_isolated_implementer",
+  "next_action": "Execute the exact checkpoint-01 command once, persist minimized terminal evidence, fully clean owned resources, and stop.",
+  "required_authorization": "AUTH-V0-S1-2026-10-28-CHECKPOINT-01_GRANTED_ONCE",
   "authorization_request": "reports/v0-s1/authorization-wp-s1-04-checkpoint-01.request.json",
-  "authorization_record": "reports/v0-s1/authorization-wp-s1-03-06.json",
+  "authorization_record": "reports/v0-s1/authorization-wp-s1-04-checkpoint-01.json",
   "evidence_root": "reports/",
   "gate_decision": "reports/v0-s1/gate-decision-wp-s1-04-live-06.md",
-  "exact_stop_reason": "WAIT_AUTH_REQUEST_V0_S1_WP_S1_04_CHECKPOINT_01"
+  "exact_stop_reason": "AUTHORIZED_CHECKPOINT_01_PENDING_SINGLE_EXECUTION"
 }

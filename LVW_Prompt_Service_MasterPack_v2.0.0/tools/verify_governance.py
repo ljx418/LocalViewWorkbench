@@ -129,7 +129,9 @@ def validate_stage(control: dict, tasks: dict, cases: dict) -> list[str]:
         if control.get("external_authorization") != "WAIT_AUTH_BEFORE_WP-S1-03":
             errors.append("offline-only Stage must keep external workpack at WAIT_AUTH")
     elif external:
-        if control.get("authorization_scope") != "WP-S1-03_ONE_SHOT_LIVE":
+        if control.get("authorization_scope") not in {
+            "WP-S1-03_ONE_SHOT_LIVE", "WP-S1-04_CHECKPOINT_ONE_SHOT_LIVE"
+        }:
             errors.append("post-authorization Stage has an unknown authorization scope")
         if state not in {"FROZEN_READY_OFFLINE", "RUNNING", "CHECKPOINT", "STAGE_BASELINE_COMPLETE", "NO_GO", "BLOCKED", "WAIT_BUDGET"}:
             errors.append("external/private Stage has an invalid post-authorization state")
