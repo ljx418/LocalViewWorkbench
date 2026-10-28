@@ -440,7 +440,7 @@ def main() -> int:
             or (
                 control.get("state") == execution["coordinate"]["state"] == "RUNNING"
                 and execution["coordinate"].get("workpack_id")
-                in {"WP-S0-06", "WP-S0-07", "WP-S0-08", "WP-S0-10", "WP-S0-12", "WP-S0-14", "WP-S0-15", "WP-S0-16", "WP-S0-17", "WP-S0-18", "WP-S0-19", "WP-S0-20", "WP-S0-21", "WP-S0-22", "WP-S0-23", "WP-S0-24", "WP-S0-26", "WP-S0-27", "WP-S0-29", "WP-S0-31", "WP-S0-32", "WP-S0-34", "WP-S0-35", "WP-S0-37", "WP-S0-38", "WP-S0-40", "WP-S0-41"}
+                in {"WP-S0-06", "WP-S0-07", "WP-S0-08", "WP-S0-10", "WP-S0-12", "WP-S0-14", "WP-S0-15", "WP-S0-16", "WP-S0-17", "WP-S0-18", "WP-S0-19", "WP-S0-20", "WP-S0-21", "WP-S0-22", "WP-S0-23", "WP-S0-24", "WP-S0-26", "WP-S0-27", "WP-S0-29", "WP-S0-31", "WP-S0-32", "WP-S0-34", "WP-S0-35", "WP-S0-37", "WP-S0-38", "WP-S0-40", "WP-S0-41", "WP-S0-43", "WP-S0-44"}
                 and execution.get("last_passed_gate", {}).get("id")
                 in {
                     "WP_S0_05_INDEPENDENT_REVIEW_COMPLETE",
@@ -459,6 +459,7 @@ def main() -> int:
                     "WP_S0_33_INDEPENDENT_MAJOR_REVIEW_COMPLETE",
                     "WP_S0_36_INDEPENDENT_MAJOR_REVIEW_COMPLETE",
                     "WP_S0_39_INDEPENDENT_MAJOR_REVIEW_COMPLETE",
+                    "WP_S0_42_INDEPENDENT_MAJOR_REVIEW_COMPLETE",
                 }
             )
             or (
@@ -516,7 +517,7 @@ def main() -> int:
             )
             or (
                 execution["coordinate"].get("workpack_id")
-                in {"WP-S0-06", "WP-S0-07", "WP-S0-08", "WP-S0-10", "WP-S0-12", "WP-S0-14", "WP-S0-15", "WP-S0-16", "WP-S0-18", "WP-S0-19", "WP-S0-20", "WP-S0-22", "WP-S0-23", "WP-S0-24", "WP-S0-26", "WP-S0-27", "WP-S0-29", "WP-S0-31", "WP-S0-32", "WP-S0-34", "WP-S0-35", "WP-S0-37", "WP-S0-38", "WP-S0-40", "WP-S0-41"}
+                in {"WP-S0-06", "WP-S0-07", "WP-S0-08", "WP-S0-10", "WP-S0-12", "WP-S0-14", "WP-S0-15", "WP-S0-16", "WP-S0-18", "WP-S0-19", "WP-S0-20", "WP-S0-22", "WP-S0-23", "WP-S0-24", "WP-S0-26", "WP-S0-27", "WP-S0-29", "WP-S0-31", "WP-S0-32", "WP-S0-34", "WP-S0-35", "WP-S0-37", "WP-S0-38", "WP-S0-40", "WP-S0-41", "WP-S0-43", "WP-S0-44"}
                 and execution["coordinate"].get("gate") in {"GATE1_IMPLEMENTATION", "GATE2_WORKPACK", "GATE4_REAL_ACCEPTANCE"}
             )
             or (

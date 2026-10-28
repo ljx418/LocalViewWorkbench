@@ -6,27 +6,27 @@
   "target_version": "V0",
   "coordinate": {
     "stage_id": "V0-S0",
-    "workpack_id": "WP-S0-42",
-    "gate": "GATE3_CHECKPOINT",
-    "state": "CHECKPOINT"
+    "workpack_id": "WP-S0-43",
+    "gate": "GATE1_IMPLEMENTATION",
+    "state": "RUNNING"
   },
   "last_passed_gate": {
-    "id": "WP_S0_41_OFFLINE_CANDIDATE_SEALED",
-    "evidence": "reports/v0-s0/implementation-receipt-correction-14-offline.json",
-    "meaning": "root review and manifest sealing confirmed the cleanup-exit binding candidate is ready for independent review"
+    "id": "WP_S0_42_INDEPENDENT_MAJOR_REVIEW_COMPLETE",
+    "evidence": "reports/v0-s0/independent-review-correction-14.md",
+    "meaning": "independent review closed the exit false-green and found ordinary functional primary reason overwrite requiring correction-15"
   },
-  "current_blocking_gate": "WP-S0-42 independent review is required; live rerun remains separately blocked by unknown GPU owner",
+  "current_blocking_gate": "WP-S0-42 M-01 ordinary functional primary reason can be overwritten by cleanup; live rerun remains separately blocked by unknown GPU owner",
   "stage_packet": ".agent-governance/stages/V0-S0/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/V0-S0/PAYLOAD_MANIFEST.sha256",
   "product_status": "NOT_RUN",
-  "allowed_claim": "V0_S0_CORRECTION_14_READY_FOR_INDEPENDENT_REVIEW",
+  "allowed_claim": "V0_S0_CORRECTION_15_OFFLINE_REMEDIATION_IN_PROGRESS",
   "forbidden_claims": [
     "ENGINEERING_READY",
     "V0_ACCEPTED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "codex_isolated_reviewer",
-  "next_action": "Independently recompute cleanup proof to final decision, exit code and production status binding; do not start services.",
+  "next_owner": "codex_isolated_implementer",
+  "next_action": "Implement WP-S0-43/44 pre-cleanup primary and cleanup-secondary binding with full run fixtures offline.",
   "evidence_root": "reports/",
-  "exact_stop_reason": "AWAITING_WP_S0_42_INDEPENDENT_REVIEW"
+  "exact_stop_reason": "CORRECTION_15_PRIMARY_SECONDARY_BINDING_ACTIVE"
 }

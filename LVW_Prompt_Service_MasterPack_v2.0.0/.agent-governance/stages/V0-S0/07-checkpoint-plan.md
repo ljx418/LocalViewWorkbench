@@ -24,6 +24,8 @@ correction-13 checkpoint 必须证明 `cleanup.proven` 只有一个权威公式�
 
 correction-14 checkpoint 必须证明最终 decision、退出码与 production status 消费权威 cleanup proof；功能成功但清理失败不得 READY/rc0/complete，已有首因不得被清理问题覆盖。历史 correction-10/11/12/13 不可改写。
 
+correction-15 checkpoint 必须证明异常与普通控制流的已有 NO_GO/BLOCKED 首因都不会被 cleanup 覆盖；cleanup 以 secondary 事件持久化，成功路径 cleanup failure 仍负责降级。历史 correction-10 至 correction-14 不可改写。
+
 ## 允许裁决
 
 `STAGE_BASELINE_COMPLETE` 仅表示 S0 盘点和最小探测完成；产品用例仍为 NOT_RUN。否则使用 `NO_GO/BLOCKED/WAIT_BUDGET/WAIT_AUTH`。下一 Stage 必须另建并冻结 packet，不能自动推进。
