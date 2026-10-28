@@ -6,8 +6,9 @@
   "spec_version": "1.0.0",
   "baseline_head": "5ede28475e23dd98fe31821ad8dda92816f5d943",
   "target_path_correction_base": "0dcf693128fe0b8e8215407b7e628970f798e595",
-  "authorization_id": "AUTH-V0-S1-2026-10-28-01",
-  "authorization_request_sha256": "e66f52a0f2c295a89f48867caf794aea5d8e79cb9a5fa0db10b86d17cb4c90fd",
+  "authorization_id": "AUTH-V0-S1-2026-10-28-02",
+  "authorization_request_sha256": null,
+  "authorization_request_status": "PLANNED_FRESH_AUTHORIZATION_NOT_YET_SEALED",
   "candidate_sha": "0000000000000000000000000000000000000000",
   "candidate_sha_status": "PENDING_ROOT_SEALING",
   "evidence_commit": "0000000000000000000000000000000000000000",
@@ -23,7 +24,7 @@
   "implementation_session": "/root/s0_rerun_implementer",
   "decision": "READY_FOR_REVIEW",
   "stage_pass_claim": false,
-  "exact_stop_reason": "WP_S1_03_OFFLINE_TARGET_PATH_CORRECTION_COMPLETE_LIVE_NOT_RUN",
+  "exact_stop_reason": "WP_S1_03_OFFLINE_FRESH_AUTHORIZATION_BINDING_COMPLETE_LIVE_NOT_RUN",
   "environment": {
     "mode": "offline_repository_only",
     "target_runtime_touched": false,
@@ -51,8 +52,8 @@
     {"path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/nodes.py", "sha256": "ffc6b3ccead11029b234432e8ea82c739cae7693e519f51eda5c0dfa3df22125"},
     {"path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/state.py", "sha256": "db5f50a715aa602fae3e38c980ba7282ad1f603b565be8c9c0e0db646e8c86fe"},
     {"path": "LVW_V0_RuntimePatch/tests/test_s1_image_state_owner.py", "sha256": "b66079b5b8fbb7edb0437b017e06042c42f40834b7ee1f5b01aa17e32b273fc9"},
-    {"path": "LVW_V0_RuntimePatch/tests/test_s1_wp03_live_probe.py", "sha256": "0e4b80b6d18a385973ed26a1ad86e14ded7f36ae9a078adb597d1e7e4a6824cf"},
-    {"path": "reports/v0-s1/wp-s1-03-phase-a/live_probe.py", "sha256": "4b17c8108ccdc681f8c44f8649fdf571497701c97d0a917cdf8c653cd04637de"}
+    {"path": "LVW_V0_RuntimePatch/tests/test_s1_wp03_live_probe.py", "sha256": "d958f9b9863e31164e2903a6cd50707e8e03a960b5f3074bea27cbe0d6a0bbe3"},
+    {"path": "reports/v0-s1/wp-s1-03-phase-a/live_probe.py", "sha256": "b4524c605f382cfd374d9c7f5dc111871e3d17e4eef665b69f78ea87c34245b8"}
   ],
   "contract_changes": "none",
   "target_configuration_changes": "none",
@@ -120,20 +121,20 @@
     {
       "logical_command": "PYTHONDONTWRITEBYTECODE=1 python3 -B -m unittest -v LVW_V0_RuntimePatch.tests.test_s1_wp03_live_probe",
       "exit_code": 0,
-      "tests_run": 16,
+      "tests_run": 17,
       "result": "OK; fake driver only"
     },
     {
       "logical_command": "PYTHONDONTWRITEBYTECODE=1 python3 -B -m unittest discover -s LVW_V0_RuntimePatch/tests -p test_*.py",
       "exit_code": 0,
-      "tests_run": 76,
+      "tests_run": 77,
       "result": "OK"
     },
     {
       "logical_command": "TARGET_PORTABLE_PYTHON -B -m unittest discover -s LVW_V0_RuntimePatch/tests -p test_*.py",
       "exit_code": 0,
-      "tests_run": 76,
-      "result": "73 passed, 3 skipped for two unavailable symlink fixture privileges and Windows-native lack of WSL path namespace; skips are not product PASS"
+      "tests_run": 77,
+      "result": "74 passed, 3 skipped for two unavailable symlink fixture privileges and Windows-native lack of WSL path namespace; skips are not product PASS"
     },
     {
       "logical_command": "python3 -B offline AST and workflow JSON parse",
@@ -160,6 +161,7 @@
   "check_results": [
     {"check": "ui_api_same_registered_graph", "status": "PASS_OFFLINE", "test": "test_ui_and_api_workflows_are_same_registered_project_graph"},
     {"check": "default_deny_and_self_check_no_external", "status": "PASS_OFFLINE", "test": "test_self_check_is_offline_and_default_entry_refuses_live"},
+    {"check": "expired_authorization_rejection", "status": "PASS_OFFLINE", "test": "test_expired_authorization_id_is_rejected_before_driver_creation"},
     {"check": "candidate_changed_file_allowlist", "status": "PASS_OFFLINE", "test": "test_candidate_identity_rejects_outside_allowlist"},
     {"check": "candidate_blob_executed_harness_identity", "status": "PASS_OFFLINE", "test": "test_candidate_identity_binds_committed_blob_to_executed_harness"},
     {"check": "real_prompt_spec_semantic_oracle", "status": "PASS_OFFLINE", "test": "test_semantic_oracle_requires_real_frozen_prompt_spec_shape"},
@@ -181,9 +183,9 @@
     {"check": "target_integrity_and_owned_cleanup", "status": "NOT_RUN_PHASE_A"}
   ],
   "offline_test_counts": {
-    "harness_focused": {"pass": 16, "fail": 0, "total": 16},
-    "repository_combined": {"pass": 76, "fail": 0, "total": 76},
-    "portable_combined": {"pass": 73, "fail": 0, "skipped": 3, "total": 76}
+    "harness_focused": {"pass": 17, "fail": 0, "total": 17},
+    "repository_combined": {"pass": 77, "fail": 0, "total": 77},
+    "portable_combined": {"pass": 74, "fail": 0, "skipped": 3, "total": 77}
   },
   "test_counts": {"denominator": 5, "pass": 0, "fail": 0, "blocked": 0, "skipped": 0, "not_run": 5},
   "product_acceptance": {

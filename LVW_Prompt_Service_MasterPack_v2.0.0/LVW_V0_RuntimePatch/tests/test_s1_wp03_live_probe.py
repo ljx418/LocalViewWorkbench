@@ -146,6 +146,15 @@ class WorkflowAndHarnessTests(unittest.TestCase):
         self.assertEqual(2, code)
         self.assertEqual("LIVE_FLAG_REQUIRED", json.loads(output.getvalue())["exact_stop_reason"])
 
+    def test_expired_authorization_id_is_rejected_before_driver_creation(self):
+        args = live_args(PACK_ROOT, "unused-sample", "/mnt/c/unused-temp")
+        args.authorization_id = "AUTH-V0-S1-2026-10-28-01"
+        with mock.patch.object(probe, "validate_live_boundaries", return_value={}):
+            code, result = probe.execute(args, driver_factory=lambda *_: self.fail("driver must not be created"))
+        self.assertEqual(2, code)
+        self.assertEqual("AUTHORIZATION_ID_MISMATCH", result["exact_stop_reason"])
+        self.assertEqual({"ollama": 0, "comfy": 0}, result["service_starts"])
+
     def test_authorized_paths_evidence_reservation_and_existing_refusal(self):
         if os.name == "nt":
             self.skipTest("live harness is launched from WSL; Windows-native interpreter has no /mnt/c namespace")
