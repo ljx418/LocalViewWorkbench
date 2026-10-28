@@ -505,6 +505,10 @@ def main() -> int:
                     (execution["coordinate"].get("workpack_id") == "WP-S0-45"
                      and execution.get("last_passed_gate", {}).get("id")
                      == "WP_S0_44_OFFLINE_CANDIDATE_SEALED")
+                    or
+                    (execution["coordinate"].get("workpack_id") == "WP-S0-47"
+                     and execution.get("last_passed_gate", {}).get("id")
+                     == "WP_S0_46_TERMINAL_EVIDENCE_SEALED")
                 )
             ),
             f"major_count={major_count}",
@@ -526,7 +530,7 @@ def main() -> int:
                 and execution["coordinate"].get("gate") in {"GATE1_IMPLEMENTATION", "GATE2_WORKPACK", "GATE4_REAL_ACCEPTANCE"}
             )
             or (
-                execution["coordinate"].get("workpack_id") in {"WP-S0-11", "WP-S0-13", "WP-S0-17", "WP-S0-21", "WP-S0-25", "WP-S0-28", "WP-S0-30", "WP-S0-33", "WP-S0-36", "WP-S0-39", "WP-S0-42", "WP-S0-45"}
+                execution["coordinate"].get("workpack_id") in {"WP-S0-11", "WP-S0-13", "WP-S0-17", "WP-S0-21", "WP-S0-25", "WP-S0-28", "WP-S0-30", "WP-S0-33", "WP-S0-36", "WP-S0-39", "WP-S0-42", "WP-S0-45", "WP-S0-47"}
                 and execution["coordinate"].get("gate") == "GATE3_CHECKPOINT"
             ),
         )

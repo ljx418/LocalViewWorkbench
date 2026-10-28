@@ -6,27 +6,27 @@
   "target_version": "V0",
   "coordinate": {
     "stage_id": "V0-S0",
-    "workpack_id": "WP-S0-46",
-    "gate": "GATE4_REAL_ACCEPTANCE",
-    "state": "RUNNING"
+    "workpack_id": "WP-S0-47",
+    "gate": "GATE3_CHECKPOINT",
+    "state": "CHECKPOINT"
   },
   "last_passed_gate": {
-    "id": "WP_S0_45_INDEPENDENT_REVIEW_COMPLETE",
-    "evidence": "reports/v0-s0/independent-review-correction-15.md",
-    "meaning": "independent review closed all correction-11 through correction-15 offline findings with Fatal 0, Major 0, Minor 0"
+    "id": "WP_S0_46_TERMINAL_EVIDENCE_SEALED",
+    "evidence": "reports/v0-s0/implementation-receipt-correction-16-live.json",
+    "meaning": "single authorized run produced image 1/1 PASS and video 1/1 PASS with identity, network, resource, unload and cleanup evidence sealed to commit 9d09f3b"
   },
-  "current_blocking_gate": "the single authorized WP-S0-46 terminal receipt is not yet produced",
+  "current_blocking_gate": "WP-S0-47 independent review and root Stage disposition are pending",
   "stage_packet": ".agent-governance/stages/V0-S0/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/V0-S0/PAYLOAD_MANIFEST.sha256",
   "product_status": "NOT_RUN",
-  "allowed_claim": "WP_S0_46_AUTHORIZED_RUNNING_NOT_STAGE_PASS",
+  "allowed_claim": "WP_S0_46_TERMINAL_EVIDENCE_SEALED_PENDING_INDEPENDENT_REVIEW",
   "forbidden_claims": [
     "ENGINEERING_READY",
     "V0_ACCEPTED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "codex_isolated_implementer",
-  "next_action": "Execute exactly one WP-S0-46 run under AUTH-V0-S0-2026-10-28-16, generate a terminal receipt, then stop.",
+  "next_owner": "codex_isolated_reviewer",
+  "next_action": "Independently recompute correction-16 candidate, identity, public routes, semantic Oracles, network, resource, unload, cleanup, privacy and evidence binding; do not rerun.",
   "evidence_root": "reports/",
-  "exact_stop_reason": null
+  "exact_stop_reason": "WP_S0_47_INDEPENDENT_REVIEW_REQUIRED"
 }

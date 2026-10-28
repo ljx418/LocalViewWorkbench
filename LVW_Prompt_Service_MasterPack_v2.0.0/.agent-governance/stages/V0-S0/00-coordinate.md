@@ -53,3 +53,5 @@ WP-S0-45 结论 Fatal 0 / Major 0 / Minor 0，确认 correction-15 关闭普通/
 恢复分支已固化为 WP-S0-46/47，当前 harness 绑定 `81a77cc013243f859167bd00a1971ad1543c2e46`。新的不可执行请求为 `reports/v0-s0/authorization-correction-16.request.json`；它只有在项目负责人明确报告外部 GPU 占用已正常释放并逐次批准后，才能另建正式授权记录。旧 correction-10 请求及授权只作为历史证据，不能因请求文件保留 `PENDING` 发行态字段而重新生效。
 
 项目负责人已明确声明 GPU 已释放并批准 `AUTH-REQUEST-V0-S0-WP-S0-46-01`；正式单次授权记录为 `AUTH-V0-S0-2026-10-28-16`。当前仅允许隔离实现实例执行一次 WP-S0-46；任一终态收据或媒体预算消耗后授权自动过期，随后必须停止并进入 WP-S0-47 独立复审。
+
+WP-S0-46 已产生终态 `READY_FOR_REVIEW` 收据并封存原始证据提交 `9d09f3be7bc4d206eceb7fd7f3fc9127a690e278`：图片 1/1 PASS、视频 1/1 PASS；授权随终态自动过期且禁止重跑。当前进入 WP-S0-47 隔离复审；产品固定四项仍为 `NOT_RUN`，root 尚未作 S0 Stage 裁决。
