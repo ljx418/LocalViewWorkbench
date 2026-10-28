@@ -1,0 +1,71 @@
+{
+  "schema_version": "lvw.s1-fixtures/1",
+  "valid_manual_result": {
+    "schema_version": "lvw.v0.result/1",
+    "source_type": "manual",
+    "run_id": null,
+    "analysis_status": "not_requested",
+    "source": null,
+    "model_tag": null,
+    "model_digest": null,
+    "raw_response": null,
+    "suggestion": null,
+    "draft": {
+      "natural_zh": "写实科幻走廊，柔和侧光。",
+      "natural_en": "A photorealistic science-fiction corridor with soft side lighting.",
+      "image_prompt": "A photorealistic science-fiction corridor with soft side lighting.",
+      "video_prompt": "A photorealistic science-fiction corridor with soft side lighting. A slow push-in, proposed motion.",
+      "tags": ["corridor", "soft light"],
+      "negative": "",
+      "edit_instruction": ""
+    },
+    "draft_origin": "manual",
+    "warnings": [],
+    "created_at": "2026-10-28T00:00:00Z"
+  },
+  "invalid_mutations": [
+    {"name": "invalid_status", "path": "analysis_status", "value": "approved_nsfw"},
+    {"name": "approval_field_forbidden", "path": "approval_state", "value": "approved"},
+    {"name": "suggestion_extra_field", "path": "suggestion", "value": {"unexpected": true}}
+  ],
+  "draft_boundary": {
+    "character": "稿",
+    "repeat": 20000,
+    "utf8_bytes": 60000,
+    "sha256_utf8": "0d61d0457020e4ff236e8600d0dbf5d58abfa36d987d1197a529379f268681e8"
+  },
+  "invalid_json_text": "{\"schema_version\":\"lvw.v0.result/1\",",
+  "image_boundaries": {
+    "max_bytes": 20971520,
+    "one_over_bytes": 20971521,
+    "max_pixels": 40000000,
+    "one_over_pixels": 40000001,
+    "formats": ["JPEG", "PNG", "WEBP"],
+    "rgba_policy": "flatten_on_white_with_recorded_conversion",
+    "exif_policy": "transpose_before_dimension_and_pixel_processing"
+  },
+  "late_callback_cases": [
+    {
+      "name": "stale_run_token",
+      "current_run_token": "run-new",
+      "callback_run_token": "run-old",
+      "draft_epoch_before": 7,
+      "draft_epoch_after": 7,
+      "draft_sha256_before": "human-draft-sha",
+      "draft_sha256_after": "human-draft-sha",
+      "suggestion_update_allowed": false,
+      "draft_update_allowed": false
+    },
+    {
+      "name": "current_result_requires_explicit_adopt",
+      "current_run_token": "run-new",
+      "callback_run_token": "run-new",
+      "draft_epoch_before": 7,
+      "draft_epoch_after": 7,
+      "draft_sha256_before": "human-draft-sha",
+      "draft_sha256_after": "human-draft-sha",
+      "suggestion_update_allowed": true,
+      "draft_update_allowed": false
+    }
+  ]
+}
