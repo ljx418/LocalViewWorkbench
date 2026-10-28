@@ -18,6 +18,8 @@ correction-03 checkpoint 还必须一次性复算 R2-IR-01 至 R2-IR-07。公开
 
 correction-11 checkpoint 必须逐分支证明：零 owned start 的身份/preflight stop 将所有未执行派生检查标为 `NOT_REACHED`；owned 资源不存在与 target integrity 未比较分别表达；服务启动后的真实失败仍为 `FAIL`。历史 correction-10 receipt 不得改写，固定产品分母仍为四项 `NOT_RUN`。
 
+correction-12 checkpoint 必须用完整 run fixture 证明：任何已创建但未证实退出的 owned Popen 都使 cleanup fail-closed；wait timeout/异常进入机器收据；正常退出才允许 absence/proven/PASS。只能操作 run-owned Popen，历史 correction-10/11 不可改写。
+
 ## 允许裁决
 
 `STAGE_BASELINE_COMPLETE` 仅表示 S0 盘点和最小探测完成；产品用例仍为 NOT_RUN。否则使用 `NO_GO/BLOCKED/WAIT_BUDGET/WAIT_AUTH`。下一 Stage 必须另建并冻结 packet，不能自动推进。

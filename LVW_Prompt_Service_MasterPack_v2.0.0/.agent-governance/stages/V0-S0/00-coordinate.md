@@ -5,9 +5,9 @@ Project: lvw-prompt-service
 Design: 2.0.0
 Target version: V0
 Stage: V0-S0 / 现有环境与节点基线
-Stage state: GATE3_CHECKPOINT / CHECKPOINT
+Stage state: GATE1_IMPLEMENTATION / RUNNING
 Product cases: NOT_RUN
-Last passed gate: WP_S0_32_OFFLINE_CANDIDATE_SEALED
+Last passed gate: WP_S0_33_INDEPENDENT_MAJOR_REVIEW_COMPLETE
 Baseline commit: 3c69a23d07064a0db5cb05258b237be2415a314a
 Baseline product-control fingerprint: sha256:bd4875c1d53ce8a208e35cdb3b3b20110b290eb7f547eb1239b4eb1192764f4a
 ```
@@ -31,3 +31,5 @@ WP-S0-30 结论 Fatal 0 / Major 0 / Minor 1，确认 run-level NO_GO 可信且�
 root 已将 Minor 1 冻结为 WP-S0-31/32/33 离线纠偏：只修未来 receipt 对前置阻断的 `NOT_REACHED`、owned-resource absence 与 target-integrity comparison 语义，不改写 correction-10，也不启动或探测服务。离线实现与独立复审完成后，Stage 仍须返回 `RESOURCE_BUSY_UNKNOWN_GPU_OWNER` 门禁，直到项目负责人明确释放资源并另行授权。
 
 WP-S0-31/32 候选已由 root 封存，离线回归 33/33、pack 1073/0、治理 43/0；产品四项仍为 NOT_RUN。当前只允许 WP-S0-33 独立离线复审，reviewer 不得修改候选或启动服务。
+
+WP-S0-33 结论 Fatal 0 / Major 1 / Minor 0：Popen 已创建但 PID 未捕获、wait 超时且仍存活时，correction-11 仍可能把 cleanup 写成 PASS。root 已冻结 WP-S0-34/35/36 correction-12；只允许离线闭合 owned Popen 终态与负例，不授权 live 动作。

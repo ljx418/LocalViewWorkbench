@@ -137,3 +137,15 @@ Owner：`codex_isolated_implementer`。依赖 WP-S0-31。新增至少覆盖 harn
 ## WP-S0-33：correction-11 独立离线复审
 
 Owner：`codex_isolated_reviewer`。依赖 WP-S0-32。只读复算新状态机、负例、候选/收据绑定和历史 correction-10 不可改写；确认 Fatal/Major/Minor 以及是否可回到等待 GPU owner 释放的真实运行门禁。独立复审不得修改候选或推断 live 授权。
+
+## WP-S0-34：owned Popen 终态与清理 fail-closed 纠偏
+
+Owner：`codex_isolated_implementer`。依赖 WP-S0-33 的 M-01。仅离线修改 live harness：每个已创建的 owned `Popen` 必须保持为待清理资源，直到 `poll()`/成功 `wait()` 明确证明退出；wait timeout/异常必须记录稳定的 secondary cleanup failure，并使 `owned_resources_absent=false`、`cleanup.proven=false`、cleanup check=`FAIL`。可对本 run 自己创建的精确 Popen 做有界 terminate/kill 清理，但禁止触碰未知或非 owned 进程。禁止修改历史 evidence、公共合同、阈值或启动服务。
+
+## WP-S0-35：lingering-Popen 完整负例与实现收据
+
+Owner：`codex_isolated_implementer`。依赖 WP-S0-34。新增完整 `Probe.run()` 离线 fixture：Popen 已创建、PID 未捕获、wait 超时且 poll 仍存活时，start=1 且 absence/proven/PASS 全部不得为真；同时覆盖 Popen 正常退出的成功清理分支、wait 异常和两个 owned Popen 的组合。保留 correction-11 全部测试，输出 correction-12 离线收据，只能 `READY_FOR_REVIEW`，产品四项保持 `NOT_RUN`。
+
+## WP-S0-36：correction-12 独立离线复审
+
+Owner：`codex_isolated_reviewer`。依赖 WP-S0-35。隔离复算 M-01、完整 run-level 负例、owned 边界、候选/收据绑定和历史 evidence 不可改写。Fatal/Major 必须为零才可建议关闭离线纠偏；不得修改候选、启动服务或宣布 Stage PASS。
