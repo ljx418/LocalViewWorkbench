@@ -150,6 +150,40 @@ class ManualPromptOwnerTests(unittest.TestCase):
                 self.assertEqual("PATH_FORBIDDEN", raised.exception.code)
             self.assertEqual([], list(root.iterdir()))
 
+    def test_windows_reserved_and_trailing_basenames_are_rejected(self):
+        invalid = ("CON", "con.txt", "PRN", "AUX.json", "NUL", "COM1", "com9.log",
+                   "LPT1", "lpt9.txt", "draft.", "draft ")
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            node, _ = self.node(root)
+            for value in invalid:
+                with self.subTest(value=value), self.assertRaises(BridgeError) as raised:
+                    self.call(node, action="export_json", filename=value)
+                self.assertEqual("PATH_FORBIDDEN", raised.exception.code)
+            self.assertEqual([], list(root.iterdir()))
+
+    def test_symlink_export_root_is_rejected_without_external_write_or_draft_change(self):
+        with tempfile.TemporaryDirectory() as temp:
+            parent = Path(temp) / "controlled"
+            outside = Path(temp) / "outside"
+            parent.mkdir()
+            outside.mkdir()
+            leaf = parent / "lvw_manual"
+            leaf.symlink_to(outside, target_is_directory=True)
+            owner = ManualDraftOwner(export_root=leaf, export_parent=parent,
+                                     clipboard=RecordingClipboard(),
+                                     clock=lambda: "2026-10-28T00:00:00Z")
+            node = LVWManualPromptOwner(owner=owner)
+            before = self.call(node)["result"][:7]
+            with self.assertRaises(BridgeError) as raised:
+                self.call(node, action="export_json", filename="人工稿")
+            self.assertEqual("PATH_FORBIDDEN", raised.exception.code)
+            self.assertEqual("MANUAL_EXPORT_ROOT_FORBIDDEN", raised.exception.details["subcode"])
+            self.assertEqual([], list(outside.iterdir()))
+            self.assertEqual([], list(parent.glob(".lvw-manual-*.tmp")))
+            self.assertEqual(before, self.call(node)["result"][:7])
+            self.assertTrue(leaf.is_symlink())
+
     def test_atomic_replace_failure_preserves_existing_file_and_removes_temp(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)

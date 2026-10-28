@@ -108,17 +108,33 @@ def result_txt(draft: ManualDraft) -> str:
 
 def _safe_filename(value: str, suffix: str) -> str:
     name = _text(value, "filename").strip()
+    reserved = name.split(".", 1)[0].upper()
     if (not name or name in {".", ".."} or len(name) > 128 or
             any(character in name for character in "/\\:\0") or
-            any(ord(character) < 32 for character in name)):
+            any(ord(character) < 32 for character in name) or
+            value.endswith((".", " ")) or
+            reserved in {"CON", "PRN", "AUX", "NUL"} or
+            reserved in {f"COM{index}" for index in range(1, 10)} or
+            reserved in {f"LPT{index}" for index in range(1, 10)}):
         raise BridgeError("PATH_FORBIDDEN", "export filename must be one safe basename",
                           subcode="MANUAL_EXPORT_PATH_FORBIDDEN")
     return name + suffix
 
 
-def atomic_write(root: Path, filename: str, payload: str) -> Path:
+def atomic_write(root: Path, filename: str, payload: str, *, parent_root: Path) -> Path:
     root = Path(root)
+    parent_root = Path(parent_root)
     temporary = None
+    try:
+        authority = parent_root.resolve(strict=True)
+        if not authority.is_dir() or root.is_symlink():
+            raise OSError("invalid export boundary")
+        resolved_root = root.resolve(strict=False)
+        if resolved_root == authority or not resolved_root.is_relative_to(authority):
+            raise OSError("export root escapes configured parent")
+    except OSError as exc:
+        raise BridgeError("PATH_FORBIDDEN", "export root is outside the configured output boundary",
+                          subcode="MANUAL_EXPORT_ROOT_FORBIDDEN") from exc
     try:
         root.mkdir(parents=True, exist_ok=True)
         with tempfile.NamedTemporaryFile("w", encoding="utf-8", newline="\n",
@@ -165,18 +181,22 @@ class TkClipboard:
 class ManualDraftOwner:
     """Explicit action owner; formatting and view changes never call a model."""
 
-    def __init__(self, *, export_root: Path | None = None, clipboard=None, clock=None):
+    def __init__(self, *, export_root: Path | None = None, export_parent: Path | None = None,
+                 clipboard=None, clock=None):
         self._export_root = Path(export_root) if export_root is not None else None
+        self._export_parent = (Path(export_parent) if export_parent is not None else
+                               self._export_root.parent if self._export_root is not None else None)
         self._clipboard = clipboard or TkClipboard()
         self._clock = clock
         self.model_calls = 0
 
-    def _root(self) -> Path:
+    def _roots(self) -> tuple[Path, Path]:
         if self._export_root is not None:
-            return self._export_root
+            return self._export_parent, self._export_root
         try:
             import folder_paths
-            return Path(folder_paths.get_output_directory()) / "lvw_manual"
+            parent = Path(folder_paths.get_output_directory())
+            return parent, parent / "lvw_manual"
         except Exception as exc:
             raise BridgeError("PATH_FORBIDDEN", "Comfy output root is unavailable",
                               subcode="COMFY_OUTPUT_ROOT_UNAVAILABLE") from exc
@@ -207,6 +227,8 @@ class ManualDraftOwner:
                                   subcode="CLIPBOARD_WRITE_FAILED") from exc
         elif action.startswith("export_"):
             suffix = ".txt" if action.endswith("txt") else ".json"
-            target = atomic_write(self._root(), _safe_filename(filename, suffix), payload)
+            parent, root = self._roots()
+            target = atomic_write(root, _safe_filename(filename, suffix), payload,
+                                  parent_root=parent)
             status["exported_filename"] = target.name
         return draft, payload, json.dumps(status, ensure_ascii=False, sort_keys=True)
