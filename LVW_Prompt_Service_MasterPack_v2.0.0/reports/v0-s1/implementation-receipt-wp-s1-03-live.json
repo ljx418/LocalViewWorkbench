@@ -1,0 +1,53 @@
+{
+  "schema_version": "lvw.implementation-receipt/1",
+  "project_id": "lvw-prompt-service",
+  "stage_id": "V0-S1",
+  "workpack_id": "WP-S1-03",
+  "spec_version": "1.0.0",
+  "candidate_sha": "65c909f0d7eace7b86943a8cae2a8b99f68926e0",
+  "evidence_commit": "0000000000000000000000000000000000000000",
+  "evidence_commit_status": "PENDING_ROOT_SEALING",
+  "acceptance_hash": "4b52485dbaa7daeccb31b5c91771b51f8106ab6e49267328990ad4da3b5f85c5",
+  "gate_version": "lvw-gate/1",
+  "run_id": "v0-s1-wp-s1-03-live-01",
+  "implementation_owner_role": "codex_gate_owner_preflight",
+  "implementation_session": "/root",
+  "decision": "NO_GO",
+  "stage_pass_claim": false,
+  "exact_stop_reason": "AUTHORIZED_TARGET_PATH_NOT_PRESENT",
+  "authorization": {
+    "authorization_id": "AUTH-V0-S1-2026-10-28-01",
+    "request_sha256": "e66f52a0f2c295a89f48867caf794aea5d8e79cb9a5fa0db10b86d17cb4c90fd",
+    "status": "EXPIRED_MANDATORY_STOP"
+  },
+  "environment": {
+    "mode": "authorized_exact_target_path_preflight_only",
+    "target_runtime_touched": false,
+    "network_calls": 0,
+    "model_calls": 0,
+    "gpu_probes": 0,
+    "process_probes": 0,
+    "port_probes": 0,
+    "real_media_reads": 0,
+    "visible_browser_runs": 0
+  },
+  "check_results": [
+    {"check": "phase_a_candidate_sealed", "status": "PASS", "evidence": "reports/v0-s1/wp-s1-03-phase-a-seal.json"},
+    {"check": "authorized_comfy_main_exists", "status": "FAIL", "evidence": "reports/v0-s1/wp-s1-03-live-01/preflight-target-path.json"},
+    {"check": "authorized_comfy_python_exists", "status": "FAIL", "evidence": "reports/v0-s1/wp-s1-03-live-01/preflight-target-path.json"},
+    {"check": "service_gpu_port_network_preflight", "status": "NOT_REACHED"},
+    {"check": "public_comfy_prompt_history", "status": "NOT_RUN"},
+    {"check": "cleanup", "status": "PASS_NO_OWNED_RESOURCES_CREATED"}
+  ],
+  "test_counts": {"denominator": 5, "pass": 0, "fail": 0, "blocked": 0, "skipped": 0, "not_run": 5},
+  "artifact_refs": [
+    "reports/v0-s1/wp-s1-03-live-01/preflight-target-path.json",
+    "reports/v0-s1/wp-s1-03-live-01/run-summary.json"
+  ],
+  "raw_artifact_refs": [],
+  "risks": [
+    "The approved C:/ComfyUI/ComfyUI/main.py and C:/ComfyUI/python/python.exe targets do not exist on the current machine.",
+    "The authorization cannot be reused or broadened to another installation path.",
+    "All five fixed product cases remain NOT_RUN."
+  ]
+}

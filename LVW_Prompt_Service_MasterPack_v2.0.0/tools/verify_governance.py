@@ -373,18 +373,30 @@ def main_v0_s1(args: argparse.Namespace, execution: dict) -> int:
     )
     check("packet_frozen", control.get("packet_status") == "FROZEN")
     authorization_records = control.get("authorization_records", [])
+    record_values = [load_json(ROOT / item) for item in authorization_records if (ROOT / item).is_file()]
+    record_statuses = {item.get("status") for item in record_values}
     live_authorized = (
         control.get("authorization_scope") == "WP-S1-03_ONE_SHOT_LIVE"
         and isinstance(control.get("external_authorization"), str)
         and control.get("external_authorization", "").startswith("AUTH-V0-S1-")
         and bool(authorization_records)
+        and control.get("state") == "RUNNING"
+        and "GRANTED_ONCE" in record_statuses
+    )
+    live_terminal = (
+        control.get("authorization_scope") == "WP-S1-03_ONE_SHOT_LIVE"
+        and control.get("state") in {"NO_GO", "BLOCKED", "STAGE_BASELINE_COMPLETE"}
+        and bool(authorization_records)
+        and bool(record_statuses)
+        and all(str(status).startswith("EXPIRED_") for status in record_statuses)
     )
     offline_waiting = (
         control.get("authorization_scope") == "OFFLINE_REPOSITORY_ONLY"
         and control.get("external_authorization") == "WAIT_AUTH_BEFORE_WP-S1-03"
     )
-    check("authorization_scope_valid", control.get("execution_authorized") is True and (offline_waiting or live_authorized))
-    check("external_authorization_state", offline_waiting or live_authorized)
+    check("authorization_scope_valid", control.get("execution_authorized") is True
+          and (offline_waiting or live_authorized or live_terminal))
+    check("external_authorization_state", offline_waiting or live_authorized or live_terminal)
     check("baseline_product_control_fingerprint", control.get("baseline", {}).get("product_control_sha256") == product_control_digest())
 
     bound_commits = [
