@@ -169,7 +169,10 @@ class ManualPromptOwnerTests(unittest.TestCase):
             parent.mkdir()
             outside.mkdir()
             leaf = parent / "lvw_manual"
-            leaf.symlink_to(outside, target_is_directory=True)
+            try:
+                leaf.symlink_to(outside, target_is_directory=True)
+            except OSError as exc:
+                self.skipTest(f"platform cannot create symlink fixture: {exc.winerror if hasattr(exc, 'winerror') else exc.errno}")
             owner = ManualDraftOwner(export_root=leaf, export_parent=parent,
                                      clipboard=RecordingClipboard(),
                                      clock=lambda: "2026-10-28T00:00:00Z")

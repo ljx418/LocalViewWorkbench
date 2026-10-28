@@ -26,6 +26,8 @@ def empty_state() -> dict:
 
 
 def _load_state(state_json: str) -> dict:
+    if not isinstance(state_json, str):
+        raise BridgeError("PARSE_PARTIAL", "state must be a JSON string", subcode="STATE_JSON_INVALID")
     if not state_json.strip():
         return empty_state()
     try:

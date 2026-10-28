@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from unittest import mock
 
 from PIL import Image
 
@@ -54,6 +55,16 @@ class ControlledImageOwnerTests(unittest.TestCase):
             validate_image_pixel_count(MAX_IMAGE_PIXELS + 1, 1)
         self.assertEqual("MEDIA_LIMIT_EXCEEDED", pixel_error.exception.code)
 
+    def test_one_over_pixel_header_is_rejected_before_full_decode(self):
+        source = mock.Mock(format="PNG", size=(MAX_IMAGE_PIXELS + 1, 1))
+        with tempfile.TemporaryDirectory() as temp:
+            Path(temp, "oversized.png").write_bytes(b"small header fixture")
+            with mock.patch("PIL.Image.open", return_value=source), self.assertRaises(BridgeError) as raised:
+                self.node(temp).load("oversized.png")
+        self.assertEqual("MEDIA_LIMIT_EXCEEDED", raised.exception.code)
+        self.assertEqual("IMAGE_PIXEL_LIMIT", raised.exception.details["subcode"])
+        source.load.assert_not_called()
+
     def test_exif_transpose_precedes_dimension_recording(self):
         exif = Image.Exif()
         exif[274] = 6
@@ -101,7 +112,10 @@ class ControlledImageOwnerTests(unittest.TestCase):
             outside.mkdir()
             outside_file = outside / "outside.png"
             outside_file.write_bytes(image_bytes())
-            (root / "link.png").symlink_to(outside_file)
+            try:
+                (root / "link.png").symlink_to(outside_file)
+            except OSError as exc:
+                self.skipTest(f"platform cannot create symlink fixture: {exc.winerror if hasattr(exc, 'winerror') else exc.errno}")
             for reference in (str(outside_file), "../outside/outside.png", "link.png", r"sub\file.png"):
                 with self.subTest(reference=reference), self.assertRaises(BridgeError) as raised:
                     self.node(root).load(reference)
@@ -149,6 +163,10 @@ class DraftStateOwnerTests(unittest.TestCase):
                 self.call(state, action="model_success", token=token, callback=callback)
             self.assertEqual(expected, raised.exception.code)
         self.assertEqual("running", json.loads(state)["analysis_status"])
+        with self.assertRaises(BridgeError) as raised:
+            self.node.process(state=None, action="start_run", run_token="run-2",
+                              callback_payload="", draft_payload="", error_code="")
+        self.assertEqual("PARSE_PARTIAL", raised.exception.code)
 
     def test_terminal_run_rejects_late_same_token_callback(self):
         state = self.call()

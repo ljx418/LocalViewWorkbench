@@ -97,11 +97,11 @@ class ControlledImageOwner:
             if actual_format not in ALLOWED_FORMATS:
                 raise BridgeError("MEDIA_INVALID", "actual image format must be JPEG, PNG, or WebP",
                                   subcode="IMAGE_FORMAT_UNSUPPORTED")
-            source.load()
             original_size = list(source.size)
+            validate_image_pixel_count(*source.size)
+            source.load()
             oriented = ImageOps.exif_transpose(source)
             oriented_size = list(oriented.size)
-            validate_image_pixel_count(*oriented.size)
 
             alpha_composited = oriented.mode in {"RGBA", "LA"} or (
                 oriented.mode == "P" and "transparency" in oriented.info
