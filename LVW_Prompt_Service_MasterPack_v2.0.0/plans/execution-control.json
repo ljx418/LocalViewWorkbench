@@ -6,30 +6,30 @@
   "target_version": "V0",
   "coordinate": {
     "stage_id": "V0-S1",
-    "workpack_id": "WP-S1-03",
-    "gate": "GATE4_REAL_ACCEPTANCE",
-    "state": "RUNNING"
+    "workpack_id": "WP-S1-04",
+    "gate": "GATE5_INDEPENDENT_EXIT",
+    "state": "CHECKPOINT"
   },
   "last_passed_gate": {
     "id": "WP_S1_03_GPU_EVIDENCE_CORRECTION_SEALED",
     "evidence": "reports/v0-s1/wp-s1-03-gpu-evidence-correction-seal.json",
     "meaning": "GPU stop now persists minimized aggregate values without changing 4096 MiB threshold; fresh live-05 slot passed 80 offline tests on candidate 919f7fc"
   },
-  "current_blocking_gate": "the authorized live-05 preflight and single effective image route must execute once and generate a terminal receipt",
+  "current_blocking_gate": "independent reviewer must recompute candidate/evidence binding, public production path, semantic Oracle, privacy, failure history and cleanup before any Stage decision",
   "stage_packet": ".agent-governance/stages/V0-S1/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/V0-S1/PAYLOAD_MANIFEST.sha256",
   "product_status": "NOT_RUN",
-  "allowed_claim": "V0_S1_WP_S1_03_LIVE_05_AUTHORIZED_RUNNING_PRODUCT_CASES_NOT_RUN",
+  "allowed_claim": "V0_S1_WP_S1_03_LIVE_ROUTE_READY_FOR_INDEPENDENT_REVIEW_PRODUCT_CASES_NOT_RUN",
   "forbidden_claims": [
     "ENGINEERING_READY",
     "V0_ACCEPTED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "codex_isolated_implementer",
-  "next_action": "Execute sealed live-05 harness exactly once; stop on any mandatory condition, preserve minimized evidence, clean owned resources and expire authorization.",
-  "required_authorization": "AUTH-V0-S1-2026-10-28-05",
+  "next_owner": "codex_isolated_reviewer",
+  "next_action": "Perform read-only WP-S1-04 independent review against frozen Stage packet, candidate 919f7fc and raw evidence commit c2c0bd6; do not rerun live services.",
+  "required_authorization": "INDEPENDENT_REVIEW_NO_EXTERNAL_RERUN",
   "authorization_request": "reports/v0-s1/authorization-wp-s1-03-05.request.json",
   "authorization_record": "reports/v0-s1/authorization-wp-s1-03-05.json",
   "evidence_root": "reports/",
-  "exact_stop_reason": null
+  "exact_stop_reason": "WAIT_INDEPENDENT_WP_S1_04_REVIEW"
 }

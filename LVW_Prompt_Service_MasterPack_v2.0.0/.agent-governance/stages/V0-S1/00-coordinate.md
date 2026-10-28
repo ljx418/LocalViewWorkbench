@@ -6,10 +6,10 @@ Design: 2.0.0
 Target version: V0
 Prepared stage: V0-S1 / 图片与独立人工路径
 Packet version: 1.0.0
-State: RUNNING / AUTHORIZED_LIVE_05
-Active coordinate: V0-S1 / WP-S1-03 / GATE4_REAL_ACCEPTANCE
+State: CHECKPOINT / LIVE_05_READY_FOR_INDEPENDENT_REVIEW
+Active coordinate: V0-S1 / WP-S1-04 / GATE5_INDEPENDENT_EXIT
 Last passed gate: WP_S1_03_GPU_EVIDENCE_CORRECTION_SEALED
-Exact stop reason: none
+Exact stop reason: WAIT_INDEPENDENT_WP_S1_04_REVIEW
 Product cases: NOT_RUN
 Prepared-against commit: dfb00ad462d94628f1aa22045061f66a7629ec01
 Product bridge candidate: 138b4486fdaeb8d207ef6b5efb63a09865f174b9
@@ -53,3 +53,5 @@ live-04 已且仅已执行一次，在服务启动前以 `GPU_PREFLIGHT_USED_MEM
 候选 `919f7fc...` 已在不改变 4096 MiB 门限的前提下补齐 GPU 超限聚合证据，绑定新的 live-05 证据槽；定向 20/20、完整回归 80/80，外部动作 0。现在同时等待项目负责人确认 GPU 已释放并明确批准 `AUTH-REQUEST-V0-S1-WP-S1-03-05`。
 
 项目负责人已确认 GPU 释放并逐字批准 request-05，正式授权绑定请求提交 `70590f1...` 与 SHA-256 `7fd042c...`。仅可执行一次 live-05；任何 mandatory stop、有效图片尝试或终态收据都会使授权自动过期。
+
+live-05 已且仅已执行一次并以 exit 0 / `READY_FOR_REVIEW` 终态：真实公开图片路径、PromptSpec 语义 Oracle、raw/suggestion 隔离、显式采纳、停止 Ollama 后的手工 CPU 路径、no-cloud、卸载、目标完整性与完整清理均通过机器检查。授权已过期，五项产品用例仍为 `NOT_RUN`；当前进入 WP-S1-04 独立复算，根门禁负责人尚未裁决 Stage PASS。

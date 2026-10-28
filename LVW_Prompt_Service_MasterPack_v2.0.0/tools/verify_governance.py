@@ -385,7 +385,7 @@ def main_v0_s1(args: argparse.Namespace, execution: dict) -> int:
     )
     live_terminal = (
         control.get("authorization_scope") == "WP-S1-03_ONE_SHOT_LIVE"
-        and control.get("state") in {"NO_GO", "BLOCKED", "STAGE_BASELINE_COMPLETE"}
+        and control.get("state") in {"CHECKPOINT", "NO_GO", "BLOCKED", "STAGE_BASELINE_COMPLETE"}
         and bool(authorization_records)
         and bool(record_statuses)
         and all(str(status).startswith("EXPIRED_") for status in record_statuses)
