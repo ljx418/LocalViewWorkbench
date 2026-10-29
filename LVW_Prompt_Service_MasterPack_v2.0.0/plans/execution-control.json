@@ -9,7 +9,7 @@
     "stage_id": "R1a",
     "workpack_id": "WP-R1A-04",
     "gate": "GATE4_REAL_ACCEPTANCE",
-    "state": "NO_GO"
+    "state": "WAIT_AUTH"
   },
   "last_passed_gate": {
     "id": "WP_R1A_03_PACKET_1_1_OFFLINE_CHECKPOINT_PASS",
@@ -30,10 +30,10 @@
     "TARGET_HARDWARE_TESTED"
   ],
   "next_owner": "project_owner",
-  "next_action": "Review the independent live-05 NO_GO report; any further real run requires a new explicit authorization because the R1a program budget is exhausted.",
-  "required_authorization": "NEW_EXPLICIT_R1A_AUTHORIZATION_REQUIRED_PROGRAM_BUDGET_EXHAUSTED",
-  "authorization_request": "reports/r1a/authorization-wp-r1a-04-live-05.request.json",
-  "authorization_record": "reports/r1a/authorization-wp-r1a-04-live-05.json",
+  "next_action": "Project owner approves or rejects the candidate-bound LIVE-06 request; the V1 program authorization cannot authorize this extra R1a run.",
+  "required_authorization": "AUTH-REQUEST-V1-R1A-WP-R1A-04-LIVE-06",
+  "authorization_request": "reports/r1a/authorization-wp-r1a-04-live-06.request.json",
+  "authorization_record": null,
   "historical_authorization_records": [
     "reports/r1a/authorization-wp-r1a-04-live-01.json",
     "reports/r1a/authorization-wp-r1a-04-live-02.json",
@@ -41,8 +41,8 @@
   ],
   "contract_change_request": "reports/r1a/change-request-r1a-contract-01.json",
   "contract_change_decision": "reports/r1a/change-decision-r1a-contract-01.json",
-  "implementation_candidate": "f901c492addcaad4e7a6a03eb2b0973c74887aef",
-  "offline_evidence_commit": "f30722f88476d9407561bc4aa9d253f26f4ea87f",
+  "implementation_candidate": "d1d30480c0bbc740fabe81cf07514518590b249c",
+  "offline_evidence_commit": "31fb6afe645d82539c254ace90f59213d8296f0b",
   "offline_receipt": "reports/r1a/implementation-receipt-packet-1.1-correction-02.json",
   "evidence_root": "reports/",
   "gate_decision": "reports/v0-s1/gate-decision-v0-min.md",
@@ -57,5 +57,5 @@
   },
   "live_terminal_receipt": "reports/r1a/r1a-live-05/live-receipt.json",
   "independent_review": "reports/r1a/independent-review-r1a-live-05.md",
-  "exact_stop_reason": "R1A_LIVE_05_NO_GO_BROWSER_COPY_ORACLE_R1A_PROGRAM_RECHECK_BUDGET_EXHAUSTED"
+  "exact_stop_reason": "R1A_ACCESSIBILITY_AND_FOUR_OUTPUT_CORRECTION_READY_WAIT_EXPLICIT_LIVE_06_AUTH"
 }

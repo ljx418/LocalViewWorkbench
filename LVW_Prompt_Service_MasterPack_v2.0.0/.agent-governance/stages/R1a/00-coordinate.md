@@ -25,3 +25,5 @@ Prepared-against commit: f1780de806d4082dbf1d0f8a3ece81cf369aa0e1
 `r1a-live-05` 已执行一次并以 `NO_GO` 终止：固定图片提交、真实 provider 调用与完成事件均为 1，人工预分析导出和显式采纳已发生；浏览器随后仍无法通过 English 字段内的可访问名称 `复制` 定位按钮。失败分支已正面证明模型卸载、FastAPI/Ollama 停止、Windows/WSL 端口为空、隔离数据根删除且无 cleanup error。子授权已过期，R1a 在母授权下的 corrected-candidate 完整复验额度归零；禁止自动重跑，当前等待独立审查和项目负责人决定是否另开新授权。
 
 隔离只读独立审查结论为 `NO_GO / Fatal 0 / Major 4 / Minor 2`：确认一次真实 provider 调用与清理证据可信，但浏览器路径、R1A-M04/M05/M06、可访问性合同和中文/负向非空 Oracle 未满足。当前不得进入 WP-R1A-05 人工体验门槛；先做离线纠偏，任何新的真实运行必须由项目负责人另行明确授权。
+
+离线纠偏候选 `d1d3048...` 已完成：textarea 采用独立 `id/htmlFor`，四个 copy button 使用唯一 accessible name；模型 Schema 和 parser 强制中文、英文、图像提示词与负向约束非空，Harness 同步建立四输出 Oracle。候选绑定 checkpoint 11/11 通过并由 `31fb6af...` 封存。由于 R1a 母授权预算已耗尽，当前明确停在 `AUTH-REQUEST-V1-R1A-WP-R1A-04-LIVE-06`，批准前禁止任何 Ollama、媒体或浏览器运行。
