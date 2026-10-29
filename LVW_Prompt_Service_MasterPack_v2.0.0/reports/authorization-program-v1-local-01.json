@@ -1,0 +1,52 @@
+{
+  "schema_version": "lvw.program-authorization/1",
+  "authorization_id": "AUTH-PROGRAM-V1-LOCAL-01",
+  "status": "ACTIVE",
+  "project_id": "lvw-prompt-service",
+  "granted_by": "project_owner",
+  "granted_at": "2026-10-29T14:09:59+08:00",
+  "approval_context_commit": "177c13845b650e030d19e390cfce79ad20539dcc",
+  "grant_statement": "批准 AUTH-PROGRAM-V1-LOCAL-01。授权覆盖 R1a、V0-S2、V0-S3、R1、R2 至 V1 门禁裁决所需的离线开发、本机 testSource 非私有媒体、本机 loopback Ollama/ComfyUI/FastAPI、GPU、FFmpeg、SQLite、headless Chromium、便携包、受控故障注入、完整固定分母和隔离独立审查。每次真实运行必须先生成候选、Harness、样本哈希、端口、进程、预算和清理策略绑定的子授权收据；子运行处于本母授权范围内时无需再次请求人工批准。每个 Stage 最多一次完整 checkpoint，修正候选后最多一次完整复验；超限自动转 WAIT_AUTH。禁止云服务、付费服务、下载、非 loopback 网络、私有媒体、Cookie、现有浏览器 profile、可见浏览器自动化、永久配置修改、终止非本轮进程、远程推送和发布。人工体验签署、最终 V1 发布签署及 V2/V3 不在本授权内。授权在 V1 终态、人工撤销或任一越界条件发生时自动过期。",
+  "stages": ["R1a", "V0-S2", "V0-S3", "R1", "R2"],
+  "allowed": [
+    "offline repository implementation within each frozen Stage packet",
+    "non-private fixed samples below C:/workSpace/videoWorkLine/testSource and generated non-private fixtures",
+    "run-owned loopback Ollama, ComfyUI, FastAPI, worker and headless Chromium execution",
+    "local GPU, FFmpeg, SQLite, portable bundle and bounded fault-injection checks",
+    "fixed-denominator checkpoint execution and isolated independent review"
+  ],
+  "child_authorization_policy": {
+    "required_bindings": [
+      "stage and workpack",
+      "candidate and harness identities",
+      "sample hashes",
+      "literal loopback endpoints and ports",
+      "process ownership and cleanup strategy",
+      "attempt, provider, browser, download, cloud and cost budgets"
+    ],
+    "human_reapproval_required_when_within_program_scope": false,
+    "stage_checkpoint_limit": 1,
+    "corrected_candidate_full_recheck_limit": 1,
+    "over_budget_state": "WAIT_AUTH"
+  },
+  "forbidden": [
+    "cloud or paid service",
+    "download or upgrade",
+    "non-loopback network",
+    "private media, cookies or an existing browser profile",
+    "visible-browser automation",
+    "permanent configuration changes",
+    "termination of a non-owned process",
+    "remote Git push, merge or release",
+    "human experience or final V1 release signoff",
+    "V2 or V3 execution"
+  ],
+  "expires_when": [
+    "V1 reaches a terminal gate decision",
+    "the project owner revokes this authorization",
+    "a child action would exceed this scope or its Stage budget"
+  ],
+  "does_not_authorize_stage_pass": true,
+  "does_not_authorize_human_signoff": true,
+  "does_not_authorize_release": true
+}

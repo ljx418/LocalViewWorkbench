@@ -14,4 +14,4 @@ Evidence commit: f30722f88476d9407561bc4aa9d253f26f4ea87f
 Prepared-against commit: f1780de806d4082dbf1d0f8a3ece81cf369aa0e1
 ```
 
-本包落实 `docs/23_V1_EARLY_FRONTEND_SEQUENCE.md`。packet 1.1.0 的合同身份纠偏、wrapper、provider 账本、浏览器 oracle 和完整离线 checkpoint 已完成。当前请求 `AUTH-REQUEST-V1-R1A-WP-R1A-04-LIVE-03` 尚未批准，不授权任何真实 Ollama、媒体或浏览器运行。R1a 不能在新鲜机器验收和独立审查完成前进入人工体验门槛，也不能声明 `V1_ACCEPTED`。
+本包落实 `docs/23_V1_EARLY_FRONTEND_SEQUENCE.md`。packet 1.1.0 的合同身份纠偏、wrapper、provider 账本、浏览器 oracle 和完整离线 checkpoint 已完成。项目负责人已于 2026-10-29 批准 `AUTH-PROGRAM-V1-LOCAL-01`；当前候选绑定子授权 `AUTH-V1-R1A-2026-10-29-LIVE-03` 已激活，只允许执行一次 `r1a-live-03` checkpoint，终态自动过期。R1a 不能在新鲜机器验收和独立审查完成前进入人工体验门槛，也不能声明 `V1_ACCEPTED`。
