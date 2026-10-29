@@ -9,7 +9,7 @@
     "stage_id": "R1a",
     "workpack_id": "WP-R1A-04",
     "gate": "GATE4_REAL_ACCEPTANCE",
-    "state": "WAIT_AUTH"
+    "state": "RUNNING"
   },
   "last_passed_gate": {
     "id": "WP_R1A_03_PACKET_1_1_OFFLINE_CHECKPOINT_PASS",
@@ -29,11 +29,11 @@
     "PRODUCTION_RELEASED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "project_owner",
-  "next_action": "Project owner approves or rejects the candidate-bound LIVE-06 request; the V1 program authorization cannot authorize this extra R1a run.",
-  "required_authorization": "AUTH-REQUEST-V1-R1A-WP-R1A-04-LIVE-06",
+  "next_owner": "local_ci",
+  "next_action": "Execute candidate-bound r1a-live-06 exactly once and expire its authorization on terminal evidence.",
+  "required_authorization": "AUTH-V1-R1A-2026-10-29-LIVE-06",
   "authorization_request": "reports/r1a/authorization-wp-r1a-04-live-06.request.json",
-  "authorization_record": null,
+  "authorization_record": "reports/r1a/authorization-wp-r1a-04-live-06.json",
   "historical_authorization_records": [
     "reports/r1a/authorization-wp-r1a-04-live-01.json",
     "reports/r1a/authorization-wp-r1a-04-live-02.json",
@@ -57,5 +57,5 @@
   },
   "live_terminal_receipt": "reports/r1a/r1a-live-05/live-receipt.json",
   "independent_review": "reports/r1a/independent-review-r1a-live-05.md",
-  "exact_stop_reason": "R1A_ACCESSIBILITY_AND_FOUR_OUTPUT_CORRECTION_READY_WAIT_EXPLICIT_LIVE_06_AUTH"
+  "exact_stop_reason": "R1A_LIVE_06_EXPLICITLY_AUTHORIZED_READY_ONCE"
 }

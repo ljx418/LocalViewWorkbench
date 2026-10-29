@@ -10,7 +10,7 @@
     "prepared_against_commit": "f1780de806d4082dbf1d0f8a3ece81cf369aa0e1",
     "product_control_sha256": "bf077004bc40d9cd8b82ee8e86406bcfc358129bda70b2d799ff61ff27665579"
   },
-  "state": "WAIT_AUTH",
+  "state": "RUNNING",
   "last_passed_gate": "WP_R1A_03_PACKET_1_1_OFFLINE_CHECKPOINT_PASS",
   "dependencies": ["V0-S1:PASS", "R0:INCLUDED_AS_WP-R1A-00"],
   "authorities": [
@@ -57,11 +57,11 @@
     "WP-R1A-04 remains WAIT_AUTH until a one-shot request binds candidate, endpoint, model, sample, attempts and cleanup.",
     "R1a completion does not authorize V1 PASS or production release."
   ],
-  "execution_authorized": false,
-  "authorization_scope": "OFFLINE_COMPLETE_WAIT_AUTH",
-  "external_authorization": "WAIT_AUTH_BEFORE_WP-R1A-04",
-  "next_owner": "project_owner",
-  "required_authorization": "AUTH-REQUEST-V1-R1A-WP-R1A-04-LIVE-06",
+  "execution_authorized": true,
+  "authorization_scope": "WP-R1A-04_ONE_SHOT_LIVE",
+  "external_authorization": "AUTH-V1-R1A-2026-10-29-LIVE-06",
+  "next_owner": "local_ci",
+  "required_authorization": "AUTH-V1-R1A-2026-10-29-LIVE-06",
   "authorization_request": "reports/r1a/authorization-wp-r1a-04-live-06.request.json",
   "change_request": "reports/r1a/change-request-r1a-contract-01.json",
   "change_decision": "reports/r1a/change-decision-r1a-contract-01.json",
@@ -71,7 +71,8 @@
     "reports/authorization-program-v1-local-01.json",
     "reports/r1a/authorization-wp-r1a-04-live-03.json",
     "reports/r1a/authorization-wp-r1a-04-live-04.json",
-    "reports/r1a/authorization-wp-r1a-04-live-05.json"
+    "reports/r1a/authorization-wp-r1a-04-live-05.json",
+    "reports/r1a/authorization-wp-r1a-04-live-06.json"
   ],
   "implementation_candidate": "d1d30480c0bbc740fabe81cf07514518590b249c",
   "evidence_commit": "31fb6afe645d82539c254ace90f59213d8296f0b",
