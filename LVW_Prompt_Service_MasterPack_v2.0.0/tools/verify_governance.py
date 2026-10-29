@@ -126,8 +126,11 @@ def validate_stage(control: dict, tasks: dict, cases: dict) -> list[str]:
             if not (ROOT / record).is_file():
                 errors.append(f"historical authorization record is missing: {record}")
     elif external and control.get("authorization_scope") == "OFFLINE_REPOSITORY_ONLY":
-        if control.get("external_authorization") != "WAIT_AUTH_BEFORE_WP-S1-03":
+        first_external = next((item.get("id") for item in workpacks if item.get("risk") == "external_private"), None)
+        if control.get("external_authorization") != f"WAIT_AUTH_BEFORE_{first_external}":
             errors.append("offline-only Stage must keep external workpack at WAIT_AUTH")
+        if state != "FROZEN_READY_OFFLINE":
+            errors.append("offline-only Stage cannot enter a live execution state")
     elif external:
         if control.get("authorization_scope") not in {
             "WP-S1-03_ONE_SHOT_LIVE", "WP-S1-04_CHECKPOINT_ONE_SHOT_LIVE"
@@ -221,9 +224,9 @@ def validate_evidence_manifest(path: Path, expected_candidate: str) -> list[str]
     return errors
 
 
-def verify_manifest() -> list[str]:
+def verify_manifest_at(stage_dir: Path) -> list[str]:
     errors: list[str] = []
-    manifest = STAGE_DIR / "PAYLOAD_MANIFEST.sha256"
+    manifest = stage_dir / "PAYLOAD_MANIFEST.sha256"
     if not manifest.is_file():
         return ["Stage Packet manifest is missing"]
     listed: set[str] = set()
@@ -236,13 +239,17 @@ def verify_manifest() -> list[str]:
             errors.append("invalid Stage manifest line")
             continue
         listed.add(name)
-        path = STAGE_DIR / name
+        path = stage_dir / name
         if not path.is_file() or hashlib.sha256(path.read_bytes()).hexdigest() != digest:
             errors.append(f"Stage manifest mismatch: {name}")
     expected = REQUIRED_PACKET_FILES - {"PAYLOAD_MANIFEST.sha256"}
     if listed != expected:
         errors.append("Stage manifest inventory differs from the frozen packet")
     return errors
+
+
+def verify_manifest() -> list[str]:
+    return verify_manifest_at(STAGE_DIR)
 
 
 def verify_prepared_stage(tasks: dict, cases: dict) -> list[str]:
@@ -534,6 +541,72 @@ def main_v0_s1(args: argparse.Namespace, execution: dict) -> int:
     return 1 if result["failed"] else 0
 
 
+def main_r1a(args: argparse.Namespace, execution: dict) -> int:
+    checks: list[dict] = []
+
+    def check(name: str, condition: bool, detail: str = ""):
+        checks.append({"check": name, "passed": bool(condition), "detail": detail})
+
+    stage_dir = GOV / "stages" / "R1a"
+    inventory = {path.name for path in stage_dir.iterdir()} if stage_dir.is_dir() else set()
+    check("stage_packet_inventory", inventory == REQUIRED_PACKET_FILES,
+          str(sorted(REQUIRED_PACKET_FILES - inventory)))
+    control = load_json(stage_dir / "stage-control.json")
+    tasks = load_json(ROOT / "plans" / "tasks.json")
+    cases = load_json(ROOT / "plans" / "acceptance_cases.json")
+    stage_errors = validate_stage(control, tasks, cases)
+    check("stage_control", not stage_errors, "; ".join(stage_errors))
+    check("baseline_product_control_fingerprint",
+          control.get("baseline", {}).get("product_control_sha256") == product_control_digest())
+    for authority in control.get("authorities", []):
+        check("authority:" + authority, (ROOT / authority).is_file())
+    manifest_errors = verify_manifest_at(stage_dir)
+    check("stage_manifest", not manifest_errors, "; ".join(manifest_errors))
+    check("single_coordinate_stage", execution.get("coordinate", {}).get("stage_id") == "R1a")
+    check("single_coordinate_state", execution.get("coordinate", {}).get("state") == control.get("state"))
+    check("coordinate_workpack", execution.get("coordinate", {}).get("workpack_id")
+          in {item.get("id") for item in control.get("workpacks", [])})
+    check("packet_reference", (ROOT / execution.get("stage_packet", "")).resolve()
+          == (stage_dir / "stage-control.json").resolve())
+    check("manifest_reference", (ROOT / execution.get("stage_packet_manifest", "")).resolve()
+          == (stage_dir / "PAYLOAD_MANIFEST.sha256").resolve())
+    case_status = {item["case_id"]: item["status"] for item in cases["cases"]}
+    check("fixed_cases_not_predeclared", all(case_status[item] == "NOT_RUN"
+          for item in control.get("fixed_acceptance_ids", [])))
+    check("offline_scope_fail_closed",
+          control.get("authorization_scope") == "OFFLINE_REPOSITORY_ONLY"
+          and control.get("external_authorization") == "WAIT_AUTH_BEFORE_WP-R1A-04")
+    registry = load_json(GOV / "project-registry.json")
+    project = next((item for item in registry.get("projects", [])
+                    if item.get("project_id") == control.get("project_id")), None)
+    check("project_registry_coordinate", bool(project)
+          and project.get("current_stage") == "R1a"
+          and project.get("state") == control.get("state"))
+    if args.self_test:
+        checks.extend({"check": item["name"], "passed": item["passed"],
+                       "detail": "negative mutation must be rejected"}
+                      for item in run_self_tests(control, tasks, cases))
+    result = {
+        "kind": "GOVERNANCE_VALIDATION_NOT_PRODUCT_ACCEPTANCE",
+        "project_id": control.get("project_id"),
+        "stage_id": "R1a",
+        "passed": sum(item["passed"] for item in checks),
+        "failed": sum(not item["passed"] for item in checks),
+        "product_tests_executed": False,
+        "target_runtime_touched": False,
+        "checks": checks,
+    }
+    if args.write_report:
+        (ROOT / "reports" / "governance-validation.json").write_text(
+            json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    print(json.dumps({key: value for key, value in result.items() if key != "checks"},
+                     ensure_ascii=False, indent=2))
+    for item in checks:
+        if not item["passed"]:
+            print("FAIL", item)
+    return 1 if result["failed"] else 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--self-test", action="store_true")
@@ -543,6 +616,8 @@ def main() -> int:
     execution = load_json(ROOT / "plans" / "execution-control.json")
     if execution.get("coordinate", {}).get("stage_id") == "V0-S1":
         return main_v0_s1(args, execution)
+    if execution.get("coordinate", {}).get("stage_id") == "R1a":
+        return main_r1a(args, execution)
 
     checks: list[dict] = []
 

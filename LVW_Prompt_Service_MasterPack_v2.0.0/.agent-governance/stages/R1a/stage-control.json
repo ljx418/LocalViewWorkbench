@@ -1,0 +1,65 @@
+{
+  "schema_version": "lvw.stage-control/1",
+  "project_id": "lvw-prompt-service",
+  "stage_id": "R1a",
+  "stage_packet_version": "1.0.0",
+  "packet_status": "FROZEN",
+  "gate_version": "lvw-gate/1",
+  "baseline": {
+    "git_commit": "fc5f8afda6b78ca710f8f03605690a5b1f08355d",
+    "prepared_against_commit": "fc5f8afda6b78ca710f8f03605690a5b1f08355d",
+    "product_control_sha256": "22128ab0bd2488f4a5bc7bc7dda07cb1172096caa70d00d3e8c56bc970691b19"
+  },
+  "state": "FROZEN_READY_OFFLINE",
+  "last_passed_gate": "V0_MIN_HUMAN_EXPERIENCE_SIGNOFF_PASS",
+  "dependencies": ["V0-S1:PASS", "R0:INCLUDED_AS_WP-R1A-00"],
+  "authorities": [
+    "docs/23_V1_EARLY_FRONTEND_SEQUENCE.md",
+    "docs/14_V1_IMPLEMENTATION.md",
+    "docs/11_FRONTEND_ENGINEERING.md",
+    "contracts/openapi.json",
+    "contracts/errors.json",
+    "plans/tasks.json",
+    "plans/acceptance_cases.json",
+    "plans/release_gates.json"
+  ],
+  "roles": {
+    "gate_owner": "codex_gate_owner",
+    "implementation_owners": ["codex_r1a_implementer"],
+    "independent_reviewer": "codex_r1a_independent_reviewer",
+    "trusted_executor": "local_ci",
+    "human_authorizer": "project_owner"
+  },
+  "fixed_acceptance_ids": ["A01", "A02", "A03", "A05", "F01", "Q01", "X01"],
+  "acceptance_hash": "fe6c7d1620ca1ff7a0f9f594699f66660d05fa2aa80544cb04ad9cec3f9df1a5",
+  "workpacks": [
+    {"id":"WP-R1A-00","owner":"codex_gate_owner","depends_on":[],"risk":"offline_repository","allowed_paths":[".agent-governance/stages/R1a/","reports/r1a/"],"commands":["freeze contracts, dependencies, packet and design direction"],"output":"R0 reuse audit and frozen packet"},
+    {"id":"WP-R1A-01","owner":"codex_r1a_implementer","depends_on":["WP-R1A-00"],"risk":"offline_repository","allowed_paths":["lvw/backend/","lvw/tests/","reports/r1a/"],"commands":["offline Python unit, API and contract-negative tests"],"output":"same-origin FastAPI vertical path"},
+    {"id":"WP-R1A-02","owner":"codex_r1a_implementer","depends_on":["WP-R1A-01"],"risk":"offline_repository","allowed_paths":["lvw/frontend/","lvw/backend/app/static/","lvw/tests/","reports/r1a/"],"commands":["offline TypeScript, React build and state tests"],"output":"built single-image React workbench"},
+    {"id":"WP-R1A-03","owner":"local_ci","depends_on":["WP-R1A-02"],"risk":"offline_repository","allowed_paths":["lvw/","reports/r1a/","tools/"],"commands":["combined offline checkpoint and V0 regression"],"output":"candidate-bound implementation receipt"},
+    {"id":"WP-R1A-04","owner":"codex_r1a_independent_reviewer","depends_on":["WP-R1A-03"],"risk":"external_private","allowed_paths":["reports/r1a/"],"commands":["authorized real loopback run and isolated review"],"output":"live receipt and independent review"},
+    {"id":"WP-R1A-05","owner":"project_owner","depends_on":["WP-R1A-04"],"risk":"human_signoff","allowed_paths":["reports/r1a/"],"commands":["human experience review"],"output":"R1a human signoff"}
+  ],
+  "allowed_paths": ["lvw/", "reports/r1a/", "tools/", ".agent-governance/stages/R1a/", "plans/execution-control.json", ".agent-governance/project-registry.json", "MANIFEST.sha256"],
+  "forbidden_paths": ["contracts/", "plans/acceptance_cases.json", "plans/release_gates.json", "legacy/", "LVW_V0_RuntimePatch/"],
+  "budgets": {"implementation_write_slots":1,"independent_review_slots":1,"max_effective_retries_per_external_case":1,"downloads":0,"cloud_fallback_calls":0},
+  "mandatory_stops": [
+    "public contract, fixed denominator, owner or threshold changes",
+    "real Ollama, media or browser action lacks a fresh explicit authorization",
+    "browser directly calls Ollama or any non-loopback/cloud endpoint",
+    "machine result overwrites a dirty human draft",
+    "candidate or evidence identity mismatch",
+    "Fatal or Major independent finding",
+    "two same-route failures without new evidence"
+  ],
+  "stage_entry_conditions": [
+    "Only offline repository work is authorized through WP-R1A-03.",
+    "WP-R1A-04 remains WAIT_AUTH until a one-shot request binds candidate, endpoint, model, sample, attempts and cleanup.",
+    "R1a completion does not authorize V1 PASS or production release."
+  ],
+  "execution_authorized": true,
+  "authorization_scope": "OFFLINE_REPOSITORY_ONLY",
+  "external_authorization": "WAIT_AUTH_BEFORE_WP-R1A-04",
+  "next_owner": "codex_r1a_implementer",
+  "required_authorization": "NONE_FOR_WP-R1A-00_THROUGH_WP-R1A-03"
+}

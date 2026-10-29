@@ -1,25 +1,25 @@
 {
   "schema_version": "lvw.execution-control/1",
-  "updated_at": "2026-10-28",
+  "updated_at": "2026-10-29",
   "project_id": "lvw-prompt-service",
   "design_version": "2.0.0",
   "target_version": "V1",
   "next_delivery_target": "V1-R1a",
   "coordinate": {
-    "stage_id": "V0-S1",
-    "workpack_id": "WP-S1-04",
-    "gate": "GATE5_INDEPENDENT_EXIT",
-    "state": "PASS"
+    "stage_id": "R1a",
+    "workpack_id": "WP-R1A-00",
+    "gate": "GATE0_DOCUMENT_READY",
+    "state": "FROZEN_READY_OFFLINE"
   },
   "last_passed_gate": {
     "id": "V0_MIN_HUMAN_EXPERIENCE_SIGNOFF_PASS",
     "evidence": "reports/v0-s1/v0-min-acceptance.json",
     "meaning": "V0-Min product acceptance completed for the reduced image/manual scope; this is not production release approval"
   },
-  "current_blocking_gate": null,
-  "stage_packet": ".agent-governance/stages/V0-S1/stage-control.json",
-  "stage_packet_manifest": ".agent-governance/stages/V0-S1/PAYLOAD_MANIFEST.sha256",
-  "product_status": "PASS",
+  "current_blocking_gate": "WP-R1A-04_WAIT_AUTH_AFTER_OFFLINE_CHECKPOINT",
+  "stage_packet": ".agent-governance/stages/R1a/stage-control.json",
+  "stage_packet_manifest": ".agent-governance/stages/R1a/PAYLOAD_MANIFEST.sha256",
+  "product_status": "IN_PROGRESS",
   "allowed_claim": "V0_MIN_ACCEPTED_NOT_RELEASED",
   "forbidden_claims": [
     "V0_ACCEPTED",
@@ -29,9 +29,9 @@
     "PRODUCTION_RELEASED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "codex_gate_owner",
-  "next_action": "Prepare and freeze the R0/R1a Stage Packet for the approved early V1 single-image frontend slice; V0.1/V0.2 follow after R1a, and no live Ollama/browser action is authorized by this planning decision.",
-  "required_authorization": "R0_R1A_STAGE_PACKET_REQUIRED_BEFORE_IMPLEMENTATION; LIVE_OLLAMA_OR_BROWSER_REQUIRES_SEPARATE_EXPLICIT_AUTHORIZATION",
+  "next_owner": "codex_r1a_implementer",
+  "next_action": "Execute WP-R1A-00 through WP-R1A-03 offline, then stop at WP-R1A-04 for a candidate-bound one-shot live authorization.",
+  "required_authorization": "NONE_FOR_OFFLINE_WP-R1A-00_THROUGH_WP-R1A-03; LIVE_OLLAMA_MEDIA_OR_BROWSER_REQUIRES_SEPARATE_EXPLICIT_AUTHORIZATION",
   "authorization_request": "reports/v0-s1/authorization-wp-s1-04-checkpoint-01.request.json",
   "authorization_record": "reports/v0-s1/authorization-wp-s1-04-checkpoint-01.json",
   "evidence_root": "reports/",
@@ -45,5 +45,5 @@
     "decision": "docs/23_V1_EARLY_FRONTEND_SEQUENCE.md",
     "meaning": "V0-S1 remains immutable and terminal; the approved future-stage task graph changed after V0-Min acceptance"
   },
-  "exact_stop_reason": "V0_MIN_COMPLETE_ROUTE_TO_R0_R1A_APPROVED_AWAIT_STAGE_PACKET"
+  "exact_stop_reason": "R1A_PACKET_FROZEN_OFFLINE_IMPLEMENTATION_AUTHORIZED"
 }
