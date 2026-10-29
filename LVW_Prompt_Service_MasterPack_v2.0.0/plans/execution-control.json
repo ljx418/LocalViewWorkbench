@@ -7,16 +7,16 @@
   "next_delivery_target": "V1-R1a",
   "coordinate": {
     "stage_id": "R1a",
-    "workpack_id": "WP-R1A-04",
-    "gate": "GATE4_REAL_ACCEPTANCE",
-    "state": "NO_GO"
+    "workpack_id": "WP-R1A-00",
+    "gate": "GATE0_CONTRACT_CORRECTION",
+    "state": "WAIT_AUTH"
   },
   "last_passed_gate": {
     "id": "WP_R1A_03_OFFLINE_CHECKPOINT_PASS",
     "evidence": "reports/r1a/offline-checkpoint.json",
     "meaning": "R1a implementation, offline tests, V0 regression and governance checks passed; no real model or browser acceptance has run"
   },
-  "current_blocking_gate": "WP-R1A-04_REAL_MODEL_BROWSER_INDEPENDENT_REVIEW",
+  "current_blocking_gate": "R1A_FIXED_DENOMINATOR_IDENTITY_CONFLICT",
   "stage_packet": ".agent-governance/stages/R1a/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/R1a/PAYLOAD_MANIFEST.sha256",
   "product_status": "IN_PROGRESS",
@@ -29,12 +29,15 @@
     "PRODUCTION_RELEASED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "codex_r1a_implementer",
-  "next_action": "Correct wrapper evidence, atomic ownership cleanup, outbound blocking, provider-call accounting and live browser oracles offline; prepare a new checkpoint and request without executing it.",
-  "required_authorization": "NONE_FOR_OFFLINE_CORRECTION; NEW_AUTH_REQUIRED_FOR_ANY_LIVE_RERUN",
-  "authorization_request": "reports/r1a/authorization-wp-r1a-04-live-02.request.json",
-  "authorization_record": "reports/r1a/authorization-wp-r1a-04-live-02.json",
-  "historical_authorization_records": ["reports/r1a/authorization-wp-r1a-04-live-01.json"],
+  "next_owner": "project_owner",
+  "next_action": "Approve or reject CHANGE-REQUEST-V1-R1A-CONTRACT-01 before any further R1a implementation or live work.",
+  "required_authorization": "CHANGE-REQUEST-V1-R1A-CONTRACT-01",
+  "authorization_request": "reports/r1a/change-request-r1a-contract-01.json",
+  "authorization_record": null,
+  "historical_authorization_records": [
+    "reports/r1a/authorization-wp-r1a-04-live-01.json",
+    "reports/r1a/authorization-wp-r1a-04-live-02.json"
+  ],
   "implementation_candidate": "7735a697591e3207183a2d0714c73078565f8219",
   "offline_evidence_commit": "6bc83e00659af45444d31b1334665adc2bb25b92",
   "offline_receipt": "reports/r1a/implementation-receipt-correction-01.json",
@@ -51,5 +54,5 @@
   },
   "live_terminal_receipt": "reports/r1a/r1a-live-02/live-receipt.json",
   "independent_review": "reports/r1a/independent-review-r1a-live-02.md",
-  "exact_stop_reason": "R1A_LIVE_02_NO_GO_OLLAMA_OWNER_RECORD_TIMEOUT_AND_EVIDENCE_GAPS"
+  "exact_stop_reason": "R1A_GATE0_STOP_GLOBAL_CASE_IDS_REPURPOSED_BY_LOCAL_MATRIX"
 }

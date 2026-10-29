@@ -590,6 +590,14 @@ def main_r1a(args: argparse.Namespace, execution: dict) -> int:
             "AUTH-REQUEST-V1-R1A-WP-R1A-04-LIVE-02",
         }
     )
+    waiting_contract_correction = (
+        control.get("state") == "WAIT_AUTH"
+        and control.get("authorization_scope") == "CONTRACT_CORRECTION_WAIT_AUTH"
+        and control.get("external_authorization") == "LIVE_AUTHORIZATIONS_EXPIRED"
+        and control.get("execution_authorized") is False
+        and control.get("next_owner") == "project_owner"
+        and control.get("required_authorization") == "CHANGE-REQUEST-V1-R1A-CONTRACT-01"
+    )
     authorized_live = (
         control.get("state") == "RUNNING"
         and control.get("authorization_scope") == "WP-R1A-04_ONE_SHOT_LIVE"
@@ -615,7 +623,8 @@ def main_r1a(args: argparse.Namespace, execution: dict) -> int:
         and all((ROOT / item).is_file() for item in control.get("authorization_records", []))
     )
     check("external_scope_fail_closed",
-          offline_ready or waiting_live_authorization or authorized_live or terminal_no_go)
+          offline_ready or waiting_live_authorization or waiting_contract_correction
+          or authorized_live or terminal_no_go)
     registry = load_json(GOV / "project-registry.json")
     project = next((item for item in registry.get("projects", [])
                     if item.get("project_id") == control.get("project_id")), None)

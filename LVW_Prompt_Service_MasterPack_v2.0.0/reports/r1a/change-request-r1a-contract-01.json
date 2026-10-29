@@ -1,0 +1,49 @@
+{
+  "schema_version": "lvw.change-request/1",
+  "request_id": "CHANGE-REQUEST-V1-R1A-CONTRACT-01",
+  "status": "PENDING_PROJECT_OWNER_APPROVAL",
+  "is_authorization": false,
+  "does_not_authorize_execution": true,
+  "does_not_authorize_stage_pass": true,
+  "project_id": "lvw-prompt-service",
+  "stage_id": "R1a",
+  "requested_by": "codex_gate_owner",
+  "requested_from": "project_owner",
+  "discovered_after": "reports/r1a/independent-review-r1a-live-02.md",
+  "conflict": {
+    "frozen_ids": ["A01", "A02", "A03", "A05", "F01", "Q01", "X01"],
+    "stage_matrix": ".agent-governance/stages/R1a/04-acceptance-matrix.md",
+    "global_contract": "plans/acceptance_cases.json",
+    "summary": "R1a reuses global case IDs with different obligations. In particular A03, A05, Q01 and X01 do not mean the same thing in the two authorities, while R1a non-goals exclude the video denominator required by global A03/Q01.",
+    "impact": "No R1a live result can honestly satisfy both authorities; declaring the local matrix green under the global IDs would be false-green."
+  },
+  "proposed_resolution": {
+    "packet_version": "1.1.0",
+    "preserve_product_scope": true,
+    "preserve_global_v1_cases": true,
+    "new_local_case_ids": ["R1A-M01", "R1A-M02", "R1A-M03", "R1A-M04", "R1A-M05", "R1A-M06", "R1A-M07"],
+    "mapping": {
+      "R1A-M01": "controlled image media boundaries",
+      "R1A-M02": "real single-image analysis through React, FastAPI and Ollama",
+      "R1A-M03": "model-free manual edit, copy and export with zero provider calls",
+      "R1A-M04": "explicit adoption and four output fields without repeated analysis",
+      "R1A-M05": "real React dist, responsive layout and no temporary UI framework",
+      "R1A-M06": "single fixed image independent semantic and evidence review",
+      "R1A-M07": "same-origin, loopback, upload, failure and dirty-draft safety"
+    },
+    "required_edits": [
+      "add the seven local cases to plans/acceptance_cases.json without changing existing V1 cases",
+      "update only R1a work_on_cases, packet denominator/hash/matrix and dependent receipts/checkpoint tooling",
+      "freeze packet 1.1.0 against a new baseline and rerun all offline gates",
+      "complete wrapper/provider/browser corrections before any new live authorization request"
+    ],
+    "forbidden": [
+      "renaming or weakening existing global A01/A02/A03/A05/F01/Q01/X01",
+      "claiming V1 acceptance from R1a local cases",
+      "reusing live-01/live-02 authorization or success evidence",
+      "starting Ollama, media or a browser under this change request"
+    ]
+  },
+  "decision_required": "Approve or reject the non-semantic contract identity correction before further R1a implementation or live work.",
+  "approval": {"decision":"PENDING","approved_by":null,"approved_at":null,"approval_commit":null}
+}
