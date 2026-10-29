@@ -55,8 +55,17 @@ def runtime_scan() -> dict:
 
 
 def main() -> int:
-    if subprocess.run(["git", "-C", str(ROOT), "diff", "--quiet"], check=False).returncode != 0:
-        print("candidate worktree has tracked changes; commit before checkpoint", file=sys.stderr)
+    git_root = Path(subprocess.check_output(
+        ["git", "-C", str(ROOT), "rev-parse", "--show-toplevel"], text=True
+    ).strip())
+    allowed_output = str(REPORT.relative_to(git_root)).replace("\\", "/")
+    changed = set()
+    for extra in ([], ["--cached"]):
+        changed.update(subprocess.check_output(
+            ["git", "-C", str(ROOT), "diff", *extra, "--name-only"], text=True
+        ).splitlines())
+    if changed - {allowed_output}:
+        print("candidate worktree has non-report tracked changes; commit before checkpoint", file=sys.stderr)
         return 2
     candidate = subprocess.check_output(["git", "-C", str(ROOT), "rev-parse", "HEAD"], text=True).strip()
     wrapper_win = subprocess.check_output(
