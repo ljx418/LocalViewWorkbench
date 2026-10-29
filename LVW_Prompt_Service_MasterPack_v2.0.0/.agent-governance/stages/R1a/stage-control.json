@@ -2,16 +2,16 @@
   "schema_version": "lvw.stage-control/1",
   "project_id": "lvw-prompt-service",
   "stage_id": "R1a",
-  "stage_packet_version": "1.0.0",
+  "stage_packet_version": "1.1.0",
   "packet_status": "FROZEN",
   "gate_version": "lvw-gate/1",
   "baseline": {
-    "git_commit": "fc5f8afda6b78ca710f8f03605690a5b1f08355d",
-    "prepared_against_commit": "fc5f8afda6b78ca710f8f03605690a5b1f08355d",
-    "product_control_sha256": "22128ab0bd2488f4a5bc7bc7dda07cb1172096caa70d00d3e8c56bc970691b19"
+    "git_commit": "f1780de806d4082dbf1d0f8a3ece81cf369aa0e1",
+    "prepared_against_commit": "f1780de806d4082dbf1d0f8a3ece81cf369aa0e1",
+    "product_control_sha256": "bf077004bc40d9cd8b82ee8e86406bcfc358129bda70b2d799ff61ff27665579"
   },
-  "state": "WAIT_AUTH",
-  "last_passed_gate": "WP_R1A_03_OFFLINE_CHECKPOINT_PASS",
+  "state": "FROZEN_READY_OFFLINE",
+  "last_passed_gate": "R1A_CONTRACT_CORRECTION_APPROVED",
   "dependencies": ["V0-S1:PASS", "R0:INCLUDED_AS_WP-R1A-00"],
   "authorities": [
     "docs/23_V1_EARLY_FRONTEND_SEQUENCE.md",
@@ -30,8 +30,8 @@
     "trusted_executor": "local_ci",
     "human_authorizer": "project_owner"
   },
-  "fixed_acceptance_ids": ["A01", "A02", "A03", "A05", "F01", "Q01", "X01"],
-  "acceptance_hash": "fe6c7d1620ca1ff7a0f9f594699f66660d05fa2aa80544cb04ad9cec3f9df1a5",
+  "fixed_acceptance_ids": ["R1A-M01", "R1A-M02", "R1A-M03", "R1A-M04", "R1A-M05", "R1A-M06", "R1A-M07"],
+  "acceptance_hash": "82a3736ab77ee98e301d7e055a78b160774c9c09692288db89c5a2768bfe39ab",
   "workpacks": [
     {"id":"WP-R1A-00","owner":"codex_gate_owner","depends_on":[],"risk":"offline_repository","allowed_paths":[".agent-governance/stages/R1a/","reports/r1a/"],"commands":["freeze contracts, dependencies, packet and design direction"],"output":"R0 reuse audit and frozen packet"},
     {"id":"WP-R1A-01","owner":"codex_r1a_implementer","depends_on":["WP-R1A-00"],"risk":"offline_repository","allowed_paths":["lvw/backend/","lvw/tests/","reports/r1a/"],"commands":["offline Python unit, API and contract-negative tests"],"output":"same-origin FastAPI vertical path"},
@@ -57,12 +57,13 @@
     "WP-R1A-04 remains WAIT_AUTH until a one-shot request binds candidate, endpoint, model, sample, attempts and cleanup.",
     "R1a completion does not authorize V1 PASS or production release."
   ],
-  "execution_authorized": false,
-  "authorization_scope": "CONTRACT_CORRECTION_WAIT_AUTH",
-  "external_authorization": "LIVE_AUTHORIZATIONS_EXPIRED",
-  "next_owner": "project_owner",
-  "required_authorization": "CHANGE-REQUEST-V1-R1A-CONTRACT-01",
-  "authorization_request": "reports/r1a/change-request-r1a-contract-01.json",
+  "execution_authorized": true,
+  "authorization_scope": "OFFLINE_REPOSITORY_ONLY",
+  "external_authorization": "WAIT_AUTH_BEFORE_WP-R1A-04",
+  "next_owner": "codex_r1a_implementer",
+  "required_authorization": "NONE_FOR_APPROVED_OFFLINE_CORRECTION_AND_CHECKPOINT",
+  "change_request": "reports/r1a/change-request-r1a-contract-01.json",
+  "change_decision": "reports/r1a/change-decision-r1a-contract-01.json",
   "authorization_records": [
     "reports/r1a/authorization-wp-r1a-04-live-01.json",
     "reports/r1a/authorization-wp-r1a-04-live-02.json"
