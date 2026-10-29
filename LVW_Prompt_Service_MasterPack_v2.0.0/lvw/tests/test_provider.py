@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 
 from app.errors import AppError
-from app.provider import parse_ollama_response, validate_endpoint
+from app.provider import OllamaProvider, parse_ollama_response, validate_endpoint
 
 
 def model_envelope(**updates):
@@ -45,3 +45,50 @@ def test_parse_rejects_extra_or_incomplete_fields():
     incomplete["done"] = False
     with pytest.raises(AppError):
         parse_ollama_response(incomplete, mode="realistic")
+
+
+def test_provider_ledger_is_atomic_and_contains_no_source_path(tmp_path):
+    ledger = tmp_path / "provider.jsonl"
+    provider = OllamaProvider("http://127.0.0.1:11434/api/chat", "gemma4:26b", 30,
+                              ledger_path=ledger)
+    provider._record("provider_call_started", "call_test", input_sha256="a" * 64)
+    record = __import__("json").loads(ledger.read_text(encoding="utf-8"))
+    assert record["event"] == "provider_call_started"
+    assert record["call_id"] == "call_test"
+    assert record["input_sha256"] == "a" * 64
+    assert str(tmp_path) not in ledger.read_text(encoding="utf-8")
+
+
+def test_analyze_ledger_counts_real_provider_boundary_once(tmp_path, monkeypatch):
+    envelope = model_envelope()
+
+    class Response:
+        text = __import__("json").dumps(envelope)
+
+        @staticmethod
+        def raise_for_status():
+            return None
+
+        @staticmethod
+        def json():
+            return envelope
+
+    class Client:
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *_):
+            return None
+
+        async def post(self, *_args, **_kwargs):
+            return Response()
+
+    monkeypatch.setattr("app.provider.httpx.AsyncClient", lambda **_kwargs: Client())
+    image = tmp_path / "analysis.png"
+    image.write_bytes(b"fixed-image-bytes")
+    ledger = tmp_path / "provider.jsonl"
+    provider = OllamaProvider("http://127.0.0.1:11434/api/chat", "gemma4:26b", 30,
+                              ledger_path=ledger)
+    __import__("asyncio").run(provider.analyze(image, mode="realistic"))
+    events = [__import__("json").loads(line)["event"] for line in ledger.read_text().splitlines()]
+    assert events == ["provider_call_started", "provider_call_completed"]

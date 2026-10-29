@@ -35,6 +35,9 @@ BACKEND_PORT = 18765
 OLLAMA_PORT = 11434
 OLLAMA_EXE = Path("/mnt/c/Users/Administrator/AppData/Local/Programs/Ollama/ollama.exe")
 TEST_SOURCE = Path("/mnt/c/workSpace/videoWorkLine/testSource")
+WINDOWS_TEMP = Path("/mnt/c/Temp")
+OLLAMA_WRAPPER = ROOT / "tools" / "r1a_ollama_wrapper.ps1"
+ACCEPTANCE_HASH = "82a3736ab77ee98e301d7e055a78b160774c9c09692288db89c5a2768bfe39ab"
 
 
 def utc_now() -> str:
@@ -99,11 +102,13 @@ def wait_url(url: str, phase: str, timeout: int = 90) -> bytes:
     raise RuntimeError(f"{phase}_START_TIMEOUT")
 
 
-def wait_file(path: Path, phase: str, timeout: int = 20) -> None:
+def wait_file(path: Path, phase: str, process=None, timeout: int = 20) -> None:
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
         if path.is_file() and path.stat().st_size:
             return
+        if process is not None and process.poll() is not None:
+            raise RuntimeError(f"{phase}_WRAPPER_EXITED_{process.returncode}")
         time.sleep(0.25)
     raise RuntimeError(f"{phase}_OWNER_RECORD_TIMEOUT")
 
@@ -157,6 +162,7 @@ def main() -> int:
     auth = json.loads(auth_path.read_text(encoding="utf-8"))
     browser_path = ROOT / "tools/r1a_browser_acceptance.cjs"
     guard_path = ROOT / "tools/r1a_runtime_guard.py"
+    offline_checkpoint = ROOT / "reports/r1a/offline-checkpoint.json"
     identity_ok = (
         auth.get("status") == "ACTIVE_ONE_SHOT"
         and auth.get("approval", {}).get("decision") == "APPROVED"
@@ -166,8 +172,11 @@ def main() -> int:
         and auth.get("backend_port") == BACKEND_PORT
         and auth.get("model") == MODEL
         and auth.get("sample_sha256") == SAMPLE_SHA256
+        and auth.get("acceptance_hash") == ACCEPTANCE_HASH
         and auth.get("browser_harness_sha256") == sha(browser_path)
         and auth.get("runtime_guard_sha256") == sha(guard_path)
+        and auth.get("ollama_wrapper_sha256") == sha(OLLAMA_WRAPPER)
+        and auth.get("offline_checkpoint_sha256") == sha(offline_checkpoint)
     )
     if not identity_ok:
         raise SystemExit("authorization identity mismatch")
@@ -177,6 +186,7 @@ def main() -> int:
         ("tools/r1a_live_acceptance.py", args.harness_sha256),
         ("tools/r1a_browser_acceptance.cjs", auth["browser_harness_sha256"]),
         ("tools/r1a_runtime_guard.py", auth["runtime_guard_sha256"]),
+        ("tools/r1a_ollama_wrapper.ps1", auth["ollama_wrapper_sha256"]),
     ):
         if git_blob_sha(args.candidate, relative) != expected:
             raise SystemExit(f"candidate blob identity mismatch: {relative}")
@@ -185,9 +195,12 @@ def main() -> int:
     if evidence.exists():
         raise SystemExit("evidence slot already exists")
     evidence.mkdir(parents=True)
-    runtime = Path(tempfile.mkdtemp(prefix="lvw-r1a-"))
+    if not WINDOWS_TEMP.is_dir():
+        raise SystemExit("bound Windows temp parent is missing")
+    runtime = Path(tempfile.mkdtemp(prefix="lvw-r1a-", dir=WINDOWS_TEMP))
     backend = ollama_wrapper = None
     backend_identity = ollama_identity = None
+    owner_path = terminal_path = stop_path = None
     streams = []
     phase = "PREFLIGHT"
     terminal = {
@@ -203,19 +216,26 @@ def main() -> int:
         "harness_sha256": args.harness_sha256,
         "browser_harness_sha256": auth["browser_harness_sha256"],
         "runtime_guard_sha256": auth["runtime_guard_sha256"],
+        "ollama_wrapper_sha256": auth["ollama_wrapper_sha256"],
+        "offline_checkpoint_sha256": auth["offline_checkpoint_sha256"],
+        "acceptance_hash": ACCEPTANCE_HASH,
         "sample_alias": "TEST_SOURCE/image-sample", "sample_sha256": SAMPLE_SHA256,
         "model": MODEL, "backend_port": BACKEND_PORT, "started_at": utc_now(),
         "attempts": 0, "model_calls": 0, "browser_runs": 0, "phase": phase,
         "decision": "NO_GO", "stage_pass_claim": False,
         "fixed_denominator": {
-            "A01": "PENDING", "A02": "PENDING", "A03": "PENDING", "A05": "PENDING",
-            "F01": "PENDING", "Q01": "PENDING", "X01": "PENDING",
+            "R1A-M01": "PENDING", "R1A-M02": "PENDING", "R1A-M03": "PENDING",
+            "R1A-M04": "PENDING", "R1A-M05": "PENDING", "R1A-M06": "PENDING",
+            "R1A-M07": "PENDING",
         },
     }
     log_paths = {
         "ollama_stdout": runtime / "ollama.stdout.log",
         "ollama_stderr": runtime / "ollama.stderr.log",
+        "wrapper": runtime / "wrapper.log",
+        "wrapper_error": runtime / "wrapper-error.txt",
         "backend": runtime / "backend.log",
+        "provider": runtime / "provider-ledger.jsonl",
     }
     try:
         if not OLLAMA_EXE.is_file() or auth.get("ollama_exe_sha256") != sha(OLLAMA_EXE):
@@ -227,29 +247,29 @@ def main() -> int:
 
         phase = "OLLAMA_START"
         owner_path = runtime / "ollama-owner.json"
-        wrapper = runtime / "ollama.ps1"
+        terminal_path = runtime / "ollama-terminal.json"
+        stop_path = runtime / "ollama-stop.request"
         win_exe = subprocess.check_output(["wslpath", "-w", str(OLLAMA_EXE)], text=True).strip()
         win_owner = subprocess.check_output(["wslpath", "-w", str(owner_path)], text=True).strip()
+        win_terminal = subprocess.check_output(["wslpath", "-w", str(terminal_path)], text=True).strip()
+        win_stop = subprocess.check_output(["wslpath", "-w", str(stop_path)], text=True).strip()
         win_out = subprocess.check_output(["wslpath", "-w", str(log_paths["ollama_stdout"])], text=True).strip()
         win_err = subprocess.check_output(["wslpath", "-w", str(log_paths["ollama_stderr"])], text=True).strip()
-        quote = lambda value: value.replace("'", "''")
-        wrapper.write_text(
-            "$env:OLLAMA_HOST='127.0.0.1:11434'\n$env:OLLAMA_NO_CLOUD='1'\n"
-            "$env:NO_PROXY='127.0.0.1,localhost'\n"
-            f"$p=Start-Process -FilePath '{quote(win_exe)}' -ArgumentList @('serve') -PassThru -WindowStyle Hidden "
-            f"-RedirectStandardOutput '{quote(win_out)}' -RedirectStandardError '{quote(win_err)}'\n"
-            "$o=[pscustomobject]@{pid=$p.Id;start_filetime_utc=$p.StartTime.ToFileTimeUtc().ToString();"
-            "executable_path=$p.Path}\n$u=New-Object System.Text.UTF8Encoding($false)\n"
-            f"[IO.File]::WriteAllText('{quote(win_owner)}',($o|ConvertTo-Json -Compress),$u)\n"
-            "$p.WaitForExit()\nexit $p.ExitCode\n",
-            encoding="utf-8",
-        )
-        win_wrapper = subprocess.check_output(["wslpath", "-w", str(wrapper)], text=True).strip()
+        win_wrapper_error = subprocess.check_output(
+            ["wslpath", "-w", str(log_paths["wrapper_error"])], text=True
+        ).strip()
+        win_wrapper = subprocess.check_output(["wslpath", "-w", str(OLLAMA_WRAPPER)], text=True).strip()
+        wrapper_log = log_paths["wrapper"].open("w", encoding="utf-8")
+        streams.append(wrapper_log)
+        terminal["ollama"] = "START_ATTEMPTED_OWNER_UNPROVEN"
         ollama_wrapper = subprocess.Popen(
-            ["powershell.exe", "-NoProfile", "-NonInteractive", "-File", win_wrapper],
-            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+            ["powershell.exe", "-NoProfile", "-NonInteractive", "-File", win_wrapper,
+             "-Exe", win_exe, "-Owner", win_owner, "-Terminal", win_terminal,
+             "-StopRequest", win_stop, "-StdoutLog", win_out, "-StderrLog", win_err,
+             "-ErrorLog", win_wrapper_error, "-MaxSeconds", "420"],
+            stdout=wrapper_log, stderr=subprocess.STDOUT, text=True,
         )
-        wait_file(owner_path, "OLLAMA")
+        wait_file(owner_path, "OLLAMA", process=ollama_wrapper)
         ollama_identity = json.loads(owner_path.read_text(encoding="utf-8-sig"))
         ollama_identity["pid"] = int(ollama_identity["pid"])
         if not windows_identity_matches(ollama_identity, windows_process(ollama_identity["pid"])):
@@ -267,7 +287,12 @@ def main() -> int:
         phase = "BACKEND_START"
         backend_log = log_paths["backend"].open("w", encoding="utf-8")
         streams.append(backend_log)
-        env = {**os.environ, "PYTHONDONTWRITEBYTECODE": "1", "LVW_PORT": str(BACKEND_PORT)}
+        env = {
+            **os.environ,
+            "PYTHONDONTWRITEBYTECODE": "1",
+            "LVW_PORT": str(BACKEND_PORT),
+            "LVW_PROVIDER_LEDGER": str(log_paths["provider"]),
+        }
         backend = subprocess.Popen(
             [sys.executable, "lvw/run_local.py"], cwd=ROOT, env=env,
             stdout=backend_log, stderr=subprocess.STDOUT, text=True,
@@ -293,7 +318,6 @@ def main() -> int:
         ledger = json.loads(ledger_path.read_text(encoding="utf-8")) if ledger_path.is_file() else {}
         submissions = int(ledger.get("analysis_submissions", 0))
         result["attempts"] = submissions
-        result["model_calls"] = submissions
         result["browser_exit_code"] = browser.returncode
         result["browser_stdout_sha256"] = hashlib.sha256(browser.stdout.encode()).hexdigest()
         result["browser_stderr_tail"] = re.sub(
@@ -302,8 +326,16 @@ def main() -> int:
         if browser.returncode:
             raise RuntimeError("BROWSER_PRODUCT_PATH_FAILED")
         browser_result = json.loads((evidence / "browser-result.json").read_text(encoding="utf-8"))
-        if not browser_result.get("passed") or browser_result.get("non_loopback_requests"):
+        if not browser_result.get("passed") or browser_result.get("blocked_non_loopback_requests"):
             raise RuntimeError("BROWSER_NETWORK_ORACLE_FAILED")
+        provider_entries = [json.loads(line) for line in log_paths["provider"].read_text(
+            encoding="utf-8").splitlines() if line.strip()]
+        provider_calls = [item for item in provider_entries if item.get("event") == "provider_call_started"]
+        provider_success = [item for item in provider_entries if item.get("event") == "provider_call_completed"]
+        result["model_calls"] = len(provider_calls)
+        result["provider_ledger"] = provider_entries
+        if len(provider_calls) != 1 or len(provider_success) != 1 or submissions != 1:
+            raise RuntimeError("PROVIDER_CALL_DENOMINATOR_MISMATCH")
 
         phase = "MODEL_UNLOAD"
         running = json.loads(wait_url(f"http://127.0.0.1:{OLLAMA_PORT}/api/ps", "OLLAMA_PS"))
@@ -311,8 +343,9 @@ def main() -> int:
             raise RuntimeError("MODEL_UNLOAD_NOT_PROVEN")
         terminal["model"] = "UNLOADED"
         result["fixed_denominator"] = {
-            "A01": "PASS", "A02": "PASS", "A03": "PASS", "A05": "PASS",
-            "F01": "PASS", "Q01": "WAIT_INDEPENDENT_REVIEW", "X01": "PASS",
+            "R1A-M01": "PASS_OFFLINE_BOUNDARIES", "R1A-M02": "PASS",
+            "R1A-M03": "PASS", "R1A-M04": "PASS", "R1A-M05": "PASS",
+            "R1A-M06": "WAIT_INDEPENDENT_REVIEW", "R1A-M07": "PASS",
         }
         result["decision"] = "READY_FOR_INDEPENDENT_REVIEW"
     except Exception as exc:
@@ -325,9 +358,20 @@ def main() -> int:
                 ledger = json.loads(ledger_path.read_text(encoding="utf-8"))
                 submissions = int(ledger.get("analysis_submissions", 0))
                 result["attempts"] = max(result["attempts"], submissions)
-                result["model_calls"] = max(result["model_calls"], submissions)
             except Exception:
                 result["ledger_status"] = "UNPROVEN"
+        if log_paths["provider"].is_file():
+            try:
+                provider_entries = [json.loads(line) for line in log_paths["provider"].read_text(
+                    encoding="utf-8").splitlines() if line.strip()]
+                result["provider_ledger"] = provider_entries
+                result["model_calls"] = sum(
+                    item.get("event") == "provider_call_started" for item in provider_entries
+                )
+            except Exception:
+                result["provider_ledger_status"] = "UNPROVEN"
+        if result["model_calls"] > 0 and terminal["model"] == "NOT_LOADED":
+            terminal["model"] = "LOAD_ATTEMPTED_UNLOAD_UNPROVEN"
         cleanup_errors: list[str] = []
         try:
             if backend is not None:
@@ -349,28 +393,35 @@ def main() -> int:
             cleanup_errors.append("BACKEND_CLEANUP:" + type(exc).__name__)
 
         try:
-            if ollama_identity is not None:
-                current = windows_process(int(ollama_identity["pid"]))
-                if current is None:
-                    terminal["ollama"] = "STOPPED"
-                elif windows_identity_matches(ollama_identity, current):
-                    ps(f"Stop-Process -Id {ollama_identity['pid']} -Force -ErrorAction Stop")
-                    terminal["ollama"] = (
-                        "STOPPED" if windows_process(int(ollama_identity["pid"])) is None else "UNPROVEN"
-                    )
+            if ollama_wrapper is not None:
+                if ollama_wrapper.poll() is None and stop_path is not None:
+                    stop_path.write_text("stop\n", encoding="ascii")
+                try:
+                    ollama_wrapper.wait(timeout=20)
+                except subprocess.TimeoutExpired:
+                    cleanup_errors.append("WRAPPER_STOP_TIMEOUT")
+                wrapper_terminal = None
+                if terminal_path is not None and terminal_path.is_file():
+                    wrapper_terminal = json.loads(terminal_path.read_text(encoding="utf-8-sig"))
+                    result["wrapper_terminal"] = wrapper_terminal
+                    if wrapper_terminal.get("lease_expired") is True:
+                        cleanup_errors.append("WRAPPER_LEASE_EXPIRED")
+                if wrapper_terminal and wrapper_terminal.get("child_exited") is True:
+                    terminal_pid = wrapper_terminal.get("pid")
+                    owner_pid = ollama_identity.get("pid") if ollama_identity else None
+                    if terminal_pid is None:
+                        terminal["ollama"] = "START_FAILED_NO_CHILD"
+                    elif owner_pid is None or int(terminal_pid) == int(owner_pid):
+                        terminal["ollama"] = "STOPPED"
+                    else:
+                        terminal["ollama"] = "UNPROVEN"
+                        cleanup_errors.append("WRAPPER_TERMINAL_IDENTITY_MISMATCH")
                 else:
-                    terminal["ollama"] = "REFUSED_NON_OWNED_IDENTITY"
+                    terminal["ollama"] = "UNPROVEN"
+                    cleanup_errors.append("WRAPPER_TERMINAL_MISSING_OR_INCOMPLETE")
+                result["wrapper_exit_code"] = ollama_wrapper.poll()
         except Exception as exc:
             terminal["ollama"] = "UNPROVEN"
-            cleanup_errors.append("OLLAMA_CLEANUP:" + type(exc).__name__)
-        try:
-            if ollama_wrapper is not None:
-                try:
-                    ollama_wrapper.wait(timeout=15)
-                except subprocess.TimeoutExpired:
-                    ollama_wrapper.terminate()
-                    ollama_wrapper.wait(timeout=5)
-        except Exception as exc:
             cleanup_errors.append("WRAPPER_CLEANUP:" + type(exc).__name__)
         for stream in streams:
             try:
@@ -392,21 +443,27 @@ def main() -> int:
         result["diagnostics"] = {
             "ollama_stdout_tail": sanitized_tail(log_paths["ollama_stdout"]),
             "ollama_stderr_tail": sanitized_tail(log_paths["ollama_stderr"]),
+            "wrapper_tail": sanitized_tail(log_paths["wrapper"]),
+            "wrapper_error": sanitized_tail(log_paths["wrapper_error"]),
             "backend_tail": sanitized_tail(log_paths["backend"]),
         }
-        try:
-            shutil.rmtree(runtime, ignore_errors=False)
-        except Exception as exc:
-            cleanup_errors.append("RUNTIME_REMOVAL:" + type(exc).__name__)
+        if ollama_wrapper is None or ollama_wrapper.poll() is not None:
+            try:
+                shutil.rmtree(runtime, ignore_errors=False)
+            except Exception as exc:
+                cleanup_errors.append("RUNTIME_REMOVAL:" + type(exc).__name__)
+        else:
+            cleanup_errors.append("RUNTIME_RETAINED_FOR_LIVE_WRAPPER")
         terminal["runtime"] = "REMOVED" if not runtime.exists() else "PRESENT"
         result["cleanup_errors"] = cleanup_errors
         result["terminal"] = terminal
         cleanup_ok = (
             terminal["backend"] in {"NOT_STARTED", "STOPPED"}
-            and terminal["ollama"] in {"NOT_STARTED", "STOPPED"}
+            and terminal["ollama"] in {"NOT_STARTED", "START_FAILED_NO_CHILD", "STOPPED"}
             and terminal["model"] in {"NOT_LOADED", "UNLOADED"}
             and terminal["ports"] == "EMPTY"
             and terminal["runtime"] == "REMOVED"
+            and not cleanup_errors
         )
         if not cleanup_ok:
             result["decision"] = "NO_GO_CLEANUP_UNPROVEN"

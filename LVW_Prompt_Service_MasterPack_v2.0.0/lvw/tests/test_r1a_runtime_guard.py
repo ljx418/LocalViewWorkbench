@@ -12,7 +12,7 @@ from tools.r1a_runtime_guard import (
     windows_identity_matches,
     wsl_listener_pids,
 )
-from tools.r1a_live_acceptance import assert_ports_free
+from tools.r1a_live_acceptance import assert_ports_free, wait_file
 
 
 def _fake_proc(tmp_path: Path, port: int = 18765, pid: int = 321, inode: str = "777") -> Path:
@@ -76,3 +76,23 @@ def test_preflight_rejects_listener_in_either_runtime_domain(domain):
     snapshot[domain]["18765"] = 1
     with pytest.raises(RuntimeError, match="PREEXISTING_CROSS_DOMAIN_LISTENER"):
         assert_ports_free(snapshot)
+
+
+def test_owner_wait_stops_immediately_when_wrapper_exits(tmp_path: Path):
+    class Exited:
+        returncode = 7
+
+        @staticmethod
+        def poll():
+            return 7
+
+    with pytest.raises(RuntimeError, match="OLLAMA_WRAPPER_EXITED_7"):
+        wait_file(tmp_path / "missing-owner.json", "OLLAMA", process=Exited(), timeout=1)
+
+
+def test_wrapper_uses_direct_child_handle_without_stop_process():
+    wrapper = Path("tools/r1a_ollama_wrapper.ps1").read_text(encoding="utf-8")
+    assert "$child.Kill()" in wrapper
+    assert "Stop-Process" not in wrapper
+    assert "StopRequest" in wrapper
+    assert "MaxSeconds = 420" in wrapper

@@ -59,12 +59,21 @@ def main() -> int:
         print("candidate worktree has tracked changes; commit before checkpoint", file=sys.stderr)
         return 2
     candidate = subprocess.check_output(["git", "-C", str(ROOT), "rev-parse", "HEAD"], text=True).strip()
+    wrapper_win = subprocess.check_output(
+        ["wslpath", "-w", str(ROOT / "tools" / "r1a_ollama_wrapper.ps1")], text=True
+    ).strip().replace("'", "''")
     commands = [
         run("backend_unit_api_contract", [sys.executable, "-m", "pytest", "lvw/tests", "-q"]),
         run("frontend_offline_lock_install", ["npm", "ci", "--offline", "--ignore-scripts", "--no-audit", "--no-fund"], ROOT / "lvw" / "frontend"),
         run("frontend_domain_tests", ["npm", "run", "test"], ROOT / "lvw" / "frontend"),
         run("frontend_typecheck", ["npm", "run", "typecheck"], ROOT / "lvw" / "frontend"),
         run("frontend_production_build", ["npm", "run", "build"], ROOT / "lvw" / "frontend"),
+        run("python_harness_syntax", [sys.executable, "-c",
+            "compile(open('tools/r1a_live_acceptance.py',encoding='utf-8').read(),'r1a_live_acceptance.py','exec')"]),
+        run("browser_harness_syntax", ["node", "--check", "tools/r1a_browser_acceptance.cjs"]),
+        run("powershell_wrapper_syntax", ["powershell.exe", "-NoProfile", "-NonInteractive", "-Command",
+            "$t=$null;$e=$null;[System.Management.Automation.Language.Parser]::ParseFile('"
+            + wrapper_win + "',[ref]$t,[ref]$e)>$null;if($e.Count){$e|ForEach-Object{$_.Message};exit 1}"]),
         run("v0_regression", [sys.executable, "-B", "-m", "unittest", "discover", "-s", "LVW_V0_RuntimePatch/tests", "-p", "test_*.py"]),
         run("pack_schema", [sys.executable, "tools/verify_pack.py", "--schema"]),
         run("governance_negative_tests", [sys.executable, "tools/verify_governance.py", "--self-test"]),

@@ -3,7 +3,10 @@ from __future__ import annotations
 import base64
 import hashlib
 import json
+import os
 from pathlib import Path
+import time
+import uuid
 from urllib.parse import urlsplit
 
 import httpx
@@ -81,14 +84,33 @@ def parse_ollama_response(envelope: dict, *, mode: Mode) -> PromptSpec:
 
 
 class OllamaProvider:
-    def __init__(self, endpoint: str, model: str, timeout_seconds: int):
+    def __init__(self, endpoint: str, model: str, timeout_seconds: int,
+                 ledger_path: Path | None = None):
         validate_endpoint(endpoint)
         self.endpoint = endpoint
         self.model = model
         self.timeout_seconds = timeout_seconds
+        configured = os.environ.get("LVW_PROVIDER_LEDGER")
+        self.ledger_path = ledger_path or (Path(configured) if configured else None)
+
+    def _record(self, event: str, call_id: str, **fields) -> None:
+        if self.ledger_path is None:
+            return
+        payload = {"event": event, "call_id": call_id, "time_ns": time.time_ns(),
+                   "model": self.model, **fields}
+        line = (json.dumps(payload, sort_keys=True, separators=(",", ":")) + "\n").encode()
+        descriptor = os.open(self.ledger_path, os.O_APPEND | os.O_CREAT | os.O_WRONLY, 0o600)
+        try:
+            os.write(descriptor, line)
+        finally:
+            os.close(descriptor)
 
     async def analyze(self, image_path: Path, *, mode: Mode) -> tuple[str, PromptSpec]:
-        encoded = base64.b64encode(image_path.read_bytes()).decode("ascii")
+        call_id = "call_" + uuid.uuid4().hex
+        image_bytes = image_path.read_bytes()
+        self._record("provider_call_started", call_id,
+                     input_sha256=hashlib.sha256(image_bytes).hexdigest())
+        encoded = base64.b64encode(image_bytes).decode("ascii")
         payload = {
             "model": self.model,
             "messages": [{"role": "user", "content": TEMPLATE_TEXT, "images": [encoded]}],
@@ -101,12 +123,21 @@ class OllamaProvider:
                 response = await client.post(self.endpoint, json=payload)
                 response.raise_for_status()
         except httpx.TimeoutException as exc:
+            self._record("provider_call_failed", call_id, outcome="timeout")
             raise AppError("MODEL_TIMEOUT", "本地模型响应超时", status_code=503, retryable=True) from exc
         except httpx.HTTPError as exc:
+            self._record("provider_call_failed", call_id, outcome="http_error")
             raise AppError("MODEL_UNAVAILABLE", "无法连接本地模型", status_code=503, retryable=True) from exc
         raw = response.text
         try:
             envelope = response.json()
         except json.JSONDecodeError as exc:
+            self._record("provider_call_failed", call_id, outcome="invalid_envelope")
             raise AppError("PARSE_PARTIAL", "模型响应不是 JSON", status_code=503) from exc
-        return raw, parse_ollama_response(envelope, mode=mode)
+        try:
+            parsed = parse_ollama_response(envelope, mode=mode)
+        except AppError:
+            self._record("provider_call_failed", call_id, outcome="invalid_content")
+            raise
+        self._record("provider_call_completed", call_id, outcome="success")
+        return raw, parsed
