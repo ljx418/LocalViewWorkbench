@@ -9,7 +9,7 @@
     "stage_id": "R1a",
     "workpack_id": "WP-R1A-04",
     "gate": "GATE4_REAL_ACCEPTANCE",
-    "state": "NO_GO"
+    "state": "WAIT_AUTH"
   },
   "last_passed_gate": {
     "id": "WP_R1A_03_OFFLINE_CHECKPOINT_PASS",
@@ -29,14 +29,15 @@
     "PRODUCTION_RELEASED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "codex_r1a_implementer",
-  "next_action": "Correct the cross-domain preflight, ownership and evidence oracles offline; rerun the offline checkpoint and prepare a fresh one-shot request without executing it.",
-  "required_authorization": "NONE_FOR_OFFLINE_CORRECTION; NEW_AUTH_REQUIRED_FOR_ANY_LIVE_RERUN",
-  "authorization_request": "reports/r1a/authorization-wp-r1a-04-live-01.request.json",
-  "authorization_record": "reports/r1a/authorization-wp-r1a-04-live-01.json",
-  "implementation_candidate": "605d954c8161af2ad5690301f7942d8c7e93f66a",
-  "offline_evidence_commit": "b08a7aff55644eabd91fa20b338fcc9ffa1186ac",
-  "offline_receipt": "reports/r1a/implementation-receipt-offline.json",
+  "next_owner": "project_owner",
+  "next_action": "Approve or reject the corrected candidate-bound one-shot WP-R1A-04 live-02 request.",
+  "required_authorization": "AUTH-REQUEST-V1-R1A-WP-R1A-04-LIVE-02",
+  "authorization_request": "reports/r1a/authorization-wp-r1a-04-live-02.request.json",
+  "authorization_record": null,
+  "historical_authorization_records": ["reports/r1a/authorization-wp-r1a-04-live-01.json"],
+  "implementation_candidate": "7735a697591e3207183a2d0714c73078565f8219",
+  "offline_evidence_commit": "6bc83e00659af45444d31b1334665adc2bb25b92",
+  "offline_receipt": "reports/r1a/implementation-receipt-correction-01.json",
   "evidence_root": "reports/",
   "gate_decision": "reports/v0-s1/gate-decision-v0-min.md",
   "human_signoff": "reports/v0-s1/human-signoff-v0-min.json",
@@ -50,5 +51,5 @@
   },
   "live_terminal_receipt": "reports/r1a/r1a-live-01/live-receipt.json",
   "independent_review": "reports/r1a/independent-review-r1a-live-01.md",
-  "exact_stop_reason": "R1A_LIVE_01_NO_GO_PREEXISTING_WSL_LISTENER_AND_CLEANUP_ORACLE_FAILURE"
+  "exact_stop_reason": "R1A_CORRECTION_READY_WAIT_AUTH_LIVE_02"
 }

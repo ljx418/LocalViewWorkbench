@@ -10,7 +10,7 @@
     "prepared_against_commit": "fc5f8afda6b78ca710f8f03605690a5b1f08355d",
     "product_control_sha256": "22128ab0bd2488f4a5bc7bc7dda07cb1172096caa70d00d3e8c56bc970691b19"
   },
-  "state": "NO_GO",
+  "state": "WAIT_AUTH",
   "last_passed_gate": "WP_R1A_03_OFFLINE_CHECKPOINT_PASS",
   "dependencies": ["V0-S1:PASS", "R0:INCLUDED_AS_WP-R1A-00"],
   "authorities": [
@@ -58,15 +58,15 @@
     "R1a completion does not authorize V1 PASS or production release."
   ],
   "execution_authorized": false,
-  "authorization_scope": "WP-R1A-04_ONE_SHOT_LIVE",
-  "external_authorization": "EXPIRED_AUTH-V1-R1A-2026-10-29-LIVE-01",
-  "next_owner": "codex_r1a_implementer",
-  "required_authorization": "NONE_FOR_OFFLINE_CORRECTION; NEW_AUTH_REQUIRED_FOR_ANY_LIVE_RERUN",
-  "authorization_request": "reports/r1a/authorization-wp-r1a-04-live-01.request.json",
+  "authorization_scope": "OFFLINE_COMPLETE_WAIT_AUTH",
+  "external_authorization": "WAIT_AUTH_BEFORE_WP-R1A-04",
+  "next_owner": "project_owner",
+  "required_authorization": "AUTH-REQUEST-V1-R1A-WP-R1A-04-LIVE-02",
+  "authorization_request": "reports/r1a/authorization-wp-r1a-04-live-02.request.json",
   "authorization_records": ["reports/r1a/authorization-wp-r1a-04-live-01.json"],
-  "implementation_candidate": "605d954c8161af2ad5690301f7942d8c7e93f66a",
-  "evidence_commit": "b08a7aff55644eabd91fa20b338fcc9ffa1186ac",
-  "offline_receipt": "reports/r1a/implementation-receipt-offline.json",
+  "implementation_candidate": "7735a697591e3207183a2d0714c73078565f8219",
+  "evidence_commit": "6bc83e00659af45444d31b1334665adc2bb25b92",
+  "offline_receipt": "reports/r1a/implementation-receipt-correction-01.json",
   "terminal_receipt": "reports/r1a/r1a-live-01/live-receipt.json",
   "independent_review": "reports/r1a/independent-review-r1a-live-01.md"
 }

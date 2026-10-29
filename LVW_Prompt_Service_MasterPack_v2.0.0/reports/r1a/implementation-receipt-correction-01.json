@@ -1,0 +1,57 @@
+{
+  "schema_version": "lvw.implementation-receipt/1",
+  "project_id": "lvw-prompt-service",
+  "stage_id": "R1a",
+  "workpack_id": "WP-R1A-03-CORRECTION-01",
+  "candidate_sha": "7735a697591e3207183a2d0714c73078565f8219",
+  "evidence_commit": "6bc83e00659af45444d31b1334665adc2bb25b92",
+  "spec_version": "R1a-packet/1.0.0",
+  "acceptance_hash": "fe6c7d1620ca1ff7a0f9f594699f66660d05fa2aa80544cb04ad9cec3f9df1a5",
+  "gate_version": "lvw-gate/1",
+  "run_id": "r1a-offline-correction-01",
+  "environment": {
+    "executor": "local_ci",
+    "provider": "none_offline_fake_provider_only",
+    "model": "none",
+    "dependency_fingerprint": "python-3.12.3;node-22.22.1;react-19.3.0;vite-8.3.5;offline-lockfile"
+  },
+  "changed_files": [
+    "lvw/run_local.py",
+    "lvw/tests/test_r1a_runtime_guard.py",
+    "lvw/tests/test_run_local.py",
+    "tools/r1a_runtime_guard.py",
+    "tools/r1a_live_acceptance.py",
+    "tools/r1a_browser_acceptance.cjs"
+  ],
+  "contract_changes": "none",
+  "production_paths": [
+    "React -> same-origin FastAPI -> literal-loopback Ollama remains unchanged",
+    "test launcher accepts a frozen LVW_PORT while preserving 8765 as the user default",
+    "live harness now validates Windows and WSL listeners and run-owned process identities"
+  ],
+  "check_results": [
+    {"check":"backend_unit_api_contract_and_runtime_guard","result":"PASS","count":"27/27"},
+    {"check":"frontend_domain","result":"PASS","count":"3/3"},
+    {"check":"frontend_typecheck_build","result":"PASS"},
+    {"check":"v0_regression","result":"PASS","count":"101/101"},
+    {"check":"pack_schema","result":"PASS","count":"1272/1272"},
+    {"check":"governance","result":"PASS","count":"25/25"},
+    {"check":"runtime_external_asset_scan","result":"PASS","findings":0}
+  ],
+  "test_counts": {"denominator":7,"pass":4,"fail":0,"blocked":3,"skipped":0,"not_run":0},
+  "artifact_refs": [
+    "reports/r1a/offline-checkpoint.json",
+    "reports/r1a/r1a-live-01/live-receipt.json",
+    "reports/r1a/independent-review-r1a-live-01.md"
+  ],
+  "risks": [
+    "A02 still requires a fresh authorized real local model run",
+    "F01 still requires fresh browser product-path evidence",
+    "Q01 still requires a new isolated independent review and human experience judgment",
+    "The corrected startup and cleanup behavior has not been exercised against local Ollama"
+  ],
+  "implementation_owner_role": "codex_r1a_implementer",
+  "implementation_session": "root-r1a-correction-2026-10-29",
+  "decision": "READY_FOR_REVIEW",
+  "exact_stop_reason": "CORRECTION_OFFLINE_GATES_GREEN_WAIT_AUTH_FOR_R1A_LIVE_02"
+}

@@ -585,7 +585,10 @@ def main_r1a(args: argparse.Namespace, execution: dict) -> int:
         and control.get("external_authorization") == "WAIT_AUTH_BEFORE_WP-R1A-04"
         and control.get("execution_authorized") is False
         and control.get("next_owner") == "project_owner"
-        and control.get("required_authorization") == "AUTH-REQUEST-V1-R1A-WP-R1A-04-LIVE-01"
+        and control.get("required_authorization") in {
+            "AUTH-REQUEST-V1-R1A-WP-R1A-04-LIVE-01",
+            "AUTH-REQUEST-V1-R1A-WP-R1A-04-LIVE-02",
+        }
     )
     authorized_live = (
         control.get("state") == "RUNNING"
