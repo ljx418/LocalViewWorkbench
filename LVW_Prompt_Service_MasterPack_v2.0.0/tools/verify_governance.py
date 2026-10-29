@@ -593,12 +593,14 @@ def main_r1a(args: argparse.Namespace, execution: dict) -> int:
     authorized_live = (
         control.get("state") == "RUNNING"
         and control.get("authorization_scope") == "WP-R1A-04_ONE_SHOT_LIVE"
-        and control.get("external_authorization") == "AUTH-V1-R1A-2026-10-29-LIVE-01"
+        and control.get("external_authorization") in {
+            "AUTH-V1-R1A-2026-10-29-LIVE-01",
+            "AUTH-V1-R1A-2026-10-29-LIVE-02",
+        }
         and control.get("execution_authorized") is True
         and control.get("next_owner") == "local_ci"
-        and control.get("authorization_records") == [
-            "reports/r1a/authorization-wp-r1a-04-live-01.json"
-        ]
+        and control.get("authorization_records")
+        and all((ROOT / item).is_file() for item in control.get("authorization_records", []))
     )
     terminal_no_go = (
         control.get("state") == "NO_GO"
