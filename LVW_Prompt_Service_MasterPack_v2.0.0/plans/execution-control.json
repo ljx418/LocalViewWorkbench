@@ -9,7 +9,7 @@
     "stage_id": "R1a",
     "workpack_id": "WP-R1A-04",
     "gate": "GATE4_REAL_ACCEPTANCE",
-    "state": "WAIT_AUTH"
+    "state": "RUNNING"
   },
   "last_passed_gate": {
     "id": "WP_R1A_03_OFFLINE_CHECKPOINT_PASS",
@@ -29,11 +29,11 @@
     "PRODUCTION_RELEASED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "project_owner",
-  "next_action": "Approve or reject the candidate-bound one-shot WP-R1A-04 live acceptance request.",
-  "required_authorization": "AUTH-REQUEST-V1-R1A-WP-R1A-04-LIVE-01",
+  "next_owner": "local_ci",
+  "next_action": "Execute the exact one-shot live harness, expire the authorization at terminal receipt, then run the authorized isolated independent review if live evidence passes.",
+  "required_authorization": "SATISFIED_BY_AUTH-V1-R1A-2026-10-29-LIVE-01",
   "authorization_request": "reports/r1a/authorization-wp-r1a-04-live-01.request.json",
-  "authorization_record": null,
+  "authorization_record": "reports/r1a/authorization-wp-r1a-04-live-01.json",
   "implementation_candidate": "605d954c8161af2ad5690301f7942d8c7e93f66a",
   "offline_evidence_commit": "b08a7aff55644eabd91fa20b338fcc9ffa1186ac",
   "offline_receipt": "reports/r1a/implementation-receipt-offline.json",
@@ -48,5 +48,5 @@
     "decision": "docs/23_V1_EARLY_FRONTEND_SEQUENCE.md",
     "meaning": "V0-S1 remains immutable and terminal; the approved future-stage task graph changed after V0-Min acceptance"
   },
-  "exact_stop_reason": "R1A_OFFLINE_READY_WAIT_AUTH_LIVE_01"
+  "exact_stop_reason": "R1A_WP_R1A_04_ONE_SHOT_LIVE_AUTHORIZED"
 }

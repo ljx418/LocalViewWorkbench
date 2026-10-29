@@ -133,7 +133,8 @@ def validate_stage(control: dict, tasks: dict, cases: dict) -> list[str]:
             errors.append("offline-only Stage cannot enter a live execution state")
     elif external:
         if control.get("authorization_scope") not in {
-            "WP-S1-03_ONE_SHOT_LIVE", "WP-S1-04_CHECKPOINT_ONE_SHOT_LIVE"
+            "WP-S1-03_ONE_SHOT_LIVE", "WP-S1-04_CHECKPOINT_ONE_SHOT_LIVE",
+            "WP-R1A-04_ONE_SHOT_LIVE"
         }:
             errors.append("post-authorization Stage has an unknown authorization scope")
         if state not in {"FROZEN_READY_OFFLINE", "RUNNING", "CHECKPOINT", "STAGE_BASELINE_COMPLETE", "NO_GO", "BLOCKED", "WAIT_BUDGET", "PASS"}:
@@ -586,7 +587,18 @@ def main_r1a(args: argparse.Namespace, execution: dict) -> int:
         and control.get("next_owner") == "project_owner"
         and control.get("required_authorization") == "AUTH-REQUEST-V1-R1A-WP-R1A-04-LIVE-01"
     )
-    check("external_scope_fail_closed", offline_ready or waiting_live_authorization)
+    authorized_live = (
+        control.get("state") == "RUNNING"
+        and control.get("authorization_scope") == "WP-R1A-04_ONE_SHOT_LIVE"
+        and control.get("external_authorization") == "AUTH-V1-R1A-2026-10-29-LIVE-01"
+        and control.get("execution_authorized") is True
+        and control.get("next_owner") == "local_ci"
+        and control.get("authorization_records") == [
+            "reports/r1a/authorization-wp-r1a-04-live-01.json"
+        ]
+    )
+    check("external_scope_fail_closed",
+          offline_ready or waiting_live_authorization or authorized_live)
     registry = load_json(GOV / "project-registry.json")
     project = next((item for item in registry.get("projects", [])
                     if item.get("project_id") == control.get("project_id")), None)
