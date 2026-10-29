@@ -10,8 +10,8 @@
     "prepared_against_commit": "f1780de806d4082dbf1d0f8a3ece81cf369aa0e1",
     "product_control_sha256": "bf077004bc40d9cd8b82ee8e86406bcfc358129bda70b2d799ff61ff27665579"
   },
-  "state": "FROZEN_READY_OFFLINE",
-  "last_passed_gate": "R1A_CONTRACT_CORRECTION_APPROVED",
+  "state": "WAIT_AUTH",
+  "last_passed_gate": "WP_R1A_03_PACKET_1_1_OFFLINE_CHECKPOINT_PASS",
   "dependencies": ["V0-S1:PASS", "R0:INCLUDED_AS_WP-R1A-00"],
   "authorities": [
     "docs/23_V1_EARLY_FRONTEND_SEQUENCE.md",
@@ -57,20 +57,21 @@
     "WP-R1A-04 remains WAIT_AUTH until a one-shot request binds candidate, endpoint, model, sample, attempts and cleanup.",
     "R1a completion does not authorize V1 PASS or production release."
   ],
-  "execution_authorized": true,
-  "authorization_scope": "OFFLINE_REPOSITORY_ONLY",
+  "execution_authorized": false,
+  "authorization_scope": "OFFLINE_COMPLETE_WAIT_AUTH",
   "external_authorization": "WAIT_AUTH_BEFORE_WP-R1A-04",
-  "next_owner": "codex_r1a_implementer",
-  "required_authorization": "NONE_FOR_APPROVED_OFFLINE_CORRECTION_AND_CHECKPOINT",
+  "next_owner": "project_owner",
+  "required_authorization": "AUTH-REQUEST-V1-R1A-WP-R1A-04-LIVE-03",
+  "authorization_request": "reports/r1a/authorization-wp-r1a-04-live-03.request.json",
   "change_request": "reports/r1a/change-request-r1a-contract-01.json",
   "change_decision": "reports/r1a/change-decision-r1a-contract-01.json",
   "authorization_records": [
     "reports/r1a/authorization-wp-r1a-04-live-01.json",
     "reports/r1a/authorization-wp-r1a-04-live-02.json"
   ],
-  "implementation_candidate": "7735a697591e3207183a2d0714c73078565f8219",
-  "evidence_commit": "6bc83e00659af45444d31b1334665adc2bb25b92",
-  "offline_receipt": "reports/r1a/implementation-receipt-correction-01.json",
+  "implementation_candidate": "febb0b3760dd733cd209d503c0ebf43f2d61e2d2",
+  "evidence_commit": "f30722f88476d9407561bc4aa9d253f26f4ea87f",
+  "offline_receipt": "reports/r1a/implementation-receipt-packet-1.1-correction-02.json",
   "terminal_receipt": "reports/r1a/r1a-live-02/live-receipt.json",
   "independent_review": "reports/r1a/independent-review-r1a-live-02.md"
 }

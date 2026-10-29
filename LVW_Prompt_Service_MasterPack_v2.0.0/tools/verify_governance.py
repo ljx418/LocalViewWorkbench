@@ -588,6 +588,7 @@ def main_r1a(args: argparse.Namespace, execution: dict) -> int:
         and control.get("required_authorization") in {
             "AUTH-REQUEST-V1-R1A-WP-R1A-04-LIVE-01",
             "AUTH-REQUEST-V1-R1A-WP-R1A-04-LIVE-02",
+            "AUTH-REQUEST-V1-R1A-WP-R1A-04-LIVE-03",
         }
     )
     waiting_contract_correction = (

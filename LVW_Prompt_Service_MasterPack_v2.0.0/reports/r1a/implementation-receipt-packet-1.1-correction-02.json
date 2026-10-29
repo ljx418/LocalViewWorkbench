@@ -1,0 +1,63 @@
+{
+  "schema_version": "lvw.implementation-receipt/1",
+  "project_id": "lvw-prompt-service",
+  "stage_id": "R1a",
+  "workpack_id": "WP-R1A-03-CORRECTION-02",
+  "candidate_sha": "febb0b3760dd733cd209d503c0ebf43f2d61e2d2",
+  "evidence_commit": "f30722f88476d9407561bc4aa9d253f26f4ea87f",
+  "spec_version": "R1a-packet/1.1.0",
+  "acceptance_hash": "82a3736ab77ee98e301d7e055a78b160774c9c09692288db89c5a2768bfe39ab",
+  "gate_version": "lvw-gate/1",
+  "run_id": "r1a-offline-packet-1.1-correction-02",
+  "environment": {
+    "executor": "local_ci",
+    "provider": "none_offline_fake_provider_only",
+    "model": "none",
+    "dependency_fingerprint": "python-3.12.3;node-22.22.1;react-19.3.0;vite-8.3.5;offline-lockfile"
+  },
+  "changed_files": [
+    "plans/acceptance_cases.json",
+    "plans/tasks.json",
+    ".agent-governance/stages/R1a/",
+    "lvw/backend/app/provider.py",
+    "lvw/tests/test_provider.py",
+    "lvw/tests/test_r1a_runtime_guard.py",
+    "tools/r1a_live_acceptance.py",
+    "tools/r1a_browser_acceptance.cjs",
+    "tools/r1a_ollama_wrapper.ps1",
+    "tools/r1a_offline_checkpoint.py"
+  ],
+  "contract_changes": "approved identity-only correction: unique R1A-M01..R1A-M07; existing global V1 cases unchanged",
+  "production_paths": [
+    "React -> same-origin FastAPI -> OllamaProvider -> literal-loopback Ollama",
+    "OllamaProvider -> optional run-owned append-only provider ledger",
+    "Windows-native static wrapper -> direct child handle -> stop request/lease -> terminal record",
+    "headless browser -> pre-dispatch non-loopback abort -> manual export -> one analysis -> explicit adoption -> export"
+  ],
+  "check_results": [
+    {"check":"backend_unit_api_contract_and_runtime_guard","result":"PASS","count":"31/31"},
+    {"check":"frontend_domain","result":"PASS","count":"3/3"},
+    {"check":"frontend_typecheck_build","result":"PASS"},
+    {"check":"python_node_powershell_harness_syntax","result":"PASS","count":"3/3"},
+    {"check":"v0_regression","result":"PASS","count":"101/101"},
+    {"check":"pack_schema","result":"PASS","count":"1285/1285"},
+    {"check":"governance","result":"PASS","count":"25/25"},
+    {"check":"runtime_external_asset_scan","result":"PASS","findings":0}
+  ],
+  "test_counts": {"denominator":7,"pass":1,"fail":0,"blocked":6,"skipped":0,"not_run":0},
+  "artifact_refs": [
+    "reports/r1a/offline-checkpoint.json",
+    "reports/r1a/change-decision-r1a-contract-01.json",
+    "reports/r1a/r1a-live-02/live-receipt.json",
+    "reports/r1a/independent-review-r1a-live-02.md"
+  ],
+  "risks": [
+    "R1A-M02 through R1A-M07 still require fresh authorized target evidence",
+    "the new Windows-native wrapper and provider ledger have only syntax/unit evidence until live-03",
+    "human experience signoff remains unavailable until independent Fatal=0/Major=0"
+  ],
+  "implementation_owner_role": "codex_r1a_implementer",
+  "implementation_session": "root-r1a-packet-1.1-correction-2026-10-29",
+  "decision": "READY_FOR_REVIEW",
+  "exact_stop_reason": "PACKET_1_1_OFFLINE_GATES_GREEN_WAIT_AUTH_FOR_R1A_LIVE_03"
+}
