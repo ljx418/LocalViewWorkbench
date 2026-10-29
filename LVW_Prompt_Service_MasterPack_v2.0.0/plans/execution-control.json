@@ -9,7 +9,7 @@
     "stage_id": "R1a",
     "workpack_id": "WP-R1A-04",
     "gate": "GATE4_REAL_ACCEPTANCE",
-    "state": "RUNNING"
+    "state": "CHECKPOINT"
   },
   "last_passed_gate": {
     "id": "WP_R1A_03_PACKET_1_1_OFFLINE_CHECKPOINT_PASS",
@@ -29,9 +29,9 @@
     "PRODUCTION_RELEASED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "local_ci",
-  "next_action": "Execute candidate-bound r1a-live-06 exactly once and expire its authorization on terminal evidence.",
-  "required_authorization": "AUTH-V1-R1A-2026-10-29-LIVE-06",
+  "next_owner": "project_owner",
+  "next_action": "Perform R1a human experience review and explicitly accept or reject the early single-image workbench.",
+  "required_authorization": "R1A_HUMAN_EXPERIENCE_SIGNOFF",
   "authorization_request": "reports/r1a/authorization-wp-r1a-04-live-06.request.json",
   "authorization_record": "reports/r1a/authorization-wp-r1a-04-live-06.json",
   "historical_authorization_records": [
@@ -55,7 +55,7 @@
     "decision": "reports/r1a/change-decision-r1a-contract-01.json",
     "meaning": "R1a local acceptance IDs were corrected without changing existing global V1 cases or product scope"
   },
-  "live_terminal_receipt": "reports/r1a/r1a-live-05/live-receipt.json",
-  "independent_review": "reports/r1a/independent-review-r1a-live-05.md",
-  "exact_stop_reason": "R1A_LIVE_06_EXPLICITLY_AUTHORIZED_READY_ONCE"
+  "live_terminal_receipt": "reports/r1a/r1a-live-06/live-receipt.json",
+  "independent_review": "reports/r1a/independent-review-r1a-live-06.md",
+  "exact_stop_reason": "R1A_ENGINEERING_GATES_GREEN_WAIT_HUMAN_EXPERIENCE_SIGNOFF"
 }

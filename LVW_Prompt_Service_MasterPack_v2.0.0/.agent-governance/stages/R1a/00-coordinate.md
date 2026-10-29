@@ -29,3 +29,7 @@ Prepared-against commit: f1780de806d4082dbf1d0f8a3ece81cf369aa0e1
 离线纠偏候选 `d1d3048...` 已完成：textarea 采用独立 `id/htmlFor`，四个 copy button 使用唯一 accessible name；模型 Schema 和 parser 强制中文、英文、图像提示词与负向约束非空，Harness 同步建立四输出 Oracle。候选绑定 checkpoint 11/11 通过并由 `31fb6af...` 封存。由于 R1a 母授权预算已耗尽，当前明确停在 `AUTH-REQUEST-V1-R1A-WP-R1A-04-LIVE-06`，批准前禁止任何 Ollama、媒体或浏览器运行。
 
 项目负责人已明确批准 `AUTH-REQUEST-V1-R1A-WP-R1A-04-LIVE-06`；候选绑定子授权 `AUTH-V1-R1A-2026-10-29-LIVE-06` 已激活，只允许执行一次固定 `r1a-live-06`，终态自动过期且禁止重试。
+
+`r1a-live-06` 已且仅已执行一次并达到 `READY_FOR_INDEPENDENT_REVIEW`：图片提交、provider started/completed、Ollama POST 和浏览器运行均为 1；人工零模型导出、dirty draft 保持、显式采纳、四输出非空、clipboard、TXT/JSON、三档布局和网络 Oracle 全部通过。模型卸载、服务停止、双域端口为空、隔离 runtime 删除且 cleanup error 为 0。授权已过期，当前仅等待隔离独立审查，尚未进入人工体验门槛。
+
+隔离独立审查已完成，结论为 `Fatal 0 / Major 0 / Minor 3`，R1A-M01 至 M07 全部独立复算通过。当前只允许进入 R1a 人工体验门槛；必须由项目负责人确认界面、输出可用性和轻微语义不一致是否可接受。该状态不等于 R1a Stage PASS、V1 PASS 或发布批准。

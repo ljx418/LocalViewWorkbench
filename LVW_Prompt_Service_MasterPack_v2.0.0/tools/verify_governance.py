@@ -637,9 +637,26 @@ def main_r1a(args: argparse.Namespace, execution: dict) -> int:
         and control.get("authorization_records")
         and all((ROOT / item).is_file() for item in control.get("authorization_records", []))
     )
+    checkpoint_review = (
+        control.get("state") == "CHECKPOINT"
+        and control.get("authorization_scope") == "WP-R1A-04_ONE_SHOT_LIVE"
+        and control.get("external_authorization") == "EXPIRED_AUTH-V1-R1A-2026-10-29-LIVE-06"
+        and control.get("execution_authorized") is False
+        and control.get("next_owner") == "codex_r1a_independent_reviewer"
+        and control.get("required_authorization") == "INDEPENDENT_REVIEW_R1A_LIVE_06"
+    )
+    human_gate_ready = (
+        control.get("state") == "CHECKPOINT"
+        and control.get("authorization_scope") == "WP-R1A-04_ONE_SHOT_LIVE"
+        and control.get("external_authorization") == "EXPIRED_AUTH-V1-R1A-2026-10-29-LIVE-06"
+        and control.get("execution_authorized") is False
+        and control.get("next_owner") == "project_owner"
+        and control.get("required_authorization") == "R1A_HUMAN_EXPERIENCE_SIGNOFF"
+        and control.get("independent_review") == "reports/r1a/independent-review-r1a-live-06.md"
+    )
     check("external_scope_fail_closed",
           offline_ready or waiting_live_authorization or waiting_contract_correction
-          or authorized_live or terminal_no_go)
+          or authorized_live or terminal_no_go or checkpoint_review or human_gate_ready)
     registry = load_json(GOV / "project-registry.json")
     project = next((item for item in registry.get("projects", [])
                     if item.get("project_id") == control.get("project_id")), None)

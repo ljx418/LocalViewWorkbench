@@ -1,0 +1,99 @@
+{
+  "schema_version": "lvw.live-receipt/2",
+  "run_id": "r1a-live-06",
+  "authorization_id": "AUTH-V1-R1A-2026-10-29-LIVE-06",
+  "authorization_sha256": "a546b12558074d4b1e22df029ee995e3705050c7ba0b144dca852cc3f7005a60",
+  "candidate_sha": "d1d30480c0bbc740fabe81cf07514518590b249c",
+  "harness_sha256": "e849c8aabaa7200a3109286afa34993f07a5956ba136491a12aa52da37b74a1f",
+  "browser_harness_sha256": "a3e9e838dd01f654c254ca80614cbd37336cd027eb9d835c4890ff5005ae89c7",
+  "runtime_guard_sha256": "6b3f218bacc99ffe92a72be2ed9bc9d318c1867f8ff5b03e7ef946e7e53be7a6",
+  "ollama_wrapper_sha256": "5b1423da244bc0f2a25f37f9a44e22b6e7e0565c05d4b6d989ec80bc95a1bb81",
+  "offline_checkpoint_sha256": "b1d7ffb46cb3a4058c3826b3660855fd19edadbcf348710f9ce7985144ef0a94",
+  "acceptance_hash": "82a3736ab77ee98e301d7e055a78b160774c9c09692288db89c5a2768bfe39ab",
+  "sample_alias": "TEST_SOURCE/image-sample",
+  "sample_sha256": "b4bbd08a0fad67cc04e55d15bf2c48e9a76dcfd6dda147d8cc504452dfc78a42",
+  "model": "gemma4:26b",
+  "backend_port": 18765,
+  "started_at": "2026-10-29T06:29:59.202520+00:00",
+  "attempts": 1,
+  "model_calls": 1,
+  "browser_runs": 1,
+  "phase": "MODEL_UNLOAD",
+  "decision": "READY_FOR_INDEPENDENT_REVIEW",
+  "stage_pass_claim": false,
+  "fixed_denominator": {
+    "R1A-M01": "PASS_OFFLINE_BOUNDARIES",
+    "R1A-M02": "PASS",
+    "R1A-M03": "PASS",
+    "R1A-M04": "PASS",
+    "R1A-M05": "PASS",
+    "R1A-M06": "WAIT_INDEPENDENT_REVIEW",
+    "R1A-M07": "PASS"
+  },
+  "preflight_ports": {
+    "windows": {
+      "18765": 0,
+      "11434": 0
+    },
+    "wsl": {
+      "18765": 0,
+      "11434": 0
+    }
+  },
+  "browser_exit_code": 0,
+  "browser_stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "browser_stderr_tail": "",
+  "provider_ledger": [
+    {
+      "call_id": "call_12218ae601914332bc61921d6dfc21fe",
+      "event": "provider_call_started",
+      "input_sha256": "805fe70fae055a33120cb94b9a6eb15d2bd54b28783702f8c194491a3d091f98",
+      "model": "gemma4:26b",
+      "time_ns": 1793255417264827592
+    },
+    {
+      "call_id": "call_12218ae601914332bc61921d6dfc21fe",
+      "event": "provider_call_completed",
+      "model": "gemma4:26b",
+      "outcome": "success",
+      "time_ns": 1793255433816257382
+    }
+  ],
+  "wrapper_terminal": {
+    "pid": 34940,
+    "start_filetime_utc": "134377290106414363",
+    "executable_path": "OLLAMA_EXE",
+    "child_exited": true,
+    "stop_requested": true,
+    "lease_expired": false,
+    "exit_code": null,
+    "wrapper_error": false
+  },
+  "wrapper_exit_code": 0,
+  "cleanup_ports": {
+    "windows": {
+      "18765": 0,
+      "11434": 0
+    },
+    "wsl": {
+      "18765": 0,
+      "11434": 0
+    }
+  },
+  "diagnostics": {
+    "ollama_stdout_tail": "[GIN] 2026/10/29 - 14:30:14 | 200 |            0s |       127.0.0.1 | GET      \"/api/version\"\n[GIN] 2026/10/29 - 14:30:14 | 200 |      1.0299ms |       127.0.0.1 | GET      \"/api/tags\"\n[GIN] 2026/10/29 - 14:30:33 | 200 |   16.5081867s |       127.0.0.1 | POST     \"/api/chat\"\n[GIN] 2026/10/29 - 14:30:35 | 200 |            0s |       127.0.0.1 | GET      \"/api/ps\"\n",
+    "ollama_stderr_tail": "m idx = 5, n_chunks = 1\ndecoding image batch 1/1, n_tokens_batch = 252\nsched_reserve: reserving ...\nsched_reserve:      CUDA0 compute buffer size =    99.52 MiB\nsched_reserve:  CUDA_Host compute buffer size =    14.52 MiB\nsched_reserve: graph nodes  = 2644\nsched_reserve: graph splits = 2\nsched_reserve: reserve took 8.37 ms, sched copies = 1\nimage decoded (batch 1/1) in 197 ms\nsched_reserve: reserving ...\nsched_reserve:      CUDA0 compute buffer size =    99.52 MiB\nsched_reserve:  CUDA_Host compute buffer size =    14.52 MiB\nsched_reserve: graph nodes  = 2644\nsched_reserve: graph splits = 2\nsched_reserve: reserve took 9.16 ms, sched copies = 1\nslot   operator(): id  0 | task 0 | cached n_tokens = 321, memory_seq_rm [321, end)\nslot init_sampler: id  0 | task 0 | init sampler, took 0.41 ms, tokens: text = 73, total = 325\nslot create_check: id  0 | task 0 | created context checkpoint 1 of 32 (pos_min = 0, pos_max = 320, n_tokens = 321, size = 62.700 MiB)\nslot print_timing: id  0 | task 0 | n_decoded =    361, tg = 120.05 t/s, tg_3s = 120.04 t/s\nslot print_timing: id  0 | task 0 | prompt eval time =     767.70 ms /   325 tokens (    2.36 ms per token,   423.34 tokens per second)\nslot print_timing: id  0 | task 0 |        eval time =    3113.50 ms /   374 tokens (    8.32 ms per token,   120.12 tokens per second)\nslot print_timing: id  0 | task 0 |       total time =    3881.20 ms /   699 tokens\nslot print_timing: id  0 | task 0 |    graphs reused =        372\nslot      release: id  0 | task 0 | stop processing: n_tokens = 698, truncated = 0\nsrv  update_slots: all slots are idle\n",
+    "wrapper_tail": "",
+    "wrapper_error": "",
+    "backend_tail": "fca6445aa5edfc6d57fd511b HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:46654 - \"GET /api/v1/jobs/job_7f67aabcfca6445aa5edfc6d57fd511b HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:46654 - \"GET /api/v1/jobs/job_7f67aabcfca6445aa5edfc6d57fd511b HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:46654 - \"GET /api/v1/jobs/job_7f67aabcfca6445aa5edfc6d57fd511b HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:46654 - \"GET /api/v1/jobs/job_7f67aabcfca6445aa5edfc6d57fd511b HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:46654 - \"GET /api/v1/jobs/job_7f67aabcfca6445aa5edfc6d57fd511b HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:46654 - \"GET /api/v1/jobs/job_7f67aabcfca6445aa5edfc6d57fd511b HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:46654 - \"GET /api/v1/jobs/job_7f67aabcfca6445aa5edfc6d57fd511b HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:46654 - \"GET /api/v1/jobs/job_7f67aabcfca6445aa5edfc6d57fd511b HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:46654 - \"GET /api/v1/jobs/job_7f67aabcfca6445aa5edfc6d57fd511b HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:46654 - \"GET /api/v1/jobs/job_7f67aabcfca6445aa5edfc6d57fd511b HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:46654 - \"GET /api/v1/jobs/job_7f67aabcfca6445aa5edfc6d57fd511b HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:46654 - \"GET /api/v1/jobs/job_7f67aabcfca6445aa5edfc6d57fd511b HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:46654 - \"GET /api/v1/jobs/job_7f67aabcfca6445aa5edfc6d57fd511b HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:46654 - \"GET /api/v1/model-runs/run_0a65a7a773e64d98a777789674552ab0 HTTP/1.1\" 200 OK\nINFO:     Shutting down\nINFO:     Waiting for application shutdown.\nINFO:     Application shutdown complete.\nINFO:     Finished server process [251527]\n"
+  },
+  "cleanup_errors": [],
+  "terminal": {
+    "backend": "STOPPED",
+    "ollama": "STOPPED",
+    "model": "UNLOADED",
+    "ports": "EMPTY",
+    "runtime": "REMOVED"
+  },
+  "finished_at": "2026-10-29T06:30:37.048114+00:00"
+}
