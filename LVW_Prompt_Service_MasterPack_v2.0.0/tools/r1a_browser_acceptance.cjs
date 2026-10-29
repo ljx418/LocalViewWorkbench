@@ -9,11 +9,16 @@ function arg(name) {
 }
 
 (async () => {
+  let browser;
+  try {
   const url = arg("--url");
   const sample = arg("--sample");
   const evidence = arg("--evidence");
   fs.mkdirSync(evidence, { recursive: true });
-  const browser = await chromium.launch({ headless: true });
+  const ledgerPath = path.join(evidence, "browser-ledger.json");
+  const ledger = { analysis_submissions: 0, completed: false };
+  fs.writeFileSync(ledgerPath, JSON.stringify(ledger, null, 2) + "\n");
+  browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({ viewport: { width: 1280, height: 900 }, locale: "zh-CN", acceptDownloads: true });
   await context.grantPermissions(["clipboard-read", "clipboard-write"], { origin: url });
   const page = await context.newPage();
@@ -24,6 +29,8 @@ function arg(name) {
   });
   await page.goto(url, { waitUntil: "networkidle" });
   await page.locator('input[type="file"]').setInputFiles(sample);
+  ledger.analysis_submissions = 1;
+  fs.writeFileSync(ledgerPath, JSON.stringify(ledger, null, 2) + "\n");
   await page.getByRole("button", { name: "分析这张图片" }).click();
   await page.getByText("分析完成，等待你采纳").waitFor({ timeout: 150000 });
   const observations = await page.locator(".evidence-grid article").nth(0).locator("li").allTextContents();
@@ -61,7 +68,7 @@ function arg(name) {
     await page.screenshot({ path: screenshot, fullPage: true });
     layouts.push({ width, height, horizontal_overflow: overflow, screenshot: path.basename(screenshot) });
   }
-  const rawVisibleBefore = await page.locator(".raw pre").count();
+  const rawCollapsedByDefault = await page.locator("details.raw").evaluate(element => !element.open);
   const result = {
     kind: "R1A_HEADLESS_PRODUCT_PATH",
     observations, inferences, unknowns,
@@ -69,14 +76,22 @@ function arg(name) {
     clipboard_match: true,
     json_export_valid: true,
     txt_export_valid: true,
-    raw_collapsed_by_default: rawVisibleBefore === 1,
+    raw_collapsed_by_default: rawCollapsedByDefault,
     layouts,
     non_loopback_requests: nonLoopback,
     passed: nonLoopback.length === 0,
   };
+  if (!rawCollapsedByDefault) throw new Error("raw model response is expanded by default");
   fs.writeFileSync(path.join(evidence, "browser-result.json"), JSON.stringify(result, null, 2) + "\n");
-  await browser.close();
+  ledger.completed = true;
+  fs.writeFileSync(ledgerPath, JSON.stringify(ledger, null, 2) + "\n");
   if (!result.passed) process.exitCode = 1;
+  } catch (error) {
+    console.error(error.stack || String(error));
+    process.exitCode = 1;
+  } finally {
+    if (browser) await browser.close();
+  }
 })().catch(error => {
   console.error(error.stack || String(error));
   process.exitCode = 1;
