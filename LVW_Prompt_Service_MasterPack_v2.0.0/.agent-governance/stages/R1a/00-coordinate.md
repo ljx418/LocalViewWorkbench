@@ -19,3 +19,5 @@ Prepared-against commit: f1780de806d4082dbf1d0f8a3ece81cf369aa0e1
 `r1a-live-03` 已且仅已执行一次并以 `NO_GO_CLEANUP_UNPROVEN` 终止：真实 React→FastAPI→Ollama 提交和 provider 调用各一次且完成，随后浏览器 Harness 在按序号定位 English `复制` 按钮时超时；Ollama 与 FastAPI 已停止、两域端口为空、Windows 临时目录已删除，但默认 `.lvw-runtime` 留下本轮预处理媒体，模型卸载也未在失败分支得到正面证明。授权已过期，历史收据保持 NO-GO；本轮自有媒体副本已单独清理。下一步仅允许离线修正稳定控件定位、隔离数据根和失败分支卸载证明，封存新候选后可使用母授权中 R1a 唯一一次 corrected-candidate 完整复验额度。
 
 上述修正已封存为候选 `f901c49...`，候选绑定离线 checkpoint 11/11 通过并由证据提交 `55f3cf6...` 固化。母授权派生的最后一次 R1a 子授权 `AUTH-V1-R1A-2026-10-29-LIVE-04` 已绑定同一候选、四个 Harness、固定样本、端口和单次预算；当前只允许执行一次 `r1a-live-04`，终态后 R1a 自动 live 复验额度归零。
+
+`r1a-live-04` 在任何目标预检或外部动作前因审批枚举值不符合冻结 Harness 而被拒绝：端口、进程、媒体、浏览器和 provider 动作均为 0，Stage checkpoint 未消耗；该子授权已过期并保留拒绝收据。替代子授权 `AUTH-V1-R1A-2026-10-29-LIVE-05` 只把审批枚举规范化为 `APPROVED`，其候选、Harness、样本、端点和预算完全不变；它继续占用且只能占用同一个 corrected-candidate full recheck 槽。

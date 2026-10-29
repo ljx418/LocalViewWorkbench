@@ -4,7 +4,7 @@
   "parent_authorization_id": "AUTH-PROGRAM-V1-LOCAL-01",
   "parent_authorization_path": "reports/authorization-program-v1-local-01.json",
   "request_id": "AUTH-REQUEST-V1-R1A-WP-R1A-04-LIVE-04",
-  "status": "ACTIVE_ONE_SHOT",
+  "status": "EXPIRED_PREFLIGHT_DENIED",
   "project_id": "lvw-prompt-service",
   "stage_id": "R1a",
   "workpack_id": "WP-R1A-04",
@@ -31,6 +31,11 @@
   "budget": {"effective_image_attempts":1,"model_calls":1,"backend_starts":1,"ollama_starts":1,"headless_browser_runs":1,"independent_review_sessions":1,"downloads":0,"cloud_calls":0,"external_cost":0},
   "stage_budget_slot": "R1a:corrected_candidate_full_recheck",
   "expires_when": "one terminal receipt is generated or any mandatory stop occurs",
+  "expired_at": "2026-10-29T14:18:49+08:00",
+  "terminal_reason": "AUTHORIZATION_APPROVAL_ENUM_MISMATCH_BEFORE_TARGET_PREFLIGHT",
+  "terminal_receipt": "reports/r1a/r1a-live-04-authorization-denial.json",
+  "external_actions": 0,
+  "stage_checkpoint_consumed": false,
   "does_not_authorize_stage_pass": true,
   "approval": {"decision":"APPROVED_VIA_PROGRAM_AUTH","approved_by":"project_owner","approved_at":"2026-10-29T14:17:29+08:00","parent_authorization_id":"AUTH-PROGRAM-V1-LOCAL-01"}
 }
