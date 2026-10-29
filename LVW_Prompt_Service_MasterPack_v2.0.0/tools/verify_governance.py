@@ -573,9 +573,20 @@ def main_r1a(args: argparse.Namespace, execution: dict) -> int:
     case_status = {item["case_id"]: item["status"] for item in cases["cases"]}
     check("fixed_cases_not_predeclared", all(case_status[item] == "NOT_RUN"
           for item in control.get("fixed_acceptance_ids", [])))
-    check("offline_scope_fail_closed",
-          control.get("authorization_scope") == "OFFLINE_REPOSITORY_ONLY"
-          and control.get("external_authorization") == "WAIT_AUTH_BEFORE_WP-R1A-04")
+    offline_ready = (
+        control.get("state") == "FROZEN_READY_OFFLINE"
+        and control.get("authorization_scope") == "OFFLINE_REPOSITORY_ONLY"
+        and control.get("external_authorization") == "WAIT_AUTH_BEFORE_WP-R1A-04"
+    )
+    waiting_live_authorization = (
+        control.get("state") == "WAIT_AUTH"
+        and control.get("authorization_scope") == "OFFLINE_COMPLETE_WAIT_AUTH"
+        and control.get("external_authorization") == "WAIT_AUTH_BEFORE_WP-R1A-04"
+        and control.get("execution_authorized") is False
+        and control.get("next_owner") == "project_owner"
+        and control.get("required_authorization") == "AUTH-REQUEST-V1-R1A-WP-R1A-04-LIVE-01"
+    )
+    check("external_scope_fail_closed", offline_ready or waiting_live_authorization)
     registry = load_json(GOV / "project-registry.json")
     project = next((item for item in registry.get("projects", [])
                     if item.get("project_id") == control.get("project_id")), None)

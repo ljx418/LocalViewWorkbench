@@ -10,8 +10,8 @@
     "prepared_against_commit": "fc5f8afda6b78ca710f8f03605690a5b1f08355d",
     "product_control_sha256": "22128ab0bd2488f4a5bc7bc7dda07cb1172096caa70d00d3e8c56bc970691b19"
   },
-  "state": "FROZEN_READY_OFFLINE",
-  "last_passed_gate": "V0_MIN_HUMAN_EXPERIENCE_SIGNOFF_PASS",
+  "state": "WAIT_AUTH",
+  "last_passed_gate": "WP_R1A_03_OFFLINE_CHECKPOINT_PASS",
   "dependencies": ["V0-S1:PASS", "R0:INCLUDED_AS_WP-R1A-00"],
   "authorities": [
     "docs/23_V1_EARLY_FRONTEND_SEQUENCE.md",
@@ -57,9 +57,13 @@
     "WP-R1A-04 remains WAIT_AUTH until a one-shot request binds candidate, endpoint, model, sample, attempts and cleanup.",
     "R1a completion does not authorize V1 PASS or production release."
   ],
-  "execution_authorized": true,
-  "authorization_scope": "OFFLINE_REPOSITORY_ONLY",
+  "execution_authorized": false,
+  "authorization_scope": "OFFLINE_COMPLETE_WAIT_AUTH",
   "external_authorization": "WAIT_AUTH_BEFORE_WP-R1A-04",
-  "next_owner": "codex_r1a_implementer",
-  "required_authorization": "NONE_FOR_WP-R1A-00_THROUGH_WP-R1A-03"
+  "next_owner": "project_owner",
+  "required_authorization": "AUTH-REQUEST-V1-R1A-WP-R1A-04-LIVE-01",
+  "authorization_request": "reports/r1a/authorization-wp-r1a-04-live-01.request.json",
+  "implementation_candidate": "605d954c8161af2ad5690301f7942d8c7e93f66a",
+  "evidence_commit": "b08a7aff55644eabd91fa20b338fcc9ffa1186ac",
+  "offline_receipt": "reports/r1a/implementation-receipt-offline.json"
 }

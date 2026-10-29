@@ -1,0 +1,48 @@
+{
+  "schema_version": "lvw.implementation-receipt/1",
+  "project_id": "lvw-prompt-service",
+  "stage_id": "R1a",
+  "workpack_id": "WP-R1A-03",
+  "candidate_sha": "605d954c8161af2ad5690301f7942d8c7e93f66a",
+  "evidence_commit": "b08a7aff55644eabd91fa20b338fcc9ffa1186ac",
+  "spec_version": "R1a-packet/1.0.0",
+  "acceptance_hash": "fe6c7d1620ca1ff7a0f9f594699f66660d05fa2aa80544cb04ad9cec3f9df1a5",
+  "gate_version": "lvw-gate/1",
+  "run_id": "r1a-offline-checkpoint-01",
+  "environment": {
+    "executor": "local_ci",
+    "provider": "none_offline_fake_provider_only",
+    "model": "none",
+    "dependency_fingerprint": "python-3.12.3;node-22.22.1;react-19.3.0;vite-8.3.5;lockfile-bound-offline-install"
+  },
+  "changed_files": [
+    "lvw/", "tools/r1a_offline_checkpoint.py", "tools/r1a_live_acceptance.py",
+    "tools/r1a_browser_acceptance.cjs", "reports/r1a/offline-checkpoint.json"
+  ],
+  "contract_changes": "none; implements the frozen OpenAPI subset",
+  "production_paths": [
+    "React dist -> same-origin FastAPI /api/v1/media -> controlled MediaStore",
+    "React -> /api/v1/jobs/analyze -> single AnalysisService worker -> literal-loopback OllamaProvider",
+    "React -> job poll -> model-run -> explicit adopt -> local TXT/JSON export"
+  ],
+  "check_results": [
+    {"check":"backend_unit_api_contract","result":"PASS","count":"16/16"},
+    {"check":"frontend_domain","result":"PASS","count":"3/3"},
+    {"check":"frontend_typecheck_build","result":"PASS"},
+    {"check":"v0_regression","result":"PASS","count":"101/101"},
+    {"check":"pack_schema","result":"PASS","count":"1267/1267"},
+    {"check":"governance","result":"PASS","count":"25/25"},
+    {"check":"runtime_external_asset_scan","result":"PASS","findings":0}
+  ],
+  "test_counts": {"denominator":7,"pass":4,"fail":0,"blocked":3,"skipped":0,"not_run":0},
+  "artifact_refs": ["reports/r1a/offline-checkpoint.json"],
+  "risks": [
+    "A02 requires a fresh real local model run",
+    "F01 requires browser product-path evidence",
+    "Q01 requires isolated quality review and human experience judgment"
+  ],
+  "implementation_owner_role": "codex_r1a_implementer",
+  "implementation_session": "root-r1a-offline-2026-10-29",
+  "decision": "READY_FOR_REVIEW",
+  "exact_stop_reason": "OFFLINE_GATES_GREEN_WAIT_AUTH_FOR_WP-R1A-04"
+}

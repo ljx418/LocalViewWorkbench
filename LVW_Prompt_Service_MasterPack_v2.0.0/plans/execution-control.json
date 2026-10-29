@@ -7,16 +7,16 @@
   "next_delivery_target": "V1-R1a",
   "coordinate": {
     "stage_id": "R1a",
-    "workpack_id": "WP-R1A-00",
-    "gate": "GATE0_DOCUMENT_READY",
-    "state": "FROZEN_READY_OFFLINE"
+    "workpack_id": "WP-R1A-04",
+    "gate": "GATE4_REAL_ACCEPTANCE",
+    "state": "WAIT_AUTH"
   },
   "last_passed_gate": {
-    "id": "V0_MIN_HUMAN_EXPERIENCE_SIGNOFF_PASS",
-    "evidence": "reports/v0-s1/v0-min-acceptance.json",
-    "meaning": "V0-Min product acceptance completed for the reduced image/manual scope; this is not production release approval"
+    "id": "WP_R1A_03_OFFLINE_CHECKPOINT_PASS",
+    "evidence": "reports/r1a/offline-checkpoint.json",
+    "meaning": "R1a implementation, offline tests, V0 regression and governance checks passed; no real model or browser acceptance has run"
   },
-  "current_blocking_gate": "WP-R1A-04_WAIT_AUTH_AFTER_OFFLINE_CHECKPOINT",
+  "current_blocking_gate": "WP-R1A-04_REAL_MODEL_BROWSER_INDEPENDENT_REVIEW",
   "stage_packet": ".agent-governance/stages/R1a/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/R1a/PAYLOAD_MANIFEST.sha256",
   "product_status": "IN_PROGRESS",
@@ -29,11 +29,14 @@
     "PRODUCTION_RELEASED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "codex_r1a_implementer",
-  "next_action": "Execute WP-R1A-00 through WP-R1A-03 offline, then stop at WP-R1A-04 for a candidate-bound one-shot live authorization.",
-  "required_authorization": "NONE_FOR_OFFLINE_WP-R1A-00_THROUGH_WP-R1A-03; LIVE_OLLAMA_MEDIA_OR_BROWSER_REQUIRES_SEPARATE_EXPLICIT_AUTHORIZATION",
-  "authorization_request": "reports/v0-s1/authorization-wp-s1-04-checkpoint-01.request.json",
-  "authorization_record": "reports/v0-s1/authorization-wp-s1-04-checkpoint-01.json",
+  "next_owner": "project_owner",
+  "next_action": "Approve or reject the candidate-bound one-shot WP-R1A-04 live acceptance request.",
+  "required_authorization": "AUTH-REQUEST-V1-R1A-WP-R1A-04-LIVE-01",
+  "authorization_request": "reports/r1a/authorization-wp-r1a-04-live-01.request.json",
+  "authorization_record": null,
+  "implementation_candidate": "605d954c8161af2ad5690301f7942d8c7e93f66a",
+  "offline_evidence_commit": "b08a7aff55644eabd91fa20b338fcc9ffa1186ac",
+  "offline_receipt": "reports/r1a/implementation-receipt-offline.json",
   "evidence_root": "reports/",
   "gate_decision": "reports/v0-s1/gate-decision-v0-min.md",
   "human_signoff": "reports/v0-s1/human-signoff-v0-min.json",
@@ -45,5 +48,5 @@
     "decision": "docs/23_V1_EARLY_FRONTEND_SEQUENCE.md",
     "meaning": "V0-S1 remains immutable and terminal; the approved future-stage task graph changed after V0-Min acceptance"
   },
-  "exact_stop_reason": "R1A_PACKET_FROZEN_OFFLINE_IMPLEMENTATION_AUTHORIZED"
+  "exact_stop_reason": "R1A_OFFLINE_READY_WAIT_AUTH_LIVE_01"
 }

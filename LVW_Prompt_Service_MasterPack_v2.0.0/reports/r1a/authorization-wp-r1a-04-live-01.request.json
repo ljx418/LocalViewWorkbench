@@ -1,0 +1,70 @@
+{
+  "schema_version": "lvw.authorization-request/1",
+  "request_id": "AUTH-REQUEST-V1-R1A-WP-R1A-04-LIVE-01",
+  "status": "PENDING_PROJECT_OWNER_APPROVAL",
+  "is_authorization": false,
+  "does_not_authorize_execution": true,
+  "does_not_authorize_stage_pass": true,
+  "project_id": "lvw-prompt-service",
+  "stage_id": "R1a",
+  "workpack_id": "WP-R1A-04",
+  "requested_by": "codex_gate_owner",
+  "requested_from": "project_owner",
+  "planned_authorization_id": "AUTH-V1-R1A-2026-10-29-LIVE-01",
+  "product_candidate": "605d954c8161af2ad5690301f7942d8c7e93f66a",
+  "evidence_commit": "b08a7aff55644eabd91fa20b338fcc9ffa1186ac",
+  "offline_receipt": "reports/r1a/implementation-receipt-offline.json",
+  "offline_checkpoint_sha256": "d617d38140a0f7b91b8e355274e88e4cbc9ceb76170b479298d3ddfa9234744b",
+  "harness_path": "tools/r1a_live_acceptance.py",
+  "harness_sha256": "aecb66b8c595dfd8596292fcea1ce803e1a3a133a113ccec3c732d8577417dbd",
+  "browser_harness_path": "tools/r1a_browser_acceptance.cjs",
+  "browser_harness_sha256": "1b3dabb01f4153a0398d4a0518860f8f505c40e0fd2d411ece2056d82851318a",
+  "run_id": "r1a-live-01",
+  "evidence_relative": "reports/r1a/r1a-live-01",
+  "sample": {"alias":"TEST_SOURCE/image-sample","sha256":"b4bbd08a0fad67cc04e55d15bf2c48e9a76dcfd6dda147d8cc504452dfc78a42"},
+  "model": "gemma4:26b",
+  "network": "literal loopback only: backend 127.0.0.1:8765 and Ollama 127.0.0.1:11434; OLLAMA_NO_CLOUD=1",
+  "budget": {
+    "effective_image_attempts": 1,
+    "model_calls": 1,
+    "backend_starts": 1,
+    "ollama_starts": 1,
+    "headless_browser_runs": 1,
+    "independent_review_sessions": 1,
+    "downloads": 0,
+    "cloud_calls": 0,
+    "external_cost": 0
+  },
+  "allowed": [
+    "verify the bound candidate, harnesses, offline evidence, fixed non-private sample and local model identity",
+    "start one run-owned local FastAPI process and one run-owned Windows-native Ollama process on the bound loopback ports",
+    "make one model call through the real React -> FastAPI -> Ollama product path using the fixed sample",
+    "run one headless Chromium session against the loopback product for upload, analysis, explicit adoption, clipboard, TXT/JSON export and 360/1280/1920 screenshots",
+    "after terminal evidence, run one isolated read-only independent review session against the candidate and evidence",
+    "persist minimized text results, hashes, screenshots, exit states and cleanup proof under the bound evidence directory"
+  ],
+  "required_checks": [
+    "real same-origin UI/API production path reaches the bound local model and returns nonempty observations and English prompt",
+    "raw/suggestion/draft remain separate and adoption is explicit",
+    "copy, TXT and JSON exports match the adopted draft without extra model calls",
+    "360/1280/1920 have no horizontal overflow and runtime browser requests remain loopback-only",
+    "model unload, owned process termination, empty target ports and run-temp cleanup are proven",
+    "independent review reports Fatal=0 and Major=0 before the human gate"
+  ],
+  "mandatory_stops": [
+    "candidate, evidence, harness, sample, model or authorization identity mismatch",
+    "pre-existing listener on 8765 or 11434 or executable ownership cannot be proven",
+    "any non-loopback browser or model connection, cloud attempt, extra model call or budget overrun",
+    "product-path, semantic, export, responsive, cleanup, privacy or evidence failure",
+    "any Fatal or Major independent finding"
+  ],
+  "forbidden": [
+    "visible browser, ComfyUI startup, paid service, cloud, download, upgrade, permanent configuration or remote Git push",
+    "media other than the hash-bound sample, retry under the same authorization or reuse of old success evidence",
+    "termination of non-owned processes, lowering the frozen denominator or treating this run as V1 PASS"
+  ],
+  "evidence_minimization": "Do not persist source media bytes/base64, private absolute paths, secrets, unrelated process tables or full Ollama logs; retain aliases, hashes, bounded prompt fields, screenshots and owned terminal states.",
+  "cleanup": "Require keep_alive=0 and empty /api/ps, terminate only the proven owned backend and Ollama processes, prove ports 8765/11434 empty, remove run-owned temp, and preserve only minimized repository evidence.",
+  "expires_when": "one terminal live receipt is generated, the single effective image/model attempt is consumed, any mandatory stop occurs, or the independent review is completed",
+  "approval": {"decision":"PENDING","approved_by":null,"approved_at":null,"approval_commit":null}
+}
