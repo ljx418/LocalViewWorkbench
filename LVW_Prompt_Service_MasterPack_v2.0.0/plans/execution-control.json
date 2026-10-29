@@ -9,7 +9,7 @@
     "stage_id": "R1a",
     "workpack_id": "WP-R1A-04",
     "gate": "GATE4_REAL_ACCEPTANCE",
-    "state": "WAIT_AUTH"
+    "state": "NO_GO"
   },
   "last_passed_gate": {
     "id": "WP_R1A_03_PACKET_1_1_OFFLINE_CHECKPOINT_PASS",
@@ -29,18 +29,19 @@
     "PRODUCTION_RELEASED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "project_owner",
-  "next_action": "Approve or reject the packet-1.1 candidate-bound one-shot live-03 request.",
-  "required_authorization": "AUTH-REQUEST-V1-R1A-WP-R1A-04-LIVE-03",
+  "next_owner": "codex_r1a_implementer",
+  "next_action": "Complete the corrected-candidate offline checkpoint, bind the single program-authorized R1a recheck child receipt, then execute it once.",
+  "required_authorization": "AUTH-PROGRAM-V1-LOCAL-01:R1a:corrected_candidate_recheck",
   "authorization_request": "reports/r1a/authorization-wp-r1a-04-live-03.request.json",
-  "authorization_record": null,
+  "authorization_record": "reports/r1a/authorization-wp-r1a-04-live-03.json",
   "historical_authorization_records": [
     "reports/r1a/authorization-wp-r1a-04-live-01.json",
-    "reports/r1a/authorization-wp-r1a-04-live-02.json"
+    "reports/r1a/authorization-wp-r1a-04-live-02.json",
+    "reports/authorization-program-v1-local-01.json"
   ],
   "contract_change_request": "reports/r1a/change-request-r1a-contract-01.json",
   "contract_change_decision": "reports/r1a/change-decision-r1a-contract-01.json",
-  "implementation_candidate": "febb0b3760dd733cd209d503c0ebf43f2d61e2d2",
+  "implementation_candidate": "36f42ebb5627c4965789d87ccbe8b5417e013b18",
   "offline_evidence_commit": "f30722f88476d9407561bc4aa9d253f26f4ea87f",
   "offline_receipt": "reports/r1a/implementation-receipt-packet-1.1-correction-02.json",
   "evidence_root": "reports/",
@@ -54,7 +55,7 @@
     "decision": "reports/r1a/change-decision-r1a-contract-01.json",
     "meaning": "R1a local acceptance IDs were corrected without changing existing global V1 cases or product scope"
   },
-  "live_terminal_receipt": "reports/r1a/r1a-live-02/live-receipt.json",
+  "live_terminal_receipt": "reports/r1a/r1a-live-03/live-receipt.json",
   "independent_review": "reports/r1a/independent-review-r1a-live-02.md",
-  "exact_stop_reason": "R1A_PACKET_1_1_CORRECTION_READY_WAIT_AUTH_LIVE_03"
+  "exact_stop_reason": "R1A_LIVE_03_NO_GO_OFFLINE_CORRECTION_CHECKPOINT_IN_PROGRESS"
 }

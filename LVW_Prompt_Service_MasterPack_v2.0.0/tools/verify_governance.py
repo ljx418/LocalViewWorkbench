@@ -605,6 +605,7 @@ def main_r1a(args: argparse.Namespace, execution: dict) -> int:
         and control.get("external_authorization") in {
             "AUTH-V1-R1A-2026-10-29-LIVE-01",
             "AUTH-V1-R1A-2026-10-29-LIVE-02",
+            "AUTH-V1-R1A-2026-10-29-LIVE-03",
         }
         and control.get("execution_authorized") is True
         and control.get("next_owner") == "local_ci"
@@ -617,6 +618,7 @@ def main_r1a(args: argparse.Namespace, execution: dict) -> int:
         and control.get("external_authorization") in {
             "EXPIRED_AUTH-V1-R1A-2026-10-29-LIVE-01",
             "EXPIRED_AUTH-V1-R1A-2026-10-29-LIVE-02",
+            "EXPIRED_AUTH-V1-R1A-2026-10-29-LIVE-03",
         }
         and control.get("execution_authorized") is False
         and control.get("next_owner") == "codex_r1a_implementer"
