@@ -9,7 +9,7 @@
     "stage_id": "R1a",
     "workpack_id": "WP-R1A-04",
     "gate": "GATE4_REAL_ACCEPTANCE",
-    "state": "RUNNING"
+    "state": "NO_GO"
   },
   "last_passed_gate": {
     "id": "WP_R1A_03_OFFLINE_CHECKPOINT_PASS",
@@ -29,9 +29,9 @@
     "PRODUCTION_RELEASED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "local_ci",
-  "next_action": "Execute the exact one-shot live harness, expire the authorization at terminal receipt, then run the authorized isolated independent review if live evidence passes.",
-  "required_authorization": "SATISFIED_BY_AUTH-V1-R1A-2026-10-29-LIVE-01",
+  "next_owner": "codex_r1a_implementer",
+  "next_action": "Correct the cross-domain preflight, ownership and evidence oracles offline; rerun the offline checkpoint and prepare a fresh one-shot request without executing it.",
+  "required_authorization": "NONE_FOR_OFFLINE_CORRECTION; NEW_AUTH_REQUIRED_FOR_ANY_LIVE_RERUN",
   "authorization_request": "reports/r1a/authorization-wp-r1a-04-live-01.request.json",
   "authorization_record": "reports/r1a/authorization-wp-r1a-04-live-01.json",
   "implementation_candidate": "605d954c8161af2ad5690301f7942d8c7e93f66a",
@@ -48,5 +48,7 @@
     "decision": "docs/23_V1_EARLY_FRONTEND_SEQUENCE.md",
     "meaning": "V0-S1 remains immutable and terminal; the approved future-stage task graph changed after V0-Min acceptance"
   },
-  "exact_stop_reason": "R1A_WP_R1A_04_ONE_SHOT_LIVE_AUTHORIZED"
+  "live_terminal_receipt": "reports/r1a/r1a-live-01/live-receipt.json",
+  "independent_review": "reports/r1a/independent-review-r1a-live-01.md",
+  "exact_stop_reason": "R1A_LIVE_01_NO_GO_PREEXISTING_WSL_LISTENER_AND_CLEANUP_ORACLE_FAILURE"
 }

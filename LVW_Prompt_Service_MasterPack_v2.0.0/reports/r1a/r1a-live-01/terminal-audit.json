@@ -1,0 +1,22 @@
+{
+  "schema_version": "lvw.terminal-audit/1",
+  "run_id": "r1a-live-01",
+  "authorization_id": "AUTH-V1-R1A-2026-10-29-LIVE-01",
+  "candidate_sha": "605d954c8161af2ad5690301f7942d8c7e93f66a",
+  "original_receipt": "reports/r1a/r1a-live-01/live-receipt.json",
+  "original_receipt_sha256": "05e07f714b1c0a6b18defedd9fd791e336bf198c91a2a3f09691ae5b3461440c",
+  "audit_time": "2026-10-29T08:55:35+08:00",
+  "windows_listeners": {"8765": 0, "11434": 0},
+  "wsl_listeners": {
+    "8765": {"count": 1, "owned_by_run": false, "action_taken": "NONE"},
+    "11434": {"count": 0, "owned_by_run": false, "action_taken": "NONE"}
+  },
+  "correction": {
+    "original_ports_empty_claim": true,
+    "corrected_ports_empty_claim": false,
+    "reason": "The harness checked Windows listeners only and missed a pre-existing non-owned WSL listener on 8765. The unrelated process was not terminated.",
+    "cleanup_disposition": "TARGET_OLLAMA_PORT_EMPTY_AND_RUN_TEMP_REMOVED; CROSS_DOMAIN_PORT_ORACLE_FAILED",
+    "decision": "NO_GO"
+  },
+  "privacy": "No unrelated PID, command line, private path or process table is persisted."
+}

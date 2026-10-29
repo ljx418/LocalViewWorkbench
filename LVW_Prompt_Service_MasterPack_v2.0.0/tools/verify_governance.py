@@ -597,8 +597,18 @@ def main_r1a(args: argparse.Namespace, execution: dict) -> int:
             "reports/r1a/authorization-wp-r1a-04-live-01.json"
         ]
     )
+    terminal_no_go = (
+        control.get("state") == "NO_GO"
+        and control.get("authorization_scope") == "WP-R1A-04_ONE_SHOT_LIVE"
+        and control.get("external_authorization") == "EXPIRED_AUTH-V1-R1A-2026-10-29-LIVE-01"
+        and control.get("execution_authorized") is False
+        and control.get("next_owner") == "codex_r1a_implementer"
+        and control.get("authorization_records") == [
+            "reports/r1a/authorization-wp-r1a-04-live-01.json"
+        ]
+    )
     check("external_scope_fail_closed",
-          offline_ready or waiting_live_authorization or authorized_live)
+          offline_ready or waiting_live_authorization or authorized_live or terminal_no_go)
     registry = load_json(GOV / "project-registry.json")
     project = next((item for item in registry.get("projects", [])
                     if item.get("project_id") == control.get("project_id")), None)
