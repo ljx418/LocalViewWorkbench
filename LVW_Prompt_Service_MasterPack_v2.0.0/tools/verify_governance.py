@@ -606,6 +606,7 @@ def main_r1a(args: argparse.Namespace, execution: dict) -> int:
             "AUTH-V1-R1A-2026-10-29-LIVE-01",
             "AUTH-V1-R1A-2026-10-29-LIVE-02",
             "AUTH-V1-R1A-2026-10-29-LIVE-03",
+            "AUTH-V1-R1A-2026-10-29-LIVE-04",
         }
         and control.get("execution_authorized") is True
         and control.get("next_owner") == "local_ci"

@@ -9,7 +9,7 @@
     "stage_id": "R1a",
     "workpack_id": "WP-R1A-04",
     "gate": "GATE4_REAL_ACCEPTANCE",
-    "state": "NO_GO"
+    "state": "RUNNING"
   },
   "last_passed_gate": {
     "id": "WP_R1A_03_PACKET_1_1_OFFLINE_CHECKPOINT_PASS",
@@ -29,11 +29,11 @@
     "PRODUCTION_RELEASED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "codex_r1a_implementer",
-  "next_action": "Complete the corrected-candidate offline checkpoint, bind the single program-authorized R1a recheck child receipt, then execute it once.",
-  "required_authorization": "AUTH-PROGRAM-V1-LOCAL-01:R1a:corrected_candidate_recheck",
-  "authorization_request": "reports/r1a/authorization-wp-r1a-04-live-03.request.json",
-  "authorization_record": "reports/r1a/authorization-wp-r1a-04-live-03.json",
+  "next_owner": "local_ci",
+  "next_action": "Execute the candidate-bound r1a-live-04 corrected full recheck exactly once.",
+  "required_authorization": "AUTH-V1-R1A-2026-10-29-LIVE-04",
+  "authorization_request": "reports/r1a/authorization-wp-r1a-04-live-04.request.json",
+  "authorization_record": "reports/r1a/authorization-wp-r1a-04-live-04.json",
   "historical_authorization_records": [
     "reports/r1a/authorization-wp-r1a-04-live-01.json",
     "reports/r1a/authorization-wp-r1a-04-live-02.json",
@@ -57,5 +57,5 @@
   },
   "live_terminal_receipt": "reports/r1a/r1a-live-03/live-receipt.json",
   "independent_review": "reports/r1a/independent-review-r1a-live-02.md",
-  "exact_stop_reason": "R1A_LIVE_03_NO_GO_OFFLINE_CORRECTION_CHECKPOINT_IN_PROGRESS"
+  "exact_stop_reason": "R1A_LIVE_04_PROGRAM_AUTHORIZED_CORRECTED_RECHECK_READY"
 }
