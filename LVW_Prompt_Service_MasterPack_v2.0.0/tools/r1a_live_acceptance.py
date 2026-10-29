@@ -48,12 +48,15 @@ def sha(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def sanitized_text(text: str) -> str:
+    text = re.sub(r"(?i)[A-Z]:[\\/][^\r\n\t ]+", "<redacted-path>", text)
+    return re.sub(r"/mnt/[a-zA-Z]/[^\r\n\t ]+", "<redacted-path>", text)
+
+
 def sanitized_tail(path: Path, limit: int = 1600) -> str:
     if not path.is_file():
         return ""
-    text = path.read_text(encoding="utf-8", errors="replace")[-limit:]
-    text = re.sub(r"(?i)[A-Z]:[\\/][^\r\n\t ]+", "<redacted-path>", text)
-    return re.sub(r"/mnt/[a-zA-Z]/[^\r\n\t ]+", "<redacted-path>", text)
+    return sanitized_text(path.read_text(encoding="utf-8", errors="replace")[-limit:])
 
 
 def ps(script: str, timeout: int = 60) -> str:
@@ -291,6 +294,7 @@ def main() -> int:
             **os.environ,
             "PYTHONDONTWRITEBYTECODE": "1",
             "LVW_PORT": str(BACKEND_PORT),
+            "LVW_DATA_ROOT": str(runtime / "data"),
             "LVW_PROVIDER_LEDGER": str(log_paths["provider"]),
         }
         backend = subprocess.Popen(
@@ -320,14 +324,7 @@ def main() -> int:
         result["attempts"] = submissions
         result["browser_exit_code"] = browser.returncode
         result["browser_stdout_sha256"] = hashlib.sha256(browser.stdout.encode()).hexdigest()
-        result["browser_stderr_tail"] = re.sub(
-            r"(?i)[A-Z]:[\\/][^\r\n\t ]+", "<redacted-path>", browser.stderr[-1200:]
-        )
-        if browser.returncode:
-            raise RuntimeError("BROWSER_PRODUCT_PATH_FAILED")
-        browser_result = json.loads((evidence / "browser-result.json").read_text(encoding="utf-8"))
-        if not browser_result.get("passed") or browser_result.get("blocked_non_loopback_requests"):
-            raise RuntimeError("BROWSER_NETWORK_ORACLE_FAILED")
+        result["browser_stderr_tail"] = sanitized_text(browser.stderr[-1200:])
         provider_entries = [json.loads(line) for line in log_paths["provider"].read_text(
             encoding="utf-8").splitlines() if line.strip()]
         provider_calls = [item for item in provider_entries if item.get("event") == "provider_call_started"]
@@ -342,6 +339,11 @@ def main() -> int:
         if running.get("models") != []:
             raise RuntimeError("MODEL_UNLOAD_NOT_PROVEN")
         terminal["model"] = "UNLOADED"
+        if browser.returncode:
+            raise RuntimeError("BROWSER_PRODUCT_PATH_FAILED")
+        browser_result = json.loads((evidence / "browser-result.json").read_text(encoding="utf-8"))
+        if not browser_result.get("passed") or browser_result.get("blocked_non_loopback_requests"):
+            raise RuntimeError("BROWSER_NETWORK_ORACLE_FAILED")
         result["fixed_denominator"] = {
             "R1A-M01": "PASS_OFFLINE_BOUNDARIES", "R1A-M02": "PASS",
             "R1A-M03": "PASS", "R1A-M04": "PASS", "R1A-M05": "PASS",
@@ -373,6 +375,17 @@ def main() -> int:
         if result["model_calls"] > 0 and terminal["model"] == "NOT_LOADED":
             terminal["model"] = "LOAD_ATTEMPTED_UNLOAD_UNPROVEN"
         cleanup_errors: list[str] = []
+        if terminal["ollama"] == "RUNNING_OWNED" and result["model_calls"] > 0 and terminal["model"] != "UNLOADED":
+            try:
+                running = json.loads(wait_url(
+                    f"http://127.0.0.1:{OLLAMA_PORT}/api/ps", "OLLAMA_PS_CLEANUP", timeout=10
+                ))
+                if running.get("models") == []:
+                    terminal["model"] = "UNLOADED"
+                else:
+                    cleanup_errors.append("MODEL_UNLOAD_NOT_PROVEN")
+            except Exception as exc:
+                cleanup_errors.append("MODEL_UNLOAD_AUDIT:" + type(exc).__name__)
         try:
             if backend is not None:
                 if backend.poll() is not None:
@@ -403,7 +416,10 @@ def main() -> int:
                 wrapper_terminal = None
                 if terminal_path is not None and terminal_path.is_file():
                     wrapper_terminal = json.loads(terminal_path.read_text(encoding="utf-8-sig"))
-                    result["wrapper_terminal"] = wrapper_terminal
+                    result["wrapper_terminal"] = {
+                        **wrapper_terminal,
+                        "executable_path": "OLLAMA_EXE" if wrapper_terminal.get("executable_path") else None,
+                    }
                     if wrapper_terminal.get("lease_expired") is True:
                         cleanup_errors.append("WRAPPER_LEASE_EXPIRED")
                 if wrapper_terminal and wrapper_terminal.get("child_exited") is True:

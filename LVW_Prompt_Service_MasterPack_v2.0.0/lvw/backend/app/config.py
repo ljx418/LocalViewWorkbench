@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import os
 from pathlib import Path
 
 
@@ -14,5 +15,6 @@ class Settings:
 
     @classmethod
     def local(cls, data_root: Path | None = None, static_root: Path | None = None) -> "Settings":
-        root = data_root or Path.cwd() / ".lvw-runtime"
+        configured_root = os.environ.get("LVW_DATA_ROOT") if data_root is None else None
+        root = data_root or (Path(configured_root) if configured_root else Path.cwd() / ".lvw-runtime")
         return cls(data_root=root.resolve(), static_root=static_root.resolve() if static_root else None)

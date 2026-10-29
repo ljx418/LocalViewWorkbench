@@ -93,7 +93,7 @@ function arg(name) {
       throw new Error("adopted prompt fields are inconsistent");
     }
 
-    await page.getByRole("button", { name: "复制", exact: true }).nth(1).click();
+    await page.locator(".draft-grid label").nth(1).getByRole("button", { name: "复制", exact: true }).click();
     const clipboard = await page.evaluate(() => navigator.clipboard.readText());
     if (clipboard !== adopted.natural_en) throw new Error("clipboard mismatch");
 

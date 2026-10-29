@@ -10,7 +10,7 @@
     "prepared_against_commit": "f1780de806d4082dbf1d0f8a3ece81cf369aa0e1",
     "product_control_sha256": "bf077004bc40d9cd8b82ee8e86406bcfc358129bda70b2d799ff61ff27665579"
   },
-  "state": "AUTHORIZED_CHECKPOINT",
+  "state": "CORRECTION_REQUIRED",
   "last_passed_gate": "WP_R1A_03_PACKET_1_1_OFFLINE_CHECKPOINT_PASS",
   "dependencies": ["V0-S1:PASS", "R0:INCLUDED_AS_WP-R1A-00"],
   "authorities": [
@@ -57,11 +57,11 @@
     "WP-R1A-04 remains WAIT_AUTH until a one-shot request binds candidate, endpoint, model, sample, attempts and cleanup.",
     "R1a completion does not authorize V1 PASS or production release."
   ],
-  "execution_authorized": true,
-  "authorization_scope": "AUTH_PROGRAM_V1_LOCAL_01_CHILD_LIVE_03_ONE_SHOT",
-  "external_authorization": "AUTHORIZED_VIA_AUTH_PROGRAM_V1_LOCAL_01",
-  "next_owner": "local_ci",
-  "required_authorization": "AUTH-V1-R1A-2026-10-29-LIVE-03",
+  "execution_authorized": false,
+  "authorization_scope": "AUTH_PROGRAM_V1_LOCAL_01_R1A_CORRECTED_RECHECK_REMAINS",
+  "external_authorization": "LIVE_03_EXPIRED_NO_GO",
+  "next_owner": "codex_r1a_implementer",
+  "required_authorization": "CORRECT_SOURCE_AND_BIND_ONE_RECHECK_CHILD_RECEIPT",
   "authorization_request": "reports/r1a/authorization-wp-r1a-04-live-03.request.json",
   "change_request": "reports/r1a/change-request-r1a-contract-01.json",
   "change_decision": "reports/r1a/change-decision-r1a-contract-01.json",
@@ -74,6 +74,6 @@
   "implementation_candidate": "febb0b3760dd733cd209d503c0ebf43f2d61e2d2",
   "evidence_commit": "f30722f88476d9407561bc4aa9d253f26f4ea87f",
   "offline_receipt": "reports/r1a/implementation-receipt-packet-1.1-correction-02.json",
-  "terminal_receipt": "reports/r1a/r1a-live-02/live-receipt.json",
+  "terminal_receipt": "reports/r1a/r1a-live-03/live-receipt.json",
   "independent_review": "reports/r1a/independent-review-r1a-live-02.md"
 }

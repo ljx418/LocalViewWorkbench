@@ -1,0 +1,100 @@
+{
+  "schema_version": "lvw.live-receipt/2",
+  "run_id": "r1a-live-03",
+  "authorization_id": "AUTH-V1-R1A-2026-10-29-LIVE-03",
+  "authorization_sha256": "e82eb54b5f77218ef1f59f490fb2aac2f9e4801316a94f9954f37445fd2c66c6",
+  "candidate_sha": "febb0b3760dd733cd209d503c0ebf43f2d61e2d2",
+  "harness_sha256": "4dd18b6043b653d7bade2332c5438abf33fc4d5911a2a6249b5a226d304f726f",
+  "browser_harness_sha256": "10443d1d6657352ee422facbca70cbf44f73e45bf330deba3f44da864e09880f",
+  "runtime_guard_sha256": "6b3f218bacc99ffe92a72be2ed9bc9d318c1867f8ff5b03e7ef946e7e53be7a6",
+  "ollama_wrapper_sha256": "5b1423da244bc0f2a25f37f9a44e22b6e7e0565c05d4b6d989ec80bc95a1bb81",
+  "offline_checkpoint_sha256": "5a84620393e5282374db695137eb8905314ff4261b62bea2b9309036f4c29ef2",
+  "acceptance_hash": "82a3736ab77ee98e301d7e055a78b160774c9c09692288db89c5a2768bfe39ab",
+  "sample_alias": "TEST_SOURCE/image-sample",
+  "sample_sha256": "b4bbd08a0fad67cc04e55d15bf2c48e9a76dcfd6dda147d8cc504452dfc78a42",
+  "model": "gemma4:26b",
+  "backend_port": 18765,
+  "started_at": "2026-10-29T06:11:08.445905+00:00",
+  "attempts": 1,
+  "model_calls": 1,
+  "browser_runs": 1,
+  "phase": "BROWSER_PRODUCT_PATH",
+  "decision": "NO_GO_CLEANUP_UNPROVEN",
+  "stage_pass_claim": false,
+  "fixed_denominator": {
+    "R1A-M01": "PENDING",
+    "R1A-M02": "PENDING",
+    "R1A-M03": "PENDING",
+    "R1A-M04": "PENDING",
+    "R1A-M05": "PENDING",
+    "R1A-M06": "PENDING",
+    "R1A-M07": "PENDING"
+  },
+  "preflight_ports": {
+    "windows": {
+      "18765": 0,
+      "11434": 0
+    },
+    "wsl": {
+      "18765": 0,
+      "11434": 0
+    }
+  },
+  "browser_exit_code": 1,
+  "browser_stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "browser_stderr_tail": "locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: '复制', exact: true }).nth(1)\u001b[22m\n\n    at <redacted-path>\n",
+  "error": "RuntimeError:BROWSER_PRODUCT_PATH_FAILED",
+  "provider_ledger": [
+    {
+      "call_id": "call_632820e749ff4596a9e21ec5006ab5ed",
+      "event": "provider_call_started",
+      "input_sha256": "805fe70fae055a33120cb94b9a6eb15d2bd54b28783702f8c194491a3d091f98",
+      "model": "gemma4:26b",
+      "time_ns": 1793254295471427213
+    },
+    {
+      "call_id": "call_632820e749ff4596a9e21ec5006ab5ed",
+      "event": "provider_call_completed",
+      "model": "gemma4:26b",
+      "outcome": "success",
+      "time_ns": 1793254312054804335
+    }
+  ],
+  "wrapper_terminal": {
+    "pid": 35996,
+    "start_filetime_utc": "134377278779290375",
+    "executable_path": "OLLAMA_EXE",
+    "child_exited": true,
+    "stop_requested": true,
+    "lease_expired": false,
+    "exit_code": null,
+    "wrapper_error": false
+  },
+  "wrapper_exit_code": 0,
+  "cleanup_ports": {
+    "windows": {
+      "18765": 0,
+      "11434": 0
+    },
+    "wsl": {
+      "18765": 0,
+      "11434": 0
+    }
+  },
+  "diagnostics": {
+    "ollama_stdout_tail": "[GIN] 2026/10/29 - 14:11:31 | 200 |       511.6µs |       127.0.0.1 | GET      \"/api/version\"\n[GIN] 2026/10/29 - 14:11:31 | 200 |       511.6µs |       127.0.0.1 | GET      \"/api/version\"\n[GIN] 2026/10/29 - 14:11:31 | 200 |       511.6µs |       127.0.0.1 | GET      \"/api/version\"\n[GIN] 2026/10/29 - 14:11:32 | 200 |      1.5452ms |       127.0.0.1 | GET      \"/api/tags\"\n[GIN] 2026/10/29 - 14:11:52 | 200 |   16.5294014s |       127.0.0.1 | POST     \"/api/chat\"\n",
+    "ollama_stderr_tail": "kens = 5, memory_seq_rm [5, end)\nslot process_mtmd: id  0 | task 0 | encoding mtmd batch from idx = 5, n_chunks = 1\ndecoding image batch 1/1, n_tokens_batch = 252\nsched_reserve: reserving ...\nsched_reserve:      CUDA0 compute buffer size =    99.52 MiB\nsched_reserve:  CUDA_Host compute buffer size =    14.52 MiB\nsched_reserve: graph nodes  = 2644\nsched_reserve: graph splits = 2\nsched_reserve: reserve took 7.70 ms, sched copies = 1\nimage decoded (batch 1/1) in 198 ms\nsched_reserve: reserving ...\nsched_reserve:      CUDA0 compute buffer size =    99.52 MiB\nsched_reserve:  CUDA_Host compute buffer size =    14.52 MiB\nsched_reserve: graph nodes  = 2644\nsched_reserve: graph splits = 2\nsched_reserve: reserve took 8.91 ms, sched copies = 1\nslot   operator(): id  0 | task 0 | cached n_tokens = 303, memory_seq_rm [303, end)\nslot init_sampler: id  0 | task 0 | init sampler, took 0.01 ms, tokens: text = 55, total = 307\nslot create_check: id  0 | task 0 | created context checkpoint 1 of 32 (pos_min = 0, pos_max = 302, n_tokens = 303, size = 59.184 MiB)\nslot print_timing: id  0 | task 0 | prompt eval time =     781.28 ms /   307 tokens (    2.54 ms per token,   392.94 tokens per second)\nslot print_timing: id  0 | task 0 |        eval time =    1970.81 ms /   228 tokens (    8.64 ms per token,   115.69 tokens per second)\nslot print_timing: id  0 | task 0 |       total time =    2752.09 ms /   535 tokens\nslot print_timing: id  0 | task 0 |    graphs reused =        226\nslot      release: id  0 | task 0 | stop processing: n_tokens = 534, truncated = 0\nsrv  update_slots: all slots are idle\n",
+    "wrapper_tail": "",
+    "wrapper_error": "",
+    "backend_tail": "f74e4610a1b78e19b2442148 HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:48464 - \"GET /api/v1/jobs/job_47b717bef74e4610a1b78e19b2442148 HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:48464 - \"GET /api/v1/jobs/job_47b717bef74e4610a1b78e19b2442148 HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:48464 - \"GET /api/v1/jobs/job_47b717bef74e4610a1b78e19b2442148 HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:48464 - \"GET /api/v1/jobs/job_47b717bef74e4610a1b78e19b2442148 HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:48464 - \"GET /api/v1/jobs/job_47b717bef74e4610a1b78e19b2442148 HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:48464 - \"GET /api/v1/jobs/job_47b717bef74e4610a1b78e19b2442148 HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:48464 - \"GET /api/v1/jobs/job_47b717bef74e4610a1b78e19b2442148 HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:48464 - \"GET /api/v1/jobs/job_47b717bef74e4610a1b78e19b2442148 HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:48464 - \"GET /api/v1/jobs/job_47b717bef74e4610a1b78e19b2442148 HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:48464 - \"GET /api/v1/jobs/job_47b717bef74e4610a1b78e19b2442148 HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:48464 - \"GET /api/v1/jobs/job_47b717bef74e4610a1b78e19b2442148 HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:48464 - \"GET /api/v1/jobs/job_47b717bef74e4610a1b78e19b2442148 HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:48464 - \"GET /api/v1/jobs/job_47b717bef74e4610a1b78e19b2442148 HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:48464 - \"GET /api/v1/model-runs/run_176ce27659cf47d087e91fc9f09d4f02 HTTP/1.1\" 200 OK\nINFO:     Shutting down\nINFO:     Waiting for application shutdown.\nINFO:     Application shutdown complete.\nINFO:     Finished server process [218329]\n"
+  },
+  "cleanup_errors": [],
+  "terminal": {
+    "backend": "STOPPED",
+    "ollama": "STOPPED",
+    "model": "LOAD_ATTEMPTED_UNLOAD_UNPROVEN",
+    "ports": "EMPTY",
+    "runtime": "REMOVED"
+  },
+  "finished_at": "2026-10-29T06:12:25.349587+00:00"
+}
