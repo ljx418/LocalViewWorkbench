@@ -9,7 +9,7 @@
     "stage_id": "R1a",
     "workpack_id": "WP-R1A-04",
     "gate": "GATE4_REAL_ACCEPTANCE",
-    "state": "RUNNING"
+    "state": "NO_GO"
   },
   "last_passed_gate": {
     "id": "WP_R1A_03_PACKET_1_1_OFFLINE_CHECKPOINT_PASS",
@@ -29,9 +29,9 @@
     "PRODUCTION_RELEASED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "local_ci",
-  "next_action": "Execute the candidate-bound r1a-live-05 corrected full recheck exactly once; live-04 was denied before target preflight.",
-  "required_authorization": "AUTH-V1-R1A-2026-10-29-LIVE-05",
+  "next_owner": "project_owner",
+  "next_action": "Review the independent live-05 NO_GO report; any further real run requires a new explicit authorization because the R1a program budget is exhausted.",
+  "required_authorization": "NEW_EXPLICIT_R1A_AUTHORIZATION_REQUIRED_PROGRAM_BUDGET_EXHAUSTED",
   "authorization_request": "reports/r1a/authorization-wp-r1a-04-live-05.request.json",
   "authorization_record": "reports/r1a/authorization-wp-r1a-04-live-05.json",
   "historical_authorization_records": [
@@ -41,7 +41,7 @@
   ],
   "contract_change_request": "reports/r1a/change-request-r1a-contract-01.json",
   "contract_change_decision": "reports/r1a/change-decision-r1a-contract-01.json",
-  "implementation_candidate": "36f42ebb5627c4965789d87ccbe8b5417e013b18",
+  "implementation_candidate": "f901c492addcaad4e7a6a03eb2b0973c74887aef",
   "offline_evidence_commit": "f30722f88476d9407561bc4aa9d253f26f4ea87f",
   "offline_receipt": "reports/r1a/implementation-receipt-packet-1.1-correction-02.json",
   "evidence_root": "reports/",
@@ -55,7 +55,7 @@
     "decision": "reports/r1a/change-decision-r1a-contract-01.json",
     "meaning": "R1a local acceptance IDs were corrected without changing existing global V1 cases or product scope"
   },
-  "live_terminal_receipt": "reports/r1a/r1a-live-03/live-receipt.json",
-  "independent_review": "reports/r1a/independent-review-r1a-live-02.md",
-  "exact_stop_reason": "R1A_LIVE_04_PREFLIGHT_DENIED_NO_EXTERNAL_ACTION_LIVE_05_REPLACEMENT_READY"
+  "live_terminal_receipt": "reports/r1a/r1a-live-05/live-receipt.json",
+  "independent_review": "reports/r1a/independent-review-r1a-live-05.md",
+  "exact_stop_reason": "R1A_LIVE_05_NO_GO_BROWSER_COPY_ORACLE_R1A_PROGRAM_RECHECK_BUDGET_EXHAUSTED"
 }

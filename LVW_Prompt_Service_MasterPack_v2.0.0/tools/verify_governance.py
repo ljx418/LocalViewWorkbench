@@ -621,9 +621,17 @@ def main_r1a(args: argparse.Namespace, execution: dict) -> int:
             "EXPIRED_AUTH-V1-R1A-2026-10-29-LIVE-01",
             "EXPIRED_AUTH-V1-R1A-2026-10-29-LIVE-02",
             "EXPIRED_AUTH-V1-R1A-2026-10-29-LIVE-03",
+            "EXPIRED_AUTH-V1-R1A-2026-10-29-LIVE-05",
         }
         and control.get("execution_authorized") is False
-        and control.get("next_owner") == "codex_r1a_implementer"
+        and (
+            control.get("next_owner") == "codex_r1a_implementer"
+            or (
+                control.get("next_owner") == "project_owner"
+                and control.get("required_authorization")
+                == "NEW_EXPLICIT_R1A_AUTHORIZATION_REQUIRED_PROGRAM_BUDGET_EXHAUSTED"
+            )
+        )
         and control.get("authorization_records")
         and all((ROOT / item).is_file() for item in control.get("authorization_records", []))
     )

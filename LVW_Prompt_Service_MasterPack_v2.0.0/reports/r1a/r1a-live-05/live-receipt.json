@@ -1,0 +1,100 @@
+{
+  "schema_version": "lvw.live-receipt/2",
+  "run_id": "r1a-live-05",
+  "authorization_id": "AUTH-V1-R1A-2026-10-29-LIVE-05",
+  "authorization_sha256": "3d4a24ed2bd58f892028fdbfc615e6a0ebe168f5d8d20824623e82b6a900d775",
+  "candidate_sha": "f901c492addcaad4e7a6a03eb2b0973c74887aef",
+  "harness_sha256": "e849c8aabaa7200a3109286afa34993f07a5956ba136491a12aa52da37b74a1f",
+  "browser_harness_sha256": "1358358ad0e0b47dcada9fceac469e3687d861cc8cdde76c4f6b49bfd4f38ab7",
+  "runtime_guard_sha256": "6b3f218bacc99ffe92a72be2ed9bc9d318c1867f8ff5b03e7ef946e7e53be7a6",
+  "ollama_wrapper_sha256": "5b1423da244bc0f2a25f37f9a44e22b6e7e0565c05d4b6d989ec80bc95a1bb81",
+  "offline_checkpoint_sha256": "fd02231b9b650c6e8364badbe01ab6c895b88dd4d22c65821c37bdf9ea2f6e91",
+  "acceptance_hash": "82a3736ab77ee98e301d7e055a78b160774c9c09692288db89c5a2768bfe39ab",
+  "sample_alias": "TEST_SOURCE/image-sample",
+  "sample_sha256": "b4bbd08a0fad67cc04e55d15bf2c48e9a76dcfd6dda147d8cc504452dfc78a42",
+  "model": "gemma4:26b",
+  "backend_port": 18765,
+  "started_at": "2026-10-29T06:20:14.545455+00:00",
+  "attempts": 1,
+  "model_calls": 1,
+  "browser_runs": 1,
+  "phase": "MODEL_UNLOAD",
+  "decision": "NO_GO",
+  "stage_pass_claim": false,
+  "fixed_denominator": {
+    "R1A-M01": "PENDING",
+    "R1A-M02": "PENDING",
+    "R1A-M03": "PENDING",
+    "R1A-M04": "PENDING",
+    "R1A-M05": "PENDING",
+    "R1A-M06": "PENDING",
+    "R1A-M07": "PENDING"
+  },
+  "preflight_ports": {
+    "windows": {
+      "18765": 0,
+      "11434": 0
+    },
+    "wsl": {
+      "18765": 0,
+      "11434": 0
+    }
+  },
+  "browser_exit_code": 1,
+  "browser_stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "browser_stderr_tail": "locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.draft-grid label').nth(1).getByRole('button', { name: '复制', exact: true })\u001b[22m\n\n    at <redacted-path>\n",
+  "provider_ledger": [
+    {
+      "call_id": "call_1c5d77fd05404c7ca726259f6c9523c6",
+      "event": "provider_call_started",
+      "input_sha256": "805fe70fae055a33120cb94b9a6eb15d2bd54b28783702f8c194491a3d091f98",
+      "model": "gemma4:26b",
+      "time_ns": 1793254832913281546
+    },
+    {
+      "call_id": "call_1c5d77fd05404c7ca726259f6c9523c6",
+      "event": "provider_call_completed",
+      "model": "gemma4:26b",
+      "outcome": "success",
+      "time_ns": 1793254848056033243
+    }
+  ],
+  "error": "RuntimeError:BROWSER_PRODUCT_PATH_FAILED",
+  "wrapper_terminal": {
+    "pid": 19172,
+    "start_filetime_utc": "134377284262454362",
+    "executable_path": "OLLAMA_EXE",
+    "child_exited": true,
+    "stop_requested": true,
+    "lease_expired": false,
+    "exit_code": null,
+    "wrapper_error": false
+  },
+  "wrapper_exit_code": 0,
+  "cleanup_ports": {
+    "windows": {
+      "18765": 0,
+      "11434": 0
+    },
+    "wsl": {
+      "18765": 0,
+      "11434": 0
+    }
+  },
+  "diagnostics": {
+    "ollama_stdout_tail": "[GIN] 2026/10/29 - 14:20:29 | 200 |            0s |       127.0.0.1 | GET      \"/api/version\"\n[GIN] 2026/10/29 - 14:20:30 | 200 |      1.5306ms |       127.0.0.1 | GET      \"/api/tags\"\n[GIN] 2026/10/29 - 14:20:48 | 200 |   15.1006579s |       127.0.0.1 | POST     \"/api/chat\"\n[GIN] 2026/10/29 - 14:21:19 | 200 |            0s |       127.0.0.1 | GET      \"/api/ps\"\n",
+    "ollama_stderr_tail": "kens = 5, memory_seq_rm [5, end)\nslot process_mtmd: id  0 | task 0 | encoding mtmd batch from idx = 5, n_chunks = 1\ndecoding image batch 1/1, n_tokens_batch = 252\nsched_reserve: reserving ...\nsched_reserve:      CUDA0 compute buffer size =    99.52 MiB\nsched_reserve:  CUDA_Host compute buffer size =    14.52 MiB\nsched_reserve: graph nodes  = 2644\nsched_reserve: graph splits = 2\nsched_reserve: reserve took 6.83 ms, sched copies = 1\nimage decoded (batch 1/1) in 198 ms\nsched_reserve: reserving ...\nsched_reserve:      CUDA0 compute buffer size =    99.52 MiB\nsched_reserve:  CUDA_Host compute buffer size =    14.52 MiB\nsched_reserve: graph nodes  = 2644\nsched_reserve: graph splits = 2\nsched_reserve: reserve took 7.37 ms, sched copies = 1\nslot   operator(): id  0 | task 0 | cached n_tokens = 303, memory_seq_rm [303, end)\nslot init_sampler: id  0 | task 0 | init sampler, took 0.01 ms, tokens: text = 55, total = 307\nslot create_check: id  0 | task 0 | created context checkpoint 1 of 32 (pos_min = 0, pos_max = 302, n_tokens = 303, size = 59.184 MiB)\nslot print_timing: id  0 | task 0 | prompt eval time =     774.91 ms /   307 tokens (    2.52 ms per token,   396.18 tokens per second)\nslot print_timing: id  0 | task 0 |        eval time =    1984.11 ms /   225 tokens (    8.82 ms per token,   113.40 tokens per second)\nslot print_timing: id  0 | task 0 |       total time =    2759.02 ms /   532 tokens\nslot print_timing: id  0 | task 0 |    graphs reused =        223\nslot      release: id  0 | task 0 | stop processing: n_tokens = 531, truncated = 0\nsrv  update_slots: all slots are idle\n",
+    "wrapper_tail": "",
+    "wrapper_error": "",
+    "backend_tail": "666f44f7a5ac8c13a4227f68 HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:45926 - \"GET /api/v1/jobs/job_8ef06f77666f44f7a5ac8c13a4227f68 HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:45926 - \"GET /api/v1/jobs/job_8ef06f77666f44f7a5ac8c13a4227f68 HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:45926 - \"GET /api/v1/jobs/job_8ef06f77666f44f7a5ac8c13a4227f68 HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:45926 - \"GET /api/v1/jobs/job_8ef06f77666f44f7a5ac8c13a4227f68 HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:45926 - \"GET /api/v1/jobs/job_8ef06f77666f44f7a5ac8c13a4227f68 HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:45926 - \"GET /api/v1/jobs/job_8ef06f77666f44f7a5ac8c13a4227f68 HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:45926 - \"GET /api/v1/jobs/job_8ef06f77666f44f7a5ac8c13a4227f68 HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:45926 - \"GET /api/v1/jobs/job_8ef06f77666f44f7a5ac8c13a4227f68 HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:45926 - \"GET /api/v1/jobs/job_8ef06f77666f44f7a5ac8c13a4227f68 HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:45926 - \"GET /api/v1/jobs/job_8ef06f77666f44f7a5ac8c13a4227f68 HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:45926 - \"GET /api/v1/jobs/job_8ef06f77666f44f7a5ac8c13a4227f68 HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:45926 - \"GET /api/v1/jobs/job_8ef06f77666f44f7a5ac8c13a4227f68 HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:45926 - \"GET /api/v1/jobs/job_8ef06f77666f44f7a5ac8c13a4227f68 HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:45926 - \"GET /api/v1/model-runs/run_5ef86b8669854ac3b2577e50c219afe5 HTTP/1.1\" 200 OK\nINFO:     Shutting down\nINFO:     Waiting for application shutdown.\nINFO:     Application shutdown complete.\nINFO:     Finished server process [227542]\n"
+  },
+  "cleanup_errors": [],
+  "terminal": {
+    "backend": "STOPPED",
+    "ollama": "STOPPED",
+    "model": "UNLOADED",
+    "ports": "EMPTY",
+    "runtime": "REMOVED"
+  },
+  "finished_at": "2026-10-29T06:21:21.201120+00:00"
+}
