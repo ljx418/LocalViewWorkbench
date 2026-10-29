@@ -89,11 +89,11 @@ function arg(name) {
       image_prompt: await draftFields.nth(2).inputValue(),
       negative: await draftFields.nth(3).inputValue(),
     };
-    if (!adopted.natural_en.trim() || adopted.image_prompt !== adopted.natural_en) {
-      throw new Error("adopted prompt fields are inconsistent");
+    if (Object.values(adopted).some(value => !value.trim()) || adopted.image_prompt !== adopted.natural_en) {
+      throw new Error("adopted four-output prompt fields are incomplete or inconsistent");
     }
 
-    await page.locator(".draft-grid label").nth(1).getByRole("button", { name: "复制", exact: true }).click();
+    await page.getByRole("button", { name: "复制 English prompt", exact: true }).click();
     const clipboard = await page.evaluate(() => navigator.clipboard.readText());
     if (clipboard !== adopted.natural_en) throw new Error("clipboard mismatch");
 

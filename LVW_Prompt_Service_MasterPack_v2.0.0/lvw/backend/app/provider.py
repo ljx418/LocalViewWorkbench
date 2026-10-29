@@ -20,16 +20,19 @@ IMAGE_SCHEMA = {
         "observations": {"type": "array", "items": {"type": "string"}, "minItems": 1, "maxItems": 6},
         "inferences": {"type": "array", "items": {"type": "string"}, "maxItems": 4},
         "unknowns": {"type": "array", "items": {"type": "string"}, "maxItems": 4},
+        "prompt_zh": {"type": "string", "minLength": 1, "maxLength": 800},
         "prompt": {"type": "string", "minLength": 1, "maxLength": 800},
+        "negative": {"type": "string", "minLength": 1, "maxLength": 400},
         "tags": {"type": "array", "items": {"type": "string"}, "maxItems": 8},
     },
-    "required": ["observations", "inferences", "unknowns", "prompt", "tags"],
+    "required": ["observations", "inferences", "unknowns", "prompt_zh", "prompt", "negative", "tags"],
     "additionalProperties": False,
 }
 TEMPLATE_TEXT = (
     "Analyze this single image. Return only compact JSON matching the supplied schema. "
     "observations must be visible facts; keep inferences and unknowns separate. "
-    "The prompt must be a concrete English generation prompt grounded in the image."
+    "prompt_zh and prompt must be concrete Chinese and English generation prompts grounded in the image. "
+    "negative must contain concise generation constraints for defects not supported by the image."
 )
 TEMPLATE_SHA256 = hashlib.sha256(TEMPLATE_TEXT.encode()).hexdigest()
 
@@ -61,7 +64,7 @@ def parse_ollama_response(envelope: dict, *, mode: Mode) -> PromptSpec:
         content = json.loads(message["content"])
     except json.JSONDecodeError as exc:
         raise AppError("PARSE_PARTIAL", "模型输出不是严格 JSON", status_code=503) from exc
-    expected = {"observations", "inferences", "unknowns", "prompt", "tags"}
+    expected = {"observations", "inferences", "unknowns", "prompt_zh", "prompt", "negative", "tags"}
     if not isinstance(content, dict) or set(content) != expected:
         raise AppError("PARSE_PARTIAL", "模型字段与合同不一致", status_code=503)
     observations = _strings(content["observations"], "observations", required=True, max_items=6)
@@ -69,8 +72,12 @@ def parse_ollama_response(envelope: dict, *, mode: Mode) -> PromptSpec:
     unknowns = _strings(content["unknowns"], "unknowns", required=False, max_items=4)
     tags = _strings(content["tags"], "tags", required=False, max_items=8)
     prompt = content["prompt"]
-    if not isinstance(prompt, str) or not prompt.strip() or len(prompt.strip()) > 800:
-        raise AppError("PARSE_PARTIAL", "prompt 格式无效", status_code=503)
+    prompt_zh = content["prompt_zh"]
+    negative = content["negative"]
+    for field, value, limit in (("prompt_zh", prompt_zh, 800), ("prompt", prompt, 800),
+                                ("negative", negative, 400)):
+        if not isinstance(value, str) or not value.strip() or len(value.strip()) > limit:
+            raise AppError("PARSE_PARTIAL", f"{field} 格式无效", status_code=503)
     return PromptSpec(
         mode=mode,
         domains=Domains(observation=observations, inference=inferences, user_evidence=[],
@@ -78,7 +85,8 @@ def parse_ollama_response(envelope: dict, *, mode: Mode) -> PromptSpec:
         technical=Technical(duration_seconds=None, aspect_ratio="", fps_intent=None,
                             camera_motion="", subject_action="", lighting="",
                             composition="", style_notes="", beats=[]),
-        locked_fields=[], text_zh="", text_en=prompt.strip(), tags=tags, negative="",
+        locked_fields=[], text_zh=prompt_zh.strip(), text_en=prompt.strip(), tags=tags,
+        negative=negative.strip(),
         template_id="lvw-r1a-image", template_version="1.0.0",
     )
 

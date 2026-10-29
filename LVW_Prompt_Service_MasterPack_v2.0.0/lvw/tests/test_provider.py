@@ -11,7 +11,9 @@ def model_envelope(**updates):
         "observations": ["A blue ceramic cup sits on a wooden table."],
         "inferences": ["The scene may be a quiet breakfast setting."],
         "unknowns": ["The location is unknown."],
+        "prompt_zh": "木桌上的蓝色陶瓷杯，柔和窗光，特写摄影",
         "prompt": "Blue ceramic cup on a wooden table, soft window light, close-up photograph",
+        "negative": "blur, watermark, distorted cup",
         "tags": ["ceramic cup", "soft light"],
     }
     content.update(updates)
@@ -33,8 +35,8 @@ def test_parse_keeps_observation_inference_unknown_separate():
     assert spec.domains.inference == ["The scene may be a quiet breakfast setting."]
     assert spec.domains.unknowns == ["The location is unknown."]
     assert spec.text_en.startswith("Blue ceramic cup")
-    assert spec.text_zh == ""
-    assert spec.negative == ""
+    assert spec.text_zh.startswith("木桌上的蓝色陶瓷杯")
+    assert spec.negative == "blur, watermark, distorted cup"
 
 
 def test_parse_rejects_extra_or_incomplete_fields():
@@ -45,6 +47,19 @@ def test_parse_rejects_extra_or_incomplete_fields():
     incomplete["done"] = False
     with pytest.raises(AppError):
         parse_ollama_response(incomplete, mode="realistic")
+
+
+@pytest.mark.parametrize("field", ["prompt_zh", "prompt", "negative"])
+def test_parse_rejects_missing_or_blank_four_output_fields(field):
+    envelope = model_envelope()
+    content = __import__("json").loads(envelope["message"]["content"])
+    content[field] = ""
+    envelope["message"]["content"] = __import__("json").dumps(content)
+
+    with pytest.raises(AppError) as caught:
+        parse_ollama_response(envelope, mode="realistic")
+
+    assert caught.value.code == "PARSE_PARTIAL"
 
 
 def test_provider_ledger_is_atomic_and_contains_no_source_path(tmp_path):

@@ -7,8 +7,9 @@ ROOT = Path(__file__).resolve().parents[2]
 def test_browser_copy_oracle_is_scoped_to_english_draft_field():
     source = (ROOT / "tools" / "r1a_browser_acceptance.cjs").read_text(encoding="utf-8")
 
-    assert 'locator(".draft-grid label").nth(1).getByRole("button"' in source
+    assert 'getByRole("button", { name: "复制 English prompt", exact: true })' in source
     assert 'getByRole("button", { name: "复制", exact: true }).nth(1)' not in source
+    assert "Object.values(adopted).some(value => !value.trim())" in source
 
 
 def test_live_harness_binds_backend_data_to_run_owned_runtime():

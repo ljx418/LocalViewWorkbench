@@ -18,13 +18,13 @@ function download(name: string, content: string, type: string) {
   window.setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
-function CopyButton({ value, label }: { value: string; label: string }) {
+function CopyButton({ value, label, accessibleName }: { value: string; label: string; accessibleName: string }) {
   const [state, setState] = useState<"idle" | "copied" | "failed">("idle");
   async function copy() {
     try { await navigator.clipboard.writeText(value); setState("copied"); window.setTimeout(() => setState("idle"), 1200); }
     catch { setState("failed"); window.setTimeout(() => setState("idle"), 1800); }
   }
-  return <button className="text-action" type="button" onClick={copy} disabled={!value}>{state === "copied" ? "已复制" : state === "failed" ? "复制失败" : label}</button>;
+  return <button className="text-action" type="button" aria-label={accessibleName} onClick={copy} disabled={!value}>{state === "copied" ? "已复制" : state === "failed" ? "复制失败" : label}</button>;
 }
 
 export function App() {
@@ -113,10 +113,10 @@ export function App() {
 
         <div className="draft-head"><div><h3>人工工作稿</h3><span>{dirty ? "有未导出的修改" : draftHasContent ? "已采纳，可继续编辑" : "可直接手写"}</span></div><div className="export-actions"><button type="button" onClick={() => download("lvw-prompt.txt", asText(draft), "text/plain;charset=utf-8")}>导出 TXT</button><button type="button" onClick={() => download("lvw-prompt.json", asJson(draft, run), "application/json")}>导出 JSON</button></div></div>
         <div className="draft-grid">
-          <label><span>中文提示词 <CopyButton value={draft.naturalZh} label="复制" /></span><textarea value={draft.naturalZh} onChange={(event) => change("naturalZh", event.target.value)} placeholder="可直接输入中文创作描述" /></label>
-          <label><span>English prompt <CopyButton value={draft.naturalEn} label="复制" /></span><textarea value={draft.naturalEn} onChange={(event) => change("naturalEn", event.target.value)} placeholder="English generation prompt" /></label>
-          <label><span>图像生成提示词 <CopyButton value={draft.imagePrompt} label="复制" /></span><textarea value={draft.imagePrompt} onChange={(event) => change("imagePrompt", event.target.value)} placeholder="面向图像模型的最终提示词" /></label>
-          <label><span>负向提示词 <CopyButton value={draft.negative} label="复制" /></span><textarea value={draft.negative} onChange={(event) => change("negative", event.target.value)} placeholder="可留空，不自动补造" /></label>
+          <div className="draft-field"><div className="field-label"><label htmlFor="draft-natural-zh">中文提示词</label><CopyButton value={draft.naturalZh} label="复制" accessibleName="复制中文提示词" /></div><textarea id="draft-natural-zh" value={draft.naturalZh} onChange={(event) => change("naturalZh", event.target.value)} placeholder="可直接输入中文创作描述" /></div>
+          <div className="draft-field"><div className="field-label"><label htmlFor="draft-natural-en">English prompt</label><CopyButton value={draft.naturalEn} label="复制" accessibleName="复制 English prompt" /></div><textarea id="draft-natural-en" value={draft.naturalEn} onChange={(event) => change("naturalEn", event.target.value)} placeholder="English generation prompt" /></div>
+          <div className="draft-field"><div className="field-label"><label htmlFor="draft-image-prompt">图像生成提示词</label><CopyButton value={draft.imagePrompt} label="复制" accessibleName="复制图像生成提示词" /></div><textarea id="draft-image-prompt" value={draft.imagePrompt} onChange={(event) => change("imagePrompt", event.target.value)} placeholder="面向图像模型的最终提示词" /></div>
+          <div className="draft-field"><div className="field-label"><label htmlFor="draft-negative">负向提示词</label><CopyButton value={draft.negative} label="复制" accessibleName="复制负向提示词" /></div><textarea id="draft-negative" value={draft.negative} onChange={(event) => change("negative", event.target.value)} placeholder="负向约束由模型建议，仍可人工修改" /></div>
         </div>
         <label className="tag-field"><span>标签</span><input value={draft.tags} onChange={(event) => change("tags", event.target.value)} placeholder="用逗号分隔" /></label>
         {run && <details className="raw"><summary>查看模型原始响应</summary><pre>{run.raw_response}</pre></details>}
