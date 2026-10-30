@@ -101,6 +101,25 @@ class OllamaProvider:
         configured = os.environ.get("LVW_PROVIDER_LEDGER")
         self.ledger_path = ledger_path or (Path(configured) if configured else None)
 
+    async def readiness(self) -> dict:
+        tags_endpoint = self.endpoint.removesuffix("/api/chat") + "/api/tags"
+        try:
+            async with httpx.AsyncClient(timeout=min(self.timeout_seconds, 3), trust_env=False) as client:
+                response = await client.get(tags_endpoint)
+                response.raise_for_status()
+                payload = response.json()
+        except (httpx.HTTPError, json.JSONDecodeError):
+            return {"ready": False, "model": self.model, "reason": "OLLAMA_UNAVAILABLE"}
+        models = payload.get("models") if isinstance(payload, dict) else None
+        if not isinstance(models, list):
+            return {"ready": False, "model": self.model, "reason": "OLLAMA_INVALID_RESPONSE"}
+        matches = [item for item in models if isinstance(item, dict)
+                   and self.model in {item.get("name"), item.get("model")}]
+        if len(matches) == 1:
+            return {"ready": True, "model": self.model, "reason": None}
+        reason = "MODEL_NOT_INSTALLED" if not matches else "MODEL_IDENTITY_AMBIGUOUS"
+        return {"ready": False, "model": self.model, "reason": reason}
+
     def _record(self, event: str, call_id: str, **fields) -> None:
         if self.ledger_path is None:
             return

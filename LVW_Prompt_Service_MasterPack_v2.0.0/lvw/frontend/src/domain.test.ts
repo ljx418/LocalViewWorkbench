@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { adopt, asJson, asText, emptyDraft, hasContent } from "./domain";
+import { adopt, asJson, asText, canAnalyze, emptyDraft, hasContent } from "./domain";
 import type { PromptSpec } from "./types";
 
 const spec: PromptSpec = {
@@ -30,4 +30,11 @@ test("manual export remains valid without a model run", () => {
 test("tags are normalized only at export", () => {
   const payload = JSON.parse(asJson({ ...emptyDraft(), tags: "a, b,  ,c" }, null));
   assert.deepEqual(payload.outputs.tags, ["a", "b", "c"]);
+});
+
+test("analysis is gated by file, idle phase, and model readiness", () => {
+  assert.equal(canAnalyze(true, "idle", true), true);
+  assert.equal(canAnalyze(true, "idle", false), false);
+  assert.equal(canAnalyze(false, "idle", true), false);
+  assert.equal(canAnalyze(true, "analyzing", true), false);
 });

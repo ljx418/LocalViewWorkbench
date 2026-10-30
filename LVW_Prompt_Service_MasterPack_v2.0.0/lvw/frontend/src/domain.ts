@@ -47,3 +47,7 @@ export function asJson(draft: Draft, run: ModelRun | null): string {
 export function hasContent(draft: Draft): boolean {
   return Object.values(draft).some((value) => value.trim().length > 0);
 }
+
+export function canAnalyze(hasFile: boolean, phase: string, modelReady: boolean): boolean {
+  return hasFile && modelReady && phase !== "uploading" && phase !== "analyzing";
+}

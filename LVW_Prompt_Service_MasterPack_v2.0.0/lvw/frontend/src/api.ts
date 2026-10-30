@@ -1,4 +1,4 @@
-import type { ApiEnvelope, Job, MediaRef, ModelRun, Mode } from "./types";
+import type { ApiEnvelope, Job, MediaRef, ModelRun, Mode, Readiness } from "./types";
 
 export class ApiError extends Error {
   code: string;
@@ -30,6 +30,10 @@ export async function uploadImage(file: File, signal?: AbortSignal): Promise<Med
   return read(await fetch("/api/v1/media", {
     method: "POST", body, signal, headers: { "Idempotency-Key": key("upload") },
   }));
+}
+
+export async function getReadiness(signal?: AbortSignal): Promise<Readiness> {
+  return read(await fetch("/api/v1/readiness", { signal }));
 }
 
 export async function startAnalysis(mediaRefId: string, mode: Mode, signal?: AbortSignal): Promise<Job> {

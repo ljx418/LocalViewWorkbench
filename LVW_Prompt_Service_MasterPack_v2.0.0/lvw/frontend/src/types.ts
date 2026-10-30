@@ -49,3 +49,9 @@ export interface ApiEnvelope<T> {
   request_id: string;
   schema_version: string;
 }
+
+export interface Readiness {
+  ready: boolean;
+  model: string;
+  reason: string | null;
+}

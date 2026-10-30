@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ApiError, getModelRun, startAnalysis, uploadImage, waitForJob } from "./api";
-import { adopt, asJson, asText, emptyDraft, hasContent, type Draft } from "./domain";
-import type { MediaRef, Mode, ModelRun } from "./types";
+import { ApiError, getModelRun, getReadiness, startAnalysis, uploadImage, waitForJob } from "./api";
+import { adopt, asJson, asText, canAnalyze, emptyDraft, hasContent, type Draft } from "./domain";
+import type { MediaRef, Mode, ModelRun, Readiness } from "./types";
 
 const modes: Array<{ value: Mode; label: string }> = [
   { value: "realistic", label: "写实" }, { value: "cinematic", label: "电影感" },
@@ -37,12 +37,24 @@ export function App() {
   const [error, setError] = useState<string>("");
   const [draft, setDraft] = useState<Draft>(emptyDraft);
   const [dirty, setDirty] = useState(false);
+  const [readiness, setReadiness] = useState<Readiness | null>(null);
   const controller = useRef<AbortController | null>(null);
 
   useEffect(() => () => { controller.current?.abort(); if (preview) URL.revokeObjectURL(preview); }, [preview]);
+  useEffect(() => {
+    let active = true;
+    async function check() {
+      try { const next = await getReadiness(); if (active) setReadiness(next); }
+      catch { if (active) setReadiness({ ready: false, model: "gemma4:26b", reason: "SERVICE_UNAVAILABLE" }); }
+    }
+    void check();
+    const timer = window.setInterval(check, 3000);
+    return () => { active = false; window.clearInterval(timer); };
+  }, []);
   const spec = run?.parsed_spec ?? null;
   const statusText = phase === "uploading" ? "正在检查图片" : phase === "analyzing" ? "本地模型正在观察" :
-    phase === "ready" ? "分析完成，等待你采纳" : phase === "failed" ? "本次分析未完成" : "等待图片";
+    phase === "ready" ? "分析完成，等待你采纳" : phase === "failed" ? "本次分析未完成" :
+    readiness === null ? "正在检查本地模型" : readiness.ready ? "模型已就绪，等待图片" : "模型未就绪，可人工编辑";
   const draftHasContent = useMemo(() => hasContent(draft), [draft]);
 
   function choose(next: File | null) {
@@ -58,6 +70,8 @@ export function App() {
     const abort = new AbortController(); controller.current = abort;
     setError(""); setPhase("uploading"); setRun(null);
     try {
+      const ready = await getReadiness(abort.signal); setReadiness(ready);
+      if (!ready.ready) throw new ApiError("MODEL_UNAVAILABLE", `本地模型未就绪：${ready.reason ?? "UNKNOWN"}`, true);
       const uploaded = await uploadImage(file, abort.signal); setMedia(uploaded); setPhase("analyzing");
       const initial = await startAnalysis(uploaded.id, mode, abort.signal);
       const finished = await waitForJob(initial, abort.signal);
@@ -92,8 +106,9 @@ export function App() {
         </label>
         <div className="input-controls">
           <label>分析方式<select value={mode} onChange={(event) => setMode(event.target.value as Mode)}>{modes.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
-          <button className="primary" type="button" onClick={analyze} disabled={!file || phase === "uploading" || phase === "analyzing"}>{phase === "uploading" || phase === "analyzing" ? "分析中…" : "分析这张图片"}</button>
+          <button className="primary" type="button" onClick={analyze} disabled={!canAnalyze(Boolean(file), phase, readiness?.ready === true)}>{phase === "uploading" || phase === "analyzing" ? "分析中…" : "分析这张图片"}</button>
         </div>
+        {readiness && !readiness.ready && <div className="error" role="status"><strong>本地模型尚未就绪</strong><p>{readiness.model}：{readiness.reason}</p><span>页面会自动重试；人工编辑与导出仍可使用。</span></div>}
         {media && <dl className="media-facts"><div><dt>原始尺寸</dt><dd>{media.width} × {media.height}</dd></div><div><dt>文件</dt><dd>{media.display_name}</dd></div><div><dt>内容指纹</dt><dd>{media.sha256.slice(0, 12)}</dd></div></dl>}
         {error && <div className="error" role="alert"><strong>没有完成分析</strong><p>{error}</p><span>你的人工稿没有改变，可以继续编辑或重新尝试。</span></div>}
       </section>

@@ -13,9 +13,14 @@ from app.models import Domains, PromptSpec, Technical
 class FakeProvider:
     model = "gemma4:26b"
 
-    def __init__(self, fail: bool = False):
+    def __init__(self, fail: bool = False, ready: bool = True):
         self.calls = 0
         self.fail = fail
+        self.ready = ready
+
+    async def readiness(self):
+        return {"ready": self.ready, "model": self.model,
+                "reason": None if self.ready else "OLLAMA_UNAVAILABLE"}
 
     async def analyze(self, image_path, *, mode):
         self.calls += 1
@@ -27,8 +32,8 @@ class FakeProvider:
             technical=Technical(duration_seconds=None, aspect_ratio="", fps_intent=None,
                                 camera_motion="", subject_action="", lighting="",
                                 composition="centered", style_notes="", beats=[]),
-            locked_fields=[], text_zh="", text_en="Cobalt square, centered composition",
-            tags=["cobalt", "geometric"], negative="", template_id="lvw-r1a-image",
+            locked_fields=[], text_zh="画面中央的钴蓝色方块", text_en="Cobalt square, centered composition",
+            tags=["cobalt", "geometric"], negative="blur, watermark", template_id="lvw-r1a-image",
             template_version="1.0.0")
         return json.dumps({"message": {"content": "fixture"}}), spec
 
@@ -52,6 +57,28 @@ def test_health_and_security_headers(tmp_path):
     assert "127.0.0.1:11434" not in response.headers["content-security-policy"]
 
 
+def test_readiness_distinguishes_live_service_from_unavailable_model(tmp_path):
+    client = make_client(tmp_path, FakeProvider(ready=False))
+    assert client.get("/health").status_code == 200
+    response = client.get("/api/v1/readiness")
+    assert response.status_code == 200
+    assert response.json()["data"] == {
+        "ready": False, "model": "gemma4:26b", "reason": "OLLAMA_UNAVAILABLE"}
+
+
+def test_analyze_fails_closed_before_job_when_model_is_not_ready(tmp_path, png_bytes):
+    provider = FakeProvider(ready=False)
+    client = make_client(tmp_path, provider)
+    media = upload(client, png_bytes).json()["data"]
+    response = client.post("/api/v1/jobs/analyze", headers={"Idempotency-Key": "not-ready"},
+        json={"media_ref_id": media["id"], "shot_id": None, "mode": "realistic",
+              "config_profile": "local-default"})
+    assert response.status_code == 503
+    assert response.json()["error"]["code"] == "MODEL_UNAVAILABLE"
+    assert response.json()["error"]["details"]["reason"] == "OLLAMA_UNAVAILABLE"
+    assert provider.calls == 0
+
+
 def test_public_upload_job_poll_and_result_path(tmp_path, png_bytes):
     provider = FakeProvider()
     client = make_client(tmp_path, provider)
@@ -68,6 +95,10 @@ def test_public_upload_job_poll_and_result_path(tmp_path, png_bytes):
     run = client.get(f"/api/v1/model-runs/{job['result_ref']}").json()["data"]
     assert run["input_sha256"] == media["sha256"]
     assert run["parsed_spec"]["domains"]["observation"] == ["A cobalt square fills the frame."]
+    assert run["parsed_spec"]["text_zh"]
+    assert run["parsed_spec"]["text_en"]
+    assert run["parsed_spec"]["negative"]
+    assert run["parsed_spec"]["tags"]
     assert provider.calls == 1
 
 

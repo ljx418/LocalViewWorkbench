@@ -29,6 +29,55 @@ def test_endpoint_is_literal_loopback_only():
         assert caught.value.code == "ORIGIN_FORBIDDEN"
 
 
+def test_readiness_requires_exact_configured_model(monkeypatch):
+    class Response:
+        @staticmethod
+        def raise_for_status():
+            return None
+
+        @staticmethod
+        def json():
+            return {"models": [{"name": "other:latest"}, {"name": "gemma4:26b"}]}
+
+    class Client:
+        async def __aenter__(self): return self
+        async def __aexit__(self, *_): return None
+        async def get(self, url):
+            assert url == "http://127.0.0.1:11434/api/tags"
+            return Response()
+
+    monkeypatch.setattr("app.provider.httpx.AsyncClient", lambda **_kwargs: Client())
+    provider = OllamaProvider("http://127.0.0.1:11434/api/chat", "gemma4:26b", 30)
+    result = __import__("asyncio").run(provider.readiness())
+    assert result == {"ready": True, "model": "gemma4:26b", "reason": None}
+
+
+def test_readiness_reports_missing_model_and_unreachable_ollama(monkeypatch):
+    class MissingResponse:
+        @staticmethod
+        def raise_for_status(): return None
+        @staticmethod
+        def json(): return {"models": [{"name": "other:latest"}]}
+
+    class MissingClient:
+        async def __aenter__(self): return self
+        async def __aexit__(self, *_): return None
+        async def get(self, _url): return MissingResponse()
+
+    monkeypatch.setattr("app.provider.httpx.AsyncClient", lambda **_kwargs: MissingClient())
+    provider = OllamaProvider("http://127.0.0.1:11434/api/chat", "gemma4:26b", 30)
+    assert __import__("asyncio").run(provider.readiness())["reason"] == "MODEL_NOT_INSTALLED"
+
+    class OfflineClient:
+        async def __aenter__(self): return self
+        async def __aexit__(self, *_): return None
+        async def get(self, _url): raise __import__("httpx").ConnectError("offline")
+
+    monkeypatch.setattr("app.provider.httpx.AsyncClient", lambda **_kwargs: OfflineClient())
+    assert __import__("asyncio").run(provider.readiness()) == {
+        "ready": False, "model": "gemma4:26b", "reason": "OLLAMA_UNAVAILABLE"}
+
+
 def test_parse_keeps_observation_inference_unknown_separate():
     spec = parse_ollama_response(model_envelope(), mode="realistic")
     assert spec.domains.observation == ["A blue ceramic cup sits on a wooden table."]

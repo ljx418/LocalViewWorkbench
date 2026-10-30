@@ -14,9 +14,13 @@ python3 lvw/run_local.py
 
 ## Windows 双击启动
 
-直接双击项目根目录的 `启动_LVW.cmd`。这是普通批处理文件，不调用 PowerShell 或绕过执行策略。它会使用本机 `Ubuntu-24.04` WSL，检查 Python 依赖，复用已运行的本机 Ollama，然后在 `http://127.0.0.1:18765` 启动服务并自动打开浏览器。Ollama 或 `gemma4:26b` 暂时不可用时仍会打开工作台，但只能使用人工编辑与导出，不能执行图片分析。
+直接双击项目根目录的 `START_LVW.cmd`。这是纯 ASCII、Windows CRLF 批处理文件，不调用 PowerShell 或绕过执行策略。它会使用本机 `Ubuntu-24.04` WSL，检查 Python，复用已运行的本机 Ollama，然后在 `http://127.0.0.1:18765` 启动服务并自动打开浏览器。Ollama 或 `gemma4:26b` 暂时不可用时仍会打开工作台，但分析按钮会被 readiness 门禁禁用，只保留人工编辑与导出。
 
 使用完毕后在启动窗口按 `Ctrl+C`并关闭；启动器随后删除本轮临时媒体。它不会自动启动 Ollama、下载模型或修改永久配置。
+
+## 自动体验门禁
+
+离线回归执行 `python3 -m pytest -q lvw/tests`；前端合同执行 `cd lvw/frontend && npm test && npm run typecheck && npm run build`。本机 Ollama 与 LVW 均已启动后，执行 `python3 tools/verify_lvw_experience.py`，它会使用哈希锁定的 `testSource/图片-4.jpg`驱动公开上传、分析、轮询和结果接口。只有 readiness 精确匹配 `gemma4:26b`、任务成功且观察/中英文/负向词/标签分母完整时才返回 PASS；跳过、模型未就绪或终态失败都返回非零退出码。
 
 前端依赖只在构建时需要；生产页面已经位于 `frontend/dist/`。重新构建：
 

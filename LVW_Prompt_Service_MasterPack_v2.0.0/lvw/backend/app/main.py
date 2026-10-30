@@ -63,6 +63,11 @@ def create_app(settings: Settings | None = None, provider=None) -> FastAPI:
                          "science", "cinematic", "stylized"], "targets": ["natural", "image"],
                          "stage": "R1a"}, request.headers.get("X-Request-ID") or uuid.uuid4().hex)
 
+    @app.get("/api/v1/readiness")
+    async def readiness(request: Request):
+        return envelope(await provider.readiness(),
+                        request.headers.get("X-Request-ID") or uuid.uuid4().hex)
+
     @app.post("/api/v1/media", status_code=201)
     async def upload_media(request: Request, file: UploadFile,
                            idempotency_key: str = Header(min_length=1, max_length=128)):
@@ -80,6 +85,11 @@ def create_app(settings: Settings | None = None, provider=None) -> FastAPI:
     @app.post("/api/v1/jobs/analyze", status_code=202)
     async def analyze(body: AnalyzeRequest, request: Request, background_tasks: BackgroundTasks,
                       idempotency_key: str = Header(min_length=1, max_length=128)):
+        ready = await provider.readiness()
+        if not ready["ready"]:
+            raise AppError("MODEL_UNAVAILABLE", "本地视觉模型尚未就绪", status_code=503,
+                           retryable=True, details={"model": ready["model"],
+                                                    "reason": ready["reason"]})
         job = service.submit(body, idempotency_key)
         if job.status == "queued":
             background_tasks.add_task(service.run, job.id, body)
