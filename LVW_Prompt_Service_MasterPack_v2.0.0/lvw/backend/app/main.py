@@ -12,6 +12,7 @@ from .errors import AppError
 from .media import MediaStore
 from .models import AnalyzeRequest
 from .provider import OllamaProvider
+from .runtime import OllamaRuntime
 from .service import AnalysisService
 
 SCHEMA_VERSION = "lvw.api/1"
@@ -22,17 +23,20 @@ def envelope(data, request_id: str) -> dict:
     return {"data": value, "request_id": request_id, "schema_version": SCHEMA_VERSION}
 
 
-def create_app(settings: Settings | None = None, provider=None) -> FastAPI:
+def create_app(settings: Settings | None = None, provider=None, runtime=None) -> FastAPI:
     settings = settings or Settings.local()
     settings.data_root.mkdir(parents=True, exist_ok=True)
     media = MediaStore(settings.data_root)
     provider = provider or OllamaProvider(settings.ollama_endpoint, settings.model,
                                           settings.request_timeout_seconds)
+    runtime = runtime or OllamaRuntime(provider, settings.ollama_executable, settings.data_root)
     service = AnalysisService(media, provider)
     app = FastAPI(title="LVW Prompt Service", version="0.1.0", docs_url=None, redoc_url=None)
     app.state.media = media
     app.state.analysis = service
+    app.state.runtime = runtime
     app.state.upload_keys = {}
+    app.router.add_event_handler("shutdown", runtime.close)
 
     @app.middleware("http")
     async def local_security_headers(request: Request, call_next):
@@ -66,6 +70,34 @@ def create_app(settings: Settings | None = None, provider=None) -> FastAPI:
     @app.get("/api/v1/readiness")
     async def readiness(request: Request):
         return envelope(await provider.readiness(),
+                        request.headers.get("X-Request-ID") or uuid.uuid4().hex)
+
+    @app.get("/api/v1/runtime/status")
+    async def runtime_status(request: Request):
+        return envelope(await runtime.status(),
+                        request.headers.get("X-Request-ID") or uuid.uuid4().hex)
+
+    def require_runtime_control(request: Request) -> None:
+        if request.headers.get("X-LVW-Control") != "local-ui":
+            raise AppError("RUNTIME_CONTROL_FORBIDDEN", "Runtime control requires the local UI",
+                           status_code=403)
+
+    @app.post("/api/v1/runtime/ollama/start")
+    async def runtime_start(request: Request):
+        require_runtime_control(request)
+        return envelope(await runtime.start(),
+                        request.headers.get("X-Request-ID") or uuid.uuid4().hex)
+
+    @app.post("/api/v1/runtime/ollama/reset")
+    async def runtime_reset(request: Request):
+        require_runtime_control(request)
+        return envelope(await runtime.reset(),
+                        request.headers.get("X-Request-ID") or uuid.uuid4().hex)
+
+    @app.post("/api/v1/runtime/ollama/stop")
+    async def runtime_stop(request: Request):
+        require_runtime_control(request)
+        return envelope(await runtime.stop(),
                         request.headers.get("X-Request-ID") or uuid.uuid4().hex)
 
     @app.post("/api/v1/media", status_code=201)

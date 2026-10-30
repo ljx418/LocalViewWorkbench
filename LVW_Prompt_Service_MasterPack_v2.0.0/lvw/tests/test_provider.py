@@ -43,13 +43,17 @@ def test_readiness_requires_exact_configured_model(monkeypatch):
         async def __aenter__(self): return self
         async def __aexit__(self, *_): return None
         async def get(self, url):
+            if url.endswith("/api/ps"):
+                return type("PsResponse", (), {"raise_for_status": staticmethod(lambda: None),
+                    "json": staticmethod(lambda: {"models": []})})()
             assert url == "http://127.0.0.1:11434/api/tags"
             return Response()
 
     monkeypatch.setattr("app.provider.httpx.AsyncClient", lambda **_kwargs: Client())
     provider = OllamaProvider("http://127.0.0.1:11434/api/chat", "gemma4:26b", 30)
     result = __import__("asyncio").run(provider.readiness())
-    assert result == {"ready": True, "model": "gemma4:26b", "reason": None}
+    assert result == {"ready": True, "model": "gemma4:26b", "reason": None,
+                      "loaded": False}
 
 
 def test_readiness_reports_missing_model_and_unreachable_ollama(monkeypatch):
@@ -75,7 +79,8 @@ def test_readiness_reports_missing_model_and_unreachable_ollama(monkeypatch):
 
     monkeypatch.setattr("app.provider.httpx.AsyncClient", lambda **_kwargs: OfflineClient())
     assert __import__("asyncio").run(provider.readiness()) == {
-        "ready": False, "model": "gemma4:26b", "reason": "OLLAMA_UNAVAILABLE"}
+        "ready": False, "model": "gemma4:26b", "reason": "OLLAMA_UNAVAILABLE",
+        "loaded": False}
 
 
 def test_parse_keeps_observation_inference_unknown_separate():

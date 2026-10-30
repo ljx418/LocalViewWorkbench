@@ -29,6 +29,12 @@ h1 { margin: 0; font: 520 clamp(18px, 2vw, 24px)/1.2 Bahnschrift, "Microsoft YaH
 .status-uploading span, .status-analyzing span { background: #8fb0ff; animation: pulse 1.3s ease-in-out infinite; }
 .status-ready span { background: #8fbea9; }
 .status-failed span { background: #ef8a62; }
+.runtime-panel { display: grid; grid-template-columns: minmax(220px, 1.2fr) minmax(420px, 2fr) auto; align-items: center; gap: 22px; padding: 16px clamp(18px, 3vw, 44px); background: #f4f7f7; border-bottom: 1px solid var(--line); }
+.runtime-panel h2 { margin-bottom: 4px; font-size: 16px; }.runtime-panel p { margin-bottom: 0; color: var(--muted); font-size: 12px; }
+.runtime-panel dl { display: grid; grid-template-columns: repeat(5, minmax(78px, 1fr)); gap: 1px; margin: 0; background: var(--line); border: 1px solid var(--line); }
+.runtime-panel dl div { min-width: 0; padding: 8px 10px; background: white; }.runtime-panel dt { color: var(--muted); font-size: 10px; }.runtime-panel dd { margin: 3px 0 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
+.runtime-actions { display: flex; gap: 7px; }.runtime-actions button { min-height: 38px; padding: 7px 11px; border: 1px solid #9bacb1; border-radius: 3px; background: white; color: var(--ink); }
+.runtime-error { grid-column: 1 / -1; padding: 8px 10px; color: #9b3f25 !important; background: #fff2ed; border-left: 3px solid var(--orange); }
 .workspace { flex: 1; display: grid; grid-template-columns: minmax(340px, 42fr) minmax(560px, 58fr); }
 .light-table, .analysis { padding: clamp(22px, 3vw, 44px); min-width: 0; }
 .light-table { background: #e5ebec; border-right: 1px solid var(--line); }
@@ -65,5 +71,6 @@ select, input { min-height: 42px; padding: 8px 11px; }
 footer { display: flex; justify-content: space-between; gap: 16px; padding: 10px clamp(18px, 3vw, 44px); color: #5f7078; background: #dfe6e7; border-top: 1px solid var(--line); font-size: 11px; }
 @keyframes pulse { 50% { transform: scale(1.25); opacity: .62; } }
 @media (max-width: 980px) { .workspace { grid-template-columns: 1fr; }.light-table { border-right: 0; border-bottom: 1px solid var(--line); }.frame { min-height: 300px; }.analysis { padding-top: 30px; } }
+@media (max-width: 1100px) { .runtime-panel { grid-template-columns: 1fr; }.runtime-panel dl { grid-template-columns: repeat(5, 1fr); }.runtime-actions { justify-content: flex-start; } }
 @media (max-width: 620px) { .topbar { align-items: flex-start; }.status { max-width: 130px; text-align: right; }.light-table, .analysis { padding: 20px 16px; }.frame { min-height: 240px; }.input-controls, .draft-grid { grid-template-columns: 1fr; }.evidence-grid { grid-template-columns: 1fr; }.evidence-grid article { min-height: 0; border-right: 0; border-bottom: 1px solid var(--line); }.evidence-grid article:last-child { border-bottom: 0; }.suggestion-bar, .draft-head { align-items: stretch; flex-direction: column; }.secondary { width: 100%; }.media-facts { grid-template-columns: 1fr; } footer { flex-direction: column; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }

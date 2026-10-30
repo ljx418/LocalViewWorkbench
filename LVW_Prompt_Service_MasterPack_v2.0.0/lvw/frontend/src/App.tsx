@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ApiError, getModelRun, getReadiness, startAnalysis, uploadImage, waitForJob } from "./api";
+import { ApiError, controlOllama, getModelRun, getReadiness, getRuntimeStatus, startAnalysis, uploadImage, waitForJob } from "./api";
 import { adopt, asJson, asText, canAnalyze, emptyDraft, hasContent, type Draft } from "./domain";
-import type { MediaRef, Mode, ModelRun, Readiness } from "./types";
+import type { MediaRef, Mode, ModelRun, Readiness, RuntimeStatus } from "./types";
 
 const modes: Array<{ value: Mode; label: string }> = [
   { value: "realistic", label: "写实" }, { value: "cinematic", label: "电影感" },
@@ -38,14 +38,26 @@ export function App() {
   const [draft, setDraft] = useState<Draft>(emptyDraft);
   const [dirty, setDirty] = useState(false);
   const [readiness, setReadiness] = useState<Readiness | null>(null);
+  const [runtime, setRuntime] = useState<RuntimeStatus | null>(null);
+  const [runtimeAction, setRuntimeAction] = useState<string>("");
+  const [runtimeError, setRuntimeError] = useState<string>("");
   const controller = useRef<AbortController | null>(null);
 
   useEffect(() => () => { controller.current?.abort(); if (preview) URL.revokeObjectURL(preview); }, [preview]);
   useEffect(() => {
     let active = true;
     async function check() {
-      try { const next = await getReadiness(); if (active) setReadiness(next); }
-      catch { if (active) setReadiness({ ready: false, model: "gemma4:26b", reason: "SERVICE_UNAVAILABLE" }); }
+      try {
+        const next = await getRuntimeStatus();
+        if (active) {
+          setRuntime(next);
+          setReadiness({ ready: next.ollama.model_ready, model: next.ollama.model,
+            reason: next.ollama.reason, loaded: next.ollama.model_loaded });
+        }
+      } catch {
+        if (active) setReadiness({ ready: false, model: "gemma4:26b",
+          reason: "SERVICE_UNAVAILABLE", loaded: false });
+      }
     }
     void check();
     const timer = window.setInterval(check, 3000);
@@ -56,6 +68,19 @@ export function App() {
     phase === "ready" ? "分析完成，等待你采纳" : phase === "failed" ? "本次分析未完成" :
     readiness === null ? "正在检查本地模型" : readiness.ready ? "模型已就绪，等待图片" : "模型未就绪，可人工编辑";
   const draftHasContent = useMemo(() => hasContent(draft), [draft]);
+
+  async function runRuntimeAction(action: "start" | "reset" | "stop") {
+    setRuntimeAction(action); setRuntimeError("");
+    try {
+      const next = await controlOllama(action);
+      setRuntime(next);
+      setReadiness({ ready: next.ollama.model_ready, model: next.ollama.model,
+        reason: next.ollama.reason, loaded: next.ollama.model_loaded });
+    } catch (caught) {
+      const value = caught as ApiError;
+      setRuntimeError(`${value.message}${value.code ? `（${value.code}）` : ""}`);
+    } finally { setRuntimeAction(""); }
+  }
 
   function choose(next: File | null) {
     controller.current?.abort();
@@ -96,17 +121,34 @@ export function App() {
       <div className={`status status-${phase}`}><span aria-hidden="true" />{statusText}</div>
     </header>
 
+    <section className="runtime-panel" aria-labelledby="runtime-title">
+      <div><h2 id="runtime-title">本地后端服务</h2><p>仅控制由 LVW 启动的 loopback Ollama，不会结束外部进程。</p></div>
+      <dl>
+        <div><dt>LVW API</dt><dd>{runtime ? "运行中" : "检查中"}</dd></div>
+        <div><dt>Ollama</dt><dd data-testid="ollama-state">{runtime?.ollama.state ?? "检查中"}</dd></div>
+        <div><dt>视觉模型</dt><dd data-testid="model-state">{runtime?.ollama.model_ready ? "可用" : runtime?.ollama.reason ?? "检查中"}</dd></div>
+        <div><dt>模型装载</dt><dd data-testid="model-load-state">{runtime?.ollama.model_loaded ? "已加载" : "按需加载"}</dd></div>
+        <div><dt>进程归属</dt><dd>{runtime?.ollama.managed ? "LVW 管理" : runtime?.ollama.state === "external" ? "外部服务" : "无"}</dd></div>
+      </dl>
+      <div className="runtime-actions">
+        <button data-testid="runtime-start" type="button" onClick={() => runRuntimeAction("start")} disabled={!runtime?.actions.can_start || Boolean(runtimeAction)}>{runtimeAction === "start" ? "启动中…" : "启动模型服务"}</button>
+        <button data-testid="runtime-reset" type="button" onClick={() => runRuntimeAction("reset")} disabled={!runtime?.actions.can_reset || Boolean(runtimeAction)}>{runtimeAction === "reset" ? "重置中…" : "重置"}</button>
+        <button data-testid="runtime-stop" type="button" onClick={() => runRuntimeAction("stop")} disabled={!runtime?.actions.can_stop || Boolean(runtimeAction)}>{runtimeAction === "stop" ? "关闭中…" : "关闭"}</button>
+      </div>
+      {runtimeError && <p className="runtime-error" role="alert">{runtimeError}</p>}
+    </section>
+
     <main className="workspace">
       <section className="light-table" aria-labelledby="input-title">
         <div className="section-head"><div><h2 id="input-title">观察图像</h2><p>图片只在本机处理，不发送到云端。</p></div><span className="step">输入</span></div>
         <label className={`frame ${preview ? "has-image" : ""}`}>
-          <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => choose(event.target.files?.[0] ?? null)} />
+          <input data-testid="image-input" type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => choose(event.target.files?.[0] ?? null)} />
           {preview ? <img src={preview} alt="待分析图片预览" /> : <div className="empty-frame"><strong>选择一张图片</strong><span>JPEG、PNG 或 WebP · 最大 20 MiB</span></div>}
           <i className="corner corner-a"/><i className="corner corner-b"/><i className="corner corner-c"/><i className="corner corner-d"/>
         </label>
         <div className="input-controls">
           <label>分析方式<select value={mode} onChange={(event) => setMode(event.target.value as Mode)}>{modes.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
-          <button className="primary" type="button" onClick={analyze} disabled={!canAnalyze(Boolean(file), phase, readiness?.ready === true)}>{phase === "uploading" || phase === "analyzing" ? "分析中…" : "分析这张图片"}</button>
+          <button data-testid="analyze" className="primary" type="button" onClick={analyze} disabled={!canAnalyze(Boolean(file), phase, readiness?.ready === true)}>{phase === "uploading" || phase === "analyzing" ? "分析中…" : "分析这张图片"}</button>
         </div>
         {readiness && !readiness.ready && <div className="error" role="status"><strong>本地模型尚未就绪</strong><p>{readiness.model}：{readiness.reason}</p><span>页面会自动重试；人工编辑与导出仍可使用。</span></div>}
         {media && <dl className="media-facts"><div><dt>原始尺寸</dt><dd>{media.width} × {media.height}</dd></div><div><dt>文件</dt><dd>{media.display_name}</dd></div><div><dt>内容指纹</dt><dd>{media.sha256.slice(0, 12)}</dd></div></dl>}

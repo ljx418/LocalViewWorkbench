@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 
 from lvw.run_local import configured_port
@@ -17,3 +19,14 @@ def test_invalid_server_port_fails_closed(monkeypatch, value):
     monkeypatch.setenv("LVW_PORT", value)
     with pytest.raises(SystemExit):
         configured_port()
+
+
+def test_windows_launcher_binds_ollama_without_arbitrary_process_control():
+    launcher = Path(__file__).resolve().parents[2] / "START_LVW.cmd"
+    raw = launcher.read_bytes()
+    source = raw.decode("ascii").lower()
+    assert raw.count(b"\n") == raw.count(b"\r\n")
+    assert "where ollama.exe" in source
+    assert "lvw_ollama_exe=" in source
+    assert "powershell" not in source
+    assert "taskkill" not in source

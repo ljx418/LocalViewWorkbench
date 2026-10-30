@@ -47,7 +47,7 @@ def main() -> int:
             readiness = client.get(f"{base}/api/v1/readiness")
             readiness.raise_for_status()
             ready = readiness.json()["data"]
-            if ready != {"ready": True, "model": "gemma4:26b", "reason": None}:
+            if not ready.get("ready") or ready.get("model") != "gemma4:26b":
                 return stop("ANALYSIS_NOT_READY", readiness=ready)
             upload = client.post(f"{base}/api/v1/media",
                 headers={"Idempotency-Key": f"experience-upload-{uuid.uuid4().hex}"},

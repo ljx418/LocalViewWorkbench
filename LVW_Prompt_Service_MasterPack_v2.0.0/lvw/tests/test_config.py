@@ -28,3 +28,10 @@ def test_local_settings_keep_repository_default_without_override(monkeypatch, tm
     settings = Settings.local()
 
     assert settings.data_root == (Path(tmp_path) / ".lvw-runtime").resolve()
+
+
+def test_local_settings_accept_launcher_bound_ollama_executable(monkeypatch, tmp_path):
+    executable = tmp_path / "ollama.exe"
+    monkeypatch.setenv("LVW_OLLAMA_EXE", str(executable))
+
+    assert Settings.local(data_root=tmp_path).ollama_executable == executable.resolve()

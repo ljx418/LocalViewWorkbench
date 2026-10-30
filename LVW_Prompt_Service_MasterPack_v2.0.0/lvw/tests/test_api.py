@@ -20,7 +20,7 @@ class FakeProvider:
 
     async def readiness(self):
         return {"ready": self.ready, "model": self.model,
-                "reason": None if self.ready else "OLLAMA_UNAVAILABLE"}
+                "reason": None if self.ready else "OLLAMA_UNAVAILABLE", "loaded": False}
 
     async def analyze(self, image_path, *, mode):
         self.calls += 1
@@ -38,8 +38,23 @@ class FakeProvider:
         return json.dumps({"message": {"content": "fixture"}}), spec
 
 
-def make_client(tmp_path, provider):
-    app = create_app(Settings.local(data_root=tmp_path), provider=provider)
+class FakeRuntime:
+    def __init__(self):
+        self.calls = []
+        self.value = {"lvw": {"state": "ready"},
+            "ollama": {"state": "stopped", "reachable": False, "model": "gemma4:26b",
+                       "model_ready": False, "model_loaded": False, "managed": False,
+                       "pid": None, "reason": "OLLAMA_UNAVAILABLE", "last_error": None},
+            "actions": {"can_start": True, "can_reset": False, "can_stop": False}}
+
+    async def status(self): return self.value
+    async def start(self): self.calls.append("start"); return self.value
+    async def reset(self): self.calls.append("reset"); return self.value
+    async def stop(self): self.calls.append("stop"); return self.value
+    async def close(self): return None
+
+def make_client(tmp_path, provider, runtime=None):
+    app = create_app(Settings.local(data_root=tmp_path), provider=provider, runtime=runtime)
     return TestClient(app)
 
 
@@ -63,7 +78,29 @@ def test_readiness_distinguishes_live_service_from_unavailable_model(tmp_path):
     response = client.get("/api/v1/readiness")
     assert response.status_code == 200
     assert response.json()["data"] == {
-        "ready": False, "model": "gemma4:26b", "reason": "OLLAMA_UNAVAILABLE"}
+        "ready": False, "model": "gemma4:26b", "reason": "OLLAMA_UNAVAILABLE",
+        "loaded": False}
+
+
+def test_runtime_control_requires_local_ui_header(tmp_path):
+    runtime = FakeRuntime()
+    client = make_client(tmp_path, FakeProvider(ready=False), runtime)
+    assert client.get("/api/v1/runtime/status").json()["data"] == runtime.value
+    for action in ("start", "reset", "stop"):
+        response = client.post(f"/api/v1/runtime/ollama/{action}")
+        assert response.status_code == 403
+        assert response.json()["error"]["code"] == "RUNTIME_CONTROL_FORBIDDEN"
+    assert runtime.calls == []
+
+
+def test_runtime_control_routes_only_fixed_actions(tmp_path):
+    runtime = FakeRuntime()
+    client = make_client(tmp_path, FakeProvider(ready=False), runtime)
+    for action in ("start", "reset", "stop"):
+        response = client.post(f"/api/v1/runtime/ollama/{action}",
+                               headers={"X-LVW-Control": "local-ui"})
+        assert response.status_code == 200
+    assert runtime.calls == ["start", "reset", "stop"]
 
 
 def test_analyze_fails_closed_before_job_when_model_is_not_ready(tmp_path, png_bytes):

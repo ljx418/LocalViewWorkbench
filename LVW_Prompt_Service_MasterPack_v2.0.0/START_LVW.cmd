@@ -8,6 +8,9 @@ set "APP_PORT=18765"
 set "APP_URL=http://127.0.0.1:%APP_PORT%"
 set "OLLAMA_URL=http://127.0.0.1:11434"
 set "RUN_ROOT=%TEMP%\lvw-user-%RANDOM%-%RANDOM%"
+set "OLLAMA_EXE_WIN="
+set "WSL_OLLAMA_EXE="
+for /f "delims=" %%I in ('where ollama.exe 2^>nul') do if not defined OLLAMA_EXE_WIN set "OLLAMA_EXE_WIN=%%I"
 
 echo LVW Local Prompt Workbench
 echo Project directory: %CD%
@@ -36,13 +39,14 @@ curl.exe -fsS --max-time 2 "%OLLAMA_URL%/api/tags" 2>nul | findstr /c:"gemma4:26
 mkdir "%RUN_ROOT%" >nul 2>&1
 for /f "delims=" %%I in ('wsl.exe -d %WSL_DISTRO% -e wslpath -a -u %CD%') do set "WSL_ROOT=%%I"
 for /f "delims=" %%I in ('wsl.exe -d %WSL_DISTRO% -e wslpath -a -u %RUN_ROOT%') do set "WSL_RUN_ROOT=%%I"
+if defined OLLAMA_EXE_WIN for /f "delims=" %%I in ('wsl.exe -d %WSL_DISTRO% -e wslpath -a -u %OLLAMA_EXE_WIN%') do set "WSL_OLLAMA_EXE=%%I"
 if not defined WSL_ROOT goto :path_error
 if not defined WSL_RUN_ROOT goto :path_error
 
 echo Starting LVW. The browser will open automatically.
 echo If it does not open, visit %APP_URL%
 start "" /b "%ComSpec%" /d /c call "%~dp0tools\open_lvw_browser.cmd" "%APP_URL%"
-wsl.exe -d %WSL_DISTRO% --cd %WSL_ROOT% -e env LVW_PORT=%APP_PORT% LVW_DATA_ROOT=%WSL_RUN_ROOT% PYTHONDONTWRITEBYTECODE=1 python3 lvw/run_local.py
+wsl.exe -d %WSL_DISTRO% --cd %WSL_ROOT% -e env LVW_PORT=%APP_PORT% LVW_DATA_ROOT=%WSL_RUN_ROOT% LVW_OLLAMA_EXE=%WSL_OLLAMA_EXE% PYTHONDONTWRITEBYTECODE=1 python3 lvw/run_local.py
 set "LVW_EXIT=%ERRORLEVEL%"
 
 rmdir /s /q "%RUN_ROOT%" >nul 2>&1

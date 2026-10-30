@@ -54,4 +54,21 @@ export interface Readiness {
   ready: boolean;
   model: string;
   reason: string | null;
+  loaded: boolean;
+}
+
+export interface RuntimeStatus {
+  lvw: { state: "ready" };
+  ollama: {
+    state: "stopped" | "starting" | "ready" | "external" | "error";
+    reachable: boolean;
+    model: string;
+    model_ready: boolean;
+    model_loaded: boolean;
+    managed: boolean;
+    pid: number | null;
+    reason: string | null;
+    last_error: string | null;
+  };
+  actions: { can_start: boolean; can_reset: boolean; can_stop: boolean };
 }

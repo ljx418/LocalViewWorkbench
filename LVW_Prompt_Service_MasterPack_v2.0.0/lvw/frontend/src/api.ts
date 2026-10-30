@@ -1,4 +1,4 @@
-import type { ApiEnvelope, Job, MediaRef, ModelRun, Mode, Readiness } from "./types";
+import type { ApiEnvelope, Job, MediaRef, ModelRun, Mode, Readiness, RuntimeStatus } from "./types";
 
 export class ApiError extends Error {
   code: string;
@@ -34,6 +34,17 @@ export async function uploadImage(file: File, signal?: AbortSignal): Promise<Med
 
 export async function getReadiness(signal?: AbortSignal): Promise<Readiness> {
   return read(await fetch("/api/v1/readiness", { signal }));
+}
+
+export async function getRuntimeStatus(signal?: AbortSignal): Promise<RuntimeStatus> {
+  return read(await fetch("/api/v1/runtime/status", { signal }));
+}
+
+export async function controlOllama(action: "start" | "reset" | "stop",
+                                    signal?: AbortSignal): Promise<RuntimeStatus> {
+  return read(await fetch(`/api/v1/runtime/ollama/${action}`, {
+    method: "POST", signal, headers: { "X-LVW-Control": "local-ui" },
+  }));
 }
 
 export async function startAnalysis(mediaRefId: string, mode: Mode, signal?: AbortSignal): Promise<Job> {

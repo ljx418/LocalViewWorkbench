@@ -109,16 +109,30 @@ class OllamaProvider:
                 response.raise_for_status()
                 payload = response.json()
         except (httpx.HTTPError, json.JSONDecodeError):
-            return {"ready": False, "model": self.model, "reason": "OLLAMA_UNAVAILABLE"}
+            return {"ready": False, "model": self.model, "reason": "OLLAMA_UNAVAILABLE",
+                    "loaded": False}
         models = payload.get("models") if isinstance(payload, dict) else None
         if not isinstance(models, list):
-            return {"ready": False, "model": self.model, "reason": "OLLAMA_INVALID_RESPONSE"}
+            return {"ready": False, "model": self.model, "reason": "OLLAMA_INVALID_RESPONSE",
+                    "loaded": False}
         matches = [item for item in models if isinstance(item, dict)
                    and self.model in {item.get("name"), item.get("model")}]
         if len(matches) == 1:
-            return {"ready": True, "model": self.model, "reason": None}
+            loaded = False
+            try:
+                ps_endpoint = self.endpoint.removesuffix("/api/chat") + "/api/ps"
+                async with httpx.AsyncClient(timeout=min(self.timeout_seconds, 3), trust_env=False) as client:
+                    running = await client.get(ps_endpoint)
+                    running.raise_for_status()
+                    active = running.json().get("models", [])
+                    loaded = any(isinstance(item, dict)
+                                 and self.model in {item.get("name"), item.get("model")}
+                                 for item in active)
+            except (httpx.HTTPError, json.JSONDecodeError, AttributeError):
+                loaded = False
+            return {"ready": True, "model": self.model, "reason": None, "loaded": loaded}
         reason = "MODEL_NOT_INSTALLED" if not matches else "MODEL_IDENTITY_AMBIGUOUS"
-        return {"ready": False, "model": self.model, "reason": reason}
+        return {"ready": False, "model": self.model, "reason": reason, "loaded": False}
 
     def _record(self, event: str, call_id: str, **fields) -> None:
         if self.ledger_path is None:
