@@ -1,12 +1,18 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ApiError, controlOllama, getModelRun, getReadiness, getRuntimeStatus, startAnalysis, uploadImage, waitForJob } from "./api";
 import { adopt, asJson, asText, canAnalyze, emptyDraft, hasContent, type Draft } from "./domain";
-import type { MediaRef, Mode, ModelRun, Readiness, RuntimeStatus } from "./types";
+import type { ContentProfile, MediaRef, Mode, ModelRun, Readiness, RuntimeStatus } from "./types";
 
 const modes: Array<{ value: Mode; label: string }> = [
   { value: "realistic", label: "写实" }, { value: "cinematic", label: "电影感" },
   { value: "documentary", label: "纪实" }, { value: "stylized", label: "风格化" },
   { value: "science", label: "科学图解" }, { value: "scifi", label: "科幻" },
+];
+const contentProfiles: Array<{ value: ContentProfile; label: string; hint: string }> = [
+  { value: "standard", label: "标准分析", hint: "中性观察，适合普通图片" },
+  { value: "faithful", label: "忠实描述", hint: "保留不寻常或不完美的可见细节" },
+  { value: "adult-art", label: "艺术裸体／成人内容", hint: "客观描述成年人体、姿态、构图和风格" },
+  { value: "medical", label: "医学与人体结构", hint: "使用中性解剖和医学视觉术语" },
 ];
 
 type Phase = "idle" | "uploading" | "analyzing" | "ready" | "failed";
@@ -32,6 +38,8 @@ export function App() {
   const [preview, setPreview] = useState<string | null>(null);
   const [media, setMedia] = useState<MediaRef | null>(null);
   const [mode, setMode] = useState<Mode>("realistic");
+  const [contentProfile, setContentProfile] = useState<ContentProfile>("standard");
+  const [customGuidance, setCustomGuidance] = useState("");
   const [run, setRun] = useState<ModelRun | null>(null);
   const [phase, setPhase] = useState<Phase>("idle");
   const [error, setError] = useState<string>("");
@@ -105,9 +113,17 @@ export function App() {
       const ready = await getReadiness(abort.signal); setReadiness(ready);
       if (!ready.ready) throw new ApiError("MODEL_UNAVAILABLE", `本地模型未就绪：${ready.reason ?? "UNKNOWN"}`, true);
       const uploaded = await uploadImage(file, abort.signal); setMedia(uploaded); setPhase("analyzing");
-      const initial = await startAnalysis(uploaded.id, mode, abort.signal);
+      const initial = await startAnalysis(uploaded.id, mode, contentProfile,
+        customGuidance.trim(), abort.signal);
       const finished = await waitForJob(initial, abort.signal);
-      if (finished.status !== "succeeded" || !finished.result_ref) throw new ApiError(finished.error_code ?? "ANALYSIS_FAILED", "本地模型没有返回可用结果");
+      if (finished.status !== "succeeded" || !finished.result_ref) {
+        const code = finished.error_code ?? "ANALYSIS_FAILED";
+        const message = code === "MODEL_REFUSAL"
+          ? "本地模型拒绝了这次分析。可切换“艺术裸体／成人内容”后重试；若仍失败，这是模型自身限制。"
+          : code === "PARSE_PARTIAL" ? "模型返回内容不符合结构化结果格式，请重新尝试。"
+          : "本地模型没有返回可用结果";
+        throw new ApiError(code, message);
+      }
       const result = await getModelRun(finished.result_ref, abort.signal); setRun(result); setPhase("ready");
     } catch (caught) {
       if ((caught as Error).name === "AbortError") return;
@@ -154,9 +170,20 @@ export function App() {
           <i className="corner corner-a"/><i className="corner corner-b"/><i className="corner corner-c"/><i className="corner corner-d"/>
         </label>
         <div className="input-controls">
-          <label>分析方式<select value={mode} onChange={(event) => setMode(event.target.value as Mode)}>{modes.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
+          <div className="analysis-options">
+            <label>视觉表达方式<select value={mode} onChange={(event) => setMode(event.target.value as Mode)}>{modes.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
+            <label>内容处理<select data-testid="content-profile" value={contentProfile} onChange={(event) => setContentProfile(event.target.value as ContentProfile)}>{contentProfiles.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
+          </div>
           <button data-testid="analyze" className="primary" type="button" onClick={analyze} disabled={!canAnalyze(Boolean(file), phase, readiness?.ready === true)}>{phase === "uploading" || phase === "analyzing" ? "分析中…" : "分析这张图片"}</button>
         </div>
+        <p className="profile-hint">{contentProfiles.find((item) => item.value === contentProfile)?.hint}</p>
+        <label className="custom-guidance" htmlFor="custom-guidance">
+          <span>附加分析要求 <small>{customGuidance.length}/800</small></span>
+          <textarea id="custom-guidance" data-testid="custom-guidance" maxLength={800}
+            value={customGuidance} onChange={(event) => setCustomGuidance(event.target.value)}
+            placeholder="例如：重点描述布光、镜头视角和油画笔触；不要美化皮肤质感。" />
+          <small>只作为分析偏好；不能修改固定输出结构或事实／推断边界。</small>
+        </label>
         {readiness && !readiness.ready && <div className="error" role="status"><strong>本地模型尚未就绪</strong><p>{readiness.model}：{readiness.reason}</p><span>页面会自动重试；人工编辑与导出仍可使用。</span></div>}
         {media && <dl className="media-facts"><div><dt>原始尺寸</dt><dd>{media.width} × {media.height}</dd></div><div><dt>文件</dt><dd>{media.display_name}</dd></div><div><dt>内容指纹</dt><dd>{media.sha256.slice(0, 12)}</dd></div></dl>}
         {error && <div className="error" role="alert"><strong>没有完成分析</strong><p>{error}</p><span>你的人工稿没有改变，可以继续编辑或重新尝试。</span></div>}

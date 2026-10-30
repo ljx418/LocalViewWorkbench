@@ -1,4 +1,4 @@
-import type { ApiEnvelope, Job, MediaRef, ModelRun, Mode, Readiness, RuntimeStatus } from "./types";
+import type { ApiEnvelope, ContentProfile, Job, MediaRef, ModelRun, Mode, Readiness, RuntimeStatus } from "./types";
 
 export class ApiError extends Error {
   code: string;
@@ -47,11 +47,14 @@ export async function controlOllama(action: "start" | "reset" | "stop",
   }));
 }
 
-export async function startAnalysis(mediaRefId: string, mode: Mode, signal?: AbortSignal): Promise<Job> {
+export async function startAnalysis(mediaRefId: string, mode: Mode, contentProfile: ContentProfile,
+                                    customGuidance: string, signal?: AbortSignal): Promise<Job> {
   return read(await fetch("/api/v1/jobs/analyze", {
     method: "POST", signal,
     headers: { "Content-Type": "application/json", "Idempotency-Key": key("analysis") },
-    body: JSON.stringify({ media_ref_id: mediaRefId, shot_id: null, mode, config_profile: "local-default" }),
+    body: JSON.stringify({ media_ref_id: mediaRefId, shot_id: null, mode,
+      config_profile: "local-default", content_profile: contentProfile,
+      custom_guidance: customGuidance }),
   }));
 }
 

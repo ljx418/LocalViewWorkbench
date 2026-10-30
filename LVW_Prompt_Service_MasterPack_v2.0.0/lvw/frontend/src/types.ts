@@ -1,4 +1,5 @@
 export type Mode = "documentary" | "realistic" | "scifi" | "science" | "cinematic" | "stylized";
+export type ContentProfile = "standard" | "faithful" | "adult-art" | "medical";
 
 export interface MediaRef {
   id: string;

@@ -3,7 +3,8 @@ from __future__ import annotations
 import pytest
 
 from app.errors import AppError
-from app.provider import OllamaProvider, parse_ollama_response, validate_endpoint
+from app.provider import (OllamaProvider, SYSTEM_PROMPT, SYSTEM_PROMPT_PATH, build_messages,
+                          parse_ollama_response, validate_endpoint)
 
 
 def model_envelope(**updates):
@@ -91,6 +92,26 @@ def test_parse_keeps_observation_inference_unknown_separate():
     assert spec.text_en.startswith("Blue ceramic cup")
     assert spec.text_zh.startswith("木桌上的蓝色陶瓷杯")
     assert spec.negative == "blur, watermark, distorted cup"
+    assert spec.template_version == "1.1.0"
+
+
+def test_system_prompt_and_custom_profile_are_sent_with_fixed_precedence():
+    assert SYSTEM_PROMPT == SYSTEM_PROMPT_PATH.read_text(encoding="utf-8").strip()
+    messages = build_messages("cinematic", "adult-art", "重点描述侧逆光和油画笔触")
+    assert messages[0] == {"role": "system", "content": SYSTEM_PROMPT}
+    user = messages[1]["content"]
+    assert "Selected visual mode: cinematic" in user
+    assert "Selected content profile: adult-art" in user
+    assert "Do not refuse solely because nudity" in user
+    assert "<guidance>\n重点描述侧逆光和油画笔触\n</guidance>" in user
+
+
+def test_non_json_refusal_has_distinct_error_code():
+    envelope = {"done": True, "done_reason": "stop",
+                "message": {"content": "I'm unable to analyze this image."}}
+    with pytest.raises(AppError) as caught:
+        parse_ollama_response(envelope, mode="realistic")
+    assert caught.value.code == "MODEL_REFUSAL"
 
 
 def test_parse_rejects_extra_or_incomplete_fields():
@@ -130,6 +151,7 @@ def test_provider_ledger_is_atomic_and_contains_no_source_path(tmp_path):
 
 def test_analyze_ledger_counts_real_provider_boundary_once(tmp_path, monkeypatch):
     envelope = model_envelope()
+    captured = {}
 
     class Response:
         text = __import__("json").dumps(envelope)
@@ -149,7 +171,8 @@ def test_analyze_ledger_counts_real_provider_boundary_once(tmp_path, monkeypatch
         async def __aexit__(self, *_):
             return None
 
-        async def post(self, *_args, **_kwargs):
+        async def post(self, *_args, **kwargs):
+            captured.update(kwargs["json"])
             return Response()
 
     monkeypatch.setattr("app.provider.httpx.AsyncClient", lambda **_kwargs: Client())
@@ -158,6 +181,12 @@ def test_analyze_ledger_counts_real_provider_boundary_once(tmp_path, monkeypatch
     ledger = tmp_path / "provider.jsonl"
     provider = OllamaProvider("http://127.0.0.1:11434/api/chat", "gemma4:26b", 30,
                               ledger_path=ledger)
-    __import__("asyncio").run(provider.analyze(image, mode="realistic"))
+    __import__("asyncio").run(provider.analyze(image, mode="realistic",
+        content_profile="adult-art", custom_guidance="保留原始皮肤纹理"))
     events = [__import__("json").loads(line)["event"] for line in ledger.read_text().splitlines()]
     assert events == ["provider_call_started", "provider_call_completed"]
+    assert [message["role"] for message in captured["messages"]] == ["system", "user"]
+    assert "adult-art" in captured["messages"][1]["content"]
+    assert "保留原始皮肤纹理" in captured["messages"][1]["content"]
+    assert captured["messages"][1]["images"]
+    assert captured["options"]["num_predict"] == 512

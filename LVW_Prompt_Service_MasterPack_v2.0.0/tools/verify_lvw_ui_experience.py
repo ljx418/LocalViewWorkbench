@@ -43,8 +43,15 @@ def main() -> int:
             page.get_by_test_id("ollama-state").wait_for(state="visible", timeout=45000)
             page.get_by_test_id("model-state").get_by_text("可用", exact=True).wait_for(timeout=45000)
             page.get_by_test_id("image-input").set_input_files(str(args.sample))
+            page.get_by_test_id("content-profile").select_option("faithful")
+            page.get_by_test_id("custom-guidance").fill("重点描述构图、光线和可见材质，不添加画面外事实。")
             page.get_by_test_id("analyze").click()
-            page.locator(".status").get_by_text("分析完成，等待你采纳", exact=True).wait_for(timeout=240000)
+            page.wait_for_function("""() => {
+              const text = document.querySelector('.status')?.textContent || '';
+              return text.includes('分析完成，等待你采纳') || text.includes('本次分析未完成');
+            }""", timeout=240000)
+            if "本次分析未完成" in page.locator(".status").inner_text():
+                raise RuntimeError(page.locator(".error[role=alert]").last.inner_text())
             page.get_by_role("button", name="采纳到人工稿").click()
             values = {
                 "text_zh": page.locator("#draft-natural-zh").input_value(),

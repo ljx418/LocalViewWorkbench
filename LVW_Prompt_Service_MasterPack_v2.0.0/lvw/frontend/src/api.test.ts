@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { controlOllama, getReadiness } from "./api";
+import { controlOllama, getReadiness, startAnalysis } from "./api";
 
 test("readiness uses the public same-origin endpoint", async () => {
   const original = globalThis.fetch;
@@ -40,5 +40,24 @@ test("runtime controls use only fixed actions and the local control header", asy
     assert.equal(requested, "/api/v1/runtime/ollama/start");
     assert.equal(init?.method, "POST");
     assert.deepEqual(init?.headers, { "X-LVW-Control": "local-ui" });
+  } finally { globalThis.fetch = original; }
+});
+
+test("analysis sends visual mode, bounded content profile, and custom guidance", async () => {
+  const original = globalThis.fetch;
+  let body = "";
+  globalThis.fetch = (async (_input: string | URL | Request, options?: RequestInit) => {
+    body = String(options?.body);
+    return new Response(JSON.stringify({ data: { id: "job_1", status: "queued",
+      resource_state: "unknown", result_ref: null, error_code: null },
+      request_id: "test", schema_version: "lvw.api/1" }),
+      { status: 202, headers: { "Content-Type": "application/json" } });
+  }) as typeof fetch;
+  try {
+    await startAnalysis("med_1", "cinematic", "adult-art", "保留皮肤纹理");
+    const payload = JSON.parse(body);
+    assert.equal(payload.mode, "cinematic");
+    assert.equal(payload.content_profile, "adult-art");
+    assert.equal(payload.custom_guidance, "保留皮肤纹理");
   } finally { globalThis.fetch = original; }
 });

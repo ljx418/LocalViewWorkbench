@@ -44,10 +44,14 @@ class AnalysisService:
                                                        "attempt_id": attempt_id})
             media, path = self.media.get(request.media_ref_id)
             try:
-                raw, spec = await self.provider.analyze(path, mode=request.mode)
+                raw, spec = await self.provider.analyze(path, mode=request.mode,
+                    content_profile=request.content_profile,
+                    custom_guidance=request.custom_guidance)
                 run_id = "run_" + uuid.uuid4().hex
                 config_hash = hashlib.sha256(json.dumps({"mode": request.mode,
-                    "profile": request.config_profile}, sort_keys=True).encode()).hexdigest()
+                    "profile": request.config_profile, "content_profile": request.content_profile,
+                    "custom_guidance": request.custom_guidance}, ensure_ascii=False,
+                    sort_keys=True).encode()).hexdigest()
                 run = ModelRun(id=run_id, job_id=job_id, attempt_id=attempt_id,
                     model_tag=self.provider.model, model_digest=None, status="succeeded",
                     input_sha256=media.sha256, template_sha256=TEMPLATE_SHA256,

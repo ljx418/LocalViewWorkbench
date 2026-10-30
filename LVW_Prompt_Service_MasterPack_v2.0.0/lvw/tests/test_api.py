@@ -17,13 +17,15 @@ class FakeProvider:
         self.calls = 0
         self.fail = fail
         self.ready = ready
+        self.last_analysis_options = None
 
     async def readiness(self):
         return {"ready": self.ready, "model": self.model,
                 "reason": None if self.ready else "OLLAMA_UNAVAILABLE", "loaded": False}
 
-    async def analyze(self, image_path, *, mode):
+    async def analyze(self, image_path, *, mode, content_profile="standard", custom_guidance=""):
         self.calls += 1
+        self.last_analysis_options = (mode, content_profile, custom_guidance)
         if self.fail:
             raise AppError("MODEL_UNAVAILABLE", "offline", status_code=503, retryable=True)
         spec = PromptSpec(mode=mode,
@@ -151,6 +153,31 @@ def test_analyze_idempotency_does_not_call_model_twice(tmp_path, png_bytes):
     assert provider.calls == 1
     changed = {**body, "mode": "cinematic"}
     assert client.post("/api/v1/jobs/analyze", headers={"Idempotency-Key": "same"}, json=changed).status_code == 409
+
+
+def test_content_profile_and_custom_guidance_reach_provider(tmp_path, png_bytes):
+    provider = FakeProvider()
+    client = make_client(tmp_path, provider)
+    media = upload(client, png_bytes).json()["data"]
+    body = {"media_ref_id": media["id"], "shot_id": None, "mode": "cinematic",
+            "config_profile": "local-default", "content_profile": "adult-art",
+            "custom_guidance": "重点描述姿态、明暗关系和油画笔触"}
+    response = client.post("/api/v1/jobs/analyze", headers={"Idempotency-Key": "custom"},
+                           json=body)
+    assert response.status_code == 202
+    assert provider.last_analysis_options == (
+        "cinematic", "adult-art", "重点描述姿态、明暗关系和油画笔触")
+
+
+def test_custom_guidance_and_profile_are_bounded(tmp_path, png_bytes):
+    client = make_client(tmp_path, FakeProvider())
+    media = upload(client, png_bytes).json()["data"]
+    base = {"media_ref_id": media["id"], "shot_id": None, "mode": "realistic",
+            "config_profile": "local-default"}
+    assert client.post("/api/v1/jobs/analyze", headers={"Idempotency-Key": "bad-profile"},
+        json={**base, "content_profile": "unrestricted"}).status_code == 422
+    assert client.post("/api/v1/jobs/analyze", headers={"Idempotency-Key": "too-long"},
+        json={**base, "custom_guidance": "x" * 801}).status_code == 422
 
 
 def test_model_failure_is_explicit_and_released(tmp_path, png_bytes):

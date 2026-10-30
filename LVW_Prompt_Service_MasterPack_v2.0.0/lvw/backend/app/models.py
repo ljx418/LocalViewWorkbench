@@ -6,6 +6,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 Mode = Literal["documentary", "realistic", "scifi", "science", "cinematic", "stylized"]
+ContentProfile = Literal["standard", "faithful", "adult-art", "medical"]
 
 
 class StrictModel(BaseModel):
@@ -41,6 +42,8 @@ class AnalyzeRequest(StrictModel):
     shot_id: str | None = Field(default=None, max_length=128)
     mode: Mode
     config_profile: str = Field(min_length=1, max_length=128)
+    content_profile: ContentProfile = "standard"
+    custom_guidance: str = Field(default="", max_length=800)
 
 
 class Job(StrictModel):

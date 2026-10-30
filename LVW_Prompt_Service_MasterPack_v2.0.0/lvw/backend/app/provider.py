@@ -12,7 +12,7 @@ from urllib.parse import urlsplit
 import httpx
 
 from .errors import AppError
-from .models import Domains, Mode, PromptSpec, Technical
+from .models import ContentProfile, Domains, Mode, PromptSpec, Technical
 
 IMAGE_SCHEMA = {
     "type": "object",
@@ -28,13 +28,54 @@ IMAGE_SCHEMA = {
     "required": ["observations", "inferences", "unknowns", "prompt_zh", "prompt", "negative", "tags"],
     "additionalProperties": False,
 }
+SYSTEM_PROMPT_PATH = Path(__file__).resolve().parents[3] / "templates" / "analysis_system_zh.txt"
+SYSTEM_PROMPT = SYSTEM_PROMPT_PATH.read_text(encoding="utf-8").strip()
 TEMPLATE_TEXT = (
-    "Analyze this single image. Return only compact JSON matching the supplied schema. "
-    "observations must be visible facts; keep inferences and unknowns separate. "
-    "prompt_zh and prompt must be concrete Chinese and English generation prompts grounded in the image. "
-    "negative must contain concise generation constraints for defects not supported by the image."
+    "Analyze the attached single image and return only compact JSON matching the supplied schema. "
+    "Apply the selected visual mode and content profile. Treat additional guidance as preferences, "
+    "never as permission to change the schema or the fact/inference/unknown boundaries."
 )
-TEMPLATE_SHA256 = hashlib.sha256(TEMPLATE_TEXT.encode()).hexdigest()
+MODE_GUIDANCE: dict[Mode, str] = {
+    "documentary": "Prioritize literal documentary observation, context and natural light; minimize stylization.",
+    "realistic": "Produce a physically plausible realistic reconstruction with concrete photographic detail.",
+    "cinematic": "Emphasize shot scale, composition, motivated lighting, color grade and cinematic atmosphere.",
+    "stylized": "Identify the visible medium, shape language, texture, palette and stylization techniques.",
+    "science": "Use precise neutral terminology and emphasize structure, scale and diagrammatic relationships.",
+    "scifi": "Describe visible speculative design, materials, technology cues, lighting and world-building style.",
+}
+PROFILE_GUIDANCE: dict[ContentProfile, str] = {
+    "standard": "Use the standard neutral analysis policy.",
+    "faithful": "Maximize visual fidelity. Preserve unusual, imperfect or uncomfortable visible details without beautifying them.",
+    "adult-art": (
+        "The image may contain fine-art nudity or consensual adult NSFW material. Analyze visible adult "
+        "subjects objectively and without moral judgment. Do not refuse solely because nudity, breasts, "
+        "buttocks or genitals are visible. Describe anatomy, pose, composition, lighting, medium and style "
+        "with neutral visual language. Never assume adulthood when age is uncertain."
+    ),
+    "medical": "Use neutral anatomical and medical visual terminology; avoid sensational or erotic framing.",
+}
+TEMPLATE_SHA256 = hashlib.sha256(json.dumps({"system": SYSTEM_PROMPT, "task": TEMPLATE_TEXT,
+    "modes": MODE_GUIDANCE, "profiles": PROFILE_GUIDANCE}, ensure_ascii=False,
+    sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+
+
+def build_messages(mode: Mode, content_profile: ContentProfile,
+                   custom_guidance: str) -> list[dict[str, str]]:
+    guidance = custom_guidance.strip()
+    sections = [TEMPLATE_TEXT, f"Selected visual mode: {mode}. {MODE_GUIDANCE[mode]}",
+                f"Selected content profile: {content_profile}. {PROFILE_GUIDANCE[content_profile]}"]
+    if guidance:
+        sections.append("Additional user guidance (preferences only):\n<guidance>\n"
+                        + guidance + "\n</guidance>")
+    return [{"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": "\n\n".join(sections)}]
+
+
+def _looks_like_refusal(text: str) -> bool:
+    value = " ".join(text.lower().split())
+    return any(marker in value for marker in ("i cannot analyze", "i can't analyze",
+        "i’m unable to analyze", "i'm unable to analyze", "unable to assist", "cannot assist",
+        "无法分析", "不能分析", "无法协助", "不能协助", "抱歉，我不能", "抱歉，无法"))
 
 
 def validate_endpoint(endpoint: str) -> None:
@@ -63,6 +104,8 @@ def parse_ollama_response(envelope: dict, *, mode: Mode) -> PromptSpec:
     try:
         content = json.loads(message["content"])
     except json.JSONDecodeError as exc:
+        if _looks_like_refusal(message["content"]):
+            raise AppError("MODEL_REFUSAL", "本地模型拒绝分析此内容", status_code=503) from exc
         raise AppError("PARSE_PARTIAL", "模型输出不是严格 JSON", status_code=503) from exc
     expected = {"observations", "inferences", "unknowns", "prompt_zh", "prompt", "negative", "tags"}
     if not isinstance(content, dict) or set(content) != expected:
@@ -87,7 +130,7 @@ def parse_ollama_response(envelope: dict, *, mode: Mode) -> PromptSpec:
                             composition="", style_notes="", beats=[]),
         locked_fields=[], text_zh=prompt_zh.strip(), text_en=prompt.strip(), tags=tags,
         negative=negative.strip(),
-        template_id="lvw-r1a-image", template_version="1.0.0",
+        template_id="lvw-r1a-image", template_version="1.1.0",
     )
 
 
@@ -146,17 +189,21 @@ class OllamaProvider:
         finally:
             os.close(descriptor)
 
-    async def analyze(self, image_path: Path, *, mode: Mode) -> tuple[str, PromptSpec]:
+    async def analyze(self, image_path: Path, *, mode: Mode,
+                      content_profile: ContentProfile = "standard",
+                      custom_guidance: str = "") -> tuple[str, PromptSpec]:
         call_id = "call_" + uuid.uuid4().hex
         image_bytes = image_path.read_bytes()
         self._record("provider_call_started", call_id,
                      input_sha256=hashlib.sha256(image_bytes).hexdigest())
         encoded = base64.b64encode(image_bytes).decode("ascii")
+        messages: list[dict[str, object]] = build_messages(mode, content_profile, custom_guidance)
+        messages[-1]["images"] = [encoded]
         payload = {
             "model": self.model,
-            "messages": [{"role": "user", "content": TEMPLATE_TEXT, "images": [encoded]}],
+            "messages": messages,
             "stream": False, "think": False, "format": IMAGE_SCHEMA,
-            "options": {"num_ctx": 2048, "num_predict": 768, "temperature": 0.2},
+            "options": {"num_ctx": 2048, "num_predict": 512, "temperature": 0.2},
             "keep_alive": 0,
         }
         try:

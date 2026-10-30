@@ -4346,6 +4346,21 @@
             "minLength": 1,
             "maxLength": 128
           },
+          "content_profile": {
+            "type": "string",
+            "enum": [
+              "standard",
+              "faithful",
+              "adult-art",
+              "medical"
+            ],
+            "default": "standard"
+          },
+          "custom_guidance": {
+            "type": "string",
+            "maxLength": 800,
+            "default": ""
+          },
           "idempotency_key": {
             "type": "string",
             "minLength": 1,

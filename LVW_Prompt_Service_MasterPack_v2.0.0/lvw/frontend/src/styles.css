@@ -52,7 +52,13 @@ h1 { margin: 0; font: 520 clamp(18px, 2vw, 24px)/1.2 Bahnschrift, "Microsoft YaH
 .corner { position: absolute; z-index: 2; width: 26px; height: 26px; border-color: var(--blue); border-style: solid; pointer-events: none; }
 .corner-a { left: 12px; top: 12px; border-width: 2px 0 0 2px; }.corner-b { right: 12px; top: 12px; border-width: 2px 2px 0 0; }.corner-c { left: 12px; bottom: 12px; border-width: 0 0 2px 2px; }.corner-d { right: 12px; bottom: 12px; border-width: 0 2px 2px 0; }
 .input-controls { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 14px; margin-top: 18px; }
+.analysis-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 .input-controls label, .tag-field { display: grid; gap: 7px; color: var(--muted); font-size: 13px; }
+.profile-hint { margin: 7px 0 0; color: var(--muted); font-size: 12px; }
+.custom-guidance { display: grid; gap: 7px; margin-top: 14px; color: var(--muted); font-size: 13px; }
+.custom-guidance > span { display: flex; justify-content: space-between; gap: 12px; }
+.custom-guidance textarea { min-height: 84px; padding: 10px 11px; resize: vertical; line-height: 1.5; }
+.custom-guidance small { color: var(--muted); font-size: 11px; }
 select, input, textarea { border: 1px solid #aebcc0; color: var(--ink); background: #fff; border-radius: 3px; }
 select, input { min-height: 42px; padding: 8px 11px; }
 .primary, .secondary, .export-actions button { min-height: 42px; border-radius: 3px; padding: 8px 16px; }
@@ -72,5 +78,5 @@ footer { display: flex; justify-content: space-between; gap: 16px; padding: 10px
 @keyframes pulse { 50% { transform: scale(1.25); opacity: .62; } }
 @media (max-width: 980px) { .workspace { grid-template-columns: 1fr; }.light-table { border-right: 0; border-bottom: 1px solid var(--line); }.frame { min-height: 300px; }.analysis { padding-top: 30px; } }
 @media (max-width: 1100px) { .runtime-panel { grid-template-columns: 1fr; }.runtime-panel dl { grid-template-columns: repeat(5, 1fr); }.runtime-actions { justify-content: flex-start; } }
-@media (max-width: 620px) { .topbar { align-items: flex-start; }.status { max-width: 130px; text-align: right; }.light-table, .analysis { padding: 20px 16px; }.frame { min-height: 240px; }.input-controls, .draft-grid { grid-template-columns: 1fr; }.evidence-grid { grid-template-columns: 1fr; }.evidence-grid article { min-height: 0; border-right: 0; border-bottom: 1px solid var(--line); }.evidence-grid article:last-child { border-bottom: 0; }.suggestion-bar, .draft-head { align-items: stretch; flex-direction: column; }.secondary { width: 100%; }.media-facts { grid-template-columns: 1fr; } footer { flex-direction: column; } }
+@media (max-width: 620px) { .topbar { align-items: flex-start; }.status { max-width: 130px; text-align: right; }.light-table, .analysis { padding: 20px 16px; }.frame { min-height: 240px; }.input-controls, .analysis-options, .draft-grid { grid-template-columns: 1fr; }.evidence-grid { grid-template-columns: 1fr; }.evidence-grid article { min-height: 0; border-right: 0; border-bottom: 1px solid var(--line); }.evidence-grid article:last-child { border-bottom: 0; }.suggestion-bar, .draft-head { align-items: stretch; flex-direction: column; }.secondary { width: 100%; }.media-facts { grid-template-columns: 1fr; } footer { flex-direction: column; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }
