@@ -22,11 +22,18 @@ def test_invalid_server_port_fails_closed(monkeypatch, value):
 
 
 def test_windows_launcher_binds_ollama_without_arbitrary_process_control():
-    launcher = Path(__file__).resolve().parents[2] / "START_LVW.cmd"
+    root = Path(__file__).resolve().parents[2]
+    launcher = root / "START_LVW.cmd"
     raw = launcher.read_bytes()
     source = raw.decode("ascii").lower()
     assert raw.count(b"\n") == raw.count(b"\r\n")
     assert "where ollama.exe" in source
     assert "lvw_ollama_exe=" in source
+    assert "lvw.runtime/1" in source
+    assert "for /l %%p in (18765,1,18775)" in source
+    assert "lvw_no_browser" in source
     assert "powershell" not in source
     assert "taskkill" not in source
+    browser_helper = (root / "tools" / "open_lvw_browser.cmd").read_text(encoding="ascii")
+    assert "/api/v1/runtime/status" in browser_helper
+    assert "lvw.runtime/1" in browser_helper

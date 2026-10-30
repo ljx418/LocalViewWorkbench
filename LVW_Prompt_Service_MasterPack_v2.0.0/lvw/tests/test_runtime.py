@@ -53,6 +53,7 @@ def test_managed_runtime_start_status_and_stop(tmp_path):
     provider = Provider()
     runtime = configured_runtime(tmp_path, provider)
     started = asyncio.run(runtime.start())
+    assert started["protocol"] == "lvw.runtime/1"
     assert started["ollama"]["state"] == "ready"
     assert started["ollama"]["managed"] is True
     assert started["actions"] == {"can_start": False, "can_reset": True, "can_stop": True}

@@ -58,6 +58,7 @@ export interface Readiness {
 }
 
 export interface RuntimeStatus {
+  protocol: "lvw.runtime/1";
   lvw: { state: "ready" };
   ollama: {
     state: "stopped" | "starting" | "ready" | "external" | "error";

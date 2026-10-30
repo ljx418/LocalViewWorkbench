@@ -9,6 +9,8 @@ from .errors import AppError
 
 
 class OllamaRuntime:
+    PROTOCOL_VERSION = "lvw.runtime/1"
+
     def __init__(self, provider, executable: Path | None, data_root: Path,
                  spawn: Callable[[], Awaitable[asyncio.subprocess.Process]] | None = None):
         self.provider = provider
@@ -47,6 +49,7 @@ class OllamaRuntime:
         else:
             state = "stopped"
         return {
+            "protocol": self.PROTOCOL_VERSION,
             "lvw": {"state": "ready"},
             "ollama": {
                 "state": state,

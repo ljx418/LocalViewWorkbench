@@ -4,8 +4,9 @@ title LVW Local Prompt Workbench
 cd /d "%~dp0"
 
 set "WSL_DISTRO=Ubuntu-24.04"
-set "APP_PORT=18765"
-set "APP_URL=http://127.0.0.1:%APP_PORT%"
+set "APP_PORT="
+set "APP_URL="
+set "EXISTING_LVW="
 set "OLLAMA_URL=http://127.0.0.1:11434"
 set "RUN_ROOT=%TEMP%\lvw-user-%RANDOM%-%RANDOM%"
 set "OLLAMA_EXE_WIN="
@@ -16,18 +17,13 @@ echo LVW Local Prompt Workbench
 echo Project directory: %CD%
 echo.
 
-curl.exe -fsS --max-time 2 "%APP_URL%/health" 2>nul | findstr /c:"R1a" >nul
-if not errorlevel 1 (
-  echo LVW is already running. Opening the browser...
-  start "" "%APP_URL%"
-  exit /b 0
-)
+for /l %%P in (18765,1,18775) do call :probe_port %%P
+if not defined APP_PORT goto :no_port
+set "APP_URL=http://127.0.0.1:%APP_PORT%"
+if defined EXISTING_LVW goto :already_running
 
 where wsl.exe >nul 2>&1 || goto :no_wsl
 wsl.exe -d %WSL_DISTRO% -e python3 --version >nul 2>&1 || goto :no_python
-
-curl.exe -sS --max-time 2 "%APP_URL%/" >nul 2>&1
-if not errorlevel 1 goto :port_in_use
 
 curl.exe -fsS --max-time 2 "%OLLAMA_URL%/api/version" >nul 2>&1
 if errorlevel 1 goto :ollama_unavailable
@@ -45,7 +41,7 @@ if not defined WSL_RUN_ROOT goto :path_error
 
 echo Starting LVW. The browser will open automatically.
 echo If it does not open, visit %APP_URL%
-start "" /b "%ComSpec%" /d /c call "%~dp0tools\open_lvw_browser.cmd" "%APP_URL%"
+if /i not "%LVW_NO_BROWSER%"=="1" start "" /b "%ComSpec%" /d /c call "%~dp0tools\open_lvw_browser.cmd" "%APP_URL%"
 wsl.exe -d %WSL_DISTRO% --cd %WSL_ROOT% -e env LVW_PORT=%APP_PORT% LVW_DATA_ROOT=%WSL_RUN_ROOT% LVW_OLLAMA_EXE=%WSL_OLLAMA_EXE% PYTHONDONTWRITEBYTECODE=1 python3 lvw/run_local.py
 set "LVW_EXIT=%ERRORLEVEL%"
 
@@ -63,7 +59,7 @@ goto :failed
 echo ERROR: Python in %WSL_DISTRO% is unavailable.
 goto :failed
 :ollama_unavailable
-echo WARNING: Ollama is not running. LVW will open without model analysis.
+echo INFO: Ollama is not running yet. Start it from the LVW service panel.
 goto :start_lvw
 :model_unavailable
 echo WARNING: gemma4:26b is unavailable. LVW will open without model analysis.
@@ -71,10 +67,29 @@ goto :start_lvw
 :path_error
 echo ERROR: Failed to convert the project or temporary path for WSL.
 goto :failed
-:port_in_use
-echo ERROR: Port %APP_PORT% is already used by another application.
+:already_running
+echo A compatible LVW is already running on port %APP_PORT%.
+echo Opening the browser...
+if /i not "%LVW_NO_BROWSER%"=="1" start "" "%APP_URL%"
+exit /b 0
+:no_port
+echo ERROR: Ports 18765 through 18775 are already in use.
+echo Close an older LVW window or free one of those ports, then try again.
 :failed
 if exist "%RUN_ROOT%" rmdir /s /q "%RUN_ROOT%" >nul 2>&1
 echo.
 pause
 exit /b 1
+
+:probe_port
+if defined APP_PORT exit /b 0
+set "CANDIDATE_URL=http://127.0.0.1:%~1"
+curl.exe -fsS --max-time 1 "%CANDIDATE_URL%/api/v1/runtime/status" 2>nul | findstr /c:"lvw.runtime/1" >nul
+if not errorlevel 1 (
+  set "APP_PORT=%~1"
+  set "EXISTING_LVW=1"
+  exit /b 0
+)
+curl.exe -sS --max-time 1 "%CANDIDATE_URL%/" >nul 2>&1
+if errorlevel 1 set "APP_PORT=%~1"
+exit /b 0

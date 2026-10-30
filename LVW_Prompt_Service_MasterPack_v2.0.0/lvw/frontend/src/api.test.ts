@@ -27,7 +27,7 @@ test("runtime controls use only fixed actions and the local control header", asy
   let requested = ""; let init: RequestInit | undefined;
   globalThis.fetch = (async (input: string | URL | Request, options?: RequestInit) => {
     requested = String(input); init = options;
-    return new Response(JSON.stringify({ data: { lvw: { state: "ready" },
+    return new Response(JSON.stringify({ data: { protocol: "lvw.runtime/1", lvw: { state: "ready" },
       ollama: { state: "stopped", reachable: false, model: "gemma4:26b",
         model_ready: false, model_loaded: false, managed: false, pid: null,
         reason: "OLLAMA_UNAVAILABLE", last_error: null },

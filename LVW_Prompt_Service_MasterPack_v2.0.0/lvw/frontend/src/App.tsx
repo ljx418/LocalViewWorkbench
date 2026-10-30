@@ -51,12 +51,19 @@ export function App() {
         const next = await getRuntimeStatus();
         if (active) {
           setRuntime(next);
+          setRuntimeError("");
           setReadiness({ ready: next.ollama.model_ready, model: next.ollama.model,
             reason: next.ollama.reason, loaded: next.ollama.model_loaded });
         }
-      } catch {
-        if (active) setReadiness({ ready: false, model: "gemma4:26b",
-          reason: "SERVICE_UNAVAILABLE", loaded: false });
+      } catch (caught) {
+        if (active) {
+          setReadiness({ ready: false, model: "gemma4:26b",
+            reason: "SERVICE_UNAVAILABLE", loaded: false });
+          const value = caught as ApiError;
+          setRuntimeError(value.code === "REQUEST_FAILED"
+            ? "当前页面连接到了旧版 LVW 后端。请关闭旧启动窗口，再重新运行 START_LVW.cmd。"
+            : "无法读取本地后端状态，页面会自动重试。");
+        }
       }
     }
     void check();
