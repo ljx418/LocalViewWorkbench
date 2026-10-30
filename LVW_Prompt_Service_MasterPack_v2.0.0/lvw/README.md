@@ -14,7 +14,7 @@ python3 lvw/run_local.py
 
 ## Windows 双击启动
 
-直接双击项目根目录的 `启动_LVW.cmd`。这是普通批处理文件，不调用 PowerShell 或绕过执行策略。它会检查 WSL Python、复用或启动本机 Ollama、确认 `gemma4:26b` 已存在，然后启动服务并自动打开浏览器。
+直接双击项目根目录的 `启动_LVW.cmd`。这是普通批处理文件，不调用 PowerShell 或绕过执行策略。它会使用本机 `Ubuntu-24.04` WSL，检查 Python 依赖，复用或启动本机 Ollama，确认 `gemma4:26b` 已存在，然后在 `http://127.0.0.1:18765` 启动服务并自动打开浏览器。
 
 使用完毕后关闭标题为“LVW 服务”的窗口；启动器随后删除本轮临时媒体。它不会下载模型或修改永久配置；如果本次由启动器打开了 Ollama，可在系统托盘退出 Ollama。
 
