@@ -10,9 +10,19 @@ from pathlib import Path
 import re
 import subprocess
 import sys
+from urllib.parse import urlsplit
 
 ROOT = Path(__file__).resolve().parents[1]
 REPORT = ROOT / "reports" / "r1a" / "offline-checkpoint.json"
+URL_PATTERN = re.compile(r"https?://[^\s\"'<>`)]+", re.I)
+
+
+def allowed_runtime_url(value: str) -> bool:
+    try:
+        parsed = urlsplit(value)
+        return parsed.scheme == "http" and parsed.hostname in {"127.0.0.1", "::1"}
+    except ValueError:
+        return False
 
 
 def run(name: str, command: list[str], cwd: Path = ROOT) -> dict:
@@ -39,8 +49,11 @@ def runtime_scan() -> dict:
     findings: list[dict] = []
     for path in source_files:
         text = path.read_text(encoding="utf-8", errors="ignore")
+        for match in URL_PATTERN.finditer(text):
+            if not allowed_runtime_url(match.group(0)):
+                findings.append({"file": str(path.relative_to(ROOT)),
+                                 "kind": "non_loopback_url", "offset": match.start()})
         for pattern, label in [
-            (r"https?://(?!127\.0\.0\.1:11434/api/chat)", "non_loopback_url"),
             (r"fetch\s*\(\s*[`\"']https?://", "browser_absolute_fetch"),
             (r"\b(?:gradio|nicegui)\b", "forbidden_ui_framework"),
             (r"localStorage", "forbidden_local_storage_database"),

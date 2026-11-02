@@ -1,7 +1,7 @@
 {
   "schema_version": "lvw.r1a.offline-checkpoint/1",
-  "generated_at": "2026-10-29T06:27:06.815045+00:00",
-  "candidate_sha": "d1d30480c0bbc740fabe81cf07514518590b249c",
+  "generated_at": "2026-11-02T12:04:00.331116+00:00",
+  "candidate_sha": "83c1286437188664189182800d3585e1c5a51a46",
   "stage_id": "R1a",
   "acceptance_hash": "82a3736ab77ee98e301d7e055a78b160774c9c09692288db89c5a2768bfe39ab",
   "scope": "OFFLINE_ONLY_NO_OLLAMA_NO_BROWSER_NO_REAL_MEDIA",
@@ -17,9 +17,9 @@
       ],
       "cwd": ".",
       "exit_code": 0,
-      "stdout_sha256": "07c2eef926162e0090994bc913805aa08a8b2cbb5b21d2c933b937a10300713f",
+      "stdout_sha256": "3a3ed778ecbb161232a9a064caf28fab082c2fe632ff7439eec160feb5317278",
       "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "stdout_tail": ".......................................                                  [100%]\n",
+      "stdout_tail": ".......................................................                  [100%]\n",
       "stderr_tail": ""
     },
     {
@@ -34,9 +34,9 @@
       ],
       "cwd": "lvw/frontend",
       "exit_code": 0,
-      "stdout_sha256": "cf28adf0c684dccacd5710bcd91fee750847cf565eae28b79cf2379df016e0a4",
+      "stdout_sha256": "be1d20ebe2e24102855e80a299302c667a38cc5ec2036dda57cd94ddfa98207b",
       "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "stdout_tail": "\nadded 29 packages in 3s\n",
+      "stdout_tail": "\nadded 29 packages in 6s\n",
       "stderr_tail": ""
     },
     {
@@ -48,9 +48,9 @@
       ],
       "cwd": "lvw/frontend",
       "exit_code": 0,
-      "stdout_sha256": "62c1efc2580113f75628f0df9cf2427358e8c4eb6c07817c3d2dd63ad4d9c339",
+      "stdout_sha256": "cce715a496a3c5ee1cbd67e85c979a151d00068fdb27c43a9df53474d6f92e85",
       "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "stdout_tail": "\n> lvw-r1a-frontend@0.1.0 test\n> tsx --test src/domain.test.ts\n\nTAP version 13\n# Subtest: adopt is explicit and creates a new draft\nok 1 - adopt is explicit and creates a new draft\n  ---\n  duration_ms: 0.41985\n  type: 'test'\n  ...\n# Subtest: manual export remains valid without a model run\nok 2 - manual export remains valid without a model run\n  ---\n  duration_ms: 0.163289\n  type: 'test'\n  ...\n# Subtest: tags are normalized only at export\nok 3 - tags are normalized only at export\n  ---\n  duration_ms: 0.36741\n  type: 'test'\n  ...\n1..3\n# tests 3\n# suites 0\n# pass 3\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 416.085857\n",
+      "stdout_tail": "\n> lvw-r1a-frontend@0.1.0 test\n> tsx --test src/*.test.ts\n\nTAP version 13\n# Subtest: readiness uses the public same-origin endpoint\nok 1 - readiness uses the public same-origin endpoint\n  ---\n  duration_ms: 25.165865\n  type: 'test'\n  ...\n# Subtest: runtime controls use only fixed actions and the local control header\nok 2 - runtime controls use only fixed actions and the local control header\n  ---\n  duration_ms: 0.704792\n  type: 'test'\n  ...\n# Subtest: analysis sends visual mode, bounded content profile, and custom guidance\nok 3 - analysis sends visual mode, bounded content profile, and custom guidance\n  ---\n  duration_ms: 0.582755\n  type: 'test'\n  ...\n# Subtest: adopt is explicit and creates a new draft\nok 4 - adopt is explicit and creates a new draft\n  ---\n  duration_ms: 0.925078\n  type: 'test'\n  ...\n# Subtest: manual export remains valid without a model run\nok 5 - manual export remains valid without a model run\n  ---\n  duration_ms: 0.636868\n  type: 'test'\n  ...\n# Subtest: tags are normalized only at export\nok 6 - tags are normalized only at export\n  ---\n  duration_ms: 1.525897\n  type: 'test'\n  ...\n# Subtest: analysis is gated by file, idle phase, and model readiness\nok 7 - analysis is gated by file, idle phase, and model readiness\n  ---\n  duration_ms: 0.133562\n  type: 'test'\n  ...\n1..7\n# tests 7\n# suites 0\n# pass 7\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 807.949526\n",
       "stderr_tail": ""
     },
     {
@@ -76,9 +76,9 @@
       ],
       "cwd": "lvw/frontend",
       "exit_code": 0,
-      "stdout_sha256": "01bf76fa47b34e88202ee63b4bdce96d1458d2224457ac10eea1f884110ea16c",
+      "stdout_sha256": "cd2b4326baf2691bd3f0fe3fca32ebadce3a643f453845458726f3e75fe08f9b",
       "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "stdout_tail": "\n> lvw-r1a-frontend@0.1.0 build\n> tsc -b && vite build\n\nvite v8.3.5 building client environment for production...\ntransforming...\n✓ 18 modules transformed.\nrendering chunks...\ncomputing gzip size...\ndist/index.html                   0.52 kB │ gzip:  0.34 kB\ndist/assets/index-CrpjJJ-p.css    7.21 kB │ gzip:  2.34 kB\ndist/assets/index-BJkFMUvy.js   230.91 kB │ gzip: 72.67 kB\n\n✓ built in 241ms\n",
+      "stdout_tail": "\n> lvw-r1a-frontend@0.1.0 build\n> tsc -b && vite build\n\nvite v8.3.5 building client environment for production...\ntransforming...\n✓ 18 modules transformed.\nrendering chunks...\ncomputing gzip size...\ndist/index.html                   0.52 kB │ gzip:  0.35 kB\ndist/assets/index-yQRZPnt8.css    8.85 kB │ gzip:  2.64 kB\ndist/assets/index-WWfzDbES.js   236.23 kB │ gzip: 74.50 kB\n\n✓ built in 639ms\n",
       "stderr_tail": ""
     },
     {
@@ -141,9 +141,9 @@
       "cwd": ".",
       "exit_code": 0,
       "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "stderr_sha256": "37ff2aaa8f427966cb9f610369ada7a609a424a5d75a2c6d2e408b62eb1e32c6",
+      "stderr_sha256": "654c401391121f85d1dc5b61e9f107cad2c49a07d7b40fcf5ca25e1606e77cf8",
       "stdout_tail": "",
-      "stderr_tail": "...............................................................{\"code\": \"LIVE_ARGUMENT_REQUIRED\", \"decision\": \"NO_GO\", \"message\": \"LIVE_ARGUMENT_REQUIRED: all identity/authority/target arguments\", \"stage_pass_claim\": false}\n......................................\n----------------------------------------------------------------------\nRan 101 tests in 5.981s\n\nOK\n"
+      "stderr_tail": "...............................................................{\"code\": \"LIVE_ARGUMENT_REQUIRED\", \"decision\": \"NO_GO\", \"message\": \"LIVE_ARGUMENT_REQUIRED: all identity/authority/target arguments\", \"stage_pass_claim\": false}\n......................................\n----------------------------------------------------------------------\nRan 101 tests in 16.446s\n\nOK\n"
     },
     {
       "name": "pack_schema",
@@ -154,9 +154,9 @@
       ],
       "cwd": ".",
       "exit_code": 0,
-      "stdout_sha256": "145d0990c333fce918402d6bd054ff67fde14f094e732a1ac5043e229c6a9e56",
+      "stdout_sha256": "e345df61e7852308ba1c155b8ce74ab9e97e3c49fd81cc157b30f6dd478720ab",
       "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "stdout_tail": "{\n  \"kind\": \"DOCUMENT_AND_CONTRACT_VALIDATION_NOT_PRODUCT_ACCEPTANCE\",\n  \"passed\": 1301,\n  \"failed\": 0,\n  \"scope\": {\n    \"requirements\": 33,\n    \"stages\": 13,\n    \"test_groups\": 58,\n    \"api_operations\": 38\n  },\n  \"target_hardware_tested\": false\n}\n",
+      "stdout_tail": "{\n  \"kind\": \"DOCUMENT_AND_CONTRACT_VALIDATION_NOT_PRODUCT_ACCEPTANCE\",\n  \"passed\": 1314,\n  \"failed\": 0,\n  \"scope\": {\n    \"requirements\": 33,\n    \"stages\": 13,\n    \"test_groups\": 58,\n    \"api_operations\": 38\n  },\n  \"target_hardware_tested\": false\n}\n",
       "stderr_tail": ""
     },
     {
@@ -175,25 +175,31 @@
     }
   ],
   "runtime_scan": {
-    "passed": true,
-    "findings": [],
+    "passed": false,
+    "findings": [
+      {
+        "file": "lvw/backend/app/runtime.py",
+        "kind": "non_loopback_url",
+        "offset": 3095
+      }
+    ],
     "remote_runtime_asset": false,
-    "files_scanned": 17
+    "files_scanned": 19
   },
   "dist_artifacts": [
     {
-      "path": "lvw/frontend/dist/assets/index-BJkFMUvy.js",
-      "sha256": "841be11131d76e735499045c43b998d21aaf7e690577a71c1262470f16153d46",
-      "bytes": 230918
+      "path": "lvw/frontend/dist/assets/index-WWfzDbES.js",
+      "sha256": "b179f7008c516837de9f02256d79734c87ebb8b71993f22f68f677ed589a05c8",
+      "bytes": 236237
     },
     {
-      "path": "lvw/frontend/dist/assets/index-CrpjJJ-p.css",
-      "sha256": "d4efb4f22aae717693edf4ddb7f3edffc2aa92f495cc8a68688b71d8fdd60b54",
-      "bytes": 7217
+      "path": "lvw/frontend/dist/assets/index-yQRZPnt8.css",
+      "sha256": "ee6090f978f5f0affce21ad73b911a1a86d86743f8b12630e22dc52b16078d2a",
+      "bytes": 8859
     },
     {
       "path": "lvw/frontend/dist/index.html",
-      "sha256": "99a4c2de0c464331b109c4738e6c929534ae751b8a0dfa2862d1ca83b0f748a3",
+      "sha256": "d0f30c2f0fd6489c3ae9c20797dbb82c3c760ef50b257d5b2fdb546e17080716",
       "bytes": 521
     }
   ],
@@ -206,7 +212,7 @@
     "R1A-M06": "WAIT_AUTH_INDEPENDENT_QUALITY",
     "R1A-M07": "WAIT_AUTH_REAL_FAILURE_AND_CLEANUP"
   },
-  "decision": "READY_FOR_LIVE_AUTH",
+  "decision": "CHANGES_REQUIRED",
   "stage_pass_claim": false,
   "product_tests_executed": false,
   "target_runtime_touched": false

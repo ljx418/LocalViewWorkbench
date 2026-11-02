@@ -37,6 +37,21 @@ function arg(name) {
     });
 
     await page.goto(url, { waitUntil: "networkidle" });
+    await page.waitForFunction(
+      () => document.querySelector('[data-testid="ollama-state"]')?.textContent?.trim() === "external",
+      undefined,
+      { timeout: 30000 },
+    );
+    const runtimeControls = ["runtime-start", "runtime-reset", "runtime-stop"];
+    for (const testId of runtimeControls) {
+      if (!(await page.getByTestId(testId).isDisabled())) {
+        throw new Error(`externally owned Ollama exposed enabled control: ${testId}`);
+      }
+    }
+    const selectedContentProfile = "faithful";
+    const customGuidance = "保留主体、材质、构图和光线信息；不猜测不可见细节。";
+    await page.getByTestId("content-profile").selectOption(selectedContentProfile);
+    await page.getByTestId("custom-guidance").fill(customGuidance);
     const draftFields = page.locator(".draft-grid textarea");
     const manual = {
       natural_zh: "人工中文描述：蓝色陶瓷杯",
@@ -69,7 +84,13 @@ function arg(name) {
     const analyze = page.getByRole("button", { name: "分析这张图片" });
     await analyze.focus();
     await page.keyboard.press("Enter");
-    await page.getByText("分析完成，等待你采纳").waitFor({ timeout: 180000 });
+    const analysisFailure = page.getByText("本次分析未完成");
+    await Promise.race([
+      page.getByText("分析完成，等待你采纳").waitFor({ timeout: 180000 }),
+      analysisFailure.waitFor({ timeout: 180000 }).then(async () => {
+        throw new Error(`analysis failed: ${await analysisFailure.locator("xpath=..").innerText()}`);
+      }),
+    ]);
     if (await draftFields.nth(1).inputValue() !== manual.natural_en) {
       throw new Error("machine result overwrote dirty draft before adoption");
     }
@@ -135,6 +156,8 @@ function arg(name) {
       txt_export_valid: true, dirty_draft_preserved_before_adoption: true,
       explicit_adoption_confirmed: true, raw_collapsed_by_default: true,
       keyboard_analysis_activation: true, reduced_motion_context: true,
+      content_profile: selectedContentProfile, custom_guidance: customGuidance,
+      runtime_ownership: "external", runtime_controls_disabled: true,
       layouts, blocked_non_loopback_requests: blockedNonLoopback,
       passed: blockedNonLoopback.length === 0,
     };
