@@ -2,24 +2,23 @@
   "schema_version": "lvw.stage-control/1",
   "project_id": "lvw-prompt-service",
   "stage_id": "R1a",
-  "stage_packet_version": "1.1.0",
+  "stage_packet_version": "1.2.0",
   "packet_status": "FROZEN",
   "gate_version": "lvw-gate/1",
   "baseline": {
-    "git_commit": "f1780de806d4082dbf1d0f8a3ece81cf369aa0e1",
-    "prepared_against_commit": "f1780de806d4082dbf1d0f8a3ece81cf369aa0e1",
+    "git_commit": "53b77cfff8a0d57929dd219f24f9d16e5e51a641",
+    "prepared_against_commit": "f331622c46903e6fcbff705f2018e58b31194625",
     "product_control_sha256": "bf077004bc40d9cd8b82ee8e86406bcfc358129bda70b2d799ff61ff27665579"
   },
-  "state": "CHECKPOINT",
-  "last_passed_gate": "WP_R1A_03_PACKET_1_1_OFFLINE_CHECKPOINT_PASS",
+  "state": "WAIT_AUTH",
+  "last_passed_gate": "WP_R1A_03_PACKET_1_2_OFFLINE_CHECKPOINT_PASS",
   "dependencies": ["V0-S1:PASS", "R0:INCLUDED_AS_WP-R1A-00"],
   "authorities": [
     "docs/23_V1_EARLY_FRONTEND_SEQUENCE.md",
-    "docs/14_V1_IMPLEMENTATION.md",
-    "docs/11_FRONTEND_ENGINEERING.md",
+    "reports/r1a/change-decision-r1a-contract-01.json",
+    "reports/r1a/change-decision-r1a-product-controls-02.json",
     "contracts/openapi.json",
     "contracts/errors.json",
-    "plans/tasks.json",
     "plans/acceptance_cases.json",
     "plans/release_gates.json"
   ],
@@ -30,22 +29,22 @@
     "trusted_executor": "local_ci",
     "human_authorizer": "project_owner"
   },
-  "fixed_acceptance_ids": ["R1A-M01", "R1A-M02", "R1A-M03", "R1A-M04", "R1A-M05", "R1A-M06", "R1A-M07"],
+  "fixed_acceptance_ids": ["R1A-M01","R1A-M02","R1A-M03","R1A-M04","R1A-M05","R1A-M06","R1A-M07"],
   "acceptance_hash": "82a3736ab77ee98e301d7e055a78b160774c9c09692288db89c5a2768bfe39ab",
   "workpacks": [
-    {"id":"WP-R1A-00","owner":"codex_gate_owner","depends_on":[],"risk":"offline_repository","allowed_paths":[".agent-governance/stages/R1a/","reports/r1a/"],"commands":["freeze contracts, dependencies, packet and design direction"],"output":"R0 reuse audit and frozen packet"},
-    {"id":"WP-R1A-01","owner":"codex_r1a_implementer","depends_on":["WP-R1A-00"],"risk":"offline_repository","allowed_paths":["lvw/backend/","lvw/tests/","reports/r1a/"],"commands":["offline Python unit, API and contract-negative tests"],"output":"same-origin FastAPI vertical path"},
-    {"id":"WP-R1A-02","owner":"codex_r1a_implementer","depends_on":["WP-R1A-01"],"risk":"offline_repository","allowed_paths":["lvw/frontend/","lvw/backend/app/static/","lvw/tests/","reports/r1a/"],"commands":["offline TypeScript, React build and state tests"],"output":"built single-image React workbench"},
+    {"id":"WP-R1A-00","owner":"codex_gate_owner","depends_on":[],"risk":"offline_repository","allowed_paths":[".agent-governance/stages/R1a/","reports/r1a/"],"commands":["freeze scope, contracts and denominator"],"output":"frozen packet"},
+    {"id":"WP-R1A-01","owner":"codex_r1a_implementer","depends_on":["WP-R1A-00"],"risk":"offline_repository","allowed_paths":["lvw/backend/","lvw/tests/","reports/r1a/"],"commands":["offline backend and contract tests"],"output":"same-origin backend and runtime owner"},
+    {"id":"WP-R1A-02","owner":"codex_r1a_implementer","depends_on":["WP-R1A-01"],"risk":"offline_repository","allowed_paths":["lvw/frontend/","lvw/backend/app/static/","lvw/tests/","reports/r1a/"],"commands":["offline frontend tests and build"],"output":"single-image React workbench"},
     {"id":"WP-R1A-03","owner":"local_ci","depends_on":["WP-R1A-02"],"risk":"offline_repository","allowed_paths":["lvw/","reports/r1a/","tools/"],"commands":["combined offline checkpoint and V0 regression"],"output":"candidate-bound implementation receipt"},
     {"id":"WP-R1A-04","owner":"codex_r1a_independent_reviewer","depends_on":["WP-R1A-03"],"risk":"external_private","allowed_paths":["reports/r1a/"],"commands":["authorized real loopback run and isolated review"],"output":"live receipt and independent review"},
     {"id":"WP-R1A-05","owner":"project_owner","depends_on":["WP-R1A-04"],"risk":"human_signoff","allowed_paths":["reports/r1a/"],"commands":["human experience review"],"output":"R1a human signoff"}
   ],
-  "allowed_paths": ["lvw/", "reports/r1a/", "tools/", ".agent-governance/stages/R1a/", "plans/execution-control.json", ".agent-governance/project-registry.json", "MANIFEST.sha256"],
-  "forbidden_paths": ["contracts/", "plans/acceptance_cases.json", "plans/release_gates.json", "legacy/", "LVW_V0_RuntimePatch/"],
+  "allowed_paths": ["lvw/","reports/r1a/","tools/",".agent-governance/stages/R1a/","plans/execution-control.json",".agent-governance/project-registry.json","MANIFEST.sha256"],
+  "forbidden_paths": ["contracts/","plans/acceptance_cases.json","plans/release_gates.json","legacy/","LVW_V0_RuntimePatch/"],
   "budgets": {"implementation_write_slots":1,"independent_review_slots":1,"max_effective_retries_per_external_case":1,"downloads":0,"cloud_fallback_calls":0},
   "mandatory_stops": [
     "public contract, fixed denominator, owner or threshold changes",
-    "real Ollama, media or browser action lacks a fresh explicit authorization",
+    "real Ollama, media or browser action lacks fresh explicit authorization",
     "browser directly calls Ollama or any non-loopback/cloud endpoint",
     "machine result overwrites a dirty human draft",
     "candidate or evidence identity mismatch",
@@ -53,18 +52,18 @@
     "two same-route failures without new evidence"
   ],
   "stage_entry_conditions": [
-    "Only offline repository work is authorized through WP-R1A-03.",
-    "WP-R1A-04 remains WAIT_AUTH until a one-shot request binds candidate, endpoint, model, sample, attempts and cleanup.",
+    "Packet 1.2 offline checkpoint is green.",
+    "WP-R1A-04 remains WAIT_AUTH until LIVE-07 is explicitly approved.",
     "R1a completion does not authorize V1 PASS or production release."
   ],
   "execution_authorized": false,
-  "authorization_scope": "WP-R1A-04_ONE_SHOT_LIVE",
-  "external_authorization": "EXPIRED_AUTH-V1-R1A-2026-10-29-LIVE-06",
+  "authorization_scope": "OFFLINE_COMPLETE_WAIT_AUTH",
+  "external_authorization": "WAIT_AUTH_BEFORE_WP-R1A-04",
   "next_owner": "project_owner",
-  "required_authorization": "R1A_HUMAN_EXPERIENCE_SIGNOFF",
-  "authorization_request": "reports/r1a/authorization-wp-r1a-04-live-06.request.json",
-  "change_request": "reports/r1a/change-request-r1a-contract-01.json",
-  "change_decision": "reports/r1a/change-decision-r1a-contract-01.json",
+  "required_authorization": "AUTH-REQUEST-V1-R1A-WP-R1A-04-LIVE-07",
+  "authorization_request": "reports/r1a/authorization-wp-r1a-04-live-07.request.json",
+  "change_request": "reports/r1a/change-request-r1a-product-controls-02.json",
+  "change_decision": "reports/r1a/change-decision-r1a-product-controls-02.json",
   "authorization_records": [
     "reports/r1a/authorization-wp-r1a-04-live-01.json",
     "reports/r1a/authorization-wp-r1a-04-live-02.json",
@@ -74,9 +73,9 @@
     "reports/r1a/authorization-wp-r1a-04-live-05.json",
     "reports/r1a/authorization-wp-r1a-04-live-06.json"
   ],
-  "implementation_candidate": "d1d30480c0bbc740fabe81cf07514518590b249c",
-  "evidence_commit": "31fb6afe645d82539c254ace90f59213d8296f0b",
-  "offline_receipt": "reports/r1a/implementation-receipt-packet-1.1-correction-02.json",
-  "terminal_receipt": "reports/r1a/r1a-live-06/live-receipt.json",
-  "independent_review": "reports/r1a/independent-review-r1a-live-06.md"
+  "implementation_candidate": "53b77cfff8a0d57929dd219f24f9d16e5e51a641",
+  "evidence_commit": "f331622c46903e6fcbff705f2018e58b31194625",
+  "offline_receipt": "reports/r1a/implementation-receipt-packet-1.2.json",
+  "historical_terminal_receipt": "reports/r1a/r1a-live-06/live-receipt.json",
+  "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md"
 }

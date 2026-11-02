@@ -1,9 +1,7 @@
 # R1a Implementation Prompt
 
 ```text
-按 R1a packet 在最终 V1 架构中完成单图简易前端。先 R0 复核，再实现 FastAPI 垂直路径和 React 工作台，最后一次离线 checkpoint。
+按 R1a packet 1.2.0 维护最终 React/FastAPI 单图路径。raw、suggestion、draft 分离，只有显式采纳能写入草稿。运行时控制只能管理本轮自有 Ollama；外部 Ollama 必须只读显示并禁用控制。内容配置必须是冻结枚举，自定义指导最多 800 字且不能覆盖系统/schema/安全边界。
 
-不得修改 contracts、固定分母或 release gate；不得使用临时 HTML、浏览器直连 Ollama、CDN、Gradio/NiceGUI、localStorage 数据库或云回退。raw、suggestion、draft 必须分离，只有显式采纳能把建议写入草稿。模型不可用时人工编辑和导出仍可用。
-
-离线阶段不得启动 Ollama 或浏览器。每个 Workpack 记录变更、测试、生产路径、负例、候选 SHA 和风险。实现者只报告 READY_FOR_REVIEW，Stage PASS 与人工签署由不同角色完成。
+不得改变固定分母、V0/V1 release gate，不得使用 CDN、云回退、临时 UI、浏览器直连 Ollama或 localStorage 数据库。实现者只报告 READY_FOR_REVIEW；Stage PASS、独立审查与人工签署权限分离。
 ```

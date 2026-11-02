@@ -1,0 +1,36 @@
+{
+  "schema_version": "lvw.implementation-receipt/1",
+  "project_id": "lvw-prompt-service",
+  "stage_id": "R1a",
+  "workpack_id": "WP-R1A-03-PACKET-1.2",
+  "candidate_sha": "53b77cfff8a0d57929dd219f24f9d16e5e51a641",
+  "evidence_commit": "f331622c46903e6fcbff705f2018e58b31194625",
+  "spec_version": "R1a-packet/1.2.0",
+  "acceptance_hash": "82a3736ab77ee98e301d7e055a78b160774c9c09692288db89c5a2768bfe39ab",
+  "gate_version": "lvw-gate/1",
+  "run_id": "r1a-offline-packet-1.2",
+  "environment": {"executor":"local_ci","provider":"none_offline_fake_provider_only","model":"none","network":"no target runtime touched"},
+  "contract_changes": "approved optional analysis request fields and local runtime-control protocol; fixed R1a denominator unchanged",
+  "production_paths": [
+    "React -> same-origin FastAPI -> literal-loopback Ollama",
+    "React runtime panel -> fixed local-control actions -> backend-owned process only",
+    "content profile and bounded custom guidance -> system-owned visual prompt composer",
+    "headless browser -> manual export -> one analysis -> explicit adoption -> export"
+  ],
+  "check_results": [
+    {"check":"offline_checkpoint_commands","result":"PASS","count":"11/11"},
+    {"check":"runtime_external_asset_scan","result":"PASS","findings":0},
+    {"check":"candidate_binding","result":"PASS"}
+  ],
+  "test_counts": {"denominator":7,"pass":1,"fail":0,"blocked":6,"skipped":0,"not_run":0},
+  "artifact_refs": ["reports/r1a/offline-checkpoint.json","reports/r1a/change-decision-r1a-product-controls-02.json"],
+  "risks": [
+    "R1A-M02 through R1A-M07 require fresh authorized target evidence",
+    "old live-06 evidence is historical and cannot validate this candidate",
+    "human experience signoff remains unavailable until independent Fatal=0/Major=0"
+  ],
+  "implementation_owner_role": "codex_r1a_implementer",
+  "implementation_session": "root-r1a-packet-1.2-2026-11-02",
+  "decision": "READY_FOR_LIVE_AUTH",
+  "exact_stop_reason": "PACKET_1_2_OFFLINE_GATES_GREEN_WAIT_AUTH_FOR_R1A_LIVE_07"
+}

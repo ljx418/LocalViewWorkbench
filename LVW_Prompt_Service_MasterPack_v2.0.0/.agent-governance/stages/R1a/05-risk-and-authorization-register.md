@@ -1,15 +1,13 @@
 # R1a Risk And Authorization Register
 
-| ID | 风险/动作 | 分类 | 默认状态 | 处置 |
-|---|---|---|---|---|
-| PRE-R1A-01 | V0-Min 未通过 | Stage 依赖 | SATISFIED | 绑定现有签署与候选 |
-| AUTH-R1A-01 | 仓库代码、测试、构建 | 离线仓库 | AUTHORIZED | 限 frozen allowed paths；npm 仅 offline cache |
-| AUTH-R1A-02 | 本地 Ollama 与 testSource 图片 | 外部/私有 | WAIT_AUTH | 固定模型、端点、样本和一次有效运行 |
-| AUTH-R1A-03 | 浏览器体验验收 | 高干扰 | WAIT_AUTH | 单独记录进程/端口/清理；人工签署 |
-| R-R1A-01 | 临时前端成为第二套系统 | Major | 禁止出门 | 最终 React/FastAPI 目录和合同 |
-| R-R1A-02 | 浏览器直连 Ollama | Fatal | 禁止出门 | 同源 API 与静态扫描 |
-| R-R1A-03 | 建议自动覆盖人工稿 | Fatal | 禁止出门 | 显式采纳、draft dirty 与负例 |
-| R-R1A-04 | 上传路径/解码炸弹 | Fatal | 禁止出门 | 流式字节限额、解码前后像素检查、run-owned 存储 |
-| R-R1A-05 | 假 React/旧证据 | Major | 禁止出门 | 真实 build、候选 SHA、fresh run 和独立复算 |
+| ID | 风险/动作 | 状态 | 处置 |
+|---|---|---|---|
+| AUTH-R1A-01 | 离线代码、测试、构建 | AUTHORIZED | 限冻结路径与 offline cache |
+| AUTH-R1A-02 | 本地 Ollama、testSource、headless Chromium | WAIT_AUTH | 绑定候选、Harness、样本、端口、一次调用和清理 |
+| R-R1A-01 | 浏览器直连/云回退 | Fatal | 同源 API、pre-dispatch 阻断与静态扫描 |
+| R-R1A-02 | 建议覆盖人工稿 | Fatal | 显式采纳与 dirty-draft 负例 |
+| R-R1A-03 | 自定义指导覆盖系统边界 | Major | 有界枚举、800 字、低优先级模板与合同负例 |
+| R-R1A-04 | 终止非自有 Ollama | Fatal | `external` 状态、禁用控制、仅持有本轮子进程句柄 |
+| R-R1A-05 | 旧证据绑定新候选 | Major | SHA 绑定、新鲜运行、隔离复算 |
 
-不授权下载、云服务、可见浏览器、付费 Provider、目标软件升级、永久配置写入或远端推送。
+不授权下载、云/付费服务、可见浏览器、私有媒体、永久配置、远端推送或发布。

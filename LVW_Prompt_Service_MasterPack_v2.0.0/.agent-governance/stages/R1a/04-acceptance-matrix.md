@@ -1,22 +1,20 @@
 # R1a Acceptance Matrix
 
-冻结分母：`R1A-M01,R1A-M02,R1A-M03,R1A-M04,R1A-M05,R1A-M06,R1A-M07`
+固定分母：`R1A-M01,R1A-M02,R1A-M03,R1A-M04,R1A-M05,R1A-M06,R1A-M07`
 
 ```text
 sha256(sorted IDs joined by LF with trailing LF)
 82a3736ab77ee98e301d7e055a78b160774c9c09692288db89c5a2768bfe39ab
 ```
 
-| 义务 | 生产路径 | Oracle | 负例/边界 |
-|---|---|---|---|
-| R1A-M01 受控媒体 | React→multipart→media owner | hash、格式、尺寸、字节、预处理可追 | 损坏、格式伪装、20MiB exact/one-over、40MP exact/one-over |
-| R1A-M02 真实分析 | React→job API→Ollama adapter→model-run | raw 与 PromptSpec 同 run；真实 provider 调用恰为 1 | Ollama 停止、超时、非法 JSON、非 loopback |
-| R1A-M03 无模型人工路径 | React draft→copy/download | provider 调用为 0；四输出可编辑导出 | 空稿、Unicode、剪贴板失败 |
-| R1A-M04 显式采纳与四输出 | 单次建议→确认→显式采纳→四输出 | 建议不自动覆盖；导出逐字段一致且不重复分析 | dirty draft、缺中文/负向、raw 默认折叠 |
-| R1A-M05 真实 React | Vite build→FastAPI 同源 dist | 无 CDN/Node 生产服务/Gradio；键盘可用 | 360/1280/1920、水平溢出、raw 展开状态 |
-| R1A-M06 单图独立质量复核 | 固定真实图片→隔离审查 | 观察与推断分离；语义可用；Fatal/Major=0 | 失败不得用旧样本替换 |
-| R1A-M07 同源、loopback 与失败安全 | 上传/API/静态服务/运行清理 | fail-closed、外联预阻断、run-owned 清理 | 路径、外联、秘密、模型失败、dirty draft、非 owned 进程 |
+| 义务 | 生产路径与 Oracle | 负例/边界 |
+|---|---|---|
+| R1A-M01 受控媒体 | React→media owner；hash、格式、尺寸、字节、预处理可追 | 损坏、伪装、20MiB/40MP exact 与 one-over |
+| R1A-M02 真实分析 | React→job→Ollama→model-run；raw/PromptSpec 同 run且 provider 恰为 1；配置/自定义指导进入请求 | 停止、超时、拒绝、非法 JSON、非 loopback |
+| R1A-M03 无模型人工路径 | draft→copy/download；provider 为 0，四输出可编辑导出 | 空稿、Unicode、剪贴板失败 |
+| R1A-M04 显式采纳 | 建议不自动覆盖；四输出非空且导出逐字段一致 | dirty draft、raw 默认折叠、重复分析 |
+| R1A-M05 真实 React | FastAPI 同源 dist；键盘可用；360/1280/1920 无横溢出 | CDN、临时 UI、绝对外联 |
+| R1A-M06 独立质量 | 固定图片隔离复算；观察/推断分离；Fatal=0/Major=0 | 不得用旧样本或旧候选替代 |
+| R1A-M07 失败与所有权安全 | fail-closed、run-owned 清理；外部 Ollama 显示 `external` 且控制禁用 | 路径、外联、秘密、非 owned 进程、残留 |
 
-R1a 工程出门需要同一候选的机器检查和独立审查；随后仍必须由项目负责人完成人工体验签署。任何 `SKIPPED/BLOCKED/NOT_RUN` 都不能计为通过。
-
-本矩阵只定义 R1a 早期切片门禁，不替代或重解释全局 V1 的 `A01/A02/A03/A05/F01/Q01/X01`；后者保持原始分母并在后续 V1 Stage 验收。
+任何 `SKIPPED/BLOCKED/NOT_RUN` 都不计 PASS。本矩阵不替代全局 V1 分母。

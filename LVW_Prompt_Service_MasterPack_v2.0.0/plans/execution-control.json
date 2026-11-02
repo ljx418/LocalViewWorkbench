@@ -1,6 +1,6 @@
 {
   "schema_version": "lvw.execution-control/1",
-  "updated_at": "2026-10-29",
+  "updated_at": "2026-11-02",
   "project_id": "lvw-prompt-service",
   "design_version": "2.0.0",
   "target_version": "V1",
@@ -9,14 +9,14 @@
     "stage_id": "R1a",
     "workpack_id": "WP-R1A-04",
     "gate": "GATE4_REAL_ACCEPTANCE",
-    "state": "CHECKPOINT"
+    "state": "WAIT_AUTH"
   },
   "last_passed_gate": {
-    "id": "WP_R1A_03_PACKET_1_1_OFFLINE_CHECKPOINT_PASS",
+    "id": "WP_R1A_03_PACKET_1_2_OFFLINE_CHECKPOINT_PASS",
     "evidence": "reports/r1a/offline-checkpoint.json",
-    "meaning": "Packet 1.1 contract, implementation, harness syntax, tests, V0 regression and governance are green; six live cases remain WAIT_AUTH"
+    "meaning": "Packet 1.2 current candidate passed 11/11 offline commands and runtime scan; six live cases remain WAIT_AUTH"
   },
-  "current_blocking_gate": "WP-R1A-04_PACKET_1_1_REAL_MODEL_BROWSER_INDEPENDENT_REVIEW",
+  "current_blocking_gate": "WP-R1A-04_PACKET_1_2_REAL_MODEL_BROWSER_INDEPENDENT_REVIEW",
   "stage_packet": ".agent-governance/stages/R1a/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/R1a/PAYLOAD_MANIFEST.sha256",
   "product_status": "IN_PROGRESS",
@@ -30,20 +30,20 @@
     "TARGET_HARDWARE_TESTED"
   ],
   "next_owner": "project_owner",
-  "next_action": "Perform R1a human experience review and explicitly accept or reject the early single-image workbench.",
-  "required_authorization": "R1A_HUMAN_EXPERIENCE_SIGNOFF",
-  "authorization_request": "reports/r1a/authorization-wp-r1a-04-live-06.request.json",
-  "authorization_record": "reports/r1a/authorization-wp-r1a-04-live-06.json",
+  "next_action": "Approve or reject the candidate-bound LIVE-07 request; no real runtime action is authorized yet.",
+  "required_authorization": "AUTH-REQUEST-V1-R1A-WP-R1A-04-LIVE-07",
+  "authorization_request": "reports/r1a/authorization-wp-r1a-04-live-07.request.json",
+  "authorization_record": null,
   "historical_authorization_records": [
     "reports/r1a/authorization-wp-r1a-04-live-01.json",
     "reports/r1a/authorization-wp-r1a-04-live-02.json",
     "reports/authorization-program-v1-local-01.json"
   ],
-  "contract_change_request": "reports/r1a/change-request-r1a-contract-01.json",
-  "contract_change_decision": "reports/r1a/change-decision-r1a-contract-01.json",
-  "implementation_candidate": "d1d30480c0bbc740fabe81cf07514518590b249c",
-  "offline_evidence_commit": "31fb6afe645d82539c254ace90f59213d8296f0b",
-  "offline_receipt": "reports/r1a/implementation-receipt-packet-1.1-correction-02.json",
+  "contract_change_request": "reports/r1a/change-request-r1a-product-controls-02.json",
+  "contract_change_decision": "reports/r1a/change-decision-r1a-product-controls-02.json",
+  "implementation_candidate": "53b77cfff8a0d57929dd219f24f9d16e5e51a641",
+  "offline_evidence_commit": "f331622c46903e6fcbff705f2018e58b31194625",
+  "offline_receipt": "reports/r1a/implementation-receipt-packet-1.2.json",
   "evidence_root": "reports/",
   "gate_decision": "reports/v0-s1/gate-decision-v0-min.md",
   "human_signoff": "reports/v0-s1/human-signoff-v0-min.json",
@@ -55,7 +55,9 @@
     "decision": "reports/r1a/change-decision-r1a-contract-01.json",
     "meaning": "R1a local acceptance IDs were corrected without changing existing global V1 cases or product scope"
   },
-  "live_terminal_receipt": "reports/r1a/r1a-live-06/live-receipt.json",
-  "independent_review": "reports/r1a/independent-review-r1a-live-06.md",
-  "exact_stop_reason": "R1A_ENGINEERING_GATES_GREEN_WAIT_HUMAN_EXPERIENCE_SIGNOFF"
+  "historical_live_terminal_receipt": "reports/r1a/r1a-live-06/live-receipt.json",
+  "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
+  "live_terminal_receipt": null,
+  "independent_review": null,
+  "exact_stop_reason": "R1A_CURRENT_CANDIDATE_OFFLINE_GREEN_WAIT_AUTH_FOR_FRESH_LIVE"
 }
