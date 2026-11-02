@@ -665,6 +665,7 @@ def main_r1a(args: argparse.Namespace, execution: dict) -> int:
             "EXPIRED_AUTH-V1-R1A-2026-10-29-LIVE-02",
             "EXPIRED_AUTH-V1-R1A-2026-10-29-LIVE-03",
             "EXPIRED_AUTH-V1-R1A-2026-10-29-LIVE-05",
+            "EXPIRED_AUTH-V1-R1A-2026-11-02-LIVE-07",
         }
         and control.get("execution_authorized") is False
         and (
