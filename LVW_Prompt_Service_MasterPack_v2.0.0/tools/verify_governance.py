@@ -253,6 +253,42 @@ def verify_manifest() -> list[str]:
     return verify_manifest_at(STAGE_DIR)
 
 
+def verify_prepared_v0_s2(tasks: dict, cases: dict) -> list[str]:
+    stage_dir = GOV / "stages" / "V0-S2"
+    errors: list[str] = []
+    if not stage_dir.is_dir():
+        return ["prepared V0-S2 packet is missing"]
+    inventory = {path.name for path in stage_dir.iterdir() if path.is_file()}
+    if inventory != REQUIRED_PACKET_FILES:
+        errors.append("prepared V0-S2 packet inventory differs from the standard packet")
+    errors.extend(verify_manifest_at(stage_dir))
+    control = load_json(stage_dir / "stage-control.json")
+    planned = next(item for item in tasks["stages"] if item["stage_id"] == "V0-S2")
+    fixed = control.get("fixed_acceptance_ids", [])
+    known = {item["case_id"] for item in cases["cases"]}
+    if fixed != planned["work_on_cases"] or not set(fixed) <= known:
+        errors.append("prepared V0-S2 denominator differs from the product plan")
+    if control.get("acceptance_hash") != digest_ids(fixed):
+        errors.append("prepared V0-S2 acceptance hash mismatch")
+    if (control.get("packet_status") != "PREPARED_NOT_ACTIVE"
+            or control.get("state") != "WAIT_DEPENDENCY"
+            or control.get("execution_authorized") is not False
+            or control.get("authorization_scope") != "PREPARATION_ONLY_NO_IMPLEMENTATION_NO_LIVE"):
+        errors.append("prepared V0-S2 packet is not fail-closed")
+    if control.get("baseline", {}).get("product_control_sha256") != product_control_digest():
+        errors.append("prepared V0-S2 product-control fingerprint mismatch")
+    roles = control.get("roles", {})
+    implementers = set(roles.get("implementation_owners", []))
+    if (not implementers or roles.get("gate_owner") in implementers
+            or roles.get("independent_reviewer") in implementers
+            or roles.get("gate_owner") == roles.get("independent_reviewer")):
+        errors.append("prepared V0-S2 roles are not separated")
+    for authority in control.get("authorities", []):
+        if not (ROOT / authority).is_file():
+            errors.append(f"prepared V0-S2 authority is missing: {authority}")
+    return errors
+
+
 def verify_prepared_stage(tasks: dict, cases: dict) -> list[str]:
     errors: list[str] = []
     if not NEXT_STAGE_DIR.is_dir():
@@ -563,6 +599,9 @@ def main_r1a(args: argparse.Namespace, execution: dict) -> int:
         check("authority:" + authority, (ROOT / authority).is_file())
     manifest_errors = verify_manifest_at(stage_dir)
     check("stage_manifest", not manifest_errors, "; ".join(manifest_errors))
+    prepared_v0_s2_errors = verify_prepared_v0_s2(tasks, cases)
+    check("prepared_v0_s2_packet", not prepared_v0_s2_errors,
+          "; ".join(prepared_v0_s2_errors))
     check("single_coordinate_stage", execution.get("coordinate", {}).get("stage_id") == "R1a")
     check("single_coordinate_state", execution.get("coordinate", {}).get("state") == control.get("state"))
     check("coordinate_workpack", execution.get("coordinate", {}).get("workpack_id")
