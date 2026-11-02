@@ -140,13 +140,29 @@ function arg(name) {
 
     const viewports = [[360, 800], [1280, 900], [1920, 1080]];
     const layouts = [];
+    fs.writeFileSync(path.join(evidence, "product-checks.json"), JSON.stringify({
+      observations, inferences, unknowns, adopted_outputs: adopted,
+      content_profile: selectedContentProfile, custom_guidance: customGuidance,
+      runtime_ownership: "external", runtime_controls_disabled: true,
+      clipboard_match: true, json_export_valid: true, txt_export_valid: true,
+      dirty_draft_preserved_before_adoption: true,
+    }, null, 2) + "\n");
     for (const [width, height] of viewports) {
       await page.setViewportSize({ width, height });
-      const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
-      if (overflow) throw new Error(`horizontal overflow at ${width}`);
+      const geometry = await page.evaluate(() => ({
+        viewport: document.documentElement.clientWidth,
+        scroll: document.documentElement.scrollWidth,
+        offenders: [...document.querySelectorAll("body *")].map(element => {
+          const rect = element.getBoundingClientRect();
+          return { tag: element.tagName, class: element.className, left: rect.left, right: rect.right };
+        }).filter(rect => rect.right > document.documentElement.clientWidth + 1 || rect.left < -1),
+      }));
+      const overflow = geometry.scroll > geometry.viewport;
       const screenshot = path.join(evidence, `ui-${width}.png`);
       await page.screenshot({ path: screenshot, fullPage: true });
-      layouts.push({ width, height, horizontal_overflow: overflow, screenshot: path.basename(screenshot) });
+      layouts.push({ width, height, horizontal_overflow: overflow, geometry, screenshot: path.basename(screenshot) });
+      fs.writeFileSync(path.join(evidence, "layout-checks.json"), JSON.stringify(layouts, null, 2) + "\n");
+      if (overflow) throw new Error(`horizontal overflow at ${width}`);
     }
 
     const result = {
