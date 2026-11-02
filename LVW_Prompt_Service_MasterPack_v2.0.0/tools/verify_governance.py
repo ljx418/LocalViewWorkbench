@@ -630,6 +630,7 @@ def main_r1a(args: argparse.Namespace, execution: dict) -> int:
             "AUTH-REQUEST-V1-R1A-WP-R1A-04-LIVE-03",
             "AUTH-REQUEST-V1-R1A-WP-R1A-04-LIVE-06",
             "AUTH-REQUEST-V1-R1A-WP-R1A-04-LIVE-07",
+            "AUTH-REQUEST-V1-R1A-WP-R1A-04-LIVE-08",
         }
     )
     waiting_contract_correction = (
@@ -651,6 +652,7 @@ def main_r1a(args: argparse.Namespace, execution: dict) -> int:
             "AUTH-V1-R1A-2026-10-29-LIVE-05",
             "AUTH-V1-R1A-2026-10-29-LIVE-06",
             "AUTH-V1-R1A-2026-11-02-LIVE-07",
+            "AUTH-V1-R1A-2026-11-02-LIVE-08",
         }
         and control.get("execution_authorized") is True
         and control.get("next_owner") == "local_ci"
@@ -666,6 +668,7 @@ def main_r1a(args: argparse.Namespace, execution: dict) -> int:
             "EXPIRED_AUTH-V1-R1A-2026-10-29-LIVE-03",
             "EXPIRED_AUTH-V1-R1A-2026-10-29-LIVE-05",
             "EXPIRED_AUTH-V1-R1A-2026-11-02-LIVE-07",
+            "EXPIRED_AUTH-V1-R1A-2026-11-02-LIVE-08",
         }
         and control.get("execution_authorized") is False
         and (

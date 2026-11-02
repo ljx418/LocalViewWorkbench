@@ -9,10 +9,10 @@
     "stage_id": "R1a",
     "workpack_id": "WP-R1A-04",
     "gate": "GATE4_REAL_ACCEPTANCE",
-    "state": "NO_GO"
+    "state": "WAIT_AUTH"
   },
   "last_passed_gate": {
-    "id": "WP_R1A_03_PACKET_1_2_OFFLINE_CHECKPOINT_PASS",
+    "id": "WP_R1A_03_PACKET_1_2_LAYOUT_CORRECTION_OFFLINE_PASS",
     "evidence": "reports/r1a/offline-checkpoint.json",
     "meaning": "Packet 1.2 current candidate passed 11/11 offline commands and runtime scan; six live cases remain WAIT_AUTH"
   },
@@ -29,11 +29,11 @@
     "PRODUCTION_RELEASED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "codex_r1a_implementer",
-  "next_action": "Review and correct 360px overflow offline; fresh live rerun needs new authorization",
-  "required_authorization": "AUTH-REQUEST-V1-R1A-WP-R1A-04-LIVE-07",
-  "authorization_request": "reports/r1a/authorization-wp-r1a-04-live-07.request.json",
-  "authorization_record": "reports/r1a/authorization-wp-r1a-04-live-07.json",
+  "next_owner": "project_owner",
+  "next_action": "Approve or reject LIVE-08 corrected candidate one-shot request",
+  "required_authorization": "AUTH-REQUEST-V1-R1A-WP-R1A-04-LIVE-08",
+  "authorization_request": "reports/r1a/authorization-wp-r1a-04-live-08.request.json",
+  "authorization_record": null,
   "historical_authorization_records": [
     "reports/r1a/authorization-wp-r1a-04-live-01.json",
     "reports/r1a/authorization-wp-r1a-04-live-02.json",
@@ -41,9 +41,9 @@
   ],
   "contract_change_request": "reports/r1a/change-request-r1a-product-controls-02.json",
   "contract_change_decision": "reports/r1a/change-decision-r1a-product-controls-02.json",
-  "implementation_candidate": "53b77cfff8a0d57929dd219f24f9d16e5e51a641",
-  "offline_evidence_commit": "f331622c46903e6fcbff705f2018e58b31194625",
-  "offline_receipt": "reports/r1a/implementation-receipt-packet-1.2.json",
+  "implementation_candidate": "df4943cef1726350d5e9f1d4111800094c1a8d99",
+  "offline_evidence_commit": "67ce51fa18e9647ec11819c5baed5c1efe030886",
+  "offline_receipt": "reports/r1a/implementation-receipt-layout-correction-01.json",
   "evidence_root": "reports/",
   "gate_decision": "reports/v0-s1/gate-decision-v0-min.md",
   "human_signoff": "reports/v0-s1/human-signoff-v0-min.json",
@@ -55,9 +55,9 @@
     "decision": "reports/r1a/change-decision-r1a-contract-01.json",
     "meaning": "R1a local acceptance IDs were corrected without changing existing global V1 cases or product scope"
   },
-  "historical_live_terminal_receipt": "reports/r1a/r1a-live-06/live-receipt.json",
+  "historical_live_terminal_receipt": "reports/r1a/r1a-live-07/live-receipt.json",
   "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
-  "live_terminal_receipt": "reports/r1a/r1a-live-07/live-receipt.json",
+  "live_terminal_receipt": null,
   "independent_review": null,
-  "exact_stop_reason": "LIVE_07_NO_GO_HORIZONTAL_OVERFLOW_360_AUTHORIZATION_EXPIRED"
+  "exact_stop_reason": "LAYOUT_CORRECTION_OFFLINE_PASS_WAIT_AUTH_LIVE_08"
 }
