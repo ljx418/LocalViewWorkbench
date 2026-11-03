@@ -101,7 +101,7 @@ class PublicNodeOwnerTests(unittest.TestCase):
 
     def test_registration_exposes_real_public_node_owners(self):
         self.assertEqual({"LVWImagePromptBridge", "LVWVideoFramesPromptBridge", "LVWManualPromptOwner",
-                          "LVWControlledImageInput", "LVWDraftStateOwner"},
+                          "LVWControlledImageInput", "LVWControlledVideoInput", "LVWDraftStateOwner"},
                          set(NODE_CLASS_MAPPINGS))
         self.assertEqual("analyze", self.image_cls.FUNCTION)
         self.assertIs(self.image_cls.OUTPUT_NODE, True)
