@@ -35,7 +35,10 @@ FROZEN_ERROR_CODES = frozenset({
     "SUBMISSION_UNKNOWN", "CANCEL_UNSAFE", "PACKAGE_INVALID", "DISK_FULL",
 })
 
-_INFERENCE_LOCK = threading.Lock()
+# The integrated video owner holds this across preparation and invokes the
+# existing bridge on the same thread. Other threads still cannot acquire it.
+_INFERENCE_LOCK = threading.RLock()
+_RESOURCE_RELEASE_PENDING = threading.Event()
 
 
 class BridgeError(RuntimeError):
@@ -409,7 +412,7 @@ class BridgeOwner:
         if len(frames) != 1:
             raise BridgeError("MEDIA_LIMIT_EXCEEDED", "image analysis requires exactly one image",
                               subcode="IMAGE_COUNT_LIMIT")
-        if not _INFERENCE_LOCK.acquire(blocking=False):
+        if _RESOURCE_RELEASE_PENDING.is_set() or not _INFERENCE_LOCK.acquire(blocking=False):
             raise BridgeError("RESOURCE_BUSY", "another LVW bridge request is active", subcode="LVW_BRIDGE_LOCKED")
         try:
             call = call_one_frame(transport=self.transport, encoder=self.encoder, frame=frames[0], model=model,
@@ -429,7 +432,7 @@ class BridgeOwner:
         if not 1 <= len(frames) <= MAX_VIDEO_FRAMES:
             raise BridgeError("MEDIA_LIMIT_EXCEEDED", f"video analysis requires 1..{MAX_VIDEO_FRAMES} ordered frames",
                               subcode="VIDEO_FRAME_COUNT_LIMIT")
-        if not _INFERENCE_LOCK.acquire(blocking=False):
+        if _RESOURCE_RELEASE_PENDING.is_set() or not _INFERENCE_LOCK.acquire(blocking=False):
             raise BridgeError("RESOURCE_BUSY", "another LVW bridge request is active", subcode="LVW_BRIDGE_LOCKED")
         try:
             calls = []
