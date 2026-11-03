@@ -693,11 +693,11 @@ def main_r1a(args: argparse.Namespace, execution: dict) -> int:
     human_gate_ready = (
         control.get("state") == "CHECKPOINT"
         and control.get("authorization_scope") == "WP-R1A-04_ONE_SHOT_LIVE"
-        and control.get("external_authorization") == "EXPIRED_AUTH-V1-R1A-2026-10-29-LIVE-06"
+        and control.get("external_authorization") in {"EXPIRED_AUTH-V1-R1A-2026-10-29-LIVE-06", "EXPIRED_AUTH-V1-R1A-2026-11-02-LIVE-08"}
         and control.get("execution_authorized") is False
         and control.get("next_owner") == "project_owner"
         and control.get("required_authorization") == "R1A_HUMAN_EXPERIENCE_SIGNOFF"
-        and control.get("independent_review") == "reports/r1a/independent-review-r1a-live-06.md"
+        and control.get("independent_review") in {"reports/r1a/independent-review-r1a-live-06.md", "reports/r1a/independent-review-r1a-live-08.md"}
     )
     check("external_scope_fail_closed",
           offline_ready or waiting_live_authorization or waiting_contract_correction
