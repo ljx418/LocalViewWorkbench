@@ -30,7 +30,7 @@ RECIPES={
  'fast-cut':{'file':'fast-cut.mp4','source':'color=c=red:s=320x192:r=12:d=8',
            'filter':"drawbox=color=green:t=fill:enable='between(t,2,3.999)',drawbox=color=blue:t=fill:enable='between(t,4,5.999)',drawbox=color=white:t=fill:enable='gte(t,6)'"},
  'vfr':{'file':'vfr.mp4','source':'testsrc2=s=320x192:r=12:d=8',
-           'filter':"select='not(mod(n,2))+not(mod(n,5))'"},
+           'filter':"select='(not(mod(n,2))+not(mod(n,5)))*not(eq(mod(n,24),12))'"},
  'over-duration':{'file':'over-duration.mp4','source':'color=c=black:s=64x64:r=1:d=61','filter':'null'},
 }
 
