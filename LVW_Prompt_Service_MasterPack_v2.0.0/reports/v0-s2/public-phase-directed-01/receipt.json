@@ -1,0 +1,88 @@
+{
+  "kind": "DIRECTED_WORKING_PAYLOAD_NOT_STAGE_ACCEPTANCE",
+  "candidate_sha": null,
+  "source_sha256": {
+    "tools/v0_s2_public_phase.py": "83cbcfa86189f091af59519d4eb5aec492529eebd4c56f0bb003b0ad73d3946c",
+    "tools/v0_s2_runtime.py": "16d3d28569214f0d238b6d273096f648d4397c77d280fd062d4c5be449035863",
+    "LVW_V0_RuntimePatch/tests/test_s2_public_phase.py": "ee335d6c8a6a994e565d136e831a3fd4d5ec0bc6becc28ca34346c21597decfd",
+    "LVW_V0_RuntimePatch/tests/test_s2_runtime.py": "6ffab44765070530fbc254f9c846df8faf9b878786203f98368eb82d1d86ea6f",
+    ".agent-governance/stages/V0-S2/stage-control.json": "1285113b554131f34b2d1c866e9e375b125cf47d73ff1044ca94ca22c5de8398",
+    "MANIFEST.sha256": "072bdc8e9022b03ded91bf807b5a690835b28157b25ed3b3dd977493c830853f"
+  },
+  "source_unchanged": true,
+  "check_results": [
+    {
+      "name": "directed",
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "-m",
+        "unittest",
+        "LVW_V0_RuntimePatch.tests.test_s2_public_phase",
+        "LVW_V0_RuntimePatch.tests.test_s2_runtime",
+        "LVW_V0_RuntimePatch.tests.test_s2_warm_phase",
+        "LVW_V0_RuntimePatch.tests.test_s2_stage_inputs",
+        "-q"
+      ],
+      "exit_code": 0,
+      "stdout_original_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_artifact": "directed.stdout.log",
+      "stdout_artifact_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_original_sha256": "5eeda4eaedf3ae66c28bda6f6c4711dd67939d3395e33e646e9e9e3cc242d6a6",
+      "stderr_artifact": "directed.stderr.log",
+      "stderr_artifact_sha256": "5eeda4eaedf3ae66c28bda6f6c4711dd67939d3395e33e646e9e9e3cc242d6a6"
+    },
+    {
+      "name": "pack",
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "tools/verify_pack.py",
+        "--schema"
+      ],
+      "exit_code": 0,
+      "stdout_original_sha256": "dcc572fe13e5634dd699d12fa2542fd9fda4384555d197828f7b9fe319c8a50c",
+      "stdout_artifact": "pack.stdout.log",
+      "stdout_artifact_sha256": "dcc572fe13e5634dd699d12fa2542fd9fda4384555d197828f7b9fe319c8a50c",
+      "stderr_original_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_artifact": "pack.stderr.log",
+      "stderr_artifact_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "governance",
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "tools/verify_governance.py",
+        "--self-test"
+      ],
+      "exit_code": 0,
+      "stdout_original_sha256": "6c3ca0f6a38ccb9c5b146cedfc37530b149a99c72d0baf4f69293ca1195f3df5",
+      "stdout_artifact": "governance.stdout.log",
+      "stdout_artifact_sha256": "6c3ca0f6a38ccb9c5b146cedfc37530b149a99c72d0baf4f69293ca1195f3df5",
+      "stderr_original_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_artifact": "governance.stderr.log",
+      "stderr_artifact_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "diff",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0,
+      "stdout_original_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_artifact": "diff.stdout.log",
+      "stdout_artifact_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_original_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_artifact": "diff.stderr.log",
+      "stderr_artifact_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "provider_calls": 0,
+  "service_starts": 0,
+  "stage_checkpoint_consumed": false,
+  "stage_pass_claim": false,
+  "decision": "DIRECTED_CHECKS_PASSED"
+}
