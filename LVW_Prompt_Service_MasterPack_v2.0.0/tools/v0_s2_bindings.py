@@ -98,7 +98,11 @@ def native_decoder_paths():
     script = "[Console]::OutputEncoding=[System.Text.UTF8Encoding]::new($false);$ErrorActionPreference='Stop'; @('ffmpeg.exe','ffprobe.exe') | ForEach-Object {$c=Get-Command $_ -CommandType Application -ErrorAction Stop; [pscustomobject]@{name=$_;path=$c.Source}} | ConvertTo-Json -Compress"
     result = subprocess.run(['powershell.exe','-NoProfile','-NonInteractive','-Command',script],
         capture_output=True,timeout=30)
-    if result.returncode:return bundled_decoder_paths()
+    if result.returncode:
+        try:return bundled_decoder_paths()
+        except BindingError as exc:
+            if str(exc) != 'BUNDLED_DECODER_NAMED_PATHS_MISSING':raise
+            return installed_decoder_paths()
     paths = {}
     for value in json.loads(result.stdout.decode('utf-8-sig','strict')):
         converted = subprocess.check_output(['wslpath','-u',value['path']],text=True,timeout=5).strip()
@@ -108,6 +112,32 @@ def native_decoder_paths():
         paths[path.name.upper().replace('.EXE','_EXE')] = path
     if set(paths) != {'FFMPEG_EXE','FFPROBE_EXE'}: raise BindingError('NATIVE_DECODERS_INCOMPLETE')
     return paths
+
+
+def installed_decoder_paths(*, direct=None, winget=None):
+    """Existing FFmpeg installation metadata only; no recursive disk search."""
+    if direct is None:
+        direct=[Path('/mnt/c/ffmpeg/bin'),Path('/mnt/c/tools/ffmpeg/bin'),
+                Path('/mnt/c/Program Files/ffmpeg/bin'),
+                Path('/mnt/c/Users/Administrator/scoop/apps/ffmpeg/current/bin')]
+    if winget is None:winget=Path('/mnt/c/Users/Administrator/AppData/Local/Microsoft/WinGet/Packages')
+    directories=list(direct)
+    if winget.is_dir():
+        packages=list(winget.glob('Gyan.FFmpeg*'))
+        if len(packages)>16:raise BindingError('INSTALLED_DECODER_METADATA_LIMIT')
+        for package in packages:
+            if package.is_symlink():raise BindingError('NATIVE_DECODER_IDENTITY_INVALID')
+            builds=list(package.glob('ffmpeg-*'))
+            if len(builds)>16:raise BindingError('INSTALLED_DECODER_METADATA_LIMIT')
+            directories.extend(build/'bin' for build in builds)
+    for directory in directories:
+        if directory.is_symlink() or any(p.is_symlink() for p in directory.parents):
+            raise BindingError('NATIVE_DECODER_IDENTITY_INVALID')
+        pair={key:directory/name for key,name in [('FFMPEG_EXE','ffmpeg.exe'),('FFPROBE_EXE','ffprobe.exe')]}
+        if all(path.is_file() for path in pair.values()):
+            if any(path.is_symlink() for path in pair.values()):raise BindingError('NATIVE_DECODER_IDENTITY_INVALID')
+            return pair
+    raise BindingError('NATIVE_DECODER_INSTALLATION_NOT_FOUND')
 
 
 def main():
@@ -137,9 +167,9 @@ def main():
         receipt['executables']={}
         for alias,path in TARGETS.items():
             receipt['executables'][alias]={'sha256':file_hash(path),'bytes':path.stat().st_size}
+        receipt['samples']=sample_inventory(SOURCE)
         for alias,path in native_decoder_paths().items():
             receipt['executables'][alias]={'sha256':file_hash(path),'bytes':path.stat().st_size}
-        receipt['samples']=sample_inventory(SOURCE)
         receipt['decision']='BINDINGS_COLLECTED_NOT_ACCEPTANCE'
     except Exception as exc:
         receipt['error_code']=str(exc) if isinstance(exc,BindingError) else type(exc).__name__

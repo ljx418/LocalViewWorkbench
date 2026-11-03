@@ -6,7 +6,7 @@ import unittest
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from tools.v0_s2_bindings import BindingError,sample_inventory,validate_authority,native_decoder_paths,bundled_decoder_paths
+from tools.v0_s2_bindings import BindingError,sample_inventory,validate_authority,native_decoder_paths,bundled_decoder_paths,installed_decoder_paths
 
 
 class BindingTests(unittest.TestCase):
@@ -31,6 +31,19 @@ class BindingTests(unittest.TestCase):
             root=Path(temp);deep=root/'python/Lib/site-packages/deep';deep.mkdir(parents=True)
             for name in ('ffmpeg.exe','ffprobe.exe'):(deep/name).write_bytes(b'fixture')
             with self.assertRaisesRegex(BindingError,'NAMED_PATHS_MISSING'):bundled_decoder_paths(root)
+
+    def test_existing_winget_ffmpeg_pair_and_symlink_rejection(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp);binary=root/'Gyan.FFmpeg_fixture/ffmpeg-fixture/bin';binary.mkdir(parents=True)
+            for name in ('ffmpeg.exe','ffprobe.exe'):(binary/name).write_bytes(b'fixture')
+            self.assertEqual(binary/'ffprobe.exe',installed_decoder_paths(direct=[],winget=root)['FFPROBE_EXE'])
+            (binary/'ffprobe.exe').unlink();(binary/'ffprobe.exe').symlink_to(binary/'ffmpeg.exe')
+            with self.assertRaisesRegex(BindingError,'IDENTITY'):installed_decoder_paths(direct=[],winget=root)
+
+    def test_missing_native_installation_is_explicit(self):
+        with tempfile.TemporaryDirectory() as temp:
+            with self.assertRaisesRegex(BindingError,'INSTALLATION_NOT_FOUND'):
+                installed_decoder_paths(direct=[],winget=Path(temp))
     def test_media_aliases_hashes_and_out_of_root_symlink(self):
         with tempfile.TemporaryDirectory() as temp:
             root=Path(temp)/'source';root.mkdir()

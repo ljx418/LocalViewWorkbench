@@ -1,0 +1,41 @@
+{
+  "schema_version": "lvw.program-child-authorization/1",
+  "authorization_id": "AUTH-V0-S2-BINDING-INVENTORY-04",
+  "source_program_authorization": "AUTH-PROGRAM-V1-LOCAL-01",
+  "program_sha256": "8f79a9a5a02fb8904b21c86129c5a1509c7a3dcd3e8817d2fdde26266d3375b6",
+  "issued_by": "codex_gate_owner",
+  "grant_basis": "Existing project-owner program authorization permits in-scope child runs without human reapproval; read-only preparation only.",
+  "status": "EXPIRED_NO_GO",
+  "stage_id": "V0-S2",
+  "workpack_id": "WP-S2-04-BINDING-PREPARATION",
+  "scope": "READ_ONLY_BINDING_INVENTORY",
+  "run_id": "binding-inventory-04",
+  "candidate_sha": "d753cf0e9f2807b767747efc8db49dfc57281c74",
+  "harness_sha256": "61cee4a23420d48be0996e270993e1daa5e819cd016796cf7738342404db171f",
+  "sample_binding": "Only hash inventory below already-authorized TEST_SOURCE; no decoding or content analysis. Resulting hashes bind future runs.",
+  "targets": [
+    "COMFY_MAIN",
+    "COMFY_PYTHON",
+    "OLLAMA_EXE",
+    "native PATH ffmpeg.exe/ffprobe.exe",
+    "10 named COMFY_ROOT tool directories as frozen in Harness"
+  ],
+  "ports": [],
+  "processes": "One fixed native PowerShell Get-Command query; no target services, no process termination.",
+  "budget": {
+    "media_hash_files": 24,
+    "media_hash_bytes": 1073741824,
+    "native_path_queries": 1,
+    "service_starts": 0,
+    "provider_calls": 0,
+    "gpu_probes": 0,
+    "browser_runs": 0,
+    "downloads": 0,
+    "cloud_calls": 0,
+    "stage_checkpoints": 0
+  },
+  "cleanup": "No target/config writes; bounded alias/hash-only evidence in a fresh slot. Child authorization expires at terminal receipt. No automatic retry.",
+  "does_not_authorize_stage_pass": true,
+  "correction": "Inventory03 scan cap is preserved. Check only 10 named existing directories inside COMFY_ROOT (at most 20 tool paths), no recursive search. Historical WSL decoder availability does not establish native availability.",
+  "terminal_receipt": "reports/v0-s2/binding-inventory-04/receipt.json"
+}
