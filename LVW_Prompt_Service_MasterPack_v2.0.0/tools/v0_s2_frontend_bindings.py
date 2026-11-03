@@ -41,15 +41,24 @@ def snapshot_sources(named,roots):
         for marker in MARKERS:
             index=text.find(marker)
             if index>=0:snippets.append({'marker':marker,'offset':index,'text':text[max(0,index-160):index+640]})
-        rows.append({'alias':alias,'status':'HASHED','bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest(),'snippets':snippets})
-        if depth<2 and path.suffix in ('.js','.mjs'):
-            imports=re.findall(r'''(?:from\s*|import\s*)["']([^"']+)["']''',text)
+        row={'alias':alias,'status':'HASHED','bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest(),'snippets':snippets}
+        if len(raw)<=4096:row['public_source_text']=text
+        rows.append(row)
+        if depth<2 and path.suffix in ('.js','.mjs','.html'):
+            imports=(re.findall(r'''<script[^>]+src=["']([^"']+)["']''',text) if path.suffix=='.html'
+                     else re.findall(r'''(?:from\s*|import\s*)["']([^"']+)["']''',text))
             for reference in imports[:32]:
-                if not reference.startswith('.'):continue
+                if path.suffix=='.html':
+                    if ':' in reference or reference.startswith('//'):continue
+                    reference=reference.lstrip('/').split('?',1)[0].split('#',1)[0]
+                elif not reference.startswith('.'):continue
                 child=(path.parent/reference).resolve()
-                if child.suffix not in ('.js','.mjs') or not child.exists():continue
                 match=next(((name,root) for name,root in roots.items() if child.is_relative_to(root)),None)
-                if match:queue.append((match[0]+'/'+child.relative_to(match[1]).as_posix(),child,depth+1))
+                if not match or child.suffix not in ('.js','.mjs') or not child.exists():continue
+                # Inspect the real HTML module entry, not its whole unrelated
+                # chunk fanout. This is contract inspection, not a full frontend
+                # dependency seal (the eventual parent must still supply it).
+                if match:queue.append((match[0]+'/'+child.relative_to(match[1]).as_posix(),child,2 if path.suffix=='.html' else depth+1))
     return {'files':rows,'source_bytes_read':total}
 
 
@@ -68,6 +77,17 @@ def sdk_snapshot(roots):
             rows.append({'alias':alias+'/'+rel.as_posix(),'bytes':path.stat().st_size,'sha256':file_hash(path)})
     canonical=''.join(v['sha256']+'  '+v['alias']+'\n' for v in rows).encode()
     return {'files':rows,'bytes_hashed':total,'manifest_sha256':hashlib.sha256(canonical).hexdigest()}
+
+
+def registry_directories(value):
+    result={}
+    for browser in value.get('browsers',[]):
+        if browser.get('name') not in ('chromium','chromium-headless-shell'):continue
+        revision=browser.get('revision')
+        if not isinstance(revision,str) or not re.fullmatch('[0-9]+',revision) or browser['name'] in result:raise ValueError('SDK_BROWSER_REGISTRY_INVALID')
+        result[browser['name']]=browser['name'].replace('-','_')+'-'+revision
+    if set(result)!={'chromium','chromium-headless-shell'}:raise ValueError('SDK_BROWSER_REGISTRY_INVALID')
+    return list(result.values())
 
 
 def execute(relative):
@@ -113,10 +133,11 @@ def execute(relative):
         result['sdk_entry']={'alias':'NODE_GLOBAL/'+entry.relative_to(global_root).as_posix(),'sha256':file_hash(entry),
             'playwright_version':json.loads((playwright/'package.json').read_text())['version'],
             'core_version':json.loads((core/'package.json').read_text())['version']}
-        cache=Path.home()/'.cache/ms-playwright';binaries=[];total=0
+        registry=json.loads((core/'browsers.json').read_text());selected=registry_directories(registry)
+        result['browser_registry']={'sha256':file_hash(core/'browsers.json'),'selected_directories':selected}
+        cache=Path.home()/'.cache/ms-playwright';binaries=[];total=0;result['browser_binaries']=binaries
         if cache.exists():
-            dirs=sorted(p for p in cache.iterdir() if re.fullmatch(r'chromium(?:_headless_shell)?-[0-9]+',p.name))
-            if len(dirs)>16:raise ValueError('BROWSER_CACHE_DIRECTORY_LIMIT')
+            dirs=[cache/name for name in selected if (cache/name).is_dir()]
             for sub in dirs:
                 for suffix in ('chrome-linux/chrome','chrome-linux64/chrome','chrome-linux/headless_shell','chrome-headless-shell-linux64/chrome-headless-shell'):
                     binary=sub/suffix

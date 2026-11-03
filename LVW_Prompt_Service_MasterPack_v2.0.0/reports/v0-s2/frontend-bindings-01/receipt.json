@@ -1,0 +1,573 @@
+{
+  "kind": "READ_ONLY_INSTALLED_BINDINGS_NOT_PRODUCT_ACCEPTANCE",
+  "candidate_sha": "7fed2428cdb9dfe5b8013f7599a41522355e8df5",
+  "authorization_sha256": "87e4253c4b7269e4734deee65f398d6a4f118fcb8c2b60f4039a89077718e30b",
+  "identity": {
+    "candidate_sha": "7fed2428cdb9dfe5b8013f7599a41522355e8df5",
+    "execution_artifact_sha256": {
+      "tools/v0_s2_bindings.py": "f00931149b59b4151dc9a7ca67151884e61214f0925cbb1ba57b6737df408811",
+      "tools/v0_s2_frontend_bindings.py": "52b237c51b8776a8ad930d5e0bf1161baf611b808b3090938e1cc5724823a81a",
+      "tools/v0_s2_seal.py": "7385c1a2be7bb08e0ff5d344fbf7732b8d10a1e21f26a7cc4471226267208362"
+    },
+    "git_blob_sha256": {
+      "tools/v0_s2_bindings.py": "f00931149b59b4151dc9a7ca67151884e61214f0925cbb1ba57b6737df408811",
+      "tools/v0_s2_frontend_bindings.py": "52b237c51b8776a8ad930d5e0bf1161baf611b808b3090938e1cc5724823a81a",
+      "tools/v0_s2_seal.py": "7385c1a2be7bb08e0ff5d344fbf7732b8d10a1e21f26a7cc4471226267208362"
+    },
+    "checkout_transforms": {},
+    "attributes_sha256": "f80a265ad02e0479291b641abf2ba24d67ea42e3352bd8b23b374327e61e507e",
+    "payload_sha256": "100709bf0c4125a6170fd38aeface41bcc6f11910ce6df8c840af99c4315240c"
+  },
+  "decision": "NO_GO",
+  "stage_pass_claim": false,
+  "target_process_starts": 0,
+  "browser_starts": 0,
+  "provider_calls": 0,
+  "media_reads": 0,
+  "gpu_probes": 0,
+  "stage_checkpoint_consumed": false,
+  "metadata_commands": [
+    {
+      "argv": [
+        "npm",
+        "root",
+        "-g"
+      ],
+      "executable_sha256": "8e5f6f3429f8cdbe693cdc29904e9d5a7b127a494bd15c804bd54c7403bfcbe7",
+      "exit_code": 0,
+      "stdout_original_sha256": "2c4dff98d47b1b796468273c491cb7a4c59fc1f55032ed55d5cda24a72f74464",
+      "stderr_original_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "argv": [
+        "node",
+        "-e",
+        "const p=require('path');const entry=require.resolve('playwright');console.log(JSON.stringify({entry,core:require.resolve('playwright-core/package.json',{paths:[p.dirname(entry)]})}));"
+      ],
+      "executable_sha256": "243fd8938011479f41b3de101842150fa990f33fbbb3f7aabd330857f2d79e1d",
+      "exit_code": 0,
+      "stdout_original_sha256": "f9478d9d0d40869498b825dcb7b9dae42af31f00884d549c7d8d98376adff0eb",
+      "stderr_original_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "frontend": {
+    "files": [
+      {
+        "alias": "COMFY_ROOT/comfy/cli_args.py",
+        "status": "HASHED",
+        "bytes": 23996,
+        "sha256": "c88f737c65915bd19ff04be68d151c0794b03b09e50dcb4fcd088647eb796f4a",
+        "snippets": [
+          {
+            "marker": "--user-directory",
+            "offset": 20139,
+            "text": " default=None,\r\n    help=\"The local filesystem path to the directory where the frontend is located. Overrides --front-end-version.\",\r\n)\r\n\r\nparser.add_argument(\"--user-directory\", type=is_valid_directory, default=None, help=\"Set the ComfyUI user directory with an absolute path. Overrides --base-directory.\")\r\nparser.add_argument(\"--models-directory\", type=is_valid_directory, default=None, help=\"Set the ComfyUI models directory. Overrides the models folder in --base-directory.\")\r\n\r\nparser.add_argument(\"--enable-compress-response-body\", action=\"store_true\", help=\"Enable compressing response body.\")\r\n\r\nparser.add_argument(\r\n    \"--comfy-api-base\",\r\n    type=str,\r\n    default=\"https://api.comfy.org\",\r\n    help=\"Set the base URL for the ComfyUI API.  (default: https://api.comfy.org)\",\r\n)\r\n\r\ndatab"
+          },
+          {
+            "marker": "/api",
+            "offset": 20666,
+            "text": "onse-body\", action=\"store_true\", help=\"Enable compressing response body.\")\r\n\r\nparser.add_argument(\r\n    \"--comfy-api-base\",\r\n    type=str,\r\n    default=\"https://api.comfy.org\",\r\n    help=\"Set the base URL for the ComfyUI API.  (default: https://api.comfy.org)\",\r\n)\r\n\r\ndatabase_default_path = os.path.abspath(\r\n    os.path.join(os.path.dirname(__file__), \"..\", \"user\", \"comfyui.db\")\r\n)\r\nparser.add_argument(\"--database-url\", type=str, default=None, help=\"Specify the database URL, e.g. for an in-memory database you can use 'sqlite:///:memory:'. Defaults to 'comfyui.db' in the effective user directory.\")\r\nparser.add_argument(\"--enable-assets\", action=\"store_true\", help=\"Enable the assets system (API routes, database synchronization, and background scanning). Off by default.\")\r\nparser.add_argument"
+          }
+        ]
+      },
+      {
+        "alias": "COMFY_ROOT/server.py",
+        "status": "HASHED",
+        "bytes": 72477,
+        "sha256": "52618f91c663dc6524a028162212e0434fc9239618ddc0efbf7c605027081c8c",
+        "snippets": [
+          {
+            "marker": "/ws",
+            "offset": 12971,
+            "text": "   self.last_node_id = None\r\n        self.client_id = None\r\n        self.workflow_metadata = {}\r\n\r\n        self.on_prompt_handlers = []\r\n\r\n        @routes.get('/ws')\r\n        async def websocket_handler(request):\r\n            ws = web.WebSocketResponse()\r\n            await ws.prepare(request)\r\n            sid = request.rel_url.query.get('clientId', '')\r\n            if sid:\r\n                # Reusing existing session, remove old\r\n                self.sockets.pop(sid, None)\r\n            else:\r\n                sid = uuid.uuid4().hex\r\n\r\n            # Store WebSocket for backward compatibility\r\n            self.sockets[sid] = ws\r\n            # Store metadata separately\r\n            self.sockets_metadata[sid] = {\"feature_flags\": {}}\r\n\r\n            try:\r\n                # Send initial state to th"
+          },
+          {
+            "marker": "/api",
+            "offset": 2907,
+            "text": "etadata_from_prompt(extra_data: dict) -> Optional[dict]:\r\n    \"\"\"Fallback for a client that sends a workflow but no explicit metadata.\r\n\r\n    Reads the same id /api/jobs reports, so the websocket messages of a prompt\r\n    carry it whether or not the client knows about workflow_metadata.\r\n    \"\"\"\r\n    extra_pnginfo = extra_data.get(\"extra_pnginfo\")\r\n    if not isinstance(extra_pnginfo, dict):\r\n        return None\r\n    workflow = extra_pnginfo.get(\"workflow\")\r\n    if not isinstance(workflow, dict):\r\n        return None\r\n    workflow_id = workflow.get(\"id\")\r\n    if isinstance(workflow_id, str) and workflow_id:\r\n        return valid_workflow_metadata({\"workflow_metadata\": {\"workflow_id\": workflow_id}})\r\n    return None\r\n\r\n\r\ndef _remove_sensitive_from_queue(queue: list) -> list:\r\n    \"\"\"Remove "
+          }
+        ]
+      },
+      {
+        "alias": "COMFY_WEB/scripts/app.js",
+        "status": "MISSING"
+      },
+      {
+        "alias": "COMFY_WEB/scripts/api.js",
+        "status": "MISSING"
+      },
+      {
+        "alias": "COMFY_WEB/index.html",
+        "status": "MISSING"
+      },
+      {
+        "alias": "FRONTEND_PACKAGE/scripts/app.js",
+        "status": "HASHED",
+        "bytes": 195,
+        "sha256": "7f95d67c757160badda0fd11bfca73672c8b11a1b90d5a24c15b1edc514ea282",
+        "snippets": []
+      },
+      {
+        "alias": "FRONTEND_PACKAGE/scripts/api.js",
+        "status": "HASHED",
+        "bytes": 275,
+        "sha256": "bae88c6c84a1f58f7705ad70359652ebfedd33ca6f1247dbbfed3a703dcc3c0d",
+        "snippets": [
+          {
+            "marker": "/api",
+            "offset": 19,
+            "text": "// Shim for scripts/api.ts\nexport const UnauthorizedError = window.comfyAPI.api.UnauthorizedError;\nexport const PromptExecutionError = window.comfyAPI.api.PromptExecutionError;\nexport const ComfyApi = window.comfyAPI.api.ComfyApi;\nexport const api = window.comfyAPI.api.api;\n"
+          }
+        ]
+      },
+      {
+        "alias": "FRONTEND_PACKAGE/index.html",
+        "status": "HASHED",
+        "bytes": 20089,
+        "sha256": "a89085b6f10a0ff18d7e006419188dc0592826a958ff8991e7495f30d56c2155",
+        "snippets": []
+      }
+    ],
+    "source_bytes_read": 117032
+  },
+  "sdk": {
+    "files": [
+      {
+        "alias": "PLAYWRIGHT/cli.js",
+        "bytes": 698,
+        "sha256": "5e79302a6aad7d835d92d5ae6b4244c91cf61b28e94d7917279090e6c231f7a1"
+      },
+      {
+        "alias": "PLAYWRIGHT/index.js",
+        "bytes": 648,
+        "sha256": "4e98f65f0a9d9bcab8cffc0c5cfdd87fd3f5b0be74fc494ff166a466b204cd44"
+      },
+      {
+        "alias": "PLAYWRIGHT/index.mjs",
+        "bytes": 704,
+        "sha256": "a0f5715ea22354f922791a9c53dc012d5d5c067ff9cc4cd35ffb7cd272071a9f"
+      },
+      {
+        "alias": "PLAYWRIGHT/lib/agents/agentParser.js",
+        "bytes": 3475,
+        "sha256": "a2f630c1c2c9eafa0a3ca9cdbeaa26e74801615bc572e3fce226acb662ceb0eb"
+      },
+      {
+        "alias": "PLAYWRIGHT/lib/agents/generateAgents.js",
+        "bytes": 16958,
+        "sha256": "3bae7bde1d05c0fbaaa1a82ce7a39732ff52904de575fe88e69c391a6c41478e"
+      },
+      {
+        "alias": "PLAYWRIGHT/lib/cli/reportActions.js",
+        "bytes": 3562,
+        "sha256": "1ea9e8660db28045b853a54c24493b08029e148d9a0ee6e88027e409b497e3f1"
+      },
+      {
+        "alias": "PLAYWRIGHT/lib/cli/testActions.js",
+        "bytes": 9372,
+        "sha256": "44a4770714406134d1135b77d3b4388b557a7decb7f24094e637b6a5d517dd48"
+      },
+      {
+        "alias": "PLAYWRIGHT/lib/common/index.js",
+        "bytes": 115460,
+        "sha256": "129f3d429615d46e50154573d12120c2f51c9eacdd72304562cbfaabf21e4a0d"
+      },
+      {
+        "alias": "PLAYWRIGHT/lib/errorContext.js",
+        "bytes": 4619,
+        "sha256": "7fdc8216d80ba10c5edea9617463da2e76ba56d966a14a963176952415d03871"
+      },
+      {
+        "alias": "PLAYWRIGHT/lib/globals.js",
+        "bytes": 1935,
+        "sha256": "f5922eb1fb6051900157492eb9c218e62d07378eed135bca4b2f173ed1184d1c"
+      },
+      {
+        "alias": "PLAYWRIGHT/lib/index.js",
+        "bytes": 34528,
+        "sha256": "033484bd04076585fa11954261323575a2f8ec12ca113f0c288dac67009fbf9f"
+      },
+      {
+        "alias": "PLAYWRIGHT/lib/isomorphic.js",
+        "bytes": 8191,
+        "sha256": "3d61508f951aa9518adb4bf6594d61dfd1099c95a1a4f0af809a58ccebc59025"
+      },
+      {
+        "alias": "PLAYWRIGHT/lib/loader/loaderProcessEntry.js",
+        "bytes": 1262,
+        "sha256": "45681332f4178770c204b33e5b8dcbba940baf3bc6fc86506bab24027cb513f3"
+      },
+      {
+        "alias": "PLAYWRIGHT/lib/matchers/expect.js",
+        "bytes": 526165,
+        "sha256": "decc7aba7c9a11c37e7b327db91ebc1904d89579fb9bc589830e0e8707427908"
+      },
+      {
+        "alias": "PLAYWRIGHT/lib/mcp/test/browserBackend.js",
+        "bytes": 4889,
+        "sha256": "7143473e53c8b76720e42efab95f55227807590d2818104223d5df6ac46b681e"
+      },
+      {
+        "alias": "PLAYWRIGHT/lib/mcp/test/generatorTools.js",
+        "bytes": 5427,
+        "sha256": "3c53feaeb9fc2ff728f334cb31f9b7211e65b20c692c7585459c3c97bdd13a12"
+      },
+      {
+        "alias": "PLAYWRIGHT/lib/mcp/test/plannerTools.js",
+        "bytes": 6379,
+        "sha256": "715abc888d9ea30b532b75c6f09aa34101ab15c1eeb959c50cf9dedcf3a459ac"
+      },
+      {
+        "alias": "PLAYWRIGHT/lib/mcp/test/seed.js",
+        "bytes": 3239,
+        "sha256": "f36f7fb76d4ed33225e80be208cccc9757d363a9d1527cf560736c0f1e5edd31"
+      },
+      {
+        "alias": "PLAYWRIGHT/lib/mcp/test/streams.js",
+        "bytes": 1577,
+        "sha256": "8affc240a6a90ee2dbdedcde9927018efe426ec0d390bcd1ee4f0464e75adc0f"
+      },
+      {
+        "alias": "PLAYWRIGHT/lib/mcp/test/testBackend.js",
+        "bytes": 4067,
+        "sha256": "dcd8d09366617f13213ce544efb5fe47df5a87258ae93545d4d0738623f43ad1"
+      },
+      {
+        "alias": "PLAYWRIGHT/lib/mcp/test/testContext.js",
+        "bytes": 11637,
+        "sha256": "74ff4273ea12e6353d4860c9452387b643d7d8899fbd4951389ba94d18df5e37"
+      },
+      {
+        "alias": "PLAYWRIGHT/lib/mcp/test/testTool.js",
+        "bytes": 1104,
+        "sha256": "2a8f17d0a61ccb8a4ca9c52a3255d624deca989c0b06281d579629c664f8cc8e"
+      },
+      {
+        "alias": "PLAYWRIGHT/lib/mcp/test/testTools.js",
+        "bytes": 3714,
+        "sha256": "14710b5f34246005d974762b83a2a50e5cc17130af841cd3bc447811d69c6af7"
+      },
+      {
+        "alias": "PLAYWRIGHT/lib/package.js",
+        "bytes": 2013,
+        "sha256": "544a18417ea51dd4c8a9f3dbc4e2b47e46c80f452e0cd23d55e9b3680bc6241e"
+      },
+      {
+        "alias": "PLAYWRIGHT/lib/program.js",
+        "bytes": 13581,
+        "sha256": "2fcbb3f041bd810ffe66fdb5f1253179c31311e2acbf716a0f254b6f683a5e0d"
+      },
+      {
+        "alias": "PLAYWRIGHT/lib/runner/index.js",
+        "bytes": 297798,
+        "sha256": "42772378ebad5d2387726d02d377721112edbdde99d495c1259855ddb701b08e"
+      },
+      {
+        "alias": "PLAYWRIGHT/lib/transform/babelBundle.js",
+        "bytes": 2789601,
+        "sha256": "9201df11ae9c9ee1febd587c5013c4f862aa7e9981b92b86ccbbbd37e71f9124"
+      },
+      {
+        "alias": "PLAYWRIGHT/lib/transform/esmLoader.js",
+        "bytes": 254973,
+        "sha256": "4e97b9e3114cfc1adcee5342e80a80788085f809ada159c98c3ba58ac73cb4b9"
+      },
+      {
+        "alias": "PLAYWRIGHT/lib/util.js",
+        "bytes": 15165,
+        "sha256": "6d5e08165ec78f576d4724c0e4693d07cf1e8e2662156daa706e380550d272a5"
+      },
+      {
+        "alias": "PLAYWRIGHT/lib/worker/workerProcessEntry.js",
+        "bytes": 75892,
+        "sha256": "e8b654850c073df3996816eb09edf845490d9a6e75785477a9ddb69d586cca54"
+      },
+      {
+        "alias": "PLAYWRIGHT/package.json",
+        "bytes": 1559,
+        "sha256": "d8eed82ec408366d2af48bfb054a04c90047687010f9e13f58f51046c3a58689"
+      },
+      {
+        "alias": "PLAYWRIGHT_CORE/browsers.json",
+        "bytes": 1939,
+        "sha256": "ee39bc924bc3d1bd895626c2910f1292d109bbfeeb5abd113acb45e1951cc942"
+      },
+      {
+        "alias": "PLAYWRIGHT_CORE/cli.js",
+        "bytes": 839,
+        "sha256": "f1c4075aef116c766092250d7f37b3249a7cee6465d953207fc38c8f6145becd"
+      },
+      {
+        "alias": "PLAYWRIGHT_CORE/index.js",
+        "bytes": 697,
+        "sha256": "a58fb2cec4293e7dcf73c58a179898a4f3986666451a19da4e731fa3af63265b"
+      },
+      {
+        "alias": "PLAYWRIGHT_CORE/index.mjs",
+        "bytes": 1063,
+        "sha256": "3d36e2132d3c8b62397d23f0bb4177336aaee503203ae2a2c90fbeb5bf3317dd"
+      },
+      {
+        "alias": "PLAYWRIGHT_CORE/lib/bootstrap.js",
+        "bytes": 3481,
+        "sha256": "97ffe165e8e45f1b51a713b3f380d383e4e183727135fe9a5e045ec62e9310ab"
+      },
+      {
+        "alias": "PLAYWRIGHT_CORE/lib/coreBundle.js",
+        "bytes": 3352230,
+        "sha256": "6bc8db3d485266f1e0b62d18494849dce89c03479220b1784d96625ab8eb9cc0"
+      },
+      {
+        "alias": "PLAYWRIGHT_CORE/lib/entry/cliDaemon.js",
+        "bytes": 197,
+        "sha256": "062f256fb29a7bf91793a014b9c3f1f9cf2dc6b12e40a8a2ebba88a630ae16a0"
+      },
+      {
+        "alias": "PLAYWRIGHT_CORE/lib/entry/dashboardApp.js",
+        "bytes": 108,
+        "sha256": "209962c6eaeef11629f226d6a2ab33ec7a2480754242b6e19590a9e6eb71d126"
+      },
+      {
+        "alias": "PLAYWRIGHT_CORE/lib/entry/mcp.js",
+        "bytes": 442,
+        "sha256": "cc87dc0020cb41caebbf04f50e42bc7835b033a6d80e9c3f0a3d0b3dbdf341c7"
+      },
+      {
+        "alias": "PLAYWRIGHT_CORE/lib/entry/oopBrowserDownload.js",
+        "bytes": 120,
+        "sha256": "87567cdbd67dd2f50bb232d47d3784701ece7c81e39c0287bb7d1b466b68cf06"
+      },
+      {
+        "alias": "PLAYWRIGHT_CORE/lib/package.js",
+        "bytes": 2112,
+        "sha256": "9f938e1d44a0dd231b1660ca62f7dae964859b79cbdc370b8542c5d375ca3c05"
+      },
+      {
+        "alias": "PLAYWRIGHT_CORE/lib/server/deviceDescriptorsSource.json",
+        "bytes": 80785,
+        "sha256": "796ff93bfd5e38b84541a1e8745a7abcbccba54d440fb3b7a1acec0655d056cc"
+      },
+      {
+        "alias": "PLAYWRIGHT_CORE/lib/server/electron/loader.js",
+        "bytes": 4821,
+        "sha256": "8c99c632a9fcef9d691160954d01acdf374ba15566e153bef7fb61b0d3796e6d"
+      },
+      {
+        "alias": "PLAYWRIGHT_CORE/lib/serverRegistry.js",
+        "bytes": 247050,
+        "sha256": "85f63dbf8dc73fa651dcf046a732d78a86dbda401084b1d144d5a1ef1a59730d"
+      },
+      {
+        "alias": "PLAYWRIGHT_CORE/lib/tools/cli-client/channelSessions.js",
+        "bytes": 7087,
+        "sha256": "6b9c613e87340f48ad7182addd7495a8ff3fbe55feb1bbd0ce04f59f1552e126"
+      },
+      {
+        "alias": "PLAYWRIGHT_CORE/lib/tools/cli-client/cli.js",
+        "bytes": 153,
+        "sha256": "dfde8e9dfde30c4b3914eb25ba1c5a8524ec64651d866171d75cd7b41a827180"
+      },
+      {
+        "alias": "PLAYWRIGHT_CORE/lib/tools/cli-client/help.json",
+        "bytes": 36596,
+        "sha256": "961a8792b8b4e43f6d28d8d3029f6b3b7fa2e04d04d84fb0590bd0d759d2c456"
+      },
+      {
+        "alias": "PLAYWRIGHT_CORE/lib/tools/cli-client/minimist.js",
+        "bytes": 4106,
+        "sha256": "1d200627373a367e0097f1abeaaa4d67cde2c33f2e5efca5cb55222c7667adc3"
+      },
+      {
+        "alias": "PLAYWRIGHT_CORE/lib/tools/cli-client/output.js",
+        "bytes": 11703,
+        "sha256": "2eace914547a487b2aa1dc34af787fe92168f0b7b3dde24f2b127e817cc9b2b4"
+      },
+      {
+        "alias": "PLAYWRIGHT_CORE/lib/tools/cli-client/program.js",
+        "bytes": 16054,
+        "sha256": "722f00475112d4a3b569af51172e0bd88d1e4627a65ed8a2245031e08e7cc1ec"
+      },
+      {
+        "alias": "PLAYWRIGHT_CORE/lib/tools/cli-client/registry.js",
+        "bytes": 6662,
+        "sha256": "c11d278e05542808ba37bdb032018eccf9dc78377f8025bd74fa906ae009ca30"
+      },
+      {
+        "alias": "PLAYWRIGHT_CORE/lib/tools/cli-client/session.js",
+        "bytes": 9395,
+        "sha256": "c47202e7886ddd17ad2ce3e7f4b893f751e0e074cb1111a8bbc20fd33ecec800"
+      },
+      {
+        "alias": "PLAYWRIGHT_CORE/lib/tools/utils/extension.js",
+        "bytes": 3132,
+        "sha256": "c07d365ccff8c7fab3d65848bc01616c74e422f3be7b1c0e7b587b84ef866ada"
+      },
+      {
+        "alias": "PLAYWRIGHT_CORE/lib/tools/utils/socketConnection.js",
+        "bytes": 3317,
+        "sha256": "973c2bea70a1f1445f4673f99e9fa351e50a2ec9fd93d7381b2c41bb4de764dd"
+      },
+      {
+        "alias": "PLAYWRIGHT_CORE/lib/utilsBundle.js",
+        "bytes": 3143574,
+        "sha256": "1295945f0054d2504c9b751945b15aa3c672530ad5a340f3f9636e5e238f304a"
+      },
+      {
+        "alias": "PLAYWRIGHT_CORE/lib/vite/dashboard/assets/index-BY2S1tHT.css",
+        "bytes": 142433,
+        "sha256": "4e741ba6be0fb15305f6dfd907e245e68554f6dbd5282a58dcc1e9d2493eb917"
+      },
+      {
+        "alias": "PLAYWRIGHT_CORE/lib/vite/dashboard/assets/index-C_5TMfeg.js",
+        "bytes": 331501,
+        "sha256": "cf991b92763fb3b3759e9c5b9839e3625b351041db4199501a53c3c82bd2e28c"
+      },
+      {
+        "alias": "PLAYWRIGHT_CORE/lib/vite/dashboard/index.html",
+        "bytes": 1078,
+        "sha256": "1025839f364c006a0a3b6f94196a630fdbec355cfe15de3777d975e725c915c7"
+      },
+      {
+        "alias": "PLAYWRIGHT_CORE/lib/vite/htmlReport/index.html",
+        "bytes": 464,
+        "sha256": "ce7c098020a0eb9ce10edd416245ea6da50dfeaab18dfd0a2176979d22643be6"
+      },
+      {
+        "alias": "PLAYWRIGHT_CORE/lib/vite/htmlReport/report.css",
+        "bytes": 108330,
+        "sha256": "3298f11062d5112516c8b3fa2368c6138b4700aa9fa215bb5fc0a1f0efe94e3f"
+      },
+      {
+        "alias": "PLAYWRIGHT_CORE/lib/vite/htmlReport/report.js",
+        "bytes": 416009,
+        "sha256": "9e7baad230ee5aec5af605ac4687687cf0e079f3299423811aa9768543d8947b"
+      },
+      {
+        "alias": "PLAYWRIGHT_CORE/lib/vite/recorder/assets/codeMirrorModule-DYBRYzYX.css",
+        "bytes": 6421,
+        "sha256": "70bf421a13e87857ca684bfa2cc55f06d7c5a50f71253a3ff1d74769b14a957e"
+      },
+      {
+        "alias": "PLAYWRIGHT_CORE/lib/vite/recorder/assets/codeMirrorModule-DeBYQozu.js",
+        "bytes": 313009,
+        "sha256": "f4ad79265956fe5186af9d2b8ebcf4c0e40ec8d0405ab623471a6cecb22bc1d7"
+      },
+      {
+        "alias": "PLAYWRIGHT_CORE/lib/vite/recorder/assets/index-4ZiSSCmn.css",
+        "bytes": 92234,
+        "sha256": "4278e600a533667369328e9eb52a212693d52e46072ec37228e0ef8621a48ead"
+      },
+      {
+        "alias": "PLAYWRIGHT_CORE/lib/vite/recorder/assets/index-Bq-mQf8S.js",
+        "bytes": 365888,
+        "sha256": "b9215ab0e84dba105788f7ae82559892b4ebab1e9c7cde479d00a381e8375c40"
+      },
+      {
+        "alias": "PLAYWRIGHT_CORE/lib/vite/recorder/index.html",
+        "bytes": 1078,
+        "sha256": "a02e5446589dc2515a986f9944918029df332418db0f706a819d3bf1a0bf7fa3"
+      },
+      {
+        "alias": "PLAYWRIGHT_CORE/lib/vite/traceViewer/assets/codeMirrorModule-LEHpjmcn.js",
+        "bytes": 313054,
+        "sha256": "e3d682edfb4dd1fa17882466dd15058120278b27ff1101785a57b6df4db7ada5"
+      },
+      {
+        "alias": "PLAYWRIGHT_CORE/lib/vite/traceViewer/assets/defaultSettingsView-BNmKHKpQ.js",
+        "bytes": 658064,
+        "sha256": "f21839cd274944763d12ad24529345b9f8ebf339409f51f4dbe52f9d9baeb09c"
+      },
+      {
+        "alias": "PLAYWRIGHT_CORE/lib/vite/traceViewer/assets/urlMatch-BYQrIQwR.js",
+        "bytes": 819,
+        "sha256": "168c4dee4815ea8d3c131a504033cd23d4b15aefa0209dd10ad3f643e8f1d8a7"
+      },
+      {
+        "alias": "PLAYWRIGHT_CORE/lib/vite/traceViewer/assets/xtermModule-CsJ4vdCR.js",
+        "bytes": 292244,
+        "sha256": "4aa82b0448cef1cf951bbe0ac80bf2d2b7c5d279dd74bcc798a9e563e98e5295"
+      },
+      {
+        "alias": "PLAYWRIGHT_CORE/lib/vite/traceViewer/codeMirrorModule.DYBRYzYX.css",
+        "bytes": 6421,
+        "sha256": "70bf421a13e87857ca684bfa2cc55f06d7c5a50f71253a3ff1d74769b14a957e"
+      },
+      {
+        "alias": "PLAYWRIGHT_CORE/lib/vite/traceViewer/defaultSettingsView.CjdS-WJx.css",
+        "bytes": 112258,
+        "sha256": "de9c068d0e8043820fe42f30558e972eb7e2a8a45a34f65c7c8f73fa2dbc9fd0"
+      },
+      {
+        "alias": "PLAYWRIGHT_CORE/lib/vite/traceViewer/index.CzXZzn5A.css",
+        "bytes": 2111,
+        "sha256": "4ec2a3d49db259ce9025cb4fa48d73b1afd58215e567eef3b4a4cbf76c1674d9"
+      },
+      {
+        "alias": "PLAYWRIGHT_CORE/lib/vite/traceViewer/index.DEBl1tfz.js",
+        "bytes": 6547,
+        "sha256": "79a54c5a0dd5c4c6ca1c856469af1bcb90102784800d64f9014419f12281e712"
+      },
+      {
+        "alias": "PLAYWRIGHT_CORE/lib/vite/traceViewer/index.html",
+        "bytes": 2363,
+        "sha256": "f43c7db25869f887190cb0f8648d779eee5474a74502b8cf59e235fa89f065fa"
+      },
+      {
+        "alias": "PLAYWRIGHT_CORE/lib/vite/traceViewer/snapshot.html",
+        "bytes": 389,
+        "sha256": "11c80efe4f4424fa59004bcc71fed77a420d2da5f199790e355c30a5b965d0cd"
+      },
+      {
+        "alias": "PLAYWRIGHT_CORE/lib/vite/traceViewer/snapshot.v8KI4P3m.js",
+        "bytes": 660,
+        "sha256": "97a3cd6d67aaac66efc838d7d743ac51bbf7d272e1287981c11758fca21a0657"
+      },
+      {
+        "alias": "PLAYWRIGHT_CORE/lib/vite/traceViewer/sw.bundle.js",
+        "bytes": 95855,
+        "sha256": "5237c6c68ba1f3591caf8cf951be4873192342a72fbcc31e5a667f7a7904c624"
+      },
+      {
+        "alias": "PLAYWRIGHT_CORE/lib/vite/traceViewer/uiMode.BZQ54Kgt.css",
+        "bytes": 60311,
+        "sha256": "a548cd88f2041433da2d60fd3a33ef23af2fb8ddf2557b7bef79806364498e57"
+      },
+      {
+        "alias": "PLAYWRIGHT_CORE/lib/vite/traceViewer/uiMode.Ut8wwJNp.js",
+        "bytes": 38514,
+        "sha256": "0ab1e917250833c3f6b3ed3ae3f359158bf68cd2d9951163ee6edff9b8ed1e5b"
+      },
+      {
+        "alias": "PLAYWRIGHT_CORE/lib/vite/traceViewer/uiMode.html",
+        "bytes": 727,
+        "sha256": "95bf648d76d380b779770aae1c560b58ee456096b2b3b02922e629af29e3d492"
+      },
+      {
+        "alias": "PLAYWRIGHT_CORE/lib/vite/traceViewer/xtermModule.DYP7pi_n.css",
+        "bytes": 4150,
+        "sha256": "7c5a01f382f76539fc9b4db6b18e18a7035741845fd14968c5cdc0a7e373d817"
+      },
+      {
+        "alias": "PLAYWRIGHT_CORE/package.json",
+        "bytes": 876,
+        "sha256": "eb05f2eefbe2bc56258cc44cdc117c90ed3c9086835f3cdb729df77476f29a17"
+      }
+    ],
+    "bytes_hashed": 14531663,
+    "manifest_sha256": "adf5a7571d8a611a90a28cd76eaf2dc3a58ec785e209389729898a944c1a004a"
+  },
+  "sdk_entry": {
+    "alias": "NODE_GLOBAL/playwright/index.js",
+    "sha256": "4e98f65f0a9d9bcab8cffc0c5cfdd87fd3f5b0be74fc494ff166a466b204cd44",
+    "playwright_version": "1.61.0",
+    "core_version": "1.61.0"
+  },
+  "error_code": "ValueError:BROWSER_BINARY_LIMIT",
+  "finished_at": "2026-11-03T18:29:37.091790+00:00",
+  "cleanup": {
+    "target_writes": 0,
+    "owned_queries_terminal": true,
+    "new_services": 0,
+    "new_profiles": 0
+  }
+}

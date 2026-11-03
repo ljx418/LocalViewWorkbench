@@ -4,7 +4,7 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from tools.v0_s2_frontend_bindings import snapshot_sources,sdk_snapshot
+from tools.v0_s2_frontend_bindings import snapshot_sources,sdk_snapshot,registry_directories
 
 
 class FrontendBindingTests(unittest.TestCase):
@@ -33,6 +33,13 @@ class FrontendBindingTests(unittest.TestCase):
             self.assertFalse(any('profile' in v['alias'] for v in value['files']))
             before=value['manifest_sha256'];(root/'lib/api.js').write_text('module.exports={changed:true};')
             self.assertNotEqual(before,sdk_snapshot({'SDK':root})['manifest_sha256'])
+
+    def test_sdk_registry_selects_exact_revisions_without_unrelated_cached_fallback(self):
+        value={'browsers':[{'name':'chromium','revision':'123'},{'name':'chromium-headless-shell','revision':'124'},
+                           {'name':'firefox','revision':'999'}]}
+        self.assertEqual(['chromium-123','chromium_headless_shell-124'],registry_directories(value))
+        for bad in ({'browsers':[]},{'browsers':value['browsers']+[value['browsers'][0]]}):
+            with self.assertRaises(ValueError):registry_directories(bad)
 
 
 if __name__=='__main__':unittest.main()

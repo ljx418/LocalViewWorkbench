@@ -1,0 +1,5 @@
+# Frontend binding correction 01
+
+Candidate7fed242/frontend-bindings01 terminated NO_GO on BROWSER_BINARY_LIMIT before any browser/service/model/media/GPU action. Its actual source/SDK evidence remains historical: installed Playwright/core1.61.0 and native Comfy compatibility shims using window.comfyAPI. The cache contains more candidates than the declared two; do not silently choose an arbitrary first subset or rewrite this failure.
+
+APPROVED correction by codex_gate_owner within the existing second read-only attempt. Keep identical limits. Select exact Chromium and headless-shell revisions from this SDK's hashed browsers.json; only those two declared directory names are eligible, no fallback to unrelated cached versions. Persist partial binary records even on failure. Also inspect the real local HTML script module and small public shim text to identify API behavior; this is bounded contract inspection, not a whole frontend dependency seal. Parent must still seal full relevant frontend bytes before a real run. No media-preparation/component/full-checkpoint budget change or native acceptance.
