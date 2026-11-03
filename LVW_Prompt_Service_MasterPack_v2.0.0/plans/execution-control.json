@@ -8,8 +8,8 @@
   "coordinate": {
     "stage_id": "V0-S2",
     "workpack_id": "WP-S2-05",
-    "gate": "GATE4_CORRECTED_NATIVE_CHILD_REQUIRED",
-    "state": "FROZEN_READY_OFFLINE"
+    "gate": "GATE4_CORRECTED_NATIVE_CHECKPOINT_RUNNING",
+    "state": "RUNNING"
   },
   "last_passed_gate": {
     "id": "V0_S2_OFFLINE_CHECKPOINT_19_PASSED",
@@ -30,8 +30,8 @@
     "TARGET_HARDWARE_TESTED"
   ],
   "next_owner": "local_ci",
-  "next_action": "Derive full-recheck-01 on corrected candidate9cfb17e with offline19 raw evidence. Execute exactly once under current Mother; preserve original process handle, progress, terminal, cleanup and any failure. No third native slot.",
-  "required_authorization": "FRESH_FULL_RECHECK_CHILD_AFTER_CORRECTED_OFFLINE_GATE_WITHIN_ACTIVE_PROGRAM",
+  "next_action": "Poll original corrected full-recheck-01 executor98629 and bound parent birth. Never restart/rebind this claimed slot. Preserve exact progress, raw terminal, redacted receipt and cleanup. No third Stage run is authorized. If machine complete, independent review precedes human signoff.",
+  "required_authorization": "CURRENT_ACTIVE_FULL_RECHECK_CHILD_WITHIN_EXISTING_PROGRAM",
   "authorization_request": null,
   "authorization_record": "reports/authorization-program-v1-local-01.json",
   "read_only_binding_authorization": "reports/v0-s2/authorization-binding-inventory-06.json",
@@ -91,9 +91,9 @@
   },
   "historical_live_terminal_receipt": "reports/r1a/r1a-live-07/live-receipt.json",
   "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
-  "live_terminal_receipt": "reports/v0-s2/full-checkpoint-01/receipt.json",
+  "live_terminal_receipt": null,
   "independent_review": null,
-  "exact_stop_reason": "CORRECTED_OFFLINE_GATE_PASSED_FRESH_NATIVE_RECHECK_CHILD_REQUIRED",
+  "exact_stop_reason": "SOLE_CORRECTED_NATIVE_EXECUTOR_IN_PROGRESS",
   "native_component_authorization": "reports/v0-s2/authorization-native-component-02.json",
   "native_component_terminal_receipt": "reports/v0-s2/native-component-02/receipt.json",
   "local_control_change_decision": "reports/v0-s2/change-decision-video-workbench-01.json",
@@ -137,21 +137,30 @@
   "native_browser_terminal_phase_implementation": "reports/v0-s2/browser-terminal-phase-progress-01.md",
   "cumulative_stage_sequence_implementation": "reports/v0-s2/cumulative-stage-sequence-progress-01.md",
   "bound_runtime_archive_implementation": "reports/v0-s2/bound-runtime-archive-progress-01.md",
-  "live_authorization_record": "reports/v0-s2/authorization-full-checkpoint-01.json",
-  "native_run_id": "full-checkpoint-01",
+  "live_authorization_record": "reports/v0-s2/authorization-full-recheck-01.json",
+  "native_run_id": "full-recheck-01",
   "live_executor_handle": {
     "kind": "exec_command_session",
-    "id": 58941,
-    "verified_running_at": "2026-11-03T22:01:41.370169+00:00",
-    "restart_forbidden": true,
-    "terminal": true,
-    "exit_code": 1
+    "id": 98629,
+    "verified_running_at": "2026-11-03T22:28:49.581063+00:00",
+    "parent_birth": {
+      "pid": 47866,
+      "state": "D",
+      "parent": 110249,
+      "group": 47866,
+      "session": 47866,
+      "start_ticks": "3086273"
+    },
+    "restart_forbidden": true
   },
   "next_stage_document_preparation": "reports/v0-s3/preparation-01.md",
   "native_checkpoint_attempts": {
     "initial_consumed": 1,
-    "corrected_recheck_consumed": 0,
-    "remaining_full_rechecks": 1
+    "corrected_recheck_consumed": 1,
+    "remaining_full_rechecks": 0
   },
-  "binding_correction": "reports/v0-s2/binding-correction-01/decision.md"
+  "binding_correction": "reports/v0-s2/binding-correction-01/decision.md",
+  "historical_native_terminal_receipts": [
+    "reports/v0-s2/full-checkpoint-01/receipt.json"
+  ]
 }
