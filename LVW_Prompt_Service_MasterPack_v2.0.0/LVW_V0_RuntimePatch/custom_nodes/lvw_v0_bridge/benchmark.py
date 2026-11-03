@@ -40,7 +40,9 @@ def validate_lineage(document, binding, compute_pids, owner_pid):
     """Validate native listener PID, birth time and bounded GPU PID ancestry."""
     root=binding['ollama_pid']; ticks=binding['ollama_start_ticks']
     if (type(owner_pid) is not int or owner_pid<=0 or not isinstance(document,dict)
-            or type(document.get('listener_pid')) is not int or document['listener_pid']!=root):
+            or type(document.get('listener_pid')) is not int or document['listener_pid']!=root
+            or document.get('listener_address')!='127.0.0.1' or type(document.get('listener_port')) is not int
+            or document['listener_port']!=11434):
         raise refused('BENCHMARK_LISTENER_OWNERSHIP_LOST')
     rows=document.get('processes')
     if not isinstance(rows,list) or len(rows)>600:raise refused('BENCHMARK_LINEAGE_INVALID')
@@ -71,7 +73,7 @@ def validate_lineage(document, binding, compute_pids, owner_pid):
     return tuple(compute_pids)
 
 
-def native_lineage(binding, compute_pids):
+def native_lineage(binding, compute_pids, *, with_evidence=False):
     if os.name!='nt':raise refused('NATIVE_WINDOWS_RESOURCE_PROBE_REQUIRED')
     if len(compute_pids)>64 or any(type(pid) is not int or pid<=0 for pid in compute_pids):
         raise refused('BENCHMARK_GPU_PID_INVALID')
@@ -90,10 +92,13 @@ def native_lineage(binding, compute_pids):
         "$rows[[string]$current]=[ordered]@{pid=[int]$p.ProcessId;parent_pid=[int]$p.ParentProcessId;"
         "start_ticks=[long]$p.CreationDate.ToUniversalTime().Ticks;name=[string]$p.Name};"
         f"if($current -eq {root}){{break}};$current=[int]$p.ParentProcessId}}}};"
-        "[ordered]@{listener_pid=[int]$listeners[0].OwningProcess;processes=@($rows.Values)}|ConvertTo-Json -Depth 5 -Compress")
+        "[ordered]@{listener_pid=[int]$listeners[0].OwningProcess;listener_address=[string]$listeners[0].LocalAddress;"
+        "listener_port=[int]$listeners[0].LocalPort;processes=@($rows.Values)}|ConvertTo-Json -Depth 5 -Compress")
     result=run_bounded([executable,'-NoProfile','-NonInteractive','-Command',script],
                        timeout_seconds=10,output_limit=256*1024)
-    return validate_lineage(json.loads(result.stdout.decode('utf-8-sig')),binding,compute_pids,os.getpid())
+    document=json.loads(result.stdout.decode('utf-8-sig'))
+    verified=validate_lineage(document,binding,compute_pids,os.getpid())
+    return {'snapshot':document,'verified_compute_pids':list(verified)} if with_evidence else verified
 
 
 class WarmBenchmark:
@@ -116,10 +121,11 @@ class WarmBenchmark:
     def _event(self,event,**value):
         now=self.clock()
         self.sink({'event':event,'request_number':self.requests,'elapsed_seconds':now-self.started,'monotonic_seconds':now,
+                   'wall_seconds':self.wall(),
                    'candidate_sha':self.binding['candidate_sha'],'authorization_sha256':self.binding['authorization_sha256'],**value})
 
     @contextmanager
-    def request(self,transport,model,timeout,expected_calls):
+    def request(self,transport,model,timeout,expected_calls,*,absolute_deadline=None):
         self.ensure_current()
         if (self.active or self.requests>=20 or model!=core.DEFAULT_MODEL or type(expected_calls) is not int
                 or expected_calls not in (1,4) or self.kind_counts[expected_calls]>=10):
@@ -130,8 +136,8 @@ class WarmBenchmark:
         self.transport=transport;self.started=self.clock()
         primary=None;cleanup_error=None
         try:
-            self.check_root()
-            self._event('request_started',expected_calls=expected_calls,kind='image' if expected_calls==1 else 'video')
+            root=self.check_root()
+            self._event('request_started',expected_calls=expected_calls,kind='image' if expected_calls==1 else 'video',root_proof=root)
             yield
             self.ensure_current()
             if self.calls!=expected_calls or self.awaiting_response:
@@ -145,11 +151,12 @@ class WarmBenchmark:
             restored=False
             try:
                 release_deadline=self.clock()+30
+                if absolute_deadline is not None:release_deadline=min(release_deadline,absolute_deadline)
                 # An expired measurement may still release its owned model.
                 # Reprove the cached root birth/listener; never trust a PID alone.
-                self.check_root()
+                root=self.check_root()
                 transport.cleanup(model,timeout,release_deadline=release_deadline)
-                self._event('request_finished',outcome='failed' if primary else 'succeeded',restored_unloaded=True)
+                self._event('request_finished',outcome='failed' if primary else 'succeeded',restored_unloaded=True,root_proof=root)
                 restored=True
             except Exception as error:
                 cleanup_error=error;core._RESOURCE_RELEASE_PENDING.set()
@@ -175,10 +182,13 @@ class WarmBenchmark:
         if (model.get('model',model.get('name'))!=core.DEFAULT_MODEL or model.get('digest')!=self.binding['model_digest']
                 or type(model.get('size_vram')) is not int or model['size_vram']<=0):
             raise refused('BENCHMARK_MODEL_NOT_RESIDENT')
+        self.ensure_current()
         wire=json.dumps(payload,ensure_ascii=False,separators=(',',':')).encode()
         self._event('before_call',call_index=self.calls,api_ps=state,resource_admission=resource,
                     request_payload_sha256=hashlib.sha256(wire).hexdigest())
         self.awaiting_response=True
+        self.ensure_current()
+        return self.binding['expires_at']-self.wall()
 
     def after_call(self,raw):
         if not self.active or not self.awaiting_response:raise refused('BENCHMARK_CALL_ORDER_INVALID')
@@ -215,11 +225,17 @@ def configured_profile():
         raw=read();binding=json.loads(raw);validate_binding(binding,time.time())
         def unchanged():
             if read()!=raw:raise refused('BENCHMARK_BINDING_CHANGED')
-        root=lambda:native_lineage(binding,[])
+        root=lambda:native_lineage(binding,[],with_evidence=True)
         def admit():
             unchanged();validate_binding(binding,time.time())
-            return resource_preflight(warm=True,owned_pid_checker=lambda csv:native_lineage(binding,
-                [int(line.strip()) for line in csv.splitlines() if line.strip()]))
+            proof={}
+            def check(csv):
+                result=native_lineage(binding,[int(line.strip()) for line in csv.splitlines() if line.strip()],with_evidence=True)
+                proof.update(result)
+                return result['verified_compute_pids']
+            resources=resource_preflight(warm=True,owned_pid_checker=check)
+            resources['native_lineage']=proof
+            return resources
         log=directory/'lvw-warm-events.jsonl'
         try:
             with log.open('x',encoding='utf-8'):pass

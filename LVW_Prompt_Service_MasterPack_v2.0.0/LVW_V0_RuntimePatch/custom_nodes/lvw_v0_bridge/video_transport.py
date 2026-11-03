@@ -134,6 +134,10 @@ class InterruptibleOllamaTransport(OllamaLoopbackTransport):
                 request_socket = connection.sock
                 connection.sock.settimeout(max(.001, deadline - time.monotonic()))
             body = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode()
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise TimeoutError()
+            request_socket.settimeout(remaining)
             connection.request("POST", parsed.path, body, {"Content-Type":"application/json"})
             response = connection.getresponse()
             if response.status != 200:

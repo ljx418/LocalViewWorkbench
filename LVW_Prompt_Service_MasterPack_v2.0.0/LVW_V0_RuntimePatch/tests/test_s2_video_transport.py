@@ -109,6 +109,15 @@ class TransportTests(unittest.TestCase):
         self.assertEqual(1, len(connection.sent))
         self.assertTrue(connection.closed)
 
+    def test_connect_consuming_deadline_does_not_send_a_late_provider_request(self):
+        connection=Connection();clock=[0]
+        connection.connect=lambda:clock.__setitem__(0,6)
+        transport=InterruptibleOllamaTransport()
+        with patch('time.monotonic',side_effect=lambda:clock[0]),patch('http.client.HTTPConnection',return_value=connection),self.assertRaises(BridgeError) as error:
+            transport.chat({},5)
+        self.assertEqual('MODEL_TIMEOUT',error.exception.code)
+        self.assertEqual([],connection.sent);self.assertTrue(connection.closed)
+
     def test_interrupt_unblocks_only_owned_connection_and_returns_cancel(self):
         event = threading.Event(); entered = threading.Event()
         connection = Connection(); unrelated = FakeSocket()

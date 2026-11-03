@@ -1,6 +1,7 @@
 """One request owns video preparation, model inference and terminal publication."""
 import copy
 import threading
+import time
 
 from . import core
 from .core import BridgeError
@@ -10,12 +11,13 @@ from .video_resources import resource_preflight, host_resource_preflight
 
 class VideoRequestOwner:
     def __init__(self, decoder, *, bridge=None, tensor_builder=None, preflight=None,
-                 host_preflight=host_resource_preflight):
+                 host_preflight=host_resource_preflight,clock=None):
         self.decoder = decoder
         if bridge is None:
             from .benchmark import runtime_bridge
             bridge = runtime_bridge(interruptible=True)
         self.bridge = bridge
+        self.clock=clock if clock is not None else getattr(bridge,'clock',time.monotonic)
         self.tensor_builder = tensor_builder or comfy_frames
         benchmark = getattr(self.bridge, 'benchmark', None)
         self.preflight = preflight if preflight is not None else (
@@ -62,6 +64,7 @@ class VideoRequestOwner:
             return copy.deepcopy(self._state)
 
     def run(self, token, reference, *, model, user_instruction, mode, timeout_seconds, preview_hook=None, state_hook=None):
+        deadline=self.clock()+core.MAX_ANALYSIS_SECONDS
         if not isinstance(token, str) or not token or len(token) > 128:
             raise BridgeError("CONTRACT_UNSUPPORTED", "bounded run token required", subcode="VIDEO_RUN_TOKEN_REQUIRED")
         with self._guard:
@@ -97,9 +100,12 @@ class VideoRequestOwner:
             frames=self.tensor_builder(decoded.frames)
             if cancel.is_set():
                 raise BridgeError('JOB_CANCELLED','video request cancelled',subcode='VIDEO_ANALYSIS_CANCELLED')
+            if self.clock() >= deadline-core.RELEASE_RESERVE_SECONDS:
+                raise BridgeError('MODEL_TIMEOUT','video preparation exhausted request budget',subcode='VIDEO_REQUEST_DEADLINE')
             resource_evidence["before_model"] = self.preflight()
             raw, suggestion = self.bridge.analyze_video(frames, model=model,
-                user_instruction=user_instruction, mode=mode, timeout_seconds=timeout_seconds, cancel_event=cancel)
+                user_instruction=user_instruction, mode=mode, timeout_seconds=timeout_seconds, cancel_event=cancel,
+                request_deadline=deadline)
             with self._guard:
                 if cancel.is_set():
                     raise BridgeError("JOB_CANCELLED", "late video suggestion discarded", subcode="VIDEO_ANALYSIS_CANCELLED")

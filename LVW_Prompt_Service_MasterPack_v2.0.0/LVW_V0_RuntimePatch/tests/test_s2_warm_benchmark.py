@@ -143,16 +143,17 @@ class WarmTests(unittest.TestCase):
                           ('expires_at',9000),('expires_at',1000),('model_digest','unknown')]:
             value_binding=binding();value_binding[key]=value
             with self.subTest(key=key,value=value),self.assertRaises(core.BridgeError):benchmark.validate_binding(value_binding,1000)
-        document={'listener_pid':10,'processes':[{'pid':10,'parent_pid':1,'start_ticks':100,'name':'ollama.exe'},
+        document={'listener_pid':10,'listener_address':'127.0.0.1','listener_port':11434,'processes':[{'pid':10,'parent_pid':1,'start_ticks':100,'name':'ollama.exe'},
             {'pid':11,'parent_pid':10,'start_ticks':101,'name':'ollama.exe'}]}
         self.assertEqual((11,20),benchmark.validate_lineage(document,binding(),[11,20],20))
-        for mutate in ['root-reused','foreign','cycle','port-reassigned','ancestor-newer']:
+        for mutate in ['root-reused','foreign','cycle','port-reassigned','ancestor-newer','remote-listener']:
             bad=copy.deepcopy(document);pids=[11]
             if mutate=='root-reused':bad['processes'][0]['start_ticks']=99
             if mutate=='foreign':pids=[99]
             if mutate=='cycle':bad['processes'][1]['parent_pid']=11
             if mutate=='port-reassigned':bad['listener_pid']=99
             if mutate=='ancestor-newer':bad['processes'][1]['start_ticks']=99
+            if mutate=='remote-listener':bad['listener_address']='0.0.0.0'
             with self.subTest(mutate=mutate),self.assertRaises(core.BridgeError):benchmark.validate_lineage(bad,binding(),pids,20)
 
     def test_interrupted_restoration_keeps_quarantine_and_preserves_interrupt(self):
@@ -218,12 +219,15 @@ class WarmTests(unittest.TestCase):
     def test_generated_lineage_script_parses_in_native_powershell_without_executing_queries(self):
         executable=shutil.which('powershell.exe')
         self.assertIsNotNone(executable,'Windows/WSL target requires native PowerShell for this compatibility check')
-        document={'listener_pid':10,'processes':[{'pid':10,'parent_pid':1,'start_ticks':100,'name':'ollama.exe'},
+        document={'listener_pid':10,'listener_address':'127.0.0.1','listener_port':11434,'processes':[{'pid':10,'parent_pid':1,'start_ticks':100,'name':'ollama.exe'},
             {'pid':11,'parent_pid':10,'start_ticks':101,'name':'ollama.exe'}]}
         with patch.object(benchmark,'os',SimpleNamespace(name='nt',getpid=lambda:20)), \
              patch.object(benchmark,'run_bounded',return_value=SimpleNamespace(stdout=json.dumps(document).encode())) as runner:
             benchmark.native_lineage(binding(),[11,20])
             script=runner.call_args.args[0][-1]
+            proof=benchmark.native_lineage(binding(),[11,20],with_evidence=True)
+            self.assertEqual(document,proof['snapshot'])
+            self.assertEqual([11,20],proof['verified_compute_pids'])
         encoded=base64.b64encode(script.encode()).decode()
         command=("$tokens=$null;$errors=$null;[void][System.Management.Automation.Language.Parser]::ParseInput("
             "[System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('"+encoded+"')),[ref]$tokens,[ref]$errors);"

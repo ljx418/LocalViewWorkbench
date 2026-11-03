@@ -12,8 +12,10 @@ from functools import wraps
 from dataclasses import dataclass
 from io import BytesIO
 import json
+import math
 import re
 import threading
+import time
 import unicodedata
 import urllib.error
 import urllib.parse
@@ -25,6 +27,8 @@ MAX_VIDEO_FRAMES = 4
 MAX_NUM_CTX = 2048
 MAX_NUM_PREDICT = 768
 MAX_TIMEOUT_SECONDS = 120
+MAX_ANALYSIS_SECONDS = 420
+RELEASE_RESERVE_SECONDS = 30
 DEFAULT_MODEL = "gemma4:26b"
 
 FROZEN_ERROR_CODES = frozenset({
@@ -328,7 +332,7 @@ class FrameCall:
 
 def call_one_frame(*, transport, encoder, frame, model: str, timeout_seconds: int, video: bool,
                    frame_index: int | None, previous_observations: list[str], user_instruction: str,
-                   benchmark=None) -> FrameCall:
+                   benchmark=None, provider_deadline=None, clock=time.monotonic) -> FrameCall:
     if not isinstance(timeout_seconds, int) or not 1 <= timeout_seconds <= MAX_TIMEOUT_SECONDS:
         raise BridgeError("CONTRACT_UNSUPPORTED", f"timeout_seconds must be 1..{MAX_TIMEOUT_SECONDS}",
                           subcode="TIMEOUT_LIMIT")
@@ -346,9 +350,20 @@ def call_one_frame(*, transport, encoder, frame, model: str, timeout_seconds: in
     parsed = None
     try:
         try:
+            request_timeout = timeout_seconds
             if benchmark is not None:
-                benchmark.before_call(payload)
-            raw = transport.chat(payload, timeout_seconds)
+                remaining = benchmark.before_call(payload)
+                if remaining <= 0:
+                    raise BridgeError('RESOURCE_BUSY','benchmark expired before provider call',subcode='BENCHMARK_BINDING_EXPIRED')
+                request_timeout = min(timeout_seconds,remaining)
+            if provider_deadline is not None:
+                remaining = provider_deadline - clock()
+                if remaining <= 0:
+                    raise BridgeError('MODEL_TIMEOUT','video request deadline reached',subcode='VIDEO_REQUEST_DEADLINE')
+                request_timeout = min(request_timeout,remaining)
+            raw = transport.chat(payload, request_timeout)
+            if provider_deadline is not None and clock() > provider_deadline:
+                raise BridgeError('MODEL_TIMEOUT','late video response discarded',subcode='VIDEO_REQUEST_DEADLINE')
             parsed = parse_response(raw, instruction=instruction, user_instruction=user_instruction, video=video)
             if benchmark is not None:
                 benchmark.after_call(raw)
@@ -422,7 +437,12 @@ def _benchmark_request(function):
         if _RESOURCE_RELEASE_PENDING.is_set() or not _INFERENCE_LOCK.acquire(blocking=False):
             raise BridgeError('RESOURCE_BUSY', 'inference resource unavailable', subcode='LVW_BRIDGE_LOCKED')
         try:
-            with self.benchmark.request(self.transport, kwargs['model'], kwargs['timeout_seconds'], expected):
+            whole_deadline=None
+            if expected==4:
+                whole_deadline=self.analysis_deadline(kwargs.get('request_deadline'))
+                kwargs['request_deadline']=whole_deadline
+            with self.benchmark.request(self.transport, kwargs['model'], kwargs['timeout_seconds'], expected,
+                                        absolute_deadline=whole_deadline):
                 return function(self, *args, **kwargs)
         finally:
             _INFERENCE_LOCK.release()
@@ -432,10 +452,18 @@ def _benchmark_request(function):
 class BridgeOwner:
     """Shared owner invoked only through the registered public node classes."""
 
-    def __init__(self, transport=None, encoder=None, benchmark=None):
+    def __init__(self, transport=None, encoder=None, benchmark=None, clock=time.monotonic):
         self.transport = transport or OllamaLoopbackTransport()
         self.encoder = encoder or encode_comfy_frame
         self.benchmark = benchmark
+        self.clock = clock
+
+    def analysis_deadline(self, requested):
+        maximum=self.clock()+MAX_ANALYSIS_SECONDS
+        if requested is None:return maximum
+        if type(requested) not in (int,float) or not math.isfinite(requested):
+            raise BridgeError('CONTRACT_UNSUPPORTED','invalid request deadline',subcode='VIDEO_REQUEST_DEADLINE_INVALID')
+        return min(maximum,requested)
 
     @_benchmark_request
     def analyze_image(self, image, *, model: str, user_instruction: str, mode: str, timeout_seconds: int):
@@ -459,7 +487,8 @@ class BridgeOwner:
 
     @_benchmark_request
     def analyze_video(self, frames_value, *, model: str, user_instruction: str, mode: str, timeout_seconds: int,
-                      cancel_event=None):
+                      cancel_event=None, request_deadline=None):
+        deadline=self.analysis_deadline(request_deadline)
         frames = split_frames(frames_value)
         if not 1 <= len(frames) <= MAX_VIDEO_FRAMES:
             raise BridgeError("MEDIA_LIMIT_EXCEEDED", f"video analysis requires 1..{MAX_VIDEO_FRAMES} ordered frames",
@@ -476,7 +505,8 @@ class BridgeOwner:
                 try:
                     call = call_one_frame(transport=self.transport, encoder=self.encoder, frame=frame, model=model,
                                           timeout_seconds=timeout_seconds, video=True, frame_index=index,
-                                          previous_observations=previous, user_instruction=user_instruction, benchmark=self.benchmark)
+                                          previous_observations=previous, user_instruction=user_instruction, benchmark=self.benchmark,
+                                          provider_deadline=deadline-RELEASE_RESERVE_SECONDS,clock=self.clock)
                 except BridgeError as exc:
                     exc.details["prior_frame_raw_responses"] = [item.raw_response for item in calls]
                     raise

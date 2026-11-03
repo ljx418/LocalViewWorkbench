@@ -38,7 +38,8 @@ def validate_snapshot(gpu_csv, process_csv, available_ram_mib, *, owner_pid, war
     if any(pid not in {owner_pid, *owned_compute_pids} for pid in pids):
         raise busy("GPU_FOREIGN_COMPUTE_PROCESS")
     return {"gpu_count":1,"gpu_total_mib":total,"gpu_used_mib":used,"gpu_free_mib":free,
-            "available_ram_mib":available_ram_mib,"foreign_compute_processes":0}
+            "available_ram_mib":available_ram_mib,"foreign_compute_processes":0,
+            "owner_pid":owner_pid,"compute_pids":pids}
 
 
 def windows_available_ram_mib():
