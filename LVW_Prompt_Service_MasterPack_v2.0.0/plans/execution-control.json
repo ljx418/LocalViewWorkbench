@@ -8,8 +8,8 @@
   "coordinate": {
     "stage_id": "V0-S2",
     "workpack_id": "WP-S2-05",
-    "gate": "GATE4_NATIVE_CHECKPOINT_RUNNING",
-    "state": "RUNNING"
+    "gate": "GATE4_NATIVE_CHECKPOINT_NO_GO",
+    "state": "CHANGES_REQUIRED"
   },
   "last_passed_gate": {
     "id": "V0_S2_OFFLINE_CHECKPOINT_18_PASSED",
@@ -29,8 +29,8 @@
     "PRODUCTION_RELEASED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "local_ci",
-  "next_action": "Poll the original full-checkpoint-01 executor handle and its bound state; never restart because a poll timed out. The sole first native slot is being claimed. Preserve redacted terminal, raw archive and cleanup, then independent review if machine complete; corrected recheck remains separately limited.",
+  "next_owner": "codex_implementation",
+  "next_action": "Preserve the first terminal NO_GO. Correct installed-byte binding efficiency and ambiguity offline without changing the declared scope or budgets. Freeze a corrected candidate and pass full offline checks before deriving the sole full-recheck-01 child. No repeated initial slot or standalone probe.",
   "required_authorization": "CURRENT_FRESH_CHILD_WITHIN_ACTIVE_AUTH_PROGRAM_V1_LOCAL_01",
   "authorization_request": null,
   "authorization_record": "reports/authorization-program-v1-local-01.json",
@@ -91,9 +91,9 @@
   },
   "historical_live_terminal_receipt": "reports/r1a/r1a-live-07/live-receipt.json",
   "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
-  "live_terminal_receipt": null,
+  "live_terminal_receipt": "reports/v0-s2/full-checkpoint-01/receipt.json",
   "independent_review": null,
-  "exact_stop_reason": "FIRST_COMPLETE_NATIVE_CHILD_EXECUTOR_IN_PROGRESS",
+  "exact_stop_reason": "INITIAL_NATIVE_INSTALLED_BYTE_BINDING_FAILED_BEFORE_SERVICES",
   "native_component_authorization": "reports/v0-s2/authorization-native-component-02.json",
   "native_component_terminal_receipt": "reports/v0-s2/native-component-02/receipt.json",
   "local_control_change_decision": "reports/v0-s2/change-decision-video-workbench-01.json",
@@ -143,7 +143,14 @@
     "kind": "exec_command_session",
     "id": 58941,
     "verified_running_at": "2026-11-03T22:01:41.370169+00:00",
-    "restart_forbidden": true
+    "restart_forbidden": true,
+    "terminal": true,
+    "exit_code": 1
   },
-  "next_stage_document_preparation": "reports/v0-s3/preparation-01.md"
+  "next_stage_document_preparation": "reports/v0-s3/preparation-01.md",
+  "native_checkpoint_attempts": {
+    "initial_consumed": 1,
+    "corrected_recheck_consumed": 0,
+    "remaining_full_rechecks": 1
+  }
 }
