@@ -27,6 +27,7 @@ def validate_binding(binding, now):
             raise refused('BENCHMARK_BINDING_INVALID')
     if (binding.get('program_authorization_id')!='AUTH-PROGRAM-V1-LOCAL-01'
             or binding.get('scope')!='V0_S2_WARM_BENCHMARK'
+            or type(binding.get('baseline_gpu_mib')) is not int or not 0<=binding['baseline_gpu_mib']<=4096
             or type(binding.get('max_requests')) is not int or binding['max_requests']!=20
             or any(type(binding.get(key)) is not int or binding[key]<=0 for key in ('ollama_pid','ollama_start_ticks'))):
         raise refused('BENCHMARK_BINDING_INVALID')
@@ -136,6 +137,7 @@ class WarmBenchmark:
         self.transport=transport;self.started=self.clock()
         primary=None;cleanup_error=None
         try:
+            transport.bind_resource_baseline(self.binding['baseline_gpu_mib'])
             root=self.check_root()
             self._event('request_started',expected_calls=expected_calls,kind='image' if expected_calls==1 else 'video',root_proof=root)
             yield
@@ -156,7 +158,10 @@ class WarmBenchmark:
                 # Reprove the cached root birth/listener; never trust a PID alone.
                 root=self.check_root()
                 transport.cleanup(model,timeout,release_deadline=release_deadline)
-                self._event('request_finished',outcome='failed' if primary else 'succeeded',restored_unloaded=True,root_proof=root)
+                if getattr(transport,'release_evidence',{}).get('state')!='released':
+                    raise refused('GPU_RELEASE_UNPROVEN')
+                self._event('request_finished',outcome='failed' if primary else 'succeeded',restored_unloaded=True,root_proof=root,
+                            resource_release=getattr(transport,'release_evidence',None))
                 restored=True
             except Exception as error:
                 cleanup_error=error;core._RESOURCE_RELEASE_PENDING.set()
@@ -254,5 +259,5 @@ def runtime_bridge(*,encoder=None,interruptible=False):
     benchmark=configured_profile()
     if benchmark is not None or interruptible:
         from .video_transport import InterruptibleOllamaTransport
-        return core.BridgeOwner(transport=InterruptibleOllamaTransport(),encoder=encoder,benchmark=benchmark)
+        return core.BridgeOwner(transport=InterruptibleOllamaTransport(require_gpu_release=True),encoder=encoder,benchmark=benchmark)
     return core.BridgeOwner(encoder=encoder)

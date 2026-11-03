@@ -2,6 +2,7 @@
 import ctypes
 import os
 import shutil
+import time
 
 from .core import BridgeError
 from .video_process import run_bounded
@@ -60,6 +61,17 @@ def host_resource_preflight():
     if type(available) is not int or available < 2048:
         raise busy("HOST_RAM_BELOW_LIMIT")
     return {"available_ram_mib": available}
+
+
+def gpu_used_mib(deadline):
+    remaining=deadline-time.monotonic()
+    executable=shutil.which('nvidia-smi')
+    if not executable or remaining<=0:raise busy('GPU_RELEASE_PROBE_UNAVAILABLE')
+    value=run_bounded([executable,'--query-gpu=memory.used','--format=csv,noheader,nounits'],
+                      timeout_seconds=min(5,remaining),output_limit=65536)
+    rows=value.stdout.decode('ascii').splitlines()
+    if len(rows)!=1 or not rows[0].strip().isdigit():raise busy('GPU_RELEASE_TELEMETRY_INVALID')
+    return int(rows[0].strip())
 
 
 def resource_preflight(*, warm=False, owned_pid_checker=None):

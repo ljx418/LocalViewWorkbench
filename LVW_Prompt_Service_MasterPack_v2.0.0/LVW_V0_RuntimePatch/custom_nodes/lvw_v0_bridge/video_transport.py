@@ -8,16 +8,24 @@ import time
 from urllib.parse import urlsplit
 
 from .core import BridgeError, OllamaLoopbackTransport, validate_loopback_endpoint
+from .video_resources import gpu_used_mib
 
 
 class InterruptibleOllamaTransport(OllamaLoopbackTransport):
-    def __init__(self, **kwargs):
+    def __init__(self, *,require_gpu_release=False,gpu_probe=None, **kwargs):
         super().__init__(**kwargs)
         self._guard = threading.Lock()
         self._active = None
         self._active_socket = None
         self._cancel = None
         self.release_evidence = {"state":"unproven"}
+        self._require_gpu_release=require_gpu_release
+        self._gpu_probe=gpu_probe or gpu_used_mib
+        self._gpu_baseline=None
+
+    def bind_resource_baseline(self,value):
+        if type(value) is not int or not 0<=value<=4096:raise ValueError('invalid cold GPU baseline')
+        self._gpu_baseline=value
 
     def _control_request(self, method, path, payload, timeout):
         """Fixed internal control paths, no redirects, proxies or arbitrary URL."""
@@ -64,7 +72,7 @@ class InterruptibleOllamaTransport(OllamaLoopbackTransport):
         # Cleanup deliberately ignores the cancel event: release must complete
         # even after the chat connection has been interrupted.
         started = time.monotonic()
-        self.release_evidence = {"state":"unproven", "checks":0}
+        self.release_evidence = {"state":"unproven", "checks":0,"started_monotonic_seconds":started}
         deadline = started + 30
         if release_deadline is not None:
             if type(release_deadline) not in (int,float) or not math.isfinite(release_deadline):
@@ -91,9 +99,27 @@ class InterruptibleOllamaTransport(OllamaLoopbackTransport):
             if not isinstance(models, list):
                 raise BridgeError("RESOURCE_RELEASE_PENDING", "model inventory is invalid", subcode="OLLAMA_RELEASE_UNPROVEN")
             if not models:
-                self.release_evidence.update(state="released", elapsed_seconds=observed - started,
-                                             loaded_models=0)
-                return
+                self.release_evidence.update(state="model_unloaded",loaded_models=0)
+                if self._gpu_baseline is None:
+                    if self._require_gpu_release:
+                        raise BridgeError('RESOURCE_RELEASE_PENDING','cold GPU baseline missing',subcode='GPU_RELEASE_UNPROVEN')
+                    self.release_evidence['elapsed_seconds']=observed-started
+                    return
+                samples=[];stable=0
+                self.release_evidence.update(baseline_gpu_mib=self._gpu_baseline,gpu_samples=samples)
+                while time.monotonic()<deadline:
+                    try:used=self._gpu_probe(deadline)
+                    except Exception as error:
+                        raise BridgeError('RESOURCE_RELEASE_PENDING','GPU release observation unavailable',subcode='GPU_RELEASE_UNPROVEN') from error
+                    now=time.monotonic()
+                    if type(used) is not int or used<0 or now>deadline:break
+                    samples.append({'elapsed_seconds':now-started,'gpu_used_mib':used})
+                    stable=stable+1 if used<=self._gpu_baseline+1024 else 0
+                    if stable>=3:
+                        self.release_evidence.update(state='released',elapsed_seconds=now-started)
+                        return
+                    time.sleep(min(1,max(0,deadline-time.monotonic())))
+                raise BridgeError('RESOURCE_RELEASE_PENDING','GPU did not return to stable baseline',subcode='GPU_RELEASE_UNPROVEN')
             # Other loaded models are observed only, never unloaded or killed.
             time.sleep(min(.1, max(0, deadline - time.monotonic())))
 

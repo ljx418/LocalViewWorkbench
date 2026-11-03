@@ -20,17 +20,19 @@ from LVW_V0_RuntimePatch.tests.test_s2_video_cancel import Frame,Transport
 def binding():
     return {'candidate_sha':'a'*40,'authorization_sha256':'b'*64,'model_digest':'c'*64,
         'program_authorization_id':'AUTH-PROGRAM-V1-LOCAL-01','scope':'V0_S2_WARM_BENCHMARK',
-        'max_requests':20,'ollama_pid':10,'ollama_start_ticks':100,'issued_at':900,'expires_at':1100}
+        'baseline_gpu_mib':100,'max_requests':20,'ollama_pid':10,'ollama_start_ticks':100,'issued_at':900,'expires_at':1100}
 
 
 class WarmTransport(Transport):
     def __init__(self,cancel=None):
-        super().__init__(cancel or threading.Event());self.payloads=[]
+        super().__init__(cancel or threading.Event());self.payloads=[];self.baseline=None
         self.ps={'models':[{'model':core.DEFAULT_MODEL,'digest':'c'*64,'size_vram':1000}]}
+    def bind_resource_baseline(self,value):self.baseline=value
     def _control_request(self,method,path,payload,timeout):
         self.assert_control=(method,path,payload)
         return copy.deepcopy(self.ps)
     def cleanup(self,model,timeout,*,release_deadline=None):
+        self.release_evidence={'state':'released','baseline_gpu_mib':self.baseline}
         self.release_deadline=release_deadline
         return super().cleanup(model,timeout)
     def chat(self,payload,timeout):

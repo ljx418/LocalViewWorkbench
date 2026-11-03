@@ -85,6 +85,28 @@ def hot_record(*,run_id,sample_run_id,candidate_sha,authorization_sha256,kind,bi
                 or type(first['request_number']) is not int or not 1<=first['request_number']<=20
                 or last['event']!='request_finished' or last['outcome']!='succeeded'
                 or last['restored_unloaded'] is not True):raise ValueError('warm request not successfully restored')
+        release=last['resource_release'];baseline=binding['baseline_gpu_mib']
+        if (type(baseline) is not int or not 0<=baseline<=4096
+                or release['state']!='released' or release['loaded_models']!=0
+                or type(release['checks']) is not int or release['checks']<1
+                or release['baseline_gpu_mib']!=baseline):
+            raise ValueError('physical GPU release not proven')
+        release_start=stamp(release['started_monotonic_seconds'])
+        elapsed=stamp(release['elapsed_seconds']);gpu_samples=release['gpu_samples']
+        if (not isinstance(gpu_samples,list) or not 3<=len(gpu_samples)<=31 or elapsed>30
+                or release_start<warm_events[-2]['monotonic_seconds']
+                or release_start+elapsed>last['monotonic_seconds']):
+            raise ValueError('release deadline or provenance invalid')
+        prior=None
+        for sample in gpu_samples:
+            moment=stamp(sample['elapsed_seconds']);used=sample['gpu_used_mib']
+            if (moment>elapsed or type(used) is not int or used<0
+                    or (prior is not None and moment-prior<1-1e-6)):
+                raise ValueError('GPU release sample invalid')
+            prior=moment
+        if (not math.isclose(prior,elapsed,rel_tol=0,abs_tol=1e-6)
+                or any(point['gpu_used_mib']>baseline+1024 for point in gpu_samples[-3:])):
+            raise ValueError('GPU release stability incomplete')
         origin=stamp(first['monotonic_seconds'])-stamp(first['elapsed_seconds'])
         if origin<started:raise ValueError('model trace predates public request')
         previous=None;snapshots=[];owner_pid=None

@@ -31,7 +31,7 @@ class TransportTests(unittest.TestCase):
         with patch.object(transport, "_control_request", side_effect=values) as control, patch("time.sleep"):
             transport.cleanup("gemma4:26b", 120)
         self.assertEqual(["/api/generate", "/api/ps", "/api/ps"], [call.args[1] for call in control.call_args_list])
-        self.assertEqual("released", transport.release_evidence["state"])
+        self.assertEqual("model_unloaded", transport.release_evidence["state"])
         self.assertEqual(2, transport.release_evidence["checks"])
 
     def test_unacknowledged_or_malformed_unload_cannot_claim_release(self):
@@ -51,6 +51,33 @@ class TransportTests(unittest.TestCase):
         self.assertEqual("gemma4:26b", control.call_args_list[0].args[2]["model"])
         self.assertEqual("unproven", transport.release_evidence["state"])
 
+    def test_physical_release_requires_three_stable_samples_exact_and_one_over(self):
+        # Synthetic clock advances only when production cleanup asks to sleep.
+        for readings,expected in [([1124]*3,3),([1124,1125,1124,1124,1124],5)]:
+            clock=[0.0];values=iter(readings)
+            transport=InterruptibleOllamaTransport(require_gpu_release=True,gpu_probe=lambda deadline:next(values))
+            transport.bind_resource_baseline(100)
+            with patch.object(transport,'_control_request',side_effect=[{'done':True},{'models':[]}]), \
+                 patch('time.monotonic',side_effect=lambda:clock[0]), \
+                 patch('time.sleep',side_effect=lambda seconds:clock.__setitem__(0,clock[0]+seconds)):
+                transport.cleanup('gemma4:26b',120)
+            self.assertEqual('released',transport.release_evidence['state'])
+            self.assertEqual(expected,len(transport.release_evidence['gpu_samples']))
+            self.assertEqual(expected-1,transport.release_evidence['elapsed_seconds'])
+
+    def test_empty_inventory_without_cold_baseline_or_stability_cannot_prove_release(self):
+        for baseline,readings,deadline in [(None,[],30),(100,[100,100],1.5),(100,[1125]*3,2.5)]:
+            clock=[0.0];values=iter(readings)
+            transport=InterruptibleOllamaTransport(require_gpu_release=True,gpu_probe=lambda limit:next(values))
+            if baseline is not None:transport.bind_resource_baseline(baseline)
+            with patch.object(transport,'_control_request',side_effect=[{'done':True},{'models':[]}]), \
+                 patch('time.monotonic',side_effect=lambda:clock[0]), \
+                 patch('time.sleep',side_effect=lambda seconds:clock.__setitem__(0,clock[0]+seconds)), \
+                 self.assertRaises(BridgeError) as error:
+                transport.cleanup('gemma4:26b',120,release_deadline=deadline)
+            self.assertEqual('GPU_RELEASE_UNPROVEN',error.exception.details['subcode'])
+            self.assertNotEqual('released',transport.release_evidence['state'])
+
     def test_pre_cancel_sends_nothing(self):
         event = threading.Event(); event.set()
         transport = InterruptibleOllamaTransport(); transport.bind_cancel(event)
@@ -69,7 +96,7 @@ class TransportTests(unittest.TestCase):
                 else:
                     with self.assertRaises(BridgeError):transport.cleanup('gemma4:26b',120,release_deadline=10)
             self.assertEqual(5,control.call_args_list[0].args[3])
-            self.assertEqual('released' if passed else 'unproven',transport.release_evidence['state'])
+            self.assertEqual('model_unloaded' if passed else 'unproven',transport.release_evidence['state'])
         transport=InterruptibleOllamaTransport()
         with patch('time.monotonic',return_value=11),patch.object(transport,'_control_request') as control,self.assertRaises(BridgeError):
             transport.cleanup('gemma4:26b',120,release_deadline=10)

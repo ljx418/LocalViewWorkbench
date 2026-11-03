@@ -135,6 +135,7 @@ def execute(args):
     if stop.exists() or stop.is_symlink():raise ValueError('SAMPLER_STOP_SLOT_NOT_FRESH')
     receipt=root/'resource-sampler.receipt.json'
     if receipt.exists() or receipt.is_symlink():raise ValueError('SAMPLER_RECEIPT_SLOT_NOT_FRESH')
+    with (root/'resource-sampler.pid').open('x',encoding='ascii') as handle:handle.write(str(os.getpid()))
     memory=None;process=None;result={'decision':'NO_GO','stage_pass_claim':False,'nvidia_binary_sha256':args.binary_sha256}
     with (root/'resource-trace.jsonl').open('x',encoding='utf-8') as output:
         try:

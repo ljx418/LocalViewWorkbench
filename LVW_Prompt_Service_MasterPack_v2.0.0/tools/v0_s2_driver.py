@@ -8,7 +8,8 @@ import importlib.util
 from pathlib import Path
 import subprocess
 
-from tools.v0_s2_http import LoopbackClient
+from tools.v0_s2_http import LoopbackClient,ControlError
+import time
 
 ROOT = Path(__file__).resolve().parents[1]
 LEGACY = ROOT / 'reports/v0-s1/wp-s1-03-phase-a/live_probe.py'
@@ -37,7 +38,7 @@ class S2SystemDriver(base.SystemDriver):
         self.warm_benchmark=getattr(args,'warm_benchmark',False)
         if type(self.warm_benchmark) is not bool:raise base.StopProbe('BENCHMARK_MODE_INVALID')
         self.request_limit=getattr(args,'max_loopback_requests',1024)
-        if type(self.request_limit) is not int or not 1<=self.request_limit<=2048:
+        if type(self.request_limit) is not int or not 1<=self.request_limit<=8192:
             raise base.StopProbe('LOOPBACK_REQUEST_BUDGET_INVALID')
         self.request_ledger=[]
         self.clients = {url:LoopbackClient(url) for url in (base.COMFY_URL,base.OLLAMA_URL)}
@@ -65,6 +66,15 @@ class S2SystemDriver(base.SystemDriver):
         if result.returncode:
             raise base.StopProbe('WINDOWS_PREFLIGHT_COMMAND_FAILED')
         return result.stdout.decode('utf-8-sig','strict').strip()
+
+    def wait_json(self,url,timeout=60):
+        deadline=time.monotonic()+timeout
+        while time.monotonic()<deadline:
+            remaining=deadline-time.monotonic()
+            if remaining<=0:break
+            try:return self._json_request(url,timeout=min(5,remaining))
+            except (OSError,ControlError):time.sleep(min(.25,max(0,deadline-time.monotonic())))
+        raise base.StopProbe('SERVICE_START_TIMEOUT')
 
     def submit(self, graph):
         if self.submissions >= self.max_public_submissions:

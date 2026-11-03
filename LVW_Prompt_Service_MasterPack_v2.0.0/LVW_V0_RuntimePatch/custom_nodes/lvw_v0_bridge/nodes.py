@@ -15,6 +15,12 @@ class _NodeBase:
     RETURN_NAMES = ("raw_response", "suggestion")
     FUNCTION = "analyze"
 
+    @classmethod
+    def IS_CHANGED(cls, **kwargs):
+        # A queued analysis is a fresh model request, even for identical media.
+        # Manual projection/export owners do not inherit this policy.
+        return float('nan')
+
     def __init__(self, transport=None, encoder=None):
         if transport is None:
             from .benchmark import runtime_bridge

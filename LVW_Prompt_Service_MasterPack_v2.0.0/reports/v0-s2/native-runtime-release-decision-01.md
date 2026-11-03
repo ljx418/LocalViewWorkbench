@@ -1,0 +1,13 @@
+# Native runtime and physical release decision 01
+
+APPROVED_FOR_OFFLINE_IMPLEMENTATION by codex_gate_owner. Packet revision 1.0.6. This records internal execution/evidence refinements to existing resource obligations; no public contracts, acceptance IDs, denominator, latency/resource thresholds or Stage run/retry budgets change.
+
+Use the installed Comfy Python for controller clock readings, benchmark events and sampler monotonic timestamps. Bind an explicitly observed cold GPU baseline (integer 0..4096 MiB) before any preload. Physical release requires acknowledged unload, empty /api/ps and three consecutive samples at one-second intervals no more than baseline+1024 MiB, all within the shared thirty-second cleanup deadline. Retain the native release origin, sample values/times and final elapsed time. Empty model inventory alone is only model_unloaded. Missing baseline/telemetry, late or insufficient samples retain resource quarantine. Independent measurement joins reject logical-only unload and malformed stability evidence.
+
+NativeRuntime is a low-level lifecycle adapter, not an authorized Stage runner. Construction has no process or socket side effects. Its caller must seal current source, target binaries, samples, ports, ownership, budgets and cleanup in a fresh program child before native actions. Keep failed preloads charged separately, never subtract setup or cleanup from measured public intervals. Enforce native PID birth/absence rather than assuming wrapper exit proves child exit. Refuse exited samplers and threshold-crossing points before new model work.
+
+The low-level loopback request cap may accept an explicitly bound value up to 8192 to accommodate fixed twenty-request polling. Default remains 1024; this is not a grant of 8192 calls, additional model attempts, Stage checkpoints or retries. Actual child authorization must declare its exact budget. Native clock reads are bounded separately (default 64, maximum 128). Parent sampler stop remains conservative: timeout or missing ownership/absence evidence is NO_GO, never blind termination.
+
+Disable Comfy result caching for registered analysis nodes so repeated fixed-input performance submissions cannot pass via old results. Manual draft nodes retain existing deterministic behavior. Public-history and independent actual provider-call counts must still demonstrate each real invocation; IS_CHANGED alone is not acceptance evidence.
+
+No native service, GPU query, model, browser or media run is granted by this decision. Complete Stage coordination, fixed category/failure/browser checks, independent review and human signoff remain pending.

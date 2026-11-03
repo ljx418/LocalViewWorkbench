@@ -103,6 +103,9 @@ class VideoRequestOwner:
             if self.clock() >= deadline-core.RELEASE_RESERVE_SECONDS:
                 raise BridgeError('MODEL_TIMEOUT','video preparation exhausted request budget',subcode='VIDEO_REQUEST_DEADLINE')
             resource_evidence["before_model"] = self.preflight()
+            baseline=getattr(self.bridge.transport,'bind_resource_baseline',None)
+            if baseline is not None and getattr(self.bridge,'benchmark',None) is None:
+                baseline(resource_evidence['before_model']['gpu_used_mib'])
             raw, suggestion = self.bridge.analyze_video(frames, model=model,
                 user_instruction=user_instruction, mode=mode, timeout_seconds=timeout_seconds, cancel_event=cancel,
                 request_deadline=deadline)
@@ -114,6 +117,7 @@ class VideoRequestOwner:
                         "decoder_backend":getattr(decoded,'decoder_backend',None),
                         "frames":decoded.manifest, "resource_preflight":resource_evidence,
                         "run_token":token, "cancel_epoch":self._state["cancel_epoch"]}
+                result['resource_release']=copy.deepcopy(getattr(self.bridge.transport,'release_evidence',None))
                 result['model_tag'] = model
                 result['source'] = {
                     'id': 'video_' + decoded.source_sha256[:32], 'sha256': decoded.source_sha256,

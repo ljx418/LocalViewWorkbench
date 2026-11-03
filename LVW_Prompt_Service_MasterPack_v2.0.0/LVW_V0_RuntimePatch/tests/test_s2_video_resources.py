@@ -3,7 +3,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 from LVW_V0_RuntimePatch.custom_nodes.lvw_v0_bridge.core import BridgeError
-from LVW_V0_RuntimePatch.custom_nodes.lvw_v0_bridge.video_resources import validate_snapshot, resource_preflight
+from LVW_V0_RuntimePatch.custom_nodes.lvw_v0_bridge.video_resources import validate_snapshot, resource_preflight, gpu_used_mib
 from LVW_V0_RuntimePatch.custom_nodes.lvw_v0_bridge.video_request import VideoRequestOwner
 
 
@@ -31,6 +31,20 @@ class ResourceTests(unittest.TestCase):
         with patch("shutil.which",return_value=None),patch("subprocess.Popen") as spawn,self.assertRaises(BridgeError):
             resource_preflight()
         spawn.assert_not_called()
+
+    def test_release_probe_is_bounded_and_rejects_unusable_or_multiple_gpu_rows(self):
+        for raw,expected in [(b'1124\n',1124),(b'0\n',0),(b'1124\n1124\n',None),(b'N/A\n',None)]:
+            with self.subTest(raw=raw),patch('shutil.which',return_value='pinned-by-parent'), \
+                 patch('time.monotonic',return_value=5), \
+                 patch('LVW_V0_RuntimePatch.custom_nodes.lvw_v0_bridge.video_resources.run_bounded',return_value=SimpleNamespace(stdout=raw)) as run:
+                if expected is None:
+                    with self.assertRaises(BridgeError):gpu_used_mib(7)
+                else:self.assertEqual(expected,gpu_used_mib(7))
+            self.assertEqual(2,run.call_args.kwargs['timeout_seconds'])
+        with patch('time.monotonic',return_value=8),patch('shutil.which',return_value='unused'), \
+             patch('LVW_V0_RuntimePatch.custom_nodes.lvw_v0_bridge.video_resources.run_bounded') as run, self.assertRaises(BridgeError):
+            gpu_used_mib(7)
+        run.assert_not_called()
 
     def test_request_refuses_before_decoder_when_resources_unproven(self):
         class Decoder:
