@@ -1,0 +1,45 @@
+{
+  "schema_version": "lvw.program-child-authorization/1",
+  "authorization_id": "AUTH-V0-S2-CPU-DECODER-01",
+  "source_program_authorization": "AUTH-PROGRAM-V1-LOCAL-01",
+  "program_sha256": "8f79a9a5a02fb8904b21c86129c5a1509c7a3dcd3e8817d2fdde26266d3375b6",
+  "issued_by": "codex_gate_owner",
+  "status": "EXPIRED_CPU_DECODE_VERIFIED_NOT_STAGE_ACCEPTANCE",
+  "stage_id": "V0-S2",
+  "workpack_id": "WP-S2-04-CPU-DECODER-PREPARATION",
+  "scope": "CPU_DECODER_INTEGRATION_ONLY",
+  "run_id": "cpu-decoder-01",
+  "candidate_sha": "70bf9358d8f43b0d49b1cb71137ead3aca856a93",
+  "harness_sha256": "6563dc071c283bfbd02acc5bb38bc6a921af6ce0040b672899edc58f70e2458a",
+  "sample_sha256": "08516ead62a4b7bb7f8b2035269c3b003c9b2390fbde39d2a2e35e84f42da49e",
+  "sample_bytes": 147079,
+  "sample_binding": "First sorted video from the predeclared representative selection in binding-inventory-06/receipt.json; hash must match before staging and again after copying.",
+  "targets": [
+    "/usr/bin/ffmpeg",
+    "/usr/bin/ffprobe",
+    "one bound non-private TEST_SOURCE video"
+  ],
+  "executable_binding_policy": "Read the two declared local executable hashes and persist them into this child before creating any decoder process; recheck immediately before each invocation.",
+  "ports": [],
+  "processes": "One direct ffprobe child and four sequential direct CPU ffmpeg children through production run_bounded. Only run-owned handles may be terminated/reaped; no model, Comfy, browser or GPU process.",
+  "budget": {
+    "video_decodes": 1,
+    "ffprobe_calls": 1,
+    "ffmpeg_calls": 4,
+    "provider_calls": 0,
+    "service_starts": 0,
+    "gpu_probes": 0,
+    "browser_runs": 0,
+    "downloads": 0,
+    "cloud_calls": 0,
+    "stage_checkpoints": 0
+  },
+  "cleanup": "Exclusive run temp under reports/v0-s2, source copied to an opaque alias, production snapshot cleanup plus removal of the complete owned run root. Persist only hashes, frame time manifest and path-redacted command diagnostics. Authorization expires at terminal receipt; no automatic retry.",
+  "limitations": "Linux CPU decoder integration evidence only; cannot satisfy the Windows native Comfy public workflow, browser, GPU, performance or Stage acceptance gates.",
+  "does_not_authorize_stage_pass": true,
+  "executable_sha256": {
+    "ffmpeg": "ed16af623947494a72e284b6eb8ff225f2da22b38b5d5069c2fd4b4ba3384e41",
+    "ffprobe": "272f6ebc634a63d9c8b4ca68e964119d980f25154e5aa2c35e5487da48e9a58f"
+  },
+  "terminal_receipt": "reports/v0-s2/cpu-decoder-01/receipt.json"
+}
