@@ -1,0 +1,41 @@
+{
+  "schema_version": "lvw.program-child-authorization/1",
+  "authorization_id": "AUTH-V0-S2-BINDING-INVENTORY-03",
+  "source_program_authorization": "AUTH-PROGRAM-V1-LOCAL-01",
+  "program_sha256": "8f79a9a5a02fb8904b21c86129c5a1509c7a3dcd3e8817d2fdde26266d3375b6",
+  "issued_by": "codex_gate_owner",
+  "grant_basis": "Existing project-owner program authorization permits in-scope child runs without human reapproval; read-only preparation only.",
+  "status": "EXPIRED_NO_GO",
+  "stage_id": "V0-S2",
+  "workpack_id": "WP-S2-04-BINDING-PREPARATION",
+  "scope": "READ_ONLY_BINDING_INVENTORY",
+  "run_id": "binding-inventory-03",
+  "candidate_sha": "5930b74df2f4070652a282428691b135799ca686",
+  "harness_sha256": "409550605dc657fb9cae9f9a8b80feca8017e1e232178c0671246fee943a00f0",
+  "sample_binding": "Only hash inventory below already-authorized TEST_SOURCE; no decoding or content analysis. Resulting hashes bind future runs.",
+  "targets": [
+    "COMFY_MAIN",
+    "COMFY_PYTHON",
+    "OLLAMA_EXE",
+    "native PATH ffmpeg.exe/ffprobe.exe",
+    "existing COMFY_ROOT bundled decoder pair; metadata scan <=20000 entries"
+  ],
+  "ports": [],
+  "processes": "One fixed native PowerShell Get-Command query; no target services, no process termination.",
+  "budget": {
+    "media_hash_files": 24,
+    "media_hash_bytes": 1073741824,
+    "native_path_queries": 1,
+    "service_starts": 0,
+    "provider_calls": 0,
+    "gpu_probes": 0,
+    "browser_runs": 0,
+    "downloads": 0,
+    "cloud_calls": 0,
+    "stage_checkpoints": 0
+  },
+  "cleanup": "No target/config writes; bounded alias/hash-only evidence in a fresh slot. Child authorization expires at terminal receipt. No automatic retry.",
+  "does_not_authorize_stage_pass": true,
+  "correction": "Native PATH failure now permits a bounded existing COMFY_ROOT metadata search (20000 entries, excluded model/media trees); no executable invocation, download or config change.",
+  "terminal_receipt": "reports/v0-s2/binding-inventory-03/receipt.json"
+}
