@@ -6,10 +6,47 @@ import unittest
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from tools.v0_s2_bindings import BindingError,sample_inventory,validate_authority,native_decoder_paths,bundled_decoder_paths,installed_decoder_paths
+from tools.v0_s2_bindings import BindingError,sample_inventory,validate_authority,native_decoder_paths,bundled_decoder_paths,installed_decoder_paths,native_package_inventory,PACKAGE_BUDGET
 
 
 class BindingTests(unittest.TestCase):
+    def test_native_package_metadata_is_read_without_import_or_process(self):
+        with tempfile.TemporaryDirectory() as temp,patch('subprocess.Popen',side_effect=AssertionError('no process')):
+            root=Path(temp);(root/'python.exe').write_bytes(b'fixture interpreter')
+            site=root/'Lib/site-packages';site.mkdir(parents=True)
+            for name,folder,version in [('av','av','15.1.0'),('imageio-ffmpeg','imageio_ffmpeg','0.6.0')]:
+                package=site/folder;package.mkdir();(package/'__init__.py').write_text('raise AssertionError("must not import")')
+                info=site/(folder+'-'+version+'.dist-info');info.mkdir()
+                (info/'METADATA').write_text('Name: '+name+'\nVersion: '+version+'\n')
+            (site/'av/core.pyd').write_bytes(b'not executed')
+            binary=site/'imageio_ffmpeg/binaries';binary.mkdir();(binary/'ffmpeg-fixture.exe').write_bytes(b'not executed')
+            result=native_package_inventory(root)
+            self.assertEqual('15.1.0',result['packages']['av']['version'])
+            self.assertEqual(1,len(result['packages']['imageio-ffmpeg']['native_artifacts']))
+            self.assertFalse(result['native_compatibility_verified']);self.assertNotIn(temp,str(result))
+            (site/'av/core.pyd').unlink();(site/'av').rename(site/'actual-av')
+            (site/'av').symlink_to(site/'actual-av',target_is_directory=True)
+            with self.assertRaisesRegex(BindingError,'REDIRECT'):native_package_inventory(root)
+
+    def test_package_hash_count_exact_and_one_over(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp);(root/'python.exe').write_bytes(b'fixture');package=root/'Lib/site-packages/av';package.mkdir(parents=True)
+            (package/'__init__.py').write_bytes(b'fixture')
+            for index in range(127):(package/f'{index}.pyd').write_bytes(b'fixture')
+            self.assertEqual(129,len(native_package_inventory(root)['files']))
+            (package/'over.pyd').write_bytes(b'fixture')
+            with self.assertRaisesRegex(BindingError,'HASH_BUDGET'):native_package_inventory(root)
+
+    def test_package_authority_cannot_be_used_as_media_or_process_authority(self):
+        program={'status':'ACTIVE','authorization_id':'AUTH-PROGRAM-V1-LOCAL-01','stages':['V0-S2']}
+        auth={'status':'ACTIVE_ONE_SHOT','source_program_authorization':program['authorization_id'],
+              'stage_id':'V0-S2','scope':'READ_ONLY_NATIVE_DECODER_PACKAGE_INVENTORY','candidate_sha':'a'*40,
+              'harness_sha256':'b'*64,'run_id':'native-packages-01','budget':PACKAGE_BUDGET.copy()}
+        validate_authority(auth,program,candidate='a'*40,harness_sha='b'*64,package_mode=True)
+        with self.assertRaises(BindingError):validate_authority(auth,program,candidate='a'*40,harness_sha='b'*64)
+        auth['budget']['target_processes']=1
+        with self.assertRaises(BindingError):validate_authority(auth,program,candidate='a'*40,harness_sha='b'*64,package_mode=True)
+
     def test_native_command_failure_never_decodes_localized_stderr(self):
         with patch('subprocess.run',return_value=SimpleNamespace(returncode=1,stdout=b'',stderr=b'\xff\xfe')) as run, \
              patch('tools.v0_s2_bindings.bundled_decoder_paths',side_effect=BindingError('BUNDLED_DECODER_PAIR_MISSING')):

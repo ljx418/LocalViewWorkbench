@@ -7,14 +7,14 @@
   "next_delivery_target": "V0.1",
   "coordinate": {
     "stage_id": "V0-S2",
-    "workpack_id": "WP-S2-03",
-    "gate": "GATE1_OFFLINE_IMPLEMENTATION",
+    "workpack_id": "WP-S2-04",
+    "gate": "GATE3_OFFLINE_CHECKPOINT",
     "state": "FROZEN_READY_OFFLINE"
   },
   "last_passed_gate": {
-    "id": "R1A_HUMAN_EXPERIENCE_SIGNOFF_PASS",
-    "evidence": "reports/r1a/human-signoff-r1a-live-08.json",
-    "meaning": "R1a current candidate machine, independent and human gates complete; V0.1 remains incomplete"
+    "id": "V0_S2_OFFLINE_CHECKPOINT_PASS",
+    "evidence": "reports/v0-s2/offline-checkpoint-01/receipt.json",
+    "meaning": "Five sequential offline checks and post-run payload identity passed for f868b0d; no Stage/live/human acceptance is implied"
   },
   "current_blocking_gate": "V0_S2_CHECKPOINT_PREPARATION_AND_NATIVE_DECODER_BINDING",
   "stage_packet": ".agent-governance/stages/V0-S2/stage-control.json",
@@ -30,7 +30,7 @@
     "TARGET_HARDWARE_TESTED"
   ],
   "next_owner": "codex_v0_s2_implementer",
-  "next_action": "Resolve existing Windows-native FFmpeg/ffprobe location; finish candidate-bound checkpoint runner and seal WP-S2-04 offline evidence; do not repeat broad discovery or download",
+  "next_action": "Inspect only preinstalled Comfy Python decoder packages for a reusable native path; then finish the bound live checkpoint runner. No broad discovery, download or model run is authorized by package inventory",
   "required_authorization": "NONE_FOR_OFFLINE_FROZEN_WORKPACKS",
   "authorization_request": null,
   "authorization_record": "reports/authorization-program-v1-local-01.json",
@@ -56,7 +56,8 @@
   "implementation_candidate": "70bf9358d8f43b0d49b1cb71137ead3aca856a93",
   "candidate_binding_scope": "Current V0-S2 custom_nodes/lvw_v0_bridge production bytes; each offline/live receipt binds its own complete Harness candidate separately",
   "offline_evidence_commit": null,
-  "offline_receipt": null,
+  "offline_receipt": "reports/v0-s2/offline-checkpoint-01/receipt.json",
+  "offline_candidate_sha": "f868b0daad28d590b435e74cca50975c3725b6df",
   "evidence_root": "reports/",
   "gate_decision": null,
   "human_signoff": null,
