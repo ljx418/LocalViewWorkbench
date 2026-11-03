@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import subprocess
 import re
+import os
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = Path('/mnt/c/workSpace/videoWorkLine/testSource')
@@ -75,12 +76,29 @@ def validate_authority(auth, program, *, candidate, harness_sha):
         raise BindingError('INVENTORY_AUTHORITY_MISMATCH')
 
 
+def bundled_decoder_paths(root=Path('/mnt/c/ComfyUI-aki-v2')):
+    """Bounded search of the already-authorized installation, no downloads."""
+    visited=0
+    if not Path(root).is_dir(): raise BindingError('BUNDLED_DECODER_ROOT_MISSING')
+    for directory,dirs,files in os.walk(root,followlinks=False):
+        dirs[:]=sorted(d for d in dirs if d.lower() not in {'models','input','output','temp','.git','node_modules','__pycache__'}
+                        and not (Path(directory)/d).is_symlink())
+        visited+=len(dirs)+len(files)
+        if visited>20000:raise BindingError('BUNDLED_DECODER_SCAN_LIMIT')
+        names={name.lower():name for name in files}
+        if {'ffmpeg.exe','ffprobe.exe'} <= set(names):
+            paths={key:Path(directory)/names[name] for key,name in [('FFMPEG_EXE','ffmpeg.exe'),('FFPROBE_EXE','ffprobe.exe')]}
+            if any(path.is_symlink() for path in paths.values()):raise BindingError('NATIVE_DECODER_IDENTITY_INVALID')
+            return paths
+    raise BindingError('BUNDLED_DECODER_PAIR_MISSING')
+
+
 def native_decoder_paths():
     # Query native PATH only; do not execute FFmpeg or touch permanent config.
     script = "[Console]::OutputEncoding=[System.Text.UTF8Encoding]::new($false);$ErrorActionPreference='Stop'; @('ffmpeg.exe','ffprobe.exe') | ForEach-Object {$c=Get-Command $_ -CommandType Application -ErrorAction Stop; [pscustomobject]@{name=$_;path=$c.Source}} | ConvertTo-Json -Compress"
     result = subprocess.run(['powershell.exe','-NoProfile','-NonInteractive','-Command',script],
         capture_output=True,timeout=30)
-    if result.returncode: raise BindingError('NATIVE_DECODER_PATH_QUERY_FAILED')
+    if result.returncode:return bundled_decoder_paths()
     paths = {}
     for value in json.loads(result.stdout.decode('utf-8-sig','strict')):
         converted = subprocess.check_output(['wslpath','-u',value['path']],text=True,timeout=5).strip()
@@ -116,8 +134,11 @@ def main():
              'authorization_id':auth['authorization_id'],'decision':'NO_GO','stage_pass_claim':False,
              'stage_checkpoint_consumed':False,'service_starts':0,'provider_calls':0}
     try:
-        paths={**TARGETS,**native_decoder_paths()}
-        receipt['executables']={alias:{'sha256':file_hash(path),'bytes':path.stat().st_size} for alias,path in paths.items()}
+        receipt['executables']={}
+        for alias,path in TARGETS.items():
+            receipt['executables'][alias]={'sha256':file_hash(path),'bytes':path.stat().st_size}
+        for alias,path in native_decoder_paths().items():
+            receipt['executables'][alias]={'sha256':file_hash(path),'bytes':path.stat().st_size}
         receipt['samples']=sample_inventory(SOURCE)
         receipt['decision']='BINDINGS_COLLECTED_NOT_ACCEPTANCE'
     except Exception as exc:

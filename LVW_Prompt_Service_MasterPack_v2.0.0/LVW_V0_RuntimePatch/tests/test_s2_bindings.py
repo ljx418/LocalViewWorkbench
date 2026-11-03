@@ -6,15 +6,25 @@ import unittest
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from tools.v0_s2_bindings import BindingError,sample_inventory,validate_authority,native_decoder_paths
+from tools.v0_s2_bindings import BindingError,sample_inventory,validate_authority,native_decoder_paths,bundled_decoder_paths
 
 
 class BindingTests(unittest.TestCase):
     def test_native_command_failure_never_decodes_localized_stderr(self):
-        with patch('subprocess.run',return_value=SimpleNamespace(returncode=1,stdout=b'',stderr=b'\xff\xfe')) as run:
-            with self.assertRaisesRegex(BindingError,'NATIVE_DECODER_PATH_QUERY_FAILED'):
+        with patch('subprocess.run',return_value=SimpleNamespace(returncode=1,stdout=b'',stderr=b'\xff\xfe')) as run, \
+             patch('tools.v0_s2_bindings.bundled_decoder_paths',side_effect=BindingError('BUNDLED_DECODER_PAIR_MISSING')):
+            with self.assertRaisesRegex(BindingError,'BUNDLED_DECODER_PAIR_MISSING'):
                 native_decoder_paths()
         self.assertIn('OutputEncoding',run.call_args.args[0][-1])
+
+    def test_existing_bundle_pair_is_found_without_reading_model_files(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp);tools=root/'tools';tools.mkdir();models=root/'models';models.mkdir()
+            (models/'ffmpeg.exe').write_bytes(b'not a selected tool')
+            for name in ('ffmpeg.exe','ffprobe.exe'):(tools/name).write_bytes(b'fixture')
+            result=bundled_decoder_paths(root)
+            self.assertEqual(tools/'ffmpeg.exe',result['FFMPEG_EXE'])
+            self.assertEqual(tools/'ffprobe.exe',result['FFPROBE_EXE'])
     def test_media_aliases_hashes_and_out_of_root_symlink(self):
         with tempfile.TemporaryDirectory() as temp:
             root=Path(temp)/'source';root.mkdir()
