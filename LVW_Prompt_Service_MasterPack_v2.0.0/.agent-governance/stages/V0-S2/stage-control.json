@@ -2,7 +2,7 @@
   "schema_version": "lvw.stage-control/1",
   "project_id": "lvw-prompt-service",
   "stage_id": "V0-S2",
-  "stage_packet_version": "1.0.7",
+  "stage_packet_version": "1.0.8",
   "packet_status": "FROZEN",
   "gate_version": "lvw-gate/1",
   "baseline": {
@@ -33,7 +33,8 @@
     "reports/v0-s2/warm-profile-decision-01.md",
     "reports/v0-s2/warm-evidence-join-decision-01.md",
     "reports/v0-s2/native-runtime-release-decision-01.md",
-    "reports/v0-s2/warm-phase-coordinator-decision-01.md"
+    "reports/v0-s2/warm-phase-coordinator-decision-01.md",
+    "reports/v0-s2/resource-abort-ownership-decision-01.md"
   ],
   "roles": {
     "gate_owner": "codex_gate_owner",
@@ -257,6 +258,8 @@
     "status": "OFFLINE_IMPLEMENTED_NATIVE_NOT_RUN",
     "cadence_ms": 1000,
     "max_seconds": 7200,
-    "max_private_processes": 16
+    "max_private_processes": 16,
+    "abort_decision": "reports/v0-s2/resource-abort-ownership-decision-01.md",
+    "concurrent_abort_status": "OFFLINE_IMPLEMENTED_NATIVE_NOT_RUN"
   }
 }

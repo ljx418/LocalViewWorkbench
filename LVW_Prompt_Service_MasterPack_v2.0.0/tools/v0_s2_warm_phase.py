@@ -91,11 +91,12 @@ class WarmPhase:
         # public response text, even when a synthetic driver is used.
         if not re.fullmatch('[0-9a-fA-F-]{1,80}',prompt_id):raise base.StopProbe('PUBLIC_PROMPT_ID_INVALID')
         deadline=time.monotonic()+480
-        last=self.worker.wait_point(after=None)['monotonic_seconds']
+        last=self.driver.guard_point(after=None)['monotonic_seconds']
         while time.monotonic()<deadline:
-            point=self.worker.wait_point(after=last);last=point['monotonic_seconds']
+            point=self.driver.guard_point(after=last);last=point['monotonic_seconds']
             self.action('history_read',case_id)
-            value=self.driver._json_request(base.COMFY_URL+'/history/'+prompt_id,timeout=min(5,max(.001,deadline-time.monotonic())))[1]
+            value=self.driver._json_request(base.COMFY_URL+'/history/'+prompt_id,
+                timeout=min(5,max(.001,deadline-time.monotonic())),observer=getattr(self.driver,'resource_observer',None))[1]
             if prompt_id in value:return value
         raise base.StopProbe('PUBLIC_HISTORY_TIMEOUT')
 
@@ -122,8 +123,8 @@ class WarmPhase:
         self.artifact(case_id+'.graph.json',graph)
         # Start at a NEW actual sampler point, never shift/fabricate a point to
         # make the first elapsed time zero or subtract public queue/cleanup time.
-        point=self.worker.wait_point(after=None)
-        point=self.worker.wait_point(after=point['monotonic_seconds'])
+        point=self.driver.guard_point(after=None)
+        point=self.driver.guard_point(after=point['monotonic_seconds'])
         started=point['monotonic_seconds']
         self.action('public_submit',case_id);prompt_id=self.driver.submit(graph)
         if prompt_id in self.prompt_ids:raise base.StopProbe('PUBLIC_PROMPT_ID_REUSED')
@@ -133,7 +134,7 @@ class WarmPhase:
         self.artifact(case_id+'.history.json',history)
         self.action('native_clock_read',case_id);finished=self.driver.native_clock()['monotonic_seconds']
         if finished<=started:raise base.StopProbe('NATIVE_INTERVAL_INVALID')
-        self.worker.wait_point(after=finished)
+        self.driver.guard_point(after=finished)
         self.action('provider_count_read',case_id);after=self.driver.chat_log_count()
         if after-before!=(1 if kind=='image' else 4):raise base.StopProbe('PROVIDER_CALL_COUNT_MISMATCH')
         events=self.events()[len(old_events):]

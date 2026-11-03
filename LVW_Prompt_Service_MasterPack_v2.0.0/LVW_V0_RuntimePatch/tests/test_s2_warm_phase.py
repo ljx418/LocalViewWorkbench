@@ -32,6 +32,7 @@ class Native:
         self.failure=failure;self.last=None;self.events=[];self.polls=0
     def owned_listener_birth(self,port):return {'pid':10,'start_ticks':100 if self.failure!='owner' else 101}
     def verify_model(self):return {'digest':'d'*64 if self.failure!='model' else '0'*64}
+    def guard_point(self,**kwargs):return self.worker.wait_point(**kwargs)
     def preload(self,model):
         self.preloads+=1
         if self.failure=='preload':raise OSError('synthetic preload error')

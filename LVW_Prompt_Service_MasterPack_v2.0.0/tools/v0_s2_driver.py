@@ -5,6 +5,7 @@ historical Harness. S2 replaces HTTP, localized PowerShell output handling,
 submission accounting, and the transient decoder configuration.
 """
 import importlib.util
+import json
 from pathlib import Path
 import subprocess
 
@@ -40,18 +41,137 @@ class S2SystemDriver(base.SystemDriver):
         self.request_limit=getattr(args,'max_loopback_requests',1024)
         if type(self.request_limit) is not int or not 1<=self.request_limit<=8192:
             raise base.StopProbe('LOOPBACK_REQUEST_BUDGET_INVALID')
-        self.request_ledger=[]
+        self.request_ledger=[];self._wrapper_handles={};self.listener_births={};self._cleanup_descendants={}
         self.clients = {url:LoopbackClient(url) for url in (base.COMFY_URL,base.OLLAMA_URL)}
 
-    def _json_request(self, url, *, payload=None, timeout=20):
+    def _prove_listener_owned(self,port,wrapper_pid_file,executable_name):
+        if port not in (8191,11434):raise base.StopProbe('LISTENER_PORT_FORBIDDEN')
+        handle=self._wrapper_handles.get(str(wrapper_pid_file))
+        if handle is None or handle.poll() is not None:raise base.StopProbe('OWNED_WRAPPER_HANDLE_NOT_LIVE')
+        pid=super()._prove_listener_owned(port,wrapper_pid_file,executable_name)
+        wrapper=int(Path(wrapper_pid_file).read_text(encoding='ascii'))
+        raw=self._powershell(f"$a=Get-CimInstance Win32_Process -Filter 'ProcessId = {pid}';"
+            f"$b=Get-CimInstance Win32_Process -Filter 'ProcessId = {wrapper}';"
+            f"$lp=Get-Process -Id {pid};$wp=Get-Process -Id {wrapper};"
+            "try{$null=$lp.SafeHandle;$null=$wp.SafeHandle;"
+            "[ordered]@{listener_pid=[int]$a.ProcessId;wrapper_pid=[int]$b.ProcessId;"
+            "listener_start_ticks=[long]$a.CreationDate.ToUniversalTime().Ticks;"
+            "wrapper_start_ticks=[long]$b.CreationDate.ToUniversalTime().Ticks;"
+            "executable=[string]$a.ExecutablePath;listener_process_start_ticks=[long]$lp.StartTime.ToUniversalTime().Ticks;"
+            "wrapper_process_start_ticks=[long]$wp.StartTime.ToUniversalTime().Ticks}|ConvertTo-Json -Compress}"
+            "finally{$lp.Dispose();$wp.Dispose()}")
+        proof=json.loads(raw)
+        target=self.args.comfy_python if port==8191 else self.args.ollama_exe
+        expected=base.normalized_windows_path(self._windows_path(target)).casefold()
+        if (proof.get('listener_pid')!=pid or proof.get('wrapper_pid')!=wrapper
+                or any(type(proof.get(k)) is not int or proof[k]<=0 for k in ('listener_start_ticks','wrapper_start_ticks','listener_process_start_ticks','wrapper_process_start_ticks'))
+                or base.normalized_windows_path(proof.get('executable','')).casefold()!=expected):
+            raise base.StopProbe('LISTENER_BIRTH_PROOF_INVALID')
+        if port in self.listener_births and self.listener_births[port]!=proof:
+            raise base.StopProbe('LISTENER_OR_WRAPPER_PID_REUSED')
+        self.listener_births[port]=proof
+        self.owned_listener_evidence[str(port)].update(proof)
+        return pid
+
+    def _kill_bound(self,pid,start_ticks):
+        if any(type(v) is not int or v<=0 for v in (pid,start_ticks)):raise base.StopProbe('STOP_BIRTH_INVALID')
+        # SafeHandle pins the actual kernel process. If the PID was recycled
+        # before opening it, the exact StartTime comparison refuses the kill.
+        # If it exits/recycles after opening, Kill still uses the pinned handle.
+        self._powershell(f"$p=Get-Process -Id {pid};try{{$null=$p.SafeHandle;"
+            f"if([long]$p.StartTime.ToUniversalTime().Ticks -ne {start_ticks}){{throw 'PID_REUSED'}};"
+            "$p.Kill();if(!$p.WaitForExit(5000)){throw 'OWNED_STOP_TIMEOUT'}}finally{$p.Dispose()}")
+
+    def _snapshot_descendants(self,pid):
+        raw=self._powershell(f"$rows=@(Get-CimInstance Win32_Process);$ids=@({pid});$out=@();"
+            "for($i=0;$i -lt 8;$i++){$next=@($rows|Where-Object {"
+            "($_.ParentProcessId -in $ids) -and ($_.ProcessId -notin $ids)});if(!$next.Count){break};"
+            "$ids+=@($next.ProcessId);if($ids.Count -gt 17){throw 'DESCENDANT_LIMIT'};"
+            "$out+=@($next|ForEach-Object {[ordered]@{pid=[int]$_.ProcessId;"
+            "start_ticks=[long]$_.CreationDate.ToUniversalTime().Ticks}})};"
+            "if(@($rows|Where-Object {($_.ParentProcessId -in $ids) -and ($_.ProcessId -notin $ids)}).Count)"
+            "{throw 'DESCENDANT_DEPTH_LIMIT'};ConvertTo-Json -InputObject @($out) -Compress")
+        values=json.loads(raw)
+        if (not isinstance(values,list) or len(values)>16
+                or any(not isinstance(v,dict) or any(type(v.get(k)) is not int or v[k]<=0 for k in ('pid','start_ticks')) for v in values)):
+            raise base.StopProbe('DESCENDANT_SNAPSHOT_INVALID')
+        return values
+
+    def cleanup(self):
+        failures=[];listeners=[];wrappers=[]
+        for port,proof in sorted(self.listener_proofs.items()):
+            state={'port':port,'lineage_reproven':False,'stop_requested':False,'terminal_absent':False}
+            try:
+                if self._listener_pid_values(port):
+                    pid=self._prove_listener_owned(port,proof['wrapper_pid_file'],proof['executable_name'])
+                    birth=self.listener_births[port]
+                    state.update(owned_listener_pid=pid,lineage_reproven=True,stop_requested=True)
+                    descendants=self._snapshot_descendants(pid)
+                    state['descendants_before_stop']=descendants
+                    self._kill_bound(pid,birth['listener_process_start_ticks'])
+                    self._cleanup_descendants[port]=descendants
+                if port not in self._cleanup_descendants:raise base.StopProbe('DESCENDANT_EXIT_BASELINE_MISSING')
+                survivor_pids=[]
+                for child in self._cleanup_descendants[port]:
+                    if int(self._powershell(f"@(Get-CimInstance Win32_Process -Filter 'ProcessId = {child['pid']}').Count")):
+                        survivor_pids.append(child['pid'])
+                state['descendant_pids_still_present']=survivor_pids
+                if survivor_pids:raise base.StopProbe('DESCENDANT_EXIT_UNPROVEN')
+                state['terminal_absent']=not self._listener_pid_values(port)
+                if not state['terminal_absent']:raise base.StopProbe('LISTENER_STILL_PRESENT')
+            except Exception as error:failures.append({'port':port,'error_type':type(error).__name__,'reason':getattr(error,'reason',None)})
+            listeners.append(state)
+        # Native wrapper identity was captured while its launch handle was live.
+        # A wrapper not captured (partial startup) is never blindly PID-killed.
+        for name,process,stream in reversed(self.owned):
+            state={'owner':name,'pid':getattr(process,'pid',None),'exited':False,'native_wrapper_absent':False}
+            try:
+                births=[v for port,v in self.listener_births.items()
+                    if (port==8191 and name=='comfy') or (port==11434 and name=='ollama_wrapper')]
+                if births:
+                    birth=births[0];pid=birth['wrapper_pid']
+                    count=int(self._powershell(f"@(Get-CimInstance Win32_Process -Filter 'ProcessId = {pid}').Count"))
+                    if count:self._kill_bound(pid,birth['wrapper_process_start_ticks'])
+                    state['native_wrapper_absent']=int(self._powershell(
+                        f"@(Get-CimInstance Win32_Process -Filter 'ProcessId = {pid}').Count"))==0
+                if process.poll() is None:
+                    process.terminate();process.wait(timeout=20)
+                state['exited']=process.poll() is not None
+                if not state['exited'] or not state['native_wrapper_absent']:
+                    raise base.StopProbe('WRAPPER_EXIT_UNPROVEN')
+            except Exception as error:failures.append({'owner':name,'error_type':type(error).__name__,'reason':getattr(error,'reason',None)})
+            finally:stream.close();wrappers.append(state)
+        count=int(self._powershell("@(Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue | "
+            "Where-Object {$_.LocalPort -in 8191,11434}).Count") or '0')
+        return {'proven':not failures and count==0,'owned_count':len(self.owned),'failures':failures,
+            'final_target_listener_count':count,'owned_listener_terminal_states':listeners,
+            'owned_wrapper_terminal_states':wrappers}
+
+    def stop_ollama(self):
+        proof=self.listener_proofs.get(11434)
+        if proof is None:raise base.StopProbe('OLLAMA_LISTENER_OWNERSHIP_LOST')
+        pid=self._prove_listener_owned(11434,proof['wrapper_pid_file'],proof['executable_name'])
+        descendants=self._snapshot_descendants(pid)
+        self._kill_bound(pid,self.listener_births[11434]['listener_process_start_ticks'])
+        self._cleanup_descendants[11434]=descendants
+        if any(int(self._powershell(f"@(Get-CimInstance Win32_Process -Filter 'ProcessId = {c['pid']}').Count")) for c in descendants):
+            raise base.StopProbe('DESCENDANT_EXIT_UNPROVEN')
+        if self._listener_pid_values(11434):raise base.StopProbe('OLLAMA_STOP_UNPROVEN')
+        self.listener_terminal_states['11434']={'port':11434,'owned_listener_pid':pid,'lineage_reproven':True,
+            'stop_requested':True,'terminal_absent':True}
+        self.listener_pids.discard(pid)
+        # Keep birth/proof records for final native-wrapper cleanup.
+
+    def _json_request(self, url, *, payload=None, timeout=20,observer=None):
         for endpoint,client in self.clients.items():
             if url.startswith(endpoint+'/'):
                 if len(self.request_ledger)>=self.request_limit:raise base.StopProbe('LOOPBACK_REQUEST_BUDGET_EXCEEDED')
                 entry={'endpoint':endpoint,'path':url[len(endpoint):],'status':None}
                 self.request_ledger.append(entry)
                 try:
-                    status,value=client.request('POST' if payload is not None else 'GET',url[len(endpoint):],
-                                                payload=payload,timeout=timeout)
+                    options={'payload':payload,'timeout':timeout}
+                    if observer is not None:options['observer']=observer
+                    status,value=client.request('POST' if payload is not None else 'GET',url[len(endpoint):],**options)
                     entry['status']=status
                     return status,value
                 except Exception as exc:
@@ -80,7 +200,8 @@ class S2SystemDriver(base.SystemDriver):
         if self.submissions >= self.max_public_submissions:
             raise base.StopProbe('PUBLIC_API_SUBMISSION_BUDGET_EXCEEDED')
         self.submissions += 1  # Failed submissions consume budget too.
-        status,value=self._json_request(base.COMFY_URL+'/prompt',payload={'prompt':graph,'client_id':self.args.run_id})
+        status,value=self._json_request(base.COMFY_URL+'/prompt',payload={'prompt':graph,'client_id':self.args.run_id},
+            observer=getattr(self,'resource_observer',None))
         if status != 200 or not isinstance(value.get('prompt_id'),str) or not value['prompt_id']:
             raise base.StopProbe('PUBLIC_PROMPT_SUBMISSION_FAILED')
         return value['prompt_id']
@@ -102,6 +223,6 @@ class S2SystemDriver(base.SystemDriver):
         except BaseException:
             stream.close()
             raise
-        self.owned.append(('comfy',process,stream))
+        self.owned.append(('comfy',process,stream));self._wrapper_handles[str(pid_file)]=process
         self.wait_json(base.COMFY_URL+'/object_info',timeout=120)
         self._prove_listener_owned(8191,pid_file,'python.exe')

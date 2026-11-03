@@ -46,7 +46,7 @@ class RuntimeTests(unittest.TestCase):
             query.assert_not_called()
 
     def test_preloads_are_separate_bounded_actions_and_failures_consume_budget(self):
-        driver=self.runtime()
+        driver=self.runtime();driver.resource_observer=lambda:None
         with patch.object(driver,'_json_request',side_effect=OSError('fixture')) as request:
             for _ in range(20):
                 with self.assertRaises(OSError):driver.preload(base.MODEL)

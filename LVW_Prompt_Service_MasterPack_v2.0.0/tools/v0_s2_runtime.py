@@ -33,10 +33,46 @@ class NativeRuntime(S2SystemDriver):
     def __init__(self,args,evidence):
         super().__init__(args,evidence)
         self.clock_reads=0;self.workers=[]
-        self.preloads=0
+        self.preloads=0;self.resource_observer=None;self.resource_abort_latched=False;self._emergency_done=False
         self.clock_limit=getattr(args,'max_native_clock_reads',64)
         if type(self.clock_limit) is not int or not 1<=self.clock_limit<=128:
             raise base.StopProbe('NATIVE_CLOCK_BUDGET_INVALID')
+
+    def _latch_resource_abort(self,error):
+        self.resource_abort_latched=True
+        self.evidence['resource_abort']={'error_type':type(error).__name__,
+            'reason':getattr(error,'reason',None),'new_model_work_forbidden':True}
+
+    def _emergency_cleanup(self):
+        if self._emergency_done:return
+        self._emergency_done=True
+        try:self.evidence['resource_abort_cleanup']=self.cleanup()
+        except BaseException as error:
+            self.evidence['resource_abort_cleanup']={'proven':False,'error_type':type(error).__name__}
+            if isinstance(error,(KeyboardInterrupt,SystemExit)):raise
+
+    def observe_resources(self):
+        if self.resource_abort_latched:raise base.StopProbe('RESOURCE_ABORT_LATCHED')
+        try:return self._resource_worker.observe()
+        except BaseException as error:
+            self._latch_resource_abort(error)
+            raise
+
+    def guard_point(self,*,after,timeout=3):
+        if self.resource_abort_latched:raise base.StopProbe('RESOURCE_ABORT_LATCHED')
+        try:return self._resource_worker.wait_point(after=after,timeout=timeout)
+        except BaseException as error:
+            self._latch_resource_abort(error);self._emergency_cleanup()
+            raise
+
+    def _json_request(self,url,*,payload=None,timeout=20,observer=None):
+        try:return super()._json_request(url,payload=payload,timeout=timeout,observer=observer)
+        except BaseException:
+            # The HTTP observer first interrupts/joins only its owned socket.
+            # A disconnected request is not proof that model work stopped.
+            # Cleanup revalidates process lineage before stopping owned services.
+            if self.resource_abort_latched and observer is not None:self._emergency_cleanup()
+            raise
 
     def native_clock(self):
         if self.clock_reads>=self.clock_limit:raise base.StopProbe('NATIVE_CLOCK_BUDGET_EXCEEDED')
@@ -54,13 +90,8 @@ class NativeRuntime(S2SystemDriver):
         proof=self.listener_proofs.get(port)
         if proof is None:raise base.StopProbe('RUNTIME_LISTENER_NOT_OWNED')
         pid=self._prove_listener_owned(port,proof['wrapper_pid_file'],proof['executable_name'])
-        raw=self._powershell(f"$p=Get-CimInstance Win32_Process -Filter 'ProcessId = {pid}';"
-            "[ordered]@{pid=[int]$p.ProcessId;start_ticks=[long]$p.CreationDate.ToUniversalTime().Ticks;name=[string]$p.Name}|ConvertTo-Json -Compress")
-        value=json.loads(raw)
-        if (value.get('pid')!=pid or type(value.get('start_ticks')) is not int or value['start_ticks']<=0
-                or value.get('name','').lower()!=proof['executable_name'].lower()):
-            raise base.StopProbe('RUNTIME_LISTENER_BIRTH_INVALID')
-        return value
+        birth=self.listener_births[port]
+        return {'pid':pid,'start_ticks':birth['listener_start_ticks'],'name':proof['executable_name']}
 
     def write_warm_binding(self,run_root,*,candidate_sha,authorization_sha256,model_digest,nvidia_sha256,baseline_gpu_mib):
         for value,length in ((candidate_sha,40),(authorization_sha256,64),(model_digest,64),(nvidia_sha256,64)):
@@ -94,6 +125,7 @@ class NativeRuntime(S2SystemDriver):
                 self._windows_path(str(wrapper))],stdout=stream,stderr=subprocess.STDOUT)
         except BaseException:stream.close();raise
         self.owned.append(('ollama_wrapper',process,stream));self.ollama_wrapper_pid_file=pid_file
+        self._wrapper_handles[str(pid_file)]=process
 
     def start_sampler(self,run_root,*,nvidia_exe,nvidia_sha256,max_seconds=7200):
         # Fresh subdirectory prevents old logs, stop markers or PID leases.
@@ -102,15 +134,18 @@ class NativeRuntime(S2SystemDriver):
         worker=SamplerWorker(self,directory,nvidia_exe,nvidia_sha256,max_seconds,owners)
         self.workers.append(worker)  # Preserve cleanup even when startup fails.
         worker.start()
+        self._resource_worker=worker;self.resource_observer=self.observe_resources
         return worker
 
     def preload(self,model):
         # Caller records/precharges this separate setup action; never include it
         # as a measured provider call or subtract it from measured latency.
+        if self.resource_abort_latched:raise base.StopProbe('RESOURCE_ABORT_LATCHED')
+        if self.resource_observer is None:raise base.StopProbe('RESOURCE_MONITOR_REQUIRED')
         if model!=base.MODEL or self.preloads>=20:raise base.StopProbe('MODEL_PRELOAD_BUDGET_OR_TAG_INVALID')
         self.preloads+=1
         status,value=self._json_request(base.OLLAMA_URL+'/api/generate',
-            payload={'model':model,'stream':False,'keep_alive':300},timeout=120)
+            payload={'model':model,'stream':False,'keep_alive':300},timeout=120,observer=self.resource_observer)
         if status!=200 or value.get('done') is not True:raise base.StopProbe('MODEL_PRELOAD_FAILED')
         return value
 
@@ -120,6 +155,7 @@ class NativeRuntime(S2SystemDriver):
         No provider retry. Root proof, unload, inventory and physical stability
         share one thirty-second budget; samples retain their native clock.
         """
+        if self.resource_abort_latched:raise base.StopProbe('RESOURCE_ABORT_REQUIRES_POSTSTOP_PROOF')
         deadline=time.monotonic()+30
         root=self.owned_listener_birth(11434)
         if (root['pid'],root['start_ticks'])!=(binding['ollama_pid'],binding['ollama_start_ticks']):
@@ -160,7 +196,9 @@ class NativeRuntime(S2SystemDriver):
             try:workers.append(worker.stop())
             except Exception as error:workers.append({'proven':False,'error_type':type(error).__name__})
         services=super().cleanup()
-        return {**services,'sampler_workers':workers,'proven':services['proven'] and all(w['proven'] for w in workers)}
+        pending={endpoint:client.reap_pending() for endpoint,client in self.clients.items()}
+        return {**services,'sampler_workers':workers,'http_workers_pending':pending,
+            'proven':services['proven'] and all(w['proven'] for w in workers) and not any(pending.values())}
 
 
 class SamplerWorker:
@@ -173,6 +211,7 @@ class SamplerWorker:
         self.driver=driver;self.directory=Path(directory);self.binary=str(binary);self.digest=digest
         self.max_seconds=max_seconds;self.pids=list(pids);self.process=None;self.stream=None;self.proof=None
         self.wrapper_pid=self.directory/'sampler-wrapper.pid'
+        self._observed_stamp=None;self._observed_progress=None
 
     def start(self):
         driver=self.driver
@@ -189,7 +228,9 @@ class SamplerWorker:
         self.process=subprocess.Popen([driver.args.powershell,'-NoProfile','-NonInteractive','-File',
             driver._windows_path(str(wrapper))],stdout=self.stream,stderr=subprocess.STDOUT)
         self.wait_point(after=None,timeout=30)
+        self.observe()
         self.proof=self._prove()
+        self.observe()
 
     def _prove(self):
         pidfile=self.directory/'resource-sampler.pid'
@@ -213,6 +254,16 @@ class SamplerWorker:
         return proof
 
     def points(self):return read_jsonl(self.directory/'resource-trace.jsonl',limit=8*1024*1024)
+
+    def observe(self):
+        point=self.wait_point(after=None,timeout=.05)
+        stamp=point['monotonic_seconds'];now=time.monotonic()
+        if type(stamp) not in (int,float) or not math.isfinite(stamp):raise base.StopProbe('SAMPLER_CLOCK_INVALID')
+        if self._observed_stamp is not None and stamp<self._observed_stamp:raise base.StopProbe('SAMPLER_CLOCK_REVERSED')
+        if stamp!=self._observed_stamp:
+            self._observed_stamp=stamp;self._observed_progress=now
+        elif now-self._observed_progress>3:raise base.StopProbe('SAMPLER_STALE')
+        return point
 
     def wait_point(self,*,after,timeout=3):
         deadline=time.monotonic()+timeout
