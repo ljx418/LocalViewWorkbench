@@ -24,6 +24,32 @@ class Connection:
 
 
 class TransportTests(unittest.TestCase):
+    def test_unload_needs_positive_empty_inventory_even_after_cancel(self):
+        event = threading.Event(); event.set()
+        transport = InterruptibleOllamaTransport(); transport.bind_cancel(event)
+        values = [{"done":True}, {"models":[{"name":"gemma4:26b"}]}, {"models":[]}]
+        with patch.object(transport, "_control_request", side_effect=values) as control, patch("time.sleep"):
+            transport.cleanup("gemma4:26b", 120)
+        self.assertEqual(["/api/generate", "/api/ps", "/api/ps"], [call.args[1] for call in control.call_args_list])
+        self.assertEqual("released", transport.release_evidence["state"])
+        self.assertEqual(2, transport.release_evidence["checks"])
+
+    def test_unacknowledged_or_malformed_unload_cannot_claim_release(self):
+        for values in ([{"done":False}], [{"done":True}, {}], [{"done":True}, {"models":None}]):
+            transport = InterruptibleOllamaTransport()
+            with self.subTest(values=values), patch.object(transport, "_control_request", side_effect=values), self.assertRaises(BridgeError):
+                transport.cleanup("gemma4:26b", 120)
+            self.assertEqual("unproven", transport.release_evidence["state"])
+
+    def test_still_loaded_times_out_without_unloading_other_models(self):
+        transport = InterruptibleOllamaTransport()
+        with patch.object(transport, "_control_request", side_effect=[{"done":True}, {"models":[{"name":"other"}]}]) as control:
+            with patch("time.monotonic", side_effect=[0,0,31,31]), patch("time.sleep"), self.assertRaises(BridgeError):
+                transport.cleanup("gemma4:26b", 120)
+        self.assertEqual(1, sum(c.args[0] == "POST" for c in control.call_args_list))
+        self.assertEqual("gemma4:26b", control.call_args_list[0].args[2]["model"])
+        self.assertEqual("unproven", transport.release_evidence["state"])
+
     def test_pre_cancel_sends_nothing(self):
         event = threading.Event(); event.set()
         transport = InterruptibleOllamaTransport(); transport.bind_cancel(event)
@@ -32,6 +58,20 @@ class TransportTests(unittest.TestCase):
             transport.chat({}, 120)
         self.assertEqual("JOB_CANCELLED", error.exception.code)
         self.assertEqual([], connection.sent)
+
+    def test_control_redirect_is_refused_without_followup(self):
+        connection = Connection()
+        class Redirect:
+            status = 302
+            def close(self): pass
+        connection.response = Redirect()
+        transport = InterruptibleOllamaTransport()
+        with patch("http.client.HTTPConnection", return_value=connection) as factory, self.assertRaises(BridgeError) as error:
+            transport._control_request("GET", "/api/ps", None, 2)
+        self.assertEqual("RESOURCE_RELEASE_PENDING", error.exception.code)
+        self.assertEqual(1, factory.call_count)
+        self.assertEqual(1, len(connection.sent))
+        self.assertTrue(connection.closed)
 
     def test_interrupt_unblocks_only_owned_connection_and_returns_cancel(self):
         event = threading.Event(); entered = threading.Event()
