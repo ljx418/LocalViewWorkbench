@@ -1,0 +1,251 @@
+{
+  "kind": "SELECTED_BROWSER_DIRECTED_CHECKS_NOT_FULL_OR_STAGE_ACCEPTANCE",
+  "candidate_sha": "81171fcb6af62e43a613b0a5c3d44462c73ea0d3",
+  "harness_sha256": "30d4ac62ffc5acc6a8b1e0ac93097f7e1e2f3d776e11c95208d9066cdc72a26d",
+  "decision": "DIRECTED_CHECKS_PASSED_NOT_STAGE_ACCEPTANCE",
+  "stage_pass_claim": false,
+  "binding_scope": "selected browser execution/test sources, not a transitive dependency closure",
+  "service_starts": 0,
+  "browser_starts": 0,
+  "provider_calls": 0,
+  "stage_checkpoint_consumed": false,
+  "checks": [
+    {
+      "name": "directed",
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "-m",
+        "unittest",
+        "LVW_V0_RuntimePatch.tests.test_s2_browser_evidence",
+        "LVW_V0_RuntimePatch.tests.test_s2_browser_supervisor",
+        "LVW_V0_RuntimePatch.tests.test_s2_browser_owner",
+        "LVW_V0_RuntimePatch.tests.test_s2_browser_worker",
+        "LVW_V0_RuntimePatch.tests.test_s2_browser_handlers",
+        "LVW_V0_RuntimePatch.tests.test_s2_browser_terminal",
+        "LVW_V0_RuntimePatch.tests.test_s2_browser_phase",
+        "LVW_V0_RuntimePatch.tests.test_s2_driver",
+        "-q"
+      ],
+      "exit_code": 0,
+      "passed": true,
+      "stdout": {
+        "file": "directed.stdout.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "file": "directed.stderr.log",
+        "bytes": 98,
+        "sha256": "bf35e3de59cb701b16248034cc3df50cad24e5c61a57d0921176066fdcbef4ac"
+      },
+      "tests_executed": 48
+    },
+    {
+      "name": "browser_syntax",
+      "command": [
+        "node",
+        "--check",
+        "tools/v0_s2_browser_acceptance.cjs"
+      ],
+      "exit_code": 0,
+      "passed": true,
+      "stdout": {
+        "file": "browser_syntax.stdout.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "file": "browser_syntax.stderr.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "pack",
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "tools/verify_pack.py",
+        "--schema"
+      ],
+      "exit_code": 0,
+      "passed": true,
+      "stdout": {
+        "file": "pack.stdout.log",
+        "bytes": 248,
+        "sha256": "7f72ee1e0ad468d436fa1b5167251a6e43d68a5e4529f9db4eb32396a4e83f2d"
+      },
+      "stderr": {
+        "file": "pack.stderr.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "governance",
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "tools/verify_governance.py",
+        "--self-test"
+      ],
+      "exit_code": 0,
+      "passed": true,
+      "stdout": {
+        "file": "governance.stdout.log",
+        "bytes": 150,
+        "sha256": "6c3ca0f6a38ccb9c5b146cedfc37530b149a99c72d0baf4f69293ca1195f3df5"
+      },
+      "stderr": {
+        "file": "governance.stderr.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "diff",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0,
+      "passed": true,
+      "stdout": {
+        "file": "diff.stdout.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "file": "diff.stderr.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  ],
+  "identity": {
+    "candidate_sha": "81171fcb6af62e43a613b0a5c3d44462c73ea0d3",
+    "execution_artifact_sha256": {
+      "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/__init__.py": "2f77743d78e7971105d275a00b7f58d6dfacae15fc133911918eadc5f61ee74e",
+      "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/_native_av_probe.py": "3208c3d1839b7148d63646e6e1e05cf114c2ecf0aeaa3efe7b93fb2210ad3453",
+      "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/benchmark.py": "a8f8367afc957253ef110bbe2e857af430e657275a5310ffdc2cc9b24cd7022b",
+      "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/core.py": "092cf688987f61e11d7ad7a9319d2b4f1a27670b0fcfc755ae996018ce0af241",
+      "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/image_input.py": "860de54dd60825918e7797ed914bcf65d305b94566569f3b9f5204cdbbb5d766",
+      "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/manual.py": "dce77eee4057b4b2529507f881feb56e9fe431717ce80ae4ec2c9c6a9e7a5b2e",
+      "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/native_probe.py": "9b1f90250259177e2707ca2a06908bbf805115b03c7f35762b39da8f158c048f",
+      "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/nodes.py": "5797f82a8c1273e19c5df19c46fe60081a25b681b0dda3df89e9dc4e5da1f4e1",
+      "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/state.py": "db5f50a715aa602fae3e38c980ba7282ad1f603b565be8c9c0e0db646e8c86fe",
+      "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_api.py": "7b44275ca1c7d991c4036bfc54c588d0fe387881447a8ad899260d8bb6dd1a20",
+      "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_decoder.py": "c3c5718e96adec85d20c4fc703d236386171336347b513c58086ad2c01c5d3b2",
+      "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_evidence.py": "600b4a349c66171efd364b140df86977c3a27c15d6d753585a0c62f3d9177291",
+      "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_files.py": "9be0f478eba93c6ef234660b9d6f714d873090f9d76d428a860373d0271caff9",
+      "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_input.py": "777a6093b7f3d352bf8b9f090ea59f22d795ba51facca04b8d9ed9b22a36a268",
+      "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_node.py": "e62bc68aa556aa4d908f4f2318436717a5161eceb061c14e75283a7422114f1f",
+      "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_process.py": "563402a9c2f466c1484173c6a4dd2b9a8dbe46fd939ad92a6264975217508954",
+      "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_request.py": "7135ac4e37b7eb2b116a02011c8c5d57a4b952fd2a5b1eb39292d491bf82489e",
+      "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_resources.py": "123bd67211f7d5e9820a169d0aeb962697a7d97004b700ff5f26c8c2bc278997",
+      "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_transport.py": "c54bf9aa3d7c39453a52f9928f7fef5aa26d7369997718217cc2cf0823708358",
+      "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_upload.py": "088e7b95264907f13f7ec1ef0cdf9874ea203d8cb103b7f45970fdbb52933641",
+      "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_workbench.py": "c59d6b539ac556ed0d1f9fb116e107099c4d2585dd88136039d2bfea42d3189e",
+      "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/web/video_controls.js": "33bc0133bed6542419857dbdea63724719bd8463adc9252ffde9c64363687a7e",
+      "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/web/video_json.js": "a8fa7ba7fa467a559dd6c420cbaebc3aa43fad3dc70c5361b18698b70b67e3e5",
+      "LVW_V0_RuntimePatch/tests/test_s2_browser_evidence.py": "930886db188eb44d40abe4a7babf8497b67136f74c4cf0cfb06b0ded2c76e410",
+      "LVW_V0_RuntimePatch/tests/test_s2_browser_handlers.py": "29640cd0916fb1d8d55478623d577c389911b2a7095d6d4509a3a1fa6d4511eb",
+      "LVW_V0_RuntimePatch/tests/test_s2_browser_owner.py": "f062db70cf86ade48043b9e90292d7e3514c43c6d8edb41c8390d417d30589ef",
+      "LVW_V0_RuntimePatch/tests/test_s2_browser_phase.py": "bfdf9c87b59721963c1ffa74657316e19bb14c529279766c915852e1abe9bd3d",
+      "LVW_V0_RuntimePatch/tests/test_s2_browser_supervisor.py": "937e44007ea81951a3db95005dfa1b117cdaaf69783c2ddfbac1a9bfaecc29d5",
+      "LVW_V0_RuntimePatch/tests/test_s2_browser_terminal.py": "0c4593057b63a8cf5d962507a938616450789b7200ac1a69de179a8a16961ef2",
+      "LVW_V0_RuntimePatch/tests/test_s2_browser_worker.py": "aea44c8f747f43ea9c3ca97881ccd09f5f86f550fd131b54e4e025a08a0ce84b",
+      "LVW_V0_RuntimePatch/tests/test_s2_driver.py": "b64e2ab897693c98744cc4b34b7303e7ddb388e80849f90966e58f4703cc74d2",
+      "contracts/v0-result.schema.json": "4c71fadc9c8f1541eff79ee9325bd007187fb0d367d970d6c5303092963c4a23",
+      "reports/v0-s1/wp-s1-03-phase-a/live_probe.py": "94953202138267ca988818a5ba75704d845c15e288fb406d8f7af21d1af4af52",
+      "reports/v0-s2/browser-terminal-directed-01/executor.py": "30d4ac62ffc5acc6a8b1e0ac93097f7e1e2f3d776e11c95208d9066cdc72a26d",
+      "tools/v0_s2_browser_acceptance.cjs": "a2375d7089eeb0c86a372afe1b2a58188954e8cedae6238fc4fbce57c05c785f",
+      "tools/v0_s2_browser_evidence.py": "06bb5f29bee8e0251062cd4e3c4e8120944a7528d5b003ac30710c3223dd9c7b",
+      "tools/v0_s2_browser_handlers.py": "b9dacb1eef6a2187385a9351ee3c73153f3c3ff740954746a53c77a8bcdb9061",
+      "tools/v0_s2_browser_owner.py": "f341a7218a10973c81ba027f4288ebe5a2bb5ff75ad2f42e6163b95ae0862f84",
+      "tools/v0_s2_browser_phase.py": "e009da8692c290390318a7bed6a509ba83ecaa5c522a8c2e1df09e1458f8024e",
+      "tools/v0_s2_browser_policy.cjs": "feafb8538fa858e5493a7f35d3cfff76d60912d90eb95b306b376b085031d5ca",
+      "tools/v0_s2_browser_policy_test.cjs": "daa71f6b6eb846a48f9a37e99c1f477786fda0d9500a592850d72f3c8b380d95",
+      "tools/v0_s2_browser_supervisor.py": "54203f5cc355d9ad2083debc4d1af99b56cfab303fb6ec96cd66b59e7ee2074d",
+      "tools/v0_s2_browser_terminal.py": "5af6066bb7d968efb7a62a4c2086acfa9f0ad09b2589d0092538f74988007a4d",
+      "tools/v0_s2_cancel_evidence.py": "48db74ab6b46bf1eaa9cd72408cd7e6ae85a4c10bffad48c60b2d7f82a087a75",
+      "tools/v0_s2_cancel_phase.py": "4cac132ef2a5b43ad5bedeea1322ec743ee4241a2457af87f30bda3094a1946a",
+      "tools/v0_s2_checkpoint_oracles.py": "e922d9b5106b911ad1619622e409037f477903af48c3763a632dba3ba0cf2915",
+      "tools/v0_s2_driver.py": "ce4d9e88f6162e9a249c7117971d419769d6d4dad3b393a13b6193070f374d99",
+      "tools/v0_s2_fault_evidence.py": "8751311ca9f48ff775c7de3e2b6cde3520b5b82a7ee51ed7e2c4223201b06a76",
+      "tools/v0_s2_fault_phase.py": "aad425a53cc833903416a77d0cc42a7cf981dc41d9457aa0dd74889cbe39b16d",
+      "tools/v0_s2_http.py": "3c02c3d69d5141883ee62e4543c6ff61c7d5f5e5c0c894083e556e3499e1e9b9",
+      "tools/v0_s2_measurements.py": "a59026c58d9287672c49916c96f4bfd151d911cf765798944d45c21e3f60945c",
+      "tools/v0_s2_public_phase.py": "7f6f03fde47f02872e0c95d43fd903f78143a3e1e094521233938690700cdab2",
+      "tools/v0_s2_runtime.py": "927bd1aedebd6df3c057a14280e216467ae3900c03df07db0847f73b916c6af2",
+      "tools/v0_s2_seal.py": "7385c1a2be7bb08e0ff5d344fbf7732b8d10a1e21f26a7cc4471226267208362"
+    },
+    "git_blob_sha256": {
+      "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/__init__.py": "2f77743d78e7971105d275a00b7f58d6dfacae15fc133911918eadc5f61ee74e",
+      "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/_native_av_probe.py": "3208c3d1839b7148d63646e6e1e05cf114c2ecf0aeaa3efe7b93fb2210ad3453",
+      "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/benchmark.py": "a8f8367afc957253ef110bbe2e857af430e657275a5310ffdc2cc9b24cd7022b",
+      "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/core.py": "092cf688987f61e11d7ad7a9319d2b4f1a27670b0fcfc755ae996018ce0af241",
+      "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/image_input.py": "860de54dd60825918e7797ed914bcf65d305b94566569f3b9f5204cdbbb5d766",
+      "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/manual.py": "dce77eee4057b4b2529507f881feb56e9fe431717ce80ae4ec2c9c6a9e7a5b2e",
+      "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/native_probe.py": "9b1f90250259177e2707ca2a06908bbf805115b03c7f35762b39da8f158c048f",
+      "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/nodes.py": "5797f82a8c1273e19c5df19c46fe60081a25b681b0dda3df89e9dc4e5da1f4e1",
+      "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/state.py": "db5f50a715aa602fae3e38c980ba7282ad1f603b565be8c9c0e0db646e8c86fe",
+      "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_api.py": "7b44275ca1c7d991c4036bfc54c588d0fe387881447a8ad899260d8bb6dd1a20",
+      "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_decoder.py": "c3c5718e96adec85d20c4fc703d236386171336347b513c58086ad2c01c5d3b2",
+      "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_evidence.py": "600b4a349c66171efd364b140df86977c3a27c15d6d753585a0c62f3d9177291",
+      "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_files.py": "9be0f478eba93c6ef234660b9d6f714d873090f9d76d428a860373d0271caff9",
+      "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_input.py": "777a6093b7f3d352bf8b9f090ea59f22d795ba51facca04b8d9ed9b22a36a268",
+      "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_node.py": "e62bc68aa556aa4d908f4f2318436717a5161eceb061c14e75283a7422114f1f",
+      "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_process.py": "563402a9c2f466c1484173c6a4dd2b9a8dbe46fd939ad92a6264975217508954",
+      "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_request.py": "7135ac4e37b7eb2b116a02011c8c5d57a4b952fd2a5b1eb39292d491bf82489e",
+      "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_resources.py": "123bd67211f7d5e9820a169d0aeb962697a7d97004b700ff5f26c8c2bc278997",
+      "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_transport.py": "c54bf9aa3d7c39453a52f9928f7fef5aa26d7369997718217cc2cf0823708358",
+      "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_upload.py": "088e7b95264907f13f7ec1ef0cdf9874ea203d8cb103b7f45970fdbb52933641",
+      "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_workbench.py": "c59d6b539ac556ed0d1f9fb116e107099c4d2585dd88136039d2bfea42d3189e",
+      "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/web/video_controls.js": "33bc0133bed6542419857dbdea63724719bd8463adc9252ffde9c64363687a7e",
+      "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/web/video_json.js": "a8fa7ba7fa467a559dd6c420cbaebc3aa43fad3dc70c5361b18698b70b67e3e5",
+      "LVW_V0_RuntimePatch/tests/test_s2_browser_evidence.py": "930886db188eb44d40abe4a7babf8497b67136f74c4cf0cfb06b0ded2c76e410",
+      "LVW_V0_RuntimePatch/tests/test_s2_browser_handlers.py": "29640cd0916fb1d8d55478623d577c389911b2a7095d6d4509a3a1fa6d4511eb",
+      "LVW_V0_RuntimePatch/tests/test_s2_browser_owner.py": "f062db70cf86ade48043b9e90292d7e3514c43c6d8edb41c8390d417d30589ef",
+      "LVW_V0_RuntimePatch/tests/test_s2_browser_phase.py": "bfdf9c87b59721963c1ffa74657316e19bb14c529279766c915852e1abe9bd3d",
+      "LVW_V0_RuntimePatch/tests/test_s2_browser_supervisor.py": "937e44007ea81951a3db95005dfa1b117cdaaf69783c2ddfbac1a9bfaecc29d5",
+      "LVW_V0_RuntimePatch/tests/test_s2_browser_terminal.py": "0c4593057b63a8cf5d962507a938616450789b7200ac1a69de179a8a16961ef2",
+      "LVW_V0_RuntimePatch/tests/test_s2_browser_worker.py": "aea44c8f747f43ea9c3ca97881ccd09f5f86f550fd131b54e4e025a08a0ce84b",
+      "LVW_V0_RuntimePatch/tests/test_s2_driver.py": "b64e2ab897693c98744cc4b34b7303e7ddb388e80849f90966e58f4703cc74d2",
+      "contracts/v0-result.schema.json": "4c71fadc9c8f1541eff79ee9325bd007187fb0d367d970d6c5303092963c4a23",
+      "reports/v0-s1/wp-s1-03-phase-a/live_probe.py": "94953202138267ca988818a5ba75704d845c15e288fb406d8f7af21d1af4af52",
+      "reports/v0-s2/browser-terminal-directed-01/executor.py": "30d4ac62ffc5acc6a8b1e0ac93097f7e1e2f3d776e11c95208d9066cdc72a26d",
+      "tools/v0_s2_browser_acceptance.cjs": "a2375d7089eeb0c86a372afe1b2a58188954e8cedae6238fc4fbce57c05c785f",
+      "tools/v0_s2_browser_evidence.py": "06bb5f29bee8e0251062cd4e3c4e8120944a7528d5b003ac30710c3223dd9c7b",
+      "tools/v0_s2_browser_handlers.py": "b9dacb1eef6a2187385a9351ee3c73153f3c3ff740954746a53c77a8bcdb9061",
+      "tools/v0_s2_browser_owner.py": "f341a7218a10973c81ba027f4288ebe5a2bb5ff75ad2f42e6163b95ae0862f84",
+      "tools/v0_s2_browser_phase.py": "e009da8692c290390318a7bed6a509ba83ecaa5c522a8c2e1df09e1458f8024e",
+      "tools/v0_s2_browser_policy.cjs": "feafb8538fa858e5493a7f35d3cfff76d60912d90eb95b306b376b085031d5ca",
+      "tools/v0_s2_browser_policy_test.cjs": "daa71f6b6eb846a48f9a37e99c1f477786fda0d9500a592850d72f3c8b380d95",
+      "tools/v0_s2_browser_supervisor.py": "54203f5cc355d9ad2083debc4d1af99b56cfab303fb6ec96cd66b59e7ee2074d",
+      "tools/v0_s2_browser_terminal.py": "5af6066bb7d968efb7a62a4c2086acfa9f0ad09b2589d0092538f74988007a4d",
+      "tools/v0_s2_cancel_evidence.py": "48db74ab6b46bf1eaa9cd72408cd7e6ae85a4c10bffad48c60b2d7f82a087a75",
+      "tools/v0_s2_cancel_phase.py": "4cac132ef2a5b43ad5bedeea1322ec743ee4241a2457af87f30bda3094a1946a",
+      "tools/v0_s2_checkpoint_oracles.py": "e922d9b5106b911ad1619622e409037f477903af48c3763a632dba3ba0cf2915",
+      "tools/v0_s2_driver.py": "ce4d9e88f6162e9a249c7117971d419769d6d4dad3b393a13b6193070f374d99",
+      "tools/v0_s2_fault_evidence.py": "8751311ca9f48ff775c7de3e2b6cde3520b5b82a7ee51ed7e2c4223201b06a76",
+      "tools/v0_s2_fault_phase.py": "aad425a53cc833903416a77d0cc42a7cf981dc41d9457aa0dd74889cbe39b16d",
+      "tools/v0_s2_http.py": "3c02c3d69d5141883ee62e4543c6ff61c7d5f5e5c0c894083e556e3499e1e9b9",
+      "tools/v0_s2_measurements.py": "a59026c58d9287672c49916c96f4bfd151d911cf765798944d45c21e3f60945c",
+      "tools/v0_s2_public_phase.py": "7f6f03fde47f02872e0c95d43fd903f78143a3e1e094521233938690700cdab2",
+      "tools/v0_s2_runtime.py": "927bd1aedebd6df3c057a14280e216467ae3900c03df07db0847f73b916c6af2",
+      "tools/v0_s2_seal.py": "7385c1a2be7bb08e0ff5d344fbf7732b8d10a1e21f26a7cc4471226267208362"
+    },
+    "checkout_transforms": {},
+    "attributes_sha256": "f80a265ad02e0479291b641abf2ba24d67ea42e3352bd8b23b374327e61e507e",
+    "payload_sha256": "1d4e1db7b0bab1c6c60602d3754748f64678be04c6f3490e4eedc537a0fedc7a"
+  },
+  "counts": {
+    "fixed_checks": 5,
+    "PASS": 5,
+    "FAIL": 0,
+    "NOT_RUN": 0
+  }
+}
