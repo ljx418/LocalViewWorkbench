@@ -111,6 +111,18 @@ class NativeRuntime(S2SystemDriver):
         with path.open('x',encoding='utf-8') as handle:json.dump(value,handle,separators=(',',':'))
         return value
 
+    def write_native_binding(self,run_root,*,candidate_sha,authorization_sha256,model_digest,max_runs):
+        for value,length in ((candidate_sha,40),(authorization_sha256,64),(model_digest,64)):
+            if not isinstance(value,str) or not re.fullmatch('[0-9a-f]{'+str(length)+'}',value):raise base.StopProbe('NATIVE_BINDING_ID_INVALID')
+        if type(max_runs) is not int or not 1<=max_runs<=64:raise base.StopProbe('NATIVE_RUN_BUDGET_INVALID')
+        root=self.owned_listener_birth(11434);clock=self.native_clock()
+        value={'candidate_sha':candidate_sha,'authorization_sha256':authorization_sha256,'model_digest':model_digest,
+            'program_authorization_id':'AUTH-PROGRAM-V1-LOCAL-01','scope':'V0_S2_NATIVE_CHECKPOINT',
+            'max_runs':max_runs,'ollama_pid':root['pid'],'ollama_start_ticks':root['start_ticks'],
+            'issued_at':clock['wall_seconds'],'expires_at':clock['wall_seconds']+7200}
+        with (Path(run_root)/'temp/lvw-native-profile.json').open('x',encoding='utf-8') as stream:json.dump(value,stream,separators=(',',':'))
+        return value
+
     def start_ollama(self,log_path):
         # Reuse the frozen launch policy, but PS 5.1 needs BOM for Unicode paths.
         self.ollama_log=Path(log_path);directory=self.ollama_log.parent

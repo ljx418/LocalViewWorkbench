@@ -53,6 +53,23 @@ class RuntimeTests(unittest.TestCase):
             with self.assertRaises(base.StopProbe):driver.preload(base.MODEL)
         self.assertEqual(20,request.call_count);self.assertEqual(0,driver.started_model_calls)
 
+    def test_native_binding_freezes_lease_owner_and_run_budget_without_overwrite(self):
+        driver=self.runtime()
+        identity=dict(candidate_sha='a'*40,authorization_sha256='b'*64,model_digest='c'*64)
+        with tempfile.TemporaryDirectory() as temp:
+            (Path(temp)/'temp').mkdir()
+            with patch.object(driver,'owned_listener_birth',return_value={'pid':10,'start_ticks':100}) as root, \
+                 patch.object(driver,'native_clock',return_value={'wall_seconds':1000}):
+                value=driver.write_native_binding(temp,**identity,max_runs=64)
+                self.assertEqual(8200,value['expires_at']);self.assertEqual(64,value['max_runs'])
+                self.assertEqual('V0_S2_NATIVE_CHECKPOINT',value['scope']);root.assert_called_with(11434)
+                self.assertEqual(value,json.loads((Path(temp)/'temp/lvw-native-profile.json').read_text()))
+                with self.assertRaises(FileExistsError):driver.write_native_binding(temp,**identity,max_runs=1)
+            for budget in (0,65,True):
+                with self.subTest(budget=budget),patch.object(driver,'owned_listener_birth') as root,self.assertRaises(base.StopProbe):
+                    driver.write_native_binding(temp,**identity,max_runs=budget)
+                root.assert_not_called()
+
     def test_ready_poll_retries_new_client_http_failure_with_finite_deadline(self):
         driver=self.runtime()
         with patch.object(driver,'_json_request',side_effect=[ControlError('CONTROL_HTTP_503'),(200,{})]) as request,patch('time.sleep'):

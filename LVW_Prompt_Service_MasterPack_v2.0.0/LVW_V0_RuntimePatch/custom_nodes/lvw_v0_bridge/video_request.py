@@ -11,7 +11,9 @@ from .video_resources import resource_preflight, host_resource_preflight
 
 class VideoRequestOwner:
     def __init__(self, decoder, *, bridge=None, tensor_builder=None, preflight=None,
-                 host_preflight=host_resource_preflight,clock=None):
+                 host_preflight=host_resource_preflight,clock=None,audit=None):
+        from .video_evidence import configured_native_audit
+        self.audit=audit if audit is not None else configured_native_audit()
         self.decoder = decoder
         if bridge is None:
             from .benchmark import runtime_bridge
@@ -20,6 +22,8 @@ class VideoRequestOwner:
         self.clock=clock if clock is not None else getattr(bridge,'clock',time.monotonic)
         self.tensor_builder = tensor_builder or comfy_frames
         benchmark = getattr(self.bridge, 'benchmark', None)
+        if self.audit is not None and benchmark is not None:
+            raise BridgeError('SCOPE_FORBIDDEN','native and warm modes cannot overlap',subcode='NATIVE_AUDIT_MODE_CONFLICT')
         self.preflight = preflight if preflight is not None else (
             benchmark.admission if benchmark is not None else resource_preflight)
         self.host_preflight = host_preflight
@@ -28,11 +32,12 @@ class VideoRequestOwner:
         self._state = None
         self._used_tokens = set()
         self._completed_result = None
+        self._cancel_accepted_at=None
 
     def completed_result(self, token):
         with self._guard:
             self._require_current(token)
-            if (self._state['status'] != 'succeeded' or self._cancel.is_set()
+            if (self._state['status'] != 'succeeded' or self._state['resource_state']!='released' or self._cancel.is_set()
                     or self._completed_result is None or self._completed_result['run_token'] != token):
                 raise BridgeError('ATTEMPT_STALE', 'no current successful video result', subcode='VIDEO_RUN_STALE')
             return copy.deepcopy(self._completed_result)
@@ -55,6 +60,7 @@ class VideoRequestOwner:
             self._require_current(token)
             if self._state["status"] in {"preparing", "running", "cancelling"}:
                 if not self._cancel.is_set():
+                    self._cancel_accepted_at=self.clock()
                     self._state["cancel_epoch"] += 1
                     self._cancel.set()
                     interrupt = getattr(self.bridge.transport, "cancel_active", None)
@@ -79,11 +85,17 @@ class VideoRequestOwner:
             self._used_tokens.add(token)
             self._completed_result = None
             self._cancel = threading.Event()
+            self._cancel_accepted_at=None
             self._state = {"run_token":token, "cancel_epoch":0, "status":"preparing",
                            "resource_state":"busy", "error_code":None}
             cancel = self._cancel
-        pending = False
+        pending = False;audit_started=False
         try:
+            if self.audit is not None:
+                self.audit.start(token);audit_started=True
+                audit_binder=getattr(self.bridge.transport,'bind_audit',None)
+                if audit_binder is None:raise BridgeError('SCOPE_FORBIDDEN','native audit requires interruptible transport',subcode='NATIVE_TRANSPORT_REQUIRED')
+                audit_binder(self.audit,token)
             if state_hook is not None:
                 state_hook(token)
             bind = getattr(self.bridge.transport, "bind_cancel", None)
@@ -91,6 +103,8 @@ class VideoRequestOwner:
                 bind(cancel)
             resource_evidence = {"before_prepare":self.host_preflight()}
             decoded = self.decoder.decode(reference, cancel=cancel)
+            if self.audit is not None:
+                self.audit.event(token,'source_prepared',source_sha256=decoded.source_sha256,frames=list(decoded.manifest))
             if preview_hook is not None and not cancel.is_set():
                 preview_hook(token, decoded)
             with self._guard:
@@ -102,7 +116,9 @@ class VideoRequestOwner:
                 raise BridgeError('JOB_CANCELLED','video request cancelled',subcode='VIDEO_ANALYSIS_CANCELLED')
             if self.clock() >= deadline-core.RELEASE_RESERVE_SECONDS:
                 raise BridgeError('MODEL_TIMEOUT','video preparation exhausted request budget',subcode='VIDEO_REQUEST_DEADLINE')
+            if self.audit is not None:self.audit.event(token,'gpu_admission_started')
             resource_evidence["before_model"] = self.preflight()
+            if self.audit is not None:self.audit.event(token,'gpu_admission_completed',snapshot=resource_evidence['before_model'])
             baseline=getattr(self.bridge.transport,'bind_resource_baseline',None)
             if baseline is not None and getattr(self.bridge,'benchmark',None) is None:
                 baseline(resource_evidence['before_model']['gpu_used_mib'])
@@ -142,6 +158,21 @@ class VideoRequestOwner:
             pending = pending or core._RESOURCE_RELEASE_PENDING.is_set()
             if pending:
                 core._RESOURCE_RELEASE_PENDING.set()
-            with self._guard:
-                self._state["resource_state"] = "unknown" if pending else "released"
-            core._INFERENCE_LOCK.release()
+            try:
+                with self._guard:
+                    self._state["resource_state"] = "unknown" if pending else ("releasing" if audit_started else "released")
+                    terminal=copy.deepcopy(self._state);accepted=self._cancel_accepted_at
+                    if not pending:terminal['resource_state']='released'
+                if audit_started:
+                    self.audit.finish(token,status=terminal['status'],resource_state=terminal['resource_state'],
+                        error_code=terminal['error_code'],cancel_epoch=terminal['cancel_epoch'],cancel_accepted_at=accepted,
+                        release=copy.deepcopy(getattr(self.bridge.transport,'release_evidence',None)))
+                    with self._guard:self._state['resource_state']=terminal['resource_state']
+            except BaseException as error:
+                core._RESOURCE_RELEASE_PENDING.set()
+                with self._guard:
+                    self._state.update(status='failed',resource_state='unknown',error_code='RESOURCE_RELEASE_PENDING')
+                    self._completed_result=None
+                if isinstance(error,(KeyboardInterrupt,SystemExit)):raise
+                raise BridgeError('RESOURCE_RELEASE_PENDING','native evidence terminal could not be persisted',subcode='NATIVE_EVIDENCE_INCOMPLETE') from error
+            finally:core._INFERENCE_LOCK.release()

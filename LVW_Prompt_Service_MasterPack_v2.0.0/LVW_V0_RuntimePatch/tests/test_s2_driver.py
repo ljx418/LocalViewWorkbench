@@ -61,5 +61,18 @@ class DriverTests(unittest.TestCase):
         with self.assertRaises(base.StopProbe):
             S2SystemDriver(SimpleNamespace(max_public_submissions=1,run_id='fixture',powershell='powershell.exe',warm_benchmark='yes'),{})
 
+    def test_native_audit_is_process_local_exclusive_and_default_clears_inheritance(self):
+        normal=comfy_wrapper('python','main','base','pid','ffmpeg',None)
+        audit=comfy_wrapper('python','main','base','pid','ffmpeg',None,audit=True)
+        self.assertIn('Remove-Item Env:LVW_NATIVE_CHECKPOINT',normal)
+        self.assertIn("$env:LVW_NATIVE_CHECKPOINT='run-owned-v1'",audit)
+        self.assertIn('Remove-Item Env:LVW_WARM_BENCHMARK',audit)
+        for mode in ({'audit':'yes'},{'audit':True,'warm':True}):
+            with self.subTest(mode=mode),self.assertRaises(ValueError):
+                comfy_wrapper('python','main','base','pid','ffmpeg',None,**mode)
+        with self.assertRaises(base.StopProbe):
+            S2SystemDriver(SimpleNamespace(max_public_submissions=1,run_id='fixture',powershell='powershell.exe',
+                native_audit=True,warm_benchmark=True),{})
+
 
 if __name__=='__main__':unittest.main()
