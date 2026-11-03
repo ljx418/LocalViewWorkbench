@@ -1,0 +1,5 @@
+# Offline coordinate seal correction
+
+Gate-owner correction, 2026-11-04. Offline09 passed its five working-tree checks on e918ac26e50931e7f09234faa4a4e77aee685f30, but plans/execution-control.json had one uncommitted preparation navigation field. MANIFEST included that working-tree field while the selected source seal did not include execution-control itself. A fresh checkout of the candidate would not reproduce the same whole-pack manifest check.
+
+Preserve offline09 as its actual scoped result, but do not use it as the source gate for preparation02. Add execution-control.json to the fixed pre/post candidate seal, commit the coordinate and matching manifest together, and execute a new fresh offline run. This broadens source identity coverage; it changes no product requirement, case denominator, threshold, external attempt or permission. Preparation01 remains the actual source-bound CPU generation result on 6f4248b; no historical receipt is rewritten. Only the corrected fresh source gate may authorize preparation02.

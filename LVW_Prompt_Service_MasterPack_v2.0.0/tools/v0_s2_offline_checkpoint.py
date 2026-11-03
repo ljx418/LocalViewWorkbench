@@ -17,7 +17,7 @@ from tools.v0_s2_seal import seal_candidate
 
 ROOT=Path(__file__).resolve().parents[1]
 PAYLOAD=['LVW_V0_RuntimePatch','tools','contracts','config',
-         '.agent-governance/stages/V0-S2','plans/acceptance_cases.json','plans/release_gates.json',
+         '.agent-governance/stages/V0-S2','plans/acceptance_cases.json','plans/release_gates.json','plans/execution-control.json',
          'reports/v0-s1/stage-checkpoint-phase-a/checkpoint.py',
          'reports/v0-s1/wp-s1-03-phase-a/live_probe.py','MANIFEST.sha256',
          'reports/v0-s2/fixture-preparation-01','reports/v0-s2/authorization-fixtures-01.json',
