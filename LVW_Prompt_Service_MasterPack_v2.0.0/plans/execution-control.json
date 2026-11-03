@@ -12,11 +12,11 @@
     "state": "FROZEN_READY_OFFLINE"
   },
   "last_passed_gate": {
-    "id": "V0_S2_OFFLINE_CHECKS_BASELINE_PASS",
-    "evidence": "reports/v0-s2/offline-checkpoint-01/receipt.json",
-    "meaning": "Five CI checks and payload identity passed for baseline f868b0d only; new native adapter, full checkpoint review, live and human gates remain incomplete"
+    "id": "V0_S2_OFFLINE_CHECKS_ADAPTER_BASELINE_PASS",
+    "evidence": "reports/v0-s2/offline-checkpoint-02/receipt.json",
+    "meaning": "Candidate 2524886: 214 V0 subtree tests plus native UI module, pack contracts, governance and whitespace passed; source identity held. Subsequent raw/suggestion UI corrections are not certified by that receipt. No Stage PASS."
   },
-  "current_blocking_gate": "V0_S2_NATIVE_ADAPTER_COMPATIBILITY_AND_PUBLIC_UI",
+  "current_blocking_gate": "V0_S2_NATIVE_GPU_ADMISSION_AND_PUBLIC_UI",
   "stage_packet": ".agent-governance/stages/V0-S2/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/V0-S2/PAYLOAD_MANIFEST.sha256",
   "product_status": "IN_PROGRESS",
@@ -30,7 +30,7 @@
     "TARGET_HARDWARE_TESTED"
   ],
   "next_owner": "codex_v0_s2_implementer",
-  "next_action": "Seal corrected offline checks for the PyAV-probe/FFmpeg adapter, then issue one program-bound native public decoder component run with zero model calls; close public UI and complete live-checkpoint gaps before Stage acceptance",
+  "next_action": "Complete video explicit adoption and CPU manual export UI, seal new candidate offline, then use at most the remaining corrected native component attempt when GPU admission passes; full Stage checkpoint remains NOT_RUN",
   "required_authorization": "NONE_FOR_OFFLINE_FROZEN_WORKPACKS",
   "authorization_request": null,
   "authorization_record": "reports/authorization-program-v1-local-01.json",
@@ -41,9 +41,9 @@
   "native_decoder_package_receipt": "reports/v0-s2/native-decoder-packages-01/receipt.json",
   "decoder_binding_decision": "reports/v0-s2/decoder-binding-decision-01.md",
   "runtime_dependency_blocker": {
-    "code": "NATIVE_DECODER_ADAPTER_COMPATIBILITY_NOT_RUN",
-    "evidence": "reports/v0-s2/native-decoder-packages-01/receipt.json",
-    "scope": "Existing PyAV 18.0.0 and imageio-ffmpeg Windows FFmpeg 7.1 found and hashed; native component compatibility remains NOT_RUN. Missing standalone ffprobe history is preserved",
+    "code": "GPU_PREFLIGHT_USED_MEMORY_EXCEEDED",
+    "evidence": "reports/v0-s2/native-component-01/receipt.json",
+    "scope": "Initial native component failed prestart GPU admission. No service/model/public submission; cleanup proven and own temp absent. Native PyAV/FFmpeg compatibility remains NOT_RUN. Continue offline UI without terminating foreign workloads.",
     "sample_bindings_collected": true,
     "service_starts": 0,
     "stage_checkpoints_consumed": 0
@@ -57,11 +57,11 @@
   "contract_change_request": "reports/r1a/change-request-r1a-product-controls-02.json",
   "contract_change_decision": "reports/r1a/change-decision-r1a-product-controls-02.json",
   "implementation_candidate": null,
-  "implementation_baseline": "70bf9358d8f43b0d49b1cb71137ead3aca856a93",
-  "candidate_binding_scope": "Native decoder correction is being prepared; baseline receipts do not certify changed execution bytes. A new candidate and offline/native receipts are required",
-  "offline_evidence_commit": "284aecc315e4f6d6ae05a2663982d1eff53d5ffe",
-  "offline_receipt": "reports/v0-s2/offline-checkpoint-01/receipt.json",
-  "offline_candidate_sha": "f868b0daad28d590b435e74cca50975c3725b6df",
+  "implementation_baseline": "2524886c953e976c053d73aa75f01a5f97e1eb10",
+  "candidate_binding_scope": "Offline02 certifies 2524886 only. Native component01 refused GPU preflight before any target service or public submission; new UI corrections remain to be sealed.",
+  "offline_evidence_commit": null,
+  "offline_receipt": "reports/v0-s2/offline-checkpoint-02/receipt.json",
+  "offline_candidate_sha": "2524886c953e976c053d73aa75f01a5f97e1eb10",
   "evidence_root": "reports/",
   "gate_decision": null,
   "human_signoff": null,
@@ -90,5 +90,7 @@
   "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
   "live_terminal_receipt": null,
   "independent_review": null,
-  "exact_stop_reason": "V0_S2_NATIVE_DECODER_LOCATION_PENDING_OFFLINE_WORK_CONTINUES"
+  "exact_stop_reason": "OFFLINE_UI_WORK_CONTINUES_NATIVE_COMPONENT_GPU_ADMISSION_REFUSED",
+  "native_component_authorization": "reports/v0-s2/authorization-native-component-01.json",
+  "native_component_terminal_receipt": "reports/v0-s2/native-component-01/receipt.json"
 }

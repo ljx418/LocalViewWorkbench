@@ -19,9 +19,20 @@ app.registerExtension({
       upload.setAttribute("aria-label", "选择并上传 MP4 或 MOV 视频，最大 256 MiB、60 秒");
       const gallery = document.createElement("div");
       Object.assign(gallery.style, { display: "grid", gridTemplateColumns: "repeat(2,minmax(0,1fr))", gap: "8px" });
-      box.append(upload, status, cancel, gallery);
+      const limitation = document.createElement("p");
+      limitation.textContent = "仅观察四个采样帧，不能证明未采样片段或连续运动。";
+      const rawDetails = document.createElement("details");
+      const rawTitle = document.createElement("summary"); rawTitle.textContent = "模型原始响应（四帧）";
+      const rawText = document.createElement("pre");
+      const suggestionTitle = document.createElement("p"); suggestionTitle.textContent = "机器建议（不会自动覆盖人工稿）";
+      const suggestionText = document.createElement("pre");
+      for (const view of [rawText, suggestionText]) {
+        Object.assign(view.style, { whiteSpace: "pre-wrap", overflowWrap: "anywhere", maxHeight: "240px", overflow: "auto" });
+      }
+      rawDetails.append(rawTitle, rawText);
+      box.append(upload, status, cancel, limitation, gallery, rawDetails, suggestionTitle, suggestionText);
       this.addDOMWidget("lvw_video", "custom", box, { serialize: false });
-      let token = null, timer = null, removed = false;
+      let token = null, timer = null, removed = false, cancelled = false;
       const owns = (detail) => !removed && String(detail.node_id) === String(this.id)
         && (!app.graph || !this.graph || app.graph === this.graph);
       const headers = { "X-LVW-Control": "local-ui" };
@@ -68,6 +79,7 @@ app.registerExtension({
       };
       cancel.onclick = async () => {
         if (!token) return;
+        cancelled = true;
         cancel.disabled = true;
         try {
           const response = await api.fetchApi("/lvw/v0/video/cancel", {
@@ -79,7 +91,7 @@ app.registerExtension({
         } catch (error) { status.textContent = error.message; }
       };
       const preview = ({ detail }) => {
-        if (!owns(detail)) return;
+        if (!owns(detail) || cancelled || !token || detail.run_token !== token) return;
         token = detail.run_token; gallery.replaceChildren();
         for (let index = 0; index < detail.images.length; index++) {
           const figure = document.createElement("figure"); figure.style.margin = "0";
@@ -93,12 +105,28 @@ app.registerExtension({
       };
       const started = ({ detail }) => {
         if (!owns(detail)) return;
-        token = detail.run_token; gallery.replaceChildren(); cancel.disabled = false;
+        token = detail.run_token; cancelled = false;
+        rawText.textContent = ""; suggestionText.textContent = "";
+        gallery.replaceChildren(); cancel.disabled = false;
         upload.disabled = true;
         status.textContent = "准备视频采样，可取消。";
       };
       api.addEventListener("lvw.video.started", started);
       api.addEventListener("lvw.video.preview", preview);
+      const oldExecuted = this.onExecuted;
+      this.onExecuted = function (message) {
+        oldExecuted?.apply(this, arguments);
+        if (!owns({ node_id: this.id }) || cancelled || !token || !Array.isArray(message?.text)
+            || message.text.length !== 3 || message.text.some((value) => typeof value !== "string")) return;
+        try {
+          const metadata = JSON.parse(message.text[2]);
+          const suggestion = JSON.parse(message.text[1]);
+          if (metadata.run_token !== token || metadata.cancel_epoch !== 0 || suggestion.schema_version !== "lvw.prompt/1") return;
+          rawText.textContent = message.text[0];
+          suggestionText.textContent = JSON.stringify(suggestion, null, 2);
+          status.textContent = "四帧分析完成。机器建议与人工稿分开，采样限制仍适用。";
+        } catch { status.textContent = "分析结果格式无效，未更新展示。"; }
+      };
       refresh();
       const oldRemoved = this.onRemoved;
       this.onRemoved = function () {

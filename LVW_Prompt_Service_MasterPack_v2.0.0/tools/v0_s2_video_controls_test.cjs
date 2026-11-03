@@ -39,7 +39,7 @@ async function fixture(uploadResponse = { ok: true, value: { video_reference: 'o
   const node = new Node(); node.id = 1;
   const reference = { name: 'video_reference', value: 'previous.mp4' }; node.widgets = [reference];
   node.onNodeCreated(); await Promise.resolve();
-  return { app, node, reference, requests, listeners, input: elements.find((e) => e.tag === 'input'),
+  return { app, node, reference, requests, listeners, elements, input: elements.find((e) => e.tag === 'input'),
     status: elements.find((e) => e.tag === 'p') };
 }
 
@@ -55,6 +55,19 @@ async function fixture(uploadResponse = { ok: true, value: { video_reference: 'o
   assert.equal(good.input.disabled, false);
   good.listeners.get('lvw.video.started')({ detail: { node_id: 1, run_token: 'owned' } });
   assert.equal(good.input.disabled, true);
+  const [raw, suggestion] = good.elements.filter((e) => e.tag === 'pre');
+  const message = (token, text) => ({ text: [text, JSON.stringify({ schema_version: 'lvw.prompt/1', text_en: 'sample' }),
+    JSON.stringify({ run_token: token, cancel_epoch: 0 })] });
+  good.node.onExecuted(message('old', 'stale result'));
+  assert.equal(raw.textContent, '');
+  good.listeners.get('lvw.video.preview')({ detail: { node_id: 1, run_token: 'old', images: [], frames: [] } });
+  good.node.onExecuted(message('owned', '<script>untrusted model text</script>'));
+  assert.equal(raw.textContent, '<script>untrusted model text</script>');
+  assert.equal(raw.innerHTML, undefined);
+  assert.equal(JSON.parse(suggestion.textContent).text_en, 'sample');
+  await good.elements.find((e) => e.tag === 'button').onclick();
+  good.node.onExecuted(message('owned', 'late cancelled response'));
+  assert.equal(raw.textContent, '<script>untrusted model text</script>');
   good.node.onRemoved(); assert.equal(good.listeners.size, 0);
 
   const bad = await fixture({ ok: false, value: { error: { message: 'upload rejected' } } });
@@ -70,5 +83,5 @@ async function fixture(uploadResponse = { ok: true, value: { video_reference: 'o
   inactive.app.graph = inactive.node.graph;
   inactive.listeners.get('lvw.video.started')({ detail: { node_id: 1, run_token: 'owned-graph' } });
   assert.equal(inactive.input.disabled, true); inactive.node.onRemoved();
-  console.log('PASS production video controls: upload binding, failure preservation, one-over rejection, run lock, listener cleanup');
+  console.log('PASS production video controls: upload binding, failure preservation, one-over rejection, run lock, client/graph scope, raw/suggestion display, stale/cancelled result rejection, listener cleanup');
 })().catch((error) => { console.error(error); process.exitCode = 1; });
