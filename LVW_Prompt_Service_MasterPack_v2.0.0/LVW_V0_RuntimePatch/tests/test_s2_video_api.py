@@ -68,5 +68,24 @@ class ApiTests(unittest.TestCase):
             self.assertEqual(200, asyncio.run(cancel(request(b'{"run_token":"current"}')))[0])
         self.assertEqual(["current"], owner.cancelled)
 
+    def test_started_and_preview_events_are_session_only_pngs(self):
+        events = []
+        class PreviewOwner(Owner):
+            def run(self, token, reference, **kwargs):
+                kwargs["state_hook"](token)
+                ppm = b"P6\n1 1\n255\n" + b"abc"
+                kwargs["preview_hook"](token, SimpleNamespace(frames=[ppm]*4,
+                    manifest=[{"index":i,"time_seconds":i} for i in range(4)]))
+                return super().run(token, reference, **kwargs)
+        server = SimpleNamespace(PromptServer=SimpleNamespace(instance=SimpleNamespace(
+            send_sync=lambda event,value: events.append((event,value)))))
+        with patch.dict("sys.modules", {"server":server}):
+            NODE_CLASS_MAPPINGS["LVWVideoPromptOwner"](owner=PreviewOwner()).analyze("clip.mp4", unique_id="42")
+        self.assertEqual(["lvw.video.started","lvw.video.preview"], [e[0] for e in events])
+        self.assertEqual(events[0][1]["run_token"],events[1][1]["run_token"])
+        self.assertEqual("42",events[1][1]["node_id"])
+        self.assertEqual(4,len(events[1][1]["images"]))
+        self.assertTrue(all(image.startswith("data:image/png;base64,iVBOR") for image in events[1][1]["images"]))
+
 
 if __name__ == "__main__": unittest.main()

@@ -1,5 +1,7 @@
 """Comfy-local integrated video node and scoped control routes."""
 import json
+import base64
+from io import BytesIO
 import threading
 import uuid
 from urllib.parse import urlsplit
@@ -48,17 +50,36 @@ class LVWVideoPromptOwner(_NodeBase):
     def INPUT_TYPES(cls):
         required = {"video_reference":("STRING", {"default":""})}
         required.update(cls._common_inputs())
-        return {"required":required}
+        return {"required":required, "hidden":{"unique_id":"UNIQUE_ID"}}
 
     @classmethod
     def IS_CHANGED(cls, **kwargs):
         # Requeue means a new run, never a cached model result from an old token.
         return float("nan")
 
-    def analyze(self, video_reference, model="gemma4:26b", user_instruction="", mode="realistic", timeout_seconds=120):
+    def analyze(self, video_reference, model="gemma4:26b", user_instruction="", mode="realistic", timeout_seconds=120, unique_id=None):
         owner = self.owner or get_owner()
+        def started(token):
+            if unique_id is not None:
+                from server import PromptServer
+                PromptServer.instance.send_sync("lvw.video.started", {"node_id":str(unique_id),"run_token":token})
+        def preview(token, decoded):
+            if unique_id is None:
+                return
+            from server import PromptServer
+            from PIL import Image
+            images = []
+            for image_bytes in decoded.frames:
+                with Image.open(BytesIO(image_bytes)) as image:
+                    output = BytesIO()
+                    image.save(output, format="PNG")
+                    images.append("data:image/png;base64," + base64.b64encode(output.getvalue()).decode("ascii"))
+            PromptServer.instance.send_sync("lvw.video.preview", {"node_id":str(unique_id), "run_token":token,
+                "images":images, "frames":list(decoded.manifest),
+                "limitation":"仅观察四个采样帧，不能证明未采样片段或连续运动。"})
         result = owner.run(uuid.uuid4().hex, video_reference, model=model,
-                           user_instruction=user_instruction, mode=mode, timeout_seconds=timeout_seconds)
+                           user_instruction=user_instruction, mode=mode, timeout_seconds=timeout_seconds,
+                           preview_hook=preview, state_hook=started)
         metadata = json.dumps({key:value for key,value in result.items() if key not in {"raw_response","suggestion"}},
                               ensure_ascii=False, sort_keys=True)
         raw, suggestion = result["raw_response"], result["suggestion"]

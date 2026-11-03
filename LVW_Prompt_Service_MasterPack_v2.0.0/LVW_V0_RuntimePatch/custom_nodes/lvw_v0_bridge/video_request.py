@@ -44,7 +44,7 @@ class VideoRequestOwner:
                 self._state.update(status="cancelling", resource_state="releasing")
             return copy.deepcopy(self._state)
 
-    def run(self, token, reference, *, model, user_instruction, mode, timeout_seconds):
+    def run(self, token, reference, *, model, user_instruction, mode, timeout_seconds, preview_hook=None, state_hook=None):
         if not isinstance(token, str) or not token or len(token) > 128:
             raise BridgeError("CONTRACT_UNSUPPORTED", "bounded run token required", subcode="VIDEO_RUN_TOKEN_REQUIRED")
         with self._guard:
@@ -61,10 +61,14 @@ class VideoRequestOwner:
             cancel = self._cancel
         pending = False
         try:
+            if state_hook is not None:
+                state_hook(token)
             bind = getattr(self.bridge.transport, "bind_cancel", None)
             if bind is not None:
                 bind(cancel)
             decoded = self.decoder.decode(reference, cancel=cancel)
+            if preview_hook is not None and not cancel.is_set():
+                preview_hook(token, decoded)
             with self._guard:
                 if cancel.is_set():
                     raise BridgeError("JOB_CANCELLED", "video request cancelled", subcode="VIDEO_ANALYSIS_CANCELLED")

@@ -75,14 +75,13 @@ class VideoNodeTests(unittest.TestCase):
         workflows = Path(__file__).resolve().parents[1] / "workflows"
         api = json.loads((workflows / "video_reverse_prompt_v0.api.json").read_text())
         ui = json.loads((workflows / "video_reverse_prompt_v0.ui.json").read_text())
-        self.assertEqual(["1",0], api["2"]["inputs"]["frames"])
-        self.assertEqual("LVWControlledVideoInput", api["1"]["class_type"])
-        self.assertEqual("LVWVideoFramesPromptBridge", api["2"]["class_type"])
+        self.assertEqual({"1"}, set(api))
+        self.assertEqual("LVWVideoPromptOwner", api["1"]["class_type"])
         for entry in api.values():
             cls = NODE_CLASS_MAPPINGS[entry["class_type"]]
             self.assertEqual(set(cls.INPUT_TYPES()["required"]), set(entry["inputs"]))
         self.assertEqual(set(n["type"] for n in ui["nodes"]), {n["class_type"] for n in api.values()})
-        self.assertEqual([[1,1,0,2,0,"IMAGE"]], ui["links"])
+        self.assertEqual([], ui["links"])
 
 
 if __name__ == "__main__":

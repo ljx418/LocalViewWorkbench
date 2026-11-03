@@ -1,0 +1,77 @@
+import { app } from "../../scripts/app.js";
+import { api } from "../../scripts/api.js";
+
+app.registerExtension({
+  name: "LVW.VideoControls",
+  async beforeRegisterNodeDef(nodeType, nodeData) {
+    if (nodeData.name !== "LVWVideoPromptOwner") return;
+    const original = nodeType.prototype.onNodeCreated;
+    nodeType.prototype.onNodeCreated = function () {
+      original?.apply(this, arguments);
+      const box = document.createElement("div");
+      Object.assign(box.style, { color: "#eee", background: "#252525", padding: "10px", overflow: "auto", boxSizing: "border-box" });
+      const status = document.createElement("p");
+      status.textContent = "等待视频分析。";
+      const cancel = document.createElement("button");
+      cancel.type = "button"; cancel.textContent = "取消本次视频分析"; cancel.disabled = true;
+      const gallery = document.createElement("div");
+      Object.assign(gallery.style, { display: "grid", gridTemplateColumns: "repeat(2,minmax(0,1fr))", gap: "8px" });
+      box.append(status, cancel, gallery);
+      this.addDOMWidget("lvw_video", "custom", box, { serialize: false });
+      let token = null, timer = null, removed = false;
+      const headers = { "X-LVW-Control": "local-ui" };
+      const refresh = async () => {
+        if (removed) return;
+        try {
+          const response = await api.fetchApi("/lvw/v0/video/status", { headers });
+          if (!response.ok) throw new Error(`服务检查失败 (${response.status})`);
+          const value = await response.json();
+          if (token && value.run_token === token) {
+            status.textContent = `任务：${value.status}；资源：${value.resource_state}`;
+            cancel.disabled = !["preparing", "running"].includes(value.status);
+          }
+        } catch (error) { status.textContent = error.message; }
+        if (!removed) timer = setTimeout(refresh, 750);
+      };
+      cancel.onclick = async () => {
+        if (!token) return;
+        cancel.disabled = true;
+        try {
+          const response = await api.fetchApi("/lvw/v0/video/cancel", {
+            method: "POST", headers: { ...headers, "Content-Type": "application/json" },
+            body: JSON.stringify({ run_token: token }),
+          });
+          if (!response.ok) throw new Error(`取消未受理 (${response.status})`);
+          status.textContent = "取消已受理，等待当前调用停止并释放资源。";
+        } catch (error) { status.textContent = error.message; }
+      };
+      const preview = ({ detail }) => {
+        if (String(detail.node_id) !== String(this.id)) return;
+        token = detail.run_token; gallery.replaceChildren();
+        for (let index = 0; index < detail.images.length; index++) {
+          const figure = document.createElement("figure"); figure.style.margin = "0";
+          const image = document.createElement("img"); image.src = detail.images[index];
+          image.alt = `采样帧 ${index + 1}`; image.style.width = "100%";
+          const caption = document.createElement("figcaption");
+          caption.textContent = `${index + 1} · ${detail.frames[index]?.time_seconds ?? "未知"}s`;
+          figure.append(image, caption); gallery.append(figure);
+        }
+        status.textContent = detail.limitation; cancel.disabled = false;
+      };
+      const started = ({ detail }) => {
+        if (String(detail.node_id) !== String(this.id)) return;
+        token = detail.run_token; gallery.replaceChildren(); cancel.disabled = false;
+        status.textContent = "准备视频采样，可取消。";
+      };
+      api.addEventListener("lvw.video.started", started);
+      api.addEventListener("lvw.video.preview", preview);
+      refresh();
+      const oldRemoved = this.onRemoved;
+      this.onRemoved = function () {
+        removed = true; clearTimeout(timer); api.removeEventListener("lvw.video.preview", preview);
+        api.removeEventListener("lvw.video.started", started);
+        gallery.replaceChildren(); oldRemoved?.apply(this, arguments);
+      };
+    };
+  },
+});
