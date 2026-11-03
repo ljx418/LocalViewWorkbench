@@ -75,5 +75,18 @@ class VideoRequestTests(unittest.TestCase):
             self.owner().bridge.analyze_image([Frame()], model=core.DEFAULT_MODEL, user_instruction="",
                                              mode="realistic", timeout_seconds=120)
 
+    def test_same_thread_reentry_does_not_replace_current_request(self):
+        owner = self.owner()
+        rejected = []
+        def started(token):
+            try: self.run_owner(owner, "nested")
+            except core.BridgeError as error: rejected.append(error.code)
+            self.assertEqual(token, owner.current_status()["run_token"])
+        result = owner.run("outer", "clip.mp4", model=core.DEFAULT_MODEL, user_instruction="",
+                           mode="realistic", timeout_seconds=120, state_hook=started)
+        self.assertEqual(["RESOURCE_BUSY"], rejected)
+        self.assertEqual("outer", result["run_token"])
+        self.assertEqual("succeeded", owner.status("outer")["status"])
+
 
 if __name__ == "__main__": unittest.main()

@@ -8,6 +8,7 @@ import io
 import json
 from pathlib import Path
 import tempfile
+import subprocess
 import unittest
 from unittest import mock
 
@@ -123,6 +124,42 @@ class TracebackFakeDriver(ServiceLogFakeDriver):
 
 
 class StageCheckpointTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        # The historical Harness deliberately binds a sealed candidate. Test
+        # that binding against real Git objects, not the evolving S2 directory.
+        global PACK_ROOT
+        original = PACK_ROOT
+        cls.current_pack_root = original
+        fixture = tempfile.TemporaryDirectory(prefix="lvw-s1-sealed-fixture-", dir=original / "reports/v0-s1")
+        cls.addClassCleanup(fixture.cleanup)
+        frozen = Path(fixture.name)
+        git_blob = checkpoint.git_blob
+        for relative in checkpoint.PRODUCTION_ARTIFACTS:
+            target = frozen / relative; target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(git_blob(original, checkpoint.PRODUCT_CANDIDATE, relative))
+        for relative in ("contracts/v0-result.schema.json", "config/runtime.defaults.json",
+                         checkpoint.LIFECYCLE_RELATIVE,
+                         "reports/v0-s1/stage-checkpoint-phase-a/checkpoint.py",
+                         "reports/v0-s1/implementation-receipt-stage-checkpoint-offline.json"):
+            target = frozen / relative; target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes((original / relative).read_bytes())
+        binding = mock.patch.object(checkpoint, "git_blob", side_effect=lambda _repo, commit, relative: git_blob(original, commit, relative))
+        binding.start(); cls.addClassCleanup(binding.stop)
+        harness_location = mock.patch.object(checkpoint, "__file__",
+            str(frozen / "reports/v0-s1/stage-checkpoint-phase-a/checkpoint.py"))
+        harness_location.start(); cls.addClassCleanup(harness_location.stop)
+        PACK_ROOT = frozen
+        def restore_root():
+            global PACK_ROOT
+            PACK_ROOT = original
+        cls.addClassCleanup(restore_root)
+
+    def test_historical_harness_still_rejects_expanded_current_inventory(self):
+        with self.assertRaises(checkpoint.CheckpointError) as error:
+            checkpoint.bind_candidate(self.current_pack_root)
+        self.assertEqual("CANDIDATE_PYTHON_INVENTORY_MISMATCH", error.exception.code)
+
     def execute_fake(self, driver_factory):
         with tempfile.TemporaryDirectory() as temp:
             temp=Path(temp); sample=temp/"sample.bin"; sample.write_bytes(b"synthetic")

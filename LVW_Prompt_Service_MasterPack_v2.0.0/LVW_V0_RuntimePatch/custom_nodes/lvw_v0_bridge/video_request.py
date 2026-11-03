@@ -50,6 +50,8 @@ class VideoRequestOwner:
         with self._guard:
             if token in self._used_tokens:
                 raise BridgeError("ATTEMPT_STALE", "run token cannot be replayed", subcode="VIDEO_RUN_STALE")
+            if self._state is not None and self._state["resource_state"] != "released":
+                raise BridgeError("RESOURCE_BUSY", "current video request has not released resources", subcode="VIDEO_REQUEST_ACTIVE")
             if len(self._used_tokens) >= 1024:
                 raise BridgeError("RESOURCE_BUSY", "video session token capacity exhausted", subcode="VIDEO_SESSION_FULL")
             if core._RESOURCE_RELEASE_PENDING.is_set() or not core._INFERENCE_LOCK.acquire(blocking=False):
