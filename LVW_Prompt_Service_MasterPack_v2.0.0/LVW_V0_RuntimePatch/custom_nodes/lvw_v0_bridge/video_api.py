@@ -13,6 +13,7 @@ from .video_node import default_video_decoder
 from .video_request import VideoRequestOwner
 from .video_upload import receive_video
 from .video_input import MAX_VIDEO_BYTES
+from .video_workbench import project, MAX_BODY_BYTES
 
 _OWNER = None
 _OWNER_GUARD = threading.Lock()
@@ -113,6 +114,33 @@ def register_control_routes():
     def failure(error):
         return web.json_response({"error":{"code":error.code,"message":error.message}},
                                  status=403 if error.code == "ORIGIN_FORBIDDEN" else 409)
+
+    @server.routes.post('/lvw/v0/video/workbench')
+    async def workbench(request):
+        try:
+            check(request)
+            if request.content_length is not None and request.content_length > MAX_BODY_BYTES:
+                raise BridgeError('MEDIA_LIMIT_EXCEEDED', 'manual request too large', subcode='VIDEO_DRAFT_BODY_LIMIT')
+            raw = bytearray()
+            async with asyncio.timeout(8):
+                while len(raw) <= MAX_BODY_BYTES:
+                    chunk = await request.content.read(min(65536, MAX_BODY_BYTES + 1 - len(raw)))
+                    if not chunk:
+                        break
+                    raw.extend(chunk)
+            if len(raw) > MAX_BODY_BYTES:
+                raise BridgeError('MEDIA_LIMIT_EXCEEDED', 'manual request too large', subcode='VIDEO_DRAFT_BODY_LIMIT')
+            body = json.loads(raw)
+            with _OWNER_GUARD:
+                owner = _OWNER
+            return web.json_response(project(body, owner))
+        except BridgeError as error:
+            code = 403 if error.code == 'ORIGIN_FORBIDDEN' else 413 if error.code == 'MEDIA_LIMIT_EXCEEDED' else 409
+            return web.json_response({'error': {'code': error.code, 'message': error.message}}, status=code)
+        except (ValueError, UnicodeError, TypeError):
+            return web.json_response({'error': {'code': 'CONTRACT_UNSUPPORTED', 'message': 'invalid manual request'}}, status=400)
+        except TimeoutError:
+            return web.json_response({'error': {'code': 'CONTRACT_UNSUPPORTED', 'message': 'manual request timed out'}}, status=408)
 
     @server.routes.get("/lvw/v0/video/status")
     async def status(request):

@@ -7,7 +7,7 @@
   "next_delivery_target": "V0.1",
   "coordinate": {
     "stage_id": "V0-S2",
-    "workpack_id": "WP-S2-03",
+    "workpack_id": "WP-S2-02",
     "gate": "GATE1_OFFLINE_IMPLEMENTATION",
     "state": "FROZEN_READY_OFFLINE"
   },
@@ -30,7 +30,7 @@
     "TARGET_HARDWARE_TESTED"
   ],
   "next_owner": "codex_v0_s2_implementer",
-  "next_action": "Complete video explicit adoption and CPU manual export UI, seal new candidate offline, then use at most the remaining corrected native component attempt when GPU admission passes; full Stage checkpoint remains NOT_RUN",
+  "next_action": "Seal and record directed checks for native video explicit adoption and CPU manual export, then complete full native checkpoint runner and fault/resource evidence collection. Native verification remains gated by GPU admission and a fresh bound child; do not repeat expired component01.",
   "required_authorization": "NONE_FOR_OFFLINE_FROZEN_WORKPACKS",
   "authorization_request": null,
   "authorization_record": "reports/authorization-program-v1-local-01.json",
@@ -58,7 +58,7 @@
   "contract_change_decision": "reports/r1a/change-decision-r1a-product-controls-02.json",
   "implementation_candidate": null,
   "implementation_baseline": "2524886c953e976c053d73aa75f01a5f97e1eb10",
-  "candidate_binding_scope": "Offline02 certifies 2524886 only. Native component01 refused GPU preflight before any target service or public submission; new UI corrections remain to be sealed.",
+  "candidate_binding_scope": "Offline02 certifies 2524886 only. The video workbench control extension and UI require a new candidate. Native component01 stopped at GPU admission with zero service starts.",
   "offline_evidence_commit": null,
   "offline_receipt": "reports/v0-s2/offline-checkpoint-02/receipt.json",
   "offline_candidate_sha": "2524886c953e976c053d73aa75f01a5f97e1eb10",
@@ -92,5 +92,6 @@
   "independent_review": null,
   "exact_stop_reason": "OFFLINE_UI_WORK_CONTINUES_NATIVE_COMPONENT_GPU_ADMISSION_REFUSED",
   "native_component_authorization": "reports/v0-s2/authorization-native-component-01.json",
-  "native_component_terminal_receipt": "reports/v0-s2/native-component-01/receipt.json"
+  "native_component_terminal_receipt": "reports/v0-s2/native-component-01/receipt.json",
+  "local_control_change_decision": "reports/v0-s2/change-decision-video-workbench-01.json"
 }

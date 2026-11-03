@@ -9,7 +9,8 @@ from LVW_V0_RuntimePatch.tests.test_s2_video_cancel import Frame, Transport
 
 class Decoder:
     def decode(self, reference, cancel=None):
-        return SimpleNamespace(frames=[Frame()] * 4, source_sha256="a" * 64, manifest=[])
+        return SimpleNamespace(frames=[Frame()] * 4, source_sha256="a" * 64, manifest=[],
+                               byte_count=100, width=1, height=1, duration_seconds=1.0)
 
 
 class VideoRequestTests(unittest.TestCase):
@@ -31,6 +32,10 @@ class VideoRequestTests(unittest.TestCase):
         self.assertEqual("run-1", result["run_token"])
         self.assertEqual("succeeded", owner.status("run-1")["status"])
         self.assertEqual("released", owner.status("run-1")["resource_state"])
+        snapshot=owner.completed_result('run-1')
+        self.assertEqual(result,snapshot)
+        snapshot['source']['display_name']='tampered'
+        self.assertEqual('Local video',owner.completed_result('run-1')['source']['display_name'])
         with self.assertRaises(core.BridgeError): self.run_owner(owner)
         with self.assertRaises(core.BridgeError): owner.cancel("wrong-token")
 

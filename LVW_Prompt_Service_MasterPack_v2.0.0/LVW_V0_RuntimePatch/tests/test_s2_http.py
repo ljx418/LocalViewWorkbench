@@ -31,6 +31,18 @@ class ControlClientTests(unittest.TestCase):
         self.assertEqual(1,factory.call_count)
         response.read1.assert_not_called();connection.close.assert_called_once()
 
+    def test_workbench_is_post_only_and_only_on_comfy_endpoint(self):
+        with patch('http.client.HTTPConnection') as factory:
+            for endpoint,method in [('http://127.0.0.1:8191','GET'),('http://127.0.0.1:11434','POST')]:
+                with self.subTest(endpoint=endpoint),self.assertRaises(ControlError):
+                    LoopbackClient(endpoint).request(method,'/lvw/v0/video/workbench')
+            factory.assert_not_called()
+        connection,response=self.connection(chunks=(b'{"result":{}}',b''))
+        with patch('http.client.HTTPConnection',return_value=connection):
+            LoopbackClient('http://127.0.0.1:8191').request('POST','/lvw/v0/video/workbench',payload={'action':'preview'})
+        self.assertEqual('POST',connection.request.call_args.args[0])
+        response.close.assert_called_once();connection.close.assert_called_once()
+
     def test_detached_close_response_socket_keeps_total_deadline(self):
         connection,response=self.connection()
         owned_socket=connection.sock

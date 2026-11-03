@@ -21,6 +21,15 @@ class VideoRequestOwner:
         self._cancel = None
         self._state = None
         self._used_tokens = set()
+        self._completed_result = None
+
+    def completed_result(self, token):
+        with self._guard:
+            self._require_current(token)
+            if (self._state['status'] != 'succeeded' or self._cancel.is_set()
+                    or self._completed_result is None or self._completed_result['run_token'] != token):
+                raise BridgeError('ATTEMPT_STALE', 'no current successful video result', subcode='VIDEO_RUN_STALE')
+            return copy.deepcopy(self._completed_result)
 
     def status(self, token):
         with self._guard:
@@ -61,6 +70,7 @@ class VideoRequestOwner:
             if core._RESOURCE_RELEASE_PENDING.is_set() or not core._INFERENCE_LOCK.acquire(blocking=False):
                 raise BridgeError("RESOURCE_BUSY", "inference resource unavailable", subcode="LVW_BRIDGE_LOCKED")
             self._used_tokens.add(token)
+            self._completed_result = None
             self._cancel = threading.Event()
             self._state = {"run_token":token, "cancel_epoch":0, "status":"preparing",
                            "resource_state":"busy", "error_code":None}
@@ -90,10 +100,22 @@ class VideoRequestOwner:
                 if cancel.is_set():
                     raise BridgeError("JOB_CANCELLED", "late video suggestion discarded", subcode="VIDEO_ANALYSIS_CANCELLED")
                 self._state["status"] = "succeeded"
-                return {"raw_response":raw, "suggestion":suggestion, "source_sha256":decoded.source_sha256,
+                result = {"raw_response":raw, "suggestion":suggestion, "source_sha256":decoded.source_sha256,
                         "decoder_backend":getattr(decoded,'decoder_backend',None),
                         "frames":decoded.manifest, "resource_preflight":resource_evidence,
                         "run_token":token, "cancel_epoch":self._state["cancel_epoch"]}
+                result['model_tag'] = model
+                result['source'] = {
+                    'id': 'video_' + decoded.source_sha256[:32], 'sha256': decoded.source_sha256,
+                    'kind': 'video', 'display_name': 'Local video',
+                    'bytes': decoded.byte_count, 'width': decoded.width,
+                    'height': decoded.height, 'duration_seconds': decoded.duration_seconds,
+                    'source_root_id': None, 'relative_path': None, 'availability': 'available',
+                    'frames': [{'index': f['index'], 'target_seconds': f['time_seconds'], 'source_pts': f['pts'],
+                                'time_base_num': f['time_base_num'], 'time_base_den': f['time_base_den'],
+                                'sha256': f['sha256'], 'time_basis': 'decoded_pts'} for f in decoded.manifest]}
+                self._completed_result = copy.deepcopy(result)
+                return result
         except BaseException as exc:
             pending = isinstance(exc, BridgeError) and (exc.code == "RESOURCE_RELEASE_PENDING" or bool(exc.details.get("cleanup_error")))
             with self._guard:

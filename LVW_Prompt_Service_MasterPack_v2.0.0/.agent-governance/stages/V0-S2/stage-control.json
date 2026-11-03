@@ -2,7 +2,7 @@
   "schema_version": "lvw.stage-control/1",
   "project_id": "lvw-prompt-service",
   "stage_id": "V0-S2",
-  "stage_packet_version": "1.0.1",
+  "stage_packet_version": "1.0.2",
   "packet_status": "FROZEN",
   "gate_version": "lvw-gate/1",
   "baseline": {
@@ -27,7 +27,8 @@
     "plans/acceptance_cases.json",
     "plans/release_gates.json",
     "reports/authorization-program-v1-local-01.json",
-    "reports/v0-s2/decoder-binding-decision-01.md"
+    "reports/v0-s2/decoder-binding-decision-01.md",
+    "reports/v0-s2/change-decision-video-workbench-01.json"
   ],
   "roles": {
     "gate_owner": "codex_gate_owner",
@@ -225,5 +226,15 @@
   "external_authorization": "WAIT_AUTH_BEFORE_WP-S2-05",
   "next_owner": "codex_v0_s2_implementer",
   "required_authorization": "NONE_FOR_OFFLINE_FROZEN_WORKPACKS",
-  "exact_stop_reason": "V0_S2_GATE0_ACTIVATED_OFFLINE_ONLY"
+  "exact_stop_reason": "V0_S2_GATE0_ACTIVATED_OFFLINE_ONLY",
+  "local_control_extension": {
+    "decision": "reports/v0-s2/change-decision-video-workbench-01.json",
+    "endpoint": "POST /lvw/v0/video/workbench",
+    "actions": [
+      "preview",
+      "adopt"
+    ],
+    "business_schema_changed": false,
+    "denominator_changed": false
+  }
 }

@@ -23,13 +23,13 @@ class LoopbackClient:
         # Fixed services and API families only; caller cannot redirect to URL,
         # filesystem, browser resources, or a global interrupt endpoint.
         exact = {'/object_info', '/prompt', '/api/version', '/api/tags', '/api/ps',
-                 '/api/generate', '/lvw/v0/video/status', '/lvw/v0/video/cancel'}
+                 '/api/generate', '/lvw/v0/video/status', '/lvw/v0/video/cancel', '/lvw/v0/video/workbench'}
         history = path.startswith('/history/') and len(path) > 9 and all(
             c in '0123456789abcdefABCDEF-' for c in path[9:])
-        comfy = path in {'/object_info', '/prompt', '/lvw/v0/video/status', '/lvw/v0/video/cancel'} or history
+        comfy = path in {'/object_info', '/prompt', '/lvw/v0/video/status', '/lvw/v0/video/cancel', '/lvw/v0/video/workbench'} or history
         if (path not in exact and not history) or (self.port == 8191) != comfy:
             raise ControlError('CONTROL_PATH_FORBIDDEN')
-        expected = 'POST' if path in {'/prompt', '/api/generate', '/lvw/v0/video/cancel'} else 'GET'
+        expected = 'POST' if path in {'/prompt', '/api/generate', '/lvw/v0/video/cancel', '/lvw/v0/video/workbench'} else 'GET'
         if method != expected or (method == 'GET' and payload is not None):
             raise ControlError('CONTROL_METHOD_FORBIDDEN')
         if type(timeout) not in (int, float) or not 0 < timeout <= 120:

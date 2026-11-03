@@ -1,0 +1,21 @@
+{
+  "schema_version": "lvw.local-contract-change/1",
+  "change_id": "CHANGE-V0-S2-VIDEO-WORKBENCH-01",
+  "stage_id": "V0-S2",
+  "reason": "The native video panel lacks explicit adoption and manual editing/export independent of the GPU execution queue. Existing manual output nodes alone cannot provide busy-time export.",
+  "proposed_resolution": {
+    "endpoint": "POST /lvw/v0/video/workbench",
+    "owner": "video_workbench CPU projection over ManualDraftOwner; successful analysis snapshot remains VideoRequestOwner-owned",
+    "actions": {
+      "preview": "Exactly action and fields; fields are the seven existing ManualDraft string inputs, each at most 20000 Unicode characters. Return canonical manual V0Result and TXT without model, GPU, queue, filesystem or clipboard side effects.",
+      "adopt": "Exactly action and run_token. Accept only the current succeeded uncancelled owner run. Return V0Result containing the original raw, PromptSpec, source/frame manifest and deterministic four-output mapping; absent language remains absent."
+    },
+    "response": "Object with result (existing lvw.v0.result/1) and txt; errors retain existing error envelope/codes",
+    "limits": "2 MiB request, eight-second body deadline; literal loopback peer/Host, matching Origin and X-LVW-Control; reject unknown keys/actions, oversized or malformed bodies before projection",
+    "client": "Keep raw/suggestion separate; only explicit adoption may replace draft. Require second click when draft is nonempty and reject in-flight responses if draft revision or run changed. CPU preview validates edited outputs. Export JSON combines the adopted immutable source snapshot with validated draft and model_adopted/edited origin; this is a user export, not a trusted execution receipt. No localStorage/database or automatic adoption.",
+    "public_business_schema_changed": false,
+    "fixed_denominator_changed": false,
+    "threshold_changed": false,
+    "new_external_authorization": false
+  }
+}

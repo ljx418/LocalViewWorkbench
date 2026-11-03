@@ -20,4 +20,6 @@ R1a 人工体验签署存在；合同、FFmpeg、Comfy、Ollama、样本和 owne
 
 ## Gate 5 独立出门
 
+公开工作台体验还须验证：服务端当前 run 快照显式采纳；非空人工稿二次确认；等待采纳时编辑/取消/新 run 不覆盖；保留已采纳来源后重新分析；GPU 忙或模型离线时 CPU preview、复制、TXT/JSON 导出；剪贴板失败、页面移除和下载 URL 清理。必须走 `POST /lvw/v0/video/workbench` 与真实原生面板，不用 VM 替代浏览器；用户导出不能当作可信执行收据。
+
 隔离 reviewer 复算帧时间/hash、provider 次数、P95、峰值、取消时钟、端口/进程/临时目录和九项累计状态。Fatal=0、Major=0 且所有固定项 PASS 才可裁决 `V0.1_ACCEPTED`；这不等于 V0.2/旧 V0 出门。

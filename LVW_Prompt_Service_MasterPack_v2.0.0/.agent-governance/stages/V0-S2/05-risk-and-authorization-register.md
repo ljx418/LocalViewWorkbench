@@ -15,3 +15,5 @@
 | R-S2-08 | 原生视频 UI 的 raw/建议/人工稿与忙时导出尚未验证 | Major / OPEN | 真实浏览器验证显式采纳、草稿不覆盖和无需 GPU 队列的人工导出；不能仅用 API 返回 text 列表代替体验 |
 
 禁止下载、云/付费服务、非 loopback、私有媒体、Cookie、现有浏览器 profile、可见浏览器自动化、永久配置和发布。远端推送仅在 Stage 完成人工验收后按 AGENTS.md 第16条立即执行；不允许提前推送、强推或覆盖历史。
+
+当前处置追加记录：DEP-S2-01 已由 `reports/r1a/human-signoff-r1a-live-08.json` 关闭，表中保留最初依赖状态。R-S2-08 的 raw/建议、显式采纳、CPU 人工编辑/复制/导出已进入离线验证，真实浏览器与完整 Stage 验收仍为 NOT_RUN，不能关闭 Major 风险。原生组件 01 因启动前 GPU 超限停止，未启动服务或调用模型，终态见 `reports/v0-s2/native-component-01/receipt.json`；不得终止外部占用或自行追加尝试预算。
