@@ -2,7 +2,7 @@
   "schema_version": "lvw.stage-control/1",
   "project_id": "lvw-prompt-service",
   "stage_id": "V0-S2",
-  "stage_packet_version": "1.0.10",
+  "stage_packet_version": "1.0.11",
   "packet_status": "FROZEN",
   "gate_version": "lvw-gate/1",
   "baseline": {
@@ -36,7 +36,8 @@
     "reports/v0-s2/warm-phase-coordinator-decision-01.md",
     "reports/v0-s2/resource-abort-ownership-decision-01.md",
     "reports/v0-s2/fixture-preparation-decision-01.md",
-    "reports/v0-s2/fixture-vfr-correction-decision-01.md"
+    "reports/v0-s2/fixture-vfr-correction-decision-01.md",
+    "reports/v0-s2/frozen-structural-inputs-02.json"
   ],
   "roles": {
     "gate_owner": "codex_gate_owner",
@@ -73,7 +74,18 @@
     "fixture_preparation_max_attempts": 2,
     "fixture_preparation_scope": "CPU_FIXED_FIXTURE_PREPARATION_ONLY",
     "fixture_preparation_decision": "reports/v0-s2/fixture-preparation-decision-01.md",
-    "fixture_vfr_coverage_decision": "reports/v0-s2/fixture-vfr-correction-decision-01.md"
+    "fixture_vfr_coverage_decision": "reports/v0-s2/fixture-vfr-correction-decision-01.md",
+    "selected_fixture_inputs": {
+      "path": "reports/v0-s2/frozen-structural-inputs-02.json",
+      "sha256": "1a2d98b2e41a083133d0119590e408418c7cad15cac44ffb4f1a55bb4543c5ae",
+      "receipt": "reports/v0-s2/fixture-preparation-02/receipt.json",
+      "receipt_sha256": "016fd46b521bea0da96d4676d7d35bb4bc799007fd5e354afc310e4043aaf85e",
+      "authorization": "reports/v0-s2/authorization-fixtures-02.json",
+      "authorization_sha256": "9d8eb7c265b768de3ceaa1558f55ac0b0f88df3aa6366ae8878d090d24d5592f",
+      "status": "STRUCTURAL_INPUTS_VERIFIED_NATIVE_PRODUCT_NOT_RUN",
+      "requires_product_child": true
+    },
+    "fixture_preparation_attempts_consumed": 2
   },
   "cumulative_release_ids": [
     "V0-A01",
