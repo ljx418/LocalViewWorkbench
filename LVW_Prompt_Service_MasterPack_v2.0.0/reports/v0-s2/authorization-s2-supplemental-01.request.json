@@ -1,0 +1,187 @@
+{
+  "schema_version": "lvw.authorization-request/1",
+  "request_id": "AUTH-REQUEST-V1-S2-SUPPLEMENTAL-01",
+  "status": "PENDING_PROJECT_OWNER_APPROVAL",
+  "is_authorization": false,
+  "does_not_authorize_execution": true,
+  "does_not_authorize_stage_pass": true,
+  "project_id": "lvw-prompt-service",
+  "stage_id": "V0-S2",
+  "workpack_id": "WP-S2-05",
+  "source_program_authorization": "AUTH-PROGRAM-V1-LOCAL-01",
+  "reason_new_explicit_approval_is_required": "The original one full checkpoint and one full corrected recheck both terminated NO_GO before services. The per-Stage budget is exhausted; a third complete run and explicit adoption of a retained root without its original durable inode record need project-owner approval. Existing slots and failures cannot be reset.",
+  "policy_exception_requested": {
+    "additional_complete_native_runs": 1,
+    "additional_full_rechecks": 0,
+    "planned_run_id": "full-supplemental-01",
+    "only_overrides": "V0-S2 complete-checkpoint count for this single approved supplemental slot; no other Stage or quality rule changes",
+    "authorization_expires_when": [
+      "this supplemental run and reserved cleanup reach terminal disposition",
+      "project owner revokes",
+      "any scope or budget violation occurs"
+    ]
+  },
+  "corrected_candidate": "eab273a229d6ad93d393d708f75633d14c5311f9",
+  "offline_receipt": "reports/v0-s2/offline-checkpoint-21/receipt.json",
+  "offline_receipt_sha256": "30a23b3b844bdca6418710ee6128f79d2155f79134dd26bce33f37b77b3eb508",
+  "offline_payload_sha256": "528c4b9c33689075df940e93fea1bcb59fbae3a521ab23bb4490923f8367f42b",
+  "offline_results": {
+    "unit_tests": 442,
+    "fixed_checks": 5,
+    "passed_checks": 5,
+    "product_acceptance": false
+  },
+  "harness": {
+    "path": "tools/v0_s2_stage_checkpoint.py",
+    "sha256": "8832f7ddda3355b0ab0b59563c38fdf0669e5bddb90182437a4fa0f3ceb42d39"
+  },
+  "execution_readiness": {
+    "current_cli": "Only original full-checkpoint-01 and full-recheck-01 are supported; both are closed. This request does not add an executable third slot.",
+    "after_explicit_approval_only": "Record a bounded budget exception and implement its authorization transport, exact supplemental slot and retained-root cleanup adapter offline. Freeze final candidate/Harness and pass a fresh full offline gate if any execution byte changes. Generate a bound one-shot child before target access.",
+    "allowed_final_descendant_changes": [
+      "exact approval verification and one supplemental-slot transport",
+      "bounded retained-root adoption/archive/cleanup helper",
+      "their tests and evidence only"
+    ],
+    "forbidden_final_descendant_changes": [
+      "product plugin behavior",
+      "public contracts",
+      "fixed cases or denominators",
+      "quality or resource thresholds",
+      "model or sample substitution"
+    ],
+    "fresh_child_bindings_required": [
+      "final candidate SHA",
+      "final Harness and source payload hashes",
+      "active explicit exception hash",
+      "fixed sample hashes",
+      "installed execution bytes",
+      "literal ports and owned process births",
+      "all budgets and cleanup strategy"
+    ]
+  },
+  "prior_failed_runs": [
+    {
+      "run_id": "full-checkpoint-01",
+      "receipt": "reports/v0-s2/full-checkpoint-01/receipt.json",
+      "receipt_sha256": "a4c9e3cbec44d5481c8c0b52cc3b0760e5a1224ed9590021158c96a7466b7a41",
+      "must_remain_immutable": true
+    },
+    {
+      "run_id": "full-recheck-01",
+      "receipt": "reports/v0-s2/full-recheck-01/receipt.json",
+      "receipt_sha256": "a16f251eed7d5772d4849ae0e780e826a6b8fd8da258621beb2877002ee36d5f",
+      "must_remain_immutable": true
+    }
+  ],
+  "acceptance_hash": "32a72139e0c12e0e6d040274024b53bb2dba2f2864b68b840aa215cf739a2a7f",
+  "fixed_stage_cases": [
+    "V0-A02",
+    "V0-A07",
+    "V0-A09",
+    "V0-A10"
+  ],
+  "fixed_cumulative_cases": [
+    "V0-A01",
+    "V0-A02",
+    "V0-A03",
+    "V0-A04",
+    "V0-A05",
+    "V0-A07",
+    "V0-A08",
+    "V0-A09",
+    "V0-A10"
+  ],
+  "seed_artifact_sha256": {
+    "targets": "576e24846e80d8061aed3e3dcdee0795ca9d64558969883b4122d00ad755c969",
+    "frontend": "013a334d89615774b613e66063c39a21871d2c37afe12673c8e29e78e5ce38fb",
+    "packages": "c252583e5891e77c67d580caab55162fcf4d20a50a3ebf517b41b3fdb365f9a6",
+    "model": "e1b865f640470b42badb9b93bd36756d8228160d750d266d38fbf903b60d5b8f"
+  },
+  "media_policy": "Only the exact bound non-private testSource image/video and selected preparation02 fixtures; no browsing for assets, private media, replacement or stitching.",
+  "model": {
+    "name": "gemma4:26b",
+    "digest": "5571076f3d70050487b26b341705799e0ab29b808164f90d20d4cf84f699d251"
+  },
+  "ports": [
+    8191,
+    11434
+  ],
+  "browser_policy": "One fresh headless Chromium context/profile and one independently verified worker-owned literal 127.0.0.1 control port; no visible browser or existing profile.",
+  "runtime_budget": {
+    "stage_checkpoints": 1,
+    "public_submissions": 65,
+    "default_public_submissions": 45,
+    "warm_public_submissions": 20,
+    "provider_calls": 83,
+    "comfy_starts": 2,
+    "ollama_starts": 2,
+    "browser_starts": 1,
+    "warm_preloads": 20,
+    "loopback_requests_per_runtime": 8192,
+    "metadata_commands": 2,
+    "native_clock_reads_per_runtime": 128,
+    "resource_sampler_workers": 3,
+    "resource_sampler_max_seconds": 7200,
+    "frame_decoder_processes": 80,
+    "metadata_probe_processes": 24,
+    "installed_files_per_snapshot": 100000,
+    "installed_bytes_per_snapshot": 34359738368,
+    "installed_full_snapshots": 5,
+    "sample_files": 2,
+    "sample_bytes": 289406976,
+    "downloads": 0,
+    "cloud_calls": 0,
+    "paid_calls": 0,
+    "max_seconds": 21600
+  },
+  "external_cost_budget": 0,
+  "retained_root_cleanup": {
+    "explicit_adoption_requested": true,
+    "wsl_path": "/mnt/c/workSpace/videoWorkLine/.lvw-runtime/lvw-prompt-service/V0-S2/full-recheck-01/lvw-s2-default-ccmmyy5d",
+    "windows_path": "C:/workSpace/videoWorkLine/.lvw-runtime/lvw-prompt-service/V0-S2/full-recheck-01/lvw-s2-default-ccmmyy5d",
+    "observed_device": "73",
+    "observed_inode": "4222124654986473",
+    "observation": "reports/v0-s2/junction-correction-01/retained-root-observation.json",
+    "observation_sha256": "e97b98daa2351ff3dfdffd1a89a2e8d300d40f360b929c559142fccfadec1cb9",
+    "original_identity_not_proven": true,
+    "must_not_claim_recovered_original_lease": true,
+    "scope": "Explicitly adopt only this exact currently observed root after reproving device/inode and rejecting unknown entries. Verify the literal input/redirect Junction points only to this root/outside-input; archive diagnostics and evidence, remove that link nonrecursively with its target preserved, then remove only the verified adopted fixture/code tree. Preserve any ambiguity or changed identity.",
+    "native_metadata_commands_max": 4,
+    "junction_deletions_max": 1,
+    "cleanup_model_calls": 0,
+    "cleanup_service_starts": 0,
+    "cleanup_process_terminations": 0,
+    "raw_archive_max_files": 4096,
+    "raw_archive_max_bytes": 536870912,
+    "on_ambiguity": "Preserve the root, stop without starting supplemental services, save terminal cleanup evidence and return WAIT_AUTH.",
+    "fresh_cleanup_only_child_required_before_native_helpers": true,
+    "cleanup_child_scope": "Original source candidate/Harness/helper hash, exact current root device/inode, pinned native PowerShell path/hash, at most four native metadata/removal commands, one nonrecursive Junction removal, bounded archive and ordinary-file cleanup. No new testSource reads, model, service, browser, GPU work or process termination."
+  },
+  "on_failure": "Save original raw failure, redacted terminal and cleanup disposition; expire the one-shot grant and return WAIT_AUTH. No automatic fourth run.",
+  "forbidden": [
+    "non-loopback",
+    "cloud",
+    "paid-service",
+    "download",
+    "private-media",
+    "cookie",
+    "existing-browser-profile",
+    "visible-browser-automation",
+    "permanent-configuration",
+    "non-owned-termination",
+    "remote-push",
+    "release",
+    "human experience signoff",
+    "final V1 release signoff",
+    "V2/V3 execution"
+  ],
+  "git_policy": "Local commits only until Stage human acceptance; existing AGENTS.md16 standing authorization governs immediate push after acceptance.",
+  "preconditions_before_supplemental_service_start": [
+    "explicit project-owner approval of this immutable request",
+    "terminal evidence from both previous runs retained unchanged",
+    "successful bounded retained-root adoption, archive and cleanup with no unknown leftovers",
+    "approved authorization/cleanup transport changes only, final candidate/Harness and fresh complete offline gate",
+    "new exact supplemental one-shot child generated before any installed-runtime, sample, service or browser access"
+  ]
+}
