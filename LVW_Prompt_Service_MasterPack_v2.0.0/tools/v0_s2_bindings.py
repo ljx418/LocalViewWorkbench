@@ -6,7 +6,6 @@ import json
 from pathlib import Path
 import subprocess
 import re
-import os
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = Path('/mnt/c/workSpace/videoWorkLine/testSource')
@@ -77,20 +76,21 @@ def validate_authority(auth, program, *, candidate, harness_sha):
 
 
 def bundled_decoder_paths(root=Path('/mnt/c/ComfyUI-aki-v2')):
-    """Bounded search of the already-authorized installation, no downloads."""
-    visited=0
+    """Check named tool locations only; never walk Python or model trees."""
     if not Path(root).is_dir(): raise BindingError('BUNDLED_DECODER_ROOT_MISSING')
-    for directory,dirs,files in os.walk(root,followlinks=False):
-        dirs[:]=sorted(d for d in dirs if d.lower() not in {'models','input','output','temp','.git','node_modules','__pycache__'}
-                        and not (Path(directory)/d).is_symlink())
-        visited+=len(dirs)+len(files)
-        if visited>20000:raise BindingError('BUNDLED_DECODER_SCAN_LIMIT')
-        names={name.lower():name for name in files}
-        if {'ffmpeg.exe','ffprobe.exe'} <= set(names):
-            paths={key:Path(directory)/names[name] for key,name in [('FFMPEG_EXE','ffmpeg.exe'),('FFPROBE_EXE','ffprobe.exe')]}
+    locations=('', 'ffmpeg/bin', 'ffmpeg', 'tools/ffmpeg/bin', 'tools/ffmpeg',
+               'tools', 'ComfyUI', 'python', 'python/Scripts', 'python/Library/bin')
+    for relative in locations:
+        directory=Path(root)/relative
+        cursor=Path(root)
+        for part in Path(relative).parts:
+            cursor=cursor/part
+            if cursor.is_symlink():raise BindingError('NATIVE_DECODER_IDENTITY_INVALID')
+        paths={key:directory/name for key,name in [('FFMPEG_EXE','ffmpeg.exe'),('FFPROBE_EXE','ffprobe.exe')]}
+        if all(path.is_file() for path in paths.values()):
             if any(path.is_symlink() for path in paths.values()):raise BindingError('NATIVE_DECODER_IDENTITY_INVALID')
             return paths
-    raise BindingError('BUNDLED_DECODER_PAIR_MISSING')
+    raise BindingError('BUNDLED_DECODER_NAMED_PATHS_MISSING')
 
 
 def native_decoder_paths():

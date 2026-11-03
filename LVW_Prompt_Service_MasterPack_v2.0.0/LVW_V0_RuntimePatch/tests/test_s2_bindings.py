@@ -25,6 +25,12 @@ class BindingTests(unittest.TestCase):
             result=bundled_decoder_paths(root)
             self.assertEqual(tools/'ffmpeg.exe',result['FFMPEG_EXE'])
             self.assertEqual(tools/'ffprobe.exe',result['FFPROBE_EXE'])
+
+    def test_missing_named_paths_never_trigger_recursive_search(self):
+        with tempfile.TemporaryDirectory() as temp,patch('os.walk',side_effect=AssertionError('recursive scan forbidden')):
+            root=Path(temp);deep=root/'python/Lib/site-packages/deep';deep.mkdir(parents=True)
+            for name in ('ffmpeg.exe','ffprobe.exe'):(deep/name).write_bytes(b'fixture')
+            with self.assertRaisesRegex(BindingError,'NAMED_PATHS_MISSING'):bundled_decoder_paths(root)
     def test_media_aliases_hashes_and_out_of_root_symlink(self):
         with tempfile.TemporaryDirectory() as temp:
             root=Path(temp)/'source';root.mkdir()
