@@ -14,7 +14,7 @@ class ProcessResult:
     returncode: int
 
 
-def run_bounded(argv, *, timeout_seconds, output_limit=1024 * 1024, cancel=None):
+def run_bounded(argv, *, timeout_seconds, output_limit=1024 * 1024, cancel=None, on_result=None):
     """Run trusted argv without shell; cap total captured stdout plus stderr.
 
     This is an internal adapter utility, not an API accepting arbitrary commands.
@@ -30,6 +30,7 @@ def run_bounded(argv, *, timeout_seconds, output_limit=1024 * 1024, cancel=None)
     if (isinstance(output_limit, bool) or not isinstance(output_limit, int)
             or not 0 < output_limit <= 16 * 1024 * 1024):
         raise ValueError("invalid decoder output cap")
+    if on_result is not None and not callable(on_result):raise ValueError("invalid internal receipt sink")
     if cancel is not None and cancel.is_set():
         raise BridgeError("JOB_CANCELLED", "video preparation cancelled", subcode="VIDEO_PROCESS_CANCELLED")
     try:
@@ -93,6 +94,8 @@ def run_bounded(argv, *, timeout_seconds, output_limit=1024 * 1024, cancel=None)
                               subcode="VIDEO_PROCESS_PIPE_PENDING")
         process.stdout.close()
         process.stderr.close()
+    result=ProcessResult(bytes(chunks[0]), bytes(chunks[1]), process.returncode)
+    if on_result is not None:on_result(result)
     if reason == "cancel":
         raise BridgeError("JOB_CANCELLED", "video preparation cancelled", subcode="VIDEO_PROCESS_CANCELLED")
     # A short-lived child can exit before the monitor observes the reader flag.
@@ -102,4 +105,4 @@ def run_bounded(argv, *, timeout_seconds, output_limit=1024 * 1024, cancel=None)
         raise BridgeError("MODEL_TIMEOUT", "video preparation timed out", subcode="VIDEO_PROCESS_TIMEOUT")
     if read_failed.is_set() or process.returncode != 0:
         raise BridgeError("MEDIA_INVALID", "decoder failed", subcode="VIDEO_PROCESS_FAILED")
-    return ProcessResult(bytes(chunks[0]), bytes(chunks[1]), process.returncode)
+    return result

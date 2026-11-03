@@ -24,6 +24,15 @@ class VideoProcessTests(unittest.TestCase):
             self.run_child("import sys;sys.exit(3)")
         self.assertEqual("VIDEO_PROCESS_FAILED", error.exception.details["subcode"])
 
+    def test_internal_receipt_observes_actual_failed_child_after_reaping(self):
+        receipts=[]
+        with self.assertRaises(BridgeError):
+            self.run_child("import sys;print('raw-out');print('raw-error',file=sys.stderr);sys.exit(7)",on_result=receipts.append)
+        self.assertEqual(1,len(receipts));self.assertEqual(7,receipts[0].returncode)
+        self.assertEqual(b'raw-out\n',receipts[0].stdout);self.assertEqual(b'raw-error\n',receipts[0].stderr)
+        with patch('subprocess.Popen') as spawn,self.assertRaises(ValueError):self.run_child('pass',on_result=1)
+        spawn.assert_not_called()
+
     def test_small_overflow_is_detected_before_child_finishes(self):
         start = time.monotonic()
         with self.assertRaises(BridgeError) as error:

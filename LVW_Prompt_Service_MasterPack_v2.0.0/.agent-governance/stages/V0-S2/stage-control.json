@@ -2,7 +2,7 @@
   "schema_version": "lvw.stage-control/1",
   "project_id": "lvw-prompt-service",
   "stage_id": "V0-S2",
-  "stage_packet_version": "1.0.8",
+  "stage_packet_version": "1.0.9",
   "packet_status": "FROZEN",
   "gate_version": "lvw-gate/1",
   "baseline": {
@@ -34,7 +34,8 @@
     "reports/v0-s2/warm-evidence-join-decision-01.md",
     "reports/v0-s2/native-runtime-release-decision-01.md",
     "reports/v0-s2/warm-phase-coordinator-decision-01.md",
-    "reports/v0-s2/resource-abort-ownership-decision-01.md"
+    "reports/v0-s2/resource-abort-ownership-decision-01.md",
+    "reports/v0-s2/fixture-preparation-decision-01.md"
   ],
   "roles": {
     "gate_owner": "codex_gate_owner",
@@ -67,7 +68,10 @@
     "native_component_provider_calls": 0,
     "native_component_browser_runs": 0,
     "counts_as_stage_acceptance": false,
-    "meaning": "execution_authorized governs the full Stage checkpoint; separately bound preparation children grant no blanket execution or acceptance"
+    "meaning": "execution_authorized governs the full Stage checkpoint; separately bound preparation children grant no blanket execution or acceptance",
+    "fixture_preparation_max_attempts": 2,
+    "fixture_preparation_scope": "CPU_FIXED_FIXTURE_PREPARATION_ONLY",
+    "fixture_preparation_decision": "reports/v0-s2/fixture-preparation-decision-01.md"
   },
   "cumulative_release_ids": [
     "V0-A01",
