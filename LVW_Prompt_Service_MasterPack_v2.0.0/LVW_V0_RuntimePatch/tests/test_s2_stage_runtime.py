@@ -50,7 +50,9 @@ class FactoryTests(unittest.TestCase):
 
     def native(self, args, evidence):
         driver = NativeRuntime(args, evidence); driver.root = None
-        driver._windows_path = lambda value, **kwargs: 'C:/'+str(Path(value).name)
+        # Preserve path hierarchy; flattening to .name cannot represent a
+        # literal junction leaf beneath its separately converted parent.
+        driver._windows_path = lambda value, **kwargs: 'C:/fixture'+Path(value).as_posix()
         driver.preflight = lambda: {'max_used_mib': 100, 'target_listener_count': 0}
         driver.native_clock = lambda: {'wall_seconds': 1000, 'monotonic_seconds': 10}
         driver.owned_listener_birth = lambda port: {'pid': port, 'start_ticks': 100}
@@ -71,7 +73,9 @@ class FactoryTests(unittest.TestCase):
                 root = next(path for path in self.directory.glob('lvw-s2-default-*'))
                 (root/'input/redirect').symlink_to(root/'outside-input', target_is_directory=True); return ''
             if script.startswith('$item=Get-Item'):
-                return json.dumps({'path': 'C:/redirect', 'attributes': 0x400, 'link_type': 'Junction', 'targets': ['C:/outside-input']})
+                root=next(self.directory.glob('lvw-s2-default-*'))
+                return json.dumps({'path': driver._windows_path(str(root/'input/redirect')), 'attributes': 0x400,
+                    'link_type': 'Junction', 'targets': [driver._windows_path(str(root/'outside-input'))]})
             if script.startswith('[System.IO.Directory]::Delete'):
                 root = next(self.directory.glob('lvw-s2-default-*'))
                 (root/'input/redirect').unlink()
@@ -80,7 +84,7 @@ class FactoryTests(unittest.TestCase):
             if 'CommandLine' in script:
                 parts = [driver._windows_path(args.comfy_python), '-s', '-B', driver._windows_path(args.comfy_main),
                     '--listen', '127.0.0.1', '--port', '8191', '--base-directory', driver._windows_path(str(driver.root)),
-                    '--user-directory', 'C:/WRONG' if self.failure == 'user-root' else 'C:/user',
+                    '--user-directory', 'C:/WRONG' if self.failure == 'user-root' else driver._windows_path(str(driver.root/'user')),
                     '--disable-auto-launch', '--disable-api-nodes', '--disable-all-custom-nodes', '--whitelist-custom-nodes', 'lvw_v0_bridge']
                 return ' '.join(parts)
             raise AssertionError(script)

@@ -1,0 +1,81 @@
+{"code": "LIVE_ARGUMENT_REQUIRED", "decision": "NO_GO", "message": "LIVE_ARGUMENT_REQUIRED: all identity/authority/target arguments", "stage_pass_claim": false}
+======================================================================
+ERROR: test_changed_model_archives_partial_start_once_and_never_starts_comfy (test_s2_stage_runtime.FactoryTests.test_changed_model_archives_partial_start_once_and_never_starts_comfy)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "PACK_ROOT/LVW_V0_RuntimePatch/tests/test_s2_stage_runtime.py", line 120, in test_changed_model_archives_partial_start_once_and_never_starts_comfy
+    with self.assertRaises(EvidenceError): factory.prepare_default()
+                                           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "PACK_ROOT/tools/v0_s2_stage_runtime.py", line 147, in prepare_default
+    def prepare_default(self): return self._prepare(False)
+                                      ^^^^^^^^^^^^^^^^^^^^
+  File "PACK_ROOT/tools/v0_s2_stage_runtime.py", line 172, in _prepare
+    references = None if warm else self._references(driver, root)
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "PACK_ROOT/tools/v0_s2_stage_runtime.py", line 124, in _references
+    driver.verify_reparse_fixture(root)
+  File "PACK_ROOT/tools/v0_s2_driver.py", line 93, in verify_reparse_fixture
+    raise base.StopProbe('REPARSE_NATIVE_IDENTITY_MISMATCH')
+lvw_s2_lifecycle_base.StopProbe: REPARSE_NATIVE_IDENTITY_MISMATCH
+
+======================================================================
+ERROR: test_default_and_fresh_warm_use_actual_bindings_and_exact_owned_staging (test_s2_stage_runtime.FactoryTests.test_default_and_fresh_warm_use_actual_bindings_and_exact_owned_staging)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "PACK_ROOT/LVW_V0_RuntimePatch/tests/test_s2_stage_runtime.py", line 102, in test_default_and_fresh_warm_use_actual_bindings_and_exact_owned_staging
+    default = factory.prepare_default()
+              ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "PACK_ROOT/tools/v0_s2_stage_runtime.py", line 147, in prepare_default
+    def prepare_default(self): return self._prepare(False)
+                                      ^^^^^^^^^^^^^^^^^^^^
+  File "PACK_ROOT/tools/v0_s2_stage_runtime.py", line 172, in _prepare
+    references = None if warm else self._references(driver, root)
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "PACK_ROOT/tools/v0_s2_stage_runtime.py", line 124, in _references
+    driver.verify_reparse_fixture(root)
+  File "PACK_ROOT/tools/v0_s2_driver.py", line 93, in verify_reparse_fixture
+    raise base.StopProbe('REPARSE_NATIVE_IDENTITY_MISMATCH')
+lvw_s2_lifecycle_base.StopProbe: REPARSE_NATIVE_IDENTITY_MISMATCH
+
+======================================================================
+ERROR: test_unproven_partial_cleanup_preserves_root_and_stops_retries (test_s2_stage_runtime.FactoryTests.test_unproven_partial_cleanup_preserves_root_and_stops_retries)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "PACK_ROOT/LVW_V0_RuntimePatch/tests/test_s2_stage_runtime.py", line 145, in test_unproven_partial_cleanup_preserves_root_and_stops_retries
+    with self.assertRaises(EvidenceError): factory.prepare_default()
+                                           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "PACK_ROOT/tools/v0_s2_stage_runtime.py", line 147, in prepare_default
+    def prepare_default(self): return self._prepare(False)
+                                      ^^^^^^^^^^^^^^^^^^^^
+  File "PACK_ROOT/tools/v0_s2_stage_runtime.py", line 172, in _prepare
+    references = None if warm else self._references(driver, root)
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "PACK_ROOT/tools/v0_s2_stage_runtime.py", line 124, in _references
+    driver.verify_reparse_fixture(root)
+  File "PACK_ROOT/tools/v0_s2_driver.py", line 93, in verify_reparse_fixture
+    raise base.StopProbe('REPARSE_NATIVE_IDENTITY_MISMATCH')
+lvw_s2_lifecycle_base.StopProbe: REPARSE_NATIVE_IDENTITY_MISMATCH
+
+======================================================================
+ERROR: test_wrong_actual_comfy_user_directory_is_rejected_before_sampler (test_s2_stage_runtime.FactoryTests.test_wrong_actual_comfy_user_directory_is_rejected_before_sampler)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "PACK_ROOT/LVW_V0_RuntimePatch/tests/test_s2_stage_runtime.py", line 138, in test_wrong_actual_comfy_user_directory_is_rejected_before_sampler
+    with self.assertRaises(EvidenceError): factory.prepare_default()
+                                           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "PACK_ROOT/tools/v0_s2_stage_runtime.py", line 147, in prepare_default
+    def prepare_default(self): return self._prepare(False)
+                                      ^^^^^^^^^^^^^^^^^^^^
+  File "PACK_ROOT/tools/v0_s2_stage_runtime.py", line 172, in _prepare
+    references = None if warm else self._references(driver, root)
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "PACK_ROOT/tools/v0_s2_stage_runtime.py", line 124, in _references
+    driver.verify_reparse_fixture(root)
+  File "PACK_ROOT/tools/v0_s2_driver.py", line 93, in verify_reparse_fixture
+    raise base.StopProbe('REPARSE_NATIVE_IDENTITY_MISMATCH')
+lvw_s2_lifecycle_base.StopProbe: REPARSE_NATIVE_IDENTITY_MISMATCH
+
+----------------------------------------------------------------------
+Ran 442 tests in 53.049s
+
+FAILED (errors=4)
