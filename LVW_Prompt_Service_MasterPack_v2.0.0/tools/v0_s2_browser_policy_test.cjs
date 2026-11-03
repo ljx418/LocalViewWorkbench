@@ -99,7 +99,11 @@ const reply = (c, sequence, payload = {}) => ({ kind: 'lvw.s2.browser-parent-rep
       const result = await run({ ...config(), run_root: root }, { request: async () => { throw new Error('synthetic parent refusal'); } },
         { playwright: { chromium: { launchServer: async () => { launches++; } } } });
       assert.equal(result.decision, 'NO_GO'); assert.equal(result.stage_pass_claim, false); assert.equal(result.counts.NOT_RUN, CASES.length);
-      assert.equal(launches, 0); assert.ok(fs.existsSync(path.join(root, 'temp/browser-phase/evidence/browser-result.json')));
+      assert.equal(launches, 0); assert.equal(fs.existsSync(path.join(root, 'temp/browser-phase/evidence')), false);
+      const wrongRoot = await run({ ...config(), run_root: root }, { request: async () => ({ owned_run_root: '/different-root' }) },
+        { playwright: { chromium: { launchServer: async () => { launches++; } } } });
+      assert.equal(wrongRoot.error_code, 'BROWSER_PARENT_ROOT_MISMATCH'); assert.equal(launches, 0);
+      assert.equal(fs.existsSync(path.join(root, 'temp/browser-phase/evidence')), false);
     } finally { fs.rmSync(root, { recursive: true }); }
   });
   console.log(JSON.stringify({ kind: 'OFFLINE_BROWSER_POLICY_NOT_BROWSER_ACCEPTANCE', checks: results, passed: results.length, failed: 0, browser_starts: 0 }));

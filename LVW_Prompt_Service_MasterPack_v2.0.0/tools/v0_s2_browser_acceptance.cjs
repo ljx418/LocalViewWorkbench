@@ -85,7 +85,20 @@ function groupMembers(group) {
 async function run(config, parent, dependencies = {}) {
   validateConfig(config);
   if (!parent || typeof parent.request !== 'function') throw new Error('LIVE_PARENT_REQUIRED');
-  const root = fs.realpathSync(config.run_root), directory = path.join(root, 'temp/browser-phase');
+  let root;
+  try {
+    const preflight = await parent.request('preflight', { run_root: config.run_root });
+    root = fs.realpathSync(config.run_root);
+    if (preflight.owned_run_root !== root) throw new Error('BROWSER_PARENT_ROOT_MISMATCH');
+  } catch (error) {
+    // The formal parent records this rejected attempt. No unapproved directory,
+    // media/executable read or browser process is created by the worker.
+    return { kind: 'NATIVE_COMFY_BROWSER_NOT_STAGE_ACCEPTANCE', candidate_sha: config.candidate_sha,
+      authorization_sha256: config.authorization_sha256, run_id: config.run_id, decision: 'NO_GO', stage_pass_claim: false,
+      error_code: error.message, cases: Object.fromEntries(CASES.map(c => [c, 'NOT_RUN'])),
+      counts: { fixed: CASES.length, PASS: 0, FAIL: 0, NOT_RUN: CASES.length }, browser_starts: 0 };
+  }
+  const directory = path.join(root, 'temp/browser-phase');
   const evidence = path.join(directory, 'evidence'); fs.mkdirSync(evidence, { recursive: false });
   const counter = new Counter(), artifacts = [], network = [], faults = [], cases = Object.fromEntries(CASES.map(c => [c, 'NOT_RUN']));
   let server, browser, context, child, processBirth, profile, profileIdentity, releaseHeld, holdTimer, state = { armed: false }, fatal, active;
@@ -109,7 +122,7 @@ async function run(config, parent, dependencies = {}) {
   const parentAborted = () => { fatal = parent.signal.reason || new Error('BROWSER_PARENT_ABORTED'); if (server) server.close().catch(() => {}); };
   parent.signal?.addEventListener('abort', parentAborted, { once: true });
   try {
-    await permit('preflight', {});
+    action('parent:preflight', { approved_before_directory_writes: true }); assertHealthy();
     const project = path.resolve(__dirname, '..'), policyPath = path.join(__dirname, 'v0_s2_browser_policy.cjs');
     const workflowPath = path.join(project, 'LVW_V0_RuntimePatch/workflows/video_reverse_prompt_v0.ui.json');
     if (digest(fs.readFileSync(__filename)) !== config.harness_sha256 || digest(fs.readFileSync(policyPath)) !== config.policy_sha256

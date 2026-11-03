@@ -1,0 +1,9 @@
+# Browser root authorization correction 01
+
+APPROVED_FOR_OFFLINE_IMPLEMENTATION by codex_gate_owner; packet1.0.18 refreezes the internal parent preflight contract before any native use. Business API/Schema, fixed Stage/cumulative denominator, thresholds and external budgets remain unchanged. No native action is authorized.
+
+Code review after candidate f81d2a3's passing directed checks found that the worker created its empty evidence directory before parent preflight approval. Its test checked no browser launch but allowed that early filesystem mutation. Do not treat that narrower assertion as proof of the stronger authority boundary. Preserve browser-worker-directed-01 as the actual historical source/test result; it is not a real product run or Stage PASS and is not rewritten.
+
+Corrected ordering: validate inert config, require live parent, request preflight before resolving/mutating the configured runtime root or reading targets. The parent reply payload must now include owned_run_root, the exact canonical root from its active candidate-bound child; compare it with the actual resolved configured path. Only then create the evidence directory/action journal and perform media/executable/SDK checks or launch. Refusal, missing root or mismatch returns NO_GO with all nine rows NOT_RUN and no new worker directories/target reads/browser. The formal parent owns the rejection's terminal receipt/stdout/stderr; lack of a worker evidence directory cannot become a success. No retry/replacement is added.
+
+The offline test now proves both explicit parent refusal and wrong-root approval leave the worker evidence directory absent and launch count zero. Live root/source/SDK/CLI/Comfy compatibility, Python supervision, native evidence join and full Stage acceptance remain pending. Refreeze and recheck the corrected candidate before any real binding or browser execution.
