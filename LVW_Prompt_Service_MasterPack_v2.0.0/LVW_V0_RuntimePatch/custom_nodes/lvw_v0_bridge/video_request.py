@@ -5,12 +5,13 @@ import threading
 from . import core
 from .core import BridgeError, BridgeOwner
 from .video_node import comfy_frames
+from .video_transport import InterruptibleOllamaTransport
 
 
 class VideoRequestOwner:
     def __init__(self, decoder, *, bridge=None, tensor_builder=None):
         self.decoder = decoder
-        self.bridge = bridge or BridgeOwner()
+        self.bridge = bridge or BridgeOwner(transport=InterruptibleOllamaTransport())
         self.tensor_builder = tensor_builder or comfy_frames
         self._guard = threading.Lock()
         self._cancel = None
@@ -33,6 +34,9 @@ class VideoRequestOwner:
                 if not self._cancel.is_set():
                     self._state["cancel_epoch"] += 1
                     self._cancel.set()
+                    interrupt = getattr(self.bridge.transport, "cancel_active", None)
+                    if interrupt is not None:
+                        interrupt()
                 self._state.update(status="cancelling", resource_state="releasing")
             return copy.deepcopy(self._state)
 
@@ -53,6 +57,9 @@ class VideoRequestOwner:
             cancel = self._cancel
         pending = False
         try:
+            bind = getattr(self.bridge.transport, "bind_cancel", None)
+            if bind is not None:
+                bind(cancel)
             decoded = self.decoder.decode(reference, cancel=cancel)
             with self._guard:
                 if cancel.is_set():
