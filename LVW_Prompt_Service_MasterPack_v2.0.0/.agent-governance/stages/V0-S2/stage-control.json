@@ -2,7 +2,7 @@
   "schema_version": "lvw.stage-control/1",
   "project_id": "lvw-prompt-service",
   "stage_id": "V0-S2",
-  "stage_packet_version": "1.0.15",
+  "stage_packet_version": "1.0.16",
   "packet_status": "FROZEN",
   "gate_version": "lvw-gate/1",
   "baseline": {
@@ -41,7 +41,8 @@
     "reports/v0-s2/public-phase-decision-01.md",
     "reports/v0-s2/native-cancel-evidence-decision-01.md",
     "reports/v0-s2/public-cancellation-phase-decision-01.md",
-    "reports/v0-s2/owned-provider-fault-decision-01.md"
+    "reports/v0-s2/owned-provider-fault-decision-01.md",
+    "reports/v0-s2/short-video-and-lossless-export-decision-01.md"
   ],
   "roles": {
     "gate_owner": "codex_gate_owner",
@@ -326,5 +327,14 @@
     ],
     "must_be_last_default_phase": true,
     "no_stage_pass": true
+  },
+  "documented_input_boundaries": {
+    "decision": "reports/v0-s2/short-video-and-lossless-export-decision-01.md",
+    "sampled_frame_count_min": 1,
+    "sampled_frame_count_max": 4,
+    "default_and_performance_frames": 4,
+    "short_input_warning_required": true,
+    "lossless_integer_source_json_export": true,
+    "native_short_eof_compatibility": "NOT_RUN"
   }
 }

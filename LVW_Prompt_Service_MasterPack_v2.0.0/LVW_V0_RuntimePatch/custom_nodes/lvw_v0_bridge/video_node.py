@@ -75,7 +75,8 @@ class LVWControlledVideoInput:
                                "width": video.width, "height": video.height,
                                "duration_seconds": video.duration_seconds,
                                "decoder_backend": video.decoder_backend,
-                               "sampling": "four temporal window midpoints; first decoded frame at or after each target",
-                               "limitations": "Four samples do not establish events between samples or continuous motion.",
+                               "sampling": "up to four temporal window midpoints; first decoded frame at or after each target; if all windows are empty use the first source frame",
+                               "limitations": f"{len(video.frames)} samples do not establish events between samples or continuous motion."
+                                   + (' Fewer than four distinct sampling timestamps were obtained; no frame was copied.' if len(video.frames)<4 else ''),
                                "frames": video.manifest}, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
         return {"ui": {"text": [metadata]}, "result": (frames, metadata)}

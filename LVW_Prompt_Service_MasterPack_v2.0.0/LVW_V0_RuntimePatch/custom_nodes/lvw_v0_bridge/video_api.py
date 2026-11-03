@@ -84,7 +84,8 @@ class LVWVideoPromptOwner(_NodeBase):
                     images.append("data:image/png;base64," + base64.b64encode(output.getvalue()).decode("ascii"))
             PromptServer.instance.send_sync("lvw.video.preview", {"node_id":str(unique_id), "run_token":token,
                 "images":images, "frames":list(decoded.manifest),
-                "limitation":"仅观察四个采样帧，不能证明未采样片段或连续运动。"},client)
+                "limitation":f"仅观察 {len(images)} 个采样帧，不能证明未采样片段或连续运动。"
+                    + ('本轮采样未取得四个不同时间点，未复制帧。' if len(images)<4 else '')},client)
         result = owner.run(uuid.uuid4().hex, video_reference, model=model,
                            user_instruction=user_instruction, mode=mode, timeout_seconds=timeout_seconds,
                            preview_hook=preview, state_hook=started)

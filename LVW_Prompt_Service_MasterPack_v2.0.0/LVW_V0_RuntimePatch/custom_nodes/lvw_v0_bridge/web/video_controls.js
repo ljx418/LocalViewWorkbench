@@ -1,5 +1,6 @@
 import { app } from "../../scripts/app.js";
 import { api } from "../../scripts/api.js";
+import { rawMember, resultJson } from "./video_json.js";
 
 app.registerExtension({
   name: "LVW.VideoControls",
@@ -20,9 +21,9 @@ app.registerExtension({
       const gallery = document.createElement("div");
       Object.assign(gallery.style, { display: "grid", gridTemplateColumns: "repeat(2,minmax(0,1fr))", gap: "8px" });
       const limitation = document.createElement("p");
-      limitation.textContent = "仅观察四个采样帧，不能证明未采样片段或连续运动。";
+      limitation.textContent = "最多观察四个采样帧，不能证明未采样片段或连续运动。";
       const rawDetails = document.createElement("details");
-      const rawTitle = document.createElement("summary"); rawTitle.textContent = "模型原始响应（四帧）";
+      const rawTitle = document.createElement("summary"); rawTitle.textContent = "模型原始响应（采样帧）";
       const rawText = document.createElement("pre");
       const suggestionTitle = document.createElement("p"); suggestionTitle.textContent = "机器建议（不会自动覆盖人工稿）";
       const suggestionText = document.createElement("pre");
@@ -42,7 +43,7 @@ app.registerExtension({
       const editors = {};
       const fields = { natural_zh: "中文自然描述", natural_en: "English description", image_prompt: "图像提示词",
         video_prompt: "视频提示词", tags: "标签（逗号分隔）", negative: "负向词", edit_instruction: "编辑指令" };
-      let revision = 0, adoptedResult = null, draftEdited = false, replaceArmed = false;
+      let revision = 0, adoptedResult = null, adoptedSourceJson = null, draftEdited = false, replaceArmed = false;
       let request = null, actionBusy = false, suggestionReady = false;
       const downloadUrls = new Set();
       const draftStatus = document.createElement("p"); draftStatus.setAttribute("role", "status");
@@ -70,9 +71,10 @@ app.registerExtension({
         request = new AbortController();
         const response = await api.fetchApi("/lvw/v0/video/workbench", { method: "POST",
           headers: { ...headers, "Content-Type": "application/json" }, body: JSON.stringify(body), signal: request.signal });
-        const value = await response.json();
+        const raw = await response.text();
+        const value = JSON.parse(raw);
         if (!response.ok) throw new Error(value.error?.message || `人工稿操作失败 (${response.status})`);
-        return value;
+        return { ...value, sourceJson: body.action === "adopt" ? rawMember(raw, ["result", "source"]) : null };
       };
       const download = (name, payload, type) => {
         const url = URL.createObjectURL(new Blob([payload], { type })); downloadUrls.add(url);
@@ -111,13 +113,13 @@ app.registerExtension({
           }
           for (const name of Object.keys(fields)) editors[name].value = name === "tags"
             ? value.result.draft.tags.join(", ") : value.result.draft[name];
-          adoptedResult = value.result; revision++; draftEdited = false;
+          adoptedResult = value.result; adoptedSourceJson = value.sourceJson; revision++; draftEdited = false;
           draftStatus.textContent = "已显式采纳，可继续编辑；缺失语言未自动翻译。";
         });
       };
       const exportDraft = (kind) => {
         const expectedRevision = revision;
-        const snapshot = adoptedResult, edited = draftEdited;
+        const snapshot = adoptedResult, sourceSnapshot = adoptedSourceJson, edited = draftEdited;
         const values = Object.fromEntries(Object.keys(fields).map((name) => [name, editors[name].value]));
         return operate(async () => {
           const value = await callWorkbench({ action: "preview", fields: values });
@@ -126,7 +128,7 @@ app.registerExtension({
           const result = snapshot ? { ...snapshot, draft: value.result.draft,
             draft_origin: edited ? "edited" : "model_adopted" } : value.result;
           if (kind === "copy") await navigator.clipboard.writeText(value.txt);
-          else download(`lvw-video-draft.${kind}`, kind === "json" ? JSON.stringify(result, null, 2) + "\n" : value.txt,
+          else download(`lvw-video-draft.${kind}`, kind === "json" ? resultJson(result, snapshot ? sourceSnapshot : null) : value.txt,
             kind === "json" ? "application/json;charset=utf-8" : "text/plain;charset=utf-8");
           if (!removed) draftStatus.textContent = revision === expectedRevision ? "人工稿已复制或导出。"
             : "已导出操作开始时的人工稿；后续修改仍需再次导出。";
@@ -223,10 +225,14 @@ app.registerExtension({
           const metadata = JSON.parse(message.text[2]);
           const suggestion = JSON.parse(message.text[1]);
           if (metadata.run_token !== token || metadata.cancel_epoch !== 0 || suggestion.schema_version !== "lvw.prompt/1") return;
+          if (!Array.isArray(metadata.frames) || metadata.frames.length < 1 || metadata.frames.length > 4) throw new Error("invalid frame count");
           rawText.textContent = message.text[0];
           suggestionText.textContent = JSON.stringify(suggestion, null, 2);
           suggestionReady = true; updateActions();
-          status.textContent = "四帧分析完成。机器建议与人工稿分开，采样限制仍适用。";
+          const count = metadata.frames.length;
+          limitation.textContent = `仅观察 ${count} 个采样帧，不能证明未采样片段或连续运动。`
+            + (count < 4 ? "本轮采样未取得四个不同时间点，未复制帧。" : "");
+          status.textContent = `${count} 帧分析完成。机器建议与人工稿分开，采样限制仍适用。`;
         } catch { status.textContent = "分析结果格式无效，未更新展示。"; }
       };
       refresh();

@@ -100,13 +100,13 @@ def validate_probe(document, *, byte_count):
 
 
 def frame_manifest(probe, decoded_frames):
-    """Bind four normalized image bytes to actual decoder timestamps.
+    """Bind one to four unique source timestamps to normalized image bytes.
 
     decoded_frames contains (PTS, width, height, normalized_image_bytes).
     Duplicate/nonmonotonic timestamps fail rather than claiming temporal proof.
     """
-    if len(decoded_frames) != DEFAULT_FRAMES:
-        raise invalid("exactly four decoded frames required", "VIDEO_FRAME_COUNT_INVALID")
+    if not 1 <= len(decoded_frames) <= DEFAULT_FRAMES:
+        raise invalid("one to four decoded frames required", "VIDEO_FRAME_COUNT_INVALID")
     result = []
     previous = None
     for index, (pts_value, width_value, height_value, image) in enumerate(decoded_frames):

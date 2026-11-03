@@ -34,6 +34,7 @@ def project(body, owner=None):
         value['result'].update(source_type='video', run_id=token, analysis_status='succeeded',
             source=run['source'], model_tag=run['model_tag'], raw_response=run['raw_response'],
             suggestion=spec, draft_origin='model_adopted',
-            warnings=['Only four sampled frames were observed; unsampled events and continuous motion are unverified.'])
+            warnings=[f"Only {len(run['frames'])} sampled frames were observed; unsampled events and continuous motion are unverified."]
+                + (['Fewer than four distinct sampling timestamps were obtained; no frame was copied.'] if len(run['frames'])<4 else []))
         return value
     raise ValueError('unsupported workbench action or fields')
