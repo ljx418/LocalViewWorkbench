@@ -2,7 +2,7 @@
   "schema_version": "lvw.stage-control/1",
   "project_id": "lvw-prompt-service",
   "stage_id": "V0-S2",
-  "stage_packet_version": "1.0.18",
+  "stage_packet_version": "1.0.19",
   "packet_status": "FROZEN",
   "gate_version": "lvw-gate/1",
   "baseline": {
@@ -44,7 +44,8 @@
     "reports/v0-s2/owned-provider-fault-decision-01.md",
     "reports/v0-s2/short-video-and-lossless-export-decision-01.md",
     "reports/v0-s2/native-browser-worker-decision-01.md",
-    "reports/v0-s2/native-browser-root-authorization-correction-01.md"
+    "reports/v0-s2/native-browser-root-authorization-correction-01.md",
+    "reports/v0-s2/frontend-binding-preparation-decision-01.md"
   ],
   "roles": {
     "gate_owner": "codex_gate_owner",
@@ -92,7 +93,16 @@
       "status": "STRUCTURAL_INPUTS_VERIFIED_NATIVE_PRODUCT_NOT_RUN",
       "requires_product_child": true
     },
-    "fixture_preparation_attempts_consumed": 2
+    "fixture_preparation_attempts_consumed": 2,
+    "frontend_binding": {
+      "decision": "reports/v0-s2/frontend-binding-preparation-decision-01.md",
+      "scope": "READ_ONLY_FRONTEND_BINDINGS",
+      "max_attempts": 2,
+      "service_starts": 0,
+      "media_reads": 0,
+      "browser_starts": 0,
+      "counts_as_stage_acceptance": false
+    }
   },
   "cumulative_release_ids": [
     "V0-A01",
