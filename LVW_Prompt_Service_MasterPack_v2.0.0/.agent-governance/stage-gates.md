@@ -37,3 +37,7 @@ Candidate: CREATED -> SELF_CHECKED -> CI_CHECKED -> INDEPENDENT_REVIEWED -> DECI
 - `WAIT_AUTH`：等待一次明确的人类高风险授权。
 
 任何 `FAIL/BLOCKED/SKIPPED/NOT_RUN` 不得计入 PASS。Codex 的 Stage PASS 不自动等于人类生产发布批准。
+
+## 人工验收后立即同步 Git
+
+项目负责人2026-11-03授权：每个 Stage 开发完成并通过人工验收后，立即提交阶段代码、脱敏证据和签署记录，推送到已配置远端及跟踪分支。该授权取代历史远程推送禁令，覆盖已签署 R1a 的补推。禁止强制推送和覆盖远端历史；遇到分支冲突或凭据失败应保留本地提交并报告。远端同步不构成生产发布批准。停止报告须区分本地 commit、远端推送成功与实际发布。
