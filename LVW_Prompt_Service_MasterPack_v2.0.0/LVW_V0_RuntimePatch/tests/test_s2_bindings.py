@@ -3,11 +3,18 @@ import hashlib
 from pathlib import Path
 import tempfile
 import unittest
+from types import SimpleNamespace
+from unittest.mock import patch
 
-from tools.v0_s2_bindings import BindingError,sample_inventory,validate_authority
+from tools.v0_s2_bindings import BindingError,sample_inventory,validate_authority,native_decoder_paths
 
 
 class BindingTests(unittest.TestCase):
+    def test_native_command_failure_never_decodes_localized_stderr(self):
+        with patch('subprocess.run',return_value=SimpleNamespace(returncode=1,stdout=b'',stderr=b'\xff\xfe')) as run:
+            with self.assertRaisesRegex(BindingError,'NATIVE_DECODER_PATH_QUERY_FAILED'):
+                native_decoder_paths()
+        self.assertIn('OutputEncoding',run.call_args.args[0][-1])
     def test_media_aliases_hashes_and_out_of_root_symlink(self):
         with tempfile.TemporaryDirectory() as temp:
             root=Path(temp)/'source';root.mkdir()

@@ -77,12 +77,12 @@ def validate_authority(auth, program, *, candidate, harness_sha):
 
 def native_decoder_paths():
     # Query native PATH only; do not execute FFmpeg or touch permanent config.
-    script = "@('ffmpeg.exe','ffprobe.exe') | ForEach-Object {$c=Get-Command $_ -CommandType Application -ErrorAction Stop; [pscustomobject]@{name=$_;path=$c.Source}} | ConvertTo-Json -Compress"
+    script = "[Console]::OutputEncoding=[System.Text.UTF8Encoding]::new($false);$ErrorActionPreference='Stop'; @('ffmpeg.exe','ffprobe.exe') | ForEach-Object {$c=Get-Command $_ -CommandType Application -ErrorAction Stop; [pscustomobject]@{name=$_;path=$c.Source}} | ConvertTo-Json -Compress"
     result = subprocess.run(['powershell.exe','-NoProfile','-NonInteractive','-Command',script],
-        capture_output=True,text=True,timeout=30,encoding='utf-8',errors='strict')
+        capture_output=True,timeout=30)
     if result.returncode: raise BindingError('NATIVE_DECODER_PATH_QUERY_FAILED')
     paths = {}
-    for value in json.loads(result.stdout):
+    for value in json.loads(result.stdout.decode('utf-8-sig','strict')):
         converted = subprocess.check_output(['wslpath','-u',value['path']],text=True,timeout=5).strip()
         path = Path(converted)
         if path.name.lower() not in {'ffmpeg.exe','ffprobe.exe'} or not path.is_file():
