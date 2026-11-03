@@ -26,7 +26,7 @@ def file_hash(path):
     return value.hexdigest()
 
 
-def sample_inventory(root):
+def sample_inventory(root, selection=None):
     """Hash up to 24 allowed media files, <=256MiB each and <=1GiB total."""
     root = Path(root).resolve(strict=True)
     candidates = []
@@ -34,8 +34,17 @@ def sample_inventory(root):
         if visited >= 4096: raise BindingError('SAMPLE_TREE_SCAN_BUDGET_EXCEEDED')
         if path.suffix.lower() in {'.png','.jpg','.jpeg','.webp','.mp4','.mov'}:
             candidates.append(path)
-            if len(candidates) > 24: raise BindingError('SAMPLE_INVENTORY_COUNT_OUT_OF_SCOPE')
+            if selection is None and len(candidates) > 24: raise BindingError('SAMPLE_INVENTORY_COUNT_OUT_OF_SCOPE')
     candidates.sort()
+    if selection is not None:
+        validate_sample_selection(selection)
+        selected=[]
+        for kind,extensions in [('image',{'.png','.jpg','.jpeg','.webp'}),('video',{'.mp4','.mov'})]:
+            matching=[path for path in candidates if path.suffix.lower() in extensions]
+            count=selection[kind]
+            if len(matching)<count:raise BindingError('DECLARED_SAMPLE_SELECTION_UNAVAILABLE')
+            selected.extend(matching[:count])
+        candidates=sorted(selected)
     if not candidates or len(candidates) > 24:
         raise BindingError('SAMPLE_INVENTORY_COUNT_OUT_OF_SCOPE')
     result = []; total = 0
@@ -58,7 +67,15 @@ def sample_inventory(root):
     return result
 
 
+def validate_sample_selection(selection):
+    if (not isinstance(selection,dict) or set(selection)!={'image','video'}
+            or any(type(value) is not int or value < 1 for value in selection.values())
+            or sum(selection.values())>24):
+        raise BindingError('SAMPLE_SELECTION_INVALID')
+
+
 def validate_authority(auth, program, *, candidate, harness_sha):
+    if 'sample_selection' in auth:validate_sample_selection(auth['sample_selection'])
     if not (program.get('status') == 'ACTIVE'
             and program.get('authorization_id') == 'AUTH-PROGRAM-V1-LOCAL-01'
             and 'V0-S2' in program.get('stages',[])
@@ -167,7 +184,7 @@ def main():
         receipt['executables']={}
         for alias,path in TARGETS.items():
             receipt['executables'][alias]={'sha256':file_hash(path),'bytes':path.stat().st_size}
-        receipt['samples']=sample_inventory(SOURCE)
+        receipt['samples']=sample_inventory(SOURCE,auth.get('sample_selection'))
         for alias,path in native_decoder_paths().items():
             receipt['executables'][alias]={'sha256':file_hash(path),'bytes':path.stat().st_size}
         receipt['decision']='BINDINGS_COLLECTED_NOT_ACCEPTANCE'

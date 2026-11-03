@@ -60,6 +60,20 @@ class BindingTests(unittest.TestCase):
             for i in range(25):(Path(temp)/f'{i}.png').write_bytes(b'fixture')
             with self.assertRaisesRegex(BindingError,'COUNT'):sample_inventory(temp)
 
+    def test_declared_representative_selection_is_fixed_before_hashing(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp)
+            for i in range(25):(root/f'{i:02}.png').write_bytes(str(i).encode())
+            (root/'video.mp4').write_bytes(b'video')
+            selected=sample_inventory(root,{'image':1,'video':1})
+            self.assertEqual(2,len(selected))
+            self.assertEqual(hashlib.sha256(b'0').hexdigest(),selected[0]['sha256'])
+            for selection in ({'image':0,'video':1},{'image':1,'video':True},{'image':24,'video':1}):
+                with self.subTest(selection=selection),self.assertRaisesRegex(BindingError,'SELECTION_INVALID'):
+                    sample_inventory(root,selection)
+            with self.assertRaisesRegex(BindingError,'SELECTION_UNAVAILABLE'):
+                sample_inventory(root,{'image':1,'video':2})
+
     def test_exact_budget_and_scope_authority(self):
         program={'status':'ACTIVE','authorization_id':'AUTH-PROGRAM-V1-LOCAL-01','stages':['V0-S2']}
         auth={'status':'ACTIVE_ONE_SHOT','source_program_authorization':program['authorization_id'],
