@@ -114,6 +114,40 @@ class NativeRuntime(S2SystemDriver):
         if status!=200 or value.get('done') is not True:raise base.StopProbe('MODEL_PRELOAD_FAILED')
         return value
 
+    def release_preload(self,binding,worker):
+        """Recover only this run's owned preload after preparation/failure.
+
+        No provider retry. Root proof, unload, inventory and physical stability
+        share one thirty-second budget; samples retain their native clock.
+        """
+        deadline=time.monotonic()+30
+        root=self.owned_listener_birth(11434)
+        if (root['pid'],root['start_ticks'])!=(binding['ollama_pid'],binding['ollama_start_ticks']):
+            raise base.StopProbe('PRELOAD_OWNER_CHANGED')
+        baseline=binding['baseline_gpu_mib']
+        if type(baseline) is not int or not 0<=baseline<=4096:raise base.StopProbe('PRELOAD_BASELINE_INVALID')
+        def remaining(cap):
+            left=deadline-time.monotonic()
+            if left<=0:raise base.StopProbe('PRELOAD_RELEASE_TIMEOUT')
+            return min(cap,left)
+        status,value=self._json_request(base.OLLAMA_URL+'/api/generate',
+            payload={'model':base.MODEL,'keep_alive':0},timeout=remaining(15))
+        if status!=200 or value.get('done') is not True:raise base.StopProbe('PRELOAD_UNLOAD_UNACKNOWLEDGED')
+        while True:
+            _,state=self._json_request(base.OLLAMA_URL+'/api/ps',timeout=remaining(2))
+            if state.get('models')==[]:break
+            if not isinstance(state.get('models'),list):raise base.StopProbe('PRELOAD_INVENTORY_INVALID')
+            time.sleep(min(.1,remaining(.1)))
+        observed=self.native_clock()['monotonic_seconds'];remaining(1)
+        samples=[];stable=0
+        while True:
+            point=worker.wait_point(after=observed,timeout=remaining(3))
+            observed=point['monotonic_seconds'];remaining(1)
+            samples.append(point)
+            stable=stable+1 if point['gpu_used_mib']<=baseline+1024 else 0
+            if stable>=3:return {'proven':True,'loaded_models':0,'baseline_gpu_mib':baseline,
+                'gpu_samples':samples,'elapsed_seconds':30-(deadline-time.monotonic())}
+
     def chat_log_count(self):
         if self.ollama_log is None:raise base.StopProbe('OLLAMA_LOG_UNAVAILABLE')
         if self.ollama_log.stat().st_size>16*1024*1024:raise base.StopProbe('OLLAMA_LOG_LIMIT')

@@ -73,6 +73,34 @@ class RuntimeTests(unittest.TestCase):
                 SamplerWorker(self.runtime(),Path('unused'),'binary',digest,seconds,pids)
             spawn.assert_not_called()
 
+    def test_failed_preload_recovery_reproves_owner_and_waits_for_three_fresh_gpu_points(self):
+        driver=self.runtime();binding={'ollama_pid':10,'ollama_start_ticks':100,'baseline_gpu_mib':100}
+        worker=MagicMock();worker.wait_point.side_effect=[
+            {'monotonic_seconds':11,'gpu_used_mib':1124},
+            {'monotonic_seconds':12,'gpu_used_mib':1125},
+            {'monotonic_seconds':13,'gpu_used_mib':1124},
+            {'monotonic_seconds':14,'gpu_used_mib':1124},
+            {'monotonic_seconds':15,'gpu_used_mib':1124}]
+        with patch.object(driver,'owned_listener_birth',return_value={'pid':10,'start_ticks':100}), \
+             patch.object(driver,'native_clock',return_value={'monotonic_seconds':10}), \
+             patch.object(driver,'_json_request',side_effect=[(200,{'done':True}),(200,{'models':[]})]) as control:
+            result=driver.release_preload(binding,worker)
+        self.assertTrue(result['proven']);self.assertEqual(5,len(result['gpu_samples']))
+        self.assertEqual(2,control.call_count)
+        self.assertEqual([10,11,12,13,14],[call.kwargs['after'] for call in worker.wait_point.call_args_list])
+        with patch.object(driver,'owned_listener_birth',return_value={'pid':10,'start_ticks':101}), \
+             patch.object(driver,'_json_request') as control,self.assertRaises(base.StopProbe):
+            driver.release_preload(binding,worker)
+        control.assert_not_called()
+
+    def test_preload_recovery_root_proof_cannot_consume_a_fresh_unload_budget(self):
+        driver=self.runtime();clock=[0]
+        def slow(port):clock[0]=31;return {'pid':10,'start_ticks':100}
+        with patch('time.monotonic',side_effect=lambda:clock[0]),patch.object(driver,'owned_listener_birth',side_effect=slow), \
+             patch.object(driver,'_json_request') as control,self.assertRaises(base.StopProbe):
+            driver.release_preload({'ollama_pid':10,'ollama_start_ticks':100,'baseline_gpu_mib':100},MagicMock())
+        control.assert_not_called()
+
     def test_sampler_refuses_dead_worker_and_resource_limit_before_using_last_point(self):
         for exited,gpu,ram,passed in [(True,100,4096,False),(False,23552,4096,False),
                                       (False,23551,2047,False),(False,23551,2048,True)]:

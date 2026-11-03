@@ -169,6 +169,11 @@ def hot_record(*,run_id,sample_run_id,candidate_sha,authorization_sha256,kind,bi
                 samples.append({'elapsed_seconds':observed-started,'gpu_used_mib':point['gpu_used_mib'],
                                 'available_ram_mib':point['available_ram_mib'],'private_bytes':point['private_bytes']})
                 if observed>=finished:covered=True
+        stable_start=release_start+gpu_samples[-3]['elapsed_seconds']
+        stable_end=release_start+gpu_samples[-1]['elapsed_seconds']
+        corroboration=[point for point in resource_samples if stable_start<=point['monotonic_seconds']<=stable_end]
+        if len(corroboration)<2 or any(point['gpu_used_mib']>baseline+1024 for point in corroboration):
+            raise ValueError('independent sampler does not corroborate physical release')
         if not covered:raise ValueError('resource trace ends before public request')
         return {'run_id':run_id,'candidate_sha':candidate_sha,'sample_run_id':sample_run_id,'kind':kind,
             'phase':'hot','duration_seconds':finished-started,'provider_calls':count,'outcome':'succeeded','oom':False,

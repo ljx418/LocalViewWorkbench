@@ -45,7 +45,7 @@ def artifacts(kind='video'):
         resource_release={'state':'released','checks':1,'loaded_models':0,'baseline_gpu_mib':100,
             'started_monotonic_seconds':103,'elapsed_seconds':2.1,
             'gpu_samples':[{'elapsed_seconds':t,'gpu_used_mib':1124} for t in (.1,1.1,2.1)]}))
-    points=[{'sample_index':i,'monotonic_seconds':100+i,'gpu_used_mib':20000,'available_ram_mib':4096,
+    points=[{'sample_index':i,'monotonic_seconds':100+i,'gpu_used_mib':1124 if i>=4 else 20000,'available_ram_mib':4096,
              'private_bytes':{'10':1000,'20':2000}} for i in range(7)]
     receipt={'decision':'RESOURCE_TRACE_COLLECTED_NOT_STAGE_ACCEPTANCE','owned_gpu_query_exited':True,'samples':7,
              'nvidia_binary_sha256':'1'*64,'nvidia_binary_sha256_after':'1'*64,'private_process_set':[10,20]}
@@ -69,7 +69,7 @@ class MeasurementTests(unittest.TestCase):
     def test_cross_run_raw_lineage_restore_and_sampler_corruption_fail_closed(self):
         for case in ('old-auth','wrong-raw','foreign-pid','pid-reused','restoration-omitted','sampler-failed',
                      'changed-binary','omitted-private','source-changed','event-shifted','no-final-sample','invalid-spec','expired-call','bad-prelude','logical-unload-only','gpu-one-over','two-samples',
-                     'wrong-baseline','release-too-late','release-started-before-call','fast-samples'):
+                     'wrong-baseline','release-too-late','release-started-before-call','fast-samples','sampler-release-disagrees'):
             values=artifacts();events=values['warm_events']
             if case=='old-auth':events[1]['authorization_sha256']='0'*64
             if case=='wrong-raw':events[2]['provider_raw_sha256']='0'*64
@@ -90,6 +90,7 @@ class MeasurementTests(unittest.TestCase):
                                  'available_ram_mib':4096,'private_bytes':{'10':1000,'20':2000}})
                 for index,point in enumerate(points):point['sample_index']=index
                 values['sampler_receipt']['samples']=8
+            if case=='sampler-release-disagrees':values['resource_samples'][4]['gpu_used_mib']=20000
             if case=='logical-unload-only':events[-1]['resource_release']['state']='model_unloaded'
             if case=='gpu-one-over':events[-1]['resource_release']['gpu_samples'][-1]['gpu_used_mib']=1125
             if case=='two-samples':events[-1]['resource_release']['gpu_samples'].pop(0)
