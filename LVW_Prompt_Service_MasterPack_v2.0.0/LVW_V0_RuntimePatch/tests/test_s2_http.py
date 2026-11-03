@@ -1,8 +1,9 @@
 """Synthetic HTTP boundaries: no service or socket is opened."""
 import unittest
+import threading
 from unittest.mock import MagicMock, patch
 
-from tools.v0_s2_http import ControlError, LoopbackClient
+from tools.v0_s2_http import ControlError, LoopbackClient,PinnedLoopbackClient,_NoReconnectConnection
 
 
 class ControlClientTests(unittest.TestCase):
@@ -80,6 +81,66 @@ class ControlClientTests(unittest.TestCase):
             with patch('http.client.HTTPConnection',return_value=connection),patch('time.monotonic',side_effect=times):
                 with self.assertRaisesRegex(ControlError,error):LoopbackClient('http://127.0.0.1:11434').request('GET','/api/ps')
             connection.close.assert_called_once()
+
+    def test_pinned_control_uses_one_proven_peer_for_queue_status_and_cancel(self):
+        connection,response=self.connection(chunks=(b'{}',b'',b'{}',b'',b'{}',b''))
+        connection.sock.fileno.return_value=5;proof={'pid':10,'start_ticks':100}
+        with patch('tools.v0_s2_http._NoReconnectConnection',return_value=connection) as factory:
+            client=PinnedLoopbackClient('http://127.0.0.1:8191');self.assertEqual(proof,client.pin(lambda:proof))
+            client.request('POST','/prompt',payload={'prompt':{}})
+            client.request('GET','/lvw/v0/video/status',observer=lambda:None)
+            client.request('POST','/lvw/v0/video/cancel',payload={'run_token':'one'},observer=lambda:None)
+            connection.close.assert_not_called();client.close()
+        self.assertEqual(1,factory.call_count);self.assertEqual(1,connection.connect.call_count)
+        self.assertEqual(3,connection.request.call_count);self.assertEqual(1,connection.close.call_count)
+        with self.assertRaises(ControlError):client.pin(lambda:proof)
+
+    def test_pinned_owner_change_or_dead_socket_never_sends_cancel_to_replacement(self):
+        proof={'pid':10,'start_ticks':100}
+        for case in ('root-change','socket-gone','closed-fd','http-error'):
+            connection,response=self.connection(status=503 if case=='http-error' else 200)
+            connection.sock.fileno.return_value=5
+            with self.subTest(case=case),patch('tools.v0_s2_http._NoReconnectConnection',return_value=connection) as factory:
+                client=PinnedLoopbackClient('http://127.0.0.1:8191')
+                if case=='root-change':
+                    checks=iter([proof,{**proof,'start_ticks':101}])
+                    with self.assertRaises(ControlError):client.pin(lambda:next(checks))
+                else:
+                    client.pin(lambda:proof)
+                    if case=='socket-gone':connection.sock=None
+                    if case=='closed-fd':connection.sock.fileno.return_value=-1
+                    with self.assertRaises(ControlError):client.request('GET','/lvw/v0/video/status')
+                sent=connection.request.call_count
+                with self.assertRaises(ControlError):client.request('POST','/lvw/v0/video/cancel',payload={'run_token':'one'})
+                self.assertEqual(sent,connection.request.call_count);self.assertEqual(1,factory.call_count)
+                client.close()
+
+    def test_pinned_transport_refuses_http_clients_automatic_reconnect(self):
+        with patch('http.client.HTTPConnection.connect') as connect:
+            connection=_NoReconnectConnection('127.0.0.1',8191)
+            connection.connect()
+            with self.assertRaises(ControlError):connection.connect()
+        self.assertEqual(1,connect.call_count)
+
+    def test_pinned_observer_abort_closes_only_owned_socket_and_reaps_worker(self):
+        connection,response=self.connection();connection.sock.fileno.return_value=5
+        stopped=threading.Event();reading=threading.Event();owned_socket=connection.sock
+        owned_socket.shutdown.side_effect=lambda *args:stopped.set()
+        def read(count):
+            reading.set()
+            if not stopped.wait(2):raise AssertionError('owned request not interrupted')
+            raise OSError('owned interruption')
+        response.read1.side_effect=read
+        def observer():
+            if reading.is_set():raise ControlError('synthetic resource limit')
+        with patch('tools.v0_s2_http._NoReconnectConnection',return_value=connection):
+            client=PinnedLoopbackClient('http://127.0.0.1:8191');client.pin(lambda:{'pid':10,'start_ticks':100})
+            with self.assertRaisesRegex(ControlError,'resource limit'):
+                client.request('GET','/lvw/v0/video/status',observer=observer)
+            self.assertEqual(0,client.pending_count());self.assertIsNone(client.connection)
+            self.assertTrue(stopped.is_set());connection.close.assert_called_once()
+            with self.assertRaises(ControlError):client.request('POST','/lvw/v0/video/cancel',payload={'run_token':'one'})
+        self.assertEqual(1,connection.request.call_count)
 
 
 if __name__ == '__main__':unittest.main()

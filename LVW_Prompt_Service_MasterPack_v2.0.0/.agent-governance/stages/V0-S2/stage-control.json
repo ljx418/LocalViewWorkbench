@@ -2,7 +2,7 @@
   "schema_version": "lvw.stage-control/1",
   "project_id": "lvw-prompt-service",
   "stage_id": "V0-S2",
-  "stage_packet_version": "1.0.13",
+  "stage_packet_version": "1.0.14",
   "packet_status": "FROZEN",
   "gate_version": "lvw-gate/1",
   "baseline": {
@@ -39,7 +39,8 @@
     "reports/v0-s2/fixture-vfr-correction-decision-01.md",
     "reports/v0-s2/frozen-structural-inputs-02.json",
     "reports/v0-s2/public-phase-decision-01.md",
-    "reports/v0-s2/native-cancel-evidence-decision-01.md"
+    "reports/v0-s2/native-cancel-evidence-decision-01.md",
+    "reports/v0-s2/public-cancellation-phase-decision-01.md"
   ],
   "roles": {
     "gate_owner": "codex_gate_owner",
@@ -296,6 +297,18 @@
     "status": "OFFLINE_IMPLEMENTED_NATIVE_NOT_RUN",
     "process_flag": "LVW_NATIVE_CHECKPOINT=run-owned-v1",
     "default_enabled": false,
+    "no_stage_pass": true
+  },
+  "cancellation_phase": {
+    "entry": "tools/v0_s2_cancel_phase.py",
+    "decision": "reports/v0-s2/public-cancellation-phase-decision-01.md",
+    "status": "OFFLINE_IMPLEMENTED_NATIVE_NOT_RUN",
+    "fixed_subchecks": [
+      "preparation",
+      "provider"
+    ],
+    "one_shot": true,
+    "pinned_public_control_peer": true,
     "no_stage_pass": true
   }
 }

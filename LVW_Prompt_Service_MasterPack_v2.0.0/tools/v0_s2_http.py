@@ -4,6 +4,7 @@ import json
 import time
 import socket
 import threading
+import copy
 from urllib.parse import urlsplit
 
 
@@ -98,13 +99,12 @@ class LoopbackClient:
     def _request(self,method,path,*,payload=None,timeout=20,owned=None):
         body=self._validate(method,path,payload,timeout)
         deadline = time.monotonic() + timeout
-        connection = http.client.HTTPConnection('127.0.0.1', self.port, timeout=timeout)
-        response = None
+        connection = self._make_connection(timeout)
+        response = None;successful=False
         try:
             if owned is not None:
                 if owned.abort.is_set():raise ControlError('CONTROL_ABORTED')
-                connection.timeout=min(1,timeout)
-                connection.connect()
+                self._connect_owned(connection,timeout)
                 owned.attach(connection.sock)
                 remaining=deadline-time.monotonic()
                 if owned.abort.is_set():raise ControlError('CONTROL_ABORTED')
@@ -135,10 +135,71 @@ class LoopbackClient:
             value = json.loads(raw)
             if not isinstance(value, dict):
                 raise ControlError('CONTROL_RESPONSE_SHAPE')
+            successful=True
             return response.status, value
         finally:
             if response is not None:
                 response.close()
-            connection.close()
+            self._finish_connection(connection,successful)
             if owned is not None:
                 with owned.guard:owned.sock=None
+
+    def _make_connection(self,timeout):
+        return http.client.HTTPConnection('127.0.0.1',self.port,timeout=timeout)
+
+    def _connect_owned(self,connection,timeout):
+        connection.timeout=min(1,timeout);connection.connect()
+
+    def _finish_connection(self,connection,successful):connection.close()
+
+
+class _NoReconnectConnection(http.client.HTTPConnection):
+    def __init__(self,*args,**kwargs):
+        super().__init__(*args,**kwargs);self.initial_connect=True
+
+    def connect(self):
+        if not self.initial_connect:raise ControlError('PINNED_CONNECTION_RECONNECT_FORBIDDEN')
+        self.initial_connect=False
+        super().connect()
+
+
+class PinnedLoopbackClient(LoopbackClient):
+    """One proven Comfy TCP peer, no transparent reconnection to a replacement.
+
+    Pin before queueing work; the expensive native owner proof is then outside
+    cancellation's short preparation window. Any broken/closed connection fails
+    the phase rather than connecting a cancel request to another process.
+    """
+    def __init__(self,endpoint,**kwargs):
+        super().__init__(endpoint,**kwargs)
+        if self.port!=8191:raise ControlError('PINNED_COMFY_ONLY')
+        self.connection=None;self.socket=None;self.proof=None;self.used=False
+
+    def pin(self,prove):
+        if self.used or not callable(prove):raise ControlError('PINNED_SESSION_REPLAY_OR_PROOF_INVALID')
+        self.used=True;before=copy.deepcopy(prove())
+        if (not isinstance(before,dict) or any(type(before.get(k)) is not int or before[k]<=0 for k in ('pid','start_ticks'))):
+            raise ControlError('PINNED_OWNER_PROOF_INVALID')
+        connection=_NoReconnectConnection('127.0.0.1',8191,timeout=2)
+        try:
+            connection.connect()
+            if prove()!=before or connection.sock is None:raise ControlError('PINNED_OWNER_CHANGED')
+            self.connection=connection;self.socket=connection.sock;self.proof=before
+            return copy.deepcopy(before)
+        except BaseException:
+            connection.close();raise
+
+    def _make_connection(self,timeout):
+        if (self.connection is None or self.connection.sock is not self.socket or self.socket is None
+                or self.socket.fileno()<0):raise ControlError('PINNED_CONNECTION_LOST')
+        self.connection.timeout=timeout;self.socket.settimeout(timeout)
+        return self.connection
+
+    def _connect_owned(self,connection,timeout):pass # Already pinned; never reconnect.
+
+    def _finish_connection(self,connection,successful):
+        if not successful or connection.sock is not self.socket:self.close()
+
+    def close(self):
+        if self.connection is not None:self.connection.close()
+        self.connection=None;self.socket=None
