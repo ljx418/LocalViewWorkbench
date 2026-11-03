@@ -206,9 +206,16 @@ def adopted_export_join(raw, *, analysis, adoption_response, expected_draft, edi
     try:
         result = document(raw); result_validator().validate(result)
         adopted = document(adoption_response)['result']; result_validator().validate(adopted)
+        spec = analysis['suggestion']
+        expected_adoption = {'natural_zh': spec['text_zh'], 'natural_en': spec['text_en'],
+            'image_prompt': spec['text_en'], 'video_prompt': spec['text_en'], 'tags': spec['tags'],
+            'negative': spec['negative'], 'edit_instruction': ''}
         if (analysis['kind'] != 'PUBLIC_NATIVE_ANALYSIS_JOIN_NOT_STAGE_ACCEPTANCE'
+                or adopted['source_type'] != 'video' or adopted['analysis_status'] != 'succeeded'
                 or adopted['run_id'] != analysis['run_token'] or adopted['source'] != analysis['source']
                 or adopted['raw_response'] != analysis['raw_response'] or adopted['suggestion'] != analysis['suggestion']
+                or adopted['draft'] != expected_adoption
+                or adopted['model_digest'] not in (None, analysis['model_digest'])
                 or adopted['model_tag'] != 'gemma4:26b' or adopted['draft_origin'] != 'model_adopted'):
             raise ValueError('adoption differs from public analysis')
         for key in adopted:

@@ -173,5 +173,17 @@ class BrowserEvidenceTests(unittest.TestCase):
         graph['1']['inputs']['timeout_seconds'] = 121
         with self.assertRaises(EvidenceError): public_graph(graph, 'synthetic.mp4')
 
+    def test_internally_consistent_wrong_adoption_cannot_validate_itself(self):
+        value, adoption = facts(); joined = analysis_join(**value)
+        for case in ('source-type', 'analysis-state', 'model-digest', 'machine-draft'):
+            changed = copy.deepcopy(adoption)
+            if case == 'source-type': changed['result']['source_type'] = 'manual'
+            if case == 'analysis-state': changed['result']['analysis_status'] = 'failed'
+            if case == 'model-digest': changed['result']['model_digest'] = '0'*64
+            if case == 'machine-draft': changed['result']['draft']['natural_en'] = 'invented translation'
+            with self.subTest(case=case), self.assertRaises(EvidenceError):
+                adopted_export_join(raw(changed['result']), analysis=joined, adoption_response=raw(changed),
+                    expected_draft=changed['result']['draft'])
+
 
 if __name__ == '__main__': unittest.main()
