@@ -200,6 +200,11 @@ async function run(config, parent, dependencies = {}) {
     page = await context.newPage(); page.setDefaultTimeout(15000);
     page.on('pageerror', error => { faults.push({ code: 'PAGE_ERROR', message: error.message }); fatal = error; });
     await page.goto(ORIGIN, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    // The inspected installed scripts/app.js is a window.comfyAPI shim; DOM
+    // readiness alone does not mean its asynchronous app/graph boot completed.
+    await page.waitForFunction(() => typeof window.comfyAPI?.app?.app?.loadGraphData === 'function'
+      && window.comfyAPI.app.app.graph && window.comfyAPI.app.app.canvas && window.comfyAPI?.api?.api,
+      null, { timeout: 60000 });
     await page.evaluate(async graph => { const { app } = await import('/scripts/app.js'); await app.loadGraphData(graph); }, JSON.parse(fs.readFileSync(workflowPath, 'utf8')));
     const field = name => page.locator(`[data-lvw-field="${name}"]`), button = label => page.getByRole('button', { name: label, exact: true });
     const readFields = async () => Object.fromEntries(await Promise.all(Object.keys(FIELDS).map(async k => [k, await field(k).inputValue()])));
