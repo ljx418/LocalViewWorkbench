@@ -740,6 +740,26 @@ def main() -> int:
     args = parser.parse_args()
 
     execution = load_json(ROOT / "plans" / "execution-control.json")
+    if execution.get("coordinate", {}).get("stage_id") == "V0-S2":
+        control = load_json(GOV / "stages/V0-S2/stage-control.json")
+        errors = validate_stage(control, load_json(ROOT / "plans/tasks.json"),
+                                load_json(ROOT / "plans/acceptance_cases.json"))
+        errors.extend(verify_manifest_at(GOV / "stages/V0-S2"))
+        signature = load_json(ROOT / "reports/r1a/human-signoff-r1a-live-08.json")
+        if signature.get("decision") != "APPROVED" or signature.get("product_candidate") != "df4943cef1726350d5e9f1d4111800094c1a8d99":
+            errors.append("R1a signed dependency mismatch")
+        if execution["coordinate"]["state"] != control["state"]:
+            errors.append("current coordinate mismatch")
+        if control["baseline"]["product_control_sha256"] != product_control_digest():
+            errors.append("product control mismatch")
+        registry = load_json(GOV / "project-registry.json")["projects"][0]
+        if registry["current_stage"] != "V0-S2" or registry["state"] != control["state"]:
+            errors.append("registry mismatch")
+        if args.self_test:
+            failures = [test for test in run_self_tests(control, load_json(ROOT / "plans/tasks.json"), load_json(ROOT / "plans/acceptance_cases.json")) if not test["passed"]]
+            errors.extend(test["name"] for test in failures)
+        print(json.dumps({"kind":"GOVERNANCE_VALIDATION_NOT_PRODUCT_ACCEPTANCE", "stage_id":"V0-S2", "errors":errors, "failed":len(errors), "product_tests_executed":False}, indent=2))
+        return 1 if errors else 0
     if execution.get("coordinate", {}).get("stage_id") == "V0-S1":
         return main_v0_s1(args, execution)
     if execution.get("coordinate", {}).get("stage_id") == "R1a":

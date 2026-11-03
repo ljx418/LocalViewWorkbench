@@ -2,16 +2,20 @@
   "schema_version": "lvw.stage-control/1",
   "project_id": "lvw-prompt-service",
   "stage_id": "V0-S2",
-  "stage_packet_version": "0.1.0-prepared",
-  "packet_status": "PREPARED_NOT_ACTIVE",
+  "stage_packet_version": "1.0.0",
+  "packet_status": "FROZEN",
   "gate_version": "lvw-gate/1",
   "baseline": {
-    "prepared_against_commit": "2828d1bf3efeac2eb9b1512b0d83d582493f6ee8",
-    "product_control_sha256": "bf077004bc40d9cd8b82ee8e86406bcfc358129bda70b2d799ff61ff27665579"
+    "prepared_against_commit": "3f36b38bb86ea1376ab18f1d1c04cb6eea758b23",
+    "product_control_sha256": "bf077004bc40d9cd8b82ee8e86406bcfc358129bda70b2d799ff61ff27665579",
+    "git_commit": "3f36b38bb86ea1376ab18f1d1c04cb6eea758b23"
   },
-  "state": "WAIT_DEPENDENCY",
-  "last_passed_gate": "PACKET_PREPARATION_ONLY",
-  "dependencies": ["V0-S1:PASS", "R1a:HUMAN_EXPERIENCE_SIGNOFF_REQUIRED_BY_APPROVED_SEQUENCE"],
+  "state": "FROZEN_READY_OFFLINE",
+  "last_passed_gate": "R1A_HUMAN_EXPERIENCE_SIGNOFF_PASS",
+  "dependencies": [
+    "V0-S1:PASS",
+    "R1a:PASS"
+  ],
   "authorities": [
     "docs/13_V0_IMPLEMENTATION.md",
     "docs/22_V0_MIN_REBASELINE.md",
@@ -26,26 +30,168 @@
   ],
   "roles": {
     "gate_owner": "codex_gate_owner",
-    "implementation_owners": ["codex_v0_s2_implementer"],
+    "implementation_owners": [
+      "codex_v0_s2_implementer"
+    ],
     "independent_reviewer": "codex_v0_s2_independent_reviewer",
     "trusted_executor": "local_ci",
     "human_authorizer": "project_owner"
   },
-  "fixed_acceptance_ids": ["V0-A02","V0-A07","V0-A09","V0-A10"],
-  "acceptance_hash": "32a72139e0c12e0e6d040274024b53bb2dba2f2864b68b840aa215cf739a2a7f",
-  "cumulative_release_ids": ["V0-A01","V0-A02","V0-A03","V0-A04","V0-A05","V0-A07","V0-A08","V0-A09","V0-A10"],
-  "workpacks": [
-    {"id":"WP-S2-00","owner":"codex_gate_owner","depends_on":[],"risk":"offline_repository","allowed_paths":[".agent-governance/stages/V0-S2/","reports/v0-s2/"],"commands":["freeze dependencies, bindings and fixed samples"],"output":"activated frozen packet"},
-    {"id":"WP-S2-01","owner":"codex_v0_s2_implementer","depends_on":["WP-S2-00"],"risk":"offline_repository","allowed_paths":["LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/","LVW_V0_RuntimePatch/tests/","reports/v0-s2/"],"commands":["offline video media owner and bounded sampling tests"],"output":"video file-to-frame owner"},
-    {"id":"WP-S2-02","owner":"codex_v0_s2_implementer","depends_on":["WP-S2-01"],"risk":"offline_repository","allowed_paths":["LVW_V0_RuntimePatch/workflows/","LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/","LVW_V0_RuntimePatch/tests/","reports/v0-s2/"],"commands":["offline workflow and ordered-frame tests"],"output":"native Comfy video UI/API workflow"},
-    {"id":"WP-S2-03","owner":"codex_v0_s2_implementer","depends_on":["WP-S2-02"],"risk":"offline_repository","allowed_paths":["LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/","LVW_V0_RuntimePatch/tests/","reports/v0-s2/"],"commands":["offline security, cancellation, late-result and cleanup tests"],"output":"resource and failure owner"},
-    {"id":"WP-S2-04","owner":"local_ci","depends_on":["WP-S2-03"],"risk":"offline_repository","allowed_paths":["LVW_V0_RuntimePatch/","tools/","reports/v0-s2/"],"commands":["combined offline checkpoint and V0-Min regression"],"output":"candidate-bound offline receipt"},
-    {"id":"WP-S2-05","owner":"local_ci","depends_on":["WP-S2-04"],"risk":"external_private","allowed_paths":["reports/v0-s2/"],"commands":["program-scoped child-authorized real Stage checkpoint"],"output":"terminal live receipt"},
-    {"id":"WP-S2-06","owner":"codex_v0_s2_independent_reviewer","depends_on":["WP-S2-05"],"risk":"independent_review","allowed_paths":["reports/v0-s2/"],"commands":["isolated fixed and cumulative denominator review"],"output":"independent review and gate recommendation"}
+  "fixed_acceptance_ids": [
+    "V0-A02",
+    "V0-A07",
+    "V0-A09",
+    "V0-A10"
   ],
-  "allowed_paths": ["LVW_V0_RuntimePatch/","tools/","reports/v0-s2/",".agent-governance/stages/V0-S2/"],
-  "forbidden_paths": ["contracts/","plans/acceptance_cases.json","plans/release_gates.json","legacy/","COMFY_ROOT/custom_nodes/prompt-assistant/"],
-  "budgets": {"implementation_write_slots":1,"independent_review_slots":1,"stage_checkpoints":1,"corrected_candidate_full_rechecks":1,"downloads":0,"cloud_fallback_calls":0},
+  "acceptance_hash": "32a72139e0c12e0e6d040274024b53bb2dba2f2864b68b840aa215cf739a2a7f",
+  "cumulative_release_ids": [
+    "V0-A01",
+    "V0-A02",
+    "V0-A03",
+    "V0-A04",
+    "V0-A05",
+    "V0-A07",
+    "V0-A08",
+    "V0-A09",
+    "V0-A10"
+  ],
+  "workpacks": [
+    {
+      "id": "WP-S2-00",
+      "owner": "codex_gate_owner",
+      "depends_on": [],
+      "risk": "offline_repository",
+      "allowed_paths": [
+        ".agent-governance/stages/V0-S2/",
+        "reports/v0-s2/"
+      ],
+      "commands": [
+        "freeze dependencies, bindings and fixed samples"
+      ],
+      "output": "activated frozen packet"
+    },
+    {
+      "id": "WP-S2-01",
+      "owner": "codex_v0_s2_implementer",
+      "depends_on": [
+        "WP-S2-00"
+      ],
+      "risk": "offline_repository",
+      "allowed_paths": [
+        "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/",
+        "LVW_V0_RuntimePatch/tests/",
+        "reports/v0-s2/"
+      ],
+      "commands": [
+        "offline video media owner and bounded sampling tests"
+      ],
+      "output": "video file-to-frame owner"
+    },
+    {
+      "id": "WP-S2-02",
+      "owner": "codex_v0_s2_implementer",
+      "depends_on": [
+        "WP-S2-01"
+      ],
+      "risk": "offline_repository",
+      "allowed_paths": [
+        "LVW_V0_RuntimePatch/workflows/",
+        "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/",
+        "LVW_V0_RuntimePatch/tests/",
+        "reports/v0-s2/"
+      ],
+      "commands": [
+        "offline workflow and ordered-frame tests"
+      ],
+      "output": "native Comfy video UI/API workflow"
+    },
+    {
+      "id": "WP-S2-03",
+      "owner": "codex_v0_s2_implementer",
+      "depends_on": [
+        "WP-S2-02"
+      ],
+      "risk": "offline_repository",
+      "allowed_paths": [
+        "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/",
+        "LVW_V0_RuntimePatch/tests/",
+        "reports/v0-s2/"
+      ],
+      "commands": [
+        "offline security, cancellation, late-result and cleanup tests"
+      ],
+      "output": "resource and failure owner"
+    },
+    {
+      "id": "WP-S2-04",
+      "owner": "local_ci",
+      "depends_on": [
+        "WP-S2-03"
+      ],
+      "risk": "offline_repository",
+      "allowed_paths": [
+        "LVW_V0_RuntimePatch/",
+        "tools/",
+        "reports/v0-s2/"
+      ],
+      "commands": [
+        "combined offline checkpoint and V0-Min regression"
+      ],
+      "output": "candidate-bound offline receipt"
+    },
+    {
+      "id": "WP-S2-05",
+      "owner": "local_ci",
+      "depends_on": [
+        "WP-S2-04"
+      ],
+      "risk": "external_private",
+      "allowed_paths": [
+        "reports/v0-s2/"
+      ],
+      "commands": [
+        "program-scoped child-authorized real Stage checkpoint"
+      ],
+      "output": "terminal live receipt"
+    },
+    {
+      "id": "WP-S2-06",
+      "owner": "codex_v0_s2_independent_reviewer",
+      "depends_on": [
+        "WP-S2-05"
+      ],
+      "risk": "independent_review",
+      "allowed_paths": [
+        "reports/v0-s2/"
+      ],
+      "commands": [
+        "isolated fixed and cumulative denominator review"
+      ],
+      "output": "independent review and gate recommendation"
+    }
+  ],
+  "allowed_paths": [
+    "LVW_V0_RuntimePatch/",
+    "tools/",
+    "reports/v0-s2/",
+    ".agent-governance/stages/V0-S2/"
+  ],
+  "forbidden_paths": [
+    "contracts/",
+    "plans/acceptance_cases.json",
+    "plans/release_gates.json",
+    "legacy/",
+    "COMFY_ROOT/custom_nodes/prompt-assistant/"
+  ],
+  "budgets": {
+    "implementation_write_slots": 1,
+    "independent_review_slots": 1,
+    "stage_checkpoints": 1,
+    "corrected_candidate_full_rechecks": 1,
+    "downloads": 0,
+    "cloud_fallback_calls": 0,
+    "max_effective_retries_per_external_case": 1
+  },
   "mandatory_stops": [
     "R1a dependency is not signed",
     "public contract, fixed denominator, owner or threshold changes",
@@ -57,9 +203,9 @@
     "Fatal or Major independent finding"
   ],
   "execution_authorized": false,
-  "authorization_scope": "PREPARATION_ONLY_NO_IMPLEMENTATION_NO_LIVE",
-  "external_authorization": "AUTH-PROGRAM-V1-LOCAL-01_CHILD_RECEIPT_REQUIRED_AFTER_ACTIVATION",
-  "next_owner": "project_owner",
-  "required_authorization": "R1A_CURRENT_GATE_THEN_PACKET_ACTIVATION",
-  "exact_stop_reason": "V0_S2_PREPARED_NOT_ACTIVE_R1A_GATE_OPEN"
+  "authorization_scope": "OFFLINE_REPOSITORY_ONLY",
+  "external_authorization": "WAIT_AUTH_BEFORE_WP-S2-05",
+  "next_owner": "codex_v0_s2_implementer",
+  "required_authorization": "NONE_FOR_OFFLINE_FROZEN_WORKPACKS",
+  "exact_stop_reason": "V0_S2_GATE0_ACTIVATED_OFFLINE_ONLY"
 }

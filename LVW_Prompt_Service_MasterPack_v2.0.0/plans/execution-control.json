@@ -1,24 +1,24 @@
 {
   "schema_version": "lvw.execution-control/1",
-  "updated_at": "2026-11-02",
+  "updated_at": "2026-11-03",
   "project_id": "lvw-prompt-service",
   "design_version": "2.0.0",
   "target_version": "V1",
-  "next_delivery_target": "V1-R1a",
+  "next_delivery_target": "V0.1",
   "coordinate": {
-    "stage_id": "R1a",
-    "workpack_id": "WP-R1A-04",
-    "gate": "GATE4_REAL_ACCEPTANCE",
-    "state": "CHECKPOINT"
+    "stage_id": "V0-S2",
+    "workpack_id": "WP-S2-00",
+    "gate": "GATE0_DOCUMENT_READY",
+    "state": "FROZEN_READY_OFFLINE"
   },
   "last_passed_gate": {
-    "id": "WP_R1A_03_PACKET_1_2_LAYOUT_CORRECTION_OFFLINE_PASS",
-    "evidence": "reports/r1a/offline-checkpoint.json",
-    "meaning": "Packet 1.2 current candidate passed 11/11 offline commands and runtime scan; six live cases remain WAIT_AUTH"
+    "id": "R1A_HUMAN_EXPERIENCE_SIGNOFF_PASS",
+    "evidence": "reports/r1a/human-signoff-r1a-live-08.json",
+    "meaning": "R1a current candidate machine, independent and human gates complete; V0.1 remains incomplete"
   },
-  "current_blocking_gate": "WP-R1A-04_PACKET_1_2_REAL_MODEL_BROWSER_INDEPENDENT_REVIEW",
-  "stage_packet": ".agent-governance/stages/R1a/stage-control.json",
-  "stage_packet_manifest": ".agent-governance/stages/R1a/PAYLOAD_MANIFEST.sha256",
+  "current_blocking_gate": "V0_S2_VIDEO_RESOURCE_SECURITY_CANCELLATION_IMPLEMENTATION",
+  "stage_packet": ".agent-governance/stages/V0-S2/stage-control.json",
+  "stage_packet_manifest": ".agent-governance/stages/V0-S2/PAYLOAD_MANIFEST.sha256",
   "product_status": "IN_PROGRESS",
   "allowed_claim": "V0_MIN_ACCEPTED_NOT_RELEASED",
   "forbidden_claims": [
@@ -29,11 +29,11 @@
     "PRODUCTION_RELEASED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "project_owner",
-  "next_action": "Review LIVE-08 screenshots/exports and accept or reject current R1a experience",
-  "required_authorization": "R1A_HUMAN_EXPERIENCE_SIGNOFF",
-  "authorization_request": "reports/r1a/authorization-wp-r1a-04-live-08.request.json",
-  "authorization_record": "reports/r1a/authorization-wp-r1a-04-live-08.json",
+  "next_owner": "codex_v0_s2_implementer",
+  "next_action": "Freeze video owner boundaries and implement ordered offline WP-S2-01 through 04",
+  "required_authorization": "NONE_FOR_OFFLINE_FROZEN_WORKPACKS",
+  "authorization_request": null,
+  "authorization_record": "reports/authorization-program-v1-local-01.json",
   "historical_authorization_records": [
     "reports/r1a/authorization-wp-r1a-04-live-01.json",
     "reports/r1a/authorization-wp-r1a-04-live-02.json",
@@ -45,8 +45,8 @@
   "offline_evidence_commit": "67ce51fa18e9647ec11819c5baed5c1efe030886",
   "offline_receipt": "reports/r1a/implementation-receipt-layout-correction-01.json",
   "evidence_root": "reports/",
-  "gate_decision": "reports/v0-s1/gate-decision-v0-min.md",
-  "human_signoff": "reports/v0-s1/human-signoff-v0-min.json",
+  "gate_decision": "reports/r1a/gate-decision-r1a.md",
+  "human_signoff": "reports/r1a/human-signoff-r1a-live-08.json",
   "product_acceptance": "reports/v0-s1/v0-min-acceptance.json",
   "route_change_decision": "docs/23_V1_EARLY_FRONTEND_SEQUENCE.md",
   "terminal_product_control_change": {
@@ -59,5 +59,5 @@
   "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
   "live_terminal_receipt": "reports/r1a/r1a-live-08/live-receipt.json",
   "independent_review": "reports/r1a/independent-review-r1a-live-08.md",
-  "exact_stop_reason": "LIVE_08_INDEPENDENT_REVIEW_GREEN_WAIT_HUMAN_SIGNOFF"
+  "exact_stop_reason": "V0_S2_GATE0_ACTIVATED_OFFLINE_ONLY"
 }
