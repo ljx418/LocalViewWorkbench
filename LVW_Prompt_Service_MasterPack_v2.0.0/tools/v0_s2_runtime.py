@@ -216,10 +216,10 @@ class NativeRuntime(S2SystemDriver):
             if left<=0:raise base.StopProbe('PRELOAD_RELEASE_TIMEOUT')
             return min(cap,left)
         status,value=self._json_request(base.OLLAMA_URL+'/api/generate',
-            payload={'model':base.MODEL,'keep_alive':0},timeout=remaining(15))
+            payload={'model':base.MODEL,'keep_alive':0},timeout=remaining(15),observer=self.resource_observer)
         if status!=200 or value.get('done') is not True:raise base.StopProbe('PRELOAD_UNLOAD_UNACKNOWLEDGED')
         while True:
-            _,state=self._json_request(base.OLLAMA_URL+'/api/ps',timeout=remaining(2))
+            _,state=self._json_request(base.OLLAMA_URL+'/api/ps',timeout=remaining(2),observer=self.resource_observer)
             if state.get('models')==[]:break
             if not isinstance(state.get('models'),list):raise base.StopProbe('PRELOAD_INVENTORY_INVALID')
             time.sleep(min(.1,remaining(.1)))

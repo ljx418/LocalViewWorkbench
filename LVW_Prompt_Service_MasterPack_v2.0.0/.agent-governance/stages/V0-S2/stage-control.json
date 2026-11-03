@@ -2,7 +2,7 @@
   "schema_version": "lvw.stage-control/1",
   "project_id": "lvw-prompt-service",
   "stage_id": "V0-S2",
-  "stage_packet_version": "1.0.25",
+  "stage_packet_version": "1.0.26",
   "packet_status": "FROZEN",
   "gate_version": "lvw-gate/1",
   "baseline": {
@@ -50,7 +50,8 @@
     "reports/v0-s2/browser-supervisor-decision-01.md",
     "reports/v0-s2/browser-analysis-evidence-decision-01.md",
     "reports/v0-s2/browser-handler-wiring-decision-01.md",
-    "reports/v0-s2/browser-terminal-phase-decision-01.md"
+    "reports/v0-s2/browser-terminal-phase-decision-01.md",
+    "reports/v0-s2/cumulative-stage-sequence-decision-01.md"
   ],
   "roles": {
     "gate_owner": "codex_gate_owner",
@@ -390,5 +391,16 @@
     "phase_entry": "tools/v0_s2_browser_phase.py",
     "terminal_oracle": "tools/v0_s2_browser_terminal.py",
     "terminal_phase_decision": "reports/v0-s2/browser-terminal-phase-decision-01.md"
+  },
+  "ordered_stage_sequence": {
+    "entry": "tools/v0_s2_stage_sequence.py",
+    "cumulative_entry": "tools/v0_s2_cumulative_phase.py",
+    "decision": "reports/v0-s2/cumulative-stage-sequence-decision-01.md",
+    "status": "OFFLINE_COMPOSITION_IMPLEMENTED_BOUND_EXECUTOR_PENDING",
+    "cumulative_public_submissions": 24,
+    "default_public_submissions": 45,
+    "warm_public_submissions": 20,
+    "stage_pass_claim": false,
+    "complete_executable": false
   }
 }

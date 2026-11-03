@@ -154,7 +154,8 @@ class RuntimeTests(unittest.TestCase):
             driver.ollama_log.write_bytes(raw+b'\n');self.assertEqual(2,driver.chat_log_count())
 
     def test_failed_preload_recovery_reproves_owner_and_waits_for_three_fresh_gpu_points(self):
-        driver=self.runtime();binding={'ollama_pid':10,'ollama_start_ticks':100,'baseline_gpu_mib':100}
+        driver=self.runtime();driver.resource_observer=lambda:None
+        binding={'ollama_pid':10,'ollama_start_ticks':100,'baseline_gpu_mib':100}
         worker=MagicMock();worker.wait_point.side_effect=[
             {'monotonic_seconds':11,'gpu_used_mib':1124},
             {'monotonic_seconds':12,'gpu_used_mib':1125},
@@ -167,6 +168,7 @@ class RuntimeTests(unittest.TestCase):
             result=driver.release_preload(binding,worker)
         self.assertTrue(result['proven']);self.assertEqual(5,len(result['gpu_samples']))
         self.assertEqual(2,control.call_count)
+        self.assertTrue(all(call.kwargs['observer'] is driver.resource_observer for call in control.call_args_list))
         self.assertEqual([10,11,12,13,14],[call.kwargs['after'] for call in worker.wait_point.call_args_list])
         with patch.object(driver,'owned_listener_birth',return_value={'pid':10,'start_ticks':101}), \
              patch.object(driver,'_json_request') as control,self.assertRaises(base.StopProbe):
