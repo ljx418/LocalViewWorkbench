@@ -7,7 +7,7 @@
   "next_delivery_target": "V0.1",
   "coordinate": {
     "stage_id": "V0-S2",
-    "workpack_id": "WP-S2-02",
+    "workpack_id": "WP-S2-03",
     "gate": "GATE1_OFFLINE_IMPLEMENTATION",
     "state": "FROZEN_READY_OFFLINE"
   },
@@ -30,7 +30,7 @@
     "TARGET_HARDWARE_TESTED"
   ],
   "next_owner": "codex_v0_s2_implementer",
-  "next_action": "Complete the owned temporary warm benchmark profile, resource sampler and real checkpoint/fault runner. Freeze fresh complete candidate and run full offline checks before any new child-authorized native/browser run; do not replay expired component01.",
+  "next_action": "Seal current shared-bridge/warm-profile/sampler candidate and execute offline-checkpoint-03; finish actual native checkpoint/fault/browser runner before fresh program-bound live runs. Full V1 remains S2 -> S3 -> R1/R2 with human gates.",
   "required_authorization": "NONE_FOR_OFFLINE_FROZEN_WORKPACKS",
   "authorization_request": null,
   "authorization_record": "reports/authorization-program-v1-local-01.json",
@@ -56,9 +56,9 @@
   ],
   "contract_change_request": "reports/r1a/change-request-r1a-product-controls-02.json",
   "contract_change_decision": "reports/r1a/change-decision-r1a-product-controls-02.json",
-  "implementation_candidate": "3f92c871b5d2fd457611749a81af88365b8f11e2",
+  "implementation_candidate": null,
   "implementation_baseline": "2524886c953e976c053d73aa75f01a5f97e1eb10",
-  "candidate_binding_scope": "Workbench-directed-01 certifies its selected production/spec payload on 3f92c87 with 24 tests, production VM and governance. Later warm-residency oracle/packet changes need a new candidate; no full Stage/live/UI acceptance is claimed.",
+  "candidate_binding_scope": "Warm profile, shared bridge cleanup and native sampler are being sealed. Historical offline02/workbench receipts remain baseline-only; fresh full offline checks and native evidence required.",
   "offline_evidence_commit": null,
   "offline_receipt": "reports/v0-s2/offline-checkpoint-02/receipt.json",
   "offline_candidate_sha": "2524886c953e976c053d73aa75f01a5f97e1eb10",
@@ -90,10 +90,12 @@
   "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
   "live_terminal_receipt": null,
   "independent_review": null,
-  "exact_stop_reason": "S2_WORKBENCH_DIRECTED_CHECKS_PASSED_WARM_PROFILE_AND_NATIVE_GATES_PENDING",
+  "exact_stop_reason": "WARM_PROFILE_AND_SAMPLER_OFFLINE_IMPLEMENTED_FULL_CHECKS_AND_NATIVE_RUNNER_PENDING",
   "native_component_authorization": "reports/v0-s2/authorization-native-component-01.json",
   "native_component_terminal_receipt": "reports/v0-s2/native-component-01/receipt.json",
   "local_control_change_decision": "reports/v0-s2/change-decision-video-workbench-01.json",
   "latest_workpack_receipt": "reports/v0-s2/workbench-directed-01/receipt.json",
-  "warm_benchmark_blocker": "reports/v0-s2/warm-benchmark-evidence-gap-01.md"
+  "warm_benchmark_blocker": "reports/v0-s2/warm-benchmark-evidence-gap-01.md",
+  "warm_profile_implementation": "reports/v0-s2/warm-profile-implementation-progress-01.md",
+  "warm_profile_decision": "reports/v0-s2/warm-profile-decision-01.md"
 }

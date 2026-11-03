@@ -17,11 +17,14 @@ base = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(base)
 
 
-def comfy_wrapper(python, main, directory, pid_file, ffmpeg, ffprobe):
+def comfy_wrapper(python, main, directory, pid_file, ffmpeg, ffprobe, *, warm=False):
     # Process environment only, never user/machine environment or PATH writes.
     probe=(f"$env:LVW_FFPROBE_EXE={base.ps_quote(ffprobe)}\n$env:LVW_VIDEO_PROBE_BACKEND='cli'\n" if ffprobe else
            "Remove-Item Env:LVW_FFPROBE_EXE -ErrorAction SilentlyContinue\n$env:LVW_VIDEO_PROBE_BACKEND='pyav'\n")
-    return (f"$env:LVW_FFMPEG_EXE={base.ps_quote(ffmpeg)}\n"+probe
+    if type(warm) is not bool:raise ValueError('BENCHMARK_MODE_INVALID')
+    benchmark=("$env:LVW_WARM_BENCHMARK='run-owned-v1'\n" if warm else
+               "Remove-Item Env:LVW_WARM_BENCHMARK -ErrorAction SilentlyContinue\n")
+    return (f"$env:LVW_FFMPEG_EXE={base.ps_quote(ffmpeg)}\n"+probe+benchmark
             + base.comfy_wrapper_text(python, main, directory, pid_file))
 
 
@@ -31,6 +34,8 @@ class S2SystemDriver(base.SystemDriver):
         if type(args.max_public_submissions) is not int or not 1 <= args.max_public_submissions <= 64:
             raise base.StopProbe('PUBLIC_SUBMISSION_BUDGET_INVALID')
         self.max_public_submissions = args.max_public_submissions
+        self.warm_benchmark=getattr(args,'warm_benchmark',False)
+        if type(self.warm_benchmark) is not bool:raise base.StopProbe('BENCHMARK_MODE_INVALID')
         self.request_limit=getattr(args,'max_loopback_requests',1024)
         if type(self.request_limit) is not int or not 1<=self.request_limit<=2048:
             raise base.StopProbe('LOOPBACK_REQUEST_BUDGET_INVALID')
@@ -78,7 +83,8 @@ class S2SystemDriver(base.SystemDriver):
         win_directory=self._windows_path(str(directory))
         wrapper=directory/'comfy-wrapper.ps1';pid_file=directory/'comfy-wrapper.pid'
         wrapper.write_text(comfy_wrapper(win_python,win_main,win_directory,self._windows_path(str(pid_file)),
-            self._windows_path(self.args.ffmpeg_exe),self._windows_path(self.args.ffprobe_exe) if self.args.ffprobe_exe else None),encoding='utf-8-sig')
+            self._windows_path(self.args.ffmpeg_exe),self._windows_path(self.args.ffprobe_exe) if self.args.ffprobe_exe else None,
+            warm=self.warm_benchmark),encoding='utf-8-sig')
         stream=log_path.open('w',encoding='utf-8')
         try:
             process=subprocess.Popen([self.args.powershell,'-NoProfile','-NonInteractive','-File',

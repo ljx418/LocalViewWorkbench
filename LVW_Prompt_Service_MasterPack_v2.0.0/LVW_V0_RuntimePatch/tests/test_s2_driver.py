@@ -52,5 +52,14 @@ class DriverTests(unittest.TestCase):
         self.assertIn('Remove-Item Env:LVW_FFPROBE_EXE',value)
         self.assertNotIn("'None'",value)
 
+    def test_benchmark_mode_is_explicit_and_default_removes_inherited_flag(self):
+        normal=comfy_wrapper('python','main','base','pid','ffmpeg',None)
+        warm=comfy_wrapper('python','main','base','pid','ffmpeg',None,warm=True)
+        self.assertIn('Remove-Item Env:LVW_WARM_BENCHMARK',normal)
+        self.assertIn("$env:LVW_WARM_BENCHMARK='run-owned-v1'",warm)
+        with self.assertRaises(ValueError):comfy_wrapper('python','main','base','pid','ffmpeg',None,warm='yes')
+        with self.assertRaises(base.StopProbe):
+            S2SystemDriver(SimpleNamespace(max_public_submissions=1,run_id='fixture',powershell='powershell.exe',warm_benchmark='yes'),{})
+
 
 if __name__=='__main__':unittest.main()

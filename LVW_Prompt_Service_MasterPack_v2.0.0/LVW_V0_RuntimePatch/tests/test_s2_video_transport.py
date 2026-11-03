@@ -44,9 +44,10 @@ class TransportTests(unittest.TestCase):
     def test_still_loaded_times_out_without_unloading_other_models(self):
         transport = InterruptibleOllamaTransport()
         with patch.object(transport, "_control_request", side_effect=[{"done":True}, {"models":[{"name":"other"}]}]) as control:
-            with patch("time.monotonic", side_effect=[0,0,31,31]), patch("time.sleep"), self.assertRaises(BridgeError):
+            with patch("time.monotonic", side_effect=[0,0,0,0,31,31]), patch("time.sleep"), self.assertRaises(BridgeError):
                 transport.cleanup("gemma4:26b", 120)
         self.assertEqual(1, sum(c.args[0] == "POST" for c in control.call_args_list))
+        self.assertEqual(1, sum(c.args[0] == "GET" for c in control.call_args_list))
         self.assertEqual("gemma4:26b", control.call_args_list[0].args[2]["model"])
         self.assertEqual("unproven", transport.release_evidence["state"])
 
@@ -58,6 +59,41 @@ class TransportTests(unittest.TestCase):
             transport.chat({}, 120)
         self.assertEqual("JOB_CANCELLED", error.exception.code)
         self.assertEqual([], connection.sent)
+
+    def test_parent_release_deadline_is_shared_and_late_empty_inventory_cannot_pass(self):
+        for observed,passed in [(10,True),(10.001,False)]:
+            transport=InterruptibleOllamaTransport()
+            with patch.object(transport,'_control_request',side_effect=[{'done':True},{'models':[]}]) as control, \
+                 patch('time.monotonic',side_effect=[5,5,6,observed]):
+                if passed:transport.cleanup('gemma4:26b',120,release_deadline=10)
+                else:
+                    with self.assertRaises(BridgeError):transport.cleanup('gemma4:26b',120,release_deadline=10)
+            self.assertEqual(5,control.call_args_list[0].args[3])
+            self.assertEqual('released' if passed else 'unproven',transport.release_evidence['state'])
+        transport=InterruptibleOllamaTransport()
+        with patch('time.monotonic',return_value=11),patch.object(transport,'_control_request') as control,self.assertRaises(BridgeError):
+            transport.cleanup('gemma4:26b',120,release_deadline=10)
+        control.assert_not_called()
+
+    def test_detached_response_keeps_owned_socket_deadline_for_chat_and_control(self):
+        from unittest.mock import MagicMock
+        for operation in ('chat','control'):
+            connection=Connection();owned=connection.sock;owned.settimeout=MagicMock()
+            class Response:
+                status=200
+                def __init__(self):self.chunks=iter([b'{"models":[]}',b'']);self.closed=False
+                def read1(self,count):return next(self.chunks)
+                def close(self):self.closed=True
+            response=Response()
+            def detach():connection.sock=None;return response
+            connection.getresponse=detach
+            transport=InterruptibleOllamaTransport()
+            with self.subTest(operation=operation),patch('http.client.HTTPConnection',return_value=connection):
+                if operation=='chat':self.assertEqual('{"models":[]}',transport.chat({},5))
+                else:self.assertEqual({'models':[]},transport._control_request('GET','/api/ps',None,5))
+            self.assertGreaterEqual(owned.settimeout.call_count,2)
+            self.assertTrue(all(0<call.args[0]<=5 for call in owned.settimeout.call_args_list))
+            self.assertTrue(connection.closed);self.assertTrue(response.closed)
 
     def test_control_redirect_is_refused_without_followup(self):
         connection = Connection()

@@ -3,19 +3,23 @@ import copy
 import threading
 
 from . import core
-from .core import BridgeError, BridgeOwner
+from .core import BridgeError
 from .video_node import comfy_frames
-from .video_transport import InterruptibleOllamaTransport
 from .video_resources import resource_preflight, host_resource_preflight
 
 
 class VideoRequestOwner:
-    def __init__(self, decoder, *, bridge=None, tensor_builder=None, preflight=resource_preflight,
+    def __init__(self, decoder, *, bridge=None, tensor_builder=None, preflight=None,
                  host_preflight=host_resource_preflight):
         self.decoder = decoder
-        self.bridge = bridge or BridgeOwner(transport=InterruptibleOllamaTransport())
+        if bridge is None:
+            from .benchmark import runtime_bridge
+            bridge = runtime_bridge(interruptible=True)
+        self.bridge = bridge
         self.tensor_builder = tensor_builder or comfy_frames
-        self.preflight = preflight
+        benchmark = getattr(self.bridge, 'benchmark', None)
+        self.preflight = preflight if preflight is not None else (
+            benchmark.admission if benchmark is not None else resource_preflight)
         self.host_preflight = host_preflight
         self._guard = threading.Lock()
         self._cancel = None
@@ -125,6 +129,7 @@ class VideoRequestOwner:
         finally:
             # Failed cleanup quarantines the shared slot for all bridge owners.
             # Recovery requires separate positive resource-release evidence.
+            pending = pending or core._RESOURCE_RELEASE_PENDING.is_set()
             if pending:
                 core._RESOURCE_RELEASE_PENDING.set()
             with self._guard:

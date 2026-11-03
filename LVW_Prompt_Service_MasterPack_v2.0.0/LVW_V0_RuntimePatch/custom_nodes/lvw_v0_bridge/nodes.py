@@ -16,7 +16,11 @@ class _NodeBase:
     FUNCTION = "analyze"
 
     def __init__(self, transport=None, encoder=None):
-        self._owner = BridgeOwner(transport=transport, encoder=encoder)
+        if transport is None:
+            from .benchmark import runtime_bridge
+            self._owner = runtime_bridge(encoder=encoder)
+        else:
+            self._owner = BridgeOwner(transport=transport, encoder=encoder)
 
     @staticmethod
     def _common_inputs():

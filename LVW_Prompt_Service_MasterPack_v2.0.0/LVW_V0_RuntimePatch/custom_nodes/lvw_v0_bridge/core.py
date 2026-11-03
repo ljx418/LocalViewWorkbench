@@ -8,6 +8,7 @@ Ollama endpoint.
 from __future__ import annotations
 
 import base64
+from functools import wraps
 from dataclasses import dataclass
 from io import BytesIO
 import json
@@ -326,7 +327,8 @@ class FrameCall:
 
 
 def call_one_frame(*, transport, encoder, frame, model: str, timeout_seconds: int, video: bool,
-                   frame_index: int | None, previous_observations: list[str], user_instruction: str) -> FrameCall:
+                   frame_index: int | None, previous_observations: list[str], user_instruction: str,
+                   benchmark=None) -> FrameCall:
     if not isinstance(timeout_seconds, int) or not 1 <= timeout_seconds <= MAX_TIMEOUT_SECONDS:
         raise BridgeError("CONTRACT_UNSUPPORTED", f"timeout_seconds must be 1..{MAX_TIMEOUT_SECONDS}",
                           subcode="TIMEOUT_LIMIT")
@@ -337,19 +339,26 @@ def call_one_frame(*, transport, encoder, frame, model: str, timeout_seconds: in
                                        previous_observations=previous_observations,
                                        user_instruction=user_instruction)
     payload = build_chat_payload(model=model, encoded_image=encoded, instruction=instruction, video=video)
+    if benchmark is not None:
+        payload['keep_alive'] = 300
     primary_error = None
     raw = None
     parsed = None
     try:
         try:
+            if benchmark is not None:
+                benchmark.before_call(payload)
             raw = transport.chat(payload, timeout_seconds)
             parsed = parse_response(raw, instruction=instruction, user_instruction=user_instruction, video=video)
+            if benchmark is not None:
+                benchmark.after_call(raw)
         except BaseException as exc:  # Preserve the primary oracle/transport failure through cleanup.
             primary_error = exc
     finally:
         cleanup_error = None
         try:
-            transport.cleanup(model, timeout_seconds)
+            if benchmark is None:
+                transport.cleanup(model, timeout_seconds)
         except Exception as exc:
             cleanup_error = exc
     if primary_error is not None:
@@ -400,13 +409,35 @@ def prompt_spec(*, mode: str, observations: list[str], inferences: list[str], un
     }
 
 
+def _benchmark_request(function):
+    @wraps(function)
+    def invoke(self, *args, **kwargs):
+        if self.benchmark is None:
+            return function(self, *args, **kwargs)
+        expected = 1 if function.__name__ == 'analyze_image' else 4
+        value = args[0] if args else kwargs.get('image' if expected == 1 else 'frames_value')
+        if len(split_frames(value)) != expected:
+            raise BridgeError('MEDIA_LIMIT_EXCEEDED', 'benchmark frame count differs from fixed profile',
+                              subcode='BENCHMARK_FRAME_COUNT')
+        if _RESOURCE_RELEASE_PENDING.is_set() or not _INFERENCE_LOCK.acquire(blocking=False):
+            raise BridgeError('RESOURCE_BUSY', 'inference resource unavailable', subcode='LVW_BRIDGE_LOCKED')
+        try:
+            with self.benchmark.request(self.transport, kwargs['model'], kwargs['timeout_seconds'], expected):
+                return function(self, *args, **kwargs)
+        finally:
+            _INFERENCE_LOCK.release()
+    return invoke
+
+
 class BridgeOwner:
     """Shared owner invoked only through the registered public node classes."""
 
-    def __init__(self, transport=None, encoder=None):
+    def __init__(self, transport=None, encoder=None, benchmark=None):
         self.transport = transport or OllamaLoopbackTransport()
         self.encoder = encoder or encode_comfy_frame
+        self.benchmark = benchmark
 
+    @_benchmark_request
     def analyze_image(self, image, *, model: str, user_instruction: str, mode: str, timeout_seconds: int):
         frames = split_frames(image)
         if len(frames) != 1:
@@ -417,7 +448,7 @@ class BridgeOwner:
         try:
             call = call_one_frame(transport=self.transport, encoder=self.encoder, frame=frames[0], model=model,
                                   timeout_seconds=timeout_seconds, video=False, frame_index=None,
-                                  previous_observations=[], user_instruction=user_instruction)
+                                  previous_observations=[], user_instruction=user_instruction, benchmark=self.benchmark)
             parsed = call.parsed
             suggestion = prompt_spec(mode=mode, observations=parsed["observations"],
                                      inferences=parsed["inferences"], unknowns=parsed["unknowns"],
@@ -426,6 +457,7 @@ class BridgeOwner:
         finally:
             _INFERENCE_LOCK.release()
 
+    @_benchmark_request
     def analyze_video(self, frames_value, *, model: str, user_instruction: str, mode: str, timeout_seconds: int,
                       cancel_event=None):
         frames = split_frames(frames_value)
@@ -444,7 +476,7 @@ class BridgeOwner:
                 try:
                     call = call_one_frame(transport=self.transport, encoder=self.encoder, frame=frame, model=model,
                                           timeout_seconds=timeout_seconds, video=True, frame_index=index,
-                                          previous_observations=previous, user_instruction=user_instruction)
+                                          previous_observations=previous, user_instruction=user_instruction, benchmark=self.benchmark)
                 except BridgeError as exc:
                     exc.details["prior_frame_raw_responses"] = [item.raw_response for item in calls]
                     raise

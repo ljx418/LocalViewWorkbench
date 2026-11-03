@@ -11,7 +11,7 @@ def busy(reason):
     return BridgeError("RESOURCE_BUSY", "video resource admission refused", subcode=reason)
 
 
-def validate_snapshot(gpu_csv, process_csv, available_ram_mib, *, owner_pid):
+def validate_snapshot(gpu_csv, process_csv, available_ram_mib, *, owner_pid, warm=False, owned_compute_pids=()):
     try:
         rows = [[int(v.strip()) for v in line.split(",")] for line in gpu_csv.splitlines() if line.strip()]
         if len(rows) != 1 or len(rows[0]) != 3:
@@ -23,15 +23,19 @@ def validate_snapshot(gpu_csv, process_csv, available_ram_mib, *, owner_pid):
         if (any(pid <= 0 for pid in pids) or type(available_ram_mib) is not int or available_ram_mib < 0
                 or type(owner_pid) is not int or owner_pid <= 0):
             raise ValueError()
+        if (type(warm) is not bool or not isinstance(owned_compute_pids, tuple)
+                or any(type(pid) is not int or pid <= 0 for pid in owned_compute_pids)
+                or (owned_compute_pids and not warm)):
+            raise ValueError()
     except (ValueError, TypeError) as exc:
         raise busy("RESOURCE_TELEMETRY_INVALID") from exc
     if total < 23 * 1024:
         raise busy("GPU_CAPACITY_INSUFFICIENT")
-    if used > 4096:
+    if (warm and used >= 23552) or (not warm and used > 4096):
         raise busy("GPU_PREFLIGHT_USED_MEMORY_EXCEEDED")
     if available_ram_mib < 2048:
         raise busy("HOST_RAM_BELOW_LIMIT")
-    if any(pid != owner_pid for pid in pids):
+    if any(pid not in {owner_pid, *owned_compute_pids} for pid in pids):
         raise busy("GPU_FOREIGN_COMPUTE_PROCESS")
     return {"gpu_count":1,"gpu_total_mib":total,"gpu_used_mib":used,"gpu_free_mib":free,
             "available_ram_mib":available_ram_mib,"foreign_compute_processes":0}
@@ -57,7 +61,9 @@ def host_resource_preflight():
     return {"available_ram_mib": available}
 
 
-def resource_preflight():
+def resource_preflight(*, warm=False, owned_pid_checker=None):
+    if warm and not callable(owned_pid_checker):
+        raise busy('WARM_OWNERSHIP_PROOF_REQUIRED')
     executable = shutil.which("nvidia-smi")
     if not executable:
         raise busy("NVIDIA_SMI_UNAVAILABLE")
@@ -66,7 +72,9 @@ def resource_preflight():
                            "--format=csv,noheader,nounits"], timeout_seconds=5, output_limit=65536)
         processes = run_bounded([executable,"--query-compute-apps=pid","--format=csv,noheader,nounits"],
                                 timeout_seconds=5, output_limit=65536)
-        return validate_snapshot(gpu.stdout.decode("ascii"), processes.stdout.decode("ascii"),
-                                 windows_available_ram_mib(), owner_pid=os.getpid())
-    except (BridgeError, UnicodeError) as exc:
+        process_csv = processes.stdout.decode('ascii')
+        owned = tuple(owned_pid_checker(process_csv)) if warm else ()
+        return validate_snapshot(gpu.stdout.decode("ascii"), process_csv,
+                                 windows_available_ram_mib(), owner_pid=os.getpid(), warm=warm, owned_compute_pids=owned)
+    except (BridgeError, UnicodeError, ValueError, TypeError) as exc:
         raise busy("RESOURCE_PREFLIGHT_UNPROVEN") from exc

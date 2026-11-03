@@ -1,6 +1,7 @@
 """Interrupt only this request's literal-loopback HTTP connection."""
 import http.client
 import json
+import math
 import socket
 import threading
 import time
@@ -30,6 +31,7 @@ class InterruptibleOllamaTransport(OllamaLoopbackTransport):
         try:
             body = None if payload is None else json.dumps(payload).encode()
             connection.request(method, path, body, {"Content-Type":"application/json"})
+            request_socket = connection.sock
             response = connection.getresponse()
             if response.status != 200:
                 raise ValueError("control HTTP failure")
@@ -38,8 +40,8 @@ class InterruptibleOllamaTransport(OllamaLoopbackTransport):
                 remaining = deadline - time.monotonic()
                 if remaining <= 0:
                     raise TimeoutError()
-                if connection.sock is not None:
-                    connection.sock.settimeout(remaining)
+                if request_socket is not None:
+                    request_socket.settimeout(remaining)
                 data = response.read1(min(8192, 256 * 1024 - len(raw) + 1))
                 if not data:
                     break
@@ -58,16 +60,23 @@ class InterruptibleOllamaTransport(OllamaLoopbackTransport):
                 response.close()
             connection.close()
 
-    def cleanup(self, model, timeout_seconds):
+    def cleanup(self, model, timeout_seconds, *, release_deadline=None):
         # Cleanup deliberately ignores the cancel event: release must complete
         # even after the chat connection has been interrupted.
         started = time.monotonic()
         self.release_evidence = {"state":"unproven", "checks":0}
+        deadline = started + 30
+        if release_deadline is not None:
+            if type(release_deadline) not in (int,float) or not math.isfinite(release_deadline):
+                raise ValueError('invalid release deadline')
+            deadline = min(deadline,release_deadline)
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            raise BridgeError('RESOURCE_RELEASE_PENDING','release deadline expired',subcode='OLLAMA_RELEASE_UNPROVEN')
         unloaded = self._control_request("POST", "/api/generate", {"model":model,"keep_alive":0},
-                                         min(timeout_seconds, 15))
+                                         min(timeout_seconds, 15, remaining))
         if unloaded.get("done") is not True:
             raise BridgeError("RESOURCE_RELEASE_PENDING", "model unload not acknowledged", subcode="OLLAMA_RELEASE_UNPROVEN")
-        deadline = started + 30
         while True:
             remaining = deadline - time.monotonic()
             if remaining <= 0:
@@ -76,10 +85,13 @@ class InterruptibleOllamaTransport(OllamaLoopbackTransport):
             state = self._control_request("GET", "/api/ps", None, min(remaining, 2))
             models = state.get("models")
             self.release_evidence["checks"] += 1
+            observed = time.monotonic()
+            if observed > deadline:
+                raise BridgeError('RESOURCE_RELEASE_PENDING','release confirmation arrived after deadline',subcode='OLLAMA_RELEASE_UNPROVEN')
             if not isinstance(models, list):
                 raise BridgeError("RESOURCE_RELEASE_PENDING", "model inventory is invalid", subcode="OLLAMA_RELEASE_UNPROVEN")
             if not models:
-                self.release_evidence.update(state="released", elapsed_seconds=time.monotonic() - started,
+                self.release_evidence.update(state="released", elapsed_seconds=observed - started,
                                              loaded_models=0)
                 return
             # Other loaded models are observed only, never unloaded or killed.
@@ -119,6 +131,7 @@ class InterruptibleOllamaTransport(OllamaLoopbackTransport):
                 if self._cancelled():
                     raise BridgeError("JOB_CANCELLED", "request cancelled", subcode="OLLAMA_REQUEST_CANCELLED")
                 self._active_socket = connection.sock.dup()
+                request_socket = connection.sock
                 connection.sock.settimeout(max(.001, deadline - time.monotonic()))
             body = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode()
             connection.request("POST", parsed.path, body, {"Content-Type":"application/json"})
@@ -132,8 +145,8 @@ class InterruptibleOllamaTransport(OllamaLoopbackTransport):
                 remaining = deadline - time.monotonic()
                 if remaining <= 0:
                     raise TimeoutError()
-                if connection.sock is not None:
-                    connection.sock.settimeout(remaining)
+                if request_socket is not None:
+                    request_socket.settimeout(remaining)
                 chunk = response.read1(min(8192, 4 * 1024 * 1024 - len(output) + 1))
                 if not chunk:
                     break

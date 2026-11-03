@@ -1,7 +1,7 @@
 # Codex/Claude Code 实施约束
 
 0. 开工前先读`.agent-governance/README.md`与`plans/execution-control.json`。产品权威仍是README、docs/00、contracts、plans；治理层只约束角色、Stage/Workpack、候选、证据、预算和门禁，不得反向改写产品合同。
-1. 当前权威：本包README、docs/00、contracts、plans。legacy是历史，不执行其冲突开工指令。计划覆盖V0–V3；当前 `TARGET_VERSION=V1`、`NEXT_DELIVERY_TARGET=V1-R1a`，按批准顺序提前实现最终架构的简易前端，但仍须逐版满足正式出门门禁。
+1. 当前权威：本包README、docs/00、contracts、plans。legacy是历史，不执行其冲突开工指令。计划覆盖V0–V3；目标版本、下一交付与当前 Stage 只读取 `plans/execution-control.json`，不在本文件重复保存坐标。按 docs/23 批准顺序实施，逐版满足正式出门门禁。
 2. 先只读盘点、git状态和备份；用户给出的Windows/4090/Gemma4情况是待核实线索。不默认升级ComfyUI、PyTorch、CUDA或复制权重。
 3. V0用已装ComfyUI/Prompt Assistant/Ollama。必要新增仅一个薄扩展；节点/API从实际注册表读取，不编造class_type或把设计JSON冒充可运行图。
 4. V1独立React+TS+Vite/FastAPI/SQLite；不依赖Comfy进程，不引入Gradio/NiceGUI。V2增强资产/协议，V3仅薄集成。禁止提前建设微服务/向量库/多Agent平台。

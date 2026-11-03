@@ -26,3 +26,5 @@ local MP4/MOV
 元数据适配遵循 `reports/v0-s2/decoder-binding-decision-01.md`：复用已安装 PyAV 18 与 FFmpeg 7.1，不下载；元数据子进程不积累/返回帧，不加载模型。它输出同一内部探测文档，帧采样仍由 FFmpeg CLI 执行。必须单独验证 Windows 原生公开节点兼容性；包存在、Linux 结果和 Mock 均不能替代。
 
 原生工作台 CPU 控制扩展遵循 `reports/v0-s2/change-decision-video-workbench-01.json`：`POST /lvw/v0/video/workbench` 的 preview 复用 ManualDraftOwner，不获取 GPU 锁、不进执行队列、不写文件/剪贴板；adopt 只读取 VideoRequestOwner 当前成功快照，按原有字段投影四输出。浏览器显式采纳后保存该来源快照，后续 JSON 导出只合并经 owner 验证的人工字段与来源及编辑标志，不复制后端编译规则。导出是用户可编辑产物，不是可信执行收据；V0 没有业务数据库或页面刷新恢复保证。
+
+热基准与资源采样按 reports/v0-s2/warm-profile-decision-01.md 实施：仅隔离子进程显式模式、受管模型预热、推理请求内保温、请求终态恢复。主运行器负责准备失败时的预加载模型清理；profile 负责推理 scope 内的三十秒绝对截止。tools/v0_s2_native_sampler.py 只提供有界原生采样驱动，不自行获得真实运行授权；父运行器必须先绑定源码、依赖、进程集合及预算。原生效果仍为 NOT_RUN。
