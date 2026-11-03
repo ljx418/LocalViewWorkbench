@@ -142,7 +142,7 @@ def validate_stage(control: dict, tasks: dict, cases: dict) -> list[str]:
                 or control.get("external_authorization") != "AUTH-PROGRAM-V1-LOCAL-01_CHILD_RECEIPT_REQUIRED"
                 or control.get("budgets", {}).get("stage_checkpoints") != 1
                 or control.get("budgets", {}).get("corrected_candidate_full_rechecks") != 1
-                or state not in {"FROZEN_READY_OFFLINE", "RUNNING", "CHECKPOINT", "NO_GO", "BLOCKED", "WAIT_BUDGET"}):
+                or state != "FROZEN_READY_OFFLINE"):
             errors.append("program eligibility cannot replace a fresh bounded child or alter Stage limits")
     elif external and control.get("authorization_scope") == "OFFLINE_REPOSITORY_ONLY":
         first_external = next((item.get("id") for item in workpacks if item.get("risk") == "external_private"), None)
