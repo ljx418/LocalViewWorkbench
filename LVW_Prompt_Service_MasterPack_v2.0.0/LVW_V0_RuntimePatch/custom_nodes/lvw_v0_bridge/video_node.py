@@ -8,6 +8,21 @@ from .core import BridgeError
 from .video_decoder import VideoDecoder
 
 
+def default_video_decoder():
+    try:
+        import folder_paths
+    except ImportError as exc:
+        raise BridgeError("MODEL_UNAVAILABLE", "Comfy directories unavailable",
+                          subcode="COMFY_INPUT_ROOT_UNAVAILABLE") from exc
+    ffprobe = os.environ.get("LVW_FFPROBE_EXE") or shutil.which("ffprobe")
+    ffmpeg = os.environ.get("LVW_FFMPEG_EXE") or shutil.which("ffmpeg")
+    if not ffprobe or not ffmpeg:
+        raise BridgeError("MODEL_UNAVAILABLE", "local FFmpeg and ffprobe are required",
+                          subcode="VIDEO_DECODER_UNAVAILABLE")
+    return VideoDecoder(input_root=folder_paths.get_input_directory(),
+                        temp_parent=folder_paths.get_temp_directory(), ffprobe=ffprobe, ffmpeg=ffmpeg)
+
+
 def comfy_frames(images):
     try:
         import numpy as np

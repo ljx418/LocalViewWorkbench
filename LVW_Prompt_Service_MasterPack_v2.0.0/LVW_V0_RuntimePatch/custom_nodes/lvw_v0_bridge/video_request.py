@@ -23,6 +23,10 @@ class VideoRequestOwner:
             self._require_current(token)
             return copy.deepcopy(self._state)
 
+    def current_status(self):
+        with self._guard:
+            return copy.deepcopy(self._state) if self._state else {"status":"idle", "resource_state":"released", "run_token":None}
+
     def _require_current(self, token):
         if self._state is None or self._state["run_token"] != token:
             raise BridgeError("ATTEMPT_STALE", "video request token is not current", subcode="VIDEO_RUN_STALE")

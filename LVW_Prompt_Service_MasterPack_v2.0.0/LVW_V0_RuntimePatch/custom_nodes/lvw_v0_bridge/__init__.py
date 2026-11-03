@@ -3,8 +3,10 @@
 from .nodes import (LVWControlledImageInput, LVWDraftStateOwner, LVWImagePromptBridge,
                     LVWManualPromptOwner, LVWVideoFramesPromptBridge)
 from .video_node import LVWControlledVideoInput
+from .video_api import LVWVideoPromptOwner, register_control_routes
 
 NODE_CLASS_MAPPINGS = {
+    "LVWVideoPromptOwner": LVWVideoPromptOwner,
     "LVWControlledVideoInput": LVWControlledVideoInput,
     "LVWImagePromptBridge": LVWImagePromptBridge,
     "LVWVideoFramesPromptBridge": LVWVideoFramesPromptBridge,
@@ -14,6 +16,7 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
+    "LVWVideoPromptOwner": "LVW V0 Controlled Video Analysis",
     "LVWControlledVideoInput": "LVW V0 Controlled Video Input",
     "LVWImagePromptBridge": "LVW V0 Image Prompt Bridge",
     "LVWVideoFramesPromptBridge": "LVW V0 Ordered Frames Prompt Bridge",
@@ -23,3 +26,5 @@ NODE_DISPLAY_NAME_MAPPINGS = {
 }
 
 __all__ = ["NODE_CLASS_MAPPINGS", "NODE_DISPLAY_NAME_MAPPINGS"]
+
+register_control_routes()
