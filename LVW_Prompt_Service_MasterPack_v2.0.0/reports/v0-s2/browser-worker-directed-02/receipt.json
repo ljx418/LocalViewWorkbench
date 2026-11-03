@@ -1,0 +1,182 @@
+{
+  "kind": "DIRECTED_CANDIDATE_SUBSET_NOT_STAGE_ACCEPTANCE",
+  "candidate_sha": "5b0f95a15f0dd98cbd88d626417bb36fa36e71a6",
+  "corrects_candidate": "f81d2a312103f147913f55ee629b31455f403911",
+  "source_binding_scope": "Selected browser/launch/packet subset; complete parent/native gate pending",
+  "decision": "DIRECTED_CHECKS_PASSED_NOT_STAGE_ACCEPTANCE",
+  "source_unchanged": true,
+  "stage_pass_claim": false,
+  "provider_calls": 0,
+  "service_starts": 0,
+  "gpu_probes": 0,
+  "browser_starts": 0,
+  "stage_checkpoint_consumed": false,
+  "check_results": [
+    {
+      "name": "directed",
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "-m",
+        "unittest",
+        "LVW_V0_RuntimePatch.tests.test_s2_browser_worker",
+        "LVW_V0_RuntimePatch.tests.test_s2_driver",
+        "LVW_V0_RuntimePatch.tests.test_s2_runtime",
+        "LVW_V0_RuntimePatch.tests.test_s2_resource_abort",
+        "LVW_V0_RuntimePatch.tests.test_s2_native_component",
+        "LVW_V0_RuntimePatch.tests.test_s2_public_phase",
+        "LVW_V0_RuntimePatch.tests.test_s2_warm_phase",
+        "-q"
+      ],
+      "exit_code": 0,
+      "passed": true,
+      "stdout_original_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_artifact": "directed.stdout.log",
+      "stdout_artifact_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_original_sha256": "cc87c2e556358bbfb49403aac6b157ff21e91d2f897f9c689d8f11f7c6093233",
+      "stderr_artifact": "directed.stderr.log",
+      "stderr_artifact_sha256": "cc87c2e556358bbfb49403aac6b157ff21e91d2f897f9c689d8f11f7c6093233",
+      "tests_executed": 56
+    },
+    {
+      "name": "browser_policy",
+      "command": [
+        "node",
+        "tools/v0_s2_browser_policy_test.cjs"
+      ],
+      "exit_code": 0,
+      "passed": true,
+      "stdout_original_sha256": "e8acd1da21c993583e48158c57cccaae6d20007d365181296a987cb129eeb971",
+      "stdout_artifact": "browser_policy.stdout.log",
+      "stdout_artifact_sha256": "e8acd1da21c993583e48158c57cccaae6d20007d365181296a987cb129eeb971",
+      "stderr_original_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_artifact": "browser_policy.stderr.log",
+      "stderr_artifact_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "checks_executed": 11
+    },
+    {
+      "name": "browser_syntax",
+      "command": [
+        "node",
+        "--check",
+        "tools/v0_s2_browser_acceptance.cjs"
+      ],
+      "exit_code": 0,
+      "passed": true,
+      "stdout_original_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_artifact": "browser_syntax.stdout.log",
+      "stdout_artifact_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_original_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_artifact": "browser_syntax.stderr.log",
+      "stderr_artifact_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "pack",
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "tools/verify_pack.py",
+        "--schema"
+      ],
+      "exit_code": 0,
+      "passed": true,
+      "stdout_original_sha256": "b25420cb3a4a3eeed25de473850db2cdff0be6be0b76cc3a6274fc1913d39865",
+      "stdout_artifact": "pack.stdout.log",
+      "stdout_artifact_sha256": "b25420cb3a4a3eeed25de473850db2cdff0be6be0b76cc3a6274fc1913d39865",
+      "stderr_original_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_artifact": "pack.stderr.log",
+      "stderr_artifact_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "governance",
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "tools/verify_governance.py",
+        "--self-test"
+      ],
+      "exit_code": 0,
+      "passed": true,
+      "stdout_original_sha256": "6c3ca0f6a38ccb9c5b146cedfc37530b149a99c72d0baf4f69293ca1195f3df5",
+      "stdout_artifact": "governance.stdout.log",
+      "stdout_artifact_sha256": "6c3ca0f6a38ccb9c5b146cedfc37530b149a99c72d0baf4f69293ca1195f3df5",
+      "stderr_original_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_artifact": "governance.stderr.log",
+      "stderr_artifact_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "diff",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0,
+      "passed": true,
+      "stdout_original_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_artifact": "diff.stdout.log",
+      "stdout_artifact_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_original_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_artifact": "diff.stderr.log",
+      "stderr_artifact_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "identity": {
+    "candidate_sha": "5b0f95a15f0dd98cbd88d626417bb36fa36e71a6",
+    "execution_artifact_sha256": {
+      ".agent-governance/stages/V0-S2/00-coordinate.md": "aaeb56fa7653a35850d58388c9588e03718aa0f00799e7d28c87b98f43079d50",
+      ".agent-governance/stages/V0-S2/01-scope-and-non-goals.md": "e178565ab3e440402c56ab3349ae3fbb432fd7168053f3f9e80b1a7e61957fa4",
+      ".agent-governance/stages/V0-S2/02-architecture-and-ownership.md": "26ed6b66fb9fa520730cade2e96d6b2b5f4da23dcc42ee1f160a4e7ac27634d5",
+      ".agent-governance/stages/V0-S2/03-workpack-plan.md": "48a6723d5ce3788814755018165b1b6d822a93134313f3f96245309cc1112f84",
+      ".agent-governance/stages/V0-S2/04-acceptance-matrix.md": "8f78d90303f7f21cb8d1f583606c74ba613a0c9ce666a747c1e39d6fe165245b",
+      ".agent-governance/stages/V0-S2/05-risk-and-authorization-register.md": "96d3c24c10168fe7cfd900460cdef7e26ab715e680e665b3ee57352399be3522",
+      ".agent-governance/stages/V0-S2/06-implementation-prompt.md": "229ce8eb3697e8bae155f0590e793d472780e00b9da77279ec09d631ac670221",
+      ".agent-governance/stages/V0-S2/07-checkpoint-plan.md": "c3898e966cab45e964031d748acc4ddfd4b6be10e80d18d8a1a8f33f64091690",
+      ".agent-governance/stages/V0-S2/PAYLOAD_MANIFEST.sha256": "3c552d34d25c3138f477808bbf13fcf56c1e18d1f7f4f3b0783a6398405c6406",
+      ".agent-governance/stages/V0-S2/stage-control.json": "1e70d429efd1b3205301ec59e4f148ff27fbe56d6d7fc7a3203e0e9adaa5a987",
+      "LVW_V0_RuntimePatch/tests/test_s2_browser_worker.py": "aea44c8f747f43ea9c3ca97881ccd09f5f86f550fd131b54e4e025a08a0ce84b",
+      "LVW_V0_RuntimePatch/tests/test_s2_driver.py": "1d29d41c0fbb4f8cd33b4283f3d5974b4947283ac72e6456c80ab33787f2419d",
+      "LVW_V0_RuntimePatch/workflows/video_reverse_prompt_v0.ui.json": "f40bd2cb31c25bfcf95b71e824805f6f242e4482e8e432d39fbd52a50a42806a",
+      "MANIFEST.sha256": "dcb1ca8d36561ddf6b2968f1ea856a47c69b4fc469a98f6e06d6a6b81b4f2c09",
+      "plans/execution-control.json": "f2917e52388c89223d0fe7a0fa96cd51df9610b37b39542ab0d8c13ea3867bc9",
+      "reports/v0-s1/wp-s1-03-phase-a/live_probe.py": "94953202138267ca988818a5ba75704d845c15e288fb406d8f7af21d1af4af52",
+      "reports/v0-s2/native-browser-root-authorization-correction-01.md": "7334c500ea4b373fbb40f3286aced7a794fc7bbbd31eb6e746597ef8f0aecbff",
+      "reports/v0-s2/native-browser-worker-decision-01.md": "aa41662d1daada8d38efd1738926625af7bc466119d4cd6b7f8201a5d60f718b",
+      "tools/v0_s2_browser_acceptance.cjs": "d4b9d164baea3521acd33926455d5930461e6fd86bf78f7f7a17980f63cdfcc7",
+      "tools/v0_s2_browser_policy.cjs": "feafb8538fa858e5493a7f35d3cfff76d60912d90eb95b306b376b085031d5ca",
+      "tools/v0_s2_browser_policy_test.cjs": "daa71f6b6eb846a48f9a37e99c1f477786fda0d9500a592850d72f3c8b380d95",
+      "tools/v0_s2_driver.py": "55ae99a9767d0f4b0323ce9356589e69b7c907a5a51d3065b26e87630e71f72d",
+      "tools/v0_s2_http.py": "3c02c3d69d5141883ee62e4543c6ff61c7d5f5e5c0c894083e556e3499e1e9b9",
+      "tools/v0_s2_runtime.py": "927bd1aedebd6df3c057a14280e216467ae3900c03df07db0847f73b916c6af2"
+    },
+    "git_blob_sha256": {
+      ".agent-governance/stages/V0-S2/00-coordinate.md": "aaeb56fa7653a35850d58388c9588e03718aa0f00799e7d28c87b98f43079d50",
+      ".agent-governance/stages/V0-S2/01-scope-and-non-goals.md": "e178565ab3e440402c56ab3349ae3fbb432fd7168053f3f9e80b1a7e61957fa4",
+      ".agent-governance/stages/V0-S2/02-architecture-and-ownership.md": "26ed6b66fb9fa520730cade2e96d6b2b5f4da23dcc42ee1f160a4e7ac27634d5",
+      ".agent-governance/stages/V0-S2/03-workpack-plan.md": "48a6723d5ce3788814755018165b1b6d822a93134313f3f96245309cc1112f84",
+      ".agent-governance/stages/V0-S2/04-acceptance-matrix.md": "8f78d90303f7f21cb8d1f583606c74ba613a0c9ce666a747c1e39d6fe165245b",
+      ".agent-governance/stages/V0-S2/05-risk-and-authorization-register.md": "96d3c24c10168fe7cfd900460cdef7e26ab715e680e665b3ee57352399be3522",
+      ".agent-governance/stages/V0-S2/06-implementation-prompt.md": "229ce8eb3697e8bae155f0590e793d472780e00b9da77279ec09d631ac670221",
+      ".agent-governance/stages/V0-S2/07-checkpoint-plan.md": "c3898e966cab45e964031d748acc4ddfd4b6be10e80d18d8a1a8f33f64091690",
+      ".agent-governance/stages/V0-S2/PAYLOAD_MANIFEST.sha256": "3c552d34d25c3138f477808bbf13fcf56c1e18d1f7f4f3b0783a6398405c6406",
+      ".agent-governance/stages/V0-S2/stage-control.json": "1e70d429efd1b3205301ec59e4f148ff27fbe56d6d7fc7a3203e0e9adaa5a987",
+      "LVW_V0_RuntimePatch/tests/test_s2_browser_worker.py": "aea44c8f747f43ea9c3ca97881ccd09f5f86f550fd131b54e4e025a08a0ce84b",
+      "LVW_V0_RuntimePatch/tests/test_s2_driver.py": "1d29d41c0fbb4f8cd33b4283f3d5974b4947283ac72e6456c80ab33787f2419d",
+      "LVW_V0_RuntimePatch/workflows/video_reverse_prompt_v0.ui.json": "f40bd2cb31c25bfcf95b71e824805f6f242e4482e8e432d39fbd52a50a42806a",
+      "MANIFEST.sha256": "dcb1ca8d36561ddf6b2968f1ea856a47c69b4fc469a98f6e06d6a6b81b4f2c09",
+      "plans/execution-control.json": "f2917e52388c89223d0fe7a0fa96cd51df9610b37b39542ab0d8c13ea3867bc9",
+      "reports/v0-s1/wp-s1-03-phase-a/live_probe.py": "94953202138267ca988818a5ba75704d845c15e288fb406d8f7af21d1af4af52",
+      "reports/v0-s2/native-browser-root-authorization-correction-01.md": "7334c500ea4b373fbb40f3286aced7a794fc7bbbd31eb6e746597ef8f0aecbff",
+      "reports/v0-s2/native-browser-worker-decision-01.md": "aa41662d1daada8d38efd1738926625af7bc466119d4cd6b7f8201a5d60f718b",
+      "tools/v0_s2_browser_acceptance.cjs": "d4b9d164baea3521acd33926455d5930461e6fd86bf78f7f7a17980f63cdfcc7",
+      "tools/v0_s2_browser_policy.cjs": "feafb8538fa858e5493a7f35d3cfff76d60912d90eb95b306b376b085031d5ca",
+      "tools/v0_s2_browser_policy_test.cjs": "daa71f6b6eb846a48f9a37e99c1f477786fda0d9500a592850d72f3c8b380d95",
+      "tools/v0_s2_driver.py": "55ae99a9767d0f4b0323ce9356589e69b7c907a5a51d3065b26e87630e71f72d",
+      "tools/v0_s2_http.py": "3c02c3d69d5141883ee62e4543c6ff61c7d5f5e5c0c894083e556e3499e1e9b9",
+      "tools/v0_s2_runtime.py": "927bd1aedebd6df3c057a14280e216467ae3900c03df07db0847f73b916c6af2"
+    },
+    "checkout_transforms": {},
+    "attributes_sha256": "f80a265ad02e0479291b641abf2ba24d67ea42e3352bd8b23b374327e61e507e",
+    "payload_sha256": "9dc29be5fc41cd7da9f94ff2be973e1210fc3299f7dbda775cf693612a13d306"
+  }
+}
