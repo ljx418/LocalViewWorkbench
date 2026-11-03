@@ -685,10 +685,10 @@ def main_r1a(args: argparse.Namespace, execution: dict) -> int:
     checkpoint_review = (
         control.get("state") == "CHECKPOINT"
         and control.get("authorization_scope") == "WP-R1A-04_ONE_SHOT_LIVE"
-        and control.get("external_authorization") == "EXPIRED_AUTH-V1-R1A-2026-10-29-LIVE-06"
+        and control.get("external_authorization") in {"EXPIRED_AUTH-V1-R1A-2026-10-29-LIVE-06", "EXPIRED_AUTH-V1-R1A-2026-11-02-LIVE-08"}
         and control.get("execution_authorized") is False
         and control.get("next_owner") == "codex_r1a_independent_reviewer"
-        and control.get("required_authorization") == "INDEPENDENT_REVIEW_R1A_LIVE_06"
+        and control.get("required_authorization") in {"INDEPENDENT_REVIEW_R1A_LIVE_06", "INDEPENDENT_REVIEW_R1A_LIVE_08"}
     )
     human_gate_ready = (
         control.get("state") == "CHECKPOINT"

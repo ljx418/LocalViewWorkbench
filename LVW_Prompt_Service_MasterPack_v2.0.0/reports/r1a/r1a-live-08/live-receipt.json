@@ -1,0 +1,99 @@
+{
+  "schema_version": "lvw.live-receipt/2",
+  "run_id": "r1a-live-08",
+  "authorization_id": "AUTH-V1-R1A-2026-11-02-LIVE-08",
+  "authorization_sha256": "33b26cce4fa8ebd500e967f8404446676a58d8257fbf46fad3171e0caca218c8",
+  "candidate_sha": "df4943cef1726350d5e9f1d4111800094c1a8d99",
+  "harness_sha256": "e849c8aabaa7200a3109286afa34993f07a5956ba136491a12aa52da37b74a1f",
+  "browser_harness_sha256": "72ab38823d3272c124c9306e26eef6921fbac810af93f9476280eabc3b1fd1d3",
+  "runtime_guard_sha256": "6b3f218bacc99ffe92a72be2ed9bc9d318c1867f8ff5b03e7ef946e7e53be7a6",
+  "ollama_wrapper_sha256": "5b1423da244bc0f2a25f37f9a44e22b6e7e0565c05d4b6d989ec80bc95a1bb81",
+  "offline_checkpoint_sha256": "8058269a1f4071ec9d57b4dd2c2a341f8c771ab79a7ddecee2c6561670266568",
+  "acceptance_hash": "82a3736ab77ee98e301d7e055a78b160774c9c09692288db89c5a2768bfe39ab",
+  "sample_alias": "TEST_SOURCE/image-sample",
+  "sample_sha256": "b4bbd08a0fad67cc04e55d15bf2c48e9a76dcfd6dda147d8cc504452dfc78a42",
+  "model": "gemma4:26b",
+  "backend_port": 18765,
+  "started_at": "2026-11-03T02:38:12.968446+00:00",
+  "attempts": 1,
+  "model_calls": 1,
+  "browser_runs": 1,
+  "phase": "MODEL_UNLOAD",
+  "decision": "READY_FOR_INDEPENDENT_REVIEW",
+  "stage_pass_claim": false,
+  "fixed_denominator": {
+    "R1A-M01": "PASS_OFFLINE_BOUNDARIES",
+    "R1A-M02": "PASS",
+    "R1A-M03": "PASS",
+    "R1A-M04": "PASS",
+    "R1A-M05": "PASS",
+    "R1A-M06": "WAIT_INDEPENDENT_REVIEW",
+    "R1A-M07": "PASS"
+  },
+  "preflight_ports": {
+    "windows": {
+      "18765": 0,
+      "11434": 0
+    },
+    "wsl": {
+      "18765": 0,
+      "11434": 0
+    }
+  },
+  "browser_exit_code": 0,
+  "browser_stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "browser_stderr_tail": "",
+  "provider_ledger": [
+    {
+      "call_id": "call_acf966758a8149e4a1dde4486b7d71fd",
+      "event": "provider_call_started",
+      "input_sha256": "805fe70fae055a33120cb94b9a6eb15d2bd54b28783702f8c194491a3d091f98",
+      "model": "gemma4:26b",
+      "time_ns": 1793673574626709066
+    },
+    {
+      "call_id": "call_acf966758a8149e4a1dde4486b7d71fd",
+      "event": "provider_call_completed",
+      "model": "gemma4:26b",
+      "outcome": "success",
+      "time_ns": 1793673609610319771
+    }
+  ],
+  "wrapper_terminal": {
+    "pid": 37736,
+    "start_filetime_utc": "134381471266656712",
+    "executable_path": "OLLAMA_EXE",
+    "child_exited": true,
+    "stop_requested": true,
+    "lease_expired": false,
+    "exit_code": null,
+    "wrapper_error": false
+  },
+  "wrapper_exit_code": 0,
+  "cleanup_ports": {
+    "windows": {
+      "18765": 0,
+      "11434": 0
+    },
+    "wsl": {
+      "18765": 0,
+      "11434": 0
+    }
+  },
+  "diagnostics": {
+    "ollama_stdout_tail": "0:39:49 | 200 |      4.6675ms |       127.0.0.1 | GET      \"/api/tags\"\n[GIN] 2026/11/03 - 10:39:49 | 200 |            0s |       127.0.0.1 | GET      \"/api/ps\"\n[GIN] 2026/11/03 - 10:39:52 | 200 |      1.5364ms |       127.0.0.1 | GET      \"/api/tags\"\n[GIN] 2026/11/03 - 10:39:52 | 200 |         880µs |       127.0.0.1 | GET      \"/api/ps\"\n[GIN] 2026/11/03 - 10:39:55 | 200 |      1.7168ms |       127.0.0.1 | GET      \"/api/tags\"\n[GIN] 2026/11/03 - 10:39:55 | 200 |            0s |       127.0.0.1 | GET      \"/api/ps\"\n[GIN] 2026/11/03 - 10:39:58 | 200 |      2.6549ms |       127.0.0.1 | GET      \"/api/tags\"\n[GIN] 2026/11/03 - 10:39:58 | 200 |            0s |       127.0.0.1 | GET      \"/api/ps\"\n[GIN] 2026/11/03 - 10:40:01 | 200 |      3.3856ms |       127.0.0.1 | GET      \"/api/tags\"\n[GIN] 2026/11/03 - 10:40:01 | 200 |            0s |       127.0.0.1 | GET      \"/api/ps\"\n[GIN] 2026/11/03 - 10:40:04 | 200 |      2.2443ms |       127.0.0.1 | GET      \"/api/tags\"\n[GIN] 2026/11/03 - 10:40:04 | 200 |            0s |       127.0.0.1 | GET      \"/api/ps\"\n[GIN] 2026/11/03 - 10:40:07 | 200 |      2.2407ms |       127.0.0.1 | GET      \"/api/tags\"\n[GIN] 2026/11/03 - 10:40:07 | 200 |            0s |       127.0.0.1 | GET      \"/api/ps\"\n[GIN] 2026/11/03 - 10:40:09 | 200 |   34.8661874s |       127.0.0.1 | POST     \"/api/chat\"\n[GIN] 2026/11/03 - 10:40:10 | 200 |        1.58ms |       127.0.0.1 | GET      \"/api/tags\"\n[GIN] 2026/11/03 - 10:40:10 | 200 |            0s |       127.0.0.1 | GET      \"/api/ps\"\n[GIN] 2026/11/03 - 10:40:11 | 200 |       431.2µs |       127.0.0.1 | GET      \"/api/ps\"\n",
+    "ollama_stderr_tail": "o:202 msg=\"failed to refresh model list cache\" model=registry.ollama.ai/library/deepseek-r1:7b error=\"open <redacted-path> The system cannot find the file specified.\"\nslot print_timing: id  0 | task 0 | n_decoded =    262, tg =  87.31 t/s, tg_3s =  87.31 t/s\ntime=2026-11-03T10:40:07.661+08:00 level=WARN source=model_list_cache.go:202 msg=\"failed to refresh model list cache\" model=registry.ollama.ai/library/deepseek-r1:7b error=\"open <redacted-path> The system cannot find the file specified.\"\nslot print_timing: id  0 | task 0 | prompt eval time =    1528.39 ms /   759 tokens (    2.01 ms per token,   496.60 tokens per second)\nslot print_timing: id  0 | task 0 |        eval time =    5195.91 ms /   469 tokens (   11.08 ms per token,    90.26 tokens per second)\nslot print_timing: id  0 | task 0 |       total time =    6724.31 ms /  1228 tokens\nslot print_timing: id  0 | task 0 |    graphs reused =        466\nslot      release: id  0 | task 0 | stop processing: n_tokens = 1227, truncated = 0\nsrv  update_slots: all slots are idle\ntime=2026-11-03T10:40:10.790+08:00 level=WARN source=model_list_cache.go:202 msg=\"failed to refresh model list cache\" model=registry.ollama.ai/library/deepseek-r1:7b error=\"open <redacted-path> The system cannot find the file specified.\"\n",
+    "wrapper_tail": "",
+    "wrapper_error": "",
+    "backend_tail": "23b3 HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:57163 - \"GET /api/v1/runtime/status HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:57163 - \"GET /api/v1/jobs/job_f2c94cd892f9461d9ad80b43ea0a23b3 HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:57163 - \"GET /api/v1/jobs/job_f2c94cd892f9461d9ad80b43ea0a23b3 HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:57163 - \"GET /api/v1/jobs/job_f2c94cd892f9461d9ad80b43ea0a23b3 HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:57163 - \"GET /api/v1/jobs/job_f2c94cd892f9461d9ad80b43ea0a23b3 HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:57163 - \"GET /api/v1/jobs/job_f2c94cd892f9461d9ad80b43ea0a23b3 HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:57163 - \"GET /api/v1/jobs/job_f2c94cd892f9461d9ad80b43ea0a23b3 HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:57163 - \"GET /api/v1/runtime/status HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:57163 - \"GET /api/v1/jobs/job_f2c94cd892f9461d9ad80b43ea0a23b3 HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:57163 - \"GET /api/v1/jobs/job_f2c94cd892f9461d9ad80b43ea0a23b3 HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:57163 - \"GET /api/v1/jobs/job_f2c94cd892f9461d9ad80b43ea0a23b3 HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:57163 - \"GET /api/v1/jobs/job_f2c94cd892f9461d9ad80b43ea0a23b3 HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:57163 - \"GET /api/v1/jobs/job_f2c94cd892f9461d9ad80b43ea0a23b3 HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:57163 - \"GET /api/v1/model-runs/run_af17103677c8406995f088044711f003 HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:57163 - \"GET /api/v1/runtime/status HTTP/1.1\" 200 OK\nINFO:     Shutting down\nINFO:     Waiting for application shutdown.\nINFO:     Application shutdown complete.\nINFO:     Finished server process [2542498]\n"
+  },
+  "cleanup_errors": [],
+  "terminal": {
+    "backend": "STOPPED",
+    "ollama": "STOPPED",
+    "model": "UNLOADED",
+    "ports": "EMPTY",
+    "runtime": "REMOVED"
+  },
+  "finished_at": "2026-11-03T02:40:16.860421+00:00"
+}
