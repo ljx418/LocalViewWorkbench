@@ -19,7 +19,7 @@ def facts(huge=False, release_duration=3.35):
     b = {**binding(), 'expires_at': 1200}; clock = [0]; events = []; factor = 9007199254740993 if huge else 1
     frames = [{'index': i, 'pts': p*factor, 'time_base_num': 1, 'time_base_den': factor,
         'time_seconds': p, 'sha256': str(i)*64} for i, p in enumerate((1, 3, 5, 7))]
-    fixture = {'sha256': 'f'*64, 'bytes': 32, 'expected_sample_pts': [f['pts'] for f in frames],
+    fixture = {'sha256': hashlib.sha256(b'x'*32).hexdigest(), 'bytes': 32, 'expected_sample_pts': [f['pts'] for f in frames],
         'oracle': {'time_base': '1/'+str(factor)}}
     proof = {'verified_compute_pids': [], 'snapshot': {'listener_pid': 10, 'listener_address': '127.0.0.1',
         'listener_port': 11434, 'processes': [{'pid': 10, 'parent_pid': 1, 'start_ticks': 100, 'name': 'ollama.exe'}]}}

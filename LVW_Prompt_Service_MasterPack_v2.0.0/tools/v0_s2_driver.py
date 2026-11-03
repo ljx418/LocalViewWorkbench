@@ -9,6 +9,7 @@ import json
 import math
 from pathlib import Path
 import subprocess
+import threading
 
 from tools.v0_s2_http import LoopbackClient,ControlError
 import time
@@ -50,6 +51,7 @@ class S2SystemDriver(base.SystemDriver):
         if type(self.request_limit) is not int or not 1<=self.request_limit<=8192:
             raise base.StopProbe('LOOPBACK_REQUEST_BUDGET_INVALID')
         self.request_ledger=[];self._wrapper_handles={};self.listener_births={};self._cleanup_descendants={}
+        self._submission_guard=threading.Lock()
         self.clients = {url:LoopbackClient(url) for url in (base.COMFY_URL,base.OLLAMA_URL)}
 
     def _prove_listener_owned(self,port,wrapper_pid_file,executable_name):
@@ -268,10 +270,16 @@ class S2SystemDriver(base.SystemDriver):
             except (OSError,ControlError):time.sleep(min(.25,max(0,deadline-time.monotonic())))
         raise base.StopProbe('SERVICE_START_TIMEOUT')
 
+    def reserve_public_submission(self):
+        """Precharge either an adapter POST or an observed browser POST."""
+        with self._submission_guard:
+            if self.submissions >= self.max_public_submissions:
+                raise base.StopProbe('PUBLIC_API_SUBMISSION_BUDGET_EXCEEDED')
+            self.submissions += 1  # Failed/aborted permitted sends consume budget.
+            return self.submissions
+
     def submit(self, graph):
-        if self.submissions >= self.max_public_submissions:
-            raise base.StopProbe('PUBLIC_API_SUBMISSION_BUDGET_EXCEEDED')
-        self.submissions += 1  # Failed submissions consume budget too.
+        self.reserve_public_submission()
         status,value=self._json_request(base.COMFY_URL+'/prompt',payload={'prompt':graph,'client_id':self.args.run_id},
             observer=getattr(self,'resource_observer',None))
         if status != 200 or not isinstance(value.get('prompt_id'),str) or not value['prompt_id']:

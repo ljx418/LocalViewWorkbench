@@ -27,6 +27,15 @@ class DriverTests(unittest.TestCase):
                 with self.assertRaises(base.StopProbe):driver.submit({'1':{'class_type':'fixture'}})
         self.assertEqual(1,request.call_count);self.assertEqual(1,driver.submissions)
 
+    def test_browser_and_adapter_submissions_share_one_fixed_denominator(self):
+        driver=self.driver(2)
+        self.assertEqual(1,driver.reserve_public_submission())
+        with patch.object(driver,'_json_request',return_value=(200,{})) as request:
+            with self.assertRaises(base.StopProbe):driver.submit({'1':{'class_type':'fixture'}})
+            with self.assertRaises(base.StopProbe):driver.reserve_public_submission()
+            with self.assertRaises(base.StopProbe):driver.submit({'1':{'class_type':'fixture'}})
+        self.assertEqual(2,driver.submissions);self.assertEqual(1,request.call_count)
+
     def test_scoped_cancel_request_uses_new_client(self):
         driver=self.driver()
         with patch.object(driver.clients[base.COMFY_URL],'request',return_value=(200,{})) as request:

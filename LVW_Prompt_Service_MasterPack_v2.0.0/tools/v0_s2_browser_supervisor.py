@@ -248,7 +248,7 @@ class Supervisor:
                             request = self.protocol.reserve(line)
                             result['requests'] += 1
                             thread = threading.Thread(target=callback, args=(request,), daemon=True)
-                            limit = 1190 if request['action'] == 'offline_op' else 18
+                            limit = 1190 if request['action'] == 'offline_op' else 55 if request['action'] == 'case_finished' else 18
                             jobs[request['sequence']] = (thread, time.monotonic()+limit)
                             thread.start()
                         if len(buffer) > MAX_LINE: raise ProtocolError('BROWSER_RECORD_LIMIT')

@@ -35,7 +35,8 @@ function parentBridge(config, input = process.stdin, output = process.stdout) {
     const encoded = JSON.stringify(packet);
     if (Buffer.byteLength(encoded) > 65536) throw new Error('BROWSER_PARENT_REQUEST_LIMIT');
     return new Promise((resolve, reject) => {
-      const timer = setTimeout(() => { pending.delete(id); reject(new Error('BROWSER_PARENT_TIMEOUT:' + action)); }, action === 'offline_op' ? 1200000 : 20000);
+      const timer = setTimeout(() => { pending.delete(id); reject(new Error('BROWSER_PARENT_TIMEOUT:' + action)); },
+        action === 'offline_op' ? 1200000 : action === 'case_finished' ? 60000 : 20000);
       pending.set(id, { resolve, reject, timer }); output.write(encoded + '\n');
     });
   }, close() { stop(new Error('BROWSER_WORKER_CLOSED')); lines.close(); } };
@@ -138,7 +139,7 @@ async function run(config, parent, dependencies = {}) {
     assertHealthy(); counter.charge('browser_starts'); action('launch_headless');
     const { chromium } = dependencies.playwright || require(config.playwright_module);
     server = await chromium.launchServer({ host: '127.0.0.1', port: 0, headless: true, executablePath: config.browser_executable,
-      args: ['--disable-background-networking', '--disable-component-update', '--disable-sync', '--no-first-run', '--disable-extensions', '--no-proxy-server'] });
+      args: ['--disable-gpu', '--disable-background-networking', '--disable-component-update', '--disable-sync', '--no-first-run', '--disable-extensions', '--no-proxy-server'] });
     assertHealthy();
     child = server.process(); processBirth = birth(child.pid);
     if (processBirth.group !== child.pid || processBirth.session !== child.pid || fs.realpathSync(`/proc/${child.pid}/exe`) !== fs.realpathSync(config.browser_executable)) throw new Error('BROWSER_PROCESS_OWNERSHIP_UNPROVEN');

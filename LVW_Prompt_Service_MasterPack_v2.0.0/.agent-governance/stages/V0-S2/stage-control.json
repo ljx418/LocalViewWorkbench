@@ -2,7 +2,7 @@
   "schema_version": "lvw.stage-control/1",
   "project_id": "lvw-prompt-service",
   "stage_id": "V0-S2",
-  "stage_packet_version": "1.0.23",
+  "stage_packet_version": "1.0.24",
   "packet_status": "FROZEN",
   "gate_version": "lvw-gate/1",
   "baseline": {
@@ -48,7 +48,8 @@
     "reports/v0-s2/frontend-binding-preparation-decision-01.md",
     "reports/v0-s2/frontend-binding-correction-01.md",
     "reports/v0-s2/browser-supervisor-decision-01.md",
-    "reports/v0-s2/browser-analysis-evidence-decision-01.md"
+    "reports/v0-s2/browser-analysis-evidence-decision-01.md",
+    "reports/v0-s2/browser-handler-wiring-decision-01.md"
   ],
   "roles": {
     "gate_owner": "codex_gate_owner",
@@ -363,7 +364,7 @@
     "entry": "tools/v0_s2_browser_acceptance.cjs",
     "policy": "tools/v0_s2_browser_policy.cjs",
     "decision": "reports/v0-s2/native-browser-worker-decision-01.md",
-    "status": "OFFLINE_SUPERVISOR_AND_ANALYSIS_EXPORT_JOINS_IMPLEMENTED_FULL_PARENT_PENDING",
+    "status": "OFFLINE_RUNTIME_CALLBACKS_WIRED_TERMINAL_ORACLE_AND_FULL_PARENT_PENDING",
     "fixed_subchecks": 9,
     "ui_public_submissions": 2,
     "browser_starts": 1,
@@ -374,6 +375,16 @@
     "independent_owner": "tools/v0_s2_browser_owner.py",
     "supervisor_decision": "reports/v0-s2/browser-supervisor-decision-01.md",
     "analysis_export_oracle": "tools/v0_s2_browser_evidence.py",
-    "analysis_export_decision": "reports/v0-s2/browser-analysis-evidence-decision-01.md"
+    "analysis_export_decision": "reports/v0-s2/browser-analysis-evidence-decision-01.md",
+    "handlers": "tools/v0_s2_browser_handlers.py",
+    "handler_decision": "reports/v0-s2/browser-handler-wiring-decision-01.md",
+    "rpc_timeouts_seconds": {
+      "ordinary": 20,
+      "case_finished": 60,
+      "offline_op": 1200,
+      "supervisor_ordinary": 18,
+      "supervisor_case_finished": 55,
+      "supervisor_offline_op": 1190
+    }
   }
 }
