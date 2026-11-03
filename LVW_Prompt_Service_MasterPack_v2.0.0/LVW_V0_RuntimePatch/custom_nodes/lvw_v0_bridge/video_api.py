@@ -4,12 +4,15 @@ import base64
 from io import BytesIO
 import threading
 import uuid
+import asyncio
 from urllib.parse import urlsplit
 
 from .core import BridgeError
 from .nodes import _NodeBase
 from .video_node import default_video_decoder
 from .video_request import VideoRequestOwner
+from .video_upload import receive_video
+from .video_input import MAX_VIDEO_BYTES
 
 _OWNER = None
 _OWNER_GUARD = threading.Lock()
@@ -142,4 +145,22 @@ def register_control_routes():
             return failure(error)
         except (ValueError, UnicodeError):
             return web.json_response({"error":{"code":"CONTRACT_UNSUPPORTED","message":"bounded run token required"}}, status=400)
+
+    @server.routes.post('/lvw/v0/video/upload')
+    async def upload(request):
+        try:
+            check(request)
+            if request.content_length is not None and request.content_length>MAX_VIDEO_BYTES:
+                raise BridgeError('MEDIA_LIMIT_EXCEEDED','视频不能超过 256 MiB',subcode='VIDEO_BYTE_LIMIT')
+            extension=request.headers.get('X-LVW-Video-Extension','')
+            import folder_paths
+            async with asyncio.timeout(60):
+                result=await receive_video(folder_paths.get_input_directory(),extension,
+                                           request.content.iter_chunked(256*1024))
+            return web.json_response(result,status=201)
+        except BridgeError as error:
+            status=403 if error.code=='ORIGIN_FORBIDDEN' else 413 if error.code=='MEDIA_LIMIT_EXCEEDED' else 400
+            return web.json_response({'error':{'code':error.code,'message':error.message}},status=status)
+        except TimeoutError:
+            return web.json_response({'error':{'code':'MEDIA_INVALID','message':'视频上传超时，请重新选择文件'}},status=408)
     return True

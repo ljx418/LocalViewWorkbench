@@ -1,5 +1,7 @@
 import asyncio
 import json
+from pathlib import Path
+import tempfile
 from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
@@ -29,6 +31,33 @@ class Owner:
 
 
 class ApiTests(unittest.TestCase):
+    def test_public_upload_streams_to_input_owner_and_rejects_before_write(self):
+        routes=Routes()
+        fake_server=SimpleNamespace(PromptServer=SimpleNamespace(instance=SimpleNamespace(routes=routes)))
+        web=SimpleNamespace(json_response=lambda body,status=200:(status,body))
+        class Stream:
+            def __init__(self):self.reads=0
+            async def iter_chunked(self,size):
+                self.reads+=1
+                yield b'abc';yield b'def'
+        def request(*,length=6,origin='http://127.0.0.1:8188',extension='.mp4'):
+            return SimpleNamespace(remote='127.0.0.1',host='127.0.0.1:8188',content_length=length,
+                headers={'Origin':origin,'X-LVW-Control':'local-ui','X-LVW-Video-Extension':extension},content=Stream())
+        with tempfile.TemporaryDirectory() as temp,patch.dict('sys.modules',{'server':fake_server,
+                'aiohttp':SimpleNamespace(web=web),'folder_paths':SimpleNamespace(get_input_directory=lambda:temp)}):
+            self.assertTrue(video_api.register_control_routes())
+            handler=routes.handlers[('POST','/lvw/v0/video/upload')]
+            for bad,status in [(request(origin='http://other.example'),403),
+                               (request(length=video_api.MAX_VIDEO_BYTES+1),413),
+                               (request(extension='../../outside.mp4'),400)]:
+                self.assertEqual(status,asyncio.run(handler(bad))[0])
+                self.assertEqual(0,bad.content.reads)
+                self.assertEqual([],list(Path(temp).iterdir()))
+            status,result=asyncio.run(handler(request(length=None)))
+            self.assertEqual(201,status);self.assertEqual(6,result['bytes'])
+            self.assertEqual(b'abcdef',(Path(temp)/result['video_reference']).read_bytes())
+            self.assertNotIn(temp,str(result))
+
     def test_origin_dns_remote_peer_and_header_fail_closed(self):
         good = dict(peer="127.0.0.1",host="127.0.0.1:8188",origin="http://127.0.0.1:8188",control="local-ui")
         video_api.authorize_control(**good)

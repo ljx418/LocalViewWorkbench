@@ -1,5 +1,9 @@
 """Deterministic Stage-S2 evidence oracles; never starts a target runtime."""
 from math import ceil, isfinite
+from fractions import Fraction
+import hashlib
+import json
+import re
 
 STAGE_IDS = ("V0-A02", "V0-A07", "V0-A09", "V0-A10")
 VIDEO_CATEGORIES = ("static", "tracking", "fast-cut", "vfr")
@@ -7,6 +11,65 @@ VIDEO_CATEGORIES = ("static", "tracking", "fast-cut", "vfr")
 
 class EvidenceError(ValueError):
     pass
+
+
+def public_video_oracle(history, prompt_id, *, source_sha256, expected_model, chat_calls_before, chat_calls_after):
+    """Validate public Comfy history plus independently counted Ollama log calls.
+
+    Raw-array length alone cannot prove that four provider calls happened.
+    Frame bytes still require independent decoder recomputation during review.
+    """
+    try:
+        record=history[prompt_id]
+        if record['status']['status_str'] not in {'success','completed'}:
+            raise ValueError('unsuccessful public execution')
+        submitted=record['prompt']
+        if submitted[1]!=prompt_id or submitted[2]['1']['class_type']!='LVWVideoPromptOwner':
+            raise ValueError('wrong public owner')
+        text=record['outputs']['1']['text']
+        if len(text)!=3 or not all(isinstance(item,str) for item in text):
+            raise ValueError('missing UI evidence')
+        raw,suggestion,metadata=(json.loads(item) for item in text)
+        if set(raw)!={'frame_raw_responses'} or len(raw['frame_raw_responses'])!=4:
+            raise ValueError('raw frame denominator')
+        for item in raw['frame_raw_responses']:
+            envelope=json.loads(item)
+            if (envelope.get('model')!=expected_model or envelope.get('done') is not True
+                    or not isinstance(envelope.get('message',{}).get('content'),str)
+                    or not envelope['message']['content'].strip()):
+                raise ValueError('model response incomplete')
+        if (type(chat_calls_before) is not int or type(chat_calls_after) is not int
+                or chat_calls_before<0 or chat_calls_after-chat_calls_before!=4):
+            raise ValueError('provider log denominator')
+        if (not re.fullmatch('[0-9a-f]{64}',source_sha256) or metadata['source_sha256']!=source_sha256
+                or not re.fullmatch('[0-9a-f]{32}',metadata['run_token'])
+                or metadata['cancel_epoch']!=0 or type(metadata['cancel_epoch']) is not int):
+            raise ValueError('source/run identity')
+        if suggestion.get('schema_version')!='lvw.prompt/1' or not suggestion['domains']['observation']:
+            raise ValueError('suggestion missing observation')
+        frames=metadata['frames']
+        if len(frames)!=4:raise ValueError('frame denominator')
+        previous=None;origin=None;basis=None
+        for index,frame in enumerate(frames):
+            if frame['index']!=index or type(frame['index']) is not int:
+                raise ValueError('frame index')
+            if any(type(frame[key]) is not int for key in ('pts','time_base_num','time_base_den')):
+                raise ValueError('timestamp type')
+            if min(frame['time_base_num'],frame['time_base_den'])<=0:raise ValueError('timebase')
+            current_basis=Fraction(frame['time_base_num'],frame['time_base_den'])
+            seconds=number(frame['time_seconds'],'frame seconds')
+            current_origin=frame['pts']*current_basis-Fraction(str(seconds))
+            if (previous is not None and frame['pts']<=previous) or (basis is not None and current_basis!=basis):
+                raise ValueError('nonmonotonic/mixed frame timeline')
+            if origin is not None and abs(float(current_origin-origin))>1e-9:
+                raise ValueError('inconsistent timestamp origin')
+            if not re.fullmatch('[0-9a-f]{64}',frame['sha256']):raise ValueError('frame hash missing')
+            previous=frame['pts'];origin=current_origin;basis=current_basis
+        return {'source_sha256':source_sha256,'frames':frames,'run_token':metadata['run_token'],
+                'provider_log_calls':4,'raw_sha256':hashlib.sha256(text[0].encode()).hexdigest(),
+                'suggestion_sha256':hashlib.sha256(text[1].encode()).hexdigest(),'stage_pass_claim':False}
+    except (KeyError,IndexError,TypeError,ValueError,ZeroDivisionError,OverflowError,AttributeError) as exc:
+        raise EvidenceError('public video evidence invalid: '+type(exc).__name__) from exc
 
 
 def number(value, label):
