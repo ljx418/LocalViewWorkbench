@@ -46,6 +46,10 @@ class LVWImagePromptBridge(_NodeBase):
 class LVWVideoFramesPromptBridge(_NodeBase):
     """One-to-four ordered, already-bounded frames; one model call per frame."""
 
+    def __init__(self, transport=None, encoder=None, cancel_event=None):
+        super().__init__(transport=transport, encoder=encoder)
+        self.cancel_event = cancel_event
+
     @classmethod
     def INPUT_TYPES(cls):
         required = {"frames": ("IMAGE",)}
@@ -54,7 +58,8 @@ class LVWVideoFramesPromptBridge(_NodeBase):
 
     def analyze(self, frames, model=DEFAULT_MODEL, user_instruction="", mode="realistic", timeout_seconds=MAX_TIMEOUT_SECONDS):
         raw, suggestion = self._owner.analyze_video(frames, model=model, user_instruction=user_instruction,
-                                                    mode=mode, timeout_seconds=timeout_seconds)
+                                                    mode=mode, timeout_seconds=timeout_seconds,
+                                                    cancel_event=self.cancel_event)
         return {"ui": {"text": [raw, suggestion]}, "result": (raw, suggestion)}
 
 

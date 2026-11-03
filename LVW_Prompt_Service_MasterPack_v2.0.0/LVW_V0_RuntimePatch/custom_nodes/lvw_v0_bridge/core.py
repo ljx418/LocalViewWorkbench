@@ -423,7 +423,8 @@ class BridgeOwner:
         finally:
             _INFERENCE_LOCK.release()
 
-    def analyze_video(self, frames_value, *, model: str, user_instruction: str, mode: str, timeout_seconds: int):
+    def analyze_video(self, frames_value, *, model: str, user_instruction: str, mode: str, timeout_seconds: int,
+                      cancel_event=None):
         frames = split_frames(frames_value)
         if not 1 <= len(frames) <= MAX_VIDEO_FRAMES:
             raise BridgeError("MEDIA_LIMIT_EXCEEDED", f"video analysis requires 1..{MAX_VIDEO_FRAMES} ordered frames",
@@ -434,6 +435,9 @@ class BridgeOwner:
             calls = []
             previous = []
             for index, frame in enumerate(frames):
+                if cancel_event is not None and cancel_event.is_set():
+                    raise BridgeError("JOB_CANCELLED", "video analysis cancelled", subcode="VIDEO_ANALYSIS_CANCELLED",
+                                      details={"prior_frame_raw_responses": [item.raw_response for item in calls]})
                 try:
                     call = call_one_frame(transport=self.transport, encoder=self.encoder, frame=frame, model=model,
                                           timeout_seconds=timeout_seconds, video=True, frame_index=index,
@@ -442,6 +446,11 @@ class BridgeOwner:
                     exc.details["prior_frame_raw_responses"] = [item.raw_response for item in calls]
                     raise
                 calls.append(call)
+                # The synchronous transport may finish after cancellation. Keep
+                # its raw evidence, but never compile or publish a late result.
+                if cancel_event is not None and cancel_event.is_set():
+                    raise BridgeError("JOB_CANCELLED", "late video result discarded", subcode="VIDEO_ANALYSIS_CANCELLED",
+                                      details={"prior_frame_raw_responses": [item.raw_response for item in calls]})
                 previous.extend(call.parsed["observations"])
             observations = [item for call in calls for item in call.parsed["observations"]]
             inferences = [item for call in calls for item in call.parsed["inferences"]]
