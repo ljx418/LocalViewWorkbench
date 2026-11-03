@@ -19,7 +19,7 @@ class VideoRequestTests(unittest.TestCase):
     def owner(self, decoder=None, transport=None):
         return VideoRequestOwner(decoder or Decoder(), bridge=core.BridgeOwner(
             transport=transport or Transport(threading.Event()), encoder=lambda f:"fixture"),
-            tensor_builder=lambda f:f)
+            tensor_builder=lambda f:f, preflight=lambda:{"fixture":True})
 
     def run_owner(self, owner, token="run-1"):
         return owner.run(token, "clip.mp4", model=core.DEFAULT_MODEL, user_instruction="",
