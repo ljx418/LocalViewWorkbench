@@ -125,6 +125,25 @@ def validate_stage(control: dict, tasks: dict, cases: dict) -> list[str]:
         for record in control.get("authorization_records", []):
             if not (ROOT / record).is_file():
                 errors.append(f"historical authorization record is missing: {record}")
+    elif external and control.get("authorization_scope") == "PROGRAM_CHILD_REQUIRED":
+        reference = control.get("program_authorization")
+        if control.get("stage_id") != "V0-S2" or reference != "reports/authorization-program-v1-local-01.json":
+            errors.append("program child eligibility has an unknown Stage/program")
+        elif not (ROOT / reference).is_file():
+            errors.append("program authorization record is missing")
+        else:
+            program = load_json(ROOT / reference)
+            if (program.get("status") != "ACTIVE" or program.get("authorization_id") != "AUTH-PROGRAM-V1-LOCAL-01"
+                    or "V0-S2" not in program.get("stages", [])
+                    or program.get("child_authorization_policy", {}).get("stage_checkpoint_limit") != 1
+                    or program["child_authorization_policy"].get("corrected_candidate_full_recheck_limit") != 1):
+                errors.append("program child eligibility is not backed by the active finite Mother grant")
+        if (control.get("execution_authorized") is not True
+                or control.get("external_authorization") != "AUTH-PROGRAM-V1-LOCAL-01_CHILD_RECEIPT_REQUIRED"
+                or control.get("budgets", {}).get("stage_checkpoints") != 1
+                or control.get("budgets", {}).get("corrected_candidate_full_rechecks") != 1
+                or state not in {"FROZEN_READY_OFFLINE", "RUNNING", "CHECKPOINT", "NO_GO", "BLOCKED", "WAIT_BUDGET"}):
+            errors.append("program eligibility cannot replace a fresh bounded child or alter Stage limits")
     elif external and control.get("authorization_scope") == "OFFLINE_REPOSITORY_ONLY":
         first_external = next((item.get("id") for item in workpacks if item.get("risk") == "external_private"), None)
         if control.get("external_authorization") != f"WAIT_AUTH_BEFORE_{first_external}":
@@ -748,12 +767,16 @@ def main() -> int:
         signature = load_json(ROOT / "reports/r1a/human-signoff-r1a-live-08.json")
         if signature.get("decision") != "APPROVED" or signature.get("product_candidate") != "df4943cef1726350d5e9f1d4111800094c1a8d99":
             errors.append("R1a signed dependency mismatch")
-        if execution["coordinate"]["state"] != control["state"]:
+        if control.get("authorization_scope") == "PROGRAM_CHILD_REQUIRED":
+            if execution["coordinate"]["state"] not in {"FROZEN_READY_OFFLINE", "RUNNING", "CHECKPOINT", "NO_GO", "BLOCKED", "WAIT_AUTH", "WAIT_BUDGET", "READY_FOR_REVIEW", "WAIT_HUMAN", "PASS"}:
+                errors.append("current program-child coordinate state invalid")
+        elif execution["coordinate"]["state"] != control["state"]:
             errors.append("current coordinate mismatch")
         if control["baseline"]["product_control_sha256"] != product_control_digest():
             errors.append("product control mismatch")
         registry = load_json(GOV / "project-registry.json")["projects"][0]
-        if registry["current_stage"] != "V0-S2" or registry["state"] != control["state"]:
+        if (registry["current_stage"] != "V0-S2"
+                or (registry.get("state_source") != "plans/execution-control.json" and registry.get("state") != control["state"])):
             errors.append("registry mismatch")
         if args.self_test:
             failures = [test for test in run_self_tests(control, load_json(ROOT / "plans/tasks.json"), load_json(ROOT / "plans/acceptance_cases.json")) if not test["passed"]]

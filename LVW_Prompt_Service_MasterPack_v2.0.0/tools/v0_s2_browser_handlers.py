@@ -19,7 +19,7 @@ from tools.v0_s2_driver import base
 from tools.v0_s2_runtime import read_jsonl
 from tools.v0_s2_public_phase import encoded, exact_timeline
 from tools.v0_s2_browser_evidence import analysis_join, adopted_export_join, document, public_graph
-from tools.v0_s2_browser_owner import profile_baseline, verify_owner
+from tools.v0_s2_browser_owner import profile_baseline, verify_owner, verify_driver_listener
 from tools.v0_s2_browser_supervisor import ACTIONS
 from tools.v0_s2_cancel_phase import CancellationPhase, cancelled_history
 from tools.v0_s2_fault_phase import FaultPhase
@@ -197,6 +197,10 @@ class BrowserHandlers:
         self._roots(observe)
         self.owner = verify_owner(payload, worker_birth=self.worker, browser_executable=self.config['browser_executable'],
             expected_sha256=self.config['browser_executable_sha256'], temporary_root=self.temporary, before_profiles=self.before_profiles)
+        if not re.fullmatch('[a-f0-9]{64}', payload.get('driver_endpoint_sha256', '')):
+            raise EvidenceError('browser driver endpoint identity absent')
+        self.owner['driver_listener'] = verify_driver_listener(self.worker, payload.get('driver_port'))
+        self.owner['driver_endpoint_sha256'] = payload['driver_endpoint_sha256']
         self.artifact('independent-browser-owner.json', self.owner)
         return {}
 

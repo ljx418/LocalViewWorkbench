@@ -3,6 +3,7 @@ import copy
 import hashlib
 import json
 import os
+import socket
 from pathlib import Path
 import subprocess
 import sys
@@ -80,6 +81,8 @@ class BrowserHandlerTests(unittest.TestCase):
         claim = birth(child.pid); info = profile.lstat()
         claim.update(executable_sha256=handlers.config['browser_executable_sha256'], profile_relative_name=profile.name,
             profile_inode=info.st_ino, profile_device=info.st_dev)
+        listener = socket.socket(); listener.bind(('127.0.0.1', 0)); listener.listen(1); self.addCleanup(listener.close)
+        claim.update(driver_port=listener.getsockname()[1], driver_endpoint_sha256='e'*64)
         callbacks['browser_owner'](claim, observe)
         callbacks['upload']({'bytes': 32, 'sha256': handlers.fixture['sha256']}, observe)
         (handlers.root/'temp/browser-phase/evidence/upload-response.json').write_bytes(raw({'video_reference': 'uploaded.mp4',

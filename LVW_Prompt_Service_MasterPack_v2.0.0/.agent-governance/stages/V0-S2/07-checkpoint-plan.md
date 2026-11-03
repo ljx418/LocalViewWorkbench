@@ -73,3 +73,7 @@ R1a 人工体验签署存在；合同、FFmpeg、Comfy、Ollama、样本和 owne
 ## 依赖封存机制、真实运行时工厂与受控归档补充（1.0.27）
 
 见 reports/v0-s2/bound-runtime-archive-decision-01.md。完整子运行须将实际安装目录/工具绑定交给有限字节封存器；全量重验与短 RPC 关键文件检查必须区分。默认/热工厂接入实际 NativeRuntime、固定样本暂存、原生绑定写入、no-cloud/模型身份、实际进程命令行与新鲜用户目录、公开节点和资源采样。样本/身份或准备失败保留原始异常与一次清理/归档结果。归档先复制并复核原始证据、持久化清单，再删除经 inode 绑定的自有根；超限、损坏或未知链接均失败保留。Windows junction 通过实际原生属性/唯一目标证明并非递归删除，不以 WSL 的链接解释代替。实际路径解析、完整子授权/预算/终态过期与可执行 CLI 仍未闭合；原生效果仍 NOT_RUN。
+
+## 完整父命令与母授权子收据补充（1.0.28）
+
+见 reports/v0-s2/full-parent-executor-decision-01.md。完整入口为 `python3 -B -m tools.v0_s2_stage_checkpoint`：prepare 只读仓库并创建有限子授权；execute 必须带明确真实执行开关，先原子认领外部状态槽位，再解析/封存实际安装和固定样本，调用既有 StageSequence。仅初次和纠正候选复验两槽；重放、第三槽、旧证据或未知清理均拒绝。浏览器控制端口在首次连接前由原始 Node/socket inode/内核 loopback 监听共同绑定。终态先关闭已预分配的授权标志，公开收据失败也不能恢复新工作权限。母授权已授予本范围，packet 的 PROGRAM_CHILD_REQUIRED 仅表示可派生权限，仍须新鲜整包离线门禁和完整绑定子收据；不重复请求人工批准，不代表 Stage PASS。运行坐标只在 execution-control.json 更新，冻结规格保持不变。

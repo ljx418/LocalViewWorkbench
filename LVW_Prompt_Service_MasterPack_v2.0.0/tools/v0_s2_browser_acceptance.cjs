@@ -148,12 +148,18 @@ async function run(config, parent, dependencies = {}) {
     if (!profile || path.dirname(profile) !== os.tmpdir() || !path.basename(profile).startsWith('playwright_chromiumdev_profile-')) throw new Error('BROWSER_FRESH_PROFILE_UNPROVEN');
     profileIdentity = fs.lstatSync(profile);
     if (!profileIdentity.isDirectory() || profileIdentity.isSymbolicLink() || profileIdentity.uid !== process.getuid()) throw new Error('BROWSER_PROFILE_OWNERSHIP_INVALID');
-    const ws = new URL(server.wsEndpoint()); if (ws.hostname !== '127.0.0.1') throw new Error('BROWSER_DRIVER_NON_LOOPBACK');
+    const driverEndpoint = server.wsEndpoint(), ws = new URL(driverEndpoint), driverPort = Number(ws.port);
+    if (ws.protocol !== 'ws:' || ws.hostname !== '127.0.0.1' || ws.username || ws.password || ws.search || ws.hash
+        || !Number.isSafeInteger(driverPort) || driverPort < 1024 || driverPort > 65535
+        || [8191, 11434, 18765].includes(driverPort)) throw new Error('BROWSER_DRIVER_NON_LOOPBACK_OR_INVALID');
     artifact('browser-owner.json', { ...processBirth, executable_sha256: config.browser_executable_sha256,
-      fresh_profile: true, profile_relative_name: path.basename(profile), profile_inode: profileIdentity.ino, profile_device: profileIdentity.dev });
+      fresh_profile: true, profile_relative_name: path.basename(profile), profile_inode: profileIdentity.ino, profile_device: profileIdentity.dev,
+      driver_port: driverPort, driver_endpoint_sha256: digest(driverEndpoint) });
     await permit('browser_owner', { ...processBirth, executable_sha256: config.browser_executable_sha256,
-      profile_relative_name: path.basename(profile), profile_inode: profileIdentity.ino, profile_device: profileIdentity.dev });
-    browser = await chromium.connect(server.wsEndpoint());
+      profile_relative_name: path.basename(profile), profile_inode: profileIdentity.ino, profile_device: profileIdentity.dev,
+      driver_port: driverPort, driver_endpoint_sha256: digest(driverEndpoint) });
+    if (server.wsEndpoint() !== driverEndpoint) throw new Error('BROWSER_DRIVER_ENDPOINT_CHANGED');
+    browser = await chromium.connect(driverEndpoint);
     context = await browser.newContext({ viewport: { width: 1600, height: 1200 }, locale: 'zh-CN', serviceWorkers: 'block', acceptDownloads: true });
     if (typeof context.routeWebSocket !== 'function') throw new Error('BROWSER_WEBSOCKET_GUARD_UNAVAILABLE');
     await context.routeWebSocket('**/*', async route => {

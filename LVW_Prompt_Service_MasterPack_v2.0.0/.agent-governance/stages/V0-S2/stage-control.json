@@ -2,7 +2,7 @@
   "schema_version": "lvw.stage-control/1",
   "project_id": "lvw-prompt-service",
   "stage_id": "V0-S2",
-  "stage_packet_version": "1.0.27",
+  "stage_packet_version": "1.0.28",
   "packet_status": "FROZEN",
   "gate_version": "lvw-gate/1",
   "baseline": {
@@ -52,7 +52,8 @@
     "reports/v0-s2/browser-handler-wiring-decision-01.md",
     "reports/v0-s2/browser-terminal-phase-decision-01.md",
     "reports/v0-s2/cumulative-stage-sequence-decision-01.md",
-    "reports/v0-s2/bound-runtime-archive-decision-01.md"
+    "reports/v0-s2/bound-runtime-archive-decision-01.md",
+    "reports/v0-s2/full-parent-executor-decision-01.md"
   ],
   "roles": {
     "gate_owner": "codex_gate_owner",
@@ -87,7 +88,7 @@
     "native_component_provider_calls": 0,
     "native_component_browser_runs": 0,
     "counts_as_stage_acceptance": false,
-    "meaning": "execution_authorized governs the full Stage checkpoint; separately bound preparation children grant no blanket execution or acceptance",
+    "meaning": "Mother permits a full checkpoint only through a fresh complete one-shot child. execution_authorized means program eligibility, never blanket startup permission. Separate preparation children grant no full checkpoint or acceptance.",
     "fixture_preparation_max_attempts": 2,
     "fixture_preparation_scope": "CPU_FIXED_FIXTURE_PREPARATION_ONLY",
     "fixture_preparation_decision": "reports/v0-s2/fixture-preparation-decision-01.md",
@@ -276,9 +277,9 @@
     "checkpoint budget is exhausted",
     "Fatal or Major independent finding"
   ],
-  "execution_authorized": false,
-  "authorization_scope": "OFFLINE_REPOSITORY_ONLY",
-  "external_authorization": "WAIT_AUTH_BEFORE_WP-S2-05",
+  "execution_authorized": true,
+  "authorization_scope": "PROGRAM_CHILD_REQUIRED",
+  "external_authorization": "AUTH-PROGRAM-V1-LOCAL-01_CHILD_RECEIPT_REQUIRED",
   "next_owner": "codex_v0_s2_implementer",
   "required_authorization": "NONE_FOR_OFFLINE_FROZEN_WORKPACKS",
   "exact_stop_reason": "V0_S2_GATE0_ACTIVATED_OFFLINE_ONLY",
@@ -397,15 +398,18 @@
     "entry": "tools/v0_s2_stage_sequence.py",
     "cumulative_entry": "tools/v0_s2_cumulative_phase.py",
     "decision": "reports/v0-s2/cumulative-stage-sequence-decision-01.md",
-    "status": "OFFLINE_BINDING_MECHANISM_FACTORIES_AND_ARCHIVE_IMPLEMENTED_FULL_EXECUTOR_PENDING",
+    "status": "OFFLINE_FULL_PARENT_IMPLEMENTED_NATIVE_NOT_RUN",
     "cumulative_public_submissions": 24,
     "default_public_submissions": 45,
     "warm_public_submissions": 20,
     "stage_pass_claim": false,
-    "complete_executable": false,
+    "complete_executable": true,
     "runtime_factory": "tools/v0_s2_stage_runtime.py",
     "execution_binding": "tools/v0_s2_execution_bindings.py",
     "raw_archive": "tools/v0_s2_stage_archive.py",
-    "bound_runtime_decision": "reports/v0-s2/bound-runtime-archive-decision-01.md"
-  }
+    "bound_runtime_decision": "reports/v0-s2/bound-runtime-archive-decision-01.md",
+    "full_parent_entry": "tools/v0_s2_stage_checkpoint.py",
+    "full_parent_decision": "reports/v0-s2/full-parent-executor-decision-01.md"
+  },
+  "program_authorization": "reports/authorization-program-v1-local-01.json"
 }

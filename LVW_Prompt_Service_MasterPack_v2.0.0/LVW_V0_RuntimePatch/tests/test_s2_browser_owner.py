@@ -1,6 +1,7 @@
 """Kernel ownership checks on an owned Python fixture; not a browser test."""
 import copy
 import os
+import socket
 from pathlib import Path
 import subprocess
 import sys
@@ -8,11 +9,28 @@ import tempfile
 import time
 import unittest
 
-from tools.v0_s2_browser_owner import birth, executable, profile_baseline, verify_owner, cleanup_witness
+from tools.v0_s2_browser_owner import birth, executable, profile_baseline, verify_owner, cleanup_witness, verify_driver_listener
 from tools.v0_s2_checkpoint_oracles import EvidenceError
 
 
 class BrowserOwnerTests(unittest.TestCase):
+    def test_driver_port_is_owned_literal_loopback_and_bound_to_original_worker(self):
+        with socket.socket() as listener:
+            listener.bind(('127.0.0.1', 0)); listener.listen(1); port = listener.getsockname()[1]
+            original = birth(os.getpid()); value = verify_driver_listener(original, port)
+            self.assertEqual(port, value['port']); self.assertTrue(value['proven_before_connect'])
+            with self.assertRaises(EvidenceError): verify_driver_listener({**original, 'start_ticks': '0'}, port)
+        with self.assertRaises(EvidenceError): verify_driver_listener(original, port)
+
+    def test_driver_wildcard_or_other_process_listener_is_not_a_loopback_worker_proof(self):
+        with socket.socket() as listener:
+            listener.bind(('0.0.0.0', 0)); listener.listen(1)
+            with self.assertRaises(EvidenceError): verify_driver_listener(birth(os.getpid()), listener.getsockname()[1])
+        with self.assertRaises(EvidenceError): verify_driver_listener(birth(os.getpid()), 11434)
+        with tempfile.TemporaryDirectory() as temporary, socket.socket() as listener:
+            process, _, _, _ = self.fixture(Path(temporary))
+            listener.bind(('127.0.0.1', 0)); listener.listen(1)
+            with self.assertRaises(EvidenceError): verify_driver_listener(birth(process.pid), listener.getsockname()[1])
     def fixture(self, root):
         before = profile_baseline(root)
         profile = root/'playwright_chromiumdev_profile-synthetic'; profile.mkdir()

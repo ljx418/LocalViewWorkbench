@@ -59,6 +59,38 @@ def profile_baseline(temporary_root):
     return rows
 
 
+def verify_driver_listener(worker_birth, port):
+    """Bind the ephemeral Playwright control listener before its first client."""
+    if type(port) is not int or not 1024 <= port <= 65535 or port in (8191, 11434, 18765):
+        raise EvidenceError('browser driver port outside ephemeral control policy')
+    worker = birth(worker_birth['pid'])
+    if worker['state'] == 'Z' or any(worker[key] != worker_birth[key] for key in ('pid', 'parent', 'group', 'session', 'start_ticks')):
+        raise EvidenceError('browser driver original worker changed')
+    descriptors = list(Path(f"/proc/{worker['pid']}/fd").iterdir())
+    if len(descriptors) > 4096: raise EvidenceError('browser driver fd catalog limit')
+    sockets = set()
+    for descriptor in descriptors:
+        try: target = os.readlink(descriptor)
+        except FileNotFoundError: continue
+        match = re.fullmatch(r'socket:\[([0-9]+)\]', target)
+        if match: sockets.add(match[1])
+    raw = Path(f"/proc/{worker['pid']}/net/tcp").read_bytes()
+    if len(raw) > 2*1024**2: raise EvidenceError('browser driver TCP catalog limit')
+    lines = raw.decode('ascii', 'strict').splitlines()
+    if len(lines) > 8193: raise EvidenceError('browser driver TCP row limit')
+    matches = []
+    for line in lines[1:]:
+        fields = line.split()
+        if len(fields) < 10: raise EvidenceError('browser driver TCP row malformed')
+        if fields[3] == '0A' and fields[1] == f'0100007F:{port:04X}' and fields[9] in sockets:
+            matches.append(fields[9])
+    after = birth(worker['pid'])
+    if len(matches) != 1 or after['state'] == 'Z' or any(after[key] != worker[key] for key in ('pid', 'parent', 'group', 'session', 'start_ticks')):
+        raise EvidenceError('browser driver listener is not the original worker-owned loopback socket')
+    return {'address': '127.0.0.1', 'port': port, 'socket_inode': matches[0], 'worker_birth': worker,
+        'proven_before_connect': True, 'stage_pass_claim': False}
+
+
 def verify_owner(claim, *, worker_birth, browser_executable, expected_sha256, temporary_root, before_profiles):
     """Join worker claims with live kernel facts and a prelaunch profile catalog."""
     try:
