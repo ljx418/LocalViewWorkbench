@@ -3,10 +3,11 @@ import hashlib
 import os
 from pathlib import Path
 import tempfile
+import shutil
 import unittest
 from unittest.mock import patch
 
-from tools.v0_s2_execution_bindings import ExecutionBindings, Tree, hashed_file, stamp
+from tools.v0_s2_execution_bindings import ExecutionBindings, Tree, hashed_file, hashed_at, stamp, directory_handle
 from tools.v0_s2_checkpoint_oracles import EvidenceError
 
 
@@ -86,6 +87,54 @@ class BindingTests(unittest.TestCase):
         with self.assertRaises(OSError): hashed_file(path, before, float('inf'), write=emitted.append)
         self.assertEqual([], emitted)
         self.assertEqual(hashlib.sha256(b'print("bound")\n').hexdigest(), hashlib.sha256((moved/'main.py').read_bytes()).hexdigest())
+
+    def test_many_files_share_parent_pinning_without_changing_complete_manifest(self):
+        nested = self.code/'nested'; nested.mkdir()
+        for index in range(200): (nested/str(index)).write_bytes(str(index).encode())
+        with patch('tools.v0_s2_execution_bindings.directory_handle', wraps=directory_handle) as handles:
+            result = self.bindings().capture()
+        self.assertEqual(203, len(result['files']))
+        self.assertEqual(1, sum(call.args[0] == nested for call in handles.call_args_list))
+        expected = {('CODE/nested/'+str(i)): hashlib.sha256(str(i).encode()).hexdigest() for i in range(200)}
+        self.assertEqual(expected, {row['alias']: row['sha256'] for row in result['files'] if '/nested/' in row['alias']})
+
+    def test_parent_replacement_after_read_is_rejected_by_second_inventory(self):
+        moved = self.root/'original'; replaced = False
+        def read(*args, **kwargs):
+            nonlocal replaced
+            result = hashed_at(*args, **kwargs)
+            if not replaced:
+                replaced = True; self.code.rename(moved); shutil.copytree(moved, self.code)
+            return result
+        with patch('tools.v0_s2_execution_bindings.hashed_at', side_effect=read), self.assertRaises(EvidenceError):
+            self.bindings().capture()
+
+    def test_hash_deadline_is_distinct_and_prevents_even_empty_file_read(self):
+        target = self.code/'empty'; target.touch()
+        with patch('tools.v0_s2_execution_bindings.os.read') as read, self.assertRaisesRegex(EvidenceError, 'hash time budget exceeded'):
+            hashed_file(target, stamp(target), -1)
+        read.assert_not_called()
+
+    def test_growing_file_has_distinct_size_error(self):
+        target = self.code/'main.py'; before = stamp(target); original = os.read; appended = False
+        def read(*args):
+            nonlocal appended
+            result = original(*args)
+            if not appended:
+                appended = True
+                with target.open('ab') as output: output.write(b'extra')
+            return result
+        with patch('tools.v0_s2_execution_bindings.os.read', side_effect=read), self.assertRaisesRegex(EvidenceError, 'exceeded declared size'):
+            hashed_file(target, before, float('inf'))
+
+    def test_failed_snapshot_records_exact_alias_and_never_reports_complete(self):
+        observations = []
+        with patch('tools.v0_s2_execution_bindings.hashed_at', side_effect=EvidenceError('binding hash time budget exceeded')):
+            with self.assertRaises(EvidenceError): self.bindings(observe=observations.append).capture()
+        self.assertEqual('failed', observations[-1]['phase'])
+        self.assertTrue(observations[-1]['current_alias'].startswith('CODE/'))
+        self.assertIn('hash time budget exceeded', observations[-1]['error_code'])
+        self.assertNotIn('complete', [row['phase'] for row in observations])
 
 
 if __name__ == '__main__': unittest.main()

@@ -443,7 +443,12 @@ def execute(slot):
     try:
         paths, trees, files, metadata = resolve_installed(lease, seeds)
         write_new(directory/'metadata.json', metadata)
-        bindings = ExecutionBindings(trees=trees, files=files, authorize=lease.authorize)
+        def binding_observation(value):
+            # Controlled state only: aliases/counters, never media/model content.
+            temporary = directory/'binding-progress.tmp'
+            write_new(temporary, value); os.replace(temporary, directory/'binding-progress.json')
+            result['installed_binding_progress'] = value
+        bindings = ExecutionBindings(trees=trees, files=files, authorize=lease.authorize, observe=binding_observation)
         snapshot = bindings.capture(); verify_observations(snapshot, seeds); write_new(directory/'installed-bindings.json', snapshot)
         observed = {row['alias']: row['sha256'] for row in snapshot['files']}
         if (len(metadata) != 2 or metadata[0]['executable_sha256'] != observed['NODE_EXECUTABLE']
