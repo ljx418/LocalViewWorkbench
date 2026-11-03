@@ -1,6 +1,8 @@
 """Offline lifecycle adapter checks, never create native processes."""
 from types import SimpleNamespace
 import json
+import tempfile
+from pathlib import Path
 import unittest
 from unittest.mock import patch
 
@@ -45,6 +47,7 @@ class DriverTests(unittest.TestCase):
         self.assertIn("$env:LVW_FFMPEG_EXE='C:/tool''s/ffmpeg.exe'",value)
         self.assertIn('--listen 127.0.0.1 --port 8191',value)
         self.assertIn('--disable-api-nodes',value)
+        self.assertIn("--user-directory 'base/user'",value)
         self.assertNotIn('SetEnvironmentVariable',value);self.assertNotIn('setx',value)
 
     def test_pyav_probe_is_explicit_and_never_becomes_a_none_executable_path(self):
@@ -108,6 +111,12 @@ class DriverTests(unittest.TestCase):
         with patch.object(driver,'_powershell',return_value='1'),patch.object(driver,'_kill_bound') as kill,self.assertRaises(base.StopProbe):
             driver._assert_no_new_descendants(10,100,children)
         kill.assert_not_called()
+
+    def test_stale_comfy_user_directory_cannot_be_reused_or_modified(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp);(root/'user').mkdir();marker=root/'user/keep';marker.write_text('existing configuration')
+            with patch('subprocess.Popen') as spawn,self.assertRaises(FileExistsError):self.driver().start_comfy(root,root/'log')
+            spawn.assert_not_called();self.assertEqual('existing configuration',marker.read_text())
 
 
 if __name__=='__main__':unittest.main()

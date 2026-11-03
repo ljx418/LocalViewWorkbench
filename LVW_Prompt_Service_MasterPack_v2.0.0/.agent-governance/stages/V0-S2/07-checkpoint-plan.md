@@ -43,3 +43,7 @@ R1a 人工体验签署存在；合同、FFmpeg、Comfy、Ollama、样本和 owne
 ## 短片与导出精度补充（1.0.16）
 
 参见 reports/v0-s2/short-video-and-lossless-export-decision-01.md。离线门禁覆盖真实 owner 的 1–4 帧分支、零/超限/重复/倒退/空窗口负例与清理；生产 JS 覆盖超安全整数 PTS 的原始 source 导出、缺失来源拒绝和编辑/重分析时快照保留。合成 FFmpeg 结果/DOM 不能替代原生兼容性或真实浏览器。四帧固定样本和热基准仍须四帧；不得用少帧通过它们，也不得增加未授权媒体准备尝试。
+
+## 原生浏览器 worker 补充（1.0.17）
+
+见 reports/v0-s2/native-browser-worker-decision-01.md。真实原生页面上传、两次明确的 UI 队列、采纳/导出/剪贴板/取消/离线保稿/节点移除须保留九项子检查；不使用 set_content 或模型 Mock。一个延迟采纳场景仅转发真实后端原始字节，必须保留前后相同 hash。worker 必须受候选/子授权/nonce 绑定的实时父进程监督，父进程独立复算 history/provider/source/cancel/sampler；协议单测不是浏览器验收。S2 启动新增显式临时 user-directory，安装版 CLI/前端/SDK 能力与完整父运行仍待核验，未授权真实浏览器提前试跑。

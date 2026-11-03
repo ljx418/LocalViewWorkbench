@@ -28,8 +28,12 @@ def comfy_wrapper(python, main, directory, pid_file, ffmpeg, ffprobe, *, warm=Fa
     benchmark=("$env:LVW_WARM_BENCHMARK='run-owned-v1'\n" if warm else
                "Remove-Item Env:LVW_WARM_BENCHMARK -ErrorAction SilentlyContinue\n")
     native=("$env:LVW_NATIVE_CHECKPOINT='run-owned-v1'\n" if audit else "Remove-Item Env:LVW_NATIVE_CHECKPOINT -ErrorAction SilentlyContinue\n")
+    launch=base.comfy_wrapper_text(python,main,directory,pid_file)
+    if launch.count('--disable-auto-launch')!=1:raise ValueError('COMFY_LAUNCH_TEMPLATE_CHANGED')
+    user_directory=directory.rstrip('\\/')+'/user'
+    launch=launch.replace('--disable-auto-launch',f"--user-directory {base.ps_quote(user_directory)} --disable-auto-launch",1)
     return (f"$env:LVW_FFMPEG_EXE={base.ps_quote(ffmpeg)}\n"+probe+benchmark+native
-            + base.comfy_wrapper_text(python, main, directory, pid_file))
+            + launch)
 
 
 class S2SystemDriver(base.SystemDriver):
@@ -277,6 +281,7 @@ class S2SystemDriver(base.SystemDriver):
     def start_comfy(self, directory, log_path):
         # Caller must finish candidate/target hash checks and child authorization
         # before invoking any lifecycle operation on this low-level adapter.
+        (directory/'user').mkdir(exist_ok=False)
         win_main=self._windows_path(self.args.comfy_main,expected=base.AUTHORIZED_COMFY_MAIN)
         win_python=self._windows_path(self.args.comfy_python,expected=base.AUTHORIZED_COMFY_PYTHON)
         win_directory=self._windows_path(str(directory))

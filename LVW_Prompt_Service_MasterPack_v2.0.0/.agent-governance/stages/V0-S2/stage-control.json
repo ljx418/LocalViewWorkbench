@@ -2,7 +2,7 @@
   "schema_version": "lvw.stage-control/1",
   "project_id": "lvw-prompt-service",
   "stage_id": "V0-S2",
-  "stage_packet_version": "1.0.16",
+  "stage_packet_version": "1.0.17",
   "packet_status": "FROZEN",
   "gate_version": "lvw-gate/1",
   "baseline": {
@@ -42,7 +42,8 @@
     "reports/v0-s2/native-cancel-evidence-decision-01.md",
     "reports/v0-s2/public-cancellation-phase-decision-01.md",
     "reports/v0-s2/owned-provider-fault-decision-01.md",
-    "reports/v0-s2/short-video-and-lossless-export-decision-01.md"
+    "reports/v0-s2/short-video-and-lossless-export-decision-01.md",
+    "reports/v0-s2/native-browser-worker-decision-01.md"
   ],
   "roles": {
     "gate_owner": "codex_gate_owner",
@@ -336,5 +337,16 @@
     "short_input_warning_required": true,
     "lossless_integer_source_json_export": true,
     "native_short_eof_compatibility": "NOT_RUN"
+  },
+  "native_browser_worker": {
+    "entry": "tools/v0_s2_browser_acceptance.cjs",
+    "policy": "tools/v0_s2_browser_policy.cjs",
+    "decision": "reports/v0-s2/native-browser-worker-decision-01.md",
+    "status": "OFFLINE_WORKER_IMPLEMENTED_PARENT_JOIN_PENDING",
+    "fixed_subchecks": 9,
+    "ui_public_submissions": 2,
+    "browser_starts": 1,
+    "needs_installed_bindings_and_full_parent": true,
+    "no_stage_pass": true
   }
 }
