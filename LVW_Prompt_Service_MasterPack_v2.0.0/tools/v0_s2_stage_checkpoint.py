@@ -6,12 +6,15 @@ and runs the public/native/default/warm sequence. Terminal evidence never grants
 Stage PASS, independent review, human signature or another attempt.
 """
 import argparse
+from contextlib import contextmanager
 from datetime import datetime, timezone
+import fcntl
 import hashlib
 import json
 import os
 from pathlib import Path
 import re
+import secrets
 import shutil
 import subprocess
 import sys
@@ -133,6 +136,20 @@ def child_path(slot):
     return ROOT/'reports/v0-s2'/('authorization-'+slot+'.json')
 
 
+@contextmanager
+def slot_guard(slot):
+    """Serialize grant replacement and atomic claim; kernel releases on exit."""
+    child_path(slot)
+    control = STATE_ROOT/'.control'; control.mkdir(parents=True, exist_ok=True); plain(control)
+    descriptor = os.open(control/(slot+'.lock'), os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW, 0o600)
+    try:
+        try: fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError as error: raise EvidenceError('slot grant/claim operation already active') from error
+        yield
+    finally:
+        fcntl.flock(descriptor, fcntl.LOCK_UN); os.close(descriptor)
+
+
 def slot_authority(slot, candidate):
     child_path(slot)
     if slot == 'full-checkpoint-01':
@@ -150,13 +167,23 @@ def slot_authority(slot, candidate):
     subprocess.run(['git', 'merge-base', '--is-ancestor', previous['candidate_sha'], candidate], cwd=ROOT, check=True, timeout=30)
 
 
-def prepare(slot, candidate, offline_relative):
+def prepare(slot, candidate, offline_relative, *, replace_unclaimed=False):
     path = child_path(slot)
-    if path.exists() or (STATE_ROOT/slot).exists(): raise EvidenceError('child slot already exists; never overwrite or restart it')
+    previous_raw = path.read_bytes() if path.exists() else None
+    if (STATE_ROOT/slot).exists() or (ROOT/'reports/v0-s2'/slot).exists():
+        raise EvidenceError('claimed/terminal slot can never be replaced or restarted')
+    if previous_raw is not None:
+        previous = json.loads(previous_raw)
+        if (not replace_unclaimed or previous.get('status') != 'ACTIVE_ONE_SHOT' or previous.get('run_id') != slot
+                or previous.get('source_program_authorization') != PROGRAM_ID or previous.get('budget') != BUDGET
+                or previous.get('candidate_sha') == candidate):
+            raise EvidenceError('unclaimed replacement needs explicit flag and corrected source')
+        subprocess.run(['git', 'merge-base', '--is-ancestor', previous['candidate_sha'], candidate], cwd=ROOT, check=True, timeout=30)
+    elif replace_unclaimed: raise EvidenceError('no unclaimed grant exists to replace')
     slot_authority(slot, candidate)
     program_sha = program_authority(); identity = source_gate(candidate, offline_relative); seeds = seed_values()
     now = time.time()
-    auth = {'schema_version': 'lvw.program-child-authorization/1', 'authorization_id': 'AUTH-V0-S2-'+slot.upper(),
+    auth = {'schema_version': 'lvw.program-child-authorization/1', 'authorization_id': 'AUTH-V0-S2-'+slot.upper()+'-'+secrets.token_hex(8),
         'project_id': 'lvw-prompt-service', 'issued_by': 'codex_gate_owner',
         'source_program_authorization': PROGRAM_ID, 'program_sha256': program_sha,
         'stage_id': 'V0-S2', 'workpack_id': 'WP-S2-05', 'scope': 'COMPLETE_FIXED_NATIVE_STAGE_CHECKPOINT',
@@ -175,7 +202,22 @@ def prepare(slot, candidate, offline_relative):
         'cleanup_policy': 'reprove original owned births; reserved terminal cleanup/archive even after expiry; never terminate foreign or reused PIDs; preserve uncertain roots; expire this child after terminal receipt',
         'forbidden': list(FORBIDDEN),
         'stage_pass_claim': False, 'external_cost': 0}
-    write_new(path, auth)
+    auth['previous_unclaimed_authorization_sha256'] = hashlib.sha256(previous_raw).hexdigest() if previous_raw is not None else None
+    if previous_raw is None: write_new(path, auth)
+    else:
+        with slot_guard(slot):
+            if ((STATE_ROOT/slot).exists() or (ROOT/'reports/v0-s2'/slot).exists() or path.read_bytes() != previous_raw):
+                raise EvidenceError('grant changed or claim began; replacement refused')
+            history = ROOT/'reports/v0-s2/unclaimed-authorizations'; history.mkdir(exist_ok=True)
+            digest = hashlib.sha256(previous_raw).hexdigest(); old = history/(slot+'-'+digest+'.json')
+            with old.open('xb') as output: output.write(previous_raw); output.flush(); os.fsync(output.fileno())
+            write_new(history/(slot+'-'+digest+'.superseded.json'), {
+                'kind': 'UNCLAIMED_SOURCE_GRANT_SUPERSESSION_NOT_EXECUTION', 'stage_checkpoint_consumed': False,
+                'status': 'EXPIRED_UNCLAIMED_SOURCE_SUPERSEDED',
+                'old_authorization_sha256': digest, 'new_authorization_sha256': hashlib.sha256(canonical(auth)).hexdigest(),
+                'old_candidate_sha': previous['candidate_sha'], 'new_candidate_sha': candidate,
+                'old_grant_is_authorization': False, 'reason': 'offline source correction before any claim/target query'})
+            temporary = path.with_suffix('.replacement.tmp'); write_new(temporary, auth); os.replace(temporary, path)
     return auth
 
 
@@ -326,7 +368,7 @@ def actual_samples(expected):
 def validate_child(auth, path):
     if (path != child_path(auth.get('run_id')) or auth.get('status') != 'ACTIVE_ONE_SHOT'
             or auth.get('schema_version') != 'lvw.program-child-authorization/1'
-            or auth.get('authorization_id') != 'AUTH-V0-S2-'+auth['run_id'].upper()
+            or not re.fullmatch(re.escape('AUTH-V0-S2-'+auth['run_id'].upper())+r'-[a-f0-9]{16}', auth.get('authorization_id', ''))
             or auth.get('project_id') != 'lvw-prompt-service' or auth.get('issued_by') != 'codex_gate_owner'
             or auth.get('scope') != 'COMPLETE_FIXED_NATIVE_STAGE_CHECKPOINT' or auth.get('budget') != BUDGET
             or any(type(value) is not int for value in auth['budget'].values())
@@ -384,10 +426,11 @@ def execute(slot):
     if (ROOT/'reports/v0-s2'/slot).exists(): raise EvidenceError('terminal evidence slot already exists')
     # Atomic claim is outside the candidate tree and cannot be reset by a code
     # commit. An existing claim is a stopped/ongoing attempt, never a retry.
-    STATE_ROOT.mkdir(parents=True, exist_ok=True); plain(STATE_ROOT)
-    directory = STATE_ROOT/slot; directory.mkdir(exist_ok=False)
-    write_new(directory/'active-child.json', auth)
-    with (directory/'lease.closed').open('xb') as output: output.write(b'0'); output.flush(); os.fsync(output.fileno())
+    with slot_guard(slot):
+        if path.read_bytes() != raw: raise EvidenceError('grant changed before atomic claim')
+        directory = STATE_ROOT/slot; directory.mkdir(exist_ok=False)
+        write_new(directory/'active-child.json', auth)
+        with (directory/'lease.closed').open('xb') as output: output.write(b'0'); output.flush(); os.fsync(output.fileno())
     lease = ChildLease(path, raw); lease.directory = directory
     from tools.v0_s2_browser_owner import birth
     write_new(directory/'claim-process.json', {'parent_birth': birth(os.getpid()), 'candidate_sha': auth['candidate_sha'],
@@ -504,10 +547,11 @@ def main():
     parser = argparse.ArgumentParser(); commands = parser.add_subparsers(dest='command', required=True)
     ready = commands.add_parser('prepare'); ready.add_argument('--slot', required=True, choices=('full-checkpoint-01', 'full-recheck-01'))
     ready.add_argument('--candidate', required=True); ready.add_argument('--offline-receipt', required=True)
+    ready.add_argument('--replace-unclaimed', action='store_true')
     run = commands.add_parser('execute'); run.add_argument('--slot', required=True, choices=('full-checkpoint-01', 'full-recheck-01'))
     run.add_argument('--execute-native-checkpoint', action='store_true', required=True)
     args = parser.parse_args()
-    if args.command == 'prepare': value = prepare(args.slot, args.candidate, args.offline_receipt)
+    if args.command == 'prepare': value = prepare(args.slot, args.candidate, args.offline_receipt, replace_unclaimed=args.replace_unclaimed)
     else: value = execute(args.slot)
     print(json.dumps({key: value.get(key) for key in ('run_id', 'candidate_sha', 'status', 'decision', 'error_code')}))
     return 0 if args.command == 'prepare' or value['decision'].startswith('MACHINE_CHECKPOINT_COMPLETE') else 1

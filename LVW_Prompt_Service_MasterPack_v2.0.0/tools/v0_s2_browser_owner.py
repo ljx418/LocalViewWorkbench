@@ -12,6 +12,13 @@ import stat
 from tools.v0_s2_checkpoint_oracles import EvidenceError
 
 
+def wire_identity(value):
+    """Lossless uint64 metadata; booleans/floats/rounded scientific text fail."""
+    if isinstance(value, str) and re.fullmatch(r'0|[1-9][0-9]{0,19}', value): value = int(value)
+    if type(value) is not int or not 0 <= value <= 2**64-1: raise EvidenceError('profile wire identity invalid')
+    return value
+
+
 def birth(pid):
     if type(pid) is not int or pid <= 0: raise EvidenceError('invalid browser PID')
     value = Path(f'/proc/{pid}/stat').read_text()
@@ -119,8 +126,7 @@ def verify_owner(claim, *, worker_birth, browser_executable, expected_sha256, te
         profile = temporary/name
         info = profile.lstat()
         if (not stat.S_ISDIR(info.st_mode) or stat.S_ISLNK(info.st_mode) or info.st_uid != os.getuid()
-                or type(claim['profile_inode']) is not int or type(claim['profile_device']) is not int
-                or info.st_ino != claim['profile_inode'] or info.st_dev != claim['profile_device']):
+                or info.st_ino != wire_identity(claim['profile_inode']) or info.st_dev != wire_identity(claim['profile_device'])):
             raise ValueError('profile ownership/inode mismatch')
         # Verify actual launch args rather than accepting a fresh unrelated dir.
         raw = Path(f"/proc/{actual['pid']}/cmdline").read_bytes()

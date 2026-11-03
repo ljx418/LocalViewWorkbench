@@ -146,17 +146,17 @@ async function run(config, parent, dependencies = {}) {
     if (fileIdentity(`/proc/${child.pid}/exe`, 1024 * 1024 * 1024, true).sha256 !== config.browser_executable_sha256) throw new Error('BROWSER_RUNNING_EXECUTABLE_MISMATCH');
     const profileArg = child.spawnargs.find(arg => arg.startsWith('--user-data-dir=')); profile = profileArg?.slice('--user-data-dir='.length);
     if (!profile || path.dirname(profile) !== os.tmpdir() || !path.basename(profile).startsWith('playwright_chromiumdev_profile-')) throw new Error('BROWSER_FRESH_PROFILE_UNPROVEN');
-    profileIdentity = fs.lstatSync(profile);
-    if (!profileIdentity.isDirectory() || profileIdentity.isSymbolicLink() || profileIdentity.uid !== process.getuid()) throw new Error('BROWSER_PROFILE_OWNERSHIP_INVALID');
+    profileIdentity = fs.lstatSync(profile, { bigint: true });
+    if (!profileIdentity.isDirectory() || profileIdentity.isSymbolicLink() || profileIdentity.uid !== BigInt(process.getuid())) throw new Error('BROWSER_PROFILE_OWNERSHIP_INVALID');
     const driverEndpoint = server.wsEndpoint(), ws = new URL(driverEndpoint), driverPort = Number(ws.port);
     if (ws.protocol !== 'ws:' || ws.hostname !== '127.0.0.1' || ws.username || ws.password || ws.search || ws.hash
         || !Number.isSafeInteger(driverPort) || driverPort < 1024 || driverPort > 65535
         || [8191, 11434, 18765].includes(driverPort)) throw new Error('BROWSER_DRIVER_NON_LOOPBACK_OR_INVALID');
     artifact('browser-owner.json', { ...processBirth, executable_sha256: config.browser_executable_sha256,
-      fresh_profile: true, profile_relative_name: path.basename(profile), profile_inode: profileIdentity.ino, profile_device: profileIdentity.dev,
+      fresh_profile: true, profile_relative_name: path.basename(profile), profile_inode: profileIdentity.ino.toString(), profile_device: profileIdentity.dev.toString(),
       driver_port: driverPort, driver_endpoint_sha256: digest(driverEndpoint) });
     await permit('browser_owner', { ...processBirth, executable_sha256: config.browser_executable_sha256,
-      profile_relative_name: path.basename(profile), profile_inode: profileIdentity.ino, profile_device: profileIdentity.dev,
+      profile_relative_name: path.basename(profile), profile_inode: profileIdentity.ino.toString(), profile_device: profileIdentity.dev.toString(),
       driver_port: driverPort, driver_endpoint_sha256: digest(driverEndpoint) });
     if (server.wsEndpoint() !== driverEndpoint) throw new Error('BROWSER_DRIVER_ENDPOINT_CHANGED');
     browser = await chromium.connect(driverEndpoint);
@@ -357,7 +357,7 @@ async function run(config, parent, dependencies = {}) {
       cleanup.browser_original_absent = !child || child.exitCode !== null || child.signalCode !== null;
       cleanup.group_empty = !server || (processBirth && groupMembers(processBirth.group).length === 0) || false;
       if (profile && fs.existsSync(profile) && cleanup.group_empty && cleanup.browser_original_absent) {
-        const current = fs.lstatSync(profile);
+        const current = fs.lstatSync(profile, { bigint: true });
         if (!profileIdentity || current.ino !== profileIdentity.ino || current.dev !== profileIdentity.dev || current.isSymbolicLink()) throw new Error('BROWSER_PROFILE_CHANGED_BEFORE_CLEANUP');
         fs.rmSync(profile, { recursive: true }); cleanup.owned_profile_removed = true;
       }

@@ -1,5 +1,6 @@
 """Kernel ownership checks on an owned Python fixture; not a browser test."""
 import copy
+import json
 import os
 import socket
 from pathlib import Path
@@ -10,11 +11,30 @@ import time
 import unittest
 from unittest.mock import patch
 
-from tools.v0_s2_browser_owner import birth, executable, profile_baseline, verify_owner, cleanup_witness, verify_driver_listener
+from tools.v0_s2_browser_owner import birth, executable, profile_baseline, verify_owner, cleanup_witness, verify_driver_listener, wire_identity
 from tools.v0_s2_checkpoint_oracles import EvidenceError
 
 
 class BrowserOwnerTests(unittest.TestCase):
+    def test_actual_node_bigint_file_identity_matches_python_without_number_roundtrip(self):
+        target = Path(__file__).resolve().parents[2]/'tools/v0_s2_browser_acceptance.cjs'
+        script = "const s=require('fs').lstatSync(process.argv[1],{bigint:true});console.log(JSON.stringify({inode:s.ino.toString(),device:s.dev.toString(),oneOver:(2n**53n+1n).toString(),maximum:(2n**64n-1n).toString()}));"
+        process = subprocess.run(['node', '-e', script, str(target)], capture_output=True, timeout=10, check=True)
+        value = json.loads(process.stdout)
+        self.assertEqual(target.stat().st_ino, wire_identity(value['inode']))
+        self.assertEqual(target.stat().st_dev, wire_identity(value['device']))
+        self.assertEqual(2**53+1, wire_identity(value['oneOver'])); self.assertEqual(2**64-1, wire_identity(value['maximum']))
+
+    def test_profile_wire_identity_is_lossless_at_js_boundary_and_uint64_limit(self):
+        for value in (2**53-1, 2**53, 2**53+1, 13792273863143970, 2**64-1):
+            self.assertEqual(value, wire_identity(str(value)))
+        for value in (str(2**64), True, 1.0, '01', '-1', '1e16', '1.0'):
+            with self.subTest(value=value), self.assertRaises(EvidenceError): wire_identity(value)
+        with tempfile.TemporaryDirectory() as temporary:
+            process, profile, claim, params = self.fixture(Path(temporary))
+            claim.update(profile_inode=str(claim['profile_inode']), profile_device=str(claim['profile_device']))
+            self.assertEqual(profile.stat().st_ino, verify_owner(claim, **params)['profile_inode'])
+
     def test_driver_port_is_owned_literal_loopback_and_bound_to_original_worker(self):
         with socket.socket() as listener:
             listener.bind(('127.0.0.1', 0)); listener.listen(1); port = listener.getsockname()[1]

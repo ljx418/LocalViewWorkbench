@@ -52,6 +52,21 @@ class CheckpointTests(unittest.TestCase):
         self.assertEqual([8191, 11434], value['ports']); self.assertFalse(value['stage_pass_claim'])
         with self.assertRaises(EvidenceError): self.prepare()
 
+    def test_unclaimed_source_replacement_preserves_old_grant_and_never_resets_a_claim(self):
+        self.prepare(); path = checkpoint.child_path('full-checkpoint-01'); original = path.read_bytes()
+        (self.root/'offline-correction-note.txt').write_text('test-only source revision; no native action')
+        subprocess.run(['git', 'add', '.'], cwd=self.root, capture_output=True, check=True)
+        subprocess.run(['git', '-c', 'user.name=ljx418', '-c', 'user.email=1173696783@qq.com', 'commit', '-qm', 'unclaimed fixture correction'],
+            cwd=self.root, capture_output=True, check=True)
+        corrected = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=self.root, text=True).strip()
+        value = checkpoint.prepare('full-checkpoint-01', corrected, self.offline, replace_unclaimed=True)
+        self.assertNotEqual(json.loads(original)['authorization_id'], value['authorization_id'])
+        digest = hashlib.sha256(original).hexdigest(); self.assertEqual(digest, value['previous_unclaimed_authorization_sha256'])
+        archived = self.root/'reports/v0-s2/unclaimed-authorizations'/('full-checkpoint-01-'+digest+'.json')
+        self.assertEqual(original, archived.read_bytes()); self.assertFalse((self.state/'full-checkpoint-01').exists())
+        (self.state/'full-checkpoint-01').mkdir()
+        with self.assertRaises(EvidenceError): checkpoint.prepare('full-checkpoint-01', 'f'*40, self.offline, replace_unclaimed=True)
+
     def test_target_binding_refusal_expires_child_and_atomically_prevents_replay(self):
         self.prepare(); path = checkpoint.child_path('full-checkpoint-01'); original = path.read_bytes()
         with patch.object(checkpoint, 'resolve_installed', side_effect=EvidenceError('synthetic metadata refusal before target I/O')) as resolve:

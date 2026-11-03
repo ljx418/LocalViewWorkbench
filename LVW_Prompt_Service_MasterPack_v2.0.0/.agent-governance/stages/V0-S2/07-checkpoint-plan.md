@@ -77,3 +77,7 @@ R1a 人工体验签署存在；合同、FFmpeg、Comfy、Ollama、样本和 owne
 ## 完整父命令与母授权子收据补充（1.0.28）
 
 见 reports/v0-s2/full-parent-executor-decision-01.md。完整入口为 `python3 -B -m tools.v0_s2_stage_checkpoint`：prepare 只读仓库并创建有限子授权；execute 必须带明确真实执行开关，先原子认领外部状态槽位，再解析/封存实际安装和固定样本，调用既有 StageSequence。仅初次和纠正候选复验两槽；重放、第三槽、旧证据或未知清理均拒绝。浏览器控制端口在首次连接前由原始 Node/socket inode/内核 loopback 监听共同绑定。终态先关闭已预分配的授权标志，公开收据失败也不能恢复新工作权限。母授权已授予本范围，packet 的 PROGRAM_CHILD_REQUIRED 仅表示可派生权限，仍须新鲜整包离线门禁和完整绑定子收据；不重复请求人工批准，不代表 Stage PASS。运行坐标只在 execution-control.json 更新，冻结规格保持不变。
+
+## NTFS 文件身份精度纠正（1.0.29）
+
+见 reports/v0-s2/lossless-native-identity-decision-01.md。实际仓库 NTFS inode 已超过 JavaScript 安全整数，原生浏览器 profile 采用 BigInt 读取和十进制字符串传递，父端按 uint64 无损复核。离线修正后只允许显式替换尚未认领、未执行的子授权，保留旧字节和过期记录并使用新授权身份；已认领/终态槽位绝不能重置。须新整包门禁覆盖修正代码后再绑定；真实 checkpoint/recheck 分母和预算不变。
