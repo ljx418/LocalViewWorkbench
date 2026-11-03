@@ -2,7 +2,7 @@
   "schema_version": "lvw.stage-control/1",
   "project_id": "lvw-prompt-service",
   "stage_id": "V0-S2",
-  "stage_packet_version": "1.0.26",
+  "stage_packet_version": "1.0.27",
   "packet_status": "FROZEN",
   "gate_version": "lvw-gate/1",
   "baseline": {
@@ -51,7 +51,8 @@
     "reports/v0-s2/browser-analysis-evidence-decision-01.md",
     "reports/v0-s2/browser-handler-wiring-decision-01.md",
     "reports/v0-s2/browser-terminal-phase-decision-01.md",
-    "reports/v0-s2/cumulative-stage-sequence-decision-01.md"
+    "reports/v0-s2/cumulative-stage-sequence-decision-01.md",
+    "reports/v0-s2/bound-runtime-archive-decision-01.md"
   ],
   "roles": {
     "gate_owner": "codex_gate_owner",
@@ -396,11 +397,15 @@
     "entry": "tools/v0_s2_stage_sequence.py",
     "cumulative_entry": "tools/v0_s2_cumulative_phase.py",
     "decision": "reports/v0-s2/cumulative-stage-sequence-decision-01.md",
-    "status": "OFFLINE_COMPOSITION_IMPLEMENTED_BOUND_EXECUTOR_PENDING",
+    "status": "OFFLINE_BINDING_MECHANISM_FACTORIES_AND_ARCHIVE_IMPLEMENTED_FULL_EXECUTOR_PENDING",
     "cumulative_public_submissions": 24,
     "default_public_submissions": 45,
     "warm_public_submissions": 20,
     "stage_pass_claim": false,
-    "complete_executable": false
+    "complete_executable": false,
+    "runtime_factory": "tools/v0_s2_stage_runtime.py",
+    "execution_binding": "tools/v0_s2_execution_bindings.py",
+    "raw_archive": "tools/v0_s2_stage_archive.py",
+    "bound_runtime_decision": "reports/v0-s2/bound-runtime-archive-decision-01.md"
   }
 }

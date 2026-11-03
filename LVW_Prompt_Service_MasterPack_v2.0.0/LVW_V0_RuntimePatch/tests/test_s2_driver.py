@@ -65,6 +65,40 @@ class DriverTests(unittest.TestCase):
         self.assertIn('Remove-Item Env:LVW_FFPROBE_EXE',value)
         self.assertNotIn("'None'",value)
 
+    def test_comfy_launch_removes_python_injection_and_uses_owned_offline_cache(self):
+        value=comfy_wrapper('python','main',"C:/owned root's run",'pid','ffmpeg',None)
+        self.assertIn("'PYTHONPATH','PYTHONHOME'",value)
+        self.assertIn("$lvwTemporary='C:/owned root''s run/temp/service-os'",value)
+        self.assertIn("$env:HF_HUB_OFFLINE='1'",value)
+        self.assertIn('$env:TEMP=$lvwTemporary',value)
+        self.assertNotIn('SetEnvironmentVariable',value);self.assertNotIn('setx',value)
+
+    def test_native_junction_metadata_is_exact_and_wrong_target_never_authorizes_removal(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root=Path(temporary).resolve();(root/'input').mkdir();(root/'outside-input').mkdir()
+            driver=self.driver();driver.evidence['owned_run_root']=str(root)
+            proof={'path':str(root/'input/redirect'),'attributes':0x400,'link_type':'Junction','targets':[str(root/'outside-input')]}
+            with patch.object(driver,'_windows_path',side_effect=lambda value,**kwargs:value),patch.object(driver,'_powershell',return_value=json.dumps(proof)):
+                self.assertTrue(driver.verify_reparse_fixture(root)['proven'])
+            for change in ({'attributes':0},{'link_type':'SymbolicLink'},{'targets':[str(root.parent)]},{'targets':[]},{'path':'other'}):
+                with self.subTest(change=change),patch.object(driver,'_windows_path',side_effect=lambda value,**kwargs:value), \
+                     patch.object(driver,'_powershell',return_value=json.dumps({**proof,**change})) as query,self.assertRaises(base.StopProbe):
+                    driver.remove_owned_reparse_fixture(root)
+                self.assertEqual(1,query.call_count);self.assertNotIn('Directory]::Delete',query.call_args.args[0])
+
+    def test_native_junction_removal_requires_link_absence_and_preserved_owned_target(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root=Path(temporary).resolve();(root/'input').mkdir();(root/'outside-input').mkdir()
+            driver=self.driver();driver.evidence['owned_run_root']=str(root)
+            proof={'path':str(root/'input/redirect'),'attributes':0x400,'link_type':'Junction','targets':[str(root/'outside-input')]}
+            with patch.object(driver,'_windows_path',side_effect=lambda value,**kwargs:value), \
+                 patch.object(driver,'_powershell',side_effect=[json.dumps(proof),json.dumps({'link_absent':True,'target_exists':True})]) as query:
+                self.assertTrue(driver.remove_owned_reparse_fixture(root)['proven'])
+                self.assertIn(',$false)',query.call_args.args[0])
+            with patch.object(driver,'_windows_path',side_effect=lambda value,**kwargs:value), \
+                 patch.object(driver,'_powershell',side_effect=[json.dumps(proof),json.dumps({'link_absent':True,'target_exists':False})]),self.assertRaises(base.StopProbe):
+                driver.remove_owned_reparse_fixture(root)
+
     def test_benchmark_mode_is_explicit_and_default_removes_inherited_flag(self):
         normal=comfy_wrapper('python','main','base','pid','ffmpeg',None)
         warm=comfy_wrapper('python','main','base','pid','ffmpeg',None,warm=True)

@@ -133,6 +133,13 @@ class PublicPhase:
         if name in ('traversal','absolute','unc'):return
         path=self.root/'input'/reference
         if name=='reparse':
+            native=getattr(self.driver,'verify_reparse_fixture',None)
+            if callable(native):
+                self.action('native_reparse_fixture_metadata','negative-reparse')
+                if native(self.root).get('proven') is not True:raise base.StopProbe('REPARSE_NATIVE_IDENTITY_UNPROVEN')
+                return
+            # POSIX-only fixture driver fallback; the production NativeRuntime
+            # always uses the actual Windows metadata branch above.
             target=(self.root/'input/redirect').resolve(strict=True);target.relative_to(self.root)
             try:target.relative_to((self.root/'input').resolve(strict=True))
             except ValueError:return

@@ -23,6 +23,17 @@ spec.loader.exec_module(base)
 
 def comfy_wrapper(python, main, directory, pid_file, ffmpeg, ffprobe, *, warm=False,audit=False):
     # Process environment only, never user/machine environment or PATH writes.
+    environment=("foreach($name in @('PYTHONPATH','PYTHONHOME','PYTHONSTARTUP','PYTHONINSPECT','PYTHONUSERBASE',"
+        "'PYTHONOPTIMIZE','HTTP_PROXY','HTTPS_PROXY','ALL_PROXY')){Remove-Item ('Env:'+$name) -ErrorAction SilentlyContinue}\n"
+        "$env:PYTHONDONTWRITEBYTECODE='1'\n$env:PYTHONNOUSERSITE='1'\n"
+        "$env:HF_HUB_OFFLINE='1'\n$env:TRANSFORMERS_OFFLINE='1'\n$env:HF_DATASETS_OFFLINE='1'\n"
+        "$env:NO_PROXY='127.0.0.1,localhost'\n")
+    temporary=directory.rstrip('\\/')+'/temp/service-os'
+    environment+=(f"$lvwTemporary={base.ps_quote(temporary)}\n"
+        "New-Item -ItemType Directory -Path $lvwTemporary -Force -ErrorAction Stop | Out-Null\n"
+        "$env:TEMP=$lvwTemporary\n$env:TMP=$lvwTemporary\n"
+        "$env:TORCH_HOME=($lvwTemporary+'/torch')\n$env:HF_HOME=($lvwTemporary+'/huggingface')\n"
+        "$env:XDG_CACHE_HOME=($lvwTemporary+'/cache')\n")
     probe=(f"$env:LVW_FFPROBE_EXE={base.ps_quote(ffprobe)}\n$env:LVW_VIDEO_PROBE_BACKEND='cli'\n" if ffprobe else
            "Remove-Item Env:LVW_FFPROBE_EXE -ErrorAction SilentlyContinue\n$env:LVW_VIDEO_PROBE_BACKEND='pyav'\n")
     if type(warm) is not bool or type(audit) is not bool or (warm and audit):raise ValueError('BENCHMARK_MODE_INVALID')
@@ -33,7 +44,7 @@ def comfy_wrapper(python, main, directory, pid_file, ffmpeg, ffprobe, *, warm=Fa
     if launch.count('--disable-auto-launch')!=1:raise ValueError('COMFY_LAUNCH_TEMPLATE_CHANGED')
     user_directory=directory.rstrip('\\/')+'/user'
     launch=launch.replace('--disable-auto-launch',f"--user-directory {base.ps_quote(user_directory)} --disable-auto-launch",1)
-    return (f"$env:LVW_FFMPEG_EXE={base.ps_quote(ffmpeg)}\n"+probe+benchmark+native
+    return (environment+f"$env:LVW_FFMPEG_EXE={base.ps_quote(ffmpeg)}\n"+probe+benchmark+native
             + launch)
 
 
@@ -53,6 +64,46 @@ class S2SystemDriver(base.SystemDriver):
         self.request_ledger=[];self._wrapper_handles={};self.listener_births={};self._cleanup_descendants={}
         self._submission_guard=threading.Lock()
         self.clients = {url:LoopbackClient(url) for url in (base.COMFY_URL,base.OLLAMA_URL)}
+
+    def _reparse_paths(self, root):
+        root=Path(root)
+        if (not root.is_absolute() or str(root)!=self.evidence.get('owned_run_root')
+                or root.resolve(strict=True)!=root
+                or (root/'input').resolve(strict=True)!=root/'input'
+                or (root/'outside-input').resolve(strict=True)!=root/'outside-input'):
+            raise base.StopProbe('REPARSE_ROOT_NOT_BOUND')
+        return root/'input/redirect',root/'outside-input'
+
+    def verify_reparse_fixture(self, root):
+        """Read actual Windows junction metadata, never infer it from WSL stat."""
+        link,target=self._reparse_paths(root)
+        checks=self.evidence.setdefault('owned_reparse_fixture_checks',[])
+        if len(checks)>=16:raise base.StopProbe('REPARSE_METADATA_BUDGET_EXCEEDED')
+        expected_link=base.normalized_windows_path(self._windows_path(str(link))).casefold()
+        expected_target=base.normalized_windows_path(self._windows_path(str(target))).casefold()
+        raw=self._powershell('$item=Get-Item -LiteralPath '+base.ps_quote(self._windows_path(str(link)))
+            +' -Force -ErrorAction Stop;[ordered]@{path=[string]$item.FullName;attributes=[int]$item.Attributes;'
+            +'link_type=[string]$item.LinkType;targets=@($item.Target)}|ConvertTo-Json -Compress')
+        proof=json.loads(raw);checks.append(proof)
+        if (type(proof.get('attributes')) is not int or not proof['attributes']&0x400
+                or proof.get('link_type')!='Junction' or not isinstance(proof.get('targets'),list)
+                or len(proof['targets'])!=1 or not isinstance(proof['targets'][0],str)
+                or base.normalized_windows_path(proof.get('path','')).casefold()!=expected_link
+                or base.normalized_windows_path(proof['targets'][0]).casefold()!=expected_target):
+            raise base.StopProbe('REPARSE_NATIVE_IDENTITY_MISMATCH')
+        return {'proven':True,'native_metadata':proof,'target_within_owned_root':True,'target_outside_input':True}
+
+    def remove_owned_reparse_fixture(self, root):
+        before=self.verify_reparse_fixture(root);link,target=self._reparse_paths(root)
+        # Directory.Delete(false) removes the verified Windows junction itself;
+        # it does not recursively delete its target or invoke an extra shell.
+        value=json.loads(self._powershell('[System.IO.Directory]::Delete('
+            +base.ps_quote(self._windows_path(str(link)))+',$false);[ordered]@{link_absent= -not (Test-Path -LiteralPath '
+            +base.ps_quote(self._windows_path(str(link)))+');target_exists=(Test-Path -LiteralPath '
+            +base.ps_quote(self._windows_path(str(target)))+')}|ConvertTo-Json -Compress'))
+        if value.get('link_absent') is not True or value.get('target_exists') is not True:
+            raise base.StopProbe('REPARSE_LINK_CLEANUP_UNPROVEN')
+        return {'proven':True,'before':before,'after':value,'recursive_delete':False}
 
     def _prove_listener_owned(self,port,wrapper_pid_file,executable_name):
         if port not in (8191,11434):raise base.StopProbe('LISTENER_PORT_FORBIDDEN')
