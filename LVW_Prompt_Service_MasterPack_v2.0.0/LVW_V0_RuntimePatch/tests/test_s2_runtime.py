@@ -73,6 +73,18 @@ class RuntimeTests(unittest.TestCase):
                 SamplerWorker(self.runtime(),Path('unused'),'binary',digest,seconds,pids)
             spawn.assert_not_called()
 
+    def test_provider_snapshot_binds_exact_complete_log_prefix_not_partial_or_other_routes(self):
+        import hashlib
+        driver=self.runtime()
+        with tempfile.TemporaryDirectory() as temp:
+            driver.ollama_log=Path(temp)/'owned.log'
+            raw=b'[GIN] 200 POST "/api/generate"\n[GIN] 200 POST "/api/chat"\n[GIN] 200 POST "/api/chat"'
+            driver.ollama_log.write_bytes(raw);value=driver.chat_log_snapshot()
+            self.assertEqual(1,value['chat_calls']);self.assertEqual(raw[:raw.rfind(b'\n')+1].decode(),value['raw_log'])
+            self.assertEqual(hashlib.sha256(value['raw_log'].encode()).hexdigest(),value['source_log_sha256'])
+            self.assertEqual(len(raw),value['observed_bytes'])
+            driver.ollama_log.write_bytes(raw+b'\n');self.assertEqual(2,driver.chat_log_count())
+
     def test_failed_preload_recovery_reproves_owner_and_waits_for_three_fresh_gpu_points(self):
         driver=self.runtime();binding={'ollama_pid':10,'ollama_start_ticks':100,'baseline_gpu_mib':100}
         worker=MagicMock();worker.wait_point.side_effect=[

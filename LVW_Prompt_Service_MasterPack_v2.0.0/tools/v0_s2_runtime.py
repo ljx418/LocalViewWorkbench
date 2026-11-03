@@ -184,11 +184,19 @@ class NativeRuntime(S2SystemDriver):
             if stable>=3:return {'proven':True,'loaded_models':0,'baseline_gpu_mib':baseline,
                 'gpu_samples':samples,'elapsed_seconds':30-(deadline-time.monotonic())}
 
-    def chat_log_count(self):
+    def chat_log_snapshot(self):
         if self.ollama_log is None:raise base.StopProbe('OLLAMA_LOG_UNAVAILABLE')
-        if self.ollama_log.stat().st_size>16*1024*1024:raise base.StopProbe('OLLAMA_LOG_LIMIT')
-        text=self.ollama_log.read_text(encoding='utf-8',errors='strict')
-        return sum('POST' in line and '"/api/chat"' in line for line in text.splitlines())
+        if self.ollama_log.is_symlink() or self.ollama_log.stat().st_size>16*1024*1024:raise base.StopProbe('OLLAMA_LOG_LIMIT')
+        with self.ollama_log.open('rb') as stream:raw=stream.read(16*1024*1024+1)
+        if len(raw)>16*1024*1024:raise base.StopProbe('OLLAMA_LOG_LIMIT')
+        # Only complete lines can attest a completed server request. Retain the
+        # exact prefix so an independent review can recompute the count.
+        prefix=raw[:raw.rfind(b'\n')+1];text=prefix.decode('utf-8','strict')
+        return {'source_log_bytes':len(prefix),'source_log_sha256':hashlib.sha256(prefix).hexdigest(),
+            'raw_log':text,'chat_calls':sum('POST' in line and '"/api/chat"' in line for line in text.splitlines()),
+            'observed_bytes':len(raw)}
+
+    def chat_log_count(self):return self.chat_log_snapshot()['chat_calls']
 
     def cleanup(self):
         workers=[]
