@@ -2,7 +2,7 @@
   "schema_version": "lvw.stage-control/1",
   "project_id": "lvw-prompt-service",
   "stage_id": "V0-S2",
-  "stage_packet_version": "1.0.14",
+  "stage_packet_version": "1.0.15",
   "packet_status": "FROZEN",
   "gate_version": "lvw-gate/1",
   "baseline": {
@@ -40,7 +40,8 @@
     "reports/v0-s2/frozen-structural-inputs-02.json",
     "reports/v0-s2/public-phase-decision-01.md",
     "reports/v0-s2/native-cancel-evidence-decision-01.md",
-    "reports/v0-s2/public-cancellation-phase-decision-01.md"
+    "reports/v0-s2/public-cancellation-phase-decision-01.md",
+    "reports/v0-s2/owned-provider-fault-decision-01.md"
   ],
   "roles": {
     "gate_owner": "codex_gate_owner",
@@ -281,7 +282,8 @@
     "max_seconds": 7200,
     "max_private_processes": 16,
     "abort_decision": "reports/v0-s2/resource-abort-ownership-decision-01.md",
-    "concurrent_abort_status": "OFFLINE_IMPLEMENTED_NATIVE_NOT_RUN"
+    "concurrent_abort_status": "OFFLINE_IMPLEMENTED_NATIVE_NOT_RUN",
+    "fault_transition_decision": "reports/v0-s2/owned-provider-fault-decision-01.md"
   },
   "public_phase": {
     "entry": "tools/v0_s2_public_phase.py",
@@ -309,6 +311,20 @@
     ],
     "one_shot": true,
     "pinned_public_control_peer": true,
+    "no_stage_pass": true
+  },
+  "fault_phase": {
+    "entry": "tools/v0_s2_fault_phase.py",
+    "oracle": "tools/v0_s2_fault_evidence.py",
+    "decision": "reports/v0-s2/owned-provider-fault-decision-01.md",
+    "status": "OFFLINE_IMPLEMENTED_NATIVE_NOT_RUN",
+    "fixed_subchecks": [
+      "provider-root-stop",
+      "manual-offline",
+      "quarantine-entry",
+      "adopt-denied"
+    ],
+    "must_be_last_default_phase": true,
     "no_stage_pass": true
   }
 }

@@ -6,6 +6,7 @@ submission accounting, and the transient decoder configuration.
 """
 import importlib.util
 import json
+import math
 from pathlib import Path
 import subprocess
 
@@ -76,29 +77,87 @@ class S2SystemDriver(base.SystemDriver):
         self.owned_listener_evidence[str(port)].update(proof)
         return pid
 
-    def _kill_bound(self,pid,start_ticks):
-        if any(type(v) is not int or v<=0 for v in (pid,start_ticks)):raise base.StopProbe('STOP_BIRTH_INVALID')
-        # SafeHandle pins the actual kernel process. If the PID was recycled
-        # before opening it, the exact StartTime comparison refuses the kill.
-        # If it exits/recycles after opening, Kill still uses the pinned handle.
-        self._powershell(f"$p=Get-Process -Id {pid};try{{$null=$p.SafeHandle;"
-            f"if([long]$p.StartTime.ToUniversalTime().Ticks -ne {start_ticks}){{throw 'PID_REUSED'}};"
-            "$p.Kill();if(!$p.WaitForExit(5000)){throw 'OWNED_STOP_TIMEOUT'}}finally{$p.Dispose()}")
+    def _kill_bound(self,pid,start_ticks,*,allow_absent=False):
+        if any(type(v) is not int or v<=0 for v in (pid,start_ticks)) or type(allow_absent) is not bool:
+            raise base.StopProbe('STOP_BIRTH_INVALID')
+        # Opening SafeHandle pins the object; a recycled PID cannot be killed.
+        absent=("[ordered]@{state='ABSENT';original_absent=$true;termination_requested=$false}" if allow_absent else "throw 'OWNED_PROCESS_ALREADY_GONE'")
+        replaced=("[ordered]@{state='REPLACED';original_absent=$true;termination_requested=$false}" if allow_absent else "throw 'PID_REUSED'")
+        raw=self._powershell(f"$p=Get-Process -Id {pid} -ErrorAction SilentlyContinue;"
+            "$result=if(!$p){"+absent+"}else{try{$null=$p.SafeHandle;"
+            f"if([long]$p.StartTime.ToUniversalTime().Ticks -ne {start_ticks}){{"+replaced+"}else{"
+            "$requested=([datetime]::UtcNow.Ticks-621355968000000000)/10000000.0;"
+            "$p.Kill();if(!$p.WaitForExit(5000)){throw 'OWNED_STOP_TIMEOUT'};"
+            "[ordered]@{state='STOPPED';original_absent=$true;termination_requested=$true;"
+            "stop_requested_wall_seconds=$requested;exit_confirmed_wall_seconds=([datetime]::UtcNow.Ticks-621355968000000000)/10000000.0}"
+            "}}finally{$p.Dispose()}};"
+            f"$result['pid']={pid};$result['target_start_ticks']={start_ticks};$result|ConvertTo-Json -Compress")
+        value=json.loads(raw)
+        if (type(value.get('pid')) is not int or type(value.get('target_start_ticks')) is not int
+                or value.get('pid')!=pid or value.get('target_start_ticks')!=start_ticks or value.get('original_absent') is not True
+                or type(value.get('termination_requested')) is not bool or value.get('state') not in ('STOPPED','ABSENT','REPLACED')
+                or (not allow_absent and value.get('state')!='STOPPED')):raise base.StopProbe('OWNED_STOP_RECEIPT_INVALID')
+        if value['termination_requested']!=(value['state']=='STOPPED'):raise base.StopProbe('OWNED_STOP_RECEIPT_INVALID')
+        if value['termination_requested']:
+            requested=value.get('stop_requested_wall_seconds');confirmed=value.get('exit_confirmed_wall_seconds')
+            if (any(type(t) not in (int,float) or not math.isfinite(t) or t<0 for t in (requested,confirmed))
+                    or confirmed<requested):raise base.StopProbe('OWNED_STOP_CLOCK_INVALID')
+        return value
 
-    def _snapshot_descendants(self,pid):
-        raw=self._powershell(f"$rows=@(Get-CimInstance Win32_Process);$ids=@({pid});$out=@();"
+    def _snapshot_descendants(self,pid,start_ticks):
+        if any(type(v) is not int or v<=0 for v in (pid,start_ticks)):raise base.StopProbe('SNAPSHOT_ROOT_INVALID')
+        raw=self._powershell(f"$root=Get-Process -Id {pid};$handles=@($root);try{{$null=$root.SafeHandle;"
+            f"if([long]$root.StartTime.ToUniversalTime().Ticks -ne {start_ticks}){{throw 'SNAPSHOT_ROOT_REUSED'}};"
+            f"$rows=@(Get-CimInstance Win32_Process);$rootRows=@($rows|Where-Object {{$_.ProcessId -eq {pid}}});"
+            f"if($rootRows.Count -ne 1 -or {start_ticks} -lt [long]$rootRows[0].CreationDate.ToUniversalTime().Ticks "
+            f"-or ({start_ticks}-[long]$rootRows[0].CreationDate.ToUniversalTime().Ticks) -ge 10){{throw 'SNAPSHOT_ROOT_CIM_MISMATCH'}};"
+            f"$ids=@({pid});$out=@();"
             "for($i=0;$i -lt 8;$i++){$next=@($rows|Where-Object {"
             "($_.ParentProcessId -in $ids) -and ($_.ProcessId -notin $ids)});if(!$next.Count){break};"
             "$ids+=@($next.ProcessId);if($ids.Count -gt 17){throw 'DESCENDANT_LIMIT'};"
-            "$out+=@($next|ForEach-Object {[ordered]@{pid=[int]$_.ProcessId;"
-            "start_ticks=[long]$_.CreationDate.ToUniversalTime().Ticks}})};"
+            "foreach($row in $next){$p=Get-Process -Id $row.ProcessId;$handles+=@($p);$null=$p.SafeHandle;"
+            "$ticks=[long]$p.StartTime.ToUniversalTime().Ticks;$ct=[long]$row.CreationDate.ToUniversalTime().Ticks;"
+            "$parent=@($rows|Where-Object {$_.ProcessId -eq $row.ParentProcessId});"
+            "if($parent.Count -ne 1 -or $ct -lt [long]$parent[0].CreationDate.ToUniversalTime().Ticks "
+            "-or $ticks -lt $ct -or ($ticks-$ct) -ge 10){throw 'DESCENDANT_BIRTH_UNPROVEN'};"
+            "$out+=@([ordered]@{pid=[int]$row.ProcessId;parent_pid=[int]$row.ParentProcessId;"
+            "start_ticks=$ct;process_start_ticks=$ticks})}};"
             "if(@($rows|Where-Object {($_.ParentProcessId -in $ids) -and ($_.ProcessId -notin $ids)}).Count)"
-            "{throw 'DESCENDANT_DEPTH_LIMIT'};ConvertTo-Json -InputObject @($out) -Compress")
-        values=json.loads(raw)
-        if (not isinstance(values,list) or len(values)>16
-                or any(not isinstance(v,dict) or any(type(v.get(k)) is not int or v[k]<=0 for k in ('pid','start_ticks')) for v in values)):
-            raise base.StopProbe('DESCENDANT_SNAPSHOT_INVALID')
+            "{throw 'DESCENDANT_DEPTH_LIMIT'};ConvertTo-Json -InputObject @($out) -Compress"
+            "}finally{foreach($h in $handles){$h.Dispose()}}")
+        values=json.loads(raw);known={pid}
+        if not isinstance(values,list) or len(values)>16:raise base.StopProbe('DESCENDANT_SNAPSHOT_INVALID')
+        for child in values:
+            if (not isinstance(child,dict) or any(type(child.get(k)) is not int or child[k]<=0 for k in
+                    ('pid','parent_pid','start_ticks','process_start_ticks')) or child['parent_pid'] not in known
+                    or child['pid'] in known or not 0<=child['process_start_ticks']-child['start_ticks']<10):
+                raise base.StopProbe('DESCENDANT_SNAPSHOT_INVALID')
+            known.add(child['pid'])
         return values
+
+    def _stop_snapshot_descendants(self,children):
+        states=[]
+        for child in reversed(children):
+            try:
+                if type(child.get('process_start_ticks')) is not int:raise base.StopProbe('DESCENDANT_NATIVE_BIRTH_MISSING')
+                states.append(self._kill_bound(child['pid'],child['process_start_ticks'],allow_absent=True))
+            except Exception as error:
+                states.append({'pid':child.get('pid'),'original_absent':False,'error_type':type(error).__name__,
+                               'reason':getattr(error,'reason',None)})
+        return states
+
+    def _assert_no_new_descendants(self,pid,start_ticks,children):
+        # Children born in the snapshot/stop gap are never silently forgotten.
+        # An unbound child (including a recycled parent's new child) is reported,
+        # not killed by guessing ownership from ParentProcessId alone.
+        ids=[pid]+[v['pid'] for v in children]
+        if type(start_ticks) is not int or start_ticks<=0 or any(type(v) is not int or v<=0 for v in ids):
+            raise base.StopProbe('DESCENDANT_EXIT_BINDING_INVALID')
+        values=','.join(str(v) for v in ids)
+        count=int(self._powershell(f"$ids=@({values});@(Get-CimInstance Win32_Process|Where-Object {{"
+            f"($_.ParentProcessId -in $ids) -and ($_.ProcessId -notin $ids) -and "
+            f"([long]$_.CreationDate.ToUniversalTime().Ticks -ge {start_ticks})}}).Count"))
+        if count:raise base.StopProbe('NEW_DESCENDANT_OWNERSHIP_UNPROVEN')
 
     def cleanup(self):
         failures=[];listeners=[];wrappers=[]
@@ -109,17 +168,20 @@ class S2SystemDriver(base.SystemDriver):
                     pid=self._prove_listener_owned(port,proof['wrapper_pid_file'],proof['executable_name'])
                     birth=self.listener_births[port]
                     state.update(owned_listener_pid=pid,lineage_reproven=True,stop_requested=True)
-                    descendants=self._snapshot_descendants(pid)
+                    descendants=self._snapshot_descendants(pid,self.listener_births[port]['listener_process_start_ticks'])
                     state['descendants_before_stop']=descendants
-                    self._kill_bound(pid,birth['listener_process_start_ticks'])
                     self._cleanup_descendants[port]=descendants
+                    state['root_stop']=self._kill_bound(pid,birth['listener_process_start_ticks'])
                 if port not in self._cleanup_descendants:raise base.StopProbe('DESCENDANT_EXIT_BASELINE_MISSING')
-                survivor_pids=[]
-                for child in self._cleanup_descendants[port]:
-                    if int(self._powershell(f"@(Get-CimInstance Win32_Process -Filter 'ProcessId = {child['pid']}').Count")):
-                        survivor_pids.append(child['pid'])
+                descendant_states=self._stop_snapshot_descendants(self._cleanup_descendants[port])
+                state['descendant_terminal_states']=descendant_states
+                survivor_pids=[v['pid'] for v in descendant_states if v.get('original_absent') is not True]
                 state['descendant_pids_still_present']=survivor_pids
                 if survivor_pids:raise base.StopProbe('DESCENDANT_EXIT_UNPROVEN')
+                birth=self.listener_births[port]
+                self._assert_no_new_descendants(birth.get('listener_pid',state.get('owned_listener_pid')),
+                    birth['listener_process_start_ticks'],self._cleanup_descendants[port])
+                state['unknown_descendants_absent']=True
                 state['terminal_absent']=not self._listener_pid_values(port)
                 if not state['terminal_absent']:raise base.StopProbe('LISTENER_STILL_PRESENT')
             except Exception as error:failures.append({'port':port,'error_type':type(error).__name__,'reason':getattr(error,'reason',None)})
@@ -154,16 +216,19 @@ class S2SystemDriver(base.SystemDriver):
         proof=self.listener_proofs.get(11434)
         if proof is None:raise base.StopProbe('OLLAMA_LISTENER_OWNERSHIP_LOST')
         pid=self._prove_listener_owned(11434,proof['wrapper_pid_file'],proof['executable_name'])
-        descendants=self._snapshot_descendants(pid)
-        self._kill_bound(pid,self.listener_births[11434]['listener_process_start_ticks'])
+        descendants=self._snapshot_descendants(pid,self.listener_births[11434]['listener_process_start_ticks'])
         self._cleanup_descendants[11434]=descendants
-        if any(int(self._powershell(f"@(Get-CimInstance Win32_Process -Filter 'ProcessId = {c['pid']}').Count")) for c in descendants):
-            raise base.StopProbe('DESCENDANT_EXIT_UNPROVEN')
+        stopped=self._kill_bound(pid,self.listener_births[11434]['listener_process_start_ticks'])
+        child_states=self._stop_snapshot_descendants(descendants)
+        if any(v.get('original_absent') is not True for v in child_states):raise base.StopProbe('DESCENDANT_EXIT_UNPROVEN')
+        self._assert_no_new_descendants(pid,self.listener_births[11434]['listener_process_start_ticks'],descendants)
         if self._listener_pid_values(11434):raise base.StopProbe('OLLAMA_STOP_UNPROVEN')
         self.listener_terminal_states['11434']={'port':11434,'owned_listener_pid':pid,'lineage_reproven':True,
-            'stop_requested':True,'terminal_absent':True}
+            'stop_requested':True,'terminal_absent':True,'root_stop':stopped,'descendants_before_stop':descendants,
+            'descendant_terminal_states':child_states,'unknown_descendants_absent':True}
         self.listener_pids.discard(pid)
         # Keep birth/proof records for final native-wrapper cleanup.
+        return self.listener_terminal_states['11434']
 
     def _json_request(self, url, *, payload=None, timeout=20,observer=None):
         for endpoint,client in self.clients.items():

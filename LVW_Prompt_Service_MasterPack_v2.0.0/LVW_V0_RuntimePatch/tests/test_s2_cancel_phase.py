@@ -31,6 +31,10 @@ class Driver:
         self.submissions+=1;self.index+=1;self.graph=copy.deepcopy(graph);self.finished=False
         self.data=facts('preparation' if self.index==0 else 'provider');self.token='run'+str(self.index)
         for e in self.data['events']:e['run_token']=self.token;e['run_number']=self.index+1
+        for e in self.data['events']:
+            if e['event']=='source_prepared':e['source_sha256']=hashlib.sha256((self.root/'input/clip.mp4').read_bytes()).hexdigest()
+        if self.case=='wrong-source' and self.index==1:
+            next(e for e in self.data['events'] if e['event']=='source_prepared')['source_sha256']='0'*64
         self.pid=str(self.index+1)*32
         if self.case=='missed-window' and self.index==0:
             self.write(self.all_events+self.data['events']);return self.pid
@@ -107,7 +111,7 @@ class CancelPhaseTests(unittest.TestCase):
 
     def test_invalid_evidence_stops_without_retry_and_preserves_remaining_denominator(self):
         for case,submits,cancels in [('missed-window',1,0),('wrong-owner',1,0),('published',1,1),
-                                   ('wrong-history',1,1),('wrong-model',2,1)]:
+                                   ('wrong-history',1,1),('wrong-model',2,1),('wrong-source',2,2)]:
             with self.subTest(case=case),tempfile.TemporaryDirectory() as temp:
                 phase,driver,_=self.phase(temp,case);result=phase.run()
                 self.assertEqual('NO_GO',result['decision']);self.assertEqual(submits,driver.submissions)

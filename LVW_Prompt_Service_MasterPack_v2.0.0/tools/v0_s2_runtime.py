@@ -139,15 +139,52 @@ class NativeRuntime(S2SystemDriver):
         self.owned.append(('ollama_wrapper',process,stream));self.ollama_wrapper_pid_file=pid_file
         self._wrapper_handles[str(pid_file)]=process
 
-    def start_sampler(self,run_root,*,nvidia_exe,nvidia_sha256,max_seconds=7200):
+    def start_sampler(self,run_root,*,nvidia_exe,nvidia_sha256,max_seconds=7200,fault_only=False):
+        if type(fault_only) is not bool or (fault_only and (self.warm_benchmark or not self.native_audit)):
+            raise base.StopProbe('FAULT_SAMPLER_SCOPE_INVALID')
         # Fresh subdirectory prevents old logs, stop markers or PID leases.
-        directory=Path(run_root)/'temp/resource-sampler';directory.mkdir(exist_ok=False)
-        owners=[self.owned_listener_birth(port)['pid'] for port in (8191,11434)]
+        directory=Path(run_root)/('temp/fault-resource-sampler' if fault_only else 'temp/resource-sampler');directory.mkdir(exist_ok=False)
+        owners=[self.owned_listener_birth(port)['pid'] for port in ((8191,) if fault_only else (8191,11434))]
         worker=SamplerWorker(self,directory,nvidia_exe,nvidia_sha256,max_seconds,owners)
+        worker.scope='COMFY_ONLY_FAULT' if fault_only else 'COMFY_AND_OLLAMA'
         self.workers.append(worker)  # Preserve cleanup even when startup fails.
         worker.start()
         self._resource_worker=worker;self.resource_observer=self.observe_resources
         return worker
+
+    def prepare_fault_sampler(self,run_root,*,nvidia_exe,nvidia_sha256,max_seconds=7200):
+        # Preserve total GPU/RAM coverage while retiring the old Ollama private
+        # handle BEFORE its intentional death. Never reopen a recycled PID or
+        # invent zero private bytes for an exited process. Warm mode is excluded.
+        if (self.warm_benchmark or not self.native_audit or getattr(self,'_fault_sampler_activated',False)
+                or not hasattr(self,'_resource_worker') or self._resource_worker.scope!='COMFY_AND_OLLAMA'):
+            raise base.StopProbe('FAULT_SAMPLER_TRANSITION_INVALID')
+        self.observe_resources();previous=self._resource_worker
+        current=self.start_sampler(run_root,nvidia_exe=nvidia_exe,nvidia_sha256=nvidia_sha256,
+            max_seconds=max_seconds,fault_only=True)
+        try:
+            terminal=previous.stop()
+            if (terminal.get('proven') is not True or (terminal.get('receipt') or {}).get('decision')
+                    !='RESOURCE_TRACE_COLLECTED_NOT_STAGE_ACCEPTANCE'):
+                raise base.StopProbe('PREVIOUS_SAMPLER_TERMINAL_UNPROVEN')
+            self.observe_resources()
+            old_points=previous.points();new_points=current.points()
+            if (not isinstance(old_points,list) or len(old_points)<2 or not isinstance(new_points,list) or not new_points
+                    or any(type(p.get('monotonic_seconds')) not in (int,float) or not math.isfinite(p['monotonic_seconds'])
+                           for p in (old_points[0],old_points[-1],new_points[0],new_points[-1]))
+                    or new_points[0]['monotonic_seconds']<old_points[0]['monotonic_seconds']
+                    or new_points[0]['monotonic_seconds']-old_points[-1]['monotonic_seconds']>1.5
+                    or old_points[-1]['monotonic_seconds']-new_points[-1]['monotonic_seconds']>1.5):
+                raise base.StopProbe('FAULT_SAMPLER_HANDOFF_GAP')
+            self._fault_sampler_activated=True
+            self.evidence['fault_sampler_transition']={'previous_terminal':terminal,'previous_scope':previous.scope,
+                'current_scope':current.scope,'current_pids':list(current.pids),'current_ownership':current.proof,
+                'whole_gpu_and_host_ram_continue':True,'ollama_private_bytes_after_stop_claimed':False,
+                'previous_last_point':old_points[-1],'current_first_point':new_points[0],'current_last_point':new_points[-1],
+                'handoff_gap_seconds':max(0,new_points[0]['monotonic_seconds']-old_points[-1]['monotonic_seconds'])}
+            return current
+        except BaseException as error:
+            self._latch_resource_abort(error);self._emergency_cleanup();raise
 
     def preload(self,model):
         # Caller records/precharges this separate setup action; never include it

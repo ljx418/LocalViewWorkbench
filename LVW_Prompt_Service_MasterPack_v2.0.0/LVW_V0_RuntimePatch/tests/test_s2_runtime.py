@@ -53,6 +53,57 @@ class RuntimeTests(unittest.TestCase):
             with self.assertRaises(base.StopProbe):driver.preload(base.MODEL)
         self.assertEqual(20,request.call_count);self.assertEqual(0,driver.started_model_calls)
 
+    def test_fault_sampler_handoff_starts_coverage_before_retiring_old_private_handles(self):
+        driver=self.runtime(native_audit=True);previous=MagicMock();previous.scope='COMFY_AND_OLLAMA'
+        previous.stop.return_value={'proven':True,'receipt':{'decision':'RESOURCE_TRACE_COLLECTED_NOT_STAGE_ACCEPTANCE'}}
+        driver._resource_worker=previous;current=MagicMock();current.scope='COMFY_ONLY_FAULT';current.pids=[10];current.proof={'pid':12}
+        previous.points.return_value=[{'monotonic_seconds':9.5},{'monotonic_seconds':10.5}]
+        current.points.return_value=[{'monotonic_seconds':10},{'monotonic_seconds':11}]
+        order=[]
+        def start(*args,**kwargs):
+            self.assertTrue(kwargs['fault_only']);order.append('new-started');driver._resource_worker=current;return current
+        previous.stop.side_effect=lambda:(order.append('old-stopped'),{'proven':True,'receipt':{'decision':'RESOURCE_TRACE_COLLECTED_NOT_STAGE_ACCEPTANCE'}})[1]
+        with patch.object(driver,'observe_resources'),patch.object(driver,'start_sampler',side_effect=start):
+            self.assertIs(current,driver.prepare_fault_sampler('owned',nvidia_exe='pinned',nvidia_sha256='a'*64))
+            with self.assertRaises(base.StopProbe):driver.prepare_fault_sampler('owned',nvidia_exe='pinned',nvidia_sha256='a'*64)
+        self.assertEqual(['new-started','old-stopped'],order)
+        self.assertFalse(driver.evidence['fault_sampler_transition']['ollama_private_bytes_after_stop_claimed'])
+        self.assertEqual(0,driver.evidence['fault_sampler_transition']['handoff_gap_seconds'])
+
+    def test_fault_sampler_bad_old_terminal_latches_abort_and_requests_owned_cleanup(self):
+        driver=self.runtime(native_audit=True);previous=MagicMock();previous.scope='COMFY_AND_OLLAMA'
+        previous.stop.return_value={'proven':False};driver._resource_worker=previous
+        with patch.object(driver,'observe_resources'),patch.object(driver,'start_sampler'),patch.object(driver,'_emergency_cleanup') as cleanup,self.assertRaises(base.StopProbe):
+            driver.prepare_fault_sampler('owned',nvidia_exe='pinned',nvidia_sha256='a'*64)
+        self.assertTrue(driver.resource_abort_latched);cleanup.assert_called_once()
+
+    def test_fault_sampler_handoff_gap_exact_limit_and_one_over(self):
+        for gap,passed in ((1.5,True),(1.5001,False)):
+            driver=self.runtime(native_audit=True);old=MagicMock();old.scope='COMFY_AND_OLLAMA';driver._resource_worker=old
+            old.stop.return_value={'proven':True,'receipt':{'decision':'RESOURCE_TRACE_COLLECTED_NOT_STAGE_ACCEPTANCE'}}
+            old.points.return_value=[{'monotonic_seconds':9},{'monotonic_seconds':10}]
+            new=MagicMock();new.scope='COMFY_ONLY_FAULT';new.pids=[10];new.proof={}
+            new.points.return_value=[{'monotonic_seconds':10+gap},{'monotonic_seconds':11+gap}]
+            def start(*args,**kwargs):driver._resource_worker=new;return new
+            with self.subTest(gap=gap),patch.object(driver,'observe_resources'),patch.object(driver,'start_sampler',side_effect=start),patch.object(driver,'_emergency_cleanup') as cleanup:
+                if passed:driver.prepare_fault_sampler('owned',nvidia_exe='pinned',nvidia_sha256='a'*64);cleanup.assert_not_called()
+                else:
+                    with self.assertRaises(base.StopProbe):driver.prepare_fault_sampler('owned',nvidia_exe='pinned',nvidia_sha256='a'*64)
+                    cleanup.assert_called_once()
+
+    def test_fault_private_scope_is_explicit_default_profile_only(self):
+        with tempfile.TemporaryDirectory() as temp:
+            (Path(temp)/'temp').mkdir();driver=self.runtime(native_audit=True)
+            worker=MagicMock()
+            with patch.object(driver,'owned_listener_birth',side_effect=lambda port:{'pid':10 if port==8191 else 11}), \
+                 patch('tools.v0_s2_runtime.SamplerWorker',return_value=worker) as factory:
+                driver.start_sampler(temp,nvidia_exe='pinned',nvidia_sha256='a'*64,fault_only=True)
+            self.assertEqual([10],factory.call_args.args[-1]);self.assertEqual('COMFY_ONLY_FAULT',worker.scope)
+            worker.start.assert_called_once()
+        with patch('pathlib.Path.mkdir') as mkdir,self.assertRaises(base.StopProbe):
+            self.runtime().start_sampler('unused',nvidia_exe='pinned',nvidia_sha256='a'*64,fault_only=True)
+        mkdir.assert_not_called()
+
     def test_native_binding_freezes_lease_owner_and_run_budget_without_overwrite(self):
         driver=self.runtime()
         identity=dict(candidate_sha='a'*40,authorization_sha256='b'*64,model_digest='c'*64)

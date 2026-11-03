@@ -9,7 +9,8 @@ from urllib.parse import urlsplit
 
 
 class ControlError(ValueError):
-    pass
+    def __init__(self,message,*,http_status=None,response=None,response_raw=None):
+        super().__init__(message);self.http_status=http_status;self.response=response;self.response_raw=response_raw
 
 
 class _OwnedRequest:
@@ -114,7 +115,7 @@ class LoopbackClient:
                 'Origin':self.endpoint, 'X-LVW-Control':'local-ui'})
             active_socket = connection.sock
             response = connection.getresponse()
-            if not 200 <= response.status < 300:
+            if not 200 <= response.status < 300 and not (response.status==409 and path=='/lvw/v0/video/workbench'):
                 raise ControlError('CONTROL_HTTP_' + str(response.status))
             raw = bytearray()
             while True:
@@ -135,6 +136,8 @@ class LoopbackClient:
             value = json.loads(raw)
             if not isinstance(value, dict):
                 raise ControlError('CONTROL_RESPONSE_SHAPE')
+            if response.status==409:
+                raise ControlError('CONTROL_HTTP_409',http_status=409,response=value,response_raw=bytes(raw))
             successful=True
             return response.status, value
         finally:

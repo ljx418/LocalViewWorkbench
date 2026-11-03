@@ -1,5 +1,6 @@
 """Offline lifecycle adapter checks, never create native processes."""
 from types import SimpleNamespace
+import json
 import unittest
 from unittest.mock import patch
 
@@ -73,6 +74,40 @@ class DriverTests(unittest.TestCase):
         with self.assertRaises(base.StopProbe):
             S2SystemDriver(SimpleNamespace(max_public_submissions=1,run_id='fixture',powershell='powershell.exe',
                 native_audit=True,warm_benchmark=True),{})
+
+    def test_native_stop_receipt_rejects_unproven_or_inconsistent_exit(self):
+        driver=self.driver()
+        value={'pid':10,'target_start_ticks':100,'state':'STOPPED','original_absent':True,
+            'termination_requested':True,'stop_requested_wall_seconds':1000,'exit_confirmed_wall_seconds':1001}
+        with patch.object(driver,'_powershell',return_value=json.dumps(value)):
+            self.assertEqual(value,driver._kill_bound(10,100))
+        for change in ({'original_absent':False},{'pid':11},{'termination_requested':False},
+                       {'exit_confirmed_wall_seconds':999},{'state':'REPLACED','termination_requested':False}):
+            with self.subTest(change=change),patch.object(driver,'_powershell',return_value=json.dumps({**value,**change})),self.assertRaises(base.StopProbe):
+                driver._kill_bound(10,100)
+
+    def test_descendants_require_native_birth_and_parent_chain_exact_and_one_over(self):
+        driver=self.driver();child={'pid':11,'parent_pid':10,'start_ticks':100,'process_start_ticks':109}
+        with patch.object(driver,'_powershell',return_value=json.dumps([child])):
+            self.assertEqual([child],driver._snapshot_descendants(10,90))
+        for row in ({**child,'process_start_ticks':110},{**child,'parent_pid':99},{**child,'pid':10},
+                    {k:v for k,v in child.items() if k!='process_start_ticks'}):
+            with self.subTest(row=row),patch.object(driver,'_powershell',return_value=json.dumps([row])),self.assertRaises(base.StopProbe):
+                driver._snapshot_descendants(10,90)
+
+    def test_snapshot_cleanup_is_deepest_first_and_recycled_child_is_left_untouched(self):
+        driver=self.driver();children=[{'pid':11,'process_start_ticks':101},{'pid':12,'process_start_ticks':102}]
+        def proof(pid,ticks,**kw):
+            return {'pid':pid,'target_start_ticks':ticks,'state':'REPLACED' if pid==11 else 'STOPPED','original_absent':True}
+        with patch.object(driver,'_kill_bound',side_effect=proof) as kill:
+            result=driver._stop_snapshot_descendants(children)
+        self.assertEqual([12,11],[call.args[0] for call in kill.call_args_list])
+        self.assertTrue(all(call.kwargs['allow_absent'] is True for call in kill.call_args_list))
+        self.assertEqual('REPLACED',result[-1]['state'])
+        # Unknown descendants cause refusal; there is no guessed PID kill.
+        with patch.object(driver,'_powershell',return_value='1'),patch.object(driver,'_kill_bound') as kill,self.assertRaises(base.StopProbe):
+            driver._assert_no_new_descendants(10,100,children)
+        kill.assert_not_called()
 
 
 if __name__=='__main__':unittest.main()

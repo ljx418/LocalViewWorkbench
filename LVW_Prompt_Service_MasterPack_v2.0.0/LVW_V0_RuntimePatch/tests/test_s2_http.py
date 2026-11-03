@@ -142,5 +142,13 @@ class ControlClientTests(unittest.TestCase):
             with self.assertRaises(ControlError):client.request('POST','/lvw/v0/video/cancel',payload={'run_token':'one'})
         self.assertEqual(1,connection.request.call_count)
 
+    def test_workbench_409_retains_bounded_actual_error_body_and_closes_connection(self):
+        raw=b'{"error":{"code":"ATTEMPT_STALE"}}'
+        connection,response=self.connection(status=409,chunks=(raw,b''))
+        with patch('http.client.HTTPConnection',return_value=connection),self.assertRaises(ControlError) as raised:
+            LoopbackClient('http://127.0.0.1:8191').request('POST','/lvw/v0/video/workbench',payload={'action':'adopt','run_token':'one'})
+        self.assertEqual(409,raised.exception.http_status);self.assertEqual(raw,raised.exception.response_raw)
+        self.assertEqual('ATTEMPT_STALE',raised.exception.response['error']['code']);connection.close.assert_called_once()
+
 
 if __name__ == '__main__':unittest.main()

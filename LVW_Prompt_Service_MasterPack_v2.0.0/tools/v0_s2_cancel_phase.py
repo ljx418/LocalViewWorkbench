@@ -203,6 +203,10 @@ class CancellationPhase:
         events,history,status=self.wait_terminal(case,journal_before,token,prompt_id)
         self.artifact(case+'.events.json',events);self.artifact(case+'.history.json',history);self.artifact(case+'.status.json',status)
         after=self.provider_prefix(case,'after');self.action('independent_resource_samples',case)
+        prepared=[e for e in events if e['event']=='source_prepared']
+        if (len(prepared)>1 or (case=='provider' and len(prepared)!=1)
+                or any(e['source_sha256']!=self.fixture['sha256'] for e in prepared)):
+            raise EvidenceError('cancelled run decoded another source')
         samples=self.driver._resource_worker.points();self.artifact(case+'.resource-samples.json',samples)
         value=cancellation_trace(events,binding=self.binding,token=token,owner_pid=roots['8191']['pid'],kind=case,
             ack=ack,before=before,after=after,resource_samples=samples)

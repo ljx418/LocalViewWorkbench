@@ -141,7 +141,9 @@ class AbortTests(unittest.TestCase):
 
     def test_stop_uses_pinned_handle_and_exact_birth_not_blind_pid_kill(self):
         driver=self.runtime()
-        with patch.object(driver,'_powershell') as execute:driver._kill_bound(10,100)
+        value={'pid':10,'target_start_ticks':100,'state':'STOPPED','termination_requested':True,'original_absent':True,
+            'stop_requested_wall_seconds':1000,'exit_confirmed_wall_seconds':1001}
+        with patch.object(driver,'_powershell',return_value=json.dumps(value)) as execute:driver._kill_bound(10,100)
         command=execute.call_args.args[0]
         self.assertIn('SafeHandle',command);self.assertIn('Ticks -ne 100',command)
         self.assertLess(command.index('Ticks -ne'),command.index('.Kill()'))
@@ -149,8 +151,12 @@ class AbortTests(unittest.TestCase):
 
     def test_generated_stop_descendant_and_birth_scripts_parse_without_running_queries(self):
         driver=self.runtime();scripts=[]
-        with patch.object(driver,'_powershell',side_effect=lambda text:(scripts.append(text),'[]')[1]):
-            driver._kill_bound(10,100);driver._snapshot_descendants(10)
+        value={'pid':10,'target_start_ticks':100,'state':'STOPPED','termination_requested':True,'original_absent':True,
+            'stop_requested_wall_seconds':1000,'exit_confirmed_wall_seconds':1001}
+        with patch.object(driver,'_powershell',side_effect=lambda text:(scripts.append(text),json.dumps(value) if '.Kill()' in text else '[]')[1]):
+            driver._kill_bound(10,100);driver._snapshot_descendants(10,100)
+        with patch.object(driver,'_powershell',side_effect=lambda text:(scripts.append(text),'0')[1]):
+            driver._assert_no_new_descendants(10,100,[])
         handle=MagicMock();handle.poll.return_value=None
         with tempfile.TemporaryDirectory() as temp:
             path=Path(temp)/'wrapper.pid';path.write_text('20');driver._wrapper_handles[str(path)]=handle
@@ -169,6 +175,32 @@ class AbortTests(unittest.TestCase):
             "Write-Output ('PARSE_ERRORS='+$count);if($count){exit 1}")
         result=subprocess.run([executable,'-NoProfile','-NonInteractive','-Command',command],capture_output=True,timeout=30)
         self.assertEqual(0,result.returncode);self.assertEqual(b'PARSE_ERRORS=0',result.stdout.strip());self.assertEqual(b'',result.stderr)
+
+    def test_stop_script_runs_against_fake_process_objects_without_real_process_queries(self):
+        driver=self.runtime();items=[]
+        value={'pid':10,'target_start_ticks':100,'state':'STOPPED','termination_requested':True,'original_absent':True,
+            'stop_requested_wall_seconds':1000,'exit_confirmed_wall_seconds':1001}
+        for kind in ('owned','replaced','absent'):
+            def capture(source):items.append({'kind':kind,'source':source});return json.dumps(value)
+            with patch.object(driver,'_powershell',side_effect=capture):driver._kill_bound(10,100,allow_absent=kind!='owned')
+        encoded=base64.b64encode(json.dumps(items).encode()).decode()
+        command=("$ErrorActionPreference='Stop';class LVWStopFixture{[datetime]$StartTime;[int]$SafeHandle=1;[int]$Kills=0;\n"
+            "[void]Kill(){$this.Kills++}\n[bool]WaitForExit([int]$milliseconds){return $true}\n[void]Dispose(){}\n};"
+            "function Get-Process{[CmdletBinding()]param([int]$Id);return $script:lvwStopFixture};"
+            "if((Get-Command Get-Process).CommandType -ne 'Function'){throw 'FAKE_NOT_INSTALLED'};"
+            "$items=ConvertFrom-Json ([Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('"+encoded+"')));"
+            "$results=@();foreach($item in $items){$script:lvwStopFixture=[LVWStopFixture]::new();"
+            "$ticks=if($item.kind -eq 'replaced'){101}else{100};"
+            "$script:lvwStopFixture.StartTime=[datetime]::SpecifyKind([datetime]::MinValue.AddTicks($ticks),[DateTimeKind]::Utc);"
+            "if($item.kind -eq 'absent'){$script:lvwStopFixture=$null};"
+            "$output=& ([scriptblock]::Create($item.source));$receipt=ConvertFrom-Json ($output -join '');"
+            "$kills=if($script:lvwStopFixture){$script:lvwStopFixture.Kills}else{0};"
+            "$results+=@([ordered]@{kind=$item.kind;receipt=$receipt;kills=$kills})};ConvertTo-Json -InputObject @($results) -Depth 5 -Compress")
+        result=subprocess.run([shutil.which('powershell.exe'),'-NoProfile','-NonInteractive','-Command',command],capture_output=True,timeout=30)
+        self.assertEqual(0,result.returncode,result.stderr.decode('utf-8','replace'))
+        records=json.loads(result.stdout.decode('utf-8-sig'))
+        self.assertEqual(['STOPPED','REPLACED','ABSENT'],[v['receipt']['state'] for v in records])
+        self.assertEqual([1,0,0],[v['kills'] for v in records]);self.assertTrue(all(v['receipt']['original_absent'] for v in records))
 
     def test_foreign_or_reused_listener_cannot_reach_any_kill(self):
         driver=self.runtime();driver.listener_proofs[8191]={'wrapper_pid_file':Path('owned'),'executable_name':'python.exe'}

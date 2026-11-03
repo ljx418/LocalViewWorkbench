@@ -170,5 +170,25 @@ class NativeEvidenceTests(unittest.TestCase):
         self.assertEqual('unknown',owner.current_status()['resource_state']);self.assertTrue(core._RESOURCE_RELEASE_PENDING.is_set())
         with self.assertRaises(core.BridgeError):owner.completed_result('disk')
 
+    def test_provider_death_cleanup_failure_keeps_manual_available_but_quarantines_inference(self):
+        events=[]
+        class Failed(Transport):
+            def bind_audit(self,audit,token):self.audit=audit;self.token=token;self.release_evidence={'state':'unproven'}
+            def chat(self,payload,timeout_seconds):
+                self.audit.before_provider(self.token,payload,timeout_seconds)
+                raise core.BridgeError('MODEL_UNAVAILABLE','synthetic lost owned service',subcode='OLLAMA_TRANSPORT_ERROR')
+            def cleanup(self,*args):raise core.BridgeError('SCOPE_FORBIDDEN','root gone',subcode='ROOT_CHANGED')
+        owner=VideoRequestOwner(Decoder(),bridge=core.BridgeOwner(transport=Failed(threading.Event()),encoder=lambda f:'fixture'),
+            tensor_builder=lambda f:f,host_preflight=lambda:{},preflight=lambda:{},audit=self.audit(events))
+        with self.assertRaises(core.BridgeError):owner.run('fault','clip.mp4',model=core.DEFAULT_MODEL,user_instruction='',mode='realistic',timeout_seconds=120)
+        self.assertEqual(('failed','unknown'),(owner.current_status()['status'],owner.current_status()['resource_state']))
+        self.assertEqual('MODEL_UNAVAILABLE',events[-1]['error_code']);self.assertFalse(events[-1]['result_published'])
+        from LVW_V0_RuntimePatch.custom_nodes.lvw_v0_bridge.video_workbench import project
+        from LVW_V0_RuntimePatch.tests.test_s2_video_workbench import fields
+        self.assertEqual('人工稿',project({'action':'preview','fields':fields()},owner)['result']['draft']['natural_zh'])
+        with self.assertRaises(core.BridgeError):project({'action':'adopt','run_token':'fault'},owner)
+        with self.assertRaises(core.BridgeError) as error:owner.run('next','clip.mp4',model=core.DEFAULT_MODEL,user_instruction='',mode='realistic',timeout_seconds=120)
+        self.assertEqual('RESOURCE_BUSY',error.exception.code);self.assertEqual(1,len([e for e in events if e['event']=='run_started']))
+
 
 if __name__=='__main__':unittest.main()
