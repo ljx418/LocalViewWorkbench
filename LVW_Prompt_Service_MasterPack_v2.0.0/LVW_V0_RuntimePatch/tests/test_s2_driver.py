@@ -4,6 +4,7 @@ import json
 import tempfile
 from pathlib import Path
 import unittest
+import subprocess
 from unittest.mock import patch
 
 from tools.v0_s2_driver import S2SystemDriver, comfy_wrapper, base
@@ -98,6 +99,25 @@ class DriverTests(unittest.TestCase):
             with patch.object(driver,'_windows_path',side_effect=lambda value,**kwargs:value), \
                  patch.object(driver,'_powershell',side_effect=[json.dumps(proof),json.dumps({'link_absent':True,'target_exists':False})]),self.assertRaises(base.StopProbe):
                 driver.remove_owned_reparse_fixture(root)
+
+    def test_junction_checks_and_delete_preserve_literal_leaf_when_converter_follows_links(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root=Path(temporary).resolve();(root/'input').mkdir();target=root/'outside-input';target.mkdir()
+            link=root/'input/redirect';link.symlink_to(target,target_is_directory=True)
+            driver=self.driver();driver.evidence['owned_run_root']=str(root);converted=[]
+            def convert(argv,**kwargs):
+                source=Path(argv[-1]);converted.append(source)
+                relative=source.resolve().relative_to(root)
+                return subprocess.CompletedProcess(argv,0,'C:\\fixture'+('\\'+str(relative).replace('/','\\') if str(relative)!='.' else ''),'')
+            proof={'path':'C:\\fixture\\input\\redirect','attributes':0x400,'link_type':'Junction',
+                'targets':['C:\\fixture\\outside-input']}
+            with patch.object(base,'run_local',side_effect=convert),patch.object(driver,'_powershell',
+                    side_effect=[json.dumps(proof),json.dumps({'link_absent':True,'target_exists':True})]) as query:
+                self.assertTrue(driver.remove_owned_reparse_fixture(root)['proven'])
+            self.assertNotIn(link,converted)
+            self.assertIn("Get-Item -LiteralPath 'C:\\fixture\\input\\redirect'",query.call_args_list[0].args[0])
+            self.assertIn("Directory]::Delete('C:\\fixture\\input\\redirect',$false)",query.call_args_list[1].args[0])
+            self.assertTrue(target.is_dir())
 
     def test_benchmark_mode_is_explicit_and_default_removes_inherited_flag(self):
         normal=comfy_wrapper('python','main','base','pid','ffmpeg',None)

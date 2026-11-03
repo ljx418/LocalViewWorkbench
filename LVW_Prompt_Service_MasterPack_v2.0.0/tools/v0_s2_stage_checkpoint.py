@@ -499,6 +499,8 @@ def execute(slot):
             archive=record_archive, authorize=lease.authorize)
         result['sequence'] = sequence.run()
         result['runtime_evidence'] = factory.evidence
+        if result['sequence']['decision'] != 'MACHINE_SEQUENCE_COMPLETE_REQUIRES_INDEPENDENT_REVIEW_AND_HUMAN_SIGNOFF':
+            result['error_code'] = result['sequence'].get('error_code', 'STAGE_SEQUENCE_INCOMPLETE')
         if result['sequence']['decision'] == 'MACHINE_SEQUENCE_COMPLETE_REQUIRES_INDEPENDENT_REVIEW_AND_HUMAN_SIGNOFF':
             if (set(counts) != {'default', 'warm'} or counts['default'].get('public_submissions') != 45
                     or counts['warm'].get('public_submissions') != 20 or counts['warm'].get('preloads') != 20

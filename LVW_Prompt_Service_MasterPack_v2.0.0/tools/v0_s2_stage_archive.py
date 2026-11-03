@@ -37,7 +37,16 @@ class OwnedArchive:
         if not root.is_dir() or list(root.iterdir()): raise EvidenceError('archive lease requires a fresh empty root')
         directory = plain(self.directory)
         if directory == root or directory.is_relative_to(root): raise EvidenceError('archive destination is inside run root')
-        info = root.lstat(); self.leases[label] = (root, info.st_dev, info.st_ino)
+        info = root.lstat()
+        record = {'kind': 'FRESH_OWNED_ROOT_IDENTITY_NOT_ACCEPTANCE', 'run_id': self.run_id,
+            'candidate_sha': self.candidate, 'authorization_sha256': self.auth,
+            'label': label, 'root': str(root), 'device': str(info.st_dev), 'inode': str(info.st_ino),
+            'registered_wall_seconds': time.time(), 'stage_pass_claim': False}
+        # Persist before population. Recovery must never invent the original
+        # identity by adopting whatever happens to occupy a historical path.
+        with (directory/(label+'-root-lease.json')).open('xb') as output:
+            output.write((json.dumps(record, sort_keys=True)+'\n').encode()); output.flush(); os.fsync(output.fileno())
+        self.leases[label] = (root, info.st_dev, info.st_ino)
 
     def lease(self, label):
         root, device, inode = self.leases[label]; plain(root); info = root.lstat()

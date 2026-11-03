@@ -82,6 +82,27 @@ class CheckpointTests(unittest.TestCase):
             checkpoint.execute('full-checkpoint-01')
         resolve.assert_not_called()
 
+    def test_sequence_failure_reason_reaches_public_receipt_without_claiming_pass(self):
+        self.prepare()
+        frozen=self.root/'reports/v0-s2/frozen-structural-inputs-02.json'
+        frozen.parent.mkdir(parents=True,exist_ok=True); frozen.write_text('{"binding_inputs":{}}')
+        snapshot={'files':[{'alias':key.upper(),'sha256':'0'*64} for key in checkpoint.TOOL_KEYS]}
+        paths={key:Path('/synthetic-not-opened') for key in checkpoint.TOOL_KEYS}
+        metadata=[{'executable_sha256':'0'*64},{'executable_sha256':'0'*64}]
+        failure={'decision':'NO_GO','error_code':'StopProbe:SYNTHETIC_REPARSE_IDENTITY_FAILURE','phases':{}}
+        with patch.object(checkpoint,'resolve_installed',return_value=(paths,{}, {},metadata)), \
+             patch.object(checkpoint,'ExecutionBindings') as bindings, \
+             patch.object(checkpoint,'verify_observations'),patch.object(checkpoint,'actual_samples',return_value={}), \
+             patch.object(checkpoint,'load_fixture_set',return_value={}), \
+             patch.object(checkpoint,'StageRuntimeFactory') as factory,patch.object(checkpoint,'StageSequence') as sequence:
+            bindings.return_value.capture.return_value=snapshot;factory.return_value.evidence={}
+            sequence.return_value.run.return_value=failure
+            result=checkpoint.execute('full-checkpoint-01')
+        public=json.loads((self.root/'reports/v0-s2/full-checkpoint-01/receipt.json').read_text())
+        self.assertEqual(failure['error_code'],result['error_code']);self.assertEqual(failure['error_code'],public['error_code'])
+        self.assertEqual('NO_GO',public['decision']);self.assertFalse(public['stage_pass_claim'])
+        self.assertEqual(9,public['test_counts']['NOT_RUN'])
+
     def test_public_receipt_disk_failure_still_closes_reserved_byte_and_expires_permission(self):
         self.prepare(); original_writer = checkpoint.write_new
         def failing(path, value):

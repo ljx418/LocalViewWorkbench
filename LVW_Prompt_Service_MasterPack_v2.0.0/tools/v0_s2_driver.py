@@ -76,12 +76,12 @@ class S2SystemDriver(base.SystemDriver):
 
     def verify_reparse_fixture(self, root):
         """Read actual Windows junction metadata, never infer it from WSL stat."""
-        link,target=self._reparse_paths(root)
         checks=self.evidence.setdefault('owned_reparse_fixture_checks',[])
         if len(checks)>=16:raise base.StopProbe('REPARSE_METADATA_BUDGET_EXCEEDED')
-        expected_link=base.normalized_windows_path(self._windows_path(str(link))).casefold()
-        expected_target=base.normalized_windows_path(self._windows_path(str(target))).casefold()
-        raw=self._powershell('$item=Get-Item -LiteralPath '+base.ps_quote(self._windows_path(str(link)))
+        native_link,native_target=self._reparse_native_paths(root)
+        expected_link=base.normalized_windows_path(native_link).casefold()
+        expected_target=base.normalized_windows_path(native_target).casefold()
+        raw=self._powershell('$item=Get-Item -LiteralPath '+base.ps_quote(native_link)
             +' -Force -ErrorAction Stop;[ordered]@{path=[string]$item.FullName;attributes=[int]$item.Attributes;'
             +'link_type=[string]$item.LinkType;targets=@($item.Target)}|ConvertTo-Json -Compress')
         proof=json.loads(raw);checks.append(proof)
@@ -93,14 +93,23 @@ class S2SystemDriver(base.SystemDriver):
             raise base.StopProbe('REPARSE_NATIVE_IDENTITY_MISMATCH')
         return {'proven':True,'native_metadata':proof,'target_within_owned_root':True,'target_outside_input':True}
 
+    def _reparse_native_paths(self, root):
+        link,target=self._reparse_paths(root)
+        # wslpath resolves an existing junction leaf to its target. Convert only
+        # its proven ordinary parent and append the fixed leaf lexically, so
+        # native metadata and nonrecursive deletion address the link itself.
+        parent=self._windows_path(str(link.parent))
+        return parent.rstrip('\\/')+'\\'+link.name,self._windows_path(str(target))
+
     def remove_owned_reparse_fixture(self, root):
-        before=self.verify_reparse_fixture(root);link,target=self._reparse_paths(root)
+        before=self.verify_reparse_fixture(root)
+        native_link,native_target=self._reparse_native_paths(root)
         # Directory.Delete(false) removes the verified Windows junction itself;
         # it does not recursively delete its target or invoke an extra shell.
         value=json.loads(self._powershell('[System.IO.Directory]::Delete('
-            +base.ps_quote(self._windows_path(str(link)))+',$false);[ordered]@{link_absent= -not (Test-Path -LiteralPath '
-            +base.ps_quote(self._windows_path(str(link)))+');target_exists=(Test-Path -LiteralPath '
-            +base.ps_quote(self._windows_path(str(target)))+')}|ConvertTo-Json -Compress'))
+            +base.ps_quote(native_link)+',$false);[ordered]@{link_absent= -not (Test-Path -LiteralPath '
+            +base.ps_quote(native_link)+');target_exists=(Test-Path -LiteralPath '
+            +base.ps_quote(native_target)+')}|ConvertTo-Json -Compress'))
         if value.get('link_absent') is not True or value.get('target_exists') is not True:
             raise base.StopProbe('REPARSE_LINK_CLEANUP_UNPROVEN')
         return {'proven':True,'before':before,'after':value,'recursive_delete':False}

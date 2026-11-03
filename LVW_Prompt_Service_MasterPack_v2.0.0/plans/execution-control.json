@@ -7,16 +7,16 @@
   "next_delivery_target": "V0.1",
   "coordinate": {
     "stage_id": "V0-S2",
-    "workpack_id": "WP-S2-05",
-    "gate": "GATE4_CORRECTED_NATIVE_CHECKPOINT_RUNNING",
-    "state": "RUNNING"
+    "workpack_id": "WP-S2-04",
+    "gate": "GATE3_POST_RECHECK_OFFLINE_CORRECTION",
+    "state": "FROZEN_READY_OFFLINE"
   },
   "last_passed_gate": {
     "id": "V0_S2_OFFLINE_CHECKPOINT_19_PASSED",
     "evidence": "reports/v0-s2/offline-checkpoint-19/receipt.json",
     "meaning": "Corrected candidate passed439 actual unit tests, all five full offline checks and complete before/after source seals. Initial native failure remains NO_GO; actual installed byte bindings and fixed native cases require the sole fresh full-recheck-01 child."
   },
-  "current_blocking_gate": "V0_S2_CORRECTED_FULL_NATIVE_CHECKPOINT",
+  "current_blocking_gate": "V0_S2_NATIVE_RECHECK_NO_GO_BUDGET_EXHAUSTED",
   "stage_packet": ".agent-governance/stages/V0-S2/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/V0-S2/PAYLOAD_MANIFEST.sha256",
   "product_status": "IN_PROGRESS",
@@ -29,9 +29,9 @@
     "PRODUCTION_RELEASED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "local_ci",
-  "next_action": "Poll original corrected full-recheck-01 executor98629 and bound parent birth. Never restart/rebind this claimed slot. Preserve exact progress, raw terminal, redacted receipt and cleanup. No third Stage run is authorized. If machine complete, independent review precedes human signoff.",
-  "required_authorization": "CURRENT_ACTIVE_FULL_RECHECK_CHILD_WITHIN_EXISTING_PROGRAM",
+  "next_owner": "codex_implementation",
+  "next_action": "Finish offline junction literal-path, durable-root-identity and public-error propagation fixes; commit a new candidate and run offline-checkpoint-20. Preserve the retained root without adoption or deletion. Native full checkpoints are exhausted; prepare an explicit bounded supplemental request after offline evidence, never launch a third run automatically.",
+  "required_authorization": "NEW_EXPLICIT_SUPPLEMENTAL_NATIVE_AND_RETAINED_ROOT_ADOPTION_AUTHORIZATION",
   "authorization_request": null,
   "authorization_record": "reports/authorization-program-v1-local-01.json",
   "read_only_binding_authorization": "reports/v0-s2/authorization-binding-inventory-06.json",
@@ -91,9 +91,9 @@
   },
   "historical_live_terminal_receipt": "reports/r1a/r1a-live-07/live-receipt.json",
   "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
-  "live_terminal_receipt": null,
+  "live_terminal_receipt": "reports/v0-s2/full-recheck-01/receipt.json",
   "independent_review": null,
-  "exact_stop_reason": "SOLE_CORRECTED_NATIVE_EXECUTOR_IN_PROGRESS",
+  "exact_stop_reason": "SECOND_COMPLETE_NATIVE_ATTEMPT_FAILED_AT_JUNCTION_IDENTITY_BEFORE_SERVICES",
   "native_component_authorization": "reports/v0-s2/authorization-native-component-02.json",
   "native_component_terminal_receipt": "reports/v0-s2/native-component-02/receipt.json",
   "local_control_change_decision": "reports/v0-s2/change-decision-video-workbench-01.json",
@@ -151,7 +151,9 @@
       "session": 47866,
       "start_ticks": "3086273"
     },
-    "restart_forbidden": true
+    "restart_forbidden": true,
+    "terminal": true,
+    "exit_code": 1
   },
   "next_stage_document_preparation": "reports/v0-s3/preparation-01.md",
   "native_checkpoint_attempts": {
@@ -162,5 +164,6 @@
   "binding_correction": "reports/v0-s2/binding-correction-01/decision.md",
   "historical_native_terminal_receipts": [
     "reports/v0-s2/full-checkpoint-01/receipt.json"
-  ]
+  ],
+  "retained_root_disposition": "reports/v0-s2/junction-correction-01/retained-root-observation.json"
 }

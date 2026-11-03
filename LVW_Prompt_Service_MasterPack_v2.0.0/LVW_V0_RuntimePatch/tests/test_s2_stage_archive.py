@@ -47,6 +47,15 @@ class ArchiveTests(unittest.TestCase):
             self.assertEqual(len(actual), row['bytes']); self.assertEqual(hashlib.sha256(actual).hexdigest(), row['sha256'])
         with self.assertRaises(EvidenceError): archive(self.context, self.cleanup)
 
+    def test_empty_root_identity_is_durable_before_population_and_never_overwritten(self):
+        archive = self.archive(); info = self.root.stat(); archive.register(self.root, 'default')
+        path = self.destination/'default-root-lease.json'; raw = path.read_bytes(); record = json.loads(raw)
+        self.assertEqual(str(info.st_ino), record['inode']); self.assertEqual(str(info.st_dev), record['device'])
+        self.assertEqual(str(self.root), record['root']); self.assertEqual('a'*40, record['candidate_sha'])
+        self.assertEqual('b'*64, record['authorization_sha256']); self.assertEqual([], list(self.root.iterdir()))
+        with self.assertRaises(FileExistsError): self.archive().register(self.root, 'default')
+        self.assertEqual(raw, path.read_bytes())
+
     def test_only_declared_owned_reparse_fixture_is_removed_without_following_it(self):
         archive = self.archive(); archive.register(self.root, 'default'); self.populate()
         outside = self.root/'outside-input'; outside.mkdir(); (outside/'source.mp4').write_bytes(b'nonprivate fixture')
@@ -63,9 +72,9 @@ class ArchiveTests(unittest.TestCase):
         with self.assertRaises(EvidenceError): archive(self.context, self.cleanup)
 
     def test_bad_cleanup_identity_or_authorization_does_not_create_archive_or_remove_root(self):
+        archive = self.archive(); archive.register(self.root, 'default')
         for failure in ('cleanup', 'identity', 'authorization'):
             with self.subTest(failure=failure):
-                archive = self.archive(); archive.register(self.root, 'default')
                 if failure == 'cleanup': self.cleanup['proven'] = False
                 elif failure == 'identity': self.context.binding['candidate_sha'] = 'c'*40
                 else: archive.authorize = lambda *args: (_ for _ in ()).throw(EvidenceError('denied'))
