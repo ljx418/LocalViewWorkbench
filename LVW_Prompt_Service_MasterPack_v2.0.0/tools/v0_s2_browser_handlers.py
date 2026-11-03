@@ -46,20 +46,28 @@ def default_offline_runner(driver, run_root, *, run_id, binding, fixture, refere
         nonlocal used
         if used: raise EvidenceError('browser offline runner is one-shot')
         used = True; observe()
-        cancellation = CancellationPhase(driver, run_root, run_id=run_id, binding=binding, fixture=fixture,
-            reference=reference, authorize=authorize).run()
-        not_run = {'run_id': run_id, 'candidate_sha': binding['candidate_sha'],
-            'authorization_sha256': binding['authorization_sha256'], 'decision': 'NOT_RUN', 'stage_pass_claim': False,
-            'cases': {name: {'status': 'NOT_RUN'} for name in ('provider-root-stop', 'manual-offline', 'quarantine-entry', 'adopt-denied')}}
-        if cancellation.get('decision') != 'CANCELLATION_PHASE_VERIFIED_NOT_STAGE_ACCEPTANCE':
-            return {'cancellation': cancellation, 'fault': not_run}
-        observe(); authorize('start_comfy_only_fault_sampler', 'provider-root-stop')
-        driver.prepare_fault_sampler(run_root, nvidia_exe=nvidia_exe, nvidia_sha256=nvidia_sha256)
-        observe()
-        fault = FaultPhase(driver, run_root, run_id=run_id, binding=binding, fixture=fixture, reference=reference,
-            baseline_gpu_mib=baseline_gpu_mib, authorize=authorize).run()
-        observe()
-        return {'cancellation': cancellation, 'fault': fault}
+        previous_observer = driver.resource_observer
+        def guarded_authorize(action, case):
+            observe(); authorize(action, case); observe()
+        try:
+            driver.resource_observer = observe
+            cancellation = CancellationPhase(driver, run_root, run_id=run_id, binding=binding, fixture=fixture,
+                reference=reference, authorize=guarded_authorize).run()
+            not_run = {'run_id': run_id, 'candidate_sha': binding['candidate_sha'],
+                'authorization_sha256': binding['authorization_sha256'], 'decision': 'NOT_RUN', 'stage_pass_claim': False,
+                'cases': {name: {'status': 'NOT_RUN'} for name in ('provider-root-stop', 'manual-offline', 'quarantine-entry', 'adopt-denied')}}
+            if cancellation.get('decision') != 'CANCELLATION_PHASE_VERIFIED_NOT_STAGE_ACCEPTANCE':
+                return {'cancellation': cancellation, 'fault': not_run}
+            observe(); guarded_authorize('start_comfy_only_fault_sampler', 'provider-root-stop')
+            driver.prepare_fault_sampler(run_root, nvidia_exe=nvidia_exe, nvidia_sha256=nvidia_sha256)
+            driver.resource_observer = observe
+            observe()
+            fault = FaultPhase(driver, run_root, run_id=run_id, binding=binding, fixture=fixture, reference=reference,
+                baseline_gpu_mib=baseline_gpu_mib, authorize=guarded_authorize).run()
+            observe()
+            return {'cancellation': cancellation, 'fault': fault}
+        finally:
+            driver.resource_observer = previous_observer
     return execute
 
 

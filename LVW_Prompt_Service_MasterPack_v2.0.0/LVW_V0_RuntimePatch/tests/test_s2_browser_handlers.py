@@ -237,6 +237,25 @@ class BrowserHandlerTests(unittest.TestCase):
                 self.assertFalse(getattr(driver, 'transitioned', False))
                 with self.assertRaises(EvidenceError): execute(lambda: None)
 
+    def test_offline_internal_actions_receive_abort_and_restore_original_resource_observer(self):
+        with tempfile.TemporaryDirectory() as directory:
+            handlers, driver, _, _ = self.prepare(Path(directory)); original = driver.resource_observer
+            aborted = [False]; authorized = []
+            def observe():
+                if aborted[0]: raise EvidenceError('synthetic supervisor abort')
+            execute = default_offline_runner(driver, handlers.root, run_id='synthetic', binding=handlers.binding,
+                fixture=handlers.fixture, reference='sample.mp4', baseline_gpu_mib=100, nvidia_exe='never-run',
+                nvidia_sha256='0'*64, authorize=lambda *args: authorized.append(args))
+            with patch('tools.v0_s2_browser_handlers.CancellationPhase') as cancel, patch('tools.v0_s2_browser_handlers.FaultPhase') as fault:
+                def inside():
+                    self.assertIs(observe, driver.resource_observer)
+                    aborted[0] = True
+                    cancel.call_args.kwargs['authorize']('public_submit', 'provider')
+                cancel.return_value.run.side_effect = inside
+                with self.assertRaisesRegex(EvidenceError, 'supervisor abort'): execute(observe)
+                fault.assert_not_called()
+            self.assertEqual([], authorized); self.assertIs(original, driver.resource_observer)
+
     def test_double_encoded_traversal_and_unowned_user_root_are_denied(self):
         with tempfile.TemporaryDirectory() as directory:
             handlers, driver, _, _ = self.prepare(Path(directory)); callbacks, observe = self.start(handlers)

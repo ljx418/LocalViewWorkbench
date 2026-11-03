@@ -171,7 +171,9 @@ async function run(config, parent, dependencies = {}) {
         const body = raw && !isUpload ? JSON.parse(raw.toString('utf8')) : null;
         const classified = classify(req.url(), req.method(), body, state);
         if (network.length >= 8192) throw new Error('BROWSER_NETWORK_LEDGER_LIMIT');
-        network.push({ method: req.method(), pathname: classified.pathname, kind: classified.kind, body_sha256: raw ? digest(raw) : null });
+        const observedUrl = new URL(req.url());
+        network.push({ method: req.method(), origin: observedUrl.origin, scheme: observedUrl.protocol,
+          pathname: classified.pathname, kind: classified.kind, body_sha256: raw ? digest(raw) : null });
         if (classified.kind !== 'read') {
           counter.charge(classified.kind); action(classified.kind, { pathname: classified.pathname, body_sha256: raw ? digest(raw) : null });
           if (classified.kind === 'uploads') {
@@ -280,6 +282,7 @@ async function run(config, parent, dependencies = {}) {
       Object.defineProperty(navigator.clipboard, 'writeText', { configurable: true, value: async () => { throw new Error('LVW controlled clipboard denial'); } }); });
     await button('复制人工稿 TXT').click(); await page.getByRole('status').filter({ hasText: 'LVW controlled clipboard denial' }).waitFor();
     same(await readFields(), adopted, 'CLIPBOARD_FAILURE_CHANGED_DRAFT');
+    artifact('clipboard-denial.json', { text: await page.getByRole('status').filter({ hasText: 'LVW controlled clipboard denial' }).textContent(), fields_after: await readFields() });
     await page.evaluate(() => { if (window.__lvwClipboardDescriptor) Object.defineProperty(navigator.clipboard, 'writeText', window.__lvwClipboardDescriptor);
       else delete navigator.clipboard.writeText; delete window.__lvwClipboardDescriptor; }); pass(active);
     active = 'late-adoption-new-run-cancel'; const edited = { ...adopted, natural_zh: '人工修改：等待采纳时保留，不被新运行或取消覆盖' }; await fill(edited);
@@ -317,7 +320,16 @@ async function run(config, parent, dependencies = {}) {
     await page.screenshot({ path: path.join(evidence, 'native-workbench.png'), fullPage: true });
     const screenshot = regular(path.join(evidence, 'native-workbench.png'), 24 * 1024 * 1024);
     artifacts.push({ file: 'native-workbench.png', bytes: screenshot.length, sha256: digest(screenshot) });
-    await page.evaluate(async () => { const { app } = await import('/scripts/app.js'); app.graph.remove(app.graph.getNodeById(1)); });
+    const fieldsBeforeRemoval = await page.locator('[data-lvw-field]').count();
+    const removal = await page.evaluate(async () => {
+      const { app } = await import('/scripts/app.js'), node = app.graph.getNodeById(1);
+      app.graph.remove(node);
+      return { node_id: 1, node_before: !!node, node_after: !!app.graph.getNodeById(1) };
+    });
+    await page.locator('[data-lvw-field]').first().waitFor({ state: 'detached', timeout: 15000 });
+    removal.fields_before = fieldsBeforeRemoval; removal.fields_after = await page.locator('[data-lvw-field]').count();
+    artifact('node-removal-observation.json', removal);
+    if (!removal.node_before || removal.node_after || removal.fields_before !== 7) throw new Error('NATIVE_NODE_REMOVAL_NOT_OBSERVED');
     if (await page.locator('[data-lvw-field]').count() !== 0) throw new Error('REMOVED_NODE_EDITORS_REMAIN'); pass(active);
     assertHealthy(); result.decision = 'BROWSER_PHASE_VERIFIED_NOT_STAGE_ACCEPTANCE';
   } catch (error) { if (active) cases[active] = 'FAIL'; result.error_code = error.message; }

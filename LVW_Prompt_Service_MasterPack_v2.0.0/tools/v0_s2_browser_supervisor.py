@@ -184,6 +184,14 @@ class Supervisor:
         self.executed = False
         self.abort = threading.Event()
         self.observe_lock = threading.Lock()
+        self.callback_threads = []
+
+    def drain_callbacks(self, timeout=65):
+        if not self.abort.is_set() or not 0 <= timeout <= 65: raise ProtocolError('BROWSER_CALLBACK_DRAIN_SCOPE')
+        deadline = time.monotonic()+timeout
+        for thread in self.callback_threads:
+            thread.join(max(0, deadline-time.monotonic()))
+        return sum(thread.is_alive() for thread in self.callback_threads)
 
     def observe(self):
         if self.abort.is_set(): raise ProtocolError('BROWSER_SUPERVISOR_ABORTED')
@@ -202,6 +210,7 @@ class Supervisor:
             raise ProtocolError('BROWSER_PARENT_RUN_ROOT_NOT_CANONICAL')
         directory.mkdir(exist_ok=False)
         result = {'kind': 'BROWSER_PARENT_TRANSPORT_NOT_PRODUCT_ACCEPTANCE', 'decision': 'NO_GO',
+            **{key: self.protocol.config.get(key) for key in ('candidate_sha', 'authorization_sha256', 'run_id')},
             'stage_pass_claim': False, 'exit_code': None, 'requests': 0, 'replies': 0}
         responses = queue.Queue(maxsize=8)
         jobs, buffer = {}, bytearray()
@@ -248,6 +257,7 @@ class Supervisor:
                             request = self.protocol.reserve(line)
                             result['requests'] += 1
                             thread = threading.Thread(target=callback, args=(request,), daemon=True)
+                            self.callback_threads.append(thread)
                             limit = 1190 if request['action'] == 'offline_op' else 55 if request['action'] == 'case_finished' else 18
                             jobs[request['sequence']] = (thread, time.monotonic()+limit)
                             thread.start()
