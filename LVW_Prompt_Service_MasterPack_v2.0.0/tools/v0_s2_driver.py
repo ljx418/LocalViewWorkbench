@@ -19,8 +19,9 @@ spec.loader.exec_module(base)
 
 def comfy_wrapper(python, main, directory, pid_file, ffmpeg, ffprobe):
     # Process environment only, never user/machine environment or PATH writes.
-    return (f"$env:LVW_FFMPEG_EXE={base.ps_quote(ffmpeg)}\n"
-            f"$env:LVW_FFPROBE_EXE={base.ps_quote(ffprobe)}\n"
+    probe=(f"$env:LVW_FFPROBE_EXE={base.ps_quote(ffprobe)}\n$env:LVW_VIDEO_PROBE_BACKEND='cli'\n" if ffprobe else
+           "Remove-Item Env:LVW_FFPROBE_EXE -ErrorAction SilentlyContinue\n$env:LVW_VIDEO_PROBE_BACKEND='pyav'\n")
+    return (f"$env:LVW_FFMPEG_EXE={base.ps_quote(ffmpeg)}\n"+probe
             + base.comfy_wrapper_text(python, main, directory, pid_file))
 
 
@@ -30,13 +31,26 @@ class S2SystemDriver(base.SystemDriver):
         if type(args.max_public_submissions) is not int or not 1 <= args.max_public_submissions <= 64:
             raise base.StopProbe('PUBLIC_SUBMISSION_BUDGET_INVALID')
         self.max_public_submissions = args.max_public_submissions
+        self.request_limit=getattr(args,'max_loopback_requests',1024)
+        if type(self.request_limit) is not int or not 1<=self.request_limit<=2048:
+            raise base.StopProbe('LOOPBACK_REQUEST_BUDGET_INVALID')
+        self.request_ledger=[]
         self.clients = {url:LoopbackClient(url) for url in (base.COMFY_URL,base.OLLAMA_URL)}
 
     def _json_request(self, url, *, payload=None, timeout=20):
         for endpoint,client in self.clients.items():
             if url.startswith(endpoint+'/'):
-                return client.request('POST' if payload is not None else 'GET',url[len(endpoint):],
-                                      payload=payload,timeout=timeout)
+                if len(self.request_ledger)>=self.request_limit:raise base.StopProbe('LOOPBACK_REQUEST_BUDGET_EXCEEDED')
+                entry={'endpoint':endpoint,'path':url[len(endpoint):],'status':None}
+                self.request_ledger.append(entry)
+                try:
+                    status,value=client.request('POST' if payload is not None else 'GET',url[len(endpoint):],
+                                                payload=payload,timeout=timeout)
+                    entry['status']=status
+                    return status,value
+                except Exception as exc:
+                    entry['error_type']=type(exc).__name__
+                    raise
         raise base.StopProbe('NON_LOOPBACK_URL_FORBIDDEN')
 
     def _powershell(self, script):
@@ -64,7 +78,7 @@ class S2SystemDriver(base.SystemDriver):
         win_directory=self._windows_path(str(directory))
         wrapper=directory/'comfy-wrapper.ps1';pid_file=directory/'comfy-wrapper.pid'
         wrapper.write_text(comfy_wrapper(win_python,win_main,win_directory,self._windows_path(str(pid_file)),
-            self._windows_path(self.args.ffmpeg_exe),self._windows_path(self.args.ffprobe_exe)),encoding='utf-8')
+            self._windows_path(self.args.ffmpeg_exe),self._windows_path(self.args.ffprobe_exe) if self.args.ffprobe_exe else None),encoding='utf-8-sig')
         stream=log_path.open('w',encoding='utf-8')
         try:
             process=subprocess.Popen([self.args.powershell,'-NoProfile','-NonInteractive','-File',

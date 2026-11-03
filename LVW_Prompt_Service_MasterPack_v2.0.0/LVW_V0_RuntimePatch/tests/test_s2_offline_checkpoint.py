@@ -16,6 +16,8 @@ class OfflineCheckpointTests(unittest.TestCase):
         values=[bad if failed else good]+[good]*4
         seals=[{'bound':'one'},{'bound':'two' if changed else 'one'}]
         with patch.object(checkpoint,'ROOT',root),patch.object(checkpoint,'seal_candidate',side_effect=seals), \
+             patch.object(checkpoint,'packet_binding',return_value={'spec_version':'V0-S2/1.0.1','gate_version':'lvw-gate/1',
+                 'acceptance_hash':'32a72139e0c12e0e6d040274024b53bb2dba2f2864b68b840aa215cf739a2a7f'}), \
              patch('subprocess.check_output',return_value='a'*40+'\n'),patch('subprocess.run',side_effect=values):
             return checkpoint.execute('offline-checkpoint-01')
 

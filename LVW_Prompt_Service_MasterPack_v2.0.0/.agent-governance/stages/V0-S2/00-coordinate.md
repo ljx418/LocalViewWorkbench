@@ -2,10 +2,10 @@
 
 Project: lvw-prompt-service
 Target: V0.1
-Packet: 1.0.0 / FROZEN
+Packet: 1.0.1 / FROZEN (decoder binding decision 01)
 State: FROZEN_READY_OFFLINE
-Active coordinate: V0-S2 / WP-S2-00 / GATE0_DOCUMENT_READY
-Last passed gate: R1A_HUMAN_EXPERIENCE_SIGNOFF_PASS
+Active coordinate: plans/execution-control.json is the sole current coordinate
+Dependency baseline gate: R1A_HUMAN_EXPERIENCE_SIGNOFF_PASS
 
 V0-S1 and R1a dependencies are signed. Ordered offline Workpacks may proceed under the existing program authorization. Every real run still requires a candidate-bound child receipt, budget and cleanup plan.
 

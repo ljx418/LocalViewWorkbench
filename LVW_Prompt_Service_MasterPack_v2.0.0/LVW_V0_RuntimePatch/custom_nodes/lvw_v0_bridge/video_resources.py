@@ -50,6 +50,13 @@ def windows_available_ram_mib():
     return value.available_phys // (1024 * 1024)
 
 
+def host_resource_preflight():
+    available = windows_available_ram_mib()
+    if type(available) is not int or available < 2048:
+        raise busy("HOST_RAM_BELOW_LIMIT")
+    return {"available_ram_mib": available}
+
+
 def resource_preflight():
     executable = shutil.which("nvidia-smi")
     if not executable:

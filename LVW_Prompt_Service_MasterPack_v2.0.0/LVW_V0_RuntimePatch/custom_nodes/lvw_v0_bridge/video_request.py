@@ -6,15 +6,17 @@ from . import core
 from .core import BridgeError, BridgeOwner
 from .video_node import comfy_frames
 from .video_transport import InterruptibleOllamaTransport
-from .video_resources import resource_preflight
+from .video_resources import resource_preflight, host_resource_preflight
 
 
 class VideoRequestOwner:
-    def __init__(self, decoder, *, bridge=None, tensor_builder=None, preflight=resource_preflight):
+    def __init__(self, decoder, *, bridge=None, tensor_builder=None, preflight=resource_preflight,
+                 host_preflight=host_resource_preflight):
         self.decoder = decoder
         self.bridge = bridge or BridgeOwner(transport=InterruptibleOllamaTransport())
         self.tensor_builder = tensor_builder or comfy_frames
         self.preflight = preflight
+        self.host_preflight = host_preflight
         self._guard = threading.Lock()
         self._cancel = None
         self._state = None
@@ -70,7 +72,7 @@ class VideoRequestOwner:
             bind = getattr(self.bridge.transport, "bind_cancel", None)
             if bind is not None:
                 bind(cancel)
-            resource_evidence = {"before_prepare":self.preflight()}
+            resource_evidence = {"before_prepare":self.host_preflight()}
             decoded = self.decoder.decode(reference, cancel=cancel)
             if preview_hook is not None and not cancel.is_set():
                 preview_hook(token, decoded)
@@ -78,14 +80,18 @@ class VideoRequestOwner:
                 if cancel.is_set():
                     raise BridgeError("JOB_CANCELLED", "video request cancelled", subcode="VIDEO_ANALYSIS_CANCELLED")
                 self._state["status"] = "running"
+            frames=self.tensor_builder(decoded.frames)
+            if cancel.is_set():
+                raise BridgeError('JOB_CANCELLED','video request cancelled',subcode='VIDEO_ANALYSIS_CANCELLED')
             resource_evidence["before_model"] = self.preflight()
-            raw, suggestion = self.bridge.analyze_video(self.tensor_builder(decoded.frames), model=model,
+            raw, suggestion = self.bridge.analyze_video(frames, model=model,
                 user_instruction=user_instruction, mode=mode, timeout_seconds=timeout_seconds, cancel_event=cancel)
             with self._guard:
                 if cancel.is_set():
                     raise BridgeError("JOB_CANCELLED", "late video suggestion discarded", subcode="VIDEO_ANALYSIS_CANCELLED")
                 self._state["status"] = "succeeded"
                 return {"raw_response":raw, "suggestion":suggestion, "source_sha256":decoded.source_sha256,
+                        "decoder_backend":getattr(decoded,'decoder_backend',None),
                         "frames":decoded.manifest, "resource_preflight":resource_evidence,
                         "run_token":token, "cancel_epoch":self._state["cancel_epoch"]}
         except BaseException as exc:

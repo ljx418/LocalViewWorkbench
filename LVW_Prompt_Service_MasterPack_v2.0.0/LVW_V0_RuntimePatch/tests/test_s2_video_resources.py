@@ -37,7 +37,7 @@ class ResourceTests(unittest.TestCase):
             calls=0
             def decode(self,*args,**kwargs): self.calls+=1;raise AssertionError("must not decode")
         def denied(): raise BridgeError("RESOURCE_BUSY","occupied",subcode="TEST_FOREIGN")
-        decoder=Decoder();owner=VideoRequestOwner(decoder,preflight=denied)
+        decoder=Decoder();owner=VideoRequestOwner(decoder,host_preflight=denied)
         with self.assertRaises(BridgeError):
             owner.run("resource-test","clip.mp4",model="gemma4:26b",user_instruction="",mode="realistic",timeout_seconds=120)
         self.assertEqual(0,decoder.calls)
@@ -54,7 +54,8 @@ class ResourceTests(unittest.TestCase):
             value=next(snapshots)
             if value is None: raise BridgeError("RESOURCE_BUSY","new occupancy",subcode="TEST_FOREIGN")
             return value
-        decoder=Decoder();owner=VideoRequestOwner(decoder,preflight=preflight)
+        decoder=Decoder();owner=VideoRequestOwner(decoder,preflight=preflight,
+            host_preflight=preflight,tensor_builder=lambda frames:frames)
         with patch.object(owner.bridge,"analyze_video") as model,self.assertRaises(BridgeError):
             owner.run("race-test","clip.mp4",model="gemma4:26b",user_instruction="",mode="realistic",timeout_seconds=120)
         self.assertEqual(1,decoder.calls)

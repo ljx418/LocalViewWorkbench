@@ -1,0 +1,40 @@
+{
+  "schema_version": "lvw.program-child-authorization/1",
+  "authorization_id": "AUTH-V0-S2-NATIVE-DECODER-PACKAGES-01",
+  "source_program_authorization": "AUTH-PROGRAM-V1-LOCAL-01",
+  "program_sha256": "8f79a9a5a02fb8904b21c86129c5a1509c7a3dcd3e8817d2fdde26266d3375b6",
+  "issued_by": "codex_gate_owner",
+  "status": "EXPIRED_NATIVE_PACKAGES_INVENTORIED_NOT_COMPATIBILITY",
+  "stage_id": "V0-S2",
+  "workpack_id": "WP-S2-04-NATIVE-DECODER-PREPARATION",
+  "scope": "READ_ONLY_NATIVE_DECODER_PACKAGE_INVENTORY",
+  "run_id": "native-decoder-packages-01",
+  "candidate_sha": "284aecc315e4f6d6ae05a2663982d1eff53d5ffe",
+  "harness_sha256": "f00931149b59b4151dc9a7ca67151884e61214f0925cbb1ba57b6737df408811",
+  "offline_dependency": "reports/v0-s2/offline-checkpoint-01/receipt.json; additional package-mode directed tests 12/12 passed",
+  "targets": [
+    "COMFY_PYTHON_HOME/python.exe",
+    "COMFY_PYTHON_HOME/Lib/site-packages/av and av.libs",
+    "COMFY_PYTHON_HOME/Lib/site-packages/imageio_ffmpeg",
+    "Only av-*.dist-info/METADATA and imageio_ffmpeg-*.dist-info/METADATA"
+  ],
+  "sample_hashes": [],
+  "ports": [],
+  "processes": "Repository Git identity queries and read-only file hashing by the existing WSL executor only. No target Python, package import, decoder, model, service or browser process may be launched.",
+  "budget": {
+    "metadata_hash_files": 129,
+    "metadata_hash_bytes": 536870912,
+    "target_processes": 0,
+    "service_starts": 0,
+    "provider_calls": 0,
+    "gpu_probes": 0,
+    "browser_runs": 0,
+    "downloads": 0,
+    "cloud_calls": 0,
+    "stage_checkpoints": 0
+  },
+  "cleanup": "No target writes. Persist only package versions and installation-relative artifact aliases/hashes in a fresh evidence slot; no media is read. Authorization expires at terminal, with no automatic retry.",
+  "limitations": "Package presence does not prove native compatibility, bounded decoding or Stage acceptance. A different decoder adapter requires a recorded architecture/binding decision and separate real-run child authorization.",
+  "does_not_authorize_stage_pass": true,
+  "terminal_receipt": "reports/v0-s2/native-decoder-packages-01/receipt.json"
+}

@@ -14,7 +14,9 @@ R1a 人工体验签署存在；合同、FFmpeg、Comfy、Ollama、样本和 owne
 
 ## Gate 4 真实 checkpoint
 
-子授权绑定候选、Harness、四类固定视频及恶意集 hash、FFmpeg/Comfy/Ollama 身份、端口/进程、10+10 分母、一次 checkpoint 与清理。先单个代表视频闭环，再运行固定完整分母；代表样本不能替代分母。
+子授权绑定候选、Harness、四类固定视频及恶意集 hash、FFmpeg/元数据适配器/Comfy/Ollama 身份、端口/进程、10+10 分母、一次 checkpoint 与清理。先单个代表视频闭环，再运行固定完整分母；代表样本不能替代分母。
+
+在完整 Stage checkpoint 前，允许母授权内单独封存的原生解码组件校准：只执行公开 LVWControlledVideoInput、一次视频/四帧，不启动 Ollama、不调用模型、不启动浏览器；必须绑定当前离线检查覆盖的执行字节、安装库字节、样本、进程预算和清理。最多一次初次校准及一次有新证据的纠正尝试，不得拼接为正式 Stage 正例，也不消耗或放宽完整分母。每次仍须新鲜子授权及终态收据。
 
 ## Gate 5 独立出门
 

@@ -2,7 +2,7 @@
   "schema_version": "lvw.stage-control/1",
   "project_id": "lvw-prompt-service",
   "stage_id": "V0-S2",
-  "stage_packet_version": "1.0.0",
+  "stage_packet_version": "1.0.1",
   "packet_status": "FROZEN",
   "gate_version": "lvw-gate/1",
   "baseline": {
@@ -26,7 +26,8 @@
     "plans/tasks.json",
     "plans/acceptance_cases.json",
     "plans/release_gates.json",
-    "reports/authorization-program-v1-local-01.json"
+    "reports/authorization-program-v1-local-01.json",
+    "reports/v0-s2/decoder-binding-decision-01.md"
   ],
   "roles": {
     "gate_owner": "codex_gate_owner",
@@ -44,6 +45,23 @@
     "V0-A10"
   ],
   "acceptance_hash": "32a72139e0c12e0e6d040274024b53bb2dba2f2864b68b840aa215cf739a2a7f",
+  "decoder_binding": {
+    "decision": "reports/v0-s2/decoder-binding-decision-01.md",
+    "frame_decoder": "existing FFmpeg CLI; installed imageio-ffmpeg Windows binary is eligible after native verification",
+    "metadata_probe": "existing ffprobe CLI or bounded isolated native Python/PyAV child",
+    "compatibility_status": "NOT_RUN",
+    "public_contract_changed": false,
+    "fixed_denominator_changed": false
+  },
+  "preparation_subruns": {
+    "program_child_required": true,
+    "native_component_max_attempts": 2,
+    "native_component_public_owner": "LVWControlledVideoInput",
+    "native_component_provider_calls": 0,
+    "native_component_browser_runs": 0,
+    "counts_as_stage_acceptance": false,
+    "meaning": "execution_authorized governs the full Stage checkpoint; separately bound preparation children grant no blanket execution or acceptance"
+  },
   "cumulative_release_ids": [
     "V0-A01",
     "V0-A02",

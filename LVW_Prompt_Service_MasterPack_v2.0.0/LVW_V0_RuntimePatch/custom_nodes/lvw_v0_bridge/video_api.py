@@ -65,11 +65,15 @@ class LVWVideoPromptOwner(_NodeBase):
         def started(token):
             if unique_id is not None:
                 from server import PromptServer
-                PromptServer.instance.send_sync("lvw.video.started", {"node_id":str(unique_id),"run_token":token})
+                client=getattr(PromptServer.instance,'client_id',None)
+                if client is not None:
+                    PromptServer.instance.send_sync("lvw.video.started", {"node_id":str(unique_id),"run_token":token},client)
         def preview(token, decoded):
             if unique_id is None:
                 return
             from server import PromptServer
+            client=getattr(PromptServer.instance,'client_id',None)
+            if client is None:return
             from PIL import Image
             images = []
             for image_bytes in decoded.frames:
@@ -79,7 +83,7 @@ class LVWVideoPromptOwner(_NodeBase):
                     images.append("data:image/png;base64," + base64.b64encode(output.getvalue()).decode("ascii"))
             PromptServer.instance.send_sync("lvw.video.preview", {"node_id":str(unique_id), "run_token":token,
                 "images":images, "frames":list(decoded.manifest),
-                "limitation":"仅观察四个采样帧，不能证明未采样片段或连续运动。"})
+                "limitation":"仅观察四个采样帧，不能证明未采样片段或连续运动。"},client)
         result = owner.run(uuid.uuid4().hex, video_reference, model=model,
                            user_instruction=user_instruction, mode=mode, timeout_seconds=timeout_seconds,
                            preview_hook=preview, state_hook=started)

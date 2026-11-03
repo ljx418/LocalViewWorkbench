@@ -19,7 +19,8 @@ class VideoRequestTests(unittest.TestCase):
     def owner(self, decoder=None, transport=None):
         return VideoRequestOwner(decoder or Decoder(), bridge=core.BridgeOwner(
             transport=transport or Transport(threading.Event()), encoder=lambda f:"fixture"),
-            tensor_builder=lambda f:f, preflight=lambda:{"fixture":True})
+            tensor_builder=lambda f:f, preflight=lambda:{"fixture":True},
+            host_preflight=lambda:{"fixture":True})
 
     def run_owner(self, owner, token="run-1"):
         return owner.run(token, "clip.mp4", model=core.DEFAULT_MODEL, user_instruction="",
@@ -87,6 +88,45 @@ class VideoRequestTests(unittest.TestCase):
         self.assertEqual(["RESOURCE_BUSY"], rejected)
         self.assertEqual("outer", result["run_token"])
         self.assertEqual("succeeded", owner.status("outer")["status"])
+
+    def test_model_admission_includes_cpu_tensor_footprint(self):
+        owner=self.owner();allocated=False;observed=[]
+        def tensor(frames):
+            nonlocal allocated
+            allocated=True;return frames
+        def preflight():
+            observed.append(allocated)
+            if allocated:raise core.BridgeError('RESOURCE_BUSY','RAM below limit',subcode='HOST_RAM_BELOW_LIMIT')
+            return {'fixture':True}
+        owner.tensor_builder=tensor;owner.preflight=preflight;owner.host_preflight=preflight
+        with self.assertRaises(core.BridgeError) as error:self.run_owner(owner)
+        self.assertEqual('RESOURCE_BUSY',error.exception.code)
+        self.assertEqual([False,True],observed)
+        self.assertEqual(0,owner.bridge.transport.calls)
+        self.assertEqual('released',owner.current_status()['resource_state'])
+
+    def test_cancel_during_tensor_build_does_not_start_admission_or_provider(self):
+        owner=self.owner();checks=[];owner.preflight=lambda:checks.append('gpu') or {'fixture':True}
+        owner.host_preflight=lambda:checks.append('check') or {'fixture':True}
+        def tensor(frames):owner.cancel('run-1');return frames
+        owner.tensor_builder=tensor
+        with self.assertRaises(core.BridgeError) as error:self.run_owner(owner)
+        self.assertEqual('JOB_CANCELLED',error.exception.code);self.assertEqual(['check'],checks)
+        self.assertEqual(0,owner.bridge.transport.calls)
+        self.assertEqual('released',owner.current_status()['resource_state'])
+
+    def test_invalid_video_never_queries_gpu_or_calls_provider(self):
+        class InvalidDecoder:
+            def decode(self, reference, cancel=None):
+                raise core.BridgeError('MEDIA_INVALID', 'invalid video', subcode='VIDEO_INVALID_FIXTURE')
+        owner=self.owner(InvalidDecoder())
+        checks=[]
+        owner.preflight=lambda:checks.append('gpu') or {'fixture':True}
+        with self.assertRaises(core.BridgeError) as error:self.run_owner(owner)
+        self.assertEqual('MEDIA_INVALID',error.exception.code)
+        self.assertEqual([],checks)
+        self.assertEqual(0,owner.bridge.transport.calls)
+        self.assertEqual('released',owner.current_status()['resource_state'])
 
 
 if __name__ == "__main__": unittest.main()

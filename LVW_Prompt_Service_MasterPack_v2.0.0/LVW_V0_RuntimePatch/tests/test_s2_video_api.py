@@ -4,7 +4,7 @@ from pathlib import Path
 import tempfile
 from types import SimpleNamespace
 import unittest
-from unittest.mock import patch
+from unittest.mock import patch,MagicMock
 
 from LVW_V0_RuntimePatch.custom_nodes.lvw_v0_bridge import NODE_CLASS_MAPPINGS, video_api
 from LVW_V0_RuntimePatch.custom_nodes.lvw_v0_bridge.core import BridgeError
@@ -31,6 +31,21 @@ class Owner:
 
 
 class ApiTests(unittest.TestCase):
+    def test_preview_and_started_are_scoped_to_the_owning_browser_client(self):
+        class PreviewOwner(Owner):
+            def run(self,token,reference,**kwargs):
+                kwargs['state_hook'](token)
+                kwargs['preview_hook'](token,SimpleNamespace(frames=(b'P6\n1 1\n255\n\xff\x00\x00',),manifest=({'time_seconds':0},)))
+                return super().run(token,reference,**kwargs)
+        instance=SimpleNamespace(client_id='own-browser',send_sync=MagicMock())
+        server=SimpleNamespace(PromptServer=SimpleNamespace(instance=instance))
+        with patch.dict('sys.modules',{'server':server}):
+            video_api.LVWVideoPromptOwner(owner=PreviewOwner()).analyze('clip.mp4',unique_id='1')
+            self.assertEqual(['own-browser','own-browser'],[call.args[2] for call in instance.send_sync.call_args_list])
+            instance.send_sync.reset_mock();instance.client_id=None
+            video_api.LVWVideoPromptOwner(owner=PreviewOwner()).analyze('clip.mp4',unique_id='1')
+            instance.send_sync.assert_not_called()
+
     def test_public_upload_streams_to_input_owner_and_rejects_before_write(self):
         routes=Routes()
         fake_server=SimpleNamespace(PromptServer=SimpleNamespace(instance=SimpleNamespace(routes=routes)))
@@ -107,11 +122,12 @@ class ApiTests(unittest.TestCase):
                     manifest=[{"index":i,"time_seconds":i} for i in range(4)]))
                 return super().run(token, reference, **kwargs)
         server = SimpleNamespace(PromptServer=SimpleNamespace(instance=SimpleNamespace(
-            send_sync=lambda event,value: events.append((event,value)))))
+            client_id='own-session',send_sync=lambda event,value,sid: events.append((event,value,sid)))))
         with patch.dict("sys.modules", {"server":server}):
             NODE_CLASS_MAPPINGS["LVWVideoPromptOwner"](owner=PreviewOwner()).analyze("clip.mp4", unique_id="42")
         self.assertEqual(["lvw.video.started","lvw.video.preview"], [e[0] for e in events])
         self.assertEqual(events[0][1]["run_token"],events[1][1]["run_token"])
+        self.assertTrue(all(event[2]=='own-session' for event in events))
         self.assertEqual("42",events[1][1]["node_id"])
         self.assertEqual(4,len(events[1][1]["images"]))
         self.assertTrue(all(image.startswith("data:image/png;base64,iVBOR") for image in events[1][1]["images"]))

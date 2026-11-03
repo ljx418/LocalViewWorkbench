@@ -6,6 +6,7 @@ import unittest
 from LVW_V0_RuntimePatch.custom_nodes.lvw_v0_bridge.core import BridgeError
 from LVW_V0_RuntimePatch.custom_nodes.lvw_v0_bridge.video_decoder import VideoDecoder, parse_ppm
 from LVW_V0_RuntimePatch.custom_nodes.lvw_v0_bridge.video_process import ProcessResult
+from LVW_V0_RuntimePatch.custom_nodes.lvw_v0_bridge.native_probe import NativeAvProbe
 
 
 class VideoDecoderTests(unittest.TestCase):
@@ -52,6 +53,18 @@ class VideoDecoderTests(unittest.TestCase):
         with self.assertRaises(BridgeError): self.decoder().decode("clip.mp4")
         self.assertEqual(1, len(self.calls))
         self.assertEqual([], list(self.runs.iterdir()))
+
+    def test_native_probe_adapter_feeds_the_same_four_frame_owner(self):
+        decoder=VideoDecoder(input_root=self.root,temp_parent=self.runs,ffprobe=None,ffmpeg='trusted-ffmpeg',
+            runner=self.runner,probe_runner=NativeAvProbe('trusted-python',runner=self.runner))
+        result=decoder.decode('clip.mp4')
+        self.assertEqual('ffmpeg-cli/pyav-probe',result.decoder_backend)
+        self.assertEqual(4,len(result.frames));self.assertEqual(5,len(self.calls))
+        self.assertEqual('trusted-python',self.calls[0][0][0])
+        for argv,_ in self.calls[1:]:
+            self.assertEqual('mov',argv[argv.index('-f')+1])
+            self.assertEqual('0',argv[argv.index('-enable_drefs')+1])
+        self.assertEqual([],list(self.runs.iterdir()))
 
     def test_missing_or_wrong_time_base_does_not_fabricate_pts(self):
         def runner(argv, **kwargs):

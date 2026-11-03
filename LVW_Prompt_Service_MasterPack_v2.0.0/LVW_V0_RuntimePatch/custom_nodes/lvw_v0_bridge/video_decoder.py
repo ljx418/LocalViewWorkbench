@@ -20,6 +20,7 @@ class DecodedVideo:
     duration_seconds: float
     frames: tuple
     manifest: tuple
+    decoder_backend: str = 'ffmpeg-cli/ffprobe-cli'
 
 
 def parse_ppm(data):
@@ -51,19 +52,23 @@ def parse_timestamp(stderr, probe):
 
 
 class VideoDecoder:
-    def __init__(self, *, input_root, temp_parent, ffprobe, ffmpeg, runner=run_bounded):
+    def __init__(self, *, input_root, temp_parent, ffprobe, ffmpeg, runner=run_bounded, probe_runner=None):
         self.input_root = Path(input_root)
         self.temp_parent = Path(temp_parent)
         # Executable paths are trusted application configuration; media cannot
         # override argv, filters, protocols, output destinations or executable.
-        self.ffprobe = str(ffprobe)
+        if ffprobe is None and probe_runner is None:raise ValueError('trusted video probe required')
+        if probe_runner is not None and not callable(probe_runner):raise ValueError('invalid video probe')
+        self.ffprobe = str(ffprobe) if ffprobe is not None else None
         self.ffmpeg = str(ffmpeg)
         self.runner = runner
+        self.probe_runner=probe_runner
+        self.backend='ffmpeg-cli/'+(getattr(probe_runner,'backend_name','custom-probe') if probe_runner else 'ffprobe-cli')
 
     def decode(self, reference, *, cancel=None):
         with stage_video(self.input_root, reference, self.temp_parent) as snapshot:
-            metadata = self.runner([
-                self.ffprobe, "-v", "error", "-protocol_whitelist", "file,pipe",
+            metadata = self.probe_runner(snapshot.path,cancel=cancel) if self.probe_runner else self.runner([
+                self.ffprobe, "-v", "error", "-f", "mov", "-enable_drefs", "0", "-protocol_whitelist", "file,pipe",
                 "-show_entries", "format=format_name,duration:stream=index,codec_type,width,height,time_base,start_pts,duration:stream_disposition=attached_pic",
                 "-of", "json", str(snapshot.path),
             ], timeout_seconds=15, output_limit=256 * 1024, cancel=cancel)
@@ -84,7 +89,7 @@ class VideoDecoder:
                 image = self.runner([
                     self.ffmpeg, "-nostdin", "-hide_banner", "-loglevel", "info",
                     "-threads", "1", "-filter_threads", "1", "-copyts",
-                    "-protocol_whitelist", "file,pipe", "-i", str(snapshot.path),
+                    "-f", "mov", "-enable_drefs", "0", "-protocol_whitelist", "file,pipe", "-i", str(snapshot.path),
                     "-map", f"0:{probe.stream_index}", "-an", "-sn", "-dn",
                     "-vf", filters, "-frames:v", "1", "-fps_mode", "passthrough",
                     "-threads", "1", "-c:v", "ppm", "-f", "image2pipe", "pipe:1",
@@ -97,4 +102,4 @@ class VideoDecoder:
                 decoded.append((pts, width, height, image.stdout))
             manifest = frame_manifest(probe, decoded)
             return DecodedVideo(snapshot.source_sha256, snapshot.byte_count, probe.width,
-                                probe.height, float(probe.duration), tuple(images), tuple(manifest))
+                                probe.height, float(probe.duration), tuple(images), tuple(manifest),self.backend)

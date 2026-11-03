@@ -3,7 +3,7 @@
 ## 目标
 
 - 本机接收 MP4/MOV，执行类型、字节、时长、路径和解码边界检查。
-- 使用已有 FFmpeg/ffprobe 在 CPU 上按时间轴有界采样默认四帧，最长边 768；保存顺序、PTS、time base、秒值和帧 hash。
+- 使用已有 FFmpeg 在 CPU 上按时间轴有界采样默认四帧；元数据来自已有 ffprobe 或受控原生 PyAV 子进程。最长边 768；保存顺序、PTS、time base、秒值和帧 hash。
 - 通过原生 ComfyUI 公共工作流驱动 `LVWVideoFramesPromptBridge`，生成视频描述、运动推断和局限说明。
 - 建立请求级单槽资源锁、取消 epoch、晚到丢弃、finally 卸载和自有临时目录清理。
 - 完成文件安全、10 次资源/性能分母及取消/卸载真实验收。

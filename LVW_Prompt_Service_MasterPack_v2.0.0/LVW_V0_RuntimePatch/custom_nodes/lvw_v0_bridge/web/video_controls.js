@@ -22,6 +22,8 @@ app.registerExtension({
       box.append(upload, status, cancel, gallery);
       this.addDOMWidget("lvw_video", "custom", box, { serialize: false });
       let token = null, timer = null, removed = false;
+      const owns = (detail) => !removed && String(detail.node_id) === String(this.id)
+        && (!app.graph || !this.graph || app.graph === this.graph);
       const headers = { "X-LVW-Control": "local-ui" };
       let uploading = false, uploadRequest = null;
       upload.onchange = async () => {
@@ -77,7 +79,7 @@ app.registerExtension({
         } catch (error) { status.textContent = error.message; }
       };
       const preview = ({ detail }) => {
-        if (String(detail.node_id) !== String(this.id)) return;
+        if (!owns(detail)) return;
         token = detail.run_token; gallery.replaceChildren();
         for (let index = 0; index < detail.images.length; index++) {
           const figure = document.createElement("figure"); figure.style.margin = "0";
@@ -90,7 +92,7 @@ app.registerExtension({
         status.textContent = detail.limitation; cancel.disabled = false;
       };
       const started = ({ detail }) => {
-        if (String(detail.node_id) !== String(this.id)) return;
+        if (!owns(detail)) return;
         token = detail.run_token; gallery.replaceChildren(); cancel.disabled = false;
         upload.disabled = true;
         status.textContent = "准备视频采样，可取消。";

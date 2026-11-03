@@ -3,9 +3,11 @@ from io import BytesIO
 import json
 import os
 import shutil
+import sys
 
 from .core import BridgeError
 from .video_decoder import VideoDecoder
+from .native_probe import NativeAvProbe,bundled_ffmpeg,module_available
 
 
 def default_video_decoder():
@@ -15,12 +17,20 @@ def default_video_decoder():
         raise BridgeError("MODEL_UNAVAILABLE", "Comfy directories unavailable",
                           subcode="COMFY_INPUT_ROOT_UNAVAILABLE") from exc
     ffprobe = os.environ.get("LVW_FFPROBE_EXE") or shutil.which("ffprobe")
-    ffmpeg = os.environ.get("LVW_FFMPEG_EXE") or shutil.which("ffmpeg")
-    if not ffprobe or not ffmpeg:
-        raise BridgeError("MODEL_UNAVAILABLE", "local FFmpeg and ffprobe are required",
+    ffmpeg = os.environ.get("LVW_FFMPEG_EXE") or shutil.which("ffmpeg") or bundled_ffmpeg()
+    mode=os.environ.get('LVW_VIDEO_PROBE_BACKEND','auto')
+    if mode not in {'auto','cli','pyav'}:
+        raise BridgeError('MODEL_UNAVAILABLE','invalid local video probe configuration',subcode='VIDEO_PROBE_UNAVAILABLE')
+    probe_runner=None
+    if mode=='pyav' or (mode=='auto' and not ffprobe):
+        if module_available('av'):probe_runner=NativeAvProbe(sys.executable)
+        ffprobe=None
+    if not ffmpeg or (not ffprobe and probe_runner is None):
+        raise BridgeError("MODEL_UNAVAILABLE", "local FFmpeg and a bounded metadata probe are required",
                           subcode="VIDEO_DECODER_UNAVAILABLE")
     return VideoDecoder(input_root=folder_paths.get_input_directory(),
-                        temp_parent=folder_paths.get_temp_directory(), ffprobe=ffprobe, ffmpeg=ffmpeg)
+                        temp_parent=folder_paths.get_temp_directory(), ffprobe=ffprobe, ffmpeg=ffmpeg,
+                        probe_runner=probe_runner)
 
 
 def comfy_frames(images):
@@ -58,26 +68,13 @@ class LVWControlledVideoInput:
         return {"required": {"video_reference": ("STRING", {"default": ""})}}
 
     def load(self, video_reference):
-        decoder = self.decoder
-        if decoder is None:
-            try:
-                import folder_paths
-            except ImportError as exc:
-                raise BridgeError("MODEL_UNAVAILABLE", "Comfy directories unavailable",
-                                  subcode="COMFY_INPUT_ROOT_UNAVAILABLE") from exc
-            ffprobe = os.environ.get("LVW_FFPROBE_EXE") or shutil.which("ffprobe")
-            ffmpeg = os.environ.get("LVW_FFMPEG_EXE") or shutil.which("ffmpeg")
-            if not ffprobe or not ffmpeg:
-                raise BridgeError("MODEL_UNAVAILABLE", "local FFmpeg and ffprobe are required",
-                                  subcode="VIDEO_DECODER_UNAVAILABLE")
-            decoder = VideoDecoder(input_root=folder_paths.get_input_directory(),
-                                   temp_parent=folder_paths.get_temp_directory(),
-                                   ffprobe=ffprobe, ffmpeg=ffmpeg)
+        decoder = self.decoder or default_video_decoder()
         video = decoder.decode(video_reference)
         frames = self.tensor_builder(video.frames)
         metadata = json.dumps({"source_sha256": video.source_sha256, "bytes": video.byte_count,
                                "width": video.width, "height": video.height,
                                "duration_seconds": video.duration_seconds,
+                               "decoder_backend": video.decoder_backend,
                                "sampling": "four temporal window midpoints; first decoded frame at or after each target",
                                "limitations": "Four samples do not establish events between samples or continuous motion.",
                                "frames": video.manifest}, ensure_ascii=False, sort_keys=True, separators=(",", ":"))

@@ -29,6 +29,12 @@ CHECKS=[
 ]
 
 
+def packet_binding():
+    control=json.loads((ROOT/'.agent-governance/stages/V0-S2/stage-control.json').read_text())
+    return {'spec_version':'V0-S2/'+control['stage_packet_version'],'gate_version':control['gate_version'],
+            'acceptance_hash':control['acceptance_hash']}
+
+
 def execute(run_id):
     if not re.fullmatch(r'offline-checkpoint-[0-9]{2}',run_id):raise ValueError('INVALID_OFFLINE_RUN_ID')
     candidate=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True,timeout=60).strip()
@@ -36,7 +42,7 @@ def execute(run_id):
     identity=None
     result={'schema_version':'lvw.s2.offline-checkpoint/1','project_id':'lvw-prompt-service',
         'stage_id':'V0-S2','workpack_id':'WP-S2-04','run_id':run_id,'candidate_sha':candidate,
-        'spec_version':'V0-S2/1.0.0','gate_version':'lvw-gate/1',
+        'spec_version':None,'gate_version':None,
         'harness_sha256':hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
         'acceptance_hash':'32a72139e0c12e0e6d040274024b53bb2dba2f2864b68b840aa215cf739a2a7f',
         'identity':None,'preflight_status':'NOT_RUN','environment':{'python':platform.python_version(),'platform':platform.system()},
@@ -45,6 +51,9 @@ def execute(run_id):
         'product_cases':{case:'NOT_RUN' for case in ('V0-A02','V0-A07','V0-A09','V0-A10')}}
     try:
         identity=seal_candidate(ROOT,candidate,PAYLOAD)
+        packet=packet_binding()
+        if packet['acceptance_hash']!=result['acceptance_hash']:raise ValueError('FROZEN_ACCEPTANCE_HASH_CHANGED')
+        result.update(packet)
         result.update(identity=identity,preflight_status='PASS')
         # Sequential: historical test fixtures must be gone before pack rglob.
         for name,command,timeout in CHECKS:
@@ -78,7 +87,7 @@ def execute(run_id):
         if len(result['check_results'])==len(CHECKS) and all(item['passed'] for item in result['check_results']):
             result['decision']='OFFLINE_CHECKS_PASSED_NOT_STAGE_ACCEPTANCE'
     except Exception as exc:
-        if identity is None:result['preflight_status']='FAIL'
+        if result['preflight_status']!='PASS':result['preflight_status']='FAIL'
         result['error_code']=type(exc).__name__+':'+str(exc).replace(str(ROOT),'PACK_ROOT')
     finally:
         results=result['check_results']
