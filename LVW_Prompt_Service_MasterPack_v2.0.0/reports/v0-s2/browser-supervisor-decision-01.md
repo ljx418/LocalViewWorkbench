@@ -1,0 +1,13 @@
+# Browser supervisor and independent owner decision 01
+
+APPROVED_FOR_OFFLINE_IMPLEMENTATION by codex_gate_owner. Packet 1.0.22 refines the already frozen native-browser parent obligations; public contracts, acceptance IDs, thresholds, nine browser subchecks and external budgets are unchanged.
+
+Use tools/v0_s2_browser_supervisor.py for bounded parent-side JSONL supervision and tools/v0_s2_browser_owner.py for independent Linux PID/executable/profile witnesses. Neither has a CLI, starts a service/browser, creates authorization or declares product/Stage PASS. The sealed full parent must provide all twelve independent evidence handlers, validate its active child, source/config/tool/process identities before transport I/O, and bind the exact original Popen handle. The transport cannot substitute for those handlers or native evidence joins.
+
+Requests require exact candidate/child/nonce identity, contiguous integer sequence, bounded records and outstanding work. Duplicate JSON keys, nonfinite values, stale identities, uncompleted prerequisites, repeated submissions and exhausted permissions fail closed. Permissions are consumed before evidence callbacks run. Browser launch waits for ephemeral Comfy user-root proof; analysis-before-adoption requires a verified run token; cancellation readiness needs its actual current prompt; offline operation must prove the same Comfy PID and stopped owned Ollama.
+
+Drain worker stdout/stderr and parent replies without blocking resource checks. Bounded concurrent evidence callbacks permit settings writes while the existing offline fault phase runs. Callbacks must use the supplied observer and bounded operations; timeouts/refusal/resource abort close parent stdin so the worker closes its own BrowserServer. A callback that remains active or a nonterminal worker is explicitly unproven. The full parent must finish exact owned-process/browser/profile cleanup, not infer it from a transport exit code.
+
+The independent owner helper verifies kernel PID/birth/parent/group/session and actual ELF bytes, then proves that a new same-UID profile inode appears in the running child's --user-data-dir argument. Capture public temporary-profile names/inodes before the authorized browser start; never read profile contents. Final cleanup witnesses only read facts and never kill a claimed PID or delete a directory. A recycled PID is preserved. Product history/provider/native/source/export joins, all-nine browser result verification and full default/warm parent remain pending.
+
+Offline tests use synthetic evidence callbacks, the real Node parentBridge, and owned Python process fixtures. Zero browser/model/target-service starts. They cannot demonstrate a native Comfy experience or independently approve implementation.

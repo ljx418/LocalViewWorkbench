@@ -49,3 +49,7 @@ R1a 人工体验签署存在；合同、FFmpeg、Comfy、Ollama、样本和 owne
 见 reports/v0-s2/native-browser-worker-decision-01.md。真实原生页面上传、两次明确的 UI 队列、采纳/导出/剪贴板/取消/离线保稿/节点移除须保留九项子检查；不使用 set_content 或模型 Mock。一个延迟采纳场景仅转发真实后端原始字节，必须保留前后相同 hash。worker 必须受候选/子授权/nonce 绑定的实时父进程监督，父进程独立复算 history/provider/source/cancel/sampler；协议单测不是浏览器验收。S2 启动新增显式临时 user-directory，安装版 CLI/前端/SDK 能力与完整父运行仍待核验，未授权真实浏览器提前试跑。
 
 浏览器父授权顺序纠正（1.0.18）：preflight 回复新增精确 owned_run_root，批准且根一致后才创建 worker 证据目录/读取目标；拒绝或错根保留九项 NOT_RUN，由父执行器生成拒绝终态。历史 directed01 保留，依据见 reports/v0-s2/native-browser-root-authorization-correction-01.md。
+
+## 父监督端与独立进程证明补充（1.0.22）
+
+见 reports/v0-s2/browser-supervisor-decision-01.md。父端在授权核验之前不读通信管道、不写日志；十二类权限由实际证据回调决定，记录原始 JSONL、stderr、退出码和计次。等待回调时持续采样，拒绝重放、重复提交、越额和缺失证据的 exit 0。独立核验实际 Linux 子进程出生身份、ELF 字节和新 profile 的 inode/启动参数；清理只读证明不授予任意终止/删除权限。合成回调及 Python 进程夹具仅证明监督机制，不替代真实 Comfy、四帧来源、导出内容、取消/故障、累计分母和完整父运行。
