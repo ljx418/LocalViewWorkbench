@@ -6,13 +6,16 @@ from tools.v0_s2_checkpoint_oracles import EvidenceError,performance_oracle,canc
 def records():
     return [{"run_id":"one","candidate_sha":"a"*40,"sample_run_id":f"{kind}-{i}","phase":"hot",
              "kind":kind,"duration_seconds":1,"provider_calls":1 if kind=="image" else 4,
+             "warm_model_snapshots":[{'call_index':j,'elapsed_seconds':j/4,
+                 'api_ps':{'models':[{'model':'gemma4:26b','digest':'a'*64,'size_vram':100}]}}
+                 for j in range(1 if kind=='image' else 4)],
              "outcome":"succeeded","oom":False,"resource_samples":[
                  {"elapsed_seconds":t,"gpu_used_mib":23551,"available_ram_mib":2048} for t in (0,1)]}
             for kind in ("image","video") for i in range(10)]
 
 
 class OracleTests(unittest.TestCase):
-    def check(self,values):return performance_oracle(values,run_id="one",candidate_sha="a"*40)
+    def check(self,values):return performance_oracle(values,run_id="one",candidate_sha="a"*40,expected_model_digest='a'*64)
     def test_fixed_denominator_and_p95_use_all_runs(self):
         self.assertEqual(10,self.check(records())["performance"]["video"]["count"])
         for count in (0,19,21):
@@ -32,6 +35,19 @@ class OracleTests(unittest.TestCase):
         values=records();values[0]["duration_seconds"]=181
         values[0]["resource_samples"]=[{"elapsed_seconds":i,"gpu_used_mib":1,"available_ram_mib":4096} for i in range(182)]
         with self.assertRaisesRegex(EvidenceError,"P95"):self.check(values)
+    def test_hot_label_cannot_replace_per_call_residency_and_frozen_digest(self):
+        values=records();values[0].pop('warm_model_snapshots')
+        with self.assertRaises(EvidenceError):self.check(values)
+        for mutation in ('unloaded','changed-model','changed-digest','cpu-only','omitted-video-frame','old-observation'):
+            values=records();snapshots=values[10]['warm_model_snapshots']
+            if mutation=='unloaded':snapshots[1]['api_ps']['models']=[]
+            if mutation=='changed-model':snapshots[1]['api_ps']['models'][0]['model']='other'
+            if mutation=='changed-digest':snapshots[1]['api_ps']['models'][0]['digest']='b'*64
+            if mutation=='cpu-only':snapshots[1]['api_ps']['models'][0]['size_vram']=0
+            if mutation=='omitted-video-frame':snapshots.pop()
+            if mutation=='old-observation':snapshots[1]['elapsed_seconds']=0
+            with self.subTest(mutation=mutation),self.assertRaises(EvidenceError):self.check(values)
+        with self.assertRaises(EvidenceError):performance_oracle(records(),run_id='one',candidate_sha='a'*40,expected_model_digest='unknown')
     def test_exact_p95_thresholds_are_accepted(self):
         values=records()
         for index,seconds in ((0,180),(10,300)):

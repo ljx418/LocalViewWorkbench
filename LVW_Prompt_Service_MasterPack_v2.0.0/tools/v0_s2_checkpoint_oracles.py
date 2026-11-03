@@ -78,12 +78,14 @@ def number(value, label):
     return value
 
 
-def performance_oracle(records, *, run_id, candidate_sha):
+def performance_oracle(records, *, run_id, candidate_sha, expected_model_digest):
     """Fixed 10+10 hot denominator, fresh unique sample runs, nearest-rank P95.
 
     Cold loading must be recorded separately and is never silently excluded from
     this list after a slow run. This oracle receives only the frozen hot phase.
     """
+    if not isinstance(expected_model_digest, str) or not re.fullmatch('[0-9a-f]{64}', expected_model_digest):
+        raise EvidenceError('frozen model digest is required')
     if not isinstance(records, list) or len(records) != 20:
         raise EvidenceError("performance denominator must be exactly 20")
     seen = set(); durations = {"image":[], "video":[]}
@@ -105,6 +107,28 @@ def performance_oracle(records, *, run_id, candidate_sha):
         duration = number(record.get("duration_seconds"), "duration")
         if duration == 0:
             raise EvidenceError("zero-duration model run")
+        # The string "hot" does not prove residency. Require the actual local
+        # /api/ps response immediately before each measured provider call.
+        warm = record.get('warm_model_snapshots')
+        expected_calls = 1 if kind == 'image' else 4
+        if not isinstance(warm, list) or len(warm) != expected_calls:
+            raise EvidenceError('warm model residency evidence missing')
+        last_observed = None
+        for index, snapshot in enumerate(warm):
+            if not isinstance(snapshot, dict) or type(snapshot.get('call_index')) is not int or snapshot['call_index'] != index:
+                raise EvidenceError('warm model call order invalid')
+            observed = number(snapshot.get('elapsed_seconds'), 'warm observation')
+            if observed > duration or (last_observed is not None and observed <= last_observed):
+                raise EvidenceError('warm observation outside measured call order')
+            document = snapshot.get('api_ps')
+            models = document.get('models') if isinstance(document, dict) else None
+            if not isinstance(models, list) or len(models) != 1 or not isinstance(models[0], dict):
+                raise EvidenceError('warm model missing or foreign model resident')
+            model = models[0]
+            if (model.get('model', model.get('name')) != 'gemma4:26b' or model.get('digest') != expected_model_digest
+                    or type(model.get('size_vram')) is not int or model['size_vram'] <= 0):
+                raise EvidenceError('warm model identity or GPU residency unproven')
+            last_observed = observed
         samples = record.get("resource_samples")
         if not isinstance(samples,list) or len(samples) < 2:
             raise EvidenceError("resource sampling missing")

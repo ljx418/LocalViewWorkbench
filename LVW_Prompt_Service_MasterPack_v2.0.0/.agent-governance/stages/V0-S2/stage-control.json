@@ -2,7 +2,7 @@
   "schema_version": "lvw.stage-control/1",
   "project_id": "lvw-prompt-service",
   "stage_id": "V0-S2",
-  "stage_packet_version": "1.0.2",
+  "stage_packet_version": "1.0.3",
   "packet_status": "FROZEN",
   "gate_version": "lvw-gate/1",
   "baseline": {
@@ -28,7 +28,8 @@
     "plans/release_gates.json",
     "reports/authorization-program-v1-local-01.json",
     "reports/v0-s2/decoder-binding-decision-01.md",
-    "reports/v0-s2/change-decision-video-workbench-01.json"
+    "reports/v0-s2/change-decision-video-workbench-01.json",
+    "reports/v0-s2/warm-benchmark-evidence-gap-01.md"
   ],
   "roles": {
     "gate_owner": "codex_gate_owner",
@@ -236,5 +237,10 @@
     ],
     "business_schema_changed": false,
     "denominator_changed": false
+  },
+  "warm_benchmark_readiness": {
+    "status": "OPEN_IMPLEMENTATION_GAP",
+    "evidence": "reports/v0-s2/warm-benchmark-evidence-gap-01.md",
+    "denominator_and_thresholds_unchanged": true
   }
 }

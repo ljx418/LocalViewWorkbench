@@ -2,7 +2,7 @@
 
 Project: lvw-prompt-service
 Target: V0.1
-Packet: 1.0.2 / FROZEN (decoder binding decision 01; video workbench control decision 01)
+Packet: 1.0.3 / FROZEN (decoder binding decision 01; video workbench control decision 01)
 State: FROZEN_READY_OFFLINE
 Active coordinate: plans/execution-control.json is the sole current coordinate
 Dependency baseline gate: R1A_HUMAN_EXPERIENCE_SIGNOFF_PASS
