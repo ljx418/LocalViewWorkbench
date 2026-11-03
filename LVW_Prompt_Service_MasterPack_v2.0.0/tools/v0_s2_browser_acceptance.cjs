@@ -255,13 +255,18 @@ async function run(config, parent, dependencies = {}) {
     active = 'explicit-adoption'; const adoptionCount = counter.used.adoptions;
     await button('采纳当前机器建议').click();
     if (counter.used.adoptions !== adoptionCount) throw new Error('ADOPTION_WITHOUT_SECOND_CONFIRMATION');
+    const adoptionResponse = page.waitForResponse(responseFor('/lvw/v0/video/workbench'));
     await button('再次点击确认替换人工稿').click();
+    const actualAdoption = await adoptionResponse, adoptionBytes = await actualAdoption.body();
+    if (actualAdoption.status() !== 200 || adoptionBytes.length > 24 * 1024 * 1024) throw new Error('NATIVE_ADOPTION_RESPONSE_INVALID');
+    artifact('adoption-response.json', adoptionBytes);
     await page.getByRole('status').filter({ hasText: '已显式采纳' }).waitFor();
     adopted = await readFields(); if (!adopted.natural_en.trim()) throw new Error('EMPTY_ADOPTED_PROMPT');
     artifact('adopted-fields.json', adopted); pass(active);
     active = 'exports-clipboard';
     await button('复制人工稿 TXT').click(); await page.getByRole('status').filter({ hasText: '人工稿已复制或导出' }).waitFor();
     const clipboard = await page.evaluate(() => navigator.clipboard.readText());
+    artifact('clipboard.txt', Buffer.from(clipboard));
     if (!clipboard.includes(adopted.natural_en)) throw new Error('NATIVE_CLIPBOARD_MISMATCH');
     const exportBytes = await download('导出人工稿 JSON', 'adopted-export.json'), exported = JSON.parse(exportBytes);
     if (exported.source_type !== 'video' || exported.source.sha256 !== config.sample_sha256 || exported.raw_response !== rawUi) throw new Error('ADOPTED_EXPORT_PROVENANCE_MISMATCH');

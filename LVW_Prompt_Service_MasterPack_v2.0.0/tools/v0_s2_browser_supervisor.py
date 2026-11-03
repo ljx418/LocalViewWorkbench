@@ -233,6 +233,8 @@ class Supervisor:
                         if not raw:
                             streams.unregister(key.fileobj)
                             if key.fileobj is process.stdout and buffer: raise ProtocolError('BROWSER_TRUNCATED_RECORD')
+                            if key.fileobj is process.stdout and jobs:
+                                raise ProtocolError('BROWSER_WORKER_DISCONNECTED_DURING_EVIDENCE')
                             continue
                         if key.fileobj is process.stderr:
                             stderr_bytes += len(raw)

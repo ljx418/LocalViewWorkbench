@@ -210,5 +210,28 @@ class BrowserSupervisorTests(unittest.TestCase):
             self.assertTrue(finished.wait(1)); self.assertEqual(0, result['callbacks_pending'])
             process.wait(timeout=3); self.assertNotEqual(0, process.returncode)
 
+    def test_worker_disconnect_interrupts_evidence_callback_without_waiting_its_deadline(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory); entered = threading.Event(); finished = threading.Event()
+            handlers = self.handlers(config(str(root)))
+            def owner(payload, observe):
+                entered.set()
+                try:
+                    while True: observe(); time.sleep(.01)
+                finally: finished.set()
+            handlers['browser_owner'] = owner
+            script = """
+              await bridge.request('preflight',{run_root:c.run_root});
+              await bridge.request('browser_start',{});
+              void bridge.request('browser_owner',{});
+              await new Promise(r=>setTimeout(r,50)); process.exit(0);
+            """
+            process, supervisor, logs = self.fixture(root, script, handlers=handlers)
+            started = time.monotonic(); result = supervisor.run(process, logs)
+            self.assertTrue(entered.is_set()); self.assertTrue(finished.wait(1))
+            self.assertLess(time.monotonic()-started, 3)
+            self.assertEqual('NO_GO', result['decision']); self.assertIn('DISCONNECTED_DURING_EVIDENCE', result['error_code'])
+            self.assertEqual(0, result['callbacks_pending'])
+
 
 if __name__ == '__main__': unittest.main()

@@ -2,7 +2,7 @@
   "schema_version": "lvw.stage-control/1",
   "project_id": "lvw-prompt-service",
   "stage_id": "V0-S2",
-  "stage_packet_version": "1.0.22",
+  "stage_packet_version": "1.0.23",
   "packet_status": "FROZEN",
   "gate_version": "lvw-gate/1",
   "baseline": {
@@ -47,7 +47,8 @@
     "reports/v0-s2/native-browser-root-authorization-correction-01.md",
     "reports/v0-s2/frontend-binding-preparation-decision-01.md",
     "reports/v0-s2/frontend-binding-correction-01.md",
-    "reports/v0-s2/browser-supervisor-decision-01.md"
+    "reports/v0-s2/browser-supervisor-decision-01.md",
+    "reports/v0-s2/browser-analysis-evidence-decision-01.md"
   ],
   "roles": {
     "gate_owner": "codex_gate_owner",
@@ -69,9 +70,11 @@
     "decision": "reports/v0-s2/decoder-binding-decision-01.md",
     "frame_decoder": "existing FFmpeg CLI; installed imageio-ffmpeg Windows binary is eligible after native verification",
     "metadata_probe": "existing ffprobe CLI or bounded isolated native Python/PyAV child",
-    "compatibility_status": "NOT_RUN",
+    "compatibility_status": "NATIVE_COMPONENT_VERIFIED_NOT_STAGE_ACCEPTANCE",
     "public_contract_changed": false,
-    "fixed_denominator_changed": false
+    "fixed_denominator_changed": false,
+    "component_receipt": "reports/v0-s2/native-component-02/receipt.json",
+    "component_receipt_sha256": "eba3304720febb3021b7ce3b3f3e3f5b33985edad0a0b19664836cdb6efd139c"
   },
   "preparation_subruns": {
     "program_child_required": true,
@@ -108,7 +111,8 @@
       "attempts_consumed": 2,
       "selected_receipt": "reports/v0-s2/frontend-bindings-02/receipt.json",
       "selected_receipt_sha256": "013a334d89615774b613e66063c39a21871d2c37afe12673c8e29e78e5ce38fb"
-    }
+    },
+    "native_component_attempts_consumed": 2
   },
   "cumulative_release_ids": [
     "V0-A01",
@@ -359,7 +363,7 @@
     "entry": "tools/v0_s2_browser_acceptance.cjs",
     "policy": "tools/v0_s2_browser_policy.cjs",
     "decision": "reports/v0-s2/native-browser-worker-decision-01.md",
-    "status": "OFFLINE_WORKER_SUPERVISOR_OWNER_IMPLEMENTED_PUBLIC_JOIN_PENDING",
+    "status": "OFFLINE_SUPERVISOR_AND_ANALYSIS_EXPORT_JOINS_IMPLEMENTED_FULL_PARENT_PENDING",
     "fixed_subchecks": 9,
     "ui_public_submissions": 2,
     "browser_starts": 1,
@@ -368,6 +372,8 @@
     "preflight_root_correction": "reports/v0-s2/native-browser-root-authorization-correction-01.md",
     "supervisor": "tools/v0_s2_browser_supervisor.py",
     "independent_owner": "tools/v0_s2_browser_owner.py",
-    "supervisor_decision": "reports/v0-s2/browser-supervisor-decision-01.md"
+    "supervisor_decision": "reports/v0-s2/browser-supervisor-decision-01.md",
+    "analysis_export_oracle": "tools/v0_s2_browser_evidence.py",
+    "analysis_export_decision": "reports/v0-s2/browser-analysis-evidence-decision-01.md"
   }
 }

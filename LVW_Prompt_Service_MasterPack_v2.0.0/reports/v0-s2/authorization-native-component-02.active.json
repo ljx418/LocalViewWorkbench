@@ -1,0 +1,72 @@
+{
+  "schema_version": "lvw.program-child-authorization/1",
+  "authorization_id": "AUTH-V0-S2-NATIVE-COMPONENT-02",
+  "source_program_authorization": "AUTH-PROGRAM-V1-LOCAL-01",
+  "program_sha256": "8f79a9a5a02fb8904b21c86129c5a1509c7a3dcd3e8817d2fdde26266d3375b6",
+  "issued_by": "codex_gate_owner",
+  "status": "ACTIVE_ONE_SHOT",
+  "project_id": "lvw-prompt-service",
+  "stage_id": "V0-S2",
+  "workpack_id": "WP-S2-04-NATIVE-COMPONENT",
+  "scope": "NATIVE_PUBLIC_DECODER_COMPONENT_ONLY",
+  "run_id": "native-component-02",
+  "candidate_sha": "2e487d063948f76ee08707b9b13010e09ffbbd8c",
+  "harness_sha256": "56430c806434224d97a6d3a33c2a748163163055c9aa69c9e93d39759731171b",
+  "offline_receipt": "reports/v0-s2/offline-checkpoint-14/receipt.json",
+  "offline_receipt_sha256": "1a66fd3441454ec2be6495fa1886b95759d7842b2e9c9487b93b111390dd15aa",
+  "package_receipt": "reports/v0-s2/native-decoder-packages-01/receipt.json",
+  "package_receipt_sha256": "c252583e5891e77c67d580caab55162fcf4d20a50a3ebf517b41b3fdb365f9a6",
+  "target_sha256": {
+    "COMFY_MAIN": "baaa16d69ee78e08c490eeec20bf27c56b746c070f76cc05b4aa13cbc616bcef",
+    "COMFY_PYTHON": "4d6f5f81a4bca11191c4c7c6b43632694d0a4ce74e068619d8fdc161d469859a"
+  },
+  "ffmpeg_alias": "COMFY_PYTHON_HOME/Lib/site-packages/imageio_ffmpeg/binaries/ffmpeg-win-x86_64-v7.1.exe",
+  "sample_sha256": "08516ead62a4b7bb7f8b2035269c3b003c9b2390fbde39d2a2e35e84f42da49e",
+  "sample_bytes": 147079,
+  "sample_selection": "First sorted MP4/MOV below authorized testSource; must match prebound bytes and hash, no replacement",
+  "ports": [
+    8191,
+    11434
+  ],
+  "endpoints": [
+    "http://127.0.0.1:8191"
+  ],
+  "processes": "One owned transient PowerShell/Comfy Python lineage, one metadata Python child and four FFmpeg children. NVIDIA telemetry: Windows and WSL preflight, Windows post-run; no Ollama, browser or provider. Git/source-seal helper processes and bounded read-only PowerShell ownership/RAM/socket queries only.",
+  "budget": {
+    "comfy_starts": 1,
+    "ollama_starts": 0,
+    "public_submissions": 1,
+    "loopback_requests": 1024,
+    "video_decodes": 1,
+    "metadata_probe_processes": 1,
+    "frame_decoder_processes": 4,
+    "native_package_snapshots": 2,
+    "nvidia_smi_queries": 3,
+    "provider_calls": 0,
+    "browser_runs": 0,
+    "downloads": 0,
+    "cloud_calls": 0,
+    "stage_checkpoints": 0
+  },
+  "cleanup": "Reject foreign listeners/processes and busy GPU. Use isolated input/output/temp/custom_nodes. Reprove listener lineage before stop, stop only owned handles, wait terminal and verify ports, rehash packages/source, remove owned run directory. Preserve redacted failure receipt and retained-directory alias if cleanup unproven. Terminal receipt expires this child; no automatic retry.",
+  "stage_pass_claim": false,
+  "external_cost": 0,
+  "forbidden": [
+    "download",
+    "cloud",
+    "paid API",
+    "non-loopback network",
+    "private media",
+    "permanent configuration",
+    "terminate foreign process",
+    "visible browser",
+    "model inference"
+  ],
+  "terminal_receipt": null,
+  "issued_at": "2026-11-03T18:48:13.273697+00:00",
+  "correction_evidence": [
+    "reports/v0-s2/offline-checkpoint-14/receipt.json",
+    "reports/v0-s2/frontend-binding-progress-01.md"
+  ],
+  "correction_reason": "Current committed decoder, exact process ownership/cleanup and isolated user-directory corrections are offline-covered; installed CLI --user-directory was observed in bindings02. Exactly one remaining component attempt, never a replacement full checkpoint."
+}
