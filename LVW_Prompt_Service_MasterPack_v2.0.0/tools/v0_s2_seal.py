@@ -18,6 +18,13 @@ def seal_candidate(root, candidate, relative_paths):
         if result.returncode:raise SealError('CANDIDATE_GIT_OBJECT_UNAVAILABLE')
         return result.stdout
     prefix=git('rev-parse','--show-prefix').decode().strip()
+    attributes=Path(root/'.gitattributes')
+    attr_entry=git('ls-tree','--name-only',candidate,'--','.gitattributes')
+    attr_content=git('show',candidate+':'+prefix+'.gitattributes') if attr_entry else None
+    if ((attributes.exists() or attributes.is_symlink()) != (attr_content is not None)
+            or (attr_content is not None and (attributes.is_symlink() or attributes.read_bytes()!=attr_content))):
+        raise SealError('PAYLOAD_ATTRIBUTES_MISMATCH')
+    cmd_crlf=attr_content is not None and b'*.cmd text eol=crlf' in attr_content.splitlines()
     selected=set()
     for relative in relative_paths:
         path=Path(relative)
@@ -41,12 +48,22 @@ def seal_candidate(root, candidate, relative_paths):
             raise SealError('PAYLOAD_INVENTORY_MISMATCH')
         selected.update(local)
     if not selected:raise SealError('EMPTY_PAYLOAD')
-    hashes={}
+    hashes={};blob_hashes={};transforms={}
     for relative in sorted(selected):
         content=git('show',candidate+':'+prefix+relative)
+        blob_hashes[relative]=hashlib.sha256(content).hexdigest()
+        if relative.endswith('.cmd') and cmd_crlf:
+            # Git stores LF for this explicitly frozen text/eol rule; bind the
+            # exact CRLF checkout bytes actually executed by Windows instead.
+            # No other filter or whitespace normalization is accepted.
+            if b'\r' in content:raise SealError('CMD_CANONICAL_BLOB_INVALID:'+relative)
+            content=content.replace(b'\n',b'\r\n')
+            transforms[relative]='text/eol=crlf'
         digest=hashlib.sha256(content).hexdigest()
         if hashlib.sha256((root/relative).read_bytes()).hexdigest()!=digest:
-            raise SealError('PAYLOAD_BYTES_MISMATCH')
+            raise SealError('PAYLOAD_BYTES_MISMATCH:'+relative)
         hashes[relative]=digest
     return {'candidate_sha':candidate,'execution_artifact_sha256':hashes,
+            'git_blob_sha256':blob_hashes,'checkout_transforms':transforms,
+            'attributes_sha256':hashlib.sha256(attr_content).hexdigest() if attr_content is not None else None,
             'payload_sha256':hashlib.sha256(''.join(f'{digest}  {path}\n' for path,digest in hashes.items()).encode()).hexdigest()}

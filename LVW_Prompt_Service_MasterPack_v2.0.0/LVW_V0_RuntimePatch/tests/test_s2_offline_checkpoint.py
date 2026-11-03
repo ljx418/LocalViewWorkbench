@@ -36,5 +36,16 @@ class OfflineCheckpointTests(unittest.TestCase):
                 root=Path(temp);(root/'reports/v0-s2').mkdir(parents=True)
                 self.assertEqual('NO_GO',self.execute(root,**{option:True})['decision'])
 
+    def test_preflight_failure_preserves_terminal_receipt_without_executing_checks(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp);(root/'reports/v0-s2').mkdir(parents=True)
+            with patch.object(checkpoint,'ROOT',root),patch.object(checkpoint,'seal_candidate',side_effect=ValueError('mismatch')), \
+                 patch('subprocess.check_output',return_value='a'*40+'\n'),patch('subprocess.run') as run:
+                result=checkpoint.execute('offline-checkpoint-01')
+            run.assert_not_called();self.assertEqual('FAIL',result['preflight_status'])
+            self.assertEqual(5,result['test_counts']['NOT_RUN'])
+            self.assertEqual('NO_GO',result['decision'])
+            self.assertTrue((root/'reports/v0-s2/offline-checkpoint-01/receipt.json').is_file())
+
 
 if __name__=='__main__':unittest.main()
