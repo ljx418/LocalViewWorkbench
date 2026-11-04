@@ -1,0 +1,188 @@
+{
+  "schema_version": "lvw.authorization-request/1",
+  "request_id": "AUTH-REQUEST-V1-S2-ORACLE-CORRECTION-01",
+  "status": "PENDING_PROJECT_OWNER_APPROVAL",
+  "is_authorization": false,
+  "does_not_authorize_execution": true,
+  "does_not_authorize_stage_pass": true,
+  "project_id": "lvw-prompt-service",
+  "stage_id": "V0-S2",
+  "workpack_id": "WP-S2-05",
+  "reason": "full-resource-ready-01 ended NO_GO: cumulative A03 incorrectly equated complete Provider logs, and early cleanup incorrectly required a not-yet-started second sampler. The real image made one visual call, cleanup and all29 archived files are verified. Both Harness oracles have offline corrections; original failed results remain immutable. Current grant expired and no complete-run budget remains.",
+  "source_program_authorization": "AUTH-PROGRAM-V1-LOCAL-01",
+  "corrected_candidate": "280d1ab8277a65e2933894b029d349343edd3425",
+  "offline_receipt": "reports/v0-s2/offline-checkpoint-25/receipt.json",
+  "offline_receipt_sha256": "3d32e488f60a05222e55e520668a2684a148453f8c5083a84c0253d6b6b8188d",
+  "offline_unit_tests": 461,
+  "harness": {
+    "path": "tools/v0_s2_stage_checkpoint.py",
+    "sha256": "ac450a0b473c24edf075fcf2821e5efcfcdee72436b22d58016bb9c298dab4b4"
+  },
+  "policy_exception_requested": {
+    "additional_complete_native_runs": 1,
+    "additional_full_rechecks": 0,
+    "planned_run_id": "full-oracle-correction-01",
+    "expires_at_terminal_or_revocation": true,
+    "total_wall_seconds_max": 21600
+  },
+  "readiness_child": {
+    "required_before_any_probe": true,
+    "purpose": "Check GPU/host availability before expensive full installed-byte sealing or claiming the next complete checkpoint. This is admission only and proves no product case.",
+    "max_samples": 3,
+    "interval_seconds": 1,
+    "max_seconds": 60,
+    "native_commands_max": 6,
+    "wsl_commands_max": 3,
+    "gpu_used_mib_max": 4096,
+    "minimum_available_ram_mib": 2048,
+    "target_ports": [
+      8191,
+      11434
+    ],
+    "target_ports_must_be_free": true,
+    "foreign_process_termination": 0,
+    "services": 0,
+    "models": 0,
+    "media_reads": 0,
+    "browser_starts": 0,
+    "require_original_raw_outputs_and_exit_codes": true,
+    "if_busy_or_unknown": "Expire this grant as WAIT_RESOURCE/NO_GO without starting services or claiming the complete checkpoint; preserve all evidence. Do not poll or retry indefinitely.",
+    "does_not_replace_fresh_runtime_preflight": true,
+    "planned_run_id": "resource-admission-oracle-correction-01"
+  },
+  "native_runtime_budget": {
+    "stage_checkpoints": 1,
+    "public_submissions": 65,
+    "default_public_submissions": 45,
+    "warm_public_submissions": 20,
+    "provider_calls": 83,
+    "comfy_starts": 2,
+    "ollama_starts": 2,
+    "browser_starts": 1,
+    "warm_preloads": 20,
+    "loopback_requests_per_runtime": 8192,
+    "metadata_commands": 2,
+    "native_clock_reads_per_runtime": 128,
+    "resource_sampler_workers": 3,
+    "resource_sampler_max_seconds": 7200,
+    "frame_decoder_processes": 80,
+    "metadata_probe_processes": 24,
+    "installed_files_per_snapshot": 100000,
+    "installed_bytes_per_snapshot": 34359738368,
+    "installed_full_snapshots": 5,
+    "sample_files": 2,
+    "sample_bytes": 289406976,
+    "downloads": 0,
+    "cloud_calls": 0,
+    "paid_calls": 0,
+    "max_seconds": 21600
+  },
+  "acceptance_hash": "32a72139e0c12e0e6d040274024b53bb2dba2f2864b68b840aa215cf739a2a7f",
+  "fixed_stage_cases": [
+    "V0-A02",
+    "V0-A07",
+    "V0-A09",
+    "V0-A10"
+  ],
+  "fixed_cumulative_cases": [
+    "V0-A01",
+    "V0-A02",
+    "V0-A03",
+    "V0-A04",
+    "V0-A05",
+    "V0-A07",
+    "V0-A08",
+    "V0-A09",
+    "V0-A10"
+  ],
+  "model": {
+    "name": "gemma4:26b",
+    "digest": "5571076f3d70050487b26b341705799e0ab29b808164f90d20d4cf84f699d251"
+  },
+  "seed_artifact_sha256": {
+    "targets": "576e24846e80d8061aed3e3dcdee0795ca9d64558969883b4122d00ad755c969",
+    "frontend": "013a334d89615774b613e66063c39a21871d2c37afe12673c8e29e78e5ce38fb",
+    "packages": "c252583e5891e77c67d580caab55162fcf4d20a50a3ebf517b41b3fdb365f9a6",
+    "model": "e1b865f640470b42badb9b93bd36756d8228160d750d266d38fbf903b60d5b8f"
+  },
+  "media_policy": "Only the exact bound non-private testSource image/video and selected preparation02 fixtures; no browsing for assets, private media, replacement or stitching.",
+  "ports": [
+    8191,
+    11434
+  ],
+  "browser_policy": "One fresh headless Chromium context/profile and one independently verified worker-owned literal 127.0.0.1 control port; no visible browser or existing profile.",
+  "external_cost_budget": 0,
+  "prior_failed_runs": [
+    {
+      "run_id": "full-checkpoint-01",
+      "receipt": "reports/v0-s2/full-checkpoint-01/receipt.json",
+      "receipt_sha256": "a4c9e3cbec44d5481c8c0b52cc3b0760e5a1224ed9590021158c96a7466b7a41",
+      "must_remain_immutable": true
+    },
+    {
+      "run_id": "full-recheck-01",
+      "receipt": "reports/v0-s2/full-recheck-01/receipt.json",
+      "receipt_sha256": "a16f251eed7d5772d4849ae0e780e826a6b8fd8da258621beb2877002ee36d5f",
+      "must_remain_immutable": true
+    },
+    {
+      "run_id": "full-supplemental-01",
+      "receipt": "reports/v0-s2/full-supplemental-01/receipt.json",
+      "receipt_sha256": "dce978952dc57215b03ae2dc2dd21647cf5bff8e2d1f9234efae24aa13180a64",
+      "must_remain_immutable": true
+    },
+    {
+      "run_id": "full-resource-ready-01",
+      "receipt": "reports/v0-s2/full-resource-ready-01/receipt.json",
+      "receipt_sha256": "52931717ca01911909a03affec1c8d6686cea105d89abd39e6a0ba635da32411",
+      "must_remain_immutable": true
+    }
+  ],
+  "existing_cleanup": {
+    "receipt": "reports/v0-s2/supplemental-cleanup-01/receipt.json",
+    "receipt_sha256": "ca236747b84a304569049a305f7859e1215a9087966d0cb2b2070fb16a68c3c4",
+    "old_adopted_root_absent": true,
+    "supplemental_runtime_root_absent": true,
+    "new_retained_root_adoption_authorized": false,
+    "resource_ready_runtime_root_absent": true,
+    "resource_ready_fact_receipt": "reports/v0-s2/resource-ready-failure-facts-01.json",
+    "resource_ready_fact_sha256": "e8539872823b1f4cf2640edc9c576771413969f2fec20976fef6554ee1ef6ee5"
+  },
+  "allowed_after_explicit_approval_only": [
+    "Offline implementation of exact full-oracle-correction-01 slot and one bounded readiness child, with scoped authorization/evidence transport and tests only",
+    "Final descendant must preserve corrected product/Harness obligations; no product behavior, public contract, acceptance denominator or threshold changes",
+    "Fresh complete offline gate on final candidate/Harness after authorization transport changes; bind both source and installed execution bytes",
+    "One bounded fresh readiness child before target helper queries, then unchanged final runtime preflight after complete binding; no reuse of old readiness",
+    "One complete isolated ordered Stage sequence with the same fixed9 cumulative cases, same65 submissions/83 Provider upper bound and remaining native runtime budgets",
+    "Candidate changes invalidate affected evidence; no success stitching, partial-run substitution, model/sample replacement or extra full retry",
+    "Terminal receipt, owned cleanup and grant expiry at terminal or revocation; no Stage/human/release acceptance inferred"
+  ],
+  "not_ready_for_execution": "Pending explicit owner approval. Existing CLI denies the proposed new slot. After approval implement only scoped authorization transport, freeze final descendant identity, pass its full offline gate and generate fresh child receipts before any real target operation.",
+  "forbidden": [
+    "non-loopback",
+    "cloud",
+    "paid-service",
+    "download",
+    "private-media",
+    "cookie",
+    "existing-browser-profile",
+    "visible-browser-automation",
+    "permanent-configuration",
+    "non-owned-termination",
+    "remote-push",
+    "release",
+    "change product plugin behavior",
+    "change public contracts or fixed denominator",
+    "lower GPU/RAM/latency/release/quality thresholds",
+    "substitute model or samples",
+    "human experience signoff",
+    "final V1 release signoff",
+    "V2/V3 execution"
+  ],
+  "on_full_run_failure": "Save terminal failure and cleanup; expire; do not launch another full run.",
+  "source_payload_sha256": "e98e366deb6287b54b296fdcaabd0c84dfa48a475daaabc23c474e2790dcdc2a",
+  "correction_files_sha256": {
+    "tools/v0_s2_cumulative_phase.py": "c147fbc81c2f93a11e43fe141fe832716bdf87e105b8baab1d846a70e2a114f3",
+    "tools/v0_s2_stage_sequence.py": "0b6be81e1cf9d0db88e7f5fe581f23686418d3a15634bd53f88ccb56f8718e20"
+  }
+}
