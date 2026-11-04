@@ -13,4 +13,6 @@
 
 ## 后续门限
 
-先封存修复候选并完成 offline-checkpoint-24。真实完整运行、独立审查、人工体验和 S2 签署尚未通过。AUTH-V1-S2-RESOURCE-READY-01 已 EXPIRED_NO_GO，完整运行余量为 0；不得重放 readiness、复活旧授权或将旧部分结果拼接成完整通过。只有新的明确预算批准才能重跑。S2 未经人工验收，不推送远端。
+先封存修复候选并完成 offline-checkpoint-25。真实完整运行、独立审查、人工体验和 S2 签署尚未通过。AUTH-V1-S2-RESOURCE-READY-01 已 EXPIRED_NO_GO，完整运行余量为 0；不得重放 readiness、复活旧授权或将旧部分结果拼接成完整通过。只有新的明确预算批准才能重跑。S2 未经人工验收，不推送远端。
+
+离线 checkpoint24：461 项测试、前端、合同与 whitespace 通过，治理检查拒绝当前坐标中的 CHANGES_REQUIRED（此项目坐标枚举未包含该值）。改为既有 FROZEN_READY_OFFLINE；不修改治理校验器或增加可通过状态。历史失败完整保留，最终复核使用 checkpoint25。
