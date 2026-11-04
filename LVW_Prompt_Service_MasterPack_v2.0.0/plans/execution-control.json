@@ -8,7 +8,7 @@
   "coordinate": {
     "stage_id": "V0-S2",
     "workpack_id": "WP-S2-05",
-    "gate": "GATE4_RESOURCE_ADMISSION_CHILD_REQUIRED",
+    "gate": "GATE4_RESOURCE_READY_FULL_CHILD_REQUIRED",
     "state": "CHECKPOINT"
   },
   "last_passed_gate": {
@@ -30,8 +30,8 @@
     "TARGET_HARDWARE_TESTED"
   ],
   "next_owner": "local_ci",
-  "next_action": "Derive a bound resource-admission-01 child on b9fcff3/offline23, then probe at most three samples. Only successful same-candidate admission permits the one full-resource-ready-01 child; no GPU/service query before claim.",
-  "required_authorization": "APPROVED_RESOURCE_READY_SCOPE_REQUIRES_FRESH_BOUND_CHILDREN",
+  "next_action": "Actual three-sample admission passed, GPU3571MiB and RAM>=5552MiB, ports/target processes empty; readiness child expired. Derive and execute the unique full-resource-ready-01 child on b9fcff3/offline23, retaining all original final preflight and runtime checks.",
+  "required_authorization": "APPROVED_RESOURCE_READY_SCOPE_FRESH_FULL_CHILD_REQUIRED",
   "authorization_request": "reports/v0-s2/authorization-s2-resource-ready-01.request.json",
   "authorization_record": "reports/authorization-program-v1-local-01.json",
   "read_only_binding_authorization": "reports/v0-s2/authorization-binding-inventory-06.json",
@@ -49,7 +49,10 @@
     "service_starts": 0,
     "model_calls": 0,
     "browser_starts": 0,
-    "cleanup_proven": true
+    "cleanup_proven": true,
+    "resolved_for_readiness": true,
+    "resolution_evidence": "reports/v0-s2/resource-admission-01/receipt.json",
+    "meaning": "Readiness observation only; not a GPU reservation or product acceptance."
   },
   "stage_preparation_receipt": "reports/v0-s2/workbench-implementation-progress-01.md",
   "historical_authorization_records": [
@@ -93,7 +96,7 @@
   "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
   "live_terminal_receipt": "reports/v0-s2/full-supplemental-01/receipt.json",
   "independent_review": null,
-  "exact_stop_reason": "OFFLINE23_PASSED_READINESS_CHILD_READY",
+  "exact_stop_reason": "RESOURCE_ADMISSION_PASSED_COMPLETE_CHILD_READY",
   "native_component_authorization": "reports/v0-s2/authorization-native-component-02.json",
   "native_component_terminal_receipt": "reports/v0-s2/native-component-02/receipt.json",
   "local_control_change_decision": "reports/v0-s2/change-decision-video-workbench-01.json",
@@ -183,5 +186,6 @@
     "claimed_complete_runs": 0,
     "readiness_children": 1,
     "additional_full_rechecks": 0
-  }
+  },
+  "resource_admission_receipt": "reports/v0-s2/resource-admission-01/receipt.json"
 }
