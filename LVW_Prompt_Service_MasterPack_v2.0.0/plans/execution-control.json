@@ -8,15 +8,15 @@
   "coordinate": {
     "stage_id": "V0-S2",
     "workpack_id": "WP-S2-05",
-    "gate": "GATE4_APPROVED_SUPPLEMENTAL_NATIVE_RUNNING",
-    "state": "RUNNING"
+    "gate": "GATE4_GPU_RESOURCE_AND_FRESH_AUTH_REQUIRED",
+    "state": "WAIT_AUTH"
   },
   "last_passed_gate": {
     "id": "V0_S2_OFFLINE_CHECKPOINT_22_PASSED",
     "evidence": "reports/v0-s2/offline-checkpoint-22/receipt.json",
     "meaning": "Final approved transport/cleanup candidatea824c30 passed450 tests, all five complete offline checks and before/after source seals. No native cleanup or supplemental product run yet."
   },
-  "current_blocking_gate": "V0_S2_SUPPLEMENTAL_CLEANUP_AND_COMPLETE_NATIVE_RUN",
+  "current_blocking_gate": "V0_S2_GPU_PREFLIGHT_EXCEEDED_AND_SUPPLEMENTAL_AUTH_EXPIRED",
   "stage_packet": ".agent-governance/stages/V0-S2/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/V0-S2/PAYLOAD_MANIFEST.sha256",
   "product_status": "IN_PROGRESS",
@@ -29,10 +29,10 @@
     "PRODUCTION_RELEASED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "local_ci",
-  "next_action": "Poll original full-supplemental-01 executor3535 and its exact parent birth; preserve progress, raw terminal, redacted receipts and complete cleanup. Do not restart on observation timeout. The approved single supplemental slot is consumed; no fourth run.",
-  "required_authorization": "CURRENT_ACTIVE_APPROVED_SUPPLEMENTAL_CHILD",
-  "authorization_request": "reports/v0-s2/authorization-s2-supplemental-01.request.json",
+  "next_owner": "project_owner",
+  "next_action": "Release nonessential GPU workload under human control, then review the finite resource-ready request. No new GPU probe, native run or foreign process termination is authorized. After explicit approval only, implement its narrow readiness transport offline and reseal before any fresh child.",
+  "required_authorization": "AUTH-REQUEST-V1-S2-RESOURCE-READY-01",
+  "authorization_request": "reports/v0-s2/authorization-s2-resource-ready-01.request.json",
   "authorization_record": "reports/authorization-program-v1-local-01.json",
   "read_only_binding_authorization": "reports/v0-s2/authorization-binding-inventory-06.json",
   "cpu_decoder_authorization": "reports/v0-s2/authorization-cpu-decoder-01.json",
@@ -42,14 +42,14 @@
   "decoder_binding_decision": "reports/v0-s2/decoder-binding-decision-01.md",
   "runtime_dependency_blocker": {
     "code": "GPU_PREFLIGHT_USED_MEMORY_EXCEEDED",
-    "evidence": "reports/v0-s2/native-component-01/receipt.json",
-    "scope": "Initial native component failed prestart GPU admission. No service/model/public submission; cleanup proven and own temp absent. Native PyAV/FFmpeg compatibility remains NOT_RUN. Continue offline UI without terminating foreign workloads.",
-    "sample_bindings_collected": true,
+    "evidence": "reports/v0-s2/full-supplemental-01/receipt.json",
+    "limit_mib": 4096,
+    "observed_used_mib": null,
+    "exact_reading_not_preserved": true,
     "service_starts": 0,
-    "stage_checkpoints_consumed": 0,
-    "resolved_for_native_decoder_component": true,
-    "resolution_evidence": "reports/v0-s2/native-component-02/receipt.json",
-    "meaning": "Historical component01 GPU admission failure retained. Component02 passed native decoding on candidate2e487d0 with preflight2295MiB and runtime observation2622MiB, cleanup proven; this is not a continuing GPU reservation or native model/browser readiness."
+    "model_calls": 0,
+    "browser_starts": 0,
+    "cleanup_proven": true
   },
   "stage_preparation_receipt": "reports/v0-s2/workbench-implementation-progress-01.md",
   "historical_authorization_records": [
@@ -91,13 +91,13 @@
   },
   "historical_live_terminal_receipt": "reports/r1a/r1a-live-07/live-receipt.json",
   "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
-  "live_terminal_receipt": null,
+  "live_terminal_receipt": "reports/v0-s2/full-supplemental-01/receipt.json",
   "independent_review": null,
-  "exact_stop_reason": "APPROVED_SUPPLEMENTAL_FULL_NATIVE_EXECUTOR_IN_PROGRESS",
+  "exact_stop_reason": "SUPPLEMENTAL_NO_GO_GPU_PREFLIGHT_EXCEEDED_ALL_OWNED_ROOTS_CLEANED_GRANT_EXPIRED",
   "native_component_authorization": "reports/v0-s2/authorization-native-component-02.json",
   "native_component_terminal_receipt": "reports/v0-s2/native-component-02/receipt.json",
   "local_control_change_decision": "reports/v0-s2/change-decision-video-workbench-01.json",
-  "latest_workpack_receipt": "reports/v0-s2/offline-checkpoint-22/receipt.json",
+  "latest_workpack_receipt": "reports/v0-s2/full-supplemental-01/receipt.json",
   "warm_benchmark_blocker": "reports/v0-s2/warm-benchmark-evidence-gap-01.md",
   "warm_profile_implementation": "reports/v0-s2/warm-profile-implementation-progress-01.md",
   "warm_profile_decision": "reports/v0-s2/warm-profile-decision-01.md",
@@ -151,7 +151,9 @@
       "start_ticks": "4625261"
     },
     "verified_running_at": "2026-11-04T02:40:25.604770+00:00",
-    "restart_forbidden": true
+    "restart_forbidden": true,
+    "terminal": true,
+    "exit_code": 1
   },
   "next_stage_document_preparation": "reports/v0-s3/preparation-01.md",
   "native_checkpoint_attempts": {
@@ -170,7 +172,9 @@
     "approved_runs": 1,
     "claimed_runs": 1,
     "remaining_runs": 0,
-    "additional_rechecks": 0
+    "additional_rechecks": 0,
+    "terminal": "NO_GO"
   },
-  "supplemental_cleanup_receipt": "reports/v0-s2/supplemental-cleanup-01/receipt.json"
+  "supplemental_cleanup_receipt": "reports/v0-s2/supplemental-cleanup-01/receipt.json",
+  "supplemental_terminal_summary": "reports/v0-s2/supplemental-terminal-summary-01.md"
 }
