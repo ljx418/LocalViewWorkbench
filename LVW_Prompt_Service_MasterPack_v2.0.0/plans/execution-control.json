@@ -8,7 +8,7 @@
   "coordinate": {
     "stage_id": "V0-S2",
     "workpack_id": "WP-S2-05",
-    "gate": "GATE4_SUPPLEMENTAL_CLEANUP_CHILD_REQUIRED",
+    "gate": "GATE4_SUPPLEMENTAL_NATIVE_CHILD_READY",
     "state": "CHECKPOINT"
   },
   "last_passed_gate": {
@@ -30,8 +30,8 @@
     "TARGET_HARDWARE_TESTED"
   ],
   "next_owner": "local_ci",
-  "next_action": "Derive and claim the one cleanup-only child on final a824c30/offline22. Prove exact root adoption/archive/removal, then derive and claim the sole full-supplemental-01 child on the same candidate. No fourth run.",
-  "required_authorization": "APPROVED_SUPPLEMENTAL_SCOPE_REQUIRES_FRESH_BOUND_CHILDREN",
+  "next_action": "Cleanup is machine-proven and child expired. Prepare and execute the sole full-supplemental-01 on candidatea824c30/offline22; retain its original executor handle and all terminal/cleanup evidence. No extra full recheck.",
+  "required_authorization": "APPROVED_SUPPLEMENTAL_SCOPE_FRESH_FULL_CHILD_REQUIRED",
   "authorization_request": "reports/v0-s2/authorization-s2-supplemental-01.request.json",
   "authorization_record": "reports/authorization-program-v1-local-01.json",
   "read_only_binding_authorization": "reports/v0-s2/authorization-binding-inventory-06.json",
@@ -93,7 +93,7 @@
   "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
   "live_terminal_receipt": "reports/v0-s2/full-recheck-01/receipt.json",
   "independent_review": null,
-  "exact_stop_reason": "OFFLINE22_PASSED_APPROVED_CLEANUP_READY",
+  "exact_stop_reason": "EXACT_RETAINED_ROOT_CLEANUP_PROVEN_SUPPLEMENTAL_NATIVE_CHILD_REQUIRED",
   "native_component_authorization": "reports/v0-s2/authorization-native-component-02.json",
   "native_component_terminal_receipt": "reports/v0-s2/native-component-02/receipt.json",
   "local_control_change_decision": "reports/v0-s2/change-decision-video-workbench-01.json",
@@ -165,11 +165,12 @@
   "historical_native_terminal_receipts": [
     "reports/v0-s2/full-checkpoint-01/receipt.json"
   ],
-  "retained_root_disposition": "reports/v0-s2/junction-correction-01/retained-root-observation.json",
+  "retained_root_disposition": "reports/v0-s2/supplemental-cleanup-01/receipt.json",
   "supplemental_authorization_record": "reports/v0-s2/authorization-s2-supplemental-01.approval.json",
   "supplemental_native_budget": {
     "approved_runs": 1,
     "claimed_runs": 0,
     "additional_rechecks": 0
-  }
+  },
+  "supplemental_cleanup_receipt": "reports/v0-s2/supplemental-cleanup-01/receipt.json"
 }
