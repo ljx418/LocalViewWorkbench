@@ -7,14 +7,14 @@
   "next_delivery_target": "V0.1",
   "coordinate": {
     "stage_id": "V0-S2",
-    "workpack_id": "WP-S2-04",
-    "gate": "GATE3_RESOURCE_ADMISSION_OFFLINE_CHECKPOINT",
-    "state": "FROZEN_READY_OFFLINE"
+    "workpack_id": "WP-S2-05",
+    "gate": "GATE4_RESOURCE_ADMISSION_CHILD_REQUIRED",
+    "state": "CHECKPOINT"
   },
   "last_passed_gate": {
-    "id": "V0_S2_OFFLINE_CHECKPOINT_22_PASSED",
-    "evidence": "reports/v0-s2/offline-checkpoint-22/receipt.json",
-    "meaning": "Final approved transport/cleanup candidatea824c30 passed450 tests, all five complete offline checks and before/after source seals. No native cleanup or supplemental product run yet."
+    "id": "V0_S2_OFFLINE_CHECKPOINT_23_PASSED",
+    "evidence": "reports/v0-s2/offline-checkpoint-23/receipt.json",
+    "meaning": "Final b9fcff3 resource-admission transport passed456 tests, all five complete checks and source seals. No actual resource probe or model/service start under this grant yet."
   },
   "current_blocking_gate": "V0_S2_RESOURCE_ADMISSION_AND_COMPLETE_NATIVE_RUN",
   "stage_packet": ".agent-governance/stages/V0-S2/stage-control.json",
@@ -29,9 +29,9 @@
     "PRODUCTION_RELEASED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "codex_implementation",
-  "next_action": "Freeze approved readiness transport and run offline23. Only then derive and claim one readiness child; successful exact same-candidate readiness permits full-resource-ready-01. No new GPU/ports query before a bound child.",
-  "required_authorization": "APPROVED_RESOURCE_READY_SCOPE_FRESH_CHILDREN_REQUIRED",
+  "next_owner": "local_ci",
+  "next_action": "Derive a bound resource-admission-01 child on b9fcff3/offline23, then probe at most three samples. Only successful same-candidate admission permits the one full-resource-ready-01 child; no GPU/service query before claim.",
+  "required_authorization": "APPROVED_RESOURCE_READY_SCOPE_REQUIRES_FRESH_BOUND_CHILDREN",
   "authorization_request": "reports/v0-s2/authorization-s2-resource-ready-01.request.json",
   "authorization_record": "reports/authorization-program-v1-local-01.json",
   "read_only_binding_authorization": "reports/v0-s2/authorization-binding-inventory-06.json",
@@ -59,12 +59,12 @@
   ],
   "contract_change_request": "reports/r1a/change-request-r1a-product-controls-02.json",
   "contract_change_decision": "reports/r1a/change-decision-r1a-product-controls-02.json",
-  "implementation_candidate": "a824c30ba1aa5d8ce6423651956951053cfb9670",
+  "implementation_candidate": "b9fcff30cecec2cd1fdc8152cb406b0aad13f123",
   "implementation_baseline": "5ea725cc7182e654043183d9de581b730a585685",
   "candidate_binding_scope": "a824c30 final authorization/cleanup transport is covered by full offline22; product plugin, contracts, thresholds and fixed samples remain unchanged from approved eab273a.",
   "offline_evidence_commit": null,
-  "offline_receipt": "reports/v0-s2/offline-checkpoint-22/receipt.json",
-  "offline_candidate_sha": "a824c30ba1aa5d8ce6423651956951053cfb9670",
+  "offline_receipt": "reports/v0-s2/offline-checkpoint-23/receipt.json",
+  "offline_candidate_sha": "b9fcff30cecec2cd1fdc8152cb406b0aad13f123",
   "evidence_root": "reports/",
   "gate_decision": null,
   "human_signoff": null,
@@ -93,11 +93,11 @@
   "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
   "live_terminal_receipt": "reports/v0-s2/full-supplemental-01/receipt.json",
   "independent_review": null,
-  "exact_stop_reason": "RESOURCE_ADMISSION_IMPLEMENTATION_REQUIRES_COMPLETE_OFFLINE23",
+  "exact_stop_reason": "OFFLINE23_PASSED_READINESS_CHILD_READY",
   "native_component_authorization": "reports/v0-s2/authorization-native-component-02.json",
   "native_component_terminal_receipt": "reports/v0-s2/native-component-02/receipt.json",
   "local_control_change_decision": "reports/v0-s2/change-decision-video-workbench-01.json",
-  "latest_workpack_receipt": "reports/v0-s2/full-supplemental-01/receipt.json",
+  "latest_workpack_receipt": "reports/v0-s2/offline-checkpoint-23/receipt.json",
   "warm_benchmark_blocker": "reports/v0-s2/warm-benchmark-evidence-gap-01.md",
   "warm_profile_implementation": "reports/v0-s2/warm-profile-implementation-progress-01.md",
   "warm_profile_decision": "reports/v0-s2/warm-profile-decision-01.md",
@@ -177,5 +177,11 @@
   },
   "supplemental_cleanup_receipt": "reports/v0-s2/supplemental-cleanup-01/receipt.json",
   "supplemental_terminal_summary": "reports/v0-s2/supplemental-terminal-summary-01.md",
-  "resource_ready_authorization_record": "reports/v0-s2/authorization-s2-resource-ready-01.approval.json"
+  "resource_ready_authorization_record": "reports/v0-s2/authorization-s2-resource-ready-01.approval.json",
+  "resource_ready_run_budget": {
+    "approved_complete_runs": 1,
+    "claimed_complete_runs": 0,
+    "readiness_children": 1,
+    "additional_full_rechecks": 0
+  }
 }
