@@ -8,8 +8,8 @@
   "coordinate": {
     "stage_id": "V0-S2",
     "workpack_id": "WP-S2-05",
-    "gate": "GATE4_RESOURCE_READY_FULL_CHILD_REQUIRED",
-    "state": "CHECKPOINT"
+    "gate": "GATE4_RESOURCE_READY_FULL_NATIVE_RUNNING",
+    "state": "RUNNING"
   },
   "last_passed_gate": {
     "id": "V0_S2_OFFLINE_CHECKPOINT_23_PASSED",
@@ -30,8 +30,8 @@
     "TARGET_HARDWARE_TESTED"
   ],
   "next_owner": "local_ci",
-  "next_action": "Actual three-sample admission passed, GPU3571MiB and RAM>=5552MiB, ports/target processes empty; readiness child expired. Derive and execute the unique full-resource-ready-01 child on b9fcff3/offline23, retaining all original final preflight and runtime checks.",
-  "required_authorization": "APPROVED_RESOURCE_READY_SCOPE_FRESH_FULL_CHILD_REQUIRED",
+  "next_action": "Poll original full-resource-ready-01 executor10210 and exact parent birth. Do not restart because observation timed out. Preserve every raw/public terminal and cleanup record; original formal preflight remains mandatory after fresh binding. No additional full recheck is authorized.",
+  "required_authorization": "CURRENT_ACTIVE_RESOURCE_READY_FULL_CHILD",
   "authorization_request": "reports/v0-s2/authorization-s2-resource-ready-01.request.json",
   "authorization_record": "reports/authorization-program-v1-local-01.json",
   "read_only_binding_authorization": "reports/v0-s2/authorization-binding-inventory-06.json",
@@ -94,9 +94,9 @@
   },
   "historical_live_terminal_receipt": "reports/r1a/r1a-live-07/live-receipt.json",
   "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
-  "live_terminal_receipt": "reports/v0-s2/full-supplemental-01/receipt.json",
+  "live_terminal_receipt": null,
   "independent_review": null,
-  "exact_stop_reason": "RESOURCE_ADMISSION_PASSED_COMPLETE_CHILD_READY",
+  "exact_stop_reason": "APPROVED_RESOURCE_READY_COMPLETE_EXECUTOR_IN_PROGRESS",
   "native_component_authorization": "reports/v0-s2/authorization-native-component-02.json",
   "native_component_terminal_receipt": "reports/v0-s2/native-component-02/receipt.json",
   "local_control_change_decision": "reports/v0-s2/change-decision-video-workbench-01.json",
@@ -140,23 +140,21 @@
   "native_browser_terminal_phase_implementation": "reports/v0-s2/browser-terminal-phase-progress-01.md",
   "cumulative_stage_sequence_implementation": "reports/v0-s2/cumulative-stage-sequence-progress-01.md",
   "bound_runtime_archive_implementation": "reports/v0-s2/bound-runtime-archive-progress-01.md",
-  "live_authorization_record": "reports/v0-s2/authorization-full-supplemental-01.json",
-  "native_run_id": "full-supplemental-01",
+  "live_authorization_record": "reports/v0-s2/authorization-full-resource-ready-01.json",
+  "native_run_id": "full-resource-ready-01",
   "live_executor_handle": {
     "kind": "exec_command_session",
-    "id": 3535,
+    "id": 10210,
     "parent_birth": {
-      "pid": 783921,
+      "pid": 1553346,
       "state": "D",
       "parent": 110249,
-      "group": 783921,
-      "session": 783921,
-      "start_ticks": "4625261"
+      "group": 1553346,
+      "session": 1553346,
+      "start_ticks": "5709203"
     },
-    "verified_running_at": "2026-11-04T02:40:25.604770+00:00",
-    "restart_forbidden": true,
-    "terminal": true,
-    "exit_code": 1
+    "verified_running_at": "2026-11-04T05:41:44.777995+00:00",
+    "restart_forbidden": true
   },
   "next_stage_document_preparation": "reports/v0-s3/preparation-01.md",
   "native_checkpoint_attempts": {
@@ -167,7 +165,8 @@
   "binding_correction": "reports/v0-s2/binding-correction-01/decision.md",
   "historical_native_terminal_receipts": [
     "reports/v0-s2/full-checkpoint-01/receipt.json",
-    "reports/v0-s2/full-recheck-01/receipt.json"
+    "reports/v0-s2/full-recheck-01/receipt.json",
+    "reports/v0-s2/full-supplemental-01/receipt.json"
   ],
   "retained_root_disposition": "reports/v0-s2/supplemental-cleanup-01/receipt.json",
   "supplemental_authorization_record": "reports/v0-s2/authorization-s2-supplemental-01.approval.json",
@@ -183,7 +182,8 @@
   "resource_ready_authorization_record": "reports/v0-s2/authorization-s2-resource-ready-01.approval.json",
   "resource_ready_run_budget": {
     "approved_complete_runs": 1,
-    "claimed_complete_runs": 0,
+    "claimed_complete_runs": 1,
+    "remaining_complete_runs": 0,
     "readiness_children": 1,
     "additional_full_rechecks": 0
   },
