@@ -8,8 +8,8 @@
   "coordinate": {
     "stage_id": "V0-S2",
     "workpack_id": "WP-S2-05",
-    "gate": "GATE4_SUPPLEMENTAL_NATIVE_CHILD_READY",
-    "state": "CHECKPOINT"
+    "gate": "GATE4_APPROVED_SUPPLEMENTAL_NATIVE_RUNNING",
+    "state": "RUNNING"
   },
   "last_passed_gate": {
     "id": "V0_S2_OFFLINE_CHECKPOINT_22_PASSED",
@@ -30,8 +30,8 @@
     "TARGET_HARDWARE_TESTED"
   ],
   "next_owner": "local_ci",
-  "next_action": "Cleanup is machine-proven and child expired. Prepare and execute the sole full-supplemental-01 on candidatea824c30/offline22; retain its original executor handle and all terminal/cleanup evidence. No extra full recheck.",
-  "required_authorization": "APPROVED_SUPPLEMENTAL_SCOPE_FRESH_FULL_CHILD_REQUIRED",
+  "next_action": "Poll original full-supplemental-01 executor3535 and its exact parent birth; preserve progress, raw terminal, redacted receipts and complete cleanup. Do not restart on observation timeout. The approved single supplemental slot is consumed; no fourth run.",
+  "required_authorization": "CURRENT_ACTIVE_APPROVED_SUPPLEMENTAL_CHILD",
   "authorization_request": "reports/v0-s2/authorization-s2-supplemental-01.request.json",
   "authorization_record": "reports/authorization-program-v1-local-01.json",
   "read_only_binding_authorization": "reports/v0-s2/authorization-binding-inventory-06.json",
@@ -91,9 +91,9 @@
   },
   "historical_live_terminal_receipt": "reports/r1a/r1a-live-07/live-receipt.json",
   "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
-  "live_terminal_receipt": "reports/v0-s2/full-recheck-01/receipt.json",
+  "live_terminal_receipt": null,
   "independent_review": null,
-  "exact_stop_reason": "EXACT_RETAINED_ROOT_CLEANUP_PROVEN_SUPPLEMENTAL_NATIVE_CHILD_REQUIRED",
+  "exact_stop_reason": "APPROVED_SUPPLEMENTAL_FULL_NATIVE_EXECUTOR_IN_PROGRESS",
   "native_component_authorization": "reports/v0-s2/authorization-native-component-02.json",
   "native_component_terminal_receipt": "reports/v0-s2/native-component-02/receipt.json",
   "local_control_change_decision": "reports/v0-s2/change-decision-video-workbench-01.json",
@@ -137,23 +137,21 @@
   "native_browser_terminal_phase_implementation": "reports/v0-s2/browser-terminal-phase-progress-01.md",
   "cumulative_stage_sequence_implementation": "reports/v0-s2/cumulative-stage-sequence-progress-01.md",
   "bound_runtime_archive_implementation": "reports/v0-s2/bound-runtime-archive-progress-01.md",
-  "live_authorization_record": "reports/v0-s2/authorization-full-recheck-01.json",
-  "native_run_id": "full-recheck-01",
+  "live_authorization_record": "reports/v0-s2/authorization-full-supplemental-01.json",
+  "native_run_id": "full-supplemental-01",
   "live_executor_handle": {
     "kind": "exec_command_session",
-    "id": 98629,
-    "verified_running_at": "2026-11-03T22:28:49.581063+00:00",
+    "id": 3535,
     "parent_birth": {
-      "pid": 47866,
+      "pid": 783921,
       "state": "D",
       "parent": 110249,
-      "group": 47866,
-      "session": 47866,
-      "start_ticks": "3086273"
+      "group": 783921,
+      "session": 783921,
+      "start_ticks": "4625261"
     },
-    "restart_forbidden": true,
-    "terminal": true,
-    "exit_code": 1
+    "verified_running_at": "2026-11-04T02:40:25.604770+00:00",
+    "restart_forbidden": true
   },
   "next_stage_document_preparation": "reports/v0-s3/preparation-01.md",
   "native_checkpoint_attempts": {
@@ -163,13 +161,15 @@
   },
   "binding_correction": "reports/v0-s2/binding-correction-01/decision.md",
   "historical_native_terminal_receipts": [
-    "reports/v0-s2/full-checkpoint-01/receipt.json"
+    "reports/v0-s2/full-checkpoint-01/receipt.json",
+    "reports/v0-s2/full-recheck-01/receipt.json"
   ],
   "retained_root_disposition": "reports/v0-s2/supplemental-cleanup-01/receipt.json",
   "supplemental_authorization_record": "reports/v0-s2/authorization-s2-supplemental-01.approval.json",
   "supplemental_native_budget": {
     "approved_runs": 1,
-    "claimed_runs": 0,
+    "claimed_runs": 1,
+    "remaining_runs": 0,
     "additional_rechecks": 0
   },
   "supplemental_cleanup_receipt": "reports/v0-s2/supplemental-cleanup-01/receipt.json"
