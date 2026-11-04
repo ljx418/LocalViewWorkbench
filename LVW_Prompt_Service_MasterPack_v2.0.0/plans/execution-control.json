@@ -7,9 +7,9 @@
   "next_delivery_target": "V0.1",
   "coordinate": {
     "stage_id": "V0-S2",
-    "workpack_id": "WP-S2-05",
-    "gate": "GATE4_SUPPLEMENTAL_AUTH_REQUIRED",
-    "state": "WAIT_AUTH"
+    "workpack_id": "WP-S2-04",
+    "gate": "GATE3_SUPPLEMENTAL_OFFLINE_CHECKPOINT",
+    "state": "FROZEN_READY_OFFLINE"
   },
   "last_passed_gate": {
     "id": "V0_S2_OFFLINE_CHECKPOINT_21_PASSED",
@@ -29,9 +29,9 @@
     "PRODUCTION_RELEASED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "project_owner",
-  "next_action": "Review the concrete AUTH-REQUEST-V1-S2-SUPPLEMENTAL-01 request. No native third slot or retained-root adoption/deletion before explicit approval. If approved, implement only its bounded authorization/cleanup transport offline, seal final candidate and recheck changed execution bytes before issuing the unique supplemental child.",
-  "required_authorization": "AUTH-REQUEST-V1-S2-SUPPLEMENTAL-01",
+  "next_owner": "codex_implementation",
+  "next_action": "Freeze the approved transport/cleanup implementation and run full offline22; then claim the exact cleanup child. Only proven cleanup may enable one full-supplemental-01 child on the same final candidate. Do not reset or reuse old slots.",
+  "required_authorization": "APPROVED_SUPPLEMENTAL_SCOPE_FRESH_CHILDREN_REQUIRED",
   "authorization_request": "reports/v0-s2/authorization-s2-supplemental-01.request.json",
   "authorization_record": "reports/authorization-program-v1-local-01.json",
   "read_only_binding_authorization": "reports/v0-s2/authorization-binding-inventory-06.json",
@@ -93,7 +93,7 @@
   "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
   "live_terminal_receipt": "reports/v0-s2/full-recheck-01/receipt.json",
   "independent_review": null,
-  "exact_stop_reason": "STAGE_FULL_CHECKPOINT_AND_RECHECK_BUDGET_EXHAUSTED_AFTER_OFFLINE_FIXES",
+  "exact_stop_reason": "APPROVED_TRANSPORT_AND_CLEANUP_REQUIRE_FULL_OFFLINE22",
   "native_component_authorization": "reports/v0-s2/authorization-native-component-02.json",
   "native_component_terminal_receipt": "reports/v0-s2/native-component-02/receipt.json",
   "local_control_change_decision": "reports/v0-s2/change-decision-video-workbench-01.json",
@@ -165,5 +165,11 @@
   "historical_native_terminal_receipts": [
     "reports/v0-s2/full-checkpoint-01/receipt.json"
   ],
-  "retained_root_disposition": "reports/v0-s2/junction-correction-01/retained-root-observation.json"
+  "retained_root_disposition": "reports/v0-s2/junction-correction-01/retained-root-observation.json",
+  "supplemental_authorization_record": "reports/v0-s2/authorization-s2-supplemental-01.approval.json",
+  "supplemental_native_budget": {
+    "approved_runs": 1,
+    "claimed_runs": 0,
+    "additional_rechecks": 0
+  }
 }

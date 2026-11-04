@@ -81,3 +81,21 @@ R1a 人工体验签署存在；合同、FFmpeg、Comfy、Ollama、样本和 owne
 ## NTFS 文件身份精度纠正（1.0.29）
 
 见 reports/v0-s2/lossless-native-identity-decision-01.md。实际仓库 NTFS inode 已超过 JavaScript 安全整数，原生浏览器 profile 采用 BigInt 读取和十进制字符串传递，父端按 uint64 无损复核。离线修正后只允许显式替换尚未认领、未执行的子授权，保留旧字节和过期记录并使用新授权身份；已认领/终态槽位绝不能重置。须新整包门禁覆盖修正代码后再绑定；真实 checkpoint/recheck 分母和预算不变。
+
+
+## 1.0.30｜明确批准的单槽补充与残留根接管
+
+项目负责人批准 AUTH-REQUEST-V1-S2-SUPPLEMENTAL-01；精确请求与独立批准记录见 reports/v0-s2/authorization-s2-supplemental-01.{request,approval}.json。原母授权每Stage一次checkpoint＋一次复验计数不改，两个旧槽均保持消耗，仅此明确批准的 full-supplemental-01 可额外完整运行一次，无补充复验或第四槽。
+
+先完成受限授权／清理工具的离线实现及完整检查，冻结 final candidate，再生成 supplemental-cleanup-01 一次性子授权。仅接管批准的当前 device/inode，不恢复／伪造缺失的原始 lease；拒绝未知内容，校验原生 Junction 指向本根 outside-input，归档诊断，非递归删除链接，删除已核实文件树。禁止新testSource读取、模型、GPU、服务、浏览器和进程终止；原生命令最多4次、链接删除最多1次。清理成功并封存原始与脱敏终态后，才能生成 full-supplemental-01 的候选／Harness／样本／端口／进程／预算绑定子授权。两种子运行均为原子一次性认领，失败不得重启或改名重试。
+
+命令（所有 prepare 均只读仓库证据）：
+
+```bash
+python3 -B -m tools.v0_s2_supplemental prepare-cleanup --candidate <FINAL_SHA> --offline-receipt reports/v0-s2/offline-checkpoint-22/receipt.json
+python3 -B -m tools.v0_s2_supplemental cleanup
+python3 -B -m tools.v0_s2_stage_checkpoint prepare --slot full-supplemental-01 --candidate <FINAL_SHA> --offline-receipt reports/v0-s2/offline-checkpoint-22/receipt.json
+python3 -B -m tools.v0_s2_stage_checkpoint execute --slot full-supplemental-01 --execute-native-checkpoint
+```
+
+完整运行沿用65公开提交／83 Provider调用／20预加载／2次Comfy与Ollama启动／1次headless及其它原预算、固定四项和累计九项、全部失败和清理阈值。授权撤销或变化拒绝新工作；保留原有已归属清理权限。清理失败、出现不明内容或完整补充终态后，额外授权自动失效。机器结果不签署Stage、人类体验或V1发布。
