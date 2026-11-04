@@ -79,7 +79,7 @@ class StageSequence:
         if (root['pid'], root['start_ticks']) != (context.binding['ollama_pid'], context.binding['ollama_start_ticks']):
             raise EvidenceError('Stage bound model root changed')
 
-    def close(self, context, result, name, *, preserve=False):
+    def close(self, context, result, name, *, preserve=False, complete=False):
         if any(known is context for known, _ in self.closed):
             return next(passed for known, passed in self.closed if known is context)
         passed = False
@@ -97,7 +97,12 @@ class StageSequence:
             # succeeded. A last-sample failure can occur after the final phase
             # observation; its terminal receipt must still block the sequence.
             workers = cleanup.get('sampler_workers', [])
-            if (len(workers) != (2 if name == 'default' else 1)
+            # Default runtime starts one sampler; the second is registered at
+            # browser handoff. Early failure still requires every registered
+            # worker to terminate, without pretending that handoff took place.
+            registered = len(context.driver.workers)
+            if (len(workers) != registered or not 1 <= registered <= (2 if name == 'default' else 1)
+                    or (complete and registered != (2 if name == 'default' else 1))
                     or any(worker.get('wrapper_exit_code') != 0
                         or worker.get('receipt', {}).get('decision') != 'RESOURCE_TRACE_COLLECTED_NOT_STAGE_ACCEPTANCE'
                         or worker.get('receipt', {}).get('owned_gpu_query_exited') is not True for worker in workers)
@@ -148,7 +153,7 @@ class StageSequence:
             # 24 cumulative +15 public +2 UI +2 cancel +2 fault/quarantine.
             if default.driver.submissions != 45: raise EvidenceError('Stage default submission denominator')
             old_root = default.root; old_binding = dict(default.binding)
-            if not self.close(default, result, 'default'): raise EvidenceError('Stage default closure failed')
+            if not self.close(default, result, 'default', complete=True): raise EvidenceError('Stage default closure failed')
             default = None
             self.authorize('prepare_fresh_warm_runtime', self.run_id)
             warm = self.prepare_warm(); self.context(warm, True)
@@ -160,7 +165,7 @@ class StageSequence:
                 samples=warm.samples, authorize=self.authorize).run(); result['phases']['warm'] = hot
             self.phase(hot, 'WARM_PHASE_VERIFIED_NOT_STAGE_ACCEPTANCE', [c for c, _ in WARM])
             if warm.driver.submissions != 20: raise EvidenceError('Stage warm submission denominator')
-            if not self.close(warm, result, 'warm'): raise EvidenceError('Stage warm closure failed')
+            if not self.close(warm, result, 'warm', complete=True): raise EvidenceError('Stage warm closure failed')
             warm = None
             result['cases'] = dict.fromkeys(result['cases'], 'PASS')
             result['decision'] = 'MACHINE_SEQUENCE_COMPLETE_REQUIRES_INDEPENDENT_REVIEW_AND_HUMAN_SIGNOFF'

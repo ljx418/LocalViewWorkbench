@@ -143,7 +143,11 @@ class CumulativePhase:
         if self.plain(self.root/'output/lvw_manual/s2-a03.json') != texts[1][1].encode() or self.plain(self.root/'output/lvw_manual/s2-a03.txt') != texts[2][1].encode():
             raise EvidenceError('cumulative persisted export differs')
         last = self.provider('online-after')
-        if last != after: raise EvidenceError('cumulative view switch made provider call')
+        # Unload/inventory requests also append Provider logs. Preserve the
+        # authenticated prefix and recompute chat counts, rather than requiring
+        # byte-identical logs after physical model release.
+        if not last['raw_log'].startswith(after['raw_log']) or count(last) != count(after):
+            raise EvidenceError('cumulative view switch made provider call or log changed')
         self.cases[self.active] = {'status': 'PASS', 'four_outputs_preserved': True, 'extra_provider_calls': 0}
 
     def offline_cases(self):
@@ -192,7 +196,9 @@ class CumulativePhase:
                 or any(value['draft'][k] != ([] if k == 'tags' else '') for k in empty)
                 or self.plain(self.root/'output/lvw_manual/s2-a08-empty.json') != result[1].encode()):
             raise EvidenceError('cumulative empty/no-model contract changed')
-        if self.provider('offline-after') != before: raise EvidenceError('cumulative offline path invoked model')
+        after = self.provider('offline-after')
+        if not after['raw_log'].startswith(before['raw_log']) or count(after) != count(before):
+            raise EvidenceError('cumulative offline path invoked model or log changed')
         self.cases[self.active] = {'status': 'PASS', 'manual_contract_preserved': True, 'extra_provider_calls': 0}
 
     def run(self, segment):

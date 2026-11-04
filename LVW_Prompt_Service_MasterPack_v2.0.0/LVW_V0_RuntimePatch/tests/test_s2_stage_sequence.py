@@ -16,6 +16,7 @@ class SequenceTests(unittest.TestCase):
         self.root = Path(temporary.name).resolve(); self.events = []; self.contexts = []
         self.cleanup_proven = True; self.browser_failure = None; self.warm_override = None
         self.sampler_failure = False
+        self.online_failure = False; self.missing_handoff = False
         self.public_mutation = lambda value: value
         for name, replacement in (('CumulativePhase', self.cumulative), ('PublicPhase', self.public),
                 ('WarmPhase', self.warm), ('run_browser_phase', self.browser),
@@ -32,13 +33,13 @@ class SequenceTests(unittest.TestCase):
         name = 'warm' if warm else 'default'; self.events.append('prepare-'+name)
         root = self.root/name; root.mkdir()
         birth = {'pid': 30 if warm else 20, 'start_ticks': 100}
-        driver = SimpleNamespace(submissions=0, warm_benchmark=warm,
+        driver = SimpleNamespace(submissions=0, warm_benchmark=warm, workers=[object()],
             owned_listener_birth=lambda port: dict(birth))
         def cleanup():
             self.events.append('cleanup-'+name)
             return {'proven': self.cleanup_proven, 'sampler_workers': [dict(wrapper_exit_code=0,
                 receipt=dict(decision='NO_GO' if self.sampler_failure else 'RESOURCE_TRACE_COLLECTED_NOT_STAGE_ACCEPTANCE',
-                    owned_gpu_query_exited=True)) for _ in range(1 if warm else 2)]}
+                    owned_gpu_query_exited=True)) for _ in driver.workers]}
         driver.cleanup = cleanup
         binding = self.result('binding'); binding.update(ollama_pid=birth['pid'], ollama_start_ticks=100, model_digest='c'*64)
         common = dict(driver=driver, root=root, binding=binding)
@@ -67,6 +68,7 @@ class SequenceTests(unittest.TestCase):
     def cumulative(self, driver, *args, **kwargs):
         def run(segment):
             self.events.append('cumulative-'+segment); driver.submissions += 4 if segment == 'online' else 20
+            if segment == 'online' and self.online_failure: return self.result('NO_GO')
             return self.result('ONLINE_CUMULATIVE_VERIFIED_OFFLINE_PENDING' if segment == 'online'
                 else 'CUMULATIVE_PHASE_VERIFIED_NOT_STAGE_ACCEPTANCE', None if segment == 'online' else sequence.CUMULATIVE)
         return SimpleNamespace(run=run)
@@ -80,6 +82,7 @@ class SequenceTests(unittest.TestCase):
     def browser(self, driver, **kwargs):
         self.events.append('browser')
         if self.browser_failure == 'interrupt': raise KeyboardInterrupt()
+        if not self.missing_handoff: driver.workers.append(object())
         driver.submissions += 6
         return {**self.result('BROWSER_COMPONENT_VERIFIED_NOT_STAGE_ACCEPTANCE'),
             'browser_cleanup_proven': self.browser_failure != 'cleanup', 'callbacks_pending': 0}
@@ -151,6 +154,31 @@ class SequenceTests(unittest.TestCase):
         self.assertEqual('NO_GO', result['decision']); self.assertEqual(0, result['test_counts']['PASS'])
         self.assertIn('archive-default', self.events); self.assertNotIn('prepare-warm', self.events)
         self.assertEqual(1, self.events.count('cleanup-default'))
+
+    def test_early_online_failure_closes_one_registered_sampler_without_false_cleanup_failure(self):
+        self.online_failure = True
+        result = self.parent().run()
+        self.assertEqual('NO_GO', result['decision']); self.assertEqual(0, result['test_counts']['PASS'])
+        self.assertNotIn('default_cleanup_error', result)
+        self.assertEqual(1, len(result['default_cleanup']['sampler_workers']))
+        self.assertIn('archive-default', self.events); self.assertNotIn('prepare-warm', self.events)
+
+    def test_missing_handoff_still_blocks_completed_default_phase(self):
+        self.missing_handoff = True
+        result = self.parent().run()
+        self.assertEqual('NO_GO', result['decision']); self.assertIn('default_cleanup_error', result)
+        self.assertNotIn('prepare-warm', self.events)
+
+    def test_early_sampler_failure_and_abort_remain_blocking(self):
+        for failure in ('receipt', 'abort', 'missing-receipt'):
+            with self.subTest(failure=failure):
+                context = self.context(False); result = {}
+                if failure == 'receipt': self.sampler_failure = True
+                elif failure == 'abort': context.driver.resource_abort_latched = True
+                else: context.driver.cleanup = lambda: dict(proven=True, sampler_workers=[])
+                self.assertFalse(self.parent().close(context, result, 'default'))
+                self.assertIn('default_cleanup_error', result)
+                self.sampler_failure = False
 
 
 if __name__ == '__main__': unittest.main()

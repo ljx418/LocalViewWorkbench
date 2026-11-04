@@ -43,7 +43,21 @@ class Native:
         self.image = nodes.LVWControlledImageInput(owner=ControlledImageOwner(root/'input'))
         self.bridge = nodes.LVWImagePromptBridge(transport=self.transport, encoder=lambda frame: 'synthetic-encoded-image')
     def owned_listener_birth(self, port): return {'pid': 99 if self.failure == 'root' else 20, 'start_ticks': 100}
-    def chat_log_snapshot(self): return prefix(self.transport.calls+(1 if self.failure == 'extra-call' and self.submissions > 1 else 0))
+    def chat_log_snapshot(self):
+        value = prefix(self.transport.calls+(1 if self.failure == 'extra-call' and self.submissions > 1 else 0))
+        if self.failure in ('status-logs', 'changed-prefix', 'forged-count'):
+            raw = value['raw_log']
+            # Synthetic control traffic, mirroring the real unload/inventory
+            # append observed in full-resource-ready-01; no model is invoked.
+            if self.submissions:
+                raw += '[GIN] POST "/api/generate"\n[GIN] GET "/api/ps"\n'
+            if self.submissions > 1:
+                raw += '[GIN] GET "/api/ps"\n'
+                if self.failure == 'changed-prefix': raw = 'rewritten\n'+raw
+            value.update(raw_log=raw, source_log_bytes=len(raw.encode()),
+                source_log_sha256=hashlib.sha256(raw.encode()).hexdigest())
+            if self.failure == 'forged-count' and self.submissions > 1: value['chat_calls'] += 1
+        return value
     def release_preload(self, binding, worker):
         return {'proven': True, 'loaded_models': 0, 'elapsed_seconds': 3,
             'gpu_samples': [{'monotonic_seconds': i, 'gpu_used_mib': 1124} for i in range(3)]}
@@ -114,13 +128,51 @@ class CumulativeTests(unittest.TestCase):
             with self.assertRaises(EvidenceError): phase.run('offline')
 
     def test_wrong_history_export_and_extra_model_call_keep_full_denominator_no_go(self):
-        for failure in ('history', 'export-bytes', 'extra-call'):
+        for failure in ('history', 'export-bytes', 'extra-call', 'changed-prefix', 'forged-count'):
             with self.subTest(failure=failure), tempfile.TemporaryDirectory() as directory:
                 phase, driver = self.prepare(Path(directory), failure)
                 result = phase.run('online'); self.assertEqual('NO_GO', result['decision'])
                 self.assertEqual(5, len(result['cases'])); self.assertEqual(1, result['test_counts']['FAIL'])
                 self.assertLessEqual(driver.submissions, 4)
                 with self.assertRaises(EvidenceError): phase.run('offline')
+
+    def test_unload_and_inventory_log_growth_preserves_one_visual_call_and_all_cases(self):
+        with tempfile.TemporaryDirectory() as directory:
+            phase, driver = self.prepare(Path(directory), 'status-logs')
+            online = phase.run('online')
+            self.assertEqual('ONLINE_CUMULATIVE_VERIFIED_OFFLINE_PENDING', online['decision'], online)
+            before = json.loads((phase.directory/'image-after.json').read_text())
+            after = json.loads((phase.directory/'online-after.json').read_text())
+            self.assertNotEqual(before, after)
+            self.assertTrue(after['raw_log'].startswith(before['raw_log']))
+            self.assertEqual(1, before['chat_calls']); self.assertEqual(1, after['chat_calls'])
+            driver.stop_fixture(); result = phase.run('offline')
+            self.assertEqual('CUMULATIVE_PHASE_VERIFIED_NOT_STAGE_ACCEPTANCE', result['decision'], result)
+            self.assertEqual(1, driver.transport.calls); self.assertEqual(24, driver.submissions)
+
+    def test_offline_appends_allow_status_but_reject_chat_and_rewritten_prefix(self):
+        for change in ('status', 'chat', 'rewrite'):
+            with self.subTest(change=change), tempfile.TemporaryDirectory() as directory:
+                phase, driver = self.prepare(Path(directory))
+                self.assertEqual('ONLINE_CUMULATIVE_VERIFIED_OFFLINE_PENDING', phase.run('online')['decision'])
+                driver.stop_fixture(); snapshot = driver.chat_log_snapshot
+                def appended():
+                    value = snapshot()
+                    if driver.submissions > 4:
+                        raw = value['raw_log']+('[GIN] POST "/api/chat"\n' if change == 'chat' else '[GIN] GET "/api/ps"\n')
+                        if change == 'rewrite': raw = 'replacement\n'+raw
+                        value.update(raw_log=raw, source_log_bytes=len(raw.encode()),
+                            source_log_sha256=hashlib.sha256(raw.encode()).hexdigest(),
+                            chat_calls=value['chat_calls']+(change == 'chat'))
+                    return value
+                driver.chat_log_snapshot = appended
+                result = phase.run('offline')
+                if change == 'status':
+                    self.assertEqual('CUMULATIVE_PHASE_VERIFIED_NOT_STAGE_ACCEPTANCE', result['decision'], result)
+                else:
+                    self.assertEqual('NO_GO', result['decision'])
+                    self.assertEqual('FAIL', result['cases']['V0-A08']['status'])
+                    self.assertEqual(5, result['test_counts']['fixed'])
 
     def test_offline_requires_actual_stop_and_original_peer_before_more_submissions(self):
         for failure in ('stop', 'peer'):

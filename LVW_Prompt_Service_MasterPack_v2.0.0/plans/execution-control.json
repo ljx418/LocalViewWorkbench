@@ -30,7 +30,7 @@
     "TARGET_HARDWARE_TESTED"
   ],
   "next_owner": "Codex",
-  "next_action": "Correct cumulative append-only Provider-log oracle and phase-aware sampler closure; run offline regression. No new native run authorized.",
+  "next_action": "Seal oracle correction candidate and execute offline-checkpoint-24; real run budget remains zero.",
   "required_authorization": "NONE_FOR_OFFLINE_CORRECTION_NEW_EXPLICIT_GRANT_FOR_NATIVE_RETRY",
   "authorization_request": "reports/v0-s2/authorization-s2-resource-ready-01.request.json",
   "authorization_record": "reports/authorization-program-v1-local-01.json",
@@ -64,7 +64,7 @@
   "contract_change_decision": "reports/r1a/change-decision-r1a-product-controls-02.json",
   "implementation_candidate": "b9fcff30cecec2cd1fdc8152cb406b0aad13f123",
   "implementation_baseline": "5ea725cc7182e654043183d9de581b730a585685",
-  "candidate_binding_scope": "a824c30 final authorization/cleanup transport is covered by full offline22; product plugin, contracts, thresholds and fixed samples remain unchanged from approved eab273a.",
+  "candidate_binding_scope": "S2 oracle correction only: append-only Provider logs and registered sampler closure. Frozen product contracts, thresholds and denominator unchanged.",
   "offline_evidence_commit": null,
   "offline_receipt": "reports/v0-s2/offline-checkpoint-23/receipt.json",
   "offline_candidate_sha": "b9fcff30cecec2cd1fdc8152cb406b0aad13f123",
@@ -100,7 +100,7 @@
   "native_component_authorization": "reports/v0-s2/authorization-native-component-02.json",
   "native_component_terminal_receipt": "reports/v0-s2/native-component-02/receipt.json",
   "local_control_change_decision": "reports/v0-s2/change-decision-video-workbench-01.json",
-  "latest_workpack_receipt": "reports/v0-s2/offline-checkpoint-23/receipt.json",
+  "latest_workpack_receipt": "reports/v0-s2/resource-ready-oracle-correction-01.md",
   "warm_benchmark_blocker": "reports/v0-s2/warm-benchmark-evidence-gap-01.md",
   "warm_profile_implementation": "reports/v0-s2/warm-profile-implementation-progress-01.md",
   "warm_profile_decision": "reports/v0-s2/warm-profile-decision-01.md",
@@ -190,5 +190,6 @@
     "additional_full_rechecks": 0,
     "terminal": "NO_GO"
   },
-  "resource_admission_receipt": "reports/v0-s2/resource-admission-01/receipt.json"
+  "resource_admission_receipt": "reports/v0-s2/resource-admission-01/receipt.json",
+  "failure_fact_recomputation": "reports/v0-s2/resource-ready-failure-facts-01.json"
 }
