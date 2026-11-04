@@ -8,15 +8,15 @@
   "coordinate": {
     "stage_id": "V0-S2",
     "workpack_id": "WP-S2-05",
-    "gate": "GATE4_RESOURCE_READY_FULL_NATIVE_RUNNING",
-    "state": "RUNNING"
+    "gate": "GATE4_NO_GO_OFFLINE_CORRECTION",
+    "state": "CHANGES_REQUIRED"
   },
   "last_passed_gate": {
     "id": "V0_S2_OFFLINE_CHECKPOINT_23_PASSED",
     "evidence": "reports/v0-s2/offline-checkpoint-23/receipt.json",
-    "meaning": "Final b9fcff3 resource-admission transport passed456 tests, all five complete checks and source seals. No actual resource probe or model/service start under this grant yet."
+    "meaning": "Candidate b9fcff3 passed456 offline tests and all five checks. Later native run failed cumulative log oracle; offline PASS is not Stage acceptance."
   },
-  "current_blocking_gate": "V0_S2_RESOURCE_ADMISSION_AND_COMPLETE_NATIVE_RUN",
+  "current_blocking_gate": "V0_S2_FULL_NATIVE_CUMULATIVE_ORACLE_CORRECTION",
   "stage_packet": ".agent-governance/stages/V0-S2/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/V0-S2/PAYLOAD_MANIFEST.sha256",
   "product_status": "IN_PROGRESS",
@@ -29,9 +29,9 @@
     "PRODUCTION_RELEASED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "local_ci",
-  "next_action": "Poll original full-resource-ready-01 executor10210 and exact parent birth. Do not restart because observation timed out. Preserve every raw/public terminal and cleanup record; original formal preflight remains mandatory after fresh binding. No additional full recheck is authorized.",
-  "required_authorization": "CURRENT_ACTIVE_RESOURCE_READY_FULL_CHILD",
+  "next_owner": "Codex",
+  "next_action": "Correct cumulative append-only Provider-log oracle and phase-aware sampler closure; run offline regression. No new native run authorized.",
+  "required_authorization": "NONE_FOR_OFFLINE_CORRECTION_NEW_EXPLICIT_GRANT_FOR_NATIVE_RETRY",
   "authorization_request": "reports/v0-s2/authorization-s2-resource-ready-01.request.json",
   "authorization_record": "reports/authorization-program-v1-local-01.json",
   "read_only_binding_authorization": "reports/v0-s2/authorization-binding-inventory-06.json",
@@ -94,9 +94,9 @@
   },
   "historical_live_terminal_receipt": "reports/r1a/r1a-live-07/live-receipt.json",
   "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
-  "live_terminal_receipt": null,
+  "live_terminal_receipt": "reports/v0-s2/full-resource-ready-01/receipt.json",
   "independent_review": null,
-  "exact_stop_reason": "APPROVED_RESOURCE_READY_COMPLETE_EXECUTOR_IN_PROGRESS",
+  "exact_stop_reason": "RESOURCE_READY_RUN_TERMINAL_NO_GO_CUMULATIVE_LOG_ORACLE",
   "native_component_authorization": "reports/v0-s2/authorization-native-component-02.json",
   "native_component_terminal_receipt": "reports/v0-s2/native-component-02/receipt.json",
   "local_control_change_decision": "reports/v0-s2/change-decision-video-workbench-01.json",
@@ -154,7 +154,9 @@
       "start_ticks": "5709203"
     },
     "verified_running_at": "2026-11-04T05:41:44.777995+00:00",
-    "restart_forbidden": true
+    "restart_forbidden": true,
+    "terminal": true,
+    "exit_code": 1
   },
   "next_stage_document_preparation": "reports/v0-s3/preparation-01.md",
   "native_checkpoint_attempts": {
@@ -185,7 +187,8 @@
     "claimed_complete_runs": 1,
     "remaining_complete_runs": 0,
     "readiness_children": 1,
-    "additional_full_rechecks": 0
+    "additional_full_rechecks": 0,
+    "terminal": "NO_GO"
   },
   "resource_admission_receipt": "reports/v0-s2/resource-admission-01/receipt.json"
 }
