@@ -33,6 +33,7 @@ from tools.v0_s2_seal import seal_candidate
 from tools.v0_s2_driver import base
 
 from tools import v0_s2_supplemental as supplemental
+from tools import v0_s2_resource_admission as resource_admission
 
 HARNESS = 'tools/v0_s2_stage_checkpoint.py'
 PROGRAM = 'reports/authorization-program-v1-local-01.json'
@@ -50,7 +51,7 @@ SOURCE_PAYLOAD = ['tools', 'LVW_V0_RuntimePatch', 'contracts', 'config',
     'reports/v0-s1/stage-checkpoint-phase-a/checkpoint.py', 'reports/v0-s1/wp-s1-03-phase-a/live_probe.py',
     'reports/v0-s2/frozen-structural-inputs-02.json', 'reports/v0-s2/fixture-preparation-02',
     'reports/v0-s2/authorization-fixtures-02.json', 'reports/v0-s2/offline-checkpoint-10/receipt.json',
-    PROGRAM, supplemental.REQUEST, supplemental.APPROVAL, *SEEDS.values()]
+    PROGRAM, supplemental.REQUEST, supplemental.APPROVAL, resource_admission.REQUEST, resource_admission.APPROVAL, *SEEDS.values()]
 BUDGET = {'stage_checkpoints': 1, 'public_submissions': 65, 'default_public_submissions': 45,
     'warm_public_submissions': 20, 'provider_calls': 83, 'comfy_starts': 2, 'ollama_starts': 2,
     'browser_starts': 1, 'warm_preloads': 20, 'loopback_requests_per_runtime': 8192,
@@ -134,7 +135,7 @@ def program_authority():
 
 
 def child_path(slot):
-    if slot not in ('full-checkpoint-01', 'full-recheck-01', supplemental.SLOT): raise EvidenceError('WAIT_AUTH: no further Stage slot')
+    if slot not in ('full-checkpoint-01', 'full-recheck-01', supplemental.SLOT, resource_admission.SLOT): raise EvidenceError('WAIT_AUTH: no further Stage slot')
     return ROOT/'reports/v0-s2'/('authorization-'+slot+'.json')
 
 
@@ -154,6 +155,8 @@ def slot_guard(slot):
 
 def slot_authority(slot, candidate):
     child_path(slot)
+    if slot == resource_admission.SLOT:
+        return resource_admission.authority(candidate, require_ready=True)
     if slot == supplemental.SLOT:
         return supplemental.authority(candidate, require_cleanup=True)
     if slot == 'full-checkpoint-01':
@@ -206,6 +209,8 @@ def prepare(slot, candidate, offline_relative, *, replace_unclaimed=False):
         'cleanup_policy': 'reprove original owned births; reserved terminal cleanup/archive even after expiry; never terminate foreign or reused PIDs; preserve uncertain roots; expire this child after terminal receipt',
         'forbidden': list(FORBIDDEN),
         'stage_pass_claim': False, 'external_cost': 0}
+    if additional_authority and 'expires_at' in additional_authority:
+        auth['expires_at'] = min(auth['expires_at'], additional_authority['expires_at'])
     auth['supplemental_authorization'] = additional_authority
     auth['previous_unclaimed_authorization_sha256'] = hashlib.sha256(previous_raw).hexdigest() if previous_raw is not None else None
     if previous_raw is None: write_new(path, auth)
@@ -243,7 +248,8 @@ class ChildLease:
                     raise EvidenceError('child changed, revoked or expired; new work denied')
             if action not in RESERVED and self.auth.get('supplemental_authorization'):
                 refs = self.auth['supplemental_authorization']
-                if (file_hash(ROOT/refs['approval']) != refs['approval_sha256']
+                if (time.time() >= refs.get('expires_at', self.auth['expires_at'])
+                        or file_hash(ROOT/refs['approval']) != refs['approval_sha256']
                         or file_hash(ROOT/refs['request']) != refs['request_sha256']):
                     raise EvidenceError('supplemental authority revoked or changed')
             self.actions += 1
@@ -567,10 +573,10 @@ def execute(slot):
 
 def main():
     parser = argparse.ArgumentParser(); commands = parser.add_subparsers(dest='command', required=True)
-    ready = commands.add_parser('prepare'); ready.add_argument('--slot', required=True, choices=('full-checkpoint-01', 'full-recheck-01', supplemental.SLOT))
+    ready = commands.add_parser('prepare'); ready.add_argument('--slot', required=True, choices=('full-checkpoint-01', 'full-recheck-01', supplemental.SLOT, resource_admission.SLOT))
     ready.add_argument('--candidate', required=True); ready.add_argument('--offline-receipt', required=True)
     ready.add_argument('--replace-unclaimed', action='store_true')
-    run = commands.add_parser('execute'); run.add_argument('--slot', required=True, choices=('full-checkpoint-01', 'full-recheck-01', supplemental.SLOT))
+    run = commands.add_parser('execute'); run.add_argument('--slot', required=True, choices=('full-checkpoint-01', 'full-recheck-01', supplemental.SLOT, resource_admission.SLOT))
     run.add_argument('--execute-native-checkpoint', action='store_true', required=True)
     args = parser.parse_args()
     if args.command == 'prepare': value = prepare(args.slot, args.candidate, args.offline_receipt, replace_unclaimed=args.replace_unclaimed)

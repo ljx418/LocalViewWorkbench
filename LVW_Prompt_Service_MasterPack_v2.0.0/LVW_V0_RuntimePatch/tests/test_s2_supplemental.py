@@ -95,7 +95,7 @@ class SupplementalTests(unittest.TestCase):
                 'seed_artifact_sha256':{}}
             raw=cp.canonical(request);request_sha=hashlib.sha256(raw).hexdigest()
             p=root/sup.REQUEST;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(raw)
-            approval=cp.repository_json(sup.APPROVAL);approval['request_sha256']=request_sha
+            approval=cp.repository_json(sup.APPROVAL);approval['status']='ACTIVE';approval['request_sha256']=request_sha
             (root/sup.APPROVAL).write_text(json.dumps(approval))
             stage['supplemental_authorization']={'approval':sup.APPROVAL,'request':sup.REQUEST,'slot':sup.SLOT,'max_runs':1,'max_rechecks':0}
             (root/stage_name).write_text(json.dumps(stage));git('add','.');git('-c','user.name=fixture','-c','user.email=fixture@example.invalid','commit','-qm','synthetic amendment')

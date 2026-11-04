@@ -232,6 +232,9 @@ class StageRuntimeFactory:
             failure = {'error_type': type(error).__name__, 'error': str(error), 'root_name': root.name,
                 'run_id': self.run_id, 'candidate_sha': self.candidate, 'authorization_sha256': self.auth,
                 'stage_pass_claim': False, 'evidence': evidence}
+            if isinstance(error, base.StopProbe):
+                failure['error_evidence'] = copy.deepcopy(error.evidence)
+                evidence['admission_error_evidence'] = copy.deepcopy(error.evidence)
             if driver is not None:
                 try:
                     failure['cleanup'] = driver.cleanup()

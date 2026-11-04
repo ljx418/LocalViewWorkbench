@@ -87,7 +87,7 @@ def authority(candidate, *, require_cleanup):
 
 def expire(refs, *, decision, terminal):
     from tools import v0_s2_stage_checkpoint as cp
-    path = cp.ROOT/APPROVAL
+    path = cp.ROOT/refs['approval']
     if cp.file_hash(path) != refs['approval_sha256']: return  # Preserve revocation.
     value = json.loads(path.read_bytes()); value.update(status='EXPIRED_'+decision, terminal=terminal)
     temporary = path.with_suffix('.terminal.tmp'); cp.write_new(temporary, value); os.replace(temporary, path)

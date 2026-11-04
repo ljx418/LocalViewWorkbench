@@ -137,6 +137,22 @@ class FactoryTests(unittest.TestCase):
         self.assertFalse(receipt['root_retained']); self.assertTrue(receipt['archive']['proven'])
         self.assertEqual(0, receipt['cleanup']['owned_count'])
 
+    def test_resource_admission_failure_keeps_original_reading_and_cleans_before_services(self):
+        payload={'preflight':{'max_used_mib':4097,'limit_mib':4096,'gpu_count':1}}
+        original=self.native
+        def native(args,evidence):
+            driver=original(args,evidence)
+            def fail():raise runtime.base.StopProbe('GPU_PREFLIGHT_USED_MEMORY_EXCEEDED',evidence=payload)
+            driver.preflight=fail
+            return driver
+        with patch.object(runtime,'NativeRuntime',side_effect=native):
+            factory=runtime.StageRuntimeFactory(**self.kwargs)
+            with self.assertRaises(runtime.base.StopProbe):factory.prepare_default()
+        receipt=json.loads((self.directory/'default-preparation-failure.json').read_text())
+        self.assertEqual(payload,receipt['error_evidence']);self.assertEqual(payload,receipt['evidence']['admission_error_evidence'])
+        self.assertFalse(receipt['root_retained']);self.assertTrue(receipt['archive']['proven'])
+        self.assertNotIn('ollama-start',self.events);self.assertNotIn('comfy-start',self.events)
+
     def test_wrong_actual_comfy_user_directory_is_rejected_before_sampler(self):
         self.failure = 'user-root'; factory = runtime.StageRuntimeFactory(**self.kwargs)
         with self.assertRaises(EvidenceError): factory.prepare_default()

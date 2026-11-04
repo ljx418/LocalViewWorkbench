@@ -99,3 +99,20 @@ python3 -B -m tools.v0_s2_stage_checkpoint execute --slot full-supplemental-01 -
 ```
 
 完整运行沿用65公开提交／83 Provider调用／20预加载／2次Comfy与Ollama启动／1次headless及其它原预算、固定四项和累计九项、全部失败和清理阈值。授权撤销或变化拒绝新工作；保留原有已归属清理权限。清理失败、出现不明内容或完整补充终态后，额外授权自动失效。机器结果不签署Stage、人类体验或V1发布。
+
+
+## 1.0.31｜先资源准入，再完整运行
+
+项目负责人批准 AUTH-REQUEST-V1-S2-RESOURCE-READY-01。原三次失败和授权终态保留，仅新增 full-resource-ready-01 一个完整槽位、无额外复验；不重置旧槽。新增 resource-admission-01 一次性子运行，先冻结候选／工具／期限／预算并通过完整离线门禁，再认领子授权后查询资源。最多三组采样，间隔1秒，执行最长60秒；最多3个PowerShell＋3个其内的原生NVIDIA查询（合计6个原生命令）及3个WSL查询。只记录GPU读数、可用RAM、目标端口／进程计数，不读取媒体，不启动模型、服务、浏览器或终止进程。
+
+准入沿用GPU占用<=4096MiB、Windows可用RAM>=2048MiB、8191/11434无监听、无现有目标运行进程，并核对Windows／WSL原读数。任一忙碌／未知／不一致则记录稳定失败与原始输出，关闭子授权及本次批准，不认领完整槽位，不反复轮询。三组全满足才允许同最终候选的完整 child；完整 child 仍执行全部新鲜安装字节封存、正式启动前检查、固定四项／累计九项和原全部预算。准入不是产品PASS，也不替代正式资源／取消／性能验收。
+
+执行顺序：
+```bash
+python3 -B -m tools.v0_s2_resource_admission prepare --candidate <FINAL_SHA> --offline-receipt reports/v0-s2/offline-checkpoint-23/receipt.json
+python3 -B -m tools.v0_s2_resource_admission probe
+python3 -B -m tools.v0_s2_stage_checkpoint prepare --slot full-resource-ready-01 --candidate <FINAL_SHA> --offline-receipt reports/v0-s2/offline-checkpoint-23/receipt.json
+python3 -B -m tools.v0_s2_stage_checkpoint execute --slot full-resource-ready-01 --execute-native-checkpoint
+```
+
+本批准绝对期限最多6小时，child受其期限约束；终态、撤销或越界后停止新工作，已归属清理保留。此前残留根均已清理，本次不允许新根接管。仅增加授权／准入／诊断证据运输和测试；插件、公开合同、质量与资源门限、固定样本／模型／分母不改。

@@ -7,16 +7,16 @@
   "next_delivery_target": "V0.1",
   "coordinate": {
     "stage_id": "V0-S2",
-    "workpack_id": "WP-S2-05",
-    "gate": "GATE4_GPU_RESOURCE_AND_FRESH_AUTH_REQUIRED",
-    "state": "WAIT_AUTH"
+    "workpack_id": "WP-S2-04",
+    "gate": "GATE3_RESOURCE_ADMISSION_OFFLINE_CHECKPOINT",
+    "state": "FROZEN_READY_OFFLINE"
   },
   "last_passed_gate": {
     "id": "V0_S2_OFFLINE_CHECKPOINT_22_PASSED",
     "evidence": "reports/v0-s2/offline-checkpoint-22/receipt.json",
     "meaning": "Final approved transport/cleanup candidatea824c30 passed450 tests, all five complete offline checks and before/after source seals. No native cleanup or supplemental product run yet."
   },
-  "current_blocking_gate": "V0_S2_GPU_PREFLIGHT_EXCEEDED_AND_SUPPLEMENTAL_AUTH_EXPIRED",
+  "current_blocking_gate": "V0_S2_RESOURCE_ADMISSION_AND_COMPLETE_NATIVE_RUN",
   "stage_packet": ".agent-governance/stages/V0-S2/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/V0-S2/PAYLOAD_MANIFEST.sha256",
   "product_status": "IN_PROGRESS",
@@ -29,9 +29,9 @@
     "PRODUCTION_RELEASED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "project_owner",
-  "next_action": "Release nonessential GPU workload under human control, then review the finite resource-ready request. No new GPU probe, native run or foreign process termination is authorized. After explicit approval only, implement its narrow readiness transport offline and reseal before any fresh child.",
-  "required_authorization": "AUTH-REQUEST-V1-S2-RESOURCE-READY-01",
+  "next_owner": "codex_implementation",
+  "next_action": "Freeze approved readiness transport and run offline23. Only then derive and claim one readiness child; successful exact same-candidate readiness permits full-resource-ready-01. No new GPU/ports query before a bound child.",
+  "required_authorization": "APPROVED_RESOURCE_READY_SCOPE_FRESH_CHILDREN_REQUIRED",
   "authorization_request": "reports/v0-s2/authorization-s2-resource-ready-01.request.json",
   "authorization_record": "reports/authorization-program-v1-local-01.json",
   "read_only_binding_authorization": "reports/v0-s2/authorization-binding-inventory-06.json",
@@ -93,7 +93,7 @@
   "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
   "live_terminal_receipt": "reports/v0-s2/full-supplemental-01/receipt.json",
   "independent_review": null,
-  "exact_stop_reason": "SUPPLEMENTAL_NO_GO_GPU_PREFLIGHT_EXCEEDED_ALL_OWNED_ROOTS_CLEANED_GRANT_EXPIRED",
+  "exact_stop_reason": "RESOURCE_ADMISSION_IMPLEMENTATION_REQUIRES_COMPLETE_OFFLINE23",
   "native_component_authorization": "reports/v0-s2/authorization-native-component-02.json",
   "native_component_terminal_receipt": "reports/v0-s2/native-component-02/receipt.json",
   "local_control_change_decision": "reports/v0-s2/change-decision-video-workbench-01.json",
@@ -176,5 +176,6 @@
     "terminal": "NO_GO"
   },
   "supplemental_cleanup_receipt": "reports/v0-s2/supplemental-cleanup-01/receipt.json",
-  "supplemental_terminal_summary": "reports/v0-s2/supplemental-terminal-summary-01.md"
+  "supplemental_terminal_summary": "reports/v0-s2/supplemental-terminal-summary-01.md",
+  "resource_ready_authorization_record": "reports/v0-s2/authorization-s2-resource-ready-01.approval.json"
 }
