@@ -136,3 +136,5 @@ AUTH-REQUEST-V1-S2-PROFILE-LIFECYCLE-01已由项目负责人明确批准。新�
 零推理诊断02完成并清理：启动前27后台GPU PID，启动后仅新增本轮Comfy；NVIDIA独立原生XML快照报告27个C+G客户端。现有默认owner-PID排他检查会拒绝该桌面常态，且C+G标签不能证明高负载或显存不足；下一技术工作为准入策略语义复核，尚未放宽产品规则。S2仍5/8，不因诊断成功增加验收通过数。无需再为本范围GPU/验证向人类索要逐次授权。
 
 本批离线收口：候选c0bc6b7，offline34的503项测试/5检查及封存通过；隔离审查Fatal0/Major0，诊断02与NVIDIA类型快照清理已复算。母授权ACTIVE，无逐次GPU/代码验证授权阻塞；技术待办为桌面共享GPU准入语义纠偏，S2产品真实验收仍NO_GO且5/8。人工体验/发布签署未被替代。
+
+S2 WDDM纠偏（packet1.0.37）：实际原生driver_model=WDDM时容量准入与控制归属分离，原XML/CSV/工具hash留证且独立复算，owned/unowned不混淆；TCC与缺证明严格拒绝。Numeric gates、模型控制、杀进程归属、固定矩阵不变。独立代码审查Fatal0/Major0，41定向测试通过；最终集中离线与完整真实矩阵仍须完成。母授权自动派生full-v0-auto-NN，无逐次GPU/代码确认。

@@ -54,8 +54,8 @@ class PolicyTests(unittest.TestCase):
                 response.read1.side_effect=[body,b'']
                 result=SimpleNamespace(stdout=b'24564,4520,19619\n')
                 with patch('shutil.which',return_value='owned-nvidia'),patch.object(resources.http.client,'HTTPConnection',return_value=connection) as http, \
-                     patch.object(resources,'windows_available_ram_mib',return_value=8913), \
-                     patch.object(resources,'run_bounded',side_effect=[result,SimpleNamespace(stdout=b'')]) as run:
+                     patch.object(resources,'windows_available_ram_mib',return_value=8913),patch.object(resources,'probe_identity',return_value='1'*64), \
+                     patch.object(resources,'run_bounded',side_effect=[result,SimpleNamespace(stdout=b'<nvidia_smi_log><gpu><driver_model><current_dm>WDDM</current_dm></driver_model><fb_memory_usage><total>24564 MiB</total><used>4520 MiB</used><free>19619 MiB</free></fb_memory_usage><processes/></gpu></nvidia_smi_log>')]) as run:
                     if mode=='valid':self.assertEqual(4520,resources.resource_preflight()['gpu_used_mib']);self.assertEqual(2,run.call_count)
                     else:
                         with self.assertRaises(BridgeError):resources.resource_preflight()

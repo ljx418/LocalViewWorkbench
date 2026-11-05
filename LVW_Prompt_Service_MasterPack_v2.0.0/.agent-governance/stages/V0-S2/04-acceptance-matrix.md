@@ -20,3 +20,5 @@ V0.1 累计出门还需同一发布候选回归 `V0-A01/A03/A04/A05/A08`。任�
 
 
 1.0.34批准纠偏：A09运行峰值/性能等硬限不变；冷启动改为已绑定模型profile的空闲/预测预算，不使用4096MiB桌面占用上限。当前V0实际ctx2048/predict768不提高；基线允许0..23551MiB真实值，释放仍相对基线+1024且有独立总峰值监控。同设备先后读数取保守max_used/min_free，保留差额诊断而不要求差值<=128MiB或total-used-free<=256MiB。见批准change-decision-gpu-admission-01.json及stage-control.gpu_admission_policy。
+
+1.0.37内部资源判定纠偏：WDDM模式须有原生单GPU XML+首读CSV+NVIDIA工具hash，容量按现行free/projected/peak/RAM硬限与持续监控判断。桌面GPU客户端不因PID出现而被误认为模型抢占，所有unowned如实保留；TCC/无共享证明保持严格PID规则。Ollama原listener PID/birth/模型身份与所有kill/unload归属证明不变，绝不控制外部进程；原始probe与所有派生字段必须独立复算。固定分母、性能和释放门限不变。详见wddm-shared-capacity-decision-01.md，不能仅凭测试或模式标签PASS。

@@ -133,10 +133,17 @@ def hot_record(*,run_id,sample_run_id,candidate_sha,authorization_sha256,kind,bi
             if owner_pid is not None and owner_pid!=pid:raise ValueError('Comfy owner changed')
             owner_pid=pid
             proof=resource['native_lineage']
-            if proof['verified_compute_pids']!=pids:raise ValueError('GPU PID evidence mismatch')
-            owned=validate_lineage(proof['snapshot'],binding,pids,pid)
-            validate_snapshot(','.join(str(resource[k]) for k in ('gpu_total_mib','gpu_used_mib','gpu_free_mib')),
-                '\n'.join(str(p) for p in pids),resource['available_ram_mib'],owner_pid=pid,warm=True,owned_compute_pids=owned)
+            from LVW_V0_RuntimePatch.custom_nodes.lvw_v0_bridge.video_resources import recompute_probe
+            mode,memory,observed_pids=recompute_probe(resource['native_probe'])
+            if (mode!=resource.get('driver_model') or observed_pids!=pids
+                    or memory!=[resource[k] for k in ('gpu_total_mib','gpu_used_mib','gpu_free_mib')]
+                    or resource['native_probe']['nvidia_binary_sha256']!=binding['nvidia_smi_sha256']):raise ValueError('native GPU probe differs from admission')
+            shared=mode=='WDDM'
+            owned=validate_lineage(proof['snapshot'],binding,pids,pid,shared_gpu=shared)
+            if proof['verified_compute_pids']!=list(owned):raise ValueError('GPU PID evidence mismatch')
+            recalculated=validate_snapshot(','.join(str(resource[k]) for k in ('gpu_total_mib','gpu_used_mib','gpu_free_mib')),
+                '\n'.join(str(p) for p in pids),resource['available_ram_mib'],owner_pid=pid,warm=True,owned_compute_pids=owned,driver_model=mode)
+            if any(resource.get(key)!=value for key,value in recalculated.items()):raise ValueError('resource ownership/capacity fields were changed')
             snapshots.append({'call_index':index,'elapsed_seconds':before['monotonic_seconds']-started,'api_ps':before['api_ps']})
         for event in (first,last):
             proof=event['root_proof']

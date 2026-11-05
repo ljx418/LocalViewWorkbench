@@ -5,6 +5,9 @@ import json
 import os
 import shutil
 import time
+import xml.etree.ElementTree as ET
+import re
+import hashlib
 
 from .core import BridgeError, DEFAULT_MODEL, MAX_NUM_CTX
 from .resource_policy import PolicyError, admit, profile
@@ -15,7 +18,7 @@ def busy(reason):
     return BridgeError("RESOURCE_BUSY", "video resource admission refused", subcode=reason)
 
 
-def validate_snapshot(gpu_csv, process_csv, available_ram_mib, *, owner_pid, warm=False, owned_compute_pids=()):
+def validate_snapshot(gpu_csv, process_csv, available_ram_mib, *, owner_pid, warm=False, owned_compute_pids=(), driver_model=None):
     try:
         rows = [[int(v.strip()) for v in line.split(",")] for line in gpu_csv.splitlines() if line.strip()]
         if len(rows) != 1 or len(rows[0]) != 3:
@@ -24,6 +27,7 @@ def validate_snapshot(gpu_csv, process_csv, available_ram_mib, *, owner_pid, war
         if min(total, used, free) < 0 or total == 0 or used > total or free > total or used + free > total:
             raise ValueError()
         pids = [int(line.strip()) for line in process_csv.splitlines() if line.strip()]
+        if len(pids)>64 or len(pids)!=len(set(pids)) or driver_model not in (None,'WDDM','TCC'):raise ValueError()
         if (any(pid <= 0 for pid in pids) or type(available_ram_mib) is not int or available_ram_mib < 0
                 or type(owner_pid) is not int or owner_pid <= 0):
             raise ValueError()
@@ -37,11 +41,64 @@ def validate_snapshot(gpu_csv, process_csv, available_ram_mib, *, owner_pid, war
     except PolicyError as error:raise busy(error.reason) from error
     if available_ram_mib < 2048:
         raise busy("HOST_RAM_BELOW_LIMIT")
-    if any(pid not in {owner_pid, *owned_compute_pids} for pid in pids):
+    unowned=[pid for pid in pids if pid not in {owner_pid,*owned_compute_pids}]
+    if unowned and driver_model!='WDDM':
         raise busy("GPU_FOREIGN_COMPUTE_PROCESS")
     return {"gpu_count":1,"gpu_total_mib":total,"gpu_used_mib":used,"gpu_free_mib":free,
-            "available_ram_mib":available_ram_mib,"foreign_compute_processes":0,
-            "owner_pid":owner_pid,"compute_pids":pids,"resource_policy":policy}
+            "available_ram_mib":available_ram_mib,"foreign_compute_processes":len(unowned),
+            "owner_pid":owner_pid,"compute_pids":pids,"resource_policy":policy,
+            "driver_model":driver_model,"gpu_process_admission":"SHARED_CAPACITY" if driver_model=='WDDM' else "STRICT_COMPUTE",
+            "owned_compute_pids":[pid for pid in pids if pid in {owner_pid,*owned_compute_pids}],"unowned_compute_pids":unowned}
+
+
+def parse_native_snapshot(raw):
+    if len(raw)>262144:raise busy('RESOURCE_TELEMETRY_INVALID')
+    try:
+        gpus=ET.fromstring(raw).findall('gpu')
+        if len(gpus)!=1:raise ValueError()
+        gpu=gpus[0];mode=gpu.findtext('driver_model/current_dm')
+        if mode not in {'WDDM','TCC'}:raise ValueError()
+        memory=[]
+        for field in ('total','used','free'):
+            value=gpu.findtext('fb_memory_usage/'+field,'')
+            if not re.fullmatch('[0-9]+ MiB',value):raise ValueError()
+            memory.append(int(value.split()[0]))
+        pids=[]
+        for process in gpu.findall('processes/process_info'):
+            value=process.findtext('pid','')
+            if not value.isdigit() or int(value)<=0:raise ValueError()
+            pids.append(int(value))
+        if len(pids)>64 or len(pids)!=len(set(pids)):raise ValueError()
+        if gpu.find('processes') is None:raise ValueError()
+        return mode,memory,pids
+    except (ET.ParseError,ValueError,TypeError) as error:raise busy('RESOURCE_TELEMETRY_INVALID') from error
+
+
+def probe_identity(executable):
+    with open(executable,'rb') as stream:
+        before=os.fstat(stream.fileno());digest=hashlib.sha256()
+        for chunk in iter(lambda:stream.read(1024*1024),b''):digest.update(chunk)
+        after=os.fstat(stream.fileno())
+    if (before.st_ino,before.st_size,before.st_mtime_ns)!=(after.st_ino,after.st_size,after.st_mtime_ns):
+        raise busy('RESOURCE_TELEMETRY_INVALID')
+    return digest.hexdigest()
+
+
+def recompute_probe(probe):
+    """Pure reparse of retained raw evidence, shared by production and review."""
+    try:
+        csv=probe['gpu_csv'];xml=probe['xml']
+        if (not isinstance(csv,str) or not isinstance(xml,str) or len(csv.encode())>65536
+                or not re.fullmatch('[0-9a-f]{64}',probe['nvidia_binary_sha256'])
+                or hashlib.sha256(xml.encode('utf-8')).hexdigest()!=probe['xml_sha256']):raise ValueError()
+        mode,memory,pids=parse_native_snapshot(xml.encode('utf-8'))
+        first=[[int(v.strip()) for v in row.split(',')] for row in csv.splitlines() if row.strip()]
+        if len(first)!=1 or len(first[0])!=3 or first[0][0]!=memory[0]:raise ValueError()
+        for row in (first[0],memory):
+            if min(row)<0 or row[0]<=0 or row[1]+row[2]>row[0]:raise ValueError()
+        conservative=[memory[0],max(first[0][1],memory[1]),min(first[0][2],memory[2])]
+        return mode,conservative,pids
+    except (KeyError,TypeError,ValueError,UnicodeError) as error:raise busy('RESOURCE_TELEMETRY_INVALID') from error
 
 
 def windows_available_ram_mib():
@@ -109,13 +166,19 @@ def resource_preflight(*, warm=False, owned_pid_checker=None):
         raise busy("NVIDIA_SMI_UNAVAILABLE")
     if not warm:verify_model_profile()
     try:
+        identity=probe_identity(executable)
         gpu = run_bounded([executable,"--query-gpu=memory.total,memory.used,memory.free",
                            "--format=csv,noheader,nounits"], timeout_seconds=5, output_limit=65536)
-        processes = run_bounded([executable,"--query-compute-apps=pid","--format=csv,noheader,nounits"],
-                                timeout_seconds=5, output_limit=65536)
-        process_csv = processes.stdout.decode('ascii')
-        owned = tuple(owned_pid_checker(process_csv)) if warm else ()
-        return validate_snapshot(gpu.stdout.decode("ascii"), process_csv,
-                                 windows_available_ram_mib(), owner_pid=os.getpid(), warm=warm, owned_compute_pids=owned)
-    except (BridgeError, UnicodeError, ValueError, TypeError) as exc:
+        observed = run_bounded([executable,'-q','-x'],timeout_seconds=5,output_limit=262144)
+        if probe_identity(executable)!=identity:raise busy('RESOURCE_TELEMETRY_INVALID')
+        probe={'gpu_csv':gpu.stdout.decode('ascii'),'xml':observed.stdout.decode('utf-8'),
+               'xml_sha256':hashlib.sha256(observed.stdout).hexdigest(),'nvidia_binary_sha256':identity}
+        mode,conservative,pids=recompute_probe(probe)
+        process_csv='\n'.join(str(pid) for pid in pids)
+        owned=tuple(owned_pid_checker(process_csv,shared_gpu=True) if mode=='WDDM' else owned_pid_checker(process_csv)) if warm else ()
+        result=validate_snapshot(','.join(map(str,conservative)), process_csv,
+                                 windows_available_ram_mib(), owner_pid=os.getpid(), warm=warm, owned_compute_pids=owned,driver_model=mode)
+        result['native_probe']=probe
+        return result
+    except (BridgeError, OSError, UnicodeError, ValueError, TypeError) as exc:
         raise busy("RESOURCE_PREFLIGHT_UNPROVEN") from exc

@@ -38,7 +38,7 @@ def validate_binding(binding, now):
         raise refused('BENCHMARK_BINDING_EXPIRED')
 
 
-def validate_lineage(document, binding, compute_pids, owner_pid):
+def validate_lineage(document, binding, compute_pids, owner_pid, *, shared_gpu=False):
     """Validate native listener PID, birth time and bounded GPU PID ancestry."""
     root=binding['ollama_pid']; ticks=binding['ollama_start_ticks']
     if (type(owner_pid) is not int or owner_pid<=0 or not isinstance(document,dict)
@@ -59,9 +59,11 @@ def validate_lineage(document, binding, compute_pids, owner_pid):
     anchor=processes.get(root)
     if anchor is None or anchor['start_ticks']!=ticks or anchor['name'].lower()!='ollama.exe':
         raise refused('BENCHMARK_ROOT_PID_REUSED')
+    if type(shared_gpu) is not bool:raise refused('BENCHMARK_LINEAGE_INVALID')
+    verified=[]
     for pid in compute_pids:
         if type(pid) is not int or pid<=0:raise refused('BENCHMARK_GPU_PID_INVALID')
-        if pid==owner_pid:continue
+        if pid==owner_pid:verified.append(pid);continue
         seen=set(); cursor=pid
         for _ in range(9):
             row=processes.get(cursor)
@@ -71,11 +73,14 @@ def validate_lineage(document, binding, compute_pids, owner_pid):
             parent=processes.get(row['parent_pid'])
             if parent is None or parent['start_ticks']>row['start_ticks']:break
             cursor=row['parent_pid']
-        if cursor!=root:raise refused('GPU_FOREIGN_COMPUTE_PROCESS')
-    return tuple(compute_pids)
+        if cursor!=root:
+            if shared_gpu:continue
+            raise refused('GPU_FOREIGN_COMPUTE_PROCESS')
+        verified.append(pid)
+    return tuple(verified)
 
 
-def native_lineage(binding, compute_pids, *, with_evidence=False):
+def native_lineage(binding, compute_pids, *, with_evidence=False, shared_gpu=False):
     if os.name!='nt':raise refused('NATIVE_WINDOWS_RESOURCE_PROBE_REQUIRED')
     if len(compute_pids)>64 or any(type(pid) is not int or pid<=0 for pid in compute_pids):
         raise refused('BENCHMARK_GPU_PID_INVALID')
@@ -99,7 +104,7 @@ def native_lineage(binding, compute_pids, *, with_evidence=False):
     result=run_bounded([executable,'-NoProfile','-NonInteractive','-Command',script],
                        timeout_seconds=10,output_limit=256*1024)
     document=json.loads(result.stdout.decode('utf-8-sig'))
-    verified=validate_lineage(document,binding,compute_pids,os.getpid())
+    verified=validate_lineage(document,binding,compute_pids,os.getpid(),shared_gpu=shared_gpu)
     return {'snapshot':document,'verified_compute_pids':list(verified)} if with_evidence else verified
 
 
@@ -235,8 +240,8 @@ def configured_profile():
         def admit():
             unchanged();validate_binding(binding,time.time())
             proof={}
-            def check(csv):
-                result=native_lineage(binding,[int(line.strip()) for line in csv.splitlines() if line.strip()],with_evidence=True)
+            def check(csv,*,shared_gpu=False):
+                result=native_lineage(binding,[int(line.strip()) for line in csv.splitlines() if line.strip()],with_evidence=True,shared_gpu=shared_gpu)
                 proof.update(result)
                 return result['verified_compute_pids']
             resources=resource_preflight(warm=True,owned_pid_checker=check)

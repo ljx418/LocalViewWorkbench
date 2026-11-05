@@ -38,6 +38,10 @@ def artifacts(kind='video'):
         resource={'owner_pid':20,'compute_pids':[11,20],'gpu_total_mib':24564,'gpu_used_mib':20000,
                   'gpu_free_mib':4564,'available_ram_mib':4096,
                   'native_lineage':{'verified_compute_pids':[11,20],'snapshot':lineage}}
+        from LVW_V0_RuntimePatch.custom_nodes.lvw_v0_bridge.video_resources import validate_snapshot
+        resource.update(validate_snapshot('24564,20000,4564','11\n20',4096,owner_pid=20,warm=True,owned_compute_pids=(11,20),driver_model='TCC'))
+        native_xml='<nvidia_smi_log><gpu><driver_model><current_dm>TCC</current_dm></driver_model><fb_memory_usage><total>24564 MiB</total><used>20000 MiB</used><free>4564 MiB</free></fb_memory_usage><processes><process_info><pid>11</pid></process_info><process_info><pid>20</pid></process_info></processes></gpu></nvidia_smi_log>'
+        resource['native_probe']={'gpu_csv':'24564,20000,4564','xml':native_xml,'xml_sha256':hashlib.sha256(native_xml.encode()).hexdigest(),'nvidia_binary_sha256':'1'*64}
         events.extend([event('before_call',100.3+.7*i,call_index=i,request_payload_sha256='2'*64,
                             resource_admission=resource,api_ps={'models':[{'model':'gemma4:26b','digest':'d'*64,'size_vram':1000}]}),
                        event('after_call',100.6+.7*i,call_index=i,provider_raw_sha256=hashlib.sha256(raws[i].encode()).hexdigest())])
