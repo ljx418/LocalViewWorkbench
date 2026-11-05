@@ -1,5 +1,5 @@
 const assert = require('node:assert/strict');
-const {hostReady, waitForHost} = require('./v0_s2_browser_readiness.cjs');
+const {hostReady, waitForHost, dismissStartupTemplates} = require('./v0_s2_browser_readiness.cjs');
 (async () => {
  const app={loadGraphData(){},graph:{},canvas:{},configuringGraph:false,pendingGraphLoads:new Set(),graphLoadSequence:1,committedGraphLoadSequence:1};
  global.window={comfyAPI:{app:{app}}};
@@ -15,5 +15,9 @@ const {hostReady, waitForHost} = require('./v0_s2_browser_readiness.cjs');
  let called=0;
  await waitForHost({async waitForFunction(predicate,arg,options){called++;assert.equal(predicate,hostReady);assert.equal(arg,null);assert.equal(options.timeout,60000);assert.equal(predicate(),true);}});
  assert.equal(called,1);delete global.window;
+ const actions=[];
+ await dismissStartupTemplates({locator(selector){assert.equal(selector,'[data-testid="template-workflows-content"]');return{async waitFor(options){actions.push(options.state);}};},
+  keyboard:{async press(key){assert.equal(key,'Escape');actions.push(key);}},async waitForFunction(){actions.push('ready');}});
+ assert.deepEqual(actions,['visible','Escape','hidden','ready']);
  console.log('Native host readiness boundaries passed; no browser/model started.');
 })().catch(error=>{console.error(error.stack);process.exitCode=1;});

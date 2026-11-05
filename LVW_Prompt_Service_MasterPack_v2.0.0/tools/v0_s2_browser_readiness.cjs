@@ -12,4 +12,14 @@ function hostReady() {
 async function waitForHost(page) {
   return page.waitForFunction(hostReady, null, { timeout: 60000 });
 }
-module.exports = { hostReady, waitForHost };
+
+async function dismissStartupTemplates(page) {
+  // This pinned host opens its template selector for a fresh isolated user.
+  // Close through the actual keyboard handler; never hide DOM or bypass focus.
+  const templates = page.locator('[data-testid="template-workflows-content"]');
+  await templates.waitFor({ state: 'visible', timeout: 30000 });
+  await page.keyboard.press('Escape');
+  await templates.waitFor({ state: 'hidden', timeout: 15000 });
+  await waitForHost(page);
+}
+module.exports = { hostReady, waitForHost, dismissStartupTemplates };
