@@ -61,7 +61,8 @@ class CheckpointTests(unittest.TestCase):
     def test_real_hold_semantics_refuse_child_before_target_access(self):
         path = self.root/'plans/execution-control.json'; value = json.loads(path.read_text())
         value['external_execution_hold']['active'] = True; path.write_text(json.dumps(value))
-        with patch.object(checkpoint, 'resolve_installed') as resolve, self.assertRaises(EvidenceError): self.prepare()
+        with patch.object(checkpoint, 'resolve_installed') as resolve, self.assertRaisesRegex(EvidenceError, 'WAIT_AUTH: Mother program is not active'):
+            self.prepare()
         resolve.assert_not_called(); self.assertFalse(self.state.exists())
         self.assertFalse(checkpoint.child_path('full-checkpoint-01').exists())
 

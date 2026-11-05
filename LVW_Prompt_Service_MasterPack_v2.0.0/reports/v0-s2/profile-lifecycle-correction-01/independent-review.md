@@ -13,3 +13,5 @@
 独立复算归档40文件/353805字节全部匹配。manifest SHA256 `016e767581a9b3215dc6dfaef5c6cefab7b479c7bd25f56ab5ca8c8ce90a64af`；terminal SHA256 `b8d51bbcb9b08b90b2022d3bc49cb1022e9330d050f2126fc187a645f9606b87`。原 lease 路径已不存在，原 cleanup 含两服务/两 wrapper 退出、HTTP pending=0、sampler42点/退出0、junction非递归删除证明。未探测现时进程。
 
 完整验收 public 阶段1 PASS / 1 FAIL /13 NOT_RUN；累计九项均NOT_RUN。禁止复用局部成功宣称 Stage PASS，最终独立 Stage 审查和人工签署尚未完成。
+
+补充独审：同一隔离reviewer复核checkpoint授权夹具，12/12测试通过。hold=false仅写TemporaryDirectory内副本，真实hold=true、NO_GO及过期子授权保持不变；生产授权/治理校验代码未改。新增hold负例实际拒绝原因是WAIT_AUTH，发生于目标访问前。可选Minor为固定异常原因，实现者随后采用assertRaisesRegex；最终完整复核覆盖该断言。
