@@ -1,0 +1,139 @@
+{"code": "LIVE_ARGUMENT_REQUIRED", "decision": "NO_GO", "message": "LIVE_ARGUMENT_REQUIRED: all identity/authority/target arguments", "stage_pass_claim": false}
+======================================================================
+ERROR: test_changed_budget_paths_or_expiry_refuse_before_any_target_query (test_s2_stage_checkpoint.CheckpointTests.test_changed_budget_paths_or_expiry_refuse_before_any_target_query)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "PACK_ROOT/LVW_V0_RuntimePatch/tests/test_s2_stage_checkpoint.py", line 118, in test_changed_budget_paths_or_expiry_refuse_before_any_target_query
+    value = self.prepare(); path = checkpoint.child_path('full-checkpoint-01')
+            ^^^^^^^^^^^^^^
+  File "PACK_ROOT/LVW_V0_RuntimePatch/tests/test_s2_stage_checkpoint.py", line 45, in prepare
+    def prepare(self): return checkpoint.prepare('full-checkpoint-01', self.candidate, self.offline)
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "PACK_ROOT/tools/v0_s2_stage_checkpoint.py", line 202, in prepare
+    program_sha = program_authority(); identity = source_gate(candidate, offline_relative); seeds = seed_values()
+                  ^^^^^^^^^^^^^^^^^^^
+  File "PACK_ROOT/tools/v0_s2_stage_checkpoint.py", line 136, in program_authority
+    raise EvidenceError('WAIT_AUTH: Mother program is not active with frozen Stage limits')
+tools.v0_s2_checkpoint_oracles.EvidenceError: WAIT_AUTH: Mother program is not active with frozen Stage limits
+
+======================================================================
+ERROR: test_prepare_creates_bound_child_without_reading_installed_tools_or_samples (test_s2_stage_checkpoint.CheckpointTests.test_prepare_creates_bound_child_without_reading_installed_tools_or_samples)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "PACK_ROOT/LVW_V0_RuntimePatch/tests/test_s2_stage_checkpoint.py", line 49, in test_prepare_creates_bound_child_without_reading_installed_tools_or_samples
+    value = self.prepare()
+            ^^^^^^^^^^^^^^
+  File "PACK_ROOT/LVW_V0_RuntimePatch/tests/test_s2_stage_checkpoint.py", line 45, in prepare
+    def prepare(self): return checkpoint.prepare('full-checkpoint-01', self.candidate, self.offline)
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "PACK_ROOT/tools/v0_s2_stage_checkpoint.py", line 202, in prepare
+    program_sha = program_authority(); identity = source_gate(candidate, offline_relative); seeds = seed_values()
+                  ^^^^^^^^^^^^^^^^^^^
+  File "PACK_ROOT/tools/v0_s2_stage_checkpoint.py", line 136, in program_authority
+    raise EvidenceError('WAIT_AUTH: Mother program is not active with frozen Stage limits')
+tools.v0_s2_checkpoint_oracles.EvidenceError: WAIT_AUTH: Mother program is not active with frozen Stage limits
+
+======================================================================
+ERROR: test_public_receipt_disk_failure_still_closes_reserved_byte_and_expires_permission (test_s2_stage_checkpoint.CheckpointTests.test_public_receipt_disk_failure_still_closes_reserved_byte_and_expires_permission)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "PACK_ROOT/LVW_V0_RuntimePatch/tests/test_s2_stage_checkpoint.py", line 107, in test_public_receipt_disk_failure_still_closes_reserved_byte_and_expires_permission
+    self.prepare(); original_writer = checkpoint.write_new
+    ^^^^^^^^^^^^^^
+  File "PACK_ROOT/LVW_V0_RuntimePatch/tests/test_s2_stage_checkpoint.py", line 45, in prepare
+    def prepare(self): return checkpoint.prepare('full-checkpoint-01', self.candidate, self.offline)
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "PACK_ROOT/tools/v0_s2_stage_checkpoint.py", line 202, in prepare
+    program_sha = program_authority(); identity = source_gate(candidate, offline_relative); seeds = seed_values()
+                  ^^^^^^^^^^^^^^^^^^^
+  File "PACK_ROOT/tools/v0_s2_stage_checkpoint.py", line 136, in program_authority
+    raise EvidenceError('WAIT_AUTH: Mother program is not active with frozen Stage limits')
+tools.v0_s2_checkpoint_oracles.EvidenceError: WAIT_AUTH: Mother program is not active with frozen Stage limits
+
+======================================================================
+ERROR: test_recheck_requires_different_corrected_candidate_and_no_third_slot_exists (test_s2_stage_checkpoint.CheckpointTests.test_recheck_requires_different_corrected_candidate_and_no_third_slot_exists)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "PACK_ROOT/LVW_V0_RuntimePatch/tests/test_s2_stage_checkpoint.py", line 138, in test_recheck_requires_different_corrected_candidate_and_no_third_slot_exists
+    self.prepare()
+  File "PACK_ROOT/LVW_V0_RuntimePatch/tests/test_s2_stage_checkpoint.py", line 45, in prepare
+    def prepare(self): return checkpoint.prepare('full-checkpoint-01', self.candidate, self.offline)
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "PACK_ROOT/tools/v0_s2_stage_checkpoint.py", line 202, in prepare
+    program_sha = program_authority(); identity = source_gate(candidate, offline_relative); seeds = seed_values()
+                  ^^^^^^^^^^^^^^^^^^^
+  File "PACK_ROOT/tools/v0_s2_stage_checkpoint.py", line 136, in program_authority
+    raise EvidenceError('WAIT_AUTH: Mother program is not active with frozen Stage limits')
+tools.v0_s2_checkpoint_oracles.EvidenceError: WAIT_AUTH: Mother program is not active with frozen Stage limits
+
+======================================================================
+ERROR: test_revocation_and_terminal_close_deny_new_work_but_keep_owned_cleanup_reserved (test_s2_stage_checkpoint.CheckpointTests.test_revocation_and_terminal_close_deny_new_work_but_keep_owned_cleanup_reserved)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "PACK_ROOT/LVW_V0_RuntimePatch/tests/test_s2_stage_checkpoint.py", line 145, in test_revocation_and_terminal_close_deny_new_work_but_keep_owned_cleanup_reserved
+    self.prepare(); path = checkpoint.child_path('full-checkpoint-01'); lease = checkpoint.ChildLease(path, path.read_bytes())
+    ^^^^^^^^^^^^^^
+  File "PACK_ROOT/LVW_V0_RuntimePatch/tests/test_s2_stage_checkpoint.py", line 45, in prepare
+    def prepare(self): return checkpoint.prepare('full-checkpoint-01', self.candidate, self.offline)
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "PACK_ROOT/tools/v0_s2_stage_checkpoint.py", line 202, in prepare
+    program_sha = program_authority(); identity = source_gate(candidate, offline_relative); seeds = seed_values()
+                  ^^^^^^^^^^^^^^^^^^^
+  File "PACK_ROOT/tools/v0_s2_stage_checkpoint.py", line 136, in program_authority
+    raise EvidenceError('WAIT_AUTH: Mother program is not active with frozen Stage limits')
+tools.v0_s2_checkpoint_oracles.EvidenceError: WAIT_AUTH: Mother program is not active with frozen Stage limits
+
+======================================================================
+ERROR: test_sequence_failure_reason_reaches_public_receipt_without_claiming_pass (test_s2_stage_checkpoint.CheckpointTests.test_sequence_failure_reason_reaches_public_receipt_without_claiming_pass)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "PACK_ROOT/LVW_V0_RuntimePatch/tests/test_s2_stage_checkpoint.py", line 86, in test_sequence_failure_reason_reaches_public_receipt_without_claiming_pass
+    self.prepare()
+  File "PACK_ROOT/LVW_V0_RuntimePatch/tests/test_s2_stage_checkpoint.py", line 45, in prepare
+    def prepare(self): return checkpoint.prepare('full-checkpoint-01', self.candidate, self.offline)
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "PACK_ROOT/tools/v0_s2_stage_checkpoint.py", line 202, in prepare
+    program_sha = program_authority(); identity = source_gate(candidate, offline_relative); seeds = seed_values()
+                  ^^^^^^^^^^^^^^^^^^^
+  File "PACK_ROOT/tools/v0_s2_stage_checkpoint.py", line 136, in program_authority
+    raise EvidenceError('WAIT_AUTH: Mother program is not active with frozen Stage limits')
+tools.v0_s2_checkpoint_oracles.EvidenceError: WAIT_AUTH: Mother program is not active with frozen Stage limits
+
+======================================================================
+ERROR: test_target_binding_refusal_expires_child_and_atomically_prevents_replay (test_s2_stage_checkpoint.CheckpointTests.test_target_binding_refusal_expires_child_and_atomically_prevents_replay)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "PACK_ROOT/LVW_V0_RuntimePatch/tests/test_s2_stage_checkpoint.py", line 71, in test_target_binding_refusal_expires_child_and_atomically_prevents_replay
+    self.prepare(); path = checkpoint.child_path('full-checkpoint-01'); original = path.read_bytes()
+    ^^^^^^^^^^^^^^
+  File "PACK_ROOT/LVW_V0_RuntimePatch/tests/test_s2_stage_checkpoint.py", line 45, in prepare
+    def prepare(self): return checkpoint.prepare('full-checkpoint-01', self.candidate, self.offline)
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "PACK_ROOT/tools/v0_s2_stage_checkpoint.py", line 202, in prepare
+    program_sha = program_authority(); identity = source_gate(candidate, offline_relative); seeds = seed_values()
+                  ^^^^^^^^^^^^^^^^^^^
+  File "PACK_ROOT/tools/v0_s2_stage_checkpoint.py", line 136, in program_authority
+    raise EvidenceError('WAIT_AUTH: Mother program is not active with frozen Stage limits')
+tools.v0_s2_checkpoint_oracles.EvidenceError: WAIT_AUTH: Mother program is not active with frozen Stage limits
+
+======================================================================
+ERROR: test_unclaimed_source_replacement_preserves_old_grant_and_never_resets_a_claim (test_s2_stage_checkpoint.CheckpointTests.test_unclaimed_source_replacement_preserves_old_grant_and_never_resets_a_claim)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "PACK_ROOT/LVW_V0_RuntimePatch/tests/test_s2_stage_checkpoint.py", line 56, in test_unclaimed_source_replacement_preserves_old_grant_and_never_resets_a_claim
+    self.prepare(); path = checkpoint.child_path('full-checkpoint-01'); original = path.read_bytes()
+    ^^^^^^^^^^^^^^
+  File "PACK_ROOT/LVW_V0_RuntimePatch/tests/test_s2_stage_checkpoint.py", line 45, in prepare
+    def prepare(self): return checkpoint.prepare('full-checkpoint-01', self.candidate, self.offline)
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "PACK_ROOT/tools/v0_s2_stage_checkpoint.py", line 202, in prepare
+    program_sha = program_authority(); identity = source_gate(candidate, offline_relative); seeds = seed_values()
+                  ^^^^^^^^^^^^^^^^^^^
+  File "PACK_ROOT/tools/v0_s2_stage_checkpoint.py", line 136, in program_authority
+    raise EvidenceError('WAIT_AUTH: Mother program is not active with frozen Stage limits')
+tools.v0_s2_checkpoint_oracles.EvidenceError: WAIT_AUTH: Mother program is not active with frozen Stage limits
+
+----------------------------------------------------------------------
+Ran 485 tests in 48.862s
+
+FAILED (errors=8)

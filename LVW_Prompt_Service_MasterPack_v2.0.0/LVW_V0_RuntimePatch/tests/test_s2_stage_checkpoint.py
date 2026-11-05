@@ -33,6 +33,12 @@ class CheckpointTests(unittest.TestCase):
         target = self.root/relative; target.parent.mkdir(parents=True); target.write_bytes(raw)
         for name in (self.offline, checkpoint.PROGRAM, 'plans/execution-control.json', '.agent-governance/stages/V0-S2/stage-control.json', *checkpoint.SEEDS.values()):
             path = self.root/name; path.parent.mkdir(parents=True, exist_ok=True); shutil.copyfile(self.real_root/name, path)
+        # Synthetic authorization lifecycle is independent of the real project's
+        # current hold. Never remove that hold in the actual worktree.
+        coordinate = self.root/'plans/execution-control.json'
+        value = json.loads(coordinate.read_text())
+        value['external_execution_hold'] = {'active': False, 'scope': 'isolated unit fixture only'}
+        coordinate.write_text(json.dumps(value))
         def git(*args):
             return subprocess.run(['git', *args], cwd=self.root, capture_output=True, check=True, timeout=30)
         git('init', '-q'); git('add', '.')
@@ -51,6 +57,13 @@ class CheckpointTests(unittest.TestCase):
         self.assertEqual('ACTIVE_ONE_SHOT', value['status']); self.assertEqual(65, value['budget']['public_submissions'])
         self.assertEqual([8191, 11434], value['ports']); self.assertFalse(value['stage_pass_claim'])
         with self.assertRaises(EvidenceError): self.prepare()
+
+    def test_real_hold_semantics_refuse_child_before_target_access(self):
+        path = self.root/'plans/execution-control.json'; value = json.loads(path.read_text())
+        value['external_execution_hold']['active'] = True; path.write_text(json.dumps(value))
+        with patch.object(checkpoint, 'resolve_installed') as resolve, self.assertRaises(EvidenceError): self.prepare()
+        resolve.assert_not_called(); self.assertFalse(self.state.exists())
+        self.assertFalse(checkpoint.child_path('full-checkpoint-01').exists())
 
     def test_unclaimed_source_replacement_preserves_old_grant_and_never_resets_a_claim(self):
         self.prepare(); path = checkpoint.child_path('full-checkpoint-01'); original = path.read_bytes()

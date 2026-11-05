@@ -9,3 +9,5 @@
 可运行 `PYTHONPATH=. python3 -B reports/v0-s2/profile-lifecycle-correction-01/recompute.py` 复算已有失败/归档，不启动任何外部动作。记录峰值21493MiB，最低可用RAM7603MiB，42点采样；本轮公开提交6次、Provider上界1、preload0。清理/归档验证通过，不把失败标成未来正例。
 
 下一步：封存新候选并完成offline-checkpoint-30；若通过，提交一个新的有限完整运行授权请求。现有母授权的本Stage完整次数已用完，本次纠偏授权也已终态过期；不自动执行新的GPU/模型/浏览器动作。
+
+Offline30保留NO_GO：485测试中8项旧checkpoint夹具受真实external hold污染；治理检查还发现坐标CHANGES_REQUIRED不在该Stage允许枚举内。仅修改隔离临时夹具初始化，新增hold拒绝负例，并将真实坐标修正为既有NO_GO；真实hold仍active，未恢复任何过期授权。offline31对新候选重做集中检查。
