@@ -7,6 +7,7 @@ const readline = require('node:readline');
 const crypto = require('node:crypto');
 const { isDeepStrictEqual } = require('node:util');
 const { performance } = require('node:perf_hooks');
+const { installFetchObserver, captureBrowserResponse } = require('./v0_s2_browser_fetch_observer.cjs');
 const { waitForHost, dismissStartupTemplates } = require('./v0_s2_browser_readiness.cjs');
 const { ORIGIN, BUDGET, ACTIONS, validateConfig, classify, apiPath, Counter, replyFor, digest } = require('./v0_s2_browser_policy.cjs');
 const FIELDS = Object.freeze({ natural_zh: '浏览器人工稿：保留蓝色陶瓷杯', natural_en: 'Human draft: blue ceramic cup',
@@ -95,14 +96,6 @@ async function withUiAction(waiting, action) {
   // Observe both rejections immediately, including a synchronous action throw.
   const [result] = await Promise.all([waiting, Promise.resolve().then(action)]);
   return result;
-}
-
-async function captureResponse(response) {
-  // Attach directly to waitForResponse, before waiting for UI auto-waits.
-  // Chromium may evict its inspector body cache while that action settles.
-  const body = await response.body();
-  if (!Buffer.isBuffer(body) || body.length > 24 * 1024 * 1024) throw new Error('BROWSER_RESPONSE_BODY_LIMIT');
-  return { response, body };
 }
 
 function responseJson(captured) {
@@ -200,6 +193,7 @@ async function run(config, parent, dependencies = {}) {
     if (server.wsEndpoint() !== driverEndpoint) throw new Error('BROWSER_DRIVER_ENDPOINT_CHANGED');
     browser = await chromium.connect(driverEndpoint);
     context = await browser.newContext({ viewport: { width: 1600, height: 1200 }, locale: 'zh-CN', serviceWorkers: 'block', acceptDownloads: true });
+    await context.addInitScript(installFetchObserver, { nonce: config.protocol_nonce, origin: ORIGIN });
     if (typeof context.routeWebSocket !== 'function') throw new Error('BROWSER_WEBSOCKET_GUARD_UNAVAILABLE');
     await context.routeWebSocket('**/*', async route => {
       const url = new URL(route.url());
@@ -270,6 +264,7 @@ async function run(config, parent, dependencies = {}) {
         || initial.suggestion !== null || initial.draft_origin !== 'manual') throw new Error('INITIAL_MANUAL_PROVENANCE'); pass(active);
     active = 'upload';
     const responseFor = endpoint => r => { const u = new URL(r.url()); return u.origin === ORIGIN && apiPath(u.pathname) === endpoint && r.request().method() === 'POST'; };
+    const captureResponse = response => captureBrowserResponse(page, response, config.protocol_nonce);
     const uploadCaptured = await withUiAction(page.waitForResponse(responseFor('/lvw/v0/video/upload')).then(captureResponse),
       () => page.getByLabel('选择并上传 MP4 或 MOV 视频，最大 256 MiB、60 秒', { exact: true }).setInputFiles(config.sample_path));
     const uploadResponse = uploadCaptured.response, uploadBody = responseJson(uploadCaptured);
@@ -421,7 +416,7 @@ async function run(config, parent, dependencies = {}) {
   return result;
 }
 
-module.exports = { run, parentBridge, birth, groupMembers, fileIdentity, FIELDS, CASES, same, waitForEmptyGroup, withUiAction, captureResponse, responseJson };
+module.exports = { run, parentBridge, birth, groupMembers, fileIdentity, FIELDS, CASES, same, waitForEmptyGroup, withUiAction, responseJson };
 if (require.main === module) {
   (async () => {
     if (process.argv.length !== 4 || process.argv[2] !== '--config') throw new Error('SEALED_PARENT_CONFIG_REQUIRED');

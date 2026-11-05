@@ -8,6 +8,11 @@ ROOT=Path(__file__).resolve().parents[2]
 
 
 class BrowserWorkerTests(unittest.TestCase):
+    def test_native_fetch_observer_preserves_real_transport_and_body_evidence(self):
+        result=subprocess.run(['node','tools/v0_s2_browser_fetch_observer_test.cjs'],cwd=ROOT,capture_output=True,timeout=30)
+        self.assertEqual(0,result.returncode,result.stderr.decode('utf-8','replace'))
+        self.assertIn(b'cache-independent observation verified',result.stdout)
+
     def test_original_browser_export_and_real_semantic_negative_cases(self):
         result=subprocess.run(['node','tools/v0_s2_browser_oracle_test.cjs'],cwd=ROOT,capture_output=True,timeout=30)
         self.assertEqual(0,result.returncode,result.stderr.decode('utf-8','replace'))

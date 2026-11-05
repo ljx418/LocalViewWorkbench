@@ -40,6 +40,8 @@ cp.spawn=function(command,args,options){
  server=await chromium.launchServer({host:'127.0.0.1',port:0,headless:true,executablePath:config.browser,timeout:15000,
  args:['--disable-gpu','--disable-background-networking','--disable-component-update','--disable-sync','--no-first-run','--disable-extensions','--no-proxy-server']});
  browser=await chromium.connect(server.wsEndpoint());context=await browser.newContext({viewport:{width:1600,height:1200},serviceWorkers:'block',acceptDownloads:true});
+ const observer=config.observer?require(config.observer):null;
+ if(observer)await context.addInitScript(observer.installFetchObserver,{nonce:config.capture_nonce,origin:'http://127.0.0.1:8191'});
  await context.routeWebSocket('**/*',route=>{
   const u=new URL(route.url());if(u.protocol==='ws:'&&u.host==='127.0.0.1:8191'&&u.pathname==='/ws')return route.connectToServer();
   return route.close({code:1008,reason:'local-only'});
@@ -88,7 +90,7 @@ cp.spawn=function(command,args,options){
  if(config.sample){
   phase='upload';const captured=await worker.withUiAction(page.waitForResponse(r=>{
    const u=new URL(r.url());return u.origin==='http://127.0.0.1:8191'&&u.pathname.replace(/^\/api/,'')==='/lvw/v0/video/upload'&&r.request().method()==='POST';
-  }).then(worker.captureResponse),()=>page.getByLabel('选择并上传 MP4 或 MOV 视频，最大 256 MiB、60 秒',{exact:true}).setInputFiles(config.sample.path));
+  }).then(response=>observer.captureBrowserResponse(page,response,config.capture_nonce)),()=>page.getByLabel('选择并上传 MP4 或 MOV 视频，最大 256 MiB、60 秒',{exact:true}).setInputFiles(config.sample.path));
   result.upload={status:captured.response.status(),body:worker.responseJson(captured),response_sha256:crypto.createHash('sha256').update(captured.body).digest('hex')};
   if(result.upload.status!==201||typeof result.upload.body.video_reference!=='string')throw Error('ACTUAL_UPLOAD_INVALID');
   await observe(phase);
@@ -105,7 +107,7 @@ cp.spawn=function(command,args,options){
 
 
 def run(candidate,run_id):
-    if run_id not in {'manual-page-diagnostic-01','manual-page-diagnostic-02','manual-page-diagnostic-03','manual-page-diagnostic-04','manual-page-diagnostic-05','manual-page-diagnostic-06','manual-page-diagnostic-07'}:raise ValueError('finite diagnostic ID required')
+    if run_id not in {'manual-page-diagnostic-01','manual-page-diagnostic-02','manual-page-diagnostic-03','manual-page-diagnostic-04','manual-page-diagnostic-05','manual-page-diagnostic-06','manual-page-diagnostic-07','manual-page-diagnostic-08'}:raise ValueError('finite diagnostic ID required')
     parent=cp.repository_json(auth.PROGRAM);auth.validate(parent,'V0-S2')
     identity=seal_candidate(cp.ROOT,candidate,PAYLOAD)
     old=cp.STATE_ROOT/'full-v0-auto-03/terminal.json';receipt=cp.repository_json('reports/v0-s2/full-v0-auto-03/receipt.json')
@@ -113,7 +115,7 @@ def run(candidate,run_id):
     tools=json.loads(old.read_bytes())['runtime_evidence']['default']['binding_proof']['tool_bindings']
     for row in tools.values():
         if cp.file_hash(Path(row['path']))!=row['sha256']:raise ValueError('critical tool changed')
-    sample=cp.repository_json('reports/v0-s2/frozen-structural-inputs-02.json')['categories']['tracking'] if run_id=='manual-page-diagnostic-07' else None
+    sample=cp.repository_json('reports/v0-s2/frozen-structural-inputs-02.json')['categories']['tracking'] if run_id in {'manual-page-diagnostic-07','manual-page-diagnostic-08'} else None
     budget={'comfy_starts':1,'ollama_starts':0,'browser_starts':1,'provider_calls':0,'media_reads':int(sample is not None),'uploads':int(sample is not None),'public_submissions':0,
         'manual_previews':1,'user_writes':16,'downloads':0,'cloud_calls':0,'paid_calls':0,'native_commands':128}
     child=auth.child(parent,stage='V0-S2',run_id=run_id,candidate=candidate,harness_sha256=cp.file_hash(cp.ROOT/HARNESS),
@@ -154,8 +156,10 @@ def run(candidate,run_id):
         temporary,lease=scratch.create(bind,root/'temp')
         config={'browser':tools['browser_executable']['path'],'playwright':tools['playwright_module']['path'],
             'readiness':str(cp.ROOT/'tools/v0_s2_browser_readiness.cjs') if run_id not in {'manual-page-diagnostic-01','manual-page-diagnostic-02'} else None,
-            'dismissStartup':run_id in {'manual-page-diagnostic-05','manual-page-diagnostic-06','manual-page-diagnostic-07'},
-            'oracle':str(cp.ROOT/'tools/v0_s2_browser_acceptance.cjs') if run_id in {'manual-page-diagnostic-06','manual-page-diagnostic-07'} else None,
+            'dismissStartup':run_id in {'manual-page-diagnostic-05','manual-page-diagnostic-06','manual-page-diagnostic-07','manual-page-diagnostic-08'},
+            'oracle':str(cp.ROOT/'tools/v0_s2_browser_acceptance.cjs') if run_id in {'manual-page-diagnostic-06','manual-page-diagnostic-07','manual-page-diagnostic-08'} else None,
+            'observer':str(cp.ROOT/'tools/v0_s2_browser_fetch_observer.cjs') if run_id=='manual-page-diagnostic-08' else None,
+            'capture_nonce':authorization_sha,
             'sample':{'path':str(copied_sample),'bytes':sample['bytes'],'sha256':sample['sha256']} if sample is not None else None,
             'graph':cp.repository_json('LVW_V0_RuntimePatch/workflows/video_reverse_prompt_v0.ui.json'),
             'output':str(root/'temp/page-result.json'),'export':str(root/'temp/manual-export.json'),'screenshot':str(root/'temp/page.png')}
