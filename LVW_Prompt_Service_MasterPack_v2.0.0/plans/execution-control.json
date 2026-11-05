@@ -8,13 +8,13 @@
   "coordinate": {
     "stage_id": "V0-S2",
     "workpack_id": "WP-S2-05",
-    "gate": "GATE3_RESPONSE_BOUNDS_CORRECTION_OFFLINE",
-    "state": "FROZEN_READY_OFFLINE"
+    "gate": "GATE4_FULL_V0_AUTO_02",
+    "state": "RUNNING"
   },
   "last_passed_gate": {
-    "id": "V0_S2_OFFLINE_CHECKPOINT_35_PASSED",
-    "evidence": "reports/v0-s2/offline-checkpoint-35/receipt.json",
-    "meaning": "512 tests/five checks pass; WDDM correction isolated review Fatal0/Major0; full native matrix pending."
+    "id": "V0_S2_OFFLINE_CHECKPOINT_36_PASSED",
+    "evidence": "reports/v0-s2/offline-checkpoint-36/receipt.json",
+    "meaning": "515 tests/five checks pass; request grammar agrees with existing parser bounds; isolated code review Fatal0/Major0; native Stage pending."
   },
   "current_blocking_gate": "RESPONSE_SCHEMA_ITEM_BOUNDS_ALIGNMENT",
   "stage_packet": ".agent-governance/stages/V0-S2/stage-control.json",
@@ -30,7 +30,7 @@
     "TARGET_HARDWARE_TESTED"
   ],
   "next_owner": "Codex",
-  "next_action": "Seal response grammar fix, offline36, then automatic full-v0-auto-02 with complete fixed matrix; preserve full01 NO_GO and all raw evidence.",
+  "next_action": "Observe unique session45646 and durable claim through full fixed native sequence; no restart or cross-run stitching.",
   "required_authorization": "NONE_WITHIN_V0_LOCAL_GPU_AND_CODE_VERIFICATION_PROGRAM",
   "authorization_request": null,
   "authorization_record": "reports/authorization-program-v1-local-01.json",
@@ -76,12 +76,12 @@
   ],
   "contract_change_request": "reports/r1a/change-request-r1a-product-controls-02.json",
   "contract_change_decision": "reports/r1a/change-decision-r1a-product-controls-02.json",
-  "implementation_candidate": "be26175030d3124490f280496ec90442ab62139d",
+  "implementation_candidate": "968850d6df3c4bb4e2e49fd19aa0e928f85275ea",
   "implementation_baseline": "5ea725cc7182e654043183d9de581b730a585685",
   "candidate_binding_scope": "Approved GPU policy correction, unchanged calibrated production workload/context and fixed acceptance denominator.",
   "offline_evidence_commit": null,
-  "offline_receipt": "reports/v0-s2/offline-checkpoint-35/receipt.json",
-  "offline_candidate_sha": "be26175030d3124490f280496ec90442ab62139d",
+  "offline_receipt": "reports/v0-s2/offline-checkpoint-36/receipt.json",
+  "offline_candidate_sha": "968850d6df3c4bb4e2e49fd19aa0e928f85275ea",
   "evidence_root": "reports/",
   "gate_decision": null,
   "human_signoff": null,
@@ -110,7 +110,7 @@
   "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
   "live_terminal_receipt": "reports/v0-s2/full-v0-auto-01/receipt.json",
   "independent_review": null,
-  "exact_stop_reason": "NOT_STOPPED_RESPONSE_BOUNDS_CORRECTION_OFFLINE",
+  "exact_stop_reason": "NOT_STOPPED_FULL_V0_AUTO_02_RUNNING",
   "native_component_authorization": "reports/v0-s2/authorization-native-component-02.json",
   "native_component_terminal_receipt": "reports/v0-s2/native-component-02/receipt.json",
   "local_control_change_decision": "reports/v0-s2/change-decision-video-workbench-01.json",
@@ -154,14 +154,13 @@
   "native_browser_terminal_phase_implementation": "reports/v0-s2/browser-terminal-phase-progress-01.md",
   "cumulative_stage_sequence_implementation": "reports/v0-s2/cumulative-stage-sequence-progress-01.md",
   "bound_runtime_archive_implementation": "reports/v0-s2/bound-runtime-archive-progress-01.md",
-  "live_authorization_record": "reports/v0-s2/authorization-full-v0-auto-01.json",
-  "native_run_id": "full-v0-auto-01",
+  "live_authorization_record": "reports/v0-s2/authorization-full-v0-auto-02.json",
+  "native_run_id": "full-v0-auto-02",
   "live_executor_handle": {
     "kind": "exec_command_session",
-    "id": 38362,
-    "terminal": true,
-    "restart_forbidden": true,
-    "exit_code": 1
+    "id": 45646,
+    "terminal": false,
+    "restart_forbidden": true
   },
   "next_stage_document_preparation": "reports/v0-s3/preparation-01.md",
   "native_checkpoint_attempts": {
