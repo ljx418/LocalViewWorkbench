@@ -7,21 +7,23 @@
   "next_delivery_target": "V0.1",
   "coordinate": {
     "stage_id": "V0-S2",
-    "workpack_id": "WP-S2-05",
-    "gate": "GATE4_WARM_LINEAGE_CORRECTION",
-    "state": "RUNNING"
+    "workpack_id": "WP-S2-06",
+    "gate": "GATE5_HUMAN_EXPERIENCE_SIGNOFF",
+    "state": "WAIT_HUMAN"
   },
   "last_passed_gate": {
-    "gate": "GATE3_FULL_OFFLINE_CHECKPOINT",
-    "candidate_sha": "6ec897ed1eec776586688ca87da66be682fc798f",
-    "receipt": "reports/v0-s2/offline-checkpoint-43/receipt.json",
-    "decision": "OFFLINE_CHECKS_PASSED_NOT_STAGE_ACCEPTANCE",
-    "unit_tests": 538
+    "gate": "GATE5_INDEPENDENT_MACHINE_REVIEW",
+    "candidate_sha": "719c74559393a6489b2f630a1e0d3bc3303eb655",
+    "receipt": "reports/v0-s2/full-v0-auto-08/independent-review.json",
+    "decision": "MACHINE_AND_INDEPENDENT_VERIFIED_HUMAN_PENDING",
+    "unit_tests": 541,
+    "fixed_cases": 9,
+    "passed_cases": 9
   },
-  "current_blocking_gate": "WARM_NATIVE_LINEAGE_QUERY_DEADLINE",
+  "current_blocking_gate": "HUMAN_EXPERIENCE_SIGNOFF_AND_GIT_SYNC",
   "stage_packet": ".agent-governance/stages/V0-S2/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/V0-S2/PAYLOAD_MANIFEST.sha256",
-  "product_status": "IN_PROGRESS",
+  "product_status": "MACHINE_VERIFIED_HUMAN_PENDING",
   "allowed_claim": "V0_MIN_ACCEPTED_NOT_RELEASED",
   "forbidden_claims": [
     "V0_ACCEPTED",
@@ -31,10 +33,10 @@
     "PRODUCTION_RELEASED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "Codex",
-  "next_action": "Seal reviewed batched native snapshot and warm-directed executor; offline44 then warm-component-01, full08 only after full warm20 closes.",
-  "required_authorization": "NONE_WITHIN_V0_LOCAL_GPU_AND_CODE_VERIFICATION_PROGRAM",
-  "authorization_request": null,
+  "next_owner": "project_owner",
+  "next_action": "Review full08 human-review.html and provide candidate-bound S2 experience signoff; then Codex immediately records signoff and commits/pushes stage evidence, before next Stage.",
+  "required_authorization": "HUMAN_EXPERIENCE_SIGNOFF_ONLY_V0_GPU_CODE_PROGRAM_REMAINS_ACTIVE",
+  "authorization_request": "reports/v0-s2/full-v0-auto-08/human-signoff-request.md",
   "authorization_record": "reports/authorization-program-v1-local-01.json",
   "read_only_binding_authorization": "reports/v0-s2/authorization-binding-inventory-06.json",
   "cpu_decoder_authorization": "reports/v0-s2/authorization-cpu-decoder-01.json",
@@ -78,14 +80,14 @@
   ],
   "contract_change_request": "reports/r1a/change-request-r1a-product-controls-02.json",
   "contract_change_decision": "reports/r1a/change-decision-r1a-product-controls-02.json",
-  "implementation_candidate": "6ec897ed1eec776586688ca87da66be682fc798f",
+  "implementation_candidate": "719c74559393a6489b2f630a1e0d3bc3303eb655",
   "implementation_baseline": "5ea725cc7182e654043183d9de581b730a585685",
   "candidate_binding_scope": "Approved GPU policy correction, unchanged calibrated production workload/context and fixed acceptance denominator.",
   "offline_evidence_commit": null,
-  "offline_receipt": "reports/v0-s2/offline-checkpoint-43/receipt.json",
-  "offline_candidate_sha": "6ec897ed1eec776586688ca87da66be682fc798f",
+  "offline_receipt": "reports/v0-s2/offline-checkpoint-44/receipt.json",
+  "offline_candidate_sha": "719c74559393a6489b2f630a1e0d3bc3303eb655",
   "evidence_root": "reports/",
-  "gate_decision": null,
+  "gate_decision": "reports/v0-s2/full-v0-auto-08/gate-decision.md",
   "human_signoff": null,
   "product_acceptance": null,
   "last_accepted_product": {
@@ -110,9 +112,9 @@
   },
   "historical_live_terminal_receipt": "reports/r1a/r1a-live-07/live-receipt.json",
   "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
-  "live_terminal_receipt": "reports/v0-s2/full-v0-auto-07/receipt.json",
-  "independent_review": null,
-  "exact_stop_reason": "NOT_STOPPED_WARM_LINEAGE_CORRECTION",
+  "live_terminal_receipt": "reports/v0-s2/full-v0-auto-08/receipt.json",
+  "independent_review": "reports/v0-s2/full-v0-auto-08/independent-review.json",
+  "exact_stop_reason": "REACHED_HUMAN_EXPERIENCE_SIGNOFF_GATE_MACHINE_AND_ISOLATED_REVIEW_COMPLETE",
   "native_component_authorization": "reports/v0-s2/authorization-native-component-02.json",
   "native_component_terminal_receipt": "reports/v0-s2/native-component-02/receipt.json",
   "local_control_change_decision": "reports/v0-s2/change-decision-video-workbench-01.json",
@@ -156,11 +158,11 @@
   "native_browser_terminal_phase_implementation": "reports/v0-s2/browser-terminal-phase-progress-01.md",
   "cumulative_stage_sequence_implementation": "reports/v0-s2/cumulative-stage-sequence-progress-01.md",
   "bound_runtime_archive_implementation": "reports/v0-s2/bound-runtime-archive-progress-01.md",
-  "live_authorization_record": "reports/v0-s2/authorization-full-v0-auto-07.json",
-  "native_run_id": "full-v0-auto-07",
+  "live_authorization_record": "reports/v0-s2/authorization-full-v0-auto-08.json",
+  "native_run_id": "full-v0-auto-08",
   "live_executor_handle": {
     "kind": "exec_command_session",
-    "id": 34472,
+    "id": 96389,
     "terminal": true,
     "restart_forbidden": true
   },
@@ -188,7 +190,8 @@
     "reports/v0-s2/full-v0-auto-04/receipt.json",
     "reports/v0-s2/full-v0-auto-05/receipt.json",
     "reports/v0-s2/full-v0-auto-06/receipt.json",
-    "reports/v0-s2/full-v0-auto-07/receipt.json"
+    "reports/v0-s2/full-v0-auto-07/receipt.json",
+    "reports/v0-s2/full-v0-auto-08/receipt.json"
   ],
   "retained_root_disposition": "reports/v0-s2/supplemental-cleanup-01/receipt.json",
   "supplemental_authorization_record": "reports/v0-s2/authorization-s2-supplemental-01.approval.json",
@@ -382,37 +385,37 @@
         {
           "name": "WP-S2-00 冻结准备",
           "status": "DONE",
-          "evidence": "reports/v0-s2/offline-checkpoint-39/receipt.json"
+          "evidence": "reports/v0-s2/offline-checkpoint-44/receipt.json"
         },
         {
           "name": "WP-S2-01 媒体owner",
           "status": "DONE",
-          "evidence": "reports/v0-s2/offline-checkpoint-39/receipt.json"
+          "evidence": "reports/v0-s2/offline-checkpoint-44/receipt.json"
         },
         {
           "name": "WP-S2-02 公开视频路径",
           "status": "DONE",
-          "evidence": "reports/v0-s2/offline-checkpoint-39/receipt.json"
+          "evidence": "reports/v0-s2/offline-checkpoint-44/receipt.json"
         },
         {
           "name": "WP-S2-03 安全/资源/取消",
           "status": "DONE",
-          "evidence": "reports/v0-s2/offline-checkpoint-39/receipt.json"
+          "evidence": "reports/v0-s2/offline-checkpoint-44/receipt.json"
         },
         {
           "name": "WP-S2-04 离线集中收口",
           "status": "DONE",
-          "evidence": "reports/v0-s2/offline-checkpoint-39/receipt.json"
+          "evidence": "reports/v0-s2/offline-checkpoint-44/receipt.json"
         },
         {
           "name": "WP-S2-05 完整真实验收",
-          "status": "PARTIAL",
-          "evidence": "reports/v0-s2/full-profile-lifecycle-correction-01/receipt.json"
+          "status": "DONE",
+          "evidence": "reports/v0-s2/full-v0-auto-08/receipt.json"
         },
         {
           "name": "WP-S2-06 独立审查",
-          "status": "PENDING",
-          "evidence": null
+          "status": "DONE",
+          "evidence": "reports/v0-s2/full-v0-auto-08/independent-review.json"
         },
         {
           "name": "S2 人工签署与Git同步",
@@ -420,13 +423,13 @@
           "evidence": null
         }
       ],
-      "completed_substeps": 5,
+      "completed_substeps": 7,
       "total_substeps": 8,
-      "summary": "Semantic draft oracle, UI promise lifecycle and exact canvas focus independently reviewed;real no-model diag06 verified.522 tests/five checks passed. Full06 next;formal5/8.",
-      "implementation": "OFFLINE_IMPLEMENTED",
-      "machine_acceptance": "NO_GO_FRESH_COMPLETE_CHECKPOINT_REQUIRED",
-      "independent_review": "CORRECTION_REVIEW_ONLY_NOT_STAGE_PASS",
-      "human_signoff": "NOT_SIGNED"
+      "summary": "Full08 fresh cumulative9/9, offline541/5checks, independent Fatal0/Major0/Minor0; human signoff and immediate Git sync remain.",
+      "implementation": "IMPLEMENTED",
+      "machine_acceptance": "COMPLETE_FIXED9_PASSED",
+      "independent_review": "COMPLETE_FATAL0_MAJOR0_MINOR0",
+      "human_signoff": "PENDING"
     },
     {
       "stage_id": "V0-S3",
@@ -764,9 +767,12 @@
   ],
   "v0_verification_authorization_status": "ACTIVE_NO_PER_RUN_HUMAN_CONFIRMATION",
   "active_component_run": {
-    "run_id": "browser-component-03",
+    "run_id": "warm-component-01",
     "terminal": true,
-    "receipt": "reports/v0-s2/browser-component-03/receipt.json",
-    "stage_pass_claim": false
-  }
+    "full_stage_checkpoint": false,
+    "stage_pass_claim": false,
+    "receipt": "reports/v0-s2/warm-component-01/receipt.json"
+  },
+  "human_review": "reports/v0-s2/full-v0-auto-08/human-review.html",
+  "evidence_directory": "reports/v0-s2/full-v0-auto-08/"
 }
