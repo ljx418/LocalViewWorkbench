@@ -1,8 +1,11 @@
 import copy
 import hashlib
+import json
 from pathlib import Path
 import tempfile
 import sys
+import threading
+from concurrent.futures import ThreadPoolExecutor
 import time
 from types import SimpleNamespace
 import unittest
@@ -10,6 +13,7 @@ from unittest.mock import patch
 from tools import v0_verification_authority as auth
 from tools import v0_s2_compute_diagnostic as diag
 from tools import v0_s2_compute_types as gpu_types
+from tools import v0_s2_automatic_verification as automatic
 from LVW_V0_RuntimePatch.custom_nodes.lvw_v0_bridge.core import BridgeError
 
 
@@ -142,6 +146,56 @@ class VerificationProgramTests(unittest.TestCase):
         self.assertEqual([{'pid':12,'type':'G'},{'pid':13,'type':'C+G'}],gpu_types.process_types(raw))
         for broken in [raw.replace(b'C+G',b'unknown'),raw.replace(b'<pid>13',b'<pid>12'),b'<nvidia_smi_log><gpu/><gpu/></nvidia_smi_log>']:
             with self.assertRaises(ValueError):gpu_types.process_types(broken)
+
+    def test_real_checkpoint_route_uses_finite_child_and_terminal_keeps_parent_active(self):
+        from tools import v0_s2_stage_checkpoint as cp
+        from tools import v0_s2_supplemental as supplemental
+        for mutation in ('valid','budget','expired','revoke','hold','claimed','packet','other-active','missing-lease'):
+            with self.subTest(mutation=mutation),tempfile.TemporaryDirectory() as temp:
+                root=Path(temp);state=root/'state';state.mkdir()
+                def put(ref,value):
+                    p=root/ref;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(cp.canonical(value));return p
+                program=self.program();program['default_full_s2_run_budget']=cp.BUDGET
+                parent=put(auth.PROGRAM,program);control=put('plans/execution-control.json',{'v0_verification_program':auth.PROGRAM,'external_execution_hold':{'active':False}})
+                spec=put('.agent-governance/stages/V0-S2/stage-control.json',{'fixture':'unchanged gate'})
+                harness=put(cp.HARNESS,{'fixture':'sealed executor'})
+                grant=auth.child(program,stage='V0-S2',run_id='full-v0-auto-01',candidate='a'*40,
+                    harness_sha256=cp.file_hash(harness),program_sha256=cp.file_hash(parent),budget=cp.BUDGET,max_seconds=21600)
+                grant.update(acceptance_hash=cp.ACCEPTANCE,stage_packet_sha256=cp.file_hash(spec))
+                if mutation=='budget':grant['budget']['provider_calls']=84
+                elif mutation=='expired':grant['expires_at']=time.time()-1
+                elif mutation=='revoke':program['status']='REVOKED';put(auth.PROGRAM,program)
+                elif mutation=='hold':put('plans/execution-control.json',{'external_execution_hold':{'active':True}})
+                elif mutation=='claimed':(state/'full-v0-auto-01').mkdir()
+                elif mutation=='packet':put('.agent-governance/stages/V0-S2/stage-control.json',{'changed':'gate'})
+                elif mutation=='other-active':
+                    other=state/'full-v0-auto-02';other.mkdir();(other/'lease.closed').write_bytes(b'0')
+                elif mutation=='missing-lease':(state/'full-v0-auto-02').mkdir()
+                put(automatic.approval_path('full-v0-auto-01'),grant)
+                with patch.object(cp,'ROOT',root),patch.object(cp,'STATE_ROOT',state):
+                    if mutation=='valid':
+                        refs=cp.slot_authority('full-v0-auto-01','a'*40)
+                        supplemental.expire(refs,decision='NO_GO',terminal='test-only-terminal')
+                        self.assertEqual('ACTIVE',json.loads(parent.read_bytes())['status'])
+                        with self.assertRaises(ValueError):cp.slot_authority('full-v0-auto-01','a'*40)
+                    else:
+                        with self.assertRaises(ValueError):cp.slot_authority('full-v0-auto-01','a'*40)
+
+    def test_two_slots_cannot_both_claim_the_same_stage_concurrently(self):
+        from tools import v0_s2_stage_checkpoint as cp
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp);state=root/'state';barrier=threading.Barrier(2)
+            with patch.object(cp,'ROOT',root),patch.object(cp,'STATE_ROOT',state):
+                for slot in ['full-v0-auto-01','full-v0-auto-02']:
+                    p=cp.child_path(slot);p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(cp.canonical({'slot':slot}))
+                def attempt(slot):
+                    raw=cp.child_path(slot).read_bytes();barrier.wait(timeout=5)
+                    try:cp.claim_run(slot,{'slot':slot},raw);return 'CLAIMED'
+                    except (ValueError,BlockingIOError):return 'REFUSED'
+                with ThreadPoolExecutor(max_workers=2) as executor:
+                    result=list(executor.map(attempt,['full-v0-auto-01','full-v0-auto-02']))
+                self.assertEqual(['CLAIMED','REFUSED'],sorted(result))
+                self.assertEqual(1,len(list(state.glob('full-*/lease.closed'))))
 
 
 if __name__=='__main__':unittest.main()
