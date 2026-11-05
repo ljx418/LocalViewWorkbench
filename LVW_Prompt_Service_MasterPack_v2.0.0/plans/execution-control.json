@@ -8,15 +8,15 @@
   "coordinate": {
     "stage_id": "V0-S2",
     "workpack_id": "WP-S2-05",
-    "gate": "GATE3_PROFILE_LIFECYCLE_AUTH_WIRING_OFFLINE",
-    "state": "FROZEN_READY_OFFLINE"
+    "gate": "GATE4_FULL_PROFILE_LIFECYCLE_CHECKPOINT",
+    "state": "RUNNING"
   },
   "last_passed_gate": {
-    "id": "V0_S2_OFFLINE_CHECKPOINT_32_PASSED",
-    "evidence": "reports/v0-s2/offline-checkpoint-32/receipt.json",
-    "meaning": "486 tests and all five checks passed on final lifecycle repair candidate. Isolated repair review found no new Fatal/Major. Not a native Stage PASS."
+    "id": "V0_S2_OFFLINE_CHECKPOINT_33_PASSED",
+    "evidence": "reports/v0-s2/offline-checkpoint-33/receipt.json",
+    "meaning": "490 tests/five checks passed; isolated authorization review Fatal0/Major0. Not Stage acceptance."
   },
-  "current_blocking_gate": "NEW_FINITE_FULL_CHECKPOINT_AUTHORIZATION_REQUIRED",
+  "current_blocking_gate": "FULL_NATIVE_STAGE_CHECKPOINT_PENDING",
   "stage_packet": ".agent-governance/stages/V0-S2/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/V0-S2/PAYLOAD_MANIFEST.sha256",
   "product_status": "IN_PROGRESS",
@@ -30,7 +30,7 @@
     "TARGET_HARDWARE_TESTED"
   ],
   "next_owner": "Codex",
-  "next_action": "Offline gate final authorization-wiring candidate, then one readiness and one fresh full run; no additional retry.",
+  "next_action": "Observe the same session70634 and durable original claim until terminal; no restart or second attempt.",
   "required_authorization": "NONE_WITHIN_AUTH_REQUEST_V1_S2_PROFILE_LIFECYCLE_01",
   "authorization_request": "reports/v0-s2/authorization-s2-profile-lifecycle-01.request.json",
   "authorization_record": "reports/authorization-program-v1-local-01.json",
@@ -76,12 +76,12 @@
   ],
   "contract_change_request": "reports/r1a/change-request-r1a-product-controls-02.json",
   "contract_change_decision": "reports/r1a/change-decision-r1a-product-controls-02.json",
-  "implementation_candidate": "5bb7c14a12ef51d09efe0937e8fe59380fdc6a2c",
+  "implementation_candidate": "29aada9071f724aa355a2bcbc17e13b2142f426d",
   "implementation_baseline": "5ea725cc7182e654043183d9de581b730a585685",
   "candidate_binding_scope": "Approved GPU policy correction, unchanged calibrated production workload/context and fixed acceptance denominator.",
   "offline_evidence_commit": null,
-  "offline_receipt": "reports/v0-s2/offline-checkpoint-32/receipt.json",
-  "offline_candidate_sha": "5bb7c14a12ef51d09efe0937e8fe59380fdc6a2c",
+  "offline_receipt": "reports/v0-s2/offline-checkpoint-33/receipt.json",
+  "offline_candidate_sha": "29aada9071f724aa355a2bcbc17e13b2142f426d",
   "evidence_root": "reports/",
   "gate_decision": null,
   "human_signoff": null,
@@ -110,7 +110,7 @@
   "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
   "live_terminal_receipt": "reports/v0-s2/full-oracle-correction-01/receipt.json",
   "independent_review": null,
-  "exact_stop_reason": "NOT_STOPPED_AUTHORIZED_OFFLINE_WIRING",
+  "exact_stop_reason": "NOT_STOPPED_APPROVED_FULL_CHECKPOINT_RUNNING",
   "native_component_authorization": "reports/v0-s2/authorization-native-component-02.json",
   "native_component_terminal_receipt": "reports/v0-s2/native-component-02/receipt.json",
   "local_control_change_decision": "reports/v0-s2/change-decision-video-workbench-01.json",
@@ -154,14 +154,13 @@
   "native_browser_terminal_phase_implementation": "reports/v0-s2/browser-terminal-phase-progress-01.md",
   "cumulative_stage_sequence_implementation": "reports/v0-s2/cumulative-stage-sequence-progress-01.md",
   "bound_runtime_archive_implementation": "reports/v0-s2/bound-runtime-archive-progress-01.md",
-  "live_authorization_record": "reports/v0-s2/authorization-full-oracle-correction-01.json",
-  "native_run_id": "full-oracle-correction-01",
+  "live_authorization_record": "reports/v0-s2/authorization-full-profile-lifecycle-correction-01.json",
+  "native_run_id": "full-profile-lifecycle-correction-01",
   "live_executor_handle": {
     "kind": "exec_command_session",
-    "id": 46176,
-    "terminal": true,
-    "restart_forbidden": true,
-    "exit_code": 1
+    "id": 70634,
+    "terminal": false,
+    "restart_forbidden": true
   },
   "next_stage_document_preparation": "reports/v0-s3/preparation-01.md",
   "native_checkpoint_attempts": {
@@ -371,27 +370,27 @@
         {
           "name": "WP-S2-00 冻结准备",
           "status": "DONE",
-          "evidence": "reports/v0-s2/offline-checkpoint-32/receipt.json"
+          "evidence": "reports/v0-s2/offline-checkpoint-33/receipt.json"
         },
         {
           "name": "WP-S2-01 媒体owner",
           "status": "DONE",
-          "evidence": "reports/v0-s2/offline-checkpoint-32/receipt.json"
+          "evidence": "reports/v0-s2/offline-checkpoint-33/receipt.json"
         },
         {
           "name": "WP-S2-02 公开视频路径",
           "status": "DONE",
-          "evidence": "reports/v0-s2/offline-checkpoint-32/receipt.json"
+          "evidence": "reports/v0-s2/offline-checkpoint-33/receipt.json"
         },
         {
           "name": "WP-S2-03 安全/资源/取消",
           "status": "DONE",
-          "evidence": "reports/v0-s2/offline-checkpoint-32/receipt.json"
+          "evidence": "reports/v0-s2/offline-checkpoint-33/receipt.json"
         },
         {
           "name": "WP-S2-04 离线集中收口",
           "status": "DONE",
-          "evidence": "reports/v0-s2/offline-checkpoint-32/receipt.json"
+          "evidence": "reports/v0-s2/offline-checkpoint-33/receipt.json"
         },
         {
           "name": "WP-S2-05 完整真实验收",
@@ -411,9 +410,9 @@
       ],
       "completed_substeps": 5,
       "total_substeps": 8,
-      "summary": "5 offline workpacks complete; lifecycle correction passed486 tests/five checks and isolated repair review. Native full run remains NO_GO; one new finite run pending approval.",
+      "summary": "5 offline workpacks complete; authorization-wired candidate passed490 tests and isolated wiring review; one finite native recheck approved and pending.",
       "implementation": "OFFLINE_IMPLEMENTED",
-      "machine_acceptance": "NO_GO_NATIVE_RECHECK_WAIT_AUTH",
+      "machine_acceptance": "OFFLINE_PASSED_NATIVE_RECHECK_AUTHORIZED",
       "independent_review": "CORRECTION_ONLY_COMPLETED_NOT_STAGE_ACCEPTANCE",
       "human_signoff": "NOT_SIGNED"
     },
@@ -724,7 +723,7 @@
   },
   "gpu_policy_reassessment": "reports/v0-s2/gpu-policy-reassessment-01/receipt.json",
   "policy_correction_authorization": "reports/v0-s2/authorization-s2-policy-correction-01.approval.json",
-  "policy_readiness_receipt": "reports/v0-s2/resource-admission-policy-correction-01/receipt.json",
+  "policy_readiness_receipt": "reports/v0-s2/resource-admission-profile-lifecycle-01/receipt.json",
   "current_runtime_failure": {
     "code": "NATIVE_BINDING_UNAVAILABLE",
     "evidence": "reports/v0-s2/full-oracle-correction-01/receipt.json",
