@@ -116,3 +116,14 @@ python3 -B -m tools.v0_s2_stage_checkpoint execute --slot full-resource-ready-01
 ```
 
 本批准绝对期限最多6小时，child受其期限约束；终态、撤销或越界后停止新工作，已归属清理保留。此前残留根均已清理，本次不允许新根接管。仅增加授权／准入／诊断证据运输和测试；插件、公开合同、质量与资源门限、固定样本／模型／分母不改。
+
+
+## 1.0.32｜已批准的验收器纠偏复验
+
+项目负责人批准 AUTH-REQUEST-V1-S2-ORACLE-CORRECTION-01，随后通过明确Goal解除文档审阅hold，沿用现行全部门禁。仅新增 full-oracle-correction-01 一个完整槽，额外完整复验0；资源准入子运行 resource-admission-oracle-correction-01 最多一次。全部四次失败、归档和过期授权保持不变；不复活旧slot、不采纳docs/25提案。
+
+新scope复用原有限准入的三组读数、60秒、6个原生/3个WSL命令与4096MiB/2048MiB原阈值，并要求相同最终候选的新准入终态才认领完整运行。母授权、原始批准和本次恢复记录、固定样本/模型/分母/预算、旧终态/清理与候选后代允许改动逐项校验。文档修订d26f8ff为用户单独要求并接受的固定基准，其后只许授权传输/测试/相关收据更改；不能任意改产品或文档规则。
+
+prepare只读仓库和受控历史证据，probe才认领新准入并做已批准的有限真实探测。最终候选必须先通过完整离线门禁，再按顺序执行准入与完整运行。CLI入口为tools.v0_s2_oracle_authorization的prepare/probe，再以tools.v0_s2_stage_checkpoint的prepare/execute选择full-oracle-correction-01；准确候选与offline收据记录到唯一坐标，不手工替换运行产物。
+
+本次scope最长6小时，完整child受其到期约束；准入失败/撤销/完整终态后自动过期，已归属清理保留。人工签署、独立审查和Stage PASS不由此授权替代。

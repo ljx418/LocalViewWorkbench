@@ -34,6 +34,7 @@ from tools.v0_s2_driver import base
 
 from tools import v0_s2_supplemental as supplemental
 from tools import v0_s2_resource_admission as resource_admission
+from tools import v0_s2_oracle_authorization as oracle_authorization
 
 HARNESS = 'tools/v0_s2_stage_checkpoint.py'
 PROGRAM = 'reports/authorization-program-v1-local-01.json'
@@ -51,7 +52,7 @@ SOURCE_PAYLOAD = ['tools', 'LVW_V0_RuntimePatch', 'contracts', 'config',
     'reports/v0-s1/stage-checkpoint-phase-a/checkpoint.py', 'reports/v0-s1/wp-s1-03-phase-a/live_probe.py',
     'reports/v0-s2/frozen-structural-inputs-02.json', 'reports/v0-s2/fixture-preparation-02',
     'reports/v0-s2/authorization-fixtures-02.json', 'reports/v0-s2/offline-checkpoint-10/receipt.json',
-    PROGRAM, supplemental.REQUEST, supplemental.APPROVAL, resource_admission.REQUEST, resource_admission.APPROVAL, *SEEDS.values()]
+    PROGRAM, supplemental.REQUEST, supplemental.APPROVAL, resource_admission.REQUEST, resource_admission.APPROVAL, oracle_authorization.REQUEST, oracle_authorization.APPROVAL, *SEEDS.values()]
 BUDGET = {'stage_checkpoints': 1, 'public_submissions': 65, 'default_public_submissions': 45,
     'warm_public_submissions': 20, 'provider_calls': 83, 'comfy_starts': 2, 'ollama_starts': 2,
     'browser_starts': 1, 'warm_preloads': 20, 'loopback_requests_per_runtime': 8192,
@@ -127,6 +128,7 @@ def program_authority():
     coordinate = repository_json('plans/execution-control.json')
     if (program.get('status') != 'ACTIVE' or program.get('authorization_id') != PROGRAM_ID
             or coordinate.get('coordinate', {}).get('stage_id') != 'V0-S2'
+            or coordinate.get('external_execution_hold', {}).get('active') is True
             or 'V0-S2' not in program.get('stages', [])
             or program.get('child_authorization_policy', {}).get('stage_checkpoint_limit') != 1
             or program['child_authorization_policy'].get('corrected_candidate_full_recheck_limit') != 1):
@@ -135,7 +137,7 @@ def program_authority():
 
 
 def child_path(slot):
-    if slot not in ('full-checkpoint-01', 'full-recheck-01', supplemental.SLOT, resource_admission.SLOT): raise EvidenceError('WAIT_AUTH: no further Stage slot')
+    if slot not in ('full-checkpoint-01', 'full-recheck-01', supplemental.SLOT, resource_admission.SLOT, oracle_authorization.SLOT): raise EvidenceError('WAIT_AUTH: no further Stage slot')
     return ROOT/'reports/v0-s2'/('authorization-'+slot+'.json')
 
 
@@ -155,6 +157,8 @@ def slot_guard(slot):
 
 def slot_authority(slot, candidate):
     child_path(slot)
+    if slot == oracle_authorization.SLOT:
+        return oracle_authorization.authority(candidate, require_ready=True)
     if slot == resource_admission.SLOT:
         return resource_admission.authority(candidate, require_ready=True)
     if slot == supplemental.SLOT:
@@ -244,6 +248,7 @@ class ChildLease:
                 if (self.closed or (self.directory is not None and (self.directory/'lease.closed').read_bytes() != b'0')
                         or self.path.read_bytes() != self.raw or file_hash(ROOT/PROGRAM) != self.auth['program_sha256']
                         or repository_json('plans/execution-control.json').get('coordinate', {}).get('stage_id') != 'V0-S2'
+                        or repository_json('plans/execution-control.json').get('external_execution_hold', {}).get('active') is True
                         or not self.auth['issued_at'] <= time.time() < self.auth['expires_at']):
                     raise EvidenceError('child changed, revoked or expired; new work denied')
             if action not in RESERVED and self.auth.get('supplemental_authorization'):
@@ -573,10 +578,10 @@ def execute(slot):
 
 def main():
     parser = argparse.ArgumentParser(); commands = parser.add_subparsers(dest='command', required=True)
-    ready = commands.add_parser('prepare'); ready.add_argument('--slot', required=True, choices=('full-checkpoint-01', 'full-recheck-01', supplemental.SLOT, resource_admission.SLOT))
+    ready = commands.add_parser('prepare'); ready.add_argument('--slot', required=True, choices=('full-checkpoint-01', 'full-recheck-01', supplemental.SLOT, resource_admission.SLOT, oracle_authorization.SLOT))
     ready.add_argument('--candidate', required=True); ready.add_argument('--offline-receipt', required=True)
     ready.add_argument('--replace-unclaimed', action='store_true')
-    run = commands.add_parser('execute'); run.add_argument('--slot', required=True, choices=('full-checkpoint-01', 'full-recheck-01', supplemental.SLOT, resource_admission.SLOT))
+    run = commands.add_parser('execute'); run.add_argument('--slot', required=True, choices=('full-checkpoint-01', 'full-recheck-01', supplemental.SLOT, resource_admission.SLOT, oracle_authorization.SLOT))
     run.add_argument('--execute-native-checkpoint', action='store_true', required=True)
     args = parser.parse_args()
     if args.command == 'prepare': value = prepare(args.slot, args.candidate, args.offline_receipt, replace_unclaimed=args.replace_unclaimed)

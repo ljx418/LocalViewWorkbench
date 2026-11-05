@@ -9,6 +9,7 @@ import json
 import os
 from pathlib import Path
 import subprocess
+import sys
 import time
 
 from tools.v0_s2_checkpoint_oracles import EvidenceError
@@ -98,11 +99,14 @@ def expected_tools(cp):
     return result
 
 
-def prepare(candidate,offline):
+def prepare(candidate,offline,*,profile=None):
     from tools import v0_s2_stage_checkpoint as cp
+    policy=profile or sys.modules[__name__]
+    REQUEST,READY,HARNESS=policy.REQUEST,policy.READY,policy.HARNESS
+    authority=policy.authority
     refs=authority(candidate,require_ready=False);identity=cp.source_gate(candidate,offline)
     tools=expected_tools(cp)  # Recorded bytes only; no installed tool read.
-    path=cp.ROOT/'reports/v0-s2/authorization-resource-admission-01.json'
+    path=cp.ROOT/('reports/v0-s2/authorization-'+READY+'.json')
     if (cp.STATE_ROOT/READY).exists():raise EvidenceError('readiness already claimed')
     now=time.time();request=cp.repository_json(REQUEST)
     auth={'schema_version':'lvw.resource-admission-child/1','status':'ACTIVE_ONE_SHOT','run_id':READY,
@@ -134,10 +138,13 @@ def oracle(native,wsl):
         'ram_available_mib':native['ram_available_mib'],'target_listener_count':0,'target_process_count':0}
 
 
-def probe():
+def probe(*,profile=None):
     from tools import v0_s2_stage_checkpoint as cp
+    policy=profile or sys.modules[__name__]
+    REQUEST,APPROVAL,REQUEST_SHA,READY,HARNESS=policy.REQUEST,policy.APPROVAL,policy.REQUEST_SHA,policy.READY,policy.HARNESS
+    authority=policy.authority
     from tools.v0_s2_execution_bindings import plain
-    path=cp.ROOT/'reports/v0-s2/authorization-resource-admission-01.json';raw=path.read_bytes();auth=json.loads(raw)
+    path=cp.ROOT/('reports/v0-s2/authorization-'+READY+'.json');raw=path.read_bytes();auth=json.loads(raw)
     refs=authority(auth['candidate_sha'],require_ready=False)
     if (auth.get('schema_version')!='lvw.resource-admission-child/1' or auth.get('status')!='ACTIVE_ONE_SHOT'
             or auth.get('run_id')!=READY or auth.get('stage_pass_claim') is not False or auth['scope']!=cp.repository_json(REQUEST)['readiness_child']

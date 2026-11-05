@@ -8,15 +8,15 @@
   "coordinate": {
     "stage_id": "V0-S2",
     "workpack_id": "WP-S2-05",
-    "gate": "PLAN_REVISION_WAIT_OWNER_REVIEW",
-    "state": "WAIT_HUMAN"
+    "gate": "GATE3_ORACLE_AUTHORIZATION_TRANSPORT",
+    "state": "FROZEN_READY_OFFLINE"
   },
   "last_passed_gate": {
     "id": "V0_S2_OFFLINE_CHECKPOINT_25_PASSED",
     "evidence": "reports/v0-s2/offline-checkpoint-25/receipt.json",
     "meaning": "Corrected candidate passed461 tests, all five offline checks and before/after seals. No new native run or Stage PASS."
   },
-  "current_blocking_gate": "OWNER_PLAN_REVIEW_AND_RESUME_NOT_MISSING_RUN_AUTHORIZATION",
+  "current_blocking_gate": "FINAL_ORACLE_AUTHORIZATION_TRANSPORT_OFFLINE_GATE",
   "stage_packet": ".agent-governance/stages/V0-S2/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/V0-S2/PAYLOAD_MANIFEST.sha256",
   "product_status": "IN_PROGRESS",
@@ -29,9 +29,9 @@
     "PRODUCTION_RELEASED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "project_owner",
-  "next_action": "Review docs/24 and choose existing gates or specific docs/25 proposals, then explicitly resume. Do not issue a live child or execute GPU/media/services/browser while owner hold is active. Unchanged ORACLE-CORRECTION-01 scope is already approved; do not request duplicate approval.",
-  "required_authorization": "OWNER_PLAN_DECISION_AND_RESUME; NO_DUPLICATE_RUN_SCOPE_APPROVAL",
+  "next_owner": "Codex",
+  "next_action": "Finish bounded new-slot authorization transport, targeted tests and full offline gate; then one readiness and one complete native run under existing approved scope.",
+  "required_authorization": "NONE_WITHIN_APPROVED_ORACLE_CORRECTION_SCOPE",
   "authorization_request": "reports/v0-s2/authorization-s2-oracle-correction-01.request.json",
   "authorization_record": "reports/authorization-program-v1-local-01.json",
   "read_only_binding_authorization": "reports/v0-s2/authorization-binding-inventory-06.json",
@@ -96,7 +96,7 @@
   "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
   "live_terminal_receipt": "reports/v0-s2/full-resource-ready-01/receipt.json",
   "independent_review": null,
-  "exact_stop_reason": "OWNER_REQUESTED_DOCUMENTATION_FIRST_HOLD_REAL_AUTHORIZATION_APPROVED_UNUSED",
+  "exact_stop_reason": "RESUMED_BY_OWNER_NEW_AUTHORIZATION_SLOT_OFFLINE_IMPLEMENTATION",
   "native_component_authorization": "reports/v0-s2/authorization-native-component-02.json",
   "native_component_terminal_receipt": "reports/v0-s2/native-component-02/receipt.json",
   "local_control_change_decision": "reports/v0-s2/change-decision-video-workbench-01.json",
@@ -202,13 +202,15 @@
     "approved_complete_runs": 1,
     "claimed_complete_runs": 0,
     "additional_full_rechecks": 0,
-    "status": "APPROVED_DEFERRED_BY_OWNER"
+    "status": "ACTIVE_AUTHORIZATION_TRANSPORT_PREPARATION"
   },
   "external_execution_hold": {
-    "active": true,
+    "active": false,
     "source": "project owner 2026-11-05 documentation-first instruction",
     "resume_requires": "explicit owner plan decision and resume",
-    "native_actions_this_revision": 0
+    "native_actions_this_revision": 0,
+    "resumed_by": "project_owner",
+    "resume_source": "explicit active Goal"
   },
   "stop_report_policy": {
     "include_complete_outline": true,

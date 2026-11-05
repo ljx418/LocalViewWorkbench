@@ -12,6 +12,7 @@ from unittest.mock import patch
 
 from tools import v0_s2_stage_checkpoint as cp
 from tools import v0_s2_resource_admission as admission
+from tools import v0_s2_oracle_authorization as oracle
 from tools import v0_s2_execution_bindings as bindings
 from tools.v0_s2_checkpoint_oracles import EvidenceError
 
@@ -59,65 +60,66 @@ class AdmissionTests(unittest.TestCase):
         with self.assertRaises(EvidenceError):cp.child_path('full-resource-ready-02')
 
     def test_real_claim_raw_evidence_expiry_replay_and_disk_failure(self):
-        policy=cp.repository_json(admission.REQUEST)['readiness_child']
-        for mode in ['ready','busy','mismatch','ram','port','process','command-failure','disk-full']:
-            with self.subTest(mode=mode),tempfile.TemporaryDirectory() as temporary,ExitStack() as stack:
-                parent=Path(temporary).resolve();root=parent/'pack';root.mkdir();state=parent/'state';state.mkdir()
-                request=cp.canonical({'readiness_child':policy});request_sha=hashlib.sha256(request).hexdigest()
-                for name,data in [(admission.REQUEST,request),(admission.APPROVAL,b'{}'),(admission.HARNESS,b'fixture code identity')]:
-                    p=root/name;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(data)
-                tools={}
-                for key in ['powershell','nvidia_exe','wsl_nvidia']:
-                    path=parent/key;path.write_bytes(key.encode());tools[key]={'path':str(path),'sha256':hashlib.sha256(key.encode()).hexdigest()}
-                nvidia_fixture=Path(tools['nvidia_exe']['path']);tools['nvidia_exe']['path']='/mnt/c/WINDOWS/system32/nvidia-smi.exe'
-                refs={'request':admission.REQUEST,'request_sha256':request_sha,'approval':admission.APPROVAL,
-                    'approval_sha256':hashlib.sha256(b'{}').hexdigest(),'expires_at':time.time()+3600}
-                offline=root/'reports/v0-s2/offline-checkpoint-23/receipt.json';offline.parent.mkdir(parents=True);offline.write_bytes(b'{}')
-                stack.enter_context(patch.object(cp,'ROOT',root));stack.enter_context(patch.object(cp,'STATE_ROOT',state))
-                stack.enter_context(patch.object(admission,'REQUEST_SHA',request_sha))
-                stack.enter_context(patch.object(admission,'authority',return_value=refs));stack.enter_context(patch.object(admission,'expected_tools',return_value=tools))
-                stack.enter_context(patch.object(cp,'source_gate',return_value={'payload_sha256':'1'*64}))
-                stack.enter_context(patch.object(cp,'program_authority',return_value='0'*64))
-                real_plain=bindings.plain
-                stack.enter_context(patch.object(bindings,'plain',side_effect=lambda path:nvidia_fixture if str(path)==tools['nvidia_exe']['path'] else real_plain(path)))
-                sleep=stack.enter_context(patch.object(time,'sleep'))
-                def native(argv,**kwargs):
-                    if mode=='command-failure':return subprocess.CompletedProcess(argv,1,b'',b'explicit synthetic failure')
-                    used=4097 if mode=='busy' else 1000
-                    if argv[0]==tools['powershell']['path']:
-                        script=argv[-1];self.assertIn('[Environment]::NewLine',script)
-                        self.assertNotIn('Stop-Process',script);self.assertNotIn('SetEnvironmentVariable',script)
-                        value={'gpu_csv':f'0,24564,{used},{24564-used}', 'ram_available_mib':2047 if mode=='ram' else 8192,
-                            'target_listener_count':int(mode=='port'),'target_process_count':int(mode=='process')}
-                        data=json.dumps(value).encode()
+        for profile in (admission,oracle):
+            policy=cp.repository_json(profile.REQUEST)['readiness_child']
+            for mode in ['ready','busy','mismatch','ram','port','process','command-failure','disk-full']:
+                with self.subTest(mode=mode),tempfile.TemporaryDirectory() as temporary,ExitStack() as stack:
+                    parent=Path(temporary).resolve();root=parent/'pack';root.mkdir();state=parent/'state';state.mkdir()
+                    request=cp.canonical({'readiness_child':policy});request_sha=hashlib.sha256(request).hexdigest()
+                    for name,data in [(profile.REQUEST,request),(profile.APPROVAL,b'{}'),(profile.HARNESS,b'fixture code identity')]:
+                        p=root/name;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(data)
+                    tools={}
+                    for key in ['powershell','nvidia_exe','wsl_nvidia']:
+                        path=parent/key;path.write_bytes(key.encode());tools[key]={'path':str(path),'sha256':hashlib.sha256(key.encode()).hexdigest()}
+                    nvidia_fixture=Path(tools['nvidia_exe']['path']);tools['nvidia_exe']['path']='/mnt/c/WINDOWS/system32/nvidia-smi.exe'
+                    refs={'request':profile.REQUEST,'request_sha256':request_sha,'approval':profile.APPROVAL,
+                        'approval_sha256':hashlib.sha256(b'{}').hexdigest(),'expires_at':time.time()+3600}
+                    offline=root/'reports/v0-s2/offline-checkpoint-23/receipt.json';offline.parent.mkdir(parents=True);offline.write_bytes(b'{}')
+                    stack.enter_context(patch.object(cp,'ROOT',root));stack.enter_context(patch.object(cp,'STATE_ROOT',state))
+                    stack.enter_context(patch.object(profile,'REQUEST_SHA',request_sha))
+                    stack.enter_context(patch.object(profile,'authority',return_value=refs));stack.enter_context(patch.object(admission,'expected_tools',return_value=tools))
+                    stack.enter_context(patch.object(cp,'source_gate',return_value={'payload_sha256':'1'*64}))
+                    stack.enter_context(patch.object(cp,'program_authority',return_value='0'*64))
+                    real_plain=bindings.plain
+                    stack.enter_context(patch.object(bindings,'plain',side_effect=lambda path:nvidia_fixture if str(path)==tools['nvidia_exe']['path'] else real_plain(path)))
+                    sleep=stack.enter_context(patch.object(time,'sleep'))
+                    def native(argv,**kwargs):
+                        if mode=='command-failure':return subprocess.CompletedProcess(argv,1,b'',b'explicit synthetic failure')
+                        used=4097 if mode=='busy' else 1000
+                        if argv[0]==tools['powershell']['path']:
+                            script=argv[-1];self.assertIn('[Environment]::NewLine',script)
+                            self.assertNotIn('Stop-Process',script);self.assertNotIn('SetEnvironmentVariable',script)
+                            value={'gpu_csv':f'0,24564,{used},{24564-used}', 'ram_available_mib':2047 if mode=='ram' else 8192,
+                                'target_listener_count':int(mode=='port'),'target_process_count':int(mode=='process')}
+                            data=json.dumps(value).encode()
+                        else:
+                            if mode=='mismatch':used+=1000
+                            data=f'0,24564,{used},{24564-used}\n'.encode()
+                        return subprocess.CompletedProcess(argv,0,data,b'')
+                    run=stack.enter_context(patch.object(subprocess,'run',side_effect=native))
+                    admission.prepare('a'*40,'reports/v0-s2/offline-checkpoint-23/receipt.json',profile=profile)
+                    if mode=='disk-full':
+                        writer=cp.write_new
+                        def fail_public(path,value):
+                            if path==root/'reports/v0-s2'/profile.READY/'receipt.json':raise OSError('synthetic disk full')
+                            return writer(path,value)
+                        stack.enter_context(patch.object(cp,'write_new',side_effect=fail_public))
+                        with self.assertRaises(OSError):admission.probe(profile=profile)
                     else:
-                        if mode=='mismatch':used+=1000
-                        data=f'0,24564,{used},{24564-used}\n'.encode()
-                    return subprocess.CompletedProcess(argv,0,data,b'')
-                run=stack.enter_context(patch.object(subprocess,'run',side_effect=native))
-                admission.prepare('a'*40,'reports/v0-s2/offline-checkpoint-23/receipt.json')
-                if mode=='disk-full':
-                    writer=cp.write_new
-                    def fail_public(path,value):
-                        if path==root/'reports/v0-s2/resource-admission-01/receipt.json':raise OSError('synthetic disk full')
-                        return writer(path,value)
-                    stack.enter_context(patch.object(cp,'write_new',side_effect=fail_public))
-                    with self.assertRaises(OSError):admission.probe()
-                else:
-                    result=admission.probe()
-                    self.assertEqual('RESOURCE_READY_NOT_PRODUCT_ACCEPTANCE' if mode=='ready' else 'NO_GO',result['decision'])
-                    self.assertLessEqual(result['native_command_upper_bound'],6);self.assertLessEqual(result['wsl_commands'],3)
-                    self.assertEqual(0,result['model_calls']);self.assertEqual(0,result['service_starts'])
-                    if mode=='busy':self.assertEqual(4097,result['samples'][0]['native']['gpus'][0][2])
-                auth=json.loads((root/'reports/v0-s2/authorization-resource-admission-01.json').read_text())
-                self.assertEqual('EXPIRED_RESOURCE_READY' if mode=='ready' else 'EXPIRED_NO_GO',auth['status'])
-                self.assertEqual(b'1',(state/admission.READY/'lease.closed').read_bytes())
-                before=run.call_count
-                with self.assertRaises(EvidenceError):admission.probe()
-                self.assertEqual(before,run.call_count)
-                if mode in ['ready','disk-full']:
-                    self.assertEqual(6,before);self.assertEqual(2,sleep.call_count)
-                self.assertFalse((state/admission.SLOT).exists())
+                        result=admission.probe(profile=profile)
+                        self.assertEqual('RESOURCE_READY_NOT_PRODUCT_ACCEPTANCE' if mode=='ready' else 'NO_GO',result['decision'])
+                        self.assertLessEqual(result['native_command_upper_bound'],6);self.assertLessEqual(result['wsl_commands'],3)
+                        self.assertEqual(0,result['model_calls']);self.assertEqual(0,result['service_starts'])
+                        if mode=='busy':self.assertEqual(4097,result['samples'][0]['native']['gpus'][0][2])
+                    auth=json.loads((root/('reports/v0-s2/authorization-'+profile.READY+'.json')).read_text())
+                    self.assertEqual('EXPIRED_RESOURCE_READY' if mode=='ready' else 'EXPIRED_NO_GO',auth['status'])
+                    self.assertEqual(b'1',(state/profile.READY/'lease.closed').read_bytes())
+                    before=run.call_count
+                    with self.assertRaises(EvidenceError):admission.probe(profile=profile)
+                    self.assertEqual(before,run.call_count)
+                    if mode in ['ready','disk-full']:
+                        self.assertEqual(6,before);self.assertEqual(2,sleep.call_count)
+                    self.assertFalse((state/profile.SLOT).exists())
 
 
 if __name__=='__main__':unittest.main()
