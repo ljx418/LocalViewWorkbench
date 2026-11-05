@@ -161,6 +161,32 @@ class DriverTests(unittest.TestCase):
             with self.subTest(row=row),patch.object(driver,'_powershell',return_value=json.dumps([row])),self.assertRaises(base.StopProbe):
                 driver._snapshot_descendants(10,90)
 
+    def test_atomic_fault_stop_keeps_native_snapshot_and_birth_bound_stop_in_one_command(self):
+        driver=self.driver();stop={'pid':10,'target_start_ticks':100,'state':'STOPPED','original_absent':True,
+            'termination_requested':True,'stop_requested_wall_seconds':1000,'exit_confirmed_wall_seconds':1001}
+        child={'pid':11,'parent_pid':10,'start_ticks':101,'process_start_ticks':105}
+        with patch.object(driver,'_powershell',return_value=json.dumps({'descendants':[child],'root_stop':stop})) as query:
+            self.assertEqual(([child],stop),driver._snapshot_descendants(10,100,stop_root=True))
+            self.assertEqual(1,query.call_count)
+            command=query.call_args.args[0]
+            self.assertLess(command.index('$null=$root.SafeHandle'),command.index('$root.Kill()'))
+            self.assertLess(command.index('DESCENDANT_DEPTH_LIMIT'),command.index('$root.Kill()'))
+        for mutation in ({'pid':99},{'target_start_ticks':101},{'original_absent':False}):
+            with patch.object(driver,'_powershell',return_value=json.dumps({'descendants':[child],'root_stop':{**stop,**mutation}})),self.assertRaises(base.StopProbe):
+                driver._snapshot_descendants(10,100,stop_root=True)
+
+    def test_atomic_fault_stop_refuses_unknown_changed_or_already_consumed_root(self):
+        driver=self.driver();birth={'listener_pid':10,'listener_process_start_ticks':100}
+        driver.listener_births[11434]=birth.copy();driver.listener_proofs[11434]={'synthetic':True}
+        with patch.object(driver,'_snapshot_descendants') as snapshot:
+            for value in (None,{}, {**birth,'listener_pid':99}):
+                with self.assertRaises(base.StopProbe):driver.stop_ollama_snapshot_bound(value)
+            snapshot.assert_not_called()
+        driver.listener_terminal_states['11434']={'terminal_absent':True}
+        with patch.object(driver,'_snapshot_descendants') as snapshot,self.assertRaises(base.StopProbe):
+            driver.stop_ollama_snapshot_bound(birth)
+        snapshot.assert_not_called()
+
     def test_snapshot_cleanup_is_deepest_first_and_recycled_child_is_left_untouched(self):
         driver=self.driver();children=[{'pid':11,'process_start_ticks':101},{'pid':12,'process_start_ticks':102}]
         def proof(pid,ticks,**kw):

@@ -46,7 +46,7 @@ class FaultDriver(Driver):
             if e['event']=='source_prepared':e['source_sha256']=hashlib.sha256((root/'input/clip.mp4').read_bytes()).hexdigest()
         if case=='wrong-source':next(e for e in self.data['events'] if e['event']=='source_prepared')['source_sha256']='0'*64
         self._resource_worker.scope='COMFY_ONLY_FAULT';self._resource_worker.pids=[os.getpid()]
-        self.clock_index=0;self.point_index=0;self.stops=0;self.pids=[]
+        self.clock_index=0;self.point_index=0;self.stops=0;self.pids=[];self.listener_births={11434:{"synthetic":True}}
     def chat_log_snapshot(self):return prefix(10)
     def submit(self,graph):
         self.submissions+=1;self.graph=copy.deepcopy(graph)
@@ -56,7 +56,8 @@ class FaultDriver(Driver):
         return pid
     def native_clock(self):
         value=self.data['clocks']['before' if self.clock_index==0 else 'after'];self.clock_index+=1;return copy.deepcopy(value)
-    def stop_ollama(self):
+    def stop_ollama_snapshot_bound(self,birth):
+        if birth!=self.listener_births[11434]:raise AssertionError("wrong synthetic original root")
         self.stops+=1;self.finished=True
         if self.case=='published':self.data['events'][-1]['result_published']=True
         self.write(self.data['events']);return copy.deepcopy(self.data['stop'])

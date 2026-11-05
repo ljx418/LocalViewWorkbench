@@ -59,7 +59,7 @@ class FaultPhase(CancellationPhase):
         # the inventory also proves the bound model is GPU resident.
         token,window=self.wait_window('provider',journal,roots['8191']['pid']);self.token=token;self.artifact('window.json',window)
         self.action('native_clock_before_stop',case);start=self.driver.native_clock()
-        self.action('stop_owned_ollama',case);stop=self.driver.stop_ollama();self.artifact('owned-stop.json',stop)
+        self.action('stop_owned_ollama',case);stop=self.driver.stop_ollama_snapshot_bound(self.driver.listener_births[11434].copy());self.artifact('owned-stop.json',stop)
         self.action('native_clock_after_stop',case);end=self.driver.native_clock();clocks={'before':start,'after':end};self.artifact('stop-clocks.json',clocks)
         events,history,status=self.terminal(journal,token,prompt_id)
         self.artifact('events.json',events);self.artifact('history.json',history);self.artifact('status.json',status)

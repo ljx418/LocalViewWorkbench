@@ -1,0 +1,7 @@
+# 故障注入时序纠偏
+
+browser-component-02（b1df906e）取消feedback=0.058078012s，physical release自取消4.75s，准备/推理取消子阶段均通过。后续故障注入NO_GO：原始fault events的provider_response在1793896993.705，而root_stop请求在1793896995.559；故原Oracle以root not stopped within one active call正确拒绝。旧失败保留，正式产品九项NOT_RUN。归档127文件4463938字节，terminal SHA e4f04236ce2a3339530bd8f98ee51a8bc15db3e4da464fe6182432013b9ec2e5，原生/browser/temp/root清理及resource-clearance安全。
+
+改动仅测试执行器：入场先证明本轮listener/wrapper ancestry，冻结本driver登记birth。新增stop_ollama_snapshot_bound严格匹配该完整birth且拒绝终态重放；同一PowerShell/同一SafeHandle内校验原root精确出生、CIM、所有子进程父链/出生/深度后立刻停止原root并记录真实时钟；返回后复用原子进程逐一bound清理、未知子进程failclosed与端口空检查。原普通cleanup/stop入口不变，公共产品合同/模型参数/样本/分母/驻留与活动请求/反馈及释放Oracle均不变。
+
+50项定向CPU检查通过。实际Windows PowerShell Parser对生成脚本只解析通过（不执行停止脚本，见atomic-stop-syntax.json）；真实行为待新候选/新子运行。隔离审查结果另列。

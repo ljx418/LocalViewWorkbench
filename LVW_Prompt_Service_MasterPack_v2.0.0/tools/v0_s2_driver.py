@@ -158,7 +158,9 @@ class S2SystemDriver(base.SystemDriver):
             "stop_requested_wall_seconds=$requested;exit_confirmed_wall_seconds=([datetime]::UtcNow.Ticks-621355968000000000)/10000000.0}"
             "}}finally{$p.Dispose()}};"
             f"$result['pid']={pid};$result['target_start_ticks']={start_ticks};$result|ConvertTo-Json -Compress")
-        value=json.loads(raw)
+        return self._validate_stop_receipt(json.loads(raw),pid,start_ticks,allow_absent=allow_absent)
+
+    def _validate_stop_receipt(self,value,pid,start_ticks,*,allow_absent=False):
         if (type(value.get('pid')) is not int or type(value.get('target_start_ticks')) is not int
                 or value.get('pid')!=pid or value.get('target_start_ticks')!=start_ticks or value.get('original_absent') is not True
                 or type(value.get('termination_requested')) is not bool or value.get('state') not in ('STOPPED','ABSENT','REPLACED')
@@ -170,8 +172,18 @@ class S2SystemDriver(base.SystemDriver):
                     or confirmed<requested):raise base.StopProbe('OWNED_STOP_CLOCK_INVALID')
         return value
 
-    def _snapshot_descendants(self,pid,start_ticks):
-        if any(type(v) is not int or v<=0 for v in (pid,start_ticks)):raise base.StopProbe('SNAPSHOT_ROOT_INVALID')
+    def _snapshot_descendants(self,pid,start_ticks,*,stop_root=False):
+        if any(type(v) is not int or v<=0 for v in (pid,start_ticks)) or type(stop_root) is not bool:raise base.StopProbe('SNAPSHOT_ROOT_INVALID')
+        finish="ConvertTo-Json -InputObject @($out) -Compress"
+        if stop_root:
+            # One native handle stays open across birth validation, descendant
+            # snapshot and stop. No second PowerShell startup in the short
+            # resident window; PID reuse and unknown-child rules are unchanged.
+            finish=("$requested=([datetime]::UtcNow.Ticks-621355968000000000)/10000000.0;"
+                "$root.Kill();if(!$root.WaitForExit(5000)){throw 'OWNED_STOP_TIMEOUT'};"
+                f"[ordered]@{{descendants=@($out);root_stop=[ordered]@{{pid={pid};target_start_ticks={start_ticks};"
+                "state='STOPPED';original_absent=$true;termination_requested=$true;stop_requested_wall_seconds=$requested;"
+                "exit_confirmed_wall_seconds=([datetime]::UtcNow.Ticks-621355968000000000)/10000000.0}}|ConvertTo-Json -Depth 6 -Compress")
         raw=self._powershell(f"$root=Get-Process -Id {pid};$handles=@($root);try{{$null=$root.SafeHandle;"
             f"if([long]$root.StartTime.ToUniversalTime().Ticks -ne {start_ticks}){{throw 'SNAPSHOT_ROOT_REUSED'}};"
             f"$rows=@(Get-CimInstance Win32_Process);$rootRows=@($rows|Where-Object {{$_.ProcessId -eq {pid}}});"
@@ -189,9 +201,14 @@ class S2SystemDriver(base.SystemDriver):
             "$out+=@([ordered]@{pid=[int]$row.ProcessId;parent_pid=[int]$row.ParentProcessId;"
             "start_ticks=$ct;process_start_ticks=$ticks})}};"
             "if(@($rows|Where-Object {($_.ParentProcessId -in $ids) -and ($_.ProcessId -notin $ids)}).Count)"
-            "{throw 'DESCENDANT_DEPTH_LIMIT'};ConvertTo-Json -InputObject @($out) -Compress"
+            "{throw 'DESCENDANT_DEPTH_LIMIT'};"+finish+
             "}finally{foreach($h in $handles){$h.Dispose()}}")
-        values=json.loads(raw);known={pid}
+        value=json.loads(raw)
+        if stop_root:
+            stopped=self._validate_stop_receipt(value['root_stop'],pid,start_ticks)
+            values=value['descendants']
+        else:values=value
+        known={pid}
         if not isinstance(values,list) or len(values)>16:raise base.StopProbe('DESCENDANT_SNAPSHOT_INVALID')
         for child in values:
             if (not isinstance(child,dict) or any(type(child.get(k)) is not int or child[k]<=0 for k in
@@ -199,7 +216,7 @@ class S2SystemDriver(base.SystemDriver):
                     or child['pid'] in known or not 0<=child['process_start_ticks']-child['start_ticks']<10):
                 raise base.StopProbe('DESCENDANT_SNAPSHOT_INVALID')
             known.add(child['pid'])
-        return values
+        return (values,stopped) if stop_root else values
 
     def _stop_snapshot_descendants(self,children):
         states=[]
@@ -278,6 +295,19 @@ class S2SystemDriver(base.SystemDriver):
             'final_target_listener_count':count,'owned_listener_terminal_states':listeners,
             'owned_wrapper_terminal_states':wrappers}
 
+    def stop_ollama_snapshot_bound(self,birth):
+        # Fault-phase roots() has already proved original listener/wrapper
+        # ancestry before submitting the finite public request. The native
+        # snapshot rechecks and pins that exact root object before it can kill.
+        expected=self.listener_births.get(11434)
+        if (not isinstance(birth,dict) or expected is None or birth!=expected
+                or 11434 not in self.listener_proofs or '11434' in self.listener_terminal_states):
+            raise base.StopProbe('FAULT_ORIGINAL_ROOT_BINDING_INVALID')
+        pid=birth['listener_pid'];ticks=birth['listener_process_start_ticks']
+        descendants,stopped=self._snapshot_descendants(pid,ticks,stop_root=True)
+        self._cleanup_descendants[11434]=descendants
+        return self._finish_ollama_stop(pid,descendants,stopped)
+
     def stop_ollama(self):
         proof=self.listener_proofs.get(11434)
         if proof is None:raise base.StopProbe('OLLAMA_LISTENER_OWNERSHIP_LOST')
@@ -285,6 +315,9 @@ class S2SystemDriver(base.SystemDriver):
         descendants=self._snapshot_descendants(pid,self.listener_births[11434]['listener_process_start_ticks'])
         self._cleanup_descendants[11434]=descendants
         stopped=self._kill_bound(pid,self.listener_births[11434]['listener_process_start_ticks'])
+        return self._finish_ollama_stop(pid,descendants,stopped)
+
+    def _finish_ollama_stop(self,pid,descendants,stopped):
         child_states=self._stop_snapshot_descendants(descendants)
         if any(v.get('original_absent') is not True for v in child_states):raise base.StopProbe('DESCENDANT_EXIT_UNPROVEN')
         self._assert_no_new_descendants(pid,self.listener_births[11434]['listener_process_start_ticks'],descendants)
