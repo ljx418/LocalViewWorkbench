@@ -24,7 +24,9 @@ const spawn=cp.spawn,originals=[];
 cp.spawn=function(command,args,options){
  const child=spawn.call(this,command,args,options);
  if(command===config.browser){const raw=fs.readFileSync(`/proc/${child.pid}/stat`,'utf8');const f=raw.slice(raw.lastIndexOf(')')+2).split(' ');
- originals.push({pid:child.pid,group:Number(f[2]),birth:f[19],child});}
+ const row={pid:child.pid,group:Number(f[2]),birth:f[19],child};originals.push(row);
+ fs.appendFileSync(config.output+'.processes.jsonl',JSON.stringify({event:'spawn',pid:row.pid,group:row.group,birth:row.birth})+'\n');
+ child.once('exit',(code,signal)=>fs.appendFileSync(config.output+'.processes.jsonl',JSON.stringify({event:'exit',pid:row.pid,group:row.group,birth:row.birth,code,signal})+'\n'));}
  return child;
 };
 (async()=>{
@@ -68,8 +70,10 @@ cp.spawn=function(command,args,options){
  phase='load-workflow';await page.evaluate(async graph=>{const {app}=await import('/scripts/app.js');await app.loadGraphData(graph);},config.graph);
  await page.locator('[data-lvw-field]').first().waitFor({timeout:15000});await observe(phase);
  phase='edit';for(const name of ['natural_zh','natural_en','image_prompt','video_prompt','tags','negative','edit_instruction'])await page.locator(`[data-lvw-field="${name}"]`).fill('manual '+name);
- phase='export';const downloaded=page.waitForEvent('download',{timeout:15000});await page.getByRole('button',{name:'导出人工稿 JSON',exact:true}).click();
- const item=await downloaded;await item.saveAs(config.export);await observe(phase);
+ await page.screenshot({path:config.screenshot,fullPage:true,timeout:10000});
+ phase='export';const [item]=await Promise.all([page.waitForEvent('download',{timeout:20000}),
+   page.getByRole('button',{name:'导出人工稿 JSON',exact:true}).click({timeout:15000})]);
+ await item.saveAs(config.export);await observe(phase);
  await page.screenshot({path:config.screenshot,fullPage:true,timeout:10000});
  result.decision=result.errors.length?'PAGE_FAULT_CAPTURED_NOT_PRODUCT_ACCEPTANCE':'MANUAL_PAGE_DIAGNOSED_NOT_PRODUCT_ACCEPTANCE';
  }catch(e){result.error=e.stack;if(page)await page.screenshot({path:config.screenshot,timeout:10000}).catch(()=>{});}
@@ -82,7 +86,7 @@ cp.spawn=function(command,args,options){
 
 
 def run(candidate,run_id):
-    if run_id not in {'manual-page-diagnostic-01','manual-page-diagnostic-02','manual-page-diagnostic-03'}:raise ValueError('finite diagnostic ID required')
+    if run_id not in {'manual-page-diagnostic-01','manual-page-diagnostic-02','manual-page-diagnostic-03','manual-page-diagnostic-04'}:raise ValueError('finite diagnostic ID required')
     parent=cp.repository_json(auth.PROGRAM);auth.validate(parent,'V0-S2')
     identity=seal_candidate(cp.ROOT,candidate,['tools','LVW_V0_RuntimePatch',auth.PROGRAM,'reports/v0-s1/wp-s1-03-phase-a/live_probe.py'])
     old=cp.STATE_ROOT/'full-v0-auto-03/terminal.json';receipt=cp.repository_json('reports/v0-s2/full-v0-auto-03/receipt.json')
@@ -120,7 +124,7 @@ def run(candidate,run_id):
         bind={'run_id':run_id,'candidate_sha':candidate,'authorization_sha256':authorization_sha}
         temporary,lease=scratch.create(bind,root/'temp')
         config={'browser':tools['browser_executable']['path'],'playwright':tools['playwright_module']['path'],
-            'readiness':str(cp.ROOT/'tools/v0_s2_browser_readiness.cjs') if run_id=='manual-page-diagnostic-03' else None,
+            'readiness':str(cp.ROOT/'tools/v0_s2_browser_readiness.cjs') if run_id in {'manual-page-diagnostic-03','manual-page-diagnostic-04'} else None,
             'graph':cp.repository_json('LVW_V0_RuntimePatch/workflows/video_reverse_prompt_v0.ui.json'),
             'output':str(root/'temp/page-result.json'),'export':str(root/'temp/manual-export.json'),'screenshot':str(root/'temp/page.png')}
         cfg=root/'temp/page-config.json';cp.write_new(cfg,config)

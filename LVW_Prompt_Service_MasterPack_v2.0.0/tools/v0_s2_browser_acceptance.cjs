@@ -220,7 +220,7 @@ async function run(config, parent, dependencies = {}) {
     const same = (a, b, reason) => { if (JSON.stringify(a) !== JSON.stringify(b)) throw new Error(reason); };
     const download = async (label, name) => {
       counter.charge('downloads'); action('download', { name });
-      const waiting = page.waitForEvent('download'); await button(label).click(); const item = await waiting;
+      const [item] = await Promise.all([page.waitForEvent('download'), button(label).click()]);
       const target = path.join(evidence, name); await item.saveAs(target); const raw = regular(target, 24 * 1024 * 1024);
       artifacts.push({ file: name, bytes: raw.length, sha256: digest(raw) }); return raw;
     };
