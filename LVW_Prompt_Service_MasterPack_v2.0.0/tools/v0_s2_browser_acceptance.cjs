@@ -97,6 +97,18 @@ async function withUiAction(waiting, action) {
   return result;
 }
 
+async function captureResponse(response) {
+  // Attach directly to waitForResponse, before waiting for UI auto-waits.
+  // Chromium may evict its inspector body cache while that action settles.
+  const body = await response.body();
+  if (!Buffer.isBuffer(body) || body.length > 24 * 1024 * 1024) throw new Error('BROWSER_RESPONSE_BODY_LIMIT');
+  return { response, body };
+}
+
+function responseJson(captured) {
+  return JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(captured.body));
+}
+
 async function waitForEmptyGroup(group, dependencies = {}) {
   const members = dependencies.members || groupMembers;
   const now = dependencies.now || (() => performance.now());
@@ -258,20 +270,21 @@ async function run(config, parent, dependencies = {}) {
         || initial.suggestion !== null || initial.draft_origin !== 'manual') throw new Error('INITIAL_MANUAL_PROVENANCE'); pass(active);
     active = 'upload';
     const responseFor = endpoint => r => { const u = new URL(r.url()); return u.origin === ORIGIN && apiPath(u.pathname) === endpoint && r.request().method() === 'POST'; };
-    const uploadResponse = await withUiAction(page.waitForResponse(responseFor('/lvw/v0/video/upload')),
+    const uploadCaptured = await withUiAction(page.waitForResponse(responseFor('/lvw/v0/video/upload')).then(captureResponse),
       () => page.getByLabel('选择并上传 MP4 或 MOV 视频，最大 256 MiB、60 秒', { exact: true }).setInputFiles(config.sample_path));
-    const uploadBody = await uploadResponse.json();
+    const uploadResponse = uploadCaptured.response, uploadBody = responseJson(uploadCaptured);
+    artifact('upload-response-wire.json', { status: uploadResponse.status(), sha256: digest(uploadCaptured.body), raw_utf8: uploadCaptured.body.toString('utf8') });
     if (uploadResponse.status() !== 201 || typeof uploadBody.video_reference !== 'string') throw new Error('NATIVE_UI_UPLOAD_FAILED');
     state.reference = uploadBody.video_reference; artifact('upload-response.json', uploadBody); pass(active);
     const queue = async name => {
       await permit('case_begin', { case_id: name }); state.armed = name;
-      const response = await withUiAction(page.waitForResponse(responseFor('/prompt')), async () => {
+      const captured = await withUiAction(page.waitForResponse(responseFor('/prompt')).then(captureResponse), async () => {
         const canvas = page.locator('#graph-canvas');
         await canvas.focus();
         if (!await canvas.evaluate(element => document.activeElement === element)) throw new Error('NATIVE_CANVAS_FOCUS_UNPROVEN');
         await page.keyboard.press('Control+Enter');
       });
-      const value = await response.json(); assertHealthy();
+      const response = captured.response, value = responseJson(captured); assertHealthy();
       if (response.status() !== 200 || !/^[0-9a-f-]{1,80}$/i.test(value.prompt_id || '')) throw new Error('NATIVE_UI_QUEUE_FAILED');
       const record = actualQueues[actualQueues.length - 1]; record.prompt_id = value.prompt_id;
       artifact(name + '-public-queue.json', record); await permit('case_queued', record); return record;
@@ -294,9 +307,9 @@ async function run(config, parent, dependencies = {}) {
     active = 'explicit-adoption'; const adoptionCount = counter.used.adoptions;
     await button('采纳当前机器建议').click();
     if (counter.used.adoptions !== adoptionCount) throw new Error('ADOPTION_WITHOUT_SECOND_CONFIRMATION');
-    const actualAdoption = await withUiAction(page.waitForResponse(responseFor('/lvw/v0/video/workbench')),
+    const adoptionCaptured = await withUiAction(page.waitForResponse(responseFor('/lvw/v0/video/workbench')).then(captureResponse),
       () => button('再次点击确认替换人工稿').click());
-    const adoptionBytes = await actualAdoption.body();
+    const actualAdoption = adoptionCaptured.response, adoptionBytes = adoptionCaptured.body;
     if (actualAdoption.status() !== 200 || adoptionBytes.length > 24 * 1024 * 1024) throw new Error('NATIVE_ADOPTION_RESPONSE_INVALID');
     artifact('adoption-response.json', adoptionBytes);
     await page.getByRole('status').filter({ hasText: '已显式采纳' }).waitFor();
@@ -337,9 +350,9 @@ async function run(config, parent, dependencies = {}) {
     if (!cancellation?.ready || typeof cancellation.run_token !== 'string') throw new Error('NATIVE_UI_CANCEL_WINDOW_MISSED');
     state.cancelToken = cancellation.run_token;
     const cancelStart = process.hrtime.bigint();
-    const cancelled = await withUiAction(page.waitForResponse(responseFor('/lvw/v0/video/cancel')),
+    const cancelCaptured = await withUiAction(page.waitForResponse(responseFor('/lvw/v0/video/cancel')).then(captureResponse),
       () => button('取消本次视频分析').click());
-    const ack = await cancelled.json(), elapsed = Number(process.hrtime.bigint() - cancelStart) / 1e9;
+    const cancelled = cancelCaptured.response, ack = responseJson(cancelCaptured), elapsed = Number(process.hrtime.bigint() - cancelStart) / 1e9;
     if (cancelled.status() !== 200 || ack.run_token !== state.cancelToken || ack.cancel_epoch !== 1 || elapsed > 1) throw new Error('NATIVE_UI_CANCEL_FEEDBACK_INVALID');
     artifact('cancel-ack.json', { http_status: cancelled.status(), response: ack, elapsed_seconds: elapsed });
     releaseHeld(); releaseHeld = null; clearTimeout(holdTimer);
@@ -408,7 +421,7 @@ async function run(config, parent, dependencies = {}) {
   return result;
 }
 
-module.exports = { run, parentBridge, birth, groupMembers, fileIdentity, FIELDS, CASES, same, waitForEmptyGroup, withUiAction };
+module.exports = { run, parentBridge, birth, groupMembers, fileIdentity, FIELDS, CASES, same, waitForEmptyGroup, withUiAction, captureResponse, responseJson };
 if (require.main === module) {
   (async () => {
     if (process.argv.length !== 4 || process.argv[2] !== '--config') throw new Error('SEALED_PARENT_CONFIG_REQUIRED');

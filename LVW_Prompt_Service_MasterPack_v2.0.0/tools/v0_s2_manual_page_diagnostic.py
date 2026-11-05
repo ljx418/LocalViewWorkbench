@@ -18,7 +18,7 @@ from tools import v0_s2_browser_temp as scratch
 
 HARNESS='tools/v0_s2_manual_page_diagnostic.py'
 NODE=r'''
-const fs=require('fs'),cp=require('child_process');
+const fs=require('fs'),cp=require('child_process'),crypto=require('crypto');
 const config=JSON.parse(fs.readFileSync(process.argv[1]));
 const spawn=cp.spawn,originals=[];
 cp.spawn=function(command,args,options){
@@ -33,7 +33,7 @@ cp.spawn=function(command,args,options){
  const {chromium}=require(config.playwright);let server,browser,context,page;
  const result={decision:'NO_GO',stage_pass_claim:false,errors:[],network:[],phases:[],provider_calls:0};
  const save=()=>fs.writeFileSync(config.output,JSON.stringify(result,null,2));
- let preview=0,userWrites=0,phase='boot';
+ let preview=0,userWrites=0,uploads=0,phase='boot';
  try{
  server=await chromium.launchServer({host:'127.0.0.1',port:0,headless:true,executablePath:config.browser,timeout:15000,
  args:['--disable-gpu','--disable-background-networking','--disable-component-update','--disable-sync','--no-first-run','--disable-extensions','--no-proxy-server']});
@@ -48,6 +48,8 @@ cp.spawn=function(command,args,options){
   if(u.origin==='http://127.0.0.1:8191'&&raw&&raw.length<=131072){
    if(req.method()==='POST'&&u.pathname.replace(/^\/api/,'')==='/lvw/v0/video/workbench'){
     const b=JSON.parse(raw);allowed=b.action==='preview'&&++preview<=1;
+   }else if(req.method()==='POST'&&u.pathname.replace(/^\/api/,'')==='/lvw/v0/video/upload'&&config.sample){
+    allowed=++uploads<=1&&raw.length===config.sample.bytes&&crypto.createHash('sha256').update(raw).digest('hex')===config.sample.sha256;
    }else if(['POST','PUT','DELETE'].includes(req.method())&&(/^\/api\/(userdata|settings)\//.test(u.pathname)||u.pathname==='/api/settings'))allowed=++userWrites<=16;
   }
   if(result.network.length>=4096)throw Error('NETWORK_BOUND');
@@ -81,6 +83,14 @@ cp.spawn=function(command,args,options){
   const canvas=page.locator('#graph-canvas');await canvas.focus();result.main_canvas_focused=await canvas.evaluate(element=>document.activeElement===element);
   if(!result.main_canvas_focused)throw Error('NATIVE_CANVAS_FOCUS_UNPROVEN');
  }
+ if(config.sample){
+  phase='upload';const captured=await worker.withUiAction(page.waitForResponse(r=>{
+   const u=new URL(r.url());return u.origin==='http://127.0.0.1:8191'&&u.pathname.replace(/^\/api/,'')==='/lvw/v0/video/upload'&&r.request().method()==='POST';
+  }).then(worker.captureResponse),()=>page.getByLabel('选择并上传 MP4 或 MOV 视频，最大 256 MiB、60 秒',{exact:true}).setInputFiles(config.sample.path));
+  result.upload={status:captured.response.status(),body:worker.responseJson(captured),response_sha256:crypto.createHash('sha256').update(captured.body).digest('hex')};
+  if(result.upload.status!==201||typeof result.upload.body.video_reference!=='string')throw Error('ACTUAL_UPLOAD_INVALID');
+  await observe(phase);
+ }
  await page.screenshot({path:config.screenshot,fullPage:true,timeout:10000});
  result.decision=result.errors.length?'PAGE_FAULT_CAPTURED_NOT_PRODUCT_ACCEPTANCE':'MANUAL_PAGE_DIAGNOSED_NOT_PRODUCT_ACCEPTANCE';
  }catch(e){result.error=e.stack;if(page)await page.screenshot({path:config.screenshot,timeout:10000}).catch(()=>{});}
@@ -93,7 +103,7 @@ cp.spawn=function(command,args,options){
 
 
 def run(candidate,run_id):
-    if run_id not in {'manual-page-diagnostic-01','manual-page-diagnostic-02','manual-page-diagnostic-03','manual-page-diagnostic-04','manual-page-diagnostic-05','manual-page-diagnostic-06'}:raise ValueError('finite diagnostic ID required')
+    if run_id not in {'manual-page-diagnostic-01','manual-page-diagnostic-02','manual-page-diagnostic-03','manual-page-diagnostic-04','manual-page-diagnostic-05','manual-page-diagnostic-06','manual-page-diagnostic-07'}:raise ValueError('finite diagnostic ID required')
     parent=cp.repository_json(auth.PROGRAM);auth.validate(parent,'V0-S2')
     identity=seal_candidate(cp.ROOT,candidate,['tools','LVW_V0_RuntimePatch',auth.PROGRAM,'reports/v0-s1/wp-s1-03-phase-a/live_probe.py'])
     old=cp.STATE_ROOT/'full-v0-auto-03/terminal.json';receipt=cp.repository_json('reports/v0-s2/full-v0-auto-03/receipt.json')
@@ -101,17 +111,19 @@ def run(candidate,run_id):
     tools=json.loads(old.read_bytes())['runtime_evidence']['default']['binding_proof']['tool_bindings']
     for row in tools.values():
         if cp.file_hash(Path(row['path']))!=row['sha256']:raise ValueError('critical tool changed')
-    budget={'comfy_starts':1,'ollama_starts':0,'browser_starts':1,'provider_calls':0,'media_reads':0,'public_submissions':0,
+    sample=cp.repository_json('reports/v0-s2/frozen-structural-inputs-02.json')['categories']['tracking'] if run_id=='manual-page-diagnostic-07' else None
+    budget={'comfy_starts':1,'ollama_starts':0,'browser_starts':1,'provider_calls':0,'media_reads':int(sample is not None),'uploads':int(sample is not None),'public_submissions':0,
         'manual_previews':1,'user_writes':16,'downloads':0,'cloud_calls':0,'paid_calls':0,'native_commands':128}
     child=auth.child(parent,stage='V0-S2',run_id=run_id,candidate=candidate,harness_sha256=cp.file_hash(cp.ROOT/HARNESS),
         program_sha256=cp.file_hash(cp.ROOT/auth.PROGRAM),budget=budget,max_seconds=600)
     child.update(tool_bindings=tools,command_executables={tools['powershell']['path']:tools['powershell']['sha256']},
         source_payload_sha256=identity['payload_sha256'],ports=[8191],cleanup='original registered root and owned PID/birth only; preserve uncertainty')
+    if sample is not None:child['fixed_sample']={k:sample[k] for k in ['path','bytes','sha256']}
     directory=cp.STATE_ROOT/run_id;directory.mkdir(exist_ok=False);cp.write_new(directory/'active-child.json',child)
     (directory/'lease.closed').write_bytes(b'0')
     authorization_sha=hashlib.sha256(cp.canonical(child)).hexdigest()
     archive=OwnedArchive(directory,run_id=run_id,candidate_sha=candidate,authorization_sha256=authorization_sha,authorize=lambda *args:None)
-    result={'run_id':run_id,'candidate_sha':candidate,'decision':'NO_GO','stage_pass_claim':False,'provider_calls':0,'media_reads':0}
+    result={'run_id':run_id,'candidate_sha':candidate,'decision':'NO_GO','stage_pass_claim':False,'provider_calls':0,'media_reads':int(sample is not None)}
     driver=root=context=temporary=lease=None
     try:
         root=Path(tempfile.mkdtemp(prefix='lvw-manual-diag-',dir=directory)).resolve();archive.register(root,'default')
@@ -126,14 +138,20 @@ def run(candidate,run_id):
         prefix='LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/'
         expected={p[len(prefix):]:d for p,d in identity['execution_artifact_sha256'].items() if p.startswith(prefix)}
         if {p.relative_to(target).as_posix():cp.file_hash(p) for p in target.rglob('*') if p.is_file()}!=expected:raise ValueError('deployed source mismatch')
+        copied_sample=None
+        if sample is not None:
+            driver.guard();source_sample=cp.ROOT/sample['path'];raw=source_sample.read_bytes()
+            if len(raw)!=sample['bytes'] or len(raw)>131072 or hashlib.sha256(raw).hexdigest()!=sample['sha256']:raise ValueError('fixed component sample changed')
+            copied_sample=root/'input/component-tracking.mov';copied_sample.write_bytes(raw)
         driver._powershell("$x=Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue|Where-Object {$_.LocalPort -in 8191,11434};if(@($x).Count){throw 'PORT_BUSY'}")
         driver.start_comfy(root,root/'comfy.log')
         bind={'run_id':run_id,'candidate_sha':candidate,'authorization_sha256':authorization_sha}
         temporary,lease=scratch.create(bind,root/'temp')
         config={'browser':tools['browser_executable']['path'],'playwright':tools['playwright_module']['path'],
             'readiness':str(cp.ROOT/'tools/v0_s2_browser_readiness.cjs') if run_id not in {'manual-page-diagnostic-01','manual-page-diagnostic-02'} else None,
-            'dismissStartup':run_id in {'manual-page-diagnostic-05','manual-page-diagnostic-06'},
-            'oracle':str(cp.ROOT/'tools/v0_s2_browser_acceptance.cjs') if run_id=='manual-page-diagnostic-06' else None,
+            'dismissStartup':run_id in {'manual-page-diagnostic-05','manual-page-diagnostic-06','manual-page-diagnostic-07'},
+            'oracle':str(cp.ROOT/'tools/v0_s2_browser_acceptance.cjs') if run_id in {'manual-page-diagnostic-06','manual-page-diagnostic-07'} else None,
+            'sample':{'path':str(copied_sample),'bytes':sample['bytes'],'sha256':sample['sha256']} if sample is not None else None,
             'graph':cp.repository_json('LVW_V0_RuntimePatch/workflows/video_reverse_prompt_v0.ui.json'),
             'output':str(root/'temp/page-result.json'),'export':str(root/'temp/manual-export.json'),'screenshot':str(root/'temp/page.png')}
         cfg=root/'temp/page-config.json';cp.write_new(cfg,config)
@@ -169,7 +187,8 @@ def run(candidate,run_id):
         report=cp.ROOT/'reports/v0-s2'/run_id;report.mkdir(exist_ok=False)
         public={k:result[k] for k in ['run_id','candidate_sha','decision','stage_pass_claim','provider_calls','media_reads','root_retained']}
         public.update(raw_terminal_sha256=cp.file_hash(directory/'terminal.json'),cleanup_proven=result.get('cleanup',{}).get('proven',False),
-            browser_decision=result.get('page',{}).get('decision'),page_error_count=len(result.get('page',{}).get('errors',[])))
+            browser_decision=result.get('page',{}).get('decision'),page_error_count=len(result.get('page',{}).get('errors',[])),
+            upload_status=result.get('page',{}).get('upload',{}).get('status'))
         cp.write_new(report/'receipt.json',public)
     return public
 

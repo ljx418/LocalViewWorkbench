@@ -1,7 +1,7 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const {same, waitForEmptyGroup, FIELDS, withUiAction} = require('./v0_s2_browser_acceptance.cjs');
+const {same, waitForEmptyGroup, FIELDS, withUiAction, captureResponse, responseJson} = require('./v0_s2_browser_acceptance.cjs');
 (async () => {
  const actual=JSON.parse(fs.readFileSync(path.join(__dirname,'../reports/v0-s2/browser-draft-oracle-correction-01/initial-manual-export.json')));
  const expected={...FIELDS,tags:['人工','local']};
@@ -34,5 +34,13 @@ const {same, waitForEmptyGroup, FIELDS, withUiAction} = require('./v0_s2_browser
    assert.deepEqual(unhandled,[]);
    let actions=0;assert.equal(await withUiAction(Promise.resolve('real response'),async()=>{actions++;}),'real response');assert.equal(actions,1);
  } finally {process.removeListener('unhandledRejection',observe);}
+ let cached=true,readsEarly=0;
+ const response={async body(){readsEarly++;if(!cached)throw Error('inspector cache evicted');return Buffer.from('{"actual":true}');}};
+ const captured=await withUiAction(Promise.resolve(response).then(captureResponse),async()=>{await new Promise(resolve=>setImmediate(resolve));cached=false;});
+ assert.equal(readsEarly,1);assert.deepEqual(responseJson(captured),{actual:true});
+ await assert.rejects(response.body(),/cache evicted/);
+ await assert.rejects(captureResponse({async body(){throw Error('body unavailable');}}),/body unavailable/);
+ await assert.rejects(captureResponse({async body(){return Buffer.alloc(24*1024*1024+1);}}),/BODY_LIMIT/);
+ assert.throws(()=>responseJson({body:Buffer.from([0xff])}));
  console.log('Original browser export semantics and finite process-exit boundaries passed.');
 })().catch(error=>{console.error(error.stack);process.exitCode=1;});
