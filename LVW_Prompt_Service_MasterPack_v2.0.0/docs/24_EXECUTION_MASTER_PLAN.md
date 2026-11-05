@@ -122,3 +122,5 @@ V0-Min 的五项已签是历史范围结论，不表示最新 S2 候选也已通
 修正GPU策略后，offline29的482测试/5检查与三点真实准入通过。原未使用的full-oracle-correction-01已执行并终态NO_GO：图片/四输出和decoder局部成功，首个视频负例被缺失native profile阻断；实际显存峰值21493MiB，清理归档闭合。不得将它描述为显存不足或完整视频通过。
 
 默认/warm绑定已改为服务readiness、身份、registry验证后独占写入；35项定向检查及隔离修复审查通过，完整离线复核另记offline30。新完整运行必须新增有限授权；旧slot已消费，旧授权已过期。P1–P5流程优化仍未批准。S2进度保持5/8，独审Stage与人工签署待完整九项；后续S3、R1/R2及V2/V3路线不变。
+
+最终离线收口：候选5bb7c14，offline32的486测试/5检查及封存通过；offline30/31失败收据保留。当前等待AUTH-REQUEST-V1-S2-PROFILE-LIFECYCLE-01，完整范围见reports/v0-s2/authorization-s2-profile-lifecycle-01.request.json：一个新鲜有限准入、一个完整固定矩阵、零额外复验；未批准、未发ACTIVE子授权、未真实执行。

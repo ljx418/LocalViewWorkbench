@@ -1,0 +1,208 @@
+{
+  "schema_version": "lvw.supplemental-authorization-request/1",
+  "request_id": "AUTH-REQUEST-V1-S2-PROFILE-LIFECYCLE-01",
+  "status": "PENDING_PROJECT_OWNER_APPROVAL",
+  "is_authorization": false,
+  "does_not_authorize_execution": true,
+  "does_not_authorize_stage_pass": true,
+  "project_id": "lvw-prompt-service",
+  "stage_id": "V0-S2",
+  "workpack_id": "WP-S2-05",
+  "source_program_authorization": "AUTH-PROGRAM-V1-LOCAL-01",
+  "reason": "Original restored full slot ended NO_GO: production native profile missing after startup, before duration validation. Both native/warm lifecycle writers repaired and pure-CPU production-reader/hold negatives passed; old grant expired. Request exactly one new finite readiness and one fresh complete run, no automatic retry.",
+  "corrected_candidate": "5bb7c14a12ef51d09efe0937e8fe59380fdc6a2c",
+  "offline_receipt": "reports/v0-s2/offline-checkpoint-32/receipt.json",
+  "offline_receipt_sha256": "1887ce1a14e6f7abfaa7397f32fa19d5710627877046f77d36109a3708ba359d",
+  "offline_unit_tests": 486,
+  "offline_payload_sha256": "34d6c2819a6d431b0f6b94f8fa0b21ba7621bccd04633d82edaba8e6b08bdd63",
+  "correction_files_sha256": {
+    "tools/v0_s2_stage_runtime.py": "c8675c6b66a607b2ab1f4615c7835dd57330e24ad8eab33cf312099c3192cadb",
+    "LVW_V0_RuntimePatch/tests/test_s2_stage_runtime.py": "6154e93abc6dd5d64b61f826fa1f038ae62431cd905d06f8cdf132de053b44dd",
+    "LVW_V0_RuntimePatch/tests/test_s2_stage_checkpoint.py": "f591682f3a33982b345e357d37354db93da076dea477e7b7132e69b273d66419"
+  },
+  "failure_recomputation": "reports/v0-s2/profile-lifecycle-correction-01/failure-receipt.json",
+  "failure_recomputation_sha256": "0057a3ae4b356eb5e638a9e9f28694e5d02656a147494300d178445936de6088",
+  "correction_review": "reports/v0-s2/profile-lifecycle-correction-01/independent-review.md",
+  "correction_review_is_not_stage_acceptance": true,
+  "policy_exception_requested": {
+    "additional_finite_readiness_children": 1,
+    "additional_complete_native_runs": 1,
+    "additional_full_rechecks": 0,
+    "max_total_wall_seconds": 21600,
+    "no_reclaim_or_restart_of_old_slot": true,
+    "planned_complete_run_id": "full-profile-lifecycle-correction-01",
+    "expires_at": "first readiness failure, full terminal, revocation or original action/time budget exhaustion"
+  },
+  "readiness_child": {
+    "required_before_any_probe": true,
+    "purpose": "Check GPU/host availability before expensive full installed-byte sealing or claiming the next complete checkpoint. This is admission only and proves no product case.",
+    "max_samples": 3,
+    "interval_seconds": 1,
+    "max_seconds": 60,
+    "native_commands_max": 6,
+    "wsl_commands_max": 3,
+    "minimum_available_ram_mib": 2048,
+    "target_ports": [
+      8191,
+      11434
+    ],
+    "target_ports_must_be_free": true,
+    "foreign_process_termination": 0,
+    "services": 0,
+    "models": 0,
+    "media_reads": 0,
+    "browser_starts": 0,
+    "require_original_raw_outputs_and_exit_codes": true,
+    "if_busy_or_unknown": "Expire this grant as WAIT_RESOURCE/NO_GO without starting services or claiming the complete checkpoint; preserve all evidence. Do not poll or retry indefinitely.",
+    "does_not_replace_fresh_runtime_preflight": true,
+    "planned_run_id": "resource-admission-profile-lifecycle-01",
+    "resource_policy": {
+      "version": "lvw.gpu-admission/2",
+      "model": "gemma4:26b",
+      "model_digest": "5571076f3d70050487b26b341705799e0ab29b808164f90d20d4cf84f699d251",
+      "num_ctx": 2048,
+      "num_predict": 768,
+      "max_parallel": 1,
+      "image_long_edge": 1024,
+      "video_frame_long_edge": 768,
+      "observed_increment_mib": 18535,
+      "minimum_free_reserve_mib": 512,
+      "required_free_mib": 19047,
+      "hard_peak_mib_exclusive": 23552,
+      "calibration": "observed_single_image_monitored_trial"
+    }
+  },
+  "native_runtime_budget": {
+    "stage_checkpoints": 1,
+    "public_submissions": 65,
+    "default_public_submissions": 45,
+    "warm_public_submissions": 20,
+    "provider_calls": 83,
+    "comfy_starts": 2,
+    "ollama_starts": 2,
+    "browser_starts": 1,
+    "warm_preloads": 20,
+    "loopback_requests_per_runtime": 8192,
+    "metadata_commands": 2,
+    "native_clock_reads_per_runtime": 128,
+    "resource_sampler_workers": 3,
+    "resource_sampler_max_seconds": 7200,
+    "frame_decoder_processes": 80,
+    "metadata_probe_processes": 24,
+    "installed_files_per_snapshot": 100000,
+    "installed_bytes_per_snapshot": 34359738368,
+    "installed_full_snapshots": 5,
+    "sample_files": 2,
+    "sample_bytes": 289406976,
+    "downloads": 0,
+    "cloud_calls": 0,
+    "paid_calls": 0,
+    "max_seconds": 21600
+  },
+  "acceptance_hash": "32a72139e0c12e0e6d040274024b53bb2dba2f2864b68b840aa215cf739a2a7f",
+  "fixed_stage_cases": [
+    "V0-A02",
+    "V0-A07",
+    "V0-A09",
+    "V0-A10"
+  ],
+  "fixed_cumulative_cases": [
+    "V0-A01",
+    "V0-A02",
+    "V0-A03",
+    "V0-A04",
+    "V0-A05",
+    "V0-A07",
+    "V0-A08",
+    "V0-A09",
+    "V0-A10"
+  ],
+  "model": {
+    "name": "gemma4:26b",
+    "digest": "5571076f3d70050487b26b341705799e0ab29b808164f90d20d4cf84f699d251"
+  },
+  "seed_artifact_sha256": {
+    "targets": "576e24846e80d8061aed3e3dcdee0795ca9d64558969883b4122d00ad755c969",
+    "frontend": "013a334d89615774b613e66063c39a21871d2c37afe12673c8e29e78e5ce38fb",
+    "packages": "c252583e5891e77c67d580caab55162fcf4d20a50a3ebf517b41b3fdb365f9a6",
+    "model": "e1b865f640470b42badb9b93bd36756d8228160d750d266d38fbf903b60d5b8f"
+  },
+  "media_policy": "Only the exact bound non-private testSource image/video and selected preparation02 fixtures; no browsing for assets, private media, replacement or stitching.",
+  "ports": [
+    8191,
+    11434
+  ],
+  "browser_policy": "One fresh headless Chromium context/profile and one independently verified worker-owned literal 127.0.0.1 control port; no visible browser or existing profile.",
+  "external_cost_budget": 0,
+  "forbidden": [
+    "non-loopback",
+    "cloud",
+    "paid-service",
+    "download",
+    "private-media",
+    "cookie",
+    "existing-browser-profile",
+    "visible-browser-automation",
+    "permanent-configuration",
+    "non-owned-termination",
+    "remote-push",
+    "release",
+    "change product plugin behavior",
+    "change public contracts or fixed denominator",
+    "lower GPU/RAM/latency/release/quality thresholds",
+    "substitute model or samples",
+    "human experience signoff",
+    "final V1 release signoff",
+    "V2/V3 execution"
+  ],
+  "prior_consumed_full_runs": [
+    {
+      "run_id": "full-checkpoint-01",
+      "receipt": "reports/v0-s2/full-checkpoint-01/receipt.json",
+      "receipt_sha256": "a4c9e3cbec44d5481c8c0b52cc3b0760e5a1224ed9590021158c96a7466b7a41",
+      "raw_terminal_sha256": "ee01516fcecf796dc3b9541a37e29664f53a88499ae7b292e85e57173990b9b9",
+      "lease_closed_required": true
+    },
+    {
+      "run_id": "full-recheck-01",
+      "receipt": "reports/v0-s2/full-recheck-01/receipt.json",
+      "receipt_sha256": "a16f251eed7d5772d4849ae0e780e826a6b8fd8da258621beb2877002ee36d5f",
+      "raw_terminal_sha256": "9a77cbbc343192d28c245a112dcc2a7d6b3715baf158f1b1e076ca21874f91ed",
+      "lease_closed_required": true
+    },
+    {
+      "run_id": "full-supplemental-01",
+      "receipt": "reports/v0-s2/full-supplemental-01/receipt.json",
+      "receipt_sha256": "dce978952dc57215b03ae2dc2dd21647cf5bff8e2d1f9234efae24aa13180a64",
+      "raw_terminal_sha256": "a662f54865571452edd00d54c1fd705459576e1a93df8f19a52d5568f54a7b83",
+      "lease_closed_required": true
+    },
+    {
+      "run_id": "full-resource-ready-01",
+      "receipt": "reports/v0-s2/full-resource-ready-01/receipt.json",
+      "receipt_sha256": "52931717ca01911909a03affec1c8d6686cea105d89abd39e6a0ba635da32411",
+      "raw_terminal_sha256": "2de43cd77c2fed81cfff9b87047505783d095492e50d1417627055478d456f02",
+      "lease_closed_required": true
+    },
+    {
+      "run_id": "full-oracle-correction-01",
+      "receipt": "reports/v0-s2/full-oracle-correction-01/receipt.json",
+      "receipt_sha256": "8f220c6db3c9fadf6bb9d7c266329642a1aeb26c57cf2c89f2514aa6b64e4365",
+      "raw_terminal_sha256": "b8d51bbcb9b08b90b2022d3bc49cb1022e9330d050f2126fc187a645f9606b87",
+      "lease_closed_required": true
+    }
+  ],
+  "allowed_after_explicit_approval_only": [
+    "Repository-only wire this exact request into one new finite child adapter/slot and append frozen packet authority references; preserve all prior byte-bound failures, closed leases and expired grants. No product contract/sample/model/threshold change.",
+    "Final source must be this corrected candidate or a descendant containing only authorization/harness wiring, corresponding tests, frozen authority metadata and evidence. Execute full offline gate before any new native action.",
+    "Create ACTIVE one-shot child binding final candidate/Harness/acceptance/sample/model/tool identities, ports, owned processes, finite budgets and complete cleanup policy.",
+    "Execute exactly one bounded readiness child. If it fails, expire and stop without claiming the new complete run.",
+    "If ready, claim exactly one new full-profile-lifecycle-correction-01 and run entire fixed matrix fresh, with same approved shared GPU policy and native peak/RAM/OOM/cancellation/cleanup obligations.",
+    "On complete machine evidence, independent read-only Stage review under same finite scope; stop at human signoff."
+  ],
+  "not_ready_for_execution": [
+    "Project owner approval absent. No ACTIVE child or new run claim exists.",
+    "Exact approved request mapping and final candidate-bound child must be created and verified after approval; existing expired authorization must never be reactivated."
+  ],
+  "on_full_run_failure": "Preserve exact NO_GO and raw/redacted evidence, stop/clean only original owned lineages, expire child and supplemental authority. No second complete run, probe polling or substitution without another explicit scope."
+}
