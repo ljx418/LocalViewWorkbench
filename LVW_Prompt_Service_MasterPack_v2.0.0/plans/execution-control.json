@@ -8,17 +8,17 @@
   "coordinate": {
     "stage_id": "V0-S2",
     "workpack_id": "WP-S2-05",
-    "gate": "GATE4_DIRECTED_BROWSER_EXECUTOR_REVIEW",
+    "gate": "GATE4_CANCEL_OBSERVATION_CORRECTION",
     "state": "RUNNING"
   },
   "last_passed_gate": {
     "gate": "GATE3_FULL_OFFLINE_CHECKPOINT",
-    "candidate_sha": "5a636836453645eb71f4a6c1fc7414efc96eb685",
-    "receipt": "reports/v0-s2/offline-checkpoint-39/receipt.json",
+    "candidate_sha": "2579b485b16a7cfc99aad146d6bab5f523ed329b",
+    "receipt": "reports/v0-s2/offline-checkpoint-40/receipt.json",
     "decision": "OFFLINE_CHECKS_PASSED_NOT_STAGE_ACCEPTANCE",
-    "unit_tests": 522
+    "unit_tests": 534
   },
-  "current_blocking_gate": "DIRECTED_BROWSER_EXECUTOR_INDEPENDENT_RECHECK",
+  "current_blocking_gate": "REAL_BROWSER_CANCEL_RESIDENT_OBSERVATION",
   "stage_packet": ".agent-governance/stages/V0-S2/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/V0-S2/PAYLOAD_MANIFEST.sha256",
   "product_status": "IN_PROGRESS",
@@ -32,7 +32,7 @@
     "TARGET_HARDWARE_TESTED"
   ],
   "next_owner": "Codex",
-  "next_action": "Finish independent correction review and offline40; run fresh finite browser-component-01, then complete fresh full-v0-auto-07 if real browser chain closes.",
+  "next_action": "Seal reviewed cancel polling correction; offline41 then fresh browser-component-02; full07 only after full browser chain closes.",
   "required_authorization": "NONE_WITHIN_V0_LOCAL_GPU_AND_CODE_VERIFICATION_PROGRAM",
   "authorization_request": null,
   "authorization_record": "reports/authorization-program-v1-local-01.json",
@@ -78,12 +78,12 @@
   ],
   "contract_change_request": "reports/r1a/change-request-r1a-product-controls-02.json",
   "contract_change_decision": "reports/r1a/change-decision-r1a-product-controls-02.json",
-  "implementation_candidate": "5a636836453645eb71f4a6c1fc7414efc96eb685",
+  "implementation_candidate": "2579b485b16a7cfc99aad146d6bab5f523ed329b",
   "implementation_baseline": "5ea725cc7182e654043183d9de581b730a585685",
   "candidate_binding_scope": "Approved GPU policy correction, unchanged calibrated production workload/context and fixed acceptance denominator.",
   "offline_evidence_commit": null,
-  "offline_receipt": "reports/v0-s2/offline-checkpoint-39/receipt.json",
-  "offline_candidate_sha": "5a636836453645eb71f4a6c1fc7414efc96eb685",
+  "offline_receipt": "reports/v0-s2/offline-checkpoint-40/receipt.json",
+  "offline_candidate_sha": "2579b485b16a7cfc99aad146d6bab5f523ed329b",
   "evidence_root": "reports/",
   "gate_decision": null,
   "human_signoff": null,
@@ -112,7 +112,7 @@
   "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
   "live_terminal_receipt": "reports/v0-s2/full-v0-auto-06/receipt.json",
   "independent_review": null,
-  "exact_stop_reason": "NOT_STOPPED_DIRECTED_BROWSER_EXECUTOR_CORRECTION_REVIEW",
+  "exact_stop_reason": "NOT_STOPPED_CANCEL_OBSERVATION_CORRECTION",
   "native_component_authorization": "reports/v0-s2/authorization-native-component-02.json",
   "native_component_terminal_receipt": "reports/v0-s2/native-component-02/receipt.json",
   "local_control_change_decision": "reports/v0-s2/change-decision-video-workbench-01.json",
@@ -763,10 +763,14 @@
   ],
   "v0_verification_authorization_status": "ACTIVE_NO_PER_RUN_HUMAN_CONFIRMATION",
   "active_component_run": {
-    "run_id": "manual-page-diagnostic-08",
+    "run_id": "browser-component-01",
     "terminal": true,
-    "receipt": "reports/v0-s2/manual-page-diagnostic-08/receipt.json",
-    "provider_calls": 0,
-    "stage_pass_claim": false
+    "executor": {
+      "kind": "exec_command_session",
+      "id": 19723
+    },
+    "stage_pass_claim": false,
+    "full_stage_checkpoint": false,
+    "receipt": "reports/v0-s2/browser-component-01/receipt.json"
   }
 }

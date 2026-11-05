@@ -149,6 +149,20 @@ class BrowserHandlerTests(unittest.TestCase):
         (handlers.root/'temp/browser-phase/evidence/cancel-ack.json').write_bytes(raw(ack))
         callbacks['case_finished']({'case_id': 'cancel', 'prompt_id': 'def', 'acknowledgement_file': 'cancel-ack.json'}, observe)
 
+    def test_cancel_poll_proves_roots_once_without_blocking_each_resident_observation(self):
+        with tempfile.TemporaryDirectory() as directory:
+            handlers, driver, value, _ = self.prepare(Path(directory))
+            handlers.sessions['cancel'] = {'prompt_id': 'cancel-prompt'}
+            with patch.object(handlers, '_roots') as roots, patch.object(handlers, '_current', return_value=({}, [], None)):
+                for _ in range(3):
+                    self.assertEqual({'ready': False}, handlers.cancel_ready({'prompt_id': 'cancel-prompt'}, lambda: None))
+                roots.assert_called_once()
+            # A failed identity check cannot be remembered as verified.
+            handlers.sessions['cancel'].pop('cancel_poll_roots_checked')
+            with patch.object(handlers, '_roots', side_effect=EvidenceError('changed original owner')):
+                with self.assertRaises(EvidenceError): handlers.cancel_ready({'prompt_id': 'cancel-prompt'}, lambda: None)
+            self.assertNotIn('cancel_poll_roots_checked', handlers.sessions['cancel'])
+
     def test_real_handlers_drive_public_native_adoption_cancel_and_ephemeral_write_oracles(self):
         with tempfile.TemporaryDirectory() as directory:
             handlers, driver, value, adoption = self.prepare(Path(directory))

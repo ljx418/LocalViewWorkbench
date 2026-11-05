@@ -1,0 +1,7 @@
+# 取消观测时序纠偏
+
+browser-component-01：候选2579b485，真实浏览器manual/upload/busy/analysis/adoption/exports完成；取消未点击，cancel_ready在run_finished后以browser cancel window missed拒绝。本轮NO_GO不改写；原始归档69文件1322742字节，terminal SHA14abc80feb0aef325248d9dbdd6f850f166f05097b3cc71a5a1ab159229fdd90，原生/browser/temp/root均清理且独立resource-clearance安全。未消费正式Stage checkpoint。
+
+真实journal：第二run四次provider request->response约14s，模型cold加载约12s、驻留推理约1.7s。每个cancel_ready都运行数秒Windows CIM ancestry核验，17次观测未捕捉驻留窗口；不能判定取消产品失败，因为实际取消请求0。
+
+改动：cancel_ready首次入口核验原roots，成功后才记录已核验；之后在同一有限case内快速读取真实public status/journal/api-ps，模型digest/VRAM和active call末次检查保持。case_begin/public_submit/case_finished原roots复核、原PID持续sampler、生产owner自身Provider/取消/卸载前的原生核验全部保持。失败不置flag，无延长推理、mock、重放、额外Provider、降低1s/30s门限。新增一次核验与失败不记忆的CPU负例。后续新候选/新子运行验证。

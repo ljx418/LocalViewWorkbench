@@ -278,7 +278,14 @@ class BrowserHandlers:
     def cancel_ready(self, payload, observe):
         session = self.sessions['cancel']
         if payload.get('prompt_id') != session['prompt_id']: raise EvidenceError('browser cancel prompt mismatch')
-        self._roots(observe)
+        # Native CIM ancestry checks take seconds on Windows. Perform them
+        # once at entry, then observe the live public status/journal/inventory
+        # without repeatedly stepping over a short resident inference window.
+        # Public-submit and terminal checks still re-prove original roots;
+        # the owned sampler continuously guards resource/process liveness.
+        if not session.get('cancel_poll_roots_checked'):
+            self._roots(observe)
+            session['cancel_poll_roots_checked'] = True
         status, events, token = self._current(session, observe)
         if token is None: return {'ready': False}
         if status['status'] not in ('preparing', 'running') or any(e['event'] == 'run_finished' for e in events):
