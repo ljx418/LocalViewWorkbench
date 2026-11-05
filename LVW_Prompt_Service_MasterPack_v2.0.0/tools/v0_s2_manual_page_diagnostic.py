@@ -28,7 +28,7 @@ cp.spawn=function(command,args,options){
  return child;
 };
 (async()=>{
- const {chromium}=require(config.playwright);let server,browser,context;
+ const {chromium}=require(config.playwright);let server,browser,context,page;
  const result={decision:'NO_GO',stage_pass_claim:false,errors:[],network:[],phases:[],provider_calls:0};
  const save=()=>fs.writeFileSync(config.output,JSON.stringify(result,null,2));
  let preview=0,userWrites=0,phase='boot';
@@ -46,13 +46,13 @@ cp.spawn=function(command,args,options){
   if(u.origin==='http://127.0.0.1:8191'&&raw&&raw.length<=131072){
    if(req.method()==='POST'&&u.pathname.replace(/^\/api/,'')==='/lvw/v0/video/workbench'){
     const b=JSON.parse(raw);allowed=b.action==='preview'&&++preview<=1;
-   }else if(req.method()==='POST'&&u.pathname.startsWith('/api/userdata/'))allowed=++userWrites<=4;
+   }else if(['POST','PUT','DELETE'].includes(req.method())&&(/^\/api\/(userdata|settings)\//.test(u.pathname)||u.pathname==='/api/settings'))allowed=++userWrites<=16;
   }
   if(result.network.length>=4096)throw Error('NETWORK_BOUND');
   result.network.push({method:req.method(),path:u.pathname,allowed});
   return allowed?route.continue():route.abort('blockedbyclient');
  });
- const page=await context.newPage();
+ page=await context.newPage();
  page.on('pageerror',e=>{if(result.errors.length<16)result.errors.push({phase,time:Date.now(),message:e.message,stack:e.stack});save();});
  await page.goto('http://127.0.0.1:8191',{waitUntil:'domcontentloaded',timeout:30000});
  await page.waitForFunction(()=>window.comfyAPI?.app?.app?.graph&&window.comfyAPI.app.app.canvas,null,{timeout:30000});
@@ -71,7 +71,7 @@ cp.spawn=function(command,args,options){
  const item=await downloaded;await item.saveAs(config.export);await observe(phase);
  await page.screenshot({path:config.screenshot,fullPage:true,timeout:10000});
  result.decision=result.errors.length?'PAGE_FAULT_CAPTURED_NOT_PRODUCT_ACCEPTANCE':'MANUAL_PAGE_DIAGNOSED_NOT_PRODUCT_ACCEPTANCE';
- }catch(e){result.error=e.stack;}
+ }catch(e){result.error=e.stack;if(page)await page.screenshot({path:config.screenshot,timeout:10000}).catch(()=>{});}
  finally{
   if(server)await server.close();
   result.originals=originals.map(({pid,group,birth,child})=>({pid,group,birth,exited:child.exitCode!==null||child.signalCode!==null}));save();
@@ -90,7 +90,7 @@ def run(candidate,run_id):
     for row in tools.values():
         if cp.file_hash(Path(row['path']))!=row['sha256']:raise ValueError('critical tool changed')
     budget={'comfy_starts':1,'ollama_starts':0,'browser_starts':1,'provider_calls':0,'media_reads':0,'public_submissions':0,
-        'manual_previews':1,'user_writes':4,'downloads':0,'cloud_calls':0,'paid_calls':0,'native_commands':128}
+        'manual_previews':1,'user_writes':16,'downloads':0,'cloud_calls':0,'paid_calls':0,'native_commands':128}
     child=auth.child(parent,stage='V0-S2',run_id=run_id,candidate=candidate,harness_sha256=cp.file_hash(cp.ROOT/HARNESS),
         program_sha256=cp.file_hash(cp.ROOT/auth.PROGRAM),budget=budget,max_seconds=600)
     child.update(tool_bindings=tools,command_executables={tools['powershell']['path']:tools['powershell']['sha256']},
