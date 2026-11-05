@@ -17,6 +17,8 @@ from tools.v0_s2_stage_archive import OwnedArchive
 from tools import v0_s2_browser_temp as scratch
 
 HARNESS='tools/v0_s2_manual_page_diagnostic.py'
+PAYLOAD=['tools','LVW_V0_RuntimePatch',auth.PROGRAM,'reports/v0-s1/wp-s1-03-phase-a/live_probe.py',
+    'reports/v0-s2/frozen-structural-inputs-02.json','reports/v0-s2/fixture-preparation-02']
 NODE=r'''
 const fs=require('fs'),cp=require('child_process'),crypto=require('crypto');
 const config=JSON.parse(fs.readFileSync(process.argv[1]));
@@ -105,7 +107,7 @@ cp.spawn=function(command,args,options){
 def run(candidate,run_id):
     if run_id not in {'manual-page-diagnostic-01','manual-page-diagnostic-02','manual-page-diagnostic-03','manual-page-diagnostic-04','manual-page-diagnostic-05','manual-page-diagnostic-06','manual-page-diagnostic-07'}:raise ValueError('finite diagnostic ID required')
     parent=cp.repository_json(auth.PROGRAM);auth.validate(parent,'V0-S2')
-    identity=seal_candidate(cp.ROOT,candidate,['tools','LVW_V0_RuntimePatch',auth.PROGRAM,'reports/v0-s1/wp-s1-03-phase-a/live_probe.py'])
+    identity=seal_candidate(cp.ROOT,candidate,PAYLOAD)
     old=cp.STATE_ROOT/'full-v0-auto-03/terminal.json';receipt=cp.repository_json('reports/v0-s2/full-v0-auto-03/receipt.json')
     if cp.file_hash(old)!=receipt['raw_terminal_sha256']:raise ValueError('historical terminal changed')
     tools=json.loads(old.read_bytes())['runtime_evidence']['default']['binding_proof']['tool_bindings']
@@ -140,7 +142,10 @@ def run(candidate,run_id):
         if {p.relative_to(target).as_posix():cp.file_hash(p) for p in target.rglob('*') if p.is_file()}!=expected:raise ValueError('deployed source mismatch')
         copied_sample=None
         if sample is not None:
-            driver.guard();source_sample=cp.ROOT/sample['path'];raw=source_sample.read_bytes()
+            driver.guard()
+            if not sample['path'].startswith('reports/v0-s2/fixture-preparation-02/fixtures/'):raise ValueError('sample outside frozen fixture root')
+            source_sample=cp.ROOT/sample['path']
+            with source_sample.open('rb') as stream:raw=stream.read(131073)
             if len(raw)!=sample['bytes'] or len(raw)>131072 or hashlib.sha256(raw).hexdigest()!=sample['sha256']:raise ValueError('fixed component sample changed')
             copied_sample=root/'input/component-tracking.mov';copied_sample.write_bytes(raw)
         driver._powershell("$x=Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue|Where-Object {$_.LocalPort -in 8191,11434};if(@($x).Count){throw 'PORT_BUSY'}")
@@ -170,7 +175,7 @@ def run(candidate,run_id):
         if output.returncode or not groups or survivors or not all(r['exited'] for r in page['originals']):raise ValueError('browser exit unproven')
         result['scratch_cleanup']=scratch.remove(temporary,lease,independent_cleanup={'decision':'BROWSER_CLEANUP_PROVEN'},node_terminal=True,callbacks_pending=0)
         driver.guard()
-        if seal_candidate(cp.ROOT,candidate,['tools','LVW_V0_RuntimePatch',auth.PROGRAM,'reports/v0-s1/wp-s1-03-phase-a/live_probe.py'])!=identity:raise ValueError('diagnostic source changed')
+        if seal_candidate(cp.ROOT,candidate,PAYLOAD)!=identity:raise ValueError('diagnostic source changed')
         result['decision']='MANUAL_PAGE_OBSERVED_NOT_STAGE_ACCEPTANCE'
     except BaseException as error:result['error_code']=type(error).__name__+':'+str(error)
     finally:
