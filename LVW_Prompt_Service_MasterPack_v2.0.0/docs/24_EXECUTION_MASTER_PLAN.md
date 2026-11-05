@@ -124,3 +124,5 @@ V0-Min 的五项已签是历史范围结论，不表示最新 S2 候选也已通
 默认/warm绑定已改为服务readiness、身份、registry验证后独占写入；35项定向检查及隔离修复审查通过，完整离线复核另记offline30。新完整运行必须新增有限授权；旧slot已消费，旧授权已过期。P1–P5流程优化仍未批准。S2进度保持5/8，独审Stage与人工签署待完整九项；后续S3、R1/R2及V2/V3路线不变。
 
 最终离线收口：候选5bb7c14，offline32的486测试/5检查及封存通过；offline30/31失败收据保留。当前等待AUTH-REQUEST-V1-S2-PROFILE-LIFECYCLE-01，完整范围见reports/v0-s2/authorization-s2-profile-lifecycle-01.request.json：一个新鲜有限准入、一个完整固定矩阵、零额外复验；未批准、未发ACTIVE子授权、未真实执行。
+
+AUTH-REQUEST-V1-S2-PROFILE-LIFECYCLE-01已由项目负责人明确批准。新增接线限定一个resource-admission-profile-lifecycle-01和一个full-profile-lifecycle-correction-01，零额外复验；Stage packet1.0.35仅追加授权引用，产品合同、样本、门限和固定分母保持不变。先对接线后的最终候选做完整离线门禁，再创建候选/Harness/预算/清理绑定子授权。此前所有失败与过期授权保持原字节，不重新激活。

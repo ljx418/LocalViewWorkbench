@@ -147,3 +147,7 @@ prepare只读仓库和受控历史证据，probe才认领新准入并做已批�
 只有resource-admission-policy-correction-01一个新有限准入，复用原三组/60秒/6native+3WSL预算，原full-oracle-correction-01至多认领1次，额外完整运行/复验均0。旧grant和失败均不可改写。新准入通过后完整child仍做全安装字节封存、正式preflight、九项累计、热20次、资源/取消/故障/浏览器与清理。scope最长6小时，准入失败/完整终态/撤销自动过期。
 
 离线全绿后，tools.v0_s2_policy_authorization prepare/probe负责新有限准入；同候选成功后沿用tools.v0_s2_stage_checkpoint prepare/execute --slot full-oracle-correction-01。准确candidate/offline收据写入execution-control，不沿用旧未认领grant，不生成新完整槽。
+
+## Approved profile lifecycle finite recheck
+
+AUTH-REQUEST-V1-S2-PROFILE-LIFECYCLE-01 approved by project owner. New readiness: resource-admission-profile-lifecycle-01 (3 samples,60s, no services/models/media/browser); new full slot: full-profile-lifecycle-correction-01 (one complete run,zero rechecks). Same shared resource policy, sample/model identities and fixed nine cumulative cases. tools.v0_s2_lifecycle_authorization prepare/probe binds final offline-gated descendant; tools.v0_s2_stage_checkpoint prepare/execute owns atomic claim, raw evidence, cleanup and terminal expiry. All previous closed slots and expired authorities remain immutable.

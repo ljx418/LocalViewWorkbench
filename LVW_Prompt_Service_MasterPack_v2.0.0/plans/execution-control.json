@@ -8,8 +8,8 @@
   "coordinate": {
     "stage_id": "V0-S2",
     "workpack_id": "WP-S2-05",
-    "gate": "GATE4_WAIT_AUTH_PROFILE_LIFECYCLE_RECHECK",
-    "state": "WAIT_AUTH"
+    "gate": "GATE3_PROFILE_LIFECYCLE_AUTH_WIRING_OFFLINE",
+    "state": "FROZEN_READY_OFFLINE"
   },
   "last_passed_gate": {
     "id": "V0_S2_OFFLINE_CHECKPOINT_32_PASSED",
@@ -29,9 +29,9 @@
     "PRODUCTION_RELEASED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "project_owner",
-  "next_action": "Approve pending AUTH-REQUEST-V1-S2-PROFILE-LIFECYCLE-01 for one fresh readiness and one full checkpoint; Codex then binds finite child and frozen authority metadata. No native action before approval.",
-  "required_authorization": "AUTH-REQUEST-V1-S2-PROFILE-LIFECYCLE-01",
+  "next_owner": "Codex",
+  "next_action": "Offline gate final authorization-wiring candidate, then one readiness and one fresh full run; no additional retry.",
+  "required_authorization": "NONE_WITHIN_AUTH_REQUEST_V1_S2_PROFILE_LIFECYCLE_01",
   "authorization_request": "reports/v0-s2/authorization-s2-profile-lifecycle-01.request.json",
   "authorization_record": "reports/authorization-program-v1-local-01.json",
   "read_only_binding_authorization": "reports/v0-s2/authorization-binding-inventory-06.json",
@@ -110,7 +110,7 @@
   "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
   "live_terminal_receipt": "reports/v0-s2/full-oracle-correction-01/receipt.json",
   "independent_review": null,
-  "exact_stop_reason": "ORIGINAL_COMPLETE_SLOT_CONSUMED_NO_GO_AND_AUTHORITY_EXPIRED_OFFLINE_CORRECTION_READY",
+  "exact_stop_reason": "NOT_STOPPED_AUTHORIZED_OFFLINE_WIRING",
   "native_component_authorization": "reports/v0-s2/authorization-native-component-02.json",
   "native_component_terminal_receipt": "reports/v0-s2/native-component-02/receipt.json",
   "local_control_change_decision": "reports/v0-s2/change-decision-video-workbench-01.json",
@@ -215,13 +215,8 @@
     "remaining_active_complete_runs": 0
   },
   "external_execution_hold": {
-    "active": true,
-    "source": "project owner 2026-11-05 documentation-first instruction",
-    "resume_requires": "explicit owner plan decision and resume",
-    "native_actions_this_revision": 0,
-    "resumed_by": "project_owner",
-    "resume_source": "explicit active Goal",
-    "reason": "Approved original complete slot consumed and policy authority expired at NO_GO; offline repair only."
+    "active": false,
+    "reason": "Project owner approved AUTH-REQUEST-V1-S2-PROFILE-LIFECYCLE-01; exact finite new authority only."
   },
   "stop_report_policy": {
     "include_complete_outline": true,
@@ -738,5 +733,6 @@
     "observed_gpu_peak_mib": 21493,
     "vram_shortage_proven": false,
     "new_run_required": true
-  }
+  },
+  "profile_lifecycle_authorization": "reports/v0-s2/authorization-s2-profile-lifecycle-01.approval.json"
 }
