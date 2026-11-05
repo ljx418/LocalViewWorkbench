@@ -8,17 +8,17 @@
   "coordinate": {
     "stage_id": "V0-S2",
     "workpack_id": "WP-S2-05",
-    "gate": "GATE4_FAULT_OBSERVATION_CORRECTION",
+    "gate": "GATE3_ATOMIC_STOP_RECOVERY_OFFLINE",
     "state": "RUNNING"
   },
   "last_passed_gate": {
     "gate": "GATE3_FULL_OFFLINE_CHECKPOINT",
-    "candidate_sha": "b1df906e994f2be21aab6b1dd1be8a7cbb6cad2d",
-    "receipt": "reports/v0-s2/offline-checkpoint-41/receipt.json",
+    "candidate_sha": "570e231881714fbe93d37fe328282f7c7c562ea8",
+    "receipt": "reports/v0-s2/offline-checkpoint-42/receipt.json",
     "decision": "OFFLINE_CHECKS_PASSED_NOT_STAGE_ACCEPTANCE",
-    "unit_tests": 535
+    "unit_tests": 537
   },
-  "current_blocking_gate": "REAL_OWNED_PROVIDER_FAULT_ACTIVE_CALL",
+  "current_blocking_gate": "FINAL_OFFLINE_AND_REAL_FAULT_VERIFICATION",
   "stage_packet": ".agent-governance/stages/V0-S2/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/V0-S2/PAYLOAD_MANIFEST.sha256",
   "product_status": "IN_PROGRESS",
@@ -32,7 +32,7 @@
     "TARGET_HARDWARE_TESTED"
   ],
   "next_owner": "Codex",
-  "next_action": "Review and seal atomic bound snapshot/stop; offline42 then browser-component-03, with unchanged resident/active fault oracle.",
+  "next_action": "Run offline43 on final reviewed durable stop candidate; automatically browser-component-03 then fresh full07 if browser chain closes.",
   "required_authorization": "NONE_WITHIN_V0_LOCAL_GPU_AND_CODE_VERIFICATION_PROGRAM",
   "authorization_request": null,
   "authorization_record": "reports/authorization-program-v1-local-01.json",
@@ -112,7 +112,7 @@
   "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
   "live_terminal_receipt": "reports/v0-s2/full-v0-auto-06/receipt.json",
   "independent_review": null,
-  "exact_stop_reason": "NOT_STOPPED_FAULT_OBSERVATION_CORRECTION",
+  "exact_stop_reason": "NOT_STOPPED_FINAL_ATOMIC_STOP_OFFLINE",
   "native_component_authorization": "reports/v0-s2/authorization-native-component-02.json",
   "native_component_terminal_receipt": "reports/v0-s2/native-component-02/receipt.json",
   "local_control_change_decision": "reports/v0-s2/change-decision-video-workbench-01.json",

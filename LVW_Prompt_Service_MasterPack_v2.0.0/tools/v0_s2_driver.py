@@ -7,6 +7,7 @@ submission accounting, and the transient decoder configuration.
 import importlib.util
 import json
 import math
+import os
 from pathlib import Path
 import subprocess
 import threading
@@ -174,17 +175,20 @@ class S2SystemDriver(base.SystemDriver):
 
     def _snapshot_descendants(self,pid,start_ticks,*,stop_root=False):
         if any(type(v) is not int or v<=0 for v in (pid,start_ticks)) or type(stop_root) is not bool:raise base.StopProbe('SNAPSHOT_ROOT_INVALID')
+        recovery=None
         finish="ConvertTo-Json -InputObject @($out) -Compress"
         if stop_root:
+            from tools import v0_s2_stop_snapshot as durable
+            recovery,persist=durable.prepare(self,pid,start_ticks)
             # One native handle stays open across birth validation, descendant
             # snapshot and stop. No second PowerShell startup in the short
             # resident window; PID reuse and unknown-child rules are unchanged.
-            finish=("$requested=([datetime]::UtcNow.Ticks-621355968000000000)/10000000.0;"
+            finish=(persist+"$requested=([datetime]::UtcNow.Ticks-621355968000000000)/10000000.0;"
                 "$root.Kill();if(!$root.WaitForExit(5000)){throw 'OWNED_STOP_TIMEOUT'};"
                 f"[ordered]@{{descendants=@($out);root_stop=[ordered]@{{pid={pid};target_start_ticks={start_ticks};"
                 "state='STOPPED';original_absent=$true;termination_requested=$true;stop_requested_wall_seconds=$requested;"
                 "exit_confirmed_wall_seconds=([datetime]::UtcNow.Ticks-621355968000000000)/10000000.0}}|ConvertTo-Json -Depth 6 -Compress")
-        raw=self._powershell(f"$root=Get-Process -Id {pid};$handles=@($root);try{{$null=$root.SafeHandle;"
+        command=(f"$root=Get-Process -Id {pid};$handles=@($root);try{{$null=$root.SafeHandle;"
             f"if([long]$root.StartTime.ToUniversalTime().Ticks -ne {start_ticks}){{throw 'SNAPSHOT_ROOT_REUSED'}};"
             f"$rows=@(Get-CimInstance Win32_Process);$rootRows=@($rows|Where-Object {{$_.ProcessId -eq {pid}}});"
             f"if($rootRows.Count -ne 1 -or {start_ticks} -lt [long]$rootRows[0].CreationDate.ToUniversalTime().Ticks "
@@ -203,10 +207,21 @@ class S2SystemDriver(base.SystemDriver):
             "if(@($rows|Where-Object {($_.ParentProcessId -in $ids) -and ($_.ProcessId -notin $ids)}).Count)"
             "{throw 'DESCENDANT_DEPTH_LIMIT'};"+finish+
             "}finally{foreach($h in $handles){$h.Dispose()}}")
+        recovered=False
+        try:
+            raw=self._powershell(command)
+        finally:
+            # Recover durable known children even if the native command fails
+            # after stopping the original root. Missing/bad proof never means [].
+            if recovery is not None and os.path.lexists(recovery['file']):
+                durable.restore(self,recovery);recovered=True
+        if stop_root and not recovered:
+            raise base.StopProbe('PRE_STOP_CHILD_SNAPSHOT_MISSING')
         value=json.loads(raw)
         if stop_root:
             stopped=self._validate_stop_receipt(value['root_stop'],pid,start_ticks)
             values=value['descendants']
+            if values!=self._cleanup_descendants[11434]:raise base.StopProbe('PRE_STOP_CHILD_SNAPSHOT_OUTPUT_MISMATCH')
         else:values=value
         known={pid}
         if not isinstance(values,list) or len(values)>16:raise base.StopProbe('DESCENDANT_SNAPSHOT_INVALID')

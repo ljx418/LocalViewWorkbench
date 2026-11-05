@@ -161,19 +161,55 @@ class DriverTests(unittest.TestCase):
             with self.subTest(row=row),patch.object(driver,'_powershell',return_value=json.dumps([row])),self.assertRaises(base.StopProbe):
                 driver._snapshot_descendants(10,90)
 
+    def atomic_driver(self):
+        temporary=tempfile.TemporaryDirectory();self.addCleanup(temporary.cleanup)
+        root=Path(temporary.name);(root/'temp').mkdir()
+        driver=self.driver();driver.evidence.update(owned_run_root=str(root),candidate_sha='a'*40,authorization_sha256='b'*64)
+        driver._windows_path=lambda value,**kwargs:value
+        return driver
+
+    def persist_atomic(self,driver,children):
+        lease=driver.evidence['owned_pre_stop_snapshot']
+        Path(lease['file']).write_text(json.dumps({**lease['identity'],'children':children}))
+
     def test_atomic_fault_stop_keeps_native_snapshot_and_birth_bound_stop_in_one_command(self):
-        driver=self.driver();stop={'pid':10,'target_start_ticks':100,'state':'STOPPED','original_absent':True,
+        driver=self.atomic_driver();stop={'pid':10,'target_start_ticks':100,'state':'STOPPED','original_absent':True,
             'termination_requested':True,'stop_requested_wall_seconds':1000,'exit_confirmed_wall_seconds':1001}
         child={'pid':11,'parent_pid':10,'start_ticks':101,'process_start_ticks':105}
-        with patch.object(driver,'_powershell',return_value=json.dumps({'descendants':[child],'root_stop':stop})) as query:
+        def reply(command):
+            self.persist_atomic(driver,[child]);return json.dumps({'descendants':[child],'root_stop':stop})
+        with patch.object(driver,'_powershell',side_effect=reply) as query:
             self.assertEqual(([child],stop),driver._snapshot_descendants(10,100,stop_root=True))
             self.assertEqual(1,query.call_count)
             command=query.call_args.args[0]
             self.assertLess(command.index('$null=$root.SafeHandle'),command.index('$root.Kill()'))
             self.assertLess(command.index('DESCENDANT_DEPTH_LIMIT'),command.index('$root.Kill()'))
         for mutation in ({'pid':99},{'target_start_ticks':101},{'original_absent':False}):
-            with patch.object(driver,'_powershell',return_value=json.dumps({'descendants':[child],'root_stop':{**stop,**mutation}})),self.assertRaises(base.StopProbe):
+            def bad(command):
+                self.persist_atomic(driver,[child]);return json.dumps({'descendants':[child],'root_stop':{**stop,**mutation}})
+            with patch.object(driver,'_powershell',side_effect=bad),self.assertRaises(base.StopProbe):
                 driver._snapshot_descendants(10,100,stop_root=True)
+
+    def test_atomic_stop_recovers_bound_children_on_timeout_or_corrupt_return(self):
+        child={'pid':11,'parent_pid':10,'start_ticks':101,'process_start_ticks':105}
+        for failure in ('timeout','json','missing','wrong-auth','bad-child','older-root','older-parent','symlink'):
+            with self.subTest(failure=failure):
+                driver=self.atomic_driver()
+                def fail(command):
+                    if failure!='missing':self.persist_atomic(driver,[child])
+                    lease=driver.evidence['owned_pre_stop_snapshot'];path=Path(lease['file'])
+                    if failure=='wrong-auth':path.write_text(json.dumps({**lease['identity'],'authorization_sha256':'c'*64,'children':[child]}))
+                    if failure=='bad-child':path.write_text(json.dumps({**lease['identity'],'children':[{**child,'parent_pid':99}]}))
+                    if failure=='older-root':path.write_text(json.dumps({**lease['identity'],'children':[{**child,'start_ticks':90,'process_start_ticks':95}]}))
+                    if failure=='older-parent':path.write_text(json.dumps({**lease['identity'],'children':[child,{'pid':12,'parent_pid':11,'start_ticks':99,'process_start_ticks':104}]}))
+                    if failure=='symlink':
+                        target=path.with_suffix('.target');path.rename(target);path.symlink_to(target)
+                    if failure=='timeout':raise subprocess.TimeoutExpired('synthetic command',1)
+                    return 'broken JSON'
+                with patch.object(driver,'_powershell',side_effect=fail),self.assertRaises(Exception):
+                    driver._snapshot_descendants(10,100,stop_root=True)
+                if failure in ('timeout','json'):self.assertEqual([child],driver._cleanup_descendants[11434])
+                else:self.assertNotIn(11434,driver._cleanup_descendants)
 
     def test_atomic_fault_stop_refuses_unknown_changed_or_already_consumed_root(self):
         driver=self.driver();birth={'listener_pid':10,'listener_process_start_ticks':100}
