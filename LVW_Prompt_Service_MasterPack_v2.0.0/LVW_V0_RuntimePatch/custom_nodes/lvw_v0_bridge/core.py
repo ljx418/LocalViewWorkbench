@@ -125,6 +125,10 @@ def _response_schema(video: bool) -> dict:
         "prompt": {"type": "string", "minLength": 1, "maxLength": 800},
         "tags": {"type": "array", "items": {"type": "string", "minLength": 1}, "maxItems": 8},
     }
+    # Match the already-frozen parser bounds in the provider's grammar too.
+    for field in ("observations", "inferences", "unknowns"):
+        properties[field]["items"]["maxLength"] = 400
+    properties["tags"]["items"]["maxLength"] = 100
     if video:
         properties["change"] = {"type": "string", "minLength": 1, "maxLength": 400}
     return {
@@ -152,6 +156,10 @@ def _request_instruction(*, video: bool, frame_index: int | None, previous_obser
             "Analyze this single image. Return only compact JSON matching the supplied schema. "
             "observations must contain visible facts; separate inferences and unknowns."
         )
+    base += (
+        " Use 1-6 short observations and up to 4 inferences/unknowns each, at most 400 characters per item; "
+        "use up to 8 tags, at most 100 characters each."
+    )
     if user_instruction.strip():
         base += f" Additional analysis constraint (not prompt content): {user_instruction.strip()}"
     base += (

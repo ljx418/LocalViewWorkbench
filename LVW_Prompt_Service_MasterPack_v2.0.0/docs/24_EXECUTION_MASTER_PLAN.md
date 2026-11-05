@@ -138,3 +138,5 @@ AUTH-REQUEST-V1-S2-PROFILE-LIFECYCLE-01已由项目负责人明确批准。新�
 本批离线收口：候选c0bc6b7，offline34的503项测试/5检查及封存通过；隔离审查Fatal0/Major0，诊断02与NVIDIA类型快照清理已复算。母授权ACTIVE，无逐次GPU/代码验证授权阻塞；技术待办为桌面共享GPU准入语义纠偏，S2产品真实验收仍NO_GO且5/8。人工体验/发布签署未被替代。
 
 S2 WDDM纠偏（packet1.0.37）：实际原生driver_model=WDDM时容量准入与控制归属分离，原XML/CSV/工具hash留证且独立复算，owned/unowned不混淆；TCC与缺证明严格拒绝。Numeric gates、模型控制、杀进程归属、固定矩阵不变。独立代码审查Fatal0/Major0，41定向测试通过；最终集中离线与完整真实矩阵仍须完成。母授权自动派生full-v0-auto-NN，无逐次GPU/代码确认。
+
+full-v0-auto-01终态NO_GO：WDDM生产路径已跑通三类正常视频，解码+全部文件安全通过；VFR首帧观察项505字符超过既有400门限，公开14/15。原响应/归档/清理均保留。修复补齐请求grammar原有数组item.maxLength400/100并简短提示，不改parser、数值资源/性能、模型参数或重试预算。48项定向与隔离审查通过；offline36与完整fresh full-v0-auto-02待执行，不缩小分母。

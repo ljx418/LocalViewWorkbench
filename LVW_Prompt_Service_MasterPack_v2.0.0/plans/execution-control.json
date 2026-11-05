@@ -8,15 +8,15 @@
   "coordinate": {
     "stage_id": "V0-S2",
     "workpack_id": "WP-S2-05",
-    "gate": "GATE4_FULL_V0_AUTO_01",
-    "state": "RUNNING"
+    "gate": "GATE3_RESPONSE_BOUNDS_CORRECTION_OFFLINE",
+    "state": "FROZEN_READY_OFFLINE"
   },
   "last_passed_gate": {
     "id": "V0_S2_OFFLINE_CHECKPOINT_35_PASSED",
     "evidence": "reports/v0-s2/offline-checkpoint-35/receipt.json",
     "meaning": "512 tests/five checks pass; WDDM correction isolated review Fatal0/Major0; full native matrix pending."
   },
-  "current_blocking_gate": "FINAL_CANDIDATE_OFFLINE_GATE_THEN_NATIVE_CHECKPOINT",
+  "current_blocking_gate": "RESPONSE_SCHEMA_ITEM_BOUNDS_ALIGNMENT",
   "stage_packet": ".agent-governance/stages/V0-S2/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/V0-S2/PAYLOAD_MANIFEST.sha256",
   "product_status": "IN_PROGRESS",
@@ -30,7 +30,7 @@
     "TARGET_HARDWARE_TESTED"
   ],
   "next_owner": "Codex",
-  "next_action": "Observe session38362 and durable full-v0-auto-01 claim through complete native fixed sequence and cleanup; no restart on timeout.",
+  "next_action": "Seal response grammar fix, offline36, then automatic full-v0-auto-02 with complete fixed matrix; preserve full01 NO_GO and all raw evidence.",
   "required_authorization": "NONE_WITHIN_V0_LOCAL_GPU_AND_CODE_VERIFICATION_PROGRAM",
   "authorization_request": null,
   "authorization_record": "reports/authorization-program-v1-local-01.json",
@@ -108,13 +108,13 @@
   },
   "historical_live_terminal_receipt": "reports/r1a/r1a-live-07/live-receipt.json",
   "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
-  "live_terminal_receipt": "reports/v0-s2/compute-type-snapshot-01/receipt.json",
+  "live_terminal_receipt": "reports/v0-s2/full-v0-auto-01/receipt.json",
   "independent_review": null,
-  "exact_stop_reason": "NOT_STOPPED_FULL_V0_AUTO_01_RUNNING",
+  "exact_stop_reason": "NOT_STOPPED_RESPONSE_BOUNDS_CORRECTION_OFFLINE",
   "native_component_authorization": "reports/v0-s2/authorization-native-component-02.json",
   "native_component_terminal_receipt": "reports/v0-s2/native-component-02/receipt.json",
   "local_control_change_decision": "reports/v0-s2/change-decision-video-workbench-01.json",
-  "latest_workpack_receipt": "reports/v0-s2/compute-owner-diagnosis-01/analysis.md",
+  "latest_workpack_receipt": "reports/v0-s2/response-bounds-correction-01/implementation.md",
   "warm_benchmark_blocker": "reports/v0-s2/warm-benchmark-evidence-gap-01.md",
   "warm_profile_implementation": "reports/v0-s2/warm-profile-implementation-progress-01.md",
   "warm_profile_decision": "reports/v0-s2/warm-profile-decision-01.md",
@@ -159,8 +159,9 @@
   "live_executor_handle": {
     "kind": "exec_command_session",
     "id": 38362,
-    "terminal": false,
-    "restart_forbidden": true
+    "terminal": true,
+    "restart_forbidden": true,
+    "exit_code": 1
   },
   "next_stage_document_preparation": "reports/v0-s3/preparation-01.md",
   "native_checkpoint_attempts": {
@@ -179,7 +180,8 @@
     "reports/v0-s2/full-supplemental-01/receipt.json",
     "reports/v0-s2/full-resource-ready-01/receipt.json",
     "reports/v0-s2/full-oracle-correction-01/receipt.json",
-    "reports/v0-s2/full-profile-lifecycle-correction-01/receipt.json"
+    "reports/v0-s2/full-profile-lifecycle-correction-01/receipt.json",
+    "reports/v0-s2/full-v0-auto-01/receipt.json"
   ],
   "retained_root_disposition": "reports/v0-s2/supplemental-cleanup-01/receipt.json",
   "supplemental_authorization_record": "reports/v0-s2/authorization-s2-supplemental-01.approval.json",
@@ -728,21 +730,15 @@
   "policy_correction_authorization": "reports/v0-s2/authorization-s2-policy-correction-01.approval.json",
   "policy_readiness_receipt": "reports/v0-s2/resource-admission-profile-lifecycle-01/receipt.json",
   "current_runtime_failure": {
-    "code": "RESOURCE_PREFLIGHT_UNPROVEN",
-    "nested_code": "GPU_FOREIGN_COMPUTE_PROCESS",
-    "evidence": "reports/v0-s2/full-profile-lifecycle-correction-01/receipt.json",
-    "failure_recomputation": "reports/v0-s2/compute-owner-diagnosis-01/receipt.json",
-    "rejected_compute_pids_recorded": false,
-    "foreign_identity_proven": false,
-    "vram_shortage_proven": false,
-    "observed_gpu_peak_mib": 21516,
+    "code": "PARSE_PARTIAL",
+    "subcode": "SCHEMA_ARRAY_LIMIT",
+    "observation_length": 505,
+    "existing_limit": 400,
+    "evidence": "reports/v0-s2/full-v0-auto-01/receipt.json",
     "cleanup_proven": true,
-    "diagnostic_background_gpu_clients": 27,
-    "native_reported_background_types": {
-      "C+G": 27
-    },
-    "diagnostic_owner_added": "COMFY_ONLY",
-    "diagnostic_foreign_baseline_proven": true
+    "WDDM_admission_exercised": true,
+    "public_matrix_passed": 14,
+    "public_matrix_fixed": 15
   },
   "profile_lifecycle_authorization": "reports/v0-s2/authorization-s2-profile-lifecycle-01.approval.json",
   "v0_verification_program": "reports/authorization-program-v0-local-verification-01.json",
