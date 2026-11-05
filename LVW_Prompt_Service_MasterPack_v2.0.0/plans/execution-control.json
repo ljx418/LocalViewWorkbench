@@ -8,15 +8,15 @@
   "coordinate": {
     "stage_id": "V0-S2",
     "workpack_id": "WP-S2-05",
-    "gate": "GATE3_ORACLE_AUTHORIZATION_TRANSPORT",
-    "state": "FROZEN_READY_OFFLINE"
+    "gate": "GATE4_ORACLE_RESOURCE_ADMISSION",
+    "state": "CHECKPOINT"
   },
   "last_passed_gate": {
-    "id": "V0_S2_OFFLINE_CHECKPOINT_25_PASSED",
-    "evidence": "reports/v0-s2/offline-checkpoint-25/receipt.json",
-    "meaning": "Corrected candidate passed461 tests, all five offline checks and before/after seals. No new native run or Stage PASS."
+    "id": "V0_S2_OFFLINE_CHECKPOINT_26_PASSED",
+    "evidence": "reports/v0-s2/offline-checkpoint-26/receipt.json",
+    "meaning": "Final approved oracle authorization transport candidate passed466 tests, all five checks and before/after full source seals; no Stage PASS."
   },
-  "current_blocking_gate": "FINAL_ORACLE_AUTHORIZATION_TRANSPORT_OFFLINE_GATE",
+  "current_blocking_gate": "APPROVED_FRESH_ORACLE_RESOURCE_ADMISSION",
   "stage_packet": ".agent-governance/stages/V0-S2/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/V0-S2/PAYLOAD_MANIFEST.sha256",
   "product_status": "IN_PROGRESS",
@@ -29,8 +29,8 @@
     "PRODUCTION_RELEASED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "Codex",
-  "next_action": "Finish bounded new-slot authorization transport, targeted tests and full offline gate; then one readiness and one complete native run under existing approved scope.",
+  "next_owner": "local_ci",
+  "next_action": "Prepare and claim the one exact resource-admission-oracle-correction-01 child; if ready prepare one full-oracle-correction-01. No additional probe/retry.",
   "required_authorization": "NONE_WITHIN_APPROVED_ORACLE_CORRECTION_SCOPE",
   "authorization_request": "reports/v0-s2/authorization-s2-oracle-correction-01.request.json",
   "authorization_record": "reports/authorization-program-v1-local-01.json",
@@ -62,12 +62,12 @@
   ],
   "contract_change_request": "reports/r1a/change-request-r1a-product-controls-02.json",
   "contract_change_decision": "reports/r1a/change-decision-r1a-product-controls-02.json",
-  "implementation_candidate": "280d1ab8277a65e2933894b029d349343edd3425",
+  "implementation_candidate": "4bfc490774054b335de6e6890683b1aa32d90e14",
   "implementation_baseline": "5ea725cc7182e654043183d9de581b730a585685",
   "candidate_binding_scope": "S2 oracle correction only: append-only Provider logs and registered sampler closure. Frozen product contracts, thresholds and denominator unchanged.",
   "offline_evidence_commit": null,
-  "offline_receipt": "reports/v0-s2/offline-checkpoint-25/receipt.json",
-  "offline_candidate_sha": "280d1ab8277a65e2933894b029d349343edd3425",
+  "offline_receipt": "reports/v0-s2/offline-checkpoint-26/receipt.json",
+  "offline_candidate_sha": "4bfc490774054b335de6e6890683b1aa32d90e14",
   "evidence_root": "reports/",
   "gate_decision": null,
   "human_signoff": null,
@@ -96,11 +96,11 @@
   "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
   "live_terminal_receipt": "reports/v0-s2/full-resource-ready-01/receipt.json",
   "independent_review": null,
-  "exact_stop_reason": "RESUMED_BY_OWNER_NEW_AUTHORIZATION_SLOT_OFFLINE_IMPLEMENTATION",
+  "exact_stop_reason": "FINAL_OFFLINE26_PASSED_ENTERING_APPROVED_RESOURCE_ADMISSION",
   "native_component_authorization": "reports/v0-s2/authorization-native-component-02.json",
   "native_component_terminal_receipt": "reports/v0-s2/native-component-02/receipt.json",
   "local_control_change_decision": "reports/v0-s2/change-decision-video-workbench-01.json",
-  "latest_workpack_receipt": "reports/v0-s2/offline-checkpoint-25/receipt.json",
+  "latest_workpack_receipt": "reports/v0-s2/offline-checkpoint-26/receipt.json",
   "warm_benchmark_blocker": "reports/v0-s2/warm-benchmark-evidence-gap-01.md",
   "warm_profile_implementation": "reports/v0-s2/warm-profile-implementation-progress-01.md",
   "warm_profile_decision": "reports/v0-s2/warm-profile-decision-01.md",
@@ -365,27 +365,27 @@
         {
           "name": "WP-S2-00 冻结准备",
           "status": "DONE",
-          "evidence": "reports/v0-s2/offline-checkpoint-25/receipt.json"
+          "evidence": "reports/v0-s2/offline-checkpoint-26/receipt.json"
         },
         {
           "name": "WP-S2-01 媒体owner",
           "status": "DONE",
-          "evidence": "reports/v0-s2/offline-checkpoint-25/receipt.json"
+          "evidence": "reports/v0-s2/offline-checkpoint-26/receipt.json"
         },
         {
           "name": "WP-S2-02 公开视频路径",
           "status": "DONE",
-          "evidence": "reports/v0-s2/offline-checkpoint-25/receipt.json"
+          "evidence": "reports/v0-s2/offline-checkpoint-26/receipt.json"
         },
         {
           "name": "WP-S2-03 安全/资源/取消",
           "status": "DONE",
-          "evidence": "reports/v0-s2/offline-checkpoint-25/receipt.json"
+          "evidence": "reports/v0-s2/offline-checkpoint-26/receipt.json"
         },
         {
           "name": "WP-S2-04 离线集中收口",
           "status": "DONE",
-          "evidence": "reports/v0-s2/offline-checkpoint-25/receipt.json"
+          "evidence": "reports/v0-s2/offline-checkpoint-26/receipt.json"
         },
         {
           "name": "WP-S2-05 完整真实验收",
