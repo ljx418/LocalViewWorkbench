@@ -3,6 +3,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 import shutil
 import subprocess
@@ -38,7 +39,7 @@ def classify(pids,rows,roots):
         for _ in range(8):
             if current in seen:break
             seen.add(current);row=indexed.get(current)
-            if row is None or type(row.get('process_start_ticks')) is not int:break
+            if row is None or type(row.get('process_start_ticks')) is not int or row['process_start_ticks']<=0:break
             birth=row['process_start_ticks']
             if child_birth is not None and birth>child_birth:break
             matches=[name for name,proof in roots.items() if proof['pid']==current and proof['start_ticks']==birth]
@@ -161,7 +162,8 @@ class Driver(NativeRuntime):
             'if($ids.Count -gt 64){throw "PID_LIMIT"};$rows=@{};'
             'foreach($start in $ids){$cur=[int]$start;for($depth=0;$depth -lt 8;$depth++){if($cur -le 0 -or $rows.ContainsKey([string]$cur)){break};'
             '$p=Get-CimInstance Win32_Process -Filter ("ProcessId = "+$cur);if(!$p){break};$gp=Get-Process -Id $cur -ErrorAction SilentlyContinue;if(!$gp){break};'
-            'try{$rows[[string]$cur]=[ordered]@{pid=[int]$p.ProcessId;parent_pid=[int]$p.ParentProcessId;name=[string]$p.Name;executable=[string]$p.ExecutablePath;process_start_ticks=[long]$gp.StartTime.ToUniversalTime().Ticks;creation_ticks=[long]$p.CreationDate.ToUniversalTime().Ticks}}finally{$gp.Dispose()};$cur=[int]$p.ParentProcessId}};'
+            'try{$bt=$null;$ct=$null;try{$st=$gp.StartTime;if($st){$bt=[long]$st.ToUniversalTime().Ticks}}catch{};if($p.CreationDate){$ct=[long]$p.CreationDate.ToUniversalTime().Ticks};'
+            '$rows[[string]$cur]=[ordered]@{pid=[int]$p.ProcessId;parent_pid=[int]$p.ParentProcessId;name=[string]$p.Name;executable=[string]$p.ExecutablePath;process_start_ticks=$bt;creation_ticks=$ct}}finally{$gp.Dispose()};$cur=[int]$p.ParentProcessId}};'
             '[ordered]@{gpu_csv=($g -join "`n");compute_csv=($c -join "`n");processes=@($rows.Values);ram_available_mib=[long][Math]::Floor((Get-CimInstance Win32_OperatingSystem).FreePhysicalMemory/1024.0);wall_ticks=[long][datetime]::UtcNow.Ticks}|ConvertTo-Json -Depth 6 -Compress')
         value=json.loads(self._powershell(script))
         pids=[int(line.strip()) for line in value['compute_csv'].splitlines() if line.strip()]
@@ -176,7 +178,8 @@ class Driver(NativeRuntime):
         cp.write_new(self.directory/(label+'.json'),value);return value
 
 
-def run(candidate):
+def run(candidate,run_id=RUN):
+    if not re.fullmatch('compute-owner-diagnostic-[0-9]{2}',run_id):raise ValueError('diagnostic run identity invalid')
     request=cp.repository_json(REQUEST);program=cp.repository_json(authority.PROGRAM)
     authority.validate(program,'V0-S2');identity=seal_candidate(cp.ROOT,candidate,PAYLOAD)
     # Existing terminal evidence supplies expected identities only. Fresh critical
@@ -190,22 +193,22 @@ def run(candidate):
         for row in tools.values():
             if cp.file_hash(plain(Path(row['path'])))!=row['sha256']:raise ValueError('installed critical identity changed')
     verify_tools()
-    child=authority.child(program,stage='V0-S2',run_id=RUN,candidate=candidate,harness_sha256=cp.file_hash(cp.ROOT/HARNESS),
+    child=authority.child(program,stage='V0-S2',run_id=run_id,candidate=candidate,harness_sha256=cp.file_hash(cp.ROOT/HARNESS),
         program_sha256=cp.file_hash(cp.ROOT/authority.PROGRAM),budget=request['budget'],max_seconds=request['max_seconds'])
     child.update(source_payload_sha256=identity['payload_sha256'],request=REQUEST,request_sha256=cp.file_hash(cp.ROOT/REQUEST),
                  tool_bindings=tools,ports=[8191,11434],cleanup_policy='original registered roots and original owned PID/birth only')
     from tools.v0_s2_resource_admission import expected_tools
     wsl=expected_tools(cp)['wsl_nvidia']
     child['command_executables']={tools['powershell']['path']:tools['powershell']['sha256'],wsl['path']:wsl['sha256']}
-    directory=cp.STATE_ROOT/RUN;directory.mkdir(exist_ok=False)
+    directory=cp.STATE_ROOT/run_id;directory.mkdir(exist_ok=False)
     cp.write_new(directory/'active-child.json',child);(directory/'lease.closed').write_bytes(b'0')
-    root=None;driver=None;context=None;archive=OwnedArchive(directory,run_id=RUN,candidate_sha=candidate,
+    root=None;driver=None;context=None;archive=OwnedArchive(directory,run_id=run_id,candidate_sha=candidate,
         authorization_sha256=hashlib.sha256(cp.canonical(child)).hexdigest(),authorize=lambda *args:None)
-    result={'run_id':RUN,'candidate_sha':candidate,'decision':'NO_GO','stage_pass_claim':False,'provider_calls':0,'media_reads':0,'browser_starts':0,'complete_stage_checkpoints':0}
+    result={'run_id':run_id,'candidate_sha':candidate,'decision':'NO_GO','stage_pass_claim':False,'provider_calls':0,'media_reads':0,'browser_starts':0,'complete_stage_checkpoints':0}
     try:
         root=Path(tempfile.mkdtemp(prefix='lvw-compute-diag-',dir=directory)).resolve();archive.register(root,'default')
         for name in ['input','output','temp','custom_nodes']:(root/name).mkdir()
-        args=SimpleNamespace(run_id=RUN,max_public_submissions=1,max_loopback_requests=256,max_native_clock_reads=16,
+        args=SimpleNamespace(run_id=run_id,max_public_submissions=1,max_loopback_requests=256,max_native_clock_reads=16,
             warm_benchmark=False,native_audit=False,ffprobe_exe=None,
             **{name:tools[name]['path'] for name in ('powershell','comfy_python','comfy_main','ollama_exe','ffmpeg_exe','nvidia_exe')})
         evidence={'owned_run_root':str(root)};driver=Driver(args,evidence,directory,child)
@@ -251,7 +254,7 @@ def run(candidate):
         cp.write_new(directory/'terminal.json',result)
         with (directory/'lease.closed').open('r+b') as stream:stream.write(b'1');stream.flush();os.fsync(stream.fileno())
         cp.write_new(directory/'terminal-child.json',authority.expire(child,'COMPLETE' if result['decision'].startswith('COMPUTE_OWNER') else 'NO_GO','terminal.json'))
-        report=cp.ROOT/'reports/v0-s2'/RUN;report.mkdir(exist_ok=False)
+        report=cp.ROOT/'reports/v0-s2'/run_id;report.mkdir(exist_ok=False)
         # No unrelated executable paths, command lines or raw PIDs in source repo.
         public={k:result[k] for k in ('run_id','candidate_sha','decision','stage_pass_claim','provider_calls','media_reads','browser_starts','complete_stage_checkpoints','program_remains_active','root_retained')}
         for label in ('before','after'):
@@ -267,5 +270,5 @@ def run(candidate):
 
 
 if __name__=='__main__':
-    p=argparse.ArgumentParser();p.add_argument('--candidate',required=True);a=p.parse_args()
-    r=run(a.candidate);print(json.dumps(r));raise SystemExit(r['decision']=='NO_GO')
+    p=argparse.ArgumentParser();p.add_argument('--candidate',required=True);p.add_argument('--run-id',default=RUN);a=p.parse_args()
+    r=run(a.candidate,a.run_id);print(json.dumps(r));raise SystemExit(r['decision']=='NO_GO')

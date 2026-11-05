@@ -8,8 +8,8 @@
   "coordinate": {
     "stage_id": "V0-S2",
     "workpack_id": "WP-S2-05",
-    "gate": "GATE3_COMPUTE_OWNER_DIAGNOSTIC_IMPLEMENTATION",
-    "state": "FROZEN_READY_OFFLINE"
+    "gate": "GATE4_COMPUTE_OWNER_DIAGNOSTIC_RUNNING",
+    "state": "RUNNING"
   },
   "last_passed_gate": {
     "id": "V0_S2_OFFLINE_CHECKPOINT_33_PASSED",
@@ -30,7 +30,7 @@
     "TARGET_HARDWARE_TESTED"
   ],
   "next_owner": "Codex",
-  "next_action": "Automatically bind and execute finite compute-owner diagnostic under approved V0 verification program; no repeated human GPU/code verification confirmation.",
+  "next_action": "Observe unique diagnostic session29361; finite child terminates independently of persistent V0 program. No per-run human confirmation required.",
   "required_authorization": "NONE_WITHIN_V0_LOCAL_GPU_AND_CODE_VERIFICATION_PROGRAM",
   "authorization_request": null,
   "authorization_record": "reports/authorization-program-v1-local-01.json",
@@ -110,7 +110,7 @@
   "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
   "live_terminal_receipt": "reports/v0-s2/full-profile-lifecycle-correction-01/receipt.json",
   "independent_review": null,
-  "exact_stop_reason": "NOT_STOPPED_V0_GPU_CODE_VERIFICATION_PROGRAM_APPROVED",
+  "exact_stop_reason": "NOT_STOPPED_V0_PROGRAM_DIAGNOSTIC_RUNNING",
   "native_component_authorization": "reports/v0-s2/authorization-native-component-02.json",
   "native_component_terminal_receipt": "reports/v0-s2/native-component-02/receipt.json",
   "local_control_change_decision": "reports/v0-s2/change-decision-video-workbench-01.json",
@@ -155,13 +155,12 @@
   "cumulative_stage_sequence_implementation": "reports/v0-s2/cumulative-stage-sequence-progress-01.md",
   "bound_runtime_archive_implementation": "reports/v0-s2/bound-runtime-archive-progress-01.md",
   "live_authorization_record": "reports/v0-s2/authorization-full-profile-lifecycle-correction-01.json",
-  "native_run_id": "full-profile-lifecycle-correction-01",
+  "native_run_id": "compute-owner-diagnostic-01",
   "live_executor_handle": {
     "kind": "exec_command_session",
-    "id": 70634,
-    "terminal": true,
-    "restart_forbidden": true,
-    "exit_code": 1
+    "id": 29361,
+    "terminal": false,
+    "restart_forbidden": true
   },
   "next_stage_document_preparation": "reports/v0-s3/preparation-01.md",
   "native_checkpoint_attempts": {
@@ -740,5 +739,6 @@
     "cleanup_proven": true
   },
   "profile_lifecycle_authorization": "reports/v0-s2/authorization-s2-profile-lifecycle-01.approval.json",
-  "v0_verification_program": "reports/authorization-program-v0-local-verification-01.json"
+  "v0_verification_program": "reports/authorization-program-v0-local-verification-01.json",
+  "diagnostic_candidate": "47526e3c984f6f2309bd676e97d3314e226c359b"
 }

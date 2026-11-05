@@ -51,6 +51,8 @@ class VerificationProgramTests(unittest.TestCase):
         rows=[{'pid':1,'parent_pid':2,'process_start_ticks':1},{'pid':2,'parent_pid':1,'process_start_ticks':1}]
         self.assertTrue(all(v['classification']=='UNRESOLVED_OR_UNOWNED' for v in diag.classify([1,3],rows,{})))
         self.assertEqual([],diag.classify([],[],{}))
+        for value in (None,0,-1):
+            self.assertEqual('UNRESOLVED_OR_UNOWNED',diag.classify([1],[{'pid':1,'parent_pid':0,'process_start_ticks':value}],{'COMFY':{'pid':1,'start_ticks':value}})[0]['classification'])
 
     def driver(self):
         value=object.__new__(diag.Driver);value.guard=lambda:None
