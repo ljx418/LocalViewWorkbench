@@ -11,14 +11,14 @@ def is_slot(slot):return isinstance(slot,str) and re.fullmatch('full-v0-auto-[0-
 
 def require_closed_runs():
     from tools import v0_s2_stage_checkpoint as cp
-    roots=[*cp.STATE_ROOT.glob('full-*'),*cp.STATE_ROOT.glob('browser-component-*')]
+    roots=[*cp.STATE_ROOT.glob('full-*'),*cp.STATE_ROOT.glob('browser-component-*'),*cp.STATE_ROOT.glob('warm-component-*')]
     for root in roots:
         if root.is_symlink() or root.resolve(strict=True)!=root:raise ValueError('runtime registry redirect forbidden')
         if root.is_dir():
             marker=root/'lease.closed'
             if not marker.is_file() or marker.read_bytes()!=b'1':
                 raise ValueError('another complete verification is active, unclosed or incomplete')
-            if root.name.startswith('browser-component-'):
+            if root.name.startswith(('browser-component-','warm-component-')):
                 from tools.v0_s2_component_clearance import require_clearance
                 require_clearance(root)
 

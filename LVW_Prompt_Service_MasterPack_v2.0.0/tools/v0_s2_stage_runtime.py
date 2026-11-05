@@ -55,9 +55,9 @@ class StageRuntimeFactory:
     def __init__(self, *, directory, run_id, candidate_sha, authorization_sha256, paths, tool_sha256,
                  source_identity, samples, fixture_plan, model_digest, archive, authorize,
                  verify_complete, guard_critical, component_scope=None):
-        directed_scope='DIRECTED_BROWSER_COMPONENT_DEPENDENCIES_NOT_FULL_STAGE_SEAL'
-        if (component_scope is not None and (component_scope!=directed_scope or not re.fullmatch('browser-component-[0-9]{2}',run_id))
-                or component_scope is None and run_id.startswith('browser-component-')):
+        directed_scopes={'DIRECTED_BROWSER_COMPONENT_DEPENDENCIES_NOT_FULL_STAGE_SEAL':'browser','DIRECTED_WARM_COMPONENT_DEPENDENCIES_NOT_FULL_STAGE_SEAL':'warm'}
+        if (component_scope is not None and (component_scope not in directed_scopes or not re.fullmatch(directed_scopes[component_scope]+'-component-[0-9]{2}',run_id))
+                or component_scope is None and run_id.startswith(('browser-component-','warm-component-'))):
             raise ValueError('directed component binding cannot be presented as a full Stage seal')
         if (set(paths) != TOOL_KEYS or set(tool_sha256) != TOOL_KEYS
                 or any(not re.fullmatch('[a-f0-9]{64}', value) for value in tool_sha256.values())
@@ -156,9 +156,11 @@ class StageRuntimeFactory:
     def prepare_warm(self): return self._prepare(True)
 
     def _prepare(self, warm):
-        if warm and self.component_scope is not None:raise EvidenceError('directed browser component has no warm benchmark authority')
+        directed_warm=self.component_scope=='DIRECTED_WARM_COMPONENT_DEPENDENCIES_NOT_FULL_STAGE_SEAL'
+        if warm and self.component_scope is not None and not directed_warm:raise EvidenceError('directed browser component has no warm benchmark authority')
+        if directed_warm and not warm:raise EvidenceError('directed warm component has no default/browser authority')
         label = 'warm' if warm else 'default'
-        if (label in self.used or (warm and ('default' not in self.contexts
+        if (label in self.used or (warm and not directed_warm and ('default' not in self.contexts
                 or self.contexts['default'].root.exists()))): raise EvidenceError('factory order/replay/default root not closed')
         self.used.add(label); self.authorize('prepare_bound_native_runtime', label)
         proof = self._complete(); plain(self.directory)

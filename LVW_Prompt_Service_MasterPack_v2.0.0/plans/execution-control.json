@@ -8,17 +8,17 @@
   "coordinate": {
     "stage_id": "V0-S2",
     "workpack_id": "WP-S2-05",
-    "gate": "GATE3_ATOMIC_STOP_RECOVERY_OFFLINE",
+    "gate": "GATE4_WARM_LINEAGE_CORRECTION",
     "state": "RUNNING"
   },
   "last_passed_gate": {
     "gate": "GATE3_FULL_OFFLINE_CHECKPOINT",
-    "candidate_sha": "570e231881714fbe93d37fe328282f7c7c562ea8",
-    "receipt": "reports/v0-s2/offline-checkpoint-42/receipt.json",
+    "candidate_sha": "6ec897ed1eec776586688ca87da66be682fc798f",
+    "receipt": "reports/v0-s2/offline-checkpoint-43/receipt.json",
     "decision": "OFFLINE_CHECKS_PASSED_NOT_STAGE_ACCEPTANCE",
-    "unit_tests": 537
+    "unit_tests": 538
   },
-  "current_blocking_gate": "FINAL_OFFLINE_AND_REAL_FAULT_VERIFICATION",
+  "current_blocking_gate": "WARM_NATIVE_LINEAGE_QUERY_DEADLINE",
   "stage_packet": ".agent-governance/stages/V0-S2/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/V0-S2/PAYLOAD_MANIFEST.sha256",
   "product_status": "IN_PROGRESS",
@@ -32,7 +32,7 @@
     "TARGET_HARDWARE_TESTED"
   ],
   "next_owner": "Codex",
-  "next_action": "Run offline43 on final reviewed durable stop candidate; automatically browser-component-03 then fresh full07 if browser chain closes.",
+  "next_action": "Seal reviewed batched native snapshot and warm-directed executor; offline44 then warm-component-01, full08 only after full warm20 closes.",
   "required_authorization": "NONE_WITHIN_V0_LOCAL_GPU_AND_CODE_VERIFICATION_PROGRAM",
   "authorization_request": null,
   "authorization_record": "reports/authorization-program-v1-local-01.json",
@@ -78,12 +78,12 @@
   ],
   "contract_change_request": "reports/r1a/change-request-r1a-product-controls-02.json",
   "contract_change_decision": "reports/r1a/change-decision-r1a-product-controls-02.json",
-  "implementation_candidate": "b1df906e994f2be21aab6b1dd1be8a7cbb6cad2d",
+  "implementation_candidate": "6ec897ed1eec776586688ca87da66be682fc798f",
   "implementation_baseline": "5ea725cc7182e654043183d9de581b730a585685",
   "candidate_binding_scope": "Approved GPU policy correction, unchanged calibrated production workload/context and fixed acceptance denominator.",
   "offline_evidence_commit": null,
-  "offline_receipt": "reports/v0-s2/offline-checkpoint-41/receipt.json",
-  "offline_candidate_sha": "b1df906e994f2be21aab6b1dd1be8a7cbb6cad2d",
+  "offline_receipt": "reports/v0-s2/offline-checkpoint-43/receipt.json",
+  "offline_candidate_sha": "6ec897ed1eec776586688ca87da66be682fc798f",
   "evidence_root": "reports/",
   "gate_decision": null,
   "human_signoff": null,
@@ -110,9 +110,9 @@
   },
   "historical_live_terminal_receipt": "reports/r1a/r1a-live-07/live-receipt.json",
   "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
-  "live_terminal_receipt": "reports/v0-s2/full-v0-auto-06/receipt.json",
+  "live_terminal_receipt": "reports/v0-s2/full-v0-auto-07/receipt.json",
   "independent_review": null,
-  "exact_stop_reason": "NOT_STOPPED_FINAL_ATOMIC_STOP_OFFLINE",
+  "exact_stop_reason": "NOT_STOPPED_WARM_LINEAGE_CORRECTION",
   "native_component_authorization": "reports/v0-s2/authorization-native-component-02.json",
   "native_component_terminal_receipt": "reports/v0-s2/native-component-02/receipt.json",
   "local_control_change_decision": "reports/v0-s2/change-decision-video-workbench-01.json",
@@ -156,11 +156,11 @@
   "native_browser_terminal_phase_implementation": "reports/v0-s2/browser-terminal-phase-progress-01.md",
   "cumulative_stage_sequence_implementation": "reports/v0-s2/cumulative-stage-sequence-progress-01.md",
   "bound_runtime_archive_implementation": "reports/v0-s2/bound-runtime-archive-progress-01.md",
-  "live_authorization_record": "reports/v0-s2/authorization-full-v0-auto-06.json",
-  "native_run_id": "full-v0-auto-06",
+  "live_authorization_record": "reports/v0-s2/authorization-full-v0-auto-07.json",
+  "native_run_id": "full-v0-auto-07",
   "live_executor_handle": {
     "kind": "exec_command_session",
-    "id": 77805,
+    "id": 34472,
     "terminal": true,
     "restart_forbidden": true
   },
@@ -187,7 +187,8 @@
     "reports/v0-s2/full-v0-auto-03/receipt.json",
     "reports/v0-s2/full-v0-auto-04/receipt.json",
     "reports/v0-s2/full-v0-auto-05/receipt.json",
-    "reports/v0-s2/full-v0-auto-06/receipt.json"
+    "reports/v0-s2/full-v0-auto-06/receipt.json",
+    "reports/v0-s2/full-v0-auto-07/receipt.json"
   ],
   "retained_root_disposition": "reports/v0-s2/supplemental-cleanup-01/receipt.json",
   "supplemental_authorization_record": "reports/v0-s2/authorization-s2-supplemental-01.approval.json",
@@ -763,15 +764,9 @@
   ],
   "v0_verification_authorization_status": "ACTIVE_NO_PER_RUN_HUMAN_CONFIRMATION",
   "active_component_run": {
-    "run_id": "browser-component-02",
+    "run_id": "browser-component-03",
     "terminal": true,
-    "stage_pass_claim": false,
-    "full_stage_checkpoint": false,
-    "receipt": "reports/v0-s2/browser-component-02/receipt.json",
-    "executor": {
-      "kind": "exec_command_session",
-      "id": 40882,
-      "terminal": true
-    }
+    "receipt": "reports/v0-s2/browser-component-03/receipt.json",
+    "stage_pass_claim": false
   }
 }

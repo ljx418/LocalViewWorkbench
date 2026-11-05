@@ -1,0 +1,13 @@
+# 定向浏览器组件独立复算
+
+审查实例/root/s2_browser_component_review，2026-11-06，独立只读，不执行服务/GPU或修改候选。
+
+Fatal0 / Major0；component03局部验证成立，绝非Stage PASS。
+
+候选6ec897ed1eec776586688ca87da66be682fc798f；terminal SHA ece7bb542fd5f735e121929318098df868e7841403bc679c4545c938e33f3456；manifest SHA65f07fc3e01361fdab83e0da3852365f29717d9e1d462bfd3426669372cc031f。143文件4844100字节逐项核哈希及完整集合一致。重载33个browser产物，调用原terminal_join重算9/9通过。
+
+浏览器取消反馈0.061034s/释放5.297s；额外preparation/provider取消原Oracle通过，provider释放4.719s。故障原Oracle通过：实际停止在send后14.904369s、connection close前0.009733s，目标call无provider_response；释放6.531s。resident模型digest/VRAM、原root精确birth、两个children及durable snapshot一致。
+
+claimed-child/offline43/269源码文件/实际工具/预算/嵌套产物SHA一致；cleanup与resource clearance独立重算通过，原隔离根与浏览器临时根不存在，子授权已终止。
+
+限制：不涵盖完整安装依赖、warm20和正式累计九项，不得与full07拼接。正式产品九项保持NOT_RUN，后续新鲜完整运行及Stage独审/人工签署仍必要。

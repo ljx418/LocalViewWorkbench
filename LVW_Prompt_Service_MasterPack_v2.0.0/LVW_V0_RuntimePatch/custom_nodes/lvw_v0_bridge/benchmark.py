@@ -93,9 +93,12 @@ def native_lineage(binding, compute_pids, *, with_evidence=False, shared_gpu=Fal
     script=("[Console]::OutputEncoding=[System.Text.UTF8Encoding]::new($false);$ErrorActionPreference='Stop';"
         "$listeners=@(Get-NetTCPConnection -State Listen -LocalPort 11434 -ErrorAction Stop);"
         "if($listeners.Count -ne 1 -or $listeners[0].LocalAddress -ne '127.0.0.1'){throw 'listener'};"
-        "$rows=@{};"
+        # One coherent native process snapshot. Re-querying CIM for every
+        # ancestor of every WDDM desktop PID can exhaust the existing 10s
+        # deadline before a Provider call is ever sent.
+        "$native=@{};foreach($p in @(Get-CimInstance Win32_Process)){$native[[int]$p.ProcessId]=$p};$rows=@{};"
         f"foreach($start in @({ids})){{$current=[int]$start;for($depth=0;$depth -lt 9;$depth++){{"
-        "if($current -le 0){break};$p=Get-CimInstance Win32_Process -Filter ('ProcessId = '+$current);if(!$p -or !$p.CreationDate){break};"
+        "if($current -le 0){break};$p=$native[$current];if(!$p -or !$p.CreationDate){break};"
         "$rows[[string]$current]=[ordered]@{pid=[int]$p.ProcessId;parent_pid=[int]$p.ParentProcessId;"
         "start_ticks=[long]$p.CreationDate.ToUniversalTime().Ticks;name=[string]$p.Name};"
         f"if($current -eq {root}){{break}};$current=[int]$p.ParentProcessId}}}};"

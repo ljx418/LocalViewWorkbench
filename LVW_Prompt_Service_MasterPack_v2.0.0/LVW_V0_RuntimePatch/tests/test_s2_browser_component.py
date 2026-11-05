@@ -114,6 +114,35 @@ class ComponentAuthorityTests(unittest.TestCase):
             self.assertNotIn('ollama-start',helper.events)
         finally:helper.doCleanups()
 
+    def test_warm_scope_cannot_borrow_browser_identity_and_unproven_cleanup_blocks(self):
+        original=self.lease.child['scope'];self.lease.child['scope']=component.WARM_SCOPE
+        with self.assertRaises(ValueError):self.lease.authorize('start_owned_ollama')
+        self.lease.child['scope']=original
+        directory=self.root/'state/warm-component-01';directory.mkdir();(directory/'lease.closed').write_bytes(b'1')
+        with patch.object(component.cp,'STATE_ROOT',self.root/'state'),self.assertRaises((ValueError,OSError)):
+            admission.require_closed_runs()
+        with patch.object(component.cp,'repository_json') as read:
+            with self.assertRaises(ValueError):component.run('a'*40,'unused','browser-component-01','warm')
+            read.assert_not_called()
+
+    def test_warm_clearance_recomputes_own_label_and_never_borrows_browser_proof(self):
+        directory=self.root/'state/warm-component-01';directory.mkdir()
+        child={**self.lease.child,'run_id':'warm-component-01','scope':component.WARM_SCOPE}
+        (directory/'claimed-child.json').write_text(json.dumps(child));auth=clearance.digest(directory/'claimed-child.json')
+        identity={'run_id':child['run_id'],'candidate_sha':child['candidate_sha'],'authorization_sha256':auth}
+        root=directory/'lvw-s2-warm-synthetic-absent'
+        (directory/'warm-root-lease.json').write_text(json.dumps({**identity,'root':str(root)}))
+        cleanup={'proven':True,'owned_count':0,'final_target_listener_count':0,'owned_listener_terminal_states':[],
+            'owned_wrapper_terminal_states':[],'http_workers_pending':{'synthetic':0},'sampler_workers':[]}
+        archive=directory/'warm-raw';archive.mkdir();manifest=archive/'ARCHIVE_MANIFEST.json';manifest.write_text(json.dumps(identity))
+        terminal={**identity,'kind':component.WARM_SCOPE,'stage_pass_claim':False,'stage_checkpoint_consumed':False,
+            'cleanup':cleanup,'archive':{'proven':True,'manifest_file':'warm-raw/ARCHIVE_MANIFEST.json','manifest_sha256':clearance.digest(manifest)}}
+        (directory/'terminal.json').write_text(json.dumps(terminal))
+        self.assertTrue(clearance.write_clearance(directory)['safe_for_next_runtime']);clearance.require_clearance(directory)
+        terminal['browser']={'browser_cleanup_proven':True}
+        (directory/'terminal.json').write_text(json.dumps(terminal))
+        self.assertFalse(clearance.resource_proof(directory,terminal,child))
+
     def test_full_slot_cannot_be_relabelled_as_directed_component(self):
         with patch.object(component.cp,'repository_json') as read:
             with self.assertRaises(ValueError):component.run('a'*40,'unused','full-v0-auto-99')

@@ -227,6 +227,8 @@ class WarmTests(unittest.TestCase):
              patch.object(benchmark,'run_bounded',return_value=SimpleNamespace(stdout=json.dumps(document).encode())) as runner:
             benchmark.native_lineage(binding(),[11,20])
             script=runner.call_args.args[0][-1]
+            self.assertEqual(1,script.count('Get-CimInstance Win32_Process'))
+            self.assertEqual(10,runner.call_args.kwargs['timeout_seconds'])
             proof=benchmark.native_lineage(binding(),[11,20],with_evidence=True)
             self.assertEqual(document,proof['snapshot'])
             self.assertEqual([11,20],proof['verified_compute_pids'])

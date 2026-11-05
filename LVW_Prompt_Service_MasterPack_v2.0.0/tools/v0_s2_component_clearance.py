@@ -6,6 +6,7 @@ import stat
 from pathlib import Path
 
 SCOPE='DIRECTED_BROWSER_COMPONENT_DEPENDENCIES_NOT_FULL_STAGE_SEAL'
+WARM_SCOPE='DIRECTED_WARM_COMPONENT_DEPENDENCIES_NOT_FULL_STAGE_SEAL'
 
 
 def raw_record(path):
@@ -46,29 +47,32 @@ def native_clean(value):
 
 def resource_proof(directory,terminal,child):
     directory=Path(directory)
-    if (terminal.get('kind')!=SCOPE or terminal.get('stage_pass_claim') is not False
+    scope=WARM_SCOPE if child.get('run_id','').startswith('warm-component-') else SCOPE
+    label='warm' if scope==WARM_SCOPE else 'default'
+    if (child.get('scope')!=scope or terminal.get('kind')!=scope or terminal.get('stage_pass_claim') is not False
             or terminal.get('stage_checkpoint_consumed') is not False
             or terminal.get('authorization_sha256')!=digest(directory/'claimed-child.json')
             or any(terminal.get(k)!=child.get(k) for k in ['run_id','candidate_sha'])):return False
     commands=list(directory.glob('metadata-*.command.json'));results=list(directory.glob('metadata-*.result.json'))
     if len(commands)!=len(results) or any(document(p).get('command_terminal') is not True for p in results):return False
-    lease_path=directory/'default-root-lease.json'
+    lease_path=directory/(label+'-root-lease.json')
     if not lease_path.exists():
         # No runtime can start before its fresh root is registered. Metadata
         # helpers must be terminal; an unregistered leftover root is uncertainty.
         return (not terminal.get('runtime_evidence') and 'browser' not in terminal and 'cleanup' not in terminal
             and not list(directory.glob('lvw-s2-*')))
     lease=document(lease_path);root=Path(lease['root'])
-    if (root.parent!=directory or not root.name.startswith('lvw-s2-default-') or os.path.lexists(root)
+    if (root.parent!=directory or not root.name.startswith('lvw-s2-'+label+'-') or os.path.lexists(root)
             or lease.get('run_id')!=child['run_id'] or lease.get('candidate_sha')!=child['candidate_sha']
             or lease.get('authorization_sha256')!=digest(directory/'claimed-child.json')):return False
     proof=terminal
     if 'cleanup' not in proof:
-        failure=directory/'default-preparation-failure.json'
+        failure=directory/(label+'-preparation-failure.json')
         if not failure.exists():return False
         proof=document(failure)
         if any(proof.get(k)!=child.get(k) for k in ['run_id','candidate_sha']):return False
     if not native_clean(proof.get('cleanup',{})):return False
+    if scope==WARM_SCOPE and 'browser' in terminal:return False
     browser=terminal.get('browser')
     if browser is not None:
         independent=browser.get('independent_cleanup',{})
@@ -78,7 +82,7 @@ def resource_proof(directory,terminal,child):
                 or any(independent.get(k) is not True for k in ['browser_original_absent','group_empty','profile_absent'])
                 or browser.get('linux_temp_cleanup',{}).get('proven') is not True):return False
     archive=proof.get('archive',{})
-    if archive.get('proven') is not True or archive.get('manifest_file')!='default-raw/ARCHIVE_MANIFEST.json':return False
+    if archive.get('proven') is not True or archive.get('manifest_file')!=label+'-raw/ARCHIVE_MANIFEST.json':return False
     manifest=directory/archive['manifest_file']
     if digest(manifest)!=archive.get('manifest_sha256'):return False
     value=document(manifest)

@@ -1,0 +1,9 @@
+# 热路径原生归属查询纠偏
+
+完整full07的默认功能链已全部闭合，但首个warm image在Provider之前以RESOURCE_PREFLIGHT_UNPROVEN失败：benchmark.native_lineage针对每个WDDM后台PID逐层重复CIM，超出现有10秒。外层报PROVIDER_CALL_COUNT_MISMATCH，实际chat0。失败及两环境清理原始记录保留，不拼接未来正例，不宣称显存不足。
+
+修复：一次Get-CimInstance Win32_Process形成原生快照，按原64 PID/9层边界在内存索引祖先；listener检查、validate_lineage、WDDM归属分离及TCC拒绝、10秒/256KiB预算均不变。不新增重试、不降GPU/RAM/延迟门限、不改模型参数。
+
+定向执行器复用现有browser_component增加--phase warm，仅warm-component-NN及显式DIRECTED_WARM_COMPONENT_DEPENDENCIES_NOT_FULL_STAGE_SEAL；只能创建新鲜warm环境，不可进入default/browser。复用原WarmPhase完整20项，不缩减其分母；公开20/Provider50/preload20/headless0，有限源码/工具/样本封存及原PID/birth清理。全局同锁准入与resource-clearance重算新增warm label，组件结果不能作为Stage证据。正式完整Factory仍default->warm，完整依赖封存和九项分母不变。
+
+CPU定向与独立复审见后续真实记录。定向warm完整通过后才能启动新鲜完整full08，禁止沿用full07默认链作为新候选正式正例。

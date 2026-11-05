@@ -70,6 +70,22 @@ class FactoryTests(unittest.TestCase):
         with self.assertRaises(EvidenceError):factory.prepare_warm()
         self.assertNotIn('ollama-start',self.events)
 
+    def test_directed_warm_scope_is_explicit_fresh_and_cannot_launch_default(self):
+        scope='DIRECTED_WARM_COMPONENT_DEPENDENCIES_NOT_FULL_STAGE_SEAL'
+        run_id='warm-component-01'
+        self.archive=OwnedArchive(self.directory,run_id=run_id,candidate_sha='a'*40,authorization_sha256='b'*64,authorize=lambda *a:None)
+        kwargs=dict(self.kwargs,run_id=run_id,component_scope=scope,archive=self.archive,
+            verify_complete=lambda:{**self.complete(),'binding_scope':scope})
+        factory=runtime.StageRuntimeFactory(**kwargs)
+        with self.assertRaises(EvidenceError):factory.prepare_default()
+        self.assertNotIn('ollama-start',self.events)
+        warm=factory.prepare_warm()
+        self.assertTrue(warm.driver.warm_benchmark);self.assertEqual(20,warm.binding['max_requests'])
+        self.assertTrue(self.archive(warm,warm.driver.cleanup())['proven'])
+        with self.assertRaises(EvidenceError):factory.prepare_warm()
+        for change in ({'component_scope':None},{'run_id':'browser-component-01'}):
+            with self.assertRaises(ValueError):runtime.StageRuntimeFactory(**{**kwargs,**change})
+
     def native(self, args, evidence):
         driver = NativeRuntime(args, evidence); driver.root = None
         # Preserve path hierarchy; flattening to .name cannot represent a
