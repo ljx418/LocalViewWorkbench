@@ -70,11 +70,17 @@ cp.spawn=function(command,args,options){
  await observe('legacy-ready');
  phase='load-workflow';await page.evaluate(async graph=>{const {app}=await import('/scripts/app.js');await app.loadGraphData(graph);},config.graph);
  await page.locator('[data-lvw-field]').first().waitFor({timeout:15000});await observe(phase);
- phase='edit';for(const name of ['natural_zh','natural_en','image_prompt','video_prompt','tags','negative','edit_instruction'])await page.locator(`[data-lvw-field="${name}"]`).fill('manual '+name);
+ const worker=config.oracle?require(config.oracle):null;
+ phase='edit';for(const name of ['natural_zh','natural_en','image_prompt','video_prompt','tags','negative','edit_instruction'])await page.locator(`[data-lvw-field="${name}"]`).fill(worker?worker.FIELDS[name]:'manual '+name);
  await page.screenshot({path:config.screenshot,fullPage:true,timeout:10000});
  phase='export';const [item]=await Promise.all([page.waitForEvent('download',{timeout:20000}),
    page.getByRole('button',{name:'导出人工稿 JSON',exact:true}).click({timeout:15000})]);
  await item.saveAs(config.export);await observe(phase);
+ if(worker){
+  const exported=JSON.parse(fs.readFileSync(config.export));worker.same(exported.draft,{...worker.FIELDS,tags:['人工','local']},'INITIAL_MANUAL_DRAFT_CHANGED');
+  const canvas=page.locator('#graph-canvas');await canvas.focus();result.main_canvas_focused=await canvas.evaluate(element=>document.activeElement===element);
+  if(!result.main_canvas_focused)throw Error('NATIVE_CANVAS_FOCUS_UNPROVEN');
+ }
  await page.screenshot({path:config.screenshot,fullPage:true,timeout:10000});
  result.decision=result.errors.length?'PAGE_FAULT_CAPTURED_NOT_PRODUCT_ACCEPTANCE':'MANUAL_PAGE_DIAGNOSED_NOT_PRODUCT_ACCEPTANCE';
  }catch(e){result.error=e.stack;if(page)await page.screenshot({path:config.screenshot,timeout:10000}).catch(()=>{});}
@@ -87,7 +93,7 @@ cp.spawn=function(command,args,options){
 
 
 def run(candidate,run_id):
-    if run_id not in {'manual-page-diagnostic-01','manual-page-diagnostic-02','manual-page-diagnostic-03','manual-page-diagnostic-04','manual-page-diagnostic-05'}:raise ValueError('finite diagnostic ID required')
+    if run_id not in {'manual-page-diagnostic-01','manual-page-diagnostic-02','manual-page-diagnostic-03','manual-page-diagnostic-04','manual-page-diagnostic-05','manual-page-diagnostic-06'}:raise ValueError('finite diagnostic ID required')
     parent=cp.repository_json(auth.PROGRAM);auth.validate(parent,'V0-S2')
     identity=seal_candidate(cp.ROOT,candidate,['tools','LVW_V0_RuntimePatch',auth.PROGRAM,'reports/v0-s1/wp-s1-03-phase-a/live_probe.py'])
     old=cp.STATE_ROOT/'full-v0-auto-03/terminal.json';receipt=cp.repository_json('reports/v0-s2/full-v0-auto-03/receipt.json')
@@ -126,7 +132,8 @@ def run(candidate,run_id):
         temporary,lease=scratch.create(bind,root/'temp')
         config={'browser':tools['browser_executable']['path'],'playwright':tools['playwright_module']['path'],
             'readiness':str(cp.ROOT/'tools/v0_s2_browser_readiness.cjs') if run_id not in {'manual-page-diagnostic-01','manual-page-diagnostic-02'} else None,
-            'dismissStartup':run_id=='manual-page-diagnostic-05',
+            'dismissStartup':run_id in {'manual-page-diagnostic-05','manual-page-diagnostic-06'},
+            'oracle':str(cp.ROOT/'tools/v0_s2_browser_acceptance.cjs') if run_id=='manual-page-diagnostic-06' else None,
             'graph':cp.repository_json('LVW_V0_RuntimePatch/workflows/video_reverse_prompt_v0.ui.json'),
             'output':str(root/'temp/page-result.json'),'export':str(root/'temp/manual-export.json'),'screenshot':str(root/'temp/page.png')}
         cfg=root/'temp/page-config.json';cp.write_new(cfg,config)

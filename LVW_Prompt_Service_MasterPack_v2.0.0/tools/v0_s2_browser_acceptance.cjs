@@ -5,6 +5,8 @@ const path = require('node:path');
 const os = require('node:os');
 const readline = require('node:readline');
 const crypto = require('node:crypto');
+const { isDeepStrictEqual } = require('node:util');
+const { performance } = require('node:perf_hooks');
 const { waitForHost, dismissStartupTemplates } = require('./v0_s2_browser_readiness.cjs');
 const { ORIGIN, BUDGET, ACTIONS, validateConfig, classify, apiPath, Counter, replyFor, digest } = require('./v0_s2_browser_policy.cjs');
 const FIELDS = Object.freeze({ natural_zh: '浏览器人工稿：保留蓝色陶瓷杯', natural_en: 'Human draft: blue ceramic cup',
@@ -82,6 +84,30 @@ function groupMembers(group) {
   }
   if (members.length > 64) throw new Error('BROWSER_PROCESS_GROUP_LIMIT');
   return members;
+}
+
+function same(a, b, reason) {
+  // JSON object member order has no semantic meaning; array order/types do.
+  if (!isDeepStrictEqual(a, b)) throw new Error(reason);
+}
+
+async function withUiAction(waiting, action) {
+  // Observe both rejections immediately, including a synchronous action throw.
+  const [result] = await Promise.all([waiting, Promise.resolve().then(action)]);
+  return result;
+}
+
+async function waitForEmptyGroup(group, dependencies = {}) {
+  const members = dependencies.members || groupMembers;
+  const now = dependencies.now || (() => performance.now());
+  const sleep = dependencies.sleep || (ms => new Promise(resolve => setTimeout(resolve, ms)));
+  const deadline = now() + 5000;
+  while (true) {
+    const present = members(group).length, observedAt = now();
+    if (!present) return observedAt <= deadline;
+    if (observedAt >= deadline) return false;
+    await sleep(50);
+  }
 }
 
 async function run(config, parent, dependencies = {}) {
@@ -219,10 +245,9 @@ async function run(config, parent, dependencies = {}) {
     const field = name => page.locator(`[data-lvw-field="${name}"]`), button = label => page.getByRole('button', { name: label, exact: true });
     const readFields = async () => Object.fromEntries(await Promise.all(Object.keys(FIELDS).map(async k => [k, await field(k).inputValue()])));
     const fill = async values => { for (const [k, v] of Object.entries(values)) await field(k).fill(v); };
-    const same = (a, b, reason) => { if (JSON.stringify(a) !== JSON.stringify(b)) throw new Error(reason); };
     const download = async (label, name) => {
       counter.charge('downloads'); action('download', { name });
-      const [item] = await Promise.all([page.waitForEvent('download'), button(label).click()]);
+      const item = await withUiAction(page.waitForEvent('download'), () => button(label).click());
       const target = path.join(evidence, name); await item.saveAs(target); const raw = regular(target, 24 * 1024 * 1024);
       artifacts.push({ file: name, bytes: raw.length, sha256: digest(raw) }); return raw;
     };
@@ -233,16 +258,20 @@ async function run(config, parent, dependencies = {}) {
         || initial.suggestion !== null || initial.draft_origin !== 'manual') throw new Error('INITIAL_MANUAL_PROVENANCE'); pass(active);
     active = 'upload';
     const responseFor = endpoint => r => { const u = new URL(r.url()); return u.origin === ORIGIN && apiPath(u.pathname) === endpoint && r.request().method() === 'POST'; };
-    const uploaded = page.waitForResponse(responseFor('/lvw/v0/video/upload'));
-    await page.getByLabel('选择并上传 MP4 或 MOV 视频，最大 256 MiB、60 秒', { exact: true }).setInputFiles(config.sample_path);
-    const uploadResponse = await uploaded, uploadBody = await uploadResponse.json();
+    const uploadResponse = await withUiAction(page.waitForResponse(responseFor('/lvw/v0/video/upload')),
+      () => page.getByLabel('选择并上传 MP4 或 MOV 视频，最大 256 MiB、60 秒', { exact: true }).setInputFiles(config.sample_path));
+    const uploadBody = await uploadResponse.json();
     if (uploadResponse.status() !== 201 || typeof uploadBody.video_reference !== 'string') throw new Error('NATIVE_UI_UPLOAD_FAILED');
     state.reference = uploadBody.video_reference; artifact('upload-response.json', uploadBody); pass(active);
     const queue = async name => {
       await permit('case_begin', { case_id: name }); state.armed = name;
-      const waiting = page.waitForResponse(responseFor('/prompt'));
-      await page.locator('canvas').first().click({ position: { x: 20, y: 20 } }); await page.keyboard.press('Control+Enter');
-      const response = await waiting, value = await response.json(); assertHealthy();
+      const response = await withUiAction(page.waitForResponse(responseFor('/prompt')), async () => {
+        const canvas = page.locator('#graph-canvas');
+        await canvas.focus();
+        if (!await canvas.evaluate(element => document.activeElement === element)) throw new Error('NATIVE_CANVAS_FOCUS_UNPROVEN');
+        await page.keyboard.press('Control+Enter');
+      });
+      const value = await response.json(); assertHealthy();
       if (response.status() !== 200 || !/^[0-9a-f-]{1,80}$/i.test(value.prompt_id || '')) throw new Error('NATIVE_UI_QUEUE_FAILED');
       const record = actualQueues[actualQueues.length - 1]; record.prompt_id = value.prompt_id;
       artifact(name + '-public-queue.json', record); await permit('case_queued', record); return record;
@@ -265,9 +294,9 @@ async function run(config, parent, dependencies = {}) {
     active = 'explicit-adoption'; const adoptionCount = counter.used.adoptions;
     await button('采纳当前机器建议').click();
     if (counter.used.adoptions !== adoptionCount) throw new Error('ADOPTION_WITHOUT_SECOND_CONFIRMATION');
-    const adoptionResponse = page.waitForResponse(responseFor('/lvw/v0/video/workbench'));
-    await button('再次点击确认替换人工稿').click();
-    const actualAdoption = await adoptionResponse, adoptionBytes = await actualAdoption.body();
+    const actualAdoption = await withUiAction(page.waitForResponse(responseFor('/lvw/v0/video/workbench')),
+      () => button('再次点击确认替换人工稿').click());
+    const adoptionBytes = await actualAdoption.body();
     if (actualAdoption.status() !== 200 || adoptionBytes.length > 24 * 1024 * 1024) throw new Error('NATIVE_ADOPTION_RESPONSE_INVALID');
     artifact('adoption-response.json', adoptionBytes);
     await page.getByRole('status').filter({ hasText: '已显式采纳' }).waitFor();
@@ -307,9 +336,10 @@ async function run(config, parent, dependencies = {}) {
     }
     if (!cancellation?.ready || typeof cancellation.run_token !== 'string') throw new Error('NATIVE_UI_CANCEL_WINDOW_MISSED');
     state.cancelToken = cancellation.run_token;
-    const cancelResponse = page.waitForResponse(responseFor('/lvw/v0/video/cancel'));
-    const cancelStart = process.hrtime.bigint(); await button('取消本次视频分析').click();
-    const cancelled = await cancelResponse, ack = await cancelled.json(), elapsed = Number(process.hrtime.bigint() - cancelStart) / 1e9;
+    const cancelStart = process.hrtime.bigint();
+    const cancelled = await withUiAction(page.waitForResponse(responseFor('/lvw/v0/video/cancel')),
+      () => button('取消本次视频分析').click());
+    const ack = await cancelled.json(), elapsed = Number(process.hrtime.bigint() - cancelStart) / 1e9;
     if (cancelled.status() !== 200 || ack.run_token !== state.cancelToken || ack.cancel_epoch !== 1 || elapsed > 1) throw new Error('NATIVE_UI_CANCEL_FEEDBACK_INVALID');
     artifact('cancel-ack.json', { http_status: cancelled.status(), response: ack, elapsed_seconds: elapsed });
     releaseHeld(); releaseHeld = null; clearTimeout(holdTimer);
@@ -356,7 +386,7 @@ async function run(config, parent, dependencies = {}) {
         catch (error) { cleanup.graceful_error = error.message; await bounded(server.kill(), 5000); }
       }
       cleanup.browser_original_absent = !child || child.exitCode !== null || child.signalCode !== null;
-      cleanup.group_empty = !server || (processBirth && groupMembers(processBirth.group).length === 0) || false;
+      cleanup.group_empty = !server || (processBirth && await waitForEmptyGroup(processBirth.group)) || false;
       if (profile && fs.existsSync(profile) && cleanup.group_empty && cleanup.browser_original_absent) {
         const current = fs.lstatSync(profile, { bigint: true });
         if (!profileIdentity || current.ino !== profileIdentity.ino || current.dev !== profileIdentity.dev || current.isSymbolicLink()) throw new Error('BROWSER_PROFILE_CHANGED_BEFORE_CLEANUP');
@@ -378,7 +408,7 @@ async function run(config, parent, dependencies = {}) {
   return result;
 }
 
-module.exports = { run, parentBridge, birth, groupMembers, fileIdentity, FIELDS, CASES };
+module.exports = { run, parentBridge, birth, groupMembers, fileIdentity, FIELDS, CASES, same, waitForEmptyGroup, withUiAction };
 if (require.main === module) {
   (async () => {
     if (process.argv.length !== 4 || process.argv[2] !== '--config') throw new Error('SEALED_PARENT_CONFIG_REQUIRED');

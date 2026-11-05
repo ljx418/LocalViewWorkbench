@@ -51,6 +51,7 @@ SEEDS = {'targets': 'reports/v0-s2/binding-inventory-06/receipt.json',
     'packages': 'reports/v0-s2/native-decoder-packages-01/receipt.json',
     'model': 'reports/r1a/authorization-wp-r1a-04-live-08.json'}
 SOURCE_PAYLOAD = ['tools', 'LVW_V0_RuntimePatch', 'contracts', 'config',
+    'reports/v0-s2/browser-draft-oracle-correction-01/initial-manual-export.json',
     '.agent-governance/stages/V0-S2', 'plans/acceptance_cases.json', 'plans/release_gates.json',
     'reports/v0-s1/stage-checkpoint-phase-a/checkpoint.py', 'reports/v0-s1/wp-s1-03-phase-a/live_probe.py',
     'reports/v0-s2/frozen-structural-inputs-02.json', 'reports/v0-s2/fixture-preparation-02',
