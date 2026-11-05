@@ -1,8 +1,11 @@
 """Real staging, native binding writers and archival; synthetic services/GPU."""
 import hashlib
 import json
+import os
 from pathlib import Path
+import shutil
 import tempfile
+import time
 from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
@@ -66,6 +69,13 @@ class FactoryTests(unittest.TestCase):
         driver.verify_model = lambda: {'model':MODEL_TAG,'digest': 'e'*64 if self.failure in ('model','cleanup') else MODEL_DIGEST}
         def start_comfy(root, log):
             self.events.append('comfy-start'); (root/'user').mkdir(); log.write_text('synthetic Comfy log')
+            if self.failure == 'startup-clears-temp':
+                # Lifecycle boundary simulation, not a native Comfy execution.
+                # Bootstrap-owned profiles must survive a clean startup temp.
+                shutil.rmtree(root/'temp'); (root/'temp').mkdir()
+                driver.native_clock = lambda: {'wall_seconds': time.time(), 'monotonic_seconds': time.monotonic()}
+            if self.failure == 'startup-profile-collision':
+                (root/'temp/lvw-native-profile.json').write_bytes(b'foreign profile, must not overwrite')
             driver.owned.append(('comfy', object(), object())); driver.listener_proofs[8191] = {}
         driver.start_comfy = start_comfy
         driver.registry = lambda: {name: {'synthetic_registry': True} for name in runtime.REQUIRED_NODES}
@@ -128,6 +138,49 @@ class FactoryTests(unittest.TestCase):
         receipt = json.loads((self.directory/'default-preparation-failure.json').read_text())
         self.assertFalse(receipt['root_retained']); self.assertTrue(receipt['archive']['proven'])
         with self.assertRaises(EvidenceError): factory.prepare_warm()
+
+    def test_startup_temp_reset_preserves_native_and_warm_profiles_for_production_readers(self):
+        from LVW_V0_RuntimePatch.custom_nodes.lvw_v0_bridge import video_evidence, benchmark
+        self.failure = 'startup-clears-temp'
+        factory = runtime.StageRuntimeFactory(**self.kwargs)
+        for warm in (False, True):
+            context = factory.prepare_warm() if warm else factory.prepare_default()
+            module = benchmark if warm else video_evidence
+            flag = 'LVW_WARM_BENCHMARK' if warm else 'LVW_NATIVE_CHECKPOINT'
+            other = 'LVW_NATIVE_CHECKPOINT' if warm else 'LVW_WARM_BENCHMARK'
+            cache = '_PROFILE' if warm else '_AUDIT'
+            name = 'lvw-warm-profile.json' if warm else 'lvw-native-profile.json'
+            with patch.dict(os.environ, {flag: 'run-owned-v1', other: ''}), \
+                    patch.dict('sys.modules', {'folder_paths': SimpleNamespace(get_temp_directory=lambda: str(context.root/'temp'))}), \
+                    patch.object(module, cache, None):
+                loaded = benchmark.configured_profile() if warm else video_evidence.configured_native_audit()
+                self.assertEqual(context.binding, loaded.binding)
+                if warm: loaded.ensure_current()
+                else: loaded.ensure()
+                # Readers still reject tampering; delayed installation does not
+                # turn binding integrity checks into an optional condition.
+                path = context.root/'temp'/name; path.write_bytes(path.read_bytes()+b' ')
+                with self.assertRaises(module.core.BridgeError if warm else video_evidence.BridgeError):
+                    if warm: loaded.ensure_current()
+                    else: loaded.ensure()
+            self.assertTrue(self.archive(context, context.driver.cleanup())['proven'])
+
+    def test_startup_profile_collision_fails_closed_without_overwrite_or_sampler(self):
+        self.failure = 'startup-profile-collision'
+        factory = runtime.StageRuntimeFactory(**self.kwargs)
+        with self.assertRaises(FileExistsError): factory.prepare_default()
+        self.assertNotIn('sampler-start', self.events)
+        self.assertEqual(b'foreign profile, must not overwrite',
+            (self.directory/'default-raw/temp/lvw-native-profile.json').read_bytes())
+        receipt = json.loads((self.directory/'default-preparation-failure.json').read_text())
+        self.assertTrue(receipt['cleanup']['proven']); self.assertFalse(receipt['root_retained'])
+
+    def test_unverified_comfy_root_does_not_issue_runtime_profile(self):
+        self.failure = 'user-root'
+        factory = runtime.StageRuntimeFactory(**self.kwargs)
+        with self.assertRaises(EvidenceError): factory.prepare_default()
+        self.assertFalse((self.directory/'default-raw/temp/lvw-native-profile.json').exists())
+        self.assertNotIn('sampler-start', self.events)
 
     def test_sample_mismatch_before_any_start_still_archives_and_cleans_own_root(self):
         Path(self.kwargs['samples']['image']['path']).write_bytes(b'changed source')

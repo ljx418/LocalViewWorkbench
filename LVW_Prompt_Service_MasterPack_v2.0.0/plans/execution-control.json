@@ -8,15 +8,15 @@
   "coordinate": {
     "stage_id": "V0-S2",
     "workpack_id": "WP-S2-05",
-    "gate": "GATE4_FULL_NATIVE_CHECKPOINT",
-    "state": "RUNNING"
+    "gate": "GATE3_PROFILE_LIFECYCLE_CORRECTION_OFFLINE",
+    "state": "CHANGES_REQUIRED"
   },
   "last_passed_gate": {
     "id": "V0_S2_OFFLINE_CHECKPOINT_29_AND_POLICY_RESOURCE_READY",
     "evidence": "reports/v0-s2/offline-checkpoint-29/receipt.json",
     "meaning": "482 tests and five offline checks passed; three fresh bounded readiness samples passed shared GPU budget; neither proves Stage PASS."
   },
-  "current_blocking_gate": "FULL_FIXED_NATIVE_STAGE_CHECKPOINT_PENDING",
+  "current_blocking_gate": "FULL_NATIVE_CHECKPOINT_NO_GO_PROFILE_BINDING_MISSING",
   "stage_packet": ".agent-governance/stages/V0-S2/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/V0-S2/PAYLOAD_MANIFEST.sha256",
   "product_status": "IN_PROGRESS",
@@ -30,8 +30,8 @@
     "TARGET_HARDWARE_TESTED"
   ],
   "next_owner": "Codex",
-  "next_action": "Observe session46176 and durable claim-process/binding-progress for full-oracle-correction-01; never restart/reclaim; await complete terminal cleanup.",
-  "required_authorization": "NONE_WITHIN_APPROVED_GPU_POLICY_CORRECTION_AND_FINITE_EXECUTION",
+  "next_action": "Complete offline lifecycle repair and isolated read-only review; prepare exact one-shot rerun request; no new native action after grant terminal.",
+  "required_authorization": "NEW_FINITE_AUTHORIZATION_FOR_FRESH_READINESS_AND_FULL_CHECKPOINT",
   "authorization_request": "reports/v0-s2/change-request-gpu-admission-01.json",
   "authorization_record": "reports/authorization-program-v1-local-01.json",
   "read_only_binding_authorization": "reports/v0-s2/authorization-binding-inventory-06.json",
@@ -108,9 +108,9 @@
   },
   "historical_live_terminal_receipt": "reports/r1a/r1a-live-07/live-receipt.json",
   "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
-  "live_terminal_receipt": "reports/v0-s2/resource-admission-oracle-resume-01/receipt.json",
+  "live_terminal_receipt": "reports/v0-s2/full-oracle-correction-01/receipt.json",
   "independent_review": null,
-  "exact_stop_reason": "NOT_STOPPED_FULL_CHECKPOINT_RUNNING",
+  "exact_stop_reason": "NOT_STOPPED_OFFLINE_LIFECYCLE_REPAIR_AFTER_TERMINAL_NO_GO",
   "native_component_authorization": "reports/v0-s2/authorization-native-component-02.json",
   "native_component_terminal_receipt": "reports/v0-s2/native-component-02/receipt.json",
   "local_control_change_decision": "reports/v0-s2/change-decision-video-workbench-01.json",
@@ -159,21 +159,25 @@
   "live_executor_handle": {
     "kind": "exec_command_session",
     "id": 46176,
-    "terminal": false,
-    "restart_forbidden": true
+    "terminal": true,
+    "restart_forbidden": true,
+    "exit_code": 1
   },
   "next_stage_document_preparation": "reports/v0-s3/preparation-01.md",
   "native_checkpoint_attempts": {
     "initial_consumed": 1,
     "corrected_recheck_consumed": 1,
-    "remaining_full_rechecks": 0
+    "remaining_full_rechecks": 0,
+    "original_oracle_slot_consumed": 1,
+    "policy_correction_remaining_full_runs": 0
   },
   "binding_correction": "reports/v0-s2/binding-correction-01/decision.md",
   "historical_native_terminal_receipts": [
     "reports/v0-s2/full-checkpoint-01/receipt.json",
     "reports/v0-s2/full-recheck-01/receipt.json",
     "reports/v0-s2/full-supplemental-01/receipt.json",
-    "reports/v0-s2/full-resource-ready-01/receipt.json"
+    "reports/v0-s2/full-resource-ready-01/receipt.json",
+    "reports/v0-s2/full-oracle-correction-01/receipt.json"
   ],
   "retained_root_disposition": "reports/v0-s2/supplemental-cleanup-01/receipt.json",
   "supplemental_authorization_record": "reports/v0-s2/authorization-s2-supplemental-01.approval.json",
@@ -211,12 +215,13 @@
     "remaining_active_complete_runs": 0
   },
   "external_execution_hold": {
-    "active": false,
+    "active": true,
     "source": "project owner 2026-11-05 documentation-first instruction",
     "resume_requires": "explicit owner plan decision and resume",
     "native_actions_this_revision": 0,
     "resumed_by": "project_owner",
-    "resume_source": "explicit active Goal"
+    "resume_source": "explicit active Goal",
+    "reason": "Approved original complete slot consumed and policy authority expired at NO_GO; offline repair only."
   },
   "stop_report_policy": {
     "include_complete_outline": true,
@@ -396,7 +401,7 @@
         {
           "name": "WP-S2-05 完整真实验收",
           "status": "PARTIAL",
-          "evidence": "reports/v0-s2/full-resource-ready-01/receipt.json"
+          "evidence": "reports/v0-s2/full-oracle-correction-01/receipt.json"
         },
         {
           "name": "WP-S2-06 独立审查",
@@ -411,10 +416,10 @@
       ],
       "completed_substeps": 5,
       "total_substeps": 8,
-      "summary": "5/5 offline workpacks complete; approved policy correction passed482 tests and fresh readiness; complete nine-case native acceptance pending.",
+      "summary": "5 offline workpacks complete; fresh admission and actual image/decoder paths passed locally; full checkpoint NO_GO at missing native profile. Lifecycle correction in offline verification; independent Stage acceptance and human signoff pending.",
       "implementation": "OFFLINE_IMPLEMENTED",
-      "machine_acceptance": "OFFLINE_AND_RESOURCE_READY_ONLY",
-      "independent_review": "NOT_RUN",
+      "machine_acceptance": "NO_GO_PROFILE_BINDING_LIFECYCLE",
+      "independent_review": "CORRECTION_ONLY_REVIEW_IN_PROGRESS_NOT_STAGE_ACCEPTANCE",
       "human_signoff": "NOT_SIGNED"
     },
     {

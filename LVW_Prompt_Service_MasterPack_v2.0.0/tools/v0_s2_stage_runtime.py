@@ -180,18 +180,21 @@ class StageRuntimeFactory:
             evidence['model'] = driver.verify_model()
             if evidence['model']['digest'] != self.model: raise EvidenceError('factory actual model digest changed')
             evidence['resource_profile']=profile(model=evidence['model']['model'],digest=evidence['model']['digest'])
-            parameters = dict(candidate_sha=self.candidate, authorization_sha256=self.auth, model_digest=self.model)
-            if warm:
-                binding = driver.write_warm_binding(root, **parameters, nvidia_sha256=self.digests['nvidia_exe'], baseline_gpu_mib=baseline)
-            else:
-                binding = driver.write_native_binding(root, **parameters, max_runs=19)
-            context.binding = binding
             self.authorize('start_owned_comfy', label); driver.start_comfy(root, root/'comfy.log')
             info = plain(root/'user').stat(); self.user_roots[root] = (info.st_dev, info.st_ino)
             self._user_root(driver, root)
             registry = driver.registry()
             if not REQUIRED_NODES.issubset(registry): raise EvidenceError('factory actual public registry incomplete')
             evidence['public_registry'] = {name: registry[name] for name in sorted(REQUIRED_NODES)}
+            # Comfy startup can clear temp. Install the finite profile only
+            # after readiness, owned CLI/user-root and registry verification,
+            # before any production request; the writer still refuses overwrite.
+            parameters = dict(candidate_sha=self.candidate, authorization_sha256=self.auth, model_digest=self.model)
+            if warm:
+                binding = driver.write_warm_binding(root, **parameters, nvidia_sha256=self.digests['nvidia_exe'], baseline_gpu_mib=baseline)
+            else:
+                binding = driver.write_native_binding(root, **parameters, max_runs=19)
+            context.binding = binding
             self.authorize('start_owned_resource_sampler', label)
             worker = driver.start_sampler(root, nvidia_exe=str(self.paths['nvidia_exe']), nvidia_sha256=self.digests['nvidia_exe'])
             driver.resource_observer(); evidence['ownership'] = driver.ownership_summary()
