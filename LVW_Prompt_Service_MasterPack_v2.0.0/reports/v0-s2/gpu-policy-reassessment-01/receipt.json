@@ -1,0 +1,107 @@
+{
+  "kind": "COUNTERFACTUAL_PROPOSED_POLICY_NOT_PRODUCT_ACCEPTANCE",
+  "stage_pass_claim": false,
+  "production_policy_changed": false,
+  "new_gpu_queries": 0,
+  "new_model_calls": 0,
+  "model": {
+    "digest": "5571076f3d70050487b26b341705799e0ab29b808164f90d20d4cf84f699d251",
+    "local_exact_match_count": 1,
+    "model": "gemma4:26b"
+  },
+  "source_terminal_sha256": "2de43cd77c2fed81cfff9b87047505783d095492e50d1417627055478d456f02",
+  "source_archive_manifest_sha256": "56d401fa364e16cba0e0f97ab4d0d2dd7ebfd7e5fc3437ca0dbc0eeb80d2aceb",
+  "source_resource_trace_sha256": "5859962dd105cc4747aa7574378127a2aa9e611297369ff9a65cd0cc46aa3f93",
+  "resource_samples": 63,
+  "historical_pre_service_used_mib": 3712,
+  "historical_total_peak_mib": 22247,
+  "observed_increment_mib": 18535,
+  "proposed_free_reserve_mib": 512,
+  "proposed_required_free_mib": 19047,
+  "unchanged_hard_peak_mib_exclusive": 23552,
+  "replays": [
+    {
+      "run_id": "resource-admission-oracle-correction-01",
+      "original_decision": "NO_GO",
+      "original_receipt_sha256": "8fe1b0d20091aa963cbcb02361baae5ef733ebfa8cb76798399c5009a23b4453",
+      "worst_used_mib": 9649,
+      "least_free_mib": 14490,
+      "observed_reserved_mib": [
+        425,
+        425
+      ],
+      "projected_total_used_mib": 28184,
+      "draft_decision": "WOULD_DENY_HEADROOM"
+    },
+    {
+      "run_id": "resource-admission-oracle-resume-01",
+      "original_decision": "NO_GO",
+      "original_receipt_sha256": "4e55648d5e37549902cec55b03d68d2e87e02042ccccdd686966d470d99b9ef4",
+      "worst_used_mib": 4520,
+      "least_free_mib": 19619,
+      "observed_reserved_mib": [
+        425,
+        425
+      ],
+      "projected_total_used_mib": 23055,
+      "draft_decision": "WOULD_ADMIT_MONITORED_ATTEMPT"
+    },
+    {
+      "run_id": "resource-admission-01",
+      "original_decision": "RESOURCE_READY_NOT_PRODUCT_ACCEPTANCE",
+      "original_receipt_sha256": "5c49acde1be58aeee26b6a47f713f9ea11439b4b4fcdd13079c1efc202d1ebe8",
+      "worst_used_mib": 3571,
+      "least_free_mib": 20568,
+      "observed_reserved_mib": [
+        425,
+        425,
+        425,
+        425,
+        425,
+        425
+      ],
+      "projected_total_used_mib": 22106,
+      "draft_decision": "WOULD_ADMIT_MONITORED_ATTEMPT"
+    }
+  ],
+  "limitations": [
+    "One successful image analysis is a measured baseline, not a proven worst-case video bound.",
+    "Admission means permission for a monitored attempt, not guaranteed OOM-free completion.",
+    "Numerical profile and resource method remain proposed until owner approval; no old NO_GO is rewritten."
+  ],
+  "draft_boundary_checks": [
+    {
+      "name": "exact_free",
+      "expected": "WOULD_ADMIT_MONITORED_ATTEMPT",
+      "actual": "WOULD_ADMIT_MONITORED_ATTEMPT"
+    },
+    {
+      "name": "one_below_free",
+      "expected": "WOULD_DENY_HEADROOM",
+      "actual": "WOULD_DENY_HEADROOM"
+    },
+    {
+      "name": "exact_hard_peak",
+      "expected": "WOULD_DENY_HEADROOM",
+      "actual": "WOULD_DENY_HEADROOM"
+    },
+    {
+      "name": "one_below_hard_peak",
+      "expected": "WOULD_ADMIT_MONITORED_ATTEMPT",
+      "actual": "WOULD_ADMIT_MONITORED_ATTEMPT"
+    },
+    {
+      "name": "invalid_telemetry",
+      "expected": "WOULD_DENY_DEVICE_OR_TELEMETRY",
+      "actual": "WOULD_DENY_DEVICE_OR_TELEMETRY"
+    }
+  ],
+  "current_production_cpu_replay": {
+    "code": "RESOURCE_BUSY",
+    "details": {
+      "subcode": "RESOURCE_TELEMETRY_INVALID"
+    },
+    "message": "video resource admission refused"
+  },
+  "decision": "DRAFT_REPLAY_MATCHES_EXPECTATIONS_NOT_STAGE_ACCEPTANCE"
+}

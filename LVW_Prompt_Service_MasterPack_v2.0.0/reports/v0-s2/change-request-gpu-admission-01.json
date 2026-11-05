@@ -1,0 +1,91 @@
+{
+  "schema_version": "lvw.change-request/1",
+  "change_request_id": "CHANGE-REQUEST-V1-S2-GPU-ADMISSION-01",
+  "project_id": "lvw-prompt-service",
+  "stage_id": "V0-S2",
+  "status": "PENDING_PROJECT_OWNER_APPROVAL",
+  "is_authorization": false,
+  "does_not_authorize_execution": true,
+  "reason": "Incorrect cold-start used<=4096MiB and asynchronous<=128MiB equality assumptions reject a sufficient recorded free-memory budget; production also rejects a valid425MiB total-used-free gap. Restore PRD-based budget reasoning without relaxing total runtime peak or safety.",
+  "prd_source": "docs/02_UX_TARGET.md",
+  "evidence": "reports/v0-s2/gpu-policy-reassessment-01/receipt.json",
+  "evidence_sha256": "e449237860a5d66136b9b32ffeef2ec0238a5f93cc56e83c17ce29594a0580e6",
+  "adr": "reports/v0-s2/gpu-policy-reassessment-01/decision-draft.md",
+  "proposed_resolution": {
+    "policy_version": "lvw.gpu-admission/2",
+    "cold_admission": {
+      "model": {
+        "digest": "5571076f3d70050487b26b341705799e0ab29b808164f90d20d4cf84f699d251",
+        "local_exact_match_count": 1,
+        "model": "gemma4:26b"
+      },
+      "num_ctx": 4096,
+      "max_parallel": 1,
+      "image_long_edge": 1024,
+      "video_frame_long_edge": 768,
+      "observed_increment_mib": 18535,
+      "minimum_free_reserve_mib": 512,
+      "required_free_mib": 19047,
+      "require_projected_total_used_mib_less_than": 23552,
+      "readings_method": "all valid native/WSL samples of same GPU: max used and min free, not equality of sequential values",
+      "remove_fixed_start_used_ceiling_mib": 4096,
+      "calibration_limit": "Observed single-image increment; monitored trial eligibility, not proof of full video/benchmark worst case"
+    },
+    "telemetry": "Validate per-reading types/ranges/device; record nonnegative total-used-free gap, no arbitrary256MiB gap rejection; keep cross-time differences as diagnostics. Unknown/malformed metrics fail closed.",
+    "baseline": "Real observed cold baseline in0..23551MiB; retain release<=baseline+1024 and actual independent runtime hard cap. No residual4096MiB restriction in downstream evidence validators.",
+    "warm": "Keep existing bound resident-model/lineage warm admission; do not apply cold full-model allocation twice.",
+    "unchanged": [
+      "GPU runtime total peak<23552MiB",
+      "available host RAM>=2048MiB",
+      "OOM=0",
+      "existing latency/timeout/cancel/release thresholds",
+      "fixed Stage4 and cumulative9 case IDs",
+      "model digest/media sample identity/concurrency",
+      "foreign-compute/ownership protections",
+      "loopback/no-cloud/no-download/privacy/owned cleanup"
+    ],
+    "implementation_paths": [
+      "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/resource_policy.py (new shared CPU policy/profile owner)",
+      "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_resources.py",
+      "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_transport.py",
+      "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/benchmark.py",
+      "tools/v0_s2_resource_admission.py",
+      "tools/v0_s2_runtime.py",
+      "tools/v0_s2_stage_runtime.py",
+      "tools/v0_s2_cumulative_phase.py",
+      "tools/v0_s2_cancel_evidence.py",
+      "tools/v0_s2_browser_evidence.py",
+      "tools/v0_s2_browser_handlers.py",
+      "tools/v0_s2_measurements.py",
+      "tools/v0_s2_fault_phase.py",
+      "tools/v0_s2_fault_evidence.py",
+      "corresponding tests, bounded authorization transport, frozen packet/manifests and documentation"
+    ],
+    "forbidden_implementation": [
+      "rewrite historical failure/live_probe files",
+      "global replacement of4096 token/byte limits",
+      "raise runtime23GiB hard cap",
+      "declare old NO_GO as PASS",
+      "foreign process termination or unbounded new resource polling"
+    ]
+  },
+  "execution_amendment_requested": {
+    "approve_only_after_policy_offline_gate": true,
+    "additional_finite_readiness_children": 1,
+    "planned_readiness_run_id": "resource-admission-policy-correction-01",
+    "restore_unclaimed_complete_slot": "full-oracle-correction-01",
+    "maximum_total_claims_for_original_complete_slot": 1,
+    "additional_complete_native_runs": 0,
+    "additional_full_rechecks": 0,
+    "max_total_wall_seconds": 21600,
+    "keep_all_original_native_action_budgets": true,
+    "expire_at_readiness_failure_or_complete_terminal_or_revocation": true,
+    "new_candidate_and_child_bindings_required": true
+  },
+  "approval_needed_for": [
+    "proposed_resolution resource-policy correction",
+    "execution_amendment_requested if real execution is to follow; no scope inferred from approval of documentation alone"
+  ],
+  "stage_pass_claim": false,
+  "remaining_risk": "Only one successful image supplies current observed budget; complete video/performance and independent review still required."
+}

@@ -8,7 +8,7 @@
   "coordinate": {
     "stage_id": "V0-S2",
     "workpack_id": "WP-S2-05",
-    "gate": "GATE4_GPU_ABOVE_LIMIT_AND_UNSTABLE_SCOPE_EXPIRED",
+    "gate": "GPU_ADMISSION_POLICY_CORRECTION_REVIEW",
     "state": "WAIT_AUTH"
   },
   "last_passed_gate": {
@@ -16,7 +16,7 @@
     "evidence": "reports/v0-s2/offline-checkpoint-27/receipt.json",
     "meaning": "Final resource-resume route candidate passed470 tests, all five offline checks and before/after seals. No Stage PASS."
   },
-  "current_blocking_gate": "GPU_ABOVE4096_AND_READINESS_SCOPE_EXPIRED",
+  "current_blocking_gate": "UNJUSTIFIED_IMPLEMENTATION_GPU_POLICY_CORRECTION_APPROVAL",
   "stage_packet": ".agent-governance/stages/V0-S2/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/V0-S2/PAYLOAD_MANIFEST.sha256",
   "product_status": "IN_PROGRESS",
@@ -30,9 +30,9 @@
     "TARGET_HARDWARE_TESTED"
   ],
   "next_owner": "project_owner",
-  "next_action": "Make GPU stably available below the existing4096MiB admission limit, then consider the pending one-readiness/original-unclaimed-slot amendment. Do not run another probe or lower thresholds under the expired grant.",
-  "required_authorization": "AUTH-REQUEST-V1-S2-RESOURCE-RESUME-02",
-  "authorization_request": "reports/v0-s2/authorization-s2-resource-resume-02.request.json",
+  "next_action": "Review concrete shared resource-policy correction: free-memory/model budget instead of fixed4GiB idle ceiling; recorded current readings should admit a monitored attempt. Do not ask for further GPU clearing to4096 or run under expired grants. Approve proposed_resolution and optional bounded execution amendment before changing frozen execution rules.",
+  "required_authorization": "CHANGE-REQUEST-V1-S2-GPU-ADMISSION-01_PROPOSED_RESOLUTION_AND_BOUNDED_EXECUTION_AMENDMENT",
+  "authorization_request": "reports/v0-s2/change-request-gpu-admission-01.json",
   "authorization_record": "reports/authorization-program-v1-local-01.json",
   "read_only_binding_authorization": "reports/v0-s2/authorization-binding-inventory-06.json",
   "cpu_decoder_authorization": "reports/v0-s2/authorization-cpu-decoder-01.json",
@@ -58,7 +58,14 @@
     "browser_starts": 0,
     "full_checkpoint_claimed": false,
     "cleanup_proven": true,
-    "resolved_for_readiness": false
+    "resolved_for_readiness": false,
+    "reassessment": {
+      "evidence": "reports/v0-s2/gpu-policy-reassessment-01/receipt.json",
+      "physical_vram_shortage_proven": false,
+      "wrong_fixed_used_ceiling_identified": true,
+      "draft_replay": "WOULD_ADMIT_MONITORED_ATTEMPT",
+      "requires_more_gpu_release_to4096": false
+    }
   },
   "stage_preparation_receipt": "reports/v0-s2/workbench-implementation-progress-01.md",
   "historical_authorization_records": [
@@ -102,11 +109,11 @@
   "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
   "live_terminal_receipt": "reports/v0-s2/resource-admission-oracle-resume-01/receipt.json",
   "independent_review": null,
-  "exact_stop_reason": "NATIVE4520_WSL4308_MIB_BOTH_ABOVE4096_DIFFERENCE212_GT128_READINESS_CLOSED_SCOPE_EXPIRED_FULL_SLOT_UNCLAIMED",
+  "exact_stop_reason": "IMPLEMENTATION_ADMISSION_ASSUMPTION_FALSE_REJECTION_RECOMPUTED_SHARED_POLICY_CORRECTION_PENDING_APPROVAL",
   "native_component_authorization": "reports/v0-s2/authorization-native-component-02.json",
   "native_component_terminal_receipt": "reports/v0-s2/native-component-02/receipt.json",
   "local_control_change_decision": "reports/v0-s2/change-decision-video-workbench-01.json",
-  "latest_workpack_receipt": "reports/v0-s2/resource-resume-terminal-summary-01.md",
+  "latest_workpack_receipt": "reports/v0-s2/gpu-policy-reassessment-01/receipt.json",
   "warm_benchmark_blocker": "reports/v0-s2/warm-benchmark-evidence-gap-01.md",
   "warm_profile_implementation": "reports/v0-s2/warm-profile-implementation-progress-01.md",
   "warm_profile_decision": "reports/v0-s2/warm-profile-decision-01.md",
@@ -404,9 +411,9 @@
       ],
       "completed_substeps": 5,
       "total_substeps": 8,
-      "summary": "5/5离线完成；新恢复准入因GPU读数4520/4308超限且不一致而过期，完整slot仍未认领",
+      "summary": "5/5既有离线实现完成；资源准入门限假设错误已复算，纠偏草案待批准；真实九项未验收",
       "implementation": "OFFLINE_IMPLEMENTED",
-      "machine_acceptance": "LAST_FULL_NO_GO_RESUMED_READINESS_GPU_ABOVE_LIMIT_AND_UNSTABLE",
+      "machine_acceptance": "ADMISSION_POLICY_FALSE_REJECTION_CORRECTION_PENDING",
       "independent_review": "NOT_RUN",
       "human_signoff": "NOT_SIGNED"
     },
@@ -714,5 +721,6 @@
     "claimed_original_complete_runs": 0,
     "additional_full_rechecks": 0,
     "grant_status": "EXPIRED_NO_GO"
-  }
+  },
+  "gpu_policy_reassessment": "reports/v0-s2/gpu-policy-reassessment-01/receipt.json"
 }
