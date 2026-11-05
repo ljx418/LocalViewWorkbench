@@ -8,15 +8,15 @@
   "coordinate": {
     "stage_id": "V0-S2",
     "workpack_id": "WP-S2-05",
-    "gate": "GATE3_NATIVE_BROWSER_STARTUP_CORRECTION",
-    "state": "READY_FOR_REVIEW"
+    "gate": "GATE4_FULL_V0_AUTO_04",
+    "state": "RUNNING"
   },
   "last_passed_gate": {
     "gate": "GATE3_FULL_OFFLINE_CHECKPOINT",
-    "candidate_sha": "8c4a6c46f6093773434fd606ff1e789b76f4babc",
-    "receipt": "reports/v0-s2/offline-checkpoint-37/receipt.json",
+    "candidate_sha": "e01afe14e9fa610f8f328ab4d7e4e2bd3bd24c50",
+    "receipt": "reports/v0-s2/offline-checkpoint-38/receipt.json",
     "decision": "OFFLINE_CHECKS_PASSED_NOT_STAGE_ACCEPTANCE",
-    "unit_tests": 520
+    "unit_tests": 521
   },
   "current_blocking_gate": "FRESH_COMPLETE_NATIVE_CHECKPOINT_REQUIRED",
   "stage_packet": ".agent-governance/stages/V0-S2/stage-control.json",
@@ -32,7 +32,7 @@
     "TARGET_HARDWARE_TESTED"
   ],
   "next_owner": "Codex",
-  "next_action": "Finish isolated browser startup correction evidence review, seal final candidate and offline38, then automatically derive full04 under ACTIVE V0 parent.",
+  "next_action": "Observe original session24291/durable full04 claim through complete fixed native sequence. No restart, source edits or old phase stitching.",
   "required_authorization": "NONE_WITHIN_V0_LOCAL_GPU_AND_CODE_VERIFICATION_PROGRAM",
   "authorization_request": null,
   "authorization_record": "reports/authorization-program-v1-local-01.json",
@@ -78,12 +78,12 @@
   ],
   "contract_change_request": "reports/r1a/change-request-r1a-product-controls-02.json",
   "contract_change_decision": "reports/r1a/change-decision-r1a-product-controls-02.json",
-  "implementation_candidate": "8c4a6c46f6093773434fd606ff1e789b76f4babc",
+  "implementation_candidate": "e01afe14e9fa610f8f328ab4d7e4e2bd3bd24c50",
   "implementation_baseline": "5ea725cc7182e654043183d9de581b730a585685",
   "candidate_binding_scope": "Approved GPU policy correction, unchanged calibrated production workload/context and fixed acceptance denominator.",
   "offline_evidence_commit": null,
-  "offline_receipt": "reports/v0-s2/offline-checkpoint-37/receipt.json",
-  "offline_candidate_sha": "8c4a6c46f6093773434fd606ff1e789b76f4babc",
+  "offline_receipt": "reports/v0-s2/offline-checkpoint-38/receipt.json",
+  "offline_candidate_sha": "e01afe14e9fa610f8f328ab4d7e4e2bd3bd24c50",
   "evidence_root": "reports/",
   "gate_decision": null,
   "human_signoff": null,
@@ -112,7 +112,7 @@
   "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
   "live_terminal_receipt": "reports/v0-s2/full-v0-auto-03/receipt.json",
   "independent_review": null,
-  "exact_stop_reason": "NOT_STOPPED_SEALING_BROWSER_STARTUP_CORRECTION",
+  "exact_stop_reason": "NOT_STOPPED_FULL_V0_AUTO_04_RUNNING",
   "native_component_authorization": "reports/v0-s2/authorization-native-component-02.json",
   "native_component_terminal_receipt": "reports/v0-s2/native-component-02/receipt.json",
   "local_control_change_decision": "reports/v0-s2/change-decision-video-workbench-01.json",
@@ -156,12 +156,12 @@
   "native_browser_terminal_phase_implementation": "reports/v0-s2/browser-terminal-phase-progress-01.md",
   "cumulative_stage_sequence_implementation": "reports/v0-s2/cumulative-stage-sequence-progress-01.md",
   "bound_runtime_archive_implementation": "reports/v0-s2/bound-runtime-archive-progress-01.md",
-  "live_authorization_record": "reports/v0-s2/authorization-full-v0-auto-03.json",
-  "native_run_id": "full-v0-auto-03",
+  "live_authorization_record": "reports/v0-s2/authorization-full-v0-auto-04.json",
+  "native_run_id": "full-v0-auto-04",
   "live_executor_handle": {
     "kind": "exec_command_session",
-    "id": 42038,
-    "terminal": true,
+    "id": 24291,
+    "terminal": false,
     "restart_forbidden": true
   },
   "next_stage_document_preparation": "reports/v0-s3/preparation-01.md",
@@ -378,27 +378,27 @@
         {
           "name": "WP-S2-00 冻结准备",
           "status": "DONE",
-          "evidence": "reports/v0-s2/offline-checkpoint-37/receipt.json"
+          "evidence": "reports/v0-s2/offline-checkpoint-38/receipt.json"
         },
         {
           "name": "WP-S2-01 媒体owner",
           "status": "DONE",
-          "evidence": "reports/v0-s2/offline-checkpoint-37/receipt.json"
+          "evidence": "reports/v0-s2/offline-checkpoint-38/receipt.json"
         },
         {
           "name": "WP-S2-02 公开视频路径",
           "status": "DONE",
-          "evidence": "reports/v0-s2/offline-checkpoint-37/receipt.json"
+          "evidence": "reports/v0-s2/offline-checkpoint-38/receipt.json"
         },
         {
           "name": "WP-S2-03 安全/资源/取消",
           "status": "DONE",
-          "evidence": "reports/v0-s2/offline-checkpoint-37/receipt.json"
+          "evidence": "reports/v0-s2/offline-checkpoint-38/receipt.json"
         },
         {
           "name": "WP-S2-04 离线集中收口",
           "status": "DONE",
-          "evidence": "reports/v0-s2/offline-checkpoint-37/receipt.json"
+          "evidence": "reports/v0-s2/offline-checkpoint-38/receipt.json"
         },
         {
           "name": "WP-S2-05 完整真实验收",
@@ -418,7 +418,7 @@
       ],
       "completed_substeps": 5,
       "total_substeps": 8,
-      "summary": "Fresh native public15/15; complete full03 NO_GO at early host canvas. Root cause and template focus corrected; zero-model manual page05 succeeds with exact export and cleanup. Formal5/8.",
+      "summary": "Native host setup/template correction independently reviewed and zero-model real page05 verified;521 tests/five checks passed. Fresh full04 next; formal5/8.",
       "implementation": "OFFLINE_IMPLEMENTED",
       "machine_acceptance": "NO_GO_COMPLETE_CHECKPOINT_PENDING_BROWSER_CORRECTION",
       "independent_review": "CORRECTION_REVIEW_ONLY_NOT_STAGE_PASS",
