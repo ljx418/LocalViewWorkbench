@@ -9,6 +9,7 @@ import unittest
 from unittest.mock import patch
 from tools import v0_verification_authority as auth
 from tools import v0_s2_compute_diagnostic as diag
+from tools import v0_s2_compute_types as gpu_types
 from LVW_V0_RuntimePatch.custom_nodes.lvw_v0_bridge.core import BridgeError
 
 
@@ -135,6 +136,12 @@ class VerificationProgramTests(unittest.TestCase):
             driver.child['expires_at']=time.time()-1
             with self.assertRaises(ValueError):driver.guard()
             driver.cleanup_mode=True;driver.guard()
+
+    def test_xml_types_are_explicit_and_unknown_or_multiple_gpu_fail_closed(self):
+        raw=b'<nvidia_smi_log><gpu><processes><process_info><pid>12</pid><type>G</type></process_info><process_info><pid>13</pid><type>C+G</type></process_info></processes></gpu></nvidia_smi_log>'
+        self.assertEqual([{'pid':12,'type':'G'},{'pid':13,'type':'C+G'}],gpu_types.process_types(raw))
+        for broken in [raw.replace(b'C+G',b'unknown'),raw.replace(b'<pid>13',b'<pid>12'),b'<nvidia_smi_log><gpu/><gpu/></nvidia_smi_log>']:
+            with self.assertRaises(ValueError):gpu_types.process_types(broken)
 
 
 if __name__=='__main__':unittest.main()
