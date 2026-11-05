@@ -136,3 +136,14 @@ prepare只读仓库和受控历史证据，probe才认领新准入并做已批�
 原请求、旧scope终态、原始失败receipt/terminal hash、完整槽未认领、最终候选后代、冻结scope/预算均须重核。新准入与原完整槽引用新的有限批准，不复活旧grant；准入失败/撤销或完整终态后新批准自动过期。GPU/RAM、命令上界、模型/样本/固定分母和全部完整验收保持原值。
 
 先完成最终候选完整离线门禁，再使用tools.v0_s2_oracle_authorization的prepare-resume和probe-resume；准入成功后使用原tools.v0_s2_stage_checkpoint prepare/execute --slot full-oracle-correction-01。整个scope最长6小时，同一候选新鲜准入不替代正式preflight；无额外native探测、媒体或服务操作。
+
+
+## 1.0.34｜批准的共享GPU预算纠偏
+
+项目负责人批准CHANGE-REQUEST-V1-S2-GPU-ADMISSION-01的proposed_resolution及execution_amendment_requested。当前CPU共享owner为resource_policy.py：同一已绑定模型的观测增量18535MiB+512MiB空闲余量，保守min(free)>=19047且max(used)+18535<23552，逐份遥测合法、设备一致，异步差异和非负保留差额只作诊断。warm不重复要求冷加载预算，运行GPU<23552/RAM>=2048/OOM=0、原取消/清理及外来compute归属不变。
+
+实现核查确认：V0原有实际请求为ctx2048/predict768，历史runner日志也为2048，设计config中的4096不是该次实测值。保持V0既有请求参数不变，仅绑定更窄的已观测2048profile（不宣称4096已校准）。预加载显式使用同一2048/768，避免Ollama默认32768。执行记录和批准决定中保留该事实纠正。
+
+只有resource-admission-policy-correction-01一个新有限准入，复用原三组/60秒/6native+3WSL预算，原full-oracle-correction-01至多认领1次，额外完整运行/复验均0。旧grant和失败均不可改写。新准入通过后完整child仍做全安装字节封存、正式preflight、九项累计、热20次、资源/取消/故障/浏览器与清理。scope最长6小时，准入失败/完整终态/撤销自动过期。
+
+离线全绿后，tools.v0_s2_policy_authorization prepare/probe负责新有限准入；同候选成功后沿用tools.v0_s2_stage_checkpoint prepare/execute --slot full-oracle-correction-01。准确candidate/offline收据写入execution-control，不沿用旧未认领grant，不生成新完整槽。

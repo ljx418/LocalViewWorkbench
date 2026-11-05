@@ -4,6 +4,7 @@ Pure oracles: no browser/provider calls or authorizations. The parent must load
 hash-bound artifacts from the same fresh run. These checks cannot establish
 artifact authenticity, independent decoding or final Stage acceptance alone.
 """
+from LVW_V0_RuntimePatch.custom_nodes.lvw_v0_bridge.resource_policy import valid_baseline
 import hashlib
 import json
 import math
@@ -153,7 +154,7 @@ def analysis_join(*, history, prompt_id, graph, reference, fixture, before, afte
             raise ValueError('native preparation/admission order')
         if source['source_sha256'] != fixture['sha256'] or source['frames'] != frames: raise ValueError('native frame source mismatch')
         baseline = admission['snapshot']['gpu_used_mib']
-        if type(baseline) is not int or not 0 <= baseline <= 4096: raise ValueError('cold baseline invalid')
+        if type(baseline) is not int or not valid_baseline(baseline): raise ValueError('cold baseline invalid')
         previous = None
         for point in resource_samples:
             stamp = number(point['monotonic_seconds'], 'independent sample')

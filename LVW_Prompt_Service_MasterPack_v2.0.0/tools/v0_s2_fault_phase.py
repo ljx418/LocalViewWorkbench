@@ -3,6 +3,7 @@
 Must be the final default-runtime phase. No restart, new lease, CLI or Stage PASS;
 the parent later proves final cleanup and creates a fresh warm runtime.
 """
+from LVW_V0_RuntimePatch.custom_nodes.lvw_v0_bridge.resource_policy import valid_baseline
 import copy
 import hashlib
 import json
@@ -25,7 +26,7 @@ FIELDS={'natural_zh':'模型中断后保留人工稿','natural_en':'Manual draft
 class FaultPhase(CancellationPhase):
     def __init__(self,*args,baseline_gpu_mib,**kwargs):
         super().__init__(*args,**kwargs)
-        if type(baseline_gpu_mib) is not int or not 0<=baseline_gpu_mib<=4096:raise ValueError('cold baseline required')
+        if type(baseline_gpu_mib) is not int or not valid_baseline(baseline_gpu_mib):raise ValueError('cold baseline required')
         self.baseline=baseline_gpu_mib;self.directory=self.root/'temp/fault-phase'
 
     def terminal(self,before,token,prompt_id):

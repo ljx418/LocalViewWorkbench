@@ -3,6 +3,7 @@
 No target actions occur here. The caller must load fresh, hash-bound artifacts
 from one authorized run; these joins do not establish artifact authenticity.
 """
+from LVW_V0_RuntimePatch.custom_nodes.lvw_v0_bridge.resource_policy import valid_baseline
 import hashlib
 import json
 import math
@@ -86,7 +87,7 @@ def hot_record(*,run_id,sample_run_id,candidate_sha,authorization_sha256,kind,bi
                 or last['event']!='request_finished' or last['outcome']!='succeeded'
                 or last['restored_unloaded'] is not True):raise ValueError('warm request not successfully restored')
         release=last['resource_release'];baseline=binding['baseline_gpu_mib']
-        if (type(baseline) is not int or not 0<=baseline<=4096
+        if (type(baseline) is not int or not valid_baseline(baseline)
                 or release['state']!='released' or release['loaded_models']!=0
                 or type(release['checks']) is not int or release['checks']<1
                 or release['baseline_gpu_mib']!=baseline):

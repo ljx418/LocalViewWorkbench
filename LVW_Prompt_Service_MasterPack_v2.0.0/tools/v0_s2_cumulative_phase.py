@@ -4,6 +4,7 @@ Online image/views precede the S2 browser/fault phase. Offline manual/state test
 follow its proven owned Ollama stop. No service startup, old authorization or
 old PASS is reused; no CLI or Stage verdict is provided.
 """
+from LVW_V0_RuntimePatch.custom_nodes.lvw_v0_bridge.resource_policy import valid_baseline
 import copy
 import hashlib
 import importlib.util
@@ -36,7 +37,7 @@ class CumulativePhase:
                 or not re.fullmatch('[A-Za-z0-9][A-Za-z0-9._-]{0,95}', image['reference']) or '..' in image['reference']
                 or not re.fullmatch('[a-f0-9]{64}', image['sha256']) or type(image['bytes']) is not int
                 or not 0 < image['bytes'] <= 20*1024*1024 or type(baseline_gpu_mib) is not int
-                or not 0 <= baseline_gpu_mib <= 4096): raise ValueError('cumulative identity/source invalid')
+                or not valid_baseline(baseline_gpu_mib)): raise ValueError('cumulative identity/source invalid')
         self.driver = driver; self.root = Path(run_root).resolve(strict=True); self.run_id = run_id
         self.binding = copy.deepcopy(binding); self.image = copy.deepcopy(image); self.baseline = baseline_gpu_mib
         self.authorize = authorize; self.directory = self.root/'temp/cumulative-phase'

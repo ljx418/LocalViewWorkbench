@@ -1,4 +1,5 @@
 """Interrupt only this request's literal-loopback HTTP connection."""
+from .resource_policy import valid_baseline
 import http.client
 import hashlib
 import json
@@ -34,7 +35,7 @@ class InterruptibleOllamaTransport(OllamaLoopbackTransport):
         if self._audit is not None:self._audit.event(self._audit_token,event,call_index=self._audit_call,**fields)
 
     def bind_resource_baseline(self,value):
-        if type(value) is not int or not 0<=value<=4096:raise ValueError('invalid cold GPU baseline')
+        if type(value) is not int or not valid_baseline(value):raise ValueError('invalid cold GPU baseline')
         self._gpu_baseline=value
 
     def _control_request(self, method, path, payload, timeout):

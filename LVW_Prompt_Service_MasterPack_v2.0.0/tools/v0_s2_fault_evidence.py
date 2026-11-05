@@ -1,4 +1,5 @@
 """Recompute deliberate owned-provider death; never claim in-process recovery."""
+from LVW_V0_RuntimePatch.custom_nodes.lvw_v0_bridge.resource_policy import valid_baseline
 import re
 from tools.v0_s2_cancel_evidence import number,count
 from tools.v0_s2_checkpoint_oracles import EvidenceError
@@ -11,7 +12,7 @@ def fault_trace(events,*,binding,owner_pid,token,before,after,stop,clocks,resour
     try:
         validate_binding(binding,binding['issued_at'])
         if (type(owner_pid) is not int or owner_pid<=0 or type(baseline_gpu_mib) is not int
-                or not 0<=baseline_gpu_mib<=4096 or not isinstance(events,list) or not 5<=len(events)<=1024):raise ValueError()
+                or not valid_baseline(baseline_gpu_mib) or not isinstance(events,list) or not 5<=len(events)<=1024):raise ValueError()
         previous=None
         allowed={'run_started','source_prepared','gpu_admission_started','gpu_admission_completed','provider_attempt',
             'provider_owner_verified','provider_request_sent','provider_response','provider_connection_closed',

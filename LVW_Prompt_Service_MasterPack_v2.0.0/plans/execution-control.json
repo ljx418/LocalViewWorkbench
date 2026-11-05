@@ -8,15 +8,15 @@
   "coordinate": {
     "stage_id": "V0-S2",
     "workpack_id": "WP-S2-05",
-    "gate": "GPU_ADMISSION_POLICY_CORRECTION_REVIEW",
-    "state": "WAIT_AUTH"
+    "gate": "GATE3_GPU_POLICY_FINAL_OFFLINE_GATE",
+    "state": "FROZEN_READY_OFFLINE"
   },
   "last_passed_gate": {
     "id": "V0_S2_OFFLINE_CHECKPOINT_27_PASSED",
     "evidence": "reports/v0-s2/offline-checkpoint-27/receipt.json",
     "meaning": "Final resource-resume route candidate passed470 tests, all five offline checks and before/after seals. No Stage PASS."
   },
-  "current_blocking_gate": "UNJUSTIFIED_IMPLEMENTATION_GPU_POLICY_CORRECTION_APPROVAL",
+  "current_blocking_gate": "GPU_POLICY_CORRECTION_OFFLINE_IMPLEMENTATION",
   "stage_packet": ".agent-governance/stages/V0-S2/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/V0-S2/PAYLOAD_MANIFEST.sha256",
   "product_status": "IN_PROGRESS",
@@ -29,9 +29,9 @@
     "PRODUCTION_RELEASED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "project_owner",
-  "next_action": "Review concrete shared resource-policy correction: free-memory/model budget instead of fixed4GiB idle ceiling; recorded current readings should admit a monitored attempt. Do not ask for further GPU clearing to4096 or run under expired grants. Approve proposed_resolution and optional bounded execution amendment before changing frozen execution rules.",
-  "required_authorization": "CHANGE-REQUEST-V1-S2-GPU-ADMISSION-01_PROPOSED_RESOLUTION_AND_BOUNDED_EXECUTION_AMENDMENT",
+  "next_owner": "Codex",
+  "next_action": "Seal final approved policy implementation and execute offline-checkpoint-28; if green prepare/probe one policy-correction readiness, then original unclaimed complete slot.",
+  "required_authorization": "NONE_WITHIN_APPROVED_GPU_POLICY_CORRECTION_AND_FINITE_EXECUTION",
   "authorization_request": "reports/v0-s2/change-request-gpu-admission-01.json",
   "authorization_record": "reports/authorization-program-v1-local-01.json",
   "read_only_binding_authorization": "reports/v0-s2/authorization-binding-inventory-06.json",
@@ -109,11 +109,11 @@
   "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
   "live_terminal_receipt": "reports/v0-s2/resource-admission-oracle-resume-01/receipt.json",
   "independent_review": null,
-  "exact_stop_reason": "IMPLEMENTATION_ADMISSION_ASSUMPTION_FALSE_REJECTION_RECOMPUTED_SHARED_POLICY_CORRECTION_PENDING_APPROVAL",
+  "exact_stop_reason": "GPU_POLICY_TARGETED100_PASSED_FINAL_OFFLINE28_PENDING",
   "native_component_authorization": "reports/v0-s2/authorization-native-component-02.json",
   "native_component_terminal_receipt": "reports/v0-s2/native-component-02/receipt.json",
   "local_control_change_decision": "reports/v0-s2/change-decision-video-workbench-01.json",
-  "latest_workpack_receipt": "reports/v0-s2/gpu-policy-reassessment-01/receipt.json",
+  "latest_workpack_receipt": "reports/v0-s2/policy-correction-implementation-01.md",
   "warm_benchmark_blocker": "reports/v0-s2/warm-benchmark-evidence-gap-01.md",
   "warm_profile_implementation": "reports/v0-s2/warm-profile-implementation-progress-01.md",
   "warm_profile_decision": "reports/v0-s2/warm-profile-decision-01.md",
@@ -722,5 +722,6 @@
     "additional_full_rechecks": 0,
     "grant_status": "EXPIRED_NO_GO"
   },
-  "gpu_policy_reassessment": "reports/v0-s2/gpu-policy-reassessment-01/receipt.json"
+  "gpu_policy_reassessment": "reports/v0-s2/gpu-policy-reassessment-01/receipt.json",
+  "policy_correction_authorization": "reports/v0-s2/authorization-s2-policy-correction-01.approval.json"
 }

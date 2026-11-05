@@ -9,6 +9,7 @@ from unittest.mock import patch
 
 from tools import v0_s2_stage_runtime as runtime
 from tools.v0_s2_runtime import NativeRuntime
+from LVW_V0_RuntimePatch.custom_nodes.lvw_v0_bridge.resource_policy import MODEL_TAG,MODEL_DIGEST
 from tools.v0_s2_stage_archive import OwnedArchive
 from tools.v0_s2_checkpoint_oracles import EvidenceError
 
@@ -37,7 +38,7 @@ class FactoryTests(unittest.TestCase):
         self.kwargs = dict(directory=self.directory, run_id='factory-test', candidate_sha='a'*40,
             authorization_sha256='b'*64, paths=paths, tool_sha256={key: hashlib.sha256(path.read_bytes()).hexdigest() for key, path in paths.items()},
             source_identity=identity, samples=samples, fixture_plan=json.loads((runtime.ROOT/'reports/v0-s2/frozen-structural-inputs-02.json').read_text()),
-            model_digest='c'*64, archive=self.archive, authorize=lambda *args: self.events.append(args[0]),
+            model_digest=MODEL_DIGEST, archive=self.archive, authorize=lambda *args: self.events.append(args[0]),
             verify_complete=self.complete, guard_critical=lambda: {'complete_rehash': False,
                 'manifest_sha256': 'd'*64, 'critical_files': [key.upper() for key in runtime.TOOL_KEYS]})
         patcher = patch.object(runtime, 'NativeRuntime', side_effect=self.native); patcher.start(); self.addCleanup(patcher.stop)
@@ -62,7 +63,7 @@ class FactoryTests(unittest.TestCase):
             driver.owned.append(('ollama_wrapper', object(), object())); driver.listener_proofs[11434] = {}
         driver.start_ollama = start_ollama
         driver.no_cloud_remote_gate = lambda: {'ollama_no_cloud': True, 'scope': 'synthetic service only'}
-        driver.verify_model = lambda: {'digest': ('e' if self.failure in ('model', 'cleanup') else 'c')*64}
+        driver.verify_model = lambda: {'model':MODEL_TAG,'digest': 'e'*64 if self.failure in ('model','cleanup') else MODEL_DIGEST}
         def start_comfy(root, log):
             self.events.append('comfy-start'); (root/'user').mkdir(); log.write_text('synthetic Comfy log')
             driver.owned.append(('comfy', object(), object())); driver.listener_proofs[8191] = {}

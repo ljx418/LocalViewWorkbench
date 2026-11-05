@@ -3,6 +3,7 @@
 Construction does not grant authorization. The parent must finish candidate,
 target, sample, port and budget bindings before any method starts a process.
 """
+from LVW_V0_RuntimePatch.custom_nodes.lvw_v0_bridge.resource_policy import valid_baseline,admit,PolicyError
 import hashlib
 import json
 import math
@@ -12,6 +13,7 @@ import subprocess
 import time
 
 from tools.v0_s2_driver import S2SystemDriver,ROOT,base
+from LVW_V0_RuntimePatch.custom_nodes.lvw_v0_bridge import core as bridge_core
 
 
 def read_jsonl(path,*,limit):
@@ -37,6 +39,23 @@ class NativeRuntime(S2SystemDriver):
         self.clock_limit=getattr(args,'max_native_clock_reads',64)
         if type(self.clock_limit) is not int or not 1<=self.clock_limit<=128:
             raise base.StopProbe('NATIVE_CLOCK_BUDGET_INVALID')
+
+    def preflight(self):
+        """Current policy override; historical S1 Harness stays immutable."""
+        binary=self._windows_path(self.args.nvidia_exe)
+        native=self._powershell('& '+base.ps_quote(binary)+' --query-gpu=index,memory.total,memory.used,memory.free --format=csv,noheader,nounits')
+        wsl=base.run_local(['nvidia-smi','--query-gpu=index,memory.total,memory.used,memory.free','--format=csv,noheader,nounits'])
+        if wsl.returncode:raise base.StopProbe('GPU_PREFLIGHT_WSL_FAILED')
+        try:
+            parse=lambda value:[[int(v.strip()) for v in line.split(',')] for line in value.splitlines() if line.strip()]
+            evidence=admit(parse(native),parse(wsl.stdout))
+        except PolicyError as error:raise base.StopProbe(error.reason,evidence={'preflight':error.evidence}) from error
+        except (ValueError,TypeError) as error:raise base.StopProbe('RESOURCE_TELEMETRY_INVALID') from error
+        listeners=json.loads(self._powershell("$x=Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue | Where-Object {$_.LocalPort -in 8191,11434};@($x | Select-Object LocalAddress,LocalPort,OwningProcess) | ConvertTo-Json -Compress") or '[]')
+        if listeners:raise base.StopProbe('PREFLIGHT_TARGET_PORT_OWNED')
+        matches=int(self._powershell("$x=Get-CimInstance Win32_Process | Where-Object {($_.Name -match 'ollama') -or (($_.Name -match 'python') -and ($_.CommandLine -match 'ComfyUI'))}; @($x).Count"))
+        if matches:raise base.StopProbe('PREFLIGHT_TARGET_PROCESS_PRESENT')
+        return {**evidence,'process_match_count':0,'target_listener_count':0}
 
     def _latch_resource_abort(self,error):
         self.resource_abort_latched=True
@@ -97,7 +116,7 @@ class NativeRuntime(S2SystemDriver):
         for value,length in ((candidate_sha,40),(authorization_sha256,64),(model_digest,64),(nvidia_sha256,64)):
             if not isinstance(value,str) or not re.fullmatch('[0-9a-f]{'+str(length)+'}',value):
                 raise base.StopProbe('RUNTIME_WARM_BINDING_INVALID')
-        if type(baseline_gpu_mib) is not int or not 0<=baseline_gpu_mib<=4096:
+        if type(baseline_gpu_mib) is not int or not valid_baseline(baseline_gpu_mib):
             raise base.StopProbe('RUNTIME_COLD_BASELINE_INVALID')
         root=self.owned_listener_birth(11434)
         clock=self.native_clock()
@@ -194,7 +213,7 @@ class NativeRuntime(S2SystemDriver):
         if model!=base.MODEL or self.preloads>=20:raise base.StopProbe('MODEL_PRELOAD_BUDGET_OR_TAG_INVALID')
         self.preloads+=1
         status,value=self._json_request(base.OLLAMA_URL+'/api/generate',
-            payload={'model':model,'stream':False,'keep_alive':300},timeout=120,observer=self.resource_observer)
+            payload={'model':model,'stream':False,'keep_alive':300,'options':{'num_ctx':bridge_core.MAX_NUM_CTX,'num_predict':bridge_core.MAX_NUM_PREDICT}},timeout=120,observer=self.resource_observer)
         if status!=200 or value.get('done') is not True:raise base.StopProbe('MODEL_PRELOAD_FAILED')
         return value
 
@@ -210,7 +229,7 @@ class NativeRuntime(S2SystemDriver):
         if (root['pid'],root['start_ticks'])!=(binding['ollama_pid'],binding['ollama_start_ticks']):
             raise base.StopProbe('PRELOAD_OWNER_CHANGED')
         baseline=binding['baseline_gpu_mib']
-        if type(baseline) is not int or not 0<=baseline<=4096:raise base.StopProbe('PRELOAD_BASELINE_INVALID')
+        if type(baseline) is not int or not valid_baseline(baseline):raise base.StopProbe('PRELOAD_BASELINE_INVALID')
         def remaining(cap):
             left=deadline-time.monotonic()
             if left<=0:raise base.StopProbe('PRELOAD_RELEASE_TIMEOUT')

@@ -3,6 +3,7 @@
 Does not attest browser drafts, final process cleanup or a Stage decision.
 Connection close is deliberately never treated as a GPU-stop witness.
 """
+from LVW_V0_RuntimePatch.custom_nodes.lvw_v0_bridge.resource_policy import valid_baseline
 import hashlib
 import math
 
@@ -106,7 +107,7 @@ def cancellation_trace(events,*,binding,token,owner_pid,kind,ack,before,after,re
         if (not closed['monotonic_seconds']<=start<=unload[0]['monotonic_seconds']<=stop<=finished<=terminal['monotonic_seconds']
                 or not stop<=empty[0]['monotonic_seconds']<=finished
                 or release['state']!='released' or release['loaded_models']!=0 or release['model_inventory_empty_monotonic']!=stop
-                or type(baseline) is not int or not 0<=baseline<=4096 or finished-requested>30
+                or type(baseline) is not int or not valid_baseline(baseline) or finished-requested>30
                 or number(release['elapsed_seconds'])>30 or abs(start+release['elapsed_seconds']-finished)>1e-6
                 or terminal['resource_release']!=release):raise ValueError('physical release origin/deadline mismatch')
         samples=release['gpu_samples']

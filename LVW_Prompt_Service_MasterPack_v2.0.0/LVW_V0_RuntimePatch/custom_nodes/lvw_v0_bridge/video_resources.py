@@ -1,10 +1,13 @@
 """Read-only native Windows resource admission for the V0 video owner."""
 import ctypes
+import http.client
+import json
 import os
 import shutil
 import time
 
-from .core import BridgeError
+from .core import BridgeError, DEFAULT_MODEL, MAX_NUM_CTX
+from .resource_policy import PolicyError, admit, profile
 from .video_process import run_bounded
 
 
@@ -18,7 +21,7 @@ def validate_snapshot(gpu_csv, process_csv, available_ram_mib, *, owner_pid, war
         if len(rows) != 1 or len(rows[0]) != 3:
             raise ValueError()
         total, used, free = rows[0]
-        if min(total, used, free) < 0 or total == 0 or used > total or free > total or abs(total - used - free) > 256:
+        if min(total, used, free) < 0 or total == 0 or used > total or free > total or used + free > total:
             raise ValueError()
         pids = [int(line.strip()) for line in process_csv.splitlines() if line.strip()]
         if (any(pid <= 0 for pid in pids) or type(available_ram_mib) is not int or available_ram_mib < 0
@@ -30,17 +33,15 @@ def validate_snapshot(gpu_csv, process_csv, available_ram_mib, *, owner_pid, war
             raise ValueError()
     except (ValueError, TypeError) as exc:
         raise busy("RESOURCE_TELEMETRY_INVALID") from exc
-    if total < 23 * 1024:
-        raise busy("GPU_CAPACITY_INSUFFICIENT")
-    if (warm and used >= 23552) or (not warm and used > 4096):
-        raise busy("GPU_PREFLIGHT_USED_MEMORY_EXCEEDED")
+    try:policy=admit([[0,total,used,free]],warm=warm)
+    except PolicyError as error:raise busy(error.reason) from error
     if available_ram_mib < 2048:
         raise busy("HOST_RAM_BELOW_LIMIT")
     if any(pid not in {owner_pid, *owned_compute_pids} for pid in pids):
         raise busy("GPU_FOREIGN_COMPUTE_PROCESS")
     return {"gpu_count":1,"gpu_total_mib":total,"gpu_used_mib":used,"gpu_free_mib":free,
             "available_ram_mib":available_ram_mib,"foreign_compute_processes":0,
-            "owner_pid":owner_pid,"compute_pids":pids}
+            "owner_pid":owner_pid,"compute_pids":pids,"resource_policy":policy}
 
 
 def windows_available_ram_mib():
@@ -74,12 +75,39 @@ def gpu_used_mib(deadline):
     return int(rows[0].strip())
 
 
+def verify_model_profile():
+    """One bounded literal-loopback catalog read; no inference or retries."""
+    connection=http.client.HTTPConnection('127.0.0.1',11434,timeout=2)
+    try:
+        deadline=time.monotonic()+2
+        connection.request('GET','/api/tags');sock=connection.sock;response=connection.getresponse()
+        if response.status!=200:raise ValueError('catalog unavailable')
+        raw=bytearray()
+        while True:
+            remaining=deadline-time.monotonic()
+            if remaining<=0:raise TimeoutError('catalog deadline')
+            if sock is not None:sock.settimeout(remaining)
+            part=response.read1(min(8192,1024*1024-len(raw)+1))
+            if not part:break
+            raw.extend(part)
+            if len(raw)>1024*1024:raise ValueError('catalog limit')
+        values=json.loads(raw);models=values.get('models')
+        if not isinstance(models,list):raise ValueError('catalog shape')
+        matched=[m for m in models if isinstance(m,dict) and (m.get('name')==DEFAULT_MODEL or m.get('model')==DEFAULT_MODEL)]
+        if len(matched)!=1:raise ValueError('catalog identity')
+        return profile(model=DEFAULT_MODEL,digest=matched[0].get('digest'),num_ctx=MAX_NUM_CTX)
+    except (OSError,http.client.HTTPException,ValueError,TypeError,RecursionError) as error:
+        raise busy('GPU_MODEL_PROFILE_UNVERIFIED') from error
+    finally:connection.close()
+
+
 def resource_preflight(*, warm=False, owned_pid_checker=None):
     if warm and not callable(owned_pid_checker):
         raise busy('WARM_OWNERSHIP_PROOF_REQUIRED')
     executable = shutil.which("nvidia-smi")
     if not executable:
         raise busy("NVIDIA_SMI_UNAVAILABLE")
+    if not warm:verify_model_profile()
     try:
         gpu = run_bounded([executable,"--query-gpu=memory.total,memory.used,memory.free",
                            "--format=csv,noheader,nounits"], timeout_seconds=5, output_limit=65536)

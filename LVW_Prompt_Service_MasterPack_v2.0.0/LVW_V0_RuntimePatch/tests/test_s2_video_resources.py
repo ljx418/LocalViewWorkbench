@@ -8,13 +8,13 @@ from LVW_V0_RuntimePatch.custom_nodes.lvw_v0_bridge.video_request import VideoRe
 
 
 class ResourceTests(unittest.TestCase):
-    def test_exact_prestart_gpu_and_ram_limits(self):
+    def test_resource_budget_and_ram_limits(self):
         result = validate_snapshot("24564,4096,20468", "42\n", 2048, owner_pid=42)
         self.assertEqual(4096,result["gpu_used_mib"])
         self.assertEqual(0,result["foreign_compute_processes"])
 
-    def test_one_over_gpu_and_one_under_ram_are_busy(self):
-        for gpu,ram in [("24564,4097,20467",2048),("24564,4096,20468",2047)]:
+    def test_projected_peak_boundary_and_one_under_ram_are_busy(self):
+        for gpu,ram in [("24564,5017,19547",2048),("24564,4096,20468",2047)]:
             with self.subTest(gpu=gpu,ram=ram),self.assertRaises(BridgeError) as error:
                 validate_snapshot(gpu,"",ram,owner_pid=42)
             self.assertEqual("RESOURCE_BUSY",error.exception.code)

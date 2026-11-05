@@ -1,0 +1,74 @@
+{
+  "schema_version": "lvw.authorization-approval/1",
+  "authorization_id": "AUTH-V1-S2-GPU-POLICY-CORRECTION-01",
+  "project_id": "lvw-prompt-service",
+  "stage_id": "V0-S2",
+  "granted_by": "project_owner",
+  "statement": "批准继续进行",
+  "approval_context": "Explicit owner response to request to approve proposed_resolution and execution_amendment_requested",
+  "request": "reports/v0-s2/change-request-gpu-admission-01.json",
+  "request_sha256": "5093b44c4a15622471cef068042b113fddfd76167bc308f8402457a56011ecda",
+  "decision": "reports/v0-s2/change-decision-gpu-admission-01.json",
+  "decision_sha256": "e93e6ad438f7ddec3c3db61a9ca1a1a1018f50b718d2a7d1a072bf6f220f1700",
+  "status": "ACTIVE",
+  "execution_amendment": {
+    "approve_only_after_policy_offline_gate": true,
+    "additional_finite_readiness_children": 1,
+    "planned_readiness_run_id": "resource-admission-policy-correction-01",
+    "restore_unclaimed_complete_slot": "full-oracle-correction-01",
+    "maximum_total_claims_for_original_complete_slot": 1,
+    "additional_complete_native_runs": 0,
+    "additional_full_rechecks": 0,
+    "max_total_wall_seconds": 21600,
+    "keep_all_original_native_action_budgets": true,
+    "expire_at_readiness_failure_or_complete_terminal_or_revocation": true,
+    "new_candidate_and_child_bindings_required": true
+  },
+  "prior_failures": [
+    {
+      "run_id": "full-checkpoint-01",
+      "receipt": "reports/v0-s2/full-checkpoint-01/receipt.json",
+      "receipt_sha256": "a4c9e3cbec44d5481c8c0b52cc3b0760e5a1224ed9590021158c96a7466b7a41",
+      "raw_terminal_sha256": "ee01516fcecf796dc3b9541a37e29664f53a88499ae7b292e85e57173990b9b9"
+    },
+    {
+      "run_id": "full-recheck-01",
+      "receipt": "reports/v0-s2/full-recheck-01/receipt.json",
+      "receipt_sha256": "a16f251eed7d5772d4849ae0e780e826a6b8fd8da258621beb2877002ee36d5f",
+      "raw_terminal_sha256": "9a77cbbc343192d28c245a112dcc2a7d6b3715baf158f1b1e076ca21874f91ed"
+    },
+    {
+      "run_id": "full-supplemental-01",
+      "receipt": "reports/v0-s2/full-supplemental-01/receipt.json",
+      "receipt_sha256": "dce978952dc57215b03ae2dc2dd21647cf5bff8e2d1f9234efae24aa13180a64",
+      "raw_terminal_sha256": "a662f54865571452edd00d54c1fd705459576e1a93df8f19a52d5568f54a7b83"
+    },
+    {
+      "run_id": "full-resource-ready-01",
+      "receipt": "reports/v0-s2/full-resource-ready-01/receipt.json",
+      "receipt_sha256": "52931717ca01911909a03affec1c8d6686cea105d89abd39e6a0ba635da32411",
+      "raw_terminal_sha256": "2de43cd77c2fed81cfff9b87047505783d095492e50d1417627055478d456f02"
+    },
+    {
+      "run_id": "resource-admission-oracle-correction-01",
+      "receipt": "reports/v0-s2/resource-admission-oracle-correction-01/receipt.json",
+      "receipt_sha256": "8fe1b0d20091aa963cbcb02361baae5ef733ebfa8cb76798399c5009a23b4453",
+      "raw_terminal_sha256": "f644164f20b33e6c17126ce11bbc31a8098656b7ad7b079b5b01688e0570ce6a"
+    },
+    {
+      "run_id": "resource-admission-oracle-resume-01",
+      "receipt": "reports/v0-s2/resource-admission-oracle-resume-01/receipt.json",
+      "receipt_sha256": "4e55648d5e37549902cec55b03d68d2e87e02042ccccdd686966d470d99b9ef4",
+      "raw_terminal_sha256": "871d915738fe03982739875d53b14b5c0bd09766b97d7efcfba3dd03b86431fd"
+    }
+  ],
+  "prior_expired_grants": {
+    "reports/v0-s2/authorization-s2-oracle-correction-01.approval.json": "528bdbd8fd6590d954336f23d5994ed2f62a809fea3c6e53a6e663cbc0a7d365",
+    "reports/v0-s2/authorization-s2-resource-resume-01.approval.json": "6bc77e9f0f0f9df1dd062aa14d4f53a49e0a05984a8e7d3a7745c8639d2f5890"
+  },
+  "baseline_commit": "8e7e06df0f84a7db1d52cb922b25184a03b28fa2",
+  "stage_pass_claim": false,
+  "runtime_lease_issued": false,
+  "issued_at": 1793861657.4413834,
+  "expires_at": 1793883257.4413834
+}

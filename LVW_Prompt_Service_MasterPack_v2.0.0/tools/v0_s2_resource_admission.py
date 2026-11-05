@@ -113,30 +113,23 @@ def prepare(candidate,offline,*,profile=None):
     auth={'schema_version':'lvw.resource-admission-child/1','status':'ACTIVE_ONE_SHOT','run_id':READY,
         'candidate_sha':candidate,'harness_sha256':cp.file_hash(cp.ROOT/HARNESS),'payload_sha256':identity['payload_sha256'],
         'offline_receipt':offline,'offline_receipt_sha256':cp.file_hash(cp.ROOT/offline),'program_sha256':cp.program_authority(),
-        'supplemental_authorization':refs,'tools':tools,'scope':request[scope_key],
+        'supplemental_authorization':refs,'tools':tools,'scope':(policy.readiness_scope() if callable(getattr(policy,'readiness_scope',None)) else request[scope_key]),
         'issued_at':now,'expires_at':min(now+900,refs['expires_at']),'execution_max_seconds':60,'stage_pass_claim':False}
     cp.write_new(path,auth);return auth
 
 
 def oracle(native,wsl):
-    """Exact frozen admission limits, no provider/quality claim."""
-    if not isinstance(native,dict) or not isinstance(wsl,list):raise EvidenceError('RESOURCE_NOT_READY: malformed metrics')
-    rows=native.get('gpus');other=wsl
+    """Shared approved resource budget; differing read times are diagnostic."""
+    from LVW_V0_RuntimePatch.custom_nodes.lvw_v0_bridge.resource_policy import admit,PolicyError
+    if (not isinstance(native,dict) or type(native.get('ram_available_mib')) is not int
+            or native['ram_available_mib']<2048 or type(native.get('target_listener_count')) is not int
+            or native['target_listener_count']!=0 or type(native.get('target_process_count')) is not int
+            or native['target_process_count']!=0):raise EvidenceError('RESOURCE_NOT_READY: RAM, ports, processes')
+    rows=native.get('gpus')
     if isinstance(rows,dict):rows=[rows]
-    if (not isinstance(rows,list) or not rows or len(rows)>8 or len(rows)!=len(other)
-            or type(native.get('ram_available_mib')) is not int or native['ram_available_mib']<2048
-            or type(native.get('target_listener_count')) is not int or native['target_listener_count']!=0
-            or type(native.get('target_process_count')) is not int or native['target_process_count']!=0):
-        raise EvidenceError('RESOURCE_NOT_READY: RAM, ports, processes or GPU count')
-    for a,b in zip(rows,other):
-        if (not isinstance(a,list) or not isinstance(b,list) or len(a)!=4 or len(b)!=4
-                or any(type(x) is not int or x<0 for x in a+b) or a[:2]!=b[:2]
-                or a[1]<=0 or max(a[2:])>a[1] or max(b[2:])>b[1]
-                or max(abs(a[2]-b[2]),abs(a[3]-b[3]))>128):
-            raise EvidenceError('RESOURCE_NOT_READY: native/WSL GPU disagreement')
-        if max(a[2],b[2])>4096:raise EvidenceError('GPU_PREFLIGHT_USED_MEMORY_EXCEEDED')
-    return {'max_used_mib':max(max(a[2],b[2]) for a,b in zip(rows,other)),
-        'ram_available_mib':native['ram_available_mib'],'target_listener_count':0,'target_process_count':0}
+    try:evidence=admit(rows,wsl)
+    except PolicyError as error:raise EvidenceError(error.reason) from error
+    return {**evidence,'ram_available_mib':native['ram_available_mib'],'target_listener_count':0,'target_process_count':0}
 
 
 def probe(*,profile=None):
@@ -149,7 +142,7 @@ def probe(*,profile=None):
     path=cp.ROOT/('reports/v0-s2/authorization-'+READY+'.json');raw=path.read_bytes();auth=json.loads(raw)
     refs=authority(auth['candidate_sha'],require_ready=False)
     if (auth.get('schema_version')!='lvw.resource-admission-child/1' or auth.get('status')!='ACTIVE_ONE_SHOT'
-            or auth.get('run_id')!=READY or auth.get('stage_pass_claim') is not False or auth['scope']!=cp.repository_json(REQUEST)[scope_key]
+            or auth.get('run_id')!=READY or auth.get('stage_pass_claim') is not False or auth['scope']!=(policy.readiness_scope() if callable(getattr(policy,'readiness_scope',None)) else cp.repository_json(REQUEST)[scope_key])
             or auth['tools']!=expected_tools(cp) or auth['supplemental_authorization']!=refs
             or auth.get('execution_max_seconds')!=60 or not 0<auth['expires_at']-auth['issued_at']<=900 or auth['harness_sha256']!=cp.file_hash(cp.ROOT/HARNESS)
             or auth['program_sha256']!=cp.program_authority() or cp.file_hash(cp.ROOT/auth['offline_receipt'])!=auth['offline_receipt_sha256']

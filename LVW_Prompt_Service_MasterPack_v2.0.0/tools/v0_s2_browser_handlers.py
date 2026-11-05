@@ -5,6 +5,7 @@ NativeRuntime, frozen native profile, original worker identity and parent-bound
 authorization/tool/user-root preflight. Synthetic approvals are never supplied
 by this module; caller-owned offline phases must return their actual receipts.
 """
+from LVW_V0_RuntimePatch.custom_nodes.lvw_v0_bridge.resource_policy import valid_baseline
 import copy
 import hashlib
 import json
@@ -36,7 +37,7 @@ def default_offline_runner(driver, run_root, *, run_id, binding, fixture, refere
     resources and phase budgets; no restart or inference retry is introduced.
     """
     validate_binding(binding, binding['issued_at'])
-    if (type(baseline_gpu_mib) is not int or not 0 <= baseline_gpu_mib <= 4096
+    if (type(baseline_gpu_mib) is not int or not valid_baseline(baseline_gpu_mib)
             or not re.fullmatch('[a-f0-9]{64}', nvidia_sha256) or not callable(authorize)
             or not isinstance(nvidia_exe, (str, Path)) or not str(nvidia_exe)):
         raise ValueError('INVALID_OFFLINE_RESOURCE_BINDINGS')

@@ -2,7 +2,7 @@
   "schema_version": "lvw.stage-control/1",
   "project_id": "lvw-prompt-service",
   "stage_id": "V0-S2",
-  "stage_packet_version": "1.0.33",
+  "stage_packet_version": "1.0.34",
   "packet_status": "FROZEN",
   "gate_version": "lvw-gate/1",
   "baseline": {
@@ -54,7 +54,8 @@
     "reports/v0-s2/cumulative-stage-sequence-decision-01.md",
     "reports/v0-s2/bound-runtime-archive-decision-01.md",
     "reports/v0-s2/full-parent-executor-decision-01.md",
-    "reports/v0-s2/lossless-native-identity-decision-01.md"
+    "reports/v0-s2/lossless-native-identity-decision-01.md",
+    "reports/v0-s2/change-decision-gpu-admission-01.json"
   ],
   "roles": {
     "gate_owner": "codex_gate_owner",
@@ -444,5 +445,30 @@
     "max_complete_claims": 1,
     "max_extra_complete_runs": 0,
     "max_rechecks": 0
+  },
+  "policy_correction_authorization": {
+    "approval": "reports/v0-s2/authorization-s2-policy-correction-01.approval.json",
+    "request": "reports/v0-s2/change-request-gpu-admission-01.json",
+    "slot": "full-oracle-correction-01",
+    "readiness_slot": "resource-admission-policy-correction-01",
+    "max_new_readiness": 1,
+    "max_complete_claims": 1,
+    "max_extra_complete_runs": 0,
+    "max_rechecks": 0
+  },
+  "gpu_admission_policy": {
+    "version": "lvw.gpu-admission/2",
+    "model": "gemma4:26b",
+    "model_digest": "5571076f3d70050487b26b341705799e0ab29b808164f90d20d4cf84f699d251",
+    "num_ctx": 2048,
+    "num_predict": 768,
+    "max_parallel": 1,
+    "image_long_edge": 1024,
+    "video_frame_long_edge": 768,
+    "observed_increment_mib": 18535,
+    "minimum_free_reserve_mib": 512,
+    "required_free_mib": 19047,
+    "hard_peak_mib_exclusive": 23552,
+    "calibration": "observed_single_image_monitored_trial"
   }
 }

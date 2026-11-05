@@ -1,4 +1,5 @@
 """Bounded, owned, temporary warm measurements; ordinary launches stay cold."""
+from .resource_policy import valid_baseline
 from contextlib import contextmanager
 import hashlib
 import json
@@ -27,7 +28,7 @@ def validate_binding(binding, now):
             raise refused('BENCHMARK_BINDING_INVALID')
     if (binding.get('program_authorization_id')!='AUTH-PROGRAM-V1-LOCAL-01'
             or binding.get('scope')!='V0_S2_WARM_BENCHMARK'
-            or type(binding.get('baseline_gpu_mib')) is not int or not 0<=binding['baseline_gpu_mib']<=4096
+            or type(binding.get('baseline_gpu_mib')) is not int or not valid_baseline(binding['baseline_gpu_mib'])
             or type(binding.get('max_requests')) is not int or binding['max_requests']!=20
             or any(type(binding.get(key)) is not int or binding[key]<=0 for key in ('ollama_pid','ollama_start_ticks'))):
         raise refused('BENCHMARK_BINDING_INVALID')

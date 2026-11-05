@@ -16,6 +16,7 @@ from types import SimpleNamespace
 
 from tools.v0_s2_driver import ROOT, base
 from tools.v0_s2_runtime import NativeRuntime
+from LVW_V0_RuntimePatch.custom_nodes.lvw_v0_bridge.resource_policy import profile
 from tools.v0_s2_execution_bindings import plain, stamp, hashed_file
 from tools.v0_s2_public_phase import NEGATIVES, PATH_REFERENCES, encoded
 from tools.v0_s2_stage_sequence import DefaultContext, WarmContext
@@ -162,7 +163,7 @@ class StageRuntimeFactory:
             for name in ('input', 'output', 'temp', 'custom_nodes'): (root/name).mkdir()
             args = SimpleNamespace(run_id=self.run_id, max_public_submissions=20 if warm else 45,
                 max_loopback_requests=8192, max_native_clock_reads=128, warm_benchmark=warm, native_audit=not warm,
-                ffprobe_exe=None, **{key: str(self.paths[key]) for key in ('powershell', 'comfy_main', 'comfy_python', 'ollama_exe', 'ffmpeg_exe')})
+                ffprobe_exe=None, nvidia_exe=str(self.paths['nvidia_exe']), **{key: str(self.paths[key]) for key in ('powershell', 'comfy_main', 'comfy_python', 'ollama_exe', 'ffmpeg_exe')})
             driver = NativeRuntime(args, evidence); context.driver = driver
             self._deploy(root)
             staged = {}
@@ -178,6 +179,7 @@ class StageRuntimeFactory:
             evidence['no_cloud_gate'] = driver.no_cloud_remote_gate()
             evidence['model'] = driver.verify_model()
             if evidence['model']['digest'] != self.model: raise EvidenceError('factory actual model digest changed')
+            evidence['resource_profile']=profile(model=evidence['model']['model'],digest=evidence['model']['digest'])
             parameters = dict(candidate_sha=self.candidate, authorization_sha256=self.auth, model_digest=self.model)
             if warm:
                 binding = driver.write_warm_binding(root, **parameters, nvidia_sha256=self.digests['nvidia_exe'], baseline_gpu_mib=baseline)
