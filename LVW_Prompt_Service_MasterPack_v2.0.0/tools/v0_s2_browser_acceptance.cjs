@@ -5,6 +5,7 @@ const path = require('node:path');
 const os = require('node:os');
 const readline = require('node:readline');
 const crypto = require('node:crypto');
+const { waitForHost } = require('./v0_s2_browser_readiness.cjs');
 const { ORIGIN, BUDGET, ACTIONS, validateConfig, classify, apiPath, Counter, replyFor, digest } = require('./v0_s2_browser_policy.cjs');
 const FIELDS = Object.freeze({ natural_zh: '浏览器人工稿：保留蓝色陶瓷杯', natural_en: 'Human draft: blue ceramic cup',
   image_prompt: 'a blue ceramic cup', video_prompt: 'static camera, ceramic cup', tags: '人工,local', negative: 'blur', edit_instruction: '保留构图' });
@@ -207,13 +208,11 @@ async function run(config, parent, dependencies = {}) {
       } catch (error) { fatal = error; faults.push({ code: error.message }); await route.abort('blockedbyclient').catch(() => {}); }
     });
     page = await context.newPage(); page.setDefaultTimeout(15000);
-    page.on('pageerror', error => { faults.push({ code: 'PAGE_ERROR', message: error.message }); fatal = error; });
+    page.on('pageerror', error => { faults.push({ code: 'PAGE_ERROR', message: error.message, stack: error.stack, wall_ms: Date.now() }); fatal = error; });
     await page.goto(ORIGIN, { waitUntil: 'domcontentloaded', timeout: 60000 });
-    // The inspected installed scripts/app.js is a window.comfyAPI shim; DOM
-    // readiness alone does not mean its asynchronous app/graph boot completed.
-    await page.waitForFunction(() => typeof window.comfyAPI?.app?.app?.loadGraphData === 'function'
-      && window.comfyAPI.app.app.graph && window.comfyAPI.app.app.canvas && window.comfyAPI?.api?.api,
-      null, { timeout: 60000 });
+    // The legacy canvas becomes visible before GraphView has assigned the
+    // Pinia canvas store and finished its initial workflow. Wait for both.
+    await waitForHost(page);
     await page.evaluate(async graph => { const { app } = await import('/scripts/app.js'); await app.loadGraphData(graph); }, JSON.parse(fs.readFileSync(workflowPath, 'utf8')));
     const field = name => page.locator(`[data-lvw-field="${name}"]`), button = label => page.getByRole('button', { name: label, exact: true });
     const readFields = async () => Object.fromEntries(await Promise.all(Object.keys(FIELDS).map(async k => [k, await field(k).inputValue()])));

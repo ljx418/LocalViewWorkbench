@@ -55,7 +55,8 @@ cp.spawn=function(command,args,options){
  page=await context.newPage();
  page.on('pageerror',e=>{if(result.errors.length<16)result.errors.push({phase,time:Date.now(),message:e.message,stack:e.stack});save();});
  await page.goto('http://127.0.0.1:8191',{waitUntil:'domcontentloaded',timeout:30000});
- await page.waitForFunction(()=>window.comfyAPI?.app?.app?.graph&&window.comfyAPI.app.app.canvas,null,{timeout:30000});
+ if(config.readiness)await require(config.readiness).waitForHost(page);
+ else await page.waitForFunction(()=>window.comfyAPI?.app?.app?.graph&&window.comfyAPI.app.app.canvas,null,{timeout:30000});
  const observe=async name=>{result.phases.push({name,...await page.evaluate(()=>({
   nodes:window.comfyAPI.app.app.graph._nodes?.length,canvas_id:window.comfyAPI.app.app.canvas?.canvas?.id,
   host_setup_complete:window.app===window.comfyAPI.app.app,configuring:window.comfyAPI.app.app.configuringGraph,
@@ -81,7 +82,7 @@ cp.spawn=function(command,args,options){
 
 
 def run(candidate,run_id):
-    if run_id not in {'manual-page-diagnostic-01','manual-page-diagnostic-02'}:raise ValueError('finite diagnostic ID required')
+    if run_id not in {'manual-page-diagnostic-01','manual-page-diagnostic-02','manual-page-diagnostic-03'}:raise ValueError('finite diagnostic ID required')
     parent=cp.repository_json(auth.PROGRAM);auth.validate(parent,'V0-S2')
     identity=seal_candidate(cp.ROOT,candidate,['tools','LVW_V0_RuntimePatch',auth.PROGRAM,'reports/v0-s1/wp-s1-03-phase-a/live_probe.py'])
     old=cp.STATE_ROOT/'full-v0-auto-03/terminal.json';receipt=cp.repository_json('reports/v0-s2/full-v0-auto-03/receipt.json')
@@ -119,6 +120,7 @@ def run(candidate,run_id):
         bind={'run_id':run_id,'candidate_sha':candidate,'authorization_sha256':authorization_sha}
         temporary,lease=scratch.create(bind,root/'temp')
         config={'browser':tools['browser_executable']['path'],'playwright':tools['playwright_module']['path'],
+            'readiness':str(cp.ROOT/'tools/v0_s2_browser_readiness.cjs') if run_id=='manual-page-diagnostic-03' else None,
             'graph':cp.repository_json('LVW_V0_RuntimePatch/workflows/video_reverse_prompt_v0.ui.json'),
             'output':str(root/'temp/page-result.json'),'export':str(root/'temp/manual-export.json'),'screenshot':str(root/'temp/page.png')}
         cfg=root/'temp/page-config.json';cp.write_new(cfg,config)

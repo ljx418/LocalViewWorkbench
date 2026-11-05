@@ -8,6 +8,11 @@ ROOT=Path(__file__).resolve().parents[2]
 
 
 class BrowserWorkerTests(unittest.TestCase):
+    def test_native_host_readiness_rejects_early_or_pending_graph_setup(self):
+        result=subprocess.run(['node','tools/v0_s2_browser_readiness_test.cjs'],cwd=ROOT,capture_output=True,timeout=30)
+        self.assertEqual(0,result.returncode,result.stderr.decode('utf-8','replace'))
+        self.assertIn(b'Native host readiness boundaries passed',result.stdout)
+
     def test_real_policy_and_stdio_protocol_refuse_bad_authority_without_browser(self):
         result=subprocess.run(['node','tools/v0_s2_browser_policy_test.cjs'],cwd=ROOT,capture_output=True,timeout=30)
         self.assertEqual(0,result.returncode,result.stderr.decode('utf-8','replace'))
