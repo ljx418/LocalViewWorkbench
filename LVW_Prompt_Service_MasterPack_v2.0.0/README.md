@@ -1,6 +1,6 @@
 # LVW Prompt Service｜V0–V3 全阶段统一开发基线
 
-**文档包 v2.0.0 · 2026-10-28 · V0-Min 已验收未发布，下一交付目标为 V1-R1a 简易前端切片。**
+**文档包 v2.0.0 · 执行计划修订 2026-11-05 · V0-Min 与 R1a 单图切片已签署；完整 V1 尚未完成。**
 
 [打开 HTML 总览](START_HERE.html) · [交互原型](prototype/index.html) · [完整规范](FULL_SPEC.md) · [Codex 启动](CODEX_START.md) · [需求追踪](plans/requirements.json)。
 
@@ -8,7 +8,9 @@
 
 产品规格仍由本README、`docs/`、`contracts/`和`plans/`定义；[Agent Governance](.agent-governance/README.md)在其上增加角色隔离、Stage Packet、Workpack、候选/证据绑定、预算等待和反假绿门禁。唯一当前坐标为[execution-control.json](plans/execution-control.json)。
 
-当前是`V0-Min / V0-S1 / WP-S1-04 / GATE5_INDEPENDENT_EXIT / PASS`：项目负责人已对候选`1d48142...`完成人工体验签署，五项固定分母正式绑定为 PASS，当前结论为`V0_MIN_ACCEPTED_NOT_RELEASED`。checkpoint-01 原始`NO_GO`仍保留；最终隐私纠偏候选`6fcd114...`及独立复审 Fatal 0 / Major 0 / Minor 0 共同闭合证据问题。本结论不批准 V0.1、V0.2、旧 V0 或生产发布。
+当前 Stage、门限、暂停原因和子阶段完成度只读取 [execution-control.json](plans/execution-control.json)，不在 README 保存第二份坐标。完整开发大纲、V0 十二项覆盖与下一个人工门限见 [执行总纲](docs/24_EXECUTION_MASTER_PLAN.md)；提速/门限调整见 [待批准提案](docs/25_PLAN_OPTIMIZATION_PROPOSAL.md)。
+
+历史签署：V0-Min 候选 `1d48142…` 与 R1a 单图切片 `df4943ce…` 已获人工验收。它们不批准 V0.1、V0.2、完整 V1 或生产发布；S0 和后续失败记录不因此改写。
 
 项目负责人已批准[目标收缩决策](docs/22_V0_MIN_REBASELINE.md)：当前只交付单图反推、独立人工稿、四输出和复制/JSON/TXT 的 V0-Min；视频移至 V0.1，安装回滚与完整质量移至 V0.2。原十二项 V0 门槛作为 V0.2 兼容别名保留。
 

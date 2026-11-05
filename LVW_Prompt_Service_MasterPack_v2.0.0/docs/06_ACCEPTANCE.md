@@ -38,3 +38,9 @@ V2切镜算法独立评估：至少20个人工标注切点+连续镜头，±2源
 ## 发布结论
 
 Vn_ACCEPTED要求该版本全部必选及累计回归PASS。V0-Min 不要求视频质量集；它只证明最简单图与人工闭环。V0.1/V0.2 才分别承担视频和完整发布质量。缺独立质量最多ENGINEERING_READY/QUALITY_PENDING；缺对端V3_INTEGRATION_BLOCKED。NOT_RUN/FAIL/BLOCKED/PASS_CANDIDATE_FOR_REVIEW不能当PASS；诊断性optional用例须在执行前声明而非失败后改为可选。
+
+## 执行覆盖与变更边界
+
+V0 全部十二项的生产 owner、Oracle、负例和清理映射见 [24｜执行总纲](24_EXECUTION_MASTER_PLAN.md)。最新运行进度与历史签署分别读取 execution-control 与原收据；本文件的“初始 NOT_RUN”不覆盖真实签署。
+
+[25｜提速提案](25_PLAN_OPTIMIZATION_PROPOSAL.md)中的轮数/校验策略尚未批准，现行门限保持不变。对A09方法的任何后移必须新版本化、明确披露S2与S3的证据分工，不能三次冒充十次P95，也不能改写历史NO_GO。

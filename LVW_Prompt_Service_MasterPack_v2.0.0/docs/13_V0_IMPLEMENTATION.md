@@ -1,6 +1,6 @@
 # 13｜V0实现方案：最简图片／视频反推
 
-> 2026-10-28 范围重设：当前出门目标为 **V0-Min（单图＋独立人工闭环）**。本章视频部分保留为 V0.1，安装、迁移、完整质量和增量包归入 V0.2；详见 `docs/22_V0_MIN_REBASELINE.md`。后续范围不得反向阻塞 V0-Min。
+> 历史范围沿用 docs/22：V0-Min 单图/人工，V0.1 视频/资源，V0.2 离线/回滚/完整质量。2026-11-05 的全量执行清单与十二项追踪见 [24｜执行总纲](24_EXECUTION_MASTER_PLAN.md)；当前阶段、完成度及暂停原因只读 execution-control，不从本章历史标题推断。
 
 本章只定义V0；不削减后续V1–V3。真实工作流由目标机生成。
 
@@ -97,7 +97,7 @@ ComfyUI 负责上传、工作流可视化、已有任务执行；Prompt Assistan
 
 ## 6. 后续架构
 
-V1改为独立React/FastAPI/Ollama，不依赖Comfy进程；迁移templates/schema/测试集和纯函数，不迁移Comfy节点状态成为HTTP业务模型。V2才持久任务/资产，V3才跨项目执行。详见本包 docs/14_V1_IMPLEMENTATION.md。
+V1改为独立React/FastAPI/Ollama，不依赖Comfy进程；迁移templates/schema/测试集和纯函数，不迁移Comfy节点状态成为HTTP业务模型。V1已有最小SQLite修订/任务记录，V2再扩展批量恢复和资产，V3才跨项目执行。详见本包 docs/14_V1_IMPLEMENTATION.md。
 
 
 
@@ -133,7 +133,7 @@ V1改为独立React/FastAPI/Ollama，不依赖Comfy进程；迁移templates/sche
 
 最终产物：版本锁/节点依赖表、模型引用而非权重副本、实际工作流、必要扩展与静态JS、templates、diagnose/install/rollback、README_V0、tests及实际验收证据。工具和依赖只在构建准备时安装，正式运行不联网拉包。
 
-## 交付目录（实施后生成，不是本设计包中已实现）
+## 目标交付目录（逐项状态见总纲，目录存在不代表已验收）
 
 ```text
 LVW_V0_RuntimePatch/

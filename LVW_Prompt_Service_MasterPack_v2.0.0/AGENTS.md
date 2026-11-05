@@ -1,6 +1,6 @@
 # Codex/Claude Code 实施约束
 
-0. 开工前先读`.agent-governance/README.md`与`plans/execution-control.json`。产品权威仍是README、docs/00、contracts、plans；治理层只约束角色、Stage/Workpack、候选、证据、预算和门禁，不得反向改写产品合同。
+0. 开工前先读`.agent-governance/README.md`、`plans/execution-control.json`与执行索引`docs/24_EXECUTION_MASTER_PLAN.md`。产品权威仍是README、docs/00、contracts、plans；治理层只约束角色、Stage/Workpack、候选、证据、预算和门禁，不得反向改写产品合同。
 1. 当前权威：本包README、docs/00、contracts、plans。legacy是历史，不执行其冲突开工指令。计划覆盖V0–V3；目标版本、下一交付与当前 Stage 只读取 `plans/execution-control.json`，不在本文件重复保存坐标。按 docs/23 批准顺序实施，逐版满足正式出门门禁。
 2. 先只读盘点、git状态和备份；用户给出的Windows/4090/Gemma4情况是待核实线索。不默认升级ComfyUI、PyTorch、CUDA或复制权重。
 3. V0用已装ComfyUI/Prompt Assistant/Ollama。必要新增仅一个薄扩展；节点/API从实际注册表读取，不编造class_type或把设计JSON冒充可运行图。
@@ -17,3 +17,4 @@
 14. 任何真实盘点、模型/媒体探测或可见浏览器动作都以`plans/execution-control.json`和当前Stage的有限授权记录为准；不得从旧聊天或历史授权推断新预算。无匹配记录时进入WAIT_AUTH。
 15. 当前路线决策见`docs/23_V1_EARLY_FRONTEND_SEQUENCE.md`：`R0/R1a`先于V0-S2/S3实施；R1a不是新版本、不得使用临时HTML或浏览器直连Ollama，也不得缩小V0.1/V0.2/V1固定分母。
 16. 项目负责人于2026-11-03明确要求：每个Stage完成开发并通过人工验收后，立即提交阶段代码、脱敏证据及签署记录，并推送到已配置的Git远端/跟踪分支。此授权取代旧授权中的远程推送禁令；不包含强制推送、覆盖远端历史、生产发布或放宽验收。推送失败需如实报告并保留本地提交，不得声称已上传。
+17. 项目负责人于2026-11-05要求：每次停止/最终回复都列完整V0–V3开发大纲，标记各子阶段已完成/总数及当前Stage；进度来自唯一 `plans/execution-control.json` 的 `development_outline` 和真实收据，不用主观工时百分比。保留既有十字段报告，区分实现、机器验收、独审、人工签署。执行索引见 `docs/24_EXECUTION_MASTER_PLAN.md`；`docs/25_PLAN_OPTIMIZATION_PROPOSAL.md` 的流程/门限调整须用户明确批准后才实施。
