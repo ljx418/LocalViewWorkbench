@@ -1,0 +1,100 @@
+{
+  "schema_version": "lvw.diagnostic-authorization-request/1",
+  "request_id": "AUTH-REQUEST-V1-S2-COMPUTE-OWNER-DIAG-01",
+  "status": "PENDING_PROJECT_OWNER_APPROVAL",
+  "is_authorization": false,
+  "does_not_authorize_execution": true,
+  "does_not_authorize_stage_pass": true,
+  "project_id": "lvw-prompt-service",
+  "stage_id": "V0-S2",
+  "workpack_id": "WP-S2-05",
+  "reason": "Determine actual identity of compute PIDs before another full attempt. Previous full run stopped at GPU_FOREIGN_COMPUTE_PROCESS but did not preserve rejected PIDs; no inference, media, browser or complete checkpoint authorized by this request.",
+  "implementation_baseline": "29aada9071f724aa355a2bcbc17e13b2142f426d",
+  "failed_run": {
+    "receipt": "reports/v0-s2/full-profile-lifecycle-correction-01/receipt.json",
+    "receipt_sha256": "26ff1e0a05a888878840b98ed972368a699aa420ea9cfdc886930ef0494190a2",
+    "raw_terminal_sha256": "83151bdec218d38a97306ac9d31511f9d16c5ee5ae42a48f8d9d99e3556c8008",
+    "closed_lease_required": true
+  },
+  "failure_recomputation": {
+    "receipt": "reports/v0-s2/compute-owner-diagnosis-01/receipt.json",
+    "sha256": "4af07f436364436e69655bee3ecdc6fb067dd07064f601961a41d3e139097806"
+  },
+  "planned_run_id": "compute-owner-diagnostic-01",
+  "max_attempts": 1,
+  "max_retries": 0,
+  "max_seconds": 1800,
+  "budget": {
+    "read_only_gpu_compute_sample_groups": 2,
+    "native_nvidia_invocations_max": 12,
+    "wsl_nvidia_invocations_max": 4,
+    "powershell_metadata_and_owned_lifecycle_commands_max": 128,
+    "compute_pids_per_group_max": 64,
+    "process_ancestry_depth_max": 8,
+    "process_metadata_rows_per_group_max": 512,
+    "output_bytes_per_command_max": 262144,
+    "installed_full_snapshots_max": 2,
+    "installed_files_per_snapshot_max": 100000,
+    "installed_bytes_per_snapshot_max": 34359738368,
+    "ollama_starts": 1,
+    "comfy_starts": 1,
+    "public_submissions": 0,
+    "provider_calls": 0,
+    "model_preloads": 0,
+    "media_reads": 0,
+    "ffmpeg_calls": 0,
+    "browser_starts": 0,
+    "complete_stage_checkpoints": 0,
+    "full_rechecks": 0,
+    "cloud_calls": 0,
+    "paid_calls": 0,
+    "downloads": 0
+  },
+  "bindings_required_before_first_native_action": [
+    "Project-owner approval, exact request hash, final committed diagnostic Harness and candidate SHA, no changes to product behavior/contracts/resource policy/fixed denominator.",
+    "Pinned installed tools and same selected model metadata/seeds as terminal native evidence; source and installed byte checks within stated limits.",
+    "One fresh isolated root, ports8191/11434, original process births, finite command/time ledger, raw/private and redacted public evidence roots, cleanup and terminal expiry."
+  ],
+  "actions_in_order": [
+    "Repository-only implement/review/test finite diagnostic adapter; no product policy edits.",
+    "Capture one before-services read-only native GPU total/used/free + compute PID group and WSL counterpart; metadata only for observed PIDs and bounded ancestry.",
+    "If host/ports/current-process ownership checks permit, start exactly one owned loopback/no-cloud Ollama and one owned isolated Comfy with source-sealed plugin, fresh user/temp/config dirs, no input media. Read registry and model metadata only.",
+    "Capture one after-services GPU/compute group; prove owned listener/wrapper births, query observed process PID/name/parent/birth/executable identity and compare exact roots/ancestry. Do not terminate, unload or reconfigure an unowned process.",
+    "Pure-CPU rerun existing validate_snapshot with observed Comfy owner PID and raw recorded telemetry, retaining original internal error and rejected set. This diagnoses policy, never changes allowlist.",
+    "Save original command argv/stdout/stderr/exits/hashes, exact timestamps, raw GPU/compute and process birth records, owned-vs-unresolved classification; public report redacts unrelated executable paths/PIDs as stable aliases.",
+    "Stop only original owned services/workers, prove listeners/wrappers/HTTP children absent, archive and remove only original registered root; preserve uncertain roots. Close lease and expire approval."
+  ],
+  "loopback_endpoints_only": [
+    "http://127.0.0.1:8191",
+    "http://127.0.0.1:11434"
+  ],
+  "allowed_http_reads": [
+    "GET /object_info",
+    "GET /api/version",
+    "GET /api/tags",
+    "GET /api/ps"
+  ],
+  "forbidden": [
+    "POST /prompt",
+    "POST /api/chat",
+    "POST /api/generate",
+    "model inference or preload",
+    "media access",
+    "browser automation",
+    "private media/Cookies/profiles",
+    "non-loopback/cloud/paid/downloads",
+    "permanent configuration",
+    "foreign process termination or modification",
+    "adding an observed PID to product allowlists",
+    "lowering resource/ownership/acceptance thresholds",
+    "claiming Stage PASS or human signoff",
+    "remote push/release",
+    "automatic full checkpoint after diagnosis"
+  ],
+  "fail_closed": "Busy/unknown ownership or unavailable telemetry is recorded without taking over resources. Failure consumes this one diagnostic attempt; cleanup remains reserved for proven original owned lineages. No repeated probing.",
+  "expires_at": "first diagnostic terminal, failure, revocation, budget/time exhaustion; no implicit full run authorization",
+  "not_ready_for_execution": [
+    "Owner approval is absent. No ACTIVE diagnostic child or claim exists.",
+    "Diagnostic adapter and exact final source/installed/command bindings must be completed and checked after approval."
+  ]
+}
