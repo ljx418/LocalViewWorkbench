@@ -13,3 +13,5 @@
 旧gpu-policy-reassessment-01属于8e7e06d时的历史策略草案/旧生产代码回放，不能在已修正源码上直接重跑其“应拒绝”断言或当新验收。新候选的生产行为由当前单测、完整离线与后续新鲜原生运行证明。
 
 下一步最终candidate完整offline-checkpoint-28；全绿后仅一次resource-admission-policy-correction-01，成功才认领原full-oracle-correction-01。模型、固定样本、原动作上限、独审与人工签署仍必须满足。单图预算不代表完整视频/性能已通过。
+
+完整offline-checkpoint-28保留NO_GO：482项运行中两处旧resource-resume测试fixture复制了已经过期的真实grant状态，导致其合成正例失败。仅在临时副本显式status=ACTIVE，真实旧grant不变；其余四项完整检查通过。纠正后最终完整复核使用offline-checkpoint-29。

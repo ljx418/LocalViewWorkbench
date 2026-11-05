@@ -28,7 +28,7 @@ class ResourceResumeTests(unittest.TestCase):
         request['prior_resource_failure'].update(receipt=ref,receipt_sha256=digest)
         helper.put(root/('reports/v0-s2/authorization-'+oracle.READY+'.json'),{'status':'EXPIRED_NO_GO','candidate_sha':original_candidate,'terminal_receipt':ref,'terminal_receipt_sha256':digest})
         new_sha=helper.put(root/oracle.RESUME_REQUEST,request)
-        approval.update(issued_at=time.time()-1,expires_at=time.time()+300,request_sha256=new_sha,
+        approval.update(status='ACTIVE',issued_at=time.time()-1,expires_at=time.time()+300,request_sha256=new_sha,
             previous_grant_sha256=hashlib.sha256((root/oracle.APPROVAL).read_bytes()).hexdigest())
         helper.put(root/oracle.RESUME_APPROVAL,approval)
         p=root/'plans/execution-control.json';value=json.loads(p.read_text());value['resource_resume_authorization']=oracle.RESUME_APPROVAL;helper.put(p,value)

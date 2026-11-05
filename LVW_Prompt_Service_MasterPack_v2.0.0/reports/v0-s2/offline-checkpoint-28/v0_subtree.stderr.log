@@ -1,0 +1,30 @@
+{"code": "LIVE_ARGUMENT_REQUIRED", "decision": "NO_GO", "message": "LIVE_ARGUMENT_REQUIRED: all identity/authority/target arguments", "stage_pass_claim": false}
+======================================================================
+ERROR: test_new_same_candidate_admission_is_required_before_original_full_prepare (test_s2_resource_resume.ResourceResumeTests.test_new_same_candidate_admission_is_required_before_original_full_prepare) (change='valid')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "PACK_ROOT/LVW_V0_RuntimePatch/tests/test_s2_resource_resume.py", line 78, in test_new_same_candidate_admission_is_required_before_original_full_prepare
+    if change=='valid':self.assertEqual(oracle.RESUME_APPROVAL,cp.slot_authority(oracle.SLOT,candidate)['approval'])
+                                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "PACK_ROOT/tools/v0_s2_stage_checkpoint.py", line 167, in slot_authority
+    return oracle_authorization.resume_authority(candidate, require_ready=True)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "PACK_ROOT/tools/v0_s2_oracle_authorization.py", line 158, in resume_authority
+    raise EvidenceError('resource-resume approval missing, expired, held or broadened')
+tools.v0_s2_checkpoint_oracles.EvidenceError: resource-resume approval missing, expired, held or broadened
+
+======================================================================
+ERROR: test_only_closed_old_admission_and_unclaimed_complete_slot_can_be_restored (test_s2_resource_resume.ResourceResumeTests.test_only_closed_old_admission_and_unclaimed_complete_slot_can_be_restored) (change='valid')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "PACK_ROOT/LVW_V0_RuntimePatch/tests/test_s2_resource_resume.py", line 52, in test_only_closed_old_admission_and_unclaimed_complete_slot_can_be_restored
+    refs=oracle.resume_authority(candidate,require_ready=False);self.assertEqual(oracle.RESUME_APPROVAL,refs['approval'])
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "PACK_ROOT/tools/v0_s2_oracle_authorization.py", line 158, in resume_authority
+    raise EvidenceError('resource-resume approval missing, expired, held or broadened')
+tools.v0_s2_checkpoint_oracles.EvidenceError: resource-resume approval missing, expired, held or broadened
+
+----------------------------------------------------------------------
+Ran 482 tests in 57.218s
+
+FAILED (errors=2)
