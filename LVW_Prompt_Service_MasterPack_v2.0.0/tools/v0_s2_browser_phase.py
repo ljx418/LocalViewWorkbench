@@ -18,6 +18,7 @@ from tools.v0_s2_browser_owner import birth, executable, cleanup_witness
 from tools.v0_s2_browser_supervisor import Supervisor
 from tools.v0_s2_browser_terminal import load_artifacts, terminal_join
 from tools.v0_s2_checkpoint_oracles import EvidenceError
+from tools import v0_s2_browser_temp as browser_temp
 
 
 def run_browser_phase(driver, *, config, binding, fixture, node_executable, node_sha256,
@@ -41,15 +42,17 @@ def run_browser_phase(driver, *, config, binding, fixture, node_executable, node
                       ('ui_workflow_sha256', ROOT/'LVW_V0_RuntimePatch/workflows/video_reverse_prompt_v0.ui.json')):
         if hashlib.sha256(path.read_bytes()).hexdigest() != config[key]: raise EvidenceError('browser frozen launch source mismatch')
     directory = root/'temp/browser-phase'; directory.mkdir(exist_ok=False)
-    temporary = root/'temp/browser-os'; temporary.mkdir(exist_ok=False)
     cfg_path = directory/'config.json'; cfg_raw = encoded(config)
     if len(cfg_raw) > 65536: raise EvidenceError('browser config limit')
     with cfg_path.open('xb') as output: output.write(cfg_raw)
     result = {'kind': 'BROWSER_PHASE_COORDINATOR_NOT_STAGE_ACCEPTANCE', 'decision': 'NO_GO', 'stage_pass_claim': False,
         **{k: config[k] for k in ('candidate_sha', 'authorization_sha256', 'run_id')},
         'parent_cleanup_required': True, 'node_started': False, 'callbacks_pending': 0}
-    process = supervisor = handlers = None
+    process = supervisor = handlers = temporary = temporary_lease = None
     try:
+        # Only scratch moves; product inputs/evidence stay in the bound root.
+        temporary, temporary_lease = browser_temp.create(config, directory)
+        result['linux_temp_lease']=copy.deepcopy(temporary_lease)
         authorize_action('browser_worker_start', {'config_sha256': hashlib.sha256(cfg_raw).hexdigest()})
         # No inherited Node injection/proxy/display/provider environment. A fresh
         # private temp/cache/config root is used, never an existing browser profile.
@@ -126,6 +129,18 @@ def run_browser_phase(driver, *, config, binding, fixture, node_executable, node
                     result['independent_cleanup'] = cleanup_witness(handlers.owner, temporary_root=temporary)
                     result['browser_cleanup_proven'] = result['independent_cleanup']['decision'] == 'BROWSER_CLEANUP_PROVEN'
                 except Exception as error: errors.append('browser:'+type(error).__name__)
+        if temporary is not None and process is None:
+            result['independent_cleanup']={'decision':'BROWSER_CLEANUP_PROVEN','basis':'NODE_NEVER_STARTED'}
+            result['node_original_terminal']=True
+        if temporary is not None and result['browser_cleanup_proven'] and 'independent_cleanup' in result:
+            try:
+                result['linux_temp_cleanup']=browser_temp.remove(temporary,temporary_lease,
+                    independent_cleanup=result['independent_cleanup'],node_terminal=result.get('node_original_terminal'),
+                    callbacks_pending=result['callbacks_pending'])
+            except Exception as error:errors.append('linux-temp:'+type(error).__name__)
+        if temporary is not None and 'linux_temp_cleanup' not in result:
+            result['linux_temp_retained']=True
+            result['browser_cleanup_proven']=False
         if errors: result['cleanup_errors'] = errors
         if (errors or not result['browser_cleanup_proven'] or result['callbacks_pending']
                 or (process is not None and process.returncode != 0)): result['decision'] = 'NO_GO'

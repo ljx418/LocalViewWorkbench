@@ -8,15 +8,15 @@
   "coordinate": {
     "stage_id": "V0-S2",
     "workpack_id": "WP-S2-05",
-    "gate": "GATE4_FULL_V0_AUTO_02",
-    "state": "RUNNING"
+    "gate": "GATE3_BROWSER_LINUX_SCRATCH_CORRECTION",
+    "state": "READY_FOR_REVIEW"
   },
   "last_passed_gate": {
     "id": "V0_S2_OFFLINE_CHECKPOINT_36_PASSED",
     "evidence": "reports/v0-s2/offline-checkpoint-36/receipt.json",
     "meaning": "515 tests/five checks pass; request grammar agrees with existing parser bounds; isolated code review Fatal0/Major0; native Stage pending."
   },
-  "current_blocking_gate": "RESPONSE_SCHEMA_ITEM_BOUNDS_ALIGNMENT",
+  "current_blocking_gate": "FRESH_COMPLETE_NATIVE_CHECKPOINT_REQUIRED",
   "stage_packet": ".agent-governance/stages/V0-S2/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/V0-S2/PAYLOAD_MANIFEST.sha256",
   "product_status": "IN_PROGRESS",
@@ -30,7 +30,7 @@
     "TARGET_HARDWARE_TESTED"
   ],
   "next_owner": "Codex",
-  "next_action": "Observe unique session45646 and durable claim through full fixed native sequence; no restart or cross-run stitching.",
+  "next_action": "Seal Linux browser scratch correction, run full offline gate, then automatically issue fresh finite full-v0-auto-03 child under ACTIVE V0 program.",
   "required_authorization": "NONE_WITHIN_V0_LOCAL_GPU_AND_CODE_VERIFICATION_PROGRAM",
   "authorization_request": null,
   "authorization_record": "reports/authorization-program-v1-local-01.json",
@@ -108,13 +108,13 @@
   },
   "historical_live_terminal_receipt": "reports/r1a/r1a-live-07/live-receipt.json",
   "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
-  "live_terminal_receipt": "reports/v0-s2/full-v0-auto-01/receipt.json",
+  "live_terminal_receipt": "reports/v0-s2/full-v0-auto-02/receipt.json",
   "independent_review": null,
-  "exact_stop_reason": "NOT_STOPPED_FULL_V0_AUTO_02_RUNNING",
+  "exact_stop_reason": "NOT_STOPPED_FIXING_BROWSER_FILESYSTEM_BLOCKER",
   "native_component_authorization": "reports/v0-s2/authorization-native-component-02.json",
   "native_component_terminal_receipt": "reports/v0-s2/native-component-02/receipt.json",
   "local_control_change_decision": "reports/v0-s2/change-decision-video-workbench-01.json",
-  "latest_workpack_receipt": "reports/v0-s2/response-bounds-correction-01/implementation.md",
+  "latest_workpack_receipt": "reports/v0-s2/browser-temp-correction-01/implementation.md",
   "warm_benchmark_blocker": "reports/v0-s2/warm-benchmark-evidence-gap-01.md",
   "warm_profile_implementation": "reports/v0-s2/warm-profile-implementation-progress-01.md",
   "warm_profile_decision": "reports/v0-s2/warm-profile-decision-01.md",
@@ -159,7 +159,7 @@
   "live_executor_handle": {
     "kind": "exec_command_session",
     "id": 45646,
-    "terminal": false,
+    "terminal": true,
     "restart_forbidden": true
   },
   "next_stage_document_preparation": "reports/v0-s3/preparation-01.md",
@@ -180,7 +180,8 @@
     "reports/v0-s2/full-resource-ready-01/receipt.json",
     "reports/v0-s2/full-oracle-correction-01/receipt.json",
     "reports/v0-s2/full-profile-lifecycle-correction-01/receipt.json",
-    "reports/v0-s2/full-v0-auto-01/receipt.json"
+    "reports/v0-s2/full-v0-auto-01/receipt.json",
+    "reports/v0-s2/full-v0-auto-02/receipt.json"
   ],
   "retained_root_disposition": "reports/v0-s2/supplemental-cleanup-01/receipt.json",
   "supplemental_authorization_record": "reports/v0-s2/authorization-s2-supplemental-01.approval.json",
@@ -414,10 +415,10 @@
       ],
       "completed_substeps": 5,
       "total_substeps": 8,
-      "summary": "WDDM capacity/control separation implemented;512 tests/five checks and isolated code review passed. Native full-v0-auto-01 pending; formal Stage remains5/8.",
+      "summary": "Linux browser scratch correction independently reviewed; full02 public15/15 but browser startup NO_GO, native services cleaned, original root retained. Formal5/8.",
       "implementation": "OFFLINE_IMPLEMENTED",
-      "machine_acceptance": "NO_GO_SHARED_GPU_PROCESS_ADMISSION_RULE",
-      "independent_review": "AUTHORIZATION_AND_DIAGNOSTIC_REVIEW_NOT_STAGE_PASS",
+      "machine_acceptance": "NO_GO_BROWSER_STARTUP_DRVFS",
+      "independent_review": "CORRECTION_REVIEW_ONLY_NOT_STAGE_PASS",
       "human_signoff": "NOT_SIGNED"
     },
     {
@@ -729,15 +730,13 @@
   "policy_correction_authorization": "reports/v0-s2/authorization-s2-policy-correction-01.approval.json",
   "policy_readiness_receipt": "reports/v0-s2/resource-admission-profile-lifecycle-01/receipt.json",
   "current_runtime_failure": {
-    "code": "PARSE_PARTIAL",
-    "subcode": "SCHEMA_ARRAY_LIMIT",
-    "observation_length": 505,
-    "existing_limit": 400,
-    "evidence": "reports/v0-s2/full-v0-auto-01/receipt.json",
-    "cleanup_proven": true,
-    "WDDM_admission_exercised": true,
-    "public_matrix_passed": 14,
-    "public_matrix_fixed": 15
+    "code": "BROWSER_STARTUP_SIGTRAP",
+    "evidence": "reports/v0-s2/full-v0-auto-02/receipt.json",
+    "public_matrix_passed": 15,
+    "public_matrix_fixed": 15,
+    "native_cleanup_proven": true,
+    "browser_cleanup_proven": false,
+    "root_retained_for_recovery": true
   },
   "profile_lifecycle_authorization": "reports/v0-s2/authorization-s2-profile-lifecycle-01.approval.json",
   "v0_verification_program": "reports/authorization-program-v0-local-verification-01.json",
@@ -745,7 +744,8 @@
   "diagnostic_receipts": [
     "reports/v0-s2/compute-owner-diagnostic-01/receipt.json",
     "reports/v0-s2/compute-owner-diagnostic-02/receipt.json",
-    "reports/v0-s2/compute-type-snapshot-01/receipt.json"
+    "reports/v0-s2/compute-type-snapshot-01/receipt.json",
+    "reports/v0-s2/browser-launch-diagnostic-01/receipt.json"
   ],
   "v0_verification_authorization_status": "ACTIVE_NO_PER_RUN_HUMAN_CONFIRMATION"
 }
