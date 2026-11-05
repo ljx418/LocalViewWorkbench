@@ -8,8 +8,8 @@
   "coordinate": {
     "stage_id": "V0-S2",
     "workpack_id": "WP-S2-05",
-    "gate": "GATE4_FULL_V0_AUTO_03",
-    "state": "RUNNING"
+    "gate": "GATE4_NO_MODEL_PAGE_COMPONENT_DIAGNOSIS",
+    "state": "READY"
   },
   "last_passed_gate": {
     "gate": "GATE3_FULL_OFFLINE_CHECKPOINT",
@@ -18,7 +18,7 @@
     "decision": "OFFLINE_CHECKS_PASSED_NOT_STAGE_ACCEPTANCE",
     "unit_tests": 520
   },
-  "current_blocking_gate": "FRESH_COMPLETE_NATIVE_CHECKPOINT_REQUIRED",
+  "current_blocking_gate": "COMFY_HOST_CANVAS_SETUP_RACE_DIAGNOSIS",
   "stage_packet": ".agent-governance/stages/V0-S2/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/V0-S2/PAYLOAD_MANIFEST.sha256",
   "product_status": "IN_PROGRESS",
@@ -32,7 +32,7 @@
     "TARGET_HARDWARE_TESTED"
   ],
   "next_owner": "Codex",
-  "next_action": "Observe original session42038 and durable full03 claim; no restart, source edits or cross-run evidence reuse.",
+  "next_action": "Run finite no-model manual page diagnosis, retain first pageerror stack and host initialization facts, then correct proven root cause.",
   "required_authorization": "NONE_WITHIN_V0_LOCAL_GPU_AND_CODE_VERIFICATION_PROGRAM",
   "authorization_request": null,
   "authorization_record": "reports/authorization-program-v1-local-01.json",
@@ -110,9 +110,9 @@
   },
   "historical_live_terminal_receipt": "reports/r1a/r1a-live-07/live-receipt.json",
   "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
-  "live_terminal_receipt": "reports/v0-s2/full-v0-auto-02/receipt.json",
+  "live_terminal_receipt": "reports/v0-s2/full-v0-auto-03/receipt.json",
   "independent_review": null,
-  "exact_stop_reason": "NOT_STOPPED_FULL_V0_AUTO_03_RUNNING",
+  "exact_stop_reason": "NOT_STOPPED_NO_MODEL_PAGE_DIAGNOSIS",
   "native_component_authorization": "reports/v0-s2/authorization-native-component-02.json",
   "native_component_terminal_receipt": "reports/v0-s2/native-component-02/receipt.json",
   "local_control_change_decision": "reports/v0-s2/change-decision-video-workbench-01.json",
@@ -161,7 +161,7 @@
   "live_executor_handle": {
     "kind": "exec_command_session",
     "id": 42038,
-    "terminal": false,
+    "terminal": true,
     "restart_forbidden": true
   },
   "next_stage_document_preparation": "reports/v0-s3/preparation-01.md",
@@ -183,7 +183,8 @@
     "reports/v0-s2/full-oracle-correction-01/receipt.json",
     "reports/v0-s2/full-profile-lifecycle-correction-01/receipt.json",
     "reports/v0-s2/full-v0-auto-01/receipt.json",
-    "reports/v0-s2/full-v0-auto-02/receipt.json"
+    "reports/v0-s2/full-v0-auto-02/receipt.json",
+    "reports/v0-s2/full-v0-auto-03/receipt.json"
   ],
   "retained_root_disposition": "reports/v0-s2/supplemental-cleanup-01/receipt.json",
   "supplemental_authorization_record": "reports/v0-s2/authorization-s2-supplemental-01.approval.json",
@@ -732,13 +733,13 @@
   "policy_correction_authorization": "reports/v0-s2/authorization-s2-policy-correction-01.approval.json",
   "policy_readiness_receipt": "reports/v0-s2/resource-admission-profile-lifecycle-01/receipt.json",
   "current_runtime_failure": {
-    "code": "BROWSER_STARTUP_SIGTRAP",
-    "evidence": "reports/v0-s2/full-v0-auto-02/receipt.json",
+    "code": "PAGE_ERROR_CANVAS_NULL",
+    "evidence": "reports/v0-s2/full-v0-auto-03/receipt.json",
     "public_matrix_passed": 15,
     "public_matrix_fixed": 15,
     "native_cleanup_proven": true,
-    "browser_cleanup_proven": false,
-    "root_retained_for_recovery": true
+    "browser_cleanup_proven": true,
+    "root_retained_for_recovery": false
   },
   "profile_lifecycle_authorization": "reports/v0-s2/authorization-s2-profile-lifecycle-01.approval.json",
   "v0_verification_program": "reports/authorization-program-v0-local-verification-01.json",
