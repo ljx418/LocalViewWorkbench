@@ -8,15 +8,15 @@
   "coordinate": {
     "stage_id": "V0-S2",
     "workpack_id": "WP-S2-05",
-    "gate": "GATE4_GPU_NOT_READY_AUTHORIZATION_EXPIRED",
-    "state": "WAIT_AUTH"
+    "gate": "GATE3_RESOURCE_RESUME_AUTHORIZATION_TRANSPORT",
+    "state": "FROZEN_READY_OFFLINE"
   },
   "last_passed_gate": {
     "id": "V0_S2_OFFLINE_CHECKPOINT_26_PASSED",
     "evidence": "reports/v0-s2/offline-checkpoint-26/receipt.json",
     "meaning": "Final approved oracle authorization transport candidate passed466 tests, all five checks and before/after full source seals; no Stage PASS."
   },
-  "current_blocking_gate": "GPU_BUSY_AND_BOUNDED_READINESS_AUTHORIZATION_EXPIRED",
+  "current_blocking_gate": "FINAL_RESOURCE_RESUME_TRANSPORT_OFFLINE_GATE",
   "stage_packet": ".agent-governance/stages/V0-S2/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/V0-S2/PAYLOAD_MANIFEST.sha256",
   "product_status": "IN_PROGRESS",
@@ -29,9 +29,9 @@
     "PRODUCTION_RELEASED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "project_owner",
-  "next_action": "Release GPU externally and approve AUTH-REQUEST-V1-S2-RESOURCE-RESUME-01: one new finite readiness child and restoration of the original unclaimed full-oracle-correction-01, zero additional full runs/rechecks. Do not probe, replay, start services or terminate foreign GPU tasks before amendment.",
-  "required_authorization": "AUTH-REQUEST-V1-S2-RESOURCE-RESUME-01",
+  "next_owner": "Codex",
+  "next_action": "Seal/test approved one-readiness restoration route, pass full offline gate; prepare/probe-resume once, then prepare/execute original full-oracle-correction-01 only on success.",
+  "required_authorization": "NONE_WITHIN_APPROVED_RESOURCE_RESUME_SCOPE",
   "authorization_request": "reports/v0-s2/authorization-s2-resource-resume-01.request.json",
   "authorization_record": "reports/authorization-program-v1-local-01.json",
   "read_only_binding_authorization": "reports/v0-s2/authorization-binding-inventory-06.json",
@@ -98,7 +98,7 @@
   "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
   "live_terminal_receipt": "reports/v0-s2/resource-admission-oracle-correction-01/receipt.json",
   "independent_review": null,
-  "exact_stop_reason": "GPU_USED9649_MIB_EXCEEDS4096_READINESS_CLOSED_GRANT_EXPIRED_FULL_SLOT_UNCLAIMED",
+  "exact_stop_reason": "OWNER_APPROVED_RESOURCE_RESUME_OFFLINE_TRANSPORT_PREPARATION",
   "native_component_authorization": "reports/v0-s2/authorization-native-component-02.json",
   "native_component_terminal_receipt": "reports/v0-s2/native-component-02/receipt.json",
   "local_control_change_decision": "reports/v0-s2/change-decision-video-workbench-01.json",
@@ -699,5 +699,16 @@
     "remaining_readiness_children": 0,
     "additional_full_rechecks": 0,
     "grant_status": "EXPIRED_NO_GO"
+  },
+  "resource_resume_authorization": "reports/v0-s2/authorization-s2-resource-resume-01.approval.json",
+  "resource_resume_budget": {
+    "additional_readiness_approved": 1,
+    "readiness_claimed": 0,
+    "additional_complete_runs": 0,
+    "original_complete_slot": "full-oracle-correction-01",
+    "max_original_complete_claims": 1,
+    "claimed_original_complete_runs": 0,
+    "additional_full_rechecks": 0,
+    "grant_status": "ACTIVE"
   }
 }

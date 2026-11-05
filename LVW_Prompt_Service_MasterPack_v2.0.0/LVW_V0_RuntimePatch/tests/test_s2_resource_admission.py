@@ -60,12 +60,13 @@ class AdmissionTests(unittest.TestCase):
         with self.assertRaises(EvidenceError):cp.child_path('full-resource-ready-02')
 
     def test_real_claim_raw_evidence_expiry_replay_and_disk_failure(self):
-        for profile in (admission,oracle):
-            policy=cp.repository_json(profile.REQUEST)['readiness_child']
+        for profile in (admission,oracle,oracle.resource_resume_profile()):
+            scope_key=getattr(profile,'SCOPE_KEY','readiness_child')
+            policy=cp.repository_json(profile.REQUEST)[scope_key]
             for mode in ['ready','busy','mismatch','ram','port','process','command-failure','disk-full']:
                 with self.subTest(mode=mode),tempfile.TemporaryDirectory() as temporary,ExitStack() as stack:
                     parent=Path(temporary).resolve();root=parent/'pack';root.mkdir();state=parent/'state';state.mkdir()
-                    request=cp.canonical({'readiness_child':policy});request_sha=hashlib.sha256(request).hexdigest()
+                    request=cp.canonical({scope_key:policy});request_sha=hashlib.sha256(request).hexdigest()
                     for name,data in [(profile.REQUEST,request),(profile.APPROVAL,b'{}'),(profile.HARNESS,b'fixture code identity')]:
                         p=root/name;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(data)
                     tools={}

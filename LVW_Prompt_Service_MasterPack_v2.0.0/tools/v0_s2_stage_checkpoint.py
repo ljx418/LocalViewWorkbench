@@ -52,7 +52,7 @@ SOURCE_PAYLOAD = ['tools', 'LVW_V0_RuntimePatch', 'contracts', 'config',
     'reports/v0-s1/stage-checkpoint-phase-a/checkpoint.py', 'reports/v0-s1/wp-s1-03-phase-a/live_probe.py',
     'reports/v0-s2/frozen-structural-inputs-02.json', 'reports/v0-s2/fixture-preparation-02',
     'reports/v0-s2/authorization-fixtures-02.json', 'reports/v0-s2/offline-checkpoint-10/receipt.json',
-    PROGRAM, supplemental.REQUEST, supplemental.APPROVAL, resource_admission.REQUEST, resource_admission.APPROVAL, oracle_authorization.REQUEST, oracle_authorization.APPROVAL, *SEEDS.values()]
+    PROGRAM, supplemental.REQUEST, supplemental.APPROVAL, resource_admission.REQUEST, resource_admission.APPROVAL, oracle_authorization.REQUEST, oracle_authorization.APPROVAL, oracle_authorization.RESUME_REQUEST, oracle_authorization.RESUME_APPROVAL, *SEEDS.values()]
 BUDGET = {'stage_checkpoints': 1, 'public_submissions': 65, 'default_public_submissions': 45,
     'warm_public_submissions': 20, 'provider_calls': 83, 'comfy_starts': 2, 'ollama_starts': 2,
     'browser_starts': 1, 'warm_preloads': 20, 'loopback_requests_per_runtime': 8192,
@@ -158,6 +158,9 @@ def slot_guard(slot):
 def slot_authority(slot, candidate):
     child_path(slot)
     if slot == oracle_authorization.SLOT:
+        if ((ROOT/'plans/execution-control.json').exists()
+                and repository_json('plans/execution-control.json').get('resource_resume_authorization') == oracle_authorization.RESUME_APPROVAL):
+            return oracle_authorization.resume_authority(candidate, require_ready=True)
         return oracle_authorization.authority(candidate, require_ready=True)
     if slot == resource_admission.SLOT:
         return resource_admission.authority(candidate, require_ready=True)

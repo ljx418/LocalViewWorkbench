@@ -104,6 +104,7 @@ def prepare(candidate,offline,*,profile=None):
     policy=profile or sys.modules[__name__]
     REQUEST,READY,HARNESS=policy.REQUEST,policy.READY,policy.HARNESS
     authority=policy.authority
+    scope_key=getattr(policy,'SCOPE_KEY','readiness_child')
     refs=authority(candidate,require_ready=False);identity=cp.source_gate(candidate,offline)
     tools=expected_tools(cp)  # Recorded bytes only; no installed tool read.
     path=cp.ROOT/('reports/v0-s2/authorization-'+READY+'.json')
@@ -112,7 +113,7 @@ def prepare(candidate,offline,*,profile=None):
     auth={'schema_version':'lvw.resource-admission-child/1','status':'ACTIVE_ONE_SHOT','run_id':READY,
         'candidate_sha':candidate,'harness_sha256':cp.file_hash(cp.ROOT/HARNESS),'payload_sha256':identity['payload_sha256'],
         'offline_receipt':offline,'offline_receipt_sha256':cp.file_hash(cp.ROOT/offline),'program_sha256':cp.program_authority(),
-        'supplemental_authorization':refs,'tools':tools,'scope':request['readiness_child'],
+        'supplemental_authorization':refs,'tools':tools,'scope':request[scope_key],
         'issued_at':now,'expires_at':min(now+900,refs['expires_at']),'execution_max_seconds':60,'stage_pass_claim':False}
     cp.write_new(path,auth);return auth
 
@@ -143,11 +144,12 @@ def probe(*,profile=None):
     policy=profile or sys.modules[__name__]
     REQUEST,APPROVAL,REQUEST_SHA,READY,HARNESS=policy.REQUEST,policy.APPROVAL,policy.REQUEST_SHA,policy.READY,policy.HARNESS
     authority=policy.authority
+    scope_key=getattr(policy,'SCOPE_KEY','readiness_child')
     from tools.v0_s2_execution_bindings import plain
     path=cp.ROOT/('reports/v0-s2/authorization-'+READY+'.json');raw=path.read_bytes();auth=json.loads(raw)
     refs=authority(auth['candidate_sha'],require_ready=False)
     if (auth.get('schema_version')!='lvw.resource-admission-child/1' or auth.get('status')!='ACTIVE_ONE_SHOT'
-            or auth.get('run_id')!=READY or auth.get('stage_pass_claim') is not False or auth['scope']!=cp.repository_json(REQUEST)['readiness_child']
+            or auth.get('run_id')!=READY or auth.get('stage_pass_claim') is not False or auth['scope']!=cp.repository_json(REQUEST)[scope_key]
             or auth['tools']!=expected_tools(cp) or auth['supplemental_authorization']!=refs
             or auth.get('execution_max_seconds')!=60 or not 0<auth['expires_at']-auth['issued_at']<=900 or auth['harness_sha256']!=cp.file_hash(cp.ROOT/HARNESS)
             or auth['program_sha256']!=cp.program_authority() or cp.file_hash(cp.ROOT/auth['offline_receipt'])!=auth['offline_receipt_sha256']

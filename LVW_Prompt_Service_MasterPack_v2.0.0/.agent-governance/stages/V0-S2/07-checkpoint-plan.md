@@ -127,3 +127,12 @@ python3 -B -m tools.v0_s2_stage_checkpoint execute --slot full-resource-ready-01
 prepare只读仓库和受控历史证据，probe才认领新准入并做已批准的有限真实探测。最终候选必须先通过完整离线门禁，再按顺序执行准入与完整运行。CLI入口为tools.v0_s2_oracle_authorization的prepare/probe，再以tools.v0_s2_stage_checkpoint的prepare/execute选择full-oracle-correction-01；准确候选与offline收据记录到唯一坐标，不手工替换运行产物。
 
 本次scope最长6小时，完整child受其到期约束；准入失败/撤销/完整终态后自动过期，已归属清理保留。人工签署、独立审查和Stage PASS不由此授权替代。
+
+
+## 1.0.33｜恢复原未认领完整槽，不增加完整次数
+
+项目负责人明确批准AUTH-REQUEST-V1-S2-RESOURCE-RESUME-01。旧准入resource-admission-oracle-correction-01保持NO_GO、lease.closed=1，旧scope保持EXPIRED_NO_GO。仅增加resource-admission-oracle-resume-01一次有限准入；成功后恢复原full-oracle-correction-01唯一槽，不新增完整槽、不增加完整运行或复验。
+
+原请求、旧scope终态、原始失败receipt/terminal hash、完整槽未认领、最终候选后代、冻结scope/预算均须重核。新准入与原完整槽引用新的有限批准，不复活旧grant；准入失败/撤销或完整终态后新批准自动过期。GPU/RAM、命令上界、模型/样本/固定分母和全部完整验收保持原值。
+
+先完成最终候选完整离线门禁，再使用tools.v0_s2_oracle_authorization的prepare-resume和probe-resume；准入成功后使用原tools.v0_s2_stage_checkpoint prepare/execute --slot full-oracle-correction-01。整个scope最长6小时，同一候选新鲜准入不替代正式preflight；无额外native探测、媒体或服务操作。
