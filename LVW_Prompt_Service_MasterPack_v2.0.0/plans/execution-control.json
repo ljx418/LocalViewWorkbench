@@ -8,15 +8,15 @@
   "coordinate": {
     "stage_id": "V0-S2",
     "workpack_id": "WP-S2-05",
-    "gate": "GATE4_COMPUTE_OWNER_DIAGNOSIS_WAIT_AUTH",
-    "state": "WAIT_AUTH"
+    "gate": "GATE3_COMPUTE_OWNER_DIAGNOSTIC_IMPLEMENTATION",
+    "state": "FROZEN_READY_OFFLINE"
   },
   "last_passed_gate": {
     "id": "V0_S2_OFFLINE_CHECKPOINT_33_PASSED",
     "evidence": "reports/v0-s2/offline-checkpoint-33/receipt.json",
     "meaning": "490 tests/five checks passed; isolated authorization review Fatal0/Major0. Not Stage acceptance."
   },
-  "current_blocking_gate": "GPU_COMPUTE_OWNER_IDENTITY_UNRECORDED",
+  "current_blocking_gate": "GPU_COMPUTE_OWNER_DIAGNOSIS_IN_PROGRESS",
   "stage_packet": ".agent-governance/stages/V0-S2/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/V0-S2/PAYLOAD_MANIFEST.sha256",
   "product_status": "IN_PROGRESS",
@@ -29,10 +29,10 @@
     "PRODUCTION_RELEASED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "project_owner",
-  "next_action": "Approve one zero-inference/zero-media/zero-browser compute-owner diagnostic before any further full checkpoint. Do not assume VRAM shortage or relax ownership checks.",
-  "required_authorization": "AUTH-REQUEST-V1-S2-COMPUTE-OWNER-DIAG-01",
-  "authorization_request": "reports/v0-s2/authorization-s2-compute-owner-diagnostic-01.request.json",
+  "next_owner": "Codex",
+  "next_action": "Automatically bind and execute finite compute-owner diagnostic under approved V0 verification program; no repeated human GPU/code verification confirmation.",
+  "required_authorization": "NONE_WITHIN_V0_LOCAL_GPU_AND_CODE_VERIFICATION_PROGRAM",
+  "authorization_request": null,
   "authorization_record": "reports/authorization-program-v1-local-01.json",
   "read_only_binding_authorization": "reports/v0-s2/authorization-binding-inventory-06.json",
   "cpu_decoder_authorization": "reports/v0-s2/authorization-cpu-decoder-01.json",
@@ -110,7 +110,7 @@
   "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
   "live_terminal_receipt": "reports/v0-s2/full-profile-lifecycle-correction-01/receipt.json",
   "independent_review": null,
-  "exact_stop_reason": "FULL_LIFECYCLE_SLOT_NO_GO_EXPIRED_COMPUTE_PID_IDENTITY_REQUIRES_FINITE_DIAGNOSIS",
+  "exact_stop_reason": "NOT_STOPPED_V0_GPU_CODE_VERIFICATION_PROGRAM_APPROVED",
   "native_component_authorization": "reports/v0-s2/authorization-native-component-02.json",
   "native_component_terminal_receipt": "reports/v0-s2/native-component-02/receipt.json",
   "local_control_change_decision": "reports/v0-s2/change-decision-video-workbench-01.json",
@@ -218,8 +218,8 @@
     "remaining_active_complete_runs": 0
   },
   "external_execution_hold": {
-    "active": true,
-    "reason": "One approved full lifecycle run consumed; child and approval EXPIRED_NO_GO. No new native action authorized."
+    "active": false,
+    "reason": "New project-owner blanket V0 GPU/code verification authorization supersedes per-run confirmation and authorization-only run caps."
   },
   "stop_report_policy": {
     "include_complete_outline": true,
@@ -739,5 +739,6 @@
     "observed_gpu_peak_mib": 21516,
     "cleanup_proven": true
   },
-  "profile_lifecycle_authorization": "reports/v0-s2/authorization-s2-profile-lifecycle-01.approval.json"
+  "profile_lifecycle_authorization": "reports/v0-s2/authorization-s2-profile-lifecycle-01.approval.json",
+  "v0_verification_program": "reports/authorization-program-v0-local-verification-01.json"
 }

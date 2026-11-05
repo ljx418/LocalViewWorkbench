@@ -128,3 +128,5 @@ V0-Min 的五项已签是历史范围结论，不表示最新 S2 候选也已通
 AUTH-REQUEST-V1-S2-PROFILE-LIFECYCLE-01已由项目负责人明确批准。新增接线限定一个resource-admission-profile-lifecycle-01和一个full-profile-lifecycle-correction-01，零额外复验；Stage packet1.0.35仅追加授权引用，产品合同、样本、门限和固定分母保持不变。先对接线后的最终候选做完整离线门禁，再创建候选/Harness/预算/清理绑定子授权。此前所有失败与过期授权保持原字节，不重新激活。
 
 最新终态：候选29aada9的offline33为490测试/5检查通过；唯一full-profile-lifecycle-correction-01终态NO_GO。解码与10项文件安全负例通过，首个正常静态视频在GPU_FOREIGN_COMPUTE_PROCESS拒绝，视频Provider调用0；公开矩阵11/15局部通过，不代表完整九项验收。独立复算92文件与清理闭合，权限已过期。原记录未保存被拒PID，不能判定外部还是本轮Ollama，也不能断言显存不足。下一步只建议一次零推理/媒体/浏览器的有限归属诊断，待批准AUTH-REQUEST-V1-S2-COMPUTE-OWNER-DIAG-01；不默认再跑完整验收，不改变白名单或门限。S2仍5/8，后续路线及未批准P1–P5不变。
+
+项目负责人新增统一授权：剩余全部V0阶段显卡使用与代码验证，不再逐次请求确认。唯一记录reports/authorization-program-v0-local-verification-01.json；范围内自动派生有候选/预算/清理绑定的一次性子运行，子运行结束不使母授权失效。替代旧相关逐次确认/授权次数上限，旧过期收据不复活。合同、固定分母、资源硬限、独审及人工签署保留；诊断不默认升级为生产发布。先执行既定零推理compute归属诊断，再根据真实证据修复和验证。

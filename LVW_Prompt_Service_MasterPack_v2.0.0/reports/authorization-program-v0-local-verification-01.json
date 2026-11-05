@@ -1,0 +1,92 @@
+{
+  "schema_version": "lvw.verification-program/1",
+  "authorization_id": "AUTH-PROGRAM-V0-LOCAL-VERIFICATION-01",
+  "project_id": "lvw-prompt-service",
+  "status": "ACTIVE",
+  "granted_by": "project_owner",
+  "statement": "我批准后续全部V0阶段的 显卡使用、代码验证相关授权 不需要再找我确认",
+  "issued_at": 1793871074.035432,
+  "expires_at_condition": [
+    "remaining V0 scope reaches terminal",
+    "project owner revokes"
+  ],
+  "stages": [
+    "V0-S0",
+    "V0-S1",
+    "V0-S2",
+    "V0-S3"
+  ],
+  "scope": [
+    "offline code and evidence verification",
+    "local GPU and resource/compute ownership diagnostics",
+    "loopback Ollama/ComfyUI/FastAPI verification",
+    "bound non-private testSource/generated fixture code verification",
+    "FFmpeg/SQLite/headless Chromium/isolated packaging verification when required by V0 Stage",
+    "necessary directed reruns and complete checkpoints within frozen V0 requirements"
+  ],
+  "supersedes_for_this_scope": [
+    "per-run human GPU/code-verification confirmation",
+    "previous authorization-only complete checkpoint/recheck count caps for remaining V0 verification"
+  ],
+  "does_not_reactivate_historical_expired_grants": true,
+  "child_policy": {
+    "automatic_without_human_confirmation": true,
+    "unique_run_id_and_atomic_claim": true,
+    "bind_candidate_harness_spec_inputs_tools_ports_processes_budget_cleanup": true,
+    "finite_per_run_wall_and_action_budget": true,
+    "expire_child_at_terminal": true,
+    "terminal_child_does_not_expire_this_program": true,
+    "preserve_failed_runs": true,
+    "no_unbounded_identical_retries": true
+  },
+  "default_full_s2_run_budget": {
+    "stage_checkpoints": 1,
+    "public_submissions": 65,
+    "default_public_submissions": 45,
+    "warm_public_submissions": 20,
+    "provider_calls": 83,
+    "comfy_starts": 2,
+    "ollama_starts": 2,
+    "browser_starts": 1,
+    "warm_preloads": 20,
+    "loopback_requests_per_runtime": 8192,
+    "metadata_commands": 2,
+    "native_clock_reads_per_runtime": 128,
+    "resource_sampler_workers": 3,
+    "resource_sampler_max_seconds": 7200,
+    "frame_decoder_processes": 80,
+    "metadata_probe_processes": 24,
+    "installed_files_per_snapshot": 100000,
+    "installed_bytes_per_snapshot": 34359738368,
+    "installed_full_snapshots": 5,
+    "sample_files": 2,
+    "sample_bytes": 289406976,
+    "downloads": 0,
+    "cloud_calls": 0,
+    "paid_calls": 0,
+    "max_seconds": 21600
+  },
+  "forbidden": [
+    "cloud",
+    "paid services",
+    "downloads",
+    "non-loopback",
+    "private media",
+    "Cookies",
+    "existing browser profile",
+    "visible browser automation",
+    "permanent configuration change",
+    "terminate or modify non-owned process",
+    "force push",
+    "production publish",
+    "self-signed human experience acceptance",
+    "V1-only/V2/V3 work outside other authorization"
+  ],
+  "not_waived": [
+    "frozen product contracts and acceptance denominator",
+    "GPU/RAM/latency/release/quality thresholds",
+    "independent review",
+    "human experience and release signoff"
+  ],
+  "stage_pass_claim": false
+}

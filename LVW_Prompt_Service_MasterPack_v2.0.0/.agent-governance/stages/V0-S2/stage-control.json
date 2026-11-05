@@ -2,7 +2,7 @@
   "schema_version": "lvw.stage-control/1",
   "project_id": "lvw-prompt-service",
   "stage_id": "V0-S2",
-  "stage_packet_version": "1.0.35",
+  "stage_packet_version": "1.0.36",
   "packet_status": "FROZEN",
   "gate_version": "lvw-gate/1",
   "baseline": {
@@ -56,7 +56,8 @@
     "reports/v0-s2/full-parent-executor-decision-01.md",
     "reports/v0-s2/lossless-native-identity-decision-01.md",
     "reports/v0-s2/change-decision-gpu-admission-01.json",
-    "reports/v0-s2/authorization-s2-profile-lifecycle-01.approval.json"
+    "reports/v0-s2/authorization-s2-profile-lifecycle-01.approval.json",
+    "reports/authorization-program-v0-local-verification-01.json"
   ],
   "roles": {
     "gate_owner": "codex_gate_owner",
@@ -480,5 +481,11 @@
     "max_new_readiness": 1,
     "max_complete_claims": 1,
     "max_rechecks": 0
+  },
+  "v0_verification_program": {
+    "record": "reports/authorization-program-v0-local-verification-01.json",
+    "automatic_finite_children": true,
+    "supersedes_authorization_only_run_count_caps": true,
+    "does_not_change_product_gates": true
   }
 }
