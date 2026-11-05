@@ -1,6 +1,6 @@
 {
   "schema_version": "lvw.execution-control/1",
-  "updated_at": "2026-11-05",
+  "updated_at": "2026-11-06",
   "project_id": "lvw-prompt-service",
   "design_version": "2.0.0",
   "target_version": "V1",
@@ -8,7 +8,7 @@
   "coordinate": {
     "stage_id": "V0-S2",
     "workpack_id": "WP-S2-05",
-    "gate": "GATE4_FULL_V0_AUTO_06",
+    "gate": "GATE4_DIRECTED_BROWSER_EXECUTOR_REVIEW",
     "state": "RUNNING"
   },
   "last_passed_gate": {
@@ -18,7 +18,7 @@
     "decision": "OFFLINE_CHECKS_PASSED_NOT_STAGE_ACCEPTANCE",
     "unit_tests": 522
   },
-  "current_blocking_gate": "FRESH_COMPLETE_NATIVE_CHECKPOINT_REQUIRED",
+  "current_blocking_gate": "DIRECTED_BROWSER_EXECUTOR_INDEPENDENT_RECHECK",
   "stage_packet": ".agent-governance/stages/V0-S2/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/V0-S2/PAYLOAD_MANIFEST.sha256",
   "product_status": "IN_PROGRESS",
@@ -32,7 +32,7 @@
     "TARGET_HARDWARE_TESTED"
   ],
   "next_owner": "Codex",
-  "next_action": "Observe original session77805 and durable full06 claim; no restart, source edits or cross-run stitching.",
+  "next_action": "Finish independent correction review and offline40; run fresh finite browser-component-01, then complete fresh full-v0-auto-07 if real browser chain closes.",
   "required_authorization": "NONE_WITHIN_V0_LOCAL_GPU_AND_CODE_VERIFICATION_PROGRAM",
   "authorization_request": null,
   "authorization_record": "reports/authorization-program-v1-local-01.json",
@@ -110,9 +110,9 @@
   },
   "historical_live_terminal_receipt": "reports/r1a/r1a-live-07/live-receipt.json",
   "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
-  "live_terminal_receipt": "reports/v0-s2/full-v0-auto-05/receipt.json",
+  "live_terminal_receipt": "reports/v0-s2/full-v0-auto-06/receipt.json",
   "independent_review": null,
-  "exact_stop_reason": "NOT_STOPPED_FULL_V0_AUTO_06_RUNNING",
+  "exact_stop_reason": "NOT_STOPPED_DIRECTED_BROWSER_EXECUTOR_CORRECTION_REVIEW",
   "native_component_authorization": "reports/v0-s2/authorization-native-component-02.json",
   "native_component_terminal_receipt": "reports/v0-s2/native-component-02/receipt.json",
   "local_control_change_decision": "reports/v0-s2/change-decision-video-workbench-01.json",
@@ -161,7 +161,7 @@
   "live_executor_handle": {
     "kind": "exec_command_session",
     "id": 77805,
-    "terminal": false,
+    "terminal": true,
     "restart_forbidden": true
   },
   "next_stage_document_preparation": "reports/v0-s3/preparation-01.md",
@@ -186,7 +186,8 @@
     "reports/v0-s2/full-v0-auto-02/receipt.json",
     "reports/v0-s2/full-v0-auto-03/receipt.json",
     "reports/v0-s2/full-v0-auto-04/receipt.json",
-    "reports/v0-s2/full-v0-auto-05/receipt.json"
+    "reports/v0-s2/full-v0-auto-05/receipt.json",
+    "reports/v0-s2/full-v0-auto-06/receipt.json"
   ],
   "retained_root_disposition": "reports/v0-s2/supplemental-cleanup-01/receipt.json",
   "supplemental_authorization_record": "reports/v0-s2/authorization-s2-supplemental-01.approval.json",
@@ -735,13 +736,14 @@
   "policy_correction_authorization": "reports/v0-s2/authorization-s2-policy-correction-01.approval.json",
   "policy_readiness_receipt": "reports/v0-s2/resource-admission-profile-lifecycle-01/receipt.json",
   "current_runtime_failure": {
-    "code": "HARNESS_JSON_OBJECT_KEY_ORDER_FALSE_NEGATIVE",
-    "evidence": "reports/v0-s2/full-v0-auto-05/receipt.json",
+    "code": "CHROMIUM_INSPECTOR_RESPONSE_BODY_EVICTED",
+    "evidence": "reports/v0-s2/full-v0-auto-06/receipt.json",
     "public_matrix_passed": 15,
     "public_matrix_fixed": 15,
+    "browser_manual_initial": "PASS",
+    "browser_upload": "FAIL_RESPONSE_BODY_UNAVAILABLE",
     "native_cleanup_proven": true,
-    "browser_cleanup_proven": true,
-    "diagnostic_fix_proof": "reports/v0-s2/manual-page-diagnostic-06/receipt.json"
+    "browser_cleanup_proven": true
   },
   "profile_lifecycle_authorization": "reports/v0-s2/authorization-s2-profile-lifecycle-01.approval.json",
   "v0_verification_program": "reports/authorization-program-v0-local-verification-01.json",
@@ -759,5 +761,12 @@
     "reports/v0-s2/binding-memory-diagnostic-01/receipt.json",
     "reports/v0-s2/manual-page-diagnostic-06/receipt.json"
   ],
-  "v0_verification_authorization_status": "ACTIVE_NO_PER_RUN_HUMAN_CONFIRMATION"
+  "v0_verification_authorization_status": "ACTIVE_NO_PER_RUN_HUMAN_CONFIRMATION",
+  "active_component_run": {
+    "run_id": "manual-page-diagnostic-08",
+    "terminal": true,
+    "receipt": "reports/v0-s2/manual-page-diagnostic-08/receipt.json",
+    "provider_calls": 0,
+    "stage_pass_claim": false
+  }
 }

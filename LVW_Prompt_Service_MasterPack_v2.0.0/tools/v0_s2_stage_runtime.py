@@ -1,7 +1,8 @@
-"""Concrete native default/warm factories for a sealed full S2 parent.
+"""Concrete native default/warm factories for sealed S2 executors.
 
-No CLI or child authorization. Complete installed/source/offline/tool/sample
-binding callbacks must come from the full executor. Failure retains the original
+No CLI or child authorization. Full execution requires the whole Stage dependency
+seal; an explicitly labelled directed browser component may seal a declared
+subset, never a full Stage candidate. Failure retains the original
 runtime cleanup and archive evidence; no fallback sample or second start occurs.
 """
 import copy
@@ -53,7 +54,11 @@ def strict_argv(command):
 class StageRuntimeFactory:
     def __init__(self, *, directory, run_id, candidate_sha, authorization_sha256, paths, tool_sha256,
                  source_identity, samples, fixture_plan, model_digest, archive, authorize,
-                 verify_complete, guard_critical):
+                 verify_complete, guard_critical, component_scope=None):
+        directed_scope='DIRECTED_BROWSER_COMPONENT_DEPENDENCIES_NOT_FULL_STAGE_SEAL'
+        if (component_scope is not None and (component_scope!=directed_scope or not re.fullmatch('browser-component-[0-9]{2}',run_id))
+                or component_scope is None and run_id.startswith('browser-component-')):
+            raise ValueError('directed component binding cannot be presented as a full Stage seal')
         if (set(paths) != TOOL_KEYS or set(tool_sha256) != TOOL_KEYS
                 or any(not re.fullmatch('[a-f0-9]{64}', value) for value in tool_sha256.values())
                 or not re.fullmatch('[a-f0-9]{40}', candidate_sha) or not re.fullmatch('[a-f0-9]{64}', authorization_sha256)
@@ -70,10 +75,12 @@ class StageRuntimeFactory:
         self.authorize = authorize; self.verify_complete = verify_complete; self.guard_critical = guard_critical
         self.used = set(); self.contexts = {}; self.evidence = {}; self.user_roots = {}
         self.manifest = None
+        self.component_scope = component_scope
 
     def _complete(self):
         proof = self.verify_complete()
-        if (proof.get('complete_rehash') is not True or proof.get('candidate_sha') != self.candidate
+        if (proof.get('binding_scope') != self.component_scope
+                or proof.get('complete_rehash') is not True or proof.get('candidate_sha') != self.candidate
                 or not re.fullmatch('[a-f0-9]{64}', proof.get('manifest_sha256', ''))
                 or proof.get('tool_bindings') != {key: {'path': str(path), 'sha256': self.digests[key]}
                     for key, path in self.paths.items()}):
@@ -149,6 +156,7 @@ class StageRuntimeFactory:
     def prepare_warm(self): return self._prepare(True)
 
     def _prepare(self, warm):
+        if warm and self.component_scope is not None:raise EvidenceError('directed browser component has no warm benchmark authority')
         label = 'warm' if warm else 'default'
         if (label in self.used or (warm and ('default' not in self.contexts
                 or self.contexts['default'].root.exists()))): raise EvidenceError('factory order/replay/default root not closed')

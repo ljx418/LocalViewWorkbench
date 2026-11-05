@@ -52,6 +52,24 @@ class FactoryTests(unittest.TestCase):
             'tool_bindings': {key: {'path': str(path), 'sha256': self.kwargs['tool_sha256'][key]}
                 for key, path in self.kwargs['paths'].items()}}
 
+    def test_directed_dependency_proof_cannot_enter_full_factory(self):
+        kwargs=dict(self.kwargs,verify_complete=lambda:{**self.complete(),'binding_scope':'DIRECTED_BROWSER_COMPONENT_DEPENDENCIES_NOT_FULL_STAGE_SEAL'})
+        factory=runtime.StageRuntimeFactory(**kwargs)
+        with self.assertRaises(EvidenceError):factory._complete()
+        self.assertNotIn('ollama-start',self.events)
+        with self.assertRaises(ValueError):runtime.StageRuntimeFactory(**dict(self.kwargs,run_id='browser-component-01'))
+
+    def test_directed_factory_requires_explicit_scope_and_refuses_warm_before_start(self):
+        scope='DIRECTED_BROWSER_COMPONENT_DEPENDENCIES_NOT_FULL_STAGE_SEAL'
+        kwargs=dict(self.kwargs,run_id='browser-component-01',component_scope=scope)
+        factory=runtime.StageRuntimeFactory(**kwargs)
+        with self.assertRaises(EvidenceError):factory._complete()
+        kwargs['verify_complete']=lambda:{**self.complete(),'binding_scope':scope}
+        factory=runtime.StageRuntimeFactory(**kwargs)
+        self.assertEqual(scope,factory._complete()['binding_scope'])
+        with self.assertRaises(EvidenceError):factory.prepare_warm()
+        self.assertNotIn('ollama-start',self.events)
+
     def native(self, args, evidence):
         driver = NativeRuntime(args, evidence); driver.root = None
         # Preserve path hierarchy; flattening to .name cannot represent a
