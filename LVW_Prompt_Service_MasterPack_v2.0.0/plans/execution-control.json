@@ -8,13 +8,13 @@
   "coordinate": {
     "stage_id": "V0-S2",
     "workpack_id": "WP-S2-05",
-    "gate": "GATE3_WDDM_SHARED_CAPACITY_OFFLINE_GATE",
-    "state": "FROZEN_READY_OFFLINE"
+    "gate": "GATE4_FULL_V0_AUTO_01",
+    "state": "RUNNING"
   },
   "last_passed_gate": {
-    "id": "V0_S2_OFFLINE_CHECKPOINT_34_PASSED",
-    "evidence": "reports/v0-s2/offline-checkpoint-34/receipt.json",
-    "meaning": "503 tests and five offline checks passed on finite V0 authorization/automatic checkpoint implementation; isolated review Fatal0/Major0; native diagnostics complete and cleaned. Not Stage acceptance."
+    "id": "V0_S2_OFFLINE_CHECKPOINT_35_PASSED",
+    "evidence": "reports/v0-s2/offline-checkpoint-35/receipt.json",
+    "meaning": "512 tests/five checks pass; WDDM correction isolated review Fatal0/Major0; full native matrix pending."
   },
   "current_blocking_gate": "FINAL_CANDIDATE_OFFLINE_GATE_THEN_NATIVE_CHECKPOINT",
   "stage_packet": ".agent-governance/stages/V0-S2/stage-control.json",
@@ -30,7 +30,7 @@
     "TARGET_HARDWARE_TESTED"
   ],
   "next_owner": "Codex",
-  "next_action": "Seal WDDM capacity/control separation candidate and complete offline35; automatically prepare and execute full-v0-auto-01 with unchanged fixed denominator and budgets under persistent V0 authority.",
+  "next_action": "Observe session38362 and durable full-v0-auto-01 claim through complete native fixed sequence and cleanup; no restart on timeout.",
   "required_authorization": "NONE_WITHIN_V0_LOCAL_GPU_AND_CODE_VERIFICATION_PROGRAM",
   "authorization_request": null,
   "authorization_record": "reports/authorization-program-v1-local-01.json",
@@ -76,12 +76,12 @@
   ],
   "contract_change_request": "reports/r1a/change-request-r1a-product-controls-02.json",
   "contract_change_decision": "reports/r1a/change-decision-r1a-product-controls-02.json",
-  "implementation_candidate": "c0bc6b7990eb9d88f88cee0dafd454443cd1392a",
+  "implementation_candidate": "be26175030d3124490f280496ec90442ab62139d",
   "implementation_baseline": "5ea725cc7182e654043183d9de581b730a585685",
   "candidate_binding_scope": "Approved GPU policy correction, unchanged calibrated production workload/context and fixed acceptance denominator.",
   "offline_evidence_commit": null,
-  "offline_receipt": "reports/v0-s2/offline-checkpoint-34/receipt.json",
-  "offline_candidate_sha": "c0bc6b7990eb9d88f88cee0dafd454443cd1392a",
+  "offline_receipt": "reports/v0-s2/offline-checkpoint-35/receipt.json",
+  "offline_candidate_sha": "be26175030d3124490f280496ec90442ab62139d",
   "evidence_root": "reports/",
   "gate_decision": null,
   "human_signoff": null,
@@ -110,7 +110,7 @@
   "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
   "live_terminal_receipt": "reports/v0-s2/compute-type-snapshot-01/receipt.json",
   "independent_review": null,
-  "exact_stop_reason": "NOT_STOPPED_WDDM_CORRECTION_OFFLINE_GATE_IN_PROGRESS",
+  "exact_stop_reason": "NOT_STOPPED_FULL_V0_AUTO_01_RUNNING",
   "native_component_authorization": "reports/v0-s2/authorization-native-component-02.json",
   "native_component_terminal_receipt": "reports/v0-s2/native-component-02/receipt.json",
   "local_control_change_decision": "reports/v0-s2/change-decision-video-workbench-01.json",
@@ -154,13 +154,12 @@
   "native_browser_terminal_phase_implementation": "reports/v0-s2/browser-terminal-phase-progress-01.md",
   "cumulative_stage_sequence_implementation": "reports/v0-s2/cumulative-stage-sequence-progress-01.md",
   "bound_runtime_archive_implementation": "reports/v0-s2/bound-runtime-archive-progress-01.md",
-  "live_authorization_record": "reports/v0-s2/authorization-full-profile-lifecycle-correction-01.json",
-  "native_run_id": "compute-type-snapshot-01",
+  "live_authorization_record": "reports/v0-s2/authorization-full-v0-auto-01.json",
+  "native_run_id": "full-v0-auto-01",
   "live_executor_handle": {
     "kind": "exec_command_session",
-    "id": 33788,
-    "terminal": true,
-    "exit_code": 0,
+    "id": 38362,
+    "terminal": false,
     "restart_forbidden": true
   },
   "next_stage_document_preparation": "reports/v0-s3/preparation-01.md",
@@ -374,27 +373,27 @@
         {
           "name": "WP-S2-00 冻结准备",
           "status": "DONE",
-          "evidence": "reports/v0-s2/offline-checkpoint-34/receipt.json"
+          "evidence": "reports/v0-s2/offline-checkpoint-35/receipt.json"
         },
         {
           "name": "WP-S2-01 媒体owner",
           "status": "DONE",
-          "evidence": "reports/v0-s2/offline-checkpoint-34/receipt.json"
+          "evidence": "reports/v0-s2/offline-checkpoint-35/receipt.json"
         },
         {
           "name": "WP-S2-02 公开视频路径",
           "status": "DONE",
-          "evidence": "reports/v0-s2/offline-checkpoint-34/receipt.json"
+          "evidence": "reports/v0-s2/offline-checkpoint-35/receipt.json"
         },
         {
           "name": "WP-S2-03 安全/资源/取消",
           "status": "DONE",
-          "evidence": "reports/v0-s2/offline-checkpoint-34/receipt.json"
+          "evidence": "reports/v0-s2/offline-checkpoint-35/receipt.json"
         },
         {
           "name": "WP-S2-04 离线集中收口",
           "status": "DONE",
-          "evidence": "reports/v0-s2/offline-checkpoint-34/receipt.json"
+          "evidence": "reports/v0-s2/offline-checkpoint-35/receipt.json"
         },
         {
           "name": "WP-S2-05 完整真实验收",
@@ -414,7 +413,7 @@
       ],
       "completed_substeps": 5,
       "total_substeps": 8,
-      "summary": "5 offline workpacks complete; native Stage remainsNO_GO. Persistent V0 GPU/code authority active. Zero-inference diagnosis proves27 pre-existing Windows C+G GPU clients plus only own Comfy after boot; strict PID exclusivity under review.",
+      "summary": "WDDM capacity/control separation implemented;512 tests/five checks and isolated code review passed. Native full-v0-auto-01 pending; formal Stage remains5/8.",
       "implementation": "OFFLINE_IMPLEMENTED",
       "machine_acceptance": "NO_GO_SHARED_GPU_PROCESS_ADMISSION_RULE",
       "independent_review": "AUTHORIZATION_AND_DIAGNOSTIC_REVIEW_NOT_STAGE_PASS",
