@@ -41,8 +41,11 @@ class OllamaRuntime:
         owned = self._owned()
         from .native_runtime import proof
         native = proof(self._native)
+        unresolved = bool(self._native) and native.get("state") != "exited" and not owned
         native_ready = not self._native or native.get("listener_owned") is True
-        if readiness["ready"]:
+        if unresolved:
+            state = "error"
+        elif readiness["ready"]:
             state = "ready" if owned and native_ready else "starting" if owned else "external"
         elif owned:
             state = "starting"
@@ -64,10 +67,10 @@ class OllamaRuntime:
                 "managed": owned,
                 "pid": native.get("pid", self.process.pid) if owned else None,
                 "reason": readiness["reason"],
-                "last_error": self.last_error,
+                "last_error": "RESOURCE_RELEASE_PENDING" if unresolved else self.last_error,
             },
             "actions": {
-                "can_start": readiness["reason"] == "OLLAMA_UNAVAILABLE" and not owned,
+                "can_start": readiness["reason"] == "OLLAMA_UNAVAILABLE" and not owned and not unresolved,
                 "can_reset": owned,
                 "can_stop": owned,
             },
@@ -100,6 +103,8 @@ class OllamaRuntime:
     async def start(self) -> dict:
         async with self._lock:
             current = await self.status()
+            if self._native and not self._owned():
+                await self._stop_owned()
             if current["ollama"]["model_ready"]:
                 return current
             if self._owned():
@@ -129,24 +134,21 @@ class OllamaRuntime:
 
     async def _stop_owned(self) -> None:
         process = self.process
-        if process is None or process.returncode is not None:
-            self.process = None
-            if self._log:
-                self._log.close()
-                self._log = None
-            return
         if self._native:
             self._native["stop"].write_text(self._native["nonce"])
             try:
-                await asyncio.wait_for(process.wait(), timeout=10)
+                if process is not None:
+                    await asyncio.wait_for(process.wait(), timeout=10)
             except asyncio.TimeoutError as error:
                 raise AppError("RESOURCE_RELEASE_PENDING", "本轮Windows模型进程退出未确认", status_code=503) from error
             from .native_runtime import proof
             if proof(self._native).get("state") != "exited":
                 raise AppError("RESOURCE_RELEASE_PENDING", "本轮Windows原进程终态证明缺失", status_code=503)
             self._native = None
-        else:
+        elif process is not None and process.returncode is None:
             process.terminate()
+        if process is None:
+            return
         try:
             await asyncio.wait_for(process.wait(), timeout=10)
         except asyncio.TimeoutError:
@@ -159,7 +161,7 @@ class OllamaRuntime:
 
     async def stop(self) -> dict:
         async with self._lock:
-            if not self._owned():
+            if not self._owned() and not self._native:
                 readiness = await self.provider.readiness()
                 if readiness["ready"]:
                     raise AppError("RUNTIME_NOT_OWNED", "Ollama was not started by LVW",

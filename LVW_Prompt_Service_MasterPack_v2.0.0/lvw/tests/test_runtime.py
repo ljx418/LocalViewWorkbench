@@ -89,3 +89,26 @@ def test_runtime_rejects_unconfigured_or_wrong_executable(tmp_path):
         with pytest.raises(AppError) as raised:
             asyncio.run(runtime.start())
         assert raised.value.code == "RUNTIME_NOT_CONFIGURED"
+
+
+def test_dead_wrapper_never_clears_unproven_native_process(tmp_path):
+    import json
+    provider = Provider()
+    runtime = configured_runtime(tmp_path, provider)
+    process = Process(provider)
+    process.returncode = 1
+    runtime.process = process
+    owner = tmp_path / "owner.json"
+    owner.write_text(json.dumps({"nonce":"n", "pid":123, "birth_ticks":456,
+                                 "state":"starting", "listener_owned":False}))
+    runtime._native = {"nonce":"n", "owner":owner, "stop":tmp_path / "stop"}
+    assert asyncio.run(runtime.status())["actions"]["can_start"] is False
+    for action in (runtime.close, runtime.start, runtime.stop):
+        with pytest.raises(AppError) as raised:
+            asyncio.run(action())
+        assert raised.value.code == "RESOURCE_RELEASE_PENDING"
+        assert runtime.process is process and runtime._native is not None
+    owner.write_text(json.dumps({"nonce":"n", "pid":123, "birth_ticks":456,
+                                 "state":"exited", "listener_owned":False}))
+    asyncio.run(runtime.close())
+    assert runtime.process is None and runtime._native is None

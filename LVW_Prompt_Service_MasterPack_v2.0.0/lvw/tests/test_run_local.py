@@ -34,7 +34,9 @@ def test_windows_launcher_binds_ollama_without_arbitrary_process_control():
     assert "print_build_id.py" in source
     assert "for /l %%p in (18765,1,18775)" in source
     assert "lvw_no_browser" in source
-    assert "powershell" not in source
+    assert "getactivetcplisteners" in source
+    assert "-encodedcommand" not in source
+    assert "executionpolicy" not in source
     assert "taskkill" not in source
     browser_helper = (root / "tools" / "open_lvw_browser.cmd").read_text(encoding="ascii")
     assert "/api/v1/runtime/status" in browser_helper
