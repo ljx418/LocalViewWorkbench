@@ -29,7 +29,9 @@ def test_windows_launcher_binds_ollama_without_arbitrary_process_control():
     assert raw.count(b"\n") == raw.count(b"\r\n")
     assert "where ollama.exe" in source
     assert "lvw_ollama_exe=" in source
-    assert "lvw.runtime/1" in source
+    assert "/api/v1/capabilities" in source
+    assert "expected_build" in source
+    assert "print_build_id.py" in source
     assert "for /l %%p in (18765,1,18775)" in source
     assert "lvw_no_browser" in source
     assert "powershell" not in source

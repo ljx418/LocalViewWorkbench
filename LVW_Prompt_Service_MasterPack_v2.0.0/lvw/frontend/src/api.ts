@@ -24,7 +24,7 @@ function key(prefix: string): string {
   return `${prefix}-${crypto.randomUUID()}`;
 }
 
-export async function uploadImage(file: File, signal?: AbortSignal): Promise<MediaRef> {
+export async function uploadMedia(file: File, signal?: AbortSignal): Promise<MediaRef> {
   const body = new FormData();
   body.append("file", file);
   return read(await fetch("/api/v1/media", {
@@ -62,19 +62,31 @@ export async function getJob(id: string, signal?: AbortSignal): Promise<Job> {
   return read(await fetch(`/api/v1/jobs/${encodeURIComponent(id)}`, { signal }));
 }
 
+export async function cancelJob(id: string): Promise<Job> {
+  return read(await fetch(`/api/v1/jobs/${encodeURIComponent(id)}/cancel`, {
+    method: "POST", keepalive: true, headers: { "Idempotency-Key": key("cancel"), "X-LVW-Control": "local-ui" },
+  }));
+}
+
 export async function getModelRun(id: string, signal?: AbortSignal): Promise<ModelRun> {
   return read(await fetch(`/api/v1/model-runs/${encodeURIComponent(id)}`, { signal }));
 }
 
-export async function waitForJob(initial: Job, signal?: AbortSignal): Promise<Job> {
+export async function waitForJob(initial: Job, signal?: AbortSignal, onProgress?: (job: Job) => void): Promise<Job> {
   let job = initial;
   const terminal = new Set(["succeeded", "partial", "failed", "cancelled", "interrupted"]);
   while (!terminal.has(job.status)) {
+    onProgress?.(job);
     await new Promise<void>((resolve, reject) => {
-      const timer = window.setTimeout(resolve, 450);
-      signal?.addEventListener("abort", () => { window.clearTimeout(timer); reject(new DOMException("Aborted", "AbortError")); }, { once: true });
+      if (signal?.aborted) { reject(new DOMException("Aborted", "AbortError")); return; }
+      const abort = () => { window.clearTimeout(timer); reject(new DOMException("Aborted", "AbortError")); };
+      const timer = window.setTimeout(() => { signal?.removeEventListener("abort", abort); resolve(); }, 450);
+      signal?.addEventListener("abort", abort, { once: true });
     });
     job = await getJob(job.id, signal);
   }
   return job;
 }
+
+// Compatibility for the accepted single-image entry.
+export const uploadImage = uploadMedia;

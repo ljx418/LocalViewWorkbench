@@ -6,24 +6,20 @@
   "target_version": "V1",
   "next_delivery_target": "V0.1",
   "coordinate": {
-    "stage_id": "V0-S2",
-    "workpack_id": "WP-S2-06",
-    "gate": "GATE5_HUMAN_EXPERIENCE_SIGNOFF",
-    "state": "WAIT_HUMAN"
+    "stage_id": "R1",
+    "workpack_id": "WP-R1-U1",
+    "gate": "IMPLEMENTATION_INNER_LOOP",
+    "state": "RUNNING"
   },
   "last_passed_gate": {
-    "gate": "GATE5_INDEPENDENT_MACHINE_REVIEW",
-    "candidate_sha": "719c74559393a6489b2f630a1e0d3bc3303eb655",
-    "receipt": "reports/v0-s2/full-v0-auto-08/independent-review.json",
-    "decision": "MACHINE_AND_INDEPENDENT_VERIFIED_HUMAN_PENDING",
-    "unit_tests": 541,
-    "fixed_cases": 9,
-    "passed_cases": 9
+    "gate": "R1_UNIFIED_GATE0",
+    "receipt": "reports/unified-media/approval.json",
+    "decision": "SCOPE_APPROVED_AND_FROZEN_NOT_IMPLEMENTATION_ACCEPTANCE"
   },
-  "current_blocking_gate": "HUMAN_EXPERIENCE_SIGNOFF_AND_GIT_SYNC",
-  "stage_packet": ".agent-governance/stages/V0-S2/stage-control.json",
-  "stage_packet_manifest": ".agent-governance/stages/V0-S2/PAYLOAD_MANIFEST.sha256",
-  "product_status": "MACHINE_VERIFIED_HUMAN_PENDING",
+  "current_blocking_gate": "UNIFIED_FRONTEND_IMPLEMENTATION_AND_VERIFICATION",
+  "stage_packet": ".agent-governance/stages/R1/stage-control.json",
+  "stage_packet_manifest": ".agent-governance/stages/R1/PAYLOAD_MANIFEST.sha256",
+  "product_status": "UNIFIED_SLICE_IMPLEMENTING_NOT_ACCEPTED",
   "allowed_claim": "V0_MIN_ACCEPTED_NOT_RELEASED",
   "forbidden_claims": [
     "V0_ACCEPTED",
@@ -33,9 +29,9 @@
     "PRODUCTION_RELEASED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "project_owner",
-  "next_action": "Double-click root LVW.exe/启动LVW.lnk; choose image or video, complete actual experience using manual guide, then provide candidate-bound S2 signoff if accepted. Launcher and browser notes do not sign automatically.",
-  "required_authorization": "HUMAN_EXPERIENCE_SIGNOFF_ONLY_V0_GPU_CODE_PROGRAM_REMAINS_ACTIVE",
+  "next_owner": "codex_unified_implementer",
+  "next_action": "Implement U1/U2 then one consolidated checkpoint and fresh independent review; preserve holdout NOT_RUN; request unified human signoff only at completion.",
+  "required_authorization": "PROGRAM_CHILD_FOR_LIVE_NO_REPEATED_GPU_QUESTION",
   "authorization_request": "reports/v0-s2/full-v0-auto-08/human-signoff-request.md",
   "authorization_record": "reports/authorization-program-v1-local-01.json",
   "read_only_binding_authorization": "reports/v0-s2/authorization-binding-inventory-06.json",
@@ -80,8 +76,8 @@
   ],
   "contract_change_request": "reports/r1a/change-request-r1a-product-controls-02.json",
   "contract_change_decision": "reports/r1a/change-decision-r1a-product-controls-02.json",
-  "implementation_candidate": "719c74559393a6489b2f630a1e0d3bc3303eb655",
-  "implementation_baseline": "5ea725cc7182e654043183d9de581b730a585685",
+  "implementation_candidate": null,
+  "implementation_baseline": "0fee993",
   "candidate_binding_scope": "Approved GPU policy correction, unchanged calibrated production workload/context and fixed acceptance denominator.",
   "offline_evidence_commit": null,
   "offline_receipt": "reports/v0-s2/offline-checkpoint-44/receipt.json",
@@ -793,5 +789,28 @@
     "historical_review": "reports/human-video-validation-2026-11-08/history.json",
     "report_ui_checks": "reports/human-video-validation-2026-11-08/ui-receipt.json",
     "formal_quality_set": false
-  }
+  },
+  "historical_s2_coordinate": {
+    "stage_id": "V0-S2",
+    "workpack_id": "WP-S2-06",
+    "gate": "GATE5_HUMAN_EXPERIENCE_SIGNOFF",
+    "state": "WAIT_HUMAN"
+  },
+  "active_slice": {
+    "id": "UNIFIED_MEDIA_EARLY",
+    "approval": "reports/unified-media/approval.json",
+    "completed_workpacks": 0,
+    "total_workpacks": 3,
+    "human_signoff": null
+  },
+  "historical_s2_last_passed_gate": {
+    "gate": "GATE5_INDEPENDENT_MACHINE_REVIEW",
+    "candidate_sha": "719c74559393a6489b2f630a1e0d3bc3303eb655",
+    "receipt": "reports/v0-s2/full-v0-auto-08/independent-review.json",
+    "decision": "MACHINE_AND_INDEPENDENT_VERIFIED_HUMAN_PENDING",
+    "unit_tests": 541,
+    "fixed_cases": 9,
+    "passed_cases": 9
+  },
+  "historical_s2_implementation_candidate": "719c74559393a6489b2f630a1e0d3bc3303eb655"
 }

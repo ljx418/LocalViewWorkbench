@@ -127,14 +127,14 @@ def validate_stage(control: dict, tasks: dict, cases: dict) -> list[str]:
                 errors.append(f"historical authorization record is missing: {record}")
     elif external and control.get("authorization_scope") == "PROGRAM_CHILD_REQUIRED":
         reference = control.get("program_authorization")
-        if control.get("stage_id") != "V0-S2" or reference != "reports/authorization-program-v1-local-01.json":
+        if control.get("stage_id") not in {"V0-S2", "R1"} or reference != "reports/authorization-program-v1-local-01.json":
             errors.append("program child eligibility has an unknown Stage/program")
         elif not (ROOT / reference).is_file():
             errors.append("program authorization record is missing")
         else:
             program = load_json(ROOT / reference)
             if (program.get("status") != "ACTIVE" or program.get("authorization_id") != "AUTH-PROGRAM-V1-LOCAL-01"
-                    or "V0-S2" not in program.get("stages", [])
+                    or control.get("stage_id") not in program.get("stages", [])
                     or program.get("child_authorization_policy", {}).get("stage_checkpoint_limit") != 1
                     or program["child_authorization_policy"].get("corrected_candidate_full_recheck_limit") != 1):
                 errors.append("program child eligibility is not backed by the active finite Mother grant")
@@ -759,6 +759,30 @@ def main() -> int:
     args = parser.parse_args()
 
     execution = load_json(ROOT / "plans" / "execution-control.json")
+    if execution.get("coordinate", {}).get("stage_id") == "R1" and execution.get("active_slice", {}).get("id") == "UNIFIED_MEDIA_EARLY":
+        control = load_json(GOV / "stages/R1/stage-control.json")
+        errors = validate_stage(control, load_json(ROOT / "plans/tasks.json"),
+                                load_json(ROOT / "plans/acceptance_cases.json"))
+        errors.extend(verify_manifest_at(GOV / "stages/R1"))
+        approval = load_json(ROOT / "reports/unified-media/approval.json")
+        if approval.get("decision") != "APPROVED":
+            errors.append("unified route is not approved")
+        if control.get("slice_acceptance_hash") != digest_ids(control.get("slice_acceptance_ids", [])):
+            errors.append("unified slice acceptance hash mismatch")
+        if control.get("slice_acceptance_ids") != [f"UM-{i:02d}" for i in range(1, 11)]:
+            errors.append("unified slice fixed ten obligations changed")
+        if execution["coordinate"]["workpack_id"] not in {w["id"] for w in control["workpacks"]}:
+            errors.append("unified workpack is not frozen")
+        if execution.get("human_validation_holdout", {}).get("lvw_status") != "ALL_NOT_RUN":
+            errors.append("human holdout must not become development inference")
+        if execution.get("coordinate", {}).get("state") == "PASS":
+            errors.append("unified slice cannot claim full R1 Stage PASS")
+        if args.self_test:
+            errors.extend(test["name"] for test in run_self_tests(control,
+                load_json(ROOT / "plans/tasks.json"), load_json(ROOT / "plans/acceptance_cases.json")) if not test["passed"])
+        print(json.dumps({"kind": "GOVERNANCE_VALIDATION_NOT_PRODUCT_ACCEPTANCE", "stage_id": "R1",
+                          "slice": "UNIFIED_MEDIA_EARLY", "errors": errors, "failed": len(errors)}, indent=2))
+        return 1 if errors else 0
     if execution.get("coordinate", {}).get("stage_id") == "V0-S2":
         control = load_json(GOV / "stages/V0-S2/stage-control.json")
         errors = validate_stage(control, load_json(ROOT / "plans/tasks.json"),

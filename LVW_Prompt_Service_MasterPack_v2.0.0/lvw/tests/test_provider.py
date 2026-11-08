@@ -190,3 +190,41 @@ def test_analyze_ledger_counts_real_provider_boundary_once(tmp_path, monkeypatch
     assert "保留原始皮肤纹理" in captured["messages"][1]["content"]
     assert captured["messages"][1]["images"]
     assert captured["options"]["num_predict"] == 512
+
+
+def test_video_uses_all_sample_frames_one_call_and_retains_joint_motion(monkeypatch):
+    import asyncio
+    import json
+    import httpx
+    from types import SimpleNamespace
+    from io import BytesIO
+    from PIL import Image
+    frames=[]
+    for color in ['red','green','blue','white']:
+        b=BytesIO();Image.new('RGB',(32,24),color).save(b,format='PPM');frames.append(b.getvalue())
+    decoded=SimpleNamespace(frames=frames,manifest=[{'time_seconds':x} for x in [1,3,5,7]])
+    real_client=httpx.AsyncClient;calls=[]
+    async def handler(request):
+        payload=json.loads(request.content);calls.append(payload)
+        return httpx.Response(200,json=model_envelope(camera_motion='Locked-off view with color cuts.',subject_action='The color changes red, green, blue, then white.'))
+    monkeypatch.setattr('app.provider.httpx.AsyncClient',lambda **kwargs:real_client(**kwargs,transport=httpx.MockTransport(handler)))
+    provider=OllamaProvider('http://127.0.0.1:11434/api/chat','gemma4:26b',30)
+    raw,spec=asyncio.run(provider.analyze_video(decoded,mode='realistic'))
+    assert len(calls)==1 and len(calls[0]['messages'][-1]['images'])==4
+    assert '1, 3, 5, 7' in calls[0]['messages'][-1]['content']
+    assert calls[0]['options']['num_ctx']==4096
+    assert spec.technical.subject_action.startswith('The color changes')
+    assert any('4个采样帧' in x for x in spec.domains.unknowns)
+    assert json.loads(raw)['message']['content']
+
+
+def test_model_lease_refuses_external_loaded_model_without_unload(monkeypatch):
+    import asyncio,httpx
+    real_client=httpx.AsyncClient;methods=[]
+    async def handler(request):
+        methods.append(request.method)
+        return httpx.Response(200,json={'models':[{'name':'foreign'}]})
+    monkeypatch.setattr('app.provider.httpx.AsyncClient',lambda **kwargs:real_client(**kwargs,transport=httpx.MockTransport(handler)))
+    provider=OllamaProvider('http://127.0.0.1:11434/api/chat','gemma4:26b',30)
+    with pytest.raises(AppError) as caught:asyncio.run(provider.acquire('job1'))
+    assert caught.value.code=='RESOURCE_BUSY' and methods==['GET'] and provider._lease is None

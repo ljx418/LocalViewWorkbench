@@ -11,6 +11,8 @@ from PIL import Image, ImageOps, UnidentifiedImageError
 
 from .errors import AppError
 from .models import MediaRef
+from .video_kernel import VideoKernel
+import asyncio
 
 MAX_BYTES = 20 * 1024 * 1024
 MAX_PIXELS = 40_000_000
@@ -25,8 +27,11 @@ class MediaStore:
         self.root.mkdir(parents=True, exist_ok=True)
         self.refs: dict[str, MediaRef] = {}
         self.paths: dict[str, Path] = {}
+        self.video = VideoKernel(self.root, root / "video-temp")
 
     async def ingest(self, upload: UploadFile) -> MediaRef:
+        if Path(upload.filename or "").suffix.lower() in {".mp4", ".mov"}:
+            return await self.ingest_video(upload)
         chunks: list[bytes] = []
         total = 0
         while True:
@@ -80,6 +85,32 @@ class MediaStore:
         self.refs[media_id] = ref
         self.paths[media_id] = path
         return ref
+
+    async def ingest_video(self, upload: UploadFile) -> MediaRef:
+        media_id = "med_" + uuid.uuid4().hex
+        path = self.root / (media_id + Path(upload.filename).suffix.lower())
+        total, digest = 0, hashlib.sha256()
+        try:
+            with path.open("xb") as stream:
+                while chunk := await upload.read(CHUNK_SIZE):
+                    total += len(chunk)
+                    if total > 256 * 1024 * 1024:
+                        raise AppError("MEDIA_LIMIT_EXCEEDED", "视频不能超过256 MiB", status_code=422)
+                    digest.update(chunk)
+                    stream.write(chunk)
+            if not total:
+                raise AppError("MEDIA_INVALID", "视频文件为空", status_code=422)
+            probe = await asyncio.to_thread(self.video.probe, path, total)
+            ref = MediaRef(id=media_id, sha256=digest.hexdigest(), kind="video",
+                display_name=re.sub(r"[\x00-\x1f]", "", (upload.filename or "video").replace("\\", "/").split("/")[-1])[:240],
+                bytes=total, width=probe.width, height=probe.height,
+                duration_seconds=float(probe.duration), source_root_id=None,
+                relative_path=None, availability="available", frames=[])
+            self.refs[media_id], self.paths[media_id] = ref, path
+            return ref
+        except BaseException:
+            path.unlink(missing_ok=True)
+            raise
 
     def get(self, media_id: str) -> tuple[MediaRef, Path]:
         ref = self.refs.get(media_id)

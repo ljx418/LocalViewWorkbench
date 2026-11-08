@@ -15,11 +15,12 @@ class StrictModel(BaseModel):
 
 class FrameRef(StrictModel):
     index: int = Field(ge=0)
-    pts: int | None = None
+    target_seconds: float = Field(ge=0)
+    source_pts: int | None = None
     time_base_num: int | None = None
     time_base_den: int | None = None
-    time_seconds: float | None = None
     sha256: str
+    time_basis: Literal["sample_target", "decoded_pts"]
 
 
 class MediaRef(StrictModel):

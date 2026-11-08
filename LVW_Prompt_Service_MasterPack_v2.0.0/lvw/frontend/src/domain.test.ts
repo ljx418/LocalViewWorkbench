@@ -38,3 +38,16 @@ test("analysis is gated by file, idle phase, and model readiness", () => {
   assert.equal(canAnalyze(false, "idle", true), false);
   assert.equal(canAnalyze(true, "analyzing", true), false);
 });
+
+test("video target compiles observed joint motion without another analysis", () => {
+  const video = { ...spec, technical: { camera_motion: "fixed camera", subject_action: "red changes to blue" } };
+  const draft = adopt(video);
+  assert.match(draft.videoPrompt, /red changes to blue/);
+  const json = JSON.parse(asJson(draft, null));
+  assert.equal(json.outputs.video_prompt, draft.videoPrompt);
+  assert.equal(json.schema_version, "lvw.unified.export/1");
+});
+
+test("cancel wait cannot start overlapping inference", () => {
+  assert.equal(canAnalyze(true, "cancelling", true), false);
+});

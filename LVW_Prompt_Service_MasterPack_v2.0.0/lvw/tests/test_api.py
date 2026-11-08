@@ -69,7 +69,7 @@ def test_health_and_security_headers(tmp_path):
     client = make_client(tmp_path, FakeProvider())
     response = client.get("/health")
     assert response.status_code == 200
-    assert response.json()["data"]["scope"] == "R1a"
+    assert response.json()["data"]["scope"] == "R1-unified"
     assert response.headers["content-security-policy"].startswith("default-src 'self'")
     assert "127.0.0.1:11434" not in response.headers["content-security-policy"]
 
@@ -219,5 +219,5 @@ def test_built_react_is_served_same_origin(tmp_path):
     app = create_app(Settings.local(data_root=tmp_path, static_root=static_root), provider=FakeProvider())
     response = TestClient(app).get("/")
     assert response.status_code == 200
-    assert "LVW 本地图像提示词工作台" in response.text
+    assert "LVW 本地图文与视频提示词工作台" in response.text
     assert response.headers["content-security-policy"].startswith("default-src 'self'")

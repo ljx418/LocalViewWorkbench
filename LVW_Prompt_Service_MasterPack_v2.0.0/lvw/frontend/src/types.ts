@@ -8,14 +8,23 @@ export interface MediaRef {
   bytes: number;
   width: number;
   height: number;
+  kind: "image" | "video";
+  duration_seconds: number | null;
 }
 
 export interface Job {
   id: string;
-  status: "queued" | "preparing" | "running" | "partial" | "succeeded" | "failed" | "cancelled" | "interrupted";
+  status: "queued" | "preparing" | "running" | "partial" | "succeeded" | "failed" | "cancelling" | "cancelled" | "interrupted";
   resource_state: string;
   result_ref: string | null;
   error_code: string | null;
+  progress_done?: number;
+  progress_total?: number;
+}
+
+export interface FrameRef {
+  index: number; source_pts: number | null; time_base_num: number | null; time_base_den: number | null;
+  target_seconds: number; time_basis: "sample_target" | "decoded_pts"; sha256: string;
 }
 
 export interface PromptSpec {
@@ -34,6 +43,7 @@ export interface PromptSpec {
   negative: string;
   template_id: string;
   template_version: string;
+  technical?: { camera_motion: string; subject_action: string };
 }
 
 export interface ModelRun {
@@ -43,6 +53,9 @@ export interface ModelRun {
   raw_response: string;
   parsed_spec: PromptSpec | null;
   error_code: string | null;
+  input_sha256?: string;
+  frames?: FrameRef[];
+  model_tag?: string;
 }
 
 export interface ApiEnvelope<T> {

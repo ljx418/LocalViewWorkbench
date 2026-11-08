@@ -8,12 +8,15 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from .config import Settings
+from .build_info import build_id
 from .errors import AppError
 from .media import MediaStore
 from .models import AnalyzeRequest
 from .provider import OllamaProvider
 from .runtime import OllamaRuntime
 from .service import AnalysisService
+from .body_limit import RequestBodyLimit, MAX_UPLOAD_REQUEST_BYTES, BodyLimitExceeded
+from urllib.parse import urlsplit
 
 SCHEMA_VERSION = "lvw.api/1"
 
@@ -24,6 +27,7 @@ def envelope(data, request_id: str) -> dict:
 
 
 def create_app(settings: Settings | None = None, provider=None, runtime=None) -> FastAPI:
+    identity = build_id()
     settings = settings or Settings.local()
     settings.data_root.mkdir(parents=True, exist_ok=True)
     media = MediaStore(settings.data_root)
@@ -32,18 +36,30 @@ def create_app(settings: Settings | None = None, provider=None, runtime=None) ->
     runtime = runtime or OllamaRuntime(provider, settings.ollama_executable, settings.data_root)
     service = AnalysisService(media, provider)
     app = FastAPI(title="LVW Prompt Service", version="0.1.0", docs_url=None, redoc_url=None)
+    app.add_middleware(RequestBodyLimit, upload_limit=MAX_UPLOAD_REQUEST_BYTES)
     app.state.media = media
     app.state.analysis = service
     app.state.runtime = runtime
     app.state.upload_keys = {}
+    app.router.add_event_handler("shutdown", service.close)
     app.router.add_event_handler("shutdown", runtime.close)
 
     @app.middleware("http")
     async def local_security_headers(request: Request, call_next):
+        # TestClient is an in-process transport, never a production network identity.
+        host = urlsplit("http://" + request.headers.get("host", ""))
+        if request.client and request.client.host != "testclient":
+            if request.client.host not in {"127.0.0.1", "::1"} or host.hostname not in {"127.0.0.1", "::1"}:
+                return JSONResponse(status_code=403, content={"error": {"code": "ORIGIN_FORBIDDEN",
+                    "message": "仅允许本机地址", "retryable": False, "details": {}}, "request_id": uuid.uuid4().hex})
+        origin = request.headers.get("origin")
+        if origin and (origin != "http://" + request.headers.get("host", "")):
+            return JSONResponse(status_code=403, content={"error": {"code": "ORIGIN_FORBIDDEN",
+                "message": "仅允许同源访问", "retryable": False, "details": {}}, "request_id": uuid.uuid4().hex})
         response = await call_next(request)
         response.headers["Content-Security-Policy"] = (
             "default-src 'self'; img-src 'self' blob:; style-src 'self' 'unsafe-inline'; "
-            "script-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'"
+            "script-src 'self'; connect-src 'self'; media-src 'self' blob:; object-src 'none'; base-uri 'none'"
         )
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["Referrer-Policy"] = "no-referrer"
@@ -56,16 +72,20 @@ def create_app(settings: Settings | None = None, provider=None, runtime=None) ->
             "code": exc.code, "message": exc.message, "retryable": exc.retryable,
             "details": exc.details}, "request_id": request_id})
 
+    @app.exception_handler(BodyLimitExceeded)
+    async def handle_body_limit(request: Request, exc: BodyLimitExceeded):
+        return await handle_app_error(request, AppError("MEDIA_LIMIT_EXCEEDED", exc.detail, status_code=422))
+
     @app.get("/health")
     async def health(request: Request):
-        return envelope({"status": "ok", "model": settings.model, "scope": "R1a"},
+        return envelope({"status": "ok", "model": settings.model, "scope": "R1-unified", "build_id": identity},
                         request.headers.get("X-Request-ID") or uuid.uuid4().hex)
 
     @app.get("/api/v1/capabilities")
     async def capabilities(request: Request):
-        return envelope({"media": ["image"], "modes": ["documentary", "realistic", "scifi",
-                         "science", "cinematic", "stylized"], "targets": ["natural", "image"],
-                         "stage": "R1a"}, request.headers.get("X-Request-ID") or uuid.uuid4().hex)
+        return envelope({"media": ["image", "video"], "modes": ["documentary", "realistic", "scifi",
+                         "science", "cinematic", "stylized"], "targets": ["natural", "image", "video"],
+                         "stage": "R1-unified", "build_id": identity}, request.headers.get("X-Request-ID") or uuid.uuid4().hex)
 
     @app.get("/api/v1/readiness")
     async def readiness(request: Request):
@@ -85,30 +105,30 @@ def create_app(settings: Settings | None = None, provider=None, runtime=None) ->
     @app.post("/api/v1/runtime/ollama/start")
     async def runtime_start(request: Request):
         require_runtime_control(request)
-        return envelope(await runtime.start(),
+        return envelope(await service.runtime_control(runtime.start),
                         request.headers.get("X-Request-ID") or uuid.uuid4().hex)
 
     @app.post("/api/v1/runtime/ollama/reset")
     async def runtime_reset(request: Request):
         require_runtime_control(request)
-        return envelope(await runtime.reset(),
+        return envelope(await service.runtime_control(runtime.reset),
                         request.headers.get("X-Request-ID") or uuid.uuid4().hex)
 
     @app.post("/api/v1/runtime/ollama/stop")
     async def runtime_stop(request: Request):
         require_runtime_control(request)
-        return envelope(await runtime.stop(),
+        return envelope(await service.runtime_control(runtime.stop),
                         request.headers.get("X-Request-ID") or uuid.uuid4().hex)
 
     @app.post("/api/v1/media", status_code=201)
     async def upload_media(request: Request, file: UploadFile,
                            idempotency_key: str = Header(min_length=1, max_length=128)):
-        existing = app.state.upload_keys.get(idempotency_key)
         ref = await media.ingest(file)
+        existing = app.state.upload_keys.get(idempotency_key)
         if existing:
             if existing.sha256 != ref.sha256:
                 media.discard(ref.id)
-                raise AppError("IDEMPOTENCY_CONFLICT", "幂等键已用于其他图片", status_code=409)
+                raise AppError("IDEMPOTENCY_CONFLICT", "幂等键已用于其他媒体", status_code=409)
             media.discard(ref.id)
             return envelope(existing, request.headers.get("X-Request-ID") or uuid.uuid4().hex)
         app.state.upload_keys[idempotency_key] = ref
@@ -130,6 +150,17 @@ def create_app(settings: Settings | None = None, provider=None, runtime=None) ->
     @app.get("/api/v1/jobs/{id}")
     async def get_job(id: str, request: Request):
         return envelope(service.get_job(id), request.headers.get("X-Request-ID") or uuid.uuid4().hex)
+
+    @app.post("/api/v1/jobs/{id}/cancel")
+    async def cancel_job(id: str, request: Request,
+                         idempotency_key: str = Header(min_length=1, max_length=128)):
+        require_runtime_control(request)
+        return envelope(service.cancel(id), request.headers.get("X-Request-ID") or uuid.uuid4().hex)
+
+    @app.get("/api/v1/media/{id}")
+    async def get_media(id: str, request: Request):
+        ref, _ = media.get(id)
+        return envelope(ref, request.headers.get("X-Request-ID") or uuid.uuid4().hex)
 
     @app.get("/api/v1/model-runs/{id}")
     async def get_run(id: str, request: Request):
