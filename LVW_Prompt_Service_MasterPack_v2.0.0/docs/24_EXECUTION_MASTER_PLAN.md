@@ -4,6 +4,8 @@
 
 ## 入口、权威与完成度
 
+人工体验与记录入口：[根目录人工验收指南](../人工验收指南.html)，启动及验收说明见[docs/26](26_MANUAL_ACCEPTANCE_GUIDE.md)。该辅助页不改固定分母、不代签。
+
 先读 `plans/execution-control.json`，再读本章、当前 Stage Packet 和对应实现章节。产品需求、用例、发布门禁分别以 `plans/requirements.json`、`plans/acceptance_cases.json`、`plans/release_gates.json` 为准。实现设计见 docs/13–20；历史范围决策见 docs/22–23。`plans/tasks.json` 是依赖/范围目录，其中初始 NOT_RUN 不是实时进度；实时进度只保存在 execution-control 的 development_outline，与证据路径绑定。
 
 本章是执行索引，不复制第二套合同或当前坐标。下表是2026-11-06审计快照；后续每次停止时从 execution-control 重列大纲并标出当前 Stage。文末过往运行更新保留历史，不再作为待授权或待执行指令。当前 S2 已到人工门槛，机器/独审通过不等于人工签署。
@@ -70,7 +72,7 @@ V0-Min 的五项已签是历史范围结论，不表示最新 S2 候选也已通
 | WP-S2-04 离线收口 | CI；tools/tests/reports | 候选719c745…的offline44：541测试、5项检查和前后封存通过；不代表人工签署 |
 | WP-S2-05 真验收 | CI；候选绑定的子授权、受控状态目录、脱敏 reports | full-v0-auto-08已完成新鲜累计九项9/9及warm20；五次完整依赖封存，两环境清理归档；原失败不重写 |
 | WP-S2-06 独立审查 | 隔离只读 reviewer；候选/规格/原始证据 | 隔离实例s2_full08_stage_review独立重算，Fatal0/Major0/Minor0；完整覆盖与未重复解码像素等边界见full08独审报告 |
-| S2 人工签署与同步 | 人类体验签署；gate owner 保存签署 | 机器与独审已通过；查看reports/v0-s2/full-v0-auto-08/human-review.html，候选719c745…等待人工体验签署；签署后立即commit+push，非生产发布 |
+| S2 人工签署与同步 | 人类体验签署；gate owner 保存签署 | 机器与独审已通过；打开根目录人工验收指南.html启动真实产品体验，历史证据见reports/v0-s2/full-v0-auto-08/human-review.html；候选719c745…等待人工体验签署；签署后立即commit+push，非生产发布 |
 
 本轮已执行的历史链路（当前只等待人工签署）：核对批准计划 → 接入已批准的一个新授权 slot/传输 → 最终后代候选离线门禁 → 新鲜 readiness → 正式 preflight/完整真实 sequence → 独立审查 → 提交 S2 人工验收。只增加这条链路必要的修复；不能临时加入新产品目标、第二套前端、框架或证据系统。
 

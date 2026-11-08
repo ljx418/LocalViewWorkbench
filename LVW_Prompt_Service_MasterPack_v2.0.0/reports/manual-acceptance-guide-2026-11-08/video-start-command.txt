@@ -1,0 +1,48 @@
+$ErrorActionPreference = 'Stop'
+$lvwPack = 'C:\workSpace\videoWorkLine\LocalViewWorkbench\LVW_Prompt_Service_MasterPack_v2.0.0'
+$lvwPython = 'C:\ComfyUI-aki-v2\python\python.exe'
+$lvwMain = 'C:\ComfyUI-aki-v2\ComfyUI\main.py'
+$lvwFfmpeg = 'C:\ComfyUI-aki-v2\python\Lib\site-packages\imageio_ffmpeg\binaries\ffmpeg-win-x86_64-v7.1.exe'
+foreach ($lvwFile in @($lvwPython, $lvwMain, $lvwFfmpeg)) {
+    if (!(Test-Path -LiteralPath $lvwFile -PathType Leaf)) { throw "Missing installed dependency: $lvwFile" }
+}
+$lvwSource = Join-Path $lvwPack 'LVW_V0_RuntimePatch\custom_nodes\lvw_v0_bridge'
+if (!(Test-Path -LiteralPath $lvwSource -PathType Container)) { throw 'LVW source folder is missing.' }
+if (Get-NetTCPConnection -State Listen -LocalPort 8191 -ErrorAction SilentlyContinue) {
+    throw 'Port 8191 is occupied. Identify its owner; do not terminate an unknown process.'
+}
+$lvwSession = Join-Path $env:TEMP ('lvw-s2-experience-' + [guid]::NewGuid().ToString('N'))
+foreach ($lvwDir in @('input','output','temp','user','custom_nodes\lvw_v0_bridge')) {
+    New-Item -ItemType Directory -Path (Join-Path $lvwSession $lvwDir) | Out-Null
+}
+$lvwTarget = Join-Path $lvwSession 'custom_nodes\lvw_v0_bridge'
+Get-ChildItem -LiteralPath $lvwSource -Recurse -File | Where-Object {
+    $_.FullName -notlike '*\__pycache__\*' -and $_.Extension -ne '.pyc'
+} | ForEach-Object {
+    $lvwRelative = $_.FullName.Substring($lvwSource.Length + 1)
+    $lvwDestination = Join-Path $lvwTarget $lvwRelative
+    New-Item -ItemType Directory -Path (Split-Path $lvwDestination -Parent) -Force | Out-Null
+    Copy-Item -LiteralPath $_.FullName -Destination $lvwDestination
+}
+foreach ($lvwName in @('LVW_NATIVE_CHECKPOINT','LVW_WARM_BENCHMARK','LVW_FFPROBE_EXE','PYTHONPATH','PYTHONHOME','HTTP_PROXY','HTTPS_PROXY','ALL_PROXY')) {
+    Remove-Item ('Env:' + $lvwName) -ErrorAction SilentlyContinue
+}
+$env:LVW_FFMPEG_EXE = $lvwFfmpeg
+$env:LVW_VIDEO_PROBE_BACKEND = 'pyav'
+$env:PYTHONDONTWRITEBYTECODE = '1'
+$env:PYTHONNOUSERSITE = '1'
+$env:HF_HUB_OFFLINE = '1'
+$env:TRANSFORMERS_OFFLINE = '1'
+$env:HF_DATASETS_OFFLINE = '1'
+$env:NO_PROXY = '127.0.0.1,localhost'
+$lvwServiceTemp = Join-Path $lvwSession 'temp\service-os'
+New-Item -ItemType Directory -Path $lvwServiceTemp | Out-Null
+$env:TEMP = $lvwServiceTemp
+$env:TMP = $lvwServiceTemp
+$env:TORCH_HOME = Join-Path $lvwServiceTemp 'torch'
+$env:HF_HOME = Join-Path $lvwServiceTemp 'huggingface'
+$env:XDG_CACHE_HOME = Join-Path $lvwServiceTemp 'cache'
+Write-Host "Temporary LVW session: $lvwSession"
+Write-Host 'Open http://127.0.0.1:8191 manually. Keep this window open.'
+& $lvwPython -s -B $lvwMain --listen 127.0.0.1 --port 8191 --base-directory $lvwSession --user-directory (Join-Path $lvwSession 'user') --disable-auto-launch --disable-api-nodes --disable-all-custom-nodes --whitelist-custom-nodes lvw_v0_bridge
+Write-Host "After exporting your work and confirming this session stopped, remove only: $lvwSession"
