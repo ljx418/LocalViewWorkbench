@@ -16,7 +16,7 @@ def create(run_id,harness,budget,*,port,samples=(),seconds=240,full=False):
     if full:
         runs=list((ROOT/'reports/unified-media').glob('live-*/authorization.json'))
         consumed=sum(1 for p in runs if not (p.parent/'receipt.json').exists() or json.loads((p.parent/'receipt.json').read_text()).get('stage_checkpoint_consumed',True))
-        if consumed>=2 or len(runs)>=3:
+        if run_id=='live-04' or consumed>=2 or len(runs)>=3:
             # A written request is not approval. This exception remains locked until a new
             # explicit human approval binds the complete request hash and exact source tree.
             request_path=ROOT/'reports/unified-media/authorization-semantic-correction-01.request.json'
@@ -31,6 +31,14 @@ def create(run_id,harness,budget,*,port,samples=(),seconds=240,full=False):
             assert [(str(Path(p).relative_to(ROOT)),sha(p)) for p in samples]==[(p['path'],p['sha256']) for p in request['samples']]
             assert sha(harness)==request['harness_sha256']
             assert sha(ROOT/'.agent-governance/stages/R1/PAYLOAD_MANIFEST.sha256')==request['proposed_packet_manifest_sha256'],'approved packet presentation correction not activated'
+            packet_root=ROOT/'.agent-governance/stages/R1'
+            packet_files=set()
+            for line in (packet_root/'PAYLOAD_MANIFEST.sha256').read_text().splitlines():
+                digest,name=line.split('  ',1)
+                assert name==Path(name).name and name not in packet_files
+                assert sha(packet_root/name)==digest,'approved packet file mismatch'
+                packet_files.add(name)
+            assert {p.name for p in packet_root.iterdir() if p.is_file() and p.name!='PAYLOAD_MANIFEST.sha256'}==packet_files
             assert subprocess.run(['git','merge-base','--is-ancestor',request['candidate_sha'],candidate],cwd=ROOT).returncode==0
             assert subprocess.run(['git','diff','--quiet',request['candidate_sha'],candidate,'--',*request['frozen_paths']],cwd=ROOT).returncode==0
         else:
