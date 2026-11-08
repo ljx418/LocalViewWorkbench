@@ -30,6 +30,7 @@ def create(run_id,harness,budget,*,port,samples=(),seconds=240,full=False):
             assert budget==request['budget'] and seconds<=request['max_seconds'] and port==request['port']
             assert [(str(Path(p).relative_to(ROOT)),sha(p)) for p in samples]==[(p['path'],p['sha256']) for p in request['samples']]
             assert sha(harness)==request['harness_sha256']
+            assert sha(ROOT/'.agent-governance/stages/R1/PAYLOAD_MANIFEST.sha256')==request['proposed_packet_manifest_sha256'],'approved packet presentation correction not activated'
             assert subprocess.run(['git','merge-base','--is-ancestor',request['candidate_sha'],candidate],cwd=ROOT).returncode==0
             assert subprocess.run(['git','diff','--quiet',request['candidate_sha'],candidate,'--',*request['frozen_paths']],cwd=ROOT).returncode==0
         else:
