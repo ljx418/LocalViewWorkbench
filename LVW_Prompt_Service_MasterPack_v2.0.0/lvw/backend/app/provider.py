@@ -183,6 +183,7 @@ class OllamaProvider:
             baseline = await resources.snapshot()
         except httpx.HTTPError as error:
             raise AppError("MODEL_UNAVAILABLE", "本机Ollama不可用", status_code=503) from error
+        self._record("admission_snapshot", job_id, baseline=baseline)
         if (baseline["gpu_used_mib"] >= 23552 or baseline["gpu_free_mib"] < 19047
                 or baseline["available_ram_mib"] < 2048):
             raise AppError("RESOURCE_BUSY", "可用GPU/RAM容量不足，未启动本轮模型", status_code=503,

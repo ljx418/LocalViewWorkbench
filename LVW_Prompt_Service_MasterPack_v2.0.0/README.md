@@ -16,6 +16,8 @@
 
 项目负责人随后批准[简易前端提前实施决策](docs/23_V1_EARLY_FRONTEND_SEQUENCE.md)：不新增 V0-Min.1，先执行 `R0 → R1a`，以最终 React/FastAPI 架构交付单图简易前端，再补 V0.1/V0.2，最后完成 R1/R2。该调整不改变任何版本固定分母，R1a 也不等于 V1 PASS。
 
+项目负责人已批准[图文与视频统一前端切片](docs/27_UNIFIED_MEDIA_FRONTEND_PROPOSAL.md)：先在同一React/FastAPI页面接通最小图片/短视频输入、建议、人工稿、导出和必要取消，再请求统一人工核签。该切片提前复用R1/R2能力，不补签旧S2、不宣布完整R1/R2或V1通过；当前候选与真实阻塞读取execution-control。双击LVW.exe即可进入统一入口，具体步骤见[指南](docs/26_MANUAL_ACCEPTANCE_GUIDE.md)。
+
 ## 一套文档，不再多条互斥路线
 
 | 阶段 | 用户能做什么 | 实现载体 |

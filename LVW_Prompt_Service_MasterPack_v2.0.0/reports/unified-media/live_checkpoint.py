@@ -40,6 +40,8 @@ try:
   except (OSError,ProcessLookupError):continue
  assert api and runroot and str(runroot.resolve()).casefold().startswith(str(state.resolve()).casefold()+'/'),'run-owned server process/root binding failed'
  result['api_process']=api;result['source_build_id']=api_call('GET','/health').json()['data']['build_id']
+ win_probe=subprocess.run(['/mnt/c/Windows/System32/curl.exe','--noproxy','*','-fsS','--max-time','5','http://127.0.0.1:18780/health'],capture_output=True,timeout=8)
+ (out/'windows-health.json').write_bytes(win_probe.stdout);assert win_probe.returncode==0,'Windows browser loopback cannot reach actual WSL API'
  # Actual public invalid files: no provider can run before the model is started.
  for i,p in enumerate(SAMPLES[2:]):
   with p.open('rb') as f:r=api_call('POST','/api/v1/media',headers={'Idempotency-Key':'negative-'+str(i)},files={'file':(p.name,f,'video/mp4')})
@@ -68,6 +70,12 @@ try:
  result['decision']='REAL_CHECKPOINT_COMPLETE_INDEPENDENT_REVIEW_PENDING'
 except Exception as error:result['error']=type(error).__name__+': '+str(error)
 finally:
+ if api and runroot and runroot.exists():
+  try:
+   stopped=api_call('POST','/api/v1/runtime/ollama/stop',headers={'X-LVW-Control':'local-ui','Idempotency-Key':'terminal-stop'})
+   (out/'cleanup-stop-response.json').write_text(json.dumps(stopped.json(),indent=2)+'\n')
+   if stopped.status_code != 200:result['cleanup_error']='owned runtime stop not confirmed before archive'
+  except Exception as e:result['cleanup_error']='runtime stop proof: '+str(e)
  if runroot and runroot.exists():
   # Preserve only this run's known logs before the production command removes its temporary root.
   archive=out/'runtime-evidence';archive.mkdir(exist_ok=True)
