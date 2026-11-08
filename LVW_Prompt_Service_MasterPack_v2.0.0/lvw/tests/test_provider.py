@@ -210,7 +210,14 @@ def test_video_uses_all_sample_frames_one_call_and_retains_joint_motion(monkeypa
     monkeypatch.setattr('app.provider.httpx.AsyncClient',lambda **kwargs:real_client(**kwargs,transport=httpx.MockTransport(handler)))
     provider=OllamaProvider('http://127.0.0.1:11434/api/chat','gemma4:26b',30)
     raw,spec=asyncio.run(provider.analyze_video(decoded,mode='realistic'))
-    assert len(calls)==1 and len(calls[0]['messages'][-1]['images'])==4
+    assert len(calls)==1 and len(calls[0]['messages'][-1]['images'])==1
+    import base64
+    sheet=Image.open(BytesIO(base64.b64decode(calls[0]['messages'][-1]['images'][0])))
+    assert sheet.size==(768,768)
+    for point,color in zip([(192,206),(576,206),(192,590),(576,590)],[(255,0,0),(0,128,0),(0,0,255),(255,255,255)]):
+        assert sheet.getpixel(point)==color
+    assert 'single image and return' not in calls[0]['messages'][-1]['content']
+    assert 'Actual populated panel count: 4' in calls[0]['messages'][-1]['content']
     assert '1, 3, 5, 7' in calls[0]['messages'][-1]['content']
     assert calls[0]['options']['num_ctx']==4096
     assert spec.technical.subject_action.startswith('The color changes')
@@ -249,3 +256,20 @@ def test_release_does_not_sample_or_claim_success_after_total_deadline(monkeypat
     monkeypatch.setattr('app.provider.time',SimpleNamespace(monotonic=lambda:clock[0]))
     monkeypatch.setattr('app.resources.snapshot',snapshot)
     assert asyncio.run(p.release('job')) is False and not samples and p._lease is not None
+
+
+def test_temporal_sheet_short_samples_and_mismatch_are_explicit():
+    from app.provider import build_temporal_sheet
+    from types import SimpleNamespace
+    from io import BytesIO
+    from PIL import Image
+    payload=BytesIO();Image.new('RGB',(10,1000),'red').save(payload,format='PPM')
+    frame=payload.getvalue()
+    for count in [1,2,3,4]:
+        decoded=SimpleNamespace(frames=[frame]*count,manifest=[{'time_seconds':x} for x in range(count)])
+        sheet=Image.open(BytesIO(build_temporal_sheet(decoded)))
+        assert max(sheet.size)<=768
+        assert sheet.size==(384 if count==1 else 768,384 if count<=2 else 768)
+    for count in [0,5]:
+        with pytest.raises(AppError):build_temporal_sheet(SimpleNamespace(frames=[frame]*count,manifest=[{'time_seconds':0}]*count))
+    with pytest.raises(AppError):build_temporal_sheet(SimpleNamespace(frames=[frame],manifest=[]))

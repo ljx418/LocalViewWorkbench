@@ -12,7 +12,7 @@ from io import BytesIO
 from urllib.parse import urlsplit
 
 import httpx
-from PIL import Image
+from PIL import Image, ImageDraw
 
 from .errors import AppError
 from .models import ContentProfile, Domains, Mode, PromptSpec, Technical
@@ -66,16 +66,48 @@ VIDEO_SCHEMA = {**IMAGE_SCHEMA, "properties": {**IMAGE_SCHEMA["properties"],
     "camera_motion": {"type": "string", "maxLength": 600},
     "subject_action": {"type": "string", "maxLength": 600}},
     "required": [*IMAGE_SCHEMA["required"], "camera_motion", "subject_action"]}
+VIDEO_PRESENTATION_VERSION = "temporal-sheet/1"
 VIDEO_TASK = (
-    "Analyze ALL attached video frames in chronological order as ONE sampled sequence. "
-    "Each frame time is listed below. Describe the shared scene AND observed differences across frames. "
-    "Do not summarize only the last frame. Separate actual frame differences from uncertain continuous "
-    "motion, unseen events or audio. State that only sampled frames were observed. Return compact JSON: "
-    "prompt_zh is real Chinese, prompt is English; camera_motion and subject_action must reflect only "
-    "supported evidence, or explicitly say unknown. Do not include unrelated stories or malformed tags."
+    "Analyze the attached TEMPORAL CONTACT SHEET as ONE sampled VIDEO sequence. "
+    "Each outlined panel is a different actual frame; labels F1, F2, ... and seconds are metadata, "
+    "not text in the scene. Read left-to-right, then top-to-bottom, in timestamp order. "
+    "Compare the background, framing and subject positions across EVERY populated panel before "
+    "summarizing. Distinguish camera/framing changes from subject movement and from scene cuts. "
+    "Do not treat the contact sheet itself as the scene or describe only its last panel. "
+    "Do not claim frames are identical without inspecting their differences. If movement cannot "
+    "be determined from samples, explicitly say unknown rather than asserting a static video. "
+    "State that only sampled frames were observed; continuous motion, unseen events and audio "
+    "are unverified. Return compact JSON: prompt_zh is Chinese, prompt is English; camera_motion "
+    "and subject_action contain supported observations or explicit uncertainty."
 )
 VIDEO_TEMPLATE_SHA256 = hashlib.sha256((TEMPLATE_SHA256 + VIDEO_TASK +
-    json.dumps(VIDEO_SCHEMA, sort_keys=True)).encode()).hexdigest()
+    VIDEO_PRESENTATION_VERSION + json.dumps(VIDEO_SCHEMA, sort_keys=True)).encode()).hexdigest()
+
+
+def build_temporal_sheet(decoded) -> bytes:
+    """All real frames, no crop/duplicate; bounded 768px PNG with numbered time labels."""
+    count = len(decoded.frames)
+    if not 1 <= count <= 4 or len(decoded.manifest) != count:
+        raise AppError("PARSE_PARTIAL", "视频实际帧与时间元数据不匹配", status_code=503)
+    cols = min(count, 2)
+    rows = (count + cols - 1) // cols
+    size = 384
+    canvas = Image.new("RGB", (cols * size, rows * size), "#161b25")
+    draw = ImageDraw.Draw(canvas)
+    for index, payload in enumerate(decoded.frames):
+        x, y = (index % cols) * size, (index // cols) * size
+        with Image.open(BytesIO(payload)) as source:
+            image = source.convert("RGB")
+            image.thumbnail((size - 8, size - 32), Image.Resampling.LANCZOS)
+            canvas.paste(image, (x + (size - image.width) // 2,
+                                y + 28 + (size - 32 - image.height) // 2))
+        draw.rectangle((x, y, x + size - 1, y + size - 1), outline="#8896aa", width=2)
+        seconds = float(decoded.manifest[index]["time_seconds"])
+        draw.text((x + 10, y + 8), f"F{index + 1} | {seconds:.3f}s", fill="white")
+    output = BytesIO()
+    canvas.save(output, format="PNG")
+    return output.getvalue()
+
 
 
 def build_messages(mode: Mode, content_profile: ContentProfile,
@@ -293,24 +325,24 @@ class OllamaProvider:
 
     async def analyze_video(self, decoded, *, mode: Mode, content_profile: ContentProfile = "standard",
                             custom_guidance: str = ""):
-        images = []
-        for payload in decoded.frames:
-            with Image.open(BytesIO(payload)) as image:
-                output = BytesIO()
-                image.save(output, format="PNG")
-                images.append(output.getvalue())
-        return await self._analyze_images(images, mode=mode, content_profile=content_profile,
-            custom_guidance=custom_guidance, frames=decoded.manifest)
+        sheet = build_temporal_sheet(decoded)
+        return await self._analyze_images([sheet], mode=mode, content_profile=content_profile,
+            custom_guidance=custom_guidance, frames=decoded.manifest,
+            source_frame_hashes=[hashlib.sha256(value).hexdigest() for value in decoded.frames])
 
     async def _analyze_images(self, images: list[bytes], *, mode: Mode,
                               content_profile: ContentProfile, custom_guidance: str,
-                              frames=None):
+                              frames=None, source_frame_hashes=None):
         call_id = "call_" + uuid.uuid4().hex
         self._record("provider_call_started", call_id,
-                     frame_count=len(images), input_sha256=hashlib.sha256(b"".join(images)).hexdigest())
+                     frame_count=len(frames) if frames is not None else len(images),
+                     payload_image_count=len(images), source_frame_hashes=source_frame_hashes,
+                     presentation=VIDEO_PRESENTATION_VERSION if frames is not None else "single-image",
+                     input_sha256=hashlib.sha256(b"".join(images)).hexdigest())
         messages: list[dict[str, object]] = build_messages(mode, content_profile, custom_guidance)
         if frames is not None:
-            messages[-1]["content"] += "\n" + VIDEO_TASK + "\nActual frame times (seconds): " + json.dumps([
+            messages[-1]["content"] = str(messages[-1]["content"]).replace(TEMPLATE_TEXT, VIDEO_TASK)
+            messages[-1]["content"] += f"\nActual populated panel count: {len(frames)}. Actual frame times (seconds): " + json.dumps([
                 value["time_seconds"] for value in frames])
         messages[-1]["images"] = [base64.b64encode(payload).decode("ascii") for payload in images]
         payload = {

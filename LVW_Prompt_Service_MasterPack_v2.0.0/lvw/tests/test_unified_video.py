@@ -112,3 +112,40 @@ def test_total_analysis_deadline_covers_acquisition_before_any_inference(tmp_pat
     c=client(tmp_path,SlowAcquire());m=upload(c,png_bytes).json()['data'];s=c.post('/api/v1/jobs/analyze',headers={'Idempotency-Key':'deadline'},json={'media_ref_id':m['id'],'mode':'realistic','config_profile':'local-default'})
     j=c.get('/api/v1/jobs/'+s.json()['data']['id']).json()['data']
     assert j['status']=='failed' and j['error_code']=='MODEL_TIMEOUT' and j['result_ref'] is None
+
+
+def test_preparing_cancel_waits_decoder_cleanup_before_terminal(tmp_path, monkeypatch):
+    """Real service/public cancel, controlled decoder barrier; never runs GPU/model."""
+    import threading
+    from app.errors import AppError
+    entered=threading.Event();cleaned=threading.Event()
+    async def fixed_snapshot():return {'gpu_used_mib':1000,'available_ram_mib':10000}
+    monkeypatch.setattr('app.resources.snapshot',fixed_snapshot)
+    class LeaseProvider(VideoProvider):
+        async def acquire(self,_):pass
+        async def release(self,_):return cleaned.is_set()
+        def _record(self,*_,**__):pass
+    async def scenario():
+        p=LeaseProvider();app=create_app(Settings.local(data_root=tmp_path),provider=p,runtime=FakeRuntime())
+        marker=tmp_path/'decoder-owned.tmp'
+        def blocked_decode(path,cancel):
+            marker.write_text('owned-test-only');entered.set()
+            try:
+                assert cancel.wait(5),'cancel did not reach decoder'
+                raise AppError('JOB_CANCELLED','decoder cancelled')
+            finally:marker.unlink();cleaned.set()
+        monkeypatch.setattr(app.state.analysis.media.video,'decode',blocked_decode)
+        async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app),base_url='http://127.0.0.1') as c:
+            u=await c.post('/api/v1/media',headers={'Idempotency-Key':'u'},files={'file':('scene.mov',(FIXTURES/'tracking.mov').read_bytes(),'video/quicktime')})
+            assert u.status_code==201
+            submit=asyncio.create_task(c.post('/api/v1/jobs/analyze',headers={'Idempotency-Key':'a'},json={'media_ref_id':u.json()['data']['id'],'mode':'realistic','config_profile':'local-default'}))
+            assert await asyncio.to_thread(entered.wait,5)
+            job=next(iter(app.state.analysis.jobs.values()));assert job.status=='preparing'
+            cancel=await c.post('/api/v1/jobs/'+job.id+'/cancel',headers={'Idempotency-Key':'c','X-LVW-Control':'local-ui'})
+            assert cancel.status_code==200
+            await submit
+            terminal=(await c.get('/api/v1/jobs/'+job.id)).json()['data']
+            assert terminal['status']=='cancelled' and terminal['resource_state']=='released'
+            assert terminal['result_ref'] is None and p.calls==0 and not app.state.analysis.runs
+            assert cleaned.is_set() and not marker.exists()
+    asyncio.run(scenario())
