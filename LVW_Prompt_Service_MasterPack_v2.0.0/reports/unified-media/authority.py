@@ -14,7 +14,10 @@ def create(run_id,harness,budget,*,port,samples=(),seconds=240,full=False):
     check=subprocess.run(['git','diff','--exit-code',candidate,'--','lvw/backend','lvw/frontend','lvw/run_local.py','lvw/print_build_id.py','launcher','LVW.exe','START_LVW.cmd','contracts','.agent-governance/stages/R1'],cwd=ROOT,capture_output=True)
     assert check.returncode==0,'product drift: commit candidate before a real child'
     if full:
-        assert len(list((ROOT/'reports/unified-media').glob('live-*/authorization.json')))<2,'full checkpoint/recheck Mother budget exhausted'
+        runs=list((ROOT/'reports/unified-media').glob('live-*/authorization.json'))
+        consumed=sum(1 for p in runs if not (p.parent/'receipt.json').exists() or json.loads((p.parent/'receipt.json').read_text()).get('stage_checkpoint_consumed',True))
+        assert consumed<2,'full checkpoint/recheck Mother budget exhausted'
+        assert len(runs)<3,'bounded launcher preflight retry exhausted'
     out=ROOT/'reports/unified-media'/run_id;out.mkdir(exist_ok=False)
     value={'kind':'V1_FINITE_CHILD_NOT_STAGE_SIGNOFF','status':'ACTIVE_ONE_SHOT','stage_id':'R1','slice':'UNIFIED_MEDIA_EARLY','run_id':run_id,'candidate_sha':candidate,'harness_sha256':sha(harness),'program':PROGRAM,'program_sha256':sha(ROOT/PROGRAM),'packet_manifest_sha256':sha(ROOT/'.agent-governance/stages/R1/PAYLOAD_MANIFEST.sha256'),'ports':[port],'samples':[{'path':str(Path(p).relative_to(ROOT)),'sha256':sha(p)} for p in samples],'budget':budget,'issued_at':time.time(),'expires_at':time.time()+seconds,'process_policy':'Only original handles or PID+birth+unique launch-token proved descendants from this run; never terminate others.','cleanup':'Stop own browser/API/Ollama and remove only this run private temp. Retain receipts/failures.','full_checkpoint':full,'stage_pass_claim':False}
     (out/'authorization.json').write_text(json.dumps(value,indent=2)+'\n');return out,value

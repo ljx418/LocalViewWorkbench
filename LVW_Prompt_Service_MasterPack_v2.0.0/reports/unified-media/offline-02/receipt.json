@@ -1,0 +1,66 @@
+{
+  "kind": "UNIFIED_OFFLINE_CHECKPOINT_NOT_REAL_OR_HUMAN_ACCEPTANCE",
+  "candidate_sha": "5f154dcab3edec5ed79b1475029d45be44d9ba11",
+  "checks": [
+    {
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "pytest",
+        "lvw/tests",
+        "LVW_V0_RuntimePatch/tests/test_s2_video_input.py",
+        "LVW_V0_RuntimePatch/tests/test_s2_video_files.py",
+        "LVW_V0_RuntimePatch/tests/test_s2_video_process.py",
+        "LVW_V0_RuntimePatch/tests/test_s2_video_decoder.py",
+        "-q"
+      ],
+      "exit_code": 0,
+      "stdout_sha256": "3d671003f3db5e1802f451e3671e4612726d7b6764553203c7954413f7eb3403",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "test"
+      ],
+      "exit_code": 0,
+      "stdout_sha256": "09b72f15451141827c0c4d2edad43686d50e30af6cf4f38e1f8a11d8e7fb4df6",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "typecheck"
+      ],
+      "exit_code": 0,
+      "stdout_sha256": "c1f3a8e3552c219aacfab13e6d09001c7a47adf12adcb5af188fde9f629ff047",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "exit_code": 0,
+      "stdout_sha256": "5fa65b344c731183e5349a0337a007f1be133bd14b21bbd11d52ed80e03bb9eb",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "tools/verify_governance.py",
+        "--self-test"
+      ],
+      "exit_code": 0,
+      "stdout_sha256": "e8927ccbca17c63e6ca696c254e5e232add8617ec564f840df4907579089d7cf",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "decision": "OFFLINE_CHECKPOINT_VERIFIED_NOT_LIVE_OR_HUMAN",
+  "model_calls": 0
+}

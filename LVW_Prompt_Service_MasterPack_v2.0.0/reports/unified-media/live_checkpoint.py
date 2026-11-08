@@ -4,7 +4,7 @@ import asyncio,json,os,signal,socket,subprocess,sys,time,uuid,shutil,hashlib
 from .authority import ROOT,create,terminal,sha
 import requests
 RUN=sys.argv[1] if len(sys.argv)>1 else 'live-01'
-assert RUN in {'live-01','live-02'}
+assert RUN in {'live-01','live-02','live-03'}
 SELF=Path(__file__);SAMPLES=[ROOT/'reports/unified-media/dev-image.png',ROOT/'reports/v0-s2/fixture-preparation-02/fixtures/tracking.mov',ROOT/'reports/v0-s2/fixture-preparation-02/fixtures/over-duration.mp4',ROOT/'reports/v0-s2/fixture-preparation-02/fixtures/corrupt.mp4']
 out,auth=create(RUN,SELF,{'api_starts':1,'ollama_starts':1,'headless_browser_starts':1,'provider_calls':8,'full_checkpoints':1,'model_calls':8,'downloads':0,'cloud_calls':0,'paid_calls':0,'holdout_model_calls':0},port=18780,samples=SAMPLES,seconds=1800,full=True)
 state=ROOT.parent.parent/'.lvw-runtime/lvw-prompt-service/R1-unified'/RUN;state.mkdir(parents=True,exist_ok=False)

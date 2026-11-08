@@ -1,0 +1,1209 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>LVW 验收报告与留样验证</title><style>
+:root{--ink:#173c64;--blue:#285dc0;--paper:#f3f6fa;--line:#ccd7e4;--red:#9b382e;--green:#167762}*{box-sizing:border-box}body{margin:0;background:var(--paper);color:#1d3045;font:16px/1.7 'Microsoft YaHei','PingFang SC',sans-serif}a{color:var(--blue)}button,input,textarea,select{font:inherit}button,.button{padding:9px 16px;background:#fff;border:1px solid var(--line);border-radius:5px;color:var(--ink);cursor:pointer}button:hover{border-color:var(--blue)}:focus-visible{outline:3px solid #588adc;outline-offset:3px}header{background:var(--ink);color:white;padding:44px max(24px,calc((100vw - 1200px)/2));}header h1{font-size:clamp(27px,4vw,44px);margin:0 0 12px}header p{max-width:820px}header a{color:#d2e5ff}nav{position:sticky;top:0;z-index:2;display:flex;gap:18px;flex-wrap:wrap;padding:12px 24px;background:white;border-bottom:1px solid var(--line)}main{max-width:1200px;padding:24px;margin:auto}section{margin:18px 0 42px;scroll-margin-top:90px}h2{color:var(--ink);font-size:28px}h3{font-size:21px}p,li{overflow-wrap:anywhere}.notice{border-left:5px solid #bd7628;background:#fff3df;padding:16px 20px}.issue{color:var(--red);background:#fff2ef;padding:12px}.pair{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:24px}.pair>*{min-width:0}video{display:block;width:100%;max-height:380px;background:#07131f}pre{font:13px/1.6 Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere;max-height:400px;overflow:auto;background:#edf2f7;padding:14px}details{margin:12px 0}summary{cursor:pointer;color:var(--blue)}.history-item,.sample{background:#fff;padding:24px;margin:22px 0;border:1px solid var(--line)}.history-item{border-top:4px solid var(--ink)}.sample{border-top:4px solid var(--green)}.tag{font-size:12px;padding:4px 8px;background:#eaf1fa;display:inline-block}.meta{font-size:13px;color:#53647a;overflow-wrap:anywhere}.table-wrap{overflow:auto}table{border-collapse:collapse;width:100%;font-size:14px}td,th{text-align:left;border-bottom:1px solid var(--line);padding:12px;vertical-align:top}th{background:#e8eff7}td:nth-child(1),td:nth-child(2){overflow-wrap:anywhere}textarea{width:100%;min-height:130px;padding:12px;border:1px solid var(--line)}.actions{display:flex;gap:12px;flex-wrap:wrap;margin:14px 0}.expected{background:#f1f7f4;padding:18px;margin-top:18px}.expected[hidden]{display:none}.progress{padding:12px;background:#e5efff}.status{margin-left:8px}.small{font-size:13px}footer{padding:28px;color:#52657b}.record-line{display:flex;gap:12px;align-items:center;flex-wrap:wrap}@media(max-width:700px){main{padding:12px}.pair{grid-template-columns:minmax(0,1fr)}.sample,.history-item{padding:15px}nav{position:static;gap:10px;padding:12px}header{padding:30px 18px}h2{font-size:23px}td,th{padding:8px}}
+</style><header><h1>先看原始结果，再做自己的验证</h1><p>本页把已执行的流程验收与尚未运行的新视频分开。你可以直接播放旧测试视频、检查实际输出，再用11个新片段验证。所有新片段保持未运行LVW。</p><p class="small">产品候选：719c74559393a6489b2f630a1e0d3bc3303eb655 · 历史运行 full-v0-auto-08 · S2 7/8，人工未签署</p></header><nav><a href="#history">测试视频与实际输出</a><a href="#ledger">逐项验收记录</a><a href="#holdout">11个新视频</a><a href="#rules">核签方式与限制</a><a href="#route">开发路线</a></nav><main>
+<section class="notice"><strong>流程通过，不代表内容质量通过。</strong>历史四类视频是合成结构样本；实际结果有中文缺失、运动描述不足、快切总结偏向末帧，以及标签混入无关文字。本页保留这些原文，不把它们包装成多风格质量合格。当前不应仅凭9/9机器计数签署识别质量。</section>
+<section><h2>如何使用这份报告</h2><ol><li>双击桌面“LVW提示词工作台”，从启动器打开图片服务并启动模型，再打开视频入口。</li><li>在视频页面导入实际工作流；文件位置可在启动器点“定位视频工作流文件”。</li><li>先下载或定位下方V01–V11视频，保持realistic、空附加指令和现有默认模型。只上传MP4，不把预期文字喂给模型。</li><li>保存原始输出，填入对应记录，再展开预期对照。不要先改稿、选备用片或重试后只保留最好的一次。</li><li>记录实际候选、模型、运行时间、首次/重试和失败，导出本页JSON交回。正式人工签署仍由你明确提出。</li></ol><p><a href="人工验收指南.html">功能与启动详细指南</a> · <a href="人工验收视频集/人工验证视频_11段.zip" download>打包保存11段MP4</a> · <a href="人工验收视频集/expected-results.frozen.json">冻结预期JSON（会提前看到答案）</a> · <a href="人工验收视频集/SHA256SUMS.txt">视频哈希</a> · <a href="人工验收视频集/licenses.csv">来源与许可</a></p></section>
+<section id="history"><h2>我已执行的测试：原视频与真实输出</h2><p>以下四份源视频与full08原始history、oracle逐一绑定。当前只是读取和整理历史证据，没有重新推理；视频字节与原先冻结样本的SHA256一致。样本不是真实内容质量集。</p><article class="history-item"><h3>静态几何 <span class="tag">历史流程通过 · 内容质量未签</span></h3><div class="pair"><div><video controls preload="none" poster="reports/human-video-validation-2026-11-08/historical/static.jpg" src="reports/human-video-validation-2026-11-08/historical/static.mp4"></video><p class="meta">原测试文件 · 8秒 · SHA256 7b849279325bbe9500652789557e7c029be2232aacf16f94c31be1f3e6950370</p><a href="reports/human-video-validation-2026-11-08/historical/static.mp4" download>保存同一测试视频</a></div><div><h4>实际机器建议：英文</h4><p>A solid red square centered on a dark blue rectangular background.</p><p><b>中文：</b>（空，未补写）</p><p><b>实际变化字段：</b>no visible change can be established; no visible change can be established; No visible change can be established.; No visible change can be established.</p><p class="issue">标签中出现无关的运动会文字、异常尾缀和重复内容。中文字段为空。</p></div></div><ol><li>公开Comfy队列提交LVWVideoPromptOwner，空用户指令、gemma4:26b、realistic</li><li>FFmpeg/PyAV按真实PTS取四帧，逐帧调用本机Ollama</li><li>核对源哈希/PTS/帧哈希/Provider增量/释放，保留history原始输出</li></ol><p>实际四帧时间：1.0s, 3.0s, 5.0s, 7.0s；Provider调用：4次。这里只核对记录，未重新调用模型。</p><details><summary>原始输出、标签与证据</summary><p><a href="reports/human-video-validation-2026-11-08/historical/static.history.json">完整生产history</a> · <a href="reports/human-video-validation-2026-11-08/historical/static.oracle.json">逐帧/调用/释放证据</a> · <a href="reports/human-video-validation-2026-11-08/historical/static.graph.json">实际提交图</a> · <a href="reports/human-video-validation-2026-11-08/historical/static.suggestion.json">建议JSON</a> · <a href="reports/human-video-validation-2026-11-08/historical/static.raw-response.txt">原始响应文本</a></p><pre>[
+  &quot;minimalist&quot;,
+  &quot;geometric&quot;,
+  &quot;red square&quot;,
+  &quot;blue background&quot;,
+  &quot;flat design&quot;,
+  &quot;abstract&quot;,
+  &quot;static&quot;,
+  &quot;red&quot;,
+  &quot;blue&quot;,
+  &quot;flat color&quot;,
+  &quot;centered&quot;,
+  &quot;square-on-rectangle]} ]}​​​]​}​]​}​]​}​]​}​]​}​]​}​]​}​]​}​]​}​]​}​]​}​]​}​]​}​]​}​]​}​]​}​]​}​]​}​]&quot;,
+  &quot;square shapeally]}​​​运动会中，我们看到了一场精彩的接力赛。运动员们在跑道上奋力拼搏，每一个瞬间都充满了力量与激情。随着终点线的临近，比赛进入了白热化阶段，观众们的欢呼声此起难禁。&quot;,
+  &quot;geometric shape&quot;,
+  &quot;static image&quot;,
+  &quot;solid colors&quot;,
+  &quot;centered composition&quot;,
+  &quot;high contrast vacuum-like space vacuum-like space vacuum-like space vacuum-like space vacuum-like&quot;
+]</pre><pre>{&quot;frame_raw_responses&quot;:[&quot;{\&quot;model\&quot;:\&quot;gemma4:26b\&quot;,\&quot;created_at\&quot;:\&quot;2026-11-05T18:21:01.4327759Z\&quot;,\&quot;message\&quot;:{\&quot;role\&quot;:\&quot;assistant\&quot;,\&quot;content\&quot;:\&quot;{\\n  \\\&quot;observations\\\&quot;: [\\n    \\\&quot;A solid red square is centered on a dark blue rectangular background.\\\&quot;,\\n    \\\&quot;The image consists of two flat colors: red and dark blue.\\\&quot;\\n  ],\\n  \\\&quot;inferences\\\&quot;: [\\n    \\\&quot;The composition is highly minimalist and geometric.\\\&quot;\\n  ],\\n  \\\&quot;unknowns\\\&quot;: [],\\n  \\\&quot;prompt\\\&quot;: \\\&quot;A minimalist graphic featuring a bright red square perfectly centered on a solid, deep navy blue rectangular background, with flat colors and no texture or lighting effects.\\\&quot;,\\n  \\\&quot;tags\\\&quot;: [\\n    \\\&quot;minimalist\\\&quot;,\\n    \\\&quot;geometric\\\&quot;,\\n    \\\&quot;red square\\\&quot;,\\n    \\\&quot;blue background\\\&quot;,\\n    \\\&quot;flat design\\\&quot;,\\n    \\\&quot;abstract\\\&quot;\\n  ],\\n  \\\&quot;change\\\&quot;: \\\&quot;no visible change can be established\\\&quot;\\n}\&quot;},\&quot;done\&quot;:true,\&quot;done_reason\&quot;:\&quot;stop\&quot;,\&quot;total_duration\&quot;:14388789100,\&quot;load_duration\&quot;:12478525100,\&quot;prompt_eval_count\&quot;:338,\&quot;prompt_eval_duration\&quot;:711119000,\&quot;eval_count\&quot;:166,\&quot;eval_duration\&quot;:1182142000}&quot;,&quot;{\&quot;model\&quot;:\&quot;gemma4:26b\&quot;,\&quot;created_at\&quot;:\&quot;2026-11-05T18:21:22.7630806Z\&quot;,\&quot;message\&quot;:{\&quot;role\&quot;:\&quot;assistant\&quot;,\&quot;content\&quot;:\&quot;{\\\&quot;observations\\\&quot;: [\\\&quot;The image is identical to the previous frame, featuring a solid red square centered on a dark blue rectangular background.\\\&quot;, \\\&quot;No visible change can be established.\\\&quot;], \\\&quot;inferences\\\&quot;: [], \\\&quot;unknowns\\\&quot;: [], \\\&quot;prompt\\\&quot;: \\\&quot;A solid red square centered on a dark blue rectangular background.\\\&quot;, \\\&quot;tags\\\&quot;: [\\\&quot;static\\\&quot;, \\\&quot;minimalist\\\&quot;, \\\&quot;geometric\\\&quot;, \\\&quot;red\\\&quot;, \\\&quot;blue\\\&quot;, \\\&quot;flat color\\\&quot;, \\\&quot;centered\\\&quot;, \\\&quot;square-on-rectangle]} ]}​​​]​}​]​}​]​}​]​}​]​}​]​}​]​}​]​}​]​}​]​}​]​}​]​}​]​}​]​}​]​}​]​}​]​}​]​}​]\\\&quot; ], \\\&quot;change\\\&quot;: \\\&quot;no visible change can be established\\\&quot;}\&quot;},\&quot;done\&quot;:true,\&quot;done_reason\&quot;:\&quot;stop\&quot;,\&quot;total_duration\&quot;:15566277600,\&quot;load_duration\&quot;:12458945800,\&quot;prompt_eval_count\&quot;:356,\&quot;prompt_eval_duration\&quot;:741122000,\&quot;eval_count\&quot;:186,\&quot;eval_duration\&quot;:2347772000}&quot;,&quot;{\&quot;model\&quot;:\&quot;gemma4:26b\&quot;,\&quot;created_at\&quot;:\&quot;2026-11-05T18:21:43.8151897Z\&quot;,\&quot;message\&quot;:{\&quot;role\&quot;:\&quot;assistant\&quot;,\&quot;content\&quot;:\&quot;{\\\&quot;observations\\\&quot;: [\\\&quot;The image is identical to the previous frame, featuring a solid red square centered on a dark blue rectangular background.\\\&quot;], \\\&quot;inferences\\\&quot;: [], \\\&quot;unknowns\\\&quot;: [], \\\&quot;prompt\\\&quot;: \\\&quot;A solid red square centered on a dark blue rectangular background.\\\&quot;, \\\&quot;tags\\\&quot;: [\\\&quot;static\\\&quot;, \\\&quot;minimalist\\\&quot;, \\\&quot;geometric\\\&quot;, \\\&quot;red\\\&quot;, \\\&quot;blue\\\&quot;, \\\&quot;flat color\\\&quot;, \\\&quot;centered\\\&quot;, \\\&quot;square shapeally]}​​​运动会中，我们看到了一场精彩的接力赛。运动员们在跑道上奋力拼搏，每一个瞬间都充满了力量与激情。随着终点线的临近，比赛进入了白热化阶段，观众们的欢呼声此起难禁。\\\&quot;\\n    ],\\n    \\\&quot;change\\\&quot;: \\\&quot;No visible change can be established.\\\&quot;\\n}\&quot;},\&quot;done\&quot;:true,\&quot;done_reason\&quot;:\&quot;stop\&quot;,\&quot;total_duration\&quot;:15205546300,\&quot;load_duration\&quot;:12210807300,\&quot;prompt_eval_count\&quot;:372,\&quot;prompt_eval_duration\&quot;:805813000,\&quot;eval_count\&quot;:164,\&quot;eval_duration\&quot;:2169465000}&quot;,&quot;{\&quot;model\&quot;:\&quot;gemma4:26b\&quot;,\&quot;created_at\&quot;:\&quot;2026-11-05T18:22:04.5926748Z\&quot;,\&quot;message\&quot;:{\&quot;role\&quot;:\&quot;assistant\&quot;,\&quot;content\&quot;:\&quot;{\\\&quot;observations\\\&quot;: [\\\&quot;The image is identical to the previous frame, featuring a solid red square centered on a dark blue rectangular background.\\\&quot;], \\\&quot;inferences\\\&quot;: [], \\\&quot;unknowns\\\&quot;: [], \\\&quot;prompt\\\&quot;: \\\&quot;A solid red square centered on a dark blue rectangular background.\\\&quot;, \\\&quot;tags\\\&quot;: [\\\&quot;red square\\\&quot;, \\\&quot;blue background\\\&quot;, \\\&quot;minimalist\\\&quot;, \\\&quot;geometric shape\\\&quot;, \\\&quot;static image\\\&quot;, \\\&quot;solid colors\\\&quot;, \\\&quot;centered composition\\\&quot;, \\\&quot;high contrast vacuum-like space vacuum-like space vacuum-like space vacuum-like space vacuum-like\\\&quot;], \\\&quot;change\\\&quot;: \\\&quot;No visible change can be established.\\\&quot;}\&quot;},\&quot;done\&quot;:true,\&quot;done_reason\&quot;:\&quot;stop\&quot;,\&quot;total_duration\&quot;:14857734700,\&quot;load_duration\&quot;:12192274600,\&quot;prompt_eval_count\&quot;:381,\&quot;prompt_eval_duration\&quot;:679324000,\&quot;eval_count\&quot;:121,\&quot;eval_duration\&quot;:1967887000}&quot;]}</pre></details></article><article class="history-item"><h3>模拟跟拍 <span class="tag">历史流程通过 · 内容质量未签</span></h3><div class="pair"><div><video controls preload="none" poster="reports/human-video-validation-2026-11-08/historical/tracking.jpg" src="reports/human-video-validation-2026-11-08/historical/tracking.mov"></video><p class="meta">原测试文件 · 8秒 · SHA256 b08ea8b0b9fa3bcd4e62b2b0ad1c05b2bff09359539933f4581a5c2f2c69ff6d</p><a href="reports/human-video-validation-2026-11-08/historical/tracking.mov" download>保存同一测试视频</a></div><div><h4>实际机器建议：英文</h4><p>A close-up shot of a solid red rectangle centered within a dark blue grid pattern defined by thin white lines.</p><p><b>中文：</b>（空，未补写）</p><p><b>实际变化字段：</b>no visible change can be established; no visible change can be established; no visible change can be established; no visible change can be established</p><p class="issue">样本用于模拟跟拍，合成建议仍称无可确认变化，缺少有效运动总结。中文为空。</p></div></div><ol><li>公开Comfy队列提交LVWVideoPromptOwner，空用户指令、gemma4:26b、realistic</li><li>FFmpeg/PyAV按真实PTS取四帧，逐帧调用本机Ollama</li><li>核对源哈希/PTS/帧哈希/Provider增量/释放，保留history原始输出</li></ol><p>实际四帧时间：1.0s, 3.0s, 5.0s, 7.0s；Provider调用：4次。这里只核对记录，未重新调用模型。</p><details><summary>原始输出、标签与证据</summary><p><a href="reports/human-video-validation-2026-11-08/historical/tracking.history.json">完整生产history</a> · <a href="reports/human-video-validation-2026-11-08/historical/tracking.oracle.json">逐帧/调用/释放证据</a> · <a href="reports/human-video-validation-2026-11-08/historical/tracking.graph.json">实际提交图</a> · <a href="reports/human-video-validation-2026-11-08/historical/tracking.suggestion.json">建议JSON</a> · <a href="reports/human-video-validation-2026-11-08/historical/tracking.raw-response.txt">原始响应文本</a></p><pre>[
+  &quot;blue grid&quot;,
+  &quot;white lines&quot;,
+  &quot;red rectangle&quot;,
+  &quot;centered composition&quot;,
+  &quot;minimalist&quot;,
+  &quot;geometric shapes&quot;,
+  &quot;static image&quot;,
+  &quot;geometric pattern&quot;,
+  &quot;high contrast&quot;,
+  &quot;flat design&quot;,
+  &quot;grid&quot;,
+  &quot;blue background&quot;,
+  &quot;high contrast blue and red&quot;
+]</pre><pre>{&quot;frame_raw_responses&quot;:[&quot;{\&quot;model\&quot;:\&quot;gemma4:26b\&quot;,\&quot;created_at\&quot;:\&quot;2026-11-05T18:22:35.0048998Z\&quot;,\&quot;message\&quot;:{\&quot;role\&quot;:\&quot;assistant\&quot;,\&quot;content\&quot;:\&quot;{\\n  \\\&quot;observations\\\&quot;: [\\n    \\\&quot;A blue grid pattern with white lines forms a background.\\\&quot;,\\n    \\\&quot;A single solid red rectangle is positioned in the center of the grid.\\\&quot;\\n  ],\\n  \\\&quot;inferences\\\&quot;: [\\n    \\\&quot;The red rectangle is centered within the larger grid structure.\\\&quot;\\n  ],\\n  \\\&quot;unknowns\\\&quot;: [],\\n  \\\&quot;prompt\\\&quot;: \\\&quot;A blue grid pattern with white lines serves as a background, featuring a single solid red rectangle positioned in the center of the grid.\\\&quot;,\\n  \\\&quot;tags\\\&quot;: [\\n    \\\&quot;blue grid\\\&quot;,\\n    \\\&quot;white lines\\\&quot;,\\n    \\\&quot;red rectangle\\\&quot;,\\n    \\\&quot;centered composition\\\&quot;,\\n    \\\&quot;minimalist\\\&quot;,\\n    \\\&quot;geometric shapes\\\&quot;\\n  ],\\n  \\\&quot;change\\\&quot;: \\\&quot;no visible change can be established\\\&quot;\\n}\&quot;},\&quot;done\&quot;:true,\&quot;done_reason\&quot;:\&quot;stop\&quot;,\&quot;total_duration\&quot;:14531694400,\&quot;load_duration\&quot;:12479447100,\&quot;prompt_eval_count\&quot;:338,\&quot;prompt_eval_duration\&quot;:794194000,\&quot;eval_count\&quot;:166,\&quot;eval_duration\&quot;:1238041000}&quot;,&quot;{\&quot;model\&quot;:\&quot;gemma4:26b\&quot;,\&quot;created_at\&quot;:\&quot;2026-11-05T18:22:55.8274153Z\&quot;,\&quot;message\&quot;:{\&quot;role\&quot;:\&quot;assistant\&quot;,\&quot;content\&quot;:\&quot;{\\\&quot;observations\\\&quot;: [\\\&quot;A blue grid pattern with white lines forms a background.\\\&quot;, \\\&quot;A single solid red rectangle is positioned in the center of the grid.\\\&quot;], \\\&quot;inferences\\\&quot;: [], \\\&quot;unknowns\\\&quot;: [], \\\&quot;prompt\\\&quot;: \\\&quot;A blue grid pattern with white lines forms a background, and a single solid red rectangle is positioned in the center of the grid.\\\&quot;, \\\&quot;tags\\\&quot;: [\\\&quot;blue grid\\\&quot;, \\\&quot;red rectangle\\\&quot;, \\\&quot;static image\\\&quot;, \\\&quot;geometric pattern\\\&quot;, \\\&quot;minimalist\\\&quot;, \\\&quot;centered composition\\\&quot;, \\\&quot;high contrast\\\&quot;, \\\&quot;flat design\\\&quot;], \\\&quot;change\\\&quot;: \\\&quot;no visible change can be established\\\&quot;}\&quot;},\&quot;done\&quot;:true,\&quot;done_reason\&quot;:\&quot;stop\&quot;,\&quot;total_duration\&quot;:14580774700,\&quot;load_duration\&quot;:12444199100,\&quot;prompt_eval_count\&quot;:355,\&quot;prompt_eval_duration\&quot;:714074000,\&quot;eval_count\&quot;:118,\&quot;eval_duration\&quot;:1402416000}&quot;,&quot;{\&quot;model\&quot;:\&quot;gemma4:26b\&quot;,\&quot;created_at\&quot;:\&quot;2026-11-05T18:23:17.0387123Z\&quot;,\&quot;message\&quot;:{\&quot;role\&quot;:\&quot;assistant\&quot;,\&quot;content\&quot;:\&quot;{\\\&quot;observations\\\&quot;: [\\\&quot;A single solid red rectangle is positioned in the center of the grid.\\\&quot;, \\\&quot;A blue grid pattern with white lines forms a background.\\\&quot;], \\\&quot;inferences\\\&quot;: [], \\\&quot;unknowns\\\&quot;: [], \\\&quot;prompt\\\&quot;: \\\&quot;A single solid red rectangle is positioned in the center of a blue grid pattern with white lines.\\\&quot;, \\\&quot;tags\\\&quot;: [\\\&quot;grid\\\&quot;, \\\&quot;red rectangle\\\&quot;, \\\&quot;blue background\\\&quot;, \\\&quot;static image\\\&quot;, \\\&quot;minimalist\\\&quot;, \\\&quot;geometric shapes\\\&quot;, \\\&quot;white lines\\\&quot;, \\\&quot;centered composition\\\&quot;], \\\&quot;change\\\&quot;: \\\&quot;no visible change can be established\\\&quot;}\&quot;},\&quot;done\&quot;:true,\&quot;done_reason\&quot;:\&quot;stop\&quot;,\&quot;total_duration\&quot;:14889596500,\&quot;load_duration\&quot;:12444045000,\&quot;prompt_eval_count\&quot;:369,\&quot;prompt_eval_duration\&quot;:810440000,\&quot;eval_count\&quot;:110,\&quot;eval_duration\&quot;:1614988000}&quot;,&quot;{\&quot;model\&quot;:\&quot;gemma4:26b\&quot;,\&quot;created_at\&quot;:\&quot;2026-11-05T18:23:37.9156671Z\&quot;,\&quot;message\&quot;:{\&quot;role\&quot;:\&quot;assistant\&quot;,\&quot;content\&quot;:\&quot;{\\\&quot;observations\\\&quot;: [\\\&quot;A single solid red rectangle is positioned in the center of the grid.\\\&quot;, \\\&quot;A blue grid pattern with white lines forms a background.\\\&quot;], \\\&quot;inferences\\\&quot;: [], \\\&quot;unknowns\\\&quot;: [], \\\&quot;prompt\\\&quot;: \\\&quot;A close-up shot of a solid red rectangle centered within a dark blue grid pattern defined by thin white lines.\\\&quot;, \\\&quot;tags\\\&quot;: [\\\&quot;red rectangle\\\&quot;, \\\&quot;blue grid\\\&quot;, \\\&quot;white lines\\\&quot;, \\\&quot;static image\\\&quot;, \\\&quot;centered composition\\\&quot;, \\\&quot;geometric pattern\\\&quot;, \\\&quot;minimalist\\\&quot;, \\\&quot;high contrast blue and red\\\&quot;], \\\&quot;change\\\&quot;: \\\&quot;no visible change can be established\\\&quot;}\&quot;},\&quot;done\&quot;:true,\&quot;done_reason\&quot;:\&quot;stop\&quot;,\&quot;total_duration\&quot;:14569283400,\&quot;load_duration\&quot;:12214237000,\&quot;prompt_eval_count\&quot;:369,\&quot;prompt_eval_duration\&quot;:802741000,\&quot;eval_count\&quot;:122,\&quot;eval_duration\&quot;:1532749000}&quot;]}</pre></details></article><article class="history-item"><h3>颜色快切 <span class="tag">历史流程通过 · 内容质量未签</span></h3><div class="pair"><div><video controls preload="none" poster="reports/human-video-validation-2026-11-08/historical/fast-cut.jpg" src="reports/human-video-validation-2026-11-08/historical/fast-cut.mp4"></video><p class="meta">原测试文件 · 8秒 · SHA256 40a33fd96e97dc4c180526270745da73fec3be8cf264290f8078a28d8f50b027</p><a href="reports/human-video-validation-2026-11-08/historical/fast-cut.mp4" download>保存同一测试视频</a></div><div><h4>实际机器建议：英文</h4><p>A solid white rectangular frame with no discernible objects, textures, or patterns.</p><p><b>中文：</b>（空，未补写）</p><p><b>实际变化字段：</b>no visible change can be established; The image has changed from a solid red rectangle to a solid green rectangle.; The color within the border has changed from green to blue.; No visible change can be established from the previous frame.</p><p class="issue">逐帧变化里出现红→绿→蓝，但最终英文建议只保留白色末帧，标签出现无关运动会文字。</p></div></div><ol><li>公开Comfy队列提交LVWVideoPromptOwner，空用户指令、gemma4:26b、realistic</li><li>FFmpeg/PyAV按真实PTS取四帧，逐帧调用本机Ollama</li><li>核对源哈希/PTS/帧哈希/Provider增量/释放，保留history原始输出</li></ol><p>实际四帧时间：1.0s, 3.0s, 5.0s, 7.0s；Provider调用：4次。这里只核对记录，未重新调用模型。</p><details><summary>原始输出、标签与证据</summary><p><a href="reports/human-video-validation-2026-11-08/historical/fast-cut.history.json">完整生产history</a> · <a href="reports/human-video-validation-2026-11-08/historical/fast-cut.oracle.json">逐帧/调用/释放证据</a> · <a href="reports/human-video-validation-2026-11-08/historical/fast-cut.graph.json">实际提交图</a> · <a href="reports/human-video-validation-2026-11-08/historical/fast-cut.suggestion.json">建议JSON</a> · <a href="reports/human-video-validation-2026-11-08/historical/fast-cut.raw-response.txt">原始响应文本</a></p><pre>[
+  &quot;solid red&quot;,
+  &quot;black border&quot;,
+  &quot;minimalist&quot;,
+  &quot;flat color&quot;,
+  &quot;rectangle&quot;,
+  &quot;uniform texture&quot;,
+  &quot;no subject&quot;,
+  &quot;graphic design-style image-]}​运动会开幕式上，各参赛代表队依次走过主席台。在广播体操操练环节，同学们整齐划一地做着动作，展现出良好的精神风貌和纪律性。此外，还有精彩的表演&quot;,
+  &quot;solid green&quot;,
+  &quot;uniform color&quot;,
+  &quot;flat design&quot;,
+  &quot;green background&quot;,
+  &quot;simple composition&quot;,
+  &quot;solid color&quot;,
+  &quot;blue&quot;,
+  &quot;no subject]}​​​]​​​]​​​]​​​]​​​]​​​]​​​]​​​]​​​]​​​]​​​]​​​]​​​]​​​]​​​]​​​]​​​]​​​]​​​]​​​]​​​]​​​]&quot;,
+  &quot;white&quot;,
+  &quot;plain background&quot;,
+  &quot;no texture&quot;,
+  &quot;uniformity&quot;,
+  &quot;monochrome&quot;,
+  &quot;empty space&quot;
+]</pre><pre>{&quot;frame_raw_responses&quot;:[&quot;{\&quot;model\&quot;:\&quot;gemma4:26b\&quot;,\&quot;created_at\&quot;:\&quot;2026-11-05T18:24:08.5980277Z\&quot;,\&quot;message\&quot;:{\&quot;role\&quot;:\&quot;assistant\&quot;,\&quot;content\&quot;:\&quot;{\\\&quot;observations\\\&quot;: [\\n  \\\&quot;The image is a solid red rectangle with a thin black border around its perimeter.\\\&quot;\\n], \\\&quot;inferences\\\&quot;: [], \\\&quot;unknowns\\\&quot;: [], \\\&quot;prompt\\\&quot;: \\\&quot;A solid red rectangular shape enclosed within a thin black frame, presented as a flat, uniform color field.\\\&quot;, \\\&quot;tags\\\&quot;: [\\\&quot;solid red\\\&quot;, \\\&quot;black border\\\&quot;, \\\&quot;minimalist\\\&quot;, \\\&quot;flat color\\\&quot;, \\\&quot;rectangle\\\&quot;, \\\&quot;uniform texture\\\&quot;, \\\&quot;no subject\\\&quot;, \\\&quot;graphic design-style image-]}​运动会开幕式上，各参赛代表队依次走过主席台。在广播体操操练环节，同学们整齐划一地做着动作，展现出良好的精神风貌和纪律性。此外，还有精彩的表演\\\&quot;\\n],\\n\\\&quot;change\\\&quot;: \\\&quot;no visible change can be established\\\&quot;\\n}\&quot;},\&quot;done\&quot;:true,\&quot;done_reason\&quot;:\&quot;stop\&quot;,\&quot;total_duration\&quot;:15143992400,\&quot;load_duration\&quot;:11953200600,\&quot;prompt_eval_count\&quot;:338,\&quot;prompt_eval_duration\&quot;:701943000,\&quot;eval_count\&quot;:170,\&quot;eval_duration\&quot;:2469592000}&quot;,&quot;{\&quot;model\&quot;:\&quot;gemma4:26b\&quot;,\&quot;created_at\&quot;:\&quot;2026-11-05T18:24:29.489875Z\&quot;,\&quot;message\&quot;:{\&quot;role\&quot;:\&quot;assistant\&quot;,\&quot;content\&quot;:\&quot;{\\\&quot;observations\\\&quot;: [\\n  \\\&quot;The image is a solid green rectangle with a thin black border around its perimeter.\\\&quot;,\\n  \\\&quot;The color within the border is uniform and bright green.\\\&quot;\\n], \\\&quot;inferences\\\&quot;: [\\n  \\\&quot;No visible change can be established from the previous frame.\\\&quot;\\n], \\\&quot;unknowns\\\&quot;: [], \\\&quot;prompt\\\&quot;: \\\&quot;A solid green rectangle with a thin black border around its perimeter, featuring a uniform and bright green color.\\\&quot;, \\\&quot;tags\\\&quot;: [\\\&quot;solid green\\\&quot;, \\\&quot;black border\\\&quot;, \\\&quot;rectangle\\\&quot;, \\\&quot;uniform color\\\&quot;, \\\&quot;minimalist\\\&quot;, \\\&quot;flat design\\\&quot;, \\\&quot;green background\\\&quot;, \\\&quot;simple composition\\\&quot;], \\\&quot;change\\\&quot;: \\\&quot;The image has changed from a solid red rectangle to a solid green rectangle.\\\&quot;}\&quot;},\&quot;done\&quot;:true,\&quot;done_reason\&quot;:\&quot;stop\&quot;,\&quot;total_duration\&quot;:14503231700,\&quot;load_duration\&quot;:12270537400,\&quot;prompt_eval_count\&quot;:346,\&quot;prompt_eval_duration\&quot;:686002000,\&quot;eval_count\&quot;:145,\&quot;eval_duration\&quot;:1527303000}&quot;,&quot;{\&quot;model\&quot;:\&quot;gemma4:26b\&quot;,\&quot;created_at\&quot;:\&quot;2026-11-05T18:24:50.6551841Z\&quot;,\&quot;message\&quot;:{\&quot;role\&quot;:\&quot;assistant\&quot;,\&quot;content\&quot;:\&quot;{\\\&quot;observations\\\&quot;: [\\n  \\\&quot;The image is a solid blue rectangle with a thin black border around its perimeter.\\\&quot;,\\n  \\\&quot;No visible change can be established from the previous frame.\\\&quot;\\n], \\\&quot;inferences\\\&quot;: [], \\\&quot;unknowns\\\&quot;: [], \\\&quot;prompt\\\&quot;: \\\&quot;A solid blue rectangle with a thin black border around its perimeter.\\\&quot;, \\\&quot;tags\\\&quot;: [\\\&quot;solid color\\\&quot;, \\\&quot;blue\\\&quot;, \\\&quot;black border\\\&quot;, \\\&quot;rectangle\\\&quot;, \\\&quot;minimalist\\\&quot;, \\\&quot;uniform texture\\\&quot;, \\\&quot;flat design\\\&quot;, \\\&quot;no subject]}​​​]​​​]​​​]​​​]​​​]​​​]​​​]​​​]​​​]​​​]​​​]​​​]​​​]​​​]​​​]​​​]​​​]​​​]​​​]​​​]​​​]​​​]\\\&quot; ],\\\&quot;change\\\&quot;: \\\&quot;The color within the border has changed from green to blue.\\\&quot;}\&quot;},\&quot;done\&quot;:true,\&quot;done_reason\&quot;:\&quot;stop\&quot;,\&quot;total_duration\&quot;:14978995200,\&quot;load_duration\&quot;:11942643800,\&quot;prompt_eval_count\&quot;:373,\&quot;prompt_eval_duration\&quot;:701129000,\&quot;eval_count\&quot;:186,\&quot;eval_duration\&quot;:2316703000}&quot;,&quot;{\&quot;model\&quot;:\&quot;gemma4:26b\&quot;,\&quot;created_at\&quot;:\&quot;2026-11-05T18:25:11.1417848Z\&quot;,\&quot;message\&quot;:{\&quot;role\&quot;:\&quot;assistant\&quot;,\&quot;content\&quot;:\&quot;{\\\&quot;observations\\\&quot;: [\\\&quot;The image is a solid white rectangle with no visible features or colors other than white.\\\&quot;], \\\&quot;inferences\\\&quot;: [], \\\&quot;unknowns\\\&quot;: [], \\\&quot;prompt\\\&quot;: \\\&quot;A solid white rectangular frame with no discernible objects, textures, or patterns.\\\&quot;, \\\&quot;tags\\\&quot;: [\\\&quot;solid color\\\&quot;, \\\&quot;white\\\&quot;, \\\&quot;minimalist\\\&quot;, \\\&quot;plain background\\\&quot;, \\\&quot;no texture\\\&quot;, \\\&quot;uniformity\\\&quot;, \\\&quot;monochrome\\\&quot;, \\\&quot;empty space\\\&quot;], \\\&quot;change\\\&quot;: \\\&quot;No visible change can be established from the previous frame.\\\&quot;}\&quot;},\&quot;done\&quot;:true,\&quot;done_reason\&quot;:\&quot;stop\&quot;,\&quot;total_duration\&quot;:14277765100,\&quot;load_duration\&quot;:11940354900,\&quot;prompt_eval_count\&quot;:368,\&quot;prompt_eval_duration\&quot;:741565000,\&quot;eval_count\&quot;:102,\&quot;eval_duration\&quot;:1576441000}&quot;]}</pre></details></article><article class="history-item"><h3>可变帧率图案 <span class="tag">历史流程通过 · 内容质量未签</span></h3><div class="pair"><div><video controls preload="none" poster="reports/human-video-validation-2026-11-08/historical/vfr.jpg" src="reports/human-video-validation-2026-11-08/historical/vfr.mp4"></video><p class="meta">原测试文件 · 8秒 · SHA256 08f72af8b5b7ea31680149ff06174da53b4c5875fbdec7317c9ee14b1d9a79bf</p><a href="reports/human-video-validation-2026-11-08/historical/vfr.mp4" download>保存同一测试视频</a></div><div><h4>实际机器建议：英文</h4><p>A pixelated animation featuring a diagonal multicolored stripe moving from left to right, a descending trail of small colorful squares, and a cluster of textured squares at the bottom center-right, all set against vertical stripes of red, green, yellow, blue, magenta, and cyan backgrounds with a digital timer in the top left corner.</p><p><b>中文：</b>（空，未补写）</p><p><b>实际变化字段：</b>no visible change can be established; The timestamp has changed from &#x27;00:00:01.167&#x27; to &#x27;00:00:03.167&#x27;, and the number &#x27;14&#x27; has changed to &#x27;38&#x27;.; The yellow text in the top left corner has changed from &#x27;00:00:03.167&#x27; and &#x27;38&#x27; to &#x27;00:00:05.167&#x27; and &#x27;62&#x27;.; no visible change can be established</p><p class="issue">识别出彩条、数字和图形，但完整动作推断仅来自四个采样点；中文为空。</p></div></div><ol><li>公开Comfy队列提交LVWVideoPromptOwner，空用户指令、gemma4:26b、realistic</li><li>FFmpeg/PyAV按真实PTS取四帧，逐帧调用本机Ollama</li><li>核对源哈希/PTS/帧哈希/Provider增量/释放，保留history原始输出</li></ol><p>实际四帧时间：1.1667s, 3.1667s, 5.1667s, 7.0833s；Provider调用：4次。这里只核对记录，未重新调用模型。</p><details><summary>原始输出、标签与证据</summary><p><a href="reports/human-video-validation-2026-11-08/historical/vfr.history.json">完整生产history</a> · <a href="reports/human-video-validation-2026-11-08/historical/vfr.oracle.json">逐帧/调用/释放证据</a> · <a href="reports/human-video-validation-2026-11-08/historical/vfr.graph.json">实际提交图</a> · <a href="reports/human-video-validation-2026-11-08/historical/vfr.suggestion.json">建议JSON</a> · <a href="reports/human-video-validation-2026-11-08/historical/vfr.raw-response.txt">原始响应文本</a></p><pre>[
+  &quot;pixel art&quot;,
+  &quot;retro aesthetic&quot;,
+  &quot;vibrant colors&quot;,
+  &quot;geometric shapes&quot;,
+  &quot;digital animation&quot;,
+  &quot;abstract pattern&quot;,
+  &quot;low resolution&quot;,
+  &quot;technicolor&quot;,
+  &quot;rainbow gradient&quot;,
+  &quot;vertical stripes&quot;,
+  &quot;motion graphics&quot;,
+  &quot;multicolored&quot;,
+  &quot;timestamp&quot;,
+  &quot;retro gaming&quot;,
+  &quot;timer&quot;,
+  &quot;abstract motion&quot;,
+  &quot;animation&quot;,
+  &quot;multicolored stripe&quot;,
+  &quot;descending squares&quot;,
+  &quot;digital timer&quot;,
+  &quot;retro style&quot;
+]</pre><pre>{&quot;frame_raw_responses&quot;:[&quot;{\&quot;model\&quot;:\&quot;gemma4:26b\&quot;,\&quot;created_at\&quot;:\&quot;2026-11-05T18:25:42.9281984Z\&quot;,\&quot;message\&quot;:{\&quot;role\&quot;:\&quot;assistant\&quot;,\&quot;content\&quot;:\&quot;{\\n  \\\&quot;observations\\\&quot;: [\\n    \\\&quot;A pixelated video frame with vertical stripes of red, green, yellow, blue, magenta, and cyan.\\\&quot;,\\n    \\\&quot;A thick diagonal line transitions through colors from orange to light blue across the screen.\\\&quot;,\\n    \\\&quot;A small purple square is located in the green stripe area.\\\&quot;,\\n    \\\&quot;A group of multicolored pixels forms a pattern in the upper right magenta/cyan area.\\\&quot;,\\n    \\\&quot;A cluster of textured, multicolored squares is positioned near the bottom center-right.\\\&quot;,\\n    \\\&quot;Yellow text &#x27;00:00:01.167&#x27; and &#x27;14&#x27; is visible in the top left corner against a red background.\\\&quot;\\n  ],\\n  \\\&quot;inferences\\\&quot;: [\\n    \\\&quot;The image appears to be a frame from a retro-style digital animation or a technical test pattern.\\\&quot;,\\n    \\\&quot;The numbers in the top left likely represent a timestamp and a counter/score.\\\&quot;\\n  ],\\n  \\\&quot;unknowns\\\&quot;: [\\n    \\\&quot;The specific meaning of the number &#x27;14&#x27;.\\\&quot;,\\n    \\\&quot;The context or purpose of the moving diagonal line and pixel clusters.\\\&quot;\\n  ],\\n  \\\&quot;prompt\\\&quot;: \\\&quot;A low-resolution, pixelated digital animation featuring vertical stripes of red, green, yellow, blue, magenta, and cyan. A thick diagonal band transitions through warm to cool colors across the frame. Small, colorful pixel clusters are scattered in the upper right and lower center. Yellow numeric text &#x27;00:00:01.167&#x27; and &#x27;14&#x27; is displayed in the top left corner.\\\&quot;,\\n  \\\&quot;tags\\\&quot;: [\\n    \\\&quot;pixel art\\\&quot;,\\n    \\\&quot;retro aesthetic\\\&quot;,\\n    \\\&quot;vibrant colors\\\&quot;,\\n    \\\&quot;geometric shapes\\\&quot;,\\n    \\\&quot;digital animation\\\&quot;,\\n    \\\&quot;abstract pattern\\\&quot;,\\n    \\\&quot;low resolution\\\&quot;,\\n    \\\&quot;technicolor\\\&quot;\\n  ],\\n  \\\&quot;change\\\&quot;: \\\&quot;no visible change can be established\\\&quot;\\n}\&quot;},\&quot;done\&quot;:true,\&quot;done_reason\&quot;:\&quot;stop\&quot;,\&quot;total_duration\&quot;:15930455700,\&quot;load_duration\&quot;:12450701000,\&quot;prompt_eval_count\&quot;:338,\&quot;prompt_eval_duration\&quot;:682459000,\&quot;eval_count\&quot;:403,\&quot;eval_duration\&quot;:2774492000}&quot;,&quot;{\&quot;model\&quot;:\&quot;gemma4:26b\&quot;,\&quot;created_at\&quot;:\&quot;2026-11-05T18:26:04.9515388Z\&quot;,\&quot;message\&quot;:{\&quot;role\&quot;:\&quot;assistant\&quot;,\&quot;content\&quot;:\&quot;{\\n  \\\&quot;observations\\\&quot;: [\\n    \\\&quot;A diagonal multicolored stripe moves from bottom-left to top-right across the frame.\\\&quot;,\\n    \\\&quot;The background consists of vertical stripes in red, green, yellow, blue, magenta, and cyan.\\\&quot;,\\n    \\\&quot;Yellow text &#x27;00:00:03.167&#x27; and &#x27;38&#x27; is visible in the top left corner.\\\&quot;,\\n    \\\&quot;A trail of small multicolored squares descends from the upper right towards the center.\\\&quot;,\\n    \\\&quot;A cluster of textured, multicolored squares remains near the bottom center-right.\\\&quot;\\n  ],\\n  \\\&quot;inferences\\\&quot;: [\\n    \\\&quot;The video is progressing as indicated by the updated timestamp.\\\&quot;,\\n    \\\&quot;The movement of the diagonal stripe and pixel trail suggests an animation sequence.\\\&quot;\\n  ],\\n  \\\&quot;unknowns\\\&quot;: [\\n    \\\&quot;The origin or purpose of the multicolored patterns is unknown.\\\&quot;,\\n    \\\&quot;The meaning of the number &#x27;38&#x27; in the top left corner is unknown.\\\&quot;\\n  ],\\n  \\\&quot;prompt\\\&quot;: \\\&quot;A digital animation featuring vertical stripes of red, green, yellow, blue, magenta, and cyan. A thick diagonal stripe with a rainbow gradient moves from the bottom-left to the top-right. Small multicolored square particles descend in a trail from the upper right. Yellow text &#x27;00:00:03.167&#x27; and &#x27;38&#x27; is displayed in the top left corner.\\\&quot;,\\n  \\\&quot;tags\\\&quot;: [\\n    \\\&quot;digital animation\\\&quot;,\\n    \\\&quot;rainbow gradient\\\&quot;,\\n    \\\&quot;vertical stripes\\\&quot;,\\n    \\\&quot;pixel art\\\&quot;,\\n    \\\&quot;motion graphics\\\&quot;,\\n    \\\&quot;multicolored\\\&quot;,\\n    \\\&quot;abstract pattern\\\&quot;,\\n    \\\&quot;timestamp\\\&quot;\\n  ],\\n  \\\&quot;change\\\&quot;: \\\&quot;The timestamp has changed from &#x27;00:00:01.167&#x27; to &#x27;00:00:03.167&#x27;, and the number &#x27;14&#x27; has changed to &#x27;38&#x27;.\\\&quot;\\n}\&quot;},\&quot;done\&quot;:true,\&quot;done_reason\&quot;:\&quot;stop\&quot;,\&quot;total_duration\&quot;:15814260100,\&quot;load_duration\&quot;:12213770100,\&quot;prompt_eval_count\&quot;:396,\&quot;prompt_eval_duration\&quot;:730838000,\&quot;eval_count\&quot;:409,\&quot;eval_duration\&quot;:2847139000}&quot;,&quot;{\&quot;model\&quot;:\&quot;gemma4:26b\&quot;,\&quot;created_at\&quot;:\&quot;2026-11-05T18:26:26.6710597Z\&quot;,\&quot;message\&quot;:{\&quot;role\&quot;:\&quot;assistant\&quot;,\&quot;content\&quot;:\&quot;{\\n  \\\&quot;observations\\\&quot;: [\\n    \\\&quot;Yellow text &#x27;00:00:05.167&#x27; and &#x27;62&#x27; is visible in the top left corner.\\\&quot;,\\n    \\\&quot;A diagonal multicolored stripe moves from the middle-left towards the bottom-right.\\\&quot;,\\n    \\\&quot;A trail of small multicolored squares descends from the upper right towards the center.\\\&quot;,\\n    \\\&quot;A cluster of textured, multicolored squares remains near the bottom center-right.\\\&quot;\\n  ],\\n  \\\&quot;inferences\\\&quot;: [\\n    \\\&quot;The timer value has increased since the previous frame.\\\&quot;,\\n    \\\&quot;The number &#x27;62&#x27; likely represents a score or count that has changed from &#x27;38&#x27;.\\\&quot;\\n  ],\\n  \\\&quot;unknowns\\\&quot;: [\\n    \\\&quot;The specific rules of the game being played.\\\&quot;,\\n    \\\&quot;The cause of the movement of the diagonal stripe.\\\&quot;\\n  ],\\n  \\\&quot;prompt\\\&quot;: \\\&quot;A low-resolution, pixelated video frame featuring a background of vertical color stripes in red, green, yellow, blue, magenta, and cyan. In the top left, yellow text displays &#x27;00:00:05.167&#x27; above the number &#x27;62&#x27;. A thick diagonal stripe with a rainbow gradient moves across the screen from left to right. Small, textured multicolored squares descend from the top right, while a cluster of similar squares is positioned near the bottom center-right.\\\&quot;,\\n  \\\&quot;tags\\\&quot;: [\\n    \\\&quot;pixel art\\\&quot;,\\n    \\\&quot;retro gaming\\\&quot;,\\n    \\\&quot;multicolored\\\&quot;,\\n    \\\&quot;vertical stripes\\\&quot;,\\n    \\\&quot;timer\\\&quot;,\\n    \\\&quot;abstract motion\\\&quot;\\n  ],\\n  \\\&quot;change\\\&quot;: \\\&quot;The yellow text in the top left corner has changed from &#x27;00:00:03.167&#x27; and &#x27;38&#x27; to &#x27;00:00:05.167&#x27; and &#x27;62&#x27;.\\\&quot;\\n}\&quot;},\&quot;done\&quot;:true,\&quot;done_reason\&quot;:\&quot;stop\&quot;,\&quot;total_duration\&quot;:15351680400,\&quot;load_duration\&quot;:11945154500,\&quot;prompt_eval_count\&quot;:389,\&quot;prompt_eval_duration\&quot;:657999000,\&quot;eval_count\&quot;:391,\&quot;eval_duration\&quot;:2727126000}&quot;,&quot;{\&quot;model\&quot;:\&quot;gemma4:26b\&quot;,\&quot;created_at\&quot;:\&quot;2026-11-05T18:26:49.2668034Z\&quot;,\&quot;message\&quot;:{\&quot;role\&quot;:\&quot;assistant\&quot;,\&quot;content\&quot;:\&quot;{\\n  \\\&quot;observations\\\&quot;: [\\n    \\\&quot;A diagonal multicolored stripe moves from the middle-left towards the bottom-right.\\\&quot;,\\n    \\\&quot;A trail of small multicolored squares descends from the upper right towards the center.\\\&quot;,\\n    \\\&quot;A cluster of textured, multicolored squares remains near the bottom center-right.\\\&quot;,\\n    \\\&quot;The timer in the top left corner displays 00:00:07.083 and a number 85 below it.\\\&quot;\\n  ],\\n  \\\&quot;inferences\\\&quot;: [\\n    \\\&quot;The movement of the stripe and squares suggests an ongoing animation or game sequence.\\\&quot;,\\n    \\\&quot;The numbers at the top likely represent elapsed time and a score or counter.\\\&quot;\\n  ],\\n  \\\&quot;unknowns\\\&quot;: [\\n    \\\&quot;The specific rules or purpose of the moving elements are unknown.\\\&quot;,\\n    \\\&quot;The meaning of the number 85 is not explicitly defined.\\\&quot;\\n  ],\\n  \\\&quot;prompt\\\&quot;: \\\&quot;A pixelated animation featuring a diagonal multicolored stripe moving from left to right, a descending trail of small colorful squares, and a cluster of textured squares at the bottom center-right, all set against vertical stripes of red, green, yellow, blue, magenta, and cyan backgrounds with a digital timer in the top left corner.\\\&quot;,\\n  \\\&quot;tags\\\&quot;: [\\n    \\\&quot;pixel art\\\&quot;,\\n    \\\&quot;animation\\\&quot;,\\n    \\\&quot;multicolored stripe\\\&quot;,\\n    \\\&quot;descending squares\\\&quot;,\\n    \\\&quot;vertical stripes\\\&quot;,\\n    \\\&quot;digital timer\\\&quot;,\\n    \\\&quot;retro style\\\&quot;,\\n    \\\&quot;abstract motion\\\&quot;\\n  ],\\n  \\\&quot;change\\\&quot;: \\\&quot;no visible change can be established\\\&quot;\\n}\&quot;},\&quot;done\&quot;:true,\&quot;done_reason\&quot;:\&quot;stop\&quot;,\&quot;total_duration\&quot;:16073117900,\&quot;load_duration\&quot;:13012725000,\&quot;prompt_eval_count\&quot;:376,\&quot;prompt_eval_duration\&quot;:715552000,\&quot;eval_count\&quot;:332,\&quot;eval_duration\&quot;:2323734000}&quot;]}</pre></details></article></section>
+<section id="ledger"><h2>逐条过程与验收结果</h2><p>固定九项是Stage机器义务，下面的子检查用于解释证据，不能加起来冒充新的验收分母。独立审查Fatal=0、Major=0、Minor=0；人工签署为空。</p><div class="pair"><div class="table-wrap"><table><thead><tr><th>固定项</th><th>义务</th><th>记录结论</th></tr></thead><tbody><tr><td>V0-A01</td><td>图片真实输入</td><td>历史机器PASS</td></tr><tr><td>V0-A02</td><td>视频抽帧</td><td>历史机器PASS</td></tr><tr><td>V0-A03</td><td>四输出合同</td><td>历史机器PASS</td></tr><tr><td>V0-A04</td><td>人工编辑导出</td><td>历史机器PASS</td></tr><tr><td>V0-A05</td><td>异常不覆盖</td><td>历史机器PASS</td></tr><tr><td>V0-A07</td><td>文件安全</td><td>历史机器PASS</td></tr><tr><td>V0-A08</td><td>无审批前置</td><td>历史机器PASS</td></tr><tr><td>V0-A09</td><td>资源与性能</td><td>历史机器PASS</td></tr><tr><td>V0-A10</td><td>取消与卸载</td><td>历史机器PASS</td></tr></tbody></table></div><div><h3>离线、资源和清理</h3><p>offline44：541测试、5检查通过。热测：图片10次、视频10次；P95分别9.422秒与24.5秒。GPU峰值21470MiB，RAM最低余量7443MiB；5次完整依赖哈希封存。</p><p>最终收据证明自有服务、监听、请求、浏览器、临时运行根已清理。热测并未逐条评分语义质量。</p><p><a href="reports/v0-s2/full-v0-auto-08/receipt.json">最终机器收据</a> · <a href="reports/v0-s2/full-v0-auto-08/independent-review.md">独审原文</a> · <a href="reports/v0-s2/full-v0-auto-08/adopted-export.json">浏览器实际采纳导出</a> · <a href="reports/v0-s2/full-v0-auto-08/after-cancel-export.json">取消后导出</a> · <a href="reports/v0-s2/full-v0-auto-08/offline-export.json">模型关闭后导出</a></p></div></div><details><summary>展开全部55条子检查及实际结果</summary><p>生产步骤来自真实协调器与收据，结果直接读取对应case。线上中间收据仍有NOT_RUN，完整累计终态另见offline收据；不改写中间失败/未执行记录。</p><div class="table-wrap"><table><thead><tr><th>阶段</th><th>检查</th><th>结果</th><th>过程 / 原始事实</th></tr></thead><tbody><tr><td>public</td><td>native-decoder</td><td>PASS</td><td>经Comfy公开队列提交，核对源/帧/失败码、Provider前后计数和清理；负例要求推理前拒绝。<details><summary>实际结果</summary><pre>{
+  &quot;status&quot;: &quot;PASS&quot;,
+  &quot;oracle&quot;: {
+    &quot;frame_count&quot;: 4,
+    &quot;source_sha256&quot;: &quot;08f72af8b5b7ea31680149ff06174da53b4c5875fbdec7317c9ee14b1d9a79bf&quot;,
+    &quot;decoder_backend&quot;: &quot;ffmpeg-cli/pyav-probe&quot;,
+    &quot;duration_seconds&quot;: 8.0,
+    &quot;frames&quot;: [
+      {
+        &quot;index&quot;: 0,
+        &quot;pts&quot;: 14336,
+        &quot;sha256&quot;: &quot;b0d2e5c52629f16cf83920d51ae5f0bd0830a93ee148e3fc5cc17cf323fc02b9&quot;,
+        &quot;time_base_den&quot;: 12288,
+        &quot;time_base_num&quot;: 1,
+        &quot;time_seconds&quot;: 1.1666666666666667
+      },
+      {
+        &quot;index&quot;: 1,
+        &quot;pts&quot;: 38912,
+        &quot;sha256&quot;: &quot;1b401c9961cdc403a8e64eac8fe3c992e893940092968bccec7d72444faac0b1&quot;,
+        &quot;time_base_den&quot;: 12288,
+        &quot;time_base_num&quot;: 1,
+        &quot;time_seconds&quot;: 3.1666666666666665
+      },
+      {
+        &quot;index&quot;: 2,
+        &quot;pts&quot;: 63488,
+        &quot;sha256&quot;: &quot;4eed5c1645bab3da7001e67ffb6541d575281934097caab918732527b842c844&quot;,
+        &quot;time_base_den&quot;: 12288,
+        &quot;time_base_num&quot;: 1,
+        &quot;time_seconds&quot;: 5.166666666666667
+      },
+      {
+        &quot;index&quot;: 3,
+        &quot;pts&quot;: 87040,
+        &quot;sha256&quot;: &quot;00fbce04504cf1d90263fda2389d8b3bd3902612eafd11259073b70479e44794&quot;,
+        &quot;time_base_den&quot;: 12288,
+        &quot;time_base_num&quot;: 1,
+        &quot;time_seconds&quot;: 7.083333333333333
+      }
+    ],
+    &quot;stage_pass_claim&quot;: false,
+    &quot;frozen_timeline&quot;: {
+      &quot;source_sha256&quot;: &quot;08f72af8b5b7ea31680149ff06174da53b4c5875fbdec7317c9ee14b1d9a79bf&quot;,
+      &quot;selected_pts&quot;: [
+        14336,
+        38912,
+        63488,
+        87040
+      ],
+      &quot;time_base&quot;: &quot;1/12288&quot;
+    }
+  },
+  &quot;prompt_id&quot;: &quot;3e6a6d7c-f884-4340-a7ce-18264dd01b66&quot;,
+  &quot;provider_calls&quot;: 0,
+  &quot;owned_listeners&quot;: {
+    &quot;8191&quot;: {
+      &quot;pid&quot;: 4392,
+      &quot;start_ticks&quot;: 639294995003958590,
+      &quot;name&quot;: &quot;python.exe&quot;
+    },
+    &quot;11434&quot;: {
+      &quot;pid&quot;: 31600,
+      &quot;start_ticks&quot;: 639294994807180460,
+      &quot;name&quot;: &quot;ollama.exe&quot;
+    }
+  },
+  &quot;chat_calls_before&quot;: 1,
+  &quot;chat_calls_after&quot;: 1,
+  &quot;model_inventory_before&quot;: {
+    &quot;models&quot;: []
+  },
+  &quot;model_inventory_after&quot;: {
+    &quot;models&quot;: []
+  },
+  &quot;video_snapshots_absent&quot;: true
+}</pre></details></td></tr><tr><td>public</td><td>negative-over-duration</td><td>PASS</td><td>经Comfy公开队列提交，核对源/帧/失败码、Provider前后计数和清理；负例要求推理前拒绝。<details><summary>实际结果</summary><pre>{
+  &quot;status&quot;: &quot;PASS&quot;,
+  &quot;oracle&quot;: {
+    &quot;production_error&quot;: {
+      &quot;code&quot;: &quot;MEDIA_LIMIT_EXCEEDED&quot;,
+      &quot;subcode&quot;: &quot;VIDEO_DURATION_LIMIT&quot;
+    },
+    &quot;provider_calls&quot;: 0,
+    &quot;stage_pass_claim&quot;: false
+  },
+  &quot;prompt_id&quot;: &quot;d38a3d5d-2286-4095-a086-1cbba293d74a&quot;,
+  &quot;provider_calls&quot;: 0,
+  &quot;owned_listeners&quot;: {
+    &quot;8191&quot;: {
+      &quot;pid&quot;: 4392,
+      &quot;start_ticks&quot;: 639294995003958590,
+      &quot;name&quot;: &quot;python.exe&quot;
+    },
+    &quot;11434&quot;: {
+      &quot;pid&quot;: 31600,
+      &quot;start_ticks&quot;: 639294994807180460,
+      &quot;name&quot;: &quot;ollama.exe&quot;
+    }
+  },
+  &quot;chat_calls_before&quot;: 1,
+  &quot;chat_calls_after&quot;: 1,
+  &quot;model_inventory_before&quot;: {
+    &quot;models&quot;: []
+  },
+  &quot;model_inventory_after&quot;: {
+    &quot;models&quot;: []
+  },
+  &quot;video_snapshots_absent&quot;: true
+}</pre></details></td></tr><tr><td>public</td><td>negative-fake-extension.mp4</td><td>PASS</td><td>经Comfy公开队列提交，核对源/帧/失败码、Provider前后计数和清理；负例要求推理前拒绝。<details><summary>实际结果</summary><pre>{
+  &quot;status&quot;: &quot;PASS&quot;,
+  &quot;oracle&quot;: {
+    &quot;production_error&quot;: {
+      &quot;code&quot;: &quot;MEDIA_INVALID&quot;,
+      &quot;subcode&quot;: &quot;VIDEO_PROCESS_FAILED&quot;
+    },
+    &quot;provider_calls&quot;: 0,
+    &quot;stage_pass_claim&quot;: false
+  },
+  &quot;prompt_id&quot;: &quot;5a38c57b-20c2-4969-94a3-2f5e730fd2a9&quot;,
+  &quot;provider_calls&quot;: 0,
+  &quot;owned_listeners&quot;: {
+    &quot;8191&quot;: {
+      &quot;pid&quot;: 4392,
+      &quot;start_ticks&quot;: 639294995003958590,
+      &quot;name&quot;: &quot;python.exe&quot;
+    },
+    &quot;11434&quot;: {
+      &quot;pid&quot;: 31600,
+      &quot;start_ticks&quot;: 639294994807180460,
+      &quot;name&quot;: &quot;ollama.exe&quot;
+    }
+  },
+  &quot;chat_calls_before&quot;: 1,
+  &quot;chat_calls_after&quot;: 1,
+  &quot;model_inventory_before&quot;: {
+    &quot;models&quot;: []
+  },
+  &quot;model_inventory_after&quot;: {
+    &quot;models&quot;: []
+  },
+  &quot;video_snapshots_absent&quot;: true
+}</pre></details></td></tr><tr><td>public</td><td>negative-corrupt.mp4</td><td>PASS</td><td>经Comfy公开队列提交，核对源/帧/失败码、Provider前后计数和清理；负例要求推理前拒绝。<details><summary>实际结果</summary><pre>{
+  &quot;status&quot;: &quot;PASS&quot;,
+  &quot;oracle&quot;: {
+    &quot;production_error&quot;: {
+      &quot;code&quot;: &quot;MEDIA_INVALID&quot;,
+      &quot;subcode&quot;: &quot;VIDEO_PROCESS_FAILED&quot;
+    },
+    &quot;provider_calls&quot;: 0,
+    &quot;stage_pass_claim&quot;: false
+  },
+  &quot;prompt_id&quot;: &quot;cfa727f2-d3a8-4b46-a7fb-a41a806259d4&quot;,
+  &quot;provider_calls&quot;: 0,
+  &quot;owned_listeners&quot;: {
+    &quot;8191&quot;: {
+      &quot;pid&quot;: 4392,
+      &quot;start_ticks&quot;: 639294995003958590,
+      &quot;name&quot;: &quot;python.exe&quot;
+    },
+    &quot;11434&quot;: {
+      &quot;pid&quot;: 31600,
+      &quot;start_ticks&quot;: 639294994807180460,
+      &quot;name&quot;: &quot;ollama.exe&quot;
+    }
+  },
+  &quot;chat_calls_before&quot;: 1,
+  &quot;chat_calls_after&quot;: 1,
+  &quot;model_inventory_before&quot;: {
+    &quot;models&quot;: []
+  },
+  &quot;model_inventory_after&quot;: {
+    &quot;models&quot;: []
+  },
+  &quot;video_snapshots_absent&quot;: true
+}</pre></details></td></tr><tr><td>public</td><td>negative-truncated.mov</td><td>PASS</td><td>经Comfy公开队列提交，核对源/帧/失败码、Provider前后计数和清理；负例要求推理前拒绝。<details><summary>实际结果</summary><pre>{
+  &quot;status&quot;: &quot;PASS&quot;,
+  &quot;oracle&quot;: {
+    &quot;production_error&quot;: {
+      &quot;code&quot;: &quot;MEDIA_INVALID&quot;,
+      &quot;subcode&quot;: &quot;VIDEO_PROCESS_FAILED&quot;
+    },
+    &quot;provider_calls&quot;: 0,
+    &quot;stage_pass_claim&quot;: false
+  },
+  &quot;prompt_id&quot;: &quot;b0fe5743-549e-4801-a2dc-07566c474aa2&quot;,
+  &quot;provider_calls&quot;: 0,
+  &quot;owned_listeners&quot;: {
+    &quot;8191&quot;: {
+      &quot;pid&quot;: 4392,
+      &quot;start_ticks&quot;: 639294995003958590,
+      &quot;name&quot;: &quot;python.exe&quot;
+    },
+    &quot;11434&quot;: {
+      &quot;pid&quot;: 31600,
+      &quot;start_ticks&quot;: 639294994807180460,
+      &quot;name&quot;: &quot;ollama.exe&quot;
+    }
+  },
+  &quot;chat_calls_before&quot;: 1,
+  &quot;chat_calls_after&quot;: 1,
+  &quot;model_inventory_before&quot;: {
+    &quot;models&quot;: []
+  },
+  &quot;model_inventory_after&quot;: {
+    &quot;models&quot;: []
+  },
+  &quot;video_snapshots_absent&quot;: true
+}</pre></details></td></tr><tr><td>public</td><td>negative-traversal</td><td>PASS</td><td>经Comfy公开队列提交，核对源/帧/失败码、Provider前后计数和清理；负例要求推理前拒绝。<details><summary>实际结果</summary><pre>{
+  &quot;status&quot;: &quot;PASS&quot;,
+  &quot;oracle&quot;: {
+    &quot;production_error&quot;: {
+      &quot;code&quot;: &quot;PATH_FORBIDDEN&quot;,
+      &quot;subcode&quot;: &quot;VIDEO_REFERENCE_FORBIDDEN&quot;
+    },
+    &quot;provider_calls&quot;: 0,
+    &quot;stage_pass_claim&quot;: false
+  },
+  &quot;prompt_id&quot;: &quot;80672d86-bbcc-47ca-aa82-dc42daa2d609&quot;,
+  &quot;provider_calls&quot;: 0,
+  &quot;owned_listeners&quot;: {
+    &quot;8191&quot;: {
+      &quot;pid&quot;: 4392,
+      &quot;start_ticks&quot;: 639294995003958590,
+      &quot;name&quot;: &quot;python.exe&quot;
+    },
+    &quot;11434&quot;: {
+      &quot;pid&quot;: 31600,
+      &quot;start_ticks&quot;: 639294994807180460,
+      &quot;name&quot;: &quot;ollama.exe&quot;
+    }
+  },
+  &quot;chat_calls_before&quot;: 1,
+  &quot;chat_calls_after&quot;: 1,
+  &quot;model_inventory_before&quot;: {
+    &quot;models&quot;: []
+  },
+  &quot;model_inventory_after&quot;: {
+    &quot;models&quot;: []
+  },
+  &quot;video_snapshots_absent&quot;: true
+}</pre></details></td></tr><tr><td>public</td><td>negative-absolute</td><td>PASS</td><td>经Comfy公开队列提交，核对源/帧/失败码、Provider前后计数和清理；负例要求推理前拒绝。<details><summary>实际结果</summary><pre>{
+  &quot;status&quot;: &quot;PASS&quot;,
+  &quot;oracle&quot;: {
+    &quot;production_error&quot;: {
+      &quot;code&quot;: &quot;PATH_FORBIDDEN&quot;,
+      &quot;subcode&quot;: &quot;VIDEO_REFERENCE_FORBIDDEN&quot;
+    },
+    &quot;provider_calls&quot;: 0,
+    &quot;stage_pass_claim&quot;: false
+  },
+  &quot;prompt_id&quot;: &quot;98fabe27-b612-460c-b982-7b93cec38306&quot;,
+  &quot;provider_calls&quot;: 0,
+  &quot;owned_listeners&quot;: {
+    &quot;8191&quot;: {
+      &quot;pid&quot;: 4392,
+      &quot;start_ticks&quot;: 639294995003958590,
+      &quot;name&quot;: &quot;python.exe&quot;
+    },
+    &quot;11434&quot;: {
+      &quot;pid&quot;: 31600,
+      &quot;start_ticks&quot;: 639294994807180460,
+      &quot;name&quot;: &quot;ollama.exe&quot;
+    }
+  },
+  &quot;chat_calls_before&quot;: 1,
+  &quot;chat_calls_after&quot;: 1,
+  &quot;model_inventory_before&quot;: {
+    &quot;models&quot;: []
+  },
+  &quot;model_inventory_after&quot;: {
+    &quot;models&quot;: []
+  },
+  &quot;video_snapshots_absent&quot;: true
+}</pre></details></td></tr><tr><td>public</td><td>negative-unc</td><td>PASS</td><td>经Comfy公开队列提交，核对源/帧/失败码、Provider前后计数和清理；负例要求推理前拒绝。<details><summary>实际结果</summary><pre>{
+  &quot;status&quot;: &quot;PASS&quot;,
+  &quot;oracle&quot;: {
+    &quot;production_error&quot;: {
+      &quot;code&quot;: &quot;PATH_FORBIDDEN&quot;,
+      &quot;subcode&quot;: &quot;VIDEO_REFERENCE_FORBIDDEN&quot;
+    },
+    &quot;provider_calls&quot;: 0,
+    &quot;stage_pass_claim&quot;: false
+  },
+  &quot;prompt_id&quot;: &quot;831c95c5-e87e-4364-b226-3c8aa420abde&quot;,
+  &quot;provider_calls&quot;: 0,
+  &quot;owned_listeners&quot;: {
+    &quot;8191&quot;: {
+      &quot;pid&quot;: 4392,
+      &quot;start_ticks&quot;: 639294995003958590,
+      &quot;name&quot;: &quot;python.exe&quot;
+    },
+    &quot;11434&quot;: {
+      &quot;pid&quot;: 31600,
+      &quot;start_ticks&quot;: 639294994807180460,
+      &quot;name&quot;: &quot;ollama.exe&quot;
+    }
+  },
+  &quot;chat_calls_before&quot;: 1,
+  &quot;chat_calls_after&quot;: 1,
+  &quot;model_inventory_before&quot;: {
+    &quot;models&quot;: []
+  },
+  &quot;model_inventory_after&quot;: {
+    &quot;models&quot;: []
+  },
+  &quot;video_snapshots_absent&quot;: true
+}</pre></details></td></tr><tr><td>public</td><td>negative-empty</td><td>PASS</td><td>经Comfy公开队列提交，核对源/帧/失败码、Provider前后计数和清理；负例要求推理前拒绝。<details><summary>实际结果</summary><pre>{
+  &quot;status&quot;: &quot;PASS&quot;,
+  &quot;oracle&quot;: {
+    &quot;production_error&quot;: {
+      &quot;code&quot;: &quot;MEDIA_INVALID&quot;,
+      &quot;subcode&quot;: &quot;VIDEO_EMPTY&quot;
+    },
+    &quot;provider_calls&quot;: 0,
+    &quot;stage_pass_claim&quot;: false
+  },
+  &quot;prompt_id&quot;: &quot;184109fc-d41b-40ed-90c0-2ccd1a8b6d92&quot;,
+  &quot;provider_calls&quot;: 0,
+  &quot;owned_listeners&quot;: {
+    &quot;8191&quot;: {
+      &quot;pid&quot;: 4392,
+      &quot;start_ticks&quot;: 639294995003958590,
+      &quot;name&quot;: &quot;python.exe&quot;
+    },
+    &quot;11434&quot;: {
+      &quot;pid&quot;: 31600,
+      &quot;start_ticks&quot;: 639294994807180460,
+      &quot;name&quot;: &quot;ollama.exe&quot;
+    }
+  },
+  &quot;chat_calls_before&quot;: 1,
+  &quot;chat_calls_after&quot;: 1,
+  &quot;model_inventory_before&quot;: {
+    &quot;models&quot;: []
+  },
+  &quot;model_inventory_after&quot;: {
+    &quot;models&quot;: []
+  },
+  &quot;video_snapshots_absent&quot;: true
+}</pre></details></td></tr><tr><td>public</td><td>negative-oversize</td><td>PASS</td><td>经Comfy公开队列提交，核对源/帧/失败码、Provider前后计数和清理；负例要求推理前拒绝。<details><summary>实际结果</summary><pre>{
+  &quot;status&quot;: &quot;PASS&quot;,
+  &quot;oracle&quot;: {
+    &quot;production_error&quot;: {
+      &quot;code&quot;: &quot;MEDIA_LIMIT_EXCEEDED&quot;,
+      &quot;subcode&quot;: &quot;VIDEO_BYTE_LIMIT&quot;
+    },
+    &quot;provider_calls&quot;: 0,
+    &quot;stage_pass_claim&quot;: false
+  },
+  &quot;prompt_id&quot;: &quot;5783bd47-6393-4d49-af77-3273ee56093e&quot;,
+  &quot;provider_calls&quot;: 0,
+  &quot;owned_listeners&quot;: {
+    &quot;8191&quot;: {
+      &quot;pid&quot;: 4392,
+      &quot;start_ticks&quot;: 639294995003958590,
+      &quot;name&quot;: &quot;python.exe&quot;
+    },
+    &quot;11434&quot;: {
+      &quot;pid&quot;: 31600,
+      &quot;start_ticks&quot;: 639294994807180460,
+      &quot;name&quot;: &quot;ollama.exe&quot;
+    }
+  },
+  &quot;chat_calls_before&quot;: 1,
+  &quot;chat_calls_after&quot;: 1,
+  &quot;model_inventory_before&quot;: {
+    &quot;models&quot;: []
+  },
+  &quot;model_inventory_after&quot;: {
+    &quot;models&quot;: []
+  },
+  &quot;video_snapshots_absent&quot;: true
+}</pre></details></td></tr><tr><td>public</td><td>negative-reparse</td><td>PASS</td><td>经Comfy公开队列提交，核对源/帧/失败码、Provider前后计数和清理；负例要求推理前拒绝。<details><summary>实际结果</summary><pre>{
+  &quot;status&quot;: &quot;PASS&quot;,
+  &quot;oracle&quot;: {
+    &quot;production_error&quot;: {
+      &quot;code&quot;: &quot;PATH_FORBIDDEN&quot;,
+      &quot;subcode&quot;: &quot;VIDEO_REFERENCE_FORBIDDEN&quot;
+    },
+    &quot;provider_calls&quot;: 0,
+    &quot;stage_pass_claim&quot;: false
+  },
+  &quot;prompt_id&quot;: &quot;afb8eac1-6fc1-425d-8568-b1fcfc4e51e9&quot;,
+  &quot;provider_calls&quot;: 0,
+  &quot;owned_listeners&quot;: {
+    &quot;8191&quot;: {
+      &quot;pid&quot;: 4392,
+      &quot;start_ticks&quot;: 639294995003958590,
+      &quot;name&quot;: &quot;python.exe&quot;
+    },
+    &quot;11434&quot;: {
+      &quot;pid&quot;: 31600,
+      &quot;start_ticks&quot;: 639294994807180460,
+      &quot;name&quot;: &quot;ollama.exe&quot;
+    }
+  },
+  &quot;chat_calls_before&quot;: 1,
+  &quot;chat_calls_after&quot;: 1,
+  &quot;model_inventory_before&quot;: {
+    &quot;models&quot;: []
+  },
+  &quot;model_inventory_after&quot;: {
+    &quot;models&quot;: []
+  },
+  &quot;video_snapshots_absent&quot;: true
+}</pre></details></td></tr><tr><td>public</td><td>category-static</td><td>PASS</td><td>经Comfy公开队列提交，核对源/帧/失败码、Provider前后计数和清理；负例要求推理前拒绝。<details><summary>实际结果</summary><pre>{
+  &quot;status&quot;: &quot;PASS&quot;,
+  &quot;oracle&quot;: {
+    &quot;source_sha256&quot;: &quot;7b849279325bbe9500652789557e7c029be2232aacf16f94c31be1f3e6950370&quot;,
+    &quot;frames&quot;: [
+      {
+        &quot;index&quot;: 0,
+        &quot;pts&quot;: 12288,
+        &quot;sha256&quot;: &quot;970fb21b808b19595c8648cedf1db396df8b210986dbcf57b55a5ae2cf70dda7&quot;,
+        &quot;time_base_den&quot;: 12288,
+        &quot;time_base_num&quot;: 1,
+        &quot;time_seconds&quot;: 1.0
+      },
+      {
+        &quot;index&quot;: 1,
+        &quot;pts&quot;: 36864,
+        &quot;sha256&quot;: &quot;970fb21b808b19595c8648cedf1db396df8b210986dbcf57b55a5ae2cf70dda7&quot;,
+        &quot;time_base_den&quot;: 12288,
+        &quot;time_base_num&quot;: 1,
+        &quot;time_seconds&quot;: 3.0
+      },
+      {
+        &quot;index&quot;: 2,
+        &quot;pts&quot;: 61440,
+        &quot;sha256&quot;: &quot;970fb21b808b19595c8648cedf1db396df8b210986dbcf57b55a5ae2cf70dda7&quot;,
+        &quot;time_base_den&quot;: 12288,
+        &quot;time_base_num&quot;: 1,
+        &quot;time_seconds&quot;: 5.0
+      },
+      {
+        &quot;index&quot;: 3,
+        &quot;pts&quot;: 86016,
+        &quot;sha256&quot;: &quot;970fb21b808b19595c8648cedf1db396df8b210986dbcf57b55a5ae2cf70dda7&quot;,
+        &quot;time_base_den&quot;: 12288,
+        &quot;time_base_num&quot;: 1,
+        &quot;time_seconds&quot;: 7.0
+      }
+    ],
+    &quot;run_token&quot;: &quot;fcf4e20b9c5449a08e433087e8f81c9a&quot;,
+    &quot;provider_log_calls&quot;: 4,
+    &quot;raw_sha256&quot;: &quot;c8db6e8cfbb53e7cadf084a2cc6fb668ff1c103fed031914f0a3821be5910754&quot;,
+    &quot;suggestion_sha256&quot;: &quot;3dd0bc3f1fd6998ce9bb42f87072190ba48893b028038477d2dd08352dcf1f25&quot;,
+    &quot;stage_pass_claim&quot;: false,
+    &quot;frozen_timeline&quot;: {
+      &quot;source_sha256&quot;: &quot;7b849279325bbe9500652789557e7c029be2232aacf16f94c31be1f3e6950370&quot;,
+      &quot;selected_pts&quot;: [
+        12288,
+        36864,
+        61440,
+        86016
+      ],
+      &quot;time_base&quot;: &quot;1/12288&quot;
+    },
+    &quot;resource_release&quot;: {
+      &quot;baseline_gpu_mib&quot;: 3255,
+      &quot;checks&quot;: 1,
+      &quot;elapsed_seconds&quot;: 4.311999999998079,
+      &quot;gpu_samples&quot;: [
+        {
+          &quot;elapsed_seconds&quot;: 2.2030000000013388,
+          &quot;gpu_used_mib&quot;: 3242
+        },
+        {
+          &quot;elapsed_seconds&quot;: 3.264999999999418,
+          &quot;gpu_used_mib&quot;: 3242
+        },
+        {
+          &quot;elapsed_seconds&quot;: 4.311999999998079,
+          &quot;gpu_used_mib&quot;: 3242
+        }
+      ],
+      &quot;loaded_models&quot;: 0,
+      &quot;model_inventory_empty_monotonic&quot;: 57813.359,
+      &quot;started_monotonic_seconds&quot;: 57811.203,
+      &quot;state&quot;: &quot;released&quot;
+    }
+  },
+  &quot;prompt_id&quot;: &quot;d171ff04-0c3f-43fe-a034-9acd4802aaf8&quot;,
+  &quot;provider_calls&quot;: 4,
+  &quot;owned_listeners&quot;: {
+    &quot;8191&quot;: {
+      &quot;pid&quot;: 4392,
+      &quot;start_ticks&quot;: 639294995003958590,
+      &quot;name&quot;: &quot;python.exe&quot;
+    },
+    &quot;11434&quot;: {
+      &quot;pid&quot;: 31600,
+      &quot;start_ticks&quot;: 639294994807180460,
+      &quot;name&quot;: &quot;ollama.exe&quot;
+    }
+  },
+  &quot;chat_calls_before&quot;: 1,
+  &quot;chat_calls_after&quot;: 5,
+  &quot;model_inventory_before&quot;: {
+    &quot;models&quot;: []
+  },
+  &quot;model_inventory_after&quot;: {
+    &quot;models&quot;: []
+  },
+  &quot;video_snapshots_absent&quot;: true
+}</pre></details></td></tr><tr><td>public</td><td>category-tracking</td><td>PASS</td><td>经Comfy公开队列提交，核对源/帧/失败码、Provider前后计数和清理；负例要求推理前拒绝。<details><summary>实际结果</summary><pre>{
+  &quot;status&quot;: &quot;PASS&quot;,
+  &quot;oracle&quot;: {
+    &quot;source_sha256&quot;: &quot;b08ea8b0b9fa3bcd4e62b2b0ad1c05b2bff09359539933f4581a5c2f2c69ff6d&quot;,
+    &quot;frames&quot;: [
+      {
+        &quot;index&quot;: 0,
+        &quot;pts&quot;: 12288,
+        &quot;sha256&quot;: &quot;d6b220619176f3e738c1812b5e789defcf28b38802d386c939f094d1c57b25a8&quot;,
+        &quot;time_base_den&quot;: 12288,
+        &quot;time_base_num&quot;: 1,
+        &quot;time_seconds&quot;: 1.0
+      },
+      {
+        &quot;index&quot;: 1,
+        &quot;pts&quot;: 36864,
+        &quot;sha256&quot;: &quot;cda95d446455ab753e6adffbcfa18e35f90e7921138610643a0602ca4dd5af05&quot;,
+        &quot;time_base_den&quot;: 12288,
+        &quot;time_base_num&quot;: 1,
+        &quot;time_seconds&quot;: 3.0
+      },
+      {
+        &quot;index&quot;: 2,
+        &quot;pts&quot;: 61440,
+        &quot;sha256&quot;: &quot;adabd46eac0b6debd94d463c2f37d697e1951b54ceac09dcab894d855e4da072&quot;,
+        &quot;time_base_den&quot;: 12288,
+        &quot;time_base_num&quot;: 1,
+        &quot;time_seconds&quot;: 5.0
+      },
+      {
+        &quot;index&quot;: 3,
+        &quot;pts&quot;: 86016,
+        &quot;sha256&quot;: &quot;392074219ed242331b456828fab9647dd9a3edc7ae3f1cacbb4ed889d671c643&quot;,
+        &quot;time_base_den&quot;: 12288,
+        &quot;time_base_num&quot;: 1,
+        &quot;time_seconds&quot;: 7.0
+      }
+    ],
+    &quot;run_token&quot;: &quot;be075fe15ad84dc9bf958fa443925949&quot;,
+    &quot;provider_log_calls&quot;: 4,
+    &quot;raw_sha256&quot;: &quot;dfb6df9f5e15d3534f1ad412f709bb6d29372db6a1aba9a426ad4a100b2aff3a&quot;,
+    &quot;suggestion_sha256&quot;: &quot;fe88c3cd428369c6dec67bdc4e512f979df298a3d5cc43a8f4b4f610fb11b3b1&quot;,
+    &quot;stage_pass_claim&quot;: false,
+    &quot;frozen_timeline&quot;: {
+      &quot;source_sha256&quot;: &quot;b08ea8b0b9fa3bcd4e62b2b0ad1c05b2bff09359539933f4581a5c2f2c69ff6d&quot;,
+      &quot;selected_pts&quot;: [
+        12288,
+        36864,
+        61440,
+        86016
+      ],
+      &quot;time_base&quot;: &quot;1/12288&quot;
+    },
+    &quot;resource_release&quot;: {
+      &quot;baseline_gpu_mib&quot;: 3242,
+      &quot;checks&quot;: 1,
+      &quot;elapsed_seconds&quot;: 4.3439999999973224,
+      &quot;gpu_samples&quot;: [
+        {
+          &quot;elapsed_seconds&quot;: 2.25,
+          &quot;gpu_used_mib&quot;: 3241
+        },
+        {
+          &quot;elapsed_seconds&quot;: 3.2969999999986612,
+          &quot;gpu_used_mib&quot;: 3241
+        },
+        {
+          &quot;elapsed_seconds&quot;: 4.3439999999973224,
+          &quot;gpu_used_mib&quot;: 3241
+        }
+      ],
+      &quot;loaded_models&quot;: 0,
+      &quot;model_inventory_empty_monotonic&quot;: 57906.718,
+      &quot;started_monotonic_seconds&quot;: 57904.531,
+      &quot;state&quot;: &quot;released&quot;
+    }
+  },
+  &quot;prompt_id&quot;: &quot;3222f134-8087-4bd1-b5cb-7e2a1ec308bd&quot;,
+  &quot;provider_calls&quot;: 4,
+  &quot;owned_listeners&quot;: {
+    &quot;8191&quot;: {
+      &quot;pid&quot;: 4392,
+      &quot;start_ticks&quot;: 639294995003958590,
+      &quot;name&quot;: &quot;python.exe&quot;
+    },
+    &quot;11434&quot;: {
+      &quot;pid&quot;: 31600,
+      &quot;start_ticks&quot;: 639294994807180460,
+      &quot;name&quot;: &quot;ollama.exe&quot;
+    }
+  },
+  &quot;chat_calls_before&quot;: 5,
+  &quot;chat_calls_after&quot;: 9,
+  &quot;model_inventory_before&quot;: {
+    &quot;models&quot;: []
+  },
+  &quot;model_inventory_after&quot;: {
+    &quot;models&quot;: []
+  },
+  &quot;video_snapshots_absent&quot;: true
+}</pre></details></td></tr><tr><td>public</td><td>category-fast-cut</td><td>PASS</td><td>经Comfy公开队列提交，核对源/帧/失败码、Provider前后计数和清理；负例要求推理前拒绝。<details><summary>实际结果</summary><pre>{
+  &quot;status&quot;: &quot;PASS&quot;,
+  &quot;oracle&quot;: {
+    &quot;source_sha256&quot;: &quot;40a33fd96e97dc4c180526270745da73fec3be8cf264290f8078a28d8f50b027&quot;,
+    &quot;frames&quot;: [
+      {
+        &quot;index&quot;: 0,
+        &quot;pts&quot;: 12288,
+        &quot;sha256&quot;: &quot;cf599dcd22e075f835898daa435b3d2eb9ecb00afdd3a4e594074daedf667ff0&quot;,
+        &quot;time_base_den&quot;: 12288,
+        &quot;time_base_num&quot;: 1,
+        &quot;time_seconds&quot;: 1.0
+      },
+      {
+        &quot;index&quot;: 1,
+        &quot;pts&quot;: 36864,
+        &quot;sha256&quot;: &quot;e6dcf8215546286a517dae34b5036a5f73dc2be168887dfb37e7623e0f313399&quot;,
+        &quot;time_base_den&quot;: 12288,
+        &quot;time_base_num&quot;: 1,
+        &quot;time_seconds&quot;: 3.0
+      },
+      {
+        &quot;index&quot;: 2,
+        &quot;pts&quot;: 61440,
+        &quot;sha256&quot;: &quot;e0eb3dac06532b3376503e68600dbf351d768a7597c1dbd294879db00592d05f&quot;,
+        &quot;time_base_den&quot;: 12288,
+        &quot;time_base_num&quot;: 1,
+        &quot;time_seconds&quot;: 5.0
+      },
+      {
+        &quot;index&quot;: 3,
+        &quot;pts&quot;: 86016,
+        &quot;sha256&quot;: &quot;af795f5b0e65f7f34bde997366c578851b81406f4687c2aabc3760c345eaf58b&quot;,
+        &quot;time_base_den&quot;: 12288,
+        &quot;time_base_num&quot;: 1,
+        &quot;time_seconds&quot;: 7.0
+      }
+    ],
+    &quot;run_token&quot;: &quot;9b611275e78846db91e7aba75d9566d0&quot;,
+    &quot;provider_log_calls&quot;: 4,
+    &quot;raw_sha256&quot;: &quot;5fa52831de6bfc01b08da434f9ec9d1d161e807075c79c119d7162bbc6b0fa36&quot;,
+    &quot;suggestion_sha256&quot;: &quot;8b745f9111f85756447b0592f9fbb9fba454d925fe66237f99ee72a65708c61d&quot;,
+    &quot;stage_pass_claim&quot;: false,
+    &quot;frozen_timeline&quot;: {
+      &quot;source_sha256&quot;: &quot;40a33fd96e97dc4c180526270745da73fec3be8cf264290f8078a28d8f50b027&quot;,
+      &quot;selected_pts&quot;: [
+        12288,
+        36864,
+        61440,
+        86016
+      ],
+      &quot;time_base&quot;: &quot;1/12288&quot;
+    },
+    &quot;resource_release&quot;: {
+      &quot;baseline_gpu_mib&quot;: 3241,
+      &quot;checks&quot;: 1,
+      &quot;elapsed_seconds&quot;: 4.468000000000757,
+      &quot;gpu_samples&quot;: [
+        {
+          &quot;elapsed_seconds&quot;: 2.3430000000007567,
+          &quot;gpu_used_mib&quot;: 3242
+        },
+        {
+          &quot;elapsed_seconds&quot;: 3.4060000000026776,
+          &quot;gpu_used_mib&quot;: 3255
+        },
+        {
+          &quot;elapsed_seconds&quot;: 4.468000000000757,
+          &quot;gpu_used_mib&quot;: 3255
+        }
+      ],
+      &quot;loaded_models&quot;: 0,
+      &quot;model_inventory_empty_monotonic&quot;: 58000.046,
+      &quot;started_monotonic_seconds&quot;: 57997.75,
+      &quot;state&quot;: &quot;released&quot;
+    }
+  },
+  &quot;prompt_id&quot;: &quot;a181f5a2-cd3e-42e5-bd89-db1a889b298f&quot;,
+  &quot;provider_calls&quot;: 4,
+  &quot;owned_listeners&quot;: {
+    &quot;8191&quot;: {
+      &quot;pid&quot;: 4392,
+      &quot;start_ticks&quot;: 639294995003958590,
+      &quot;name&quot;: &quot;python.exe&quot;
+    },
+    &quot;11434&quot;: {
+      &quot;pid&quot;: 31600,
+      &quot;start_ticks&quot;: 639294994807180460,
+      &quot;name&quot;: &quot;ollama.exe&quot;
+    }
+  },
+  &quot;chat_calls_before&quot;: 9,
+  &quot;chat_calls_after&quot;: 13,
+  &quot;model_inventory_before&quot;: {
+    &quot;models&quot;: []
+  },
+  &quot;model_inventory_after&quot;: {
+    &quot;models&quot;: []
+  },
+  &quot;video_snapshots_absent&quot;: true
+}</pre></details></td></tr><tr><td>public</td><td>category-vfr</td><td>PASS</td><td>经Comfy公开队列提交，核对源/帧/失败码、Provider前后计数和清理；负例要求推理前拒绝。<details><summary>实际结果</summary><pre>{
+  &quot;status&quot;: &quot;PASS&quot;,
+  &quot;oracle&quot;: {
+    &quot;source_sha256&quot;: &quot;08f72af8b5b7ea31680149ff06174da53b4c5875fbdec7317c9ee14b1d9a79bf&quot;,
+    &quot;frames&quot;: [
+      {
+        &quot;index&quot;: 0,
+        &quot;pts&quot;: 14336,
+        &quot;sha256&quot;: &quot;b0d2e5c52629f16cf83920d51ae5f0bd0830a93ee148e3fc5cc17cf323fc02b9&quot;,
+        &quot;time_base_den&quot;: 12288,
+        &quot;time_base_num&quot;: 1,
+        &quot;time_seconds&quot;: 1.1666666666666667
+      },
+      {
+        &quot;index&quot;: 1,
+        &quot;pts&quot;: 38912,
+        &quot;sha256&quot;: &quot;1b401c9961cdc403a8e64eac8fe3c992e893940092968bccec7d72444faac0b1&quot;,
+        &quot;time_base_den&quot;: 12288,
+        &quot;time_base_num&quot;: 1,
+        &quot;time_seconds&quot;: 3.1666666666666665
+      },
+      {
+        &quot;index&quot;: 2,
+        &quot;pts&quot;: 63488,
+        &quot;sha256&quot;: &quot;4eed5c1645bab3da7001e67ffb6541d575281934097caab918732527b842c844&quot;,
+        &quot;time_base_den&quot;: 12288,
+        &quot;time_base_num&quot;: 1,
+        &quot;time_seconds&quot;: 5.166666666666667
+      },
+      {
+        &quot;index&quot;: 3,
+        &quot;pts&quot;: 87040,
+        &quot;sha256&quot;: &quot;00fbce04504cf1d90263fda2389d8b3bd3902612eafd11259073b70479e44794&quot;,
+        &quot;time_base_den&quot;: 12288,
+        &quot;time_base_num&quot;: 1,
+        &quot;time_seconds&quot;: 7.083333333333333
+      }
+    ],
+    &quot;run_token&quot;: &quot;b96cf3d178c14870b0f49c27f6ef23f0&quot;,
+    &quot;provider_log_calls&quot;: 4,
+    &quot;raw_sha256&quot;: &quot;daac96a0290d3c46f49d0e2a3ef1d61994fa0f1d1cdf7753f9d689d703697dcd&quot;,
+    &quot;suggestion_sha256&quot;: &quot;60be36e0656772e98f0613f88c554c0a090f65cae3dde32e56c21da53ee82fa8&quot;,
+    &quot;stage_pass_claim&quot;: false,
+    &quot;frozen_timeline&quot;: {
+      &quot;source_sha256&quot;: &quot;08f72af8b5b7ea31680149ff06174da53b4c5875fbdec7317c9ee14b1d9a79bf&quot;,
+      &quot;selected_pts&quot;: [
+        14336,
+        38912,
+        63488,
+        87040
+      ],
+      &quot;time_base&quot;: &quot;1/12288&quot;
+    },
+    &quot;resource_release&quot;: {
+      &quot;baseline_gpu_mib&quot;: 3246,
+      &quot;checks&quot;: 1,
+      &quot;elapsed_seconds&quot;: 4.311999999998079,
+      &quot;gpu_samples&quot;: [
+        {
+          &quot;elapsed_seconds&quot;: 2.186999999998079,
+          &quot;gpu_used_mib&quot;: 3242
+        },
+        {
+          &quot;elapsed_seconds&quot;: 3.25,
+          &quot;gpu_used_mib&quot;: 3246
+        },
+        {
+          &quot;elapsed_seconds&quot;: 4.311999999998079,
+          &quot;gpu_used_mib&quot;: 3246
+        }
+      ],
+      &quot;loaded_models&quot;: 0,
+      &quot;model_inventory_empty_monotonic&quot;: 58098.015,
+      &quot;started_monotonic_seconds&quot;: 58095.875,
+      &quot;state&quot;: &quot;released&quot;
+    }
+  },
+  &quot;prompt_id&quot;: &quot;5231a59e-7e37-48ef-a8b4-1a99b863579a&quot;,
+  &quot;provider_calls&quot;: 4,
+  &quot;owned_listeners&quot;: {
+    &quot;8191&quot;: {
+      &quot;pid&quot;: 4392,
+      &quot;start_ticks&quot;: 639294995003958590,
+      &quot;name&quot;: &quot;python.exe&quot;
+    },
+    &quot;11434&quot;: {
+      &quot;pid&quot;: 31600,
+      &quot;start_ticks&quot;: 639294994807180460,
+      &quot;name&quot;: &quot;ollama.exe&quot;
+    }
+  },
+  &quot;chat_calls_before&quot;: 13,
+  &quot;chat_calls_after&quot;: 17,
+  &quot;model_inventory_before&quot;: {
+    &quot;models&quot;: []
+  },
+  &quot;model_inventory_after&quot;: {
+    &quot;models&quot;: []
+  },
+  &quot;video_snapshots_absent&quot;: true
+}</pre></details></td></tr><tr><td>browser</td><td>manual-initial</td><td>PASS</td><td>隔离headless浏览器驱动原生页面，联结公开队列、导出、剪贴板及人工稿终态。<details><summary>实际结果</summary><pre>{
+  &quot;recorded_status&quot;: &quot;PASS&quot;
+}</pre></details></td></tr><tr><td>browser</td><td>upload</td><td>PASS</td><td>隔离headless浏览器驱动原生页面，联结公开队列、导出、剪贴板及人工稿终态。<details><summary>实际结果</summary><pre>{
+  &quot;recorded_status&quot;: &quot;PASS&quot;
+}</pre></details></td></tr><tr><td>browser</td><td>native-analysis</td><td>PASS</td><td>隔离headless浏览器驱动原生页面，联结公开队列、导出、剪贴板及人工稿终态。<details><summary>实际结果</summary><pre>{
+  &quot;recorded_status&quot;: &quot;PASS&quot;
+}</pre></details></td></tr><tr><td>browser</td><td>busy-manual</td><td>PASS</td><td>隔离headless浏览器驱动原生页面，联结公开队列、导出、剪贴板及人工稿终态。<details><summary>实际结果</summary><pre>{
+  &quot;recorded_status&quot;: &quot;PASS&quot;
+}</pre></details></td></tr><tr><td>browser</td><td>explicit-adoption</td><td>PASS</td><td>隔离headless浏览器驱动原生页面，联结公开队列、导出、剪贴板及人工稿终态。<details><summary>实际结果</summary><pre>{
+  &quot;recorded_status&quot;: &quot;PASS&quot;
+}</pre></details></td></tr><tr><td>browser</td><td>exports-clipboard</td><td>PASS</td><td>隔离headless浏览器驱动原生页面，联结公开队列、导出、剪贴板及人工稿终态。<details><summary>实际结果</summary><pre>{
+  &quot;recorded_status&quot;: &quot;PASS&quot;
+}</pre></details></td></tr><tr><td>browser</td><td>late-adoption-new-run-cancel</td><td>PASS</td><td>隔离headless浏览器驱动原生页面，联结公开队列、导出、剪贴板及人工稿终态。<details><summary>实际结果</summary><pre>{
+  &quot;recorded_status&quot;: &quot;PASS&quot;
+}</pre></details></td></tr><tr><td>browser</td><td>offline-manual</td><td>PASS</td><td>隔离headless浏览器驱动原生页面，联结公开队列、导出、剪贴板及人工稿终态。<details><summary>实际结果</summary><pre>{
+  &quot;recorded_status&quot;: &quot;PASS&quot;
+}</pre></details></td></tr><tr><td>browser</td><td>node-removal</td><td>PASS</td><td>隔离headless浏览器驱动原生页面，联结公开队列、导出、剪贴板及人工稿终态。<details><summary>实际结果</summary><pre>{
+  &quot;recorded_status&quot;: &quot;PASS&quot;
+}</pre></details></td></tr><tr><td>cancel</td><td>preparation</td><td>PASS</td><td>在准备或模型请求窗口走公开取消；核对反馈、无发布、无残留和物理释放。<details><summary>实际结果</summary><pre>{
+  &quot;status&quot;: &quot;PASS&quot;,
+  &quot;run_token&quot;: &quot;54f3e2be36e34477a0bfdd43297df6f8&quot;,
+  &quot;prompt_id&quot;: &quot;997f58b8-7266-4376-b993-c24154f62f37&quot;,
+  &quot;oracle&quot;: {
+    &quot;kind&quot;: &quot;CANCELLATION_TRACE_VERIFIED_NOT_STAGE_ACCEPTANCE&quot;,
+    &quot;stage_pass_claim&quot;: false,
+    &quot;cancel_feedback_seconds&quot;: 0.05676551000215113,
+    &quot;provider_calls&quot;: 0,
+    &quot;result_published&quot;: false,
+    &quot;remaining_obligations&quot;: [
+      &quot;browser_draft_safety&quot;,
+      &quot;final_owned_process_and_temp_cleanup&quot;,
+      &quot;privacy&quot;,
+      &quot;independent_review&quot;
+    ],
+    &quot;public_failure&quot;: {
+      &quot;production_error&quot;: &quot;JOB_CANCELLED&quot;,
+      &quot;outputs_absent&quot;: true
+    }
+  },
+  &quot;source_sha256&quot;: &quot;b08ea8b0b9fa3bcd4e62b2b0ad1c05b2bff09359539933f4581a5c2f2c69ff6d&quot;,
+  &quot;owned_listeners&quot;: {
+    &quot;8191&quot;: {
+      &quot;pid&quot;: 4392,
+      &quot;start_ticks&quot;: 639294995003958590,
+      &quot;name&quot;: &quot;python.exe&quot;
+    },
+    &quot;11434&quot;: {
+      &quot;pid&quot;: 31600,
+      &quot;start_ticks&quot;: 639294994807180460,
+      &quot;name&quot;: &quot;ollama.exe&quot;
+    }
+  },
+  &quot;model_inventory_empty&quot;: true,
+  &quot;video_snapshots_absent&quot;: true
+}</pre></details></td></tr><tr><td>cancel</td><td>provider</td><td>PASS</td><td>在准备或模型请求窗口走公开取消；核对反馈、无发布、无残留和物理释放。<details><summary>实际结果</summary><pre>{
+  &quot;status&quot;: &quot;PASS&quot;,
+  &quot;run_token&quot;: &quot;5ed74646ea214ead8ac28a57e1135bc4&quot;,
+  &quot;prompt_id&quot;: &quot;ae31c26b-edcd-478b-834f-853e9999fda6&quot;,
+  &quot;oracle&quot;: {
+    &quot;kind&quot;: &quot;CANCELLATION_TRACE_VERIFIED_NOT_STAGE_ACCEPTANCE&quot;,
+    &quot;stage_pass_claim&quot;: false,
+    &quot;cancel_feedback_seconds&quot;: 0.07539474799705204,
+    &quot;provider_calls&quot;: 1,
+    &quot;result_published&quot;: false,
+    &quot;remaining_obligations&quot;: [
+      &quot;browser_draft_safety&quot;,
+      &quot;final_owned_process_and_temp_cleanup&quot;,
+      &quot;privacy&quot;,
+      &quot;independent_review&quot;
+    ],
+    &quot;model_stop_confirmed_monotonic&quot;: 58663.609,
+    &quot;physical_release_monotonic&quot;: 58665.781,
+    &quot;release_from_cancel_seconds&quot;: 4.4060000000026776,
+    &quot;stop_witness&quot;: &quot;owned_unload_ack_and_empty_inventory&quot;,
+    &quot;actual_gpu_kernel_stop_timestamp_claimed&quot;: false,
+    &quot;public_failure&quot;: {
+      &quot;production_error&quot;: &quot;JOB_CANCELLED&quot;,
+      &quot;outputs_absent&quot;: true
+    }
+  },
+  &quot;source_sha256&quot;: &quot;b08ea8b0b9fa3bcd4e62b2b0ad1c05b2bff09359539933f4581a5c2f2c69ff6d&quot;,
+  &quot;owned_listeners&quot;: {
+    &quot;8191&quot;: {
+      &quot;pid&quot;: 4392,
+      &quot;start_ticks&quot;: 639294995003958590,
+      &quot;name&quot;: &quot;python.exe&quot;
+    },
+    &quot;11434&quot;: {
+      &quot;pid&quot;: 31600,
+      &quot;start_ticks&quot;: 639294994807180460,
+      &quot;name&quot;: &quot;ollama.exe&quot;
+    }
+  },
+  &quot;model_inventory_empty&quot;: true,
+  &quot;video_snapshots_absent&quot;: true
+}</pre></details></td></tr><tr><td>fault</td><td>provider-root-stop</td><td>PASS</td><td>终止本轮拥有的Provider并验证失败、隔离、拒绝旧采纳及人工离线操作。<details><summary>实际结果</summary><pre>{
+  &quot;status&quot;: &quot;PASS&quot;,
+  &quot;prompt_id&quot;: &quot;335123af-c836-4099-a9b8-4a0d2b1f5270&quot;,
+  &quot;run_token&quot;: &quot;437d3042915242f7898838005d536264&quot;,
+  &quot;oracle&quot;: {
+    &quot;kind&quot;: &quot;FAULT_TRACE_VERIFIED_NOT_STAGE_ACCEPTANCE&quot;,
+    &quot;stage_pass_claim&quot;: false,
+    &quot;provider_sends&quot;: 1,
+    &quot;completed_provider_log_delta&quot;: 0,
+    &quot;interrupted_call_index&quot;: 0,
+    &quot;in_process_quarantine&quot;: true,
+    &quot;physical_release_monotonic&quot;: 58703.14,
+    &quot;release_from_stop_bracket_seconds&quot;: 5.8439999999973224,
+    &quot;exact_kernel_stop_timestamp_claimed&quot;: false,
+    &quot;remaining_obligations&quot;: [
+      &quot;manual_offline&quot;,
+      &quot;adopt_rejection&quot;,
+      &quot;quarantine_entry&quot;,
+      &quot;browser&quot;,
+      &quot;final_cleanup&quot;,
+      &quot;independent_review&quot;
+    ]
+  },
+  &quot;public_status&quot;: {
+    &quot;run_token&quot;: &quot;437d3042915242f7898838005d536264&quot;,
+    &quot;cancel_epoch&quot;: 0,
+    &quot;status&quot;: &quot;failed&quot;,
+    &quot;resource_state&quot;: &quot;unknown&quot;,
+    &quot;error_code&quot;: &quot;MODEL_UNAVAILABLE&quot;
+  },
+  &quot;video_snapshots_absent&quot;: true
+}</pre></details></td></tr><tr><td>fault</td><td>manual-offline</td><td>PASS</td><td>终止本轮拥有的Provider并验证失败、隔离、拒绝旧采纳及人工离线操作。<details><summary>实际结果</summary><pre>{
+  &quot;status&quot;: &quot;PASS&quot;,
+  &quot;draft_preserved&quot;: true,
+  &quot;manual_json_and_txt_available&quot;: true,
+  &quot;provider_calls&quot;: 0,
+  &quot;browser_not_tested&quot;: true
+}</pre></details></td></tr><tr><td>fault</td><td>quarantine-entry</td><td>PASS</td><td>终止本轮拥有的Provider并验证失败、隔离、拒绝旧采纳及人工离线操作。<details><summary>实际结果</summary><pre>{
+  &quot;status&quot;: &quot;PASS&quot;,
+  &quot;prompt_id&quot;: &quot;edd1f72c-6959-4d35-bc36-d73a036c779a&quot;,
+  &quot;oracle&quot;: {
+    &quot;production_error&quot;: {
+      &quot;code&quot;: &quot;RESOURCE_BUSY&quot;,
+      &quot;subcode&quot;: &quot;VIDEO_REQUEST_ACTIVE&quot;
+    },
+    &quot;provider_calls&quot;: 0,
+    &quot;stage_pass_claim&quot;: false
+  },
+  &quot;new_inference_blocked&quot;: true
+}</pre></details></td></tr><tr><td>fault</td><td>adopt-denied</td><td>PASS</td><td>终止本轮拥有的Provider并验证失败、隔离、拒绝旧采纳及人工离线操作。<details><summary>实际结果</summary><pre>{
+  &quot;status&quot;: &quot;PASS&quot;,
+  &quot;production_error&quot;: &quot;ATTEMPT_STALE&quot;,
+  &quot;result_adoption_rejected&quot;: true,
+  &quot;provider_calls&quot;: 0
+}</pre></details></td></tr><tr><td>cumulative-offline</td><td>V0-A01</td><td>PASS</td><td>线上/离线累计复核当前候选的图片、四输出、人工编辑、失败保护和无审批前置。<details><summary>实际结果</summary><pre>{
+  &quot;status&quot;: &quot;PASS&quot;,
+  &quot;source_sha256&quot;: &quot;aab2829ddeae39585b24768e39cbdd27e25c83946d6f1885029876cec8de216b&quot;,
+  &quot;oracle&quot;: {
+    &quot;raw_sha256&quot;: &quot;27367c311802502abd71c107aa6e7c9a01e296bc2811470af0d99cdcccbfb1b5&quot;,
+    &quot;suggestion_sha256&quot;: &quot;4bade004c1a4588f9360e686d145dca083903ca54c7b982a4490977f7dc36e70&quot;
+  },
+  &quot;provider_calls&quot;: 1
+}</pre></details></td></tr><tr><td>cumulative-offline</td><td>V0-A03</td><td>PASS</td><td>线上/离线累计复核当前候选的图片、四输出、人工编辑、失败保护和无审批前置。<details><summary>实际结果</summary><pre>{
+  &quot;status&quot;: &quot;PASS&quot;,
+  &quot;four_outputs_preserved&quot;: true,
+  &quot;extra_provider_calls&quot;: 0
+}</pre></details></td></tr><tr><td>cumulative-offline</td><td>V0-A04</td><td>PASS</td><td>线上/离线累计复核当前候选的图片、四输出、人工编辑、失败保护和无审批前置。<details><summary>实际结果</summary><pre>{
+  &quot;status&quot;: &quot;PASS&quot;,
+  &quot;exact_characters&quot;: 20000,
+  &quot;failed_replace_preserved_target&quot;: true,
+  &quot;clipboard_scope&quot;: &quot;real public node copy actions; browser clipboard verified separately&quot;
+}</pre></details></td></tr><tr><td>cumulative-offline</td><td>V0-A05</td><td>PASS</td><td>线上/离线累计复核当前候选的图片、四输出、人工编辑、失败保护和无审批前置。<details><summary>实际结果</summary><pre>{
+  &quot;status&quot;: &quot;PASS&quot;,
+  &quot;negative_callbacks&quot;: [
+    &quot;invalid_json&quot;,
+    &quot;explicit_refusal&quot;,
+    &quot;timeout&quot;,
+    &quot;oom&quot;,
+    &quot;stale_token&quot;
+  ],
+  &quot;scope&quot;: &quot;public state callbacks, not actual Provider failures&quot;,
+  &quot;automatic_retries&quot;: 0
+}</pre></details></td></tr><tr><td>cumulative-offline</td><td>V0-A08</td><td>PASS</td><td>线上/离线累计复核当前候选的图片、四输出、人工编辑、失败保护和无审批前置。<details><summary>实际结果</summary><pre>{
+  &quot;status&quot;: &quot;PASS&quot;,
+  &quot;manual_contract_preserved&quot;: true,
+  &quot;extra_provider_calls&quot;: 0
+}</pre></details></td></tr><tr><td>warm</td><td>image-01</td><td>PASS</td><td>同一冻结热测环境，经公开生产路径重复执行，核对真实调用、时长与OOM；不评分内容。<details><summary>实际结果</summary><pre>{
+  &quot;duration_seconds&quot;: 9.375,
+  &quot;provider_calls&quot;: 1,
+  &quot;outcome&quot;: &quot;succeeded&quot;,
+  &quot;oom&quot;: false,
+  &quot;source_sha256&quot;: &quot;aab2829ddeae39585b24768e39cbdd27e25c83946d6f1885029876cec8de216b&quot;
+}</pre></details></td></tr><tr><td>warm</td><td>image-02</td><td>PASS</td><td>同一冻结热测环境，经公开生产路径重复执行，核对真实调用、时长与OOM；不评分内容。<details><summary>实际结果</summary><pre>{
+  &quot;duration_seconds&quot;: 9.375,
+  &quot;provider_calls&quot;: 1,
+  &quot;outcome&quot;: &quot;succeeded&quot;,
+  &quot;oom&quot;: false,
+  &quot;source_sha256&quot;: &quot;aab2829ddeae39585b24768e39cbdd27e25c83946d6f1885029876cec8de216b&quot;
+}</pre></details></td></tr><tr><td>warm</td><td>image-03</td><td>PASS</td><td>同一冻结热测环境，经公开生产路径重复执行，核对真实调用、时长与OOM；不评分内容。<details><summary>实际结果</summary><pre>{
+  &quot;duration_seconds&quot;: 9.35899999999674,
+  &quot;provider_calls&quot;: 1,
+  &quot;outcome&quot;: &quot;succeeded&quot;,
+  &quot;oom&quot;: false,
+  &quot;source_sha256&quot;: &quot;aab2829ddeae39585b24768e39cbdd27e25c83946d6f1885029876cec8de216b&quot;
+}</pre></details></td></tr><tr><td>warm</td><td>image-04</td><td>PASS</td><td>同一冻结热测环境，经公开生产路径重复执行，核对真实调用、时长与OOM；不评分内容。<details><summary>实际结果</summary><pre>{
+  &quot;duration_seconds&quot;: 9.343999999997322,
+  &quot;provider_calls&quot;: 1,
+  &quot;outcome&quot;: &quot;succeeded&quot;,
+  &quot;oom&quot;: false,
+  &quot;source_sha256&quot;: &quot;aab2829ddeae39585b24768e39cbdd27e25c83946d6f1885029876cec8de216b&quot;
+}</pre></details></td></tr><tr><td>warm</td><td>image-05</td><td>PASS</td><td>同一冻结热测环境，经公开生产路径重复执行，核对真实调用、时长与OOM；不评分内容。<details><summary>实际结果</summary><pre>{
+  &quot;duration_seconds&quot;: 9.406000000002678,
+  &quot;provider_calls&quot;: 1,
+  &quot;outcome&quot;: &quot;succeeded&quot;,
+  &quot;oom&quot;: false,
+  &quot;source_sha256&quot;: &quot;aab2829ddeae39585b24768e39cbdd27e25c83946d6f1885029876cec8de216b&quot;
+}</pre></details></td></tr><tr><td>warm</td><td>image-06</td><td>PASS</td><td>同一冻结热测环境，经公开生产路径重复执行，核对真实调用、时长与OOM；不评分内容。<details><summary>实际结果</summary><pre>{
+  &quot;duration_seconds&quot;: 9.344000000004598,
+  &quot;provider_calls&quot;: 1,
+  &quot;outcome&quot;: &quot;succeeded&quot;,
+  &quot;oom&quot;: false,
+  &quot;source_sha256&quot;: &quot;aab2829ddeae39585b24768e39cbdd27e25c83946d6f1885029876cec8de216b&quot;
+}</pre></details></td></tr><tr><td>warm</td><td>image-07</td><td>PASS</td><td>同一冻结热测环境，经公开生产路径重复执行，核对真实调用、时长与OOM；不评分内容。<details><summary>实际结果</summary><pre>{
+  &quot;duration_seconds&quot;: 9.375,
+  &quot;provider_calls&quot;: 1,
+  &quot;outcome&quot;: &quot;succeeded&quot;,
+  &quot;oom&quot;: false,
+  &quot;source_sha256&quot;: &quot;aab2829ddeae39585b24768e39cbdd27e25c83946d6f1885029876cec8de216b&quot;
+}</pre></details></td></tr><tr><td>warm</td><td>image-08</td><td>PASS</td><td>同一冻结热测环境，经公开生产路径重复执行，核对真实调用、时长与OOM；不评分内容。<details><summary>实际结果</summary><pre>{
+  &quot;duration_seconds&quot;: 9.421999999998661,
+  &quot;provider_calls&quot;: 1,
+  &quot;outcome&quot;: &quot;succeeded&quot;,
+  &quot;oom&quot;: false,
+  &quot;source_sha256&quot;: &quot;aab2829ddeae39585b24768e39cbdd27e25c83946d6f1885029876cec8de216b&quot;
+}</pre></details></td></tr><tr><td>warm</td><td>image-09</td><td>PASS</td><td>同一冻结热测环境，经公开生产路径重复执行，核对真实调用、时长与OOM；不评分内容。<details><summary>实际结果</summary><pre>{
+  &quot;duration_seconds&quot;: 9.328000000001339,
+  &quot;provider_calls&quot;: 1,
+  &quot;outcome&quot;: &quot;succeeded&quot;,
+  &quot;oom&quot;: false,
+  &quot;source_sha256&quot;: &quot;aab2829ddeae39585b24768e39cbdd27e25c83946d6f1885029876cec8de216b&quot;
+}</pre></details></td></tr><tr><td>warm</td><td>image-10</td><td>PASS</td><td>同一冻结热测环境，经公开生产路径重复执行，核对真实调用、时长与OOM；不评分内容。<details><summary>实际结果</summary><pre>{
+  &quot;duration_seconds&quot;: 9.39100000000326,
+  &quot;provider_calls&quot;: 1,
+  &quot;outcome&quot;: &quot;succeeded&quot;,
+  &quot;oom&quot;: false,
+  &quot;source_sha256&quot;: &quot;aab2829ddeae39585b24768e39cbdd27e25c83946d6f1885029876cec8de216b&quot;
+}</pre></details></td></tr><tr><td>warm</td><td>video-01</td><td>PASS</td><td>同一冻结热测环境，经公开生产路径重复执行，核对真实调用、时长与OOM；不评分内容。<details><summary>实际结果</summary><pre>{
+  &quot;duration_seconds&quot;: 22.5,
+  &quot;provider_calls&quot;: 4,
+  &quot;outcome&quot;: &quot;succeeded&quot;,
+  &quot;oom&quot;: false,
+  &quot;source_sha256&quot;: &quot;08516ead62a4b7bb7f8b2035269c3b003c9b2390fbde39d2a2e35e84f42da49e&quot;
+}</pre></details></td></tr><tr><td>warm</td><td>video-02</td><td>PASS</td><td>同一冻结热测环境，经公开生产路径重复执行，核对真实调用、时长与OOM；不评分内容。<details><summary>实际结果</summary><pre>{
+  &quot;duration_seconds&quot;: 23.56199999999808,
+  &quot;provider_calls&quot;: 4,
+  &quot;outcome&quot;: &quot;succeeded&quot;,
+  &quot;oom&quot;: false,
+  &quot;source_sha256&quot;: &quot;08516ead62a4b7bb7f8b2035269c3b003c9b2390fbde39d2a2e35e84f42da49e&quot;
+}</pre></details></td></tr><tr><td>warm</td><td>video-03</td><td>PASS</td><td>同一冻结热测环境，经公开生产路径重复执行，核对真实调用、时长与OOM；不评分内容。<details><summary>实际结果</summary><pre>{
+  &quot;duration_seconds&quot;: 22.531000000002678,
+  &quot;provider_calls&quot;: 4,
+  &quot;outcome&quot;: &quot;succeeded&quot;,
+  &quot;oom&quot;: false,
+  &quot;source_sha256&quot;: &quot;08516ead62a4b7bb7f8b2035269c3b003c9b2390fbde39d2a2e35e84f42da49e&quot;
+}</pre></details></td></tr><tr><td>warm</td><td>video-04</td><td>PASS</td><td>同一冻结热测环境，经公开生产路径重复执行，核对真实调用、时长与OOM；不评分内容。<details><summary>实际结果</summary><pre>{
+  &quot;duration_seconds&quot;: 22.531999999999243,
+  &quot;provider_calls&quot;: 4,
+  &quot;outcome&quot;: &quot;succeeded&quot;,
+  &quot;oom&quot;: false,
+  &quot;source_sha256&quot;: &quot;08516ead62a4b7bb7f8b2035269c3b003c9b2390fbde39d2a2e35e84f42da49e&quot;
+}</pre></details></td></tr><tr><td>warm</td><td>video-05</td><td>PASS</td><td>同一冻结热测环境，经公开生产路径重复执行，核对真实调用、时长与OOM；不评分内容。<details><summary>实际结果</summary><pre>{
+  &quot;duration_seconds&quot;: 22.5,
+  &quot;provider_calls&quot;: 4,
+  &quot;outcome&quot;: &quot;succeeded&quot;,
+  &quot;oom&quot;: false,
+  &quot;source_sha256&quot;: &quot;08516ead62a4b7bb7f8b2035269c3b003c9b2390fbde39d2a2e35e84f42da49e&quot;
+}</pre></details></td></tr><tr><td>warm</td><td>video-06</td><td>PASS</td><td>同一冻结热测环境，经公开生产路径重复执行，核对真实调用、时长与OOM；不评分内容。<details><summary>实际结果</summary><pre>{
+  &quot;duration_seconds&quot;: 22.593999999997322,
+  &quot;provider_calls&quot;: 4,
+  &quot;outcome&quot;: &quot;succeeded&quot;,
+  &quot;oom&quot;: false,
+  &quot;source_sha256&quot;: &quot;08516ead62a4b7bb7f8b2035269c3b003c9b2390fbde39d2a2e35e84f42da49e&quot;
+}</pre></details></td></tr><tr><td>warm</td><td>video-07</td><td>PASS</td><td>同一冻结热测环境，经公开生产路径重复执行，核对真实调用、时长与OOM；不评分内容。<details><summary>实际结果</summary><pre>{
+  &quot;duration_seconds&quot;: 24.48399999999674,
+  &quot;provider_calls&quot;: 4,
+  &quot;outcome&quot;: &quot;succeeded&quot;,
+  &quot;oom&quot;: false,
+  &quot;source_sha256&quot;: &quot;08516ead62a4b7bb7f8b2035269c3b003c9b2390fbde39d2a2e35e84f42da49e&quot;
+}</pre></details></td></tr><tr><td>warm</td><td>video-08</td><td>PASS</td><td>同一冻结热测环境，经公开生产路径重复执行，核对真实调用、时长与OOM；不评分内容。<details><summary>实际结果</summary><pre>{
+  &quot;duration_seconds&quot;: 23.5,
+  &quot;provider_calls&quot;: 4,
+  &quot;outcome&quot;: &quot;succeeded&quot;,
+  &quot;oom&quot;: false,
+  &quot;source_sha256&quot;: &quot;08516ead62a4b7bb7f8b2035269c3b003c9b2390fbde39d2a2e35e84f42da49e&quot;
+}</pre></details></td></tr><tr><td>warm</td><td>video-09</td><td>PASS</td><td>同一冻结热测环境，经公开生产路径重复执行，核对真实调用、时长与OOM；不评分内容。<details><summary>实际结果</summary><pre>{
+  &quot;duration_seconds&quot;: 24.5,
+  &quot;provider_calls&quot;: 4,
+  &quot;outcome&quot;: &quot;succeeded&quot;,
+  &quot;oom&quot;: false,
+  &quot;source_sha256&quot;: &quot;08516ead62a4b7bb7f8b2035269c3b003c9b2390fbde39d2a2e35e84f42da49e&quot;
+}</pre></details></td></tr><tr><td>warm</td><td>video-10</td><td>PASS</td><td>同一冻结热测环境，经公开生产路径重复执行，核对真实调用、时长与OOM；不评分内容。<details><summary>实际结果</summary><pre>{
+  &quot;duration_seconds&quot;: 23.546000000002095,
+  &quot;provider_calls&quot;: 4,
+  &quot;outcome&quot;: &quot;succeeded&quot;,
+  &quot;oom&quot;: false,
+  &quot;source_sha256&quot;: &quot;08516ead62a4b7bb7f8b2035269c3b003c9b2390fbde39d2a2e35e84f42da49e&quot;
+}</pre></details></td></tr></tbody></table></div></details><p><a href="reports/human-video-validation-2026-11-08/history.json">本页历史证据映射与提取数据</a></p></section>
+<section id="holdout"><h2>留给你的11个新视频</h2><p>这批素材来自NASA公开媒体库，已裁为6–10秒、H.264 MP4、无音频，逐份完整解码通过。下载的是官方预览版本，分辨率有限。样本准备与预标注由同一助手完成，<b>不是严格双盲或S3独立质量集</b>；目标LVW模型尚未运行这些样本。</p><p class="meta">预期SHA256：18075523f1bf7e4b9e4ff29dd9a03a53417c51019bd436d464d6f7bdf4248e0e。固定样本、预期和技术清单在首次模型验证前冻结。样本选择发生在观看素材后、模型运行前，不依据任何新模型结果换样。</p><div class="progress" id="progress">尚未记录任何新视频验证</div><p id="storageWarning" class="issue" hidden>浏览器不允许本地保存。当前输入仍在，请在离开前导出。</p><label>本轮实际运行信息（候选 / 模型 / 时间 / 重试说明）<textarea id="runInfo" maxlength="4000" placeholder="记录你实际使用的版本、模型与运行时间。"></textarea></label><div class="actions"><button id="export">导出人工验证记录JSON</button><button id="importButton">导入同批记录JSON</button><input id="importFile" type="file" accept=".json" hidden></div><div id="samples"></div></section>
+<section id="rules"><h2>怎样对照，何时核签</h2><p>每条预期给出可观察事实、参考描述与不应编造的内容。允许同义表达，不要求逐字复述。预期不是模型生成的标准答案；只能支持本轮人工判断，不新增或降低正式门限。</p><ul><li>语义对照：主体、场景/风格、可见变化、构图光线是否基本正确；不依据标题猜未见事实。</li><li>完整性：检查真实raw、建议、人工稿和TXT/JSON导出，记录中文缺失、只总结末帧、乱码标签等问题。</li><li>采纳与失败：先写人工稿再分析，失败/取消不能覆盖；显式采纳后才能变稿。</li><li>不合格或拒答照实保留。人工改稿可用于体验，但不能拿改稿替代原始机器质量。</li><li>表单中的“符合”只是你的笔记；导出永远不声称Stage PASS或已签署。任何正式签署仍须在对话中明确给出，并说明接受的范围和限制。</li></ul><p>可先只传回实际输出再让我解释差异。若要据此调优，应将本批标记为已暴露开发样本；不能再把调优后的同批成绩当作新盲测。</p><p>来源依据：<a href="https://www.nasa.gov/nasa-brand-center/images-and-media/">NASA媒体使用说明</a>。本地仅用于信息性验证，保留来源，不暗示NASA认可本产品。各片段的来源、裁剪范围和版权记录见对应source.json；NASA托管不等于第三方素材自动授权。</p></section>
+<section id="route"><h2>开发路线与当前门槛</h2><div class="table-wrap"><table><thead><tr><th>阶段</th><th>目标</th><th>完成子项</th></tr></thead><tbody><tr><td>V0-S0</td><td>基线探索</td><td>1/2</td></tr><tr><td>V0-S1</td><td>图片与独立人工</td><td>5/5</td></tr><tr><td>R0</td><td>独立服务复核</td><td>1/2</td></tr><tr><td>R1a</td><td>单图React/FastAPI</td><td>5/5</td></tr><tr><td>V0-S2</td><td>视频与资源控制</td><td>7/8</td></tr><tr><td>V0-S3</td><td>离线质量与增量包</td><td>0/6</td></tr><tr><td>R1</td><td>人工业务骨架</td><td>0/4</td></tr><tr><td>R2</td><td>任务与正式运行包</td><td>0/4</td></tr><tr><td>R3</td><td>镜头资产与检索</td><td>0/4</td></tr><tr><td>R4</td><td>MCP与恢复</td><td>0/4</td></tr><tr><td>R5a</td><td>证据与建议合同</td><td>0/4</td></tr><tr><td>R5b</td><td>受控生成交接</td><td>0/4</td></tr><tr><td>R5c</td><td>集成与完整交付</td><td>0/4</td></tr></tbody></table></div><p>当前V0-S2仍7/8，等待人工体验；S3质量集与完整V1未通过。本页不替代这些门禁。</p></section></main><footer>离线报告：页面不连接模型、不上传视频、不提交审批。视频需与本页保持原目录结构。旧证据与本轮人工结果分别保存。</footer>
+<script id="data" type="application/json">{"candidate": "719c74559393a6489b2f630a1e0d3bc3303eb655", "freeze_sha256": "3a8313c6e44dbf22dfbe8abd84f24a42ff15539ec4d19da13ac9d68b5419288c", "expected_sha256": "18075523f1bf7e4b9e4ff29dd9a03a53417c51019bd436d464d6f7bdf4248e0e", "assets": [{"id": "V01", "query": "clouds", "style": "实拍教程 / 手机交互", "title": "GLOBE Observer Clouds: Getting Started", "source_url": "https://images.nasa.gov/details/GSFC_20190404_GLOBE_m13149_Clouds", "download_url": "https://images-assets.nasa.gov/video/GSFC_20190404_GLOBE_m13149_Clouds/GSFC_20190404_GLOBE_m13149_Clouds~preview.mp4", "creator": "NASA / GSFC", "license": "NASA media usage guidelines: educational/informational use; no endorsement", "license_url": "https://www.nasa.gov/nasa-brand-center/images-and-media/", "original_path": "人工验收视频集/originals/V01.mp4", "original_sha256": "52a8409162b1d493bd6f28f3916b2982881e553681aab1aa0e02dd6534f4294b", "original_bytes": 12300228, "downloaded_rendition": "NASA official preview; not full-resolution original", "video_path": "人工验收视频集/videos/V01.mp4", "video_sha256": "960c58fa6a6ae131461d86f9b90a77f2321797ab6ee7ac5016c3dcedf6f46d73", "bytes": 322291, "duration_seconds": 10.0, "width": 480, "height": 270, "codec": "h264", "poster": "人工验收视频集/posters/V01.jpg", "transformation": {"source_start_seconds": 20, "max_seconds": 10, "audio_removed": true, "fps": 24, "aspect_preserved": true}, "full_decode_exit_code": 0, "lvw_analysis_status": "NOT_RUN", "metadata": {"album": ["GLOBE"], "center": "GSFC", "date_created": "2019-04-04T00:00:00Z", "description": "Clouds are a major component of the Earth’s system that reflect, absorb, and scatter sunlight and infrared emissions from Earth. This affects how energy passes through the atmosphere. Different types of clouds have different effects, and the amount of cloud cover is also important. Clouds can change rapidly, so frequent observations are useful to track these changes. Such observations are able to see change over time and help with interpretation of satellite cloud data.   The cloud observation tool in the GLOBE Observer app allows you to photograph clouds and record sky observations and compare them with NASA satellite images. Our goal is to provide a step-by-step process that helps you learn about clouds and their classification through simple observations and photography.   You are an important part of the puzzle, providing a new perspective of the clouds that our NASA satellites do not have, looking up. We are excited for you to start collecting data through this updated cloud protocol featuring NASA satellite comparison!   Learn the basics of how to observe clouds with the GLOBE Observer App. Observations can be made anywhere and anytime. Open the app, select Clouds and follow the directions! Help scientists as a citizen scientist with your observations. For more information, go to https://observer.globe.gov/", "description_508": "Learn how to use the GLOBE Observer app to observe clouds.", "keywords": ["Clouds", "Globe", "Earth", "Citizen Science"], "location": "Goddard Space Flight Center", "media_type": "video", "nasa_id": "GSFC_20190404_GLOBE_m13149_Clouds", "secondary_creator": "Liz Wilk, Sophia Roberts, Holi Riebeek Kohl, Heather Mortimer, Marile Colon Robles", "title": "GLOBE Observer Clouds: Getting Started"}, "expected_observation_status": "FROZEN_BEFORE_ANY_LVW_INFERENCE"}, {"id": "V02", "query": "forest", "style": "森林航拍 / 三维地形", "title": "Mapping Alaska's Forests", "source_url": "https://images.nasa.gov/details/GSFC_20140908_Mapping_m11633_Alaska", "download_url": "https://images-assets.nasa.gov/video/GSFC_20140908_Mapping_m11633_Alaska/GSFC_20140908_Mapping_m11633_Alaska~preview.mp4", "creator": "NASA / GSFC", "license": "NASA media usage guidelines: educational/informational use; no endorsement", "license_url": "https://www.nasa.gov/nasa-brand-center/images-and-media/", "original_path": "人工验收视频集/originals/V02.mp4", "original_sha256": "4c0510595975bcfc24fd70cf35b6c495ef990bb24736dfdb421fbb536385730d", "original_bytes": 4101092, "downloaded_rendition": "NASA official preview; not full-resolution original", "video_path": "人工验收视频集/videos/V02.mp4", "video_sha256": "81c35713d258ee6366cf9bf45f602ea72c1db0ec6d5ec1629cb9d4f37701a099", "bytes": 711983, "duration_seconds": 10.0, "width": 480, "height": 270, "codec": "h264", "poster": "人工验收视频集/posters/V02.jpg", "transformation": {"source_start_seconds": 13.44166675, "max_seconds": 10, "audio_removed": true, "fps": 24, "aspect_preserved": true}, "full_decode_exit_code": 0, "lvw_analysis_status": "NOT_RUN", "metadata": {"center": "GSFC", "date_created": "2014-09-08T00:00:00Z", "description": "NASA and the U.S. Forest Service are surveying the forests of Interior Alaska. The airborne study using an advanced instrument will create a 3D map of the forest composition. This will enable scientists to see patterns of fire recovery and provide a benchmark for assessing future changes to the region.", "description_508": "NASA and the U.S. Forest Service are surveying the forests of Interior Alaska. The airborne study using an advanced instrument will create a 3D map of the forest composition. This will enable scientists to see patterns of fire recovery and provide a benchmark for assessing future changes to the region.", "keywords": ["Earth", "Alaska", "U.S. Forest Service", "Forest Composition"], "location": "Goddard Space Flight Center", "media_type": "video", "nasa_id": "GSFC_20140908_Mapping_m11633_Alaska", "secondary_creator": "Joy Ng, Bruce Cook, Doug C. Morton, Kayvon Sharghi, Aaron Lepsch", "title": "Mapping Alaska's Forests"}, "expected_observation_status": "FROZEN_BEFORE_ANY_LVW_INFERENCE"}, {"id": "V03", "query": "ocean", "style": "复古地图 / 路径图解", "title": "Meanwhile, At the Bottom of the Ocean", "source_url": "https://images.nasa.gov/details/GSFC_20111012_BF_m10849_Bottom_Ocean", "download_url": "https://images-assets.nasa.gov/video/GSFC_20111012_BF_m10849_Bottom_Ocean/GSFC_20111012_BF_m10849_Bottom_Ocean~preview.mp4", "creator": "NASA / GSFC", "license": "NASA media usage guidelines: educational/informational use; no endorsement", "license_url": "https://www.nasa.gov/nasa-brand-center/images-and-media/", "original_path": "人工验收视频集/originals/V03.mp4", "original_sha256": "7e9b9aaa997f6e1ecd0addc8a761aea0ba7043c5185cbffa5eda50ee91884f03", "original_bytes": 19285864, "downloaded_rendition": "NASA official preview; not full-resolution original", "video_path": "人工验收视频集/videos/V03.mp4", "video_sha256": "8b8b1e86fcbd711a1c3ce67a139b35ec7907bd4d081a6c1f81145b76c0b8b40d", "bytes": 363488, "duration_seconds": 10.0, "width": 480, "height": 270, "codec": "h264", "poster": "人工验收视频集/posters/V03.jpg", "transformation": {"source_start_seconds": 20, "max_seconds": 10, "audio_removed": true, "fps": 24, "aspect_preserved": true}, "full_decode_exit_code": 0, "lvw_analysis_status": "NOT_RUN", "metadata": {"center": "GSFC", "date_created": "2011-10-12T00:00:00Z", "description": "The Ben Franklin mission has been forgotten by time, overshadowed by the concurrent Apollo 11 mission. However, the scientific findings obtained by the six aquanauts has provided a foundation for understanding the Gulf Stream and ocean currents.", "description_508": "A short video that looks at the history of the Ben Franklin mission and its scientific legacy in ocean and climate science.", "keywords": ["History and Philosophy of Science", "Oceans", "Submarine Canyons", "Ocean Currents", "Ben Franklin", "Earth", "Apollo 11"], "location": "Goddard Space Flight Center", "media_type": "video", "nasa_id": "GSFC_20111012_BF_m10849_Bottom_Ocean", "secondary_creator": "Ryan Fitzgibbons, Gene Feldman, Theresa Schwerin, Chris Meaney", "title": "Meanwhile, At the Bottom of the Ocean"}, "expected_observation_status": "FROZEN_BEFORE_ANY_LVW_INFERENCE"}, {"id": "V04", "query": "wildlife", "style": "野生动物 / 长焦特写", "title": "Wildlife Video - Bald Eagles", "source_url": "https://images.nasa.gov/details/KSC-20260313-MH-JBS01-0001-Wildlife_Video_Bald_Eagles_BROLL-M19993", "download_url": "https://images-assets.nasa.gov/video/KSC-20260313-MH-JBS01-0001-Wildlife_Video_Bald_Eagles_BROLL-M19993/KSC-20260313-MH-JBS01-0001-Wildlife_Video_Bald_Eagles_BROLL-M19993~preview.mp4", "creator": "NASA / KSC", "license": "NASA media usage guidelines: educational/informational use; no endorsement", "license_url": "https://www.nasa.gov/nasa-brand-center/images-and-media/", "original_path": "人工验收视频集/originals/V04.mp4", "original_sha256": "921af3575f45900b0a7bc95d1a65d63a92ffac068875ad3e5cdd2ae4ddde2fab", "original_bytes": 11865297, "downloaded_rendition": "NASA official preview; not full-resolution original", "video_path": "人工验收视频集/videos/V04.mp4", "video_sha256": "502f4d8d956a7ebaa1ae35fb9ed9b81d6b4b73b982c954a134277be2d549ecaa", "bytes": 616804, "duration_seconds": 10.0, "width": 480, "height": 254, "codec": "h264", "poster": "人工验收视频集/posters/V04.jpg", "transformation": {"source_start_seconds": 15, "max_seconds": 10, "audio_removed": true, "fps": 24, "aspect_preserved": true}, "full_decode_exit_code": 0, "lvw_analysis_status": "NOT_RUN", "metadata": {"center": "KSC", "date_created": "2026-03-13T00:00:00Z", "description": "Two American bald eagles sit perched on a tree branch while two eaglets sit in their nest at NASA’s Kennedy Space Center in Florida on Friday, March 13, 2026. Bald eagle nesting surveys across NASA Kennedy, Merritt Island National Wildlife Refuge, and Canaveral National Seashore are conducted annually to document the number of bald eagle active and inactive nests in support of wildlife management and regulatory compliance. Each year, eagles take up winter residence at the Florida spaceport, breeding and raising a new generation.", "keywords": ["nature", "ksc", "kennedy space center", "earth's premier spaceport", "spaceport"], "location": "Kennedy Space Center", "media_type": "video", "nasa_id": "KSC-20260313-MH-JBS01-0001-Wildlife_Video_Bald_Eagles_BROLL-M19993", "photographer": "NASA/Ben Smegelsky", "title": "Wildlife Video - Bald Eagles"}, "expected_observation_status": "FROZEN_BEFORE_ANY_LVW_INFERENCE", "pre_freeze_selection_reason": "Remove title slates based on independent viewing before any LVW inference."}, {"id": "V05", "query": "helicopter", "style": "写实地表CGI / 机械载具", "title": "JPL-20200429-TECHf-0002-Mars Helicopter Animation", "source_url": "https://images.nasa.gov/details/JPL-20200429-TECHf-0002-Mars%20Helicopter%20Animation", "download_url": "https://images-assets.nasa.gov/video/JPL-20200429-TECHf-0002-Mars Helicopter Animation/JPL-20200429-TECHf-0002-Mars Helicopter Animation~preview.mp4", "creator": "NASA / JPL", "license": "NASA media usage guidelines: educational/informational use; no endorsement", "license_url": "https://www.nasa.gov/nasa-brand-center/images-and-media/", "original_path": "人工验收视频集/originals/V05.mp4", "original_sha256": "d5df486a8010750ec7c19a66d64d300c9a39e6f09f4842efc4073b2721cc3cf6", "original_bytes": 12562226, "downloaded_rendition": "NASA official preview; not full-resolution original", "video_path": "人工验收视频集/videos/V05.mp4", "video_sha256": "d1607c41e56a3e0f34e44d4b75833a8d65271034cdb6c5b5a80521f1d190d253", "bytes": 391181, "duration_seconds": 10.0, "width": 480, "height": 270, "codec": "h264", "poster": "人工验收视频集/posters/V05.jpg", "transformation": {"source_start_seconds": 0, "max_seconds": 10, "audio_removed": true, "fps": 24, "aspect_preserved": true}, "full_decode_exit_code": 0, "lvw_analysis_status": "NOT_RUN", "metadata": {"album": ["Mars_2020_Perseverance"], "center": "JPL", "date_created": "2020-04-29T00:00:00Z", "description": "Animations for media and public use. NASA's Mars Helicopter Ingenuity will be the first aircraft to fly in a controlled way on another planet. As its own separate mission, the helicopter will hitch a ride to Mars attached to the belly of NASA’s Perseverance rover (part of the Mars 2020 mission). This animation reel simulates how Ingenuity will operate on the surface of Mars.  The Ingenuity helicopter is considered a high-risk, high-reward technology demonstration. If the small craft encounters difficulties, the science-gathering of the Mars 2020 mission won't be impacted. If the helicopter does take flight as designed, future Mars missions could enlist second-generation helicopters to add an aerial dimension to their explorations.  The Perseverance rover, with the Ingenuity helicopter aboard, will launch in July or August 2020 and land on Mars on Feb. 18, 2021.  A separate reel of b-roll is available at https://vimeo.com/381357316/e774fb5dde.  For more information on the Mars helicopter, go to: https://mars.nasa.gov/technology/helicopter.  Credit: NASA/JPL-Caltech", "description_508": "Animations for media and public use. NASA's Mars Helicopter Ingenuity will be the first aircraft to fly in a controlled way on another planet. As its own separate mission, the helicopter will hitch a ride to Mars attached to the belly of NASA’s Perseverance rover (part of the Mars 2020 mission). This animation reel simulates how Ingenuity will operate on the surface of Mars.", "keywords": ["NASA", "Jet propulsion Laboratory", "JPL", "Mars 2020", "Mars", "helicopter", "rover", "rovers", "testing", "life on Mars", "Red Planet", "exploration", "robots", "robotic exploration", "tech", "technology", "robotics", "engineering", "space", "science", "Mars exploration", "astrobiology", "driving", "Ingenuity", "naming contest", "name the helicopter", "news", "drone", "drones on other planets", "flying", "flight", "Jezero Crater", "rotorcraft"], "media_type": "video", "nasa_id": "JPL-20200429-TECHf-0002-Mars Helicopter Animation", "title": "JPL-20200429-TECHf-0002-Mars Helicopter Animation"}, "expected_observation_status": "FROZEN_BEFORE_ANY_LVW_INFERENCE"}, {"id": "V06", "query": "rocket", "style": "快速混剪 / 航天主题", "title": "If You Can Build A Rocket", "source_url": "https://images.nasa.gov/details/MSFC_If%20You%20Can%20Build%20A%20Rocket", "download_url": "https://images-assets.nasa.gov/video/MSFC_If You Can Build A Rocket/MSFC_If You Can Build A Rocket~preview.mp4", "creator": "NASA / MSFC", "license": "NASA media usage guidelines: educational/informational use; no endorsement", "license_url": "https://www.nasa.gov/nasa-brand-center/images-and-media/", "original_path": "人工验收视频集/originals/V06.mp4", "original_sha256": "7488e710376be42e924e20f3885762f7df499faac346e768c39f3f234816ca7a", "original_bytes": 8445603, "downloaded_rendition": "NASA official preview; not full-resolution original", "video_path": "人工验收视频集/videos/V06.mp4", "video_sha256": "d6a154175af4fca58696135e1e6fbaa6e3663ae0e6d0b2678d49fc17442dbe4d", "bytes": 290651, "duration_seconds": 6.0, "width": 480, "height": 270, "codec": "h264", "poster": "人工验收视频集/posters/V06.jpg", "transformation": {"source_start_seconds": 20, "max_seconds": 6, "audio_removed": true, "fps": 24, "aspect_preserved": true}, "full_decode_exit_code": 0, "lvw_analysis_status": "NOT_RUN", "metadata": {"center": "MSFC", "date_created": "2022-12-08T00:00:00Z", "description": "If You Can Build A Rocket Marshall Space Flight Center MSFC", "description_508": "MSFC Marshall Space Flight Center", "keywords": ["MSFC", "Marshall", "Rocket", "Artemis", "JWST", "huntsville"], "location": "Marshall Space Flight Center", "media_type": "video", "nasa_id": "MSFC_If You Can Build A Rocket", "photographer": "J Kuner", "secondary_creator": "S Segovia", "title": "If You Can Build A Rocket"}, "expected_observation_status": "FROZEN_BEFORE_ANY_LVW_INFERENCE", "pre_freeze_selection_reason": "End excerpt before third-party SpaceX-credited shot; selected excerpt shows NASA material only."}, {"id": "V07", "query": "night", "style": "夜景延时 / 展陈建筑", "title": "Marshall Night Stars", "source_url": "https://images.nasa.gov/details/Marshall%20Night%20Stars", "download_url": "https://images-assets.nasa.gov/video/Marshall Night Stars/Marshall Night Stars~preview.mp4", "creator": "NASA / MSFC", "license": "NASA media usage guidelines: educational/informational use; no endorsement", "license_url": "https://www.nasa.gov/nasa-brand-center/images-and-media/", "original_path": "人工验收视频集/originals/V07.mp4", "original_sha256": "84f41886ae8124fc1d945b7154f89b3db7ee605a9f0baa569c407c4aa231cbc5", "original_bytes": 2549076, "downloaded_rendition": "NASA official preview; not full-resolution original", "video_path": "人工验收视频集/videos/V07.mp4", "video_sha256": "0856fe3836f76d2d062c12cf5688b7756bc16184d836309b9bdd77031b93f699", "bytes": 209276, "duration_seconds": 10.0, "width": 480, "height": 320, "codec": "h264", "poster": "人工验收视频集/posters/V07.jpg", "transformation": {"source_start_seconds": 12, "max_seconds": 10, "audio_removed": true, "fps": 24, "aspect_preserved": true}, "full_decode_exit_code": 0, "lvw_analysis_status": "NOT_RUN", "metadata": {"center": "MSFC", "date_created": "2019-10-22T00:00:00Z", "description": "Time Lapse of night sky at Marshall Space Flight Center", "description_508": "Time Lapse of night sky at Marshall Space Flight Center", "keywords": ["time", "lapse", "marshall", "MSFC", "stars", "starry", "night"], "location": "Marshall Space Flight Center", "media_type": "video", "nasa_id": "Marshall Night Stars", "photographer": "James Bilbrey, Joe Kuner", "title": "Marshall Night Stars"}, "expected_observation_status": "FROZEN_BEFORE_ANY_LVW_INFERENCE", "pre_freeze_selection_reason": "Remove title slates based on independent viewing before any LVW inference."}, {"id": "V08", "query": "simulation", "style": "室内纪实 / 工作人群", "title": "Artemis II Launch Simulation Firing Room 1", "source_url": "https://images.nasa.gov/details/KSC-20230720-MH-GEB01-0001-Artemis_II_Launch_Sim_RM_1-3333368", "download_url": "https://images-assets.nasa.gov/video/KSC-20230720-MH-GEB01-0001-Artemis_II_Launch_Sim_RM_1-3333368/KSC-20230720-MH-GEB01-0001-Artemis_II_Launch_Sim_RM_1-3333368~preview.mp4", "creator": "NASA / KSC", "license": "NASA media usage guidelines: educational/informational use; no endorsement", "license_url": "https://www.nasa.gov/nasa-brand-center/images-and-media/", "original_path": "人工验收视频集/originals/V08.mp4", "original_sha256": "8c3db3fcb21969b55cc618d0936a36a47a3e9734993d2d43a8bd68e753a7d5a8", "original_bytes": 15591008, "downloaded_rendition": "NASA official preview; not full-resolution original", "video_path": "人工验收视频集/videos/V08.mp4", "video_sha256": "237e02787986f93786504110560a02c193c8046c3768c7e3521df681bf481d73", "bytes": 404097, "duration_seconds": 10.0, "width": 480, "height": 270, "codec": "h264", "poster": "人工验收视频集/posters/V08.jpg", "transformation": {"source_start_seconds": 20, "max_seconds": 10, "audio_removed": true, "fps": 24, "aspect_preserved": true}, "full_decode_exit_code": 0, "lvw_analysis_status": "NOT_RUN", "metadata": {"album": ["Artemis_II_Launch_Simulations"], "center": "KSC", "date_created": "2023-07-20T00:00:00Z", "description": "Imagery of first Atemis II launch simulation", "keywords": ["Artemis II", "launch team", "Simulation", "KSC", "Kennedy Space Center"], "location": "KSC LCC Firing Room 1", "media_type": "video", "nasa_id": "KSC-20230720-MH-GEB01-0001-Artemis_II_Launch_Sim_RM_1-3333368", "photographer": "NASA/GlennBenson", "title": "Artemis II Launch Simulation Firing Room 1"}, "expected_observation_status": "FROZEN_BEFORE_ANY_LVW_INFERENCE", "pre_freeze_selection_reason": "Remove title slates based on independent viewing before any LVW inference."}, {"id": "V09", "query": "fluid", "style": "科学光影 / 高对比绿色", "title": "Schlieren Imaging of Fluid Mixture for Developmental Testing_CC2023", "source_url": "https://images.nasa.gov/details/Schlieren%20Imaging%20of%20Fluid%20Mixture%20for%20Developmental%20Testing_CC2023", "download_url": "https://images-assets.nasa.gov/video/Schlieren Imaging of Fluid Mixture for Developmental Testing_CC2023/Schlieren Imaging of Fluid Mixture for Developmental Testing_CC2023~preview.mp4", "creator": "NASA / WSTF", "license": "NASA media usage guidelines: educational/informational use; no endorsement", "license_url": "https://www.nasa.gov/nasa-brand-center/images-and-media/", "original_path": "人工验收视频集/originals/V09.mp4", "original_sha256": "f84ed6d6c8a33cec287accf13424f244689dad6981464f682cc2f677a5549f0d", "original_bytes": 4267733, "downloaded_rendition": "NASA official preview; not full-resolution original", "video_path": "人工验收视频集/videos/V09.mp4", "video_sha256": "a99df33d87da56fbe10e264864a11d3f8bb611903435e78297e648f904ee2334", "bytes": 452844, "duration_seconds": 10.0, "width": 480, "height": 270, "codec": "h264", "poster": "人工验收视频集/posters/V09.jpg", "transformation": {"source_start_seconds": 20, "max_seconds": 10, "audio_removed": true, "fps": 24, "aspect_preserved": true}, "full_decode_exit_code": 0, "lvw_analysis_status": "NOT_RUN", "metadata": {"center": "WSTF", "date_created": "2023-04-14T00:00:00Z", "description": "Schlieren imaging of fluid mixture for developmental testing at the White Sands Test Facility.  The mixing of sugar water, and water are observed by means of Schlieren Imaging.  ", "description_508": "Schlieren Imaging of Fluid Mixture 30 fps", "keywords": ["Schlieren", "White Sands", "WSTF"], "location": "White Sands Test Facility", "media_type": "video", "nasa_id": "Schlieren Imaging of Fluid Mixture for Developmental Testing_CC2023", "photographer": "N/A", "secondary_creator": "NASA/David L. Hendon", "title": "Schlieren Imaging of Fluid Mixture for Developmental Testing_CC2023"}, "expected_observation_status": "FROZEN_BEFORE_ANY_LVW_INFERENCE", "pre_freeze_selection_reason": "Remove title slates based on independent viewing before any LVW inference."}, {"id": "V10", "query": "moon", "style": "太空CGI / 航天器近景", "title": "Orion_Artemis-I_animation_b-roll_9_2021_FS", "source_url": "https://images.nasa.gov/details/Orion_Artemis-I_b-roll_9_2021_FS", "download_url": "https://images-assets.nasa.gov/video/Orion_Artemis-I_b-roll_9_2021_FS/Orion_Artemis-I_b-roll_9_2021_FS~preview.mp4", "creator": "NASA / JSC", "license": "NASA media usage guidelines: educational/informational use; no endorsement", "license_url": "https://www.nasa.gov/nasa-brand-center/images-and-media/", "original_path": "人工验收视频集/originals/V10.mp4", "original_sha256": "f7ee22a66b1c6ade38a60b0d0bdaa9fae093a1875f09623daae471bbc89a15a8", "original_bytes": 26718557, "downloaded_rendition": "NASA official preview; not full-resolution original", "video_path": "人工验收视频集/videos/V10.mp4", "video_sha256": "0ddc94f93ab473ac0bb00867bf91a7c51eeb158b690188f8333f68e7d21ddbe2", "bytes": 487023, "duration_seconds": 10.0, "width": 480, "height": 270, "codec": "h264", "poster": "人工验收视频集/posters/V10.jpg", "transformation": {"source_start_seconds": 0, "max_seconds": 10, "audio_removed": true, "fps": 24, "aspect_preserved": true}, "full_decode_exit_code": 0, "lvw_analysis_status": "NOT_RUN", "metadata": {"center": "JSC", "date_created": "2021-09-15T00:00:00Z", "description": "Animation showing Orion's journey to the Moon on Artemis I - full screen version.  Artemis I will be the first integrated flight test of NASA’s deep space exploration system: the Orion spacecraft, Space Launch System (SLS) rocket and the ground systems at Kennedy Space Center in Cape Canaveral, Florida. During this flight, the uncrewed Orion spacecraft will launch on the most powerful rocket in the world and travel thousands of miles beyond the Moon, farther than any spacecraft built for humans has ever flown, over the course of about a three-week mission.", "description_508": "Orion Artemis I animation b-roll - full screen", "keywords": ["Orion", "Artemis", "Animation", "Moon"], "location": "Moon", "media_type": "video", "nasa_id": "Orion_Artemis-I_b-roll_9_2021_FS", "secondary_creator": "NASA / Liam Yanulis", "title": "Orion_Artemis-I_animation_b-roll_9_2021_FS"}, "expected_observation_status": "FROZEN_BEFORE_ANY_LVW_INFERENCE"}, {"id": "V11", "query": "earth", "style": "地球信息图 / 多层可视化", "title": "Earth from Orbit 2013", "source_url": "https://images.nasa.gov/details/GSFC_20140421_EarthOrbit_m11525", "download_url": "https://images-assets.nasa.gov/video/GSFC_20140421_EarthOrbit_m11525/GSFC_20140421_EarthOrbit_m11525~preview.mp4", "creator": "NASA / GSFC", "license": "NASA media usage guidelines: educational/informational use; no endorsement", "license_url": "https://www.nasa.gov/nasa-brand-center/images-and-media/", "original_path": "人工验收视频集/originals/V11.mp4", "original_sha256": "692ef9a062288cafd80ab34e59ef7ef76ed96a16e7b5d46ba6bd9022a25f5614", "original_bytes": 17867793, "downloaded_rendition": "NASA official preview; not full-resolution original", "video_path": "人工验收视频集/videos/V11.mp4", "video_sha256": "d92a5c055148dc600c76549b14b05fedd42d32d2c15f25d2c7cfb1ec1d76ed82", "bytes": 212215, "duration_seconds": 10.0, "width": 480, "height": 270, "codec": "h264", "poster": "人工验收视频集/posters/V11.jpg", "transformation": {"source_start_seconds": 20, "max_seconds": 10, "audio_removed": true, "fps": 24, "aspect_preserved": true}, "full_decode_exit_code": 0, "lvw_analysis_status": "NOT_RUN", "metadata": {"album": ["Earth"], "center": "GSFC", "date_created": "2014-04-21T00:00:00Z", "description": "A highlight reel of some of the best images and data visualizations of the planet in 2013 from NASA and partner agency satellites.", "description_508": "A highlight reel of data visualizations and observations of Earth from 2013.", "keywords": ["Earth", "Earth Day", "Earth Observing Fleet"], "location": "Goddard Space Flight Center", "media_type": "video", "nasa_id": "GSFC_20140421_EarthOrbit_m11525", "secondary_creator": "Jefferson Beck, Katrina Jackson", "title": "Earth from Orbit 2013"}, "expected_observation_status": "FROZEN_BEFORE_ANY_LVW_INFERENCE"}], "expected": [{"id": "V01", "video_sha256": "960c58fa6a6ae131461d86f9b90a77f2321797ab6ee7ac5016c3dcedf6f46d73", "style": "实拍教程 / 手机交互", "must_observe": ["户外人物使用手机，画面在手机特写、人物和天空之间切换", "手机界面和英文引导文字可见，整体自然日光、浅景深"], "example_prompt": "人物在户外操作手机；以近景和人物镜头交替呈现云层观察教程。", "must_not_invent": ["不能只依据来源标题声称整段只有云层", "不编造手机品牌、人物身份或未听取的对话"], "basis": "Independent visual inspection of six temporal thumbnails; no LVW response or model self-rating used.", "lvw_status": "NOT_RUN"}, {"id": "V02", "video_sha256": "81c35713d258ee6366cf9bf45f602ea72c1db0ec6d5ec1629cb9d4f37701a099", "style": "森林航拍 / 三维地形", "must_observe": ["森林、山谷与河道的高处视角", "先出现机翼，再转为森林地形/三维数据视图"], "example_prompt": "从飞机机翼附近俯瞰森林山谷，再过渡到森林地形的三维视图。", "must_not_invent": ["不要把机翼误当建筑屋顶", "不要凭素材标题确定拍摄国家或灾害原因"], "basis": "Independent visual inspection of six temporal thumbnails; no LVW response or model self-rating used.", "lvw_status": "NOT_RUN"}, {"id": "V03", "video_sha256": "8b8b1e86fcbd711a1c3ce67a139b35ec7907bd4d081a6c1f81145b76c0b8b40d", "style": "复古地图 / 路径图解", "must_observe": ["灰白航海地图、虚线与红色路径", "画面有推移或缩放，地图上能看到Gulf Stream等标注"], "example_prompt": "复古灰白地图上显示虚线和红色航迹，镜头沿地图移动以说明路径。", "must_not_invent": ["不能声称看到真实海底动物或潜艇实拍", "不要求精确读出所有小字或经纬度"], "basis": "Independent visual inspection of six temporal thumbnails; no LVW response or model self-rating used.", "lvw_status": "NOT_RUN"}, {"id": "V04", "video_sha256": "502f4d8d956a7ebaa1ae35fb9ed9b81d6b4b73b982c954a134277be2d549ecaa", "style": "野生动物 / 长焦特写", "must_observe": ["树枝间的大型鸟巢和巢内的鸟", "蓝天背景、长焦固定近景；动作较轻微"], "example_prompt": "蓝天下，树枝之间的大鸟巢中可见一只鸟，镜头稳定，鸟有轻微头部变化。", "must_not_invent": ["不能编造捕食、展翅飞走或大量幼鸟", "物种若不能确认可称鸟类；不强求白头海雕名称"], "basis": "Independent visual inspection of six temporal thumbnails; no LVW response or model self-rating used.", "lvw_status": "NOT_RUN"}, {"id": "V05", "video_sha256": "d1607c41e56a3e0f34e44d4b75833a8d65271034cdb6c5b5a80521f1d190d253", "style": "写实地表CGI / 机械载具", "must_observe": ["橙褐色地表上的六轮探测车", "高处斜俯视，载具和地面阴影清晰，缓慢变化"], "example_prompt": "写实三维动画中，六轮探测车位于橙褐色地表，镜头从高处斜俯视。", "must_not_invent": ["不是实景道路汽车广告", "未见无人机起飞时不能依据完整片名编造直升机动作"], "basis": "Independent visual inspection of six temporal thumbnails; no LVW response or model self-rating used.", "lvw_status": "NOT_RUN"}, {"id": "V06", "video_sha256": "d6a154175af4fca58696135e1e6fbaa6e3663ae0e6d0b2678d49fc17442dbe4d", "style": "快速混剪 / 航天主题", "must_observe": ["发射台与橙白火箭、月面车、带太阳翼的空间设施先后出现", "存在明显场景切换，不能把多个地点合并为一个连续实景"], "example_prompt": "快速切换的航天画面展示发射台火箭、月面车辆与轨道中的太阳翼设施。", "must_not_invent": ["不能只描述最后一帧", "不可补写爆炸、战争或当前片段之外的飞船喷焰"], "basis": "Independent visual inspection of six temporal thumbnails; no LVW response or model self-rating used.", "lvw_status": "NOT_RUN"}, {"id": "V07", "video_sha256": "0856fe3836f76d2d062c12cf5688b7756bc16184d836309b9bdd77031b93f699", "style": "夜景延时 / 展陈建筑", "must_observe": ["深蓝夜空下的数座竖直火箭展品，前景有树木暗影", "镜头基本固定，夜空中可见稀疏亮点/微小变化"], "example_prompt": "固定机位拍摄夜色中的火箭展陈，深蓝天空与树影形成安静的夜景。", "must_not_invent": ["不能说火箭正在发射或爆炸", "四帧不足时不强求判定星轨速度；不编造城市名"], "basis": "Independent visual inspection of six temporal thumbnails; no LVW response or model self-rating used.", "lvw_status": "NOT_RUN"}, {"id": "V08", "video_sha256": "237e02787986f93786504110560a02c193c8046c3768c7e3521df681bf481d73", "style": "室内纪实 / 工作人群", "must_observe": ["明亮大窗的控制室，成排显示器与戴耳机的工作人员", "先是室内较广视角，随后切到工作人员近景"], "example_prompt": "纪实镜头展示控制室的显示器阵列和戴耳机的工作人员，随后转向人物近景。", "must_not_invent": ["不根据人物外貌推断身份或情绪", "不编造屏幕具体读数和故障事件"], "basis": "Independent visual inspection of six temporal thumbnails; no LVW response or model self-rating used.", "lvw_status": "NOT_RUN"}, {"id": "V09", "video_sha256": "a99df33d87da56fbe10e264864a11d3f8bb611903435e78297e648f904ee2334", "style": "科学光影 / 高对比绿色", "must_observe": ["黑色背景中有绿色圆形观察区域", "区域内部的纹理和流动样结构随时间变化，顶部有装置轮廓"], "example_prompt": "高对比科学影像中，绿色圆形观察窗内的流动纹理不断改变，周围为黑色背景。", "must_not_invent": ["不声称能从画面确定液体化学成分", "不要把光影直接定性为火灾、肿瘤或真实夜视战斗"], "basis": "Independent visual inspection of six temporal thumbnails; no LVW response or model self-rating used.", "lvw_status": "NOT_RUN"}, {"id": "V10", "video_sha256": "0ddc94f93ab473ac0bb00867bf91a7c51eeb158b690188f8333f68e7d21ddbe2", "style": "太空CGI / 航天器近景", "must_observe": ["白色航天器及深色太阳翼、蓝白地球和黑色太空", "相对视角变化使太阳翼和舱体在画面中移动"], "example_prompt": "三维太空动画近距离展示白色航天器和太阳翼，地球在背景中弯曲延展。", "must_not_invent": ["不能把CGI断言为真实航天员拍摄", "不编造舱内人物、发射日期或精确型号"], "basis": "Independent visual inspection of six temporal thumbnails; no LVW response or model self-rating used.", "lvw_status": "NOT_RUN"}, {"id": "V11", "video_sha256": "d92a5c055148dc600c76549b14b05fedd42d32d2c15f25d2c7cfb1ec1d76ed82", "style": "地球信息图 / 多层可视化", "must_observe": ["黑色背景上的小地球逐渐变大，出现卫星/轨道和文字标注", "末段出现空间站结构与地球，存在视图转换"], "example_prompt": "黑色背景上的地球逐渐放大，并叠加卫星轨道和标注，随后转向空间设施视角。", "must_not_invent": ["不能只描述为一张静态地球照片", "不把图解轨道当作真实可见光轨，不强求小字逐字识别"], "basis": "Independent visual inspection of six temporal thumbnails; no LVW response or model self-rating used.", "lvw_status": "NOT_RUN"}]}</script><script>
+const data=JSON.parse(document.querySelector('#data').textContent),key='lvw-holdout-'+data.freeze_sha256,ids=data.assets.map(x=>x.id);let state={runInfo:'',records:{}};const allowed=['NOT_RUN','PASS','ISSUE','UNAVAILABLE'];
+function clean(v){if(!v||typeof v!=='object')throw Error('记录格式无效');const result={runInfo:String(v.runInfo||'').slice(0,4000),records:{}};for(const id of ids){const r=v.records?.[id]||{};result.records[id]={output:String(r.output||'').slice(0,100000),notes:String(r.notes||'').slice(0,8000),status:allowed.includes(r.status)?r.status:'NOT_RUN',revealed:!!r.revealed,revealed_at:typeof r.revealed_at==='string'?r.revealed_at.slice(0,80):null,revealed_before_output:!!r.revealed_before_output};}return result;}
+try{const saved=localStorage.getItem(key);if(saved)state=clean(JSON.parse(saved));}catch(e){document.querySelector('#storageWarning').hidden=false;}state=clean(state);
+function save(){try{localStorage.setItem(key,JSON.stringify(state));}catch(e){document.querySelector('#storageWarning').hidden=false;}const all=Object.values(state.records),counts=allowed.map(s=>s+': '+all.filter(x=>x.status===s).length);document.querySelector('#progress').textContent='本轮人工笔记 / '+counts.join(' · ')+'。历史机器结果不计入这里；尚未正式签署。';}
+function el(tag,text){const x=document.createElement(tag);if(text!==undefined)x.textContent=text;return x;}
+document.querySelector('#runInfo').value=state.runInfo;document.querySelector('#runInfo').addEventListener('input',e=>{state.runInfo=e.target.value;save();});
+function render(){const root=document.querySelector('#samples');root.replaceChildren();for(const a of data.assets){const r=state.records[a.id],expected=data.expected.find(x=>x.id===a.id),card=el('article');card.className='sample';card.id='sample-'+a.id;card.append(el('h3','视频 '+a.id+' · LVW未运行留样'));const pair=el('div');pair.className='pair';const media=el('div'),video=el('video');video.controls=true;video.preload='none';video.src=a.video_path;video.poster=a.poster;media.append(video,el('p',a.duration_seconds+'秒 · '+a.width+'×'+a.height+' · '+(a.bytes/1048576).toFixed(2)+'MiB'));const download=el('a','保存 '+a.id+'.mp4');download.href=a.video_path;download.download=a.id+'.mp4';media.append(download);const fingerprint=el('p','SHA256 '+a.video_sha256);fingerprint.className='meta';media.append(fingerprint);
+const input=el('input');input.type='file';input.accept='.mp4';const label=el('label','可选：选择本地视频核对哈希（不上传）');const hashResult=el('p','尚未核对本地文件');hashResult.className='meta';input.addEventListener('change',async()=>{const f=input.files[0];if(!f)return;if(f.size>256*1048576){hashResult.textContent='文件超出256MiB，不读取。';return;}try{const b=await crypto.subtle.digest('SHA-256',await f.arrayBuffer());const hash=Array.from(new Uint8Array(b),x=>x.toString(16).padStart(2,'0')).join('');hashResult.textContent=hash===a.video_sha256?'哈希一致：这是冻结视频。':'哈希不一致：不能作为本条冻结视频的验证结果。';}catch(e){hashResult.textContent='当前浏览器不能计算哈希，可查SHA256SUMS.txt。';}});label.append(input);media.append(label,hashResult);
+const record=el('div'),outLabel=el('label','先保存实际原始输出（可粘贴完整导出JSON）'),output=el('textarea');output.maxLength=100000;output.value=r.output;output.dataset.role='output';output.placeholder='本条尚未运行。请粘贴真实输出或错误，不要复制预期。';output.addEventListener('input',()=>{r.output=output.value;save();});outLabel.append(output);record.append(outLabel);const select=el('select');select.setAttribute('aria-label',a.id+'人工结论');for(const [value,text] of [['NOT_RUN','尚未体验'],['PASS','人工判断符合'],['ISSUE','发现问题'],['UNAVAILABLE','未能完成']]){const option=el('option',text);option.value=value;select.append(option);}select.value=r.status;select.addEventListener('change',()=>{r.status=select.value;save();});record.append(el('p','手工判断（不会自动签署）：'),select);const notes=el('textarea');notes.maxLength=8000;notes.value=r.notes;notes.placeholder='记录失败、耗时、重试、缺失、幻觉、人工稿保护和导出问题';notes.setAttribute('aria-label',a.id+'问题记录');notes.addEventListener('input',()=>{r.notes=notes.value;save();});record.append(notes);pair.append(media,record);card.append(pair);
+const reveal=el('button',r.revealed?'重新查看冻结预期':'已保存输出后，展开预期对照');reveal.dataset.role='reveal';const expectedBox=el('div');expectedBox.className='expected';expectedBox.hidden=true;expectedBox.append(el('h4',expected.style),el('p','参考描述（不是模型输出）：'+expected.example_prompt));const list=el('ul');for(const item of expected.must_observe)list.append(el('li',item));expectedBox.append(el('p','应观察到：'),list);const avoid=el('ul');for(const item of expected.must_not_invent)avoid.append(el('li',item));expectedBox.append(el('p','不应臆造 / 不强求：'),avoid);const src=el('a','NASA来源与素材说明');src.href=a.source_url;src.target='_blank';src.rel='noopener';expectedBox.append(src,el('p','本地素材来源与裁剪记录：'));const metadata=el('a',a.id+'.source.json');metadata.href='人工验收视频集/'+a.id+'.source.json';expectedBox.append(metadata);reveal.addEventListener('click',()=>{if(!r.output.trim()&&!confirm('尚未保存实际输出。现在查看预期会记录为提前揭示；仍要查看？'))return;if(!r.revealed){r.revealed=true;r.revealed_at=new Date().toISOString();r.revealed_before_output=!r.output.trim();save();}expectedBox.hidden=!expectedBox.hidden;});card.append(el('p',r.revealed?'此记录此前已查看预期；不能视作未暴露的盲测。':'预期默认收起；展开会记录揭示时间。'),reveal,expectedBox);root.append(card);}save();}
+document.querySelector('#export').addEventListener('click',()=>{const value={kind:'HUMAN_VIDEO_NOTES_ONLY_NOT_SIGNOFF',candidate_sha:data.candidate,freeze_sha256:data.freeze_sha256,expected_sha256:data.expected_sha256,created_at:new Date().toISOString(),human_signoff_submitted:false,stage_pass_claim:false,...state};const blob=new Blob([JSON.stringify(value,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=el('a');a.href=url;a.download='LVW-人工视频验证记录.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});
+document.querySelector('#importButton').addEventListener('click',()=>document.querySelector('#importFile').click());document.querySelector('#importFile').addEventListener('change',async e=>{try{const file=e.target.files[0];if(!file)return;if(file.size>2*1048576)throw Error('记录超过2MiB。');const v=JSON.parse(await file.text());if(v.freeze_sha256!==data.freeze_sha256||v.candidate_sha!==data.candidate)throw Error('候选或冻结批次不一致，拒绝导入。');const incoming=clean(v);for(const id of ids)if(state.records[id].revealed){incoming.records[id].revealed=true;incoming.records[id].revealed_at=state.records[id].revealed_at;incoming.records[id].revealed_before_output=state.records[id].revealed_before_output;}state=incoming;document.querySelector('#runInfo').value=state.runInfo;render();alert('记录已导入；任何声称已签署的字段均未采纳。');}catch(error){alert(error.message);}e.target.value='';});render();
+</script></html>
