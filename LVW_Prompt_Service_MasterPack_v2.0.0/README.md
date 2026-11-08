@@ -2,7 +2,7 @@
 
 **文档包 v2.0.0 · 执行计划修订 2026-11-05 · V0-Min 与 R1a 单图切片已签署；完整 V1 尚未完成。**
 
-[人工验收与体验指南](人工验收指南.html) · [打开 HTML 总览](START_HERE.html) · [交互原型](prototype/index.html) · [完整规范](FULL_SPEC.md) · [Codex 启动](CODEX_START.md) · [需求追踪](plans/requirements.json)。
+[验收报告、原视频与11段留样](验收报告与盲测视频.html) · [人工验收与体验指南](人工验收指南.html) · [打开 HTML 总览](START_HERE.html) · [交互原型](prototype/index.html) · [完整规范](FULL_SPEC.md) · [Codex 启动](CODEX_START.md) · [需求追踪](plans/requirements.json)。
 
 ## 当前执行坐标与多 Agent 治理
 
