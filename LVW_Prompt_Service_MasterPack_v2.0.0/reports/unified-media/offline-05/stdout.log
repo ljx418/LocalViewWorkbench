@@ -1,0 +1,38 @@
+
+==================================== ERRORS ====================================
+_________ ERROR collecting lvw/tests/test_r1a_live_harness_contract.py _________
+ImportError while importing test module '/tmp/lvw-offline-working-semantic/lvw/tests/test_r1a_live_harness_contract.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+lvw/tests/test_r1a_live_harness_contract.py:3: in <module>
+    from tools.r1a_offline_checkpoint import allowed_runtime_url, runtime_scan
+E   ModuleNotFoundError: No module named 'tools.r1a_offline_checkpoint'
+_____________ ERROR collecting lvw/tests/test_r1a_runtime_guard.py _____________
+ImportError while importing test module '/tmp/lvw-offline-working-semantic/lvw/tests/test_r1a_runtime_guard.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+lvw/tests/test_r1a_runtime_guard.py:8: in <module>
+    from tools.r1a_runtime_guard import (
+E   ModuleNotFoundError: No module named 'tools.r1a_runtime_guard'
+_________________ ERROR collecting lvw/tests/test_run_local.py _________________
+ImportError while importing test module '/tmp/lvw-offline-working-semantic/lvw/tests/test_run_local.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+lvw/tests/test_run_local.py:7: in <module>
+    from lvw.run_local import configured_port
+E   ModuleNotFoundError: No module named 'lvw.run_local'
+=========================== short test summary info ============================
+ERROR lvw/tests/test_r1a_live_harness_contract.py
+ERROR lvw/tests/test_r1a_runtime_guard.py
+ERROR lvw/tests/test_run_local.py
+!!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
+3 errors in 0.49s

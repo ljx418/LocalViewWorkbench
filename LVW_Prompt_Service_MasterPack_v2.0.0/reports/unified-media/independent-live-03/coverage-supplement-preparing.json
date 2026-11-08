@@ -1,0 +1,148 @@
+{
+  "candidate_sha": "a8a431d986b236cc842f4fc24e12c3a3e13ea0c1",
+  "rows": [
+    {
+      "id": "UM-01",
+      "status": "PASS",
+      "owner": "production FastAPI/MediaStore/AnalysisService/Provider + React",
+      "evidence": [
+        "image-model-run.json",
+        "image-draft.json",
+        "public-jobs.jsonl",
+        "launcher.log"
+      ],
+      "basis": "Real image run succeeded, Chinese/English parsed from raw, manual sentinel remained until explicit adoption. No historical result substituted."
+    },
+    {
+      "id": "UM-02",
+      "status": "PASS",
+      "owner": "MediaStore/public upload, shared validate_probe and bounded request owner",
+      "evidence": [
+        "negative-0.json",
+        "negative-1.json",
+        "offline-03/1.stdout.log",
+        "lvw/tests/test_unified_video.py",
+        "test_s2_video_input.py",
+        "test_s2_video_files.py"
+      ],
+      "basis": "Live duration/corrupt rejection; offline real ASGI/MediaStore with actual FFmpeg validates fake-extension/truncated and zero Provider calls. Shared production validators exercise exact/one-over bytes/duration/pixels; body-limit test uses a scaled cap. FakeProvider is a nonarrival oracle here, not a fabricated successful model.",
+      "limits": "Only duration/corrupt were native live HTTP negatives; size/pixel/empty boundaries have CPU owner-level evidence, not a claim of extra live models."
+    },
+    {
+      "id": "UM-03",
+      "status": "PASS",
+      "owner": "shared production decoder/FrameRef publication",
+      "evidence": [
+        "video-model-run.json",
+        "fixture-preparation-02/receipt.json",
+        "offline-03/1.stdout.log"
+      ],
+      "basis": "Four source PTS at 1/3/5/7s, distinct frame hashes and exact source SHA, appended sampled-only limitation. Shared decoder/manifest controlled EOF/duplicate-point tests cover fewer-frame handling.",
+      "limits": "The live run uses four frames; short-frame behavior uses injected decoder fixtures through real shared production owner. Supplementary reviewer CPU replay matches every SHA/PTS but has disclosed missing pre-issued child and is not the primary acceptance basis."
+    },
+    {
+      "id": "UM-04",
+      "status": "FAIL",
+      "owner": "real Ollama semantic response and exported video suggestion",
+      "evidence": [
+        "video-model-run.json",
+        "video-adopted.json",
+        "runtime-evidence/provider.jsonl",
+        "tools/v0_s2_fixtures.py"
+      ],
+      "basis": "Actual Provider sent 4 frames, but response says three identical images/no changes/static; moving-grid development fixture contradicts this. Export preserves static/none/none. Raw retained correctly; joint temporal semantic obligation fails.",
+      "severity": "Major"
+    },
+    {
+      "id": "UM-05",
+      "status": "PASS",
+      "owner": "AnalysisService cancellation/public cancel and shared decoder cancellation",
+      "evidence": [
+        "cleanup-job-terminals.json",
+        "after-cancel.json",
+        "runtime-evidence/provider.jsonl",
+        "lvw/tests/test_unified_video.py",
+        "test_s2_video_process.py"
+      ],
+      "basis": "Real running cancellation ends cancelled/released, cancel_epoch1/result_ref null; three physical release samples. Offline actual AnalysisService/ASGI tests prove queued cancellation and controlled late success suppression; fake Provider is appropriate fault injection. Shared process tests prove CPU child cancellation/reaping. Supplemental isolated 18-test CPU run executes actual AnalysisService/public cancel with an in-progress decoder-thread barrier; release succeeds only after marker cleanup, Provider calls remain zero and no ModelRun publishes.",
+      "limits": "Only upload probe is stubbed and test file uses dummy bytes to respect no media-probe authorization; this targets service cancellation/event/cleanup sequencing. Actual FFmpeg process reaping is separately tested by shared process owner. Live-03 cancellation was soon after request start, not evidence of cancellation after full GPU loading."
+    },
+    {
+      "id": "UM-06",
+      "status": "PASS",
+      "owner": "React adoption state and export domain",
+      "evidence": [
+        "image-draft.json",
+        "before-video-adopt.json",
+        "video-adopted.json",
+        "after-cancel.json",
+        "offline-draft.json"
+      ],
+      "basis": "Export source stays image until explicit video adoption; then tracks video run/source SHA/frames through manual changes/cancel. Existing draft replacement is confirmed by real dialog acceptance. Export source never follows merely latest selected media."
+    },
+    {
+      "id": "UM-07",
+      "status": "PASS",
+      "owner": "React draft/export after native runtime stop, error branches via real ASGI",
+      "evidence": [
+        "runtime-stop.json",
+        "offline-draft.json",
+        "offline-draft.txt",
+        "offline-03/1.stdout.log"
+      ],
+      "basis": "Actual model unavailable after product stop; manual sentinel edited and TXT/JSON exported with correct adopted provenance. Offline real service error branches retain raw/manual independence. No live model failure is fabricated."
+    },
+    {
+      "id": "UM-08",
+      "status": "PASS",
+      "owner": "Provider leases/resources and native runtime ownership",
+      "evidence": [
+        "runtime-evidence/provider.jsonl",
+        "runtime-evidence/*.stderr.log",
+        "runtime-evidence/*.owner.json",
+        "runtime-start.json",
+        "cleanup-stop-response.json"
+      ],
+      "basis": "3 starts (1/4/4 frames), 2 completed outputs, 1 cancelled; 3 separate leases each admitted >=19047MiB free and each released only after 3 empty-inventory/baseline+1024 samples. Peak22109<23552, RAM10365>=2048. Native no-cloud/loopback, matching PID/birth/nonce and exited proof; no other process targeted.",
+      "limits": "Foreign loaded-model refusal is controlled HTTP fault-injection evidence with real lease owner; no foreign process is launched or killed to prove it."
+    },
+    {
+      "id": "UM-09",
+      "status": "PASS",
+      "owner": "actual START_LVW -> WSL FastAPI -> production React with headless browser",
+      "evidence": [
+        "launcher.log",
+        "windows-health.json",
+        "browser-result.json",
+        "bindings.json"
+      ],
+      "basis": "Windows curl reaches actual API with independently matched candidate build ID; one production React page handles image/video. Actual native Windows runtime started via product control. Browser no page errors/external requests; no Comfy dependency in launch/import path."
+    },
+    {
+      "id": "UM-10",
+      "status": "PASS",
+      "owner": "candidate/packet authorization, original process cleanup and independent review",
+      "evidence": [
+        "authorization.json",
+        "authorization.terminal.json",
+        "receipt.json",
+        "runtime-evidence/*.owner.json",
+        "recomputed.json",
+        "review.md"
+      ],
+      "basis": "Candidate blob/build/sample/program/packet bindings match; source/harness identities match prior reviewed product. Native exited owner is now archived after stop, API graceful shutdown and removed-root/absent-listener receipts retained. Independent review performed and original results untouched.",
+      "limits": "This PASS denotes identity/cleanup/review coverage, not acceptance of Major findings or human signature. Reviewer supplementary decode child omission disclosed separately and requires gate-owner governance assessment."
+    }
+  ],
+  "counts": {
+    "PASS": 9,
+    "FAIL": 1,
+    "BLOCKED": 0
+  },
+  "all_ten_pass": false,
+  "stage_pass_claim": false,
+  "human_signoff": null,
+  "supplemental_candidate": "ad4265cb657f5a0c1837ac236a7d9a7c6b4c726a",
+  "service_owner_source_unchanged_from_live03": true,
+  "decision": "NO_GO_UM04_REMAINS_FAIL"
+}

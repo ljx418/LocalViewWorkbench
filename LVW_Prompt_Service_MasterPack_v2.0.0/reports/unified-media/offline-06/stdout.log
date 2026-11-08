@@ -1,0 +1,73 @@
+..........................................F.......F..................... [ 66%]
+....................................                                     [100%]
+=================================== FAILURES ===================================
+_________ test_offline_runtime_scan_allows_only_literal_loopback_urls __________
+
+    def test_offline_runtime_scan_allows_only_literal_loopback_urls():
+        assert allowed_runtime_url("http://127.0.0.1:11434/api/chat")
+        assert allowed_runtime_url("http://[::1]:18765/api/v1/runtime/status")
+        assert not allowed_runtime_url("http://localhost:11434/api/chat")
+        assert not allowed_runtime_url("https://example.com/api")
+>       assert runtime_scan()["passed"] is True
+               ^^^^^^^^^^^^^^
+
+lvw/tests/test_r1a_live_harness_contract.py:35: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/r1a_offline_checkpoint.py:51: in runtime_scan
+    text = path.read_text(encoding="utf-8", errors="ignore")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.12/pathlib.py:1029: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/tmp/lvw-offline-working-semantic/lvw/frontend/index.html')
+mode = 'r', buffering = -1, encoding = 'utf-8', errors = 'ignore'
+newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/tmp/lvw-offline-working-semantic/lvw/frontend/index.html'
+
+/usr/lib/python3.12/pathlib.py:1015: FileNotFoundError
+__________ test_wrapper_uses_direct_child_handle_without_stop_process __________
+
+    def test_wrapper_uses_direct_child_handle_without_stop_process():
+>       wrapper = Path("tools/r1a_ollama_wrapper.ps1").read_text(encoding="utf-8")
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+lvw/tests/test_r1a_runtime_guard.py:94: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/lib/python3.12/pathlib.py:1029: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('tools/r1a_ollama_wrapper.ps1'), mode = 'r', buffering = -1
+encoding = 'utf-8', errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: 'tools/r1a_ollama_wrapper.ps1'
+
+/usr/lib/python3.12/pathlib.py:1015: FileNotFoundError
+=========================== short test summary info ============================
+FAILED lvw/tests/test_r1a_live_harness_contract.py::test_offline_runtime_scan_allows_only_literal_loopback_urls
+FAILED lvw/tests/test_r1a_runtime_guard.py::test_wrapper_uses_direct_child_handle_without_stop_process
+2 failed, 106 passed in 9.05s

@@ -5,7 +5,11 @@ commands=[['python3','-B','-m','pytest','lvw/tests','LVW_V0_RuntimePatch/tests/t
 result={'kind':'UNIFIED_OFFLINE_CHECKPOINT_NOT_REAL_OR_HUMAN_ACCEPTANCE','candidate_sha':subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),'checks':[],'decision':'NO_GO','model_calls':0}
 for i,cmd in enumerate(commands):
  cwd=ROOT/'lvw/frontend' if cmd[0]=='npm' else ROOT
- p=subprocess.run(cmd,cwd=cwd,capture_output=True,timeout=180)
+ try:
+  p=subprocess.run(cmd,cwd=cwd,capture_output=True,timeout=180)
+ except subprocess.TimeoutExpired as error:
+  from types import SimpleNamespace
+  p=SimpleNamespace(stdout=error.stdout or b"",stderr=(error.stderr or b"")+b"\nOFFLINE_COMMAND_TIMEOUT_180_SECONDS\n",returncode=124)
  (OUT/f'{i+1}.stdout.log').write_bytes(p.stdout);(OUT/f'{i+1}.stderr.log').write_bytes(p.stderr)
  result['checks'].append({'command':cmd,'exit_code':p.returncode,'stdout_sha256':hashlib.sha256(p.stdout).hexdigest(),'stderr_sha256':hashlib.sha256(p.stderr).hexdigest()})
  if p.returncode:break

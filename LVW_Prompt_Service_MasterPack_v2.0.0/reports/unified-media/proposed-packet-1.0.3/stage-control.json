@@ -1,0 +1,164 @@
+{
+  "schema_version": "lvw.stage-control/1",
+  "project_id": "lvw-prompt-service",
+  "stage_id": "R1",
+  "slice_id": "UNIFIED_MEDIA_EARLY",
+  "stage_packet_version": "1.0.3",
+  "packet_status": "FROZEN",
+  "gate_version": "lvw-unified/1",
+  "baseline": {
+    "git_commit": "0fee9933874f3aa0e163bded2800d9704ee8be0f"
+  },
+  "state": "FROZEN_READY_OFFLINE",
+  "last_passed_gate": "R1_UNIFIED_GATE0",
+  "dependencies": [
+    "R1a:PASS",
+    "docs/27:APPROVED",
+    "S2:HISTORICAL_MACHINE_REVIEW_COMPLETE_NOT_SIGNED"
+  ],
+  "roles": {
+    "gate_owner": "codex_gate_owner",
+    "implementation_owners": [
+      "codex_unified_implementer"
+    ],
+    "independent_reviewer": "fresh_unified_reviewer",
+    "trusted_executor": "local_ci",
+    "human_authorizer": "project_owner"
+  },
+  "fixed_acceptance_ids": [
+    "A01",
+    "A02",
+    "A03",
+    "A04",
+    "A05",
+    "A06",
+    "A08",
+    "A09",
+    "A11",
+    "A12",
+    "F01",
+    "F02",
+    "F03",
+    "F05",
+    "Q01",
+    "X01"
+  ],
+  "acceptance_hash": "50a48ed831381e4d955a8830057a72ad3e0c644e82838e87c9f2e12bebe21ac5",
+  "slice_acceptance_ids": [
+    "UM-01",
+    "UM-02",
+    "UM-03",
+    "UM-04",
+    "UM-05",
+    "UM-06",
+    "UM-07",
+    "UM-08",
+    "UM-09",
+    "UM-10"
+  ],
+  "slice_acceptance_hash": "c40424766778a90f4a67b1d99200f923d321692373bafa472e6e0b9d22342e26",
+  "workpacks": [
+    {
+      "id": "WP-R1-U1",
+      "owner": "codex_unified_implementer",
+      "depends_on": [],
+      "risk": "offline_repository",
+      "allowed_paths": [
+        "lvw/",
+        "launcher/",
+        "START_LVW.cmd",
+        "reports/unified-media/",
+        "docs/",
+        ".agent-governance/stages/R1/",
+        "tools/verify_governance.py"
+      ],
+      "commands": [
+        "pytest lvw/tests"
+      ],
+      "output": "implementation receipt 1"
+    },
+    {
+      "id": "WP-R1-U2",
+      "owner": "codex_unified_implementer",
+      "depends_on": [
+        "WP-R1-U1"
+      ],
+      "risk": "offline_repository",
+      "allowed_paths": [
+        "lvw/",
+        "launcher/",
+        "START_LVW.cmd",
+        "reports/unified-media/",
+        "docs/",
+        ".agent-governance/stages/R1/",
+        "tools/verify_governance.py"
+      ],
+      "commands": [
+        "npm test/typecheck/build"
+      ],
+      "output": "implementation receipt 2"
+    },
+    {
+      "id": "WP-R1-U3",
+      "owner": "local_ci",
+      "depends_on": [
+        "WP-R1-U2"
+      ],
+      "risk": "external_private",
+      "allowed_paths": [
+        "lvw/",
+        "launcher/",
+        "START_LVW.cmd",
+        "reports/unified-media/",
+        "docs/",
+        ".agent-governance/stages/R1/",
+        "tools/verify_governance.py"
+      ],
+      "commands": [
+        "bound offline/live/independent checks"
+      ],
+      "output": "implementation receipt 3"
+    }
+  ],
+  "allowed_paths": [
+    "lvw/",
+    "launcher/",
+    "START_LVW.cmd",
+    "reports/unified-media/",
+    "docs/",
+    "plans/execution-control.json",
+    ".agent-governance/project-registry.json",
+    "tools/verify_governance.py",
+    "MANIFEST.sha256"
+  ],
+  "forbidden_paths": [
+    "contracts/",
+    "plans/acceptance_cases.json",
+    "plans/release_gates.json",
+    "人工验收视频集/"
+  ],
+  "program_authorization": "reports/authorization-program-v1-local-01.json",
+  "mandatory_stops": [
+    "unapproved public contract change",
+    "outside authorization",
+    "budget overrun",
+    "independent review",
+    "human signature"
+  ],
+  "stage_exit": "Slice only: UM10/10, independent Fatal0/Major0, human signature. Never claims full R1/V1 PASS.",
+  "next_owner": "codex_unified_implementer",
+  "budgets": {
+    "max_effective_retries_per_probe": 2,
+    "full_checkpoint": 1,
+    "full_corrected_recheck": 1,
+    "provider_calls_per_checkpoint": 8,
+    "max_seconds_per_checkpoint": 1800,
+    "stage_checkpoints": 1,
+    "corrected_candidate_full_rechecks": 1,
+    "supplemental_full_rechecks": 1
+  },
+  "authorization_scope": "PROGRAM_CHILD_REQUIRED",
+  "execution_authorized": true,
+  "external_authorization": "AUTH-PROGRAM-V1-LOCAL-01_CHILD_RECEIPT_REQUIRED",
+  "supplemental_authorization_request": "AUTH-REQUEST-V1-R1-U3-SEMANTIC-01"
+}

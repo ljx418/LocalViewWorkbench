@@ -1,0 +1,108 @@
+{
+  "schema_version": "lvw.supplemental-authorization-request/1",
+  "authorization_id": "AUTH-REQUEST-V1-R1-U3-SEMANTIC-01",
+  "status": "PENDING_HUMAN_APPROVAL_NOT_AUTHORIZATION",
+  "reason": "Original full checkpoint and corrected recheck consumed (live02/live03). live03 independent UM04 Major: moving-grid sequence described as static and three identical images. Offline temporal-sheet candidate needs one new whole-sequence verification, not relaxed thresholds.",
+  "candidate_sha": "998daf73a4ad06b7549fa19ab047b41250329de3",
+  "candidate_policy": "Exact frozen source tree; documentation/evidence-only descendant commits may be actual execution HEAD if ancestor+zero frozen-path diff are verified. Actual HEAD recorded in child.",
+  "harness": "reports/unified-media/live_checkpoint.py",
+  "harness_sha256": "a7ee727b1c63cd4e418b4b26f31c74b5a8d508841df7547b2c97a9c7efc841fd",
+  "frozen_paths": [
+    "lvw/backend",
+    "lvw/frontend",
+    "lvw/run_local.py",
+    "lvw/print_build_id.py",
+    "launcher",
+    "LVW.exe",
+    "START_LVW.cmd",
+    "contracts",
+    "reports/unified-media/authority.py",
+    "reports/unified-media/live_checkpoint.py",
+    "reports/unified-media/live_browser.cjs"
+  ],
+  "run_id": "live-04",
+  "stage_id": "R1",
+  "workpack_id": "WP-R1-U3",
+  "max_full_rechecks": 1,
+  "max_seconds": 1800,
+  "port": 18780,
+  "ollama_port": 11434,
+  "samples": [
+    {
+      "path": "reports/unified-media/dev-image.png",
+      "sha256": "b0303b157ecb6e9f07ae83c460813a743ad4f18e9be83b92abd6ecf4c919e817"
+    },
+    {
+      "path": "reports/v0-s2/fixture-preparation-02/fixtures/tracking.mov",
+      "sha256": "b08ea8b0b9fa3bcd4e62b2b0ad1c05b2bff09359539933f4581a5c2f2c69ff6d"
+    },
+    {
+      "path": "reports/v0-s2/fixture-preparation-02/fixtures/over-duration.mp4",
+      "sha256": "e9a7dd1feac6ffee908fd3ebd0390f86cf126f4f15c41ee249762eeec23ac2b4"
+    },
+    {
+      "path": "reports/v0-s2/fixture-preparation-02/fixtures/corrupt.mp4",
+      "sha256": "a174786bd98ea1ffd1844a1110751f2d9c1989f4c6cb75feeef6f6326dc0a5b1"
+    }
+  ],
+  "budget": {
+    "api_starts": 1,
+    "ollama_starts": 1,
+    "headless_browser_starts": 1,
+    "provider_calls": 8,
+    "full_checkpoints": 1,
+    "model_calls": 8,
+    "downloads": 0,
+    "cloud_calls": 0,
+    "paid_calls": 0,
+    "holdout_model_calls": 0
+  },
+  "expected_normal_provider_calls": 3,
+  "automatic_retries": 0,
+  "scope": [
+    "Replace four independent wire images with ONE <=768x768 PNG temporal contact sheet containing all 1–4 actual complete source frames, numbered F1..F4 and real decoded seconds in chronological order. Preserve source FrameRef entries/PTS/SHA, no sample answers in prompt; distinguish source frame count and wire image count in evidence.",
+    "one fresh isolated actual START_LVW/React/FastAPI/native Ollama sequence: real image, chronological video, explicit adoption/export, running cancellation, model-offline manual edit",
+    "real public duration/corrupt negatives; candidate-bound offline CPU regression and isolated review cover remaining controlled negative/race obligations",
+    "GPU used <23552MiB, free admission >=19047MiB, RAM >=2048MiB; total analysis420s/cleanup30s unchanged",
+    "loopback only, no-cloud explicitly set; unique original process handles/PID+birth+nonce; original raw evidence and failure retained",
+    "strict independent video semantic check on actual output, not just schema/HTTP success"
+  ],
+  "forbidden": [
+    "download/upgrade",
+    "cloud/paid/non-loopback",
+    "private media/cookies/existing browser profile",
+    "visible browser automation",
+    "permanent configuration changes",
+    "terminating foreign processes",
+    "11 reserved human video model calls",
+    "automatic extra whole runs or sample substitutions",
+    "human signature/release/remote push before human acceptance"
+  ],
+  "cleanup": "Cancel own jobs and wait terminal; public controlled model stop with original native exit proof; archive known run logs; stop own API/browser; remove owned temp; verify listeners absent. Unproved cleanup is NO_GO.",
+  "expires_when": [
+    "one terminal receipt generated",
+    "1800 seconds elapsed",
+    "human revokes",
+    "any scope/budget boundary reached"
+  ],
+  "human_signoff": false,
+  "product_threshold_changes": "none",
+  "related_evidence": [
+    "reports/unified-media/live-03/receipt.json",
+    "reports/unified-media/independent-live-03/receipt.json",
+    "reports/unified-media/semantic-correction-01.md"
+  ],
+  "proposed_packet_directory": "reports/unified-media/proposed-packet-1.0.3",
+  "proposed_packet_manifest_sha256": "c20246bd153136c91ce27f7e125716c8c0b3848ffa58e7fe9857ce5f2e343502",
+  "proposed_resolution": {
+    "current_packet_version": "1.0.2",
+    "approved_next_packet_version": "1.0.3",
+    "presentation_change": "Replace four independent wire images with ONE <=768x768 PNG temporal contact sheet containing all 1–4 actual complete source frames, numbered F1..F4 and real decoded seconds in chronological order. Preserve source FrameRef entries/PTS/SHA, no sample answers in prompt; distinguish source frame count and wire image count in evidence.",
+    "activation": "Only after explicit human approval, copy exact proposed packet files into active R1 packet; verify manifest SHA AND every file SHA and file set. Other product/Harness frozen_paths must be unchanged descendants of candidate.",
+    "additional_full_recheck": 1,
+    "api_schema_change": "none",
+    "acceptance_denominator_change": "none",
+    "resource_or_quality_threshold_change": "none",
+    "human_signature_authorized": false
+  }
+}

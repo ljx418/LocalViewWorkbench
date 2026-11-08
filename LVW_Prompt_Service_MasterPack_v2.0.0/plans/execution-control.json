@@ -8,19 +8,20 @@
   "coordinate": {
     "stage_id": "R1",
     "workpack_id": "WP-R1-U3",
-    "gate": "UNIFIED_REAL_CHECKPOINT",
-    "state": "BLOCKED"
+    "gate": "UNIFIED_SEMANTIC_CORRECTION_RECHECK",
+    "state": "WAIT_AUTH"
   },
   "last_passed_gate": {
-    "gate": "UNIFIED_OFFLINE_CHECKPOINT",
-    "candidate_sha": "c1317894c72b425cadf88d34fda07defc9e65285",
-    "receipt": "reports/unified-media/offline-03/receipt.json",
-    "decision": "OFFLINE_VERIFIED_NOT_REAL_OR_HUMAN"
+    "gate": "SEMANTIC_CORRECTION_CPU_REGRESSION",
+    "candidate_sha": "998daf73a4ad06b7549fa19ab047b41250329de3",
+    "receipt": "reports/unified-media/offline-07/receipt.json",
+    "source_reuse": "reports/unified-media/offline-reuse-01/receipt.json",
+    "decision": "CPU108_PASS_NOT_REAL_MODEL_OR_HUMAN_ACCEPTANCE"
   },
-  "current_blocking_gate": "REAL_MODEL_ADMISSION_AND_COMPLETE_LIVE_EVIDENCE",
+  "current_blocking_gate": "VIDEO_SEMANTIC_MAJOR_AND_SUPPLEMENTAL_RECHECK_AUTH",
   "stage_packet": ".agent-governance/stages/R1/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/R1/PAYLOAD_MANIFEST.sha256",
-  "product_status": "UNIFIED_IMPLEMENTED_OFFLINE_VERIFIED_LIVE_BLOCKED_NOT_ACCEPTED",
+  "product_status": "UNIFIED_IMPLEMENTED_REAL_SEMANTIC_NO_GO_OFFLINE_CORRECTION_PENDING_LIVE",
   "allowed_claim": "V0_MIN_ACCEPTED_NOT_RELEASED",
   "forbidden_claims": [
     "V0_ACCEPTED",
@@ -30,10 +31,10 @@
     "PRODUCTION_RELEASED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "trusted_executor_after_resource_readiness",
-  "next_action": "Do not spend the remaining corrected full checkpoint until frozen resource preflight admits. Then run live-03 once, independent raw-evidence review, and request unified human signoff only after UM10/10.",
-  "required_authorization": "NONE_WITHIN_ACTIVE_V1_PROGRAM; remaining bounded corrected checkpoint only",
-  "authorization_request": null,
+  "next_owner": "project_owner_for_supplemental_run_authorization",
+  "next_action": "Approve/reject AUTH-REQUEST-V1-R1-U3-SEMANTIC-01 including exact packet1.0.3 presentation change and one supplemental full run; no live04 until approval.",
+  "required_authorization": "AUTH-REQUEST-V1-R1-U3-SEMANTIC-01",
+  "authorization_request": "reports/unified-media/authorization-semantic-correction-01.request.json",
   "authorization_record": "reports/authorization-program-v1-local-01.json",
   "read_only_binding_authorization": "reports/v0-s2/authorization-binding-inventory-06.json",
   "cpu_decoder_authorization": "reports/v0-s2/authorization-cpu-decoder-01.json",
@@ -49,12 +50,12 @@
   ],
   "contract_change_request": "reports/r1a/change-request-r1a-product-controls-02.json",
   "contract_change_decision": "reports/r1a/change-decision-r1a-product-controls-02.json",
-  "implementation_candidate": "c1317894c72b425cadf88d34fda07defc9e65285",
+  "implementation_candidate": "998daf73a4ad06b7549fa19ab047b41250329de3",
   "implementation_baseline": "0fee9933874f3aa0e163bded2800d9704ee8be0f",
   "candidate_binding_scope": "Minimum unified media slice; code candidate and its own evidence only. Historical S2 and full R1/R2 remain separate.",
   "offline_evidence_commit": null,
-  "offline_receipt": "reports/unified-media/offline-03/receipt.json",
-  "offline_candidate_sha": "c1317894c72b425cadf88d34fda07defc9e65285",
+  "offline_receipt": "reports/unified-media/offline-07/receipt.json",
+  "offline_candidate_sha": "998daf73a4ad06b7549fa19ab047b41250329de3",
   "evidence_root": "reports/",
   "gate_decision": "reports/unified-media/gate-decision.md",
   "human_signoff": null,
@@ -81,13 +82,13 @@
   },
   "historical_live_terminal_receipt": "reports/r1a/r1a-live-07/live-receipt.json",
   "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
-  "live_terminal_receipt": "reports/unified-media/live-02/receipt.json",
-  "independent_review": "reports/unified-media/independent-correction-01/review-87c64a3.md",
-  "exact_stop_reason": "真实图片被RESOURCE_BUSY拒绝，三次有限诊断空闲显存约14GB，未满足冻结19047MiB准入；live02原生退出文件在清理前归档，终态证据缺失，修复执行器后保留唯一完整复验槽。未请求人工签署。",
+  "live_terminal_receipt": "reports/unified-media/live-03/receipt.json",
+  "independent_review": "reports/unified-media/independent-live-03/review.md",
+  "exact_stop_reason": "live03完成真实图片/视频/取消/释放/清理，但视频把4帧动态背景描述为3张相同静态画面，独审UM04 Major。时序图已离线修复，完整槽2/2耗尽，新真实复验须新有限授权；未请求人工核签。",
   "native_component_authorization": "reports/v0-s2/authorization-native-component-02.json",
   "native_component_terminal_receipt": "reports/v0-s2/native-component-02/receipt.json",
   "local_control_change_decision": "reports/v0-s2/change-decision-video-workbench-01.json",
-  "latest_workpack_receipt": "reports/unified-media/implementation-receipt.json",
+  "latest_workpack_receipt": "reports/unified-media/semantic-correction-01.md",
   "warm_benchmark_blocker": "reports/v0-s2/warm-benchmark-evidence-gap-01.md",
   "warm_profile_implementation": "reports/v0-s2/warm-profile-implementation-progress-01.md",
   "warm_profile_decision": "reports/v0-s2/warm-profile-decision-01.md",
@@ -736,7 +737,7 @@
   "evidence_directory": "reports/unified-media/",
   "machine_evidence_review": "验收报告与盲测视频.html",
   "manual_acceptance_guide": "docs/26_MANUAL_ACCEPTANCE_GUIDE.md",
-  "human_guide_ui_verification": "reports/unified-media/handoff-ui-01/receipt.json",
+  "human_guide_ui_verification": "reports/unified-media/handoff-ui-04/receipt.json",
   "desktop_launcher": {
     "entry": "LVW.exe",
     "shortcut": "启动LVW.lnk",
@@ -776,16 +777,31 @@
       },
       {
         "id": "WP-R1-U3",
-        "state": "BLOCKED_REAL_CHECKPOINT"
+        "state": "WAIT_AUTH_SEMANTIC_CORRECTION"
       }
     ],
     "implementation": "READY_FOR_REVIEW",
-    "machine_acceptance": "INCOMPLETE",
-    "independent_review": "CODE_AND_HARNESS_STATIC_CLEAR_REAL_EXIT_EVIDENCE_PENDING",
-    "full_checkpoints_consumed": 1,
-    "remaining_corrected_full_rechecks": 1,
+    "machine_acceptance": "NO_GO_VIDEO_SEMANTIC",
+    "independent_review": "OFFLINE_CORRECTION_FATAL0_MAJOR0_MINOR0; REAL_VIDEO_UM04_REMAINS_FAIL",
+    "full_checkpoints_consumed": 2,
+    "remaining_corrected_full_rechecks": 0,
     "latest_harness_review": "reports/unified-media/independent-correction-01/review-0f6b772.md",
-    "latest_harness_candidate": "0f6b7722fe33b179b13aebf2a93225f7726fd289"
+    "latest_harness_candidate": "0f6b7722fe33b179b13aebf2a93225f7726fd289",
+    "live_executor": {
+      "run_id": "live-03",
+      "session_id": 95433,
+      "terminal": true,
+      "restart_forbidden": true
+    },
+    "proposed_packet_version": "1.0.3_NOT_ACTIVE",
+    "latest_correction_review": "reports/unified-media/independent-semantic-correction-01/review.md",
+    "live_review_coverage": {
+      "PASS": 9,
+      "FAIL": 1,
+      "BLOCKED": 0,
+      "receipt": "reports/unified-media/independent-live-03/coverage-supplement-preparing.json"
+    },
+    "offline_cpu_tests": 108
   },
   "historical_s2_last_passed_gate": {
     "gate": "GATE5_INDEPENDENT_MACHINE_REVIEW",
@@ -836,12 +852,18 @@
     "resolution_evidence": "reports/v0-s2/resource-admission-policy-correction-01/receipt.json"
   },
   "current_runtime_failure": {
-    "code": "RESOURCE_BUSY",
-    "live_receipt": "reports/unified-media/live-02/receipt.json",
-    "latest_diagnostic": "reports/unified-media/resource-diagnostic-03/receipt.json",
-    "free_mib": 14070,
-    "required_free_mib": 19047,
-    "inference_requests": 0,
-    "cleanup_evidence_gap": "Archived native owner is listening, not final exited. API/Ollama listener and temp-root checks alone do not close native exit proof."
-  }
+    "code": "VIDEO_TEMPORAL_SEMANTIC_FAILURE",
+    "live_receipt": "reports/unified-media/live-03/receipt.json",
+    "peak_gpu_mib": 22109,
+    "minimum_ram_mib": 10365,
+    "provider_calls_started": 3,
+    "provider_calls_completed": 2,
+    "lease_releases": 3,
+    "native_exit_proven": true,
+    "cleanup_proven": true,
+    "quality": "four real frames; model says three identical/static"
+  },
+  "resource_readiness_receipt": "reports/unified-media/resume-preflight-01/receipt.json",
+  "live_candidate_sha": "a8a431d986b236cc842f4fc24e12c3a3e13ea0c1",
+  "slice_acceptance_receipt": "reports/unified-media/independent-live-03/coverage-supplement-preparing.json"
 }

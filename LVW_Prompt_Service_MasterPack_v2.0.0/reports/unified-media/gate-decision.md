@@ -1,15 +1,29 @@
-# 最小统一前端切片：BLOCKED
+# 图视频统一切片：真实验收NO_GO；离线纠偏后WAIT_AUTH
 
-实现候选：c1317894c72b425cadf88d34fda07defc9e65285。范围：已批准docs/27，R1提前切片，非完整R1/R2/V1。
+真实候选a8a431d986b236cc842f4fc24e12c3a3e13ea0c1，运行live03。修复候选998daf73a4ad06b7549fa19ab047b41250329de3；尚无该修复候选的真实模型结果。
 
-U1后端与U2前端/启动器已实现；U3真实组合仍未完成。offline03五项检查退出码均0，70项工作台后端 + 36项共享视频核回归（共106项）、9项前端单测、typecheck/build和治理检查通过。CPU浏览器6项属于明确标识的夹具，不是模型验收。
+## 本轮实际完成
 
-独立代码审查87c64a3 Fatal0/Major0，后续c131仅新增准入原值账本与证据采集纠偏。live02真实启动Windows命令、React/default_app/native Ollama、no-cloud生效；公开超时长/损坏输入被拒绝。图片任务RESOURCE_BUSY、无provider推理请求，视频未执行。三次事后有限诊断均free约14GB，低于冻结19047MiB；这些读数不能冒充当时acquire原值。未降低资源门限。
+Windows启动链、同源React/FastAPI、真实图片/四帧视频、显式采纳/确认替换、导出来源、运行中取消及模型关闭后手工编辑导出均有原始证据。3次Provider开始=2次完整输出+1次取消，不能记作3次成功分析。3次租约分别取得3个连续真实释放样本；峰值GPU22109MiB、最低RAM10365MiB，满足原硬限。原生loopback/no-cloud和本轮PID/birth/nonce绑定，exited证明已正确归档；API/Ollama监听消失、临时根清理，关闭前归档缺终态的问题已在本轮闭合。
 
-独审发现live02归档在API关闭前，owner原文件仍listening；端口消失和目录删除不足以独立证明原生退出。原记录完整保留，此证据Major未通过新真实运行闭合。执行器已改为先通过公开受控stop获取退出证明、再归档、最后结束API。新增Windows curl公开health检查尚待下一轮。
+独审live03：Fatal0/Major1，8项PASS、UM04 FAIL、UM05准备取消组合BLOCKED。UM04真实原文称three identical images/no changes/static，与4个实际帧及移动网格构造配方相矛盾；视频导出也错误保留static/none。模型结构合法/HTTP成功不代表时序语义合格。原始receipt和输出保持不变，当前门禁使用独审覆盖表，不沿用执行器局部PASS。
 
-预算：live01在API前失败，不计完整checkpoint；live02计首次完整checkpoint，虽无推理也不返还此槽。只保留live03一次纠偏完整复验，未创建/未运行。母授权内无需再次请求GPU许可；超限则WAIT_AUTH，不自动增加。
+## 离线修复与验证边界
 
-下一动作：资源准入满足后，派生绑定当前候选的有限子授权，执行一次live03，独审真实原始结果；UM10/10且Fatal0/Major0后才请求统一人工签署。11留样NOT_RUN。当前不允许签署、Stage PASS、V1接受或发布。未人工验收，因此未推送远端。
+新增1–4实际帧完整时序图（最大768×768，按F编号/实际秒数，无裁切/重复/答案），替换混杂单图任务句，要求比较背景/取景/主体及明确不确定性。源FrameRef/PTS/SHA不变，账本区分源帧和wire图数；模板身份随呈现方式变化。图片路径不改，资源/质量门限与全部固定分母不变。补真实AnalysisService准备阶段取消+受控解码线程清理组合测试。
 
-最终Harness静读复核0f6b772 Fatal0/Major0/Minor0，已确认先取消并等待终态、再stop、归档、结束API，任何cleanup_error强制NO_GO；见independent-correction-01/review-0f6b772.md。该静读关闭采集器代码缺陷，不补回live02缺失的原生终态，不代表真实复验通过。HTML报告/指南6项离线浏览器检查通过，未调用模型、未提交人工签署。
+完整CPU回归offline07：108通过。offline04因WSL文件系统等待超时且旧执行器漏存部分输出；offline05/06隔离副本初次漏带测试依赖而失败，原记录全部保留，不记为通过。补齐精确依赖后原108项通过，未删除/跳过用例。frontend代码不变，既有9测试/typecheck/build通过证据只在机器证明源无变化的范围复用；见offline-reuse-01。旧timeout执行器已修为保留部分stdout/stderr与124终态。
+
+独审补充CPU复算曾缺预先子收据，已如实披露，不倒签、不得作为主要接受证据；语义失败仅依据原配方/真实源SHA/原始输出亦成立。本轮没有私有媒体、下载、云/付费或11留样推理。
+
+## 下一授权与停止
+
+原母授权首次完整checkpoint和修正完整复验已2/2使用。新请求AUTH-REQUEST-V1-R1-U3-SEMANTIC-01合并两项：明确批准内部多wire图改为单时序图、精确激活拟议packet1.0.3；只增加live04一次完整有限复验。proposal尚未激活，approval文件不存在，guard默认拒绝并不创建运行目录。
+
+需新批准的原因来自原授权明确的“每个Stage最多一次完整checkpoint，修正候选后最多一次完整复验；超限自动转WAIT_AUTH”。这不是再次询问已有范围的GPU许可；是已用完额度后的额外一轮及内部输入呈现合同纠偏。审批不等于人工体验签署。
+
+批准后才可运行live04。必须重新独立判断真实视频语义、完整覆盖和清理；全部条件满足后才请求统一人工核签。当前不宣布Stage PASS、完整R1/R2/V1通过，不推送发布。
+
+最终离线独审998daf73：新代码Fatal0/Major0/Minor0；18项定向CPU检查及9项授权负例通过，无approval/packet未激活时不创建live04目录。UM05组合由同源真实owner补充测试闭合，独立覆盖补充表为9PASS/UM04 FAIL；不改写原始live03收据。HTML验收报告7项检查（含原开发视频可读取8秒时长、手机宽度、草稿记录导出）通过，无脚本错误/网络请求；先前报告检查的移动端长状态溢出已修复，失败记录保留。
+
+最终文档检查：native Windows解释器运行原verify_pack全部断言，使用显式窄适配器将4处Windows相对路径JSON键/诊断名序列化为POSIX，未删任何扫描/Schema/manifest断言；3934检查通过、0失败，治理自检0错误。此前WSL历史扫描阻塞已取消，原生首次键分隔符失败和适配器计数错误均保留。适配器及原源码SHA随收据记录，非产品模型验收证据。

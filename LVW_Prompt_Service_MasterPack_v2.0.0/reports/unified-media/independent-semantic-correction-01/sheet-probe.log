@@ -1,0 +1,30 @@
+{
+  "presentation": "temporal-sheet/1",
+  "sheet_size": [
+    768,
+    768
+  ],
+  "wire_images": 1,
+  "frame_count_recorded": 4,
+  "payload_count_recorded": 1,
+  "source_frame_hashes_match": true,
+  "payload_sha_matches_sheet": true,
+  "actual_times_in_prompt": true,
+  "panel_count_in_prompt": true,
+  "no_single_image_task_conflict": true,
+  "no_response_oracle_leak": true,
+  "options": {
+    "num_ctx": 4096,
+    "num_predict": 768,
+    "temperature": 0.2
+  },
+  "synthetic_panel_colors_match": [
+    true,
+    true,
+    true,
+    true
+  ],
+  "crop_policy_from_source_inspection": "thumbnail and paste only; no crop operation",
+  "temporary_output": "/tmp/lvw-sheet-review-tkyc02ca",
+  "request_content": "Analyze the attached TEMPORAL CONTACT SHEET as ONE sampled VIDEO sequence. Each outlined panel is a different actual frame; labels F1, F2, ... and seconds are metadata, not text in the scene. Read left-to-right, then top-to-bottom, in timestamp order. Compare the background, framing and subject positions across EVERY populated panel before summarizing. Distinguish camera/framing changes from subject movement and from scene cuts. Do not treat the contact sheet itself as the scene or describe only its last panel. Do not claim frames are identical without inspecting their differences. If movement cannot be determined from samples, explicitly say unknown rather than asserting a static video. State that only sampled frames were observed; continuous motion, unseen events and audio are unverified. Return compact JSON: prompt_zh is Chinese, prompt is English; camera_motion and subject_action contain supported observations or explicit uncertainty.\n\nSelected visual mode: realistic. Produce a physically plausible realistic reconstruction with concrete photographic detail.\n\nSelected content profile: standard. Use the standard neutral analysis policy.\nActual populated panel count: 4. Actual frame times (seconds): [0.125, 1.5, 3.25, 7.875]"
+}
