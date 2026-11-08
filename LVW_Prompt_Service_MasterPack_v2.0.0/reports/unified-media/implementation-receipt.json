@@ -1,0 +1,24 @@
+{
+  "kind": "IMPLEMENTATION_RECEIPT_NOT_STAGE_PASS",
+  "candidate_sha": "c1317894c72b425cadf88d34fda07defc9e65285",
+  "workpacks_completed_implementation": [
+    "WP-R1-U1",
+    "WP-R1-U2"
+  ],
+  "formal_contract_change": "none",
+  "production_path": "START_LVW.cmd -> lvw/run_local.py -> default_app -> public media/jobs/analyze -> VideoKernel/OllamaProvider -> model-runs -> explicit adoption/export",
+  "tests": "reports/unified-media/offline-03/receipt.json",
+  "cpu_browser": "reports/unified-media/ui-cpu-01/receipt.json",
+  "real_run": "reports/unified-media/live-02/receipt.json",
+  "independent_code_review": "reports/unified-media/independent-correction-01/review-87c64a3.md",
+  "risks": [
+    "Real image/video/cancel/resource full sequence incomplete",
+    "Windows browser reachability additional live check prepared, not executed",
+    "Native final exit archive missing in live02; collector corrected, not yet rerun",
+    "Session-only draft; full SQLite revision pending",
+    "Four samples cannot cover every motion/cut/audio"
+  ],
+  "holdout": "11_ALL_NOT_RUN",
+  "stage_pass_claim": false,
+  "human_signoff": null
+}

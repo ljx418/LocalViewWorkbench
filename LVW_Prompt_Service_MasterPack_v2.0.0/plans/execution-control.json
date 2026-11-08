@@ -7,19 +7,20 @@
   "next_delivery_target": "V0.1",
   "coordinate": {
     "stage_id": "R1",
-    "workpack_id": "WP-R1-U1",
-    "gate": "IMPLEMENTATION_INNER_LOOP",
-    "state": "RUNNING"
+    "workpack_id": "WP-R1-U3",
+    "gate": "UNIFIED_REAL_CHECKPOINT",
+    "state": "BLOCKED"
   },
   "last_passed_gate": {
-    "gate": "R1_UNIFIED_GATE0",
-    "receipt": "reports/unified-media/approval.json",
-    "decision": "SCOPE_APPROVED_AND_FROZEN_NOT_IMPLEMENTATION_ACCEPTANCE"
+    "gate": "UNIFIED_OFFLINE_CHECKPOINT",
+    "candidate_sha": "c1317894c72b425cadf88d34fda07defc9e65285",
+    "receipt": "reports/unified-media/offline-03/receipt.json",
+    "decision": "OFFLINE_VERIFIED_NOT_REAL_OR_HUMAN"
   },
-  "current_blocking_gate": "UNIFIED_FRONTEND_IMPLEMENTATION_AND_VERIFICATION",
+  "current_blocking_gate": "REAL_MODEL_ADMISSION_AND_COMPLETE_LIVE_EVIDENCE",
   "stage_packet": ".agent-governance/stages/R1/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/R1/PAYLOAD_MANIFEST.sha256",
-  "product_status": "UNIFIED_SLICE_IMPLEMENTING_NOT_ACCEPTED",
+  "product_status": "UNIFIED_IMPLEMENTED_OFFLINE_VERIFIED_LIVE_BLOCKED_NOT_ACCEPTED",
   "allowed_claim": "V0_MIN_ACCEPTED_NOT_RELEASED",
   "forbidden_claims": [
     "V0_ACCEPTED",
@@ -29,10 +30,10 @@
     "PRODUCTION_RELEASED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "codex_unified_implementer",
-  "next_action": "Implement U1/U2 then one consolidated checkpoint and fresh independent review; preserve holdout NOT_RUN; request unified human signoff only at completion.",
-  "required_authorization": "PROGRAM_CHILD_FOR_LIVE_NO_REPEATED_GPU_QUESTION",
-  "authorization_request": "reports/v0-s2/full-v0-auto-08/human-signoff-request.md",
+  "next_owner": "trusted_executor_after_resource_readiness",
+  "next_action": "Do not spend the remaining corrected full checkpoint until frozen resource preflight admits. Then run live-03 once, independent raw-evidence review, and request unified human signoff only after UM10/10.",
+  "required_authorization": "NONE_WITHIN_ACTIVE_V1_PROGRAM; remaining bounded corrected checkpoint only",
+  "authorization_request": null,
   "authorization_record": "reports/authorization-program-v1-local-01.json",
   "read_only_binding_authorization": "reports/v0-s2/authorization-binding-inventory-06.json",
   "cpu_decoder_authorization": "reports/v0-s2/authorization-cpu-decoder-01.json",
@@ -40,34 +41,6 @@
   "native_decoder_package_authorization": "reports/v0-s2/authorization-native-decoder-packages-01.json",
   "native_decoder_package_receipt": "reports/v0-s2/native-decoder-packages-01/receipt.json",
   "decoder_binding_decision": "reports/v0-s2/decoder-binding-decision-01.md",
-  "runtime_dependency_blocker": {
-    "code": "RESOURCE_NOT_READY_GPU_ABOVE_LIMIT_AND_READINGS_DIFFER",
-    "reported_error_code": "EvidenceError:RESOURCE_NOT_READY: native/WSL GPU disagreement",
-    "evidence": "reports/v0-s2/resource-admission-oracle-resume-01/receipt.json",
-    "limit_mib": 4096,
-    "native_used_mib": 4520,
-    "wsl_used_mib": 4308,
-    "difference_mib": 212,
-    "difference_limit_mib": 128,
-    "available_ram_mib": 8913,
-    "target_listener_count": 0,
-    "target_process_count": 0,
-    "service_starts": 0,
-    "model_calls": 0,
-    "media_reads": 0,
-    "browser_starts": 0,
-    "full_checkpoint_claimed": false,
-    "cleanup_proven": true,
-    "resolved_for_readiness": true,
-    "reassessment": {
-      "evidence": "reports/v0-s2/gpu-policy-reassessment-01/receipt.json",
-      "physical_vram_shortage_proven": false,
-      "wrong_fixed_used_ceiling_identified": true,
-      "draft_replay": "WOULD_ADMIT_MONITORED_ATTEMPT",
-      "requires_more_gpu_release_to4096": false
-    },
-    "resolution_evidence": "reports/v0-s2/resource-admission-policy-correction-01/receipt.json"
-  },
   "stage_preparation_receipt": "reports/v0-s2/workbench-implementation-progress-01.md",
   "historical_authorization_records": [
     "reports/r1a/authorization-wp-r1a-04-live-01.json",
@@ -76,14 +49,14 @@
   ],
   "contract_change_request": "reports/r1a/change-request-r1a-product-controls-02.json",
   "contract_change_decision": "reports/r1a/change-decision-r1a-product-controls-02.json",
-  "implementation_candidate": null,
-  "implementation_baseline": "0fee993",
-  "candidate_binding_scope": "Approved GPU policy correction, unchanged calibrated production workload/context and fixed acceptance denominator.",
+  "implementation_candidate": "c1317894c72b425cadf88d34fda07defc9e65285",
+  "implementation_baseline": "0fee9933874f3aa0e163bded2800d9704ee8be0f",
+  "candidate_binding_scope": "Minimum unified media slice; code candidate and its own evidence only. Historical S2 and full R1/R2 remain separate.",
   "offline_evidence_commit": null,
-  "offline_receipt": "reports/v0-s2/offline-checkpoint-44/receipt.json",
-  "offline_candidate_sha": "719c74559393a6489b2f630a1e0d3bc3303eb655",
+  "offline_receipt": "reports/unified-media/offline-03/receipt.json",
+  "offline_candidate_sha": "c1317894c72b425cadf88d34fda07defc9e65285",
   "evidence_root": "reports/",
-  "gate_decision": "reports/v0-s2/full-v0-auto-08/gate-decision.md",
+  "gate_decision": "reports/unified-media/gate-decision.md",
   "human_signoff": null,
   "product_acceptance": null,
   "last_accepted_product": {
@@ -108,13 +81,13 @@
   },
   "historical_live_terminal_receipt": "reports/r1a/r1a-live-07/live-receipt.json",
   "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
-  "live_terminal_receipt": "reports/v0-s2/full-v0-auto-08/receipt.json",
-  "independent_review": "reports/v0-s2/full-v0-auto-08/independent-review.json",
-  "exact_stop_reason": "REACHED_HUMAN_EXPERIENCE_SIGNOFF_GATE_MACHINE_AND_ISOLATED_REVIEW_COMPLETE",
+  "live_terminal_receipt": "reports/unified-media/live-02/receipt.json",
+  "independent_review": "reports/unified-media/independent-correction-01/review-87c64a3.md",
+  "exact_stop_reason": "真实图片被RESOURCE_BUSY拒绝，三次有限诊断空闲显存约14GB，未满足冻结19047MiB准入；live02原生退出文件在清理前归档，终态证据缺失，修复执行器后保留唯一完整复验槽。未请求人工签署。",
   "native_component_authorization": "reports/v0-s2/authorization-native-component-02.json",
   "native_component_terminal_receipt": "reports/v0-s2/native-component-02/receipt.json",
   "local_control_change_decision": "reports/v0-s2/change-decision-video-workbench-01.json",
-  "latest_workpack_receipt": "reports/v0-s2/browser-draft-oracle-correction-01/implementation.md",
+  "latest_workpack_receipt": "reports/unified-media/implementation-receipt.json",
   "warm_benchmark_blocker": "reports/v0-s2/warm-benchmark-evidence-gap-01.md",
   "warm_profile_implementation": "reports/v0-s2/warm-profile-implementation-progress-01.md",
   "warm_profile_decision": "reports/v0-s2/warm-profile-decision-01.md",
@@ -735,16 +708,6 @@
   "gpu_policy_reassessment": "reports/v0-s2/gpu-policy-reassessment-01/receipt.json",
   "policy_correction_authorization": "reports/v0-s2/authorization-s2-policy-correction-01.approval.json",
   "policy_readiness_receipt": "reports/v0-s2/resource-admission-profile-lifecycle-01/receipt.json",
-  "current_runtime_failure": {
-    "code": "CHROMIUM_INSPECTOR_RESPONSE_BODY_EVICTED",
-    "evidence": "reports/v0-s2/full-v0-auto-06/receipt.json",
-    "public_matrix_passed": 15,
-    "public_matrix_fixed": 15,
-    "browser_manual_initial": "PASS",
-    "browser_upload": "FAIL_RESPONSE_BODY_UNAVAILABLE",
-    "native_cleanup_proven": true,
-    "browser_cleanup_proven": true
-  },
   "profile_lifecycle_authorization": "reports/v0-s2/authorization-s2-profile-lifecycle-01.approval.json",
   "v0_verification_program": "reports/authorization-program-v0-local-verification-01.json",
   "diagnostic_candidate": "0cd6df8ecfc3a85101071058843b01c37b48fda5",
@@ -770,16 +733,16 @@
     "receipt": "reports/v0-s2/warm-component-01/receipt.json"
   },
   "human_review": "验收报告与盲测视频.html",
-  "evidence_directory": "reports/v0-s2/full-v0-auto-08/",
-  "machine_evidence_review": "reports/v0-s2/full-v0-auto-08/human-review.html",
+  "evidence_directory": "reports/unified-media/",
+  "machine_evidence_review": "验收报告与盲测视频.html",
   "manual_acceptance_guide": "docs/26_MANUAL_ACCEPTANCE_GUIDE.md",
-  "human_guide_ui_verification": "reports/manual-acceptance-guide-2026-11-08/ui-receipt-03.json",
+  "human_guide_ui_verification": "reports/unified-media/handoff-ui-01/receipt.json",
   "desktop_launcher": {
     "entry": "LVW.exe",
     "shortcut": "启动LVW.lnk",
     "documentation": "launcher/README.md",
-    "directed_verification": "reports/desktop-launcher-2026-11-08/02/receipt.json",
-    "acceptance": "AUXILIARY_LAUNCHER_READY_FOR_REVIEW_NOT_STAGE_PASS"
+    "directed_verification": "reports/unified-media/launcher-self-test.json",
+    "acceptance": "UNIFIED_LAUNCHER_CPU_VERIFIED_REAL_FULL_SEQUENCE_INCOMPLETE"
   },
   "human_validation_holdout": {
     "manifest": "人工验收视频集/FREEZE.json",
@@ -799,9 +762,30 @@
   "active_slice": {
     "id": "UNIFIED_MEDIA_EARLY",
     "approval": "reports/unified-media/approval.json",
-    "completed_workpacks": 0,
+    "completed_workpacks": 2,
     "total_workpacks": 3,
-    "human_signoff": null
+    "human_signoff": null,
+    "workpacks": [
+      {
+        "id": "WP-R1-U1",
+        "state": "IMPLEMENTED_OFFLINE_VERIFIED"
+      },
+      {
+        "id": "WP-R1-U2",
+        "state": "IMPLEMENTED_CPU_BROWSER_VERIFIED"
+      },
+      {
+        "id": "WP-R1-U3",
+        "state": "BLOCKED_REAL_CHECKPOINT"
+      }
+    ],
+    "implementation": "READY_FOR_REVIEW",
+    "machine_acceptance": "INCOMPLETE",
+    "independent_review": "CODE_AND_HARNESS_STATIC_CLEAR_REAL_EXIT_EVIDENCE_PENDING",
+    "full_checkpoints_consumed": 1,
+    "remaining_corrected_full_rechecks": 1,
+    "latest_harness_review": "reports/unified-media/independent-correction-01/review-0f6b772.md",
+    "latest_harness_candidate": "0f6b7722fe33b179b13aebf2a93225f7726fd289"
   },
   "historical_s2_last_passed_gate": {
     "gate": "GATE5_INDEPENDENT_MACHINE_REVIEW",
@@ -812,5 +796,52 @@
     "fixed_cases": 9,
     "passed_cases": 9
   },
-  "historical_s2_implementation_candidate": "719c74559393a6489b2f630a1e0d3bc3303eb655"
+  "historical_s2_implementation_candidate": "719c74559393a6489b2f630a1e0d3bc3303eb655",
+  "historical_s2_current_runtime_failure": {
+    "code": "CHROMIUM_INSPECTOR_RESPONSE_BODY_EVICTED",
+    "evidence": "reports/v0-s2/full-v0-auto-06/receipt.json",
+    "public_matrix_passed": 15,
+    "public_matrix_fixed": 15,
+    "browser_manual_initial": "PASS",
+    "browser_upload": "FAIL_RESPONSE_BODY_UNAVAILABLE",
+    "native_cleanup_proven": true,
+    "browser_cleanup_proven": true
+  },
+  "historical_s2_runtime_dependency_blocker": {
+    "code": "RESOURCE_NOT_READY_GPU_ABOVE_LIMIT_AND_READINGS_DIFFER",
+    "reported_error_code": "EvidenceError:RESOURCE_NOT_READY: native/WSL GPU disagreement",
+    "evidence": "reports/v0-s2/resource-admission-oracle-resume-01/receipt.json",
+    "limit_mib": 4096,
+    "native_used_mib": 4520,
+    "wsl_used_mib": 4308,
+    "difference_mib": 212,
+    "difference_limit_mib": 128,
+    "available_ram_mib": 8913,
+    "target_listener_count": 0,
+    "target_process_count": 0,
+    "service_starts": 0,
+    "model_calls": 0,
+    "media_reads": 0,
+    "browser_starts": 0,
+    "full_checkpoint_claimed": false,
+    "cleanup_proven": true,
+    "resolved_for_readiness": true,
+    "reassessment": {
+      "evidence": "reports/v0-s2/gpu-policy-reassessment-01/receipt.json",
+      "physical_vram_shortage_proven": false,
+      "wrong_fixed_used_ceiling_identified": true,
+      "draft_replay": "WOULD_ADMIT_MONITORED_ATTEMPT",
+      "requires_more_gpu_release_to4096": false
+    },
+    "resolution_evidence": "reports/v0-s2/resource-admission-policy-correction-01/receipt.json"
+  },
+  "current_runtime_failure": {
+    "code": "RESOURCE_BUSY",
+    "live_receipt": "reports/unified-media/live-02/receipt.json",
+    "latest_diagnostic": "reports/unified-media/resource-diagnostic-03/receipt.json",
+    "free_mib": 14070,
+    "required_free_mib": 19047,
+    "inference_requests": 0,
+    "cleanup_evidence_gap": "Archived native owner is listening, not final exited. API/Ollama listener and temp-root checks alone do not close native exit proof."
+  }
 }
