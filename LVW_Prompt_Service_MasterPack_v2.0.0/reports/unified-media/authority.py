@@ -37,6 +37,8 @@ def create(run_id,harness,budget,*,port,samples=(),seconds=240,full=False):
 
     out=ROOT/'reports/unified-media'/run_id;out.mkdir(exist_ok=False)
     value={'kind':'V1_FINITE_CHILD_NOT_STAGE_SIGNOFF','status':'ACTIVE_ONE_SHOT','stage_id':'R1','slice':'UNIFIED_MEDIA_EARLY','run_id':run_id,'candidate_sha':candidate,'harness_sha256':sha(harness),'program':PROGRAM,'program_sha256':sha(ROOT/PROGRAM),'packet_manifest_sha256':sha(ROOT/'.agent-governance/stages/R1/PAYLOAD_MANIFEST.sha256'),'ports':[port],'samples':[{'path':str(Path(p).relative_to(ROOT)),'sha256':sha(p)} for p in samples],'budget':budget,'issued_at':time.time(),'expires_at':time.time()+seconds,'process_policy':'Only original handles or PID+birth+unique launch-token proved descendants from this run; never terminate others.','cleanup':'Stop own browser/API/Ollama and remove only this run private temp. Retain receipts/failures.','full_checkpoint':full,'stage_pass_claim':False}
+    if full and run_id=='live-04':
+        value['supplemental_authorization']={'request':str(request_path.relative_to(ROOT)),'request_sha256':sha(request_path),'approval':str(approval_path.relative_to(ROOT)),'approval_sha256':sha(approval_path),'authorization_id':request['authorization_id']}
     (out/'authorization.json').write_text(json.dumps(value,indent=2)+'\n');return out,value
 def terminal(out,auth,result):
     (out/'receipt.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n')
