@@ -64,6 +64,8 @@ if not errorlevel 1 (
  set "EXISTING_LVW=1"
  exit /b 0
 )
-curl.exe -sS --max-time 1 "http://127.0.0.1:%~1/" >nul 2>&1
-if "%ERRORLEVEL%"=="7" set "APP_PORT=%~1"
+powershell.exe -NoProfile -NonInteractive -Command "$p=%~1; if (@([Net.NetworkInformation.IPGlobalProperties]::GetIPGlobalProperties().GetActiveTcpListeners() | Where-Object {$_.Port -eq $p}).Count) {exit 1} else {exit 0}" >nul 2>&1
+if errorlevel 1 exit /b 0
+wsl.exe -d %WSL_DISTRO% -e python3 -B -c "import socket,sys; s=socket.socket(); s.settimeout(0.3); r=s.connect_ex(('127.0.0.1',%~1)); s.close(); sys.exit(0 if r==111 else 1)" >nul 2>&1
+if not errorlevel 1 set "APP_PORT=%~1"
 exit /b 0
