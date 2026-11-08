@@ -199,7 +199,7 @@ export function App() {
   function change(field: keyof Draft, value: string) { setDraft((current) => ({ ...current, [field]: value })); setDirty(true); }
   function adoptSuggestion() {
     if (!spec) return;
-    if (dirty && !window.confirm("当前人工稿有未导出的修改。确定用机器建议替换吗？")) return;
+    if ((dirty || draftHasContent) && !window.confirm("当前人工稿有未导出的修改。确定用机器建议替换吗？")) return;
     setDraft(adopt(spec)); setAdoptedRun(run); setDirty(false);
   }
 
