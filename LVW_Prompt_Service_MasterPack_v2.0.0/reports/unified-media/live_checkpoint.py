@@ -72,6 +72,27 @@ except Exception as error:result['error']=type(error).__name__+': '+str(error)
 finally:
  if api and runroot and runroot.exists():
   try:
+   jobs=set()
+   ledger=runroot/'provider.jsonl'
+   if ledger.exists():jobs.update(x['lease_job_id'] for x in map(json.loads,ledger.read_text().splitlines()) if x.get('lease_job_id'))
+   public=out/'public-jobs.jsonl'
+   if public.exists():jobs.update(x['id'] for x in map(json.loads,public.read_text().splitlines()))
+   for job in jobs:
+    response=api_call('POST','/api/v1/jobs/'+job+'/cancel',headers={'Idempotency-Key':'cleanup','X-LVW-Control':'local-ui'})
+    if response.status_code != 200:raise RuntimeError('cancel receipt missing')
+   deadline=time.monotonic()+35
+   pending=set(jobs)
+   terminal_jobs={}
+   while pending and time.monotonic()<deadline:
+    for job in list(pending):
+     response=api_call('GET','/api/v1/jobs/'+job)
+     if response.status_code!=200:raise RuntimeError('job terminal receipt missing')
+     state_value=response.json()['data']
+     if state_value['status'] not in {'queued','preparing','running','cancelling'}:
+      terminal_jobs[job]=state_value;pending.remove(job)
+    if pending:time.sleep(.2)
+   (out/'cleanup-job-terminals.json').write_text(json.dumps(terminal_jobs,indent=2)+'\n')
+   if pending:raise RuntimeError('active tasks did not reach terminal before runtime stop')
    stopped=api_call('POST','/api/v1/runtime/ollama/stop',headers={'X-LVW-Control':'local-ui','Idempotency-Key':'terminal-stop'})
    (out/'cleanup-stop-response.json').write_text(json.dumps(stopped.json(),indent=2)+'\n')
    if stopped.status_code != 200:result['cleanup_error']='owned runtime stop not confirmed before archive'
@@ -83,13 +104,6 @@ finally:
    if p.is_file():shutil.copyfile(p,archive/p.name)
  if api:
   try:
-   # Cancel only this run's known current jobs before shutdown if a browser step failed.
-   ledger=runroot/'provider.jsonl' if runroot else None
-   if ledger and ledger.exists():
-    jobs={x.get('lease_job_id') for x in map(json.loads,ledger.read_text().splitlines()) if x.get('lease_job_id')}
-    for job in jobs:
-     try:api_call('POST','/api/v1/jobs/'+job+'/cancel',headers={'Idempotency-Key':'cleanup','X-LVW-Control':'local-ui'})
-     except requests.RequestException:pass
    stat=Path('/proc')/str(api['pid'])/'stat'
    if stat.exists() and stat.read_text().split()[21]==api['birth']:os.kill(api['pid'],signal.SIGTERM)
   except Exception as e:result['cleanup_error']=str(e)
@@ -100,7 +114,7 @@ finally:
   result['run_root_removed']=not runroot.exists()
  result['api_listener_absent']=not alive(18780);result['ollama_listener_absent']=not alive(11434)
  result['stage_checkpoint_consumed']=stage_consumed
- if not result['api_listener_absent'] or not result['ollama_listener_absent'] or (runroot and not result.get('run_root_removed')):
+ if result.get('cleanup_error') or not result['api_listener_absent'] or not result['ollama_listener_absent'] or (runroot and not result.get('run_root_removed')):
   result['decision']='NO_GO';result['cleanup_error']=result.get('cleanup_error','run cleanup incomplete')
  terminal(out,auth,result)
 print(json.dumps(result,ensure_ascii=False))
