@@ -11,6 +11,7 @@ from .media import MediaStore
 from .models import AnalyzeRequest, FrameRef, Job, ModelRun
 from .provider import OllamaProvider, TEMPLATE_SHA256, VIDEO_TEMPLATE_SHA256
 from . import resources
+ANALYSIS_SECONDS = 420
 
 
 class AnalysisService:
@@ -97,11 +98,27 @@ class AnalysisService:
                 monitor = None
                 raw, spec, frames, failure = "", None, [], None
                 resource_errors = []
+                deadline = asyncio.get_running_loop().time() + ANALYSIS_SECONDS
+                preparation = None
+                expired = False
+
+                async def within_budget(awaitable):
+                    remaining = deadline - asyncio.get_running_loop().time()
+                    if remaining <= 0:
+                        if hasattr(awaitable, "cancel"):
+                            awaitable.cancel()
+                        if hasattr(awaitable, "close"):
+                            awaitable.close()
+                        raise asyncio.TimeoutError()
+                    return await asyncio.wait_for(awaitable, timeout=remaining)
                 media = self.media.refs[request.media_ref_id]
                 try:
                     media, path = self.media.get(request.media_ref_id)
                     if hasattr(self.provider, "acquire"):
-                        await self.provider.acquire(job_id)
+                        acquire_task = asyncio.create_task(self.provider.acquire(job_id))
+                        self._provider_tasks[job_id] = acquire_task
+                        await within_budget(acquire_task)
+                        self._provider_tasks.pop(job_id, None)
                         lease = True
                         monitor = asyncio.create_task(self._monitor(job_id, resource_errors))
                     if self._cancels[job_id].is_set():
@@ -109,7 +126,8 @@ class AnalysisService:
                     options = {"mode": request.mode, "content_profile": request.content_profile,
                                "custom_guidance": request.custom_guidance}
                     if media.kind == "video":
-                        decoded = await asyncio.to_thread(self.media.video.decode, path, self._cancels[job_id])
+                        preparation = asyncio.create_task(asyncio.to_thread(self.media.video.decode, path, self._cancels[job_id]))
+                        decoded = await within_budget(asyncio.shield(preparation))
                         if decoded.source_sha256 != media.sha256:
                             raise AppError("MEDIA_INVALID", "视频在上传后发生改变", status_code=422)
                         targets = {}
@@ -132,10 +150,12 @@ class AnalysisService:
                     self.update(job_id, status="running")
                     provider_task = asyncio.create_task(operation())
                     self._provider_tasks[job_id] = provider_task
-                    raw, spec = await asyncio.wait_for(provider_task, timeout=420)
+                    raw, spec = await within_budget(provider_task)
                 except asyncio.CancelledError:
                     failure = AppError("JOB_CANCELLED", "本次分析已取消")
                 except asyncio.TimeoutError:
+                    expired = True
+                    self._cancels[job_id].set()
                     failure = AppError("MODEL_TIMEOUT", "本轮分析超过总时限", status_code=503)
                 except AppError as error:
                     failure = error
@@ -143,6 +163,16 @@ class AnalysisService:
                 except Exception:
                     failure = AppError("MODEL_UNAVAILABLE", "本轮分析未能完成", status_code=503)
                 finally:
+                    cleanup_started = asyncio.get_running_loop().time()
+                    preparation_clean = True
+                    if preparation is not None and not preparation.done():
+                        self._cancels[job_id].set()
+                        try:
+                            await asyncio.wait_for(asyncio.shield(preparation), timeout=8)
+                        except AppError:
+                            pass
+                        except (asyncio.TimeoutError, asyncio.CancelledError):
+                            preparation_clean = False
                     if monitor:
                         monitor.cancel()
                         await asyncio.gather(monitor, return_exceptions=True)
@@ -151,12 +181,13 @@ class AnalysisService:
                     released = not (not lease and getattr(self.provider, "_lease", None) is not None)
                     if lease:
                         try:
-                            released = await self.provider.release(job_id)
+                            released = await asyncio.wait_for(self.provider.release(job_id), timeout=max(.001, 30 - (asyncio.get_running_loop().time() - cleanup_started)))
                         except Exception:
                             released = False
+                    released = released and preparation_clean
                     if resource_errors:
                         failure = resource_errors[0]
-                    cancelled = self._cancels[job_id].is_set() and not resource_errors
+                    cancelled = self._cancels[job_id].is_set() and not resource_errors and not expired
                     if cancelled:
                         failure = AppError("JOB_CANCELLED", "本次分析已取消")
                         raw, spec = "", None

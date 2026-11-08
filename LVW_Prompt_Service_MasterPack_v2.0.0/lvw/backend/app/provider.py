@@ -192,6 +192,14 @@ class OllamaProvider:
         self._record("lease_acquired", job_id, baseline=baseline)
 
     async def release(self, job_id: str) -> bool:
+        try:
+            async with asyncio.timeout(30):
+                return await self._release_bounded(job_id)
+        except TimeoutError:
+            self._record("lease_release_unproven", job_id)
+            return False
+
+    async def _release_bounded(self, job_id: str) -> bool:
         if self._lease is None or self._lease[0] != job_id:
             return False
         baseline = self._lease[1]
@@ -205,7 +213,11 @@ class OllamaProvider:
                     response.raise_for_status()
             while time.monotonic() < deadline:
                 inventory = await self._inventory()
+                if time.monotonic() >= deadline:
+                    break
                 sample = await resources.snapshot()
+                if time.monotonic() >= deadline:
+                    break
                 self._record("lease_release_sample", job_id, inventory_empty=not inventory, **sample)
                 stable = stable + 1 if not inventory and sample["gpu_used_mib"] <= baseline["gpu_used_mib"] + 1024 else 0
                 if stable >= 3:
@@ -220,6 +232,13 @@ class OllamaProvider:
         return False
 
     async def readiness(self) -> dict:
+        try:
+            async with asyncio.timeout(5):
+                return await self._readiness_bounded()
+        except TimeoutError:
+            return {"ready": False, "model": self.model, "reason": "OLLAMA_UNAVAILABLE", "loaded": False}
+
+    async def _readiness_bounded(self) -> dict:
         tags_endpoint = self.endpoint.removesuffix("/api/chat") + "/api/tags"
         try:
             async with httpx.AsyncClient(timeout=min(self.timeout_seconds, 3), trust_env=False) as client:
@@ -256,7 +275,7 @@ class OllamaProvider:
         if self.ledger_path is None:
             return
         payload = {"event": event, "call_id": call_id, "time_ns": time.time_ns(),
-                   "model": self.model, **fields}
+                   "model": self.model, "lease_job_id": self._lease[0] if self._lease else None, **fields}
         line = (json.dumps(payload, sort_keys=True, separators=(",", ":")) + "\n").encode()
         descriptor = os.open(self.ledger_path, os.O_APPEND | os.O_CREAT | os.O_WRONLY, 0o600)
         try:
@@ -317,7 +336,9 @@ class OllamaProvider:
             envelope = response.json()
         except json.JSONDecodeError as exc:
             self._record("provider_call_failed", call_id, outcome="invalid_envelope")
-            raise AppError("PARSE_PARTIAL", "模型响应不是 JSON", status_code=503) from exc
+            error = AppError("PARSE_PARTIAL", "模型响应不是 JSON", status_code=503)
+            error.raw_response = raw
+            raise error from exc
         try:
             motion, action = "", ""
             if frames is not None:

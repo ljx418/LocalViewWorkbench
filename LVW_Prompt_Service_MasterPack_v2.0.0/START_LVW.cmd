@@ -33,7 +33,7 @@ echo Project directory: %CD%
 echo Opening %APP_URL%
 echo Start the model from the service panel. Keep this window open.
 if /i not "%LVW_NO_BROWSER%"=="1" start "" /b "%ComSpec%" /d /c call "%~dp0tools\open_lvw_browser.cmd" "%APP_URL%"
-wsl.exe -d %WSL_DISTRO% --cd "%WSL_ROOT%" -e env LVW_PORT=%APP_PORT% "LVW_DATA_ROOT=%WSL_RUN_ROOT%" "LVW_OLLAMA_EXE=%WSL_OLLAMA_EXE%" "LVW_LAUNCH_TOKEN=%LVW_LAUNCH_TOKEN%" PYTHONDONTWRITEBYTECODE=1 python3 -B lvw/run_local.py
+wsl.exe -d %WSL_DISTRO% --cd "%WSL_ROOT%" -e env LVW_PORT=%APP_PORT% "LVW_DATA_ROOT=%WSL_RUN_ROOT%" "LVW_OLLAMA_EXE=%WSL_OLLAMA_EXE%" "LVW_LAUNCH_TOKEN=%LVW_LAUNCH_TOKEN%" "LVW_PROVIDER_LEDGER=%WSL_RUN_ROOT%/provider.jsonl" PYTHONDONTWRITEBYTECODE=1 python3 -B lvw/run_local.py
 set "LVW_EXIT=%ERRORLEVEL%"
 rmdir /s /q "%RUN_ROOT%" >nul 2>&1
 echo LVW stopped. Run-owned temporary files were removed.

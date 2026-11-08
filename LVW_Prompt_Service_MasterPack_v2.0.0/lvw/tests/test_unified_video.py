@@ -104,3 +104,11 @@ def test_streamed_http_body_cap_catches_missing_or_false_content_length(tmp_path
             assert r.status_code==422 and r.json()['error']['code']=='MEDIA_LIMIT_EXCEEDED'
             assert list((tmp_path/'media').iterdir())==[]
     asyncio.run(scenario())
+
+def test_total_analysis_deadline_covers_acquisition_before_any_inference(tmp_path,png_bytes,monkeypatch):
+    monkeypatch.setattr('app.service.ANALYSIS_SECONDS',.02)
+    class SlowAcquire(VideoProvider):
+        async def acquire(self,_):await asyncio.sleep(20)
+    c=client(tmp_path,SlowAcquire());m=upload(c,png_bytes).json()['data'];s=c.post('/api/v1/jobs/analyze',headers={'Idempotency-Key':'deadline'},json={'media_ref_id':m['id'],'mode':'realistic','config_profile':'local-default'})
+    j=c.get('/api/v1/jobs/'+s.json()['data']['id']).json()['data']
+    assert j['status']=='failed' and j['error_code']=='MODEL_TIMEOUT' and j['result_ref'] is None

@@ -21,6 +21,7 @@ class OllamaRuntime:
         self._lock = asyncio.Lock()
         self._spawn_override = spawn
         self._log = None
+        self._native = None
 
     def _validate_executable(self) -> Path:
         executable = self.executable
@@ -38,8 +39,11 @@ class OllamaRuntime:
     async def status(self) -> dict:
         readiness = await self.provider.readiness()
         owned = self._owned()
+        from .native_runtime import proof
+        native = proof(self._native)
+        native_ready = not self._native or native.get("listener_owned") is True
         if readiness["ready"]:
-            state = "ready" if owned else "external"
+            state = "ready" if owned and native_ready else "starting" if owned else "external"
         elif owned:
             state = "starting"
         elif readiness["reason"] != "OLLAMA_UNAVAILABLE":
@@ -58,7 +62,7 @@ class OllamaRuntime:
                 "model_ready": readiness["ready"],
                 "model_loaded": readiness.get("loaded", False),
                 "managed": owned,
-                "pid": self.process.pid if owned else None,
+                "pid": native.get("pid", self.process.pid) if owned else None,
                 "reason": readiness["reason"],
                 "last_error": self.last_error,
             },
@@ -81,8 +85,17 @@ class OllamaRuntime:
         env = os.environ.copy()
         env.update({"OLLAMA_HOST": "http://127.0.0.1:11434", "OLLAMA_NO_CLOUD": "true",
                     "NO_PROXY": "127.0.0.1,localhost", "no_proxy": "127.0.0.1,localhost"})
-        return await asyncio.create_subprocess_exec(str(executable), "serve", stdin=asyncio.subprocess.DEVNULL,
+        # A Win32 executable does not inherit arbitrary Linux env values.
+        # /w forwards these process-local values from WSL to Windows; no registry/config writes.
+        forwarded = {"OLLAMA_HOST", "OLLAMA_NO_CLOUD", "NO_PROXY"}
+        entries = [value for value in env.get("WSLENV", "").split(":")
+                   if value and value.split("/", 1)[0].upper() not in forwarded]
+        env["WSLENV"] = ":".join(entries + [name + "/w" for name in sorted(forwarded)])
+        from .native_runtime import prepare
+        self._native = prepare(log_root, executable)
+        return await asyncio.create_subprocess_exec(*self._native["argv"], stdin=asyncio.subprocess.DEVNULL,
             stdout=self._log, stderr=asyncio.subprocess.STDOUT, env=env)
+
 
     async def start(self) -> dict:
         async with self._lock:
@@ -105,7 +118,8 @@ class OllamaRuntime:
                     raise AppError("RUNTIME_START_FAILED", "Ollama exited during startup",
                                    status_code=503, details={"reason": self.last_error})
                 readiness = await self.provider.readiness()
-                if readiness["ready"]:
+                from .native_runtime import proof
+                if readiness["ready"] and (not self._native or proof(self._native).get("listener_owned") is True):
                     return await self.status()
                 await asyncio.sleep(0.5)
             self.last_error = "OLLAMA_START_TIMEOUT"
@@ -121,7 +135,18 @@ class OllamaRuntime:
                 self._log.close()
                 self._log = None
             return
-        process.terminate()
+        if self._native:
+            self._native["stop"].write_text(self._native["nonce"])
+            try:
+                await asyncio.wait_for(process.wait(), timeout=10)
+            except asyncio.TimeoutError as error:
+                raise AppError("RESOURCE_RELEASE_PENDING", "本轮Windows模型进程退出未确认", status_code=503) from error
+            from .native_runtime import proof
+            if proof(self._native).get("state") != "exited":
+                raise AppError("RESOURCE_RELEASE_PENDING", "本轮Windows原进程终态证明缺失", status_code=503)
+            self._native = None
+        else:
+            process.terminate()
         try:
             await asyncio.wait_for(process.wait(), timeout=10)
         except asyncio.TimeoutError:

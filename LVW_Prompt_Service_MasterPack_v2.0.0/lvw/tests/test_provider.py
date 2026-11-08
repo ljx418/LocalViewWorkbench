@@ -228,3 +228,24 @@ def test_model_lease_refuses_external_loaded_model_without_unload(monkeypatch):
     provider=OllamaProvider('http://127.0.0.1:11434/api/chat','gemma4:26b',30)
     with pytest.raises(AppError) as caught:asyncio.run(provider.acquire('job1'))
     assert caught.value.code=='RESOURCE_BUSY' and methods==['GET'] and provider._lease is None
+
+def test_invalid_envelope_preserves_exact_raw_response(monkeypatch):
+    import asyncio,httpx
+    real=httpx.AsyncClient
+    async def handler(request):return httpx.Response(200,text='BROKEN_RAW_ENVELOPE')
+    monkeypatch.setattr('app.provider.httpx.AsyncClient',lambda **kw:real(**kw,transport=httpx.MockTransport(handler)))
+    with pytest.raises(AppError) as caught:
+        asyncio.run(OllamaProvider('http://127.0.0.1:11434/api/chat','gemma4:26b',30)._analyze_images([b'x'],mode='realistic',content_profile='standard',custom_guidance=''))
+    assert caught.value.code=='PARSE_PARTIAL' and caught.value.raw_response=='BROKEN_RAW_ENVELOPE'
+
+def test_release_does_not_sample_or_claim_success_after_total_deadline(monkeypatch):
+    import asyncio
+    from types import SimpleNamespace
+    p=OllamaProvider('http://127.0.0.1:11434/api/chat','gemma4:26b',30)
+    p._lease=('job',{'gpu_used_mib':1000});clock=[0];samples=[]
+    async def inventory():clock[0]=31;return []
+    async def snapshot():samples.append(True);return {'gpu_used_mib':1000}
+    p._inventory=inventory
+    monkeypatch.setattr('app.provider.time',SimpleNamespace(monotonic=lambda:clock[0]))
+    monkeypatch.setattr('app.resources.snapshot',snapshot)
+    assert asyncio.run(p.release('job')) is False and not samples and p._lease is not None
