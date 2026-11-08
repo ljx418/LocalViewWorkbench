@@ -4,6 +4,8 @@
 
 ## 入口、权威与完成度
 
+无命令启动入口：根目录 `启动LVW.lnk` / `LVW.exe`，说明见[启动器](../launcher/README.md)。该辅助启动增量不修改当前Stage分母或替代人工签署。
+
 人工体验与记录入口：[根目录人工验收指南](../人工验收指南.html)，启动及验收说明见[docs/26](26_MANUAL_ACCEPTANCE_GUIDE.md)。该辅助页不改固定分母、不代签。
 
 先读 `plans/execution-control.json`，再读本章、当前 Stage Packet 和对应实现章节。产品需求、用例、发布门禁分别以 `plans/requirements.json`、`plans/acceptance_cases.json`、`plans/release_gates.json` 为准。实现设计见 docs/13–20；历史范围决策见 docs/22–23。`plans/tasks.json` 是依赖/范围目录，其中初始 NOT_RUN 不是实时进度；实时进度只保存在 execution-control 的 development_outline，与证据路径绑定。

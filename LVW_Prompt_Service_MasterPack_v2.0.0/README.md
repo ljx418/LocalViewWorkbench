@@ -47,6 +47,6 @@ PRD、目标体验及门限、全阶段架构与实现方案、分期开发计�
 
 ## 本地阅读与校验
 
-需要直接体验单图提示词反推时，在 Windows 资源管理器中双击项目根目录的 `START_LVW.cmd`；详细使用与停止方式见 `lvw/README.md`。
+在 Windows 资源管理器中双击项目根目录的 **`启动LVW.lnk`**（或直接双击 `LVW.exe`），在启动窗口选择图片、视频或人工验收指南，无需输入命令。图片入口复用 `START_LVW.cmd`；视频入口自动准备隔离环境并打开本机页面。详细说明见 [启动器说明](launcher/README.md)，图片旧入口说明见 `lvw/README.md`。
 
 解压后打开START_HERE.html；无CDN/外部字体。文档结构检查：`python3 tools/verify_pack.py`。完整Schema验证：`python3 tools/verify_pack.py --schema`（构建/验收环境需预装jsonschema）。治理与反假绿负例：`python3 tools/verify_governance.py --self-test`。产品证据检查：`python3 tools/check_release.py reports/product-results.template.json --target V0`，模板未执行，预期拒绝发布。
