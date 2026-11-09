@@ -39,6 +39,9 @@ async def arm():
 async def release():runtime.gate.set();return {'released':True}
 @app.get('/__fixture/state')
 async def state():return {'action':runtime.action,'ready':provider.ready,'provider_calls':provider.calls,'jobs':len(app.state.analysis.jobs),'runs':len(app.state.analysis.runs)}
+# Test control routes must precede the product's catch-all static mount.
+controls=[r for r in app.router.routes if getattr(r,'path','').startswith('/__fixture/')]
+app.router.routes[:]=controls+[r for r in app.router.routes if r not in controls]
 if __name__=='__main__':
     import uvicorn
     uvicorn.run(app,host='127.0.0.1',port=18781)
