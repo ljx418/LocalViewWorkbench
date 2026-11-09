@@ -1,0 +1,39 @@
+{
+  "harness_sha256": "c1279ed8de8018200346a0e31695063690944586aff51dbf5e5abe836447befa",
+  "results": [
+    {
+      "case": "clear",
+      "cleanup_result": {
+        "owners": [],
+        "cleanup_proven": true,
+        "settlement": {}
+      },
+      "program_calls": [
+        [
+          "settle",
+          "mock-zero-model",
+          0
+        ]
+      ]
+    },
+    {
+      "case": "external_listener_race",
+      "cleanup_result": {
+        "owners": [],
+        "cleanup_proven": false,
+        "decision": "NO_GO_CLEANUP_PENDING",
+        "cleanup_error": "AssertionError: final cleanup proof failed; retain reservation"
+      },
+      "program_calls": [
+        [
+          "retain",
+          "mock-zero-model"
+        ]
+      ]
+    }
+  ],
+  "real_harness_executed": false,
+  "network": false,
+  "model_calls": 0,
+  "ledger_writes": false
+}

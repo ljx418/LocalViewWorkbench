@@ -8,20 +8,20 @@
   "coordinate": {
     "stage_id": "R1",
     "workpack_id": "WP-R1-U3",
-    "gate": "VIDEO_SYSTEM_ROUTING_OFFLINE_REVIEW_VERIFIED",
-    "state": "READY_FOR_REVIEW"
+    "gate": "UNIFIED_MEDIA_CONSOLIDATED_CORRECTION",
+    "state": "CHANGES_REQUIRED"
   },
   "last_passed_gate": {
-    "gate": "COLOUR_ALIGNMENT_INPUT_OFFLINE_AND_INDEPENDENT_REVIEW",
-    "candidate_sha": "9d9cdad0d3ef45a6dd821984272b0cbaa351bb76",
-    "receipt": "reports/unified-media/colour-alignment-offline-01/receipt.json",
-    "independent_review": "reports/unified-media/independent-colour-alignment-01/receipt.json",
-    "decision": "CPU136_PLUS_INDEPENDENT75_AND_PROVIDER23_NOT_REAL_MODEL_ACCEPTANCE"
+    "gate": "VIDEO_SYSTEM_ROUTING_OFFLINE_AND_INDEPENDENT_REVIEW",
+    "candidate_sha": "e163af66848ea6b1ce9f57345399c8eda22043a9",
+    "receipt": "reports/unified-media/video-system-routing-offline-01/receipt-final.json",
+    "independent_review": "reports/unified-media/independent-video-system-routing-01/receipt.json",
+    "decision": "CPU137_AND_ISOLATED_REQUEST_BUILD_REVIEW_NOT_REAL_SEMANTICS"
   },
-  "current_blocking_gate": "FRESH_VIDEO_SYSTEM_ROUTING_MODEL_SEMANTICS",
+  "current_blocking_gate": "UM04_SEMANTICS_UM02_UM05_REAL_COVERAGE",
   "stage_packet": ".agent-governance/stages/R1/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/R1/PAYLOAD_MANIFEST.sha256",
-  "product_status": "LIVE13_INDEPENDENT_NO_GO_VIDEO_SYSTEM_ROUTING_UNVERIFIED",
+  "product_status": "LIVE14_NO_GO_SEMANTIC_MAJOR_AND_REAL_COVERAGE_GAPS",
   "allowed_claim": "V0_MIN_ACCEPTED_NOT_RELEASED",
   "forbidden_claims": [
     "V0_ACCEPTED",
@@ -31,8 +31,8 @@
     "PRODUCTION_RELEASED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "local_ci",
-  "next_action": "Seal video system routing candidate, one fresh live14 then isolated semantic review.",
+  "next_owner": "codex_implementation_and_gate_owner_with_isolated_review",
+  "next_action": "Pause blind full reruns; bounded metadata-only installed-model protocol diagnosis, then one consolidated semantic/real-negative/cancel/config-evidence correction packet.",
   "required_authorization": null,
   "authorization_request": "reports/authorization-program-v1-complete-03.request.json",
   "authorization_record": "reports/authorization-program-v1-complete-03.approval.json",
@@ -50,7 +50,7 @@
   ],
   "contract_change_request": "reports/r1a/change-request-r1a-product-controls-02.json",
   "contract_change_decision": "reports/r1a/change-decision-r1a-product-controls-02.json",
-  "implementation_candidate": "9d9cdad0d3ef45a6dd821984272b0cbaa351bb76",
+  "implementation_candidate": "e163af66848ea6b1ce9f57345399c8eda22043a9",
   "implementation_baseline": "0fee9933874f3aa0e163bded2800d9704ee8be0f",
   "candidate_binding_scope": "Minimum unified media slice; code candidate and its own evidence only. Historical S2 and full R1/R2 remain separate.",
   "offline_evidence_commit": null,
@@ -82,8 +82,8 @@
   },
   "historical_live_terminal_receipt": "reports/r1a/r1a-live-07/live-receipt.json",
   "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
-  "live_terminal_receipt": "reports/unified-media/live-13/receipt.json",
-  "independent_review": "reports/unified-media/independent-live-13/review.md",
+  "live_terminal_receipt": "reports/unified-media/live-14/receipt.json",
+  "independent_review": "reports/unified-media/independent-live-14/review.md",
   "exact_stop_reason": "WORK_IN_PROGRESS_NOT_HUMAN_GATE",
   "native_component_authorization": "reports/v0-s2/authorization-native-component-02.json",
   "native_component_terminal_receipt": "reports/v0-s2/native-component-02/receipt.json",
@@ -851,16 +851,16 @@
     "resolution_evidence": "reports/v0-s2/resource-admission-policy-correction-01/receipt.json"
   },
   "current_runtime_failure": {
-    "code": "VIDEO_TEMPORAL_SEMANTIC_FAILURE",
-    "category": "MODEL_GROUNDING_NOT_RESOURCE_OR_AUTH",
-    "live_receipt": "reports/unified-media/live-13/receipt.json",
+    "code": "SEMANTIC_MAJOR_AND_REAL_COVERAGE_GAPS",
+    "category": "TECHNICAL_NOT_AUTH_RESOURCE_OR_BUDGET",
+    "live_receipt": "reports/unified-media/live-14/receipt.json",
     "cleanup_proven": true,
     "model_calls": 3,
     "effective_full": 1
   },
   "resource_readiness_receipt": "reports/unified-media/complete03-resource-handoff-01/receipt.json",
-  "live_candidate_sha": "9d9cdad0d3ef45a6dd821984272b0cbaa351bb76",
-  "slice_acceptance_receipt": "reports/unified-media/independent-live-13/fixed-coverage.json",
+  "live_candidate_sha": "e163af66848ea6b1ce9f57345399c8eda22043a9",
+  "slice_acceptance_receipt": "reports/unified-media/independent-live-14/coverage.json",
   "last_live_authorization": "reports/unified-media/authorization-semantic-correction-01.approval.terminal.json",
   "historical_video_semantic_failure": {
     "code": "VIDEO_TEMPORAL_SEMANTIC_FAILURE",
@@ -883,7 +883,7 @@
     "alternative_single_run_request": "reports/unified-media/authorization-runtime-transition-01.request.json",
     "approval": "reports/authorization-program-v1-local-02.approval.json"
   },
-  "latest_video_semantic_assessment": "live13完整运行且清理，独立9/10 NO_GO、Fatal0/Major1 UM04。原始observations错误断言相对位置一致，双语提示遗漏背景时间变化；不以unknown相机字段抵消。注册特征扩充路线已停止，另修复视频system指令路由后仅一次新候选验证。",
+  "latest_video_semantic_assessment": "live14独审NO_GO：7PASS/1FAIL(UM04)/2BLOCKED(UM02完整真实拒绝矩阵、UM05真实准备/排队取消)。双语已含变化但仍错误称相对网格一致；源SHA、F+D、计量、模板/构建与清理通过。此前9/10收据保留，不能把CPU分支当新增真实覆盖。",
   "historical_startup_failure_before_program02": {
     "code": "STARTUP_CONTROLLER_BUSY_409_BEFORE_JOB",
     "live_receipt": "reports/unified-media/live-04/receipt.json",

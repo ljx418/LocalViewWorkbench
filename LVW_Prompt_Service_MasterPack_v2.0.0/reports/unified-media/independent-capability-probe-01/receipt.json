@@ -1,0 +1,44 @@
+{
+  "schema_version": "lvw.independent-review/1",
+  "review_session": "/root/colour_alignment_review",
+  "decision": "SAFETY_SCOPE_REVIEW_VERIFIED_METADATA_ONLY_NOT_EXECUTED",
+  "Fatal": 0,
+  "Major": 0,
+  "Minor": 0,
+  "findings": [
+    {
+      "id": "M1",
+      "severity": "Major",
+      "summary": "Final cleanup_proven False does not prevent settle(0)",
+      "location": "reports/unified-media/model_capability_probe.py:82",
+      "required_fix": "Assert final cleanup proof before settlement; otherwise retain reservation",
+      "status": "CLOSED_BEFORE_EXECUTION",
+      "fix": "Final cleanup boolean asserted before settle; failed proof mock calls retain only"
+    }
+  ],
+  "source_sha256": {
+    "reports/unified-media/model_capability_probe.py": "c1279ed8de8018200346a0e31695063690944586aff51dbf5e5abe836447befa",
+    "lvw/backend/app/runtime.py": "1b0bb10985e4e59a66b0e569eed54c846e1875debf68b7ab1d25049be495521a",
+    "lvw/backend/app/native_runtime.py": "16bf3e6396f9548312f92007eebbda55a448f0bdc6bab4a10afd71179b231a85",
+    "lvw/backend/app/provider.py": "f7f343f727d4f7b1b747bbb7b56a04dad2481842d37fd36b8fbf2c4446084d7a",
+    "tools/local_program_authority.py": "677998fa2ab5b51017b5437fecd07d6ca31c26473a7ac0acede4637f6470f787",
+    "reports/unified-media/live-14/bindings.json": "8f5633031b1825a42b1e1555b7392f6d1e402b8999b780bfd7f373d08c9b0df1",
+    "reports/authorization-program-v1-complete-03.request.json": "afcde7f29095a68e9175f454b16da32514566cca475ccafdfceefbcdcb45be25",
+    "reports/authorization-program-v1-complete-03.approval.json": "cd919c7fd24c24e2740366ef11998fee1b3302f16700598a3a5f75c6ef1b0821"
+  },
+  "real_harness_execution": false,
+  "network": false,
+  "model_calls": 0,
+  "budget_ledger_write": false,
+  "product_modified": false,
+  "stage_pass_claim": false,
+  "evidence_sha256": {
+    "check_cleanup.py": "8357fbf5b93b74c028f2fac94f95e06affdf07e2fe067257f08308a709ea894c",
+    "cleanup-mock-before-fix.json": "aedd0956ab6fb1cce7a80d6c5fed8de570cf4e0e78085dfbf011ed44ec6dfca3",
+    "cleanup-mock-results.json": "65c81669b7a4bd8b2d08597e92c0b67318aa0d8debd8c936f463df7eeb8beeaa",
+    "cpu-before-fix.log": "aedd0956ab6fb1cce7a80d6c5fed8de570cf4e0e78085dfbf011ed44ec6dfca3",
+    "cpu.log": "65c81669b7a4bd8b2d08597e92c0b67318aa0d8debd8c936f463df7eeb8beeaa",
+    "review.md": "3b88f978da1f232d78df9edfaebaf251bdced295c3812f2278d47ec0a9602e03"
+  },
+  "historical_Major_found_and_closed": 1
+}
