@@ -1,2 +1,5 @@
-# 授权与预算
-沿用ACTIVE AUTH-PROGRAM-V1-LOCAL-01，真实运行前派生候选/Harness/工具/样本SHA/端口/原进程/预算/清理绑定子授权。最多一次完整checkpoint及一次修正完整复验，预算不足WAIT_AUTH。loopback/API/GPU/FFmpeg/headless，禁止下载/云/私有媒体/可见浏览器/终止外来进程。默认单活跃推理，加载外部模型或资源证据不可信时拒绝新推理；取消关闭HTTP后还需本轮模型卸载、目录空与GPU基线+1024MiB连续三次证据，不证明则resource_state保留unknown/releasing。共享硬门限GPU<23552MiB、RAM>=2048MiB，video num_ctx=4096、num_predict<=768，单次分析420s与释放30s。图片原配置2048/512不变。
+# Authority and risks
+
+Currentactive parent COMPLETE03 request/approval, not legacyperStage counts. Autoissue finite source/harness/tool/model/sample/port/process/budget/cleanup-bound children; no GPU/candidate repeatapproval. Global1024actions/24effectivefull/48h includes history; no reset. Each fullchild≤8modelactions/1800s; oneAPI18780, oneownednativeOllama11434, onefreshheadlessbrowser. Optionalsingle-sourcepilot is separatelyfinite and notfullacceptance.
+
+No cloud/paid/download/private/Cookie/existingprofile/visiblebrowser/permanentconfig/foreignprocess/remote release. Only originalownedhandles/PIDbirthnonce may terminate; latestGPUreclaim grant is separateand bounded. All11humanholdouts NOT_RUN. Declared nonprivatefixture inputs retained in controlled artifactroot; own runprivate temp/processes must fullyclean. No inferencefromexit0/HTTP200/schema/nonemptytext. Privatecomponent successes cannot replacefullfresh evidence. Newpublicsemantics/quality-resource thresholdchanges stop; requiredhuman signatures remainactualhuman.

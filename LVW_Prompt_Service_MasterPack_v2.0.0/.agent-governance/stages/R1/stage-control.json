@@ -3,14 +3,14 @@
   "project_id": "lvw-prompt-service",
   "stage_id": "R1",
   "slice_id": "UNIFIED_MEDIA_EARLY",
-  "stage_packet_version": "1.0.3",
+  "stage_packet_version": "1.0.4",
   "packet_status": "FROZEN",
   "gate_version": "lvw-unified/1",
   "baseline": {
     "git_commit": "0fee9933874f3aa0e163bded2800d9704ee8be0f"
   },
   "state": "FROZEN_READY_OFFLINE",
-  "last_passed_gate": "R1_UNIFIED_GATE0",
+  "last_passed_gate": "R1_INTERNAL_AMENDMENT_GATE0_PENDING_REVIEW",
   "dependencies": [
     "R1a:PASS",
     "docs/27:APPROVED",
@@ -112,7 +112,9 @@
         "reports/unified-media/",
         "docs/",
         ".agent-governance/stages/R1/",
-        "tools/verify_governance.py"
+        "tools/verify_governance.py",
+        "templates/",
+        "plans/execution-control.json"
       ],
       "commands": [
         "bound offline/live/independent checks"
@@ -129,7 +131,9 @@
     "plans/execution-control.json",
     ".agent-governance/project-registry.json",
     "tools/verify_governance.py",
-    "MANIFEST.sha256"
+    "MANIFEST.sha256",
+    "templates/",
+    ".agent-governance/stages/R1/"
   ],
   "forbidden_paths": [
     "contracts/",
@@ -137,7 +141,7 @@
     "plans/release_gates.json",
     "人工验收视频集/"
   ],
-  "program_authorization": "reports/authorization-program-v1-local-01.json",
+  "program_authorization": "reports/authorization-program-v1-complete-03.approval.json",
   "mandatory_stops": [
     "unapproved public contract change",
     "outside authorization",
@@ -149,16 +153,68 @@
   "next_owner": "codex_unified_implementer",
   "budgets": {
     "max_effective_retries_per_probe": 2,
-    "full_checkpoint": 1,
-    "full_corrected_recheck": 1,
     "provider_calls_per_checkpoint": 8,
     "max_seconds_per_checkpoint": 1800,
-    "stage_checkpoints": 1,
-    "corrected_candidate_full_rechecks": 1,
-    "supplemental_full_rechecks": 1
+    "planned_full_checkpoint_this_corrective_batch": 1,
+    "per_stage_authorization_count_cap": null,
+    "global_model_actions_limit": 1024,
+    "global_effective_full_checkpoints_limit": 24,
+    "global_production_seconds_limit": 172800,
+    "historical_consumption_not_reset": true,
+    "finite_child_required": true,
+    "optional_single_source_pilot_model_actions": 1
   },
-  "authorization_scope": "PROGRAM_CHILD_REQUIRED",
+  "authorization_scope": "COMPLETE03_FINITE_CHILD_REQUIRED",
   "execution_authorized": true,
-  "external_authorization": "AUTH-PROGRAM-V1-LOCAL-01_CHILD_RECEIPT_REQUIRED",
-  "supplemental_authorization_request": "AUTH-REQUEST-V1-R1-U3-SEMANTIC-01"
+  "external_authorization": "AUTH-PROGRAM-V1-COMPLETE-03_CHILD_REQUIRED",
+  "supplemental_authorization_request": "AUTH-REQUEST-V1-R1-U3-SEMANTIC-01",
+  "internal_amendment": "reports/unified-media/change-decision-owner-input-04.json",
+  "internal_amendment_sha256": "e2d4b2a95033f7664e10d532f94be5c574c4182ec4a83b664b2d9cbfdadd4073",
+  "real_acceptance_recipe": "09-real-acceptance-recipe.json",
+  "recipe_sha256": "6b34e52972f25c224141869d42f67f416b39bca3839993c5163e8ea06b38ee7f",
+  "public_openapi_sha256": "cd9df1bd94a3c4c27476608e4616e9d73e0b64da653973b1225efd902e0eef31",
+  "public_prompt_schema_sha256": "4c0e3383bfa8aa69dfabd323ecb0697ee4d4ddfa51c154eb15baf7107750f718",
+  "model_response_contract": "frame-appearance/1",
+  "production_video_template_version": "1.8.0",
+  "raw_false_temporal_claims_remain_fail": true,
+  "future_raw_quality_gates_not_waived": [
+    "V0-A12",
+    "Q01"
+  ],
+  "correction_workpacks": [
+    {
+      "id": "WP-R1-U3-C1",
+      "owner": "codex_unified_implementer",
+      "output": "strict per-frame appearance+actual temporal evidence composition; targetedCPUreceipt",
+      "allowed_paths_ref": "stage-control.allowed_paths",
+      "depends_on": [],
+      "commands": [
+        "python3 -B -m pytest lvw/tests -q -o addopts="
+      ]
+    },
+    {
+      "id": "WP-R1-U3-C2",
+      "owner": "codex_unified_implementer",
+      "output": "realnegative7+queued/preparing/running cancellation+request/config receipts and authoritytests",
+      "allowed_paths_ref": "stage-control.allowed_paths",
+      "depends_on": [
+        "WP-R1-U3-C1"
+      ],
+      "commands": [
+        "python3 -B -m pytest lvw/tests -q -o addopts="
+      ]
+    },
+    {
+      "id": "WP-R1-U3-C3",
+      "owner": "local_ci",
+      "output": "concentratedoffline, isolatedcodereview, optional1sourcepilot, freshfixedUM10, freshindependentreview thenhuman",
+      "allowed_paths_ref": "stage-control.allowed_paths",
+      "depends_on": [
+        "WP-R1-U3-C2"
+      ],
+      "commands": [
+        "concentrated CPU/frontend/governance/pack checks; isolated review; optional pilot; fresh full UM10"
+      ]
+    }
+  ]
 }

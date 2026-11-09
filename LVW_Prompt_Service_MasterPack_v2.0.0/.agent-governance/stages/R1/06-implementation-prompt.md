@@ -1,2 +1,5 @@
-# 实现要求
-先U1再U2，已授权Codex临时实现。只改允许路径。真实API负例和race测试，不删除失败用例或只检常量。视频1–4个实际采样帧按时间编号合成一张不裁切、不补重复帧、最大768×768的时序图，仍一次Provider请求；各面板标F编号/真实秒数，输入不含样本答案，账本区分源帧数和实际wire图数，提示词显式列实际时间和观察局限，返回同PromptSpec；video_prompt由该全片采样建议及真实变化元数据编译，不重新调用模型。原始内容始终保留。
+# Implementation contract
+
+Implement frozenC1/C2 then stop for isolatedreview beforeC3. Allowednewfiles include lvw/backend/app/video_appearance.py,video_temporal.py and appearance-systemtemplate; keep APIs/models publicshape and imagepayload unchanged. Move existingnumeric functions without duplicating logic; reexports may preserve diagnosticcompatibility. Cancel-aware preparation must join decode/measurework beforeterminalrelease. No raw rewrites or model motion-claim sanitization; newrawtask is per-frameappearance and always independentlygraded.
+
+Update authority/live_checkpoint/live_browser for frozenrecipe9inputs/7rejectioncases, actualqueued/preparing/running cancel, rawrequest→job→configSHA binding and ownedfile/FDcleanup. Reject recipe/packet/input tamper beforeexternalaction; preserve originalfourinput bindings. Node uses actualpublicentry and realdefault_app; no mockedresponses forreal obligations. No otherbusiness refactor.

@@ -1,2 +1,5 @@
-# 所有权
-MediaStore唯一管媒体，AnalysisService唯一管任务与发布；OllamaProvider唯一管请求与本轮模型租约/释放；VideoKernel只加载S2的core/video_input/video_files/video_process/video_decoder纯Python模块，不执行插件__init__，不导入server/folder_paths/torch。React拥有页面人工稿，源绑定只在显式采纳时更新。完整公共Schema沿用contracts/openapi.json；health/capabilities标R1-unified，runtime兼容lvw.runtime/1。
+# Ownership and data boundaries
+
+MediaStore owns upload/cache/fail cleanup. VideoKernel owns actualdecode/PTS/sourceSHA and pure pixel/registration evidence. OllamaProvider owns one real request on every actualsourceframe and immutable raw appearance response; it must return strict actualframe IDs/descriptions, not invented temporal claims. AnalysisService uniquely owns queue/cancel/publication and combines appearance+program temporal evidence into publicPromptSpec. React owns manualdraft/adoption/export. No public frame API or Comfy import.
+
+Program evidence is numeric image fitting, never proof of physical camera/subject motion. Derived observations/inferences/unknowns are labeled, rawmodel words are never edited. A false rawtemporal assertion remainsFAIL even if parsed_spec containscorrect measurements. Input1..4actualRGBPNGs,max768each,lossless/no crop/no duplicate. PromptSpec/ModelRun publicshape unchanged. Internal FrameAppearance schema and template1.8/version/hash are sourcebound.

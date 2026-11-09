@@ -13,6 +13,8 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 GOV = ROOT / ".agent-governance"
 STAGE_DIR = GOV / "stages" / "V0-S0"
 NEXT_STAGE_DIR = GOV / "stages" / "V0-S1"
@@ -125,6 +127,43 @@ def validate_stage(control: dict, tasks: dict, cases: dict) -> list[str]:
         for record in control.get("authorization_records", []):
             if not (ROOT / record).is_file():
                 errors.append(f"historical authorization record is missing: {record}")
+    elif external and control.get("authorization_scope") == "COMPLETE03_FINITE_CHILD_REQUIRED":
+        try:
+            from tools.local_program_authority import approved as approved_program
+            active = approved_program(ROOT)
+            if (not active.get("global_only") or control.get("stage_id") not in active["stages"]
+                    or control.get("program_authorization") != "reports/authorization-program-v1-complete-03.approval.json"):
+                errors.append("complete03 Stage eligibility is not backed by the active parent")
+            budgets = control.get("budgets", {})
+            policy = active["budget_policy"]
+            if (budgets.get("global_model_actions_limit") != policy["program_total_model_actions"]
+                    or budgets.get("global_effective_full_checkpoints_limit") != policy["program_total_effective_full_checkpoints"]
+                    or budgets.get("global_production_seconds_limit") != policy["program_total_production_runtime_seconds"]
+                    or budgets.get("per_stage_authorization_count_cap") is not None
+                    or budgets.get("provider_calls_per_checkpoint") != 8
+                    or budgets.get("max_seconds_per_checkpoint") != 1800
+                    or budgets.get("historical_consumption_not_reset") is not True):
+                errors.append("complete03 global or finite child budgets changed")
+            reference = control.get("internal_amendment")
+            if reference != "reports/unified-media/change-decision-owner-input-04.json":
+                errors.append("unknown internal R1 amendment")
+            else:
+                amendment = load_json(ROOT / reference)
+                if (hashlib.sha256((ROOT / reference).read_bytes()).hexdigest() != control.get("internal_amendment_sha256")
+                        or amendment.get("decision") != "APPROVED_FOR_INTERNAL_IMPLEMENTATION_NOT_STAGE_PASS"
+                        or any(amendment.get(k) is not False for k in ("public_schema_changed", "fixed_denominator_changed", "quality_resource_thresholds_changed", "stage_pass_claim"))):
+                    errors.append("internal amendment hash/scope changed")
+            recipe = GOV / "stages/R1/09-real-acceptance-recipe.json"
+            if hashlib.sha256(recipe.read_bytes()).hexdigest() != control.get("recipe_sha256"):
+                errors.append("real acceptance recipe is not frozen")
+            for name,field in (("contracts/openapi.json","public_openapi_sha256"),("contracts/lvw.schema.json","public_prompt_schema_sha256")):
+                if hashlib.sha256((ROOT/name).read_bytes()).hexdigest() != control.get(field):
+                    errors.append("protected public contract changed: "+name)
+        except (ValueError, KeyError, OSError, TypeError) as error:
+            errors.append("complete03 eligibility failed closed: "+str(error))
+        if (control.get("execution_authorized") is not True or state != "FROZEN_READY_OFFLINE"
+                or control.get("external_authorization") != "AUTH-PROGRAM-V1-COMPLETE-03_CHILD_REQUIRED"):
+            errors.append("complete03 eligibility never replaces a fresh finite child")
     elif external and control.get("authorization_scope") == "PROGRAM_CHILD_REQUIRED":
         reference = control.get("program_authorization")
         if control.get("stage_id") not in {"V0-S2", "R1"} or reference != "reports/authorization-program-v1-local-01.json":
@@ -258,11 +297,20 @@ def verify_manifest_at(stage_dir: Path) -> list[str]:
         except ValueError:
             errors.append("invalid Stage manifest line")
             continue
+        if Path(name).name != name or not re.fullmatch(r"[0-9a-f]{64}", digest):
+            errors.append("unsafe Stage manifest path/digest")
+            continue
         listed.add(name)
         path = stage_dir / name
         if not path.is_file() or hashlib.sha256(path.read_bytes()).hexdigest() != digest:
             errors.append(f"Stage manifest mismatch: {name}")
     expected = REQUIRED_PACKET_FILES - {"PAYLOAD_MANIFEST.sha256"}
+    if (stage_dir.resolve() == (GOV / "stages/R1").resolve()
+            and load_json(stage_dir / "stage-control.json").get("stage_packet_version") == "1.0.4"):
+        expected = expected | {"09-real-acceptance-recipe.json"}
+        actual = {p.name for p in stage_dir.iterdir() if p.is_file()}
+        if actual != expected | {"PAYLOAD_MANIFEST.sha256"}:
+            errors.append("R1.0.4 has unlisted or missing payload files")
     if listed != expected:
         errors.append("Stage manifest inventory differs from the frozen packet")
     return errors
@@ -391,6 +439,17 @@ def run_self_tests(control: dict, tasks: dict, cases: dict) -> list[dict]:
     unauthorized["state"] = "RUNNING"
     unauthorized["authorization_records"] = []
     results.append({"name": "reject_unauthorized_external_run", "passed": bool(validate_stage(unauthorized, tasks, cases))})
+
+    if control.get("authorization_scope") == "COMPLETE03_FINITE_CHILD_REQUIRED":
+        for name,field,value in (("reject_stage_authorization_count_reset","per_stage_authorization_count_cap",1),
+                                 ("reject_global_model_budget_change","global_model_actions_limit",1025)):
+            changed=copy.deepcopy(control);changed["budgets"][field]=value
+            results.append({"name":name,"passed":bool(validate_stage(changed,tasks,cases))})
+        for name,field in (("reject_public_contract_drift","public_openapi_sha256"),
+                           ("reject_unfrozen_acceptance_recipe","recipe_sha256"),
+                           ("reject_unfrozen_internal_amendment","internal_amendment_sha256")):
+            changed=copy.deepcopy(control);changed[field]="0"*64
+            results.append({"name":name,"passed":bool(validate_stage(changed,tasks,cases))})
 
     base_receipt = load_json(GOV / "templates" / "implementation-receipt.json")
     base_receipt.update({"candidate_sha": "candidate-new", "decision": "PASS"})

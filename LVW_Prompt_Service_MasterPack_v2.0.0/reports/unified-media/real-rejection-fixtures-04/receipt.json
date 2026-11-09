@@ -1,0 +1,119 @@
+{
+  "kind": "CPU_FIXTURE_PREPARATION_NOT_PRODUCT_ACCEPTANCE",
+  "decision": "FIXTURES_READY_NOT_PRODUCT_PASS",
+  "model_calls": 0,
+  "full_checkpoints": 0,
+  "stage_pass_claim": false,
+  "tool_results": [
+    {
+      "tool": "ffmpeg",
+      "argv": [
+        "/usr/bin/ffmpeg",
+        "-nostdin",
+        "-n",
+        "-v",
+        "warning",
+        "-f",
+        "lavfi",
+        "-i",
+        "color=c=black:s=3842x2160:r=1:d=1",
+        "-frames:v",
+        "1",
+        "-c:v",
+        "libx264",
+        "-preset",
+        "ultrafast",
+        "-crf",
+        "28",
+        "-threads",
+        "1",
+        "-pix_fmt",
+        "yuv420p",
+        "-movflags",
+        "+faststart",
+        "-an",
+        "/mnt/c/workspace/videoworkline/.lvw-runtime/lvw-prompt-service/R1-unified-fixtures/real-rejection-fixtures-04/over-pixels.mp4"
+      ],
+      "returncode": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "original_handle_exited_and_pipes_closed": true
+    },
+    {
+      "tool": "ffprobe",
+      "argv": [
+        "/usr/bin/ffprobe",
+        "-v",
+        "error",
+        "-f",
+        "mov",
+        "-enable_drefs",
+        "0",
+        "-protocol_whitelist",
+        "file,pipe",
+        "-show_entries",
+        "stream=codec_type,width,height:format=duration",
+        "-of",
+        "json",
+        "/mnt/c/workspace/videoworkline/.lvw-runtime/lvw-prompt-service/R1-unified-fixtures/real-rejection-fixtures-04/over-pixels.mp4"
+      ],
+      "returncode": 0,
+      "stdout_sha256": "f520420691cc9d2ec310fb27d0566d126229a138ad517aaac7d8495ecac2b99e",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "original_handle_exited_and_pipes_closed": true
+    }
+  ],
+  "owned_artifact_root": "/mnt/c/workspace/videoworkline/.lvw-runtime/lvw-prompt-service/R1-unified-fixtures/real-rejection-fixtures-04",
+  "items": [
+    {
+      "category": "pixels",
+      "path": "/mnt/c/workspace/videoworkline/.lvw-runtime/lvw-prompt-service/R1-unified-fixtures/real-rejection-fixtures-04/over-pixels.mp4",
+      "sha256": "9851e19b3e4198de0dc1cea8e1e37e742ccde4a845f270b65c659f0326f0a0b2",
+      "bytes": 25907,
+      "expected_error": "MEDIA_LIMIT_EXCEEDED"
+    },
+    {
+      "category": "bytes",
+      "path": "/mnt/c/workspace/videoworkline/.lvw-runtime/lvw-prompt-service/R1-unified-fixtures/real-rejection-fixtures-04/over-bytes.mp4",
+      "sha256": "da6ce8755151acd05195db67ebce3ee0fb5f4012e71e821cc5750f3304eaf41e",
+      "bytes": 268435457,
+      "expected_error": "MEDIA_LIMIT_EXCEEDED"
+    },
+    {
+      "category": "empty",
+      "path": "/mnt/c/workspace/videoworkline/.lvw-runtime/lvw-prompt-service/R1-unified-fixtures/real-rejection-fixtures-04/empty.mp4",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "expected_error": "MEDIA_INVALID"
+    }
+  ],
+  "probe_metadata": {
+    "programs": [],
+    "streams": [
+      {
+        "codec_type": "video",
+        "width": 3842,
+        "height": 2160
+      }
+    ],
+    "format": {
+      "duration": "1.000000"
+    }
+  },
+  "artifacts_usable_for_acceptance": true,
+  "declared_input_retention": true,
+  "source_video_and_human_holdouts_used": false,
+  "owned_artifact_root_claimed": true,
+  "retained_artifact_root": "/mnt/c/workspace/videoworkline/.lvw-runtime/lvw-prompt-service/R1-unified-fixtures/real-rejection-fixtures-04",
+  "failed_inputs_unusable_for_acceptance": false,
+  "tool_attempts": 2,
+  "tool_cleanup_proven": true,
+  "settlement": {
+    "run_id": "real-rejection-fixtures-04",
+    "actual_model_actions": 0,
+    "effective_full_checkpoint": false,
+    "zero_model_startup": false,
+    "elapsed_seconds": 2,
+    "program_still_active": true
+  }
+}
