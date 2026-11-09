@@ -11,7 +11,7 @@ def create(run_id,harness,budget,*,port,samples=(),seconds=240,full=False):
     assert all(type(x) is int and x>=0 for x in budget.values())
     assert all(budget.get(x,0)==0 for x in ['downloads','cloud_calls','paid_calls','holdout_model_calls'])
     candidate=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
-    check=subprocess.run(['git','diff','--exit-code',candidate,'--','lvw/backend','lvw/frontend','lvw/run_local.py','lvw/print_build_id.py','launcher','LVW.exe','START_LVW.cmd','contracts','.agent-governance/stages/R1'],cwd=ROOT,capture_output=True)
+    check=subprocess.run(['git','diff','--exit-code',candidate,'--','lvw/backend','lvw/frontend','lvw/run_local.py','lvw/print_build_id.py','launcher','LVW.exe','START_LVW.cmd','contracts','templates','LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge','.agent-governance/stages/R1'],cwd=ROOT,capture_output=True)
     assert check.returncode==0,'product drift: commit candidate before a real child'
     if full:
         runs=list((ROOT/'reports/unified-media').glob('live-*/authorization.json'))
