@@ -1,0 +1,52 @@
+diff --git a/LVW_Prompt_Service_MasterPack_v2.0.0/lvw/backend/app/provider.py b/LVW_Prompt_Service_MasterPack_v2.0.0/lvw/backend/app/provider.py
+index 502bf38..2935b15 100644
+--- a/LVW_Prompt_Service_MasterPack_v2.0.0/lvw/backend/app/provider.py
++++ b/LVW_Prompt_Service_MasterPack_v2.0.0/lvw/backend/app/provider.py
+@@ -85,7 +85,12 @@ VIDEO_TASK = (
+     "A nonzero measurement rules out pixel-identical frames, but is not proof of camera motion "
+     "(compression, lighting and subject movement also change pixels). Describe visible differences; "
+     "if direction or cause is ambiguous, mark it unknown. Never infer an entirely static sequence "
+-    "only because the main subject stays in place. Do not put observed changes in the negative prompt."
++    "only because the main subject stays in place. Do not put observed changes in the negative prompt. "
++    "The different_pixel_percent field is already in percent units (0 to 100); do NOT divide it "
++    "by 100 again. Use changed_pixel_count / frame_pixel_count to cross-check its scale. "
++    "If measurements show differences but you cannot confidently attribute them visually, report "
++    "that sampled frames differ and the cause/direction is unknown; do not invent an unchanged "
++    "background or explain differences as compression noise without supporting evidence."
+ )
+ VIDEO_TEMPLATE_SHA256 = hashlib.sha256((TEMPLATE_SHA256 + VIDEO_TASK +
+     VIDEO_PRESENTATION_VERSION + json.dumps(VIDEO_SCHEMA, sort_keys=True)).encode()).hexdigest()
+@@ -131,7 +136,8 @@ def temporal_pixel_measurements(images: list[bytes]) -> list[dict]:
+         nonzero=ImageChops.lighter(ImageChops.lighter(red,green),blue)
+         changed=left.width*left.height-nonzero.histogram()[0]
+         result.append({'from_frame':index,'to_frame':index+1,
+-            'different_pixel_fraction':round(changed/(left.width*left.height),6),
++            'changed_pixel_count':changed,'frame_pixel_count':left.width*left.height,
++            'different_pixel_percent':round(100*changed/(left.width*left.height),4),
+             'mean_absolute_rgb_delta':round(sum(ImageStat.Stat(difference).mean)/3,6)})
+     return result
+ 
+diff --git a/LVW_Prompt_Service_MasterPack_v2.0.0/lvw/tests/test_provider.py b/LVW_Prompt_Service_MasterPack_v2.0.0/lvw/tests/test_provider.py
+index a1b1186..32338b4 100644
+--- a/LVW_Prompt_Service_MasterPack_v2.0.0/lvw/tests/test_provider.py
++++ b/LVW_Prompt_Service_MasterPack_v2.0.0/lvw/tests/test_provider.py
+@@ -254,7 +254,7 @@ def test_video_uses_all_sample_frames_one_call_and_retains_joint_motion(monkeypa
+     assert 'Actual populated panel count: 4' in calls[0]['messages'][-1]['content']
+     assert '1, 3, 5, 7' in calls[0]['messages'][-1]['content']
+     measured=json.loads(calls[0]['messages'][-1]['content'].split('Measured adjacent-frame pixel differences (not motion estimates): ',1)[1])
+-    assert len(measured)==3 and all(x['different_pixel_fraction']==1 for x in measured)
++    assert len(measured)==3 and all(x['different_pixel_percent']==100 for x in measured)
+     assert measured[0]['mean_absolute_rgb_delta']==127.666667
+     assert calls[0]['options']['num_ctx']==4096
+     assert spec.technical.subject_action.startswith('The color changes')
+@@ -271,8 +271,8 @@ def test_pixel_metadata_static_one_pixel_and_single_frame_have_exact_oracles():
+     black=Image.new('RGB',(2,2),'black');changed=black.copy();changed.putpixel((0,0),(12,24,36))
+     first=encode(black);second=encode(changed)
+     assert temporal_pixel_measurements([first])==[]
+-    assert temporal_pixel_measurements([first,first])==[{'from_frame':1,'to_frame':2,'different_pixel_fraction':0,'mean_absolute_rgb_delta':0}]
+-    assert temporal_pixel_measurements([first,second])==[{'from_frame':1,'to_frame':2,'different_pixel_fraction':.25,'mean_absolute_rgb_delta':6}]
++    assert temporal_pixel_measurements([first,first])==[{'from_frame':1,'to_frame':2,'changed_pixel_count':0,'frame_pixel_count':4,'different_pixel_percent':0,'mean_absolute_rgb_delta':0}]
++    assert temporal_pixel_measurements([first,second])==[{'from_frame':1,'to_frame':2,'changed_pixel_count':1,'frame_pixel_count':4,'different_pixel_percent':25,'mean_absolute_rgb_delta':6}]
+     with pytest.raises(AppError):temporal_pixel_measurements([first,encode(Image.new('RGB',(3,2)))])
+ 
+ 

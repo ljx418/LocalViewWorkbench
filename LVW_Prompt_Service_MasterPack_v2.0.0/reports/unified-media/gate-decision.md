@@ -1,29 +1,17 @@
-# 当前门禁：WAIT_AUTH，尚未到统一人工核签
+# 当前门禁：NO_GO；R1真实验收预算已用尽
 
-最新实际运行：live04 / 9f4a659ee3f5b09b6c0abc060957b2f276916b37，NO_GO。最新离线修复候选：57aa9de6052effa4b1043ac0920e54d083204be4，未重新执行真实模型。
+候选d9759decaa760eb81479db5434ff9206b18b3327，live07独审9PASS/1FAIL，Fatal0/Major1。UM04真实视频时序内容仍错误断言背景恒定。当前不是人工体验签署入口，不是整个R1/V1通过。
 
-## 本轮真实结果
+AUTH-PROGRAM-V1-LOCAL-02已批准并生效，RUNTIME-01已被覆盖，无需再次确认GPU/代码/SHA。本机执行器已原子预留/扣额、绑定真实候选/输入/模板/共享核/工具和单次原始进程，独审通过。母授权仍ACTIVE；当前R1的有效完整验收上限3轮已用完，不能用总模型额度剩余或旧授权叠加启动live08。
 
-批准AUTH-REQUEST-V1-R1-U3-SEMANTIC-01后，精确激活packet1.0.3并提交；候选是原998的零冻结源差异后代，request/approval/packet/样本/Harness均已独立核对。资源准入正常（free20950MiB、RAM10560MiB，端口空闲）。
+| 运行 | 候选 | 模型动作/时长 | 独审 |
+|---|---|---|---|
+| live05 | 0cc125f | 3 / 61s | 9/10，时序误判及局部schema-only oracle过度PASS |
+| live06 | 8d43c1d | 3 / 54s | 9/10，时序误判及fraction到百分比量级错误 |
+| live07 | d9759de | 3 / 63s | 9/10，比例已正确，时序误判仍在 |
 
-但首个分析在runtime/start请求尚未完成时提交：readiness200→media201→jobs/analyze409→runtime/start200。前端未用runtimeAction限制分析按钮和handler，服务控制锁正确拒绝了新任务。原waitDone只识别有.job-status的终态，所以无Job失败额外等420秒。独审Fatal0/Major1/Minor1，当前运行2PASS/1FAIL/7BLOCKED，不能用旧结果补齐。
+总计9动作/178秒生产运行/3轮完整槽。三轮都证明图片/视频公开链路、运行中取消与3次实际lease释放、显式采纳/导出、模型离线人工编辑、原生退出/no-cloud/监听和临时根清理。GPU峰值分别22096/21910/22133MiB，均低于23552；本轮最小RAM9365MiB，资源并非阻塞根因。11个人工留样仍未提交模型。
 
-公开Job、ModelRun、Provider账本均0，原生日志无chat/generate/模型runner，实际模型推理0次。API/Ollama监听消失、本轮原生PID31804/birth/nonce的exited证明、stop响应、正常API退出与临时根清理均闭合。授权已生成EXPIRED_NO_GO终态，不因为0模型而自动退款完整尝试或复活旧授权。
+机器原始结果、离线结果、独审结论分别保留，旧失败不重写：最近完整子树123CPU对应8d43输入版本，最终计量单位修正由19Provider定向与独立精确数学oracle覆盖，未变路径有明确复用边界。浏览器UM04现只标BLOCKED等待独审，不再把Schema视为内容通过。
 
-## 批量纠偏与验证
-
-App按钮和analyze入口均等待runtimeAction结束；启动/重置/关闭期间显示等待，人工编辑/导出继续可用。Harness识别“无Job但已报错”后立即进入失败断言，不能把错误提示当成功。
-
-真实生产React/FastAPI/AnalysisService + 可控边界Runtime/Provider的CPU02回归故意保持ready=true而服务控制未完成。三种操作都禁用分析；直接后端负例各409且不增Job；人工稿及JSON可用；释放start/reset后UI请求分别202，FakeProvider2次。5项通过，真实模型0，API/browser/temp完整清理。CPU01测试路由405失败保留，仅修测试路由顺序，不改产品API来迎合测试。
-
-新候选重新通过108项后端/共享核/静态集成、9项前端单测、类型检查与构建。独立离线审查新Fatal0/Major0/Minor0；5种真实waitDone谓词状态与15个授权负例均核对，无新授权/运行目录产生。证据见runtime-transition-*及independent-runtime-transition-01。
-
-## 剩余门限
-
-AUTH-REQUEST-V1-R1-U3-RUNTIME-01仅是待批准的新候选续验请求：沿用已批准packet1.0.3和时序图规格；新live05完整尝试一次、API/自有Ollama/headless各一次。原未使用模型调用上限8不增加（正常3），无自动重试；这不是旧完整尝试退款。新前端/Harness不是旧批准998的纯文档后代，因此必须新批准绑定57aa9de。没有新approval文件、没有live05目录。
-
-模型输入时序图的真实语义仍未验证。live03的错误视频描述及所有原始失败保留；本轮无模型，不以旧输出宣称新通过。11段人类留样仍未提交模型。只有完整真实图视频/取消/导出/释放与独立语义验收通过后，才请求统一人工体验核签；当前不宣布Stage PASS、完整R1/R2/V1完成或发布。
-
-独审另发现1d的输入冻结边界漏了实际系统模板及共享视频核（本轮未漂移）；57aa将templates与真实共享核目录加入工作区dirty与批准后代零diff检查。临时真实Git反例现均拒绝，旧1d缺口保留；最后离线结果以57aa独审为准。生产UI/后端/CPU夹具/等待器与已测1d零差异。
-
-最终封存：57aa独审Fatal0/Major0/Minor0，旧1d冻结缺口两类真实Git反例及15项既有授权负例均按57aa拒绝。文档全检查4120通过、0失败；首次文档检查发现构建产物改名后旧bundle仍列manifest，已按真实删除修正（无改测试分母），失败记录留存。7项HTML报告/指南检查通过。本地代码与证据提交，未经人工体验签署不远程推送。
+停止真实运行，先改变技术路线，见temporal-route-reassessment-01.md。任何额外完整运行需明确增量预算裁决，不是重新请求GPU基本权限。历史门禁原文见gate-decision-before-program02.md及Git历史。

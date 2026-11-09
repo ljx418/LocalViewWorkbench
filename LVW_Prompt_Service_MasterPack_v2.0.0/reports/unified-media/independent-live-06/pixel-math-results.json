@@ -1,0 +1,50 @@
+{
+  "candidate": "8d43c1dcb79cedd16ce5143c8f68887de38e6572",
+  "method": "Exact candidate function AST, isolated fake pixel primitives; no PIL, source frame, model, FFmpeg or service execution",
+  "results": [
+    {
+      "case": "identical",
+      "actual": {
+        "from_frame": 1,
+        "to_frame": 2,
+        "different_pixel_fraction": 0.0,
+        "mean_absolute_rgb_delta": 0.0
+      },
+      "independent_expected_fraction": 0,
+      "independent_expected_mean": 0
+    },
+    {
+      "case": "one_pixel_one_channel",
+      "actual": {
+        "from_frame": 1,
+        "to_frame": 2,
+        "different_pixel_fraction": 0.25,
+        "mean_absolute_rgb_delta": 21.25
+      },
+      "independent_expected_fraction": 0.25,
+      "independent_expected_mean": 21.25
+    },
+    {
+      "case": "one_third_pixels",
+      "actual": {
+        "from_frame": 1,
+        "to_frame": 2,
+        "different_pixel_fraction": 0.333333,
+        "mean_absolute_rgb_delta": 85.0
+      },
+      "independent_expected_fraction": 0.333333,
+      "independent_expected_mean": 85
+    },
+    {
+      "case": "all_pixels",
+      "actual": {
+        "from_frame": 1,
+        "to_frame": 2,
+        "different_pixel_fraction": 1.0,
+        "mean_absolute_rgb_delta": 255.0
+      },
+      "independent_expected_fraction": 1,
+      "independent_expected_mean": 255
+    }
+  ]
+}

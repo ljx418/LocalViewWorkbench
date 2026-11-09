@@ -1,0 +1,58 @@
+{
+  "candidate": "d9759decaa760eb81479db5434ff9206b18b3327",
+  "method": "Exact candidate function AST, isolated fake pixel primitives; no PIL, source frame, model, FFmpeg or service execution",
+  "results": [
+    {
+      "case": "identical",
+      "actual": {
+        "from_frame": 1,
+        "to_frame": 2,
+        "changed_pixel_count": 0,
+        "frame_pixel_count": 4,
+        "different_pixel_percent": 0.0,
+        "mean_absolute_rgb_delta": 0.0
+      },
+      "independent_expected_fraction": 0,
+      "independent_expected_mean": 0
+    },
+    {
+      "case": "one_pixel_one_channel",
+      "actual": {
+        "from_frame": 1,
+        "to_frame": 2,
+        "changed_pixel_count": 1,
+        "frame_pixel_count": 4,
+        "different_pixel_percent": 25.0,
+        "mean_absolute_rgb_delta": 21.25
+      },
+      "independent_expected_fraction": 0.25,
+      "independent_expected_mean": 21.25
+    },
+    {
+      "case": "one_third_pixels",
+      "actual": {
+        "from_frame": 1,
+        "to_frame": 2,
+        "changed_pixel_count": 1,
+        "frame_pixel_count": 3,
+        "different_pixel_percent": 33.3333,
+        "mean_absolute_rgb_delta": 85.0
+      },
+      "independent_expected_fraction": 0.333333,
+      "independent_expected_mean": 85
+    },
+    {
+      "case": "all_pixels",
+      "actual": {
+        "from_frame": 1,
+        "to_frame": 2,
+        "changed_pixel_count": 4,
+        "frame_pixel_count": 4,
+        "different_pixel_percent": 100.0,
+        "mean_absolute_rgb_delta": 255.0
+      },
+      "independent_expected_fraction": 1,
+      "independent_expected_mean": 255
+    }
+  ]
+}

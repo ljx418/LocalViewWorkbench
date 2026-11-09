@@ -160,3 +160,11 @@ full-v0-auto-01终态NO_GO：WDDM生产路径已跑通三类正常视频，解�
 ## 2026-11-08 已批准：最小图视频统一验收切片
 
 用户批准docs/27：在R1提前实施U1后端视频、U2统一页面/启动器、U3真实组合与独审，再请求统一核签。复用现有React/FastAPI和既有OpenAPI；必要取消属于R2提前子集。完整R1/R2义务及所有版本分母不变，旧S2仍7/8未人工签署。当前状态与证据仅以plans/execution-control.json为准；11段人工留样保持NOT_RUN。Comfy界面不再是本次人类必须使用的验收入口。
+
+## 2026-11-09｜统一授权与三轮真实语义复验
+
+AUTH-PROGRAM-V1-LOCAL-02已明确批准，替代重叠范围逐候选GPU/代码确认并覆盖RUNTIME-01；母授权不随子终态过期。来源与预算见docs/28及request/approval，当前预算由外部SQLite执行账本和plans/execution-control.json导航。
+
+本Stage已使用新母授权的1次集中验收+2次实际修正复验：live05/06/07各3模型动作，共9动作/178秒，均完整清理。最新d9759de真实图片/视频链路可运行，但视频背景位移仍被误判，独审9/10、Fatal0/Major1；当前不是人工核签入口。原始失败、修复后的统计单位及局部oracle纠偏分别保留。
+
+R1本Stage有效完整槽3/3已用完，母授权仍ACTIVE，不能借总512模型动作剩余或旧grant启动live08。下一步先做技术路线复盘，不再仅改提示反复重跑；见reports/unified-media/temporal-route-reassessment-01.md。必要新增完整运行需预算增量裁决，不重新申请GPU基本能力、不降低固定分母或质量阈值。本节不是新路线实施/额度批准，也不改V0–V3范围。

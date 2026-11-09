@@ -22,12 +22,19 @@ guide='<section><h2>怎么体验</h2><ol>'+''.join(f'<li>{h(s)}</li>' for s in s
 outline='<section><h2>完整开发大纲</h2><div class="scroll"><table><tr><th>阶段</th><th>交付</th><th>完成子步骤</th><th>说明</th></tr>'+''.join(f'<tr><td>{h(x["stage_id"])}</td><td>{h(x.get("title",""))}</td><td>{x["completed_substeps"]}/{x["total_substeps"]}</td><td>{h(x.get("summary",""))}</td></tr>' for x in control['development_outline'])+'</table></div><p>本次提前切片另计U1/U2/U3，不将切片完成度等同于完整R1/R2。</p></section>'
 checks=read('.agent-governance/stages/R1/04-acceptance-matrix.md') if False else None
 coverage_path=control.get('slice_acceptance_receipt')
-coverage={v['id']:v for v in read(coverage_path)['rows']} if coverage_path and (ROOT/coverage_path).exists() else {}
+coverage={}
+if coverage_path and (ROOT/coverage_path).exists():
+    coverage_record=read(coverage_path)
+    coverage_items=coverage_record.get('rows',coverage_record.get('items'))
+    assert isinstance(coverage_items,list) and len(coverage_items)==10
+    coverage={v['id']:v for v in coverage_items}
+    assert set(coverage)=={f'UM-{i:02d}' for i in range(1,11)}
+
 names=['图片公开入口真实结果','媒体边界与损坏拒绝','视频源SHA与实际PTS','联合四帧模型结果','运行中取消与实际释放','显式采纳及导出来源','模型关闭后手工编辑导出','资源/原生进程/no-cloud','同一生产UI与双击入口','独立复算与完整清理']
 rows=''
 for i,name in enumerate(names,1):
  k=f'UM-{i:02d}';v=coverage.get(k) or live.get('checks',{}).get(k,{})
- rows+=f'<tr><td>{k}</td><td>{h(name)}</td><td>{h(v.get("status","未完成"))}</td><td>{h(v.get("basis",v.get("oracle","当前真实运行未证明，不计PASS")))}</td></tr>'
+ rows+=f'<tr><td>{k}</td><td>{h(name)}</td><td>{h(v.get("status","未完成"))}</td><td>{h(v.get("basis",v.get("evidence_and_reason",v.get("oracle","当前真实运行未证明，不计PASS"))))}</td></tr>'
 report=header+summary+'<section><h2>逐项验收</h2><div class="scroll"><table><tr><th>编号</th><th>义务</th><th>结果</th><th>证据边界</th></tr>'+rows+'</table></div><p><a href="reports/unified-media/offline-03/receipt.json">离线03收据（对应其记录候选）</a> · <a href="reports/unified-media/ui-cpu-01/receipt.json">CPU浏览器夹具6项（不代表真实模型）</a> · <a href="reports/unified-media/resource-diagnostic-03/receipt.json">最近资源诊断</a></p></section>'
 def result_card(name,title,media,source_base=base):
     p=ROOT/source_base/name
@@ -35,6 +42,21 @@ def result_card(name,title,media,source_base=base):
     run=json.loads(p.read_text());spec=run.get('parsed_spec') or {}
     return '<article><h3>'+h(title)+'</h3>'+media+'<p><a href="'+h(source_base+'/'+name)+'">下载原始ModelRun JSON</a></p><h4>实际中文输出</h4><pre>'+h(spec.get('text_zh',''))+'</pre><h4>实际英文输出</h4><pre>'+h(spec.get('text_en',''))+'</pre><details><summary>查看事实／推断／未知及运镜动作</summary><pre>'+h(json.dumps({'domains':spec.get('domains'),'technical':spec.get('technical'),'frames':run.get('frames')},ensure_ascii=False,indent=2))+'</pre></details></article>'
 report+='<section><h2>真实验收使用的素材与实际输出</h2><p>'+h(quality_note)+'</p><div class="grid">'+result_card('image-model-run.json','开发图片','<img src="reports/unified-media/dev-image.png" alt="开发用非私有结构图片">')+result_card('video-model-run.json','开发视频','<video controls preload="none" src="reports/v0-s2/fixture-preparation-02/fixtures/tracking.mov"></video><a href="reports/v0-s2/fixture-preparation-02/fixtures/tracking.mov" download>保存开发视频</a>')+'</div></section>'
+ledger_path=ROOT/base/'runtime-evidence/provider.jsonl'
+if ledger_path.exists():
+    measurements=[x.get('pixel_measurements') for x in map(json.loads,ledger_path.read_text().splitlines()) if x.get('event')=='provider_call_started' and x.get('pixel_measurements')]
+    if measurements:
+        report+='<section><h2>本轮输入的实际帧差计量</h2><p>来自生产Provider账本；仅度量采样帧像素差，不证明运动方向、变化原因或连续视频质量。以下是输入元数据，模型如何理解它另见上方原始输出。</p><pre>'+h(json.dumps(measurements[0],ensure_ascii=False,indent=2))+'</pre></section>'
+history=[]
+for auth_path in sorted((ROOT/'reports/unified-media').glob('live-*/authorization.json')):
+    auth=json.loads(auth_path.read_text());receipt_path=auth_path.parent/'receipt.json'
+    if not auth.get('program','').endswith('authorization-program-v1-local-02.approval.json') or not receipt_path.exists():continue
+    receipt=json.loads(receipt_path.read_text());review_path=ROOT/'reports/unified-media'/('independent-'+auth['run_id'])/'receipt.json'
+    review=json.loads(review_path.read_text()) if review_path.exists() else {}
+    settlement=receipt.get('program02_budget_settlement',{})
+    history.append('<tr><td>'+h(auth['run_id'])+'</td><td><code>'+h(auth['candidate_sha'][:12])+'</code></td><td>'+h(settlement.get('actual_model_actions','未结算'))+'</td><td>'+h(review.get('decision','待独审'))+'</td><td><a href="'+h(str(receipt_path.relative_to(ROOT)))+'">原始运行</a> · <a href="'+h(str(review_path.relative_to(ROOT)))+'">独审</a></td></tr>')
+if history:
+    report+='<section><h2>本次母授权下的运行历史</h2><p>每轮独立候选与完整失败证据保留；后续修复不会把前轮改为通过。</p><div class="scroll"><table><tr><th>运行</th><th>候选</th><th>模型动作</th><th>独审结论</th><th>原始证据</th></tr>'+''.join(history)+'</table></div></section>'
 if not has_outputs and (ROOT/'reports/unified-media/live-03/video-model-run.json').exists():
     historical='reports/unified-media/live-03'
     report+='<section><h2>上一轮已完成的模型输出 · 历史未通过</h2><p>以下来自a8a431d的live03，不是当前修复候选结果。原视频错误描述为静止，导致语义Major；不能把此历史输出当成当前候选通过。</p><div class="grid">'+result_card('image-model-run.json','live03历史图片结果','<img src="reports/unified-media/dev-image.png" alt="历史开发图片">',historical)+result_card('video-model-run.json','live03历史视频结果','<video controls preload="none" src="reports/v0-s2/fixture-preparation-02/fixtures/tracking.mov"></video>',historical)+'</div></section>'

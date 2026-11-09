@@ -8,21 +8,20 @@
   "coordinate": {
     "stage_id": "R1",
     "workpack_id": "WP-R1-U3",
-    "gate": "RUNTIME_TRANSITION_CORRECTION_RECHECK",
-    "state": "READY_FOR_REVIEW"
+    "gate": "UNIFIED_TEMPORAL_SEMANTICS_AND_STAGE_BUDGET",
+    "state": "WAIT_BUDGET"
   },
   "last_passed_gate": {
-    "gate": "RUNTIME_TRANSITION_OFFLINE_REGRESSION",
-    "candidate_sha": "57aa9de6052effa4b1043ac0920e54d083204be4",
-    "receipt": "reports/unified-media/runtime-transition-backend-01/receipt.json",
-    "frontend_receipt": "reports/unified-media/runtime-transition-offline-01/receipt.json",
-    "browser_receipt": "reports/unified-media/runtime-transition-cpu-02/receipt.json",
-    "decision": "CPU108_FRONTEND9_BROWSER5_PASS_NOT_REAL_MODEL_OR_HUMAN_ACCEPTANCE"
+    "gate": "TEMPORAL_UNITS_OFFLINE_AND_INDEPENDENT_CODE_REVIEW",
+    "candidate_sha": "d9759decaa760eb81479db5434ff9206b18b3327",
+    "receipt": "reports/unified-media/temporal-units-offline-01/receipt.json",
+    "independent_review": "reports/unified-media/independent-temporal-units-01/receipt.json",
+    "decision": "PROVIDER_CPU19_AND_INDEPENDENT_CODE_PASS_NOT_REAL_SEMANTIC_ACCEPTANCE"
   },
-  "current_blocking_gate": "TEMPORAL_UNITS_CORRECTION_CODE_REVIEW",
+  "current_blocking_gate": "UM04_VIDEO_TEMPORAL_SEMANTICS_NO_GO_AND_R1_FULL_BUDGET_EXHAUSTED",
   "stage_packet": ".agent-governance/stages/R1/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/R1/PAYLOAD_MANIFEST.sha256",
-  "product_status": "UNIFIED_RUNTIME_RACE_CORRECTED_OFFLINE_REAL_SEMANTICS_UNVERIFIED",
+  "product_status": "UNIFIED_REAL_SEQUENCE_COMPLETE_VIDEO_SEMANTICS_NO_GO",
   "allowed_claim": "V0_MIN_ACCEPTED_NOT_RELEASED",
   "forbidden_claims": [
     "V0_ACCEPTED",
@@ -32,8 +31,8 @@
     "PRODUCTION_RELEASED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "fresh_independent_reviewer",
-  "next_action": "Review explicit percentage/count metadata, then final allowed R1 corrective checkpoint if green.",
+  "next_owner": "codex_gate_owner_for_route_reassessment_then_project_owner_budget_decision",
+  "next_action": "Review offline route reassessment; no live08. Parent scope remains active, R1 effective full budget3/3 exhausted; any extra full run requires an explicit budget amendment, not repeat GPU permission.",
   "required_authorization": null,
   "authorization_request": "reports/authorization-program-v1-local-02.request.json",
   "authorization_record": "reports/authorization-program-v1-local-02.approval.json",
@@ -51,7 +50,7 @@
   ],
   "contract_change_request": "reports/r1a/change-request-r1a-product-controls-02.json",
   "contract_change_decision": "reports/r1a/change-decision-r1a-product-controls-02.json",
-  "implementation_candidate": "8d43c1dcb79cedd16ce5143c8f68887de38e6572",
+  "implementation_candidate": "d9759decaa760eb81479db5434ff9206b18b3327",
   "implementation_baseline": "0fee9933874f3aa0e163bded2800d9704ee8be0f",
   "candidate_binding_scope": "Minimum unified media slice; code candidate and its own evidence only. Historical S2 and full R1/R2 remain separate.",
   "offline_evidence_commit": null,
@@ -83,13 +82,13 @@
   },
   "historical_live_terminal_receipt": "reports/r1a/r1a-live-07/live-receipt.json",
   "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
-  "live_terminal_receipt": "reports/unified-media/live-06/receipt.json",
-  "independent_review": "reports/unified-media/independent-live-05/review.md",
-  "exact_stop_reason": "LIVE06_COMPLETE_SEMANTIC_FAILURE_PERCENT_UNITS_CORRECTED_OFFLINE_REVIEW_PENDING",
+  "live_terminal_receipt": "reports/unified-media/live-07/receipt.json",
+  "independent_review": "reports/unified-media/independent-live-07/review.md",
+  "exact_stop_reason": "LIVE07_NO_GO_UM04_TEMPORAL_HALLUCINATION_FATAL0_MAJOR1; PROGRAM02_R1_EFFECTIVE_FULL3_OF3_EXHAUSTED; NO_LIVE08_OR_HUMAN_SIGNOFF",
   "native_component_authorization": "reports/v0-s2/authorization-native-component-02.json",
   "native_component_terminal_receipt": "reports/v0-s2/native-component-02/receipt.json",
   "local_control_change_decision": "reports/v0-s2/change-decision-video-workbench-01.json",
-  "latest_workpack_receipt": "reports/unified-media/temporal-metrics-correction-01.md",
+  "latest_workpack_receipt": "reports/unified-media/temporal-route-reassessment-01.md",
   "warm_benchmark_blocker": "reports/v0-s2/warm-benchmark-evidence-gap-01.md",
   "warm_profile_implementation": "reports/v0-s2/warm-profile-implementation-progress-01.md",
   "warm_profile_decision": "reports/v0-s2/warm-profile-decision-01.md",
@@ -738,7 +737,7 @@
   "evidence_directory": "reports/unified-media/",
   "machine_evidence_review": "验收报告与盲测视频.html",
   "manual_acceptance_guide": "docs/26_MANUAL_ACCEPTANCE_GUIDE.md",
-  "human_guide_ui_verification": "reports/unified-media/handoff-ui-05/receipt.json",
+  "human_guide_ui_verification": "reports/unified-media/program02-handoff-ui-01/receipt.json",
   "desktop_launcher": {
     "entry": "LVW.exe",
     "shortcut": "启动LVW.lnk",
@@ -778,33 +777,35 @@
       },
       {
         "id": "WP-R1-U3",
-        "state": "WAIT_AUTH_NEW_CANDIDATE_RECHECK"
+        "state": "NO_GO_TEMPORAL_SEMANTICS_WAIT_BUDGET"
       }
     ],
     "implementation": "READY_FOR_REVIEW",
-    "machine_acceptance": "LIVE05_NO_GO_TEMPORAL_CORRECTION_LIVE06_RUNNING",
-    "independent_review": "OFFLINE_RUNTIME_AND_SOURCE_FENCE_CORRECTION_FATAL0_MAJOR0_MINOR0; LIVE04_NO_GO_REAL_VIDEO_NOT_REVERIFIED",
+    "machine_acceptance": "LIVE07_SEQUENCE_COMPLETE_CONTENT_NO_GO",
+    "independent_review": "LIVE07_FATAL0_MAJOR1_MINOR0_UM9_OF10",
     "full_checkpoints_consumed": 2,
-    "remaining_corrected_full_rechecks": 1,
-    "latest_harness_review": "reports/unified-media/independent-temporal-metrics-01/review.md",
-    "latest_harness_candidate": "57aa9de6052effa4b1043ac0920e54d083204be4",
+    "remaining_corrected_full_rechecks": 0,
+    "latest_harness_review": "reports/unified-media/independent-temporal-units-01/review.md",
+    "latest_harness_candidate": "d9759decaa760eb81479db5434ff9206b18b3327",
     "live_executor": {
-      "run_id": "live-06",
+      "run_id": "live-07",
       "terminal": true,
       "restart_forbidden": true
     },
     "proposed_packet_version": "1.0.3_ACTIVE_APPROVED",
-    "latest_correction_review": "reports/unified-media/independent-runtime-transition-01/review.md",
+    "latest_correction_review": "reports/unified-media/independent-temporal-units-01/review.md",
     "live_review_coverage": {
-      "PASS": 2,
+      "PASS": 9,
       "FAIL": 1,
-      "BLOCKED": 7,
-      "receipt": "reports/unified-media/independent-live-04/coverage.json"
+      "BLOCKED": 0,
+      "receipt": "reports/unified-media/independent-live-07/coverage.json"
     },
     "offline_cpu_tests": 108,
     "supplemental_full_rechecks_approved": 1,
     "supplemental_full_rechecks_consumed": 1,
-    "pending_recovery_full_rechecks": 1
+    "pending_recovery_full_rechecks": 0,
+    "program02_effective_full_checkpoints_consumed": 3,
+    "program02_model_actions": 9
   },
   "historical_s2_last_passed_gate": {
     "gate": "GATE5_INDEPENDENT_MACHINE_REVIEW",
@@ -855,20 +856,18 @@
     "resolution_evidence": "reports/v0-s2/resource-admission-policy-correction-01/receipt.json"
   },
   "current_runtime_failure": {
-    "code": "STARTUP_CONTROLLER_BUSY_409_BEFORE_JOB",
-    "live_receipt": "reports/unified-media/live-04/receipt.json",
-    "provider_calls": 0,
-    "jobs": 0,
-    "model_runs": 0,
-    "resource_preflight": "reports/unified-media/semantic-approved-preflight-01/receipt.json",
+    "code": "VIDEO_TEMPORAL_SEMANTIC_FAILURE",
+    "failure_category": "MODEL_CONTENT_NOT_STARTUP_OR_GPU",
+    "live_receipt": "reports/unified-media/live-07/receipt.json",
+    "provider_calls": 3,
     "cleanup_proven": true,
     "native_exit_proven": true,
-    "correction_candidate": "1d1db48328b80eb16a8d093ec09a7619c2f33fa8",
-    "real_semantic_reverification": "NOT_RUN"
+    "real_semantic_reverification": "FAILED_UM04",
+    "candidate_sha": "d9759decaa760eb81479db5434ff9206b18b3327"
   },
   "resource_readiness_receipt": "reports/unified-media/semantic-approved-preflight-01/receipt.json",
-  "live_candidate_sha": "8d43c1dcb79cedd16ce5143c8f68887de38e6572",
-  "slice_acceptance_receipt": "reports/unified-media/independent-live-05/coverage.json",
+  "live_candidate_sha": "d9759decaa760eb81479db5434ff9206b18b3327",
+  "slice_acceptance_receipt": "reports/unified-media/independent-live-07/coverage.json",
   "last_live_authorization": "reports/unified-media/authorization-semantic-correction-01.approval.terminal.json",
   "historical_video_semantic_failure": {
     "code": "VIDEO_TEMPORAL_SEMANTIC_FAILURE",
@@ -885,10 +884,24 @@
   "authorization_consolidation": {
     "request": "reports/authorization-program-v1-local-02.request.json",
     "request_sha256": "212b89a987dba5ad478a2f7cac6be35aa0520d7461c919003b500174fe49d108",
-    "status": "ACTIVE_EXECUTOR_INDEPENDENTLY_REVIEWED",
+    "status": "ACTIVE_PARENT_R1_FULL_BUDGET_EXHAUSTED",
     "history_audit": "docs/28_AUTHORIZATION_HISTORY_AND_CONSOLIDATION.md",
     "absorbs_runtime_request_only_if_approved": true,
     "alternative_single_run_request": "reports/unified-media/authorization-runtime-transition-01.request.json",
     "approval": "reports/authorization-program-v1-local-02.approval.json"
-  }
+  },
+  "latest_video_semantic_assessment": "本轮正确读取33–34%的像素变化，但仍错误断言背景网格构图与位置恒定，并将变化猜作压缩/噪声；独审UM04 FAIL，不能将其作为可靠运动事实或统一核签通过。",
+  "historical_startup_failure_before_program02": {
+    "code": "STARTUP_CONTROLLER_BUSY_409_BEFORE_JOB",
+    "live_receipt": "reports/unified-media/live-04/receipt.json",
+    "provider_calls": 0,
+    "jobs": 0,
+    "model_runs": 0,
+    "resource_preflight": "reports/unified-media/semantic-approved-preflight-01/receipt.json",
+    "cleanup_proven": true,
+    "native_exit_proven": true,
+    "correction_candidate": "1d1db48328b80eb16a8d093ec09a7619c2f33fa8",
+    "real_semantic_reverification": "NOT_RUN"
+  },
+  "program02_budget_snapshot": "reports/unified-media/program02-budget-final.json"
 }
