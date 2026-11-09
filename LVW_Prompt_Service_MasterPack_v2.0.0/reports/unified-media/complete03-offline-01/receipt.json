@@ -1,0 +1,38 @@
+{
+  "kind": "COMPLETE03_EXECUTOR_AND_PRODUCTION_CPU_NOT_REAL_ACCEPTANCE",
+  "checks": [
+    {
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "pytest",
+        "tools/test_local_program_authority.py",
+        "lvw/tests",
+        "LVW_V0_RuntimePatch/tests/test_s2_video_input.py",
+        "LVW_V0_RuntimePatch/tests/test_s2_video_files.py",
+        "LVW_V0_RuntimePatch/tests/test_s2_video_process.py",
+        "LVW_V0_RuntimePatch/tests/test_s2_video_decoder.py",
+        "-q",
+        "-o",
+        "addopts="
+      ],
+      "exit_code": 0,
+      "stdout_sha256": "3440216f20037cfb039cfc2fed0dd9b06f78a43c130b47e50da5fc7d095bd50c",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "tools/verify_governance.py",
+        "--self-test"
+      ],
+      "exit_code": 0,
+      "stdout_sha256": "e8927ccbca17c63e6ca696c254e5e232add8617ec564f840df4907579089d7cf",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "model_calls": 0,
+  "stage_pass_claim": false
+}

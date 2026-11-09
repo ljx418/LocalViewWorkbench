@@ -176,4 +176,84 @@ class AuthorityTests(unittest.TestCase):
         with self.assertRaises(ValueError):self.action(child)
 
 
+class CompleteProgramTests(unittest.TestCase):
+    def setUp(self):
+        self.fixture=AuthorityTests(methodName='runTest')
+        self.fixture.setUp();self.addCleanup(self.fixture.doCleanups)
+        self.root=self.fixture.root;self.ledger=self.fixture.ledger
+        request=json.loads((authority.ROOT/authority.COMPLETE_REQUEST).read_text())
+        request['existing_program_approval_sha256']=authority.digest(self.root/authority.APPROVAL)
+        (self.root/authority.COMPLETE_REQUEST).write_text(json.dumps(request))
+        self.save_grant()
+
+    def save_grant(self):
+        grant=dict(status='ACTIVE',decision='APPROVED',granted_by='project_owner',
+                   authorization_id='AUTH-PROGRAM-V1-COMPLETE-03',
+                   request_sha256=authority.digest(self.root/authority.COMPLETE_REQUEST))
+        (self.root/authority.COMPLETE_APPROVAL).write_text(json.dumps(grant))
+
+    def test_same_ledger_history_not_reset_and_live08_no_second_grant(self):
+        for i in range(3):
+            self.fixture.reserve(f'history-{i}')
+            with authority.transaction(self.ledger) as db:
+                db.execute('UPDATE children SET calls=3,cap=8,checkpoint=1,active=0,elapsed=60 WHERE run=?',(f'history-{i}',))
+        self.fixture.reserve('live-08')
+        with authority.transaction(self.ledger) as db:
+            rows=list(db.execute('SELECT * FROM children'))
+            self.assertEqual(authority.totals(rows)['model'],11)
+            self.assertEqual(authority.totals(rows)['full'],4)
+            self.assertEqual(len(rows),4)
+
+    def test_no_stage_start_cpu_or_zero_model_count_caps(self):
+        for i in range(18):
+            run=f'cpu-{i}'
+            authority.reserve(run,'R1',{},1,False,ledger=self.ledger,root=self.root,cpu_fixture=True)
+            authority.settle(run,0,ledger=self.ledger)
+        for i in range(14):
+            run=f'zero-{i}'
+            self.fixture.reserve(run,budget={'api_starts':1},full=False)
+            authority.settle(run,0,ledger=self.ledger)
+
+    def test_global_full_exact_and_one_over(self):
+        for i in range(24):self.fixture.reserve(f'full-{i}')
+        with self.assertRaises(ValueError):self.fixture.reserve('full-over')
+
+    def test_global_model_exact_and_one_over(self):
+        for i in range(8):self.fixture.reserve(f'model-{i}',budget={'model_calls':128,'full_checkpoints':1})
+        with self.assertRaises(ValueError):self.fixture.reserve('model-over')
+
+    def test_global_production_seconds_excludes_cpu(self):
+        for i in range(8):self.fixture.reserve(f'time-{i}',seconds=21600)
+        with self.assertRaises(ValueError):self.fixture.reserve('time-over')
+        authority.reserve('cpu','R1',{},100,False,ledger=self.ledger,root=self.root,cpu_fixture=True)
+
+    def test_cutover_marker_blocks_missing_new_grant_old_grant_not_fallback(self):
+        (self.root/'plans').mkdir()
+        (self.root/'plans/execution-control.json').write_text(json.dumps({'authorization_record':authority.COMPLETE_APPROVAL}))
+        (self.root/authority.COMPLETE_APPROVAL).unlink()
+        with self.assertRaises(FileNotFoundError):self.fixture.reserve()
+
+    def test_revocation_hash_change_and_scope_rejected(self):
+        grant=json.loads((self.root/authority.COMPLETE_APPROVAL).read_text())
+        for key,value in [('status','REVOKED'),('request_sha256','0'*64),('granted_by','implementer')]:
+            (self.root/authority.COMPLETE_APPROVAL).write_text(json.dumps(dict(grant,**{key:value})))
+            with self.assertRaises(ValueError):self.fixture.reserve()
+        self.save_grant()
+        with self.assertRaises(ValueError):self.fixture.reserve(stage='R3')
+        with self.assertRaises(ValueError):self.fixture.reserve(budget={'model_calls':129,'full_checkpoints':1})
+        with self.assertRaises(ValueError):self.fixture.reserve(budget={'model_calls':1,'full_checkpoints':1,'downloads':1})
+
+    def test_send_binds_new_grant_and_no_live08_amendment_needed(self):
+        self.fixture.reserve('live-08')
+        source=self.root/'source';source.write_text('source')
+        child=self.root/'live08.json'
+        child.write_text(json.dumps(dict(run_id='live-08',stage_id='R1',budget_ledger=str(self.ledger),
+            program=authority.COMPLETE_APPROVAL,program_sha256=authority.digest(self.root/authority.COMPLETE_APPROVAL),
+            frozen_files=[{'path':'source','sha256':authority.digest(source)}])))
+        authority.bind('live-08',child,ledger=self.ledger)
+        with patch.object(authority,'ROOT',self.root):authority.model_action(child)
+        result=authority.settle('live-08',1,ledger=self.ledger)
+        self.assertTrue(result['effective_full_checkpoint'])
+
+
 if __name__ == '__main__':unittest.main()

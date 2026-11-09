@@ -9,7 +9,7 @@
     "stage_id": "R1",
     "workpack_id": "WP-R1-U3",
     "gate": "RESIDUAL_INPUT_REAL_SEMANTIC_RECHECK",
-    "state": "WAIT_BUDGET"
+    "state": "READY_FOR_REVIEW"
   },
   "last_passed_gate": {
     "gate": "RESIDUAL_INPUT_OFFLINE_AND_INDEPENDENT_REVIEW",
@@ -20,7 +20,7 @@
     "independent_guard_review": "reports/unified-media/independent-residual-budget-01/receipt.json",
     "decision": "OFFLINE_ONLY_NOT_REAL_VIDEO_SEMANTIC_ACCEPTANCE"
   },
-  "current_blocking_gate": "EXPLICIT_ONE_RUN_R1_BUDGET_AMENDMENT_PENDING",
+  "current_blocking_gate": "COMPLETE03_FINAL_SOURCE_REVIEW_BINDING",
   "stage_packet": ".agent-governance/stages/R1/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/R1/PAYLOAD_MANIFEST.sha256",
   "product_status": "RESIDUAL_INPUT_OFFLINE_VERIFIED_REAL_SEMANTICS_NOT_RUN",
@@ -33,11 +33,11 @@
     "PRODUCTION_RELEASED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "project_owner_for_exact_stage_budget_increment",
-  "next_action": "One precise pending increment R1 full3->4 for live08 only; do not infer approval from ordinary continue. If explicitly approved, preissue finite child and execute exact frozen candidate, then independent review; no automatic extra retry.",
-  "required_authorization": "AUTH-BUDGET-V1-R1-RESIDUAL-01",
-  "authorization_request": "reports/unified-media/authorization-residual-recheck-01.request.json",
-  "authorization_record": "reports/authorization-program-v1-local-02.approval.json",
+  "next_owner": "codex_unified_implementer",
+  "next_action": "Seal COMPLETE03 authority candidate, final reviewer source binding, then one finite live08 on residual input; no per-Stage authorization.",
+  "required_authorization": null,
+  "authorization_request": "reports/authorization-program-v1-complete-03.request.json",
+  "authorization_record": "reports/authorization-program-v1-complete-03.approval.json",
   "read_only_binding_authorization": "reports/v0-s2/authorization-binding-inventory-06.json",
   "cpu_decoder_authorization": "reports/v0-s2/authorization-cpu-decoder-01.json",
   "cpu_decoder_terminal_receipt": "reports/v0-s2/cpu-decoder-01/receipt.json",
@@ -86,7 +86,7 @@
   "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
   "live_terminal_receipt": "reports/unified-media/live-07/receipt.json",
   "independent_review": "reports/unified-media/independent-live-07/review.md",
-  "exact_stop_reason": "RESIDUAL_INPUT_CANDIDATE96E77EA_OFFLINE_AND_INDEPENDENTLY_REVIEWED; LIVE08_NOT_RUN; EXPLICIT_ONE_FULL_RUN_BUDGET_AMENDMENT_PENDING",
+  "exact_stop_reason": "COMPLETE03_EXPLICITLY_APPROVED_EXECUTOR_UPDATE_IN_PROGRESS",
   "native_component_authorization": "reports/v0-s2/authorization-native-component-02.json",
   "native_component_terminal_receipt": "reports/v0-s2/native-component-02/receipt.json",
   "local_control_change_decision": "reports/v0-s2/change-decision-video-workbench-01.json",
@@ -909,10 +909,17 @@
   "budget_amendment": {
     "request": "reports/unified-media/authorization-residual-recheck-01.request.json",
     "request_sha256": "a00cb9ac41a0ce4a00cb7c5a0934c1fdde8bca75b443f587dbb49f5afabc853b",
-    "status": "PENDING_NOT_AUTHORIZATION",
+    "status": "ABSORBED_BY_APPROVED_COMPLETE03_NOT_A_SECOND_PERMISSION",
     "requested_stage_full_limit": 4,
     "current_stage_full_limit": 3,
     "additional_full_runs": 1,
     "candidate_sha": "96e77ea3691cf68422ccd159c85985b4d9a118ec"
+  },
+  "completion_authorization": {
+    "authorization_id": "AUTH-PROGRAM-V1-COMPLETE-03",
+    "approval": "reports/authorization-program-v1-complete-03.approval.json",
+    "request_sha256": "afcde7f29095a68e9175f454b16da32514566cca475ccafdfceefbcdcb45be25",
+    "absorbs_pending_budget_request": true,
+    "status": "APPROVED_GLOBAL_ONLY_EXECUTOR_OFFLINE_VERIFIED"
   }
 }

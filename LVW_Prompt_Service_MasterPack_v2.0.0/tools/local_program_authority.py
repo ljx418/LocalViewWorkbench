@@ -16,6 +16,18 @@ REQUEST = 'reports/authorization-program-v1-local-02.request.json'
 APPROVAL = 'reports/authorization-program-v1-local-02.approval.json'
 LEDGER = ROOT.parent.parent / '.lvw-runtime/lvw-prompt-service/program02.sqlite'
 AMENDMENT = 'reports/unified-media/authorization-residual-recheck-01'
+COMPLETE_REQUEST = 'reports/authorization-program-v1-complete-03.request.json'
+COMPLETE_APPROVAL = 'reports/authorization-program-v1-complete-03.approval.json'
+
+
+def complete_selected(root=ROOT):
+    control=root/'plans/execution-control.json'
+    return (root/COMPLETE_APPROVAL).exists() or (control.is_file() and
+        json.loads(control.read_text()).get('authorization_record')==COMPLETE_APPROVAL)
+
+
+def program_paths(root=ROOT):
+    return (COMPLETE_REQUEST,COMPLETE_APPROVAL) if complete_selected(root) else (REQUEST,APPROVAL)
 
 
 def extra_full_grant(run, stage, *, root=ROOT):
@@ -46,6 +58,25 @@ def digest(path):
 
 
 def approved(root=ROOT):
+    if complete_selected(root):
+        request=json.loads((root/COMPLETE_REQUEST).read_text())
+        grant=json.loads((root/COMPLETE_APPROVAL).read_text())
+        if not (grant.get('status')=='ACTIVE' and grant.get('decision')=='APPROVED'
+                and grant.get('granted_by')=='project_owner'
+                and grant.get('authorization_id')==request.get('authorization_id')=='AUTH-PROGRAM-V1-COMPLETE-03'
+                and grant.get('request_sha256')==digest(root/COMPLETE_REQUEST)
+                and request['existing_program_approval_sha256']==digest(root/request['existing_program_approval'])):
+            raise ValueError('WAIT_AUTH: complete03 absent/revoked/hash changed; never fall back')
+        value=dict(request)
+        limits=request['global_cumulative_limits']
+        value['global_only']=True
+        value['budget_policy']={
+            'program_total_model_actions':limits['model_actions'],
+            'program_total_effective_full_checkpoints':limits['effective_full_checkpoints'],
+            'program_total_production_runtime_seconds':limits['production_runtime_seconds'],
+            'per_child_model_actions_ceiling':limits['per_child_model_actions_ceiling'],
+            'per_child_wall_seconds_ceiling':limits['per_child_wall_seconds_ceiling']}
+        return value
     request = json.loads((root / REQUEST).read_text())
     grant = json.loads((root / APPROVAL).read_text())
     if not (grant.get('status') == 'ACTIVE' and grant.get('decision') == 'APPROVED'
@@ -118,6 +149,17 @@ def reserve(run, stage, budget, seconds, full, *, ledger=LEDGER, root=ROOT, cpu_
             raise ValueError('child identity already used; terminal grants cannot replay')
         rows = list(db.execute('SELECT * FROM children'))
         stage_rows = [r for r in rows if r['stage'] == stage]
+        if request.get('global_only'):
+            charged=totals([*rows,proposed])
+            production_seconds=sum((r['seconds'] if r['active'] else r['elapsed'])
+                                   for r in [*rows,proposed] if not r['cpu'])
+            if (charged['model']>policy['program_total_model_actions']
+                    or charged['full']>policy['program_total_effective_full_checkpoints']
+                    or production_seconds>policy['program_total_production_runtime_seconds']):
+                raise ValueError('WAIT_BUDGET: complete03 global allowance exhausted')
+            db.execute('INSERT INTO children(run,stage,cap,seconds,full,cpu,starts,issued,expires) '
+                       'VALUES(?,?,?,?,?,?,?,?,?)', (run, stage, cap, seconds, int(full), cpu, json.dumps(starts), now, now + seconds))
+            return
         for group, limits in ((rows, {'model': policy['program_total_model_actions'],
                      'seconds': policy['program_total_production_runtime_seconds'],
                      'full': policy['program_total_effective_full_checkpoints'],
@@ -157,10 +199,11 @@ def model_action(child_path):
     """Debit before every inference/preload send, including failures and cancellation."""
     child_path = Path(child_path)
     child = json.loads(child_path.read_text())
-    approved(ROOT)
-    if child['program_sha256'] != digest(ROOT / APPROVAL):
+    request=approved(ROOT)
+    _,grant_path=program_paths(ROOT)
+    if child.get('program') not in (None,grant_path) or child['program_sha256'] != digest(ROOT / grant_path):
         raise ValueError('program changed after child issue')
-    if child.get('run_id')=='live-08':
+    if child.get('run_id')=='live-08' and not request.get('global_only'):
         _,binding=extra_full_grant(child['run_id'],child['stage_id'],root=ROOT)
         if binding!=child.get('budget_amendment'):
             raise ValueError('amendment changed after child issue')

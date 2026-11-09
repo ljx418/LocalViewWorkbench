@@ -6,7 +6,7 @@ PROGRAM='reports/authorization-program-v1-local-01.json'
 def sha(path):return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 def create(run_id,harness,budget,*,port,samples=(),seconds=240,full=False):
     control=json.loads((ROOT/'plans/execution-control.json').read_text())
-    if (ROOT/'reports/authorization-program-v1-local-02.approval.json').exists() or control.get('authorization_record')=='reports/authorization-program-v1-local-02.approval.json':
+    if (ROOT/'reports/authorization-program-v1-local-02.approval.json').exists() or control.get('authorization_record') in {'reports/authorization-program-v1-local-02.approval.json','reports/authorization-program-v1-complete-03.approval.json'}:
         return create_program02(run_id,harness,budget,port=port,samples=samples,seconds=seconds,full=full)
     parent=json.loads((ROOT/PROGRAM).read_text());approval=json.loads((ROOT/'reports/unified-media/approval.json').read_text())
     assert parent['status']=='ACTIVE' and 'R1' in parent['stages'] and approval['decision']=='APPROVED'
@@ -79,7 +79,8 @@ def terminal(out,auth,result):
 
 def create_program02(run_id,harness,budget,*,port,samples,seconds,full):
     from tools import local_program_authority as program
-    program.approved()
+    active_program=program.approved()
+    program_request,program_approval=program.program_paths()
     assert re.fullmatch(r'live-(?:0[5-9]|[1-9][0-9]+)',run_id),'new unique live identity required'
     assert full and port==18780 and 0<seconds<=1800
     expected={'api_starts':1,'ollama_starts':1,'headless_browser_starts':1,'provider_calls':8,
@@ -98,7 +99,7 @@ def create_program02(run_id,harness,budget,*,port,samples,seconds,full):
     paths=[*request['frozen_paths'],'tools/local_program_authority.py','.agent-governance/stages/R1']
     candidate=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
     amendment_binding=None
-    if run_id=='live-08':
+    if run_id=='live-08' and not active_program.get('global_only'):
         amendment,amendment_binding=program.extra_full_grant(run_id,'R1')
         assert subprocess.run(['git','merge-base','--is-ancestor',amendment['candidate_sha'],candidate],cwd=ROOT).returncode==0
         assert subprocess.run(['git','diff','--quiet',amendment['candidate_sha'],candidate,'--',*amendment['frozen_paths']],cwd=ROOT).returncode==0
@@ -114,8 +115,8 @@ def create_program02(run_id,harness,budget,*,port,samples,seconds,full):
     now=time.time()
     value={'kind':'V1_FINITE_CHILD_NOT_STAGE_SIGNOFF','status':'ACTIVE_ONE_SHOT','stage_id':'R1',
        'slice':'UNIFIED_MEDIA_EARLY','run_id':run_id,'candidate_sha':candidate,'harness_sha256':sha(harness),
-       'program':program.APPROVAL,'program_sha256':sha(ROOT/program.APPROVAL),
-       'program_request_sha256':sha(ROOT/program.REQUEST),'budget_ledger':str(program.LEDGER),'execution_bindings_required':True,
+       'program':program_approval,'program_sha256':sha(ROOT/program_approval),
+       'program_request_sha256':sha(ROOT/program_request),'budget_ledger':str(program.LEDGER),'execution_bindings_required':True,
        'packet_manifest_sha256':sha(packet_root/'PAYLOAD_MANIFEST.sha256'),'frozen_files':files,
        'ports':[port,11434],'samples':[{'path':str(Path(p).relative_to(ROOT)),'sha256':sha(p)} for p in samples],
        'budget':budget,'issued_at':now,'expires_at':now+seconds,'full_checkpoint':full,'stage_pass_claim':False,
