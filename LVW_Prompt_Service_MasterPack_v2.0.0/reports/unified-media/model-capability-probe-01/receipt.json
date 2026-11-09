@@ -1,0 +1,84 @@
+{
+  "decision": "METADATA_DISCOVERY_COMPLETE_NOT_QUALITY_ACCEPTANCE",
+  "model_calls": 0,
+  "media_reads": 0,
+  "stage_pass_claim": false,
+  "start": {
+    "protocol": "lvw.runtime/1",
+    "lvw": {
+      "state": "ready"
+    },
+    "ollama": {
+      "state": "ready",
+      "reachable": true,
+      "model": "gemma4:26b",
+      "model_ready": true,
+      "model_loaded": false,
+      "managed": true,
+      "pid": 40472,
+      "reason": null,
+      "last_error": null
+    },
+    "actions": {
+      "can_start": false,
+      "can_reset": true,
+      "can_stop": true
+    }
+  },
+  "show": {
+    "http_status": 200,
+    "response_sha256": "1d9bcca184d4f095d2c075b129db63326a6ee8f62321387594c4668e5339b80f",
+    "capabilities": [
+      "completion",
+      "vision",
+      "tools",
+      "thinking"
+    ],
+    "details": {
+      "parent_model": "",
+      "format": "gguf",
+      "family": "gemma4",
+      "families": [
+        "gemma4"
+      ],
+      "parameter_size": "25.8B",
+      "quantization_level": "Q4_K_M"
+    },
+    "template_sha256": "b507b9c2f6ca642bffcd06665ea7c91f235fd32daeefdf875a0f938db05fb315",
+    "template_has_think_reference": false,
+    "template_has_image_reference": false,
+    "model_info": {
+      "gemma4.context_length": 262144,
+      "gemma4.vision.attention.head_count": 16,
+      "gemma4.vision.attention.layer_norm_epsilon": 1e-06,
+      "gemma4.vision.block_count": 27,
+      "gemma4.vision.embedding_length": 1152,
+      "gemma4.vision.feed_forward_length": 4304,
+      "gemma4.vision.num_channels": 3,
+      "gemma4.vision.patch_size": 16,
+      "gemma4.vision.projector.scale_factor": 3,
+      "general.architecture": "gemma4"
+    },
+    "private_or_internal_thinking_saved": false,
+    "raw_template_or_system_saved": false
+  },
+  "loaded_models_after_show": [],
+  "owners": [
+    {
+      "nonce": "e969b633d4de45e7ac76920125c14163",
+      "state": "exited",
+      "pid": 40472,
+      "birth_ticks": 639298277936863024,
+      "listener_owned": false
+    }
+  ],
+  "cleanup_proven": true,
+  "settlement": {
+    "run_id": "model-capability-probe-01",
+    "actual_model_actions": 0,
+    "effective_full_checkpoint": false,
+    "zero_model_startup": true,
+    "elapsed_seconds": 5,
+    "program_still_active": true
+  }
+}

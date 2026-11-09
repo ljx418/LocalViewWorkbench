@@ -441,3 +441,30 @@ def test_colour_registration_recovers_equal_luma_motion_and_static_negative():
     for component in static['colour_components']:
         assert component['usable'] and component['offset_px']=={'x':0,'y':0}
         assert component['zero_error']==component['best_error']==0
+
+
+def test_private_thinking_opt_in_requires_live_show_support_before_inference(monkeypatch):
+    import asyncio,httpx,json
+    real=httpx.AsyncClient;paths=[];supported=[None]
+    envelope=model_envelope();envelope['message']['thinking']='CPU fixture, not a real reasoning result'
+    raw=json.dumps(envelope)
+    async def handler(request):
+        paths.append(request.url.path)
+        if request.url.path=='/api/show':
+            return httpx.Response(200,json={'capabilities':supported[0]})
+        assert request.url.path=='/api/chat' and json.loads(request.content)['think'] is True
+        return httpx.Response(200,text=raw)
+    monkeypatch.setattr('app.provider.httpx.AsyncClient',lambda **kw:real(**kw,transport=httpx.MockTransport(handler)))
+    provider=OllamaProvider('http://127.0.0.1:11434/api/chat','gemma4:26b',30)
+    async def call(thinking=True):
+        return await provider._analyze_images([b'CPU-only'],mode='realistic',content_profile='standard',custom_guidance='',thinking=thinking)
+    for invalid in (None,'not-thinking',{'thinking':True},[1,'thinking'],[]):
+        supported[0]=invalid
+        with pytest.raises(AppError):asyncio.run(call())
+        assert all(path=='/api/show' for path in paths)
+    before=paths.copy()
+    with pytest.raises(AppError):asyncio.run(call('yes'))
+    assert paths==before
+    supported[0]=['thinking']
+    returned,_=asyncio.run(call())
+    assert paths==before+['/api/show','/api/chat'] and returned==raw

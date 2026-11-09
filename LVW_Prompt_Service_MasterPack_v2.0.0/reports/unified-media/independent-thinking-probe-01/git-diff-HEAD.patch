@@ -1,0 +1,92 @@
+diff --git a/LVW_Prompt_Service_MasterPack_v2.0.0/lvw/backend/app/provider.py b/LVW_Prompt_Service_MasterPack_v2.0.0/lvw/backend/app/provider.py
+index b1fade1..4b03522 100644
+--- a/LVW_Prompt_Service_MasterPack_v2.0.0/lvw/backend/app/provider.py
++++ b/LVW_Prompt_Service_MasterPack_v2.0.0/lvw/backend/app/provider.py
+@@ -447,18 +447,20 @@ class OllamaProvider:
+                                           custom_guidance=custom_guidance)
+ 
+     async def analyze_video(self, decoded, *, mode: Mode, content_profile: ContentProfile = "standard",
+-                            custom_guidance: str = ""):
++                            custom_guidance: str = "", thinking: bool = False):
+         sheet = build_temporal_sheet(decoded)
+         return await self._analyze_images([sheet], mode=mode, content_profile=content_profile,
+             custom_guidance=custom_guidance, frames=decoded.manifest,
+             source_frame_hashes=[hashlib.sha256(value).hexdigest() for value in decoded.frames],
+             pixel_measurements=temporal_pixel_measurements(decoded.frames),
+-            alignment_measurements=temporal_alignment_measurements(decoded.frames))
++            alignment_measurements=temporal_alignment_measurements(decoded.frames), thinking=thinking)
+ 
+     async def _analyze_images(self, images: list[bytes], *, mode: Mode,
+                               content_profile: ContentProfile, custom_guidance: str,
+                               frames=None, source_frame_hashes=None, pixel_measurements=None,
+-                              alignment_measurements=None):
++                              alignment_measurements=None, thinking: bool = False):
++        if type(thinking) is not bool:
++            raise AppError("MODEL_UNAVAILABLE", "无效的本地推理模式", status_code=503)
+         call_id = "call_" + uuid.uuid4().hex
+         messages: list[dict[str, object]] = build_messages(mode, content_profile, custom_guidance)
+         if frames is not None:
+@@ -472,7 +474,7 @@ class OllamaProvider:
+         payload = {
+             "model": self.model,
+             "messages": messages,
+-            "stream": False, "think": False, "format": VIDEO_SCHEMA if frames is not None else IMAGE_SCHEMA,
++            "stream": False, "think": thinking, "format": VIDEO_SCHEMA if frames is not None else IMAGE_SCHEMA,
+             "options": {"num_ctx": 4096 if frames is not None else 2048,
+                         "num_predict": 768 if frames is not None else 512, "temperature": 0.2},
+             "keep_alive": 0,
+@@ -482,12 +484,22 @@ class OllamaProvider:
+                 child = os.environ.get("LVW_AUTHORIZATION_CHILD")
+                 if os.environ.get("LVW_REQUIRE_BUDGET") == "1" and not child:
+                     raise AppError("MODEL_UNAVAILABLE", "受控验证缺少预算子授权", status_code=503)
++                capability_sha = None
++                if thinking:
++                    # Explicit private diagnostic opt-in only; ordinary product calls stay false.
++                    capability = await client.post(self.endpoint.removesuffix("/api/chat") + "/api/show",
++                                                   json={"model": self.model, "verbose": False})
++                    capability.raise_for_status()
++                    if "thinking" not in capability.json().get("capabilities", []):
++                        raise AppError("MODEL_UNAVAILABLE", "本地模型未确认支持thinking", status_code=503)
++                    capability_sha = hashlib.sha256(capability.content).hexdigest()
+                 self._record("provider_call_started", call_id,
+                              frame_count=len(frames) if frames is not None else len(images),
+                              payload_image_count=len(images), source_frame_hashes=source_frame_hashes,
+                      pixel_measurements=pixel_measurements,
+                      alignment_measurements=alignment_measurements,
+                              presentation=VIDEO_PRESENTATION_VERSION if frames is not None else "single-image",
++                             thinking=thinking, thinking_capabilities_sha256=capability_sha,
+                              input_sha256=hashlib.sha256(b"".join(images)).hexdigest())
+                 if child:
+                     from tools.local_program_authority import model_action
+diff --git a/LVW_Prompt_Service_MasterPack_v2.0.0/lvw/tests/test_provider.py b/LVW_Prompt_Service_MasterPack_v2.0.0/lvw/tests/test_provider.py
+index f95b327..a50040d 100644
+--- a/LVW_Prompt_Service_MasterPack_v2.0.0/lvw/tests/test_provider.py
++++ b/LVW_Prompt_Service_MasterPack_v2.0.0/lvw/tests/test_provider.py
+@@ -441,3 +441,27 @@ def test_colour_registration_recovers_equal_luma_motion_and_static_negative():
+     for component in static['colour_components']:
+         assert component['usable'] and component['offset_px']=={'x':0,'y':0}
+         assert component['zero_error']==component['best_error']==0
++
++
++def test_private_thinking_opt_in_requires_live_show_support_before_inference(monkeypatch):
++    import asyncio,httpx,json
++    real=httpx.AsyncClient;paths=[];supported=[False]
++    envelope=model_envelope();envelope['message']['thinking']='CPU fixture, not a real reasoning result'
++    raw=json.dumps(envelope)
++    async def handler(request):
++        paths.append(request.url.path)
++        if request.url.path=='/api/show':
++            return httpx.Response(200,json={'capabilities':['thinking'] if supported[0] else []})
++        assert request.url.path=='/api/chat' and json.loads(request.content)['think'] is True
++        return httpx.Response(200,text=raw)
++    monkeypatch.setattr('app.provider.httpx.AsyncClient',lambda **kw:real(**kw,transport=httpx.MockTransport(handler)))
++    provider=OllamaProvider('http://127.0.0.1:11434/api/chat','gemma4:26b',30)
++    async def call(thinking=True):
++        return await provider._analyze_images([b'CPU-only'],mode='realistic',content_profile='standard',custom_guidance='',thinking=thinking)
++    with pytest.raises(AppError):asyncio.run(call())
++    assert paths==['/api/show']
++    with pytest.raises(AppError):asyncio.run(call('yes'))
++    assert paths==['/api/show']
++    supported[0]=True
++    returned,_=asyncio.run(call())
++    assert paths==['/api/show','/api/show','/api/chat'] and returned==raw

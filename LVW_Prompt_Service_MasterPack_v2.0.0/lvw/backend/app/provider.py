@@ -447,18 +447,20 @@ class OllamaProvider:
                                           custom_guidance=custom_guidance)
 
     async def analyze_video(self, decoded, *, mode: Mode, content_profile: ContentProfile = "standard",
-                            custom_guidance: str = ""):
+                            custom_guidance: str = "", thinking: bool = False):
         sheet = build_temporal_sheet(decoded)
         return await self._analyze_images([sheet], mode=mode, content_profile=content_profile,
             custom_guidance=custom_guidance, frames=decoded.manifest,
             source_frame_hashes=[hashlib.sha256(value).hexdigest() for value in decoded.frames],
             pixel_measurements=temporal_pixel_measurements(decoded.frames),
-            alignment_measurements=temporal_alignment_measurements(decoded.frames))
+            alignment_measurements=temporal_alignment_measurements(decoded.frames), thinking=thinking)
 
     async def _analyze_images(self, images: list[bytes], *, mode: Mode,
                               content_profile: ContentProfile, custom_guidance: str,
                               frames=None, source_frame_hashes=None, pixel_measurements=None,
-                              alignment_measurements=None):
+                              alignment_measurements=None, thinking: bool = False):
+        if type(thinking) is not bool:
+            raise AppError("MODEL_UNAVAILABLE", "无效的本地推理模式", status_code=503)
         call_id = "call_" + uuid.uuid4().hex
         messages: list[dict[str, object]] = build_messages(mode, content_profile, custom_guidance)
         if frames is not None:
@@ -472,7 +474,7 @@ class OllamaProvider:
         payload = {
             "model": self.model,
             "messages": messages,
-            "stream": False, "think": False, "format": VIDEO_SCHEMA if frames is not None else IMAGE_SCHEMA,
+            "stream": False, "think": thinking, "format": VIDEO_SCHEMA if frames is not None else IMAGE_SCHEMA,
             "options": {"num_ctx": 4096 if frames is not None else 2048,
                         "num_predict": 768 if frames is not None else 512, "temperature": 0.2},
             "keep_alive": 0,
@@ -482,12 +484,25 @@ class OllamaProvider:
                 child = os.environ.get("LVW_AUTHORIZATION_CHILD")
                 if os.environ.get("LVW_REQUIRE_BUDGET") == "1" and not child:
                     raise AppError("MODEL_UNAVAILABLE", "受控验证缺少预算子授权", status_code=503)
+                capability_sha = None
+                if thinking:
+                    # Explicit private diagnostic opt-in only; ordinary product calls stay false.
+                    capability = await client.post(self.endpoint.removesuffix("/api/chat") + "/api/show",
+                                                   json={"model": self.model, "verbose": False})
+                    capability.raise_for_status()
+                    capability_body = capability.json()
+                    capabilities = capability_body.get("capabilities") if isinstance(capability_body, dict) else None
+                    if (not isinstance(capabilities, list) or not all(isinstance(v, str) for v in capabilities)
+                            or "thinking" not in capabilities):
+                        raise AppError("MODEL_UNAVAILABLE", "本地模型未确认支持thinking", status_code=503)
+                    capability_sha = hashlib.sha256(capability.content).hexdigest()
                 self._record("provider_call_started", call_id,
                              frame_count=len(frames) if frames is not None else len(images),
                              payload_image_count=len(images), source_frame_hashes=source_frame_hashes,
                      pixel_measurements=pixel_measurements,
                      alignment_measurements=alignment_measurements,
                              presentation=VIDEO_PRESENTATION_VERSION if frames is not None else "single-image",
+                             thinking=thinking, thinking_capabilities_sha256=capability_sha,
                              input_sha256=hashlib.sha256(b"".join(images)).hexdigest())
                 if child:
                     from tools.local_program_authority import model_action

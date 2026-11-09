@@ -1,0 +1,24 @@
+{
+  "status": "CHANGES_REQUIRED_BEFORE_EXECUTION",
+  "findings": {
+    "Fatal": 0,
+    "Major": 1,
+    "Minor": 1
+  },
+  "major": {
+    "id": "TP01",
+    "path": "reports/unified-media/thinking_capability_probe.py",
+    "line": 34,
+    "detail": "Post-reserve setup outside terminalization; missing GPU tool reproduces reserve+bind without close/settle or receipt.",
+    "reproduction": "setup-gap.log"
+  },
+  "minor": {
+    "id": "TP02",
+    "line": 64,
+    "detail": "Comment wrongly says no model lease; code acquires lease."
+  },
+  "cpu_tests": "22 pass; 2 ledger writers deselected",
+  "source_hashes_unchanged_at_initial_review": true,
+  "real_actions": 0,
+  "stage_pass": false
+}
