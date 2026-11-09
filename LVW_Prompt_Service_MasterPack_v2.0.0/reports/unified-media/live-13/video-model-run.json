@@ -1,0 +1,100 @@
+{
+  "id": "run_7208344170784e1e8eb2795c16e44901",
+  "job_id": "job_3f0b67998cdf44e8ad2bb1e4d4c0c490",
+  "attempt_id": "att_19a63304f20441e1ae54b7a0c92f891d",
+  "model_tag": "gemma4:26b",
+  "model_digest": null,
+  "status": "succeeded",
+  "input_sha256": "b08ea8b0b9fa3bcd4e62b2b0ad1c05b2bff09359539933f4581a5c2f2c69ff6d",
+  "template_sha256": "d70ca00f0bfebb598dcb56609f0f9e4350f1a1b2d808d4e62a970127fc55ee8e",
+  "config_sha256": "1285b17fffe029be9095fe0a59b879a6404a1ad98ba5412e6b425182fb39f70a",
+  "raw_response": "{\"model\":\"gemma4:26b\",\"created_at\":\"2026-11-09T13:12:12.9283634Z\",\"message\":{\"role\":\"assistant\",\"content\":\"{\\n  \\\"observations\\\": [\\n    \\\"Four source frames (F1, F2, F3, F4) are displayed in a grid, each with a timestamp: 1.000s, 3.000s, 5.000s, and 7.000s.\\\",\\n    \\\"Each frame contains a dark blue background with a white grid pattern of horizontal and vertical lines.\\\",\\n    \\\"A solid red rectangle is positioned within the grid in all four frames.\\\",\\n    \\\"The bottom row shows three difference maps (D1-\\u003e2, D2-\\u003e3, D3-\\u003e4) representing absolute RGB differences between adjacent frames, where black indicates unchanged pixels and yellow/white indicates changed pixels.\\\",\\n    \\\"In the source frames, the red rectangle's position relative to the grid lines appears visually consistent across all timestamps.\\\"\\n  ],\\n  \\\"inferences\\\": [\\n    \\\"The difference maps show vertical yellow lines that do not align with the full height of the frame, suggesting changes are localized to specific horizontal bands.\\\",\\n    \\\"The measured x-offset of 3 pixels in the registration data suggests a slight lateral shift between frames, though this may be related to sub-pixel alignment or specific color component shifts rather than global camera movement.\\\"\\n  ],\\n  \\\"unknowns\\\": [\\n    \\\"The physical cause of the pixel differences (e.g., whether it is sensor noise, compression artifacts, or actual subtle motion) cannot be determined.\\\",\\n    \\\"The exact nature of the content represented by the red rectangle and blue grid is unknown.\\\"\\n  ],\\n  \\\"prompt_zh\\\": \\\"一张极简主义风格的数字图形图像。背景为深蓝色，上面覆盖着整齐的白色水平和垂直网格线。画面中心有一个醒目的纯红色实心矩形，其位置在画面中保持稳定。构图对称且平衡，具有高度的几何感。光线均匀，没有阴影或明暗变化，呈现出一种干净、平面的数字矢量艺术风格。\\\",\\n  \\\"prompt\\\": \\\"A minimalist digital graphic image. The background is deep blue, overlaid with a precise white grid of horizontal and vertical lines. A prominent, solid red rectangle is positioned centrally within the frame, maintaining a stable position. The composition is symmetrical and balanced, characterized by strong geometric precision. Lighting is perfectly uniform with no shadows or gradients, presenting a clean, flat digital vector art style.\\\",\\n  \\\"negative\\\": \\\"gradients, shadows, textures, 3D effects, motion blur, photographic realism, organic shapes, asymmetrical composition, noise, grain\\\",\\n  \\\"tags\\\": [\\n    \\\"minimalism\\\",\\n    \\\"geometric\\\",\\n    \\\"digital graphic\\\",\\n    \\\"flat design\\\",\\n    \\\"grid pattern\\\",\\n    \\\"primary colors\\\"\\n  ],\\n  \\\"camera_motion\\\": \\\"unknown\\\",\\n  \\\"subject_action\\\": \\\"stationary\\\"\\n}\"},\"done\":true,\"done_reason\":\"stop\",\"total_duration\":21343030400,\"load_duration\":15027023500,\"prompt_eval_count\":2558,\"prompt_eval_duration\":1139291000,\"eval_count\":611,\"eval_duration\":5144387000}",
+  "parsed_spec": {
+    "schema_version": "lvw.prompt/1",
+    "mode": "realistic",
+    "domains": {
+      "observation": [
+        "Four source frames (F1, F2, F3, F4) are displayed in a grid, each with a timestamp: 1.000s, 3.000s, 5.000s, and 7.000s.",
+        "Each frame contains a dark blue background with a white grid pattern of horizontal and vertical lines.",
+        "A solid red rectangle is positioned within the grid in all four frames.",
+        "The bottom row shows three difference maps (D1->2, D2->3, D3->4) representing absolute RGB differences between adjacent frames, where black indicates unchanged pixels and yellow/white indicates changed pixels.",
+        "In the source frames, the red rectangle's position relative to the grid lines appears visually consistent across all timestamps."
+      ],
+      "inference": [
+        "The difference maps show vertical yellow lines that do not align with the full height of the frame, suggesting changes are localized to specific horizontal bands.",
+        "The measured x-offset of 3 pixels in the registration data suggests a slight lateral shift between frames, though this may be related to sub-pixel alignment or specific color component shifts rather than global camera movement."
+      ],
+      "user_evidence": [],
+      "creative_intent": [],
+      "unknowns": [
+        "The physical cause of the pixel differences (e.g., whether it is sensor noise, compression artifacts, or actual subtle motion) cannot be determined.",
+        "The exact nature of the content represented by the red rectangle and blue grid is unknown.",
+        "仅观察4个采样帧，未采样事件、连续运动与音频未经验证。"
+      ]
+    },
+    "technical": {
+      "duration_seconds": null,
+      "aspect_ratio": "",
+      "fps_intent": null,
+      "camera_motion": "unknown",
+      "subject_action": "stationary",
+      "lighting": "",
+      "composition": "",
+      "style_notes": "",
+      "beats": []
+    },
+    "locked_fields": [],
+    "text_zh": "一张极简主义风格的数字图形图像。背景为深蓝色，上面覆盖着整齐的白色水平和垂直网格线。画面中心有一个醒目的纯红色实心矩形，其位置在画面中保持稳定。构图对称且平衡，具有高度的几何感。光线均匀，没有阴影或明暗变化，呈现出一种干净、平面的数字矢量艺术风格。",
+    "text_en": "A minimalist digital graphic image. The background is deep blue, overlaid with a precise white grid of horizontal and vertical lines. A prominent, solid red rectangle is positioned centrally within the frame, maintaining a stable position. The composition is symmetrical and balanced, characterized by strong geometric precision. Lighting is perfectly uniform with no shadows or gradients, presenting a clean, flat digital vector art style.",
+    "tags": [
+      "minimalism",
+      "geometric",
+      "digital graphic",
+      "flat design",
+      "grid pattern",
+      "primary colors"
+    ],
+    "negative": "gradients, shadows, textures, 3D effects, motion blur, photographic realism, organic shapes, asymmetrical composition, noise, grain",
+    "template_id": "lvw-unified-video",
+    "template_version": "1.4.0"
+  },
+  "error_code": null,
+  "frames": [
+    {
+      "index": 0,
+      "target_seconds": 1,
+      "source_pts": 12288,
+      "time_base_num": 1,
+      "time_base_den": 12288,
+      "sha256": "d6b220619176f3e738c1812b5e789defcf28b38802d386c939f094d1c57b25a8",
+      "time_basis": "decoded_pts"
+    },
+    {
+      "index": 1,
+      "target_seconds": 3,
+      "source_pts": 36864,
+      "time_base_num": 1,
+      "time_base_den": 12288,
+      "sha256": "cda95d446455ab753e6adffbcfa18e35f90e7921138610643a0602ca4dd5af05",
+      "time_basis": "decoded_pts"
+    },
+    {
+      "index": 2,
+      "target_seconds": 5,
+      "source_pts": 61440,
+      "time_base_num": 1,
+      "time_base_den": 12288,
+      "sha256": "adabd46eac0b6debd94d463c2f37d697e1951b54ceac09dcab894d855e4da072",
+      "time_basis": "decoded_pts"
+    },
+    {
+      "index": 3,
+      "target_seconds": 7,
+      "source_pts": 86016,
+      "time_base_num": 1,
+      "time_base_den": 12288,
+      "sha256": "392074219ed242331b456828fab9647dd9a3edc7ae3f1cacbb4ed889d671c643",
+      "time_basis": "decoded_pts"
+    }
+  ]
+}

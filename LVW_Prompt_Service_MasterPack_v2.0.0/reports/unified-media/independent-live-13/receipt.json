@@ -1,0 +1,66 @@
+{
+  "schema_version": "lvw.independent-review/1",
+  "review_session": "/root/live13_independent_review",
+  "candidate_sha": "9d9cdad0d3ef45a6dd821984272b0cbaa351bb76",
+  "packet_version": "1.0.3",
+  "decision": "NO_GO",
+  "Fatal": 0,
+  "Major": 1,
+  "Minor": 0,
+  "fixed_coverage": {
+    "pass": 9,
+    "fail": 1,
+    "reviewed": 10,
+    "denominator": 10
+  },
+  "findings": [
+    {
+      "id": "M13-01",
+      "severity": "Major",
+      "acceptance_id": "UM-04",
+      "location": "reports/unified-media/live-13/video-model-run.json:raw_response / parsed_spec / reconstruction prompts",
+      "trigger": "actual tracking.mov four-frame analysis",
+      "expected": "retain changing grid relative to nearly fixed red subject in facts and reconstruction without inventing cause",
+      "actual": "false consistent relative position; static reconstruction omits background change; unsupported subpixel/color speculation",
+      "evidence": [
+        "recomputed.json:landmarks",
+        "rebuilt-sheet.png",
+        "../live-13/video-model-run.json"
+      ]
+    }
+  ],
+  "raw_evidence_stable": true,
+  "raw_video_model_run_sha256": "cec97057cdd77a8bf9fc85f97f62765817a3ac62be06a14061e25cabc731af75",
+  "provider_source_sha256": "15cbb5cccafbe35ab74bcf99b6fe9c5bc10d7a2dbd392cd5e7d1709033b4f94a",
+  "source_build_id": "d671363cb358fa18eab4d7cd95872f77f497f0067e4abbfcf81e384e6dbf00f7",
+  "sheet_sha256": "323dc68033e330fae9e217cd26160ba5473fe3dc463a1a1a0d170aa617131843",
+  "all4_ppm_hashes_exact": true,
+  "all3_luma_colour_registrations_exact": true,
+  "model_identity_digest": "5571076f3d70050487b26b341705799e0ab29b808164f90d20d4cf84f699d251",
+  "global_ledger_mode": "ro",
+  "live13_settled": {
+    "calls": 3,
+    "checkpoint": 1,
+    "elapsed": 64,
+    "active": 0
+  },
+  "stage_pass_claim": false,
+  "full_V1_pass_claim": false,
+  "human_signoff": null,
+  "model_calls": 0,
+  "network_requests": 0,
+  "browser_starts": 0,
+  "services_started": 0,
+  "new_media_probe_or_decode": false,
+  "budget_ledger_write": false,
+  "candidate_modified_by_reviewer": false,
+  "candidate_source_binding": "verified before parent began next correction; verdict applies only sealed9d9cdad",
+  "evidence_sha256": {
+    "fixed-coverage.json": "ede60cfcdee364f479442a0ccb860dc38b3f8fac514107f437a7a5fd6f574569",
+    "rebuilt-sheet.png": "323dc68033e330fae9e217cd26160ba5473fe3dc463a1a1a0d170aa617131843",
+    "recompute.log": "61e16f319023494c9bae67082a854cf7b7ccbaa5e8803d3eb454bb91d832418e",
+    "recompute.py": "4a3652a7b47719442b5b911d05ec16ac0bdea427fab7e7018e2402cadccaca77",
+    "recomputed.json": "56413c8168fc0082a02fa7109b21839476fecb06f832c2a3807406602097f9dc",
+    "review.md": "fb128edd3e2561b4573253ade13eb8a9e08549f6912a2c54b3f5a510ed238bc4"
+  }
+}

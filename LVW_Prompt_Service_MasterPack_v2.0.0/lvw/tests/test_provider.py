@@ -252,6 +252,9 @@ def test_video_uses_all_sample_frames_one_call_and_retains_joint_motion(monkeypa
         assert sheet.getpixel(point)==color
     for point,color in zip([(128,652),(384,652),(640,652)],[(255,128,0),(0,128,255),(255,255,0)]):
         assert sheet.getpixel(point)==color  # Exact residuals, not fabricated motion labels.
+    from app.provider import VIDEO_SYSTEM_PROMPT, VIDEO_SYSTEM_PROMPT_PATH
+    assert calls[0]['messages'][0]=={'role':'system','content':VIDEO_SYSTEM_PROMPT}
+    assert VIDEO_SYSTEM_PROMPT==SYSTEM_PROMPT+'\n\n'+VIDEO_SYSTEM_PROMPT_PATH.read_text(encoding='utf-8').strip()
     assert 'single image and return' not in calls[0]['messages'][-1]['content']
     assert 'Actual populated SOURCE panel count: 4' in calls[0]['messages'][-1]['content']
     assert '1, 3, 5, 7' in calls[0]['messages'][-1]['content']
@@ -260,7 +263,7 @@ def test_video_uses_all_sample_frames_one_call_and_retains_joint_motion(monkeypa
     assert measured[0]['mean_absolute_rgb_delta']==127.666667
     assert calls[0]['options']['num_ctx']==4096
     assert spec.technical.subject_action.startswith('The color changes')
-    assert spec.template_version=='1.4.0'
+    assert spec.template_version=='1.5.0'
     registration=json.loads(calls[0]['messages'][-1]['content'].split('Measured image registration (not physical camera motion): ',1)[1].split('\nMeasured adjacent-frame',1)[0])
     assert len(registration)==3 and all(not item['usable'] for item in registration)
     assert any('4个采样帧' in x for x in spec.domains.unknowns)

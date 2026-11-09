@@ -5,7 +5,7 @@ import hashlib
 def build_id():
     root=Path(__file__).resolve().parents[3]
     files=list((root/'lvw/backend/app').glob('*.py'))+list((root/'lvw/frontend/dist').rglob('*'))
-    files+=[root/'templates/analysis_system_zh.txt']
+    files+=[root/'templates'/name for name in ('analysis_system_zh.txt','analysis_video_system_zh.txt')]
     files += [root/'LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge'/name for name in
               ['core.py','video_files.py','video_input.py','video_process.py','video_decoder.py']]
     digest=hashlib.sha256()

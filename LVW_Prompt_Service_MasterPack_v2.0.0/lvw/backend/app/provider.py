@@ -92,7 +92,9 @@ VIDEO_TASK = (
     "generation defects, never observed changes. camera_motion and subject_action may explicitly "
     "state uncertainty. Do not confuse measured pixel alignment direction with physical camera direction."
 )
-VIDEO_TEMPLATE_SHA256 = hashlib.sha256((TEMPLATE_SHA256 + VIDEO_TASK +
+VIDEO_SYSTEM_PROMPT_PATH = SYSTEM_PROMPT_PATH.with_name("analysis_video_system_zh.txt")
+VIDEO_SYSTEM_PROMPT = SYSTEM_PROMPT + "\n\n" + VIDEO_SYSTEM_PROMPT_PATH.read_text(encoding="utf-8").strip()
+VIDEO_TEMPLATE_SHA256 = hashlib.sha256((TEMPLATE_SHA256 + VIDEO_SYSTEM_PROMPT + VIDEO_TASK +
     VIDEO_PRESENTATION_VERSION + json.dumps(VIDEO_SCHEMA, sort_keys=True)).encode()).hexdigest()
 
 
@@ -460,6 +462,7 @@ class OllamaProvider:
         call_id = "call_" + uuid.uuid4().hex
         messages: list[dict[str, object]] = build_messages(mode, content_profile, custom_guidance)
         if frames is not None:
+            messages[0]["content"] = VIDEO_SYSTEM_PROMPT
             messages[-1]["content"] = str(messages[-1]["content"]).replace(TEMPLATE_TEXT, VIDEO_TASK)
             messages[-1]["content"] += f"\nActual populated SOURCE panel count: {len(frames)}. Actual frame times (seconds): " + json.dumps([
                 value["time_seconds"] for value in frames])
@@ -522,7 +525,7 @@ class OllamaProvider:
                 parsed.technical.subject_action = action
                 parsed.domains.unknowns.append(f"仅观察{len(frames)}个采样帧，未采样事件、连续运动与音频未经验证。")
                 parsed.template_id = "lvw-unified-video"
-                parsed.template_version = "1.4.0"
+                parsed.template_version = "1.5.0"
         except (AppError, ValueError, KeyError, TypeError) as error:
             self._record("provider_call_failed", call_id, outcome="invalid_content")
             if not isinstance(error, AppError):

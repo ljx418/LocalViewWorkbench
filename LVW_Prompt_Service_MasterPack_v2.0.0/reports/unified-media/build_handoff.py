@@ -25,7 +25,7 @@ coverage_path=control.get('slice_acceptance_receipt')
 coverage={}
 if coverage_path and (ROOT/coverage_path).exists():
     coverage_record=read(coverage_path)
-    coverage_items=coverage_record.get('rows',coverage_record.get('items'))
+    coverage_items=coverage_record.get('rows',coverage_record.get('items',coverage_record.get('cases')))
     if coverage_items is None and isinstance(coverage_record.get('checks'),dict):
         coverage_items=[dict(value,id=key) for key,value in coverage_record['checks'].items()]
     assert isinstance(coverage_items,list) and len(coverage_items)==10
