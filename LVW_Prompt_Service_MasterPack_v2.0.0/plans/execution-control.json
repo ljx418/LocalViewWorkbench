@@ -8,22 +8,20 @@
   "coordinate": {
     "stage_id": "R1",
     "workpack_id": "WP-R1-U3",
-    "gate": "RESIDUAL_INPUT_REAL_SEMANTIC_RECHECK",
-    "state": "READY_FOR_REVIEW"
+    "gate": "RESOURCE_ADMISSION_FOR_RESIDUAL_REAL_RECHECK",
+    "state": "WAIT_RESOURCE"
   },
   "last_passed_gate": {
-    "gate": "RESIDUAL_INPUT_OFFLINE_AND_INDEPENDENT_REVIEW",
-    "candidate_sha": "96e77ea3691cf68422ccd159c85985b4d9a118ec",
-    "receipt": "reports/unified-media/residual-input-offline-01/receipt.json",
-    "guard_receipt": "reports/unified-media/residual-budget-offline-01/receipt.json",
-    "independent_source_review": "reports/unified-media/independent-residual-input-01/receipt.json",
-    "independent_guard_review": "reports/unified-media/independent-residual-budget-01/receipt.json",
-    "decision": "OFFLINE_ONLY_NOT_REAL_VIDEO_SEMANTIC_ACCEPTANCE"
+    "gate": "COMPLETE03_EXECUTOR_OFFLINE_AND_INDEPENDENT_REVIEW",
+    "candidate_sha": "dccdd1b7e06d3bb71d2baf86dc440dee8a6b3f99",
+    "receipt": "reports/unified-media/complete03-offline-01/receipt.json",
+    "independent_review": "reports/unified-media/independent-complete03-01/receipt.json",
+    "decision": "CPU133_AND_EXECUTOR_REVIEW_NOT_REAL_MEDIA_ACCEPTANCE"
   },
-  "current_blocking_gate": "COMPLETE03_FINAL_SOURCE_REVIEW_BINDING",
+  "current_blocking_gate": "GPU_FREE_BELOW_FROZEN_ADMISSION_THRESHOLD",
   "stage_packet": ".agent-governance/stages/R1/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/R1/PAYLOAD_MANIFEST.sha256",
-  "product_status": "RESIDUAL_INPUT_OFFLINE_VERIFIED_REAL_SEMANTICS_NOT_RUN",
+  "product_status": "RESIDUAL_INPUT_REAL_SEMANTICS_NOT_RUN_RESOURCE_BLOCKED",
   "allowed_claim": "V0_MIN_ACCEPTED_NOT_RELEASED",
   "forbidden_claims": [
     "V0_ACCEPTED",
@@ -33,8 +31,8 @@
     "PRODUCTION_RELEASED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "codex_unified_implementer",
-  "next_action": "Seal COMPLETE03 authority candidate, final reviewer source binding, then one finite live08 on residual input; no per-Stage authorization.",
+  "next_owner": "project_owner_for_gpu_availability_then_local_ci",
+  "next_action": "When GPU free>=19047MiB and RAM>=2048MiB, auto-derive fresh live09 and continue under active COMPLETE03. No new execution/budget approval. Do not kill foreign processes or lower thresholds. Next-stage S3 document prep remains draft until prerequisite human acceptance.",
   "required_authorization": null,
   "authorization_request": "reports/authorization-program-v1-complete-03.request.json",
   "authorization_record": "reports/authorization-program-v1-complete-03.approval.json",
@@ -52,7 +50,7 @@
   ],
   "contract_change_request": "reports/r1a/change-request-r1a-product-controls-02.json",
   "contract_change_decision": "reports/r1a/change-decision-r1a-product-controls-02.json",
-  "implementation_candidate": "96e77ea3691cf68422ccd159c85985b4d9a118ec",
+  "implementation_candidate": "dccdd1b7e06d3bb71d2baf86dc440dee8a6b3f99",
   "implementation_baseline": "0fee9933874f3aa0e163bded2800d9704ee8be0f",
   "candidate_binding_scope": "Minimum unified media slice; code candidate and its own evidence only. Historical S2 and full R1/R2 remain separate.",
   "offline_evidence_commit": null,
@@ -84,13 +82,13 @@
   },
   "historical_live_terminal_receipt": "reports/r1a/r1a-live-07/live-receipt.json",
   "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
-  "live_terminal_receipt": "reports/unified-media/live-07/receipt.json",
-  "independent_review": "reports/unified-media/independent-live-07/review.md",
-  "exact_stop_reason": "COMPLETE03_EXPLICITLY_APPROVED_EXECUTOR_UPDATE_IN_PROGRESS",
+  "live_terminal_receipt": "reports/unified-media/live-08/receipt.json",
+  "independent_review": "reports/unified-media/independent-live-08/review.md",
+  "exact_stop_reason": "WAIT_RESOURCE_ONLY: LIVE08_ZERO_MODEL_CLEANED; 30_BOUNDED_PROBES_BELOW19047MiB; LATEST_FREE12641MiB; COMPLETE03_ACTIVE_NO_PERMISSION_BLOCK",
   "native_component_authorization": "reports/v0-s2/authorization-native-component-02.json",
   "native_component_terminal_receipt": "reports/v0-s2/native-component-02/receipt.json",
   "local_control_change_decision": "reports/v0-s2/change-decision-video-workbench-01.json",
-  "latest_workpack_receipt": "reports/unified-media/residual-input-correction-01.md",
+  "latest_workpack_receipt": "reports/unified-media/complete03-ledger-carry-forward.json",
   "warm_benchmark_blocker": "reports/v0-s2/warm-benchmark-evidence-gap-01.md",
   "warm_profile_implementation": "reports/v0-s2/warm-profile-implementation-progress-01.md",
   "warm_profile_decision": "reports/v0-s2/warm-profile-decision-01.md",
@@ -138,7 +136,7 @@
     "terminal": true,
     "restart_forbidden": true
   },
-  "next_stage_document_preparation": "reports/v0-s3/preparation-01.md",
+  "next_stage_document_preparation": "reports/v0-s3/preparation-02.md",
   "native_checkpoint_attempts": {
     "initial_consumed": 1,
     "corrected_recheck_consumed": 1,
@@ -779,33 +777,28 @@
       },
       {
         "id": "WP-R1-U3",
-        "state": "RESIDUAL_OFFLINE_READY_WAIT_BUDGET_INCREMENT"
+        "state": "WAIT_RESOURCE_NO_ADDITIONAL_AUTH_REQUIRED"
       }
     ],
     "implementation": "READY_FOR_REVIEW",
-    "machine_acceptance": "LIVE07_SEQUENCE_COMPLETE_CONTENT_NO_GO",
-    "independent_review": "LIVE07_FATAL0_MAJOR1_MINOR0_UM9_OF10",
-    "full_checkpoints_consumed": 2,
-    "remaining_corrected_full_rechecks": 0,
+    "machine_acceptance": "LIVE08_RESOURCE_ADMISSION_REFUSED_BEFORE_LEASE_ZERO_INFERENCE",
+    "independent_review": "LIVE08_RESOURCE_ONLY_RESIDUAL_SEMANTICS_NOT_RUN",
     "latest_harness_review": "reports/unified-media/independent-residual-budget-01/review.md",
     "latest_harness_candidate": "96e77ea3691cf68422ccd159c85985b4d9a118ec",
     "live_executor": {
-      "run_id": "live-07",
+      "run_id": "live-08",
       "terminal": true,
       "restart_forbidden": true
     },
     "proposed_packet_version": "1.0.3_ACTIVE_APPROVED",
     "latest_correction_review": "reports/unified-media/independent-residual-input-01/review.md",
     "live_review_coverage": {
-      "PASS": 9,
-      "FAIL": 1,
-      "BLOCKED": 0,
-      "receipt": "reports/unified-media/independent-live-07/coverage.json"
+      "PASS": 1,
+      "FAIL": 0,
+      "BLOCKED": 9,
+      "receipt": "reports/unified-media/independent-live-08/coverage.json"
     },
     "offline_cpu_tests": 108,
-    "supplemental_full_rechecks_approved": 1,
-    "supplemental_full_rechecks_consumed": 1,
-    "pending_recovery_full_rechecks": 0,
     "program02_effective_full_checkpoints_consumed": 3,
     "program02_model_actions": 9
   },
@@ -858,18 +851,26 @@
     "resolution_evidence": "reports/v0-s2/resource-admission-policy-correction-01/receipt.json"
   },
   "current_runtime_failure": {
-    "code": "VIDEO_TEMPORAL_SEMANTIC_FAILURE",
-    "failure_category": "MODEL_CONTENT_NOT_STARTUP_OR_GPU",
-    "live_receipt": "reports/unified-media/live-07/receipt.json",
-    "provider_calls": 3,
+    "code": "RESOURCE_BUSY",
+    "category": "WAIT_RESOURCE_NOT_PERMISSION",
+    "live_receipt": "reports/unified-media/live-08/receipt.json",
+    "baseline_free_mib": 18839,
+    "required_free_mib": 19047,
+    "followup_free_mib_min": 18172,
+    "followup_free_mib_max": 18322,
+    "probe_count": 30,
+    "model_calls": 0,
+    "effective_full_consumed": false,
     "cleanup_proven": true,
     "native_exit_proven": true,
-    "real_semantic_reverification": "FAILED_UM04",
-    "candidate_sha": "d9759decaa760eb81479db5434ff9206b18b3327"
+    "real_semantic_reverification": "NOT_RUN",
+    "latest_free_mib": 12641,
+    "required_additional_free_mib": 6406,
+    "latest_resource_receipt": "reports/unified-media/complete03-resource-wait-02/receipt.json"
   },
-  "resource_readiness_receipt": "reports/unified-media/semantic-approved-preflight-01/receipt.json",
-  "live_candidate_sha": "d9759decaa760eb81479db5434ff9206b18b3327",
-  "slice_acceptance_receipt": "reports/unified-media/independent-live-07/coverage.json",
+  "resource_readiness_receipt": "reports/unified-media/complete03-resource-wait-02/receipt.json",
+  "live_candidate_sha": "dccdd1b7e06d3bb71d2baf86dc440dee8a6b3f99",
+  "slice_acceptance_receipt": "reports/unified-media/independent-live-08/coverage.json",
   "last_live_authorization": "reports/unified-media/authorization-semantic-correction-01.approval.terminal.json",
   "historical_video_semantic_failure": {
     "code": "VIDEO_TEMPORAL_SEMANTIC_FAILURE",
@@ -886,13 +887,13 @@
   "authorization_consolidation": {
     "request": "reports/authorization-program-v1-local-02.request.json",
     "request_sha256": "212b89a987dba5ad478a2f7cac6be35aa0520d7461c919003b500174fe49d108",
-    "status": "ACTIVE_PARENT_R1_FULL_BUDGET_EXHAUSTED",
+    "status": "HISTORICAL_PROGRAM02_SUPERSEDED_BY_COMPLETE03",
     "history_audit": "docs/28_AUTHORIZATION_HISTORY_AND_CONSOLIDATION.md",
     "absorbs_runtime_request_only_if_approved": true,
     "alternative_single_run_request": "reports/unified-media/authorization-runtime-transition-01.request.json",
     "approval": "reports/authorization-program-v1-local-02.approval.json"
   },
-  "latest_video_semantic_assessment": "本轮正确读取33–34%的像素变化，但仍错误断言背景网格构图与位置恒定，并将变化猜作压缩/噪声；独审UM04 FAIL，不能将其作为可靠运动事实或统一核签通过。",
+  "latest_video_semantic_assessment": "本轮在Provider.acquire内部资源guard、lease_acquired之前被拒绝，0模型调用，未生成残差输入的真实视频结果。上轮live07时序误判仍是历史失败，不能当新候选结论。",
   "historical_startup_failure_before_program02": {
     "code": "STARTUP_CONTROLLER_BUSY_409_BEFORE_JOB",
     "live_receipt": "reports/unified-media/live-04/receipt.json",
@@ -920,6 +921,18 @@
     "approval": "reports/authorization-program-v1-complete-03.approval.json",
     "request_sha256": "afcde7f29095a68e9175f454b16da32514566cca475ccafdfceefbcdcb45be25",
     "absorbs_pending_budget_request": true,
-    "status": "APPROVED_GLOBAL_ONLY_EXECUTOR_OFFLINE_VERIFIED"
-  }
+    "status": "ACTIVE_GLOBAL_ONLY_EXECUTOR_INDEPENDENTLY_REVIEWED",
+    "ledger": "reports/unified-media/complete03-ledger-carry-forward.json",
+    "global_only": true,
+    "per_stage_authorization_counts_applied": false
+  },
+  "legacy_stage_authorization_counts_before_complete03": {
+    "full_checkpoints_consumed": 2,
+    "remaining_corrected_full_rechecks": 0,
+    "supplemental_full_rechecks_approved": 1,
+    "supplemental_full_rechecks_consumed": 1,
+    "pending_recovery_full_rechecks": 0
+  },
+  "offline_input_review": "reports/unified-media/independent-residual-input-01/review.md",
+  "program03_budget_snapshot": "reports/unified-media/complete03-budget-final.json"
 }

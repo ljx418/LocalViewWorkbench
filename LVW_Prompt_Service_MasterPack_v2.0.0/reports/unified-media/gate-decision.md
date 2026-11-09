@@ -1,4 +1,18 @@
-# 当前门禁：WAIT_BUDGET；可视残差输入离线完成，未真实验证
+# 当前门禁：WAIT_RESOURCE；COMPLETE03已批准，无阶段权限阻塞
+
+执行器候选dccdd1b7e06d3bb71d2baf86dc440dee8a6b3f99。AUTH-PROGRAM-V1-COMPLETE-03已明确批准并hash绑定；133项CPU组合回归及执行器隔离独审Fatal0/Major0/Minor0。实际账本仍为原program02.sqlite，全局累计1024模型动作/24有效完整轮/48小时，不再使用阶段/启动/CPU次数授权硬配额。旧单次live08增量请求已被覆盖，无需另批。
+
+live08原始Windows启动→真实React/FastAPI→本轮原生Ollama服务已运行，固定两个损坏/超时长负例拒绝。但首个图片分析在Provider.acquire内部资源guard、lease_acquired前拒绝，baseline GPU free18839MiB<冻结19047，RAM9824MiB。未启动视觉推理，model/provider send=0、有效完整槽=0。模型服务/API/browser正常退出、原始native身份和临时根清理闭合。残差输入真实语义NOT_RUN，不能把live07或合成图当新通过。
+
+18次有界只读资源等待均未达到19047MiB；没有终止外部进程或降低资源/质量门槛。见complete03-resource-wait-01与后续有限检查。资源释放后自动派生新唯一live09，不复活旧child，不请求重复GPU或阶段授权。
+
+独审independent-live-08按本轮实际证据完整义务1PASS/9BLOCKED，UM10冻结/清理闭合；UM02两个真实负例仅局部成功，不借历史组合结果补齐。历史9模型动作/3有效完整轮/178秒保留，后续零模型时间另记，母授权仍ACTIVE。
+
+当前不是人工体验签署入口或整个R1/V1通过；只在资源就绪后完成真实语义检查及独审，再请求人类实际核签。下一S3仅准备文档preparation-02，不跳过前置人签。以下保留先前门禁历史。
+
+---
+
+# 历史：可视残差输入离线完成，曾等待预算
 
 新候选96e77ea3691cf68422ccd159c85985b4d9a118ec：124项子树回归及最终34项定向通过，源输入独立158断言、权限独立28检查通过，Fatal0/Major0/Minor0。无真实模型、服务或媒体探测，不能把此离线结论当UM04通过。
 

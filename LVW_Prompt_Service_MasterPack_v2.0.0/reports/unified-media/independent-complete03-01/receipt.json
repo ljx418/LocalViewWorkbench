@@ -1,0 +1,185 @@
+{
+  "schema_version": "lvw.independent-complete03-review/1",
+  "reviewer": "isolated complete03_executor_review session",
+  "review_kind": "READ_ONLY_CANDIDATE_CPU_PRIVATE_SQLITE",
+  "decision": "PASS_OFFLINE_EXECUTOR_REVIEW_NOT_STAGE_SIGNOFF",
+  "candidate_sha": "dccdd1b7e06d3bb71d2baf86dc440dee8a6b3f99",
+  "candidate_binding_status": "SEALED_GIT_BLOBS_MATCH_REVIEWED_SOURCE_HASHES",
+  "working_tree_base_sha": "a03aad2d45e6bd4f6056f7491310d4a2d29f49d5",
+  "source_sha256": {
+    "tools/local_program_authority.py": "677998fa2ab5b51017b5437fecd07d6ca31c26473a7ac0acede4637f6470f787",
+    "tools/test_local_program_authority.py": "0df79520e802f8289d006916d20af1d2710309f6f42c907c3704168a536d5883",
+    "reports/unified-media/authority.py": "f17e8d188cdafe550536b2035e2ba748f2c1584e1fa5cefff9c715e13cf137c3",
+    "reports/authorization-program-v1-complete-03.request.json": "afcde7f29095a68e9175f454b16da32514566cca475ccafdfceefbcdcb45be25",
+    "reports/authorization-program-v1-complete-03.approval.json": "cd919c7fd24c24e2740366ef11998fee1b3302f16700598a3a5f75c6ef1b0821",
+    "plans/execution-control.json": "7e782aa9f9d7c7db2e25449e7a9d497c6d5ec7ce61b7f2f010d9728418a0d09e",
+    "AGENTS.md": "c4a31eb92c58239c505343e0f59907a51bb9a3ea713d487ed26d81061f3df7d0"
+  },
+  "fatal": 0,
+  "major": 0,
+  "minor": 0,
+  "existing_directed_tests": 22,
+  "independent_probe_groups": 5,
+  "historical_consumption_fixture": {
+    "model_actions": 9,
+    "effective_full_checkpoints": 3,
+    "production_seconds": 178
+  },
+  "global_limits": {
+    "model_actions": 1024,
+    "effective_full_checkpoints": 24,
+    "production_seconds": 172800
+  },
+  "unchanged_child_ceiling": {
+    "model_actions": 128,
+    "seconds": 21600
+  },
+  "unchanged_current_slice": {
+    "model_actions": 8,
+    "seconds": 1800
+  },
+  "stage_pass_claim": false,
+  "human_signature": false,
+  "real_ledger_read_or_write": false,
+  "external_actions": 0,
+  "limitations": [
+    "No product/live08 semantic acceptance",
+    "Cross-Stage packet preparation and prerequisite human signatures remain gate-owner responsibilities; this R1 creator has no automatic cross-Stage implementation",
+    "Real ledger history not independently queried; production preserves the same ledger path, and historical totals are exercised in private fixtures"
+  ],
+  "raw": [
+    "raw/unittest.stdout.log",
+    "raw/unittest.stderr.log",
+    "raw/recompute.json",
+    "raw/recompute.stderr.log",
+    "raw/reviewed-source-hashes.json",
+    "raw/final-candidate-binding.json"
+  ],
+  "coordinate": {
+    "stage_id": "R1",
+    "workpack_id": "WP-R1-U3",
+    "gate": "RESIDUAL_INPUT_REAL_SEMANTIC_RECHECK",
+    "state": "READY_FOR_REVIEW"
+  },
+  "development_outline": [
+    {
+      "stage_id": "V0-S0",
+      "completed_substeps": 1,
+      "total_substeps": 2,
+      "implementation": "ARCHIVED",
+      "machine_acceptance": "NO_GO_HISTORICAL",
+      "independent_review": "COMPLETED_WITH_BLOCKERS",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "V0-S1",
+      "completed_substeps": 5,
+      "total_substeps": 5,
+      "implementation": "DELIVERED",
+      "machine_acceptance": "ACCEPTED_SCOPE_ONLY",
+      "independent_review": "COMPLETED",
+      "human_signoff": "APPROVED"
+    },
+    {
+      "stage_id": "R0",
+      "completed_substeps": 1,
+      "total_substeps": 2,
+      "implementation": "PARTIAL_REUSED",
+      "machine_acceptance": "SINGLE_IMAGE_SUBSET_ONLY",
+      "independent_review": "NO_SEPARATE_R0_VERDICT",
+      "human_signoff": "NO_SEPARATE_R0_SIGNOFF"
+    },
+    {
+      "stage_id": "R1a",
+      "completed_substeps": 5,
+      "total_substeps": 5,
+      "implementation": "DELIVERED",
+      "machine_acceptance": "ACCEPTED_SCOPE_ONLY",
+      "independent_review": "COMPLETED",
+      "human_signoff": "APPROVED"
+    },
+    {
+      "stage_id": "V0-S2",
+      "completed_substeps": 7,
+      "total_substeps": 8,
+      "implementation": "IMPLEMENTED",
+      "machine_acceptance": "COMPLETE_FIXED9_PASSED",
+      "independent_review": "COMPLETE_FATAL0_MAJOR0_MINOR0",
+      "human_signoff": "PENDING"
+    },
+    {
+      "stage_id": "V0-S3",
+      "completed_substeps": 0,
+      "total_substeps": 6,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R1",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R2",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R3",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R4",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R5a",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R5b",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R5c",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    }
+  ],
+  "next_action_decision": "ALLOW_EXISTING_APPROVED_FINITE_LIVE08_SUBJECT_TO_RUNTIME_PREFLIGHT_AND_RESERVATION",
+  "next_action_scope": "R1 existing unified slice only; 8 model actions/1800 seconds; exact frozen samples/source/tools; same program02 ledger; no human/Stage signoff substitution"
+}

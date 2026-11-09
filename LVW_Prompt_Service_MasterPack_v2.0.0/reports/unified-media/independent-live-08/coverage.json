@@ -1,0 +1,50 @@
+{
+  "scope": "live08 only; no historical positive output splicing",
+  "checks": {
+    "UM-01": {
+      "status": "BLOCKED",
+      "reason": "首个真实图片作业RESOURCE_BUSY，未取得模型结果"
+    },
+    "UM-02": {
+      "status": "BLOCKED",
+      "reason": "仅本轮duration/corrupt两个公开拒绝真实通过；完整负例矩阵未在本轮完成"
+    },
+    "UM-03": {
+      "status": "BLOCKED",
+      "reason": "未进入视频采样，缺本候选实际PTS/源帧证据"
+    },
+    "UM-04": {
+      "status": "BLOCKED",
+      "reason": "残差输入真实语义NOT_RUN；无新raw输出"
+    },
+    "UM-05": {
+      "status": "BLOCKED",
+      "reason": "未进入准备/推理/排队取消完整序列；清理取消不能替代"
+    },
+    "UM-06": {
+      "status": "BLOCKED",
+      "reason": "页面显示人工稿LIVE_MANUAL_KEEP；采纳/脏稿/导出完整序列未执行"
+    },
+    "UM-07": {
+      "status": "BLOCKED",
+      "reason": "资源错误页人工稿保留可见；模型离线与人工导出完整义务未执行"
+    },
+    "UM-08": {
+      "status": "BLOCKED",
+      "reason": "拒绝租约并released真实可见；未实际装载模型，完整释放/隔离义务未执行"
+    },
+    "UM-09": {
+      "status": "BLOCKED",
+      "reason": "原生入口及真实headless页面已启动；组合验收提前中止"
+    },
+    "UM-10": {
+      "status": "PASS",
+      "reason": "本候选107冻结文件、4样本、9工具身份复算；原进程退出/临时清理与本独审闭合"
+    }
+  },
+  "pass": 1,
+  "fail": 0,
+  "blocked": 9,
+  "semantic_status": "NOT_RUN",
+  "decision": "WAIT_RESOURCE"
+}

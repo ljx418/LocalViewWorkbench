@@ -16,7 +16,7 @@ header=f'''<header><small>LVW · 最小图文与视频统一前端</small><h1>{s
 has_outputs=(ROOT/base/'image-model-run.json').exists() and (ROOT/base/'video-model-run.json').exists()
 quality_note=control.get('latest_video_semantic_assessment','本轮取得真实图视频输出，内容与时序语义待独立复算，不能仅凭JSON或HTTP成功计通过。') if has_outputs else '本轮尚无完整图视频模型输出，不能展示不存在的结果；具体失败以原始收据为准。'
 completion_note='真实图片、视频、取消和释放序列已执行，最终是否通过以独立审查和门禁收据为准。' if has_outputs else '真实图片、视频结果与取消释放的完整组合尚未完成。'
-summary=f'''<section><h2>本轮验证事实</h2><div class="note">{h(control.get('exact_stop_reason',''))}</div><p>执行器原始结论：<strong>{h(live['decision'])}</strong>；独立验收状态：<strong>{h(control['product_status'])}</strong>。先前S2的9/9和历史截图仅证明旧候选，不能代替当前统一前端。</p><ul><li>统一页面、Windows启动链、真实媒体边界拒绝：已有本轮执行记录。</li><li>此前代码静审通过；本轮真实内容结论仍须独审裁决。{h(completion_note)}</li><li>{h(quality_note)}</li><li>11段人工留样保持NOT_RUN，冻结预期及视频字节均未改动。</li></ul><p><a href="{h(latest)}">真实终态收据</a> · <a href="{h(control['independent_review'])}">本轮独立审查</a> · <a href="reports/unified-media/independent-runtime-transition-01/review.md">启动竞态纠偏独审</a> · <a href="reports/authorization-program-v1-local-02.approval.json">已批准的本机持续授权</a> · <a href="{h(base)}/browser-result.json">浏览器原始记录</a> · <a href="reports/unified-media/independent-correction-01/review-87c64a3.md">初版历史代码审查</a> · <a href="reports/unified-media/independent-correction-01/review-0f6b772.md">历史执行器纠偏审查</a> · <a href="验收报告与盲测视频_S2历史.html">旧S2测试视频与输出（历史）</a></p></section>'''
+summary=f'''<section><h2>本轮验证事实</h2><div class="note">{h(control.get('exact_stop_reason',''))}</div><p>执行器原始结论：<strong>{h(live['decision'])}</strong>；独立验收状态：<strong>{h(control['product_status'])}</strong>。先前S2的9/9和历史截图仅证明旧候选，不能代替当前统一前端。</p><ul><li>统一页面、Windows启动链、真实媒体边界拒绝：已有本轮执行记录。</li><li>此前代码静审通过；本轮真实内容结论仍须独审裁决。{h(completion_note)}</li><li>{h(quality_note)}</li><li>11段人工留样保持NOT_RUN，冻结预期及视频字节均未改动。</li></ul><p><a href="{h(latest)}">真实终态收据</a> · <a href="{h(control['independent_review'])}">本轮独立审查</a> · <a href="reports/unified-media/independent-runtime-transition-01/review.md">启动竞态纠偏独审</a> · <a href="reports/authorization-program-v1-complete-03.approval.json">已批准的V1全程授权</a> · <a href="{h(base)}/browser-result.json">浏览器原始记录</a> · <a href="reports/unified-media/independent-correction-01/review-87c64a3.md">初版历史代码审查</a> · <a href="reports/unified-media/independent-correction-01/review-0f6b772.md">历史执行器纠偏审查</a> · <a href="验收报告与盲测视频_S2历史.html">旧S2测试视频与输出（历史）</a></p></section>'''
 steps=['双击LVW.exe → 打开图文视频工作台；保留服务窗口，以其显示地址为准。','服务面板启动本机Ollama，等待“启动中…”结束且分析按钮可用；资源不足时不能保证分析成功。','选择图片或视频并预览；人工稿先写一段文字，再点分析。','查看机器建议和原始JSON；视频应显示真实源PTS、时间基和哈希，不把四帧采样当作完整分镜。','点击采纳并确认替换，编辑后复制/导出TXT与JSON；未采纳的新结果不能覆盖旧稿。','新分析中取消，确认终态和资源released；模型关闭后仍应能编辑导出。','先保存导出文件，再关闭本页拥有的模型服务，最后在服务窗口Ctrl+C。']
 guide='<section><h2>怎么体验</h2><ol>'+''.join(f'<li>{h(s)}</li>' for s in steps)+'</ol><p>图片：JPEG/PNG/WebP ≤20MiB、4000万像素。视频：MP4/MOV ≤256MiB、≤60秒、源帧≤8294400像素。工作稿只在当前页面会话中，刷新前请导出。完整数据库修订、批量、长视频、音频及完整V1质量尚未交付。</p></section>'
 outline='<section><h2>完整开发大纲</h2><div class="scroll"><table><tr><th>阶段</th><th>交付</th><th>完成子步骤</th><th>说明</th></tr>'+''.join(f'<tr><td>{h(x["stage_id"])}</td><td>{h(x.get("title",""))}</td><td>{x["completed_substeps"]}/{x["total_substeps"]}</td><td>{h(x.get("summary",""))}</td></tr>' for x in control['development_outline'])+'</table></div><p>本次提前切片另计U1/U2/U3，不将切片完成度等同于完整R1/R2。</p></section>'
@@ -26,6 +26,8 @@ coverage={}
 if coverage_path and (ROOT/coverage_path).exists():
     coverage_record=read(coverage_path)
     coverage_items=coverage_record.get('rows',coverage_record.get('items'))
+    if coverage_items is None and isinstance(coverage_record.get('checks'),dict):
+        coverage_items=[dict(value,id=key) for key,value in coverage_record['checks'].items()]
     assert isinstance(coverage_items,list) and len(coverage_items)==10
     coverage={v['id']:v for v in coverage_items}
     assert set(coverage)=={f'UM-{i:02d}' for i in range(1,11)}
@@ -34,10 +36,10 @@ names=['图片公开入口真实结果','媒体边界与损坏拒绝','视频源
 rows=''
 for i,name in enumerate(names,1):
  k=f'UM-{i:02d}';v=coverage.get(k) or live.get('checks',{}).get(k,{})
- rows+=f'<tr><td>{k}</td><td>{h(name)}</td><td>{h(v.get("status","未完成"))}</td><td>{h(v.get("basis",v.get("evidence_and_reason",v.get("oracle","当前真实运行未证明，不计PASS"))))}</td></tr>'
+ rows+=f'<tr><td>{k}</td><td>{h(name)}</td><td>{h(v.get("status","未完成"))}</td><td>{h(v.get("basis",v.get("evidence_and_reason",v.get("reason",v.get("oracle","当前真实运行未证明，不计PASS")))))}</td></tr>'
 pending=''
-if control.get('last_passed_gate',{}).get('gate')=='RESIDUAL_INPUT_OFFLINE_AND_INDEPENDENT_REVIEW':
-    pending='<section><h2>新候选：可视差异输入，尚未提交真实模型</h2><p>上方代码候选已通过离线测试与独审；下方真实输出仍来自上一轮失败候选，不能混作新候选通过。F为完整采样源帧，D为相邻源帧逐RGB绝对差，均保留明确身份；差异图不代表运动方向或场景真值。</p><img src="reports/unified-media/independent-residual-input-01/preview-4-source-panels.png" alt="独审生成的合成像素预览，非真实视频输出"><p>此图仅为合成像素输入预览。<a href="reports/unified-media/independent-residual-input-01/review.md">输入独审</a> · <a href="reports/unified-media/independent-residual-budget-01/review.md">预算保护独审</a> · <a href="reports/unified-media/authorization-residual-recheck-01.request.json">仅新增一轮真实复验的待批预算请求</a>。原母授权仍有效，当前R1完整槽3/3已用尽，当前没有live08。</p></section>'
+if control.get('offline_input_review') or control.get('last_passed_gate',{}).get('gate')=='RESIDUAL_INPUT_OFFLINE_AND_INDEPENDENT_REVIEW':
+    pending='<section><h2>可视差异输入：离线完成，真实效果见本轮结论</h2><p>上方代码候选已通过离线测试与独审；合成预览不能替代真实模型结果，实际是否完成以本轮收据与独审为准。F为完整采样源帧，D为相邻源帧逐RGB绝对差，均保留明确身份；差异图不代表运动方向或场景真值。</p><img src="reports/unified-media/independent-residual-input-01/preview-4-source-panels.png" alt="独审生成的合成像素预览，非真实视频输出"><p>此图仅为合成像素输入预览。<a href="reports/unified-media/independent-residual-input-01/review.md">输入独审</a> · <a href="reports/unified-media/independent-residual-budget-01/review.md">预算保护独审</a> · <a href="reports/authorization-program-v1-complete-03.approval.json">已批准的V1全程授权</a>。阶段次数授权硬限制已取消，当前不需要补充执行许可；资源可用性与真实质量门禁仍须通过。</p></section>'
 report=header+pending+summary+'<section><h2>逐项验收</h2><div class="scroll"><table><tr><th>编号</th><th>义务</th><th>结果</th><th>证据边界</th></tr>'+rows+'</table></div><p><a href="reports/unified-media/offline-03/receipt.json">离线03收据（对应其记录候选）</a> · <a href="reports/unified-media/ui-cpu-01/receipt.json">CPU浏览器夹具6项（不代表真实模型）</a> · <a href="reports/unified-media/resource-diagnostic-03/receipt.json">最近资源诊断</a></p></section>'
 def result_card(name,title,media,source_base=base):
     p=ROOT/source_base/name
@@ -53,16 +55,19 @@ if ledger_path.exists():
 history=[]
 for auth_path in sorted((ROOT/'reports/unified-media').glob('live-*/authorization.json')):
     auth=json.loads(auth_path.read_text());receipt_path=auth_path.parent/'receipt.json'
-    if not auth.get('program','').endswith('authorization-program-v1-local-02.approval.json') or not receipt_path.exists():continue
+    if not any(auth.get('program','').endswith(p) for p in ('authorization-program-v1-local-02.approval.json','authorization-program-v1-complete-03.approval.json')) or not receipt_path.exists():continue
     receipt=json.loads(receipt_path.read_text());review_path=ROOT/'reports/unified-media'/('independent-'+auth['run_id'])/'receipt.json'
     review=json.loads(review_path.read_text()) if review_path.exists() else {}
     settlement=receipt.get('program02_budget_settlement',{})
     history.append('<tr><td>'+h(auth['run_id'])+'</td><td><code>'+h(auth['candidate_sha'][:12])+'</code></td><td>'+h(settlement.get('actual_model_actions','未结算'))+'</td><td>'+h(review.get('decision','待独审'))+'</td><td><a href="'+h(str(receipt_path.relative_to(ROOT)))+'">原始运行</a> · <a href="'+h(str(review_path.relative_to(ROOT)))+'">独审</a></td></tr>')
 if history:
     report+='<section><h2>本次母授权下的运行历史</h2><p>每轮独立候选与完整失败证据保留；后续修复不会把前轮改为通过。</p><div class="scroll"><table><tr><th>运行</th><th>候选</th><th>模型动作</th><th>独审结论</th><th>原始证据</th></tr>'+''.join(history)+'</table></div></section>'
-if not has_outputs and (ROOT/'reports/unified-media/live-03/video-model-run.json').exists():
-    historical='reports/unified-media/live-03'
-    report+='<section><h2>上一轮已完成的模型输出 · 历史未通过</h2><p>以下来自a8a431d的live03，不是当前修复候选结果。原视频错误描述为静止，导致语义Major；不能把此历史输出当成当前候选通过。</p><div class="grid">'+result_card('image-model-run.json','live03历史图片结果','<img src="reports/unified-media/dev-image.png" alt="历史开发图片">',historical)+result_card('video-model-run.json','live03历史视频结果','<video controls preload="none" src="reports/v0-s2/fixture-preparation-02/fixtures/tracking.mov"></video>',historical)+'</div></section>'
+if not has_outputs:
+    previous=sorted((ROOT/'reports/unified-media').glob('live-*'),key=lambda p:int(p.name.split('-')[-1]))
+    previous=[p for p in previous if p.is_dir() and (p/'image-model-run.json').is_file() and (p/'video-model-run.json').is_file()]
+    if previous:
+        historical=previous[-1].relative_to(ROOT).as_posix()
+        report+='<section><h2>最近一次已完成的模型输出 · 历史记录</h2><p>以下来自'+h(historical)+'，不属于本轮未进入推理的运行。原始错误和独审结论保留，不能将这些历史输出补成新候选通过。</p><div class="grid">'+result_card('image-model-run.json','历史图片结果','<img src="reports/unified-media/dev-image.png" alt="历史开发图片">',historical)+result_card('video-model-run.json','历史视频结果','<video controls preload="none" src="reports/v0-s2/fixture-preparation-02/fixtures/tracking.mov"></video>',historical)+'</div></section>'
 report+='<section><h2>11段人工留样 · 未提交模型</h2><p>先看视频，再到统一工作台上传验证。以下预期由先验观察冻结，不是LVW实际输出；不用逐字匹配，也不要依据来源标题编造事实。正式机器门禁完成前不需要你代跑回归。</p><p><a href="人工验收视频集/人工验证视频_11段.zip" download>下载视频集ZIP</a> · <a href="人工验收视频集/expected-results.frozen.json">冻结预期</a> · <a href="reports/unified-media/holdout-binding.json">新旧候选与哈希绑定</a></p><div class="grid">'
 for v,e in zip(freeze['videos'],expected['items']):
  assert v['id']==e['id']
