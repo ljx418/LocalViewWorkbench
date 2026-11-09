@@ -1,0 +1,62 @@
+--- reports/unified-media/thinking_capability_probe.py	2026-11-09 21:40:39.022030800 +0800
++++ reports/unified-media/thinking_config_probe.py	2026-11-09 21:54:46.358781100 +0800
+@@ -1,6 +1,7 @@
+ """One bounded thinking-mode component probe; never a public Stage acceptance."""
+ from pathlib import Path
+ import asyncio, hashlib, json, shutil, socket, subprocess, sys, time, uuid, os
++from importlib.metadata import version
+ from types import SimpleNamespace
+ ROOT=Path(__file__).resolve().parents[2]
+ sys.path[:0]=[str(ROOT),str(ROOT/'lvw/backend')]
+@@ -18,11 +19,12 @@
+         return connection.connect_ex(('127.0.0.1',11434))==0
+ 
+ async def main():
+-    run='thinking-capability-probe-01';out=ROOT/'reports/unified-media'/run
++    run='thinking-config-probe-02';out=ROOT/'reports/unified-media'/run
+     assert not out.exists(),'one-shot identity already used'
+     assert not listening(),'existing service belongs to another run; leave it untouched'
+     candidate=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
+-    paths=['lvw/backend/app','templates','tools/local_program_authority.py',str(Path(__file__).relative_to(ROOT))]
++    paths=['lvw/backend/app','templates','tools/local_program_authority.py',str(Path(__file__).relative_to(ROOT)),
++        'reports/unified-media/change-decision-private-generation-probe-02.json']
+     assert subprocess.run(['git','diff','--quiet',candidate,'--',*paths],cwd=ROOT).returncode==0
+     assert not subprocess.check_output(['git','ls-files','--others','--exclude-standard','--',*paths],cwd=ROOT,text=True).strip()
+     binding=json.loads((ROOT/'reports/unified-media/live-14/bindings.json').read_text())
+@@ -34,7 +36,8 @@
+     out.mkdir()
+     temp=ROOT.parent.parent/'.lvw-runtime/lvw-prompt-service'/('thinking-'+uuid.uuid4().hex)
+     result={'decision':'NO_GO','retained_source_frames_used':4,'new_video_decode':False,
+-        'stage_pass_claim':False,'internal_thinking_persisted':False}
++        'stage_pass_claim':False,'internal_thinking_persisted':False,
++        'environment':{'python':sys.version,'Pillow':version('Pillow'),'httpx':version('httpx'),'pydantic':version('pydantic')}}
+     reserved=False;provider=None;runtime=None
+     child={'run_id':run,'candidate_sha':candidate,'stage_pass_claim':False}
+     try:
+@@ -53,7 +56,7 @@
+             'budget_ledger':str(program.LEDGER),'execution_bindings_required':True,
+             'samples':[{'path':str(p.relative_to(ROOT)),'sha256':sha(p)} for p in samples],'budget':budget,
+             'metadata_requests_limit':200,'gpu_queries_limit':450,'sample_read_limit':16,
+-            'wall_seconds_limit':600,'model_sends_limit':1,
++            'wall_seconds_limit':600,'model_sends_limit':1,'inference_config':{'thinking':True,'num_ctx':4096,'num_predict':1536,'temperature':0.2,'compact_video':True},
+             'scope':'One component call on retained4sourcePPMs, thinking=True, no full/public/UI acceptance, no new decode or holdouts',
+             'cleanup':'Only the fresh runtime original native handle/nonce; retain evidence then remove own temp.',
+             'stage_pass_claim':False}
+@@ -88,7 +91,7 @@
+                 if sample['gpu_used_mib']>=23552 or sample['available_ram_mib']<2048:
+                     raise AppError('RESOURCE_BUSY','组件验证资源触及既有门限',status_code=503)
+                 await asyncio.sleep(1)
+-        inference=asyncio.create_task(provider.analyze_video(decoded,mode='realistic',thinking=True))
++        inference=asyncio.create_task(provider.analyze_video(decoded,mode='realistic',thinking=True,compact_video=True,video_probe_tokens=1536))
+         watcher=asyncio.create_task(monitor())
+         try:
+             done,_=await asyncio.wait({inference,watcher},timeout=420,return_when=asyncio.FIRST_COMPLETED)
+@@ -119,6 +122,8 @@
+             try:
+                 body=json.loads(raw);message=body.get('message',{})
+                 result['partial_final_content']=message.get('content','')
++                result['thinking_field_present']=bool(message.get('thinking'))
++                result['thinking_character_count']=len(message.get('thinking',''))
+                 result['done_reason']=body.get('done_reason');result['eval_count']=body.get('eval_count')
+             except (ValueError,AttributeError):result['wire_envelope_parse_failed']=True
+     finally:

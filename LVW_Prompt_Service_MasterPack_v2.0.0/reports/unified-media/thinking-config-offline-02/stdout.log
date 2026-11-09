@@ -1,0 +1,60 @@
+.........................................................F.............. [ 51%]
+.....................................................................    [100%]
+=================================== FAILURES ===================================
+____________ test_analyze_ledger_counts_real_provider_boundary_once ____________
+
+tmp_path = PosixPath('/tmp/pytest-of-administrator/pytest-71/test_analyze_ledger_counts_rea0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x71cc2facc1a0>
+
+    def test_analyze_ledger_counts_real_provider_boundary_once(tmp_path, monkeypatch):
+        envelope = model_envelope()
+        captured = {}
+    
+        class Response:
+            text = __import__("json").dumps(envelope)
+    
+            @staticmethod
+            def raise_for_status():
+                return None
+    
+            @staticmethod
+            def json():
+                return envelope
+    
+        class Client:
+            async def __aenter__(self):
+                return self
+    
+            async def __aexit__(self, *_):
+                return None
+    
+            async def post(self, *_args, **kwargs):
+                captured.update(kwargs["json"])
+                return Response()
+    
+        monkeypatch.setattr("app.provider.httpx.AsyncClient", lambda **_kwargs: Client())
+        image = tmp_path / "analysis.png"
+        image.write_bytes(b"fixed-image-bytes")
+        ledger = tmp_path / "provider.jsonl"
+        provider = OllamaProvider("http://127.0.0.1:11434/api/chat", "gemma4:26b", 30,
+                                  ledger_path=ledger)
+        __import__("asyncio").run(provider.analyze(image, mode="realistic",
+            content_profile="adult-art", custom_guidance="保留原始皮肤纹理"))
+        events = [__import__("json").loads(line)["event"] for line in ledger.read_text().splitlines()]
+>       assert events == ["provider_call_started", "provider_call_completed"]
+E       AssertionError: assert ['provider_ca...ll_completed'] == ['provider_ca...ll_completed']
+E         
+E         At index 1 diff: 'provider_response_received' != 'provider_call_completed'
+E         Left contains one more item: 'provider_call_completed'
+E         Use -v to get more diff
+
+lvw/tests/test_provider.py:221: AssertionError
+=============================== warnings summary ===============================
+tests/test_provider.py::test_colour_registration_recovers_equal_luma_motion_and_static_negative
+  /mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/lvw/tests/test_provider.py:433: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+    assert len(set(source.convert('L').getdata()))==1
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED lvw/tests/test_provider.py::test_analyze_ledger_counts_real_provider_boundary_once
+1 failed, 140 passed, 1 warning in 9.20s

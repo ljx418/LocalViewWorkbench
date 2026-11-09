@@ -1,0 +1,75 @@
+{
+  "decision": "NO_GO",
+  "retained_source_frames_used": 4,
+  "new_video_decode": false,
+  "stage_pass_claim": false,
+  "internal_thinking_persisted": false,
+  "start": {
+    "protocol": "lvw.runtime/1",
+    "lvw": {
+      "state": "ready"
+    },
+    "ollama": {
+      "state": "ready",
+      "reachable": true,
+      "model": "gemma4:26b",
+      "model_ready": true,
+      "model_loaded": false,
+      "managed": true,
+      "pid": 32444,
+      "reason": null,
+      "last_error": null
+    },
+    "actions": {
+      "can_start": false,
+      "can_reset": true,
+      "can_stop": true
+    }
+  },
+  "model_identity": {
+    "name": "gemma4:26b",
+    "model": "gemma4:26b",
+    "modified_at": "2026-04-15T02:16:30.463209+08:00",
+    "size": 17987581215,
+    "digest": "5571076f3d70050487b26b341705799e0ab29b808164f90d20d4cf84f699d251",
+    "details": {
+      "parent_model": "",
+      "format": "gguf",
+      "family": "gemma4",
+      "families": [
+        "gemma4"
+      ],
+      "parameter_size": "25.8B",
+      "quantization_level": "Q4_K_M"
+    },
+    "capabilities": [
+      "completion",
+      "tools",
+      "thinking"
+    ]
+  },
+  "error": "AppError: PARSE_PARTIAL",
+  "wire_response_sha256": "fd6d4d746ec3b63b988892b4738df6cfbfc4e1f8f715c889149dd480bed66c4d",
+  "partial_final_content": "",
+  "done_reason": "length",
+  "eval_count": 768,
+  "lease_released": true,
+  "owners": [
+    {
+      "nonce": "8f44afc81d15444197ee39bdb672ccb8",
+      "state": "exited",
+      "pid": 32444,
+      "birth_ticks": 639298286552214150,
+      "listener_owned": false
+    }
+  ],
+  "cleanup_proven": true,
+  "settlement": {
+    "run_id": "thinking-capability-probe-01",
+    "actual_model_actions": 1,
+    "effective_full_checkpoint": false,
+    "zero_model_startup": false,
+    "elapsed_seconds": 26,
+    "program_still_active": true
+  }
+}

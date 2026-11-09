@@ -218,7 +218,11 @@ def test_analyze_ledger_counts_real_provider_boundary_once(tmp_path, monkeypatch
     __import__("asyncio").run(provider.analyze(image, mode="realistic",
         content_profile="adult-art", custom_guidance="保留原始皮肤纹理"))
     events = [__import__("json").loads(line)["event"] for line in ledger.read_text().splitlines()]
-    assert events == ["provider_call_started", "provider_call_completed"]
+    assert events == ["provider_call_started", "provider_response_received", "provider_call_completed"]
+    rows=[__import__("json").loads(line) for line in ledger.read_text().splitlines()]
+    assert rows[1]['wire_response_sha256']==__import__('hashlib').sha256(Response.text.encode()).hexdigest()
+    assert rows[0]['request_payload_sha256']==__import__('hashlib').sha256(
+        __import__('json').dumps(captured,sort_keys=True,separators=(',',':')).encode()).hexdigest()
     assert [message["role"] for message in captured["messages"]] == ["system", "user"]
     assert "adult-art" in captured["messages"][1]["content"]
     assert "保留原始皮肤纹理" in captured["messages"][1]["content"]
@@ -468,3 +472,70 @@ def test_private_thinking_opt_in_requires_live_show_support_before_inference(mon
     supported[0]=['thinking']
     returned,_=asyncio.run(call())
     assert paths==before+['/api/show','/api/chat'] and returned==raw
+
+
+def test_compact_alignment_retains_numeric_values_units_aliases_and_unusable_reasons():
+    from app.provider import compact_alignment_metadata
+    measured=[{'from_frame':1,'to_frame':2,'usable':True,'analysis_size':[64,48],
+        'search_radius_px':10,'next_to_previous_alignment_offset_px':{'x':-4,'y':2},
+        'unaligned_mean_luma_error':20.25,'best_aligned_mean_luma_error':3.75,
+        'relative_error_reduction':0.814815,'equally_best_offsets':2,
+        'colour_components':[{'component':'R-G','usable':True,'offset_px':{'x':0,'y':0},
+            'zero_error':0,'best_error':0,'error_reduction_percent':0,'equally_best_offsets':3},
+            {'component':'G-B','usable':False,'reason':'reference_has_no_texture'}]},
+        {'from_frame':2,'to_frame':3,'usable':False,'reason':'analysis_too_narrow',
+            'colour_components':[{'component':'B-R','usable':False,'reason':'analysis_too_narrow'}]}]
+    compact=compact_alignment_metadata(measured)
+    row=compact['pairs'][0]
+    decoded=dict(zip(compact['gray_columns'],row['gray'],strict=True))
+    assert decoded=={'offset_x_px':-4,'offset_y_px':2,'zero_error':20.25,'best_error':3.75,
+        'reduction_fraction_0_to1':0.814815,'ties':2}
+    assert dict(zip(compact['colour_columns'],row['colour'][0],strict=True))=={
+        'component':'R-G','offset_x_px':0,'offset_y_px':0,'zero_error':0,'best_error':0,
+        'reduction_percent_0_to100':0,'ties':3}
+    assert row['analysis_size']==[64,48] and row['search_radius_px']==10
+    assert row['colour'][1]=={'component':'G-B','unusable_reason':'reference_has_no_texture'}
+    assert compact['pairs'][1]=={'from_frame':2,'to_frame':3,'gray_unusable_reason':'analysis_too_narrow',
+        'colour':[{'component':'B-R','unusable_reason':'analysis_too_narrow'}]}
+
+
+def test_private_compact1536_probe_uses_same_source_sheet_and_one_guarded_chat(monkeypatch,tmp_path):
+    import asyncio,httpx,json,base64,hashlib
+    from types import SimpleNamespace
+    from io import BytesIO
+    from PIL import Image
+    from app.provider import build_temporal_sheet, VIDEO_COMPACT_TEMPLATE_SHA256
+    frame=BytesIO();Image.new('RGB',(16,16),'blue').save(frame,format='PPM')
+    decoded=SimpleNamespace(frames=[frame.getvalue()]*4,manifest=[{'time_seconds':t} for t in (1,3,5,7)])
+    real=httpx.AsyncClient;captured=[]
+    async def handler(request):
+        if request.url.path=='/api/show':return httpx.Response(200,json={'capabilities':['thinking','vision']})
+        assert request.url.path=='/api/chat';captured.append(json.loads(request.content))
+        return httpx.Response(200,json=model_envelope(camera_motion='unknown',subject_action='unknown'))
+    monkeypatch.setattr('app.provider.httpx.AsyncClient',lambda **kw:real(**kw,transport=httpx.MockTransport(handler)))
+    ledger=tmp_path/'ledger.jsonl'
+    provider=OllamaProvider('http://127.0.0.1:11434/api/chat','gemma4:26b',30,ledger_path=ledger)
+    _,spec=asyncio.run(provider.analyze_video(decoded,mode='realistic',thinking=True,compact_video=True,video_probe_tokens=1536))
+    assert len(captured)==1
+    payload=captured[0]
+    assert payload['think'] is True and payload['options']=={'num_ctx':4096,'num_predict':1536,'temperature':0.2}
+    assert base64.b64decode(payload['messages'][-1]['images'][0])==build_temporal_sheet(decoded)
+    registration=json.loads(payload['messages'][-1]['content'].split('Measured image registration (not physical camera motion): ',1)[1].split('\nMeasured adjacent-frame',1)[0])
+    assert len(registration['pairs'])==3 and all('gray_unusable_reason' in item for item in registration['pairs'])
+    assert spec.template_version=='1.6.0'
+    rows=[json.loads(line) for line in ledger.read_text().splitlines()]
+    started=next(row for row in rows if row['event']=='provider_call_started')
+    assert started['request_template_sha256']==VIDEO_COMPACT_TEMPLATE_SHA256
+    assert started['request_payload_sha256']==hashlib.sha256(json.dumps(payload,sort_keys=True,separators=(',',':')).encode()).hexdigest()
+    assert any(row['event']=='provider_response_received' for row in rows)
+
+
+def test_private_probe_configuration_failures_do_not_open_transport(monkeypatch):
+    import asyncio
+    def forbidden(**kwargs):raise AssertionError('invalid configuration opened transport')
+    monkeypatch.setattr('app.provider.httpx.AsyncClient',forbidden)
+    provider=OllamaProvider('http://127.0.0.1:11434/api/chat','gemma4:26b',30)
+    for options in ({'compact_video':True},{'video_probe_tokens':1536},
+                    {'thinking':True,'video_probe_tokens':1537},{'thinking':True,'video_probe_tokens':True}):
+        with pytest.raises(AppError):
+            asyncio.run(provider._analyze_images([b'CPU'],mode='realistic',content_profile='standard',custom_guidance='',frames=[],**options))

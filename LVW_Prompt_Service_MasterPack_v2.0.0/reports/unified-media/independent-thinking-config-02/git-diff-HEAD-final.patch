@@ -1,0 +1,218 @@
+diff --git a/LVW_Prompt_Service_MasterPack_v2.0.0/lvw/backend/app/provider.py b/LVW_Prompt_Service_MasterPack_v2.0.0/lvw/backend/app/provider.py
+index 18c7b8c..5afd560 100644
+--- a/LVW_Prompt_Service_MasterPack_v2.0.0/lvw/backend/app/provider.py
++++ b/LVW_Prompt_Service_MasterPack_v2.0.0/lvw/backend/app/provider.py
+@@ -92,11 +92,46 @@ VIDEO_TASK = (
+     "generation defects, never observed changes. camera_motion and subject_action may explicitly "
+     "state uncertainty. Do not confuse measured pixel alignment direction with physical camera direction."
+ )
++VIDEO_COMPACT_TASK = (
++    "Analyze ONE sampled video, not the sheet layout. F panels are full source frames in timestamp "
++    "order; D panels are derived absolute RGB differences, not scenes. Compare subject placement "
++    "and background landmarks separately. Registration aligns NEXT to PREVIOUS; colour components "
++    "are not objects, and pixel shifts do not prove physical camera motion. Measurements describe "
++    "sampled intervals only. Use the supplied column labels and units exactly. Return concise "
++    "bilingual schema JSON for the whole sampled sequence, retaining unknown causes."
++)
+ VIDEO_SYSTEM_PROMPT_PATH = SYSTEM_PROMPT_PATH.with_name("analysis_video_system_zh.txt")
+ VIDEO_SYSTEM_PROMPT = SYSTEM_PROMPT + "\n\n" + VIDEO_SYSTEM_PROMPT_PATH.read_text(encoding="utf-8").strip()
+ VIDEO_TEMPLATE_SHA256 = hashlib.sha256((TEMPLATE_SHA256 + VIDEO_SYSTEM_PROMPT + VIDEO_TASK +
+     VIDEO_PRESENTATION_VERSION + json.dumps(VIDEO_SCHEMA, sort_keys=True)).encode()).hexdigest()
+ 
++VIDEO_COMPACT_TEMPLATE_SHA256 = hashlib.sha256((TEMPLATE_SHA256 + VIDEO_SYSTEM_PROMPT +
++    VIDEO_COMPACT_TASK + VIDEO_PRESENTATION_VERSION + json.dumps(VIDEO_SCHEMA,sort_keys=True)).encode()).hexdigest()
++
++
++def compact_alignment_metadata(measurements: list[dict]) -> dict:
++    """Columnar lossless scalar layout; labels/units, not prefilled motion answers."""
++    rows=[]
++    for item in measurements:
++        row={'from_frame':item['from_frame'],'to_frame':item['to_frame']}
++        if item['usable']:
++            offset=item['next_to_previous_alignment_offset_px']
++            row.update(analysis_size=item['analysis_size'],search_radius_px=item['search_radius_px'],
++                gray=[offset['x'],offset['y'],item['unaligned_mean_luma_error'],
++                    item['best_aligned_mean_luma_error'],item['relative_error_reduction'],item['equally_best_offsets']])
++        else:row['gray_unusable_reason']=item['reason']
++        row['colour']=[]
++        for component in item['colour_components']:
++            if component['usable']:
++                offset=component['offset_px']
++                row['colour'].append([component['component'],offset['x'],offset['y'],component['zero_error'],
++                    component['best_error'],component['error_reduction_percent'],component['equally_best_offsets']])
++            else:row['colour'].append({'component':component['component'],'unusable_reason':component['reason']})
++        rows.append(row)
++    return {'gray_columns':['offset_x_px','offset_y_px','zero_error','best_error','reduction_fraction_0_to1','ties'],
++        'colour_columns':['component','offset_x_px','offset_y_px','zero_error','best_error','reduction_percent_0_to100','ties'],
++        'pairs':rows}
++
+ 
+ def build_temporal_sheet(decoded) -> bytes:
+     """Complete source panels plus explicitly derived residuals; one <=768px PNG."""
+@@ -447,28 +482,36 @@ class OllamaProvider:
+                                           custom_guidance=custom_guidance)
+ 
+     async def analyze_video(self, decoded, *, mode: Mode, content_profile: ContentProfile = "standard",
+-                            custom_guidance: str = "", thinking: bool = False):
++                            custom_guidance: str = "", thinking: bool = False,
++                            compact_video: bool = False, video_probe_tokens: int | None = None):
+         sheet = build_temporal_sheet(decoded)
+         return await self._analyze_images([sheet], mode=mode, content_profile=content_profile,
+             custom_guidance=custom_guidance, frames=decoded.manifest,
+             source_frame_hashes=[hashlib.sha256(value).hexdigest() for value in decoded.frames],
+             pixel_measurements=temporal_pixel_measurements(decoded.frames),
+-            alignment_measurements=temporal_alignment_measurements(decoded.frames), thinking=thinking)
++            alignment_measurements=temporal_alignment_measurements(decoded.frames), thinking=thinking,
++            compact_video=compact_video, video_probe_tokens=video_probe_tokens)
+ 
+     async def _analyze_images(self, images: list[bytes], *, mode: Mode,
+                               content_profile: ContentProfile, custom_guidance: str,
+                               frames=None, source_frame_hashes=None, pixel_measurements=None,
+-                              alignment_measurements=None, thinking: bool = False):
++                              alignment_measurements=None, thinking: bool = False, compact_video: bool = False,
++                              video_probe_tokens: int | None = None):
+         if type(thinking) is not bool:
+             raise AppError("MODEL_UNAVAILABLE", "无效的本地推理模式", status_code=503)
++        if (type(compact_video) is not bool or (compact_video and (not thinking or frames is None))
++                or (video_probe_tokens is not None and (not thinking or frames is None
++                    or type(video_probe_tokens) is not int or video_probe_tokens not in (768,1536)))):
++            raise AppError("MODEL_UNAVAILABLE", "无效的本地组件验证配置", status_code=503)
+         call_id = "call_" + uuid.uuid4().hex
+         messages: list[dict[str, object]] = build_messages(mode, content_profile, custom_guidance)
+         if frames is not None:
+             messages[0]["content"] = VIDEO_SYSTEM_PROMPT
+-            messages[-1]["content"] = str(messages[-1]["content"]).replace(TEMPLATE_TEXT, VIDEO_TASK)
++            messages[-1]["content"] = str(messages[-1]["content"]).replace(TEMPLATE_TEXT, VIDEO_COMPACT_TASK if compact_video else VIDEO_TASK)
+             messages[-1]["content"] += f"\nActual populated SOURCE panel count: {len(frames)}. Actual frame times (seconds): " + json.dumps([
+                 value["time_seconds"] for value in frames])
+-            messages[-1]["content"] += '\nMeasured image registration (not physical camera motion): '+json.dumps(alignment_measurements)
++            messages[-1]["content"] += '\nMeasured image registration (not physical camera motion): '+json.dumps(compact_alignment_metadata(alignment_measurements) if compact_video else alignment_measurements,
++                separators=(',',':') if compact_video else None)
+             messages[-1]["content"] += '\nMeasured adjacent-frame pixel differences (not motion estimates): '+json.dumps(pixel_measurements)
+         messages[-1]["images"] = [base64.b64encode(payload).decode("ascii") for payload in images]
+         payload = {
+@@ -476,7 +519,7 @@ class OllamaProvider:
+             "messages": messages,
+             "stream": False, "think": thinking, "format": VIDEO_SCHEMA if frames is not None else IMAGE_SCHEMA,
+             "options": {"num_ctx": 4096 if frames is not None else 2048,
+-                        "num_predict": 768 if frames is not None else 512, "temperature": 0.2},
++                        "num_predict": video_probe_tokens if video_probe_tokens is not None else 768 if frames is not None else 512, "temperature": 0.2},
+             "keep_alive": 0,
+         }
+         try:
+@@ -503,6 +546,9 @@ class OllamaProvider:
+                      alignment_measurements=alignment_measurements,
+                              presentation=VIDEO_PRESENTATION_VERSION if frames is not None else "single-image",
+                              thinking=thinking, thinking_capabilities_sha256=capability_sha,
++                             inference_options=payload["options"], compact_video=compact_video,
++                             request_template_sha256=(VIDEO_COMPACT_TEMPLATE_SHA256 if compact_video else VIDEO_TEMPLATE_SHA256) if frames is not None else TEMPLATE_SHA256,
++                             request_payload_sha256=hashlib.sha256(json.dumps(payload,sort_keys=True,separators=(",",":")).encode()).hexdigest(),
+                              input_sha256=hashlib.sha256(b"".join(images)).hexdigest())
+                 if child:
+                     from tools.local_program_authority import model_action
+@@ -517,6 +563,8 @@ class OllamaProvider:
+             self._record("provider_call_failed", call_id, outcome="http_error")
+             raise AppError("MODEL_UNAVAILABLE", "无法连接本地模型", status_code=503, retryable=True) from exc
+         raw = response.text
++        self._record("provider_response_received", call_id,
++                     wire_response_sha256=hashlib.sha256(raw.encode()).hexdigest())
+         try:
+             envelope = response.json()
+         except json.JSONDecodeError as exc:
+@@ -540,7 +588,7 @@ class OllamaProvider:
+                 parsed.technical.subject_action = action
+                 parsed.domains.unknowns.append(f"仅观察{len(frames)}个采样帧，未采样事件、连续运动与音频未经验证。")
+                 parsed.template_id = "lvw-unified-video"
+-                parsed.template_version = "1.5.0"
++                parsed.template_version = "1.6.0" if compact_video else "1.5.0"
+         except (AppError, ValueError, KeyError, TypeError) as error:
+             self._record("provider_call_failed", call_id, outcome="invalid_content")
+             if not isinstance(error, AppError):
+diff --git a/LVW_Prompt_Service_MasterPack_v2.0.0/lvw/tests/test_provider.py b/LVW_Prompt_Service_MasterPack_v2.0.0/lvw/tests/test_provider.py
+index fd4db1c..9a91879 100644
+--- a/LVW_Prompt_Service_MasterPack_v2.0.0/lvw/tests/test_provider.py
++++ b/LVW_Prompt_Service_MasterPack_v2.0.0/lvw/tests/test_provider.py
+@@ -218,7 +218,11 @@ def test_analyze_ledger_counts_real_provider_boundary_once(tmp_path, monkeypatch
+     __import__("asyncio").run(provider.analyze(image, mode="realistic",
+         content_profile="adult-art", custom_guidance="保留原始皮肤纹理"))
+     events = [__import__("json").loads(line)["event"] for line in ledger.read_text().splitlines()]
+-    assert events == ["provider_call_started", "provider_call_completed"]
++    assert events == ["provider_call_started", "provider_response_received", "provider_call_completed"]
++    rows=[__import__("json").loads(line) for line in ledger.read_text().splitlines()]
++    assert rows[1]['wire_response_sha256']==__import__('hashlib').sha256(Response.text.encode()).hexdigest()
++    assert rows[0]['request_payload_sha256']==__import__('hashlib').sha256(
++        __import__('json').dumps(captured,sort_keys=True,separators=(',',':')).encode()).hexdigest()
+     assert [message["role"] for message in captured["messages"]] == ["system", "user"]
+     assert "adult-art" in captured["messages"][1]["content"]
+     assert "保留原始皮肤纹理" in captured["messages"][1]["content"]
+@@ -468,3 +472,70 @@ def test_private_thinking_opt_in_requires_live_show_support_before_inference(mon
+     supported[0]=['thinking']
+     returned,_=asyncio.run(call())
+     assert paths==before+['/api/show','/api/chat'] and returned==raw
++
++
++def test_compact_alignment_retains_numeric_values_units_aliases_and_unusable_reasons():
++    from app.provider import compact_alignment_metadata
++    measured=[{'from_frame':1,'to_frame':2,'usable':True,'analysis_size':[64,48],
++        'search_radius_px':10,'next_to_previous_alignment_offset_px':{'x':-4,'y':2},
++        'unaligned_mean_luma_error':20.25,'best_aligned_mean_luma_error':3.75,
++        'relative_error_reduction':0.814815,'equally_best_offsets':2,
++        'colour_components':[{'component':'R-G','usable':True,'offset_px':{'x':0,'y':0},
++            'zero_error':0,'best_error':0,'error_reduction_percent':0,'equally_best_offsets':3},
++            {'component':'G-B','usable':False,'reason':'reference_has_no_texture'}]},
++        {'from_frame':2,'to_frame':3,'usable':False,'reason':'analysis_too_narrow',
++            'colour_components':[{'component':'B-R','usable':False,'reason':'analysis_too_narrow'}]}]
++    compact=compact_alignment_metadata(measured)
++    row=compact['pairs'][0]
++    decoded=dict(zip(compact['gray_columns'],row['gray'],strict=True))
++    assert decoded=={'offset_x_px':-4,'offset_y_px':2,'zero_error':20.25,'best_error':3.75,
++        'reduction_fraction_0_to1':0.814815,'ties':2}
++    assert dict(zip(compact['colour_columns'],row['colour'][0],strict=True))=={
++        'component':'R-G','offset_x_px':0,'offset_y_px':0,'zero_error':0,'best_error':0,
++        'reduction_percent_0_to100':0,'ties':3}
++    assert row['analysis_size']==[64,48] and row['search_radius_px']==10
++    assert row['colour'][1]=={'component':'G-B','unusable_reason':'reference_has_no_texture'}
++    assert compact['pairs'][1]=={'from_frame':2,'to_frame':3,'gray_unusable_reason':'analysis_too_narrow',
++        'colour':[{'component':'B-R','unusable_reason':'analysis_too_narrow'}]}
++
++
++def test_private_compact1536_probe_uses_same_source_sheet_and_one_guarded_chat(monkeypatch,tmp_path):
++    import asyncio,httpx,json,base64,hashlib
++    from types import SimpleNamespace
++    from io import BytesIO
++    from PIL import Image
++    from app.provider import build_temporal_sheet, VIDEO_COMPACT_TEMPLATE_SHA256
++    frame=BytesIO();Image.new('RGB',(16,16),'blue').save(frame,format='PPM')
++    decoded=SimpleNamespace(frames=[frame.getvalue()]*4,manifest=[{'time_seconds':t} for t in (1,3,5,7)])
++    real=httpx.AsyncClient;captured=[]
++    async def handler(request):
++        if request.url.path=='/api/show':return httpx.Response(200,json={'capabilities':['thinking','vision']})
++        assert request.url.path=='/api/chat';captured.append(json.loads(request.content))
++        return httpx.Response(200,json=model_envelope(camera_motion='unknown',subject_action='unknown'))
++    monkeypatch.setattr('app.provider.httpx.AsyncClient',lambda **kw:real(**kw,transport=httpx.MockTransport(handler)))
++    ledger=tmp_path/'ledger.jsonl'
++    provider=OllamaProvider('http://127.0.0.1:11434/api/chat','gemma4:26b',30,ledger_path=ledger)
++    _,spec=asyncio.run(provider.analyze_video(decoded,mode='realistic',thinking=True,compact_video=True,video_probe_tokens=1536))
++    assert len(captured)==1
++    payload=captured[0]
++    assert payload['think'] is True and payload['options']=={'num_ctx':4096,'num_predict':1536,'temperature':0.2}
++    assert base64.b64decode(payload['messages'][-1]['images'][0])==build_temporal_sheet(decoded)
++    registration=json.loads(payload['messages'][-1]['content'].split('Measured image registration (not physical camera motion): ',1)[1].split('\nMeasured adjacent-frame',1)[0])
++    assert len(registration['pairs'])==3 and all('gray_unusable_reason' in item for item in registration['pairs'])
++    assert spec.template_version=='1.6.0'
++    rows=[json.loads(line) for line in ledger.read_text().splitlines()]
++    started=next(row for row in rows if row['event']=='provider_call_started')
++    assert started['request_template_sha256']==VIDEO_COMPACT_TEMPLATE_SHA256
++    assert started['request_payload_sha256']==hashlib.sha256(json.dumps(payload,sort_keys=True,separators=(',',':')).encode()).hexdigest()
++    assert any(row['event']=='provider_response_received' for row in rows)
++
++
++def test_private_probe_configuration_failures_do_not_open_transport(monkeypatch):
++    import asyncio
++    def forbidden(**kwargs):raise AssertionError('invalid configuration opened transport')
++    monkeypatch.setattr('app.provider.httpx.AsyncClient',forbidden)
++    provider=OllamaProvider('http://127.0.0.1:11434/api/chat','gemma4:26b',30)
++    for options in ({'compact_video':True},{'video_probe_tokens':1536},
++                    {'thinking':True,'video_probe_tokens':1537},{'thinking':True,'video_probe_tokens':True}):
++        with pytest.raises(AppError):
++            asyncio.run(provider._analyze_images([b'CPU'],mode='realistic',content_profile='standard',custom_guidance='',frames=[],**options))
