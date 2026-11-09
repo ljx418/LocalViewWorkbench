@@ -1,0 +1,60 @@
+{
+  "kind": "V1_FINITE_CHILD_NOT_STAGE_SIGNOFF",
+  "status": "EXPIRED_NO_GO",
+  "stage_id": "R1",
+  "slice": "UNIFIED_MEDIA_EARLY",
+  "run_id": "live-04",
+  "candidate_sha": "9f4a659ee3f5b09b6c0abc060957b2f276916b37",
+  "harness_sha256": "a7ee727b1c63cd4e418b4b26f31c74b5a8d508841df7547b2c97a9c7efc841fd",
+  "program": "reports/authorization-program-v1-local-01.json",
+  "program_sha256": "8f79a9a5a02fb8904b21c86129c5a1509c7a3dcd3e8817d2fdde26266d3375b6",
+  "packet_manifest_sha256": "c20246bd153136c91ce27f7e125716c8c0b3848ffa58e7fe9857ce5f2e343502",
+  "ports": [
+    18780
+  ],
+  "samples": [
+    {
+      "path": "reports/unified-media/dev-image.png",
+      "sha256": "b0303b157ecb6e9f07ae83c460813a743ad4f18e9be83b92abd6ecf4c919e817"
+    },
+    {
+      "path": "reports/v0-s2/fixture-preparation-02/fixtures/tracking.mov",
+      "sha256": "b08ea8b0b9fa3bcd4e62b2b0ad1c05b2bff09359539933f4581a5c2f2c69ff6d"
+    },
+    {
+      "path": "reports/v0-s2/fixture-preparation-02/fixtures/over-duration.mp4",
+      "sha256": "e9a7dd1feac6ffee908fd3ebd0390f86cf126f4f15c41ee249762eeec23ac2b4"
+    },
+    {
+      "path": "reports/v0-s2/fixture-preparation-02/fixtures/corrupt.mp4",
+      "sha256": "a174786bd98ea1ffd1844a1110751f2d9c1989f4c6cb75feeef6f6326dc0a5b1"
+    }
+  ],
+  "budget": {
+    "api_starts": 1,
+    "ollama_starts": 1,
+    "headless_browser_starts": 1,
+    "provider_calls": 8,
+    "full_checkpoints": 1,
+    "model_calls": 8,
+    "downloads": 0,
+    "cloud_calls": 0,
+    "paid_calls": 0,
+    "holdout_model_calls": 0
+  },
+  "issued_at": 1794185344.2148197,
+  "expires_at": 1794187144.21482,
+  "process_policy": "Only original handles or PID+birth+unique launch-token proved descendants from this run; never terminate others.",
+  "cleanup": "Stop own browser/API/Ollama and remove only this run private temp. Retain receipts/failures.",
+  "full_checkpoint": true,
+  "stage_pass_claim": false,
+  "supplemental_authorization": {
+    "request": "reports/unified-media/authorization-semantic-correction-01.request.json",
+    "request_sha256": "ddb4fa7205723c76cfe3ecbf5ca9eb6182c24a18ee74ea32341d15504394f9a0",
+    "approval": "reports/unified-media/authorization-semantic-correction-01.approval.json",
+    "approval_sha256": "4506c2489ef211977442867c68fb7fcd4365108fad3b96d29249022b11430984",
+    "authorization_id": "AUTH-REQUEST-V1-R1-U3-SEMANTIC-01"
+  },
+  "bindings_sha256": "bca2300328d76a4dca265a4e16521ecf15fe419d5f852a284a50633a52e1225a",
+  "terminal": "receipt.json"
+}

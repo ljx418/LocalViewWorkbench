@@ -1,0 +1,122 @@
+{
+  "schema_version": "lvw.supplemental-authorization-request/1",
+  "authorization_id": "AUTH-REQUEST-V1-R1-U3-RUNTIME-01",
+  "status": "PENDING_HUMAN_APPROVAL_NOT_AUTHORIZATION",
+  "reason": "live04 reached a terminal NO_GO before inference: readiness became true while runtime/start still held the production controller lock; frontend permitted submit and got409. That one-shot grant expired. Corrected frontend gates start/reset/stop and the real-browser waiter now ends promptly on a no-Job error. One fresh whole-sequence run on this new frozen candidate requires a new grant; no automatic refund/replay of live04.",
+  "candidate_sha": "1d1db48328b80eb16a8d093ec09a7619c2f33fa8",
+  "candidate_policy": "Exact frozen source tree; documentation/evidence-only descendant commits may be actual execution HEAD if ancestor+zero frozen-path diff are verified. Actual HEAD recorded in child.",
+  "harness": "reports/unified-media/live_checkpoint.py",
+  "harness_sha256": "b125119d071c333e0f5435a9bf827b4d118c16675697d125e50a0417528b4202",
+  "frozen_paths": [
+    "lvw/backend",
+    "lvw/frontend",
+    "lvw/run_local.py",
+    "lvw/print_build_id.py",
+    "launcher",
+    "LVW.exe",
+    "START_LVW.cmd",
+    "contracts",
+    "reports/unified-media/authority.py",
+    "reports/unified-media/live_checkpoint.py",
+    "reports/unified-media/live_browser.cjs"
+  ],
+  "run_id": "live-05",
+  "stage_id": "R1",
+  "workpack_id": "WP-R1-U3",
+  "max_full_rechecks": 1,
+  "max_seconds": 1800,
+  "port": 18780,
+  "ollama_port": 11434,
+  "samples": [
+    {
+      "path": "reports/unified-media/dev-image.png",
+      "sha256": "b0303b157ecb6e9f07ae83c460813a743ad4f18e9be83b92abd6ecf4c919e817"
+    },
+    {
+      "path": "reports/v0-s2/fixture-preparation-02/fixtures/tracking.mov",
+      "sha256": "b08ea8b0b9fa3bcd4e62b2b0ad1c05b2bff09359539933f4581a5c2f2c69ff6d"
+    },
+    {
+      "path": "reports/v0-s2/fixture-preparation-02/fixtures/over-duration.mp4",
+      "sha256": "e9a7dd1feac6ffee908fd3ebd0390f86cf126f4f15c41ee249762eeec23ac2b4"
+    },
+    {
+      "path": "reports/v0-s2/fixture-preparation-02/fixtures/corrupt.mp4",
+      "sha256": "a174786bd98ea1ffd1844a1110751f2d9c1989f4c6cb75feeef6f6326dc0a5b1"
+    }
+  ],
+  "budget": {
+    "api_starts": 1,
+    "ollama_starts": 1,
+    "headless_browser_starts": 1,
+    "provider_calls": 8,
+    "full_checkpoints": 1,
+    "model_calls": 8,
+    "downloads": 0,
+    "cloud_calls": 0,
+    "paid_calls": 0,
+    "holdout_model_calls": 0
+  },
+  "expected_normal_provider_calls": 3,
+  "automatic_retries": 0,
+  "scope": [
+    "Disable analysis button and guard analyze handler while this page has pending runtime start/reset/stop; manual editing/export remain available. Fail test promptly when submission errors without creating a Job.",
+    "Replace four independent wire images with ONE <=768x768 PNG temporal contact sheet containing all 1–4 actual complete source frames, numbered F1..F4 and real decoded seconds in chronological order. Preserve source FrameRef entries/PTS/SHA, no sample answers in prompt; distinguish source frame count and wire image count in evidence.",
+    "one fresh isolated actual START_LVW/React/FastAPI/native Ollama sequence: real image, chronological video, explicit adoption/export, running cancellation, model-offline manual edit",
+    "real public duration/corrupt negatives; candidate-bound offline CPU regression and isolated review cover remaining controlled negative/race obligations",
+    "GPU used <23552MiB, free admission >=19047MiB, RAM >=2048MiB; total analysis420s/cleanup30s unchanged",
+    "loopback only, no-cloud explicitly set; unique original process handles/PID+birth+nonce; original raw evidence and failure retained",
+    "strict independent video semantic check on actual output, not just schema/HTTP success"
+  ],
+  "forbidden": [
+    "download/upgrade",
+    "cloud/paid/non-loopback",
+    "private media/cookies/existing browser profile",
+    "visible browser automation",
+    "permanent configuration changes",
+    "terminating foreign processes",
+    "11 reserved human video model calls",
+    "automatic extra whole runs or sample substitutions",
+    "human signature/release/remote push before human acceptance"
+  ],
+  "cleanup": "Cancel own jobs and wait terminal; public controlled model stop with original native exit proof; archive known run logs; stop own API/browser; remove owned temp; verify listeners absent. Unproved cleanup is NO_GO.",
+  "expires_when": [
+    "one terminal receipt generated",
+    "1800 seconds elapsed",
+    "human revokes",
+    "any scope/budget boundary reached"
+  ],
+  "human_signoff": false,
+  "product_threshold_changes": "none",
+  "related_evidence": [
+    "reports/unified-media/live-04/receipt.json",
+    "reports/unified-media/independent-live-04/receipt.json",
+    "reports/unified-media/runtime-transition-cpu-02/receipt.json",
+    "reports/unified-media/runtime-transition-offline-01/receipt.json"
+  ],
+  "proposed_packet_directory": "reports/unified-media/proposed-packet-1.0.3",
+  "proposed_packet_manifest_sha256": "c20246bd153136c91ce27f7e125716c8c0b3848ffa58e7fe9857ce5f2e343502",
+  "proposed_resolution": {
+    "active_packet_version": "1.0.3",
+    "packet_product_specification_change": "none; retain the already-approved complete-frame temporal sheet and exact active packet manifest/file set",
+    "source_change": "Disable analysis button and guard analyze handler while this page has pending runtime start/reset/stop; manual editing/export remain available. Fail test promptly when submission errors without creating a Job.",
+    "authorization_exception": "Approve exactly one new-candidate live05 after terminal live04; this is an additional whole attempt and service startup, not an automatic refund or reuse of expired authorization. Model call ceiling remains the unused8, expected3, no automatic retry.",
+    "api_schema_change": "none",
+    "acceptance_denominator_change": "none",
+    "resource_or_quality_threshold_change": "none",
+    "human_signature_authorized": false
+  },
+  "model_call_budget_accounting": {
+    "expired_live04_actual_inference_calls": 0,
+    "expired_live04_max_model_calls": 8,
+    "requested_new_max_model_calls": 8,
+    "increase_of_model_call_ceiling": 0,
+    "new_grant_required": true,
+    "old_complete_attempt_refunded": false
+  },
+  "additional_service_start_budget": {
+    "api": 1,
+    "owned_native_ollama": 1,
+    "headless_browser": 1
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "kind": "RUNTIME_TRANSITION_CORRECTION_OFFLINE_NOT_REAL_MODEL_ACCEPTANCE",
+  "candidate_sha": "1d1db48328b80eb16a8d093ec09a7619c2f33fa8",
+  "checks": [
+    {
+      "name": "unit",
+      "command": [
+        "npm",
+        "--prefix",
+        "lvw/frontend",
+        "run",
+        "test"
+      ],
+      "exit_code": 0,
+      "stdout_sha256": "0bf7f687699c1fadbff280c152a963752092037f67aeb8fa9ff5e4c2501a2a1d"
+    },
+    {
+      "name": "types",
+      "command": [
+        "npm",
+        "--prefix",
+        "lvw/frontend",
+        "run",
+        "typecheck"
+      ],
+      "exit_code": 0,
+      "stdout_sha256": "c1f3a8e3552c219aacfab13e6d09001c7a47adf12adcb5af188fde9f629ff047"
+    },
+    {
+      "name": "build",
+      "command": [
+        "npm",
+        "--prefix",
+        "lvw/frontend",
+        "run",
+        "build"
+      ],
+      "exit_code": 0,
+      "stdout_sha256": "19843d10e4acc4ae75d046a40c1c3df4033c0326b820b5e7c53326caeeb0c07b"
+    }
+  ],
+  "backend_source_diff_exit_code": 0,
+  "backend_regression_reused": "reports/unified-media/offline-07/receipt.json",
+  "backend_tests": 108,
+  "browser_regression": "reports/unified-media/runtime-transition-cpu-02/receipt.json",
+  "model_calls": 0,
+  "decision": "OFFLINE_CHECKS_VERIFIED"
+}

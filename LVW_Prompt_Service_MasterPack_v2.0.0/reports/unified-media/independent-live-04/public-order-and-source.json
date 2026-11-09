@@ -1,0 +1,118 @@
+{
+  "public_order": [
+    {
+      "line": 11,
+      "text": "INFO:     127.0.0.1:46156 - \"POST /api/v1/media HTTP/1.1\" 422 Unprocessable Entity"
+    },
+    {
+      "line": 12,
+      "text": "INFO:     127.0.0.1:46156 - \"POST /api/v1/media HTTP/1.1\" 422 Unprocessable Entity"
+    },
+    {
+      "line": 19,
+      "text": "INFO:     127.0.0.1:46168 - \"GET /api/v1/readiness HTTP/1.1\" 200 OK"
+    },
+    {
+      "line": 20,
+      "text": "INFO:     127.0.0.1:46168 - \"POST /api/v1/media HTTP/1.1\" 201 Created"
+    },
+    {
+      "line": 21,
+      "text": "INFO:     127.0.0.1:46168 - \"POST /api/v1/jobs/analyze HTTP/1.1\" 409 Conflict"
+    },
+    {
+      "line": 22,
+      "text": "INFO:     127.0.0.1:46166 - \"POST /api/v1/runtime/ollama/start HTTP/1.1\" 200 OK"
+    },
+    {
+      "line": 163,
+      "text": "INFO:     127.0.0.1:48104 - \"POST /api/v1/runtime/ollama/stop HTTP/1.1\" 200 OK"
+    },
+    {
+      "line": 166,
+      "text": "INFO:     Application shutdown complete."
+    },
+    {
+      "line": 167,
+      "text": "INFO:     Finished server process [1817252]"
+    }
+  ],
+  "source_paths": {
+    "lvw/frontend/src/App.tsx": [
+      {
+        "line": 57,
+        "text": "  const [runtimeAction, setRuntimeAction] = useState<string>(\"\");"
+      },
+      {
+        "line": 89,
+        "text": "  const busy = [\"uploading\", \"analyzing\", \"cancelling\"].includes(phase);"
+      },
+      {
+        "line": 126,
+        "text": "  async function analyze() {"
+      },
+      {
+        "line": 127,
+        "text": "    if (!file || busy) return;"
+      },
+      {
+        "line": 222,
+        "text": "        <button data-testid=\"runtime-start\" type=\"button\" onClick={() => runRuntimeAction(\"start\")} disabled={busy || !runtime?.actions.can_start || Boolean(runtimeAction)}>{runtimeAction === \"start\" ? \"启动中…\" : \"启动模型服务\"}</button>"
+      },
+      {
+        "line": 223,
+        "text": "        <button data-testid=\"runtime-reset\" type=\"button\" onClick={() => runRuntimeAction(\"reset\")} disabled={busy || !runtime?.actions.can_reset || Boolean(runtimeAction)}>{runtimeAction === \"reset\" ? \"重置中…\" : \"重置\"}</button>"
+      },
+      {
+        "line": 224,
+        "text": "        <button data-testid=\"runtime-stop\" type=\"button\" onClick={() => runRuntimeAction(\"stop\")} disabled={busy || !runtime?.actions.can_stop || Boolean(runtimeAction)}>{runtimeAction === \"stop\" ? \"关闭中…\" : \"关闭\"}</button>"
+      },
+      {
+        "line": 252,
+        "text": "          <button data-testid=\"analyze\" className=\"primary\" type=\"button\" onClick={analyze} disabled={!canAnalyze(Boolean(file), phase, readiness?.ready === true)}>{busy ? \"处理中…\" : inputKind === \"video\" ? \"分析这段视频\" : \"分析这张图片\"}</button>"
+      }
+    ],
+    "lvw/frontend/src/domain.ts": [
+      {
+        "line": 56,
+        "text": "export function canAnalyze(hasFile: boolean, phase: string, modelReady: boolean): boolean {"
+      },
+      {
+        "line": 57,
+        "text": "  return hasFile && modelReady && ![\"uploading\", \"analyzing\", \"cancelling\"].includes(phase);"
+      }
+    ],
+    "lvw/backend/app/service.py": [
+      {
+        "line": 28,
+        "text": "        self._controller_busy = False"
+      },
+      {
+        "line": 31,
+        "text": "    def submit(self, request: AnalyzeRequest, key: str) -> Job:"
+      },
+      {
+        "line": 32,
+        "text": "        if self._controller_busy:"
+      },
+      {
+        "line": 219,
+        "text": "        self._controller_busy = True"
+      },
+      {
+        "line": 226,
+        "text": "            self._controller_busy = False"
+      }
+    ],
+    "reports/unified-media/live_browser.cjs": [
+      {
+        "line": 5,
+        "text": " async function waitDone(){await p.waitForFunction(()=>{const b=document.querySelector('[data-testid=analyze]');return b&&!/处理中/.test(b.textContent)&&!!document.querySelector('.job-status');},{},{timeout:420000});}"
+      },
+      {
+        "line": 7,
+        "text": " let ready=false;for(let i=0;i<90;i++){const r=await fetch(base+'/api/v1/runtime/status');const d=(await r.json()).data;if(d.ollama.model_ready){assert.equal(d.ollama.managed,true);fs.writeFileSync(path.join(out,'runtime-start.json'),JSON.stringify(d,null,2));ready=true;break;}await p.waitForTimeout(500);}assert.ok(ready,'native model service never ready');"
+      }
+    ]
+  }
+}
