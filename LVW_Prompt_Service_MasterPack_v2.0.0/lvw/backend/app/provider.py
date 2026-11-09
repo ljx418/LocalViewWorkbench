@@ -12,7 +12,7 @@ from io import BytesIO
 from urllib.parse import urlsplit
 
 import httpx
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageChops, ImageStat
 
 from .errors import AppError
 from .models import ContentProfile, Domains, Mode, PromptSpec, Technical
@@ -79,6 +79,13 @@ VIDEO_TASK = (
     "State that only sampled frames were observed; continuous motion, unseen events and audio "
     "are unverified. Return compact JSON: prompt_zh is Chinese, prompt is English; camera_motion "
     "and subject_action contain supported observations or explicit uncertainty."
+    " Check subject placement and background landmark alignment separately: a subject can remain "
+    "in the same screen position while the framing or background changes. The supplied adjacent "
+    "pixel measurements are computed from the actual decoded frames, not sample answers. "
+    "A nonzero measurement rules out pixel-identical frames, but is not proof of camera motion "
+    "(compression, lighting and subject movement also change pixels). Describe visible differences; "
+    "if direction or cause is ambiguous, mark it unknown. Never infer an entirely static sequence "
+    "only because the main subject stays in place. Do not put observed changes in the negative prompt."
 )
 VIDEO_TEMPLATE_SHA256 = hashlib.sha256((TEMPLATE_SHA256 + VIDEO_TASK +
     VIDEO_PRESENTATION_VERSION + json.dumps(VIDEO_SCHEMA, sort_keys=True)).encode()).hexdigest()
@@ -107,6 +114,26 @@ def build_temporal_sheet(decoded) -> bytes:
     output = BytesIO()
     canvas.save(output, format="PNG")
     return output.getvalue()
+
+
+def temporal_pixel_measurements(images: list[bytes]) -> list[dict]:
+    """Measured metadata only: no motion direction/class or sample-specific answers."""
+    decoded=[]
+    for payload in images:
+        with Image.open(BytesIO(payload)) as image:
+            decoded.append(image.convert('RGB'))
+    result=[]
+    for index,(left,right) in enumerate(zip(decoded,decoded[1:]),1):
+        if left.size != right.size:
+            raise AppError('PARSE_PARTIAL','视频采样帧尺寸不一致',status_code=503)
+        difference=ImageChops.difference(left,right)
+        red,green,blue=difference.split()
+        nonzero=ImageChops.lighter(ImageChops.lighter(red,green),blue)
+        changed=left.width*left.height-nonzero.histogram()[0]
+        result.append({'from_frame':index,'to_frame':index+1,
+            'different_pixel_fraction':round(changed/(left.width*left.height),6),
+            'mean_absolute_rgb_delta':round(sum(ImageStat.Stat(difference).mean)/3,6)})
+    return result
 
 
 
@@ -328,17 +355,19 @@ class OllamaProvider:
         sheet = build_temporal_sheet(decoded)
         return await self._analyze_images([sheet], mode=mode, content_profile=content_profile,
             custom_guidance=custom_guidance, frames=decoded.manifest,
-            source_frame_hashes=[hashlib.sha256(value).hexdigest() for value in decoded.frames])
+            source_frame_hashes=[hashlib.sha256(value).hexdigest() for value in decoded.frames],
+            pixel_measurements=temporal_pixel_measurements(decoded.frames))
 
     async def _analyze_images(self, images: list[bytes], *, mode: Mode,
                               content_profile: ContentProfile, custom_guidance: str,
-                              frames=None, source_frame_hashes=None):
+                              frames=None, source_frame_hashes=None, pixel_measurements=None):
         call_id = "call_" + uuid.uuid4().hex
         messages: list[dict[str, object]] = build_messages(mode, content_profile, custom_guidance)
         if frames is not None:
             messages[-1]["content"] = str(messages[-1]["content"]).replace(TEMPLATE_TEXT, VIDEO_TASK)
             messages[-1]["content"] += f"\nActual populated panel count: {len(frames)}. Actual frame times (seconds): " + json.dumps([
                 value["time_seconds"] for value in frames])
+            messages[-1]["content"] += '\nMeasured adjacent-frame pixel differences (not motion estimates): '+json.dumps(pixel_measurements)
         messages[-1]["images"] = [base64.b64encode(payload).decode("ascii") for payload in images]
         payload = {
             "model": self.model,
@@ -356,6 +385,7 @@ class OllamaProvider:
                 self._record("provider_call_started", call_id,
                              frame_count=len(frames) if frames is not None else len(images),
                              payload_image_count=len(images), source_frame_hashes=source_frame_hashes,
+                     pixel_measurements=pixel_measurements,
                              presentation=VIDEO_PRESENTATION_VERSION if frames is not None else "single-image",
                              input_sha256=hashlib.sha256(b"".join(images)).hexdigest())
                 if child:

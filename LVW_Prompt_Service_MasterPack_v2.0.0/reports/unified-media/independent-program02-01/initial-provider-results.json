@@ -1,0 +1,26 @@
+{
+  "required_child_absent": {
+    "events": [],
+    "error": "AppError: \u53d7\u63a7\u9a8c\u8bc1\u7f3a\u5c11\u9884\u7b97\u5b50\u6388\u6743"
+  },
+  "invalid_mode_before_send": {
+    "events": [],
+    "error": "KeyError: 'invalid'"
+  },
+  "connection_failure_send_attempt": {
+    "events": [
+      "debit",
+      "record:provider_call_started",
+      "send-attempt",
+      "record:provider_call_failed"
+    ],
+    "error": "AppError: \u65e0\u6cd5\u8fde\u63a5\u672c\u5730\u6a21\u578b"
+  },
+  "evidence_failure_zero_send": {
+    "events": [
+      "debit",
+      "record:provider_call_started"
+    ],
+    "error": "OSError: CPU injected evidence disk write failure"
+  }
+}

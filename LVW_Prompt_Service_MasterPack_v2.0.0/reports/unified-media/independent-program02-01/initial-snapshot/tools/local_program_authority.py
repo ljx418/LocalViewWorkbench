@@ -1,0 +1,160 @@
+"""Program02 atomic local budgets. Reservations fail closed across crashes/processes.
+
+No model/server launch occurs here. Execution receipts remain separate from permission.
+"""
+from pathlib import Path
+from contextlib import contextmanager
+import hashlib
+import json
+import math
+import re
+import sqlite3
+import time
+
+ROOT = Path(__file__).resolve().parents[1]
+REQUEST = 'reports/authorization-program-v1-local-02.request.json'
+APPROVAL = 'reports/authorization-program-v1-local-02.approval.json'
+LEDGER = ROOT.parent.parent / '.lvw-runtime/lvw-prompt-service/program02.sqlite'
+
+
+def digest(path):
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+
+def approved(root=ROOT):
+    request = json.loads((root / REQUEST).read_text())
+    grant = json.loads((root / APPROVAL).read_text())
+    if not (grant.get('status') == 'ACTIVE' and grant.get('decision') == 'APPROVED'
+            and grant.get('authorization_id') == request['authorization_id'] == 'AUTH-PROGRAM-V1-LOCAL-02'
+            and grant.get('granted_by') == 'project_owner'
+            and grant.get('request_sha256') == digest(root / REQUEST)):
+        raise ValueError('WAIT_AUTH: absent/revoked/mismatched program02 approval')
+    return request
+
+
+@contextmanager
+def transaction(ledger):
+    ledger = Path(ledger)
+    ledger.parent.mkdir(parents=True, exist_ok=True)
+    db = sqlite3.connect(ledger, timeout=30)
+    db.row_factory = sqlite3.Row
+    try:
+        db.execute('CREATE TABLE IF NOT EXISTS children (run TEXT PRIMARY KEY, stage TEXT, '
+                   'cap INTEGER, seconds INTEGER, full INTEGER, cpu INTEGER, starts TEXT, '
+                   'issued REAL, expires REAL, calls INTEGER DEFAULT 0, checkpoint INTEGER DEFAULT 0, '
+                   'active INTEGER DEFAULT 1, elapsed INTEGER DEFAULT 0, child_path TEXT, child_hash TEXT)')
+        db.execute('BEGIN IMMEDIATE')
+        yield db
+        db.commit()
+    except BaseException:
+        db.rollback()
+        raise
+    finally:
+        db.close()
+
+
+def totals(rows):
+    value = dict(model=0, seconds=0, full=0, zero=0, cpu=0)
+    for row in rows:
+        active = row['active']
+        value['model'] += row['cap'] if active else row['calls']
+        value['seconds'] += row['seconds'] if active else row['elapsed']
+        value['full'] += row['full'] if active else row['checkpoint']
+        value['zero'] += int(not row['cpu'] and (active or row['calls'] == 0))
+        value['cpu'] += row['cpu']
+    return value
+
+
+def reserve(run, stage, budget, seconds, full, *, ledger=LEDGER, root=ROOT, cpu_fixture=False):
+    request = approved(root)
+    policy = request['budget_policy']
+    allowed_keys = {'api_starts', 'ollama_starts', 'comfy_starts', 'headless_browser_starts',
+                    'provider_calls', 'full_checkpoints', 'model_calls', 'downloads',
+                    'cloud_calls', 'paid_calls', 'holdout_model_calls'}
+    if (stage not in request['stages'] or not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9._-]{0,79}', run)
+            or not isinstance(budget, dict) or set(budget) - allowed_keys
+            or any(type(v) is not int or v < 0 for v in budget.values())
+            or any(budget.get(k, 0) for k in ('downloads', 'cloud_calls', 'paid_calls', 'holdout_model_calls'))
+            or type(seconds) is not int or not 0 < seconds <= policy['per_child_wall_seconds_ceiling']
+            or type(full) is not bool):
+        raise ValueError('WAIT_AUTH: child scope/budget invalid')
+    cap = max(budget.get('model_calls', 0), budget.get('provider_calls', 0))
+    if cap > policy['per_child_model_actions_ceiling'] or budget.get('full_checkpoints', 0) != int(full):
+        raise ValueError('WAIT_BUDGET: child ceiling')
+    if cpu_fixture and (full or cap):
+        raise ValueError("CPU fixture cannot claim model actions/full acceptance")
+    cpu = int(cpu_fixture)
+    starts = {k: budget.get(k, 0) for k in ('api_starts', 'ollama_starts', 'comfy_starts', 'headless_browser_starts')}
+    now = time.time()
+    proposed = dict(cap=cap, seconds=seconds, full=int(full), cpu=cpu, calls=0,
+                    checkpoint=0, active=1, elapsed=0)
+    with transaction(ledger) as db:
+        if db.execute('SELECT 1 FROM children WHERE run=?', (run,)).fetchone():
+            raise ValueError('child identity already used; terminal grants cannot replay')
+        rows = list(db.execute('SELECT * FROM children'))
+        stage_rows = [r for r in rows if r['stage'] == stage]
+        for group, limits in ((rows, {'model': policy['program_total_model_actions'],
+                     'seconds': policy['program_total_production_runtime_seconds'],
+                     'full': policy['program_total_effective_full_checkpoints'],
+                     'zero': policy['program_total_zero_model_startup_attempts']}),
+                (stage_rows, {'full': policy['per_stage_effective_full_checkpoints'],
+                     'zero': policy['per_stage_zero_model_startup_attempts'],
+                     'cpu': policy['per_stage_cpu_fixture_or_offline_browser_children']})):
+            charged = totals([*group, proposed])
+            if any(charged[key] > limit for key, limit in limits.items()):
+                raise ValueError('WAIT_BUDGET: cumulative or reserved allowance exhausted')
+        for key, count in starts.items():
+            if count + sum(json.loads(r['starts'])[key] for r in stage_rows) > policy['per_stage_production_starts_per_engine']:
+                raise ValueError('WAIT_BUDGET: process starts exhausted')
+        db.execute('INSERT INTO children(run,stage,cap,seconds,full,cpu,starts,issued,expires) '
+                   'VALUES(?,?,?,?,?,?,?,?,?)', (run, stage, cap, seconds, int(full), cpu, json.dumps(starts), now, now + seconds))
+
+
+def bind(run, child, *, ledger=LEDGER):
+    with transaction(ledger) as db:
+        row = db.execute('SELECT * FROM children WHERE run=?', (run,)).fetchone()
+        if row is None or not row['active'] or row['child_hash']:
+            raise ValueError('unreserved/already bound child')
+        db.execute('UPDATE children SET child_path=?,child_hash=? WHERE run=?',
+                   (str(Path(child).resolve()), digest(child), run))
+
+
+def model_action(child_path):
+    """Debit before every inference/preload send, including failures and cancellation."""
+    child_path = Path(child_path)
+    child = json.loads(child_path.read_text())
+    approved(ROOT)
+    if child['program_sha256'] != digest(ROOT / APPROVAL):
+        raise ValueError('program changed after child issue')
+    with transaction(child['budget_ledger']) as db:
+        row = db.execute('SELECT * FROM children WHERE run=?', (child['run_id'],)).fetchone()
+        if (row is None or not row['active'] or row['expires'] <= time.time()
+                or row['child_path'] != str(child_path.resolve()) or row['child_hash'] != digest(child_path)
+                or row['calls'] >= row['cap']):
+            raise ValueError('WAIT_BUDGET: expired, altered or exhausted child')
+        for item in child['frozen_files']:
+            if digest(ROOT / item['path']) != item['sha256']:
+                raise ValueError('production source drift before model send')
+        for item in child.get('samples', []):
+            if digest(ROOT / item['path']) != item['sha256']:
+                raise ValueError('sample drift before model send')
+        db.execute('UPDATE children SET calls=calls+1,checkpoint=full WHERE run=?', (child['run_id'],))
+
+
+def settle(run, observed_calls, *, ledger=LEDGER):
+    """Call only after original owned processes exit and raw evidence is archived.
+
+    Unsettled/crashed children retain their entire reservation; never refund uncertainty.
+    """
+    with transaction(ledger) as db:
+        row = db.execute('SELECT * FROM children WHERE run=?', (run,)).fetchone()
+        if row is None or not row['active'] or type(observed_calls) is not int or observed_calls != row['calls']:
+            raise ValueError('unproved terminal or model action count mismatch')
+        elapsed = math.ceil(time.time() - row['issued'])
+        if elapsed > row['seconds']:
+            raise ValueError('WAIT_BUDGET: wall allowance exceeded; retain reservation')
+        db.execute('UPDATE children SET active=0,elapsed=? WHERE run=?', (elapsed, run))
+        return {'run_id': run, 'actual_model_actions': row['calls'],
+                'effective_full_checkpoint': bool(row['checkpoint']),
+                'zero_model_startup': not row['cpu'] and row['calls'] == 0,
+                'elapsed_seconds': elapsed, 'program_still_active': True}
