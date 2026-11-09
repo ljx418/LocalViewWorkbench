@@ -1,6 +1,6 @@
 {
   "schema_version": "lvw.execution-control/1",
-  "updated_at": "2026-11-08",
+  "updated_at": "2026-11-09",
   "project_id": "lvw-prompt-service",
   "design_version": "2.0.0",
   "target_version": "V1",
@@ -9,7 +9,7 @@
     "stage_id": "R1",
     "workpack_id": "WP-R1-U3",
     "gate": "UNIFIED_SEMANTIC_CORRECTION_RECHECK",
-    "state": "WAIT_AUTH"
+    "state": "CHECKPOINT"
   },
   "last_passed_gate": {
     "gate": "SEMANTIC_CORRECTION_CPU_REGRESSION",
@@ -18,7 +18,7 @@
     "source_reuse": "reports/unified-media/offline-reuse-01/receipt.json",
     "decision": "CPU108_PASS_NOT_REAL_MODEL_OR_HUMAN_ACCEPTANCE"
   },
-  "current_blocking_gate": "VIDEO_SEMANTIC_MAJOR_AND_SUPPLEMENTAL_RECHECK_AUTH",
+  "current_blocking_gate": "APPROVED_RECHECK_RESOURCE_PREFLIGHT",
   "stage_packet": ".agent-governance/stages/R1/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/R1/PAYLOAD_MANIFEST.sha256",
   "product_status": "UNIFIED_IMPLEMENTED_REAL_SEMANTIC_NO_GO_OFFLINE_CORRECTION_PENDING_LIVE",
@@ -32,10 +32,10 @@
     "TARGET_HARDWARE_TESTED"
   ],
   "next_owner": "project_owner_for_supplemental_run_authorization",
-  "next_action": "Approve/reject AUTH-REQUEST-V1-R1-U3-SEMANTIC-01 including exact packet1.0.3 presentation change and one supplemental full run; no live04 until approval.",
-  "required_authorization": "AUTH-REQUEST-V1-R1-U3-SEMANTIC-01",
+  "next_action": "Run finite preflight, one live04, then independent review; no repeat after terminal.",
+  "required_authorization": "NONE_WITHIN_APPROVED_ONE_SHOT",
   "authorization_request": "reports/unified-media/authorization-semantic-correction-01.request.json",
-  "authorization_record": "reports/authorization-program-v1-local-01.json",
+  "authorization_record": "reports/unified-media/authorization-semantic-correction-01.approval.json",
   "read_only_binding_authorization": "reports/v0-s2/authorization-binding-inventory-06.json",
   "cpu_decoder_authorization": "reports/v0-s2/authorization-cpu-decoder-01.json",
   "cpu_decoder_terminal_receipt": "reports/v0-s2/cpu-decoder-01/receipt.json",
@@ -84,7 +84,7 @@
   "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
   "live_terminal_receipt": "reports/unified-media/live-03/receipt.json",
   "independent_review": "reports/unified-media/independent-live-03/review.md",
-  "exact_stop_reason": "live03完成真实图片/视频/取消/释放/清理，但视频把4帧动态背景描述为3张相同静态画面，独审UM04 Major。时序图已离线修复，完整槽2/2耗尽，新真实复验须新有限授权；未请求人工核签。",
+  "exact_stop_reason": "RUNNING_NOT_STOPPED",
   "native_component_authorization": "reports/v0-s2/authorization-native-component-02.json",
   "native_component_terminal_receipt": "reports/v0-s2/native-component-02/receipt.json",
   "local_control_change_decision": "reports/v0-s2/change-decision-video-workbench-01.json",
@@ -793,7 +793,7 @@
       "terminal": true,
       "restart_forbidden": true
     },
-    "proposed_packet_version": "1.0.3_NOT_ACTIVE",
+    "proposed_packet_version": "1.0.3_ACTIVE_APPROVED",
     "latest_correction_review": "reports/unified-media/independent-semantic-correction-01/review.md",
     "live_review_coverage": {
       "PASS": 9,
@@ -801,7 +801,9 @@
       "BLOCKED": 0,
       "receipt": "reports/unified-media/independent-live-03/coverage-supplement-preparing.json"
     },
-    "offline_cpu_tests": 108
+    "offline_cpu_tests": 108,
+    "supplemental_full_rechecks_approved": 1,
+    "supplemental_full_rechecks_consumed": 0
   },
   "historical_s2_last_passed_gate": {
     "gate": "GATE5_INDEPENDENT_MACHINE_REVIEW",

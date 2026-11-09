@@ -1,0 +1,2 @@
+# 所有权
+MediaStore唯一管媒体，AnalysisService唯一管任务与发布；OllamaProvider唯一管请求与本轮模型租约/释放；VideoKernel只加载S2的core/video_input/video_files/video_process/video_decoder纯Python模块，不执行插件__init__，不导入server/folder_paths/torch。React拥有页面人工稿，源绑定只在显式采纳时更新。完整公共Schema沿用contracts/openapi.json；health/capabilities标R1-unified，runtime兼容lvw.runtime/1。
