@@ -254,7 +254,7 @@ def test_video_uses_all_sample_frames_one_call_and_retains_joint_motion(monkeypa
     assert 'Actual populated panel count: 4' in calls[0]['messages'][-1]['content']
     assert '1, 3, 5, 7' in calls[0]['messages'][-1]['content']
     measured=json.loads(calls[0]['messages'][-1]['content'].split('Measured adjacent-frame pixel differences (not motion estimates): ',1)[1])
-    assert len(measured)==3 and all(x['different_pixel_fraction']==1 for x in measured)
+    assert len(measured)==3 and all(x['different_pixel_percent']==100 for x in measured)
     assert measured[0]['mean_absolute_rgb_delta']==127.666667
     assert calls[0]['options']['num_ctx']==4096
     assert spec.technical.subject_action.startswith('The color changes')
@@ -271,8 +271,8 @@ def test_pixel_metadata_static_one_pixel_and_single_frame_have_exact_oracles():
     black=Image.new('RGB',(2,2),'black');changed=black.copy();changed.putpixel((0,0),(12,24,36))
     first=encode(black);second=encode(changed)
     assert temporal_pixel_measurements([first])==[]
-    assert temporal_pixel_measurements([first,first])==[{'from_frame':1,'to_frame':2,'different_pixel_fraction':0,'mean_absolute_rgb_delta':0}]
-    assert temporal_pixel_measurements([first,second])==[{'from_frame':1,'to_frame':2,'different_pixel_fraction':.25,'mean_absolute_rgb_delta':6}]
+    assert temporal_pixel_measurements([first,first])==[{'from_frame':1,'to_frame':2,'changed_pixel_count':0,'frame_pixel_count':4,'different_pixel_percent':0,'mean_absolute_rgb_delta':0}]
+    assert temporal_pixel_measurements([first,second])==[{'from_frame':1,'to_frame':2,'changed_pixel_count':1,'frame_pixel_count':4,'different_pixel_percent':25,'mean_absolute_rgb_delta':6}]
     with pytest.raises(AppError):temporal_pixel_measurements([first,encode(Image.new('RGB',(3,2)))])
 
 

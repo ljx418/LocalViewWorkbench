@@ -85,7 +85,12 @@ VIDEO_TASK = (
     "A nonzero measurement rules out pixel-identical frames, but is not proof of camera motion "
     "(compression, lighting and subject movement also change pixels). Describe visible differences; "
     "if direction or cause is ambiguous, mark it unknown. Never infer an entirely static sequence "
-    "only because the main subject stays in place. Do not put observed changes in the negative prompt."
+    "only because the main subject stays in place. Do not put observed changes in the negative prompt. "
+    "The different_pixel_percent field is already in percent units (0 to 100); do NOT divide it "
+    "by 100 again. Use changed_pixel_count / frame_pixel_count to cross-check its scale. "
+    "If measurements show differences but you cannot confidently attribute them visually, report "
+    "that sampled frames differ and the cause/direction is unknown; do not invent an unchanged "
+    "background or explain differences as compression noise without supporting evidence."
 )
 VIDEO_TEMPLATE_SHA256 = hashlib.sha256((TEMPLATE_SHA256 + VIDEO_TASK +
     VIDEO_PRESENTATION_VERSION + json.dumps(VIDEO_SCHEMA, sort_keys=True)).encode()).hexdigest()
@@ -131,7 +136,8 @@ def temporal_pixel_measurements(images: list[bytes]) -> list[dict]:
         nonzero=ImageChops.lighter(ImageChops.lighter(red,green),blue)
         changed=left.width*left.height-nonzero.histogram()[0]
         result.append({'from_frame':index,'to_frame':index+1,
-            'different_pixel_fraction':round(changed/(left.width*left.height),6),
+            'changed_pixel_count':changed,'frame_pixel_count':left.width*left.height,
+            'different_pixel_percent':round(100*changed/(left.width*left.height),4),
             'mean_absolute_rgb_delta':round(sum(ImageStat.Stat(difference).mean)/3,6)})
     return result
 

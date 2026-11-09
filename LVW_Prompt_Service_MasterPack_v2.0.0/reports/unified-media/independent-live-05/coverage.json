@@ -1,0 +1,66 @@
+{
+  "schema_version": "lvw.independent-coverage/1",
+  "candidate_sha": "0cc125f9ba8a66972cf19176a61d52a4b2742bb7",
+  "run_id": "live-05",
+  "fixed_denominator": 10,
+  "items": [
+    {
+      "id": "UM-01",
+      "status": "PASS",
+      "evidence_and_reason": "原始图片响应、公共请求日志及人工稿采纳前保护；image-model-run、image-draft与before-video-adopt来源一致。"
+    },
+    {
+      "id": "UM-02",
+      "status": "PASS",
+      "evidence_and_reason": "批准RUNTIME-01 scope的真实+CPU分工：live05真实422 duration/corrupt；候选公共ASGI负例在Provider前拒绝并清空media/video-temp；共享生产validate_probe/stage_video覆盖bytes/pixels/container/empty边界，未把模拟称真实模型。"
+    },
+    {
+      "id": "UM-03",
+      "status": "PASS",
+      "evidence_and_reason": "live05四实际PTS=1/3/5/7秒、四独立源hash、source SHA绑定；候选shared decoder sparse/eof测试驱动生产owner，验证1/2/3帧、无重复补帧、bounded调用和cleanup；单帧warning与统一Provider采样局限保留。"
+    },
+    {
+      "id": "UM-04",
+      "status": "FAIL",
+      "evidence_and_reason": "真实Provider确有四源帧一次temporal sheet请求及原始输出，但错误断言grid alignment constant/scene static；固定tracking背景网格有时序相位变化。"
+    },
+    {
+      "id": "UM-05",
+      "status": "PASS",
+      "evidence_and_reason": "真实running cancel终态cancelled/released且result_ref null、人工稿与已采纳source不变；已批准CPU分工中公共ASGI队列取消幂等/准备decoder barrier清理后终态/晚到不发布均有实际生产service oracle。"
+    },
+    {
+      "id": "UM-06",
+      "status": "PASS",
+      "evidence_and_reason": "image→video采纳前仍归属image、显式对话接受后video来源改变；编辑后/取消后/离线JSON/TXT导出保持已采纳video来源及手工内容。"
+    },
+    {
+      "id": "UM-07",
+      "status": "PASS",
+      "evidence_and_reason": "真实native model stopped/unreachable后人工编辑和TXT/JSON导出；受控失败支路与无模型人工路径由候选测试覆盖。"
+    },
+    {
+      "id": "UM-08",
+      "status": "PASS",
+      "evidence_and_reason": "独立重算3调用/3lease释放，每lease至少3次inventory_empty且GPU≤baseline+1024；采样GPU峰22096<23552、最低RAM9280≥2048；原生NO_CLOUD/loopback日志与PID+birth+nonce exited witness。"
+    },
+    {
+      "id": "UM-09",
+      "status": "PASS",
+      "evidence_and_reason": "实际START_LVW→Windows curl健康→同build正式React/FastAPI/headless入口；日志三次POST分析及页面静态资产；page errors/external requests空，Comfy零启动。"
+    },
+    {
+      "id": "UM-10",
+      "status": "PASS",
+      "evidence_and_reason": "候选git blob绑定107 frozen项+4样本、packet1.0.3、工具身份/build复算；原进程exit/owned temp removal/终态授权及只读program02 settlement闭合；本隔离独审完成。"
+    }
+  ],
+  "counts": {
+    "PASS": 9,
+    "FAIL": 1,
+    "BLOCKED": 0
+  },
+  "decision": "NO_GO",
+  "human_signoff": null,
+  "full_R1_V1_pass_claim": false
+}

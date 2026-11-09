@@ -1,0 +1,156 @@
+diff --git a/LVW_Prompt_Service_MasterPack_v2.0.0/lvw/backend/app/provider.py b/LVW_Prompt_Service_MasterPack_v2.0.0/lvw/backend/app/provider.py
+index 8218f77..502bf38 100644
+--- a/LVW_Prompt_Service_MasterPack_v2.0.0/lvw/backend/app/provider.py
++++ b/LVW_Prompt_Service_MasterPack_v2.0.0/lvw/backend/app/provider.py
+@@ -12,7 +12,7 @@ from io import BytesIO
+ from urllib.parse import urlsplit
+ 
+ import httpx
+-from PIL import Image, ImageDraw
++from PIL import Image, ImageDraw, ImageChops, ImageStat
+ 
+ from .errors import AppError
+ from .models import ContentProfile, Domains, Mode, PromptSpec, Technical
+@@ -79,6 +79,13 @@ VIDEO_TASK = (
+     "State that only sampled frames were observed; continuous motion, unseen events and audio "
+     "are unverified. Return compact JSON: prompt_zh is Chinese, prompt is English; camera_motion "
+     "and subject_action contain supported observations or explicit uncertainty."
++    " Check subject placement and background landmark alignment separately: a subject can remain "
++    "in the same screen position while the framing or background changes. The supplied adjacent "
++    "pixel measurements are computed from the actual decoded frames, not sample answers. "
++    "A nonzero measurement rules out pixel-identical frames, but is not proof of camera motion "
++    "(compression, lighting and subject movement also change pixels). Describe visible differences; "
++    "if direction or cause is ambiguous, mark it unknown. Never infer an entirely static sequence "
++    "only because the main subject stays in place. Do not put observed changes in the negative prompt."
+ )
+ VIDEO_TEMPLATE_SHA256 = hashlib.sha256((TEMPLATE_SHA256 + VIDEO_TASK +
+     VIDEO_PRESENTATION_VERSION + json.dumps(VIDEO_SCHEMA, sort_keys=True)).encode()).hexdigest()
+@@ -109,6 +116,26 @@ def build_temporal_sheet(decoded) -> bytes:
+     return output.getvalue()
+ 
+ 
++def temporal_pixel_measurements(images: list[bytes]) -> list[dict]:
++    """Measured metadata only: no motion direction/class or sample-specific answers."""
++    decoded=[]
++    for payload in images:
++        with Image.open(BytesIO(payload)) as image:
++            decoded.append(image.convert('RGB'))
++    result=[]
++    for index,(left,right) in enumerate(zip(decoded,decoded[1:]),1):
++        if left.size != right.size:
++            raise AppError('PARSE_PARTIAL','视频采样帧尺寸不一致',status_code=503)
++        difference=ImageChops.difference(left,right)
++        red,green,blue=difference.split()
++        nonzero=ImageChops.lighter(ImageChops.lighter(red,green),blue)
++        changed=left.width*left.height-nonzero.histogram()[0]
++        result.append({'from_frame':index,'to_frame':index+1,
++            'different_pixel_fraction':round(changed/(left.width*left.height),6),
++            'mean_absolute_rgb_delta':round(sum(ImageStat.Stat(difference).mean)/3,6)})
++    return result
++
++
+ 
+ def build_messages(mode: Mode, content_profile: ContentProfile,
+                    custom_guidance: str) -> list[dict[str, str]]:
+@@ -328,17 +355,19 @@ class OllamaProvider:
+         sheet = build_temporal_sheet(decoded)
+         return await self._analyze_images([sheet], mode=mode, content_profile=content_profile,
+             custom_guidance=custom_guidance, frames=decoded.manifest,
+-            source_frame_hashes=[hashlib.sha256(value).hexdigest() for value in decoded.frames])
++            source_frame_hashes=[hashlib.sha256(value).hexdigest() for value in decoded.frames],
++            pixel_measurements=temporal_pixel_measurements(decoded.frames))
+ 
+     async def _analyze_images(self, images: list[bytes], *, mode: Mode,
+                               content_profile: ContentProfile, custom_guidance: str,
+-                              frames=None, source_frame_hashes=None):
++                              frames=None, source_frame_hashes=None, pixel_measurements=None):
+         call_id = "call_" + uuid.uuid4().hex
+         messages: list[dict[str, object]] = build_messages(mode, content_profile, custom_guidance)
+         if frames is not None:
+             messages[-1]["content"] = str(messages[-1]["content"]).replace(TEMPLATE_TEXT, VIDEO_TASK)
+             messages[-1]["content"] += f"\nActual populated panel count: {len(frames)}. Actual frame times (seconds): " + json.dumps([
+                 value["time_seconds"] for value in frames])
++            messages[-1]["content"] += '\nMeasured adjacent-frame pixel differences (not motion estimates): '+json.dumps(pixel_measurements)
+         messages[-1]["images"] = [base64.b64encode(payload).decode("ascii") for payload in images]
+         payload = {
+             "model": self.model,
+@@ -356,6 +385,7 @@ class OllamaProvider:
+                 self._record("provider_call_started", call_id,
+                              frame_count=len(frames) if frames is not None else len(images),
+                              payload_image_count=len(images), source_frame_hashes=source_frame_hashes,
++                     pixel_measurements=pixel_measurements,
+                              presentation=VIDEO_PRESENTATION_VERSION if frames is not None else "single-image",
+                              input_sha256=hashlib.sha256(b"".join(images)).hexdigest())
+                 if child:
+diff --git a/LVW_Prompt_Service_MasterPack_v2.0.0/lvw/tests/test_provider.py b/LVW_Prompt_Service_MasterPack_v2.0.0/lvw/tests/test_provider.py
+index 9bb30d1..a1b1186 100644
+--- a/LVW_Prompt_Service_MasterPack_v2.0.0/lvw/tests/test_provider.py
++++ b/LVW_Prompt_Service_MasterPack_v2.0.0/lvw/tests/test_provider.py
+@@ -253,12 +253,29 @@ def test_video_uses_all_sample_frames_one_call_and_retains_joint_motion(monkeypa
+     assert 'single image and return' not in calls[0]['messages'][-1]['content']
+     assert 'Actual populated panel count: 4' in calls[0]['messages'][-1]['content']
+     assert '1, 3, 5, 7' in calls[0]['messages'][-1]['content']
++    measured=json.loads(calls[0]['messages'][-1]['content'].split('Measured adjacent-frame pixel differences (not motion estimates): ',1)[1])
++    assert len(measured)==3 and all(x['different_pixel_fraction']==1 for x in measured)
++    assert measured[0]['mean_absolute_rgb_delta']==127.666667
+     assert calls[0]['options']['num_ctx']==4096
+     assert spec.technical.subject_action.startswith('The color changes')
+     assert any('4个采样帧' in x for x in spec.domains.unknowns)
+     assert json.loads(raw)['message']['content']
+ 
+ 
++def test_pixel_metadata_static_one_pixel_and_single_frame_have_exact_oracles():
++    from io import BytesIO
++    from PIL import Image
++    from app.provider import temporal_pixel_measurements
++    def encode(image):
++        out=BytesIO();image.save(out,format='PNG');return out.getvalue()
++    black=Image.new('RGB',(2,2),'black');changed=black.copy();changed.putpixel((0,0),(12,24,36))
++    first=encode(black);second=encode(changed)
++    assert temporal_pixel_measurements([first])==[]
++    assert temporal_pixel_measurements([first,first])==[{'from_frame':1,'to_frame':2,'different_pixel_fraction':0,'mean_absolute_rgb_delta':0}]
++    assert temporal_pixel_measurements([first,second])==[{'from_frame':1,'to_frame':2,'different_pixel_fraction':.25,'mean_absolute_rgb_delta':6}]
++    with pytest.raises(AppError):temporal_pixel_measurements([first,encode(Image.new('RGB',(3,2)))])
++
++
+ def test_model_lease_refuses_external_loaded_model_without_unload(monkeypatch):
+     import asyncio,httpx
+     real_client=httpx.AsyncClient;methods=[]
+diff --git a/LVW_Prompt_Service_MasterPack_v2.0.0/reports/unified-media/build_handoff.py b/LVW_Prompt_Service_MasterPack_v2.0.0/reports/unified-media/build_handoff.py
+index 5bc4c97..a70da97 100644
+--- a/LVW_Prompt_Service_MasterPack_v2.0.0/reports/unified-media/build_handoff.py
++++ b/LVW_Prompt_Service_MasterPack_v2.0.0/reports/unified-media/build_handoff.py
+@@ -14,9 +14,9 @@ styles='''*{box-sizing:border-box}body{overflow-wrap:anywhere;margin:0;backgroun
+ status='可进行统一人工核签' if ready else '尚不可核签：真实验收未完成'
+ header=f'''<header><small>LVW · 最小图文与视频统一前端</small><h1>{status}</h1><p>当前修复代码候选 <code>{h(candidate)}</code><br>本页真实运行候选 <code>{h(live['candidate_sha'])}</code></p><p>图片与短视频使用同一个工作台，无需打开ComfyUI或导入节点。机器验收、独立审查、人工签署分别记录。</p><a href="人工验收指南.html">操作与体验记录</a> · <a href="验收报告与盲测视频.html">本轮证据与11段留样</a> · <a href="plans/execution-control.json">唯一开发坐标</a></header>'''
+ has_outputs=(ROOT/base/'image-model-run.json').exists() and (ROOT/base/'video-model-run.json').exists()
+-quality_note='本轮视频模型自述three identical images/no changes，与实际4帧输入不一致；动作/运镜质量存在明确限制，独立审查状态见下方。' if has_outputs else '本轮图片没有可用模型输出；视频未进入分析，不能展示不存在的输出。'
++quality_note=control.get('latest_video_semantic_assessment','本轮取得真实图视频输出，内容与时序语义待独立复算，不能仅凭JSON或HTTP成功计通过。') if has_outputs else '本轮尚无完整图视频模型输出，不能展示不存在的结果；具体失败以原始收据为准。'
+ completion_note='真实图片、视频、取消和释放序列已执行，最终是否通过以独立审查和门禁收据为准。' if has_outputs else '真实图片、视频结果与取消释放的完整组合尚未完成。'
+-summary=f'''<section><h2>本轮验证事实</h2><div class="note">{h(control.get('exact_stop_reason',''))}</div><p>执行器原始结论：<strong>{h(live['decision'])}</strong>；独立验收状态：<strong>{h(control['product_status'])}</strong>。先前S2的9/9和历史截图仅证明旧候选，不能代替当前统一前端。</p><ul><li>统一页面、Windows启动链、真实媒体边界拒绝：已有本轮执行记录。</li><li>此前代码静审通过；本轮真实内容结论仍须独审裁决。{h(completion_note)}</li><li>{h(quality_note)}</li><li>11段人工留样保持NOT_RUN，冻结预期及视频字节均未改动。</li></ul><p><a href="{h(latest)}">真实终态收据</a> · <a href="{h(control['independent_review'])}">本轮独立审查</a> · <a href="reports/unified-media/independent-runtime-transition-01/review.md">启动竞态纠偏独审</a> · <a href="reports/unified-media/authorization-runtime-transition-01.request.json">待批准的新候选续验请求</a> · <a href="{h(base)}/browser-result.json">浏览器原始记录</a> · <a href="reports/unified-media/independent-correction-01/review-87c64a3.md">初版历史代码审查</a> · <a href="reports/unified-media/independent-correction-01/review-0f6b772.md">历史执行器纠偏审查</a> · <a href="验收报告与盲测视频_S2历史.html">旧S2测试视频与输出（历史）</a></p></section>'''
++summary=f'''<section><h2>本轮验证事实</h2><div class="note">{h(control.get('exact_stop_reason',''))}</div><p>执行器原始结论：<strong>{h(live['decision'])}</strong>；独立验收状态：<strong>{h(control['product_status'])}</strong>。先前S2的9/9和历史截图仅证明旧候选，不能代替当前统一前端。</p><ul><li>统一页面、Windows启动链、真实媒体边界拒绝：已有本轮执行记录。</li><li>此前代码静审通过；本轮真实内容结论仍须独审裁决。{h(completion_note)}</li><li>{h(quality_note)}</li><li>11段人工留样保持NOT_RUN，冻结预期及视频字节均未改动。</li></ul><p><a href="{h(latest)}">真实终态收据</a> · <a href="{h(control['independent_review'])}">本轮独立审查</a> · <a href="reports/unified-media/independent-runtime-transition-01/review.md">启动竞态纠偏独审</a> · <a href="reports/authorization-program-v1-local-02.approval.json">已批准的本机持续授权</a> · <a href="{h(base)}/browser-result.json">浏览器原始记录</a> · <a href="reports/unified-media/independent-correction-01/review-87c64a3.md">初版历史代码审查</a> · <a href="reports/unified-media/independent-correction-01/review-0f6b772.md">历史执行器纠偏审查</a> · <a href="验收报告与盲测视频_S2历史.html">旧S2测试视频与输出（历史）</a></p></section>'''
+ steps=['双击LVW.exe → 打开图文视频工作台；保留服务窗口，以其显示地址为准。','服务面板启动本机Ollama，等待“启动中…”结束且分析按钮可用；资源不足时不能保证分析成功。','选择图片或视频并预览；人工稿先写一段文字，再点分析。','查看机器建议和原始JSON；视频应显示真实源PTS、时间基和哈希，不把四帧采样当作完整分镜。','点击采纳并确认替换，编辑后复制/导出TXT与JSON；未采纳的新结果不能覆盖旧稿。','新分析中取消，确认终态和资源released；模型关闭后仍应能编辑导出。','先保存导出文件，再关闭本页拥有的模型服务，最后在服务窗口Ctrl+C。']
+ guide='<section><h2>怎么体验</h2><ol>'+''.join(f'<li>{h(s)}</li>' for s in steps)+'</ol><p>图片：JPEG/PNG/WebP ≤20MiB、4000万像素。视频：MP4/MOV ≤256MiB、≤60秒、源帧≤8294400像素。工作稿只在当前页面会话中，刷新前请导出。完整数据库修订、批量、长视频、音频及完整V1质量尚未交付。</p></section>'
+ outline='<section><h2>完整开发大纲</h2><div class="scroll"><table><tr><th>阶段</th><th>交付</th><th>完成子步骤</th><th>说明</th></tr>'+''.join(f'<tr><td>{h(x["stage_id"])}</td><td>{h(x.get("title",""))}</td><td>{x["completed_substeps"]}/{x["total_substeps"]}</td><td>{h(x.get("summary",""))}</td></tr>' for x in control['development_outline'])+'</table></div><p>本次提前切片另计U1/U2/U3，不将切片完成度等同于完整R1/R2。</p></section>'
+@@ -37,7 +37,7 @@ def result_card(name,title,media,source_base=base):
+ report+='<section><h2>真实验收使用的素材与实际输出</h2><p>'+h(quality_note)+'</p><div class="grid">'+result_card('image-model-run.json','开发图片','<img src="reports/unified-media/dev-image.png" alt="开发用非私有结构图片">')+result_card('video-model-run.json','开发视频','<video controls preload="none" src="reports/v0-s2/fixture-preparation-02/fixtures/tracking.mov"></video><a href="reports/v0-s2/fixture-preparation-02/fixtures/tracking.mov" download>保存开发视频</a>')+'</div></section>'
+ if not has_outputs and (ROOT/'reports/unified-media/live-03/video-model-run.json').exists():
+     historical='reports/unified-media/live-03'
+-    report+='<section><h2>上一轮已完成的模型输出 · 历史未通过</h2><p>以下来自a8a431d的live03，不是当前修复候选结果。原视频错误描述为静止，导致语义Major；当前live04未发出模型推理，不能把历史输出当成新通过。</p><div class="grid">'+result_card('image-model-run.json','live03历史图片结果','<img src="reports/unified-media/dev-image.png" alt="历史开发图片">',historical)+result_card('video-model-run.json','live03历史视频结果','<video controls preload="none" src="reports/v0-s2/fixture-preparation-02/fixtures/tracking.mov"></video>',historical)+'</div></section>'
++    report+='<section><h2>上一轮已完成的模型输出 · 历史未通过</h2><p>以下来自a8a431d的live03，不是当前修复候选结果。原视频错误描述为静止，导致语义Major；不能把此历史输出当成当前候选通过。</p><div class="grid">'+result_card('image-model-run.json','live03历史图片结果','<img src="reports/unified-media/dev-image.png" alt="历史开发图片">',historical)+result_card('video-model-run.json','live03历史视频结果','<video controls preload="none" src="reports/v0-s2/fixture-preparation-02/fixtures/tracking.mov"></video>',historical)+'</div></section>'
+ report+='<section><h2>11段人工留样 · 未提交模型</h2><p>先看视频，再到统一工作台上传验证。以下预期由先验观察冻结，不是LVW实际输出；不用逐字匹配，也不要依据来源标题编造事实。正式机器门禁完成前不需要你代跑回归。</p><p><a href="人工验收视频集/人工验证视频_11段.zip" download>下载视频集ZIP</a> · <a href="人工验收视频集/expected-results.frozen.json">冻结预期</a> · <a href="reports/unified-media/holdout-binding.json">新旧候选与哈希绑定</a></p><div class="grid">'
+ for v,e in zip(freeze['videos'],expected['items']):
+  assert v['id']==e['id']
+diff --git a/LVW_Prompt_Service_MasterPack_v2.0.0/reports/unified-media/live_browser.cjs b/LVW_Prompt_Service_MasterPack_v2.0.0/reports/unified-media/live_browser.cjs
+index 6d98642..b966c0e 100644
+--- a/LVW_Prompt_Service_MasterPack_v2.0.0/reports/unified-media/live_browser.cjs
++++ b/LVW_Prompt_Service_MasterPack_v2.0.0/reports/unified-media/live_browser.cjs
+@@ -12,7 +12,7 @@ const fs=require('node:fs'),path=require('node:path'),assert=require('node:asser
+  await p.locator('.raw summary').click();await saveDownload(p.getByRole('button',{name:'保存本次分析原始 JSON',exact:true}),'image-model-run.json');await p.locator('.raw summary').click();
+  await p.getByRole('button',{name:'视频',exact:true}).click();await p.locator('[data-testid=video-input]').setInputFiles(path.join(root,'reports/v0-s2/fixture-preparation-02/fixtures/tracking.mov'));await p.locator('[data-testid=analyze]').click();await waitDone();
+  assert.equal(await p.locator('[data-testid=machine-suggestion]').count(),1,await p.locator('body').textContent());assert.match(await p.locator('.sampling-note').last().textContent(),/4帧/);const before=JSON.parse(await saveDownload(p.getByRole('button',{name:'导出 JSON',exact:true}),'before-video-adopt.json'));assert.equal(before.source.model_run_id,image.source.model_run_id);
+- await p.locator('.raw summary').click();const run=JSON.parse(await saveDownload(p.getByRole('button',{name:'保存本次分析原始 JSON',exact:true}),'video-model-run.json'));await p.locator('.raw summary').click();assert.equal(run.frames.length,4);assert.ok(run.parsed_spec.text_zh&&run.parsed_spec.text_en);assert.ok(run.raw_response);checks.push({id:'UM-03',status:'PASS',oracle:'four real source PTS and source hash present',frames:run.frames});checks.push({id:'UM-04',status:'PASS',oracle:'real model multi-frame result and original envelope retained',run_id:run.id});
++ await p.locator('.raw summary').click();const run=JSON.parse(await saveDownload(p.getByRole('button',{name:'保存本次分析原始 JSON',exact:true}),'video-model-run.json'));await p.locator('.raw summary').click();assert.equal(run.frames.length,4);assert.ok(run.parsed_spec.text_zh&&run.parsed_spec.text_en);assert.ok(run.raw_response);checks.push({id:'UM-03',status:'PASS',oracle:'four real source PTS and source hash present',frames:run.frames});checks.push({id:'UM-04',status:'BLOCKED',oracle:'real model output/schema/raw retained; temporal semantic obligation requires independent content review',run_id:run.id});
+  p.once('dialog',d=>d.accept());await p.getByRole('button',{name:'采纳到人工稿',exact:true}).click();const adopted=JSON.parse(await saveDownload(p.getByRole('button',{name:'导出 JSON',exact:true}),'video-adopted.json'));assert.equal(adopted.source.model_run_id,run.id);assert.ok(adopted.outputs.video_prompt);await p.locator('#draft-natural-zh').fill('AFTER_ADOPT_MANUAL_KEEP');
+  await p.locator('[data-testid=analyze]').click();await p.waitForFunction(()=>document.querySelector('.job-status')?.textContent.includes('running'));await p.getByRole('button',{name:'取消本次分析',exact:true}).click();await waitDone();assert.match(await p.locator('.job-status').textContent(),/cancelled/);assert.match(await p.locator('.job-status').textContent(),/released/);assert.equal(await p.locator('#draft-natural-zh').inputValue(),'AFTER_ADOPT_MANUAL_KEEP');checks.push({id:'UM-05',status:'PASS',oracle:'real running cancel, physical release confirmed by service ledger, no replacement'});
+  const after=JSON.parse(await saveDownload(p.getByRole('button',{name:'导出 JSON',exact:true}),'after-cancel.json'));assert.equal(after.source.model_run_id,run.id);assert.equal(after.outputs.natural_zh,'AFTER_ADOPT_MANUAL_KEEP');checks.push({id:'UM-06',status:'PASS',oracle:'explicit adoption and edited draft export retain adopted source'});
