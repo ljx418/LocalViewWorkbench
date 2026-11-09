@@ -12,7 +12,7 @@ let server,browser,tmp;const checks=[],errors=[],external=[],submissions=[];cons
   assert.ok((await p.request.post(base+'/__fixture/arm')).ok());const pathName='/api/v1/runtime/ollama/'+action;const completed=p.waitForResponse(r=>new URL(r.url()).pathname===pathName&&r.status()===200);await p.locator('[data-testid=runtime-'+action+']').click();
   let entered=false;for(let i=0;i<40;i++){const s=await (await p.request.get(base+'/__fixture/state')).json();if(s.action===action&&s.ready){entered=true;break}await p.waitForTimeout(50)}assert.ok(entered);
   // Wait for the actual page poll to observe "ready" while the controller request is held.
-  await p.waitForResponse(r=>new URL(r.url()).pathname==='/api/v1/runtime/status'&&r.status()===200);await p.waitForTimeout(100);
+  await p.waitForResponse(r=>new URL(r.url()).pathname==='/api/v1/runtime/status'&&r.status()===200);await p.waitForFunction(()=>document.querySelector('[data-testid=model-state]')?.textContent==='可用');
   assert.equal(await p.locator('[data-testid=analyze]').isDisabled(),true,action+' exposed analyze while controller request was held');
   const blocked=await p.request.post(base+'/api/v1/jobs/analyze',{headers:{'Idempotency-Key':'controlled-rejection-'+action},data:{media_ref_id:media.id,mode:'realistic',config_profile:'local-default'}});assert.equal(blocked.status(),409);assert.equal((await blocked.json()).error.code,'RESOURCE_BUSY');
   const before=await (await p.request.get(base+'/__fixture/state')).json();assert.equal(before.jobs,submissions.length);assert.equal(before.provider_calls,submissions.length);
