@@ -30,6 +30,40 @@ def test_endpoint_is_literal_loopback_only():
         assert caught.value.code == "ORIGIN_FORBIDDEN"
 
 
+def test_controlled_provider_requires_child_and_debits_before_http_send(monkeypatch, tmp_path):
+    import asyncio
+    import httpx
+    import sys
+    sys.path.insert(0,str(__import__('pathlib').Path(__file__).resolve().parents[2]))
+    from tools import local_program_authority
+    sent=[];debits=[]
+    class Client:
+        async def __aenter__(self):return self
+        async def __aexit__(self,*_):return None
+        async def post(self,*args,**kwargs):
+            assert len(debits)>len(sent)
+            sent.append(args)
+            raise httpx.ConnectError('CPU fixture send attempt failed')
+    monkeypatch.setattr('app.provider.httpx.AsyncClient',lambda **_:Client())
+    monkeypatch.setenv('LVW_REQUIRE_BUDGET','1')
+    monkeypatch.delenv('LVW_AUTHORIZATION_CHILD',raising=False)
+    provider=OllamaProvider('http://127.0.0.1:11434/api/chat','gemma4:26b',30)
+    async def analyze(mode='realistic'):
+        return await provider._analyze_images([b'CPU-fixture'],mode=mode,content_profile='standard',custom_guidance='')
+    with pytest.raises(AppError):asyncio.run(analyze())
+    assert sent==[]
+    monkeypatch.setenv('LVW_AUTHORIZATION_CHILD','fake-child')
+    monkeypatch.setattr(local_program_authority,'model_action',lambda child:debits.append(child))
+    with pytest.raises(KeyError):asyncio.run(analyze('invalid-mode'))
+    assert debits==[] and sent==[]
+    with pytest.raises(AppError):asyncio.run(analyze())
+    assert debits==['fake-child'] and len(sent)==1
+    def denied(_):raise ValueError('budget exhausted')
+    monkeypatch.setattr(local_program_authority,'model_action',denied)
+    with pytest.raises(ValueError):asyncio.run(analyze())
+    assert len(sent)==1
+
+
 def test_readiness_requires_exact_configured_model(monkeypatch):
     class Response:
         @staticmethod

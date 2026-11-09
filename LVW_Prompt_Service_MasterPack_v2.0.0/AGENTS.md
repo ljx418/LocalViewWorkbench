@@ -20,3 +20,5 @@
 17. 项目负责人于2026-11-05要求：每次停止/最终回复都列完整V0–V3开发大纲，标记各子阶段已完成/总数及当前Stage；进度来自唯一 `plans/execution-control.json` 的 `development_outline` 和真实收据，不用主观工时百分比。保留既有十字段报告，区分实现、机器验收、独审、人工签署。执行索引见 `docs/24_EXECUTION_MASTER_PLAN.md`；`docs/25_PLAN_OPTIMIZATION_PROPOSAL.md` 的流程/门限调整须用户明确批准后才实施。
 
 18. 项目负责人已明确授权剩余全部V0阶段的本机显卡使用与代码验证，记录见 `reports/authorization-program-v0-local-verification-01.json`。范围内诊断、定向验证、必要复验及完整checkpoint由执行器自动派生有限子授权，无需再次向人类确认；本规则覆盖旧的相关逐次授权/授权次数限制。旧过期记录不复活，每轮仍唯一候选/预算/隔离/清理/终态收据，禁止无限同路线重试；不豁免冻结合同、质量门限、独审、人工体验/发布签署，不扩大云/付费/下载/私有数据或非本轮进程权限。
+
+19. 2026-11-09 批准 AUTH-PROGRAM-V1-LOCAL-02，完整范围与预算见 reports/authorization-program-v1-local-02.request.json 及对应 approval.json。同范围纠错候选自动封存/派生有限子授权，不再逐次确认 GPU、代码验证、候选 SHA；重叠范围采用新母授权累计预算，不叠加旧额度，不复活旧终态。Codex 临时实现角色延长至 V1；隔离独审和人工签署保留。当前 RUNTIME-01 已被覆盖，无需重复人批。

@@ -9,6 +9,7 @@ import uvicorn
 
 ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT / "backend"))
+sys.path.insert(0, str(ROOT.parent))
 
 
 def configured_port() -> int:

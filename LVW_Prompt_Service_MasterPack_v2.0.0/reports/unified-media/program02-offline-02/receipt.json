@@ -1,0 +1,48 @@
+{
+  "kind": "CPU_PROGRAM02_FINAL_EXECUTOR_PRODUCTION_REGRESSION_NOT_REAL_ACCEPTANCE",
+  "checks": [
+    {
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "pytest",
+        "tools/test_local_program_authority.py",
+        "lvw/tests",
+        "LVW_V0_RuntimePatch/tests/test_s2_video_input.py",
+        "LVW_V0_RuntimePatch/tests/test_s2_video_files.py",
+        "LVW_V0_RuntimePatch/tests/test_s2_video_process.py",
+        "LVW_V0_RuntimePatch/tests/test_s2_video_decoder.py",
+        "-q",
+        "-o",
+        "addopts="
+      ],
+      "exit_code": 0,
+      "stdout_sha256": "037278c1c5a240c0b0953f4c3712e178f1d52c111040527e6dd128ab45cf81d0",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "tools/verify_governance.py",
+        "--self-test"
+      ],
+      "exit_code": 0,
+      "stdout_sha256": "e8927ccbca17c63e6ca696c254e5e232add8617ec564f840df4907579089d7cf",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "node",
+        "--check",
+        "reports/unified-media/live_browser.cjs"
+      ],
+      "exit_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "model_calls": 0,
+  "stage_pass_claim": false
+}

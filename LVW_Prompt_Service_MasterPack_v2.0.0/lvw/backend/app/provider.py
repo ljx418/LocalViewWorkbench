@@ -334,11 +334,6 @@ class OllamaProvider:
                               content_profile: ContentProfile, custom_guidance: str,
                               frames=None, source_frame_hashes=None):
         call_id = "call_" + uuid.uuid4().hex
-        self._record("provider_call_started", call_id,
-                     frame_count=len(frames) if frames is not None else len(images),
-                     payload_image_count=len(images), source_frame_hashes=source_frame_hashes,
-                     presentation=VIDEO_PRESENTATION_VERSION if frames is not None else "single-image",
-                     input_sha256=hashlib.sha256(b"".join(images)).hexdigest())
         messages: list[dict[str, object]] = build_messages(mode, content_profile, custom_guidance)
         if frames is not None:
             messages[-1]["content"] = str(messages[-1]["content"]).replace(TEMPLATE_TEXT, VIDEO_TASK)
@@ -354,8 +349,19 @@ class OllamaProvider:
             "keep_alive": 0,
         }
         try:
-            self._sent = True
             async with httpx.AsyncClient(timeout=self.timeout_seconds, trust_env=False) as client:
+                child = os.environ.get("LVW_AUTHORIZATION_CHILD")
+                if os.environ.get("LVW_REQUIRE_BUDGET") == "1" and not child:
+                    raise AppError("MODEL_UNAVAILABLE", "受控验证缺少预算子授权", status_code=503)
+                self._record("provider_call_started", call_id,
+                             frame_count=len(frames) if frames is not None else len(images),
+                             payload_image_count=len(images), source_frame_hashes=source_frame_hashes,
+                             presentation=VIDEO_PRESENTATION_VERSION if frames is not None else "single-image",
+                             input_sha256=hashlib.sha256(b"".join(images)).hexdigest())
+                if child:
+                    from tools.local_program_authority import model_action
+                    model_action(child)
+                self._sent = True
                 response = await client.post(self.endpoint, json=payload)
                 response.raise_for_status()
         except httpx.TimeoutException as exc:

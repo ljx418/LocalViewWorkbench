@@ -1,10 +1,10 @@
 """One finite real checkpoint: Windows command -> actual FastAPI/React -> native Ollama."""
 from pathlib import Path
-import asyncio,json,os,signal,socket,subprocess,sys,time,uuid,shutil,hashlib
+import asyncio,json,os,signal,socket,subprocess,sys,time,uuid,shutil,hashlib,re
 from .authority import ROOT,create,terminal,sha
 import requests
 RUN=sys.argv[1] if len(sys.argv)>1 else 'live-01'
-assert RUN in {'live-01','live-02','live-03','live-04','live-05'}
+assert re.fullmatch(r'live-(?:0[1-9]|[1-9][0-9]+)',RUN)
 SELF=Path(__file__);SAMPLES=[ROOT/'reports/unified-media/dev-image.png',ROOT/'reports/v0-s2/fixture-preparation-02/fixtures/tracking.mov',ROOT/'reports/v0-s2/fixture-preparation-02/fixtures/over-duration.mp4',ROOT/'reports/v0-s2/fixture-preparation-02/fixtures/corrupt.mp4']
 out,auth=create(RUN,SELF,{'api_starts':1,'ollama_starts':1,'headless_browser_starts':1,'provider_calls':8,'full_checkpoints':1,'model_calls':8,'downloads':0,'cloud_calls':0,'paid_calls':0,'holdout_model_calls':0},port=18780,samples=SAMPLES,seconds=1800,full=True)
 state=ROOT.parent.parent/'.lvw-runtime/lvw-prompt-service/R1-unified'/RUN;state.mkdir(parents=True,exist_ok=False)
@@ -22,8 +22,16 @@ try:
  assert not alive(18780) and not alive(11434),'required port has an existing service; no foreign process will be touched'
  (state/'native-temp').mkdir()
  bindings={n:{'path':p,'sha256':sha(p)} for n,p in {'powershell':ps,'ffmpeg':'/usr/bin/ffmpeg','ffprobe':'/usr/bin/ffprobe','node':'/usr/bin/node','browser':'/home/administrator/.cache/ms-playwright/chromium-1228/chrome-linux64/chrome','launcher':str(ROOT/'START_LVW.cmd'),'native_icon':str(ROOT/'LVW.exe')}.items()}
+ native_query=subprocess.run([ps,'-NoProfile','-NonInteractive','-Command',"$ErrorActionPreference='Stop';(Get-Command ollama.exe -CommandType Application -ErrorAction Stop).Source"],capture_output=True,timeout=15)
+ assert native_query.returncode==0,'installed native Ollama not found'
+ native_exe=Path(subprocess.check_output(['wslpath','-u',native_query.stdout.decode().strip()],text=True).strip())
+ bindings['native_ollama']={'path':str(native_exe),'sha256':sha(native_exe)}
+ bindings['python']={'path':sys.executable,'sha256':sha(sys.executable)}
  (out/'bindings.json').write_text(json.dumps(bindings,indent=2)+'\n')
- script="$ErrorActionPreference='Stop';$env:TEMP="+q(win(state/'native-temp'))+";$env:TMP=$env:TEMP;$env:LVW_NO_BROWSER='1';$env:LVW_NO_PAUSE='1';$env:LVW_PORT_OVERRIDE='18780';$env:LVW_LAUNCH_TOKEN="+q(nonce)+";& "+q(win(ROOT/'START_LVW.cmd'))+";exit $LASTEXITCODE"
+ if auth.get('budget_ledger'):
+  from tools.local_program_authority import bind_execution
+  bind_execution(RUN,out/'bindings.json',ledger=auth['budget_ledger'])
+ script="$ErrorActionPreference='Stop';$env:TEMP="+q(win(state/'native-temp'))+";$env:TMP=$env:TEMP;$env:LVW_NO_BROWSER='1';$env:LVW_NO_PAUSE='1';$env:LVW_PORT_OVERRIDE='18780';$env:LVW_REQUIRE_BUDGET='1';$env:LVW_AUTHORIZATION_CHILD="+q(str(out/'authorization.json'))+";$env:LVW_LAUNCH_TOKEN="+q(nonce)+";& "+q(win(ROOT/'START_LVW.cmd'))+";exit $LASTEXITCODE"
  log=(out/'launcher.log').open('wb');launcher=subprocess.Popen([ps,'-NoProfile','-NonInteractive','-Command',script],stdout=log,stderr=subprocess.STDOUT)
  for _ in range(90):
   if alive(18780):break
@@ -35,10 +43,12 @@ try:
   try:
    env=(p/'environ').read_bytes().split(b'\0');cmd=(p/'cmdline').read_bytes()
    if ('LVW_LAUNCH_TOKEN='+nonce).encode() in env and b'lvw/run_local.py' in cmd:
-    assert api is None,'ambiguous server ownership';api={'pid':int(p.name),'birth':(p/'stat').read_text().split()[21]}
+    assert api is None,'ambiguous server ownership';owned_env=env;api={'pid':int(p.name),'birth':(p/'stat').read_text().split()[21]}
     value=next(x.split(b'=',1)[1] for x in env if x.startswith(b'LVW_DATA_ROOT='));runroot=Path(value.decode())
   except (OSError,ProcessLookupError):continue
  assert api and runroot and str(runroot.resolve()).casefold().startswith(str(state.resolve()).casefold()+'/'),'run-owned server process/root binding failed'
+ assert b'LVW_REQUIRE_BUDGET=1' in owned_env and ('LVW_AUTHORIZATION_CHILD='+str(out/'authorization.json')).encode() in owned_env,'controlled API budget guard environment missing'
+ assert next(x.split(b'=',1)[1].decode() for x in owned_env if x.startswith(b'LVW_OLLAMA_EXE='))==str(native_exe),'launcher selected different native executable'
  result['api_process']=api;result['source_build_id']=api_call('GET','/health').json()['data']['build_id']
  win_probe=subprocess.run(['/mnt/c/Windows/System32/curl.exe','--noproxy','*','-fsS','--max-time','5','http://127.0.0.1:18780/health'],capture_output=True,timeout=8)
  (out/'windows-health.json').write_bytes(win_probe.stdout);assert win_probe.returncode==0,'Windows browser loopback cannot reach actual WSL API'
