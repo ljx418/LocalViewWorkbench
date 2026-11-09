@@ -1,0 +1,142 @@
+{
+  "source_before_sha256": "3d9926d3d7d6561f50c23122fa23abc4490e3925f68b23b88d166246bb6a2e22",
+  "source_after_sha256": "3d9926d3d7d6561f50c23122fa23abc4490e3925f68b23b88d166246bb6a2e22",
+  "source_unchanged": true,
+  "rows": [
+    {
+      "version": "baseline",
+      "scenario": "timeout",
+      "slice_exception": "TimeoutExpired",
+      "cleanup_error_retained": false,
+      "settle_called": true,
+      "close_retaining_reservation_called": true,
+      "decision": "NO_GO",
+      "reservation_retained": null
+    },
+    {
+      "version": "baseline",
+      "scenario": "crash_missing_json",
+      "slice_exception": "FileNotFoundError",
+      "cleanup_error_retained": false,
+      "settle_called": true,
+      "close_retaining_reservation_called": true,
+      "decision": "NO_GO",
+      "reservation_retained": null
+    },
+    {
+      "version": "baseline",
+      "scenario": "invalid_json",
+      "slice_exception": "JSONDecodeError",
+      "cleanup_error_retained": false,
+      "settle_called": true,
+      "close_retaining_reservation_called": true,
+      "decision": "NO_GO",
+      "reservation_retained": null
+    },
+    {
+      "version": "baseline",
+      "scenario": "closed_false",
+      "slice_exception": null,
+      "cleanup_error_retained": false,
+      "settle_called": true,
+      "close_retaining_reservation_called": true,
+      "decision": "NO_GO",
+      "reservation_retained": null
+    },
+    {
+      "version": "baseline",
+      "scenario": "closed_missing",
+      "slice_exception": null,
+      "cleanup_error_retained": false,
+      "settle_called": true,
+      "close_retaining_reservation_called": true,
+      "decision": "NO_GO",
+      "reservation_retained": null
+    },
+    {
+      "version": "baseline",
+      "scenario": "closed_true",
+      "slice_exception": null,
+      "cleanup_error_retained": false,
+      "settle_called": true,
+      "close_retaining_reservation_called": true,
+      "decision": "NO_GO",
+      "reservation_retained": null
+    },
+    {
+      "version": "patched",
+      "scenario": "timeout",
+      "slice_exception": "TimeoutExpired",
+      "cleanup_error_retained": true,
+      "settle_called": false,
+      "close_retaining_reservation_called": true,
+      "decision": "NO_GO",
+      "reservation_retained": "cleanup unproved; no automatic refund"
+    },
+    {
+      "version": "patched",
+      "scenario": "crash_missing_json",
+      "slice_exception": "FileNotFoundError",
+      "cleanup_error_retained": true,
+      "settle_called": false,
+      "close_retaining_reservation_called": true,
+      "decision": "NO_GO",
+      "reservation_retained": "cleanup unproved; no automatic refund"
+    },
+    {
+      "version": "patched",
+      "scenario": "invalid_json",
+      "slice_exception": "JSONDecodeError",
+      "cleanup_error_retained": true,
+      "settle_called": false,
+      "close_retaining_reservation_called": true,
+      "decision": "NO_GO",
+      "reservation_retained": "cleanup unproved; no automatic refund"
+    },
+    {
+      "version": "patched",
+      "scenario": "closed_false",
+      "slice_exception": "AssertionError",
+      "cleanup_error_retained": true,
+      "settle_called": false,
+      "close_retaining_reservation_called": true,
+      "decision": "NO_GO",
+      "reservation_retained": "cleanup unproved; no automatic refund"
+    },
+    {
+      "version": "patched",
+      "scenario": "closed_missing",
+      "slice_exception": "AssertionError",
+      "cleanup_error_retained": true,
+      "settle_called": false,
+      "close_retaining_reservation_called": true,
+      "decision": "NO_GO",
+      "reservation_retained": "cleanup unproved; no automatic refund"
+    },
+    {
+      "version": "patched",
+      "scenario": "closed_true",
+      "slice_exception": null,
+      "cleanup_error_retained": false,
+      "settle_called": true,
+      "close_retaining_reservation_called": true,
+      "decision": "NO_GO",
+      "reservation_retained": null
+    }
+  ],
+  "invalid_input_extension_mapping": [
+    {
+      "original": "/mnt/c/workSpace/videoWorkLine/LocalViewWorkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/unified-media/owner-split-c2-code-review-04/browser-lifecycle/baseline-invalid_json/browser-result.json",
+      "retained": "/mnt/c/workSpace/videoWorkLine/LocalViewWorkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/unified-media/owner-split-c2-code-review-04/browser-lifecycle/baseline-invalid_json/browser-result.invalid-json.raw",
+      "sha256": "40b5cafe045b9c9e31a1c3fdcfbc89f934906ff06a6276b55c2a0e517be21655",
+      "reason": "preserve exact invalid JSON test bytes without violating package JSON validation"
+    },
+    {
+      "original": "/mnt/c/workSpace/videoWorkLine/LocalViewWorkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/unified-media/owner-split-c2-code-review-04/browser-lifecycle/patched-invalid_json/browser-result.json",
+      "retained": "/mnt/c/workSpace/videoWorkLine/LocalViewWorkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/unified-media/owner-split-c2-code-review-04/browser-lifecycle/patched-invalid_json/browser-result.invalid-json.raw",
+      "sha256": "40b5cafe045b9c9e31a1c3fdcfbc89f934906ff06a6276b55c2a0e517be21655",
+      "reason": "preserve exact invalid JSON test bytes without violating package JSON validation"
+    }
+  ],
+  "stubbed_boundary": "subprocess.run and budget settle/close only; no process, service, browser or real ledger touched"
+}

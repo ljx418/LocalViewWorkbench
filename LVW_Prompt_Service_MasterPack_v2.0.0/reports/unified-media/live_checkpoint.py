@@ -62,9 +62,12 @@ try:
  result['checks']['UM-02']={'status':'PASS','oracle':'all seven real public rejects with exact stable codes, zero model calls, media/temp/spooled FDs back to baseline','evidence':'negative-results.json'}
  auth['bindings_sha256']=sha(out/'bindings.json')
  stage_consumed=True;result['stage_checkpoint_consumed']=True
+ result['cleanup_error']='browser lifecycle not yet proved; retain reservation if its harness exits without a close receipt'
  node=subprocess.run(['node',str(SELF.with_name('live_browser.cjs')),str(out)],cwd=ROOT,capture_output=True,timeout=1200)
  (out/'browser.stdout.log').write_bytes(node.stdout);(out/'browser.stderr.log').write_bytes(node.stderr)
  browser=json.loads((out/'browser-result.json').read_text())
+ assert browser.get('browser_closed') is True,'browser close receipt missing'
+ result.pop('cleanup_error',None)
  for c in browser['checks']:result['checks'][c['id']]=c
  if node.returncode:raise RuntimeError('real browser sequence failed: '+browser.get('error','see logs'))
  # Join original model source and real server lease telemetry.

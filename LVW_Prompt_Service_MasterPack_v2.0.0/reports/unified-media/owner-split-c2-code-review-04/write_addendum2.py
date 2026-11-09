@@ -1,0 +1,18 @@
+from pathlib import Path
+import json,hashlib,ast
+R=Path.cwd();O=R/'reports/unified-media/owner-split-c2-code-review-04';h=lambda p:hashlib.sha256(p.read_bytes()).hexdigest();checks=json.loads((O/'browser-lifecycle/checks.json').read_text());previous=json.loads((O/'final-recheck-source-after.json').read_text());current={f:h(R/f) for f in previous};diff=[p for p in previous if previous[p]!=current[p]];assert diff==['reports/unified-media/live_checkpoint.py'];ast.parse((R/diff[0]).read_text());text='''# C2 addendum2：browser生命周期失败关闭
+
+结论：**GO_FOR_C2_BROWSER_LIFECYCLE_FAIL_CLOSED_CODE_ONLY**，Fatal0/Major0/Minor0。本次仅复审相对封存4a54103aee5dc70c14001dd1d41396661683c5d2的live_checkpoint.py三行增加；其余7份指定C2源/测试hash与上次最终复审一致。此前初审及addendum/recheck receipt保留，不回填旧候选。
+
+补丁在node调用前设置browser生命周期未证实的cleanup_error；只有实际browser-result.json成功解析且browser_closed严格为True后才移除该标记。browser脚本中该字段在await browser.close()成功后设置。TimeoutExpired、node崩溃且缺结果、JSON损坏、closeFalse或缺字段均无法移除标记；现有finally保持NO_GO，authority.terminal的cleanup_error检查阻止settle，close_retaining_reservation把active1转成active2（禁新发送且仍按未结算容量计费）。没有通过杀未知进程或只看API/Ollama listener来冒称浏览器已清理。
+
+独立CPU对照直接从封存旧源/当前源提取对应AST语句，不执行live_checkpoint顶层或真实进程：6种情形×2版本共12项。仅替换subprocess.run及预算settle/close为内存记录边界，实际调用authority.terminal写本审查根内synthetic receipts。旧版本在5种失败情形下仍到settle；新版本5种失败全部保留cleanup_error、NO_GO、reservation_retained，且settle调用数0。closedTrue对照可移除标记并到settle，表明未把有关闭证据的正常账本结算一起封死。该正向CPU对照并不运行后续验收序列，也不证明真实浏览器清理。
+
+实际命令：`PYTHONDONTWRITEBYTECODE=1 python3 -B reports/unified-media/owner-split-c2-code-review-04/browser_lifecycle_cpu.py`，exit0，12项对照完成；Python AST语法通过。未重复55项CPU，因为未改其recipe/oracle/authority范围；新增变化已做针对性语句+实际terminal分支复算。source-before/source-after SHA一致，详见browser-lifecycle/checks.json。
+
+边界：此修复阻止清理未知时误结算，不会自动找回或结束已失联浏览器。未来真实timeout/crash必须保留NO_GO及reservation，再按实际授权/身份处理；不能以CPU关闭字段替代真实关闭证据。本补丁不改变产品字节/模型质量，不将4a54103 pilot诊断拼成新候选full证据；新live15应封存新sourcecommit、绑定新harness SHA并独立完成冻结分母。固定原tracking质量、真实全部UM10和人签均未由本次代码复审通过。
+
+两份故意损坏的browser-result.json在复算后以完全相同字节保留为browser-result.invalid-json.raw；checks.json的invalid_input_extension_mapping记录旧路径、新路径、SHA及改扩展名原因，失败事实不变，避免文档包递归JSON解析误读测试输入。
+
+仅写本审查目录，无模型/GPU/服务/真实浏览器/网络/媒体探测/解码/全局账本读写，无未知进程动作。
+''';(O/'addendum2.md').write_text(text);receipt={'kind':'INDEPENDENT_C2_BROWSER_LIFECYCLE_FAIL_CLOSED_ADDENDUM2','decision':'GO_FOR_C2_BROWSER_LIFECYCLE_FAIL_CLOSED_CODE_ONLY','fatal':0,'major':0,'minor':0,'baseline_commit':'4a54103aee5dc70c14001dd1d41396661683c5d2','source_hashes':current,'changed_from_previous_recheck':diff,'source_before_sha256':checks['source_before_sha256'],'source_after_sha256':checks['source_after_sha256'],'source_unchanged':checks['source_unchanged'],'command':['python3','-B','reports/unified-media/owner-split-c2-code-review-04/browser_lifecycle_cpu.py'],'exit_code':0,'cpu_comparisons':12,'patched_failure_cases_blocking_settle':5,'full_suite_rerun':False,'real_model_calls':0,'real_service_starts':0,'real_browser_starts':0,'global_ledger_mutation':False,'stage_pass_claim':False,'human_signoff':None,'runtime_cleanup_actually_verified':False,'output_hashes':{'addendum2.md':h(O/'addendum2.md'),'browser_lifecycle_cpu.py':h(O/'browser_lifecycle_cpu.py'),'browser-lifecycle/checks.json':h(O/'browser-lifecycle/checks.json'),'browser-lifecycle.stdout.log':h(O/'browser-lifecycle.stdout.log'),'browser-lifecycle.stderr.log':h(O/'browser-lifecycle.stderr.log')}};(O/'addendum2-receipt.json').write_text(json.dumps(receipt,indent=2)+'\n');print(json.dumps({'decision':receipt['decision'],'source_sha256':checks['source_after_sha256'],'addendum2_sha256':h(O/'addendum2.md'),'receipt_sha256':h(O/'addendum2-receipt.json')},indent=2))
