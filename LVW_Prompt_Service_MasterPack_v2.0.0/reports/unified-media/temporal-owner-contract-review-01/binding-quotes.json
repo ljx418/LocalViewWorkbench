@@ -1,0 +1,92 @@
+[
+  {
+    "path": "AGENTS.md",
+    "line": 13,
+    "quote": "10. 偏离范围/数据合同/硬门限需ADR与批准；不能偷偷放宽验收。修复后复跑，所有产物留实际变更记录。"
+  },
+  {
+    "path": "AGENTS.md",
+    "line": 26,
+    "quote": "20. 2026-11-09 明确批准 AUTH-PROGRAM-V1-COMPLETE-03（request/approval见reports/）：剩余V0/V1按已批准路线自动推进，重叠范围的阶段/候选/启动/CPU检查授权次数硬配额取消，改全局累计1024模型动作/24轮有效完整验收/48小时生产运行，历史消耗计入、不清零。每轮仍有限绑定、完整清理与独审；同路线无进展须复盘，不因阶段次数再求人批。批准范围内构建期必要官方依赖下载≤2GiB/0付费/隔离安装及已装本地视觉模型比对可自动继续；无权下载模型、用云/付费/私有数据/可见浏览器/永久系统配置或V2/V3。人工体验/发布签署仍由人类实际完成，跨Stage有该前置时等待签署；机器/独审通过且无人签前置时不再另要执行许可。当前live08单次请求已覆盖，不能要求重复批准。"
+  },
+  {
+    "path": ".agent-governance/README.md",
+    "line": 16,
+    "quote": "冲突不得静默覆盖。公共合同、固定分母、阈值或角色权限变化必须新建变更记录，由门禁负责人裁决并重新冻结 Stage Packet。"
+  },
+  {
+    "path": "docs/00_POSITION_AND_ADR.md",
+    "line": 19,
+    "quote": "- ADR-05：raw/机器建议/人工修订隔离；四来源域和未知值一直保留；模板编译为纯CPU。"
+  },
+  {
+    "path": "docs/01_PRD.md",
+    "line": 7,
+    "quote": "成功标准是少重复推理、少重复描述、人工稿不丢失、资料可复用，非“更自主的Agent”或“恢复原始seed”。静图不能证明连续动作；采样视频不能证明未被观察的片段；图像风格不能证明历史身份/科学结论。"
+  },
+  {
+    "path": "docs/01_PRD.md",
+    "line": 44,
+    "quote": "V0独立标注10图+6片；V1起12图+6片覆盖六模式，所有模式至少2张图，全部原始结果参与评分。单样本5维0–2分，≥8且无关键幻觉才可用；V0图≥8/10、片≥5/6，V1图≥10/12、片≥5/6。24模式×目标是确定性编译组合测试，不等于24项视觉质量已合格。V2/V3继承并增时间/集成场景。"
+  },
+  {
+    "path": "docs/18_MODEL_AND_PROMPTS.md",
+    "line": 7,
+    "quote": "安全读图/EXIF/色彩/透明合成→限制长边/像素→视频附时间性质→系统规则+六模式+用户意图→Ollama /api/chat→raw→Schema解析→机器建议。外层run_id/hash/模型/时间由代码填，不让模型生成。format仅校验形状，不确认事实。"
+  },
+  {
+    "path": "docs/18_MODEL_AND_PROMPTS.md",
+    "line": 13,
+    "quote": "六模式文件只设视觉观察重点与创作边界。统一四来源域后，CPU compiler根据目标做结构排列和字段取舍。每次编译存模板版本/hash和warning。用户锁定优先；合并冲突返回提示。图像自然语言与SD标签分开；edit/motion专用模型适配确认后才启用，不用名字冒称已对接。"
+  },
+  {
+    "path": "docs/18_MODEL_AND_PROMPTS.md",
+    "line": 25,
+    "quote": "PA已有规则通过许可证与本机版本核查后使用；输出cleaner不得修改raw/人工版本。OIP风格卡可选，只读参考不作为事实来源或模型能力。生成器不支持的参数留notes，不能造成错误参数请求。"
+  },
+  {
+    "path": "plans/acceptance_cases.json",
+    "line": 312,
+    "quote": "        \"评分原始输出的动作/运镜/局限\","
+  },
+  {
+    "path": "plans/acceptance_cases.json",
+    "line": 397,
+    "quote": "        \"时间顺序/采样局限可见，无全片GPU张量\","
+  },
+  {
+    "path": "plans/acceptance_cases.json",
+    "line": 1122,
+    "quote": "        \"评分原始响应；六模式至少各2图\","
+  },
+  {
+    "path": "reports/authorization-program-v1-complete-03.request.json",
+    "line": 37,
+    "quote": "    \"within_scope_contract_work\": \"Implement the existing PRD/API/Schema and record non-breaking clarifications, internal prompts/input organization, owner/test/harness corrections and new candidate seals. Do not change product goals, incompatible public semantics, fixed denominator or quality/resource thresholds without separate explicit product approval.\","
+  },
+  {
+    "path": "reports/authorization-program-v1-complete-03.request.json",
+    "line": 38,
+    "quote": "    \"same_failure_rule\": \"Two effective repairs on one route without new evidence/progress stop that route for root-cause analysis and independent reassessment. A materially different reviewed technical approach may proceed within remaining global budget; do not convert every such technical stop into a new human permission request.\","
+  },
+  {
+    "path": "reports/authorization-program-v1-complete-03.request.json",
+    "line": 90,
+    "quote": "    \"weakening denominator/quality/resource gates, deleting failures, raw output rewriting or positive evidence splicing\","
+  },
+  {
+    "path": ".agent-governance/stages/R1/04-acceptance-matrix.md",
+    "line": 2,
+    "quote": "UM-01图片旧路径；UM-02视频上传与格式/大小/时长/像素/空损坏拒绝；UM-03实际PTS/四帧/少帧局限与源SHA；UM-04真Provider全采样帧语义与原始输出；UM-05准备/推理/排队取消及晚到不发布；UM-06显式采纳/脏稿确认/导出归属；UM-07失败/模型离线仍可人工；UM-08本机资源租约与真实释放/隔离；UM-09统一入口与真实headless浏览器组合；UM-10冻结身份/清理/独审。PASS要求10/10全部真实义务闭合且Fatal/Major=0；人类签署另计。旧S2九项/S3十二项/V1二十一项不缩减；切片通过不算整个R1 PASS。"
+  },
+  {
+    "path": ".agent-governance/stages/R1/06-implementation-prompt.md",
+    "line": 2,
+    "quote": "先U1再U2，已授权Codex临时实现。只改允许路径。真实API负例和race测试，不删除失败用例或只检常量。视频1–4个实际采样帧按时间编号合成一张不裁切、不补重复帧、最大768×768的时序图，仍一次Provider请求；各面板标F编号/真实秒数，输入不含样本答案，账本区分源帧数和实际wire图数，提示词显式列实际时间和观察局限，返回同PromptSpec；video_prompt由该全片采样建议及真实变化元数据编译，不重新调用模型。原始内容始终保留。"
+  },
+  {
+    "path": "reports/unified-media/live_browser.cjs",
+    "line": 15,
+    "quote": " await p.locator('.raw summary').click();const run=JSON.parse(await saveDownload(p.getByRole('button',{name:'保存本次分析原始 JSON',exact:true}),'video-model-run.json'));await p.locator('.raw summary').click();assert.equal(run.frames.length,4);assert.ok(run.parsed_spec.text_zh&&run.parsed_spec.text_en);assert.ok(run.raw_response);checks.push({id:'UM-03',status:'PASS',oracle:'four real source PTS and source hash present',frames:run.frames});checks.push({id:'UM-04',status:'BLOCKED',oracle:'real model output/schema/raw retained; temporal semantic obligation requires independent content review',run_id:run.id});"
+  }
+]

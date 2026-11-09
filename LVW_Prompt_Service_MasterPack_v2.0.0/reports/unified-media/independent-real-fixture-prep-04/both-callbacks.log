@@ -1,0 +1,16 @@
+{"kind": "CPU_FIXTURE_PREPARATION_NOT_PRODUCT_ACCEPTANCE", "decision": "NO_GO", "model_calls": 0, "full_checkpoints": 0, "stage_pass_claim": false, "tool_results": [{"tool": "ffmpeg", "argv": ["/mnt/c/workSpace/videoWorkLine/LocalViewWorkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/unified-media/independent-real-fixture-prep-04/mock-final/both_callbacks/pack/fake-fftool", "-nostdin", "-n", "-v", "warning", "-f", "lavfi", "-i", "color=c=black:s=3842x2160:r=1:d=1", "-frames:v", "1", "-c:v", "libx264", "-preset", "ultrafast", "-crf", "28", "-threads", "1", "-pix_fmt", "yuv420p", "-movflags", "+faststart", "-an", "/mnt/c/workSpace/videoWorkLine/LocalViewWorkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/unified-media/independent-real-fixture-prep-04/mock-final/both_callbacks/.lvw-runtime/lvw-prompt-service/R1-unified-fixtures/real-rejection-fixtures-04/over-pixels.mp4"], "returncode": 0, "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "stderr_sha256": "b5d54c39e66671c9731b9f471e585d8262cd4f54963f0c93082d8dcf334d4c78", "original_handle_exited_and_pipes_closed": true}, {"tool": "ffprobe", "argv": ["/mnt/c/workSpace/videoWorkLine/LocalViewWorkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/unified-media/independent-real-fixture-prep-04/mock-final/both_callbacks/pack/fake-fftool", "-v", "error", "-f", "mov", "-enable_drefs", "0", "-protocol_whitelist", "file,pipe", "-show_entries", "stream=codec_type,width,height:format=duration", "-of", "json", "/mnt/c/workSpace/videoWorkLine/LocalViewWorkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/unified-media/independent-real-fixture-prep-04/mock-final/both_callbacks/.lvw-runtime/lvw-prompt-service/R1-unified-fixtures/real-rejection-fixtures-04/over-pixels.mp4"], "returncode": 0, "stdout_sha256": "c54b73a4ea66022722eb98ced99e7fbe71d9438b6b140858b0679846c3326c8c", "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "original_handle_exited_and_pipes_closed": true}], "error": "AssertionError: ", "artifacts_usable_for_acceptance": false, "owned_artifact_root_claimed": true, "retained_artifact_root": "/mnt/c/workSpace/videoWorkLine/LocalViewWorkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/unified-media/independent-real-fixture-prep-04/mock-final/both_callbacks/.lvw-runtime/lvw-prompt-service/R1-unified-fixtures/real-rejection-fixtures-04", "failed_inputs_unusable_for_acceptance": true, "tool_attempts": 2, "tool_cleanup_proven": true, "settlement": {"actual_model_actions": 0}}
+{
+  "scenario": "both_callbacks",
+  "calls": [
+    "reserve",
+    "bind",
+    "fftool",
+    "fftool",
+    "settle0"
+  ],
+  "attempted": 2,
+  "tool_cleanup_proven": true,
+  "terminal_receipt": true,
+  "real_tool_or_ledger_actions": 0,
+  "large_allocations": 0
+}

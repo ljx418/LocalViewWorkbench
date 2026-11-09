@@ -1,0 +1,94 @@
+"""Finite CPU-only fixtures for real public media rejection coverage; no model."""
+from pathlib import Path
+import hashlib,json,os,shutil,subprocess,sys,time,uuid
+ROOT=Path(__file__).resolve().parents[2];sys.path[:0]=[str(ROOT),str(ROOT/'lvw/backend')]
+from tools import local_program_authority as program
+from app.video_kernel import process_module
+
+
+def sha(path):
+    with Path(path).open('rb') as stream:return hashlib.file_digest(stream,'sha256').hexdigest()
+
+
+def main():
+    run='real-rejection-fixtures-04';out=ROOT/'reports/unified-media'/run
+    artifact_root=ROOT.parent.parent/'.lvw-runtime/lvw-prompt-service/R1-unified-fixtures'/run
+    assert not out.exists() and not artifact_root.exists(),'one-shot fixture identity cannot replay'
+    candidate=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
+    prefixes=[str(Path(__file__).relative_to(ROOT)),'tools/local_program_authority.py',
+        'lvw/backend/app','LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge']
+    assert subprocess.run(['git','diff','--quiet',candidate,'--',*prefixes],cwd=ROOT).returncode==0
+    untracked=subprocess.check_output(['git','ls-files','--others','--exclude-standard','--',*prefixes],cwd=ROOT,text=True).splitlines()
+    assert not [p for p in untracked if '__pycache__' not in Path(p).parts]
+    paths=subprocess.check_output(['git','ls-files','--',*prefixes],cwd=ROOT,text=True).splitlines()
+    previous=json.loads((ROOT/'reports/unified-media/live-14/bindings.json').read_text())
+    tools={name:previous[name] for name in ('ffmpeg','ffprobe')}
+    assert all(sha(item['path'])==item['sha256'] for item in tools.values()),'FF tools changed'
+    out.mkdir();reserved=False;claimed=False;attempted=0;completed=[]
+    child={'run_id':run,'candidate_sha':candidate,'stage_pass_claim':False}
+    result={'kind':'CPU_FIXTURE_PREPARATION_NOT_PRODUCT_ACCEPTANCE','decision':'NO_GO',
+        'model_calls':0,'full_checkpoints':0,'stage_pass_claim':False,'tool_results':completed}
+    try:
+        budget={'model_calls':0,'provider_calls':0,'full_checkpoints':0}
+        program.reserve(run,'R1',budget,120,False,cpu_fixture=True);reserved=True
+        request,grant=program.program_paths();now=time.time()
+        child.update(status='ACTIVE_ONE_SHOT',stage_id='R1',program=grant,
+            program_sha256=sha(ROOT/grant),program_request_sha256=sha(ROOT/request),
+            harness_sha256=sha(__file__),issued_at=now,expires_at=now+120,
+            budget=budget,wall_seconds=120,ffmpeg_commands_limit=1,ffprobe_commands_limit=1,
+            generated_media_files_limit=3,generated_bytes_limit=270*1024*1024,
+            ports=[],samples=[],owned_artifact_root=str(artifact_root),
+            tool_bindings=tools,frozen_files=[{'path':p,'sha256':sha(ROOT/p)} for p in paths],
+            cleanup='Only own direct CPU tool handles; declared non-private frozen inputs remain for checkpoint. Failures retained but unusable, no private temp or model process.')
+        (out/'authorization.json').write_text(json.dumps(child,indent=2)+'\n');program.bind(run,out/'authorization.json')
+        artifact_root.mkdir(parents=True,exist_ok=False,mode=0o700);claimed=True
+        (artifact_root/'owner.json').write_text(json.dumps({'run_id':run,'candidate_sha':candidate,'nonce':uuid.uuid4().hex},indent=2)+'\n')
+        def execute(name,argv,seconds):
+            nonlocal attempted
+            assert attempted<2 and sha(tools[name]['path'])==tools[name]['sha256']
+            index=attempted;attempted+=1
+            def receipt(value):
+                (out/f'tool-{index}.stdout.log').write_bytes(value.stdout)
+                (out/f'tool-{index}.stderr.log').write_bytes(value.stderr)
+                completed.append({'tool':name,'argv':argv,'returncode':value.returncode,
+                    'stdout_sha256':hashlib.sha256(value.stdout).hexdigest(),
+                    'stderr_sha256':hashlib.sha256(value.stderr).hexdigest(),'original_handle_exited_and_pipes_closed':True})
+            return process_module.run_bounded(argv,timeout_seconds=seconds,output_limit=1024*1024,on_result=receipt)
+        pixel_file=artifact_root/'over-pixels.mp4'
+        execute('ffmpeg',[tools['ffmpeg']['path'],'-nostdin','-n','-v','warning','-f','lavfi','-i',
+            'color=c=black:s=3842x2160:r=1:d=1','-frames:v','1','-c:v','libx264','-preset','ultrafast',
+            '-crf','28','-threads','1','-pix_fmt','yuv420p','-movflags','+faststart','-an',str(pixel_file)],60)
+        probe=execute('ffprobe',[tools['ffprobe']['path'],'-v','error','-f','mov','-enable_drefs','0',
+            '-protocol_whitelist','file,pipe','-show_entries','stream=codec_type,width,height:format=duration','-of','json',str(pixel_file)],15)
+        metadata=json.loads(probe.stdout);video=[v for v in metadata['streams'] if v.get('codec_type')=='video']
+        assert len(video)==1 and video[0]['width']==3842 and video[0]['height']==2160
+        assert 0<float(metadata['format']['duration'])<=60 and 0<pixel_file.stat().st_size<14*1024*1024
+        large=artifact_root/'over-bytes.mp4'
+        with large.open('xb') as stream:stream.truncate(256*1024*1024+1);stream.flush();os.fsync(stream.fileno())
+        empty=artifact_root/'empty.mp4';empty.touch(exist_ok=False)
+        assert large.stat().st_size==256*1024*1024+1 and empty.stat().st_size==0
+        items=[]
+        for category,path,code in (('pixels',pixel_file,'MEDIA_LIMIT_EXCEEDED'),('bytes',large,'MEDIA_LIMIT_EXCEEDED'),('empty',empty,'MEDIA_INVALID')):
+            items.append({'category':category,'path':str(path),'sha256':sha(path),'bytes':path.stat().st_size,'expected_error':code})
+        result.update(decision='FIXTURES_READY_NOT_PRODUCT_PASS',owned_artifact_root=str(artifact_root),
+            items=items,probe_metadata=metadata,artifacts_usable_for_acceptance=True,
+            declared_input_retention=True,source_video_and_human_holdouts_used=False)
+    except Exception as error:
+        result.update(error=type(error).__name__+': '+str(error),artifacts_usable_for_acceptance=False)
+    finally:
+        result['owned_artifact_root_claimed']=claimed
+        result['retained_artifact_root']=str(artifact_root) if claimed else None
+        result['failed_inputs_unusable_for_acceptance']=result['decision']!='FIXTURES_READY_NOT_PRODUCT_PASS'
+        result['tool_attempts']=attempted
+        result['tool_cleanup_proven']=attempted==len(completed)
+        try:
+            assert result['tool_cleanup_proven'],'tool termination uncertain; retain reservation'
+            if reserved:result['settlement']=program.settle(run,0)
+        except Exception as error:
+            result.update(decision='NO_GO_CLEANUP_PENDING',cleanup_error=type(error).__name__+': '+str(error))
+            if reserved:program.close_retaining_reservation(run)
+        (out/'receipt.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n')
+        (out/'authorization.terminal.json').write_text(json.dumps({**child,'status':'EXPIRED_'+result['decision']},indent=2)+'\n')
+    print(json.dumps(result,ensure_ascii=False))
+
+if __name__=='__main__':main()
