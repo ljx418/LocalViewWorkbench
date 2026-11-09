@@ -89,7 +89,7 @@ export function App() {
   const busy = ["uploading", "analyzing", "cancelling"].includes(phase);
   const spec = phase === "ready" ? run?.parsed_spec ?? null : null;
   const statusText = phase === "cancelling" ? "正在取消并等待资源释放" : phase === "uploading" ? "正在检查媒体" : phase === "analyzing" ? "本地模型正在观察" :
-    phase === "ready" ? "分析完成，等待你采纳" : phase === "failed" ? "本次分析未完成" :
+    runtimeAction ? "模型服务切换中，完成后可继续分析" : phase === "ready" ? "分析完成，等待你采纳" : phase === "failed" ? "本次分析未完成" :
     readiness === null ? "正在检查本地模型" : readiness.ready ? "模型已就绪，等待图片或视频" : "模型未就绪，可人工编辑";
   const draftHasContent = useMemo(() => hasContent(draft), [draft]);
 
@@ -124,7 +124,7 @@ export function App() {
   }
 
   async function analyze() {
-    if (!file || busy) return;
+    if (!file || busy || runtimeAction) return;
     controller.current?.abort();
     const abort = new AbortController(); controller.current = abort;
     const generation = ++epoch.current;
@@ -249,7 +249,7 @@ export function App() {
             <label>视觉表达方式<select disabled={busy} value={mode} onChange={(event) => setMode(event.target.value as Mode)}>{modes.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
             <label>内容处理<select disabled={busy} data-testid="content-profile" value={contentProfile} onChange={(event) => setContentProfile(event.target.value as ContentProfile)}>{contentProfiles.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
           </div>
-          <button data-testid="analyze" className="primary" type="button" onClick={analyze} disabled={!canAnalyze(Boolean(file), phase, readiness?.ready === true)}>{busy ? "处理中…" : inputKind === "video" ? "分析这段视频" : "分析这张图片"}</button>
+          <button data-testid="analyze" className="primary" type="button" onClick={analyze} disabled={Boolean(runtimeAction) || !canAnalyze(Boolean(file), phase, readiness?.ready === true)}>{runtimeAction ? "等待服务切换完成" : busy ? "处理中…" : inputKind === "video" ? "分析这段视频" : "分析这张图片"}</button>
         </div>
         {busy && <button className="cancel-action" type="button" onClick={cancelAnalysis} disabled={phase === "cancelling"}>取消本次分析</button>}
         {job && <p className="job-status" role="status">任务：{job.status} · 进度{job.progress_done ?? 0}/{job.progress_total ?? 1} · 资源：{job.resource_state}</p>}
