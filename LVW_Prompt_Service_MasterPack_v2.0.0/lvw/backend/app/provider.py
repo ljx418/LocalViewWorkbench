@@ -100,6 +100,15 @@ VIDEO_COMPACT_TASK = (
     "sampled intervals only. Use the supplied column labels and units exactly. Return concise "
     "bilingual schema JSON for the whole sampled sequence, retaining unknown causes."
 )
+VIDEO_SOURCE_TASK = (
+    "Analyze the attached full source images as ONE sampled VIDEO sequence in attachment order, "
+    "using the listed timestamps. These are separate full-resolution frames, not a contact sheet. "
+    "No derived difference-map image is attached. Compare subject screen placement and background "
+    "landmarks separately across EVERY source image. Numeric registration aligns NEXT toward "
+    "PREVIOUS; colour components are not semantic objects or physical camera directions. Respect "
+    "the column labels/units. Return concise bilingual JSON describing the whole sampled sequence, "
+    "supported temporal differences and unknown causes, not just one still composition."
+)
 VIDEO_SYSTEM_PROMPT_PATH = SYSTEM_PROMPT_PATH.with_name("analysis_video_system_zh.txt")
 VIDEO_SYSTEM_PROMPT = SYSTEM_PROMPT + "\n\n" + VIDEO_SYSTEM_PROMPT_PATH.read_text(encoding="utf-8").strip()
 VIDEO_TEMPLATE_SHA256 = hashlib.sha256((TEMPLATE_SHA256 + VIDEO_SYSTEM_PROMPT + VIDEO_TASK +
@@ -131,6 +140,23 @@ def compact_alignment_metadata(measurements: list[dict]) -> dict:
     return {'gray_columns':['offset_x_px','offset_y_px','zero_error','best_error','reduction_fraction_0_to1','ties'],
         'colour_columns':['component','offset_x_px','offset_y_px','zero_error','best_error','reduction_percent_0_to100','ties'],
         'pairs':rows}
+
+VIDEO_SOURCE_TEMPLATE_SHA256 = hashlib.sha256((TEMPLATE_SHA256 + VIDEO_SYSTEM_PROMPT +
+    VIDEO_SOURCE_TASK + "source-frames/1" + json.dumps(VIDEO_SCHEMA,sort_keys=True)).encode()).hexdigest()
+
+
+def build_source_frame_images(decoded) -> list[bytes]:
+    """Lossless full RGB PNG per actual decoded source, no resizing/cropping/panels."""
+    if not 1<=len(decoded.frames)<=4 or len(decoded.manifest)!=len(decoded.frames):
+        raise AppError("PARSE_PARTIAL","视频实际帧与时间元数据不匹配",status_code=503)
+    images=[];size=None
+    for payload in decoded.frames:
+        with Image.open(BytesIO(payload)) as image:
+            if image.mode!="RGB" or max(image.size)>768 or (size is not None and image.size!=size):
+                raise AppError("PARSE_PARTIAL","原始视频帧超出受控RGB尺寸",status_code=503)
+            size=image.size
+            output=BytesIO();image.save(output,format="PNG");images.append(output.getvalue())
+    return images
 
 
 def build_temporal_sheet(decoded) -> bytes:
@@ -483,23 +509,29 @@ class OllamaProvider:
 
     async def analyze_video(self, decoded, *, mode: Mode, content_profile: ContentProfile = "standard",
                             custom_guidance: str = "", thinking: bool = False,
-                            compact_video: bool = False, video_probe_tokens: int | None = None):
-        sheet = build_temporal_sheet(decoded)
-        return await self._analyze_images([sheet], mode=mode, content_profile=content_profile,
+                            compact_video: bool = False, video_probe_tokens: int | None = None,
+                            source_frame_images: bool = False):
+        if type(source_frame_images) is not bool:
+            raise AppError("MODEL_UNAVAILABLE","无效的视频输入组织方式",status_code=503)
+        images=build_source_frame_images(decoded) if source_frame_images else [build_temporal_sheet(decoded)]
+        return await self._analyze_images(images, mode=mode, content_profile=content_profile,
             custom_guidance=custom_guidance, frames=decoded.manifest,
             source_frame_hashes=[hashlib.sha256(value).hexdigest() for value in decoded.frames],
             pixel_measurements=temporal_pixel_measurements(decoded.frames),
             alignment_measurements=temporal_alignment_measurements(decoded.frames), thinking=thinking,
-            compact_video=compact_video, video_probe_tokens=video_probe_tokens)
+            compact_video=compact_video, video_probe_tokens=video_probe_tokens,
+            source_frame_images=source_frame_images)
 
     async def _analyze_images(self, images: list[bytes], *, mode: Mode,
                               content_profile: ContentProfile, custom_guidance: str,
                               frames=None, source_frame_hashes=None, pixel_measurements=None,
                               alignment_measurements=None, thinking: bool = False, compact_video: bool = False,
-                              video_probe_tokens: int | None = None):
+                              video_probe_tokens: int | None = None, source_frame_images: bool = False):
         if type(thinking) is not bool:
             raise AppError("MODEL_UNAVAILABLE", "无效的本地推理模式", status_code=503)
-        if (type(compact_video) is not bool or (compact_video and (not thinking or frames is None))
+        if (type(compact_video) is not bool or (compact_video and (not frames or len(frames)>4))
+                or type(source_frame_images) is not bool or (source_frame_images and not compact_video)
+                or (source_frame_images and len(images)!=len(frames))
                 or (video_probe_tokens is not None and (not thinking or frames is None
                     or type(video_probe_tokens) is not int or video_probe_tokens not in (768,1536)))):
             raise AppError("MODEL_UNAVAILABLE", "无效的本地组件验证配置", status_code=503)
@@ -507,8 +539,8 @@ class OllamaProvider:
         messages: list[dict[str, object]] = build_messages(mode, content_profile, custom_guidance)
         if frames is not None:
             messages[0]["content"] = VIDEO_SYSTEM_PROMPT
-            messages[-1]["content"] = str(messages[-1]["content"]).replace(TEMPLATE_TEXT, VIDEO_COMPACT_TASK if compact_video else VIDEO_TASK)
-            messages[-1]["content"] += f"\nActual populated SOURCE panel count: {len(frames)}. Actual frame times (seconds): " + json.dumps([
+            messages[-1]["content"] = str(messages[-1]["content"]).replace(TEMPLATE_TEXT, VIDEO_SOURCE_TASK if source_frame_images else VIDEO_COMPACT_TASK if compact_video else VIDEO_TASK)
+            messages[-1]["content"] += f"\nActual populated SOURCE {'image' if source_frame_images else 'panel'} count: {len(frames)}. Actual frame times (seconds): " + json.dumps([
                 value["time_seconds"] for value in frames])
             messages[-1]["content"] += '\nMeasured image registration (not physical camera motion): '+json.dumps(compact_alignment_metadata(alignment_measurements) if compact_video else alignment_measurements,
                 separators=(',',':') if compact_video else None)
@@ -544,10 +576,11 @@ class OllamaProvider:
                              payload_image_count=len(images), source_frame_hashes=source_frame_hashes,
                      pixel_measurements=pixel_measurements,
                      alignment_measurements=alignment_measurements,
-                             presentation=VIDEO_PRESENTATION_VERSION if frames is not None else "single-image",
+                             presentation=("source-frames/1" if source_frame_images else VIDEO_PRESENTATION_VERSION) if frames is not None else "single-image",
                              thinking=thinking, thinking_capabilities_sha256=capability_sha,
                              inference_options=payload["options"], compact_video=compact_video,
-                             request_template_sha256=(VIDEO_COMPACT_TEMPLATE_SHA256 if compact_video else VIDEO_TEMPLATE_SHA256) if frames is not None else TEMPLATE_SHA256,
+                             request_template_sha256=(VIDEO_SOURCE_TEMPLATE_SHA256 if source_frame_images else VIDEO_COMPACT_TEMPLATE_SHA256 if compact_video else VIDEO_TEMPLATE_SHA256) if frames is not None else TEMPLATE_SHA256,
+                             payload_image_sha256=[hashlib.sha256(value).hexdigest() for value in images],
                              request_payload_sha256=hashlib.sha256(json.dumps(payload,sort_keys=True,separators=(",",":")).encode()).hexdigest(),
                              input_sha256=hashlib.sha256(b"".join(images)).hexdigest())
                 if child:
@@ -588,7 +621,7 @@ class OllamaProvider:
                 parsed.technical.subject_action = action
                 parsed.domains.unknowns.append(f"仅观察{len(frames)}个采样帧，未采样事件、连续运动与音频未经验证。")
                 parsed.template_id = "lvw-unified-video"
-                parsed.template_version = "1.6.0" if compact_video else "1.5.0"
+                parsed.template_version = "1.7.0" if source_frame_images else "1.6.0" if compact_video else "1.5.0"
         except (AppError, ValueError, KeyError, TypeError) as error:
             self._record("provider_call_failed", call_id, outcome="invalid_content")
             if not isinstance(error, AppError):

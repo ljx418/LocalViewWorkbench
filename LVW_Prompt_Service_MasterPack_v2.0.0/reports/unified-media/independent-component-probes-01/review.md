@@ -1,0 +1,68 @@
+# Independent component probe review
+
+These are two completed private component probes, not public/full checkpoints. Probe01: **CONFIGURATION_INCOMPLETE**, no semantic quality result. Probe02: **COMPONENT_SEMANTIC_FAIL**, Fatal0/Major1/Minor0 for its final content. Neither changes the live14 fixed-stage verdict: 7 PASS / 1 FAIL / 2 BLOCKED out of10, NO_GO. There is no human or Stage signature and no full R1/V1 acceptance.
+
+Probe01 binds candidate c65279f9538dc3faa3681260dae4a7090e995e66. Its retained final content is empty, done_reason=length, eval_count=768 and PARSE_PARTIAL. The empty final SHA256 is e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855. This demonstrates an incomplete configuration/output result, not successful semantic analysis or a quality negative inferred from unseen internal reasoning.
+
+Probe02 binds candidate b3c3487f615bc2f793fdb80e4b9f72f5554aba36. Its final JSON is complete (done_reason=stop, eval_count=509), with a retained final SHA256 d8ba87043c53ebb6956a6c7a604ade8e726fe3cfc2a665bbe25c8fbc72c93287 that independently recomputes exactly. Completion/schema validity does not establish correctness.
+
+## Major C1 — false relative/background stability and invented cause in probe02
+
+Independent retained-PPM pixel measurements again find red bbox [322,156,445,301] inclusive in every frame. Top white-grid centers start at 88.5,69.5,49.5,30.5 px, spaced96px, so grid location differs leftward by19,20,19px across source samples while the subject's image location is fixed. Physical camera direction need not be known to reject relative-grid stability.
+
+Probe02 observation2 asserts a visually consistent red-square/grid-line relationship, directly contradicted by those source pixels. Inference1 bases no large-scale subject/camera motion on supposed grid stability; inference2 invents likely sensor noise/compression despite the clear geometric grid displacement. Unknowns do not retract the false observation or make the invented causes evidenced. Chinese prompt says visual placement stays stable, and English prompt expressly says subject and background structure appear stationary from1s to7s. These claims omit the independently visible changing background relationship. Derived difference-map stripes are metadata, not physical scene texture.
+
+All final fields were inspected. Observation1 has correct frame times/colours/scene type but calls the non-square decoded red rectangle a square (width124,height146 at threshold; small shape imprecision rather than a separate major). Observations3/4 accurately reference difference maps and measured pixel percentages/delta. The two inferences have the defects above. Unknowns acknowledge uncertainty but propose noise/lighting/registration alternatives without evidence. Both reconstruction prompts preserve the false stable-scene account and turn derived-map appearance into descriptive content. Negative is unwanted generation defects, not evidence; tags digital graphic/red/blue/high contrast agree, while static subject can refer to the fixed image-coordinate foreground. camera_motion=unknown is acceptable. subject_action=appears visually static is consistent with foreground position only, and does not validate background stability. Parsed observation/inference/prompts repeat the final errors; added sparse-frame warning is correct. No hidden reasoning was used for this judgment.
+
+## Frozen source, request and runtime verification
+
+All authorization frozen files were reconstructed from each probe's own sealed Git commit into this review directory and rehashed without mismatch; current provider edits were not used. Harness hashes match. All four retained sample PPM hashes and every tool/executable binding match. Parent grant approval/request hashes and installed model identity digest match: gemma4:26b, 25.8B Q4_K_M, digest5571076f3d70050487b26b341705799e0ab29b808164f90d20d4cf84f699d251. Retained native logs support one actual /api/chat per probe and local no-cloud service configuration.
+
+The old source snapshots rebuild sheet323dc68033e330fae9e217cd26160ba5473fe3dc463a1a1a0d170aa617131843 exactly for both probes and reproduce all logged pixel/alignment metadata. Probe02 compact template3619f6afc5f6d0a289b7ac6ec3c7435b3b7906f280b5aa5a6349f1be19b52a1a and complete outbound request payload hashd52d47448959b227e7cb20f6f358c33c48d65471cc85e453d32ddfe7acb2c401 recompute exactly using sealed source, retained PPM bytes and fixed declared arguments. Probe02 uses thinking=true,num_ctx4096,num_predict1536,temperature0.2, compact_video=true. Probe01 uses thinking=true,num_ctx4096,num_predict768,temperature0.2; its source-derived template is4fdfc6aa195dfb0eba51f8842e9ba4aeea2207354f8c592012e5c1a71c2d4b0d. Probe01 did not log whole-request/template hashes, so these are reconstruction from frozen code, not independently compared wire request identities.
+
+Each sealed provider requires explicit thinking opt-in and a /api/show capabilities check, then debits model_action before the actual chat send when the controlled child is configured. Harness sets LVW_REQUIRE_BUDGET=1 and its child, acquires a lease, runs a bounded resource monitor, then release/close/final cleanup before settlement. One chat send each, no API/browser/Comfy starts, four source reads each; native logs show10 metadata requests each, within declared200. Running resource sample events and release samples stay within telemetry cap450; no threshold breach: probe01 peakGPU21160MiB/minRAM9144MiB, probe02 peakGPU20979MiB/minRAM9301MiB. These are retained observations and source guard checks, not a claim that every declared diagnostic cap has an independent runtime counter.
+
+SQLite was opened mode=ro only. Each child has cap1,calls1,full0,checkpoint0,active0,ollama_starts1/api0/browser0/comfy0. Elapsed26s/35s respectively, below600s. Child hash and execution-binding hash independently match ledger. Event timestamps fit the finite child windows.
+
+Each lease has exactly one release and three inventory_empty=true release samples: probe01 GPU2848/2866/2954MiB; probe02 GPU2696/2691/2687MiB. Native owner evidence is probe01 nonce8f44afc81d15444197ee39bdb672ccb8/PID32444/birth639298286552214150 and probe02 noncedceea58321174cd19c2656f936f5e303/PID34064/birth639298294118325496, each exited/listener_owned=false. Sealed native control holds the original process handle and waits for exit; receipt asserts lease release, absent listener, and temp removal before settlement. Exact randomized temp directory pathname was not archived, so independent filesystem confirmation of each original temp path cannot be reproduced from retained records. This is a disclosed cleanup evidence limit; no new Windows query, service action or process termination was performed. Retained owner/stop token filenames and receipt identities agree.
+
+## Privacy and reproducibility limits
+
+Full network response bodies intentionally were not persisted because they contain internal reasoning. This review retains exact final content, final hashes, existing wire hashes and ledger receipts only. Probe02 records thinking_field_present=true and thinking_character_count4541; no internal text is retained or assessed. Probe01 records no internal text or count. Both sealed harnesses keep successful final content or error partial final plus wire hash, not the internal reasoning field. Native request-body logging is disabled. No new model/GPU/service/browser/network/download/probe/decode or ledger write occurred in this review.
+
+Probe01 wire hash is fd6d4d746ec3b63b988892b4738df6cfbfc4e1f8f715c889149dd480bed66c4d, retained in receipt only. Probe02 wire hash is98b5a69142944a34f6cd9cd61fc489867ccfc1e58e93d42342e674e3575261cb, matching its provider_response_received event. Without withheld whole response bodies, neither wire hash nor the extracted final-to-whole-response association can be independently rederived; the final hash is independently verifiable, and source extraction plus retained logs is the available association evidence. This limitation is intentional, not replaced by reconstructed reasoning.
+
+Reproduce CPU-only computation with `PYTHONDONTWRITEBYTECODE=1 python3 -B reports/unified-media/independent-component-probes-01/recompute.py`, then `payload_cpu.py SNAPSHOT RUN_ID` for each saved snapshot. The namespace used to import snapshot provider definitions avoids application startup; shared pure CPU module definitions come from the same sealed Git bytes. No inference/client method is invoked. Earlier import attempts failed on incomplete snapshot dependencies before any runtime action; required source-only dependencies were then copied from the same commit. No synthetic computation is counted as real quality evidence.
+
+## Exact retained probe02 final content
+
+```json
+{
+  "observations": [
+    "Four source frames (F1 at 1s, F2 at 3s, F3 at 5s, and F4 at 7s) each display a red square centered within a blue background overlaid with a white grid.",
+    "The position of the red square relative to the grid lines appears visually consistent across all four frames.",
+    "The derived difference panels (D1->2, D2->3, D3->4) show vertical patterns of pixel intensity differences between consecutive frames.",
+    "Measured pixel differences indicate that approximately 33-34% of pixels change between adjacent frames, with a mean absolute RGB delta around 19.5-19.9."
+  ],
+  "inferences": [
+    "The visual stability of the red square and grid suggests no large-scale physical motion of the subject or camera.",
+    "The high percentage of changed pixels despite visual stability indicates significant signal-level variation, likely due to sensor noise or compression artifacts."
+  ],
+  "unknowns": [
+    "The specific cause of the high pixel-level difference (e.g., electronic noise vs. subtle lighting fluctuations) is unknown.",
+    "Whether the vertical patterns in the difference panels represent a physical property of the signal or an artifact of the registration process is unknown."
+  ],
+  "prompt_zh": "视频序列展示了一个在蓝色网格背景上的红色正方形。画面内容在1秒到7秒之间保持视觉上的位置稳定，但存在显著的像素级信号波动，在差异图中表现为垂直条纹状的分布。构图简洁，色彩对比度高，呈现数字图形特征。",
+  "prompt": "A video sequence featuring a red square positioned on a blue background with a white grid. The subject and background structure appear visually stationary from 1s to 7s, though high-frequency pixel variations are present as vertical patterns in the difference maps. High contrast, digital graphic style, clean composition.",
+  "negative": "motion blur, camera shake, organic textures, low contrast",
+  "tags": [
+    "digital graphic",
+    "red square",
+    "blue grid",
+    "static subject",
+    "high contrast"
+  ],
+  "camera_motion": "unknown",
+  "subject_action": "appears visually static"
+}
+```

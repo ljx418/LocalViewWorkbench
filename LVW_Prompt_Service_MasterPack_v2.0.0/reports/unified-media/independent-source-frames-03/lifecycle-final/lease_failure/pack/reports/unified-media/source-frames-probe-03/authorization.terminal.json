@@ -1,0 +1,71 @@
+{
+  "run_id": "source-frames-probe-03",
+  "stage_id": "R1",
+  "issued_at": 1794233448.486961,
+  "expires_at": 1794234048.486961,
+  "frozen_files": [],
+  "tool_bindings": {
+    "native_ollama": {
+      "path": "/mnt/c/workSpace/videoWorkLine/LocalViewWorkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/unified-media/independent-source-frames-03/lifecycle-final/lease_failure/pack/ollama.exe",
+      "sha256": "b5d54c39e66671c9731b9f471e585d8262cd4f54963f0c93082d8dcf334d4c78"
+    },
+    "powershell": {
+      "path": "/mnt/c/workSpace/videoWorkLine/LocalViewWorkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/unified-media/independent-source-frames-03/lifecycle-final/lease_failure/pack/ollama.exe",
+      "sha256": "b5d54c39e66671c9731b9f471e585d8262cd4f54963f0c93082d8dcf334d4c78"
+    }
+  },
+  "model": "gemma4:26b",
+  "model_digest": "fake",
+  "candidate_sha": "fake-head",
+  "status": "EXPIRED_NO_GO",
+  "program": "approval.json",
+  "program_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "program_request_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "harness_sha256": "4cd9769e0656358980768d4f13ea2fffc28e9ed7966a89cf7dd1bc149e8a6df4",
+  "ports": [
+    11434
+  ],
+  "owned_temp_root": "/mnt/c/workSpace/videoWorkLine/LocalViewWorkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/unified-media/independent-source-frames-03/lifecycle-final/.lvw-runtime/lvw-prompt-service/thinking-review-owned-lease_failure",
+  "budget_ledger": "never-used",
+  "execution_bindings_required": true,
+  "samples": [
+    {
+      "path": "reports/unified-media/independent-live-14/frame-0.ppm",
+      "sha256": "b3cc0475bb78a5026098858e9889acf666d31062d513d303314eca31d36e72f2"
+    },
+    {
+      "path": "reports/unified-media/independent-live-14/frame-1.ppm",
+      "sha256": "b3cc0475bb78a5026098858e9889acf666d31062d513d303314eca31d36e72f2"
+    },
+    {
+      "path": "reports/unified-media/independent-live-14/frame-2.ppm",
+      "sha256": "b3cc0475bb78a5026098858e9889acf666d31062d513d303314eca31d36e72f2"
+    },
+    {
+      "path": "reports/unified-media/independent-live-14/frame-3.ppm",
+      "sha256": "b3cc0475bb78a5026098858e9889acf666d31062d513d303314eca31d36e72f2"
+    }
+  ],
+  "budget": {
+    "ollama_starts": 1,
+    "model_calls": 1,
+    "provider_calls": 1,
+    "full_checkpoints": 0
+  },
+  "metadata_requests_limit": 200,
+  "gpu_queries_limit": 450,
+  "sample_read_limit": 16,
+  "wall_seconds_limit": 600,
+  "model_sends_limit": 1,
+  "inference_config": {
+    "thinking": false,
+    "num_ctx": 4096,
+    "num_predict": 768,
+    "temperature": 0.2,
+    "compact_video": true,
+    "source_frame_images": true
+  },
+  "scope": "One component call on retained4sourcePPMs, thinking=False/fullsource images, no full/public/UI acceptance, no new decode or holdouts",
+  "cleanup": "Only the fresh runtime original native handle/nonce; retain evidence then remove own temp.",
+  "stage_pass_claim": false
+}

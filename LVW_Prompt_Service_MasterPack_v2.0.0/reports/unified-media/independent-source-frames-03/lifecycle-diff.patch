@@ -1,0 +1,99 @@
+--- reports/unified-media/thinking_config_probe.py	2026-11-09 21:54:46.358781100 +0800
++++ reports/unified-media/source_frames_probe.py	2026-11-09 22:07:29.929504500 +0800
+@@ -1,4 +1,4 @@
+-"""One bounded thinking-mode component probe; never a public Stage acceptance."""
++"""One bounded full-source-frame component probe; never a public Stage acceptance."""
+ from pathlib import Path
+ import asyncio, hashlib, json, shutil, socket, subprocess, sys, time, uuid, os
+ from importlib.metadata import version
+@@ -19,12 +19,12 @@
+         return connection.connect_ex(('127.0.0.1',11434))==0
+ 
+ async def main():
+-    run='thinking-config-probe-02';out=ROOT/'reports/unified-media'/run
++    run='source-frames-probe-03';out=ROOT/'reports/unified-media'/run
+     assert not out.exists(),'one-shot identity already used'
+     assert not listening(),'existing service belongs to another run; leave it untouched'
+     candidate=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
+     paths=['lvw/backend/app','templates','tools/local_program_authority.py',str(Path(__file__).relative_to(ROOT)),
+-        'reports/unified-media/change-decision-private-generation-probe-02.json']
++        'reports/unified-media/change-decision-source-frame-probe-03.json']
+     assert subprocess.run(['git','diff','--quiet',candidate,'--',*paths],cwd=ROOT).returncode==0
+     assert not subprocess.check_output(['git','ls-files','--others','--exclude-standard','--',*paths],cwd=ROOT,text=True).strip()
+     binding=json.loads((ROOT/'reports/unified-media/live-14/bindings.json').read_text())
+@@ -36,13 +36,14 @@
+     out.mkdir()
+     temp=ROOT.parent.parent/'.lvw-runtime/lvw-prompt-service'/('thinking-'+uuid.uuid4().hex)
+     result={'decision':'NO_GO','retained_source_frames_used':4,'new_video_decode':False,
+-        'stage_pass_claim':False,'internal_thinking_persisted':False,
++        'stage_pass_claim':False,'internal_thinking_persisted':False,'run_root':str(temp),
+         'environment':{'python':sys.version,'Pillow':version('Pillow'),'httpx':version('httpx'),'pydantic':version('pydantic')}}
+-    reserved=False;provider=None;runtime=None
++    reserved=False;provider=None;runtime=None;temp_claimed=False
+     child={'run_id':run,'candidate_sha':candidate,'stage_pass_claim':False}
+     try:
+         program.reserve(run,'R1',budget,600,False)
+         reserved=True
++        temp.mkdir(parents=True,exist_ok=False);temp_claimed=True
+         program_request,program_approval=program.program_paths()
+         tracked=subprocess.check_output(['git','ls-files','--',*paths],cwd=ROOT,text=True).splitlines()
+         now=time.time()
+@@ -52,12 +53,12 @@
+             'model':'gemma4:26b','model_digest':json.loads((ROOT/'reports/unified-media/live-14/actual-model-identity.json').read_text())['digest'],
+             'candidate_sha':candidate,'status':'ACTIVE_ONE_SHOT','program':program_approval,
+             'program_sha256':sha(ROOT/program_approval),'program_request_sha256':sha(ROOT/program_request),
+-            'harness_sha256':sha(__file__),'ports':[11434],
++            'harness_sha256':sha(__file__),'ports':[11434],'owned_temp_root':str(temp),
+             'budget_ledger':str(program.LEDGER),'execution_bindings_required':True,
+             'samples':[{'path':str(p.relative_to(ROOT)),'sha256':sha(p)} for p in samples],'budget':budget,
+             'metadata_requests_limit':200,'gpu_queries_limit':450,'sample_read_limit':16,
+-            'wall_seconds_limit':600,'model_sends_limit':1,'inference_config':{'thinking':True,'num_ctx':4096,'num_predict':1536,'temperature':0.2,'compact_video':True},
+-            'scope':'One component call on retained4sourcePPMs, thinking=True, no full/public/UI acceptance, no new decode or holdouts',
++            'wall_seconds_limit':600,'model_sends_limit':1,'inference_config':{'thinking':False,'num_ctx':4096,'num_predict':768,'temperature':0.2,'compact_video':True,'source_frame_images':True},
++            'scope':'One component call on retained4sourcePPMs, thinking=False/fullsource images, no full/public/UI acceptance, no new decode or holdouts',
+             'cleanup':'Only the fresh runtime original native handle/nonce; retain evidence then remove own temp.',
+             'stage_pass_claim':False}
+         (out/'authorization.json').write_text(json.dumps(child,indent=2)+'\n');program.bind(run,out/'authorization.json')
+@@ -91,7 +92,7 @@
+                 if sample['gpu_used_mib']>=23552 or sample['available_ram_mib']<2048:
+                     raise AppError('RESOURCE_BUSY','组件验证资源触及既有门限',status_code=503)
+                 await asyncio.sleep(1)
+-        inference=asyncio.create_task(provider.analyze_video(decoded,mode='realistic',thinking=True,compact_video=True,video_probe_tokens=1536))
++        inference=asyncio.create_task(provider.analyze_video(decoded,mode='realistic',thinking=False,compact_video=True,source_frame_images=True))
+         watcher=asyncio.create_task(monitor())
+         try:
+             done,_=await asyncio.wait({inference,watcher},timeout=420,return_when=asyncio.FIRST_COMPLETED)
+@@ -106,7 +107,10 @@
+                 'thinking_character_count':len(message.get('thinking','')),
+                 'done_reason':envelope.get('done_reason'),'eval_count':envelope.get('eval_count'),
+                 'prompt_eval_count':envelope.get('prompt_eval_count'),'parsed_spec':spec.model_dump(mode='json')}
+-            result['decision']='COMPONENT_THINKING_CALL_COMPLETE_INDEPENDENT_DIAGNOSIS_PENDING'
++            if not message.get('thinking'):
++                result['output']['raw_response']=raw
++            else:result['output']['raw_response_omitted_reason']='unexpected_internal_thinking'
++            result['decision']='FULL_SOURCE_COMPONENT_COMPLETE_INDEPENDENT_DIAGNOSIS_PENDING'
+         finally:
+             for task in (inference,watcher):
+                 if not task.done():task.cancel()
+@@ -137,14 +141,16 @@
+             finally:
+                 if runtime is not None:
+                     await asyncio.wait_for(runtime.close(),timeout=25)
+-            owners=list((temp/'runtime').glob('*.owner.json')) if temp.exists() else []
++            owners=list((temp/'runtime').glob('*.owner.json')) if temp_claimed and temp.exists() else []
+             result['owners']=[json.loads(p.read_text()) for p in owners]
+-            assert (not owners and not temp.exists()) or (len(owners)==1 and result['owners'][0]['state']=='exited' and result['owners'][0]['listener_owned'] is False)
++            assert (not owners and (runtime is None or (runtime.process is None and runtime._native is None))) or (len(owners)==1 and result['owners'][0]['state']=='exited' and result['owners'][0]['listener_owned'] is False)
+             assert not listening(),'native listener remains'
+-            if temp.exists():
+-                shutil.copytree(temp/'runtime',out/'runtime-evidence')
++            if temp_claimed and temp.exists():
++                if (temp/'runtime').exists():shutil.copytree(temp/'runtime',out/'runtime-evidence')
+                 shutil.rmtree(temp)
+-            result['cleanup_proven']=not temp.exists() and not listening() and result['lease_released']
++            result['run_root_claimed']=temp_claimed
++            result['run_root_removed']=not temp_claimed or not temp.exists()
++            result['cleanup_proven']=result['run_root_removed'] and not listening() and result['lease_released']
+             assert result['cleanup_proven'],'final cleanup proof failed; retain reservation'
+             ledger=out/'provider.jsonl'
+             calls=sum(json.loads(line)['event']=='provider_call_started' for line in ledger.read_text().splitlines()) if ledger.exists() else 0

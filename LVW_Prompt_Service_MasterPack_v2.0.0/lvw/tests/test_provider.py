@@ -539,3 +539,58 @@ def test_private_probe_configuration_failures_do_not_open_transport(monkeypatch)
                     {'thinking':True,'video_probe_tokens':1537},{'thinking':True,'video_probe_tokens':True}):
         with pytest.raises(AppError):
             asyncio.run(provider._analyze_images([b'CPU'],mode='realistic',content_profile='standard',custom_guidance='',frames=[],**options))
+
+
+def test_source_frame_images_preserve_full_pixels_and_enforce_quota_and_dimensions():
+    from app.provider import build_source_frame_images
+    from types import SimpleNamespace
+    from io import BytesIO
+    from PIL import Image
+    def encode(image):
+        output=BytesIO();image.save(output,format='PNG');return output.getvalue()
+    images=[Image.new('RGB',(32,24),color) for color in ('red','green','blue','white')]
+    for i,image in enumerate(images):image.putpixel((31,23),(i,2*i,3*i))
+    decoded=SimpleNamespace(frames=[encode(image) for image in images],manifest=[{}]*4)
+    before=decoded.frames.copy();result=build_source_frame_images(decoded)
+    assert len(result)==4 and decoded.frames==before
+    for expected,payload in zip(images,result,strict=True):
+        actual=Image.open(BytesIO(payload));assert actual.size==expected.size and actual.tobytes()==expected.tobytes()
+    edge=encode(Image.new('RGB',(768,1),'red'))
+    assert len(build_source_frame_images(SimpleNamespace(frames=[edge],manifest=[{}])))==1
+    for frames,manifest in (([],[]),([edge]*5,[{}]*5),([edge],[]),
+                            ([edge,encode(Image.new('RGB',(767,1)))],[{},{}]),
+                            ([encode(Image.new('RGB',(769,1)))],[{}]),
+                            ([encode(Image.new('RGBA',(16,16)))],[{}])):
+        with pytest.raises(AppError):build_source_frame_images(SimpleNamespace(frames=frames,manifest=manifest))
+
+
+def test_private_full_source_protocol_sends_all_four_frames_in_one_chat(monkeypatch):
+    import asyncio,httpx,json,base64,hashlib
+    from types import SimpleNamespace
+    from io import BytesIO
+    from PIL import Image
+    frames=[]
+    for color in ('red','green','blue','white'):
+        output=BytesIO();Image.new('RGB',(32,24),color).save(output,format='PPM');frames.append(output.getvalue())
+    decoded=SimpleNamespace(frames=frames,manifest=[{'time_seconds':t} for t in (1,3,5,7)])
+    real=httpx.AsyncClient;requests=[];events=[]
+    async def handler(request):
+        requests.append((request.url.path,json.loads(request.content)))
+        return httpx.Response(200,json=model_envelope(camera_motion='unknown',subject_action='unknown'))
+    monkeypatch.setattr('app.provider.httpx.AsyncClient',lambda **kw:real(**kw,transport=httpx.MockTransport(handler)))
+    provider=OllamaProvider('http://127.0.0.1:11434/api/chat','gemma4:26b',30)
+    monkeypatch.setattr(provider,'_record',lambda event,call,**data:events.append({'event':event,**data}))
+    _,spec=asyncio.run(provider.analyze_video(decoded,mode='realistic',compact_video=True,source_frame_images=True))
+    assert len(requests)==1 and requests[0][0]=='/api/chat'
+    payload=requests[0][1];assert payload['think'] is False
+    assert payload['options']=={'num_ctx':4096,'num_predict':768,'temperature':0.2}
+    sent=payload['messages'][-1]['images'];assert len(sent)==4
+    for original,encoded in zip(frames,sent,strict=True):
+        assert Image.open(BytesIO(original)).tobytes()==Image.open(BytesIO(base64.b64decode(encoded))).tobytes()
+    assert 'Actual populated SOURCE image count: 4' in payload['messages'][-1]['content']
+    assert 'No derived difference-map image is attached' in payload['messages'][-1]['content']
+    started=next(event for event in events if event['event']=='provider_call_started')
+    assert started['payload_image_count']==started['frame_count']==4 and started['presentation']=='source-frames/1'
+    assert started['source_frame_hashes']==[hashlib.sha256(f).hexdigest() for f in frames]
+    assert started['payload_image_sha256']==[hashlib.sha256(base64.b64decode(value)).hexdigest() for value in sent]
+    assert spec.template_version=='1.7.0'
