@@ -1,0 +1,101 @@
+{
+  "schema_version": "lvw.program-budget-amendment-request/1",
+  "authorization_id": "AUTH-BUDGET-V1-R1-RESIDUAL-01",
+  "status": "PENDING_HUMAN_APPROVAL_NOT_AUTHORIZATION",
+  "parent_authorization": "AUTH-PROGRAM-V1-LOCAL-02",
+  "parent_approval_sha256": "42b8e5cfd3fa2e4e48b3d44ac2a8de119ef65610ff98f62c083b460ecea79aa1",
+  "stage_id": "R1",
+  "workpack_id": "WP-R1-U3",
+  "run_id": "live-08",
+  "candidate_sha": "96e77ea3691cf68422ccd159c85985b4d9a118ec",
+  "old_stage_full_limit": 3,
+  "new_stage_full_limit": 4,
+  "additional_full_runs": 1,
+  "program_model_action_limit": 512,
+  "program_full_limit": 8,
+  "program_runtime_seconds_limit": 86400,
+  "max_seconds": 1800,
+  "budget": {
+    "api_starts": 1,
+    "ollama_starts": 1,
+    "headless_browser_starts": 1,
+    "provider_calls": 8,
+    "full_checkpoints": 1,
+    "model_calls": 8,
+    "downloads": 0,
+    "cloud_calls": 0,
+    "paid_calls": 0,
+    "holdout_model_calls": 0
+  },
+  "port": 18780,
+  "ollama_port": 11434,
+  "samples": [
+    {
+      "path": "reports/unified-media/dev-image.png",
+      "sha256": "b0303b157ecb6e9f07ae83c460813a743ad4f18e9be83b92abd6ecf4c919e817"
+    },
+    {
+      "path": "reports/v0-s2/fixture-preparation-02/fixtures/tracking.mov",
+      "sha256": "b08ea8b0b9fa3bcd4e62b2b0ad1c05b2bff09359539933f4581a5c2f2c69ff6d"
+    },
+    {
+      "path": "reports/v0-s2/fixture-preparation-02/fixtures/over-duration.mp4",
+      "sha256": "e9a7dd1feac6ffee908fd3ebd0390f86cf126f4f15c41ee249762eeec23ac2b4"
+    },
+    {
+      "path": "reports/v0-s2/fixture-preparation-02/fixtures/corrupt.mp4",
+      "sha256": "a174786bd98ea1ffd1844a1110751f2d9c1989f4c6cb75feeef6f6326dc0a5b1"
+    }
+  ],
+  "frozen_paths": [
+    "lvw/backend",
+    "lvw/frontend",
+    "lvw/run_local.py",
+    "lvw/print_build_id.py",
+    "launcher",
+    "LVW.exe",
+    "START_LVW.cmd",
+    "contracts",
+    "reports/unified-media/authority.py",
+    "reports/unified-media/live_checkpoint.py",
+    "reports/unified-media/live_browser.cjs",
+    "templates",
+    "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge",
+    "tools/local_program_authority.py",
+    ".agent-governance/stages/R1"
+  ],
+  "harness": "reports/unified-media/live_checkpoint.py",
+  "harness_sha256": "93be4b006b855a970e4140fecad7821f702fe76e2dbac55013b78d78426d900f",
+  "candidate_policy": "Only documentation/evidence descendants with no frozen-path difference; initial dirty/untracked and per-send source/tool/sample guards remain mandatory.",
+  "scope": [
+    "one new complete image/video/cancel/adopt/export/cleanup sequence using unchanged fixed samples, actual existing gemma4:26b, loopback/no-cloud/headless only",
+    "all complete sampled source frames plus clearly labeled derived absRGB residual panels in one <=768x768 PNG; D panels are not extra frames or camera-direction ground truth",
+    "same public contracts, UM10 fixed denominator, independent semantic review, resource and quality thresholds",
+    "prospective R1 budget increment3->4 only for live08, no refund/replay of old terminal grants, no further automatic full run"
+  ],
+  "expires_when": [
+    "live08 terminal receipt",
+    "child1800seconds",
+    "human revocation",
+    "scope or budget boundary"
+  ],
+  "cleanup": "Cancel own jobs and wait terminal; public controlled model stop with original native exit proof; archive known run logs; stop own API/browser; remove owned temp; verify listeners absent. Unproved cleanup is NO_GO.",
+  "forbidden": [
+    "download/upgrade",
+    "cloud/paid/non-loopback",
+    "private media/cookies/existing browser profile",
+    "visible browser automation",
+    "permanent configuration changes",
+    "terminating foreign processes",
+    "11 reserved human video model calls",
+    "automatic extra whole runs or sample substitutions",
+    "human signature/release/remote push before human acceptance"
+  ],
+  "not_approved_by_this_file": true,
+  "human_signoff": false,
+  "stage_pass_claim": false,
+  "offline_regression": "reports/unified-media/residual-input-offline-01/receipt.json",
+  "offline_guard_regression": "reports/unified-media/residual-budget-offline-01/receipt.json",
+  "independent_source_review": "reports/unified-media/independent-residual-input-01/receipt.json",
+  "independent_guard_review": "reports/unified-media/independent-residual-budget-01/receipt.json"
+}

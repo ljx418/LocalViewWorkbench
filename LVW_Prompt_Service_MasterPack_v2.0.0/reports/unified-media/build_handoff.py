@@ -35,7 +35,10 @@ rows=''
 for i,name in enumerate(names,1):
  k=f'UM-{i:02d}';v=coverage.get(k) or live.get('checks',{}).get(k,{})
  rows+=f'<tr><td>{k}</td><td>{h(name)}</td><td>{h(v.get("status","未完成"))}</td><td>{h(v.get("basis",v.get("evidence_and_reason",v.get("oracle","当前真实运行未证明，不计PASS"))))}</td></tr>'
-report=header+summary+'<section><h2>逐项验收</h2><div class="scroll"><table><tr><th>编号</th><th>义务</th><th>结果</th><th>证据边界</th></tr>'+rows+'</table></div><p><a href="reports/unified-media/offline-03/receipt.json">离线03收据（对应其记录候选）</a> · <a href="reports/unified-media/ui-cpu-01/receipt.json">CPU浏览器夹具6项（不代表真实模型）</a> · <a href="reports/unified-media/resource-diagnostic-03/receipt.json">最近资源诊断</a></p></section>'
+pending=''
+if control.get('last_passed_gate',{}).get('gate')=='RESIDUAL_INPUT_OFFLINE_AND_INDEPENDENT_REVIEW':
+    pending='<section><h2>新候选：可视差异输入，尚未提交真实模型</h2><p>上方代码候选已通过离线测试与独审；下方真实输出仍来自上一轮失败候选，不能混作新候选通过。F为完整采样源帧，D为相邻源帧逐RGB绝对差，均保留明确身份；差异图不代表运动方向或场景真值。</p><img src="reports/unified-media/independent-residual-input-01/preview-4-source-panels.png" alt="独审生成的合成像素预览，非真实视频输出"><p>此图仅为合成像素输入预览。<a href="reports/unified-media/independent-residual-input-01/review.md">输入独审</a> · <a href="reports/unified-media/independent-residual-budget-01/review.md">预算保护独审</a> · <a href="reports/unified-media/authorization-residual-recheck-01.request.json">仅新增一轮真实复验的待批预算请求</a>。原母授权仍有效，当前R1完整槽3/3已用尽，当前没有live08。</p></section>'
+report=header+pending+summary+'<section><h2>逐项验收</h2><div class="scroll"><table><tr><th>编号</th><th>义务</th><th>结果</th><th>证据边界</th></tr>'+rows+'</table></div><p><a href="reports/unified-media/offline-03/receipt.json">离线03收据（对应其记录候选）</a> · <a href="reports/unified-media/ui-cpu-01/receipt.json">CPU浏览器夹具6项（不代表真实模型）</a> · <a href="reports/unified-media/resource-diagnostic-03/receipt.json">最近资源诊断</a></p></section>'
 def result_card(name,title,media,source_base=base):
     p=ROOT/source_base/name
     if not p.exists():return '<article><h3>'+h(title)+'</h3>'+media+'<p>未取得可用模型输出，不计通过。</p></article>'

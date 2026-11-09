@@ -1,0 +1,15 @@
+Traceback (most recent call last):
+  File "/mnt/c/workSpace/videoWorkLine/LocalViewWorkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/unified-media/independent-residual-input-01/raw/independent_probe.py", line 82, in <module>
+    try:coro.send(None)
+        ^^^^^^^^^^^^^^^
+  File "/tmp/lvw-independent-residual-z4fhh1g6/lvw/backend/app/provider.py", line 384, in analyze_video
+    return await self._analyze_images([sheet], mode=mode, content_profile=content_profile,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/lvw-independent-residual-z4fhh1g6/lvw/backend/app/provider.py", line 461, in _analyze_images
+    raise error
+  File "/tmp/lvw-independent-residual-z4fhh1g6/lvw/backend/app/provider.py", line 449, in _analyze_images
+    parsed = parse_ollama_response(envelope, mode=mode)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/lvw-independent-residual-z4fhh1g6/lvw/backend/app/provider.py", line 206, in parse_ollama_response
+    raise AppError("PARSE_PARTIAL", "模型输出没有完整结束", status_code=503)
+app.errors.AppError: 模型输出没有完整结束

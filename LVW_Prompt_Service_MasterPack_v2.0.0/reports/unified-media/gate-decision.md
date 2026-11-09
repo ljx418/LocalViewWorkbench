@@ -1,4 +1,16 @@
-# 当前门禁：NO_GO；R1真实验收预算已用尽
+# 当前门禁：WAIT_BUDGET；可视残差输入离线完成，未真实验证
+
+新候选96e77ea3691cf68422ccd159c85985b4d9a118ec：124项子树回归及最终34项定向通过，源输入独立158断言、权限独立28检查通过，Fatal0/Major0/Minor0。无真实模型、服务或媒体探测，不能把此离线结论当UM04通过。
+
+原始源帧全幅缩略图保留，添加明确D标签的absRGB派生证据，单PNG≤768、一次Provider、source SHA/PTS/raw/显式采纳与全部固定分母/阈值不变。详情见residual-input-correction-01.md。
+
+已准备精确单次预算请求AUTH-BUDGET-V1-R1-RESIDUAL-01（authorization-residual-recheck-01.request.json），仅R1/live08、stage3→4、单轮8动作/1800秒、母授权总512/8轮/24h不变。正式approval不存在，live08不存在，当前并未获增量授权。普通“继续”只使离线工作继续，不增加次数。批准后才允许新有限子运行，终态过期、不自动再试。
+
+上一次真实候选仍为d9759de/live07、独审9/10 NO_GO，原始失败保留如下；当前未到人工核签。
+
+---
+
+# 历史live07门禁：NO_GO；当时R1真实验收预算已用尽
 
 候选d9759decaa760eb81479db5434ff9206b18b3327，live07独审9PASS/1FAIL，Fatal0/Major1。UM04真实视频时序内容仍错误断言背景恒定。当前不是人工体验签署入口，不是整个R1/V1通过。
 

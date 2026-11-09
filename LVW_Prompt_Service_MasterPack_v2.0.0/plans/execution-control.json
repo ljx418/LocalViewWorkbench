@@ -8,20 +8,22 @@
   "coordinate": {
     "stage_id": "R1",
     "workpack_id": "WP-R1-U3",
-    "gate": "UNIFIED_TEMPORAL_SEMANTICS_AND_STAGE_BUDGET",
+    "gate": "RESIDUAL_INPUT_REAL_SEMANTIC_RECHECK",
     "state": "WAIT_BUDGET"
   },
   "last_passed_gate": {
-    "gate": "TEMPORAL_UNITS_OFFLINE_AND_INDEPENDENT_CODE_REVIEW",
-    "candidate_sha": "d9759decaa760eb81479db5434ff9206b18b3327",
-    "receipt": "reports/unified-media/temporal-units-offline-01/receipt.json",
-    "independent_review": "reports/unified-media/independent-temporal-units-01/receipt.json",
-    "decision": "PROVIDER_CPU19_AND_INDEPENDENT_CODE_PASS_NOT_REAL_SEMANTIC_ACCEPTANCE"
+    "gate": "RESIDUAL_INPUT_OFFLINE_AND_INDEPENDENT_REVIEW",
+    "candidate_sha": "96e77ea3691cf68422ccd159c85985b4d9a118ec",
+    "receipt": "reports/unified-media/residual-input-offline-01/receipt.json",
+    "guard_receipt": "reports/unified-media/residual-budget-offline-01/receipt.json",
+    "independent_source_review": "reports/unified-media/independent-residual-input-01/receipt.json",
+    "independent_guard_review": "reports/unified-media/independent-residual-budget-01/receipt.json",
+    "decision": "OFFLINE_ONLY_NOT_REAL_VIDEO_SEMANTIC_ACCEPTANCE"
   },
-  "current_blocking_gate": "UM04_VIDEO_TEMPORAL_SEMANTICS_NO_GO_AND_R1_FULL_BUDGET_EXHAUSTED",
+  "current_blocking_gate": "EXPLICIT_ONE_RUN_R1_BUDGET_AMENDMENT_PENDING",
   "stage_packet": ".agent-governance/stages/R1/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/R1/PAYLOAD_MANIFEST.sha256",
-  "product_status": "UNIFIED_REAL_SEQUENCE_COMPLETE_VIDEO_SEMANTICS_NO_GO",
+  "product_status": "RESIDUAL_INPUT_OFFLINE_VERIFIED_REAL_SEMANTICS_NOT_RUN",
   "allowed_claim": "V0_MIN_ACCEPTED_NOT_RELEASED",
   "forbidden_claims": [
     "V0_ACCEPTED",
@@ -31,10 +33,10 @@
     "PRODUCTION_RELEASED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "codex_gate_owner_for_route_reassessment_then_project_owner_budget_decision",
-  "next_action": "Review offline route reassessment; no live08. Parent scope remains active, R1 effective full budget3/3 exhausted; any extra full run requires an explicit budget amendment, not repeat GPU permission.",
-  "required_authorization": null,
-  "authorization_request": "reports/authorization-program-v1-local-02.request.json",
+  "next_owner": "project_owner_for_exact_stage_budget_increment",
+  "next_action": "One precise pending increment R1 full3->4 for live08 only; do not infer approval from ordinary continue. If explicitly approved, preissue finite child and execute exact frozen candidate, then independent review; no automatic extra retry.",
+  "required_authorization": "AUTH-BUDGET-V1-R1-RESIDUAL-01",
+  "authorization_request": "reports/unified-media/authorization-residual-recheck-01.request.json",
   "authorization_record": "reports/authorization-program-v1-local-02.approval.json",
   "read_only_binding_authorization": "reports/v0-s2/authorization-binding-inventory-06.json",
   "cpu_decoder_authorization": "reports/v0-s2/authorization-cpu-decoder-01.json",
@@ -50,12 +52,12 @@
   ],
   "contract_change_request": "reports/r1a/change-request-r1a-product-controls-02.json",
   "contract_change_decision": "reports/r1a/change-decision-r1a-product-controls-02.json",
-  "implementation_candidate": "d9759decaa760eb81479db5434ff9206b18b3327",
+  "implementation_candidate": "96e77ea3691cf68422ccd159c85985b4d9a118ec",
   "implementation_baseline": "0fee9933874f3aa0e163bded2800d9704ee8be0f",
   "candidate_binding_scope": "Minimum unified media slice; code candidate and its own evidence only. Historical S2 and full R1/R2 remain separate.",
   "offline_evidence_commit": null,
   "offline_receipt": "reports/unified-media/runtime-transition-backend-01/receipt.json",
-  "offline_candidate_sha": "57aa9de6052effa4b1043ac0920e54d083204be4",
+  "offline_candidate_sha": "96e77ea3691cf68422ccd159c85985b4d9a118ec",
   "evidence_root": "reports/",
   "gate_decision": "reports/unified-media/gate-decision.md",
   "human_signoff": null,
@@ -84,11 +86,11 @@
   "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
   "live_terminal_receipt": "reports/unified-media/live-07/receipt.json",
   "independent_review": "reports/unified-media/independent-live-07/review.md",
-  "exact_stop_reason": "LIVE07_NO_GO_UM04_TEMPORAL_HALLUCINATION_FATAL0_MAJOR1; PROGRAM02_R1_EFFECTIVE_FULL3_OF3_EXHAUSTED; NO_LIVE08_OR_HUMAN_SIGNOFF",
+  "exact_stop_reason": "RESIDUAL_INPUT_CANDIDATE96E77EA_OFFLINE_AND_INDEPENDENTLY_REVIEWED; LIVE08_NOT_RUN; EXPLICIT_ONE_FULL_RUN_BUDGET_AMENDMENT_PENDING",
   "native_component_authorization": "reports/v0-s2/authorization-native-component-02.json",
   "native_component_terminal_receipt": "reports/v0-s2/native-component-02/receipt.json",
   "local_control_change_decision": "reports/v0-s2/change-decision-video-workbench-01.json",
-  "latest_workpack_receipt": "reports/unified-media/temporal-route-reassessment-01.md",
+  "latest_workpack_receipt": "reports/unified-media/residual-input-correction-01.md",
   "warm_benchmark_blocker": "reports/v0-s2/warm-benchmark-evidence-gap-01.md",
   "warm_profile_implementation": "reports/v0-s2/warm-profile-implementation-progress-01.md",
   "warm_profile_decision": "reports/v0-s2/warm-profile-decision-01.md",
@@ -777,7 +779,7 @@
       },
       {
         "id": "WP-R1-U3",
-        "state": "NO_GO_TEMPORAL_SEMANTICS_WAIT_BUDGET"
+        "state": "RESIDUAL_OFFLINE_READY_WAIT_BUDGET_INCREMENT"
       }
     ],
     "implementation": "READY_FOR_REVIEW",
@@ -785,15 +787,15 @@
     "independent_review": "LIVE07_FATAL0_MAJOR1_MINOR0_UM9_OF10",
     "full_checkpoints_consumed": 2,
     "remaining_corrected_full_rechecks": 0,
-    "latest_harness_review": "reports/unified-media/independent-temporal-units-01/review.md",
-    "latest_harness_candidate": "d9759decaa760eb81479db5434ff9206b18b3327",
+    "latest_harness_review": "reports/unified-media/independent-residual-budget-01/review.md",
+    "latest_harness_candidate": "96e77ea3691cf68422ccd159c85985b4d9a118ec",
     "live_executor": {
       "run_id": "live-07",
       "terminal": true,
       "restart_forbidden": true
     },
     "proposed_packet_version": "1.0.3_ACTIVE_APPROVED",
-    "latest_correction_review": "reports/unified-media/independent-temporal-units-01/review.md",
+    "latest_correction_review": "reports/unified-media/independent-residual-input-01/review.md",
     "live_review_coverage": {
       "PASS": 9,
       "FAIL": 1,
@@ -903,5 +905,14 @@
     "correction_candidate": "1d1db48328b80eb16a8d093ec09a7619c2f33fa8",
     "real_semantic_reverification": "NOT_RUN"
   },
-  "program02_budget_snapshot": "reports/unified-media/program02-budget-final.json"
+  "program02_budget_snapshot": "reports/unified-media/program02-budget-final.json",
+  "budget_amendment": {
+    "request": "reports/unified-media/authorization-residual-recheck-01.request.json",
+    "request_sha256": "a00cb9ac41a0ce4a00cb7c5a0934c1fdde8bca75b443f587dbb49f5afabc853b",
+    "status": "PENDING_NOT_AUTHORIZATION",
+    "requested_stage_full_limit": 4,
+    "current_stage_full_limit": 3,
+    "additional_full_runs": 1,
+    "candidate_sha": "96e77ea3691cf68422ccd159c85985b4d9a118ec"
+  }
 }
