@@ -1,0 +1,31 @@
+{
+  "observations": [
+    "The video sequence consists of four frames at timestamps 1s, 3s, 5s, and 7s.",
+    "Each frame features a dark blue background with a white grid pattern.",
+    "A solid red rectangle is positioned in the center of each frame.",
+    "Across all frames, the red rectangle's position relative to the grid remains visually constant.",
+    "The grid lines and the red rectangle appear static in their spatial arrangement across the sequence.",
+    "Image registration analysis shows small pixel offsets (3px) in certain color components between consecutive frames."
+  ],
+  "inferences": [
+    "The high percentage of different pixels (~34%) and mean absolute RGB delta (~20) are likely due to sensor noise or compression artifacts rather than physical movement, as the structural elements (grid and red rectangle) show no semantic displacement.",
+    "The sequence represents a static digital graphic or a highly stable camera shot of a static pattern."
+  ],
+  "unknowns": [
+    "The cause of the measured 3-pixel offset in grayscale and specific color channels is unknown, but it does not correspond to visible object motion.",
+    "The physical origin of the graphic (digital render vs. filmed screen) is unknown."
+  ],
+  "prompt_zh": "一段静态的数字图形视频，画面由深蓝色背景、白色网格线和一个位于中心位置的红色矩形组成。画面结构在整个序列中保持完全静止，没有任何相机运动或物体位移。色彩饱和度高，呈现出清晰的数字矢量风格，具有极高的对比度和均匀的光照。",
+  "prompt": "A static digital graphic video sequence featuring a dark blue background with a white grid pattern and a solid red rectangle centered in the frame. The composition remains perfectly still throughout the sequence, with no visible camera motion or subject movement. High color saturation, clean digital vector style, high contrast, uniform lighting, and sharp edges.",
+  "negative": "camera motion, panning, zooming, object movement, flickering, blurry edges, organic textures, depth of field, shaky footage",
+  "tags": [
+    "static",
+    "digital graphic",
+    "grid pattern",
+    "red rectangle",
+    "blue background",
+    "no motion"
+  ],
+  "camera_motion": "none",
+  "subject_action": "static"
+}

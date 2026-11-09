@@ -1,0 +1,58 @@
+--- reports/unified-media/source_frames_probe.py	2026-11-09 22:07:29.929504500 +0800
++++ reports/unified-media/source_protocol_witness.py	2026-11-09 22:28:06.682059200 +0800
+@@ -19,23 +19,23 @@
+         return connection.connect_ex(('127.0.0.1',11434))==0
+ 
+ async def main():
+-    run='source-frames-probe-03';out=ROOT/'reports/unified-media'/run
++    run='source-protocol-witness-04';out=ROOT/'reports/unified-media'/run
+     assert not out.exists(),'one-shot identity already used'
+     assert not listening(),'existing service belongs to another run; leave it untouched'
+     candidate=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
+     paths=['lvw/backend/app','templates','tools/local_program_authority.py',str(Path(__file__).relative_to(ROOT)),
+-        'reports/unified-media/change-decision-source-frame-probe-03.json']
++        'reports/unified-media/change-decision-source-witness-04.json']
+     assert subprocess.run(['git','diff','--quiet',candidate,'--',*paths],cwd=ROOT).returncode==0
+     assert not subprocess.check_output(['git','ls-files','--others','--exclude-standard','--',*paths],cwd=ROOT,text=True).strip()
+     binding=json.loads((ROOT/'reports/unified-media/live-14/bindings.json').read_text())
+     executable=Path(binding['native_ollama']['path'])
+     for name in ('native_ollama','powershell'):
+         assert sha(binding[name]['path'])==binding[name]['sha256'],'tool drift'
+-    samples=[ROOT/f'reports/unified-media/independent-live-14/frame-{i}.ppm' for i in range(4)]
++    samples=[ROOT/f'reports/unified-media/protocol-witness-fixtures-04/frame-{i}.ppm' for i in range(4)]
+     budget={'ollama_starts':1,'model_calls':1,'provider_calls':1,'full_checkpoints':0}
+     out.mkdir()
+     temp=ROOT.parent.parent/'.lvw-runtime/lvw-prompt-service'/('thinking-'+uuid.uuid4().hex)
+-    result={'decision':'NO_GO','retained_source_frames_used':4,'new_video_decode':False,
++    result={'decision':'NO_GO','synthetic_protocol_frames_used':4,'fixed_video_quality_not_tested':True,'source_video_present':False,'new_video_decode':False,
+         'stage_pass_claim':False,'internal_thinking_persisted':False,'run_root':str(temp),
+         'environment':{'python':sys.version,'Pillow':version('Pillow'),'httpx':version('httpx'),'pydantic':version('pydantic')}}
+     reserved=False;provider=None;runtime=None;temp_claimed=False
+@@ -58,7 +58,7 @@
+             'samples':[{'path':str(p.relative_to(ROOT)),'sha256':sha(p)} for p in samples],'budget':budget,
+             'metadata_requests_limit':200,'gpu_queries_limit':450,'sample_read_limit':16,
+             'wall_seconds_limit':600,'model_sends_limit':1,'inference_config':{'thinking':False,'num_ctx':4096,'num_predict':768,'temperature':0.2,'compact_video':True,'source_frame_images':True},
+-            'scope':'One component call on retained4sourcePPMs, thinking=False/fullsource images, no full/public/UI acceptance, no new decode or holdouts',
++            'scope':'One protocol-only call on4synthetic witnessPPMs; not the fixed quality video, thinking=False/fullsource images, no full/public/UI acceptance, no new decode or holdouts',
+             'cleanup':'Only the fresh runtime original native handle/nonce; retain evidence then remove own temp.',
+             'stage_pass_claim':False}
+         (out/'authorization.json').write_text(json.dumps(child,indent=2)+'\n');program.bind(run,out/'authorization.json')
+@@ -92,7 +92,8 @@
+                 if sample['gpu_used_mib']>=23552 or sample['available_ram_mib']<2048:
+                     raise AppError('RESOURCE_BUSY','组件验证资源触及既有门限',status_code=503)
+                 await asyncio.sleep(1)
+-        inference=asyncio.create_task(provider.analyze_video(decoded,mode='realistic',thinking=False,compact_video=True,source_frame_images=True))
++        inference=asyncio.create_task(provider.analyze_video(decoded,mode='realistic',thinking=False,compact_video=True,source_frame_images=True,
++            custom_guidance='In observations, describe each attached image separately in order with an index; state its background color, visible shape and placement. Do not combine the images into one scene.'))
+         watcher=asyncio.create_task(monitor())
+         try:
+             done,_=await asyncio.wait({inference,watcher},timeout=420,return_when=asyncio.FIRST_COMPLETED)
+@@ -110,7 +111,7 @@
+             if not message.get('thinking'):
+                 result['output']['raw_response']=raw
+             else:result['output']['raw_response_omitted_reason']='unexpected_internal_thinking'
+-            result['decision']='FULL_SOURCE_COMPONENT_COMPLETE_INDEPENDENT_DIAGNOSIS_PENDING'
++            result['decision']='NATIVE_MULTI_IMAGE_VISIBILITY_COMPLETE_INDEPENDENT_REVIEW_PENDING'
+         finally:
+             for task in (inference,watcher):
+                 if not task.done():task.cancel()

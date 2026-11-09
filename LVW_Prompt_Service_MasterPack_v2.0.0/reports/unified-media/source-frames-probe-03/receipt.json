@@ -1,0 +1,140 @@
+{
+  "decision": "FULL_SOURCE_COMPONENT_COMPLETE_INDEPENDENT_DIAGNOSIS_PENDING",
+  "retained_source_frames_used": 4,
+  "new_video_decode": false,
+  "stage_pass_claim": false,
+  "internal_thinking_persisted": false,
+  "run_root": "/mnt/c/workspace/videoworkline/.lvw-runtime/lvw-prompt-service/thinking-866f0ad2d4174ac19bb6ac0cc52588b0",
+  "environment": {
+    "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+    "Pillow": "12.2.0",
+    "httpx": "0.28.1",
+    "pydantic": "2.13.4"
+  },
+  "start": {
+    "protocol": "lvw.runtime/1",
+    "lvw": {
+      "state": "ready"
+    },
+    "ollama": {
+      "state": "ready",
+      "reachable": true,
+      "model": "gemma4:26b",
+      "model_ready": true,
+      "model_loaded": false,
+      "managed": true,
+      "pid": 41592,
+      "reason": null,
+      "last_error": null
+    },
+    "actions": {
+      "can_start": false,
+      "can_reset": true,
+      "can_stop": true
+    }
+  },
+  "model_identity": {
+    "name": "gemma4:26b",
+    "model": "gemma4:26b",
+    "modified_at": "2026-04-15T02:16:30.463209+08:00",
+    "size": 17987581215,
+    "digest": "5571076f3d70050487b26b341705799e0ab29b808164f90d20d4cf84f699d251",
+    "details": {
+      "parent_model": "",
+      "format": "gguf",
+      "family": "gemma4",
+      "families": [
+        "gemma4"
+      ],
+      "parameter_size": "25.8B",
+      "quantization_level": "Q4_K_M"
+    },
+    "capabilities": [
+      "completion",
+      "tools",
+      "thinking"
+    ]
+  },
+  "output": {
+    "wire_response_sha256": "ff49f6e3e23db74670fb92656403cd4b5c5ef16b051308e58f716a7cad310bfd",
+    "final_content": "{\n  \"observations\": [\n    \"The video sequence consists of four frames at timestamps 1s, 3s, 5s, and 7s.\",\n    \"Each frame features a dark blue background with a white grid pattern.\",\n    \"A solid red rectangle is positioned in the center of each frame.\",\n    \"Across all frames, the red rectangle's position relative to the grid remains visually constant.\",\n    \"The grid lines and the red rectangle appear static in their spatial arrangement across the sequence.\",\n    \"Image registration analysis shows small pixel offsets (3px) in certain color components between consecutive frames.\"\n  ],\n  \"inferences\": [\n    \"The high percentage of different pixels (~34%) and mean absolute RGB delta (~20) are likely due to sensor noise or compression artifacts rather than physical movement, as the structural elements (grid and red rectangle) show no semantic displacement.\",\n    \"The sequence represents a static digital graphic or a highly stable camera shot of a static pattern.\"\n  ],\n  \"unknowns\": [\n    \"The cause of the measured 3-pixel offset in grayscale and specific color channels is unknown, but it does not correspond to visible object motion.\",\n    \"The physical origin of the graphic (digital render vs. filmed screen) is unknown.\"\n  ],\n  \"prompt_zh\": \"一段静态的数字图形视频，画面由深蓝色背景、白色网格线和一个位于中心位置的红色矩形组成。画面结构在整个序列中保持完全静止，没有任何相机运动或物体位移。色彩饱和度高，呈现出清晰的数字矢量风格，具有极高的对比度和均匀的光照。\",\n  \"prompt\": \"A static digital graphic video sequence featuring a dark blue background with a white grid pattern and a solid red rectangle centered in the frame. The composition remains perfectly still throughout the sequence, with no visible camera motion or subject movement. High color saturation, clean digital vector style, high contrast, uniform lighting, and sharp edges.\",\n  \"negative\": \"camera motion, panning, zooming, object movement, flickering, blurry edges, organic textures, depth of field, shaky footage\",\n  \"tags\": [\n    \"static\",\n    \"digital graphic\",\n    \"grid pattern\",\n    \"red rectangle\",\n    \"blue background\",\n    \"no motion\"\n  ],\n  \"camera_motion\": \"none\",\n  \"subject_action\": \"static\"\n}",
+    "final_content_sha256": "a8566f92c04577cfedde739c4d2bc852b666e4f9d0c173e0245dd081d5bbb3b7",
+    "thinking_field_present": false,
+    "thinking_character_count": 0,
+    "done_reason": "stop",
+    "eval_count": 523,
+    "prompt_eval_count": 2428,
+    "parsed_spec": {
+      "schema_version": "lvw.prompt/1",
+      "mode": "realistic",
+      "domains": {
+        "observation": [
+          "The video sequence consists of four frames at timestamps 1s, 3s, 5s, and 7s.",
+          "Each frame features a dark blue background with a white grid pattern.",
+          "A solid red rectangle is positioned in the center of each frame.",
+          "Across all frames, the red rectangle's position relative to the grid remains visually constant.",
+          "The grid lines and the red rectangle appear static in their spatial arrangement across the sequence.",
+          "Image registration analysis shows small pixel offsets (3px) in certain color components between consecutive frames."
+        ],
+        "inference": [
+          "The high percentage of different pixels (~34%) and mean absolute RGB delta (~20) are likely due to sensor noise or compression artifacts rather than physical movement, as the structural elements (grid and red rectangle) show no semantic displacement.",
+          "The sequence represents a static digital graphic or a highly stable camera shot of a static pattern."
+        ],
+        "user_evidence": [],
+        "creative_intent": [],
+        "unknowns": [
+          "The cause of the measured 3-pixel offset in grayscale and specific color channels is unknown, but it does not correspond to visible object motion.",
+          "The physical origin of the graphic (digital render vs. filmed screen) is unknown.",
+          "仅观察4个采样帧，未采样事件、连续运动与音频未经验证。"
+        ]
+      },
+      "technical": {
+        "duration_seconds": null,
+        "aspect_ratio": "",
+        "fps_intent": null,
+        "camera_motion": "none",
+        "subject_action": "static",
+        "lighting": "",
+        "composition": "",
+        "style_notes": "",
+        "beats": []
+      },
+      "locked_fields": [],
+      "text_zh": "一段静态的数字图形视频，画面由深蓝色背景、白色网格线和一个位于中心位置的红色矩形组成。画面结构在整个序列中保持完全静止，没有任何相机运动或物体位移。色彩饱和度高，呈现出清晰的数字矢量风格，具有极高的对比度和均匀的光照。",
+      "text_en": "A static digital graphic video sequence featuring a dark blue background with a white grid pattern and a solid red rectangle centered in the frame. The composition remains perfectly still throughout the sequence, with no visible camera motion or subject movement. High color saturation, clean digital vector style, high contrast, uniform lighting, and sharp edges.",
+      "tags": [
+        "static",
+        "digital graphic",
+        "grid pattern",
+        "red rectangle",
+        "blue background",
+        "no motion"
+      ],
+      "negative": "camera motion, panning, zooming, object movement, flickering, blurry edges, organic textures, depth of field, shaky footage",
+      "template_id": "lvw-unified-video",
+      "template_version": "1.7.0"
+    },
+    "raw_response": "{\"model\":\"gemma4:26b\",\"created_at\":\"2026-11-09T14:19:03.2881325Z\",\"message\":{\"role\":\"assistant\",\"content\":\"{\\n  \\\"observations\\\": [\\n    \\\"The video sequence consists of four frames at timestamps 1s, 3s, 5s, and 7s.\\\",\\n    \\\"Each frame features a dark blue background with a white grid pattern.\\\",\\n    \\\"A solid red rectangle is positioned in the center of each frame.\\\",\\n    \\\"Across all frames, the red rectangle's position relative to the grid remains visually constant.\\\",\\n    \\\"The grid lines and the red rectangle appear static in their spatial arrangement across the sequence.\\\",\\n    \\\"Image registration analysis shows small pixel offsets (3px) in certain color components between consecutive frames.\\\"\\n  ],\\n  \\\"inferences\\\": [\\n    \\\"The high percentage of different pixels (~34%) and mean absolute RGB delta (~20) are likely due to sensor noise or compression artifacts rather than physical movement, as the structural elements (grid and red rectangle) show no semantic displacement.\\\",\\n    \\\"The sequence represents a static digital graphic or a highly stable camera shot of a static pattern.\\\"\\n  ],\\n  \\\"unknowns\\\": [\\n    \\\"The cause of the measured 3-pixel offset in grayscale and specific color channels is unknown, but it does not correspond to visible object motion.\\\",\\n    \\\"The physical origin of the graphic (digital render vs. filmed screen) is unknown.\\\"\\n  ],\\n  \\\"prompt_zh\\\": \\\"一段静态的数字图形视频，画面由深蓝色背景、白色网格线和一个位于中心位置的红色矩形组成。画面结构在整个序列中保持完全静止，没有任何相机运动或物体位移。色彩饱和度高，呈现出清晰的数字矢量风格，具有极高的对比度和均匀的光照。\\\",\\n  \\\"prompt\\\": \\\"A static digital graphic video sequence featuring a dark blue background with a white grid pattern and a solid red rectangle centered in the frame. The composition remains perfectly still throughout the sequence, with no visible camera motion or subject movement. High color saturation, clean digital vector style, high contrast, uniform lighting, and sharp edges.\\\",\\n  \\\"negative\\\": \\\"camera motion, panning, zooming, object movement, flickering, blurry edges, organic textures, depth of field, shaky footage\\\",\\n  \\\"tags\\\": [\\n    \\\"static\\\",\\n    \\\"digital graphic\\\",\\n    \\\"grid pattern\\\",\\n    \\\"red rectangle\\\",\\n    \\\"blue background\\\",\\n    \\\"no motion\\\"\\n  ],\\n  \\\"camera_motion\\\": \\\"none\\\",\\n  \\\"subject_action\\\": \\\"static\\\"\\n}\"},\"done\":true,\"done_reason\":\"stop\",\"total_duration\":17523968600,\"load_duration\":12519344700,\"prompt_eval_count\":2428,\"prompt_eval_duration\":1252491000,\"eval_count\":523,\"eval_duration\":3699367000}"
+  },
+  "lease_released": true,
+  "owners": [
+    {
+      "nonce": "485818fa52c8444e9ffd09e2959b201f",
+      "state": "exited",
+      "pid": 41592,
+      "birth_ticks": 639298307210016998,
+      "listener_owned": false
+    }
+  ],
+  "run_root_claimed": true,
+  "run_root_removed": true,
+  "cleanup_proven": true,
+  "settlement": {
+    "run_id": "source-frames-probe-03",
+    "actual_model_actions": 1,
+    "effective_full_checkpoint": false,
+    "zero_model_startup": false,
+    "elapsed_seconds": 27,
+    "program_still_active": true
+  }
+}
