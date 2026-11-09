@@ -1,0 +1,39 @@
+{
+  "kind": "GPU_PROCESS_METADATA_INVENTORY_NOT_RECLAIM_OR_MODEL_ACCEPTANCE",
+  "queries": [
+    {
+      "command": [
+        "nvidia-smi",
+        "--query-gpu=memory.used,memory.free,memory.total",
+        "--format=csv,noheader,nounits"
+      ],
+      "exit_code": 0,
+      "stdout": "2833, 21306, 24564\n"
+    },
+    {
+      "command": [
+        "nvidia-smi",
+        "--query-compute-apps=pid,process_name,used_gpu_memory",
+        "--format=csv,noheader,nounits"
+      ],
+      "exit_code": 0,
+      "stdout": ""
+    }
+  ],
+  "native_exit_code": 0,
+  "owners": {
+    "gpu_processes": []
+  },
+  "model_calls": 0,
+  "process_terminations": 0,
+  "cleanup_proven": true,
+  "budget_settlement": {
+    "run_id": "gpu-reclaim-inventory-01",
+    "actual_model_actions": 0,
+    "effective_full_checkpoint": false,
+    "zero_model_startup": true,
+    "elapsed_seconds": 1,
+    "program_still_active": true
+  },
+  "stage_pass_claim": false
+}

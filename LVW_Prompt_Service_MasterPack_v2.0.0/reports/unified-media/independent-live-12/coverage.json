@@ -1,0 +1,286 @@
+{
+  "schema_version": "lvw.independent-coverage/1",
+  "candidate_sha": "52736c9aabc769d49bbb9662f878d705c32e5ed2",
+  "packet_version": "1.0.3",
+  "run_id": "live-12",
+  "denominator": 10,
+  "pass": 9,
+  "fail": 1,
+  "blocked": 0,
+  "skipped": 0,
+  "not_run": 0,
+  "items": [
+    {
+      "id": "UM-01",
+      "status": "PASS",
+      "obligation": "图片旧路径及人工稿保护",
+      "production_owner": "React App / media upload / AnalysisService",
+      "oracle": "live12真实图片raw与模型运行/显式采纳导出对应；raw只出现红方块和深蓝底，与输入相符；原人工稿保留由原浏览器断言和无错误终态证明",
+      "evidence": [
+        "live-12/image-model-run.json",
+        "live-12/image-draft.json",
+        "live-12/browser-result.json",
+        "live-12/launcher.log"
+      ]
+    },
+    {
+      "id": "UM-02",
+      "status": "PASS",
+      "obligation": "视频格式/大小/时长/像素/空损坏拒绝",
+      "production_owner": "MediaStore.ingest_video / validate_probe / HTTP body limit",
+      "oracle": "实际public duration/corrupt422；本独审CPU public受控格式/像素拒绝与空视频拒绝，明确无job/provider/残留；60s/256MiB/8294400px exact及one-over由候选生产validator复算；streamed假Content-Length负例由候选测试通过",
+      "evidence": [
+        "live-12/negative-0.json",
+        "live-12/negative-1.json",
+        "independent-live-12/cpu_supplement.py",
+        "independent-live-12/cpu-results.txt"
+      ]
+    },
+    {
+      "id": "UM-03",
+      "status": "PASS",
+      "obligation": "真实PTS/四帧/少帧局限/源SHA",
+      "production_owner": "VideoDecoder frame_manifest / AnalysisService / OllamaProvider",
+      "oracle": "1,3,5,7秒PTS、源视频SHA、四PPM SHA与ledger一致；已有PNG重序列化PPM精确hash匹配；2帧manifest不复制、空/重复PTS拒绝CPU复算。未重新decode，不继承旧审查结论",
+      "evidence": [
+        "live-12/video-model-run.json",
+        "live-12/runtime-evidence/provider.jsonl",
+        "independent-live-12/recomputed.json",
+        "independent-live-12/cpu_supplement.py"
+      ]
+    },
+    {
+      "id": "UM-04",
+      "status": "FAIL",
+      "obligation": "全采样帧真实语义/raw分离",
+      "production_owner": "OllamaProvider.analyze_video / parse / model",
+      "oracle": "真实raw保留且计算metadata准确，仍断言红框相对网格consistent，并据red subject and grid stationary推lighting/compression；与可见位置变化及自述systematic spatial shift矛盾。offset/unknown字样不能消除错误观察；不要求相机物理方向",
+      "evidence": [
+        "live-12/video-model-run.json",
+        "independent-live-12/reconstructed-live12-sheet.png",
+        "independent-live-12/recomputed.json"
+      ]
+    },
+    {
+      "id": "UM-05",
+      "status": "PASS",
+      "obligation": "准备/运行/排队取消及晚到不发布",
+      "production_owner": "AnalysisService.cancel/run / MediaStore / decoder cleanup",
+      "oracle": "真实第三次provider attempted后cancelled/released且无result_ref，导出维持已采纳源；CPU生产owner检查queued cancel无provider、preparing barrier清理后终态、晚到成功不发布，mock只替换外部原语",
+      "evidence": [
+        "live-12/cleanup-job-terminals.json",
+        "live-12/after-cancel.json",
+        "live-12/runtime-evidence/provider.jsonl",
+        "independent-live-12/cpu-results.txt",
+        "independent-live-12/cpu_supplement.py"
+      ]
+    },
+    {
+      "id": "UM-06",
+      "status": "PASS",
+      "obligation": "显式采纳/脏稿确认/导出归属",
+      "production_owner": "React adoption/export / draft state",
+      "oracle": "before-video-adopt仍指图片run；video-adopted显式指视频run；after-cancel改稿保留源；JSON/TXT一致。原浏览器once dialog accept与生产采纳操作断言通过，无route/mock",
+      "evidence": [
+        "live-12/before-video-adopt.json",
+        "live-12/video-adopted.json",
+        "live-12/after-cancel.json",
+        "live-12/offline-draft.txt",
+        "live-12/browser-result.json"
+      ]
+    },
+    {
+      "id": "UM-07",
+      "status": "PASS",
+      "obligation": "失败/离线仍可人工",
+      "production_owner": "React editor/export / runtime stop",
+      "oracle": "真实native stop后unreachable/pid null，人工video_prompt改为OFFLINE_EDIT_AND_EXPORT并保留TXT/JSON；CPU释放未证实失败分支resource_state unknown，不冒充成功",
+      "evidence": [
+        "live-12/runtime-stop.json",
+        "live-12/offline-draft.json",
+        "live-12/offline-draft.txt",
+        "independent-live-12/cpu-results.txt"
+      ]
+    },
+    {
+      "id": "UM-08",
+      "status": "PASS",
+      "obligation": "本机资源租约/释放/隔离",
+      "production_owner": "Provider.acquire/release / resources / NativeRuntime",
+      "oracle": "3admission/lease/attempts，3释放各末3样本inventory_empty且GPU恢复baseline+1024内；峰21217<23552，RAM10032>=2048；native PID27672/birth639298255854124545/nonce匹配exited，NO_CLOUD/loopback日志；本次审查不改资源",
+      "evidence": [
+        "live-12/runtime-evidence/provider.jsonl",
+        "live-12/runtime-evidence/f7f76b0011ca4d92a735b14fbfc59c44.owner.json",
+        "live-12/runtime-start.json",
+        "independent-live-12/recomputed.json"
+      ]
+    },
+    {
+      "id": "UM-09",
+      "status": "PASS",
+      "obligation": "统一入口/真实headless组合",
+      "production_owner": "START_LVW.cmd / run_local / production React / FastAPI",
+      "oracle": "候选真实launcher与default_app对端日志、Windows health构建ID、原浏览器closed/0page errors/0external；无本独审browser重启。工具当前hash全部匹配execution bindings",
+      "evidence": [
+        "live-12/launcher.log",
+        "live-12/windows-health.json",
+        "live-12/browser-result.json",
+        "live-12/bindings.json",
+        "independent-live-12/recomputed.json"
+      ]
+    },
+    {
+      "id": "UM-10",
+      "status": "PASS",
+      "obligation": "冻结身份/清理/独审",
+      "production_owner": "authority / program ledger / launcher cleanup / isolated reviewer",
+      "oracle": "所有frozen/sample/tool hashes复算；START_LVW仅Git LF/工作树CRLF规范化等同；原生owner exited，API原PID birth不存在、/proc监听为空，launcher确证API退出和owned temp removed；SQLite child终态3/1/56s，全局15/5/1163且0active；固定10项独立检查。此PASS仅身份/清理/独审已完成，不代表总门禁PASS",
+      "evidence": [
+        "live-12/authorization.json",
+        "live-12/authorization.terminal.json",
+        "live-12/receipt.json",
+        "independent-live-12/raw-hashes.json",
+        "independent-live-12/recompute.py",
+        "independent-live-12/recomputed.json"
+      ]
+    }
+  ],
+  "rows": [
+    {
+      "id": "UM-01",
+      "status": "PASS",
+      "obligation": "图片旧路径及人工稿保护",
+      "production_owner": "React App / media upload / AnalysisService",
+      "oracle": "live12真实图片raw与模型运行/显式采纳导出对应；raw只出现红方块和深蓝底，与输入相符；原人工稿保留由原浏览器断言和无错误终态证明",
+      "evidence": [
+        "live-12/image-model-run.json",
+        "live-12/image-draft.json",
+        "live-12/browser-result.json",
+        "live-12/launcher.log"
+      ]
+    },
+    {
+      "id": "UM-02",
+      "status": "PASS",
+      "obligation": "视频格式/大小/时长/像素/空损坏拒绝",
+      "production_owner": "MediaStore.ingest_video / validate_probe / HTTP body limit",
+      "oracle": "实际public duration/corrupt422；本独审CPU public受控格式/像素拒绝与空视频拒绝，明确无job/provider/残留；60s/256MiB/8294400px exact及one-over由候选生产validator复算；streamed假Content-Length负例由候选测试通过",
+      "evidence": [
+        "live-12/negative-0.json",
+        "live-12/negative-1.json",
+        "independent-live-12/cpu_supplement.py",
+        "independent-live-12/cpu-results.txt"
+      ]
+    },
+    {
+      "id": "UM-03",
+      "status": "PASS",
+      "obligation": "真实PTS/四帧/少帧局限/源SHA",
+      "production_owner": "VideoDecoder frame_manifest / AnalysisService / OllamaProvider",
+      "oracle": "1,3,5,7秒PTS、源视频SHA、四PPM SHA与ledger一致；已有PNG重序列化PPM精确hash匹配；2帧manifest不复制、空/重复PTS拒绝CPU复算。未重新decode，不继承旧审查结论",
+      "evidence": [
+        "live-12/video-model-run.json",
+        "live-12/runtime-evidence/provider.jsonl",
+        "independent-live-12/recomputed.json",
+        "independent-live-12/cpu_supplement.py"
+      ]
+    },
+    {
+      "id": "UM-04",
+      "status": "FAIL",
+      "obligation": "全采样帧真实语义/raw分离",
+      "production_owner": "OllamaProvider.analyze_video / parse / model",
+      "oracle": "真实raw保留且计算metadata准确，仍断言红框相对网格consistent，并据red subject and grid stationary推lighting/compression；与可见位置变化及自述systematic spatial shift矛盾。offset/unknown字样不能消除错误观察；不要求相机物理方向",
+      "evidence": [
+        "live-12/video-model-run.json",
+        "independent-live-12/reconstructed-live12-sheet.png",
+        "independent-live-12/recomputed.json"
+      ]
+    },
+    {
+      "id": "UM-05",
+      "status": "PASS",
+      "obligation": "准备/运行/排队取消及晚到不发布",
+      "production_owner": "AnalysisService.cancel/run / MediaStore / decoder cleanup",
+      "oracle": "真实第三次provider attempted后cancelled/released且无result_ref，导出维持已采纳源；CPU生产owner检查queued cancel无provider、preparing barrier清理后终态、晚到成功不发布，mock只替换外部原语",
+      "evidence": [
+        "live-12/cleanup-job-terminals.json",
+        "live-12/after-cancel.json",
+        "live-12/runtime-evidence/provider.jsonl",
+        "independent-live-12/cpu-results.txt",
+        "independent-live-12/cpu_supplement.py"
+      ]
+    },
+    {
+      "id": "UM-06",
+      "status": "PASS",
+      "obligation": "显式采纳/脏稿确认/导出归属",
+      "production_owner": "React adoption/export / draft state",
+      "oracle": "before-video-adopt仍指图片run；video-adopted显式指视频run；after-cancel改稿保留源；JSON/TXT一致。原浏览器once dialog accept与生产采纳操作断言通过，无route/mock",
+      "evidence": [
+        "live-12/before-video-adopt.json",
+        "live-12/video-adopted.json",
+        "live-12/after-cancel.json",
+        "live-12/offline-draft.txt",
+        "live-12/browser-result.json"
+      ]
+    },
+    {
+      "id": "UM-07",
+      "status": "PASS",
+      "obligation": "失败/离线仍可人工",
+      "production_owner": "React editor/export / runtime stop",
+      "oracle": "真实native stop后unreachable/pid null，人工video_prompt改为OFFLINE_EDIT_AND_EXPORT并保留TXT/JSON；CPU释放未证实失败分支resource_state unknown，不冒充成功",
+      "evidence": [
+        "live-12/runtime-stop.json",
+        "live-12/offline-draft.json",
+        "live-12/offline-draft.txt",
+        "independent-live-12/cpu-results.txt"
+      ]
+    },
+    {
+      "id": "UM-08",
+      "status": "PASS",
+      "obligation": "本机资源租约/释放/隔离",
+      "production_owner": "Provider.acquire/release / resources / NativeRuntime",
+      "oracle": "3admission/lease/attempts，3释放各末3样本inventory_empty且GPU恢复baseline+1024内；峰21217<23552，RAM10032>=2048；native PID27672/birth639298255854124545/nonce匹配exited，NO_CLOUD/loopback日志；本次审查不改资源",
+      "evidence": [
+        "live-12/runtime-evidence/provider.jsonl",
+        "live-12/runtime-evidence/f7f76b0011ca4d92a735b14fbfc59c44.owner.json",
+        "live-12/runtime-start.json",
+        "independent-live-12/recomputed.json"
+      ]
+    },
+    {
+      "id": "UM-09",
+      "status": "PASS",
+      "obligation": "统一入口/真实headless组合",
+      "production_owner": "START_LVW.cmd / run_local / production React / FastAPI",
+      "oracle": "候选真实launcher与default_app对端日志、Windows health构建ID、原浏览器closed/0page errors/0external；无本独审browser重启。工具当前hash全部匹配execution bindings",
+      "evidence": [
+        "live-12/launcher.log",
+        "live-12/windows-health.json",
+        "live-12/browser-result.json",
+        "live-12/bindings.json",
+        "independent-live-12/recomputed.json"
+      ]
+    },
+    {
+      "id": "UM-10",
+      "status": "PASS",
+      "obligation": "冻结身份/清理/独审",
+      "production_owner": "authority / program ledger / launcher cleanup / isolated reviewer",
+      "oracle": "所有frozen/sample/tool hashes复算；START_LVW仅Git LF/工作树CRLF规范化等同；原生owner exited，API原PID birth不存在、/proc监听为空，launcher确证API退出和owned temp removed；SQLite child终态3/1/56s，全局15/5/1163且0active；固定10项独立检查。此PASS仅身份/清理/独审已完成，不代表总门禁PASS",
+      "evidence": [
+        "live-12/authorization.json",
+        "live-12/authorization.terminal.json",
+        "live-12/receipt.json",
+        "independent-live-12/raw-hashes.json",
+        "independent-live-12/recompute.py",
+        "independent-live-12/recomputed.json"
+      ]
+    }
+  ],
+  "decision": "NO_GO",
+  "scope": "UNIFIED_MEDIA_EARLY only; not Stage/human/full V1 signature"
+}

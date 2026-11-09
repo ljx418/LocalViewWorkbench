@@ -1,0 +1,70 @@
+{
+  "schema_version": "lvw.independent-review/1",
+  "review_session": "/root/colour_alignment_review",
+  "decision": "CPU_CORRECTION_VERIFIED_REAL_SEMANTICS_NOT_RUN",
+  "git_head": "52736c9aabc769d49bbb9662f878d705c32e5ed2",
+  "source_sha256": {
+    "lvw/backend/app/provider.py": "15cbb5cccafbe35ab74bcf99b6fe9c5bc10d7a2dbd392cd5e7d1709033b4f94a",
+    "lvw/tests/test_provider.py": "70d200cd04f822d33331139c66f07b1996eb1781f78691f916c2435703cd7a76",
+    "contracts/openapi.json": "cd9df1bd94a3c4c27476608e4616e9d73e0b64da653973b1225efd902e0eef31",
+    "contracts/prompt-spec.schema.json": "db3d3b38a9003f6b6bf0da139996863a94708ed68104e821e368c76255a4271a",
+    "plans/acceptance_cases.json": "01559fa4fad04e1817881d78ac67901efc9e5725c4c3d7dddd04e0765ec013cf",
+    "plans/release_gates.json": "a9ed9b0917a5fb735f266d595ba20ed4d70f3d5888e54fa25bf5ae34c7acae25",
+    ".agent-governance/stages/R1/stage-control.json": "fea90ee547bfc6bc879257291f23af959337644dd4a25f2fe3d8ef29c3f7605e",
+    ".agent-governance/stages/R1/PAYLOAD_MANIFEST.sha256": "c20246bd153136c91ce27f7e125716c8c0b3848ffa58e7fe9857ce5f2e343502",
+    ".agent-governance/stages/R1/00-coordinate.md": "70dfebea8d3bb8428b57018203f48d39e2744bc9a4c8a32ce3726a2e72e003f9",
+    ".agent-governance/stages/R1/01-scope-and-non-goals.md": "56dc2255a780a74d6c224905b4989f54506816d6ec0568ac43fa57381b2c62dd",
+    ".agent-governance/stages/R1/02-architecture-and-ownership.md": "994d7c5c3dd1bd37661fd2fb8d89dc4ba2e5ee07415a51712d320472bc29c27f",
+    ".agent-governance/stages/R1/03-workpack-plan.md": "2b8ee2d087ad9966a33b07385dee6e29677e6249ad9279db42a5770dddf31229",
+    ".agent-governance/stages/R1/04-acceptance-matrix.md": "b1ac071846b3ebe2a00c85c79f617128038ed2875e7cac340ddcd271bb02d2f8",
+    ".agent-governance/stages/R1/05-risk-and-authorization-register.md": "bf2393e70727709da4b416ab9a52cc6a1bda7795486fc8a08964528956a2df33",
+    ".agent-governance/stages/R1/06-implementation-prompt.md": "fb2e795a607ecaf56f95fb900ca9c4ead8c1404f5eee6fe8d722ca6985a2906f",
+    ".agent-governance/stages/R1/07-checkpoint-plan.md": "3ee9d9fde25e2fa60dd380057a4f4d2a506d693afebdc11c2aee24f3bafdded0"
+  },
+  "source_stable_at_completion": true,
+  "Fatal": 0,
+  "Major": 0,
+  "Minor": 0,
+  "independent_cpu_assertions": {
+    "passed": 75,
+    "total": 75
+  },
+  "provider_regressions": {
+    "passed": 23,
+    "total": 23
+  },
+  "real_live12": {
+    "decision": "NO_GO",
+    "pass": 9,
+    "denominator": 10,
+    "Major": 1,
+    "reference": "reports/unified-media/independent-live-12/receipt.json"
+  },
+  "fresh_real_checkpoint_required": true,
+  "stage_pass_claim": false,
+  "human_signoff": null,
+  "model_calls": 0,
+  "network_requests": 0,
+  "http_request_serializations_via_MockTransport": 1,
+  "new_video_decode": false,
+  "budget_ledger_write": false,
+  "candidate_modified": false,
+  "temporary_scratch_removed": true,
+  "limitations": [
+    "Synthetic CPU cases only; no semantic model acceptance",
+    "Independent numerical oracle excludes Lanczos resampling for large sources",
+    "Translation, central window, finite search, alias, texture and correlated-channel limitations"
+  ],
+  "evidence_sha256": {
+    "cpu-evidence.json": "d67286121b584478ea3243d960c2f89417fb49c7ac582d0f45e62b718f837833",
+    "cpu-run.log": "ba0b6c160b75dc40838cc88a1a93c5c006b667cc0911a22e95a440a139c079f6",
+    "pytest.log": "65e5fce99b780f6713d6183b4336363a8f2cbb6cf1016bdeb953128e9ba7b02a",
+    "review.md": "e2774d2342607416ac08fdf2bf3af3cc2ad9b971cf72bbc7c0cba9a0abbddf26",
+    "reviewed.diff": "9a1a48bb68a4ddbb718fc79968d016083013caadd56e94c33898baaeec473421",
+    "review_cpu.py": "8feec71d68b0550dff5cd2cdc7d64c4875124e9175979ad377d2ca765c7bcea4",
+    "source-fence.json": "ad04d88183f2a60ed1ca650760200434463899ab1cb1c1a441695cbae92cbed3",
+    "source-snapshot/lvw/tests/test_provider.py": "70d200cd04f822d33331139c66f07b1996eb1781f78691f916c2435703cd7a76",
+    "source-snapshot/lvw/backend/app/provider.py": "15cbb5cccafbe35ab74bcf99b6fe9c5bc10d7a2dbd392cd5e7d1709033b4f94a"
+  },
+  "diff_capture": "git diff HEAD -- lvw/backend/app/provider.py lvw/tests/test_provider.py; includes staged and unstaged changes from package cwd"
+}

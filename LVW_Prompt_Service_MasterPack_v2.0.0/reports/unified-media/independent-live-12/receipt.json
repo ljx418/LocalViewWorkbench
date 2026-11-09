@@ -1,0 +1,77 @@
+{
+  "schema_version": "lvw.independent-review/1",
+  "role": "isolated_read_only_reviewer",
+  "review_session": "/root/live12_independent_review",
+  "run_id": "live-12",
+  "candidate_sha": "52736c9aabc769d49bbb9662f878d705c32e5ed2",
+  "product_source_ancestor": "d3b4ddde5311299083e398dfe08c1ab9c4e38ea8",
+  "packet_version": "1.0.3",
+  "packet_manifest_sha256": "c20246bd153136c91ce27f7e125716c8c0b3848ffa58e7fe9857ce5f2e343502",
+  "gate_version": "lvw-unified/1",
+  "slice_acceptance_ids": [
+    "UM-01",
+    "UM-02",
+    "UM-03",
+    "UM-04",
+    "UM-05",
+    "UM-06",
+    "UM-07",
+    "UM-08",
+    "UM-09",
+    "UM-10"
+  ],
+  "denominator": 10,
+  "pass": 9,
+  "fail": 1,
+  "blocked": 0,
+  "skipped": 0,
+  "not_run": 0,
+  "Fatal": 0,
+  "Major": 1,
+  "Minor": 0,
+  "decision": "NO_GO",
+  "findings": [
+    {
+      "id": "M1",
+      "severity": "Major",
+      "acceptance_id": "UM-04",
+      "summary": "错误否认可见红框/网格相对位置变化，并提出无证据lighting/compression解释，且与systematic spatial shift自相矛盾。",
+      "raw_locations": [
+        "observations[4]",
+        "inferences[1]",
+        "inferences[2]"
+      ],
+      "physical_camera_direction_required": false,
+      "offset_unknown_alone_not_pass": true
+    }
+  ],
+  "model_actions": 3,
+  "completed_model_calls": 2,
+  "cancelled_attempts": 1,
+  "lease_releases": 3,
+  "child_recorded_elapsed_seconds": 56,
+  "global_ledger": {
+    "model_actions": 15,
+    "effective_full_checkpoints": 5,
+    "production_seconds": 1163,
+    "active_children": 0
+  },
+  "cpu_check_result": "..........                                                               [100%]\n10 passed, 4 deselected in 1.69s",
+  "new_model_gpu_service_browser_probe_decode_downloads": 0,
+  "ledger_write": false,
+  "candidate_modified": false,
+  "prior_pass_inherited": false,
+  "stage_pass_claim": false,
+  "human_signoff": null,
+  "full_v1_acceptance": false,
+  "evidence": [
+    "review.md",
+    "coverage.json",
+    "raw-hashes.json",
+    "recompute.py",
+    "recomputed.json",
+    "cpu_supplement.py",
+    "cpu-results.txt",
+    "candidate-source-hashes.json"
+  ]
+}

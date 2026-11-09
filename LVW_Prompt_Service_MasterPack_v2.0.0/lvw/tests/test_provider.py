@@ -260,7 +260,7 @@ def test_video_uses_all_sample_frames_one_call_and_retains_joint_motion(monkeypa
     assert measured[0]['mean_absolute_rgb_delta']==127.666667
     assert calls[0]['options']['num_ctx']==4096
     assert spec.technical.subject_action.startswith('The color changes')
-    assert spec.template_version=='1.3.0'
+    assert spec.template_version=='1.4.0'
     registration=json.loads(calls[0]['messages'][-1]['content'].split('Measured image registration (not physical camera motion): ',1)[1].split('\nMeasured adjacent-frame',1)[0])
     assert len(registration)==3 and all(not item['usable'] for item in registration)
     assert any('4个采样帧' in x for x in spec.domains.unknowns)
@@ -390,3 +390,51 @@ def test_registration_translation_static_light_and_aliases_are_measurements_only
     assert temporal_alignment_measurements([original])==[]
     with pytest.raises(AppError):temporal_alignment_measurements([original,blank])
     assert original==encode(source)
+
+
+def test_colour_registration_separates_moving_texture_from_fixed_colour_patch():
+    from app.provider import temporal_alignment_measurements
+    from PIL import Image, ImageChops, ImageDraw
+    from io import BytesIO
+    import random
+    def encode(image):
+        output=BytesIO();image.save(output,format='PNG');return output.getvalue()
+    rng=random.Random(425)
+    background=Image.new('L',(96,72))
+    background.putdata([rng.randrange(30,210) for _ in range(96*72)])
+    first=background.convert('RGB');second=ImageChops.offset(background,4,-3).convert('RGB')
+    for frame in (first,second):ImageDraw.Draw(frame).rectangle((39,27,56,44),fill=(220,20,20))
+    inputs=[encode(first),encode(second)];before=inputs.copy()
+    result=temporal_alignment_measurements(inputs)[0]
+    assert result['next_to_previous_alignment_offset_px']=={'x':-4,'y':3}
+    colour={x['component']:x for x in result['colour_components']}
+    for name in ('R-G','B-R'):
+        assert colour[name]['usable']
+        assert colour[name]['offset_px']=={'x':0,'y':0}
+        assert colour[name]['zero_error']==colour[name]['best_error']==0
+        assert colour[name]['equally_best_offsets']==1
+    assert not colour['G-B']['usable']  # Equal G/B has no texture; never an offset claim.
+    assert inputs==before
+
+
+def test_colour_registration_recovers_equal_luma_motion_and_static_negative():
+    from app.provider import temporal_alignment_measurements
+    from PIL import Image, ImageChops
+    from io import BytesIO
+    import random
+    def encode(image):
+        output=BytesIO();image.save(output,format='PNG');return output.getvalue()
+    rng=random.Random(426)
+    source=Image.new('RGB',(64,48))
+    source.putdata([(255,0,0) if rng.randrange(2) else (0,129,0) for _ in range(64*48)])
+    assert len(set(source.convert('L').getdata()))==1
+    result=temporal_alignment_measurements([encode(source),encode(ImageChops.offset(source,-2,1))])[0]
+    assert not result['usable']
+    for component in result['colour_components']:
+        assert component['usable'] and component['offset_px']=={'x':2,'y':-1}
+        assert component['error_reduction_percent']==100 and component['best_error']==0
+        assert component['equally_best_offsets']==1
+    static=temporal_alignment_measurements([encode(source)]*2)[0]
+    for component in static['colour_components']:
+        assert component['usable'] and component['offset_px']=={'x':0,'y':0}
+        assert component['zero_error']==component['best_error']==0

@@ -1,0 +1,21 @@
+{
+  "authorization_id": "AUTH-V1-GPU-RECLAIM-01",
+  "status": "ACTIVE",
+  "granted_by": "project_owner",
+  "statement": "当前本机可以持续使用，你自行进行显存资源释放。",
+  "parent": "reports/authorization-program-v1-complete-03.approval.json",
+  "scope": [
+    "Bounded GPU process/service metadata discovery",
+    "Prefer idle-model unload and temporary cache release through local provider controls",
+    "If necessary, stop positively identified local inference workers with PID/birth recheck; do not terminate unrelated GUI apps or unknown active training tasks"
+  ],
+  "forbidden": [
+    "model/data deletion",
+    "driver reset",
+    "permanent configuration changes",
+    "private media/Cookies/secrets inspection",
+    "cloud/paid actions"
+  ],
+  "human_experience_signature": false,
+  "stage_pass_claim": false
+}

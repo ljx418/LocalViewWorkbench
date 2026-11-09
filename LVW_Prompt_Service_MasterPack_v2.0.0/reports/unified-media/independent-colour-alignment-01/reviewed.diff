@@ -1,0 +1,250 @@
+diff --git a/LVW_Prompt_Service_MasterPack_v2.0.0/lvw/backend/app/provider.py b/LVW_Prompt_Service_MasterPack_v2.0.0/lvw/backend/app/provider.py
+index f9b97fd..4efca4a 100644
+--- a/LVW_Prompt_Service_MasterPack_v2.0.0/lvw/backend/app/provider.py
++++ b/LVW_Prompt_Service_MasterPack_v2.0.0/lvw/backend/app/provider.py
+@@ -66,41 +66,31 @@ VIDEO_SCHEMA = {**IMAGE_SCHEMA, "properties": {**IMAGE_SCHEMA["properties"],
+     "camera_motion": {"type": "string", "maxLength": 600},
+     "subject_action": {"type": "string", "maxLength": 600}},
+     "required": [*IMAGE_SCHEMA["required"], "camera_motion", "subject_action"]}
+-VIDEO_PRESENTATION_VERSION = "temporal-sheet/3-alignment"
++VIDEO_PRESENTATION_VERSION = "temporal-sheet/4-colour-alignment"
+ VIDEO_TASK = (
+-    "Analyze the attached TEMPORAL CONTACT SHEET as ONE sampled VIDEO sequence. "
+-    "Only panels labeled F1, F2, ... are actual source frames; their seconds are metadata, "
+-    "not text in the scene. Read source panels left-to-right, then top-to-bottom, in timestamp order. "
+-    "The bottom D1->2, D2->3, ... panels are DERIVED absolute RGB difference maps from the named "
+-    "source frames, not extra video frames, scene content or motion-direction estimates. Black "
+-    "means unchanged RGB values; colored structure marks changed pixels. Inspect source panels "
+-    "and difference structure together. Lighting, noise and local movement can also create differences. "
+-    "Compare the background, framing and subject positions across EVERY populated panel before "
+-    "summarizing. Distinguish camera/framing changes from subject movement and from scene cuts. "
+-    "Do not treat the contact sheet itself as the scene or describe only its last panel. "
+-    "Do not claim frames are identical without inspecting their differences. If movement cannot "
+-    "be determined from samples, explicitly say unknown rather than asserting a static video. "
+-    "State that only sampled frames were observed; continuous motion, unseen events and audio "
+-    "are unverified. Return compact JSON: prompt_zh is Chinese, prompt is English; camera_motion "
+-    "and subject_action contain supported observations or explicit uncertainty."
+-    " Check subject placement and background landmark alignment separately: a subject can remain "
+-    "in the same screen position while the framing or background changes. The supplied adjacent "
+-    "pixel measurements are computed from the actual decoded frames, not sample answers. "
+-    "A nonzero measurement rules out pixel-identical frames, but is not proof of camera motion "
+-    "(compression, lighting and subject movement also change pixels). Describe visible differences; "
+-    "if direction or cause is ambiguous, mark it unknown. Never infer an entirely static sequence "
+-    "only because the main subject stays in place. Do not put observed changes in the negative prompt. "
+-    "The different_pixel_percent field is already in percent units (0 to 100); do NOT divide it "
+-    "by 100 again. Use changed_pixel_count / frame_pixel_count to cross-check its scale. "
+-    "If measurements show differences but you cannot confidently attribute them visually, report "
+-    "that sampled frames differ and the cause/direction is unknown; do not invent an unchanged "
+-    "background or explain differences as compression noise without supporting evidence."
+-    " Measured image alignment searches translations of the NEXT image to match the PREVIOUS "
+-    "image on a common central window. A nonzero best offset with lower error is evidence of "
+-    "an apparent spatial difference, not proof of physical camera movement; repeated patterns "
+-    "can alias and local objects may remain fixed. Do not call all elements spatially constant "
+-    "when measured alignment improves a nonzero offset. Explain source-image facts separately "
+-    "from possible causes; motion cause/direction can remain unknown."
++    "Analyze ONE sampled VIDEO. The attached sheet has full source frames F1, F2, ... in "
++    "timestamp order, and DERIVED D adjacent absolute RGB differences (black=unchanged pixels). "
++    "F labels/times and D maps are metadata, not scene content. Compare EVERY F panel: subject "
++    "placement and background landmarks separately. A fixed subject does not imply a fixed background. "
++    "Report the scene, not the sheet layout. Only sampled frames were seen; audio, intervening events "
++    "and continuous motion remain unverified. Return compact schema JSON with Chinese prompt_zh "
++    "and English prompt. Keep observations, inferences and unknowns separate.\n"
++    "GROUNDING: use the supplied measurements, computed from actual decoded pixels, alongside "
++    "the image. Nonzero pixel differences rule out identical frames but alone do not establish motion. "
++    "different_pixel_percent is already 0..100, not a fraction. Image registration finds translations "
++    "of NEXT toward PREVIOUS on a bounded common window. Nonzero offsets with reduced error show "
++    "apparent spatial differences, not physical camera movement. Periodic patterns can alias. "
++    "Colour-component registration applies the same search to R-G, G-B and B-R projections. "
++    "These are pixel components, not object labels. Distinct informative components can align "
++    "differently: do not assume one rigid translation describes the whole scene. Untextured "
++    "components and tied offsets are inconclusive.\n"
++    "Before returning, remove unsupported temporal claims from ALL fields: 'appears stationary' "
++    "or 'positions are consistent' is still a claim. If visual inspection cannot resolve measured "
++    "spatial differences, state the measured change and leave its cause/direction unknown. Do not "
++    "assert an unchanged background, nor invent lighting/compression/noise explanations. Include "
++    "supported temporal differences in the reconstruction prompts; negative is only unwanted "
++    "generation defects, never observed changes. camera_motion and subject_action may explicitly "
++    "state uncertainty. Do not confuse measured pixel alignment direction with physical camera direction."
+ )
+ VIDEO_TEMPLATE_SHA256 = hashlib.sha256((TEMPLATE_SHA256 + VIDEO_TASK +
+     VIDEO_PRESENTATION_VERSION + json.dumps(VIDEO_SCHEMA, sort_keys=True)).encode()).hexdigest()
+@@ -170,11 +160,39 @@ def temporal_pixel_measurements(images: list[bytes]) -> list[dict]:
+     return result
+ 
+ 
++def _register_component(previous: Image.Image, next_image: Image.Image) -> dict:
++    """Same bounded, fixed-area registration for any scalar pixel component."""
++    width,height=previous.size
++    radius=min(10,(min(width,height)-1)//4)
++    if radius<1:
++        return {'usable':False,'reason':'analysis_too_narrow'}
++    window=(radius,radius,width-radius,height-radius)
++    reference=previous.crop(window)
++    if ImageStat.Stat(reference).stddev[0]==0:
++        return {'usable':False,'reason':'reference_has_no_texture'}
++    scores=[]
++    for dy in range(-radius,radius+1):
++        for dx in range(-radius,radius+1):
++            shifted=next_image.crop((window[0]-dx,window[1]-dy,window[2]-dx,window[3]-dy))
++            error=int(ImageStat.Stat(ImageChops.difference(reference,shifted)).sum[0])
++            scores.append((error,dx*dx+dy*dy,dy,dx))
++    best=min(scores)
++    unaligned=next(value[0] for value in scores if value[2]==0 and value[3]==0)
++    area=reference.width*reference.height
++    return {'usable':True,'analysis_size':[width,height],'search_radius_px':radius,
++        'next_to_previous_alignment_offset_px':{'x':best[3],'y':best[2]},
++        'unaligned_mean_luma_error':round(unaligned/area,6),
++        'best_aligned_mean_luma_error':round(best[0]/area,6),
++        'relative_error_reduction':round((unaligned-best[0])/unaligned,6) if unaligned else 0,
++        'equally_best_offsets':sum(value[0]==best[0] for value in scores)}
++
++
+ def temporal_alignment_measurements(images: list[bytes]) -> list[dict]:
+-    """Bounded exhaustive pixel registration, never a camera/subject classifier.
++    """Generic luma + colour-component registration, never object/camera labels.
+ 
+-    All comparisons use the same overlap size. Offsets align next to previous;
+-    equal-error aliases are disclosed rather than presented as physical motion.
++    Opponent components are (first-second)/2+128, truncated/clamped by Pillow.
++    Thumbnail filtering, central-window/search limits and aliases apply to all.
++    Component differences do not identify semantic regions or physical causes.
+     """
+     decoded=[]
+     original_size=None
+@@ -183,37 +201,32 @@ def temporal_alignment_measurements(images: list[bytes]) -> list[dict]:
+             if original_size is not None and source.size!=original_size:
+                 raise AppError('PARSE_PARTIAL','视频采样帧尺寸不一致',status_code=503)
+             original_size=source.size
+-            image=source.convert('L')
+-            image.thumbnail((128,128),Image.Resampling.LANCZOS)
+-            decoded.append(image)
++            # Preserve the previous luma calculation exactly; colour is additional evidence.
++            luma=source.convert('L')
++            luma.thumbnail((128,128),Image.Resampling.LANCZOS)
++            rgb=source.convert('RGB')
++            rgb.thumbnail((128,128),Image.Resampling.LANCZOS)
++            red,green,blue=rgb.split()
++            decoded.append((luma,[ImageChops.subtract(first,second,scale=2,offset=128)
++                for first,second in [(red,green),(green,blue),(blue,red)]]))
+     result=[]
+-    for index,(previous,next_image) in enumerate(zip(decoded,decoded[1:]),1):
+-        width,height=previous.size
+-        radius=min(10,(min(width,height)-1)//4)
+-        if radius<1:
+-            result.append({'from_frame':index,'to_frame':index+1,'usable':False,'reason':'analysis_too_narrow'})
+-            continue
+-        window=(radius,radius,width-radius,height-radius)
+-        reference=previous.crop(window)
+-        if ImageStat.Stat(reference).stddev[0]==0:
+-            result.append({'from_frame':index,'to_frame':index+1,'usable':False,'reason':'reference_has_no_texture'})
+-            continue
+-        scores=[]
+-        for dy in range(-radius,radius+1):
+-            for dx in range(-radius,radius+1):
+-                shifted=next_image.crop((window[0]-dx,window[1]-dy,window[2]-dx,window[3]-dy))
+-                error=int(ImageStat.Stat(ImageChops.difference(reference,shifted)).sum[0])
+-                scores.append((error,dx*dx+dy*dy,dy,dx))
+-        best=min(scores)
+-        unaligned=next(value[0] for value in scores if value[2]==0 and value[3]==0)
+-        area=reference.width*reference.height
+-        result.append({'from_frame':index,'to_frame':index+1,'usable':True,
+-            'analysis_size':[width,height],'search_radius_px':radius,
+-            'next_to_previous_alignment_offset_px':{'x':best[3],'y':best[2]},
+-            'unaligned_mean_luma_error':round(unaligned/area,6),
+-            'best_aligned_mean_luma_error':round(best[0]/area,6),
+-            'relative_error_reduction':round((unaligned-best[0])/unaligned,6) if unaligned else 0,
+-            'equally_best_offsets':sum(value[0]==best[0] for value in scores)})
++    for index,((previous,previous_colour),(next_image,next_colour)) in enumerate(zip(decoded,decoded[1:]),1):
++        measurement={'from_frame':index,'to_frame':index+1,**_register_component(previous,next_image)}
++        components=[]
++        for name,left,right in zip(('R-G','G-B','B-R'),previous_colour,next_colour):
++            registered=_register_component(left,right)
++            component={'component':name,'usable':registered['usable']}
++            if registered['usable']:
++                component.update(offset_px=registered['next_to_previous_alignment_offset_px'],
++                    zero_error=registered['unaligned_mean_luma_error'],
++                    best_error=registered['best_aligned_mean_luma_error'],
++                    error_reduction_percent=round(100*registered['relative_error_reduction'],4),
++                    equally_best_offsets=registered['equally_best_offsets'])
++            else:
++                component['reason']=registered['reason']
++            components.append(component)
++        measurement['colour_components']=components
++        result.append(measurement)
+     return result
+ 
+ 
+@@ -509,7 +522,7 @@ class OllamaProvider:
+                 parsed.technical.subject_action = action
+                 parsed.domains.unknowns.append(f"仅观察{len(frames)}个采样帧，未采样事件、连续运动与音频未经验证。")
+                 parsed.template_id = "lvw-unified-video"
+-                parsed.template_version = "1.3.0"
++                parsed.template_version = "1.4.0"
+         except (AppError, ValueError, KeyError, TypeError) as error:
+             self._record("provider_call_failed", call_id, outcome="invalid_content")
+             if not isinstance(error, AppError):
+diff --git a/LVW_Prompt_Service_MasterPack_v2.0.0/lvw/tests/test_provider.py b/LVW_Prompt_Service_MasterPack_v2.0.0/lvw/tests/test_provider.py
+index b8b09e7..7e1e1cd 100644
+--- a/LVW_Prompt_Service_MasterPack_v2.0.0/lvw/tests/test_provider.py
++++ b/LVW_Prompt_Service_MasterPack_v2.0.0/lvw/tests/test_provider.py
+@@ -260,7 +260,7 @@ def test_video_uses_all_sample_frames_one_call_and_retains_joint_motion(monkeypa
+     assert measured[0]['mean_absolute_rgb_delta']==127.666667
+     assert calls[0]['options']['num_ctx']==4096
+     assert spec.technical.subject_action.startswith('The color changes')
+-    assert spec.template_version=='1.3.0'
++    assert spec.template_version=='1.4.0'
+     registration=json.loads(calls[0]['messages'][-1]['content'].split('Measured image registration (not physical camera motion): ',1)[1].split('\nMeasured adjacent-frame',1)[0])
+     assert len(registration)==3 and all(not item['usable'] for item in registration)
+     assert any('4个采样帧' in x for x in spec.domains.unknowns)
+@@ -390,3 +390,51 @@ def test_registration_translation_static_light_and_aliases_are_measurements_only
+     assert temporal_alignment_measurements([original])==[]
+     with pytest.raises(AppError):temporal_alignment_measurements([original,blank])
+     assert original==encode(source)
++
++
++def test_colour_registration_separates_moving_texture_from_fixed_colour_patch():
++    from app.provider import temporal_alignment_measurements
++    from PIL import Image, ImageChops, ImageDraw
++    from io import BytesIO
++    import random
++    def encode(image):
++        output=BytesIO();image.save(output,format='PNG');return output.getvalue()
++    rng=random.Random(425)
++    background=Image.new('L',(96,72))
++    background.putdata([rng.randrange(30,210) for _ in range(96*72)])
++    first=background.convert('RGB');second=ImageChops.offset(background,4,-3).convert('RGB')
++    for frame in (first,second):ImageDraw.Draw(frame).rectangle((39,27,56,44),fill=(220,20,20))
++    inputs=[encode(first),encode(second)];before=inputs.copy()
++    result=temporal_alignment_measurements(inputs)[0]
++    assert result['next_to_previous_alignment_offset_px']=={'x':-4,'y':3}
++    colour={x['component']:x for x in result['colour_components']}
++    for name in ('R-G','B-R'):
++        assert colour[name]['usable']
++        assert colour[name]['offset_px']=={'x':0,'y':0}
++        assert colour[name]['zero_error']==colour[name]['best_error']==0
++        assert colour[name]['equally_best_offsets']==1
++    assert not colour['G-B']['usable']  # Equal G/B has no texture; never an offset claim.
++    assert inputs==before
++
++
++def test_colour_registration_recovers_equal_luma_motion_and_static_negative():
++    from app.provider import temporal_alignment_measurements
++    from PIL import Image, ImageChops
++    from io import BytesIO
++    import random
++    def encode(image):
++        output=BytesIO();image.save(output,format='PNG');return output.getvalue()
++    rng=random.Random(426)
++    source=Image.new('RGB',(64,48))
++    source.putdata([(255,0,0) if rng.randrange(2) else (0,129,0) for _ in range(64*48)])
++    assert len(set(source.convert('L').getdata()))==1
++    result=temporal_alignment_measurements([encode(source),encode(ImageChops.offset(source,-2,1))])[0]
++    assert not result['usable']
++    for component in result['colour_components']:
++        assert component['usable'] and component['offset_px']=={'x':2,'y':-1}
++        assert component['error_reduction_percent']==100 and component['best_error']==0
++        assert component['equally_best_offsets']==1
++    static=temporal_alignment_measurements([encode(source)]*2)[0]
++    for component in static['colour_components']:
++        assert component['usable'] and component['offset_px']=={'x':0,'y':0}
++        assert component['zero_error']==component['best_error']==0
