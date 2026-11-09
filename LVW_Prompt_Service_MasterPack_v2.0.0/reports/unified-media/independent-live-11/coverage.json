@@ -1,0 +1,100 @@
+{
+  "candidate_sha": "d3b4ddde5311299083e398dfe08c1ab9c4e38ea8",
+  "run_id": "live-11",
+  "fixed_denominator": 10,
+  "rows": [
+    {
+      "id": "UM-01",
+      "status": "BLOCKED",
+      "finding": "Real image job failed RESOURCE_BUSY before any inference; no model result.",
+      "evidence": [
+        "../live-11/cleanup-job-terminals.json",
+        "../live-11/browser-result.json"
+      ]
+    },
+    {
+      "id": "UM-02",
+      "status": "PASS",
+      "finding": "Real public over-duration/corrupt rejected before provider; candidate CPU file/input/decoder negative oracles and owned-cleanup passed. No model invocation required by approved RUNTIME01 scope.",
+      "evidence": [
+        "../live-11/negative-0.json",
+        "../live-11/negative-1.json",
+        "cpu.stdout.log",
+        "candidate-source/LVW_V0_RuntimePatch/tests/test_s2_video_files.py",
+        "candidate-source/LVW_V0_RuntimePatch/tests/test_s2_video_input.py"
+      ]
+    },
+    {
+      "id": "UM-03",
+      "status": "NOT_RUN",
+      "finding": "No real video upload/decode/FrameRefs this run. CPU sparse/EOF/PTS tests passed; cannot substitute for real sample provenance.",
+      "evidence": [
+        "cpu.stdout.log",
+        "candidate-source/LVW_V0_RuntimePatch/tests/test_s2_video_decoder.py"
+      ]
+    },
+    {
+      "id": "UM-04",
+      "status": "NOT_RUN",
+      "finding": "NOT_RUN: zero actual model sends. New alignment route has no real output and is not judged against previous live10 failure.",
+      "evidence": [
+        "../live-11/runtime-evidence/provider.jsonl"
+      ]
+    },
+    {
+      "id": "UM-05",
+      "status": "NOT_RUN",
+      "finding": "No real running/queued/preparing video cancel sequence reached. Candidate CPU queued/late-success guards passed, with actual running cancel still missing.",
+      "evidence": [
+        "cpu.stdout.log",
+        "candidate-source/lvw/tests/test_unified_video.py"
+      ]
+    },
+    {
+      "id": "UM-06",
+      "status": "NOT_RUN",
+      "finding": "Browser stopped before real image/video adoption and export; manual marker visible but no adoption/export receipts.",
+      "evidence": [
+        "../live-11/browser-result.json"
+      ]
+    },
+    {
+      "id": "UM-07",
+      "status": "NOT_RUN",
+      "finding": "Model-offline manual editing and TXT/JSON export sequence not reached.",
+      "evidence": [
+        "../live-11/browser-result.json"
+      ]
+    },
+    {
+      "id": "UM-08",
+      "status": "BLOCKED",
+      "finding": "Original admission free1329<19047, used22810, RAM10027. No lease/load/send. Original native/API/browser/temp cleanup passed; post-inference physical release not exercised.",
+      "evidence": [
+        "../live-11/runtime-evidence/provider.jsonl",
+        "../live-11/cleanup-stop-response.json",
+        "recomputed.json"
+      ]
+    },
+    {
+      "id": "UM-09",
+      "status": "BLOCKED",
+      "finding": "Actual START_LVW/FastAPI/React/headless startup reached; page errors/external requests zero. Full image/video combination stopped at image admission.",
+      "evidence": [
+        "../live-11/launcher.log",
+        "../live-11/browser-result.json"
+      ]
+    },
+    {
+      "id": "UM-10",
+      "status": "PASS",
+      "finding": "111 frozen/source/sample hashes, candidate git blobs, build identity, actual tool hashes, authority/ledger binding, terminal cleanup and this independent audit recomputed. This row does not approve whole slice.",
+      "evidence": [
+        "recomputed.json",
+        "raw-hashes.sha256",
+        "recompute.py"
+      ]
+    }
+  ],
+  "pass_count": 2
+}

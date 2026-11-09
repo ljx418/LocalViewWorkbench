@@ -1,0 +1,24 @@
+{
+  "kind": "FINITE_COMPLETE03_RESOURCE_WAIT_WITH_ONE_FRESH_HANDOFF",
+  "run_id": "complete03-resource-handoff-01",
+  "stage_id": "R1",
+  "program": "reports/authorization-program-v1-complete-03.approval.json",
+  "program_sha256": "cd919c7fd24c24e2740366ef11998fee1b3302f16700598a3a5f75c6ef1b0821",
+  "issued_at": 1794219964.2970653,
+  "expires_at": 1794220624.2970655,
+  "budget": {
+    "gpu_ram_snapshots": 60,
+    "interval_seconds": 10,
+    "model_calls": 0,
+    "service_starts": 0,
+    "max_seconds": 660
+  },
+  "admission": {
+    "gpu_free_mib_at_least": 19047,
+    "gpu_used_mib_below": 23552,
+    "ram_mib_at_least": 2048
+  },
+  "handoff": "After this child terminal RESOURCE_READY, issue exactly one fresh live12 through existing reviewed checkpoint; not an old-child replay. No handoff if not ready.",
+  "cleanup": "Await bounded nvidia-smi subprocesses; no unrelated process modification. Fresh checkpoint owns its own cleanup.",
+  "stage_pass_claim": false
+}

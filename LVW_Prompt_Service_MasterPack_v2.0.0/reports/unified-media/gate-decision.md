@@ -1,4 +1,20 @@
-# 当前门禁：WAIT_RESOURCE；COMPLETE03已批准，无阶段权限阻塞
+# 当前门禁：WAIT_RESOURCE；图像注册新候选已离线完成，未取得真实语义结果
+
+当前实现候选d3b4ddde5311299083e398dfe08c1ab9c4e38ea8。资源释放后live10完成真实图片/视频/取消/采纳/导出，3模型动作/53秒、GPU峰22595MiB、RAM最低10131MiB，三次租约释放和原始进程清理闭合；独审9/10 NO_GO、UM04 Major1：原始模型仍称网格与红框空间恒定，并猜测显著差异为压缩/噪声。
+
+因此改用另一技术路线：保留完整F源帧＋明确D派生残差，在同一次模型消息/账本追加有界图像注册测量。仅Pillow、灰度≤128²、共同窗口、±10穷举、next-to-prev偏移/误差/精确多解，非物理相机分类。所有源SHA/PTS/FrameRef/raw/一次Provider/公共DTO/UM10/资源质量门槛不变。新内部template1.3.0；134CPU组合回归、23独立整数oracle及mock生产接线通过，代码独审Fatal0/Major0/Minor0，不代表模型语义通过。
+
+新候选live11在Provider.acquire内部、lease_acquired之前因GPUfree1329<19047被拒绝，0模型/0有效完整轮，完整清理。其独审只判WAIT_RESOURCE，alignment真实语义NOT_RUN，不能把live10 FAIL或合成结果当新候选结论。
+
+后续有界资源接力子运行最多60次/660秒，达标才签发一个新live12；实际60次都未达标、末次free1133/used23006MiB，未签发live12。该等待已终态，不在后台无限轮询。只读核查live10原native父进程的直接子进程，无遗留，没有终止任何外部进程。
+
+COMPLETE03持续ACTIVE，无阶段/候选授权硬配额。全局累计12/1024动作、4/24有效完整轮、1102/172800秒生产运行，包含旧消耗，全部子记录闭合。当前只等实际GPU空闲（≥19047MiB，RAM≥2048MiB），保留约2分钟即可立即新建live12；无需人批GPU/预算/候选/Stage，也不降低资源门槛。尚未到统一人工核签、完整R1/V1通过或发布。
+
+证据：live10/11、independent-live-10/11、alignment-input-offline-01、independent-alignment-input-01、complete03-resource-handoff-01、owned-descendant-audit-01、complete03-budget-after-live11.json。以下保留历史。
+
+---
+
+# 历史：COMPLETE03启用后的live08资源门禁
 
 执行器候选dccdd1b7e06d3bb71d2baf86dc440dee8a6b3f99。AUTH-PROGRAM-V1-COMPLETE-03已明确批准并hash绑定；133项CPU组合回归及执行器隔离独审Fatal0/Major0/Minor0。实际账本仍为原program02.sqlite，全局累计1024模型动作/24有效完整轮/48小时，不再使用阶段/启动/CPU次数授权硬配额。旧单次live08增量请求已被覆盖，无需另批。
 
