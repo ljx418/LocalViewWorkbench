@@ -19,7 +19,7 @@
     "browser_receipt": "reports/unified-media/runtime-transition-cpu-02/receipt.json",
     "decision": "CPU108_FRONTEND9_BROWSER5_PASS_NOT_REAL_MODEL_OR_HUMAN_ACCEPTANCE"
   },
-  "current_blocking_gate": "NEW_CANDIDATE_RUNTIME_CORRECTION_RECHECK_AUTH",
+  "current_blocking_gate": "CONSOLIDATED_LOCAL_AUTHORIZATION_PENDING",
   "stage_packet": ".agent-governance/stages/R1/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/R1/PAYLOAD_MANIFEST.sha256",
   "product_status": "UNIFIED_RUNTIME_RACE_CORRECTED_OFFLINE_REAL_SEMANTICS_UNVERIFIED",
@@ -33,9 +33,9 @@
     "TARGET_HARDWARE_TESTED"
   ],
   "next_owner": "project_owner_for_new_candidate_recheck_authorization",
-  "next_action": "Approve/reject AUTH-REQUEST-V1-R1-U3-RUNTIME-01; do not run live05 before explicit approval. Then verify runtime/real semantics/cleanup and independent review before human experience signoff.",
-  "required_authorization": "AUTH-REQUEST-V1-R1-U3-RUNTIME-01",
-  "authorization_request": "reports/unified-media/authorization-runtime-transition-01.request.json",
+  "next_action": "Project owner reviews authorization history and proposed unified program02; do not treat this audit request as approval. If approved, install/test new budget+source-freeze executor before next real run; pending RUNTIME01 is covered without duplicate approval.",
+  "required_authorization": "AUTH-PROGRAM-V1-LOCAL-02",
+  "authorization_request": "reports/authorization-program-v1-local-02.request.json",
   "authorization_record": "reports/authorization-program-v1-local-01.json",
   "read_only_binding_authorization": "reports/v0-s2/authorization-binding-inventory-06.json",
   "cpu_decoder_authorization": "reports/v0-s2/authorization-cpu-decoder-01.json",
@@ -85,7 +85,7 @@
   "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
   "live_terminal_receipt": "reports/unified-media/live-04/receipt.json",
   "independent_review": "reports/unified-media/independent-live-04/review.md",
-  "exact_stop_reason": "live04因启动控制竞态首次分析409，无Job/模型调用；本轮已完整清理、授权过期。启动/重置/关闭门禁及5项CPU浏览器回归已修复通过，须对新冻结候选重新授权一次续验；原8次模型调用上限未使用，不自动退款完整运行槽。",
+  "exact_stop_reason": "AUTHORIZATION_HISTORY_AUDITED_AND_UNIFIED_PROGRAM_PROPOSED_NOT_APPROVED; no models/GPU/services started by this documentation task.",
   "native_component_authorization": "reports/v0-s2/authorization-native-component-02.json",
   "native_component_terminal_receipt": "reports/v0-s2/native-component-02/receipt.json",
   "local_control_change_decision": "reports/v0-s2/change-decision-video-workbench-01.json",
@@ -882,5 +882,13 @@
     "native_exit_proven": true,
     "cleanup_proven": true,
     "quality": "four real frames; model says three identical/static"
+  },
+  "authorization_consolidation": {
+    "request": "reports/authorization-program-v1-local-02.request.json",
+    "request_sha256": "212b89a987dba5ad478a2f7cac6be35aa0520d7461c919003b500174fe49d108",
+    "status": "PENDING_NOT_ACTIVE",
+    "history_audit": "docs/28_AUTHORIZATION_HISTORY_AND_CONSOLIDATION.md",
+    "absorbs_runtime_request_only_if_approved": true,
+    "alternative_single_run_request": "reports/unified-media/authorization-runtime-transition-01.request.json"
   }
 }
