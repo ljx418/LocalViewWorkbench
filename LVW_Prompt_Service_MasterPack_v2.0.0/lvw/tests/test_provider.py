@@ -248,16 +248,19 @@ def test_video_uses_all_sample_frames_one_call_and_retains_joint_motion(monkeypa
     import base64
     sheet=Image.open(BytesIO(base64.b64decode(calls[0]['messages'][-1]['images'][0])))
     assert sheet.size==(768,768)
-    for point,color in zip([(192,206),(576,206),(192,590),(576,590)],[(255,0,0),(0,128,0),(0,0,255),(255,255,255)]):
+    for point,color in zip([(192,140),(576,140),(192,396),(576,396)],[(255,0,0),(0,128,0),(0,0,255),(255,255,255)]):
         assert sheet.getpixel(point)==color
+    for point,color in zip([(128,652),(384,652),(640,652)],[(255,128,0),(0,128,255),(255,255,0)]):
+        assert sheet.getpixel(point)==color  # Exact residuals, not fabricated motion labels.
     assert 'single image and return' not in calls[0]['messages'][-1]['content']
-    assert 'Actual populated panel count: 4' in calls[0]['messages'][-1]['content']
+    assert 'Actual populated SOURCE panel count: 4' in calls[0]['messages'][-1]['content']
     assert '1, 3, 5, 7' in calls[0]['messages'][-1]['content']
     measured=json.loads(calls[0]['messages'][-1]['content'].split('Measured adjacent-frame pixel differences (not motion estimates): ',1)[1])
     assert len(measured)==3 and all(x['different_pixel_percent']==100 for x in measured)
     assert measured[0]['mean_absolute_rgb_delta']==127.666667
     assert calls[0]['options']['num_ctx']==4096
     assert spec.technical.subject_action.startswith('The color changes')
+    assert spec.template_version=='1.2.0'
     assert any('4个采样帧' in x for x in spec.domains.unknowns)
     assert json.loads(raw)['message']['content']
 
@@ -320,7 +323,35 @@ def test_temporal_sheet_short_samples_and_mismatch_are_explicit():
         decoded=SimpleNamespace(frames=[frame]*count,manifest=[{'time_seconds':x} for x in range(count)])
         sheet=Image.open(BytesIO(build_temporal_sheet(decoded)))
         assert max(sheet.size)<=768
-        assert sheet.size==(384 if count==1 else 768,384 if count<=2 else 768)
+        assert sheet.size==(384 if count==1 else 768,{1:256,2:512,3:768,4:768}[count])
     for count in [0,5]:
         with pytest.raises(AppError):build_temporal_sheet(SimpleNamespace(frames=[frame]*count,manifest=[{'time_seconds':0}]*count))
     with pytest.raises(AppError):build_temporal_sheet(SimpleNamespace(frames=[frame],manifest=[]))
+
+
+def test_residual_panels_match_independent_pixel_oracle_and_keep_source_corners():
+    from io import BytesIO
+    from types import SimpleNamespace
+    from PIL import Image
+    from app.provider import build_temporal_sheet
+    def encode(image):
+        output=BytesIO();image.save(output,format='PNG');return output.getvalue()
+    source=Image.new('RGB',(16,16),'black')
+    for point,color in [((0,0),'red'),((15,0),'green'),((0,15),'blue'),((15,15),'yellow')]:
+        source.putpixel(point,Image.new('RGB',(1,1),color).getpixel((0,0)))
+    variants=[source.copy(),Image.new('RGB',(16,16),(25,50,75)),source.copy(),source.copy()]
+    # Source motion, global illumination and a local change; no inference of their causes.
+    variants[2].putpixel((8,8),(255,0,0))
+    variants[3].putpixel((9,8),(255,0,0))
+    for original,target in [(source,variants[0]),(source,variants[1]),(source,variants[2]),(variants[2],variants[3])]:
+        inputs=[encode(original),encode(target)]
+        sheet=Image.open(BytesIO(build_temporal_sheet(SimpleNamespace(frames=inputs,manifest=[{'time_seconds':1},{'time_seconds':3}]))))
+        # Both full 16x16 originals survive, including all four corners.
+        for index,panel_source in enumerate([original,target]):
+            for y in range(16):
+                for x in range(16):assert sheet.getpixel((index*384+184+x,132+y))==panel_source.getpixel((x,y))
+        for y in range(16):
+            for x in range(16):
+                expected=tuple(abs(a-b) for a,b in zip(original.getpixel((x,y)),target.getpixel((x,y))))
+                assert sheet.getpixel((376+x,388+y))==expected
+        assert inputs==[encode(original),encode(target)]

@@ -15,6 +15,30 @@ ROOT = Path(__file__).resolve().parents[1]
 REQUEST = 'reports/authorization-program-v1-local-02.request.json'
 APPROVAL = 'reports/authorization-program-v1-local-02.approval.json'
 LEDGER = ROOT.parent.parent / '.lvw-runtime/lvw-prompt-service/program02.sqlite'
+AMENDMENT = 'reports/unified-media/authorization-residual-recheck-01'
+
+
+def extra_full_grant(run, stage, *, root=ROOT):
+    """One explicit increment only. A continuation instruction/request is not approval."""
+    request_path=root/(AMENDMENT+'.request.json')
+    grant_path=root/(AMENDMENT+'.approval.json')
+    if not request_path.is_file() or not grant_path.is_file():
+        raise ValueError('WAIT_BUDGET: explicit one-run amendment absent')
+    request=json.loads(request_path.read_text())
+    grant=json.loads(grant_path.read_text())
+    if not (run=='live-08' and stage=='R1'
+            and grant.get('decision')=='APPROVED' and grant.get('status')=='ACTIVE'
+            and grant.get('granted_by')=='project_owner'
+            and grant.get('authorization_id')==request.get('authorization_id')=='AUTH-BUDGET-V1-R1-RESIDUAL-01'
+            and grant.get('request_sha256')==digest(request_path)
+            and request.get('parent_approval_sha256')==digest(root/APPROVAL)
+            and request.get('run_id')==run and request.get('stage_id')==stage
+            and request.get('old_stage_full_limit')==3 and request.get('new_stage_full_limit')==4
+            and request.get('additional_full_runs')==1
+            and not (root/(AMENDMENT+'.approval.terminal.json')).exists()):
+        raise ValueError('WAIT_BUDGET: no exact active one-run amendment')
+    return request,{'request':str(request_path.relative_to(root)),'request_sha256':digest(request_path),
+                    'approval':str(grant_path.relative_to(root)),'approval_sha256':digest(grant_path)}
 
 
 def digest(path):
@@ -102,8 +126,17 @@ def reserve(run, stage, budget, seconds, full, *, ledger=LEDGER, root=ROOT, cpu_
                      'zero': policy['per_stage_zero_model_startup_attempts'],
                      'cpu': policy['per_stage_cpu_fixture_or_offline_browser_children']})):
             charged = totals([*group, proposed])
-            if any(charged[key] > limit for key, limit in limits.items()):
-                raise ValueError('WAIT_BUDGET: cumulative or reserved allowance exhausted')
+            for key,limit in limits.items():
+                # CPU checks never add a full checkpoint, including after an approved extra run.
+                if group is stage_rows and key=='full' and not full:
+                    continue
+                if charged[key] > limit:
+                    if group is stage_rows and key=='full' and charged[key]==4:
+                        amendment,_=extra_full_grant(run,stage,root=root)
+                        if budget!=amendment['budget'] or seconds>amendment['max_seconds']:
+                            raise ValueError('amendment child budget mismatch')
+                    else:
+                        raise ValueError('WAIT_BUDGET: cumulative or reserved allowance exhausted')
         for key, count in starts.items():
             if count + sum(json.loads(r['starts'])[key] for r in stage_rows) > policy['per_stage_production_starts_per_engine']:
                 raise ValueError('WAIT_BUDGET: process starts exhausted')
@@ -127,6 +160,10 @@ def model_action(child_path):
     approved(ROOT)
     if child['program_sha256'] != digest(ROOT / APPROVAL):
         raise ValueError('program changed after child issue')
+    if child.get('run_id')=='live-08':
+        _,binding=extra_full_grant(child['run_id'],child['stage_id'],root=ROOT)
+        if binding!=child.get('budget_amendment'):
+            raise ValueError('amendment changed after child issue')
     with transaction(child['budget_ledger']) as db:
         row = db.execute('SELECT * FROM children WHERE run=?', (child['run_id'],)).fetchone()
         if (row is None or row['active'] != 1 or row['expires'] <= time.time()

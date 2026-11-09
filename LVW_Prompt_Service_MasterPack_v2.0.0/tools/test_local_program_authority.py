@@ -136,6 +136,30 @@ class AuthorityTests(unittest.TestCase):
         for i,stage in enumerate(['R0','R1a','R1','R2']):self.reserve(f'run-{i}',stage,budget=budget)
         with self.assertRaises(ValueError):self.reserve('over','V0-S2',budget=budget)
 
+    def test_extra_full_run_requires_exact_one_shot_hash_bound_approval(self):
+        for i in range(3):self.reserve(f'used-{i}')
+        with self.assertRaises(ValueError):self.reserve('live-08')
+        request=dict(authorization_id='AUTH-BUDGET-V1-R1-RESIDUAL-01',run_id='live-08',stage_id='R1',
+            parent_approval_sha256=authority.digest(self.root/authority.APPROVAL),
+            old_stage_full_limit=3,new_stage_full_limit=4,additional_full_runs=1,budget=self.budget,max_seconds=100)
+        path=self.root/(authority.AMENDMENT+'.request.json');path.parent.mkdir(parents=True,exist_ok=True)
+        path.write_text(json.dumps(request))
+        with self.assertRaises(ValueError):self.reserve('live-08')
+        grant=dict(authorization_id=request['authorization_id'],decision='APPROVED',status='ACTIVE',
+                   granted_by='project_owner',request_sha256=authority.digest(path))
+        grant_path=self.root/(authority.AMENDMENT+'.approval.json')
+        for field,value in [('decision','PENDING'),('status','REVOKED'),('request_sha256','0'*64),('granted_by','implementer')]:
+            grant_path.write_text(json.dumps(dict(grant,**{field:value})))
+            with self.assertRaises(ValueError):self.reserve('live-08')
+        grant_path.write_text(json.dumps(grant))
+        with self.assertRaises(ValueError):self.reserve('live-09')
+        with self.assertRaises(ValueError):self.reserve('live-08',seconds=101)
+        self.reserve('live-08')
+        with self.assertRaises(ValueError):self.reserve('live-08')
+        with self.assertRaises(ValueError):self.reserve('live-09')
+        grant_path.with_suffix('.terminal.json').write_text('{}')
+        with self.assertRaises(ValueError):authority.extra_full_grant('live-08','R1',root=self.root)
+
     def test_execution_tool_binding_required_and_tamper_rejected(self):
         child=self.child()
         data=json.loads(child.read_text());data['execution_bindings_required']=True

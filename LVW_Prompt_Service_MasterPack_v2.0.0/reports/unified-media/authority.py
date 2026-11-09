@@ -73,6 +73,9 @@ def terminal(out,auth,result):
         close_retaining_reservation(auth['run_id'],ledger=auth['budget_ledger'])
     (out/'receipt.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n')
     (out/'authorization.terminal.json').write_text(json.dumps({**auth,'status':'EXPIRED_'+result['decision'],'terminal':'receipt.json'},indent=2)+'\n')
+    if auth.get('budget_amendment'):
+        grant=ROOT/auth['budget_amendment']['approval']
+        grant.with_suffix('.terminal.json').write_text(json.dumps({'status':'EXPIRED_'+result['decision'],'run_id':auth['run_id'],'terminal':str((out/'receipt.json').relative_to(ROOT))},indent=2)+'\n')
 
 def create_program02(run_id,harness,budget,*,port,samples,seconds,full):
     from tools import local_program_authority as program
@@ -94,6 +97,11 @@ def create_program02(run_id,harness,budget,*,port,samples,seconds,full):
     assert {p.name for p in packet_root.iterdir() if p.is_file() and p.name!='PAYLOAD_MANIFEST.sha256'}==leaves
     paths=[*request['frozen_paths'],'tools/local_program_authority.py','.agent-governance/stages/R1']
     candidate=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
+    amendment_binding=None
+    if run_id=='live-08':
+        amendment,amendment_binding=program.extra_full_grant(run_id,'R1')
+        assert subprocess.run(['git','merge-base','--is-ancestor',amendment['candidate_sha'],candidate],cwd=ROOT).returncode==0
+        assert subprocess.run(['git','diff','--quiet',amendment['candidate_sha'],candidate,'--',*amendment['frozen_paths']],cwd=ROOT).returncode==0
     assert subprocess.run(['git','diff','--quiet',candidate,'--',*paths],cwd=ROOT).returncode==0,'commit candidate before child'
     extra=subprocess.check_output(['git','ls-files','--others','--exclude-standard','--',*paths],cwd=ROOT,text=True).splitlines()
     assert not [p for p in extra if '__pycache__' not in Path(p).parts],'uncommitted production files'
@@ -114,6 +122,7 @@ def create_program02(run_id,harness,budget,*,port,samples,seconds,full):
        'model':'gemma4:26b; bind actual model identity in runtime receipt',
        'process_policy':'Only original handles or PID+birth+nonce proved descendants from this run.',
        'cleanup':'Cancel own jobs, archive evidence, stop owned runtime/API/browser and prove original exit/temp/listener cleanup.'}
+    if amendment_binding:value['budget_amendment']=amendment_binding
     (out/'authorization.json').write_text(json.dumps(value,indent=2)+'\n')
     program.bind(run_id,out/'authorization.json')
     return out,value

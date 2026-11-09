@@ -66,11 +66,15 @@ VIDEO_SCHEMA = {**IMAGE_SCHEMA, "properties": {**IMAGE_SCHEMA["properties"],
     "camera_motion": {"type": "string", "maxLength": 600},
     "subject_action": {"type": "string", "maxLength": 600}},
     "required": [*IMAGE_SCHEMA["required"], "camera_motion", "subject_action"]}
-VIDEO_PRESENTATION_VERSION = "temporal-sheet/1"
+VIDEO_PRESENTATION_VERSION = "temporal-sheet/2-residual"
 VIDEO_TASK = (
     "Analyze the attached TEMPORAL CONTACT SHEET as ONE sampled VIDEO sequence. "
-    "Each outlined panel is a different actual frame; labels F1, F2, ... and seconds are metadata, "
-    "not text in the scene. Read left-to-right, then top-to-bottom, in timestamp order. "
+    "Only panels labeled F1, F2, ... are actual source frames; their seconds are metadata, "
+    "not text in the scene. Read source panels left-to-right, then top-to-bottom, in timestamp order. "
+    "The bottom D1->2, D2->3, ... panels are DERIVED absolute RGB difference maps from the named "
+    "source frames, not extra video frames, scene content or motion-direction estimates. Black "
+    "means unchanged RGB values; colored structure marks changed pixels. Inspect source panels "
+    "and difference structure together. Lighting, noise and local movement can also create differences. "
     "Compare the background, framing and subject positions across EVERY populated panel before "
     "summarizing. Distinguish camera/framing changes from subject movement and from scene cuts. "
     "Do not treat the contact sheet itself as the scene or describe only its last panel. "
@@ -97,25 +101,43 @@ VIDEO_TEMPLATE_SHA256 = hashlib.sha256((TEMPLATE_SHA256 + VIDEO_TASK +
 
 
 def build_temporal_sheet(decoded) -> bytes:
-    """All real frames, no crop/duplicate; bounded 768px PNG with numbered time labels."""
+    """Complete source panels plus explicitly derived residuals; one <=768px PNG."""
     count = len(decoded.frames)
     if not 1 <= count <= 4 or len(decoded.manifest) != count:
         raise AppError("PARSE_PARTIAL", "视频实际帧与时间元数据不匹配", status_code=503)
     cols = min(count, 2)
     rows = (count + cols - 1) // cols
-    size = 384
-    canvas = Image.new("RGB", (cols * size, rows * size), "#161b25")
+    width = cols * 384
+    source_height = rows * 256
+    canvas = Image.new("RGB", (width, source_height + (256 if count > 1 else 0)), "#161b25")
     draw = ImageDraw.Draw(canvas)
+    sources = []
+
+    def panel(image, x, y, panel_width, label, outline):
+        # Thumbnail only: never crop, stretch, replace or duplicate a source frame.
+        thumbnail = image.copy()
+        thumbnail.thumbnail((panel_width - 8, 224), Image.Resampling.LANCZOS)
+        canvas.paste(thumbnail, (x + (panel_width - thumbnail.width) // 2,
+                                y + 28 + (224 - thumbnail.height) // 2))
+        draw.rectangle((x, y, x + panel_width - 1, y + 255), outline=outline, width=2)
+        draw.text((x + 8, y + 8), label, fill="white")
+
     for index, payload in enumerate(decoded.frames):
-        x, y = (index % cols) * size, (index // cols) * size
         with Image.open(BytesIO(payload)) as source:
             image = source.convert("RGB")
-            image.thumbnail((size - 8, size - 32), Image.Resampling.LANCZOS)
-            canvas.paste(image, (x + (size - image.width) // 2,
-                                y + 28 + (size - 32 - image.height) // 2))
-        draw.rectangle((x, y, x + size - 1, y + size - 1), outline="#8896aa", width=2)
+        if sources and image.size != sources[0].size:
+            raise AppError("PARSE_PARTIAL", "视频采样帧尺寸不一致", status_code=503)
+        sources.append(image)
         seconds = float(decoded.manifest[index]["time_seconds"])
-        draw.text((x + 10, y + 8), f"F{index + 1} | {seconds:.3f}s", fill="white")
+        panel(image, (index % cols) * 384, (index // cols) * 256, 384,
+              f"F{index + 1} | {seconds:.3f}s", "#8896aa")
+
+    if count > 1:
+        residual_width = width // (count - 1)
+        for index, (left, right) in enumerate(zip(sources, sources[1:])):
+            panel(ImageChops.difference(left, right), index * residual_width,
+                  source_height, residual_width,
+                  f"D{index + 1}->{index + 2} DERIVED abs RGB", "#ceaa68")
     output = BytesIO()
     canvas.save(output, format="PNG")
     return output.getvalue()
@@ -371,7 +393,7 @@ class OllamaProvider:
         messages: list[dict[str, object]] = build_messages(mode, content_profile, custom_guidance)
         if frames is not None:
             messages[-1]["content"] = str(messages[-1]["content"]).replace(TEMPLATE_TEXT, VIDEO_TASK)
-            messages[-1]["content"] += f"\nActual populated panel count: {len(frames)}. Actual frame times (seconds): " + json.dumps([
+            messages[-1]["content"] += f"\nActual populated SOURCE panel count: {len(frames)}. Actual frame times (seconds): " + json.dumps([
                 value["time_seconds"] for value in frames])
             messages[-1]["content"] += '\nMeasured adjacent-frame pixel differences (not motion estimates): '+json.dumps(pixel_measurements)
         messages[-1]["images"] = [base64.b64encode(payload).decode("ascii") for payload in images]
@@ -430,6 +452,7 @@ class OllamaProvider:
                 parsed.technical.subject_action = action
                 parsed.domains.unknowns.append(f"仅观察{len(frames)}个采样帧，未采样事件、连续运动与音频未经验证。")
                 parsed.template_id = "lvw-unified-video"
+                parsed.template_version = "1.2.0"
         except (AppError, ValueError, KeyError, TypeError) as error:
             self._record("provider_call_failed", call_id, outcome="invalid_content")
             if not isinstance(error, AppError):
