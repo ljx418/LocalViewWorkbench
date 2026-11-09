@@ -1,0 +1,45 @@
+{
+  "kind": "INDEPENDENT_UNIFIED_SLICE_REVIEW_NOT_HUMAN_OR_FULL_R1_V1_ACCEPTANCE",
+  "run_id": "live-10",
+  "candidate_sha": "fd9044e29ea923d4b1c7e1a1d9f5af47b35b9a81",
+  "decision": "NO_GO",
+  "reason": "UM-04_REAL_TEMPORAL_SEMANTIC_FAILURE",
+  "fatal": 0,
+  "major": 1,
+  "minor": 0,
+  "coverage_pass": 9,
+  "coverage_total": 10,
+  "model_actions": 3,
+  "elapsed_production_seconds": 53,
+  "effective_full_checkpoints": 1,
+  "global_actual_snapshot": {
+    "model_actions": 12,
+    "effective_full_checkpoints": 4,
+    "production_seconds": 460
+  },
+  "peak_gpu_mib": 22595,
+  "minimum_ram_mib": 10131,
+  "cleanup": "PASS",
+  "source_bindings": 111,
+  "wire_png_sha256": "323dc68033e330fae9e217cd26160ba5473fe3dc463a1a1a0d170aa617131843",
+  "recomputed_wire_from_existing_lossless_png_rgb": true,
+  "human_signoff": null,
+  "stage_pass_claim": false,
+  "whole_r1_v1_pass_claim": false,
+  "new_external_actions_by_review": 0,
+  "evidence": [
+    "review.md",
+    "coverage.json",
+    "semantic-review.json",
+    "recomputed.json",
+    "recompute.py",
+    "recompute.stdout.log",
+    "raw-hashes.sha256",
+    "cpu-reuse-proof.json"
+  ],
+  "limitations": [
+    "No new video decoding; existing lossless PNG RGB reconstructed canonical PPM SHA matches current source FrameRefs.",
+    "Browser dialogs/manual assertions rely on original candidate-bound real harness; export/source/raw/lease joins independently recomputed.",
+    "CPU controlled negative coverage proves error/race branches, not model quality."
+  ]
+}

@@ -1,0 +1,19 @@
+.F....................................................                   [100%]
+=================================== FAILURES ===================================
+_____ test_controlled_provider_requires_child_and_debits_before_http_send ______
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x771cdefd55b0>
+tmp_path = PosixPath('/tmp/pytest-of-administrator/pytest-58/test_controlled_provider_requi0')
+
+    def test_controlled_provider_requires_child_and_debits_before_http_send(monkeypatch, tmp_path):
+        import asyncio
+        import httpx
+        import sys
+        sys.path.insert(0,str(__import__('pathlib').Path(__file__).resolve().parents[2]))
+>       from tools import local_program_authority
+E       ModuleNotFoundError: No module named 'tools'
+
+lvw/tests/test_provider.py:38: ModuleNotFoundError
+=========================== short test summary info ============================
+FAILED lvw/tests/test_provider.py::test_controlled_provider_requires_child_and_debits_before_http_send
+1 failed, 53 passed, 4 deselected in 2.04s

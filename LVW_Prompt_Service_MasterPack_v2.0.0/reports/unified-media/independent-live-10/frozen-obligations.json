@@ -1,0 +1,35 @@
+{
+  "candidate_sha": "fd9044e29ea923d4b1c7e1a1d9f5af47b35b9a81",
+  "run_id": "live-10",
+  "state": "AWAITING_TERMINAL_NO_LIVE10_ARTIFACT_READ",
+  "obligations": [
+    "UM-01",
+    "UM-02",
+    "UM-03",
+    "UM-04",
+    "UM-05",
+    "UM-06",
+    "UM-07",
+    "UM-08",
+    "UM-09",
+    "UM-10"
+  ],
+  "semantic_oracle": {
+    "all_source_F": "Every actual F1..F4 source frame complete, chronological real PTS/SHA, no crop/replacement",
+    "derived_D": "Adjacent absolute RGB differences are derived evidence, not extra video frames or motion answers",
+    "tracking": "Fixture drawgrid is cropped at x20+2*n before fixed screen red box x135 y65 w50 h60. Sample times1,3,5,7s have different grid phase mod40; must not claim grid/red-box relative alignment constant. Direction/physical camera cause may remain explicitly unknown.",
+    "no_schema_only_pass": true,
+    "no_prior_output_substitution": true
+  },
+  "cpu_reuse": {
+    "root": "../independent-live-09",
+    "result": "54 passed, 4 deselected",
+    "hashes": {
+      "cpu_review.py": "175034f62f7ff99a721a42a4e567e43652de32db05eae1a52899abe9b864de7d",
+      "cpu.stdout.log": "1eea12a61fa1f4ad5aaa6ee75ef9c53b5a80a18fec3a553ae25dd198eedb04e6",
+      "cpu.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "limitation": "Same candidate snapshot CPU evidence only. Live10 real provenance, calls and semantic outcomes must be recomputed."
+  },
+  "prohibited": "New model/GPU/service/browser/media probe/video decode or writes to candidate/live/real ledger"
+}

@@ -260,7 +260,9 @@ def test_video_uses_all_sample_frames_one_call_and_retains_joint_motion(monkeypa
     assert measured[0]['mean_absolute_rgb_delta']==127.666667
     assert calls[0]['options']['num_ctx']==4096
     assert spec.technical.subject_action.startswith('The color changes')
-    assert spec.template_version=='1.2.0'
+    assert spec.template_version=='1.3.0'
+    registration=json.loads(calls[0]['messages'][-1]['content'].split('Measured image registration (not physical camera motion): ',1)[1].split('\nMeasured adjacent-frame',1)[0])
+    assert len(registration)==3 and all(not item['usable'] for item in registration)
     assert any('4个采样帧' in x for x in spec.domains.unknowns)
     assert json.loads(raw)['message']['content']
 
@@ -355,3 +357,36 @@ def test_residual_panels_match_independent_pixel_oracle_and_keep_source_corners(
                 expected=tuple(abs(a-b) for a,b in zip(original.getpixel((x,y)),target.getpixel((x,y))))
                 assert sheet.getpixel((376+x,388+y))==expected
         assert inputs==[encode(original),encode(target)]
+
+
+def test_registration_translation_static_light_and_aliases_are_measurements_only():
+    from app.provider import temporal_alignment_measurements
+    from PIL import Image, ImageChops
+    from io import BytesIO
+    import random
+    def encode(image):
+        b=BytesIO();image.save(b,format='PNG');return b.getvalue()
+    rng=random.Random(211)
+    source=Image.new('L',(64,48));source.putdata([rng.randrange(180) for _ in range(64*48)])
+    original=encode(source)
+    shifted=encode(ImageChops.offset(source,3,-2))
+    result=temporal_alignment_measurements([original,shifted])[0]
+    assert result['next_to_previous_alignment_offset_px']=={'x':-3,'y':2}
+    assert result['best_aligned_mean_luma_error']==0 and result['relative_error_reduction']==1
+    assert result['equally_best_offsets']==1
+    static=temporal_alignment_measurements([original,original])[0]
+    assert static['next_to_previous_alignment_offset_px']=={'x':0,'y':0}
+    assert static['unaligned_mean_luma_error']==0 and static['relative_error_reduction']==0
+    light=temporal_alignment_measurements([original,encode(source.point(lambda p:p+15))])[0]
+    assert light['next_to_previous_alignment_offset_px']=={'x':0,'y':0}
+    assert light['unaligned_mean_luma_error']==15
+    stripes=Image.new('L',(64,48));stripes.putdata([200 if x%8<4 else 0 for y in range(48) for x in range(64)])
+    repeated=temporal_alignment_measurements([encode(stripes),encode(ImageChops.offset(stripes,2,0))])[0]
+    assert repeated['equally_best_offsets']>1 and repeated['best_aligned_mean_luma_error']==0
+    blank=encode(Image.new('RGB',(32,32),'red'))
+    assert temporal_alignment_measurements([blank,blank])[0]['reason']=='reference_has_no_texture'
+    narrow=encode(Image.new('RGB',(1,128),'red'))
+    assert temporal_alignment_measurements([narrow,narrow])[0]['reason']=='analysis_too_narrow'
+    assert temporal_alignment_measurements([original])==[]
+    with pytest.raises(AppError):temporal_alignment_measurements([original,blank])
+    assert original==encode(source)

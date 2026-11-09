@@ -1,0 +1,49 @@
+{
+  "rules": [
+    {
+      "id": "SEM01",
+      "applies": "Scene",
+      "assert": "start_pts < end_pts; time_base_num/den > 0; bounds inside media; interval [start,end)"
+    },
+    {
+      "id": "SEM02",
+      "applies": "FrameRef",
+      "assert": "decoded_pts requires all pts/timebase; sample_target must not be claimed precise"
+    },
+    {
+      "id": "SEM03",
+      "applies": "MediaRef",
+      "assert": "relative path has no .., drive, UNC or symlink escape; source root registered and authorized"
+    },
+    {
+      "id": "SEM04",
+      "applies": "Revision",
+      "assert": "content hash from canonical spec; immutable; parent belongs same shot"
+    },
+    {
+      "id": "SEM05",
+      "applies": "Job",
+      "assert": "progress_done<=total; finishing requires current attempt/cancel epoch; resource released separately"
+    },
+    {
+      "id": "SEM06",
+      "applies": "V0Result",
+      "assert": "manual has source null/run null allowed; failure never overwrites draft"
+    },
+    {
+      "id": "SEM07",
+      "applies": "NaviaEvidence",
+      "assert": "scope must authorize exact reference; URL is citation not fetch instruction; credentials rejected"
+    },
+    {
+      "id": "SEM08",
+      "applies": "ComfyRequest",
+      "assert": "workflow/hash and parameter range in local allowlist; idempotency reconciliation before retry"
+    },
+    {
+      "id": "SEM09",
+      "applies": "PackageManifest",
+      "assert": "all files within extraction root; total size/ratio bounded; manifest hashes validate before import"
+    }
+  ]
+}

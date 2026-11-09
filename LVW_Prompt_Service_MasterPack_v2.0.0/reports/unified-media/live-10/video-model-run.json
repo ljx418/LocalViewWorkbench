@@ -1,0 +1,102 @@
+{
+  "id": "run_03e37f8f36494d8bbcecced5dc524a9d",
+  "job_id": "job_2d26744fc4cf40c1af85b96e43fdf711",
+  "attempt_id": "att_0a5d605eaa9948d3839d32678cf8a4ef",
+  "model_tag": "gemma4:26b",
+  "model_digest": null,
+  "status": "succeeded",
+  "input_sha256": "b08ea8b0b9fa3bcd4e62b2b0ad1c05b2bff09359539933f4581a5c2f2c69ff6d",
+  "template_sha256": "4c6e7c89951dc839fb79c84c34ddffad5edf7b1d27c754f845f4cfa7b03e146d",
+  "config_sha256": "a39ddc90ac64b1b6824717adc9f1bad426ba456547171a0d4eefcc03b507a05c",
+  "raw_response": "{\"model\":\"gemma4:26b\",\"created_at\":\"2026-11-09T10:10:07.2174229Z\",\"message\":{\"role\":\"assistant\",\"content\":\"{\\n  \\\"observations\\\": [\\n    \\\"A contact sheet containing four source frames (F1, F2, F3, F4) and three difference maps (D1-\\u003e2, D2-\\u003e3, D3-\\u003e4).\\\",\\n    \\\"Source frames F1, F2, F3, and F4 each depict a solid red rectangle centered on a dark blue background with a white grid overlay.\\\",\\n    \\\"The timestamps for the source frames are 1.0s, 3.0s, 5.0s, and 7.0s respectively.\\\",\\n    \\\"The difference maps (D1-\\u003e2, D2-\\u003e3, D3-\\u003e4) show vertical yellow/white lines on a black background, corresponding to changes in pixel values between consecutive frames.\\\",\\n    \\\"In the source frames, the red rectangle's position and size appear visually identical across all four panels.\\\",\\n    \\\"The difference maps indicate significant pixel-level changes (approximately 33-34% of pixels) between each frame pair, despite the visual stability of the main subject.\\\"\\n  ],\\n  \\\"inferences\\\": [\\n    \\\"Since the red rectangle and grid appear visually static in position but the difference maps show high pixel variance, the differences are likely due to unobserved fluctuations such as sensor noise, compression artifacts, or subtle lighting shifts rather than large-scale subject movement.\\\",\\n    \\\"The sequence represents a sampled set of frames from a video where the primary visual elements (red rectangle and grid) remain spatially constant.\\\"\\n  ],\\n  \\\"unknowns\\\": [\\n    \\\"The specific cause of the high pixel difference percentage (e.g., whether it is due to digital noise, compression, or microscopic movement) cannot be definitively identified.\\\",\\n    \\\"Continuous motion between the sampled timestamps is unverified.\\\",\\n    \\\"The presence of audio or events occurring between 1s, 3s, 5s, and 7s is unknown.\\\"\\n  ],\\n  \\\"prompt_zh\\\": \\\"一个极简主义的数字图形序列，包含深蓝色的背景和白色的网格线。画面中心有一个鲜艳的红色矩形。构图对称且稳定，具有高度的几何感。光线均匀，没有阴影，呈现出纯净的数字艺术风格或实验性视觉效果。\\\",\\n  \\\"prompt\\\": \\\"A minimalist digital graphic sequence featuring a deep blue background with a white grid overlay. A vibrant, solid red rectangle is positioned in the center of the frame. The composition is symmetrical and stable, characterized by clean geometric shapes. Even, flat lighting without shadows, creating a pure digital art or experimental visual aesthetic. High contrast between the primary colors.\\\",\\n  \\\"negative\\\": \\\"motion blur, camera shake, organic textures, complex scenery, depth of field, shadows, gradients, flickering\\\",\\n  \\\"tags\\\": [\\n    \\\"minimalism\\\",\\n    \\\"geometric abstraction\\\",\\n    \\\"digital graphic\\\",\\n    \\\"red rectangle\\\",\\n    \\\"blue grid\\\",\\n    \\\"flat design\\\"\\n  ],\\n  \\\"camera_motion\\\": \\\"unknown\\\",\\n  \\\"subject_action\\\": \\\"The red rectangle appears spatially static across the sampled frames.\\\"\\n}\"},\"done\":true,\"done_reason\":\"stop\",\"total_duration\":17709906500,\"load_duration\":12240224900,\"prompt_eval_count\":1418,\"prompt_eval_duration\":691119000,\"eval_count\":663,\"eval_duration\":4753366000}",
+  "parsed_spec": {
+    "schema_version": "lvw.prompt/1",
+    "mode": "realistic",
+    "domains": {
+      "observation": [
+        "A contact sheet containing four source frames (F1, F2, F3, F4) and three difference maps (D1->2, D2->3, D3->4).",
+        "Source frames F1, F2, F3, and F4 each depict a solid red rectangle centered on a dark blue background with a white grid overlay.",
+        "The timestamps for the source frames are 1.0s, 3.0s, 5.0s, and 7.0s respectively.",
+        "The difference maps (D1->2, D2->3, D3->4) show vertical yellow/white lines on a black background, corresponding to changes in pixel values between consecutive frames.",
+        "In the source frames, the red rectangle's position and size appear visually identical across all four panels.",
+        "The difference maps indicate significant pixel-level changes (approximately 33-34% of pixels) between each frame pair, despite the visual stability of the main subject."
+      ],
+      "inference": [
+        "Since the red rectangle and grid appear visually static in position but the difference maps show high pixel variance, the differences are likely due to unobserved fluctuations such as sensor noise, compression artifacts, or subtle lighting shifts rather than large-scale subject movement.",
+        "The sequence represents a sampled set of frames from a video where the primary visual elements (red rectangle and grid) remain spatially constant."
+      ],
+      "user_evidence": [],
+      "creative_intent": [],
+      "unknowns": [
+        "The specific cause of the high pixel difference percentage (e.g., whether it is due to digital noise, compression, or microscopic movement) cannot be definitively identified.",
+        "Continuous motion between the sampled timestamps is unverified.",
+        "The presence of audio or events occurring between 1s, 3s, 5s, and 7s is unknown.",
+        "仅观察4个采样帧，未采样事件、连续运动与音频未经验证。"
+      ]
+    },
+    "technical": {
+      "duration_seconds": null,
+      "aspect_ratio": "",
+      "fps_intent": null,
+      "camera_motion": "unknown",
+      "subject_action": "The red rectangle appears spatially static across the sampled frames.",
+      "lighting": "",
+      "composition": "",
+      "style_notes": "",
+      "beats": []
+    },
+    "locked_fields": [],
+    "text_zh": "一个极简主义的数字图形序列，包含深蓝色的背景和白色的网格线。画面中心有一个鲜艳的红色矩形。构图对称且稳定，具有高度的几何感。光线均匀，没有阴影，呈现出纯净的数字艺术风格或实验性视觉效果。",
+    "text_en": "A minimalist digital graphic sequence featuring a deep blue background with a white grid overlay. A vibrant, solid red rectangle is positioned in the center of the frame. The composition is symmetrical and stable, characterized by clean geometric shapes. Even, flat lighting without shadows, creating a pure digital art or experimental visual aesthetic. High contrast between the primary colors.",
+    "tags": [
+      "minimalism",
+      "geometric abstraction",
+      "digital graphic",
+      "red rectangle",
+      "blue grid",
+      "flat design"
+    ],
+    "negative": "motion blur, camera shake, organic textures, complex scenery, depth of field, shadows, gradients, flickering",
+    "template_id": "lvw-unified-video",
+    "template_version": "1.2.0"
+  },
+  "error_code": null,
+  "frames": [
+    {
+      "index": 0,
+      "target_seconds": 1,
+      "source_pts": 12288,
+      "time_base_num": 1,
+      "time_base_den": 12288,
+      "sha256": "d6b220619176f3e738c1812b5e789defcf28b38802d386c939f094d1c57b25a8",
+      "time_basis": "decoded_pts"
+    },
+    {
+      "index": 1,
+      "target_seconds": 3,
+      "source_pts": 36864,
+      "time_base_num": 1,
+      "time_base_den": 12288,
+      "sha256": "cda95d446455ab753e6adffbcfa18e35f90e7921138610643a0602ca4dd5af05",
+      "time_basis": "decoded_pts"
+    },
+    {
+      "index": 2,
+      "target_seconds": 5,
+      "source_pts": 61440,
+      "time_base_num": 1,
+      "time_base_den": 12288,
+      "sha256": "adabd46eac0b6debd94d463c2f37d697e1951b54ceac09dcab894d855e4da072",
+      "time_basis": "decoded_pts"
+    },
+    {
+      "index": 3,
+      "target_seconds": 7,
+      "source_pts": 86016,
+      "time_base_num": 1,
+      "time_base_den": 12288,
+      "sha256": "392074219ed242331b456828fab9647dd9a3edc7ae3f1cacbb4ed889d671c643",
+      "time_basis": "decoded_pts"
+    }
+  ]
+}

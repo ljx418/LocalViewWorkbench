@@ -1,0 +1,25 @@
+{
+  "kind": "FINITE_COMPLETE03_RESOURCE_READINESS_WAIT",
+  "run_id": "complete03-resource-wait-03",
+  "stage_id": "R1",
+  "program": "reports/authorization-program-v1-complete-03.approval.json",
+  "program_sha256": "cd919c7fd24c24e2740366ef11998fee1b3302f16700598a3a5f75c6ef1b0821",
+  "issued_at": 1794218942.5331686,
+  "expires_at": 1794219302.5331688,
+  "budget": {
+    "gpu_ram_snapshots": 30,
+    "interval_seconds": 10,
+    "model_calls": 0,
+    "service_starts": 0,
+    "max_seconds": 360
+  },
+  "frozen_admission": {
+    "gpu_free_mib_at_least": 19047,
+    "gpu_used_mib_below": 23552,
+    "ram_mib_at_least": 2048
+  },
+  "cleanup": "Only bounded read-only nvidia-smi subprocesses; no foreign modification, service, or media writes",
+  "stage_pass_claim": false,
+  "status": "EXPIRED_RESOURCE_READY",
+  "terminal": "receipt.json"
+}

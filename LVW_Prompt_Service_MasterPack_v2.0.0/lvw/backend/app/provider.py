@@ -66,7 +66,7 @@ VIDEO_SCHEMA = {**IMAGE_SCHEMA, "properties": {**IMAGE_SCHEMA["properties"],
     "camera_motion": {"type": "string", "maxLength": 600},
     "subject_action": {"type": "string", "maxLength": 600}},
     "required": [*IMAGE_SCHEMA["required"], "camera_motion", "subject_action"]}
-VIDEO_PRESENTATION_VERSION = "temporal-sheet/2-residual"
+VIDEO_PRESENTATION_VERSION = "temporal-sheet/3-alignment"
 VIDEO_TASK = (
     "Analyze the attached TEMPORAL CONTACT SHEET as ONE sampled VIDEO sequence. "
     "Only panels labeled F1, F2, ... are actual source frames; their seconds are metadata, "
@@ -95,6 +95,12 @@ VIDEO_TASK = (
     "If measurements show differences but you cannot confidently attribute them visually, report "
     "that sampled frames differ and the cause/direction is unknown; do not invent an unchanged "
     "background or explain differences as compression noise without supporting evidence."
+    " Measured image alignment searches translations of the NEXT image to match the PREVIOUS "
+    "image on a common central window. A nonzero best offset with lower error is evidence of "
+    "an apparent spatial difference, not proof of physical camera movement; repeated patterns "
+    "can alias and local objects may remain fixed. Do not call all elements spatially constant "
+    "when measured alignment improves a nonzero offset. Explain source-image facts separately "
+    "from possible causes; motion cause/direction can remain unknown."
 )
 VIDEO_TEMPLATE_SHA256 = hashlib.sha256((TEMPLATE_SHA256 + VIDEO_TASK +
     VIDEO_PRESENTATION_VERSION + json.dumps(VIDEO_SCHEMA, sort_keys=True)).encode()).hexdigest()
@@ -161,6 +167,53 @@ def temporal_pixel_measurements(images: list[bytes]) -> list[dict]:
             'changed_pixel_count':changed,'frame_pixel_count':left.width*left.height,
             'different_pixel_percent':round(100*changed/(left.width*left.height),4),
             'mean_absolute_rgb_delta':round(sum(ImageStat.Stat(difference).mean)/3,6)})
+    return result
+
+
+def temporal_alignment_measurements(images: list[bytes]) -> list[dict]:
+    """Bounded exhaustive pixel registration, never a camera/subject classifier.
+
+    All comparisons use the same overlap size. Offsets align next to previous;
+    equal-error aliases are disclosed rather than presented as physical motion.
+    """
+    decoded=[]
+    original_size=None
+    for payload in images:
+        with Image.open(BytesIO(payload)) as source:
+            if original_size is not None and source.size!=original_size:
+                raise AppError('PARSE_PARTIAL','视频采样帧尺寸不一致',status_code=503)
+            original_size=source.size
+            image=source.convert('L')
+            image.thumbnail((128,128),Image.Resampling.LANCZOS)
+            decoded.append(image)
+    result=[]
+    for index,(previous,next_image) in enumerate(zip(decoded,decoded[1:]),1):
+        width,height=previous.size
+        radius=min(10,(min(width,height)-1)//4)
+        if radius<1:
+            result.append({'from_frame':index,'to_frame':index+1,'usable':False,'reason':'analysis_too_narrow'})
+            continue
+        window=(radius,radius,width-radius,height-radius)
+        reference=previous.crop(window)
+        if ImageStat.Stat(reference).stddev[0]==0:
+            result.append({'from_frame':index,'to_frame':index+1,'usable':False,'reason':'reference_has_no_texture'})
+            continue
+        scores=[]
+        for dy in range(-radius,radius+1):
+            for dx in range(-radius,radius+1):
+                shifted=next_image.crop((window[0]-dx,window[1]-dy,window[2]-dx,window[3]-dy))
+                error=int(ImageStat.Stat(ImageChops.difference(reference,shifted)).sum[0])
+                scores.append((error,dx*dx+dy*dy,dy,dx))
+        best=min(scores)
+        unaligned=next(value[0] for value in scores if value[2]==0 and value[3]==0)
+        area=reference.width*reference.height
+        result.append({'from_frame':index,'to_frame':index+1,'usable':True,
+            'analysis_size':[width,height],'search_radius_px':radius,
+            'next_to_previous_alignment_offset_px':{'x':best[3],'y':best[2]},
+            'unaligned_mean_luma_error':round(unaligned/area,6),
+            'best_aligned_mean_luma_error':round(best[0]/area,6),
+            'relative_error_reduction':round((unaligned-best[0])/unaligned,6) if unaligned else 0,
+            'equally_best_offsets':sum(value[0]==best[0] for value in scores)})
     return result
 
 
@@ -384,17 +437,20 @@ class OllamaProvider:
         return await self._analyze_images([sheet], mode=mode, content_profile=content_profile,
             custom_guidance=custom_guidance, frames=decoded.manifest,
             source_frame_hashes=[hashlib.sha256(value).hexdigest() for value in decoded.frames],
-            pixel_measurements=temporal_pixel_measurements(decoded.frames))
+            pixel_measurements=temporal_pixel_measurements(decoded.frames),
+            alignment_measurements=temporal_alignment_measurements(decoded.frames))
 
     async def _analyze_images(self, images: list[bytes], *, mode: Mode,
                               content_profile: ContentProfile, custom_guidance: str,
-                              frames=None, source_frame_hashes=None, pixel_measurements=None):
+                              frames=None, source_frame_hashes=None, pixel_measurements=None,
+                              alignment_measurements=None):
         call_id = "call_" + uuid.uuid4().hex
         messages: list[dict[str, object]] = build_messages(mode, content_profile, custom_guidance)
         if frames is not None:
             messages[-1]["content"] = str(messages[-1]["content"]).replace(TEMPLATE_TEXT, VIDEO_TASK)
             messages[-1]["content"] += f"\nActual populated SOURCE panel count: {len(frames)}. Actual frame times (seconds): " + json.dumps([
                 value["time_seconds"] for value in frames])
+            messages[-1]["content"] += '\nMeasured image registration (not physical camera motion): '+json.dumps(alignment_measurements)
             messages[-1]["content"] += '\nMeasured adjacent-frame pixel differences (not motion estimates): '+json.dumps(pixel_measurements)
         messages[-1]["images"] = [base64.b64encode(payload).decode("ascii") for payload in images]
         payload = {
@@ -414,6 +470,7 @@ class OllamaProvider:
                              frame_count=len(frames) if frames is not None else len(images),
                              payload_image_count=len(images), source_frame_hashes=source_frame_hashes,
                      pixel_measurements=pixel_measurements,
+                     alignment_measurements=alignment_measurements,
                              presentation=VIDEO_PRESENTATION_VERSION if frames is not None else "single-image",
                              input_sha256=hashlib.sha256(b"".join(images)).hexdigest())
                 if child:
@@ -452,7 +509,7 @@ class OllamaProvider:
                 parsed.technical.subject_action = action
                 parsed.domains.unknowns.append(f"仅观察{len(frames)}个采样帧，未采样事件、连续运动与音频未经验证。")
                 parsed.template_id = "lvw-unified-video"
-                parsed.template_version = "1.2.0"
+                parsed.template_version = "1.3.0"
         except (AppError, ValueError, KeyError, TypeError) as error:
             self._record("provider_call_failed", call_id, outcome="invalid_content")
             if not isinstance(error, AppError):

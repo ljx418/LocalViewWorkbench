@@ -8,8 +8,8 @@
   "coordinate": {
     "stage_id": "R1",
     "workpack_id": "WP-R1-U3",
-    "gate": "RESOURCE_ADMISSION_FOR_RESIDUAL_REAL_RECHECK",
-    "state": "WAIT_RESOURCE"
+    "gate": "ALIGNMENT_INPUT_OFFLINE_REVIEW",
+    "state": "READY_FOR_REVIEW"
   },
   "last_passed_gate": {
     "gate": "COMPLETE03_EXECUTOR_OFFLINE_AND_INDEPENDENT_REVIEW",
@@ -18,7 +18,7 @@
     "independent_review": "reports/unified-media/independent-complete03-01/receipt.json",
     "decision": "CPU133_AND_EXECUTOR_REVIEW_NOT_REAL_MEDIA_ACCEPTANCE"
   },
-  "current_blocking_gate": "GPU_FREE_BELOW_FROZEN_ADMISSION_THRESHOLD",
+  "current_blocking_gate": "ALIGNMENT_INPUT_INDEPENDENT_CODE_REVIEW",
   "stage_packet": ".agent-governance/stages/R1/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/R1/PAYLOAD_MANIFEST.sha256",
   "product_status": "RESIDUAL_INPUT_REAL_SEMANTICS_NOT_RUN_RESOURCE_BLOCKED",
@@ -31,8 +31,8 @@
     "PRODUCTION_RELEASED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "project_owner_for_gpu_availability_then_local_ci",
-  "next_action": "When GPU free>=19047MiB and RAM>=2048MiB, auto-derive fresh live09 and continue under active COMPLETE03. No new execution/budget approval. Do not kill foreign processes or lower thresholds. Next-stage S3 document prep remains draft until prerequisite human acceptance.",
+  "next_owner": "independent_code_reviewer",
+  "next_action": "Independently review and seal bounded image-registration metadata, then fresh live11 under COMPLETE03; no permission request.",
   "required_authorization": null,
   "authorization_request": "reports/authorization-program-v1-complete-03.request.json",
   "authorization_record": "reports/authorization-program-v1-complete-03.approval.json",
@@ -50,7 +50,7 @@
   ],
   "contract_change_request": "reports/r1a/change-request-r1a-product-controls-02.json",
   "contract_change_decision": "reports/r1a/change-decision-r1a-product-controls-02.json",
-  "implementation_candidate": "dccdd1b7e06d3bb71d2baf86dc440dee8a6b3f99",
+  "implementation_candidate": "fd9044e29ea923d4b1c7e1a1d9f5af47b35b9a81",
   "implementation_baseline": "0fee9933874f3aa0e163bded2800d9704ee8be0f",
   "candidate_binding_scope": "Minimum unified media slice; code candidate and its own evidence only. Historical S2 and full R1/R2 remain separate.",
   "offline_evidence_commit": null,
@@ -82,13 +82,13 @@
   },
   "historical_live_terminal_receipt": "reports/r1a/r1a-live-07/live-receipt.json",
   "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
-  "live_terminal_receipt": "reports/unified-media/live-08/receipt.json",
-  "independent_review": "reports/unified-media/independent-live-08/review.md",
-  "exact_stop_reason": "WAIT_RESOURCE_ONLY: LIVE08_ZERO_MODEL_CLEANED; 30_BOUNDED_PROBES_BELOW19047MiB; LATEST_FREE12641MiB; COMPLETE03_ACTIVE_NO_PERMISSION_BLOCK",
+  "live_terminal_receipt": "reports/unified-media/live-10/receipt.json",
+  "independent_review": "reports/unified-media/independent-live-10/review.md",
+  "exact_stop_reason": "LIVE10_REAL_TEMPORAL_MAJOR_NEW_ALIGNMENT_ROUTE_OFFLINE_REVIEW_IN_PROGRESS",
   "native_component_authorization": "reports/v0-s2/authorization-native-component-02.json",
   "native_component_terminal_receipt": "reports/v0-s2/native-component-02/receipt.json",
   "local_control_change_decision": "reports/v0-s2/change-decision-video-workbench-01.json",
-  "latest_workpack_receipt": "reports/unified-media/complete03-ledger-carry-forward.json",
+  "latest_workpack_receipt": "reports/unified-media/alignment-input-correction-01.md",
   "warm_benchmark_blocker": "reports/v0-s2/warm-benchmark-evidence-gap-01.md",
   "warm_profile_implementation": "reports/v0-s2/warm-profile-implementation-progress-01.md",
   "warm_profile_decision": "reports/v0-s2/warm-profile-decision-01.md",
@@ -781,12 +781,12 @@
       }
     ],
     "implementation": "READY_FOR_REVIEW",
-    "machine_acceptance": "LIVE08_RESOURCE_ADMISSION_REFUSED_BEFORE_LEASE_ZERO_INFERENCE",
-    "independent_review": "LIVE08_RESOURCE_ONLY_RESIDUAL_SEMANTICS_NOT_RUN",
+    "machine_acceptance": "LIVE10_COMPLETE_SEQUENCE_TEMPORAL_SEMANTIC_NO_GO",
+    "independent_review": "LIVE10_NO_GO_FATAL0_MAJOR1_UM9OF10",
     "latest_harness_review": "reports/unified-media/independent-residual-budget-01/review.md",
     "latest_harness_candidate": "96e77ea3691cf68422ccd159c85985b4d9a118ec",
     "live_executor": {
-      "run_id": "live-08",
+      "run_id": "live-10",
       "terminal": true,
       "restart_forbidden": true
     },
@@ -868,9 +868,9 @@
     "required_additional_free_mib": 6406,
     "latest_resource_receipt": "reports/unified-media/complete03-resource-wait-02/receipt.json"
   },
-  "resource_readiness_receipt": "reports/unified-media/complete03-resource-wait-02/receipt.json",
-  "live_candidate_sha": "dccdd1b7e06d3bb71d2baf86dc440dee8a6b3f99",
-  "slice_acceptance_receipt": "reports/unified-media/independent-live-08/coverage.json",
+  "resource_readiness_receipt": "reports/unified-media/complete03-resource-wait-03/receipt.json",
+  "live_candidate_sha": "fd9044e29ea923d4b1c7e1a1d9f5af47b35b9a81",
+  "slice_acceptance_receipt": "reports/unified-media/independent-live-10/coverage.json",
   "last_live_authorization": "reports/unified-media/authorization-semantic-correction-01.approval.terminal.json",
   "historical_video_semantic_failure": {
     "code": "VIDEO_TEMPORAL_SEMANTIC_FAILURE",
