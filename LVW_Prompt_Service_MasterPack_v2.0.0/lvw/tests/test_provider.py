@@ -247,7 +247,7 @@ def test_video_uses_all_sample_frames_one_call_and_retains_joint_motion(monkeypa
         return httpx.Response(200,json=model_envelope(camera_motion='Locked-off view with color cuts.',subject_action='The color changes red, green, blue, then white.'))
     monkeypatch.setattr('app.provider.httpx.AsyncClient',lambda **kwargs:real_client(**kwargs,transport=httpx.MockTransport(handler)))
     provider=OllamaProvider('http://127.0.0.1:11434/api/chat','gemma4:26b',30)
-    raw,spec=asyncio.run(provider.analyze_video(decoded,mode='realistic'))
+    raw,spec=asyncio.run(provider.analyze_video(decoded,mode='realistic',appearance_only=False))
     assert len(calls)==1 and len(calls[0]['messages'][-1]['images'])==1
     import base64
     sheet=Image.open(BytesIO(base64.b64decode(calls[0]['messages'][-1]['images'][0])))
@@ -515,7 +515,7 @@ def test_private_compact1536_probe_uses_same_source_sheet_and_one_guarded_chat(m
     monkeypatch.setattr('app.provider.httpx.AsyncClient',lambda **kw:real(**kw,transport=httpx.MockTransport(handler)))
     ledger=tmp_path/'ledger.jsonl'
     provider=OllamaProvider('http://127.0.0.1:11434/api/chat','gemma4:26b',30,ledger_path=ledger)
-    _,spec=asyncio.run(provider.analyze_video(decoded,mode='realistic',thinking=True,compact_video=True,video_probe_tokens=1536))
+    _,spec=asyncio.run(provider.analyze_video(decoded,mode='realistic',thinking=True,compact_video=True,video_probe_tokens=1536,appearance_only=False))
     assert len(captured)==1
     payload=captured[0]
     assert payload['think'] is True and payload['options']=={'num_ctx':4096,'num_predict':1536,'temperature':0.2}
@@ -580,7 +580,7 @@ def test_private_full_source_protocol_sends_all_four_frames_in_one_chat(monkeypa
     monkeypatch.setattr('app.provider.httpx.AsyncClient',lambda **kw:real(**kw,transport=httpx.MockTransport(handler)))
     provider=OllamaProvider('http://127.0.0.1:11434/api/chat','gemma4:26b',30)
     monkeypatch.setattr(provider,'_record',lambda event,call,**data:events.append({'event':event,**data}))
-    _,spec=asyncio.run(provider.analyze_video(decoded,mode='realistic',compact_video=True,source_frame_images=True))
+    _,spec=asyncio.run(provider.analyze_video(decoded,mode='realistic',compact_video=True,source_frame_images=True,appearance_only=False))
     assert len(requests)==1 and requests[0][0]=='/api/chat'
     payload=requests[0][1];assert payload['think'] is False
     assert payload['options']=={'num_ctx':4096,'num_predict':768,'temperature':0.2}

@@ -87,16 +87,30 @@ def create_program02(run_id,harness,budget,*,port,samples,seconds,full):
               'full_checkpoints':1,'model_calls':8,'downloads':0,'cloud_calls':0,'paid_calls':0,'holdout_model_calls':0}
     assert budget==expected,'frozen unified packet budget cannot expand'
     request=json.loads((ROOT/'reports/unified-media/authorization-runtime-transition-01.request.json').read_text())
-    assert [(str(Path(p).relative_to(ROOT)),sha(p)) for p in samples]==[(p['path'],p['sha256']) for p in request['samples']]
     packet_root=ROOT/'.agent-governance/stages/R1'
-    assert sha(packet_root/'PAYLOAD_MANIFEST.sha256')==request['proposed_packet_manifest_sha256']
+    packet_control=json.loads((packet_root/'stage-control.json').read_text())
+    recipe=None
+    def sample_name(p):
+        path=Path(p)
+        return str(path.relative_to(ROOT)) if path.is_relative_to(ROOT) else str(path)
+    if packet_control.get('stage_packet_version')=='1.0.4':
+        from .acceptance_recipe import load
+        recipe=load(ROOT,active_program)
+        expected_samples=recipe['samples']
+    else:
+        assert sha(packet_root/'PAYLOAD_MANIFEST.sha256')==request['proposed_packet_manifest_sha256']
+        expected_samples=request['samples']
+    assert [(sample_name(p),sha(p)) for p in samples]==[(p['path'],p['sha256']) for p in expected_samples]
     leaves=set()
     for line in (packet_root/'PAYLOAD_MANIFEST.sha256').read_text().splitlines():
         digest,name=line.split('  ',1)
         assert name==Path(name).name and name not in leaves and sha(packet_root/name)==digest
         leaves.add(name)
     assert {p.name for p in packet_root.iterdir() if p.is_file() and p.name!='PAYLOAD_MANIFEST.sha256'}==leaves
-    paths=[*request['frozen_paths'],'tools/local_program_authority.py','.agent-governance/stages/R1']
+    paths=[*request['frozen_paths'],'tools/local_program_authority.py','.agent-governance/stages/R1',
+           'reports/unified-media/authority.py','reports/unified-media/acceptance_recipe.py',
+           'reports/unified-media/live_checkpoint.py','reports/unified-media/live_browser.cjs',
+           'reports/unified-media/checkpoint_checks.py']
     candidate=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
     amendment_binding=None
     if run_id=='live-08' and not active_program.get('global_only'):
@@ -118,7 +132,7 @@ def create_program02(run_id,harness,budget,*,port,samples,seconds,full):
        'program':program_approval,'program_sha256':sha(ROOT/program_approval),
        'program_request_sha256':sha(ROOT/program_request),'budget_ledger':str(program.LEDGER),'execution_bindings_required':True,
        'packet_manifest_sha256':sha(packet_root/'PAYLOAD_MANIFEST.sha256'),'frozen_files':files,
-       'ports':[port,11434],'samples':[{'path':str(Path(p).relative_to(ROOT)),'sha256':sha(p)} for p in samples],
+       'ports':[port,11434],'samples':[{'path':sample_name(p),'sha256':sha(p)} for p in samples],
        'budget':budget,'issued_at':now,'expires_at':now+seconds,'full_checkpoint':full,'stage_pass_claim':False,
        'model':'gemma4:26b; bind actual model identity in runtime receipt',
        'process_policy':'Only original handles or PID+birth+nonce proved descendants from this run.',

@@ -5,7 +5,11 @@ from .authority import ROOT,create,terminal,sha
 import requests
 RUN=sys.argv[1] if len(sys.argv)>1 else 'live-01'
 assert re.fullmatch(r'live-(?:0[1-9]|[1-9][0-9]+)',RUN)
-SELF=Path(__file__);SAMPLES=[ROOT/'reports/unified-media/dev-image.png',ROOT/'reports/v0-s2/fixture-preparation-02/fixtures/tracking.mov',ROOT/'reports/v0-s2/fixture-preparation-02/fixtures/over-duration.mp4',ROOT/'reports/v0-s2/fixture-preparation-02/fixtures/corrupt.mp4']
+from .acceptance_recipe import load as load_recipe
+from .checkpoint_checks import negative_uploads,verify_configs
+from tools.local_program_authority import approved
+RECIPE=load_recipe(ROOT,approved())
+SELF=Path(__file__);SAMPLES=[ROOT/item['path'] for item in RECIPE['samples']]
 out,auth=create(RUN,SELF,{'api_starts':1,'ollama_starts':1,'headless_browser_starts':1,'provider_calls':8,'full_checkpoints':1,'model_calls':8,'downloads':0,'cloud_calls':0,'paid_calls':0,'holdout_model_calls':0},port=18780,samples=SAMPLES,seconds=1800,full=True)
 state=ROOT.parent.parent/'.lvw-runtime/lvw-prompt-service/R1-unified'/RUN;state.mkdir(parents=True,exist_ok=False)
 nonce=uuid.uuid4().hex;launcher=None;api=None;runroot=None;stage_consumed=False
@@ -17,7 +21,8 @@ q=lambda x:"'"+str(x).replace("'","''")+"'"
 def alive(port):
  with socket.socket() as s:s.settimeout(.2);return s.connect_ex(('127.0.0.1',port))==0
 def api_call(method,path,**kw):
- r=session.request(method,'http://127.0.0.1:18780'+path,timeout=15,**kw);return r
+ kw.setdefault('timeout',15)
+ r=session.request(method,'http://127.0.0.1:18780'+path,**kw);return r
 try:
  assert not alive(18780) and not alive(11434),'required port has an existing service; no foreign process will be touched'
  (state/'native-temp').mkdir()
@@ -53,11 +58,8 @@ try:
  win_probe=subprocess.run(['/mnt/c/Windows/System32/curl.exe','--noproxy','*','-fsS','--max-time','5','http://127.0.0.1:18780/health'],capture_output=True,timeout=8)
  (out/'windows-health.json').write_bytes(win_probe.stdout);assert win_probe.returncode==0,'Windows browser loopback cannot reach actual WSL API'
  # Actual public invalid files: no provider can run before the model is started.
- for i,p in enumerate(SAMPLES[2:]):
-  with p.open('rb') as f:r=api_call('POST','/api/v1/media',headers={'Idempotency-Key':'negative-'+str(i)},files={'file':(p.name,f,'video/mp4')})
-  assert r.status_code==422,(p.name,r.text)
-  (out/('negative-'+str(i)+'.json')).write_text(json.dumps(r.json(),indent=2)+'\n')
- result['checks']['UM-02']={'status':'PASS','oracle':'real public duration/corrupt rejection before model start; full negative matrix in offline checks'}
+ negative_uploads(runroot,api['pid'],RECIPE['negative_cases'],api_call,out,ROOT)
+ result['checks']['UM-02']={'status':'PASS','oracle':'all seven real public rejects with exact stable codes, zero model calls, media/temp/spooled FDs back to baseline','evidence':'negative-results.json'}
  auth['bindings_sha256']=sha(out/'bindings.json')
  stage_consumed=True;result['stage_checkpoint_consumed']=True
  node=subprocess.run(['node',str(SELF.with_name('live_browser.cjs')),str(out)],cwd=ROOT,capture_output=True,timeout=1200)
@@ -69,7 +71,22 @@ try:
  video=json.loads((out/'video-model-run.json').read_text());assert video['input_sha256']==sha(SAMPLES[1])
  ledger=[json.loads(x) for x in (runroot/'provider.jsonl').read_text().splitlines()]
  calls=[x for x in ledger if x['event']=='provider_call_started'];assert len(calls)<=8 and len(calls)>=3
- assert any(x.get('frame_count')==4 for x in calls)
+ video_calls=[x for x in calls if x.get('lease_job_id')==video['job_id'] and x.get('event')=='provider_call_started']
+ assert len(video_calls)==1 and video_calls[0]['frame_count']==4 and video_calls[0]['presentation']=='source-frames/appearance-1'
+ evidence=[x for x in ledger if x['event']=='temporal_evidence_prepared' and x.get('lease_job_id')==video['job_id']]
+ assert len(evidence)==1 and evidence[0]['source_sha256']==video['input_sha256']
+ assert evidence[0]['evidence']['source_frame_sha256']==[frame['sha256'] for frame in video['frames']]
+ assert len(evidence[0]['evidence']['pixel_pairs'])==len(evidence[0]['evidence']['alignment_pairs'])==3
+ cancellations=json.loads((out/'cancellation-results.json').read_text())['cases']
+ assert len(cancellations)==3 and {row['phase'] for row in cancellations}=={'queued','preparing','running'}
+ for row in cancellations:
+  if row['phase']!='running':
+   assert not any(call.get('lease_job_id')==row['job_id'] for call in calls),'pre-inference cancelled job sent model call'
+  assert row['terminal']['result_ref'] is None and row['terminal']['resource_state']=='released'
+
+ requests_rows=[json.loads(line) for line in (out/'public-analysis-requests.jsonl').read_text().splitlines()]
+ configs=verify_configs(requests_rows,[json.loads((out/'image-model-run.json').read_text()),video])
+ (out/'configuration-recomputation.json').write_text(json.dumps(configs,ensure_ascii=False,indent=2)+'\n')
  leases=[x for x in ledger if x['event']=='lease_released'];assert len(leases)>=3
  samples=[x for x in ledger if x['event']=='running_resource_sample'];assert samples and max(x['gpu_used_mib'] for x in samples)<23552 and min(x['available_ram_mib'] for x in samples)>=2048
  native_logs='\n'.join(p.read_text(errors='replace') for p in (runroot/'runtime').glob('*.stderr.log'))
@@ -123,7 +140,8 @@ finally:
  if runroot:
   result['run_root_removed']=not runroot.exists()
  result['api_listener_absent']=not alive(18780);result['ollama_listener_absent']=not alive(11434)
- result['stage_checkpoint_consumed']=stage_consumed
+ result['checkpoint_sequence_attempted']=stage_consumed
+ # terminal() obtains effective consumption from the guarded model-action ledger.
  if result.get('cleanup_error') or not result['api_listener_absent'] or not result['ollama_listener_absent'] or (runroot and not result.get('run_root_removed')):
   result['decision']='NO_GO';result['cleanup_error']=result.get('cleanup_error','run cleanup incomplete')
  terminal(out,auth,result)

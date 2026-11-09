@@ -1,5 +1,6 @@
 from __future__ import annotations
 import asyncio
+import pytest
 from pathlib import Path
 import subprocess
 import sys
@@ -16,7 +17,14 @@ FIXTURES=ROOT/'reports/v0-s2/fixture-preparation-02/fixtures'
 class VideoProvider(FakeProvider):
     async def analyze_video(self, decoded, **options):
         self.decoded=decoded
-        return await super().analyze(None, **options)
+        await super().analyze(None, **options)
+        import json
+        from app.video_appearance import parse_appearance
+        content={'frame_appearances':[{'frame_id':i+1,'description_zh':'CPU合成夹具外观','description_en':'CPU synthetic fixture appearance'} for i in range(len(decoded.frames))],
+            'prompt_zh':'CPU合成夹具汇总','prompt':'CPU synthetic fixture summary','negative':'blur',
+            'tags':['fixture'],'unknowns':['CPU fixture, not a real model quality result']}
+        envelope={'done':True,'done_reason':'stop','message':{'content':json.dumps(content)}}
+        return json.dumps(envelope),parse_appearance(envelope,mode=options['mode'],frame_times=[v['time_seconds'] for v in decoded.manifest])
 def client(tmp_path, provider=None):
     return TestClient(create_app(Settings.local(data_root=tmp_path),provider=provider or VideoProvider(),runtime=FakeRuntime()))
 def test_video_public_upload_analyze_contract_and_real_pts(tmp_path):
@@ -149,3 +157,53 @@ def test_preparing_cancel_waits_decoder_cleanup_before_terminal(tmp_path, monkey
             assert terminal['result_ref'] is None and p.calls==0 and not app.state.analysis.runs
             assert cleaned.is_set() and not marker.exists()
     asyncio.run(scenario())
+
+
+@pytest.mark.parametrize('failure_kind',['none','model_extra_motion','composition_policy'])
+def test_production_public_owner_composes_true_measurements_without_rewriting_raw(tmp_path,monkeypatch,failure_kind):
+    import json,hashlib
+    from app.provider import OllamaProvider,VIDEO_APPEARANCE_TEMPLATE_SHA256
+    from test_video_appearance import appearance_envelope
+    from app.models import AnalyzeRequest
+    envelope=appearance_envelope()
+    if failure_kind=='composition_policy':
+        from app.video_temporal import measure_video_evidence
+        def invalid_policy(images,cancel):
+            value=measure_video_evidence(images,cancel);value['policy_version']='invalid-test-only';return value
+        monkeypatch.setattr('app.service.measure_video_evidence',invalid_policy)
+    if failure_kind=='model_extra_motion':
+        body=json.loads(envelope['message']['content']);body['camera_motion']='none'
+        envelope['message']['content']=json.dumps(body)
+    wire=json.dumps(envelope,ensure_ascii=False,indent=2);real=httpx.AsyncClient;sent=[]
+    async def handler(request):
+        if request.url.path=='/api/tags':return httpx.Response(200,json={'models':[{'name':'gemma4:26b'}]})
+        if request.url.path=='/api/ps':return httpx.Response(200,json={'models':[]})
+        if request.url.path=='/api/generate':return httpx.Response(200,json={'done':True})
+        assert request.url.path=='/api/chat';sent.append(json.loads(request.content));return httpx.Response(200,text=wire)
+    monkeypatch.setattr('app.provider.httpx.AsyncClient',lambda **kw:real(**kw,transport=httpx.MockTransport(handler)))
+    async def telemetry():return {'gpu_used_mib':1000,'gpu_free_mib':23000,'gpu_total_mib':24564,'available_ram_mib':10000}
+    monkeypatch.setattr('app.resources.snapshot',telemetry)
+    ledger=tmp_path/'provider.jsonl';provider=OllamaProvider('http://127.0.0.1:11434/api/chat','gemma4:26b',30,ledger_path=ledger)
+    app=create_app(Settings.local(data_root=tmp_path),provider=provider,runtime=FakeRuntime())
+    with TestClient(app) as c:
+        response=upload(c,(FIXTURES/'tracking.mov').read_bytes(),name='tracking.mov');media=response.json()['data']
+        body={'media_ref_id':media['id'],'mode':'realistic','config_profile':'local-default'}
+        submitted=c.post('/api/v1/jobs/analyze',headers={'Idempotency-Key':'actual-owner'},json=body)
+        job=c.get('/api/v1/jobs/'+submitted.json()['data']['id']).json()['data']
+        run=c.get('/api/v1/model-runs/'+job['result_ref']).json()['data']
+        assert run['raw_response']==wire and run['template_sha256']==VIDEO_APPEARANCE_TEMPLATE_SHA256
+        assert len(sent)==1 and len(sent[0]['messages'][-1]['images'])==4 and len(run['frames'])==4
+        expected={**AnalyzeRequest(**body).model_dump(),'video_num_ctx':4096}
+        assert run['config_sha256']==hashlib.sha256(json.dumps(expected,sort_keys=True).encode()).hexdigest()
+        if failure_kind!='none':
+            assert job['status']=='failed' and job['error_code']=='PARSE_PARTIAL' and run['parsed_spec'] is None
+        else:
+            assert job['status']=='succeeded' and job['resource_state']=='released'
+            assert '横向相对' in run['parsed_spec']['text_zh']
+            assert 'lateral relative changes' in run['parsed_spec']['text_en']
+            assert run['parsed_spec']['template_version']=='1.8.0'
+        rows=[json.loads(line) for line in ledger.read_text().splitlines()]
+        evidence=next(row for row in rows if row['event']=='temporal_evidence_prepared')['evidence']
+        assert evidence['source_frame_sha256']==[frame['sha256'] for frame in run['frames']]
+        assert len(evidence['pixel_pairs'])==len(evidence['alignment_pairs'])==3
+        assert list((tmp_path/'video-temp').iterdir())==[]

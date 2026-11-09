@@ -1,0 +1,156 @@
+{
+  "kind": "INDEPENDENT_C2_RECHECK_ADDENDUM_NOT_RUNTIME_PASS",
+  "decision": "GO_FOR_C2_CODE_READINESS_ONLY",
+  "fatal": 0,
+  "major": 0,
+  "minor": 0,
+  "closed_findings": [
+    "C2-M1",
+    "C2-m1",
+    "C2-m2"
+  ],
+  "initial_review_receipt_sha256": "e568edba3d5c774c948d132cc9994f22d3e5356bce6f3b90ec98c0259fb03cc5",
+  "initial_review_unchanged": true,
+  "packet_version": "1.0.4",
+  "packet_manifest_sha256": "38ca0ae572cc74a412a411635e04f21bce3fdcd29d51456fde677f188dd9f307",
+  "final_source_before": {
+    "reports/unified-media/authority.py": "9b295f318ca168b9da9118e8c1cf03f99ac71de1dd3817ab265c471c8e7d2127",
+    "reports/unified-media/acceptance_recipe.py": "97283677b3dfbeaac1aa099d6a47f674883e3ddcc5964dcaefd22df223cfb209",
+    "reports/unified-media/checkpoint_checks.py": "5e4cfbff60b703931a5cc40fd36a75238e90b62da84bdf5794680fb0a9bae550",
+    "reports/unified-media/live_checkpoint.py": "4bb0316b129de89d28795491f54a0187587ae0f5cc3b05a57f31bfa92115d904",
+    "reports/unified-media/live_browser.cjs": "d69cb308589cfd090aba8049ce502770ccce69192069817eb0b510332c9ed61b",
+    "reports/unified-media/build_handoff.py": "aef322191c5b487e78b8bfee1ef4a12be42b745bd4478474421932e36ac5fbee",
+    "lvw/tests/test_acceptance_recipe.py": "9ad4fcd9183546e5e01fe4e0b4d4b880dd1b35c9c0e7f025daa8e530d212c778",
+    "lvw/tests/test_checkpoint_oracles.py": "f89514288a3191c1febf7418c61efaa946fe9377b304d3470f8316d59524eeaf"
+  },
+  "final_source_after": {
+    "reports/unified-media/authority.py": "9b295f318ca168b9da9118e8c1cf03f99ac71de1dd3817ab265c471c8e7d2127",
+    "reports/unified-media/acceptance_recipe.py": "97283677b3dfbeaac1aa099d6a47f674883e3ddcc5964dcaefd22df223cfb209",
+    "reports/unified-media/checkpoint_checks.py": "5e4cfbff60b703931a5cc40fd36a75238e90b62da84bdf5794680fb0a9bae550",
+    "reports/unified-media/live_checkpoint.py": "4bb0316b129de89d28795491f54a0187587ae0f5cc3b05a57f31bfa92115d904",
+    "reports/unified-media/live_browser.cjs": "d69cb308589cfd090aba8049ce502770ccce69192069817eb0b510332c9ed61b",
+    "reports/unified-media/build_handoff.py": "aef322191c5b487e78b8bfee1ef4a12be42b745bd4478474421932e36ac5fbee",
+    "lvw/tests/test_acceptance_recipe.py": "9ad4fcd9183546e5e01fe4e0b4d4b880dd1b35c9c0e7f025daa8e530d212c778",
+    "lvw/tests/test_checkpoint_oracles.py": "f89514288a3191c1febf7418c61efaa946fe9377b304d3470f8316d59524eeaf"
+  },
+  "source_unchanged_during_final_recheck": true,
+  "changed_since_initial": [
+    "reports/unified-media/acceptance_recipe.py",
+    "reports/unified-media/checkpoint_checks.py",
+    "reports/unified-media/build_handoff.py",
+    "lvw/tests/test_acceptance_recipe.py",
+    "lvw/tests/test_checkpoint_oracles.py"
+  ],
+  "actual_uppercase_recipe_load": "PASS",
+  "lowercase_alias_recipe_equal": true,
+  "nonJSON_status": 503,
+  "nonJSON_case_status": "FAIL",
+  "nonJSON_original_body_retained": true,
+  "commands": [
+    {
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "pytest",
+        "lvw/tests/test_acceptance_recipe.py",
+        "lvw/tests/test_checkpoint_oracles.py",
+        "tools/test_local_program_authority.py",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "-o",
+        "addopts=",
+        "--basetemp=reports/unified-media/owner-split-c2-code-review-04/recheck-pytest-temp"
+      ],
+      "exit_code": 0,
+      "passed": 55
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "pytest",
+        "lvw/tests/test_checkpoint_oracles.py",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "-o",
+        "addopts=",
+        "--basetemp=reports/unified-media/owner-split-c2-code-review-04/final-pytest-temp"
+      ],
+      "exit_code": 0,
+      "passed": 13
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "reports/unified-media/owner-split-c2-code-review-04/recheck-independent.py"
+      ],
+      "attempt": "final",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "node",
+        "--check",
+        "reports/unified-media/live_browser.cjs"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "environment": {
+    "PYTHONDONTWRITEBYTECODE": "1"
+  },
+  "real_model_calls": 0,
+  "real_service_starts": 0,
+  "real_browser_starts": 0,
+  "new_media_probes_decodes": 0,
+  "global_ledger_writes": 0,
+  "runtime_quality_verified": false,
+  "stage_pass_claim": false,
+  "human_signoff": null,
+  "output_hashes": {
+    "addendum.md": "e55c63d0840d856f438bb5ea2c00d8129823a6b845579b81b88bfb5c4647c6e2",
+    "checks-initial-import.stderr.log": "04f8b6e2721b6759a849f5ec7a7efdbf8a1e5e9dc1153ef1cf2407594ce0b58a",
+    "checks-initial-root-alias.stderr.log": "12d9f58aa931e8c6d79eced03d5576e6f5f119e2e8c69e70c7ee604935e2b951",
+    "checks.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "checks.stdout.log": "7cc0481ca57bfe65429f83488a976a250b38588b2bc6003098acbe55fec37e34",
+    "cpu.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "cpu.stdout.log": "f46aa807ba2cf6ee35f08b0885bd84ca0e7319090c4f3f91e9a60d2ac8ce6a8e",
+    "final-cpu.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "final-cpu.stdout.log": "6fdee15d45e1f362c492a6a5b478073e18ac0f422bc4295a78708d4d8988f60a",
+    "final-recheck-independent.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "final-recheck-independent.stdout.log": "1a4dbb5bde407a15a2fb750ec45c1c08995d589585b15d2d02de715e15bd54fc",
+    "final-recheck-source-after.json": "e6a51648b1879d5cf8d00d6f23156e39d3ce03515e0b51c77b2f58c74975d790",
+    "final-recheck-source-before.json": "e6a51648b1879d5cf8d00d6f23156e39d3ce03515e0b51c77b2f58c74975d790",
+    "independent-checks.json": "d05999b8d628c93c246d3737d84e72be0e2cbf07ee26dcd2b7edd8fccacd154f",
+    "independent_checks.py": "4d80ae3c4848e41b831df2e488aba48257f83237a523a35dd03872b2c89b26a7",
+    "node-check.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "node-check.stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "receipt.json": "e568edba3d5c774c948d132cc9994f22d3e5356bce6f3b90ec98c0259fb03cc5",
+    "recheck-cpu.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "recheck-cpu.stdout.log": "fb86ab215f5ee86483a71737b671fe61ba88110492ae06d314a45853a0d31546",
+    "recheck-helper-initial.stderr.log": "78c82e9e98488ea1d6f5dc54dcd88940106b22bdaef97f817515eccd29fc0f0f",
+    "recheck-independent.py": "f8e1216efcc0c02b31c9efe1f852de9ec76b3533fb0ae1789153e6b417f3bce0",
+    "recheck-independent.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "recheck-independent.stdout.log": "5a60d65badea73de00c3a72059f2548f42da9a478f42817b38865333991bcd98",
+    "recheck-source-before.json": "dffcafb9e5fb97eeb2bf08cab8d431d477c60fb099e2706f03edb339fcfc8697",
+    "review.md": "508aab3a60112bb2a2539695e0ba00f1ce49b8eb63171f8dfaabe0088fef9ae9",
+    "source-after.json": "075f1d054c2a63fecf2d56da9922355bf2c4beb200c0ad7a38053188edeab3fe",
+    "source-before.json": "075f1d054c2a63fecf2d56da9922355bf2c4beb200c0ad7a38053188edeab3fe",
+    "synthetic-rejection.mp4": "a9f179dc38b337dbcd9596011473184b1dbdf90cf175982bfbcffa5b8ae1f1ad",
+    "write_recheck.py": "5e91f016ecac3a0c1a7715dfe8554652ff474691c08de5c8e428e615bb5472f9",
+    "write_report.py": "399efc582bc57a117e0d349f38aec2b966a731bdcaeded0f9843e0159a0b79a9",
+    "invalid-json-case/negative-results.json": "8e8ac9e093a1563f7bfa3f0d8b07c7e7b120ff12a595a7a26bcb26f500e9ff81",
+    "recheck/independent-checks-before-final.json": "367a651ba761c12259a31475a9b166e4ae7eb334cd506be913d1f688579cf391",
+    "recheck/independent-checks.json": "3de6633bb2c9d5e161eeb9492c7be50930bce80fe490c438cf7b0a1f48afce12",
+    "recheck/node-check.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "recheck/node-check.stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "recheck/synthetic-rejection.mp4": "a9f179dc38b337dbcd9596011473184b1dbdf90cf175982bfbcffa5b8ae1f1ad",
+    "recheck/invalid-json-case/negative-results.json": "9f9807732e91ff77972a5754e6da9050ebe6c22ec2d2fe5215f8f56822c45c39",
+    "recheck/invalid-json-case/NV-CPU-response.raw": "8991d271a60d9318b0ad9baae3a04b9d9392dbb1bcf3788ba52deab93893fef4"
+  }
+}

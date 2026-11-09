@@ -1,0 +1,47 @@
+{
+  "kind": "OFFLINE_FRONTEND_AND_GOVERNANCE_NOT_STAGE_PASS",
+  "checks": [
+    {
+      "name": "frontend-test",
+      "command": [
+        "npm",
+        "test"
+      ],
+      "cwd": "lvw/frontend",
+      "exit_code": 0
+    },
+    {
+      "name": "frontend-typecheck",
+      "command": [
+        "npm",
+        "run",
+        "typecheck"
+      ],
+      "cwd": "lvw/frontend",
+      "exit_code": 0
+    },
+    {
+      "name": "frontend-build",
+      "command": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "cwd": "lvw/frontend",
+      "exit_code": 0
+    },
+    {
+      "name": "governance",
+      "command": [
+        "python3",
+        "-B",
+        "tools/verify_governance.py",
+        "--self-test"
+      ],
+      "cwd": ".",
+      "exit_code": 0
+    }
+  ],
+  "stage_pass_claim": false,
+  "model_calls": 0
+}

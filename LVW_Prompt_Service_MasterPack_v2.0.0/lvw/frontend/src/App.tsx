@@ -280,7 +280,7 @@ export function App() {
           <h3>本次机器建议</h3><p>这里只展示建议，不会改动下方人工稿。</p>
           <h4>中文描述</h4><p>{spec.text_zh || "模型没有提供中文，不会自动补写。"}</p>
           <h4>English description</h4><p>{spec.text_en || "未提供"}</p>
-          {run?.frames?.length ? <><h4>观察到的镜头／主体变化</h4><p>{spec.technical?.camera_motion || "未确认"}</p><p>{spec.technical?.subject_action || "未确认"}</p></> : null}
+          {run?.frames?.length ? <><h4>采样变化与运动局限</h4><p>外观描述与采样变化分别提供；镜头和连续动作需结合视频预览确认。</p><p>{spec.technical?.camera_motion || "未确认"}</p><p>{spec.technical?.subject_action || "未确认"}</p></> : null}
           <p>标签：{spec.tags.join("，")}</p>
         </article>}
         <div className="suggestion-bar">

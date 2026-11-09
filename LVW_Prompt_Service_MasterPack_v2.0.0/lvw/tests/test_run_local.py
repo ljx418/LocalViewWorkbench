@@ -55,3 +55,13 @@ def test_build_identity_invalidates_stale_server_after_video_policy_change(tmp_p
     assert build_info.build_id()==before
     video.write_text('video policy v2')
     assert build_info.build_id()!=before
+
+
+def test_build_identity_covers_appearance_policy_for_stale_server_detection(tmp_path,monkeypatch):
+    from app import build_info
+    root=tmp_path/'pack';app=root/'lvw/backend/app';app.mkdir(parents=True)
+    templates=root/'templates';templates.mkdir()
+    policy=templates/'analysis_video_appearance_zh.txt';policy.write_text('appearance1')
+    monkeypatch.setattr(build_info,'__file__',str(app/'build_info.py'))
+    first=build_info.build_id();policy.write_text('appearance2')
+    assert build_info.build_id()!=first

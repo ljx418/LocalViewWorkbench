@@ -9,7 +9,8 @@ import uuid
 from .errors import AppError
 from .media import MediaStore
 from .models import AnalyzeRequest, FrameRef, Job, ModelRun
-from .provider import OllamaProvider, TEMPLATE_SHA256, VIDEO_TEMPLATE_SHA256
+from .provider import OllamaProvider, TEMPLATE_SHA256, VIDEO_APPEARANCE_TEMPLATE_SHA256
+from .video_temporal import measure_video_evidence, compose_video_spec
 from . import resources
 ANALYSIS_SECONDS = 420
 
@@ -100,6 +101,7 @@ class AnalysisService:
                 resource_errors = []
                 deadline = asyncio.get_running_loop().time() + ANALYSIS_SECONDS
                 preparation = None
+                temporal_evidence = None
                 expired = False
 
                 async def within_budget(awaitable):
@@ -126,10 +128,18 @@ class AnalysisService:
                     options = {"mode": request.mode, "content_profile": request.content_profile,
                                "custom_guidance": request.custom_guidance}
                     if media.kind == "video":
-                        preparation = asyncio.create_task(asyncio.to_thread(self.media.video.decode, path, self._cancels[job_id]))
-                        decoded = await within_budget(asyncio.shield(preparation))
-                        if decoded.source_sha256 != media.sha256:
-                            raise AppError("MEDIA_INVALID", "视频在上传后发生改变", status_code=422)
+                        def prepare_video():
+                            decoded = self.media.video.decode(path, self._cancels[job_id])
+                            if decoded.source_sha256 != media.sha256:
+                                raise AppError("MEDIA_INVALID", "视频在上传后发生改变", status_code=422)
+                            return decoded, measure_video_evidence(decoded.frames, self._cancels[job_id])
+                        preparation = asyncio.create_task(asyncio.to_thread(prepare_video))
+                        decoded, temporal_evidence = await within_budget(asyncio.shield(preparation))
+                        if hasattr(self.provider, "_record"):
+                            self.provider._record("temporal_evidence_prepared", job_id,
+                                source_sha256=decoded.source_sha256,
+                                frame_times=[value["time_seconds"] for value in decoded.manifest],
+                                evidence=temporal_evidence)
                         targets = {}
                         for target in [decoded.duration_seconds * (2 * i + 1) / 8 for i in range(4)]:
                             value = next((v for v in decoded.manifest if v["time_seconds"] >= target), None)
@@ -151,6 +161,8 @@ class AnalysisService:
                     provider_task = asyncio.create_task(operation())
                     self._provider_tasks[job_id] = provider_task
                     raw, spec = await within_budget(provider_task)
+                    if media.kind == "video":
+                        spec = compose_video_spec(spec, temporal_evidence)
                 except asyncio.CancelledError:
                     failure = AppError("JOB_CANCELLED", "本次分析已取消")
                 except asyncio.TimeoutError:
@@ -159,7 +171,7 @@ class AnalysisService:
                     failure = AppError("MODEL_TIMEOUT", "本轮分析超过总时限", status_code=503)
                 except AppError as error:
                     failure = error
-                    raw = getattr(error, "raw_response", "")
+                    raw = getattr(error, "raw_response", raw)
                 except Exception:
                     failure = AppError("MODEL_UNAVAILABLE", "本轮分析未能完成", status_code=503)
                 finally:
@@ -202,7 +214,7 @@ class AnalysisService:
                         self.runs[result_ref] = ModelRun(id=result_ref, job_id=job_id, attempt_id=attempt_id,
                             model_tag=self.provider.model, model_digest=None,
                             status="succeeded" if not failure else "failed", input_sha256=media.sha256,
-                            template_sha256=VIDEO_TEMPLATE_SHA256 if media.kind == "video" else TEMPLATE_SHA256,
+                            template_sha256=VIDEO_APPEARANCE_TEMPLATE_SHA256 if media.kind == "video" else TEMPLATE_SHA256,
                             config_sha256=config_hash, raw_response=raw, parsed_spec=spec if not failure else None,
                             error_code=failure.code if failure else None, frames=frames)
                     self.update(job_id, status="cancelled" if cancelled else "failed" if failure else "succeeded",

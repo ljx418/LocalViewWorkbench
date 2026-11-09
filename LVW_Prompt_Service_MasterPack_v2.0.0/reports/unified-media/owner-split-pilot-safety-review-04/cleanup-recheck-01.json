@@ -1,0 +1,65 @@
+{
+  "pilot_sha256": "797b3276b4ea201f2791fdb4032fb77cc2381bf089d717bd8ba7df2b3e85404c",
+  "cpu_fake_owner_cases": [
+    {
+      "case": "close_raises",
+      "result": {
+        "decision": "NO_GO_CLEANUP_PENDING",
+        "service_cleanup_proven": false,
+        "lease_released": false,
+        "lease_release_error": "RuntimeError",
+        "owners": [],
+        "cleanup_error": "AssertionError: service cleanup unproved; preserve temp and reservation"
+      },
+      "budget_operations": [
+        [
+          "retain",
+          "fake"
+        ]
+      ]
+    },
+    {
+      "case": "failed_unknown",
+      "result": {
+        "decision": "NO_GO",
+        "service_cleanup_proven": true,
+        "lease_released": true,
+        "owners": [],
+        "run_root_claimed": true,
+        "run_root_removed": true,
+        "cleanup_proven": true,
+        "settlement": {
+          "settled": true
+        }
+      },
+      "budget_operations": [
+        [
+          "settle",
+          0
+        ]
+      ]
+    },
+    {
+      "case": "clean",
+      "result": {
+        "decision": "NO_GO",
+        "service_cleanup_proven": true,
+        "lease_released": true,
+        "owners": [],
+        "run_root_claimed": true,
+        "run_root_removed": true,
+        "cleanup_proven": true,
+        "settlement": {
+          "settled": true
+        }
+      },
+      "budget_operations": [
+        [
+          "settle",
+          0
+        ]
+      ]
+    }
+  ],
+  "runtime_actions": 0
+}

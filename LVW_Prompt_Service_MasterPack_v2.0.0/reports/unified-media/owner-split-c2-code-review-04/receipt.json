@@ -1,0 +1,131 @@
+{
+  "kind": "INDEPENDENT_C2_CODE_READINESS_REVIEW_NOT_RUNTIME_PASS",
+  "decision": "CHANGES_REQUIRED",
+  "fatal": 0,
+  "major": 1,
+  "minor": 2,
+  "findings": [
+    {
+      "id": "C2-M1",
+      "severity": "Major",
+      "path": "reports/unified-media/acceptance_recipe.py:63",
+      "summary": "Legitimate assigned DrvFS alias fails real recipe loading despite samefile=True."
+    },
+    {
+      "id": "C2-m1",
+      "severity": "Minor",
+      "path": "reports/unified-media/build_handoff.py:18",
+      "summary": "Output existence overstates completed cancellation/release sequence."
+    },
+    {
+      "id": "C2-m2",
+      "severity": "Minor",
+      "path": "reports/unified-media/checkpoint_checks.py:46",
+      "summary": "Non-JSON failed response body/status lost before archival."
+    }
+  ],
+  "packet_version": "1.0.4",
+  "packet_manifest_sha256": "38ca0ae572cc74a412a411635e04f21bce3fdcd29d51456fde677f188dd9f307",
+  "source_before": {
+    "reports/unified-media/authority.py": "9b295f318ca168b9da9118e8c1cf03f99ac71de1dd3817ab265c471c8e7d2127",
+    "reports/unified-media/acceptance_recipe.py": "d00e6b89d9956bbb6b0f34e1b04edd5c6b7baf08408e98af26cd5b45d81cda6d",
+    "reports/unified-media/checkpoint_checks.py": "ce78cdacd13bd12d4bcf88678ee6fbb54776aed0f5dd059f79223ef72b12bd54",
+    "reports/unified-media/live_checkpoint.py": "4bb0316b129de89d28795491f54a0187587ae0f5cc3b05a57f31bfa92115d904",
+    "reports/unified-media/live_browser.cjs": "d69cb308589cfd090aba8049ce502770ccce69192069817eb0b510332c9ed61b",
+    "reports/unified-media/build_handoff.py": "db5f706cd9fba523e55e16e77567cbe30944ed57ef9db54a155213f2040d4b1e",
+    "lvw/tests/test_acceptance_recipe.py": "ff848eb0818a958e90b11fe2fed681178fb5f1cda6d3cbb2cdae91496b98e2d9",
+    "lvw/tests/test_checkpoint_oracles.py": "7b06cde9bb06a0ad6b050361f7bc77ba66c95b12ca48fa1aa27344d26e1d37ec"
+  },
+  "source_after": {
+    "reports/unified-media/authority.py": "9b295f318ca168b9da9118e8c1cf03f99ac71de1dd3817ab265c471c8e7d2127",
+    "reports/unified-media/acceptance_recipe.py": "d00e6b89d9956bbb6b0f34e1b04edd5c6b7baf08408e98af26cd5b45d81cda6d",
+    "reports/unified-media/checkpoint_checks.py": "ce78cdacd13bd12d4bcf88678ee6fbb54776aed0f5dd059f79223ef72b12bd54",
+    "reports/unified-media/live_checkpoint.py": "4bb0316b129de89d28795491f54a0187587ae0f5cc3b05a57f31bfa92115d904",
+    "reports/unified-media/live_browser.cjs": "d69cb308589cfd090aba8049ce502770ccce69192069817eb0b510332c9ed61b",
+    "reports/unified-media/build_handoff.py": "db5f706cd9fba523e55e16e77567cbe30944ed57ef9db54a155213f2040d4b1e",
+    "lvw/tests/test_acceptance_recipe.py": "ff848eb0818a958e90b11fe2fed681178fb5f1cda6d3cbb2cdae91496b98e2d9",
+    "lvw/tests/test_checkpoint_oracles.py": "7b06cde9bb06a0ad6b050361f7bc77ba66c95b12ca48fa1aa27344d26e1d37ec"
+  },
+  "source_unchanged": true,
+  "commands": [
+    {
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "pytest",
+        "lvw/tests/test_acceptance_recipe.py",
+        "lvw/tests/test_checkpoint_oracles.py",
+        "tools/test_local_program_authority.py",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "-o",
+        "addopts=",
+        "--basetemp=reports/unified-media/owner-split-c2-code-review-04/pytest-temp"
+      ],
+      "exit_code": 0,
+      "passed": 53
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "reports/unified-media/owner-split-c2-code-review-04/independent_checks.py"
+      ],
+      "attempt": "initial_import",
+      "exit_code": 1
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "reports/unified-media/owner-split-c2-code-review-04/independent_checks.py"
+      ],
+      "attempt": "actual_recipe_load_before_diagnostic_capture",
+      "exit_code": 1
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "reports/unified-media/owner-split-c2-code-review-04/independent_checks.py"
+      ],
+      "attempt": "complete_diagnostic",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "node",
+        "--check",
+        "reports/unified-media/live_browser.cjs"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "runtime_quality_verified": false,
+  "stage_pass_claim": false,
+  "human_signoff": null,
+  "real_model_calls": 0,
+  "real_service_starts": 0,
+  "real_browser_starts": 0,
+  "new_media_probes_decodes": 0,
+  "global_ledger_writes": 0,
+  "output_hashes": {
+    "checks-initial-import.stderr.log": "04f8b6e2721b6759a849f5ec7a7efdbf8a1e5e9dc1153ef1cf2407594ce0b58a",
+    "checks-initial-root-alias.stderr.log": "12d9f58aa931e8c6d79eced03d5576e6f5f119e2e8c69e70c7ee604935e2b951",
+    "checks.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "checks.stdout.log": "7cc0481ca57bfe65429f83488a976a250b38588b2bc6003098acbe55fec37e34",
+    "cpu.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "cpu.stdout.log": "f46aa807ba2cf6ee35f08b0885bd84ca0e7319090c4f3f91e9a60d2ac8ce6a8e",
+    "independent-checks.json": "d05999b8d628c93c246d3737d84e72be0e2cbf07ee26dcd2b7edd8fccacd154f",
+    "independent_checks.py": "4d80ae3c4848e41b831df2e488aba48257f83237a523a35dd03872b2c89b26a7",
+    "node-check.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "node-check.stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "review.md": "508aab3a60112bb2a2539695e0ba00f1ce49b8eb63171f8dfaabe0088fef9ae9",
+    "source-after.json": "075f1d054c2a63fecf2d56da9922355bf2c4beb200c0ad7a38053188edeab3fe",
+    "source-before.json": "075f1d054c2a63fecf2d56da9922355bf2c4beb200c0ad7a38053188edeab3fe",
+    "synthetic-rejection.mp4": "a9f179dc38b337dbcd9596011473184b1dbdf90cf175982bfbcffa5b8ae1f1ad",
+    "write_report.py": "399efc582bc57a117e0d349f38aec2b966a731bdcaeded0f9843e0159a0b79a9"
+  }
+}
