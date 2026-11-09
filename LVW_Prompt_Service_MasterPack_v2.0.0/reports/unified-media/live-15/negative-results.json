@@ -1,0 +1,181 @@
+{
+  "kind": "REAL_PUBLIC_NEGATIVE_MATRIX",
+  "cases": [
+    {
+      "id": "NV-DURATION",
+      "category": "duration",
+      "path": "reports/v0-s2/fixture-preparation-02/fixtures/over-duration.mp4",
+      "sha256": "e9a7dd1feac6ffee908fd3ebd0390f86cf126f4f15c41ee249762eeec23ac2b4",
+      "bytes": 3436,
+      "expected_status": 422,
+      "expected_error": "MEDIA_LIMIT_EXCEEDED",
+      "oracle": "public upload rejects; owned media/temp/spooled FDs return to baseline; zero model/publish",
+      "status": "PASS",
+      "actual_status": 422,
+      "before": {
+        "media_and_temp": [],
+        "owned_open_files": []
+      },
+      "raw_response_sha256": "208cb300ddf9dab4d4ba56bc86acf5cbe9205df6f7fe3c8641adcccc3506348e",
+      "actual_error": "MEDIA_LIMIT_EXCEEDED",
+      "after": {
+        "media_and_temp": [],
+        "owned_open_files": []
+      },
+      "model_calls": 0,
+      "published_media_ref": false,
+      "cleanup_proven": true
+    },
+    {
+      "id": "NV-CORRUPT",
+      "category": "corrupt",
+      "path": "reports/v0-s2/fixture-preparation-02/fixtures/corrupt.mp4",
+      "sha256": "a174786bd98ea1ffd1844a1110751f2d9c1989f4c6cb75feeef6f6326dc0a5b1",
+      "bytes": 21,
+      "expected_status": 422,
+      "expected_error": "MEDIA_INVALID",
+      "oracle": "public upload rejects; owned media/temp/spooled FDs return to baseline; zero model/publish",
+      "status": "PASS",
+      "actual_status": 422,
+      "before": {
+        "media_and_temp": [],
+        "owned_open_files": []
+      },
+      "raw_response_sha256": "fc15296cf147f93248291863054045de63af48e7ff013cddd73cfd30d708bc14",
+      "actual_error": "MEDIA_INVALID",
+      "after": {
+        "media_and_temp": [],
+        "owned_open_files": []
+      },
+      "model_calls": 0,
+      "published_media_ref": false,
+      "cleanup_proven": true
+    },
+    {
+      "id": "NV-FORMAT",
+      "category": "format",
+      "path": "reports/v0-s2/fixture-preparation-02/fixtures/fake-extension.mp4",
+      "sha256": "becf0cf30d6978325d9ccdea315923e2dbbf7e591c2857b92b5f82e41957bb98",
+      "bytes": 97,
+      "expected_status": 422,
+      "expected_error": "MEDIA_INVALID",
+      "oracle": "public upload rejects; owned media/temp/spooled FDs return to baseline; zero model/publish",
+      "status": "PASS",
+      "actual_status": 422,
+      "before": {
+        "media_and_temp": [],
+        "owned_open_files": []
+      },
+      "raw_response_sha256": "b420e676e7f8ce288a78d4ff04f6599f83228544e0629a6f80e1606a5d343485",
+      "actual_error": "MEDIA_INVALID",
+      "after": {
+        "media_and_temp": [],
+        "owned_open_files": []
+      },
+      "model_calls": 0,
+      "published_media_ref": false,
+      "cleanup_proven": true
+    },
+    {
+      "id": "NV-TRUNCATED",
+      "category": "corrupt",
+      "path": "reports/v0-s2/fixture-preparation-02/fixtures/truncated.mov",
+      "sha256": "ba012ac2264edf8e97921aa557eed8e63cdfeb8332485d0cd8c25ce2752a8b62",
+      "bytes": 128,
+      "expected_status": 422,
+      "expected_error": "MEDIA_INVALID",
+      "oracle": "public upload rejects; owned media/temp/spooled FDs return to baseline; zero model/publish",
+      "status": "PASS",
+      "actual_status": 422,
+      "before": {
+        "media_and_temp": [],
+        "owned_open_files": []
+      },
+      "raw_response_sha256": "f456f2057b297b563f7182610011a7592eb6481b90fc18d56eaabf5af574df56",
+      "actual_error": "MEDIA_INVALID",
+      "after": {
+        "media_and_temp": [],
+        "owned_open_files": []
+      },
+      "model_calls": 0,
+      "published_media_ref": false,
+      "cleanup_proven": true
+    },
+    {
+      "id": "NV-PIXELS",
+      "category": "pixels",
+      "path": "/mnt/c/workspace/videoworkline/.lvw-runtime/lvw-prompt-service/R1-unified-fixtures/real-rejection-fixtures-04/over-pixels.mp4",
+      "sha256": "9851e19b3e4198de0dc1cea8e1e37e742ccde4a845f270b65c659f0326f0a0b2",
+      "bytes": 25907,
+      "expected_status": 422,
+      "expected_error": "MEDIA_LIMIT_EXCEEDED",
+      "oracle": "public upload rejects; owned media/temp/spooled FDs return to baseline; zero model/publish",
+      "status": "PASS",
+      "actual_status": 422,
+      "before": {
+        "media_and_temp": [],
+        "owned_open_files": []
+      },
+      "raw_response_sha256": "1884cc7d9f5ef0608a524fc7fde42c6f4303ceb1ae2d560e67f94c7f5c88259e",
+      "actual_error": "MEDIA_LIMIT_EXCEEDED",
+      "after": {
+        "media_and_temp": [],
+        "owned_open_files": []
+      },
+      "model_calls": 0,
+      "published_media_ref": false,
+      "cleanup_proven": true
+    },
+    {
+      "id": "NV-BYTES",
+      "category": "bytes",
+      "path": "/mnt/c/workspace/videoworkline/.lvw-runtime/lvw-prompt-service/R1-unified-fixtures/real-rejection-fixtures-04/over-bytes.mp4",
+      "sha256": "da6ce8755151acd05195db67ebce3ee0fb5f4012e71e821cc5750f3304eaf41e",
+      "bytes": 268435457,
+      "expected_status": 422,
+      "expected_error": "MEDIA_LIMIT_EXCEEDED",
+      "oracle": "public upload rejects; owned media/temp/spooled FDs return to baseline; zero model/publish",
+      "status": "PASS",
+      "actual_status": 422,
+      "before": {
+        "media_and_temp": [],
+        "owned_open_files": []
+      },
+      "raw_response_sha256": "ddf15e2415538c2914b744059e233cb3b03eb8b6d79fe5f000184cb5a11c7314",
+      "actual_error": "MEDIA_LIMIT_EXCEEDED",
+      "after": {
+        "media_and_temp": [],
+        "owned_open_files": []
+      },
+      "model_calls": 0,
+      "published_media_ref": false,
+      "cleanup_proven": true
+    },
+    {
+      "id": "NV-EMPTY",
+      "category": "empty",
+      "path": "/mnt/c/workspace/videoworkline/.lvw-runtime/lvw-prompt-service/R1-unified-fixtures/real-rejection-fixtures-04/empty.mp4",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "expected_status": 422,
+      "expected_error": "MEDIA_INVALID",
+      "oracle": "public upload rejects; owned media/temp/spooled FDs return to baseline; zero model/publish",
+      "status": "PASS",
+      "actual_status": 422,
+      "before": {
+        "media_and_temp": [],
+        "owned_open_files": []
+      },
+      "raw_response_sha256": "7a7dc389c336105f07406ce985d97ea8ac6d244a20d945c43c7cbec00f188a0a",
+      "actual_error": "MEDIA_INVALID",
+      "after": {
+        "media_and_temp": [],
+        "owned_open_files": []
+      },
+      "model_calls": 0,
+      "published_media_ref": false,
+      "cleanup_proven": true
+    }
+  ],
+  "decision": "ALL_REAL_NEGATIVES_AND_CLEANUP_PASS"
+}

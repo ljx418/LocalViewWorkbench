@@ -1,0 +1,32 @@
+retained-frame-0 True {"ppm_sha": "d6b220619176f3e738c1812b5e789defcf28b38802d386c939f094d1c57b25a8", "size": [768, 461], "pts_seconds": 1.0}
+retained-frame-1 True {"ppm_sha": "cda95d446455ab753e6adffbcfa18e35f90e7921138610643a0602ca4dd5af05", "size": [768, 461], "pts_seconds": 3.0}
+retained-frame-2 True {"ppm_sha": "adabd46eac0b6debd94d463c2f37d697e1951b54ceac09dcab894d855e4da072", "size": [768, 461], "pts_seconds": 5.0}
+retained-frame-3 True {"ppm_sha": "392074219ed242331b456828fab9647dd9a3edc7ae3f1cacbb4ed889d671c643", "size": [768, 461], "pts_seconds": 7.0}
+all-source-lossless-png-hashes True ["0dff6325fd5dd78bbcd37dd633a232dd705ec390e339c8b190a70dbe375f5ed9", "80e52e4356e4df9200fc97f1c40c9d31f0eae4b83baf18936eb69249cfec0d2c", "b01c9919c4c67e70d88259ca665bc3e385257c7af5f852e73c8c1d7f4fba077a", "e0380b6f5739ae752c6bd29840999161ada3bd336841e72a5a8718298a47f206"]
+INDEPENDENT_PIXEL_ORACLE [{"index": 0, "red_bbox": [322, 156, 445, 302], "row100_grid_centers": [91.0, 187.0, 283.0, 379.0, 475.0, 571.0, 667.0, 763.0]}, {"index": 1, "red_bbox": [322, 156, 445, 301], "row100_grid_centers": [72.0, 168.0, 264.0, 360.0, 456.0, 552.0, 648.0, 744.0]}, {"index": 2, "red_bbox": [322, 156, 445, 301], "row100_grid_centers": [47.0, 143.0, 239.0, 335.0, 431.0, 527.0, 623.0, 719.0]}, {"index": 3, "red_bbox": [322, 156, 445, 302], "row100_grid_centers": [28.0, 124.0, 220.0, 316.0, 412.0, 508.0, 604.0, 700.0]}]
+CPU-temporal-every-value True 
+sampled-useful-relative-summary True {"kind": "apparent_relative_horizontal", "observation_zh": "程序测量：相邻采样帧存在RGB像素差异；像素差异本身不证明物理运动。", "inference_zh": "程序配准推断：部分颜色结构近似保持屏幕位置，其他可比较结构呈横向相对位移特征；具体物体与物理原因未确认。", "summary_zh": "采样画面中部分结构近似保持位置，其他结构呈横向相对变化迹象；真实镜头、主体动作及连续轨迹未确认。", "summary_en": "Across the sampled images, some structures remain approximately positioned while others show apparent lateral relative changes; physical camera motion, subject action and continuous trajectories are unverified."}
+video-actual-request-sha True "084e725b472c06a2c8579d0f5c8b4df822b4d234451c6f14bd308bcb65684b86"
+template-sha True 
+full-composed-spec-every-value True 
+image-model-run.json-configuration False "c86d6cdf5a841e9efa894e76dd9cf62e245fd5d6808a4e86000d045579176b8d"
+image-model-run.json-immutable-wire True 
+video-model-run.json-configuration False "c83163506b2f90c84600d099d3b380404e889ab63b5b7017406652138c324647"
+video-model-run.json-immutable-wire True 
+NV-DURATION True 
+NV-CORRUPT True 
+NV-FORMAT True 
+NV-TRUNCATED True 
+NV-PIXELS True 
+NV-BYTES True 
+NV-EMPTY True 
+cancel-queued True {"provider_calls": 0, "feedback_ms": 2}
+cancel-preparing True {"provider_calls": 0, "feedback_ms": 1}
+cancel-running True {"provider_calls": 1, "feedback_ms": 46}
+release-job_e2cc44d12bc04d3797bd89541fc5a4a0 True {"release_seconds_after_call": 2.378208101}
+release-job_4c42eb0442054ddeaf37e9154bc555fc True {"release_seconds_after_call": 2.352387934}
+Traceback (most recent call last):
+  File "/mnt/c/workSpace/videoWorkLine/LocalViewWorkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/unified-media/independent-live-15/recompute.py", line 48, in <module>
+    job=s['lease_job_id'];end=next(e for e in events if e['event']=='provider_call_completed' and e['lease_job_id']==job);release=next(e for e in events if e['event']=='lease_released' and e['call_id']==job);ck('release-'+job,(release['time_ns']-end['time_ns'])/1e9<=30,{'release_seconds_after_call':(release['time_ns']-end['time_ns'])/1e9})
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+StopIteration

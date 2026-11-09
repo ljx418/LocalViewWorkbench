@@ -1,4 +1,4 @@
-<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>LVW统一前端验收报告</title><style>*{box-sizing:border-box}body{overflow-wrap:anywhere;margin:0;background:#edf1f6;color:#172b45;font:16px/1.65 system-ui,"Microsoft YaHei",sans-serif}main{max-width:1160px;margin:auto;padding:32px 22px 70px}header{background:#142b49;color:white;padding:34px;border-radius:16px;margin-bottom:24px}header small{color:#adc9f2}h1{font-size:30px;margin:8px 0}h2{font-size:23px;margin-top:0}h3{margin:8px 0}a{color:#1755a2;overflow-wrap:anywhere}header a{color:#c8dcff}section,.card{background:white;padding:24px;border-radius:12px;margin:18px 0;border:1px solid #d7e0ed}.note{padding:15px 18px;background:#fff3d8;border-left:4px solid #a97512;border-radius:6px}.good{background:#e9f5ed;border-color:#87bc9b}code,pre{font:13px/1.6 ui-monospace,monospace;overflow-wrap:anywhere}pre{white-space:pre-wrap;background:#f3f6fa;padding:16px;border-radius:8px}table{border-collapse:collapse;width:100%;font-size:14px}td,th{border-bottom:1px solid #dce4ef;padding:12px;text-align:left;vertical-align:top}.scroll{overflow:auto}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}.grid .card{margin:0}video,img{width:100%;max-height:320px;object-fit:contain;background:#132338;border-radius:8px}.badge{display:inline-block;padding:3px 10px;border-radius:30px;background:#fff1ce;color:#734b00;font-weight:650}button{background:#1755a2;color:white;padding:11px 16px;border:0;border-radius:7px;cursor:pointer;font-size:15px}button:disabled{background:#8b99aa;cursor:default}textarea{display:block;width:100%;min-height:75px;margin:8px 0 18px;padding:10px;border:1px solid #9babc1;border-radius:6px;font:inherit}label{display:block;padding:10px 0}input{width:20px;height:20px;vertical-align:middle}summary{cursor:pointer;font-weight:650}.muted{color:#526781}footer{padding:20px 0;color:#526781}@media(max-width:680px){main{padding:14px}.grid{grid-template-columns:1fr}header,section,.card{padding:18px}h1{font-size:25px}table{min-width:580px}}</style><main><header><small>LVW · 最小图文与视频统一前端</small><h1>尚不可核签：真实验收未完成</h1><p>当前修复代码候选 <code>23e967bd3d8cc38640cb5749d467d9e34c510c29</code><br>本页真实运行候选 <code>e163af66848ea6b1ce9f57345399c8eda22043a9</code></p><p>图片与短视频使用同一个工作台，无需打开ComfyUI或导入节点。机器验收、独立审查、人工签署分别记录。</p><a href="人工验收指南.html">操作与体验记录</a> · <a href="验收报告与盲测视频.html">本轮证据与11段留样</a> · <a href="plans/execution-control.json">唯一开发坐标</a></header><section><h2>视频分析修复与证据边界</h2><p>当前1.8内部方案将模型逐帧外观描述与程序采样变化计量分开。模型一次接收全部真实源帧；程序测量单独标注，不代表物理运镜或完整视频动作。原始回答保持原样，错误的原始时序描述仍不能通过。实现、离线测试、真实输出与独立验收分别记录，最新是否通过见本轮收据。</p><details><summary>历史差分图方案（不代表当前输入）</summary><p>旧版F源帧与D绝对差拼图曾用于诊断，未解决真实语义问题；以下只是历史合成预览。</p><img src="reports/unified-media/independent-residual-input-01/preview-4-source-panels.png" alt="历史独审合成预览，不是当前模型输入"></details><p><a href="reports/unified-media/change-decision-owner-input-04.json">内部方案边界</a> · <a href="reports/unified-media/temporal-owner-gate0-review-04/review.md">冻结包Gate0独审</a> · <a href="reports/authorization-program-v1-complete-03.approval.json">已批准的V1全程授权</a>。无需补充执行许可，真实质量与人工签署仍须完成。</p></section><section><h2>本轮验证事实</h2><div class="note">WORK_IN_PROGRESS: C1 raw-retention Major independently closed;152CPU+9frontend/type/build/governance pass. C2/pilot safety reviews pending before fresh real runs. Prior live14NO_GO remains authoritative; no human signature requested yet.</div><p>执行器原始结论：<strong>REAL_CHECKPOINT_COMPLETE_INDEPENDENT_REVIEW_PENDING</strong>；独立验收状态：<strong>LIVE14_NO_GO_SEMANTIC_MAJOR_AND_REAL_COVERAGE_GAPS</strong>。先前S2的9/9和历史截图仅证明旧候选，不能代替当前统一前端。</p><ul><li>统一页面、Windows启动链和媒体边界拒绝分别以本轮逐项收据为准；未执行与失败不计通过。</li><li>此前代码静审通过；本轮真实内容结论仍须独审裁决。本轮已保存图片与视频ModelRun；取消、资源释放和其余组合检查分别以逐项收据为准，不能从输出文件存在推断通过。</li><li>live14独审NO_GO：7PASS/1FAIL(UM04)/2BLOCKED(UM02完整真实拒绝矩阵、UM05真实准备/排队取消)。双语已含变化但仍错误称相对网格一致；源SHA、F+D、计量、模板/构建与清理通过。此前9/10收据保留，不能把CPU分支当新增真实覆盖。</li><li>11段人工留样保持NOT_RUN，冻结预期及视频字节均未改动。</li></ul><p><a href="reports/unified-media/live-14/receipt.json">真实终态收据</a> · <a href="reports/unified-media/independent-live-14/review.md">本轮独立审查</a> · <a href="reports/unified-media/independent-runtime-transition-01/review.md">启动竞态纠偏独审</a> · <a href="reports/authorization-program-v1-complete-03.approval.json">已批准的V1全程授权</a> · <a href="reports/unified-media/live-14/browser-result.json">浏览器原始记录</a> · <a href="reports/unified-media/independent-correction-01/review-87c64a3.md">初版历史代码审查</a> · <a href="reports/unified-media/independent-correction-01/review-0f6b772.md">历史执行器纠偏审查</a> · <a href="验收报告与盲测视频_S2历史.html">旧S2测试视频与输出（历史）</a></p></section><section><h2>逐项验收</h2><div class="scroll"><table><tr><th>编号</th><th>义务</th><th>结果</th><th>证据边界</th></tr><tr><td>UM-01</td><td>图片公开入口真实结果</td><td>PASS</td><td>Actual image raw and source pixels agree: centered red square on dark blue. Browser retained manual marker until explicit adoption; all raw/parsed fields reviewed.</td></tr><tr><td>UM-02</td><td>媒体边界与损坏拒绝</td><td>BLOCKED</td><td>Live public API proves duration/corrupt rejection before provider. Full format/size/pixel/empty rejection matrix has retained CPU evidence, not a complete real public matrix in live14. No new probe authorized in this review.</td></tr><tr><td>UM-03</td><td>视频源SHA与实际PTS</td><td>PASS</td><td>Four PTS/timebase entries equal 1,3,5,7s. Retained PNGs reconstruct PPM bytes matching every source reference; source MOV SHA matches; sparse-frame warning retained. No fresh decode performed.</td></tr><tr><td>UM-04</td><td>联合四帧模型结果</td><td>FAIL</td><td>Major M1: raw observation claims subject position relative to grid consistent, contradicted by fixed red box and shifting grid; continuous-change/flicker wording exceeds sparse-frame evidence. Unknown physical cause does not repair those fields.</td></tr><tr><td>UM-05</td><td>排队、准备与运行中取消及释放</td><td>BLOCKED</td><td>Actual running cancel job terminal cancelled/released/result_ref null and draft preserved. Independent CPU queued and late-success cancellation checks pass. Preparing/queued actual live cancellation not exercised by live14; synthetic coverage is not relabelled real.</td></tr><tr><td>UM-06</td><td>显式采纳及导出来源</td><td>PASS</td><td>before-video-adopt retains image run; explicit adopt switches to video run; later manual edit and cancellation export retain video ownership and text. Browser dirty-dialog accept path is present; decline path not live exercised.</td></tr><tr><td>UM-07</td><td>模型关闭后手工编辑导出</td><td>PASS</td><td>Retained actual runtime stop unreachable plus manual OFFLINE_EDIT_AND_EXPORT in JSON and TXT; no inference needed for editing/export.</td></tr><tr><td>UM-08</td><td>资源/原生进程/no-cloud</td><td>PASS</td><td>Three actual provider starts and three releases; per-job lease samples show inventory_empty true, GPU returns near baseline. Peak 21116MiB/min RAM7573MiB. Native owned service evidence and no-cloud loopback witness retained.</td></tr><tr><td>UM-09</td><td>同一生产UI与双击入口</td><td>PASS</td><td>Bound Windows START_LVW launcher log/default_app + actual production React screenshot and browser downloads. No browser page errors/external requests; no Comfy starts. No browser launched by this reviewer.</td></tr><tr><td>UM-10</td><td>独立复算与完整清理</td><td>PASS</td><td>Frozen packet1.0.3/candidate/frozen files/tools/samples/grants/harness/templates/build rehashed. Read-only SQLite child inactive with 3 actions/1 checkpoint/62s, child and execution bindings hashes agree. Terminal cleanup join inspected; independent review supplied. This is identity/cleanup review, not Stage/human signoff.</td></tr></table></div><p><a href="reports/unified-media/offline-03/receipt.json">离线03收据（对应其记录候选）</a> · <a href="reports/unified-media/ui-cpu-01/receipt.json">CPU浏览器夹具6项（不代表真实模型）</a> · <a href="reports/unified-media/resource-diagnostic-03/receipt.json">最近资源诊断</a></p></section><section><h2>真实验收使用的素材与实际输出</h2><p>live14独审NO_GO：7PASS/1FAIL(UM04)/2BLOCKED(UM02完整真实拒绝矩阵、UM05真实准备/排队取消)。双语已含变化但仍错误称相对网格一致；源SHA、F+D、计量、模板/构建与清理通过。此前9/10收据保留，不能把CPU分支当新增真实覆盖。</p><div class="grid"><article><h3>开发图片</h3><img src="reports/unified-media/dev-image.png" alt="开发用非私有结构图片"><p><a href="reports/unified-media/live-14/image-model-run.json">下载原始ModelRun JSON</a></p><h4>实际中文输出</h4><pre>极简主义图形设计，深蓝色背景中心有一个正红色正方形，纯色块，高对比度，平铺构图，数字矢量风格，干净利落的边缘。</pre><h4>实际英文输出</h4><pre>Minimalist graphic design, a solid red square centered on a dark blue rectangular background, flat color blocks, high contrast, centered composition, digital vector style, clean sharp edges.</pre><details><summary>查看事实／推断／未知及运镜动作</summary><pre>{
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>LVW统一前端验收报告</title><style>*{box-sizing:border-box}body{overflow-wrap:anywhere;margin:0;background:#edf1f6;color:#172b45;font:16px/1.65 system-ui,"Microsoft YaHei",sans-serif}main{max-width:1160px;margin:auto;padding:32px 22px 70px}header{background:#142b49;color:white;padding:34px;border-radius:16px;margin-bottom:24px}header small{color:#adc9f2}h1{font-size:30px;margin:8px 0}h2{font-size:23px;margin-top:0}h3{margin:8px 0}a{color:#1755a2;overflow-wrap:anywhere}header a{color:#c8dcff}section,.card{background:white;padding:24px;border-radius:12px;margin:18px 0;border:1px solid #d7e0ed}.note{padding:15px 18px;background:#fff3d8;border-left:4px solid #a97512;border-radius:6px}.good{background:#e9f5ed;border-color:#87bc9b}code,pre{font:13px/1.6 ui-monospace,monospace;overflow-wrap:anywhere}pre{white-space:pre-wrap;background:#f3f6fa;padding:16px;border-radius:8px}table{border-collapse:collapse;width:100%;font-size:14px}td,th{border-bottom:1px solid #dce4ef;padding:12px;text-align:left;vertical-align:top}.scroll{overflow:auto}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}.grid .card{margin:0}video,img{width:100%;max-height:320px;object-fit:contain;background:#132338;border-radius:8px}.badge{display:inline-block;padding:3px 10px;border-radius:30px;background:#fff1ce;color:#734b00;font-weight:650}button{background:#1755a2;color:white;padding:11px 16px;border:0;border-radius:7px;cursor:pointer;font-size:15px}button:disabled{background:#8b99aa;cursor:default}textarea{display:block;width:100%;min-height:75px;margin:8px 0 18px;padding:10px;border:1px solid #9babc1;border-radius:6px;font:inherit}label{display:block;padding:10px 0}input{width:20px;height:20px;vertical-align:middle}summary{cursor:pointer;font-weight:650}.muted{color:#526781}footer{padding:20px 0;color:#526781}@media(max-width:680px){main{padding:14px}.grid{grid-template-columns:1fr}header,section,.card{padding:18px}h1{font-size:25px}table{min-width:580px}}</style><main><header><small>LVW · 最小图文与视频统一前端</small><h1>可进行统一人工核签</h1><p>当前修复代码候选 <code>621b1bf386db71bfe08ca2f533fa8ec396b0504b</code><br>本页真实运行候选 <code>621b1bf386db71bfe08ca2f533fa8ec396b0504b</code></p><p>图片与短视频使用同一个工作台，无需打开ComfyUI或导入节点。机器验收、独立审查、人工签署分别记录。</p><a href="人工验收指南.html">操作与体验记录</a> · <a href="验收报告与盲测视频.html">本轮证据与11段留样</a> · <a href="plans/execution-control.json">唯一开发坐标</a></header><section><h2>视频分析修复与证据边界</h2><p>当前1.8内部方案将模型逐帧外观描述与程序采样变化计量分开。模型一次接收全部真实源帧；程序测量单独标注，不代表物理运镜或完整视频动作。原始回答保持原样，错误的原始时序描述仍不能通过。实现、离线测试、真实输出与独立验收分别记录，最新是否通过见本轮收据。</p><details><summary>历史差分图方案（不代表当前输入）</summary><p>旧版F源帧与D绝对差拼图曾用于诊断，未解决真实语义问题；以下只是历史合成预览。</p><img src="reports/unified-media/independent-residual-input-01/preview-4-source-panels.png" alt="历史独审合成预览，不是当前模型输入"></details><p><a href="reports/unified-media/change-decision-owner-input-04.json">内部方案边界</a> · <a href="reports/unified-media/temporal-owner-gate0-review-04/review.md">冻结包Gate0独审</a> · <a href="reports/authorization-program-v1-complete-03.approval.json">已批准的V1全程授权</a>。无需补充执行许可，真实质量与人工签署仍须完成。</p></section><section><h2>本轮验证事实</h2><div class="note">WAIT_HUMAN: freshlive15 fixedUM10/10 and independentFatal0/Major0 complete; actual unified image/video experience signature is the remaining gate. NoGPU/code/candidate authorization missing. No fullR1/fullV1 or release PASS. Own runtime/API/browser and temp including empty wrappers removed.</div><p>执行器原始结论：<strong>REAL_CHECKPOINT_COMPLETE_INDEPENDENT_REVIEW_PENDING</strong>；独立验收状态：<strong>UNIFIED_MEDIA_SLICE_MACHINE_AND_INDEPENDENT_VERIFIED_HUMAN_PENDING</strong>。先前S2的9/9和历史截图仅证明旧候选，不能代替当前统一前端。</p><ul><li>统一页面、Windows启动链和媒体边界拒绝分别以本轮逐项收据为准；未执行与失败不计通过。</li><li>此前代码静审通过；本轮真实内容结论仍须独审裁决。本轮已保存图片与视频ModelRun；取消、资源释放和其余组合检查分别以逐项收据为准，不能从输出文件存在推断通过。</li><li>live15原始模型回答只描述四帧真实外观，无错误静止/网格恒定/压缩噪声原因断言；AnalysisService独立归因的采样横向相对变化与像素/注册证据逐值吻合。独审UM04PASS，物理运镜与未采样连续动作仍未知，V0-A12/Q01未豁免。</li><li>11段人工留样保持NOT_RUN，冻结预期及视频字节均未改动。</li></ul><p><a href="reports/unified-media/live-15/receipt.json">真实终态收据</a> · <a href="reports/unified-media/independent-live-15/review.md">本轮独立审查</a> · <a href="reports/unified-media/independent-runtime-transition-01/review.md">启动竞态纠偏独审</a> · <a href="reports/authorization-program-v1-complete-03.approval.json">已批准的V1全程授权</a> · <a href="reports/unified-media/live-15/browser-result.json">浏览器原始记录</a> · <a href="reports/unified-media/independent-correction-01/review-87c64a3.md">初版历史代码审查</a> · <a href="reports/unified-media/independent-correction-01/review-0f6b772.md">历史执行器纠偏审查</a> · <a href="验收报告与盲测视频_S2历史.html">旧S2测试视频与输出（历史）</a></p></section><section><h2>逐项验收</h2><div class="scroll"><table><tr><th>编号</th><th>义务</th><th>结果</th><th>证据边界</th></tr><tr><td>UM-01</td><td>图片公开入口真实结果</td><td>PASS</td><td>当前真实运行未证明，不计PASS</td></tr><tr><td>UM-02</td><td>媒体边界与损坏拒绝</td><td>PASS</td><td>当前真实运行未证明，不计PASS</td></tr><tr><td>UM-03</td><td>视频源SHA与实际PTS</td><td>PASS</td><td>当前真实运行未证明，不计PASS</td></tr><tr><td>UM-04</td><td>联合四帧模型结果</td><td>PASS</td><td>当前真实运行未证明，不计PASS</td></tr><tr><td>UM-05</td><td>排队、准备与运行中取消及释放</td><td>PASS</td><td>当前真实运行未证明，不计PASS</td></tr><tr><td>UM-06</td><td>显式采纳及导出来源</td><td>PASS</td><td>当前真实运行未证明，不计PASS</td></tr><tr><td>UM-07</td><td>模型关闭后手工编辑导出</td><td>PASS</td><td>当前真实运行未证明，不计PASS</td></tr><tr><td>UM-08</td><td>资源/原生进程/no-cloud</td><td>PASS</td><td>当前真实运行未证明，不计PASS</td></tr><tr><td>UM-09</td><td>同一生产UI与双击入口</td><td>PASS</td><td>当前真实运行未证明，不计PASS</td></tr><tr><td>UM-10</td><td>独立复算与完整清理</td><td>PASS</td><td>当前真实运行未证明，不计PASS</td></tr></table></div><p><a href="reports/unified-media/offline-03/receipt.json">离线03收据（对应其记录候选）</a> · <a href="reports/unified-media/ui-cpu-01/receipt.json">CPU浏览器夹具6项（不代表真实模型）</a> · <a href="reports/unified-media/resource-diagnostic-03/receipt.json">最近资源诊断</a></p></section><section><h2>真实验收使用的素材与实际输出</h2><p>live15原始模型回答只描述四帧真实外观，无错误静止/网格恒定/压缩噪声原因断言；AnalysisService独立归因的采样横向相对变化与像素/注册证据逐值吻合。独审UM04PASS，物理运镜与未采样连续动作仍未知，V0-A12/Q01未豁免。</p><div class="grid"><article><h3>开发图片</h3><img src="reports/unified-media/dev-image.png" alt="开发用非私有结构图片"><p><a href="reports/unified-media/live-15/image-model-run.json">下载原始ModelRun JSON</a></p><h4>实际中文输出</h4><pre>极简主义图形设计，中心是一个纯红色的正方形，背景是深蓝色的长方形，平铺色块，无纹理，高对比度，数字矢量风格。</pre><h4>实际英文输出</h4><pre>Minimalist graphic design, a solid red square centered on a dark blue rectangular background, flat color blocks, no texture, high contrast, digital vector style.</pre><details><summary>查看事实／推断／未知及运镜动作</summary><pre>{
   &quot;domains&quot;: {
     &quot;observation&quot;: [
       &quot;A solid red square centered on a dark blue rectangular background.&quot;
@@ -22,33 +22,35 @@
     &quot;beats&quot;: []
   },
   &quot;frames&quot;: []
-}</pre></details></article><article><h3>开发视频</h3><video controls preload="none" src="reports/v0-s2/fixture-preparation-02/fixtures/tracking.mov"></video><a href="reports/v0-s2/fixture-preparation-02/fixtures/tracking.mov" download>保存开发视频</a><p><a href="reports/unified-media/live-14/video-model-run.json">下载原始ModelRun JSON</a></p><h4>实际中文输出</h4><pre>一个极简主义的数字动画序列。画面中心是一个鲜红色的矩形块，背景是深蓝色的网格，网格线为白色。随着时间推移（1秒到7秒），红色矩形在画面中的位置保持稳定，但画面中存在持续的像素级变化，表现为某种侧向的位移感或纹理闪烁。摄影风格呈现出干净、高对比度的数字图形特征，具有平滑的色彩和清晰的几何边缘。</pre><h4>实际英文输出</h4><pre>A minimalist digital animation sequence. A vibrant red rectangular subject is centered against a deep blue background with a white grid pattern. As the sequence progresses from 1s to 7s, the red rectangle remains positionally stable within the frame, while continuous pixel-level changes occur across the scene, manifesting as a subtle lateral shift or texture flickering in specific areas. The visual style is characterized by clean, high-contrast digital graphics with smooth color transitions and sharp geometric edges.</pre><details><summary>查看事实／推断／未知及运镜动作</summary><pre>{
+}</pre></details></article><article><h3>开发视频</h3><video controls preload="none" src="reports/v0-s2/fixture-preparation-02/fixtures/tracking.mov"></video><a href="reports/v0-s2/fixture-preparation-02/fixtures/tracking.mov" download>保存开发视频</a><p><a href="reports/unified-media/live-15/video-model-run.json">下载原始ModelRun JSON</a></p><h4>实际中文输出</h4><pre>深蓝色网格背景，中心包含一个鲜艳的红色矩形。平面几何图形构图，高对比度色彩，数字矢量风格。
+
+采样时序证据：采样画面中部分结构近似保持位置，其他结构呈横向相对变化迹象；真实镜头、主体动作及连续轨迹未确认。</pre><h4>实际英文输出</h4><pre>A vibrant red rectangle centered on a dark blue grid background. Flat geometric composition, high contrast colors, digital vector graphic style.
+
+Sampled temporal evidence: Across the sampled images, some structures remain approximately positioned while others show apparent lateral relative changes; physical camera motion, subject action and continuous trajectories are unverified.</pre><details><summary>查看事实／推断／未知及运镜动作</summary><pre>{
   &quot;domains&quot;: {
     &quot;observation&quot;: [
-      &quot;The video consists of four sampled frames (F1, F2, F3, F4) at timestamps 1.0s, 3.0s, 5.0s, and 7.0s.&quot;,
-      &quot;Each frame features a red rectangular subject centered within a blue grid background with white lines.&quot;,
-      &quot;The red subject&#x27;s position relative to the grid boundaries appears consistent across all frames.&quot;,
-      &quot;The derived RGB difference maps (D1-&gt;2, D2-&gt;3, D3-&gt;4) show vertical yellow lines on a black background, indicating pixel-level changes in specific areas of the frame.&quot;,
-      &quot;Image registration analysis shows an x-offset of 3 pixels and y-offset of 0 pixels for G-B and B-R color components between consecutive frames.&quot;
+      &quot;F1 @ 1.000s（模型外观）：深蓝色网格背景中心有一个红色的矩形块。&quot;,
+      &quot;F2 @ 3.000s（模型外观）：深蓝色网格背景中心有一个红色的矩形块。&quot;,
+      &quot;F3 @ 5.000s（模型外观）：深蓝色网格背景中心有一个红色的矩形块。&quot;,
+      &quot;F4 @ 7.000s（模型外观）：深蓝色网格背景中心有一个红色的矩形块。&quot;,
+      &quot;程序测量：相邻采样帧存在RGB像素差异；像素差异本身不证明物理运动。&quot;
     ],
     &quot;inference&quot;: [
-      &quot;The presence of significant pixel differences (approximately 33-34%) across all sampled intervals suggests continuous change in the scene, despite the visual stability of the red subject&#x27;s position.&quot;,
-      &quot;The consistent x-offset in color components indicates a lateral shift in certain pixel layers between frames.&quot;
+      &quot;程序配准推断：部分颜色结构近似保持屏幕位置，其他可比较结构呈横向相对位移特征；具体物体与物理原因未确认。&quot;
     ],
     &quot;user_evidence&quot;: [],
     &quot;creative_intent&quot;: [],
     &quot;unknowns&quot;: [
-      &quot;The physical cause of the measured 3-pixel spatial offset (e.g., whether it is due to camera movement, subject motion, or sensor/processing artifacts) is unverified.&quot;,
-      &quot;The specific nature of the objects or textures represented by the changing pixels in the difference maps is unknown.&quot;,
-      &quot;仅观察4个采样帧，未采样事件、连续运动与音频未经验证。&quot;
+      &quot;仅观察4个实际采样帧，未采样事件、连续运动与音频未经验证。&quot;,
+      &quot;图像配准仅比较有界窗口，周期纹理可能产生多解；不能据此确定真实运镜、完整位移量或主体连续动作。&quot;
     ]
   },
   &quot;technical&quot;: {
     &quot;duration_seconds&quot;: null,
     &quot;aspect_ratio&quot;: &quot;&quot;,
     &quot;fps_intent&quot;: null,
-    &quot;camera_motion&quot;: &quot;unverified lateral shift detected in pixel registration&quot;,
-    &quot;subject_action&quot;: &quot;the red subject remains positionally stable while the scene undergoes continuous pixel-level changes&quot;,
+    &quot;camera_motion&quot;: &quot;Physical camera motion unverified; use the separately attributed sampled temporal evidence.&quot;,
+    &quot;subject_action&quot;: &quot;Continuous subject action unverified; appearance descriptions refer only to the sampled instants.&quot;,
     &quot;lighting&quot;: &quot;&quot;,
     &quot;composition&quot;: &quot;&quot;,
     &quot;style_notes&quot;: &quot;&quot;,
@@ -92,201 +94,799 @@
       &quot;time_basis&quot;: &quot;decoded_pts&quot;
     }
   ]
-}</pre></details></article></div></section><section><h2>本轮输入的实际帧差计量</h2><p>来自生产Provider账本；仅度量采样帧像素差，不证明运动方向、变化原因或连续视频质量。以下是输入元数据，模型如何理解它另见上方原始输出。</p><pre>{
-  &quot;pixel_measurements&quot;: [
+}</pre></details></article></div></section><section><h2>程序独立测得的采样变化</h2><p>与模型输入和原始回答分开保存。这些数值只描述实际采样像素及有限对齐特征，不证明物理相机方向、物体身份或连续动作；不能替代原始回答质量评分。</p><pre>[
+  {
+    &quot;source_sha256&quot;: &quot;b08ea8b0b9fa3bcd4e62b2b0ad1c05b2bff09359539933f4581a5c2f2c69ff6d&quot;,
+    &quot;frame_times&quot;: [
+      1.0,
+      3.0,
+      5.0,
+      7.0
+    ],
+    &quot;evidence&quot;: {
+      &quot;alignment_pairs&quot;: [
+        {
+          &quot;analysis_size&quot;: [
+            128,
+            77
+          ],
+          &quot;best_aligned_mean_luma_error&quot;: 6.597628,
+          &quot;colour_components&quot;: [
+            {
+              &quot;best_error&quot;: 0.09974,
+              &quot;component&quot;: &quot;R-G&quot;,
+              &quot;equally_best_offsets&quot;: 1,
+              &quot;error_reduction_percent&quot;: 0.0,
+              &quot;offset_px&quot;: {
+                &quot;x&quot;: 0,
+                &quot;y&quot;: 0
+              },
+              &quot;usable&quot;: true,
+              &quot;zero_error&quot;: 0.09974
+            },
+            {
+              &quot;best_error&quot;: 2.610299,
+              &quot;component&quot;: &quot;G-B&quot;,
+              &quot;equally_best_offsets&quot;: 1,
+              &quot;error_reduction_percent&quot;: 62.1621,
+              &quot;offset_px&quot;: {
+                &quot;x&quot;: 3,
+                &quot;y&quot;: 0
+              },
+              &quot;usable&quot;: true,
+              &quot;zero_error&quot;: 6.898635
+            },
+            {
+              &quot;best_error&quot;: 5.672677,
+              &quot;component&quot;: &quot;B-R&quot;,
+              &quot;equally_best_offsets&quot;: 1,
+              &quot;error_reduction_percent&quot;: 18.6578,
+              &quot;offset_px&quot;: {
+                &quot;x&quot;: 3,
+                &quot;y&quot;: 0
+              },
+              &quot;usable&quot;: true,
+              &quot;zero_error&quot;: 6.973847
+            }
+          ],
+          &quot;equally_best_offsets&quot;: 1,
+          &quot;from_frame&quot;: 1,
+          &quot;next_to_previous_alignment_offset_px&quot;: {
+            &quot;x&quot;: 3,
+            &quot;y&quot;: 0
+          },
+          &quot;relative_error_reduction&quot;: 0.72548,
+          &quot;search_radius_px&quot;: 10,
+          &quot;to_frame&quot;: 2,
+          &quot;unaligned_mean_luma_error&quot;: 24.033301,
+          &quot;usable&quot;: true
+        },
+        {
+          &quot;analysis_size&quot;: [
+            128,
+            77
+          ],
+          &quot;best_aligned_mean_luma_error&quot;: 4.548083,
+          &quot;colour_components&quot;: [
+            {
+              &quot;best_error&quot;: 0.10104,
+              &quot;component&quot;: &quot;R-G&quot;,
+              &quot;equally_best_offsets&quot;: 1,
+              &quot;error_reduction_percent&quot;: 0.0,
+              &quot;offset_px&quot;: {
+                &quot;x&quot;: 0,
+                &quot;y&quot;: 0
+              },
+              &quot;usable&quot;: true,
+              &quot;zero_error&quot;: 0.10104
+            },
+            {
+              &quot;best_error&quot;: 2.152372,
+              &quot;component&quot;: &quot;G-B&quot;,
+              &quot;equally_best_offsets&quot;: 1,
+              &quot;error_reduction_percent&quot;: 63.093,
+              &quot;offset_px&quot;: {
+                &quot;x&quot;: 3,
+                &quot;y&quot;: 0
+              },
+              &quot;usable&quot;: true,
+              &quot;zero_error&quot;: 5.831871
+            },
+            {
+              &quot;best_error&quot;: 5.227745,
+              &quot;component&quot;: &quot;B-R&quot;,
+              &quot;equally_best_offsets&quot;: 1,
+              &quot;error_reduction_percent&quot;: 10.9173,
+              &quot;offset_px&quot;: {
+                &quot;x&quot;: 3,
+                &quot;y&quot;: 0
+              },
+              &quot;usable&quot;: true,
+              &quot;zero_error&quot;: 5.868421
+            }
+          ],
+          &quot;equally_best_offsets&quot;: 1,
+          &quot;from_frame&quot;: 2,
+          &quot;next_to_previous_alignment_offset_px&quot;: {
+            &quot;x&quot;: 3,
+            &quot;y&quot;: 0
+          },
+          &quot;relative_error_reduction&quot;: 0.778876,
+          &quot;search_radius_px&quot;: 10,
+          &quot;to_frame&quot;: 3,
+          &quot;unaligned_mean_luma_error&quot;: 20.568064,
+          &quot;usable&quot;: true
+        },
+        {
+          &quot;analysis_size&quot;: [
+            128,
+            77
+          ],
+          &quot;best_aligned_mean_luma_error&quot;: 5.611598,
+          &quot;colour_components&quot;: [
+            {
+              &quot;best_error&quot;: 0.124756,
+              &quot;component&quot;: &quot;R-G&quot;,
+              &quot;equally_best_offsets&quot;: 1,
+              &quot;error_reduction_percent&quot;: 0.0,
+              &quot;offset_px&quot;: {
+                &quot;x&quot;: 0,
+                &quot;y&quot;: 0
+              },
+              &quot;usable&quot;: true,
+              &quot;zero_error&quot;: 0.124756
+            },
+            {
+              &quot;best_error&quot;: 2.248863,
+              &quot;component&quot;: &quot;G-B&quot;,
+              &quot;equally_best_offsets&quot;: 1,
+              &quot;error_reduction_percent&quot;: 63.6593,
+              &quot;offset_px&quot;: {
+                &quot;x&quot;: 3,
+                &quot;y&quot;: 0
+              },
+              &quot;usable&quot;: true,
+              &quot;zero_error&quot;: 6.188272
+            },
+            {
+              &quot;best_error&quot;: 5.290936,
+              &quot;component&quot;: &quot;B-R&quot;,
+              &quot;equally_best_offsets&quot;: 1,
+              &quot;error_reduction_percent&quot;: 14.8849,
+              &quot;offset_px&quot;: {
+                &quot;x&quot;: 3,
+                &quot;y&quot;: 0
+              },
+              &quot;usable&quot;: true,
+              &quot;zero_error&quot;: 6.216212
+            }
+          ],
+          &quot;equally_best_offsets&quot;: 1,
+          &quot;from_frame&quot;: 3,
+          &quot;next_to_previous_alignment_offset_px&quot;: {
+            &quot;x&quot;: 3,
+            &quot;y&quot;: 0
+          },
+          &quot;relative_error_reduction&quot;: 0.740085,
+          &quot;search_radius_px&quot;: 10,
+          &quot;to_frame&quot;: 4,
+          &quot;unaligned_mean_luma_error&quot;: 21.590156,
+          &quot;usable&quot;: true
+        }
+      ],
+      &quot;frame_count&quot;: 4,
+      &quot;pixel_pairs&quot;: [
+        {
+          &quot;changed_pixel_count&quot;: 121747,
+          &quot;different_pixel_percent&quot;: 34.3871,
+          &quot;frame_pixel_count&quot;: 354048,
+          &quot;from_frame&quot;: 1,
+          &quot;mean_absolute_rgb_delta&quot;: 19.948187,
+          &quot;to_frame&quot;: 2
+        },
+        {
+          &quot;changed_pixel_count&quot;: 120838,
+          &quot;different_pixel_percent&quot;: 34.1304,
+          &quot;frame_pixel_count&quot;: 354048,
+          &quot;from_frame&quot;: 2,
+          &quot;mean_absolute_rgb_delta&quot;: 19.711854,
+          &quot;to_frame&quot;: 3
+        },
+        {
+          &quot;changed_pixel_count&quot;: 118155,
+          &quot;different_pixel_percent&quot;: 33.3726,
+          &quot;frame_pixel_count&quot;: 354048,
+          &quot;from_frame&quot;: 3,
+          &quot;mean_absolute_rgb_delta&quot;: 19.509985,
+          &quot;to_frame&quot;: 4
+        }
+      ],
+      &quot;policy&quot;: {
+        &quot;fit_reduction_min&quot;: 0.5,
+        &quot;physical_motion_classifier&quot;: false,
+        &quot;stable_component_error_max&quot;: 1.0,
+        &quot;unique_local_fit_required&quot;: true
+      },
+      &quot;policy_version&quot;: &quot;lvw.temporal-evidence/1&quot;,
+      &quot;source_frame_sha256&quot;: [
+        &quot;d6b220619176f3e738c1812b5e789defcf28b38802d386c939f094d1c57b25a8&quot;,
+        &quot;cda95d446455ab753e6adffbcfa18e35f90e7921138610643a0602ca4dd5af05&quot;,
+        &quot;adabd46eac0b6debd94d463c2f37d697e1951b54ceac09dcab894d855e4da072&quot;,
+        &quot;392074219ed242331b456828fab9647dd9a3edc7ae3f1cacbb4ed889d671c643&quot;
+      ]
+    }
+  },
+  {
+    &quot;source_sha256&quot;: &quot;b08ea8b0b9fa3bcd4e62b2b0ad1c05b2bff09359539933f4581a5c2f2c69ff6d&quot;,
+    &quot;frame_times&quot;: [
+      1.0,
+      3.0,
+      5.0,
+      7.0
+    ],
+    &quot;evidence&quot;: {
+      &quot;alignment_pairs&quot;: [
+        {
+          &quot;analysis_size&quot;: [
+            128,
+            77
+          ],
+          &quot;best_aligned_mean_luma_error&quot;: 6.597628,
+          &quot;colour_components&quot;: [
+            {
+              &quot;best_error&quot;: 0.09974,
+              &quot;component&quot;: &quot;R-G&quot;,
+              &quot;equally_best_offsets&quot;: 1,
+              &quot;error_reduction_percent&quot;: 0.0,
+              &quot;offset_px&quot;: {
+                &quot;x&quot;: 0,
+                &quot;y&quot;: 0
+              },
+              &quot;usable&quot;: true,
+              &quot;zero_error&quot;: 0.09974
+            },
+            {
+              &quot;best_error&quot;: 2.610299,
+              &quot;component&quot;: &quot;G-B&quot;,
+              &quot;equally_best_offsets&quot;: 1,
+              &quot;error_reduction_percent&quot;: 62.1621,
+              &quot;offset_px&quot;: {
+                &quot;x&quot;: 3,
+                &quot;y&quot;: 0
+              },
+              &quot;usable&quot;: true,
+              &quot;zero_error&quot;: 6.898635
+            },
+            {
+              &quot;best_error&quot;: 5.672677,
+              &quot;component&quot;: &quot;B-R&quot;,
+              &quot;equally_best_offsets&quot;: 1,
+              &quot;error_reduction_percent&quot;: 18.6578,
+              &quot;offset_px&quot;: {
+                &quot;x&quot;: 3,
+                &quot;y&quot;: 0
+              },
+              &quot;usable&quot;: true,
+              &quot;zero_error&quot;: 6.973847
+            }
+          ],
+          &quot;equally_best_offsets&quot;: 1,
+          &quot;from_frame&quot;: 1,
+          &quot;next_to_previous_alignment_offset_px&quot;: {
+            &quot;x&quot;: 3,
+            &quot;y&quot;: 0
+          },
+          &quot;relative_error_reduction&quot;: 0.72548,
+          &quot;search_radius_px&quot;: 10,
+          &quot;to_frame&quot;: 2,
+          &quot;unaligned_mean_luma_error&quot;: 24.033301,
+          &quot;usable&quot;: true
+        },
+        {
+          &quot;analysis_size&quot;: [
+            128,
+            77
+          ],
+          &quot;best_aligned_mean_luma_error&quot;: 4.548083,
+          &quot;colour_components&quot;: [
+            {
+              &quot;best_error&quot;: 0.10104,
+              &quot;component&quot;: &quot;R-G&quot;,
+              &quot;equally_best_offsets&quot;: 1,
+              &quot;error_reduction_percent&quot;: 0.0,
+              &quot;offset_px&quot;: {
+                &quot;x&quot;: 0,
+                &quot;y&quot;: 0
+              },
+              &quot;usable&quot;: true,
+              &quot;zero_error&quot;: 0.10104
+            },
+            {
+              &quot;best_error&quot;: 2.152372,
+              &quot;component&quot;: &quot;G-B&quot;,
+              &quot;equally_best_offsets&quot;: 1,
+              &quot;error_reduction_percent&quot;: 63.093,
+              &quot;offset_px&quot;: {
+                &quot;x&quot;: 3,
+                &quot;y&quot;: 0
+              },
+              &quot;usable&quot;: true,
+              &quot;zero_error&quot;: 5.831871
+            },
+            {
+              &quot;best_error&quot;: 5.227745,
+              &quot;component&quot;: &quot;B-R&quot;,
+              &quot;equally_best_offsets&quot;: 1,
+              &quot;error_reduction_percent&quot;: 10.9173,
+              &quot;offset_px&quot;: {
+                &quot;x&quot;: 3,
+                &quot;y&quot;: 0
+              },
+              &quot;usable&quot;: true,
+              &quot;zero_error&quot;: 5.868421
+            }
+          ],
+          &quot;equally_best_offsets&quot;: 1,
+          &quot;from_frame&quot;: 2,
+          &quot;next_to_previous_alignment_offset_px&quot;: {
+            &quot;x&quot;: 3,
+            &quot;y&quot;: 0
+          },
+          &quot;relative_error_reduction&quot;: 0.778876,
+          &quot;search_radius_px&quot;: 10,
+          &quot;to_frame&quot;: 3,
+          &quot;unaligned_mean_luma_error&quot;: 20.568064,
+          &quot;usable&quot;: true
+        },
+        {
+          &quot;analysis_size&quot;: [
+            128,
+            77
+          ],
+          &quot;best_aligned_mean_luma_error&quot;: 5.611598,
+          &quot;colour_components&quot;: [
+            {
+              &quot;best_error&quot;: 0.124756,
+              &quot;component&quot;: &quot;R-G&quot;,
+              &quot;equally_best_offsets&quot;: 1,
+              &quot;error_reduction_percent&quot;: 0.0,
+              &quot;offset_px&quot;: {
+                &quot;x&quot;: 0,
+                &quot;y&quot;: 0
+              },
+              &quot;usable&quot;: true,
+              &quot;zero_error&quot;: 0.124756
+            },
+            {
+              &quot;best_error&quot;: 2.248863,
+              &quot;component&quot;: &quot;G-B&quot;,
+              &quot;equally_best_offsets&quot;: 1,
+              &quot;error_reduction_percent&quot;: 63.6593,
+              &quot;offset_px&quot;: {
+                &quot;x&quot;: 3,
+                &quot;y&quot;: 0
+              },
+              &quot;usable&quot;: true,
+              &quot;zero_error&quot;: 6.188272
+            },
+            {
+              &quot;best_error&quot;: 5.290936,
+              &quot;component&quot;: &quot;B-R&quot;,
+              &quot;equally_best_offsets&quot;: 1,
+              &quot;error_reduction_percent&quot;: 14.8849,
+              &quot;offset_px&quot;: {
+                &quot;x&quot;: 3,
+                &quot;y&quot;: 0
+              },
+              &quot;usable&quot;: true,
+              &quot;zero_error&quot;: 6.216212
+            }
+          ],
+          &quot;equally_best_offsets&quot;: 1,
+          &quot;from_frame&quot;: 3,
+          &quot;next_to_previous_alignment_offset_px&quot;: {
+            &quot;x&quot;: 3,
+            &quot;y&quot;: 0
+          },
+          &quot;relative_error_reduction&quot;: 0.740085,
+          &quot;search_radius_px&quot;: 10,
+          &quot;to_frame&quot;: 4,
+          &quot;unaligned_mean_luma_error&quot;: 21.590156,
+          &quot;usable&quot;: true
+        }
+      ],
+      &quot;frame_count&quot;: 4,
+      &quot;pixel_pairs&quot;: [
+        {
+          &quot;changed_pixel_count&quot;: 121747,
+          &quot;different_pixel_percent&quot;: 34.3871,
+          &quot;frame_pixel_count&quot;: 354048,
+          &quot;from_frame&quot;: 1,
+          &quot;mean_absolute_rgb_delta&quot;: 19.948187,
+          &quot;to_frame&quot;: 2
+        },
+        {
+          &quot;changed_pixel_count&quot;: 120838,
+          &quot;different_pixel_percent&quot;: 34.1304,
+          &quot;frame_pixel_count&quot;: 354048,
+          &quot;from_frame&quot;: 2,
+          &quot;mean_absolute_rgb_delta&quot;: 19.711854,
+          &quot;to_frame&quot;: 3
+        },
+        {
+          &quot;changed_pixel_count&quot;: 118155,
+          &quot;different_pixel_percent&quot;: 33.3726,
+          &quot;frame_pixel_count&quot;: 354048,
+          &quot;from_frame&quot;: 3,
+          &quot;mean_absolute_rgb_delta&quot;: 19.509985,
+          &quot;to_frame&quot;: 4
+        }
+      ],
+      &quot;policy&quot;: {
+        &quot;fit_reduction_min&quot;: 0.5,
+        &quot;physical_motion_classifier&quot;: false,
+        &quot;stable_component_error_max&quot;: 1.0,
+        &quot;unique_local_fit_required&quot;: true
+      },
+      &quot;policy_version&quot;: &quot;lvw.temporal-evidence/1&quot;,
+      &quot;source_frame_sha256&quot;: [
+        &quot;d6b220619176f3e738c1812b5e789defcf28b38802d386c939f094d1c57b25a8&quot;,
+        &quot;cda95d446455ab753e6adffbcfa18e35f90e7921138610643a0602ca4dd5af05&quot;,
+        &quot;adabd46eac0b6debd94d463c2f37d697e1951b54ceac09dcab894d855e4da072&quot;,
+        &quot;392074219ed242331b456828fab9647dd9a3edc7ae3f1cacbb4ed889d671c643&quot;
+      ]
+    }
+  }
+]</pre></section><section><h2>真实文件拒绝与清理</h2><p>仅展示本轮实际记录；NOT_RUN、阻塞与失败不计通过。</p><a href="reports/unified-media/live-15/negative-results.json">下载原始逐项记录</a><pre>{
+  &quot;kind&quot;: &quot;REAL_PUBLIC_NEGATIVE_MATRIX&quot;,
+  &quot;cases&quot;: [
     {
-      &quot;changed_pixel_count&quot;: 121747,
-      &quot;different_pixel_percent&quot;: 34.3871,
-      &quot;frame_pixel_count&quot;: 354048,
-      &quot;from_frame&quot;: 1,
-      &quot;mean_absolute_rgb_delta&quot;: 19.948187,
-      &quot;to_frame&quot;: 2
+      &quot;id&quot;: &quot;NV-DURATION&quot;,
+      &quot;category&quot;: &quot;duration&quot;,
+      &quot;path&quot;: &quot;reports/v0-s2/fixture-preparation-02/fixtures/over-duration.mp4&quot;,
+      &quot;sha256&quot;: &quot;e9a7dd1feac6ffee908fd3ebd0390f86cf126f4f15c41ee249762eeec23ac2b4&quot;,
+      &quot;bytes&quot;: 3436,
+      &quot;expected_status&quot;: 422,
+      &quot;expected_error&quot;: &quot;MEDIA_LIMIT_EXCEEDED&quot;,
+      &quot;oracle&quot;: &quot;public upload rejects; owned media/temp/spooled FDs return to baseline; zero model/publish&quot;,
+      &quot;status&quot;: &quot;PASS&quot;,
+      &quot;actual_status&quot;: 422,
+      &quot;before&quot;: {
+        &quot;media_and_temp&quot;: [],
+        &quot;owned_open_files&quot;: []
+      },
+      &quot;raw_response_sha256&quot;: &quot;208cb300ddf9dab4d4ba56bc86acf5cbe9205df6f7fe3c8641adcccc3506348e&quot;,
+      &quot;actual_error&quot;: &quot;MEDIA_LIMIT_EXCEEDED&quot;,
+      &quot;after&quot;: {
+        &quot;media_and_temp&quot;: [],
+        &quot;owned_open_files&quot;: []
+      },
+      &quot;model_calls&quot;: 0,
+      &quot;published_media_ref&quot;: false,
+      &quot;cleanup_proven&quot;: true
     },
     {
-      &quot;changed_pixel_count&quot;: 120838,
-      &quot;different_pixel_percent&quot;: 34.1304,
-      &quot;frame_pixel_count&quot;: 354048,
-      &quot;from_frame&quot;: 2,
-      &quot;mean_absolute_rgb_delta&quot;: 19.711854,
-      &quot;to_frame&quot;: 3
+      &quot;id&quot;: &quot;NV-CORRUPT&quot;,
+      &quot;category&quot;: &quot;corrupt&quot;,
+      &quot;path&quot;: &quot;reports/v0-s2/fixture-preparation-02/fixtures/corrupt.mp4&quot;,
+      &quot;sha256&quot;: &quot;a174786bd98ea1ffd1844a1110751f2d9c1989f4c6cb75feeef6f6326dc0a5b1&quot;,
+      &quot;bytes&quot;: 21,
+      &quot;expected_status&quot;: 422,
+      &quot;expected_error&quot;: &quot;MEDIA_INVALID&quot;,
+      &quot;oracle&quot;: &quot;public upload rejects; owned media/temp/spooled FDs return to baseline; zero model/publish&quot;,
+      &quot;status&quot;: &quot;PASS&quot;,
+      &quot;actual_status&quot;: 422,
+      &quot;before&quot;: {
+        &quot;media_and_temp&quot;: [],
+        &quot;owned_open_files&quot;: []
+      },
+      &quot;raw_response_sha256&quot;: &quot;fc15296cf147f93248291863054045de63af48e7ff013cddd73cfd30d708bc14&quot;,
+      &quot;actual_error&quot;: &quot;MEDIA_INVALID&quot;,
+      &quot;after&quot;: {
+        &quot;media_and_temp&quot;: [],
+        &quot;owned_open_files&quot;: []
+      },
+      &quot;model_calls&quot;: 0,
+      &quot;published_media_ref&quot;: false,
+      &quot;cleanup_proven&quot;: true
     },
     {
-      &quot;changed_pixel_count&quot;: 118155,
-      &quot;different_pixel_percent&quot;: 33.3726,
-      &quot;frame_pixel_count&quot;: 354048,
-      &quot;from_frame&quot;: 3,
-      &quot;mean_absolute_rgb_delta&quot;: 19.509985,
-      &quot;to_frame&quot;: 4
+      &quot;id&quot;: &quot;NV-FORMAT&quot;,
+      &quot;category&quot;: &quot;format&quot;,
+      &quot;path&quot;: &quot;reports/v0-s2/fixture-preparation-02/fixtures/fake-extension.mp4&quot;,
+      &quot;sha256&quot;: &quot;becf0cf30d6978325d9ccdea315923e2dbbf7e591c2857b92b5f82e41957bb98&quot;,
+      &quot;bytes&quot;: 97,
+      &quot;expected_status&quot;: 422,
+      &quot;expected_error&quot;: &quot;MEDIA_INVALID&quot;,
+      &quot;oracle&quot;: &quot;public upload rejects; owned media/temp/spooled FDs return to baseline; zero model/publish&quot;,
+      &quot;status&quot;: &quot;PASS&quot;,
+      &quot;actual_status&quot;: 422,
+      &quot;before&quot;: {
+        &quot;media_and_temp&quot;: [],
+        &quot;owned_open_files&quot;: []
+      },
+      &quot;raw_response_sha256&quot;: &quot;b420e676e7f8ce288a78d4ff04f6599f83228544e0629a6f80e1606a5d343485&quot;,
+      &quot;actual_error&quot;: &quot;MEDIA_INVALID&quot;,
+      &quot;after&quot;: {
+        &quot;media_and_temp&quot;: [],
+        &quot;owned_open_files&quot;: []
+      },
+      &quot;model_calls&quot;: 0,
+      &quot;published_media_ref&quot;: false,
+      &quot;cleanup_proven&quot;: true
+    },
+    {
+      &quot;id&quot;: &quot;NV-TRUNCATED&quot;,
+      &quot;category&quot;: &quot;corrupt&quot;,
+      &quot;path&quot;: &quot;reports/v0-s2/fixture-preparation-02/fixtures/truncated.mov&quot;,
+      &quot;sha256&quot;: &quot;ba012ac2264edf8e97921aa557eed8e63cdfeb8332485d0cd8c25ce2752a8b62&quot;,
+      &quot;bytes&quot;: 128,
+      &quot;expected_status&quot;: 422,
+      &quot;expected_error&quot;: &quot;MEDIA_INVALID&quot;,
+      &quot;oracle&quot;: &quot;public upload rejects; owned media/temp/spooled FDs return to baseline; zero model/publish&quot;,
+      &quot;status&quot;: &quot;PASS&quot;,
+      &quot;actual_status&quot;: 422,
+      &quot;before&quot;: {
+        &quot;media_and_temp&quot;: [],
+        &quot;owned_open_files&quot;: []
+      },
+      &quot;raw_response_sha256&quot;: &quot;f456f2057b297b563f7182610011a7592eb6481b90fc18d56eaabf5af574df56&quot;,
+      &quot;actual_error&quot;: &quot;MEDIA_INVALID&quot;,
+      &quot;after&quot;: {
+        &quot;media_and_temp&quot;: [],
+        &quot;owned_open_files&quot;: []
+      },
+      &quot;model_calls&quot;: 0,
+      &quot;published_media_ref&quot;: false,
+      &quot;cleanup_proven&quot;: true
+    },
+    {
+      &quot;id&quot;: &quot;NV-PIXELS&quot;,
+      &quot;category&quot;: &quot;pixels&quot;,
+      &quot;path&quot;: &quot;/mnt/c/workspace/videoworkline/.lvw-runtime/lvw-prompt-service/R1-unified-fixtures/real-rejection-fixtures-04/over-pixels.mp4&quot;,
+      &quot;sha256&quot;: &quot;9851e19b3e4198de0dc1cea8e1e37e742ccde4a845f270b65c659f0326f0a0b2&quot;,
+      &quot;bytes&quot;: 25907,
+      &quot;expected_status&quot;: 422,
+      &quot;expected_error&quot;: &quot;MEDIA_LIMIT_EXCEEDED&quot;,
+      &quot;oracle&quot;: &quot;public upload rejects; owned media/temp/spooled FDs return to baseline; zero model/publish&quot;,
+      &quot;status&quot;: &quot;PASS&quot;,
+      &quot;actual_status&quot;: 422,
+      &quot;before&quot;: {
+        &quot;media_and_temp&quot;: [],
+        &quot;owned_open_files&quot;: []
+      },
+      &quot;raw_response_sha256&quot;: &quot;1884cc7d9f5ef0608a524fc7fde42c6f4303ceb1ae2d560e67f94c7f5c88259e&quot;,
+      &quot;actual_error&quot;: &quot;MEDIA_LIMIT_EXCEEDED&quot;,
+      &quot;after&quot;: {
+        &quot;media_and_temp&quot;: [],
+        &quot;owned_open_files&quot;: []
+      },
+      &quot;model_calls&quot;: 0,
+      &quot;published_media_ref&quot;: false,
+      &quot;cleanup_proven&quot;: true
+    },
+    {
+      &quot;id&quot;: &quot;NV-BYTES&quot;,
+      &quot;category&quot;: &quot;bytes&quot;,
+      &quot;path&quot;: &quot;/mnt/c/workspace/videoworkline/.lvw-runtime/lvw-prompt-service/R1-unified-fixtures/real-rejection-fixtures-04/over-bytes.mp4&quot;,
+      &quot;sha256&quot;: &quot;da6ce8755151acd05195db67ebce3ee0fb5f4012e71e821cc5750f3304eaf41e&quot;,
+      &quot;bytes&quot;: 268435457,
+      &quot;expected_status&quot;: 422,
+      &quot;expected_error&quot;: &quot;MEDIA_LIMIT_EXCEEDED&quot;,
+      &quot;oracle&quot;: &quot;public upload rejects; owned media/temp/spooled FDs return to baseline; zero model/publish&quot;,
+      &quot;status&quot;: &quot;PASS&quot;,
+      &quot;actual_status&quot;: 422,
+      &quot;before&quot;: {
+        &quot;media_and_temp&quot;: [],
+        &quot;owned_open_files&quot;: []
+      },
+      &quot;raw_response_sha256&quot;: &quot;ddf15e2415538c2914b744059e233cb3b03eb8b6d79fe5f000184cb5a11c7314&quot;,
+      &quot;actual_error&quot;: &quot;MEDIA_LIMIT_EXCEEDED&quot;,
+      &quot;after&quot;: {
+        &quot;media_and_temp&quot;: [],
+        &quot;owned_open_files&quot;: []
+      },
+      &quot;model_calls&quot;: 0,
+      &quot;published_media_ref&quot;: false,
+      &quot;cleanup_proven&quot;: true
+    },
+    {
+      &quot;id&quot;: &quot;NV-EMPTY&quot;,
+      &quot;category&quot;: &quot;empty&quot;,
+      &quot;path&quot;: &quot;/mnt/c/workspace/videoworkline/.lvw-runtime/lvw-prompt-service/R1-unified-fixtures/real-rejection-fixtures-04/empty.mp4&quot;,
+      &quot;sha256&quot;: &quot;e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855&quot;,
+      &quot;bytes&quot;: 0,
+      &quot;expected_status&quot;: 422,
+      &quot;expected_error&quot;: &quot;MEDIA_INVALID&quot;,
+      &quot;oracle&quot;: &quot;public upload rejects; owned media/temp/spooled FDs return to baseline; zero model/publish&quot;,
+      &quot;status&quot;: &quot;PASS&quot;,
+      &quot;actual_status&quot;: 422,
+      &quot;before&quot;: {
+        &quot;media_and_temp&quot;: [],
+        &quot;owned_open_files&quot;: []
+      },
+      &quot;raw_response_sha256&quot;: &quot;7a7dc389c336105f07406ce985d97ea8ac6d244a20d945c43c7cbec00f188a0a&quot;,
+      &quot;actual_error&quot;: &quot;MEDIA_INVALID&quot;,
+      &quot;after&quot;: {
+        &quot;media_and_temp&quot;: [],
+        &quot;owned_open_files&quot;: []
+      },
+      &quot;model_calls&quot;: 0,
+      &quot;published_media_ref&quot;: false,
+      &quot;cleanup_proven&quot;: true
     }
   ],
-  &quot;alignment_measurements&quot;: [
+  &quot;decision&quot;: &quot;ALL_REAL_NEGATIVES_AND_CLEANUP_PASS&quot;
+}</pre></section><section><h2>三个真实取消阶段</h2><p>仅展示本轮实际记录；NOT_RUN、阻塞与失败不计通过。</p><a href="reports/unified-media/live-15/cancellation-results.json">下载原始逐项记录</a><pre>{
+  &quot;kind&quot;: &quot;THREE_REAL_PUBLIC_CANCEL_PHASES&quot;,
+  &quot;cases&quot;: [
     {
-      &quot;analysis_size&quot;: [
-        128,
-        77
-      ],
-      &quot;best_aligned_mean_luma_error&quot;: 6.597628,
-      &quot;colour_components&quot;: [
-        {
-          &quot;best_error&quot;: 0.09974,
-          &quot;component&quot;: &quot;R-G&quot;,
-          &quot;equally_best_offsets&quot;: 1,
-          &quot;error_reduction_percent&quot;: 0.0,
-          &quot;offset_px&quot;: {
-            &quot;x&quot;: 0,
-            &quot;y&quot;: 0
-          },
-          &quot;usable&quot;: true,
-          &quot;zero_error&quot;: 0.09974
-        },
-        {
-          &quot;best_error&quot;: 2.610299,
-          &quot;component&quot;: &quot;G-B&quot;,
-          &quot;equally_best_offsets&quot;: 1,
-          &quot;error_reduction_percent&quot;: 62.1621,
-          &quot;offset_px&quot;: {
-            &quot;x&quot;: 3,
-            &quot;y&quot;: 0
-          },
-          &quot;usable&quot;: true,
-          &quot;zero_error&quot;: 6.898635
-        },
-        {
-          &quot;best_error&quot;: 5.672677,
-          &quot;component&quot;: &quot;B-R&quot;,
-          &quot;equally_best_offsets&quot;: 1,
-          &quot;error_reduction_percent&quot;: 18.6578,
-          &quot;offset_px&quot;: {
-            &quot;x&quot;: 3,
-            &quot;y&quot;: 0
-          },
-          &quot;usable&quot;: true,
-          &quot;zero_error&quot;: 6.973847
-        }
-      ],
-      &quot;equally_best_offsets&quot;: 1,
-      &quot;from_frame&quot;: 1,
-      &quot;next_to_previous_alignment_offset_px&quot;: {
-        &quot;x&quot;: 3,
-        &quot;y&quot;: 0
+      &quot;phase&quot;: &quot;queued&quot;,
+      &quot;status&quot;: &quot;PASS&quot;,
+      &quot;job_id&quot;: &quot;job_00ee2001cd484b3d9b9f9024bb045392&quot;,
+      &quot;observed&quot;: {
+        &quot;id&quot;: &quot;job_00ee2001cd484b3d9b9f9024bb045392&quot;,
+        &quot;kind&quot;: &quot;analyze&quot;,
+        &quot;status&quot;: &quot;queued&quot;,
+        &quot;resource_state&quot;: &quot;unknown&quot;,
+        &quot;attempt_id&quot;: null,
+        &quot;cancel_epoch&quot;: 0,
+        &quot;progress_done&quot;: 0,
+        &quot;progress_total&quot;: 5,
+        &quot;result_ref&quot;: null,
+        &quot;error_code&quot;: null
       },
-      &quot;relative_error_reduction&quot;: 0.72548,
-      &quot;search_radius_px&quot;: 10,
-      &quot;to_frame&quot;: 2,
-      &quot;unaligned_mean_luma_error&quot;: 24.033301,
-      &quot;usable&quot;: true
+      &quot;cancel_response&quot;: {
+        &quot;response&quot;: {
+          &quot;id&quot;: &quot;job_00ee2001cd484b3d9b9f9024bb045392&quot;,
+          &quot;kind&quot;: &quot;analyze&quot;,
+          &quot;status&quot;: &quot;cancelled&quot;,
+          &quot;resource_state&quot;: &quot;released&quot;,
+          &quot;attempt_id&quot;: null,
+          &quot;cancel_epoch&quot;: 1,
+          &quot;progress_done&quot;: 0,
+          &quot;progress_total&quot;: 5,
+          &quot;result_ref&quot;: null,
+          &quot;error_code&quot;: &quot;JOB_CANCELLED&quot;
+        },
+        &quot;feedback_ms&quot;: 2
+      },
+      &quot;terminal&quot;: {
+        &quot;id&quot;: &quot;job_00ee2001cd484b3d9b9f9024bb045392&quot;,
+        &quot;kind&quot;: &quot;analyze&quot;,
+        &quot;status&quot;: &quot;cancelled&quot;,
+        &quot;resource_state&quot;: &quot;released&quot;,
+        &quot;attempt_id&quot;: null,
+        &quot;cancel_epoch&quot;: 1,
+        &quot;progress_done&quot;: 0,
+        &quot;progress_total&quot;: 5,
+        &quot;result_ref&quot;: null,
+        &quot;error_code&quot;: &quot;JOB_CANCELLED&quot;
+      }
     },
     {
-      &quot;analysis_size&quot;: [
-        128,
-        77
-      ],
-      &quot;best_aligned_mean_luma_error&quot;: 4.548083,
-      &quot;colour_components&quot;: [
-        {
-          &quot;best_error&quot;: 0.10104,
-          &quot;component&quot;: &quot;R-G&quot;,
-          &quot;equally_best_offsets&quot;: 1,
-          &quot;error_reduction_percent&quot;: 0.0,
-          &quot;offset_px&quot;: {
-            &quot;x&quot;: 0,
-            &quot;y&quot;: 0
-          },
-          &quot;usable&quot;: true,
-          &quot;zero_error&quot;: 0.10104
-        },
-        {
-          &quot;best_error&quot;: 2.152372,
-          &quot;component&quot;: &quot;G-B&quot;,
-          &quot;equally_best_offsets&quot;: 1,
-          &quot;error_reduction_percent&quot;: 63.093,
-          &quot;offset_px&quot;: {
-            &quot;x&quot;: 3,
-            &quot;y&quot;: 0
-          },
-          &quot;usable&quot;: true,
-          &quot;zero_error&quot;: 5.831871
-        },
-        {
-          &quot;best_error&quot;: 5.227745,
-          &quot;component&quot;: &quot;B-R&quot;,
-          &quot;equally_best_offsets&quot;: 1,
-          &quot;error_reduction_percent&quot;: 10.9173,
-          &quot;offset_px&quot;: {
-            &quot;x&quot;: 3,
-            &quot;y&quot;: 0
-          },
-          &quot;usable&quot;: true,
-          &quot;zero_error&quot;: 5.868421
-        }
-      ],
-      &quot;equally_best_offsets&quot;: 1,
-      &quot;from_frame&quot;: 2,
-      &quot;next_to_previous_alignment_offset_px&quot;: {
-        &quot;x&quot;: 3,
-        &quot;y&quot;: 0
+      &quot;phase&quot;: &quot;preparing&quot;,
+      &quot;status&quot;: &quot;PASS&quot;,
+      &quot;job_id&quot;: &quot;job_f8dac655199047f69af6134133e6ca5a&quot;,
+      &quot;observed&quot;: {
+        &quot;id&quot;: &quot;job_f8dac655199047f69af6134133e6ca5a&quot;,
+        &quot;kind&quot;: &quot;analyze&quot;,
+        &quot;status&quot;: &quot;preparing&quot;,
+        &quot;resource_state&quot;: &quot;busy&quot;,
+        &quot;attempt_id&quot;: &quot;att_7083153bf28245ebbad3a5afc8b0fda6&quot;,
+        &quot;cancel_epoch&quot;: 0,
+        &quot;progress_done&quot;: 0,
+        &quot;progress_total&quot;: 5,
+        &quot;result_ref&quot;: null,
+        &quot;error_code&quot;: null
       },
-      &quot;relative_error_reduction&quot;: 0.778876,
-      &quot;search_radius_px&quot;: 10,
-      &quot;to_frame&quot;: 3,
-      &quot;unaligned_mean_luma_error&quot;: 20.568064,
-      &quot;usable&quot;: true
+      &quot;cancel_response&quot;: {
+        &quot;response&quot;: {
+          &quot;id&quot;: &quot;job_f8dac655199047f69af6134133e6ca5a&quot;,
+          &quot;kind&quot;: &quot;analyze&quot;,
+          &quot;status&quot;: &quot;cancelling&quot;,
+          &quot;resource_state&quot;: &quot;releasing&quot;,
+          &quot;attempt_id&quot;: &quot;att_7083153bf28245ebbad3a5afc8b0fda6&quot;,
+          &quot;cancel_epoch&quot;: 1,
+          &quot;progress_done&quot;: 0,
+          &quot;progress_total&quot;: 5,
+          &quot;result_ref&quot;: null,
+          &quot;error_code&quot;: &quot;JOB_CANCELLED&quot;
+        },
+        &quot;feedback_ms&quot;: 1
+      },
+      &quot;terminal&quot;: {
+        &quot;id&quot;: &quot;job_f8dac655199047f69af6134133e6ca5a&quot;,
+        &quot;kind&quot;: &quot;analyze&quot;,
+        &quot;status&quot;: &quot;cancelled&quot;,
+        &quot;resource_state&quot;: &quot;released&quot;,
+        &quot;attempt_id&quot;: &quot;att_7083153bf28245ebbad3a5afc8b0fda6&quot;,
+        &quot;cancel_epoch&quot;: 1,
+        &quot;progress_done&quot;: 0,
+        &quot;progress_total&quot;: 5,
+        &quot;result_ref&quot;: null,
+        &quot;error_code&quot;: &quot;JOB_CANCELLED&quot;
+      }
     },
     {
-      &quot;analysis_size&quot;: [
-        128,
-        77
-      ],
-      &quot;best_aligned_mean_luma_error&quot;: 5.611598,
-      &quot;colour_components&quot;: [
-        {
-          &quot;best_error&quot;: 0.124756,
-          &quot;component&quot;: &quot;R-G&quot;,
-          &quot;equally_best_offsets&quot;: 1,
-          &quot;error_reduction_percent&quot;: 0.0,
-          &quot;offset_px&quot;: {
-            &quot;x&quot;: 0,
-            &quot;y&quot;: 0
-          },
-          &quot;usable&quot;: true,
-          &quot;zero_error&quot;: 0.124756
-        },
-        {
-          &quot;best_error&quot;: 2.248863,
-          &quot;component&quot;: &quot;G-B&quot;,
-          &quot;equally_best_offsets&quot;: 1,
-          &quot;error_reduction_percent&quot;: 63.6593,
-          &quot;offset_px&quot;: {
-            &quot;x&quot;: 3,
-            &quot;y&quot;: 0
-          },
-          &quot;usable&quot;: true,
-          &quot;zero_error&quot;: 6.188272
-        },
-        {
-          &quot;best_error&quot;: 5.290936,
-          &quot;component&quot;: &quot;B-R&quot;,
-          &quot;equally_best_offsets&quot;: 1,
-          &quot;error_reduction_percent&quot;: 14.8849,
-          &quot;offset_px&quot;: {
-            &quot;x&quot;: 3,
-            &quot;y&quot;: 0
-          },
-          &quot;usable&quot;: true,
-          &quot;zero_error&quot;: 6.216212
-        }
-      ],
-      &quot;equally_best_offsets&quot;: 1,
-      &quot;from_frame&quot;: 3,
-      &quot;next_to_previous_alignment_offset_px&quot;: {
-        &quot;x&quot;: 3,
-        &quot;y&quot;: 0
+      &quot;phase&quot;: &quot;running&quot;,
+      &quot;status&quot;: &quot;PASS&quot;,
+      &quot;job_id&quot;: &quot;job_2cd58f561f484244a12435f995b1754d&quot;,
+      &quot;observed&quot;: {
+        &quot;id&quot;: &quot;job_2cd58f561f484244a12435f995b1754d&quot;,
+        &quot;kind&quot;: &quot;analyze&quot;,
+        &quot;status&quot;: &quot;running&quot;,
+        &quot;resource_state&quot;: &quot;busy&quot;,
+        &quot;attempt_id&quot;: &quot;att_e354caf29a8f49cabe3dcfc88a4372e9&quot;,
+        &quot;cancel_epoch&quot;: 0,
+        &quot;progress_done&quot;: 4,
+        &quot;progress_total&quot;: 5,
+        &quot;result_ref&quot;: null,
+        &quot;error_code&quot;: null
       },
-      &quot;relative_error_reduction&quot;: 0.740085,
-      &quot;search_radius_px&quot;: 10,
-      &quot;to_frame&quot;: 4,
-      &quot;unaligned_mean_luma_error&quot;: 21.590156,
-      &quot;usable&quot;: true
+      &quot;feedback_ms&quot;: 46,
+      &quot;terminal&quot;: {
+        &quot;id&quot;: &quot;job_2cd58f561f484244a12435f995b1754d&quot;,
+        &quot;kind&quot;: &quot;analyze&quot;,
+        &quot;status&quot;: &quot;cancelled&quot;,
+        &quot;resource_state&quot;: &quot;released&quot;,
+        &quot;attempt_id&quot;: &quot;att_e354caf29a8f49cabe3dcfc88a4372e9&quot;,
+        &quot;cancel_epoch&quot;: 1,
+        &quot;progress_done&quot;: 4,
+        &quot;progress_total&quot;: 5,
+        &quot;result_ref&quot;: null,
+        &quot;error_code&quot;: &quot;JOB_CANCELLED&quot;
+      }
     }
   ]
-}</pre></section><section><h2>本次母授权下的运行历史</h2><p>每轮独立候选与完整失败证据保留；后续修复不会把前轮改为通过。</p><div class="scroll"><table><tr><th>运行</th><th>候选</th><th>模型动作</th><th>独审结论</th><th>原始证据</th></tr><tr><td>live-05</td><td><code>0cc125f9ba8a</code></td><td>3</td><td>NO_GO</td><td><a href="reports/unified-media/live-05/receipt.json">原始运行</a> · <a href="reports/unified-media/independent-live-05/receipt.json">独审</a></td></tr><tr><td>live-06</td><td><code>8d43c1dcb79c</code></td><td>3</td><td>NO_GO</td><td><a href="reports/unified-media/live-06/receipt.json">原始运行</a> · <a href="reports/unified-media/independent-live-06/receipt.json">独审</a></td></tr><tr><td>live-07</td><td><code>d9759decaa76</code></td><td>3</td><td>NO_GO</td><td><a href="reports/unified-media/live-07/receipt.json">原始运行</a> · <a href="reports/unified-media/independent-live-07/receipt.json">独审</a></td></tr><tr><td>live-08</td><td><code>dccdd1b7e06d</code></td><td>0</td><td>WAIT_RESOURCE</td><td><a href="reports/unified-media/live-08/receipt.json">原始运行</a> · <a href="reports/unified-media/independent-live-08/receipt.json">独审</a></td></tr><tr><td>live-09</td><td><code>fd9044e29ea9</code></td><td>0</td><td>NO_GO</td><td><a href="reports/unified-media/live-09/receipt.json">原始运行</a> · <a href="reports/unified-media/independent-live-09/receipt.json">独审</a></td></tr><tr><td>live-10</td><td><code>fd9044e29ea9</code></td><td>3</td><td>NO_GO</td><td><a href="reports/unified-media/live-10/receipt.json">原始运行</a> · <a href="reports/unified-media/independent-live-10/receipt.json">独审</a></td></tr><tr><td>live-11</td><td><code>d3b4ddde5311</code></td><td>0</td><td>NO_GO</td><td><a href="reports/unified-media/live-11/receipt.json">原始运行</a> · <a href="reports/unified-media/independent-live-11/receipt.json">独审</a></td></tr><tr><td>live-12</td><td><code>52736c9aabc7</code></td><td>3</td><td>NO_GO</td><td><a href="reports/unified-media/live-12/receipt.json">原始运行</a> · <a href="reports/unified-media/independent-live-12/receipt.json">独审</a></td></tr><tr><td>live-13</td><td><code>9d9cdad0d3ef</code></td><td>3</td><td>NO_GO</td><td><a href="reports/unified-media/live-13/receipt.json">原始运行</a> · <a href="reports/unified-media/independent-live-13/receipt.json">独审</a></td></tr><tr><td>live-14</td><td><code>e163af66848e</code></td><td>3</td><td>NO_GO</td><td><a href="reports/unified-media/live-14/receipt.json">原始运行</a> · <a href="reports/unified-media/independent-live-14/receipt.json">独审</a></td></tr></table></div></section><section><h2>11段人工留样 · 未提交模型</h2><p>先看视频，再到统一工作台上传验证。以下预期由先验观察冻结，不是LVW实际输出；不用逐字匹配，也不要依据来源标题编造事实。正式机器门禁完成前不需要你代跑回归。</p><p><a href="人工验收视频集/人工验证视频_11段.zip" download>下载视频集ZIP</a> · <a href="人工验收视频集/expected-results.frozen.json">冻结预期</a> · <a href="reports/unified-media/holdout-binding.json">新旧候选与哈希绑定</a></p><div class="grid"><article class="card"><h3>V01 · 实拍教程 / 手机交互</h3><span class="badge">NOT_RUN</span><video controls preload="none" src="人工验收视频集/videos/V01.mp4"></video><p><a download href="人工验收视频集/videos/V01.mp4">保存视频</a> · 10.0秒</p><details><summary>查看冻结观察预期</summary><ul><li>户外人物使用手机，画面在手机特写、人物和天空之间切换</li><li>手机界面和英文引导文字可见，整体自然日光、浅景深</li></ul><p>不应臆造：不能只依据来源标题声称整段只有云层；不编造手机品牌、人物身份或未听取的对话</p><pre>人物在户外操作手机；以近景和人物镜头交替呈现云层观察教程。</pre></details></article><article class="card"><h3>V02 · 森林航拍 / 三维地形</h3><span class="badge">NOT_RUN</span><video controls preload="none" src="人工验收视频集/videos/V02.mp4"></video><p><a download href="人工验收视频集/videos/V02.mp4">保存视频</a> · 10.0秒</p><details><summary>查看冻结观察预期</summary><ul><li>森林、山谷与河道的高处视角</li><li>先出现机翼，再转为森林地形/三维数据视图</li></ul><p>不应臆造：不要把机翼误当建筑屋顶；不要凭素材标题确定拍摄国家或灾害原因</p><pre>从飞机机翼附近俯瞰森林山谷，再过渡到森林地形的三维视图。</pre></details></article><article class="card"><h3>V03 · 复古地图 / 路径图解</h3><span class="badge">NOT_RUN</span><video controls preload="none" src="人工验收视频集/videos/V03.mp4"></video><p><a download href="人工验收视频集/videos/V03.mp4">保存视频</a> · 10.0秒</p><details><summary>查看冻结观察预期</summary><ul><li>灰白航海地图、虚线与红色路径</li><li>画面有推移或缩放，地图上能看到Gulf Stream等标注</li></ul><p>不应臆造：不能声称看到真实海底动物或潜艇实拍；不要求精确读出所有小字或经纬度</p><pre>复古灰白地图上显示虚线和红色航迹，镜头沿地图移动以说明路径。</pre></details></article><article class="card"><h3>V04 · 野生动物 / 长焦特写</h3><span class="badge">NOT_RUN</span><video controls preload="none" src="人工验收视频集/videos/V04.mp4"></video><p><a download href="人工验收视频集/videos/V04.mp4">保存视频</a> · 10.0秒</p><details><summary>查看冻结观察预期</summary><ul><li>树枝间的大型鸟巢和巢内的鸟</li><li>蓝天背景、长焦固定近景；动作较轻微</li></ul><p>不应臆造：不能编造捕食、展翅飞走或大量幼鸟；物种若不能确认可称鸟类；不强求白头海雕名称</p><pre>蓝天下，树枝之间的大鸟巢中可见一只鸟，镜头稳定，鸟有轻微头部变化。</pre></details></article><article class="card"><h3>V05 · 写实地表CGI / 机械载具</h3><span class="badge">NOT_RUN</span><video controls preload="none" src="人工验收视频集/videos/V05.mp4"></video><p><a download href="人工验收视频集/videos/V05.mp4">保存视频</a> · 10.0秒</p><details><summary>查看冻结观察预期</summary><ul><li>橙褐色地表上的六轮探测车</li><li>高处斜俯视，载具和地面阴影清晰，缓慢变化</li></ul><p>不应臆造：不是实景道路汽车广告；未见无人机起飞时不能依据完整片名编造直升机动作</p><pre>写实三维动画中，六轮探测车位于橙褐色地表，镜头从高处斜俯视。</pre></details></article><article class="card"><h3>V06 · 快速混剪 / 航天主题</h3><span class="badge">NOT_RUN</span><video controls preload="none" src="人工验收视频集/videos/V06.mp4"></video><p><a download href="人工验收视频集/videos/V06.mp4">保存视频</a> · 6.0秒</p><details><summary>查看冻结观察预期</summary><ul><li>发射台与橙白火箭、月面车、带太阳翼的空间设施先后出现</li><li>存在明显场景切换，不能把多个地点合并为一个连续实景</li></ul><p>不应臆造：不能只描述最后一帧；不可补写爆炸、战争或当前片段之外的飞船喷焰</p><pre>快速切换的航天画面展示发射台火箭、月面车辆与轨道中的太阳翼设施。</pre></details></article><article class="card"><h3>V07 · 夜景延时 / 展陈建筑</h3><span class="badge">NOT_RUN</span><video controls preload="none" src="人工验收视频集/videos/V07.mp4"></video><p><a download href="人工验收视频集/videos/V07.mp4">保存视频</a> · 10.0秒</p><details><summary>查看冻结观察预期</summary><ul><li>深蓝夜空下的数座竖直火箭展品，前景有树木暗影</li><li>镜头基本固定，夜空中可见稀疏亮点/微小变化</li></ul><p>不应臆造：不能说火箭正在发射或爆炸；四帧不足时不强求判定星轨速度；不编造城市名</p><pre>固定机位拍摄夜色中的火箭展陈，深蓝天空与树影形成安静的夜景。</pre></details></article><article class="card"><h3>V08 · 室内纪实 / 工作人群</h3><span class="badge">NOT_RUN</span><video controls preload="none" src="人工验收视频集/videos/V08.mp4"></video><p><a download href="人工验收视频集/videos/V08.mp4">保存视频</a> · 10.0秒</p><details><summary>查看冻结观察预期</summary><ul><li>明亮大窗的控制室，成排显示器与戴耳机的工作人员</li><li>先是室内较广视角，随后切到工作人员近景</li></ul><p>不应臆造：不根据人物外貌推断身份或情绪；不编造屏幕具体读数和故障事件</p><pre>纪实镜头展示控制室的显示器阵列和戴耳机的工作人员，随后转向人物近景。</pre></details></article><article class="card"><h3>V09 · 科学光影 / 高对比绿色</h3><span class="badge">NOT_RUN</span><video controls preload="none" src="人工验收视频集/videos/V09.mp4"></video><p><a download href="人工验收视频集/videos/V09.mp4">保存视频</a> · 10.0秒</p><details><summary>查看冻结观察预期</summary><ul><li>黑色背景中有绿色圆形观察区域</li><li>区域内部的纹理和流动样结构随时间变化，顶部有装置轮廓</li></ul><p>不应臆造：不声称能从画面确定液体化学成分；不要把光影直接定性为火灾、肿瘤或真实夜视战斗</p><pre>高对比科学影像中，绿色圆形观察窗内的流动纹理不断改变，周围为黑色背景。</pre></details></article><article class="card"><h3>V10 · 太空CGI / 航天器近景</h3><span class="badge">NOT_RUN</span><video controls preload="none" src="人工验收视频集/videos/V10.mp4"></video><p><a download href="人工验收视频集/videos/V10.mp4">保存视频</a> · 10.0秒</p><details><summary>查看冻结观察预期</summary><ul><li>白色航天器及深色太阳翼、蓝白地球和黑色太空</li><li>相对视角变化使太阳翼和舱体在画面中移动</li></ul><p>不应臆造：不能把CGI断言为真实航天员拍摄；不编造舱内人物、发射日期或精确型号</p><pre>三维太空动画近距离展示白色航天器和太阳翼，地球在背景中弯曲延展。</pre></details></article><article class="card"><h3>V11 · 地球信息图 / 多层可视化</h3><span class="badge">NOT_RUN</span><video controls preload="none" src="人工验收视频集/videos/V11.mp4"></video><p><a download href="人工验收视频集/videos/V11.mp4">保存视频</a> · 10.0秒</p><details><summary>查看冻结观察预期</summary><ul><li>黑色背景上的小地球逐渐变大，出现卫星/轨道和文字标注</li><li>末段出现空间站结构与地球，存在视图转换</li></ul><p>不应臆造：不能只描述为一张静态地球照片；不把图解轨道当作真实可见光轨，不强求小字逐字识别</p><pre>黑色背景上的地球逐渐放大，并叠加卫星轨道和标注，随后转向空间设施视角。</pre></details></article></div></section><section><h2>完整开发大纲</h2><div class="scroll"><table><tr><th>阶段</th><th>交付</th><th>完成子步骤</th><th>说明</th></tr><tr><td>V0-S0</td><td>基线探索</td><td>1/2</td><td>历史探索已结束且NO_GO保留；V0-Min按后续范围签署，不回填S0 PASS</td></tr><tr><td>V0-S1</td><td>图片与独立人工</td><td>5/5</td><td>已签仅V0-Min</td></tr><tr><td>R0</td><td>独立服务复核</td><td>1/2</td><td>仅R1a前置单图子集可确认；不把完整视频/Q01算通过</td></tr><tr><td>R1a</td><td>单图React/FastAPI</td><td>5/5</td><td>已签仅单图切片；完整V1未完成</td></tr><tr><td>V0-S2</td><td>视频与资源控制</td><td>7/8</td><td>Full08 fresh cumulative9/9, offline541/5checks, independent Fatal0/Major0/Minor0; human signoff and immediate Git sync remain.</td></tr><tr><td>V0-S3</td><td>离线质量与增量包</td><td>0/6</td><td>已有设计，未完成正式交付；存在代码需进入时复用审计</td></tr><tr><td>R1</td><td>人工业务骨架</td><td>0/4</td><td>已有设计，未完成正式交付；存在代码需进入时复用审计</td></tr><tr><td>R2</td><td>任务与正式运行包</td><td>0/4</td><td>已有设计，未完成正式交付；存在代码需进入时复用审计</td></tr><tr><td>R3</td><td>镜头资产与检索</td><td>0/4</td><td>已有设计，未完成正式交付；存在代码需进入时复用审计</td></tr><tr><td>R4</td><td>MCP与恢复</td><td>0/4</td><td>已有设计，未完成正式交付；存在代码需进入时复用审计</td></tr><tr><td>R5a</td><td>证据与建议合同</td><td>0/4</td><td>已有设计，未完成正式交付；存在代码需进入时复用审计</td></tr><tr><td>R5b</td><td>受控生成交接</td><td>0/4</td><td>已有设计，未完成正式交付；存在代码需进入时复用审计</td></tr><tr><td>R5c</td><td>集成与完整交付</td><td>0/4</td><td>已有设计，未完成正式交付；存在代码需进入时复用审计</td></tr></table></div><p>本次提前切片另计U1/U2/U3，不将切片完成度等同于完整R1/R2。</p></section><footer>离线证据导航，不运行模型、不替代产品前端，不自动签署或发布。</footer></main></html>
+}</pre></section><section><h2>公开请求与结果配置复算</h2><p>仅展示本轮实际记录；NOT_RUN、阻塞与失败不计通过。</p><a href="reports/unified-media/live-15/configuration-recomputation.json">下载原始逐项记录</a><pre>{
+  &quot;kind&quot;: &quot;PUBLIC_ANALYSIS_REQUEST_CONFIG_RECOMPUTATION&quot;,
+  &quot;cases&quot;: [
+    {
+      &quot;job_id&quot;: &quot;job_e2cc44d12bc04d3797bd89541fc5a4a0&quot;,
+      &quot;model_run_id&quot;: &quot;run_99a858ba63264e059ab5ee5da81acc94&quot;,
+      &quot;public_request&quot;: {
+        &quot;media_ref_id&quot;: &quot;med_06f96dabce084dd7920cf56fa4e3d42b&quot;,
+        &quot;shot_id&quot;: null,
+        &quot;mode&quot;: &quot;realistic&quot;,
+        &quot;config_profile&quot;: &quot;local-default&quot;,
+        &quot;content_profile&quot;: &quot;standard&quot;,
+        &quot;custom_guidance&quot;: &quot;&quot;
+      },
+      &quot;normalized_configuration&quot;: {
+        &quot;media_ref_id&quot;: &quot;med_06f96dabce084dd7920cf56fa4e3d42b&quot;,
+        &quot;shot_id&quot;: null,
+        &quot;mode&quot;: &quot;realistic&quot;,
+        &quot;config_profile&quot;: &quot;local-default&quot;,
+        &quot;content_profile&quot;: &quot;standard&quot;,
+        &quot;custom_guidance&quot;: &quot;&quot;,
+        &quot;video_num_ctx&quot;: null
+      },
+      &quot;computed_sha256&quot;: &quot;bcd206fa5851dfb05aa3adbf3651266a41dd43d1774ec4f13156368ca98eb61a&quot;,
+      &quot;status&quot;: &quot;PASS&quot;
+    },
+    {
+      &quot;job_id&quot;: &quot;job_4c42eb0442054ddeaf37e9154bc555fc&quot;,
+      &quot;model_run_id&quot;: &quot;run_c44d472e26b2480faffa1f2e707dc0e1&quot;,
+      &quot;public_request&quot;: {
+        &quot;media_ref_id&quot;: &quot;med_e6b7b14021d145f1ac2ced1813fe172c&quot;,
+        &quot;shot_id&quot;: null,
+        &quot;mode&quot;: &quot;realistic&quot;,
+        &quot;config_profile&quot;: &quot;local-default&quot;,
+        &quot;content_profile&quot;: &quot;standard&quot;,
+        &quot;custom_guidance&quot;: &quot;&quot;
+      },
+      &quot;normalized_configuration&quot;: {
+        &quot;media_ref_id&quot;: &quot;med_e6b7b14021d145f1ac2ced1813fe172c&quot;,
+        &quot;shot_id&quot;: null,
+        &quot;mode&quot;: &quot;realistic&quot;,
+        &quot;config_profile&quot;: &quot;local-default&quot;,
+        &quot;content_profile&quot;: &quot;standard&quot;,
+        &quot;custom_guidance&quot;: &quot;&quot;,
+        &quot;video_num_ctx&quot;: 4096
+      },
+      &quot;computed_sha256&quot;: &quot;4f37311439aade64874c7b7c741fa3788e6b3652ac54575a9cda26887861f198&quot;,
+      &quot;status&quot;: &quot;PASS&quot;
+    }
+  ]
+}</pre></section><section><h2>本次母授权下的运行历史</h2><p>每轮独立候选与完整失败证据保留；后续修复不会把前轮改为通过。</p><div class="scroll"><table><tr><th>运行</th><th>候选</th><th>模型动作</th><th>独审结论</th><th>原始证据</th></tr><tr><td>live-05</td><td><code>0cc125f9ba8a</code></td><td>3</td><td>NO_GO</td><td><a href="reports/unified-media/live-05/receipt.json">原始运行</a> · <a href="reports/unified-media/independent-live-05/receipt.json">独审</a></td></tr><tr><td>live-06</td><td><code>8d43c1dcb79c</code></td><td>3</td><td>NO_GO</td><td><a href="reports/unified-media/live-06/receipt.json">原始运行</a> · <a href="reports/unified-media/independent-live-06/receipt.json">独审</a></td></tr><tr><td>live-07</td><td><code>d9759decaa76</code></td><td>3</td><td>NO_GO</td><td><a href="reports/unified-media/live-07/receipt.json">原始运行</a> · <a href="reports/unified-media/independent-live-07/receipt.json">独审</a></td></tr><tr><td>live-08</td><td><code>dccdd1b7e06d</code></td><td>0</td><td>WAIT_RESOURCE</td><td><a href="reports/unified-media/live-08/receipt.json">原始运行</a> · <a href="reports/unified-media/independent-live-08/receipt.json">独审</a></td></tr><tr><td>live-09</td><td><code>fd9044e29ea9</code></td><td>0</td><td>NO_GO</td><td><a href="reports/unified-media/live-09/receipt.json">原始运行</a> · <a href="reports/unified-media/independent-live-09/receipt.json">独审</a></td></tr><tr><td>live-10</td><td><code>fd9044e29ea9</code></td><td>3</td><td>NO_GO</td><td><a href="reports/unified-media/live-10/receipt.json">原始运行</a> · <a href="reports/unified-media/independent-live-10/receipt.json">独审</a></td></tr><tr><td>live-11</td><td><code>d3b4ddde5311</code></td><td>0</td><td>NO_GO</td><td><a href="reports/unified-media/live-11/receipt.json">原始运行</a> · <a href="reports/unified-media/independent-live-11/receipt.json">独审</a></td></tr><tr><td>live-12</td><td><code>52736c9aabc7</code></td><td>3</td><td>NO_GO</td><td><a href="reports/unified-media/live-12/receipt.json">原始运行</a> · <a href="reports/unified-media/independent-live-12/receipt.json">独审</a></td></tr><tr><td>live-13</td><td><code>9d9cdad0d3ef</code></td><td>3</td><td>NO_GO</td><td><a href="reports/unified-media/live-13/receipt.json">原始运行</a> · <a href="reports/unified-media/independent-live-13/receipt.json">独审</a></td></tr><tr><td>live-14</td><td><code>e163af66848e</code></td><td>3</td><td>NO_GO</td><td><a href="reports/unified-media/live-14/receipt.json">原始运行</a> · <a href="reports/unified-media/independent-live-14/receipt.json">独审</a></td></tr><tr><td>live-15</td><td><code>621b1bf386db</code></td><td>3</td><td>MACHINE_AND_INDEPENDENT_PASS_READY_FOR_ACTUAL_HUMAN_EXPERIENCE_SIGNOFF</td><td><a href="reports/unified-media/live-15/receipt.json">原始运行</a> · <a href="reports/unified-media/independent-live-15/receipt.json">独审</a></td></tr></table></div></section><section><h2>11段人工留样 · 未提交模型</h2><p>先看视频，再到统一工作台上传验证。以下预期由先验观察冻结，不是LVW实际输出；不用逐字匹配，也不要依据来源标题编造事实。正式机器门禁完成前不需要你代跑回归。</p><p><a href="人工验收视频集/人工验证视频_11段.zip" download>下载视频集ZIP</a> · <a href="人工验收视频集/expected-results.frozen.json">冻结预期</a> · <a href="reports/unified-media/holdout-binding.json">新旧候选与哈希绑定</a></p><div class="grid"><article class="card"><h3>V01 · 实拍教程 / 手机交互</h3><span class="badge">NOT_RUN</span><video controls preload="none" src="人工验收视频集/videos/V01.mp4"></video><p><a download href="人工验收视频集/videos/V01.mp4">保存视频</a> · 10.0秒</p><details><summary>查看冻结观察预期</summary><ul><li>户外人物使用手机，画面在手机特写、人物和天空之间切换</li><li>手机界面和英文引导文字可见，整体自然日光、浅景深</li></ul><p>不应臆造：不能只依据来源标题声称整段只有云层；不编造手机品牌、人物身份或未听取的对话</p><pre>人物在户外操作手机；以近景和人物镜头交替呈现云层观察教程。</pre></details></article><article class="card"><h3>V02 · 森林航拍 / 三维地形</h3><span class="badge">NOT_RUN</span><video controls preload="none" src="人工验收视频集/videos/V02.mp4"></video><p><a download href="人工验收视频集/videos/V02.mp4">保存视频</a> · 10.0秒</p><details><summary>查看冻结观察预期</summary><ul><li>森林、山谷与河道的高处视角</li><li>先出现机翼，再转为森林地形/三维数据视图</li></ul><p>不应臆造：不要把机翼误当建筑屋顶；不要凭素材标题确定拍摄国家或灾害原因</p><pre>从飞机机翼附近俯瞰森林山谷，再过渡到森林地形的三维视图。</pre></details></article><article class="card"><h3>V03 · 复古地图 / 路径图解</h3><span class="badge">NOT_RUN</span><video controls preload="none" src="人工验收视频集/videos/V03.mp4"></video><p><a download href="人工验收视频集/videos/V03.mp4">保存视频</a> · 10.0秒</p><details><summary>查看冻结观察预期</summary><ul><li>灰白航海地图、虚线与红色路径</li><li>画面有推移或缩放，地图上能看到Gulf Stream等标注</li></ul><p>不应臆造：不能声称看到真实海底动物或潜艇实拍；不要求精确读出所有小字或经纬度</p><pre>复古灰白地图上显示虚线和红色航迹，镜头沿地图移动以说明路径。</pre></details></article><article class="card"><h3>V04 · 野生动物 / 长焦特写</h3><span class="badge">NOT_RUN</span><video controls preload="none" src="人工验收视频集/videos/V04.mp4"></video><p><a download href="人工验收视频集/videos/V04.mp4">保存视频</a> · 10.0秒</p><details><summary>查看冻结观察预期</summary><ul><li>树枝间的大型鸟巢和巢内的鸟</li><li>蓝天背景、长焦固定近景；动作较轻微</li></ul><p>不应臆造：不能编造捕食、展翅飞走或大量幼鸟；物种若不能确认可称鸟类；不强求白头海雕名称</p><pre>蓝天下，树枝之间的大鸟巢中可见一只鸟，镜头稳定，鸟有轻微头部变化。</pre></details></article><article class="card"><h3>V05 · 写实地表CGI / 机械载具</h3><span class="badge">NOT_RUN</span><video controls preload="none" src="人工验收视频集/videos/V05.mp4"></video><p><a download href="人工验收视频集/videos/V05.mp4">保存视频</a> · 10.0秒</p><details><summary>查看冻结观察预期</summary><ul><li>橙褐色地表上的六轮探测车</li><li>高处斜俯视，载具和地面阴影清晰，缓慢变化</li></ul><p>不应臆造：不是实景道路汽车广告；未见无人机起飞时不能依据完整片名编造直升机动作</p><pre>写实三维动画中，六轮探测车位于橙褐色地表，镜头从高处斜俯视。</pre></details></article><article class="card"><h3>V06 · 快速混剪 / 航天主题</h3><span class="badge">NOT_RUN</span><video controls preload="none" src="人工验收视频集/videos/V06.mp4"></video><p><a download href="人工验收视频集/videos/V06.mp4">保存视频</a> · 6.0秒</p><details><summary>查看冻结观察预期</summary><ul><li>发射台与橙白火箭、月面车、带太阳翼的空间设施先后出现</li><li>存在明显场景切换，不能把多个地点合并为一个连续实景</li></ul><p>不应臆造：不能只描述最后一帧；不可补写爆炸、战争或当前片段之外的飞船喷焰</p><pre>快速切换的航天画面展示发射台火箭、月面车辆与轨道中的太阳翼设施。</pre></details></article><article class="card"><h3>V07 · 夜景延时 / 展陈建筑</h3><span class="badge">NOT_RUN</span><video controls preload="none" src="人工验收视频集/videos/V07.mp4"></video><p><a download href="人工验收视频集/videos/V07.mp4">保存视频</a> · 10.0秒</p><details><summary>查看冻结观察预期</summary><ul><li>深蓝夜空下的数座竖直火箭展品，前景有树木暗影</li><li>镜头基本固定，夜空中可见稀疏亮点/微小变化</li></ul><p>不应臆造：不能说火箭正在发射或爆炸；四帧不足时不强求判定星轨速度；不编造城市名</p><pre>固定机位拍摄夜色中的火箭展陈，深蓝天空与树影形成安静的夜景。</pre></details></article><article class="card"><h3>V08 · 室内纪实 / 工作人群</h3><span class="badge">NOT_RUN</span><video controls preload="none" src="人工验收视频集/videos/V08.mp4"></video><p><a download href="人工验收视频集/videos/V08.mp4">保存视频</a> · 10.0秒</p><details><summary>查看冻结观察预期</summary><ul><li>明亮大窗的控制室，成排显示器与戴耳机的工作人员</li><li>先是室内较广视角，随后切到工作人员近景</li></ul><p>不应臆造：不根据人物外貌推断身份或情绪；不编造屏幕具体读数和故障事件</p><pre>纪实镜头展示控制室的显示器阵列和戴耳机的工作人员，随后转向人物近景。</pre></details></article><article class="card"><h3>V09 · 科学光影 / 高对比绿色</h3><span class="badge">NOT_RUN</span><video controls preload="none" src="人工验收视频集/videos/V09.mp4"></video><p><a download href="人工验收视频集/videos/V09.mp4">保存视频</a> · 10.0秒</p><details><summary>查看冻结观察预期</summary><ul><li>黑色背景中有绿色圆形观察区域</li><li>区域内部的纹理和流动样结构随时间变化，顶部有装置轮廓</li></ul><p>不应臆造：不声称能从画面确定液体化学成分；不要把光影直接定性为火灾、肿瘤或真实夜视战斗</p><pre>高对比科学影像中，绿色圆形观察窗内的流动纹理不断改变，周围为黑色背景。</pre></details></article><article class="card"><h3>V10 · 太空CGI / 航天器近景</h3><span class="badge">NOT_RUN</span><video controls preload="none" src="人工验收视频集/videos/V10.mp4"></video><p><a download href="人工验收视频集/videos/V10.mp4">保存视频</a> · 10.0秒</p><details><summary>查看冻结观察预期</summary><ul><li>白色航天器及深色太阳翼、蓝白地球和黑色太空</li><li>相对视角变化使太阳翼和舱体在画面中移动</li></ul><p>不应臆造：不能把CGI断言为真实航天员拍摄；不编造舱内人物、发射日期或精确型号</p><pre>三维太空动画近距离展示白色航天器和太阳翼，地球在背景中弯曲延展。</pre></details></article><article class="card"><h3>V11 · 地球信息图 / 多层可视化</h3><span class="badge">NOT_RUN</span><video controls preload="none" src="人工验收视频集/videos/V11.mp4"></video><p><a download href="人工验收视频集/videos/V11.mp4">保存视频</a> · 10.0秒</p><details><summary>查看冻结观察预期</summary><ul><li>黑色背景上的小地球逐渐变大，出现卫星/轨道和文字标注</li><li>末段出现空间站结构与地球，存在视图转换</li></ul><p>不应臆造：不能只描述为一张静态地球照片；不把图解轨道当作真实可见光轨，不强求小字逐字识别</p><pre>黑色背景上的地球逐渐放大，并叠加卫星轨道和标注，随后转向空间设施视角。</pre></details></article></div></section><section><h2>完整开发大纲</h2><div class="scroll"><table><tr><th>阶段</th><th>交付</th><th>完成子步骤</th><th>说明</th></tr><tr><td>V0-S0</td><td>基线探索</td><td>1/2</td><td>历史探索已结束且NO_GO保留；V0-Min按后续范围签署，不回填S0 PASS</td></tr><tr><td>V0-S1</td><td>图片与独立人工</td><td>5/5</td><td>已签仅V0-Min</td></tr><tr><td>R0</td><td>独立服务复核</td><td>1/2</td><td>仅R1a前置单图子集可确认；不把完整视频/Q01算通过</td></tr><tr><td>R1a</td><td>单图React/FastAPI</td><td>5/5</td><td>已签仅单图切片；完整V1未完成</td></tr><tr><td>V0-S2</td><td>视频与资源控制</td><td>7/8</td><td>Full08 fresh cumulative9/9, offline541/5checks, independent Fatal0/Major0/Minor0; human signoff and immediate Git sync remain.</td></tr><tr><td>V0-S3</td><td>离线质量与增量包</td><td>0/6</td><td>已有设计，未完成正式交付；存在代码需进入时复用审计</td></tr><tr><td>R1</td><td>人工业务骨架</td><td>0/4</td><td>最小图视频统一前端切片3/3实现、机器UM10和独审通过；人签待。完整R1四子项仍未正式交付，不折算为4项完成。</td></tr><tr><td>R2</td><td>任务与正式运行包</td><td>0/4</td><td>已有设计，未完成正式交付；存在代码需进入时复用审计</td></tr><tr><td>R3</td><td>镜头资产与检索</td><td>0/4</td><td>已有设计，未完成正式交付；存在代码需进入时复用审计</td></tr><tr><td>R4</td><td>MCP与恢复</td><td>0/4</td><td>已有设计，未完成正式交付；存在代码需进入时复用审计</td></tr><tr><td>R5a</td><td>证据与建议合同</td><td>0/4</td><td>已有设计，未完成正式交付；存在代码需进入时复用审计</td></tr><tr><td>R5b</td><td>受控生成交接</td><td>0/4</td><td>已有设计，未完成正式交付；存在代码需进入时复用审计</td></tr><tr><td>R5c</td><td>集成与完整交付</td><td>0/4</td><td>已有设计，未完成正式交付；存在代码需进入时复用审计</td></tr></table></div><p>本次提前切片另计U1/U2/U3，不将切片完成度等同于完整R1/R2。</p></section><footer>离线证据导航，不运行模型、不替代产品前端，不自动签署或发布。</footer></main></html>

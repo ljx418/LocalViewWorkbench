@@ -1,0 +1,160 @@
+{
+  "candidate_sha": "621b1bf386db71bfe08ca2f533fa8ec396b0504b",
+  "packet_version": "1.0.4",
+  "packet_manifest_sha256": "38ca0ae572cc74a412a411635e04f21bce3fdcd29d51456fde677f188dd9f307",
+  "fixed_denominator": 10,
+  "rows": [
+    {
+      "id": "UM-01",
+      "status": "PASS",
+      "trigger": "Real development image upload/analyze with dirty manual draft",
+      "expected": "Old image provider path succeeds and never implicitly edits manual draft",
+      "actual": "One real image ModelRun; correct centered red square/blue background bilingual appearance; LIVE_MANUAL_KEEP retained before adoption",
+      "evidence": [
+        "live-15/image-model-run.json",
+        "live-15/image-draft.json",
+        "live-15/browser.stdout.log",
+        "live_browser.cjs:11"
+      ],
+      "findings": []
+    },
+    {
+      "id": "UM-02",
+      "status": "PASS",
+      "trigger": "Seven actual invalid uploads, covering six categories",
+      "expected": "422/stable code; no model/publish; media/temp/spooled file descriptors baseline restored",
+      "actual": "All7 raw responses SHA and exact codes match recipe; before/after files/FD empty, zero model calls/published refs; actual launcher7 rejects before inference",
+      "evidence": [
+        "live-15/negative-results.json",
+        "live-15/NV-*-response.raw",
+        "live-15/launcher.log",
+        "checkpoint_checks.py:25",
+        "independent-live-15/recomputed.json"
+      ],
+      "findings": []
+    },
+    {
+      "id": "UM-03",
+      "status": "PASS",
+      "trigger": "Original tracking sampled by real VideoKernel",
+      "expected": "Actual source hash, ordered decoded PTS1/3/5/7, exact1..4 source frames; sampling limitations retained",
+      "actual": "Original b08ea8... input, four768x461 RGB PPM SHA equal ModelRun; PTS exact1/3/5/7, all4 lossless PNG SHA match provider. Single/fewer-frame limits have CPU coverage; no claim of new short-video live sample",
+      "evidence": [
+        "live-15/video-model-run.json",
+        "live-15/runtime-evidence/provider.jsonl",
+        "independent-live-15/recomputed.json",
+        "owner-split-final-offline-04/stdout.log"
+      ],
+      "findings": []
+    },
+    {
+      "id": "UM-04",
+      "status": "PASS",
+      "trigger": "Real one-request source-frame appearance plus separately composed temporal evidence",
+      "expected": "Truthful per-frame and bilingual raw, useful sample-supported spatial change, no wrong stillness/relative-constancy/cause claims",
+      "actual": "Every4 source PNG/request SHA exact; raw descriptions truthfully identify central red rectangle and grid. CPU evidence every-value and full composed public spec exact. Independent pixel oracle confirms stable foreground and shifting grid. Public video_prompt communicates supported relative lateral differences, attributed and bounded; not numeric/unknown-only",
+      "evidence": [
+        "live-15/video-model-run.json",
+        "live-15/video-adopted.json",
+        "independent-live-15/recomputed.json",
+        "independent-live-15/recompute.raw.log"
+      ],
+      "findings": []
+    },
+    {
+      "id": "UM-05",
+      "status": "PASS",
+      "trigger": "Real queued/preparing/running cancellations",
+      "expected": "<=1s feedback; <=30s release; no cancelled ModelRun/late publish or manual edit; no send for preparation/queue",
+      "actual": "Actual3 phase snapshots, feedback2/1/46ms, every cancelled terminal released/result_ref null. No prep/queued provider_call_started; one running cancelled send, no response publication. Running start-to-release3.876s upper bound; prep/queue real30s assertion. Manual marker remains",
+      "evidence": [
+        "live-15/cancellation-results.json",
+        "live-15/cleanup-job-terminals.json",
+        "live-15/runtime-evidence/provider.jsonl",
+        "live-15/after-cancel.json",
+        "live_browser.cjs:18"
+      ],
+      "findings": []
+    },
+    {
+      "id": "UM-06",
+      "status": "PASS",
+      "trigger": "Explicit dirty-draft adoption, then editing and JSON/TXT exports",
+      "expected": "Explicit confirmation, provenance follows adopted model only; cancelled requests do not change draft",
+      "actual": "Before-video-adopt still image provenance, accepted video export binds fresh video run and all4 frames; after-cancel preserves video source and AFTER_ADOPT_MANUAL_KEEP",
+      "evidence": [
+        "live-15/before-video-adopt.json",
+        "live-15/video-adopted.json",
+        "live-15/after-cancel.json",
+        "live_browser.cjs:13"
+      ],
+      "findings": []
+    },
+    {
+      "id": "UM-07",
+      "status": "PASS",
+      "trigger": "Product stops actual model then manual edit/export",
+      "expected": "Offline model cannot prevent independent manual JSON/TXT work",
+      "actual": "runtime-stop reachablefalse/stopped; OFFLINE_EDIT_AND_EXPORT in JSON/TXT and original source unchanged",
+      "evidence": [
+        "live-15/runtime-stop.json",
+        "live-15/offline-draft.json",
+        "live-15/offline-draft.txt"
+      ],
+      "findings": []
+    },
+    {
+      "id": "UM-08",
+      "status": "PASS",
+      "trigger": "Three real provider leases with native process telemetry",
+      "expected": "GPU<23552MiB, RAM>=2048MiB; true release<=30s; loopback/no cloud/owned process isolation",
+      "actual": "Peak22146MiB, minimumRAM9333MiB;2 successful calls release2.378/2.352s, cancelled start-to-release3.876s; three inventory-empty leases. Native loopback/no-cloud log and PID46476/birth639298386195162112/nonce stop witness match",
+      "evidence": [
+        "live-15/runtime-evidence/provider.jsonl",
+        "live-15/runtime-evidence/00c702bfb2844815b5eb82fbd39f7891.owner.json",
+        "live-15/runtime-evidence/00c702bfb2844815b5eb82fbd39f7891.stderr.log",
+        "live-15/bindings.json"
+      ],
+      "findings": []
+    },
+    {
+      "id": "UM-09",
+      "status": "PASS",
+      "trigger": "Windows START_LVW -> actual FastAPI/React -> one headless browser",
+      "expected": "Unified real entry/default_app, no Comfy launch, no mock responses/external requests, browser closes",
+      "actual": "Windows health build ID matches independently computed source; launcher/source shows real route; screenshot manually inspected; browser errors/externalrequests empty, closedtrue, global start record Comfy0",
+      "evidence": [
+        "live-15/windows-health.json",
+        "live-15/launcher.log",
+        "live-15/browser-result.json",
+        "live-15/browser.stdout.log",
+        "live-15/unified-real-workbench.png"
+      ],
+      "findings": []
+    },
+    {
+      "id": "UM-10",
+      "status": "PASS",
+      "trigger": "Fresh bound live15 terminal followed by isolated audit",
+      "expected": "Sealed candidate/packet/request/budget identity; cleanup and independently fixed10 denominator",
+      "actual": "Candidate621b1bf no source diff; packet38ca... exact;149-file start/end fence no drift; every child-frozen/executable hash exact; readonly ledger3actions/1full/72s active0 and child/binding hashes exact; API original PID absent, production lvw-user-* roots absent; native/API/browser termination archived. Independent10PASS/Fatal0/Major0; outer empty native-temp wrapper subsequently removed and independently stat-verified",
+      "evidence": [
+        "independent-live-15/fence-before.json",
+        "independent-live-15/fence-after.json",
+        "independent-live-15/commands.raw.log",
+        "independent-live-15/readonly-ledger.json",
+        "live-15/receipt.json"
+      ],
+      "findings": []
+    }
+  ],
+  "counts": {
+    "PASS": 10,
+    "FAIL": 0,
+    "BLOCKED": 0
+  },
+  "Fatal": 0,
+  "Major": 0,
+  "stage_pass_claim": false,
+  "human_signoff": null
+}

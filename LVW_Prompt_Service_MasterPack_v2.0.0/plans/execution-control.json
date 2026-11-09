@@ -8,20 +8,22 @@
   "coordinate": {
     "stage_id": "R1",
     "workpack_id": "WP-R1-U3",
-    "gate": "OWNER_SPLIT_C3_SEAL_AND_PILOT",
-    "state": "RUNNING"
+    "gate": "UNIFIED_MEDIA_MACHINE_AND_INDEPENDENT_VERIFIED",
+    "state": "WAIT_HUMAN"
   },
   "last_passed_gate": {
-    "gate": "R1_PACKET_1.0.4_GATE0",
-    "packet_manifest_sha256": "38ca0ae572cc74a412a411635e04f21bce3fdcd29d51456fde677f188dd9f307",
-    "receipt": "reports/unified-media/gate0-amendment-offline-04/receipt-sealed.json",
-    "independent_review": "reports/unified-media/temporal-owner-gate0-review-04/receipt.json",
-    "decision": "GO_FOR_IMPLEMENTATION_NOT_RUNTIME_OR_STAGE_PASS"
+    "gate": "UNIFIED_MEDIA_FIXED_UM10_AND_INDEPENDENT_REVIEW",
+    "candidate_sha": "621b1bf386db71bfe08ca2f533fa8ec396b0504b",
+    "receipt": "reports/unified-media/independent-live-15/receipt.json",
+    "decision": "10PASS_0FAIL_0BLOCKED_FATAL0_MAJOR0_HUMAN_PENDING",
+    "cpu_checks": 212,
+    "fixed_cases": 10,
+    "passed_cases": 10
   },
   "current_blocking_gate": "UM04_SEMANTICS_UM02_UM05_REAL_COVERAGE",
   "stage_packet": ".agent-governance/stages/R1/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/R1/PAYLOAD_MANIFEST.sha256",
-  "product_status": "LIVE14_NO_GO_SEMANTIC_MAJOR_AND_REAL_COVERAGE_GAPS",
+  "product_status": "UNIFIED_MEDIA_SLICE_MACHINE_AND_INDEPENDENT_VERIFIED_HUMAN_PENDING",
   "allowed_claim": "V0_MIN_ACCEPTED_NOT_RELEASED",
   "forbidden_claims": [
     "V0_ACCEPTED",
@@ -31,8 +33,8 @@
     "PRODUCTION_RELEASED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "codex_unified_implementer",
-  "next_action": "Finish isolated C2/pilot harness review; seal source and dependencies; optional one-source real public-owner pilot; fresh full UM10; independent runtime review; actual unified human signature.",
+  "next_owner": "project_owner",
+  "next_action": "Use LVW.exe and unified React page for actual image/video experience plus selected held-out videos; explicitly sign only unified media slice candidate621b1bf if acceptable. Codex records actual signature then immediately commits/pushes ordinary configured branch; no completeV1/release approval inferred.",
   "required_authorization": null,
   "authorization_request": "reports/authorization-program-v1-complete-03.request.json",
   "authorization_record": "reports/authorization-program-v1-complete-03.approval.json",
@@ -50,7 +52,7 @@
   ],
   "contract_change_request": "reports/r1a/change-request-r1a-product-controls-02.json",
   "contract_change_decision": "reports/r1a/change-decision-r1a-product-controls-02.json",
-  "implementation_candidate": "23e967bd3d8cc38640cb5749d467d9e34c510c29",
+  "implementation_candidate": "621b1bf386db71bfe08ca2f533fa8ec396b0504b",
   "implementation_baseline": "0fee9933874f3aa0e163bded2800d9704ee8be0f",
   "candidate_binding_scope": "Minimum unified media slice; code candidate and its own evidence only. Historical S2 and full R1/R2 remain separate.",
   "offline_evidence_commit": null,
@@ -82,9 +84,9 @@
   },
   "historical_live_terminal_receipt": "reports/r1a/r1a-live-07/live-receipt.json",
   "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
-  "live_terminal_receipt": "reports/unified-media/live-14/receipt.json",
-  "independent_review": "reports/unified-media/independent-live-14/review.md",
-  "exact_stop_reason": "WORK_IN_PROGRESS: C1/C2 independent code corrections closed (0Fatal/0Major); source seal and optional real public-owner pilot next, then fresh UM10/independent runtime/human. Prior live14NO_GO remains unchanged.",
+  "live_terminal_receipt": "reports/unified-media/live-15/receipt.json",
+  "independent_review": "reports/unified-media/independent-live-15/review.md",
+  "exact_stop_reason": "WAIT_HUMAN: freshlive15 fixedUM10/10 and independentFatal0/Major0 complete; actual unified image/video experience signature is the remaining gate. NoGPU/code/candidate authorization missing. No fullR1/fullV1 or release PASS. Own runtime/API/browser and temp including empty wrappers removed.",
   "native_component_authorization": "reports/v0-s2/authorization-native-component-02.json",
   "native_component_terminal_receipt": "reports/v0-s2/native-component-02/receipt.json",
   "local_control_change_decision": "reports/v0-s2/change-decision-video-workbench-01.json",
@@ -128,11 +130,11 @@
   "native_browser_terminal_phase_implementation": "reports/v0-s2/browser-terminal-phase-progress-01.md",
   "cumulative_stage_sequence_implementation": "reports/v0-s2/cumulative-stage-sequence-progress-01.md",
   "bound_runtime_archive_implementation": "reports/v0-s2/bound-runtime-archive-progress-01.md",
-  "live_authorization_record": "reports/v0-s2/authorization-full-v0-auto-08.json",
+  "live_authorization_record": "reports/unified-media/live-15/authorization.json",
   "native_run_id": "full-v0-auto-08",
   "live_executor_handle": {
     "kind": "exec_command_session",
-    "id": 96389,
+    "id": 99146,
     "terminal": true,
     "restart_forbidden": true
   },
@@ -473,11 +475,20 @@
       ],
       "completed_substeps": 0,
       "total_substeps": 4,
-      "summary": "已有设计，未完成正式交付；存在代码需进入时复用审计",
-      "implementation": "NOT_DELIVERED",
-      "machine_acceptance": "NOT_RUN",
-      "independent_review": "NOT_RUN",
-      "human_signoff": "NOT_SIGNED"
+      "summary": "最小图视频统一前端切片3/3实现、机器UM10和独审通过；人签待。完整R1四子项仍未正式交付，不折算为4项完成。",
+      "implementation": "EARLY_SLICE_IMPLEMENTED_FULL_R1_PENDING",
+      "machine_acceptance": "EARLY_SLICE_UM10_ONLY",
+      "independent_review": "EARLY_SLICE_FATAL0_MAJOR0",
+      "human_signoff": "EARLY_SLICE_PENDING",
+      "early_slice": {
+        "id": "UNIFIED_MEDIA_EARLY",
+        "completed_workpacks": 3,
+        "total_workpacks": 3,
+        "candidate_sha": "621b1bf386db71bfe08ca2f533fa8ec396b0504b",
+        "machine_acceptance": "UM10_PASS",
+        "independent_review": "FATAL0_MAJOR0",
+        "human_signoff": "PENDING"
+      }
     },
     {
       "stage_id": "R2",
@@ -763,7 +774,7 @@
   "active_slice": {
     "id": "UNIFIED_MEDIA_EARLY",
     "approval": "reports/unified-media/approval.json",
-    "completed_workpacks": 2,
+    "completed_workpacks": 3,
     "total_workpacks": 3,
     "human_signoff": null,
     "workpacks": [
@@ -777,30 +788,29 @@
       },
       {
         "id": "WP-R1-U3",
-        "state": "ALIGNMENT_OFFLINE_READY_WAIT_GPU_WINDOW"
+        "state": "MACHINE_AND_INDEPENDENT_VERIFIED_HUMAN_PENDING"
       }
     ],
-    "implementation": "READY_FOR_REVIEW",
-    "machine_acceptance": "LIVE11_RESOURCE_REFUSED_ZERO_MODEL_ALIGNMENT_NOT_RUN",
-    "independent_review": "LIVE11_WAIT_RESOURCE_NEW_ALIGNMENT_SEMANTICS_NOT_RUN",
-    "latest_harness_review": "reports/unified-media/independent-residual-budget-01/review.md",
-    "latest_harness_candidate": "d3b4ddde5311299083e398dfe08c1ab9c4e38ea8",
+    "implementation": "IMPLEMENTED",
+    "machine_acceptance": "LIVE15_FIXED_UM10_VERIFIED",
+    "independent_review": "LIVE15_FATAL0_MAJOR0",
+    "latest_harness_review": "reports/unified-media/owner-split-c2-code-review-04/addendum2.md",
+    "latest_harness_candidate": "621b1bf386db71bfe08ca2f533fa8ec396b0504b",
     "live_executor": {
-      "run_id": "live-12",
-      "terminal": false,
+      "run_id": "live-15",
+      "terminal": true,
       "restart_forbidden": true
     },
-    "proposed_packet_version": "1.0.3_ACTIVE_APPROVED",
-    "latest_correction_review": "reports/unified-media/independent-alignment-input-01/review.md",
+    "proposed_packet_version": "1.0.4_ACTIVE_APPROVED",
+    "latest_correction_review": "reports/unified-media/owner-split-c1-code-review-04/recheck-addendum.md",
     "live_review_coverage": {
-      "PASS": 2,
+      "PASS": 10,
       "FAIL": 0,
-      "BLOCKED": 8,
-      "receipt": "reports/unified-media/independent-live-11/coverage.json"
+      "BLOCKED": 0,
+      "receipt": "reports/unified-media/independent-live-15/coverage.json"
     },
-    "offline_cpu_tests": 108,
-    "program02_effective_full_checkpoints_consumed": 3,
-    "program02_model_actions": 9
+    "offline_cpu_tests": 212,
+    "program_budget_snapshot": "reports/unified-media/complete03-budget-after-live15.json"
   },
   "historical_s2_last_passed_gate": {
     "gate": "GATE5_INDEPENDENT_MACHINE_REVIEW",
@@ -859,9 +869,9 @@
     "effective_full": 1
   },
   "resource_readiness_receipt": "reports/unified-media/complete03-resource-handoff-01/receipt.json",
-  "live_candidate_sha": "e163af66848ea6b1ce9f57345399c8eda22043a9",
-  "slice_acceptance_receipt": "reports/unified-media/independent-live-14/coverage.json",
-  "last_live_authorization": "reports/unified-media/authorization-semantic-correction-01.approval.terminal.json",
+  "live_candidate_sha": "621b1bf386db71bfe08ca2f533fa8ec396b0504b",
+  "slice_acceptance_receipt": "reports/unified-media/independent-live-15/coverage.json",
+  "last_live_authorization": "reports/unified-media/live-15/authorization.terminal.json",
   "historical_video_semantic_failure": {
     "code": "VIDEO_TEMPORAL_SEMANTIC_FAILURE",
     "live_receipt": "reports/unified-media/live-03/receipt.json",
@@ -883,7 +893,7 @@
     "alternative_single_run_request": "reports/unified-media/authorization-runtime-transition-01.request.json",
     "approval": "reports/authorization-program-v1-local-02.approval.json"
   },
-  "latest_video_semantic_assessment": "live14独审NO_GO：7PASS/1FAIL(UM04)/2BLOCKED(UM02完整真实拒绝矩阵、UM05真实准备/排队取消)。双语已含变化但仍错误称相对网格一致；源SHA、F+D、计量、模板/构建与清理通过。此前9/10收据保留，不能把CPU分支当新增真实覆盖。",
+  "latest_video_semantic_assessment": "live15原始模型回答只描述四帧真实外观，无错误静止/网格恒定/压缩噪声原因断言；AnalysisService独立归因的采样横向相对变化与像素/注册证据逐值吻合。独审UM04PASS，物理运镜与未采样连续动作仍未知，V0-A12/Q01未豁免。",
   "historical_startup_failure_before_program02": {
     "code": "STARTUP_CONTROLLER_BUSY_409_BEFORE_JOB",
     "live_receipt": "reports/unified-media/live-04/receipt.json",
@@ -947,6 +957,15 @@
     "C1_C2_CPU": "reports/unified-media/owner-split-c1-c2-offline-04/receipt.json",
     "frontend_governance": "reports/unified-media/owner-split-c1-c2-offline-04/frontend-governance-receipt.json",
     "C2_independent": "reports/unified-media/owner-split-c2-code-review-04/recheck-receipt.json",
-    "pilot_safety": "reports/unified-media/owner-split-pilot-safety-review-04/receipt-fix-recheck-02.json"
-  }
+    "pilot_safety": "reports/unified-media/owner-split-pilot-safety-review-04/receipt-fix-recheck-02.json",
+    "C2_browser_cleanup": "reports/unified-media/owner-split-c2-code-review-04/addendum2-receipt.json"
+  },
+  "required_human_signoff": {
+    "status": "PENDING_ACTUAL_USER_EXPERIENCE",
+    "candidate_sha": "621b1bf386db71bfe08ca2f533fa8ec396b0504b",
+    "scope": "UNIFIED_MEDIA_EARLY_ONLY",
+    "request": "reports/unified-media/human-signoff-request-live15.json",
+    "not_full_R1_V1_or_release": true
+  },
+  "current_cpu_receipt": "reports/unified-media/owner-split-final-offline-04/receipt.json"
 }

@@ -1,0 +1,18 @@
+retained-frame-0 True {"ppm_sha": "d6b220619176f3e738c1812b5e789defcf28b38802d386c939f094d1c57b25a8", "size": [768, 461], "pts_seconds": 1.0}
+retained-frame-1 True {"ppm_sha": "cda95d446455ab753e6adffbcfa18e35f90e7921138610643a0602ca4dd5af05", "size": [768, 461], "pts_seconds": 3.0}
+retained-frame-2 True {"ppm_sha": "adabd46eac0b6debd94d463c2f37d697e1951b54ceac09dcab894d855e4da072", "size": [768, 461], "pts_seconds": 5.0}
+retained-frame-3 True {"ppm_sha": "392074219ed242331b456828fab9647dd9a3edc7ae3f1cacbb4ed889d671c643", "size": [768, 461], "pts_seconds": 7.0}
+all-source-lossless-png-hashes True ["0dff6325fd5dd78bbcd37dd633a232dd705ec390e339c8b190a70dbe375f5ed9", "80e52e4356e4df9200fc97f1c40c9d31f0eae4b83baf18936eb69249cfec0d2c", "b01c9919c4c67e70d88259ca665bc3e385257c7af5f852e73c8c1d7f4fba077a", "e0380b6f5739ae752c6bd29840999161ada3bd336841e72a5a8718298a47f206"]
+INDEPENDENT_PIXEL_ORACLE [{"index": 0, "red_bbox": [322, 156, 445, 302], "row100_grid_centers": [91.0, 187.0, 283.0, 379.0, 475.0, 571.0, 667.0, 763.0]}, {"index": 1, "red_bbox": [322, 156, 445, 301], "row100_grid_centers": [72.0, 168.0, 264.0, 360.0, 456.0, 552.0, 648.0, 744.0]}, {"index": 2, "red_bbox": [322, 156, 445, 301], "row100_grid_centers": [47.0, 143.0, 239.0, 335.0, 431.0, 527.0, 623.0, 719.0]}, {"index": 3, "red_bbox": [322, 156, 445, 302], "row100_grid_centers": [28.0, 124.0, 220.0, 316.0, 412.0, 508.0, 604.0, 700.0]}]
+CPU-temporal-every-value True 
+sampled-useful-relative-summary True {"kind": "apparent_relative_horizontal", "observation_zh": "程序测量：相邻采样帧存在RGB像素差异；像素差异本身不证明物理运动。", "inference_zh": "程序配准推断：部分颜色结构近似保持屏幕位置，其他可比较结构呈横向相对位移特征；具体物体与物理原因未确认。", "summary_zh": "采样画面中部分结构近似保持位置，其他结构呈横向相对变化迹象；真实镜头、主体动作及连续轨迹未确认。", "summary_en": "Across the sampled images, some structures remain approximately positioned while others show apparent lateral relative changes; physical camera motion, subject action and continuous trajectories are unverified."}
+Traceback (most recent call last):
+  File "/mnt/c/workSpace/videoWorkLine/LocalViewWorkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/unified-media/independent-live-15/recompute.py", line 37, in <module>
+    messages=p.build_messages(Mode('realistic'),ContentProfile('standard'),'');messages[0]['content']=p.VIDEO_APPEARANCE_SYSTEM;messages[-1]['content']=str(messages[-1]['content']).replace(p.TEMPLATE_TEXT,p.VIDEO_APPEARANCE_TASK);messages[-1]['content']+='\nActual populated SOURCE image count: 4. Actual frame times (seconds): '+json.dumps([1.0,3.0,5.0,7.0]);messages[-1]['images']=[base64.b64encode(b).decode('ascii') for b in imgs]
+                              ^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/typing.py", line 1157, in __call__
+    result = self.__origin__(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/typing.py", line 494, in __call__
+    raise TypeError(f"Cannot instantiate {self!r}")
+TypeError: Cannot instantiate typing.Literal
