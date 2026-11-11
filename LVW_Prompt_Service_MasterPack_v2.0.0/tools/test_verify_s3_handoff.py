@@ -9,6 +9,13 @@ written to.
 The positive test runs against the real repository tree and asserts the real
 owner proof, so a broken authority file is a test failure, not a silent pass.
 
+The ``actual.*`` regressions mutate ONLY the live old-S2 projection carried by
+``plans/execution-control.json`` (``development_outline`` entry ``V0-S2`` and
+the retained ``historical_s2_coordinate`` snapshot).  Every frozen proof file,
+the declared predicate snapshot and the owner approval record stay byte
+identical, so a refusal can only come from the semantic reading of the actual
+authority -- never from a generic checksum failure.
+
 Run: python3 -B -m pytest tools/test_verify_s3_handoff.py -q
 """
 
@@ -78,6 +85,53 @@ def failed_ids(result: dict) -> set:
 
 def evaluate_tree(root: Path) -> dict:
     return checker.evaluate(root)
+
+
+# Check families that can only fail on a *checksum* or on the frozen proof
+# set.  A semantic refusal must leave every one of them green.
+CHECKSUM_CHECK_PREFIXES = (
+    "fence.",
+    "predicate.",
+    "approval.",
+    "request.",
+    "decision.",
+    "evidence.",
+    "map.",
+    "packet.",
+    "plans.",
+)
+
+
+def assert_semantically_refused(result: dict, identifier: str) -> set:
+    """Assert the run was refused for a semantic reason, not a checksum one."""
+    identifiers = failed_ids(result)
+    assert result["decision"] == "HANDOFF_READINESS_REJECTED", identifiers
+    assert identifier in identifiers, identifiers
+    noisy = sorted(
+        item for item in identifiers if item.startswith(CHECKSUM_CHECK_PREFIXES)
+    )
+    assert not noisy, "the refusal must be semantic, but these proof checks failed: %r" % (noisy,)
+    return identifiers
+
+
+def v0_s2_entry(payload: dict) -> dict:
+    entries = [
+        item
+        for item in payload["development_outline"]
+        if item.get("stage_id") == "V0-S2"
+    ]
+    assert len(entries) == 1, entries
+    return entries[0]
+
+
+def human_substep(entry: dict) -> dict:
+    steps = [
+        step
+        for step in entry["substeps"]
+        if step.get("name") == "S2 人工签署与Git同步"
+    ]
+    assert len(steps) == 1, steps
+    return steps[0]
 
 
 # --------------------------------------------------------------------------
@@ -337,13 +391,232 @@ def test_execution_coordinates_may_advance(tmp_path):
     assert result["execution_coordinates_frozen"] is False
 
 
-def test_the_historical_s2_coordinate_state_is_not_required_to_stay_wait_human(tmp_path):
+@pytest.mark.parametrize(
+    "field,value",
+    [
+        ("stage_id", "V0-S3"),
+        ("workpack_id", "WP-S2-07"),
+        ("gate", "GATE6_MACHINE_ACCEPTANCE"),
+        ("state", "ADVANCED_BY_OWNER"),
+    ],
+)
+def test_the_historical_s2_coordinate_snapshot_must_not_be_rewritten(tmp_path, field, value):
+    """Owner re-decision of the former permissive oracle.
+
+    The old oracle asserted that ``historical_s2_coordinate.state`` was free
+    to change.  ``historical_s2_coordinate`` is a *retained snapshot* of the
+    old S2 coordinate, not a second live coordinate: rewriting it must be
+    refused.  The live coordinate stays free -- see
+    ``test_execution_coordinates_may_advance`` and
+    ``test_the_live_coordinate_may_advance_while_the_historical_snapshot_is_retained``.
+    """
     tree = build_tree(tmp_path / "package")
     payload = read_json(tree, EXECUTION_REL)
-    payload["historical_s2_coordinate"]["state"] = "ADVANCED_BY_OWNER"
+    payload["historical_s2_coordinate"][field] = value
+    write_json(tree, EXECUTION_REL, payload)
+    result = evaluate_tree(tree)
+    assert_semantically_refused(result, "actual.historical_s2_coordinate.%s" % field)
+
+
+# --------------------------------------------------------------------------
+# the ACTUAL old-S2 projection carried by the live execution authority
+#
+# Every case below mutates ONLY ``plans/execution-control.json`` in a
+# synthetic copy.  Every frozen proof file, the declared predicate snapshot in
+# ``plans/tasks.json`` and ``plans/v1-revised-plan.json`` and the owner
+# approval record stay byte identical.
+# --------------------------------------------------------------------------
+
+
+def test_the_real_owner_actual_s2_projection_is_seven_of_eight_pending():
+    result = checker.evaluate(ROOT)
+    assert result["decision"] == "HANDOFF_READINESS_VERIFIED", failed_ids(result)
+    assert result["historical_s2_projection"] == {
+        "completed_substeps": 7,
+        "total_substeps": 8,
+        "human_signoff": "PENDING",
+    }
+    assert result["historical_s2_coordinate_observed"] == {
+        "stage_id": "V0-S2",
+        "workpack_id": "WP-S2-06",
+        "gate": "GATE5_HUMAN_EXPERIENCE_SIGNOFF",
+        "state": "WAIT_HUMAN",
+    }
+    assert result["historical_s2_projection_source"] == (
+        "plans/execution-control.json#/development_outline (stage_id=V0-S2)"
+    )
+
+
+def test_the_live_coordinate_may_advance_while_the_historical_snapshot_is_retained(tmp_path):
+    tree = build_tree(tmp_path / "package")
+    payload = read_json(tree, EXECUTION_REL)
+    payload["coordinate"] = {
+        "stage_id": "R1",
+        "workpack_id": "WP-R1-U3",
+        "gate": "S3_PREP_GUARD_LIVE_OLD_S2_PROJECTION",
+        "state": "ADVANCED",
+    }
+    payload["current_blocking_gate"] = "SOMETHING_ELSE"
+    payload["updated_at"] = "2026-12-31"
     write_json(tree, EXECUTION_REL, payload)
     result = evaluate_tree(tree)
     assert result["decision"] == "HANDOFF_READINESS_VERIFIED", failed_ids(result)
+    assert result["execution_coordinates_frozen"] is False
+    assert result["historical_s2_projection"]["completed_substeps"] == 7
+    assert result["historical_s2_coordinate_observed"]["state"] == "WAIT_HUMAN"
+
+
+def test_actual_outline_completed_substeps_eight_is_rejected(tmp_path):
+    tree = build_tree(tmp_path / "package")
+    payload = read_json(tree, EXECUTION_REL)
+    v0_s2_entry(payload)["completed_substeps"] = 8
+    write_json(tree, EXECUTION_REL, payload)
+    result = evaluate_tree(tree)
+    assert_semantically_refused(result, "actual.outline.completed_substeps")
+    # the public report shows the observed value, never a stale 7
+    assert result["historical_s2_projection"]["completed_substeps"] == 8
+    assert result["historical_s2_declared_expected_state"]["completed_substeps"] == 7
+
+
+def test_actual_outline_human_signoff_approved_is_rejected(tmp_path):
+    tree = build_tree(tmp_path / "package")
+    payload = read_json(tree, EXECUTION_REL)
+    v0_s2_entry(payload)["human_signoff"] = "APPROVED"
+    write_json(tree, EXECUTION_REL, payload)
+    result = evaluate_tree(tree)
+    assert_semantically_refused(result, "actual.outline.human_signoff")
+    assert result["historical_s2_projection"]["human_signoff"] == "APPROVED"
+
+
+def test_actual_outline_pending_human_substep_marked_done_is_rejected(tmp_path):
+    tree = build_tree(tmp_path / "package")
+    payload = read_json(tree, EXECUTION_REL)
+    human_substep(v0_s2_entry(payload))["status"] = "DONE"
+    write_json(tree, EXECUTION_REL, payload)
+    result = evaluate_tree(tree)
+    identifiers = assert_semantically_refused(result, "actual.outline.human_substep_pending")
+    assert "actual.outline.done_count" in identifiers
+    assert "actual.outline.pending_count" in identifiers
+
+
+def test_actual_outline_human_substep_renamed_is_rejected(tmp_path):
+    tree = build_tree(tmp_path / "package")
+    payload = read_json(tree, EXECUTION_REL)
+    human_substep(v0_s2_entry(payload))["name"] = "S2 人工签署与Git同步（代签）"
+    write_json(tree, EXECUTION_REL, payload)
+    result = evaluate_tree(tree)
+    assert_semantically_refused(result, "actual.outline.human_substep_present")
+
+
+def test_actual_outline_human_substep_missing_is_rejected(tmp_path):
+    tree = build_tree(tmp_path / "package")
+    payload = read_json(tree, EXECUTION_REL)
+    entry = v0_s2_entry(payload)
+    step = human_substep(entry)
+    entry["substeps"][entry["substeps"].index(step)] = {
+        "name": "S2 其他待办",
+        "status": "PENDING",
+        "evidence": None,
+    }
+    write_json(tree, EXECUTION_REL, payload)
+    result = evaluate_tree(tree)
+    assert_semantically_refused(result, "actual.outline.human_substep_present")
+
+
+def test_actual_outline_duplicate_human_substep_is_rejected(tmp_path):
+    tree = build_tree(tmp_path / "package")
+    payload = read_json(tree, EXECUTION_REL)
+    entry = v0_s2_entry(payload)
+    entry["substeps"].append(dict(human_substep(entry)))
+    write_json(tree, EXECUTION_REL, payload)
+    result = evaluate_tree(tree)
+    identifiers = assert_semantically_refused(result, "actual.outline.human_substep_present")
+    assert "actual.outline.substep_count" in identifiers
+    assert "actual.outline.pending_count" in identifiers
+
+
+def test_actual_outline_substep_count_not_eight_is_rejected(tmp_path):
+    tree = build_tree(tmp_path / "package")
+    payload = read_json(tree, EXECUTION_REL)
+    entry = v0_s2_entry(payload)
+    step = human_substep(entry)
+    entry["substeps"].remove(step)
+    write_json(tree, EXECUTION_REL, payload)
+    result = evaluate_tree(tree)
+    identifiers = assert_semantically_refused(result, "actual.outline.substep_count")
+    assert "actual.outline.pending_count" in identifiers
+
+
+def test_actual_outline_without_a_v0_s2_entry_is_rejected(tmp_path):
+    tree = build_tree(tmp_path / "package")
+    payload = read_json(tree, EXECUTION_REL)
+    payload["development_outline"] = [
+        item for item in payload["development_outline"] if item.get("stage_id") != "V0-S2"
+    ]
+    write_json(tree, EXECUTION_REL, payload)
+    result = evaluate_tree(tree)
+    identifiers = assert_semantically_refused(result, "actual.outline.v0_s2_occurrence")
+    assert "actual.outline.completed_substeps" in identifiers
+
+
+def test_actual_outline_with_a_duplicate_v0_s2_entry_is_rejected(tmp_path):
+    tree = build_tree(tmp_path / "package")
+    payload = read_json(tree, EXECUTION_REL)
+    entry = v0_s2_entry(payload)
+    payload["development_outline"].append(json.loads(json.dumps(entry)))
+    write_json(tree, EXECUTION_REL, payload)
+    result = evaluate_tree(tree)
+    identifiers = assert_semantically_refused(result, "actual.outline.v0_s2_occurrence")
+    assert "actual.outline.completed_substeps" in identifiers
+
+
+def test_actual_outline_with_malformed_stage_value_types_is_rejected(tmp_path):
+    tree = build_tree(tmp_path / "package")
+    payload = read_json(tree, EXECUTION_REL)
+    entry = v0_s2_entry(payload)
+    entry["completed_substeps"] = "7"
+    entry["total_substeps"] = True
+    write_json(tree, EXECUTION_REL, payload)
+    result = evaluate_tree(tree)
+    identifiers = assert_semantically_refused(result, "actual.outline.completed_substeps")
+    assert "actual.outline.total_substeps" in identifiers
+
+
+def test_actual_outline_with_a_done_substep_without_evidence_is_rejected(tmp_path):
+    tree = build_tree(tmp_path / "package")
+    payload = read_json(tree, EXECUTION_REL)
+    entry = v0_s2_entry(payload)
+    done = [step for step in entry["substeps"] if step.get("status") == "DONE"][0]
+    done["evidence"] = None
+    write_json(tree, EXECUTION_REL, payload)
+    result = evaluate_tree(tree)
+    assert_semantically_refused(result, "actual.outline.done_substep_evidence")
+
+
+def test_public_cli_rejects_a_faked_actual_outline(tmp_path):
+    tree = build_tree(tmp_path / "package")
+    payload = read_json(tree, EXECUTION_REL)
+    entry = v0_s2_entry(payload)
+    entry["completed_substeps"] = 8
+    entry["total_substeps"] = 8
+    entry["human_signoff"] = "APPROVED"
+    human_substep(entry)["status"] = "DONE"
+    write_json(tree, EXECUTION_REL, payload)
+    process = subprocess.run(
+        [sys.executable, "-B", "tools/verify_s3_handoff.py", "--root", str(tree)],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        timeout=300,
+    )
+    assert process.returncode == 1, process.stdout
+    emitted = json.loads(process.stdout)
+    assert emitted["decision"] == "HANDOFF_READINESS_REJECTED"
+    assert emitted["historical_s2_projection"]["completed_substeps"] == 8
+    assert emitted["historical_s2_projection"]["human_signoff"] == "APPROVED"
+    assert emitted["historical_s2_declared_expected_state"]["completed_substeps"] == 7
+    assert "actual.outline.completed_substeps" in process.stderr
+    assert "fence.source_files" not in process.stderr
 
 
 def test_pin_override_is_labelled_non_authority(tmp_path):
