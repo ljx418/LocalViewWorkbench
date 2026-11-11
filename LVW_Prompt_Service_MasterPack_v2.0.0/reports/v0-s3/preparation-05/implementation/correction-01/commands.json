@@ -1,0 +1,42 @@
+[
+  {
+    "id": "pytest-01",
+    "command": "PYTHONDONTWRITEBYTECODE=1 python3 -B -m pytest tools/test_s3_sample_preparation.py -q -p no:cacheprovider --basetemp=/tmp/s3-correction-test-01",
+    "exit": 1,
+    "result": "43 passed; 2 failed in 21.28s",
+    "capture": "terminal transcript; this is a summary, not reconstructed raw output",
+    "failures": [
+      "test_run_cleans_the_staging_directory_and_measures_it: decoder count expected 5, observed total 12",
+      "test_corrupt_media_is_not_eligible: expected UnidentifiedImageError, observed ValueError"
+    ],
+    "resolution": "Preserve decoder-only counter and separately list measured CPU processes; transport original exception type. Old test bytes unchanged."
+  },
+  {
+    "id": "pytest-02",
+    "command": "PYTHONDONTWRITEBYTECODE=1 python3 -B -m pytest tools/test_s3_sample_preparation.py -q -p no:cacheprovider --basetemp=/tmp/s3-correction-test-02",
+    "stdout": "raw/pytest-02.stdout.log",
+    "stderr": "raw/pytest-02.stderr.log",
+    "exit_file": "raw/pytest-02.exit.log"
+  },
+  {
+    "id": "pytest-final",
+    "command": "PYTHONDONTWRITEBYTECODE=1 python3 -B -m pytest tools/test_s3_sample_preparation.py -q -p no:cacheprovider --basetemp=/tmp/s3-correction-test-final",
+    "stdout": "raw/pytest-final.stdout.log",
+    "stderr": "raw/pytest-final.stderr.log",
+    "exit_file": "raw/pytest-final.exit.log"
+  },
+  {
+    "id": "counterexamples",
+    "command": "PYTHONDONTWRITEBYTECODE=1 python3 -B reports/v0-s3/preparation-05/implementation/correction-01/raw/counterexamples.py",
+    "stdout": "raw/counterexamples.stdout.json",
+    "stderr": "raw/counterexamples.stderr.log",
+    "exit_file": "raw/counterexamples.exit.log"
+  },
+  {
+    "id": "owned-proof",
+    "command": "PYTHONDONTWRITEBYTECODE=1 python3 -B -m pytest tools/test_s3_sample_preparation.py -q -s -k 'correction_owned or correction_decoder_output_stream' -p no:cacheprovider --basetemp=/tmp/s3-correction-owned-proof",
+    "stdout": "raw/owned-proof.stdout.log",
+    "stderr": "raw/owned-proof.stderr.log",
+    "exit_file": "raw/owned-proof.exit.log"
+  }
+]
