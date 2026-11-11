@@ -1,0 +1,111 @@
+{
+  "checks": [
+    {
+      "detail": {
+        "problems": []
+      },
+      "name": "member_path_safety",
+      "passed": true
+    },
+    {
+      "detail": {
+        "case_insensitive_collisions": [],
+        "duplicates": []
+      },
+      "name": "member_uniqueness",
+      "passed": true
+    },
+    {
+      "detail": {
+        "offenders": []
+      },
+      "name": "member_kind_regular_files",
+      "passed": true
+    },
+    {
+      "detail": {
+        "archive_ratio": 1.0,
+        "archive_ratio_limit": 200,
+        "limit_bytes": 20971520,
+        "member_ratio_offenders": [],
+        "package_size_bytes": 287719,
+        "payload_expanded_bytes": 183562,
+        "total_compressed_bytes": 281923,
+        "total_expanded_bytes": 281923
+      },
+      "name": "size_limits_and_zip_bomb",
+      "passed": true
+    },
+    {
+      "detail": {
+        "offenders": []
+      },
+      "name": "member_declared_length",
+      "passed": true
+    },
+    {
+      "detail": {
+        "stray_members": []
+      },
+      "name": "member_set_layout",
+      "passed": true
+    },
+    {
+      "detail": {
+        "problems": []
+      },
+      "name": "manifest_item_integrity",
+      "passed": true
+    },
+    {
+      "detail": {
+        "extra_payload_members": [],
+        "missing_payload_members": []
+      },
+      "name": "manifest_entry_set",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual_sha256": "f96e3c064d0e0dee2cbaeeb63b1df39738c3d560020c27f7890e97d820f5eab9",
+        "manifest": {
+          "name": "v0_incremental_package.py",
+          "provenance": "git_commit",
+          "provenance_detail": "bytes read from commit 1c09cd651478beeb4c1bca026505364051a72892 at LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_incremental_package.py",
+          "sha256": "f96e3c064d0e0dee2cbaeeb63b1df39738c3d560020c27f7890e97d820f5eab9",
+          "version": "1.0.0"
+        }
+      },
+      "name": "tool_copy_matches_manifest",
+      "passed": true
+    },
+    {
+      "detail": {
+        "length": 2913,
+        "member": "meta/使用说明.md"
+      },
+      "name": "usage_document_present",
+      "passed": true
+    }
+  ],
+  "command": "diagnose",
+  "manifest": {
+    "item_count": 31,
+    "sha256": "6fccce572c02e793750367c163a26b65d9dffecade20be9ae5454b247f68feab",
+    "source_commit": "1c09cd651478beeb4c1bca026505364051a72892"
+  },
+  "note": "diagnose only verifies; it never writes to the target and never extracts with extractall",
+  "package": {
+    "path": "<work-root>/N8/windows-norm.zip",
+    "sha256": "af625c679c7556b45f0273d18e93db01b4ab24e28e46e4b32b2b0869b4082677",
+    "size_bytes": 287719
+  },
+  "payload_expanded_bytes": 183562,
+  "schema_version": "lvw.v0-incremental-package-receipt/1",
+  "status": "OK",
+  "target": null,
+  "tool": {
+    "name": "v0_incremental_package.py",
+    "version": "1.0.0"
+  }
+}

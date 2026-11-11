@@ -1,0 +1,47 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-8.4.2, pluggy-1.6.0 -- /usr/bin/python3
+rootdir: <repo-root>/LVW_Prompt_Service_MasterPack_v2.0.0
+plugins: asyncio-0.23.8, typeguard-4.6.0, anyio-4.13.0, hydra-core-1.3.7
+asyncio: mode=Mode.STRICT
+collecting ... collected 38 items
+
+tools/test_v0_incremental_package.py::test_build_binds_full_commit_sha_and_expected_hash_set PASSED [  2%]
+tools/test_v0_incremental_package.py::test_build_reads_git_objects_not_dirty_worktree PASSED [  5%]
+tools/test_v0_incremental_package.py::test_build_is_reproducible_for_same_candidate PASSED [  7%]
+tools/test_v0_incremental_package.py::test_build_refuses_to_overwrite_existing_output PASSED [ 10%]
+tools/test_v0_incremental_package.py::test_real_chain_install_diagnose_rollback_in_chinese_space_path PASSED [ 13%]
+tools/test_v0_incremental_package.py::test_install_receipt_records_preimage_manifest_and_owned_writes PASSED [ 15%]
+tools/test_v0_incremental_package.py::test_tampered_payload_is_detected PASSED [ 18%]
+tools/test_v0_incremental_package.py::test_manifest_tampering_is_detected PASSED [ 21%]
+tools/test_v0_incremental_package.py::test_unsafe_member_names_are_rejected[payload/../../escape.txt] PASSED [ 23%]
+tools/test_v0_incremental_package.py::test_unsafe_member_names_are_rejected[payload/../escape.txt] PASSED [ 26%]
+tools/test_v0_incremental_package.py::test_unsafe_member_names_are_rejected[/etc/passwd] PASSED [ 28%]
+tools/test_v0_incremental_package.py::test_unsafe_member_names_are_rejected[C:/Windows/system32/x.dll] PASSED [ 31%]
+tools/test_v0_incremental_package.py::test_unsafe_member_names_are_rejected[payload\\windows\\style.py] PASSED [ 34%]
+tools/test_v0_incremental_package.py::test_unsafe_member_names_are_rejected[payload//double//slash.py] PASSED [ 36%]
+tools/test_v0_incremental_package.py::test_duplicate_member_is_rejected PASSED [ 39%]
+tools/test_v0_incremental_package.py::test_case_insensitive_member_collision_is_rejected PASSED [ 42%]
+tools/test_v0_incremental_package.py::test_symlink_member_is_rejected PASSED [ 44%]
+tools/test_v0_incremental_package.py::test_size_limit_exact_boundary_passes_and_one_over_fails PASSED [ 47%]
+tools/test_v0_incremental_package.py::test_zip_bomb_ratio_is_rejected PASSED [ 50%]
+tools/test_v0_incremental_package.py::test_missing_meta_members_are_rejected PASSED [ 52%]
+tools/test_v0_incremental_package.py::test_existing_owned_content_conflicts_with_zero_writes PASSED [ 55%]
+tools/test_v0_incremental_package.py::test_install_failure_midway_reverts_committed_owned_items PASSED [ 57%]
+tools/test_v0_incremental_package.py::test_user_modified_install_blocks_rollback_and_preserves_bytes PASSED [ 60%]
+tools/test_v0_incremental_package.py::test_rollback_reports_missing_owned_file_as_conflict PASSED [ 63%]
+tools/test_v0_incremental_package.py::test_rollback_never_deletes_non_owned_files PASSED [ 65%]
+tools/test_v0_incremental_package.py::test_production_host_path_is_rejected PASSED [ 68%]
+tools/test_v0_incremental_package.py::test_target_outside_sandbox_parent_is_rejected PASSED [ 71%]
+tools/test_v0_incremental_package.py::test_missing_sandbox_marker_is_rejected PASSED [ 73%]
+tools/test_v0_incremental_package.py::test_validation_failure_leaves_no_empty_install_dir PASSED [ 76%]
+tools/test_v0_incremental_package.py::test_diagnose_does_not_write_to_target PASSED [ 78%]
+tools/test_v0_incremental_package.py::test_cli_help_and_version PASSED   [ 81%]
+tools/test_v0_incremental_package.py::test_cli_emits_structured_json_on_stdout_and_diagnostics_on_stderr PASSED [ 84%]
+tools/test_v0_incremental_package.py::test_cli_failure_emits_json_and_nonzero_exit PASSED [ 86%]
+tools/test_v0_incremental_package.py::test_error_code_exit_code_table_is_stable PASSED [ 89%]
+tools/test_v0_incremental_package.py::test_redact_root_removes_absolute_paths_from_output PASSED [ 92%]
+tools/test_v0_incremental_package.py::test_redact_root_handles_paths_with_chinese_and_spaces PASSED [ 94%]
+tools/test_v0_incremental_package.py::test_tool_contains_no_shell_execution_interface PASSED [ 97%]
+tools/test_v0_incremental_package.py::test_tool_is_stdlib_only PASSED    [100%]
+
+============================= 38 passed in 18.87s ==============================
