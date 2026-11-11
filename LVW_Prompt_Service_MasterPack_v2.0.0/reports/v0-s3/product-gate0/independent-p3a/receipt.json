@@ -1,0 +1,110 @@
+{
+  "schema_version": "lvw.independent-p3a-review/1",
+  "author": "ljx418 <1173696783@qq.com>",
+  "candidate_sha": "7f84ac56e9d8c9bd39778a787b662634453875be",
+  "evidence_commit": "0fc20361ace1d1ed156a5347c9280bf039b00cb5",
+  "contract_root": "09c4384ce3250951ca7f4197bda32a464a584b7e",
+  "coordinate_read_commit": "1bf4308",
+  "recommendation": "CHANGES_REQUIRED_P3A_OFFLINE_INTEGRATION_ONLY",
+  "findings": {
+    "Fatal": 0,
+    "Major": 2,
+    "Minor": 1
+  },
+  "checks": [
+    {
+      "run": "targeted-guard-failed",
+      "exit": 1,
+      "passed": 0,
+      "errors": 30,
+      "meaning": "Reviewer outer audit guard incorrectly treated git -C as repository cwd; denied before the build child executed."
+    },
+    {
+      "run": "targeted-import-failed",
+      "exit": 2,
+      "passed": 0,
+      "collection_errors": 1,
+      "meaning": "Reviewer sys.path regression; no tests collected."
+    },
+    {
+      "run": "targeted",
+      "exit": 0,
+      "passed": 30,
+      "failed": 0
+    },
+    {
+      "run": "regression",
+      "exit": 0,
+      "passed": 23,
+      "failed": 0,
+      "runs": 1
+    },
+    {
+      "run": "probes",
+      "exit": 0,
+      "passed": 4,
+      "failed": 0,
+      "meaning": "Observation assertions: one refusal control and three reproduced contract gaps; not four acceptance passes."
+    }
+  ],
+  "final_candidate_checks": 53,
+  "independent_observation_probes": 4,
+  "source_and_evidence_binding": "raw/binding-recomputation.json",
+  "implementation_sha256_entries_verified": 28,
+  "source_blobs_verified": 2,
+  "base_factory_installer_contract_changes": "none",
+  "scope": "offline synthetic fixtures only",
+  "production_acceptance": false,
+  "stage_pass_claim": false,
+  "human_signoff_claim": false,
+  "real_execution_counts": {
+    "windows_wsl_children": 0,
+    "powershell_parser": 0,
+    "host_executable_hashes": 0,
+    "model": 0,
+    "gpu": 0,
+    "real_media": 0,
+    "services": 0,
+    "network": 0,
+    "downloads": 0,
+    "program02_sqlite_reads_writes": 0,
+    "real_or_old_synthetic_ledgers": 0,
+    "full_checkpoint": 0
+  },
+  "cleanup": [
+    {
+      "run": "probes-guard.json",
+      "registered_temp_count": 11,
+      "retained": [],
+      "allowed_git_children": 44
+    },
+    {
+      "run": "regression-guard.json",
+      "registered_temp_count": 37,
+      "retained": [],
+      "allowed_git_children": 0
+    },
+    {
+      "run": "targeted-guard-failed-guard.json",
+      "registered_temp_count": 30,
+      "retained": [],
+      "allowed_git_children": 120
+    },
+    {
+      "run": "targeted-guard.json",
+      "registered_temp_count": 72,
+      "retained": [],
+      "allowed_git_children": 330
+    },
+    {
+      "run": "targeted-import-failed-guard.json",
+      "registered_temp_count": 0,
+      "retained": [],
+      "allowed_git_children": 0
+    }
+  ],
+  "contract_changes": "none",
+  "candidate_fixes": "none",
+  "historical_failures_preserved": true,
+  "raw_whitespace_preserved": true
+}

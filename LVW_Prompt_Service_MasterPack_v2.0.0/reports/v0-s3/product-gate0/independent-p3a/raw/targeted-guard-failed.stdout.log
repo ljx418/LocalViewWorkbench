@@ -1,0 +1,2619 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-8.4.2, pluggy-1.6.0 -- /usr/bin/python3
+rootdir: /home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0
+collecting ... collected 30 items
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_inherited_default_then_warm_install_exact_runtime_root ERROR
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[old-candidate] ERROR
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[package-hash] ERROR
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[manifest-hash] ERROR
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[bad-digest] ERROR
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[missing-bridge] ERROR
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[extra-bridge] ERROR
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[bridge-hash] ERROR
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[workflow-unsealed] ERROR
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[workflow-hash] ERROR
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[missing-marker] ERROR
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[invalid-marker] ERROR
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[marker-link] ERROR
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[package-link] ERROR
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[package-oversize] ERROR
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_installer_and_postinstall_refusals_before_start[bridge-bytes] ERROR
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_installer_and_postinstall_refusals_before_start[workflow-bytes] ERROR
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_installer_and_postinstall_refusals_before_start[extra-file] ERROR
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_installer_and_postinstall_refusals_before_start[missing-file] ERROR
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_installer_and_postinstall_refusals_before_start[payload-link] ERROR
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_installer_and_postinstall_refusals_before_start[owner-bytes] ERROR
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_installer_and_postinstall_refusals_before_start[receipt-identity] ERROR
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_installer_and_postinstall_refusals_before_start[marker-drift] ERROR
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_installer_and_postinstall_refusals_before_start[install-failure] ERROR
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_prepare_rejects_wrong_registered_target[directory] ERROR
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_prepare_rejects_wrong_registered_target[outside] ERROR
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_prepare_rejects_wrong_registered_target[symlink] ERROR
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_prepare_rejects_wrong_registered_target[unregistered] ERROR
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_prepare_rejects_wrong_registered_target[child-link] ERROR
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_prepare_rejects_wrong_registered_target[replaced-root] ERROR
+
+==================================== ERRORS ====================================
+_ ERROR at setup of test_inherited_default_then_warm_install_exact_runtime_root _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x739a695cc0e0>
+
+    @pytest.fixture
+    def fixture(monkeypatch):
+        with tempfile.TemporaryDirectory(prefix='lvw-p3a-owned-') as temporary:
+            root = Path(temporary).resolve()
+            repo = root / 'synthetic-git'; repo.mkdir()
+            pack = repo / 'pack'; pack.mkdir()
+            original_popen = subprocess.Popen
+            def guarded(command, *args, **kwargs):
+                assert isinstance(command, list) and command[0] == 'git', 'host subprocess forbidden'
+                assert not kwargs.get('shell'), 'shell forbidden'
+                cwd = Path(kwargs.get('cwd', repo)).resolve()
+                assert cwd == repo or cwd.is_relative_to(repo), 'only synthetic Git allowed'
+                if '-C' in command:
+                    assert Path(command[command.index('-C') + 1]).resolve() == repo
+                return original_popen(command, *args, **kwargs)
+            monkeypatch.setattr(subprocess, 'Popen', guarded)
+            monkeypatch.setattr(os, 'system', lambda *a: pytest.fail('shell forbidden'))
+            def git(*args):
+                return subprocess.run(['git', *args], cwd=repo, check=True, capture_output=True).stdout.decode().strip()
+            payload = {
+                package.BRIDGE_SOURCE_DIR + '/__init__.py': b'# synthetic bridge\n',
+                package.BRIDGE_SOURCE_DIR + '/core.py': b'SYNTHETIC = True\n',
+                package.BRIDGE_SOURCE_DIR + '/web/panel.js': b'// synthetic panel\n',
+                package.WORKFLOWS_SOURCE_DIR + '/video_reverse_prompt_v0.ui.json': b'{"synthetic":true}\n',
+                package.WORKFLOWS_SOURCE_DIR + '/manual.json': b'{"synthetic":"manual"}\n',
+            }
+            for name, raw in payload.items():
+                path = pack / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(raw)
+            tool = pack / 'tools/v0_incremental_package.py'; tool.parent.mkdir(); tool.write_text('# synthetic packaged tool identity\n')
+            git('init', '-q'); git('add', '.')
+            git('-c', 'user.name=ljx418', '-c', 'user.email=1173696783@qq.com', 'commit', '-qm', 'synthetic payload')
+            candidate = git('rev-parse', 'HEAD')
+            # Relocate module metadata for its existing repository-prefix resolver;
+            # all build/install/validation functions remain the real owners.
+            monkeypatch.setattr(package, '__file__', str(tool))
+            archive_path = root / 'payload.zip'
+>           build = package.command_build(SimpleNamespace(repo=repo, commit=candidate, out=archive_path, receipt_out=None, redact_root=[]))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:61: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_incremental_package.py:1388: in command_build
+    repo_root, sha = _resolve_commit(repo, args.commit)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:479: in _resolve_commit
+    repo_root = _git_text(repo, ["rev-parse", "--show-toplevel"], "rev-parse --show-toplevel").strip()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:236: in _git_text
+    proc = _git(repo, args)
+           ^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:226: in _git
+    proc = subprocess.run(
+/usr/lib/python3.12/subprocess.py:548: in run
+    with Popen(*popenargs, **kwargs) as process:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:39: in guarded
+    return original_popen(command, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.12/subprocess.py:1026: in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+/usr/lib/python3.12/subprocess.py:1823: in _execute_child
+    sys.audit("subprocess.Popen", executable, args, cwd, env)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+event = 'subprocess.Popen'
+args = ('git', ['git', '-C', '/tmp/lvw-p3a-owned-whwohbi5/synthetic-git', 'rev-parse', '--show-toplevel'], None, None)
+
+    def audit(event, args):
+        if event == 'tempfile.mkdtemp':
+            path = Path(args[0]).absolute()
+            owned.append(path)
+        elif event == 'subprocess.Popen':
+            executable, argv, cwd, env = args
+            cwd = Path(cwd or os.getcwd()).resolve()
+            allowed = (mode != 'regression' and isinstance(argv, list) and argv[0] == 'git'
+                       and any(p.name.startswith('lvw-p3a-owned-') and cwd == p / 'synthetic-git' for p in owned))
+            if not allowed:
+>               raise AssertionError('REVIEW subprocess denied: ' + repr((executable, argv, str(cwd))))
+E               AssertionError: REVIEW subprocess denied: ('git', ['git', '-C', '/tmp/lvw-p3a-owned-whwohbi5/synthetic-git', 'rev-parse', '--show-toplevel'], '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0')
+
+reports/v0-s3/product-gate0/independent-p3a/guarded_checks.py:23: AssertionError
+_ ERROR at setup of test_preinstall_refusals_persist_and_never_start[old-candidate] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x739a695ce5d0>
+
+    @pytest.fixture
+    def fixture(monkeypatch):
+        with tempfile.TemporaryDirectory(prefix='lvw-p3a-owned-') as temporary:
+            root = Path(temporary).resolve()
+            repo = root / 'synthetic-git'; repo.mkdir()
+            pack = repo / 'pack'; pack.mkdir()
+            original_popen = subprocess.Popen
+            def guarded(command, *args, **kwargs):
+                assert isinstance(command, list) and command[0] == 'git', 'host subprocess forbidden'
+                assert not kwargs.get('shell'), 'shell forbidden'
+                cwd = Path(kwargs.get('cwd', repo)).resolve()
+                assert cwd == repo or cwd.is_relative_to(repo), 'only synthetic Git allowed'
+                if '-C' in command:
+                    assert Path(command[command.index('-C') + 1]).resolve() == repo
+                return original_popen(command, *args, **kwargs)
+            monkeypatch.setattr(subprocess, 'Popen', guarded)
+            monkeypatch.setattr(os, 'system', lambda *a: pytest.fail('shell forbidden'))
+            def git(*args):
+                return subprocess.run(['git', *args], cwd=repo, check=True, capture_output=True).stdout.decode().strip()
+            payload = {
+                package.BRIDGE_SOURCE_DIR + '/__init__.py': b'# synthetic bridge\n',
+                package.BRIDGE_SOURCE_DIR + '/core.py': b'SYNTHETIC = True\n',
+                package.BRIDGE_SOURCE_DIR + '/web/panel.js': b'// synthetic panel\n',
+                package.WORKFLOWS_SOURCE_DIR + '/video_reverse_prompt_v0.ui.json': b'{"synthetic":true}\n',
+                package.WORKFLOWS_SOURCE_DIR + '/manual.json': b'{"synthetic":"manual"}\n',
+            }
+            for name, raw in payload.items():
+                path = pack / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(raw)
+            tool = pack / 'tools/v0_incremental_package.py'; tool.parent.mkdir(); tool.write_text('# synthetic packaged tool identity\n')
+            git('init', '-q'); git('add', '.')
+            git('-c', 'user.name=ljx418', '-c', 'user.email=1173696783@qq.com', 'commit', '-qm', 'synthetic payload')
+            candidate = git('rev-parse', 'HEAD')
+            # Relocate module metadata for its existing repository-prefix resolver;
+            # all build/install/validation functions remain the real owners.
+            monkeypatch.setattr(package, '__file__', str(tool))
+            archive_path = root / 'payload.zip'
+>           build = package.command_build(SimpleNamespace(repo=repo, commit=candidate, out=archive_path, receipt_out=None, redact_root=[]))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:61: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_incremental_package.py:1388: in command_build
+    repo_root, sha = _resolve_commit(repo, args.commit)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:479: in _resolve_commit
+    repo_root = _git_text(repo, ["rev-parse", "--show-toplevel"], "rev-parse --show-toplevel").strip()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:236: in _git_text
+    proc = _git(repo, args)
+           ^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:226: in _git
+    proc = subprocess.run(
+/usr/lib/python3.12/subprocess.py:548: in run
+    with Popen(*popenargs, **kwargs) as process:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:39: in guarded
+    return original_popen(command, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.12/subprocess.py:1026: in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+/usr/lib/python3.12/subprocess.py:1823: in _execute_child
+    sys.audit("subprocess.Popen", executable, args, cwd, env)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+event = 'subprocess.Popen'
+args = ('git', ['git', '-C', '/tmp/lvw-p3a-owned-qmrwkqmz/synthetic-git', 'rev-parse', '--show-toplevel'], None, None)
+
+    def audit(event, args):
+        if event == 'tempfile.mkdtemp':
+            path = Path(args[0]).absolute()
+            owned.append(path)
+        elif event == 'subprocess.Popen':
+            executable, argv, cwd, env = args
+            cwd = Path(cwd or os.getcwd()).resolve()
+            allowed = (mode != 'regression' and isinstance(argv, list) and argv[0] == 'git'
+                       and any(p.name.startswith('lvw-p3a-owned-') and cwd == p / 'synthetic-git' for p in owned))
+            if not allowed:
+>               raise AssertionError('REVIEW subprocess denied: ' + repr((executable, argv, str(cwd))))
+E               AssertionError: REVIEW subprocess denied: ('git', ['git', '-C', '/tmp/lvw-p3a-owned-qmrwkqmz/synthetic-git', 'rev-parse', '--show-toplevel'], '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0')
+
+reports/v0-s3/product-gate0/independent-p3a/guarded_checks.py:23: AssertionError
+_ ERROR at setup of test_preinstall_refusals_persist_and_never_start[package-hash] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x739a695cfe30>
+
+    @pytest.fixture
+    def fixture(monkeypatch):
+        with tempfile.TemporaryDirectory(prefix='lvw-p3a-owned-') as temporary:
+            root = Path(temporary).resolve()
+            repo = root / 'synthetic-git'; repo.mkdir()
+            pack = repo / 'pack'; pack.mkdir()
+            original_popen = subprocess.Popen
+            def guarded(command, *args, **kwargs):
+                assert isinstance(command, list) and command[0] == 'git', 'host subprocess forbidden'
+                assert not kwargs.get('shell'), 'shell forbidden'
+                cwd = Path(kwargs.get('cwd', repo)).resolve()
+                assert cwd == repo or cwd.is_relative_to(repo), 'only synthetic Git allowed'
+                if '-C' in command:
+                    assert Path(command[command.index('-C') + 1]).resolve() == repo
+                return original_popen(command, *args, **kwargs)
+            monkeypatch.setattr(subprocess, 'Popen', guarded)
+            monkeypatch.setattr(os, 'system', lambda *a: pytest.fail('shell forbidden'))
+            def git(*args):
+                return subprocess.run(['git', *args], cwd=repo, check=True, capture_output=True).stdout.decode().strip()
+            payload = {
+                package.BRIDGE_SOURCE_DIR + '/__init__.py': b'# synthetic bridge\n',
+                package.BRIDGE_SOURCE_DIR + '/core.py': b'SYNTHETIC = True\n',
+                package.BRIDGE_SOURCE_DIR + '/web/panel.js': b'// synthetic panel\n',
+                package.WORKFLOWS_SOURCE_DIR + '/video_reverse_prompt_v0.ui.json': b'{"synthetic":true}\n',
+                package.WORKFLOWS_SOURCE_DIR + '/manual.json': b'{"synthetic":"manual"}\n',
+            }
+            for name, raw in payload.items():
+                path = pack / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(raw)
+            tool = pack / 'tools/v0_incremental_package.py'; tool.parent.mkdir(); tool.write_text('# synthetic packaged tool identity\n')
+            git('init', '-q'); git('add', '.')
+            git('-c', 'user.name=ljx418', '-c', 'user.email=1173696783@qq.com', 'commit', '-qm', 'synthetic payload')
+            candidate = git('rev-parse', 'HEAD')
+            # Relocate module metadata for its existing repository-prefix resolver;
+            # all build/install/validation functions remain the real owners.
+            monkeypatch.setattr(package, '__file__', str(tool))
+            archive_path = root / 'payload.zip'
+>           build = package.command_build(SimpleNamespace(repo=repo, commit=candidate, out=archive_path, receipt_out=None, redact_root=[]))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:61: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_incremental_package.py:1388: in command_build
+    repo_root, sha = _resolve_commit(repo, args.commit)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:479: in _resolve_commit
+    repo_root = _git_text(repo, ["rev-parse", "--show-toplevel"], "rev-parse --show-toplevel").strip()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:236: in _git_text
+    proc = _git(repo, args)
+           ^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:226: in _git
+    proc = subprocess.run(
+/usr/lib/python3.12/subprocess.py:548: in run
+    with Popen(*popenargs, **kwargs) as process:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:39: in guarded
+    return original_popen(command, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.12/subprocess.py:1026: in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+/usr/lib/python3.12/subprocess.py:1823: in _execute_child
+    sys.audit("subprocess.Popen", executable, args, cwd, env)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+event = 'subprocess.Popen'
+args = ('git', ['git', '-C', '/tmp/lvw-p3a-owned-7_au0ups/synthetic-git', 'rev-parse', '--show-toplevel'], None, None)
+
+    def audit(event, args):
+        if event == 'tempfile.mkdtemp':
+            path = Path(args[0]).absolute()
+            owned.append(path)
+        elif event == 'subprocess.Popen':
+            executable, argv, cwd, env = args
+            cwd = Path(cwd or os.getcwd()).resolve()
+            allowed = (mode != 'regression' and isinstance(argv, list) and argv[0] == 'git'
+                       and any(p.name.startswith('lvw-p3a-owned-') and cwd == p / 'synthetic-git' for p in owned))
+            if not allowed:
+>               raise AssertionError('REVIEW subprocess denied: ' + repr((executable, argv, str(cwd))))
+E               AssertionError: REVIEW subprocess denied: ('git', ['git', '-C', '/tmp/lvw-p3a-owned-7_au0ups/synthetic-git', 'rev-parse', '--show-toplevel'], '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0')
+
+reports/v0-s3/product-gate0/independent-p3a/guarded_checks.py:23: AssertionError
+_ ERROR at setup of test_preinstall_refusals_persist_and_never_start[manifest-hash] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x739a695d2d80>
+
+    @pytest.fixture
+    def fixture(monkeypatch):
+        with tempfile.TemporaryDirectory(prefix='lvw-p3a-owned-') as temporary:
+            root = Path(temporary).resolve()
+            repo = root / 'synthetic-git'; repo.mkdir()
+            pack = repo / 'pack'; pack.mkdir()
+            original_popen = subprocess.Popen
+            def guarded(command, *args, **kwargs):
+                assert isinstance(command, list) and command[0] == 'git', 'host subprocess forbidden'
+                assert not kwargs.get('shell'), 'shell forbidden'
+                cwd = Path(kwargs.get('cwd', repo)).resolve()
+                assert cwd == repo or cwd.is_relative_to(repo), 'only synthetic Git allowed'
+                if '-C' in command:
+                    assert Path(command[command.index('-C') + 1]).resolve() == repo
+                return original_popen(command, *args, **kwargs)
+            monkeypatch.setattr(subprocess, 'Popen', guarded)
+            monkeypatch.setattr(os, 'system', lambda *a: pytest.fail('shell forbidden'))
+            def git(*args):
+                return subprocess.run(['git', *args], cwd=repo, check=True, capture_output=True).stdout.decode().strip()
+            payload = {
+                package.BRIDGE_SOURCE_DIR + '/__init__.py': b'# synthetic bridge\n',
+                package.BRIDGE_SOURCE_DIR + '/core.py': b'SYNTHETIC = True\n',
+                package.BRIDGE_SOURCE_DIR + '/web/panel.js': b'// synthetic panel\n',
+                package.WORKFLOWS_SOURCE_DIR + '/video_reverse_prompt_v0.ui.json': b'{"synthetic":true}\n',
+                package.WORKFLOWS_SOURCE_DIR + '/manual.json': b'{"synthetic":"manual"}\n',
+            }
+            for name, raw in payload.items():
+                path = pack / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(raw)
+            tool = pack / 'tools/v0_incremental_package.py'; tool.parent.mkdir(); tool.write_text('# synthetic packaged tool identity\n')
+            git('init', '-q'); git('add', '.')
+            git('-c', 'user.name=ljx418', '-c', 'user.email=1173696783@qq.com', 'commit', '-qm', 'synthetic payload')
+            candidate = git('rev-parse', 'HEAD')
+            # Relocate module metadata for its existing repository-prefix resolver;
+            # all build/install/validation functions remain the real owners.
+            monkeypatch.setattr(package, '__file__', str(tool))
+            archive_path = root / 'payload.zip'
+>           build = package.command_build(SimpleNamespace(repo=repo, commit=candidate, out=archive_path, receipt_out=None, redact_root=[]))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:61: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_incremental_package.py:1388: in command_build
+    repo_root, sha = _resolve_commit(repo, args.commit)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:479: in _resolve_commit
+    repo_root = _git_text(repo, ["rev-parse", "--show-toplevel"], "rev-parse --show-toplevel").strip()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:236: in _git_text
+    proc = _git(repo, args)
+           ^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:226: in _git
+    proc = subprocess.run(
+/usr/lib/python3.12/subprocess.py:548: in run
+    with Popen(*popenargs, **kwargs) as process:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:39: in guarded
+    return original_popen(command, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.12/subprocess.py:1026: in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+/usr/lib/python3.12/subprocess.py:1823: in _execute_child
+    sys.audit("subprocess.Popen", executable, args, cwd, env)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+event = 'subprocess.Popen'
+args = ('git', ['git', '-C', '/tmp/lvw-p3a-owned-vwe6o3aw/synthetic-git', 'rev-parse', '--show-toplevel'], None, None)
+
+    def audit(event, args):
+        if event == 'tempfile.mkdtemp':
+            path = Path(args[0]).absolute()
+            owned.append(path)
+        elif event == 'subprocess.Popen':
+            executable, argv, cwd, env = args
+            cwd = Path(cwd or os.getcwd()).resolve()
+            allowed = (mode != 'regression' and isinstance(argv, list) and argv[0] == 'git'
+                       and any(p.name.startswith('lvw-p3a-owned-') and cwd == p / 'synthetic-git' for p in owned))
+            if not allowed:
+>               raise AssertionError('REVIEW subprocess denied: ' + repr((executable, argv, str(cwd))))
+E               AssertionError: REVIEW subprocess denied: ('git', ['git', '-C', '/tmp/lvw-p3a-owned-vwe6o3aw/synthetic-git', 'rev-parse', '--show-toplevel'], '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0')
+
+reports/v0-s3/product-gate0/independent-p3a/guarded_checks.py:23: AssertionError
+_ ERROR at setup of test_preinstall_refusals_persist_and_never_start[bad-digest] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x739a6a33bd70>
+
+    @pytest.fixture
+    def fixture(monkeypatch):
+        with tempfile.TemporaryDirectory(prefix='lvw-p3a-owned-') as temporary:
+            root = Path(temporary).resolve()
+            repo = root / 'synthetic-git'; repo.mkdir()
+            pack = repo / 'pack'; pack.mkdir()
+            original_popen = subprocess.Popen
+            def guarded(command, *args, **kwargs):
+                assert isinstance(command, list) and command[0] == 'git', 'host subprocess forbidden'
+                assert not kwargs.get('shell'), 'shell forbidden'
+                cwd = Path(kwargs.get('cwd', repo)).resolve()
+                assert cwd == repo or cwd.is_relative_to(repo), 'only synthetic Git allowed'
+                if '-C' in command:
+                    assert Path(command[command.index('-C') + 1]).resolve() == repo
+                return original_popen(command, *args, **kwargs)
+            monkeypatch.setattr(subprocess, 'Popen', guarded)
+            monkeypatch.setattr(os, 'system', lambda *a: pytest.fail('shell forbidden'))
+            def git(*args):
+                return subprocess.run(['git', *args], cwd=repo, check=True, capture_output=True).stdout.decode().strip()
+            payload = {
+                package.BRIDGE_SOURCE_DIR + '/__init__.py': b'# synthetic bridge\n',
+                package.BRIDGE_SOURCE_DIR + '/core.py': b'SYNTHETIC = True\n',
+                package.BRIDGE_SOURCE_DIR + '/web/panel.js': b'// synthetic panel\n',
+                package.WORKFLOWS_SOURCE_DIR + '/video_reverse_prompt_v0.ui.json': b'{"synthetic":true}\n',
+                package.WORKFLOWS_SOURCE_DIR + '/manual.json': b'{"synthetic":"manual"}\n',
+            }
+            for name, raw in payload.items():
+                path = pack / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(raw)
+            tool = pack / 'tools/v0_incremental_package.py'; tool.parent.mkdir(); tool.write_text('# synthetic packaged tool identity\n')
+            git('init', '-q'); git('add', '.')
+            git('-c', 'user.name=ljx418', '-c', 'user.email=1173696783@qq.com', 'commit', '-qm', 'synthetic payload')
+            candidate = git('rev-parse', 'HEAD')
+            # Relocate module metadata for its existing repository-prefix resolver;
+            # all build/install/validation functions remain the real owners.
+            monkeypatch.setattr(package, '__file__', str(tool))
+            archive_path = root / 'payload.zip'
+>           build = package.command_build(SimpleNamespace(repo=repo, commit=candidate, out=archive_path, receipt_out=None, redact_root=[]))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:61: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_incremental_package.py:1388: in command_build
+    repo_root, sha = _resolve_commit(repo, args.commit)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:479: in _resolve_commit
+    repo_root = _git_text(repo, ["rev-parse", "--show-toplevel"], "rev-parse --show-toplevel").strip()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:236: in _git_text
+    proc = _git(repo, args)
+           ^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:226: in _git
+    proc = subprocess.run(
+/usr/lib/python3.12/subprocess.py:548: in run
+    with Popen(*popenargs, **kwargs) as process:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:39: in guarded
+    return original_popen(command, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.12/subprocess.py:1026: in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+/usr/lib/python3.12/subprocess.py:1823: in _execute_child
+    sys.audit("subprocess.Popen", executable, args, cwd, env)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+event = 'subprocess.Popen'
+args = ('git', ['git', '-C', '/tmp/lvw-p3a-owned-4vwhc107/synthetic-git', 'rev-parse', '--show-toplevel'], None, None)
+
+    def audit(event, args):
+        if event == 'tempfile.mkdtemp':
+            path = Path(args[0]).absolute()
+            owned.append(path)
+        elif event == 'subprocess.Popen':
+            executable, argv, cwd, env = args
+            cwd = Path(cwd or os.getcwd()).resolve()
+            allowed = (mode != 'regression' and isinstance(argv, list) and argv[0] == 'git'
+                       and any(p.name.startswith('lvw-p3a-owned-') and cwd == p / 'synthetic-git' for p in owned))
+            if not allowed:
+>               raise AssertionError('REVIEW subprocess denied: ' + repr((executable, argv, str(cwd))))
+E               AssertionError: REVIEW subprocess denied: ('git', ['git', '-C', '/tmp/lvw-p3a-owned-4vwhc107/synthetic-git', 'rev-parse', '--show-toplevel'], '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0')
+
+reports/v0-s3/product-gate0/independent-p3a/guarded_checks.py:23: AssertionError
+_ ERROR at setup of test_preinstall_refusals_persist_and_never_start[missing-bridge] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x739a6a307890>
+
+    @pytest.fixture
+    def fixture(monkeypatch):
+        with tempfile.TemporaryDirectory(prefix='lvw-p3a-owned-') as temporary:
+            root = Path(temporary).resolve()
+            repo = root / 'synthetic-git'; repo.mkdir()
+            pack = repo / 'pack'; pack.mkdir()
+            original_popen = subprocess.Popen
+            def guarded(command, *args, **kwargs):
+                assert isinstance(command, list) and command[0] == 'git', 'host subprocess forbidden'
+                assert not kwargs.get('shell'), 'shell forbidden'
+                cwd = Path(kwargs.get('cwd', repo)).resolve()
+                assert cwd == repo or cwd.is_relative_to(repo), 'only synthetic Git allowed'
+                if '-C' in command:
+                    assert Path(command[command.index('-C') + 1]).resolve() == repo
+                return original_popen(command, *args, **kwargs)
+            monkeypatch.setattr(subprocess, 'Popen', guarded)
+            monkeypatch.setattr(os, 'system', lambda *a: pytest.fail('shell forbidden'))
+            def git(*args):
+                return subprocess.run(['git', *args], cwd=repo, check=True, capture_output=True).stdout.decode().strip()
+            payload = {
+                package.BRIDGE_SOURCE_DIR + '/__init__.py': b'# synthetic bridge\n',
+                package.BRIDGE_SOURCE_DIR + '/core.py': b'SYNTHETIC = True\n',
+                package.BRIDGE_SOURCE_DIR + '/web/panel.js': b'// synthetic panel\n',
+                package.WORKFLOWS_SOURCE_DIR + '/video_reverse_prompt_v0.ui.json': b'{"synthetic":true}\n',
+                package.WORKFLOWS_SOURCE_DIR + '/manual.json': b'{"synthetic":"manual"}\n',
+            }
+            for name, raw in payload.items():
+                path = pack / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(raw)
+            tool = pack / 'tools/v0_incremental_package.py'; tool.parent.mkdir(); tool.write_text('# synthetic packaged tool identity\n')
+            git('init', '-q'); git('add', '.')
+            git('-c', 'user.name=ljx418', '-c', 'user.email=1173696783@qq.com', 'commit', '-qm', 'synthetic payload')
+            candidate = git('rev-parse', 'HEAD')
+            # Relocate module metadata for its existing repository-prefix resolver;
+            # all build/install/validation functions remain the real owners.
+            monkeypatch.setattr(package, '__file__', str(tool))
+            archive_path = root / 'payload.zip'
+>           build = package.command_build(SimpleNamespace(repo=repo, commit=candidate, out=archive_path, receipt_out=None, redact_root=[]))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:61: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_incremental_package.py:1388: in command_build
+    repo_root, sha = _resolve_commit(repo, args.commit)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:479: in _resolve_commit
+    repo_root = _git_text(repo, ["rev-parse", "--show-toplevel"], "rev-parse --show-toplevel").strip()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:236: in _git_text
+    proc = _git(repo, args)
+           ^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:226: in _git
+    proc = subprocess.run(
+/usr/lib/python3.12/subprocess.py:548: in run
+    with Popen(*popenargs, **kwargs) as process:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:39: in guarded
+    return original_popen(command, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.12/subprocess.py:1026: in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+/usr/lib/python3.12/subprocess.py:1823: in _execute_child
+    sys.audit("subprocess.Popen", executable, args, cwd, env)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+event = 'subprocess.Popen'
+args = ('git', ['git', '-C', '/tmp/lvw-p3a-owned-8g0zvcfd/synthetic-git', 'rev-parse', '--show-toplevel'], None, None)
+
+    def audit(event, args):
+        if event == 'tempfile.mkdtemp':
+            path = Path(args[0]).absolute()
+            owned.append(path)
+        elif event == 'subprocess.Popen':
+            executable, argv, cwd, env = args
+            cwd = Path(cwd or os.getcwd()).resolve()
+            allowed = (mode != 'regression' and isinstance(argv, list) and argv[0] == 'git'
+                       and any(p.name.startswith('lvw-p3a-owned-') and cwd == p / 'synthetic-git' for p in owned))
+            if not allowed:
+>               raise AssertionError('REVIEW subprocess denied: ' + repr((executable, argv, str(cwd))))
+E               AssertionError: REVIEW subprocess denied: ('git', ['git', '-C', '/tmp/lvw-p3a-owned-8g0zvcfd/synthetic-git', 'rev-parse', '--show-toplevel'], '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0')
+
+reports/v0-s3/product-gate0/independent-p3a/guarded_checks.py:23: AssertionError
+_ ERROR at setup of test_preinstall_refusals_persist_and_never_start[extra-bridge] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x739a695cfd10>
+
+    @pytest.fixture
+    def fixture(monkeypatch):
+        with tempfile.TemporaryDirectory(prefix='lvw-p3a-owned-') as temporary:
+            root = Path(temporary).resolve()
+            repo = root / 'synthetic-git'; repo.mkdir()
+            pack = repo / 'pack'; pack.mkdir()
+            original_popen = subprocess.Popen
+            def guarded(command, *args, **kwargs):
+                assert isinstance(command, list) and command[0] == 'git', 'host subprocess forbidden'
+                assert not kwargs.get('shell'), 'shell forbidden'
+                cwd = Path(kwargs.get('cwd', repo)).resolve()
+                assert cwd == repo or cwd.is_relative_to(repo), 'only synthetic Git allowed'
+                if '-C' in command:
+                    assert Path(command[command.index('-C') + 1]).resolve() == repo
+                return original_popen(command, *args, **kwargs)
+            monkeypatch.setattr(subprocess, 'Popen', guarded)
+            monkeypatch.setattr(os, 'system', lambda *a: pytest.fail('shell forbidden'))
+            def git(*args):
+                return subprocess.run(['git', *args], cwd=repo, check=True, capture_output=True).stdout.decode().strip()
+            payload = {
+                package.BRIDGE_SOURCE_DIR + '/__init__.py': b'# synthetic bridge\n',
+                package.BRIDGE_SOURCE_DIR + '/core.py': b'SYNTHETIC = True\n',
+                package.BRIDGE_SOURCE_DIR + '/web/panel.js': b'// synthetic panel\n',
+                package.WORKFLOWS_SOURCE_DIR + '/video_reverse_prompt_v0.ui.json': b'{"synthetic":true}\n',
+                package.WORKFLOWS_SOURCE_DIR + '/manual.json': b'{"synthetic":"manual"}\n',
+            }
+            for name, raw in payload.items():
+                path = pack / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(raw)
+            tool = pack / 'tools/v0_incremental_package.py'; tool.parent.mkdir(); tool.write_text('# synthetic packaged tool identity\n')
+            git('init', '-q'); git('add', '.')
+            git('-c', 'user.name=ljx418', '-c', 'user.email=1173696783@qq.com', 'commit', '-qm', 'synthetic payload')
+            candidate = git('rev-parse', 'HEAD')
+            # Relocate module metadata for its existing repository-prefix resolver;
+            # all build/install/validation functions remain the real owners.
+            monkeypatch.setattr(package, '__file__', str(tool))
+            archive_path = root / 'payload.zip'
+>           build = package.command_build(SimpleNamespace(repo=repo, commit=candidate, out=archive_path, receipt_out=None, redact_root=[]))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:61: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_incremental_package.py:1388: in command_build
+    repo_root, sha = _resolve_commit(repo, args.commit)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:479: in _resolve_commit
+    repo_root = _git_text(repo, ["rev-parse", "--show-toplevel"], "rev-parse --show-toplevel").strip()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:236: in _git_text
+    proc = _git(repo, args)
+           ^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:226: in _git
+    proc = subprocess.run(
+/usr/lib/python3.12/subprocess.py:548: in run
+    with Popen(*popenargs, **kwargs) as process:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:39: in guarded
+    return original_popen(command, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.12/subprocess.py:1026: in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+/usr/lib/python3.12/subprocess.py:1823: in _execute_child
+    sys.audit("subprocess.Popen", executable, args, cwd, env)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+event = 'subprocess.Popen'
+args = ('git', ['git', '-C', '/tmp/lvw-p3a-owned-ais3u_p3/synthetic-git', 'rev-parse', '--show-toplevel'], None, None)
+
+    def audit(event, args):
+        if event == 'tempfile.mkdtemp':
+            path = Path(args[0]).absolute()
+            owned.append(path)
+        elif event == 'subprocess.Popen':
+            executable, argv, cwd, env = args
+            cwd = Path(cwd or os.getcwd()).resolve()
+            allowed = (mode != 'regression' and isinstance(argv, list) and argv[0] == 'git'
+                       and any(p.name.startswith('lvw-p3a-owned-') and cwd == p / 'synthetic-git' for p in owned))
+            if not allowed:
+>               raise AssertionError('REVIEW subprocess denied: ' + repr((executable, argv, str(cwd))))
+E               AssertionError: REVIEW subprocess denied: ('git', ['git', '-C', '/tmp/lvw-p3a-owned-ais3u_p3/synthetic-git', 'rev-parse', '--show-toplevel'], '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0')
+
+reports/v0-s3/product-gate0/independent-p3a/guarded_checks.py:23: AssertionError
+_ ERROR at setup of test_preinstall_refusals_persist_and_never_start[bridge-hash] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x739a695cdc10>
+
+    @pytest.fixture
+    def fixture(monkeypatch):
+        with tempfile.TemporaryDirectory(prefix='lvw-p3a-owned-') as temporary:
+            root = Path(temporary).resolve()
+            repo = root / 'synthetic-git'; repo.mkdir()
+            pack = repo / 'pack'; pack.mkdir()
+            original_popen = subprocess.Popen
+            def guarded(command, *args, **kwargs):
+                assert isinstance(command, list) and command[0] == 'git', 'host subprocess forbidden'
+                assert not kwargs.get('shell'), 'shell forbidden'
+                cwd = Path(kwargs.get('cwd', repo)).resolve()
+                assert cwd == repo or cwd.is_relative_to(repo), 'only synthetic Git allowed'
+                if '-C' in command:
+                    assert Path(command[command.index('-C') + 1]).resolve() == repo
+                return original_popen(command, *args, **kwargs)
+            monkeypatch.setattr(subprocess, 'Popen', guarded)
+            monkeypatch.setattr(os, 'system', lambda *a: pytest.fail('shell forbidden'))
+            def git(*args):
+                return subprocess.run(['git', *args], cwd=repo, check=True, capture_output=True).stdout.decode().strip()
+            payload = {
+                package.BRIDGE_SOURCE_DIR + '/__init__.py': b'# synthetic bridge\n',
+                package.BRIDGE_SOURCE_DIR + '/core.py': b'SYNTHETIC = True\n',
+                package.BRIDGE_SOURCE_DIR + '/web/panel.js': b'// synthetic panel\n',
+                package.WORKFLOWS_SOURCE_DIR + '/video_reverse_prompt_v0.ui.json': b'{"synthetic":true}\n',
+                package.WORKFLOWS_SOURCE_DIR + '/manual.json': b'{"synthetic":"manual"}\n',
+            }
+            for name, raw in payload.items():
+                path = pack / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(raw)
+            tool = pack / 'tools/v0_incremental_package.py'; tool.parent.mkdir(); tool.write_text('# synthetic packaged tool identity\n')
+            git('init', '-q'); git('add', '.')
+            git('-c', 'user.name=ljx418', '-c', 'user.email=1173696783@qq.com', 'commit', '-qm', 'synthetic payload')
+            candidate = git('rev-parse', 'HEAD')
+            # Relocate module metadata for its existing repository-prefix resolver;
+            # all build/install/validation functions remain the real owners.
+            monkeypatch.setattr(package, '__file__', str(tool))
+            archive_path = root / 'payload.zip'
+>           build = package.command_build(SimpleNamespace(repo=repo, commit=candidate, out=archive_path, receipt_out=None, redact_root=[]))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:61: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_incremental_package.py:1388: in command_build
+    repo_root, sha = _resolve_commit(repo, args.commit)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:479: in _resolve_commit
+    repo_root = _git_text(repo, ["rev-parse", "--show-toplevel"], "rev-parse --show-toplevel").strip()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:236: in _git_text
+    proc = _git(repo, args)
+           ^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:226: in _git
+    proc = subprocess.run(
+/usr/lib/python3.12/subprocess.py:548: in run
+    with Popen(*popenargs, **kwargs) as process:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:39: in guarded
+    return original_popen(command, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.12/subprocess.py:1026: in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+/usr/lib/python3.12/subprocess.py:1823: in _execute_child
+    sys.audit("subprocess.Popen", executable, args, cwd, env)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+event = 'subprocess.Popen'
+args = ('git', ['git', '-C', '/tmp/lvw-p3a-owned-4ffu7_xo/synthetic-git', 'rev-parse', '--show-toplevel'], None, None)
+
+    def audit(event, args):
+        if event == 'tempfile.mkdtemp':
+            path = Path(args[0]).absolute()
+            owned.append(path)
+        elif event == 'subprocess.Popen':
+            executable, argv, cwd, env = args
+            cwd = Path(cwd or os.getcwd()).resolve()
+            allowed = (mode != 'regression' and isinstance(argv, list) and argv[0] == 'git'
+                       and any(p.name.startswith('lvw-p3a-owned-') and cwd == p / 'synthetic-git' for p in owned))
+            if not allowed:
+>               raise AssertionError('REVIEW subprocess denied: ' + repr((executable, argv, str(cwd))))
+E               AssertionError: REVIEW subprocess denied: ('git', ['git', '-C', '/tmp/lvw-p3a-owned-4ffu7_xo/synthetic-git', 'rev-parse', '--show-toplevel'], '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0')
+
+reports/v0-s3/product-gate0/independent-p3a/guarded_checks.py:23: AssertionError
+_ ERROR at setup of test_preinstall_refusals_persist_and_never_start[workflow-unsealed] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x739a695d25a0>
+
+    @pytest.fixture
+    def fixture(monkeypatch):
+        with tempfile.TemporaryDirectory(prefix='lvw-p3a-owned-') as temporary:
+            root = Path(temporary).resolve()
+            repo = root / 'synthetic-git'; repo.mkdir()
+            pack = repo / 'pack'; pack.mkdir()
+            original_popen = subprocess.Popen
+            def guarded(command, *args, **kwargs):
+                assert isinstance(command, list) and command[0] == 'git', 'host subprocess forbidden'
+                assert not kwargs.get('shell'), 'shell forbidden'
+                cwd = Path(kwargs.get('cwd', repo)).resolve()
+                assert cwd == repo or cwd.is_relative_to(repo), 'only synthetic Git allowed'
+                if '-C' in command:
+                    assert Path(command[command.index('-C') + 1]).resolve() == repo
+                return original_popen(command, *args, **kwargs)
+            monkeypatch.setattr(subprocess, 'Popen', guarded)
+            monkeypatch.setattr(os, 'system', lambda *a: pytest.fail('shell forbidden'))
+            def git(*args):
+                return subprocess.run(['git', *args], cwd=repo, check=True, capture_output=True).stdout.decode().strip()
+            payload = {
+                package.BRIDGE_SOURCE_DIR + '/__init__.py': b'# synthetic bridge\n',
+                package.BRIDGE_SOURCE_DIR + '/core.py': b'SYNTHETIC = True\n',
+                package.BRIDGE_SOURCE_DIR + '/web/panel.js': b'// synthetic panel\n',
+                package.WORKFLOWS_SOURCE_DIR + '/video_reverse_prompt_v0.ui.json': b'{"synthetic":true}\n',
+                package.WORKFLOWS_SOURCE_DIR + '/manual.json': b'{"synthetic":"manual"}\n',
+            }
+            for name, raw in payload.items():
+                path = pack / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(raw)
+            tool = pack / 'tools/v0_incremental_package.py'; tool.parent.mkdir(); tool.write_text('# synthetic packaged tool identity\n')
+            git('init', '-q'); git('add', '.')
+            git('-c', 'user.name=ljx418', '-c', 'user.email=1173696783@qq.com', 'commit', '-qm', 'synthetic payload')
+            candidate = git('rev-parse', 'HEAD')
+            # Relocate module metadata for its existing repository-prefix resolver;
+            # all build/install/validation functions remain the real owners.
+            monkeypatch.setattr(package, '__file__', str(tool))
+            archive_path = root / 'payload.zip'
+>           build = package.command_build(SimpleNamespace(repo=repo, commit=candidate, out=archive_path, receipt_out=None, redact_root=[]))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:61: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_incremental_package.py:1388: in command_build
+    repo_root, sha = _resolve_commit(repo, args.commit)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:479: in _resolve_commit
+    repo_root = _git_text(repo, ["rev-parse", "--show-toplevel"], "rev-parse --show-toplevel").strip()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:236: in _git_text
+    proc = _git(repo, args)
+           ^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:226: in _git
+    proc = subprocess.run(
+/usr/lib/python3.12/subprocess.py:548: in run
+    with Popen(*popenargs, **kwargs) as process:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:39: in guarded
+    return original_popen(command, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.12/subprocess.py:1026: in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+/usr/lib/python3.12/subprocess.py:1823: in _execute_child
+    sys.audit("subprocess.Popen", executable, args, cwd, env)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+event = 'subprocess.Popen'
+args = ('git', ['git', '-C', '/tmp/lvw-p3a-owned-nyr95eq6/synthetic-git', 'rev-parse', '--show-toplevel'], None, None)
+
+    def audit(event, args):
+        if event == 'tempfile.mkdtemp':
+            path = Path(args[0]).absolute()
+            owned.append(path)
+        elif event == 'subprocess.Popen':
+            executable, argv, cwd, env = args
+            cwd = Path(cwd or os.getcwd()).resolve()
+            allowed = (mode != 'regression' and isinstance(argv, list) and argv[0] == 'git'
+                       and any(p.name.startswith('lvw-p3a-owned-') and cwd == p / 'synthetic-git' for p in owned))
+            if not allowed:
+>               raise AssertionError('REVIEW subprocess denied: ' + repr((executable, argv, str(cwd))))
+E               AssertionError: REVIEW subprocess denied: ('git', ['git', '-C', '/tmp/lvw-p3a-owned-nyr95eq6/synthetic-git', 'rev-parse', '--show-toplevel'], '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0')
+
+reports/v0-s3/product-gate0/independent-p3a/guarded_checks.py:23: AssertionError
+_ ERROR at setup of test_preinstall_refusals_persist_and_never_start[workflow-hash] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x739a695d2ea0>
+
+    @pytest.fixture
+    def fixture(monkeypatch):
+        with tempfile.TemporaryDirectory(prefix='lvw-p3a-owned-') as temporary:
+            root = Path(temporary).resolve()
+            repo = root / 'synthetic-git'; repo.mkdir()
+            pack = repo / 'pack'; pack.mkdir()
+            original_popen = subprocess.Popen
+            def guarded(command, *args, **kwargs):
+                assert isinstance(command, list) and command[0] == 'git', 'host subprocess forbidden'
+                assert not kwargs.get('shell'), 'shell forbidden'
+                cwd = Path(kwargs.get('cwd', repo)).resolve()
+                assert cwd == repo or cwd.is_relative_to(repo), 'only synthetic Git allowed'
+                if '-C' in command:
+                    assert Path(command[command.index('-C') + 1]).resolve() == repo
+                return original_popen(command, *args, **kwargs)
+            monkeypatch.setattr(subprocess, 'Popen', guarded)
+            monkeypatch.setattr(os, 'system', lambda *a: pytest.fail('shell forbidden'))
+            def git(*args):
+                return subprocess.run(['git', *args], cwd=repo, check=True, capture_output=True).stdout.decode().strip()
+            payload = {
+                package.BRIDGE_SOURCE_DIR + '/__init__.py': b'# synthetic bridge\n',
+                package.BRIDGE_SOURCE_DIR + '/core.py': b'SYNTHETIC = True\n',
+                package.BRIDGE_SOURCE_DIR + '/web/panel.js': b'// synthetic panel\n',
+                package.WORKFLOWS_SOURCE_DIR + '/video_reverse_prompt_v0.ui.json': b'{"synthetic":true}\n',
+                package.WORKFLOWS_SOURCE_DIR + '/manual.json': b'{"synthetic":"manual"}\n',
+            }
+            for name, raw in payload.items():
+                path = pack / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(raw)
+            tool = pack / 'tools/v0_incremental_package.py'; tool.parent.mkdir(); tool.write_text('# synthetic packaged tool identity\n')
+            git('init', '-q'); git('add', '.')
+            git('-c', 'user.name=ljx418', '-c', 'user.email=1173696783@qq.com', 'commit', '-qm', 'synthetic payload')
+            candidate = git('rev-parse', 'HEAD')
+            # Relocate module metadata for its existing repository-prefix resolver;
+            # all build/install/validation functions remain the real owners.
+            monkeypatch.setattr(package, '__file__', str(tool))
+            archive_path = root / 'payload.zip'
+>           build = package.command_build(SimpleNamespace(repo=repo, commit=candidate, out=archive_path, receipt_out=None, redact_root=[]))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:61: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_incremental_package.py:1388: in command_build
+    repo_root, sha = _resolve_commit(repo, args.commit)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:479: in _resolve_commit
+    repo_root = _git_text(repo, ["rev-parse", "--show-toplevel"], "rev-parse --show-toplevel").strip()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:236: in _git_text
+    proc = _git(repo, args)
+           ^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:226: in _git
+    proc = subprocess.run(
+/usr/lib/python3.12/subprocess.py:548: in run
+    with Popen(*popenargs, **kwargs) as process:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:39: in guarded
+    return original_popen(command, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.12/subprocess.py:1026: in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+/usr/lib/python3.12/subprocess.py:1823: in _execute_child
+    sys.audit("subprocess.Popen", executable, args, cwd, env)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+event = 'subprocess.Popen'
+args = ('git', ['git', '-C', '/tmp/lvw-p3a-owned-tecf1h8r/synthetic-git', 'rev-parse', '--show-toplevel'], None, None)
+
+    def audit(event, args):
+        if event == 'tempfile.mkdtemp':
+            path = Path(args[0]).absolute()
+            owned.append(path)
+        elif event == 'subprocess.Popen':
+            executable, argv, cwd, env = args
+            cwd = Path(cwd or os.getcwd()).resolve()
+            allowed = (mode != 'regression' and isinstance(argv, list) and argv[0] == 'git'
+                       and any(p.name.startswith('lvw-p3a-owned-') and cwd == p / 'synthetic-git' for p in owned))
+            if not allowed:
+>               raise AssertionError('REVIEW subprocess denied: ' + repr((executable, argv, str(cwd))))
+E               AssertionError: REVIEW subprocess denied: ('git', ['git', '-C', '/tmp/lvw-p3a-owned-tecf1h8r/synthetic-git', 'rev-parse', '--show-toplevel'], '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0')
+
+reports/v0-s3/product-gate0/independent-p3a/guarded_checks.py:23: AssertionError
+_ ERROR at setup of test_preinstall_refusals_persist_and_never_start[missing-marker] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x739a695d2e40>
+
+    @pytest.fixture
+    def fixture(monkeypatch):
+        with tempfile.TemporaryDirectory(prefix='lvw-p3a-owned-') as temporary:
+            root = Path(temporary).resolve()
+            repo = root / 'synthetic-git'; repo.mkdir()
+            pack = repo / 'pack'; pack.mkdir()
+            original_popen = subprocess.Popen
+            def guarded(command, *args, **kwargs):
+                assert isinstance(command, list) and command[0] == 'git', 'host subprocess forbidden'
+                assert not kwargs.get('shell'), 'shell forbidden'
+                cwd = Path(kwargs.get('cwd', repo)).resolve()
+                assert cwd == repo or cwd.is_relative_to(repo), 'only synthetic Git allowed'
+                if '-C' in command:
+                    assert Path(command[command.index('-C') + 1]).resolve() == repo
+                return original_popen(command, *args, **kwargs)
+            monkeypatch.setattr(subprocess, 'Popen', guarded)
+            monkeypatch.setattr(os, 'system', lambda *a: pytest.fail('shell forbidden'))
+            def git(*args):
+                return subprocess.run(['git', *args], cwd=repo, check=True, capture_output=True).stdout.decode().strip()
+            payload = {
+                package.BRIDGE_SOURCE_DIR + '/__init__.py': b'# synthetic bridge\n',
+                package.BRIDGE_SOURCE_DIR + '/core.py': b'SYNTHETIC = True\n',
+                package.BRIDGE_SOURCE_DIR + '/web/panel.js': b'// synthetic panel\n',
+                package.WORKFLOWS_SOURCE_DIR + '/video_reverse_prompt_v0.ui.json': b'{"synthetic":true}\n',
+                package.WORKFLOWS_SOURCE_DIR + '/manual.json': b'{"synthetic":"manual"}\n',
+            }
+            for name, raw in payload.items():
+                path = pack / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(raw)
+            tool = pack / 'tools/v0_incremental_package.py'; tool.parent.mkdir(); tool.write_text('# synthetic packaged tool identity\n')
+            git('init', '-q'); git('add', '.')
+            git('-c', 'user.name=ljx418', '-c', 'user.email=1173696783@qq.com', 'commit', '-qm', 'synthetic payload')
+            candidate = git('rev-parse', 'HEAD')
+            # Relocate module metadata for its existing repository-prefix resolver;
+            # all build/install/validation functions remain the real owners.
+            monkeypatch.setattr(package, '__file__', str(tool))
+            archive_path = root / 'payload.zip'
+>           build = package.command_build(SimpleNamespace(repo=repo, commit=candidate, out=archive_path, receipt_out=None, redact_root=[]))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:61: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_incremental_package.py:1388: in command_build
+    repo_root, sha = _resolve_commit(repo, args.commit)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:479: in _resolve_commit
+    repo_root = _git_text(repo, ["rev-parse", "--show-toplevel"], "rev-parse --show-toplevel").strip()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:236: in _git_text
+    proc = _git(repo, args)
+           ^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:226: in _git
+    proc = subprocess.run(
+/usr/lib/python3.12/subprocess.py:548: in run
+    with Popen(*popenargs, **kwargs) as process:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:39: in guarded
+    return original_popen(command, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.12/subprocess.py:1026: in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+/usr/lib/python3.12/subprocess.py:1823: in _execute_child
+    sys.audit("subprocess.Popen", executable, args, cwd, env)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+event = 'subprocess.Popen'
+args = ('git', ['git', '-C', '/tmp/lvw-p3a-owned-gokj_pwj/synthetic-git', 'rev-parse', '--show-toplevel'], None, None)
+
+    def audit(event, args):
+        if event == 'tempfile.mkdtemp':
+            path = Path(args[0]).absolute()
+            owned.append(path)
+        elif event == 'subprocess.Popen':
+            executable, argv, cwd, env = args
+            cwd = Path(cwd or os.getcwd()).resolve()
+            allowed = (mode != 'regression' and isinstance(argv, list) and argv[0] == 'git'
+                       and any(p.name.startswith('lvw-p3a-owned-') and cwd == p / 'synthetic-git' for p in owned))
+            if not allowed:
+>               raise AssertionError('REVIEW subprocess denied: ' + repr((executable, argv, str(cwd))))
+E               AssertionError: REVIEW subprocess denied: ('git', ['git', '-C', '/tmp/lvw-p3a-owned-gokj_pwj/synthetic-git', 'rev-parse', '--show-toplevel'], '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0')
+
+reports/v0-s3/product-gate0/independent-p3a/guarded_checks.py:23: AssertionError
+_ ERROR at setup of test_preinstall_refusals_persist_and_never_start[invalid-marker] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x739a695d7f20>
+
+    @pytest.fixture
+    def fixture(monkeypatch):
+        with tempfile.TemporaryDirectory(prefix='lvw-p3a-owned-') as temporary:
+            root = Path(temporary).resolve()
+            repo = root / 'synthetic-git'; repo.mkdir()
+            pack = repo / 'pack'; pack.mkdir()
+            original_popen = subprocess.Popen
+            def guarded(command, *args, **kwargs):
+                assert isinstance(command, list) and command[0] == 'git', 'host subprocess forbidden'
+                assert not kwargs.get('shell'), 'shell forbidden'
+                cwd = Path(kwargs.get('cwd', repo)).resolve()
+                assert cwd == repo or cwd.is_relative_to(repo), 'only synthetic Git allowed'
+                if '-C' in command:
+                    assert Path(command[command.index('-C') + 1]).resolve() == repo
+                return original_popen(command, *args, **kwargs)
+            monkeypatch.setattr(subprocess, 'Popen', guarded)
+            monkeypatch.setattr(os, 'system', lambda *a: pytest.fail('shell forbidden'))
+            def git(*args):
+                return subprocess.run(['git', *args], cwd=repo, check=True, capture_output=True).stdout.decode().strip()
+            payload = {
+                package.BRIDGE_SOURCE_DIR + '/__init__.py': b'# synthetic bridge\n',
+                package.BRIDGE_SOURCE_DIR + '/core.py': b'SYNTHETIC = True\n',
+                package.BRIDGE_SOURCE_DIR + '/web/panel.js': b'// synthetic panel\n',
+                package.WORKFLOWS_SOURCE_DIR + '/video_reverse_prompt_v0.ui.json': b'{"synthetic":true}\n',
+                package.WORKFLOWS_SOURCE_DIR + '/manual.json': b'{"synthetic":"manual"}\n',
+            }
+            for name, raw in payload.items():
+                path = pack / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(raw)
+            tool = pack / 'tools/v0_incremental_package.py'; tool.parent.mkdir(); tool.write_text('# synthetic packaged tool identity\n')
+            git('init', '-q'); git('add', '.')
+            git('-c', 'user.name=ljx418', '-c', 'user.email=1173696783@qq.com', 'commit', '-qm', 'synthetic payload')
+            candidate = git('rev-parse', 'HEAD')
+            # Relocate module metadata for its existing repository-prefix resolver;
+            # all build/install/validation functions remain the real owners.
+            monkeypatch.setattr(package, '__file__', str(tool))
+            archive_path = root / 'payload.zip'
+>           build = package.command_build(SimpleNamespace(repo=repo, commit=candidate, out=archive_path, receipt_out=None, redact_root=[]))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:61: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_incremental_package.py:1388: in command_build
+    repo_root, sha = _resolve_commit(repo, args.commit)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:479: in _resolve_commit
+    repo_root = _git_text(repo, ["rev-parse", "--show-toplevel"], "rev-parse --show-toplevel").strip()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:236: in _git_text
+    proc = _git(repo, args)
+           ^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:226: in _git
+    proc = subprocess.run(
+/usr/lib/python3.12/subprocess.py:548: in run
+    with Popen(*popenargs, **kwargs) as process:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:39: in guarded
+    return original_popen(command, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.12/subprocess.py:1026: in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+/usr/lib/python3.12/subprocess.py:1823: in _execute_child
+    sys.audit("subprocess.Popen", executable, args, cwd, env)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+event = 'subprocess.Popen'
+args = ('git', ['git', '-C', '/tmp/lvw-p3a-owned-udnbfq6s/synthetic-git', 'rev-parse', '--show-toplevel'], None, None)
+
+    def audit(event, args):
+        if event == 'tempfile.mkdtemp':
+            path = Path(args[0]).absolute()
+            owned.append(path)
+        elif event == 'subprocess.Popen':
+            executable, argv, cwd, env = args
+            cwd = Path(cwd or os.getcwd()).resolve()
+            allowed = (mode != 'regression' and isinstance(argv, list) and argv[0] == 'git'
+                       and any(p.name.startswith('lvw-p3a-owned-') and cwd == p / 'synthetic-git' for p in owned))
+            if not allowed:
+>               raise AssertionError('REVIEW subprocess denied: ' + repr((executable, argv, str(cwd))))
+E               AssertionError: REVIEW subprocess denied: ('git', ['git', '-C', '/tmp/lvw-p3a-owned-udnbfq6s/synthetic-git', 'rev-parse', '--show-toplevel'], '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0')
+
+reports/v0-s3/product-gate0/independent-p3a/guarded_checks.py:23: AssertionError
+_ ERROR at setup of test_preinstall_refusals_persist_and_never_start[marker-link] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x739a695d7320>
+
+    @pytest.fixture
+    def fixture(monkeypatch):
+        with tempfile.TemporaryDirectory(prefix='lvw-p3a-owned-') as temporary:
+            root = Path(temporary).resolve()
+            repo = root / 'synthetic-git'; repo.mkdir()
+            pack = repo / 'pack'; pack.mkdir()
+            original_popen = subprocess.Popen
+            def guarded(command, *args, **kwargs):
+                assert isinstance(command, list) and command[0] == 'git', 'host subprocess forbidden'
+                assert not kwargs.get('shell'), 'shell forbidden'
+                cwd = Path(kwargs.get('cwd', repo)).resolve()
+                assert cwd == repo or cwd.is_relative_to(repo), 'only synthetic Git allowed'
+                if '-C' in command:
+                    assert Path(command[command.index('-C') + 1]).resolve() == repo
+                return original_popen(command, *args, **kwargs)
+            monkeypatch.setattr(subprocess, 'Popen', guarded)
+            monkeypatch.setattr(os, 'system', lambda *a: pytest.fail('shell forbidden'))
+            def git(*args):
+                return subprocess.run(['git', *args], cwd=repo, check=True, capture_output=True).stdout.decode().strip()
+            payload = {
+                package.BRIDGE_SOURCE_DIR + '/__init__.py': b'# synthetic bridge\n',
+                package.BRIDGE_SOURCE_DIR + '/core.py': b'SYNTHETIC = True\n',
+                package.BRIDGE_SOURCE_DIR + '/web/panel.js': b'// synthetic panel\n',
+                package.WORKFLOWS_SOURCE_DIR + '/video_reverse_prompt_v0.ui.json': b'{"synthetic":true}\n',
+                package.WORKFLOWS_SOURCE_DIR + '/manual.json': b'{"synthetic":"manual"}\n',
+            }
+            for name, raw in payload.items():
+                path = pack / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(raw)
+            tool = pack / 'tools/v0_incremental_package.py'; tool.parent.mkdir(); tool.write_text('# synthetic packaged tool identity\n')
+            git('init', '-q'); git('add', '.')
+            git('-c', 'user.name=ljx418', '-c', 'user.email=1173696783@qq.com', 'commit', '-qm', 'synthetic payload')
+            candidate = git('rev-parse', 'HEAD')
+            # Relocate module metadata for its existing repository-prefix resolver;
+            # all build/install/validation functions remain the real owners.
+            monkeypatch.setattr(package, '__file__', str(tool))
+            archive_path = root / 'payload.zip'
+>           build = package.command_build(SimpleNamespace(repo=repo, commit=candidate, out=archive_path, receipt_out=None, redact_root=[]))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:61: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_incremental_package.py:1388: in command_build
+    repo_root, sha = _resolve_commit(repo, args.commit)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:479: in _resolve_commit
+    repo_root = _git_text(repo, ["rev-parse", "--show-toplevel"], "rev-parse --show-toplevel").strip()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:236: in _git_text
+    proc = _git(repo, args)
+           ^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:226: in _git
+    proc = subprocess.run(
+/usr/lib/python3.12/subprocess.py:548: in run
+    with Popen(*popenargs, **kwargs) as process:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:39: in guarded
+    return original_popen(command, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.12/subprocess.py:1026: in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+/usr/lib/python3.12/subprocess.py:1823: in _execute_child
+    sys.audit("subprocess.Popen", executable, args, cwd, env)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+event = 'subprocess.Popen'
+args = ('git', ['git', '-C', '/tmp/lvw-p3a-owned-7qp43ka8/synthetic-git', 'rev-parse', '--show-toplevel'], None, None)
+
+    def audit(event, args):
+        if event == 'tempfile.mkdtemp':
+            path = Path(args[0]).absolute()
+            owned.append(path)
+        elif event == 'subprocess.Popen':
+            executable, argv, cwd, env = args
+            cwd = Path(cwd or os.getcwd()).resolve()
+            allowed = (mode != 'regression' and isinstance(argv, list) and argv[0] == 'git'
+                       and any(p.name.startswith('lvw-p3a-owned-') and cwd == p / 'synthetic-git' for p in owned))
+            if not allowed:
+>               raise AssertionError('REVIEW subprocess denied: ' + repr((executable, argv, str(cwd))))
+E               AssertionError: REVIEW subprocess denied: ('git', ['git', '-C', '/tmp/lvw-p3a-owned-7qp43ka8/synthetic-git', 'rev-parse', '--show-toplevel'], '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0')
+
+reports/v0-s3/product-gate0/independent-p3a/guarded_checks.py:23: AssertionError
+_ ERROR at setup of test_preinstall_refusals_persist_and_never_start[package-link] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x739a695cf9b0>
+
+    @pytest.fixture
+    def fixture(monkeypatch):
+        with tempfile.TemporaryDirectory(prefix='lvw-p3a-owned-') as temporary:
+            root = Path(temporary).resolve()
+            repo = root / 'synthetic-git'; repo.mkdir()
+            pack = repo / 'pack'; pack.mkdir()
+            original_popen = subprocess.Popen
+            def guarded(command, *args, **kwargs):
+                assert isinstance(command, list) and command[0] == 'git', 'host subprocess forbidden'
+                assert not kwargs.get('shell'), 'shell forbidden'
+                cwd = Path(kwargs.get('cwd', repo)).resolve()
+                assert cwd == repo or cwd.is_relative_to(repo), 'only synthetic Git allowed'
+                if '-C' in command:
+                    assert Path(command[command.index('-C') + 1]).resolve() == repo
+                return original_popen(command, *args, **kwargs)
+            monkeypatch.setattr(subprocess, 'Popen', guarded)
+            monkeypatch.setattr(os, 'system', lambda *a: pytest.fail('shell forbidden'))
+            def git(*args):
+                return subprocess.run(['git', *args], cwd=repo, check=True, capture_output=True).stdout.decode().strip()
+            payload = {
+                package.BRIDGE_SOURCE_DIR + '/__init__.py': b'# synthetic bridge\n',
+                package.BRIDGE_SOURCE_DIR + '/core.py': b'SYNTHETIC = True\n',
+                package.BRIDGE_SOURCE_DIR + '/web/panel.js': b'// synthetic panel\n',
+                package.WORKFLOWS_SOURCE_DIR + '/video_reverse_prompt_v0.ui.json': b'{"synthetic":true}\n',
+                package.WORKFLOWS_SOURCE_DIR + '/manual.json': b'{"synthetic":"manual"}\n',
+            }
+            for name, raw in payload.items():
+                path = pack / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(raw)
+            tool = pack / 'tools/v0_incremental_package.py'; tool.parent.mkdir(); tool.write_text('# synthetic packaged tool identity\n')
+            git('init', '-q'); git('add', '.')
+            git('-c', 'user.name=ljx418', '-c', 'user.email=1173696783@qq.com', 'commit', '-qm', 'synthetic payload')
+            candidate = git('rev-parse', 'HEAD')
+            # Relocate module metadata for its existing repository-prefix resolver;
+            # all build/install/validation functions remain the real owners.
+            monkeypatch.setattr(package, '__file__', str(tool))
+            archive_path = root / 'payload.zip'
+>           build = package.command_build(SimpleNamespace(repo=repo, commit=candidate, out=archive_path, receipt_out=None, redact_root=[]))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:61: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_incremental_package.py:1388: in command_build
+    repo_root, sha = _resolve_commit(repo, args.commit)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:479: in _resolve_commit
+    repo_root = _git_text(repo, ["rev-parse", "--show-toplevel"], "rev-parse --show-toplevel").strip()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:236: in _git_text
+    proc = _git(repo, args)
+           ^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:226: in _git
+    proc = subprocess.run(
+/usr/lib/python3.12/subprocess.py:548: in run
+    with Popen(*popenargs, **kwargs) as process:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:39: in guarded
+    return original_popen(command, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.12/subprocess.py:1026: in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+/usr/lib/python3.12/subprocess.py:1823: in _execute_child
+    sys.audit("subprocess.Popen", executable, args, cwd, env)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+event = 'subprocess.Popen'
+args = ('git', ['git', '-C', '/tmp/lvw-p3a-owned-ysx3ys3x/synthetic-git', 'rev-parse', '--show-toplevel'], None, None)
+
+    def audit(event, args):
+        if event == 'tempfile.mkdtemp':
+            path = Path(args[0]).absolute()
+            owned.append(path)
+        elif event == 'subprocess.Popen':
+            executable, argv, cwd, env = args
+            cwd = Path(cwd or os.getcwd()).resolve()
+            allowed = (mode != 'regression' and isinstance(argv, list) and argv[0] == 'git'
+                       and any(p.name.startswith('lvw-p3a-owned-') and cwd == p / 'synthetic-git' for p in owned))
+            if not allowed:
+>               raise AssertionError('REVIEW subprocess denied: ' + repr((executable, argv, str(cwd))))
+E               AssertionError: REVIEW subprocess denied: ('git', ['git', '-C', '/tmp/lvw-p3a-owned-ysx3ys3x/synthetic-git', 'rev-parse', '--show-toplevel'], '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0')
+
+reports/v0-s3/product-gate0/independent-p3a/guarded_checks.py:23: AssertionError
+_ ERROR at setup of test_preinstall_refusals_persist_and_never_start[package-oversize] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x739a695d7170>
+
+    @pytest.fixture
+    def fixture(monkeypatch):
+        with tempfile.TemporaryDirectory(prefix='lvw-p3a-owned-') as temporary:
+            root = Path(temporary).resolve()
+            repo = root / 'synthetic-git'; repo.mkdir()
+            pack = repo / 'pack'; pack.mkdir()
+            original_popen = subprocess.Popen
+            def guarded(command, *args, **kwargs):
+                assert isinstance(command, list) and command[0] == 'git', 'host subprocess forbidden'
+                assert not kwargs.get('shell'), 'shell forbidden'
+                cwd = Path(kwargs.get('cwd', repo)).resolve()
+                assert cwd == repo or cwd.is_relative_to(repo), 'only synthetic Git allowed'
+                if '-C' in command:
+                    assert Path(command[command.index('-C') + 1]).resolve() == repo
+                return original_popen(command, *args, **kwargs)
+            monkeypatch.setattr(subprocess, 'Popen', guarded)
+            monkeypatch.setattr(os, 'system', lambda *a: pytest.fail('shell forbidden'))
+            def git(*args):
+                return subprocess.run(['git', *args], cwd=repo, check=True, capture_output=True).stdout.decode().strip()
+            payload = {
+                package.BRIDGE_SOURCE_DIR + '/__init__.py': b'# synthetic bridge\n',
+                package.BRIDGE_SOURCE_DIR + '/core.py': b'SYNTHETIC = True\n',
+                package.BRIDGE_SOURCE_DIR + '/web/panel.js': b'// synthetic panel\n',
+                package.WORKFLOWS_SOURCE_DIR + '/video_reverse_prompt_v0.ui.json': b'{"synthetic":true}\n',
+                package.WORKFLOWS_SOURCE_DIR + '/manual.json': b'{"synthetic":"manual"}\n',
+            }
+            for name, raw in payload.items():
+                path = pack / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(raw)
+            tool = pack / 'tools/v0_incremental_package.py'; tool.parent.mkdir(); tool.write_text('# synthetic packaged tool identity\n')
+            git('init', '-q'); git('add', '.')
+            git('-c', 'user.name=ljx418', '-c', 'user.email=1173696783@qq.com', 'commit', '-qm', 'synthetic payload')
+            candidate = git('rev-parse', 'HEAD')
+            # Relocate module metadata for its existing repository-prefix resolver;
+            # all build/install/validation functions remain the real owners.
+            monkeypatch.setattr(package, '__file__', str(tool))
+            archive_path = root / 'payload.zip'
+>           build = package.command_build(SimpleNamespace(repo=repo, commit=candidate, out=archive_path, receipt_out=None, redact_root=[]))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:61: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_incremental_package.py:1388: in command_build
+    repo_root, sha = _resolve_commit(repo, args.commit)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:479: in _resolve_commit
+    repo_root = _git_text(repo, ["rev-parse", "--show-toplevel"], "rev-parse --show-toplevel").strip()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:236: in _git_text
+    proc = _git(repo, args)
+           ^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:226: in _git
+    proc = subprocess.run(
+/usr/lib/python3.12/subprocess.py:548: in run
+    with Popen(*popenargs, **kwargs) as process:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:39: in guarded
+    return original_popen(command, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.12/subprocess.py:1026: in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+/usr/lib/python3.12/subprocess.py:1823: in _execute_child
+    sys.audit("subprocess.Popen", executable, args, cwd, env)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+event = 'subprocess.Popen'
+args = ('git', ['git', '-C', '/tmp/lvw-p3a-owned-w9_4k5t8/synthetic-git', 'rev-parse', '--show-toplevel'], None, None)
+
+    def audit(event, args):
+        if event == 'tempfile.mkdtemp':
+            path = Path(args[0]).absolute()
+            owned.append(path)
+        elif event == 'subprocess.Popen':
+            executable, argv, cwd, env = args
+            cwd = Path(cwd or os.getcwd()).resolve()
+            allowed = (mode != 'regression' and isinstance(argv, list) and argv[0] == 'git'
+                       and any(p.name.startswith('lvw-p3a-owned-') and cwd == p / 'synthetic-git' for p in owned))
+            if not allowed:
+>               raise AssertionError('REVIEW subprocess denied: ' + repr((executable, argv, str(cwd))))
+E               AssertionError: REVIEW subprocess denied: ('git', ['git', '-C', '/tmp/lvw-p3a-owned-w9_4k5t8/synthetic-git', 'rev-parse', '--show-toplevel'], '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0')
+
+reports/v0-s3/product-gate0/independent-p3a/guarded_checks.py:23: AssertionError
+_ ERROR at setup of test_installer_and_postinstall_refusals_before_start[bridge-bytes] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x739a695d7530>
+
+    @pytest.fixture
+    def fixture(monkeypatch):
+        with tempfile.TemporaryDirectory(prefix='lvw-p3a-owned-') as temporary:
+            root = Path(temporary).resolve()
+            repo = root / 'synthetic-git'; repo.mkdir()
+            pack = repo / 'pack'; pack.mkdir()
+            original_popen = subprocess.Popen
+            def guarded(command, *args, **kwargs):
+                assert isinstance(command, list) and command[0] == 'git', 'host subprocess forbidden'
+                assert not kwargs.get('shell'), 'shell forbidden'
+                cwd = Path(kwargs.get('cwd', repo)).resolve()
+                assert cwd == repo or cwd.is_relative_to(repo), 'only synthetic Git allowed'
+                if '-C' in command:
+                    assert Path(command[command.index('-C') + 1]).resolve() == repo
+                return original_popen(command, *args, **kwargs)
+            monkeypatch.setattr(subprocess, 'Popen', guarded)
+            monkeypatch.setattr(os, 'system', lambda *a: pytest.fail('shell forbidden'))
+            def git(*args):
+                return subprocess.run(['git', *args], cwd=repo, check=True, capture_output=True).stdout.decode().strip()
+            payload = {
+                package.BRIDGE_SOURCE_DIR + '/__init__.py': b'# synthetic bridge\n',
+                package.BRIDGE_SOURCE_DIR + '/core.py': b'SYNTHETIC = True\n',
+                package.BRIDGE_SOURCE_DIR + '/web/panel.js': b'// synthetic panel\n',
+                package.WORKFLOWS_SOURCE_DIR + '/video_reverse_prompt_v0.ui.json': b'{"synthetic":true}\n',
+                package.WORKFLOWS_SOURCE_DIR + '/manual.json': b'{"synthetic":"manual"}\n',
+            }
+            for name, raw in payload.items():
+                path = pack / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(raw)
+            tool = pack / 'tools/v0_incremental_package.py'; tool.parent.mkdir(); tool.write_text('# synthetic packaged tool identity\n')
+            git('init', '-q'); git('add', '.')
+            git('-c', 'user.name=ljx418', '-c', 'user.email=1173696783@qq.com', 'commit', '-qm', 'synthetic payload')
+            candidate = git('rev-parse', 'HEAD')
+            # Relocate module metadata for its existing repository-prefix resolver;
+            # all build/install/validation functions remain the real owners.
+            monkeypatch.setattr(package, '__file__', str(tool))
+            archive_path = root / 'payload.zip'
+>           build = package.command_build(SimpleNamespace(repo=repo, commit=candidate, out=archive_path, receipt_out=None, redact_root=[]))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:61: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_incremental_package.py:1388: in command_build
+    repo_root, sha = _resolve_commit(repo, args.commit)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:479: in _resolve_commit
+    repo_root = _git_text(repo, ["rev-parse", "--show-toplevel"], "rev-parse --show-toplevel").strip()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:236: in _git_text
+    proc = _git(repo, args)
+           ^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:226: in _git
+    proc = subprocess.run(
+/usr/lib/python3.12/subprocess.py:548: in run
+    with Popen(*popenargs, **kwargs) as process:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:39: in guarded
+    return original_popen(command, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.12/subprocess.py:1026: in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+/usr/lib/python3.12/subprocess.py:1823: in _execute_child
+    sys.audit("subprocess.Popen", executable, args, cwd, env)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+event = 'subprocess.Popen'
+args = ('git', ['git', '-C', '/tmp/lvw-p3a-owned-5g3rpriv/synthetic-git', 'rev-parse', '--show-toplevel'], None, None)
+
+    def audit(event, args):
+        if event == 'tempfile.mkdtemp':
+            path = Path(args[0]).absolute()
+            owned.append(path)
+        elif event == 'subprocess.Popen':
+            executable, argv, cwd, env = args
+            cwd = Path(cwd or os.getcwd()).resolve()
+            allowed = (mode != 'regression' and isinstance(argv, list) and argv[0] == 'git'
+                       and any(p.name.startswith('lvw-p3a-owned-') and cwd == p / 'synthetic-git' for p in owned))
+            if not allowed:
+>               raise AssertionError('REVIEW subprocess denied: ' + repr((executable, argv, str(cwd))))
+E               AssertionError: REVIEW subprocess denied: ('git', ['git', '-C', '/tmp/lvw-p3a-owned-5g3rpriv/synthetic-git', 'rev-parse', '--show-toplevel'], '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0')
+
+reports/v0-s3/product-gate0/independent-p3a/guarded_checks.py:23: AssertionError
+_ ERROR at setup of test_installer_and_postinstall_refusals_before_start[workflow-bytes] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x739a695d4b30>
+
+    @pytest.fixture
+    def fixture(monkeypatch):
+        with tempfile.TemporaryDirectory(prefix='lvw-p3a-owned-') as temporary:
+            root = Path(temporary).resolve()
+            repo = root / 'synthetic-git'; repo.mkdir()
+            pack = repo / 'pack'; pack.mkdir()
+            original_popen = subprocess.Popen
+            def guarded(command, *args, **kwargs):
+                assert isinstance(command, list) and command[0] == 'git', 'host subprocess forbidden'
+                assert not kwargs.get('shell'), 'shell forbidden'
+                cwd = Path(kwargs.get('cwd', repo)).resolve()
+                assert cwd == repo or cwd.is_relative_to(repo), 'only synthetic Git allowed'
+                if '-C' in command:
+                    assert Path(command[command.index('-C') + 1]).resolve() == repo
+                return original_popen(command, *args, **kwargs)
+            monkeypatch.setattr(subprocess, 'Popen', guarded)
+            monkeypatch.setattr(os, 'system', lambda *a: pytest.fail('shell forbidden'))
+            def git(*args):
+                return subprocess.run(['git', *args], cwd=repo, check=True, capture_output=True).stdout.decode().strip()
+            payload = {
+                package.BRIDGE_SOURCE_DIR + '/__init__.py': b'# synthetic bridge\n',
+                package.BRIDGE_SOURCE_DIR + '/core.py': b'SYNTHETIC = True\n',
+                package.BRIDGE_SOURCE_DIR + '/web/panel.js': b'// synthetic panel\n',
+                package.WORKFLOWS_SOURCE_DIR + '/video_reverse_prompt_v0.ui.json': b'{"synthetic":true}\n',
+                package.WORKFLOWS_SOURCE_DIR + '/manual.json': b'{"synthetic":"manual"}\n',
+            }
+            for name, raw in payload.items():
+                path = pack / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(raw)
+            tool = pack / 'tools/v0_incremental_package.py'; tool.parent.mkdir(); tool.write_text('# synthetic packaged tool identity\n')
+            git('init', '-q'); git('add', '.')
+            git('-c', 'user.name=ljx418', '-c', 'user.email=1173696783@qq.com', 'commit', '-qm', 'synthetic payload')
+            candidate = git('rev-parse', 'HEAD')
+            # Relocate module metadata for its existing repository-prefix resolver;
+            # all build/install/validation functions remain the real owners.
+            monkeypatch.setattr(package, '__file__', str(tool))
+            archive_path = root / 'payload.zip'
+>           build = package.command_build(SimpleNamespace(repo=repo, commit=candidate, out=archive_path, receipt_out=None, redact_root=[]))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:61: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_incremental_package.py:1388: in command_build
+    repo_root, sha = _resolve_commit(repo, args.commit)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:479: in _resolve_commit
+    repo_root = _git_text(repo, ["rev-parse", "--show-toplevel"], "rev-parse --show-toplevel").strip()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:236: in _git_text
+    proc = _git(repo, args)
+           ^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:226: in _git
+    proc = subprocess.run(
+/usr/lib/python3.12/subprocess.py:548: in run
+    with Popen(*popenargs, **kwargs) as process:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:39: in guarded
+    return original_popen(command, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.12/subprocess.py:1026: in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+/usr/lib/python3.12/subprocess.py:1823: in _execute_child
+    sys.audit("subprocess.Popen", executable, args, cwd, env)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+event = 'subprocess.Popen'
+args = ('git', ['git', '-C', '/tmp/lvw-p3a-owned-v8pqbw5e/synthetic-git', 'rev-parse', '--show-toplevel'], None, None)
+
+    def audit(event, args):
+        if event == 'tempfile.mkdtemp':
+            path = Path(args[0]).absolute()
+            owned.append(path)
+        elif event == 'subprocess.Popen':
+            executable, argv, cwd, env = args
+            cwd = Path(cwd or os.getcwd()).resolve()
+            allowed = (mode != 'regression' and isinstance(argv, list) and argv[0] == 'git'
+                       and any(p.name.startswith('lvw-p3a-owned-') and cwd == p / 'synthetic-git' for p in owned))
+            if not allowed:
+>               raise AssertionError('REVIEW subprocess denied: ' + repr((executable, argv, str(cwd))))
+E               AssertionError: REVIEW subprocess denied: ('git', ['git', '-C', '/tmp/lvw-p3a-owned-v8pqbw5e/synthetic-git', 'rev-parse', '--show-toplevel'], '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0')
+
+reports/v0-s3/product-gate0/independent-p3a/guarded_checks.py:23: AssertionError
+_ ERROR at setup of test_installer_and_postinstall_refusals_before_start[extra-file] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x739a695dfd10>
+
+    @pytest.fixture
+    def fixture(monkeypatch):
+        with tempfile.TemporaryDirectory(prefix='lvw-p3a-owned-') as temporary:
+            root = Path(temporary).resolve()
+            repo = root / 'synthetic-git'; repo.mkdir()
+            pack = repo / 'pack'; pack.mkdir()
+            original_popen = subprocess.Popen
+            def guarded(command, *args, **kwargs):
+                assert isinstance(command, list) and command[0] == 'git', 'host subprocess forbidden'
+                assert not kwargs.get('shell'), 'shell forbidden'
+                cwd = Path(kwargs.get('cwd', repo)).resolve()
+                assert cwd == repo or cwd.is_relative_to(repo), 'only synthetic Git allowed'
+                if '-C' in command:
+                    assert Path(command[command.index('-C') + 1]).resolve() == repo
+                return original_popen(command, *args, **kwargs)
+            monkeypatch.setattr(subprocess, 'Popen', guarded)
+            monkeypatch.setattr(os, 'system', lambda *a: pytest.fail('shell forbidden'))
+            def git(*args):
+                return subprocess.run(['git', *args], cwd=repo, check=True, capture_output=True).stdout.decode().strip()
+            payload = {
+                package.BRIDGE_SOURCE_DIR + '/__init__.py': b'# synthetic bridge\n',
+                package.BRIDGE_SOURCE_DIR + '/core.py': b'SYNTHETIC = True\n',
+                package.BRIDGE_SOURCE_DIR + '/web/panel.js': b'// synthetic panel\n',
+                package.WORKFLOWS_SOURCE_DIR + '/video_reverse_prompt_v0.ui.json': b'{"synthetic":true}\n',
+                package.WORKFLOWS_SOURCE_DIR + '/manual.json': b'{"synthetic":"manual"}\n',
+            }
+            for name, raw in payload.items():
+                path = pack / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(raw)
+            tool = pack / 'tools/v0_incremental_package.py'; tool.parent.mkdir(); tool.write_text('# synthetic packaged tool identity\n')
+            git('init', '-q'); git('add', '.')
+            git('-c', 'user.name=ljx418', '-c', 'user.email=1173696783@qq.com', 'commit', '-qm', 'synthetic payload')
+            candidate = git('rev-parse', 'HEAD')
+            # Relocate module metadata for its existing repository-prefix resolver;
+            # all build/install/validation functions remain the real owners.
+            monkeypatch.setattr(package, '__file__', str(tool))
+            archive_path = root / 'payload.zip'
+>           build = package.command_build(SimpleNamespace(repo=repo, commit=candidate, out=archive_path, receipt_out=None, redact_root=[]))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:61: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_incremental_package.py:1388: in command_build
+    repo_root, sha = _resolve_commit(repo, args.commit)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:479: in _resolve_commit
+    repo_root = _git_text(repo, ["rev-parse", "--show-toplevel"], "rev-parse --show-toplevel").strip()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:236: in _git_text
+    proc = _git(repo, args)
+           ^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:226: in _git
+    proc = subprocess.run(
+/usr/lib/python3.12/subprocess.py:548: in run
+    with Popen(*popenargs, **kwargs) as process:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:39: in guarded
+    return original_popen(command, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.12/subprocess.py:1026: in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+/usr/lib/python3.12/subprocess.py:1823: in _execute_child
+    sys.audit("subprocess.Popen", executable, args, cwd, env)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+event = 'subprocess.Popen'
+args = ('git', ['git', '-C', '/tmp/lvw-p3a-owned-jz0exlfw/synthetic-git', 'rev-parse', '--show-toplevel'], None, None)
+
+    def audit(event, args):
+        if event == 'tempfile.mkdtemp':
+            path = Path(args[0]).absolute()
+            owned.append(path)
+        elif event == 'subprocess.Popen':
+            executable, argv, cwd, env = args
+            cwd = Path(cwd or os.getcwd()).resolve()
+            allowed = (mode != 'regression' and isinstance(argv, list) and argv[0] == 'git'
+                       and any(p.name.startswith('lvw-p3a-owned-') and cwd == p / 'synthetic-git' for p in owned))
+            if not allowed:
+>               raise AssertionError('REVIEW subprocess denied: ' + repr((executable, argv, str(cwd))))
+E               AssertionError: REVIEW subprocess denied: ('git', ['git', '-C', '/tmp/lvw-p3a-owned-jz0exlfw/synthetic-git', 'rev-parse', '--show-toplevel'], '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0')
+
+reports/v0-s3/product-gate0/independent-p3a/guarded_checks.py:23: AssertionError
+_ ERROR at setup of test_installer_and_postinstall_refusals_before_start[missing-file] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x739a695dd910>
+
+    @pytest.fixture
+    def fixture(monkeypatch):
+        with tempfile.TemporaryDirectory(prefix='lvw-p3a-owned-') as temporary:
+            root = Path(temporary).resolve()
+            repo = root / 'synthetic-git'; repo.mkdir()
+            pack = repo / 'pack'; pack.mkdir()
+            original_popen = subprocess.Popen
+            def guarded(command, *args, **kwargs):
+                assert isinstance(command, list) and command[0] == 'git', 'host subprocess forbidden'
+                assert not kwargs.get('shell'), 'shell forbidden'
+                cwd = Path(kwargs.get('cwd', repo)).resolve()
+                assert cwd == repo or cwd.is_relative_to(repo), 'only synthetic Git allowed'
+                if '-C' in command:
+                    assert Path(command[command.index('-C') + 1]).resolve() == repo
+                return original_popen(command, *args, **kwargs)
+            monkeypatch.setattr(subprocess, 'Popen', guarded)
+            monkeypatch.setattr(os, 'system', lambda *a: pytest.fail('shell forbidden'))
+            def git(*args):
+                return subprocess.run(['git', *args], cwd=repo, check=True, capture_output=True).stdout.decode().strip()
+            payload = {
+                package.BRIDGE_SOURCE_DIR + '/__init__.py': b'# synthetic bridge\n',
+                package.BRIDGE_SOURCE_DIR + '/core.py': b'SYNTHETIC = True\n',
+                package.BRIDGE_SOURCE_DIR + '/web/panel.js': b'// synthetic panel\n',
+                package.WORKFLOWS_SOURCE_DIR + '/video_reverse_prompt_v0.ui.json': b'{"synthetic":true}\n',
+                package.WORKFLOWS_SOURCE_DIR + '/manual.json': b'{"synthetic":"manual"}\n',
+            }
+            for name, raw in payload.items():
+                path = pack / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(raw)
+            tool = pack / 'tools/v0_incremental_package.py'; tool.parent.mkdir(); tool.write_text('# synthetic packaged tool identity\n')
+            git('init', '-q'); git('add', '.')
+            git('-c', 'user.name=ljx418', '-c', 'user.email=1173696783@qq.com', 'commit', '-qm', 'synthetic payload')
+            candidate = git('rev-parse', 'HEAD')
+            # Relocate module metadata for its existing repository-prefix resolver;
+            # all build/install/validation functions remain the real owners.
+            monkeypatch.setattr(package, '__file__', str(tool))
+            archive_path = root / 'payload.zip'
+>           build = package.command_build(SimpleNamespace(repo=repo, commit=candidate, out=archive_path, receipt_out=None, redact_root=[]))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:61: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_incremental_package.py:1388: in command_build
+    repo_root, sha = _resolve_commit(repo, args.commit)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:479: in _resolve_commit
+    repo_root = _git_text(repo, ["rev-parse", "--show-toplevel"], "rev-parse --show-toplevel").strip()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:236: in _git_text
+    proc = _git(repo, args)
+           ^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:226: in _git
+    proc = subprocess.run(
+/usr/lib/python3.12/subprocess.py:548: in run
+    with Popen(*popenargs, **kwargs) as process:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:39: in guarded
+    return original_popen(command, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.12/subprocess.py:1026: in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+/usr/lib/python3.12/subprocess.py:1823: in _execute_child
+    sys.audit("subprocess.Popen", executable, args, cwd, env)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+event = 'subprocess.Popen'
+args = ('git', ['git', '-C', '/tmp/lvw-p3a-owned-v7eefpig/synthetic-git', 'rev-parse', '--show-toplevel'], None, None)
+
+    def audit(event, args):
+        if event == 'tempfile.mkdtemp':
+            path = Path(args[0]).absolute()
+            owned.append(path)
+        elif event == 'subprocess.Popen':
+            executable, argv, cwd, env = args
+            cwd = Path(cwd or os.getcwd()).resolve()
+            allowed = (mode != 'regression' and isinstance(argv, list) and argv[0] == 'git'
+                       and any(p.name.startswith('lvw-p3a-owned-') and cwd == p / 'synthetic-git' for p in owned))
+            if not allowed:
+>               raise AssertionError('REVIEW subprocess denied: ' + repr((executable, argv, str(cwd))))
+E               AssertionError: REVIEW subprocess denied: ('git', ['git', '-C', '/tmp/lvw-p3a-owned-v7eefpig/synthetic-git', 'rev-parse', '--show-toplevel'], '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0')
+
+reports/v0-s3/product-gate0/independent-p3a/guarded_checks.py:23: AssertionError
+_ ERROR at setup of test_installer_and_postinstall_refusals_before_start[payload-link] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x739a695d5520>
+
+    @pytest.fixture
+    def fixture(monkeypatch):
+        with tempfile.TemporaryDirectory(prefix='lvw-p3a-owned-') as temporary:
+            root = Path(temporary).resolve()
+            repo = root / 'synthetic-git'; repo.mkdir()
+            pack = repo / 'pack'; pack.mkdir()
+            original_popen = subprocess.Popen
+            def guarded(command, *args, **kwargs):
+                assert isinstance(command, list) and command[0] == 'git', 'host subprocess forbidden'
+                assert not kwargs.get('shell'), 'shell forbidden'
+                cwd = Path(kwargs.get('cwd', repo)).resolve()
+                assert cwd == repo or cwd.is_relative_to(repo), 'only synthetic Git allowed'
+                if '-C' in command:
+                    assert Path(command[command.index('-C') + 1]).resolve() == repo
+                return original_popen(command, *args, **kwargs)
+            monkeypatch.setattr(subprocess, 'Popen', guarded)
+            monkeypatch.setattr(os, 'system', lambda *a: pytest.fail('shell forbidden'))
+            def git(*args):
+                return subprocess.run(['git', *args], cwd=repo, check=True, capture_output=True).stdout.decode().strip()
+            payload = {
+                package.BRIDGE_SOURCE_DIR + '/__init__.py': b'# synthetic bridge\n',
+                package.BRIDGE_SOURCE_DIR + '/core.py': b'SYNTHETIC = True\n',
+                package.BRIDGE_SOURCE_DIR + '/web/panel.js': b'// synthetic panel\n',
+                package.WORKFLOWS_SOURCE_DIR + '/video_reverse_prompt_v0.ui.json': b'{"synthetic":true}\n',
+                package.WORKFLOWS_SOURCE_DIR + '/manual.json': b'{"synthetic":"manual"}\n',
+            }
+            for name, raw in payload.items():
+                path = pack / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(raw)
+            tool = pack / 'tools/v0_incremental_package.py'; tool.parent.mkdir(); tool.write_text('# synthetic packaged tool identity\n')
+            git('init', '-q'); git('add', '.')
+            git('-c', 'user.name=ljx418', '-c', 'user.email=1173696783@qq.com', 'commit', '-qm', 'synthetic payload')
+            candidate = git('rev-parse', 'HEAD')
+            # Relocate module metadata for its existing repository-prefix resolver;
+            # all build/install/validation functions remain the real owners.
+            monkeypatch.setattr(package, '__file__', str(tool))
+            archive_path = root / 'payload.zip'
+>           build = package.command_build(SimpleNamespace(repo=repo, commit=candidate, out=archive_path, receipt_out=None, redact_root=[]))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:61: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_incremental_package.py:1388: in command_build
+    repo_root, sha = _resolve_commit(repo, args.commit)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:479: in _resolve_commit
+    repo_root = _git_text(repo, ["rev-parse", "--show-toplevel"], "rev-parse --show-toplevel").strip()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:236: in _git_text
+    proc = _git(repo, args)
+           ^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:226: in _git
+    proc = subprocess.run(
+/usr/lib/python3.12/subprocess.py:548: in run
+    with Popen(*popenargs, **kwargs) as process:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:39: in guarded
+    return original_popen(command, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.12/subprocess.py:1026: in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+/usr/lib/python3.12/subprocess.py:1823: in _execute_child
+    sys.audit("subprocess.Popen", executable, args, cwd, env)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+event = 'subprocess.Popen'
+args = ('git', ['git', '-C', '/tmp/lvw-p3a-owned-g1jwdc6m/synthetic-git', 'rev-parse', '--show-toplevel'], None, None)
+
+    def audit(event, args):
+        if event == 'tempfile.mkdtemp':
+            path = Path(args[0]).absolute()
+            owned.append(path)
+        elif event == 'subprocess.Popen':
+            executable, argv, cwd, env = args
+            cwd = Path(cwd or os.getcwd()).resolve()
+            allowed = (mode != 'regression' and isinstance(argv, list) and argv[0] == 'git'
+                       and any(p.name.startswith('lvw-p3a-owned-') and cwd == p / 'synthetic-git' for p in owned))
+            if not allowed:
+>               raise AssertionError('REVIEW subprocess denied: ' + repr((executable, argv, str(cwd))))
+E               AssertionError: REVIEW subprocess denied: ('git', ['git', '-C', '/tmp/lvw-p3a-owned-g1jwdc6m/synthetic-git', 'rev-parse', '--show-toplevel'], '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0')
+
+reports/v0-s3/product-gate0/independent-p3a/guarded_checks.py:23: AssertionError
+_ ERROR at setup of test_installer_and_postinstall_refusals_before_start[owner-bytes] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x739a695dec90>
+
+    @pytest.fixture
+    def fixture(monkeypatch):
+        with tempfile.TemporaryDirectory(prefix='lvw-p3a-owned-') as temporary:
+            root = Path(temporary).resolve()
+            repo = root / 'synthetic-git'; repo.mkdir()
+            pack = repo / 'pack'; pack.mkdir()
+            original_popen = subprocess.Popen
+            def guarded(command, *args, **kwargs):
+                assert isinstance(command, list) and command[0] == 'git', 'host subprocess forbidden'
+                assert not kwargs.get('shell'), 'shell forbidden'
+                cwd = Path(kwargs.get('cwd', repo)).resolve()
+                assert cwd == repo or cwd.is_relative_to(repo), 'only synthetic Git allowed'
+                if '-C' in command:
+                    assert Path(command[command.index('-C') + 1]).resolve() == repo
+                return original_popen(command, *args, **kwargs)
+            monkeypatch.setattr(subprocess, 'Popen', guarded)
+            monkeypatch.setattr(os, 'system', lambda *a: pytest.fail('shell forbidden'))
+            def git(*args):
+                return subprocess.run(['git', *args], cwd=repo, check=True, capture_output=True).stdout.decode().strip()
+            payload = {
+                package.BRIDGE_SOURCE_DIR + '/__init__.py': b'# synthetic bridge\n',
+                package.BRIDGE_SOURCE_DIR + '/core.py': b'SYNTHETIC = True\n',
+                package.BRIDGE_SOURCE_DIR + '/web/panel.js': b'// synthetic panel\n',
+                package.WORKFLOWS_SOURCE_DIR + '/video_reverse_prompt_v0.ui.json': b'{"synthetic":true}\n',
+                package.WORKFLOWS_SOURCE_DIR + '/manual.json': b'{"synthetic":"manual"}\n',
+            }
+            for name, raw in payload.items():
+                path = pack / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(raw)
+            tool = pack / 'tools/v0_incremental_package.py'; tool.parent.mkdir(); tool.write_text('# synthetic packaged tool identity\n')
+            git('init', '-q'); git('add', '.')
+            git('-c', 'user.name=ljx418', '-c', 'user.email=1173696783@qq.com', 'commit', '-qm', 'synthetic payload')
+            candidate = git('rev-parse', 'HEAD')
+            # Relocate module metadata for its existing repository-prefix resolver;
+            # all build/install/validation functions remain the real owners.
+            monkeypatch.setattr(package, '__file__', str(tool))
+            archive_path = root / 'payload.zip'
+>           build = package.command_build(SimpleNamespace(repo=repo, commit=candidate, out=archive_path, receipt_out=None, redact_root=[]))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:61: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_incremental_package.py:1388: in command_build
+    repo_root, sha = _resolve_commit(repo, args.commit)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:479: in _resolve_commit
+    repo_root = _git_text(repo, ["rev-parse", "--show-toplevel"], "rev-parse --show-toplevel").strip()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:236: in _git_text
+    proc = _git(repo, args)
+           ^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:226: in _git
+    proc = subprocess.run(
+/usr/lib/python3.12/subprocess.py:548: in run
+    with Popen(*popenargs, **kwargs) as process:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:39: in guarded
+    return original_popen(command, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.12/subprocess.py:1026: in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+/usr/lib/python3.12/subprocess.py:1823: in _execute_child
+    sys.audit("subprocess.Popen", executable, args, cwd, env)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+event = 'subprocess.Popen'
+args = ('git', ['git', '-C', '/tmp/lvw-p3a-owned-t0g7rlz0/synthetic-git', 'rev-parse', '--show-toplevel'], None, None)
+
+    def audit(event, args):
+        if event == 'tempfile.mkdtemp':
+            path = Path(args[0]).absolute()
+            owned.append(path)
+        elif event == 'subprocess.Popen':
+            executable, argv, cwd, env = args
+            cwd = Path(cwd or os.getcwd()).resolve()
+            allowed = (mode != 'regression' and isinstance(argv, list) and argv[0] == 'git'
+                       and any(p.name.startswith('lvw-p3a-owned-') and cwd == p / 'synthetic-git' for p in owned))
+            if not allowed:
+>               raise AssertionError('REVIEW subprocess denied: ' + repr((executable, argv, str(cwd))))
+E               AssertionError: REVIEW subprocess denied: ('git', ['git', '-C', '/tmp/lvw-p3a-owned-t0g7rlz0/synthetic-git', 'rev-parse', '--show-toplevel'], '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0')
+
+reports/v0-s3/product-gate0/independent-p3a/guarded_checks.py:23: AssertionError
+_ ERROR at setup of test_installer_and_postinstall_refusals_before_start[receipt-identity] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x739a695dd130>
+
+    @pytest.fixture
+    def fixture(monkeypatch):
+        with tempfile.TemporaryDirectory(prefix='lvw-p3a-owned-') as temporary:
+            root = Path(temporary).resolve()
+            repo = root / 'synthetic-git'; repo.mkdir()
+            pack = repo / 'pack'; pack.mkdir()
+            original_popen = subprocess.Popen
+            def guarded(command, *args, **kwargs):
+                assert isinstance(command, list) and command[0] == 'git', 'host subprocess forbidden'
+                assert not kwargs.get('shell'), 'shell forbidden'
+                cwd = Path(kwargs.get('cwd', repo)).resolve()
+                assert cwd == repo or cwd.is_relative_to(repo), 'only synthetic Git allowed'
+                if '-C' in command:
+                    assert Path(command[command.index('-C') + 1]).resolve() == repo
+                return original_popen(command, *args, **kwargs)
+            monkeypatch.setattr(subprocess, 'Popen', guarded)
+            monkeypatch.setattr(os, 'system', lambda *a: pytest.fail('shell forbidden'))
+            def git(*args):
+                return subprocess.run(['git', *args], cwd=repo, check=True, capture_output=True).stdout.decode().strip()
+            payload = {
+                package.BRIDGE_SOURCE_DIR + '/__init__.py': b'# synthetic bridge\n',
+                package.BRIDGE_SOURCE_DIR + '/core.py': b'SYNTHETIC = True\n',
+                package.BRIDGE_SOURCE_DIR + '/web/panel.js': b'// synthetic panel\n',
+                package.WORKFLOWS_SOURCE_DIR + '/video_reverse_prompt_v0.ui.json': b'{"synthetic":true}\n',
+                package.WORKFLOWS_SOURCE_DIR + '/manual.json': b'{"synthetic":"manual"}\n',
+            }
+            for name, raw in payload.items():
+                path = pack / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(raw)
+            tool = pack / 'tools/v0_incremental_package.py'; tool.parent.mkdir(); tool.write_text('# synthetic packaged tool identity\n')
+            git('init', '-q'); git('add', '.')
+            git('-c', 'user.name=ljx418', '-c', 'user.email=1173696783@qq.com', 'commit', '-qm', 'synthetic payload')
+            candidate = git('rev-parse', 'HEAD')
+            # Relocate module metadata for its existing repository-prefix resolver;
+            # all build/install/validation functions remain the real owners.
+            monkeypatch.setattr(package, '__file__', str(tool))
+            archive_path = root / 'payload.zip'
+>           build = package.command_build(SimpleNamespace(repo=repo, commit=candidate, out=archive_path, receipt_out=None, redact_root=[]))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:61: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_incremental_package.py:1388: in command_build
+    repo_root, sha = _resolve_commit(repo, args.commit)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:479: in _resolve_commit
+    repo_root = _git_text(repo, ["rev-parse", "--show-toplevel"], "rev-parse --show-toplevel").strip()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:236: in _git_text
+    proc = _git(repo, args)
+           ^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:226: in _git
+    proc = subprocess.run(
+/usr/lib/python3.12/subprocess.py:548: in run
+    with Popen(*popenargs, **kwargs) as process:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:39: in guarded
+    return original_popen(command, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.12/subprocess.py:1026: in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+/usr/lib/python3.12/subprocess.py:1823: in _execute_child
+    sys.audit("subprocess.Popen", executable, args, cwd, env)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+event = 'subprocess.Popen'
+args = ('git', ['git', '-C', '/tmp/lvw-p3a-owned-adpuqgs2/synthetic-git', 'rev-parse', '--show-toplevel'], None, None)
+
+    def audit(event, args):
+        if event == 'tempfile.mkdtemp':
+            path = Path(args[0]).absolute()
+            owned.append(path)
+        elif event == 'subprocess.Popen':
+            executable, argv, cwd, env = args
+            cwd = Path(cwd or os.getcwd()).resolve()
+            allowed = (mode != 'regression' and isinstance(argv, list) and argv[0] == 'git'
+                       and any(p.name.startswith('lvw-p3a-owned-') and cwd == p / 'synthetic-git' for p in owned))
+            if not allowed:
+>               raise AssertionError('REVIEW subprocess denied: ' + repr((executable, argv, str(cwd))))
+E               AssertionError: REVIEW subprocess denied: ('git', ['git', '-C', '/tmp/lvw-p3a-owned-adpuqgs2/synthetic-git', 'rev-parse', '--show-toplevel'], '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0')
+
+reports/v0-s3/product-gate0/independent-p3a/guarded_checks.py:23: AssertionError
+_ ERROR at setup of test_installer_and_postinstall_refusals_before_start[marker-drift] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x739a695dcd40>
+
+    @pytest.fixture
+    def fixture(monkeypatch):
+        with tempfile.TemporaryDirectory(prefix='lvw-p3a-owned-') as temporary:
+            root = Path(temporary).resolve()
+            repo = root / 'synthetic-git'; repo.mkdir()
+            pack = repo / 'pack'; pack.mkdir()
+            original_popen = subprocess.Popen
+            def guarded(command, *args, **kwargs):
+                assert isinstance(command, list) and command[0] == 'git', 'host subprocess forbidden'
+                assert not kwargs.get('shell'), 'shell forbidden'
+                cwd = Path(kwargs.get('cwd', repo)).resolve()
+                assert cwd == repo or cwd.is_relative_to(repo), 'only synthetic Git allowed'
+                if '-C' in command:
+                    assert Path(command[command.index('-C') + 1]).resolve() == repo
+                return original_popen(command, *args, **kwargs)
+            monkeypatch.setattr(subprocess, 'Popen', guarded)
+            monkeypatch.setattr(os, 'system', lambda *a: pytest.fail('shell forbidden'))
+            def git(*args):
+                return subprocess.run(['git', *args], cwd=repo, check=True, capture_output=True).stdout.decode().strip()
+            payload = {
+                package.BRIDGE_SOURCE_DIR + '/__init__.py': b'# synthetic bridge\n',
+                package.BRIDGE_SOURCE_DIR + '/core.py': b'SYNTHETIC = True\n',
+                package.BRIDGE_SOURCE_DIR + '/web/panel.js': b'// synthetic panel\n',
+                package.WORKFLOWS_SOURCE_DIR + '/video_reverse_prompt_v0.ui.json': b'{"synthetic":true}\n',
+                package.WORKFLOWS_SOURCE_DIR + '/manual.json': b'{"synthetic":"manual"}\n',
+            }
+            for name, raw in payload.items():
+                path = pack / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(raw)
+            tool = pack / 'tools/v0_incremental_package.py'; tool.parent.mkdir(); tool.write_text('# synthetic packaged tool identity\n')
+            git('init', '-q'); git('add', '.')
+            git('-c', 'user.name=ljx418', '-c', 'user.email=1173696783@qq.com', 'commit', '-qm', 'synthetic payload')
+            candidate = git('rev-parse', 'HEAD')
+            # Relocate module metadata for its existing repository-prefix resolver;
+            # all build/install/validation functions remain the real owners.
+            monkeypatch.setattr(package, '__file__', str(tool))
+            archive_path = root / 'payload.zip'
+>           build = package.command_build(SimpleNamespace(repo=repo, commit=candidate, out=archive_path, receipt_out=None, redact_root=[]))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:61: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_incremental_package.py:1388: in command_build
+    repo_root, sha = _resolve_commit(repo, args.commit)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:479: in _resolve_commit
+    repo_root = _git_text(repo, ["rev-parse", "--show-toplevel"], "rev-parse --show-toplevel").strip()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:236: in _git_text
+    proc = _git(repo, args)
+           ^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:226: in _git
+    proc = subprocess.run(
+/usr/lib/python3.12/subprocess.py:548: in run
+    with Popen(*popenargs, **kwargs) as process:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:39: in guarded
+    return original_popen(command, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.12/subprocess.py:1026: in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+/usr/lib/python3.12/subprocess.py:1823: in _execute_child
+    sys.audit("subprocess.Popen", executable, args, cwd, env)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+event = 'subprocess.Popen'
+args = ('git', ['git', '-C', '/tmp/lvw-p3a-owned-lkub_u2b/synthetic-git', 'rev-parse', '--show-toplevel'], None, None)
+
+    def audit(event, args):
+        if event == 'tempfile.mkdtemp':
+            path = Path(args[0]).absolute()
+            owned.append(path)
+        elif event == 'subprocess.Popen':
+            executable, argv, cwd, env = args
+            cwd = Path(cwd or os.getcwd()).resolve()
+            allowed = (mode != 'regression' and isinstance(argv, list) and argv[0] == 'git'
+                       and any(p.name.startswith('lvw-p3a-owned-') and cwd == p / 'synthetic-git' for p in owned))
+            if not allowed:
+>               raise AssertionError('REVIEW subprocess denied: ' + repr((executable, argv, str(cwd))))
+E               AssertionError: REVIEW subprocess denied: ('git', ['git', '-C', '/tmp/lvw-p3a-owned-lkub_u2b/synthetic-git', 'rev-parse', '--show-toplevel'], '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0')
+
+reports/v0-s3/product-gate0/independent-p3a/guarded_checks.py:23: AssertionError
+_ ERROR at setup of test_installer_and_postinstall_refusals_before_start[install-failure] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x739a6946dbb0>
+
+    @pytest.fixture
+    def fixture(monkeypatch):
+        with tempfile.TemporaryDirectory(prefix='lvw-p3a-owned-') as temporary:
+            root = Path(temporary).resolve()
+            repo = root / 'synthetic-git'; repo.mkdir()
+            pack = repo / 'pack'; pack.mkdir()
+            original_popen = subprocess.Popen
+            def guarded(command, *args, **kwargs):
+                assert isinstance(command, list) and command[0] == 'git', 'host subprocess forbidden'
+                assert not kwargs.get('shell'), 'shell forbidden'
+                cwd = Path(kwargs.get('cwd', repo)).resolve()
+                assert cwd == repo or cwd.is_relative_to(repo), 'only synthetic Git allowed'
+                if '-C' in command:
+                    assert Path(command[command.index('-C') + 1]).resolve() == repo
+                return original_popen(command, *args, **kwargs)
+            monkeypatch.setattr(subprocess, 'Popen', guarded)
+            monkeypatch.setattr(os, 'system', lambda *a: pytest.fail('shell forbidden'))
+            def git(*args):
+                return subprocess.run(['git', *args], cwd=repo, check=True, capture_output=True).stdout.decode().strip()
+            payload = {
+                package.BRIDGE_SOURCE_DIR + '/__init__.py': b'# synthetic bridge\n',
+                package.BRIDGE_SOURCE_DIR + '/core.py': b'SYNTHETIC = True\n',
+                package.BRIDGE_SOURCE_DIR + '/web/panel.js': b'// synthetic panel\n',
+                package.WORKFLOWS_SOURCE_DIR + '/video_reverse_prompt_v0.ui.json': b'{"synthetic":true}\n',
+                package.WORKFLOWS_SOURCE_DIR + '/manual.json': b'{"synthetic":"manual"}\n',
+            }
+            for name, raw in payload.items():
+                path = pack / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(raw)
+            tool = pack / 'tools/v0_incremental_package.py'; tool.parent.mkdir(); tool.write_text('# synthetic packaged tool identity\n')
+            git('init', '-q'); git('add', '.')
+            git('-c', 'user.name=ljx418', '-c', 'user.email=1173696783@qq.com', 'commit', '-qm', 'synthetic payload')
+            candidate = git('rev-parse', 'HEAD')
+            # Relocate module metadata for its existing repository-prefix resolver;
+            # all build/install/validation functions remain the real owners.
+            monkeypatch.setattr(package, '__file__', str(tool))
+            archive_path = root / 'payload.zip'
+>           build = package.command_build(SimpleNamespace(repo=repo, commit=candidate, out=archive_path, receipt_out=None, redact_root=[]))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:61: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_incremental_package.py:1388: in command_build
+    repo_root, sha = _resolve_commit(repo, args.commit)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:479: in _resolve_commit
+    repo_root = _git_text(repo, ["rev-parse", "--show-toplevel"], "rev-parse --show-toplevel").strip()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:236: in _git_text
+    proc = _git(repo, args)
+           ^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:226: in _git
+    proc = subprocess.run(
+/usr/lib/python3.12/subprocess.py:548: in run
+    with Popen(*popenargs, **kwargs) as process:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:39: in guarded
+    return original_popen(command, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.12/subprocess.py:1026: in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+/usr/lib/python3.12/subprocess.py:1823: in _execute_child
+    sys.audit("subprocess.Popen", executable, args, cwd, env)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+event = 'subprocess.Popen'
+args = ('git', ['git', '-C', '/tmp/lvw-p3a-owned-pe79veu5/synthetic-git', 'rev-parse', '--show-toplevel'], None, None)
+
+    def audit(event, args):
+        if event == 'tempfile.mkdtemp':
+            path = Path(args[0]).absolute()
+            owned.append(path)
+        elif event == 'subprocess.Popen':
+            executable, argv, cwd, env = args
+            cwd = Path(cwd or os.getcwd()).resolve()
+            allowed = (mode != 'regression' and isinstance(argv, list) and argv[0] == 'git'
+                       and any(p.name.startswith('lvw-p3a-owned-') and cwd == p / 'synthetic-git' for p in owned))
+            if not allowed:
+>               raise AssertionError('REVIEW subprocess denied: ' + repr((executable, argv, str(cwd))))
+E               AssertionError: REVIEW subprocess denied: ('git', ['git', '-C', '/tmp/lvw-p3a-owned-pe79veu5/synthetic-git', 'rev-parse', '--show-toplevel'], '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0')
+
+reports/v0-s3/product-gate0/independent-p3a/guarded_checks.py:23: AssertionError
+__ ERROR at setup of test_prepare_rejects_wrong_registered_target[directory] ___
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x739a6946fd70>
+
+    @pytest.fixture
+    def fixture(monkeypatch):
+        with tempfile.TemporaryDirectory(prefix='lvw-p3a-owned-') as temporary:
+            root = Path(temporary).resolve()
+            repo = root / 'synthetic-git'; repo.mkdir()
+            pack = repo / 'pack'; pack.mkdir()
+            original_popen = subprocess.Popen
+            def guarded(command, *args, **kwargs):
+                assert isinstance(command, list) and command[0] == 'git', 'host subprocess forbidden'
+                assert not kwargs.get('shell'), 'shell forbidden'
+                cwd = Path(kwargs.get('cwd', repo)).resolve()
+                assert cwd == repo or cwd.is_relative_to(repo), 'only synthetic Git allowed'
+                if '-C' in command:
+                    assert Path(command[command.index('-C') + 1]).resolve() == repo
+                return original_popen(command, *args, **kwargs)
+            monkeypatch.setattr(subprocess, 'Popen', guarded)
+            monkeypatch.setattr(os, 'system', lambda *a: pytest.fail('shell forbidden'))
+            def git(*args):
+                return subprocess.run(['git', *args], cwd=repo, check=True, capture_output=True).stdout.decode().strip()
+            payload = {
+                package.BRIDGE_SOURCE_DIR + '/__init__.py': b'# synthetic bridge\n',
+                package.BRIDGE_SOURCE_DIR + '/core.py': b'SYNTHETIC = True\n',
+                package.BRIDGE_SOURCE_DIR + '/web/panel.js': b'// synthetic panel\n',
+                package.WORKFLOWS_SOURCE_DIR + '/video_reverse_prompt_v0.ui.json': b'{"synthetic":true}\n',
+                package.WORKFLOWS_SOURCE_DIR + '/manual.json': b'{"synthetic":"manual"}\n',
+            }
+            for name, raw in payload.items():
+                path = pack / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(raw)
+            tool = pack / 'tools/v0_incremental_package.py'; tool.parent.mkdir(); tool.write_text('# synthetic packaged tool identity\n')
+            git('init', '-q'); git('add', '.')
+            git('-c', 'user.name=ljx418', '-c', 'user.email=1173696783@qq.com', 'commit', '-qm', 'synthetic payload')
+            candidate = git('rev-parse', 'HEAD')
+            # Relocate module metadata for its existing repository-prefix resolver;
+            # all build/install/validation functions remain the real owners.
+            monkeypatch.setattr(package, '__file__', str(tool))
+            archive_path = root / 'payload.zip'
+>           build = package.command_build(SimpleNamespace(repo=repo, commit=candidate, out=archive_path, receipt_out=None, redact_root=[]))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:61: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_incremental_package.py:1388: in command_build
+    repo_root, sha = _resolve_commit(repo, args.commit)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:479: in _resolve_commit
+    repo_root = _git_text(repo, ["rev-parse", "--show-toplevel"], "rev-parse --show-toplevel").strip()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:236: in _git_text
+    proc = _git(repo, args)
+           ^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:226: in _git
+    proc = subprocess.run(
+/usr/lib/python3.12/subprocess.py:548: in run
+    with Popen(*popenargs, **kwargs) as process:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:39: in guarded
+    return original_popen(command, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.12/subprocess.py:1026: in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+/usr/lib/python3.12/subprocess.py:1823: in _execute_child
+    sys.audit("subprocess.Popen", executable, args, cwd, env)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+event = 'subprocess.Popen'
+args = ('git', ['git', '-C', '/tmp/lvw-p3a-owned-nj08cpip/synthetic-git', 'rev-parse', '--show-toplevel'], None, None)
+
+    def audit(event, args):
+        if event == 'tempfile.mkdtemp':
+            path = Path(args[0]).absolute()
+            owned.append(path)
+        elif event == 'subprocess.Popen':
+            executable, argv, cwd, env = args
+            cwd = Path(cwd or os.getcwd()).resolve()
+            allowed = (mode != 'regression' and isinstance(argv, list) and argv[0] == 'git'
+                       and any(p.name.startswith('lvw-p3a-owned-') and cwd == p / 'synthetic-git' for p in owned))
+            if not allowed:
+>               raise AssertionError('REVIEW subprocess denied: ' + repr((executable, argv, str(cwd))))
+E               AssertionError: REVIEW subprocess denied: ('git', ['git', '-C', '/tmp/lvw-p3a-owned-nj08cpip/synthetic-git', 'rev-parse', '--show-toplevel'], '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0')
+
+reports/v0-s3/product-gate0/independent-p3a/guarded_checks.py:23: AssertionError
+___ ERROR at setup of test_prepare_rejects_wrong_registered_target[outside] ____
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x739a695dde50>
+
+    @pytest.fixture
+    def fixture(monkeypatch):
+        with tempfile.TemporaryDirectory(prefix='lvw-p3a-owned-') as temporary:
+            root = Path(temporary).resolve()
+            repo = root / 'synthetic-git'; repo.mkdir()
+            pack = repo / 'pack'; pack.mkdir()
+            original_popen = subprocess.Popen
+            def guarded(command, *args, **kwargs):
+                assert isinstance(command, list) and command[0] == 'git', 'host subprocess forbidden'
+                assert not kwargs.get('shell'), 'shell forbidden'
+                cwd = Path(kwargs.get('cwd', repo)).resolve()
+                assert cwd == repo or cwd.is_relative_to(repo), 'only synthetic Git allowed'
+                if '-C' in command:
+                    assert Path(command[command.index('-C') + 1]).resolve() == repo
+                return original_popen(command, *args, **kwargs)
+            monkeypatch.setattr(subprocess, 'Popen', guarded)
+            monkeypatch.setattr(os, 'system', lambda *a: pytest.fail('shell forbidden'))
+            def git(*args):
+                return subprocess.run(['git', *args], cwd=repo, check=True, capture_output=True).stdout.decode().strip()
+            payload = {
+                package.BRIDGE_SOURCE_DIR + '/__init__.py': b'# synthetic bridge\n',
+                package.BRIDGE_SOURCE_DIR + '/core.py': b'SYNTHETIC = True\n',
+                package.BRIDGE_SOURCE_DIR + '/web/panel.js': b'// synthetic panel\n',
+                package.WORKFLOWS_SOURCE_DIR + '/video_reverse_prompt_v0.ui.json': b'{"synthetic":true}\n',
+                package.WORKFLOWS_SOURCE_DIR + '/manual.json': b'{"synthetic":"manual"}\n',
+            }
+            for name, raw in payload.items():
+                path = pack / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(raw)
+            tool = pack / 'tools/v0_incremental_package.py'; tool.parent.mkdir(); tool.write_text('# synthetic packaged tool identity\n')
+            git('init', '-q'); git('add', '.')
+            git('-c', 'user.name=ljx418', '-c', 'user.email=1173696783@qq.com', 'commit', '-qm', 'synthetic payload')
+            candidate = git('rev-parse', 'HEAD')
+            # Relocate module metadata for its existing repository-prefix resolver;
+            # all build/install/validation functions remain the real owners.
+            monkeypatch.setattr(package, '__file__', str(tool))
+            archive_path = root / 'payload.zip'
+>           build = package.command_build(SimpleNamespace(repo=repo, commit=candidate, out=archive_path, receipt_out=None, redact_root=[]))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:61: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_incremental_package.py:1388: in command_build
+    repo_root, sha = _resolve_commit(repo, args.commit)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:479: in _resolve_commit
+    repo_root = _git_text(repo, ["rev-parse", "--show-toplevel"], "rev-parse --show-toplevel").strip()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:236: in _git_text
+    proc = _git(repo, args)
+           ^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:226: in _git
+    proc = subprocess.run(
+/usr/lib/python3.12/subprocess.py:548: in run
+    with Popen(*popenargs, **kwargs) as process:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:39: in guarded
+    return original_popen(command, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.12/subprocess.py:1026: in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+/usr/lib/python3.12/subprocess.py:1823: in _execute_child
+    sys.audit("subprocess.Popen", executable, args, cwd, env)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+event = 'subprocess.Popen'
+args = ('git', ['git', '-C', '/tmp/lvw-p3a-owned-hq3k9_rc/synthetic-git', 'rev-parse', '--show-toplevel'], None, None)
+
+    def audit(event, args):
+        if event == 'tempfile.mkdtemp':
+            path = Path(args[0]).absolute()
+            owned.append(path)
+        elif event == 'subprocess.Popen':
+            executable, argv, cwd, env = args
+            cwd = Path(cwd or os.getcwd()).resolve()
+            allowed = (mode != 'regression' and isinstance(argv, list) and argv[0] == 'git'
+                       and any(p.name.startswith('lvw-p3a-owned-') and cwd == p / 'synthetic-git' for p in owned))
+            if not allowed:
+>               raise AssertionError('REVIEW subprocess denied: ' + repr((executable, argv, str(cwd))))
+E               AssertionError: REVIEW subprocess denied: ('git', ['git', '-C', '/tmp/lvw-p3a-owned-hq3k9_rc/synthetic-git', 'rev-parse', '--show-toplevel'], '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0')
+
+reports/v0-s3/product-gate0/independent-p3a/guarded_checks.py:23: AssertionError
+___ ERROR at setup of test_prepare_rejects_wrong_registered_target[symlink] ____
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x739a6946e090>
+
+    @pytest.fixture
+    def fixture(monkeypatch):
+        with tempfile.TemporaryDirectory(prefix='lvw-p3a-owned-') as temporary:
+            root = Path(temporary).resolve()
+            repo = root / 'synthetic-git'; repo.mkdir()
+            pack = repo / 'pack'; pack.mkdir()
+            original_popen = subprocess.Popen
+            def guarded(command, *args, **kwargs):
+                assert isinstance(command, list) and command[0] == 'git', 'host subprocess forbidden'
+                assert not kwargs.get('shell'), 'shell forbidden'
+                cwd = Path(kwargs.get('cwd', repo)).resolve()
+                assert cwd == repo or cwd.is_relative_to(repo), 'only synthetic Git allowed'
+                if '-C' in command:
+                    assert Path(command[command.index('-C') + 1]).resolve() == repo
+                return original_popen(command, *args, **kwargs)
+            monkeypatch.setattr(subprocess, 'Popen', guarded)
+            monkeypatch.setattr(os, 'system', lambda *a: pytest.fail('shell forbidden'))
+            def git(*args):
+                return subprocess.run(['git', *args], cwd=repo, check=True, capture_output=True).stdout.decode().strip()
+            payload = {
+                package.BRIDGE_SOURCE_DIR + '/__init__.py': b'# synthetic bridge\n',
+                package.BRIDGE_SOURCE_DIR + '/core.py': b'SYNTHETIC = True\n',
+                package.BRIDGE_SOURCE_DIR + '/web/panel.js': b'// synthetic panel\n',
+                package.WORKFLOWS_SOURCE_DIR + '/video_reverse_prompt_v0.ui.json': b'{"synthetic":true}\n',
+                package.WORKFLOWS_SOURCE_DIR + '/manual.json': b'{"synthetic":"manual"}\n',
+            }
+            for name, raw in payload.items():
+                path = pack / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(raw)
+            tool = pack / 'tools/v0_incremental_package.py'; tool.parent.mkdir(); tool.write_text('# synthetic packaged tool identity\n')
+            git('init', '-q'); git('add', '.')
+            git('-c', 'user.name=ljx418', '-c', 'user.email=1173696783@qq.com', 'commit', '-qm', 'synthetic payload')
+            candidate = git('rev-parse', 'HEAD')
+            # Relocate module metadata for its existing repository-prefix resolver;
+            # all build/install/validation functions remain the real owners.
+            monkeypatch.setattr(package, '__file__', str(tool))
+            archive_path = root / 'payload.zip'
+>           build = package.command_build(SimpleNamespace(repo=repo, commit=candidate, out=archive_path, receipt_out=None, redact_root=[]))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:61: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_incremental_package.py:1388: in command_build
+    repo_root, sha = _resolve_commit(repo, args.commit)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:479: in _resolve_commit
+    repo_root = _git_text(repo, ["rev-parse", "--show-toplevel"], "rev-parse --show-toplevel").strip()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:236: in _git_text
+    proc = _git(repo, args)
+           ^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:226: in _git
+    proc = subprocess.run(
+/usr/lib/python3.12/subprocess.py:548: in run
+    with Popen(*popenargs, **kwargs) as process:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:39: in guarded
+    return original_popen(command, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.12/subprocess.py:1026: in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+/usr/lib/python3.12/subprocess.py:1823: in _execute_child
+    sys.audit("subprocess.Popen", executable, args, cwd, env)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+event = 'subprocess.Popen'
+args = ('git', ['git', '-C', '/tmp/lvw-p3a-owned-okr083ff/synthetic-git', 'rev-parse', '--show-toplevel'], None, None)
+
+    def audit(event, args):
+        if event == 'tempfile.mkdtemp':
+            path = Path(args[0]).absolute()
+            owned.append(path)
+        elif event == 'subprocess.Popen':
+            executable, argv, cwd, env = args
+            cwd = Path(cwd or os.getcwd()).resolve()
+            allowed = (mode != 'regression' and isinstance(argv, list) and argv[0] == 'git'
+                       and any(p.name.startswith('lvw-p3a-owned-') and cwd == p / 'synthetic-git' for p in owned))
+            if not allowed:
+>               raise AssertionError('REVIEW subprocess denied: ' + repr((executable, argv, str(cwd))))
+E               AssertionError: REVIEW subprocess denied: ('git', ['git', '-C', '/tmp/lvw-p3a-owned-okr083ff/synthetic-git', 'rev-parse', '--show-toplevel'], '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0')
+
+reports/v0-s3/product-gate0/independent-p3a/guarded_checks.py:23: AssertionError
+_ ERROR at setup of test_prepare_rejects_wrong_registered_target[unregistered] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x739a69473710>
+
+    @pytest.fixture
+    def fixture(monkeypatch):
+        with tempfile.TemporaryDirectory(prefix='lvw-p3a-owned-') as temporary:
+            root = Path(temporary).resolve()
+            repo = root / 'synthetic-git'; repo.mkdir()
+            pack = repo / 'pack'; pack.mkdir()
+            original_popen = subprocess.Popen
+            def guarded(command, *args, **kwargs):
+                assert isinstance(command, list) and command[0] == 'git', 'host subprocess forbidden'
+                assert not kwargs.get('shell'), 'shell forbidden'
+                cwd = Path(kwargs.get('cwd', repo)).resolve()
+                assert cwd == repo or cwd.is_relative_to(repo), 'only synthetic Git allowed'
+                if '-C' in command:
+                    assert Path(command[command.index('-C') + 1]).resolve() == repo
+                return original_popen(command, *args, **kwargs)
+            monkeypatch.setattr(subprocess, 'Popen', guarded)
+            monkeypatch.setattr(os, 'system', lambda *a: pytest.fail('shell forbidden'))
+            def git(*args):
+                return subprocess.run(['git', *args], cwd=repo, check=True, capture_output=True).stdout.decode().strip()
+            payload = {
+                package.BRIDGE_SOURCE_DIR + '/__init__.py': b'# synthetic bridge\n',
+                package.BRIDGE_SOURCE_DIR + '/core.py': b'SYNTHETIC = True\n',
+                package.BRIDGE_SOURCE_DIR + '/web/panel.js': b'// synthetic panel\n',
+                package.WORKFLOWS_SOURCE_DIR + '/video_reverse_prompt_v0.ui.json': b'{"synthetic":true}\n',
+                package.WORKFLOWS_SOURCE_DIR + '/manual.json': b'{"synthetic":"manual"}\n',
+            }
+            for name, raw in payload.items():
+                path = pack / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(raw)
+            tool = pack / 'tools/v0_incremental_package.py'; tool.parent.mkdir(); tool.write_text('# synthetic packaged tool identity\n')
+            git('init', '-q'); git('add', '.')
+            git('-c', 'user.name=ljx418', '-c', 'user.email=1173696783@qq.com', 'commit', '-qm', 'synthetic payload')
+            candidate = git('rev-parse', 'HEAD')
+            # Relocate module metadata for its existing repository-prefix resolver;
+            # all build/install/validation functions remain the real owners.
+            monkeypatch.setattr(package, '__file__', str(tool))
+            archive_path = root / 'payload.zip'
+>           build = package.command_build(SimpleNamespace(repo=repo, commit=candidate, out=archive_path, receipt_out=None, redact_root=[]))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:61: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_incremental_package.py:1388: in command_build
+    repo_root, sha = _resolve_commit(repo, args.commit)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:479: in _resolve_commit
+    repo_root = _git_text(repo, ["rev-parse", "--show-toplevel"], "rev-parse --show-toplevel").strip()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:236: in _git_text
+    proc = _git(repo, args)
+           ^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:226: in _git
+    proc = subprocess.run(
+/usr/lib/python3.12/subprocess.py:548: in run
+    with Popen(*popenargs, **kwargs) as process:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:39: in guarded
+    return original_popen(command, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.12/subprocess.py:1026: in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+/usr/lib/python3.12/subprocess.py:1823: in _execute_child
+    sys.audit("subprocess.Popen", executable, args, cwd, env)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+event = 'subprocess.Popen'
+args = ('git', ['git', '-C', '/tmp/lvw-p3a-owned-4rgn0qhm/synthetic-git', 'rev-parse', '--show-toplevel'], None, None)
+
+    def audit(event, args):
+        if event == 'tempfile.mkdtemp':
+            path = Path(args[0]).absolute()
+            owned.append(path)
+        elif event == 'subprocess.Popen':
+            executable, argv, cwd, env = args
+            cwd = Path(cwd or os.getcwd()).resolve()
+            allowed = (mode != 'regression' and isinstance(argv, list) and argv[0] == 'git'
+                       and any(p.name.startswith('lvw-p3a-owned-') and cwd == p / 'synthetic-git' for p in owned))
+            if not allowed:
+>               raise AssertionError('REVIEW subprocess denied: ' + repr((executable, argv, str(cwd))))
+E               AssertionError: REVIEW subprocess denied: ('git', ['git', '-C', '/tmp/lvw-p3a-owned-4rgn0qhm/synthetic-git', 'rev-parse', '--show-toplevel'], '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0')
+
+reports/v0-s3/product-gate0/independent-p3a/guarded_checks.py:23: AssertionError
+__ ERROR at setup of test_prepare_rejects_wrong_registered_target[child-link] __
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x739a6946c050>
+
+    @pytest.fixture
+    def fixture(monkeypatch):
+        with tempfile.TemporaryDirectory(prefix='lvw-p3a-owned-') as temporary:
+            root = Path(temporary).resolve()
+            repo = root / 'synthetic-git'; repo.mkdir()
+            pack = repo / 'pack'; pack.mkdir()
+            original_popen = subprocess.Popen
+            def guarded(command, *args, **kwargs):
+                assert isinstance(command, list) and command[0] == 'git', 'host subprocess forbidden'
+                assert not kwargs.get('shell'), 'shell forbidden'
+                cwd = Path(kwargs.get('cwd', repo)).resolve()
+                assert cwd == repo or cwd.is_relative_to(repo), 'only synthetic Git allowed'
+                if '-C' in command:
+                    assert Path(command[command.index('-C') + 1]).resolve() == repo
+                return original_popen(command, *args, **kwargs)
+            monkeypatch.setattr(subprocess, 'Popen', guarded)
+            monkeypatch.setattr(os, 'system', lambda *a: pytest.fail('shell forbidden'))
+            def git(*args):
+                return subprocess.run(['git', *args], cwd=repo, check=True, capture_output=True).stdout.decode().strip()
+            payload = {
+                package.BRIDGE_SOURCE_DIR + '/__init__.py': b'# synthetic bridge\n',
+                package.BRIDGE_SOURCE_DIR + '/core.py': b'SYNTHETIC = True\n',
+                package.BRIDGE_SOURCE_DIR + '/web/panel.js': b'// synthetic panel\n',
+                package.WORKFLOWS_SOURCE_DIR + '/video_reverse_prompt_v0.ui.json': b'{"synthetic":true}\n',
+                package.WORKFLOWS_SOURCE_DIR + '/manual.json': b'{"synthetic":"manual"}\n',
+            }
+            for name, raw in payload.items():
+                path = pack / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(raw)
+            tool = pack / 'tools/v0_incremental_package.py'; tool.parent.mkdir(); tool.write_text('# synthetic packaged tool identity\n')
+            git('init', '-q'); git('add', '.')
+            git('-c', 'user.name=ljx418', '-c', 'user.email=1173696783@qq.com', 'commit', '-qm', 'synthetic payload')
+            candidate = git('rev-parse', 'HEAD')
+            # Relocate module metadata for its existing repository-prefix resolver;
+            # all build/install/validation functions remain the real owners.
+            monkeypatch.setattr(package, '__file__', str(tool))
+            archive_path = root / 'payload.zip'
+>           build = package.command_build(SimpleNamespace(repo=repo, commit=candidate, out=archive_path, receipt_out=None, redact_root=[]))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:61: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_incremental_package.py:1388: in command_build
+    repo_root, sha = _resolve_commit(repo, args.commit)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:479: in _resolve_commit
+    repo_root = _git_text(repo, ["rev-parse", "--show-toplevel"], "rev-parse --show-toplevel").strip()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:236: in _git_text
+    proc = _git(repo, args)
+           ^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:226: in _git
+    proc = subprocess.run(
+/usr/lib/python3.12/subprocess.py:548: in run
+    with Popen(*popenargs, **kwargs) as process:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:39: in guarded
+    return original_popen(command, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.12/subprocess.py:1026: in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+/usr/lib/python3.12/subprocess.py:1823: in _execute_child
+    sys.audit("subprocess.Popen", executable, args, cwd, env)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+event = 'subprocess.Popen'
+args = ('git', ['git', '-C', '/tmp/lvw-p3a-owned-_4ik171x/synthetic-git', 'rev-parse', '--show-toplevel'], None, None)
+
+    def audit(event, args):
+        if event == 'tempfile.mkdtemp':
+            path = Path(args[0]).absolute()
+            owned.append(path)
+        elif event == 'subprocess.Popen':
+            executable, argv, cwd, env = args
+            cwd = Path(cwd or os.getcwd()).resolve()
+            allowed = (mode != 'regression' and isinstance(argv, list) and argv[0] == 'git'
+                       and any(p.name.startswith('lvw-p3a-owned-') and cwd == p / 'synthetic-git' for p in owned))
+            if not allowed:
+>               raise AssertionError('REVIEW subprocess denied: ' + repr((executable, argv, str(cwd))))
+E               AssertionError: REVIEW subprocess denied: ('git', ['git', '-C', '/tmp/lvw-p3a-owned-_4ik171x/synthetic-git', 'rev-parse', '--show-toplevel'], '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0')
+
+reports/v0-s3/product-gate0/independent-p3a/guarded_checks.py:23: AssertionError
+_ ERROR at setup of test_prepare_rejects_wrong_registered_target[replaced-root] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x739a69471a60>
+
+    @pytest.fixture
+    def fixture(monkeypatch):
+        with tempfile.TemporaryDirectory(prefix='lvw-p3a-owned-') as temporary:
+            root = Path(temporary).resolve()
+            repo = root / 'synthetic-git'; repo.mkdir()
+            pack = repo / 'pack'; pack.mkdir()
+            original_popen = subprocess.Popen
+            def guarded(command, *args, **kwargs):
+                assert isinstance(command, list) and command[0] == 'git', 'host subprocess forbidden'
+                assert not kwargs.get('shell'), 'shell forbidden'
+                cwd = Path(kwargs.get('cwd', repo)).resolve()
+                assert cwd == repo or cwd.is_relative_to(repo), 'only synthetic Git allowed'
+                if '-C' in command:
+                    assert Path(command[command.index('-C') + 1]).resolve() == repo
+                return original_popen(command, *args, **kwargs)
+            monkeypatch.setattr(subprocess, 'Popen', guarded)
+            monkeypatch.setattr(os, 'system', lambda *a: pytest.fail('shell forbidden'))
+            def git(*args):
+                return subprocess.run(['git', *args], cwd=repo, check=True, capture_output=True).stdout.decode().strip()
+            payload = {
+                package.BRIDGE_SOURCE_DIR + '/__init__.py': b'# synthetic bridge\n',
+                package.BRIDGE_SOURCE_DIR + '/core.py': b'SYNTHETIC = True\n',
+                package.BRIDGE_SOURCE_DIR + '/web/panel.js': b'// synthetic panel\n',
+                package.WORKFLOWS_SOURCE_DIR + '/video_reverse_prompt_v0.ui.json': b'{"synthetic":true}\n',
+                package.WORKFLOWS_SOURCE_DIR + '/manual.json': b'{"synthetic":"manual"}\n',
+            }
+            for name, raw in payload.items():
+                path = pack / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(raw)
+            tool = pack / 'tools/v0_incremental_package.py'; tool.parent.mkdir(); tool.write_text('# synthetic packaged tool identity\n')
+            git('init', '-q'); git('add', '.')
+            git('-c', 'user.name=ljx418', '-c', 'user.email=1173696783@qq.com', 'commit', '-qm', 'synthetic payload')
+            candidate = git('rev-parse', 'HEAD')
+            # Relocate module metadata for its existing repository-prefix resolver;
+            # all build/install/validation functions remain the real owners.
+            monkeypatch.setattr(package, '__file__', str(tool))
+            archive_path = root / 'payload.zip'
+>           build = package.command_build(SimpleNamespace(repo=repo, commit=candidate, out=archive_path, receipt_out=None, redact_root=[]))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:61: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_incremental_package.py:1388: in command_build
+    repo_root, sha = _resolve_commit(repo, args.commit)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:479: in _resolve_commit
+    repo_root = _git_text(repo, ["rev-parse", "--show-toplevel"], "rev-parse --show-toplevel").strip()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:236: in _git_text
+    proc = _git(repo, args)
+           ^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:226: in _git
+    proc = subprocess.run(
+/usr/lib/python3.12/subprocess.py:548: in run
+    with Popen(*popenargs, **kwargs) as process:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:39: in guarded
+    return original_popen(command, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.12/subprocess.py:1026: in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+/usr/lib/python3.12/subprocess.py:1823: in _execute_child
+    sys.audit("subprocess.Popen", executable, args, cwd, env)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+event = 'subprocess.Popen'
+args = ('git', ['git', '-C', '/tmp/lvw-p3a-owned-hx7avxjm/synthetic-git', 'rev-parse', '--show-toplevel'], None, None)
+
+    def audit(event, args):
+        if event == 'tempfile.mkdtemp':
+            path = Path(args[0]).absolute()
+            owned.append(path)
+        elif event == 'subprocess.Popen':
+            executable, argv, cwd, env = args
+            cwd = Path(cwd or os.getcwd()).resolve()
+            allowed = (mode != 'regression' and isinstance(argv, list) and argv[0] == 'git'
+                       and any(p.name.startswith('lvw-p3a-owned-') and cwd == p / 'synthetic-git' for p in owned))
+            if not allowed:
+>               raise AssertionError('REVIEW subprocess denied: ' + repr((executable, argv, str(cwd))))
+E               AssertionError: REVIEW subprocess denied: ('git', ['git', '-C', '/tmp/lvw-p3a-owned-hx7avxjm/synthetic-git', 'rev-parse', '--show-toplevel'], '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0')
+
+reports/v0-s3/product-gate0/independent-p3a/guarded_checks.py:23: AssertionError
+=========================== short test summary info ============================
+ERROR LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_inherited_default_then_warm_install_exact_runtime_root
+ERROR LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[old-candidate]
+ERROR LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[package-hash]
+ERROR LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[manifest-hash]
+ERROR LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[bad-digest]
+ERROR LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[missing-bridge]
+ERROR LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[extra-bridge]
+ERROR LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[bridge-hash]
+ERROR LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[workflow-unsealed]
+ERROR LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[workflow-hash]
+ERROR LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[missing-marker]
+ERROR LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[invalid-marker]
+ERROR LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[marker-link]
+ERROR LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[package-link]
+ERROR LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[package-oversize]
+ERROR LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_installer_and_postinstall_refusals_before_start[bridge-bytes]
+ERROR LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_installer_and_postinstall_refusals_before_start[workflow-bytes]
+ERROR LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_installer_and_postinstall_refusals_before_start[extra-file]
+ERROR LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_installer_and_postinstall_refusals_before_start[missing-file]
+ERROR LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_installer_and_postinstall_refusals_before_start[payload-link]
+ERROR LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_installer_and_postinstall_refusals_before_start[owner-bytes]
+ERROR LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_installer_and_postinstall_refusals_before_start[receipt-identity]
+ERROR LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_installer_and_postinstall_refusals_before_start[marker-drift]
+ERROR LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_installer_and_postinstall_refusals_before_start[install-failure]
+ERROR LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_prepare_rejects_wrong_registered_target[directory]
+ERROR LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_prepare_rejects_wrong_registered_target[outside]
+ERROR LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_prepare_rejects_wrong_registered_target[symlink]
+ERROR LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_prepare_rejects_wrong_registered_target[unregistered]
+ERROR LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_prepare_rejects_wrong_registered_target[child-link]
+ERROR LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_prepare_rejects_wrong_registered_target[replaced-root]
+============================== 30 errors in 2.51s ==============================
