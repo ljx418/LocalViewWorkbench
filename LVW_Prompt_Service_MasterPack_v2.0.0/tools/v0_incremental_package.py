@@ -1124,34 +1124,36 @@ def _validate_archive(package_path, expect_manifest=None):
 # --------------------------------------------------------------------------- #
 
 
-def _redact(path, root):
+def _redact(path, roots):
     if path is None:
         return None
     text = str(path)
-    if root is None:
+    if not roots:
         return "<abs-path-redacted>"
-    try:
-        root_resolved = Path(root).resolve()
-        candidate = Path(text).resolve()
-    except OSError:
-        return "<abs-path-redacted>"
-    if candidate == root_resolved:
-        return "<sandbox-root>"
-    try:
-        relative = candidate.relative_to(root_resolved)
-    except ValueError:
-        return "<abs-path-redacted>"
-    return "<sandbox-root>/" + relative.as_posix()
+    for root in roots:
+        try:
+            root_resolved = Path(root).resolve()
+            candidate = Path(text).resolve()
+        except OSError:
+            continue
+        if candidate == root_resolved:
+            return "<redacted-root>"
+        try:
+            relative = candidate.relative_to(root_resolved)
+        except ValueError:
+            continue
+        return "<redacted-root>/" + relative.as_posix()
+    return "<abs-path-redacted>"
 
 
-def _redact_tree(node, root):
+def _redact_tree(node, roots):
     """递归替换 dict 中的绝对路径字符串。"""
     if isinstance(node, dict):
-        return {key: _redact_tree(value, root) for key, value in node.items()}
+        return {key: _redact_tree(value, roots) for key, value in node.items()}
     if isinstance(node, list):
-        return [_redact_tree(value, root) for value in node]
+        return [_redact_tree(value, roots) for value in node]
     if isinstance(node, str) and (node.startswith("/") or re.match(r"^[A-Za-z]:[\\/]", node)):
-        return _redact(node, root)
+        return _redact(node, roots)
     return node
 
 
@@ -1289,13 +1291,13 @@ def command_build(args):
     return receipt
 
 
-def _write_receipt(path, receipt, redact_root=None):
+def _write_receipt(path, receipt, redact_roots=None):
     target = Path(path).expanduser()
     if not target.parent.is_dir():
         target.parent.mkdir(parents=True, exist_ok=True)
     payload = receipt
-    if redact_root:
-        payload = _redact_tree(receipt, redact_root)
+    if redact_roots:
+        payload = _redact_tree(receipt, redact_roots)
     target.write_text(_dump_json(payload), encoding="utf-8")
     _diag(f"[receipt] written to {target}")
 
@@ -1705,6 +1707,12 @@ def command_rollback(args):
         )
 
     target = Path(args.target).expanduser() if args.target else Path(receipt["target"])
+    if not args.target and "<redacted-root>" in str(receipt.get("target", "")):
+        _fail(
+            "BAD_INPUT",
+            "the install receipt was written with redacted paths; --target is required",
+            receipt_target=receipt.get("target"),
+        )
     if not target.is_absolute():
         target = (Path.cwd() / target).resolve()
     else:
@@ -1920,7 +1928,12 @@ def _add_common(parser):
     )
     parser.add_argument(
         "--redact-root",
-        help="收据中把该目录下的绝对路径替换为 <sandbox-root>/... 以便提交脱敏证据。",
+        action="append",
+        default=[],
+        help=(
+            "可重复。收据与 stdout 中该目录下的绝对路径会被替换为 "
+            "<redacted-root>/... 以便提交脱敏证据。"
+        ),
     )
 
 
@@ -2009,6 +2022,7 @@ def build_parser():
 def main(argv=None):
     parser = build_parser()
     args = parser.parse_args(argv)
+    redact_roots = list(getattr(args, "redact_root", []) or [])
     try:
         result = args.func(args)
     except PackageError as exc:
@@ -2019,6 +2033,8 @@ def main(argv=None):
             "tool": {"name": TOOL_NAME, "version": TOOL_VERSION},
             **exc.to_dict(),
         }
+        if redact_roots:
+            payload = _redact_tree(payload, redact_roots)
         _emit(payload)
         _diag(f"[{payload['command']}] ERROR {exc.code}: {exc.message}")
         return EXIT_CODES[exc.code]
@@ -2032,9 +2048,13 @@ def main(argv=None):
             "message": f"{type(exc).__name__}: {exc}",
             "detail": {},
         }
+        if redact_roots:
+            payload = _redact_tree(payload, redact_roots)
         _emit(payload)
         _diag(f"[{payload['command']}] ERROR INTERNAL_ERROR: {payload['message']}")
         return EXIT_CODES["INTERNAL_ERROR"]
+    if redact_roots:
+        result = _redact_tree(result, redact_roots)
     _emit(result)
     return EXIT_CODES["OK"]
 

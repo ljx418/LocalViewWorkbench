@@ -957,6 +957,19 @@ def test_error_code_exit_code_table_is_stable():
     assert EXIT_CODES["ROLLBACK_CONFLICT"] == 8
 
 
+def test_redact_root_removes_absolute_paths_from_output(tmp_path):
+    """--redact-root 必须把绝对路径从 stdout 与收据里脱敏掉。"""
+    package = tmp_path / "pkg.zip"
+    synthetic_package(package, SIMPLE_PAYLOAD)
+    code, payload, stdout, _stderr = run_cli(
+        "diagnose", "--package", str(package), "--redact-root", str(tmp_path)
+    )
+    assert code == EXIT_CODES["OK"]
+    assert str(tmp_path) not in stdout
+    assert "<redacted-root>" in stdout
+    assert payload["package"]["path"].startswith("<redacted-root>")
+
+
 def test_tool_contains_no_shell_execution_interface():
     """工具不得包含任意 shell 执行接口。"""
     source = TOOL_PATH.read_text(encoding="utf-8")
