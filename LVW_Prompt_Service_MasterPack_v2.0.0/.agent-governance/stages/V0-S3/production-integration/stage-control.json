@@ -1,0 +1,73 @@
+{
+  "schema_version": "lvw.stage-control/1",
+  "stage_id": "V0-S3",
+  "version": "1.0-offline-p1",
+  "phase": "OFFLINE_PRODUCTION_INTEGRATION_ONLY",
+  "status": "FROZEN_OFFLINE_P1_PRODUCT_GATE0_PENDING",
+  "state": "FROZEN_OFFLINE_P1_PRODUCT_GATE0_PENDING",
+  "product_execution_authorized": false,
+  "stage_pass_forbidden": true,
+  "gate_owner": "Codex",
+  "implementation_owner": "Visible isolated Codex (Claude quota unavailable)",
+  "independent_reviewer": "Separate visible Codex reviewer",
+  "base_candidate": "2c85d90988ce1006cc195f3e1c415b1ff93e1ce6",
+  "contract": "reports/v0-s3/product-gate0/p1-native-budget-contract.md",
+  "workpacks": [
+    {
+      "id": "S3-P1",
+      "goal": "Native chat/preload debit to COMPLETE03 same authority via bounded cross-OS stdio binding",
+      "depends_on": [
+        "HANDOFF_APPROVED",
+        "PREPARATION_TOOLS_ACCEPTED"
+      ],
+      "outputs": [
+        "code candidate",
+        "targeted production-owner tests",
+        "raw receipt",
+        "unresolved runtime binding limitations"
+      ]
+    }
+  ],
+  "external_milestones": {
+    "HANDOFF_APPROVED": {
+      "state": "APPROVED",
+      "evidence": "reports/v1-next-stage-readiness/change-v1-s2-handoff-01.approval.json"
+    },
+    "PREPARATION_TOOLS_ACCEPTED": {
+      "state": "ACCEPTED_TOOL_ONLY",
+      "evidence": "reports/v0-s3/preparation-05/codex-closing-disposition-01.json"
+    }
+  },
+  "allowed_files": [
+    "tools/v0_s3_budget_authority.py",
+    "tools/test_v0_s3_budget_authority.py",
+    "tools/v0_s2_runtime.py",
+    "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/program_budget.py",
+    "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/core.py",
+    "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_transport.py",
+    "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/benchmark.py",
+    "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_evidence.py",
+    "LVW_V0_RuntimePatch/tests/test_s3_program_budget.py",
+    "reports/v0-s3/product-gate0/implementation-p1/"
+  ],
+  "commands": [
+    "python3 -B -m pytest tools/test_v0_s3_budget_authority.py LVW_V0_RuntimePatch/tests/test_s3_program_budget.py LVW_V0_RuntimePatch/tests/test_s2_measurements.py LVW_V0_RuntimePatch/tests/test_s2_lifecycle_authorization.py -q -p no:cacheprovider"
+  ],
+  "budgets": {
+    "real_model_actions": 0,
+    "real_services": 0,
+    "real_media": 0,
+    "real_gpu": 0,
+    "network": 0,
+    "real_ledger_mutations": 0,
+    "effective_full_checkpoints": 0
+  },
+  "hard_stops": [
+    "public contract or denominator change",
+    "real resource or ledger mutation",
+    "unknown ownership/conflict",
+    "missing nonlocal provider quota",
+    "two same-route repairs without progress"
+  ],
+  "next_owner": "Codex architect after implementation and independent evidence"
+}
