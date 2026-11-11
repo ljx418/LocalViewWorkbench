@@ -1,0 +1,21 @@
+Traceback (most recent call last):
+  File "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-p1/probes.py", line 24, in <module>
+    try:t.chat({'model':'gemma4:26b','messages':[]},10);raise AssertionError('send accepted bad echo')
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/core.py", line 329, in chat
+    return self._post(self.endpoint, payload, timeout_seconds)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/core.py", line 306, in _post
+    authorize_model_action('chat', data)
+  File "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/program_budget.py", line 203, in authorize_model_action
+    if response!=expected: raise refused('S3_BRIDGE_RECEIPT_INVALID',**process,request_id=request['request_id'])
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LVW_V0_RuntimePatch.custom_nodes.lvw_v0_bridge.core.BridgeError: {"code":"SCOPE_FORBIDDEN","details":{"error":null,"exit_code":0,"readers_joined":true,"reaped":true,"request_id":"ca24078b-ca28-4b04-9afb-35d7c191ca18","stderr_sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","stdout_sha256":"b9ee97fa40d822ff770394a1532ff6df241fa7c140c467cde8c14f61cd707e3c","subcode":"S3_BRIDGE_RECEIPT_INVALID"},"message":"S3 model debit refused"}
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-p1/probes.py", line 25, in <module>
+    except core.BridgeError as e:assert e.subcode=='S3_BRIDGE_RECEIPT_INVALID'
+                                        ^^^^^^^^^
+AttributeError: 'BridgeError' object has no attribute 'subcode'
