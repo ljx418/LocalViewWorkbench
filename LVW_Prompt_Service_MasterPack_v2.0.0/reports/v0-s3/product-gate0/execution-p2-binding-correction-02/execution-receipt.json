@@ -1,0 +1,70 @@
+{
+  "status": "BLOCKED",
+  "worker_outcome": "failed",
+  "actual_batches": 1,
+  "remaining_batches": 0,
+  "claim_status": "EXPIRED",
+  "cli_exit": 1,
+  "terminal_persisted": false,
+  "reason": "Full lifecycle serialization and terminal retry exceeded write() 32768-byte bound; raw command records/observer chains were in memory and were not persisted",
+  "model_sends": 0,
+  "real_ledger_accesses": 0,
+  "full_checkpoints": 0,
+  "extra_tests": 0,
+  "extra_powershell_parser": 0,
+  "retries": 0,
+  "metadata": {
+    "mode": "CONSERVATIVE_NONREFUNDABLE_RESERVATION",
+    "role_sizes": {
+      "windows_python": 104952,
+      "wsl": 258048,
+      "python": 8020928
+    },
+    "read_count_bounds": {
+      "windows_python": 1,
+      "wsl": 32,
+      "python": 32
+    },
+    "charged_bytes": 265032184,
+    "remaining_budget": 3403272,
+    "actual_digest_bytes": null,
+    "measurement": "NOT_MEASURED",
+    "evidence": "Reconstructed from persisted installed sizes and sealed fixed reservation formula; runtime meter lost"
+  },
+  "synthetic_debits": {
+    "last_persisted_observed_value": null,
+    "known_lower_bound": 1,
+    "evidence": "normal journal AUTHORITY_RETURNED_OK; exact harness last observation lost; no post-run SQLite query"
+  },
+  "lost_evidence": [
+    "normal and bad-hash detailed response overwritten by later phases",
+    "bad-receipt detailed wrong echo overwritten by timeout",
+    "outer driver argv/stdout/stderr/exit and pipe/thread results held only in failed lifecycle serialization",
+    "all observer samples/timestamps/two-absence results",
+    "final runtime counters and cleanup registry"
+  ],
+  "timeout": "Actual TIMEOUT rejection persisted; remote exit observation UNKNOWN, cannot qualify as completed failclosed negative",
+  "fixtures": [
+    {
+      "path": "/tmp/lvw-s3-p2b-中文 Space-ij8on_kk",
+      "state": "FAILED_RETAINED",
+      "registration": "Worker evidence preservation; harness lifecycle registry failed to persist",
+      "cleanup_proven": false,
+      "sqlite_retained": true,
+      "source_copies_not_committed": true
+    },
+    {
+      "path": "/tmp/lvw-s3-p2b-helper-61bqtim5",
+      "state": "FAILED_RETAINED",
+      "registration": "Worker evidence preservation; harness lifecycle registry failed to persist",
+      "cleanup_proven": false,
+      "sqlite_retained": true,
+      "source_copies_not_committed": true
+    }
+  ],
+  "actions_after_terminal": "Read/copy existing new-batch text artifacts only; no process probes, kill, refund, settle0 or rerun",
+  "product_gate0": false,
+  "stage_pass": false,
+  "quality_pass": false,
+  "human_signoff": false
+}
