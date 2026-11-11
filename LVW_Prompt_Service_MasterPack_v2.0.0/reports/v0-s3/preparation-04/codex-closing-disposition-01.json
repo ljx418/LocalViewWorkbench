@@ -1,0 +1,30 @@
+{
+  "kind": "S3_PREP_B_CLOSING_DISPOSITION_NOT_PRODUCT_ACCEPTANCE",
+  "decision": "OFFLINE_PACKAGE_TOOLING_ACCEPTED_WITH_DISCLOSED_MINOR",
+  "candidate": "ef8c065346a8f7d78b28b238207e7550444d897e",
+  "independent_commit": "c2b028a5bbbe333c589025e63383415a7038bc13",
+  "closed_findings": [
+    "F-01",
+    "F-02",
+    "M-01",
+    "m-01",
+    "m-02 corrective runner only; historical remnants retained",
+    "m-03"
+  ],
+  "fatal": 0,
+  "major": 0,
+  "minor": 1,
+  "minor_disposition": "NEW-m-01 cleanup.staging_removed under-reports actual successful removal in an install failure receipt; raw measurement and independent filesystem checks prove no residue. Disclosed, nonblocking; no new correction round.",
+  "evidence": {
+    "tests_passed": 70,
+    "independent_negative_probes": 22,
+    "ownership_write_failure_probes": 3,
+    "runner_failure_cleanup_probes": 2,
+    "real_offline_chain_checks": 33
+  },
+  "platform_limit": "POSIX sandbox only, not Windows host/Comfy installation. Five old /tmp roots lack confirmed ownership and are not removed.",
+  "stage_pass": false,
+  "product_gate0": false,
+  "human_signoff": false,
+  "next": "Bounded quality-candidate probe/preview, then independent prelabels and complete S3 Gate0."
+}
