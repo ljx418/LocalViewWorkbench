@@ -8,7 +8,7 @@
   "coordinate": {
     "stage_id": "R1",
     "workpack_id": "WP-R1-U3",
-    "gate": "S3_P3A_CORRECTION_02_INDEPENDENT_REVIEW",
+    "gate": "S3_P3A_CORRECTION_03_IMPLEMENTATION",
     "state": "PREPARING_NEXT_STAGE"
   },
   "last_passed_gate": {
@@ -21,7 +21,7 @@
     "passed_cases": 10,
     "human_signoff": "reports/unified-media/human-signoff-live15.json"
   },
-  "current_blocking_gate": "P3A_M03_INDEPENDENT_REVIEW_AND_S3_GATE0_PENDING",
+  "current_blocking_gate": "P3A_EARLY_ALLOCATION_PARENT_BINDING_AND_S3_GATE0_PENDING",
   "stage_packet": ".agent-governance/stages/R1/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/R1/PAYLOAD_MANIFEST.sha256",
   "product_status": "UNIFIED_MEDIA_EARLY_ACCEPTED_SCOPE_ONLY_FULL_R1_PENDING",
@@ -34,8 +34,8 @@
     "PRODUCTION_RELEASED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "Separate visible reviewer then root gate adjudication",
-  "next_action": "Independent review of db607d4 lifecycle fix/evidence8881098; fresh54 targeted+23S2+5 unchanged probes, package-owner17 reused only with source/evidence proof.",
+  "next_owner": "Original visible implementation worker, isolated reviewer afterwards",
+  "next_action": "Fix M04 original-parent-bound root allocation and audit finite adjacent callback-to-write boundaries in one correction; M01/M02/m01/M03 independently closed.",
   "required_authorization": null,
   "authorization_request": "reports/authorization-program-v1-complete-03.request.json",
   "authorization_record": "reports/authorization-program-v1-complete-03.approval.json",
@@ -1149,14 +1149,14 @@
     "may_apply_to_other_dependency_edges": false,
     "product_execution_authorized_by_predicate_alone": false
   },
-  "preparation_addendum": "reports/v0-s3/product-gate0/p3a-correction-02.contract.md",
-  "latest_preparation_disposition": "reports/v0-s3/product-gate0/p3a-correction-01-review-decision.json",
+  "preparation_addendum": "reports/v0-s3/product-gate0/p3a-correction-03.contract.md",
+  "latest_preparation_disposition": "reports/v0-s3/product-gate0/p3a-correction-02-review-decision.json",
   "quality_set_freeze": "reports/v0-s3/preparation-05/quality-set.frozen.json",
   "last_execution_evidence": "reports/v0-s3/product-gate0/execution-p2-binding-correction-03/report.md",
   "p3a_implementation": {
     "candidate_sha": "7f84ac56e9d8c9bd39778a787b662634453875be",
     "evidence_commit": "0fc20361ace1d1ed156a5347c9280bf039b00cb5",
-    "status": "CORRECTION02_READY_FOR_REVIEW_M03_NOT_YET_CLOSED",
+    "status": "M03_CLOSED_M04_CHANGES_REQUIRED",
     "targeted_passed": 30,
     "regression_passed": 23,
     "new_real_runs": 0,
@@ -1181,6 +1181,7 @@
       "s2": 23,
       "old_independent_probes": 5,
       "prior_owner_checks_reused_not_rerun": 17
-    }
+    },
+    "correction02_independent_commit": "3ecd45bce2dc3aaea98c005f2b35bc0e4842e15a"
   }
 }
