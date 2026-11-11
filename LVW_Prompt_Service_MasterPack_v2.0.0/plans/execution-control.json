@@ -8,7 +8,7 @@
   "coordinate": {
     "stage_id": "R1",
     "workpack_id": "WP-R1-U3",
-    "gate": "S3_P3A_CORRECTION_01_IMPLEMENTATION",
+    "gate": "S3_P3A_CORRECTION_01_INDEPENDENT_REVIEW",
     "state": "PREPARING_NEXT_STAGE"
   },
   "last_passed_gate": {
@@ -21,7 +21,7 @@
     "passed_cases": 10,
     "human_signoff": "reports/unified-media/human-signoff-live15.json"
   },
-  "current_blocking_gate": "P3A_PATH_HANDOFF_MAJOR_2_AND_S3_PRODUCT_GATE0_PENDING",
+  "current_blocking_gate": "P3A_CORRECTION_INDEPENDENT_REVIEW_AND_S3_PRODUCT_GATE0_PENDING",
   "stage_packet": ".agent-governance/stages/R1/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/R1/PAYLOAD_MANIFEST.sha256",
   "product_status": "UNIFIED_MEDIA_EARLY_ACCEPTED_SCOPE_ONLY_FULL_R1_PENDING",
@@ -34,8 +34,8 @@
     "PRODUCTION_RELEASED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "Visible Codex implementation, then separate independent review and root adjudication",
-  "next_action": "Correct aggregated P3A-M01/M02/m01 under correction01 contract in original isolated implementation workspace; preserve historical evidence and run bounded targeted checks before separate re-review.",
+  "next_owner": "Separate visible Codex independent reviewer, then root gate adjudication",
+  "next_action": "Read-only independent review of correction5497bd1/evidencebf675ff; verify actual no-foreign-write, archive handoff and session fixes plus guarded84-check regression.",
   "required_authorization": null,
   "authorization_request": "reports/authorization-program-v1-complete-03.request.json",
   "authorization_record": "reports/authorization-program-v1-complete-03.approval.json",
@@ -1156,10 +1156,21 @@
   "p3a_implementation": {
     "candidate_sha": "7f84ac56e9d8c9bd39778a787b662634453875be",
     "evidence_commit": "0fc20361ace1d1ed156a5347c9280bf039b00cb5",
-    "status": "CHANGES_REQUIRED_FATAL0_MAJOR2_MINOR1",
+    "status": "CORRECTION_READY_FOR_REVIEW_NOT_ACCEPTED",
     "targeted_passed": 30,
     "regression_passed": 23,
     "new_real_runs": 0,
-    "independent_review_commit": "bdbe43c084b2264ecb511f9cf6cd8d852c881efe"
+    "independent_review_commit": "bdbe43c084b2264ecb511f9cf6cd8d852c881efe",
+    "correction_candidate_sha": "5497bd1860ae895f394ece23a1ddb5e0b22fad92",
+    "correction_evidence_commit": "bf675ffb84146527f430c46467ec4e236e1fa3a4",
+    "correction_self_checks": {
+      "targeted": 44,
+      "s2": 23,
+      "owner": 17,
+      "passed": 84,
+      "old_observation_exit": 1,
+      "old_observation_passed": 1,
+      "old_observation_failed": 3
+    }
   }
 }
