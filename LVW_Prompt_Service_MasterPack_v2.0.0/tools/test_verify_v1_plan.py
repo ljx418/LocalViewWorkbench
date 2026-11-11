@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -45,6 +46,7 @@ APPROVAL_REL = "reports/v1-redesign/product-change-approval.json"
 BASELINE_REL = "reports/v1-redesign/legacy-gates-before-change.json"
 ADJUDICATION_REL = "reports/v1-redesign/design11-adjudication.json"
 ADJUDICATION_111_REL = "reports/v1-redesign/design111-adjudication.json"
+ADJUDICATION_112_REL = "reports/v1-redesign/design112-adjudication.json"
 SAMPLE_REL = "plans/v1-multishot-sample-design.json"
 MIGRATION_REL = "contracts/v1-multishot-migration.sql"
 OVERLAY_REL = "contracts/v1-multishot.openapi-overlay.json"
@@ -56,6 +58,12 @@ D0_MANIFEST_REL = D0_DIR + "/PAYLOAD_MANIFEST.sha256"
 # The 1.0 D0 packet manifest digest. The 1.1 owner manifest was re-frozen, so
 # the old pin must no longer validate the packet (CLI decision, not a constant).
 OLD_D0_MANIFEST_SHA256 = "9bffdf2dc968f54fae0404d162c394e265cfb9900f68d9c303683bef756ede7b"
+# The 1.1 owner packet digest. The 1.1.1 and the 1.1.2 packets replaced it, so
+# it must no longer validate the packet either (CLI decision, not a constant).
+OLD_D0_MANIFEST_1_1_SHA256 = "56e6f07b72023928b32ed7350b78f9d1d148daf79108daffecb7d9a175e39c4a"
+# The 1.1.1 owner packet digest. The 1.1.2 packet replaced it, so it must no
+# longer validate the packet either (CLI decision, not a constant).
+OLD_D0_MANIFEST_1_1_1_SHA256 = "04d3bfb4af3c2d7be68e494a6d59624a96051a0ebf28e81d6a0367aa32aa6710"
 
 ESTIMATE_BASIS = (
     "design performance thresholds, not measured current per-shot P95 "
@@ -438,7 +446,10 @@ def base_openapi() -> dict:
                     "x-product-version": "V2",
                     "parameters": [{"name": "id", "in": "path", "required": True,
                                     "schema": {"type": "string"}}],
-                    "responses": {"200": {"description": "OK"}},
+                    "responses": {"200": {
+                        "description": "OK",
+                        "content": {"application/json": {"schema": canonical_success_envelope()}},
+                    }},
                 }
             },
             "/api/v1/shots": {
@@ -487,6 +498,24 @@ def base_openapi() -> dict:
 
 
 ETAG_PATTERN = '^\"scene:[^\":]+:[0-9a-f]{64}\"$'
+
+
+def canonical_success_envelope() -> dict:
+    """The canonical success envelope: data / request_id / schema_version.
+
+    The new Scene GET must return the canonical Scene inside exactly this
+    envelope, so the canonical operation on the same path carries it too.
+    """
+    return {
+        "type": "object",
+        "properties": {
+            "data": {"$ref": "#/components/schemas/Scene"},
+            "request_id": {"type": "string", "minLength": 1, "maxLength": 128},
+            "schema_version": {"type": "string"},
+        },
+        "required": ["data", "request_id", "schema_version"],
+        "additionalProperties": False,
+    }
 
 
 def etag_header() -> dict:
@@ -552,7 +581,11 @@ def overlay_document() -> dict:
             "/api/v1/scenes/{id}": {
                 "get": {
                     "operationId": "get_api_v1_scene_current",
-                    "responses": {"200": {"description": "OK", "headers": {"ETag": etag_header()}}},
+                    "responses": {"200": {
+                        "description": "OK",
+                        "headers": {"ETag": etag_header()},
+                        "content": {"application/json": {"schema": canonical_success_envelope()}},
+                    }},
                 }
             },
             "/api/v1/scenes/{id}/revision-info": {
@@ -596,7 +629,8 @@ def overlay_document() -> dict:
 
 def migration_sql() -> str:
     lines = [
-        "-- DESIGN CANDIDATE 1.1.1 ONLY. No production DB was opened during D0.",
+        "-- DESIGN CANDIDATE 1.1.2 ONLY. No production DB was opened during D0.",
+        "-- register deterministic lvw_scene_hash(11args) before this transaction.",
         "PRAGMA foreign_keys=ON;",
         "BEGIN IMMEDIATE;",
     ]
@@ -610,6 +644,21 @@ def migration_sql() -> str:
                 "tb_den INTEGER NOT NULL CHECK(tb_den>0), editor TEXT NOT NULL);"
             )
             continue
+        if name == "scene_head":
+            lines.append(
+                "CREATE TABLE scene_head(scene_id TEXT PRIMARY KEY, head_revision_id TEXT NOT NULL, "
+                "etag TEXT NOT NULL);"
+            )
+            continue
+        if name == "scene_revision_meta":
+            lines.append(
+                "CREATE TABLE scene_revision_meta(scene_revision_id TEXT PRIMARY KEY, scene_id TEXT NOT NULL, "
+                "revision INTEGER NOT NULL, source_sha256 TEXT NOT NULL, time_basis TEXT NOT NULL, "
+                "verified INTEGER NOT NULL CHECK(verified IN(0,1)), content_sha256 TEXT NOT NULL, "
+                "etag TEXT NOT NULL, CHECK((verified=1 AND time_basis='decoded_pts') OR "
+                "(verified=0 AND time_basis!='decoded_pts')));"
+            )
+            continue
         lines.append("CREATE TABLE IF NOT EXISTS %s(id TEXT PRIMARY KEY, payload TEXT NOT NULL);" % name)
     lines.append(
         "CREATE TABLE shot_batch_parent_check(id TEXT PRIMARY KEY, planned_count INTEGER NOT NULL, "
@@ -617,6 +666,20 @@ def migration_sql() -> str:
     )
     lines.append(
         "CREATE TABLE shot_analysis_binding_token(model_run_id TEXT PRIMARY KEY, lease_token TEXT NOT NULL);"
+    )
+    # The two backfill call sites. The 11 arguments are the 11 hashed fields
+    # in the declared order.
+    lines.append(
+        "INSERT INTO scene_head SELECT s.id,s.id,'\"scene:'||s.id||':'||"
+        "lvw_scene_hash(s.media_ref_id,m.sha256,s.version,s.start_pts,s.end_pts,s.origin_pts,"
+        "s.tb_num,s.tb_den,s.editor,'unverified',0)||'\"' FROM scene_revision s "
+        "JOIN media_ref m ON s.media_ref_id=m.id;"
+    )
+    lines.append(
+        "INSERT INTO scene_revision_meta SELECT s.id,s.id,s.version,m.sha256,'unverified',0,"
+        "lvw_scene_hash(s.media_ref_id,m.sha256,s.version,s.start_pts,s.end_pts,s.origin_pts,"
+        "s.tb_num,s.tb_den,s.editor,'unverified',0),h.etag FROM scene_revision s "
+        "JOIN media_ref m ON m.id=s.media_ref_id JOIN scene_head h ON h.scene_id=s.id;"
     )
     lines.append("COMMIT;")
     return "\n".join(lines) + "\n"
@@ -733,7 +796,7 @@ def candidate_contract() -> dict:
             "version": "shot-domains/1",
             "language_order": ["zh", "en"],
             "item_order": "characters sorted by local_actor_id Unicode codepoint, then scene, then actions in original zero-based array order; route each item only to its declared observation or inference domain",
-            "entry_serialization": "Each nonempty language value produces one string: compact UTF-8 JSON object, sorted keys, ensure_ascii=False, allow_nan=False. Keys kind, ref, lang, text. No translation, normalization, trim or deduplication; skip only exactly empty strings. Preserve raw model response byte-for-byte.",
+            "entry_serialization": "Each nonempty language value produces one string: compact UTF-8 JSON object, sorted keys, ensure_ascii=False, allow_nan=False. The JSON key set is {kind, lang, ref, text}; serialized key order MUST be kind, lang, ref, text (sort_keys=True), never insertion order. No translation, normalization, trim or deduplication; skip only exactly empty strings. Preserve raw model response byte-for-byte.",
             "refs": {
                 "character": "local_actor_id",
                 "scene": "scene",
@@ -932,6 +995,29 @@ def build_fixture(root: Path) -> dict:
         "product_gate0": False,
         "sample_materialization": "NOT_RUN",
     })
+    # The design 1.1.2 consolidated correction authority. It is a correction
+    # package: CHANGES_REQUIRED, no product gate and no closed finding.
+    write_json(root / ADJUDICATION_112_REL, {
+        "kind": "CODEX_D0_CONSOLIDATED_CORRECTION_NOT_PRODUCT_GATE",
+        "version": "1.1.2",
+        "decision": "CHANGES_REQUIRED",
+        "findings": [
+            {"id": "NM-1", "severity": "Major", "state": "IMPLEMENTATION_CORRECTION_REQUIRED"},
+            {"id": "NM-2", "severity": "Major", "state": "IMPLEMENTATION_CORRECTION_REQUIRED"},
+            {"id": "NM-3", "severity": "Major", "state": "IMPLEMENTATION_CORRECTION_REQUIRED"},
+            {"id": "NM-4", "severity": "Minor", "state": "IMPLEMENTATION_CORRECTION_REQUIRED"},
+            {"id": "NM-5", "severity": "Minor", "state": "OWNER_CLARIFICATION_PENDING_RECHECK"},
+            {"id": "NM-6", "severity": "Minor", "state": "IMPLEMENTATION_CORRECTION_REQUIRED"},
+            {"id": "NM-7", "severity": "Minor", "state": "IMPLEMENTATION_CORRECTION_REQUIRED"},
+            {"id": "NM-8", "severity": "Minor", "state": "IMPLEMENTATION_CORRECTION_REQUIRED"},
+        ],
+        "derived_counts": {"Fatal": 0, "Major": 3, "Minor": 5},
+        "review_summary_minor_count": 6,
+        "count_discrepancy": "Retain original report; eight concrete findings; next reviewer to reconcile count in appended receipt.",
+        "product_gate0": False,
+        "product_actions": 0,
+        "historical_source": {"authority": "743e028474909be02326facd6f14ca0ac26aa56f"},
+    })
 
     # --- acceptance cases ----------------------------------------------------
     cases = []
@@ -1027,8 +1113,10 @@ def build_fixture(root: Path) -> dict:
 
     # Actual parent layout: the authority spec manifest does *not* list the D0
     # stage control or the D0 payload manifest; the D0 packet manifest fences
-    # that control plane instead. design 1.1.1: the authority spec manifest is
-    # a closed inventory of exactly 24 files.
+    # that control plane instead. design 1.1.2: the authority spec manifest is
+    # a closed inventory of exactly 25 files; the design 1.1.1 adjudication is
+    # retained as the historical frozen record and the design 1.1.2
+    # adjudication is added.
     fenced = [
         "docs/17_DATA_AND_VERSIONING.md",
         "docs/20_RELIABILITY_AND_OPERATIONS.md",
@@ -1053,22 +1141,26 @@ def build_fixture(root: Path) -> dict:
         BASELINE_REL,
         ADJUDICATION_REL,
         ADJUDICATION_111_REL,
+        ADJUDICATION_112_REL,
         R1_DIR + "/PAYLOAD_MANIFEST.sha256",
     ]
-    assert len(fenced) == 24, "the synthetic authority fence must hold exactly 24 files"
+    assert len(fenced) == 25, "the synthetic authority fence must hold exactly 25 files"
     write_json(root / D0_DIR / "spec-manifest.json", {
-        "kind": "D0_AUTHORITY_DESIGN111_CANDIDATE_HASH_FENCE_NOT_PRODUCT_GATE0",
+        "kind": "D0_AUTHORITY_DESIGN112_CANDIDATE_HASH_FENCE_NOT_PRODUCT_GATE0",
         "files": {rel: sha256(root / rel) for rel in fenced},
     })
     return {"d0_manifest_sha256": regenerate_d0_manifest(root)}
 
 
-def run_checker(root: Path, pin: str | None = None, extra: list[str] | None = None):
+def run_checker(root: Path, pin: str | None = None, extra: list[str] | None = None, env: dict | None = None):
     command = [sys.executable, "-B", str(CHECKER), "--root", str(root)]
     if pin is not None:
         command += ["--d0-packet-manifest-sha256", pin]
     command += list(extra or [])
-    return subprocess.run(command, capture_output=True, text=True)
+    run_env = dict(os.environ)
+    if env:
+        run_env.update(env)
+    return subprocess.run(command, capture_output=True, text=True, env=run_env)
 
 
 def load(root: Path, rel: str):
@@ -1118,8 +1210,8 @@ def expect_failure(result, code: str):
     assert code in result.stdout, "expected %s in output:\n%s" % (code, result.stdout)
 
 
-def run_package(package: dict, extra=None):
-    return run_checker(package["root"], package["d0_manifest_sha256"], extra)
+def run_package(package: dict, extra=None, env=None):
+    return run_checker(package["root"], package["d0_manifest_sha256"], extra, env)
 
 
 # ---------------------------------------------------------------------------
@@ -2123,22 +2215,37 @@ def test_missing_input_exits_nonzero_without_verdict(package):
 # ---------------------------------------------------------------------------
 
 
-def test_d0_packet_pin_is_the_owner_supplied_111_digest():
+def test_d0_packet_pin_is_the_owner_supplied_112_digest():
     # The pin is a hard coded source control digest, not a value that is
     # derived from the packet at run time.
-    assert checker.FROZEN_D0_PACKET_MANIFEST_SHA256 == "04d3bfb4af3c2d7be68e494a6d59624a96051a0ebf28e81d6a0367aa32aa6710"
+    assert checker.FROZEN_D0_PACKET_MANIFEST_SHA256 == "181c08ee7290f5bef02e22b6f7fd3c874c2d404cc8b4ffff84d2148a71f47eb8"
 
 
 def test_stale_1_1_packet_pin_no_longer_validates_the_owner_packet():
-    # The 1.1 owner digest is no longer the pin; the 1.1.1 digest is.
-    result = run_checker(ROOT, "56e6f07b72023928b32ed7350b78f9d1d148daf79108daffecb7d9a175e39c4a")
+    # The 1.1 owner digest is no longer the pin; the 1.1.2 digest is.
+    result = run_checker(ROOT, OLD_D0_MANIFEST_1_1_SHA256)
+    assert result.returncode != 0
+    assert "E_D0_PACKET_MANIFEST_PINNED" in result.stdout
+
+
+def test_stale_1_1_1_packet_pin_no_longer_validates_the_owner_packet():
+    # The 1.1.1 owner digest is no longer the pin either: the 1.1.2 packet
+    # replaced it, so the old pin must reject the new packet.
+    result = run_checker(ROOT, OLD_D0_MANIFEST_1_1_1_SHA256)
+    assert result.returncode != 0
+    assert "E_D0_PACKET_MANIFEST_PINNED" in result.stdout
+
+
+def test_stale_1_0_packet_pin_no_longer_validates_the_owner_packet():
+    # The 1.0 owner digest is no longer the pin either.
+    result = run_checker(ROOT, OLD_D0_MANIFEST_SHA256)
     assert result.returncode != 0
     assert "E_D0_PACKET_MANIFEST_PINNED" in result.stdout
 
 
 def test_authority_spec_fence_holds_exactly_the_frozen_inventory(package):
     spec = load(package["root"], D0_DIR + "/spec-manifest.json")
-    assert len(spec["files"]) == 24
+    assert len(spec["files"]) == 25
     assert sorted(spec["files"]) == sorted(checker.FROZEN_SPEC_FENCE_FILES)
     assert len(checker.FROZEN_D0_PACKET_FILES) == 10
 
@@ -2249,9 +2356,15 @@ def test_merge_may_not_change_the_canonical_operation_body(package):
     save(package["root"], OVERLAY_REL, overlay)
     refresh_fences(package, [OVERLAY_REL])
     result = run_package(package)
-    # The new GET is an addition, not a replacement: the canonical PUT must
-    # still be untouched and the added GET must stay a valid candidate.
-    assert result.returncode == 0, result.stdout
+    # design 1.1.2 (NM-2): the new GET is an addition, not a replacement, but
+    # it must keep the canonical success envelope around the canonical Scene.
+    # The envelope the mutation installs is a bare component reference, so the
+    # package is now rejected.
+    assert result.returncode != 0, result.stdout
+    assert "E_SCENE_GET_ENVELOPE" in result.stdout
+    # The canonical PUT itself was not touched by the overlay: the merge
+    # guard did not fire.
+    assert "E_OVERLAY_BASE_MUTATED" not in result.stdout
 
 
 def test_canonical_operation_is_byte_identical_after_the_merge(package):
@@ -2679,3 +2792,630 @@ def test_real_owner_merge_keeps_the_canonical_scene_put(owner_copy):
     assert result.returncode == 0, result.stdout + result.stderr
     after = json.dumps(load(owner_copy["root"], "contracts/openapi.json")["paths"]["/api/v1/scenes/{id}"]["put"], sort_keys=True)
     assert before == after
+
+
+# ---------------------------------------------------------------------------
+# Design 1.1.2: the consolidated correction of NM-1 - NM-8
+#
+# Every test drives the real CLI on a copy and asserts the decision the real
+# checker makes. The reviewer owned probes P01, P02, P05, P22, P23 and P24
+# are turned into regression tests here, together with the obligations the
+# design 1.1.1 suite already carried. No prior hard negative was removed.
+# ---------------------------------------------------------------------------
+
+
+def assert_clean_failure(result, code: str):
+    """The run failed with a deterministic finding, not with a traceback."""
+    assert result.returncode != 0, "checker exited 0 for a faulty package:\n%s" % result.stdout
+    assert code in result.stdout, "expected %s in output:\n%s" % (code, result.stdout)
+    assert result.stdout.strip(), "a failed run must not leave stdout empty"
+    assert "Traceback" not in result.stderr, "the run leaked a traceback:\n%s" % result.stderr
+    assert "RESULT: PASS" not in result.stdout
+
+
+def mutate_migration(package: dict, old: str, new: str) -> None:
+    """Rewrite one fragment of the candidate migration and re-freeze it."""
+    path = package["root"] / MIGRATION_REL
+    text = path.read_text(encoding="utf-8")
+    assert old in text, "the migration does not carry %r" % old
+    path.write_text(text.replace(old, new), encoding="utf-8")
+    refresh_fences(package, [MIGRATION_REL])
+
+
+# --- NM-1: the 11 scene hash aliases ---------------------------------------
+
+
+@pytest.mark.parametrize("field", sorted(checker.FROZEN_SCENE_HASH_COLUMN_ALIASES))
+def test_every_scene_hash_alias_is_pinned_to_its_frozen_mapping(package, field):
+    # NM-1: all 11 aliases are bound to their exact frozen mapping value. The
+    # design 1.1.1 checker pinned only three of them.
+    contract = load(package["root"], "plans/v1-multishot-contract.json")
+    contract["scene_hash"]["column_mapping"][field] = "scene_revision.some_other_column"
+    save(package["root"], "plans/v1-multishot-contract.json", contract)
+    refresh_fences(package, ["plans/v1-multishot-contract.json"])
+    assert_clean_failure(run_package(package), "E_SCENE_HASH_MAPPING")
+
+
+def test_the_scene_hash_mapping_covers_all_eleven_fields(package):
+    # The frozen inventory really holds 11 fields and 11 aliases.
+    assert len(checker.FROZEN_SCENE_HASH_FIELDS) == 11
+    assert len(checker.FROZEN_SCENE_HASH_COLUMN_ALIASES) == 11
+    assert sorted(checker.FROZEN_SCENE_HASH_COLUMN_ALIASES) == sorted(checker.FROZEN_SCENE_HASH_FIELDS)
+
+
+def test_the_scene_hash_sql_call_site_may_not_permute_the_pts(package):
+    # NM-1 / reviewer probe P02: the permuted PTS arguments of the backfill
+    # call site must be rejected, not silently hashed into another value.
+    mutate_migration(package, "s.start_pts,s.end_pts", "s.end_pts,s.start_pts")
+    assert_clean_failure(run_package(package), "E_SCENE_HASH_MAPPING")
+
+
+def test_the_scene_hash_sql_call_site_may_not_swap_two_arguments(package):
+    mutate_migration(package, "m.sha256,s.version", "s.version,m.sha256")
+    assert_clean_failure(run_package(package), "E_SCENE_HASH_MAPPING")
+
+
+def test_the_scene_hash_sql_call_site_may_not_drop_an_argument(package):
+    mutate_migration(package, "s.editor,'unverified',0)", "s.editor,'unverified')")
+    assert_clean_failure(run_package(package), "E_SCENE_HASH_MAPPING")
+
+
+def test_the_scene_hash_sql_call_site_may_not_add_an_argument(package):
+    mutate_migration(package, "s.editor,'unverified',0)", "s.editor,'unverified',0,0)")
+    assert_clean_failure(run_package(package), "E_SCENE_HASH_MAPPING")
+
+
+def test_the_scene_hash_sql_call_site_may_not_bind_another_column(package):
+    mutate_migration(package, "s.tb_num,s.tb_den", "s.tb_den,s.tb_num")
+    assert_clean_failure(run_package(package), "E_SCENE_HASH_MAPPING")
+
+
+def test_the_scene_hash_time_basis_must_stay_a_literal(package):
+    # The backfill has no decoded PTS yet, so the time basis is a literal and
+    # not a column reference.
+    mutate_migration(package, "s.editor,'unverified',0)", "s.editor,s.time_basis,0)")
+    assert_clean_failure(run_package(package), "E_SCENE_HASH_MAPPING")
+
+
+def test_the_scene_hash_verified_must_stay_an_integer_literal(package):
+    mutate_migration(package, "s.editor,'unverified',0)", "s.editor,'unverified','0')")
+    assert_clean_failure(run_package(package), "E_SCENE_HASH_MAPPING")
+
+
+def test_an_unexpected_scene_hash_call_site_is_rejected(package):
+    # A third call site is an unexpected one.
+    path = package["root"] / MIGRATION_REL
+    text = path.read_text(encoding="utf-8")
+    extra = (
+        "INSERT INTO scene_head SELECT s.id,s.id,lvw_scene_hash(s.media_ref_id,m.sha256,s.version,"
+        "s.start_pts,s.end_pts,s.origin_pts,s.tb_num,s.tb_den,s.editor,'unverified',0) "
+        "FROM scene_revision s JOIN media_ref m ON s.media_ref_id=m.id;"
+    )
+    path.write_text(text.replace("COMMIT;", extra + "\nCOMMIT;"), encoding="utf-8")
+    refresh_fences(package, [MIGRATION_REL])
+    assert_clean_failure(run_package(package), "E_SCENE_HASH_MAPPING")
+
+
+def test_the_owner_migration_declares_exactly_two_backfill_call_sites(owner_copy):
+    # The positive control: the real candidate migration carries exactly the
+    # two frozen backfill call sites with exactly 11 arguments each.
+    text = (owner_copy["root"] / MIGRATION_REL).read_text(encoding="utf-8")
+    sites = checker.find_sql_call_sites(text, "lvw_scene_hash")
+    assert len(sites) == 2
+    for site in sites:
+        assert len(site["arguments"]) == 11
+        assert site["table"] in ("SCENE_HEAD", "SCENE_REVISION_META")
+    result = run_owner_copy(owner_copy)
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
+# --- NM-2: the new Scene GET envelope --------------------------------------
+
+
+def test_the_new_scene_get_may_not_return_another_candidate_component(package):
+    # NM-2 / reviewer probe P05: the new Scene GET must return the canonical
+    # Scene, not a candidate component that also resolves.
+    overlay = load(package["root"], OVERLAY_REL)
+    body = overlay["add_paths"]["/api/v1/scenes/{id}"]["get"]["responses"]["200"]["content"]["application/json"]["schema"]
+    body["properties"]["data"] = {"$ref": "#/components/schemas/MultiShot_SceneRevisionInfo"}
+    save(package["root"], OVERLAY_REL, overlay)
+    refresh_fences(package, [OVERLAY_REL])
+    assert_clean_failure(run_package(package), "E_SCENE_GET_ENVELOPE")
+
+
+def test_the_new_scene_get_may_not_drop_the_canonical_envelope(package):
+    overlay = load(package["root"], OVERLAY_REL)
+    del overlay["add_paths"]["/api/v1/scenes/{id}"]["get"]["responses"]["200"]["content"]
+    save(package["root"], OVERLAY_REL, overlay)
+    refresh_fences(package, [OVERLAY_REL])
+    assert_clean_failure(run_package(package), "E_SCENE_GET_ENVELOPE")
+
+
+def test_the_new_scene_get_envelope_required_set_is_frozen(package):
+    overlay = load(package["root"], OVERLAY_REL)
+    body = overlay["add_paths"]["/api/v1/scenes/{id}"]["get"]["responses"]["200"]["content"]["application/json"]["schema"]
+    body["required"] = ["data"]
+    save(package["root"], OVERLAY_REL, overlay)
+    refresh_fences(package, [OVERLAY_REL])
+    assert_clean_failure(run_package(package), "E_SCENE_GET_ENVELOPE")
+
+
+def test_the_new_scene_get_envelope_may_not_accept_extra_properties(package):
+    overlay = load(package["root"], OVERLAY_REL)
+    body = overlay["add_paths"]["/api/v1/scenes/{id}"]["get"]["responses"]["200"]["content"]["application/json"]["schema"]
+    body["additionalProperties"] = True
+    save(package["root"], OVERLAY_REL, overlay)
+    refresh_fences(package, [OVERLAY_REL])
+    assert_clean_failure(run_package(package), "E_SCENE_GET_ENVELOPE")
+
+
+def test_the_new_scene_get_returns_the_canonical_scene_in_the_canonical_envelope(owner_copy):
+    # The positive control: the real overlay carries the canonical Scene
+    # inside the canonical success envelope, byte for byte.
+    api = load(owner_copy["root"], "contracts/openapi.json")
+    overlay = load(owner_copy["root"], OVERLAY_REL)
+    canonical = api["paths"]["/api/v1/scenes/{id}"]["put"]["responses"]["200"]["content"]["application/json"]["schema"]
+    added = overlay["add_paths"]["/api/v1/scenes/{id}"]["get"]["responses"]["200"]["content"]["application/json"]["schema"]
+    assert added == canonical
+    assert added["properties"]["data"] == {"$ref": "#/components/schemas/Scene"}
+    assert "Scene" in api["components"]["schemas"]
+    result = run_owner_copy(owner_copy)
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
+# --- NM-3: malformed input ---------------------------------------------------
+
+
+def test_a_malformed_overlay_metadata_container_is_rejected(package):
+    # NM-3 / reviewer probe P22: metadata_only as a JSON list.
+    overlay = load(package["root"], OVERLAY_REL)
+    overlay["metadata_only"] = ["/api/v1/scenes"]
+    save(package["root"], OVERLAY_REL, overlay)
+    refresh_fences(package, [OVERLAY_REL])
+    assert_clean_failure(run_package(package), "E_OVERLAY_METADATA_SHAPE")
+
+
+def test_a_malformed_overlay_header_container_is_rejected(package):
+    # NM-3 / reviewer probe P23: add_response_headers as a JSON list.
+    overlay = load(package["root"], OVERLAY_REL)
+    overlay["add_response_headers"] = ["/api/v1/scenes/{id}"]
+    save(package["root"], OVERLAY_REL, overlay)
+    refresh_fences(package, [OVERLAY_REL])
+    assert_clean_failure(run_package(package), "E_OVERLAY_HEADER_SHAPE")
+
+
+def test_a_malformed_overlay_metadata_entry_is_rejected(package):
+    overlay = load(package["root"], OVERLAY_REL)
+    overlay["metadata_only"]["/api/v1/scenes"] = ["get"]
+    save(package["root"], OVERLAY_REL, overlay)
+    refresh_fences(package, [OVERLAY_REL])
+    assert_clean_failure(run_package(package), "E_OVERLAY_METADATA_SHAPE")
+
+
+def test_a_malformed_overlay_header_entry_is_rejected(package):
+    overlay = load(package["root"], OVERLAY_REL)
+    overlay["add_response_headers"]["/api/v1/scenes/{id}"] = ["put"]
+    save(package["root"], OVERLAY_REL, overlay)
+    refresh_fences(package, [OVERLAY_REL])
+    assert_clean_failure(run_package(package), "E_OVERLAY_HEADER_SHAPE")
+
+
+def test_an_invalid_candidate_schema_regex_is_rejected(package):
+    # NM-3 / reviewer probe P24: a syntactically invalid regular expression.
+    schema = load(package["root"], "contracts/v1-multishot.schema.json")
+    schema["$defs"]["ShotFrameRef"]["properties"]["sha256"]["pattern"] = "([unclosed"
+    save(package["root"], "contracts/v1-multishot.schema.json", schema)
+    refresh_fences(package, ["contracts/v1-multishot.schema.json"])
+    assert_clean_failure(run_package(package), "E_SCHEMA_PATTERN")
+
+
+def test_a_missing_input_reports_a_clean_input_error_on_stdout(package):
+    # NM-3: an unreadable input is a clean INPUT_ERROR with exit 2, never a
+    # traceback and never an empty stdout.
+    result = subprocess.run(
+        [sys.executable, "-B", str(CHECKER), "--root", str(package["root"]), "--plan", "plans/missing.json"],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 2
+    assert "INPUT_ERROR" in result.stdout
+    assert "INPUT_ERROR" in result.stderr
+    assert "Traceback" not in result.stderr
+    assert "RESULT: PASS" not in result.stdout
+
+
+def test_a_malformed_domain_mapping_container_is_rejected(package):
+    contract = load(package["root"], "plans/v1-multishot-contract.json")
+    contract["canonical_domain_mapping"] = []
+    save(package["root"], "plans/v1-multishot-contract.json", contract)
+    refresh_fences(package, ["plans/v1-multishot-contract.json"])
+    assert_clean_failure(run_package(package), "E_DOMAIN_MAPPING")
+
+
+def test_a_malformed_scene_hash_container_is_rejected(package):
+    contract = load(package["root"], "plans/v1-multishot-contract.json")
+    contract["scene_hash"]["column_mapping"] = []
+    save(package["root"], "plans/v1-multishot-contract.json", contract)
+    refresh_fences(package, ["plans/v1-multishot-contract.json"])
+    assert_clean_failure(run_package(package), "E_SCENE_HASH_MAPPING")
+
+
+def test_a_malformed_sample_design_container_is_rejected(package):
+    design = load(package["root"], SAMPLE_REL)
+    design["clips"] = {}
+    save(package["root"], SAMPLE_REL, design)
+    refresh_fences(package, [SAMPLE_REL])
+    assert_clean_failure(run_package(package), "E_INPUT_SHAPE")
+
+
+def test_a_malformed_spec_manifest_container_is_rejected(package):
+    spec = load(package["root"], D0_DIR + "/spec-manifest.json")
+    spec["files"] = []
+    save(package["root"], D0_DIR + "/spec-manifest.json", spec)
+    package["d0_manifest_sha256"] = regenerate_d0_manifest(package["root"])
+    assert_clean_failure(run_package(package), "E_INPUT_SHAPE")
+
+
+# --- NM-4: the run discloses what it validated ------------------------------
+
+
+def test_the_run_declares_its_validation_capability(package):
+    result = run_package(package)
+    assert result.returncode == 0, result.stdout
+    assert "VALIDATION: metaschema_check=" in result.stdout
+    assert "frame_instance_probe=" in result.stdout
+    assert "frame_sample=present" in result.stdout
+
+
+def test_the_mandatory_owner_run_used_the_optional_dependency_and_the_real_frames(owner_copy):
+    # The mandatory candidate verification really ran the full metaschema
+    # check and the real retained frame instance probe.
+    result = run_owner_copy(owner_copy)
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "metaschema_check=jsonschema" in result.stdout
+    assert "frame_instance_probe=jsonschema" in result.stdout
+    assert "frame_sample=present" in result.stdout
+
+
+def test_a_degraded_run_without_the_frame_sample_is_not_byte_identical(package):
+    # NM-4: a run without the retained frame sample must not look like a full
+    # run.
+    full = run_package(package)
+    assert full.returncode == 0, full.stdout
+    degraded = run_package(package, extra=["--frame-sample", "reports/unified-media/live-15/absent.json"])
+    assert degraded.returncode == 0, degraded.stdout
+    assert degraded.stdout != full.stdout
+    assert "E_FRAME_REF_SAMPLE_SKIPPED" in degraded.stdout
+    assert "frame_instance_probe=skipped-no-sample" in degraded.stdout
+    assert "frame_sample=absent" in degraded.stdout
+
+
+def test_a_degraded_run_without_jsonschema_is_not_byte_identical(package, tmp_path):
+    # NM-4: a host without the optional jsonschema dependency must not
+    # produce evidence that is indistinguishable from a full run.
+    shadow = tmp_path / "shadow"
+    shadow.mkdir()
+    (shadow / "jsonschema.py").write_text(
+        'raise ImportError("shadow jsonschema for the degraded-run regression test")\n',
+        encoding="utf-8",
+    )
+    full = run_package(package)
+    assert full.returncode == 0, full.stdout
+    degraded = run_package(package, env={"PYTHONPATH": str(shadow)})
+    assert degraded.returncode == 0, degraded.stdout
+    assert degraded.stdout != full.stdout
+    assert "E_SCHEMA_META_SKIPPED" in degraded.stdout
+    assert "metaschema_check=structural-fallback" in degraded.stdout
+    assert "frame_instance_probe=structural" in degraded.stdout
+
+
+def test_the_structural_fallback_is_not_claimed_as_a_full_validation(package, tmp_path):
+    # NM-4: the degraded run must not claim that it ran the full validation.
+    shadow = tmp_path / "shadow"
+    shadow.mkdir()
+    (shadow / "jsonschema.py").write_text(
+        'raise ImportError("shadow jsonschema for the degraded-run regression test")\n',
+        encoding="utf-8",
+    )
+    degraded = run_package(package, env={"PYTHONPATH": str(shadow)})
+    assert degraded.returncode == 0, degraded.stdout
+    assert "metaschema_check=jsonschema" not in degraded.stdout
+
+
+# --- NM-5: the one key set and the one sorted order -------------------------
+
+
+def test_the_frozen_domain_entry_key_order_is_the_sorted_order():
+    # NM-5: the frozen key constant is used and it is the sorted order.
+    assert checker.FROZEN_DOMAIN_ENTRY_KEYS == ("kind", "lang", "ref", "text")
+    assert list(checker.FROZEN_DOMAIN_ENTRY_KEYS) == sorted(checker.FROZEN_DOMAIN_ENTRY_KEYS)
+
+
+def test_the_frozen_example_uses_the_sorted_key_order(package):
+    contract = load(package["root"], "plans/v1-multishot-contract.json")
+    entry = contract["canonical_domain_mapping"]["example"]["observation"][0]
+    assert entry.startswith('{"kind":"character","lang":"zh","ref":"')
+    assert list(json.loads(entry).keys()) == sorted(json.loads(entry).keys())
+
+
+def test_the_domain_rule_may_not_name_another_key_order(package):
+    # NM-5: the rule text may not go back to the ambiguous enumeration.
+    contract = load(package["root"], "plans/v1-multishot-contract.json")
+    contract["canonical_domain_mapping"]["entry_serialization"] = (
+        "Each nonempty language value produces one string: compact UTF-8 JSON object, sorted keys, "
+        "ensure_ascii=False, allow_nan=False. The JSON key set is {kind, ref, lang, text}; serialized "
+        "key order MUST be kind, ref, lang, text, never insertion order. No translation, normalization, "
+        "trim or deduplication; skip only exactly empty strings. Preserve raw model response byte-for-byte."
+    )
+    save(package["root"], "plans/v1-multishot-contract.json", contract)
+    refresh_fences(package, ["plans/v1-multishot-contract.json"])
+    assert_clean_failure(run_package(package), "E_DOMAIN_MAPPING")
+
+
+def test_the_domain_rule_may_not_drop_the_sorted_order_clause(package):
+    contract = load(package["root"], "plans/v1-multishot-contract.json")
+    contract["canonical_domain_mapping"]["entry_serialization"] = (
+        "Each nonempty language value produces one string: compact UTF-8 JSON object, sorted keys, "
+        "ensure_ascii=False, allow_nan=False. Keys kind, ref, lang, text. No translation, normalization, "
+        "trim or deduplication; skip only exactly empty strings. Preserve raw model response byte-for-byte."
+    )
+    save(package["root"], "plans/v1-multishot-contract.json", contract)
+    refresh_fences(package, ["plans/v1-multishot-contract.json"])
+    assert_clean_failure(run_package(package), "E_DOMAIN_MAPPING")
+
+
+# --- NM-6: the declaration driven domain engine -----------------------------
+
+
+DOMAIN_EVIDENCE = {
+    "characters": [
+        {"local_actor_id": "actor-b", "visible_appearance": {"zh": "蓝衣", "en": "blue"}, "domain": "inference"},
+        {"local_actor_id": "actor-a", "visible_appearance": {"zh": "红衣", "en": "red"}, "domain": "observation"},
+    ],
+    "scene": {"description": {"zh": "室内", "en": "indoor"}, "domain": "observation"},
+    "actions": [
+        {"description": {"zh": "起身", "en": "rise"}, "domain": "observation"},
+        {"description": {"zh": "转身", "en": "turn"}, "domain": "inference"},
+    ],
+    "unknowns": [{"zh": "未知一", "en": "unknown one"}],
+}
+
+EXPECTED_OBSERVATION = [
+    '{"kind":"character","lang":"zh","ref":"actor-a","text":"红衣"}',
+    '{"kind":"character","lang":"en","ref":"actor-a","text":"red"}',
+    '{"kind":"scene","lang":"zh","ref":"scene","text":"室内"}',
+    '{"kind":"scene","lang":"en","ref":"scene","text":"indoor"}',
+    '{"kind":"action","lang":"zh","ref":"0","text":"起身"}',
+    '{"kind":"action","lang":"en","ref":"0","text":"rise"}',
+]
+EXPECTED_INFERENCE = [
+    '{"kind":"character","lang":"zh","ref":"actor-b","text":"蓝衣"}',
+    '{"kind":"character","lang":"en","ref":"actor-b","text":"blue"}',
+    '{"kind":"action","lang":"zh","ref":"1","text":"转身"}',
+    '{"kind":"action","lang":"en","ref":"1","text":"turn"}',
+]
+EXPECTED_UNKNOWNS = [
+    '{"kind":"unknown","lang":"zh","ref":"0","text":"未知一"}',
+    '{"kind":"unknown","lang":"en","ref":"0","text":"unknown one"}',
+]
+
+
+def declared_mapping(package: dict) -> dict:
+    return load(package["root"], "plans/v1-multishot-contract.json")["canonical_domain_mapping"]
+
+
+def test_the_domain_engine_routes_every_kind_and_both_domains(package):
+    # NM-6: the rule, not one worked example: all four kinds, both domains
+    # and the language order.
+    result = checker.build_domain_entries(declared_mapping(package), DOMAIN_EVIDENCE)
+    assert result["errors"] == []
+    assert result["observation"] == EXPECTED_OBSERVATION
+    assert result["inference"] == EXPECTED_INFERENCE
+    assert result["unknowns"] == EXPECTED_UNKNOWNS
+
+
+def test_the_domain_engine_sorts_the_characters_by_actor_id(package):
+    result = checker.build_domain_entries(declared_mapping(package), DOMAIN_EVIDENCE)
+    assert result["observation"][0].endswith('"ref":"actor-a","text":"红衣"}')
+    assert result["inference"][0].endswith('"ref":"actor-b","text":"蓝衣"}')
+
+
+def test_the_domain_engine_keeps_the_original_action_and_unknown_index(package):
+    result = checker.build_domain_entries(declared_mapping(package), DOMAIN_EVIDENCE)
+    assert '"ref":"0","text":"起身"}' in result["observation"][4]
+    assert '"ref":"1","text":"转身"}' in result["inference"][2]
+    assert all('"ref":"0"' in entry for entry in result["unknowns"])
+
+
+def test_the_domain_engine_skips_only_an_exactly_empty_language(package):
+    evidence = {
+        "characters": [
+            {"local_actor_id": "actor-a", "visible_appearance": {"zh": "", "en": "red"}, "domain": "observation"},
+        ],
+        "scene": {"description": {"zh": " ", "en": ""}, "domain": "observation"},
+        "actions": [],
+        "unknowns": [],
+    }
+    result = checker.build_domain_entries(declared_mapping(package), evidence)
+    assert result["observation"] == [
+        '{"kind":"character","lang":"en","ref":"actor-a","text":"red"}',
+        '{"kind":"scene","lang":"zh","ref":"scene","text":" "}',
+    ]
+
+
+def test_the_domain_engine_keeps_the_raw_text_unchanged(package):
+    raw = "  红衣 人物\n"
+    evidence = {
+        "characters": [
+            {"local_actor_id": "actor-a", "visible_appearance": {"zh": raw, "en": raw}, "domain": "observation"},
+        ],
+        "scene": None,
+        "actions": [],
+        "unknowns": [],
+    }
+    result = checker.build_domain_entries(declared_mapping(package), evidence)
+    assert json.loads(result["observation"][0])["text"] == raw
+    assert json.loads(result["observation"][1])["text"] == raw
+
+
+def test_the_domain_engine_never_touches_the_human_domains(package):
+    result = checker.build_domain_entries(declared_mapping(package), DOMAIN_EVIDENCE)
+    assert set(result) == {"observation", "inference", "unknowns", "errors"}
+    for key in result:
+        assert "user_evidence" not in key
+        assert "creative_intent" not in key
+
+
+def test_the_domain_engine_follows_the_declared_language_order(package):
+    mapping = dict(declared_mapping(package))
+    mapping["language_order"] = ["en", "zh"]
+    result = checker.build_domain_entries(mapping, DOMAIN_EVIDENCE)
+    assert result["observation"][0] == '{"kind":"character","lang":"en","ref":"actor-a","text":"red"}'
+    assert result["observation"][1] == '{"kind":"character","lang":"zh","ref":"actor-a","text":"红衣"}'
+
+
+def test_the_domain_engine_reports_an_undeclared_domain(package):
+    evidence = {
+        "characters": [
+            {"local_actor_id": "actor-a", "visible_appearance": {"zh": "红衣", "en": "red"}, "domain": "hallucination"},
+        ],
+        "scene": None,
+        "actions": [],
+        "unknowns": [],
+    }
+    result = checker.build_domain_entries(declared_mapping(package), evidence)
+    assert result["errors"]
+    assert result["observation"] == []
+    assert result["inference"] == []
+
+
+def test_the_frozen_example_source_domain_must_match_its_destination(package):
+    # NM-6: the example declares the domain its entries are routed to; the
+    # checker reads it instead of ignoring it.
+    contract = load(package["root"], "plans/v1-multishot-contract.json")
+    contract["canonical_domain_mapping"]["example"]["source"]["domain"] = "inference"
+    save(package["root"], "plans/v1-multishot-contract.json", contract)
+    refresh_fences(package, ["plans/v1-multishot-contract.json"])
+    assert_clean_failure(run_package(package), "E_DOMAIN_MAPPING")
+
+
+def test_the_frozen_example_may_not_also_carry_the_other_domain(package):
+    contract = load(package["root"], "plans/v1-multishot-contract.json")
+    contract["canonical_domain_mapping"]["example"]["inference"] = [
+        '{"kind":"character","lang":"zh","ref":"actor1","text":"红衣人物"}',
+    ]
+    save(package["root"], "plans/v1-multishot-contract.json", contract)
+    refresh_fences(package, ["plans/v1-multishot-contract.json"])
+    assert_clean_failure(run_package(package), "E_DOMAIN_MAPPING")
+
+
+def test_the_domain_rule_must_name_a_source_field_the_dto_declares(package):
+    contract = load(package["root"], "plans/v1-multishot-contract.json")
+    contract["canonical_domain_mapping"]["source_fields"]["character"] = "not_a_declared_field"
+    save(package["root"], "plans/v1-multishot-contract.json", contract)
+    refresh_fences(package, ["plans/v1-multishot-contract.json"])
+    assert_clean_failure(run_package(package), "E_DOMAIN_MAPPING")
+
+
+# --- NM-7 and the 1.1.2 adjudication ----------------------------------------
+
+
+def test_the_112_adjudication_may_not_claim_the_product_gate(package):
+    adjudication = load(package["root"], ADJUDICATION_112_REL)
+    adjudication["product_gate0"] = True
+    save(package["root"], ADJUDICATION_112_REL, adjudication)
+    refresh_fences(package, [ADJUDICATION_112_REL])
+    assert_clean_failure(run_package(package), "E_112_ADJUDICATION")
+
+
+def test_the_112_adjudication_may_not_close_a_finding(package):
+    adjudication = load(package["root"], ADJUDICATION_112_REL)
+    adjudication["findings"][0]["state"] = "ACCEPTED"
+    save(package["root"], ADJUDICATION_112_REL, adjudication)
+    refresh_fences(package, [ADJUDICATION_112_REL])
+    assert_clean_failure(run_package(package), "E_112_ADJUDICATION")
+
+
+def test_the_112_adjudication_may_not_invent_a_ninth_finding(package):
+    adjudication = load(package["root"], ADJUDICATION_112_REL)
+    adjudication["findings"].append({"id": "NM-9", "severity": "Minor", "state": "IMPLEMENTATION_CORRECTION_REQUIRED"})
+    save(package["root"], ADJUDICATION_112_REL, adjudication)
+    refresh_fences(package, [ADJUDICATION_112_REL])
+    assert_clean_failure(run_package(package), "E_112_ADJUDICATION")
+
+
+def test_the_112_adjudication_counts_are_the_derived_ones(package):
+    adjudication = load(package["root"], ADJUDICATION_112_REL)
+    adjudication["derived_counts"] = {"Fatal": 0, "Major": 3, "Minor": 6}
+    save(package["root"], ADJUDICATION_112_REL, adjudication)
+    refresh_fences(package, [ADJUDICATION_112_REL])
+    assert_clean_failure(run_package(package), "E_112_ADJUDICATION")
+
+
+def test_the_112_adjudication_keeps_the_review_summary_minor_count(package):
+    # The review report summary wrote 6 Minor; the actual finding array holds
+    # five. The original report is retained and the discrepancy is reconciled
+    # in the appended receipt, so the count itself may not be rewritten.
+    adjudication = load(package["root"], ADJUDICATION_112_REL)
+    adjudication["review_summary_minor_count"] = 5
+    save(package["root"], ADJUDICATION_112_REL, adjudication)
+    refresh_fences(package, [ADJUDICATION_112_REL])
+    assert_clean_failure(run_package(package), "E_112_ADJUDICATION")
+
+
+def test_the_112_adjudication_decision_is_changes_required(package):
+    adjudication = load(package["root"], ADJUDICATION_112_REL)
+    adjudication["decision"] = "ACCEPTED"
+    save(package["root"], ADJUDICATION_112_REL, adjudication)
+    refresh_fences(package, [ADJUDICATION_112_REL])
+    assert_clean_failure(run_package(package), "E_112_ADJUDICATION")
+
+
+def test_the_111_adjudication_stays_the_historical_pending_record(package):
+    # The design 1.1.1 adjudication is the historical frozen record of that
+    # revision: it stays pending, it is not rewritten into a closure.
+    adjudication = load(package["root"], ADJUDICATION_111_REL)
+    for finding in adjudication["findings"]:
+        assert finding["state"] == "CORRECTED_PENDING_INDEPENDENT_RECHECK"
+    adjudication["findings"][0]["state"] = "ACCEPTED"
+    save(package["root"], ADJUDICATION_111_REL, adjudication)
+    refresh_fences(package, [ADJUDICATION_111_REL])
+    assert_clean_failure(run_package(package), "E_111_ADJUDICATION")
+
+
+# --- NM-8: the pin the run verified against ---------------------------------
+
+
+def test_the_run_records_the_default_d0_pin(owner_copy):
+    result = run_owner_copy(owner_copy)
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "PIN: mode=default" in result.stdout
+    assert checker.FROZEN_D0_PACKET_MANIFEST_SHA256 in result.stdout
+
+
+def test_the_mandatory_owner_run_used_the_frozen_default_pin(owner_copy):
+    result = run_owner_copy(owner_copy)
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "mode=default (frozen stage command pin)" in result.stdout
+    assert "NON-AUTHORITY" not in result.stdout
+
+
+def test_an_overridden_pin_run_is_marked_as_non_authority(package):
+    result = run_package(package)
+    assert result.returncode == 0, result.stdout
+    assert "PIN: mode=explicit-override" in result.stdout
+    assert "NON-AUTHORITY" in result.stdout
+    assert checker.FROZEN_D0_PACKET_MANIFEST_SHA256 in result.stdout
+
+
+def test_an_overridden_pin_run_still_reports_the_computed_actual_pin(package):
+    result = run_package(package)
+    assert result.returncode == 0, result.stdout
+    assert package["d0_manifest_sha256"] in result.stdout
+
+
+def test_a_stale_pin_is_still_rejected_when_it_is_overridden(package):
+    result = run_checker(package["root"], OLD_D0_MANIFEST_1_1_1_SHA256)
+    assert result.returncode != 0
+    assert "E_D0_PACKET_MANIFEST_PINNED" in result.stdout
+    assert "mode=explicit-override" in result.stdout
