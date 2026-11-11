@@ -1,0 +1,845 @@
+{
+  "kind": "S3P_A_INDEPENDENT_CORRECTION_01_RECHECK",
+  "reviewer_role": "independent reviewer (not the implementer of bc78869)",
+  "scope": "close S3P-A-MAJOR-01 only",
+  "candidate_identity": {
+    "code_candidate": "bc78869231e4dc320dfc9c7198a07aeabf9412fe",
+    "candidate_tip": "491b40df908b7b9c74f110efa8a61aebe61f76ea",
+    "source_load_commit": "137ce11549b4fe1b9006e5eaffaf21dbcb064c09",
+    "root_authority_commit": "12a1594c12b57a62ce445e4cf7f11fd38423039d",
+    "review_branch": "ljx418/lvw-v1-d0-review",
+    "review_head": "ba781a8cd8258c53ec783a527a9f7424896fcd5e",
+    "worktree_tool_sha256": {
+      "tools/verify_s3_handoff.py": "d2b3fd332e3d77a8f710691f9a852b61923d6436d4a9d51a6c131165d5c2b5fa",
+      "tools/test_verify_s3_handoff.py": "9a46fd77b388639691c1b91dd1a9042f67f739c23ee9a33d22a72938bdde6328",
+      "tools/s3_asset_inventory.py": "333cfed9828fae22df524870fa691e553bcdb1965f30c1f5efb0b1882e3cbb30",
+      "tools/test_s3_asset_inventory.py": "2af8bf3e9526e0da4f5c42417f7437a0f62a4d73f429755ff55be06fa92957e0"
+    },
+    "git_author": "ljx418 <1173696783@qq.com>"
+  },
+  "environment": {
+    "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+    "platform": "Linux-6.18.40.1-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+    "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "pytest_args": [
+      "-p",
+      "no:cacheprovider",
+      "--basetemp=<owned TemporaryDirectory>"
+    ],
+    "network_used": false,
+    "gpu_used": false,
+    "media_stat_hash_probe_decode_browse": false
+  },
+  "runs": [
+    {
+      "argv": [
+        "/usr/bin/python3",
+        "-B",
+        "tools/verify_s3_handoff.py"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "exit_code": 0,
+      "wall_seconds": 0.029,
+      "stdout_sha256": "c4b6787067fe77c3138bd0dca163698fc5080baaeb2b390539504d789c61a600",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_log": "logs/guard_real_root.stdout.log",
+      "stderr_log": "logs/guard_real_root.stderr.log",
+      "exit_log": "logs/guard_real_root.exit.log",
+      "decision": "HANDOFF_READINESS_VERIFIED",
+      "checks": 139,
+      "passed": 139,
+      "failed": 0,
+      "authority": "AUTHORITATIVE",
+      "observed_historical_s2_projection": {
+        "completed_substeps": 7,
+        "total_substeps": 8,
+        "human_signoff": "PENDING"
+      },
+      "declared_expected_state": {
+        "completed_substeps": 7,
+        "total_substeps": 8,
+        "human_signoff": "PENDING"
+      },
+      "historical_s2_coordinate_observed": {
+        "stage_id": "V0-S2",
+        "workpack_id": "WP-S2-06",
+        "gate": "GATE5_HUMAN_EXPERIENCE_SIGNOFF",
+        "state": "WAIT_HUMAN"
+      },
+      "failed_ids": [],
+      "actual_check_count": 20
+    },
+    {
+      "argv": [
+        "/usr/bin/python3",
+        "-B",
+        "-m",
+        "pytest",
+        "tools/test_verify_s3_handoff.py",
+        "tools/test_s3_asset_inventory.py",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "--basetemp=/tmp/lvw-s3pa-indep-correction-01-pytest-0k82xjsy/pytest-basetemp"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "exit_code": 0,
+      "wall_seconds": 0.784,
+      "stdout_sha256": "f3034ac792f00f5b185deb1f19c7debf35770630601a9aa99b8e424d41332cfe",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_log": "logs/pytest_two_packet_files.stdout.log",
+      "stderr_log": "logs/pytest_two_packet_files.stderr.log",
+      "exit_log": "logs/pytest_two_packet_files.exit.log",
+      "stdout_tail": "65 passed in 0.47s",
+      "expected_tests": 65,
+      "owned_basetemp_parent": "/tmp/lvw-s3pa-indep-correction-01-pytest-0k82xjsy",
+      "owned_basetemp": "/tmp/lvw-s3pa-indep-correction-01-pytest-0k82xjsy/pytest-basetemp",
+      "owned_parent_exists_after_context": false
+    }
+  ],
+  "probes": [
+    {
+      "probe": "actual_full_8of8_approved_human_done",
+      "kind": "NEGATIVE",
+      "mutation_scope": "plans/execution-control.json only (isolated synthetic copy)",
+      "exit_code": 1,
+      "decision": "HANDOFF_READINESS_REJECTED",
+      "failed_ids": [
+        "actual.outline.completed_substeps",
+        "actual.outline.done_count",
+        "actual.outline.done_substep_evidence",
+        "actual.outline.human_signoff",
+        "actual.outline.human_substep_evidence_null",
+        "actual.outline.human_substep_pending",
+        "actual.outline.pending_count"
+      ],
+      "checksum_or_proof_failures": [],
+      "refusal_is_semantic": true,
+      "frozen_authority_bytes_identical_to_source": false,
+      "authority_label": "FIXTURE_NON_AUTHORITY_COPY",
+      "observed_historical_s2_projection": {
+        "completed_substeps": 8,
+        "total_substeps": 8,
+        "human_signoff": "APPROVED"
+      },
+      "declared_expected_state": {
+        "completed_substeps": 7,
+        "total_substeps": 8,
+        "human_signoff": "PENDING"
+      },
+      "historical_s2_coordinate_observed": {
+        "stage_id": "V0-S2",
+        "workpack_id": "WP-S2-06",
+        "gate": "GATE5_HUMAN_EXPERIENCE_SIGNOFF",
+        "state": "WAIT_HUMAN"
+      },
+      "report_asserts_7of8_while_observed_contradicts": false,
+      "checks": 139,
+      "passed": 132,
+      "failed": 7,
+      "log_prefix": "probe_actual_full_8of8_approved_human_done",
+      "expected_failed_id": "actual.outline.completed_substeps",
+      "expected_failed_id_present": true
+    },
+    {
+      "probe": "actual_completed_8",
+      "kind": "NEGATIVE",
+      "mutation_scope": "plans/execution-control.json only (isolated synthetic copy)",
+      "exit_code": 1,
+      "decision": "HANDOFF_READINESS_REJECTED",
+      "failed_ids": [
+        "actual.outline.completed_substeps"
+      ],
+      "checksum_or_proof_failures": [],
+      "refusal_is_semantic": true,
+      "frozen_authority_bytes_identical_to_source": false,
+      "authority_label": "FIXTURE_NON_AUTHORITY_COPY",
+      "observed_historical_s2_projection": {
+        "completed_substeps": 8,
+        "total_substeps": 8,
+        "human_signoff": "PENDING"
+      },
+      "declared_expected_state": {
+        "completed_substeps": 7,
+        "total_substeps": 8,
+        "human_signoff": "PENDING"
+      },
+      "historical_s2_coordinate_observed": {
+        "stage_id": "V0-S2",
+        "workpack_id": "WP-S2-06",
+        "gate": "GATE5_HUMAN_EXPERIENCE_SIGNOFF",
+        "state": "WAIT_HUMAN"
+      },
+      "report_asserts_7of8_while_observed_contradicts": false,
+      "checks": 139,
+      "passed": 138,
+      "failed": 1,
+      "log_prefix": "probe_actual_completed_8",
+      "expected_failed_id": "actual.outline.completed_substeps",
+      "expected_failed_id_present": true
+    },
+    {
+      "probe": "actual_human_signoff_approved",
+      "kind": "NEGATIVE",
+      "mutation_scope": "plans/execution-control.json only (isolated synthetic copy)",
+      "exit_code": 1,
+      "decision": "HANDOFF_READINESS_REJECTED",
+      "failed_ids": [
+        "actual.outline.human_signoff"
+      ],
+      "checksum_or_proof_failures": [],
+      "refusal_is_semantic": true,
+      "frozen_authority_bytes_identical_to_source": false,
+      "authority_label": "FIXTURE_NON_AUTHORITY_COPY",
+      "observed_historical_s2_projection": {
+        "completed_substeps": 7,
+        "total_substeps": 8,
+        "human_signoff": "APPROVED"
+      },
+      "declared_expected_state": {
+        "completed_substeps": 7,
+        "total_substeps": 8,
+        "human_signoff": "PENDING"
+      },
+      "historical_s2_coordinate_observed": {
+        "stage_id": "V0-S2",
+        "workpack_id": "WP-S2-06",
+        "gate": "GATE5_HUMAN_EXPERIENCE_SIGNOFF",
+        "state": "WAIT_HUMAN"
+      },
+      "report_asserts_7of8_while_observed_contradicts": false,
+      "checks": 139,
+      "passed": 138,
+      "failed": 1,
+      "log_prefix": "probe_actual_human_signoff_approved",
+      "expected_failed_id": "actual.outline.human_signoff",
+      "expected_failed_id_present": true
+    },
+    {
+      "probe": "actual_human_step_done",
+      "kind": "NEGATIVE",
+      "mutation_scope": "plans/execution-control.json only (isolated synthetic copy)",
+      "exit_code": 1,
+      "decision": "HANDOFF_READINESS_REJECTED",
+      "failed_ids": [
+        "actual.outline.done_count",
+        "actual.outline.done_substep_evidence",
+        "actual.outline.human_substep_pending",
+        "actual.outline.pending_count"
+      ],
+      "checksum_or_proof_failures": [],
+      "refusal_is_semantic": true,
+      "frozen_authority_bytes_identical_to_source": false,
+      "authority_label": "FIXTURE_NON_AUTHORITY_COPY",
+      "observed_historical_s2_projection": {
+        "completed_substeps": 7,
+        "total_substeps": 8,
+        "human_signoff": "PENDING"
+      },
+      "declared_expected_state": {
+        "completed_substeps": 7,
+        "total_substeps": 8,
+        "human_signoff": "PENDING"
+      },
+      "historical_s2_coordinate_observed": {
+        "stage_id": "V0-S2",
+        "workpack_id": "WP-S2-06",
+        "gate": "GATE5_HUMAN_EXPERIENCE_SIGNOFF",
+        "state": "WAIT_HUMAN"
+      },
+      "report_asserts_7of8_while_observed_contradicts": false,
+      "checks": 139,
+      "passed": 135,
+      "failed": 4,
+      "log_prefix": "probe_actual_human_step_done",
+      "expected_failed_id": "actual.outline.human_substep_pending",
+      "expected_failed_id_present": true
+    },
+    {
+      "probe": "actual_human_step_renamed",
+      "kind": "NEGATIVE",
+      "mutation_scope": "plans/execution-control.json only (isolated synthetic copy)",
+      "exit_code": 1,
+      "decision": "HANDOFF_READINESS_REJECTED",
+      "failed_ids": [
+        "actual.outline.human_substep_evidence_null",
+        "actual.outline.human_substep_pending",
+        "actual.outline.human_substep_present"
+      ],
+      "checksum_or_proof_failures": [],
+      "refusal_is_semantic": true,
+      "frozen_authority_bytes_identical_to_source": false,
+      "authority_label": "FIXTURE_NON_AUTHORITY_COPY",
+      "observed_historical_s2_projection": {
+        "completed_substeps": 7,
+        "total_substeps": 8,
+        "human_signoff": "PENDING"
+      },
+      "declared_expected_state": {
+        "completed_substeps": 7,
+        "total_substeps": 8,
+        "human_signoff": "PENDING"
+      },
+      "historical_s2_coordinate_observed": {
+        "stage_id": "V0-S2",
+        "workpack_id": "WP-S2-06",
+        "gate": "GATE5_HUMAN_EXPERIENCE_SIGNOFF",
+        "state": "WAIT_HUMAN"
+      },
+      "report_asserts_7of8_while_observed_contradicts": false,
+      "checks": 139,
+      "passed": 136,
+      "failed": 3,
+      "log_prefix": "probe_actual_human_step_renamed",
+      "expected_failed_id": "actual.outline.human_substep_present",
+      "expected_failed_id_present": true
+    },
+    {
+      "probe": "actual_human_step_missing",
+      "kind": "NEGATIVE",
+      "mutation_scope": "plans/execution-control.json only (isolated synthetic copy)",
+      "exit_code": 1,
+      "decision": "HANDOFF_READINESS_REJECTED",
+      "failed_ids": [
+        "actual.outline.human_substep_evidence_null",
+        "actual.outline.human_substep_pending",
+        "actual.outline.human_substep_present"
+      ],
+      "checksum_or_proof_failures": [],
+      "refusal_is_semantic": true,
+      "frozen_authority_bytes_identical_to_source": false,
+      "authority_label": "FIXTURE_NON_AUTHORITY_COPY",
+      "observed_historical_s2_projection": {
+        "completed_substeps": 7,
+        "total_substeps": 8,
+        "human_signoff": "PENDING"
+      },
+      "declared_expected_state": {
+        "completed_substeps": 7,
+        "total_substeps": 8,
+        "human_signoff": "PENDING"
+      },
+      "historical_s2_coordinate_observed": {
+        "stage_id": "V0-S2",
+        "workpack_id": "WP-S2-06",
+        "gate": "GATE5_HUMAN_EXPERIENCE_SIGNOFF",
+        "state": "WAIT_HUMAN"
+      },
+      "report_asserts_7of8_while_observed_contradicts": false,
+      "checks": 139,
+      "passed": 136,
+      "failed": 3,
+      "log_prefix": "probe_actual_human_step_missing",
+      "expected_failed_id": "actual.outline.human_substep_present",
+      "expected_failed_id_present": true
+    },
+    {
+      "probe": "actual_human_step_duplicated",
+      "kind": "NEGATIVE",
+      "mutation_scope": "plans/execution-control.json only (isolated synthetic copy)",
+      "exit_code": 1,
+      "decision": "HANDOFF_READINESS_REJECTED",
+      "failed_ids": [
+        "actual.outline.human_substep_evidence_null",
+        "actual.outline.human_substep_pending",
+        "actual.outline.human_substep_present",
+        "actual.outline.pending_count",
+        "actual.outline.substep_count"
+      ],
+      "checksum_or_proof_failures": [],
+      "refusal_is_semantic": true,
+      "frozen_authority_bytes_identical_to_source": false,
+      "authority_label": "FIXTURE_NON_AUTHORITY_COPY",
+      "observed_historical_s2_projection": {
+        "completed_substeps": 7,
+        "total_substeps": 8,
+        "human_signoff": "PENDING"
+      },
+      "declared_expected_state": {
+        "completed_substeps": 7,
+        "total_substeps": 8,
+        "human_signoff": "PENDING"
+      },
+      "historical_s2_coordinate_observed": {
+        "stage_id": "V0-S2",
+        "workpack_id": "WP-S2-06",
+        "gate": "GATE5_HUMAN_EXPERIENCE_SIGNOFF",
+        "state": "WAIT_HUMAN"
+      },
+      "report_asserts_7of8_while_observed_contradicts": false,
+      "checks": 139,
+      "passed": 134,
+      "failed": 5,
+      "log_prefix": "probe_actual_human_step_duplicated",
+      "expected_failed_id": "actual.outline.human_substep_present",
+      "expected_failed_id_present": true
+    },
+    {
+      "probe": "actual_v0_s2_entry_missing",
+      "kind": "NEGATIVE",
+      "mutation_scope": "plans/execution-control.json only (isolated synthetic copy)",
+      "exit_code": 1,
+      "decision": "HANDOFF_READINESS_REJECTED",
+      "failed_ids": [
+        "actual.outline.completed_substeps",
+        "actual.outline.done_count",
+        "actual.outline.done_substep_evidence",
+        "actual.outline.human_signoff",
+        "actual.outline.human_substep_evidence_null",
+        "actual.outline.human_substep_pending",
+        "actual.outline.human_substep_present",
+        "actual.outline.pending_count",
+        "actual.outline.substep_count",
+        "actual.outline.substeps_container",
+        "actual.outline.total_substeps",
+        "actual.outline.v0_s2_occurrence"
+      ],
+      "checksum_or_proof_failures": [],
+      "refusal_is_semantic": true,
+      "frozen_authority_bytes_identical_to_source": false,
+      "authority_label": "FIXTURE_NON_AUTHORITY_COPY",
+      "observed_historical_s2_projection": {
+        "completed_substeps": null,
+        "total_substeps": null,
+        "human_signoff": null
+      },
+      "declared_expected_state": {
+        "completed_substeps": 7,
+        "total_substeps": 8,
+        "human_signoff": "PENDING"
+      },
+      "historical_s2_coordinate_observed": {
+        "stage_id": "V0-S2",
+        "workpack_id": "WP-S2-06",
+        "gate": "GATE5_HUMAN_EXPERIENCE_SIGNOFF",
+        "state": "WAIT_HUMAN"
+      },
+      "report_asserts_7of8_while_observed_contradicts": false,
+      "checks": 139,
+      "passed": 127,
+      "failed": 12,
+      "log_prefix": "probe_actual_v0_s2_entry_missing",
+      "expected_failed_id": "actual.outline.v0_s2_occurrence",
+      "expected_failed_id_present": true
+    },
+    {
+      "probe": "actual_v0_s2_entry_duplicated",
+      "kind": "NEGATIVE",
+      "mutation_scope": "plans/execution-control.json only (isolated synthetic copy)",
+      "exit_code": 1,
+      "decision": "HANDOFF_READINESS_REJECTED",
+      "failed_ids": [
+        "actual.outline.completed_substeps",
+        "actual.outline.done_count",
+        "actual.outline.done_substep_evidence",
+        "actual.outline.human_signoff",
+        "actual.outline.human_substep_evidence_null",
+        "actual.outline.human_substep_pending",
+        "actual.outline.human_substep_present",
+        "actual.outline.pending_count",
+        "actual.outline.substep_count",
+        "actual.outline.substeps_container",
+        "actual.outline.total_substeps",
+        "actual.outline.v0_s2_occurrence"
+      ],
+      "checksum_or_proof_failures": [],
+      "refusal_is_semantic": true,
+      "frozen_authority_bytes_identical_to_source": false,
+      "authority_label": "FIXTURE_NON_AUTHORITY_COPY",
+      "observed_historical_s2_projection": {
+        "completed_substeps": null,
+        "total_substeps": null,
+        "human_signoff": null
+      },
+      "declared_expected_state": {
+        "completed_substeps": 7,
+        "total_substeps": 8,
+        "human_signoff": "PENDING"
+      },
+      "historical_s2_coordinate_observed": {
+        "stage_id": "V0-S2",
+        "workpack_id": "WP-S2-06",
+        "gate": "GATE5_HUMAN_EXPERIENCE_SIGNOFF",
+        "state": "WAIT_HUMAN"
+      },
+      "report_asserts_7of8_while_observed_contradicts": false,
+      "checks": 139,
+      "passed": 127,
+      "failed": 12,
+      "log_prefix": "probe_actual_v0_s2_entry_duplicated",
+      "expected_failed_id": "actual.outline.v0_s2_occurrence",
+      "expected_failed_id_present": true
+    },
+    {
+      "probe": "actual_bad_value_types",
+      "kind": "NEGATIVE",
+      "mutation_scope": "plans/execution-control.json only (isolated synthetic copy)",
+      "exit_code": 1,
+      "decision": "HANDOFF_READINESS_REJECTED",
+      "failed_ids": [
+        "actual.outline.completed_substeps",
+        "actual.outline.human_signoff",
+        "actual.outline.total_substeps"
+      ],
+      "checksum_or_proof_failures": [],
+      "refusal_is_semantic": true,
+      "frozen_authority_bytes_identical_to_source": false,
+      "authority_label": "FIXTURE_NON_AUTHORITY_COPY",
+      "observed_historical_s2_projection": {
+        "completed_substeps": "7",
+        "total_substeps": true,
+        "human_signoff": null
+      },
+      "declared_expected_state": {
+        "completed_substeps": 7,
+        "total_substeps": 8,
+        "human_signoff": "PENDING"
+      },
+      "historical_s2_coordinate_observed": {
+        "stage_id": "V0-S2",
+        "workpack_id": "WP-S2-06",
+        "gate": "GATE5_HUMAN_EXPERIENCE_SIGNOFF",
+        "state": "WAIT_HUMAN"
+      },
+      "report_asserts_7of8_while_observed_contradicts": false,
+      "checks": 139,
+      "passed": 136,
+      "failed": 3,
+      "log_prefix": "probe_actual_bad_value_types",
+      "expected_failed_id": "actual.outline.completed_substeps",
+      "expected_failed_id_present": true
+    },
+    {
+      "probe": "actual_substeps_not_a_list",
+      "kind": "NEGATIVE",
+      "mutation_scope": "plans/execution-control.json only (isolated synthetic copy)",
+      "exit_code": 1,
+      "decision": "HANDOFF_READINESS_REJECTED",
+      "failed_ids": [
+        "actual.outline.done_count",
+        "actual.outline.done_substep_evidence",
+        "actual.outline.human_substep_evidence_null",
+        "actual.outline.human_substep_pending",
+        "actual.outline.human_substep_present",
+        "actual.outline.pending_count",
+        "actual.outline.substep_count",
+        "actual.outline.substeps_container"
+      ],
+      "checksum_or_proof_failures": [],
+      "refusal_is_semantic": true,
+      "frozen_authority_bytes_identical_to_source": false,
+      "authority_label": "FIXTURE_NON_AUTHORITY_COPY",
+      "observed_historical_s2_projection": {
+        "completed_substeps": 7,
+        "total_substeps": 8,
+        "human_signoff": "PENDING"
+      },
+      "declared_expected_state": {
+        "completed_substeps": 7,
+        "total_substeps": 8,
+        "human_signoff": "PENDING"
+      },
+      "historical_s2_coordinate_observed": {
+        "stage_id": "V0-S2",
+        "workpack_id": "WP-S2-06",
+        "gate": "GATE5_HUMAN_EXPERIENCE_SIGNOFF",
+        "state": "WAIT_HUMAN"
+      },
+      "report_asserts_7of8_while_observed_contradicts": false,
+      "checks": 139,
+      "passed": 131,
+      "failed": 8,
+      "log_prefix": "probe_actual_substeps_not_a_list",
+      "expected_failed_id": "actual.outline.substeps_container",
+      "expected_failed_id_present": true
+    },
+    {
+      "probe": "actual_done_substep_without_evidence",
+      "kind": "NEGATIVE",
+      "mutation_scope": "plans/execution-control.json only (isolated synthetic copy)",
+      "exit_code": 1,
+      "decision": "HANDOFF_READINESS_REJECTED",
+      "failed_ids": [
+        "actual.outline.done_substep_evidence"
+      ],
+      "checksum_or_proof_failures": [],
+      "refusal_is_semantic": true,
+      "frozen_authority_bytes_identical_to_source": false,
+      "authority_label": "FIXTURE_NON_AUTHORITY_COPY",
+      "observed_historical_s2_projection": {
+        "completed_substeps": 7,
+        "total_substeps": 8,
+        "human_signoff": "PENDING"
+      },
+      "declared_expected_state": {
+        "completed_substeps": 7,
+        "total_substeps": 8,
+        "human_signoff": "PENDING"
+      },
+      "historical_s2_coordinate_observed": {
+        "stage_id": "V0-S2",
+        "workpack_id": "WP-S2-06",
+        "gate": "GATE5_HUMAN_EXPERIENCE_SIGNOFF",
+        "state": "WAIT_HUMAN"
+      },
+      "report_asserts_7of8_while_observed_contradicts": false,
+      "checks": 139,
+      "passed": 138,
+      "failed": 1,
+      "log_prefix": "probe_actual_done_substep_without_evidence",
+      "expected_failed_id": "actual.outline.done_substep_evidence",
+      "expected_failed_id_present": true
+    },
+    {
+      "probe": "historical_snapshot_rewritten",
+      "kind": "NEGATIVE",
+      "mutation_scope": "plans/execution-control.json only (isolated synthetic copy)",
+      "exit_code": 1,
+      "decision": "HANDOFF_READINESS_REJECTED",
+      "failed_ids": [
+        "actual.historical_s2_coordinate.state"
+      ],
+      "checksum_or_proof_failures": [],
+      "refusal_is_semantic": true,
+      "frozen_authority_bytes_identical_to_source": false,
+      "authority_label": "FIXTURE_NON_AUTHORITY_COPY",
+      "observed_historical_s2_projection": {
+        "completed_substeps": 7,
+        "total_substeps": 8,
+        "human_signoff": "PENDING"
+      },
+      "declared_expected_state": {
+        "completed_substeps": 7,
+        "total_substeps": 8,
+        "human_signoff": "PENDING"
+      },
+      "historical_s2_coordinate_observed": {
+        "stage_id": "V0-S2",
+        "workpack_id": "WP-S2-06",
+        "gate": "GATE5_HUMAN_EXPERIENCE_SIGNOFF",
+        "state": "ADVANCED_BY_OWNER"
+      },
+      "report_asserts_7of8_while_observed_contradicts": false,
+      "checks": 139,
+      "passed": 138,
+      "failed": 1,
+      "log_prefix": "probe_historical_snapshot_rewritten",
+      "expected_failed_id": "actual.historical_s2_coordinate.state",
+      "expected_failed_id_present": true
+    },
+    {
+      "probe": "historical_snapshot_extra_key",
+      "kind": "NEGATIVE",
+      "mutation_scope": "plans/execution-control.json only (isolated synthetic copy)",
+      "exit_code": 1,
+      "decision": "HANDOFF_READINESS_REJECTED",
+      "failed_ids": [
+        "actual.historical_s2_coordinate.exact_keys"
+      ],
+      "checksum_or_proof_failures": [],
+      "refusal_is_semantic": true,
+      "frozen_authority_bytes_identical_to_source": false,
+      "authority_label": "FIXTURE_NON_AUTHORITY_COPY",
+      "observed_historical_s2_projection": {
+        "completed_substeps": 7,
+        "total_substeps": 8,
+        "human_signoff": "PENDING"
+      },
+      "declared_expected_state": {
+        "completed_substeps": 7,
+        "total_substeps": 8,
+        "human_signoff": "PENDING"
+      },
+      "historical_s2_coordinate_observed": {
+        "stage_id": "V0-S2",
+        "workpack_id": "WP-S2-06",
+        "gate": "GATE5_HUMAN_EXPERIENCE_SIGNOFF",
+        "state": "WAIT_HUMAN",
+        "extra": "not-recorded"
+      },
+      "report_asserts_7of8_while_observed_contradicts": false,
+      "checks": 139,
+      "passed": 138,
+      "failed": 1,
+      "log_prefix": "probe_historical_snapshot_extra_key",
+      "expected_failed_id": "actual.historical_s2_coordinate.exact_keys",
+      "expected_failed_id_present": true
+    },
+    {
+      "probe": "historical_snapshot_field_dropped",
+      "kind": "NEGATIVE",
+      "mutation_scope": "plans/execution-control.json only (isolated synthetic copy)",
+      "exit_code": 1,
+      "decision": "HANDOFF_READINESS_REJECTED",
+      "failed_ids": [
+        "actual.historical_s2_coordinate.exact_keys",
+        "actual.historical_s2_coordinate.gate"
+      ],
+      "checksum_or_proof_failures": [],
+      "refusal_is_semantic": true,
+      "frozen_authority_bytes_identical_to_source": false,
+      "authority_label": "FIXTURE_NON_AUTHORITY_COPY",
+      "observed_historical_s2_projection": {
+        "completed_substeps": 7,
+        "total_substeps": 8,
+        "human_signoff": "PENDING"
+      },
+      "declared_expected_state": {
+        "completed_substeps": 7,
+        "total_substeps": 8,
+        "human_signoff": "PENDING"
+      },
+      "historical_s2_coordinate_observed": {
+        "stage_id": "V0-S2",
+        "workpack_id": "WP-S2-06",
+        "state": "WAIT_HUMAN"
+      },
+      "report_asserts_7of8_while_observed_contradicts": false,
+      "checks": 139,
+      "passed": 137,
+      "failed": 2,
+      "log_prefix": "probe_historical_snapshot_field_dropped",
+      "expected_failed_id": "actual.historical_s2_coordinate.gate",
+      "expected_failed_id_present": true
+    },
+    {
+      "probe": "synthetic_unmodified",
+      "kind": "POSITIVE",
+      "mutation_scope": "none (byte-identical copy)",
+      "exit_code": 0,
+      "decision": "HANDOFF_READINESS_VERIFIED",
+      "failed_ids": [],
+      "checksum_or_proof_failures": [],
+      "refusal_is_semantic": true,
+      "frozen_authority_bytes_identical_to_source": true,
+      "authority_label": "FIXTURE_NON_AUTHORITY_COPY",
+      "observed_historical_s2_projection": {
+        "completed_substeps": 7,
+        "total_substeps": 8,
+        "human_signoff": "PENDING"
+      },
+      "declared_expected_state": {
+        "completed_substeps": 7,
+        "total_substeps": 8,
+        "human_signoff": "PENDING"
+      },
+      "historical_s2_coordinate_observed": {
+        "stage_id": "V0-S2",
+        "workpack_id": "WP-S2-06",
+        "gate": "GATE5_HUMAN_EXPERIENCE_SIGNOFF",
+        "state": "WAIT_HUMAN"
+      },
+      "report_asserts_7of8_while_observed_contradicts": false,
+      "checks": 139,
+      "passed": 139,
+      "failed": 0,
+      "log_prefix": "probe_synthetic_unmodified"
+    },
+    {
+      "probe": "synthetic_current_coordinate_advances",
+      "kind": "POSITIVE",
+      "mutation_scope": "plans/execution-control.json only (isolated synthetic copy)",
+      "exit_code": 0,
+      "decision": "HANDOFF_READINESS_VERIFIED",
+      "failed_ids": [],
+      "checksum_or_proof_failures": [],
+      "refusal_is_semantic": true,
+      "frozen_authority_bytes_identical_to_source": false,
+      "authority_label": "FIXTURE_NON_AUTHORITY_COPY",
+      "observed_historical_s2_projection": {
+        "completed_substeps": 7,
+        "total_substeps": 8,
+        "human_signoff": "PENDING"
+      },
+      "declared_expected_state": {
+        "completed_substeps": 7,
+        "total_substeps": 8,
+        "human_signoff": "PENDING"
+      },
+      "historical_s2_coordinate_observed": {
+        "stage_id": "V0-S2",
+        "workpack_id": "WP-S2-06",
+        "gate": "GATE5_HUMAN_EXPERIENCE_SIGNOFF",
+        "state": "WAIT_HUMAN"
+      },
+      "report_asserts_7of8_while_observed_contradicts": false,
+      "checks": 139,
+      "passed": 139,
+      "failed": 0,
+      "log_prefix": "probe_synthetic_current_coordinate_advances"
+    }
+  ],
+  "inventory_readonly": {
+    "tools/s3_asset_inventory.py": {
+      "sha256_worktree": "333cfed9828fae22df524870fa691e553bcdb1965f30c1f5efb0b1882e3cbb30",
+      "sha256_at_311bdda": "333cfed9828fae22df524870fa691e553bcdb1965f30c1f5efb0b1882e3cbb30",
+      "sha256_at_491b40d": "333cfed9828fae22df524870fa691e553bcdb1965f30c1f5efb0b1882e3cbb30",
+      "byte_identical_311bdda_to_491b40d": true,
+      "byte_identical_to_worktree": true
+    },
+    "tools/test_s3_asset_inventory.py": {
+      "sha256_worktree": "2af8bf3e9526e0da4f5c42417f7437a0f62a4d73f429755ff55be06fa92957e0",
+      "sha256_at_311bdda": "2af8bf3e9526e0da4f5c42417f7437a0f62a4d73f429755ff55be06fa92957e0",
+      "sha256_at_491b40d": "2af8bf3e9526e0da4f5c42417f7437a0f62a4d73f429755ff55be06fa92957e0",
+      "byte_identical_311bdda_to_491b40d": true,
+      "byte_identical_to_worktree": true
+    },
+    "reports/v0-s3/preparation-03/implementation/inventory-01/receipt.json": {
+      "sha256_worktree": "05ab5d63a69556c721b26191273cf60c20e4b3bb5826712688cefb06786ee2ef",
+      "sha256_at_311bdda": "05ab5d63a69556c721b26191273cf60c20e4b3bb5826712688cefb06786ee2ef",
+      "sha256_at_491b40d": "05ab5d63a69556c721b26191273cf60c20e4b3bb5826712688cefb06786ee2ef",
+      "byte_identical_311bdda_to_491b40d": true,
+      "byte_identical_to_worktree": true
+    },
+    "binding": {
+      "receipt_sha256": "05ab5d63a69556c721b26191273cf60c20e4b3bb5826712688cefb06786ee2ef",
+      "receipt_candidate_field": null,
+      "relabelled_as_new_candidate": false,
+      "note": "the 512-item receipt stays bound to the ORIGINAL candidate d338933; it is NOT a real inventory of the correction-01 candidate and is not presented as one",
+      "new_inventory_run_by_reviewer": 0,
+      "inventory_cli_invoked_by_reviewer": 0,
+      "old_hash_child_renewed": false
+    }
+  },
+  "cleanup": {
+    "pytest_owned_parent": "/tmp/lvw-s3pa-indep-correction-01-pytest-0k82xjsy",
+    "pytest_owned_parent_exists_after_context": false,
+    "probe_owned_parent_exists_after_context": false,
+    "control_owned_parent_exists_after_context": false,
+    "shared_pytest_roots_purged": false,
+    "source_files_modified": 0
+  },
+  "limits": [
+    "the reviewer's own pytest invocation of tools/test_s3_asset_inventory.py contains two in-test subprocess calls of the inventory CLI (--help and a deliberately broken binding refused before media access); both use synthetic fixtures and read zero media bytes, and no real inventory was run against the corpus",
+    "the 512-item inventory receipt remains bound to the original candidate d338933 and is NOT a real inventory of bc78869",
+    "the independent hash-review 3-pass / preflight deviation stays open and unrepaired here",
+    "the reviewer-owned helper correction stays owned by root",
+    "no Stage PASS, no product Gate0 and no human signature is claimed"
+  ],
+  "probe_owned_parent_exists_after_context": false,
+  "control_pre_correction_guard": {
+    "argv": [
+      "/usr/bin/python3",
+      "-B",
+      "/tmp/lvw-s3pa-indep-correction-01-control-4qtr7_e3/package/tools/verify_s3_handoff.py",
+      "--root",
+      "/tmp/lvw-s3pa-indep-correction-01-control-4qtr7_e3/attack"
+    ],
+    "cwd": "/tmp/lvw-s3pa-indep-correction-01-control-4qtr7_e3/package",
+    "exit_code": 0,
+    "wall_seconds": 0.028,
+    "stdout_sha256": "222129c0c6b9f8ba98abbfa30b306d7dd16a56124c9b1d212be5f98bf02173e0",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stdout_log": "logs/control_pre_correction_guard_on_same_attack.stdout.log",
+    "stderr_log": "logs/control_pre_correction_guard_on_same_attack.stderr.log",
+    "exit_log": "logs/control_pre_correction_guard_on_same_attack.exit.log",
+    "decision": "HANDOFF_READINESS_VERIFIED",
+    "checks": 119,
+    "failed": 0,
+    "failed_ids": [],
+    "pre_correction_guard_sha256": "5944771fd3fe880014bcbecd06b1ba1fbe76a58d2b560ec74d8a679de5adfe9d",
+    "meaning": "the pre-correction guard on the identical 8/8+APPROVED+human-DONE attack was GREEN; the refusal in the corrected candidate comes from the actual.* semantic reading",
+    "owned_parent_exists_after_context": false
+  }
+}

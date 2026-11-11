@@ -1,0 +1,248 @@
+{
+  "kind": "S3P_A_INDEPENDENT_CORRECTION_01_PROBE_TREE_INTEGRITY",
+  "note": "the recheck field 'frozen_authority_bytes_identical_to_source' compares all 29 authority files including the deliberately mutated plans/execution-control.json, so it is False in every mutated probe by construction; this file is the direct byte-level proof of the intended claim",
+  "frozen_authority_file_count": 28,
+  "mutated_file": "plans/execution-control.json",
+  "checker_rerun": false,
+  "media_access": false,
+  "inventory_cli_invoked": false,
+  "cases": [
+    {
+      "probe": "actual_full_8of8_approved_human_done",
+      "kind": "NEGATIVE",
+      "expected_failed_id": "actual.outline.completed_substeps",
+      "frozen_authority_files": 28,
+      "frozen_authority_files_byte_identical_to_source": true,
+      "execution_control_json_changed": true,
+      "execution_control_changed_paths": [
+        "development_outline[4].completed_substeps",
+        "development_outline[4].human_signoff",
+        "development_outline[4].substeps[0].evidence",
+        "development_outline[4].substeps[1].evidence",
+        "development_outline[4].substeps[2].evidence",
+        "development_outline[4].substeps[3].evidence",
+        "development_outline[4].substeps[4].evidence",
+        "development_outline[4].substeps[5].evidence",
+        "development_outline[4].substeps[6].evidence",
+        "development_outline[4].substeps[7].evidence",
+        "development_outline[4].substeps[7].status"
+      ],
+      "changed_paths_confined_to_intended_scope": true,
+      "verdict": "OK"
+    },
+    {
+      "probe": "actual_completed_8",
+      "kind": "NEGATIVE",
+      "expected_failed_id": "actual.outline.completed_substeps",
+      "frozen_authority_files": 28,
+      "frozen_authority_files_byte_identical_to_source": true,
+      "execution_control_json_changed": true,
+      "execution_control_changed_paths": [
+        "development_outline[4].completed_substeps"
+      ],
+      "changed_paths_confined_to_intended_scope": true,
+      "verdict": "OK"
+    },
+    {
+      "probe": "actual_human_signoff_approved",
+      "kind": "NEGATIVE",
+      "expected_failed_id": "actual.outline.human_signoff",
+      "frozen_authority_files": 28,
+      "frozen_authority_files_byte_identical_to_source": true,
+      "execution_control_json_changed": true,
+      "execution_control_changed_paths": [
+        "development_outline[4].human_signoff"
+      ],
+      "changed_paths_confined_to_intended_scope": true,
+      "verdict": "OK"
+    },
+    {
+      "probe": "actual_human_step_done",
+      "kind": "NEGATIVE",
+      "expected_failed_id": "actual.outline.human_substep_pending",
+      "frozen_authority_files": 28,
+      "frozen_authority_files_byte_identical_to_source": true,
+      "execution_control_json_changed": true,
+      "execution_control_changed_paths": [
+        "development_outline[4].substeps[7].status"
+      ],
+      "changed_paths_confined_to_intended_scope": true,
+      "verdict": "OK"
+    },
+    {
+      "probe": "actual_human_step_renamed",
+      "kind": "NEGATIVE",
+      "expected_failed_id": "actual.outline.human_substep_present",
+      "frozen_authority_files": 28,
+      "frozen_authority_files_byte_identical_to_source": true,
+      "execution_control_json_changed": true,
+      "execution_control_changed_paths": [
+        "development_outline[4].substeps[7].name"
+      ],
+      "changed_paths_confined_to_intended_scope": true,
+      "verdict": "OK"
+    },
+    {
+      "probe": "actual_human_step_missing",
+      "kind": "NEGATIVE",
+      "expected_failed_id": "actual.outline.human_substep_present",
+      "frozen_authority_files": 28,
+      "frozen_authority_files_byte_identical_to_source": true,
+      "execution_control_json_changed": true,
+      "execution_control_changed_paths": [
+        "development_outline[4].substeps[7].name"
+      ],
+      "changed_paths_confined_to_intended_scope": true,
+      "verdict": "OK"
+    },
+    {
+      "probe": "actual_human_step_duplicated",
+      "kind": "NEGATIVE",
+      "expected_failed_id": "actual.outline.human_substep_present",
+      "frozen_authority_files": 28,
+      "frozen_authority_files_byte_identical_to_source": true,
+      "execution_control_json_changed": true,
+      "execution_control_changed_paths": [
+        "development_outline[4].substeps[len 8 -> 9]"
+      ],
+      "changed_paths_confined_to_intended_scope": true,
+      "verdict": "OK"
+    },
+    {
+      "probe": "actual_v0_s2_entry_missing",
+      "kind": "NEGATIVE",
+      "expected_failed_id": "actual.outline.v0_s2_occurrence",
+      "frozen_authority_files": 28,
+      "frozen_authority_files_byte_identical_to_source": true,
+      "execution_control_json_changed": true,
+      "execution_control_changed_paths": [
+        "development_outline[len 14 -> 13]"
+      ],
+      "changed_paths_confined_to_intended_scope": true,
+      "verdict": "OK"
+    },
+    {
+      "probe": "actual_v0_s2_entry_duplicated",
+      "kind": "NEGATIVE",
+      "expected_failed_id": "actual.outline.v0_s2_occurrence",
+      "frozen_authority_files": 28,
+      "frozen_authority_files_byte_identical_to_source": true,
+      "execution_control_json_changed": true,
+      "execution_control_changed_paths": [
+        "development_outline[len 14 -> 15]"
+      ],
+      "changed_paths_confined_to_intended_scope": true,
+      "verdict": "OK"
+    },
+    {
+      "probe": "actual_bad_value_types",
+      "kind": "NEGATIVE",
+      "expected_failed_id": "actual.outline.completed_substeps",
+      "frozen_authority_files": 28,
+      "frozen_authority_files_byte_identical_to_source": true,
+      "execution_control_json_changed": true,
+      "execution_control_changed_paths": [
+        "development_outline[4].completed_substeps",
+        "development_outline[4].human_signoff",
+        "development_outline[4].total_substeps"
+      ],
+      "changed_paths_confined_to_intended_scope": true,
+      "verdict": "OK"
+    },
+    {
+      "probe": "actual_substeps_not_a_list",
+      "kind": "NEGATIVE",
+      "expected_failed_id": "actual.outline.substeps_container",
+      "frozen_authority_files": 28,
+      "frozen_authority_files_byte_identical_to_source": true,
+      "execution_control_json_changed": true,
+      "execution_control_changed_paths": [
+        "development_outline[4].substeps"
+      ],
+      "changed_paths_confined_to_intended_scope": true,
+      "verdict": "OK"
+    },
+    {
+      "probe": "actual_done_substep_without_evidence",
+      "kind": "NEGATIVE",
+      "expected_failed_id": "actual.outline.done_substep_evidence",
+      "frozen_authority_files": 28,
+      "frozen_authority_files_byte_identical_to_source": true,
+      "execution_control_json_changed": true,
+      "execution_control_changed_paths": [
+        "development_outline[4].substeps[0].evidence"
+      ],
+      "changed_paths_confined_to_intended_scope": true,
+      "verdict": "OK"
+    },
+    {
+      "probe": "historical_snapshot_rewritten",
+      "kind": "NEGATIVE",
+      "expected_failed_id": "actual.historical_s2_coordinate.state",
+      "frozen_authority_files": 28,
+      "frozen_authority_files_byte_identical_to_source": true,
+      "execution_control_json_changed": true,
+      "execution_control_changed_paths": [
+        "historical_s2_coordinate.state"
+      ],
+      "changed_paths_confined_to_intended_scope": true,
+      "verdict": "OK"
+    },
+    {
+      "probe": "historical_snapshot_extra_key",
+      "kind": "NEGATIVE",
+      "expected_failed_id": "actual.historical_s2_coordinate.exact_keys",
+      "frozen_authority_files": 28,
+      "frozen_authority_files_byte_identical_to_source": true,
+      "execution_control_json_changed": true,
+      "execution_control_changed_paths": [
+        "historical_s2_coordinate.extra"
+      ],
+      "changed_paths_confined_to_intended_scope": true,
+      "verdict": "OK"
+    },
+    {
+      "probe": "historical_snapshot_field_dropped",
+      "kind": "NEGATIVE",
+      "expected_failed_id": "actual.historical_s2_coordinate.gate",
+      "frozen_authority_files": 28,
+      "frozen_authority_files_byte_identical_to_source": true,
+      "execution_control_json_changed": true,
+      "execution_control_changed_paths": [
+        "historical_s2_coordinate.gate"
+      ],
+      "changed_paths_confined_to_intended_scope": true,
+      "verdict": "OK"
+    },
+    {
+      "probe": "synthetic_unmodified",
+      "kind": "POSITIVE",
+      "expected_failed_id": null,
+      "frozen_authority_files": 28,
+      "frozen_authority_files_byte_identical_to_source": true,
+      "execution_control_json_changed": false,
+      "execution_control_changed_paths": [],
+      "changed_paths_confined_to_intended_scope": true,
+      "verdict": "OK"
+    },
+    {
+      "probe": "synthetic_current_coordinate_advances",
+      "kind": "POSITIVE",
+      "expected_failed_id": null,
+      "frozen_authority_files": 28,
+      "frozen_authority_files_byte_identical_to_source": true,
+      "execution_control_json_changed": true,
+      "execution_control_changed_paths": [
+        "coordinate.gate",
+        "coordinate.state",
+        "coordinate.workpack_id",
+        "current_blocking_gate",
+        "updated_at"
+      ],
+      "changed_paths_confined_to_intended_scope": true,
+      "verdict": "OK"
+    }
+  ],
+  "all_cases_ok": true,
+  "owned_parent_exists_after_context": true
+}
