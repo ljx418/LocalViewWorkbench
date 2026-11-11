@@ -245,3 +245,8 @@ C2 读取哈希固定的1.0.4完整九样本清单，保留旧四样本前缀；
 ## 2026-11-11｜下一前置已核实：仅待V1依赖范围决策
 
 统一切片人签与普通推送已完成。独审c810dea核实旧S2未签仍阻塞S3→R1→M1→R2。Codex不把旧S2改成8/8，提出[CHANGE-V1-S2-HANDOFF-01](../reports/v1-next-stage-readiness/change-v1-s2-handoff-01.request.json)，仅申请V1开发衔接条件改绑，保留旧S2状态、S3十二项及所有质量/资源门限。当前WAIT_AUTH只指产品范围决策，不是重复GPU/代码许可；详见[裁决](../reports/v1-next-stage-readiness/codex-decision-01.md)。尚未批准提案，不激活新产品Stage。
+
+
+## 2026-11-11｜V1专用S2衔接已批准
+
+用户批准CHANGE-V1-S2-HANDOFF-01并要求继续goal。批准见[记录](../reports/v1-next-stage-readiness/change-v1-s2-handoff-01.approval.json)，应用见[决定](../reports/v1-next-stage-readiness/change-v1-s2-handoff-01.approved-decision.json)。已解除该范围WAIT_AUTH；旧S2仍7/8，当前统一切片人签不改。下一步S3前置工具与有界素材盘点，再补齐独立质量集/标注、包装/回滚合同、精确命令和有限预算，冻结实际产品Gate0。

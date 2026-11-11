@@ -8,8 +8,8 @@
   "coordinate": {
     "stage_id": "R1",
     "workpack_id": "WP-R1-U3",
-    "gate": "NEXT_STAGE_DEPENDENCY_SCOPE_DECISION",
-    "state": "WAIT_AUTH"
+    "gate": "APPROVED_V1_HANDOFF_S3_GATE0_PREPARATION",
+    "state": "PREPARING_NEXT_STAGE"
   },
   "last_passed_gate": {
     "gate": "UNIFIED_MEDIA_FIXED_UM10_AND_INDEPENDENT_REVIEW",
@@ -21,7 +21,7 @@
     "passed_cases": 10,
     "human_signoff": "reports/unified-media/human-signoff-live15.json"
   },
-  "current_blocking_gate": "CHANGE-V1-S2-HANDOFF-01",
+  "current_blocking_gate": "S3_GATE0_INPUTS_AND_EXECUTION_PACKET_READINESS",
   "stage_packet": ".agent-governance/stages/R1/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/R1/PAYLOAD_MANIFEST.sha256",
   "product_status": "UNIFIED_MEDIA_EARLY_ACCEPTED_SCOPE_ONLY_FULL_R1_PENDING",
@@ -34,9 +34,9 @@
     "PRODUCTION_RELEASED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "project_owner (V1-only dependency scope decision), then Codex",
-  "next_action": "Approve or reject CHANGE-V1-S2-HANDOFF-01. Current frontend is already human-approved and pushed. Root preserves oldS2 7/8 and all quality/resource gates; productStageexecution waits for this dependency decision, then actualGate0readiness.",
-  "required_authorization": "CHANGE-V1-S2-HANDOFF-01",
+  "next_owner": "Codex architect; Orca ClaudeCode preparation implementer and independent reviewer",
+  "next_action": "Execute approvedV1-only S2handoff. Freeze S3 boundedoffline preparation for dependencyvalidator and authorisedtestSource inventory, then complete actualqualityset/labels/contracts/commands/budget and productGate0. Do not mark oldS2signed or run model before properchildseal.",
+  "required_authorization": null,
   "authorization_request": "reports/authorization-program-v1-complete-03.request.json",
   "authorization_record": "reports/authorization-program-v1-complete-03.approval.json",
   "read_only_binding_authorization": "reports/v0-s2/authorization-binding-inventory-06.json",
@@ -87,7 +87,7 @@
   "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
   "live_terminal_receipt": "reports/unified-media/live-15/receipt.json",
   "independent_review": "reports/unified-media/independent-live-15/review.md",
-  "exact_stop_reason": "WAIT_AUTH_FOR_PRODUCT_SCOPE_ONLY: oldS2 human gate is still pending and currently blocksS3->R1->M1->R2. CurrentUM signed/pushed; noGPU/code/candidate execution authorization missing. The prepared V1-only handoff proposal preserves oldS2 unsigned status; cannot apply contract change without projectowner decision.",
+  "exact_stop_reason": "No human scope blocker remains. Work continues toward S3 Gate0; current initial scope is offline dependencyvalidation and bounded assetinventory only.",
   "native_component_authorization": "reports/v0-s2/authorization-native-component-02.json",
   "native_component_terminal_receipt": "reports/v0-s2/native-component-02/receipt.json",
   "local_control_change_decision": "reports/v0-s2/change-decision-video-workbench-01.json",
@@ -1042,7 +1042,7 @@
   },
   "accepted_slice_git_sync": "reports/unified-media/git-sync-human-live15/receipt.json",
   "next_stage_preparation": {
-    "status": "INDEPENDENT_AUDIT_COMPLETE_SCOPE_CHANGE_REQUIRED",
+    "status": "READY_TO_DISPATCH_PREPARATION_TOOLS_AND_INVENTORY",
     "candidate_sha": "c448ec657c01708270c83291806a3dccc9fe6090",
     "scope": "S2/S3 and fullV1 dependency/reuse assessment; no product Stage activated",
     "task_spec": "reports/v1-redesign/claude-next-stage-readiness.task.md",
@@ -1056,9 +1056,87 @@
     "not_a_product_permission_or_gate": true,
     "independent_review": "reports/v1-next-stage-readiness/independent-01/receipt.json",
     "independent_review_commit": "c810dea",
-    "codex_adjudication": "reports/v1-next-stage-readiness/codex-decision-01.json",
-    "required_scope_request": "reports/v1-next-stage-readiness/change-v1-s2-handoff-01.request.json"
+    "codex_adjudication": "reports/v1-next-stage-readiness/change-v1-s2-handoff-01.approved-decision.json",
+    "required_scope_request": "reports/v1-next-stage-readiness/change-v1-s2-handoff-01.request.json",
+    "approved_change": "reports/v1-next-stage-readiness/change-v1-s2-handoff-01.approval.json",
+    "packet": ".agent-governance/stages/V0-S3/stage-control.json",
+    "phase": "FROZEN_PREPARATION_ONLY_PRODUCT_GATE0_PENDING",
+    "asset_inventory_child": "reports/v0-s3/preparation-03/asset-inventory-child.json"
   },
   "scope_change_request": "reports/v1-next-stage-readiness/change-v1-s2-handoff-01.request.json",
-  "scope_change_decision": "reports/v1-next-stage-readiness/codex-decision-01.json"
+  "scope_change_decision": "reports/v1-next-stage-readiness/change-v1-s2-handoff-01.approved-decision.json",
+  "scope_change_approval": "reports/v1-next-stage-readiness/change-v1-s2-handoff-01.approval.json",
+  "scope_change_request_status": "APPROVED",
+  "v1_only_s2_handoff": {
+    "id": "S3-V1-ONLY-S2-HANDOFF-01",
+    "approved_change": "CHANGE-V1-S2-HANDOFF-01",
+    "consumer_stage": "V0-S3",
+    "dependency_stage": "V0-S2",
+    "purpose": "V1_DEVELOPMENT_ONLY",
+    "approval": "reports/v1-next-stage-readiness/change-v1-s2-handoff-01.approval.json",
+    "proofs": {
+      "scope_request": {
+        "path": "reports/v1-next-stage-readiness/change-v1-s2-handoff-01.request.json",
+        "sha256": "8a6032010e7290325341cf7f54c6de25c68412e9bdb651dab1d7bc4803da2e91"
+      },
+      "scope_approval": {
+        "path": "reports/v1-next-stage-readiness/change-v1-s2-handoff-01.approval.json",
+        "sha256": "bab47506d5a13657edcabc33644c6b159f2967e696dff4c4c43859d54fbf3057"
+      },
+      "s2_machine": {
+        "path": "reports/v0-s2/full-v0-auto-08/receipt.json",
+        "sha256": "53c267a19a60b34b8aa7abc065f696ac8eb46b1549cd66a24135d7b67fb61f96"
+      },
+      "s2_independent": {
+        "path": "reports/v0-s2/full-v0-auto-08/independent-review.json",
+        "sha256": "b6e1e8470d9ef12dba40ac0d3a90b0c96ea5f7fcd906f07001118b7370224d1a"
+      },
+      "unified_human": {
+        "path": "reports/unified-media/human-signoff-live15.json",
+        "sha256": "fab689dc6563fc343e38b8acb645cee45622bf6216f567e5a32a27bcabf73bc9"
+      },
+      "unified_coverage": {
+        "path": "reports/unified-media/independent-live-15/coverage.json",
+        "sha256": "f3e0b494e88a48ce586dc6bab0c96d6fc850d22f5252f4d0859c41e792256b20"
+      },
+      "capability_map": {
+        "path": "reports/v0-s3/handoff-capability-map-01.json",
+        "sha256": "d3ece8c2862b779919a57293361d906d6ffa2d6e351224c828311618ec36dd24"
+      }
+    },
+    "s2_machine_candidate": "719c74559393a6489b2f630a1e0d3bc3303eb655",
+    "unified_human_candidate": "621b1bf386db71bfe08ca2f533fa8ec396b0504b",
+    "required_s2_case_ids": [
+      "V0-A01",
+      "V0-A02",
+      "V0-A03",
+      "V0-A04",
+      "V0-A05",
+      "V0-A07",
+      "V0-A08",
+      "V0-A09",
+      "V0-A10"
+    ],
+    "required_unified_case_ids": [
+      "UM-01",
+      "UM-02",
+      "UM-03",
+      "UM-04",
+      "UM-05",
+      "UM-06",
+      "UM-07",
+      "UM-08",
+      "UM-09",
+      "UM-10"
+    ],
+    "historical_s2_required_state": {
+      "completed_substeps": 7,
+      "total_substeps": 8,
+      "human_signoff": "PENDING"
+    },
+    "gate0_still_required": true,
+    "authorizes_old_s2_release": false,
+    "may_apply_to_other_dependency_edges": false,
+    "product_execution_authorized_by_predicate_alone": false
+  }
 }

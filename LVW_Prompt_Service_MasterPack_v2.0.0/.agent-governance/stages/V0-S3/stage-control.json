@@ -1,0 +1,97 @@
+{
+  "schema_version": "lvw.stage-control/1",
+  "stage_id": "V0-S3",
+  "version": "0.1-preparation",
+  "state": "FROZEN_PREPARATION_ONLY_PRODUCT_GATE0_PENDING",
+  "status": "FROZEN_PREPARATION_ONLY_PRODUCT_GATE0_PENDING",
+  "phase": "GATE0_PREPARATION_ONLY",
+  "product_execution_authorized": false,
+  "stage_pass_forbidden": true,
+  "base_product_source": "7d5644c",
+  "roles": {
+    "gate_owner": "Codex",
+    "implementation_owner": "Orca visible ClaudeCode implementer",
+    "independent_reviewer": "separate Orca ClaudeCode reviewer"
+  },
+  "dependency_predicate": "S3-V1-ONLY-S2-HANDOFF-01",
+  "scope_approval": "reports/v1-next-stage-readiness/change-v1-s2-handoff-01.approval.json",
+  "scope_approval_sha256": "bab47506d5a13657edcabc33644c6b159f2967e696dff4c4c43859d54fbf3057",
+  "workpacks": [
+    {
+      "id": "S3-PREP-A",
+      "goal": "Implement and test exact V1-only handoff validator and bounded authorised assetinventory; execute inventoryonce after localchecks",
+      "allowed_files": [
+        "tools/verify_s3_handoff.py",
+        "tools/test_verify_s3_handoff.py",
+        "tools/s3_asset_inventory.py",
+        "tools/test_s3_asset_inventory.py",
+        "reports/v0-s3/preparation-03/implementation/"
+      ],
+      "commands": [
+        "python3 -B tools/verify_s3_handoff.py",
+        "python3 -B -m pytest tools/test_verify_s3_handoff.py tools/test_s3_asset_inventory.py -q"
+      ],
+      "outputs": [
+        "code candidate",
+        "real rawlogs/exits/digests",
+        "one bounded inventory receipt",
+        "unresolved sample/rights/labels gaps"
+      ],
+      "depends_on": [
+        "APPROVED_V1_ONLY_HANDOFF"
+      ]
+    }
+  ],
+  "external_milestones": {
+    "APPROVED_V1_ONLY_HANDOFF": {
+      "state": "APPROVED",
+      "owner": "project_owner",
+      "evidence": "reports/v1-next-stage-readiness/change-v1-s2-handoff-01.approval.json"
+    }
+  },
+  "forbidden_write_paths": [
+    "lvw/",
+    "LVW_V0_RuntimePatch/",
+    "contracts/",
+    "plans/",
+    "docs/",
+    ".agent-governance/",
+    "AGENTS.md",
+    "reports/v0-s2/",
+    "reports/unified-media/"
+  ],
+  "asset_inventory_child": "reports/v0-s3/preparation-03/asset-inventory-child.json",
+  "product_fixed_denominator": [
+    "V0-A01",
+    "V0-A02",
+    "V0-A03",
+    "V0-A04",
+    "V0-A05",
+    "V0-A06",
+    "V0-A07",
+    "V0-A08",
+    "V0-A09",
+    "V0-A10",
+    "V0-A11",
+    "V0-A12"
+  ],
+  "gate0_missing": [
+    "actualqualityset selection and independentprelabels",
+    "package/install/rollback exactcontract/entrypoints",
+    "current model/tool/process configbinding",
+    "samegloballedger executionadapter and concrete finite production budget",
+    "product offline/checkpoint matrix and independent review of candidate"
+  ],
+  "model_gpu_runtime_budget": 0,
+  "product_full_checkpoints": 0,
+  "hard_stops": [
+    "unapproved source or purpose",
+    "scope/contract drift",
+    "rootoutsidegrant",
+    "source media changed",
+    "missing paid/account quota",
+    "any attempttochangeoldS2signature/qualitythresholds"
+  ],
+  "next_owner": "Codex after implementer and isolated reviewer reports",
+  "inventory_command": "python3 -B tools/s3_asset_inventory.py --binding reports/v0-s3/preparation-03/implementation/inventory-01/preflight.json --receipt reports/v0-s3/preparation-03/implementation/inventory-01/receipt.json"
+}
