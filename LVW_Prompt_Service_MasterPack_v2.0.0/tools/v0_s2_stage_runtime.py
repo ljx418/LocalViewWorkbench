@@ -164,36 +164,46 @@ class StageRuntimeFactory:
                 or self.contexts['default'].root.exists()))): raise EvidenceError('factory order/replay/default root not closed')
         self.used.add(label); self.authorize('prepare_bound_native_runtime', label)
         proof = self._complete(); plain(self.directory)
-        root = Path(tempfile.mkdtemp(prefix='lvw-s2-'+label+'-', dir=self.directory)).resolve(strict=True)
+        root = self._allocate_preparation_root(label)
         driver = None; evidence = {'run_id': self.run_id, 'candidate_sha': self.candidate, 'authorization_sha256': self.auth,
             'label': label, 'binding_proof': proof, 'owned_run_root': str(root)}; self.evidence[label] = evidence
         context = SimpleNamespace(root=root, binding={'candidate_sha': self.candidate, 'authorization_sha256': self.auth})
         try:
             self.archive.register(root, label)
-            for name in ('input', 'output', 'temp', 'custom_nodes'): (root/name).mkdir()
+            self._prepare_directories(root, label)
             args = SimpleNamespace(run_id=self.run_id, max_public_submissions=20 if warm else 45,
                 max_loopback_requests=8192, max_native_clock_reads=128, warm_benchmark=warm, native_audit=not warm,
                 ffprobe_exe=None, nvidia_exe=str(self.paths['nvidia_exe']), **{key: str(self.paths[key]) for key in ('powershell', 'comfy_main', 'comfy_python', 'ollama_exe', 'ffmpeg_exe')})
             driver = NativeRuntime(args, evidence); context.driver = driver
+            self._preparation_boundary()
             self._deploy(root)
             staged = {}
             for kind, value in self.samples.items():
                 source = Path(value['path']); reference = 'authorized-'+kind+source.suffix.lower()
                 staged[kind] = self._copy(source, root/'input'/reference, value, limit=(20 if kind == 'image' else 256)*1024**2)
             references = None if warm else self._references(driver, root)
+            self._preparation_boundary()
             self.authorize('native_preflight', label); evidence['preflight'] = driver.preflight()
+            self._preparation_boundary()
             ram = int(driver._powershell('(Get-CimInstance Win32_OperatingSystem).FreePhysicalMemory'))//1024
+            self._preparation_boundary()
             if ram < 2048: raise EvidenceError('factory host RAM below minimum')
             baseline = evidence['preflight']['max_used_mib']; evidence['preflight']['available_ram_mib'] = ram
             self.authorize('start_owned_ollama', label); driver.start_ollama(root/'ollama.log')
+            self._preparation_boundary()
             evidence['no_cloud_gate'] = driver.no_cloud_remote_gate()
+            self._preparation_boundary()
             evidence['model'] = driver.verify_model()
+            self._preparation_boundary()
             if evidence['model']['digest'] != self.model: raise EvidenceError('factory actual model digest changed')
             evidence['resource_profile']=profile(model=evidence['model']['model'],digest=evidence['model']['digest'])
             self.authorize('start_owned_comfy', label); driver.start_comfy(root, root/'comfy.log')
+            self._preparation_boundary()
             info = plain(root/'user').stat(); self.user_roots[root] = (info.st_dev, info.st_ino)
             self._user_root(driver, root)
+            self._preparation_boundary()
             registry = driver.registry()
+            self._preparation_boundary()
             if not REQUIRED_NODES.issubset(registry): raise EvidenceError('factory actual public registry incomplete')
             evidence['public_registry'] = {name: registry[name] for name in sorted(REQUIRED_NODES)}
             # Comfy startup can clear temp. Install the finite profile only
@@ -205,9 +215,12 @@ class StageRuntimeFactory:
             else:
                 binding = driver.write_native_binding(root, **parameters, max_runs=19)
             context.binding = binding
+            self._preparation_boundary()
             self.authorize('start_owned_resource_sampler', label)
             worker = driver.start_sampler(root, nvidia_exe=str(self.paths['nvidia_exe']), nvidia_sha256=self.digests['nvidia_exe'])
+            self._preparation_boundary()
             driver.resource_observer(); evidence['ownership'] = driver.ownership_summary()
+            self._preparation_boundary()
             if warm:
                 result = WarmContext(driver=driver, root=root, binding=binding, worker=worker, samples=staged)
             else:
@@ -241,7 +254,7 @@ class StageRuntimeFactory:
                     browser_config=config, node_executable=str(self.paths['node_executable']), node_sha256=self.digests['node_executable'],
                     authorize_launch=launch, verify_bindings=verify, nvidia_exe=str(self.paths['nvidia_exe']), nvidia_sha256=self.digests['nvidia_exe'])
             self.contexts[label] = result
-            (root/'temp/runtime-preparation.json').write_bytes(encoded(evidence))
+            self._persist_preparation_evidence(root, label, evidence)
             return result
         except BaseException as error:
             failure = {'error_type': type(error).__name__, 'error': str(error), 'root_name': root.name,
@@ -265,3 +278,16 @@ class StageRuntimeFactory:
         failure['root_retained'] = root.exists()
         with (self.directory/(label+'-preparation-failure.json')).open('xb') as output:
             output.write(encoded(failure))
+
+    def _preparation_boundary(self):
+        """Protected subclasses may reject namespace drift after callbacks."""
+
+    def _allocate_preparation_root(self, label):
+        return Path(tempfile.mkdtemp(prefix='lvw-s2-'+label+'-', dir=self.directory)).resolve(strict=True)
+
+    def _prepare_directories(self, root, label):
+        for name in ('input', 'output', 'temp', 'custom_nodes'):
+            (root/name).mkdir()
+
+    def _persist_preparation_evidence(self, root, label, evidence):
+        (root/'temp/runtime-preparation.json').write_bytes(encoded(evidence))

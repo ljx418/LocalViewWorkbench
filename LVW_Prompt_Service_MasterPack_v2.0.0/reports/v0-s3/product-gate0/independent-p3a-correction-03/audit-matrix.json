@@ -1,0 +1,73 @@
+[
+  {
+    "boundary": "complete -> allocate",
+    "location": "tools/v0_s3_stage_runtime.py:122-134; tools/v0_s2_stage_runtime.py:167-168",
+    "protection": "Parent pinned before inherited prepare; guard after complete; single-name exclusive mkdir relative to original parent, eight attempts, immediate nofollow pin.",
+    "evidence": [
+      "targeted:complete-allocation",
+      "gap:unchanged M04 assertion",
+      "targeted:allocation-collisions",
+      "targeted:allocation-open-failure"
+    ],
+    "result": "NO_REPLACEMENT_WRITES_REPRODUCED"
+  },
+  {
+    "boundary": "authorize -> register/write",
+    "location": "tools/v0_s3_stage_runtime.py:85-98; tools/v0_s2_stage_archive.py:33-73",
+    "protection": "Original factory/archive authorization still invoked; guards on both sides; optional descriptor-relative lease writer; no lease insertion before write/fsync success.",
+    "evidence": [
+      "targeted:authorize-allocation",
+      "targeted:archive-authorization",
+      "targeted:registration-writer",
+      "extra:registration-write-zero",
+      "extra:registration-fsync"
+    ],
+    "result": "NO_REPLACEMENT_WRITES_REPRODUCED"
+  },
+  {
+    "boundary": "register/lease -> subdirectories",
+    "location": "tools/v0_s3_stage_runtime.py:56-60,112-143",
+    "protection": "Real archive register/lease compared to allocated root identity; directory creation relative to pinned root; nofollow child opens; return guards.",
+    "evidence": [
+      "targeted:register-directories",
+      "targeted:registration-writer",
+      "archive:9 original owner cases"
+    ],
+    "result": "NO_REPLACEMENT_WRITES_REPRODUCED"
+  },
+  {
+    "boundary": "deploy -> sample/reference writes",
+    "location": "tools/v0_s3_stage_runtime.py:236-240; tools/v0_s2_stage_runtime.py:179-188,117-137",
+    "protection": "Base copy owner remains called with pre/post guards; deploy return reaches guarded first copy; reference copies use same override; checks before native preflight.",
+    "evidence": [
+      "targeted:deploy-samples",
+      "targeted:default-warm-installed-root",
+      "probes:prior fix assertions"
+    ],
+    "result": "NO_REPLACEMENT_WRITES_REPRODUCED"
+  },
+  {
+    "boundary": "native callbacks -> final evidence",
+    "location": "tools/v0_s2_stage_runtime.py:178-258; tools/v0_s3_stage_runtime.py:119-120,145-163",
+    "protection": "Guards after constructor/preflight/RAM/start/model/CLI/registry/binding/sampler/observer-summary and before final persistence; final evidence single-name exclusive/nofollow relative to allocated root/temp.",
+    "evidence": [
+      "targeted:native-final-evidence",
+      "targeted:post-deploy-return",
+      "targeted:post-deploy-copy"
+    ],
+    "result": "NO_REPLACEMENT_WRITES_REPRODUCED"
+  },
+  {
+    "boundary": "error/cleanup -> receipt/archive/delete",
+    "location": "tools/v0_s3_stage_runtime.py:33-72,100-102,171-234; tools/v0_s2_stage_archive.py:129-138",
+    "protection": "Failure writer anchors original parent; failed-install fence retained; adapter delegates actual cleanup and original owner checks; guard active only during preparation.",
+    "evidence": [
+      "targeted:error-archive",
+      "targeted:cleanup-callback",
+      "extra:unproven-adapter-result",
+      "probes:unchanged M03",
+      "extra_post:post-prepare cleanup callback"
+    ],
+    "result": "OPEN_P3A_C03_M05_POST_PREPARE_GUARD_INACTIVE"
+  }
+]

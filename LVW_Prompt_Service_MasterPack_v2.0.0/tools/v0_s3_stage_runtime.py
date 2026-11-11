@@ -6,6 +6,7 @@ quality acceptance or rollback acceptance. No service or package CLI is launched
 import copy
 import os
 import stat
+import secrets
 from contextlib import ExitStack
 import re
 import time
@@ -29,6 +30,22 @@ def _digest(path, limit):
     return digest, size
 
 
+class _ArchiveCleanupBoundary:
+    """Guard the one native cleanup callback used by OwnedArchive."""
+    def __init__(self, driver, factory):
+        self.driver = driver
+        self.factory = factory
+        self.evidence = driver.evidence
+        self.listener_proofs = driver.listener_proofs
+        self.owned = driver.owned
+
+    def remove_owned_reparse_fixture(self, root):
+        self.factory._preparation_guard()
+        result = self.driver.remove_owned_reparse_fixture(root)
+        self.factory._preparation_guard()
+        return result
+
+
 class _DeploymentArchive:
     """Retain failed protected installs; never delete via uncertain pathnames."""
     def __init__(self, original, factory):
@@ -38,7 +55,8 @@ class _DeploymentArchive:
 
     def register(self, root, label):
         self.factory._preparation_guard()
-        result = self.original.register(root, label)
+        result = self.original.register(root, label, _parent_fd=self.factory._parent_fd,
+                                        _root_fd=self.factory._root_fds[label][0])
         self.factory._pin_preparation_root(root, label)
         return result
 
@@ -49,7 +67,9 @@ class _DeploymentArchive:
         if context.root in self.retained:
             raise EvidenceError('failed protected deployment retained; pathname archive deletion forbidden')
         self.factory._preparation_guard()
-        return self.original(context, cleanup)
+        archive_context = SimpleNamespace(root=context.root, binding=context.binding,
+            driver=_ArchiveCleanupBoundary(context.driver, self.factory))
+        return self.original(archive_context, cleanup)
 
 
 class InstalledPackageRuntimeFactory(StageRuntimeFactory):
@@ -65,8 +85,17 @@ class InstalledPackageRuntimeFactory(StageRuntimeFactory):
         original_authorize = self.authorize
         def authorize(*args):
             self._preparation_guard()
-            return original_authorize(*args)
+            result = original_authorize(*args)
+            self._preparation_guard()
+            return result
         self.authorize = authorize
+        original_archive_authorize = self.archive.original.authorize
+        def archive_authorize(*args):
+            self._preparation_guard()
+            result = original_archive_authorize(*args)
+            self._preparation_guard()
+            return result
+        self.archive.original.authorize = archive_authorize
 
     def _preparation_guard(self):
         if self._parent_fd is None:
@@ -83,16 +112,55 @@ class InstalledPackageRuntimeFactory(StageRuntimeFactory):
     def _pin_preparation_root(self, root, label):
         self._preparation_guard()
         before = plain(self.archive.original.lease(label)).stat()
-        fd = os.open(root.name, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW,
-                     dir_fd=self._parent_fd)
+        fd, name, identity = self._root_fds[label]
+        if identity != (before.st_dev, before.st_ino):
+            raise EvidenceError('registered root differs from allocated original identity')
+
+    def _preparation_boundary(self):
+        self._preparation_guard()
+
+    def _allocate_preparation_root(self, label):
+        self._preparation_guard()
+        for attempt in range(8):
+            name = 'lvw-s2-' + label + '-' + secrets.token_hex(8)
+            try:
+                os.mkdir(name, 0o700, dir_fd=self._parent_fd)
+            except FileExistsError:
+                continue
+            fd = os.open(name, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=self._parent_fd)
+            self._root_fds[label] = (fd, name, (os.fstat(fd).st_dev, os.fstat(fd).st_ino))
+            self._preparation_guard()
+            return self.directory / name
+        raise EvidenceError('protected root allocation collision budget exhausted')
+
+    def _prepare_directories(self, root, label):
+        self._preparation_guard()
+        fd = self._root_fds[label][0]
+        for name in ('input', 'output', 'temp', 'custom_nodes'):
+            os.mkdir(name, 0o700, dir_fd=fd)
+            child = os.open(name, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=fd)
+            os.close(child)
+        self._preparation_guard()
+
+    def _persist_preparation_evidence(self, root, label, evidence):
+        self._preparation_guard()
+        temp = os.open('temp', os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW,
+                       dir_fd=self._root_fds[label][0])
         try:
-            info = os.fstat(fd)
-            if (info.st_dev, info.st_ino) != (before.st_dev, before.st_ino):
-                raise EvidenceError('registered preparation root replaced before pin')
-            self._root_fds[label] = (fd, root.name, (info.st_dev, info.st_ino))
-        except BaseException:
-            os.close(fd)
-            raise
+            fd = os.open('runtime-preparation.json', os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW,
+                         0o600, dir_fd=temp)
+            try:
+                data = memoryview(package._dump_json(evidence).encode('utf-8'))
+                while data:
+                    count = os.write(fd, data)
+                    if count <= 0: raise OSError('preparation evidence write made no progress')
+                    data = data[count:]
+                os.fsync(fd)
+            finally:
+                os.close(fd)
+        finally:
+            os.close(temp)
+        self._preparation_guard()
 
     def prepare_default(self):
         return self._with_preparation(False)
@@ -115,7 +183,7 @@ class InstalledPackageRuntimeFactory(StageRuntimeFactory):
                     failure = {'error_type': type(error).__name__, 'error': str(error),
                         'run_id': self.run_id, 'candidate_sha': self.candidate,
                         'authorization_sha256': self.auth, 'stage_pass_claim': False,
-                        'evidence': self.evidence.get(label, {}), 'root_name': None}
+                        'evidence': self.evidence.get(label, {}), 'root_name': self._root_fds[label][1] if label in self._root_fds else None}
                     self._persist_preparation_failure(label, None, failure)
                 raise
             finally:
@@ -136,7 +204,8 @@ class InstalledPackageRuntimeFactory(StageRuntimeFactory):
                 if (info.st_dev, info.st_ino) == identity:
                     failure['root_retained'] = info.st_nlink > 0
                     failure['root_retention_observation'] = {
-                        'basis': 'registered original directory descriptor',
+                        'basis': 'allocated original directory descriptor',
+                        'archive_registered': label in self.archive.original.leases,
                         'device': info.st_dev, 'inode': info.st_ino, 'links': info.st_nlink}
             failure['persistence'] = {'status': 'PERSISTENCE_UNPROVEN'}
             if self._parent_fd is None:
