@@ -1,6 +1,6 @@
 # 30｜批准后的V1实施总计划
 
-版本1.0，2026-11-11。产品范围已批准；设计待隔离审核，不能当作Gate0或产品PASS。批准记录： [范围与分工](../reports/v1-redesign/product-change-approval.json)。机器目录：[计划](../plans/v1-revised-plan.json)、[合同候选](../plans/v1-multishot-contract.json)。唯一产品坐标仍是execution-control，当前621b1bf切片等待实际体验签署；本次批准未替代该签署。
+版本1.1，2026-11-11。产品范围已批准；设计待隔离审核，不能当作Gate0或产品PASS。批准记录： [范围与分工](../reports/v1-redesign/product-change-approval.json)。机器目录：[计划](../plans/v1-revised-plan.json)、[合同候选](../plans/v1-multishot-contract.json)。唯一产品坐标仍是execution-control，当前621b1bf切片等待实际体验签署；本次批准未替代该签署。
 
 ## 范围与顺序
 
@@ -32,3 +32,9 @@ Orca创建可见子工作区/窗口；Codex通过Dispatch ID协调与接收worke
 
 
 授权账本映射：现有COMPLETE03的stages不含新显示名V1-M1，因此M1作为已批准的V1/R2提前子阶段执行，有限收据同时绑定design_stage=V1-M1、authority_stage=R2、此次范围批准hash与新packet；仍计同一全局账本，不修改旧授权hash、不新增预算、不把V2/R3改名混入。此映射必须在M1 harness负例中验证，不能把任意未授权stage映射R2。
+
+
+设计1.1集中纠偏：旧通用/jobs/batch与canonical Scene/FrameRef保持形状；新shot-batches/revision-info/children/evidence只承担补充语义。父预算450*n+90(max5490)，完整轮cap72动作/21600s，原GPU/RAM/420s/30s与29项不降。实际12片/47镜头/18质量归属见机器样本设计表；设计不等于样本已经冻结或Gate0。
+
+
+Gate0按Stage冻结各自scope/合同/离线oracle/实际所需样本与预算，不把尚未运行的新模型质量当已知前置结论。M1新profile在实现后集中离线全绿、代表性有限pilot通过，才进正式真实checkpoint；这不是要求在禁止实现时先证明实现质量。新完整R1使用R1-CORE包目录，M1/R2各有新包，execution-control显式active_packet后由对应验证器校验；旧R1切片包保持不动。

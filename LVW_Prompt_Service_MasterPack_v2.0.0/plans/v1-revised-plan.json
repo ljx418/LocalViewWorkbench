@@ -1,5 +1,5 @@
 {
-  "schema_version": "lvw.v1-plan/1",
+  "schema_version": "lvw.v1-plan/1.1",
   "approval": "reports/v1-redesign/product-change-approval.json",
   "status": "DESIGN_REVIEW_REQUIRED",
   "roles": {
@@ -76,8 +76,16 @@
     "single_analysis_seconds": 420,
     "release_seconds": 30,
     "gpu_concurrency": 1,
-    "batch_deadline_seconds": 1800,
-    "automatic_model_retries": 0
+    "automatic_model_retries": 0,
+    "batch_per_child_budget_seconds": 450,
+    "batch_fixed_budget_seconds": 90,
+    "batch_deadline_seconds_max": 5490,
+    "checkpoint_model_actions_cap": 72,
+    "checkpoint_seconds_cap": 21600,
+    "checkpoint_cleanup_reserve_seconds": 180,
+    "gpu_free_mib_min": 19047,
+    "detection_seconds": 120,
+    "pts_index_bytes": 16777216
   },
   "v1_required_cases": [
     "A01",
@@ -135,5 +143,37 @@
     "authority_stage": "R2",
     "scope_record": "reports/v1-redesign/product-change-approval.json",
     "policy": "M1 is approved V1/R2 early substage; finite receipt binds both identities and scope hash. Original COMPLETE03 immutable stages/limits remain unchanged, all actions use same ledger; no new counter or V2 alias."
+  },
+  "sample_design": "plans/v1-multishot-sample-design.json",
+  "checkpoint_budget": {
+    "success_calls": 65,
+    "controlled_actions_cap": 7,
+    "model_actions_cap": 72,
+    "wall_seconds": 21600,
+    "execution_deadline_seconds": 21420,
+    "cleanup_reserve_seconds": 180,
+    "estimate_basis": "design performance thresholds, not measured current per-shot P95 and not hard worst-case guarantee",
+    "video_calls": 53,
+    "image_calls": 12,
+    "video_threshold_seconds": 300,
+    "image_threshold_seconds": 180,
+    "release_per_success_seconds": 30,
+    "cpu_browser_overhead_seconds": 300,
+    "controlled_action_seconds_cap": 35,
+    "estimated_total_seconds": 20735,
+    "on_overrun": "all planned rows retained, incomplete/blocked is not PASS; do not shrink denominator or auto-extend; diagnose/replan under remaining parent budget"
+  },
+  "inference_profile_candidate": {
+    "model": "installed native tag/digest bound at runtime",
+    "think": false,
+    "num_ctx": 4096,
+    "num_predict": 1536,
+    "temperature": 0.2,
+    "status": "design configuration to freeze for implementation; representative pilot and hard resource proof required after offline implementation and before full real checkpoint"
+  },
+  "packet_targets": {
+    "R1": ".agent-governance/stages/R1-CORE/",
+    "V1-M1": ".agent-governance/stages/V1-M1/",
+    "R2": ".agent-governance/stages/R2/"
   }
 }

@@ -23,3 +23,8 @@ append-only revision事务保存规范内容hash（UTF-8、排序key、数字格
 manifest列schema_version、app_version、IDs、内容hash、模板hash、媒体相对引用/可选复制、许可/来源备注；禁止绝对路径、凭据和任意代码。轻包不含模型/原片；完整包只含显式选择的媒体。校验所有路径、压缩比/解压上限、哈希、Schema、外键和来源授权后事务导入。
 
 ID碰撞同hash复用，不同hash拒绝或生成映射并保留原ID，不能最后写覆盖。升级迁移先snapshot；回滚旧代码和对应snapshot，不能旧代码打开新schema硬撑。
+
+
+## 2026-11-11设计1.1优先覆盖
+
+用户批准V1-M1提前scene_revision最小子集、父子固定计划与内部lease/token终结CAS；原“scene/batch/lease全属V2”只指完整增强。V1细则以docs/31–32和候选Schema/迁移为准：元数据/不可变计划有真实存储载体，旧canonical DTO不变，V2完整R13/A13/X04/通用batch与恢复仍保留。
