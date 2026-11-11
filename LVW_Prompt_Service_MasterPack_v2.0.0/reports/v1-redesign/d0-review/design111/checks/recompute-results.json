@@ -1,0 +1,616 @@
+{
+  "n1.canonical_operations_total": {
+    "value": 38,
+    "detail": "canonical operations compared byte for byte"
+  },
+  "n1.canonical_operations_mutated": {
+    "value": [],
+    "detail": "must be empty"
+  },
+  "n1.merge_problems": {
+    "value": [],
+    "detail": "must be empty"
+  },
+  "n1.added_operations": {
+    "value": [
+      "GET /api/v1/jobs/{id}/children",
+      "GET /api/v1/scenes/{id}",
+      "GET /api/v1/scenes/{id}/revision-info",
+      "GET /api/v1/shots/{id}/analyses/{run_id}/evidence",
+      "GET /api/v1/shots/{id}/scene-binding",
+      "POST /api/v1/jobs/shot-batches",
+      "POST /api/v1/shots/{id}/analyses/{run_id}/adopt",
+      "PUT /api/v1/shots/{id}/scene-binding"
+    ],
+    "detail": ""
+  },
+  "n1.annotated_methods": {
+    "value": [
+      "GET /api/v1/jobs/{id}",
+      "GET /api/v1/scenes",
+      "GET /api/v1/shots/{id}",
+      "POST /api/v1/jobs/{id}/cancel",
+      "POST /api/v1/scenes/detect",
+      "POST /api/v1/shots",
+      "PUT /api/v1/scenes/{id}",
+      "PUT /api/v1/shots/{id}"
+    ],
+    "detail": ""
+  },
+  "n1.header_additions": {
+    "value": [
+      "PUT /api/v1/scenes/{id} 200"
+    ],
+    "detail": ""
+  },
+  "n1.etag_pattern": {
+    "value": "^\"scene:[^\":]+:[0-9a-f]{64}\"$",
+    "detail": ""
+  },
+  "n1.etag_accepts_strong": {
+    "value": true,
+    "detail": ""
+  },
+  "n1.etag_accepts_weak": {
+    "value": false,
+    "detail": "must be False"
+  },
+  "n1.put_200_added_headers": {
+    "value": [
+      "ETag"
+    ],
+    "detail": "must be exactly ['ETag']"
+  },
+  "n1.put_request_body_identical": {
+    "value": true,
+    "detail": ""
+  },
+  "n1.put_x_product_version": {
+    "value": "V2",
+    "detail": "canonical value: V2"
+  },
+  "n1.new_scene_get_body_ref": {
+    "value": "#/components/schemas/Scene",
+    "detail": "must be #/components/schemas/Scene"
+  },
+  "n1.new_scene_get_etag": {
+    "value": [
+      "ETag"
+    ],
+    "detail": ""
+  },
+  "n2.overlay_operations": {
+    "value": [
+      [
+        "/api/v1/jobs/shot-batches",
+        "post"
+      ],
+      [
+        "/api/v1/jobs/{id}/children",
+        "get"
+      ],
+      [
+        "/api/v1/scenes/{id}",
+        "get"
+      ],
+      [
+        "/api/v1/scenes/{id}/revision-info",
+        "get"
+      ],
+      [
+        "/api/v1/shots/{id}/analyses/{run_id}/adopt",
+        "post"
+      ],
+      [
+        "/api/v1/shots/{id}/analyses/{run_id}/evidence",
+        "get"
+      ],
+      [
+        "/api/v1/shots/{id}/scene-binding",
+        "get"
+      ],
+      [
+        "/api/v1/shots/{id}/scene-binding",
+        "put"
+      ]
+    ],
+    "detail": ""
+  },
+  "n2.overlay_paths": {
+    "value": [
+      "/api/v1/jobs/shot-batches",
+      "/api/v1/jobs/{id}/children",
+      "/api/v1/scenes/{id}",
+      "/api/v1/scenes/{id}/revision-info",
+      "/api/v1/shots/{id}/analyses/{run_id}/adopt",
+      "/api/v1/shots/{id}/analyses/{run_id}/evidence",
+      "/api/v1/shots/{id}/scene-binding"
+    ],
+    "detail": ""
+  },
+  "n2.contract_additive_operations_match": {
+    "value": true,
+    "detail": ""
+  },
+  "n2.contract_additive_paths_match": {
+    "value": true,
+    "detail": ""
+  },
+  "n2.new_get_on_existing_scene_path": {
+    "value": [
+      [
+        "/api/v1/scenes/{id}",
+        "get"
+      ]
+    ],
+    "detail": ""
+  },
+  "n2.scene_path_exists_in_canonical": {
+    "value": true,
+    "detail": ""
+  },
+  "n2.scene_get_not_in_canonical": {
+    "value": true,
+    "detail": "so the overlay GET is a real addition, not a replacement"
+  },
+  "n3.annotation_count": {
+    "value": 8,
+    "detail": ""
+  },
+  "n3.all_targets_exist": {
+    "value": true,
+    "detail": ""
+  },
+  "n3.all_keys_allowlisted": {
+    "value": true,
+    "detail": ""
+  },
+  "n3.no_collision": {
+    "value": true,
+    "detail": ""
+  },
+  "n3.contract_reuse_paths_match_overlay": {
+    "value": true,
+    "detail": ""
+  },
+  "n3.detail": {
+    "value": {
+      "GET /api/v1/jobs/{id}": {
+        "target_exists": true,
+        "canonical_x_product_version": "V1",
+        "keys": [
+          "x-v1-profile",
+          "x-v2-semantics-unchanged"
+        ],
+        "collides": []
+      },
+      "POST /api/v1/jobs/{id}/cancel": {
+        "target_exists": true,
+        "canonical_x_product_version": "V1",
+        "keys": [
+          "x-v1-profile",
+          "x-v2-semantics-unchanged"
+        ],
+        "collides": []
+      },
+      "GET /api/v1/scenes": {
+        "target_exists": true,
+        "canonical_x_product_version": "V2",
+        "keys": [
+          "x-v1-profile",
+          "x-v2-semantics-unchanged"
+        ],
+        "collides": []
+      },
+      "POST /api/v1/scenes/detect": {
+        "target_exists": true,
+        "canonical_x_product_version": "V2",
+        "keys": [
+          "x-v1-profile",
+          "x-v2-semantics-unchanged"
+        ],
+        "collides": []
+      },
+      "PUT /api/v1/scenes/{id}": {
+        "target_exists": true,
+        "canonical_x_product_version": "V2",
+        "keys": [
+          "x-v1-profile",
+          "x-v2-semantics-unchanged"
+        ],
+        "collides": []
+      },
+      "POST /api/v1/shots": {
+        "target_exists": true,
+        "canonical_x_product_version": "V1",
+        "keys": [
+          "x-v1-profile",
+          "x-v2-semantics-unchanged"
+        ],
+        "collides": []
+      },
+      "GET /api/v1/shots/{id}": {
+        "target_exists": true,
+        "canonical_x_product_version": "V1",
+        "keys": [
+          "x-v1-profile",
+          "x-v2-semantics-unchanged"
+        ],
+        "collides": []
+      },
+      "PUT /api/v1/shots/{id}": {
+        "target_exists": true,
+        "canonical_x_product_version": "V1",
+        "keys": [
+          "x-v1-profile",
+          "x-v2-semantics-unchanged"
+        ],
+        "collides": []
+      }
+    },
+    "detail": ""
+  },
+  "n4.shot_properties": {
+    "value": [
+      "index",
+      "sha256",
+      "source_pts",
+      "target_seconds",
+      "time_base_den",
+      "time_base_num",
+      "time_basis"
+    ],
+    "detail": ""
+  },
+  "n4.canonical_properties": {
+    "value": [
+      "index",
+      "sha256",
+      "source_pts",
+      "target_seconds",
+      "time_base_den",
+      "time_base_num",
+      "time_basis"
+    ],
+    "detail": ""
+  },
+  "n4.same_property_set": {
+    "value": true,
+    "detail": ""
+  },
+  "n4.same_required_set": {
+    "value": true,
+    "detail": ""
+  },
+  "n4.pts_fields": {
+    "value": {
+      "source_pts": {
+        "type": "integer",
+        "minimum": null,
+        "anyOf": null,
+        "oneOf": null,
+        "canonical_type": null,
+        "canonical_anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "time_base_num": {
+        "type": "integer",
+        "minimum": 1,
+        "anyOf": null,
+        "oneOf": null,
+        "canonical_type": null,
+        "canonical_anyOf": [
+          {
+            "type": "integer",
+            "minimum": 1
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "time_base_den": {
+        "type": "integer",
+        "minimum": 1,
+        "anyOf": null,
+        "oneOf": null,
+        "canonical_type": null,
+        "canonical_anyOf": [
+          {
+            "type": "integer",
+            "minimum": 1
+          },
+          {
+            "type": "null"
+          }
+        ]
+      }
+    },
+    "detail": ""
+  },
+  "n4.shot_time_basis": {
+    "value": {
+      "const": "decoded_pts"
+    },
+    "detail": ""
+  },
+  "n4.canonical_time_basis": {
+    "value": {
+      "type": "string",
+      "enum": [
+        "sample_target",
+        "decoded_pts"
+      ]
+    },
+    "detail": ""
+  },
+  "n4.retained_frame_count": {
+    "value": 4,
+    "detail": ""
+  },
+  "n4.retained_frames_valid": {
+    "value": true,
+    "detail": ""
+  },
+  "n4.probe_engine": {
+    "value": "jsonschema 4.23.0",
+    "detail": ""
+  },
+  "n5.example_recomputed": {
+    "value": [
+      "{\"kind\":\"character\",\"lang\":\"zh\",\"ref\":\"actor1\",\"text\":\"红衣人物\"}",
+      "{\"kind\":\"character\",\"lang\":\"en\",\"ref\":\"actor1\",\"text\":\"person in red\"}"
+    ],
+    "detail": ""
+  },
+  "n5.example_matches_rule": {
+    "value": true,
+    "detail": ""
+  },
+  "n5.example_key_order": {
+    "value": [
+      [
+        "kind",
+        "lang",
+        "ref",
+        "text"
+      ],
+      [
+        "kind",
+        "lang",
+        "ref",
+        "text"
+      ]
+    ],
+    "detail": ""
+  },
+  "n5.rule_text_key_order_claim": {
+    "value": "Each nonempty language value produces one string: compact UTF-8 JSON object, sorted keys, ensure_ascii=False, allow_nan=False. Keys kind, ref, lang, text. No translation, normalization, trim or deduplication; skip only exactly empty strings. Preserve raw model response byte-for-byte.",
+    "detail": ""
+  },
+  "n5.rule_text_contradiction": {
+    "value": "the rule text names the key order 'kind, ref, lang, text' while it also says 'sorted keys' and the example uses the sorted order 'kind, lang, ref, text'",
+    "detail": ""
+  },
+  "n5.scene_example_derived": {
+    "value": [
+      "{\"kind\":\"scene\",\"lang\":\"zh\",\"ref\":\"scene\",\"text\":\"室内\"}",
+      "{\"kind\":\"scene\",\"lang\":\"en\",\"ref\":\"scene\",\"text\":\"interior\"}"
+    ],
+    "detail": ""
+  },
+  "n5.action_example_derived": {
+    "value": [
+      "{\"kind\":\"action\",\"lang\":\"zh\",\"ref\":\"0\",\"text\":\"抬手\"}",
+      "{\"kind\":\"action\",\"lang\":\"en\",\"ref\":\"0\",\"text\":\"raises a hand\"}"
+    ],
+    "detail": ""
+  },
+  "n5.unknown_example_derived": {
+    "value": [
+      "{\"kind\":\"unknown\",\"lang\":\"zh\",\"ref\":\"0\",\"text\":\"身份不明\"}",
+      "{\"kind\":\"unknown\",\"lang\":\"en\",\"ref\":\"0\",\"text\":\"unknown identity\"}"
+    ],
+    "detail": ""
+  },
+  "n5.only_character_example_is_frozen": {
+    "value": true,
+    "detail": "the owner example only exercises the character domain"
+  },
+  "n5.canonical_domains_shape": {
+    "value": {
+      "observation": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "inference": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "user_evidence": {
+        "type": "array",
+        "items": {
+          "$ref": "#/$defs/Evidence"
+        }
+      },
+      "creative_intent": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "unknowns": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      }
+    },
+    "detail": ""
+  },
+  "n5.human_domains_rule": {
+    "value": "Do not generate or overwrite user_evidence/creative_intent; merge only through explicit adoption with human locks taking precedence.",
+    "detail": ""
+  },
+  "n5.prompt_text_rule": {
+    "value": "summary.zh -> text_zh; summary.en -> text_en, exact copies. Missing language stays empty, no translation.",
+    "detail": ""
+  },
+  "n5.unknowns_rule": {
+    "value": "Original unknowns array order, each zh then en; same JSON entry with kind=unknown into Domains.unknowns only.",
+    "detail": ""
+  },
+  "n6.hash_fields": {
+    "value": [
+      "media_ref_id",
+      "media_sha256",
+      "revision",
+      "start_pts",
+      "end_pts",
+      "origin_pts",
+      "time_base_num",
+      "time_base_den",
+      "editor",
+      "time_basis",
+      "verified"
+    ],
+    "detail": ""
+  },
+  "n6.mapping_covers_fields": {
+    "value": true,
+    "detail": ""
+  },
+  "n6.mapping": {
+    "value": {
+      "media_ref_id": "scene_revision.media_ref_id",
+      "media_sha256": "scene_revision_meta.source_sha256 (legacy backfill: media_ref.sha256)",
+      "revision": "scene_revision.version (equals scene_revision_meta.revision)",
+      "start_pts": "scene_revision.start_pts",
+      "end_pts": "scene_revision.end_pts",
+      "origin_pts": "scene_revision.origin_pts",
+      "time_base_num": "scene_revision.tb_num",
+      "time_base_den": "scene_revision.tb_den",
+      "editor": "scene_revision.editor",
+      "time_basis": "scene_revision_meta.time_basis",
+      "verified": "scene_revision_meta.verified (SQLite 0/1 converted to JSON false/true)"
+    },
+    "detail": ""
+  },
+  "n6.sql_call_site_argument_count": {
+    "value": 11,
+    "detail": "args: ['s.media_ref_id', 'm.sha256', 's.version', 's.start_pts', 's.end_pts', 's.origin_pts', 's.tb_num', 's.tb_den', 's.editor', \"'unverified'\", '0']"
+  },
+  "n6.sql_call_site_field_order_ok": {
+    "value": true,
+    "detail": "argument count matches the 11 declared hash fields: True"
+  },
+  "n6.sql_call_site_args": {
+    "value": [
+      "s.media_ref_id",
+      "m.sha256",
+      "s.version",
+      "s.start_pts",
+      "s.end_pts",
+      "s.origin_pts",
+      "s.tb_num",
+      "s.tb_den",
+      "s.editor",
+      "'unverified'",
+      "0"
+    ],
+    "detail": ""
+  },
+  "n6.alias_columns_missing_in_ddl": {
+    "value": [
+      "media_sha256 -> sha256"
+    ],
+    "detail": "must be empty"
+  },
+  "n6.ddl_columns_seen": {
+    "value": [
+      "attempt_id",
+      "cancel_epoch",
+      "child_job_id",
+      "config_hash",
+      "content_sha256",
+      "created_at",
+      "deadline_at",
+      "editor",
+      "end_pts",
+      "etag",
+      "evidence_json",
+      "evidence_sha256",
+      "execution_budget_seconds",
+      "frames_json",
+      "head_revision_id",
+      "id",
+      "lease_token",
+      "media_ref_id",
+      "media_sha256",
+      "model_action_at",
+      "model_run_id",
+      "ordinal",
+      "origin_pts",
+      "parent_job_id",
+      "plan_hash",
+      "planned_count",
+      "provider_call_id",
+      "raw_schema_version",
+      "retry_of_child_id",
+      "retry_of_parent_id",
+      "revision",
+      "revision_id",
+      "scene_id",
+      "scene_revision_hash",
+      "scene_revision_id",
+      "sealed_at",
+      "shot_id",
+      "source_sha256",
+      "start_pts",
+      "tb_den",
+      "tb_num",
+      "time_basis",
+      "verified",
+      "version"
+    ],
+    "detail": ""
+  },
+  "n6.fixture_serialized_bytes": {
+    "value": "{\"editor\":\"algorithm\",\"end_pts\":122880,\"media_ref_id\":\"media-001\",\"media_sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"origin_pts\":0,\"revision\":3,\"start_pts\":0,\"time_base_den\":12288,\"time_base_num\":1,\"time_basis\":\"decoded_pts\",\"verified\":true}",
+    "detail": ""
+  },
+  "n6.fixture_sha256": {
+    "value": "91133a6cdfc93456e2bc7d53c68eec9ad1a0faf5bd0e05b84b95dbafe0d9f788",
+    "detail": ""
+  },
+  "n6.fixture_etag": {
+    "value": "\"scene:scene-rev-001:91133a6cdfc93456e2bc7d53c68eec9ad1a0faf5bd0e05b84b95dbafe0d9f788\"",
+    "detail": ""
+  },
+  "n6.fixture_etag_matches_frozen_pattern": {
+    "value": true,
+    "detail": ""
+  },
+  "n6.fixture_hash_is_stable": {
+    "value": true,
+    "detail": ""
+  },
+  "n6.verified_json_type": {
+    "value": "bool",
+    "detail": ""
+  },
+  "n6.hash_function_defined_in_package": {
+    "value": false,
+    "detail": "the migration only calls the function; the DDL that defines it is not in the frozen package"
+  }
+}

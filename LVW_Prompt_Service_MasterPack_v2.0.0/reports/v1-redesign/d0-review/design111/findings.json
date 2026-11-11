@@ -1,0 +1,258 @@
+{
+  "kind": "D0_B_REVIEW_DESIGN111_INDEPENDENT_FINDINGS",
+  "stage_id": "V1-D0",
+  "workpack_id": "D0-B-REVIEW",
+  "review_scope": "combined independent code audit of tools/verify_v1_plan.py + independent recheck of design 1.1.1 N1-N6",
+  "reviewer_position": "isolated Orca-visible ClaudeCode review window; read-only; separate worktree from the D0-B-IMPL implementer; no implementation chat, receipt or conclusion was treated as authoritative; every verdict below was recomputed from the frozen owner artefacts with reviewer-owned code",
+  "candidate": {
+    "code_candidate_commit": "f7956941992a0c467384b5dc9c63133f95152f41",
+    "authority_ancestor_commit": "743e028474909be02326facd6f14ca0ac26aa56f",
+    "d0_payload_manifest_sha256": "04d3bfb4af3c2d7be68e494a6d59624a96051a0ebf28e81d6a0367aa32aa6710",
+    "loaded_into_review_checkout_by": "git merge --no-ff f7956941992a0c467384b5dc9c63133f95152f41 (clean, no conflict)",
+    "review_merge_commit": "471bf9509086021553c6ca360080a54767d5c3d0",
+    "review_branch": "ljx418/lvw-v1-d0-review",
+    "review_worktree": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review",
+    "candidate_diff_vs_authority_is_only": "tools/verify_v1_plan.py, tools/test_verify_v1_plan.py and reports/v1-redesign/d0-worker/** (55 files, +6519/-0); no contract, plan, doc, governance or product source was touched by the candidate",
+    "candidate_code_digests_independently_recomputed": {
+      "tools/verify_v1_plan.py": "dbdee55bc92e865b5d9aa351cb10498edc4f69f75ee9eebfc78862146688905d",
+      "tools/test_verify_v1_plan.py": "1343d578c801029048000a84845d81b05bd85e90a787552088d829239e9f4580",
+      "match_with_implementation_receipt": true
+    }
+  },
+  "verdict_legend": {
+    "RESOLVED": "the 1.1.1 owner correction is present in the frozen artefacts and the reviewer recomputed it independently; the machine guard for it was exercised and rejects the corresponding defect",
+    "RESOLVED_WITH_RESIDUAL": "the correction itself is present and recomputed, but a residual defect remains in the same area; the residual is listed under new_findings",
+    "UNRESOLVED": "the correction is absent or wrong"
+  },
+  "n1_n6": [
+    {
+      "id": "N1",
+      "title": "the ETag response header was prose only and the metadata_only promotion rule was undefined",
+      "owner_correction": "overlay declares a machine ETag header object on the two new Scene GETs and adds the same header to the existing Scene PUT 200 through add_response_headers; a written metadata_merge_rule defines the strict merge",
+      "verdict": "RESOLVED",
+      "independent_recomputation": [
+        "n1.added_operations = 8 operations over 7 paths; n1.annotated_methods = 8 methods over 7 reuse paths; n1.header_additions = exactly ['PUT /api/v1/scenes/{id} 200']",
+        "n1.canonical_operations_total = 38 canonical operations replayed through the merge; n1.canonical_operations_mutated = [] (byte identical outside the allowlisted additions)",
+        "n1.merge_problems = [] (no missing target, no collision, no unauthorized key or header)",
+        "n1.put_200_added_headers = ['ETag'] exactly; n1.put_request_body_identical = true; n1.put_x_product_version = V2 unchanged",
+        "n1.etag_pattern = ^\"scene:[^\":]+:[0-9a-f]{64}\"$; n1.etag_accepts_strong = true; n1.etag_accepts_weak = false",
+        "n1.new_scene_get_body_ref = #/components/schemas/Scene (the canonical Scene DTO)",
+        "n1.new_scene_get_etag = ['ETag']"
+      ],
+      "machine_guard_exercised": ["P06 E_ETAG_FORMAT", "P29 E_ETAG_MISSING", "P39 E_OVERLAY_METADATA_TARGET_MISSING", "P40 E_OVERLAY_HEADER_TARGET_MISSING"],
+      "residual": "NM-2 (the Scene DTO on the new GET is not pinned by the machine guard) - the correction itself is correct, the guard is incomplete",
+      "owner": "Codex (contract owner) / ClaudeCode-D0-Implement (checker)"
+    },
+    {
+      "id": "N2",
+      "title": "the machine contract's additive_paths omitted the new GET /api/v1/scenes/{id}",
+      "owner_correction": "the contract now declares additive_paths (7) and additive_operations (8) that match the overlay exactly, including the new GET on the existing Scene path",
+      "verdict": "RESOLVED",
+      "independent_recomputation": [
+        "n2.overlay_operations = 8 (path, method) pairs; n2.overlay_paths = 7",
+        "n2.contract_additive_operations_match = true; n2.contract_additive_paths_match = true",
+        "n2.scene_path_exists_in_canonical = true and n2.scene_get_not_in_canonical = true, so the new GET is an addition and never a replacement"
+      ],
+      "machine_guard_exercised": ["P09 E_ADDITIVE_OPERATIONS", "P10 E_ADDITIVE_PATHS", "P27 E_ADDITIVE_SURFACE", "P28 E_ADDITIVE_SURFACE"],
+      "residual": null
+    },
+    {
+      "id": "N3",
+      "title": "the overlay marked only 2 of the 7 reuse paths as V1-usable",
+      "owner_correction": "metadata_only became a per (path, method) map covering all 7 reuse paths and all 8 reuse methods with exactly two allowlisted x- keys",
+      "verdict": "RESOLVED",
+      "independent_recomputation": [
+        "n3.annotation_count = 8; n3.all_targets_exist = true; n3.all_keys_allowlisted = true; n3.no_collision = true",
+        "n3.contract_reuse_paths_match_overlay = true",
+        "canonical x-product-version values were read back for all 8 targets: V1 for jobs/{id} GET, jobs/{id}/cancel POST, shots POST, shots/{id} GET and PUT; V2 for scenes GET, scenes/detect POST and scenes/{id} PUT (unchanged by the overlay)"
+      ],
+      "machine_guard_exercised": ["P07 E_OVERLAY_METADATA_KEY", "P08 E_REUSE_METADATA", "P30 E_OVERLAY_METADATA_VALUE", "P32 E_OVERLAY_METADATA_VALUE", "P38 E_OVERLAY_METADATA_COLLISION", "P39 E_OVERLAY_METADATA_TARGET_MISSING"],
+      "residual": null
+    },
+    {
+      "id": "N4",
+      "title": "ShotFrameRef kept an unreachable anyOf null branch next to a sibling type:integer",
+      "owner_correction": "the candidate ShotFrameRef carries plain integer source_pts / time_base_num / time_base_den with minimum 1 on both timebases and time_basis pinned to decoded_pts; the canonical FrameRef is untouched",
+      "verdict": "RESOLVED",
+      "independent_recomputation": [
+        "n4.same_property_set = true; n4.same_required_set = true (identical to the canonical FrameRef)",
+        "n4.pts_fields: source_pts {type integer, no anyOf, no minimum}, time_base_num {type integer, minimum 1}, time_base_den {type integer, minimum 1}; the canonical FrameRef still carries its anyOf null branches (canonical frozen, correct)",
+        "n4.shot_time_basis = {const: decoded_pts} narrowing the canonical enum [sample_target, decoded_pts]",
+        "n4.retained_frame_count = 4; n4.retained_frames_valid = true under jsonschema 4.23.0 (the four retained live-15 frame references)"
+      ],
+      "machine_guard_exercised": ["P11 E_FRAME_REF_CONSTRAINT", "P12 E_FRAME_REF_CONSTRAINT", "P34 E_CANONICAL_ALIAS"],
+      "residual": "the candidate does not require source_pts >= 0 (the canonical FrameRef does not either); a negative PTS stays schema-legal in both, so this is a canonical-wide observation and not a 1.1.1 regression"
+    },
+    {
+      "id": "N5",
+      "title": "the bilingual evidence -> canonical Domains mapping had no pinned language, ordering or entry rule",
+      "owner_correction": "the machine contract now pins canonical_domain_mapping: language order, item order, entry serialization, refs, source fields, unknowns, human domains, prompt text and a worked example",
+      "verdict": "RESOLVED_WITH_RESIDUAL",
+      "independent_recomputation": [
+        "n5.example_recomputed reproduces the owner example byte for byte (compact UTF-8, sorted keys, ensure_ascii=False, allow_nan=False); n5.example_matches_rule = true",
+        "n5.example_key_order = [kind, lang, ref, text] for both entries",
+        "the rule is implementable for the other domains too: n5.scene_example_derived, n5.action_example_derived and n5.unknown_example_derived were derived by the reviewer from the same rule",
+        "the empty-language rule (skip only exactly empty strings), the no-translation rule, the no-trim / no-deduplication rule and the raw-preservation rule are stated in the machine contract and were read back verbatim",
+        "human domain semantics: n5.human_domains_rule forbids generating or overwriting user_evidence / creative_intent and forces merge through explicit adoption with human locks taking precedence; the canonical Domains DTO carries observation/inference/user_evidence/creative_intent/unknowns as string[] (no language slot), which is exactly why one serialized JSON string per language is required",
+        "prompt text: summary.zh -> text_zh and summary.en -> text_en as exact copies, missing language stays empty, no translation"
+      ],
+      "machine_guard_exercised": ["P03 E_DOMAIN_MAPPING", "P04 E_DOMAIN_MAPPING"],
+      "residual": "NM-5 (the rule prose contradicts itself on the key order and the checker's key-order constant is dead code) and NM-6 (the recomputation covers only the character domain)",
+      "owner": "Codex (contract owner)"
+    },
+    {
+      "id": "N6",
+      "title": "the hashed field names time_base_num/time_base_den mapped onto tb_num/tb_den only inside the migration text",
+      "owner_correction": "the contract now declares scene_hash.fields (11) and a complete column_mapping (11) with an explicit serialization rule",
+      "verdict": "RESOLVED_WITH_RESIDUAL",
+      "independent_recomputation": [
+        "n6.mapping_covers_fields = true; all 11 aliases resolve: scene_revision.media_ref_id / source_sha256 (+ legacy media_ref.sha256) / version / start_pts / end_pts / origin_pts / tb_num / tb_den / editor, scene_revision_meta.time_basis, scene_revision_meta.verified",
+        "n6.sql_call_site_argument_count = 11 and the call site passes s.media_ref_id, m.sha256, s.version, s.start_pts, s.end_pts, s.origin_pts, s.tb_num, s.tb_den, s.editor, 'unverified', 0 - i.e. exactly the declared field order",
+        "independent fixture hash (reviewer built, reviewer hashed): {\"editor\":\"algorithm\",\"end_pts\":122880,\"media_ref_id\":\"media-001\",\"media_sha256\":\"b*64\",\"origin_pts\":0,\"revision\":3,\"start_pts\":0,\"time_base_den\":12288,\"time_base_num\":1,\"time_basis\":\"decoded_pts\",\"verified\":true} -> sha256 91133a6cdfc93456e2bc7d53c68eec9ad1a0faf5bd0e05b84b95dbafe0d9f788 -> etag \"scene:scene-rev-001:91133a6cdfc93456e2bc7d53c68eec9ad1a0faf5bd0e05b84b95dbafe0d9f788\", which matches the frozen strong tag pattern",
+        "n6.verified_json_type = bool (the SQLite 0/1 -> JSON false/true conversion is what makes the hash reproducible)",
+        "n6.hash_function_defined_in_package = false: the DDL of lvw_scene_hash is NOT part of the frozen package (the migration only says 'register deterministic lvw_scene_hash(11args) before this transaction'), so the hash can only be verified against the declared prose rule, never against a shipped function"
+      ],
+      "machine_guard_exercised": ["none that covers the unpinned aliases - see NM-1"],
+      "residual": "NM-1 (the checker pins only 3 of the 11 aliases and never compares the SQL call-site argument order)",
+      "owner": "Codex (contract owner)"
+    }
+  ],
+  "new_findings": [
+    {
+      "id": "NM-1",
+      "severity": "Major",
+      "kind": "checker guard gap / false green",
+      "title": "the N6 guard pins only 3 of the 11 scene-hash column aliases and never checks the SQL call-site argument order",
+      "file": "tools/verify_v1_plan.py",
+      "location": "check_scene_hash_column_mapping (lines 2073-2119); FROZEN_SCENE_HASH_COLUMN_ALIASES (491-494); FROZEN_SCENE_HASH_REVISION_ALIAS (495)",
+      "trigger": "a candidate contract renames one of the 8 unpinned column aliases, or the candidate migration permutes the 11 arguments of the lvw_scene_hash() call site",
+      "expected": "every one of the 11 hashed field names is bound to its DDL column, and the SQL call-site argument order is compared with scene_hash.fields",
+      "actual": "only time_base_num -> scene_revision.tb_num, time_base_den -> scene_revision.tb_den and revision -> scene_revision.version are pinned; the other 8 aliases are only checked for key presence, and the SQL call-site argument order is never compared with the field list at all",
+      "reproduction": "probe P01 (contract column_mapping.media_sha256 -> 'scene_revision.media_ref_id', fences re-frozen) and probe P02 (migration lvw_scene_hash(s.end_pts, s.start_pts, ...) instead of (s.start_pts, s.end_pts, ...), fences re-frozen): both runs exit 0 with 'RESULT: PASS' and a stdout byte identical to the unmodified control run (sha256 9ae799f05a732ddffb57c2049acef8ae071e9d132990d5b0c6c0aa3d08a2965b)",
+      "impact": "exactly the harm N6 named: a port that hashes a different column or a permuted argument order produces a silently incompatible scene hash and ETag, and the D0 machine gate reports PASS",
+      "evidence": "checks/probe-results.json (P01, P02); checks/probe-run.log; checks/recompute-results.json n6.*",
+      "owner": "ClaudeCode-D0-Implement (checker) - a code fix must go back to the implementer, not to the reviewer",
+      "note": "the current owner artefacts are correct (n6.sql_call_site_field_order_ok = true, all 11 aliases resolve); the defect is that the machine guard does not protect them"
+    },
+    {
+      "id": "NM-2",
+      "severity": "Major",
+      "kind": "checker guard gap / false green",
+      "title": "the canonical Scene DTO on the new GET /api/v1/scenes/{id} is not machine guarded, so the M1 remedy can regress silently",
+      "file": "tools/verify_v1_plan.py",
+      "location": "check_overlay_additive (1525-1613) and check_overlay_merge (1863-1952)",
+      "trigger": "the overlay's new GET /api/v1/scenes/{id} 200 body is changed from the canonical Scene DTO to another candidate component (for example MultiShot_SceneRevisionInfo)",
+      "expected": "the new Scene GET 200 body must be #/components/schemas/Scene, because keeping the canonical Scene on /scenes/{id} is the whole M1 remedy (the design 1.1 review recorded it as evidence C02/C03)",
+      "actual": "the checker only verifies that every component the overlay references exists; it never pins the Scene DTO on the new GET. The overlay can therefore make /api/v1/scenes/{id} return a SceneRevision shaped payload - the exact canonical/candidate divergence the 1.0 audit called Fatal (F1/M1) - and still pass",
+      "reproduction": "probe P05 (overlay add_paths['/api/v1/scenes/{id}']['get'].responses['200'] body data ref -> #/components/schemas/MultiShot_SceneRevisionInfo, fences re-frozen): exit 0, 'RESULT: PASS', stdout byte identical to the control run",
+      "impact": "the design 1.1 remedy for the canonical Scene (M1) has no machine protection in the D0 packet; only a human reading the overlay would notice",
+      "evidence": "checks/probe-results.json (P05); checks/recompute-results.json n1.new_scene_get_body_ref (correct in the current overlay)",
+      "owner": "ClaudeCode-D0-Implement (checker)"
+    },
+    {
+      "id": "NM-3",
+      "severity": "Major",
+      "kind": "malformed input handling",
+      "title": "malformed candidate input escapes as an uncaught traceback with an empty stdout instead of a deterministic finding",
+      "file": "tools/verify_v1_plan.py",
+      "location": "check_overlay_merge line 1892 (metadata.items()) and line 1913 (add_headers.items()); check_canonical_compatibility line 1509 (jsonschema validator on the retained frames); check_contract_and_schema line 1200 (metaschema check)",
+      "trigger": "overlay.metadata_only or overlay.add_response_headers is a JSON list instead of an object; or the candidate schema carries a syntactically invalid regular expression in a 'pattern' (for example '([unclosed')",
+      "expected": "a deterministic E_* finding on stdout with exit 1, or a clean INPUT_ERROR with exit 2",
+      "actual": "uncaught AttributeError ('list' object has no attribute 'items') and re.error tracebacks on stderr, stdout empty, exit code 1",
+      "reproduction": "probe P22 (metadata_only = ['/api/v1/scenes']), probe P23 (add_response_headers = ['/api/v1/scenes/{id}']), probe P24 (ShotFrameRef.sha256.pattern = '([unclosed'): all three exit 1 with an empty stdout and a Python traceback",
+      "impact": "the exit code stays non-zero so the run is fail-closed on the exit code, but the tool's documented contract ('exit 1 = at least one deterministic check failed') is violated: an automated gate that reads stdout finds no finding at all, and the traceback can be misread as an environment failure instead of a rejected candidate. E_SCHEMA_META does not rescue the case: JSON Schema 'format': 'regex' is annotation-only, so check_schema() does not validate the pattern",
+      "evidence": "checks/probe-results.json (P22, P23, P24); checks/probe-run.log",
+      "owner": "ClaudeCode-D0-Implement (checker)"
+    },
+    {
+      "id": "NM-4",
+      "severity": "Minor",
+      "kind": "transparency / degraded evidence",
+      "title": "degraded validation is never disclosed: Report.note() entries are collected and dropped, and the run does not state which D0 pin it verified",
+      "file": "tools/verify_v1_plan.py",
+      "location": "Report.note (533-534); report.note call sites 1040, 1204, 1496, 1500; main (2655-2696) prints only report.errors",
+      "trigger": "the optional jsonschema dependency is not importable, or the retained frame reference sample is absent, or the execution-control coordinate state is not WAIT_HUMAN",
+      "expected": "the run states which validations actually executed (metaschema check, retained-frame instance probe) and which D0 packet manifest pin it verified against",
+      "actual": "E_SCHEMA_META_SKIPPED, E_FRAME_REF_SAMPLE_SKIPPED and E_COORDINATE_NOTE are collected in Report.notes and never printed; the stdout of a degraded run is byte identical to a full run (sha256 9ae799f05a732ddffb57c2049acef8ae071e9d132990d5b0c6c0aa3d08a2965b in all three cases)",
+      "reproduction": "probe P25 (--frame-sample points at a nonexistent path) and probe P26 (a shadow jsonschema.py that raises ImportError is put first on PYTHONPATH): both exit 0 with a stdout byte identical to the positive control P00",
+      "impact": "the D0 gate evidence is exactly 'checker exit 0 plus the test log', and the tool offers no way to tell a full run from a degraded one; a future host without jsonschema would produce evidence that is indistinguishable from, and weaker than, this one",
+      "evidence": "checks/probe-results.json (P00, P25, P26 - stdout_sha256 identical)",
+      "owner": "ClaudeCode-D0-Implement (checker)",
+      "note": "honest note on the optional fallback: in THIS environment jsonschema 4.23.0 is importable (verified by the reviewer, recompute-results.json n4.probe_engine), so the candidate's own evidence did run the full metaschema check and the full retained-frame instance probe. No validation was omitted in the candidate run, and this finding is not a claim that a product gate was granted."
+    },
+    {
+      "id": "NM-5",
+      "severity": "Minor",
+      "kind": "owner design text self-contradiction",
+      "title": "the N5 entry serialization rule names one key order, says 'sorted keys', and the frozen example uses a third order",
+      "file": "plans/v1-multishot-contract.json",
+      "location": "canonical_domain_mapping.entry_serialization: 'Each nonempty language value produces one string: compact UTF-8 JSON object, sorted keys, ensure_ascii=False, allow_nan=False. Keys kind, ref, lang, text. ...'",
+      "trigger": "an implementer follows the enumerated key order 'kind, ref, lang, text' instead of the 'sorted keys' instruction",
+      "expected": "one unambiguous key order in the machine contract",
+      "actual": "the same sentence says 'sorted keys' and then enumerates 'kind, ref, lang, text'; the frozen example uses the sorted order 'kind, lang, ref, text'. The checker defines FROZEN_DOMAIN_ENTRY_KEYS = ('kind','ref','lang','text') at line 431 and never references it, so the contradiction is never detected - only the example is",
+      "reproduction": "probe P03 (rewrite the example with the prose key order, fences re-frozen): exit 1 with E_DOMAIN_MAPPING, which proves the example - not the prose - is the authority",
+      "impact": "two legitimate readings of the machine contract produce different bytes and therefore different canonical Domains entries and different hashes; the example removes the ambiguity only for an implementer who freezes their own example",
+      "evidence": "checks/recompute-results.json n5.rule_text_contradiction, n5.example_key_order; checks/probe-results.json (P03)",
+      "owner": "Codex (contract owner)"
+    },
+    {
+      "id": "NM-6",
+      "severity": "Minor",
+      "kind": "checker guard gap",
+      "title": "the N5 example recomputation covers only the character domain and ignores the declared observation/inference routing",
+      "file": "tools/verify_v1_plan.py",
+      "location": "check_canonical_domain_mapping (2001-2070), the recomputation at 2053-2069",
+      "trigger": "a scene, action or unknown entry is serialized with the wrong kind or ref, or an item is routed to the wrong domain (observation vs inference)",
+      "expected": "the pinned rule is verified for every domain kind the contract declares (character, scene, action, unknown)",
+      "actual": "the recomputation hard-codes kind='character' and resolves only the character ref and source field; the example's own 'domain': 'observation' field is never read, and the scene/action/unknown refs and source fields are only compared as strings",
+      "reproduction": "reviewer recomputation of the scene/action/unknown entries from the same rule (checks/recompute-results.json n5.scene_example_derived / n5.action_example_derived / n5.unknown_example_derived) shows the rule is implementable, but no machine check would catch a divergence there",
+      "impact": "the N5 guard proves one worked example, not the rule it belongs to",
+      "evidence": "checks/recompute-results.json n5.*; tools/verify_v1_plan.py:2053-2069",
+      "owner": "ClaudeCode-D0-Implement (checker)"
+    },
+    {
+      "id": "NM-7",
+      "severity": "Minor",
+      "kind": "receipt accuracy",
+      "title": "the implementation receipt's stated verify_pack result contradicts the log it hash-binds",
+      "file": "reports/v1-redesign/d0-worker/design111/implementation-receipt-1.1.1.json",
+      "location": "supplementary_read_only_verifications[0].result = 'passed 7408, failed 0' (line 148); the same prose in implementation-receipt-1.1.1.md line 71",
+      "trigger": "a reader takes the receipt's stated result at face value",
+      "expected": "the stated result matches the log the receipt binds by sha256",
+      "actual": "the receipt says 'passed 7408' while the bound log reports/v1-redesign/d0-worker/design111/logs/verify_pack.stdout.log (sha256 c0d2ebec64a86d1f2de344d347cc96ba4c3ee8c2e0bc7a569444ebcb6885e4e9, the digest the receipt itself lists) says 7475. The reviewer's independent run of verify_pack on the exact candidate tree reports 7476 / 0",
+      "impact": "immaterial to the D0 gate (verify_pack is not a stage-control command and the hash-bound log is present and correct), but the 7408 figure is stale (it is the 1.1 receipt's number) and the receipt is the artefact a reader trusts. The 7475 vs 7476 delta is explained by the MANIFEST.sha256 line count: 4818 of the 7476 checks are one per manifest line, so a one-line difference at run time accounts for it",
+      "evidence": "reports/v1-redesign/d0-worker/design111/implementation-receipt-1.1.1.json:148; checks/verify_pack.stdout.log (reviewer run: passed 7476, failed 0); checks/verify_pack.pristine.stdout.log",
+      "owner": "ClaudeCode-D0-Implement (receipt)"
+    },
+    {
+      "id": "NM-8",
+      "severity": "Minor",
+      "kind": "evidence binding",
+      "title": "the D0 packet manifest pin is CLI-overridable and the run never records which pin it verified",
+      "file": "tools/verify_v1_plan.py",
+      "location": "build_parser '--d0-packet-manifest-sha256' default (2485-2486); ctx.d0_manifest_expected = args.d0_packet_manifest_sha256 (2570)",
+      "trigger": "a run is executed with an overridden pin, or a reader wants to confirm which pin a PASS was produced under",
+      "expected": "the run records the pin it verified against",
+      "actual": "the default is the hardcoded owner digest 04d3bfb4... (independently confirmed by the reviewer to equal the owner supplied manifest digest), and the frozen D0 commands in stage-control.json carry no override, so the gate run uses the default. But the checker prints no pin, so a PASS produced under an overridden pin is indistinguishable from a default-pin PASS. The implementation's own synthetic suite has to override the pin (a synthetic tree can never satisfy the default), so the default pin is only exercised by the two tests that run against the real root",
+      "impact": "low for the current candidate (the pin value, the two stale-pin negatives and the packet inventory were all independently reproduced by the reviewer), but the evidence does not self-describe",
+      "evidence": "checks/pin-stale-1.1.stdout.log (E_D0_PACKET_MANIFEST_PINNED), checks/pin-stale-1.0.stdout.log, tools/verify_v1_plan.py:2485",
+      "owner": "ClaudeCode-D0-Implement (checker)"
+    }
+  ],
+  "totals": {
+    "n1_n6_resolved": 4,
+    "n1_n6_resolved_with_residual": 2,
+    "n1_n6_unresolved": 0,
+    "new_fatal": 0,
+    "new_major": 3,
+    "new_minor": 6
+  },
+  "not_assessed_here": [
+    "No product gate, product acceptance, Stage PASS or human signature is assessed or implied. The product stays at R1 / WAIT_HUMAN; the 621b1bf experience signature is still absent; the samples stay NOT_MATERIALIZED_NOT_FROZEN.",
+    "This offline D0 packet is not product Gate 0.",
+    "The original 22 findings of the first D0-B review were resolved at design level by the design 1.1 authority and the prior independent design 1.1 review. This review re-verified the preserved obligations at the surfaces they changed (the canonical Scene alias, the canonical V2 batch body, the canonical FrameRef narrowing, the old R1 packet manifest, the canonical contract hashes, the frozen denominators, the sample allocation, the budget arithmetic) and did not relaunch the whole original design audit.",
+    "No model inference, GPU, media/FFmpeg, service, browser, network, install, provider switch, product database or push was performed. The only SQL executed was an in-memory SQLite run of the canonical contracts/storage.sql DDL performed by the existing tools/verify_pack.py in a temporary copy; the candidate migration SQL was parsed as text and never executed.",
+    "The provider/model identity of the implementer is self-reported and was NOT independently verified.",
+    "The retained-frame instance probe, the metaschema probe and the effective-openapi merge are design checks; no runtime header, no product response and no real sample were produced or observed."
+  ]
+}

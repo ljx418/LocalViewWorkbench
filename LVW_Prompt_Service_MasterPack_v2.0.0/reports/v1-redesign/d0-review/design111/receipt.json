@@ -1,0 +1,245 @@
+{
+  "schema_version": "lvw.independent-review-receipt/1",
+  "kind": "D0_B_REVIEW_INDEPENDENT_CODE_AUDIT_AND_DESIGN111_RECHECK",
+  "stage_id": "V1-D0",
+  "workpack_id": "D0-B-REVIEW",
+  "status": "READY_FOR_REVIEW",
+  "product_execution_authorized": false,
+  "product_actions": 0,
+  "product_full_checkpoints": 0,
+  "model_gpu_runtime_budget_used": 0,
+  "human_signoff": null,
+  "product_pass": false,
+  "stage_pass_claimed": false,
+  "self_certification": false,
+  "orchestration_context": {
+    "coordinator_terminal_handle": "term_192c2ec6-ba08-4100-ac4c-6b603e2b82d0",
+    "reviewer_terminal_handle": "term_888c6cab-c150-4f7d-be16-55466daed9e4",
+    "orca_terminal_handle_env": "term_888c6cab-c150-4f7d-be16-55466daed9e4",
+    "task_id": "task_7187786f1e40",
+    "dispatch_id": "ctx_3000571bd72a",
+    "orca_worktree_id": "11d8b144-0706-426e-9d57-6360680719fb::\\\\wsl.localhost\\Ubuntu-24.04\\home\\administrator\\orca\\workspaces\\LocalViewWorkbench\\lvw-v1-d0-review",
+    "review_worktree": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review",
+    "review_branch": "ljx418/lvw-v1-d0-review",
+    "note": "reports/v1-redesign/orca/lvw-v1-d0-review.launch.json records an EARLIER dispatch of the same worktree (dispatchId ctx_af3d3afc0571, taskId task_3a5a455c69c2, terminal term_5671f77b-4db0-4f65-ab26-be6d9406d259 - the design 1.1 review). The context of THIS review is the one listed above."
+  },
+  "candidate_identity": {
+    "code_candidate_commit": "f7956941992a0c467384b5dc9c63133f95152f41",
+    "authority_ancestor_commit": "743e028474909be02326facd6f14ca0ac26aa56f",
+    "authority_ancestor_subject": "docs: close six design audit residuals and seal V1 D0 1.1.1 authority",
+    "d0_payload_manifest_sha256": "04d3bfb4af3c2d7be68e494a6d59624a96051a0ebf28e81d6a0367aa32aa6710",
+    "candidate_diff_vs_authority": "55 files, +6519/-0; only tools/verify_v1_plan.py, tools/test_verify_v1_plan.py and reports/v1-redesign/d0-worker/** (implementation receipts and raw logs). No contract, plan, doc, governance, manifest or product source was changed by the candidate.",
+    "ancestry_verified_by_reviewer": "git merge-base --is-ancestor 743e028 f795694 -> true; the candidate is a descendant of the 1.1.1 authority",
+    "source_loading": "git merge --no-ff f7956941992a0c467384b5dc9c63133f95152f41 into the clean review worktree; clean merge, no conflict, no manual edit of any authority artefact",
+    "review_merge_commit": "471bf9509086021553c6ca360080a54767d5c3d0",
+    "review_merge_parents": ["9d3fca9c41ba7bc005c9c5c1df999e35a3b158ef", "f7956941992a0c467384b5dc9c63133f95152f41"],
+    "tree_identity_note": "git diff --name-only f795694 471bf95 is empty: the loaded merge reproduces the candidate tree byte for byte",
+    "parent_worktree_touched": false,
+    "implementation_worktree_touched": false,
+    "candidate_code_digests_recomputed_by_reviewer": {
+      "tools/verify_v1_plan.py": "dbdee55bc92e865b5d9aa351cb10498edc4f69f75ee9eebfc78862146688905d",
+      "tools/test_verify_v1_plan.py": "1343d578c801029048000a84845d81b05bd85e90a787552088d829239e9f4580",
+      "agree_with_implementation_receipt": true
+    },
+    "provider_identity": "self-reported by the implementation window, NOT independently verified; it is not a product model and made no product inference call"
+  },
+  "source_fence": {
+    "before": "checks/hash-fence-before.txt",
+    "after": "checks/hash-fence-after.txt",
+    "files_fenced": 29,
+    "result": "IDENTICAL before and after the audit (diff empty)",
+    "covered": "the 24-file authority spec manifest inventory, the 10-file D0 payload inventory, the two candidate code files, the D0 stage control, the spec manifest, the D0 payload manifest and the old R1 payload manifest",
+    "authority_input_hashes": "all 24 fenced authority inputs were recomputed by the reviewer and equal the digests the implementation receipt lists, digest for digest",
+    "frozen_inventories_recomputed": {
+      "spec_fence_files": 24,
+      "spec_fence_closed": "the owner spec-manifest.json lists exactly the 24 frozen files; a missing entry, an extra entry and a wrong count are findings (E_SPEC_FENCE_INCOMPLETE / E_SPEC_FENCE_EXTRA_ENTRY / E_SPEC_FENCE_COUNT)",
+      "d0_payload_files": 10,
+      "d0_payload_closed": "the D0 packet manifest lists exactly the 10 frozen packet files; an extra entry, a missing entry, an unlisted file on disk and a missing file are findings",
+      "hardcoded_owner_pin": "FROZEN_D0_PACKET_MANIFEST_SHA256 = 04d3bfb4af3c2d7be68e494a6d59624a96051a0ebf28e81d6a0367aa32aa6710, equal to the owner supplied manifest digest the reviewer recomputed from .agent-governance/stages/V1-D0/PAYLOAD_MANIFEST.sha256"
+    },
+    "immutable_hashes_recomputed": {
+      "canonical_contracts": "contracts/openapi.json cd9df1bd94a3c4c27476608e4616e9d73e0b64da653973b1225efd902e0eef31, contracts/lvw.schema.json 4c0e3383bfa8aa69dfabd323ecb0697ee4d4ddfa51c154eb15baf7107750f718, contracts/storage.sql a2204821fe77225dacb515e761bccfdcb42e42d3296ec8ba26354b60f17029f8 - all equal to legacy-gates-before-change.json",
+      "old_R1_packet_manifest": "38ca0ae572cc74a412a411635e04f21bce3fdcd29d51456fde677f188dd9f307 - equal to legacy-gates-before-change.json",
+      "old_R1_packet_files": "every file listed by .agent-governance/stages/R1/PAYLOAD_MANIFEST.sha256 hashes as declared"
+    },
+    "write_scope_respected": "only reports/v1-redesign/d0-review/design111/** was written; git status shows no other change and no owner file was touched"
+  },
+  "mandatory_runs": {
+    "isolation": "fresh TemporaryDirectory copy of the candidate tree for the checker run and a separate fresh pytest root; the source tree was never used as a writable root",
+    "commands": [
+      {
+        "command": "python3 -B tools/verify_v1_plan.py",
+        "cwd": "<temp copy>/pkg",
+        "exit_code": 0,
+        "stdout_log": "checks/mandatory-checker.stdout.log",
+        "stderr_log": "checks/mandatory-checker.stderr.log",
+        "exit_log": "checks/mandatory-checker.exit.log",
+        "stdout_sha256": "9ae799f05a732ddffb57c2049acef8ae071e9d132990d5b0c6c0aa3d08a2965b",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "exit_log_sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "byte_identical_to_the_candidate_log": "yes - checks/mandatory-checker.stdout.log is byte identical to reports/v1-redesign/d0-worker/design111/logs/verify_v1_plan.stdout.log (same sha256)",
+        "result": "RESULT: PASS (V1=29 V2=38 V3=47; MS01-MS08 once and NOT_RUN; legacy prefix intact; DAG acyclic; parent deadline 450*n+90<=5490; checkpoint 65+ 7=72 actions / 21600 s; no human signature claimed)"
+      },
+      {
+        "command": "python3 -B -m pytest tools/test_verify_v1_plan.py -q",
+        "cwd": "<temp copy>/pkg",
+        "exit_code": 0,
+        "stdout_log": "checks/mandatory-pytest.stdout.log",
+        "stderr_log": "checks/mandatory-pytest.stderr.log",
+        "exit_log": "checks/mandatory-pytest.exit.log",
+        "stdout_sha256": "718bc5fe30f060220ae9736305f6a1a4acf718d41aa29952a42f94e2a4efcbdf",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "exit_log_sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "result": "164 passed in 19.36s",
+        "count_matches_candidate_claim": true,
+        "comparison_to_the_candidate_log": "identical except for the wall-clock line ('in 19.36s' vs the candidate's 'in 23.65s'); the 164 test outcomes and the three progress lines are the same. The candidate log's own sha256 be7edb169a94846f99da6e6fa0671da631cad3249de79fe2696742d46e1d44a5 was independently recomputed and matches the digest the implementation receipt lists."
+      },
+      {
+        "command": "python3 -B tools/verify_governance.py",
+        "exit_code": 0,
+        "stdout_log": "checks/verify_governance.stdout.log",
+        "stdout_sha256": "e8927ccbca17c63e6ca696c254e5e232add8617ec564f840df4907579089d7cf",
+        "byte_identical_to_the_candidate_log": true,
+        "result": "errors [], failed 0"
+      },
+      {
+        "command": "python3 -B tools/verify_pack.py",
+        "exit_code": 0,
+        "stdout_log": "checks/verify_pack.stdout.log",
+        "stdout_sha256": "6531bab4bb2419e798cfbda2416220bd7e84054a094bc676324512c558986a89",
+        "result": "passed 7476, failed 0",
+        "note": "the candidate's hash-bound log says 7475 and its receipt prose says 7408; see finding NM-7. 4818 of the 7476 checks are one per MANIFEST.sha256 line, which accounts for a one-line count difference between run times. verify_pack is a supplementary read-only document check, not a stage-control command."
+      }
+    ],
+    "counts": {
+      "mandatory_checker_exit": 0,
+      "mandatory_pytest_exit": 0,
+      "pytest_tests_collected": 164,
+      "pytest_passed": 164,
+      "pytest_failed": 0,
+      "pytest_skipped": 0,
+      "independent_probes_total": 43,
+      "independent_probes_rejected_with_the_expected_code": 34,
+      "independent_probes_false_green_pass": 3,
+      "independent_probes_degraded_but_pass": 2,
+      "independent_probes_crashed_without_a_finding": 3
+    }
+  },
+  "independent_probes": {
+    "harness": "checks/probes.py",
+    "run_log": "checks/probe-run.log",
+    "machine_readable": "checks/probe-results.json",
+    "method": "every probe runs the real checker CLI on a fresh TemporaryDirectory copy of the candidate tree; the owner tree is never written; each probe is run either with the fences re-frozen (so only a semantic rule can still reject it) or with the fences left alone (so a rejection proves only that the frozen hash noticed). The two modes are what let the review separate 'rejected by the frozen hash' from 'rejected by an actual rule'.",
+    "positive_controls": ["P00 unmodified copy passes", "the mandatory checker run reproduces the candidate stdout byte for byte", "the four retained live-15 frame references validate as ShotFrameRef under jsonschema 4.23.0"],
+    "hash_only_rejections": [
+      "P20 fenced document edited without re-freezing -> E_SPEC_FENCE_DRIFT",
+      "P21 canonical /api/v1/jobs/batch body changed -> E_CONTRACT_DRIFT (the frozen canonical contract hash) alongside E_V2_BATCH_BODY_DRIFT"
+    ],
+    "semantic_rejections_proven": [
+      "P03/P04 N5 E_DOMAIN_MAPPING (the example is recomputed, not string compared)",
+      "P06 N1 E_ETAG_FORMAT, P29 N1 E_ETAG_MISSING, P39/P40 N1 E_OVERLAY_METADATA_TARGET_MISSING / E_OVERLAY_HEADER_TARGET_MISSING",
+      "P07/P08/P30/P31/P32/P38/P39 N3 E_OVERLAY_METADATA_KEY / E_REUSE_METADATA / E_OVERLAY_METADATA_VALUE / E_OVERLAY_METADATA_COLLISION",
+      "P09/P10/P27/P28 N2 E_ADDITIVE_OPERATIONS / E_ADDITIVE_PATHS / E_ADDITIVE_SURFACE",
+      "P11/P12 N4 E_FRAME_REF_CONSTRAINT, P34 E_CANONICAL_ALIAS",
+      "P13/P16/P17 the D0-CODE-M01 empty list family, the non-finite value rule and the checkpoint budget arithmetic",
+      "P14/P15/P19/P35/P37/P41/P42 the dropped dependency, the missing entity DTO, the forged adjudication, the dropped finding, the missing fenced file, the shrunk denominator and the sample total drift",
+      "P29/P30/P32/P33/P34/P36/P38/P39/P40 the missing/colliding/unauthorized target and key negatives for N1 and N3, the semantic-only V2 batch body drift, the CoreScene alias drift and the product coordinate drift"
+    ],
+    "false_greens_found": [
+      "P01 N6: a wrong column alias for an unpinned field -> exit 0 PASS",
+      "P02 N6: a permuted lvw_scene_hash argument list -> exit 0 PASS",
+      "P05 N1/M1: the new Scene GET returns a non canonical DTO -> exit 0 PASS"
+    ],
+    "degraded_but_passing": [
+      "P25 the retained frame sample is missing -> exit 0, stdout byte identical to the control",
+      "P26 jsonschema is not importable -> exit 0, stdout byte identical to the control"
+    ],
+    "crashes": [
+      "P22/P23 malformed overlay metadata -> uncaught AttributeError, empty stdout",
+      "P24 an invalid regular expression in the candidate schema -> uncaught re.error, empty stdout"
+    ],
+    "intentional_nonzero_note": "a probe that exits non-zero is EVIDENCE that the guard fired, not a failed review deliverable. The mandatory positive controls (the checker run and the 164 tests) both exited 0.",
+    "no_shared_markers": "each probe used its own TemporaryDirectory; nothing was cleaned by wildcard and no shared marker file was used; the owner tree was opened read only"
+  },
+  "independent_recomputation": {
+    "script": "checks/recompute.py",
+    "results": "checks/recompute-results.json",
+    "note": "the reviewer re-derived the N1-N6 conclusions with reviewer-owned code; tools/verify_v1_plan.py is never called from this script",
+    "covers": [
+      "N1: the strict overlay merge replayed by the reviewer - 38 canonical operations compared byte for byte, 0 mutated, 0 merge problems, the PUT 200 gains exactly ['ETag'], the request body and x-product-version are unchanged, the strong tag is accepted and the weak tag is refused",
+      "N2: the additive surface recomputed from the overlay (8 operations / 7 paths) and matched against the contract",
+      "N3: the 8 reuse annotations recomputed - every target exists, every key is allowlisted, no collision",
+      "N4: the ShotFrameRef shape compared with the canonical FrameRef and the 4 retained historical frame references validated as instances",
+      "N5: the domain example recomputed byte for byte and the scene/action/unknown entries derived by the reviewer from the same rule",
+      "N6: the 11 column aliases resolved against the DDL, the SQL call-site argument order checked against the field list, and an independent fixture hash recomputed (sha256 91133a6cdfc93456e2bc7d53c68eec9ad1a0faf5bd0e05b84b95dbafe0d9f788 -> \"scene:scene-rev-001:91133a6c...\" matching the frozen strong tag pattern)"
+    ]
+  },
+  "test_quality_assessment": {
+    "count": 164,
+    "exercises_the_production_path": true,
+    "how": "every test drives the real CLI through subprocess.run([sys.executable, '-B', CHECKER, '--root', ...]); no test calls the internal check functions directly, so the CLI entry point, the argument parsing and the exit codes are all covered",
+    "fixture_discipline": "the synthetic package tree is built under pytest tmp_path and the real owner tree is only copied; test_canonical_package_validates_read_only and test_checker_is_read_only hash the canonical files before and after the run and assert they are unchanged",
+    "owner_artefact_coverage": "the owner_copy fixture copies the real owner artefacts into a temporary directory, mutates one artefact and lets the real checker decide on that copy (8 such tests)",
+    "d0_code_m01_family": "the empty control list bypass is covered by behavioural negative tests (empty allowed_files, empty commands, empty forbidden_write_paths, empty review allowed_files), not by constant comparisons",
+    "weak_points_observed": [
+      "test_d0_packet_pin_is_the_owner_supplied_111_digest only compares a literal against a module constant; the behavioural companion (the stale 1.1 pin must fail) does carry the real weight",
+      "the synthetic suite must override --d0-packet-manifest-sha256, so the default hardcoded pin is exercised only by the tests that run against the real root",
+      "the suite mirrors the implementation's own guards, so it cannot reveal a guard that was never written - which is exactly what probes P01, P02 and P05 exposed"
+    ],
+    "verdict": "the suite is genuine, CLI-level and behaviour-driven; it is not a count-only artefact. Its weakness is coverage, not style: three semantically wrong packages (P01, P02, P05) pass the whole suite."
+  },
+  "findings_summary": {
+    "file": "reports/v1-redesign/d0-review/design111/findings.json",
+    "n1_n6": {"N1": "RESOLVED", "N2": "RESOLVED", "N3": "RESOLVED", "N4": "RESOLVED", "N5": "RESOLVED_WITH_RESIDUAL", "N6": "RESOLVED_WITH_RESIDUAL"},
+    "new": {"Fatal": 0, "Major": 3, "Minor": 6},
+    "new_finding_ids": ["NM-1", "NM-2", "NM-3", "NM-4", "NM-5", "NM-6", "NM-7", "NM-8"],
+    "code_fixes_route": "every NM finding that needs a code change goes back to the implementer (ClaudeCode-D0-Implement); the reviewer changed no code"
+  },
+  "limitations": [
+    "This is an offline design and tool review. It is not product acceptance, not product Gate 0, not a Stage PASS and not a human signature.",
+    "The product coordinate stays R1 / WAIT_HUMAN; the 621b1bf experience signature is still absent; the samples stay NOT_MATERIALIZED_NOT_FROZEN and the MS cases, the V1-M1 stage and R22 stay NOT_RUN.",
+    "The checker validates plan and contract STRUCTURE. It never runs product code, never opens the product database, never produces a runtime ETag header and never materializes a sample.",
+    "The candidate migration SQL was parsed as text only and never executed. The DDL that defines lvw_scene_hash is not part of the frozen package, so the scene hash could only be verified against the declared prose rule, never against a shipped function.",
+    "The effective OpenAPI was replayed in memory by the reviewer's own code; no effective OpenAPI document was generated or shipped.",
+    "jsonschema 4.23.0 was importable in this environment and the full metaschema check and the retained-frame instance probe therefore ran. On a host without jsonschema the checker degrades silently - see NM-4. The optional fallback was verified honestly and no omitted validation is reported as a product PASS.",
+    "The implementation's provider and model identity is self-reported and was not independently verified.",
+    "The supplementary verify_pack count differs by one from the candidate's log and by 68 from its receipt prose; the cause is explained (MANIFEST.sha256 line count) but it was not reproduced to the byte.",
+    "The 43 probes are a bounded independent selection, not an exhaustive enumeration of every input the checker accepts; the reviewer does not claim the remaining untested inputs are clean."
+  ],
+  "next_owner": "Codex, then the implementer for the NM code findings. The D0-B-REVIEW workpack produced review.md, findings.json and receipt.json; it did not modify any code, contract, plan, document, manifest or packet, did not merge to the parent and did not sign a Stage.",
+  "artifacts": [
+    "reports/v1-redesign/d0-review/design111/review.md",
+    "reports/v1-redesign/d0-review/design111/findings.json",
+    "reports/v1-redesign/d0-review/design111/receipt.json",
+    "reports/v1-redesign/d0-review/design111/checks/hash-fence-before.txt",
+    "reports/v1-redesign/d0-review/design111/checks/hash-fence-after.txt",
+    "reports/v1-redesign/d0-review/design111/checks/probes.py",
+    "reports/v1-redesign/d0-review/design111/checks/probe-run.log",
+    "reports/v1-redesign/d0-review/design111/checks/probe-results.json",
+    "reports/v1-redesign/d0-review/design111/checks/recompute.py",
+    "reports/v1-redesign/d0-review/design111/checks/recompute-results.json",
+    "reports/v1-redesign/d0-review/design111/checks/mandatory-checker.stdout.log",
+    "reports/v1-redesign/d0-review/design111/checks/mandatory-checker.stderr.log",
+    "reports/v1-redesign/d0-review/design111/checks/mandatory-checker.exit.log",
+    "reports/v1-redesign/d0-review/design111/checks/mandatory-pytest.stdout.log",
+    "reports/v1-redesign/d0-review/design111/checks/mandatory-pytest.stderr.log",
+    "reports/v1-redesign/d0-review/design111/checks/mandatory-pytest.exit.log",
+    "reports/v1-redesign/d0-review/design111/checks/verify_pack.stdout.log",
+    "reports/v1-redesign/d0-review/design111/checks/verify_pack.pristine.stdout.log",
+    "reports/v1-redesign/d0-review/design111/checks/verify_governance.stdout.log",
+    "reports/v1-redesign/d0-review/design111/checks/pin-stale-1.1.stdout.log",
+    "reports/v1-redesign/d0-review/design111/checks/pin-stale-1.0.stdout.log",
+    "reports/v1-redesign/d0-review/design111/checks/missing-input.stdout.log"
+  ],
+  "environment": {
+    "os": "Linux 6.18.40.1-microsoft-standard-WSL2 x86_64",
+    "python": "3.12.3",
+    "pytest": "8.4.2",
+    "jsonschema": "4.23.0",
+    "product_model": "none",
+    "product_provider": "none",
+    "product_provider_calls": 0,
+    "reviewer_model": "MiniMax-M3.1-Flash-Preview (the session environment identity, self-reported)"
+  },
+  "generated_at": "2026-11-11T18:20:53+08:00"
+}

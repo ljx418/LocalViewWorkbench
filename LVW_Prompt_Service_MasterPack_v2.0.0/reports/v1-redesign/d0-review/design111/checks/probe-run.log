@@ -1,0 +1,233 @@
+owner tree : /home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0
+checker    : /home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/tools/verify_v1_plan.py
+checker sha: dbdee55bc92e865b5d9aa351cb10498edc4f69f75ee9eebfc78862146688905d
+==============================================================================
+PROBE P00-positive-control  [fence=ON (semantic)]
+purpose : unmodified copy of the candidate tree must PASS
+exit    : 0
+stdout  : RESULT: PASS (V1=29 V2=38 V3=47; MS01-MS08 once and NOT_RUN; legacy prefix intact; DAG acyclic; parent deadline 450*n+90<=5490; checkpoint 65+ 7=72 actions / 21600 s; no human signature claimed) | NOTE: design 1.1.1 (N1-N6 owner corrections, still pending an independent recheck): additive surface 8 operations / 7 paths; reuse annotations 7 paths; strong ETag declared on 2 new GETs and 1 existing operation; spec fence 24 files; D0 payload inventory 10 files. | NOTE: this is a deterministic plan-structure check only; it is not product acceptance and not a Stage PASS.
+==============================================================================
+PROBE P01-n6-unpinned-alias-drift  [fence=ON (semantic)]
+purpose : N6: rename a NON pinned column alias (media_sha256 -> scene_revision.media_ref_id)
+exit    : 0
+stdout  : RESULT: PASS (V1=29 V2=38 V3=47; MS01-MS08 once and NOT_RUN; legacy prefix intact; DAG acyclic; parent deadline 450*n+90<=5490; checkpoint 65+ 7=72 actions / 21600 s; no human signature claimed) | NOTE: design 1.1.1 (N1-N6 owner corrections, still pending an independent recheck): additive surface 8 operations / 7 paths; reuse annotations 7 paths; strong ETag declared on 2 new GETs and 1 existing operation; spec fence 24 files; D0 payload inventory 10 files. | NOTE: this is a deterministic plan-structure check only; it is not product acceptance and not a Stage PASS.
+note    : the 11 alias mapping is only pinned for time_base_num/time_base_den/revision
+==============================================================================
+PROBE P02-n6-sql-argument-permutation  [fence=ON (semantic)]
+purpose : N6: permute the lvw_scene_hash call site arguments in the candidate migration
+exit    : 0
+stdout  : RESULT: PASS (V1=29 V2=38 V3=47; MS01-MS08 once and NOT_RUN; legacy prefix intact; DAG acyclic; parent deadline 450*n+90<=5490; checkpoint 65+ 7=72 actions / 21600 s; no human signature claimed) | NOTE: design 1.1.1 (N1-N6 owner corrections, still pending an independent recheck): additive surface 8 operations / 7 paths; reuse annotations 7 paths; strong ETag declared on 2 new GETs and 1 existing operation; spec fence 24 files; D0 payload inventory 10 files. | NOTE: this is a deterministic plan-structure check only; it is not product acceptance and not a Stage PASS.
+note    : the SQL call site argument order is never compared with scene_hash.fields
+==============================================================================
+PROBE P03-n5-example-rule-text-key-order  [fence=ON (semantic)]
+purpose : N5: rewrite the example with the key order the rule text names (kind,ref,lang,text)
+exit    : 1
+stdout  : E_DOMAIN_MAPPING: the canonical domain example entries ['{"kind":"character","ref":"actor1","lang":"zh","text":"红衣人物"}', '{"kind":"character","ref":"actor1","lang":"en","text":"person in red"}'] do not match the deterministic serialization ['{"kind":"character","lang":"zh","ref":"actor1","text":"红衣人物"}', '{"kind":"character","lang":"en","ref":"actor1","text":"person in red"}'] | RESULT: FAIL (1 finding(s))
+==============================================================================
+PROBE P04-n5-example-text-drift  [fence=ON (semantic)]
+purpose : N5: change the Chinese text of the example entry (red -> blue)
+exit    : 1
+stdout  : E_DOMAIN_MAPPING: the canonical domain example entries ['{"kind":"character","lang":"zh","ref":"actor1","text":"蓝衣人物"}', '{"kind":"character","lang":"en","ref":"actor1","text":"person in red"}'] do not match the deterministic serialization ['{"kind":"character","lang":"zh","ref":"actor1","text":"红衣人物"}', '{"kind":"character","lang":"en","ref":"actor1","text":"person in red"}'] | RESULT: FAIL (1 finding(s))
+==============================================================================
+PROBE P05-n1-scene-get-body-swapped  [fence=ON (semantic)]
+purpose : N1: the new GET /api/v1/scenes/{id} returns another candidate component instead of the canonical Scene
+exit    : 0
+stdout  : RESULT: PASS (V1=29 V2=38 V3=47; MS01-MS08 once and NOT_RUN; legacy prefix intact; DAG acyclic; parent deadline 450*n+90<=5490; checkpoint 65+ 7=72 actions / 21600 s; no human signature claimed) | NOTE: design 1.1.1 (N1-N6 owner corrections, still pending an independent recheck): additive surface 8 operations / 7 paths; reuse annotations 7 paths; strong ETag declared on 2 new GETs and 1 existing operation; spec fence 24 files; D0 payload inventory 10 files. | NOTE: this is a deterministic plan-structure check only; it is not product acceptance and not a Stage PASS.
+note    : the canonical Scene DTO on the new GET is not machine guarded
+==============================================================================
+PROBE P06-n1-etag-pattern-rewrite  [fence=ON (semantic)]
+purpose : N1: rewrite the ETag pattern to a different but still strong-only regex
+exit    : 1
+stdout  : E_ETAG_FORMAT: the PUT /api/v1/scenes/{id} 200 ETag pattern '^"scene:[0-9a-z-]+:[0-9a-f]{64}"$' differs from the frozen strong tag pattern '^"scene:[^":]+:[0-9a-f]{64}"$' | RESULT: FAIL (1 finding(s))
+==============================================================================
+PROBE P07-n3-unauthorized-metadata-key  [fence=ON (semantic)]
+purpose : N3: add an unauthorized x- key to a reuse annotation
+exit    : 1
+stdout  : E_OVERLAY_METADATA_KEY: the overlay metadata for GET /api/v1/jobs/{id} carries the unauthorized key 'x-body-changed' | E_OVERLAY_METADATA_KEY: the overlay metadata for GET /api/v1/jobs/{id} carries the unauthorized key 'x-body-changed'; only ['x-v1-profile', 'x-v2-semantics-unchanged'] may be added | RESULT: FAIL (2 finding(s))
+==============================================================================
+PROBE P08-n3-missing-reuse-annotation  [fence=ON (semantic)]
+purpose : N3: drop the PUT annotation of /api/v1/shots/{id}
+exit    : 1
+stdout  : E_REUSE_METADATA: the overlay annotates /api/v1/shots/{id} ['get'], the frozen annotation set is ['get', 'put'] | RESULT: FAIL (1 finding(s))
+==============================================================================
+PROBE P09-n2-contract-drops-operation  [fence=ON (semantic)]
+purpose : N2: remove the new GET /api/v1/scenes/{id} from the contract additive_operations
+exit    : 1
+stdout  : E_ADDITIVE_OPERATIONS: the contract additive_operations [('/api/v1/jobs/shot-batches', 'post'), ('/api/v1/jobs/{id}/children', 'get'), ('/api/v1/scenes/{id}/revision-info', 'get'), ('/api/v1/shots/{id}/analyses/{run_id}/adopt', 'post'), ('/api/v1/shots/{id}/analyses/{run_id}/evidence', 'get'), ('/api/v1/shots/{id}/scene-binding', 'get'), ('/api/v1/shots/{id}/scene-binding', 'put')] does not match the overlay surface [('/api/v1/jobs/shot-batches', 'post'), ('/api/v1/jobs/{id}/children', 'get'), ('/api/v1/scenes/{id}', 'get'), ('/api/v1/scenes/{id}/revision-info', 'get'), ('/api/v1/shots/{id}/an
+==============================================================================
+PROBE P10-n2-contract-drops-path  [fence=ON (semantic)]
+purpose : N2: remove /api/v1/scenes/{id} from the contract additive_paths
+exit    : 1
+stdout  : E_ADDITIVE_PATHS: the contract additive_paths ['/api/v1/jobs/shot-batches', '/api/v1/jobs/{id}/children', '/api/v1/scenes/{id}/revision-info', '/api/v1/shots/{id}/analyses/{run_id}/adopt', '/api/v1/shots/{id}/analyses/{run_id}/evidence', '/api/v1/shots/{id}/scene-binding'] differs from the frozen additive path set ['/api/v1/jobs/shot-batches', '/api/v1/jobs/{id}/children', '/api/v1/scenes/{id}', '/api/v1/scenes/{id}/revision-info', '/api/v1/shots/{id}/analyses/{run_id}/adopt', '/api/v1/shots/{id}/analyses/{run_id}/evidence', '/api/v1/shots/{id}/scene-binding'] | E_ADDITIVE_PATHS: the contract 
+==============================================================================
+PROBE P11-n4-null-branch-reintroduced  [fence=ON (semantic)]
+purpose : N4: reintroduce the unreachable null branch next to the integer source_pts
+exit    : 1
+stdout  : E_FRAME_REF_CONSTRAINT: the candidate ShotFrameRef.source_pts keeps an unreachable branch next to its own type | E_FRAME_REF_CONSTRAINT: the candidate ShotFrameRef.source_pts keeps an unreachable null branch next to its own type | RESULT: FAIL (2 finding(s))
+==============================================================================
+PROBE P12-n4-timebase-minimum-dropped  [fence=ON (semantic)]
+purpose : N4: drop the positive timebase minimum of time_base_den
+exit    : 1
+stdout  : E_FRAME_REF_CONSTRAINT: the candidate ShotFrameRef.time_base_den must keep the positive timebase minimum 1, found 0 | RESULT: FAIL (1 finding(s))
+==============================================================================
+PROBE P13-empty-limits  [fence=ON (semantic)]
+purpose : D0-CODE-M01 family: empty the plan limits object
+exit    : 1
+stdout  : E_BUDGET_PARENT_FORMULA: plan.limits must declare integer batch_per_child_budget_seconds and batch_fixed_budget_seconds | E_LIMIT_MISSING: plan.limits is missing the fixed limit automatic_model_retries | E_LIMIT_MISSING: plan.limits is missing the fixed limit batch_deadline_seconds_max | E_LIMIT_MISSING: plan.limits is missing the fixed limit batch_fixed_budget_seconds | E_LIMIT_MISSING: plan.limits is missing the fixed limit batch_per_child_budget_seconds | E_LIMIT_MISSING: plan.limits is missing the fixed limit checkpoint_cleanup_reserve_seconds | E_LIMIT_MISSING: plan.limits is missing the 
+==============================================================================
+PROBE P14-dropped-dependency  [fence=ON (semantic)]
+purpose : drop the R1 dependency of the V1-M1 stage in the plan
+exit    : 1
+stdout  : E_DEP_M1_R1: plan stage V1-M1 must depend on R1, found [] | E_TASK_DEP_MISMATCH: plan stage V1-M1 depends on [] but tasks.json says ['R1'] | RESULT: FAIL (2 finding(s))
+==============================================================================
+PROBE P15-missing-entity-dto  [fence=ON (semantic)]
+purpose : remove the ParentJob DTO while the contract still declares the entity
+exit    : 1
+stdout  : E_BUDGET_PARENT_FORMULA: candidate ParentJob.execution_budget_seconds.maximum=None must be 5490 (= 450 * 12 + 90) | E_BUDGET_PARENT_FORMULA: candidate ParentJob.execution_budget_seconds.minimum=None must be 540 (= 450 * 1 + 90) | E_CONTRACT_ENTITY_UNRESOLVED: contract entity ParentJob has no matching DTO in the candidate schema $defs | E_DTO_MISSING: the candidate schema has no ParentJob DTO | RESULT: FAIL (4 finding(s))
+==============================================================================
+PROBE P16-nan-limit  [fence=ON (semantic)]
+purpose : put a NaN into plan.limits.video_seconds
+exit    : 1
+stdout  : E_LIMIT_NOT_FINITE: plan.limits.video_seconds is not a finite number: nan | RESULT: FAIL (1 finding(s))
+==============================================================================
+PROBE P17-checkpoint-budget-inflated  [fence=ON (semantic)]
+purpose : inflate the checkpoint model action cap to the per child cap
+exit    : 1
+stdout  : E_CHECKPOINT_ACTIONS: plan.checkpoint_budget declares 65 success calls + 7 controlled actions != 128 model actions | E_CHECKPOINT_INPUT_DRIFT: plan.checkpoint_budget.model_actions_cap=128 differs from the frozen design value 72 | RESULT: FAIL (2 finding(s))
+==============================================================================
+PROBE P18-sample-pretends-materialized  [fence=ON (semantic)]
+purpose : let the sample design carry a materialized source_sha256
+exit    : 1
+stdout  : E_SAMPLE_MATERIALIZED: clip H01 already carries a source_sha256; the design allocation must not pretend the sample is materialized | RESULT: FAIL (1 finding(s))
+==============================================================================
+PROBE P19-adjudication-claims-accepted  [fence=ON (semantic)]
+purpose : let the owner adjudication record N1-N6 as ACCEPTED
+exit    : 1
+stdout  : E_111_ADJUDICATION: the owner correction N1 is recorded as 'ACCEPTED'; an owner correction is not an independent acceptance | E_111_ADJUDICATION: the owner correction N2 is recorded as 'ACCEPTED'; an owner correction is not an independent acceptance | E_111_ADJUDICATION: the owner correction N3 is recorded as 'ACCEPTED'; an owner correction is not an independent acceptance | E_111_ADJUDICATION: the owner correction N4 is recorded as 'ACCEPTED'; an owner correction is not an independent acceptance | E_111_ADJUDICATION: the owner correction N5 is recorded as 'ACCEPTED'; an owner correction is no
+==============================================================================
+PROBE P20-hash-fence-only  [fence=OFF (hash only)]
+purpose : edit a fenced authority document WITHOUT re-freezing the fences
+exit    : 1
+stdout  : E_SPEC_FENCE_DRIFT: spec manifest file docs/31_V1_DETAILED_ARCHITECTURE_AND_CONTRACTS.md hash 569188bb1a700f8287a9cde6f5f62296f8690c190f41cc32c3b574a0ceb838fd differs from the frozen 44384ac11977a460aa25170184e8d42007354262632d1e02bfed3408056238d4 | RESULT: FAIL (1 finding(s))
+note    : this rejection is the frozen hash, not a semantic rule
+==============================================================================
+PROBE P21-canonical-contract-drift  [fence=ON (semantic)]
+purpose : change the canonical /api/v1/jobs/batch request body
+exit    : 1
+stdout  : E_CONTRACT_DRIFT: canonical contract contracts/openapi.json hash c6f1bcbc804f7b6e3f98ffc9e76cd42dfe164a711328b5d5de41e0ac7a4d20e8 differs from the frozen cd9df1bd94a3c4c27476608e4616e9d73e0b64da653973b1225efd902e0eef31 | E_V2_BATCH_BODY_DRIFT: the canonical /api/v1/jobs/batch request body no longer carries the items array | RESULT: FAIL (2 finding(s))
+note    : rejected by the frozen canonical contract hash
+==============================================================================
+PROBE P22-malformed-overlay-metadata  [fence=ON (semantic)]
+purpose : malformed input: overlay metadata_only is a list instead of an object
+exit    : 1
+stdout  : <empty>
+stderr  : Traceback (most recent call last): |   File "/tmp/d0review-P22-malformed-overlay-metadata-21dar3xz/pkg/tools/verify_v1_plan.py", line 2704, in <module> |     sys.exit(main()) |              ^^^^^^ |   File "/tmp/d0review-P22-malformed-overlay-metadata-21dar3xz/pkg/tools/verify_v1_plan.py", line 2643, in main |     check_overlay_merge(ctx) |   File "/tmp/d0review-P22-malformed-overlay-metadata-21dar3xz/pkg/tools/verify_v1_plan.py", line 1892, in check_overlay_merge |     for path, methods in sorted(metadata.items()): |                                 ^^^^^^^^^^^^^^ | AttributeError: 'list' obje
+note    : expected a deterministic finding, not an uncaught traceback
+==============================================================================
+PROBE P23-malformed-overlay-headers  [fence=ON (semantic)]
+purpose : malformed input: overlay add_response_headers is a list instead of an object
+exit    : 1
+stdout  : <empty>
+stderr  : Traceback (most recent call last): |   File "/tmp/d0review-P23-malformed-overlay-headers-3eit8wtl/pkg/tools/verify_v1_plan.py", line 2704, in <module> |     sys.exit(main()) |              ^^^^^^ |   File "/tmp/d0review-P23-malformed-overlay-headers-3eit8wtl/pkg/tools/verify_v1_plan.py", line 2643, in main |     check_overlay_merge(ctx) |   File "/tmp/d0review-P23-malformed-overlay-headers-3eit8wtl/pkg/tools/verify_v1_plan.py", line 1913, in check_overlay_merge |     for path, methods in sorted(add_headers.items()): |                                 ^^^^^^^^^^^^^^^^^ | AttributeError: 'list' o
+note    : expected a deterministic finding, not an uncaught traceback
+==============================================================================
+PROBE P24-invalid-candidate-schema  [fence=ON (semantic)]
+purpose : an invalid JSON Schema (unbalanced regex) in the candidate schema
+exit    : 1
+stdout  : <empty>
+stderr  : Traceback (most recent call last): |   File "/tmp/d0review-P24-invalid-candidate-schema-vpbiseda/pkg/tools/verify_v1_plan.py", line 2704, in <module> |     sys.exit(main()) |              ^^^^^^ |   File "/tmp/d0review-P24-invalid-candidate-schema-vpbiseda/pkg/tools/verify_v1_plan.py", line 2637, in main |     check_canonical_compatibility(ctx) |   File "/tmp/d0review-P24-invalid-candidate-schema-vpbiseda/pkg/tools/verify_v1_plan.py", line 1509, in check_canonical_compatibility |     errors = sorted(validator.iter_errors(frame), key=lambda e: e.message) |              ^^^^^^^^^^^^^^^^^^^^^^^^^
+==============================================================================
+PROBE P25-frame-sample-missing  [fence=ON (semantic)]
+purpose : the retained frame reference sample is not available
+exit    : 0
+stdout  : RESULT: PASS (V1=29 V2=38 V3=47; MS01-MS08 once and NOT_RUN; legacy prefix intact; DAG acyclic; parent deadline 450*n+90<=5490; checkpoint 65+ 7=72 actions / 21600 s; no human signature claimed) | NOTE: design 1.1.1 (N1-N6 owner corrections, still pending an independent recheck): additive surface 8 operations / 7 paths; reuse annotations 7 paths; strong ETag declared on 2 new GETs and 1 existing operation; spec fence 24 files; D0 payload inventory 10 files. | NOTE: this is a deterministic plan-structure check only; it is not product acceptance and not a Stage PASS.
+note    : expected: the instance probe is skipped but the run still reports PASS
+==============================================================================
+PROBE P26-jsonschema-unavailable  [fence=ON (semantic)]
+purpose : the optional jsonschema dependency is not importable
+exit    : 0
+stdout  : RESULT: PASS (V1=29 V2=38 V3=47; MS01-MS08 once and NOT_RUN; legacy prefix intact; DAG acyclic; parent deadline 450*n+90<=5490; checkpoint 65+ 7=72 actions / 21600 s; no human signature claimed) | NOTE: design 1.1.1 (N1-N6 owner corrections, still pending an independent recheck): additive surface 8 operations / 7 paths; reuse annotations 7 paths; strong ETag declared on 2 new GETs and 1 existing operation; spec fence 24 files; D0 payload inventory 10 files. | NOTE: this is a deterministic plan-structure check only; it is not product acceptance and not a Stage PASS.
+note    : expected: the same PASS text, without disclosing the degraded validation
+==============================================================================
+PROBE P41-denominator-shrunk  [fence=ON (semantic)]
+purpose : shrink the V1 acceptance denominator in release_gates.json
+exit    : 1
+stdout  : E_DENOM_V1_COUNT: release_gates.V1.required_cases has 28 entries, frozen denominator is 29 | E_MS_MISSING: release_gates.V1.required_cases is missing MS08 | E_PLAN_V1_CASE_SET: plan.v1_required_cases differs from release_gates.V1 (missing=none unexpected=['MS08']) | E_R2_CASE_SET: tasks.json R2 work_on_cases differs from the frozen V1 denominator | RESULT: FAIL (4 finding(s))
+==============================================================================
+PROBE P42-sample-shot-total-drift  [fence=ON (semantic)]
+purpose : drift the sample design shot total
+exit    : 1
+stdout  : E_SAMPLE_CUT_COUNT: hard cut clip H01 declares 4 cuts for 6 shots; each cut separates two shots | E_SAMPLE_SHOT_COUNT: the sample design allocates 48 shots, the frozen design is 47 | RESULT: FAIL (2 finding(s))
+==============================================================================
+PROBE P27-overlay-surface-shrinks  [fence=ON (semantic)]
+purpose : N2: remove one (path, method) pair from the overlay itself
+exit    : 1
+stdout  : E_ADDITIVE_OPERATIONS: the contract additive_operations [('/api/v1/jobs/shot-batches', 'post'), ('/api/v1/jobs/{id}/children', 'get'), ('/api/v1/scenes/{id}', 'get'), ('/api/v1/scenes/{id}/revision-info', 'get'), ('/api/v1/shots/{id}/analyses/{run_id}/adopt', 'post'), ('/api/v1/shots/{id}/analyses/{run_id}/evidence', 'get'), ('/api/v1/shots/{id}/scene-binding', 'get'), ('/api/v1/shots/{id}/scene-binding', 'put')] does not match the overlay surface [('/api/v1/jobs/shot-batches', 'post'), ('/api/v1/jobs/{id}/children', 'get'), ('/api/v1/scenes/{id}', 'get'), ('/api/v1/scenes/{id}/revision-info',
+==============================================================================
+PROBE P28-overlay-surface-grows  [fence=ON (semantic)]
+purpose : N2: add a ninth operation to the overlay additive surface
+exit    : 1
+stdout  : E_ADDITIVE_OPERATIONS: the contract additive_operations [('/api/v1/jobs/shot-batches', 'post'), ('/api/v1/jobs/{id}/children', 'get'), ('/api/v1/scenes/{id}', 'get'), ('/api/v1/scenes/{id}/revision-info', 'get'), ('/api/v1/shots/{id}/analyses/{run_id}/adopt', 'post'), ('/api/v1/shots/{id}/analyses/{run_id}/evidence', 'get'), ('/api/v1/shots/{id}/scene-binding', 'get'), ('/api/v1/shots/{id}/scene-binding', 'put')] does not match the overlay surface [('/api/v1/extra-route', 'get'), ('/api/v1/jobs/shot-batches', 'post'), ('/api/v1/jobs/{id}/children', 'get'), ('/api/v1/scenes/{id}', 'get'), ('/ap
+==============================================================================
+PROBE P29-etag-removed-from-put  [fence=ON (semantic)]
+purpose : N1: remove the ETag from the existing Scene PUT 200
+exit    : 1
+stdout  : E_ETAG_MISSING: the PUT /api/v1/scenes/{id} 200 does not declare the ETag response header | RESULT: FAIL (1 finding(s))
+==============================================================================
+PROBE P30-profile-value-drift  [fence=ON (semantic)]
+purpose : N3: change the x-v1-profile value of a reuse annotation
+exit    : 1
+stdout  : E_OVERLAY_METADATA_VALUE: the overlay metadata for POST /api/v1/shots declares x-v1-profile='local-shot-v2', the frozen profile is 'local-shot-v1' | RESULT: FAIL (1 finding(s))
+==============================================================================
+PROBE P31-metadata-collides-with-canonical-key  [fence=ON (semantic)]
+purpose : N3: add an annotation key that already exists on the canonical operation
+exit    : 1
+stdout  : E_OVERLAY_METADATA_KEY: the overlay metadata for GET /api/v1/scenes carries the unauthorized key 'x-product-version' | E_OVERLAY_METADATA_KEY: the overlay metadata for GET /api/v1/scenes carries the unauthorized key 'x-product-version'; only ['x-v1-profile', 'x-v2-semantics-unchanged'] may be added | RESULT: FAIL (2 finding(s))
+==============================================================================
+PROBE P32-v2-semantics-denied  [fence=ON (semantic)]
+purpose : N3: set x-v2-semantics-unchanged to false
+exit    : 1
+stdout  : E_OVERLAY_METADATA_VALUE: the overlay metadata for GET /api/v1/jobs/{id} declares x-v2-semantics-unchanged=False, it must stay true | RESULT: FAIL (1 finding(s))
+==============================================================================
+PROBE P33-v2-batch-body-semantic-only  [fence=ON (semantic)]
+purpose : N1/F1: change the canonical V2 batch items $ref AND re-baseline the canonical hash
+exit    : 1
+stdout  : E_V2_BATCH_BODY_DRIFT: the canonical /api/v1/jobs/batch items array no longer holds AnalyzeRequest entries | RESULT: FAIL (1 finding(s))
+note    : the canonical hash was re-baselined, so only the semantic rule can reject it
+==============================================================================
+PROBE P34-core-scene-alias-drift  [fence=ON (semantic)]
+purpose : M1: break the canonical Scene alias and re-baseline the canonical hash
+exit    : 1
+stdout  : E_CANONICAL_ALIAS: the candidate CoreScene is not an exact alias of the canonical Scene DTO | RESULT: FAIL (1 finding(s))
+==============================================================================
+PROBE P35-adjudication-drops-a-finding  [fence=ON (semantic)]
+purpose : let the owner adjudication silently drop N3
+exit    : 1
+stdout  : E_111_ADJUDICATION: the 1.1.1 adjudication covers ['N1', 'N2', 'N4', 'N5', 'N6'], the frozen finding set is ['N1', 'N2', 'N3', 'N4', 'N5', 'N6'] | RESULT: FAIL (1 finding(s))
+==============================================================================
+PROBE P36-product-coordinate-moved  [fence=ON (semantic)]
+purpose : move the product coordinate away from R1 / WAIT_HUMAN
+exit    : 1
+stdout  : E_PRODUCT_COORDINATE: the product coordinate state is 'UNIFIED_MEDIA_MACHINE_AND_INDEPENDENT_VERIFIED', the frozen coordinate state is 'WAIT_HUMAN' | RESULT: FAIL (1 finding(s))
+==============================================================================
+PROBE P37-spec-fence-file-deleted  [fence=ON (semantic)]
+purpose : delete a file that the authority spec manifest fences
+exit    : 1
+stdout  : E_SPEC_FENCE_MISSING: spec manifest file docs/17_DATA_AND_VERSIONING.md is missing | RESULT: FAIL (1 finding(s))
+==============================================================================
+PROBE P38-metadata-collision-reachable  [fence=ON (semantic)]
+purpose : N3: the canonical operation already carries x-v1-profile, so the overlay annotation collides
+exit    : 1
+stdout  : E_OVERLAY_METADATA_COLLISION: the overlay metadata for GET /api/v1/scenes collides with the existing key 'x-v1-profile' | E_OVERLAY_METADATA_COLLISION: the overlay metadata for GET /api/v1/scenes would replace the existing key 'x-v1-profile' | RESULT: FAIL (2 finding(s))
+==============================================================================
+PROBE P39-metadata-target-missing  [fence=ON (semantic)]
+purpose : N1/N3: the overlay annotation target no longer exists in the canonical document
+exit    : 1
+stdout  : E_OVERLAY_METADATA_PATH: the overlay annotates GET /api/v1/jobs/{id}, which the canonical OpenAPI does not define | E_OVERLAY_METADATA_TARGET_MISSING: the overlay annotates GET /api/v1/jobs/{id}, which does not exist in the merged document | E_REUSE_METADATA: the overlay annotates GET /api/v1/jobs/{id}, which the canonical OpenAPI does not define | RESULT: FAIL (3 finding(s))
+==============================================================================
+PROBE P40-header-target-missing  [fence=ON (semantic)]
+purpose : N1: the overlay ETag header target no longer exists in the canonical document
+exit    : 1
+stdout  : E_OVERLAY_HEADER_TARGET_MISSING: the overlay adds a response header to PUT /api/v1/scenes/{id}, which does not exist in the merged document | E_OVERLAY_METADATA_PATH: the overlay annotates PUT /api/v1/scenes/{id}, which the canonical OpenAPI does not define | E_OVERLAY_METADATA_TARGET_MISSING: the overlay annotates PUT /api/v1/scenes/{id}, which does not exist in the merged document | E_REUSE_METADATA: the overlay annotates PUT /api/v1/scenes/{id}, which the canonical OpenAPI does not define | RESULT: FAIL (4 finding(s))
+==============================================================================
+summary written to /home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v1-redesign/d0-review/design111/checks/probe-results.json

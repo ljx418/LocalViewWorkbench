@@ -1,0 +1,739 @@
+{
+  "owner": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0",
+  "probes": [
+    {
+      "probe": "P00-positive-control",
+      "purpose": "unmodified copy of the candidate tree must PASS",
+      "mode": "fence=ON (semantic)",
+      "command": "/usr/bin/python3 -B /tmp/d0review-P00-positive-control-aflhewhj/pkg/tools/verify_v1_plan.py --root /tmp/d0review-P00-positive-control-aflhewhj/pkg --d0-packet-manifest-sha256 04d3bfb4af3c2d7be68e494a6d59624a96051a0ebf28e81d6a0367aa32aa6710",
+      "exit_code": 0,
+      "stdout_sha256": "9ae799f05a732ddffb57c2049acef8ae071e9d132990d5b0c6c0aa3d08a2965b",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "RESULT: PASS (V1=29 V2=38 V3=47; MS01-MS08 once and NOT_RUN; legacy prefix intact; DAG acyclic; parent deadline 450*n+90<=5490; checkpoint 65+ 7=72 actions / 21600 s; no human signature claimed)\nNOTE: design 1.1.1 (N1-N6 owner corrections, still pending an independent recheck): additive surface 8 operations / 7 paths; reuse annotations 7 paths; strong ETag declared on 2 new GETs and 1 existing operation; spec fence 24 files; D0 payload inventory 10 files.\nNOTE: this is a deterministic plan-structure check only; it is not product acceptance and not a Stage PASS.\n",
+      "stderr": "",
+      "note": "",
+      "finding_codes": [
+        "NOTE",
+        "RESULT"
+      ],
+      "expected_code_present": true,
+      "expected_exit_matched": true
+    },
+    {
+      "probe": "P01-n6-unpinned-alias-drift",
+      "purpose": "N6: rename a NON pinned column alias (media_sha256 -> scene_revision.media_ref_id)",
+      "mode": "fence=ON (semantic)",
+      "command": "/usr/bin/python3 -B /tmp/d0review-P01-n6-unpinned-alias-drift-hpfle52i/pkg/tools/verify_v1_plan.py --root /tmp/d0review-P01-n6-unpinned-alias-drift-hpfle52i/pkg --d0-packet-manifest-sha256 dbc193d61cafd8d0de5e0e38cbaa7d8edac228ed569c49eec02200d883340f97",
+      "exit_code": 0,
+      "stdout_sha256": "9ae799f05a732ddffb57c2049acef8ae071e9d132990d5b0c6c0aa3d08a2965b",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "RESULT: PASS (V1=29 V2=38 V3=47; MS01-MS08 once and NOT_RUN; legacy prefix intact; DAG acyclic; parent deadline 450*n+90<=5490; checkpoint 65+ 7=72 actions / 21600 s; no human signature claimed)\nNOTE: design 1.1.1 (N1-N6 owner corrections, still pending an independent recheck): additive surface 8 operations / 7 paths; reuse annotations 7 paths; strong ETag declared on 2 new GETs and 1 existing operation; spec fence 24 files; D0 payload inventory 10 files.\nNOTE: this is a deterministic plan-structure check only; it is not product acceptance and not a Stage PASS.\n",
+      "stderr": "",
+      "note": "the 11 alias mapping is only pinned for time_base_num/time_base_den/revision",
+      "finding_codes": [
+        "NOTE",
+        "RESULT"
+      ]
+    },
+    {
+      "probe": "P02-n6-sql-argument-permutation",
+      "purpose": "N6: permute the lvw_scene_hash call site arguments in the candidate migration",
+      "mode": "fence=ON (semantic)",
+      "command": "/usr/bin/python3 -B /tmp/d0review-P02-n6-sql-argument-permutation-kbf62t00/pkg/tools/verify_v1_plan.py --root /tmp/d0review-P02-n6-sql-argument-permutation-kbf62t00/pkg --d0-packet-manifest-sha256 f4367b27c9511d2d02310b31756d1b20c2794f6a79b9ca7392150a8cdbb12af2",
+      "exit_code": 0,
+      "stdout_sha256": "9ae799f05a732ddffb57c2049acef8ae071e9d132990d5b0c6c0aa3d08a2965b",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "RESULT: PASS (V1=29 V2=38 V3=47; MS01-MS08 once and NOT_RUN; legacy prefix intact; DAG acyclic; parent deadline 450*n+90<=5490; checkpoint 65+ 7=72 actions / 21600 s; no human signature claimed)\nNOTE: design 1.1.1 (N1-N6 owner corrections, still pending an independent recheck): additive surface 8 operations / 7 paths; reuse annotations 7 paths; strong ETag declared on 2 new GETs and 1 existing operation; spec fence 24 files; D0 payload inventory 10 files.\nNOTE: this is a deterministic plan-structure check only; it is not product acceptance and not a Stage PASS.\n",
+      "stderr": "",
+      "note": "the SQL call site argument order is never compared with scene_hash.fields",
+      "finding_codes": [
+        "NOTE",
+        "RESULT"
+      ]
+    },
+    {
+      "probe": "P03-n5-example-rule-text-key-order",
+      "purpose": "N5: rewrite the example with the key order the rule text names (kind,ref,lang,text)",
+      "mode": "fence=ON (semantic)",
+      "command": "/usr/bin/python3 -B /tmp/d0review-P03-n5-example-rule-text-key-order-nevllqxj/pkg/tools/verify_v1_plan.py --root /tmp/d0review-P03-n5-example-rule-text-key-order-nevllqxj/pkg --d0-packet-manifest-sha256 defb6054d8f1479f422844f4f368f325279f213a01d00d52fae918e68895494d",
+      "exit_code": 1,
+      "stdout_sha256": "3d50a74ccc0390adb948969e1f2ea34d83c49e3649fd3e5c8125fa07a90767f2",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "E_DOMAIN_MAPPING: the canonical domain example entries ['{\"kind\":\"character\",\"ref\":\"actor1\",\"lang\":\"zh\",\"text\":\"红衣人物\"}', '{\"kind\":\"character\",\"ref\":\"actor1\",\"lang\":\"en\",\"text\":\"person in red\"}'] do not match the deterministic serialization ['{\"kind\":\"character\",\"lang\":\"zh\",\"ref\":\"actor1\",\"text\":\"红衣人物\"}', '{\"kind\":\"character\",\"lang\":\"en\",\"ref\":\"actor1\",\"text\":\"person in red\"}']\nRESULT: FAIL (1 finding(s))\n",
+      "stderr": "",
+      "note": "",
+      "finding_codes": [
+        "E_DOMAIN_MAPPING",
+        "RESULT"
+      ],
+      "expected_code_present": true
+    },
+    {
+      "probe": "P04-n5-example-text-drift",
+      "purpose": "N5: change the Chinese text of the example entry (red -> blue)",
+      "mode": "fence=ON (semantic)",
+      "command": "/usr/bin/python3 -B /tmp/d0review-P04-n5-example-text-drift-r44h66q1/pkg/tools/verify_v1_plan.py --root /tmp/d0review-P04-n5-example-text-drift-r44h66q1/pkg --d0-packet-manifest-sha256 a1ec202aa32ca78ba4606cbbe51e318a2471bf66e5500acd6c90a532e7ff47fa",
+      "exit_code": 1,
+      "stdout_sha256": "7c9609155e4188d7ef81ed754d534354eda7fc5958af59901c40efff52c5e7f4",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "E_DOMAIN_MAPPING: the canonical domain example entries ['{\"kind\":\"character\",\"lang\":\"zh\",\"ref\":\"actor1\",\"text\":\"蓝衣人物\"}', '{\"kind\":\"character\",\"lang\":\"en\",\"ref\":\"actor1\",\"text\":\"person in red\"}'] do not match the deterministic serialization ['{\"kind\":\"character\",\"lang\":\"zh\",\"ref\":\"actor1\",\"text\":\"红衣人物\"}', '{\"kind\":\"character\",\"lang\":\"en\",\"ref\":\"actor1\",\"text\":\"person in red\"}']\nRESULT: FAIL (1 finding(s))\n",
+      "stderr": "",
+      "note": "",
+      "finding_codes": [
+        "E_DOMAIN_MAPPING",
+        "RESULT"
+      ],
+      "expected_code_present": true
+    },
+    {
+      "probe": "P05-n1-scene-get-body-swapped",
+      "purpose": "N1: the new GET /api/v1/scenes/{id} returns another candidate component instead of the canonical Scene",
+      "mode": "fence=ON (semantic)",
+      "command": "/usr/bin/python3 -B /tmp/d0review-P05-n1-scene-get-body-swapped-8j_7lq0e/pkg/tools/verify_v1_plan.py --root /tmp/d0review-P05-n1-scene-get-body-swapped-8j_7lq0e/pkg --d0-packet-manifest-sha256 bf572471935407fdfbac156d623c47bf4c4bce1b7ea75f98f8a733b47b118f76",
+      "exit_code": 0,
+      "stdout_sha256": "9ae799f05a732ddffb57c2049acef8ae071e9d132990d5b0c6c0aa3d08a2965b",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "RESULT: PASS (V1=29 V2=38 V3=47; MS01-MS08 once and NOT_RUN; legacy prefix intact; DAG acyclic; parent deadline 450*n+90<=5490; checkpoint 65+ 7=72 actions / 21600 s; no human signature claimed)\nNOTE: design 1.1.1 (N1-N6 owner corrections, still pending an independent recheck): additive surface 8 operations / 7 paths; reuse annotations 7 paths; strong ETag declared on 2 new GETs and 1 existing operation; spec fence 24 files; D0 payload inventory 10 files.\nNOTE: this is a deterministic plan-structure check only; it is not product acceptance and not a Stage PASS.\n",
+      "stderr": "",
+      "note": "the canonical Scene DTO on the new GET is not machine guarded",
+      "finding_codes": [
+        "NOTE",
+        "RESULT"
+      ]
+    },
+    {
+      "probe": "P06-n1-etag-pattern-rewrite",
+      "purpose": "N1: rewrite the ETag pattern to a different but still strong-only regex",
+      "mode": "fence=ON (semantic)",
+      "command": "/usr/bin/python3 -B /tmp/d0review-P06-n1-etag-pattern-rewrite-0blrp_68/pkg/tools/verify_v1_plan.py --root /tmp/d0review-P06-n1-etag-pattern-rewrite-0blrp_68/pkg --d0-packet-manifest-sha256 7af4666c3664fc18fdef5d1634547451d2a7d2599b94e764340f041fb2eeb242",
+      "exit_code": 1,
+      "stdout_sha256": "454edf9336f2b601b1a49295557c188e73e9adc299abe00966f394a3bb980573",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "E_ETAG_FORMAT: the PUT /api/v1/scenes/{id} 200 ETag pattern '^\"scene:[0-9a-z-]+:[0-9a-f]{64}\"$' differs from the frozen strong tag pattern '^\"scene:[^\":]+:[0-9a-f]{64}\"$'\nRESULT: FAIL (1 finding(s))\n",
+      "stderr": "",
+      "note": "",
+      "finding_codes": [
+        "E_ETAG_FORMAT",
+        "RESULT"
+      ],
+      "expected_code_present": true
+    },
+    {
+      "probe": "P07-n3-unauthorized-metadata-key",
+      "purpose": "N3: add an unauthorized x- key to a reuse annotation",
+      "mode": "fence=ON (semantic)",
+      "command": "/usr/bin/python3 -B /tmp/d0review-P07-n3-unauthorized-metadata-key-jzioideu/pkg/tools/verify_v1_plan.py --root /tmp/d0review-P07-n3-unauthorized-metadata-key-jzioideu/pkg --d0-packet-manifest-sha256 1ab9d78c46664e6c4618aac73518a5199bbb84538c5d87c06e9d50a22349c51c",
+      "exit_code": 1,
+      "stdout_sha256": "ab62f7e0c5c839e7579620b7592685d31a156834fdee3d66917a11cb4287f562",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "E_OVERLAY_METADATA_KEY: the overlay metadata for GET /api/v1/jobs/{id} carries the unauthorized key 'x-body-changed'\nE_OVERLAY_METADATA_KEY: the overlay metadata for GET /api/v1/jobs/{id} carries the unauthorized key 'x-body-changed'; only ['x-v1-profile', 'x-v2-semantics-unchanged'] may be added\nRESULT: FAIL (2 finding(s))\n",
+      "stderr": "",
+      "note": "",
+      "finding_codes": [
+        "E_OVERLAY_METADATA_KEY",
+        "RESULT"
+      ],
+      "expected_code_present": true
+    },
+    {
+      "probe": "P08-n3-missing-reuse-annotation",
+      "purpose": "N3: drop the PUT annotation of /api/v1/shots/{id}",
+      "mode": "fence=ON (semantic)",
+      "command": "/usr/bin/python3 -B /tmp/d0review-P08-n3-missing-reuse-annotation-yyis2cnv/pkg/tools/verify_v1_plan.py --root /tmp/d0review-P08-n3-missing-reuse-annotation-yyis2cnv/pkg --d0-packet-manifest-sha256 9449d5bc49f054d8878dfac8c9de4cbf32b8fdea5895da6f712f2ed45eb8f21f",
+      "exit_code": 1,
+      "stdout_sha256": "7e948b41c3700c5142c54d48e918349826cff3046de6a2cae940602688dafe11",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "E_REUSE_METADATA: the overlay annotates /api/v1/shots/{id} ['get'], the frozen annotation set is ['get', 'put']\nRESULT: FAIL (1 finding(s))\n",
+      "stderr": "",
+      "note": "",
+      "finding_codes": [
+        "E_REUSE_METADATA",
+        "RESULT"
+      ],
+      "expected_code_present": true
+    },
+    {
+      "probe": "P09-n2-contract-drops-operation",
+      "purpose": "N2: remove the new GET /api/v1/scenes/{id} from the contract additive_operations",
+      "mode": "fence=ON (semantic)",
+      "command": "/usr/bin/python3 -B /tmp/d0review-P09-n2-contract-drops-operation-829otmcp/pkg/tools/verify_v1_plan.py --root /tmp/d0review-P09-n2-contract-drops-operation-829otmcp/pkg --d0-packet-manifest-sha256 429b12e6181cdd9bb9cff0c98ca5a4d436ca72228f6b006c29ae3b2ca9ddf878",
+      "exit_code": 1,
+      "stdout_sha256": "01c445e35169ba1115f817356dea794c88c3a7d9c90c098437ef346dc7c324f1",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "E_ADDITIVE_OPERATIONS: the contract additive_operations [('/api/v1/jobs/shot-batches', 'post'), ('/api/v1/jobs/{id}/children', 'get'), ('/api/v1/scenes/{id}/revision-info', 'get'), ('/api/v1/shots/{id}/analyses/{run_id}/adopt', 'post'), ('/api/v1/shots/{id}/analyses/{run_id}/evidence', 'get'), ('/api/v1/shots/{id}/scene-binding', 'get'), ('/api/v1/shots/{id}/scene-binding', 'put')] does not match the overlay surface [('/api/v1/jobs/shot-batches', 'post'), ('/api/v1/jobs/{id}/children', 'get'), ('/api/v1/scenes/{id}', 'get'), ('/api/v1/scenes/{id}/revision-info', 'get'), ('/api/v1/shots/{id}/analyses/{run_id}/adopt', 'post'), ('/api/v1/shots/{id}/analyses/{run_id}/evidence', 'get'), ('/api/v1/shots/{id}/scene-binding', 'get'), ('/api/v1/shots/{id}/scene-binding', 'put')]\nRESULT: FAIL (1 finding(s))\n",
+      "stderr": "",
+      "note": "",
+      "finding_codes": [
+        "E_ADDITIVE_OPERATIONS",
+        "RESULT"
+      ],
+      "expected_code_present": true
+    },
+    {
+      "probe": "P10-n2-contract-drops-path",
+      "purpose": "N2: remove /api/v1/scenes/{id} from the contract additive_paths",
+      "mode": "fence=ON (semantic)",
+      "command": "/usr/bin/python3 -B /tmp/d0review-P10-n2-contract-drops-path-hb2vlyar/pkg/tools/verify_v1_plan.py --root /tmp/d0review-P10-n2-contract-drops-path-hb2vlyar/pkg --d0-packet-manifest-sha256 607f7f5839b2869e796cfdb866fbea344e8025fcc7c1524c45fedfbbb9039a75",
+      "exit_code": 1,
+      "stdout_sha256": "b91745fd0101d63826d3fc623788bff27e94a1fdadf4ee62ae9323742af69123",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "E_ADDITIVE_PATHS: the contract additive_paths ['/api/v1/jobs/shot-batches', '/api/v1/jobs/{id}/children', '/api/v1/scenes/{id}/revision-info', '/api/v1/shots/{id}/analyses/{run_id}/adopt', '/api/v1/shots/{id}/analyses/{run_id}/evidence', '/api/v1/shots/{id}/scene-binding'] differs from the frozen additive path set ['/api/v1/jobs/shot-batches', '/api/v1/jobs/{id}/children', '/api/v1/scenes/{id}', '/api/v1/scenes/{id}/revision-info', '/api/v1/shots/{id}/analyses/{run_id}/adopt', '/api/v1/shots/{id}/analyses/{run_id}/evidence', '/api/v1/shots/{id}/scene-binding']\nE_ADDITIVE_PATHS: the contract additive_paths ['/api/v1/jobs/shot-batches', '/api/v1/jobs/{id}/children', '/api/v1/scenes/{id}/revision-info', '/api/v1/shots/{id}/analyses/{run_id}/adopt', '/api/v1/shots/{id}/analyses/{run_id}/evidence', '/api/v1/shots/{id}/scene-binding'] does not match the overlay add_paths ['/api/v1/jobs/shot-batches', '/api/v1/jobs/{id}/children', '/api/v1/scenes/{id}', '/api/v1/scenes/{id}/revision-info', '/api/v1/shots/{id}/analyses/{run_id}/adopt', '/api/v1/shots/{id}/analyses/{run_id}/evidence', '/api/v1/shots/{id}/scene-binding']\nRESULT: FAIL (2 finding(s))\n",
+      "stderr": "",
+      "note": "",
+      "finding_codes": [
+        "E_ADDITIVE_PATHS",
+        "RESULT"
+      ],
+      "expected_code_present": true
+    },
+    {
+      "probe": "P11-n4-null-branch-reintroduced",
+      "purpose": "N4: reintroduce the unreachable null branch next to the integer source_pts",
+      "mode": "fence=ON (semantic)",
+      "command": "/usr/bin/python3 -B /tmp/d0review-P11-n4-null-branch-reintroduced-7mg1dg41/pkg/tools/verify_v1_plan.py --root /tmp/d0review-P11-n4-null-branch-reintroduced-7mg1dg41/pkg --d0-packet-manifest-sha256 09db4919b5ae40f73e0a945aea67cec2f2ad609c40504301e40f30d778b2935a",
+      "exit_code": 1,
+      "stdout_sha256": "25ce466c9a93861657399d555c0d36058d04ea7107413e1e49b22aec6c18cf63",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "E_FRAME_REF_CONSTRAINT: the candidate ShotFrameRef.source_pts keeps an unreachable branch next to its own type\nE_FRAME_REF_CONSTRAINT: the candidate ShotFrameRef.source_pts keeps an unreachable null branch next to its own type\nRESULT: FAIL (2 finding(s))\n",
+      "stderr": "",
+      "note": "",
+      "finding_codes": [
+        "E_FRAME_REF_CONSTRAINT",
+        "RESULT"
+      ],
+      "expected_code_present": true
+    },
+    {
+      "probe": "P12-n4-timebase-minimum-dropped",
+      "purpose": "N4: drop the positive timebase minimum of time_base_den",
+      "mode": "fence=ON (semantic)",
+      "command": "/usr/bin/python3 -B /tmp/d0review-P12-n4-timebase-minimum-dropped-knlgc_sr/pkg/tools/verify_v1_plan.py --root /tmp/d0review-P12-n4-timebase-minimum-dropped-knlgc_sr/pkg --d0-packet-manifest-sha256 ea9c786fec681240d9f97bf967a40e7888d56f9f16740cbc2956012eda9ca358",
+      "exit_code": 1,
+      "stdout_sha256": "9d41d7fc1ad911de73b1651f7fe93de660e6b9d1de1ed66f5b1aa4f1c0af6753",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "E_FRAME_REF_CONSTRAINT: the candidate ShotFrameRef.time_base_den must keep the positive timebase minimum 1, found 0\nRESULT: FAIL (1 finding(s))\n",
+      "stderr": "",
+      "note": "",
+      "finding_codes": [
+        "E_FRAME_REF_CONSTRAINT",
+        "RESULT"
+      ],
+      "expected_code_present": true
+    },
+    {
+      "probe": "P13-empty-limits",
+      "purpose": "D0-CODE-M01 family: empty the plan limits object",
+      "mode": "fence=ON (semantic)",
+      "command": "/usr/bin/python3 -B /tmp/d0review-P13-empty-limits-k5nlqbn_/pkg/tools/verify_v1_plan.py --root /tmp/d0review-P13-empty-limits-k5nlqbn_/pkg --d0-packet-manifest-sha256 80c416f23cbbfda37d8c6ad119a2c576c07e3b0db1ea7a98e2a7055c22959392",
+      "exit_code": 1,
+      "stdout_sha256": "acb09e910b092320925e9bb9738c4c89ebb4405d025081c735955517853b1e4d",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "E_BUDGET_PARENT_FORMULA: plan.limits must declare integer batch_per_child_budget_seconds and batch_fixed_budget_seconds\nE_LIMIT_MISSING: plan.limits is missing the fixed limit automatic_model_retries\nE_LIMIT_MISSING: plan.limits is missing the fixed limit batch_deadline_seconds_max\nE_LIMIT_MISSING: plan.limits is missing the fixed limit batch_fixed_budget_seconds\nE_LIMIT_MISSING: plan.limits is missing the fixed limit batch_per_child_budget_seconds\nE_LIMIT_MISSING: plan.limits is missing the fixed limit checkpoint_cleanup_reserve_seconds\nE_LIMIT_MISSING: plan.limits is missing the fixed limit checkpoint_model_actions_cap\nE_LIMIT_MISSING: plan.limits is missing the fixed limit checkpoint_seconds_cap\nE_LIMIT_MISSING: plan.limits is missing the fixed limit detection_seconds\nE_LIMIT_MISSING: plan.limits is missing the fixed limit frames_per_shot\nE_LIMIT_MISSING: plan.limits is missing the fixed limit gpu_concurrency\nE_LIMIT_MISSING: plan.limits is missing the fixed limit gpu_free_mib_min\nE_LIMIT_MISSING: plan.limits is missing the fixed limit gpu_used_mib_exclusive\nE_LIMIT_MISSING: plan.limits is missing the fixed limit pts_index_bytes\nE_LIMIT_MISSING: plan.limits is missing the fixed limit ram_available_mib_min\nE_LIMIT_MISSING: plan.limits is missing the fixed limit release_seconds\nE_LIMIT_MISSING: plan.limits is missing the fixed limit shots\nE_LIMIT_MISSING: plan.limits is missing the fixed limit single_analysis_seconds\nE_LIMIT_MISSING: plan.limits is missing the fixed limit source_pixels\nE_LIMIT_MISSING: plan.limits is missing the fixed limit video_bytes\nE_LIMIT_MISSING: plan.limits is missing the fixed limit video_seconds\nRESULT: FAIL (21 finding(s))\n",
+      "stderr": "",
+      "note": "",
+      "finding_codes": [
+        "E_BUDGET_PARENT_FORMULA",
+        "E_LIMIT_MISSING",
+        "RESULT"
+      ],
+      "expected_code_present": true
+    },
+    {
+      "probe": "P14-dropped-dependency",
+      "purpose": "drop the R1 dependency of the V1-M1 stage in the plan",
+      "mode": "fence=ON (semantic)",
+      "command": "/usr/bin/python3 -B /tmp/d0review-P14-dropped-dependency-9kwxl91u/pkg/tools/verify_v1_plan.py --root /tmp/d0review-P14-dropped-dependency-9kwxl91u/pkg --d0-packet-manifest-sha256 81e715423b042b872b93f4133e8347102eac4e2cde626761cb317263db7c6297",
+      "exit_code": 1,
+      "stdout_sha256": "f4265bf13bc466599c4c10fb344f08c542c2fdfc6b1836de8b7d81ff8769038d",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "E_DEP_M1_R1: plan stage V1-M1 must depend on R1, found []\nE_TASK_DEP_MISMATCH: plan stage V1-M1 depends on [] but tasks.json says ['R1']\nRESULT: FAIL (2 finding(s))\n",
+      "stderr": "",
+      "note": "",
+      "finding_codes": [
+        "E_DEP_M1_R1",
+        "E_TASK_DEP_MISMATCH",
+        "RESULT"
+      ],
+      "expected_code_present": true
+    },
+    {
+      "probe": "P15-missing-entity-dto",
+      "purpose": "remove the ParentJob DTO while the contract still declares the entity",
+      "mode": "fence=ON (semantic)",
+      "command": "/usr/bin/python3 -B /tmp/d0review-P15-missing-entity-dto-b6wlcgp6/pkg/tools/verify_v1_plan.py --root /tmp/d0review-P15-missing-entity-dto-b6wlcgp6/pkg --d0-packet-manifest-sha256 b17abd9cabf43925d8f3b41e288878633d371abcdac7b4faaad8c4c3b87b3653",
+      "exit_code": 1,
+      "stdout_sha256": "3bdfc5d1df49996f8c33cd39cb0e5a6469a1814c0fcfd9e5947699235c02cd3a",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "E_BUDGET_PARENT_FORMULA: candidate ParentJob.execution_budget_seconds.maximum=None must be 5490 (= 450 * 12 + 90)\nE_BUDGET_PARENT_FORMULA: candidate ParentJob.execution_budget_seconds.minimum=None must be 540 (= 450 * 1 + 90)\nE_CONTRACT_ENTITY_UNRESOLVED: contract entity ParentJob has no matching DTO in the candidate schema $defs\nE_DTO_MISSING: the candidate schema has no ParentJob DTO\nRESULT: FAIL (4 finding(s))\n",
+      "stderr": "",
+      "note": "",
+      "finding_codes": [
+        "E_BUDGET_PARENT_FORMULA",
+        "E_CONTRACT_ENTITY_UNRESOLVED",
+        "E_DTO_MISSING",
+        "RESULT"
+      ],
+      "expected_code_present": true
+    },
+    {
+      "probe": "P16-nan-limit",
+      "purpose": "put a NaN into plan.limits.video_seconds",
+      "mode": "fence=ON (semantic)",
+      "command": "/usr/bin/python3 -B /tmp/d0review-P16-nan-limit-agmj10w6/pkg/tools/verify_v1_plan.py --root /tmp/d0review-P16-nan-limit-agmj10w6/pkg --d0-packet-manifest-sha256 7f54ab9c4ea8e7ad9ea60736580e9a8d804310e9a90a0b7efdf80b8aea13f305",
+      "exit_code": 1,
+      "stdout_sha256": "696afcbe7225fd05cd8130958183ae171c0d164cc7abc1f6c1112587de94027d",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "E_LIMIT_NOT_FINITE: plan.limits.video_seconds is not a finite number: nan\nRESULT: FAIL (1 finding(s))\n",
+      "stderr": "",
+      "note": "",
+      "finding_codes": [
+        "E_LIMIT_NOT_FINITE",
+        "RESULT"
+      ],
+      "expected_code_present": true
+    },
+    {
+      "probe": "P17-checkpoint-budget-inflated",
+      "purpose": "inflate the checkpoint model action cap to the per child cap",
+      "mode": "fence=ON (semantic)",
+      "command": "/usr/bin/python3 -B /tmp/d0review-P17-checkpoint-budget-inflated-0eniu38p/pkg/tools/verify_v1_plan.py --root /tmp/d0review-P17-checkpoint-budget-inflated-0eniu38p/pkg --d0-packet-manifest-sha256 38d8d6ea445b960d53925a21655c8bda42f4f8a21a6fa9f6c00931fd1a1e8444",
+      "exit_code": 1,
+      "stdout_sha256": "e43ebed5d65b6020173629514ddffb2bdf1472b5d745862a990c17f44b70befc",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "E_CHECKPOINT_ACTIONS: plan.checkpoint_budget declares 65 success calls + 7 controlled actions != 128 model actions\nE_CHECKPOINT_INPUT_DRIFT: plan.checkpoint_budget.model_actions_cap=128 differs from the frozen design value 72\nRESULT: FAIL (2 finding(s))\n",
+      "stderr": "",
+      "note": "",
+      "finding_codes": [
+        "E_CHECKPOINT_ACTIONS",
+        "E_CHECKPOINT_INPUT_DRIFT",
+        "RESULT"
+      ],
+      "expected_code_present": true
+    },
+    {
+      "probe": "P18-sample-pretends-materialized",
+      "purpose": "let the sample design carry a materialized source_sha256",
+      "mode": "fence=ON (semantic)",
+      "command": "/usr/bin/python3 -B /tmp/d0review-P18-sample-pretends-materialized-vedb0bp8/pkg/tools/verify_v1_plan.py --root /tmp/d0review-P18-sample-pretends-materialized-vedb0bp8/pkg --d0-packet-manifest-sha256 13533281af9ee397de87c7ea6a0588390b2b0d116ec9c2a7dd55f3619e3aadda",
+      "exit_code": 1,
+      "stdout_sha256": "0b1537703e434958c1d5255b9cb261daa7d20076fe17e96f5ab9df6dc1cfb608",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "E_SAMPLE_MATERIALIZED: clip H01 already carries a source_sha256; the design allocation must not pretend the sample is materialized\nRESULT: FAIL (1 finding(s))\n",
+      "stderr": "",
+      "note": "",
+      "finding_codes": [
+        "E_SAMPLE_MATERIALIZED",
+        "RESULT"
+      ],
+      "expected_code_present": true
+    },
+    {
+      "probe": "P19-adjudication-claims-accepted",
+      "purpose": "let the owner adjudication record N1-N6 as ACCEPTED",
+      "mode": "fence=ON (semantic)",
+      "command": "/usr/bin/python3 -B /tmp/d0review-P19-adjudication-claims-accepted-ra5d91c2/pkg/tools/verify_v1_plan.py --root /tmp/d0review-P19-adjudication-claims-accepted-ra5d91c2/pkg --d0-packet-manifest-sha256 832c24b05a81e06284e570dcfa5aa3809374b5b67fb1c43704cad45e07165f63",
+      "exit_code": 1,
+      "stdout_sha256": "f7c4829acead6db3098b2c73f9c5c900f32099b5188eb4635352ec23a0e3f984",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "E_111_ADJUDICATION: the owner correction N1 is recorded as 'ACCEPTED'; an owner correction is not an independent acceptance\nE_111_ADJUDICATION: the owner correction N2 is recorded as 'ACCEPTED'; an owner correction is not an independent acceptance\nE_111_ADJUDICATION: the owner correction N3 is recorded as 'ACCEPTED'; an owner correction is not an independent acceptance\nE_111_ADJUDICATION: the owner correction N4 is recorded as 'ACCEPTED'; an owner correction is not an independent acceptance\nE_111_ADJUDICATION: the owner correction N5 is recorded as 'ACCEPTED'; an owner correction is not an independent acceptance\nE_111_ADJUDICATION: the owner correction N6 is recorded as 'ACCEPTED'; an owner correction is not an independent acceptance\nRESULT: FAIL (6 finding(s))\n",
+      "stderr": "",
+      "note": "",
+      "finding_codes": [
+        "E_111_ADJUDICATION",
+        "RESULT"
+      ],
+      "expected_code_present": true
+    },
+    {
+      "probe": "P20-hash-fence-only",
+      "purpose": "edit a fenced authority document WITHOUT re-freezing the fences",
+      "mode": "fence=OFF (hash only)",
+      "command": "/usr/bin/python3 -B /tmp/d0review-P20-hash-fence-only-_kg3yxt0/pkg/tools/verify_v1_plan.py --root /tmp/d0review-P20-hash-fence-only-_kg3yxt0/pkg",
+      "exit_code": 1,
+      "stdout_sha256": "af30a6fa414bc17d0289ecbd17465feda6d5ee140fe72d6c626a67e9dc13598f",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "E_SPEC_FENCE_DRIFT: spec manifest file docs/31_V1_DETAILED_ARCHITECTURE_AND_CONTRACTS.md hash 569188bb1a700f8287a9cde6f5f62296f8690c190f41cc32c3b574a0ceb838fd differs from the frozen 44384ac11977a460aa25170184e8d42007354262632d1e02bfed3408056238d4\nRESULT: FAIL (1 finding(s))\n",
+      "stderr": "",
+      "note": "this rejection is the frozen hash, not a semantic rule",
+      "finding_codes": [
+        "E_SPEC_FENCE_DRIFT",
+        "RESULT"
+      ],
+      "expected_code_present": true
+    },
+    {
+      "probe": "P21-canonical-contract-drift",
+      "purpose": "change the canonical /api/v1/jobs/batch request body",
+      "mode": "fence=ON (semantic)",
+      "command": "/usr/bin/python3 -B /tmp/d0review-P21-canonical-contract-drift-ddcygq1v/pkg/tools/verify_v1_plan.py --root /tmp/d0review-P21-canonical-contract-drift-ddcygq1v/pkg --d0-packet-manifest-sha256 6f4d8e9280643126c5214c98404903f115c25c1988bec0ce78a2899f567d91fa",
+      "exit_code": 1,
+      "stdout_sha256": "91dfdce9f0a2dfa154fb2de3fed9a6bee96d91a2100a771382b2f2c9200227f7",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "E_CONTRACT_DRIFT: canonical contract contracts/openapi.json hash c6f1bcbc804f7b6e3f98ffc9e76cd42dfe164a711328b5d5de41e0ac7a4d20e8 differs from the frozen cd9df1bd94a3c4c27476608e4616e9d73e0b64da653973b1225efd902e0eef31\nE_V2_BATCH_BODY_DRIFT: the canonical /api/v1/jobs/batch request body no longer carries the items array\nRESULT: FAIL (2 finding(s))\n",
+      "stderr": "",
+      "note": "rejected by the frozen canonical contract hash",
+      "finding_codes": [
+        "E_CONTRACT_DRIFT",
+        "E_V2_BATCH_BODY_DRIFT",
+        "RESULT"
+      ],
+      "expected_code_present": true
+    },
+    {
+      "probe": "P22-malformed-overlay-metadata",
+      "purpose": "malformed input: overlay metadata_only is a list instead of an object",
+      "mode": "fence=ON (semantic)",
+      "command": "/usr/bin/python3 -B /tmp/d0review-P22-malformed-overlay-metadata-21dar3xz/pkg/tools/verify_v1_plan.py --root /tmp/d0review-P22-malformed-overlay-metadata-21dar3xz/pkg --d0-packet-manifest-sha256 486a9fa28a04758766ab646f43203ac1aa16a3f9a263ab86d17d4ffa2c4fe294",
+      "exit_code": 1,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "a70ba3dd4360209f91e235544d5b3d1a989d4f75d8a667cc1354c0e7979c5500",
+      "stdout": "",
+      "stderr": "Traceback (most recent call last):\n  File \"/tmp/d0review-P22-malformed-overlay-metadata-21dar3xz/pkg/tools/verify_v1_plan.py\", line 2704, in <module>\n    sys.exit(main())\n             ^^^^^^\n  File \"/tmp/d0review-P22-malformed-overlay-metadata-21dar3xz/pkg/tools/verify_v1_plan.py\", line 2643, in main\n    check_overlay_merge(ctx)\n  File \"/tmp/d0review-P22-malformed-overlay-metadata-21dar3xz/pkg/tools/verify_v1_plan.py\", line 1892, in check_overlay_merge\n    for path, methods in sorted(metadata.items()):\n                                ^^^^^^^^^^^^^^\nAttributeError: 'list' object has no attribute 'items'\n",
+      "note": "expected a deterministic finding, not an uncaught traceback",
+      "finding_codes": []
+    },
+    {
+      "probe": "P23-malformed-overlay-headers",
+      "purpose": "malformed input: overlay add_response_headers is a list instead of an object",
+      "mode": "fence=ON (semantic)",
+      "command": "/usr/bin/python3 -B /tmp/d0review-P23-malformed-overlay-headers-3eit8wtl/pkg/tools/verify_v1_plan.py --root /tmp/d0review-P23-malformed-overlay-headers-3eit8wtl/pkg --d0-packet-manifest-sha256 763e792d855db00245a539686aec81c4b9a76a726fe1f3b4e7ddad241992baae",
+      "exit_code": 1,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "f19b8dc713cf7673e11b68242c9584cce3c75e7d52786ea19f5859ad80959994",
+      "stdout": "",
+      "stderr": "Traceback (most recent call last):\n  File \"/tmp/d0review-P23-malformed-overlay-headers-3eit8wtl/pkg/tools/verify_v1_plan.py\", line 2704, in <module>\n    sys.exit(main())\n             ^^^^^^\n  File \"/tmp/d0review-P23-malformed-overlay-headers-3eit8wtl/pkg/tools/verify_v1_plan.py\", line 2643, in main\n    check_overlay_merge(ctx)\n  File \"/tmp/d0review-P23-malformed-overlay-headers-3eit8wtl/pkg/tools/verify_v1_plan.py\", line 1913, in check_overlay_merge\n    for path, methods in sorted(add_headers.items()):\n                                ^^^^^^^^^^^^^^^^^\nAttributeError: 'list' object has no attribute 'items'\n",
+      "note": "expected a deterministic finding, not an uncaught traceback",
+      "finding_codes": []
+    },
+    {
+      "probe": "P24-invalid-candidate-schema",
+      "purpose": "an invalid JSON Schema (unbalanced regex) in the candidate schema",
+      "mode": "fence=ON (semantic)",
+      "command": "/usr/bin/python3 -B /tmp/d0review-P24-invalid-candidate-schema-vpbiseda/pkg/tools/verify_v1_plan.py --root /tmp/d0review-P24-invalid-candidate-schema-vpbiseda/pkg --d0-packet-manifest-sha256 b0fb25944a13189c65b13dbb7e17968d418511e248c97f6579c3bce07e58a896",
+      "exit_code": 1,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "323127ce1060d707158a74864e2f0b7feadb1e5cc17fddfaa8ce17c4e7143aab",
+      "stdout": "",
+      "stderr": "Traceback (most recent call last):\n  File \"/tmp/d0review-P24-invalid-candidate-schema-vpbiseda/pkg/tools/verify_v1_plan.py\", line 2704, in <module>\n    sys.exit(main())\n             ^^^^^^\n  File \"/tmp/d0review-P24-invalid-candidate-schema-vpbiseda/pkg/tools/verify_v1_plan.py\", line 2637, in main\n    check_canonical_compatibility(ctx)\n  File \"/tmp/d0review-P24-invalid-candidate-schema-vpbiseda/pkg/tools/verify_v1_plan.py\", line 1509, in check_canonical_compatibility\n    errors = sorted(validator.iter_errors(frame), key=lambda e: e.message)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/administrator/.local/lib/python3.12/site-packages/jsonschema/validators.py\", line 384, in iter_errors\n    for error in errors:\n  File \"/home/administrator/.local/lib/python3.12/site-packages/jsonschema/_keywords.py\", line 275, in ref\n    yield from validator._validate_reference(ref=ref, instance=instance)\n  File \"/home/administrator/.local/lib/python3.12/site-packages/jsonschema/validators.py\", line 432, in descend\n    for error in errors:\n  File \"/home/administrator/.local/lib/python3.12/site-packages/jsonschema/_keywords.py\", line 296, in properties\n    yield from validator.descend(\n  File \"/home/administrator/.local/lib/python3.12/site-packages/jsonschema/validators.py\", line 432, in descend\n    for error in errors:\n  File \"/home/administrator/.local/lib/python3.12/site-packages/jsonschema/_keywords.py\", line 218, in pattern\n    and not re.search(patrn, instance)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/re/__init__.py\", line 177, in search\n    return _compile(pattern, flags).search(string)\n           ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/re/__init__.py\", line 307, in _compile\n    p = _compiler.compile(pattern, flags)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/re/_compiler.py\", line 745, in compile\n    p = _parser.parse(p, flags)\n        ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/re/_parser.py\", line 979, in parse\n    p = _parse_sub(source, state, flags & SRE_FLAG_VERBOSE, 0)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/re/_parser.py\", line 460, in _parse_sub\n    itemsappend(_parse(source, state, verbose, nested + 1,\n                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/re/_parser.py\", line 862, in _parse\n    p = _parse_sub(source, state, sub_verbose, nested + 1)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/re/_parser.py\", line 460, in _parse_sub\n    itemsappend(_parse(source, state, verbose, nested + 1,\n                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/re/_parser.py\", line 568, in _parse\n    raise source.error(\"unterminated character set\",\nre.error: unterminated character set at position 1\n",
+      "note": "",
+      "finding_codes": [],
+      "expected_code_present": false
+    },
+    {
+      "probe": "P25-frame-sample-missing",
+      "purpose": "the retained frame reference sample is not available",
+      "mode": "fence=ON (semantic)",
+      "command": "/usr/bin/python3 -B /tmp/d0review-P25-frame-sample-missing-86cy840y/pkg/tools/verify_v1_plan.py --root /tmp/d0review-P25-frame-sample-missing-86cy840y/pkg --d0-packet-manifest-sha256 04d3bfb4af3c2d7be68e494a6d59624a96051a0ebf28e81d6a0367aa32aa6710 --frame-sample reports/unified-media/live-15/does-not-exist.json",
+      "exit_code": 0,
+      "stdout_sha256": "9ae799f05a732ddffb57c2049acef8ae071e9d132990d5b0c6c0aa3d08a2965b",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "RESULT: PASS (V1=29 V2=38 V3=47; MS01-MS08 once and NOT_RUN; legacy prefix intact; DAG acyclic; parent deadline 450*n+90<=5490; checkpoint 65+ 7=72 actions / 21600 s; no human signature claimed)\nNOTE: design 1.1.1 (N1-N6 owner corrections, still pending an independent recheck): additive surface 8 operations / 7 paths; reuse annotations 7 paths; strong ETag declared on 2 new GETs and 1 existing operation; spec fence 24 files; D0 payload inventory 10 files.\nNOTE: this is a deterministic plan-structure check only; it is not product acceptance and not a Stage PASS.\n",
+      "stderr": "",
+      "note": "expected: the instance probe is skipped but the run still reports PASS",
+      "finding_codes": [
+        "NOTE",
+        "RESULT"
+      ]
+    },
+    {
+      "probe": "P26-jsonschema-unavailable",
+      "purpose": "the optional jsonschema dependency is not importable",
+      "mode": "fence=ON (semantic)",
+      "command": "/usr/bin/python3 -B /tmp/d0review-P26-jsonschema-unavailable-xjwn95l1/pkg/tools/verify_v1_plan.py --root /tmp/d0review-P26-jsonschema-unavailable-xjwn95l1/pkg --d0-packet-manifest-sha256 04d3bfb4af3c2d7be68e494a6d59624a96051a0ebf28e81d6a0367aa32aa6710",
+      "exit_code": 0,
+      "stdout_sha256": "9ae799f05a732ddffb57c2049acef8ae071e9d132990d5b0c6c0aa3d08a2965b",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "RESULT: PASS (V1=29 V2=38 V3=47; MS01-MS08 once and NOT_RUN; legacy prefix intact; DAG acyclic; parent deadline 450*n+90<=5490; checkpoint 65+ 7=72 actions / 21600 s; no human signature claimed)\nNOTE: design 1.1.1 (N1-N6 owner corrections, still pending an independent recheck): additive surface 8 operations / 7 paths; reuse annotations 7 paths; strong ETag declared on 2 new GETs and 1 existing operation; spec fence 24 files; D0 payload inventory 10 files.\nNOTE: this is a deterministic plan-structure check only; it is not product acceptance and not a Stage PASS.\n",
+      "stderr": "",
+      "note": "expected: the same PASS text, without disclosing the degraded validation",
+      "finding_codes": [
+        "NOTE",
+        "RESULT"
+      ]
+    },
+    {
+      "probe": "P41-denominator-shrunk",
+      "purpose": "shrink the V1 acceptance denominator in release_gates.json",
+      "mode": "fence=ON (semantic)",
+      "command": "/usr/bin/python3 -B /tmp/d0review-P41-denominator-shrunk-gzr_crmz/pkg/tools/verify_v1_plan.py --root /tmp/d0review-P41-denominator-shrunk-gzr_crmz/pkg --d0-packet-manifest-sha256 3396fec6bd1549ae1de18b9ebee3afca07cc5c9b2adb83f574a42d3ecf63ebf2",
+      "exit_code": 1,
+      "stdout_sha256": "cc7a3368be783a661b2ef1f365202f85adb6ac2067f359e968417cece955e17d",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "E_DENOM_V1_COUNT: release_gates.V1.required_cases has 28 entries, frozen denominator is 29\nE_MS_MISSING: release_gates.V1.required_cases is missing MS08\nE_PLAN_V1_CASE_SET: plan.v1_required_cases differs from release_gates.V1 (missing=none unexpected=['MS08'])\nE_R2_CASE_SET: tasks.json R2 work_on_cases differs from the frozen V1 denominator\nRESULT: FAIL (4 finding(s))\n",
+      "stderr": "",
+      "note": "",
+      "finding_codes": [
+        "E_DENOM_V1_COUNT",
+        "E_MS_MISSING",
+        "E_PLAN_V1_CASE_SET",
+        "E_R2_CASE_SET",
+        "RESULT"
+      ],
+      "expected_code_present": true
+    },
+    {
+      "probe": "P42-sample-shot-total-drift",
+      "purpose": "drift the sample design shot total",
+      "mode": "fence=ON (semantic)",
+      "command": "/usr/bin/python3 -B /tmp/d0review-P42-sample-shot-total-drift-t786fek0/pkg/tools/verify_v1_plan.py --root /tmp/d0review-P42-sample-shot-total-drift-t786fek0/pkg --d0-packet-manifest-sha256 88cfdfcbf03897413648ef6c8e11345c07c07ef9af77d42080d764560845dc38",
+      "exit_code": 1,
+      "stdout_sha256": "d0c27761d48de59a175144dacb4bd93effe5c37ea38a2a41329335fc0a7098c3",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "E_SAMPLE_CUT_COUNT: hard cut clip H01 declares 4 cuts for 6 shots; each cut separates two shots\nE_SAMPLE_SHOT_COUNT: the sample design allocates 48 shots, the frozen design is 47\nRESULT: FAIL (2 finding(s))\n",
+      "stderr": "",
+      "note": "",
+      "finding_codes": [
+        "E_SAMPLE_CUT_COUNT",
+        "E_SAMPLE_SHOT_COUNT",
+        "RESULT"
+      ],
+      "expected_code_present": true
+    },
+    {
+      "probe": "P27-overlay-surface-shrinks",
+      "purpose": "N2: remove one (path, method) pair from the overlay itself",
+      "mode": "fence=ON (semantic)",
+      "command": "/usr/bin/python3 -B /tmp/d0review-P27-overlay-surface-shrinks-8sd93uwj/pkg/tools/verify_v1_plan.py --root /tmp/d0review-P27-overlay-surface-shrinks-8sd93uwj/pkg --d0-packet-manifest-sha256 0dd0e6344e9bf358ad68db94f68e8a88180f0146ea41f029648d313dc2aa497b",
+      "exit_code": 1,
+      "stdout_sha256": "6c5114a772e03dcd1a81bfccb7595c9cf2122dc084468027342a3bf8545f5b56",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "E_ADDITIVE_OPERATIONS: the contract additive_operations [('/api/v1/jobs/shot-batches', 'post'), ('/api/v1/jobs/{id}/children', 'get'), ('/api/v1/scenes/{id}', 'get'), ('/api/v1/scenes/{id}/revision-info', 'get'), ('/api/v1/shots/{id}/analyses/{run_id}/adopt', 'post'), ('/api/v1/shots/{id}/analyses/{run_id}/evidence', 'get'), ('/api/v1/shots/{id}/scene-binding', 'get'), ('/api/v1/shots/{id}/scene-binding', 'put')] does not match the overlay surface [('/api/v1/jobs/shot-batches', 'post'), ('/api/v1/jobs/{id}/children', 'get'), ('/api/v1/scenes/{id}', 'get'), ('/api/v1/scenes/{id}/revision-info', 'get'), ('/api/v1/shots/{id}/analyses/{run_id}/adopt', 'post'), ('/api/v1/shots/{id}/analyses/{run_id}/evidence', 'get'), ('/api/v1/shots/{id}/scene-binding', 'get')]\nE_ADDITIVE_SURFACE: the overlay additive surface [('/api/v1/jobs/shot-batches', 'post'), ('/api/v1/jobs/{id}/children', 'get'), ('/api/v1/scenes/{id}', 'get'), ('/api/v1/scenes/{id}/revision-info', 'get'), ('/api/v1/shots/{id}/analyses/{run_id}/adopt', 'post'), ('/api/v1/shots/{id}/analyses/{run_id}/evidence', 'get'), ('/api/v1/shots/{id}/scene-binding', 'get')] differs from the frozen additive surface [('/api/v1/jobs/shot-batches', 'post'), ('/api/v1/jobs/{id}/children', 'get'), ('/api/v1/scenes/{id}', 'get'), ('/api/v1/scenes/{id}/revision-info', 'get'), ('/api/v1/shots/{id}/analyses/{run_id}/adopt', 'post'), ('/api/v1/shots/{id}/analyses/{run_id}/evidence', 'get'), ('/api/v1/shots/{id}/scene-binding', 'get'), ('/api/v1/shots/{id}/scene-binding', 'put')]\nRESULT: FAIL (2 finding(s))\n",
+      "stderr": "",
+      "note": "",
+      "finding_codes": [
+        "E_ADDITIVE_OPERATIONS",
+        "E_ADDITIVE_SURFACE",
+        "RESULT"
+      ],
+      "expected_code_present": true
+    },
+    {
+      "probe": "P28-overlay-surface-grows",
+      "purpose": "N2: add a ninth operation to the overlay additive surface",
+      "mode": "fence=ON (semantic)",
+      "command": "/usr/bin/python3 -B /tmp/d0review-P28-overlay-surface-grows-asahkfic/pkg/tools/verify_v1_plan.py --root /tmp/d0review-P28-overlay-surface-grows-asahkfic/pkg --d0-packet-manifest-sha256 8f420ff209c6c3dc0e700fbb515c0d00ba575e49c6bbddd64e313bf28203ab4f",
+      "exit_code": 1,
+      "stdout_sha256": "aafda205b558d57aeac5a30d5768bf02817244fa6b42a3ab2a6db61b2236a7a8",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "E_ADDITIVE_OPERATIONS: the contract additive_operations [('/api/v1/jobs/shot-batches', 'post'), ('/api/v1/jobs/{id}/children', 'get'), ('/api/v1/scenes/{id}', 'get'), ('/api/v1/scenes/{id}/revision-info', 'get'), ('/api/v1/shots/{id}/analyses/{run_id}/adopt', 'post'), ('/api/v1/shots/{id}/analyses/{run_id}/evidence', 'get'), ('/api/v1/shots/{id}/scene-binding', 'get'), ('/api/v1/shots/{id}/scene-binding', 'put')] does not match the overlay surface [('/api/v1/extra-route', 'get'), ('/api/v1/jobs/shot-batches', 'post'), ('/api/v1/jobs/{id}/children', 'get'), ('/api/v1/scenes/{id}', 'get'), ('/api/v1/scenes/{id}/revision-info', 'get'), ('/api/v1/shots/{id}/analyses/{run_id}/adopt', 'post'), ('/api/v1/shots/{id}/analyses/{run_id}/evidence', 'get'), ('/api/v1/shots/{id}/scene-binding', 'get'), ('/api/v1/shots/{id}/scene-binding', 'put')]\nE_ADDITIVE_PATHS: the contract additive_paths ['/api/v1/jobs/shot-batches', '/api/v1/jobs/{id}/children', '/api/v1/scenes/{id}', '/api/v1/scenes/{id}/revision-info', '/api/v1/shots/{id}/analyses/{run_id}/adopt', '/api/v1/shots/{id}/analyses/{run_id}/evidence', '/api/v1/shots/{id}/scene-binding'] does not match the overlay add_paths ['/api/v1/extra-route', '/api/v1/jobs/shot-batches', '/api/v1/jobs/{id}/children', '/api/v1/scenes/{id}', '/api/v1/scenes/{id}/revision-info', '/api/v1/shots/{id}/analyses/{run_id}/adopt', '/api/v1/shots/{id}/analyses/{run_id}/evidence', '/api/v1/shots/{id}/scene-binding']\nE_ADDITIVE_SURFACE: the overlay additive surface [('/api/v1/extra-route', 'get'), ('/api/v1/jobs/shot-batches', 'post'), ('/api/v1/jobs/{id}/children', 'get'), ('/api/v1/scenes/{id}', 'get'), ('/api/v1/scenes/{id}/revision-info', 'get'), ('/api/v1/shots/{id}/analyses/{run_id}/adopt', 'post'), ('/api/v1/shots/{id}/analyses/{run_id}/evidence', 'get'), ('/api/v1/shots/{id}/scene-binding', 'get'), ('/api/v1/shots/{id}/scene-binding', 'put')] differs from the frozen additive surface [('/api/v1/jobs/shot-batches', 'post'), ('/api/v1/jobs/{id}/children', 'get'), ('/api/v1/scenes/{id}', 'get'), ('/api/v1/scenes/{id}/revision-info', 'get'), ('/api/v1/shots/{id}/analyses/{run_id}/adopt', 'post'), ('/api/v1/shots/{id}/analyses/{run_id}/evidence', 'get'), ('/api/v1/shots/{id}/scene-binding', 'get'), ('/api/v1/shots/{id}/scene-binding', 'put')]\nRESULT: FAIL (3 finding(s))\n",
+      "stderr": "",
+      "note": "",
+      "finding_codes": [
+        "E_ADDITIVE_OPERATIONS",
+        "E_ADDITIVE_PATHS",
+        "E_ADDITIVE_SURFACE",
+        "RESULT"
+      ],
+      "expected_code_present": true
+    },
+    {
+      "probe": "P29-etag-removed-from-put",
+      "purpose": "N1: remove the ETag from the existing Scene PUT 200",
+      "mode": "fence=ON (semantic)",
+      "command": "/usr/bin/python3 -B /tmp/d0review-P29-etag-removed-from-put-3nse5fd5/pkg/tools/verify_v1_plan.py --root /tmp/d0review-P29-etag-removed-from-put-3nse5fd5/pkg --d0-packet-manifest-sha256 65fe3a34fe96a93ddf2fa330dc5f771b49d32ba073a27b28560f50de14b63302",
+      "exit_code": 1,
+      "stdout_sha256": "ae781f213e17a69b3fd3ba24be2647695d5b266d2fd3800cf0838214427af991",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "E_ETAG_MISSING: the PUT /api/v1/scenes/{id} 200 does not declare the ETag response header\nRESULT: FAIL (1 finding(s))\n",
+      "stderr": "",
+      "note": "",
+      "finding_codes": [
+        "E_ETAG_MISSING",
+        "RESULT"
+      ],
+      "expected_code_present": true
+    },
+    {
+      "probe": "P30-profile-value-drift",
+      "purpose": "N3: change the x-v1-profile value of a reuse annotation",
+      "mode": "fence=ON (semantic)",
+      "command": "/usr/bin/python3 -B /tmp/d0review-P30-profile-value-drift-0qv8azg0/pkg/tools/verify_v1_plan.py --root /tmp/d0review-P30-profile-value-drift-0qv8azg0/pkg --d0-packet-manifest-sha256 6c3d953c3f134628d4578cb554ed6bfedda5cb4546914503815ad6d6c1967aeb",
+      "exit_code": 1,
+      "stdout_sha256": "bc0c7ef38140f9294d1834a1f158de1732668ebca2a32297ba433f10f1e3e6e6",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "E_OVERLAY_METADATA_VALUE: the overlay metadata for POST /api/v1/shots declares x-v1-profile='local-shot-v2', the frozen profile is 'local-shot-v1'\nRESULT: FAIL (1 finding(s))\n",
+      "stderr": "",
+      "note": "",
+      "finding_codes": [
+        "E_OVERLAY_METADATA_VALUE",
+        "RESULT"
+      ],
+      "expected_code_present": true
+    },
+    {
+      "probe": "P31-metadata-collides-with-canonical-key",
+      "purpose": "N3: add an annotation key that already exists on the canonical operation",
+      "mode": "fence=ON (semantic)",
+      "command": "/usr/bin/python3 -B /tmp/d0review-P31-metadata-collides-with-canonical-key-og9wnnn6/pkg/tools/verify_v1_plan.py --root /tmp/d0review-P31-metadata-collides-with-canonical-key-og9wnnn6/pkg --d0-packet-manifest-sha256 b4bc8df9837f226ab357e6b2980312e7258125bd9c7f1a22ddd11439f11ea869",
+      "exit_code": 1,
+      "stdout_sha256": "bbd28bc83608b563ab68ac982345a9bcd859481bce3f4ebc94606468565e6d80",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "E_OVERLAY_METADATA_KEY: the overlay metadata for GET /api/v1/scenes carries the unauthorized key 'x-product-version'\nE_OVERLAY_METADATA_KEY: the overlay metadata for GET /api/v1/scenes carries the unauthorized key 'x-product-version'; only ['x-v1-profile', 'x-v2-semantics-unchanged'] may be added\nRESULT: FAIL (2 finding(s))\n",
+      "stderr": "",
+      "note": "",
+      "finding_codes": [
+        "E_OVERLAY_METADATA_KEY",
+        "RESULT"
+      ],
+      "expected_code_present": false
+    },
+    {
+      "probe": "P32-v2-semantics-denied",
+      "purpose": "N3: set x-v2-semantics-unchanged to false",
+      "mode": "fence=ON (semantic)",
+      "command": "/usr/bin/python3 -B /tmp/d0review-P32-v2-semantics-denied-7azpzcbh/pkg/tools/verify_v1_plan.py --root /tmp/d0review-P32-v2-semantics-denied-7azpzcbh/pkg --d0-packet-manifest-sha256 f220d85d3c2577bdd783956f86d033bb7aeb912d29fcfc7e90136f9022b58d5f",
+      "exit_code": 1,
+      "stdout_sha256": "efea22ec29e892eb3cb3a02cd082c361bf60d1be0b77e7db5da6897b9d2ee857",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "E_OVERLAY_METADATA_VALUE: the overlay metadata for GET /api/v1/jobs/{id} declares x-v2-semantics-unchanged=False, it must stay true\nRESULT: FAIL (1 finding(s))\n",
+      "stderr": "",
+      "note": "",
+      "finding_codes": [
+        "E_OVERLAY_METADATA_VALUE",
+        "RESULT"
+      ],
+      "expected_code_present": true
+    },
+    {
+      "probe": "P33-v2-batch-body-semantic-only",
+      "purpose": "N1/F1: change the canonical V2 batch items $ref AND re-baseline the canonical hash",
+      "mode": "fence=ON (semantic)",
+      "command": "/usr/bin/python3 -B /tmp/d0review-P33-v2-batch-body-semantic-only-yru1o5fi/pkg/tools/verify_v1_plan.py --root /tmp/d0review-P33-v2-batch-body-semantic-only-yru1o5fi/pkg --d0-packet-manifest-sha256 8eefa35e649e77105efc162d16a5a71bc6937a70fd6395f78283c2040b7c344a",
+      "exit_code": 1,
+      "stdout_sha256": "17cf7a87270e928758e6e6d17e43733d0b6212065d8e7ff5c787554fe736beea",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "E_V2_BATCH_BODY_DRIFT: the canonical /api/v1/jobs/batch items array no longer holds AnalyzeRequest entries\nRESULT: FAIL (1 finding(s))\n",
+      "stderr": "",
+      "note": "the canonical hash was re-baselined, so only the semantic rule can reject it",
+      "finding_codes": [
+        "E_V2_BATCH_BODY_DRIFT",
+        "RESULT"
+      ],
+      "expected_code_present": true
+    },
+    {
+      "probe": "P34-core-scene-alias-drift",
+      "purpose": "M1: break the canonical Scene alias and re-baseline the canonical hash",
+      "mode": "fence=ON (semantic)",
+      "command": "/usr/bin/python3 -B /tmp/d0review-P34-core-scene-alias-drift-nfhjwxlz/pkg/tools/verify_v1_plan.py --root /tmp/d0review-P34-core-scene-alias-drift-nfhjwxlz/pkg --d0-packet-manifest-sha256 1a17cef00715c192e658e2754eb20dc7bd99794c5fe7c697e694243e8c4cb509",
+      "exit_code": 1,
+      "stdout_sha256": "d01cf8756423e3a3a98d32e9446af8284c9ac222bcec74dad71fab4ddbc2dcf4",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "E_CANONICAL_ALIAS: the candidate CoreScene is not an exact alias of the canonical Scene DTO\nRESULT: FAIL (1 finding(s))\n",
+      "stderr": "",
+      "note": "",
+      "finding_codes": [
+        "E_CANONICAL_ALIAS",
+        "RESULT"
+      ],
+      "expected_code_present": true
+    },
+    {
+      "probe": "P35-adjudication-drops-a-finding",
+      "purpose": "let the owner adjudication silently drop N3",
+      "mode": "fence=ON (semantic)",
+      "command": "/usr/bin/python3 -B /tmp/d0review-P35-adjudication-drops-a-finding-p8q0fdb3/pkg/tools/verify_v1_plan.py --root /tmp/d0review-P35-adjudication-drops-a-finding-p8q0fdb3/pkg --d0-packet-manifest-sha256 ac2a1d198031974bc718b85592f3d71634218c15499e0019a035dc2524b53a9f",
+      "exit_code": 1,
+      "stdout_sha256": "272a603fdcac9f2dc44f5c198671efee1d93a10d5684f7ef4d126940766c1a36",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "E_111_ADJUDICATION: the 1.1.1 adjudication covers ['N1', 'N2', 'N4', 'N5', 'N6'], the frozen finding set is ['N1', 'N2', 'N3', 'N4', 'N5', 'N6']\nRESULT: FAIL (1 finding(s))\n",
+      "stderr": "",
+      "note": "",
+      "finding_codes": [
+        "E_111_ADJUDICATION",
+        "RESULT"
+      ],
+      "expected_code_present": true
+    },
+    {
+      "probe": "P36-product-coordinate-moved",
+      "purpose": "move the product coordinate away from R1 / WAIT_HUMAN",
+      "mode": "fence=ON (semantic)",
+      "command": "/usr/bin/python3 -B /tmp/d0review-P36-product-coordinate-moved-oauqrk4q/pkg/tools/verify_v1_plan.py --root /tmp/d0review-P36-product-coordinate-moved-oauqrk4q/pkg --d0-packet-manifest-sha256 24e651149566685db765941ab3650a082f8b6cdafcc8ce01bf3de05a8d3807cf",
+      "exit_code": 1,
+      "stdout_sha256": "9749fb880545f5822c7092b8580b6e083ac4c7500c176f8fa03f779714e54b26",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "E_PRODUCT_COORDINATE: the product coordinate state is 'UNIFIED_MEDIA_MACHINE_AND_INDEPENDENT_VERIFIED', the frozen coordinate state is 'WAIT_HUMAN'\nRESULT: FAIL (1 finding(s))\n",
+      "stderr": "",
+      "note": "",
+      "finding_codes": [
+        "E_PRODUCT_COORDINATE",
+        "RESULT"
+      ],
+      "expected_code_present": true
+    },
+    {
+      "probe": "P37-spec-fence-file-deleted",
+      "purpose": "delete a file that the authority spec manifest fences",
+      "mode": "fence=ON (semantic)",
+      "command": "/usr/bin/python3 -B /tmp/d0review-P37-spec-fence-file-deleted-iv5cjf9_/pkg/tools/verify_v1_plan.py --root /tmp/d0review-P37-spec-fence-file-deleted-iv5cjf9_/pkg --d0-packet-manifest-sha256 04d3bfb4af3c2d7be68e494a6d59624a96051a0ebf28e81d6a0367aa32aa6710",
+      "exit_code": 1,
+      "stdout_sha256": "9eee172e455cefb836029ebd421907512593a78d995326acaa722aed4342d19e",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "E_SPEC_FENCE_MISSING: spec manifest file docs/17_DATA_AND_VERSIONING.md is missing\nRESULT: FAIL (1 finding(s))\n",
+      "stderr": "",
+      "note": "",
+      "finding_codes": [
+        "E_SPEC_FENCE_MISSING",
+        "RESULT"
+      ],
+      "expected_code_present": true
+    },
+    {
+      "probe": "P38-metadata-collision-reachable",
+      "purpose": "N3: the canonical operation already carries x-v1-profile, so the overlay annotation collides",
+      "mode": "fence=ON (semantic)",
+      "command": "/usr/bin/python3 -B /tmp/d0review-P38-metadata-collision-reachable-qx4298_0/pkg/tools/verify_v1_plan.py --root /tmp/d0review-P38-metadata-collision-reachable-qx4298_0/pkg --d0-packet-manifest-sha256 eebbaf7dd6ce2cd1ae216d7a7d49bafaf1ff90b4f065e08c7e5ef2a8d2dcc573",
+      "exit_code": 1,
+      "stdout_sha256": "0370bf20df777c19418ddd48aec9b85e57430f3a6eb0e694cc8a7a69940e7835",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "E_OVERLAY_METADATA_COLLISION: the overlay metadata for GET /api/v1/scenes collides with the existing key 'x-v1-profile'\nE_OVERLAY_METADATA_COLLISION: the overlay metadata for GET /api/v1/scenes would replace the existing key 'x-v1-profile'\nRESULT: FAIL (2 finding(s))\n",
+      "stderr": "",
+      "note": "",
+      "finding_codes": [
+        "E_OVERLAY_METADATA_COLLISION",
+        "RESULT"
+      ],
+      "expected_code_present": true
+    },
+    {
+      "probe": "P39-metadata-target-missing",
+      "purpose": "N1/N3: the overlay annotation target no longer exists in the canonical document",
+      "mode": "fence=ON (semantic)",
+      "command": "/usr/bin/python3 -B /tmp/d0review-P39-metadata-target-missing-bh8z7lei/pkg/tools/verify_v1_plan.py --root /tmp/d0review-P39-metadata-target-missing-bh8z7lei/pkg --d0-packet-manifest-sha256 47970f887dd5282f41d27186353f40a63988fa066d26f078ba21a7fb01df9bbf",
+      "exit_code": 1,
+      "stdout_sha256": "b344e4f3a639496d040830b9b7e139f791a095ce52595e2736da249e955d3a42",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "E_OVERLAY_METADATA_PATH: the overlay annotates GET /api/v1/jobs/{id}, which the canonical OpenAPI does not define\nE_OVERLAY_METADATA_TARGET_MISSING: the overlay annotates GET /api/v1/jobs/{id}, which does not exist in the merged document\nE_REUSE_METADATA: the overlay annotates GET /api/v1/jobs/{id}, which the canonical OpenAPI does not define\nRESULT: FAIL (3 finding(s))\n",
+      "stderr": "",
+      "note": "",
+      "finding_codes": [
+        "E_OVERLAY_METADATA_PATH",
+        "E_OVERLAY_METADATA_TARGET_MISSING",
+        "E_REUSE_METADATA",
+        "RESULT"
+      ],
+      "expected_code_present": true
+    },
+    {
+      "probe": "P40-header-target-missing",
+      "purpose": "N1: the overlay ETag header target no longer exists in the canonical document",
+      "mode": "fence=ON (semantic)",
+      "command": "/usr/bin/python3 -B /tmp/d0review-P40-header-target-missing-bji648t5/pkg/tools/verify_v1_plan.py --root /tmp/d0review-P40-header-target-missing-bji648t5/pkg --d0-packet-manifest-sha256 2eeee6173d963f9a0b1c10868dfa70cc340d2d02f035f3e113d590af00f6dc1e",
+      "exit_code": 1,
+      "stdout_sha256": "914589d468de40ad9d6eabc21055957aca0893a3957556664660c893eb75114d",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "E_OVERLAY_HEADER_TARGET_MISSING: the overlay adds a response header to PUT /api/v1/scenes/{id}, which does not exist in the merged document\nE_OVERLAY_METADATA_PATH: the overlay annotates PUT /api/v1/scenes/{id}, which the canonical OpenAPI does not define\nE_OVERLAY_METADATA_TARGET_MISSING: the overlay annotates PUT /api/v1/scenes/{id}, which does not exist in the merged document\nE_REUSE_METADATA: the overlay annotates PUT /api/v1/scenes/{id}, which the canonical OpenAPI does not define\nRESULT: FAIL (4 finding(s))\n",
+      "stderr": "",
+      "note": "",
+      "finding_codes": [
+        "E_OVERLAY_HEADER_TARGET_MISSING",
+        "E_OVERLAY_METADATA_PATH",
+        "E_OVERLAY_METADATA_TARGET_MISSING",
+        "E_REUSE_METADATA",
+        "RESULT"
+      ],
+      "expected_code_present": true
+    }
+  ]
+}
