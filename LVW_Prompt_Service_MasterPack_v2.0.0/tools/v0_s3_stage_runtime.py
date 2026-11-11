@@ -4,6 +4,9 @@ Explicit opt-in only: this does not implement S3 budgets, network isolation,
 quality acceptance or rollback acceptance. No service or package CLI is launched.
 """
 import copy
+import os
+import stat
+from contextlib import ExitStack
 import re
 import time
 from pathlib import Path
@@ -11,7 +14,7 @@ from types import SimpleNamespace
 
 from tools import v0_incremental_package as package
 from tools.v0_s2_stage_runtime import StageRuntimeFactory
-from tools.v0_s2_execution_bindings import plain, stamp, hashed_file
+from tools.v0_s2_execution_bindings import plain, stamp, hashed_file, directory_handle
 from tools.v0_s2_checkpoint_oracles import EvidenceError
 
 
@@ -28,12 +31,16 @@ def _digest(path, limit):
 
 class _DeploymentArchive:
     """Retain failed protected installs; never delete via uncertain pathnames."""
-    def __init__(self, original):
+    def __init__(self, original, factory):
         self.original = original
+        self.factory = factory
         self.retained = set()
 
     def register(self, root, label):
-        return self.original.register(root, label)
+        self.factory._preparation_guard()
+        result = self.original.register(root, label)
+        self.factory._pin_preparation_root(root, label)
+        return result
 
     def lease(self, label):
         return self.original.lease(label)
@@ -41,6 +48,7 @@ class _DeploymentArchive:
     def __call__(self, context, cleanup):
         if context.root in self.retained:
             raise EvidenceError('failed protected deployment retained; pathname archive deletion forbidden')
+        self.factory._preparation_guard()
         return self.original(context, cleanup)
 
 
@@ -50,7 +58,117 @@ class InstalledPackageRuntimeFactory(StageRuntimeFactory):
         self.package_path = Path(package_path)
         self.package_sha256 = package_sha256
         self.manifest_sha256 = manifest_sha256
-        self.archive = _DeploymentArchive(self.archive)
+        self.archive = _DeploymentArchive(self.archive, self)
+        self.preparation_failures = {}
+        self._parent_fd = None
+        self._root_fds = {}
+        original_authorize = self.authorize
+        def authorize(*args):
+            self._preparation_guard()
+            return original_authorize(*args)
+        self.authorize = authorize
+
+    def _preparation_guard(self):
+        if self._parent_fd is None:
+            return  # Outside preparation, existing context ownership checks apply.
+        current = plain(self.directory).stat()
+        pinned = os.fstat(self._parent_fd)
+        if (current.st_dev, current.st_ino) != (pinned.st_dev, pinned.st_ino):
+            raise EvidenceError('preparation parent identity drift')
+        for label, (fd, name, identity) in self._root_fds.items():
+            current = os.stat(name, dir_fd=self._parent_fd, follow_symlinks=False)
+            if not stat.S_ISDIR(current.st_mode) or (current.st_dev, current.st_ino) != identity:
+                raise EvidenceError('preparation root identity drift')
+
+    def _pin_preparation_root(self, root, label):
+        self._preparation_guard()
+        before = plain(self.archive.original.lease(label)).stat()
+        fd = os.open(root.name, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW,
+                     dir_fd=self._parent_fd)
+        try:
+            info = os.fstat(fd)
+            if (info.st_dev, info.st_ino) != (before.st_dev, before.st_ino):
+                raise EvidenceError('registered preparation root replaced before pin')
+            self._root_fds[label] = (fd, root.name, (info.st_dev, info.st_ino))
+        except BaseException:
+            os.close(fd)
+            raise
+
+    def prepare_default(self):
+        return self._with_preparation(False)
+
+    def prepare_warm(self):
+        return self._with_preparation(True)
+
+    def _with_preparation(self, warm):
+        label = 'warm' if warm else 'default'
+        # No lifecycle state is reused. Keep the evidence parent open across
+        # the inherited handler, including errors after _deploy returns.
+        if self._parent_fd is not None:
+            raise EvidenceError('preparation lifecycle reentry')
+        with ExitStack() as stack:
+            try:
+                self._parent_fd = stack.enter_context(directory_handle(self.directory))
+                return super()._prepare(warm)
+            except BaseException as error:
+                if label not in self.preparation_failures:
+                    failure = {'error_type': type(error).__name__, 'error': str(error),
+                        'run_id': self.run_id, 'candidate_sha': self.candidate,
+                        'authorization_sha256': self.auth, 'stage_pass_claim': False,
+                        'evidence': self.evidence.get(label, {}), 'root_name': None}
+                    self._persist_preparation_failure(label, None, failure)
+                raise
+            finally:
+                for fd, _, _ in self._root_fds.values():
+                    os.close(fd)
+                self._root_fds.clear()
+                self._parent_fd = None
+
+    def _persist_preparation_failure(self, label, root, failure):
+        # This method must never replace the triggering exception.
+        self.preparation_failures[label] = failure
+        failure['root_retained'] = None
+        failure['root_retention_observation'] = 'UNKNOWN: original root descriptor unavailable'
+        try:
+            if label in self._root_fds:
+                fd, name, identity = self._root_fds[label]
+                info = os.fstat(fd)
+                if (info.st_dev, info.st_ino) == identity:
+                    failure['root_retained'] = info.st_nlink > 0
+                    failure['root_retention_observation'] = {
+                        'basis': 'registered original directory descriptor',
+                        'device': info.st_dev, 'inode': info.st_ino, 'links': info.st_nlink}
+            failure['persistence'] = {'status': 'PERSISTENCE_UNPROVEN'}
+            if self._parent_fd is None:
+                raise EvidenceError('original evidence parent descriptor unavailable')
+            parent = os.fstat(self._parent_fd)
+            failure['persistence'] = {'status': 'PERSISTENCE_UNPROVEN',
+                'note': 'record of attempt; completion acknowledged in factory memory after fsync',
+                'basis': 'exclusive no-follow write relative to original owned parent descriptor',
+                'parent_device': parent.st_dev, 'parent_inode': parent.st_ino}
+            fd = os.open(label + '-preparation-failure.json',
+                         os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW,
+                         0o600, dir_fd=self._parent_fd)
+            try:
+                remaining = memoryview(package._dump_json(failure).encode('utf-8'))
+                while remaining:
+                    count = os.write(fd, remaining)
+                    if count <= 0:
+                        raise OSError('failure receipt write made no progress')
+                    remaining = remaining[count:]
+                os.fsync(fd)
+            finally:
+                os.close(fd)
+            failure['persistence']['status'] = 'PERSISTED'
+        except BaseException as persistence_error:
+            failure['persistence'] = {'status': 'PERSISTENCE_UNPROVEN',
+                'error_type': type(persistence_error).__name__, 'error': str(persistence_error)}
+
+    def _copy(self, *args, **kwargs):
+        self._preparation_guard()
+        result = super()._copy(*args, **kwargs)
+        self._preparation_guard()
+        return result
 
     def _registered(self, root):
         plain(self.directory)

@@ -257,6 +257,11 @@ class StageRuntimeFactory:
                 except Exception as cleanup_error: failure['cleanup_error'] = type(cleanup_error).__name__+':'+str(cleanup_error)
             # Unknown/partial native lineage is retained rather than guessed or
             # overwritten by another attempt. The terminal parent sees this file.
-            failure['root_retained'] = root.exists()
-            with (self.directory/(label+'-preparation-failure.json')).open('xb') as output: output.write(encoded(failure))
+            self._persist_preparation_failure(label, root, failure)
             raise
+
+    def _persist_preparation_failure(self, label, root, failure):
+        """Internal persistence seam; legacy S2 behavior is unchanged."""
+        failure['root_retained'] = root.exists()
+        with (self.directory/(label+'-preparation-failure.json')).open('xb') as output:
+            output.write(encoded(failure))
