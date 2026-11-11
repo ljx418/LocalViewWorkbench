@@ -1,3 +1,11 @@
+# 最新门禁：统一图视频切片已获实际人工签署（仅本切片）
+
+用户明确确认“当前前端页面、基本的视频反推 我人工确认OK”，并在后续goal明确要求绑定现有切片候选621b1bf386db71bfe08ca2f533fa8ec396b0504b、立即提交并普通推送。真实签署记录见[human-signoff-live15.json](human-signoff-live15.json)，范围结论见[accepted-slice-live15.json](accepted-slice-live15.json)。机器UM10/独审与原始失败证据保留。本次不补签旧S2/V0.1、V0.2、完整R1/V1或生产发布，也不声称人类执行过所有机器用例。
+
+下一步先完成普通Git推送，再核对S2/S3依赖与可复用能力，冻结实际允许的下一个packet；不能仅凭“继续V1”跳过现存必要人工签署。以下WAIT_HUMAN为签署前历史快照。
+
+---
+
 # 当前门禁：WAIT_HUMAN｜最小图视频统一前端机器与独审完成
 
 候选 `621b1bf386db71bfe08ca2f533fa8ec396b0504b`。冻结packet1.0.4，fresh live15一次完整序列：固定UM-01..10全部通过，隔离独审Fatal0/Major0；这不是Stage PASS、完整R1/V1、旧S2补签或生产发布。

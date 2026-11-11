@@ -1,0 +1,87 @@
+{
+  "kind": "CANDIDATE_INTEGRITY_AND_COORDINATE_TRANSITION_CHECKS_NOT_PRODUCT_ACCEPTANCE",
+  "checks": [
+    {
+      "check": "independent raw log hash checks/mandatory-checker.stdout.log",
+      "passed": true
+    },
+    {
+      "check": "independent raw log hash checks/mandatory-checker.stderr.log",
+      "passed": true
+    },
+    {
+      "check": "independent raw log hash checks/mandatory-checker.exit.log",
+      "passed": true
+    },
+    {
+      "check": "independent command exit python3 -B tools/verify_v1_plan.py",
+      "passed": true
+    },
+    {
+      "check": "independent raw log hash checks/mandatory-pytest.stdout.log",
+      "passed": true
+    },
+    {
+      "check": "independent raw log hash checks/mandatory-pytest.stderr.log",
+      "passed": true
+    },
+    {
+      "check": "independent raw log hash checks/mandatory-pytest.exit.log",
+      "passed": true
+    },
+    {
+      "check": "independent command exit python3 -B -m pytest tools/test_verify_v1_plan.py -q",
+      "passed": true
+    },
+    {
+      "check": "integrated candidate bytes tools/verify_v1_plan.py",
+      "passed": true
+    },
+    {
+      "check": "integrated candidate bytes tools/test_verify_v1_plan.py",
+      "passed": true
+    },
+    {
+      "check": "integration checker default pin reproduces independent stdout",
+      "passed": true
+    },
+    {
+      "check": "product state preserved coordinate",
+      "passed": true
+    },
+    {
+      "check": "product state preserved last_passed_gate",
+      "passed": true
+    },
+    {
+      "check": "product state preserved human_signoff",
+      "passed": true
+    },
+    {
+      "check": "product state preserved product_acceptance",
+      "passed": true
+    },
+    {
+      "check": "product state preserved implementation_candidate",
+      "passed": true
+    },
+    {
+      "check": "product state preserved required_authorization",
+      "passed": true
+    },
+    {
+      "check": "product state preserved active_slice",
+      "passed": true
+    },
+    {
+      "check": "product state preserved required_human_signoff",
+      "passed": true
+    },
+    {
+      "check": "product state preserved development_outline",
+      "passed": true
+    }
+  ],
+  "failed": 0,
+  "runtime_actions": 0
+}

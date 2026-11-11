@@ -1,0 +1,76 @@
+{
+  "kind": "CODEX_OFFLINE_D0_PREPARATION_ADJUDICATION_NOT_PRODUCT_GATE",
+  "decision": "D0_PREPARATION_ACCEPTED_WITH_NONBLOCKING_MINORS",
+  "date": "2026-11-11",
+  "owner": "Codex",
+  "stage_id": "V1-D0",
+  "scope": "Overall/detailed architecture, acceptance design, deterministic checker and isolated independent review only",
+  "candidate_sha": "eea56636b1870586fd8d6b17005334f1b4c63cd7",
+  "authority_sha": "3af446302f6237b41dc500ee290caf2b5075ab80",
+  "independent_review_commit": "e0f2d64",
+  "independent_review": "reports/v1-redesign/d0-review/design112/receipt.json",
+  "frozen_d0_payload_sha256": "181c08ee7290f5bef02e22b6f7fd3c874c2d404cc8b4ffff84d2148a71f47eb8",
+  "blocking_findings": {
+    "Fatal": 0,
+    "Major": 0
+  },
+  "original_nm1_nm8": "6 resolved;2 resolved with explicitly nonblocking residuals",
+  "new_minor_ids": [
+    "NM-9",
+    "NM-10"
+  ],
+  "accepted_residuals_and_errata": [
+    {
+      "id": "NM-5/NM-10",
+      "severity": "Minor",
+      "disposition": "ACCEPTED_NONBLOCKING_OFFLINE_SCOPE",
+      "description": "Unused FROZEN_DOMAIN_ENTRY_KEYS remains cosmetic; the rule is protected by frozen rule-text comparison and independent example recomputation. Commit message claiming this constant is used is inaccurate. This addendum corrects the record without rewriting commit history.",
+      "owner": "ClaudeCode future checker maintenance",
+      "blocks_product_human_experience": false
+    },
+    {
+      "id": "NM-6",
+      "severity": "Minor",
+      "disposition": "ACCEPTED_NONBLOCKING_OFFLINE_SCOPE",
+      "description": "CLI recomputes one frozen example; full four-kind/two-domain rule independently recomputed and unit-tested, but no product adapter exists. Product adapter must later be tested through public production entry points; D0 evidence is not reusable as runtime acceptance.",
+      "owner": "FrameEvidenceOwner + CompilerOwner in M1",
+      "blocks_product_human_experience": false
+    },
+    {
+      "id": "NM-9",
+      "severity": "Minor",
+      "disposition": "CORRECTED_BY_APPEND_ONLY_ERRATUM",
+      "description": "Actual pytest total233 =163 carried node IDs +70 added node IDs (59 single +11 parametrized alias cases). Superseded pin test replaced equivalently; no negative deleted/weakened. Commit message 165+68 is inaccurate; original commit remains unchanged.",
+      "owner": "Codex gate record; implementer receipt prose maintenance",
+      "blocks_product_human_experience": false
+    }
+  ],
+  "pytest": {
+    "passed": 233,
+    "failed": 0,
+    "skipped": 0,
+    "source": "reports/v1-redesign/d0-review/design112/checks/mandatory-pytest.stdout.log"
+  },
+  "independent_probes": {
+    "mandatory_checker_exit": 0,
+    "mandatory_pytest_exit": 0,
+    "pytest_tests_collected": 233,
+    "pytest_passed": 233,
+    "pytest_failed": 0,
+    "pytest_skipped": 0,
+    "independent_probes_total": 23,
+    "independent_probes_exit_zero": 4,
+    "independent_probes_exit_one": 19
+  },
+  "stage_pass_claimed": false,
+  "product_gate0": false,
+  "product_pass": false,
+  "human_signoff": null,
+  "runtime_or_model_actions": 0,
+  "samples": "NOT_MATERIALIZED_NOT_FROZEN",
+  "next_product_gate": "Existing unified media slice actual human experience signature, candidate621b1bf; no fresh GPU/candidate permission required",
+  "historical_failures_retained": true,
+  "push_performed": false,
+  "push_condition": "Only after actual product human signoff per AGENTS16; this offline decision is not that signoff.",
+  "frozen_snapshot_rule": "The D0 pin/spec fence validates immutable candidate eea5663, not the mutable future execution-control. Completion updates the live coordinate only, without rewriting the audited packet/pin or historical candidate. Reproduce this checker on the exact candidate tree; prepare new Stage packets for future product scope, do not silently regenerate this retired D0 fence."
+}
