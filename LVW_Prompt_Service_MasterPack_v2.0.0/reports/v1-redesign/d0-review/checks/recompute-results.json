@@ -1,0 +1,255 @@
+{
+ "kind": "D0_B_REVIEW_INDEPENDENT_RECOMPUTATION",
+ "note": "Read-only recomputation by the isolated D0-B-REVIEW window. Not product acceptance. Does not use the D0-B-IMPL checker (not received in this workspace).",
+ "total": 41,
+ "passed": 31,
+ "failed": 10,
+ "checks": [
+  {
+   "check_id": "C1",
+   "description": "spec-manifest hash fence (17 reviewed design files) matches",
+   "result": "PASS",
+   "detail": "mismatches=0 []"
+  },
+  {
+   "check_id": "C2",
+   "description": "release gate cumulative counts V1=29 V2=38 V3=47",
+   "result": "PASS",
+   "detail": "counts={\"V0-Min\": 5, \"V0.1\": 9, \"V0.2\": 12, \"V0\": 12, \"V1\": 29, \"V2\": 38, \"V3\": 47}"
+  },
+  {
+   "check_id": "C3",
+   "description": "legacy required-case lists preserved as unchanged prefix (original 21/30/39)",
+   "result": "PASS",
+   "detail": "{\"V1\": true, \"V2\": true, \"V3\": true}"
+  },
+  {
+   "check_id": "C4",
+   "description": "MS01-MS08 appended exactly once per gate, no duplicates",
+   "result": "PASS",
+   "detail": "{\"V1\": 0, \"V2\": 0, \"V3\": 0}"
+  },
+  {
+   "check_id": "C5",
+   "description": "v1-revised-plan v1_required_cases == release_gates V1 required_cases (order sensitive)",
+   "result": "PASS",
+   "detail": "plan=29 gate=29 equal=True"
+  },
+  {
+   "check_id": "C6",
+   "description": "supplement_case_ids == MS01..MS08 exactly",
+   "result": "PASS",
+   "detail": "[\"MS01\", \"MS02\", \"MS03\", \"MS04\", \"MS05\", \"MS06\", \"MS07\", \"MS08\"]"
+  },
+  {
+   "check_id": "C7",
+   "description": "no duplicate acceptance case_id and every gate case exists in acceptance_cases",
+   "result": "PASS",
+   "detail": "duplicates=[]"
+  },
+  {
+   "check_id": "C8",
+   "description": "Q01 retained unchanged (12 images + 6 videos, >=10/12 and >=5/6)",
+   "result": "PASS",
+   "detail": "[\"12图+6片、独立预标注\"] | [\"图>=10/12、片>=5/6、无关键幻觉；不是模型自评\", \"任何失败不得静默转为跳过或降低门槛。\"]"
+  },
+  {
+   "check_id": "C9",
+   "description": "plans/tasks.json dependency graph is acyclic",
+   "result": "PASS",
+   "detail": "cycles=[]"
+  },
+  {
+   "check_id": "C10",
+   "description": "preferred_sequence respects depends_on ordering",
+   "result": "PASS",
+   "detail": "[]"
+  },
+  {
+   "check_id": "C11",
+   "description": "v1-revised-plan stage DAG acyclic (R1 -> V1-M1 -> R2)",
+   "result": "PASS",
+   "detail": "cycles=[] depends={\"R1\": [\"R1a\", \"V0-S3\"], \"V1-M1\": [\"R1\"], \"R2\": [\"R1\", \"V1-M1\"]}"
+  },
+  {
+   "check_id": "C12",
+   "description": "v1-revised-plan declares V1-M1 depends_on R1 and R2 depends_on V1-M1",
+   "result": "PASS",
+   "detail": "{\"R1\": [\"R1a\", \"V0-S3\"], \"V1-M1\": [\"R1\"], \"R2\": [\"R1\", \"V1-M1\"]}"
+  },
+  {
+   "check_id": "C13",
+   "description": "plan stage deps consistent with tasks.json stage deps for R1/V1-M1/R2",
+   "result": "PASS",
+   "detail": "{\"plan\": {\"R1\": [\"R1a\", \"V0-S3\"], \"V1-M1\": [\"R1\"], \"R2\": [\"R1\", \"V1-M1\"]}, \"tasks\": {\"R1\": [\"R1a\", \"V0-S3\"], \"V1-M1\": [\"R1\"], \"R2\": [\"R1\", \"V1-M1\"]}}"
+  },
+  {
+   "check_id": "C14",
+   "description": "canonical openapi/coreSchema/storage byte-identical to pre-change record",
+   "result": "PASS",
+   "detail": "{}"
+  },
+  {
+   "check_id": "C15",
+   "description": "authority_stage R2 is inside COMPLETE03 authorized stages; no V2 stage alias",
+   "result": "PASS",
+   "detail": "authorized=[\"R0\", \"R1a\", \"V0-S2\", \"V0-S3\", \"R1\", \"R2\"] mapping={\"design_stage\": \"V1-M1\", \"authority_stage\": \"R2\", \"scope_record\": \"reports/v1-redesign/product-change-approval.json\", \"policy\": \"M1 is approved V1/R2 early substage; finite receipt binds both identities and scope hash. Original COMPLETE03 immutable stages/limits remain unchanged, all actions use same ledger; no new counter or V2 alias.\"}"
+  },
+  {
+   "check_id": "C16",
+   "description": "plan does not reset budget and does not claim a completed/product pass",
+   "result": "PASS",
+   "detail": "budget_reset=False waived=False status=DESIGN_REVIEW_REQUIRED"
+  },
+  {
+   "check_id": "C17",
+   "description": "v1-multishot schema: every $ref resolves inside the file",
+   "result": "PASS",
+   "detail": "defs=[\"Action\", \"AnalysisBinding\", \"BatchAnalyzeRequest\", \"BatchChildrenResponse\", \"Character\", \"ChildSummary\", \"FrameRef\", \"SceneRevision\", \"ShotEvidence\"]"
+  },
+  {
+   "check_id": "C18",
+   "description": "no $defs name collides with an existing canonical OpenAPI component name",
+   "result": "FAIL",
+   "detail": "collisions=[\"FrameRef\"]"
+  },
+  {
+   "check_id": "C19",
+   "description": "candidate FrameRef is shape-compatible with canonical FrameRef (required fields)",
+   "result": "FAIL",
+   "detail": "canonical_required=[\"index\", \"sha256\", \"source_pts\", \"target_seconds\", \"time_base_den\", \"time_base_num\", \"time_basis\"] candidate_required=[\"index\", \"sha256\", \"source_pts\", \"time_base_den\", \"time_base_num\"] missing_in_candidate=[\"target_seconds\", \"time_basis\"]"
+  },
+  {
+   "check_id": "C20",
+   "description": "reuse_path /api/v1/jobs/batch canonical request body is compatible with candidate BatchAnalyzeRequest",
+   "result": "FAIL",
+   "detail": "canonical=[\"items\"] candidate=[\"config_profile\", \"content_profile\", \"custom_guidance\", \"mode\", \"scene_revision_ids\", \"shot_ids\"]"
+  },
+  {
+   "check_id": "C21",
+   "description": "reuse_path /api/v1/scenes/detect canonical request body matches docs/31 (media_ref_id+profile)",
+   "result": "PASS",
+   "detail": "canonical=[\"media_ref_id\", \"profile\"]"
+  },
+  {
+   "check_id": "C22",
+   "description": "candidate SceneRevision required-field set equals canonical Scene required-field set for reused routes",
+   "result": "FAIL",
+   "detail": "canonical_only=[\"editor\", \"revision\", \"verified\"] candidate_only=[\"etag\", \"origin\", \"source_sha256\", \"version\"]"
+  },
+  {
+   "check_id": "C23",
+   "description": "reuse_paths entries absent from canonical OpenAPI are exactly the declared new ones",
+   "result": "PASS",
+   "detail": "absent_from_canonical=[\"/api/v1/jobs/{id}/children\"]"
+  },
+  {
+   "check_id": "C24",
+   "description": "ParentJob required fields are representable in the strict canonical Job DTO (no field smuggling)",
+   "result": "FAIL",
+   "detail": "not_in_canonical_job=[\"deadline\", \"planned_child_ids\", \"selected_scene_revision_ids\", \"terminal_count\", \"total\"]"
+  },
+  {
+   "check_id": "C25",
+   "description": "candidate schema defines a ParentJob DTO",
+   "result": "FAIL",
+   "detail": "defined_defs=[\"Action\", \"AnalysisBinding\", \"BatchAnalyzeRequest\", \"BatchChildrenResponse\", \"Character\", \"ChildSummary\", \"FrameRef\", \"SceneRevision\", \"ShotEvidence\"]"
+  },
+  {
+   "check_id": "C26",
+   "description": "ChildSummary.status values are a subset of canonical Job.status enum",
+   "result": "PASS",
+   "detail": "child=[\"cancelled\", \"cancelling\", \"failed\", \"interrupted\", \"partial\", \"preparing\", \"queued\", \"running\", \"submission_unknown\", \"succeeded\"] canonical=[\"cancelled\", \"cancelling\", \"failed\", \"interrupted\", \"partial\", \"preparing\", \"queued\", \"running\", \"submission_unknown\", \"succeeded\"] extra=[]"
+  },
+  {
+   "check_id": "C27",
+   "description": "BatchChildrenResponse exposes parent progress (terminal_count/total) and deadline",
+   "result": "FAIL",
+   "detail": "children_props=[\"children\", \"parent_job_id\", \"total\"]"
+  },
+  {
+   "check_id": "C28",
+   "description": "baseline DDL scene_revision has no append-only trigger and no etag/source_sha256 column",
+   "result": "PASS",
+   "detail": "scene_revision_ddl=(id TEXT PRIMARY KEY, media_ref_id TEXT NOT NULL REFERENCES media_ref(id), version INTEGER NOT NULL, start_pts INTEGER NOT NULL, end_pts INTEGER NOT NULL, origin_pts INTEGER NOT NULL, tb_num INTEGER NOT NULL CHECK(tb_num>0), tb_den INTEGER NOT NULL CHECK(tb_den>0), editor TEXT NOT NULL, CHECK(end_pts>start_pts))"
+  },
+  {
+   "check_id": "C29",
+   "description": "baseline DDL batch_child carries no ordinal / shot_id / scene_revision_id column",
+   "result": "PASS",
+   "detail": "batch_child_ddl=(parent_job_id TEXT REFERENCES job(id), child_job_id TEXT REFERENCES job(id), PRIMARY KEY(parent_job_id,child_job_id))"
+  },
+  {
+   "check_id": "C30",
+   "description": "documented 12-clip composition yields the stated 47 planned shots",
+   "result": "FAIL",
+   "detail": "hard=27 nocut=2 vfr=4 fast=8 dissolve(1..3 shots each)=2..6 total=43..47 stated=47"
+  },
+  {
+   "check_id": "C31",
+   "description": "doc32 states 47 planned shots and 21 hard-cut annotation points",
+   "result": "PASS",
+   "detail": "phrases_present"
+  },
+  {
+   "check_id": "C32",
+   "description": "MS01 cut-point threshold matches the inherited V2 A13 threshold (>=20 points, +-2 source frames, P/R>=0.90)",
+   "result": "PASS",
+   "detail": "[\"6段硬切样本至少20个预标切点；一对一匹配，P/R均>=0.90，容差为标注点左右各2个实际源帧；禁止用平均fps换算VFR\", \"缺失/阻塞/跳过不计PASS，不缩分母，不替换样本；Fatal0/Major0才能出门\"]"
+  },
+  {
+   "check_id": "C33",
+   "description": "design per-round estimate (80 actions / 10800 s) fits the COMPLETE03 per-child ceilings (128 / 21600)",
+   "result": "PASS",
+   "detail": "design=80/10800 ceilings=128/21600"
+  },
+  {
+   "check_id": "C34",
+   "description": "global remaining budget can fund several full V1 checkpoint rounds at the design estimate",
+   "result": "PASS",
+   "detail": "remaining_actions=995 rounds_by_actions=12 remaining_rounds=16 remaining_seconds=171294 rounds_by_seconds=15"
+  },
+  {
+   "check_id": "C35",
+   "description": "design per-round wall estimate (10800 s) is consistent with the measured video-analysis P95 (300 s) x 47 shots",
+   "result": "FAIL",
+   "detail": "47 shots x 300 s P95 = 14100 s vs design estimate 10800 s (per-call average implied by estimate = 135.0 s)"
+  },
+  {
+   "check_id": "C36",
+   "description": "parent batch deadline (1800 s) covers the measured worst case of its own children (12 x 420 s)",
+   "result": "FAIL",
+   "detail": "12 children x 420 s = 5040 s vs parent deadline 1800 s; measured video P95 300 s x 8-shot sample = 2400 s"
+  },
+  {
+   "check_id": "C37",
+   "description": "no human signature or product acceptance claimed; V1_ACCEPTED forbidden",
+   "result": "PASS",
+   "detail": "human_signoff=None product_acceptance=None forbidden=[\"V0_ACCEPTED\", \"V0.1_ACCEPTED\", \"V0.2_ACCEPTED\", \"V1_ACCEPTED\", \"PRODUCTION_RELEASED\", \"TARGET_HARDWARE_TESTED\"]"
+  },
+  {
+   "check_id": "C38",
+   "description": "D0 stage control forbids product execution and Stage PASS",
+   "result": "PASS",
+   "detail": "ok"
+  },
+  {
+   "check_id": "C39",
+   "description": "11-video human holdout set recorded as non-formal and separate from the new MS sample set",
+   "result": "PASS",
+   "detail": "{\"manifest\": \"人工验收视频集/FREEZE.json\", \"expected\": \"人工验收视频集/expected-results.frozen.json\", \"videos\": 11, \"lvw_status\": \"ALL_NOT_RUN\", \"historical_review\": \"reports/human-video-validation-2026-11-08/history.json\", \"report_ui_checks\": \"reports/human-video-validation-2026-11-08/ui-receipt.json\", \"formal_quality_set\": false}"
+  },
+  {
+   "check_id": "C40",
+   "description": "current 1.8 video template response carries no action/scene/character evidence fields (appearance-only)",
+   "result": "PASS",
+   "detail": "template_version=1.8.0 keys=[\"frame_appearances\", \"negative\", \"prompt\", \"prompt_zh\", \"tags\", \"unknowns\"]"
+  },
+  {
+   "check_id": "C41",
+   "description": "canonical model_run.frames records frames with target_seconds + time_basis (sample_target vs decoded_pts)",
+   "result": "PASS",
+   "detail": "canonical_frame_ref_fields=[\"index\", \"sha256\", \"source_pts\", \"target_seconds\", \"time_base_den\", \"time_base_num\", \"time_basis\"] live_frame_fields=[\"index\", \"sha256\", \"source_pts\", \"target_seconds\", \"time_base_den\", \"time_base_num\", \"time_basis\"]"
+  }
+ ]
+}
