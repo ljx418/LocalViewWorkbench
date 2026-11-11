@@ -38,3 +38,6 @@ Orca创建可见子工作区/窗口；Codex通过Dispatch ID协调与接收worke
 
 
 Gate0按Stage冻结各自scope/合同/离线oracle/实际所需样本与预算，不把尚未运行的新模型质量当已知前置结论。M1新profile在实现后集中离线全绿、代表性有限pilot通过，才进正式真实checkpoint；这不是要求在禁止实现时先证明实现质量。新完整R1使用R1-CORE包目录，M1/R2各有新包，execution-control显式active_packet后由对应验证器校验；旧R1切片包保持不动。
+
+
+2026-11-11准入修订（CHANGE-V1-S2-HANDOFF-01已批准）：上文“原S2范围判定”现由ADR-14和S3-V1-ONLY-S2-HANDOFF-01落实。仅S3向V1开发衔接可使用原S2九项机器/独审＋当前统一前端人签，旧S2保持7/8未签；不取消S3、质量、安装回滚、后续实际人签或发布门限。阶段顺序不改，其他依赖无此例外。详见plans/tasks.json依赖谓词和批准记录；D0审前源保留在原git候选。

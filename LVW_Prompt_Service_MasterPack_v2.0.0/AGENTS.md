@@ -30,3 +30,5 @@
 22. 2026-11-11用户批准多镜头能力纳入V1，记录reports/v1-redesign/product-change-approval.json。Codex负责总体/详细架构、合同、验收设计、协调和最终审查；默认通过Orca可见的ClaudeCode独立工作区承担具体实现与自检，不再默认由root批量实现。可自行启动管理这些窗口；独立审查必须与实现实例分离，自检不能签StagePASS。当前621b1bf体验签署仍待，不以产品变更冒充人签。允许先进行V1-D0文档与确定性工具准备，不跨过产品前置门槛；新功能真实运行仍受原全局预算、有限子授权、loopback/no-cloud、清理限制。
 
 23. 2026-11-11用户明确确认“当前前端页面、基本的视频反推 我人工确认OK”，并在goal中要求绑定现有统一切片与普通推送。签署见reports/unified-media/human-signoff-live15.json，候选621b1bf，仅当前统一切片；规则22中的“体验签署仍待”是此前历史状态。不得再请求该切片重复人签，也不将此次签署扩大到旧S2/V0.2/完整R1/V1/发布。按docs30及实际依赖继续，旧范围若仍缺必要人签须明确区分。
+
+24. 2026-11-11用户批准CHANGE-V1-S2-HANDOFF-01并要求继续goal。记录reports/v1-next-stage-readiness/change-v1-s2-handoff-01.approval.json，ADR-14生效：仅S3向V1开发衔接可使用原S2机器/独审与当前统一前端实际人签，严格校验候选和证据。旧S2保持7/8未签；不再把此衔接范围列为待人批，不扩大到其他依赖、历史版本接受或发布。当前准入与准备仍以execution-control和新S3packet为准，产品Gate0、固定质量/资源、有限运行、独审及后续人签均保留。

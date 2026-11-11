@@ -1,0 +1,96 @@
+{
+  "kind": "PRODUCT_DEPENDENCY_SCOPE_CHANGE_REQUEST_NOT_RUNTIME_AUTHORIZATION",
+  "id": "CHANGE-V1-S2-HANDOFF-01",
+  "status": "AWAITING_PROJECT_OWNER_APPROVAL_NOT_EFFECTIVE",
+  "requested_by": "Codex architecture and gate owner",
+  "date": "2026-11-11",
+  "basis": [
+    "User active goal: do not broaden current unified-slice signature to oldS2; stop on contract change",
+    "AGENTS.md rules10,11,20,23",
+    "docs/30 S2/S3 prerequisite: original S2 scope determination",
+    "plans/tasks.json V0-S3 depends_on V0-S2; R1 depends_on R1a+V0-S3"
+  ],
+  "problem": "Historical S2 native Comfy human acceptance is pending. Current unified frontend is genuinely signed, but only for candidate621b1bf. Current plan does not provide an approved predicate for advancing S3 towardV1 while oldS2 stays7/8.",
+  "recommended_resolution": {
+    "scope": "V1 development handoff only; historicalV0 release claims unchanged",
+    "dependency_rule_before": "S3 execution requires full historicalS2 completion, including nativeComfy human acceptance",
+    "dependency_rule_after": "For V1 continuation only, S3 may enter Gate0 when both the unchanged historicalS2 cumulative9 machine+independent evidence and the actual current unified-media human signature are verified and their capability mapping is frozen. NativeS2 human experience remains unsigned and is not a V1-development prerequisite under this explicit exception.",
+    "required_machine_baseline": {
+      "candidate_sha": "719c74559393a6489b2f630a1e0d3bc3303eb655",
+      "receipt": "reports/v0-s2/full-v0-auto-08/receipt.json",
+      "independent_review": "reports/v0-s2/full-v0-auto-08/independent-review.json"
+    },
+    "required_human_baseline": {
+      "candidate_sha": "621b1bf386db71bfe08ca2f533fa8ec396b0504b",
+      "signoff": "reports/unified-media/human-signoff-live15.json"
+    },
+    "historical_s2_status_after": "7/8, native human signoff PENDING; DO NOT mark8/8 orAPPROVED",
+    "dependency_graph": "Keep S2/S3 -> R1 -> M1 -> R2 order. Record this single conditional S2-to-S3 predicate explicitly in authority docs/plans and the newS3packet; do not apply it to arbitrary stages.",
+    "all_other_gate0_conditions": "Remain mandatory, including exact allowedfiles, contracts, fixedoracles, independently labelled/licensed realinputs, finitechild budget, offlinechecks and cleanup. This approval alone does not activateS3 or run any model."
+  },
+  "retained_obligations": {
+    "V0_S3": [
+      "V0-A01..12 cumulative12, no reduction",
+      "V0-A06 reversible install/offline coldstart/rollback and oldworkflow preservation",
+      "V0-A11 independent10images >=8usable, criticalhallucination0",
+      "V0-A12 independent6videos >=5usable, criticalhallucination0; actualsemantic content not numerical stand-ins"
+    ],
+    "V1": [
+      "Original21 plusMS01..08 =29",
+      "Q01 independent12images+6videos, original thresholds unchanged",
+      "NewMS12clips/47shots/21hardcuts and18preselectedqualitysegments; original thresholds unchanged",
+      "Four sets separated by SHA+origin, human11holdouts remain protected",
+      "Actual human UX signatures at subsequent required gates and separate final release approval"
+    ],
+    "resources_and_authority": "Existing COMPLETE03 cumulative ledger/caps, GPU/RAM/cancel/release/cleanup bounds unchanged; no reset, cloud/model downloads/private data or new runtime permission inferred"
+  },
+  "proposed_authority_changes": [
+    {
+      "file": "docs/00_POSITION_AND_ADR.md",
+      "change": "Append approvedV1-only handoff ADR with exactexcludedclaims and provenance; retain history."
+    },
+    {
+      "file": "docs/23_V1_EARLY_FRONTEND_SEQUENCE.md",
+      "change": "Append handoff clarification; acceptedReact UX is not a retroactive nativeComfy signature."
+    },
+    {
+      "file": "docs/24_EXECUTION_MASTER_PLAN.md",
+      "change": "Update next-action/index while historicalS2 stays7/8."
+    },
+    {
+      "file": "docs/30_V1_REVISED_EXECUTION_PLAN.md",
+      "change": "Append explicit approved S2-to-S3 conditional prerequisite for V1 continuation."
+    },
+    {
+      "file": "plans/tasks.json",
+      "change": "Add a machine-readable, narrowly scoped dependency-gate predicate for S3/S2; retain dependency IDs/order and all work_on_cases. No arbitrary unapproved stage aliases."
+    },
+    {
+      "file": "plans/v1-revised-plan.json",
+      "change": "Bind V1-only handoff record; historical old_slice_human_signoff_waived remainsfalse for oldV0 acceptance, explicitly distinguish development predicate from release signoff."
+    },
+    {
+      "file": "plans/execution-control.json",
+      "change": "Record scope decision and nextpreparation state; preserve current signature, all oldS2 substep states and allother unfinished stages."
+    },
+    {
+      "file": ".agent-governance/stages/V0-S3/",
+      "change": "After separateGate0readiness, freeze nextpacket with this exactapproveddependency, samples/contracts/commands/budget. No current activation."
+    },
+    {
+      "file": "S3 dependency validation tools/tests (paths to be frozen in S3 packet)",
+      "change": "Implement deterministic rejection for missing/mismatched machine and human baselines, unsanctioned aliases and attempts to claim oldS2 signed."
+    }
+  ],
+  "explicitly_not_changed": [
+    "HistoricalS2 and currentUM receipts/failedruns/signaturebytes",
+    "CanonicalpublicAPI/Schema/errorcontracts",
+    "Acceptance IDs/fixeddenominators/qualitythresholds",
+    "V0.1/V0.2/fullV1/release acceptance claims",
+    "Current runtime grants, budgetcounters or testSource permission"
+  ],
+  "media_preparation": "Existing approved testSource/nonprivate local assets may be inventoried under properfinitepreparation binding later. No need to ask the user to supply newmedia merely because no quality set is yet frozen inGit. Missing rights/coverage/disjointness remains a genuine Gate0 gap if inventory cannot resolve it.",
+  "approval_phrase": "批准 CHANGE-V1-S2-HANDOFF-01，按 change-v1-s2-handoff-01.request.json 的完整范围执行 V1 专用能力衔接；保留旧 S2 7/8 与未签状态，不降低 S3、Q01、MS 质量及资源门限，不批准任何旧版本或 V1 发布。",
+  "approval_record": null,
+  "effective": false
+}

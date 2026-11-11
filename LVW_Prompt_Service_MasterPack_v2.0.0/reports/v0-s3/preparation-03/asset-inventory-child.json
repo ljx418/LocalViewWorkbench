@@ -1,0 +1,63 @@
+{
+  "kind": "BOUNDED_S3_PREPARATION_CHILD_DERIVED_FROM_EXISTING_COMPLETE03",
+  "id": "S3-PREP-LOCAL-ASSET-INVENTORY-01",
+  "authority_stage": "V0-S3",
+  "phase": "GATE0_PREPARATION_ONLY",
+  "parent_request": "reports/authorization-program-v1-complete-03.request.json",
+  "parent_approval": "reports/authorization-program-v1-complete-03.approval.json",
+  "scope_approval": "reports/v1-next-stage-readiness/change-v1-s2-handoff-01.approval.json",
+  "scope_approval_sha256": "bab47506d5a13657edcabc33644c6b159f2967e696dff4c4c43859d54fbf3057",
+  "candidate_binding": "Exact source commit and script SHA must be in implementation receipt before actualinventory invocation. No productruntime enabled.",
+  "allowed_roots": [
+    {
+      "alias": "testSource",
+      "wsl_path": "/mnt/c/workSpace/videoWorkLine/testSource",
+      "windows_path": "C:\\workSpace\\videoWorkLine\\testSource",
+      "permission": "user-supplied non-private local test input; no redistribution licence inferred"
+    }
+  ],
+  "limits": {
+    "wall_seconds": 180,
+    "max_regular_files_examined": 2048,
+    "max_files_hashed": 512,
+    "max_total_bytes_hashed": 8589934592,
+    "max_single_file_bytes": 536870912,
+    "read_chunk_bytes": 1048576,
+    "max_directory_entries": 8192
+  },
+  "allowed_extensions": [
+    ".jpg",
+    ".jpeg",
+    ".png",
+    ".webp",
+    ".mp4",
+    ".mov",
+    ".mkv",
+    ".webm",
+    ".avi"
+  ],
+  "forbidden": [
+    "follow symlink or reparse target outside approved root",
+    "read unrelatedroots",
+    "decode/probe/media EXIF extraction",
+    "network/download/provider/model/GPU/service/browser/processstart",
+    "change media bytes or delete originals",
+    "claim quality labels or frozen independent samples from inventory"
+  ],
+  "budgets": {
+    "model_actions": 0,
+    "effective_full_checkpoints": 0,
+    "product_runtime_seconds": 0,
+    "service_starts": 0
+  },
+  "clean_up": "Read-only source; cleanup only owned TemporaryDirectory fixture roots. Inventory receipts retained; neverdelete source or unknown/shared temp.",
+  "terminal": "One bounded inventory attempt; exhausted/missing/changed/skipped categories reported explicitly; do not retry automatically or infer missingcoverage=PASS.",
+  "required_preflight_fields": [
+    "candidate_sha",
+    "inventory_script_sha256",
+    "handoff_script_sha256",
+    "inventory_child_sha256",
+    "scope_approval_sha256",
+    "frozen_proof_hashes"
+  ]
+}
