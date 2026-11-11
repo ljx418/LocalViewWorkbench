@@ -1,0 +1,28 @@
+{
+  "kind": "S3_P2B_CLOSING_DISPOSITION",
+  "decision": "ACTUAL_CROSS_OS_BINDING_ACCEPTED_WITH_DISCLOSED_MINOR_ONLY",
+  "execution_candidate": "975747218d0d002521d98e56c46b9da2c52ee612",
+  "reviewed_code": "da6e7b5ed351baca3b74f003cfcf3622c4b382d6",
+  "evidence_commit": "b7e36beefe3cbe4c7b32f66a99bd4ddfec506fb8",
+  "independent_commit": "ac402c4c72644305c3e0ef881d295408f9401bf6",
+  "fatal": 0,
+  "major": 0,
+  "minor": 1,
+  "accepted_minor": {
+    "id": "C03-m01",
+    "limitation": "Exact lock acquired/released and wrapper-return monotonic times were not persisted; no reconstruction or causal kill claim. Future reuse must persist them; no historical rerun required."
+  },
+  "supported_boundaries": [
+    "normal synthetic debit through actual Windows/WSL candidate shim",
+    "bad hash and wrong receipt rejected before model send",
+    "timeout fails closed; independent identity observations show two absences; UNKNOWN_ACK capacity retained",
+    "schema3 canonical terminal and schema2 shared/local consumption references agree"
+  ],
+  "actual_model_actions": 0,
+  "real_program_ledger_touched": false,
+  "new_tests_required": false,
+  "historical_failures_rewritten": false,
+  "stage_pass": false,
+  "product_gate0": false,
+  "next": "S3 P3 product integration: package-installed runtime deployment, quality execution, A06 offline isolation and same-candidate twelve-case coordinator. No more P2 preparation features."
+}
