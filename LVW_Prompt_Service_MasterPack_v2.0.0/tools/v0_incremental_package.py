@@ -30,6 +30,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import io
 import json
 import os
 import re
@@ -965,12 +966,300 @@ def _member_kind(info):
     return "regular"
 
 
+
+class _SealedArchive:
+    """Private bounded byte source; always runs the complete archive validator."""
+    def __init__(self, path, data):
+        self.path, self.data = str(path), bytes(data)
+
+
+_PROTECTED_SUPPORT = (os.name == 'posix' and hasattr(os, 'O_NOFOLLOW') and hasattr(os, 'O_DIRECTORY') and hasattr(os, 'O_NONBLOCK')
+            and {os.open, os.mkdir, os.stat, os.rename, os.unlink, os.rmdir}.issubset(os.supports_dir_fd)
+            and os.stat in os.supports_follow_symlinks and os.listdir in os.supports_fd)
+
+
+def _protected_supported():
+    return _PROTECTED_SUPPORT
+
+
+class ProtectedInstall:
+    """Finite internal S3 handoff, not a CLI mode or a validation bypass.
+
+    Pins namespace ancestors and preparation directories before validation. All
+    target/staging mutations use no-follow, descriptor-relative operations.
+    Failure retains both trees, without pathname rollback. POSIX only; native
+    Windows is unsupported. A malicious actor moving an already-open inode at
+    the syscall boundary can move our owned object; descriptors prevent writing
+    through its replacement, not arbitrary relocation of the owned inode.
+    """
+    def __init__(self, *, target, sandbox_parent, package_path, package_sha256,
+                 manifest_sha256, candidate_sha):
+        self.target, self.parent, self.package_path = map(Path, (target, sandbox_parent, package_path))
+        self.expected = package_sha256, manifest_sha256, candidate_sha
+        self.fds, self.edges = [], []
+        self.active = self.used = False
+        self.stage = None
+        self.committed = []
+
+    @staticmethod
+    def _identity(info):
+        return info.st_dev, info.st_ino
+
+    @staticmethod
+    def _file_identity(info):
+        return (info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns, info.st_ctime_ns)
+
+    def _open_dir(self, parent, name, *, track=False):
+        fd = os.open(name, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=parent)
+        self.fds.append(fd)
+        if track:
+            self.edges.append((parent, name, fd, self._identity(os.fstat(fd))))
+        return fd
+
+    def _chain(self, path):
+        if not path.is_absolute() or '..' in path.parts:
+            _fail('PATH_REJECTED', 'protected path must be canonical absolute')
+        fd = os.open('/', os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+        self.fds.append(fd)
+        for name in path.parts[1:]:
+            fd = self._open_dir(fd, name, track=True)
+        return fd
+
+    def __enter__(self):
+        if not _protected_supported():
+            _fail('PATH_REJECTED', 'protected install requires POSIX no-follow directory descriptors')
+        try:
+            if self.target.parent != self.parent:
+                _fail('PATH_REJECTED', 'protected target must be a direct sandbox child')
+            for path in (self.parent, self.target):
+                _require_not_production_host(path, 'protected install')
+            self.parent_fd = self._chain(self.parent)
+            self.target_fd = self._open_dir(self.parent_fd, self.target.name, track=True)
+            expected = {'input', 'output', 'temp', 'custom_nodes'}
+            if set(os.listdir(self.target_fd)) != expected:
+                _fail('CONFLICT', 'protected install requires fresh preparation directories')
+            self.parents = {}
+            for name in sorted(expected):
+                fd = self._open_dir(self.target_fd, name, track=True)
+                if os.listdir(fd):
+                    _fail('CONFLICT', 'protected preparation directory is not empty')
+                self.parents[name] = fd
+            self.package_parent_fd = self._chain(self.package_path.parent)
+            fd = os.open(self.package_path.name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK,
+                         dir_fd=self.package_parent_fd)
+            self.fds.append(fd)
+            self.archive_fd = fd
+            before = os.fstat(fd)
+            if not stat.S_ISREG(before.st_mode) or before.st_size > SIZE_LIMIT_BYTES:
+                _fail('SIZE_LIMIT', 'protected archive must be regular and bounded')
+            self.archive_identity = self._file_identity(before)
+            chunks = []; remaining = before.st_size
+            while remaining:
+                chunk = os.read(fd, min(remaining, 1024 * 1024))
+                if not chunk:
+                    _fail('INTEGRITY_MISMATCH', 'protected archive truncated')
+                chunks.append(chunk); remaining -= len(chunk)
+            self.archive = _SealedArchive(self.package_path, b''.join(chunks))
+            marker_raw = self._read(self.parent_fd, SANDBOX_MARKER_NAME)
+            content = json.loads(marker_raw)
+            if content.get('magic') != SANDBOX_MARKER_MAGIC or content.get('tool') != TOOL_NAME:
+                _fail('BAD_INPUT', 'protected sandbox marker mismatch')
+            self.marker = {'path': str(self.parent / SANDBOX_MARKER_NAME),
+                           'sha256': _sha256_bytes(marker_raw), 'content': content}
+            self.active = True
+            self.check()
+            return self
+        except BaseException:
+            self.__exit__(None, None, None)
+            raise
+
+    def __exit__(self, *unused):
+        self.active = False
+        for fd in reversed(self.fds):
+            os.close(fd)
+        self.fds.clear()
+
+    def check(self):
+        if not self.active:
+            _fail('BAD_INPUT', 'protected handoff is closed')
+        self._check_directories()
+        current = os.stat(self.package_path.name, dir_fd=self.package_parent_fd, follow_symlinks=False)
+        if (not stat.S_ISREG(current.st_mode) or self._file_identity(current) != self.archive_identity
+                or self._file_identity(os.fstat(self.archive_fd)) != self.archive_identity):
+            _fail('PATH_REJECTED', 'protected archive identity drift')
+        if _sha256_bytes(self._read(self.parent_fd, SANDBOX_MARKER_NAME)) != self.marker['sha256']:
+            _fail('PATH_REJECTED', 'protected marker drift')
+
+    def _check_directories(self):
+        for parent, name, fd, identity in self.edges:
+            current = os.stat(name, dir_fd=parent, follow_symlinks=False)
+            if not stat.S_ISDIR(current.st_mode) or self._identity(current) != identity or self._identity(os.fstat(fd)) != identity:
+                _fail('PATH_REJECTED', 'protected directory identity drift', component=name)
+
+    def save_receipt(self, name, receipt):
+        if not self.active or Path(name).name != name:
+            _fail('BAD_INPUT', 'protected receipt name/context invalid')
+        self._check_directories()
+        fd = os.open(name, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW,
+                     0o600, dir_fd=self.parent_fd)
+        with os.fdopen(fd, 'wb') as stream:
+            stream.write(_dump_json(receipt).encode('utf-8'))
+            stream.flush(); os.fsync(stream.fileno())
+        self._check_directories()
+
+    def validate(self):
+        self.check()
+        validation = _validate_archive(self.archive)
+        if (validation['package_sha256'], validation['manifest_sha256'], validation['source_commit']) != self.expected:
+            _fail('INTEGRITY_MISMATCH', 'protected candidate/package/manifest binding mismatch')
+        for item in validation['items']:
+            _validate_owned_relative_path(item['install_path'], 'protected payload', 'file')
+        self.check()
+        return validation
+
+    def _read(self, parent, name):
+        fd = os.open(name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=parent)
+        try:
+            info = os.fstat(fd)
+            if not stat.S_ISREG(info.st_mode) or info.st_size > SIZE_LIMIT_BYTES:
+                _fail('SIZE_LIMIT', 'protected file must be regular and bounded')
+            with os.fdopen(fd, 'rb', closefd=False) as stream:
+                data = stream.read(SIZE_LIMIT_BYTES + 1)
+            if len(data) != info.st_size or self._file_identity(os.fstat(fd)) != self._file_identity(info):
+                _fail('INTEGRITY_MISMATCH', 'protected file drift during read')
+            return data
+        finally:
+            os.close(fd)
+
+    def _write(self, parent, name, data):
+        self.check()
+        fd = os.open(name, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW,
+                     0o600, dir_fd=parent)
+        try:
+            with os.fdopen(fd, 'wb', closefd=False) as stream:
+                stream.write(data); stream.flush(); os.fsync(fd)
+        finally:
+            os.close(fd)
+        self.check()
+
+    def install(self, args):
+        if (not self.active or self.used or Path(args.target) != self.target
+                or Path(args.sandbox_parent) != self.parent or Path(args.package) != self.package_path
+                or args.manifest is not None or args.receipt_out is not None):
+            _fail('BAD_INPUT', 'protected handoff arguments/replay rejected')
+        self.used = True
+        try:
+            return self._install(args)
+        except BaseException as error:
+            # No path-based rollback or deletion follows a failed mutation.
+            # The caller also fences inherited archival for this uncertain root.
+            detail = error.to_dict() if isinstance(error, PackageError) else {'type': type(error).__name__, 'message': str(error)}
+            raise PackageError('INSTALL_FAILED', 'protected install failed; owned trees retained', {
+                'original_failure': detail, 'cleanup': {'proven': False,
+                'policy': 'RETAIN_NO_PATHNAME_ROLLBACK', 'target': str(self.target),
+                'staging': str(self.stage) if self.stage else None,
+                'committed': list(self.committed)}}) from error
+
+    def _install(self, args):
+        validation = self.validate()  # Never accepts a caller-supplied validation dict.
+        items = validation['items']; manifest = validation['manifest']
+        preimage = {'files': [], 'directories': sorted(self.parents)}
+        self.check()
+        name = STAGING_DIR_PREFIX + uuid.uuid4().hex
+        os.mkdir(name, 0o700, dir_fd=self.parent_fd)
+        self.stage = self.parent / name
+        stage_fd = self._open_dir(self.parent_fd, name)
+        stage_identity = self._identity(os.fstat(stage_fd))
+        dirs = {'': stage_fd}
+        owned_files = []
+        for item in items:
+            parts = item['install_path'].split('/')
+            for index in range(1, len(parts)):
+                relative = '/'.join(parts[:index])
+                if relative not in dirs:
+                    self.check()
+                    parent_fd = dirs['/'.join(parts[:index - 1])]
+                    os.mkdir(parts[index - 1], 0o700, dir_fd=parent_fd)
+                    dirs[relative] = self._open_dir(parent_fd, parts[index - 1])
+            data = validation['contents'][item['package_path']]
+            self._write(dirs['/'.join(parts[:-1])], parts[-1], data)
+            if self._read(dirs['/'.join(parts[:-1])], parts[-1]) != data:
+                _fail('INTEGRITY_MISMATCH', 'protected staged payload changed')
+            owned_files.append({'install_path': item['install_path'], 'sha256': item['sha256'], 'length': item['length']})
+        self.check()
+        os.mkdir('workflows', 0o700, dir_fd=self.target_fd)
+        self.parents['workflows'] = self._open_dir(self.target_fd, 'workflows', track=True)
+        for relative in (BRIDGE_INSTALL_DIR, WORKFLOWS_INSTALL_DIR):
+            parent, leaf = relative.split('/')
+            self.check()
+            if os.listdir(self.parents[parent]):
+                _fail('CONFLICT', 'protected destination is no longer empty')
+            source_identity = self._identity(os.fstat(dirs[relative]))
+            current = os.stat(leaf, dir_fd=dirs[parent], follow_symlinks=False)
+            if not stat.S_ISDIR(current.st_mode) or self._identity(current) != source_identity:
+                _fail('PATH_REJECTED', 'protected staged directory replaced')
+            os.rename(leaf, leaf, src_dir_fd=dirs[parent], dst_dir_fd=self.parents[parent])
+            self.committed.append(relative)
+            self.check()
+            current = os.stat(leaf, dir_fd=self.parents[parent], follow_symlinks=False)
+            if self._identity(current) != source_identity:
+                _fail('PATH_REJECTED', 'protected installed directory replaced')
+            self.edges.append((self.parents[parent], leaf, dirs[relative], source_identity))
+        for item in items:
+            parts = item['install_path'].split('/')
+            if _sha256_bytes(self._read(dirs['/'.join(parts[:-1])], parts[-1])) != item['sha256']:
+                _fail('INTEGRITY_MISMATCH', 'protected installed payload changed')
+        self.check()
+        # Staging now contains only the two empty parent dirs. Remove only
+        # entries whose inode matches the open original, relative to pinned fds.
+        for parent in ('custom_nodes', 'workflows'):
+            current = os.stat(parent, dir_fd=stage_fd, follow_symlinks=False)
+            if self._identity(current) != self._identity(os.fstat(dirs[parent])):
+                _fail('PATH_REJECTED', 'protected staging parent replaced')
+            os.rmdir(parent, dir_fd=stage_fd)
+        current = os.stat(name, dir_fd=self.parent_fd, follow_symlinks=False)
+        if self._identity(current) != stage_identity:
+            _fail('PATH_REJECTED', 'protected staging root replaced')
+        os.rmdir(name, dir_fd=self.parent_fd)
+        session_id = args.session_id or ('sess-' + uuid.uuid4().hex)
+        owned_dirs = sorted(relative for relative in dirs if '/' in relative)
+        record = _build_ownership_record(session_id=session_id, target=self.target,
+            sandbox_parent=self.parent, marker=self.marker, package_sha256=validation['package_sha256'],
+            manifest_sha256=validation['manifest_sha256'], source_commit=manifest['source_commit'],
+            payload_fingerprint=_fingerprint(items), owned_files=owned_files, owned_dirs=owned_dirs,
+            created_dirs=['workflows'], installed_top_level=self.committed, created_target_root=False, staging=self.stage)
+        raw = _dump_json(record).encode('utf-8')
+        self._write(self.target_fd, OWNERSHIP_FILE_NAME, raw)
+        self.check()
+        if self._read(self.target_fd, OWNERSHIP_FILE_NAME) != raw:
+            _fail('INTEGRITY_MISMATCH', 'protected owner bytes changed')
+        return {'schema_version': RECEIPT_SCHEMA_VERSION, 'command': 'install', 'status': 'OK',
+            'session_id': session_id, 'tool': {'name': TOOL_NAME, 'version': TOOL_VERSION},
+            'ownership_schema_version': OWNERSHIP_SCHEMA_VERSION, 'source_commit': manifest['source_commit'],
+            'package': {'path': str(self.package_path), 'sha256': validation['package_sha256'], 'size_bytes': validation['package_size_bytes']},
+            'manifest': {'sha256': validation['manifest_sha256'], 'member': MANIFEST_MEMBER, 'content': manifest},
+            'sandbox_parent': str(self.parent), 'sandbox_parent_sha256': _sha256_bytes(str(self.parent).encode()),
+            'sandbox_marker': {'path': self.marker['path'], 'sha256': self.marker['sha256']},
+            'target': str(self.target), 'target_identity_sha256': _sha256_bytes(str(self.target).encode()),
+            'created_target_root': False, 'preimage': preimage,
+            'owned': {'files': owned_files, 'directories': owned_dirs, 'created_directories': ['workflows']},
+            'installed_top_level': list(self.committed),
+            'staging': {'path': str(self.stage), 'path_sha256': _sha256_bytes(str(self.stage).encode()), 'removed': True},
+            'ownership': {'schema_version': OWNERSHIP_SCHEMA_VERSION, 'path': OWNERSHIP_FILE_NAME,
+                          'sha256': _sha256_bytes(raw), 'install_hash': record['install_hash']},
+            'checks': validation['checks'], 'protected_source': {'path': str(self.package_path),
+                'file_identity': list(self.archive_identity), 'sha256': _sha256_bytes(self.archive.data),
+                'bytes': len(self.archive.data), 'mode': 'BOUNDED_NOFOLLOW_SNAPSHOT_POSIX'},
+            'note': 'Protected deployment only; no real-host or rollback acceptance.'}
+
+
 def _validate_archive(package_path, expect_manifest=None):
     """完整归档校验。返回结构化结果；失败抛 PackageError。"""
-    package_path = Path(package_path)
-    if not package_path.is_file():
+    sealed = package_path if isinstance(package_path, _SealedArchive) else None
+    package_path = Path(sealed.path if sealed else package_path)
+    if sealed is None and not package_path.is_file():
         _fail("BAD_INPUT", "package file does not exist", package=str(package_path))
-    package_size = package_path.stat().st_size
+    package_size = len(sealed.data) if sealed else package_path.stat().st_size
     if package_size > SIZE_LIMIT_BYTES:
         _fail(
             "SIZE_LIMIT",
@@ -986,7 +1275,7 @@ def _validate_archive(package_path, expect_manifest=None):
         checks.append({"name": name, "passed": bool(passed), "detail": detail})
 
     try:
-        archive = zipfile.ZipFile(package_path, "r")
+        archive = zipfile.ZipFile(io.BytesIO(sealed.data) if sealed else package_path, "r")
     except (zipfile.BadZipFile, OSError) as exc:
         _fail(
             "INTEGRITY_MISMATCH",
@@ -1084,6 +1373,7 @@ def _validate_archive(package_path, expect_manifest=None):
         size_ok = (
             package_size <= SIZE_LIMIT_BYTES
             and payload_expanded <= SIZE_LIMIT_BYTES
+            and (sealed is None or total_expanded <= SIZE_LIMIT_BYTES)
             and archive_ratio <= ZIP_BOMB_RATIO_LIMIT
             and not member_ratio_offenders
         )
@@ -1092,6 +1382,8 @@ def _validate_archive(package_path, expect_manifest=None):
             _fail("SIZE_LIMIT", "compressed package exceeds the hard size limit", **size_detail)
         if payload_expanded > SIZE_LIMIT_BYTES:
             _fail("SIZE_LIMIT", "expanded payload exceeds the hard size limit", **size_detail)
+        if sealed is not None and total_expanded > SIZE_LIMIT_BYTES:
+            _fail("SIZE_LIMIT", "protected archive total expansion exceeds limit", **size_detail)
         if archive_ratio > ZIP_BOMB_RATIO_LIMIT or member_ratio_offenders:
             _fail("SIZE_LIMIT", "package looks like a zip bomb", **size_detail)
 
@@ -1320,7 +1612,7 @@ def _validate_archive(package_path, expect_manifest=None):
 
         return {
             "package_path": str(package_path),
-            "package_sha256": _sha256_file(package_path),
+            "package_sha256": _sha256_bytes(sealed.data) if sealed else _sha256_file(package_path),
             "package_size_bytes": package_size,
             "manifest": manifest,
             "manifest_sha256": _sha256_bytes(manifest_bytes),
@@ -1849,6 +2141,11 @@ def _snapshot_tree(root):
 
 
 def command_install(args):
+    protected = getattr(args, '_protected_handoff', None)
+    if protected is not None:
+        if type(protected) is not ProtectedInstall:
+            _fail('BAD_INPUT', 'invalid protected install handoff')
+        return protected.install(args)
     sandbox_parent = Path(args.sandbox_parent).expanduser().resolve()
     target = Path(args.target).expanduser()
     if not target.is_absolute():

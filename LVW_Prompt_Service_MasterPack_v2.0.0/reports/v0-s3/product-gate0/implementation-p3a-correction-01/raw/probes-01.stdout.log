@@ -1,0 +1,256 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-8.4.2, pluggy-1.6.0 -- /usr/bin/python3
+rootdir: /home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0
+collecting ... collected 4 items
+
+reports/v0-s3/product-gate0/independent-p3a/test_independent_probes.py::test_archive_ancestor_link_before_first_check INDEPENDENT_OBSERVATION {"failure": {"archive": {"authorization_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "bytes": 0, "candidate_sha": "dd298516ee653113914901de71296fd0488311cd", "files": 0, "manifest_file": "default-raw/ARCHIVE_MANIFEST.json", "manifest_sha256": "8ba601d2b9cc9d577c76f97b624383acaf77ac7156b6605d3ee449712d776a0d", "proven": true, "run_id": "p3a-fixture", "stage_pass_claim": false}, "authorization_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "candidate_sha": "dd298516ee653113914901de71296fd0488311cd", "cleanup": {"final_target_listener_count": 0, "owned_count": 0, "owned_listener_terminal_states": [], "owned_wrapper_terminal_states": [], "proven": true}, "error": "binding redirect forbidden", "error_type": "EvidenceError", "evidence": {"authorization_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "binding_proof": {"candidate_sha": "dd298516ee653113914901de71296fd0488311cd", "complete_rehash": true, "manifest_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee", "tool_bindings": {"browser_executable": {"path": "/tmp/lvw-p3a-owned-jg2b83c4/browser_executable", "sha256": "b874545df11e507b4cf7f33fac4c262e74e9c2fb8a2803e73e1a50a580cb0a2b"}, "comfy_main": {"path": "/tmp/lvw-p3a-owned-jg2b83c4/comfy_main", "sha256": "b874545df11e507b4cf7f33fac4c262e74e9c2fb8a2803e73e1a50a580cb0a2b"}, "comfy_python": {"path": "/tmp/lvw-p3a-owned-jg2b83c4/comfy_python", "sha256": "b874545df11e507b4cf7f33fac4c262e74e9c2fb8a2803e73e1a50a580cb0a2b"}, "ffmpeg_exe": {"path": "/tmp/lvw-p3a-owned-jg2b83c4/ffmpeg_exe", "sha256": "b874545df11e507b4cf7f33fac4c262e74e9c2fb8a2803e73e1a50a580cb0a2b"}, "node_executable": {"path": "/tmp/lvw-p3a-owned-jg2b83c4/node_executable", "sha256": "b874545df11e507b4cf7f33fac4c262e74e9c2fb8a2803e73e1a50a580cb0a2b"}, "nvidia_exe": {"path": "/tmp/lvw-p3a-owned-jg2b83c4/nvidia_exe", "sha256": "b874545df11e507b4cf7f33fac4c262e74e9c2fb8a2803e73e1a50a580cb0a2b"}, "ollama_exe": {"path": "/tmp/lvw-p3a-owned-jg2b83c4/ollama_exe", "sha256": "b874545df11e507b4cf7f33fac4c262e74e9c2fb8a2803e73e1a50a580cb0a2b"}, "playwright_module": {"path": "/tmp/lvw-p3a-owned-jg2b83c4/playwright_module", "sha256": "b874545df11e507b4cf7f33fac4c262e74e9c2fb8a2803e73e1a50a580cb0a2b"}, "powershell": {"path": "/tmp/lvw-p3a-owned-jg2b83c4/powershell", "sha256": "b874545df11e507b4cf7f33fac4c262e74e9c2fb8a2803e73e1a50a580cb0a2b"}}}, "candidate_sha": "dd298516ee653113914901de71296fd0488311cd", "deployment": {"candidate_sha": "dd298516ee653113914901de71296fd0488311cd", "error": "binding redirect forbidden", "error_type": "EvidenceError", "manifest_sha256": "f59b6e37108258515577f7e26d2805b268bb98b8864395a5ad80682fd1a1db5f", "mode": "INSTALLED_PACKAGE", "package_sha256": "33748f35501dfb7344e592fa3ca595737168cd8b2a1255c8579d29245a91ec59", "retention_required": false, "stage_pass_claim": false, "status": "FAILED", "target": "/tmp/lvw-p3a-owned-jg2b83c4/\u9694\u79bb runtime/lvw-s2-default-hgi7w9vu"}, "label": "default", "owned_run_root": "/tmp/lvw-p3a-owned-jg2b83c4/\u9694\u79bb runtime/lvw-s2-default-hgi7w9vu", "run_id": "p3a-fixture"}, "root_name": "lvw-s2-default-hgi7w9vu", "root_retained": false, "run_id": "p3a-fixture", "stage_pass_claim": false}, "probe": "initial_archive_ancestor", "refused": true}
+PASSED
+reports/v0-s3/product-gate0/independent-p3a/test_independent_probes.py::test_archive_link_between_validation_and_install FAILED
+reports/v0-s3/product-gate0/independent-p3a/test_independent_probes.py::test_child_redirect_during_install_validation FAILED
+reports/v0-s3/product-gate0/independent-p3a/test_independent_probes.py::test_receipt_session_identity FAILED
+
+=================================== FAILURES ===================================
+_______________ test_archive_link_between_validation_and_install _______________
+
+self = <tools.v0_incremental_package.ProtectedInstall object at 0x737bfd77af00>
+args = namespace(package='/tmp/lvw-p3a-owned-cj9hwnhu/payload.zip', manifest=None, target='/tmp/lvw-p3a-owned-cj9hwnhu/隔离 run..._out=None, redact_root=[], _protected_handoff=<tools.v0_incremental_package.ProtectedInstall object at 0x737bfd77af00>)
+
+    def install(self, args):
+        if (not self.active or self.used or Path(args.target) != self.target
+                or Path(args.sandbox_parent) != self.parent or Path(args.package) != self.package_path
+                or args.manifest is not None or args.receipt_out is not None):
+            _fail('BAD_INPUT', 'protected handoff arguments/replay rejected')
+        self.used = True
+        try:
+>           return self._install(args)
+                   ^^^^^^^^^^^^^^^^^^^
+
+tools/v0_incremental_package.py:1152: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_incremental_package.py:1164: in _install
+    validation = self.validate()  # Never accepts a caller-supplied validation dict.
+                 ^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:1111: in validate
+    self.check()
+tools/v0_incremental_package.py:1089: in check
+    _fail('PATH_REJECTED', 'protected archive identity drift')
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+code = 'PATH_REJECTED', message = 'protected archive identity drift'
+detail = {}
+
+    def _fail(code, message, **detail):
+>       raise PackageError(code, message, detail or None)
+E       tools.v0_incremental_package.PackageError: protected archive identity drift
+
+tools/v0_incremental_package.py:166: PackageError
+
+The above exception was the direct cause of the following exception:
+
+fixture = namespace(monkeypatch=<_pytest.monkeypatch.MonkeyPatch object at 0x737bfd8c0cb0>, temporary='/tmp/lvw-p3a-owned-cj9hwn...ll': PosixPath('/tmp/lvw-p3a-owned-cj9hwnhu/powershell')}, repo=PosixPath('/tmp/lvw-p3a-owned-cj9hwnhu/synthetic-git'))
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x737bfd8c0cb0>
+
+    def test_archive_link_between_validation_and_install(fixture, monkeypatch):
+        f = fixture
+        install = package.command_install
+        def swap(args):
+            original = f.root / 'original-archive.zip'
+            f.archive_path.rename(original)
+            f.archive_path.symlink_to(original)
+            return install(args)
+        monkeypatch.setattr(package, 'command_install', swap)
+        factory = InstalledPackageRuntimeFactory(**f.kwargs)
+>       context = factory.prepare_default()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+reports/v0-s3/product-gate0/independent-p3a/test_independent_probes.py:31: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_s2_stage_runtime.py:155: in prepare_default
+    def prepare_default(self): return self._prepare(False)
+                                      ^^^^^^^^^^^^^^^^^^^^
+tools/v0_s2_stage_runtime.py:178: in _prepare
+    self._deploy(root)
+tools/v0_s3_stage_runtime.py:126: in _deploy
+    receipt = package.command_install(SimpleNamespace(
+reports/v0-s3/product-gate0/independent-p3a/test_independent_probes.py:28: in swap
+    return install(args)
+           ^^^^^^^^^^^^^
+tools/v0_incremental_package.py:2148: in command_install
+    return protected.install(args)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <tools.v0_incremental_package.ProtectedInstall object at 0x737bfd77af00>
+args = namespace(package='/tmp/lvw-p3a-owned-cj9hwnhu/payload.zip', manifest=None, target='/tmp/lvw-p3a-owned-cj9hwnhu/隔离 run..._out=None, redact_root=[], _protected_handoff=<tools.v0_incremental_package.ProtectedInstall object at 0x737bfd77af00>)
+
+    def install(self, args):
+        if (not self.active or self.used or Path(args.target) != self.target
+                or Path(args.sandbox_parent) != self.parent or Path(args.package) != self.package_path
+                or args.manifest is not None or args.receipt_out is not None):
+            _fail('BAD_INPUT', 'protected handoff arguments/replay rejected')
+        self.used = True
+        try:
+            return self._install(args)
+        except BaseException as error:
+            # No path-based rollback or deletion follows a failed mutation.
+            # The caller also fences inherited archival for this uncertain root.
+            detail = error.to_dict() if isinstance(error, PackageError) else {'type': type(error).__name__, 'message': str(error)}
+>           raise PackageError('INSTALL_FAILED', 'protected install failed; owned trees retained', {
+                'original_failure': detail, 'cleanup': {'proven': False,
+                'policy': 'RETAIN_NO_PATHNAME_ROLLBACK', 'target': str(self.target),
+                'staging': str(self.stage) if self.stage else None,
+                'committed': list(self.committed)}}) from error
+E           tools.v0_incremental_package.PackageError: protected install failed; owned trees retained
+
+tools/v0_incremental_package.py:1157: PackageError
+________________ test_child_redirect_during_install_validation _________________
+
+fixture = namespace(monkeypatch=<_pytest.monkeypatch.MonkeyPatch object at 0x737bfd7d6900>, temporary='/tmp/lvw-p3a-owned-uebgh7...ll': PosixPath('/tmp/lvw-p3a-owned-uebgh75r/powershell')}, repo=PosixPath('/tmp/lvw-p3a-owned-uebgh75r/synthetic-git'))
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x737bfd7d6900>
+
+    def test_child_redirect_during_install_validation(fixture, monkeypatch):
+        f = fixture
+        validate = package._validate_archive
+        calls = 0
+        foreign = f.root / 'foreign-unregistered'; foreign.mkdir()
+        def redirect(*args, **kwargs):
+            nonlocal calls
+            result = validate(*args, **kwargs)
+            calls += 1
+            if calls == 2:
+                target = f.archive.lease('default')
+                (target / 'custom_nodes').rmdir()
+                (target / 'custom_nodes').symlink_to(foreign, target_is_directory=True)
+            return result
+        monkeypatch.setattr(package, '_validate_archive', redirect)
+        result = assert_failure(f, InstalledPackageRuntimeFactory(**f.kwargs))
+        written = foreign / 'lvw_v0_bridge/core.py'
+>       assert written.read_bytes() == f.payload[package.BRIDGE_SOURCE_DIR + '/core.py']
+               ^^^^^^^^^^^^^^^^^^^^
+
+reports/v0-s3/product-gate0/independent-p3a/test_independent_probes.py:55: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/lib/python3.12/pathlib.py:1021: in read_bytes
+    with self.open(mode='rb') as f:
+         ^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/tmp/lvw-p3a-owned-uebgh75r/foreign-unregistered/lvw_v0_bridge/core.py')
+mode = 'rb', buffering = -1, encoding = None, errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/tmp/lvw-p3a-owned-uebgh75r/foreign-unregistered/lvw_v0_bridge/core.py'
+
+/usr/lib/python3.12/pathlib.py:1015: FileNotFoundError
+________________________ test_receipt_session_identity _________________________
+
+fixture = namespace(monkeypatch=<_pytest.monkeypatch.MonkeyPatch object at 0x737bfd7d7170>, temporary='/tmp/lvw-p3a-owned-2uvyfi...ll': PosixPath('/tmp/lvw-p3a-owned-2uvyfike/powershell')}, repo=PosixPath('/tmp/lvw-p3a-owned-2uvyfike/synthetic-git'))
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x737bfd7d7170>
+
+    def test_receipt_session_identity(fixture, monkeypatch):
+        f = fixture
+        install = package.command_install
+        def alter(args):
+            receipt = install(args)
+            receipt['session_id'] = 'foreign-session'
+            return receipt
+        monkeypatch.setattr(package, 'command_install', alter)
+        factory = InstalledPackageRuntimeFactory(**f.kwargs)
+>       context = factory.prepare_default()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+reports/v0-s3/product-gate0/independent-p3a/test_independent_probes.py:69: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_s2_stage_runtime.py:155: in prepare_default
+    def prepare_default(self): return self._prepare(False)
+                                      ^^^^^^^^^^^^^^^^^^^^
+tools/v0_s2_stage_runtime.py:178: in _prepare
+    self._deploy(root)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <tools.v0_s3_stage_runtime.InstalledPackageRuntimeFactory object at 0x737bfd7d7770>
+root = PosixPath('/tmp/lvw-p3a-owned-2uvyfike/隔离 runtime/lvw-s2-default-0c7tn2ni')
+
+    def _deploy(self, root):
+        label = self._registered(root)
+        evidence = self.evidence[label]['deployment'] = {
+            'mode': 'INSTALLED_PACKAGE', 'candidate_sha': self.candidate,
+            'package_sha256': self.package_sha256, 'manifest_sha256': self.manifest_sha256,
+            'target': str(root), 'status': 'VALIDATING', 'stage_pass_claim': False}
+        try:
+            for digest in (self.package_sha256, self.manifest_sha256):
+                if not isinstance(digest, str) or not re.fullmatch('[a-f0-9]{64}', digest):
+                    raise EvidenceError('installed package digest must be lowercase SHA256')
+            # _prepare creates exactly these empty directories after registration.
+            # Refuse redirects or prepopulation before the installer can resolve
+            # any child path (its CLI resolves the root itself).
+            children = list(root.iterdir())
+            if {path.name for path in children} != {'input', 'output', 'temp', 'custom_nodes'}:
+                raise EvidenceError('installed deployment root was populated outside prepare')
+            for path in children:
+                if not plain(path).is_dir() or any(path.iterdir()):
+                    raise EvidenceError('installed deployment requires empty plain preparation directories')
+            marker = self._marker()
+            if _digest(self.package_path, package.SIZE_LIMIT_BYTES)[0] != self.package_sha256:
+                raise EvidenceError('installed package hash drift')
+            self.archive.retained.add(root)
+            with package.ProtectedInstall(target=root, sandbox_parent=self.directory,
+                    package_path=self.package_path, package_sha256=self.package_sha256,
+                    manifest_sha256=self.manifest_sha256, candidate_sha=self.candidate) as handoff:
+                validation = handoff.validate()
+                if (validation['package_sha256'] != self.package_sha256
+                        or validation['manifest_sha256'] != self.manifest_sha256):
+                    raise EvidenceError('installed package/manifest hash drift')
+                self._source(validation)
+                # Recheck the registered root and caller-owned marker immediately
+                # before the existing installer owns the only extraction transaction.
+                self._registered(root)
+                if self._marker() != marker:
+                    raise EvidenceError('installed deployment sandbox marker drift')
+                receipt_path = self.directory / (label + '-package-install.json')
+                if receipt_path.exists() or receipt_path.is_symlink():
+                    raise EvidenceError('installed deployment receipt already exists')
+                receipt = package.command_install(SimpleNamespace(
+                    package=str(self.package_path), manifest=None, target=str(root),
+                    sandbox_parent=str(self.directory), session_id=None,
+                    receipt_out=None, redact_root=[], _protected_handoff=handoff))
+                # Preserve the original returned receipt, including if post-install
+                # verification fails. The archive retains the in-target owner record.
+                evidence['install_receipt'] = copy.deepcopy(receipt)
+                handoff.save_receipt(receipt_path.name, receipt)
+                handoff.check()
+                self._registered(root)
+                if self._marker() != marker:
+                    raise EvidenceError('installed deployment sandbox marker drift')
+                if (receipt.get('status') != 'OK' or receipt.get('target') != str(root)
+                        or receipt.get('sandbox_parent') != str(self.directory)
+                        or receipt.get('source_commit') != self.candidate
+                        or receipt.get('package', {}).get('sha256') != self.package_sha256
+                        or receipt.get('manifest', {}).get('sha256') != self.manifest_sha256
+                        or receipt.get('manifest', {}).get('content') != validation['manifest']):
+                    raise EvidenceError('installed deployment receipt identity mismatch')
+                owner_path = root / package.OWNERSHIP_FILE_NAME
+                owner_digest, _ = _digest(owner_path, package.SIZE_LIMIT_BYTES)
+                owner, loaded_digest = package._read_ownership_record(root)
+                if (loaded_digest != owner_digest or receipt['ownership']['sha256'] != owner_digest
+                        or receipt['ownership']['install_hash'] != owner['install_hash']
+                        or receipt.get('session_id') != owner.get('session_id')
+                        or package._cross_check_receipt_against_ownership(receipt, owner)):
+>                   raise EvidenceError('installed deployment ownership mismatch')
+E                   tools.v0_s2_checkpoint_oracles.EvidenceError: installed deployment ownership mismatch
+
+tools/v0_s3_stage_runtime.py:152: EvidenceError
+=========================== short test summary info ============================
+FAILED reports/v0-s3/product-gate0/independent-p3a/test_independent_probes.py::test_archive_link_between_validation_and_install
+FAILED reports/v0-s3/product-gate0/independent-p3a/test_independent_probes.py::test_child_redirect_during_install_validation
+FAILED reports/v0-s3/product-gate0/independent-p3a/test_independent_probes.py::test_receipt_session_identity
+========================= 3 failed, 1 passed in 0.52s ==========================
