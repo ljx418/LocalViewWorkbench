@@ -1,0 +1,26 @@
+METASCHEMA_OK Draft202012Validator
+CORE_SCHEMA_METASCHEMA_OK
+ShotEvidence_valid                 errors=0 
+ShotEvidence_extra_property        errors=1 Additional properties are not allowed ('extra' was unexpected)
+ShotEvidence_duplicate_frame_hash  errors=0 
+ShotEvidence_frame_index_gt3       errors=1 4 is greater than the maximum of 3
+ShotEvidence_char_frame_index_oob  errors=1 7 is greater than the maximum of 3
+ShotEvidence_action_dup_frame_indices errors=1 [0, 0] has non-unique elements
+ShotEvidence_action_bad_domain     errors=1 'guess' is not one of ['observation', 'inference']
+ShotEvidence_unknowns_not_unique   errors=0 
+ShotEvidence_scene_missing_evidence errors=1 'evidence_frame_indices' is a required property
+Character_valid                    errors=0 
+Character_missing_evidence         errors=1 'evidence_frame_indices' is a required property
+Character_empty_actor_id           errors=1 '' should be non-empty
+BatchAnalyzeRequest_valid          errors=0 
+BatchAnalyzeRequest_len_mismatch(semantic) errors=0 
+BatchAnalyzeRequest_13_shots       errors=1 ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'] is too long
+BatchAnalyzeRequest_bad_mode       errors=1 'unknown_mode' is not one of ['documentary', 'realistic', 'scifi', 'science', 'cinematic', 'stylized']
+BatchChildrenResponse_total2_children0 errors=1 [] should be non-empty
+BatchChildrenResponse_total13      errors=2 [] should be non-empty
+SceneRevision_valid                errors=0 
+SceneRevision_zero_length( semantic) errors=0 
+SceneRevision_human_origin         errors=0 
+AnalysisBinding_valid              errors=0 
+AnalysisBinding_uppercase_hash     errors=1 'BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB' does not match '^[0-9a-f]{64}$'
+NOTE schema_cannot_check: end_pts>start_pts, equal-length arrays, cross-shot actor refs, frame-in-scene, deadline -> x-semantic-invariants only
