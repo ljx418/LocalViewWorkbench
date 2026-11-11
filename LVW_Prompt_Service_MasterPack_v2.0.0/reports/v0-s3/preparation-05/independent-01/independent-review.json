@@ -1,0 +1,863 @@
+{
+  "kind": "S3_PREP_C_INDEPENDENT_REVIEW",
+  "authority": "REVIEW_ONLY_NOT_STAGE_DECISION",
+  "review_status": "COMPLETED_WITH_FINDINGS",
+  "tool_disposition": "CHANGES_REQUIRED_RECOMMENDATION_TO_ROOT",
+  "stage_pass_claim": false,
+  "product_gate0_claim": false,
+  "quality_pass_claim": false,
+  "release_claim": false,
+  "human_signature_claim": false,
+  "fatal_count": 0,
+  "major_count": 3,
+  "continuation_provenance": {
+    "previous_dispatch": "ctx_f9a99284a861",
+    "current_dispatch": "ctx_464e91f112d9",
+    "interruption": "Coordinator reported prior Claude worker HTTP429 Token Plan exhaustion, stopped with ptyKilled=true; draft was unfinished.",
+    "handoff_authorization": "msg_5f9c2313c976 and msg_3e7b46aef821; preserve drafts, accept existing once-run 45 tests, no remerge required.",
+    "prior_draft_status": "SUPERSEDED_NOT_FINAL; copies under raw/superseded-draft-* retain history, not current findings.",
+    "current_role": "Independent Codex continuation, separate from implementation; conclusions rechecked, not inherited.",
+    "prior_reported_viewed": 80,
+    "continuation_actual_viewed_files": 32,
+    "continuation_viewed_assets": 32,
+    "continuation_viewed_image_thumbnails": 20,
+    "continuation_viewed_video_contact_sheets": 12,
+    "continuation_video_frames_observed_via_sheets": 48,
+    "blindness_limit": "Read prior independent labels before visual recheck. No LVW raw, human draft or expected answer read. Not a second blind replication."
+  },
+  "inputs": {
+    "code_candidate": "e1798f33ba51dcadbf9f0333641d62d14a801491",
+    "evidence_tip": "335a8b973ab9b0fe192c03f59e608f9976658238",
+    "root": "20e408db8371a1058a5c44c059d1601caf964d85",
+    "root_ancestor_verified": true,
+    "initial_status": "Only untracked independent-01 draft, HEAD already evidence tip; coordinator confirmed prior worker ownership and stopped process; no new merge/overwrite.",
+    "bindings": {
+      "child": {
+        "path": "reports/v0-s3/preparation-05/sample-preparation-child-01.json",
+        "sha256": "9989089a4dae7e39949f603482fd118a5228e6ccba9e405ba5678170e20c902b"
+      },
+      "catalog": {
+        "path": "reports/v0-s3/preparation-03/candidate-catalog-filtered-01.json",
+        "sha256": "5bb786928a143886abc29f8ee2424daa82cfc06476df7a1578bb736926ac7d65"
+      },
+      "holdout": {
+        "path": "人工验收视频集/FREEZE.json",
+        "sha256": "3a8313c6e44dbf22dfbe8abd84f24a42ff15539ec4d19da13ac9d68b5419288c"
+      },
+      "packet": {
+        "path": "reports/v0-s3/preparation-05/stage-packet-preparation-c.md",
+        "sha256": "a3f98ec3bd76b8c79dcf73bc92370ac32c06e9bf0f583595e9ce0dd3788951da"
+      },
+      "script": {
+        "path": "tools/s3_sample_preparation.py",
+        "sha256": "3ad680f94854e56c0796ae33d143a363f81c79a42f74b6713467d27b4f271a6e"
+      },
+      "test": {
+        "path": "tools/test_s3_sample_preparation.py",
+        "sha256": "30076940ff98bbb8653774912b7a4eb6c7d46a3fdcfa7c1037effb6c8e5b36e3"
+      },
+      "runner": {
+        "path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_process.py",
+        "sha256": "563402a9c2f466c1484173c6a4dd2b9a8dbe46fd939ad92a6264975217508954"
+      },
+      "execution_control": {
+        "path": "plans/execution-control.json",
+        "sha256": "d8582dcdb5efba15e65b6d0acf8501383ab2d0db2bf6a33419c6de7192fba4c8"
+      },
+      "docs24": {
+        "path": "docs/24_EXECUTION_MASTER_PLAN.md",
+        "sha256": "99399d1371ff75f54e456577a67ae92fbe237882f606ca5852ee3a52b288512e"
+      }
+    },
+    "preflight_sha256": "96b6cd825c3c400a1c427db9478018d4805105158c5c168069fb610a9ad75118",
+    "receipt_sha256": "35ce317581b92cd04eba28942ea41cfd7faa5a5504d5a94ce39402f405802d0d",
+    "rejected_preflight_sha256": "238673cbe5e2bf7649f5619627fea3d3555b8037bf0d2b192f7abcb084a2756d"
+  },
+  "actions": {
+    "original_testSource_stat_hash_probe_decode": 0,
+    "real_child_reruns": 0,
+    "gpu": 0,
+    "model_inference": 0,
+    "services": 0,
+    "external_media_api": 0,
+    "network": 0,
+    "downloads": 0,
+    "full_product_checkpoints": 0,
+    "media_copied_into_git": 0,
+    "retained_preview_regenerated": 0,
+    "original_or_historical_artifacts_deleted": 0,
+    "one_synthetic_owned_python_sleeper_timeout": 1
+  },
+  "tests": {
+    "original_suite": {
+      "prior_stdout": ".............................................                            [100%]\n45 passed in 21.30s\n",
+      "prior_exit": "EXIT=0\n",
+      "test_function_count": 45,
+      "suite_rerun": false
+    },
+    "suite_execution_provenance": "Prior independent Claude worker executed once; stdout 45 passed in21.30s and EXIT=0 retained; continuation explicitly instructed not to rerun.",
+    "synthetic_counterexamples": {
+      "size_change": {
+        "decision": "PREPARATION_COMPLETE_READY_FOR_REVIEW",
+        "reasons": [
+          "source_size_mismatch",
+          null
+        ],
+        "hash_calls": 1,
+        "image_decodes": 1,
+        "expected": "SOURCE_CHANGED terminal; no later candidate access",
+        "defect_reproduced": true,
+        "staging_removed": true
+      },
+      "deadline": {
+        "decision": "PREPARATION_COMPLETE_READY_FOR_REVIEW",
+        "wall_seconds_used": 1201,
+        "calls": [
+          "probe",
+          "frame_after_deadline",
+          "frame_after_deadline",
+          "frame_after_deadline",
+          "frame_after_deadline"
+        ],
+        "defect_reproduced": true,
+        "staging_removed": true
+      }
+    },
+    "output_budget_counterexample": {
+      "synthetic_only": true,
+      "limit": 100000,
+      "retained": 21578,
+      "staging": 402532,
+      "decision": "PREPARATION_COMPLETE_READY_FOR_REVIEW",
+      "defect_reproduced": true,
+      "staging_removed": true,
+      "owned_entries_before_cleanup": 14,
+      "owned_temp_absent_after": true
+    },
+    "refusal_and_owned_process_checks": {
+      "rejected": {
+        "exit": 1,
+        "exception": null,
+        "source_boundary_calls": [],
+        "runtime_created": false
+      },
+      "malformed": {
+        "exit": null,
+        "exception": "JSONDecodeError",
+        "source_boundary_calls": [],
+        "runtime_created": false
+      },
+      "candidate_drift": {
+        "exit": 1,
+        "exception": null,
+        "source_boundary_calls": [],
+        "runtime_created": false
+      },
+      "owned_process": {
+        "started": 1,
+        "terminal_returncodes": [
+          -15
+        ],
+        "all_reaped": true,
+        "reason": "MODEL_TIMEOUT",
+        "foreign_processes_signalled": 0,
+        "purpose": "synthetic timeout of one directly owned Python sleeper; no decoder"
+      },
+      "owned_temp_absent_after": true
+    },
+    "new_check_scripts_exit_codes": [
+      0,
+      0,
+      0
+    ],
+    "meaning": "Scripts ran successfully and reproduced 3 behavioral failures; exit0 does not mean tool passed."
+  },
+  "evidence_checks": {
+    "first_preflight_refusal": "PREFLIGHT_REJECTED holdout.content_sha256_exact preserved; selected_media_access=0 supported by build_preflight/command_run code and synthetic early refusal boundary checks, not OS instrumentation.",
+    "holdout": {
+      "videos": 11,
+      "listed": 13,
+      "missing": [],
+      "extras_are_metadata": true
+    },
+    "candidate_blobs_match": true,
+    "installed_executable_hashes_match": true,
+    "pillow_image_module_match": true,
+    "preflight_precedes_source": "command_run rejects failed preflight/drift and runs guard before prepare; malformed throws before source boundary.",
+    "terminal": "Single historical run-01 PREPARATION_COMPLETE_READY_FOR_REVIEW, exact32 eligible, first rejected preflight retained separately; no rerun here.",
+    "retained_tree_files_verified": 342,
+    "retained_tree_bytes_verified": 3963572,
+    "relative_links_verified": 100,
+    "commands": {
+      "total": 60,
+      "ffprobe": 12,
+      "ffmpeg": 48,
+      "all_hashes_and_exits_match": true
+    },
+    "recorded_budget": {
+      "wall_seconds_limit": 1200,
+      "wall_seconds_used": 13.293,
+      "source_files_hashed": 32,
+      "hash_passes_per_file": 1,
+      "source_bytes_hashed": 83043322,
+      "admitted_source_bytes": 83043322,
+      "admitted_source_bytes_limit": 1073741824,
+      "image_decode_calls": 20,
+      "image_decode_limit_per_image": 1,
+      "ffprobe_calls": 12,
+      "ffprobe_limit_per_video": 1,
+      "ffmpeg_frame_calls": 48,
+      "ffmpeg_frame_limit_per_video": 4,
+      "output_bytes_retained": 3963572,
+      "output_bytes_staging": 1493073,
+      "output_bytes_limit": 83886080,
+      "decoder_disk_io_bytes": "NOT_MEASURED_NOT_CLAIMED",
+      "model_actions": 0,
+      "gpu_actions": 0,
+      "services": 0,
+      "network_calls": 0,
+      "downloads": 0,
+      "full_product_checkpoints": 0,
+      "browser_sessions": 0
+    },
+    "recorded_counts": {
+      "selected_total": 32,
+      "images_selected": 20,
+      "videos_selected": 12,
+      "eligible": 32,
+      "not_eligible": 0,
+      "not_run": 0,
+      "conservation_ok": true,
+      "conservation_formula": "selected_total == eligible + not_eligible + not_run",
+      "admitted": 32,
+      "admitted_bytes": 83043322,
+      "not_eligible_by_reason": {},
+      "not_run_by_reason": {},
+      "internal_error": null
+    },
+    "source_counter_evidence": "32 source hash values equal child; no original rehash. 20 image decodes from receipt and code path, not separate process logs. Wall/admitted/hash-byte values recorded, not independent OS measurements.",
+    "decoder_io": "NOT_MEASURED_NOT_CLAIMED"
+  },
+  "findings": [
+    {
+      "id": "MAJ-01",
+      "severity": "Major",
+      "title": "源大小变化未全局终止",
+      "location": "tools/s3_sample_preparation.py:1540",
+      "expected": "检测冻结源变化后整体SOURCE_CHANGED终态，不访问后续候选。",
+      "observed": "大小不符只mark_not_eligible然后continue；合成a.jpg追加字节后，b.jpg仍hash/decode，最终PREPARATION_COMPLETE_READY_FOR_REVIEW。",
+      "evidence": "raw/continuation-verification.json#/synthetic/size_change",
+      "impact": "异常源路径不满足本批failclosed义务；原run未显示实际源大小变化。",
+      "requested_action": "由实现者统一大小/内容漂移的整体终止语义并补定向负例；不得复活已终态child。"
+    },
+    {
+      "id": "MAJ-02",
+      "severity": "Major",
+      "title": "全局wall期限不控制视频操作且超时可标完成",
+      "location": "tools/s3_sample_preparation.py:1274",
+      "expected": "全局1200秒预算在媒体处理与终态判定中生效。",
+      "observed": "deadline只在候选入口/hash中检查；probe及4次frame无剩余预算；假probe把clock推进到1201后仍调用4次frame且终态完成。",
+      "evidence": "raw/continuation-verification.json#/synthetic/deadline",
+      "impact": "不止前草稿声称的最多45秒尾差；一次视频可经历20+4*45秒子进程上限，另有渲染/清理时间，不能据此给全局硬上界；本次原run记录13.293秒未超限。",
+      "requested_action": "传播剩余deadline、每个有成本操作前检查并将超预算计入终态；由实现者补负例。"
+    },
+    {
+      "id": "MAJ-03",
+      "severity": "Major",
+      "title": "output预算临时bytes超限仍可返回完成",
+      "location": "tools/s3_sample_preparation.py:1638",
+      "expected": "OutputAccountant宣称临时及保留bytes共同受output上限约束，超预算不能标准备完成。",
+      "observed": "循环仅事后检查accountant.total；最终decision仅看retained_bytes；合成100000上限、402532 staging、21578 retained返回PREPARATION_COMPLETE_READY_FOR_REVIEW。",
+      "evidence": "raw/output-budget-counterexample.json",
+      "impact": "临时bytes从最终失败判定消失；本次原run 3963572 retained+1493073 staging均低于83886080，未观察真实超限。",
+      "requested_action": "由实现者把实际累计output超限状态写入失败终态并限制操作期间增长；不删除旧证据/原预览。"
+    }
+  ],
+  "nonblocking_limitations": [
+    {
+      "id": "L01",
+      "title": "started_at使用monotonic作epoch",
+      "detail": "1970时间戳不能作真实开始墙钟；wall_seconds_used为单调差值收据值，不是逐命令时钟独立复算。"
+    },
+    {
+      "id": "L02",
+      "title": "审计测量边界",
+      "detail": "首次拒绝的4个0、network/model/owned/source修改标记部分是常量；以代码路径及原日志支持，不是完整OS审计，不能排除一切外联或源并发改变。32hash/20decode由逐候选收据与代码支持，60子进程有命令/exit日志；decoder IO明确NOT_MEASURED_NOT_CLAIMED。"
+    },
+    {
+      "id": "L03",
+      "title": "原45测试审计钩子范围有限",
+      "detail": "仅patch builtins.open/os.scandir，不是完整syscall审计；没有覆盖大小漂移和视频处理中deadline，也未发现临时output完成误判。"
+    },
+    {
+      "id": "L04",
+      "title": "工具绑定时间点及范围",
+      "detail": "当前Python/FFmpeg/ffprobe文件和Pillow Image.py hash与preflight一致；command_run未再次重算已装工具hash，Pillow不是全安装树绑定；只支持记录的工具文件，非整个OS不变。"
+    },
+    {
+      "id": "L05",
+      "title": "不覆盖终态为顺序单owner保证",
+      "detail": "CLI先检查receipt/runtime存在；不是全局child消费锁/原子exclusive receipt创建，不能证明任意改路径或并发调用都被阻止；本任务保持已消费child，不尝试绕过。"
+    },
+    {
+      "id": "L06",
+      "title": "异常preflight终止无源访问但错误结构不统一",
+      "detail": "合成malformed JSON在command_run抛JSONDecodeError；prepare/resolve_source边界均0，未建runtime；不能声称返回了统一拒绝JSON。"
+    },
+    {
+      "id": "L07",
+      "title": "盲态接续边界",
+      "detail": "本次读过原独立草稿后观察，非第二次从零盲标；原代理声称80文件已看为历史记录，本次实际打开32文件观察全部32候选，视频48格来自12张contact sheet。未读项目raw/人工稿/expected。"
+    }
+  ],
+  "cleanup": {
+    "prior_suite": "raw/cleanup-evidence.json (prior worker provenance, not newly witnessed)",
+    "continuation": {
+      "entries_before": 24,
+      "bytes_before": 38218,
+      "temporary_root_absent_after": true,
+      "historical_or_original_artifacts_deleted": 0
+    },
+    "extra_owned_roots": "raw/output-budget-counterexample.json and raw/refusal-owned-check.json show absent after cleanup",
+    "owned_process": "one synthetic direct child timed out, returncode -15, reaped; no foreign process signalled",
+    "retained_staging_absent": true
+  },
+  "prelabel_summary": {
+    "prelabels": 32,
+    "images": 20,
+    "videos": 12,
+    "preview_files_listed": 100,
+    "preview_files_viewed": 32,
+    "video_frames_observed_via_contact_sheets": 48,
+    "prior_agent_claimed_viewed_files": 80
+  },
+  "proposal": {
+    "images": [
+      "C01",
+      "C03",
+      "C04",
+      "C07",
+      "C10",
+      "C12",
+      "C13",
+      "C14",
+      "C15",
+      "C18"
+    ],
+    "videos": [
+      "C23",
+      "C31",
+      "C22",
+      "C24",
+      "C30",
+      "C32"
+    ],
+    "owner": "root",
+    "frozen": false,
+    "full_A12_coverage_proven": false
+  },
+  "S2_handoff": "S2 7/8 and native human PENDING retained; CHANGE-V1-S2-HANDOFF-01 permits this S3 toward V1 preparation and is not an authorization blocker.",
+  "development_outline_snapshot": [
+    {
+      "stage_id": "V0-S0",
+      "delivery": "V0",
+      "title": "基线探索",
+      "substeps": [
+        {
+          "name": "盘点与探索记录",
+          "status": "DONE",
+          "evidence": "reports/v0-s0/gate-decision-rerun-02.md"
+        },
+        {
+          "name": "完整生产基线",
+          "status": "FAILED_HISTORICAL",
+          "evidence": "reports/v0-s0/gate-decision-rerun-02.md"
+        }
+      ],
+      "completed_substeps": 1,
+      "total_substeps": 2,
+      "summary": "历史探索已结束且NO_GO保留；V0-Min按后续范围签署，不回填S0 PASS",
+      "implementation": "ARCHIVED",
+      "machine_acceptance": "NO_GO_HISTORICAL",
+      "independent_review": "COMPLETED_WITH_BLOCKERS",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "V0-S1",
+      "delivery": "V0-Min",
+      "title": "图片与独立人工",
+      "substeps": [
+        {
+          "name": "独立人工稿与导出",
+          "status": "DONE",
+          "evidence": "reports/v0-s1/v0-min-acceptance.json"
+        },
+        {
+          "name": "真实图片与预处理",
+          "status": "DONE",
+          "evidence": "reports/v0-s1/v0-min-acceptance.json"
+        },
+        {
+          "name": "四输出与草稿保护",
+          "status": "DONE",
+          "evidence": "reports/v0-s1/v0-min-acceptance.json"
+        },
+        {
+          "name": "固定证据及独立审查",
+          "status": "DONE",
+          "evidence": "reports/v0-s1/v0-min-acceptance.json"
+        },
+        {
+          "name": "人工签署",
+          "status": "DONE",
+          "evidence": "reports/v0-s1/v0-min-acceptance.json"
+        }
+      ],
+      "completed_substeps": 5,
+      "total_substeps": 5,
+      "summary": "已签仅V0-Min",
+      "implementation": "DELIVERED",
+      "machine_acceptance": "ACCEPTED_SCOPE_ONLY",
+      "independent_review": "COMPLETED",
+      "human_signoff": "APPROVED"
+    },
+    {
+      "stage_id": "R0",
+      "delivery": "V1前置",
+      "title": "独立服务复核",
+      "substeps": [
+        {
+          "name": "独立单图路径在R1a验证",
+          "status": "DONE",
+          "evidence": "reports/r1a/gate-decision-r1a.md"
+        },
+        {
+          "name": "完整复用/许可清单单独闭合",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 1,
+      "total_substeps": 2,
+      "summary": "仅R1a前置单图子集可确认；不把完整视频/Q01算通过",
+      "implementation": "PARTIAL_REUSED",
+      "machine_acceptance": "SINGLE_IMAGE_SUBSET_ONLY",
+      "independent_review": "NO_SEPARATE_R0_VERDICT",
+      "human_signoff": "NO_SEPARATE_R0_SIGNOFF"
+    },
+    {
+      "stage_id": "R1a",
+      "delivery": "V1早期切片",
+      "title": "单图React/FastAPI",
+      "substeps": [
+        {
+          "name": "正式合同子集与前后端",
+          "status": "DONE",
+          "evidence": "reports/r1a/gate-decision-r1a.md"
+        },
+        {
+          "name": "真实单图链路",
+          "status": "DONE",
+          "evidence": "reports/r1a/gate-decision-r1a.md"
+        },
+        {
+          "name": "失败/服务控制与人工稿保护",
+          "status": "DONE",
+          "evidence": "reports/r1a/gate-decision-r1a.md"
+        },
+        {
+          "name": "独立审查七项",
+          "status": "DONE",
+          "evidence": "reports/r1a/gate-decision-r1a.md"
+        },
+        {
+          "name": "人工体验签署",
+          "status": "DONE",
+          "evidence": "reports/r1a/gate-decision-r1a.md"
+        }
+      ],
+      "completed_substeps": 5,
+      "total_substeps": 5,
+      "summary": "已签仅单图切片；完整V1未完成",
+      "implementation": "DELIVERED",
+      "machine_acceptance": "ACCEPTED_SCOPE_ONLY",
+      "independent_review": "COMPLETED",
+      "human_signoff": "APPROVED"
+    },
+    {
+      "stage_id": "V0-S2",
+      "delivery": "V0.1",
+      "title": "视频与资源控制",
+      "substeps": [
+        {
+          "name": "WP-S2-00 冻结准备",
+          "status": "DONE",
+          "evidence": "reports/v0-s2/offline-checkpoint-44/receipt.json"
+        },
+        {
+          "name": "WP-S2-01 媒体owner",
+          "status": "DONE",
+          "evidence": "reports/v0-s2/offline-checkpoint-44/receipt.json"
+        },
+        {
+          "name": "WP-S2-02 公开视频路径",
+          "status": "DONE",
+          "evidence": "reports/v0-s2/offline-checkpoint-44/receipt.json"
+        },
+        {
+          "name": "WP-S2-03 安全/资源/取消",
+          "status": "DONE",
+          "evidence": "reports/v0-s2/offline-checkpoint-44/receipt.json"
+        },
+        {
+          "name": "WP-S2-04 离线集中收口",
+          "status": "DONE",
+          "evidence": "reports/v0-s2/offline-checkpoint-44/receipt.json"
+        },
+        {
+          "name": "WP-S2-05 完整真实验收",
+          "status": "DONE",
+          "evidence": "reports/v0-s2/full-v0-auto-08/receipt.json"
+        },
+        {
+          "name": "WP-S2-06 独立审查",
+          "status": "DONE",
+          "evidence": "reports/v0-s2/full-v0-auto-08/independent-review.json"
+        },
+        {
+          "name": "S2 人工签署与Git同步",
+          "status": "PENDING",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 7,
+      "total_substeps": 8,
+      "summary": "Full08 fresh cumulative9/9, offline541/5checks, independent Fatal0/Major0/Minor0; human signoff and immediate Git sync remain.",
+      "implementation": "IMPLEMENTED",
+      "machine_acceptance": "COMPLETE_FIXED9_PASSED",
+      "independent_review": "COMPLETE_FATAL0_MAJOR0_MINOR0",
+      "human_signoff": "PENDING"
+    },
+    {
+      "stage_id": "V0-S3",
+      "delivery": "V0.2",
+      "title": "离线质量与增量包",
+      "substeps": [
+        {
+          "name": "包/清单/使用说明",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "安装诊断与回滚",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "独立质量集与标注",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "离线集中收口",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "真实十二项及质量",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "独审/人工签署/同步",
+          "status": "PENDING",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 0,
+      "total_substeps": 6,
+      "summary": "已有设计，未完成正式交付；存在代码需进入时复用审计",
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R1",
+      "delivery": "V1",
+      "title": "人工业务骨架",
+      "substeps": [
+        {
+          "name": "受控媒体与人工镜头",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "六模式四目标",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "SQLite/修订/导入",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "组合回归及阶段审查",
+          "status": "PENDING",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "summary": "最小统一图视频切片3/3、UM10机器与独审通过，用户已确认当前前端与基本视频反推；完整R1四子项仍0/4，不补签历史S2/完整V1或发布。",
+      "implementation": "EARLY_SLICE_IMPLEMENTED_FULL_R1_PENDING",
+      "machine_acceptance": "EARLY_SLICE_UM10_ONLY",
+      "independent_review": "EARLY_SLICE_FATAL0_MAJOR0",
+      "human_signoff": "EARLY_SLICE_APPROVED_FULL_R1_PENDING",
+      "early_slice": {
+        "id": "UNIFIED_MEDIA_EARLY",
+        "completed_workpacks": 3,
+        "total_workpacks": 3,
+        "candidate_sha": "621b1bf386db71bfe08ca2f533fa8ec396b0504b",
+        "machine_acceptance": "UM10_PASS",
+        "independent_review": "FATAL0_MAJOR0",
+        "human_signoff": "APPROVED",
+        "human_signoff_record": "reports/unified-media/human-signoff-live15.json"
+      }
+    },
+    {
+      "stage_id": "V1-M1",
+      "delivery": "V1",
+      "title": "多镜头拆分与逐镜头人物场景动作",
+      "substeps": [
+        {
+          "name": "M1-A detection/PTS/boundaries/timeline",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "M1-B per-shot evidence and serial child jobs",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "M1-C per-shot drafts/exports/fixed8 full validation",
+          "status": "PENDING",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 0,
+      "total_substeps": 3,
+      "summary": "用户批准纳入V1；设计/合同审查中，未实现、未测试、未签署",
+      "implementation": "DESIGN_ONLY",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R2",
+      "delivery": "V1",
+      "title": "任务与正式运行包",
+      "substeps": [
+        {
+          "name": "异步任务/CAS/取消",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "真实图视频及质量",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "CLI/导出/便携包",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "V1累计独审及人工签署",
+          "status": "PENDING",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "summary": "已有设计，未完成正式交付；存在代码需进入时复用审计",
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R3",
+      "delivery": "V2",
+      "title": "镜头资产与检索",
+      "substeps": [
+        {
+          "name": "真实PTS/切镜",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "资产/FTS5/配方",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "对比/QC/JSONL",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "阶段验收",
+          "status": "PENDING",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "summary": "已有设计，未完成正式交付；存在代码需进入时复用审计",
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R4",
+      "delivery": "V2",
+      "title": "MCP与恢复",
+      "substeps": [
+        {
+          "name": "MCP真客户端",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "批量/lease/幂等",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "备份恢复",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "V2累计验收签署",
+          "status": "PENDING",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "summary": "已有设计，未完成正式交付；存在代码需进入时复用审计",
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R5a",
+      "delivery": "V3",
+      "title": "证据与建议合同",
+      "substeps": [
+        {
+          "name": "对端握手",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "Navia证据",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "Narralens建议/冲突",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "阶段真实验收",
+          "status": "PENDING",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "summary": "已有设计，未完成正式交付；存在代码需进入时复用审计",
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R5b",
+      "delivery": "V3",
+      "title": "受控生成交接",
+      "substeps": [
+        {
+          "name": "Comfy allowlist/映射",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "收据/outbox",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "GPU/取消协作",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "阶段真实验收",
+          "status": "PENDING",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "summary": "已有设计，未完成正式交付；存在代码需进入时复用审计",
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R5c",
+      "delivery": "V3",
+      "title": "集成与完整交付",
+      "substeps": [
+        {
+          "name": "集成UI",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "升级回滚",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "三系统E2E",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "V3独审及人工签署",
+          "status": "PENDING",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "summary": "已有设计，未完成正式交付；存在代码需进入时复用审计",
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    }
+  ]
+}

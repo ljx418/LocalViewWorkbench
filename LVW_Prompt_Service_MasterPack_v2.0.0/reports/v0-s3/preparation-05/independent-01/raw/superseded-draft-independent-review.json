@@ -1,0 +1,215 @@
+{
+  "kind": "S3_PREP_C_INDEPENDENT_REVIEW",
+  "schema_version": "lvw.s3-prep-c-independent-review/1",
+  "produced_by": "independent Orca Claude Code review session (task_a631372b5599), separate worktree from the implementer",
+  "authority": "REVIEW_ONLY_NOT_A_STAGE_DECISION",
+  "stage_pass_claim": false,
+  "product_gate0_claim": false,
+  "quality_pass_claim": false,
+  "release_claim": false,
+  "human_signature_claim": false,
+  "review_scope": "the bounded candidate eligibility run and its local preview preparation for the frozen child S3-PREP-C-01, plus an independent blind prelabel of the derived previews",
+  "inputs": {
+    "code_candidate": "e1798f33ba51dcadbf9f0333641d62d14a801491",
+    "evidence_tip_merged": "335a8b973ab9b0fe192c03f59e608f9976658238",
+    "root_commit": "20e408db8371a1058a5c44c059d1601caf964d85",
+    "root_is_ancestor_of_evidence_tip": true,
+    "merge_result": "git merge --no-edit 335a8b973ab9b0fe192c03f59e608f9976658238 succeeded with no conflict and no overwrite",
+    "child_id": "S3-PREP-C-01",
+    "child_sha256": "9989089a4dae7e39949f603482fd118a5228e6ccba9e405ba5678170e20c902b",
+    "catalog_sha256": "5bb786928a143886abc29f8ee2424daa82cfc06476df7a1578bb736926ac7d65",
+    "holdout_manifest_sha256": "3a8313c6e44dbf22dfbe8abd84f24a42ff15539ec4d19da13ac9d68b5419288c",
+    "preflight_sha256": "96b6cd825c3c400a1c427db9478018d4805105158c5c168069fb610a9ad75118",
+    "script_sha256": "3ad680f94854e56c0796ae33d143a363f81c79a42f74b6713467d27b4f271a6e",
+    "test_sha256": "30076940ff98bbb8653774912b7a4eb6c7d46a3fdcfa7c1037effb6c8e5b36e3",
+    "borrowed_runner_sha256": "563402a9c2f466c1484173c6a4dd2b9a8dbe46fd939ad92a6264975217508954"
+  },
+  "review_actions": {
+    "model_calls": 0,
+    "gpu_actions": 0,
+    "services_started": 0,
+    "network_calls": 0,
+    "downloads": 0,
+    "full_product_checkpoints": 0,
+    "external_media_recognition_api_calls": 0,
+    "external_media_uploads_or_publications": 0,
+    "media_copied_into_git": 0,
+    "source_media_access": "none - no file under the testSource root was opened, stat'ed, hashed, probed or decoded by this review",
+    "source_real_run_repeated": false,
+    "original_preview_regenerated_in_review_worktree": false,
+    "read_only_access_to_retained_preview": "the retained preview tree in the original runtime root was read in place; its files were not modified, moved, copied into Git or deleted",
+    "files_modified_by_review": "only the new directory reports/v0-s3/preparation-05/independent-01/",
+    "original_retained_artifacts_deleted": 0,
+    "historical_residuals_deleted": 0
+  },
+  "test_execution": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 python3 -B -m pytest tools/test_s3_sample_preparation.py -q -p no:cacheprovider --basetemp=<owned temp dir>",
+    "runs": 1,
+    "exit_code": 0,
+    "reported_passed": 45,
+    "reported_failed": 0,
+    "claimed_by_implementer": 45,
+    "claim_matches_actual": true,
+    "duration_seconds": 21.30,
+    "logs": [
+      "reports/v0-s3/preparation-05/independent-01/raw/pytest-run-01.stdout.log",
+      "reports/v0-s3/preparation-05/independent-01/raw/pytest-run-01.stderr.log",
+      "reports/v0-s3/preparation-05/independent-01/raw/pytest-run-01.exit.log"
+    ],
+    "cleanup": {
+      "owned_basetemp": "a temporary directory outside the package tree, created by this review",
+      "entries_before_removal": 87,
+      "bytes_before_removal": 29544179,
+      "removal_verified": true,
+      "path_absent_after_removal": true,
+      "bytecode_residue_in_package_tree": 0,
+      "pycache_dirs_in_package_tree": 0
+    }
+  },
+  "verification_checks": [
+    {
+      "id": "V01_binding_hashes_recomputed_independently",
+      "method": "sha256 recomputed on the working tree files and compared with the receipt and preflight records",
+      "result": "PASS",
+      "detail": "child, catalog, holdout manifest, preflight, tool script, tool test and the borrowed bounded runner all match byte for byte; the same values were also confirmed against the Git blobs inside candidate e1798f33ba51dcadbf9f0333641d62d14a801491"
+    },
+    {
+      "id": "V02_first_preflight_rejection_made_zero_source_calls",
+      "method": "read the build_preflight code path end to end and read the retained rejected preflight artefact",
+      "result": "PASS_BY_CODE_INSPECTION",
+      "detail": "the rejected attempt (preflight-attempt-01-rejected.json, generated 2026-11-11T18:00:54Z) failed on holdout.content_sha256_exact and its media_access block records selected_files_stat/hashed/probed/decoded = 0. The preflight function touches only the child, catalog, holdout manifest, stage packet, Git blobs, the local tool binaries, the source root directory itself and a synthetic temporary fixture; it never opens a selected media file. The recorded zeros are a constant emitted by the tool, not an instrumented observation, so the claim rests on the code path rather than on a runtime syscall audit.",
+      "caveat": "the preflight does stat the source root directory and does run 'ffmpeg -version' / 'ffprobe -version' to bind tool versions; neither touches a selected media file"
+    },
+    {
+      "id": "V03_holdout_correction_shape",
+      "method": "recomputed the set relation between the freeze manifest and the child list, and read the diff between 63e195c and the correction e1798f3",
+      "result": "PASS",
+      "detail": "the freeze manifest protects 11 human holdout videos; the child lists 13 hashes. The 13 = 11 protected video hashes + exactly the manifest's own two declared hashes (expected_sha256 18075523f1bf7e4b9e4ff29dd9a03a53417c51019bd436d464d6f7bdf4248e0e and assets_manifest_sha256 77fce4fcbf36f506abcf37f48bb501262bba5cda83aa7cdb690ad31d13fcb63f). The correction replaced an impossible exact-equality check with 'covers every protected video' plus 'no unknown entry except the manifest's own hashes'. The denominator was NOT reduced, no holdout was excluded and the overlap check was strengthened to compare against the full 13-entry list."
+    },
+    {
+      "id": "V04_single_real_run_terminal_state",
+      "method": "read the terminal receipt, both preflight artefacts, all exit logs and the retained runtime root",
+      "result": "PASS",
+      "detail": "one real run, decision PREPARATION_COMPLETE_READY_FOR_REVIEW, receipt decision and the CLI exit code agree, counts conserve 32 = 32 + 0 + 0, and the earlier rejected preflight and its failure are retained as separate files; no terminal file was overwritten"
+    },
+    {
+      "id": "V05_counters_supported_by_the_original_logs",
+      "method": "re-tallied the 240 committed raw command/exit/stdout/stderr logs independently of the receipt",
+      "result": "PASS",
+      "detail": "exactly 60 commands, every exit code 0, of which 12 are ffprobe and 48 are ffmpeg single-frame extractions spread over exactly 12 videos with 4 frames each. 32 source hash passes, 20 image decodes and 60 started subprocesses are consistent with the committed command inventory and with the code path in prepare(). The receipt's own 60 stdout/stderr hashes and exit codes reproduce exactly against the committed logs.",
+      "caveat": "the 32 hash passes and 20 image decodes are counted by the tool's own counters; they are corroborated by the code path (one sha256_file call and one Pillow decode per admitted file) and by the command inventory, but they are not independently instrumented by this review"
+    },
+    {
+      "id": "V06_decoder_io_not_measured",
+      "method": "read the receipt budget block and the limitations list",
+      "result": "PASS",
+      "detail": "decoder_disk_io_bytes is recorded as NOT_MEASURED_NOT_CLAIMED in both the receipt and the runtime receipt, and the limitation is repeated in the receipt limitations list. No decoder disk IO figure is asserted anywhere."
+    },
+    {
+      "id": "V07_retained_preview_measured_independently",
+      "method": "recomputed sha256 and size for all 342 entries of the receipt tree against the retained runtime root, and parsed index.html",
+      "result": "PASS",
+      "detail": "342 of 342 entries match on size and sha256, no missing entry, no unlisted file on disk, total 3,963,572 bytes, the staging directory no longer exists, index.html carries 100 relative links of which 0 are broken and 0 are absolute or external",
+      "note": "the original testSource media was not read and was not re-hashed by this review; only the derived preview artefacts were measured"
+    },
+    {
+      "id": "V08_committed_raw_is_redacted_and_path_clean",
+      "method": "scanned all 240 committed raw files for absolute source or runtime paths and re-hashed the exact runtime copies",
+      "result": "PASS_WITH_A_DISCLOSED_LIMIT",
+      "detail": "0 files leak the source-root prefix, the workspace path or a home directory path. The receipt's 60 command_sha256 values match the exact unredacted command text in the runtime root 60/60, so the committed copy is deliberately not self-verifying against those hashes; it is verifiable only against the retained runtime copy, which is what this review did."
+    },
+    {
+      "id": "V09_fail_closed_control_flow",
+      "method": "read prepare() and command_run() end to end and confirmed the matching negative tests exist and pass",
+      "result": "PASS",
+      "detail": "command_run refuses unless the preflight decision is PREFLIGHT_PASSED and re-verifies the child, catalog, holdout, code blobs and runtime path before any media access; prepare() refuses to overwrite an existing terminal receipt or an existing runtime root; a content mismatch marks the candidate SOURCE_CHANGED, marks the remainder not_run and breaks, which drives the decision to SOURCE_CHANGED_TERMINAL; the output budget marks the remainder not_run and breaks; staging is removed in a finally block and the removal is measured; the path policy refuses symlinks, traversal, absolute paths, drive letters and escapes. The matching synthetic negative cases are present in the suite (rejected preflight with 0 source calls, child/catalog/candidate drift, symlink refusal, exact and one-over selection limits, changed source, corrupt media, short-video and duplicate-frame disclosure, wall and output budgets, non-overwritable terminal receipt)."
+    },
+    {
+      "id": "V10_handoff_guard_independently_re_run",
+      "method": "re-executed the public verify_s3_handoff guard against the merged review worktree",
+      "result": "PASS",
+      "detail": "HANDOFF_READINESS_VERIFIED with 139 checks, 139 passed, 0 failed, matching the receipt and the preflight"
+    },
+    {
+      "id": "V11_owned_process_termination",
+      "method": "read the borrowed bounded runner run_bounded()",
+      "result": "PASS_BY_CODE_INSPECTION",
+      "detail": "run_bounded creates the child itself and only ever calls terminate()/kill() on that own handle; it never enumerates or signals any other process. The per-process timeouts are enforced by a monotonic deadline inside the runner, and stdout+stderr are capped at 4 MiB. The receipt's owned_pids_only = true is a constant emitted by the tool rather than an observation, but the underlying behaviour is correct by construction."
+    },
+    {
+      "id": "V12_absent_media_in_git",
+      "method": "read the committed tree of the preparation-05 implementation directory",
+      "result": "PASS",
+      "detail": "only text artefacts are committed under reports/v0-s3/preparation-05/implementation/; no image, frame or original media byte was committed, and the preview tree lives only under the git-ignored runtime root"
+    }
+  ],
+  "findings": {
+    "fatal": [],
+    "major": [],
+    "minor": [
+      {
+        "id": "M1",
+        "title": "the terminal receipt reports a bogus start timestamp",
+        "detail": "prepare() stores started_at as datetime.fromtimestamp(started) where started is a time.monotonic() reading, so the recorded value is a 1970 epoch artefact (the receipt shows 1970-01-01T11:41:51.999572+00:00, which is the machine uptime at run start). The reproduction is recorded in raw/independent-verification-01.log section F.",
+        "impact": "an auditor cannot use started_at to place the run inside an authorised time window. No counter, budget, hash, decision or limitation is affected: wall_seconds_used is a correct monotonic delta and finished_at is a real wall-clock stamp.",
+        "blocking": false,
+        "recommendation": "derive started_at from time.time() or from a separately captured wall-clock value, and label the monotonic reading separately from the wall-clock reading."
+      },
+      {
+        "id": "M2",
+        "title": "several cleanup and budget zeros are hard-coded constants rather than measurements",
+        "detail": "cleanup.owned_pids_only, cleanup.source_files_modified, cleanup.source_files_deleted and the budget zeros model_actions / gpu_actions / services / network_calls / downloads / full_product_checkpoints / browser_sessions are literal values assigned at construction, not values observed during the run. The underlying behaviour is correct (run_bounded only terminates the handle it created; the tool opens sources read-only and calls no model, network or download path), but the receipt presents these as if they had been observed.",
+        "impact": "the receipt is accurate in substance but overstates the strength of its own evidence for these particular fields. There is no complete OS-level audit in this run that could exclude every possible egress, and this review does not claim one.",
+        "blocking": false,
+        "recommendation": "mark these fields as policy declarations, or add an explicit instrumentation that counts them."
+      },
+      {
+        "id": "M3",
+        "title": "the test suite's media-access audit hook covers less than its docstring claims",
+        "detail": "the suite patches builtins.open and os.scandir and asserts that nothing under the real media root was touched. Empirically verified in this review: the patch does not intercept io.open, pathlib.Path.open, os.open, os.stat or os.listdir. Pillow's own image reads do go through builtins.open and are therefore covered, which is the case that matters most, but the docstring's word 'prove' overstates the coverage.",
+        "impact": "the guarantee that the synthetic suite never reached the real 32 candidates is strong but not exhaustive. The separate guarantee that the real run touched exactly the frozen 32 candidates is independently supported by the committed command inventory and the candidate-level source hashes, which this review verified.",
+        "blocking": false,
+        "recommendation": "widen the hook to os.open and os.stat, or soften the docstring to state the exact interception set."
+      },
+      {
+        "id": "M4",
+        "title": "the global wall deadline is not enforced inside a running decoder process",
+        "detail": "the 1200 s global budget is checked between candidates and during hashing, but a single ffprobe or ffmpeg call is bounded only by its own timeout (20 s and 45 s). A run could therefore overrun the global budget by up to about 45 s. The preflight check budget.global_deadline_governs acknowledges that the per-process timeouts can exceed the budget, but the point is not repeated in the receipt limitations list.",
+        "impact": "none in this run, which used 13.293 s of the 1200 s budget.",
+        "blocking": false,
+        "recommendation": "state the residual overrun in the limitations list."
+      }
+    ]
+  },
+  "known_limitations_disclosed_by_the_implementation": [
+    "eligibility only: no model, no GPU, no service, no download and no full product checkpoint was used",
+    "no LVW or product analysis call was made and no semantic label, expected answer or quality verdict was produced",
+    "probed size and duration are container facts, not a proof that a full decode ran",
+    "requested sample offsets are not a proof of the actual presentation timestamps",
+    "decoder disk IO was not measured and is not claimed",
+    "the retained preview is material for the next independent prelabel step and is not a quality result",
+    "the source was read only; no source file was copied, modified or deleted"
+  ],
+  "statements_this_review_does_not_make": [
+    "this review does not claim that any model, service or complete product checkpoint was exercised",
+    "this review does not claim that a full OS-level audit of the preparation run excludes every possible external connection; the zero-network statement rests on the code path and on the absence of any network artefact in the committed evidence",
+    "this review does not claim that the preparation run performed a full decode of any source; the probe facts are container facts",
+    "this review does not claim that the candidate eligibility result says anything about semantic quality",
+    "this review does not claim that any LVW result, model score, expected answer or human draft was consulted; none was read",
+    "this review does not sign a Stage, a Gate0, a quality pass or a release"
+  ],
+  "prelabel_summary": {
+    "prelabels_produced": 32,
+    "images": 20,
+    "videos": 12,
+    "preview_files_listed": 100,
+    "preview_files_visually_viewed": 80,
+    "blind_state": "BLIND_PRELABEL_COMPLETED",
+    "visual_viewing_capability": "confirmed - every description in prelabels.json was written after actually opening and viewing the referenced preview image",
+    "text_only_prelabel": false,
+    "model_or_api_used_for_prelabel": false,
+    "selection_proposal": "reports/v0-s3/preparation-05/independent-01/selection-proposal.json",
+    "prelabel_is_not_a_human_signature": true,
+    "candidate_eligibility_is_not_semantic_quality": true
+  }
+}

@@ -1,0 +1,2698 @@
+{
+  "kind": "S3_PREP_C_INDEPENDENT_BLIND_PRELABEL",
+  "schema_version": "lvw.s3-prep-c-independent-prelabel/1",
+  "produced_by": "independent Orca Claude Code review session, separate worktree from the implementer",
+  "authority": "ADVISORY_PRELABEL_ONLY",
+  "is_human_signature": false,
+  "candidate_eligibility_is_not_semantic_quality": true,
+  "model_calls": 0,
+  "gpu_actions": 0,
+  "network_calls": 0,
+  "observation_provenance": {
+    "method": "every preview file listed in each entry's preview_refs was opened as an image and visually inspected by the reviewer; no description is derived from a file name, a count, a script output or a project answer",
+    "visual_viewing_capability": "confirmed - the local image viewing capability was exercised and the returned images were genuinely observed",
+    "source_media_access": "none - no file under the testSource root was opened, stat'ed, hashed, probed or decoded by this review",
+    "external_media_recognition_api_calls": 0,
+    "preview_root_relative_to_package": ".agent-governance/runtime/receipts/s3-preview-c01/run-01",
+    "preview_root_absolute_redacted": "<orca-workspace>/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/.agent-governance/runtime/receipts/s3-preview-c01/run-01",
+    "preview_root_note": "the retained preview tree lives only in the original runtime root; it was read in place and was not regenerated, copied into Git or re-uploaded",
+    "video_observation_limit": "each video was observed through exactly 4 sampled frames; no claim is made about frames between them, about playback continuity, about audio, or about actual presentation timestamps",
+    "image_observation_limit": "each image was observed through one derived thumbnail whose long edge is 640 px; small or low-contrast text is not transcribed"
+  },
+  "obligation_dimension_glossary": {
+    "人物": "who/how many people are present, their visible appearance and wardrobe",
+    "场景": "the setting, background and identifiable objects",
+    "动作": "posture, gesture and motion cues actually visible in the cited frame",
+    "证据一致性": "the claim is grounded in the cited frame and its hash, with no cross-candidate inference",
+    "未知/局限": "the system states what cannot be determined instead of fabricating"
+  },
+  "counts": {
+    "prelabels": 32,
+    "images": 20,
+    "videos": 12,
+    "preview_files_listed": 100,
+    "preview_files_viewed": 80,
+    "preview_files_listed_but_not_opened": 20,
+    "preview_files_viewed_note": "20 image thumbnails + 48 sampled video frames + 12 video contact sheets = 80 files opened and visually inspected; the 20 image contact sheets are single-tile re-renders of the viewed thumbnails and were not opened separately"
+  },
+  "prelabels": [
+    {
+      "asset_id": "C01",
+      "file_id": "8d005680eb34f479b3141a31c3fdaea8e2db30fc3365091a801ad178bf834d36",
+      "source_sha256": "f0b7b110b632f1d40c80d1163dbc587aca099df5aca8a8d2f6e4722c66134b54",
+      "source_relative_path": "婚礼场景/老婆美照/A_(40).jpg",
+      "media_kind": "image",
+      "probe_facts_from_container": {
+        "bytes": 14824417,
+        "format": "JPEG",
+        "width": 3905,
+        "height": 5857,
+        "pixels": 22871585,
+        "exif_orientation_applied": true,
+        "thumbnail_width": 427,
+        "thumbnail_height": 640
+      },
+      "preview_refs": [
+        {
+          "kind": "thumbnail",
+          "rel": "previews/8d005680eb34f479b3141a31c3fdaea8e2db30fc3365091a801ad178bf834d36.jpg",
+          "sha256": "d9e8020f08bab81f2ef661c0a30075aa257cd42460b1cc55d9e6db49399370fb",
+          "bytes": 47914,
+          "observed_dimensions": "427x640",
+          "viewed": true
+        },
+        {
+          "kind": "contact_sheet",
+          "rel": "contactsheets/8d005680eb34f479b3141a31c3fdaea8e2db30fc3365091a801ad178bf834d36.jpg",
+          "sha256": "175dfe86e8af47abf3030924f187aab39a75e0f0776258049dde6d048af496af",
+          "bytes": 13377,
+          "viewed": false,
+          "view_note": "single-tile re-render of the thumbnail that was viewed; not opened separately because it carries no information beyond that thumbnail"
+        }
+      ],
+      "observation_basis": "the reviewer opened and visually viewed every preview file marked viewed=true in preview_refs; no description is derived from a file name, a count, a script output or a project answer",
+      "observable_facts": {
+        "subject_category": "wedding studio portrait, two adults in formal wedding attire",
+        "visible_person_count": "2 visible persons (1 in a white strapless bridal gown, 1 in a dark suit)",
+        "scene_and_objects": [
+          "plain pale interior background",
+          "a translucent light-streak overlay band crossing the middle of the frame",
+          "a drop earring on the right-hand figure",
+          "a ring visible on the left-hand figure's hand"
+        ],
+        "pose_and_action_cues": [
+          "the two faces are extremely close together, near but not visibly touching",
+          "the right-hand figure looks down towards the other face",
+          "the left-hand figure's hand rests at the other person's neck/shoulder"
+        ],
+        "composition_lighting_style": "vertical extreme close-up, both heads fill the frame, soft high-key indoor light, shallow depth of field, added translucent light-streak effect",
+        "visible_text": [
+          "bottom-centre white serif text reads \"Live in your eyes\""
+        ]
+      },
+      "unknown_or_ambiguous": [
+        "the frame is cropped so tightly that the room, and any other person, is not observable",
+        "whether the light streak is a post-production overlay or real light cannot be determined from the frame"
+      ],
+      "prohibited_assertions": [
+        "must not assert the two people are a real bride and groom, relatives, or the same person as in any other candidate",
+        "must not infer identity, nationality, age or relationship",
+        "must not assert that a kiss happens - the faces approach but contact is not visible"
+      ],
+      "applicable_obligation_dimensions": {
+        "人物": "exercised - person count and wardrobe are directly observable in the preview",
+        "场景": "exercised - the setting and its objects are directly observable in the preview",
+        "动作": "exercised at the level of visible pose cues only; no narrative or audible action may be asserted",
+        "证据一致性": "exercised - every claim above is anchored to the listed preview file and its sha256",
+        "未知/局限": "exercised - the unknown_or_ambiguous and prohibited_assertions lists are the expected content for this dimension"
+      },
+      "acceptance_notes": "candidate eligibility (decodable, in budget, in the frozen child) is not semantic quality; this prelabel is an independent agent visual observation, not a human signature"
+    },
+    {
+      "asset_id": "C02",
+      "file_id": "7fc52e0bca9b9a957e952ae8b18e1bb7f2930abd7141c0815a2d1aa6ba96e15f",
+      "source_sha256": "7e92e11f5a93e221121ac36efa3da797cf3e5c7f2f6901a3cef07ce480e2d686",
+      "source_relative_path": "edit/h3_identity_reference_matrix_20261025/qa/P06_clean.jpg",
+      "media_kind": "image",
+      "probe_facts_from_container": {
+        "bytes": 14494,
+        "format": "JPEG",
+        "width": 512,
+        "height": 512,
+        "pixels": 262144,
+        "exif_orientation_applied": false,
+        "thumbnail_width": 512,
+        "thumbnail_height": 512
+      },
+      "preview_refs": [
+        {
+          "kind": "thumbnail",
+          "rel": "previews/7fc52e0bca9b9a957e952ae8b18e1bb7f2930abd7141c0815a2d1aa6ba96e15f.jpg",
+          "sha256": "79d91bab5cd09786a81edc6755e184f26c66611c8066be0b571b3b1ef0503c76",
+          "bytes": 24157,
+          "observed_dimensions": "512x512",
+          "viewed": true
+        },
+        {
+          "kind": "contact_sheet",
+          "rel": "contactsheets/7fc52e0bca9b9a957e952ae8b18e1bb7f2930abd7141c0815a2d1aa6ba96e15f.jpg",
+          "sha256": "65f02ffb0881a02e16958509a6c7250c738a44266b03f1061a976501e745d9aa",
+          "bytes": 14625,
+          "viewed": false,
+          "view_note": "single-tile re-render of the thumbnail that was viewed; not opened separately because it carries no information beyond that thumbnail"
+        }
+      ],
+      "observation_basis": "the reviewer opened and visually viewed every preview file marked viewed=true in preview_refs; no description is derived from a file name, a count, a script output or a project answer",
+      "observable_facts": {
+        "subject_category": "extreme close-up selfie of one adult with long dark hair and straight bangs",
+        "visible_person_count": "1 visible person",
+        "scene_and_objects": [
+          "pale warm interior wall",
+          "a small pink/red out-of-focus light spot in the upper right"
+        ],
+        "pose_and_action_cues": [
+          "facing the lens",
+          "mouth slightly open with teeth visible in a smile"
+        ],
+        "composition_lighting_style": "square crop of a letterboxed frame (black bars top and bottom), face fills almost the whole square, direct frontal light",
+        "visible_text": [
+          "yellow overlay text at the upper left; the fragments \"/\" plus Chinese characters and \"com\" are legible, the rest is cut off; the characters are small and are not transcribed"
+        ]
+      },
+      "unknown_or_ambiguous": [
+        "the full content of the overlaid text/watermark is not recoverable at preview resolution",
+        "the surrounding room is not observable"
+      ],
+      "prohibited_assertions": [
+        "must not assert which application or website the overlay belongs to",
+        "must not infer the person's identity",
+        "must not read out the illegible characters"
+      ],
+      "applicable_obligation_dimensions": {
+        "人物": "exercised - person count and wardrobe are directly observable in the preview",
+        "场景": "exercised - the setting and its objects are directly observable in the preview",
+        "动作": "exercised at the level of visible pose cues only; no narrative or audible action may be asserted",
+        "证据一致性": "exercised - every claim above is anchored to the listed preview file and its sha256",
+        "未知/局限": "exercised - the unknown_or_ambiguous and prohibited_assertions lists are the expected content for this dimension"
+      },
+      "acceptance_notes": "candidate eligibility (decodable, in budget, in the frozen child) is not semantic quality; this prelabel is an independent agent visual observation, not a human signature"
+    },
+    {
+      "asset_id": "C03",
+      "file_id": "e0091fce499a8e326ba5527f03bf44c922e9afc2e0d101d326d3f49b25df86cc",
+      "source_sha256": "fc4278ec17a8f4e97d0513dac93a6a2578d85a6e963c6f30af0783e96b15ac3d",
+      "source_relative_path": "edit/wedding_mv_empty_seat_20261022/qa/high_quality_test/S04_quality_comparison.png",
+      "media_kind": "image",
+      "probe_facts_from_container": {
+        "bytes": 1086664,
+        "format": "PNG",
+        "width": 1172,
+        "height": 1420,
+        "pixels": 1664240,
+        "exif_orientation_applied": false,
+        "thumbnail_width": 528,
+        "thumbnail_height": 640
+      },
+      "preview_refs": [
+        {
+          "kind": "thumbnail",
+          "rel": "previews/e0091fce499a8e326ba5527f03bf44c922e9afc2e0d101d326d3f49b25df86cc.jpg",
+          "sha256": "019b7db9938165a98bd1bd8fd76501ebae89415b55b3d21c5383ccee4e347e52",
+          "bytes": 62148,
+          "observed_dimensions": "528x640",
+          "viewed": true
+        },
+        {
+          "kind": "contact_sheet",
+          "rel": "contactsheets/e0091fce499a8e326ba5527f03bf44c922e9afc2e0d101d326d3f49b25df86cc.jpg",
+          "sha256": "f27d7482fa371bbea117bab3ef01169834858582601da8ebec80b38b653a9ff3",
+          "bytes": 16917,
+          "viewed": false,
+          "view_note": "single-tile re-render of the thumbnail that was viewed; not opened separately because it carries no information beyond that thumbnail"
+        }
+      ],
+      "observation_basis": "the reviewer opened and visually viewed every preview file marked viewed=true in preview_refs; no description is derived from a file name, a count, a script output or a project answer",
+      "observable_facts": {
+        "subject_category": "two-panel stacked comparison of a wedding couple",
+        "visible_person_count": "2 visible persons per panel (1 in a white strapless beaded gown with an updo, 1 in a black tuxedo with bow tie and boutonniere)",
+        "scene_and_objects": [
+          "warm interior with shelving and porcelain objects on the left",
+          "a large window on the right showing blue dusk light",
+          "a wooden box or lectern between the two figures",
+          "a small pale card or envelope"
+        ],
+        "pose_and_action_cues": [
+          "upper panel: the two face each other and the tuxedoed figure's right hand reaches towards the wooden box",
+          "lower panel: the tuxedoed figure's hand is holding a pale card above the box, the gowned figure looks down"
+        ],
+        "composition_lighting_style": "two frames stacked vertically with a black separator band; warm interior key light against cool blue window light; shallow depth of field",
+        "visible_text": []
+      },
+      "unknown_or_ambiguous": [
+        "it cannot be determined whether the two panels are two moments of one shot or two separately generated versions",
+        "no text is legible on the card"
+      ],
+      "prohibited_assertions": [
+        "must not assert that the panels are a before/after pair of one event",
+        "must not assert what is written on the card",
+        "must not infer the identity or relationship of the two people"
+      ],
+      "applicable_obligation_dimensions": {
+        "人物": "exercised - person count and wardrobe are directly observable in the preview",
+        "场景": "exercised - the setting and its objects are directly observable in the preview",
+        "动作": "exercised at the level of visible pose cues only; no narrative or audible action may be asserted",
+        "证据一致性": "exercised - every claim above is anchored to the listed preview file and its sha256",
+        "未知/局限": "exercised - the unknown_or_ambiguous and prohibited_assertions lists are the expected content for this dimension"
+      },
+      "acceptance_notes": "candidate eligibility (decodable, in budget, in the frozen child) is not semantic quality; this prelabel is an independent agent visual observation, not a human signature"
+    },
+    {
+      "asset_id": "C04",
+      "file_id": "0e66a281d894d5f088fab32d57b0f36e5592d967c334ec2a58e99bf0d3fcfcc0",
+      "source_sha256": "0fa9b01d4e1e9adfde1295748018509f3a820efb127889de1388d6bf83c94636",
+      "source_relative_path": "edit/wedding_mv_20261022/inspection/chunks/1_01.jpg",
+      "media_kind": "image",
+      "probe_facts_from_container": {
+        "bytes": 20896,
+        "format": "JPEG",
+        "width": 360,
+        "height": 300,
+        "pixels": 108000,
+        "exif_orientation_applied": false,
+        "thumbnail_width": 360,
+        "thumbnail_height": 300
+      },
+      "preview_refs": [
+        {
+          "kind": "thumbnail",
+          "rel": "previews/0e66a281d894d5f088fab32d57b0f36e5592d967c334ec2a58e99bf0d3fcfcc0.jpg",
+          "sha256": "dc7eede2cd08ca3ab3862468646606e82647e7ebde86727e10bb2b1977fa0ab2",
+          "bytes": 35944,
+          "observed_dimensions": "360x300",
+          "viewed": true
+        },
+        {
+          "kind": "contact_sheet",
+          "rel": "contactsheets/0e66a281d894d5f088fab32d57b0f36e5592d967c334ec2a58e99bf0d3fcfcc0.jpg",
+          "sha256": "76591aceff32283bbad67e9590a998fc88f4c8acc98ae3c775a92b6bc91ade8d",
+          "bytes": 27494,
+          "viewed": false,
+          "view_note": "single-tile re-render of the thumbnail that was viewed; not opened separately because it carries no information beyond that thumbnail"
+        }
+      ],
+      "observation_basis": "the reviewer opened and visually viewed every preview file marked viewed=true in preview_refs; no description is derived from a file name, a count, a script output or a project answer",
+      "observable_facts": {
+        "subject_category": "wedding stage photographs, composite of two photographs",
+        "visible_person_count": "upper panel: 2 visible persons (1 in a white ball gown with veil holding a bouquet, 1 in a dark suit with glasses); lower panel: a row of roughly a dozen-plus people",
+        "scene_and_objects": [
+          "white floral arrangements and bare decorative branches",
+          "a larger stage set in the lower panel with circular decorations and small lights",
+          "a bouquet in the upper panel"
+        ],
+        "pose_and_action_cues": [
+          "upper panel: both figures have one arm raised and pointing upward, mouths open",
+          "lower panel: the row of people have their arms raised"
+        ],
+        "composition_lighting_style": "two photographs stacked vertically inside one image, stage lighting, warm-white palette",
+        "visible_text": []
+      },
+      "unknown_or_ambiguous": [
+        "the exact number of people in the lower panel is not determinable",
+        "whether the lower panel shows the same people as the upper panel is not determinable"
+      ],
+      "prohibited_assertions": [
+        "must not assert the people are shouting, cheering or singing - open mouths without audio cannot be scored as an audible action",
+        "must not state an exact head count",
+        "must not infer identities or relationships"
+      ],
+      "applicable_obligation_dimensions": {
+        "人物": "exercised - person count and wardrobe are directly observable in the preview",
+        "场景": "exercised - the setting and its objects are directly observable in the preview",
+        "动作": "exercised at the level of visible pose cues only; no narrative or audible action may be asserted",
+        "证据一致性": "exercised - every claim above is anchored to the listed preview file and its sha256",
+        "未知/局限": "exercised - the unknown_or_ambiguous and prohibited_assertions lists are the expected content for this dimension"
+      },
+      "acceptance_notes": "candidate eligibility (decodable, in budget, in the frozen child) is not semantic quality; this prelabel is an independent agent visual observation, not a human signature"
+    },
+    {
+      "asset_id": "C05",
+      "file_id": "d525c251c2747d2a8b32afd1287829d45a71570ceabfde435779f5119c8d7ee7",
+      "source_sha256": "8dd02c2488561d9df729e8a7f0e3d5d732520bb51dbc3a0e1796953bee8189fd",
+      "source_relative_path": "edit/wedding_mv_20261022/inspection/chunks/6_06.jpg",
+      "media_kind": "image",
+      "probe_facts_from_container": {
+        "bytes": 8727,
+        "format": "JPEG",
+        "width": 360,
+        "height": 300,
+        "pixels": 108000,
+        "exif_orientation_applied": false,
+        "thumbnail_width": 360,
+        "thumbnail_height": 300
+      },
+      "preview_refs": [
+        {
+          "kind": "thumbnail",
+          "rel": "previews/d525c251c2747d2a8b32afd1287829d45a71570ceabfde435779f5119c8d7ee7.jpg",
+          "sha256": "cac484245e83ec87d33ad2e3eb5e6f063abc2e307f1847738dd44dcedde55db5",
+          "bytes": 14685,
+          "observed_dimensions": "360x300",
+          "viewed": true
+        },
+        {
+          "kind": "contact_sheet",
+          "rel": "contactsheets/d525c251c2747d2a8b32afd1287829d45a71570ceabfde435779f5119c8d7ee7.jpg",
+          "sha256": "632c42bf2ba4691c66e0f9f68ccb2ba3d9e578c67f04df7c863dfbc0b04693a4",
+          "bytes": 16277,
+          "viewed": false,
+          "view_note": "single-tile re-render of the thumbnail that was viewed; not opened separately because it carries no information beyond that thumbnail"
+        }
+      ],
+      "observation_basis": "the reviewer opened and visually viewed every preview file marked viewed=true in preview_refs; no description is derived from a file name, a count, a script output or a project answer",
+      "observable_facts": {
+        "subject_category": "tight detail crop of a white bridal gown",
+        "visible_person_count": "1 partially visible person (a bare arm and hand only); a second figure in dark clothing is partly visible behind",
+        "scene_and_objects": [
+          "white floral arrangements and decorative branches",
+          "a dark background",
+          "a small bouquet held in the visible hand",
+          "added sparkle/star overlay effects on the fabric"
+        ],
+        "pose_and_action_cues": [
+          "a hand holds a small bouquet; the gown train is spread across the frame"
+        ],
+        "composition_lighting_style": "very tight crop; no face, no eyes and no body posture are visible; dark background with bright white fabric",
+        "visible_text": []
+      },
+      "unknown_or_ambiguous": [
+        "no face, expression, gaze or full-body posture is observable at all",
+        "the direction the person faces and what they are doing beyond holding a bouquet is not observable"
+      ],
+      "prohibited_assertions": [
+        "must not assert any facial expression, gaze direction, emotion or body pose",
+        "must not infer identity, age or relationship",
+        "must not describe this as a portrait of a person - there is no identifiable subject"
+      ],
+      "applicable_obligation_dimensions": {
+        "人物": "exercised - person count and wardrobe are directly observable in the preview",
+        "场景": "exercised - the setting and its objects are directly observable in the preview",
+        "动作": "exercised at the level of visible pose cues only; no narrative or audible action may be asserted",
+        "证据一致性": "exercised - every claim above is anchored to the listed preview file and its sha256",
+        "未知/局限": "exercised - the unknown_or_ambiguous and prohibited_assertions lists are the expected content for this dimension"
+      },
+      "acceptance_notes": "candidate eligibility (decodable, in budget, in the frozen child) is not semantic quality; this prelabel is an independent agent visual observation, not a human signature"
+    },
+    {
+      "asset_id": "C06",
+      "file_id": "a0e1978ea274ef9d910a37f5f079e1a19c8cfe6b149ff66d5639f896c11a5ea9",
+      "source_sha256": "58d6e490f687855f98d6e0469f757dd76cac5ee41442bfb0ccabeb2bdcf2abe4",
+      "source_relative_path": "edit/h3_native_720_night_selfie_img1_20261025/qa/S01_native_contact_sheet.jpg",
+      "media_kind": "image",
+      "probe_facts_from_container": {
+        "bytes": 82880,
+        "format": "JPEG",
+        "width": 2600,
+        "height": 744,
+        "pixels": 1934400,
+        "exif_orientation_applied": false,
+        "thumbnail_width": 640,
+        "thumbnail_height": 183
+      },
+      "preview_refs": [
+        {
+          "kind": "thumbnail",
+          "rel": "previews/a0e1978ea274ef9d910a37f5f079e1a19c8cfe6b149ff66d5639f896c11a5ea9.jpg",
+          "sha256": "2ba36fece412950d7769e2692bb57180fb3bc9aa901542b8d6aeb6adb903cd0b",
+          "bytes": 30633,
+          "observed_dimensions": "640x183",
+          "viewed": true
+        },
+        {
+          "kind": "contact_sheet",
+          "rel": "contactsheets/a0e1978ea274ef9d910a37f5f079e1a19c8cfe6b149ff66d5639f896c11a5ea9.jpg",
+          "sha256": "db7cbf39a251ed58c6c1015429f57fae15bbea13ba8b6866a73346379b4ef1c6",
+          "bytes": 15666,
+          "viewed": false,
+          "view_note": "single-tile re-render of the thumbnail that was viewed; not opened separately because it carries no information beyond that thumbnail"
+        }
+      ],
+      "observation_basis": "the reviewer opened and visually viewed every preview file marked viewed=true in preview_refs; no description is derived from a file name, a count, a script output or a project answer",
+      "observable_facts": {
+        "subject_category": "multi-panel contact sheet of a night selfie of one adult",
+        "visible_person_count": "1 visible person, repeated across 7 panels",
+        "scene_and_objects": [
+          "night sky",
+          "trees lit with green and yellow light",
+          "distant city lights and street lamps"
+        ],
+        "pose_and_action_cues": [
+          "seven different facial configurations: pursed lips, neutral frontal, eyes closed, smiling, a hand raised to the hair, smiling, smiling"
+        ],
+        "composition_lighting_style": "7-panel horizontal collage (4 on the top row, 3 on the bottom, last two cells black), narrow crop per panel, low-light with strong bokeh",
+        "visible_text": []
+      },
+      "unknown_or_ambiguous": [
+        "this is a multi-frame collage, not a single photograph",
+        "the true temporal order of the seven panels is not established by the image"
+      ],
+      "prohibited_assertions": [
+        "must not treat the collage as a single composed photograph",
+        "must not infer emotion, mood or personality from the expressions",
+        "must not assert a specific identity"
+      ],
+      "applicable_obligation_dimensions": {
+        "人物": "exercised - person count and wardrobe are directly observable in the preview",
+        "场景": "exercised - the setting and its objects are directly observable in the preview",
+        "动作": "exercised at the level of visible pose cues only; no narrative or audible action may be asserted",
+        "证据一致性": "exercised - every claim above is anchored to the listed preview file and its sha256",
+        "未知/局限": "exercised - the unknown_or_ambiguous and prohibited_assertions lists are the expected content for this dimension"
+      },
+      "acceptance_notes": "candidate eligibility (decodable, in budget, in the frozen child) is not semantic quality; this prelabel is an independent agent visual observation, not a human signature"
+    },
+    {
+      "asset_id": "C07",
+      "file_id": "6c4267bd30c45b1c2fd0e8c416715bf7699b49f6c019ebaa35ffc1517436cc00",
+      "source_sha256": "ded64a7ae127a3a6dfdfe6f9ac21d6a405f0726451ed20d03beb6983d9f61aa3",
+      "source_relative_path": "edit/h3_native_720_night_selfie_img1_20261025/qa/upscale_compare/t3_B_seedvr.png",
+      "media_kind": "image",
+      "probe_facts_from_container": {
+        "bytes": 2040035,
+        "format": "PNG",
+        "width": 1920,
+        "height": 1080,
+        "pixels": 2073600,
+        "exif_orientation_applied": false,
+        "thumbnail_width": 640,
+        "thumbnail_height": 360
+      },
+      "preview_refs": [
+        {
+          "kind": "thumbnail",
+          "rel": "previews/6c4267bd30c45b1c2fd0e8c416715bf7699b49f6c019ebaa35ffc1517436cc00.jpg",
+          "sha256": "1e915e0185805ea394a7e15e9cac24f0351483fb5e70b1dd04246b5725252124",
+          "bytes": 42682,
+          "observed_dimensions": "640x360",
+          "viewed": true
+        },
+        {
+          "kind": "contact_sheet",
+          "rel": "contactsheets/6c4267bd30c45b1c2fd0e8c416715bf7699b49f6c019ebaa35ffc1517436cc00.jpg",
+          "sha256": "07b571f46b0fe370dcb421723364b3147e5ea1d272b1c84629e5132af7f8ad31",
+          "bytes": 18375,
+          "viewed": false,
+          "view_note": "single-tile re-render of the thumbnail that was viewed; not opened separately because it carries no information beyond that thumbnail"
+        }
+      ],
+      "observation_basis": "the reviewer opened and visually viewed every preview file marked viewed=true in preview_refs; no description is derived from a file name, a count, a script output or a project answer",
+      "observable_facts": {
+        "subject_category": "wide-angle night selfie of one adult wearing large dark-framed glasses",
+        "visible_person_count": "1 visible person",
+        "scene_and_objects": [
+          "night sky",
+          "a tree lit green",
+          "a street with lit storefront signage and vehicles in the distance"
+        ],
+        "pose_and_action_cues": [
+          "facing the lens, mouth slightly open"
+        ],
+        "composition_lighting_style": "very wide-angle close selfie with visible barrel/fisheye distortion; the face dominates the frame; low-light with coloured practical lights",
+        "visible_text": []
+      },
+      "unknown_or_ambiguous": [
+        "the distant signage is not legible",
+        "whether this frame is an upscaled result cannot be judged from the pixels alone"
+      ],
+      "prohibited_assertions": [
+        "must not assert the location or city",
+        "must not infer identity",
+        "must not assert the person is speaking"
+      ],
+      "applicable_obligation_dimensions": {
+        "人物": "exercised - person count and wardrobe are directly observable in the preview",
+        "场景": "exercised - the setting and its objects are directly observable in the preview",
+        "动作": "exercised at the level of visible pose cues only; no narrative or audible action may be asserted",
+        "证据一致性": "exercised - every claim above is anchored to the listed preview file and its sha256",
+        "未知/局限": "exercised - the unknown_or_ambiguous and prohibited_assertions lists are the expected content for this dimension"
+      },
+      "acceptance_notes": "candidate eligibility (decodable, in budget, in the frozen child) is not semantic quality; this prelabel is an independent agent visual observation, not a human signature"
+    },
+    {
+      "asset_id": "C08",
+      "file_id": "e8f1ec38454937d0548ca54816cd2bc5f38b0f4c5f6a7723b63279fb492990aa",
+      "source_sha256": "20cf3a33c32be16f1a96b2479c61a50c3e510e39a90da5f5100abe4deb94de32",
+      "source_relative_path": "edit/h3_identity_reference_matrix_20261025/qa/src_img_10.jpg",
+      "media_kind": "image",
+      "probe_facts_from_container": {
+        "bytes": 10624,
+        "format": "JPEG",
+        "width": 360,
+        "height": 330,
+        "pixels": 118800,
+        "exif_orientation_applied": false,
+        "thumbnail_width": 360,
+        "thumbnail_height": 330
+      },
+      "preview_refs": [
+        {
+          "kind": "thumbnail",
+          "rel": "previews/e8f1ec38454937d0548ca54816cd2bc5f38b0f4c5f6a7723b63279fb492990aa.jpg",
+          "sha256": "308051626fc6777f38759676bfcc3b0127afff76227363186695d71f01c8f749",
+          "bytes": 14202,
+          "observed_dimensions": "360x330",
+          "viewed": true
+        },
+        {
+          "kind": "contact_sheet",
+          "rel": "contactsheets/e8f1ec38454937d0548ca54816cd2bc5f38b0f4c5f6a7723b63279fb492990aa.jpg",
+          "sha256": "9804001248ed3c56d65905182158a52c7a85b3e5cc3af45190da6a71c54ddf36",
+          "bytes": 13205,
+          "viewed": false,
+          "view_note": "single-tile re-render of the thumbnail that was viewed; not opened separately because it carries no information beyond that thumbnail"
+        }
+      ],
+      "observation_basis": "the reviewer opened and visually viewed every preview file marked viewed=true in preview_refs; no description is derived from a file name, a count, a script output or a project answer",
+      "observable_facts": {
+        "subject_category": "portrait photograph embedded in an image-viewer/document frame",
+        "visible_person_count": "1 visible person",
+        "scene_and_objects": [
+          "warm beige plain background",
+          "a thin gold necklace with a small pendant",
+          "a black crew-neck top",
+          "a white margin with a caption bar above the photograph"
+        ],
+        "pose_and_action_cues": [
+          "facing the lens with a neutral expression"
+        ],
+        "composition_lighting_style": "the photograph sits inside a white page frame with a text caption bar; portrait crop; soft even light",
+        "visible_text": [
+          "the caption bar shows two unrenderable CJK characters followed by \"-7.png\"; the two characters are not legible and are not transcribed"
+        ]
+      },
+      "unknown_or_ambiguous": [
+        "the two characters in the caption are not legible",
+        "the surrounding application or document is not observable beyond the caption bar"
+      ],
+      "prohibited_assertions": [
+        "must not guess the two unreadable characters or the source file they name",
+        "must not infer identity"
+      ],
+      "applicable_obligation_dimensions": {
+        "人物": "exercised - person count and wardrobe are directly observable in the preview",
+        "场景": "exercised - the setting and its objects are directly observable in the preview",
+        "动作": "exercised at the level of visible pose cues only; no narrative or audible action may be asserted",
+        "证据一致性": "exercised - every claim above is anchored to the listed preview file and its sha256",
+        "未知/局限": "exercised - the unknown_or_ambiguous and prohibited_assertions lists are the expected content for this dimension"
+      },
+      "acceptance_notes": "candidate eligibility (decodable, in budget, in the frozen child) is not semantic quality; this prelabel is an independent agent visual observation, not a human signature"
+    },
+    {
+      "asset_id": "C09",
+      "file_id": "3488b1c6a998754cff9c9881b2ca8196e1b78b4b174c19879fed1419a04e4c93",
+      "source_sha256": "904df396001b71ac6e392ca085367e50046bf723be4b9ad8d18f2f91b1c5ea10",
+      "source_relative_path": "edit/h3_identity_reference_matrix_20261025/qa/视频-3_timeline.jpg",
+      "media_kind": "image",
+      "probe_facts_from_container": {
+        "bytes": 115034,
+        "format": "JPEG",
+        "width": 1328,
+        "height": 524,
+        "pixels": 695872,
+        "exif_orientation_applied": false,
+        "thumbnail_width": 640,
+        "thumbnail_height": 253
+      },
+      "preview_refs": [
+        {
+          "kind": "thumbnail",
+          "rel": "previews/3488b1c6a998754cff9c9881b2ca8196e1b78b4b174c19879fed1419a04e4c93.jpg",
+          "sha256": "4c3535f115a5f7a29cbba351215f088e95130db32cf0883752203e5e12a5587a",
+          "bytes": 31928,
+          "observed_dimensions": "640x253",
+          "viewed": true
+        },
+        {
+          "kind": "contact_sheet",
+          "rel": "contactsheets/3488b1c6a998754cff9c9881b2ca8196e1b78b4b174c19879fed1419a04e4c93.jpg",
+          "sha256": "feb2d23e6ebcf6de9babe119d551890528f975d418b51453d0938295683f2d07",
+          "bytes": 14625,
+          "viewed": false,
+          "view_note": "single-tile re-render of the thumbnail that was viewed; not opened separately because it carries no information beyond that thumbnail"
+        }
+      ],
+      "observation_basis": "the reviewer opened and visually viewed every preview file marked viewed=true in preview_refs; no description is derived from a file name, a count, a script output or a project answer",
+      "observable_facts": {
+        "subject_category": "timeline contact sheet of a talking-to-camera clip",
+        "visible_person_count": "1 visible person, repeated across 8 panels",
+        "scene_and_objects": [
+          "bright interior with a plain pale wall"
+        ],
+        "pose_and_action_cues": [
+          "eight different gestures: finger at the cheek, looking up and smiling, hand under the chin, hand over the mouth, a two-finger sign, looking down, head tilted, smiling with a raised finger"
+        ],
+        "composition_lighting_style": "8-panel grid, each panel captioned with a file name and a timestamp; narrow portrait frames; bright soft indoor light",
+        "visible_text": [
+          "each panel is captioned with the pattern \"<two CJK characters>-3.mp4 t=<seconds>\"; the numeric timestamps 2.059s, 4.118s, 6.176s, 8.236s, 10.295s, 12.354s, 14.414s, 16.473s are legible; the two CJK characters are not legible"
+        ]
+      },
+      "unknown_or_ambiguous": [
+        "the two CJK characters in the captions are not legible",
+        "the captions record sampled points, not proven container presentation timestamps",
+        "the true frame order is not established by the image"
+      ],
+      "prohibited_assertions": [
+        "must not assert which named source file or video this is",
+        "must not present the caption timestamps as media PTS",
+        "must not infer identity"
+      ],
+      "applicable_obligation_dimensions": {
+        "人物": "exercised - person count and wardrobe are directly observable in the preview",
+        "场景": "exercised - the setting and its objects are directly observable in the preview",
+        "动作": "exercised at the level of visible pose cues only; no narrative or audible action may be asserted",
+        "证据一致性": "exercised - every claim above is anchored to the listed preview file and its sha256",
+        "未知/局限": "exercised - the unknown_or_ambiguous and prohibited_assertions lists are the expected content for this dimension"
+      },
+      "acceptance_notes": "candidate eligibility (decodable, in budget, in the frozen child) is not semantic quality; this prelabel is an independent agent visual observation, not a human signature"
+    },
+    {
+      "asset_id": "C10",
+      "file_id": "224e288022c741aa7d3d72046f3ffb7acf43cfbe38afc067f9d5e4dfd088daa1",
+      "source_sha256": "58913cf569dd1644a7e116eb913fc98a6bce3489ce7d4ef8b7b9a0d60a996743",
+      "source_relative_path": "edit/h3_identity_reference_matrix_20261025/qa/v1_f8.jpg",
+      "media_kind": "image",
+      "probe_facts_from_container": {
+        "bytes": 9066,
+        "format": "JPEG",
+        "width": 320,
+        "height": 250,
+        "pixels": 80000,
+        "exif_orientation_applied": false,
+        "thumbnail_width": 320,
+        "thumbnail_height": 250
+      },
+      "preview_refs": [
+        {
+          "kind": "thumbnail",
+          "rel": "previews/224e288022c741aa7d3d72046f3ffb7acf43cfbe38afc067f9d5e4dfd088daa1.jpg",
+          "sha256": "d44406d5c6eb9458c16aea9e1d7d113470ee3de93e588360aafcc1cc2a00f6e6",
+          "bytes": 14229,
+          "observed_dimensions": "320x250",
+          "viewed": true
+        },
+        {
+          "kind": "contact_sheet",
+          "rel": "contactsheets/224e288022c741aa7d3d72046f3ffb7acf43cfbe38afc067f9d5e4dfd088daa1.jpg",
+          "sha256": "8f9f643d3663b09ee671608ad6cccd0f1485afbe122de078a035acff99bf3869",
+          "bytes": 15408,
+          "viewed": false,
+          "view_note": "single-tile re-render of the thumbnail that was viewed; not opened separately because it carries no information beyond that thumbnail"
+        }
+      ],
+      "observation_basis": "the reviewer opened and visually viewed every preview file marked viewed=true in preview_refs; no description is derived from a file name, a count, a script output or a project answer",
+      "observable_facts": {
+        "subject_category": "media-player screenshot of a vertical clip showing one adult",
+        "visible_person_count": "1 visible person",
+        "scene_and_objects": [
+          "indoor room",
+          "a large green area behind/below the subject consistent with a green screen or green backdrop",
+          "dark furniture or equipment in the background"
+        ],
+        "pose_and_action_cues": [
+          "a two-finger (V) sign held next to the cheek",
+          "facing the lens with a slight smile"
+        ],
+        "composition_lighting_style": "screenshot of an HTML5 media player (play button, timeline bar and volume control visible at the bottom); a portrait video frame centred on a white page; flat indoor light",
+        "visible_text": [
+          "overlay at the top reads the pattern \"<two CJK characters>-1.mp4 t=2.972s\"; the two CJK characters are not legible"
+        ]
+      },
+      "unknown_or_ambiguous": [
+        "the two CJK characters are not legible",
+        "the purpose of the green area cannot be determined from the frame"
+      ],
+      "prohibited_assertions": [
+        "must not assert a specific source video name",
+        "must not assert the person is speaking to the camera",
+        "must not infer identity"
+      ],
+      "applicable_obligation_dimensions": {
+        "人物": "exercised - person count and wardrobe are directly observable in the preview",
+        "场景": "exercised - the setting and its objects are directly observable in the preview",
+        "动作": "exercised at the level of visible pose cues only; no narrative or audible action may be asserted",
+        "证据一致性": "exercised - every claim above is anchored to the listed preview file and its sha256",
+        "未知/局限": "exercised - the unknown_or_ambiguous and prohibited_assertions lists are the expected content for this dimension"
+      },
+      "acceptance_notes": "candidate eligibility (decodable, in budget, in the frozen child) is not semantic quality; this prelabel is an independent agent visual observation, not a human signature"
+    },
+    {
+      "asset_id": "C11",
+      "file_id": "17090986ce4b07974364d767b34c0b56a87e3a60042ef02c1cdacc0a0515379a",
+      "source_sha256": "baf60f1f67233cde7c06729664db55eeca734ba6d6f63ce1225d2aa8c5420c19",
+      "source_relative_path": "edit/h3_identity_reference_matrix_20261025/qa/upscale/UB_SeedVR2_full_03.jpg",
+      "media_kind": "image",
+      "probe_facts_from_container": {
+        "bytes": 20074,
+        "format": "JPEG",
+        "width": 500,
+        "height": 500,
+        "pixels": 250000,
+        "exif_orientation_applied": false,
+        "thumbnail_width": 500,
+        "thumbnail_height": 500
+      },
+      "preview_refs": [
+        {
+          "kind": "thumbnail",
+          "rel": "previews/17090986ce4b07974364d767b34c0b56a87e3a60042ef02c1cdacc0a0515379a.jpg",
+          "sha256": "29883be08fd1437e77a6764f5aadc92755f7035ace44599f3b69d56d03864682",
+          "bytes": 32248,
+          "observed_dimensions": "500x500",
+          "viewed": true
+        },
+        {
+          "kind": "contact_sheet",
+          "rel": "contactsheets/17090986ce4b07974364d767b34c0b56a87e3a60042ef02c1cdacc0a0515379a.jpg",
+          "sha256": "a781a8b27f6d1fa3f88430b33dd835bc9e12ce2f3f0c5f8265e1c763006d2270",
+          "bytes": 17140,
+          "viewed": false,
+          "view_note": "single-tile re-render of the thumbnail that was viewed; not opened separately because it carries no information beyond that thumbnail"
+        }
+      ],
+      "observation_basis": "the reviewer opened and visually viewed every preview file marked viewed=true in preview_refs; no description is derived from a file name, a count, a script output or a project answer",
+      "observable_facts": {
+        "subject_category": "extreme close-up of one adult wearing dark-framed glasses",
+        "visible_person_count": "1 visible person",
+        "scene_and_objects": [
+          "near-black background"
+        ],
+        "pose_and_action_cues": [
+          "head slightly turned",
+          "lips closed in a slight smile"
+        ],
+        "composition_lighting_style": "square extreme close-up, the face fills the frame edge to edge, soft frontal light",
+        "visible_text": [
+          "white overlay at the top-left reads \"UB_SeedVR2_full t=5.00s\" (ASCII, legible)"
+        ]
+      },
+      "unknown_or_ambiguous": [
+        "this frame is a tighter crop of the same night-selfie subject seen in C07, but the original shooting angle is not recoverable",
+        "whether the frame is an upscaled result is not determinable from the pixels"
+      ],
+      "prohibited_assertions": [
+        "must not assert that this is a restored or upscaled version of a specific photograph",
+        "must not infer identity"
+      ],
+      "applicable_obligation_dimensions": {
+        "人物": "exercised - person count and wardrobe are directly observable in the preview",
+        "场景": "exercised - the setting and its objects are directly observable in the preview",
+        "动作": "exercised at the level of visible pose cues only; no narrative or audible action may be asserted",
+        "证据一致性": "exercised - every claim above is anchored to the listed preview file and its sha256",
+        "未知/局限": "exercised - the unknown_or_ambiguous and prohibited_assertions lists are the expected content for this dimension"
+      },
+      "acceptance_notes": "candidate eligibility (decodable, in budget, in the frozen child) is not semantic quality; this prelabel is an independent agent visual observation, not a human signature"
+    },
+    {
+      "asset_id": "C12",
+      "file_id": "98d06248bd555acea8159c29f69281a23e4ad95f90da4caf0309fbb5dbd4f0f1",
+      "source_sha256": "810547ad082b41f90c67dadef3cb20d98d4e36778a3eac1cb559381bed83a314",
+      "source_relative_path": "edit/h3_identity_reference_matrix_20261025/qa/v3_f8.jpg",
+      "media_kind": "image",
+      "probe_facts_from_container": {
+        "bytes": 8536,
+        "format": "JPEG",
+        "width": 320,
+        "height": 250,
+        "pixels": 80000,
+        "exif_orientation_applied": false,
+        "thumbnail_width": 320,
+        "thumbnail_height": 250
+      },
+      "preview_refs": [
+        {
+          "kind": "thumbnail",
+          "rel": "previews/98d06248bd555acea8159c29f69281a23e4ad95f90da4caf0309fbb5dbd4f0f1.jpg",
+          "sha256": "e38f945fa053373aebaec1951f7070d7f45f36d379092e72e5391dc0b5d9949a",
+          "bytes": 13519,
+          "observed_dimensions": "320x250",
+          "viewed": true
+        },
+        {
+          "kind": "contact_sheet",
+          "rel": "contactsheets/98d06248bd555acea8159c29f69281a23e4ad95f90da4caf0309fbb5dbd4f0f1.jpg",
+          "sha256": "cf3610b73d20dba2466066854c91b1e08d338fc5eed20d94cde6e31cab01748a",
+          "bytes": 16540,
+          "viewed": false,
+          "view_note": "single-tile re-render of the thumbnail that was viewed; not opened separately because it carries no information beyond that thumbnail"
+        }
+      ],
+      "observation_basis": "the reviewer opened and visually viewed every preview file marked viewed=true in preview_refs; no description is derived from a file name, a count, a script output or a project answer",
+      "observable_facts": {
+        "subject_category": "media-player screenshot of a clip with two adults",
+        "visible_person_count": "2 visible persons (a woman with shoulder-length dark hair in a dark jacket over a white collar, and a man's face in extreme foreground right)",
+        "scene_and_objects": [
+          "warm indoor lighting",
+          "a small unreadable logo in the top right corner"
+        ],
+        "pose_and_action_cues": [
+          "the woman looks towards the man",
+          "the man's face occupies the right foreground and is cut off by the frame edge, out of the main plane of focus"
+        ],
+        "composition_lighting_style": "player screenshot with a portrait frame; very shallow depth of field; the near face is soft and cropped",
+        "visible_text": [
+          "overlay at the top reads the pattern \"<two CJK characters>-5.mp4 t=160.041s\"; the two CJK characters are not legible"
+        ]
+      },
+      "unknown_or_ambiguous": [
+        "the man's facial detail is not readable because of the crop and the shallow focus",
+        "the small top-right logo text is not reliably legible"
+      ],
+      "prohibited_assertions": [
+        "must not assert the relationship between the two people",
+        "must not assert a specific source video name",
+        "must not describe the man's appearance in detail that the frame does not support"
+      ],
+      "applicable_obligation_dimensions": {
+        "人物": "exercised - person count and wardrobe are directly observable in the preview",
+        "场景": "exercised - the setting and its objects are directly observable in the preview",
+        "动作": "exercised at the level of visible pose cues only; no narrative or audible action may be asserted",
+        "证据一致性": "exercised - every claim above is anchored to the listed preview file and its sha256",
+        "未知/局限": "exercised - the unknown_or_ambiguous and prohibited_assertions lists are the expected content for this dimension"
+      },
+      "acceptance_notes": "candidate eligibility (decodable, in budget, in the frozen child) is not semantic quality; this prelabel is an independent agent visual observation, not a human signature"
+    },
+    {
+      "asset_id": "C13",
+      "file_id": "c78c1c5533e360cece4c35800f510c3cc4dbb2be042c5fdbd456a9cbe1daf4e0",
+      "source_sha256": "cd72acd9004ea36e9637d360a24d507057cf471f8e402de9d73f8243b43b5255",
+      "source_relative_path": "edit/h3_identity_reference_matrix_20261025/qa/matrix_page_preview.png",
+      "media_kind": "image",
+      "probe_facts_from_container": {
+        "bytes": 666344,
+        "format": "PNG",
+        "width": 1440,
+        "height": 1200,
+        "pixels": 1728000,
+        "exif_orientation_applied": false,
+        "thumbnail_width": 640,
+        "thumbnail_height": 533
+      },
+      "preview_refs": [
+        {
+          "kind": "thumbnail",
+          "rel": "previews/c78c1c5533e360cece4c35800f510c3cc4dbb2be042c5fdbd456a9cbe1daf4e0.jpg",
+          "sha256": "28a40de90535ef054fc56668006af33a5072149ec74cabce022f2611a1478f45",
+          "bytes": 58248,
+          "observed_dimensions": "640x533",
+          "viewed": true
+        },
+        {
+          "kind": "contact_sheet",
+          "rel": "contactsheets/c78c1c5533e360cece4c35800f510c3cc4dbb2be042c5fdbd456a9cbe1daf4e0.jpg",
+          "sha256": "84fdd7d82ba66f3ad39b4465b46c177a1ef5c1aced3c028a103fa352c95682d3",
+          "bytes": 19420,
+          "viewed": false,
+          "view_note": "single-tile re-render of the thumbnail that was viewed; not opened separately because it carries no information beyond that thumbnail"
+        }
+      ],
+      "observation_basis": "the reviewer opened and visually viewed every preview file marked viewed=true in preview_refs; no description is derived from a file name, a count, a script output or a project answer",
+      "observable_facts": {
+        "subject_category": "screenshot of a dark-themed internal web application page containing an embedded media player",
+        "visible_person_count": "1 visible person, small, inside the embedded player; the page itself shows no people",
+        "scene_and_objects": [
+          "a dark UI with an orange accent colour",
+          "a navigation row of tabs",
+          "an embedded HTML5 player with playback controls at 0:00 / 0:05",
+          "a right-hand annotation box",
+          "a button on the right of the section heading"
+        ],
+        "pose_and_action_cues": [
+          "inside the player frame the woman has puffed cheeks in a pout"
+        ],
+        "composition_lighting_style": "full-page screenshot of a desktop application; the embedded frame is a night outdoor shot with street lamps and trees",
+        "visible_text": [
+          "page title reads \"H3 身份参考矩阵\"; the section heading reads \"推荐母版\"; a right-hand box contains the legible fragment \"当前推荐: P01 - GIV - UC\" together with a line about 15% SeedVR2 / 85%; smaller body text is not fully legible; the player overlay reads \"P01_GIV t=0.15s\""
+        ]
+      },
+      "unknown_or_ambiguous": [
+        "the content of the embedded video beyond the single visible frame is unknown",
+        "the smaller body text cannot be read verbatim"
+      ],
+      "prohibited_assertions": [
+        "must not treat the page screenshot as a natural photographic subject",
+        "must not assert that any model, parameter or recommendation claimed on the page is true",
+        "must not infer the identity of the person in the embedded frame"
+      ],
+      "applicable_obligation_dimensions": {
+        "人物": "exercised - person count and wardrobe are directly observable in the preview",
+        "场景": "exercised - the setting and its objects are directly observable in the preview",
+        "动作": "exercised at the level of visible pose cues only; no narrative or audible action may be asserted",
+        "证据一致性": "exercised - every claim above is anchored to the listed preview file and its sha256",
+        "未知/局限": "exercised - the unknown_or_ambiguous and prohibited_assertions lists are the expected content for this dimension"
+      },
+      "acceptance_notes": "candidate eligibility (decodable, in budget, in the frozen child) is not semantic quality; this prelabel is an independent agent visual observation, not a human signature"
+    },
+    {
+      "asset_id": "C14",
+      "file_id": "021065561bea7084f197863cd0f8b5bde76b4f63afd95b311230b73b99301e8c",
+      "source_sha256": "bf3b7d20f639e19b16e4a1468c92d6657c89ddc532569fe3c6df3517afd2c1ca",
+      "source_relative_path": "edit/wedding_mv_20261022/inspection/chunks/4_04.jpg",
+      "media_kind": "image",
+      "probe_facts_from_container": {
+        "bytes": 17597,
+        "format": "JPEG",
+        "width": 360,
+        "height": 300,
+        "pixels": 108000,
+        "exif_orientation_applied": false,
+        "thumbnail_width": 360,
+        "thumbnail_height": 300
+      },
+      "preview_refs": [
+        {
+          "kind": "thumbnail",
+          "rel": "previews/021065561bea7084f197863cd0f8b5bde76b4f63afd95b311230b73b99301e8c.jpg",
+          "sha256": "705784da72500a17ed877f161bda938741beb5130aa90138e953977fdbc1cf47",
+          "bytes": 29862,
+          "observed_dimensions": "360x300",
+          "viewed": true
+        },
+        {
+          "kind": "contact_sheet",
+          "rel": "contactsheets/021065561bea7084f197863cd0f8b5bde76b4f63afd95b311230b73b99301e8c.jpg",
+          "sha256": "172ed9f11f9f5f243637af33134556949f8bf0711cb3a82478931185c3ac36c6",
+          "bytes": 24932,
+          "viewed": false,
+          "view_note": "single-tile re-render of the thumbnail that was viewed; not opened separately because it carries no information beyond that thumbnail"
+        }
+      ],
+      "observation_basis": "the reviewer opened and visually viewed every preview file marked viewed=true in preview_refs; no description is derived from a file name, a count, a script output or a project answer",
+      "observable_facts": {
+        "subject_category": "Chinese traditional bridal portrait of one adult",
+        "visible_person_count": "1 visible person",
+        "scene_and_objects": [
+          "a red papercut backdrop with a large red double-happiness character motif",
+          "red bedding or ceremonial decor",
+          "gold hair ornaments and a headpiece",
+          "a heavily beaded gold/cream embroidered jacket with wide sleeves"
+        ],
+        "pose_and_action_cues": [
+          "one arm raised beside a red papercut prop, the other hand resting at the hip",
+          "facing the lens"
+        ],
+        "composition_lighting_style": "frontal medium shot, strong on-camera flash, saturated red palette",
+        "visible_text": []
+      },
+      "unknown_or_ambiguous": [
+        "whether this is a staged portrait or documentation of a specific ritual step is not determinable"
+      ],
+      "prohibited_assertions": [
+        "must not assert the name of the ceremony or the person's identity, age or relationship",
+        "must not infer nationality from the costume alone"
+      ],
+      "applicable_obligation_dimensions": {
+        "人物": "exercised - person count and wardrobe are directly observable in the preview",
+        "场景": "exercised - the setting and its objects are directly observable in the preview",
+        "动作": "exercised at the level of visible pose cues only; no narrative or audible action may be asserted",
+        "证据一致性": "exercised - every claim above is anchored to the listed preview file and its sha256",
+        "未知/局限": "exercised - the unknown_or_ambiguous and prohibited_assertions lists are the expected content for this dimension"
+      },
+      "acceptance_notes": "candidate eligibility (decodable, in budget, in the frozen child) is not semantic quality; this prelabel is an independent agent visual observation, not a human signature"
+    },
+    {
+      "asset_id": "C15",
+      "file_id": "358a005f250f2bd6134e567ebb11a176370de08334291f75ed49420fe0a20290",
+      "source_sha256": "81187e24959929adbeb7b451a9bc1678196ab8819ab84f8bf8e8e1fc9a5fb02b",
+      "source_relative_path": "多图片参考/2.jpg",
+      "media_kind": "image",
+      "probe_facts_from_container": {
+        "bytes": 346550,
+        "format": "JPEG",
+        "width": 3072,
+        "height": 4096,
+        "pixels": 12582912,
+        "exif_orientation_applied": false,
+        "thumbnail_width": 480,
+        "thumbnail_height": 640
+      },
+      "preview_refs": [
+        {
+          "kind": "thumbnail",
+          "rel": "previews/358a005f250f2bd6134e567ebb11a176370de08334291f75ed49420fe0a20290.jpg",
+          "sha256": "3b27eee20275f94d3b801f6bdee2c13354eb3378957ac78972f2a4aa38883377",
+          "bytes": 64564,
+          "observed_dimensions": "480x640",
+          "viewed": true
+        },
+        {
+          "kind": "contact_sheet",
+          "rel": "contactsheets/358a005f250f2bd6134e567ebb11a176370de08334291f75ed49420fe0a20290.jpg",
+          "sha256": "ade4b70a4c47e4c18eca4a964875a9665718ff058dff410150b6cce6035fe7ed",
+          "bytes": 16319,
+          "viewed": false,
+          "view_note": "single-tile re-render of the thumbnail that was viewed; not opened separately because it carries no information beyond that thumbnail"
+        }
+      ],
+      "observation_basis": "the reviewer opened and visually viewed every preview file marked viewed=true in preview_refs; no description is derived from a file name, a count, a script output or a project answer",
+      "observable_facts": {
+        "subject_category": "night street portrait of one adult, with a further person partly at the frame edge",
+        "visible_person_count": "1 main visible person plus 1 partially visible person at the right edge",
+        "scene_and_objects": [
+          "a lit multi-storey building in the background",
+          "illuminated shopfronts and Chinese signage",
+          "street lamps",
+          "parked or moving scooters/mopeds",
+          "many pedestrians in the background",
+          "an orange canopy edge in the top right corner"
+        ],
+        "pose_and_action_cues": [
+          "the foreground figure is in three-quarter profile looking to the left",
+          "the edge figure is seen from behind"
+        ],
+        "composition_lighting_style": "vertical frame; the subject is placed on the right third; mixed warm orange signage light and cool blue night ambience",
+        "visible_text": [
+          "distant shop signage contains Chinese characters but is too small to read"
+        ]
+      },
+      "unknown_or_ambiguous": [
+        "the background building and shops cannot be identified",
+        "the identity of the person at the right edge is unknown"
+      ],
+      "prohibited_assertions": [
+        "must not assert the city or venue",
+        "must not assert any relationship between the two visible people",
+        "must not read out the small signage"
+      ],
+      "applicable_obligation_dimensions": {
+        "人物": "exercised - person count and wardrobe are directly observable in the preview",
+        "场景": "exercised - the setting and its objects are directly observable in the preview",
+        "动作": "exercised at the level of visible pose cues only; no narrative or audible action may be asserted",
+        "证据一致性": "exercised - every claim above is anchored to the listed preview file and its sha256",
+        "未知/局限": "exercised - the unknown_or_ambiguous and prohibited_assertions lists are the expected content for this dimension"
+      },
+      "acceptance_notes": "candidate eligibility (decodable, in budget, in the frozen child) is not semantic quality; this prelabel is an independent agent visual observation, not a human signature"
+    },
+    {
+      "asset_id": "C16",
+      "file_id": "bdfff093c0918717de1fa414892d78f7aa87b50291d49e5f58e6376041f4ae14",
+      "source_sha256": "6b74477a9e32ccd6f2ce629d45a7aa2fc987c3f53576efeadf676602e285d820",
+      "source_relative_path": "edit/h3_identity_reference_matrix_20261025/qa/v2_f6.jpg",
+      "media_kind": "image",
+      "probe_facts_from_container": {
+        "bytes": 7259,
+        "format": "JPEG",
+        "width": 320,
+        "height": 250,
+        "pixels": 80000,
+        "exif_orientation_applied": false,
+        "thumbnail_width": 320,
+        "thumbnail_height": 250
+      },
+      "preview_refs": [
+        {
+          "kind": "thumbnail",
+          "rel": "previews/bdfff093c0918717de1fa414892d78f7aa87b50291d49e5f58e6376041f4ae14.jpg",
+          "sha256": "3879f6b3e68df3ead64a0318ee1201dc17bdb61cb5c6794cd6614347219d9c43",
+          "bytes": 10897,
+          "observed_dimensions": "320x250",
+          "viewed": true
+        },
+        {
+          "kind": "contact_sheet",
+          "rel": "contactsheets/bdfff093c0918717de1fa414892d78f7aa87b50291d49e5f58e6376041f4ae14.jpg",
+          "sha256": "6a3388c9fcee8498f7ee0ec19db66b5d07427a5893997a44b16a2ea2ede5969b",
+          "bytes": 13299,
+          "viewed": false,
+          "view_note": "single-tile re-render of the thumbnail that was viewed; not opened separately because it carries no information beyond that thumbnail"
+        }
+      ],
+      "observation_basis": "the reviewer opened and visually viewed every preview file marked viewed=true in preview_refs; no description is derived from a file name, a count, a script output or a project answer",
+      "observable_facts": {
+        "subject_category": "media-player screenshot of a clip showing one adult",
+        "visible_person_count": "1 visible person",
+        "scene_and_objects": [
+          "bright interior with a plain pale background"
+        ],
+        "pose_and_action_cues": [
+          "looking at the lens with a slight smile",
+          "a raised hand enters the frame at the left, blurred by motion",
+          "hair falls across one eye"
+        ],
+        "composition_lighting_style": "player screenshot; a portrait video frame centred on a white page; bright, slightly blown-out indoor light",
+        "visible_text": [
+          "overlay at the top reads the pattern \"<two CJK characters>-3.mp4 t=12.354s\"; the two CJK characters are not legible"
+        ]
+      },
+      "unknown_or_ambiguous": [
+        "the two CJK characters are not legible",
+        "the purpose of the raised hand is not determinable"
+      ],
+      "prohibited_assertions": [
+        "must not assert a specific source video name",
+        "must not assert that the person is waving",
+        "must not infer identity"
+      ],
+      "applicable_obligation_dimensions": {
+        "人物": "exercised - person count and wardrobe are directly observable in the preview",
+        "场景": "exercised - the setting and its objects are directly observable in the preview",
+        "动作": "exercised at the level of visible pose cues only; no narrative or audible action may be asserted",
+        "证据一致性": "exercised - every claim above is anchored to the listed preview file and its sha256",
+        "未知/局限": "exercised - the unknown_or_ambiguous and prohibited_assertions lists are the expected content for this dimension"
+      },
+      "acceptance_notes": "candidate eligibility (decodable, in budget, in the frozen child) is not semantic quality; this prelabel is an independent agent visual observation, not a human signature"
+    },
+    {
+      "asset_id": "C17",
+      "file_id": "7c5547583e2199b41fe1ea122a4aab44851f3790e288126a741591f391a63b13",
+      "source_sha256": "96684cfdb0116be3b70c5d16c9d1268a8315fddadf6089a6f7541611fa0b9c56",
+      "source_relative_path": "edit/h3_identity_reference_matrix_20261025/qa/P05_GIV_B.jpg",
+      "media_kind": "image",
+      "probe_facts_from_container": {
+        "bytes": 9947,
+        "format": "JPEG",
+        "width": 400,
+        "height": 225,
+        "pixels": 90000,
+        "exif_orientation_applied": false,
+        "thumbnail_width": 400,
+        "thumbnail_height": 225
+      },
+      "preview_refs": [
+        {
+          "kind": "thumbnail",
+          "rel": "previews/7c5547583e2199b41fe1ea122a4aab44851f3790e288126a741591f391a63b13.jpg",
+          "sha256": "3f5258cd9932e87dd690bab7ed7e70d9e652e06942967ccf10cb3702dc8ddc7b",
+          "bytes": 15390,
+          "observed_dimensions": "400x225",
+          "viewed": true
+        },
+        {
+          "kind": "contact_sheet",
+          "rel": "contactsheets/7c5547583e2199b41fe1ea122a4aab44851f3790e288126a741591f391a63b13.jpg",
+          "sha256": "3127cbcadec54fd491d64d56a4011a05ce1c8ad6aca9f12c07fa622f9370e513",
+          "bytes": 16519,
+          "viewed": false,
+          "view_note": "single-tile re-render of the thumbnail that was viewed; not opened separately because it carries no information beyond that thumbnail"
+        }
+      ],
+      "observation_basis": "the reviewer opened and visually viewed every preview file marked viewed=true in preview_refs; no description is derived from a file name, a count, a script output or a project answer",
+      "observable_facts": {
+        "subject_category": "night outdoor close-up of one adult",
+        "visible_person_count": "1 visible person",
+        "scene_and_objects": [
+          "trees",
+          "street lamps and out-of-focus lights"
+        ],
+        "pose_and_action_cues": [
+          "facing the lens, smiling"
+        ],
+        "composition_lighting_style": "landscape close-up; a strong light source at the upper right produces a highlight on the hair; low-light with bokeh",
+        "visible_text": [
+          "top-left overlay reads \"P05_GIV t=2.00s\" (ASCII, legible)"
+        ]
+      },
+      "unknown_or_ambiguous": [
+        "whether this is the same subject as the other night-selfie candidates cannot be confirmed from the frames alone"
+      ],
+      "prohibited_assertions": [
+        "must not assert identity or that this is the same person as another candidate",
+        "must not assert the date or time of capture"
+      ],
+      "applicable_obligation_dimensions": {
+        "人物": "exercised - person count and wardrobe are directly observable in the preview",
+        "场景": "exercised - the setting and its objects are directly observable in the preview",
+        "动作": "exercised at the level of visible pose cues only; no narrative or audible action may be asserted",
+        "证据一致性": "exercised - every claim above is anchored to the listed preview file and its sha256",
+        "未知/局限": "exercised - the unknown_or_ambiguous and prohibited_assertions lists are the expected content for this dimension"
+      },
+      "acceptance_notes": "candidate eligibility (decodable, in budget, in the frozen child) is not semantic quality; this prelabel is an independent agent visual observation, not a human signature"
+    },
+    {
+      "asset_id": "C18",
+      "file_id": "7317b7d9171e7d950e40ad01f6c28338210dd46d8a4ae7e3f864144e9067c60f",
+      "source_sha256": "afb4551225eef818c65fbca58ef10fe5f9b1a54e228485fe44999b382dfce831",
+      "source_relative_path": "edit/wedding_mv_empty_seat_20261022/assets/storyboards/S02.png",
+      "media_kind": "image",
+      "probe_facts_from_container": {
+        "bytes": 1736576,
+        "format": "PNG",
+        "width": 1344,
+        "height": 768,
+        "pixels": 1032192,
+        "exif_orientation_applied": false,
+        "thumbnail_width": 640,
+        "thumbnail_height": 366
+      },
+      "preview_refs": [
+        {
+          "kind": "thumbnail",
+          "rel": "previews/7317b7d9171e7d950e40ad01f6c28338210dd46d8a4ae7e3f864144e9067c60f.jpg",
+          "sha256": "243785ee59593e826c42a9fae32dbd640ca0e13df2e0f5a8a3257960dcb4f2a9",
+          "bytes": 43548,
+          "observed_dimensions": "640x366",
+          "viewed": true
+        },
+        {
+          "kind": "contact_sheet",
+          "rel": "contactsheets/7317b7d9171e7d950e40ad01f6c28338210dd46d8a4ae7e3f864144e9067c60f.jpg",
+          "sha256": "28d905c5dcfde5d3c18f4e44c1cf437c3707eb3e3d217d28942785fd3fba42e0",
+          "bytes": 18941,
+          "viewed": false,
+          "view_note": "single-tile re-render of the thumbnail that was viewed; not opened separately because it carries no information beyond that thumbnail"
+        }
+      ],
+      "observation_basis": "the reviewer opened and visually viewed every preview file marked viewed=true in preview_refs; no description is derived from a file name, a count, a script output or a project answer",
+      "observable_facts": {
+        "subject_category": "dressing-room mirror shot of one adult in a bridal gown",
+        "visible_person_count": "1 visible person, shown twice (back of head and shoulders in the foreground, and her reflection in the mirror)",
+        "scene_and_objects": [
+          "a vanity mirror with round bulb lights on the left",
+          "a rain-speckled window on the right with blue evening light and city bokeh",
+          "a strapless beaded ball gown",
+          "drop earrings",
+          "a low chignon"
+        ],
+        "pose_and_action_cues": [
+          "a hand is raised to the ear, touching the earring",
+          "the reflected figure looks at her own reflection with a serious neutral expression"
+        ],
+        "composition_lighting_style": "over-the-shoulder mirror composition; warm tungsten vanity light against cool blue window light; shallow depth of field",
+        "visible_text": []
+      },
+      "unknown_or_ambiguous": [
+        "that the foreground head and the reflection are the same person is a compositional inference, not a certainty"
+      ],
+      "prohibited_assertions": [
+        "must not assert the person's identity",
+        "must not assert this was captured on an actual wedding day",
+        "must not count this as two separate people"
+      ],
+      "applicable_obligation_dimensions": {
+        "人物": "exercised - person count and wardrobe are directly observable in the preview",
+        "场景": "exercised - the setting and its objects are directly observable in the preview",
+        "动作": "exercised at the level of visible pose cues only; no narrative or audible action may be asserted",
+        "证据一致性": "exercised - every claim above is anchored to the listed preview file and its sha256",
+        "未知/局限": "exercised - the unknown_or_ambiguous and prohibited_assertions lists are the expected content for this dimension"
+      },
+      "acceptance_notes": "candidate eligibility (decodable, in budget, in the frozen child) is not semantic quality; this prelabel is an independent agent visual observation, not a human signature"
+    },
+    {
+      "asset_id": "C19",
+      "file_id": "3bd4dd640e9f474c227da00c3047fb78ecfee699ebc1f77f3c9293d1cf7de023",
+      "source_sha256": "6c9607daf02eeeadd4e4c62237fb9d14c19c10a41265c63bb606224680050561",
+      "source_relative_path": "edit/h3_identity_reference_matrix_20261025/qa/P04_GI_C.jpg",
+      "media_kind": "image",
+      "probe_facts_from_container": {
+        "bytes": 11226,
+        "format": "JPEG",
+        "width": 400,
+        "height": 225,
+        "pixels": 90000,
+        "exif_orientation_applied": false,
+        "thumbnail_width": 400,
+        "thumbnail_height": 225
+      },
+      "preview_refs": [
+        {
+          "kind": "thumbnail",
+          "rel": "previews/3bd4dd640e9f474c227da00c3047fb78ecfee699ebc1f77f3c9293d1cf7de023.jpg",
+          "sha256": "5f9e27dda9f13b908551fa2aa09a3c1141d70d0ab2d5d7d47e28608fe14cc970",
+          "bytes": 16903,
+          "observed_dimensions": "400x225",
+          "viewed": true
+        },
+        {
+          "kind": "contact_sheet",
+          "rel": "contactsheets/3bd4dd640e9f474c227da00c3047fb78ecfee699ebc1f77f3c9293d1cf7de023.jpg",
+          "sha256": "e3a910f1ec19f149472c26ad880894068fa4517d8ed786958b0a0988c4a18093",
+          "bytes": 17476,
+          "viewed": false,
+          "view_note": "single-tile re-render of the thumbnail that was viewed; not opened separately because it carries no information beyond that thumbnail"
+        }
+      ],
+      "observation_basis": "the reviewer opened and visually viewed every preview file marked viewed=true in preview_refs; no description is derived from a file name, a count, a script output or a project answer",
+      "observable_facts": {
+        "subject_category": "night outdoor close-up of one adult wearing thin round glasses",
+        "visible_person_count": "1 visible person",
+        "scene_and_objects": [
+          "trees",
+          "street lamps and out-of-focus lights"
+        ],
+        "pose_and_action_cues": [
+          "three-quarter turn towards the lens, slight smile"
+        ],
+        "composition_lighting_style": "landscape close-up, low-light with warm bokeh",
+        "visible_text": [
+          "top-left overlay reads \"P04_GI t=5.00s\" (ASCII, legible)"
+        ]
+      },
+      "unknown_or_ambiguous": [
+        "whether this is the same subject as C07 or C17 cannot be confirmed from the frames"
+      ],
+      "prohibited_assertions": [
+        "must not assert identity or sameness with another candidate",
+        "must not assert the shooting location"
+      ],
+      "applicable_obligation_dimensions": {
+        "人物": "exercised - person count and wardrobe are directly observable in the preview",
+        "场景": "exercised - the setting and its objects are directly observable in the preview",
+        "动作": "exercised at the level of visible pose cues only; no narrative or audible action may be asserted",
+        "证据一致性": "exercised - every claim above is anchored to the listed preview file and its sha256",
+        "未知/局限": "exercised - the unknown_or_ambiguous and prohibited_assertions lists are the expected content for this dimension"
+      },
+      "acceptance_notes": "candidate eligibility (decodable, in budget, in the frozen child) is not semantic quality; this prelabel is an independent agent visual observation, not a human signature"
+    },
+    {
+      "asset_id": "C20",
+      "file_id": "61732fbd76befe20c00beeba68ca9cf6ea79d96624895822f7b4dd8e352c69cf",
+      "source_sha256": "e5440e038c8fb19d4f735a57435f8111d903cf01ae2cd32c9b0fd8f7e9fd66c0",
+      "source_relative_path": "edit/wedding_mv_empty_seat_20261022/qa/aicg3d_final_frames/02.jpg",
+      "media_kind": "image",
+      "probe_facts_from_container": {
+        "bytes": 141437,
+        "format": "JPEG",
+        "width": 1920,
+        "height": 1080,
+        "pixels": 2073600,
+        "exif_orientation_applied": false,
+        "thumbnail_width": 640,
+        "thumbnail_height": 360
+      },
+      "preview_refs": [
+        {
+          "kind": "thumbnail",
+          "rel": "previews/61732fbd76befe20c00beeba68ca9cf6ea79d96624895822f7b4dd8e352c69cf.jpg",
+          "sha256": "d181c9428c70962f93531a9bb9b2627c99b62643b0d479883df3d7fc186db65e",
+          "bytes": 42165,
+          "observed_dimensions": "640x360",
+          "viewed": true
+        },
+        {
+          "kind": "contact_sheet",
+          "rel": "contactsheets/61732fbd76befe20c00beeba68ca9cf6ea79d96624895822f7b4dd8e352c69cf.jpg",
+          "sha256": "f8b81694f928988a56f5c168ea7cbdfda16e6832716695fe9e575c30cac4c387",
+          "bytes": 18428,
+          "viewed": false,
+          "view_note": "single-tile re-render of the thumbnail that was viewed; not opened separately because it carries no information beyond that thumbnail"
+        }
+      ],
+      "observation_basis": "the reviewer opened and visually viewed every preview file marked viewed=true in preview_refs; no description is derived from a file name, a count, a script output or a project answer",
+      "observable_facts": {
+        "subject_category": "dressing-room mirror shot of one adult in a bridal gown, with a large floral arrangement on the bodice",
+        "visible_person_count": "1 visible person, shown twice (back of head and shoulders in the foreground, and her reflection in the mirror)",
+        "scene_and_objects": [
+          "a vanity mirror with round bulb lights on the left",
+          "a rain-speckled window on the right with blue evening light and city bokeh",
+          "a strapless beaded ball gown covered with a cluster of white roses",
+          "drop earrings",
+          "a low chignon"
+        ],
+        "pose_and_action_cues": [
+          "a hand is raised to the ear, touching the earring",
+          "the reflected figure looks at her reflection with a slightly open mouth"
+        ],
+        "composition_lighting_style": "over-the-shoulder mirror composition; warm tungsten vanity light against cool blue window light; shallow depth of field",
+        "visible_text": []
+      },
+      "unknown_or_ambiguous": [
+        "that the foreground head and the reflection are the same person is a compositional inference, not a certainty",
+        "the relationship to C18 is that they share the same setup, framing and pose"
+      ],
+      "prohibited_assertions": [
+        "must not assert the person's identity",
+        "must not assert this was captured on an actual wedding day",
+        "must not count this as two separate people"
+      ],
+      "applicable_obligation_dimensions": {
+        "人物": "exercised - person count and wardrobe are directly observable in the preview",
+        "场景": "exercised - the setting and its objects are directly observable in the preview",
+        "动作": "exercised at the level of visible pose cues only; no narrative or audible action may be asserted",
+        "证据一致性": "exercised - every claim above is anchored to the listed preview file and its sha256",
+        "未知/局限": "exercised - the unknown_or_ambiguous and prohibited_assertions lists are the expected content for this dimension"
+      },
+      "acceptance_notes": "candidate eligibility (decodable, in budget, in the frozen child) is not semantic quality; this prelabel is an independent agent visual observation, not a human signature"
+    },
+    {
+      "asset_id": "C21",
+      "file_id": "209093478c24fc537b143713d35d2fa005efb3197c174680498eedc9c18d6388",
+      "source_sha256": "e2f5aa17ac3eae34647308fa053cfde4b129ed9844d1f84d0ef93adfbbc8e9ac",
+      "source_relative_path": "edit/h3_native_1080_night_selfie_20261025/output/S01_final_SeedVR2_1920x1080.mp4",
+      "media_kind": "video",
+      "probe_facts_from_container": {
+        "bytes": 2803160,
+        "container": "mov,mp4,m4a,3gp,3g2,mj2",
+        "container_format_name": "mov,mp4,m4a,3gp,3g2,mj2",
+        "width": 1920,
+        "height": 1080,
+        "pixels": 2073600,
+        "codec_name": "h264",
+        "duration_seconds": 5.166667
+      },
+      "preview_refs": [
+        {
+          "kind": "video_frame",
+          "rel": "previews/209093478c24fc537b143713d35d2fa005efb3197c174680498eedc9c18d6388/frame-01.jpg",
+          "sha256": "962129db24bd2ee6dea0b32140a5026cf6f6ae895cda6a77f56f1e5a69d0c670",
+          "bytes": 27562,
+          "observed_dimensions": "640x360",
+          "requested_offset_seconds": 0.5166667,
+          "offset_caveat": "the offset is a requested sample point, not a proven presentation timestamp",
+          "viewed": true
+        },
+        {
+          "kind": "video_frame",
+          "rel": "previews/209093478c24fc537b143713d35d2fa005efb3197c174680498eedc9c18d6388/frame-02.jpg",
+          "sha256": "e4304c5326d3b49a86956e03d0adae23dfcba3b76002589a2d9790fd06c0ff08",
+          "bytes": 30206,
+          "observed_dimensions": "640x360",
+          "requested_offset_seconds": 1.80833345,
+          "offset_caveat": "the offset is a requested sample point, not a proven presentation timestamp",
+          "viewed": true
+        },
+        {
+          "kind": "video_frame",
+          "rel": "previews/209093478c24fc537b143713d35d2fa005efb3197c174680498eedc9c18d6388/frame-03.jpg",
+          "sha256": "b324d6f134772b969e965f0faf36e0ec5258eb7340238f89829e4a0695f88e68",
+          "bytes": 33751,
+          "observed_dimensions": "640x360",
+          "requested_offset_seconds": 3.3583335500000002,
+          "offset_caveat": "the offset is a requested sample point, not a proven presentation timestamp",
+          "viewed": true
+        },
+        {
+          "kind": "video_frame",
+          "rel": "previews/209093478c24fc537b143713d35d2fa005efb3197c174680498eedc9c18d6388/frame-04.jpg",
+          "sha256": "588e631c7b0ee9769baea70400ff12a032c706e27b45696c9877292dd413c545",
+          "bytes": 29256,
+          "observed_dimensions": "640x360",
+          "requested_offset_seconds": 4.6500003,
+          "offset_caveat": "the offset is a requested sample point, not a proven presentation timestamp",
+          "viewed": true
+        },
+        {
+          "kind": "contact_sheet",
+          "rel": "contactsheets/209093478c24fc537b143713d35d2fa005efb3197c174680498eedc9c18d6388.jpg",
+          "sha256": "90ad88b830c566b49338ebbce338146c8b3e16b143d2ff9f1aa9a8b7eb6c5148",
+          "bytes": 55264,
+          "viewed": true,
+          "view_note": "opened and used as an integrated cross-check of the four frames"
+        }
+      ],
+      "observation_basis": "the reviewer opened and visually viewed every preview file marked viewed=true in preview_refs; no description is derived from a file name, a count, a script output or a project answer",
+      "observable_facts": {
+        "subject_category": "night outdoor selfie of one adult",
+        "visible_person_count": "1 visible person in every sampled frame",
+        "scene_and_objects": [
+          "night sky",
+          "trees lit from the side",
+          "a street lamp directly behind/above the head in the first frame",
+          "distant out-of-focus lights",
+          "dark clothing"
+        ],
+        "pose_and_action_cues": [
+          "f01 lips pursed in an 'o' shape",
+          "f02 much closer, lips closed in a slight smile",
+          "f03 a hand is raised to move the hair back behind the ear, a gold ring is visible on the finger",
+          "f04 close-up, lips closed in a slight smile, head slightly turned"
+        ],
+        "composition_lighting_style": "handheld selfie at very close range; the framing distance changes across the four frames (close -> closer -> medium close -> close); low-light with a hard light source behind the head",
+        "visible_text": []
+      },
+      "unknown_or_ambiguous": [
+        "the real camera motion (hand-held drift versus zoom versus a cut) cannot be established from four frames",
+        "no edit point can be located from four frames",
+        "no audio is observable, so no speech can be asserted"
+      ],
+      "prohibited_assertions": [
+        "must not treat the requested sampling offsets as actual presentation timestamps",
+        "must not claim to have viewed the whole clip",
+        "must not assert that the person is speaking, singing or addressing the camera",
+        "must not assert any identity"
+      ],
+      "applicable_obligation_dimensions": {
+        "人物": "exercised - person count and wardrobe are directly observable in the preview",
+        "场景": "exercised - the setting and its objects are directly observable in the preview",
+        "动作": "exercised at the level of visible pose cues only; no narrative or audible action may be asserted",
+        "证据一致性": "exercised - every claim above is anchored to the listed preview file and its sha256",
+        "未知/局限": "exercised - the unknown_or_ambiguous and prohibited_assertions lists are the expected content for this dimension"
+      },
+      "acceptance_notes": "candidate eligibility (decodable, in budget, in the frozen child) is not semantic quality; this prelabel is an independent agent visual observation, not a human signature"
+    },
+    {
+      "asset_id": "C22",
+      "file_id": "f8ebb20f2f2147a4916fb7094764a8f35bb1c1a6e3d50b102852ae52dcd22fb1",
+      "source_sha256": "f17bb94dce4b3975525130f2890fa2357e5c1c5c989bcaac26135b20f52351fc",
+      "source_relative_path": "edit/h3_native_1080_bride_20261022/output/E05_REF2VA_W4A8_16step_native_1920x1088_raw.mp4",
+      "media_kind": "video",
+      "probe_facts_from_container": {
+        "bytes": 1119956,
+        "container": "mov,mp4,m4a,3gp,3g2,mj2",
+        "container_format_name": "mov,mp4,m4a,3gp,3g2,mj2",
+        "width": 1920,
+        "height": 1088,
+        "pixels": 2088960,
+        "codec_name": "h264",
+        "duration_seconds": 2.333
+      },
+      "preview_refs": [
+        {
+          "kind": "video_frame",
+          "rel": "previews/f8ebb20f2f2147a4916fb7094764a8f35bb1c1a6e3d50b102852ae52dcd22fb1/frame-01.jpg",
+          "sha256": "e400145b3ea2b881ec2cf41580c9e941f5384fac9528e39bfeacf0dee77046db",
+          "bytes": 45502,
+          "observed_dimensions": "640x363",
+          "requested_offset_seconds": 0.23330000000000004,
+          "offset_caveat": "the offset is a requested sample point, not a proven presentation timestamp",
+          "viewed": true
+        },
+        {
+          "kind": "video_frame",
+          "rel": "previews/f8ebb20f2f2147a4916fb7094764a8f35bb1c1a6e3d50b102852ae52dcd22fb1/frame-02.jpg",
+          "sha256": "2016322d15f209065dc427f8c034de0efaa8772fda9bf11834804778503ea526",
+          "bytes": 43816,
+          "observed_dimensions": "640x363",
+          "requested_offset_seconds": 0.81655,
+          "offset_caveat": "the offset is a requested sample point, not a proven presentation timestamp",
+          "viewed": true
+        },
+        {
+          "kind": "video_frame",
+          "rel": "previews/f8ebb20f2f2147a4916fb7094764a8f35bb1c1a6e3d50b102852ae52dcd22fb1/frame-03.jpg",
+          "sha256": "126d4a345ec4380cb332a5ced89f53e49b7092245546d1f9281b10f4be2baa8d",
+          "bytes": 39301,
+          "observed_dimensions": "640x363",
+          "requested_offset_seconds": 1.51645,
+          "offset_caveat": "the offset is a requested sample point, not a proven presentation timestamp",
+          "viewed": true
+        },
+        {
+          "kind": "video_frame",
+          "rel": "previews/f8ebb20f2f2147a4916fb7094764a8f35bb1c1a6e3d50b102852ae52dcd22fb1/frame-04.jpg",
+          "sha256": "f4423d5650ee06dc2f65bf0cd1068252664da01ebf62b226c77b66e3d62cba7c",
+          "bytes": 37584,
+          "observed_dimensions": "640x363",
+          "requested_offset_seconds": 2.0997000000000003,
+          "offset_caveat": "the offset is a requested sample point, not a proven presentation timestamp",
+          "viewed": true
+        },
+        {
+          "kind": "contact_sheet",
+          "rel": "contactsheets/f8ebb20f2f2147a4916fb7094764a8f35bb1c1a6e3d50b102852ae52dcd22fb1.jpg",
+          "sha256": "c15f60d7137a708e1314328be3cb1cc3b492bcd1871bce02f8dbcb9b681737e0",
+          "bytes": 74670,
+          "viewed": true,
+          "view_note": "opened and used as an integrated cross-check of the four frames"
+        }
+      ],
+      "observation_basis": "the reviewer opened and visually viewed every preview file marked viewed=true in preview_refs; no description is derived from a file name, a count, a script output or a project answer",
+      "observable_facts": {
+        "subject_category": "bridal portrait video of one adult in a glass conservatory",
+        "visible_person_count": "1 visible person in every sampled frame",
+        "scene_and_objects": [
+          "a white-framed glazed conservatory or sunroom",
+          "white flower arrangements and hanging greenery",
+          "a lawn and trimmed shrubs visible through the windows",
+          "a sheer veil",
+          "drop earrings",
+          "a necklace"
+        ],
+        "pose_and_action_cues": [
+          "f01 turned in profile, looking off to the left of frame, one hand holding the veil edge",
+          "f02 turned more towards the lens",
+          "f03 facing the lens, holding the veil out, slight smile",
+          "f04 facing the lens and smiling, the veil spread wider"
+        ],
+        "composition_lighting_style": "soft overcast daylight, muted green and white palette, shallow depth of field, slow push-in apparent from the framing change",
+        "visible_text": []
+      },
+      "unknown_or_ambiguous": [
+        "the real camera move (dolly, zoom or a crop) cannot be distinguished from four frames",
+        "no transition can be located from four frames"
+      ],
+      "prohibited_assertions": [
+        "must not treat the requested sampling offsets as actual presentation timestamps",
+        "must not claim to have viewed the whole clip",
+        "must not invent a narrative such as a dance or a spin",
+        "must not assert any identity"
+      ],
+      "applicable_obligation_dimensions": {
+        "人物": "exercised - person count and wardrobe are directly observable in the preview",
+        "场景": "exercised - the setting and its objects are directly observable in the preview",
+        "动作": "exercised at the level of visible pose cues only; no narrative or audible action may be asserted",
+        "证据一致性": "exercised - every claim above is anchored to the listed preview file and its sha256",
+        "未知/局限": "exercised - the unknown_or_ambiguous and prohibited_assertions lists are the expected content for this dimension"
+      },
+      "acceptance_notes": "candidate eligibility (decodable, in budget, in the frozen child) is not semantic quality; this prelabel is an independent agent visual observation, not a human signature"
+    },
+    {
+      "asset_id": "C23",
+      "file_id": "f56073c859ba56080382580aad83cf3a72dddeb0198f97f1aab85d3ee5c3a404",
+      "source_sha256": "16f6e79248746060520fef1487a53ec94a11064f38b9ae5c0b59ce4f9360de4e",
+      "source_relative_path": "edit/two_hero_30s_20261030/final/雨停之前_30s_1280x720_seedvr2.mp4",
+      "media_kind": "video",
+      "probe_facts_from_container": {
+        "bytes": 8433782,
+        "container": "mov,mp4,m4a,3gp,3g2,mj2",
+        "container_format_name": "mov,mp4,m4a,3gp,3g2,mj2",
+        "width": 1280,
+        "height": 720,
+        "pixels": 921600,
+        "codec_name": "h264",
+        "duration_seconds": 30.0
+      },
+      "preview_refs": [
+        {
+          "kind": "video_frame",
+          "rel": "previews/f56073c859ba56080382580aad83cf3a72dddeb0198f97f1aab85d3ee5c3a404/frame-01.jpg",
+          "sha256": "dd0ce748ed4ef85886cccab79197f8017f00c1c5cc94f39e475589dbb7cec828",
+          "bytes": 38663,
+          "observed_dimensions": "640x360",
+          "requested_offset_seconds": 3.0,
+          "offset_caveat": "the offset is a requested sample point, not a proven presentation timestamp",
+          "viewed": true
+        },
+        {
+          "kind": "video_frame",
+          "rel": "previews/f56073c859ba56080382580aad83cf3a72dddeb0198f97f1aab85d3ee5c3a404/frame-02.jpg",
+          "sha256": "caecc8cbbd63f8a618b36407403559f5a15d9007836a5c04f285446c81841cdf",
+          "bytes": 39904,
+          "observed_dimensions": "640x360",
+          "requested_offset_seconds": 10.5,
+          "offset_caveat": "the offset is a requested sample point, not a proven presentation timestamp",
+          "viewed": true
+        },
+        {
+          "kind": "video_frame",
+          "rel": "previews/f56073c859ba56080382580aad83cf3a72dddeb0198f97f1aab85d3ee5c3a404/frame-03.jpg",
+          "sha256": "0412500262bffdfaabc20259a188d468da80e4581704e03f2856f91fcaca96cf",
+          "bytes": 36720,
+          "observed_dimensions": "640x360",
+          "requested_offset_seconds": 19.5,
+          "offset_caveat": "the offset is a requested sample point, not a proven presentation timestamp",
+          "viewed": true
+        },
+        {
+          "kind": "video_frame",
+          "rel": "previews/f56073c859ba56080382580aad83cf3a72dddeb0198f97f1aab85d3ee5c3a404/frame-04.jpg",
+          "sha256": "3192a41ba6250298ff52a1e621bb87c364cb0878348c1b9a3c49fc43c3895394",
+          "bytes": 45270,
+          "observed_dimensions": "640x360",
+          "requested_offset_seconds": 27.0,
+          "offset_caveat": "the offset is a requested sample point, not a proven presentation timestamp",
+          "viewed": true
+        },
+        {
+          "kind": "contact_sheet",
+          "rel": "contactsheets/f56073c859ba56080382580aad83cf3a72dddeb0198f97f1aab85d3ee5c3a404.jpg",
+          "sha256": "b927d7cc7d7ac1f4b170e82a4ee7824d4b9e9fa5a484a674aeb6ef186f84bdbf",
+          "bytes": 67039,
+          "viewed": true,
+          "view_note": "opened and used as an integrated cross-check of the four frames"
+        }
+      ],
+      "observation_basis": "the reviewer opened and visually viewed every preview file marked viewed=true in preview_refs; no description is derived from a file name, a count, a script output or a project answer",
+      "observable_facts": {
+        "subject_category": "multi-shot narrative clip of two adults at night in the rain and then indoors",
+        "visible_person_count": "1 visible person in f01, 2 visible persons in f02 and f03, 2 visible persons in f04",
+        "scene_and_objects": [
+          "a wet night street with reflective asphalt, street lamps and city bokeh",
+          "a glass bus shelter or kiosk with an illuminated sign",
+          "a distant pedestrian in f01 and f02",
+          "a cafe interior in f04: a window with rain streaks, warm pendant lights, a table with two dark cups on saucers",
+          "wardrobe: one figure in a dark coat over a cream turtleneck with round glasses; the other in a camel coat with a dark red scarf"
+        ],
+        "pose_and_action_cues": [
+          "f01 the glasses-wearing figure alone, close, mouth slightly open, looking off-camera",
+          "f02 the two figures face each other standing on the wet street, the scarfed figure appears to be speaking",
+          "f03 both figures smile at each other and the scarfed figure holds the other by the upper arm",
+          "f04 both seated at a window counter, each holding a cup, smiling at each other"
+        ],
+        "composition_lighting_style": "cinematic shallow depth of field; cool blue night exterior against a warm interior; the framing is a close-up, then a two-shot, then a tighter two-shot, then an interior two-shot",
+        "visible_text": [
+          "f01 the glasses reflect a green light source"
+        ]
+      },
+      "unknown_or_ambiguous": [
+        "at least one scene change (exterior night -> cafe interior) falls between the sampled frames; the actual cut point is not observable",
+        "the relationship between the two people is not observable",
+        "whether other people appear in the unsampled portions is not observable"
+      ],
+      "prohibited_assertions": [
+        "must not give a cut or transition time",
+        "must not claim to have viewed the whole 30 s clip",
+        "must not assert the relationship between the two figures or any plot",
+        "must not treat the requested sampling offsets as actual presentation timestamps"
+      ],
+      "applicable_obligation_dimensions": {
+        "人物": "exercised - person count and wardrobe are directly observable in the preview",
+        "场景": "exercised - the setting and its objects are directly observable in the preview",
+        "动作": "exercised at the level of visible pose cues only; no narrative or audible action may be asserted",
+        "证据一致性": "exercised - every claim above is anchored to the listed preview file and its sha256",
+        "未知/局限": "exercised - the unknown_or_ambiguous and prohibited_assertions lists are the expected content for this dimension"
+      },
+      "acceptance_notes": "candidate eligibility (decodable, in budget, in the frozen child) is not semantic quality; this prelabel is an independent agent visual observation, not a human signature"
+    },
+    {
+      "asset_id": "C24",
+      "file_id": "1545678b4146fe4de2f9ca75514511b2978537a7a3de10654d1409459fccafa2",
+      "source_sha256": "eb23280f34af4d5676d245ad4c5315890fbd42f4e1a8eede6f1433fe7a13c1db",
+      "source_relative_path": "视频-3.mp4",
+      "media_kind": "video",
+      "probe_facts_from_container": {
+        "bytes": 1773902,
+        "container": "mov,mp4,m4a,3gp,3g2,mj2",
+        "container_format_name": "mov,mp4,m4a,3gp,3g2,mj2",
+        "width": 720,
+        "height": 960,
+        "pixels": 691200,
+        "codec_name": "h264",
+        "duration_seconds": 18.531667
+      },
+      "preview_refs": [
+        {
+          "kind": "video_frame",
+          "rel": "previews/1545678b4146fe4de2f9ca75514511b2978537a7a3de10654d1409459fccafa2/frame-01.jpg",
+          "sha256": "c480d5e69f3f8d7953e4e6d4bd3554ccafa5956e0823152e71476a743c306a15",
+          "bytes": 29370,
+          "observed_dimensions": "480x640",
+          "requested_offset_seconds": 1.8531667,
+          "offset_caveat": "the offset is a requested sample point, not a proven presentation timestamp",
+          "viewed": true
+        },
+        {
+          "kind": "video_frame",
+          "rel": "previews/1545678b4146fe4de2f9ca75514511b2978537a7a3de10654d1409459fccafa2/frame-02.jpg",
+          "sha256": "d458c875c7365baf0e97c194ad0b764be6164e75a77d219c19e49f5fc41648f3",
+          "bytes": 25753,
+          "observed_dimensions": "480x640",
+          "requested_offset_seconds": 6.486083449999999,
+          "offset_caveat": "the offset is a requested sample point, not a proven presentation timestamp",
+          "viewed": true
+        },
+        {
+          "kind": "video_frame",
+          "rel": "previews/1545678b4146fe4de2f9ca75514511b2978537a7a3de10654d1409459fccafa2/frame-03.jpg",
+          "sha256": "3bba83dcbfe8087cf64b5c85346013c33cc86f5e9903b8cd0cffcd602e44121f",
+          "bytes": 32057,
+          "observed_dimensions": "480x640",
+          "requested_offset_seconds": 12.04558355,
+          "offset_caveat": "the offset is a requested sample point, not a proven presentation timestamp",
+          "viewed": true
+        },
+        {
+          "kind": "video_frame",
+          "rel": "previews/1545678b4146fe4de2f9ca75514511b2978537a7a3de10654d1409459fccafa2/frame-04.jpg",
+          "sha256": "112d36081cde23cc151629c557acfc6e266275dcfa96f811637a3033a4eb2699",
+          "bytes": 35886,
+          "observed_dimensions": "480x640",
+          "requested_offset_seconds": 16.6785003,
+          "offset_caveat": "the offset is a requested sample point, not a proven presentation timestamp",
+          "viewed": true
+        },
+        {
+          "kind": "contact_sheet",
+          "rel": "contactsheets/1545678b4146fe4de2f9ca75514511b2978537a7a3de10654d1409459fccafa2.jpg",
+          "sha256": "fba0bad10c7588cd56aeff83d3b1627ec37cc8e4ee1c0cea4d0e396593148f3a",
+          "bytes": 39738,
+          "viewed": true,
+          "view_note": "opened and used as an integrated cross-check of the four frames"
+        }
+      ],
+      "observation_basis": "the reviewer opened and visually viewed every preview file marked viewed=true in preview_refs; no description is derived from a file name, a count, a script output or a project answer",
+      "observable_facts": {
+        "subject_category": "vertical indoor selfie of one adult",
+        "visible_person_count": "1 visible person in every sampled frame",
+        "scene_and_objects": [
+          "a plain pale cream interior wall",
+          "a cream/white knit top",
+          "shoulder-length wavy dark hair without bangs"
+        ],
+        "pose_and_action_cues": [
+          "f01 facing the lens with a closed-lip smile",
+          "f02 head tilted, expression close to neutral",
+          "f03 head lowered and turned, hair falling across the face",
+          "f04 a hand enters the lower left making a two-finger sign near the chin, teeth-visible smile"
+        ],
+        "composition_lighting_style": "vertical handheld selfie, shallow depth of field, soft even indoor light",
+        "visible_text": []
+      },
+      "unknown_or_ambiguous": [
+        "the motion is small; the real camera move is not determinable",
+        "no edit can be located from four frames",
+        "no audio is observable, so no speech can be asserted"
+      ],
+      "prohibited_assertions": [
+        "must not treat the requested sampling offsets as actual presentation timestamps",
+        "must not claim to have viewed the whole clip",
+        "must not assert the person is talking to the camera or dancing",
+        "must not assert any identity"
+      ],
+      "applicable_obligation_dimensions": {
+        "人物": "exercised - person count and wardrobe are directly observable in the preview",
+        "场景": "exercised - the setting and its objects are directly observable in the preview",
+        "动作": "exercised at the level of visible pose cues only; no narrative or audible action may be asserted",
+        "证据一致性": "exercised - every claim above is anchored to the listed preview file and its sha256",
+        "未知/局限": "exercised - the unknown_or_ambiguous and prohibited_assertions lists are the expected content for this dimension"
+      },
+      "acceptance_notes": "candidate eligibility (decodable, in budget, in the frozen child) is not semantic quality; this prelabel is an independent agent visual observation, not a human signature"
+    },
+    {
+      "asset_id": "C25",
+      "file_id": "eecc49c30bd7678a32db8526fb95d6745658bc8f24bb1abac2e92515142cf37d",
+      "source_sha256": "065cd6f7857407fa012fb4a67e2051853a8036d97c69e3e0efec8f10cb728bb9",
+      "source_relative_path": "edit/two_hero_30s_20261030/assets/clips/s01_等待.mp4",
+      "media_kind": "video",
+      "probe_facts_from_container": {
+        "bytes": 1033291,
+        "container": "mov,mp4,m4a,3gp,3g2,mj2",
+        "container_format_name": "mov,mp4,m4a,3gp,3g2,mj2",
+        "width": 864,
+        "height": 480,
+        "pixels": 414720,
+        "codec_name": "h264",
+        "duration_seconds": 5.167
+      },
+      "preview_refs": [
+        {
+          "kind": "video_frame",
+          "rel": "previews/eecc49c30bd7678a32db8526fb95d6745658bc8f24bb1abac2e92515142cf37d/frame-01.jpg",
+          "sha256": "ee78b07b95428fc5e9db7587c1bd24834038c6c8845922e684a358d6fc1f57df",
+          "bytes": 36563,
+          "observed_dimensions": "640x356",
+          "requested_offset_seconds": 0.5167,
+          "offset_caveat": "the offset is a requested sample point, not a proven presentation timestamp",
+          "viewed": true
+        },
+        {
+          "kind": "video_frame",
+          "rel": "previews/eecc49c30bd7678a32db8526fb95d6745658bc8f24bb1abac2e92515142cf37d/frame-02.jpg",
+          "sha256": "d873cfc839b9c19eebcc3c63612013aa898682edf89a192aceb1e78cf98e5e6b",
+          "bytes": 35633,
+          "observed_dimensions": "640x356",
+          "requested_offset_seconds": 1.80845,
+          "offset_caveat": "the offset is a requested sample point, not a proven presentation timestamp",
+          "viewed": true
+        },
+        {
+          "kind": "video_frame",
+          "rel": "previews/eecc49c30bd7678a32db8526fb95d6745658bc8f24bb1abac2e92515142cf37d/frame-03.jpg",
+          "sha256": "3a0236631d8bd1d318b4420f5f0573f7e569c09aa96d2fefab6b7f9009e93623",
+          "bytes": 32877,
+          "observed_dimensions": "640x356",
+          "requested_offset_seconds": 3.35855,
+          "offset_caveat": "the offset is a requested sample point, not a proven presentation timestamp",
+          "viewed": true
+        },
+        {
+          "kind": "video_frame",
+          "rel": "previews/eecc49c30bd7678a32db8526fb95d6745658bc8f24bb1abac2e92515142cf37d/frame-04.jpg",
+          "sha256": "e1c08f66f1705bd5a1be4bdb031142ac7cd77bc908076295e2095d46102fe3ed",
+          "bytes": 31993,
+          "observed_dimensions": "640x356",
+          "requested_offset_seconds": 4.6503,
+          "offset_caveat": "the offset is a requested sample point, not a proven presentation timestamp",
+          "viewed": true
+        },
+        {
+          "kind": "contact_sheet",
+          "rel": "contactsheets/eecc49c30bd7678a32db8526fb95d6745658bc8f24bb1abac2e92515142cf37d.jpg",
+          "sha256": "4a6ceefb660adef75c41e344e2b2f5926bab9b15801be3b25d91de3157708668",
+          "bytes": 66646,
+          "viewed": true,
+          "view_note": "opened and used as an integrated cross-check of the four frames"
+        }
+      ],
+      "observation_basis": "the reviewer opened and visually viewed every preview file marked viewed=true in preview_refs; no description is derived from a file name, a count, a script output or a project answer",
+      "observable_facts": {
+        "subject_category": "night rainy clip of one adult at a bus stop",
+        "visible_person_count": "1 main visible person; 2 distant pedestrians are visible in the background of f01 and f02",
+        "scene_and_objects": [
+          "a wet reflective road",
+          "a street lamp",
+          "a glass bus shelter on the right",
+          "distant city lights",
+          "a smartphone in the figure's hand",
+          "wardrobe: a dark coat over a cream turtleneck, round glasses"
+        ],
+        "pose_and_action_cues": [
+          "f01 head down looking at the phone",
+          "f02 still looking down at the phone, slightly reframed",
+          "f03 head raised, lips slightly parted, looking forward past the camera",
+          "f04 closer framing, head still raised, a green reflection in the lenses, vehicle lights in the right background"
+        ],
+        "composition_lighting_style": "medium close-up, fixed camera, low-light with a warm street lamp and wet-surface reflections",
+        "visible_text": []
+      },
+      "unknown_or_ambiguous": [
+        "the sampled frames are visually very close to the first sampled frame of C23 (same wardrobe, same shelter, same wet street) - whether they are the same shot is not provable from four frames",
+        "whether the figure is waiting for a bus cannot be established",
+        "no audio is observable"
+      ],
+      "prohibited_assertions": [
+        "must not treat the requested sampling offsets as actual presentation timestamps",
+        "must not claim to have viewed the whole clip",
+        "must not assert the person is making a phone call or waiting for transport",
+        "must not assert any identity"
+      ],
+      "applicable_obligation_dimensions": {
+        "人物": "exercised - person count and wardrobe are directly observable in the preview",
+        "场景": "exercised - the setting and its objects are directly observable in the preview",
+        "动作": "exercised at the level of visible pose cues only; no narrative or audible action may be asserted",
+        "证据一致性": "exercised - every claim above is anchored to the listed preview file and its sha256",
+        "未知/局限": "exercised - the unknown_or_ambiguous and prohibited_assertions lists are the expected content for this dimension"
+      },
+      "acceptance_notes": "candidate eligibility (decodable, in budget, in the frozen child) is not semantic quality; this prelabel is an independent agent visual observation, not a human signature"
+    },
+    {
+      "asset_id": "C26",
+      "file_id": "18e53a601777959b3c7e7031213db6409b5ee535a0f8bbda6a5f325c6d271f05",
+      "source_sha256": "8920c1afb1a05d783d292ea067df9ef1052f435e5f89e01a642be28c800640f3",
+      "source_relative_path": "edit/wedding_mv_car_story_20261022/clips_graded/S01_720p.mp4",
+      "media_kind": "video",
+      "probe_facts_from_container": {
+        "bytes": 2497357,
+        "container": "mov,mp4,m4a,3gp,3g2,mj2",
+        "container_format_name": "mov,mp4,m4a,3gp,3g2,mj2",
+        "width": 1280,
+        "height": 720,
+        "pixels": 921600,
+        "codec_name": "h264",
+        "duration_seconds": 3.708333
+      },
+      "preview_refs": [
+        {
+          "kind": "video_frame",
+          "rel": "previews/18e53a601777959b3c7e7031213db6409b5ee535a0f8bbda6a5f325c6d271f05/frame-01.jpg",
+          "sha256": "bd4bb231b6e4814162525b8567dbda3f5507e60a896eb71e788db826858cc99f",
+          "bytes": 49809,
+          "observed_dimensions": "640x360",
+          "requested_offset_seconds": 0.37083330000000003,
+          "offset_caveat": "the offset is a requested sample point, not a proven presentation timestamp",
+          "viewed": true
+        },
+        {
+          "kind": "video_frame",
+          "rel": "previews/18e53a601777959b3c7e7031213db6409b5ee535a0f8bbda6a5f325c6d271f05/frame-02.jpg",
+          "sha256": "cbe13c19fb6668ed25b048ec3eda8ccbb1e0b8a1c7d5fa3ccf52997bacc50a69",
+          "bytes": 50063,
+          "observed_dimensions": "640x360",
+          "requested_offset_seconds": 1.29791655,
+          "offset_caveat": "the offset is a requested sample point, not a proven presentation timestamp",
+          "viewed": true
+        },
+        {
+          "kind": "video_frame",
+          "rel": "previews/18e53a601777959b3c7e7031213db6409b5ee535a0f8bbda6a5f325c6d271f05/frame-03.jpg",
+          "sha256": "b17d2799bac1468e7b87490d387d7753ffc50abc4cc23675a73be9fe5f408508",
+          "bytes": 49894,
+          "observed_dimensions": "640x360",
+          "requested_offset_seconds": 2.41041645,
+          "offset_caveat": "the offset is a requested sample point, not a proven presentation timestamp",
+          "viewed": true
+        },
+        {
+          "kind": "video_frame",
+          "rel": "previews/18e53a601777959b3c7e7031213db6409b5ee535a0f8bbda6a5f325c6d271f05/frame-04.jpg",
+          "sha256": "f986da4ae70f32815812892638712ecc0a70f70717f342a03b565dbc49abf783",
+          "bytes": 49457,
+          "observed_dimensions": "640x360",
+          "requested_offset_seconds": 3.3374997,
+          "offset_caveat": "the offset is a requested sample point, not a proven presentation timestamp",
+          "viewed": true
+        },
+        {
+          "kind": "contact_sheet",
+          "rel": "contactsheets/18e53a601777959b3c7e7031213db6409b5ee535a0f8bbda6a5f325c6d271f05.jpg",
+          "sha256": "757e7dbdde7136ee2d52f1e037857d8f2540646a064fa8d4c362294c59cc88e5",
+          "bytes": 73261,
+          "viewed": true,
+          "view_note": "opened and used as an integrated cross-check of the four frames"
+        }
+      ],
+      "observation_basis": "the reviewer opened and visually viewed every preview file marked viewed=true in preview_refs; no description is derived from a file name, a count, a script output or a project answer",
+      "observable_facts": {
+        "subject_category": "rainy driveway clip of one adult beside a car",
+        "visible_person_count": "1 visible person; a driver's silhouette is faintly visible inside the car",
+        "scene_and_objects": [
+          "a black sedan",
+          "a covered porte-cochere on the right",
+          "wet reflective paving",
+          "green trees",
+          "a cream/white envelope or folder held in the figure's left hand",
+          "wardrobe: a black tuxedo, white shirt, black bow tie"
+        ],
+        "pose_and_action_cues": [
+          "the figure stands still in all four frames, looking towards the car",
+          "the car's position shifts leftwards relative to the frame from f01 to f04"
+        ],
+        "composition_lighting_style": "fixed wide shot, the figure placed on the right third; overcast daylight, saturated green foliage",
+        "visible_text": []
+      },
+      "unknown_or_ambiguous": [
+        "whether the car is moving away or the framing is shifting cannot be established with certainty from four frames",
+        "the identity of the person in the car is unknown",
+        "no edit can be located from four frames"
+      ],
+      "prohibited_assertions": [
+        "must not treat the requested sampling offsets as actual presentation timestamps",
+        "must not claim to have viewed the whole clip",
+        "must not assert the figure's emotional state or that he is waiting for someone",
+        "must not assert any identity"
+      ],
+      "applicable_obligation_dimensions": {
+        "人物": "exercised - person count and wardrobe are directly observable in the preview",
+        "场景": "exercised - the setting and its objects are directly observable in the preview",
+        "动作": "exercised at the level of visible pose cues only; no narrative or audible action may be asserted",
+        "证据一致性": "exercised - every claim above is anchored to the listed preview file and its sha256",
+        "未知/局限": "exercised - the unknown_or_ambiguous and prohibited_assertions lists are the expected content for this dimension"
+      },
+      "acceptance_notes": "candidate eligibility (decodable, in budget, in the frozen child) is not semantic quality; this prelabel is an independent agent visual observation, not a human signature"
+    },
+    {
+      "asset_id": "C27",
+      "file_id": "2bcd1e1e10c9c58ef3eec927b60c678c25c6c9167eff82307c7c1446301557f6",
+      "source_sha256": "a1a373260c6f3d209c1c84a332a1d9104ecdc410ebf69153f87dfbbd88e11d1c",
+      "source_relative_path": "edit/wedding_mv_car_story_20261022/clips_graded/S05_720p.mp4",
+      "media_kind": "video",
+      "probe_facts_from_container": {
+        "bytes": 2714250,
+        "container": "mov,mp4,m4a,3gp,3g2,mj2",
+        "container_format_name": "mov,mp4,m4a,3gp,3g2,mj2",
+        "width": 1280,
+        "height": 720,
+        "pixels": 921600,
+        "codec_name": "h264",
+        "duration_seconds": 3.708333
+      },
+      "preview_refs": [
+        {
+          "kind": "video_frame",
+          "rel": "previews/2bcd1e1e10c9c58ef3eec927b60c678c25c6c9167eff82307c7c1446301557f6/frame-01.jpg",
+          "sha256": "efa6c4b5400bc3b21254bcdabf2e9d7b5fa4375056e73c981981704af4f91e78",
+          "bytes": 45752,
+          "observed_dimensions": "640x360",
+          "requested_offset_seconds": 0.37083330000000003,
+          "offset_caveat": "the offset is a requested sample point, not a proven presentation timestamp",
+          "viewed": true
+        },
+        {
+          "kind": "video_frame",
+          "rel": "previews/2bcd1e1e10c9c58ef3eec927b60c678c25c6c9167eff82307c7c1446301557f6/frame-02.jpg",
+          "sha256": "565e8854ac773aea78ecf16a3a517d8ba0897146c861443c6bbe9d40a74137d1",
+          "bytes": 45821,
+          "observed_dimensions": "640x360",
+          "requested_offset_seconds": 1.29791655,
+          "offset_caveat": "the offset is a requested sample point, not a proven presentation timestamp",
+          "viewed": true
+        },
+        {
+          "kind": "video_frame",
+          "rel": "previews/2bcd1e1e10c9c58ef3eec927b60c678c25c6c9167eff82307c7c1446301557f6/frame-03.jpg",
+          "sha256": "91874207b4aaa665b2fd11d315ba00e4fd59990ae67c48624f466ac209e832a0",
+          "bytes": 44100,
+          "observed_dimensions": "640x360",
+          "requested_offset_seconds": 2.41041645,
+          "offset_caveat": "the offset is a requested sample point, not a proven presentation timestamp",
+          "viewed": true
+        },
+        {
+          "kind": "video_frame",
+          "rel": "previews/2bcd1e1e10c9c58ef3eec927b60c678c25c6c9167eff82307c7c1446301557f6/frame-04.jpg",
+          "sha256": "de8f4130e903de9d1c6e829d2deab2e3092c41bdb3d0cdc2f03866580ff20ba8",
+          "bytes": 45864,
+          "observed_dimensions": "640x360",
+          "requested_offset_seconds": 3.3374997,
+          "offset_caveat": "the offset is a requested sample point, not a proven presentation timestamp",
+          "viewed": true
+        },
+        {
+          "kind": "contact_sheet",
+          "rel": "contactsheets/2bcd1e1e10c9c58ef3eec927b60c678c25c6c9167eff82307c7c1446301557f6.jpg",
+          "sha256": "5f023368bf525838a27e9546bdfb5338846054e201a2e1a955b67cf011408455",
+          "bytes": 73709,
+          "viewed": true,
+          "view_note": "opened and used as an integrated cross-check of the four frames"
+        }
+      ],
+      "observation_basis": "the reviewer opened and visually viewed every preview file marked viewed=true in preview_refs; no description is derived from a file name, a count, a script output or a project answer",
+      "observable_facts": {
+        "subject_category": "daytime garden clip with three adults and a car",
+        "visible_person_count": "3 visible persons (a figure in an ivory suit seen from behind in the foreground, a woman in a strapless beaded gown, a figure in a black tuxedo in the background); a further person is faintly visible in the car",
+        "scene_and_objects": [
+          "a black sedan on the left",
+          "a driveway and lawn with clipped shrubs",
+          "a building entrance with warm interior light",
+          "a driver's face visible through the car window"
+        ],
+        "pose_and_action_cues": [
+          "f01 the gowned woman looks down, the tuxedoed figure stands with hands behind the back",
+          "f02 the gowned woman turns her head back towards the tuxedoed figure",
+          "f03 the tuxedoed figure begins to smile",
+          "f04 the tuxedoed figure is broadly smiling/laughing"
+        ],
+        "composition_lighting_style": "fixed camera; the ivory-suited figure's back frames the left foreground; soft daylight",
+        "visible_text": []
+      },
+      "unknown_or_ambiguous": [
+        "whether the ivory-suited foreground figure and the tuxedoed background figure are the same person is not determinable",
+        "the relationship between the three people is not observable",
+        "no edit can be located from four frames"
+      ],
+      "prohibited_assertions": [
+        "must not treat the requested sampling offsets as actual presentation timestamps",
+        "must not claim to have viewed the whole clip",
+        "must not assert the relationships or any plot between the three people",
+        "must not assert that an audible laugh occurred"
+      ],
+      "applicable_obligation_dimensions": {
+        "人物": "exercised - person count and wardrobe are directly observable in the preview",
+        "场景": "exercised - the setting and its objects are directly observable in the preview",
+        "动作": "exercised at the level of visible pose cues only; no narrative or audible action may be asserted",
+        "证据一致性": "exercised - every claim above is anchored to the listed preview file and its sha256",
+        "未知/局限": "exercised - the unknown_or_ambiguous and prohibited_assertions lists are the expected content for this dimension"
+      },
+      "acceptance_notes": "candidate eligibility (decodable, in budget, in the frozen child) is not semantic quality; this prelabel is an independent agent visual observation, not a human signature"
+    },
+    {
+      "asset_id": "C28",
+      "file_id": "6e9b5b56f4364f91e89ae970b63eb35cebba180ab73c62be38fcd8d9a1590271",
+      "source_sha256": "be878da7424164cd6b6b38975121fce7bbcbf96181ccc808fa518a9e3f0b57a5",
+      "source_relative_path": "edit/two_hero_30s_20261030/assets/clips/s02_出现.mp4",
+      "media_kind": "video",
+      "probe_facts_from_container": {
+        "bytes": 1149990,
+        "container": "mov,mp4,m4a,3gp,3g2,mj2",
+        "container_format_name": "mov,mp4,m4a,3gp,3g2,mj2",
+        "width": 864,
+        "height": 480,
+        "pixels": 414720,
+        "codec_name": "h264",
+        "duration_seconds": 5.167
+      },
+      "preview_refs": [
+        {
+          "kind": "video_frame",
+          "rel": "previews/6e9b5b56f4364f91e89ae970b63eb35cebba180ab73c62be38fcd8d9a1590271/frame-01.jpg",
+          "sha256": "f09802581f71cf6093a36f4f2532933309b1f9f67c605216fecf801fdeeca55f",
+          "bytes": 39919,
+          "observed_dimensions": "640x356",
+          "requested_offset_seconds": 0.5167,
+          "offset_caveat": "the offset is a requested sample point, not a proven presentation timestamp",
+          "viewed": true
+        },
+        {
+          "kind": "video_frame",
+          "rel": "previews/6e9b5b56f4364f91e89ae970b63eb35cebba180ab73c62be38fcd8d9a1590271/frame-02.jpg",
+          "sha256": "a0e813ab16399599562d234d612a16869c5e08074c9b9e6efb536a0348bc40a4",
+          "bytes": 40739,
+          "observed_dimensions": "640x356",
+          "requested_offset_seconds": 1.80845,
+          "offset_caveat": "the offset is a requested sample point, not a proven presentation timestamp",
+          "viewed": true
+        },
+        {
+          "kind": "video_frame",
+          "rel": "previews/6e9b5b56f4364f91e89ae970b63eb35cebba180ab73c62be38fcd8d9a1590271/frame-03.jpg",
+          "sha256": "6045c5e798ba3878ffd4c4f1e63597a42402f5730e2280f041172730736a6808",
+          "bytes": 40249,
+          "observed_dimensions": "640x356",
+          "requested_offset_seconds": 3.35855,
+          "offset_caveat": "the offset is a requested sample point, not a proven presentation timestamp",
+          "viewed": true
+        },
+        {
+          "kind": "video_frame",
+          "rel": "previews/6e9b5b56f4364f91e89ae970b63eb35cebba180ab73c62be38fcd8d9a1590271/frame-04.jpg",
+          "sha256": "acb45a8f55c80a90dc70260b6b58cafcd55c34e720f3a4c0716380618b7f7031",
+          "bytes": 38862,
+          "observed_dimensions": "640x356",
+          "requested_offset_seconds": 4.6503,
+          "offset_caveat": "the offset is a requested sample point, not a proven presentation timestamp",
+          "viewed": true
+        },
+        {
+          "kind": "contact_sheet",
+          "rel": "contactsheets/6e9b5b56f4364f91e89ae970b63eb35cebba180ab73c62be38fcd8d9a1590271.jpg",
+          "sha256": "689581908caf411e01bec1d675a9f27c3518112f4e74b1baec55363fec06d7e3",
+          "bytes": 72181,
+          "viewed": true,
+          "view_note": "opened and used as an integrated cross-check of the four frames"
+        }
+      ],
+      "observation_basis": "the reviewer opened and visually viewed every preview file marked viewed=true in preview_refs; no description is derived from a file name, a count, a script output or a project answer",
+      "observable_facts": {
+        "subject_category": "night rainy clip of one adult at a glass shelter",
+        "visible_person_count": "1 visible person in every sampled frame",
+        "scene_and_objects": [
+          "a glass shelter/kiosk with an illuminated sign above it bearing Chinese characters",
+          "a perforated metal panel on the right",
+          "a wet reflective street",
+          "a closed black umbrella with a curved wooden handle",
+          "wardrobe: a camel coat and a dark red scarf"
+        ],
+        "pose_and_action_cues": [
+          "f01 facing the lens, holding the closed umbrella in the right hand",
+          "f02 gaze slightly raised, lips parted",
+          "f03 both hands on the umbrella handle, smiling",
+          "f04 a broader smile, gaze turned to the left"
+        ],
+        "composition_lighting_style": "medium shot from a slightly low camera, night, warm shelter light against a cool wet street",
+        "visible_text": [
+          "an illuminated sign above the shelter carries Chinese characters; the wording is not reliably legible at preview resolution and is not transcribed"
+        ]
+      },
+      "unknown_or_ambiguous": [
+        "the sign wording is not legible",
+        "the sampled frames share wardrobe and setting with the second figure in C23, but sameness of person is not provable from four frames"
+      ],
+      "prohibited_assertions": [
+        "must not transcribe or guess the sign wording",
+        "must not assert the location",
+        "must not treat the requested sampling offsets as actual presentation timestamps",
+        "must not claim to have viewed the whole clip"
+      ],
+      "applicable_obligation_dimensions": {
+        "人物": "exercised - person count and wardrobe are directly observable in the preview",
+        "场景": "exercised - the setting and its objects are directly observable in the preview",
+        "动作": "exercised at the level of visible pose cues only; no narrative or audible action may be asserted",
+        "证据一致性": "exercised - every claim above is anchored to the listed preview file and its sha256",
+        "未知/局限": "exercised - the unknown_or_ambiguous and prohibited_assertions lists are the expected content for this dimension"
+      },
+      "acceptance_notes": "candidate eligibility (decodable, in budget, in the frozen child) is not semantic quality; this prelabel is an independent agent visual observation, not a human signature"
+    },
+    {
+      "asset_id": "C29",
+      "file_id": "4a0c273fa77edcc9e4f6abcb9e2a25e058e60e3282c92ed763f0064875e9bae9",
+      "source_sha256": "957146f536e9bce3060544b685d5caf92e72afff8f41aa68eb6338d09aa69863",
+      "source_relative_path": "edit/wedding_mv_car_story_20261022/clips_graded/S06_720p.mp4",
+      "media_kind": "video",
+      "probe_facts_from_container": {
+        "bytes": 1909759,
+        "container": "mov,mp4,m4a,3gp,3g2,mj2",
+        "container_format_name": "mov,mp4,m4a,3gp,3g2,mj2",
+        "width": 1280,
+        "height": 720,
+        "pixels": 921600,
+        "codec_name": "h264",
+        "duration_seconds": 3.708333
+      },
+      "preview_refs": [
+        {
+          "kind": "video_frame",
+          "rel": "previews/4a0c273fa77edcc9e4f6abcb9e2a25e058e60e3282c92ed763f0064875e9bae9/frame-01.jpg",
+          "sha256": "12a0f1186bc7299c597d3f4e3043af92098941b0baa1bcf6f8a707b259ccd4b0",
+          "bytes": 34604,
+          "observed_dimensions": "640x360",
+          "requested_offset_seconds": 0.37083330000000003,
+          "offset_caveat": "the offset is a requested sample point, not a proven presentation timestamp",
+          "viewed": true
+        },
+        {
+          "kind": "video_frame",
+          "rel": "previews/4a0c273fa77edcc9e4f6abcb9e2a25e058e60e3282c92ed763f0064875e9bae9/frame-02.jpg",
+          "sha256": "6ce9dc4b26896b0a2effc8d4d91e1f0c5ac7b02afa12b913a2ef67aded70ecef",
+          "bytes": 37507,
+          "observed_dimensions": "640x360",
+          "requested_offset_seconds": 1.29791655,
+          "offset_caveat": "the offset is a requested sample point, not a proven presentation timestamp",
+          "viewed": true
+        },
+        {
+          "kind": "video_frame",
+          "rel": "previews/4a0c273fa77edcc9e4f6abcb9e2a25e058e60e3282c92ed763f0064875e9bae9/frame-03.jpg",
+          "sha256": "64c87a59636f96e00212a1ee0078ba38bafc08104028f2ec718798980b3bdd35",
+          "bytes": 39874,
+          "observed_dimensions": "640x360",
+          "requested_offset_seconds": 2.41041645,
+          "offset_caveat": "the offset is a requested sample point, not a proven presentation timestamp",
+          "viewed": true
+        },
+        {
+          "kind": "video_frame",
+          "rel": "previews/4a0c273fa77edcc9e4f6abcb9e2a25e058e60e3282c92ed763f0064875e9bae9/frame-04.jpg",
+          "sha256": "701569b89fa0d6747378adc62b2d83090999f16d6d5f42f0d6adc63c95c7683f",
+          "bytes": 40722,
+          "observed_dimensions": "640x360",
+          "requested_offset_seconds": 3.3374997,
+          "offset_caveat": "the offset is a requested sample point, not a proven presentation timestamp",
+          "viewed": true
+        },
+        {
+          "kind": "contact_sheet",
+          "rel": "contactsheets/4a0c273fa77edcc9e4f6abcb9e2a25e058e60e3282c92ed763f0064875e9bae9.jpg",
+          "sha256": "0ac542ba3471ff5d19c37ab754cef67583ec042141bd75de0d3758a1f7a40e94",
+          "bytes": 67218,
+          "viewed": true,
+          "view_note": "opened and used as an integrated cross-check of the four frames"
+        }
+      ],
+      "observation_basis": "the reviewer opened and visually viewed every preview file marked viewed=true in preview_refs; no description is derived from a file name, a count, a script output or a project answer",
+      "observable_facts": {
+        "subject_category": "daytime clip of one adult in a tuxedo beside a car",
+        "visible_person_count": "1 visible person",
+        "scene_and_objects": [
+          "a black sedan",
+          "green tree branches across the top of the frame",
+          "a building entrance with warm interior light",
+          "a sprig-shaped boutonniere on the lapel",
+          "a cream/white envelope held at the chest"
+        ],
+        "pose_and_action_cues": [
+          "f01 mouth slightly open, hands low",
+          "f02 smiling, right hand raised to the chest",
+          "f03 both hands at the chest holding/adjusting the cream envelope",
+          "f04 the body is turned away from the lens so that the side and back of the head are shown"
+        ],
+        "composition_lighting_style": "medium close-up from a slightly low camera, soft daylight, shallow depth of field",
+        "visible_text": [
+          "faint printed text on the cream envelope is present but not legible"
+        ]
+      },
+      "unknown_or_ambiguous": [
+        "whether the figure is speaking cannot be established from still frames",
+        "the real camera move is not determinable",
+        "no edit can be located from four frames"
+      ],
+      "prohibited_assertions": [
+        "must not assert the person is speaking",
+        "must not treat the requested sampling offsets as actual presentation timestamps",
+        "must not claim to have viewed the whole clip",
+        "must not assert any identity"
+      ],
+      "applicable_obligation_dimensions": {
+        "人物": "exercised - person count and wardrobe are directly observable in the preview",
+        "场景": "exercised - the setting and its objects are directly observable in the preview",
+        "动作": "exercised at the level of visible pose cues only; no narrative or audible action may be asserted",
+        "证据一致性": "exercised - every claim above is anchored to the listed preview file and its sha256",
+        "未知/局限": "exercised - the unknown_or_ambiguous and prohibited_assertions lists are the expected content for this dimension"
+      },
+      "acceptance_notes": "candidate eligibility (decodable, in budget, in the frozen child) is not semantic quality; this prelabel is an independent agent visual observation, not a human signature"
+    },
+    {
+      "asset_id": "C30",
+      "file_id": "8cf1ca1d941d9b2c48f1c207c40ff1cc204127b2af8c8f421efda61afed06665",
+      "source_sha256": "9c93f3fc706ae69f039391ffb0eac24d55dd1e74b7999498457433f29ee5bf8d",
+      "source_relative_path": "edit/native_faceswap_full/chunks/codex_faceswap_full_chunk_03.mp4",
+      "media_kind": "video",
+      "probe_facts_from_container": {
+        "bytes": 10366780,
+        "container": "mov,mp4,m4a,3gp,3g2,mj2",
+        "container_format_name": "mov,mp4,m4a,3gp,3g2,mj2",
+        "width": 1280,
+        "height": 720,
+        "pixels": 921600,
+        "codec_name": "h264",
+        "duration_seconds": 5.166667
+      },
+      "preview_refs": [
+        {
+          "kind": "video_frame",
+          "rel": "previews/8cf1ca1d941d9b2c48f1c207c40ff1cc204127b2af8c8f421efda61afed06665/frame-01.jpg",
+          "sha256": "8f060eafa3d4e0f19ef2dad9f6ec70a8165bbddb2abaa88cdf48355102c3aef3",
+          "bytes": 59373,
+          "observed_dimensions": "640x360",
+          "requested_offset_seconds": 0.5166667,
+          "offset_caveat": "the offset is a requested sample point, not a proven presentation timestamp",
+          "viewed": true
+        },
+        {
+          "kind": "video_frame",
+          "rel": "previews/8cf1ca1d941d9b2c48f1c207c40ff1cc204127b2af8c8f421efda61afed06665/frame-02.jpg",
+          "sha256": "752e92bc47f3d1f4f076ff9216b2f3fd6288107c5fb6bd78c6de9d558d61d474",
+          "bytes": 59731,
+          "observed_dimensions": "640x360",
+          "requested_offset_seconds": 1.80833345,
+          "offset_caveat": "the offset is a requested sample point, not a proven presentation timestamp",
+          "viewed": true
+        },
+        {
+          "kind": "video_frame",
+          "rel": "previews/8cf1ca1d941d9b2c48f1c207c40ff1cc204127b2af8c8f421efda61afed06665/frame-03.jpg",
+          "sha256": "f42c4fa13ed81ee66e04c8d051165c453e8fd43dd9b937e9eda145d9becd93d8",
+          "bytes": 59985,
+          "observed_dimensions": "640x360",
+          "requested_offset_seconds": 3.3583335500000002,
+          "offset_caveat": "the offset is a requested sample point, not a proven presentation timestamp",
+          "viewed": true
+        },
+        {
+          "kind": "video_frame",
+          "rel": "previews/8cf1ca1d941d9b2c48f1c207c40ff1cc204127b2af8c8f421efda61afed06665/frame-04.jpg",
+          "sha256": "297cc1d45537c88fad74fd2c60a8daaf0b5b7a5f96daeeeac9d7cddb275f126b",
+          "bytes": 59180,
+          "observed_dimensions": "640x360",
+          "requested_offset_seconds": 4.6500003,
+          "offset_caveat": "the offset is a requested sample point, not a proven presentation timestamp",
+          "viewed": true
+        },
+        {
+          "kind": "contact_sheet",
+          "rel": "contactsheets/8cf1ca1d941d9b2c48f1c207c40ff1cc204127b2af8c8f421efda61afed06665.jpg",
+          "sha256": "72fe8e7664f6792890c900800955c1d43a43962847985d3f238c4ccf327d0419",
+          "bytes": 81999,
+          "viewed": true,
+          "view_note": "opened and used as an integrated cross-check of the four frames"
+        }
+      ],
+      "observation_basis": "the reviewer opened and visually viewed every preview file marked viewed=true in preview_refs; no description is derived from a file name, a count, a script output or a project answer",
+      "observable_facts": {
+        "subject_category": "interior clip of one adult in an ornate classical room",
+        "visible_person_count": "1 visible person",
+        "scene_and_objects": [
+          "a cream button-tufted sofa with gilt trim",
+          "a striped cushion",
+          "a patterned carpet",
+          "a dark wood coffee table with a white porcelain tea set (teapot, cup and saucer)",
+          "an armchair",
+          "a gilded side table with a lamp",
+          "panelled walls",
+          "a smartphone in the person's hands",
+          "wardrobe: a bright magenta skirt suit, white shirt, a dark patterned neck scarf, sheer dark tights, open-toe shoes"
+        ],
+        "pose_and_action_cues": [
+          "in all four frames the figure reclines on the sofa, head down, looking at the phone",
+          "f03 and f04 one leg is drawn up and bent while the phone is still held in both hands"
+        ],
+        "composition_lighting_style": "fixed slightly elevated side angle showing the room furnishings; warm indoor light; the subject occupies the right half of the frame",
+        "visible_text": [
+          "a watermark reading \"sifangds.com\" is present in the top right corner of all four frames"
+        ]
+      },
+      "unknown_or_ambiguous": [
+        "the content on the phone screen is not readable",
+        "the source and licensing status implied by the watermark are unknown",
+        "no edit can be located from four frames"
+      ],
+      "prohibited_assertions": [
+        "must not assert what the watermark site is or what it implies",
+        "must not infer identity",
+        "must not make evaluative or editorial comments about the person or the pose",
+        "must not treat the requested sampling offsets as actual presentation timestamps"
+      ],
+      "applicable_obligation_dimensions": {
+        "人物": "exercised - person count and wardrobe are directly observable in the preview",
+        "场景": "exercised - the setting and its objects are directly observable in the preview",
+        "动作": "exercised at the level of visible pose cues only; no narrative or audible action may be asserted",
+        "证据一致性": "exercised - every claim above is anchored to the listed preview file and its sha256",
+        "未知/局限": "exercised - the unknown_or_ambiguous and prohibited_assertions lists are the expected content for this dimension"
+      },
+      "acceptance_notes": "candidate eligibility (decodable, in budget, in the frozen child) is not semantic quality; this prelabel is an independent agent visual observation, not a human signature"
+    },
+    {
+      "asset_id": "C31",
+      "file_id": "b264935b5b702d483d36de6e5a3dae13a318401cb0ad1427b9a96a6b2c5ddf3e",
+      "source_sha256": "ff7443faae636d0110e2f0cca3cda5b11833ceaa7a63a67a33231420aebe2873",
+      "source_relative_path": "edit/wedding_mv_car_story_20261022/final/隔着车窗说再见_1080p_D_SeedVR2自然柔化.mp4",
+      "media_kind": "video",
+      "probe_facts_from_container": {
+        "bytes": 25118646,
+        "container": "mov,mp4,m4a,3gp,3g2,mj2",
+        "container_format_name": "mov,mp4,m4a,3gp,3g2,mj2",
+        "width": 1920,
+        "height": 1080,
+        "pixels": 2073600,
+        "codec_name": "h264",
+        "duration_seconds": 22.266667
+      },
+      "preview_refs": [
+        {
+          "kind": "video_frame",
+          "rel": "previews/b264935b5b702d483d36de6e5a3dae13a318401cb0ad1427b9a96a6b2c5ddf3e/frame-01.jpg",
+          "sha256": "2000646bd4a965f13c0d480a503ffcf56280d9f4e88520c93816e8ec192f8ff7",
+          "bytes": 58105,
+          "observed_dimensions": "640x360",
+          "requested_offset_seconds": 2.2266667000000004,
+          "offset_caveat": "the offset is a requested sample point, not a proven presentation timestamp",
+          "viewed": true
+        },
+        {
+          "kind": "video_frame",
+          "rel": "previews/b264935b5b702d483d36de6e5a3dae13a318401cb0ad1427b9a96a6b2c5ddf3e/frame-02.jpg",
+          "sha256": "ab2abec5eae30d01b704060fdf0ba345b4bec9ced3e31f2229a5b9264524adaf",
+          "bytes": 45214,
+          "observed_dimensions": "640x360",
+          "requested_offset_seconds": 7.79333345,
+          "offset_caveat": "the offset is a requested sample point, not a proven presentation timestamp",
+          "viewed": true
+        },
+        {
+          "kind": "video_frame",
+          "rel": "previews/b264935b5b702d483d36de6e5a3dae13a318401cb0ad1427b9a96a6b2c5ddf3e/frame-03.jpg",
+          "sha256": "33028a9d6e9c7af80e940e7531403d90dac8f0f9f3b2c24608589d72ac2a3f3e",
+          "bytes": 48141,
+          "observed_dimensions": "640x360",
+          "requested_offset_seconds": 14.473333550000001,
+          "offset_caveat": "the offset is a requested sample point, not a proven presentation timestamp",
+          "viewed": true
+        },
+        {
+          "kind": "video_frame",
+          "rel": "previews/b264935b5b702d483d36de6e5a3dae13a318401cb0ad1427b9a96a6b2c5ddf3e/frame-04.jpg",
+          "sha256": "282db04ad5d8a534c7413d7aa2d66a246f068dc3e78da90f7abb80c36db33ce0",
+          "bytes": 43392,
+          "observed_dimensions": "640x360",
+          "requested_offset_seconds": 20.040000300000003,
+          "offset_caveat": "the offset is a requested sample point, not a proven presentation timestamp",
+          "viewed": true
+        },
+        {
+          "kind": "contact_sheet",
+          "rel": "contactsheets/b264935b5b702d483d36de6e5a3dae13a318401cb0ad1427b9a96a6b2c5ddf3e.jpg",
+          "sha256": "65701063b6276ee2bc94a0a1d2b8ed572e360c81a2cada5e9476302cae64bbe2",
+          "bytes": 72715,
+          "viewed": true,
+          "view_note": "opened and used as an integrated cross-check of the four frames"
+        }
+      ],
+      "observation_basis": "the reviewer opened and visually viewed every preview file marked viewed=true in preview_refs; no description is derived from a file name, a count, a script output or a project answer",
+      "observable_facts": {
+        "subject_category": "multi-shot daytime wedding clip with up to three adults and a car",
+        "visible_person_count": "1 visible person in f01 and f04; 2 visible persons in f02; 3 visible persons in f03",
+        "scene_and_objects": [
+          "a black sedan",
+          "a covered porte-cochere and a building entrance with warm interior light",
+          "wet reflective paving and green trees",
+          "a cream/white envelope",
+          "a car interior with tan/beige leather upholstery",
+          "wardrobe: a black tuxedo with bow tie and boutonniere; a strapless beaded gown with a white floral corsage; an ivory suit"
+        ],
+        "pose_and_action_cues": [
+          "f01 wide shot: the tuxedoed figure stands beside the car holding the envelope",
+          "f02 the rear door is open and the gowned woman is seated inside, looking up at the tuxedoed figure",
+          "f03 the gowned woman is out of the car and holds the hand of the ivory-suited figure",
+          "f04 close-up of the tuxedoed figure smiling with a hand at the chest and the envelope in the other hand"
+        ],
+        "composition_lighting_style": "at least four distinct camera setups and a visible change of state (inside the car -> out of the car); soft overcast daylight; the f01 and f04 framings correspond closely to the setups of C26 and C29",
+        "visible_text": [
+          "faint printed text on the cream envelope is present but not legible"
+        ]
+      },
+      "unknown_or_ambiguous": [
+        "at least three shot changes occur between the sampled frames; the cut points and the shot order are not observable",
+        "the relationships between the three people are not observable",
+        "no audio is observable"
+      ],
+      "prohibited_assertions": [
+        "must not give cut times or a shot list beyond what the four frames show",
+        "must not claim to have viewed the whole clip",
+        "must not assert the plot or the relationships",
+        "must not treat the requested sampling offsets as actual presentation timestamps"
+      ],
+      "applicable_obligation_dimensions": {
+        "人物": "exercised - person count and wardrobe are directly observable in the preview",
+        "场景": "exercised - the setting and its objects are directly observable in the preview",
+        "动作": "exercised at the level of visible pose cues only; no narrative or audible action may be asserted",
+        "证据一致性": "exercised - every claim above is anchored to the listed preview file and its sha256",
+        "未知/局限": "exercised - the unknown_or_ambiguous and prohibited_assertions lists are the expected content for this dimension"
+      },
+      "acceptance_notes": "candidate eligibility (decodable, in budget, in the frozen child) is not semantic quality; this prelabel is an independent agent visual observation, not a human signature"
+    },
+    {
+      "asset_id": "C32",
+      "file_id": "737ef95fc7d4bbffce9fdcd2120e9bceacc7597398a06b0437fefd57ffdf6f5a",
+      "source_sha256": "d93ec4d165eeb57cf893b6fba6e57044c14f718599549e3faa123a5bb1d16da3",
+      "source_relative_path": "edit/multi-angle-face-reference/multi-five-angles-10s.mp4",
+      "media_kind": "video",
+      "probe_facts_from_container": {
+        "bytes": 2944066,
+        "container": "mov,mp4,m4a,3gp,3g2,mj2",
+        "container_format_name": "mov,mp4,m4a,3gp,3g2,mj2",
+        "width": 1280,
+        "height": 720,
+        "pixels": 921600,
+        "codec_name": "h264",
+        "duration_seconds": 10.01001
+      },
+      "preview_refs": [
+        {
+          "kind": "video_frame",
+          "rel": "previews/737ef95fc7d4bbffce9fdcd2120e9bceacc7597398a06b0437fefd57ffdf6f5a/frame-01.jpg",
+          "sha256": "60d49df743a9b038b309bb9a10f2519a0239d89d816890e917097481a37abf55",
+          "bytes": 37567,
+          "observed_dimensions": "640x360",
+          "requested_offset_seconds": 1.001001,
+          "offset_caveat": "the offset is a requested sample point, not a proven presentation timestamp",
+          "viewed": true
+        },
+        {
+          "kind": "video_frame",
+          "rel": "previews/737ef95fc7d4bbffce9fdcd2120e9bceacc7597398a06b0437fefd57ffdf6f5a/frame-02.jpg",
+          "sha256": "4a2166742c71f25d46b7d8bdcd85b5f4e36a13310d6c014714ed708bb94854b1",
+          "bytes": 42910,
+          "observed_dimensions": "640x360",
+          "requested_offset_seconds": 3.5035034999999994,
+          "offset_caveat": "the offset is a requested sample point, not a proven presentation timestamp",
+          "viewed": true
+        },
+        {
+          "kind": "video_frame",
+          "rel": "previews/737ef95fc7d4bbffce9fdcd2120e9bceacc7597398a06b0437fefd57ffdf6f5a/frame-03.jpg",
+          "sha256": "46b5af4f65e6d8921af2a8c09e55e749cf75f2c41d7550456af3ffb93ad6f6fd",
+          "bytes": 47438,
+          "observed_dimensions": "640x360",
+          "requested_offset_seconds": 6.5065064999999995,
+          "offset_caveat": "the offset is a requested sample point, not a proven presentation timestamp",
+          "viewed": true
+        },
+        {
+          "kind": "video_frame",
+          "rel": "previews/737ef95fc7d4bbffce9fdcd2120e9bceacc7597398a06b0437fefd57ffdf6f5a/frame-04.jpg",
+          "sha256": "f671e5e7bc0bfa3ca6f0673d3bf8b92861f47b3c84497f400f208e5c96fd4bd5",
+          "bytes": 47072,
+          "observed_dimensions": "640x360",
+          "requested_offset_seconds": 9.009008999999999,
+          "offset_caveat": "the offset is a requested sample point, not a proven presentation timestamp",
+          "viewed": true
+        },
+        {
+          "kind": "contact_sheet",
+          "rel": "contactsheets/737ef95fc7d4bbffce9fdcd2120e9bceacc7597398a06b0437fefd57ffdf6f5a.jpg",
+          "sha256": "1843277a3d801cf618b59563c3170c53c90ce328ea067e890c2707c5f6f92034",
+          "bytes": 67239,
+          "viewed": true,
+          "view_note": "opened and used as an integrated cross-check of the four frames"
+        }
+      ],
+      "observation_basis": "the reviewer opened and visually viewed every preview file marked viewed=true in preview_refs; no description is derived from a file name, a count, a script output or a project answer",
+      "observable_facts": {
+        "subject_category": "low-angle corridor clip of one adult",
+        "visible_person_count": "1 visible person in every sampled frame",
+        "scene_and_objects": [
+          "a red door carrying a large orange swirl graphic",
+          "a lit green indicator sign",
+          "a beige light-switch panel",
+          "a perforated metal panel on the right",
+          "a small red notice sign with Japanese text",
+          "wardrobe: a short brown bob with bangs, a dark denim jacket over a blue top"
+        ],
+        "pose_and_action_cues": [
+          "f01 turned, looking back over the shoulder",
+          "f02 turned back towards the lens and smiling",
+          "f03 chin raised, soft expression",
+          "f04 head slightly turned, gaze lowered"
+        ],
+        "composition_lighting_style": "low camera angle looking up, warm amber lighting, the right third occupied by the metal grid",
+        "visible_text": [
+          "the red door carries the legible vertical text \"901 ROOM\"; a green sign reads \"901\"; the top right corner carries the watermarks \"PRESTIGE\" and \"IPPA\" with the number \"0200010#\"; the small red notice carries Japanese text that is not fully legible at preview resolution"
+        ]
+      },
+      "unknown_or_ambiguous": [
+        "the agency or licensing status implied by the watermarks is unknown",
+        "the full text of the red notice is not readable",
+        "whether the clip was shot from several camera angles cannot be established from four frames, even though the wardrobe is constant"
+      ],
+      "prohibited_assertions": [
+        "must not assert the specific venue, building or country",
+        "must not assert any identity-consistency conclusion across angles",
+        "must not transcribe the unreadable notice text",
+        "must not treat the requested sampling offsets as actual presentation timestamps"
+      ],
+      "applicable_obligation_dimensions": {
+        "人物": "exercised - person count and wardrobe are directly observable in the preview",
+        "场景": "exercised - the setting and its objects are directly observable in the preview",
+        "动作": "exercised at the level of visible pose cues only; no narrative or audible action may be asserted",
+        "证据一致性": "exercised - every claim above is anchored to the listed preview file and its sha256",
+        "未知/局限": "exercised - the unknown_or_ambiguous and prohibited_assertions lists are the expected content for this dimension"
+      },
+      "acceptance_notes": "candidate eligibility (decodable, in budget, in the frozen child) is not semantic quality; this prelabel is an independent agent visual observation, not a human signature"
+    }
+  ]
+}

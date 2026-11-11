@@ -1,0 +1,140 @@
+{
+  "scope": "retained derivatives/text/Git/installed binaries plus owned synthetic fixtures; no original media access",
+  "bindings": {
+    "child": {
+      "path": "reports/v0-s3/preparation-05/sample-preparation-child-01.json",
+      "sha256": "9989089a4dae7e39949f603482fd118a5228e6ccba9e405ba5678170e20c902b"
+    },
+    "catalog": {
+      "path": "reports/v0-s3/preparation-03/candidate-catalog-filtered-01.json",
+      "sha256": "5bb786928a143886abc29f8ee2424daa82cfc06476df7a1578bb736926ac7d65"
+    },
+    "holdout": {
+      "path": "人工验收视频集/FREEZE.json",
+      "sha256": "3a8313c6e44dbf22dfbe8abd84f24a42ff15539ec4d19da13ac9d68b5419288c"
+    },
+    "packet": {
+      "path": "reports/v0-s3/preparation-05/stage-packet-preparation-c.md",
+      "sha256": "a3f98ec3bd76b8c79dcf73bc92370ac32c06e9bf0f583595e9ce0dd3788951da"
+    },
+    "script": {
+      "path": "tools/s3_sample_preparation.py",
+      "sha256": "3ad680f94854e56c0796ae33d143a363f81c79a42f74b6713467d27b4f271a6e"
+    },
+    "test": {
+      "path": "tools/test_s3_sample_preparation.py",
+      "sha256": "30076940ff98bbb8653774912b7a4eb6c7d46a3fdcfa7c1037effb6c8e5b36e3"
+    },
+    "runner": {
+      "path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_process.py",
+      "sha256": "563402a9c2f466c1484173c6a4dd2b9a8dbe46fd939ad92a6264975217508954"
+    },
+    "execution_control": {
+      "path": "plans/execution-control.json",
+      "sha256": "d8582dcdb5efba15e65b6d0acf8501383ab2d0db2bf6a33419c6de7192fba4c8"
+    },
+    "docs24": {
+      "path": "docs/24_EXECUTION_MASTER_PLAN.md",
+      "sha256": "99399d1371ff75f54e456577a67ae92fbe237882f606ca5852ee3a52b288512e"
+    }
+  },
+  "synthetic": {
+    "size_change": {
+      "decision": "PREPARATION_COMPLETE_READY_FOR_REVIEW",
+      "reasons": [
+        "source_size_mismatch",
+        null
+      ],
+      "hash_calls": 1,
+      "image_decodes": 1,
+      "expected": "SOURCE_CHANGED terminal; no later candidate access",
+      "defect_reproduced": true,
+      "staging_removed": true
+    },
+    "deadline": {
+      "decision": "PREPARATION_COMPLETE_READY_FOR_REVIEW",
+      "wall_seconds_used": 1201,
+      "calls": [
+        "probe",
+        "frame_after_deadline",
+        "frame_after_deadline",
+        "frame_after_deadline",
+        "frame_after_deadline"
+      ],
+      "defect_reproduced": true,
+      "staging_removed": true
+    }
+  },
+  "candidate_blobs_match": true,
+  "root_ancestor": true,
+  "installed_executable_hashes_match": true,
+  "pillow_image_module_match": true,
+  "holdout": {
+    "videos": 11,
+    "listed": 13,
+    "missing": [],
+    "extras_are_metadata": true
+  },
+  "relative_links_verified": 100,
+  "commands": {
+    "total": 60,
+    "ffprobe": 12,
+    "ffmpeg": 48,
+    "all_hashes_and_exits_match": true
+  },
+  "recorded_budget": {
+    "wall_seconds_limit": 1200,
+    "wall_seconds_used": 13.293,
+    "source_files_hashed": 32,
+    "hash_passes_per_file": 1,
+    "source_bytes_hashed": 83043322,
+    "admitted_source_bytes": 83043322,
+    "admitted_source_bytes_limit": 1073741824,
+    "image_decode_calls": 20,
+    "image_decode_limit_per_image": 1,
+    "ffprobe_calls": 12,
+    "ffprobe_limit_per_video": 1,
+    "ffmpeg_frame_calls": 48,
+    "ffmpeg_frame_limit_per_video": 4,
+    "output_bytes_retained": 3963572,
+    "output_bytes_staging": 1493073,
+    "output_bytes_limit": 83886080,
+    "decoder_disk_io_bytes": "NOT_MEASURED_NOT_CLAIMED",
+    "model_actions": 0,
+    "gpu_actions": 0,
+    "services": 0,
+    "network_calls": 0,
+    "downloads": 0,
+    "full_product_checkpoints": 0,
+    "browser_sessions": 0
+  },
+  "recorded_counts": {
+    "selected_total": 32,
+    "images_selected": 20,
+    "videos_selected": 12,
+    "eligible": 32,
+    "not_eligible": 0,
+    "not_run": 0,
+    "conservation_ok": true,
+    "conservation_formula": "selected_total == eligible + not_eligible + not_run",
+    "admitted": 32,
+    "admitted_bytes": 83043322,
+    "not_eligible_by_reason": {},
+    "not_run_by_reason": {},
+    "internal_error": null
+  },
+  "source_hashes_status": "32 receipt values match child; originals NOT rehashed",
+  "tests": {
+    "prior_stdout": ".............................................                            [100%]\n45 passed in 21.30s\n",
+    "prior_exit": "EXIT=0\n",
+    "test_function_count": 45,
+    "suite_rerun": false
+  },
+  "owned_cleanup": {
+    "entries_before": 24,
+    "bytes_before": 38218,
+    "temporary_root_absent_after": true,
+    "historical_or_original_artifacts_deleted": 0
+  }
+}
+retained files 342 bytes 3963572

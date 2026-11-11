@@ -1,0 +1,55 @@
+{
+  "kind": "S3_PREP_C_INDEPENDENT_REVIEW_CLEANUP_EVIDENCE",
+  "schema_version": "lvw.s3-prep-c-independent-cleanup/1",
+  "scope": "owned temporary artefacts created by this independent review only",
+  "not_touched": {
+    "original_retained_preview_runtime_root_deleted": 0,
+    "original_retained_preview_runtime_root_modified": 0,
+    "historical_residuals_deleted": 0,
+    "implementation_evidence_deleted": 0,
+    "implementation_evidence_modified": 0,
+    "source_media_deleted": 0,
+    "source_media_modified": 0,
+    "committed_raw_evidence_deleted": 0
+  },
+  "owned_temporary_directories": [
+    {
+      "purpose": "pytest --basetemp for the single synthetic test run",
+      "location": "outside the package tree, under the system temp directory",
+      "entries_before_removal": 87,
+      "bytes_before_removal": 29544179,
+      "removal_command": "rm -rf <owned basetemp>",
+      "path_absent_after_removal": true,
+      "removal_measured": true
+    }
+  ],
+  "bytecode_residue": {
+    "pycache_dirs_in_package_tree": 0,
+    "pyc_files_in_package_tree": 0,
+    "flags_used": ["-B", "PYTHONDONTWRITEBYTECODE=1", "-p no:cacheprovider"],
+    "pytest_cache_dir_created": 0
+  },
+  "git_worktree_state": {
+    "untracked_paths_after_review": [
+      "reports/v0-s3/preparation-05/independent-01/"
+    ],
+    "tracked_files_modified_outside_the_new_review_directory": 0,
+    "stashes_created": 0,
+    "branches_created": 0
+  },
+  "review_side_effects": {
+    "model_calls": 0,
+    "gpu_actions": 0,
+    "services_started": 0,
+    "network_calls": 0,
+    "downloads": 0,
+    "full_product_checkpoints": 0,
+    "external_media_recognition_api_calls": 0,
+    "media_copied_into_git": 0,
+    "media_uploaded_or_published": 0,
+    "source_media_opened": 0,
+    "real_run_repeated": 0,
+    "preview_regenerated_in_review_worktree": 0,
+    "read_only_reads_of_the_retained_preview_in_the_original_runtime_root": 1
+  }
+}

@@ -1,0 +1,52 @@
+== A. binding hashes (independently recomputed) ==
+child sha256       : 9989089a4dae7e39949f603482fd118a5228e6ccba9e405ba5678170e20c902b | receipt: 9989089a4dae7e39949f603482fd118a5228e6ccba9e405ba5678170e20c902b
+catalog sha256     : 5bb786928a143886abc29f8ee2424daa82cfc06476df7a1578bb736926ac7d65 | receipt: 5bb786928a143886abc29f8ee2424daa82cfc06476df7a1578bb736926ac7d65
+holdout sha256     : 3a8313c6e44dbf22dfbe8abd84f24a42ff15539ec4d19da13ac9d68b5419288c | receipt: 3a8313c6e44dbf22dfbe8abd84f24a42ff15539ec4d19da13ac9d68b5419288c
+preflight sha256   : 96b6cd825c3c400a1c427db9478018d4805105158c5c168069fb610a9ad75118 | receipt: 96b6cd825c3c400a1c427db9478018d4805105158c5c168069fb610a9ad75118
+script  sha256     : 3ad680f94854e56c0796ae33d143a363f81c79a42f74b6713467d27b4f271a6e | receipt: 3ad680f94854e56c0796ae33d143a363f81c79a42f74b6713467d27b4f271a6e
+test    sha256     : 30076940ff98bbb8653774912b7a4eb6c7d46a3fdcfa7c1037effb6c8e5b36e3 | receipt: 30076940ff98bbb8653774912b7a4eb6c7d46a3fdcfa7c1037effb6c8e5b36e3
+runner  sha256     : 563402a9c2f466c1484173c6a4dd2b9a8dbe46fd939ad92a6264975217508954 | receipt: 563402a9c2f466c1484173c6a4dd2b9a8dbe46fd939ad92a6264975217508954
+
+== B. holdout set shape ==
+freeze protected videos      : 11
+child listed entries         : 13
+videos missing from child    : []
+child extras not in videos   : ['18075523f1bf7e4b9e4ff29dd9a03a53417c51019bd436d464d6f7bdf4248e0e', '77fce4fcbf36f506abcf37f48bb501262bba5cda83aa7cdb690ad31d13fcb63f']
+extras == freeze own hashes  : True ['18075523f1bf7e4b9e4ff29dd9a03a53417c51019bd436d464d6f7bdf4248e0e', '77fce4fcbf36f506abcf37f48bb501262bba5cda83aa7cdb690ad31d13fcb63f']
+denominator reduced? NO - 11 protected videos, none excluded, none dropped
+
+== C. raw command inventory ==
+committed raw files        : 240
+exit code histogram        : {'0': 60}
+ffprobe commands           : 12
+ffmpeg frame commands      : 48
+videos with frames         : 12 | frames per video set: [4]
+receipt command entries    : 60
+command_sha256 == exact (unredacted) runtime command text: 60 / 60
+
+== D. retained preview tree (retained runtime root in the implement worktree, read only) ==
+receipt tree entries        : 342
+independently verified      : 342
+missing / mismatched        : 0 / 0
+files on disk not in receipt: 0
+staging dir present?        : False
+runtime file count on disk  : 342 | bytes: 3963572
+index.html relative links   : 100 | broken: 0 | absolute/external: 0
+absolute path leak scan in committed raw -> leaked files: 0
+
+== E. candidate level facts ==
+candidates in receipt       : 32
+source sha256 == child sha  : 32
+counts                      : 32 = 32 + 0 + 0 | conserved: True
+budget                      : hashed=32 decode=20 probe=12 frame=48 subprocesses=60
+wall                        : 13.293 s used of 1200 s limit
+output bytes                : retained=3963572 staging=1493073 limit=83886080
+decoder disk io             : NOT_MEASURED_NOT_CLAIMED
+cleanup                     : {"staging_path": ".agent-governance/runtime/receipts/s3-preview-c01/run-01/staging", "staging_removed": true, "staging_residual_entries": 0, "temporary_directories_created": 1, "temporary_directories_removed": 1, "subprocesses_started": 60, "owned_pids_only": true, "source_files_modified": 0, "source_files_deleted": 0}
+
+== F. receipt metadata defect (reproduced) ==
+receipt started_at          : 1970-01-01T11:41:51.999572+00:00
+receipt finished_at         : 2026-11-11T18:02:12.756887+00:00
+wall_seconds_used           : 13.293
+NOTE: started_at = datetime.fromtimestamp(time.monotonic()) -> a 1970 epoch value.
+      wall_seconds_used is a correct monotonic delta; finished_at is a real wall clock.
