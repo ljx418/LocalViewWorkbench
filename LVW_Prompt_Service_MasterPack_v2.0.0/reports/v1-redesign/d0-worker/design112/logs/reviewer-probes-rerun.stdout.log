@@ -1,0 +1,48 @@
+==============================================================================
+PROBE P01-n6-unpinned-alias-drift  [fence=ON (semantic)]
+purpose : N6: rename an unpinned scene hash column alias
+exit    : 1
+stdout  : E_SCENE_HASH_MAPPING: the scene hash column alias for media_sha256 is 'scene_revision.media_ref_id', the frozen alias is 'scene_revision_meta.source_sha256 (legacy backfill: media_ref.sha256)' | VALIDATION: metaschema_check=jsonschema frame_instance_probe=jsonschema frame_sample=present | PIN: mode=explicit-override (NON-AUTHORITY: this run did not use the frozen stage command pin) expected_default=181c08ee7290f5bef02e22b6f7fd3c874c2d404cc8b4ffff84d2148a71f47eb8 actual=822365831c3ec9c1ac99af22038b2c4d9428e336b3b2f92c0e699ddc77dca908 override=822365831c3ec9c1ac99af22038b2c4d9428e336b3b2f92c0e69
+==============================================================================
+PROBE P02-n6-sql-argument-permutation  [fence=ON (semantic)]
+purpose : N6: permute the lvw_scene_hash arguments
+exit    : 1
+stdout  : E_SCENE_HASH_MAPPING: the lvw_scene_hash call site 1 passes 's.end_pts' for the start_pts field, the frozen column is 'start_pts' | E_SCENE_HASH_MAPPING: the lvw_scene_hash call site 1 passes 's.start_pts' for the end_pts field, the frozen column is 'end_pts' | E_SCENE_HASH_MAPPING: the lvw_scene_hash call site 2 passes 's.end_pts' for the start_pts field, the frozen column is 'start_pts' | E_SCENE_HASH_MAPPING: the lvw_scene_hash call site 2 passes 's.start_pts' for the end_pts field, the frozen column is 'end_pts' | VALIDATION: metaschema_check=jsonschema frame_instance_probe=jsonschema fram
+==============================================================================
+PROBE P05-n1-scene-get-body-swapped  [fence=ON (semantic)]
+purpose : N1: the new Scene GET returns another candidate component
+exit    : 1
+stdout  : E_SCENE_GET_ENVELOPE: the GET /api/v1/scenes/{id} success envelope differs from the canonical success envelope of PUT /api/v1/scenes/{id} | E_SCENE_GET_ENVELOPE: the GET /api/v1/scenes/{id} success envelope must return the canonical #/components/schemas/Scene DTO, found {'$ref': '#/components/schemas/MultiShot_SceneRevisionInfo'} | VALIDATION: metaschema_check=jsonschema frame_instance_probe=jsonschema frame_sample=present | PIN: mode=explicit-override (NON-AUTHORITY: this run did not use the frozen stage command pin) expected_default=181c08ee7290f5bef02e22b6f7fd3c874c2d404cc8b4ffff84d2148a71f
+==============================================================================
+PROBE P22-malformed-overlay-metadata  [fence=ON (semantic)]
+purpose : the overlay metadata_only is a list
+exit    : 1
+stdout  : E_OVERLAY_METADATA_SHAPE: the overlay metadata_only must be a JSON object, found list | E_REUSE_METADATA: the overlay declares no metadata_only object | VALIDATION: metaschema_check=jsonschema frame_instance_probe=jsonschema frame_sample=present | PIN: mode=explicit-override (NON-AUTHORITY: this run did not use the frozen stage command pin) expected_default=181c08ee7290f5bef02e22b6f7fd3c874c2d404cc8b4ffff84d2148a71f47eb8 actual=c946f1445043a54423092d01cb24c592e47d02bef32699308c9db4f7e635c0b8 override=c946f1445043a54423092d01cb24c592e47d02bef32699308c9db4f7e635c0b8 | RESULT: FAIL (2 finding(s))
+==============================================================================
+PROBE P23-malformed-overlay-headers  [fence=ON (semantic)]
+purpose : the overlay add_response_headers is a list
+exit    : 1
+stdout  : E_ETAG_MISSING: the overlay declares no add_response_headers, so the existing Scene PUT 200 can not carry the ETag | E_OVERLAY_HEADER_SHAPE: the overlay add_response_headers must be a JSON object, found list | E_OVERLAY_HEADER_SHAPE: the overlay add_response_headers must be a JSON object, found list | VALIDATION: metaschema_check=jsonschema frame_instance_probe=jsonschema frame_sample=present | PIN: mode=explicit-override (NON-AUTHORITY: this run did not use the frozen stage command pin) expected_default=181c08ee7290f5bef02e22b6f7fd3c874c2d404cc8b4ffff84d2148a71f47eb8 actual=07aa4d4998703edd82
+==============================================================================
+PROBE P24-invalid-candidate-schema  [fence=ON (semantic)]
+purpose : the candidate schema carries an invalid regular expression
+exit    : 1
+stdout  : E_FRAME_REF_INCOMPATIBLE: ShotFrameRef.sha256 is not a valid canonical FrameRef: changes the canonical pattern ^[a-f0-9]{64}$ into ([unclosed | E_FRAME_REF_INSTANCE: the retained frame instance probe could not be completed: error: unterminated character set at position 1 | E_SCHEMA_META: candidate schema is not a valid JSON Schema: SchemaError: '([unclosed' is not a 'regex' Failed validating 'format' in metaschema['allOf'][0]['properties']['$defs']['additionalProperties']['$dynamicRef']['allOf'][1]['properties']['properties']['additionalProperties']['$dynamicRef']['allOf'][3]['properties']['pa
+==============================================================================
+PROBE P00-positive-control  [fence=ON (semantic)]
+purpose : the unmodified copy still passes
+exit    : 0
+stdout  : VALIDATION: metaschema_check=jsonschema frame_instance_probe=jsonschema frame_sample=present | PIN: mode=default (frozen stage command pin) expected_default=181c08ee7290f5bef02e22b6f7fd3c874c2d404cc8b4ffff84d2148a71f47eb8 actual=181c08ee7290f5bef02e22b6f7fd3c874c2d404cc8b4ffff84d2148a71f47eb8 | RESULT: PASS (V1=29 V2=38 V3=47; MS01-MS08 once and NOT_RUN; legacy prefix intact; DAG acyclic; parent deadline 450*n+90<=5490; checkpoint 65+ 7=72 actions / 21600 s; no human signature claimed) | NOTE: design 1.1.2 (consolidated correction of NM-1..NM-8, still pending an independent recheck): additive 
+P01-n6-unpinned-alias-drift              exit=1 codes=['E_SCENE_HASH_MAPPING', 'PIN', 'RESULT', 'VALIDATION']
+   stdout: E_SCENE_HASH_MAPPING: the scene hash column alias for media_sha256 is 'scene_revision.media_ref_id', the frozen alias is 'scene_revision_meta.source_sha256 (legacy backfill: media_ref.sha256)' | VALIDATION: metaschema_check=jsonschema frame_instance_probe=jsonschema frame_sample=present | PIN: mode=explicit-override (NON-AUTHORITY: this run did not use the frozen stage command pin) expected_defaul
+P02-n6-sql-argument-permutation          exit=1 codes=['E_SCENE_HASH_MAPPING', 'PIN', 'RESULT', 'VALIDATION']
+   stdout: E_SCENE_HASH_MAPPING: the lvw_scene_hash call site 1 passes 's.end_pts' for the start_pts field, the frozen column is 'start_pts' | E_SCENE_HASH_MAPPING: the lvw_scene_hash call site 1 passes 's.start_pts' for the end_pts field, the frozen column is 'end_pts' | E_SCENE_HASH_MAPPING: the lvw_scene_hash call site 2 passes 's.end_pts' for the start_pts field, the frozen column is 'start_pts' | E_SCEN
+P05-n1-scene-get-body-swapped            exit=1 codes=['E_SCENE_GET_ENVELOPE', 'PIN', 'RESULT', 'VALIDATION']
+   stdout: E_SCENE_GET_ENVELOPE: the GET /api/v1/scenes/{id} success envelope differs from the canonical success envelope of PUT /api/v1/scenes/{id} | E_SCENE_GET_ENVELOPE: the GET /api/v1/scenes/{id} success envelope must return the canonical #/components/schemas/Scene DTO, found {'$ref': '#/components/schemas/MultiShot_SceneRevisionInfo'} | VALIDATION: metaschema_check=jsonschema frame_instance_probe=jsons
+P22-malformed-overlay-metadata           exit=1 codes=['E_OVERLAY_METADATA_SHAPE', 'E_REUSE_METADATA', 'PIN', 'RESULT', 'VALIDATION']
+   stdout: E_OVERLAY_METADATA_SHAPE: the overlay metadata_only must be a JSON object, found list | E_REUSE_METADATA: the overlay declares no metadata_only object | VALIDATION: metaschema_check=jsonschema frame_instance_probe=jsonschema frame_sample=present | PIN: mode=explicit-override (NON-AUTHORITY: this run did not use the frozen stage command pin) expected_default=181c08ee7290f5bef02e22b6f7fd3c874c2d404c
+P23-malformed-overlay-headers            exit=1 codes=['E_ETAG_MISSING', 'E_OVERLAY_HEADER_SHAPE', 'PIN', 'RESULT', 'VALIDATION']
+   stdout: E_ETAG_MISSING: the overlay declares no add_response_headers, so the existing Scene PUT 200 can not carry the ETag | E_OVERLAY_HEADER_SHAPE: the overlay add_response_headers must be a JSON object, found list | E_OVERLAY_HEADER_SHAPE: the overlay add_response_headers must be a JSON object, found list | VALIDATION: metaschema_check=jsonschema frame_instance_probe=jsonschema frame_sample=present | PI
+P24-invalid-candidate-schema             exit=1 codes=['E_FRAME_REF_INCOMPATIBLE', 'E_FRAME_REF_INSTANCE', 'E_SCHEMA_META', 'E_SCHEMA_PATTERN', 'PIN', 'RESULT', 'VALIDATION']
+   stdout: E_FRAME_REF_INCOMPATIBLE: ShotFrameRef.sha256 is not a valid canonical FrameRef: changes the canonical pattern ^[a-f0-9]{64}$ into ([unclosed | E_FRAME_REF_INSTANCE: the retained frame instance probe could not be completed: error: unterminated character set at position 1 | E_SCHEMA_META: candidate schema is not a valid JSON Schema: SchemaError: '([unclosed' is not a 'regex' Failed validating 'form
+P00-positive-control                     exit=0 codes=['NOTE', 'PIN', 'RESULT', 'VALIDATION']

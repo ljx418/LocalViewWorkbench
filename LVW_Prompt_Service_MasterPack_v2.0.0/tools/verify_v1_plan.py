@@ -15,6 +15,35 @@ The tool is stdlib-only. ``jsonschema`` is used for metaschema validation and
 for the candidate-instance probe when it happens to be importable, but the tool
 never requires that extra install: a structural fallback check always runs.
 
+Design 1.1.2 consolidated correction (owner authority ``3af4463``, adjudication
+``design112-adjudication.json``): the eight independent-review findings NM-1 -
+NM-8 of the design 1.1.1 code audit are corrected here, in one package:
+
+  * NM-1 all 11 scene hash column aliases are bound to their exact frozen DDL
+    mapping and every ``lvw_scene_hash`` call site in the candidate migration
+    must carry the exact 11 arguments in the declared field order;
+  * NM-2 the new ``GET /api/v1/scenes/{id}`` must return the canonical Scene
+    inside the canonical success envelope, not any resolving component;
+  * NM-3 malformed candidate input produces a deterministic ``E_*`` finding (or
+    a clean ``INPUT_ERROR``) instead of an uncaught traceback with an empty
+    stdout;
+  * NM-4 the run discloses what it actually validated: every collected note,
+    the validation capability (metaschema check and retained frame instance
+    probe) and the D0 pin it verified against;
+  * NM-5 the frozen N5 entry serialization rule states one unambiguous key set
+    and one sorted output order;
+  * NM-6 the bilingual -> canonical domain conversion is recomputed by a
+    declaration driven engine, not by one hard coded character example;
+  * NM-7 the implementation receipt is a correction receipt that binds the
+    raw logs of this run;
+  * NM-8 the run records the expected/default D0 pin, the computed actual pin
+    and whether the pin was overridden on the command line.
+
+The design 1.1.2 authority is a *consolidated correction* package: the
+correction candidate is still pending an independent recheck, the product
+stays at ``R1 / WAIT_HUMAN`` and no sample is materialized. The design 1.1.1
+adjudication is retained as the historical frozen record of that revision.
+
 Design 1.1.1 re-freeze (owner authority ``743e028``, adjudication
 ``design111-adjudication.json``): the six independent-review minors N1-N6 that
 the owner corrected in the design text are now *checked* here:
@@ -220,7 +249,13 @@ FROZEN_D0_PACKET_FILES = (
 # the new payload manifest digest. This constant is re-frozen to that supplied
 # digest *in the same commit as the 1.1.1 code changes*. The owner hashes are
 # never regenerated to make a check pass.
-FROZEN_D0_PACKET_MANIFEST_SHA256 = "04d3bfb4af3c2d7be68e494a6d59624a96051a0ebf28e81d6a0367aa32aa6710"
+#
+# design 1.1.2 re-freeze: the owner authority 3af4463 sealed the V1 D0 1.1.2
+# packet (25 file spec fence + the same 10 file D0 payload inventory) and
+# supplied the new payload manifest digest. This constant is re-frozen to that
+# supplied digest *in the same commit as the 1.1.2 code changes*. The owner
+# hashes are never regenerated to make a check pass.
+FROZEN_D0_PACKET_MANIFEST_SHA256 = "181c08ee7290f5bef02e22b6f7fd3c874c2d404cc8b4ffff84d2148a71f47eb8"
 # Only this stage display name may be accounted against the R2 authority stage.
 ALLOWED_AUTHORIZATION_MAP = {"V1-M1": "R2"}
 FROZEN_GLOBAL_AUTHORITY = "AUTH-PROGRAM-V1-COMPLETE-03"
@@ -247,13 +282,18 @@ HUMAN_SIGNATURE_KEYS = (
     "signer",
 )
 
-# Authority inputs that the owner spec manifest must fence (design 1.1.1).
+# Authority inputs that the owner spec manifest must fence (design 1.1.2).
 #
 # design 1.1.1: the owner spec manifest is a closed inventory of exactly 24
 # files. A file that is missing from the inventory, or a file that is fenced
 # but not part of the frozen inventory, is a finding: the fence must not be
 # able to grow or shrink without the source-control pinned D0 payload
 # manifest digest changing.
+#
+# design 1.1.2: the consolidated correction authority adds exactly one fenced
+# source, reports/v1-redesign/design112-adjudication.json. The design 1.1.1
+# adjudication is *retained* as the historical frozen record of that revision;
+# it is not replaced and not deleted. The inventory is now exactly 25 files.
 FROZEN_SPEC_FENCE_FILES = (
     "docs/17_DATA_AND_VERSIONING.md",
     "docs/20_RELIABILITY_AND_OPERATIONS.md",
@@ -278,13 +318,14 @@ FROZEN_SPEC_FENCE_FILES = (
     "reports/v1-redesign/legacy-gates-before-change.json",
     "reports/v1-redesign/design11-adjudication.json",
     "reports/v1-redesign/design111-adjudication.json",
+    "reports/v1-redesign/design112-adjudication.json",
     ".agent-governance/stages/R1/PAYLOAD_MANIFEST.sha256",
 )
 # The inventory is closed: the owner manifest fences exactly this many files.
-FROZEN_SPEC_FENCE_COUNT = 24
+FROZEN_SPEC_FENCE_COUNT = 25
 # The owner manifest states its own kind; a manifest that claims a product
 # gate would be a forged authority record.
-FROZEN_SPEC_MANIFEST_KIND = "D0_AUTHORITY_DESIGN111_CANDIDATE_HASH_FENCE_NOT_PRODUCT_GATE0"
+FROZEN_SPEC_MANIFEST_KIND = "D0_AUTHORITY_DESIGN112_CANDIDATE_HASH_FENCE_NOT_PRODUCT_GATE0"
 
 # Declared candidate artefacts (path -> frozen relative location).
 FROZEN_ARTIFACT_PATHS = {
@@ -421,6 +462,23 @@ FROZEN_ETAG_STATUS = "200"
 # Only this response header may be added to an existing operation.
 FROZEN_ALLOWED_RESPONSE_HEADERS = ("ETag",)
 
+# NM-2: the new GET on the existing Scene path must keep returning the
+# *canonical* Scene DTO, inside the canonical success envelope. The remedy for
+# the design 1.0 F1/M1 divergence is exactly this: /scenes/{id} stays the
+# canonical Scene. The checker pins the component reference *and* the success
+# envelope shape, so that "any resolving component" is not enough.
+FROZEN_SCENE_GET_PATH = "/api/v1/scenes/{id}"
+FROZEN_SCENE_GET_METHOD = "get"
+# The canonical component reference. The candidate may not point the Scene GET
+# at a candidate component (for example MultiShot_SceneRevisionInfo).
+FROZEN_SCENE_DTO_REF = "#/components/schemas/Scene"
+# The canonical success envelope: data / request_id / schema_version.
+FROZEN_SUCCESS_ENVELOPE_PROPERTIES = ("data", "request_id", "schema_version")
+FROZEN_SUCCESS_ENVELOPE_REQUIRED = ("data", "request_id", "schema_version")
+# The canonical operation on the same path whose 200 response carries the
+# canonical success envelope. The new GET envelope must equal it.
+FROZEN_SCENE_ENVELOPE_SOURCE = ("/api/v1/scenes/{id}", "put")
+
 # N4: the per-shot frame reference carries real decoded PTS and positive
 # timebases; an unreachable null branch is a defect, not a feature.
 FROZEN_FRAME_REF_PTS_FIELDS = ("source_pts", "time_base_num", "time_base_den")
@@ -428,7 +486,23 @@ FROZEN_TIMEBASE_MINIMUM = 1
 
 # N5: the bilingual evidence -> canonical domain conversion.
 FROZEN_DOMAIN_LANGUAGES = ("zh", "en")
-FROZEN_DOMAIN_ENTRY_KEYS = ("kind", "ref", "lang", "text")
+# NM-5 (design 1.1.2): the key SET of one serialized domain entry and the
+# exact sorted output order are both pinned. The sorted order of the key set
+# {kind, lang, ref, text} is kind, lang, ref, text - that is what
+# ``sort_keys=True`` produces and what the frozen example uses. The
+# enumeration is deliberately *not* the insertion order.
+FROZEN_DOMAIN_ENTRY_KEYS = ("kind", "lang", "ref", "text")
+# NM-5 (design 1.1.2): the exact wording of the entry serialization rule.
+# The design 1.1.1 text said "sorted keys" *and* enumerated the keys in a
+# different order; the design 1.1.2 text states the key set and the exact
+# sorted output order, so that the machine contract has exactly one reading.
+FROZEN_DOMAIN_ENTRY_SERIALIZATION = (
+    "Each nonempty language value produces one string: compact UTF-8 JSON object, sorted keys, "
+    "ensure_ascii=False, allow_nan=False. The JSON key set is {kind, lang, ref, text}; serialized "
+    "key order MUST be kind, lang, ref, text (sort_keys=True), never insertion order. No "
+    "translation, normalization, trim or deduplication; skip only exactly empty strings. Preserve "
+    "raw model response byte-for-byte."
+)
 FROZEN_DOMAIN_REFS = {
     "character": "local_actor_id",
     "scene": "scene",
@@ -441,6 +515,17 @@ FROZEN_DOMAIN_SOURCE_FIELDS = {
     "action": "description",
     "unknown": "unknowns item",
 }
+# NM-6: the four declared domain kinds and the candidate DTO each kind is
+# carried by. The rule is bound to the DTOs, so a rule that names a field the
+# DTO does not declare is a finding.
+FROZEN_DOMAIN_KINDS = ("character", "scene", "action", "unknown")
+FROZEN_DOMAIN_KIND_DTOS = {
+    "character": "Character",
+    "scene": "SceneEvidence",
+    "action": "Action",
+    "unknown": "BilingualPhrase",
+}
+FROZEN_DOMAIN_DOMAIN_FIELD = "domain"
 # The pinned wording of the ordering / serialization / human domain rules.
 FROZEN_DOMAIN_ITEM_ORDER_TOKENS = (
     "local_actor_id",
@@ -457,13 +542,21 @@ FROZEN_DOMAIN_SERIALIZATION_TOKENS = (
     "ensure_ascii=false",
     "allow_nan=false",
     "kind",
-    "ref",
     "lang",
+    "ref",
     "text",
     "no translation",
     "trim",
     "deduplication",
     "byte-for-byte",
+)
+# NM-5 (design 1.1.2): the tokens that carry the *new* unambiguity. They are
+# additive: the design 1.1.1 obligations are still checked.
+FROZEN_DOMAIN_SERIALIZATION_CLARITY_TOKENS = (
+    "{kind, lang, ref, text}",
+    "kind, lang, ref, text",
+    "sort_keys=true",
+    "never insertion order",
 )
 FROZEN_DOMAIN_HUMAN_TOKENS = (
     "user_evidence",
@@ -489,10 +582,64 @@ FROZEN_SCENE_HASH_FIELDS = (
     "verified",
 )
 FROZEN_SCENE_HASH_COLUMN_ALIASES = {
+    "media_ref_id": "scene_revision.media_ref_id",
+    "media_sha256": "scene_revision_meta.source_sha256 (legacy backfill: media_ref.sha256)",
+    "revision": "scene_revision.version (equals scene_revision_meta.revision)",
+    "start_pts": "scene_revision.start_pts",
+    "end_pts": "scene_revision.end_pts",
+    "origin_pts": "scene_revision.origin_pts",
     "time_base_num": "scene_revision.tb_num",
     "time_base_den": "scene_revision.tb_den",
+    "editor": "scene_revision.editor",
+    "time_basis": "scene_revision_meta.time_basis",
+    "verified": "scene_revision_meta.verified (SQLite 0/1 converted to JSON false/true)",
 }
 FROZEN_SCENE_HASH_REVISION_ALIAS = "scene_revision.version"
+# NM-1: every hashed field is bound to one DDL column, and the candidate
+# migration must declare that column. The column is the value source of the
+# field, never the JSON key.
+FROZEN_SCENE_HASH_DDL_COLUMNS = {
+    "media_ref_id": "MEDIA_REF_ID",
+    "media_sha256": "SOURCE_SHA256",
+    "revision": "VERSION",
+    "start_pts": "START_PTS",
+    "end_pts": "END_PTS",
+    "origin_pts": "ORIGIN_PTS",
+    "time_base_num": "TB_NUM",
+    "time_base_den": "TB_DEN",
+    "editor": "EDITOR",
+    "time_basis": "TIME_BASIS",
+    "verified": "VERIFIED",
+}
+# NM-1: the exact argument list of every ``lvw_scene_hash(...)`` call site in
+# the candidate migration. The order is the order of ``scene_hash.fields``.
+# Each entry is (hash field, argument kind, expected value):
+#   "column"      - a DDL column reference whose last identifier must be the
+#                   expected column (the table alias may vary);
+#   "literal_text"- a SQL string literal; the backfill has no decoded PTS, so
+#                   the time basis is a literal, not a column reference;
+#   "literal_int" - a SQL integer literal; the SQLite 0/1 verified flag.
+# The pairing of the last two arguments is constrained by the DDL check
+# constraint: verified=1 requires time_basis='decoded_pts' and verified=0
+# requires a time_basis that is not 'decoded_pts'.
+FROZEN_SCENE_HASH_CALL_ARGUMENTS = (
+    ("media_ref_id", "column", "media_ref_id"),
+    ("media_sha256", "column", "sha256"),
+    ("revision", "column", "version"),
+    ("start_pts", "column", "start_pts"),
+    ("end_pts", "column", "end_pts"),
+    ("origin_pts", "column", "origin_pts"),
+    ("time_base_num", "column", "tb_num"),
+    ("time_base_den", "column", "tb_den"),
+    ("editor", "column", "editor"),
+    ("time_basis", "literal_text", ("decoded_pts", "estimated", "unverified")),
+    ("verified", "literal_int", ("0", "1")),
+)
+# The candidate migration declares exactly two backfill call sites: the
+# scene_head backfill and the scene_revision_meta backfill. A third call site
+# is an unexpected one.
+FROZEN_SCENE_HASH_CALL_SITE_COUNT = 2
+FROZEN_SCENE_HASH_CALL_SITE_TABLES = ("SCENE_HEAD", "SCENE_REVISION_META")
 FROZEN_SCENE_HASH_VERIFIED_TOKENS = ("0/1", "false", "true")
 FROZEN_SCENE_HASH_SERIALIZATION_TOKENS = (
     "field names",
@@ -510,6 +657,31 @@ FROZEN_111_ADJUDICATION_KIND = "CODEX_OWNER_MINOR_CORRECTION_NOT_INDEPENDENT_ACC
 FROZEN_111_FINDING_IDS = ("N1", "N2", "N3", "N4", "N5", "N6")
 FROZEN_111_PENDING_STATES = ("CORRECTED_PENDING_INDEPENDENT_RECHECK",)
 FROZEN_111_CLOSED_TOKENS = ("ACCEPTED", "CLOSED", "VERIFIED", "RESOLVED", "PASSED")
+
+# The 1.1.2 consolidated correction adjudication. It is a *correction
+# package*: the decision is CHANGES_REQUIRED, the product gate is refused and
+# no finding is closed. The design 1.1.1 adjudication stays in place as the
+# historical frozen record of that revision; it is not rewritten here.
+FROZEN_112_ADJUDICATION_KIND = "CODEX_D0_CONSOLIDATED_CORRECTION_NOT_PRODUCT_GATE"
+FROZEN_112_ADJUDICATION_VERSION = "1.1.2"
+FROZEN_112_ADJUDICATION_DECISION = "CHANGES_REQUIRED"
+FROZEN_112_FINDING_IDS = ("NM-1", "NM-2", "NM-3", "NM-4", "NM-5", "NM-6", "NM-7", "NM-8")
+FROZEN_112_FINDING_SEVERITIES = {
+    "NM-1": "Major",
+    "NM-2": "Major",
+    "NM-3": "Major",
+    "NM-4": "Minor",
+    "NM-5": "Minor",
+    "NM-6": "Minor",
+    "NM-7": "Minor",
+    "NM-8": "Minor",
+}
+FROZEN_112_DERIVED_COUNTS = {"Fatal": 0, "Major": 3, "Minor": 5}
+# The review report summary wrote "6 Minor"; the actual finding array holds
+# five. The original report is retained unchanged and the discrepancy is
+# reconciled in the appended correction receipt, not by editing the report.
+FROZEN_112_REVIEW_SUMMARY_MINOR_COUNT = 6
+FROZEN_112_CLOSED_TOKENS = ("ACCEPTED", "CLOSED", "VERIFIED", "RESOLVED", "PASSED")
 
 # The product coordinate stays in the R1 human gate; the design package may
 # not move it.
@@ -600,6 +772,231 @@ def is_finite(value) -> bool:
 
 def is_integer(value) -> bool:
     return isinstance(value, int) and not isinstance(value, bool)
+
+
+# --------------------------------------------------------------------------
+# Shape and text helpers
+#
+# NM-3: a malformed candidate input must produce a deterministic finding, not
+# an uncaught traceback with an empty stdout. These helpers let the checks
+# validate a container *before* they traverse it and let them recognise the
+# narrow, expected failures (a JSON shape error, an invalid regular
+# expression) without swallowing programming errors into a success.
+# --------------------------------------------------------------------------
+
+
+def require_mapping(value, label: str, report: Report, code: str) -> bool:
+    """A container must be a JSON object before it is traversed."""
+    if not isinstance(value, dict):
+        report.add(code, "%s must be a JSON object, found %s" % (label, type(value).__name__))
+        return False
+    return True
+
+
+def require_sequence(value, label: str, report: Report, code: str) -> bool:
+    """A container must be a JSON array before it is traversed."""
+    if not isinstance(value, list):
+        report.add(code, "%s must be a JSON array, found %s" % (label, type(value).__name__))
+        return False
+    return True
+
+
+def dig(container, *keys, default=None):
+    """Read a nested value without assuming any container type.
+
+    NM-3: a malformed document must not make the report itself crash.
+    """
+    current = container
+    for key in keys:
+        if not isinstance(current, dict):
+            return default
+        current = current.get(key)
+    return default if current is None else current
+
+
+def one_line(detail: str, limit: int = 400) -> str:
+    """Collapse a detail into one printable line.
+
+    A finding is one line of stdout, so a multi line third party error
+    message is flattened and truncated instead of breaking the output
+    format.
+    """
+    text = " ".join(str(detail).split())
+    if len(text) > limit:
+        text = text[:limit] + "..."
+    return text
+
+
+def is_usable_regex(pattern) -> bool:
+    """True when *pattern* is a regular expression Python can compile.
+
+    JSON Schema treats ``format: regex`` as an annotation, so a syntactically
+    invalid ``pattern`` survives the metaschema check and only explodes when
+    a validator compiles it. The checker therefore validates the patterns
+    itself, before any validator is asked to use them.
+    """
+    if not isinstance(pattern, str):
+        return False
+    try:
+        re.compile(pattern)
+    except re.error:
+        return False
+    return True
+
+
+def collect_schema_patterns(node, path: str = "") -> list:
+    """Every ``pattern`` string in a schema document, with its location."""
+    found = []
+    if isinstance(node, dict):
+        for key, value in sorted(node.items()):
+            location = "%s.%s" % (path, key) if path else key
+            if key == "pattern" and isinstance(value, str):
+                found.append((location, value))
+            else:
+                found.extend(collect_schema_patterns(value, location))
+    elif isinstance(node, list):
+        for index, item in enumerate(node):
+            found.extend(collect_schema_patterns(item, "%s[%d]" % (path, index)))
+    return found
+
+
+def strip_sql_comments(sql: str) -> str:
+    """Remove SQL comments, keeping string literals intact.
+
+    The candidate migration mentions ``lvw_scene_hash(11args)`` inside a
+    comment. A call site scan that did not strip comments would count that
+    mention as a call site.
+    """
+    out = []
+    index = 0
+    length = len(sql)
+    while index < length:
+        char = sql[index]
+        if char == "'":
+            end = sql.find("'", index + 1)
+            if end == -1:
+                end = length
+            out.append(sql[index:end + 1])
+            index = end + 1
+            continue
+        if char == "-" and sql.startswith("--", index):
+            end = sql.find("\n", index)
+            index = length if end == -1 else end
+            continue
+        if char == "/" and sql.startswith("/*", index):
+            end = sql.find("*/", index + 2)
+            index = length if end == -1 else end + 2
+            out.append(" ")
+            continue
+        out.append(char)
+        index += 1
+    return "".join(out)
+
+
+def split_sql_arguments(text: str) -> list:
+    """Split a SQL argument list on its top level commas."""
+    arguments = []
+    current = []
+    depth = 0
+    in_string = False
+    for char in text:
+        if in_string:
+            current.append(char)
+            if char == "'":
+                in_string = False
+            continue
+        if char == "'":
+            in_string = True
+            current.append(char)
+            continue
+        if char == "(":
+            depth += 1
+        elif char == ")":
+            depth -= 1
+        if char == "," and depth == 0:
+            arguments.append("".join(current).strip())
+            current = []
+            continue
+        current.append(char)
+    tail = "".join(current).strip()
+    if tail:
+        arguments.append(tail)
+    return arguments
+
+
+def find_sql_call_sites(sql: str, function_name: str) -> list:
+    """Every real call of *function_name* in the comment-free SQL.
+
+    Each site is a dict with the raw argument list, the parsed arguments and
+    the table the enclosing INSERT targets.
+    """
+    text = strip_sql_comments(sql)
+    pattern = re.compile(r"(?<![\w.])" + re.escape(function_name) + r"\s*\(", re.IGNORECASE)
+    sites = []
+    for match in pattern.finditer(text):
+        depth = 1
+        index = match.end()
+        start = index
+        in_string = False
+        while index < len(text) and depth > 0:
+            char = text[index]
+            if in_string:
+                if char == "'":
+                    in_string = False
+            elif char == "'":
+                in_string = True
+            elif char == "(":
+                depth += 1
+            elif char == ")":
+                depth -= 1
+            index += 1
+        if depth != 0:
+            sites.append({
+                "arguments_text": text[start:index - 1] if depth == 0 else text[start:],
+                "arguments": split_sql_arguments(text[start:index - 1] if depth == 0 else text[start:]),
+                "table": _enclosing_insert_table(text, match.start()),
+                "unterminated": True,
+            })
+            continue
+        sites.append({
+            "arguments_text": text[start:index - 1],
+            "arguments": split_sql_arguments(text[start:index - 1]),
+            "table": _enclosing_insert_table(text, match.start()),
+            "unterminated": False,
+        })
+    return sites
+
+
+def _enclosing_insert_table(sql: str, position: int) -> str:
+    """The table the INSERT statement at *position* writes into."""
+    prefix = sql[:position]
+    matches = re.findall(r"INSERT\s+INTO\s+([A-Za-z_][A-Za-z0-9_]*)", prefix, re.IGNORECASE)
+    if not matches:
+        return ""
+    return matches[-1].upper()
+
+
+def sql_argument_column(argument: str) -> str:
+    """The last identifier of a (possibly qualified) column reference."""
+    token = argument.strip().strip('"').strip("`").strip("[]")
+    token = token.split(".")[-1].strip()
+    return token.lower()
+
+
+def sql_string_literal(argument: str):
+    """The value of a SQL string literal, or None when it is not one."""
+    token = argument.strip()
+    if len(token) >= 2 and token.startswith("'") and token.endswith("'"):
+        return token[1:-1].replace("''", "'")
+    return None
+
+
+def sql_integer_literal(argument: str):
+    """The value of a SQL integer literal, or None when it is not one."""
+    token = argument.strip()
+    if re.fullmatch(r"[+-]?\d+", token):
+        return str(int(token))
+    return None
 
 
 # --------------------------------------------------------------------------
@@ -1199,10 +1596,22 @@ def check_contract_and_schema(ctx) -> None:
         try:
             jsonschema.validators.validator_for(schema).check_schema(schema)
         except Exception as exc:
-            report.add("E_SCHEMA_META", "candidate schema is not a valid JSON Schema: %s" % exc)
+            # NM-3: a schema that the validator can not load is a
+            # deterministic finding. The error is reported, never swallowed
+            # into a success.
+            report.add("E_SCHEMA_META", "candidate schema is not a valid JSON Schema: %s: %s" % (exc.__class__.__name__, one_line(exc)))
     else:
         report.note("E_SCHEMA_META_SKIPPED", "jsonschema is not importable; only the structural candidate-schema check ran")
     ctx.schema_metaschema_checked = jsonschema is not None
+    ctx.metaschema_probe = "jsonschema" if jsonschema is not None else "structural-fallback"
+
+    # NM-3: JSON Schema treats "format": "regex" as an annotation, so the
+    # metaschema check does not reject a syntactically invalid pattern. The
+    # checker compiles every declared pattern itself, so a broken pattern is
+    # a deterministic finding and never a validator traceback.
+    for location, pattern in collect_schema_patterns(schema):
+        if not is_usable_regex(pattern):
+            report.add("E_SCHEMA_PATTERN", "the candidate schema declares an invalid regular expression at %s: %r" % (location, pattern))
 
     entities = contract.get("entities")
     if not isinstance(entities, dict):
@@ -1494,21 +1903,41 @@ def check_canonical_compatibility(ctx) -> None:
     sample = ctx.frame_sample
     if not isinstance(sample, dict):
         report.note("E_FRAME_REF_SAMPLE_SKIPPED", "no retained frame reference sample was available for the instance probe")
+        ctx.frame_instance_probe = "skipped-no-sample"
         return
     frames = sample.get("frames")
     if not isinstance(frames, list):
         report.note("E_FRAME_REF_SAMPLE_SKIPPED", "the retained frame reference sample carries no frames list")
+        ctx.frame_instance_probe = "skipped-no-frames"
         return
     try:
         import jsonschema  # type: ignore
     except Exception:
         jsonschema = None
     if jsonschema is not None:
-        validator = jsonschema.Draft202012Validator({"$ref": "#/$defs/ShotFrameRef", "$defs": defs})
-        for index, frame in enumerate(frames):
-            errors = sorted(validator.iter_errors(frame), key=lambda e: e.message)
-            for error in errors:
-                report.add("E_FRAME_REF_INSTANCE", "retained frame %d is not a valid ShotFrameRef: %s" % (index, error.message))
+        try:
+            validator = jsonschema.Draft202012Validator({"$ref": "#/$defs/ShotFrameRef", "$defs": defs})
+        except (re.error, jsonschema.exceptions.SchemaError) as exc:
+            report.add("E_FRAME_REF_INSTANCE", "the candidate ShotFrameRef can not be loaded by the validator: %s: %s" % (exc.__class__.__name__, exc))
+            ctx.frame_instance_probe = "jsonschema-error"
+            return
+        try:
+            for index, frame in enumerate(frames):
+                errors = sorted(validator.iter_errors(frame), key=lambda e: e.message)
+                for error in errors:
+                    report.add("E_FRAME_REF_INSTANCE", "retained frame %d is not a valid ShotFrameRef: %s" % (index, error.message))
+        except (re.error, jsonschema.exceptions.SchemaError) as exc:
+            # NM-3: an invalid pattern inside the candidate schema must not
+            # escape as an uncaught traceback with an empty stdout.
+            report.add("E_FRAME_REF_INSTANCE", "the retained frame instance probe could not be completed: %s: %s" % (exc.__class__.__name__, exc))
+            ctx.frame_instance_probe = "jsonschema-error"
+            return
+        except Exception as exc:
+            # Fail closed: an unexpected failure is reported as a finding, so
+            # the run never turns into a silent success.
+            report.add("E_FRAME_REF_INSTANCE", "the retained frame instance probe could not be completed: %s: %s" % (exc.__class__.__name__, exc))
+            ctx.frame_instance_probe = "jsonschema-error"
+            return
         ctx.frame_instance_probe = "jsonschema"
     else:
         required = set(candidate_ref.get("required") or [])
@@ -1526,7 +1955,10 @@ def check_overlay_additive(ctx) -> None:
     """The overlay may only add; it must never replace an existing method."""
     report = ctx.report
     overlay = ctx.overlay
-    base_paths = (ctx.base_openapi.get("paths") or {})
+    base_paths = ctx.base_openapi.get("paths")
+    if not isinstance(base_paths, dict):
+        report.add("E_INPUT_SHAPE", "the canonical OpenAPI declares no paths object")
+        base_paths = {}
     if overlay.get("base_file") != "contracts/openapi.json":
         report.add("E_OVERLAY_BASE", "the overlay must name contracts/openapi.json as its base, found %r" % overlay.get("base_file"))
     if overlay.get("component_source") != "contracts/v1-multishot.schema.json":
@@ -1590,7 +2022,7 @@ def check_overlay_additive(ctx) -> None:
             if name.startswith(prefix):
                 if name[len(prefix):] not in defs:
                     report.add("E_OVERLAY_COMPONENT_UNKNOWN", "the overlay references %s but the candidate schema has no %s DTO" % (ref, name[len(prefix):]))
-            elif name not in (ctx.base_openapi.get("components") or {}).get("schemas", {}):
+            elif name not in (dig(ctx.base_openapi, "components", "schemas", default={}) or {}):
                 report.add("E_OVERLAY_COMPONENT_UNKNOWN", "the overlay references %s, which is neither a candidate nor a canonical schema" % ref)
 
     # Metadata annotations may only describe existing routes and existing
@@ -1702,7 +2134,10 @@ def check_additive_surface(ctx) -> None:
 def check_reuse_annotations(ctx) -> None:
     """N3: every reuse path/method carries an allowlisted V1 annotation."""
     report = ctx.report
-    base_paths = ctx.base_openapi.get("paths") or {}
+    base_paths = ctx.base_openapi.get("paths")
+    if not isinstance(base_paths, dict):
+        report.add("E_INPUT_SHAPE", "the canonical OpenAPI declares no paths object")
+        base_paths = {}
     contract_paths = ctx.contract.get("reuse_paths")
     if not isinstance(contract_paths, list) or not all(isinstance(item, str) for item in contract_paths):
         report.add("E_REUSE_PATHS", "the contract reuse_paths must be a list of strings")
@@ -1820,25 +2255,132 @@ def check_etag_declaration(ctx) -> None:
     """N1: the strong ETag is machine declared, on the new GETs and on PUT 200."""
     report = ctx.report
     overlay = ctx.overlay
-    add_paths = overlay.get("add_paths") or {}
+    add_paths = overlay.get("add_paths")
+    if not isinstance(add_paths, dict):
+        report.add("E_INPUT_SHAPE", "the overlay declares no add_paths object")
+        return
     for path, method in FROZEN_ETAG_GET_TARGETS:
-        operation = (add_paths.get(path) or {}).get(method)
+        declared = add_paths.get(path)
+        operation = declared.get(method) if isinstance(declared, dict) else None
         if not isinstance(operation, dict):
             report.add("E_ETAG_MISSING", "the overlay does not add %s %s, so the strong ETag cannot be declared" % (method.upper(), path))
             continue
         headers = (((operation.get("responses") or {}).get(FROZEN_ETAG_STATUS) or {}).get("headers") or {})
         check_etag_header_object(report, headers.get(FROZEN_ETAG_HEADER_NAME), "%s %s %s" % (method.upper(), path, FROZEN_ETAG_STATUS))
     add_headers = overlay.get("add_response_headers")
-    if not isinstance(add_headers, dict) or not add_headers:
+    if not isinstance(add_headers, dict):
+        report.add("E_OVERLAY_HEADER_SHAPE", "the overlay add_response_headers must be a JSON object, found %s" % type(add_headers).__name__)
+        report.add("E_ETAG_MISSING", "the overlay declares no add_response_headers, so the existing Scene PUT 200 can not carry the ETag")
+        return
+    if not add_headers:
         report.add("E_ETAG_MISSING", "the overlay declares no add_response_headers, so the existing Scene PUT 200 can not carry the ETag")
         return
     for path, method in FROZEN_ETAG_HEADER_TARGETS:
-        statuses = (add_headers.get(path) or {}).get(method)
+        declared = add_headers.get(path)
+        if not isinstance(declared, dict):
+            report.add("E_OVERLAY_HEADER_SHAPE", "the overlay response headers for %s must be a JSON object, found %s" % (path, type(declared).__name__))
+            report.add("E_ETAG_MISSING", "the overlay does not add the ETag to the existing %s %s" % (method.upper(), path))
+            continue
+        statuses = declared.get(method)
         if not isinstance(statuses, dict):
             report.add("E_ETAG_MISSING", "the overlay does not add the ETag to the existing %s %s" % (method.upper(), path))
             continue
         header = (statuses.get(FROZEN_ETAG_STATUS) or {}).get(FROZEN_ETAG_HEADER_NAME)
         check_etag_header_object(report, header, "%s %s %s" % (method.upper(), path, FROZEN_ETAG_STATUS))
+
+
+def check_new_scene_get_envelope(ctx) -> None:
+    """NM-2: the new Scene GET keeps the canonical Scene in the canonical envelope.
+
+    Keeping the canonical Scene on ``/scenes/{id}`` is the whole remedy for
+    the design 1.0 F1/M1 divergence, so it is machine guarded here: the
+    component reference must be the canonical ``Scene`` - not any other
+    resolving component such as a candidate SceneRevision DTO - and the
+    success envelope must be the canonical one.
+    """
+    report = ctx.report
+    overlay = ctx.overlay
+    base_paths = ctx.base_openapi.get("paths")
+    if not isinstance(base_paths, dict):
+        report.add("E_INPUT_SHAPE", "the canonical OpenAPI declares no paths object")
+        base_paths = {}
+    add_paths = overlay.get("add_paths")
+    if not isinstance(add_paths, dict):
+        report.add("E_SCENE_GET_ENVELOPE", "the overlay declares no add_paths object")
+        return
+    label = "%s %s" % (FROZEN_SCENE_GET_METHOD.upper(), FROZEN_SCENE_GET_PATH)
+    added = add_paths.get(FROZEN_SCENE_GET_PATH)
+    if not isinstance(added, dict):
+        report.add("E_SCENE_GET_ENVELOPE", "the overlay declares no operations for %s" % FROZEN_SCENE_GET_PATH)
+        return
+    operation = added.get(FROZEN_SCENE_GET_METHOD)
+    if not isinstance(operation, dict):
+        report.add("E_SCENE_GET_ENVELOPE", "the overlay does not add %s" % label)
+        return
+    content = (((operation.get("responses") or {}).get("200") or {}).get("content") or {})
+    envelope = (content.get("application/json") or {}).get("schema")
+    if not isinstance(envelope, dict):
+        report.add("E_SCENE_GET_ENVELOPE", "the %s 200 response declares no application/json success envelope" % label)
+        return
+
+    properties = envelope.get("properties")
+    if not isinstance(properties, dict) or sorted(properties) != sorted(FROZEN_SUCCESS_ENVELOPE_PROPERTIES):
+        report.add(
+            "E_SCENE_GET_ENVELOPE",
+            "the %s success envelope carries the properties %s, the canonical envelope carries %s"
+            % (label, sorted(properties) if isinstance(properties, dict) else properties, list(FROZEN_SUCCESS_ENVELOPE_PROPERTIES)),
+        )
+    if sorted(envelope.get("required") or []) != sorted(FROZEN_SUCCESS_ENVELOPE_REQUIRED):
+        report.add(
+            "E_SCENE_GET_ENVELOPE",
+            "the %s success envelope requires %s, the canonical envelope requires %s"
+            % (label, sorted(envelope.get("required") or []), list(FROZEN_SUCCESS_ENVELOPE_REQUIRED)),
+        )
+    if envelope.get("additionalProperties") is not False:
+        report.add("E_SCENE_GET_ENVELOPE", "the %s success envelope must set additionalProperties=false" % label)
+
+    data = (properties.get("data") if isinstance(properties, dict) else None)
+    if not isinstance(data, dict) or set(data) != {"$ref"} or data.get("$ref") != FROZEN_SCENE_DTO_REF:
+        report.add(
+            "E_SCENE_GET_ENVELOPE",
+            "the %s success envelope must return the canonical %s DTO, found %r"
+            % (label, FROZEN_SCENE_DTO_REF, data),
+        )
+
+    # The envelope must be the canonical success envelope of the same path.
+    canonical_operation = (base_paths.get(FROZEN_SCENE_ENVELOPE_SOURCE[0]) or {}).get(FROZEN_SCENE_ENVELOPE_SOURCE[1])
+    canonical_content = (((canonical_operation or {}).get("responses") or {}).get("200") or {}).get("content") or {}
+    canonical_envelope = (canonical_content.get("application/json") or {}).get("schema")
+    if not isinstance(canonical_envelope, dict):
+        report.add(
+            "E_SCENE_GET_ENVELOPE",
+            "the canonical %s %s 200 response declares no success envelope, so the new GET can not be pinned to the canonical one"
+            % (FROZEN_SCENE_ENVELOPE_SOURCE[1].upper(), FROZEN_SCENE_ENVELOPE_SOURCE[0]),
+        )
+        return
+    canonical_data = (canonical_envelope.get("properties") or {}).get("data")
+    if not isinstance(canonical_data, dict) or canonical_data.get("$ref") != FROZEN_SCENE_DTO_REF:
+        report.add(
+            "E_SCENE_GET_ENVELOPE",
+            "the canonical %s %s 200 body is not the canonical %s DTO"
+            % (FROZEN_SCENE_ENVELOPE_SOURCE[1].upper(), FROZEN_SCENE_ENVELOPE_SOURCE[0], FROZEN_SCENE_DTO_REF),
+        )
+    if envelope != canonical_envelope:
+        report.add(
+            "E_SCENE_GET_ENVELOPE",
+            "the %s success envelope differs from the canonical success envelope of %s %s"
+            % (label, FROZEN_SCENE_ENVELOPE_SOURCE[1].upper(), FROZEN_SCENE_ENVELOPE_SOURCE[0]),
+        )
+
+    # The canonical Scene component must exist and must not be shadowed: the
+    # overlay may not ship its own components block (checked separately), so
+    # the reference above resolves to the canonical Scene.
+    components = dig(ctx.base_openapi, "components", "schemas", default={}) or {}
+    if not isinstance(components, dict):
+        report.add("E_SCENE_GET_ENVELOPE", "the canonical OpenAPI declares no components/schemas object")
+        return
+    if "Scene" not in components:
+        report.add("E_SCENE_GET_ENVELOPE", "the canonical OpenAPI declares no Scene component, so %s can not resolve" % FROZEN_SCENE_DTO_REF)
 
 
 def strip_allowed_additions(operation, metadata_keys, added_headers):
@@ -1872,7 +2414,10 @@ def check_overlay_merge(ctx) -> None:
     report = ctx.report
     base = ctx.base_openapi
     overlay = ctx.overlay
-    base_paths = base.get("paths") or {}
+    base_paths = base.get("paths")
+    if not isinstance(base_paths, dict):
+        report.add("E_INPUT_SHAPE", "the canonical OpenAPI declares no paths object")
+        base_paths = {}
     merged = copy.deepcopy(base)
     merged.setdefault("paths", {})
 
@@ -1881,16 +2426,30 @@ def check_overlay_merge(ctx) -> None:
         report.add("E_INPUT_SHAPE", "the overlay has no add_paths object")
         return
     for path, operations in sorted(add_paths.items()):
+        if not isinstance(operations, dict):
+            report.add("E_OVERLAY_SHAPE", "the overlay path %s has no operations object" % path)
+            continue
         for method, operation in sorted(operations.items()):
             if method in (merged["paths"].get(path) or {}):
                 report.add("E_OVERLAY_REPLACES_METHOD", "the overlay defines %s %s, which the canonical OpenAPI already defines" % (str(method).upper(), path))
                 continue
             merged["paths"].setdefault(path, {})[method] = copy.deepcopy(operation)
 
-    metadata = overlay.get("metadata_only") or {}
+    # NM-3: the containers are validated before they are traversed, so a
+    # malformed map or list is a deterministic finding and never an uncaught
+    # traceback with an empty stdout.
+    metadata = overlay.get("metadata_only")
+    if metadata is None:
+        metadata = {}
+    if not isinstance(metadata, dict):
+        report.add("E_OVERLAY_METADATA_SHAPE", "the overlay metadata_only must be a JSON object, found %s" % type(metadata).__name__)
+        metadata = {}
     added_meta = {}
     for path, methods in sorted(metadata.items()):
-        for method, keys in sorted((methods or {}).items()):
+        if not isinstance(methods, dict):
+            report.add("E_OVERLAY_METADATA_SHAPE", "the overlay metadata for %s must be a JSON object, found %s" % (path, type(methods).__name__))
+            continue
+        for method, keys in sorted(methods.items()):
             target = (merged["paths"].get(path) or {}).get(method)
             if target is None:
                 report.add("E_OVERLAY_METADATA_TARGET_MISSING", "the overlay annotates %s %s, which does not exist in the merged document" % (str(method).upper(), path))
@@ -1908,15 +2467,26 @@ def check_overlay_merge(ctx) -> None:
                 target[key] = copy.deepcopy(keys[key])
                 added_meta.setdefault((path, method), []).append(key)
 
-    add_headers = overlay.get("add_response_headers") or {}
+    add_headers = overlay.get("add_response_headers")
+    if add_headers is None:
+        add_headers = {}
+    if not isinstance(add_headers, dict):
+        report.add("E_OVERLAY_HEADER_SHAPE", "the overlay add_response_headers must be a JSON object, found %s" % type(add_headers).__name__)
+        add_headers = {}
     added_headers = {}
     for path, methods in sorted(add_headers.items()):
-        for method, statuses in sorted((methods or {}).items()):
+        if not isinstance(methods, dict):
+            report.add("E_OVERLAY_HEADER_SHAPE", "the overlay response headers for %s must be a JSON object, found %s" % (path, type(methods).__name__))
+            continue
+        for method, statuses in sorted(methods.items()):
+            if not isinstance(statuses, dict):
+                report.add("E_OVERLAY_HEADER_SHAPE", "the overlay response header statuses for %s %s must be a JSON object, found %s" % (str(method).upper(), path, type(statuses).__name__))
+                continue
             target = (merged["paths"].get(path) or {}).get(method)
             if target is None:
                 report.add("E_OVERLAY_HEADER_TARGET_MISSING", "the overlay adds a response header to %s %s, which does not exist in the merged document" % (str(method).upper(), path))
                 continue
-            for status, headers in sorted((statuses or {}).items()):
+            for status, headers in sorted(statuses.items()):
                 response = ((target.get("responses") or {}).get(status))
                 if not isinstance(response, dict):
                     report.add("E_OVERLAY_HEADER_TARGET_MISSING", "the overlay adds a response header to %s %s %s, which does not exist" % (str(method).upper(), path, status))
@@ -1998,6 +2568,139 @@ def require_tokens(report: Report, text, tokens, code: str, label: str) -> None:
             report.add(code, "the %s rule no longer states %r" % (label, token))
 
 
+# --------------------------------------------------------------------------
+# NM-6: the declaration driven N5 engine
+#
+# The design 1.1.1 recomputation hard coded kind="character" and read one
+# worked example. The rule itself is what has to be under test: every
+# declared kind, both declared domains, the declared language order and the
+# declared routing.
+#
+# This is an OFFLINE plan/schema rule guard. It is not a product adapter:
+# no product code runs, no product output is produced, no runtime authority
+# is claimed and no acceptance is derived from it.
+# --------------------------------------------------------------------------
+
+
+def resolve_domain_ref(rule, item, index: int):
+    """Resolve the declared ref of one item.
+
+    The declared refs map mixes three shapes and the shape is taken from the
+    declared rule itself, never from a hard coded item:
+
+      * a source field name - the character's ``local_actor_id``;
+      * a constant - the scene, whose ref is the literal ``scene``;
+      * a decimal zero-based array index - the actions and the unknowns.
+    """
+    if not isinstance(rule, str) or not rule:
+        return None
+    if isinstance(item, dict) and isinstance(item.get(rule), str):
+        return item[rule]
+    if "index" in rule:
+        return str(index)
+    return rule
+
+
+def resolve_domain_text(rule, item, languages):
+    """Resolve the bilingual phrase that carries the text of one item."""
+    if not isinstance(rule, str) or not rule:
+        return None
+    if isinstance(item, dict) and isinstance(item.get(rule), dict):
+        return item[rule]
+    if isinstance(item, dict) and item and all(isinstance(item.get(lang), str) for lang in languages):
+        return item
+    return None
+
+
+def build_domain_entries(mapping, evidence) -> dict:
+    """Apply the declared canonical_domain_mapping rule to an evidence bundle.
+
+    *evidence* is the canonical ShotEvidence shape::
+
+        {"characters": [...], "scene": {...}, "actions": [...], "unknowns": [...]}
+
+    The return value holds the serialized entries per destination::
+
+        {"observation": [...], "inference": [...], "unknowns": [...], "errors": [...]}
+
+    Only the three declared canonical destinations are ever written: the
+    human owned domains (user_evidence / creative_intent) are never touched.
+    """
+    languages = [lang for lang in (mapping.get("language_order") or []) if isinstance(lang, str)]
+    refs = mapping.get("refs") if isinstance(mapping.get("refs"), dict) else {}
+    sources = mapping.get("source_fields") if isinstance(mapping.get("source_fields"), dict) else {}
+    buckets = {"observation": [], "inference": [], "unknowns": []}
+    errors = []
+
+    def emit(kind, item, index, destination):
+        ref_value = resolve_domain_ref(refs.get(kind), item, index)
+        text_map = resolve_domain_text(sources.get(kind), item, languages)
+        if ref_value is None:
+            errors.append("the %s item carries no ref under the declared rule %r" % (kind, refs.get(kind)))
+            return
+        if not isinstance(text_map, dict):
+            errors.append("the %s item carries no language map under the declared source field %r" % (kind, sources.get(kind)))
+            return
+        for lang in languages:
+            text = text_map.get(lang)
+            if not isinstance(text, str) or text == "":
+                # Only an exactly empty language value is skipped; a
+                # whitespace-only value is retained byte-for-byte.
+                continue
+            entry = {"kind": kind, "ref": ref_value, "lang": lang, "text": text}
+            buckets[destination].append(json.dumps(
+                entry, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False,
+            ))
+
+    characters = evidence.get("characters")
+    if isinstance(characters, list):
+        ordered = []
+        for position, character in enumerate(characters):
+            if not isinstance(character, dict):
+                errors.append("character %d is not an object" % position)
+                continue
+            ordered.append(character)
+        ordered.sort(key=lambda character: resolve_domain_ref(refs.get("character"), character, 0) or "")
+        for character in ordered:
+            domain = character.get(FROZEN_DOMAIN_DOMAIN_FIELD)
+            if domain not in FROZEN_DOMAIN_VALUES:
+                errors.append("a character declares the domain %r" % (domain,))
+                continue
+            emit("character", character, 0, domain)
+
+    scene = evidence.get("scene")
+    if isinstance(scene, dict):
+        domain = scene.get(FROZEN_DOMAIN_DOMAIN_FIELD)
+        if domain not in FROZEN_DOMAIN_VALUES:
+            errors.append("the scene declares the domain %r" % (domain,))
+        else:
+            emit("scene", scene, 0, domain)
+
+    actions = evidence.get("actions")
+    if isinstance(actions, list):
+        for index, action in enumerate(actions):
+            if not isinstance(action, dict):
+                errors.append("action %d is not an object" % index)
+                continue
+            domain = action.get(FROZEN_DOMAIN_DOMAIN_FIELD)
+            if domain not in FROZEN_DOMAIN_VALUES:
+                errors.append("action %d declares the domain %r" % (index, domain))
+                continue
+            emit("action", action, index, domain)
+
+    unknowns = evidence.get("unknowns")
+    if isinstance(unknowns, list):
+        for index, unknown in enumerate(unknowns):
+            if not isinstance(unknown, dict):
+                errors.append("unknown %d is not an object" % index)
+                continue
+            emit("unknown", unknown, index, "unknowns")
+
+    result = dict(buckets)
+    result["errors"] = errors
+    return result
+
+
 def check_canonical_domain_mapping(ctx) -> None:
     """N5: the bilingual -> canonical domain conversion is pinned and exact."""
     report = ctx.report
@@ -2013,7 +2716,17 @@ def check_canonical_domain_mapping(ctx) -> None:
             % (languages, list(FROZEN_DOMAIN_LANGUAGES)),
         )
     require_tokens(report, mapping.get("item_order"), FROZEN_DOMAIN_ITEM_ORDER_TOKENS, "E_DOMAIN_MAPPING", "canonical domain item order")
-    require_tokens(report, mapping.get("entry_serialization"), FROZEN_DOMAIN_SERIALIZATION_TOKENS, "E_DOMAIN_MAPPING", "canonical domain entry serialization")
+    serialization = mapping.get("entry_serialization")
+    require_tokens(report, serialization, FROZEN_DOMAIN_SERIALIZATION_TOKENS, "E_DOMAIN_MAPPING", "canonical domain entry serialization")
+    # NM-5 (design 1.1.2): the rule text must state the one key set and the
+    # one sorted output order, so that the machine contract has exactly one
+    # reading and the frozen key constant is not dead code.
+    require_tokens(report, serialization, FROZEN_DOMAIN_SERIALIZATION_CLARITY_TOKENS, "E_DOMAIN_MAPPING", "canonical domain entry serialization")
+    if serialization != FROZEN_DOMAIN_ENTRY_SERIALIZATION:
+        report.add(
+            "E_DOMAIN_MAPPING",
+            "the canonical domain entry serialization rule differs from the frozen design 1.1.2 rule",
+        )
     require_tokens(report, mapping.get("unknowns"), FROZEN_DOMAIN_UNKNOWN_TOKENS, "E_DOMAIN_MAPPING", "canonical domain unknowns")
     require_tokens(report, mapping.get("human_domains"), FROZEN_DOMAIN_HUMAN_TOKENS, "E_DOMAIN_MAPPING", "canonical domain human domains")
     require_tokens(report, mapping.get("prompt_text"), FROZEN_DOMAIN_PROMPT_TOKENS, "E_DOMAIN_MAPPING", "canonical domain prompt text")
@@ -2032,42 +2745,77 @@ def check_canonical_domain_mapping(ctx) -> None:
             if source_fields.get(name) != wanted:
                 report.add("E_DOMAIN_MAPPING", "the canonical domain source field for %s is %r, the frozen rule is %r" % (name, source_fields.get(name), wanted))
 
-    # The example must be the deterministic serialization of its own source.
+    # NM-6: the declared rule must be bindable to the candidate DTOs. A rule
+    # that names a field the DTO does not declare is not implementable.
+    defs = ctx.schema.get("$defs") or {}
+    for kind in sorted(FROZEN_DOMAIN_KINDS):
+        dto_name = FROZEN_DOMAIN_KIND_DTOS.get(kind)
+        dto = defs.get(dto_name)
+        if not isinstance(dto, dict):
+            report.add("E_DOMAIN_MAPPING", "the candidate schema declares no %s DTO for the %s domain kind" % (dto_name, kind))
+            continue
+        properties = dto.get("properties") or {}
+        field = FROZEN_DOMAIN_SOURCE_FIELDS.get(kind)
+        if kind != "unknown" and field not in properties:
+            report.add("E_DOMAIN_MAPPING", "the %s DTO declares no %r source field for the %s domain kind" % (dto_name, field, kind))
+        if kind in ("character", "scene", "action"):
+            domain_property = properties.get(FROZEN_DOMAIN_DOMAIN_FIELD)
+            if not isinstance(domain_property, dict):
+                report.add("E_DOMAIN_MAPPING", "the %s DTO declares no %r property, so the domain routing can not be declared" % (dto_name, FROZEN_DOMAIN_DOMAIN_FIELD))
+            elif set(enum_values(domain_property) or set()) != set(FROZEN_DOMAIN_VALUES):
+                report.add("E_DOMAIN_MAPPING", "the %s DTO domain property does not declare exactly %s" % (dto_name, list(FROZEN_DOMAIN_VALUES)))
+        if kind == "character":
+            ref_field = FROZEN_DOMAIN_REFS.get("character")
+            if isinstance(refs, dict) and refs.get("character") not in properties:
+                report.add("E_DOMAIN_MAPPING", "the %s DTO declares no %r ref field" % (dto_name, ref_field))
+
+    # The example must be the deterministic serialization of its own source,
+    # and the source must declare the destination its entries are routed to.
     example = mapping.get("example")
     if not isinstance(example, dict):
         report.add("E_DOMAIN_MAPPING", "the canonical domain mapping declares no example")
         return
     source = example.get("source")
-    observation = example.get("observation")
-    if not isinstance(source, dict) or not isinstance(observation, list):
-        report.add("E_DOMAIN_MAPPING", "the canonical domain example must carry a source object and an observation list")
+    if not isinstance(source, dict):
+        report.add("E_DOMAIN_MAPPING", "the canonical domain example must carry a source object")
         return
-    ref_field = (refs or {}).get("character") if isinstance(refs, dict) else None
-    text_field = (source_fields or {}).get("character") if isinstance(source_fields, dict) else None
-    if not isinstance(ref_field, str) or not isinstance(text_field, str):
-        report.add("E_DOMAIN_MAPPING", "the canonical domain example can not be resolved through the declared refs/source_fields")
+    destination = source.get(FROZEN_DOMAIN_DOMAIN_FIELD)
+    if destination not in FROZEN_DOMAIN_VALUES:
+        report.add(
+            "E_DOMAIN_MAPPING",
+            "the canonical domain example source declares the domain %r, it must be one of %s"
+            % (destination, list(FROZEN_DOMAIN_VALUES)),
+        )
         return
-    if ref_field not in source or text_field not in source:
-        report.add("E_DOMAIN_MAPPING", "the canonical domain example source does not carry the declared character ref/text fields")
-        return
-    values = source[text_field]
-    if not isinstance(values, dict):
-        report.add("E_DOMAIN_MAPPING", "the canonical domain example source text field is not a language map")
+    observed = example.get(destination)
+    if not isinstance(observed, list):
+        report.add(
+            "E_DOMAIN_MAPPING",
+            "the canonical domain example declares no %s list, but its source routes to the %s domain"
+            % (destination, destination),
+        )
         return
     order = languages if isinstance(languages, list) else list(FROZEN_DOMAIN_LANGUAGES)
-    expected = []
-    for lang in order:
-        text = values.get(lang)
-        if not isinstance(text, str) or text == "":
-            continue
-        entry = {"kind": "character", "ref": source[ref_field], "lang": lang, "text": text}
-        expected.append(json.dumps(entry, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False))
-    if expected != observation:
+    computed = build_domain_entries(mapping, {"characters": [source]})
+    for error in computed["errors"]:
+        report.add("E_DOMAIN_MAPPING", "the canonical domain example can not be resolved through the declared rule: %s" % error)
+    expected = computed.get(destination) or []
+    if expected != observed:
         report.add(
             "E_DOMAIN_MAPPING",
             "the canonical domain example entries %s do not match the deterministic serialization %s"
-            % (observation, expected),
+            % (observed, expected),
         )
+    # The entries must not also be routed into the other declared domain.
+    other = [name for name in FROZEN_DOMAIN_VALUES if name != destination]
+    for name in other:
+        other_entries = example.get(name)
+        if isinstance(other_entries, list) and other_entries:
+            report.add(
+                "E_DOMAIN_MAPPING",
+                "the canonical domain example routes its source to the %s domain but also carries %d %s entries"
+                % (destination, len(other_entries), name),
+            )
 
 
 def check_scene_hash_column_mapping(ctx) -> None:
@@ -2113,10 +2861,100 @@ def check_scene_hash_column_mapping(ctx) -> None:
             report.add("E_SCENE_HASH_MAPPING", "the scene hash column mapping uses the SQL alias %r as a JSON key" % alias)
     require_tokens(report, scene_hash.get("serialization_rule"), FROZEN_SCENE_HASH_SERIALIZATION_TOKENS, "E_SCENE_HASH_MAPPING", "scene hash serialization")
     migration = ctx.migration_text.upper()
-    for name, alias in sorted(FROZEN_SCENE_HASH_COLUMN_ALIASES.items()):
-        column = alias.split(".")[-1].upper()
+    # NM-1: every one of the 11 hashed fields is bound to a DDL column that
+    # the candidate migration actually declares.
+    for name, column in sorted(FROZEN_SCENE_HASH_DDL_COLUMNS.items()):
         if column not in migration:
             report.add("E_SCENE_HASH_MAPPING", "the candidate migration does not declare the %s column that the scene hash mapping binds" % column)
+
+    # NM-1: every lvw_scene_hash call site in the candidate migration must
+    # pass exactly the 11 hashed fields, in the declared field order.
+    check_scene_hash_call_sites(ctx)
+
+
+def check_scene_hash_call_sites(ctx) -> None:
+    """NM-1: the SQL call sites must hash the declared fields, in order.
+
+    The candidate migration is only read as text; it is never executed and no
+    production database is opened. The check is a text check of the call
+    sites: how many there are, how many arguments each carries, which DDL
+    column each argument resolves to and which literal the two meta fields
+    carry.
+    """
+    report = ctx.report
+    sites = find_sql_call_sites(ctx.migration_text, "lvw_scene_hash")
+    if len(sites) != FROZEN_SCENE_HASH_CALL_SITE_COUNT:
+        report.add(
+            "E_SCENE_HASH_MAPPING",
+            "the candidate migration declares %d lvw_scene_hash call site(s), the frozen backfill declares %d"
+            % (len(sites), FROZEN_SCENE_HASH_CALL_SITE_COUNT),
+        )
+    for number, site in enumerate(sites, 1):
+        if site["unterminated"]:
+            report.add("E_SCENE_HASH_MAPPING", "the lvw_scene_hash call site %d is not terminated" % number)
+            continue
+        arguments = site["arguments"]
+        if len(arguments) != len(FROZEN_SCENE_HASH_CALL_ARGUMENTS):
+            report.add(
+                "E_SCENE_HASH_MAPPING",
+                "the lvw_scene_hash call site %d passes %d argument(s), the frozen field list has %d"
+                % (number, len(arguments), len(FROZEN_SCENE_HASH_CALL_ARGUMENTS)),
+            )
+            continue
+        if site["table"] not in FROZEN_SCENE_HASH_CALL_SITE_TABLES:
+            report.add(
+                "E_SCENE_HASH_MAPPING",
+                "the lvw_scene_hash call site %d writes into %r, the frozen backfill call sites are %s"
+                % (number, site["table"], list(FROZEN_SCENE_HASH_CALL_SITE_TABLES)),
+            )
+        resolved = {}
+        for position, (field, kind, expected) in enumerate(FROZEN_SCENE_HASH_CALL_ARGUMENTS):
+            argument = arguments[position]
+            if kind == "column":
+                actual = sql_argument_column(argument)
+                if actual != expected:
+                    report.add(
+                        "E_SCENE_HASH_MAPPING",
+                        "the lvw_scene_hash call site %d passes %r for the %s field, the frozen column is %r"
+                        % (number, argument, field, expected),
+                    )
+                resolved[field] = actual
+            elif kind == "literal_text":
+                value = sql_string_literal(argument)
+                if value is None or value not in expected:
+                    report.add(
+                        "E_SCENE_HASH_MAPPING",
+                        "the lvw_scene_hash call site %d passes %r for the %s field, it must be one of the SQL string literals %s"
+                        % (number, argument, field, list(expected)),
+                    )
+                resolved[field] = value
+            elif kind == "literal_int":
+                value = sql_integer_literal(argument)
+                if value is None or value not in expected:
+                    report.add(
+                        "E_SCENE_HASH_MAPPING",
+                        "the lvw_scene_hash call site %d passes %r for the %s field, it must be one of the SQL integer literals %s"
+                        % (number, argument, field, list(expected)),
+                    )
+                resolved[field] = value
+        # The DDL check constraint couples the two meta fields: a verified
+        # revision must carry the decoded_pts basis and an unverified one must
+        # not. A call site that breaks the pairing would not apply.
+        time_basis = resolved.get("time_basis")
+        verified_value = resolved.get("verified")
+        if isinstance(time_basis, str) and isinstance(verified_value, str):
+            if verified_value == "1" and time_basis != "decoded_pts":
+                report.add(
+                    "E_SCENE_HASH_MAPPING",
+                    "the lvw_scene_hash call site %d hashes verified=1 with the time basis %r, the DDL requires decoded_pts"
+                    % (number, time_basis),
+                )
+            if verified_value == "0" and time_basis == "decoded_pts":
+                report.add(
+                    "E_SCENE_HASH_MAPPING",
+                    "the lvw_scene_hash call site %d hashes verified=0 with the time basis %r, the DDL forbids that pair"
+                    % (number, time_basis),
+                )
 
 
 def check_design111_adjudication(ctx) -> None:
@@ -2150,6 +2988,54 @@ def check_design111_adjudication(ctx) -> None:
             report.add("E_111_ADJUDICATION", "the owner correction %s is recorded as %r; an owner correction is not an independent acceptance" % (finding_id, state))
         elif any(token in str(state).upper() for token in FROZEN_111_CLOSED_TOKENS):
             report.add("E_111_ADJUDICATION", "the owner correction %s claims a closed state %r" % (finding_id, state))
+
+
+def check_design112_adjudication(ctx) -> None:
+    """The 1.1.2 authority is a consolidated correction, not a closure."""
+    report = ctx.report
+    document = ctx.adjudication_112
+    if document.get("kind") != FROZEN_112_ADJUDICATION_KIND:
+        report.add("E_112_ADJUDICATION", "the 1.1.2 adjudication kind is %r, the frozen kind is %r" % (document.get("kind"), FROZEN_112_ADJUDICATION_KIND))
+    if document.get("version") != FROZEN_112_ADJUDICATION_VERSION:
+        report.add("E_112_ADJUDICATION", "the 1.1.2 adjudication version is %r, the frozen version is %r" % (document.get("version"), FROZEN_112_ADJUDICATION_VERSION))
+    if document.get("decision") != FROZEN_112_ADJUDICATION_DECISION:
+        report.add("E_112_ADJUDICATION", "the 1.1.2 adjudication decision is %r, the frozen decision is %r" % (document.get("decision"), FROZEN_112_ADJUDICATION_DECISION))
+    if document.get("product_gate0") is not False:
+        report.add("E_112_ADJUDICATION", "the 1.1.2 adjudication must keep product_gate0=false")
+    if document.get("product_actions") != 0:
+        report.add("E_112_ADJUDICATION", "the 1.1.2 adjudication must keep product_actions=0, found %r" % document.get("product_actions"))
+    findings = document.get("findings")
+    if not isinstance(findings, list):
+        report.add("E_112_ADJUDICATION", "the 1.1.2 adjudication declares no findings list")
+        return
+    seen = {}
+    for entry in findings:
+        if not isinstance(entry, dict):
+            report.add("E_112_ADJUDICATION", "the 1.1.2 adjudication holds a non-object finding entry")
+            continue
+        seen[entry.get("id")] = entry
+    if sorted(seen.keys()) != sorted(FROZEN_112_FINDING_IDS):
+        report.add("E_112_ADJUDICATION", "the 1.1.2 adjudication covers %s, the frozen finding set is %s" % (sorted(seen.keys()), sorted(FROZEN_112_FINDING_IDS)))
+    for finding_id in sorted(seen.keys()):
+        entry = seen[finding_id]
+        severity = entry.get("severity")
+        wanted = FROZEN_112_FINDING_SEVERITIES.get(finding_id)
+        if severity != wanted:
+            report.add("E_112_ADJUDICATION", "the 1.1.2 finding %s declares the severity %r, the frozen severity is %r" % (finding_id, severity, wanted))
+        state = str(entry.get("state"))
+        if any(token in state.upper() for token in FROZEN_112_CLOSED_TOKENS):
+            report.add("E_112_ADJUDICATION", "the 1.1.2 finding %s claims the closed state %r; a consolidated correction closes nothing" % (finding_id, state))
+    counts = document.get("derived_counts")
+    if not isinstance(counts, dict) or counts != FROZEN_112_DERIVED_COUNTS:
+        report.add("E_112_ADJUDICATION", "the 1.1.2 adjudication derived counts %s differ from the frozen counts %s" % (counts, FROZEN_112_DERIVED_COUNTS))
+    if document.get("review_summary_minor_count") != FROZEN_112_REVIEW_SUMMARY_MINOR_COUNT:
+        report.add("E_112_ADJUDICATION", "the 1.1.2 adjudication must retain the review summary minor count %d" % FROZEN_112_REVIEW_SUMMARY_MINOR_COUNT)
+    discrepancy = document.get("count_discrepancy")
+    if not isinstance(discrepancy, str) or "retain" not in discrepancy.lower():
+        report.add("E_112_ADJUDICATION", "the 1.1.2 adjudication must state that the original review report is retained")
+    historical = document.get("historical_source")
+    if not isinstance(historical, dict) or not historical.get("authority"):
+        report.add("E_112_ADJUDICATION", "the 1.1.2 adjudication must name the historical 1.1.1 authority it was derived from")
 
 
 def check_product_coordinate(ctx) -> None:
@@ -2438,7 +3324,13 @@ class Context:
         self.task_stage_ids = set()
         self.task_stages = {}
         self.schema_metaschema_checked = False
-        self.frame_instance_probe = "none"
+        self.metaschema_probe = "not-run"
+        self.frame_instance_probe = "not-run"
+        self.adjudication_112 = {}
+        self.pin_mode = "default"
+        self.pin_expected_default = FROZEN_D0_PACKET_MANIFEST_SHA256
+        self.pin_actual = None
+        self.pin_override = None
         self.root = ROOT
         self.d0_packet_dir = D0_PACKET_DIR
         self.d0_manifest_expected = FROZEN_D0_PACKET_MANIFEST_SHA256
@@ -2475,6 +3367,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--adjudication", default="reports/v1-redesign/design11-adjudication.json")
     parser.add_argument("--adjudication-111", default="reports/v1-redesign/design111-adjudication.json",
                         help="the 1.1.1 owner adjudication (owner corrections, not an independent acceptance)")
+    parser.add_argument("--adjudication-112", default="reports/v1-redesign/design112-adjudication.json",
+                        help="the 1.1.2 consolidated correction adjudication (a correction package, not a closure)")
     parser.add_argument("--frame-sample", default="reports/unified-media/live-15/video-model-run.json")
     parser.add_argument("--stage-control", default=".agent-governance/stages/V1-D0/stage-control.json")
     parser.add_argument("--spec-manifest", default=".agent-governance/stages/V1-D0/spec-manifest.json")
@@ -2490,6 +3384,17 @@ def build_parser() -> argparse.ArgumentParser:
 def resolve(root: Path, value: str) -> Path:
     path = Path(value)
     return path if path.is_absolute() else (root / path)
+
+
+def report_input_error(message: str) -> None:
+    """Report an unreadable or unparsable input.
+
+    NM-3: the diagnostic goes to stdout as well as to stderr, so that a gate
+    that only reads stdout still sees why the run produced no verdict. The
+    exit code stays 2 and no verdict is produced.
+    """
+    sys.stdout.write("INPUT_ERROR: %s\n" % message)
+    sys.stderr.write("INPUT_ERROR: %s\n" % message)
 
 
 def main(argv=None) -> int:
@@ -2512,6 +3417,7 @@ def main(argv=None) -> int:
         "sample-design": args.sample_design,
         "adjudication": args.adjudication,
         "adjudication-111": args.adjudication_111,
+        "adjudication-112": args.adjudication_112,
         "stage-control": args.stage_control,
         "spec-manifest": args.spec_manifest,
         "approval": args.approval,
@@ -2523,12 +3429,12 @@ def main(argv=None) -> int:
         try:
             documents[name] = load_json(path, name)
         except InputError as exc:
-            sys.stderr.write("INPUT_ERROR: %s\n" % exc)
+            report_input_error(str(exc))
             return 2
     try:
         migration_text = load_text(resolve(root, args.migration), "migration")
     except InputError as exc:
-        sys.stderr.write("INPUT_ERROR: %s\n" % exc)
+        report_input_error(str(exc))
         return 2
 
     frame_sample = None
@@ -2554,6 +3460,7 @@ def main(argv=None) -> int:
     ctx.sample_design = documents["sample-design"]
     ctx.adjudication = documents["adjudication"]
     ctx.adjudication_111 = documents["adjudication-111"]
+    ctx.adjudication_112 = documents["adjudication-112"]
     ctx.frame_sample = frame_sample
     ctx.stage_control = documents["stage-control"]
     ctx.spec_manifest = documents["spec-manifest"]
@@ -2569,6 +3476,17 @@ def main(argv=None) -> int:
     ctx.d0_packet_dir = args.d0_packet_dir
     ctx.d0_manifest_expected = args.d0_packet_manifest_sha256
     ctx.stage_control_rel = args.stage_control
+    # NM-8: the run records the pin it verified against, the pin the source
+    # control froze, and whether the pin was overridden on the command line.
+    ctx.pin_expected_default = FROZEN_D0_PACKET_MANIFEST_SHA256
+    ctx.pin_override = args.d0_packet_manifest_sha256
+    ctx.pin_mode = "default" if args.d0_packet_manifest_sha256 == FROZEN_D0_PACKET_MANIFEST_SHA256 else "explicit-override"
+    manifest_path = root / ctx.d0_packet_dir / D0_PACKET_MANIFEST_NAME
+    if manifest_path.is_file():
+        try:
+            ctx.pin_actual = sha256_file(manifest_path)
+        except OSError:
+            ctx.pin_actual = None
 
     # Hashes of every file the frozen fences talk about.
     spec_files = ctx.spec_manifest.get("files")
@@ -2619,53 +3537,96 @@ def main(argv=None) -> int:
             deps = stage.get("depends_on")
             ctx.plan_deps[stage["id"]] = list(deps) if isinstance(deps, list) and all(isinstance(d, str) for d in deps) else []
 
-    check_denominators(ctx)
-    check_plan_case_sets(ctx)
-    check_case_definitions(ctx)
-    check_quality_thresholds(ctx)
-    check_limits(ctx)
-    check_parent_budget(ctx)
-    check_checkpoint_budget(ctx)
-    check_stages_and_dag(ctx)
-    check_task_dag(ctx)
-    check_requirement_coverage(ctx)
-    check_status_and_human_claims(ctx)
-    check_ownership(ctx)
-    check_authorization_accounting(ctx)
-    check_contract_and_schema(ctx)
-    check_dto_contract_shape(ctx)
-    check_canonical_compatibility(ctx)
-    check_frame_ref_integer_pins(ctx)
-    check_overlay_additive(ctx)
-    check_additive_surface(ctx)
-    check_reuse_annotations(ctx)
-    check_etag_declaration(ctx)
-    check_overlay_merge(ctx)
-    check_canonical_domain_mapping(ctx)
-    check_scene_hash_column_mapping(ctx)
-    check_design111_adjudication(ctx)
-    check_product_coordinate(ctx)
-    check_sample_design(ctx)
-    check_candidate_artifacts(ctx)
-    check_adjudication(ctx)
-    check_immutability(ctx)
-    check_d0_packet_integrity(ctx)
-    check_spec_fence(ctx)
+    # NM-3: a malformed candidate input must never escape as an uncaught
+    # traceback with an empty stdout. Every check runs behind a narrow
+    # handler that turns the expected shape failures into a deterministic
+    # finding. The run stays non-zero, so nothing is ever swallowed into a
+    # success.
+    checks = (
+        check_denominators,
+        check_plan_case_sets,
+        check_case_definitions,
+        check_quality_thresholds,
+        check_limits,
+        check_parent_budget,
+        check_checkpoint_budget,
+        check_stages_and_dag,
+        check_task_dag,
+        check_requirement_coverage,
+        check_status_and_human_claims,
+        check_ownership,
+        check_authorization_accounting,
+        check_contract_and_schema,
+        check_dto_contract_shape,
+        check_canonical_compatibility,
+        check_frame_ref_integer_pins,
+        check_overlay_additive,
+        check_additive_surface,
+        check_reuse_annotations,
+        check_etag_declaration,
+        check_overlay_merge,
+        check_new_scene_get_envelope,
+        check_canonical_domain_mapping,
+        check_scene_hash_column_mapping,
+        check_design111_adjudication,
+        check_design112_adjudication,
+        check_product_coordinate,
+        check_sample_design,
+        check_candidate_artifacts,
+        check_adjudication,
+        check_immutability,
+        check_d0_packet_integrity,
+        check_spec_fence,
+    )
+    for check in checks:
+        try:
+            check(ctx)
+        except (AttributeError, TypeError, KeyError, IndexError, ValueError, re.error) as exc:
+            ctx.report.add(
+                "E_CHECK_SHAPE",
+                "%s could not be completed on a malformed candidate input: %s: %s"
+                % (check.__name__, exc.__class__.__name__, one_line(exc)),
+            )
 
     errors = sorted(ctx.report.errors)
     for code, detail in errors:
         sys.stdout.write("%s: %s\n" % (code, detail))
+    # NM-4: every collected note is disclosed. A degraded run (no jsonschema,
+    # no retained frame sample) must never look byte identical to a full one.
+    for code, detail in sorted(ctx.report.notes):
+        sys.stdout.write("NOTE: %s: %s\n" % (code, detail))
+    sys.stdout.write(
+        "VALIDATION: metaschema_check=%s frame_instance_probe=%s frame_sample=%s\n"
+        % (
+            ctx.metaschema_probe,
+            ctx.frame_instance_probe,
+            "present" if ctx.frame_sample is not None else "absent",
+        )
+    )
+    if ctx.pin_mode == "default":
+        sys.stdout.write(
+            "PIN: mode=default (frozen stage command pin) expected_default=%s actual=%s\n"
+            % (ctx.pin_expected_default, ctx.pin_actual or "UNAVAILABLE")
+        )
+    else:
+        sys.stdout.write(
+            "PIN: mode=explicit-override (NON-AUTHORITY: this run did not use the frozen stage command pin) "
+            "expected_default=%s actual=%s override=%s\n"
+            % (ctx.pin_expected_default, ctx.pin_actual or "UNAVAILABLE", ctx.pin_override)
+        )
     if errors:
         sys.stdout.write("RESULT: FAIL (%d finding(s))\n" % len(errors))
         return 1
-    gate_v1 = len(((ctx.gates.get("gates") or {}).get("V1") or {}).get("required_cases") or [])
+    gate_v1 = len(dig(ctx.gates, "gates", "V1", "required_cases", default=[]) or [])
+    gate_v2 = len(dig(ctx.gates, "gates", "V2", "required_cases", default=[]) or [])
+    gate_v3 = len(dig(ctx.gates, "gates", "V3", "required_cases", default=[]) or [])
     sys.stdout.write(
         "RESULT: PASS (V1=%d V2=%d V3=%d; MS01-MS08 once and NOT_RUN; legacy prefix intact; DAG acyclic; "
         "parent deadline %d*n+%d<=%d; checkpoint %d+ %d=%d actions / %d s; no human signature claimed)\n"
         % (
             gate_v1,
-            len(((ctx.gates.get("gates") or {}).get("V2") or {}).get("required_cases") or []),
-            len(((ctx.gates.get("gates") or {}).get("V3") or {}).get("required_cases") or []),
+            gate_v2,
+            gate_v3,
             BATCH_PER_CHILD_SECONDS,
             BATCH_FIXED_SECONDS,
             BATCH_MAX_DEADLINE,
@@ -2676,9 +3637,11 @@ def main(argv=None) -> int:
         )
     )
     sys.stdout.write(
-        "NOTE: design 1.1.1 (N1-N6 owner corrections, still pending an independent recheck): "
+        "NOTE: design 1.1.2 (consolidated correction of NM-1..NM-8, still pending an independent recheck): "
         "additive surface %d operations / %d paths; reuse annotations %d paths; "
         "strong ETag declared on %d new GETs and %d existing operation; "
+        "new Scene GET pinned to the canonical %s; "
+        "scene hash aliases %d, SQL call sites %d x %d arguments; "
         "spec fence %d files; D0 payload inventory %d files.\n"
         % (
             len(FROZEN_ADDITIVE_OPERATIONS),
@@ -2686,6 +3649,10 @@ def main(argv=None) -> int:
             len(FROZEN_REUSE_PATHS),
             len(FROZEN_ETAG_GET_TARGETS),
             len(FROZEN_ETAG_HEADER_TARGETS),
+            FROZEN_SCENE_DTO_REF,
+            len(FROZEN_SCENE_HASH_COLUMN_ALIASES),
+            FROZEN_SCENE_HASH_CALL_SITE_COUNT,
+            len(FROZEN_SCENE_HASH_CALL_ARGUMENTS),
             FROZEN_SPEC_FENCE_COUNT,
             len(FROZEN_D0_PACKET_FILES),
         )
