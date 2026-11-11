@@ -1,0 +1,89 @@
+{
+  "status": "READY_FOR_REVIEW",
+  "candidate_sha": "9b661800b671c7e4942b906dcbeb1eee319c9ef3",
+  "base": "6f5576fe4749dc95bb08f43c876d4249c9d2349c",
+  "tests": {
+    "directed": {
+      "passed": 17,
+      "failed": 1,
+      "runner_exit": 1,
+      "reason": "spy fixture nested root refused"
+    },
+    "directed2": {
+      "passed": 17,
+      "failed": 1,
+      "runner_exit": 1,
+      "reason": "spy negative binding used UNC on Linux"
+    },
+    "directed3": {
+      "passed": 18,
+      "failed": 0,
+      "runner_exit": 0
+    },
+    "combined": {
+      "passed": 212,
+      "failed": 0,
+      "skipped": 0,
+      "pytest_seconds": 13.53,
+      "runner_exit": 1,
+      "reason": "post-test receipt serialization PosixPath; no rerun",
+      "preserved_original_cases": 194,
+      "new_cases": 18
+    }
+  },
+  "parser_invocations": 1,
+  "parser_raw": "combined-parser.json",
+  "parser_exit": 0,
+  "parser_result": "PARSE_ERRORS=0",
+  "executable_budget": {
+    "mode": "CONSERVATIVE_NONREFUNDABLE_RESERVATION",
+    "formula": "WindowsPythonSize + 32*WSLSize + 32*LinuxPythonSize",
+    "limit_bytes": 268435456,
+    "unique_roles": 3,
+    "read_count_bounds": {
+      "windows_python": 1,
+      "wsl": 32,
+      "python": 32
+    },
+    "synthetic_spy_complete_route": {
+      "windows_python": 1,
+      "wsl": 10,
+      "python": 11
+    },
+    "actual_installed_role_sizes": null,
+    "actual_digest_bytes": null,
+    "measurement": "NOT_MEASURED",
+    "actual_child_reservation": "NOT_RUN_DRAFT",
+    "synthetic_size_example": {
+      "windows_python": 1,
+      "wsl": 2,
+      "python": 3,
+      "charged_bytes": 161,
+      "actual_synthetic_route_bytes": 54
+    }
+  },
+  "observer": {
+    "matrix_cases": 12,
+    "raw_before_assertions": true,
+    "owned_helper_runs": 1,
+    "historical_109_plus_1": "UNKNOWN_NO_COMPLETE_TRACE_NOT_RETROACTIVELY_SOLVED"
+  },
+  "boundaries": {
+    "host_executable_hash_reads": 0,
+    "p2b_windows_driver_calls": 0,
+    "wsl_process_calls": 0,
+    "actual_shared_claim": false,
+    "actual_mother_ledger": false,
+    "actual_child": "DRAFT_NOT_AUTHORIZED",
+    "stage_pass": false,
+    "product_gate0": false,
+    "human_signoff": false
+  },
+  "risks": [
+    "Independent review pending",
+    "Reservation is a fixed sealed-size call-graph bound, not OS byte monitoring of concurrent executable mutation",
+    "Timeout upper-bound spy follows the full debit path conservatively; no real Windows/WSL timeout tested",
+    "Post-test combined runner receipt failed; process list was not persisted and is not reconstructed",
+    "Past estimated 26 host hashes and independent parser deviation remain unchanged"
+  ]
+}

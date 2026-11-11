@@ -1,0 +1,29 @@
+BLOCKED terminal errors: ["budget: ValueError: wall budget"]
+BLOCKED terminal errors: ["owners /tmp/lvw-p2b-c03-combined-yp0y0tia/pytest/test_terminal_survives_finally1: ValueError: observer failed"]
+BLOCKED terminal errors: ["installed: TypeError: Object of type object is not JSON serializable"]
+Traceback (most recent call last):
+  File "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p2-binding-correction-03/check.py", line 97, in <module>
+    store('receipt',dict(exit=int(result),elapsed=time.monotonic()-start,parser_invocations=sum(bool(x.get('started')) for x in parser),
+  File "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p2-binding-correction-03/check.py", line 13, in store
+    (OUT/(phase+'-'+name+'.json')).write_text(json.dumps(value,indent=2,ensure_ascii=False)+'\n')
+                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/__init__.py", line 238, in dumps
+    **kw).encode(obj)
+          ^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/encoder.py", line 202, in encode
+    chunks = list(chunks)
+             ^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/encoder.py", line 432, in _iterencode
+    yield from _iterencode_dict(o, _current_indent_level)
+  File "/usr/lib/python3.12/json/encoder.py", line 406, in _iterencode_dict
+    yield from chunks
+  File "/usr/lib/python3.12/json/encoder.py", line 326, in _iterencode_list
+    yield from chunks
+  File "/usr/lib/python3.12/json/encoder.py", line 406, in _iterencode_dict
+    yield from chunks
+  File "/usr/lib/python3.12/json/encoder.py", line 439, in _iterencode
+    o = _default(o)
+        ^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/encoder.py", line 180, in default
+    raise TypeError(f'Object of type {o.__class__.__name__} '
+TypeError: Object of type PosixPath is not JSON serializable
