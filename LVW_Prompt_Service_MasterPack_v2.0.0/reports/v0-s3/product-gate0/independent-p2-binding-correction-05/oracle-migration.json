@@ -1,0 +1,34 @@
+{
+  "old_nodeids_retained": 227,
+  "new_nodeids": [
+    "tools/test_v0_s3_runtime_binding.py::test_correction05_public_finalization_failures[all-permanent]",
+    "tools/test_v0_s3_runtime_binding.py::test_correction05_public_finalization_failures[early-permanent]",
+    "tools/test_v0_s3_runtime_binding.py::test_correction05_public_finalization_failures[early-transient]",
+    "tools/test_v0_s3_runtime_binding.py::test_correction05_public_finalization_failures[local-permanent]",
+    "tools/test_v0_s3_runtime_binding.py::test_correction05_public_finalization_failures[local-transient]",
+    "tools/test_v0_s3_runtime_binding.py::test_correction05_public_finalization_failures[publish-permanent]",
+    "tools/test_v0_s3_runtime_binding.py::test_correction05_public_finalization_failures[publish-transient]",
+    "tools/test_v0_s3_runtime_binding.py::test_correction05_public_finalization_failures[shared-afterwrite]",
+    "tools/test_v0_s3_runtime_binding.py::test_correction05_public_finalization_failures[shared-permanent]",
+    "tools/test_v0_s3_runtime_binding.py::test_correction05_public_finalization_failures[shared-transient]"
+  ],
+  "schema": {
+    "terminal": "lvw.p2b-terminal/3",
+    "consumption": "lvw.p2b-consumption/2",
+    "result": "TERMINAL_REFERENCE_NOT_DECISION",
+    "terminal_path": "absolute canonical index path",
+    "terminal_persisted": "compatibility alias: final returned decision index was successfully persisted; never sufficient for acceptance",
+    "terminal_index_persisted": "the final returned decision index was persisted; if repair failed an older FINALIZING index may still exist",
+    "finalization_proven": "both consumption references and artifacts read-verified before the final atomic index publication; false after finalization faults",
+    "claim_finalization": "PROVEN or UNPROVEN; independent of status, so a proven BLOCKED group is still a refusal"
+  },
+  "migrations": [
+    "All 227 previous pytest nodeids retained; successful EXPIRED claim still must hash the exact canonical terminal bytes.",
+    "Public maximum helper extracted without changing nine existing test IDs or their phase/debit/capacity/ref rejection obligations.",
+    "Added local EXPIRED/hash check and finalization_proven to all old public chains; consumption result cannot equal READY_FOR_REVIEW.",
+    "New UNPROVEN fallback branches may retain original RUNNING shared claim; this is tested only for injected finalization faults, not used to weaken old successful-chain EXPIRED assertions.",
+    "Factory binary/source copies replaced by per-file textual size/hash inventory before cleanup; required raw command/observer/phase/life data retained."
+  ],
+  "reviewed_diff": "candidate.diff",
+  "original_failure": "independent-p2-binding-correction-04/probe-receipt.json"
+}

@@ -1,0 +1,1271 @@
+[
+  {
+    "fault": "shared",
+    "io_errors": [
+      {
+        "source": "/tmp/lvw-independent-c05-probe-shared-zf41lmwl/shared.claim.writing",
+        "destination": "/tmp/lvw-independent-c05-probe-shared-zf41lmwl/shared.claim",
+        "actual_failed_destination": "/tmp/lvw-independent-c05-probe-shared-zf41lmwl/evidence/nonexistent-owned-parent/shared.claim",
+        "errno": 2,
+        "error": "[Errno 2] No such file or directory: '/tmp/lvw-independent-c05-probe-shared-zf41lmwl/shared.claim.writing' -> '/tmp/lvw-independent-c05-probe-shared-zf41lmwl/evidence/nonexistent-owned-parent/shared.claim'"
+      },
+      {
+        "source": "/tmp/lvw-independent-c05-probe-shared-zf41lmwl/shared.claim.writing",
+        "destination": "/tmp/lvw-independent-c05-probe-shared-zf41lmwl/shared.claim",
+        "actual_failed_destination": "/tmp/lvw-independent-c05-probe-shared-zf41lmwl/evidence/nonexistent-owned-parent/shared.claim",
+        "errno": 2,
+        "error": "[Errno 2] No such file or directory: '/tmp/lvw-independent-c05-probe-shared-zf41lmwl/shared.claim.writing' -> '/tmp/lvw-independent-c05-probe-shared-zf41lmwl/evidence/nonexistent-owned-parent/shared.claim'"
+      }
+    ],
+    "returned": {
+      "status": "BLOCKED",
+      "terminal_persisted": true,
+      "terminal_index_persisted": true,
+      "finalization_proven": false,
+      "claim_finalization": "UNPROVEN",
+      "synthetic_debits": 1,
+      "phases": {
+        "normal": "PERSISTED",
+        "bad-receipt": "PERSISTED",
+        "timeout": "PERSISTED"
+      }
+    },
+    "disk": {
+      "index": {
+        "exists": true,
+        "sha256": "e9d3040709f165e0dfc3b0da7ef3dde3333f332a5aea3f553c846b9ec82c3155",
+        "value": {
+          "schema": "lvw.p2b-terminal/3",
+          "status": "BLOCKED",
+          "candidate": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "child_id": "S3-P2B-CORRECTION-03",
+          "child_sha256": "d2458630e218311a017f2745d627d29c3dc13a5f9cfad3ae02f756b675727172",
+          "preflight_sha256": "852ad6b10c0415cc68724dbb32468c17864fe125ae7965a3b254c55ed28dc61c",
+          "initial_claim_sha256": "272e39891b8acf98c1dc272b23255bb4154f84c224b1163813d01e1b32a2c5ec",
+          "synthetic_debits": 1,
+          "counters": {
+            "wall_seconds": 13.32270590299595,
+            "process_starts": 26,
+            "per_command_seconds": 0,
+            "metadata_hash_files": 3,
+            "metadata_hash_bytes": 256669729,
+            "output_bytes": 13456085,
+            "synthetic_debits": 16
+          },
+          "phases": {
+            "normal": "PERSISTED",
+            "bad-receipt": "PERSISTED",
+            "timeout": "PERSISTED"
+          },
+          "phase_verdicts": {
+            "normal": "EXPECTED_BOUNDARY",
+            "bad-receipt": "EXPECTED_BOUNDARY",
+            "timeout": "EXPECTED_BOUNDARY"
+          },
+          "cleanup": "UNKNOWN",
+          "terminal_errors": [
+            "finalization: FileNotFoundError: [Errno 2] No such file or directory: '/tmp/lvw-independent-c05-probe-shared-zf41lmwl/shared.claim.writing' -> '/tmp/lvw-independent-c05-probe-shared-zf41lmwl/evidence/nonexistent-owned-parent/shared.c"
+          ],
+          "error": null,
+          "artifact_refs": [
+            {
+              "path": "details/000-command.raw",
+              "sha256": "20807857fc52079cd9f2ea98a714dc16625146f000a12b6e28c59fca2ad93381",
+              "bytes": 691561,
+              "kind": "command"
+            },
+            {
+              "path": "details/001-observer.raw",
+              "sha256": "47bc7817951450755197d8b9ab7e130a32c4fad80ead723742ae11e3ff6e12cb",
+              "bytes": 400310,
+              "kind": "observer"
+            },
+            {
+              "path": "details/002-observer.raw",
+              "sha256": "8c00d9ca1e6d19084b9747f800de7589e1d65312362091e76c065ad6a0a56a7e",
+              "bytes": 400310,
+              "kind": "observer"
+            },
+            {
+              "path": "details/003-native.raw",
+              "sha256": "f7d4e1d6c92134d38c9c30c6d43de73b9875f3e8f196322336550cbacff51af8",
+              "bytes": 114,
+              "kind": "native"
+            },
+            {
+              "path": "details/004-response.raw",
+              "sha256": "5cf7146532a1ec8b57fca896330e0a3af1804a790d0ed80ec3eba1b4a0b18595",
+              "bytes": 256,
+              "kind": "response"
+            },
+            {
+              "path": "details/005-phase.raw",
+              "sha256": "c91c9faff909c988944f70f48477005477ac7de9cec02ec0a310c2ae69f2b312",
+              "bytes": 13620,
+              "kind": "phase"
+            },
+            {
+              "path": "details/006-phase.raw",
+              "sha256": "7709b6602fc19609c7df413b48e5c136fd56653d11c7dc258c41f720e1fb095e",
+              "bytes": 348,
+              "kind": "phase"
+            },
+            {
+              "path": "details/007-command.raw",
+              "sha256": "d79fc638c8658fab3bce51edbb11ece9e62d0d1ae3c3f46db19444924be606f9",
+              "bytes": 691561,
+              "kind": "command"
+            },
+            {
+              "path": "details/008-observer.raw",
+              "sha256": "564cb21c37c0cb0e39b8d840203ece374e21f3d08fe2b59df715831e78490c6f",
+              "bytes": 396459,
+              "kind": "observer"
+            },
+            {
+              "path": "details/009-observer.raw",
+              "sha256": "76092f59b78cb3e4b3f3d5e7f3223ede47935a7586fd2f303d0e1dacd3f40c00",
+              "bytes": 396458,
+              "kind": "observer"
+            },
+            {
+              "path": "details/010-native.raw",
+              "sha256": "f7d4e1d6c92134d38c9c30c6d43de73b9875f3e8f196322336550cbacff51af8",
+              "bytes": 114,
+              "kind": "native"
+            },
+            {
+              "path": "details/011-response.raw",
+              "sha256": "8497cb7b7c5cf54282e8a9d24522c89c59c0ddafe594aa10b74d79b4c4a743be",
+              "bytes": 334,
+              "kind": "response"
+            },
+            {
+              "path": "details/012-phase.raw",
+              "sha256": "9508176f2b93211e416dc7ba79385f803d60c2a92fef089958ef05cf3219c423",
+              "bytes": 13624,
+              "kind": "phase"
+            },
+            {
+              "path": "details/013-phase.raw",
+              "sha256": "3d6be71b00f6f56fe7831b598b048669173148c35f995d694401fdf87944bf23",
+              "bytes": 353,
+              "kind": "phase"
+            },
+            {
+              "path": "details/014-command.raw",
+              "sha256": "945796f39e9d287898fb493749107d7f5483e0363980ba99d31660126185b5b8",
+              "bytes": 691561,
+              "kind": "command"
+            },
+            {
+              "path": "details/015-observer.raw",
+              "sha256": "9897e55043c46ff961b8ab3f89eddee901e6143058b56e4ea2a431766d05a7ed",
+              "bytes": 400291,
+              "kind": "observer"
+            },
+            {
+              "path": "details/016-observer.raw",
+              "sha256": "278c2a0807c08fae24ea0ce73a6ee089abfde2882ae1d588368991951fe037c2",
+              "bytes": 400290,
+              "kind": "observer"
+            },
+            {
+              "path": "details/017-native.raw",
+              "sha256": "f7d4e1d6c92134d38c9c30c6d43de73b9875f3e8f196322336550cbacff51af8",
+              "bytes": 114,
+              "kind": "native"
+            },
+            {
+              "path": "details/018-response.raw",
+              "sha256": "1b88e03b29f367c0db5dbd6de7119986b8bc0a49dde424eafea45de85002179a",
+              "bytes": 288,
+              "kind": "response"
+            },
+            {
+              "path": "details/019-phase.raw",
+              "sha256": "a8c138c04c9f6abfc786ca05334decb90a50962675482570750e5f3b75e8006e",
+              "bytes": 13622,
+              "kind": "phase"
+            },
+            {
+              "path": "details/020-phase.raw",
+              "sha256": "1a206ccdd61b4872a804e35ac45dbe346f34cc3f9ebc1698c63a1b88f48f5bf4",
+              "bytes": 349,
+              "kind": "phase"
+            },
+            {
+              "path": "details/021-cleanup.raw",
+              "sha256": "d61fd19a0b6b1c44aba42472cc4a780223aff4fe249549dff1d17e083ec4ca3a",
+              "bytes": 1967,
+              "kind": "cleanup"
+            }
+          ],
+          "detail_actual_bytes": 4513904,
+          "detail_reserved_bytes": 8388608,
+          "claim_finalization": "UNPROVEN",
+          "terminal_index_persisted": true,
+          "finalization_proven": false
+        }
+      },
+      "shared": {
+        "exists": true,
+        "sha256": "272e39891b8acf98c1dc272b23255bb4154f84c224b1163813d01e1b32a2c5ec",
+        "value": {
+          "status": "RUNNING",
+          "child_id": "S3-P2B-CORRECTION-03",
+          "child_sha256": "d2458630e218311a017f2745d627d29c3dc13a5f9cfad3ae02f756b675727172",
+          "candidate": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "preflight_sha256": "852ad6b10c0415cc68724dbb32468c17864fe125ae7965a3b254c55ed28dc61c",
+          "output_root": "/tmp/lvw-independent-c05-probe-shared-zf41lmwl/evidence",
+          "pid": 1895077,
+          "birth": {
+            "linux_start_ticks": 5604698
+          },
+          "time": 1794435015.801505
+        }
+      },
+      "local": {
+        "exists": true,
+        "sha256": "f569dabdac02d62a7341706948456b0ea8faa3b5e0cf6c1153487f0b14d95818",
+        "value": {
+          "status": "EXPIRED",
+          "child_id": "S3-P2B-CORRECTION-03",
+          "child_sha256": "d2458630e218311a017f2745d627d29c3dc13a5f9cfad3ae02f756b675727172",
+          "candidate": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "preflight_sha256": "852ad6b10c0415cc68724dbb32468c17864fe125ae7965a3b254c55ed28dc61c",
+          "output_root": "/tmp/lvw-independent-c05-probe-shared-zf41lmwl/evidence",
+          "pid": 1895077,
+          "birth": {
+            "linux_start_ticks": 5604698
+          },
+          "time": 1794435015.801505,
+          "schema": "lvw.p2b-consumption/2",
+          "result": "TERMINAL_REFERENCE_NOT_DECISION",
+          "terminal_sha256": "e9d3040709f165e0dfc3b0da7ef3dde3333f332a5aea3f553c846b9ec82c3155",
+          "terminal_path": "/tmp/lvw-independent-c05-probe-shared-zf41lmwl/evidence/cross-os-lifecycle.json"
+        }
+      },
+      "staging": {
+        "exists": true,
+        "sha256": "909db2fcc4d9fc3ad4a1c8c9498bb9937e032f4af8d5159fbcb40804baf57152",
+        "value": {
+          "schema": "lvw.p2b-terminal/3",
+          "status": "READY_FOR_REVIEW",
+          "candidate": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "child_id": "S3-P2B-CORRECTION-03",
+          "child_sha256": "d2458630e218311a017f2745d627d29c3dc13a5f9cfad3ae02f756b675727172",
+          "preflight_sha256": "852ad6b10c0415cc68724dbb32468c17864fe125ae7965a3b254c55ed28dc61c",
+          "initial_claim_sha256": "272e39891b8acf98c1dc272b23255bb4154f84c224b1163813d01e1b32a2c5ec",
+          "synthetic_debits": 1,
+          "counters": {
+            "wall_seconds": 13.32270590299595,
+            "process_starts": 26,
+            "per_command_seconds": 0,
+            "metadata_hash_files": 3,
+            "metadata_hash_bytes": 256669729,
+            "output_bytes": 13456085,
+            "synthetic_debits": 16
+          },
+          "phases": {
+            "normal": "PERSISTED",
+            "bad-receipt": "PERSISTED",
+            "timeout": "PERSISTED"
+          },
+          "phase_verdicts": {
+            "normal": "EXPECTED_BOUNDARY",
+            "bad-receipt": "EXPECTED_BOUNDARY",
+            "timeout": "EXPECTED_BOUNDARY"
+          },
+          "cleanup": "RETAINED",
+          "terminal_errors": [],
+          "error": null,
+          "artifact_refs": [
+            {
+              "path": "details/000-command.raw",
+              "sha256": "20807857fc52079cd9f2ea98a714dc16625146f000a12b6e28c59fca2ad93381",
+              "bytes": 691561,
+              "kind": "command"
+            },
+            {
+              "path": "details/001-observer.raw",
+              "sha256": "47bc7817951450755197d8b9ab7e130a32c4fad80ead723742ae11e3ff6e12cb",
+              "bytes": 400310,
+              "kind": "observer"
+            },
+            {
+              "path": "details/002-observer.raw",
+              "sha256": "8c00d9ca1e6d19084b9747f800de7589e1d65312362091e76c065ad6a0a56a7e",
+              "bytes": 400310,
+              "kind": "observer"
+            },
+            {
+              "path": "details/003-native.raw",
+              "sha256": "f7d4e1d6c92134d38c9c30c6d43de73b9875f3e8f196322336550cbacff51af8",
+              "bytes": 114,
+              "kind": "native"
+            },
+            {
+              "path": "details/004-response.raw",
+              "sha256": "5cf7146532a1ec8b57fca896330e0a3af1804a790d0ed80ec3eba1b4a0b18595",
+              "bytes": 256,
+              "kind": "response"
+            },
+            {
+              "path": "details/005-phase.raw",
+              "sha256": "c91c9faff909c988944f70f48477005477ac7de9cec02ec0a310c2ae69f2b312",
+              "bytes": 13620,
+              "kind": "phase"
+            },
+            {
+              "path": "details/006-phase.raw",
+              "sha256": "7709b6602fc19609c7df413b48e5c136fd56653d11c7dc258c41f720e1fb095e",
+              "bytes": 348,
+              "kind": "phase"
+            },
+            {
+              "path": "details/007-command.raw",
+              "sha256": "d79fc638c8658fab3bce51edbb11ece9e62d0d1ae3c3f46db19444924be606f9",
+              "bytes": 691561,
+              "kind": "command"
+            },
+            {
+              "path": "details/008-observer.raw",
+              "sha256": "564cb21c37c0cb0e39b8d840203ece374e21f3d08fe2b59df715831e78490c6f",
+              "bytes": 396459,
+              "kind": "observer"
+            },
+            {
+              "path": "details/009-observer.raw",
+              "sha256": "76092f59b78cb3e4b3f3d5e7f3223ede47935a7586fd2f303d0e1dacd3f40c00",
+              "bytes": 396458,
+              "kind": "observer"
+            },
+            {
+              "path": "details/010-native.raw",
+              "sha256": "f7d4e1d6c92134d38c9c30c6d43de73b9875f3e8f196322336550cbacff51af8",
+              "bytes": 114,
+              "kind": "native"
+            },
+            {
+              "path": "details/011-response.raw",
+              "sha256": "8497cb7b7c5cf54282e8a9d24522c89c59c0ddafe594aa10b74d79b4c4a743be",
+              "bytes": 334,
+              "kind": "response"
+            },
+            {
+              "path": "details/012-phase.raw",
+              "sha256": "9508176f2b93211e416dc7ba79385f803d60c2a92fef089958ef05cf3219c423",
+              "bytes": 13624,
+              "kind": "phase"
+            },
+            {
+              "path": "details/013-phase.raw",
+              "sha256": "3d6be71b00f6f56fe7831b598b048669173148c35f995d694401fdf87944bf23",
+              "bytes": 353,
+              "kind": "phase"
+            },
+            {
+              "path": "details/014-command.raw",
+              "sha256": "945796f39e9d287898fb493749107d7f5483e0363980ba99d31660126185b5b8",
+              "bytes": 691561,
+              "kind": "command"
+            },
+            {
+              "path": "details/015-observer.raw",
+              "sha256": "9897e55043c46ff961b8ab3f89eddee901e6143058b56e4ea2a431766d05a7ed",
+              "bytes": 400291,
+              "kind": "observer"
+            },
+            {
+              "path": "details/016-observer.raw",
+              "sha256": "278c2a0807c08fae24ea0ce73a6ee089abfde2882ae1d588368991951fe037c2",
+              "bytes": 400290,
+              "kind": "observer"
+            },
+            {
+              "path": "details/017-native.raw",
+              "sha256": "f7d4e1d6c92134d38c9c30c6d43de73b9875f3e8f196322336550cbacff51af8",
+              "bytes": 114,
+              "kind": "native"
+            },
+            {
+              "path": "details/018-response.raw",
+              "sha256": "1b88e03b29f367c0db5dbd6de7119986b8bc0a49dde424eafea45de85002179a",
+              "bytes": 288,
+              "kind": "response"
+            },
+            {
+              "path": "details/019-phase.raw",
+              "sha256": "a8c138c04c9f6abfc786ca05334decb90a50962675482570750e5f3b75e8006e",
+              "bytes": 13622,
+              "kind": "phase"
+            },
+            {
+              "path": "details/020-phase.raw",
+              "sha256": "1a206ccdd61b4872a804e35ac45dbe346f34cc3f9ebc1698c63a1b88f48f5bf4",
+              "bytes": 349,
+              "kind": "phase"
+            },
+            {
+              "path": "details/021-cleanup.raw",
+              "sha256": "d61fd19a0b6b1c44aba42472cc4a780223aff4fe249549dff1d17e083ec4ca3a",
+              "bytes": 1967,
+              "kind": "cleanup"
+            }
+          ],
+          "detail_actual_bytes": 4513904,
+          "detail_reserved_bytes": 8388608,
+          "claim_finalization": "PROVEN",
+          "terminal_index_persisted": true,
+          "finalization_proven": true
+        }
+      }
+    },
+    "old_success_oracle": "REJECTED_AS_EXPECTED",
+    "owned_tmp": "/tmp/lvw-independent-c05-probe-shared-zf41lmwl",
+    "removed": true,
+    "oracle": "PASS: canonical BLOCKED, consumption never decision, phase1 retained"
+  },
+  {
+    "fault": "local",
+    "io_errors": [
+      {
+        "source": "/tmp/lvw-independent-c05-probe-local-a_665pyp/evidence/consumed.json.writing",
+        "destination": "/tmp/lvw-independent-c05-probe-local-a_665pyp/evidence/consumed.json",
+        "actual_failed_destination": "/tmp/lvw-independent-c05-probe-local-a_665pyp/evidence/nonexistent-owned-parent/consumed.json",
+        "errno": 2,
+        "error": "[Errno 2] No such file or directory: '/tmp/lvw-independent-c05-probe-local-a_665pyp/evidence/consumed.json.writing' -> '/tmp/lvw-independent-c05-probe-local-a_665pyp/evidence/nonexistent-owned-parent/consumed.json'"
+      },
+      {
+        "source": "/tmp/lvw-independent-c05-probe-local-a_665pyp/evidence/consumed.json.writing",
+        "destination": "/tmp/lvw-independent-c05-probe-local-a_665pyp/evidence/consumed.json",
+        "actual_failed_destination": "/tmp/lvw-independent-c05-probe-local-a_665pyp/evidence/nonexistent-owned-parent/consumed.json",
+        "errno": 2,
+        "error": "[Errno 2] No such file or directory: '/tmp/lvw-independent-c05-probe-local-a_665pyp/evidence/consumed.json.writing' -> '/tmp/lvw-independent-c05-probe-local-a_665pyp/evidence/nonexistent-owned-parent/consumed.json'"
+      }
+    ],
+    "returned": {
+      "status": "BLOCKED",
+      "terminal_persisted": true,
+      "terminal_index_persisted": true,
+      "finalization_proven": false,
+      "claim_finalization": "UNPROVEN",
+      "synthetic_debits": 1,
+      "phases": {
+        "normal": "PERSISTED",
+        "bad-receipt": "PERSISTED",
+        "timeout": "PERSISTED"
+      }
+    },
+    "disk": {
+      "index": {
+        "exists": true,
+        "sha256": "2dc3c8028768e2afd8a17374ddb604f881f9985b05f27fdcde609eaf980b3d38",
+        "value": {
+          "schema": "lvw.p2b-terminal/3",
+          "status": "BLOCKED",
+          "candidate": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "child_id": "S3-P2B-CORRECTION-03",
+          "child_sha256": "d2458630e218311a017f2745d627d29c3dc13a5f9cfad3ae02f756b675727172",
+          "preflight_sha256": "d88fb8ee76601840a551be1af4882321b2a403595e79a8fe1bf2a7f6e91e36a7",
+          "initial_claim_sha256": "5794abdd580e33763fc11b1dc62997a6c9ca681e025e322af2ae6ed5fcbfb9b1",
+          "synthetic_debits": 1,
+          "counters": {
+            "wall_seconds": 13.348232655000174,
+            "process_starts": 26,
+            "per_command_seconds": 0,
+            "metadata_hash_files": 3,
+            "metadata_hash_bytes": 256669729,
+            "output_bytes": 13456085,
+            "synthetic_debits": 16
+          },
+          "phases": {
+            "normal": "PERSISTED",
+            "bad-receipt": "PERSISTED",
+            "timeout": "PERSISTED"
+          },
+          "phase_verdicts": {
+            "normal": "EXPECTED_BOUNDARY",
+            "bad-receipt": "EXPECTED_BOUNDARY",
+            "timeout": "EXPECTED_BOUNDARY"
+          },
+          "cleanup": "UNKNOWN",
+          "terminal_errors": [
+            "finalization: FileNotFoundError: [Errno 2] No such file or directory: '/tmp/lvw-independent-c05-probe-local-a_665pyp/evidence/consumed.json.writing' -> '/tmp/lvw-independent-c05-probe-local-a_665pyp/evidence/nonexistent-owned-parent/"
+          ],
+          "error": null,
+          "artifact_refs": [
+            {
+              "path": "details/000-command.raw",
+              "sha256": "565cf244e3585b033c74623d5a7baa085364608e7bb3db68c0c2389b9b670555",
+              "bytes": 691561,
+              "kind": "command"
+            },
+            {
+              "path": "details/001-observer.raw",
+              "sha256": "ba1adc7526a3aae68491bef6fdb8d613b61444c8d938a78ac6724d8d09ad77d5",
+              "bytes": 400296,
+              "kind": "observer"
+            },
+            {
+              "path": "details/002-observer.raw",
+              "sha256": "80b92a6cc2a9bc56e54fac9fee6f502709fe6e811e334f38b5b1db00a8e83268",
+              "bytes": 400296,
+              "kind": "observer"
+            },
+            {
+              "path": "details/003-native.raw",
+              "sha256": "f7d4e1d6c92134d38c9c30c6d43de73b9875f3e8f196322336550cbacff51af8",
+              "bytes": 114,
+              "kind": "native"
+            },
+            {
+              "path": "details/004-response.raw",
+              "sha256": "5cf7146532a1ec8b57fca896330e0a3af1804a790d0ed80ec3eba1b4a0b18595",
+              "bytes": 256,
+              "kind": "response"
+            },
+            {
+              "path": "details/005-phase.raw",
+              "sha256": "751e794d21cdeb3b78a939b8b796ee8e309257de4ed65f5228c821babfe1c795",
+              "bytes": 13620,
+              "kind": "phase"
+            },
+            {
+              "path": "details/006-phase.raw",
+              "sha256": "6359beb320df6d7693338000e7317c55ebb3690825ddbac7fc1b4a79b3f8fc26",
+              "bytes": 348,
+              "kind": "phase"
+            },
+            {
+              "path": "details/007-command.raw",
+              "sha256": "bafcc24b1b2f3ef29b6d0b30f2b5c08bcfbcd7cb0ffb1aeeead09a7954246c94",
+              "bytes": 691561,
+              "kind": "command"
+            },
+            {
+              "path": "details/008-observer.raw",
+              "sha256": "7119eed896b651105550624eb3f3bb122ea53cf9a48e9cf20dc20f637d64707b",
+              "bytes": 396420,
+              "kind": "observer"
+            },
+            {
+              "path": "details/009-observer.raw",
+              "sha256": "ca387d0765ce485fee553f73f3f1c1e5be3d1352bd958fc003b3c082aa8937a7",
+              "bytes": 396419,
+              "kind": "observer"
+            },
+            {
+              "path": "details/010-native.raw",
+              "sha256": "f7d4e1d6c92134d38c9c30c6d43de73b9875f3e8f196322336550cbacff51af8",
+              "bytes": 114,
+              "kind": "native"
+            },
+            {
+              "path": "details/011-response.raw",
+              "sha256": "8497cb7b7c5cf54282e8a9d24522c89c59c0ddafe594aa10b74d79b4c4a743be",
+              "bytes": 334,
+              "kind": "response"
+            },
+            {
+              "path": "details/012-phase.raw",
+              "sha256": "7188b92374e3988d7b999bc6e6013e319ce4653bce1b89dab4bb2c4701b1f92b",
+              "bytes": 13624,
+              "kind": "phase"
+            },
+            {
+              "path": "details/013-phase.raw",
+              "sha256": "7165ef355958f869a42414b7c2ce996fd69504d7a6f496ea33e72db96302bba5",
+              "bytes": 353,
+              "kind": "phase"
+            },
+            {
+              "path": "details/014-command.raw",
+              "sha256": "a5ffcdc74043ea65c5a081e65535e5d51b4d5ebae62bd92e3d8cfce9172bdf76",
+              "bytes": 691561,
+              "kind": "command"
+            },
+            {
+              "path": "details/015-observer.raw",
+              "sha256": "18efd40cdc5cd7cfc9cfbf31a9a3e904b4d533426954da35bb74ad3e003402b3",
+              "bytes": 400281,
+              "kind": "observer"
+            },
+            {
+              "path": "details/016-observer.raw",
+              "sha256": "b919ffbf49a927b9b980d6aaf784dee663e70557ceba46936887f96af2c1d94b",
+              "bytes": 400279,
+              "kind": "observer"
+            },
+            {
+              "path": "details/017-native.raw",
+              "sha256": "f7d4e1d6c92134d38c9c30c6d43de73b9875f3e8f196322336550cbacff51af8",
+              "bytes": 114,
+              "kind": "native"
+            },
+            {
+              "path": "details/018-response.raw",
+              "sha256": "1b88e03b29f367c0db5dbd6de7119986b8bc0a49dde424eafea45de85002179a",
+              "bytes": 288,
+              "kind": "response"
+            },
+            {
+              "path": "details/019-phase.raw",
+              "sha256": "6263ffc37086d0b670cb61af3a812044fb0737d7d3793bf48d687442520991ff",
+              "bytes": 13622,
+              "kind": "phase"
+            },
+            {
+              "path": "details/020-phase.raw",
+              "sha256": "0ce5e64b01c1cebc2b63e035c678262e299d77dcaa434a33769a7a224a4a53d9",
+              "bytes": 349,
+              "kind": "phase"
+            },
+            {
+              "path": "details/021-cleanup.raw",
+              "sha256": "f4ba1328c8a79b37aec7da9da8d7a928d5367b6277129c06cd2387b9b019fd1f",
+              "bytes": 1967,
+              "kind": "cleanup"
+            }
+          ],
+          "detail_actual_bytes": 4513777,
+          "detail_reserved_bytes": 8388608,
+          "claim_finalization": "UNPROVEN",
+          "terminal_index_persisted": true,
+          "finalization_proven": false
+        }
+      },
+      "shared": {
+        "exists": true,
+        "sha256": "60b60a2eddfa5357b9cc71d8c3f58ee362097b40586cd50782a6d7d761fce1ab",
+        "value": {
+          "status": "EXPIRED",
+          "child_id": "S3-P2B-CORRECTION-03",
+          "child_sha256": "d2458630e218311a017f2745d627d29c3dc13a5f9cfad3ae02f756b675727172",
+          "candidate": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "preflight_sha256": "d88fb8ee76601840a551be1af4882321b2a403595e79a8fe1bf2a7f6e91e36a7",
+          "output_root": "/tmp/lvw-independent-c05-probe-local-a_665pyp/evidence",
+          "pid": 1895077,
+          "birth": {
+            "linux_start_ticks": 5604698
+          },
+          "time": 1794435031.1175613,
+          "schema": "lvw.p2b-consumption/2",
+          "result": "TERMINAL_REFERENCE_NOT_DECISION",
+          "terminal_sha256": "2dc3c8028768e2afd8a17374ddb604f881f9985b05f27fdcde609eaf980b3d38",
+          "terminal_path": "/tmp/lvw-independent-c05-probe-local-a_665pyp/evidence/cross-os-lifecycle.json"
+        }
+      },
+      "local": {
+        "exists": false,
+        "sha256": null,
+        "value": null
+      },
+      "staging": {
+        "exists": true,
+        "sha256": "d1d0d482e9ffb9c420b454d95277aeca38673a79efa412cdd3380de6fac09e6a",
+        "value": {
+          "schema": "lvw.p2b-terminal/3",
+          "status": "READY_FOR_REVIEW",
+          "candidate": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "child_id": "S3-P2B-CORRECTION-03",
+          "child_sha256": "d2458630e218311a017f2745d627d29c3dc13a5f9cfad3ae02f756b675727172",
+          "preflight_sha256": "d88fb8ee76601840a551be1af4882321b2a403595e79a8fe1bf2a7f6e91e36a7",
+          "initial_claim_sha256": "5794abdd580e33763fc11b1dc62997a6c9ca681e025e322af2ae6ed5fcbfb9b1",
+          "synthetic_debits": 1,
+          "counters": {
+            "wall_seconds": 13.348232655000174,
+            "process_starts": 26,
+            "per_command_seconds": 0,
+            "metadata_hash_files": 3,
+            "metadata_hash_bytes": 256669729,
+            "output_bytes": 13456085,
+            "synthetic_debits": 16
+          },
+          "phases": {
+            "normal": "PERSISTED",
+            "bad-receipt": "PERSISTED",
+            "timeout": "PERSISTED"
+          },
+          "phase_verdicts": {
+            "normal": "EXPECTED_BOUNDARY",
+            "bad-receipt": "EXPECTED_BOUNDARY",
+            "timeout": "EXPECTED_BOUNDARY"
+          },
+          "cleanup": "RETAINED",
+          "terminal_errors": [],
+          "error": null,
+          "artifact_refs": [
+            {
+              "path": "details/000-command.raw",
+              "sha256": "565cf244e3585b033c74623d5a7baa085364608e7bb3db68c0c2389b9b670555",
+              "bytes": 691561,
+              "kind": "command"
+            },
+            {
+              "path": "details/001-observer.raw",
+              "sha256": "ba1adc7526a3aae68491bef6fdb8d613b61444c8d938a78ac6724d8d09ad77d5",
+              "bytes": 400296,
+              "kind": "observer"
+            },
+            {
+              "path": "details/002-observer.raw",
+              "sha256": "80b92a6cc2a9bc56e54fac9fee6f502709fe6e811e334f38b5b1db00a8e83268",
+              "bytes": 400296,
+              "kind": "observer"
+            },
+            {
+              "path": "details/003-native.raw",
+              "sha256": "f7d4e1d6c92134d38c9c30c6d43de73b9875f3e8f196322336550cbacff51af8",
+              "bytes": 114,
+              "kind": "native"
+            },
+            {
+              "path": "details/004-response.raw",
+              "sha256": "5cf7146532a1ec8b57fca896330e0a3af1804a790d0ed80ec3eba1b4a0b18595",
+              "bytes": 256,
+              "kind": "response"
+            },
+            {
+              "path": "details/005-phase.raw",
+              "sha256": "751e794d21cdeb3b78a939b8b796ee8e309257de4ed65f5228c821babfe1c795",
+              "bytes": 13620,
+              "kind": "phase"
+            },
+            {
+              "path": "details/006-phase.raw",
+              "sha256": "6359beb320df6d7693338000e7317c55ebb3690825ddbac7fc1b4a79b3f8fc26",
+              "bytes": 348,
+              "kind": "phase"
+            },
+            {
+              "path": "details/007-command.raw",
+              "sha256": "bafcc24b1b2f3ef29b6d0b30f2b5c08bcfbcd7cb0ffb1aeeead09a7954246c94",
+              "bytes": 691561,
+              "kind": "command"
+            },
+            {
+              "path": "details/008-observer.raw",
+              "sha256": "7119eed896b651105550624eb3f3bb122ea53cf9a48e9cf20dc20f637d64707b",
+              "bytes": 396420,
+              "kind": "observer"
+            },
+            {
+              "path": "details/009-observer.raw",
+              "sha256": "ca387d0765ce485fee553f73f3f1c1e5be3d1352bd958fc003b3c082aa8937a7",
+              "bytes": 396419,
+              "kind": "observer"
+            },
+            {
+              "path": "details/010-native.raw",
+              "sha256": "f7d4e1d6c92134d38c9c30c6d43de73b9875f3e8f196322336550cbacff51af8",
+              "bytes": 114,
+              "kind": "native"
+            },
+            {
+              "path": "details/011-response.raw",
+              "sha256": "8497cb7b7c5cf54282e8a9d24522c89c59c0ddafe594aa10b74d79b4c4a743be",
+              "bytes": 334,
+              "kind": "response"
+            },
+            {
+              "path": "details/012-phase.raw",
+              "sha256": "7188b92374e3988d7b999bc6e6013e319ce4653bce1b89dab4bb2c4701b1f92b",
+              "bytes": 13624,
+              "kind": "phase"
+            },
+            {
+              "path": "details/013-phase.raw",
+              "sha256": "7165ef355958f869a42414b7c2ce996fd69504d7a6f496ea33e72db96302bba5",
+              "bytes": 353,
+              "kind": "phase"
+            },
+            {
+              "path": "details/014-command.raw",
+              "sha256": "a5ffcdc74043ea65c5a081e65535e5d51b4d5ebae62bd92e3d8cfce9172bdf76",
+              "bytes": 691561,
+              "kind": "command"
+            },
+            {
+              "path": "details/015-observer.raw",
+              "sha256": "18efd40cdc5cd7cfc9cfbf31a9a3e904b4d533426954da35bb74ad3e003402b3",
+              "bytes": 400281,
+              "kind": "observer"
+            },
+            {
+              "path": "details/016-observer.raw",
+              "sha256": "b919ffbf49a927b9b980d6aaf784dee663e70557ceba46936887f96af2c1d94b",
+              "bytes": 400279,
+              "kind": "observer"
+            },
+            {
+              "path": "details/017-native.raw",
+              "sha256": "f7d4e1d6c92134d38c9c30c6d43de73b9875f3e8f196322336550cbacff51af8",
+              "bytes": 114,
+              "kind": "native"
+            },
+            {
+              "path": "details/018-response.raw",
+              "sha256": "1b88e03b29f367c0db5dbd6de7119986b8bc0a49dde424eafea45de85002179a",
+              "bytes": 288,
+              "kind": "response"
+            },
+            {
+              "path": "details/019-phase.raw",
+              "sha256": "6263ffc37086d0b670cb61af3a812044fb0737d7d3793bf48d687442520991ff",
+              "bytes": 13622,
+              "kind": "phase"
+            },
+            {
+              "path": "details/020-phase.raw",
+              "sha256": "0ce5e64b01c1cebc2b63e035c678262e299d77dcaa434a33769a7a224a4a53d9",
+              "bytes": 349,
+              "kind": "phase"
+            },
+            {
+              "path": "details/021-cleanup.raw",
+              "sha256": "f4ba1328c8a79b37aec7da9da8d7a928d5367b6277129c06cd2387b9b019fd1f",
+              "bytes": 1967,
+              "kind": "cleanup"
+            }
+          ],
+          "detail_actual_bytes": 4513777,
+          "detail_reserved_bytes": 8388608,
+          "claim_finalization": "PROVEN",
+          "terminal_index_persisted": true,
+          "finalization_proven": true
+        }
+      }
+    },
+    "old_success_oracle": "REJECTED_AS_EXPECTED",
+    "owned_tmp": "/tmp/lvw-independent-c05-probe-local-a_665pyp",
+    "removed": true,
+    "oracle": "PASS: canonical BLOCKED, consumption never decision, phase1 retained"
+  },
+  {
+    "fault": "publish",
+    "io_errors": [
+      {
+        "source": "/tmp/lvw-independent-c05-probe-publish-v5wwtb7x/evidence/terminal-candidate.json",
+        "destination": "/tmp/lvw-independent-c05-probe-publish-v5wwtb7x/evidence/cross-os-lifecycle.json",
+        "actual_failed_destination": "/tmp/lvw-independent-c05-probe-publish-v5wwtb7x/evidence/nonexistent-owned-parent/cross-os-lifecycle.json",
+        "errno": 2,
+        "error": "[Errno 2] No such file or directory: '/tmp/lvw-independent-c05-probe-publish-v5wwtb7x/evidence/terminal-candidate.json' -> '/tmp/lvw-independent-c05-probe-publish-v5wwtb7x/evidence/nonexistent-owned-parent/cross-os-lifecycle.json'"
+      }
+    ],
+    "returned": {
+      "status": "BLOCKED",
+      "terminal_persisted": true,
+      "terminal_index_persisted": true,
+      "finalization_proven": false,
+      "claim_finalization": "UNPROVEN",
+      "synthetic_debits": 1,
+      "phases": {
+        "normal": "PERSISTED",
+        "bad-receipt": "PERSISTED",
+        "timeout": "PERSISTED"
+      }
+    },
+    "disk": {
+      "index": {
+        "exists": true,
+        "sha256": "aa43d8bd79a30f781286e299fcd46944b41b34381547a0705b57c9a4b91204ba",
+        "value": {
+          "schema": "lvw.p2b-terminal/3",
+          "status": "BLOCKED",
+          "candidate": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "child_id": "S3-P2B-CORRECTION-03",
+          "child_sha256": "d2458630e218311a017f2745d627d29c3dc13a5f9cfad3ae02f756b675727172",
+          "preflight_sha256": "84768087dd70c790887a92a74657eb0e2d40b88ccfa8b6a8b903d7523b3fe53a",
+          "initial_claim_sha256": "499fee00ae2350604475abf8ca71258e99b609c62f93145a33220e30d270130b",
+          "synthetic_debits": 1,
+          "counters": {
+            "wall_seconds": 13.32878769099625,
+            "process_starts": 26,
+            "per_command_seconds": 0,
+            "metadata_hash_files": 3,
+            "metadata_hash_bytes": 256669729,
+            "output_bytes": 13456081,
+            "synthetic_debits": 16
+          },
+          "phases": {
+            "normal": "PERSISTED",
+            "bad-receipt": "PERSISTED",
+            "timeout": "PERSISTED"
+          },
+          "phase_verdicts": {
+            "normal": "EXPECTED_BOUNDARY",
+            "bad-receipt": "EXPECTED_BOUNDARY",
+            "timeout": "EXPECTED_BOUNDARY"
+          },
+          "cleanup": "UNKNOWN",
+          "terminal_errors": [
+            "finalization: FileNotFoundError: [Errno 2] No such file or directory: '/tmp/lvw-independent-c05-probe-publish-v5wwtb7x/evidence/terminal-candidate.json' -> '/tmp/lvw-independent-c05-probe-publish-v5wwtb7x/evidence/nonexistent-owned-p"
+          ],
+          "error": null,
+          "artifact_refs": [
+            {
+              "path": "details/000-command.raw",
+              "sha256": "71574f9c557ecbd677cc3fcbb82a8c73e25a563282a8cfe38e7a10786b600100",
+              "bytes": 691560,
+              "kind": "command"
+            },
+            {
+              "path": "details/001-observer.raw",
+              "sha256": "fded895fc44953ccafa3db459da2d05b65e088e29a115283e0a35a6e21aedf34",
+              "bytes": 400321,
+              "kind": "observer"
+            },
+            {
+              "path": "details/002-observer.raw",
+              "sha256": "bde2d3136b468e341d47d8b9145fbedd63056fd38e9b19fc842e83852c40ef17",
+              "bytes": 400320,
+              "kind": "observer"
+            },
+            {
+              "path": "details/003-native.raw",
+              "sha256": "f7d4e1d6c92134d38c9c30c6d43de73b9875f3e8f196322336550cbacff51af8",
+              "bytes": 114,
+              "kind": "native"
+            },
+            {
+              "path": "details/004-response.raw",
+              "sha256": "5cf7146532a1ec8b57fca896330e0a3af1804a790d0ed80ec3eba1b4a0b18595",
+              "bytes": 256,
+              "kind": "response"
+            },
+            {
+              "path": "details/005-phase.raw",
+              "sha256": "627421f3d6919a12b273bc0dec3228984cf69c8d7d532498be83f859b0eacb40",
+              "bytes": 13616,
+              "kind": "phase"
+            },
+            {
+              "path": "details/006-phase.raw",
+              "sha256": "69778de737e2f1e2bb40fe30bfd2a98261d9e336c9a961cef32097a8203162a8",
+              "bytes": 348,
+              "kind": "phase"
+            },
+            {
+              "path": "details/007-command.raw",
+              "sha256": "77545b85bdd7e2e4b1dd9317a5812b2ab1ba5e4dcd44c2b9e7e570a3937d7d3f",
+              "bytes": 691561,
+              "kind": "command"
+            },
+            {
+              "path": "details/008-observer.raw",
+              "sha256": "cec849c33729f7231ba3506036bdcf4fc95ae9af14249adb9d543658b4c2ce46",
+              "bytes": 396461,
+              "kind": "observer"
+            },
+            {
+              "path": "details/009-observer.raw",
+              "sha256": "b67adc414528a4c2dd4174c71189f60f6ee7f62df8a1879153b2601f7c4c4a6a",
+              "bytes": 396459,
+              "kind": "observer"
+            },
+            {
+              "path": "details/010-native.raw",
+              "sha256": "f7d4e1d6c92134d38c9c30c6d43de73b9875f3e8f196322336550cbacff51af8",
+              "bytes": 114,
+              "kind": "native"
+            },
+            {
+              "path": "details/011-response.raw",
+              "sha256": "8497cb7b7c5cf54282e8a9d24522c89c59c0ddafe594aa10b74d79b4c4a743be",
+              "bytes": 334,
+              "kind": "response"
+            },
+            {
+              "path": "details/012-phase.raw",
+              "sha256": "3ca671499234cda411f6756037eeb6c07273150d8773b99ca1f6d60486b7f84b",
+              "bytes": 13620,
+              "kind": "phase"
+            },
+            {
+              "path": "details/013-phase.raw",
+              "sha256": "39c683bbe6c711a3d7286d5b795c458ae86d30cc3820f488f53b96b786b4fff3",
+              "bytes": 353,
+              "kind": "phase"
+            },
+            {
+              "path": "details/014-command.raw",
+              "sha256": "94ff3dc9419dff829a746108f6c8c02764ff383bf0f86198584b6638a6c24324",
+              "bytes": 691561,
+              "kind": "command"
+            },
+            {
+              "path": "details/015-observer.raw",
+              "sha256": "27e73a1167408dd51cb3e50e39243fd6fb6c9afe184ce9fdf44b3b4656d53a9c",
+              "bytes": 400299,
+              "kind": "observer"
+            },
+            {
+              "path": "details/016-observer.raw",
+              "sha256": "9bcf93b211c533e5e4f82c1e27028d64c6a6cdd06b68e9e26b7cfecafe5696bc",
+              "bytes": 400299,
+              "kind": "observer"
+            },
+            {
+              "path": "details/017-native.raw",
+              "sha256": "f7d4e1d6c92134d38c9c30c6d43de73b9875f3e8f196322336550cbacff51af8",
+              "bytes": 114,
+              "kind": "native"
+            },
+            {
+              "path": "details/018-response.raw",
+              "sha256": "1b88e03b29f367c0db5dbd6de7119986b8bc0a49dde424eafea45de85002179a",
+              "bytes": 288,
+              "kind": "response"
+            },
+            {
+              "path": "details/019-phase.raw",
+              "sha256": "dd6478e51db1f93375a84d06bd641697abb96cc2c9fadab54a9518c536e55690",
+              "bytes": 13618,
+              "kind": "phase"
+            },
+            {
+              "path": "details/020-phase.raw",
+              "sha256": "c80de0a84639babacd73f8030bc65d58176580b179d4cd2f1e15353d3931ae5e",
+              "bytes": 349,
+              "kind": "phase"
+            },
+            {
+              "path": "details/021-cleanup.raw",
+              "sha256": "676850d0030ad70452811d2929afb2eb35018e75924390e5bb8a2ced9ad53ec2",
+              "bytes": 1967,
+              "kind": "cleanup"
+            }
+          ],
+          "detail_actual_bytes": 4513932,
+          "detail_reserved_bytes": 8388608,
+          "claim_finalization": "UNPROVEN",
+          "terminal_index_persisted": true,
+          "finalization_proven": false
+        }
+      },
+      "shared": {
+        "exists": true,
+        "sha256": "1d63df14e46be7f7f74cff5997fea6f8db045b077f9f7ca64f25384c96562a90",
+        "value": {
+          "status": "EXPIRED",
+          "child_id": "S3-P2B-CORRECTION-03",
+          "child_sha256": "d2458630e218311a017f2745d627d29c3dc13a5f9cfad3ae02f756b675727172",
+          "candidate": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "preflight_sha256": "84768087dd70c790887a92a74657eb0e2d40b88ccfa8b6a8b903d7523b3fe53a",
+          "output_root": "/tmp/lvw-independent-c05-probe-publish-v5wwtb7x/evidence",
+          "pid": 1895077,
+          "birth": {
+            "linux_start_ticks": 5604698
+          },
+          "time": 1794435044.5361984,
+          "schema": "lvw.p2b-consumption/2",
+          "result": "TERMINAL_REFERENCE_NOT_DECISION",
+          "terminal_sha256": "aa43d8bd79a30f781286e299fcd46944b41b34381547a0705b57c9a4b91204ba",
+          "terminal_path": "/tmp/lvw-independent-c05-probe-publish-v5wwtb7x/evidence/cross-os-lifecycle.json"
+        }
+      },
+      "local": {
+        "exists": true,
+        "sha256": "1d63df14e46be7f7f74cff5997fea6f8db045b077f9f7ca64f25384c96562a90",
+        "value": {
+          "status": "EXPIRED",
+          "child_id": "S3-P2B-CORRECTION-03",
+          "child_sha256": "d2458630e218311a017f2745d627d29c3dc13a5f9cfad3ae02f756b675727172",
+          "candidate": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "preflight_sha256": "84768087dd70c790887a92a74657eb0e2d40b88ccfa8b6a8b903d7523b3fe53a",
+          "output_root": "/tmp/lvw-independent-c05-probe-publish-v5wwtb7x/evidence",
+          "pid": 1895077,
+          "birth": {
+            "linux_start_ticks": 5604698
+          },
+          "time": 1794435044.5361984,
+          "schema": "lvw.p2b-consumption/2",
+          "result": "TERMINAL_REFERENCE_NOT_DECISION",
+          "terminal_sha256": "aa43d8bd79a30f781286e299fcd46944b41b34381547a0705b57c9a4b91204ba",
+          "terminal_path": "/tmp/lvw-independent-c05-probe-publish-v5wwtb7x/evidence/cross-os-lifecycle.json"
+        }
+      },
+      "staging": {
+        "exists": true,
+        "sha256": "5e9fdc31ab06750cb3a4eea6744d46dd94d5f48f072cc5ada7cda0e24f63ca66",
+        "value": {
+          "schema": "lvw.p2b-terminal/3",
+          "status": "READY_FOR_REVIEW",
+          "candidate": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "child_id": "S3-P2B-CORRECTION-03",
+          "child_sha256": "d2458630e218311a017f2745d627d29c3dc13a5f9cfad3ae02f756b675727172",
+          "preflight_sha256": "84768087dd70c790887a92a74657eb0e2d40b88ccfa8b6a8b903d7523b3fe53a",
+          "initial_claim_sha256": "499fee00ae2350604475abf8ca71258e99b609c62f93145a33220e30d270130b",
+          "synthetic_debits": 1,
+          "counters": {
+            "wall_seconds": 13.32878769099625,
+            "process_starts": 26,
+            "per_command_seconds": 0,
+            "metadata_hash_files": 3,
+            "metadata_hash_bytes": 256669729,
+            "output_bytes": 13456081,
+            "synthetic_debits": 16
+          },
+          "phases": {
+            "normal": "PERSISTED",
+            "bad-receipt": "PERSISTED",
+            "timeout": "PERSISTED"
+          },
+          "phase_verdicts": {
+            "normal": "EXPECTED_BOUNDARY",
+            "bad-receipt": "EXPECTED_BOUNDARY",
+            "timeout": "EXPECTED_BOUNDARY"
+          },
+          "cleanup": "RETAINED",
+          "terminal_errors": [],
+          "error": null,
+          "artifact_refs": [
+            {
+              "path": "details/000-command.raw",
+              "sha256": "71574f9c557ecbd677cc3fcbb82a8c73e25a563282a8cfe38e7a10786b600100",
+              "bytes": 691560,
+              "kind": "command"
+            },
+            {
+              "path": "details/001-observer.raw",
+              "sha256": "fded895fc44953ccafa3db459da2d05b65e088e29a115283e0a35a6e21aedf34",
+              "bytes": 400321,
+              "kind": "observer"
+            },
+            {
+              "path": "details/002-observer.raw",
+              "sha256": "bde2d3136b468e341d47d8b9145fbedd63056fd38e9b19fc842e83852c40ef17",
+              "bytes": 400320,
+              "kind": "observer"
+            },
+            {
+              "path": "details/003-native.raw",
+              "sha256": "f7d4e1d6c92134d38c9c30c6d43de73b9875f3e8f196322336550cbacff51af8",
+              "bytes": 114,
+              "kind": "native"
+            },
+            {
+              "path": "details/004-response.raw",
+              "sha256": "5cf7146532a1ec8b57fca896330e0a3af1804a790d0ed80ec3eba1b4a0b18595",
+              "bytes": 256,
+              "kind": "response"
+            },
+            {
+              "path": "details/005-phase.raw",
+              "sha256": "627421f3d6919a12b273bc0dec3228984cf69c8d7d532498be83f859b0eacb40",
+              "bytes": 13616,
+              "kind": "phase"
+            },
+            {
+              "path": "details/006-phase.raw",
+              "sha256": "69778de737e2f1e2bb40fe30bfd2a98261d9e336c9a961cef32097a8203162a8",
+              "bytes": 348,
+              "kind": "phase"
+            },
+            {
+              "path": "details/007-command.raw",
+              "sha256": "77545b85bdd7e2e4b1dd9317a5812b2ab1ba5e4dcd44c2b9e7e570a3937d7d3f",
+              "bytes": 691561,
+              "kind": "command"
+            },
+            {
+              "path": "details/008-observer.raw",
+              "sha256": "cec849c33729f7231ba3506036bdcf4fc95ae9af14249adb9d543658b4c2ce46",
+              "bytes": 396461,
+              "kind": "observer"
+            },
+            {
+              "path": "details/009-observer.raw",
+              "sha256": "b67adc414528a4c2dd4174c71189f60f6ee7f62df8a1879153b2601f7c4c4a6a",
+              "bytes": 396459,
+              "kind": "observer"
+            },
+            {
+              "path": "details/010-native.raw",
+              "sha256": "f7d4e1d6c92134d38c9c30c6d43de73b9875f3e8f196322336550cbacff51af8",
+              "bytes": 114,
+              "kind": "native"
+            },
+            {
+              "path": "details/011-response.raw",
+              "sha256": "8497cb7b7c5cf54282e8a9d24522c89c59c0ddafe594aa10b74d79b4c4a743be",
+              "bytes": 334,
+              "kind": "response"
+            },
+            {
+              "path": "details/012-phase.raw",
+              "sha256": "3ca671499234cda411f6756037eeb6c07273150d8773b99ca1f6d60486b7f84b",
+              "bytes": 13620,
+              "kind": "phase"
+            },
+            {
+              "path": "details/013-phase.raw",
+              "sha256": "39c683bbe6c711a3d7286d5b795c458ae86d30cc3820f488f53b96b786b4fff3",
+              "bytes": 353,
+              "kind": "phase"
+            },
+            {
+              "path": "details/014-command.raw",
+              "sha256": "94ff3dc9419dff829a746108f6c8c02764ff383bf0f86198584b6638a6c24324",
+              "bytes": 691561,
+              "kind": "command"
+            },
+            {
+              "path": "details/015-observer.raw",
+              "sha256": "27e73a1167408dd51cb3e50e39243fd6fb6c9afe184ce9fdf44b3b4656d53a9c",
+              "bytes": 400299,
+              "kind": "observer"
+            },
+            {
+              "path": "details/016-observer.raw",
+              "sha256": "9bcf93b211c533e5e4f82c1e27028d64c6a6cdd06b68e9e26b7cfecafe5696bc",
+              "bytes": 400299,
+              "kind": "observer"
+            },
+            {
+              "path": "details/017-native.raw",
+              "sha256": "f7d4e1d6c92134d38c9c30c6d43de73b9875f3e8f196322336550cbacff51af8",
+              "bytes": 114,
+              "kind": "native"
+            },
+            {
+              "path": "details/018-response.raw",
+              "sha256": "1b88e03b29f367c0db5dbd6de7119986b8bc0a49dde424eafea45de85002179a",
+              "bytes": 288,
+              "kind": "response"
+            },
+            {
+              "path": "details/019-phase.raw",
+              "sha256": "dd6478e51db1f93375a84d06bd641697abb96cc2c9fadab54a9518c536e55690",
+              "bytes": 13618,
+              "kind": "phase"
+            },
+            {
+              "path": "details/020-phase.raw",
+              "sha256": "c80de0a84639babacd73f8030bc65d58176580b179d4cd2f1e15353d3931ae5e",
+              "bytes": 349,
+              "kind": "phase"
+            },
+            {
+              "path": "details/021-cleanup.raw",
+              "sha256": "676850d0030ad70452811d2929afb2eb35018e75924390e5bb8a2ced9ad53ec2",
+              "bytes": 1967,
+              "kind": "cleanup"
+            }
+          ],
+          "detail_actual_bytes": 4513932,
+          "detail_reserved_bytes": 8388608,
+          "claim_finalization": "PROVEN",
+          "terminal_index_persisted": true,
+          "finalization_proven": true
+        }
+      }
+    },
+    "old_success_oracle": "REJECTED_AS_EXPECTED",
+    "owned_tmp": "/tmp/lvw-independent-c05-probe-publish-v5wwtb7x",
+    "removed": true,
+    "oracle": "PASS: canonical BLOCKED, consumption never decision, phase1 retained"
+  }
+]
