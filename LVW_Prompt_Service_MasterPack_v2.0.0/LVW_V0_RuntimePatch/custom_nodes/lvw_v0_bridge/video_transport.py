@@ -187,6 +187,9 @@ class InterruptibleOllamaTransport(OllamaLoopbackTransport):
             if self._audit is not None:self._audit.verify_provider_owner(self._audit_token)
             if self._cancelled():raise BridgeError('JOB_CANCELLED','request cancelled before send',subcode='OLLAMA_REQUEST_CANCELLED')
             body = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode()
+            from .program_budget import authorize_model_action
+            authorize_model_action('chat', body)
+            if self._cancelled():raise BridgeError('JOB_CANCELLED','request cancelled after debit',subcode='OLLAMA_REQUEST_CANCELLED')
             remaining = deadline - time.monotonic()
             if remaining <= 0:
                 raise TimeoutError()

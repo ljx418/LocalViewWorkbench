@@ -112,7 +112,7 @@ class NativeRuntime(S2SystemDriver):
         birth=self.listener_births[port]
         return {'pid':pid,'start_ticks':birth['listener_start_ticks'],'name':proof['executable_name']}
 
-    def write_warm_binding(self,run_root,*,candidate_sha,authorization_sha256,model_digest,nvidia_sha256,baseline_gpu_mib):
+    def write_warm_binding(self,run_root,*,candidate_sha,authorization_sha256,model_digest,nvidia_sha256,baseline_gpu_mib,s3_budget_binding=None):
         for value,length in ((candidate_sha,40),(authorization_sha256,64),(model_digest,64),(nvidia_sha256,64)):
             if not isinstance(value,str) or not re.fullmatch('[0-9a-f]{'+str(length)+'}',value):
                 raise base.StopProbe('RUNTIME_WARM_BINDING_INVALID')
@@ -126,11 +126,14 @@ class NativeRuntime(S2SystemDriver):
             'baseline_gpu_mib':baseline_gpu_mib,
             'ollama_pid':root['pid'],'ollama_start_ticks':root['start_ticks'],
             'issued_at':clock['wall_seconds'],'expires_at':clock['wall_seconds']+7200}
+        if s3_budget_binding is not None:
+            from LVW_V0_RuntimePatch.custom_nodes.lvw_v0_bridge.program_budget import s3_profile
+            value=s3_profile(value,s3_budget_binding)
         path=Path(run_root)/'temp/lvw-warm-profile.json'
         with path.open('x',encoding='utf-8') as handle:json.dump(value,handle,separators=(',',':'))
         return value
 
-    def write_native_binding(self,run_root,*,candidate_sha,authorization_sha256,model_digest,max_runs):
+    def write_native_binding(self,run_root,*,candidate_sha,authorization_sha256,model_digest,max_runs,s3_budget_binding=None):
         for value,length in ((candidate_sha,40),(authorization_sha256,64),(model_digest,64)):
             if not isinstance(value,str) or not re.fullmatch('[0-9a-f]{'+str(length)+'}',value):raise base.StopProbe('NATIVE_BINDING_ID_INVALID')
         if type(max_runs) is not int or not 1<=max_runs<=64:raise base.StopProbe('NATIVE_RUN_BUDGET_INVALID')
@@ -139,6 +142,9 @@ class NativeRuntime(S2SystemDriver):
             'program_authorization_id':'AUTH-PROGRAM-V1-LOCAL-01','scope':'V0_S2_NATIVE_CHECKPOINT',
             'max_runs':max_runs,'ollama_pid':root['pid'],'ollama_start_ticks':root['start_ticks'],
             'issued_at':clock['wall_seconds'],'expires_at':clock['wall_seconds']+7200}
+        if s3_budget_binding is not None:
+            from LVW_V0_RuntimePatch.custom_nodes.lvw_v0_bridge.program_budget import s3_profile
+            value=s3_profile(value,s3_budget_binding)
         with (Path(run_root)/'temp/lvw-native-profile.json').open('x',encoding='utf-8') as stream:json.dump(value,stream,separators=(',',':'))
         return value
 
@@ -205,15 +211,19 @@ class NativeRuntime(S2SystemDriver):
         except BaseException as error:
             self._latch_resource_abort(error);self._emergency_cleanup();raise
 
-    def preload(self,model):
-        # Caller records/precharges this separate setup action; never include it
-        # as a measured provider call or subtract it from measured latency.
+    def preload(self,model,*,s3_budget_binding=None):
+        # Separate setup action: S3 debit belongs here, never to the caller.
+        # Do not include preload in measured provider latency.
         if self.resource_abort_latched:raise base.StopProbe('RESOURCE_ABORT_LATCHED')
         if self.resource_observer is None:raise base.StopProbe('RESOURCE_MONITOR_REQUIRED')
         if model!=base.MODEL or self.preloads>=20:raise base.StopProbe('MODEL_PRELOAD_BUDGET_OR_TAG_INVALID')
         self.preloads+=1
+        payload={'model':model,'stream':False,'keep_alive':300,'options':{'num_ctx':bridge_core.MAX_NUM_CTX,'num_predict':bridge_core.MAX_NUM_PREDICT}}
+        from LVW_V0_RuntimePatch.custom_nodes.lvw_v0_bridge.program_budget import authorize_model_action
+        # v0_s2_http serializes with these exact options, unlike native chat.
+        authorize_model_action('preload',json.dumps(payload,allow_nan=False).encode('utf-8'),binding=s3_budget_binding)
         status,value=self._json_request(base.OLLAMA_URL+'/api/generate',
-            payload={'model':model,'stream':False,'keep_alive':300,'options':{'num_ctx':bridge_core.MAX_NUM_CTX,'num_predict':bridge_core.MAX_NUM_PREDICT}},timeout=120,observer=self.resource_observer)
+            payload=payload,timeout=120,observer=self.resource_observer)
         if status!=200 or value.get('done') is not True:raise base.StopProbe('MODEL_PRELOAD_FAILED')
         return value
 

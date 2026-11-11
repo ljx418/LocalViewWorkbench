@@ -26,15 +26,20 @@ def validate_binding(binding, now):
     for key, count in [('candidate_sha',40),('authorization_sha256',64),('model_digest',64)]:
         if not isinstance(binding.get(key),str) or not re.fullmatch('[0-9a-f]{'+str(count)+'}',binding[key]):
             raise refused('BENCHMARK_BINDING_INVALID')
-    if (binding.get('program_authorization_id')!='AUTH-PROGRAM-V1-LOCAL-01'
-            or binding.get('scope')!='V0_S2_WARM_BENCHMARK'
+    s3=binding.get('scope')=='V0_S3_WARM_BENCHMARK'
+    if s3:
+        from .program_budget import validate_profile
+        try:validate_profile(binding,now)
+        except (ValueError,OSError,TypeError,KeyError) as error:raise refused('S3_PROFILE_BINDING_INVALID') from error
+    if (binding.get('program_authorization_id')!=('AUTH-PROGRAM-V1-COMPLETE-03' if s3 else 'AUTH-PROGRAM-V1-LOCAL-01')
+            or binding.get('scope')!=('V0_S3_WARM_BENCHMARK' if s3 else 'V0_S2_WARM_BENCHMARK')
             or type(binding.get('baseline_gpu_mib')) is not int or not valid_baseline(binding['baseline_gpu_mib'])
             or type(binding.get('max_requests')) is not int or binding['max_requests']!=20
             or any(type(binding.get(key)) is not int or binding[key]<=0 for key in ('ollama_pid','ollama_start_ticks'))):
         raise refused('BENCHMARK_BINDING_INVALID')
     issued, expires = binding.get('issued_at'), binding.get('expires_at')
     if (any(type(value) not in (int,float) or not math.isfinite(value) for value in (issued,expires,now))
-            or not 0 < expires-issued <= 7200 or not issued <= now < expires):
+            or not 0 < expires-issued <= (21600 if s3 else 7200) or not issued <= now < expires):
         raise refused('BENCHMARK_BINDING_EXPIRED')
 
 

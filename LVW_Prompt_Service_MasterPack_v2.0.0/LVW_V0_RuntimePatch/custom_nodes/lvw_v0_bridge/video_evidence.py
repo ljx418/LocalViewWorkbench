@@ -18,13 +18,18 @@ def validate_binding(value,now,*,allow_expired=False):
     if not isinstance(value,dict):raise refused('NATIVE_BINDING_INVALID')
     for key,length in [('candidate_sha',40),('authorization_sha256',64),('model_digest',64)]:
         if not isinstance(value.get(key),str) or not re.fullmatch('[0-9a-f]{'+str(length)+'}',value[key]):raise refused('NATIVE_BINDING_INVALID')
-    if (value.get('program_authorization_id')!='AUTH-PROGRAM-V1-LOCAL-01' or value.get('scope')!='V0_S2_NATIVE_CHECKPOINT'
+    s3=value.get('scope')=='V0_S3_NATIVE_CHECKPOINT'
+    if s3:
+        from .program_budget import validate_profile
+        try:validate_profile(value,now,allow_expired=allow_expired)
+        except (ValueError,OSError,TypeError,KeyError) as error:raise refused('S3_PROFILE_BINDING_INVALID') from error
+    if (value.get('program_authorization_id')!=('AUTH-PROGRAM-V1-COMPLETE-03' if s3 else 'AUTH-PROGRAM-V1-LOCAL-01') or value.get('scope')!=('V0_S3_NATIVE_CHECKPOINT' if s3 else 'V0_S2_NATIVE_CHECKPOINT')
             or type(value.get('max_runs')) is not int or not 1<=value['max_runs']<=64
             or any(type(value.get(k)) is not int or value[k]<=0 for k in ('ollama_pid','ollama_start_ticks'))):
         raise refused('NATIVE_BINDING_INVALID')
     issued,expires=value.get('issued_at'),value.get('expires_at')
     if (any(type(v) not in (int,float) or not math.isfinite(v) for v in (issued,expires,now))
-            or not 0<expires-issued<=7200 or now<issued or (not allow_expired and now>=expires)):
+            or not 0<expires-issued<=(21600 if s3 else 7200) or now<issued or (not allow_expired and now>=expires)):
         raise refused('NATIVE_BINDING_EXPIRED')
 
 

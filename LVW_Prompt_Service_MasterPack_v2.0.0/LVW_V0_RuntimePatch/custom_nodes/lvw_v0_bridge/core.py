@@ -301,6 +301,9 @@ class OllamaLoopbackTransport:
     def _post(self, url: str, payload: dict, timeout_seconds: int) -> str:
         data = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
         request = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"}, method="POST")
+        if url == self.endpoint:
+            from .program_budget import authorize_model_action
+            authorize_model_action('chat', data)
         try:
             with self._opener.open(request, timeout=timeout_seconds) as response:
                 raw = response.read().decode("utf-8", "strict")
