@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "${PACKAGE_ROOT}/tools/v0_s3_runtime_binding.py", line 300, in <module>
+    elif sys.argv[1:]==['--run']:print(json.dumps(run(),ensure_ascii=False))
+                                                  ^^^^^
+  File "${PACKAGE_ROOT}/tools/v0_s3_runtime_binding.py", line 215, in run
+    if subprocess.check_output(['git','status','--porcelain'],cwd=ROOT):raise ValueError('dirty candidate')
+                                                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: dirty candidate

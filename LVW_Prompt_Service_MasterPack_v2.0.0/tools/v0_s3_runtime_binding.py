@@ -18,7 +18,7 @@ import time
 import types
 
 ROOT = Path(__file__).resolve().parents[1]
-BASE = ROOT/'runtime/receipts/s3-p2b-01'
+BASE = ROOT/'.agent-governance/runtime/receipts/s3-p2b-01'
 CHILD = 'reports/v0-s3/product-gate0/runtime-binding-child-01.json'
 CONTRACT = 'reports/v0-s3/product-gate0/p2-binding-contract.md'
 PROTOCOL = 'LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/program_budget.py'
