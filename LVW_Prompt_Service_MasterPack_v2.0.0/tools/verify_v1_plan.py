@@ -1,24 +1,37 @@
 #!/usr/bin/env python3
 """Deterministic, read-only validator for the approved V1 multi-shot plan package.
 
-Scope (D0-B-IMPL): this tool checks the *plan package* only. It never runs
-product code, never touches GPU/media/services/network, never writes files and
-never declares a Stage PASS or a human signature.
+Scope (D0-B-IMPL, design 1.1): this tool checks the *plan package* only. It
+never runs product code, never opens a product database, never touches
+GPU/media/services/network, never writes files and never declares a Stage PASS
+or a human signature.
 
 Exit codes:
   0  every check passed (valid root plan)
   1  at least one deterministic check failed (invalid root plan)
   2  an input could not be read/parsed, so no verdict could be produced
 
-The tool is stdlib-only. ``jsonschema`` is used for metaschema validation when
-it happens to be importable, but the tool never requires that extra install:
-a structural fallback check always runs.
+The tool is stdlib-only. ``jsonschema`` is used for metaschema validation and
+for the candidate-instance probe when it happens to be importable, but the tool
+never requires that extra install: a structural fallback check always runs.
+
+Design 1.1 re-freeze (root adjudication ``design11-adjudication.json``):
+  * the D0 packet manifest pin below is re-frozen to the owner manifest that
+    the root authority supplied for the 1.1 packet;
+  * the parent deadline is the frozen ``450 * n + 90`` formula (max 5490) and
+    not the earlier 1800 s guess;
+  * the new 1.1 guards cover the parent/checkpoint budget arithmetic, the
+    machine sample allocation, the additive OpenAPI overlay, the canonical
+    Scene/FrameRef compatibility, the public/internal analysis binding split
+    and the design-review NOT_RUN status of the new MS cases.
 """
 from __future__ import annotations
 
 import argparse
 import hashlib
 import json
+import math
+import re
 import sys
 from pathlib import Path
 
@@ -35,7 +48,8 @@ ROOT = Path(__file__).resolve().parents[1]
 # Sources:
 #   docs/01_PRD.md, docs/30_V1_REVISED_EXECUTION_PLAN.md, docs/31_V1_DETAILED_ARCHITECTURE_AND_CONTRACTS.md,
 #   docs/32_V1_ACCEPTANCE_AND_AGENT_WORKFLOW.md, plans/acceptance_cases.json,
-#   plans/release_gates.json, reports/v1-redesign/legacy-gates-before-change.json
+#   plans/release_gates.json, reports/v1-redesign/legacy-gates-before-change.json,
+#   reports/v1-redesign/design11-adjudication.json
 # --------------------------------------------------------------------------
 
 # Fixed acceptance denominators after CHANGE-V1-MULTISHOT-01 (docs/30, docs/32).
@@ -58,9 +72,62 @@ FROZEN_LIMITS = {
     "single_analysis_seconds": (420, "max"),
     "release_seconds": (30, "max"),
     "gpu_concurrency": (1, "max"),
-    "batch_deadline_seconds": (1800, "max"),
     "automatic_model_retries": (0, "max"),
+    # design 1.1: admission floor, bounded detection and the bounded PTS index.
+    "gpu_free_mib_min": (19047, "min"),
+    "detection_seconds": (120, "max"),
+    "pts_index_bytes": (16777216, "max"),
+    # design 1.1: the parent deadline is 450 * n + 90 seconds (n = 1..12).
+    "batch_per_child_budget_seconds": (450, "max"),
+    "batch_fixed_budget_seconds": (90, "max"),
+    "batch_deadline_seconds_max": (5490, "max"),
+    # design 1.1: one full V1 checkpoint (65 + 7 <= 128 actions, 21600 s wall).
+    "checkpoint_model_actions_cap": (72, "max"),
+    "checkpoint_seconds_cap": (21600, "max"),
+    "checkpoint_cleanup_reserve_seconds": (180, "max"),
 }
+
+# The frozen parent-budget formula (docs/31, docs/32, adjudication M10).
+BATCH_PER_CHILD_SECONDS = 450
+BATCH_FIXED_SECONDS = 90
+BATCH_MIN_SHOTS = 1
+BATCH_MAX_SHOTS = 12
+BATCH_MIN_DEADLINE = BATCH_PER_CHILD_SECONDS * BATCH_MIN_SHOTS + BATCH_FIXED_SECONDS  # 540
+BATCH_MAX_DEADLINE = BATCH_PER_CHILD_SECONDS * BATCH_MAX_SHOTS + BATCH_FIXED_SECONDS  # 5490
+
+# Frozen checkpoint arithmetic (docs/32). The 300/180 s values are the existing
+# performance *thresholds*, not a measured M1 P95 and not a worst-case promise.
+FROZEN_CHECKPOINT_INPUTS = {
+    "success_calls": 65,
+    "controlled_actions_cap": 7,
+    "model_actions_cap": 72,
+    "wall_seconds": 21600,
+    "execution_deadline_seconds": 21420,
+    "cleanup_reserve_seconds": 180,
+    "estimated_total_seconds": 20735,
+    "video_calls": 53,
+    "image_calls": 12,
+    "video_threshold_seconds": 300,
+    "image_threshold_seconds": 180,
+    "release_per_success_seconds": 30,
+    "cpu_browser_overhead_seconds": 300,
+    "controlled_action_seconds_cap": 35,
+}
+# COMPLETE03 per-child action cap; the checkpoint must stay inside it.
+PARENT_CHILD_ACTION_CAP = 128
+# The original Q01 acceptance set still runs inside the same checkpoint
+# (12 images + 6 clips, docs/32), next to the 47 planned multi-shot calls.
+Q01_IMAGE_CALLS = 12
+Q01_VIDEO_CALLS = 6
+
+# Frozen sample allocation (docs/32, plans/v1-multishot-sample-design.json).
+FROZEN_SAMPLE_TOTAL_CLIPS = 12
+FROZEN_SAMPLE_TOTAL_SHOTS = 47
+FROZEN_SAMPLE_HARD_CUTS = 21
+FROZEN_SAMPLE_QUALITY_ROWS = 18
+FROZEN_SAMPLE_QUALITY_COUNTS = {"simple_action": 12, "ambiguous": 3, "static": 3}
+FROZEN_SAMPLE_CLIP_STATUS = "NOT_MATERIALIZED_NOT_FROZEN"
+FROZEN_SAMPLE_DESIGN_STATUS = "DESIGN_ALLOCATION_ONLY_NOT_REAL_FIXTURES"
 
 # Fixed quality thresholds, anchored on the acceptance-case assertion text that
 # carries them. A case that loses one of these tokens has had its threshold
@@ -120,7 +187,13 @@ FROZEN_D0_PACKET_FILES = (
 # the manifest, so the whole D0 control plane is frozen even though the
 # authority spec manifest does not list it. Re-freezing the D0 packet therefore
 # requires re-freezing this constant in the same commit.
-FROZEN_D0_PACKET_MANIFEST_SHA256 = "9bffdf2dc968f54fae0404d162c394e265cfb9900f68d9c303683bef756ede7b"
+#
+# design 1.1 re-freeze: the root authority legitimately updated the D0 packet
+# to version 1.1 and supplied the owner manifest digest. This constant is
+# re-frozen to that supplied digest *in the same commit as the 1.1 code
+# changes*; the owner hashes themselves are not regenerated to make a check
+# pass.
+FROZEN_D0_PACKET_MANIFEST_SHA256 = "56e6f07b72023928b32ed7350b78f9d1d148daf79108daffecb7d9a175e39c4a"
 # Only this stage display name may be accounted against the R2 authority stage.
 ALLOWED_AUTHORIZATION_MAP = {"V1-M1": "R2"}
 FROZEN_GLOBAL_AUTHORITY = "AUTH-PROGRAM-V1-COMPLETE-03"
@@ -129,6 +202,10 @@ FROZEN_GLOBAL_AUTHORITY = "AUTH-PROGRAM-V1-COMPLETE-03"
 CLAIM_TOKENS = ("PASS", "APPROVED", "SIGNED", "RELEASED", "ACCEPTED", "COMPLETE")
 # Statuses a case/stage may legitimately carry (plans/release_gates.json states).
 ALLOWED_CASE_STATES = ("NOT_RUN", "PASS", "FAIL", "BLOCKED")
+# The design-review state of the *new* MS cases and of the new V1-M1 stage.
+# "PASS" is a legal state in the general enum, but it is not legal at the
+# design-review phase: nothing has been executed yet.
+FROZEN_DESIGN_REVIEW_STATE = "NOT_RUN"
 # Plan statuses that are acceptable for a design-review package.
 ALLOWED_PLAN_STATUSES = ("DESIGN_REVIEW_REQUIRED", "DESIGN_REVIEW_NOT_ACTIVE_OPENAPI")
 
@@ -142,6 +219,103 @@ HUMAN_SIGNATURE_KEYS = (
     "signed_by",
     "signer",
 )
+
+# Authority inputs that the owner spec manifest must fence (design 1.1).
+FROZEN_SPEC_FENCE_FILES = (
+    "docs/30_V1_REVISED_EXECUTION_PLAN.md",
+    "docs/31_V1_DETAILED_ARCHITECTURE_AND_CONTRACTS.md",
+    "docs/32_V1_ACCEPTANCE_AND_AGENT_WORKFLOW.md",
+    "plans/v1-revised-plan.json",
+    "plans/v1-multishot-contract.json",
+    "plans/v1-multishot-sample-design.json",
+    "contracts/openapi.json",
+    "contracts/lvw.schema.json",
+    "contracts/storage.sql",
+    "contracts/v1-multishot.schema.json",
+    "contracts/v1-multishot-migration.sql",
+    "contracts/v1-multishot.openapi-overlay.json",
+    "reports/v1-redesign/design11-adjudication.json",
+    ".agent-governance/stages/R1/PAYLOAD_MANIFEST.sha256",
+)
+
+# Declared candidate artefacts (path -> frozen relative location).
+FROZEN_ARTIFACT_PATHS = {
+    "contract_candidate": ("plans/v1-multishot-contract.json", "plan.contract_candidate"),
+    "dto_schema": ("contracts/v1-multishot.schema.json", "contract.dto_schema"),
+    "openapi_overlay": ("contracts/v1-multishot.openapi-overlay.json", "contract.openapi_overlay"),
+    "storage_migration": ("contracts/v1-multishot-migration.sql", "contract.storage_migration"),
+    "sample_design": ("plans/v1-multishot-sample-design.json", "plan.sample_design"),
+}
+
+# The candidate migration must declare these storage objects (docs/31 table).
+FROZEN_MIGRATION_OBJECTS = (
+    "scene_revision",
+    "scene_head",
+    "scene_revision_meta",
+    "shot_scene_binding",
+    "model_run_artifacts",
+    "shot_analysis_binding",
+    "shot_analysis_evidence",
+    "revision_source_binding",
+    "shot_batch_parent",
+    "shot_batch_item",
+    "shot_batch_seal",
+    "attempt_execution",
+)
+
+# The candidate DTO shape (docs/31 route table, adjudication M1/M4/M6/M8).
+FROZEN_PARENT_JOB_FIELDS = (
+    "id",
+    "plan_hash",
+    "planned_child_ids",
+    "selected_scene_revision_ids",
+    "total",
+    "terminal_count",
+    "deadline_at",
+    "execution_budget_seconds",
+    "status",
+    "not_executed_count",
+    "retry_of_parent_id",
+)
+FROZEN_CHILD_SUMMARY_FIELDS = (
+    "ordinal",
+    "job_id",
+    "shot_id",
+    "scene_revision_id",
+    "scene_revision_hash",
+    "status",
+    "result_ref",
+    "error_code",
+    "model_started",
+    "retry_of_child_id",
+)
+FROZEN_SHOT_EVIDENCE_FIELDS = (
+    "frame_refs",
+    "characters",
+    "scene",
+    "actions",
+    "summary",
+    "negative",
+    "tags",
+    "unknowns",
+)
+FROZEN_DOMAIN_DTOS = ("Character", "SceneEvidence", "Action")
+FROZEN_DOMAIN_VALUES = ("observation", "inference")
+# The model response must not carry server-owned or human-owned material.
+FROZEN_MODEL_RESPONSE_FORBIDDEN = ("frame_refs", "user_evidence", "creative_intent")
+
+# The six canonical product modes accepted by the new bounded route (m7).
+FROZEN_BATCH_MODES = (
+    "documentary",
+    "realistic",
+    "scifi",
+    "science",
+    "cinematic",
+    "stylized",
+)
+
+# The candidate SQL must not be able to reach outside its own database.
+FROZEN_SQL_FORBIDDEN_TOKENS = ("ATTACH", "DROP TABLE", "DROP COLUMN")
 
 
 class InputError(Exception):
@@ -184,6 +358,13 @@ def load_json(path: Path, label: str) -> dict:
     return data
 
 
+def load_text(path: Path, label: str) -> str:
+    try:
+        return path.read_text(encoding="utf-8")
+    except OSError as exc:
+        raise InputError("%s: cannot read %s (%s)" % (label, path, exc.__class__.__name__))
+
+
 def as_list(value, label, report: Report, code: str = "E_INPUT_SHAPE"):
     if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
         report.add(code, "%s: expected a list of strings" % label)
@@ -208,6 +389,19 @@ def require_exact_list(value, expected, label, report: Report, code: str) -> boo
         report.add(code, "%s: expected exactly %s, found %s" % (label, list(expected), value))
         return False
     return True
+
+
+def is_number(value) -> bool:
+    """True for a real number. ``bool`` is not a number here."""
+    return isinstance(value, (int, float)) and not isinstance(value, bool)
+
+
+def is_finite(value) -> bool:
+    return is_number(value) and math.isfinite(value)
+
+
+def is_integer(value) -> bool:
+    return isinstance(value, int) and not isinstance(value, bool)
 
 
 # --------------------------------------------------------------------------
@@ -246,7 +440,7 @@ def check_denominators(ctx) -> None:
                 report.add("E_MS_DUPLICATE", "release_gates.%s.required_cases contains %s %d times" % (version, case_id, hits))
         for case_id in legacy:
             if current.count(case_id) > 1:
-                report.add("E_CASE_DUPLICATE", "release_gates.%s.required_cases contains %s %d times" % (version, case_id, current.count(case_id)))
+                report.add("E_CASE_DUPLICATE", "release_gates.%s.required_cases contains %s %d times" % (version, current.count(case_id)))
 
 
 def check_plan_case_sets(ctx) -> None:
@@ -270,7 +464,7 @@ def check_plan_case_sets(ctx) -> None:
 
 
 def check_case_definitions(ctx) -> None:
-    """Each MS case exists exactly once as a case definition and stays NOT_RUN."""
+    """Each MS case exists exactly once and stays NOT_RUN at design review."""
     report, cases_doc = ctx.report, ctx.cases
     cases = cases_doc.get("cases")
     if not isinstance(cases, list):
@@ -295,6 +489,10 @@ def check_case_definitions(ctx) -> None:
             status = case.get("status")
             if status not in ALLOWED_CASE_STATES:
                 report.add("E_CASE_STATUS_INVALID", "acceptance case %s has status %r, allowed states are %s" % (case_id, status, list(ALLOWED_CASE_STATES)))
+            if case_id in MS_CASE_IDS and status != FROZEN_DESIGN_REVIEW_STATE:
+                # "PASS" is legal in the general enum but is an invented result
+                # at the design-review phase: nothing has been executed.
+                report.add("E_MS_STATUS_CLAIM", "acceptance case %s has status %r; the new MS cases must stay %s until a real checkpoint runs" % (case_id, status, FROZEN_DESIGN_REVIEW_STATE))
 
 
 def check_quality_thresholds(ctx) -> None:
@@ -322,7 +520,13 @@ def check_quality_thresholds(ctx) -> None:
 
 
 def check_limits(ctx) -> None:
-    """No fixed resource limit may be relaxed."""
+    """No fixed resource limit may be relaxed, and every value must be finite.
+
+    ``json.loads`` accepts ``NaN``/``Infinity``, and every comparison against
+    ``NaN`` is false, so a non-finite value would silently pass a plain
+    ``value > frozen`` test. The finiteness and the integer typing are checked
+    explicitly before any bound is compared.
+    """
     report, plan = ctx.report, ctx.plan
     limits = plan.get("limits")
     if not isinstance(limits, dict):
@@ -333,13 +537,133 @@ def check_limits(ctx) -> None:
             report.add("E_LIMIT_MISSING", "plan.limits is missing the fixed limit %s" % key)
             continue
         value = limits[key]
-        if isinstance(value, bool) or not isinstance(value, (int, float)):
+        if not is_number(value):
             report.add("E_LIMIT_INVALID", "plan.limits.%s is not numeric: %r" % (key, value))
+            continue
+        if not math.isfinite(value):
+            report.add("E_LIMIT_NOT_FINITE", "plan.limits.%s is not a finite number: %r" % (key, value))
+            continue
+        if not is_integer(value):
+            report.add("E_LIMIT_NOT_INTEGER", "plan.limits.%s must be an integer number of seconds/bytes, found %r" % (key, value))
             continue
         if kind == "max" and value > frozen:
             report.add("E_LIMIT_LOOSED", "plan.limits.%s=%s relaxes the frozen maximum %s" % (key, value, frozen))
         if kind == "min" and value < frozen:
             report.add("E_LIMIT_LOOSED", "plan.limits.%s=%s relaxes the frozen minimum %s" % (key, value, frozen))
+    if "batch_deadline_seconds" in limits:
+        report.add(
+            "E_BUDGET_PARENT_FORMULA",
+            "plan.limits carries a fixed batch_deadline_seconds=%r; the parent deadline must be the "
+            "frozen %d * n + %d formula (max %d), not a guessed constant"
+            % (limits.get("batch_deadline_seconds"), BATCH_PER_CHILD_SECONDS, BATCH_FIXED_SECONDS, BATCH_MAX_DEADLINE),
+        )
+
+
+def check_parent_budget(ctx) -> None:
+    """The parent deadline is 450 * n + 90 (max 5490) everywhere it is stated."""
+    report = ctx.report
+    limits = ctx.plan.get("limits") or {}
+    per_child = limits.get("batch_per_child_budget_seconds")
+    fixed = limits.get("batch_fixed_budget_seconds")
+    if not (is_integer(per_child) and is_integer(fixed)):
+        report.add("E_BUDGET_PARENT_FORMULA", "plan.limits must declare integer batch_per_child_budget_seconds and batch_fixed_budget_seconds")
+        return
+    if per_child > BATCH_PER_CHILD_SECONDS:
+        report.add("E_BUDGET_PARENT_FORMULA", "plan.limits.batch_per_child_budget_seconds=%s exceeds the frozen %d" % (per_child, BATCH_PER_CHILD_SECONDS))
+    if fixed > BATCH_FIXED_SECONDS:
+        report.add("E_BUDGET_PARENT_FORMULA", "plan.limits.batch_fixed_budget_seconds=%s exceeds the frozen %d" % (fixed, BATCH_FIXED_SECONDS))
+    declared_max = limits.get("batch_deadline_seconds_max")
+    expected_max = per_child * BATCH_MAX_SHOTS + fixed
+    if declared_max != expected_max:
+        report.add("E_BUDGET_PARENT_FORMULA", "plan.limits.batch_deadline_seconds_max=%r does not equal %d * %d + %d = %d" % (declared_max, per_child, BATCH_MAX_SHOTS, fixed, expected_max))
+    if expected_max != BATCH_MAX_DEADLINE:
+        report.add("E_BUDGET_PARENT_FORMULA", "the parent deadline formula yields %d, the frozen maximum is %d" % (expected_max, BATCH_MAX_DEADLINE))
+
+    # The DTO must expose the same formula range.
+    definition = (ctx.schema.get("$defs") or {}).get("ParentJob") or {}
+    budget_field = ((definition.get("properties") or {}).get("execution_budget_seconds") or {})
+    minimum = budget_field.get("minimum")
+    maximum = budget_field.get("maximum")
+    if minimum != BATCH_MIN_DEADLINE:
+        report.add("E_BUDGET_PARENT_FORMULA", "candidate ParentJob.execution_budget_seconds.minimum=%r must be %d (= %d * %d + %d)" % (minimum, BATCH_MIN_DEADLINE, BATCH_PER_CHILD_SECONDS, BATCH_MIN_SHOTS, BATCH_FIXED_SECONDS))
+    if maximum != BATCH_MAX_DEADLINE:
+        report.add("E_BUDGET_PARENT_FORMULA", "candidate ParentJob.execution_budget_seconds.maximum=%r must be %d (= %d * %d + %d)" % (maximum, BATCH_MAX_DEADLINE, BATCH_PER_CHILD_SECONDS, BATCH_MAX_SHOTS, BATCH_FIXED_SECONDS))
+
+    # The contract invariant must state the same formula.
+    invariant_text = " ".join(
+        str(item) for entity in (ctx.contract.get("entities") or {}).values()
+        if isinstance(entity, dict)
+        for item in (entity.get("invariants") or [])
+    )
+    if "450*total+90" not in invariant_text.replace(" ", ""):
+        report.add("E_BUDGET_PARENT_FORMULA", "the candidate contract no longer states the parent budget invariant execution_budget_seconds=450*total+90")
+
+
+def check_checkpoint_budget(ctx) -> None:
+    """One full V1 checkpoint: 65 + 7 = 72 actions, 21600 s wall, 20735 s estimate."""
+    report = ctx.report
+    budget = ctx.plan.get("checkpoint_budget")
+    if not isinstance(budget, dict):
+        report.add("E_INPUT_SHAPE", "plan.checkpoint_budget is missing or not an object")
+        return
+    values = {}
+    for key, expected in sorted(FROZEN_CHECKPOINT_INPUTS.items()):
+        if key not in budget:
+            report.add("E_CHECKPOINT_INPUT_MISSING", "plan.checkpoint_budget is missing %s" % key)
+            continue
+        value = budget[key]
+        if not is_number(value):
+            report.add("E_CHECKPOINT_INPUT_INVALID", "plan.checkpoint_budget.%s is not numeric: %r" % (key, value))
+            continue
+        if not math.isfinite(value):
+            report.add("E_CHECKPOINT_INPUT_NOT_FINITE", "plan.checkpoint_budget.%s is not a finite number: %r" % (key, value))
+            continue
+        if value != expected:
+            report.add("E_CHECKPOINT_INPUT_DRIFT", "plan.checkpoint_budget.%s=%s differs from the frozen design value %s" % (key, value, expected))
+        values[key] = value
+
+    required = set(FROZEN_CHECKPOINT_INPUTS)
+    if not required.issubset(values):
+        return
+
+    if values["success_calls"] + values["controlled_actions_cap"] != values["model_actions_cap"]:
+        report.add("E_CHECKPOINT_ACTIONS", "plan.checkpoint_budget declares %d success calls + %d controlled actions != %d model actions" % (values["success_calls"], values["controlled_actions_cap"], values["model_actions_cap"]))
+    if values["model_actions_cap"] > PARENT_CHILD_ACTION_CAP:
+        report.add("E_CHECKPOINT_ACTIONS", "plan.checkpoint_budget.model_actions_cap=%d exceeds the authorized per-child cap %d" % (values["model_actions_cap"], PARENT_CHILD_ACTION_CAP))
+    if values["wall_seconds"] > FROZEN_CHECKPOINT_INPUTS["wall_seconds"]:
+        report.add("E_CHECKPOINT_WALL", "plan.checkpoint_budget.wall_seconds=%s exceeds the authorized %d" % (values["wall_seconds"], FROZEN_CHECKPOINT_INPUTS["wall_seconds"]))
+    if values["execution_deadline_seconds"] + values["cleanup_reserve_seconds"] != values["wall_seconds"]:
+        report.add("E_CHECKPOINT_WALL", "plan.checkpoint_budget execution deadline %s + cleanup reserve %s != wall %s" % (values["execution_deadline_seconds"], values["cleanup_reserve_seconds"], values["wall_seconds"]))
+    if values["video_calls"] + values["image_calls"] != values["success_calls"]:
+        report.add("E_CHECKPOINT_CALLS", "plan.checkpoint_budget video_calls(%s) + image_calls(%s) != success_calls(%s)" % (values["video_calls"], values["image_calls"], values["success_calls"]))
+
+    # The estimate must be reproducible from the declared threshold inputs.
+    estimate = (
+        values["video_calls"] * values["video_threshold_seconds"]
+        + values["image_calls"] * values["image_threshold_seconds"]
+        + values["success_calls"] * values["release_per_success_seconds"]
+        + values["cpu_browser_overhead_seconds"]
+        + values["controlled_actions_cap"] * values["controlled_action_seconds_cap"]
+        + values["cleanup_reserve_seconds"]
+    )
+    if estimate != values["estimated_total_seconds"]:
+        report.add("E_CHECKPOINT_ESTIMATE_ARITHMETIC", "the declared thresholds sum to %d, plan.checkpoint_budget.estimated_total_seconds=%s" % (estimate, values["estimated_total_seconds"]))
+    if estimate > values["wall_seconds"]:
+        report.add("E_CHECKPOINT_ESTIMATE_ARITHMETIC", "the threshold based estimate %d exceeds the wall budget %s" % (estimate, values["wall_seconds"]))
+
+    # The estimate is threshold based; it must not be sold as a measured P95 or
+    # as a guaranteed worst case (docs/32).
+    basis = budget.get("estimate_basis")
+    if not isinstance(basis, str) or not basis.strip():
+        report.add("E_CHECKPOINT_ESTIMATE_BASIS", "plan.checkpoint_budget.estimate_basis must state that the estimate is threshold based")
+        return
+    lowered = basis.lower()
+    if "threshold" not in lowered:
+        report.add("E_CHECKPOINT_ESTIMATE_BASIS", "plan.checkpoint_budget.estimate_basis must name the performance thresholds it uses: %r" % basis)
+    if not re.search(r"not\s+(a\s+)?measured|not\s+current|non-measured|not\s+this", lowered):
+        report.add("E_CHECKPOINT_ESTIMATE_BASIS", "plan.checkpoint_budget.estimate_basis must disclaim a measured per-shot P95: %r" % basis)
+    if not re.search(r"not\s+(hard\s+|a\s+|an\s+)?worst[- ]?case|non-guarantee|not\s+guarantee", lowered):
+        report.add("E_CHECKPOINT_ESTIMATE_BASIS", "plan.checkpoint_budget.estimate_basis must disclaim a guaranteed worst case: %r" % basis)
 
 
 def check_stages_and_dag(ctx) -> None:
@@ -442,6 +766,8 @@ def check_task_dag(ctx) -> None:
             report.add("E_M1_TASK_COVERAGE", "tasks.json V1-M1 does not cover requirement R22")
         if sorted(m1.get("work_on_cases") or []) != sorted(MS_CASE_IDS):
             report.add("E_M1_TASK_COVERAGE", "tasks.json V1-M1 must work on exactly %s" % MS_CASE_IDS)
+        if m1.get("status") != FROZEN_DESIGN_REVIEW_STATE:
+            report.add("E_STAGE_STATUS_CLAIM", "tasks.json V1-M1 has status %r; the new stage must stay %s until a real checkpoint runs" % (m1.get("status"), FROZEN_DESIGN_REVIEW_STATE))
     r2 = ctx.task_stages.get("R2")
     if r2 is None:
         report.add("E_INPUT_SHAPE", "tasks.json has no R2 stage")
@@ -473,8 +799,8 @@ def check_requirement_coverage(ctx) -> None:
         report.add("E_R22_ACCEPTANCE", "R22.acceptance_ids must be exactly %s" % MS_CASE_IDS)
     if r22.get("status") not in ALLOWED_CASE_STATES:
         report.add("E_R22_STATUS", "R22.status %r is not an allowed state %s" % (r22.get("status"), list(ALLOWED_CASE_STATES)))
-    if r22.get("status") == "PASS":
-        report.add("E_R22_STATUS", "R22 cannot be PASS while the V1 package is only in design review")
+    if r22.get("status") != FROZEN_DESIGN_REVIEW_STATE:
+        report.add("E_R22_STATUS", "R22.status %r cannot be anything but %s while the V1 package is only in design review" % (r22.get("status"), FROZEN_DESIGN_REVIEW_STATE))
 
 
 def check_status_and_human_claims(ctx) -> None:
@@ -514,6 +840,10 @@ def check_status_and_human_claims(ctx) -> None:
             report.add("E_FORBIDDEN_CLAIM", "execution-control coordinate state %r is a forbidden claim" % state)
         elif state != "WAIT_HUMAN":
             report.note("E_COORDINATE_NOTE", "execution-control coordinate state is %r (the plan still claims no human signature)" % (state,))
+    if ctx.execution_control.get("human_signoff") is not None:
+        report.add("E_HUMAN_APPROVAL_CLAIM", "plans/execution-control.json carries a human signoff value while the plan claims none")
+    if ctx.execution_control.get("product_acceptance") is not None:
+        report.add("E_FORBIDDEN_CLAIM", "plans/execution-control.json carries a product acceptance value while the package is only in design review")
 
 
 def check_ownership(ctx) -> None:
@@ -687,6 +1017,9 @@ def check_contract_and_schema(ctx) -> None:
             continue
         definition = defs.get(name)
         if definition is None:
+            # A declared entity without a DTO is a hole in the design, not a
+            # detail to skip silently (adjudication M1/M4/M6).
+            report.add("E_CONTRACT_ENTITY_UNRESOLVED", "contract entity %s has no matching DTO in the candidate schema $defs" % name)
             continue
         schema_required = definition.get("required")
         if sorted(schema_required or []) != sorted(required):
@@ -695,12 +1028,535 @@ def check_contract_and_schema(ctx) -> None:
     if isinstance(shot, dict):
         for key, def_name in (("character_fields", "Character"), ("action_fields", "Action")):
             fields = shot.get(key)
-            definition = defs.get(def_name) or {}
+            definition = defs.get(def_name)
+            if definition is None:
+                report.add("E_CONTRACT_ENTITY_UNRESOLVED", "contract ShotEvidence.%s refers to %s, which has no DTO in the candidate schema" % (key, def_name))
+                continue
             if isinstance(fields, list) and sorted(fields) != sorted(definition.get("required") or []):
                 report.add("E_CONTRACT_SCHEMA_MISMATCH", "contract ShotEvidence.%s %s differs from candidate schema %s.required %s" % (key, sorted(fields), def_name, sorted(definition.get("required") or [])))
-    children = defs.get("BatchChildrenResponse") or {}
-    if "total" not in (children.get("required") or []):
-        report.add("E_CONTRACT_SCHEMA_MISMATCH", "candidate schema BatchChildrenResponse must keep the fixed denominator field 'total'")
+
+
+def check_dto_contract_shape(ctx) -> None:
+    """The 1.1 DTOs must carry the parent deadline, the full child rows and the
+    domain split, and the public binding must not leak the internal lease token.
+    """
+    report = ctx.report
+    defs = ctx.schema.get("$defs") or {}
+
+    def required_of(name):
+        definition = defs.get(name)
+        if not isinstance(definition, dict):
+            report.add("E_DTO_MISSING", "the candidate schema has no %s DTO" % name)
+            return None
+        return list(definition.get("required") or [])
+
+    parent = required_of("ParentJob")
+    if parent is not None:
+        missing = [field for field in FROZEN_PARENT_JOB_FIELDS if field not in parent]
+        if missing:
+            report.add("E_PARENT_DTO_FIELD", "the candidate ParentJob DTO does not carry %s" % missing)
+    children = required_of("BatchChildrenResponse")
+    if children is not None and sorted(children) != ["children", "parent"]:
+        report.add("E_CHILDREN_ENVELOPE", "the candidate BatchChildrenResponse must carry exactly the parent view and the ordered children, found %s" % sorted(children))
+    child = required_of("ChildSummary")
+    if child is not None:
+        missing = [field for field in FROZEN_CHILD_SUMMARY_FIELDS if field not in child]
+        if missing:
+            report.add("E_CHILD_ROW_FIELDS", "the candidate ChildSummary DTO does not carry %s" % missing)
+    evidence = required_of("ShotEvidence")
+    if evidence is not None:
+        missing = [field for field in FROZEN_SHOT_EVIDENCE_FIELDS if field not in evidence]
+        if missing:
+            report.add("E_EVIDENCE_DTO_FIELDS", "the candidate ShotEvidence DTO does not carry %s" % missing)
+    for name in FROZEN_DOMAIN_DTOS:
+        required = required_of(name)
+        if required is None:
+            continue
+        if "domain" not in required or "evidence_frame_indices" not in required:
+            report.add("E_DOMAIN_DTO_FIELDS", "the candidate %s DTO must carry domain and evidence_frame_indices, found %s" % (name, required))
+        definition = defs.get(name) or {}
+        domain = ((definition.get("properties") or {}).get("domain") or {}).get("enum")
+        if domain is not None and sorted(domain) != sorted(FROZEN_DOMAIN_VALUES):
+            report.add("E_DOMAIN_DTO_FIELDS", "the candidate %s DTO domain enum must be exactly %s, found %s" % (name, list(FROZEN_DOMAIN_VALUES), domain))
+
+    model = defs.get("MachineShotResponse")
+    if isinstance(model, dict):
+        properties = model.get("properties") or {}
+        leaked = [field for field in FROZEN_MODEL_RESPONSE_FORBIDDEN if field in properties]
+        if leaked:
+            report.add("E_MODEL_RESPONSE_SCOPE", "the candidate MachineShotResponse must not carry %s" % leaked)
+
+    public = defs.get("PublicAnalysisBinding")
+    internal = defs.get("AnalysisBinding")
+    if not isinstance(public, dict):
+        report.add("E_DTO_MISSING", "the candidate schema has no PublicAnalysisBinding DTO")
+    else:
+        properties = public.get("properties") or {}
+        if "lease_token" in properties:
+            report.add("E_PUBLIC_BINDING_LEASE_TOKEN", "the public analysis binding must not expose the internal lease_token")
+        if "lease_token" in (public.get("required") or []):
+            report.add("E_PUBLIC_BINDING_LEASE_TOKEN", "the public analysis binding must not require the internal lease_token")
+    if not isinstance(internal, dict):
+        report.add("E_DTO_MISSING", "the candidate schema has no internal AnalysisBinding DTO")
+    elif "lease_token" not in (internal.get("properties") or {}):
+        report.add("E_INTERNAL_BINDING_TOKEN", "the internal analysis binding must carry the lease_token")
+    evidence_dto = defs.get("ShotAnalysisEvidence")
+    if isinstance(evidence_dto, dict):
+        binding_ref = ((evidence_dto.get("properties") or {}).get("binding") or {}).get("$ref")
+        if binding_ref != "#/$defs/PublicAnalysisBinding":
+            report.add("E_PUBLIC_BINDING_REF", "the candidate ShotAnalysisEvidence must bind the public analysis binding, found %r" % binding_ref)
+
+
+def type_set(schema: dict) -> set | None:
+    """The set of JSON types a property schema accepts."""
+    if not isinstance(schema, dict):
+        return None
+    declared = schema.get("type")
+    if declared is None:
+        return None
+    if isinstance(declared, str):
+        return {declared}
+    if isinstance(declared, list) and all(isinstance(item, str) for item in declared):
+        return set(declared)
+    return None
+
+
+def effective_type_set(schema: dict) -> set | None:
+    """Type set after intersecting ``type`` with the ``anyOf`` branches."""
+    declared = type_set(schema)
+    branches = schema.get("anyOf")
+    if not isinstance(branches, list) or not branches:
+        return declared
+    branch_types = []
+    for branch in branches:
+        subset = effective_type_set(branch)
+        if subset is None:
+            continue
+        branch_types.append(subset)
+    if not branch_types:
+        return declared
+    union = set()
+    for subset in branch_types:
+        union |= subset
+    if declared is None:
+        return union
+    return declared & union
+
+
+def inferred_type_set(schema: dict) -> set | None:
+    """The type set of a schema that pins its values with ``const``/``enum``."""
+    values = enum_values(schema)
+    if not values:
+        return None
+    types = set()
+    for value in values:
+        if isinstance(value, bool):
+            types.add("boolean")
+        elif isinstance(value, int):
+            types.add("integer")
+        elif isinstance(value, float):
+            types.add("number")
+        elif isinstance(value, str):
+            types.add("string")
+        elif value is None:
+            types.add("null")
+        else:
+            return None
+    return types
+
+
+def enum_values(schema: dict) -> set | None:
+    if not isinstance(schema, dict):
+        return None
+    if "const" in schema:
+        return {schema["const"]}
+    values = schema.get("enum")
+    if isinstance(values, list):
+        return set(values)
+    return None
+
+
+def allows_null(schema: dict) -> bool:
+    """True when a property schema accepts a null value.
+
+    A sibling ``type`` constraint narrows the whole schema, so a ``type`` that
+    excludes null wins over an ``anyOf`` branch that allows it.
+    """
+    if not isinstance(schema, dict):
+        return False
+    declared = type_set(schema)
+    if declared is not None:
+        return "null" in declared
+    branches = schema.get("anyOf")
+    if isinstance(branches, list):
+        return any(allows_null(branch) for branch in branches)
+    return False
+
+
+HEX_PATTERN = re.compile(r"^\^\[([^\]]+)\]\{(\d+)\}\$$")
+
+
+def pattern_key(pattern):
+    """Normalise a simple character-class pattern so equivalent regexes compare equal."""
+    if not isinstance(pattern, str):
+        return None
+    match = HEX_PATTERN.match(pattern)
+    if not match:
+        return pattern
+    return ("charset", frozenset(match.group(1)), int(match.group(2)))
+
+
+def is_refinement(child: dict, parent: dict) -> list:
+    """Return the reasons why *child* is not a narrowing of *parent*.
+
+    Every value that is valid under *child* must also be valid under *parent*:
+    a candidate DTO may tighten the canonical contract, never widen it.
+    """
+    reasons = []
+    child_types = effective_type_set(child)
+    if child_types is None:
+        child_types = inferred_type_set(child)
+    parent_types = effective_type_set(parent)
+    if parent_types is not None:
+        if child_types is None:
+            reasons.append("drops the canonical type constraint %s" % sorted(parent_types))
+        elif not child_types.issubset(parent_types):
+            reasons.append("accepts %s, which the canonical type %s rejects" % (sorted(child_types - parent_types), sorted(parent_types)))
+    parent_enum = enum_values(parent)
+    if parent_enum is not None:
+        child_enum = enum_values(child)
+        if child_enum is None:
+            reasons.append("drops the canonical enumeration %s" % sorted(parent_enum))
+        elif not child_enum.issubset(parent_enum):
+            reasons.append("accepts %s, which the canonical enumeration rejects" % sorted(child_enum - parent_enum))
+    for key, comparison in (("minimum", lambda c, p: c >= p), ("maximum", lambda c, p: c <= p)):
+        if key in parent:
+            if key not in child:
+                reasons.append("drops the canonical %s bound %s" % (key, parent[key]))
+            elif not comparison(child[key], parent[key]):
+                reasons.append("weakens the canonical %s bound %s" % (key, parent[key]))
+    parent_pattern = parent.get("pattern")
+    if parent_pattern is not None:
+        child_pattern = child.get("pattern")
+        if child_pattern is None:
+            reasons.append("drops the canonical pattern %s" % parent_pattern)
+        elif pattern_key(child_pattern) != pattern_key(parent_pattern):
+            reasons.append("changes the canonical pattern %s into %s" % (parent_pattern, child_pattern))
+    return reasons
+
+
+def check_canonical_compatibility(ctx) -> None:
+    """The candidate must alias the canonical Scene and narrow the canonical FrameRef."""
+    report = ctx.report
+    defs = ctx.schema.get("$defs") or {}
+    canonical_defs = ctx.canonical_schema.get("$defs") or {}
+
+    candidate_scene = defs.get("CoreScene")
+    canonical_scene = canonical_defs.get("Scene")
+    if not isinstance(candidate_scene, dict) or not isinstance(canonical_scene, dict):
+        report.add("E_CANONICAL_ALIAS", "the candidate schema must carry a CoreScene alias of the canonical Scene")
+    elif candidate_scene != canonical_scene:
+        report.add("E_CANONICAL_ALIAS", "the candidate CoreScene is not an exact alias of the canonical Scene DTO")
+
+    candidate_ref = defs.get("ShotFrameRef")
+    canonical_ref = canonical_defs.get("FrameRef")
+    if not isinstance(candidate_ref, dict) or not isinstance(canonical_ref, dict):
+        report.add("E_FRAME_REF_INCOMPATIBLE", "the candidate schema must carry a ShotFrameRef next to the canonical FrameRef")
+        return
+    canonical_props = canonical_ref.get("properties") or {}
+    candidate_props = candidate_ref.get("properties") or {}
+    if set(candidate_props) != set(canonical_props):
+        missing = sorted(set(canonical_props) - set(candidate_props))
+        extra = sorted(set(candidate_props) - set(canonical_props))
+        report.add("E_FRAME_REF_INCOMPATIBLE", "ShotFrameRef must carry exactly the canonical FrameRef fields (missing=%s extra=%s)" % (missing, extra))
+    if sorted(candidate_ref.get("required") or []) != sorted(canonical_ref.get("required") or []):
+        report.add("E_FRAME_REF_INCOMPATIBLE", "ShotFrameRef.required %s differs from the canonical FrameRef.required %s" % (sorted(candidate_ref.get("required") or []), sorted(canonical_ref.get("required") or [])))
+    for name in sorted(set(canonical_props) & set(candidate_props)):
+        reasons = is_refinement(candidate_props[name] or {}, canonical_props[name] or {})
+        for reason in reasons:
+            report.add("E_FRAME_REF_INCOMPATIBLE", "ShotFrameRef.%s is not a valid canonical FrameRef: %s" % (name, reason))
+
+    # The 1.1 design pins the per-shot frame reference: only real decoded PTS
+    # and the decoded_pts basis (docs/31, adjudication M3). A candidate that
+    # accepts a null PTS or a sample_target basis would let a per-shot frame
+    # reference that the canonical contract never meant to carry.
+    frozen_basis = candidate_props.get("time_basis")
+    if not isinstance(frozen_basis, dict) or enum_values(frozen_basis) != {"decoded_pts"}:
+        report.add("E_FRAME_REF_CONSTRAINT", "the candidate ShotFrameRef must pin time_basis to decoded_pts")
+    for name in ("source_pts", "time_base_num", "time_base_den"):
+        prop = candidate_props.get(name)
+        if not isinstance(prop, dict):
+            report.add("E_FRAME_REF_CONSTRAINT", "the candidate ShotFrameRef must declare %s" % name)
+            continue
+        if allows_null(prop):
+            report.add("E_FRAME_REF_CONSTRAINT", "the candidate ShotFrameRef.%s must not accept null; a per-shot frame reference carries real source PTS" % name)
+
+    # The real frame references that are already retained must stay valid
+    # instances of the candidate DTO (adjudication M3).
+    sample = ctx.frame_sample
+    if not isinstance(sample, dict):
+        report.note("E_FRAME_REF_SAMPLE_SKIPPED", "no retained frame reference sample was available for the instance probe")
+        return
+    frames = sample.get("frames")
+    if not isinstance(frames, list):
+        report.note("E_FRAME_REF_SAMPLE_SKIPPED", "the retained frame reference sample carries no frames list")
+        return
+    try:
+        import jsonschema  # type: ignore
+    except Exception:
+        jsonschema = None
+    if jsonschema is not None:
+        validator = jsonschema.Draft202012Validator({"$ref": "#/$defs/ShotFrameRef", "$defs": defs})
+        for index, frame in enumerate(frames):
+            errors = sorted(validator.iter_errors(frame), key=lambda e: e.message)
+            for error in errors:
+                report.add("E_FRAME_REF_INSTANCE", "retained frame %d is not a valid ShotFrameRef: %s" % (index, error.message))
+        ctx.frame_instance_probe = "jsonschema"
+    else:
+        required = set(candidate_ref.get("required") or [])
+        for index, frame in enumerate(frames):
+            if not isinstance(frame, dict):
+                report.add("E_FRAME_REF_INSTANCE", "retained frame %d is not an object" % index)
+                continue
+            missing = sorted(required - set(frame))
+            if missing:
+                report.add("E_FRAME_REF_INSTANCE", "retained frame %d lacks %s" % (index, missing))
+        ctx.frame_instance_probe = "structural"
+
+
+def check_overlay_additive(ctx) -> None:
+    """The overlay may only add; it must never replace an existing method."""
+    report = ctx.report
+    overlay = ctx.overlay
+    base_paths = (ctx.base_openapi.get("paths") or {})
+    if overlay.get("base_file") != "contracts/openapi.json":
+        report.add("E_OVERLAY_BASE", "the overlay must name contracts/openapi.json as its base, found %r" % overlay.get("base_file"))
+    if overlay.get("component_source") != "contracts/v1-multishot.schema.json":
+        report.add("E_OVERLAY_BASE", "the overlay must build its components from contracts/v1-multishot.schema.json, found %r" % overlay.get("component_source"))
+    if overlay.get("status") != "DESIGN_REVIEW_NOT_ACTIVE":
+        report.add("E_OVERLAY_STATUS", "the overlay status %r is not a design-review candidate" % overlay.get("status"))
+    if "components" in overlay:
+        report.add("E_OVERLAY_COMPONENTS_REPLACE", "the overlay must not ship its own components block; a component could shadow a canonical schema")
+
+    add_paths = overlay.get("add_paths")
+    if not isinstance(add_paths, dict) or not add_paths:
+        report.add("E_INPUT_SHAPE", "the overlay has no add_paths object")
+        return
+    for path, operations in sorted(add_paths.items()):
+        if not isinstance(operations, dict):
+            report.add("E_OVERLAY_SHAPE", "the overlay path %s has no operations" % path)
+            continue
+        for method in sorted(operations):
+            existing = (base_paths.get(path) or {}).get(method)
+            if existing is not None:
+                report.add("E_OVERLAY_REPLACES_METHOD", "the overlay defines %s %s, which the canonical OpenAPI already defines" % (method.upper(), path))
+    reserved = ctx.contract.get("explicit_reserved_v2_paths")
+    if isinstance(reserved, list):
+        for path in reserved:
+            if path in add_paths:
+                report.add("E_OVERLAY_RESERVED_PATH", "the overlay touches the reserved V2 path %s" % path)
+    if "/api/v1/jobs/batch" in add_paths:
+        report.add("E_OVERLAY_RESERVED_PATH", "the canonical /api/v1/jobs/batch route must stay untouched by the overlay")
+
+    # The canonical V2 batch body must still be the {items:[AnalyzeRequest]} shape.
+    batch = ((base_paths.get("/api/v1/jobs/batch") or {}).get("post") or {})
+    schema = (((batch.get("requestBody") or {}).get("content") or {}).get("application/json") or {}).get("schema") or {}
+    properties = schema.get("properties") or {}
+    items = properties.get("items") or {}
+    if "items" not in properties:
+        report.add("E_V2_BATCH_BODY_DRIFT", "the canonical /api/v1/jobs/batch request body no longer carries the items array")
+    elif (items.get("items") or {}).get("$ref") != "#/components/schemas/AnalyzeRequest":
+        report.add("E_V2_BATCH_BODY_DRIFT", "the canonical /api/v1/jobs/batch items array no longer holds AnalyzeRequest entries")
+    if sorted(schema.get("required") or []) != ["items"]:
+        report.add("E_V2_BATCH_BODY_DRIFT", "the canonical /api/v1/jobs/batch request body must require exactly items")
+
+    # The new bounded route must exist and reuse the canonical Job response.
+    shot_batches = (add_paths.get("/api/v1/jobs/shot-batches") or {}).get("post")
+    if not isinstance(shot_batches, dict):
+        report.add("E_OVERLAY_ROUTE_MISSING", "the overlay does not add POST /api/v1/jobs/shot-batches")
+    else:
+        request_ref = (((shot_batches.get("requestBody") or {}).get("content") or {}).get("application/json") or {}).get("schema") or {}
+        if request_ref.get("$ref") != "#/components/schemas/MultiShot_BatchAnalyzeRequest":
+            report.add("E_OVERLAY_ROUTE_MISSING", "the shot-batches request body must use the candidate BatchAnalyzeRequest DTO")
+        accepted = (((shot_batches.get("responses") or {}).get("202") or {}).get("content") or {}).get("application/json") or {}
+        data_ref = (((accepted.get("schema") or {}).get("properties") or {}).get("data") or {}).get("$ref")
+        if data_ref != "#/components/schemas/Job":
+            report.add("E_OVERLAY_ROUTE_MISSING", "the shot-batches 202 response must return the canonical Job DTO, found %r" % data_ref)
+
+    # Every candidate component the overlay references must exist in the schema.
+    defs = ctx.schema.get("$defs") or {}
+    prefix = overlay.get("component_prefix") or "MultiShot_"
+    for ref in collect_refs(overlay):
+        if ref.startswith("#/components/schemas/"):
+            name = ref.split("/")[-1]
+            if name.startswith(prefix):
+                if name[len(prefix):] not in defs:
+                    report.add("E_OVERLAY_COMPONENT_UNKNOWN", "the overlay references %s but the candidate schema has no %s DTO" % (ref, name[len(prefix):]))
+            elif name not in (ctx.base_openapi.get("components") or {}).get("schemas", {}):
+                report.add("E_OVERLAY_COMPONENT_UNKNOWN", "the overlay references %s, which is neither a candidate nor a canonical schema" % ref)
+
+    # Metadata annotations may only describe existing routes.
+    metadata = overlay.get("metadata_only")
+    if isinstance(metadata, dict):
+        for path, notes in sorted(metadata.items()):
+            if path not in base_paths:
+                report.add("E_OVERLAY_METADATA_PATH", "the overlay annotates %s, which the canonical OpenAPI does not define" % path)
+                continue
+            if not isinstance(notes, dict):
+                report.add("E_OVERLAY_METADATA_PATH", "the overlay metadata for %s is not an object" % path)
+                continue
+            if notes.get("put_body_response_unchanged") is False:
+                report.add("E_OVERLAY_METADATA_REPLACES", "the overlay metadata for %s claims the existing body/response changed" % path)
+            if notes.get("v2_profiles_unchanged") is False:
+                report.add("E_OVERLAY_METADATA_REPLACES", "the overlay metadata for %s claims the V2 profiles changed" % path)
+
+
+def collect_refs(node):
+    """Yield every ``$ref`` string in a nested structure."""
+    refs = []
+    if isinstance(node, dict):
+        for key, value in node.items():
+            if key == "$ref" and isinstance(value, str):
+                refs.append(value)
+            else:
+                refs.extend(collect_refs(value))
+    elif isinstance(node, list):
+        for item in node:
+            refs.extend(collect_refs(item))
+    return refs
+
+
+def check_sample_design(ctx) -> None:
+    """The machine sample table is a design allocation, not a frozen fixture set."""
+    report = ctx.report
+    design = ctx.sample_design
+    if design.get("status") != FROZEN_SAMPLE_DESIGN_STATUS:
+        report.add("E_SAMPLE_STATUS", "the sample design status %r must stay %s" % (design.get("status"), FROZEN_SAMPLE_DESIGN_STATUS))
+    clips = design.get("clips")
+    if not isinstance(clips, list):
+        report.add("E_INPUT_SHAPE", "the sample design has no clips list")
+        return
+    if len(clips) != FROZEN_SAMPLE_TOTAL_CLIPS:
+        report.add("E_SAMPLE_CLIP_COUNT", "the sample design allocates %d clips, the frozen design is %d" % (len(clips), FROZEN_SAMPLE_TOTAL_CLIPS))
+    total_shots = 0
+    total_cuts = 0
+    seen_ids = set()
+    for clip in clips:
+        if not isinstance(clip, dict):
+            report.add("E_SAMPLE_SHAPE", "the sample design has a non-object clip entry")
+            continue
+        clip_id = clip.get("id")
+        if not isinstance(clip_id, str) or not clip_id:
+            report.add("E_SAMPLE_SHAPE", "the sample design has a clip without a string id")
+            continue
+        if clip_id in seen_ids:
+            report.add("E_SAMPLE_DUPLICATE_CLIP", "the sample design defines clip %s twice" % clip_id)
+        seen_ids.add(clip_id)
+        shots = clip.get("shots")
+        cuts = clip.get("hard_cut_annotations")
+        if not is_integer(shots) or shots <= 0:
+            report.add("E_SAMPLE_SHAPE", "clip %s has a non positive shot count %r" % (clip_id, shots))
+            continue
+        if not is_integer(cuts) or cuts < 0:
+            report.add("E_SAMPLE_SHAPE", "clip %s has an invalid hard cut annotation count %r" % (clip_id, cuts))
+            continue
+        total_shots += shots
+        total_cuts += cuts
+        category = clip.get("category")
+        if category == "hard_cut":
+            if cuts != shots - 1:
+                report.add("E_SAMPLE_CUT_COUNT", "hard cut clip %s declares %d cuts for %d shots; each cut separates two shots" % (clip_id, cuts, shots))
+        elif cuts != 0:
+            report.add("E_SAMPLE_CUT_COUNT", "clip %s is not a hard cut clip but declares %d hard cut annotations" % (clip_id, cuts))
+        if clip.get("status") != FROZEN_SAMPLE_CLIP_STATUS:
+            report.add("E_SAMPLE_MATERIALIZED", "clip %s has status %r; the design allocation must stay %s until the media, rights and labels are frozen" % (clip_id, clip.get("status"), FROZEN_SAMPLE_CLIP_STATUS))
+        for placeholder in ("source_sha256", "annotation_hash", "origin_source_id", "rights_record"):
+            if clip.get(placeholder) is not None:
+                report.add("E_SAMPLE_MATERIALIZED", "clip %s already carries a %s; the design allocation must not pretend the sample is materialized" % (clip_id, placeholder))
+    if total_shots != FROZEN_SAMPLE_TOTAL_SHOTS:
+        report.add("E_SAMPLE_SHOT_COUNT", "the sample design allocates %d shots, the frozen design is %d" % (total_shots, FROZEN_SAMPLE_TOTAL_SHOTS))
+    if total_cuts != FROZEN_SAMPLE_HARD_CUTS:
+        report.add("E_SAMPLE_CUT_COUNT", "the sample design allocates %d hard cut annotations, the frozen design is %d" % (total_cuts, FROZEN_SAMPLE_HARD_CUTS))
+    for key, expected in (("total_clips", FROZEN_SAMPLE_TOTAL_CLIPS), ("total_shots", FROZEN_SAMPLE_TOTAL_SHOTS), ("hard_cut_annotation_count", FROZEN_SAMPLE_HARD_CUTS)):
+        if design.get(key) != expected:
+            report.add("E_SAMPLE_TOTALS", "the sample design declares %s=%r, the frozen design is %d" % (key, design.get(key), expected))
+
+    quality = design.get("quality_subset")
+    if not isinstance(quality, list):
+        report.add("E_INPUT_SHAPE", "the sample design has no quality_subset list")
+        return
+    if len(quality) != FROZEN_SAMPLE_QUALITY_ROWS:
+        report.add("E_SAMPLE_QUALITY_COUNT", "the quality subset holds %d rows, the frozen design is %d" % (len(quality), FROZEN_SAMPLE_QUALITY_ROWS))
+    counts = {name: 0 for name in FROZEN_SAMPLE_QUALITY_COUNTS}
+    shots_by_clip = {clip.get("id"): clip.get("shots") for clip in clips if isinstance(clip, dict)}
+    for row in quality:
+        if not isinstance(row, dict):
+            report.add("E_SAMPLE_SHAPE", "the quality subset has a non-object row")
+            continue
+        clip_id = row.get("clip_id")
+        shot_id = row.get("shot_id")
+        category = row.get("category")
+        if clip_id not in shots_by_clip:
+            report.add("E_SAMPLE_QUALITY_ID", "the quality subset refers to unknown clip %r" % (clip_id,))
+            continue
+        if not isinstance(shot_id, str) or not re.match(r"^S\d+$", shot_id or ""):
+            report.add("E_SAMPLE_QUALITY_ID", "the quality subset row for %s has an invalid shot id %r" % (clip_id, shot_id))
+            continue
+        index = int(shot_id[1:])
+        if index < 1 or index > (shots_by_clip.get(clip_id) or 0):
+            report.add("E_SAMPLE_QUALITY_ID", "the quality subset row %s/%s does not resolve inside the clip" % (clip_id, shot_id))
+        if category not in FROZEN_SAMPLE_QUALITY_COUNTS:
+            report.add("E_SAMPLE_QUALITY_CATEGORY", "the quality subset row %s/%s has an unknown category %r" % (clip_id, shot_id, category))
+            continue
+        counts[category] += 1
+    if counts != FROZEN_SAMPLE_QUALITY_COUNTS:
+        report.add("E_SAMPLE_QUALITY_CATEGORY", "the quality subset categories are %s, the frozen design is %s" % (counts, FROZEN_SAMPLE_QUALITY_COUNTS))
+    declared_counts = design.get("quality_counts")
+    if isinstance(declared_counts, dict) and declared_counts != FROZEN_SAMPLE_QUALITY_COUNTS:
+        report.add("E_SAMPLE_QUALITY_CATEGORY", "the sample design declares quality_counts %s, the frozen design is %s" % (declared_counts, FROZEN_SAMPLE_QUALITY_COUNTS))
+
+
+def check_candidate_artifacts(ctx) -> None:
+    """The candidate artefacts must be declared and hash bound; the SQL is not run."""
+    report = ctx.report
+    for label, (expected_path, pointer) in sorted(FROZEN_ARTIFACT_PATHS.items()):
+        holder, _, key = pointer.partition(".")
+        document = ctx.plan if holder == "plan" else ctx.contract
+        declared = document.get(key)
+        if declared != expected_path:
+            report.add("E_ARTIFACT_DECLARATION", "%s declares %s=%r, the frozen candidate artefact is %s" % (pointer, key, declared, expected_path))
+            continue
+        if expected_path not in ctx.spec_files:
+            report.add("E_ARTIFACT_NOT_HASH_BOUND", "the candidate artefact %s is not fenced by the authority spec manifest" % expected_path)
+        elif ctx.hashes.get(expected_path) != ctx.spec_files.get(expected_path):
+            report.add("E_ARTIFACT_HASH_DRIFT", "the candidate artefact %s does not match its spec manifest hash" % expected_path)
+
+    sql = ctx.migration_text
+    upper = sql.upper()
+    for name in FROZEN_MIGRATION_OBJECTS:
+        pattern = r"CREATE\s+TABLE\s+(IF\s+NOT\s+EXISTS\s+)?" + re.escape(name.upper()) + r"\s*\("
+        if not re.search(pattern, upper):
+            report.add("E_SQL_DECLARATION", "the candidate migration does not declare the %s table" % name)
+    if "450*PLANNED_COUNT+90" not in upper.replace(" ", ""):
+        report.add("E_SQL_DECLARATION", "the candidate migration does not freeze the parent budget constraint execution_budget_seconds=450*planned_count+90")
+    if "LEASE_TOKEN" not in upper:
+        report.add("E_SQL_DECLARATION", "the candidate migration does not keep the internal lease_token in the shot_analysis_binding table")
+    for token in FROZEN_SQL_FORBIDDEN_TOKENS:
+        if token in upper:
+            report.add("E_SQL_FORBIDDEN", "the candidate migration contains the forbidden token %s" % token)
+
+
+def check_adjudication(ctx) -> None:
+    """The architecture adjudication must not fake a product gate or a human signature."""
+    report = ctx.report
+    adjudication = ctx.adjudication
+    if adjudication.get("product_pass") is not False:
+        report.add("E_ADJUDICATION_CLAIM", "the architecture adjudication must keep product_pass=false while the design is only in review")
+    if adjudication.get("human_signoff") is not None:
+        report.add("E_HUMAN_APPROVAL_CLAIM", "the architecture adjudication carries a human signoff value")
+    decision = adjudication.get("decision")
+    if isinstance(decision, str) and re.search(r"product[_ ]?pass|released|accepted", decision, re.IGNORECASE):
+        report.add("E_ADJUDICATION_CLAIM", "the architecture adjudication decision %r claims a product result" % decision)
 
 
 def check_immutability(ctx) -> None:
@@ -809,6 +1665,9 @@ def check_spec_fence(ctx) -> None:
     if not isinstance(files, dict) or not files:
         report.add("E_INPUT_SHAPE", "spec-manifest.json: missing 'files' object")
         return
+    for rel in FROZEN_SPEC_FENCE_FILES:
+        if rel not in files:
+            report.add("E_SPEC_FENCE_INCOMPLETE", "the authority spec manifest does not fence %s" % rel)
     for rel, expected in sorted(files.items()):
         actual = ctx.hashes.get(rel)
         if actual is None:
@@ -827,6 +1686,7 @@ class Context:
         self.task_stage_ids = set()
         self.task_stages = {}
         self.schema_metaschema_checked = False
+        self.frame_instance_probe = "none"
         self.root = ROOT
         self.d0_packet_dir = D0_PACKET_DIR
         self.d0_manifest_expected = FROZEN_D0_PACKET_MANIFEST_SHA256
@@ -855,6 +1715,13 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--tasks", default="plans/tasks.json")
     parser.add_argument("--contract", default="plans/v1-multishot-contract.json")
     parser.add_argument("--contract-schema", default="contracts/v1-multishot.schema.json")
+    parser.add_argument("--canonical-schema", default="contracts/lvw.schema.json")
+    parser.add_argument("--base-openapi", default="contracts/openapi.json")
+    parser.add_argument("--overlay", default="contracts/v1-multishot.openapi-overlay.json")
+    parser.add_argument("--migration", default="contracts/v1-multishot-migration.sql")
+    parser.add_argument("--sample-design", default="plans/v1-multishot-sample-design.json")
+    parser.add_argument("--adjudication", default="reports/v1-redesign/design11-adjudication.json")
+    parser.add_argument("--frame-sample", default="reports/unified-media/live-15/video-model-run.json")
     parser.add_argument("--stage-control", default=".agent-governance/stages/V1-D0/stage-control.json")
     parser.add_argument("--spec-manifest", default=".agent-governance/stages/V1-D0/spec-manifest.json")
     parser.add_argument("--approval", default="reports/v1-redesign/product-change-approval.json")
@@ -885,6 +1752,11 @@ def main(argv=None) -> int:
         "tasks": args.tasks,
         "contract": args.contract,
         "contract-schema": args.contract_schema,
+        "canonical-schema": args.canonical_schema,
+        "base-openapi": args.base_openapi,
+        "overlay": args.overlay,
+        "sample-design": args.sample_design,
+        "adjudication": args.adjudication,
         "stage-control": args.stage_control,
         "spec-manifest": args.spec_manifest,
         "approval": args.approval,
@@ -898,6 +1770,19 @@ def main(argv=None) -> int:
         except InputError as exc:
             sys.stderr.write("INPUT_ERROR: %s\n" % exc)
             return 2
+    try:
+        migration_text = load_text(resolve(root, args.migration), "migration")
+    except InputError as exc:
+        sys.stderr.write("INPUT_ERROR: %s\n" % exc)
+        return 2
+
+    frame_sample = None
+    frame_path = resolve(root, args.frame_sample)
+    if frame_path.is_file():
+        try:
+            frame_sample = load_json(frame_path, "frame-sample")
+        except InputError:
+            frame_sample = None
 
     ctx.plan = documents["plan"]
     ctx.baseline = documents["baseline"]
@@ -907,6 +1792,13 @@ def main(argv=None) -> int:
     ctx.tasks = documents["tasks"]
     ctx.contract = documents["contract"]
     ctx.schema = documents["contract-schema"]
+    ctx.canonical_schema = documents["canonical-schema"]
+    ctx.base_openapi = documents["base-openapi"]
+    ctx.overlay = documents["overlay"]
+    ctx.migration_text = migration_text
+    ctx.sample_design = documents["sample-design"]
+    ctx.adjudication = documents["adjudication"]
+    ctx.frame_sample = frame_sample
     ctx.stage_control = documents["stage-control"]
     ctx.spec_manifest = documents["spec-manifest"]
     ctx.approval = documents["approval"]
@@ -976,6 +1868,8 @@ def main(argv=None) -> int:
     check_case_definitions(ctx)
     check_quality_thresholds(ctx)
     check_limits(ctx)
+    check_parent_budget(ctx)
+    check_checkpoint_budget(ctx)
     check_stages_and_dag(ctx)
     check_task_dag(ctx)
     check_requirement_coverage(ctx)
@@ -983,6 +1877,12 @@ def main(argv=None) -> int:
     check_ownership(ctx)
     check_authorization_accounting(ctx)
     check_contract_and_schema(ctx)
+    check_dto_contract_shape(ctx)
+    check_canonical_compatibility(ctx)
+    check_overlay_additive(ctx)
+    check_sample_design(ctx)
+    check_candidate_artifacts(ctx)
+    check_adjudication(ctx)
     check_immutability(ctx)
     check_d0_packet_integrity(ctx)
     check_spec_fence(ctx)
@@ -995,11 +1895,19 @@ def main(argv=None) -> int:
         return 1
     gate_v1 = len(((ctx.gates.get("gates") or {}).get("V1") or {}).get("required_cases") or [])
     sys.stdout.write(
-        "RESULT: PASS (V1=%d V2=%d V3=%d; MS01-MS08 once; legacy prefix intact; DAG acyclic; no human signature claimed)\n"
+        "RESULT: PASS (V1=%d V2=%d V3=%d; MS01-MS08 once and NOT_RUN; legacy prefix intact; DAG acyclic; "
+        "parent deadline %d*n+%d<=%d; checkpoint %d+ %d=%d actions / %d s; no human signature claimed)\n"
         % (
             gate_v1,
             len(((ctx.gates.get("gates") or {}).get("V2") or {}).get("required_cases") or []),
             len(((ctx.gates.get("gates") or {}).get("V3") or {}).get("required_cases") or []),
+            BATCH_PER_CHILD_SECONDS,
+            BATCH_FIXED_SECONDS,
+            BATCH_MAX_DEADLINE,
+            FROZEN_CHECKPOINT_INPUTS["success_calls"],
+            FROZEN_CHECKPOINT_INPUTS["controlled_actions_cap"],
+            FROZEN_CHECKPOINT_INPUTS["model_actions_cap"],
+            FROZEN_CHECKPOINT_INPUTS["wall_seconds"],
         )
     )
     sys.stdout.write(
