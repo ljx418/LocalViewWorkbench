@@ -1,0 +1,172 @@
+{
+  "cases": [
+    {
+      "case": "positive",
+      "command": [
+        "/usr/bin/python3",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/preparation-03/independent-process-correction-01/helper/hash_child_recheck_correction.py",
+        "--child",
+        "/tmp/lvw-helper-capture-4nx3syuz/repo/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/preparation-03/fixture/fixture-child.json",
+        "--out",
+        "/tmp/lvw-helper-capture-4nx3syuz/positive.json",
+        "--expected-child-sha256",
+        "bdcaf3cc78f63e10c84dc1e1d80c0a22e62f486952bc8e2b8c41e08c28a3ffe2",
+        "--expected-child-commit",
+        "d2bd503e0587af505b5207be24d70db5a3dd2183",
+        "--allow-source-root",
+        "/tmp/lvw-helper-capture-4nx3syuz/source"
+      ],
+      "counters": {
+        "adapter_open_calls": 3,
+        "adapter_resolve_calls": 3,
+        "adapter_stat_calls": 3,
+        "budget_exceeded": 0,
+        "bytes_read": 1562,
+        "chunks_read": 30,
+        "escape_rejected": 0,
+        "files_attempted": 3,
+        "files_hashed": 3,
+        "files_skipped": 0,
+        "identity_mismatch": 0,
+        "missing": 0
+      },
+      "decision": "S3_PREP_INDEPENDENT_HASH_RECHECK_VERIFIED",
+      "elapsed_seconds": 0.083,
+      "exit_code": 0,
+      "guard": null,
+      "preflight_rejection": null,
+      "preflight_validated_before_source_access": true,
+      "result_payload_sha256": "f097b947ce330bfcd9e3cff57d52bd79277ab915743cd7c27bed6accb78156d0",
+      "results": [
+        {
+          "actual_sha256": "0c460ddbb9d37197748ebe5bcd1957aac665b28f8090002247b8102e42e1573b",
+          "expected_sha256": "0c460ddbb9d37197748ebe5bcd1957aac665b28f8090002247b8102e42e1573b",
+          "relative_path": "alpha.bin",
+          "result": "VERIFIED"
+        },
+        {
+          "actual_sha256": "f239c5eecf1f4e610ecc67fbb08946bbe1ec001476e38f5edd1a32958627a128",
+          "expected_sha256": "f239c5eecf1f4e610ecc67fbb08946bbe1ec001476e38f5edd1a32958627a128",
+          "relative_path": "beta.bin",
+          "result": "VERIFIED"
+        },
+        {
+          "actual_sha256": "d651dcc5f3617542558c788145256ad11d8fb6751ac985d02361c8f0eb9e11df",
+          "expected_sha256": "d651dcc5f3617542558c788145256ad11d8fb6751ac985d02361c8f0eb9e11df",
+          "relative_path": "gamma.bin",
+          "result": "VERIFIED"
+        }
+      ],
+      "source_phase_entered": true,
+      "stderr": "",
+      "stdout": "{\n  \"counters\": {\n    \"adapter_open_calls\": 3,\n    \"adapter_resolve_calls\": 3,\n    \"adapter_stat_calls\": 3,\n    \"budget_exceeded\": 0,\n    \"bytes_read\": 1562,\n    \"chunks_read\": 30,\n    \"escape_rejected\": 0,\n    \"files_attempted\": 3,\n    \"files_hashed\": 3,\n    \"files_skipped\": 0,\n    \"identity_mismatch\": 0,\n    \"missing\": 0\n  },\n  \"decision\": \"S3_PREP_INDEPENDENT_HASH_RECHECK_VERIFIED\",\n  \"exit_code\": 0,\n  \"preflight_validated_before_source_access\": true,\n  \"source_phase_entered\": true\n}\n"
+    },
+    {
+      "case": "metadata-drift",
+      "command": [
+        "/usr/bin/python3",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/preparation-03/independent-process-correction-01/helper/hash_child_recheck_correction.py",
+        "--child",
+        "/tmp/lvw-helper-capture-4nx3syuz/repo/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/preparation-03/fixture/fixture-child.json",
+        "--out",
+        "/tmp/lvw-helper-capture-4nx3syuz/drift.json",
+        "--expected-child-sha256",
+        "bdcaf3cc78f63e10c84dc1e1d80c0a22e62f486952bc8e2b8c41e08c28a3ffe2",
+        "--expected-child-commit",
+        "d2bd503e0587af505b5207be24d70db5a3dd2183",
+        "--allow-source-root",
+        "/tmp/lvw-helper-capture-4nx3syuz/source"
+      ],
+      "counters": {
+        "adapter_open_calls": 0,
+        "adapter_resolve_calls": 0,
+        "adapter_stat_calls": 0,
+        "budget_exceeded": 0,
+        "bytes_read": 0,
+        "chunks_read": 0,
+        "escape_rejected": 0,
+        "files_attempted": 0,
+        "files_hashed": 0,
+        "files_skipped": 0,
+        "identity_mismatch": 0,
+        "missing": 0
+      },
+      "decision": "S3_PREP_INDEPENDENT_HASH_RECHECK_REJECTED_PREFLIGHT",
+      "elapsed_seconds": 0.064,
+      "exit_code": 2,
+      "guard": null,
+      "preflight_rejection": "code_files_byte_identical_to_candidate: {\"tools/alpha.py\": {\"byte_identical_to_candidate\": true, \"candidate_blob\": \"9585dd1c8483ce733e27a7c8a390445d6117e634\", \"checkout_blob\": \"9585dd1c8483ce733e27a7c8a390445d6117e634\", \"git_path\": \"LVW_Prompt_Service_MasterPack_v2.0.0/tools/alpha.py\"}, \"tools/beta.py\": {\"byte_identical_to_candidate\": false, \"candidate_blob\": \"e7711145dc52f5450c3392c0e9ab56a2e7d109fd\", \"checkout_blob\": \"34f6e054ba92c47691413783db377278b29c55f8\", \"git_path\": \"LVW_Prompt_Service_MasterPack_v2.0.0/tools/beta.py\"}}",
+      "preflight_validated_before_source_access": false,
+      "result_payload_sha256": "aed51072f11e773628bb0cf5e859378e3e67fedbe91813b8943a8b2f229bfc14",
+      "results": [],
+      "source_phase_entered": false,
+      "stderr": "",
+      "stdout": "{\n  \"counters\": {\n    \"adapter_open_calls\": 0,\n    \"adapter_resolve_calls\": 0,\n    \"adapter_stat_calls\": 0,\n    \"budget_exceeded\": 0,\n    \"bytes_read\": 0,\n    \"chunks_read\": 0,\n    \"escape_rejected\": 0,\n    \"files_attempted\": 0,\n    \"files_hashed\": 0,\n    \"files_skipped\": 0,\n    \"identity_mismatch\": 0,\n    \"missing\": 0\n  },\n  \"decision\": \"S3_PREP_INDEPENDENT_HASH_RECHECK_REJECTED_PREFLIGHT\",\n  \"exit_code\": 2,\n  \"preflight_validated_before_source_access\": false,\n  \"source_phase_entered\": false\n}\n"
+    },
+    {
+      "case": "production-root",
+      "command": [
+        "/usr/bin/python3",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/preparation-03/independent-process-correction-01/helper/hash_child_recheck_correction.py",
+        "--child",
+        "/tmp/lvw-helper-capture-4nx3syuz/repo/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/preparation-03/fixture/fixture-child.json",
+        "--out",
+        "/tmp/lvw-helper-capture-4nx3syuz/production.json",
+        "--expected-child-sha256",
+        "85ad4060a55648d80c477953e0e40edc30dbb916f573607eeb2240dcb5e8be3d",
+        "--expected-child-commit",
+        "e8f91179e350caa335866a65721f30f191384e2a",
+        "--allow-source-root",
+        "/tmp/lvw-helper-capture-4nx3syuz/source"
+      ],
+      "counters": {
+        "adapter_open_calls": 0,
+        "adapter_resolve_calls": 0,
+        "adapter_stat_calls": 0,
+        "budget_exceeded": 0,
+        "bytes_read": 0,
+        "chunks_read": 0,
+        "escape_rejected": 0,
+        "files_attempted": 0,
+        "files_hashed": 0,
+        "files_skipped": 0,
+        "identity_mismatch": 0,
+        "missing": 0
+      },
+      "decision": "S3_PREP_INDEPENDENT_HASH_RECHECK_REJECTED_GUARD",
+      "elapsed_seconds": 0.032,
+      "exit_code": 3,
+      "guard": {
+        "detail": "source root /mnt/c/workSpace/videoWorkLine/testSource is inside the production media root /mnt/c/workSpace/videoWorkLine/testSource; the production root is hard disabled in this helper",
+        "fixture_marker_required": ".lvw-synthetic-fixture-root",
+        "ok": false,
+        "production_roots_hard_disabled": [
+          "/mnt/c/workSpace/videoWorkLine/testSource",
+          "/mnt/c/workSpace/videoWorkLine"
+        ]
+      },
+      "preflight_rejection": null,
+      "preflight_validated_before_source_access": false,
+      "result_payload_sha256": "2f7bd0524062efa8efab825664a4b1eb1ec1987963bd25215bf8f2992808acef",
+      "results": [],
+      "source_phase_entered": false,
+      "stderr": "",
+      "stdout": "{\n  \"counters\": {\n    \"adapter_open_calls\": 0,\n    \"adapter_resolve_calls\": 0,\n    \"adapter_stat_calls\": 0,\n    \"budget_exceeded\": 0,\n    \"bytes_read\": 0,\n    \"chunks_read\": 0,\n    \"escape_rejected\": 0,\n    \"files_attempted\": 0,\n    \"files_hashed\": 0,\n    \"files_skipped\": 0,\n    \"identity_mismatch\": 0,\n    \"missing\": 0\n  },\n  \"decision\": \"S3_PREP_INDEPENDENT_HASH_RECHECK_REJECTED_GUARD\",\n  \"exit_code\": 3,\n  \"preflight_validated_before_source_access\": false,\n  \"source_phase_entered\": false\n}\n"
+    }
+  ],
+  "git_commits": {
+    "child_anchor_commit": "e8f91179e350caa335866a65721f30f191384e2a",
+    "implementation_code_candidate": "0bb7347d141d053bee3adb00dab66c5c90d6c01c",
+    "source_candidate": "316768d1b8d1a85b481d810e6940e1d69a135183"
+  },
+  "helper": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/preparation-03/independent-process-correction-01/helper/hash_child_recheck_correction.py",
+  "helper_sha256": "04ef9af9d36c18f615ce363e32425884d68d8c981f70eeebf5f61b6f8c47e493",
+  "kind": "S3_PREP_INDEPENDENT_PROCESS_CORRECTION_HELPER_CAPTURE",
+  "owned_parent": "/tmp/lvw-helper-capture-4nx3syuz",
+  "owned_parent_exists_after_exit": false,
+  "source_digests_oracle": {
+    "alpha.bin": "0c460ddbb9d37197748ebe5bcd1957aac665b28f8090002247b8102e42e1573b",
+    "beta.bin": "f239c5eecf1f4e610ecc67fbb08946bbe1ec001476e38f5edd1a32958627a128",
+    "gamma.bin": "d651dcc5f3617542558c788145256ad11d8fb6751ac985d02361c8f0eb9e11df"
+  }
+}
