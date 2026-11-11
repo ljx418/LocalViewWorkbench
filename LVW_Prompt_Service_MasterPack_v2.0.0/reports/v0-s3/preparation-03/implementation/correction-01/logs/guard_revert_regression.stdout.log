@@ -1,0 +1,1290 @@
+.......................FFFFFFFFFFFFFFFFFF..                              [100%]
+=================================== FAILURES ===================================
+_ test_the_historical_s2_coordinate_snapshot_must_not_be_rewritten[stage_id-V0-S3] _
+
+tmp_path = PosixPath('/tmp/lvw-s3-correction-01-q4p15wq3/pytest-basetemp/test_the_historical_s2_coordin0')
+field = 'stage_id', value = 'V0-S3'
+
+    @pytest.mark.parametrize(
+        "field,value",
+        [
+            ("stage_id", "V0-S3"),
+            ("workpack_id", "WP-S2-07"),
+            ("gate", "GATE6_MACHINE_ACCEPTANCE"),
+            ("state", "ADVANCED_BY_OWNER"),
+        ],
+    )
+    def test_the_historical_s2_coordinate_snapshot_must_not_be_rewritten(tmp_path, field, value):
+        """Owner re-decision of the former permissive oracle.
+    
+        The old oracle asserted that ``historical_s2_coordinate.state`` was free
+        to change.  ``historical_s2_coordinate`` is a *retained snapshot* of the
+        old S2 coordinate, not a second live coordinate: rewriting it must be
+        refused.  The live coordinate stays free -- see
+        ``test_execution_coordinates_may_advance`` and
+        ``test_the_live_coordinate_may_advance_while_the_historical_snapshot_is_retained``.
+        """
+        tree = build_tree(tmp_path / "package")
+        payload = read_json(tree, EXECUTION_REL)
+        payload["historical_s2_coordinate"][field] = value
+        write_json(tree, EXECUTION_REL, payload)
+        result = evaluate_tree(tree)
+>       assert_semantically_refused(result, "actual.historical_s2_coordinate.%s" % field)
+
+tools/test_verify_s3_handoff.py:418: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+result = {'approved_change': 'CHANGE-V1-S2-HANDOFF-01', 'authority': 'FIXTURE_NON_AUTHORITY_COPY', 'authorizes_any_other_stage': False, 'authorizes_model_execution': False, ...}
+identifier = 'actual.historical_s2_coordinate.stage_id'
+
+    def assert_semantically_refused(result: dict, identifier: str) -> set:
+        """Assert the run was refused for a semantic reason, not a checksum one."""
+        identifiers = failed_ids(result)
+>       assert result["decision"] == "HANDOFF_READINESS_REJECTED", identifiers
+E       AssertionError: set()
+E       assert 'HANDOFF_READINESS_VERIFIED' == 'HANDOFF_READINESS_REJECTED'
+E         
+E         - HANDOFF_READINESS_REJECTED
+E         ?                    ^^^^^
+E         + HANDOFF_READINESS_VERIFIED
+E         ?                   ++ ^^^
+
+tools/test_verify_s3_handoff.py:108: AssertionError
+_ test_the_historical_s2_coordinate_snapshot_must_not_be_rewritten[workpack_id-WP-S2-07] _
+
+tmp_path = PosixPath('/tmp/lvw-s3-correction-01-q4p15wq3/pytest-basetemp/test_the_historical_s2_coordin1')
+field = 'workpack_id', value = 'WP-S2-07'
+
+    @pytest.mark.parametrize(
+        "field,value",
+        [
+            ("stage_id", "V0-S3"),
+            ("workpack_id", "WP-S2-07"),
+            ("gate", "GATE6_MACHINE_ACCEPTANCE"),
+            ("state", "ADVANCED_BY_OWNER"),
+        ],
+    )
+    def test_the_historical_s2_coordinate_snapshot_must_not_be_rewritten(tmp_path, field, value):
+        """Owner re-decision of the former permissive oracle.
+    
+        The old oracle asserted that ``historical_s2_coordinate.state`` was free
+        to change.  ``historical_s2_coordinate`` is a *retained snapshot* of the
+        old S2 coordinate, not a second live coordinate: rewriting it must be
+        refused.  The live coordinate stays free -- see
+        ``test_execution_coordinates_may_advance`` and
+        ``test_the_live_coordinate_may_advance_while_the_historical_snapshot_is_retained``.
+        """
+        tree = build_tree(tmp_path / "package")
+        payload = read_json(tree, EXECUTION_REL)
+        payload["historical_s2_coordinate"][field] = value
+        write_json(tree, EXECUTION_REL, payload)
+        result = evaluate_tree(tree)
+>       assert_semantically_refused(result, "actual.historical_s2_coordinate.%s" % field)
+
+tools/test_verify_s3_handoff.py:418: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+result = {'approved_change': 'CHANGE-V1-S2-HANDOFF-01', 'authority': 'FIXTURE_NON_AUTHORITY_COPY', 'authorizes_any_other_stage': False, 'authorizes_model_execution': False, ...}
+identifier = 'actual.historical_s2_coordinate.workpack_id'
+
+    def assert_semantically_refused(result: dict, identifier: str) -> set:
+        """Assert the run was refused for a semantic reason, not a checksum one."""
+        identifiers = failed_ids(result)
+>       assert result["decision"] == "HANDOFF_READINESS_REJECTED", identifiers
+E       AssertionError: set()
+E       assert 'HANDOFF_READINESS_VERIFIED' == 'HANDOFF_READINESS_REJECTED'
+E         
+E         - HANDOFF_READINESS_REJECTED
+E         ?                    ^^^^^
+E         + HANDOFF_READINESS_VERIFIED
+E         ?                   ++ ^^^
+
+tools/test_verify_s3_handoff.py:108: AssertionError
+_ test_the_historical_s2_coordinate_snapshot_must_not_be_rewritten[gate-GATE6_MACHINE_ACCEPTANCE] _
+
+tmp_path = PosixPath('/tmp/lvw-s3-correction-01-q4p15wq3/pytest-basetemp/test_the_historical_s2_coordin2')
+field = 'gate', value = 'GATE6_MACHINE_ACCEPTANCE'
+
+    @pytest.mark.parametrize(
+        "field,value",
+        [
+            ("stage_id", "V0-S3"),
+            ("workpack_id", "WP-S2-07"),
+            ("gate", "GATE6_MACHINE_ACCEPTANCE"),
+            ("state", "ADVANCED_BY_OWNER"),
+        ],
+    )
+    def test_the_historical_s2_coordinate_snapshot_must_not_be_rewritten(tmp_path, field, value):
+        """Owner re-decision of the former permissive oracle.
+    
+        The old oracle asserted that ``historical_s2_coordinate.state`` was free
+        to change.  ``historical_s2_coordinate`` is a *retained snapshot* of the
+        old S2 coordinate, not a second live coordinate: rewriting it must be
+        refused.  The live coordinate stays free -- see
+        ``test_execution_coordinates_may_advance`` and
+        ``test_the_live_coordinate_may_advance_while_the_historical_snapshot_is_retained``.
+        """
+        tree = build_tree(tmp_path / "package")
+        payload = read_json(tree, EXECUTION_REL)
+        payload["historical_s2_coordinate"][field] = value
+        write_json(tree, EXECUTION_REL, payload)
+        result = evaluate_tree(tree)
+>       assert_semantically_refused(result, "actual.historical_s2_coordinate.%s" % field)
+
+tools/test_verify_s3_handoff.py:418: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+result = {'approved_change': 'CHANGE-V1-S2-HANDOFF-01', 'authority': 'FIXTURE_NON_AUTHORITY_COPY', 'authorizes_any_other_stage': False, 'authorizes_model_execution': False, ...}
+identifier = 'actual.historical_s2_coordinate.gate'
+
+    def assert_semantically_refused(result: dict, identifier: str) -> set:
+        """Assert the run was refused for a semantic reason, not a checksum one."""
+        identifiers = failed_ids(result)
+>       assert result["decision"] == "HANDOFF_READINESS_REJECTED", identifiers
+E       AssertionError: set()
+E       assert 'HANDOFF_READINESS_VERIFIED' == 'HANDOFF_READINESS_REJECTED'
+E         
+E         - HANDOFF_READINESS_REJECTED
+E         ?                    ^^^^^
+E         + HANDOFF_READINESS_VERIFIED
+E         ?                   ++ ^^^
+
+tools/test_verify_s3_handoff.py:108: AssertionError
+_ test_the_historical_s2_coordinate_snapshot_must_not_be_rewritten[state-ADVANCED_BY_OWNER] _
+
+tmp_path = PosixPath('/tmp/lvw-s3-correction-01-q4p15wq3/pytest-basetemp/test_the_historical_s2_coordin3')
+field = 'state', value = 'ADVANCED_BY_OWNER'
+
+    @pytest.mark.parametrize(
+        "field,value",
+        [
+            ("stage_id", "V0-S3"),
+            ("workpack_id", "WP-S2-07"),
+            ("gate", "GATE6_MACHINE_ACCEPTANCE"),
+            ("state", "ADVANCED_BY_OWNER"),
+        ],
+    )
+    def test_the_historical_s2_coordinate_snapshot_must_not_be_rewritten(tmp_path, field, value):
+        """Owner re-decision of the former permissive oracle.
+    
+        The old oracle asserted that ``historical_s2_coordinate.state`` was free
+        to change.  ``historical_s2_coordinate`` is a *retained snapshot* of the
+        old S2 coordinate, not a second live coordinate: rewriting it must be
+        refused.  The live coordinate stays free -- see
+        ``test_execution_coordinates_may_advance`` and
+        ``test_the_live_coordinate_may_advance_while_the_historical_snapshot_is_retained``.
+        """
+        tree = build_tree(tmp_path / "package")
+        payload = read_json(tree, EXECUTION_REL)
+        payload["historical_s2_coordinate"][field] = value
+        write_json(tree, EXECUTION_REL, payload)
+        result = evaluate_tree(tree)
+>       assert_semantically_refused(result, "actual.historical_s2_coordinate.%s" % field)
+
+tools/test_verify_s3_handoff.py:418: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+result = {'approved_change': 'CHANGE-V1-S2-HANDOFF-01', 'authority': 'FIXTURE_NON_AUTHORITY_COPY', 'authorizes_any_other_stage': False, 'authorizes_model_execution': False, ...}
+identifier = 'actual.historical_s2_coordinate.state'
+
+    def assert_semantically_refused(result: dict, identifier: str) -> set:
+        """Assert the run was refused for a semantic reason, not a checksum one."""
+        identifiers = failed_ids(result)
+>       assert result["decision"] == "HANDOFF_READINESS_REJECTED", identifiers
+E       AssertionError: set()
+E       assert 'HANDOFF_READINESS_VERIFIED' == 'HANDOFF_READINESS_REJECTED'
+E         
+E         - HANDOFF_READINESS_REJECTED
+E         ?                    ^^^^^
+E         + HANDOFF_READINESS_VERIFIED
+E         ?                   ++ ^^^
+
+tools/test_verify_s3_handoff.py:108: AssertionError
+______ test_the_real_owner_actual_s2_projection_is_seven_of_eight_pending ______
+
+    def test_the_real_owner_actual_s2_projection_is_seven_of_eight_pending():
+        result = checker.evaluate(ROOT)
+        assert result["decision"] == "HANDOFF_READINESS_VERIFIED", failed_ids(result)
+        assert result["historical_s2_projection"] == {
+            "completed_substeps": 7,
+            "total_substeps": 8,
+            "human_signoff": "PENDING",
+        }
+>       assert result["historical_s2_coordinate_observed"] == {
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            "stage_id": "V0-S2",
+            "workpack_id": "WP-S2-06",
+            "gate": "GATE5_HUMAN_EXPERIENCE_SIGNOFF",
+            "state": "WAIT_HUMAN",
+        }
+E       KeyError: 'historical_s2_coordinate_observed'
+
+tools/test_verify_s3_handoff.py:439: KeyError
+_ test_the_live_coordinate_may_advance_while_the_historical_snapshot_is_retained _
+
+tmp_path = PosixPath('/tmp/lvw-s3-correction-01-q4p15wq3/pytest-basetemp/test_the_live_coordinate_may_a0')
+
+    def test_the_live_coordinate_may_advance_while_the_historical_snapshot_is_retained(tmp_path):
+        tree = build_tree(tmp_path / "package")
+        payload = read_json(tree, EXECUTION_REL)
+        payload["coordinate"] = {
+            "stage_id": "R1",
+            "workpack_id": "WP-R1-U3",
+            "gate": "S3_PREP_GUARD_LIVE_OLD_S2_PROJECTION",
+            "state": "ADVANCED",
+        }
+        payload["current_blocking_gate"] = "SOMETHING_ELSE"
+        payload["updated_at"] = "2026-12-31"
+        write_json(tree, EXECUTION_REL, payload)
+        result = evaluate_tree(tree)
+        assert result["decision"] == "HANDOFF_READINESS_VERIFIED", failed_ids(result)
+        assert result["execution_coordinates_frozen"] is False
+        assert result["historical_s2_projection"]["completed_substeps"] == 7
+>       assert result["historical_s2_coordinate_observed"]["state"] == "WAIT_HUMAN"
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'historical_s2_coordinate_observed'
+
+tools/test_verify_s3_handoff.py:466: KeyError
+___________ test_actual_outline_completed_substeps_eight_is_rejected ___________
+
+tmp_path = PosixPath('/tmp/lvw-s3-correction-01-q4p15wq3/pytest-basetemp/test_actual_outline_completed_0')
+
+    def test_actual_outline_completed_substeps_eight_is_rejected(tmp_path):
+        tree = build_tree(tmp_path / "package")
+        payload = read_json(tree, EXECUTION_REL)
+        v0_s2_entry(payload)["completed_substeps"] = 8
+        write_json(tree, EXECUTION_REL, payload)
+        result = evaluate_tree(tree)
+>       assert_semantically_refused(result, "actual.outline.completed_substeps")
+
+tools/test_verify_s3_handoff.py:475: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+result = {'approved_change': 'CHANGE-V1-S2-HANDOFF-01', 'authority': 'FIXTURE_NON_AUTHORITY_COPY', 'authorizes_any_other_stage': False, 'authorizes_model_execution': False, ...}
+identifier = 'actual.outline.completed_substeps'
+
+    def assert_semantically_refused(result: dict, identifier: str) -> set:
+        """Assert the run was refused for a semantic reason, not a checksum one."""
+        identifiers = failed_ids(result)
+>       assert result["decision"] == "HANDOFF_READINESS_REJECTED", identifiers
+E       AssertionError: set()
+E       assert 'HANDOFF_READINESS_VERIFIED' == 'HANDOFF_READINESS_REJECTED'
+E         
+E         - HANDOFF_READINESS_REJECTED
+E         ?                    ^^^^^
+E         + HANDOFF_READINESS_VERIFIED
+E         ?                   ++ ^^^
+
+tools/test_verify_s3_handoff.py:108: AssertionError
+____________ test_actual_outline_human_signoff_approved_is_rejected ____________
+
+tmp_path = PosixPath('/tmp/lvw-s3-correction-01-q4p15wq3/pytest-basetemp/test_actual_outline_human_sign0')
+
+    def test_actual_outline_human_signoff_approved_is_rejected(tmp_path):
+        tree = build_tree(tmp_path / "package")
+        payload = read_json(tree, EXECUTION_REL)
+        v0_s2_entry(payload)["human_signoff"] = "APPROVED"
+        write_json(tree, EXECUTION_REL, payload)
+        result = evaluate_tree(tree)
+>       assert_semantically_refused(result, "actual.outline.human_signoff")
+
+tools/test_verify_s3_handoff.py:487: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+result = {'approved_change': 'CHANGE-V1-S2-HANDOFF-01', 'authority': 'FIXTURE_NON_AUTHORITY_COPY', 'authorizes_any_other_stage': False, 'authorizes_model_execution': False, ...}
+identifier = 'actual.outline.human_signoff'
+
+    def assert_semantically_refused(result: dict, identifier: str) -> set:
+        """Assert the run was refused for a semantic reason, not a checksum one."""
+        identifiers = failed_ids(result)
+>       assert result["decision"] == "HANDOFF_READINESS_REJECTED", identifiers
+E       AssertionError: set()
+E       assert 'HANDOFF_READINESS_VERIFIED' == 'HANDOFF_READINESS_REJECTED'
+E         
+E         - HANDOFF_READINESS_REJECTED
+E         ?                    ^^^^^
+E         + HANDOFF_READINESS_VERIFIED
+E         ?                   ++ ^^^
+
+tools/test_verify_s3_handoff.py:108: AssertionError
+______ test_actual_outline_pending_human_substep_marked_done_is_rejected _______
+
+tmp_path = PosixPath('/tmp/lvw-s3-correction-01-q4p15wq3/pytest-basetemp/test_actual_outline_pending_hu0')
+
+    def test_actual_outline_pending_human_substep_marked_done_is_rejected(tmp_path):
+        tree = build_tree(tmp_path / "package")
+        payload = read_json(tree, EXECUTION_REL)
+        human_substep(v0_s2_entry(payload))["status"] = "DONE"
+        write_json(tree, EXECUTION_REL, payload)
+        result = evaluate_tree(tree)
+>       identifiers = assert_semantically_refused(result, "actual.outline.human_substep_pending")
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/test_verify_s3_handoff.py:497: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+result = {'approved_change': 'CHANGE-V1-S2-HANDOFF-01', 'authority': 'FIXTURE_NON_AUTHORITY_COPY', 'authorizes_any_other_stage': False, 'authorizes_model_execution': False, ...}
+identifier = 'actual.outline.human_substep_pending'
+
+    def assert_semantically_refused(result: dict, identifier: str) -> set:
+        """Assert the run was refused for a semantic reason, not a checksum one."""
+        identifiers = failed_ids(result)
+>       assert result["decision"] == "HANDOFF_READINESS_REJECTED", identifiers
+E       AssertionError: set()
+E       assert 'HANDOFF_READINESS_VERIFIED' == 'HANDOFF_READINESS_REJECTED'
+E         
+E         - HANDOFF_READINESS_REJECTED
+E         ?                    ^^^^^
+E         + HANDOFF_READINESS_VERIFIED
+E         ?                   ++ ^^^
+
+tools/test_verify_s3_handoff.py:108: AssertionError
+____________ test_actual_outline_human_substep_renamed_is_rejected _____________
+
+tmp_path = PosixPath('/tmp/lvw-s3-correction-01-q4p15wq3/pytest-basetemp/test_actual_outline_human_subs0')
+
+    def test_actual_outline_human_substep_renamed_is_rejected(tmp_path):
+        tree = build_tree(tmp_path / "package")
+        payload = read_json(tree, EXECUTION_REL)
+        human_substep(v0_s2_entry(payload))["name"] = "S2 人工签署与Git同步（代签）"
+        write_json(tree, EXECUTION_REL, payload)
+        result = evaluate_tree(tree)
+>       assert_semantically_refused(result, "actual.outline.human_substep_present")
+
+tools/test_verify_s3_handoff.py:508: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+result = {'approved_change': 'CHANGE-V1-S2-HANDOFF-01', 'authority': 'FIXTURE_NON_AUTHORITY_COPY', 'authorizes_any_other_stage': False, 'authorizes_model_execution': False, ...}
+identifier = 'actual.outline.human_substep_present'
+
+    def assert_semantically_refused(result: dict, identifier: str) -> set:
+        """Assert the run was refused for a semantic reason, not a checksum one."""
+        identifiers = failed_ids(result)
+>       assert result["decision"] == "HANDOFF_READINESS_REJECTED", identifiers
+E       AssertionError: set()
+E       assert 'HANDOFF_READINESS_VERIFIED' == 'HANDOFF_READINESS_REJECTED'
+E         
+E         - HANDOFF_READINESS_REJECTED
+E         ?                    ^^^^^
+E         + HANDOFF_READINESS_VERIFIED
+E         ?                   ++ ^^^
+
+tools/test_verify_s3_handoff.py:108: AssertionError
+____________ test_actual_outline_human_substep_missing_is_rejected _____________
+
+tmp_path = PosixPath('/tmp/lvw-s3-correction-01-q4p15wq3/pytest-basetemp/test_actual_outline_human_subs1')
+
+    def test_actual_outline_human_substep_missing_is_rejected(tmp_path):
+        tree = build_tree(tmp_path / "package")
+        payload = read_json(tree, EXECUTION_REL)
+        entry = v0_s2_entry(payload)
+        step = human_substep(entry)
+        entry["substeps"][entry["substeps"].index(step)] = {
+            "name": "S2 其他待办",
+            "status": "PENDING",
+            "evidence": None,
+        }
+        write_json(tree, EXECUTION_REL, payload)
+        result = evaluate_tree(tree)
+>       assert_semantically_refused(result, "actual.outline.human_substep_present")
+
+tools/test_verify_s3_handoff.py:523: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+result = {'approved_change': 'CHANGE-V1-S2-HANDOFF-01', 'authority': 'FIXTURE_NON_AUTHORITY_COPY', 'authorizes_any_other_stage': False, 'authorizes_model_execution': False, ...}
+identifier = 'actual.outline.human_substep_present'
+
+    def assert_semantically_refused(result: dict, identifier: str) -> set:
+        """Assert the run was refused for a semantic reason, not a checksum one."""
+        identifiers = failed_ids(result)
+>       assert result["decision"] == "HANDOFF_READINESS_REJECTED", identifiers
+E       AssertionError: set()
+E       assert 'HANDOFF_READINESS_VERIFIED' == 'HANDOFF_READINESS_REJECTED'
+E         
+E         - HANDOFF_READINESS_REJECTED
+E         ?                    ^^^^^
+E         + HANDOFF_READINESS_VERIFIED
+E         ?                   ++ ^^^
+
+tools/test_verify_s3_handoff.py:108: AssertionError
+___________ test_actual_outline_duplicate_human_substep_is_rejected ____________
+
+tmp_path = PosixPath('/tmp/lvw-s3-correction-01-q4p15wq3/pytest-basetemp/test_actual_outline_duplicate_0')
+
+    def test_actual_outline_duplicate_human_substep_is_rejected(tmp_path):
+        tree = build_tree(tmp_path / "package")
+        payload = read_json(tree, EXECUTION_REL)
+        entry = v0_s2_entry(payload)
+        entry["substeps"].append(dict(human_substep(entry)))
+        write_json(tree, EXECUTION_REL, payload)
+        result = evaluate_tree(tree)
+>       identifiers = assert_semantically_refused(result, "actual.outline.human_substep_present")
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/test_verify_s3_handoff.py:533: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+result = {'approved_change': 'CHANGE-V1-S2-HANDOFF-01', 'authority': 'FIXTURE_NON_AUTHORITY_COPY', 'authorizes_any_other_stage': False, 'authorizes_model_execution': False, ...}
+identifier = 'actual.outline.human_substep_present'
+
+    def assert_semantically_refused(result: dict, identifier: str) -> set:
+        """Assert the run was refused for a semantic reason, not a checksum one."""
+        identifiers = failed_ids(result)
+>       assert result["decision"] == "HANDOFF_READINESS_REJECTED", identifiers
+E       AssertionError: set()
+E       assert 'HANDOFF_READINESS_VERIFIED' == 'HANDOFF_READINESS_REJECTED'
+E         
+E         - HANDOFF_READINESS_REJECTED
+E         ?                    ^^^^^
+E         + HANDOFF_READINESS_VERIFIED
+E         ?                   ++ ^^^
+
+tools/test_verify_s3_handoff.py:108: AssertionError
+___________ test_actual_outline_substep_count_not_eight_is_rejected ____________
+
+tmp_path = PosixPath('/tmp/lvw-s3-correction-01-q4p15wq3/pytest-basetemp/test_actual_outline_substep_co0')
+
+    def test_actual_outline_substep_count_not_eight_is_rejected(tmp_path):
+        tree = build_tree(tmp_path / "package")
+        payload = read_json(tree, EXECUTION_REL)
+        entry = v0_s2_entry(payload)
+        step = human_substep(entry)
+        entry["substeps"].remove(step)
+        write_json(tree, EXECUTION_REL, payload)
+        result = evaluate_tree(tree)
+>       identifiers = assert_semantically_refused(result, "actual.outline.substep_count")
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/test_verify_s3_handoff.py:546: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+result = {'approved_change': 'CHANGE-V1-S2-HANDOFF-01', 'authority': 'FIXTURE_NON_AUTHORITY_COPY', 'authorizes_any_other_stage': False, 'authorizes_model_execution': False, ...}
+identifier = 'actual.outline.substep_count'
+
+    def assert_semantically_refused(result: dict, identifier: str) -> set:
+        """Assert the run was refused for a semantic reason, not a checksum one."""
+        identifiers = failed_ids(result)
+>       assert result["decision"] == "HANDOFF_READINESS_REJECTED", identifiers
+E       AssertionError: set()
+E       assert 'HANDOFF_READINESS_VERIFIED' == 'HANDOFF_READINESS_REJECTED'
+E         
+E         - HANDOFF_READINESS_REJECTED
+E         ?                    ^^^^^
+E         + HANDOFF_READINESS_VERIFIED
+E         ?                   ++ ^^^
+
+tools/test_verify_s3_handoff.py:108: AssertionError
+____________ test_actual_outline_without_a_v0_s2_entry_is_rejected _____________
+
+tmp_path = PosixPath('/tmp/lvw-s3-correction-01-q4p15wq3/pytest-basetemp/test_actual_outline_without_a_0')
+
+    def test_actual_outline_without_a_v0_s2_entry_is_rejected(tmp_path):
+        tree = build_tree(tmp_path / "package")
+        payload = read_json(tree, EXECUTION_REL)
+        payload["development_outline"] = [
+            item for item in payload["development_outline"] if item.get("stage_id") != "V0-S2"
+        ]
+        write_json(tree, EXECUTION_REL, payload)
+        result = evaluate_tree(tree)
+>       identifiers = assert_semantically_refused(result, "actual.outline.v0_s2_occurrence")
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/test_verify_s3_handoff.py:558: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+result = {'approved_change': 'CHANGE-V1-S2-HANDOFF-01', 'authority': 'FIXTURE_NON_AUTHORITY_COPY', 'authorizes_any_other_stage': False, 'authorizes_model_execution': False, ...}
+identifier = 'actual.outline.v0_s2_occurrence'
+
+    def assert_semantically_refused(result: dict, identifier: str) -> set:
+        """Assert the run was refused for a semantic reason, not a checksum one."""
+        identifiers = failed_ids(result)
+>       assert result["decision"] == "HANDOFF_READINESS_REJECTED", identifiers
+E       AssertionError: set()
+E       assert 'HANDOFF_READINESS_VERIFIED' == 'HANDOFF_READINESS_REJECTED'
+E         
+E         - HANDOFF_READINESS_REJECTED
+E         ?                    ^^^^^
+E         + HANDOFF_READINESS_VERIFIED
+E         ?                   ++ ^^^
+
+tools/test_verify_s3_handoff.py:108: AssertionError
+_________ test_actual_outline_with_a_duplicate_v0_s2_entry_is_rejected _________
+
+tmp_path = PosixPath('/tmp/lvw-s3-correction-01-q4p15wq3/pytest-basetemp/test_actual_outline_with_a_dup0')
+
+    def test_actual_outline_with_a_duplicate_v0_s2_entry_is_rejected(tmp_path):
+        tree = build_tree(tmp_path / "package")
+        payload = read_json(tree, EXECUTION_REL)
+        entry = v0_s2_entry(payload)
+        payload["development_outline"].append(json.loads(json.dumps(entry)))
+        write_json(tree, EXECUTION_REL, payload)
+        result = evaluate_tree(tree)
+>       identifiers = assert_semantically_refused(result, "actual.outline.v0_s2_occurrence")
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/test_verify_s3_handoff.py:569: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+result = {'approved_change': 'CHANGE-V1-S2-HANDOFF-01', 'authority': 'FIXTURE_NON_AUTHORITY_COPY', 'authorizes_any_other_stage': False, 'authorizes_model_execution': False, ...}
+identifier = 'actual.outline.v0_s2_occurrence'
+
+    def assert_semantically_refused(result: dict, identifier: str) -> set:
+        """Assert the run was refused for a semantic reason, not a checksum one."""
+        identifiers = failed_ids(result)
+>       assert result["decision"] == "HANDOFF_READINESS_REJECTED", identifiers
+E       AssertionError: set()
+E       assert 'HANDOFF_READINESS_VERIFIED' == 'HANDOFF_READINESS_REJECTED'
+E         
+E         - HANDOFF_READINESS_REJECTED
+E         ?                    ^^^^^
+E         + HANDOFF_READINESS_VERIFIED
+E         ?                   ++ ^^^
+
+tools/test_verify_s3_handoff.py:108: AssertionError
+_______ test_actual_outline_with_malformed_stage_value_types_is_rejected _______
+
+tmp_path = PosixPath('/tmp/lvw-s3-correction-01-q4p15wq3/pytest-basetemp/test_actual_outline_with_malfo0')
+
+    def test_actual_outline_with_malformed_stage_value_types_is_rejected(tmp_path):
+        tree = build_tree(tmp_path / "package")
+        payload = read_json(tree, EXECUTION_REL)
+        entry = v0_s2_entry(payload)
+        entry["completed_substeps"] = "7"
+        entry["total_substeps"] = True
+        write_json(tree, EXECUTION_REL, payload)
+        result = evaluate_tree(tree)
+>       identifiers = assert_semantically_refused(result, "actual.outline.completed_substeps")
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/test_verify_s3_handoff.py:581: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+result = {'approved_change': 'CHANGE-V1-S2-HANDOFF-01', 'authority': 'FIXTURE_NON_AUTHORITY_COPY', 'authorizes_any_other_stage': False, 'authorizes_model_execution': False, ...}
+identifier = 'actual.outline.completed_substeps'
+
+    def assert_semantically_refused(result: dict, identifier: str) -> set:
+        """Assert the run was refused for a semantic reason, not a checksum one."""
+        identifiers = failed_ids(result)
+>       assert result["decision"] == "HANDOFF_READINESS_REJECTED", identifiers
+E       AssertionError: set()
+E       assert 'HANDOFF_READINESS_VERIFIED' == 'HANDOFF_READINESS_REJECTED'
+E         
+E         - HANDOFF_READINESS_REJECTED
+E         ?                    ^^^^^
+E         + HANDOFF_READINESS_VERIFIED
+E         ?                   ++ ^^^
+
+tools/test_verify_s3_handoff.py:108: AssertionError
+_____ test_actual_outline_with_a_done_substep_without_evidence_is_rejected _____
+
+tmp_path = PosixPath('/tmp/lvw-s3-correction-01-q4p15wq3/pytest-basetemp/test_actual_outline_with_a_don0')
+
+    def test_actual_outline_with_a_done_substep_without_evidence_is_rejected(tmp_path):
+        tree = build_tree(tmp_path / "package")
+        payload = read_json(tree, EXECUTION_REL)
+        entry = v0_s2_entry(payload)
+        done = [step for step in entry["substeps"] if step.get("status") == "DONE"][0]
+        done["evidence"] = None
+        write_json(tree, EXECUTION_REL, payload)
+        result = evaluate_tree(tree)
+>       assert_semantically_refused(result, "actual.outline.done_substep_evidence")
+
+tools/test_verify_s3_handoff.py:593: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+result = {'approved_change': 'CHANGE-V1-S2-HANDOFF-01', 'authority': 'FIXTURE_NON_AUTHORITY_COPY', 'authorizes_any_other_stage': False, 'authorizes_model_execution': False, ...}
+identifier = 'actual.outline.done_substep_evidence'
+
+    def assert_semantically_refused(result: dict, identifier: str) -> set:
+        """Assert the run was refused for a semantic reason, not a checksum one."""
+        identifiers = failed_ids(result)
+>       assert result["decision"] == "HANDOFF_READINESS_REJECTED", identifiers
+E       AssertionError: set()
+E       assert 'HANDOFF_READINESS_VERIFIED' == 'HANDOFF_READINESS_REJECTED'
+E         
+E         - HANDOFF_READINESS_REJECTED
+E         ?                    ^^^^^
+E         + HANDOFF_READINESS_VERIFIED
+E         ?                   ++ ^^^
+
+tools/test_verify_s3_handoff.py:108: AssertionError
+________________ test_public_cli_rejects_a_faked_actual_outline ________________
+
+tmp_path = PosixPath('/tmp/lvw-s3-correction-01-q4p15wq3/pytest-basetemp/test_public_cli_rejects_a_fake0')
+
+    def test_public_cli_rejects_a_faked_actual_outline(tmp_path):
+        tree = build_tree(tmp_path / "package")
+        payload = read_json(tree, EXECUTION_REL)
+        entry = v0_s2_entry(payload)
+        entry["completed_substeps"] = 8
+        entry["total_substeps"] = 8
+        entry["human_signoff"] = "APPROVED"
+        human_substep(entry)["status"] = "DONE"
+        write_json(tree, EXECUTION_REL, payload)
+        process = subprocess.run(
+            [sys.executable, "-B", "tools/verify_s3_handoff.py", "--root", str(tree)],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            timeout=300,
+        )
+>       assert process.returncode == 1, process.stdout
+E       AssertionError: {
+E           "kind": "S3_V1_HANDOFF_READINESS_VALIDATION",
+E           "scope": "HANDOFF_READINESS_ONLY",
+E           "authority": "FIXTURE_NON_AUTHORITY_COPY",
+E           "evaluated_root_is_canonical": false,
+E           "pins_overridden": false,
+E           "predicate_id": "S3-V1-ONLY-S2-HANDOFF-01",
+E           "approved_change": "CHANGE-V1-S2-HANDOFF-01",
+E           "eligible_edge": {
+E             "consumer_stage": "V0-S3",
+E             "dependency_stage": "V0-S2",
+E             "purpose": "V1_DEVELOPMENT_ONLY"
+E           },
+E           "historical_s2_projection": {
+E             "completed_substeps": 7,
+E             "total_substeps": 8,
+E             "human_signoff": "PENDING"
+E           },
+E           "product_gate0": false,
+E           "stage_pass_claim": false,
+E           "product_execution_authorized": false,
+E           "authorizes_model_execution": false,
+E           "authorizes_any_other_stage": false,
+E           "execution_coordinates_frozen": false,
+E           "notes": [
+E             "HANDOFF_READINESS_ONLY: this validator proves the approved V1-only dependency predicate only.",
+E             "It never authorises model execution, product Gate0, a Stage PASS or any other dependency edge.",
+E             "Mutable execution coordinates (stage/workpack/gate/state) are deliberately not validated.",
+E             "Historical V0-S2 stays 7/8 with native human signoff PENDING."
+E           ],
+E           "summary": {
+E             "checks": 119,
+E             "passed": 119,
+E             "failed": 0
+E           },
+E           "checks": [
+E             {
+E               "id": "fence.spec_manifest.sha256",
+E               "passed": true,
+E               "detail": ".agent-governance/stages/V0-S3/spec-manifest.json expected=4e0018e284094172ac8c20bb5002913e200fcf6d5def0a48ec221b1af05c8dc1 actual=4e0018e284094172ac8c20bb5002913e200fcf6d5def0a48ec221b1af05c8dc1"
+E             },
+E             {
+E               "id": "fence.payload_manifest.sha256",
+E               "passed": true,
+E               "detail": ".agent-governance/stages/V0-S3/PAYLOAD_MANIFEST.sha256 expected=d167feb76e99dc3d9abcaa9892db6754e19e765a27c967ca8d012629a6e77a78 actual=d167feb76e99dc3d9abcaa9892db6754e19e765a27c967ca8d012629a6e77a78"
+E             },
+E             {
+E               "id": "fence.spec_manifest.readable",
+E               "passed": true,
+E               "detail": ".agent-governance/stages/V0-S3/spec-manifest.json"
+E             },
+E             {
+E               "id": "fence.spec_manifest.container",
+E               "passed": true,
+E               "detail": "kind=S3_PREPARATION_SCOPE_FENCE_NOT_PRODUCT_GATE0 files=16"
+E             },
+E             {
+E               "id": "fence.source_file_count",
+E               "passed": true,
+E               "detail": "expected 16 source fence files, found 16"
+E             },
+E             {
+E               "id": "fence.source_files",
+E               "passed": true,
+E               "detail": "all 16 source fence hashes match"
+E             },
+E             {
+E               "id": "fence.payload_file_count",
+E               "passed": true,
+E               "detail": "expected 10 packet payload files, found 10"
+E             },
+E             {
+E               "id": "fence.payload_files",
+E               "passed": true,
+E               "detail": "all 10 packet payload hashes match"
+E             },
+E             {
+E               "id": "packet.stage_control.readable",
+E               "passed": true,
+E               "detail": ".agent-governance/stages/V0-S3/stage-control.json"
+E             },
+E             {
+E               "id": "packet.stage_control.predicate",
+E               "passed": true,
+E               "detail": "dependency_predicate='S3-V1-ONLY-S2-HANDOFF-01'"
+E             },
+E             {
+E               "id": "packet.stage_control.preparation_only",
+E               "passed": true,
+E               "detail": "state='FROZEN_PREPARATION_ONLY_PRODUCT_GATE0_PENDING' product_execution_authorized=False stage_pass_forbidden=True"
+E             },
+E             {
+E               "id": "packet.stage_control.commands",
+E               "passed": true,
+E               "detail": "frozen workpack commands: ['python3 -B tools/verify_s3_handoff.py', 'python3 -B -m pytest tools/test_verify_s3_handoff.py tools/test_s3_asset_inventory.py -q']"
+E             },
+E             {
+E               "id": "plans.tasks.readable",
+E               "passed": true,
+E               "detail": "plans/tasks.json"
+E             },
+E             {
+E               "id": "plans.v1plan.readable",
+E               "passed": true,
+E               "detail": "plans/v1-revised-plan.json"
+E             },
+E             {
+E               "id": "plans.execution.readable",
+E               "passed": true,
+E               "detail": "plans/execution-control.json"
+E             },
+E             {
+E               "id": "predicate.tasks.container",
+E               "passed": true,
+E               "detail": "entries=1"
+E             },
+E             {
+E               "id": "predicate.tasks.occurrence",
+E               "passed": true,
+E               "detail": "predicate id occurrences in plans/tasks.json: 1"
+E             },
+E             {
+E               "id": "predicate.tasks.no_unsanctioned_alias",
+E               "passed": true,
+E               "detail": "no additional dependency-gate aliases"
+E             },
+E             {
+E               "id": "predicate.v1plan.container",
+E               "passed": true,
+E               "detail": "v1_only_s2_handoff"
+E             },
+E             {
+E               "id": "predicate.execution.container",
+E               "passed": true,
+E               "detail": "v1_only_s2_handoff"
+E             },
+E             {
+E               "id": "predicate.tasks.id",
+E               "passed": true,
+E               "detail": "id='S3-V1-ONLY-S2-HANDOFF-01'"
+E             },
+E             {
+E               "id": "predicate.v1plan.id",
+E               "passed": true,
+E               "detail": "id='S3-V1-ONLY-S2-HANDOFF-01'"
+E             },
+E             {
+E               "id": "predicate.execution.id",
+E               "passed": true,
+E               "detail": "id='S3-V1-ONLY-S2-HANDOFF-01'"
+E             },
+E             {
+E               "id": "predicate.equality",
+E               "passed": true,
+E               "detail": "the predicate snapshot must be identical in tasks.json, v1-revised-plan.json and execution-control.json"
+E             },
+E             {
+E               "id": "predicate.tasks.consumer_stage",
+E               "passed": true,
+E               "detail": "consumer_stage='V0-S3' (only V0-S3 is eligible)"
+E             },
+E             {
+E               "id": "predicate.tasks.dependency_stage",
+E               "passed": true,
+E               "detail": "dependency_stage='V0-S2' (only V0-S2 is eligible)"
+E             },
+E             {
+E               "id": "predicate.tasks.purpose",
+E               "passed": true,
+E               "detail": "purpose='V1_DEVELOPMENT_ONLY' (only V1_DEVELOPMENT_ONLY is eligible)"
+E             },
+E             {
+E               "id": "predicate.tasks.approved_change",
+E               "passed": true,
+E               "detail": "approved_change='CHANGE-V1-S2-HANDOFF-01'"
+E             },
+E             {
+E               "id": "predicate.tasks.proofs_pinned",
+E               "passed": true,
+E               "detail": "predicate proof hashes match the frozen owner pins"
+E             },
+E             {
+E               "id": "predicate.tasks.historical_s2_projection",
+E               "passed": true,
+E               "detail": "historical_s2_required_state={'completed_substeps': 7, 'total_substeps': 8, 'human_signoff': 'PENDING'} (must stay 7/8 with native human PENDING)"
+E             },
+E             {
+E               "id": "predicate.tasks.s2_machine_candidate",
+E               "passed": true,
+E               "detail": "s2_machine_candidate='719c74559393a6489b2f630a1e0d3bc3303eb655'"
+E             },
+E             {
+E               "id": "predicate.tasks.unified_human_candidate",
+E               "passed": true,
+E               "detail": "unified_human_candidate='621b1bf386db71bfe08ca2f533fa8ec396b0504b'"
+E             },
+E             {
+E               "id": "predicate.tasks.required_s2_case_ids",
+E               "passed": true,
+E               "detail": "required_s2_case_ids=['V0-A01', 'V0-A02', 'V0-A03', 'V0-A04', 'V0-A05', 'V0-A07', 'V0-A08', 'V0-A09', 'V0-A10']"
+E             },
+E             {
+E               "id": "predicate.tasks.required_unified_case_ids",
+E               "passed": true,
+E               "detail": "required_unified_case_ids=['UM-01', 'UM-02', 'UM-03', 'UM-04', 'UM-05', 'UM-06', 'UM-07', 'UM-08', 'UM-09', 'UM-10']"
+E             },
+E             {
+E               "id": "predicate.tasks.flag.gate0_still_required",
+E               "passed": true,
+E               "detail": "gate0_still_required=True (expected True)"
+E             },
+E             {
+E               "id": "predicate.tasks.flag.authorizes_old_s2_release",
+E               "passed": true,
+E               "detail": "authorizes_old_s2_release=False (expected False)"
+E             },
+E             {
+E               "id": "predicate.tasks.flag.may_apply_to_other_dependency_edges",
+E               "passed": true,
+E               "detail": "may_apply_to_other_dependency_edges=False (expected False)"
+E             },
+E             {
+E               "id": "predicate.tasks.flag.product_execution_authorized_by_predicate_alone",
+E               "passed": true,
+E               "detail": "product_execution_authorized_by_predicate_alone=False (expected False)"
+E             },
+E             {
+E               "id": "predicate.v1plan.consumer_stage",
+E               "passed": true,
+E               "detail": "consumer_stage='V0-S3' (only V0-S3 is eligible)"
+E             },
+E             {
+E               "id": "predicate.v1plan.dependency_stage",
+E               "passed": true,
+E               "detail": "dependency_stage='V0-S2' (only V0-S2 is eligible)"
+E             },
+E             {
+E               "id": "predicate.v1plan.purpose",
+E               "passed": true,
+E               "detail": "purpose='V1_DEVELOPMENT_ONLY' (only V1_DEVELOPMENT_ONLY is eligible)"
+E             },
+E             {
+E               "id": "predicate.v1plan.approved_change",
+E               "passed": true,
+E               "detail": "approved_change='CHANGE-V1-S2-HANDOFF-01'"
+E             },
+E             {
+E               "id": "predicate.v1plan.proofs_pinned",
+E               "passed": true,
+E               "detail": "predicate proof hashes match the frozen owner pins"
+E             },
+E             {
+E               "id": "predicate.v1plan.historical_s2_projection",
+E               "passed": true,
+E               "detail": "historical_s2_required_state={'completed_substeps': 7, 'total_substeps': 8, 'human_signoff': 'PENDING'} (must stay 7/8 with native human PENDING)"
+E             },
+E             {
+E               "id": "predicate.v1plan.s2_machine_candidate",
+E               "passed": true,
+E               "detail": "s2_machine_candidate='719c74559393a6489b2f630a1e0d3bc3303eb655'"
+E             },
+E             {
+E               "id": "predicate.v1plan.unified_human_candidate",
+E               "passed": true,
+E               "detail": "unified_human_candidate='621b1bf386db71bfe08ca2f533fa8ec396b0504b'"
+E             },
+E             {
+E               "id": "predicate.v1plan.required_s2_case_ids",
+E               "passed": true,
+E               "detail": "required_s2_case_ids=['V0-A01', 'V0-A02', 'V0-A03', 'V0-A04', 'V0-A05', 'V0-A07', 'V0-A08', 'V0-A09', 'V0-A10']"
+E             },
+E             {
+E               "id": "predicate.v1plan.required_unified_case_ids",
+E               "passed": true,
+E               "detail": "required_unified_case_ids=['UM-01', 'UM-02', 'UM-03', 'UM-04', 'UM-05', 'UM-06', 'UM-07', 'UM-08', 'UM-09', 'UM-10']"
+E             },
+E             {
+E               "id": "predicate.v1plan.flag.gate0_still_required",
+E               "passed": true,
+E               "detail": "gate0_still_required=True (expected True)"
+E             },
+E             {
+E               "id": "predicate.v1plan.flag.authorizes_old_s2_release",
+E               "passed": true,
+E               "detail": "authorizes_old_s2_release=False (expected False)"
+E             },
+E             {
+E               "id": "predicate.v1plan.flag.may_apply_to_other_dependency_edges",
+E               "passed": true,
+E               "detail": "may_apply_to_other_dependency_edges=False (expected False)"
+E             },
+E             {
+E               "id": "predicate.v1plan.flag.product_execution_authorized_by_predicate_alone",
+E               "passed": true,
+E               "detail": "product_execution_authorized_by_predicate_alone=False (expected False)"
+E             },
+E             {
+E               "id": "predicate.execution.consumer_stage",
+E               "passed": true,
+E               "detail": "consumer_stage='V0-S3' (only V0-S3 is eligible)"
+E             },
+E             {
+E               "id": "predicate.execution.dependency_stage",
+E               "passed": true,
+E               "detail": "dependency_stage='V0-S2' (only V0-S2 is eligible)"
+E             },
+E             {
+E               "id": "predicate.execution.purpose",
+E               "passed": true,
+E               "detail": "purpose='V1_DEVELOPMENT_ONLY' (only V1_DEVELOPMENT_ONLY is eligible)"
+E             },
+E             {
+E               "id": "predicate.execution.approved_change",
+E               "passed": true,
+E               "detail": "approved_change='CHANGE-V1-S2-HANDOFF-01'"
+E             },
+E             {
+E               "id": "predicate.execution.proofs_pinned",
+E               "passed": true,
+E               "detail": "predicate proof hashes match the frozen owner pins"
+E             },
+E             {
+E               "id": "predicate.execution.historical_s2_projection",
+E               "passed": true,
+E               "detail": "historical_s2_required_state={'completed_substeps': 7, 'total_substeps': 8, 'human_signoff': 'PENDING'} (must stay 7/8 with native human PENDING)"
+E             },
+E             {
+E               "id": "predicate.execution.s2_machine_candidate",
+E               "passed": true,
+E               "detail": "s2_machine_candidate='719c74559393a6489b2f630a1e0d3bc3303eb655'"
+E             },
+E             {
+E               "id": "predicate.execution.unified_human_candidate",
+E               "passed": true,
+E               "detail": "unified_human_candidate='621b1bf386db71bfe08ca2f533fa8ec396b0504b'"
+E             },
+E             {
+E               "id": "predicate.execution.required_s2_case_ids",
+E               "passed": true,
+E               "detail": "required_s2_case_ids=['V0-A01', 'V0-A02', 'V0-A03', 'V0-A04', 'V0-A05', 'V0-A07', 'V0-A08', 'V0-A09', 'V0-A10']"
+E             },
+E             {
+E               "id": "predicate.execution.required_unified_case_ids",
+E               "passed": true,
+E               "detail": "required_unified_case_ids=['UM-01', 'UM-02', 'UM-03', 'UM-04', 'UM-05', 'UM-06', 'UM-07', 'UM-08', 'UM-09', 'UM-10']"
+E             },
+E             {
+E               "id": "predicate.execution.flag.gate0_still_required",
+E               "passed": true,
+E               "detail": "gate0_still_required=True (expected True)"
+E             },
+E             {
+E               "id": "predicate.execution.flag.authorizes_old_s2_release",
+E               "passed": true,
+E               "detail": "authorizes_old_s2_release=False (expected False)"
+E             },
+E             {
+E               "id": "predicate.execution.flag.may_apply_to_other_dependency_edges",
+E               "passed": true,
+E               "detail": "may_apply_to_other_dependency_edges=False (expected False)"
+E             },
+E             {
+E               "id": "predicate.execution.flag.product_execution_authorized_by_predicate_alone",
+E               "passed": true,
+E               "detail": "product_execution_authorized_by_predicate_alone=False (expected False)"
+E             },
+E             {
+E               "id": "approval.sha256",
+E               "passed": true,
+E               "detail": "reports/v1-next-stage-readiness/change-v1-s2-handoff-01.approval.json expected=bab47506d5a13657edcabc33644c6b159f2967e696dff4c4c43859d54fbf3057 actual=bab47506d5a13657edcabc33644c6b159f2967e696dff4c4c43859d54fbf3057"
+E             },
+E             {
+E               "id": "request.sha256",
+E               "passed": true,
+E               "detail": "reports/v1-next-stage-readiness/change-v1-s2-handoff-01.request.json expected=8a6032010e7290325341cf7f54c6de25c68412e9bdb651dab1d7bc4803da2e91 actual=8a6032010e7290325341cf7f54c6de25c68412e9bdb651dab1d7bc4803da2e91"
+E             },
+E             {
+E               "id": "decision.sha256",
+E               "passed": true,
+E               "detail": "reports/v1-next-stage-readiness/change-v1-s2-handoff-01.approved-decision.json expected=8e4678ff068a6485f42ca189a161ad67e7ba8bd94f52c8e30418938546e2e528 actual=8e4678ff068a6485f42ca189a161ad67e7ba8bd94f52c8e30418938546e2e528"
+E             },
+E             {
+E               "id": "approval.readable",
+E               "passed": true,
+E               "detail": "reports/v1-next-stage-readiness/change-v1-s2-handoff-01.approval.json"
+E             },
+E             {
+E               "id": "request.readable",
+E               "passed": true,
+E               "detail": "reports/v1-next-stage-readiness/change-v1-s2-handoff-01.request.json"
+E             },
+E             {
+E               "id": "decision.readable",
+E               "passed": true,
+E               "detail": "reports/v1-next-stage-readiness/change-v1-s2-handoff-01.approved-decision.json"
+E             },
+E             {
+E               "id": "approval.id",
+E               "passed": true,
+E               "detail": "id='CHANGE-V1-S2-HANDOFF-01' (expected CHANGE-V1-S2-HANDOFF-01)"
+E             },
+E             {
+E               "id": "approval.decision",
+E               "passed": true,
+E               "detail": "decision='APPROVED' (expected APPROVED)"
+E             },
+E             {
+E               "id": "approval.scope",
+E               "passed": true,
+E               "detail": "scope='V1_DEVELOPMENT_HANDOFF_ONLY'"
+E             },
+E             {
+E               "id": "approval.request_path",
+E               "passed": true,
+E               "detail": "request='reports/v1-next-stage-readiness/change-v1-s2-handoff-01.request.json'"
+E             },
+E             {
+E               "id": "approval.binds_exact_request",
+E               "passed": true,
+E               "detail": "approval.request_sha256='8a6032010e7290325341cf7f54c6de25c68412e9bdb651dab1d7bc4803da2e91' (expected 8a6032010e7290325341cf7f54c6de25c68412e9bdb651dab1d7bc4803da2e91)"
+E             },
+E             {
+E               "id": "request.id",
+E               "passed": true,
+E               "detail": "id='CHANGE-V1-S2-HANDOFF-01' (expected CHANGE-V1-S2-HANDOFF-01)"
+E             },
+E             {
+E               "id": "approval.historical_s2_not_signed",
+E               "passed": true,
+E               "detail": "historical_s2_native_human_approved=False completed_substeps=7 (must stay False/7)"
+E             },
+E             {
+E               "id": "approval.no_scope_expansion",
+E               "passed": true,
+E               "detail": "full_v1_approved=False release_approved=False runtime_authority_changed=False"
+E             },
+E             {
+E               "id": "decision.applied_to_readiness_only",
+E               "passed": true,
+E               "detail": "decision='APPROVED_APPLIED_TO_READINESS_ONLY' predicate_id='S3-V1-ONLY-S2-HANDOFF-01' product_gate0=False product_runtime_started=False"
+E             },
+E             {
+E               "id": "evidence.s2_machine.sha256",
+E               "passed": true,
+E               "detail": "reports/v0-s2/full-v0-auto-08/receipt.json expected=53c267a19a60b34b8aa7abc065f696ac8eb46b1549cd66a24135d7b67fb61f96 actual=53c267a19a60b34b8aa7abc065f696ac8eb46b1549cd66a24135d7b67fb61f96"
+E             },
+E             {
+E               "id": "evidence.s2_machine.readable",
+E               "passed": true,
+E               "detail": "reports/v0-s2/full-v0-auto-08/receipt.json"
+E             },
+E             {
+E               "id": "evidence.s2_machine.candidate",
+E               "passed": true,
+E               "detail": "candidate_sha='719c74559393a6489b2f630a1e0d3bc3303eb655' (expected 719c74559393a6489b2f630a1e0d3bc3303eb655)"
+E             },
+E             {
+E               "id": "evidence.s2_machine.case_set",
+E               "passed": true,
+E               "detail": "case ids=['V0-A01', 'V0-A02', 'V0-A03', 'V0-A04', 'V0-A05', 'V0-A07', 'V0-A08', 'V0-A09', 'V0-A10'] (expected exactly the nine required ids)"
+E             },
+E             {
+E               "id": "evidence.s2_machine.case_status",
+E               "passed": true,
+E               "detail": "every required case must be PASS"
+E             },
+E             {
+E               "id": "evidence.s2_machine.counts",
+E               "passed": true,
+E               "detail": "test_counts={'BLOCKED': 0, 'FAIL': 0, 'NOT_RUN': 0, 'PASS': 9, 'fixed': 9} (expected 9 PASS / 0 others)"
+E             },
+E             {
+E               "id": "evidence.s2_machine.no_stage_pass",
+E               "passed": true,
+E               "detail": "stage_pass_claim=False"
+E             },
+E             {
+E               "id": "evidence.s2_independent.sha256",
+E               "passed": true,
+E               "detail": "reports/v0-s2/full-v0-auto-08/independent-review.json expected=b6e1e8470d9ef12dba40ac0d3a90b0c96ea5f7fcd906f07001118b7370224d1a actual=b6e1e8470d9ef12dba40ac0d3a90b0c96ea5f7fcd906f07001118b7370224d1a"
+E             },
+E             {
+E               "id": "evidence.s2_independent.readable",
+E               "passed": true,
+E               "detail": "reports/v0-s2/full-v0-auto-08/independent-review.json"
+E             },
+E             {
+E               "id": "evidence.s2_independent.candidate",
+E               "passed": true,
+E               "detail": "candidate_sha='719c74559393a6489b2f630a1e0d3bc3303eb655' (expected 719c74559393a6489b2f630a1e0d3bc3303eb655)"
+E             },
+E             {
+E               "id": "evidence.s2_independent.nine_of_nine",
+E               "passed": true,
+E               "detail": "cumulative_pass=9 cumulative_fixed_cases=9 (expected 9/9)"
+E             },
+E             {
+E               "id": "evidence.s2_independent.no_fatal_or_major",
+E               "passed": true,
+E               "detail": "findings={'Fatal': 0, 'Major': 0, 'Minor': 0} (Fatal and Major must be 0)"
+E             },
+E             {
+E               "id": "evidence.s2_independent.isolated_read_only",
+E               "passed": true,
+E               "detail": "context_isolated=True read_only=True"
+E             },
+E             {
+E               "id": "evidence.s2_independent.human_signoff_still_absent",
+E               "passed": true,
+E               "detail": "human_signoff=None (historical S2 native human signature stays absent)"
+E             },
+E             {
+E               "id": "evidence.s2_independent.no_stage_pass",
+E               "passed": true,
+E               "detail": "stage_pass_claim=False"
+E             },
+E             {
+E               "id": "evidence.um_human.sha256",
+E               "passed": true,
+E               "detail": "reports/unified-media/human-signoff-live15.json expected=fab689dc6563fc343e38b8acb645cee45622bf6216f567e5a32a27bcabf73bc9 actual=fab689dc6563fc343e38b8acb645cee45622bf6216f567e5a32a27bcabf73bc9"
+E             },
+E             {
+E               "id": "evidence.um_coverage.sha256",
+E               "passed": true,
+E               "detail": "reports/unified-media/independent-live-15/coverage.json expected=f3e0b494e88a48ce586dc6bab0c96d6fc850d22f5252f4d0859c41e792256b20 actual=f3e0b494e88a48ce586dc6bab0c96d6fc850d22f5252f4d0859c41e792256b20"
+E             },
+E             {
+E               "id": "evidence.um_human.readable",
+E               "passed": true,
+E               "detail": "reports/unified-media/human-signoff-live15.json"
+E             },
+E             {
+E               "id": "evidence.um_coverage.readable",
+E               "passed": true,
+E               "detail": "reports/unified-media/independent-live-15/coverage.json"
+E             },
+E             {
+E               "id": "evidence.um_human.approved",
+E               "passed": true,
+E               "detail": "decision='APPROVED' signer_role='project_owner'"
+E             },
+E             {
+E               "id": "evidence.um_human.candidate",
+E               "passed": true,
+E               "detail": "product_candidate='621b1bf386db71bfe08ca2f533fa8ec396b0504b' (expected 621b1bf386db71bfe08ca2f533fa8ec396b0504b)"
+E             },
+E             {
+E               "id": "evidence.um_human.slice",
+E               "passed": true,
+E               "detail": "slice_id='UNIFIED_MEDIA_EARLY'"
+E             },
+E             {
+E               "id": "evidence.um_coverage.candidate",
+E               "passed": true,
+E               "detail": "candidate_sha='621b1bf386db71bfe08ca2f533fa8ec396b0504b' (expected 621b1bf386db71bfe08ca2f533fa8ec396b0504b)"
+E             },
+E             {
+E               "id": "evidence.um_coverage.fixed_denominator",
+E               "passed": true,
+E               "detail": "fixed_denominator=10 (expected 10)"
+E             },
+E             {
+E               "id": "evidence.um_coverage.case_set",
+E               "passed": true,
+E               "detail": "coverage case ids=['UM-01', 'UM-02', 'UM-03', 'UM-04', 'UM-05', 'UM-06', 'UM-07', 'UM-08', 'UM-09', 'UM-10'] (expected exactly UM-01..UM-10)"
+E             },
+E             {
+E               "id": "evidence.um_coverage.all_pass",
+E               "passed": true,
+E               "detail": "every UM case must be PASS"
+E             },
+E             {
+E               "id": "evidence.um_independent.readable",
+E               "passed": true,
+E               "detail": "reports/unified-media/independent-live-15/receipt.json"
+E             },
+E             {
+E               "id": "evidence.um_independent.informational",
+E               "passed": true,
+E               "detail": "decision='MACHINE_AND_INDEPENDENT_PASS_READY_FOR_ACTUAL_HUMAN_EXPERIENCE_SIGNOFF' candidate_sha='621b1bf386db71bfe08ca2f533fa8ec396b0504b'"
+E             },
+E             {
+E               "id": "map.sha256",
+E               "passed": true,
+E               "detail": "reports/v0-s3/handoff-capability-map-01.json expected=d3ece8c2862b779919a57293361d906d6ffa2d6e351224c828311618ec36dd24 actual=d3ece8c2862b779919a57293361d906d6ffa2d6e351224c828311618ec36dd24"
+E             },
+E             {
+E               "id": "map.readable",
+E               "passed": true,
+E               "detail": "reports/v0-s3/handoff-capability-map-01.json"
+E             },
+E             {
+E               "id": "map.status",
+E               "passed": true,
+E               "detail": "status='FROZEN_READINESS_MAPPING_ONLY'"
+E             },
+E             {
+E               "id": "map.new_s3_cases",
+E               "passed": true,
+E               "detail": "required_new_s3_cases=['V0-A06', 'V0-A11', 'V0-A12'] (install/rollback + image + video quality duties)"
+E             },
+E             {
+E               "id": "map.cumulative_cases",
+E               "passed": true,
+E               "detail": "all_s3_cumulative_cases=['V0-A01', 'V0-A02', 'V0-A03', 'V0-A04', 'V0-A05', 'V0-A06', 'V0-A07', 'V0-A08', 'V0-A09', 'V0-A10', 'V0-A11', 'V0-A12'] (expected the full twelve)"
+E             },
+E             {
+E               "id": "map.mapping_entries",
+E               "passed": true,
+E               "detail": "capability groups=4"
+E             },
+E             {
+E               "id": "map.mapping_entries_wellformed",
+E               "passed": true,
+E               "detail": "each group needs capability/old_cases/current_cases/scope"
+E             },
+E             {
+E               "id": "map.no_inherited_quality",
+E               "passed": true,
+E               "detail": "quality_coverage_inherited=False future_candidate_results_inherited=False"
+E             },
+E             {
+E               "id": "map.historical_s2_not_signed",
+E               "passed": true,
+E               "detail": "historical_s2_signed=False"
+E             },
+E             {
+E               "id": "map.product_gate0_false",
+E               "passed": true,
+E               "detail": "product_gate0=False"
+E             }
+E           ],
+E           "decision": "HANDOFF_READINESS_VERIFIED"
+E         }
+E         
+E       assert 0 == 1
+E        +  where 0 = CompletedProcess(args=['/usr/bin/python3', '-B', 'tools/verify_s3_handoff.py', '--root', '/tmp/lvw-s3-correction-01-q4...true,\n      "detail": "product_gate0=False"\n    }\n  ],\n  "decision": "HANDOFF_READINESS_VERIFIED"\n}\n', stderr='').returncode
+
+tools/test_verify_s3_handoff.py:612: AssertionError
+=========================== short test summary info ============================
+FAILED tools/test_verify_s3_handoff.py::test_the_historical_s2_coordinate_snapshot_must_not_be_rewritten[stage_id-V0-S3]
+FAILED tools/test_verify_s3_handoff.py::test_the_historical_s2_coordinate_snapshot_must_not_be_rewritten[workpack_id-WP-S2-07]
+FAILED tools/test_verify_s3_handoff.py::test_the_historical_s2_coordinate_snapshot_must_not_be_rewritten[gate-GATE6_MACHINE_ACCEPTANCE]
+FAILED tools/test_verify_s3_handoff.py::test_the_historical_s2_coordinate_snapshot_must_not_be_rewritten[state-ADVANCED_BY_OWNER]
+FAILED tools/test_verify_s3_handoff.py::test_the_real_owner_actual_s2_projection_is_seven_of_eight_pending
+FAILED tools/test_verify_s3_handoff.py::test_the_live_coordinate_may_advance_while_the_historical_snapshot_is_retained
+FAILED tools/test_verify_s3_handoff.py::test_actual_outline_completed_substeps_eight_is_rejected
+FAILED tools/test_verify_s3_handoff.py::test_actual_outline_human_signoff_approved_is_rejected
+FAILED tools/test_verify_s3_handoff.py::test_actual_outline_pending_human_substep_marked_done_is_rejected
+FAILED tools/test_verify_s3_handoff.py::test_actual_outline_human_substep_renamed_is_rejected
+FAILED tools/test_verify_s3_handoff.py::test_actual_outline_human_substep_missing_is_rejected
+FAILED tools/test_verify_s3_handoff.py::test_actual_outline_duplicate_human_substep_is_rejected
+FAILED tools/test_verify_s3_handoff.py::test_actual_outline_substep_count_not_eight_is_rejected
+FAILED tools/test_verify_s3_handoff.py::test_actual_outline_without_a_v0_s2_entry_is_rejected
+FAILED tools/test_verify_s3_handoff.py::test_actual_outline_with_a_duplicate_v0_s2_entry_is_rejected
+FAILED tools/test_verify_s3_handoff.py::test_actual_outline_with_malformed_stage_value_types_is_rejected
+FAILED tools/test_verify_s3_handoff.py::test_actual_outline_with_a_done_substep_without_evidence_is_rejected
+FAILED tools/test_verify_s3_handoff.py::test_public_cli_rejects_a_faked_actual_outline
+18 failed, 25 passed in 0.45s

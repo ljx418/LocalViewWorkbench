@@ -1,0 +1,173 @@
+{
+  "kind": "S3_PREP_A_CORRECTION_01_RUN_CONFIGURATION",
+  "package_root": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+  "python": "3.12.3",
+  "pytest_basetemp_policy": "owned tempfile.TemporaryDirectory parent; the parent is verified gone after the context exits; no shared or pre-existing pytest root is purged",
+  "environment_overrides": {
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "PYTEST_DEBUG_TEMPROOT": "<the owned parent, per run>"
+  },
+  "cli_negative_fixture": {
+    "tree": "/tmp/lvw-s3-correction-01-cli-1et_dzao/package",
+    "mutated": [
+      "development_outline[V0-S2].completed_substeps = 8",
+      "development_outline[V0-S2].total_substeps = 8",
+      "development_outline[V0-S2].human_signoff = APPROVED",
+      "development_outline[V0-S2].substeps['S2 人工签署与Git同步'].status = DONE"
+    ],
+    "untouched": [
+      "every frozen proof file",
+      "plans/tasks.json and plans/v1-revised-plan.json predicate snapshots",
+      "the owner approval record"
+    ],
+    "owned_parent": "/tmp/lvw-s3-correction-01-cli-1et_dzao",
+    "owned_parent_present_after_context": false,
+    "owned_parent_removed": true
+  },
+  "runs": [
+    {
+      "name": "verify_s3_handoff",
+      "argv": [
+        "python3",
+        "-B",
+        "tools/verify_s3_handoff.py"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "exit_code": 0,
+      "wall_seconds": 0.035,
+      "stdout": {
+        "log": "reports/v0-s3/preparation-03/implementation/correction-01/logs/verify_s3_handoff.stdout.log",
+        "bytes": 26654,
+        "sha256": "c4b6787067fe77c3138bd0dca163698fc5080baaeb2b390539504d789c61a600"
+      },
+      "stderr": {
+        "log": "reports/v0-s3/preparation-03/implementation/correction-01/logs/verify_s3_handoff.stderr.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "exit_log": "reports/v0-s3/preparation-03/implementation/correction-01/logs/verify_s3_handoff.exit.log"
+    },
+    {
+      "name": "pytest_packet_tests",
+      "argv": [
+        "python3",
+        "-B",
+        "-m",
+        "pytest",
+        "tools/test_verify_s3_handoff.py",
+        "tools/test_s3_asset_inventory.py",
+        "-q"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "exit_code": 0,
+      "wall_seconds": 0.884,
+      "stdout": {
+        "log": "reports/v0-s3/preparation-03/implementation/correction-01/logs/pytest_packet_tests.stdout.log",
+        "bytes": 99,
+        "sha256": "c4238d6e486ad194134246e50109fbf06dac4e6f663182f8bf8ab8a31fae0439"
+      },
+      "stderr": {
+        "log": "reports/v0-s3/preparation-03/implementation/correction-01/logs/pytest_packet_tests.stderr.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "exit_log": "reports/v0-s3/preparation-03/implementation/correction-01/logs/pytest_packet_tests.exit.log"
+    },
+    {
+      "name": "pytest_owned_basetemp",
+      "argv": [
+        "python3",
+        "-B",
+        "-m",
+        "pytest",
+        "tools/test_verify_s3_handoff.py",
+        "tools/test_s3_asset_inventory.py",
+        "-q",
+        "--basetemp=/tmp/lvw-s3-correction-01-6xqqxp8v/pytest-basetemp"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "exit_code": 0,
+      "wall_seconds": 0.807,
+      "stdout": {
+        "log": "reports/v0-s3/preparation-03/implementation/correction-01/logs/pytest_owned_basetemp.stdout.log",
+        "bytes": 99,
+        "sha256": "977a38916eadb04ee23e2895c5a9e61317133641693825cf9699ae9cd676e36a"
+      },
+      "stderr": {
+        "log": "reports/v0-s3/preparation-03/implementation/correction-01/logs/pytest_owned_basetemp.stderr.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "exit_log": "reports/v0-s3/preparation-03/implementation/correction-01/logs/pytest_owned_basetemp.exit.log",
+      "owned_parent": "/tmp/lvw-s3-correction-01-6xqqxp8v",
+      "basetemp": "/tmp/lvw-s3-correction-01-6xqqxp8v/pytest-basetemp",
+      "owned_parent_present_inside_context": true,
+      "owned_parent_present_after_context": false,
+      "owned_parent_removed": true
+    },
+    {
+      "name": "cli_negative_fake_outline",
+      "argv": [
+        "python3",
+        "-B",
+        "tools/verify_s3_handoff.py",
+        "--root",
+        "/tmp/lvw-s3-correction-01-cli-1et_dzao/package"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "exit_code": 1,
+      "wall_seconds": 0.038,
+      "stdout": {
+        "log": "reports/v0-s3/preparation-03/implementation/correction-01/logs/cli_negative_fake_outline.stdout.log",
+        "bytes": 26720,
+        "sha256": "b7fc97c89869b81fb0fab4be414723e7d8040de35d17ed538a62794a276b10c0"
+      },
+      "stderr": {
+        "log": "reports/v0-s3/preparation-03/implementation/correction-01/logs/cli_negative_fake_outline.stderr.log",
+        "bytes": 525,
+        "sha256": "bee610467033c5220bb54f5216485c3ef3c7196a77e99842db8afeae70485f0f"
+      },
+      "exit_log": "reports/v0-s3/preparation-03/implementation/correction-01/logs/cli_negative_fake_outline.exit.log"
+    },
+    {
+      "name": "guard_revert_regression",
+      "argv": [
+        "python3",
+        "-B",
+        "-m",
+        "pytest",
+        "tools/test_verify_s3_handoff.py",
+        "-q",
+        "--basetemp=/tmp/lvw-s3-correction-01-q4p15wq3/pytest-basetemp"
+      ],
+      "cwd": "/tmp/lvw-correction-01-guardrevert/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "exit_code": 1,
+      "wall_seconds": 0.786,
+      "stdout": {
+        "log": "reports/v0-s3/preparation-03/implementation/correction-01/logs/guard_revert_regression.stdout.log",
+        "bytes": 62137,
+        "sha256": "9e17affe18aad370d6f2118945559fdf2ebd2fd0d6bd5b58bb0e323ff72b6746"
+      },
+      "stderr": {
+        "log": "reports/v0-s3/preparation-03/implementation/correction-01/logs/guard_revert_regression.stderr.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "exit_log": "reports/v0-s3/preparation-03/implementation/correction-01/logs/guard_revert_regression.exit.log",
+      "owned_parent": "/tmp/lvw-s3-correction-01-q4p15wq3",
+      "basetemp": "/tmp/lvw-s3-correction-01-q4p15wq3/pytest-basetemp",
+      "owned_parent_present_inside_context": true,
+      "owned_parent_present_after_context": false,
+      "owned_parent_removed": true,
+      "purpose": "the new and re-decided tests must FAIL against the pre-correction guard (137ce11) and PASS against the corrected guard",
+      "checkout": {
+        "root": "/tmp/lvw-correction-01-guardrevert/LVW_Prompt_Service_MasterPack_v2.0.0",
+        "commit": "137ce11",
+        "guard_sha256": "5944771fd3fe880014bcbecd06b1ba1fbe76a58d2b560ec74d8a679de5adfe9d",
+        "test_sha256": "9a46fd77b388639691c1b91dd1a9042f67f739c23ee9a33d22a72938bdde6328",
+        "replaced": "only tools/test_verify_s3_handoff.py (the corrected test suite)",
+        "guard_unchanged": "tools/verify_s3_handoff.py is the pre-correction guard"
+      }
+    }
+  ]
+}

@@ -1,0 +1,382 @@
+{
+  "kind": "S3_PREP_A_CORRECTION_01_APPEND_RECEIPT",
+  "stage_id": "V0-S3",
+  "workpack_id": "S3-PREP-A",
+  "correction_id": "S3-PREP-A-CORRECTION-01",
+  "decision": "READY_FOR_REVIEW",
+  "scope": "HANDOFF_READINESS_ONLY",
+  "product_gate0": false,
+  "stage_pass_claim": false,
+  "human_signature_made": false,
+  "release_claimed": false,
+  "old_s2_human_signoff_granted": false,
+  "blocker_addressed": "S3P-A-MAJOR-01",
+  "new_human_confirmation_requested": false,
+  "approved_change": {
+    "id": "CHANGE-V1-S2-HANDOFF-01",
+    "status": "already approved; not up for a new human confirmation",
+    "approval_sha256": "bab47506d5a13657edcabc33644c6b159f2967e696dff4c4c43859d54fbf3057"
+  },
+  "authority": {
+    "codex_adjudication": "reports/v0-s3/preparation-03/codex-review-resolution-01.json",
+    "codex_adjudication_decision": "CHANGES_REQUIRED_MAJOR01_NO_NEW_HUMAN_AUTHORIZATION",
+    "independent_review": "reports/v0-s3/preparation-03/independent-01/",
+    "independent_review_verdict": "NOT_ACCEPTABLE_AS_IS",
+    "independent_review_summary": {
+      "Fatal": 0,
+      "Major": 1,
+      "Minor": 7
+    },
+    "review_process_deviation": "reports/v0-s3/preparation-03/independent-hash-process-deviation-01.json",
+    "review_process_deviation_retained": true,
+    "review_process_deviation_note": "the final positive recheck does not erase the two preflight-failed source reads; no fully compliant independent read is claimed and the reviewer helper fix stays separately owned by root"
+  },
+  "source_loading": {
+    "codex_source_commit": "12a1594c12b57a62ce445e4cf7f11fd38423039d",
+    "loading_method": "git merge --no-edit into the clean child checkout",
+    "merge_commit": "137ce11549b4fe1b9006e5eaffaf21dbcb064c09",
+    "merge_conflicts": 0,
+    "merge_exit_code": 0,
+    "purpose": "source loading only; no owner document was rewritten by hand",
+    "push_performed": false
+  },
+  "code_candidate": "bc78869231e4dc320dfc9c7198a07aeabf9412fe",
+  "changed_files": [
+    "tools/verify_s3_handoff.py",
+    "tools/test_verify_s3_handoff.py",
+    "reports/v0-s3/preparation-03/implementation/correction-01/"
+  ],
+  "not_changed": {
+    "inventory_script": "tools/s3_asset_inventory.py (byte-identical to 311bdda)",
+    "inventory_test": "tools/test_s3_asset_inventory.py (byte-identical to 311bdda)",
+    "owner_files": "no owner document, plan, contract, packet, approval, proof, old receipt or parent worktree file was edited",
+    "owner_files_resealed": false,
+    "frozen_source_fence": "16 source fence files and 10 packet payload pins unchanged"
+  },
+  "semantic_guard": {
+    "reads_actual_authority": "plans/execution-control.json",
+    "method": "read and interpret; the document is never hash-frozen",
+    "checks_added": 20,
+    "check_prefix": "actual.",
+    "outline_requirements": {
+      "exactly_one_stage_id": "V0-S2",
+      "completed_substeps": "integer (non-bool) 7",
+      "total_substeps": "integer (non-bool) 8",
+      "human_signoff": "PENDING",
+      "substeps": "exactly 8; exactly 7 DONE; exactly 1 PENDING",
+      "human_substep_name": "S2 人工签署与Git同步",
+      "human_substep_state": "PENDING with evidence null"
+    },
+    "historical_s2_coordinate": {
+      "role": "retained snapshot, not a second live coordinate",
+      "required": {
+        "stage_id": "V0-S2",
+        "workpack_id": "WP-S2-06",
+        "gate": "GATE5_HUMAN_EXPERIENCE_SIGNOFF",
+        "state": "WAIT_HUMAN"
+      }
+    },
+    "free_to_advance": [
+      "coordinate.stage_id",
+      "coordinate.workpack_id",
+      "coordinate.gate",
+      "coordinate.state",
+      "current_blocking_gate",
+      "updated_at"
+    ],
+    "report_separation": {
+      "historical_s2_projection": "observed live values (null when missing or malformed)",
+      "historical_s2_declared_expected_state": "the declared contract 7/8/PENDING",
+      "historical_s2_projection_source": "plans/execution-control.json#/development_outline (stage_id=V0-S2)",
+      "historical_s2_coordinate_observed": "the observed retained snapshot",
+      "never_asserts_7_of_8_when_observed_contradicts": true
+    }
+  },
+  "test_oracle_mapping": [
+    {
+      "old_test": "test_the_historical_s2_coordinate_state_is_not_required_to_stay_wait_human",
+      "old_oracle": "the retained historical snapshot may be rewritten",
+      "new_test": "test_the_historical_s2_coordinate_snapshot_must_not_be_rewritten[stage_id|workpack_id|gate|state]",
+      "new_oracle": "rewriting the retained historical snapshot must be refused",
+      "reason": "owner re-decision: historical_s2_coordinate is a retained snapshot per the Codex memo, not a second live coordinate",
+      "silent_deletion": false
+    },
+    {
+      "old_test": "test_execution_coordinates_may_advance",
+      "old_oracle": "the live coordinate may advance",
+      "new_test": "test_execution_coordinates_may_advance",
+      "new_oracle": "unchanged (retained)",
+      "reason": "the live coordinate stays deliberately unfrozen",
+      "silent_deletion": false
+    }
+  ],
+  "tests": {
+    "packet_command": "python3 -B -m pytest tools/test_verify_s3_handoff.py tools/test_s3_asset_inventory.py -q",
+    "handoff_test_file_cases": 43,
+    "inventory_test_file_cases": 22,
+    "total": 65,
+    "total_source": "the two test files collected 43 + 22 cases; both runs reported 65 passed",
+    "passed": 65,
+    "failed": 0,
+    "owned_basetemp_run": {
+      "passed": 65,
+      "failed": 0,
+      "owned_parent_removed_after_context": true
+    },
+    "preserved_obligations": 25,
+    "re_decided_oracle_cases": 4,
+    "new_cases": 14,
+    "regression_against_pre_correction_guard": {
+      "collected": 43,
+      "failed": 18,
+      "passed": 25,
+      "meaning": "every new and re-decided test fails without the semantic guard fix"
+    },
+    "constant_against_itself": "the new assertions use literal values and observed values only"
+  },
+  "runs": [
+    {
+      "name": "verify_s3_handoff",
+      "argv": [
+        "python3",
+        "-B",
+        "tools/verify_s3_handoff.py"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "exit_code": 0,
+      "wall_seconds": 0.035,
+      "stdout_sha256": "c4b6787067fe77c3138bd0dca163698fc5080baaeb2b390539504d789c61a600",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_log": "reports/v0-s3/preparation-03/implementation/correction-01/logs/verify_s3_handoff.stdout.log",
+      "stderr_log": "reports/v0-s3/preparation-03/implementation/correction-01/logs/verify_s3_handoff.stderr.log",
+      "exit_log": "reports/v0-s3/preparation-03/implementation/correction-01/logs/verify_s3_handoff.exit.log",
+      "owned_parent_removed_after_context": null
+    },
+    {
+      "name": "pytest_packet_tests",
+      "argv": [
+        "python3",
+        "-B",
+        "-m",
+        "pytest",
+        "tools/test_verify_s3_handoff.py",
+        "tools/test_s3_asset_inventory.py",
+        "-q"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "exit_code": 0,
+      "wall_seconds": 0.884,
+      "stdout_sha256": "c4238d6e486ad194134246e50109fbf06dac4e6f663182f8bf8ab8a31fae0439",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_log": "reports/v0-s3/preparation-03/implementation/correction-01/logs/pytest_packet_tests.stdout.log",
+      "stderr_log": "reports/v0-s3/preparation-03/implementation/correction-01/logs/pytest_packet_tests.stderr.log",
+      "exit_log": "reports/v0-s3/preparation-03/implementation/correction-01/logs/pytest_packet_tests.exit.log",
+      "owned_parent_removed_after_context": null
+    },
+    {
+      "name": "pytest_owned_basetemp",
+      "argv": [
+        "python3",
+        "-B",
+        "-m",
+        "pytest",
+        "tools/test_verify_s3_handoff.py",
+        "tools/test_s3_asset_inventory.py",
+        "-q",
+        "--basetemp=/tmp/lvw-s3-correction-01-6xqqxp8v/pytest-basetemp"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "exit_code": 0,
+      "wall_seconds": 0.807,
+      "stdout_sha256": "977a38916eadb04ee23e2895c5a9e61317133641693825cf9699ae9cd676e36a",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_log": "reports/v0-s3/preparation-03/implementation/correction-01/logs/pytest_owned_basetemp.stdout.log",
+      "stderr_log": "reports/v0-s3/preparation-03/implementation/correction-01/logs/pytest_owned_basetemp.stderr.log",
+      "exit_log": "reports/v0-s3/preparation-03/implementation/correction-01/logs/pytest_owned_basetemp.exit.log",
+      "owned_parent_removed_after_context": true
+    },
+    {
+      "name": "cli_negative_fake_outline",
+      "argv": [
+        "python3",
+        "-B",
+        "tools/verify_s3_handoff.py",
+        "--root",
+        "/tmp/lvw-s3-correction-01-cli-1et_dzao/package"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "exit_code": 1,
+      "wall_seconds": 0.038,
+      "stdout_sha256": "b7fc97c89869b81fb0fab4be414723e7d8040de35d17ed538a62794a276b10c0",
+      "stderr_sha256": "bee610467033c5220bb54f5216485c3ef3c7196a77e99842db8afeae70485f0f",
+      "stdout_log": "reports/v0-s3/preparation-03/implementation/correction-01/logs/cli_negative_fake_outline.stdout.log",
+      "stderr_log": "reports/v0-s3/preparation-03/implementation/correction-01/logs/cli_negative_fake_outline.stderr.log",
+      "exit_log": "reports/v0-s3/preparation-03/implementation/correction-01/logs/cli_negative_fake_outline.exit.log",
+      "owned_parent_removed_after_context": null
+    },
+    {
+      "name": "guard_revert_regression",
+      "argv": [
+        "python3",
+        "-B",
+        "-m",
+        "pytest",
+        "tools/test_verify_s3_handoff.py",
+        "-q",
+        "--basetemp=/tmp/lvw-s3-correction-01-q4p15wq3/pytest-basetemp"
+      ],
+      "cwd": "/tmp/lvw-correction-01-guardrevert/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "exit_code": 1,
+      "wall_seconds": 0.786,
+      "stdout_sha256": "9e17affe18aad370d6f2118945559fdf2ebd2fd0d6bd5b58bb0e323ff72b6746",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_log": "reports/v0-s3/preparation-03/implementation/correction-01/logs/guard_revert_regression.stdout.log",
+      "stderr_log": "reports/v0-s3/preparation-03/implementation/correction-01/logs/guard_revert_regression.stderr.log",
+      "exit_log": "reports/v0-s3/preparation-03/implementation/correction-01/logs/guard_revert_regression.exit.log",
+      "owned_parent_removed_after_context": true
+    }
+  ],
+  "machine_extracted_counts": {
+    "guard_real_root": {
+      "decision": "HANDOFF_READINESS_VERIFIED",
+      "checks": 139,
+      "passed": 139,
+      "failed": 0,
+      "failed_ids": [],
+      "authority": "AUTHORITATIVE",
+      "observed_historical_s2_projection": {
+        "completed_substeps": 7,
+        "total_substeps": 8,
+        "human_signoff": "PENDING"
+      },
+      "declared_expected_state": {
+        "completed_substeps": 7,
+        "total_substeps": 8,
+        "human_signoff": "PENDING"
+      }
+    },
+    "guard_faked_actual_outline": {
+      "decision": "HANDOFF_READINESS_REJECTED",
+      "checks": 139,
+      "passed": 133,
+      "failed": 6,
+      "failed_ids": [
+        "actual.outline.completed_substeps",
+        "actual.outline.human_signoff",
+        "actual.outline.done_count",
+        "actual.outline.pending_count",
+        "actual.outline.done_substep_evidence",
+        "actual.outline.human_substep_pending"
+      ],
+      "authority": "FIXTURE_NON_AUTHORITY_COPY",
+      "observed_historical_s2_projection": {
+        "completed_substeps": 8,
+        "total_substeps": 8,
+        "human_signoff": "APPROVED"
+      },
+      "declared_expected_state": {
+        "completed_substeps": 7,
+        "total_substeps": 8,
+        "human_signoff": "PENDING"
+      }
+    },
+    "pytest_packet_command": {
+      "passed": 65,
+      "failed": 0,
+      "raw_tail": "65 passed in 0.53s"
+    },
+    "pytest_owned_basetemp": {
+      "passed": 65,
+      "failed": 0,
+      "raw_tail": "65 passed in 0.51s"
+    },
+    "pytest_pre_correction_guard": {
+      "passed": 25,
+      "failed": 18,
+      "raw_tail": "18 failed, 25 passed in 0.45s"
+    }
+  },
+  "inventory_reuse_analysis": {
+    "decision": "REUSE_THE_EXISTING_TERMINAL_INVENTORY_RECEIPT_NO_NEW_INVENTORY",
+    "new_full_inventory_authorized": false,
+    "new_full_inventory_needed": false,
+    "terminal_receipt_path": "reports/v0-s3/preparation-03/implementation/inventory-01/receipt.json",
+    "terminal_receipt_sha256": "05ab5d63a69556c721b26191273cf60c20e4b3bb5826712688cefb06786ee2ef",
+    "bound_to_candidate": "d33893303f24da57216b63b4e0b9ef7e009d7613",
+    "relabelled_as_new_candidate": false,
+    "inventory_script_sha256": "333cfed9828fae22df524870fa691e553bcdb1965f30c1f5efb0b1882e3cbb30",
+    "inventory_script_unchanged": true,
+    "inventory_test_sha256": "2af8bf3e9526e0da4f5c42417f7437a0f62a4d73f429755ff55be06fa92957e0",
+    "inventory_test_unchanged": true,
+    "why_the_receipt_stays_valid": [
+      "the correction changes only the handoff guard: not the inventory script, not its test, not the hash algorithm, not the input set",
+      "the actual old-S2 projection that was inventoried was valid 7/8 and is unchanged in the live authority",
+      "the independent three-file hashes are correct; the reviewer 3-pass/preflight deviation stays recorded and is not treated as a fully compliant independent read"
+    ],
+    "preflight_binding_is_stale_and_is_not_resealed": {
+      "preflight_handoff_script_sha256": "5944771fd3fe880014bcbecd06b1ba1fbe76a58d2b560ec74d8a679de5adfe9d",
+      "corrected_handoff_script_sha256": "d2b3fd332e3d77a8f710691f9a852b61923d6436d4a9d51a6c131165d5c2b5fa",
+      "consequence": "the old inventory CLI would refuse the old preflight binding; the inventory CLI was not run to force it through",
+      "inventory_cli_invocations": 0
+    },
+    "coverage_limits": {
+      "supported_extension_files": 698,
+      "hashed": 512,
+      "unhashed": 186,
+      "whole_corpus_complete": false,
+      "inventory_input_items": 512,
+      "derived_catalog_candidates": 509,
+      "distinct_candidate_content_sha256": 498,
+      "excluded_private_labelled_paths": 3,
+      "decision_string_meaning": "INVENTORY_COMPLETE describes the bounded operation, not corpus coverage"
+    }
+  },
+  "errata": {
+    "file": "reports/v0-s3/preparation-03/implementation/correction-01/errata.md",
+    "covers": [
+      "S3P-A-MINOR-01 bounded INVENTORY_COMPLETE is not full coverage (512/698, 186 unhashed, 509/498, 3 excluded)",
+      "S3P-A-MINOR-02 the pytest tmp_path cleanup sentence was inaccurate and the zero cleanup counters are declarations, not measurements",
+      "S3P-A-MINOR-03 AUTHORITATIVE is a local pinned-files check, not a Git attestation; the candidate and script binding is attested externally",
+      "S3P-A-MINOR-05 the disclosed ls -la metadata deviation is retained without a retroactive grant",
+      "S3P-A-MINOR-06 a failed attempt's terminal receipt is immutable; a future attempt needs a new child and a new path",
+      "S3P-A-MINOR-07 and the independent report wording: hashing DID open and read the bytes of the three flagged files; no decode, no visual view, no raw media copy, no provider call",
+      "the reviewer's 3-pass/preflight deviation is retained and is not absorbed"
+    ],
+    "append_only": true,
+    "old_records_modified": false
+  },
+  "budgets": {
+    "model_actions": 0,
+    "gpu_actions": 0,
+    "media_reads": 0,
+    "media_hashes": 0,
+    "service_starts": 0,
+    "network_requests": 0,
+    "downloads": 0,
+    "browser_starts": 0,
+    "productdb_queries": 0,
+    "decoder_invocations": 0,
+    "inventory_runs": 0,
+    "provider_switches": 0,
+    "human_signatures_made": 0,
+    "note": "the guard hashes the 16 frozen source-fence files and the 10 packet payload files; those are package documents, not media"
+  },
+  "cleanup": {
+    "owned_temporary_parents_created": 3,
+    "owned_temporary_parents_removed_after_context": true,
+    "shared_pytest_roots_purged": false,
+    "source_files_modified": 0,
+    "source_files_deleted": 0,
+    "note": "pytest retains its own tmp_path fixtures; the owned TemporaryDirectory parents used here were verified gone after their context exited"
+  },
+  "limits_and_open_items": [
+    "the root commissions a bounded Major-closure recheck next; this worker does not claim the Major closed by its own tests",
+    "the reviewer helper correction is separately owned by root and untouched here",
+    "the independent review's hash-process deviation stays open",
+    "S3P-A-MINOR-01..07 stay non-blocking; no code fix and no inventory label or format change was made for them",
+    "product Gate0, the S3 quality set, the V1 Q01 set, the MS sets, packaging, the execution adapter, the finite production budget and every later human signature remain open product items",
+    "the AUTHORITATIVE label is path-relative and is not a provenance attestation",
+    "the guard binds the local pinned files, not a git object; the candidate and script binding is attested by the preflight, the pre-receipt and the independent review"
+  ],
+  "next_owner": "root; a bounded S3P-A-MAJOR-01 closure recheck is commissioned next"
+}
