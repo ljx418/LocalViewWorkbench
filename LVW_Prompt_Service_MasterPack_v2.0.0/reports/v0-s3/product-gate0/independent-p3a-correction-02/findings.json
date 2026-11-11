@@ -1,0 +1,28 @@
+{
+  "closed": [
+    "P3A-M01",
+    "P3A-M02",
+    "P3A-m01",
+    "P3A-C01-M03"
+  ],
+  "open": [
+    {
+      "id": "P3A-C02-M04",
+      "severity": "Major",
+      "status": "OPEN",
+      "location": [
+        "tools/v0_s2_stage_runtime.py:166-174",
+        "tools/v0_s3_stage_runtime.py:37-42,65-81,103-112"
+      ],
+      "trigger": "While verify_complete runs in inherited _complete, move the original sandbox parent and create a plain replacement directory at self.directory; verification returns an otherwise valid proof.",
+      "expected": "No preparation write to the replacement inode, including fresh run-root creation; refuse or create only through the pinned original parent, preserving original failure diagnostics.",
+      "actual": "Inherited _prepare performs tempfile.mkdtemp(dir=self.directory) before _DeploymentArchive.register checks parent identity; one empty lvw-s2-default-* directory is created in the replacement parent, then preparation parent identity drift is raised.",
+      "evidence": "raw/gap.stdout.log; INDEPENDENT_EARLY_LIFECYCLE plus failed unexpected == [] assertion",
+      "reproducer": "test_lifecycle_gap.py::test_parent_replaced_during_complete_verification_has_zero_foreign_writes",
+      "scope": "Real inherited root allocation within a new POSIX synthetic fixture; namespace change is injected during verification, not a real adversarial process or syscall-level race.",
+      "mitigations_observed": "No payload or lease written, no services started, sentinels unchanged, original failure safely persists through original parent descriptor, root_retained=null/UNKNOWN, five captured descriptors closed.",
+      "why_not_relocated_inode_exception": "The new directory is created under the replacement parent inode, rather than the relocated original pinned parent.",
+      "remediation_obligation": "Bind fresh root allocation to the original parent across complete verification and registration; preserve legacy S2 behavior and existing production owner calls, root adjudicates authorized seam."
+    }
+  ]
+}

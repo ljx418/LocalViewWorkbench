@@ -1,0 +1,70 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-8.4.2, pluggy-1.6.0 -- /usr/bin/python3
+rootdir: /home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0
+collecting ... collected 1 item
+
+reports/v0-s3/product-gate0/independent-p3a-correction-02/test_lifecycle_gap.py::test_parent_replaced_during_complete_verification_has_zero_foreign_writes INDEPENDENT_EARLY_LIFECYCLE {"archive_leases": [], "captured_descriptors_closed": 5, "original_failure_record": {"authorization_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "candidate_sha": "cfbd56aa365951b0b91cf978542ec63df7a0d89d", "error": "preparation parent identity drift", "error_type": "EvidenceError", "evidence": {"authorization_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "binding_proof": {"candidate_sha": "cfbd56aa365951b0b91cf978542ec63df7a0d89d", "complete_rehash": true, "manifest_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee", "tool_bindings": {"browser_executable": {"path": "/tmp/lvw-p3a-owned-ed1sd2__/browser_executable", "sha256": "b874545df11e507b4cf7f33fac4c262e74e9c2fb8a2803e73e1a50a580cb0a2b"}, "comfy_main": {"path": "/tmp/lvw-p3a-owned-ed1sd2__/comfy_main", "sha256": "b874545df11e507b4cf7f33fac4c262e74e9c2fb8a2803e73e1a50a580cb0a2b"}, "comfy_python": {"path": "/tmp/lvw-p3a-owned-ed1sd2__/comfy_python", "sha256": "b874545df11e507b4cf7f33fac4c262e74e9c2fb8a2803e73e1a50a580cb0a2b"}, "ffmpeg_exe": {"path": "/tmp/lvw-p3a-owned-ed1sd2__/ffmpeg_exe", "sha256": "b874545df11e507b4cf7f33fac4c262e74e9c2fb8a2803e73e1a50a580cb0a2b"}, "node_executable": {"path": "/tmp/lvw-p3a-owned-ed1sd2__/node_executable", "sha256": "b874545df11e507b4cf7f33fac4c262e74e9c2fb8a2803e73e1a50a580cb0a2b"}, "nvidia_exe": {"path": "/tmp/lvw-p3a-owned-ed1sd2__/nvidia_exe", "sha256": "b874545df11e507b4cf7f33fac4c262e74e9c2fb8a2803e73e1a50a580cb0a2b"}, "ollama_exe": {"path": "/tmp/lvw-p3a-owned-ed1sd2__/ollama_exe", "sha256": "b874545df11e507b4cf7f33fac4c262e74e9c2fb8a2803e73e1a50a580cb0a2b"}, "playwright_module": {"path": "/tmp/lvw-p3a-owned-ed1sd2__/playwright_module", "sha256": "b874545df11e507b4cf7f33fac4c262e74e9c2fb8a2803e73e1a50a580cb0a2b"}, "powershell": {"path": "/tmp/lvw-p3a-owned-ed1sd2__/powershell", "sha256": "b874545df11e507b4cf7f33fac4c262e74e9c2fb8a2803e73e1a50a580cb0a2b"}}}, "candidate_sha": "cfbd56aa365951b0b91cf978542ec63df7a0d89d", "label": "default", "owned_run_root": "/tmp/lvw-p3a-owned-ed1sd2__/\u9694\u79bb runtime/lvw-s2-default-0a5f87rd", "run_id": "p3a-fixture"}, "persistence": {"basis": "exclusive no-follow write relative to original owned parent descriptor", "note": "record of attempt; completion acknowledged in factory memory after fsync", "parent_device": 2096, "parent_inode": 2816937, "status": "PERSISTENCE_UNPROVEN"}, "root_name": "lvw-s2-default-0a5f87rd", "root_retained": null, "root_retention_observation": "UNKNOWN: original root descriptor unavailable", "run_id": "p3a-fixture", "stage_pass_claim": false}, "replacement_entries": ["lvw-s2-default-0a5f87rd"], "replacement_entries_are_empty_directories": true, "services_started": 0}
+FAILED
+
+=================================== FAILURES ===================================
+__ test_parent_replaced_during_complete_verification_has_zero_foreign_writes ___
+
+fixture = namespace(monkeypatch=<_pytest.monkeypatch.MonkeyPatch object at 0x705e740750a0>, temporary='/tmp/lvw-p3a-owned-ed1sd2...': PosixPath('/tmp/lvw-p3a-owned-ed1sd2__/comfy_python')}, repo=PosixPath('/tmp/lvw-p3a-owned-ed1sd2__/synthetic-git'))
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x705e740750a0>
+
+    def test_parent_replaced_during_complete_verification_has_zero_foreign_writes(fixture, monkeypatch):
+        f = fixture
+        factory = InstalledPackageRuntimeFactory(**f.kwargs)
+        original = factory.verify_complete
+        detached = f.root / 'review-original-evidence-parent'
+        def change_namespace_during_verification():
+            proof = original()
+            f.directory.rename(detached)
+            f.directory.mkdir()
+            (f.directory / 'foreign-sentinel').write_bytes(b'FOREIGN PARENT')
+            return proof
+        monkeypatch.setattr(factory, 'verify_complete', change_namespace_during_verification)
+        opened = []
+        original_open = os.open
+        def track(*args, **kwargs):
+            fd = original_open(*args, **kwargs)
+            opened.append(fd)
+            return fd
+        monkeypatch.setattr(os, 'open', track)
+        with pytest.raises(EvidenceError) as error:
+            factory.prepare_default()
+        assert str(error.value) == 'preparation parent identity drift'
+        assert not {'comfy-start', 'ollama-start'} & set(f.helper.events)
+        assert (detached / 'other-run/keep').read_bytes() == b'OTHER RUN'
+        assert f.sentinel.read_bytes() == b'UNRELATED ORIGINAL'
+        assert (f.directory / 'foreign-sentinel').read_bytes() == b'FOREIGN PARENT'
+        disk = json.loads((detached / 'default-preparation-failure.json').read_text())
+        assert disk['error'] == str(error.value)
+        assert disk['root_retained'] is None
+        assert factory.preparation_failures['default']['persistence']['status'] == 'PERSISTED'
+        assert factory._parent_fd is None and factory._root_fds == {}
+        for fd in set(opened):
+            with pytest.raises(OSError): os.fstat(fd)
+        unexpected = sorted(p.name for p in f.directory.iterdir() if p.name != 'foreign-sentinel')
+        print('INDEPENDENT_EARLY_LIFECYCLE ' + json.dumps({
+            'replacement_entries': unexpected,
+            'replacement_entries_are_empty_directories': all((f.directory / n).is_dir() and not list((f.directory / n).iterdir()) for n in unexpected),
+            'services_started': 0, 'original_failure_record': disk,
+            'captured_descriptors_closed': len(opened),
+            'archive_leases': list(f.archive.leases)}, sort_keys=True))
+>       assert unexpected == [], 'temporary root was created in replacement parent before identity refusal'
+E       AssertionError: temporary root was created in replacement parent before identity refusal
+E       assert ['lvw-s2-default-0a5f87rd'] == []
+E         
+E         Left contains one more item: 'lvw-s2-default-0a5f87rd'
+E         
+E         Full diff:
+E         - []
+E         + [
+E         +     'lvw-s2-default-0a5f87rd',
+E         + ]
+
+reports/v0-s3/product-gate0/independent-p3a-correction-02/test_lifecycle_gap.py:49: AssertionError
+=========================== short test summary info ============================
+FAILED reports/v0-s3/product-gate0/independent-p3a-correction-02/test_lifecycle_gap.py::test_parent_replaced_during_complete_verification_has_zero_foreign_writes
+============================== 1 failed in 0.23s ===============================
