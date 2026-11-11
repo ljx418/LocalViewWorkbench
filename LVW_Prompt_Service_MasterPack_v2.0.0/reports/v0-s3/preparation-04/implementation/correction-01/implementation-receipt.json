@@ -1,0 +1,281 @@
+{
+  "author": "ljx418 <1173696783@qq.com>",
+  "blocking_findings_addressed": {
+    "F-01": {
+      "closed": true,
+      "evidence": [
+        "negative-probes.json#N1",
+        "negative-probes.json#N15",
+        "negative-probes.json#N16",
+        "raw/05-pytest.stdout.log"
+      ],
+      "mechanism": "rollback now validates every owned path from the receipt and from the in-target ownership record: canonical relative POSIX path, inside the owned install prefix, no .., no absolute/drive/backslash, no Windows trailing dot/space or reserved device name, no Windows-normalized collision, no symlink escape; rejection happens before any deletion",
+      "title": "rollback used receipt owned.files[].install_path to delete outside the target"
+    },
+    "F-02": {
+      "closed": true,
+      "evidence": [
+        "negative-probes.json#N2",
+        "negative-probes.json#N15"
+      ],
+      "mechanism": "rollback performs no recursive deletion driven by any receipt path; it only confirms the terminal state of the staging directory bound by the ownership record; a residual staging directory is a stable ROLLBACK_CONFLICT with diagnostics retained and nothing is deleted",
+      "title": "rollback rmtree'd the arbitrary directory named by receipt staging.path"
+    },
+    "M-01": {
+      "closed": true,
+      "evidence": [
+        "negative-probes.json#N3",
+        "negative-probes.json#N12",
+        "negative-probes.json#N14"
+      ],
+      "mechanism": "rollback binds the normalized target identity (path + sha256), the sandbox parent identity, the sandbox marker identity, the non-colliding session and the source candidate/manifest/payload set through the in-target ownership record, and cross-checks the external receipt against it; basename is never used to decide ownership",
+      "title": "rollback bound the target only by basename (cross-sandbox deletion)"
+    },
+    "m-01": {
+      "closed": true,
+      "evidence": [
+        "negative-probes.json#N8",
+        "raw/05-pytest.stdout.log"
+      ],
+      "mechanism": "uniqueness uses a Windows normalization key (per-component trailing dot and space stripped, lower-cased) instead of lower() alone; trailing dot/space segments and reserved device names are rejected outright",
+      "title": "Windows trailing dot/space normalization collision was not rejected"
+    },
+    "m-02": {
+      "closed": true,
+      "evidence": [
+        "chain-summary.json#temp_root_cleanup"
+      ],
+      "mechanism": "the original runner is kept unchanged as history; the new correction-01 runner uses try/finally plus its own TemporaryDirectory and records the measured cleanup result for every path, including failures",
+      "title": "the original chain runner leaked its own temp root on failure paths"
+    },
+    "m-03": {
+      "closed": true,
+      "evidence": [
+        "raw/05-pytest.stdout.log"
+      ],
+      "mechanism": "external manifest read/parse/type failures are now a stable BAD_INPUT",
+      "title": "an unreadable/invalid external --manifest produced INTERNAL_ERROR"
+    }
+  },
+  "budget": {
+    "downloads": 0,
+    "gpu": 0,
+    "host_install": 0,
+    "model": 0,
+    "network": 0,
+    "product_full_checkpoint": 0,
+    "product_runtime_calls": 0,
+    "real_media": 0,
+    "service": 0
+  },
+  "candidate_commit": "ef8c065346a8f7d78b28b238207e7550444d897e",
+  "correction_packet": "reports/v0-s3/preparation-04/correction-01.task.md",
+  "human_signoff": false,
+  "independent_review": "reports/v0-s3/preparation-04/independent-01/review.md",
+  "kind": "S3_PREP_B_CORRECTION_01_IMPLEMENTATION_RECEIPT",
+  "known_leftovers_not_deleted": [
+    {
+      "bytes": 174518,
+      "dirs": 1,
+      "files": 14,
+      "path": "/tmp/lvw smoke 沙箱.McucN0",
+      "reason": "provably created by this implementer, but it is the exact residue cited by the independent review finding m-02; the correction contract forbids deleting review failure evidence",
+      "record_proof": "/tmp/lvw_smoke_sb.txt (SANDBOX=...)"
+    },
+    {
+      "bytes": 714,
+      "dirs": 1,
+      "files": 4,
+      "path": "/tmp/lvw smoke 沙箱.tj7KZA",
+      "reason": "no record proves ownership; prefix sweeping is forbidden",
+      "record_proof": null
+    },
+    {
+      "bytes": 0,
+      "dirs": 0,
+      "files": 0,
+      "path": "/tmp/lvw 离线包链路 15ar1jkf",
+      "reason": "no record proves ownership; prefix sweeping is forbidden",
+      "record_proof": null
+    },
+    {
+      "bytes": 0,
+      "dirs": 0,
+      "files": 0,
+      "path": "/tmp/lvw 离线包链路 iupsl92p",
+      "reason": "no record proves ownership; prefix sweeping is forbidden",
+      "record_proof": null
+    },
+    {
+      "bytes": 0,
+      "dirs": 0,
+      "files": 0,
+      "path": "/tmp/lvw 离线包链路 qcjychxp",
+      "reason": "no record proves ownership; prefix sweeping is forbidden",
+      "record_proof": null
+    }
+  ],
+  "limitations": [
+    "the ownership record is a local persistent record; it defends against external receipt replacement/rebinding, not against an actor with write access to the target who also recomputes install_hash (the correction contract explicitly does not require that)",
+    "ownership is decided by normalized target identity + sandbox marker identity + non-colliding session + source candidate/manifest/payload set + install hash + per-file hash re-verification; never by basename alone and never by an equal file hash alone",
+    "all verification ran on a POSIX (WSL2) sandbox: no real Windows host, no ComfyUI, no Ollama, no GPU, no model, no media, no network, no download",
+    "the two tool files and the whole preparation-04 tree are not listed in MANIFEST.sha256, so verify_pack does not hash-cover them; their integrity is bound here by SHA-256 and by the Git blobs"
+  ],
+  "negative_probes": {
+    "adapted_from": "reports/v0-s3/preparation-04/independent-01/probe/negative_probes.py",
+    "all_match_expectation": true,
+    "history_modified": false,
+    "raw": "raw/probes/",
+    "script": "implementation/correction-01/probe/negative_probes.py",
+    "temp_root_removed_after_run": true,
+    "total": 17
+  },
+  "offline_chain": {
+    "candidate_commit": "ef8c065346a8f7d78b28b238207e7550444d897e",
+    "fixed_hashes_after": {
+      "external_victim_sha256": "f6e7143a399cb789f96a9c46669b6847aaaf219ae272412bdcd4f040f97a48cd",
+      "non_owned_sha256": "86a435d765f27e79c2e04f6e6f404f75d92033a7e09d373864822145e7c4e5a1",
+      "sentinel_sha256": "403252aaeacc926cc64bddc9ddce43085c8a1d88e114758e2297760f1d0f239a"
+    },
+    "fixed_hashes_before": {
+      "external_victim_sha256": "f6e7143a399cb789f96a9c46669b6847aaaf219ae272412bdcd4f040f97a48cd",
+      "non_owned_sha256": "86a435d765f27e79c2e04f6e6f404f75d92033a7e09d373864822145e7c4e5a1",
+      "sentinel_sha256": "403252aaeacc926cc64bddc9ddce43085c8a1d88e114758e2297760f1d0f239a"
+    },
+    "fixed_hashes_unchanged": true,
+    "manifest_sha256": "173568308385c260ab01c0c2287c632414dee7154b0706a1d9271b67b2efb589",
+    "manifest_source_commit": "ef8c065346a8f7d78b28b238207e7550444d897e",
+    "ownership_lifecycle": {
+      "install_hash": "228def3580608a30fe239958e1317d737677e5c22166e391b549994730ff3df7",
+      "present_after_install": true,
+      "present_after_rollback": false,
+      "receipt_ownership_sha256": "a797265cef275b16819c1738f62713da10dc26ac58430328ba30ec0db964a3e4",
+      "record_file_name": ".lvw_v0_incremental_ownership.json",
+      "rollback_report_removed": true,
+      "session_id": "sess-931891cfbcb647ac89d20bb76d360d48",
+      "target_identity": "<work-dir>/隔离 沙箱根/隔离 目标 目录"
+    },
+    "package_member_count": 32,
+    "package_sha256": "2c74a8d0c91cb078bd3e5f8f258359e0f0352914aa8966f40f88ad97a33cf898",
+    "package_size_bytes": 98983,
+    "payload_expanded_bytes": 183540,
+    "payload_fingerprint_sha256": "c37d797e27bdfd6e559ac5ddffa30ed39c52dfc24e29db2a95eb93b562db3509",
+    "payload_item_count": 29,
+    "product_runtime_calls": 0,
+    "remaining_files_after_rollback": [
+      "哨兵 文件.txt",
+      "用户 原有 文件.txt"
+    ],
+    "rollback_ownership_record_removed": true,
+    "rollback_preimage_drift": [],
+    "rollback_removed_directories": [
+      "custom_nodes/lvw_v0_bridge/web",
+      "workflows/lvw",
+      "custom_nodes/lvw_v0_bridge",
+      "workflows",
+      "custom_nodes"
+    ],
+    "rollback_removed_files": 29,
+    "rollback_sentinel_unchanged": true,
+    "rollback_staging_deleted_by_rollback": false,
+    "rollback_staging_state": "absent_before_rollback",
+    "runner": "implementation/correction-01/run_offline_chain.py",
+    "staging_leftovers_after_install": [],
+    "staging_leftovers_after_rollback": [],
+    "steps": [
+      {
+        "command": "python3 <repo-root>/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_incremental_package.py build --repo <repo-root>/LVW_Prompt_Service_MasterPack_v2.0.0 --commit ef8c065346a8f7d78b28b238207e7550444d897e --out <work-dir>/LVW_V0 增量包.zip --receipt-out <repo-root>/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/preparation-04/implementation/correction-01/build-receipt.json --redact-root <work-dir> --redact-root <repo-root>",
+        "exit_code": 0,
+        "index": 1,
+        "label": "build",
+        "raw": {
+          "command": "raw/01-build.command.log",
+          "exit": "raw/01-build.exit.log",
+          "stderr": "raw/01-build.stderr.log",
+          "stdout": "raw/01-build.stdout.log"
+        }
+      },
+      {
+        "command": "python3 <repo-root>/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_incremental_package.py diagnose --package <work-dir>/LVW_V0 增量包.zip --target <work-dir>/隔离 沙箱根/隔离 目标 目录 --sandbox-parent <work-dir>/隔离 沙箱根 --receipt-out <repo-root>/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/preparation-04/implementation/correction-01/diagnose-receipt.json --redact-root <work-dir> --redact-root <repo-root>",
+        "exit_code": 0,
+        "index": 2,
+        "label": "diagnose",
+        "raw": {
+          "command": "raw/02-diagnose.command.log",
+          "exit": "raw/02-diagnose.exit.log",
+          "stderr": "raw/02-diagnose.stderr.log",
+          "stdout": "raw/02-diagnose.stdout.log"
+        }
+      },
+      {
+        "command": "python3 <repo-root>/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_incremental_package.py install --package <work-dir>/LVW_V0 增量包.zip --sandbox-parent <work-dir>/隔离 沙箱根 --target <work-dir>/隔离 沙箱根/隔离 目标 目录 --receipt-out <repo-root>/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/preparation-04/implementation/correction-01/install-receipt.json --redact-root <work-dir> --redact-root <repo-root>",
+        "exit_code": 0,
+        "index": 3,
+        "label": "install",
+        "raw": {
+          "command": "raw/03-install.command.log",
+          "exit": "raw/03-install.exit.log",
+          "stderr": "raw/03-install.stderr.log",
+          "stdout": "raw/03-install.stdout.log"
+        }
+      },
+      {
+        "command": "python3 <repo-root>/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_incremental_package.py rollback --receipt <repo-root>/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/preparation-04/implementation/correction-01/install-receipt.json --target <work-dir>/隔离 沙箱根/隔离 目标 目录 --receipt-out <repo-root>/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/preparation-04/implementation/correction-01/rollback-receipt.json --redact-root <work-dir> --redact-root <repo-root>",
+        "exit_code": 0,
+        "index": 4,
+        "label": "rollback",
+        "raw": {
+          "command": "raw/04-rollback.command.log",
+          "exit": "raw/04-rollback.exit.log",
+          "stderr": "raw/04-rollback.stderr.log",
+          "stdout": "raw/04-rollback.stdout.log"
+        }
+      }
+    ],
+    "temp_root_cleanup": {
+      "cleanup_scope": "only the single temporary root created by this runner; no /tmp prefix sweep and no unknown directory is touched",
+      "existed_before_cleanup": true,
+      "exists_after_cleanup": false,
+      "reason": "",
+      "removed": true,
+      "work_dir_prefix": "lvw-corr01-离线包链路 "
+    }
+  },
+  "original_packet": "reports/v0-s3/preparation-04/stage-packet-preparation-b.md",
+  "preserved_failures": {
+    "independent_01_evidence": "unchanged (raw probes N1/N2/N3 still present)",
+    "original_chain_runner": "unchanged (keeps the historical failure-path behaviour)",
+    "original_implementation_evidence": "unchanged (25 files)"
+  },
+  "product_gate0": false,
+  "review_decision": "reports/v0-s3/preparation-04/codex-review-decision-01.json",
+  "schema_versions": {
+    "manifest": "lvw.v0-incremental-package-manifest/1",
+    "ownership_record": "lvw.v0-incremental-package-ownership/1",
+    "product_public_api_changed": false,
+    "receipt": "lvw.v0-incremental-package-receipt/2"
+  },
+  "scope": "offline preparation only; not product Gate0, not a Stage PASS, not a real-host acceptance, no human sign-off",
+  "stage_pass": false,
+  "status": "READY_FOR_REVIEW",
+  "tests": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. python3 -B -m pytest tools/test_v0_incremental_package.py -p no:cacheprovider --basetemp=<own tmp> -v",
+    "exit_code": 0,
+    "new_regression_tests": 32,
+    "original_tests_preserved": 38,
+    "passed": 70,
+    "raw": {
+      "exit": "raw/05-pytest.exit.log",
+      "stderr": "raw/05-pytest.stderr.log",
+      "stdout": "raw/05-pytest.stdout.log"
+    }
+  },
+  "tool": {
+    "matches_candidate_commit": true,
+    "packaged_copy_matches_candidate_commit": true,
+    "packaged_copy_sha256": "b383d2e9292ada578cc8b90b9bcea8b15ce8c49cb439c0ccec6abcc65d899931",
+    "path": "tools/v0_incremental_package.py",
+    "sha256": "b383d2e9292ada578cc8b90b9bcea8b15ce8c49cb439c0ccec6abcc65d899931",
+    "version": "1.1.0"
+  }
+}
