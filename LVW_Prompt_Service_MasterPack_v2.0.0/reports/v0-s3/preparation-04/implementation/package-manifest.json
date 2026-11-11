@@ -1,0 +1,295 @@
+{
+  "dependencies": [
+    "打包工具本身只依赖 Python 3.8+ 标准库：不需要 clone 仓库、不需要 pip、不需要 npm。",
+    "安装目标必须是一个带本工具沙箱 marker 的隔离沙箱目录，而不是真实 ComfyUI 宿主。",
+    "目标沙箱需要可写，且需要能容纳 custom_nodes/ 与 workflows/ 两个顶层目录。",
+    "lvw_v0_bridge 在宿主内运行时会 import numpy 与 Pillow；本离线包不携带也不验证这两个依赖。",
+    "视频解码需要宿主内可用的 ffmpeg 可执行文件或 PyAV；本离线包不携带也不验证。",
+    "Ollama 端点由 bridge 在运行时通过 http://127.0.0.1:11434 访问；本离线包不携带也不验证。"
+  ],
+  "items": [
+    {
+      "install_path": "custom_nodes/lvw_v0_bridge/__init__.py",
+      "length": 1295,
+      "package_path": "payload/custom_nodes/lvw_v0_bridge/__init__.py",
+      "sha256": "2f77743d78e7971105d275a00b7f58d6dfacae15fc133911918eadc5f61ee74e",
+      "source_blob_id": "cbbf2f7df7115cdcc2418c1dd27d83c7e5ace4b9",
+      "source_mode": "100644",
+      "source_path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/__init__.py"
+    },
+    {
+      "install_path": "custom_nodes/lvw_v0_bridge/_native_av_probe.py",
+      "length": 1876,
+      "package_path": "payload/custom_nodes/lvw_v0_bridge/_native_av_probe.py",
+      "sha256": "3208c3d1839b7148d63646e6e1e05cf114c2ecf0aeaa3efe7b93fb2210ad3453",
+      "source_blob_id": "2548536a5b96065cb3aee88c17fabd2e6747e05f",
+      "source_mode": "100644",
+      "source_path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/_native_av_probe.py"
+    },
+    {
+      "install_path": "custom_nodes/lvw_v0_bridge/benchmark.py",
+      "length": 15288,
+      "package_path": "payload/custom_nodes/lvw_v0_bridge/benchmark.py",
+      "sha256": "4dba2cbc828820eef3930fe7a62f0cd18b003e63222c3b71d497643ed9c10d94",
+      "source_blob_id": "b0eff9c5109797a7c3ca6e05795cf21b306e57df",
+      "source_mode": "100644",
+      "source_path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/benchmark.py"
+    },
+    {
+      "install_path": "custom_nodes/lvw_v0_bridge/core.py",
+      "length": 27349,
+      "package_path": "payload/custom_nodes/lvw_v0_bridge/core.py",
+      "sha256": "f9fdd69b4e2bf41e170152a8fcac44ea477301d0a16faa513cf562021d568619",
+      "source_blob_id": "766999e46f610521af2e722dbfa308bb16fe247a",
+      "source_mode": "100644",
+      "source_path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/core.py"
+    },
+    {
+      "install_path": "custom_nodes/lvw_v0_bridge/image_input.py",
+      "length": 6535,
+      "package_path": "payload/custom_nodes/lvw_v0_bridge/image_input.py",
+      "sha256": "860de54dd60825918e7797ed914bcf65d305b94566569f3b9f5204cdbbb5d766",
+      "source_blob_id": "bc9b7a19c0f6217beb495dc9d2ff1effff6a3087",
+      "source_mode": "100644",
+      "source_path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/image_input.py"
+    },
+    {
+      "install_path": "custom_nodes/lvw_v0_bridge/manual.py",
+      "length": 9516,
+      "package_path": "payload/custom_nodes/lvw_v0_bridge/manual.py",
+      "sha256": "dce77eee4057b4b2529507f881feb56e9fe431717ce80ae4ec2c9c6a9e7a5b2e",
+      "source_blob_id": "cbd3b1f3b5e4c020ddf8be3eb5c647c8fe259e3d",
+      "source_mode": "100644",
+      "source_path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/manual.py"
+    },
+    {
+      "install_path": "custom_nodes/lvw_v0_bridge/native_probe.py",
+      "length": 1135,
+      "package_path": "payload/custom_nodes/lvw_v0_bridge/native_probe.py",
+      "sha256": "9b1f90250259177e2707ca2a06908bbf805115b03c7f35762b39da8f158c048f",
+      "source_blob_id": "8ba41d36c11dffea2f7a3796b3d676a2eba3d7b6",
+      "source_mode": "100644",
+      "source_path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/native_probe.py"
+    },
+    {
+      "install_path": "custom_nodes/lvw_v0_bridge/nodes.py",
+      "length": 7702,
+      "package_path": "payload/custom_nodes/lvw_v0_bridge/nodes.py",
+      "sha256": "5797f82a8c1273e19c5df19c46fe60081a25b681b0dda3df89e9dc4e5da1f4e1",
+      "source_blob_id": "5a2a93a4a9534637e3db2eebb324ca3f20160d1e",
+      "source_mode": "100644",
+      "source_path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/nodes.py"
+    },
+    {
+      "install_path": "custom_nodes/lvw_v0_bridge/resource_policy.py",
+      "length": 3070,
+      "package_path": "payload/custom_nodes/lvw_v0_bridge/resource_policy.py",
+      "sha256": "997021aeac31cd8ed814deebd4dbd0137f002468be5b0feccc238fdf1d82f708",
+      "source_blob_id": "891ba35a736432061f3ebf063f7e639da4c5f45e",
+      "source_mode": "100644",
+      "source_path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/resource_policy.py"
+    },
+    {
+      "install_path": "custom_nodes/lvw_v0_bridge/state.py",
+      "length": 5580,
+      "package_path": "payload/custom_nodes/lvw_v0_bridge/state.py",
+      "sha256": "db5f50a715aa602fae3e38c980ba7282ad1f603b565be8c9c0e0db646e8c86fe",
+      "source_blob_id": "6df83c5fed52ed15ff8a97e5a381ccf1740ea68b",
+      "source_mode": "100644",
+      "source_path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/state.py"
+    },
+    {
+      "install_path": "custom_nodes/lvw_v0_bridge/video_api.py",
+      "length": 9498,
+      "package_path": "payload/custom_nodes/lvw_v0_bridge/video_api.py",
+      "sha256": "7b44275ca1c7d991c4036bfc54c588d0fe387881447a8ad899260d8bb6dd1a20",
+      "source_blob_id": "37486cde4c0e9d3ca2b03e60886187d80248beef",
+      "source_mode": "100644",
+      "source_path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_api.py"
+    },
+    {
+      "install_path": "custom_nodes/lvw_v0_bridge/video_decoder.py",
+      "length": 7324,
+      "package_path": "payload/custom_nodes/lvw_v0_bridge/video_decoder.py",
+      "sha256": "c3c5718e96adec85d20c4fc703d236386171336347b513c58086ad2c01c5d3b2",
+      "source_blob_id": "b27eaca4c98b8c9067c78197d6427ee94d464517",
+      "source_mode": "100644",
+      "source_path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_decoder.py"
+    },
+    {
+      "install_path": "custom_nodes/lvw_v0_bridge/video_evidence.py",
+      "length": 7019,
+      "package_path": "payload/custom_nodes/lvw_v0_bridge/video_evidence.py",
+      "sha256": "600b4a349c66171efd364b140df86977c3a27c15d6d753585a0c62f3d9177291",
+      "source_blob_id": "71cc69aa108c9a40e85b81a5d3eda4a53be6eb6c",
+      "source_mode": "100644",
+      "source_path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_evidence.py"
+    },
+    {
+      "install_path": "custom_nodes/lvw_v0_bridge/video_files.py",
+      "length": 5045,
+      "package_path": "payload/custom_nodes/lvw_v0_bridge/video_files.py",
+      "sha256": "9be0f478eba93c6ef234660b9d6f714d873090f9d76d428a860373d0271caff9",
+      "source_blob_id": "f90ef8f06fa2aafcede01c04787f6746cd480dde",
+      "source_mode": "100644",
+      "source_path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_files.py"
+    },
+    {
+      "install_path": "custom_nodes/lvw_v0_bridge/video_input.py",
+      "length": 5561,
+      "package_path": "payload/custom_nodes/lvw_v0_bridge/video_input.py",
+      "sha256": "777a6093b7f3d352bf8b9f090ea59f22d795ba51facca04b8d9ed9b22a36a268",
+      "source_blob_id": "1df262fc0d8c89de5dec8f95336c5f5bd21d6c6d",
+      "source_mode": "100644",
+      "source_path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_input.py"
+    },
+    {
+      "install_path": "custom_nodes/lvw_v0_bridge/video_node.py",
+      "length": 3927,
+      "package_path": "payload/custom_nodes/lvw_v0_bridge/video_node.py",
+      "sha256": "e62bc68aa556aa4d908f4f2318436717a5161eceb061c14e75283a7422114f1f",
+      "source_blob_id": "5e13abd146f2aafa36496a3680b9ac0011d27cf0",
+      "source_mode": "100644",
+      "source_path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_node.py"
+    },
+    {
+      "install_path": "custom_nodes/lvw_v0_bridge/video_process.py",
+      "length": 4670,
+      "package_path": "payload/custom_nodes/lvw_v0_bridge/video_process.py",
+      "sha256": "563402a9c2f466c1484173c6a4dd2b9a8dbe46fd939ad92a6264975217508954",
+      "source_blob_id": "3d7aef029a01e21d54076e584cc5c7f8965c6915",
+      "source_mode": "100644",
+      "source_path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_process.py"
+    },
+    {
+      "install_path": "custom_nodes/lvw_v0_bridge/video_request.py",
+      "length": 11111,
+      "package_path": "payload/custom_nodes/lvw_v0_bridge/video_request.py",
+      "sha256": "7135ac4e37b7eb2b116a02011c8c5d57a4b952fd2a5b1eb39292d491bf82489e",
+      "source_blob_id": "dc35affea96639b5627ef0f5c8f14eb6ee76cb0c",
+      "source_mode": "100644",
+      "source_path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_request.py"
+    },
+    {
+      "install_path": "custom_nodes/lvw_v0_bridge/video_resources.py",
+      "length": 9637,
+      "package_path": "payload/custom_nodes/lvw_v0_bridge/video_resources.py",
+      "sha256": "554208abe5268a4e85db1ba50c2c7608f2e0c47004378b42bcce1f44d8513053",
+      "source_blob_id": "8d2d02a722362dafa52a2d60c63794e52fed48c1",
+      "source_mode": "100644",
+      "source_path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_resources.py"
+    },
+    {
+      "install_path": "custom_nodes/lvw_v0_bridge/video_transport.py",
+      "length": 12767,
+      "package_path": "payload/custom_nodes/lvw_v0_bridge/video_transport.py",
+      "sha256": "152536fd8c0c9121887dfb6a723d008300fd186bd1b22a1cc1dedb5a9428a4d8",
+      "source_blob_id": "9f5acca88b584eec8c67cfe634e457da2c9dcedb",
+      "source_mode": "100644",
+      "source_path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_transport.py"
+    },
+    {
+      "install_path": "custom_nodes/lvw_v0_bridge/video_upload.py",
+      "length": 2656,
+      "package_path": "payload/custom_nodes/lvw_v0_bridge/video_upload.py",
+      "sha256": "088e7b95264907f13f7ec1ef0cdf9874ea203d8cb103b7f45970fdbb52933641",
+      "source_blob_id": "f970caf87abb35ccd749c3d3053e1c32ca1dfbc9",
+      "source_mode": "100644",
+      "source_path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_upload.py"
+    },
+    {
+      "install_path": "custom_nodes/lvw_v0_bridge/video_workbench.py",
+      "length": 2239,
+      "package_path": "payload/custom_nodes/lvw_v0_bridge/video_workbench.py",
+      "sha256": "c59d6b539ac556ed0d1f9fb116e107099c4d2585dd88136039d2bfea42d3189e",
+      "source_blob_id": "b93e092f6bd5f12a46380895a8220ed5f186f027",
+      "source_mode": "100644",
+      "source_path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_workbench.py"
+    },
+    {
+      "install_path": "custom_nodes/lvw_v0_bridge/web/video_controls.js",
+      "length": 16165,
+      "package_path": "payload/custom_nodes/lvw_v0_bridge/web/video_controls.js",
+      "sha256": "33bc0133bed6542419857dbdea63724719bd8463adc9252ffde9c64363687a7e",
+      "source_blob_id": "1d684d7c24e9b2129ea2212ad0a59aad589cc121",
+      "source_mode": "100644",
+      "source_path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/web/video_controls.js"
+    },
+    {
+      "install_path": "custom_nodes/lvw_v0_bridge/web/video_json.js",
+      "length": 2852,
+      "package_path": "payload/custom_nodes/lvw_v0_bridge/web/video_json.js",
+      "sha256": "a8fa7ba7fa467a559dd6c420cbaebc3aa43fad3dc70c5361b18698b70b67e3e5",
+      "source_blob_id": "845ff5b4b0706ffea7e94712aa708429820d0140",
+      "source_mode": "100644",
+      "source_path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/web/video_json.js"
+    },
+    {
+      "install_path": "workflows/lvw/image_reverse_prompt_v0.api.json",
+      "length": 352,
+      "package_path": "payload/workflows/lvw/image_reverse_prompt_v0.api.json",
+      "sha256": "aa69dc1d316494f20df4eed14e0ce8b04fb23345ff4b0fcb636ac4176dd997b1",
+      "source_blob_id": "bdeefabb5d162f03140678f1f56f07e03051f27c",
+      "source_mode": "100644",
+      "source_path": "LVW_V0_RuntimePatch/workflows/image_reverse_prompt_v0.api.json"
+    },
+    {
+      "install_path": "workflows/lvw/image_reverse_prompt_v0.ui.json",
+      "length": 1274,
+      "package_path": "payload/workflows/lvw/image_reverse_prompt_v0.ui.json",
+      "sha256": "6047996a27abf9dd92901dafe35fa34f83a7f12924af72ce804b7b16df06e447",
+      "source_blob_id": "addffa0cfe7b5329ce275b15d77ad03ea3e04686",
+      "source_mode": "100644",
+      "source_path": "LVW_V0_RuntimePatch/workflows/image_reverse_prompt_v0.ui.json"
+    },
+    {
+      "install_path": "workflows/lvw/manual_prompt_v0.ui.json",
+      "length": 1286,
+      "package_path": "payload/workflows/lvw/manual_prompt_v0.ui.json",
+      "sha256": "411e9c56f0475866f1fb1e22603b558751a4601650aac132a2b24c3cc827f08a",
+      "source_blob_id": "85addb4e6abade5d02a7c713f7f310c7327aef9b",
+      "source_mode": "100644",
+      "source_path": "LVW_V0_RuntimePatch/workflows/manual_prompt_v0.ui.json"
+    },
+    {
+      "install_path": "workflows/lvw/video_reverse_prompt_v0.api.json",
+      "length": 186,
+      "package_path": "payload/workflows/lvw/video_reverse_prompt_v0.api.json",
+      "sha256": "8063b317602f0b8b3a5883a20c59bbeea69770bc2b57d975dc477300dd2ef15f",
+      "source_blob_id": "8a260b4093b156e28c0281f17677a8386edbb968",
+      "source_mode": "100644",
+      "source_path": "LVW_V0_RuntimePatch/workflows/video_reverse_prompt_v0.api.json"
+    },
+    {
+      "install_path": "workflows/lvw/video_reverse_prompt_v0.ui.json",
+      "length": 625,
+      "package_path": "payload/workflows/lvw/video_reverse_prompt_v0.ui.json",
+      "sha256": "f40bd2cb31c25bfcf95b71e824805f6f242e4482e8e432d39fbd52a50a42806a",
+      "source_blob_id": "782e41d2c581c748e6fe739f7e4825c35ed895ae",
+      "source_mode": "100644",
+      "source_path": "LVW_V0_RuntimePatch/workflows/video_reverse_prompt_v0.ui.json"
+    }
+  ],
+  "non_goals": [
+    "不携带模型、权重、媒体、用户稿、凭据或真实宿主配置。",
+    "不安装到、不修改真实 ComfyUI 宿主；安装只允许发生在显式沙箱内。",
+    "不启动服务、不调用模型、不使用 GPU、不联网、不下载。",
+    "不声称可在任意机器使用：只声明在本机已验证宿主上复用宿主既有依赖。",
+    "不覆盖已有安装做升级；已有非 owned 内容一律拒绝。",
+    "离线包链路不是产品 Gate0，也不是 V0.2 / V1 的验收结论。"
+  ],
+  "package_format_version": "lvw.v0-incremental-package/1",
+  "payload_expanded_bytes": 183540,
+  "payload_item_count": 29,
+  "payload_root": "payload/",
+  "schema_version": "lvw.v0-incremental-package-manifest/1",
+  "size_limit_bytes": 20971520,
+  "source_commit": "1c09cd651478beeb4c1bca026505364051a72892",
+  "tool": {
+    "name": "v0_incremental_package.py",
+    "provenance": "git_commit",
+    "provenance_detail": "bytes read from commit 1c09cd651478beeb4c1bca026505364051a72892 at LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_incremental_package.py",
+    "sha256": "f96e3c064d0e0dee2cbaeeb63b1df39738c3d560020c27f7890e97d820f5eab9",
+    "version": "1.0.0"
+  }
+}

@@ -1,0 +1,139 @@
+{
+  "checks": [
+    {
+      "detail": {
+        "problems": []
+      },
+      "name": "member_path_safety",
+      "passed": true
+    },
+    {
+      "detail": {
+        "case_insensitive_collisions": [],
+        "duplicates": []
+      },
+      "name": "member_uniqueness",
+      "passed": true
+    },
+    {
+      "detail": {
+        "offenders": []
+      },
+      "name": "member_kind_regular_files",
+      "passed": true
+    },
+    {
+      "detail": {
+        "archive_ratio": 3.31,
+        "archive_ratio_limit": 200,
+        "limit_bytes": 20971520,
+        "member_ratio_offenders": [],
+        "package_size_bytes": 90461,
+        "payload_expanded_bytes": 183540,
+        "total_compressed_bytes": 84979,
+        "total_expanded_bytes": 281106
+      },
+      "name": "size_limits_and_zip_bomb",
+      "passed": true
+    },
+    {
+      "detail": {
+        "offenders": []
+      },
+      "name": "member_declared_length",
+      "passed": true
+    },
+    {
+      "detail": {
+        "stray_members": []
+      },
+      "name": "member_set_layout",
+      "passed": true
+    },
+    {
+      "detail": {
+        "problems": []
+      },
+      "name": "manifest_item_integrity",
+      "passed": true
+    },
+    {
+      "detail": {
+        "extra_payload_members": [],
+        "missing_payload_members": []
+      },
+      "name": "manifest_entry_set",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual_sha256": "f96e3c064d0e0dee2cbaeeb63b1df39738c3d560020c27f7890e97d820f5eab9",
+        "manifest": {
+          "name": "v0_incremental_package.py",
+          "provenance": "git_commit",
+          "provenance_detail": "bytes read from commit 1c09cd651478beeb4c1bca026505364051a72892 at LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_incremental_package.py",
+          "sha256": "f96e3c064d0e0dee2cbaeeb63b1df39738c3d560020c27f7890e97d820f5eab9",
+          "version": "1.0.0"
+        }
+      },
+      "name": "tool_copy_matches_manifest",
+      "passed": true
+    },
+    {
+      "detail": {
+        "length": 2913,
+        "member": "meta/使用说明.md"
+      },
+      "name": "usage_document_present",
+      "passed": true
+    }
+  ],
+  "command": "diagnose",
+  "manifest": {
+    "item_count": 29,
+    "sha256": "cec7c45d4227e10ccfa184d9ad9f6c943fd42310f6ae6aa641f7070e66f328e1",
+    "source_commit": "1c09cd651478beeb4c1bca026505364051a72892"
+  },
+  "note": "diagnose only verifies; it never writes to the target and never extracts with extractall",
+  "package": {
+    "path": "<redacted-root>/LVW_V0 增量包.zip",
+    "sha256": "381089ebbe72b3e3810dad12cfe8c138ddb1bcd6451b8a0a5006b9d5ef9e4478",
+    "size_bytes": 90461
+  },
+  "payload_expanded_bytes": 183540,
+  "schema_version": "lvw.v0-incremental-package-receipt/1",
+  "status": "OK",
+  "target": {
+    "checks": [
+      {
+        "detail": {
+          "problem": null
+        },
+        "name": "target_not_production_host",
+        "passed": true
+      },
+      {
+        "detail": {
+          "marker_path": "<redacted-root>/隔离 沙箱根/.lvw_v0_incremental_sandbox.json"
+        },
+        "name": "sandbox_marker_present",
+        "passed": true
+      },
+      {
+        "detail": {
+          "exists": true,
+          "is_directory": true
+        },
+        "name": "target_writable",
+        "passed": true
+      }
+    ],
+    "exists": true,
+    "path": "<redacted-root>/隔离 沙箱根/隔离 目标 目录",
+    "writable": true
+  },
+  "tool": {
+    "name": "v0_incremental_package.py",
+    "version": "1.0.0"
+  }
+}

@@ -1,0 +1,120 @@
+{
+  "candidate_commit": "1c09cd651478beeb4c1bca026505364051a72892",
+  "candidate_commit_resolved": "1c09cd651478beeb4c1bca026505364051a72892",
+  "installed_file_count": 30,
+  "kind": "S3_PREP_B_OFFLINE_PACKAGE_CHAIN_EVIDENCE",
+  "manifest_sha256": "cec7c45d4227e10ccfa184d9ad9f6c943fd42310f6ae6aa641f7070e66f328e1",
+  "package": {
+    "member_count": 32,
+    "members": [
+      "meta/manifest.json",
+      "meta/v0_incremental_package.py",
+      "meta/使用说明.md",
+      "payload/custom_nodes/lvw_v0_bridge/__init__.py",
+      "payload/custom_nodes/lvw_v0_bridge/_native_av_probe.py",
+      "payload/custom_nodes/lvw_v0_bridge/benchmark.py",
+      "payload/custom_nodes/lvw_v0_bridge/core.py",
+      "payload/custom_nodes/lvw_v0_bridge/image_input.py",
+      "payload/custom_nodes/lvw_v0_bridge/manual.py",
+      "payload/custom_nodes/lvw_v0_bridge/native_probe.py",
+      "payload/custom_nodes/lvw_v0_bridge/nodes.py",
+      "payload/custom_nodes/lvw_v0_bridge/resource_policy.py",
+      "payload/custom_nodes/lvw_v0_bridge/state.py",
+      "payload/custom_nodes/lvw_v0_bridge/video_api.py",
+      "payload/custom_nodes/lvw_v0_bridge/video_decoder.py",
+      "payload/custom_nodes/lvw_v0_bridge/video_evidence.py",
+      "payload/custom_nodes/lvw_v0_bridge/video_files.py",
+      "payload/custom_nodes/lvw_v0_bridge/video_input.py",
+      "payload/custom_nodes/lvw_v0_bridge/video_node.py",
+      "payload/custom_nodes/lvw_v0_bridge/video_process.py",
+      "payload/custom_nodes/lvw_v0_bridge/video_request.py",
+      "payload/custom_nodes/lvw_v0_bridge/video_resources.py",
+      "payload/custom_nodes/lvw_v0_bridge/video_transport.py",
+      "payload/custom_nodes/lvw_v0_bridge/video_upload.py",
+      "payload/custom_nodes/lvw_v0_bridge/video_workbench.py",
+      "payload/custom_nodes/lvw_v0_bridge/web/video_controls.js",
+      "payload/custom_nodes/lvw_v0_bridge/web/video_json.js",
+      "payload/workflows/lvw/image_reverse_prompt_v0.api.json",
+      "payload/workflows/lvw/image_reverse_prompt_v0.ui.json",
+      "payload/workflows/lvw/manual_prompt_v0.ui.json",
+      "payload/workflows/lvw/video_reverse_prompt_v0.api.json",
+      "payload/workflows/lvw/video_reverse_prompt_v0.ui.json"
+    ],
+    "sha256": "381089ebbe72b3e3810dad12cfe8c138ddb1bcd6451b8a0a5006b9d5ef9e4478",
+    "size_bytes": 90461
+  },
+  "payload_expanded_bytes": 183540,
+  "payload_fingerprint_sha256": "c37d797e27bdfd6e559ac5ddffa30ed39c52dfc24e29db2a95eb93b562db3509",
+  "payload_item_count": 29,
+  "product_runtime_calls": 0,
+  "remaining_file_count_after_rollback": 1,
+  "remaining_files_after_rollback": [
+    "哨兵 文件.txt"
+  ],
+  "scope": "offline preparation only; not product Gate0, not a Stage PASS",
+  "sentinel": {
+    "bytes_after_rollback_match": true,
+    "path": "<work-dir>/隔离 沙箱根/隔离 目标 目录/哨兵 文件.txt",
+    "sha256_after_install": "403252aaeacc926cc64bddc9ddce43085c8a1d88e114758e2297760f1d0f239a",
+    "sha256_after_rollback": "403252aaeacc926cc64bddc9ddce43085c8a1d88e114758e2297760f1d0f239a",
+    "sha256_before_install": "403252aaeacc926cc64bddc9ddce43085c8a1d88e114758e2297760f1d0f239a",
+    "unchanged_by_install": true,
+    "unchanged_by_rollback": true
+  },
+  "staging_leftovers": [],
+  "steps": [
+    {
+      "command": "python3 <repo-root>/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_incremental_package.py build --repo <repo-root>/LVW_Prompt_Service_MasterPack_v2.0.0 --commit 1c09cd651478beeb4c1bca026505364051a72892 --out <work-dir>/LVW_V0 增量包.zip --receipt-out <repo-root>/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/preparation-04/implementation/build-receipt.json --redact-root <work-dir> --redact-root <repo-root>",
+      "exit_code": 0,
+      "index": 1,
+      "label": "build",
+      "raw": {
+        "command": "raw/01-build.command.log",
+        "exit": "raw/01-build.exit.log",
+        "stderr": "raw/01-build.stderr.log",
+        "stdout": "raw/01-build.stdout.log"
+      }
+    },
+    {
+      "command": "python3 <repo-root>/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_incremental_package.py diagnose --package <work-dir>/LVW_V0 增量包.zip --target <work-dir>/隔离 沙箱根/隔离 目标 目录 --sandbox-parent <work-dir>/隔离 沙箱根 --receipt-out <repo-root>/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/preparation-04/implementation/diagnose-receipt.json --redact-root <work-dir> --redact-root <repo-root>",
+      "exit_code": 0,
+      "index": 2,
+      "label": "diagnose",
+      "raw": {
+        "command": "raw/02-diagnose.command.log",
+        "exit": "raw/02-diagnose.exit.log",
+        "stderr": "raw/02-diagnose.stderr.log",
+        "stdout": "raw/02-diagnose.stdout.log"
+      }
+    },
+    {
+      "command": "python3 <repo-root>/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_incremental_package.py install --package <work-dir>/LVW_V0 增量包.zip --sandbox-parent <work-dir>/隔离 沙箱根 --target <work-dir>/隔离 沙箱根/隔离 目标 目录 --receipt-out <repo-root>/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/preparation-04/implementation/install-receipt.json --redact-root <work-dir> --redact-root <repo-root>",
+      "exit_code": 0,
+      "index": 3,
+      "label": "install",
+      "raw": {
+        "command": "raw/03-install.command.log",
+        "exit": "raw/03-install.exit.log",
+        "stderr": "raw/03-install.stderr.log",
+        "stdout": "raw/03-install.stdout.log"
+      }
+    },
+    {
+      "command": "python3 <repo-root>/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_incremental_package.py rollback --receipt <repo-root>/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/preparation-04/implementation/install-receipt.json --target <work-dir>/隔离 沙箱根/隔离 目标 目录 --receipt-out <repo-root>/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/preparation-04/implementation/rollback-receipt.json --redact-root <work-dir> --redact-root <repo-root>",
+      "exit_code": 0,
+      "index": 4,
+      "label": "rollback",
+      "raw": {
+        "command": "raw/04-rollback.command.log",
+        "exit": "raw/04-rollback.exit.log",
+        "stderr": "raw/04-rollback.stderr.log",
+        "stdout": "raw/04-rollback.stdout.log"
+      }
+    }
+  ],
+  "tool_matches_candidate_commit": true,
+  "tool_path_in_repo": "LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_incremental_package.py",
+  "tool_sha256": "f96e3c064d0e0dee2cbaeeb63b1df39738c3d560020c27f7890e97d820f5eab9",
+  "work_dir_disposition": "removed_by_runner",
+  "work_dir_removed": true
+}
