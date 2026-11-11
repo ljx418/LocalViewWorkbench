@@ -1,0 +1,257 @@
+{
+  "kind": "D0_B_REVIEW_DESIGN112_INDEPENDENT_REGRESSION_RECHECK_FINDINGS",
+  "stage_id": "V1-D0",
+  "workpack_id": "D0-B-REVIEW",
+  "review_scope": "bounded independent regression recheck of the consolidated NM-1..NM-8 correction package (owner authority 3af4463, candidate eea5663). This is the same D0 correction recheck, not a restart of the original 22 finding design audit.",
+  "reviewer_position": "isolated Orca-visible ClaudeCode review window; read-only; a separate worktree from the D0-B-IMPL implementer; no implementation chat, receipt or conclusion was treated as authoritative; every verdict below was recomputed from the frozen owner artefacts with reviewer-owned code",
+  "candidate": {
+    "code_candidate_commit": "eea56636b1870586fd8d6b17005334f1b4c63cd7",
+    "candidate_subject": "feat(D0-B-IMPL): correct the V1 design 1.1.2 checker for NM-1..NM-8",
+    "authority_ancestor_commit": "3af446302f6237b41dc500ee290caf2b5075ab80",
+    "authority_ancestor_subject": "docs: consolidate D0 checker audit corrections and seal design 1.1.2",
+    "d0_payload_manifest_sha256": "181c08ee7290f5bef02e22b6f7fd3c874c2d404cc8b4ffff84d2148a71f47eb8",
+    "d0_payload_manifest_sha256_recomputed_by_the_reviewer": "181c08ee7290f5bef02e22b6f7fd3c874c2d404cc8b4ffff84d2148a71f47eb8",
+    "loaded_into_review_checkout_by": "git merge --no-ff eea56636b1870586fd8d6b17005334f1b4c63cd7 (clean, no conflict, no manual repair of any owner or candidate artefact)",
+    "review_merge_commit": "2ec04c6c1d4b133008d81ec2033eda9394d3942a",
+    "review_merge_parents": ["e8e8ef582d69e56bf7bc8dc1ee0e657453d8b015", "eea56636b1870586fd8d6b17005334f1b4c63cd7"],
+    "review_branch": "ljx418/lvw-v1-d0-review",
+    "review_worktree": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review",
+    "tree_identity_note": "git diff --name-only eea5663 2ec04c6 is empty: the loaded merge reproduces the candidate tree byte for byte and the reviewer's own prior review artefacts are carried unchanged",
+    "candidate_diff_vs_authority_is_only": "tools/verify_v1_plan.py, tools/test_verify_v1_plan.py and reports/v1-redesign/d0-worker/** ; no contract, plan, doc, governance, manifest or product source was touched by the candidate (the owner files that differ from the 1.1.1 authority differ because the *owner* authority commit 3af4463 changed them)",
+    "candidate_code_digests_independently_recomputed": {
+      "tools/verify_v1_plan.py": "6dfbaaedbe50faa1ddf2c9b2ac31bb588e9e66e37480d5e925dd5304723bb1ca",
+      "tools/test_verify_v1_plan.py": "da75a950667ab1e90e76e927756395a9d8398972c4dbe7389a671a083c9a41d4",
+      "match_with_the_implementation_receipt": true
+    },
+    "ancestry_verified_by_the_reviewer": "git merge-base --is-ancestor 3af4463 eea5663 -> true; the candidate is a descendant of the 1.1.2 owner authority",
+    "parent_worktree_touched": false,
+    "implementation_worktree_touched": false
+  },
+  "verdict_legend": {
+    "RESOLVED": "the correction is present in the frozen artefacts, was recomputed independently by the reviewer, and the machine guard for it was exercised and rejects the corresponding defect",
+    "RESOLVED_WITH_RESIDUAL": "the correction itself is present and was independently recomputed, but a residual defect remains in the same area; the residual is stated below with its scope and its rationale and is listed as a nonblocking Minor",
+    "UNRESOLVED": "the correction is absent or wrong"
+  },
+  "nm1_to_nm8": [
+    {
+      "id": "NM-1",
+      "severity_in_the_1_1_1_review": "Major",
+      "title": "the N6 guard pinned only 3 of the 11 scene-hash column aliases and never compared the lvw_scene_hash() call-site argument order",
+      "verdict": "RESOLVED",
+      "correction_recomputed_independently": [
+        "nm1.field_count = 11; nm1.all_eleven_aliases_present = true (the contract scene_hash.column_mapping covers exactly the 11 hashed fields)",
+        "nm1.all_alias_columns_declared_in_the_migration = true (every aliased column is declared by the candidate migration)",
+        "nm1.call_site_count = 2; each call site passes exactly 11 arguments; nm1.all_call_sites_in_the_declared_order = true (the reviewer's own call-site parser, not the candidate's)",
+        "nm1.call_site_tables = SCENE_HEAD and SCENE_REVISION_META, which are the two frozen backfill tables",
+        "nm1.independent_fixture_sha256 = 91133a6cdfc93456e2bc7d53c68eec9ad1a0faf5bd0e05b84b95dbafe0d9f788 -> etag scene:scene-rev-001:91133a6c... which matches the frozen strong tag pattern; the reviewer built the fixture and hashed it from the declared rule"
+      ],
+      "machine_guard_exercised": [
+        "P01 (a formerly unpinned alias, media_sha256, is rebound) -> exit 1, E_SCENE_HASH_MAPPING",
+        "P31 (another formerly unpinned alias, editor, is rebound) -> exit 1, E_SCENE_HASH_MAPPING",
+        "P02 (the call-site PTS arguments are permuted) -> exit 1, E_SCENE_HASH_MAPPING",
+        "P30 (a second, different call-site permutation: the first two arguments) -> exit 1, E_SCENE_HASH_MAPPING"
+      ],
+      "residual": "the DDL that defines lvw_scene_hash is still not part of the frozen package, so the hash itself can only be checked against the declared prose rule and never against a shipped function. That is known product implementation work and is explicitly outside this D0 scope; it is not a defect of this correction.",
+      "evidence": "checks/probe-results.json (P01, P02, P30, P31); checks/recompute-results.json nm1.*"
+    },
+    {
+      "id": "NM-2",
+      "severity_in_the_1_1_1_review": "Major",
+      "title": "the canonical Scene DTO on the new GET /api/v1/scenes/{id} was not machine guarded, so the M1 remedy could regress silently",
+      "verdict": "RESOLVED",
+      "correction_recomputed_independently": [
+        "nm2.new_get_data_ref = {'$ref': '#/components/schemas/Scene'}; nm2.new_get_data_ref_is_the_canonical_scene = true",
+        "nm2.new_get_envelope_equals_the_canonical_envelope = true (the new GET 200 envelope is the canonical PUT 200 envelope, byte for byte)",
+        "nm2.new_get_envelope_properties = data, request_id, schema_version; nm2.new_get_envelope_required = the same three; nm2.new_get_envelope_additional_properties = false",
+        "nm2.canonical_operation_count = 38; nm2.canonical_operations_mutated = []; nm2.replacements = [] (the reviewer's own overlay merge)"
+      ],
+      "machine_guard_exercised": [
+        "P05 (the new Scene GET returns another candidate component) -> exit 1, E_SCENE_GET_ENVELOPE",
+        "P32 (the success envelope gains a property) -> exit 1, E_SCENE_GET_ENVELOPE",
+        "P37 (the success envelope drops a required member) -> exit 1, E_SCENE_GET_ENVELOPE"
+      ],
+      "residual": null,
+      "evidence": "checks/probe-results.json (P05, P32, P37); checks/recompute-results.json nm2.*"
+    },
+    {
+      "id": "NM-3",
+      "severity_in_the_1_1_1_review": "Major",
+      "title": "malformed candidate input escaped as an uncaught traceback with an empty stdout instead of a deterministic finding",
+      "verdict": "RESOLVED",
+      "correction_recomputed_independently": [
+        "every malformed input the reviewer tried produced a deterministic E_* finding on stdout, a non-zero exit and no traceback on stdout or stderr",
+        "a missing input produces a clean INPUT_ERROR on stdout *and* stderr with exit 2 (checks/missing-input.stdout.log): the path is no longer stdout-empty"
+      ],
+      "machine_guard_exercised": [
+        "P22 (overlay.metadata_only is a list) -> exit 1, E_OVERLAY_METADATA_SHAPE",
+        "P23 (overlay.add_response_headers is a list) -> exit 1, E_OVERLAY_HEADER_SHAPE",
+        "P24 (the candidate schema carries an invalid regular expression) -> exit 1, E_SCHEMA_PATTERN",
+        "P33 (a nested metadata value is a list) -> exit 1, E_OVERLAY_METADATA_SHAPE",
+        "P34 (a nested response header status map is a list) -> exit 1, E_OVERLAY_HEADER_SHAPE",
+        "P35 (a nested container of the candidate schema is not an object) -> exit 1, E_CHECK_SHAPE"
+      ],
+      "residual": "the shape handler behind the checks covers AttributeError, TypeError, KeyError, IndexError, ValueError and re.error; an exception of another class would still escape as a traceback. That is a narrow, fail-closed-by-exit-code gap and it is recorded as a scope limit, not as a new finding.",
+      "evidence": "checks/probe-results.json (P22, P23, P24, P33, P34, P35); checks/probe-run.log"
+    },
+    {
+      "id": "NM-4",
+      "severity_in_the_1_1_1_review": "Minor",
+      "title": "degraded validation was never disclosed: Report.note() entries were collected and dropped and the run did not state which pin it verified",
+      "verdict": "RESOLVED",
+      "correction_recomputed_independently": [
+        "every collected note is now printed on stdout (NOTE: E_SCHEMA_META_SKIPPED, NOTE: E_FRAME_REF_SAMPLE_SKIPPED)",
+        "every run prints a VALIDATION line naming the metaschema probe, the retained frame instance probe and whether the frame sample was present",
+        "a degraded run is no longer byte identical to a full run: P00 stdout sha256 4a6b877a46b65e05..., P25 (no jsonschema) a018a8c6182c949f..., P26 (no frame sample) 608c487196664e5e...; the two degraded runs are also different from each other and each names its own skipped coverage",
+        "the structural fallback is never claimed as a full validation: metaschema_check=structural-fallback, frame_instance_probe=structural"
+      ],
+      "machine_guard_exercised": ["P25 (jsonschema not importable)", "P26 (retained frame sample absent)"],
+      "residual": null,
+      "evidence": "checks/probe-results.json (P00, P25, P26); checks/mandatory-checker.stdout.log"
+    },
+    {
+      "id": "NM-5",
+      "severity_in_the_1_1_1_review": "Minor",
+      "title": "the N5 entry serialization rule named one key order, said 'sorted keys', and the frozen example used a third order; the checker's key-order constant was dead code",
+      "verdict": "RESOLVED_WITH_RESIDUAL",
+      "correction_recomputed_independently": [
+        "the owner rule text is now unambiguous: it states the key set {kind, lang, ref, text} and the sorted output order 'kind, lang, ref, text (sort_keys=True), never insertion order' (docs/31 design 1.1.2 section and plans/v1-multishot-contract.json)",
+        "nm5.declared_key_set_and_order_are_unambiguous = true",
+        "nm5.example_matches_byte_for_byte = true: the reviewer's own implementation of the declared rule reproduces the frozen example byte for byte (two entries, key order kind, lang, ref, text)",
+        "the checker now compares the whole serialization rule against a frozen constant (FROZEN_DOMAIN_ENTRY_SERIALIZATION) and additionally requires the clarity tokens, so a second reading can not re-enter the machine contract"
+      ],
+      "machine_guard_exercised": [
+        "P38 (the declared ref of the scene domain is rebound) -> exit 1, E_DOMAIN_MAPPING",
+        "P39 (the example also carries entries of the other declared domain) -> exit 1, E_DOMAIN_MAPPING"
+      ],
+      "residual": "FROZEN_DOMAIN_ENTRY_KEYS (tools/verify_v1_plan.py:494) is still referenced by no check; the only reference in the whole package is a self-referential test assertion. The rule itself is protected by the exact-string comparison of the rule text and by the example recomputation, so the residual is cosmetic and nonblocking; the candidate commit message nonetheless states that the constant 'is now used instead of being dead code', which is not accurate - see NM-10.",
+      "evidence": "checks/recompute-results.json nm5.*; checks/probe-results.json (P38, P39); tools/verify_v1_plan.py:494"
+    },
+    {
+      "id": "NM-6",
+      "severity_in_the_1_1_1_review": "Minor",
+      "title": "the N5 example recomputation covered only the character domain and ignored the declared observation/inference routing",
+      "verdict": "RESOLVED_WITH_RESIDUAL",
+      "correction_recomputed_independently": [
+        "the conversion is now computed by a declaration driven engine that covers all four declared kinds (character, scene, action, unknown) and both declared domains (observation, inference), plus the declared language order (zh before en), the exact-empty skip against whitespace retention, the raw text preservation, the stable local_actor_id order, the original zero-based action and unknown index and the untouched human domains",
+        "the reviewer implemented the same declared rule independently and applied both implementations to one synthetic bundle that carries all four kinds and both domains: the three destinations agree byte for byte (nm6.all_three_destinations_agree = true, 0 errors on both sides)",
+        "nm6.kinds_covered = action, character, scene, unknown; nm6.exactly_empty_language_skipped = true; nm6.whitespace_language_retained = true; nm6.raw_text_preserved = true; nm6.human_domains_never_written = true",
+        "the declared refs and source fields are machine pinned for all four kinds, and the frozen example's declared source domain is now checked against its destination list",
+        "scope: this is an OFFLINE declaration conformance result. There is no runtime adapter in this D0 package, so it proves that the declared rule is implementable and unambiguous; it does not verify product output, and the absence of a runtime adapter and of lvw_scene_hash in the product is known product implementation work, not new D0 scope"
+      ],
+      "machine_guard_exercised": [
+        "P38 (the declared ref of the scene domain is rebound) -> exit 1, E_DOMAIN_MAPPING",
+        "P39 (the example also carries entries of the other declared domain) -> exit 1, E_DOMAIN_MAPPING"
+      ],
+      "residual": "the CLI guard recomputes the engine on the single frozen example, whose source is one character item; the four-kind and two-domain negatives live in the candidate's own unit tests, which the reviewer does not treat as an independent guarantee, and a misrouting of a scene, action or unknown item in a *product* implementation would not be caught by this D0 tool. The owner limited NM-6 to offline declaration conformance, so this residual does not expand the D0 scope; it is recorded as a nonblocking Minor.",
+      "evidence": "checks/recompute-results.json nm6.*; checks/probe-results.json (P38, P39)"
+    },
+    {
+      "id": "NM-7",
+      "severity_in_the_1_1_1_review": "Minor",
+      "title": "the implementation receipt's stated verify_pack result contradicted the log it hash-bound (7408 against 7475)",
+      "verdict": "RESOLVED",
+      "correction_recomputed_independently": [
+        "the old receipt is retained byte for byte: reports/v1-redesign/d0-worker/design111/implementation-receipt-1.1.1.json still hashes to bc2ed1fba46ff57abe6721014efb8f79c6b4bb81458a0d8cc4f3b3547edacf8d and still states 'passed 7408'",
+        "the log it binds is retained byte for byte: reports/v1-redesign/d0-worker/design111/logs/verify_pack.stdout.log still hashes to c0d2ebec64a86d1f2de344d347cc96ba4c3ee8c2e0bc7a569444ebcb6885e4e9 and still reports passed 7475, failed 0",
+        "the appended design 1.1.2 correction receipt names both, states the true historical figure 7475, calls the 7408 figure stale, and points at the log that carries it",
+        "every count, exit code and log digest in the new receipt is machine extracted from the raw logs of that run (reports/v1-redesign/d0-worker/design112/make_receipt.py parses the pytest stdout, the verify_pack stdout and the old receipt); the new receipt's own verify_pack figure 7530 is the figure of the log it binds (sha256 b01b4ec90da6d543ac67b40e3326f3988118d03345b63c625a698ceb9b082335), not a tree total",
+        "the reviewer's own independent verify_pack run on the reconstructed candidate tree reports 7531 / 0, one line more than the bound log; the delta is the known MANIFEST.sha256 line-count effect that the receipt itself states, and it does not touch the historical 7475 figure"
+      ],
+      "machine_guard_exercised": ["n/a - this finding is about the receipt and its bindings, not a checker rule"],
+      "residual": null,
+      "evidence": "reports/v1-redesign/d0-worker/design111/implementation-receipt-1.1.1.json:148; reports/v1-redesign/d0-worker/design112/implementation-receipt-1.1.2.json nm7_correction_of_the_1_1_1_receipt; checks/verify_pack.stdout.log"
+    },
+    {
+      "id": "NM-8",
+      "severity_in_the_1_1_1_review": "Minor",
+      "title": "the D0 packet manifest pin was CLI-overridable and the run never recorded which pin it verified",
+      "verdict": "RESOLVED",
+      "correction_recomputed_independently": [
+        "every run prints a PIN line that names the expected default pin, the computed actual pin and the mode",
+        "mode=default (frozen stage command pin) is what the frozen stage command produces: expected_default = actual = 181c08ee... (checks/mandatory-checker.stdout.log)",
+        "an explicit override is marked 'mode=explicit-override (NON-AUTHORITY: this run did not use the frozen stage command pin)' and prints the override value, so a synthetic copy run can not masquerade as the authority gate (P27)",
+        "the default pin and an explicit override are distinguishable on the same tree: the same copy under the default pin is rejected with E_D0_PACKET_MANIFEST_PINNED and is reported as mode=default (P28)",
+        "the superseded 1.1.1, 1.1 and 1.0 pins are all still rejected: P29, P40, P41 -> exit 1, E_D0_PACKET_MANIFEST_PINNED"
+      ],
+      "machine_guard_exercised": ["P27", "P28", "P29", "P40", "P41"],
+      "residual": null,
+      "evidence": "checks/probe-results.json (P27, P28, P29, P40, P41); checks/mandatory-checker.stdout.log"
+    }
+  ],
+  "new_findings": [
+    {
+      "id": "NM-9",
+      "severity": "Minor",
+      "kind": "receipt / commit message accuracy",
+      "title": "the candidate commit message splits the 233 tests as '165 carried over from 1.1.1 plus 68 new'; the independently collected split is 163 carried and 70 new test node ids",
+      "file": "the commit message of eea56636b1870586fd8d6b17005334f1b4c63cd7 (the appended implementation receipt itself is correct)",
+      "trigger": "a reader takes the split at face value",
+      "expected": "the split agrees with the independently collected test inventory",
+      "actual": "pytest collects 233 node ids in the candidate tree and 164 in the 1.1.1 tree. Exactly one prior test function was removed (test_d0_packet_pin_is_the_owner_supplied_111_digest) and it has a direct 1.1.2 replacement with the same oracle (test_d0_packet_pin_is_the_owner_supplied_112_digest). 163 functions are carried over and 60 new functions are added; 59 of the new functions yield one node id each and one of them (test_every_scene_hash_alias_is_pinned_to_its_frozen_mapping) is parametrized over the 11 aliases and yields 11 node ids: 163 + 59 + 11 = 233 node ids. The commit message's 165 + 68 = 233 sums correctly but splits the inventory wrongly.",
+      "reproduction": "checks/test-diff-results.json (163 carried functions, 1 removed function with its replacement, 60 added functions) and checks/probe-results.json are not involved; the collection was done with pytest --collect-only on both trees",
+      "impact": "immaterial to the gate (the total 233 is correct and machine extracted from the pytest stdout log, and the reviewer's own mandatory run reproduces 233 passed), but the split is the number a reader would quote when asking how much of the old coverage survived",
+      "no_negative_was_deleted": "the 163 carried functions are all still present; 159 are byte identical and the 4 that changed did so only for a legitimate version or expectation reason (the frozen spec fence count 24 -> 25 with the oracle preserved, the merge test strengthened from 'still passes' to 'is rejected with E_SCENE_GET_ENVELOPE while the merge guard stays silent', and two stale-pin tests refactored onto a helper with the oracle preserved)",
+      "evidence": "checks/test-diff-results.json; checks/mandatory-pytest.stdout.log",
+      "owner": "ClaudeCode-D0-Implement (commit message / receipt prose)"
+    },
+    {
+      "id": "NM-10",
+      "severity": "Minor",
+      "kind": "commit message accuracy against the code",
+      "title": "the candidate commit message states that FROZEN_DOMAIN_ENTRY_KEYS 'is now used instead of being dead code'; the constant is still referenced by no check",
+      "file": "the commit message of eea56636b1870586fd8d6b17005334f1b4c63cd7; tools/verify_v1_plan.py:494",
+      "trigger": "a reader believes the dead constant of the 1.1.1 finding NM-5 was put to work",
+      "expected": "the commit message matches the code",
+      "actual": "FROZEN_DOMAIN_ENTRY_KEYS is defined at tools/verify_v1_plan.py:494 and is never referenced again in tools/verify_v1_plan.py; the only reference in the package is tools/test_verify_v1_plan.py:3130-3131, a test that asserts the constant against a literal of the same value. The rule itself is protected by the exact string comparison against FROZEN_DOMAIN_ENTRY_SERIALIZATION and by the example recomputation, so the protection the finding asked for exists; only this constant stayed unused.",
+      "reproduction": "grep -n FROZEN_DOMAIN_ENTRY_KEYS tools/verify_v1_plan.py returns one line (the definition)",
+      "impact": "cosmetic and nonblocking; it is the same substance as the NM-5 residual and is counted once, here",
+      "evidence": "tools/verify_v1_plan.py:494; tools/test_verify_v1_plan.py:3130",
+      "owner": "ClaudeCode-D0-Implement (commit message) or Codex (remove the constant)"
+    }
+  ],
+  "totals": {
+    "nm1_to_nm8_resolved": 6,
+    "nm1_to_nm8_resolved_with_residual": 2,
+    "nm1_to_nm8_unresolved": 0,
+    "new_fatal": 0,
+    "new_major": 0,
+    "new_minor": 2
+  },
+  "count_reconciliation": {
+    "the_1_1_1_finding_array": "3 Major + 5 Minor + 0 Fatal = 8 findings (NM-1..NM-8); the findings array itself is the authority",
+    "the_1_1_1_summary_line": "the 1.1.1 report summary said 6 Minor, which contradicts its own array (5 Minor)",
+    "the_1_1_2_adjudication": "derived_counts {Fatal 0, Major 3, Minor 5} and review_summary_minor_count 6, with the discrepancy explicitly retained",
+    "the_1_1_2_receipt": "finding_counts.actual_finding_array {Major 3, Minor 5, Fatal 0, total 8} and review_report_summary_minor_count 6 - the discrepancy is reconciled in the appended receipt and the original report is retained byte for byte",
+    "the_reviewer_position_in_this_recheck": "the 1.1.1 findings.json and receipt.json are unchanged (git diff 88aab8b 2ec04c6 -- reports/v1-redesign/d0-review/design111 is empty); the corrected derived counts (3 Major + 5 Minor) are appended in the design112 receipt instead of being written over the old bytes",
+    "this_recheck": "0 Fatal, 0 Major, 2 Minor new; 6 of NM-1..NM-8 RESOLVED and 2 RESOLVED_WITH_RESIDUAL, with the residuals stated in the finding entries above"
+  },
+  "test_count_reconciliation": {
+    "candidate_claim": "233 passed (165 carried over from 1.1.1 plus 68 new), stated in the commit message of eea5663",
+    "reviewer_independent_collection": {
+      "prior_tree_f795694_collected_node_ids": 164,
+      "candidate_tree_eea5663_collected_node_ids": 233,
+      "prior_test_functions": 164,
+      "candidate_test_functions": 223,
+      "carried_functions": 163,
+      "removed_functions": ["test_d0_packet_pin_is_the_owner_supplied_111_digest"],
+      "removed_function_replacement": "test_d0_packet_pin_is_the_owner_supplied_112_digest (same oracle, the frozen pin moved from 04d3bfb4... to 181c08ee...)",
+      "added_functions": 60,
+      "parametrized_function": "test_every_scene_hash_alias_is_pinned_to_its_frozen_mapping, parametrized over the 11 aliases, 11 node ids",
+      "reconciled_split": "163 carried functions (163 node ids) + 60 new functions (70 node ids: 59 single node id functions and the alias function parametrized 11 times) = 233 node ids",
+      "difference_from_the_claim": "the claim's 165 + 68 sums to 233 but splits the inventory wrongly; the true split is 163 carried / 70 new node ids",
+      "carried_functions_with_a_changed_body": 4,
+      "changed_bodies_are_legitimate": "the frozen spec fence count (24 -> 25, oracle preserved), the merge test (strengthened: the mutated package is now rejected with E_SCENE_GET_ENVELOPE and the merge guard stays silent, which keeps the original oracle 'the overlay does not mutate the canonical operation'), and two stale-pin tests refactored onto a helper with the oracle preserved",
+      "no_negative_deleted_or_weakened": true
+    },
+    "reviewer_mandatory_pytest_run": "233 passed, 0 failed, 0 skipped, exit 0; the stdout is identical to the candidate's own pytest stdout apart from the wall-clock line (26.81s against 26.60s)"
+  },
+  "not_assessed_here": [
+    "No product gate, product acceptance, Stage PASS or human signature is assessed or implied. The product stays at R1 / WAIT_HUMAN (plans/execution-control.json coordinate {stage_id R1, state WAIT_HUMAN}); the 621b1bf experience signature is still absent; the samples stay NOT_MATERIALIZED_NOT_FROZEN (plans/v1-multishot-sample-design.json status DESIGN_ALLOCATION_ONLY_NOT_REAL_FIXTURES); the MS cases stay NOT_RUN.",
+    "This offline D0 packet is not product Gate 0.",
+    "The original 22 findings of the first D0-B review were resolved at design level by the design 1.1 authority and the prior independent design 1.1 review. This recheck re-verified the preserved obligations at the surfaces they changed (the canonical Scene alias and its envelope, the canonical V2 batch body, the canonical FrameRef narrowing, the old R1 packet manifest, the canonical contract hashes, the frozen denominators 29/38/47, the sample allocation and the budget arithmetic) and did not relaunch the whole original design audit.",
+    "No model inference, GPU, media/FFmpeg, service, browser, network, install, provider change, product database, push or root merge was performed. The candidate migration SQL was parsed as text and never executed; the only SQL executed was the in-memory SQLite run of the canonical contracts/storage.sql DDL performed by the existing tools/verify_pack.py inside a temporary copy.",
+    "The provider and model identity of the implementer is self-reported and was NOT independently verified.",
+    "The retained-frame instance probe, the metaschema probe and the effective-openapi merge are design checks; no runtime header, no product response and no real sample were produced or observed.",
+    "The D0 package contains no runtime adapter and no product lvw_scene_hash; their absence is known product implementation work and was explicitly not demanded by this review."
+  ]
+}
