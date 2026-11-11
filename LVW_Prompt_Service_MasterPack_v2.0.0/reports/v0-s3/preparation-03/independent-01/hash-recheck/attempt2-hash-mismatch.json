@@ -1,0 +1,145 @@
+{
+  "kind": "S3_PREP_INDEPENDENT_FINITE_HASH_RECHECK",
+  "authority_child": {
+    "path": "reports/v0-s3/preparation-03/independent-hash-child-01.json",
+    "sha256": "f03ffdbf8bea0299a14545a6ec04df54b47c63ddbda1379a3f9325bc4f2f874d",
+    "git_blob_at_d47c2a1": "970aac6eca9aa4f3689baf9ca91aef34646357d5",
+    "worktree_blob": "",
+    "blob_matches_root_supplied_child": false,
+    "id": "S3-PREP-REVIEW-HASH-01"
+  },
+  "candidate_checks": {
+    "source_candidate": {
+      "expected": "311bdda937373f1055a6677f02322fb347c31cd1",
+      "present_in_checkout": true,
+      "resolves_to": "311bdda937373f1055a6677f02322fb347c31cd1"
+    },
+    "implementation_code_candidate": {
+      "expected": "d33893303f24da57216b63b4e0b9ef7e009d7613",
+      "present_in_checkout": true,
+      "resolves_to": "d33893303f24da57216b63b4e0b9ef7e009d7613"
+    }
+  },
+  "code_identity": {
+    "tools/verify_s3_handoff.py": {
+      "candidate_blob": "4a272a3bb221f78a719d1b4796b8e16c2b775b92",
+      "checkout_blob": "",
+      "byte_identical_to_candidate": false
+    },
+    "tools/s3_asset_inventory.py": {
+      "candidate_blob": "b3f0ab2afc683a7e2ef005dc2db8b93c739775dc",
+      "checkout_blob": "",
+      "byte_identical_to_candidate": false
+    },
+    "tools/test_verify_s3_handoff.py": {
+      "candidate_blob": "4b20a5723f392e96786b3b64d16fa83cf49ece78",
+      "checkout_blob": "",
+      "byte_identical_to_candidate": false
+    },
+    "tools/test_s3_asset_inventory.py": {
+      "candidate_blob": "075786a09bb37db5086ac448097491abee74de07",
+      "checkout_blob": "",
+      "byte_identical_to_candidate": false
+    }
+  },
+  "inventory_receipt": {
+    "path": "reports/v0-s3/preparation-03/implementation/inventory-01/receipt.json",
+    "expected_sha256": "05ab5d63a69556c721b26191273cf60c20e4b3bb5826712688cefb06786ee2ef",
+    "actual_sha256": "05ab5d63a69556c721b26191273cf60c20e4b3bb5826712688cefb06786ee2ef",
+    "matches": true
+  },
+  "preflight_validated_before_source_access": false,
+  "root": {
+    "declared": "/mnt/c/workSpace/videoWorkLine/testSource",
+    "alias": "testSource",
+    "resolved": "/mnt/c/workSpace/videoWorkLine/testSource",
+    "walked": false,
+    "listed": false
+  },
+  "limits": {
+    "files": 3,
+    "bytes": 33554432,
+    "wall_seconds": 60,
+    "chunk_bytes": 1048576
+  },
+  "counters": {
+    "files_attempted": 3,
+    "files_hashed": 3,
+    "bytes_read": 11009275,
+    "chunks_read": 15,
+    "files_skipped": 0,
+    "escape_rejected": 0,
+    "identity_mismatch": 0,
+    "missing": 0
+  },
+  "elapsed_seconds": 0.473,
+  "results": [
+    {
+      "relative_path": "动作参考-原始.mp4",
+      "expected_sha256": "b788ac801ac468098ca95726ebc6578c825216c04939baaec68e50041d05a227",
+      "expected_bytes": 6957440,
+      "expected_file_id": "6ec6e856dfacc6bf3cbd8e25fc8430b15e18e2f88ad57ac5b12789a8730ca45b",
+      "resolved_within_root": true,
+      "observed_stat": {
+        "st_size": 6957440,
+        "st_mtime_ns": 1792427425042883200,
+        "st_ino": 19140298417592433,
+        "st_dev": 73,
+        "is_symlink": false
+      },
+      "actual_sha256": "b788ac801ac468098ca95726ebc6578c825216c04939baaec68e50041d05a227",
+      "actual_bytes": 6957440,
+      "chunks_read": 8,
+      "sha256_matches_candidate": true,
+      "bytes_match_candidate": true,
+      "result": "VERIFIED"
+    },
+    {
+      "relative_path": "图片-1 (1).jpeg",
+      "expected_sha256": "0295d0e19b0c8925a1152f11f0fc812174289df0dc3890557e5d3be63dda8f46",
+      "expected_bytes": 423206,
+      "expected_file_id": "9708cebf9d6085de3b3f6d2a4fe105e20698079ddf56a3e7d514bb99ac758a65",
+      "resolved_within_root": true,
+      "observed_stat": {
+        "st_size": 423206,
+        "st_mtime_ns": 1637543274000000000,
+        "st_ino": 132293239054134455,
+        "st_dev": 73,
+        "is_symlink": false
+      },
+      "actual_sha256": "0295d0e19b0c8925a1152f11f0fc812174289df0dc3890557e5d3be63dda8f46",
+      "actual_bytes": 423206,
+      "chunks_read": 2,
+      "sha256_matches_candidate": true,
+      "bytes_match_candidate": true,
+      "result": "VERIFIED"
+    },
+    {
+      "relative_path": "参考.png",
+      "expected_sha256": "1f03a23571d57d2b9ae22800bf58e6c1bea5a63c754d0dba36280f911241ac0f",
+      "expected_bytes": 3628629,
+      "expected_file_id": "d3a771505adb838e36f75eede1608509aae8f87d579e2d128784dca584e14737",
+      "resolved_within_root": true,
+      "observed_stat": {
+        "st_size": 3628629,
+        "st_mtime_ns": 1792866080248012900,
+        "st_ino": 1688849863713609,
+        "st_dev": 73,
+        "is_symlink": false
+      },
+      "actual_sha256": "1f03a23571d57d2b9ae22800bf58e6c1bea5a63c754d0dba36280f911241ac0f",
+      "actual_bytes": 3628629,
+      "chunks_read": 5,
+      "sha256_matches_candidate": true,
+      "bytes_match_candidate": true,
+      "result": "VERIFIED"
+    }
+  ],
+  "decision": "INDEPENDENT_HASH_RECHECK_VERIFIED",
+  "notes": [
+    "read-only SHA-256 recomputation of exactly the three files declared by the child authority",
+    "no directory walk, no second full inventory, no decode, no EXIF, no visual analysis",
+    "no original was written; every file was opened read-only",
+    "the 11 protected human holdouts and the obvious private-labelled paths were not touched"
+  ]
+}
