@@ -1,0 +1,51 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-8.4.2, pluggy-1.6.0 -- /usr/bin/python3
+rootdir: /home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0
+collecting ... collected 1 item
+
+tools/test_s3_install_handoff.py::test_correction03_archive_cleanup_callback_cannot_write_replacement ARCHIVE_CLEANUP_BOUNDARY {"replacement_entries": ["default-raw", "foreign"]}
+FAILED
+
+=================================== FAILURES ===================================
+_____ test_correction03_archive_cleanup_callback_cannot_write_replacement ______
+
+fixture = namespace(monkeypatch=<_pytest.monkeypatch.MonkeyPatch object at 0x7fb9893e03e0>, temporary='/tmp/lvw-p3a-owned-yfrri3...in': PosixPath('/tmp/lvw-p3a-owned-yfrri3h8/comfy_main')}, repo=PosixPath('/tmp/lvw-p3a-owned-yfrri3h8/synthetic-git'))
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fb9893e03e0>
+
+    def test_correction03_archive_cleanup_callback_cannot_write_replacement(fixture, monkeypatch):
+        import json
+        from tools import v0_s2_stage_runtime as legacy
+        f = fixture; detached = f.root / 'cleanup-original-parent'; native = legacy.NativeRuntime
+        def boundary(args, evidence):
+            driver = native(args, evidence); remove = driver.remove_owned_reparse_fixture
+            def moved(root):
+                result = remove(root)
+                f.directory.rename(detached); f.directory.mkdir()
+                (f.directory / 'foreign').write_bytes(b'FOREIGN')
+                return result
+            driver.remove_owned_reparse_fixture = moved
+            return driver
+        monkeypatch.setattr(legacy, 'NativeRuntime', boundary)
+        factory = InstalledPackageRuntimeFactory(**f.kwargs)
+        def fail(*args): raise ValueError('original final evidence failure')
+        monkeypatch.setattr(factory, '_persist_preparation_evidence', fail)
+        opened = lifecycle_fds(monkeypatch)
+        with pytest.raises(ValueError, match='original final evidence failure'): factory.prepare_default()
+        after = sorted(p.name for p in f.directory.iterdir())
+        print('ARCHIVE_CLEANUP_BOUNDARY', json.dumps({'replacement_entries': after}))
+>       assert after == ['foreign']
+E       AssertionError: assert ['default-raw', 'foreign'] == ['foreign']
+E         
+E         At index 0 diff: 'default-raw' != 'foreign'
+E         Left contains one more item: 'foreign'
+E         
+E         Full diff:
+E           [
+E         +     'default-raw',
+E               'foreign',
+E           ]
+
+tools/test_s3_install_handoff.py:421: AssertionError
+=========================== short test summary info ============================
+FAILED tools/test_s3_install_handoff.py::test_correction03_archive_cleanup_callback_cannot_write_replacement
+============================== 1 failed in 0.29s ===============================
