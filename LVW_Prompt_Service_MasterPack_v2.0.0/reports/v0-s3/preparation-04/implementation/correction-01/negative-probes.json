@@ -1,0 +1,316 @@
+{
+  "adapted_from": "reports/v0-s3/preparation-04/independent-01/probe/negative_probes.py",
+  "candidate_commit": "ef8c065346a8f7d78b28b238207e7550444d897e",
+  "kind": "S3_PREP_B_CORRECTION_01_NEGATIVE_PROBES",
+  "probes": [
+    {
+      "detail": {
+        "error_code": "PATH_REJECTED",
+        "exit_code": 4,
+        "removed_files": null,
+        "victim_still_exists": true
+      },
+      "expectation": "victim_still_exists=True (越界文件不得被删除)",
+      "matches_expectation": true,
+      "observed": "victim_still_exists=True",
+      "probe": "N1-rollback-receipt-path-traversal"
+    },
+    {
+      "detail": {
+        "error_code": "ROLLBACK_CONFLICT",
+        "exit_code": 8,
+        "victim_dir_still_exists": true
+      },
+      "expectation": "victim_dir_still_exists=True (收据字段不得驱动任意 rmtree)",
+      "matches_expectation": true,
+      "observed": "victim_dir_still_exists=True",
+      "probe": "N2-rollback-staging-path-arbitrary-rmtree"
+    },
+    {
+      "detail": {
+        "b_files_after": 29,
+        "b_files_before": 29,
+        "b_installed_files_removed": 0,
+        "error_code": "ROLLBACK_CONFLICT",
+        "exit_code": 8,
+        "non_owned_marker_still_exists": true
+      },
+      "expectation": "b_installed_files_removed=0 且不得删除另一沙箱的 owned 文件",
+      "matches_expectation": true,
+      "observed": "b_installed_files_removed=0",
+      "probe": "N3-rollback-cross-target-same-basename"
+    },
+    {
+      "detail": {
+        "actual_compress_size": 50970,
+        "declared_file_size": 100,
+        "error_code": "INTEGRITY_MISMATCH",
+        "exit_code": 3,
+        "package_size_bytes": 51094,
+        "real_expanded_bytes": 52428800
+      },
+      "expectation": "必须以非零退出码拒绝 (INTEGRITY_MISMATCH 或 SIZE_LIMIT)",
+      "matches_expectation": true,
+      "observed": "exit=3 error_code=INTEGRITY_MISMATCH",
+      "probe": "N4-zip-bomb-lying-header"
+    },
+    {
+      "detail": {
+        "error_code": "CONFLICT",
+        "exit_code": 6,
+        "files_after": [
+          "custom_nodes",
+          "custom_nodes/lvw_v0_bridge",
+          "custom_nodes/lvw_v0_bridge/既有 用户 文件.txt"
+        ],
+        "tree_unchanged": true
+      },
+      "expectation": "exit!=0 且 tree_unchanged=True",
+      "matches_expectation": true,
+      "observed": "exit=6 tree_unchanged=True",
+      "probe": "N5-existing-unowned-conflict-zero-write"
+    },
+    {
+      "detail": {
+        "error_code": "INTEGRITY_MISMATCH",
+        "exit_code": 3,
+        "target_empty": true,
+        "target_entries": []
+      },
+      "expectation": "exit!=0 且 target_empty=True",
+      "matches_expectation": true,
+      "observed": "exit=3 target_empty=True",
+      "probe": "N6-diagnose-failure-zero-write"
+    },
+    {
+      "detail": {
+        "built_matches_commit_blob": true,
+        "built_matches_dirty_worktree": false,
+        "built_payload_sha256": "f9fdd69b4e2bf41e170152a8fcac44ea477301d0a16faa513cf562021d568619",
+        "commit_blob_sha256": "f9fdd69b4e2bf41e170152a8fcac44ea477301d0a16faa513cf562021d568619",
+        "dirty_worktree_sha256": "1886432da13ca90923ce9256465b1619f39b9c71d93ff0cda07522739b1e9346",
+        "exit_code": 0,
+        "worktree_dirty_path_count": 1
+      },
+      "expectation": "built_matches_commit_blob=True 且 built_matches_dirty_worktree=False",
+      "matches_expectation": true,
+      "observed": "built_matches_commit_blob=True built_matches_dirty_worktree=False",
+      "probe": "N7-build-reads-git-objects-not-dirty-worktree"
+    },
+    {
+      "detail": {
+        "error_code": "PATH_REJECTED",
+        "exit_code": 4,
+        "message": "package contains unsafe member names",
+        "rejected": true
+      },
+      "expectation": "必须被拒绝 (Windows 上 'zz.py' 与 'zz.py.' 是同一文件名)",
+      "matches_expectation": true,
+      "observed": "exit=4 error_code=PATH_REJECTED",
+      "probe": "N8-windows-trailing-dot-space-normalization"
+    },
+    {
+      "detail": {
+        "bytes_unchanged": true,
+        "error_code": "ROLLBACK_CONFLICT",
+        "exit_code": 8,
+        "file_still_present": true
+      },
+      "expectation": "exit=8 (ROLLBACK_CONFLICT) 且 bytes_unchanged=True",
+      "matches_expectation": true,
+      "observed": "exit=8 error_code=ROLLBACK_CONFLICT bytes_unchanged=True",
+      "probe": "N10-user-modified-owned-file-rollback-refusal"
+    },
+    {
+      "detail": {
+        "error_code": "INSTALL_FAILED",
+        "exit_code": 7,
+        "no_owned_bridge_dir": true,
+        "original_failure_preserved": true,
+        "pre_existing_file_intact": true,
+        "removed_owned_paths": [
+          "custom_nodes/lvw_v0_bridge",
+          "custom_nodes"
+        ],
+        "staging_removed": true,
+        "tree_after": [
+          "workflows"
+        ]
+      },
+      "expectation": "exit!=0 且 pre_existing_file_intact=True 且 no_owned_bridge_dir=True",
+      "matches_expectation": true,
+      "observed": "exit=7 error_code=INSTALL_FAILED intact=True no_owned=True",
+      "probe": "N11-install-midway-failure-precise-revert"
+    },
+    {
+      "detail": {
+        "error_code": "PATH_REJECTED",
+        "escape_rejected": true,
+        "exit_code": 4,
+        "outside_entries": []
+      },
+      "expectation": "escape_rejected=True (target 经 symlink 逃出 sandbox 必须拒绝且 0 写入)",
+      "matches_expectation": true,
+      "observed": "exit=4 error_code=PATH_REJECTED outside_empty=True",
+      "probe": "N9-install-symlink-parent-escape"
+    },
+    {
+      "detail": {
+        "error_code": "ROLLBACK_CONFLICT",
+        "exit_code": 8,
+        "owned_files_before": 29,
+        "owned_files_preserved": 29,
+        "tree_unchanged": true
+      },
+      "expectation": "exit!=0 且 owned 文件一个都没被删",
+      "matches_expectation": true,
+      "observed": "exit=8 owned_files_preserved=29/29",
+      "probe": "N12-rollback-missing-ownership-record"
+    },
+    {
+      "detail": {
+        "error_code": "ROLLBACK_CONFLICT",
+        "exit_code": 8,
+        "tree_unchanged": true
+      },
+      "expectation": "exit!=0 且 tree_unchanged=True",
+      "matches_expectation": true,
+      "observed": "exit=8 tree_unchanged=True",
+      "probe": "N13-rollback-tampered-ownership-record"
+    },
+    {
+      "detail": {
+        "error_code": "ROLLBACK_CONFLICT",
+        "exit_code": 8,
+        "tree_unchanged": true
+      },
+      "expectation": "exit!=0 且 tree_unchanged=True",
+      "matches_expectation": true,
+      "observed": "exit=8 tree_unchanged=True",
+      "probe": "N14-rollback-session-mismatch"
+    },
+    {
+      "detail": {
+        "all_rejected": true,
+        "all_unchanged": true,
+        "mutations": {
+          "owned_created_directories": {
+            "error_code": "PATH_REJECTED",
+            "exit_code": 4,
+            "tree_unchanged": true,
+            "victim_unchanged": true
+          },
+          "owned_directories": {
+            "error_code": "PATH_REJECTED",
+            "exit_code": 4,
+            "tree_unchanged": true,
+            "victim_unchanged": true
+          },
+          "owned_files_install_path": {
+            "error_code": "PATH_REJECTED",
+            "exit_code": 4,
+            "tree_unchanged": true,
+            "victim_unchanged": true
+          },
+          "owned_files_install_path_absolute": {
+            "error_code": "PATH_REJECTED",
+            "exit_code": 4,
+            "tree_unchanged": true,
+            "victim_unchanged": true
+          },
+          "owned_files_install_path_backslash": {
+            "error_code": "PATH_REJECTED",
+            "exit_code": 4,
+            "tree_unchanged": true,
+            "victim_unchanged": true
+          },
+          "owned_files_install_path_drive": {
+            "error_code": "PATH_REJECTED",
+            "exit_code": 4,
+            "tree_unchanged": true,
+            "victim_unchanged": true
+          },
+          "preimage_path": {
+            "error_code": "PATH_REJECTED",
+            "exit_code": 4,
+            "tree_unchanged": true,
+            "victim_unchanged": true
+          },
+          "session_id": {
+            "error_code": "ROLLBACK_CONFLICT",
+            "exit_code": 8,
+            "tree_unchanged": true,
+            "victim_unchanged": true
+          },
+          "staging_path": {
+            "error_code": "ROLLBACK_CONFLICT",
+            "exit_code": 8,
+            "tree_unchanged": true,
+            "victim_unchanged": true
+          },
+          "target": {
+            "error_code": "ROLLBACK_CONFLICT",
+            "exit_code": 8,
+            "tree_unchanged": true,
+            "victim_unchanged": true
+          }
+        },
+        "victim_still_exists": true
+      },
+      "expectation": "全部字段 exit!=0 且整树不变且 victim 不变",
+      "matches_expectation": true,
+      "observed": "all_rejected=True all_unchanged=True",
+      "probe": "N15-every-tampered-receipt-field-rejected"
+    },
+    {
+      "detail": {
+        "error_code": "PATH_REJECTED",
+        "exit_code": 4,
+        "sentinel_unchanged": "a5c4718a11955dbd03a4742f7ea0f7105ec1ef5982920d3fe2579b5614daaf4e",
+        "tree_unchanged": true,
+        "victim_unchanged": true
+      },
+      "expectation": "exit!=0 且 tree_unchanged=True 且 victim_unchanged=True",
+      "matches_expectation": true,
+      "observed": "exit=4 tree_unchanged=True victim_unchanged=True",
+      "probe": "N16-precheck-failure-zero-write-zero-delete"
+    },
+    {
+      "detail": {
+        "absolute_path_leaked": false,
+        "error_code": null,
+        "exit_code": 0,
+        "receipt_redacted": true,
+        "remaining_files": [
+          "哨兵 文件.txt"
+        ]
+      },
+      "expectation": "exit=0 且收据已脱敏且回滚后只剩哨兵",
+      "matches_expectation": true,
+      "observed": "exit=0 redacted=True remaining=1",
+      "probe": "N17-redacted-receipt-with-explicit-target"
+    }
+  ],
+  "product_runtime_calls": 0,
+  "temp_root_leftover_entries": [
+    "N1",
+    "N10",
+    "N11",
+    "N12",
+    "N13",
+    "N14",
+    "N15",
+    "N16",
+    "N17",
+    "N2",
+    "N3",
+    "N4",
+    "N5",
+    "N6",
+    "N7",
+    "N8",
+    "N9",
+    "pkg.zip"
+  ],
+  "temp_root_removed_after_run": true
+}

@@ -1,0 +1,20 @@
+{
+  "command": "rollback",
+  "detail": {
+    "problems": [
+      "path_traversal",
+      "windows_trailing_dot_or_space",
+      "windows_trailing_dot_or_space"
+    ],
+    "role": "preimage.files[0].path",
+    "value": "../../victim.txt"
+  },
+  "error_code": "PATH_REJECTED",
+  "message": "preimage.files[0].path is not a canonical relative path",
+  "schema_version": "lvw.v0-incremental-package-diagnostic/1",
+  "status": "FAILED",
+  "tool": {
+    "name": "v0_incremental_package.py",
+    "version": "1.1.0"
+  }
+}
