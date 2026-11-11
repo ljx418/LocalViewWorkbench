@@ -1,0 +1,1030 @@
+{
+  "kind": "READ_ONLY_FACT_AUDIT_NOT_GATE_DECISION",
+  "baseline": "e2eb0cbbb6cae058f8b5da4da8a6775c63060d40",
+  "path_base": "LVW_Prompt_Service_MasterPack_v2.0.0",
+  "case_count": 12,
+  "rows": [
+    {
+      "case_id": "V0-A01",
+      "name": "图片真实输入",
+      "status": "NOT_RUN",
+      "fact_status": "CODE_VERIFIED_NOT_RUNTIME_VERIFIED",
+      "public_entry": [
+        {
+          "path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/nodes.py",
+          "line": 135,
+          "symbol": "LVWControlledImageInput.load",
+          "signature": "load(self, image_reference)",
+          "source_sha256": "5797f82a8c1273e19c5df19c46fe60081a25b681b0dda3df89e9dc4e5da1f4e1"
+        },
+        {
+          "path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/nodes.py",
+          "line": 50,
+          "symbol": "LVWImagePromptBridge.analyze",
+          "signature": "analyze(self, image, model=DEFAULT_MODEL, user_instruction='', mode='realistic', timeout_seconds=MAX_TIMEOUT_SECONDS)",
+          "source_sha256": "5797f82a8c1273e19c5df19c46fe60081a25b681b0dda3df89e9dc4e5da1f4e1"
+        }
+      ],
+      "owners": [
+        {
+          "path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/image_input.py",
+          "line": 76,
+          "symbol": "ControlledImageOwner.preprocess",
+          "signature": "preprocess(self, reference: str)",
+          "source_sha256": "860de54dd60825918e7797ed914bcf65d305b94566569f3b9f5204cdbbb5d766"
+        },
+        {
+          "path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/core.py",
+          "line": 477,
+          "symbol": "BridgeOwner.analyze_image",
+          "signature": "analyze_image(self, image, *, model: str, user_instruction: str, mode: str, timeout_seconds: int)",
+          "source_sha256": "f9fdd69b4e2bf41e170152a8fcac44ea477301d0a16faa513cf562021d568619"
+        }
+      ],
+      "existing_driver_functions": [
+        {
+          "path": "tools/v0_s2_cumulative_phase.py",
+          "line": 107,
+          "symbol": "CumulativePhase.online_cases",
+          "signature": "online_cases(self)",
+          "source_sha256": "ff72d851124a969576f279363879068f4e2fadc0aeed356de18f28eeff2a4ccb"
+        },
+        {
+          "path": "tools/v0_s2_cumulative_phase.py",
+          "line": 75,
+          "symbol": "CumulativePhase.execute",
+          "signature": "execute(self, graph, *, node='1', error=None)",
+          "source_sha256": "ff72d851124a969576f279363879068f4e2fadc0aeed356de18f28eeff2a4ccb"
+        }
+      ],
+      "oracle": [
+        "Source hash/bytes unchanged; preprocessing RGB hash/dimensions; public history graph identity; raw model/done and schema; exactly one chat per image."
+      ],
+      "negative_obligations": [
+        "Corrupt/overbyte/overpixel/EXIF/alpha boundary; current cumulative phase binds only one image."
+      ],
+      "persistent_terminal": "temp/cumulative-phase/online-receipt.json + trace/history and source metadata; raw/suggestion separate.",
+      "cleanup": [
+        {
+          "path": "tools/v0_s2_driver.py",
+          "line": 260,
+          "symbol": "S2SystemDriver.cleanup",
+          "signature": "cleanup(self)",
+          "source_sha256": "72883e2fa0c252aef7655708f40ada88a755978d71f632043c8203b53b42afed"
+        },
+        {
+          "path": "tools/v0_s2_runtime.py",
+          "line": 220,
+          "symbol": "NativeRuntime.release_preload",
+          "signature": "release_preload(self, binding, worker)",
+          "source_sha256": "ad15ee733e549f4a57e1adaef5f0eec30b86caff3ebaaad8fac2f488181744cc"
+        },
+        {
+          "path": "tools/v0_s2_stage_archive.py",
+          "line": 82,
+          "symbol": "OwnedArchive.__call__",
+          "signature": "__call__(self, context, cleanup)",
+          "source_sha256": "903d0a2ed4e5f83e107477b94006e5fcd0817891293a46d7162a2dbcace79c77"
+        }
+      ],
+      "reuse": "Reuse code with fresh S3 child/binding/raw evidence; historical PASS never substitutes this run.",
+      "gate0_gaps": [
+        "Freeze JPG/PNG/WebP coverage: existing one-image driver does not prove all three formats. Quality images are not automatically a substitute.",
+        "Default image transport currently has no COMPLETE03 debit."
+      ],
+      "model_action_requirement": {
+        "per_image_inference": 1,
+        "explicit_load": 0,
+        "format_triplet_min": 3,
+        "current_cumulative_driver": 1,
+        "cleanup_debits": 0
+      }
+    },
+    {
+      "case_id": "V0-A02",
+      "name": "视频有限抽帧",
+      "status": "NOT_RUN",
+      "fact_status": "CODE_VERIFIED_NOT_RUNTIME_VERIFIED",
+      "public_entry": [
+        {
+          "path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_api.py",
+          "line": 64,
+          "symbol": "LVWVideoPromptOwner.analyze",
+          "signature": "analyze(self, video_reference, model='gemma4:26b', user_instruction='', mode='realistic', timeout_seconds=120, unique_id=None)",
+          "source_sha256": "7b44275ca1c7d991c4036bfc54c588d0fe387881447a8ad899260d8bb6dd1a20"
+        },
+        {
+          "path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_node.py",
+          "line": 70,
+          "symbol": "LVWControlledVideoInput.load",
+          "signature": "load(self, video_reference)",
+          "source_sha256": "e62bc68aa556aa4d908f4f2318436717a5161eceb061c14e75283a7422114f1f"
+        }
+      ],
+      "owners": [
+        {
+          "path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_request.py",
+          "line": 72,
+          "symbol": "VideoRequestOwner.run",
+          "signature": "run(self, token, reference, *, model, user_instruction, mode, timeout_seconds, preview_hook=None, state_hook=None)",
+          "source_sha256": "7135ac4e37b7eb2b116a02011c8c5d57a4b952fd2a5b1eb39292d491bf82489e"
+        },
+        {
+          "path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/core.py",
+          "line": 497,
+          "symbol": "BridgeOwner.analyze_video",
+          "signature": "analyze_video(self, frames_value, *, model: str, user_instruction: str, mode: str, timeout_seconds: int, cancel_event=None, request_deadline=None)",
+          "source_sha256": "f9fdd69b4e2bf41e170152a8fcac44ea477301d0a16faa513cf562021d568619"
+        }
+      ],
+      "existing_driver_functions": [
+        {
+          "path": "tools/v0_s2_public_phase.py",
+          "line": 159,
+          "symbol": "PublicPhase.execute_case",
+          "signature": "execute_case(self, case)",
+          "source_sha256": "985c627fe712e7b9a0f55a2236e799ef78115e71e9a3de23501c6a33d568d3b5"
+        }
+      ],
+      "oracle": [
+        {
+          "path": "tools/v0_s2_checkpoint_oracles.py",
+          "line": 16,
+          "symbol": "public_video_oracle",
+          "signature": "public_video_oracle(history, prompt_id, *, source_sha256, expected_model, chat_calls_before, chat_calls_after)",
+          "source_sha256": "e922d9b5106b911ad1619622e409037f477903af48c3763a632dba3ba0cf2915"
+        },
+        {
+          "path": "tools/v0_s2_public_phase.py",
+          "line": 37,
+          "symbol": "exact_timeline",
+          "signature": "exact_timeline(metadata, fixture)",
+          "source_sha256": "985c627fe712e7b9a0f55a2236e799ef78115e71e9a3de23501c6a33d568d3b5"
+        }
+      ],
+      "negative_obligations": [
+        "static/tracking/fast-cut/vfr; decoder only has zero model calls; 0/5-frame, duplicate/reverse timestamps remain directed negative obligations."
+      ],
+      "persistent_terminal": "temp/public-phase/*.history.json, *.oracle.json, phase-receipt.json; ordered raw frame responses and metadata.",
+      "cleanup": [
+        {
+          "path": "tools/v0_s2_driver.py",
+          "line": 260,
+          "symbol": "S2SystemDriver.cleanup",
+          "signature": "cleanup(self)",
+          "source_sha256": "72883e2fa0c252aef7655708f40ada88a755978d71f632043c8203b53b42afed"
+        },
+        {
+          "path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_transport.py",
+          "line": 87,
+          "symbol": "InterruptibleOllamaTransport.cleanup",
+          "signature": "cleanup(self, model, timeout_seconds, *, release_deadline=None)",
+          "source_sha256": "152536fd8c0c9121887dfb6a723d008300fd186bd1b22a1cc1dedb5a9428a4d8"
+        },
+        {
+          "path": "tools/v0_s2_stage_archive.py",
+          "line": 82,
+          "symbol": "OwnedArchive.__call__",
+          "signature": "__call__(self, context, cleanup)",
+          "source_sha256": "903d0a2ed4e5f83e107477b94006e5fcd0817891293a46d7162a2dbcace79c77"
+        }
+      ],
+      "reuse": "Reuse code with fresh S3 child/binding/raw evidence; historical PASS never substitutes this run.",
+      "gate0_gaps": [
+        "Four structural videos remain separate from six quality videos.",
+        "Historical fixture receipt can be validated read-only by load_fixture_set; never re-activate its expired authorization."
+      ],
+      "model_action_requirement": {
+        "per_four_frame_video": 4,
+        "four_structural_categories": 16,
+        "decoder_only": 0,
+        "explicit_load": 0,
+        "cleanup_debits": 0
+      }
+    },
+    {
+      "case_id": "V0-A03",
+      "name": "四输出与数据合同",
+      "status": "NOT_RUN",
+      "fact_status": "CODE_VERIFIED_NOT_RUNTIME_VERIFIED",
+      "public_entry": [
+        {
+          "path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/nodes.py",
+          "line": 104,
+          "symbol": "LVWManualPromptOwner.process",
+          "signature": "process(self, natural_zh='', natural_en='', image_prompt='', video_prompt='', tags='', negative='', edit_instruction='', action='preview_json', filename='lvw-manual')",
+          "source_sha256": "5797f82a8c1273e19c5df19c46fe60081a25b681b0dda3df89e9dc4e5da1f4e1"
+        }
+      ],
+      "owners": [
+        {
+          "path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/manual.py",
+          "line": 204,
+          "symbol": "ManualDraftOwner.execute",
+          "signature": "execute(self, *, action: str, filename: str, natural_zh: str, natural_en: str, image_prompt: str, video_prompt: str, tags: str, negative: str, edit_instruction: str)",
+          "source_sha256": "dce77eee4057b4b2529507f881feb56e9fe431717ce80ae4ec2c9c6a9e7a5b2e"
+        }
+      ],
+      "existing_driver_functions": [
+        {
+          "path": "tools/v0_s2_cumulative_phase.py",
+          "line": 107,
+          "symbol": "CumulativePhase.online_cases",
+          "signature": "online_cases(self)",
+          "source_sha256": "ff72d851124a969576f279363879068f4e2fadc0aeed356de18f28eeff2a4ccb"
+        }
+      ],
+      "oracle": [
+        "Identical four fields + schema + persisted JSON/TXT byte equality; raw log prefix unchanged and chat count unchanged."
+      ],
+      "negative_obligations": [
+        "Log replacement; altered source/model metadata; invalid export target."
+      ],
+      "persistent_terminal": "output/lvw_manual/s2-a03.json/.txt plus trace and provider prefix.",
+      "cleanup": [
+        {
+          "path": "tools/v0_s2_driver.py",
+          "line": 260,
+          "symbol": "S2SystemDriver.cleanup",
+          "signature": "cleanup(self)",
+          "source_sha256": "72883e2fa0c252aef7655708f40ada88a755978d71f632043c8203b53b42afed"
+        },
+        {
+          "path": "tools/v0_s2_stage_archive.py",
+          "line": 82,
+          "symbol": "OwnedArchive.__call__",
+          "signature": "__call__(self, context, cleanup)",
+          "source_sha256": "903d0a2ed4e5f83e107477b94006e5fcd0817891293a46d7162a2dbcace79c77"
+        }
+      ],
+      "reuse": "Reuse code with fresh S3 child/binding/raw evidence; historical PASS never substitutes this run.",
+      "gate0_gaps": [
+        "Reuse analysis raw from this S3 namespace; image and video four-view witnesses required; headless native UI separate."
+      ],
+      "model_action_requirement": {
+        "incremental_inference": 0,
+        "load": 0,
+        "cleanup_debits": 0
+      }
+    },
+    {
+      "case_id": "V0-A04",
+      "name": "独立人工编辑导出",
+      "status": "NOT_RUN",
+      "fact_status": "CODE_VERIFIED_NOT_RUNTIME_VERIFIED",
+      "public_entry": [
+        {
+          "path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/nodes.py",
+          "line": 104,
+          "symbol": "LVWManualPromptOwner.process",
+          "signature": "process(self, natural_zh='', natural_en='', image_prompt='', video_prompt='', tags='', negative='', edit_instruction='', action='preview_json', filename='lvw-manual')",
+          "source_sha256": "5797f82a8c1273e19c5df19c46fe60081a25b681b0dda3df89e9dc4e5da1f4e1"
+        }
+      ],
+      "owners": [
+        {
+          "path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/manual.py",
+          "line": 204,
+          "symbol": "ManualDraftOwner.execute",
+          "signature": "execute(self, *, action: str, filename: str, natural_zh: str, natural_en: str, image_prompt: str, video_prompt: str, tags: str, negative: str, edit_instruction: str)",
+          "source_sha256": "dce77eee4057b4b2529507f881feb56e9fe431717ce80ae4ec2c9c6a9e7a5b2e"
+        },
+        {
+          "path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/manual.py",
+          "line": 124,
+          "symbol": "atomic_write",
+          "signature": "atomic_write(root: Path, filename: str, payload: str, *, parent_root: Path)",
+          "source_sha256": "dce77eee4057b4b2529507f881feb56e9fe431717ce80ae4ec2c9c6a9e7a5b2e"
+        }
+      ],
+      "existing_driver_functions": [
+        {
+          "path": "tools/v0_s2_cumulative_phase.py",
+          "line": 154,
+          "symbol": "CumulativePhase.offline_cases",
+          "signature": "offline_cases(self)",
+          "source_sha256": "ff72d851124a969576f279363879068f4e2fadc0aeed356de18f28eeff2a4ccb"
+        },
+        {
+          "path": "tools/v0_s2_browser_phase.py",
+          "line": 24,
+          "symbol": "run_browser_phase",
+          "signature": "run_browser_phase(driver, *, config, binding, fixture, node_executable, node_sha256, authorize_launch, authorize_action, verify_bindings, run_offline)",
+          "source_sha256": "d0e91cd827641b3e89e6732bad6f5337ba3b2d059eb74275eb7b539d594f837e"
+        }
+      ],
+      "oracle": [
+        "Owned Ollama listener absent; exact 20000 characters; copy/export bytes; browser clipboard and refresh warning."
+      ],
+      "negative_obligations": [
+        "Failed atomic replace retains target; no .lvw-manual temporary residual."
+      ],
+      "persistent_terminal": "output/lvw_manual/s2-a04* and offline receipt; browser artifacts.",
+      "cleanup": [
+        {
+          "path": "tools/v0_s2_driver.py",
+          "line": 260,
+          "symbol": "S2SystemDriver.cleanup",
+          "signature": "cleanup(self)",
+          "source_sha256": "72883e2fa0c252aef7655708f40ada88a755978d71f632043c8203b53b42afed"
+        },
+        {
+          "path": "tools/v0_s2_stage_archive.py",
+          "line": 82,
+          "symbol": "OwnedArchive.__call__",
+          "signature": "__call__(self, context, cleanup)",
+          "source_sha256": "903d0a2ed4e5f83e107477b94006e5fcd0817891293a46d7162a2dbcace79c77"
+        }
+      ],
+      "reuse": "Reuse code with fresh S3 child/binding/raw evidence; historical PASS never substitutes this run.",
+      "gate0_gaps": [
+        "Current cumulative node driver alone does not prove graphical refresh/clipboard; retain native headless browser obligations."
+      ],
+      "model_action_requirement": {
+        "inference": 0,
+        "load": 0,
+        "cleanup_debits": 0
+      }
+    },
+    {
+      "case_id": "V0-A05",
+      "name": "异常不覆盖草稿",
+      "status": "NOT_RUN",
+      "fact_status": "CODE_VERIFIED_NOT_RUNTIME_VERIFIED",
+      "public_entry": [
+        {
+          "path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/nodes.py",
+          "line": 172,
+          "symbol": "LVWDraftStateOwner.process",
+          "signature": "process(self, state='', action='start_run', run_token='', raw_response='', suggestion_payload='', draft_payload='', error_code='')",
+          "source_sha256": "5797f82a8c1273e19c5df19c46fe60081a25b681b0dda3df89e9dc4e5da1f4e1"
+        },
+        {
+          "path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_api.py",
+          "line": 64,
+          "symbol": "LVWVideoPromptOwner.analyze",
+          "signature": "analyze(self, video_reference, model='gemma4:26b', user_instruction='', mode='realistic', timeout_seconds=120, unique_id=None)",
+          "source_sha256": "7b44275ca1c7d991c4036bfc54c588d0fe387881447a8ad899260d8bb6dd1a20"
+        }
+      ],
+      "owners": [
+        {
+          "path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/state.py",
+          "line": 66,
+          "symbol": "transition",
+          "signature": "transition(state_json: str, *, action: str, run_token: str, raw_response: str='', suggestion_payload: str='', draft_payload: str='', error_code: str='')",
+          "source_sha256": "db5f50a715aa602fae3e38c980ba7282ad1f603b565be8c9c0e0db646e8c86fe"
+        },
+        {
+          "path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_request.py",
+          "line": 72,
+          "symbol": "VideoRequestOwner.run",
+          "signature": "run(self, token, reference, *, model, user_instruction, mode, timeout_seconds, preview_hook=None, state_hook=None)",
+          "source_sha256": "7135ac4e37b7eb2b116a02011c8c5d57a4b952fd2a5b1eb39292d491bf82489e"
+        }
+      ],
+      "existing_driver_functions": [
+        {
+          "path": "tools/v0_s2_cumulative_phase.py",
+          "line": 154,
+          "symbol": "CumulativePhase.offline_cases",
+          "signature": "offline_cases(self)",
+          "source_sha256": "ff72d851124a969576f279363879068f4e2fadc0aeed356de18f28eeff2a4ccb"
+        },
+        {
+          "path": "tools/v0_s2_fault_phase.py",
+          "line": 144,
+          "symbol": "FaultPhase.run",
+          "signature": "run(self)",
+          "source_sha256": "5f1895b8a02bcecbcc467570db69e03503d3de35f77fb28dc9e91f81d7e341b8"
+        }
+      ],
+      "oracle": [
+        {
+          "path": "tools/v0_s2_fault_evidence.py",
+          "line": 11,
+          "symbol": "fault_trace",
+          "signature": "fault_trace(events, *, binding, owner_pid, token, before, after, stop, clocks, resource_samples, baseline_gpu_mib)",
+          "source_sha256": "207f9b40e84994bd62e80bde09cf375187bfdb44e1a6b0d3d4a897ff9f13a91b"
+        },
+        "draft/draft_epoch stable; retries=0; stale token rejected; raw retained."
+      ],
+      "negative_obligations": [
+        "Synthetic invalid JSON/refusal/timeout/OOM/stale callback are zero-model logic tests; real owned-provider death must interrupt an actual send."
+      ],
+      "persistent_terminal": "cumulative offline receipt + fault-phase histories/native events/status/raw; quarantine remains unknown, not fictitious release.",
+      "cleanup": [
+        {
+          "path": "tools/v0_s2_driver.py",
+          "line": 260,
+          "symbol": "S2SystemDriver.cleanup",
+          "signature": "cleanup(self)",
+          "source_sha256": "72883e2fa0c252aef7655708f40ada88a755978d71f632043c8203b53b42afed"
+        },
+        {
+          "path": "tools/v0_s2_stage_archive.py",
+          "line": 82,
+          "symbol": "OwnedArchive.__call__",
+          "signature": "__call__(self, context, cleanup)",
+          "source_sha256": "903d0a2ed4e5f83e107477b94006e5fcd0817891293a46d7162a2dbcace79c77"
+        }
+      ],
+      "reuse": "Reuse code with fresh S3 child/binding/raw evidence; historical PASS never substitutes this run.",
+      "gate0_gaps": [
+        "Synthetic state callbacks do not prove actual Provider timeout/OOM/refusal. Root freezes which real branch coverage is required."
+      ],
+      "model_action_requirement": {
+        "synthetic_callbacks": 0,
+        "owned_provider_death_min": 1,
+        "owned_provider_death_cap": 4,
+        "cleanup_debits": 0
+      }
+    },
+    {
+      "case_id": "V0-A06",
+      "name": "断网增量迁移",
+      "status": "NOT_RUN",
+      "fact_status": "CODE_VERIFIED_NOT_RUNTIME_VERIFIED",
+      "public_entry": [
+        {
+          "path": "tools/v0_incremental_package.py",
+          "line": 1851,
+          "symbol": "command_install",
+          "signature": "command_install(args)",
+          "source_sha256": "b383d2e9292ada578cc8b90b9bcea8b15ce8c49cb439c0ccec6abcc65d899931"
+        },
+        {
+          "path": "tools/v0_incremental_package.py",
+          "line": 2465,
+          "symbol": "command_rollback",
+          "signature": "command_rollback(args)",
+          "source_sha256": "b383d2e9292ada578cc8b90b9bcea8b15ce8c49cb439c0ccec6abcc65d899931"
+        },
+        {
+          "path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/nodes.py",
+          "line": 50,
+          "symbol": "LVWImagePromptBridge.analyze",
+          "signature": "analyze(self, image, model=DEFAULT_MODEL, user_instruction='', mode='realistic', timeout_seconds=MAX_TIMEOUT_SECONDS)",
+          "source_sha256": "5797f82a8c1273e19c5df19c46fe60081a25b681b0dda3df89e9dc4e5da1f4e1"
+        },
+        {
+          "path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_api.py",
+          "line": 64,
+          "symbol": "LVWVideoPromptOwner.analyze",
+          "signature": "analyze(self, video_reference, model='gemma4:26b', user_instruction='', mode='realistic', timeout_seconds=120, unique_id=None)",
+          "source_sha256": "7b44275ca1c7d991c4036bfc54c588d0fe387881447a8ad899260d8bb6dd1a20"
+        }
+      ],
+      "owners": [
+        {
+          "path": "tools/v0_incremental_package.py",
+          "line": 1527,
+          "symbol": "command_diagnose",
+          "signature": "command_diagnose(args)",
+          "source_sha256": "b383d2e9292ada578cc8b90b9bcea8b15ce8c49cb439c0ccec6abcc65d899931"
+        }
+      ],
+      "existing_driver_functions": [
+        {
+          "path": "tools/v0_s2_driver.py",
+          "line": 397,
+          "symbol": "S2SystemDriver.start_comfy",
+          "signature": "start_comfy(self, directory, log_path)",
+          "source_sha256": "72883e2fa0c252aef7655708f40ada88a755978d71f632043c8203b53b42afed"
+        },
+        {
+          "path": "tools/v0_s2_stage_runtime.py",
+          "line": 136,
+          "symbol": "StageRuntimeFactory._user_root",
+          "signature": "_user_root(self, driver, root)",
+          "source_sha256": "5f9e0b624099f9e08460258f9349eb3736aa8ec74af45515668a41b2b32ceb56"
+        }
+      ],
+      "oracle": [
+        "Chinese+space isolated base; installed package executes public image/video/manual workflows; block nonloopback and observe attempts; restore prior workflow and execute it after rollback."
+      ],
+      "negative_obligations": [
+        "Package conflict/tamper/partial install/zip-slip covered by accepted preparation only; formal runtime must retain failures."
+      ],
+      "persistent_terminal": "Package install/rollback receipts plus new public runtime histories, network observation, original workflow hash and execution receipt.",
+      "cleanup": [
+        {
+          "path": "tools/v0_s2_driver.py",
+          "line": 260,
+          "symbol": "S2SystemDriver.cleanup",
+          "signature": "cleanup(self)",
+          "source_sha256": "72883e2fa0c252aef7655708f40ada88a755978d71f632043c8203b53b42afed"
+        },
+        {
+          "path": "tools/v0_s2_stage_archive.py",
+          "line": 82,
+          "symbol": "OwnedArchive.__call__",
+          "signature": "__call__(self, context, cleanup)",
+          "source_sha256": "903d0a2ed4e5f83e107477b94006e5fcd0817891293a46d7162a2dbcace79c77"
+        }
+      ],
+      "reuse": "Reuse code with fresh S3 child/binding/raw evidence; historical PASS never substitutes this run.",
+      "gate0_gaps": [
+        "No formal A06 runtime driver exists in inspected code.",
+        "Current no_cloud_remote_gate only observes Established port11434; not an outbound deny/attempt collector.",
+        "Original workflow identity/dependencies/model cost not bound; package tool alone is sandbox file proof."
+      ],
+      "model_action_requirement": {
+        "cold_image": 1,
+        "cold_four_frame_video": 4,
+        "manual": 0,
+        "explicit_load": 0,
+        "rollback_workflow_model_actions": null,
+        "cleanup_debits": 0
+      }
+    },
+    {
+      "case_id": "V0-A07",
+      "name": "文件输入安全",
+      "status": "NOT_RUN",
+      "fact_status": "CODE_VERIFIED_NOT_RUNTIME_VERIFIED",
+      "public_entry": [
+        {
+          "path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_api.py",
+          "line": 64,
+          "symbol": "LVWVideoPromptOwner.analyze",
+          "signature": "analyze(self, video_reference, model='gemma4:26b', user_instruction='', mode='realistic', timeout_seconds=120, unique_id=None)",
+          "source_sha256": "7b44275ca1c7d991c4036bfc54c588d0fe387881447a8ad899260d8bb6dd1a20"
+        },
+        {
+          "path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/nodes.py",
+          "line": 135,
+          "symbol": "LVWControlledImageInput.load",
+          "signature": "load(self, image_reference)",
+          "source_sha256": "5797f82a8c1273e19c5df19c46fe60081a25b681b0dda3df89e9dc4e5da1f4e1"
+        }
+      ],
+      "owners": [
+        {
+          "path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_files.py",
+          "line": 26,
+          "symbol": "resolve_video",
+          "signature": "resolve_video(root, reference)",
+          "source_sha256": "9be0f478eba93c6ef234660b9d6f714d873090f9d76d428a860373d0271caff9"
+        },
+        {
+          "path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_files.py",
+          "line": 62,
+          "symbol": "stage_video",
+          "signature": "stage_video(input_root, reference, temp_parent, *, max_bytes=MAX_VIDEO_BYTES)",
+          "source_sha256": "9be0f478eba93c6ef234660b9d6f714d873090f9d76d428a860373d0271caff9"
+        }
+      ],
+      "existing_driver_functions": [
+        {
+          "path": "tools/v0_s2_public_phase.py",
+          "line": 159,
+          "symbol": "PublicPhase.execute_case",
+          "signature": "execute_case(self, case)",
+          "source_sha256": "985c627fe712e7b9a0f55a2236e799ef78115e71e9a3de23501c6a33d568d3b5"
+        }
+      ],
+      "oracle": [
+        {
+          "path": "tools/v0_s2_public_phase.py",
+          "line": 50,
+          "symbol": "failure_oracle",
+          "signature": "failure_oracle(history, prompt_id, graph, *, code, subcode, chat_before, chat_after)",
+          "source_sha256": "985c627fe712e7b9a0f55a2236e799ef78115e71e9a3de23501c6a33d568d3b5"
+        }
+      ],
+      "negative_obligations": [
+        "Ten current public negatives: duration, fake extension, corrupt, truncated, traversal, absolute, UNC, empty, oversized, reparse. Image/metadata-injection obligations need explicit mapping."
+      ],
+      "persistent_terminal": "Exact execution_error code/subcode + zero-chat before/after + owned temp absent.",
+      "cleanup": [
+        {
+          "path": "tools/v0_s2_driver.py",
+          "line": 260,
+          "symbol": "S2SystemDriver.cleanup",
+          "signature": "cleanup(self)",
+          "source_sha256": "72883e2fa0c252aef7655708f40ada88a755978d71f632043c8203b53b42afed"
+        },
+        {
+          "path": "tools/v0_s2_stage_archive.py",
+          "line": 82,
+          "symbol": "OwnedArchive.__call__",
+          "signature": "__call__(self, context, cleanup)",
+          "source_sha256": "903d0a2ed4e5f83e107477b94006e5fcd0817891293a46d7162a2dbcace79c77"
+        }
+      ],
+      "reuse": "Reuse code with fresh S3 child/binding/raw evidence; historical PASS never substitutes this run.",
+      "gate0_gaps": [
+        "Do not assume current 10 video negatives exhaust image or metadata-injection coverage; freeze directed additions without changing case denominator."
+      ],
+      "model_action_requirement": {
+        "file_negatives": 0,
+        "load": 0,
+        "cleanup_debits": 0
+      }
+    },
+    {
+      "case_id": "V0-A08",
+      "name": "无人审审批阻断",
+      "status": "NOT_RUN",
+      "fact_status": "CODE_VERIFIED_NOT_RUNTIME_VERIFIED",
+      "public_entry": [
+        {
+          "path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/nodes.py",
+          "line": 104,
+          "symbol": "LVWManualPromptOwner.process",
+          "signature": "process(self, natural_zh='', natural_en='', image_prompt='', video_prompt='', tags='', negative='', edit_instruction='', action='preview_json', filename='lvw-manual')",
+          "source_sha256": "5797f82a8c1273e19c5df19c46fe60081a25b681b0dda3df89e9dc4e5da1f4e1"
+        }
+      ],
+      "owners": [
+        {
+          "path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/manual.py",
+          "line": 73,
+          "symbol": "manual_result",
+          "signature": "manual_result(draft: ManualDraft, *, created_at: str | None=None)",
+          "source_sha256": "dce77eee4057b4b2529507f881feb56e9fe431717ce80ae4ec2c9c6a9e7a5b2e"
+        }
+      ],
+      "existing_driver_functions": [
+        {
+          "path": "tools/v0_s2_cumulative_phase.py",
+          "line": 154,
+          "symbol": "CumulativePhase.offline_cases",
+          "signature": "offline_cases(self)",
+          "source_sha256": "ff72d851124a969576f279363879068f4e2fadc0aeed356de18f28eeff2a4ccb"
+        }
+      ],
+      "oracle": [
+        "Empty draft export has source_type=manual, run_id=null, analysis_status=not_requested, suggestion=null; zero chat."
+      ],
+      "negative_obligations": [
+        "No model/analysis/notes; audit no cloud/approval/NSFW prerequisite."
+      ],
+      "persistent_terminal": "output/lvw_manual/s2-a08-empty.json + offline-after provider prefix.",
+      "cleanup": [
+        {
+          "path": "tools/v0_s2_driver.py",
+          "line": 260,
+          "symbol": "S2SystemDriver.cleanup",
+          "signature": "cleanup(self)",
+          "source_sha256": "72883e2fa0c252aef7655708f40ada88a755978d71f632043c8203b53b42afed"
+        },
+        {
+          "path": "tools/v0_s2_stage_archive.py",
+          "line": 82,
+          "symbol": "OwnedArchive.__call__",
+          "signature": "__call__(self, context, cleanup)",
+          "source_sha256": "903d0a2ed4e5f83e107477b94006e5fcd0817891293a46d7162a2dbcace79c77"
+        }
+      ],
+      "reuse": "Reuse code with fresh S3 child/binding/raw evidence; historical PASS never substitutes this run.",
+      "gate0_gaps": [],
+      "model_action_requirement": {
+        "inference": 0,
+        "load": 0,
+        "cleanup_debits": 0
+      }
+    },
+    {
+      "case_id": "V0-A09",
+      "name": "资源与性能",
+      "status": "NOT_RUN",
+      "fact_status": "CODE_VERIFIED_NOT_RUNTIME_VERIFIED",
+      "public_entry": [
+        {
+          "path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/nodes.py",
+          "line": 50,
+          "symbol": "LVWImagePromptBridge.analyze",
+          "signature": "analyze(self, image, model=DEFAULT_MODEL, user_instruction='', mode='realistic', timeout_seconds=MAX_TIMEOUT_SECONDS)",
+          "source_sha256": "5797f82a8c1273e19c5df19c46fe60081a25b681b0dda3df89e9dc4e5da1f4e1"
+        },
+        {
+          "path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_api.py",
+          "line": 64,
+          "symbol": "LVWVideoPromptOwner.analyze",
+          "signature": "analyze(self, video_reference, model='gemma4:26b', user_instruction='', mode='realistic', timeout_seconds=120, unique_id=None)",
+          "source_sha256": "7b44275ca1c7d991c4036bfc54c588d0fe387881447a8ad899260d8bb6dd1a20"
+        }
+      ],
+      "owners": [
+        {
+          "path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/benchmark.py",
+          "line": 138,
+          "symbol": "WarmBenchmark.request",
+          "signature": "request(self, transport, model, timeout, expected_calls, *, absolute_deadline=None)",
+          "source_sha256": "4dba2cbc828820eef3930fe7a62f0cd18b003e63222c3b71d497643ed9c10d94"
+        }
+      ],
+      "existing_driver_functions": [
+        {
+          "path": "tools/v0_s2_warm_phase.py",
+          "line": 103,
+          "symbol": "WarmPhase.one",
+          "signature": "one(self, case_id, kind)",
+          "source_sha256": "177b41b8611996a4e792329701ceda0ee3f28829fdc412fc6b80d9555a6a8aec"
+        },
+        {
+          "path": "tools/v0_s2_warm_phase.py",
+          "line": 157,
+          "symbol": "WarmPhase.run",
+          "signature": "run(self)",
+          "source_sha256": "177b41b8611996a4e792329701ceda0ee3f28829fdc412fc6b80d9555a6a8aec"
+        }
+      ],
+      "oracle": [
+        {
+          "path": "tools/v0_s2_checkpoint_oracles.py",
+          "line": 81,
+          "symbol": "performance_oracle",
+          "signature": "performance_oracle(records, *, run_id, candidate_sha, expected_model_digest)",
+          "source_sha256": "e922d9b5106b911ad1619622e409037f477903af48c3763a632dba3ba0cf2915"
+        }
+      ],
+      "negative_obligations": [
+        "Resource abort; model not resident; foreign owner; source drift; incomplete sampler/physical release."
+      ],
+      "persistent_terminal": "20 history/event/interval artifacts + resource-trace + hot-records + phase receipt; cold observations separate.",
+      "cleanup": [
+        {
+          "path": "tools/v0_s2_driver.py",
+          "line": 260,
+          "symbol": "S2SystemDriver.cleanup",
+          "signature": "cleanup(self)",
+          "source_sha256": "72883e2fa0c252aef7655708f40ada88a755978d71f632043c8203b53b42afed"
+        },
+        {
+          "path": "tools/v0_s2_runtime.py",
+          "line": 220,
+          "symbol": "NativeRuntime.release_preload",
+          "signature": "release_preload(self, binding, worker)",
+          "source_sha256": "ad15ee733e549f4a57e1adaef5f0eec30b86caff3ebaaad8fac2f488181744cc"
+        },
+        {
+          "path": "tools/v0_s2_stage_archive.py",
+          "line": 82,
+          "symbol": "OwnedArchive.__call__",
+          "signature": "__call__(self, context, cleanup)",
+          "source_sha256": "903d0a2ed4e5f83e107477b94006e5fcd0817891293a46d7162a2dbcace79c77"
+        }
+      ],
+      "reuse": "Reuse code with fresh S3 child/binding/raw evidence; historical PASS never substitutes this run.",
+      "gate0_gaps": [
+        "Warm binding hardcoded LOCAL-01/scope; every preload needs COMPLETE03 charge.",
+        "Cold image/video already executed in default phase may be reported only with frozen join rule; otherwise add 5 actions."
+      ],
+      "model_action_requirement": {
+        "warm_image_inference": 10,
+        "warm_video_inference": 40,
+        "warm_preloads": 20,
+        "total_warm_actions": 70,
+        "cold_image_video_additional_if_not_shared": 5,
+        "cleanup_debits": 0
+      }
+    },
+    {
+      "case_id": "V0-A10",
+      "name": "取消与卸载",
+      "status": "NOT_RUN",
+      "fact_status": "CODE_VERIFIED_NOT_RUNTIME_VERIFIED",
+      "public_entry": [
+        {
+          "path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_api.py",
+          "line": 98,
+          "symbol": "register_control_routes",
+          "signature": "register_control_routes()",
+          "source_sha256": "7b44275ca1c7d991c4036bfc54c588d0fe387881447a8ad899260d8bb6dd1a20"
+        },
+        {
+          "path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_api.py",
+          "line": 64,
+          "symbol": "LVWVideoPromptOwner.analyze",
+          "signature": "analyze(self, video_reference, model='gemma4:26b', user_instruction='', mode='realistic', timeout_seconds=120, unique_id=None)",
+          "source_sha256": "7b44275ca1c7d991c4036bfc54c588d0fe387881447a8ad899260d8bb6dd1a20"
+        }
+      ],
+      "owners": [
+        {
+          "path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_request.py",
+          "line": 58,
+          "symbol": "VideoRequestOwner.cancel",
+          "signature": "cancel(self, token)",
+          "source_sha256": "7135ac4e37b7eb2b116a02011c8c5d57a4b952fd2a5b1eb39292d491bf82489e"
+        },
+        {
+          "path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_transport.py",
+          "line": 151,
+          "symbol": "InterruptibleOllamaTransport.cancel_active",
+          "signature": "cancel_active(self)",
+          "source_sha256": "152536fd8c0c9121887dfb6a723d008300fd186bd1b22a1cc1dedb5a9428a4d8"
+        }
+      ],
+      "existing_driver_functions": [
+        {
+          "path": "tools/v0_s2_cancel_phase.py",
+          "line": 167,
+          "symbol": "CancellationPhase.execute_case",
+          "signature": "execute_case(self, case)",
+          "source_sha256": "4cac132ef2a5b43ad5bedeea1322ec743ee4241a2457af87f30bda3094a1946a"
+        },
+        {
+          "path": "tools/v0_s2_browser_handlers.py",
+          "line": 278,
+          "symbol": "BrowserHandlers.cancel_ready",
+          "signature": "cancel_ready(self, payload, observe)",
+          "source_sha256": "2f4c9d9554d3fc7a3c71d352ac910ea5135605b414921931c23836e603b079be"
+        }
+      ],
+      "oracle": [
+        {
+          "path": "tools/v0_s2_cancel_evidence.py",
+          "line": 30,
+          "symbol": "cancellation_trace",
+          "signature": "cancellation_trace(events, *, binding, token, owner_pid, kind, ack, before, after, resource_samples)",
+          "source_sha256": "afbad1f077e37193449d4999709d35d110627027c5393dfcf30731f036a126bf"
+        }
+      ],
+      "negative_obligations": [
+        "Preparation cancellation; provider cancellation; browser cancel/late response; foreign ownership; default failure quarantine."
+      ],
+      "persistent_terminal": "cancel ack <=1s, run_finished cancelled/released/no publish, api/ps empty and GPU baseline+1024 stable3; history+native events+sampler.",
+      "cleanup": [
+        {
+          "path": "tools/v0_s2_driver.py",
+          "line": 260,
+          "symbol": "S2SystemDriver.cleanup",
+          "signature": "cleanup(self)",
+          "source_sha256": "72883e2fa0c252aef7655708f40ada88a755978d71f632043c8203b53b42afed"
+        },
+        {
+          "path": "tools/v0_s2_stage_archive.py",
+          "line": 82,
+          "symbol": "OwnedArchive.__call__",
+          "signature": "__call__(self, context, cleanup)",
+          "source_sha256": "903d0a2ed4e5f83e107477b94006e5fcd0817891293a46d7162a2dbcace79c77"
+        }
+      ],
+      "reuse": "Reuse code with fresh S3 child/binding/raw evidence; historical PASS never substitutes this run.",
+      "gate0_gaps": [
+        "Keep strict existing cancel-time <=30s oracle; do not silently relax to HTTP-close or unmeasured GPU stop."
+      ],
+      "model_action_requirement": {
+        "preparation_cancel": 0,
+        "provider_cancel_min": 1,
+        "provider_cancel_cap": 4,
+        "browser_provider_cancel_min": 1,
+        "browser_provider_cancel_cap": 4,
+        "cleanup_debits": 0
+      }
+    },
+    {
+      "case_id": "V0-A11",
+      "name": "独立图片质量",
+      "status": "NOT_RUN",
+      "fact_status": "CODE_VERIFIED_NOT_RUNTIME_VERIFIED",
+      "public_entry": [
+        {
+          "path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/nodes.py",
+          "line": 135,
+          "symbol": "LVWControlledImageInput.load",
+          "signature": "load(self, image_reference)",
+          "source_sha256": "5797f82a8c1273e19c5df19c46fe60081a25b681b0dda3df89e9dc4e5da1f4e1"
+        },
+        {
+          "path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/nodes.py",
+          "line": 50,
+          "symbol": "LVWImagePromptBridge.analyze",
+          "signature": "analyze(self, image, model=DEFAULT_MODEL, user_instruction='', mode='realistic', timeout_seconds=MAX_TIMEOUT_SECONDS)",
+          "source_sha256": "5797f82a8c1273e19c5df19c46fe60081a25b681b0dda3df89e9dc4e5da1f4e1"
+        }
+      ],
+      "owners": [
+        {
+          "path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/core.py",
+          "line": 477,
+          "symbol": "BridgeOwner.analyze_image",
+          "signature": "analyze_image(self, image, *, model: str, user_instruction: str, mode: str, timeout_seconds: int)",
+          "source_sha256": "f9fdd69b4e2bf41e170152a8fcac44ea477301d0a16faa513cf562021d568619"
+        }
+      ],
+      "existing_driver_functions": [
+        {
+          "path": "tools/v0_s2_cumulative_phase.py",
+          "line": 75,
+          "symbol": "CumulativePhase.execute",
+          "signature": "execute(self, graph, *, node='1', error=None)",
+          "source_sha256": "ff72d851124a969576f279363879068f4e2fadc0aeed356de18f28eeff2a4ccb"
+        }
+      ],
+      "oracle": [
+        "Independent scorer, 10 fixed hashes, five 0..2 dimensions; usable>=8 with critical hallucination=0; >=8/10 usable."
+      ],
+      "negative_obligations": [
+        "Missing/refusal/timeout/unexecuted are FAIL; no edited draft substitution or sample replacement."
+      ],
+      "persistent_terminal": "New per-asset source/prompt/request/raw hashes, history, error and cleanup; separate independent scores.",
+      "cleanup": [
+        {
+          "path": "tools/v0_s2_driver.py",
+          "line": 260,
+          "symbol": "S2SystemDriver.cleanup",
+          "signature": "cleanup(self)",
+          "source_sha256": "72883e2fa0c252aef7655708f40ada88a755978d71f632043c8203b53b42afed"
+        },
+        {
+          "path": "tools/v0_s2_stage_archive.py",
+          "line": 82,
+          "symbol": "OwnedArchive.__call__",
+          "signature": "__call__(self, context, cleanup)",
+          "source_sha256": "903d0a2ed4e5f83e107477b94006e5fcd0817891293a46d7162a2dbcace79c77"
+        }
+      ],
+      "reuse": "Reuse code with fresh S3 child/binding/raw evidence; historical PASS never substitutes this run.",
+      "gate0_gaps": [
+        "No existing formal Q16 public driver/scorer identified; single-image driver is reusable building block only."
+      ],
+      "model_action_requirement": {
+        "fixed_images": 10,
+        "inference": 10,
+        "load": 0,
+        "cleanup_debits": 0
+      }
+    },
+    {
+      "case_id": "V0-A12",
+      "name": "独立视频质量",
+      "status": "NOT_RUN",
+      "fact_status": "CODE_VERIFIED_NOT_RUNTIME_VERIFIED",
+      "public_entry": [
+        {
+          "path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_api.py",
+          "line": 64,
+          "symbol": "LVWVideoPromptOwner.analyze",
+          "signature": "analyze(self, video_reference, model='gemma4:26b', user_instruction='', mode='realistic', timeout_seconds=120, unique_id=None)",
+          "source_sha256": "7b44275ca1c7d991c4036bfc54c588d0fe387881447a8ad899260d8bb6dd1a20"
+        }
+      ],
+      "owners": [
+        {
+          "path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/core.py",
+          "line": 497,
+          "symbol": "BridgeOwner.analyze_video",
+          "signature": "analyze_video(self, frames_value, *, model: str, user_instruction: str, mode: str, timeout_seconds: int, cancel_event=None, request_deadline=None)",
+          "source_sha256": "f9fdd69b4e2bf41e170152a8fcac44ea477301d0a16faa513cf562021d568619"
+        }
+      ],
+      "existing_driver_functions": [
+        {
+          "path": "tools/v0_s2_public_phase.py",
+          "line": 159,
+          "symbol": "PublicPhase.execute_case",
+          "signature": "execute_case(self, case)",
+          "source_sha256": "985c627fe712e7b9a0f55a2236e799ef78115e71e9a3de23501c6a33d568d3b5"
+        }
+      ],
+      "oracle": [
+        "Independent scorer, 6 fixed hashes; >=5/6 usable; five dimensions and zero critical hallucinations; unknown continuity retained."
+      ],
+      "negative_obligations": [
+        "Four-frame limited visibility cannot automatically pass continuous motion/camera claims; no denominator removal."
+      ],
+      "persistent_terminal": "Raw frame responses before program aggregation, suggestion separately; source/time metadata/history/error and cleanup.",
+      "cleanup": [
+        {
+          "path": "tools/v0_s2_driver.py",
+          "line": 260,
+          "symbol": "S2SystemDriver.cleanup",
+          "signature": "cleanup(self)",
+          "source_sha256": "72883e2fa0c252aef7655708f40ada88a755978d71f632043c8203b53b42afed"
+        },
+        {
+          "path": "tools/v0_s2_stage_archive.py",
+          "line": 82,
+          "symbol": "OwnedArchive.__call__",
+          "signature": "__call__(self, context, cleanup)",
+          "source_sha256": "903d0a2ed4e5f83e107477b94006e5fcd0817891293a46d7162a2dbcace79c77"
+        }
+      ],
+      "reuse": "Reuse code with fresh S3 child/binding/raw evidence; historical PASS never substitutes this run.",
+      "gate0_gaps": [
+        "PublicPhase is bound to structural plan/categories and <=8MiB copies: cannot pass quality plan unchanged.",
+        "Full temporal ground truth is not present in four-frame prelabels; root must freeze an honest evaluation treatment."
+      ],
+      "model_action_requirement": {
+        "fixed_videos": 6,
+        "frames_per_video_assumption": 4,
+        "inference_if_four_each": 24,
+        "load": 0,
+        "cleanup_debits": 0
+      }
+    }
+  ],
+  "global_gaps": [
+    "COMPLETE03 native debit/child binding seam missing",
+    "A06 network deny/attempt witness and rollback workflow binding absent",
+    "Formal independent raw quality driver/scorer not wired",
+    "Finite action partition exceeds 128 if current phases composed unchanged",
+    "Fresh runtime tool/model/media/PID bindings intentionally not collected"
+  ],
+  "stage_pass_claim": false
+}
