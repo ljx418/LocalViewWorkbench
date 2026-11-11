@@ -1,0 +1,106 @@
+{
+  "schema_version": "lvw.v1-completion-program-request/1",
+  "authorization_id": "AUTH-PROGRAM-V1-COMPLETE-03",
+  "status": "PENDING_HUMAN_APPROVAL_NOT_AUTHORIZATION",
+  "not_approved_by_this_file": true,
+  "human_signature": null,
+  "stage_pass_claim": false,
+  "project_id": "lvw-prompt-service",
+  "requested_at": "2026-11-09",
+  "purpose": "Complete the approved remaining V0/V1 route without per-Stage/candidate/workpack authorization interrupts; preserve bounded runs, global limits, independent review and actual human signatures.",
+  "stages": [
+    "R0",
+    "R1a",
+    "V0-S2",
+    "V0-S3",
+    "R1",
+    "R2"
+  ],
+  "route_authority": [
+    "docs/23_V1_EARLY_FRONTEND_SEQUENCE.md",
+    "docs/24_EXECUTION_MASTER_PLAN.md",
+    "plans/requirements.json",
+    "plans/acceptance_cases.json",
+    "plans/release_gates.json"
+  ],
+  "existing_program_approval": "reports/authorization-program-v1-local-02.approval.json",
+  "existing_program_approval_sha256": "42b8e5cfd3fa2e4e48b3d44ac2a8de119ef65610ff98f62c083b460ecea79aa1",
+  "already_allowed_retained": [
+    "Offline implementation, tests, docs, local Git/worktrees, temporary Codex implementation through V1 and isolated independent review.",
+    "Existing local GPU, Ollama/ComfyUI/FastAPI, FFmpeg, SQLite, headless browser, non-private testSource/generated/previously permitted development inputs.",
+    "Packaging, isolated installation/rollback, bounded fault/recovery/resource/privacy/cleanup checks; do not modify unrelated installations or processes.",
+    "Fresh candidate/source/template/shared-kernel/model/tool/input hashes, finite child budgets, original process identity, raw results and terminal cleanup evidence."
+  ],
+  "new_authority": {
+    "budget_organization": "Replace overlapping per-Stage/per-candidate/per-Workpack/full-recheck/zero-start/CPU-child/service-start authorization counts with the global cumulative limits below. Every individual run still has a frozen finite action/time budget; smaller actual packet workload wins.",
+    "stage_transition": "Gate owner may prepare/freeze successive Stage packets and proceed on the approved route after prerequisite machine and independent gates pass, without new execution permission at each Stage. A required human signature remains a blocking prerequisite until actually received; independent review is not skipped.",
+    "within_scope_contract_work": "Implement the existing PRD/API/Schema and record non-breaking clarifications, internal prompts/input organization, owner/test/harness corrections and new candidate seals. Do not change product goals, incompatible public semantics, fixed denominator or quality/resource thresholds without separate explicit product approval.",
+    "same_failure_rule": "Two effective repairs on one route without new evidence/progress stop that route for root-cause analysis and independent reassessment. A materially different reviewed technical approach may proceed within remaining global budget; do not convert every such technical stop into a new human permission request.",
+    "installed_model_selection": "If a demonstrated compatibility/quality gap requires comparison, permit only already-installed local visual models, read-only identity/capability discovery and process-local selection. Freeze actual model digest/config and repeat relevant quality/resource checks. No downloaded weights, weight migration, cloud fallback or unsupported acceptance claims."
+  },
+  "global_cumulative_limits": {
+    "model_actions": 1024,
+    "effective_full_checkpoints": 24,
+    "production_runtime_seconds": 172800,
+    "include_all_prior_program02_consumption": true,
+    "known_consumption_snapshot": "reports/unified-media/program02-budget-final.json",
+    "known_model_actions": 9,
+    "known_effective_full_checkpoints": 3,
+    "known_production_runtime_seconds": 178,
+    "ceilings_not_expected_consumption": true,
+    "per_child_model_actions_ceiling": 128,
+    "per_child_wall_seconds_ceiling": 21600,
+    "current_unified_child_actual_limits": {
+      "model_actions": 8,
+      "seconds": 1800
+    },
+    "model_action_counting": "Attempted inference sends and intentional model warm/load count including timeout/refusal/cancel/failure. Status/metadata/unload are not inference; bind finite request/operation/time budgets.",
+    "zero_model_startup": "Preserve failed child and actual service/time usage; no effective-full charge if zero model send/load is proved. Never rewrite/refund historically consumed grants.",
+    "global_exhaustion": "WAIT_BUDGET with a single exact global increment decision; do not lower acceptance or invent other Stage IDs to reset counters."
+  },
+  "build_only_dependency_acquisition": {
+    "allowed": true,
+    "aggregate_download_bytes_limit": 2147483648,
+    "paid_amount_limit": 0,
+    "scope": "Only dependencies, portable Python/FFmpeg/frontend build/test tools actually required by the approved V1 lock/manifests and not usable from existing local cache. Read relevant official technical/license metadata.",
+    "sources": "The dependency official project, official package registry and its authenticated official distribution/CDN; record original source, exact version, digest and license before executing/building.",
+    "isolation": "Install/unpack only in this project build cache, isolated environment or portable-package staging roots; record receipts and rollback. No system/global pip/npm/apt installs, permanent PATH/registry/service/driver/CUDA/Comfy upgrades.",
+    "runtime_network": "Product inference and acceptance remain loopback/no-cloud; no runtime pip/npm install or auto-update. Never transmit media, credentials or private contents for dependency acquisition.",
+    "not_included": [
+      "model weights",
+      "private/credentialed/paid sources",
+      "arbitrary web assets",
+      "unrelated dependency upgrades"
+    ]
+  },
+  "human_gates": {
+    "machine_and_independent_review": "Mandatory before human acceptance. Codex implementer cannot independently approve its own candidate.",
+    "experience": "Human examines real outputs and explicitly signs the exact completed scope; no advance substitute signature.",
+    "release": "Final V1 production publication still requires explicit release authorization.",
+    "git": "Retain existing ordinary commit/push immediately after actual Stage human acceptance. No force push, remote merge or publishing permission inferred."
+  },
+  "forbidden": [
+    "V2/V3 or other-project execution",
+    "cloud/paid project providers or new accounts/API secrets",
+    "model-weight downloads/copying/migration or training",
+    "private media/Cookies/existing browser profiles/visible-browser automation",
+    "non-loopback product/test network except the strictly separate build dependency acquisition above",
+    "permanent system/service/global configuration changes or modifying/killing unrelated processes",
+    "using the11 reserved human holdouts with models before human review",
+    "weakening denominator/quality/resource gates, deleting failures, raw output rewriting or positive evidence splicing",
+    "self-signing human experience/release; force push/merge/production publication"
+  ],
+  "supersession_on_approval": [
+    "Replace overlapping program02 authorization-only per-Stage and per-child-count caps; retain total historical consumption and all failure artifacts.",
+    "Absorb the pending AUTH-BUDGET-V1-R1-RESIDUAL-01 / live08 requirement without a second human approval.",
+    "Do not combine older grants with this program to bypass its global limits; no historical expired child is revived."
+  ],
+  "activation": "Only after explicit project-owner approval of this complete request: save exact request-hash-bound grant, update single coordinate/executor/ledger preserving prior consumption, independently test absence/revocation/global accounting/source freeze/default-deny before any next external action. This file/question is not approval.",
+  "expires_when": [
+    "final V1 human product acceptance",
+    "project owner revokes/replaces",
+    "project cancelled"
+  ],
+  "child_terminal_does_not_expire_parent": true,
+  "limitations": "This covers known local V1 implementation/verification needs; it does not guarantee model quality, waive actual human gates or authorize unforeseen out-of-scope actions."
+}

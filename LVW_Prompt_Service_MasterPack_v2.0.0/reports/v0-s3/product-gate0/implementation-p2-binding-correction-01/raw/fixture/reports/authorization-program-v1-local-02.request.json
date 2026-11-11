@@ -1,0 +1,114 @@
+{
+  "schema_version": "lvw.consolidated-local-program-request/1",
+  "authorization_id": "AUTH-PROGRAM-V1-LOCAL-02",
+  "status": "PENDING_HUMAN_APPROVAL_NOT_AUTHORIZATION",
+  "project_id": "lvw-prompt-service",
+  "requested_at": "2026-11-09",
+  "purpose": "Consolidate existing local permissions and authorize bounded autonomous correction through remaining V0/V1; stop at human gates, no per-candidate GPU confirmation within scope.",
+  "stages": [
+    "R0",
+    "R1a",
+    "V0-S2",
+    "V0-S3",
+    "R1",
+    "R2"
+  ],
+  "stage_policy": "Only the already-approved development route and frozen product obligations. Historical S0/S1/R1a signatures and failures are not rewritten or re-signed. No new Stage IDs to reset budgets. Cross-Stage/human gates remain mandatory.",
+  "allowed": [
+    "Read/write project code, templates, docs, tests and local Git commits/worktrees for the approved Stage; no unrequested business refactor.",
+    "Use existing local GPU, installed Ollama/ComfyUI/FastAPI/FFmpeg/SQLite, headless Chromium, portable/isolated install-rollback tests, bounded failure injection and original-process cleanup.",
+    "Read already-authorized non-private testSource, generated fixtures and already-downloaded permitted development assets; bind inputs before real execution.",
+    "Read installed model/tool metadata and locate existing moved weights read-only; no weight copying/migration/download or permanent config modification.",
+    "Extend the temporary Codex implementation role through V1 within existing platform/tool access; independent review remains a separate read-only instance and human signatures remain human. Do not create new paid accounts/API routes or read/modify secrets under this permission.",
+    "Automatically reseal corrected candidate and harness within the same approved product scope, then derive a fresh bounded child without requesting human approval for every SHA.",
+    "Gate owner may version internal Stage implementation details, prompts/input organization preserving all sampled source data, startup/waiters/UI wiring and test precision; preserve public contract semantics, fixed denominator and thresholds. Require independent review; do not weaken failed assertions.",
+    "Independent CPU recomputation and candidate/evidence checks; every real media/service/GPU/browser operation still needs a pre-issued finite child.",
+    "After an actual human Stage acceptance, use the existing standing permission for ordinary commit/push to the configured remote; no force push/merge/release."
+  ],
+  "protected_inputs": [
+    "source candidate, harness and gate scripts",
+    "public contracts and fixed acceptance/spec hashes",
+    "system prompt/templates and actual shared video kernel source",
+    "model/tool/dependency identities and process-local configuration",
+    "sample hashes, endpoints/ports, original process handle or PID+birth+nonce",
+    "action/time budgets, cleanup plan and unique run identity"
+  ],
+  "budget_policy": {
+    "prospective_only": true,
+    "no_refund_or_rewrite_of_old_attempts": true,
+    "program_total_model_actions": 512,
+    "program_total_production_runtime_seconds": 86400,
+    "program_total_effective_full_checkpoints": 8,
+    "program_total_zero_model_startup_attempts": 12,
+    "per_stage_effective_full_checkpoints": 3,
+    "per_stage_zero_model_startup_attempts": 4,
+    "per_stage_cpu_fixture_or_offline_browser_children": 16,
+    "per_stage_production_starts_per_engine": 10,
+    "per_child_model_actions_ceiling": 128,
+    "per_child_wall_seconds_ceiling": 21600,
+    "child_actual_budget": "Use the frozen packet actual budget and the remaining program allowance, whichever is smaller. These ceilings never authorize filling unused calls or expanding tests. Current unified sequence remains max8/1800s, normally3 calls.",
+    "model_action_definition": "Every attempted inference send and intentional preload/warm-load counts, including connection failure after send-attempt, timeout, refusal, invalid output and cancellation. Pure tags/ps/status/unload do not count as inference but retain bounded request/action/time budgets.",
+    "effective_full_claim": "Atomically claim at the first model inference/preload send-attempt, not at API/browser startup or readiness metadata. Once claimed, failure consumes it.",
+    "zero_model_startup_definition": "Verified zero model send/preload attempts; startup/readiness/resource/UI/setup failure only. Consume a zero-model startup count and actual service/time budget; preserve NO_GO, expire that child. Never relabel an old consumed run.",
+    "same_failure_rule": "Two effective repairs on the same route without new evidence/progress stop that route. Diagnose or change implementation within scope before another full run; do not retry identically to spend remaining allowance.",
+    "budget_exhaustion": "WAIT_BUDGET/WAIT_AUTH with an exact increment request; do not lower quality, denominator or required checks.",
+    "checkpoint_scheduling": "One consolidated full acceptance at Stage end; no full E2E after each edit/Workpack. The remaining two Stage slots are corrective rechecks only after material repairs/new evidence; once passed, stop at the human gate."
+  },
+  "model_and_resource_policy": {
+    "existing_visual_model": "gemma4:26b, bind actual identity per child; no provider/model switch or downloads under this grant",
+    "threshold_changes": "none; inherit the active packet actual workload, image/video context/predict limits, GPU/RAM/latency/release/quality rules",
+    "gpu_used_limit_mib": 23552,
+    "minimum_ram_mib": 2048,
+    "current_admission_required_free_mib": 19047,
+    "resource_shortage": "WAIT_RESOURCE; do not call it missing human permission and do not terminate other processes."
+  },
+  "child_lifecycle": {
+    "preissue_before_external_action": true,
+    "unique_id_and_atomic_budget_claim": true,
+    "freeze_and_verify_all_production_inputs": true,
+    "fresh_isolated_candidate_run": true,
+    "record_raw_results_failure_and_cleanup": true,
+    "machine_receipts_not_model_self_report": true,
+    "expire_child_at_terminal": true,
+    "child_failure_does_not_expire_program": true,
+    "no_stale_or_cross_run_positive_splicing": true,
+    "existing_failed_or_expired_children_reactivated": false
+  },
+  "forbidden": [
+    "V2/V3 or other projects actual execution",
+    "cloud/paid project providers",
+    "downloads/upgrades/new weights/dependencies",
+    "non-loopback test/product network",
+    "private media, Cookies, existing browser profiles",
+    "visible-browser automation",
+    "permanent system/service configuration changes",
+    "terminate/modify a non-owned process",
+    "test or tune the 11 frozen human holdout videos with models before human review",
+    "change product goals/non-goals/public contract semantics/fixed denominator/quality or resource thresholds without explicit product approval",
+    "fabricate logs, remove failed cases, replace a failed sample or call skipped/blocked PASS",
+    "force push, remote merge or production publish",
+    "self-sign human experience or release approval"
+  ],
+  "git_exception": "Only the pre-existing post-human-acceptance ordinary push permission in AGENTS16 is retained. This does not permit current unaccepted code to be pushed or published.",
+  "stage_and_human_gates": "Stop for independent review and human experience/release signatures as required. This program supplies local execution permission, not Stage PASS, UX signoff or automatic cross-Stage product approval.",
+  "supersedes_prospectively": [
+    "Prior per-run human GPU/code-verification requests within this local V0/V1 scope",
+    "Prior human approval requirement for every corrective candidate SHA within unchanged approved public contracts",
+    "Earlier authorization-only checkpoint/recheck caps in this same scope, replaced by these explicit new cumulative ceilings after approval"
+  ],
+  "supersession_limits": "No historical grant is revived or refunded. Existing V0 broader scope outside these listed stages is not expanded. Within overlapping stages these new budgets are the unified limits; old grants cannot be combined to bypass them.",
+  "absorbs_pending_on_approval": [
+    "AUTH-REQUEST-V1-R1-U3-RUNTIME-01"
+  ],
+  "activation": "Only after the project owner explicitly approves this complete request. Save request-hash-bound approval, update governance executor/ledger and independently test counting/freeze/default-deny before any next real model run. Do not require a second RUNTIME-01 approval if covered.",
+  "expires_when": [
+    "final V1 human product acceptance completes",
+    "project owner revokes or explicitly replaces the program",
+    "project cancelled"
+  ],
+  "out_of_scope_handling": "Stop the offending action and request the missing scope; do not assume authorization. A child terminal, ordinary NO_GO or WAIT_RESOURCE alone does not revoke this parent.",
+  "not_approved_by_this_file": true,
+  "human_signature": null,
+  "stage_pass_claim": false,
+  "implementation_role_extension": "Proposed extension beyond the historical until-V0 exception, effective only after approval of this complete program."
+}
