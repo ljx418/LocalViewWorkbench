@@ -958,16 +958,46 @@ def test_error_code_exit_code_table_is_stable():
 
 
 def test_redact_root_removes_absolute_paths_from_output(tmp_path):
-    """--redact-root 必须把绝对路径从 stdout 与收据里脱敏掉。"""
+    """--redact-root 必须把绝对路径从 stdout、stderr 与收据里脱敏掉。"""
     package = tmp_path / "pkg.zip"
     synthetic_package(package, SIMPLE_PAYLOAD)
-    code, payload, stdout, _stderr = run_cli(
-        "diagnose", "--package", str(package), "--redact-root", str(tmp_path)
+    receipt_path = tmp_path / "收据.json"
+    code, payload, stdout, stderr = run_cli(
+        "diagnose",
+        "--package",
+        str(package),
+        "--receipt-out",
+        str(receipt_path),
+        "--redact-root",
+        str(tmp_path),
     )
     assert code == EXIT_CODES["OK"]
     assert str(tmp_path) not in stdout
+    assert str(tmp_path) not in stderr
+    assert str(tmp_path) not in receipt_path.read_text(encoding="utf-8")
     assert "<redacted-root>" in stdout
     assert payload["package"]["path"].startswith("<redacted-root>")
+
+
+def test_redact_root_handles_paths_with_chinese_and_spaces(tmp_path):
+    """含中文与空格的路径在脱敏后必须整体被替换。"""
+    sandbox_parent, target, _sentinel = make_sandbox(tmp_path)
+    package = tmp_path / "pkg.zip"
+    synthetic_package(package, SIMPLE_PAYLOAD)
+    code, _payload, stdout, stderr = run_cli(
+        "diagnose",
+        "--package",
+        str(package),
+        "--target",
+        str(target),
+        "--sandbox-parent",
+        str(sandbox_parent),
+        "--redact-root",
+        str(sandbox_parent),
+    )
+    assert code == EXIT_CODES["OK"]
+    assert str(sandbox_parent) not in stdout
+    assert str(sandbox_parent) not in stderr
 
 
 def test_tool_contains_no_shell_execution_interface():

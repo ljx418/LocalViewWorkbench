@@ -167,8 +167,33 @@ def _emit(obj):
 
 
 def _diag(message):
-    sys.stderr.write(message.rstrip("\n") + "\n")
+    text = message.rstrip("\n")
+    if _ACTIVE_REDACT_ROOTS:
+        text = _redact_text(text, _ACTIVE_REDACT_ROOTS)
+    sys.stderr.write(text + "\n")
     sys.stderr.flush()
+
+
+def _root_variants(roots):
+    """脱敏根的原始与解析形式，按长度降序，便于先替换更长的前缀。"""
+    variants = set()
+    for root in roots or []:
+        if not root:
+            continue
+        variants.add(str(root))
+        try:
+            variants.add(str(Path(root).resolve()))
+        except OSError:
+            continue
+    return sorted(variants, key=len, reverse=True)
+
+
+def _redact_text(text, roots):
+    """按脱敏根做前缀替换；可正确处理含中文与空格的路径。"""
+    result = str(text)
+    for variant in _root_variants(roots):
+        result = result.replace(variant, "<redacted-root>")
+    return result
 
 
 def _git(repo, args, stdin=None):
@@ -1157,6 +1182,10 @@ def _redact_tree(node, roots):
     return node
 
 
+#: 当前生效的脱敏根（main() 设置）；影响 stderr 诊断行。
+_ACTIVE_REDACT_ROOTS = []
+
+
 # --------------------------------------------------------------------------- #
 # 子命令：build
 # --------------------------------------------------------------------------- #
@@ -2023,6 +2052,8 @@ def main(argv=None):
     parser = build_parser()
     args = parser.parse_args(argv)
     redact_roots = list(getattr(args, "redact_root", []) or [])
+    global _ACTIVE_REDACT_ROOTS
+    _ACTIVE_REDACT_ROOTS = redact_roots
     try:
         result = args.func(args)
     except PackageError as exc:
