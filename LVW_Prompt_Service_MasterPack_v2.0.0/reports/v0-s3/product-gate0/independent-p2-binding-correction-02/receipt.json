@@ -1,0 +1,45 @@
+{
+  "candidate": "d339e53d0394fac172b7c984a1613faab2ec33df",
+  "evidence_tip": "c2870383ae4b620ced8db9dee6dcbc4d09bb5519",
+  "root_metadata": "e2d98fed6426a61302ff2ccd84aa54bc7a2efbbb",
+  "reviewer_implemented_candidate": false,
+  "worktree_initially_clean": true,
+  "merge": {
+    "exit": 0,
+    "kind": "fast-forward",
+    "from": "2b2598b"
+  },
+  "code_acceptance": "CHANGES_REQUIRED",
+  "findings": {
+    "Fatal": 0,
+    "Major": 2,
+    "Minor": 0
+  },
+  "original_M01_M02": "bounded offline verification passed",
+  "new_findings": [
+    "C02-M01 cumulative metadata digest bytes not enforced",
+    "C02-M02 Observer disappearance exception handling / historical root cause unresolved"
+  ],
+  "observer_historical_root_cause": "UNPROVEN; no error/samples in failing historical raw",
+  "observer_proven_branch": "Injected ESRCH stops Observer with error and two_absences=false; ENOENT yields two absences",
+  "tests": {
+    "affected_passed": 110,
+    "oracle_passed": 84,
+    "directed_16_repeated": false,
+    "original_178_reduced": false,
+    "oracle_scope_noncompliant": true
+  },
+  "guard": "fixture Path.open rejects host before OS open; copied authority WSL digest synthetic",
+  "actual_child_status": "DRAFT_NOT_AUTHORIZED",
+  "implementation_historical_outcome": "failed preserved",
+  "estimated_historical_wsl_hash_reads": 26,
+  "historical_read_count_syscall_measured": false,
+  "review_task_outcome": "failed",
+  "reviewer_scope_deviation": "reviewer-scope-deviation.json",
+  "cleanup": "cleanup.json",
+  "product_gate0": false,
+  "stage_pass": false,
+  "quality_pass": false,
+  "human_signoff": false,
+  "next_minimum_action": "Root records deviations and keeps DRAFT; implement bounded cumulative hash accounting and narrow ESRCH observation handling with deterministic evidence; independent re-review before activation"
+}
