@@ -80,6 +80,9 @@ FROZEN_D0_ALLOWED_FILES = (
     "tools/test_verify_v1_plan.py",
     "reports/v1-redesign/d0-worker/",
 )
+FROZEN_D0_REVIEW_ALLOWED_FILES = (
+    "reports/v1-redesign/d0-review/",
+)
 FROZEN_D0_FORBIDDEN_PATHS = (
     "contracts/",
     "plans/",
@@ -93,6 +96,31 @@ FROZEN_D0_COMMANDS = (
     "python3 -B tools/verify_v1_plan.py",
     "python3 -B -m pytest tools/test_verify_v1_plan.py -q",
 )
+
+# The D0 stage packet is *not* listed in the authority spec manifest, so it is
+# fenced by its own payload manifest instead. These are the controlled packet
+# files that manifest must list, exactly.
+D0_PACKET_DIR = ".agent-governance/stages/V1-D0"
+D0_PACKET_MANIFEST_NAME = "PAYLOAD_MANIFEST.sha256"
+FROZEN_D0_PACKET_FILES = (
+    "00-coordinate.md",
+    "01-scope-and-non-goals.md",
+    "02-architecture-and-ownership.md",
+    "03-workpack-plan.md",
+    "04-acceptance-matrix.md",
+    "05-risk-and-authorization-register.md",
+    "06-implementation-prompt.md",
+    "07-checkpoint-plan.md",
+    "spec-manifest.json",
+    "stage-control.json",
+)
+# Source-control binding for the D0 packet manifest itself: the digest of the
+# committed .agent-governance/stages/V1-D0/PAYLOAD_MANIFEST.sha256. The packet
+# manifest binds stage-control.json and spec-manifest.json; this digest binds
+# the manifest, so the whole D0 control plane is frozen even though the
+# authority spec manifest does not list it. Re-freezing the D0 packet therefore
+# requires re-freezing this constant in the same commit.
+FROZEN_D0_PACKET_MANIFEST_SHA256 = "9bffdf2dc968f54fae0404d162c394e265cfb9900f68d9c303683bef756ede7b"
 # Only this stage display name may be accounted against the R2 authority stage.
 ALLOWED_AUTHORIZATION_MAP = {"V1-M1": "R2"}
 FROZEN_GLOBAL_AUTHORITY = "AUTH-PROGRAM-V1-COMPLETE-03"
@@ -161,6 +189,25 @@ def as_list(value, label, report: Report, code: str = "E_INPUT_SHAPE"):
         report.add(code, "%s: expected a list of strings" % label)
         return []
     return list(value)
+
+
+def require_exact_list(value, expected, label, report: Report, code: str) -> bool:
+    """Compare a control list with its frozen value. Empty or partial lists fail.
+
+    The comparison is unconditional: an empty list, a missing key, a wrong
+    length and a wrong order are all findings. An empty list must never be
+    treated as "nothing to check" (review finding Major D0-CODE-M01).
+    """
+    if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
+        report.add(code, "%s: expected a list of strings, found %r" % (label, value))
+        return False
+    if not value:
+        report.add(code, "%s: must not be empty; expected exactly %s" % (label, list(expected)))
+        return False
+    if value != list(expected):
+        report.add(code, "%s: expected exactly %s, found %s" % (label, list(expected), value))
+        return False
+    return True
 
 
 # --------------------------------------------------------------------------
@@ -473,6 +520,9 @@ def check_ownership(ctx) -> None:
     """D0 role separation and write-path ownership."""
     report, plan = ctx.report, ctx.plan
     stage_control = ctx.stage_control
+    expected_control_rel = str(Path(ctx.d0_packet_dir) / "stage-control.json")
+    if ctx.stage_control_rel != expected_control_rel:
+        report.add("E_OWNERSHIP_CONTROL_PATH", "the validated stage control must be the packet-bound %s, found %s" % (expected_control_rel, ctx.stage_control_rel))
     if stage_control.get("stage_pass_forbidden") is not True:
         report.add("E_OWNERSHIP_ROLE", "stage-control.json must keep stage_pass_forbidden=true")
     if stage_control.get("product_execution_authorized") is not False:
@@ -489,25 +539,42 @@ def check_ownership(ctx) -> None:
 
     workpacks = stage_control.get("workpacks")
     impl = None
+    review = None
     if not isinstance(workpacks, list):
         report.add("E_INPUT_SHAPE", "stage-control.json: missing 'workpacks' list")
     else:
         for workpack in workpacks:
-            if isinstance(workpack, dict) and workpack.get("id") == "D0-B-IMPL":
+            if not isinstance(workpack, dict):
+                continue
+            if workpack.get("id") == "D0-B-IMPL":
                 impl = workpack
+            elif workpack.get("id") == "D0-B-REVIEW":
+                review = workpack
         if impl is None:
             report.add("E_OWNERSHIP_WORKPACK", "stage-control.json has no D0-B-IMPL workpack")
         else:
-            allowed = as_list(impl.get("allowed_files"), "stage-control.D0-B-IMPL.allowed_files", report)
-            if allowed and allowed != list(FROZEN_D0_ALLOWED_FILES):
-                report.add("E_OWNERSHIP_ALLOWED_FILES", "D0-B-IMPL allowed_files %s differ from the frozen allow-list %s" % (allowed, list(FROZEN_D0_ALLOWED_FILES)))
-            commands = as_list(impl.get("commands"), "stage-control.D0-B-IMPL.commands", report)
-            if commands and commands != list(FROZEN_D0_COMMANDS):
-                report.add("E_OWNERSHIP_COMMANDS", "D0-B-IMPL commands %s differ from the frozen commands %s" % (commands, list(FROZEN_D0_COMMANDS)))
-    forbidden = as_list(stage_control.get("forbidden_write_paths"), "stage-control.forbidden_write_paths", report)
-    for path in FROZEN_D0_FORBIDDEN_PATHS:
-        if path not in forbidden:
-            report.add("E_OWNERSHIP_FORBIDDEN_PATHS", "stage-control.forbidden_write_paths does not contain %s" % path)
+            require_exact_list(impl.get("allowed_files"), FROZEN_D0_ALLOWED_FILES,
+                               "stage-control.D0-B-IMPL.allowed_files", report, "E_OWNERSHIP_ALLOWED_FILES")
+            require_exact_list(impl.get("commands"), FROZEN_D0_COMMANDS,
+                               "stage-control.D0-B-IMPL.commands", report, "E_OWNERSHIP_COMMANDS")
+            outputs = impl.get("outputs")
+            if not isinstance(outputs, list) or not outputs:
+                report.add("E_OWNERSHIP_OUTPUTS", "stage-control.D0-B-IMPL.outputs must be a non-empty list, found %r" % (outputs,))
+        if review is None:
+            report.add("E_OWNERSHIP_WORKPACK", "stage-control.json has no D0-B-REVIEW workpack")
+        else:
+            require_exact_list(review.get("allowed_files"), FROZEN_D0_REVIEW_ALLOWED_FILES,
+                               "stage-control.D0-B-REVIEW.allowed_files", report, "E_OWNERSHIP_REVIEW_FILES")
+            if impl is not None:
+                overlap = sorted(set(impl.get("allowed_files") or []) & set(review.get("allowed_files") or []))
+                if overlap:
+                    report.add("E_OWNERSHIP_OVERLAP", "D0-B-IMPL and D0-B-REVIEW both claim %s" % overlap)
+    require_exact_list(stage_control.get("forbidden_write_paths"), FROZEN_D0_FORBIDDEN_PATHS,
+                       "stage-control.forbidden_write_paths", report, "E_OWNERSHIP_FORBIDDEN_PATHS")
+    for key in ("model_gpu_runtime_budget", "product_full_checkpoints"):
+        value = stage_control.get(key)
+        if value != 0:
+            report.add("E_OWNERSHIP_BUDGET", "stage-control.%s must stay 0 for the offline D0 packet, found %r" % (key, value))
 
     plan_roles = plan.get("roles")
     if not isinstance(plan_roles, dict):
@@ -664,6 +731,77 @@ def check_immutability(ctx) -> None:
             report.add("E_CONTRACT_DRIFT", "canonical contract %s hash %s differs from the frozen %s" % (rel, actual, expected))
 
 
+def check_d0_packet_integrity(ctx) -> None:
+    """The D0 stage packet must be complete, unmodified and bound to source control.
+
+    The authority spec manifest does not list the D0 stage-control, so the D0
+    packet manifest is the fence for that control plane. It is verified here
+    for integrity (every listed file still hashes the same), inventory (exactly
+    the frozen packet files, nothing missing and nothing extra) and
+    source-control binding (the manifest digest itself is pinned).
+    """
+    report, root = ctx.report, ctx.root
+    packet_dir = root / ctx.d0_packet_dir
+    manifest_rel = str(Path(ctx.d0_packet_dir) / D0_PACKET_MANIFEST_NAME)
+    manifest_path = root / manifest_rel
+    if not packet_dir.is_dir():
+        report.add("E_D0_PACKET_MISSING", "D0 packet directory %s is missing" % ctx.d0_packet_dir)
+        return
+    if not manifest_path.is_file():
+        report.add("E_D0_PACKET_MANIFEST_MISSING", "D0 packet manifest %s is missing" % manifest_rel)
+        return
+    actual_manifest = sha256_file(manifest_path)
+    if actual_manifest != ctx.d0_manifest_expected:
+        report.add("E_D0_PACKET_MANIFEST_PINNED", "D0 packet manifest %s hash %s differs from the source-control pinned %s" % (manifest_rel, actual_manifest, ctx.d0_manifest_expected))
+    entries = {}
+    try:
+        lines = manifest_path.read_text(encoding="utf-8").splitlines()
+    except OSError as exc:
+        report.add("E_D0_PACKET_MANIFEST_MISSING", "D0 packet manifest %s cannot be read (%s)" % (manifest_rel, exc.__class__.__name__))
+        return
+    for lineno, raw in enumerate(lines, 1):
+        line = raw.strip()
+        if not line or line.startswith("#"):
+            continue
+        parts = line.split(None, 1)
+        if len(parts) != 2:
+            report.add("E_D0_PACKET_MANIFEST_FORMAT", "%s line %d is not '<sha256>  <file>'" % (manifest_rel, lineno))
+            continue
+        digest, name = parts[0], parts[1].strip()
+        if name in entries:
+            report.add("E_D0_PACKET_MANIFEST_DUPLICATE", "%s lists %s twice" % (manifest_rel, name))
+            continue
+        entries[name] = digest
+    for name in FROZEN_D0_PACKET_FILES:
+        if name not in entries:
+            report.add("E_D0_PACKET_MANIFEST_MISSING_ENTRY", "%s does not list the controlled packet file %s" % (manifest_rel, name))
+    for name in sorted(entries):
+        digest = entries[name]
+        if name not in FROZEN_D0_PACKET_FILES:
+            report.add("E_D0_PACKET_MANIFEST_EXTRA_ENTRY", "%s lists %s, which is not a frozen D0 packet file" % (manifest_rel, name))
+        if "/" in name or name.startswith("."):
+            report.add("E_D0_PACKET_MANIFEST_FORMAT", "%s lists an invalid packet file name %r" % (manifest_rel, name))
+            continue
+        path = packet_dir / name
+        if not path.is_file():
+            report.add("E_D0_PACKET_FILE_MISSING", "D0 packet file %s listed in %s is missing" % (name, manifest_rel))
+            continue
+        actual = sha256_file(path)
+        if actual != digest:
+            report.add("E_D0_PACKET_DRIFT", "D0 packet file %s hash %s differs from the manifest entry %s" % (name, actual, digest))
+    on_disk = set()
+    try:
+        on_disk = {item.name for item in packet_dir.iterdir() if item.name != D0_PACKET_MANIFEST_NAME}
+    except OSError:
+        pass
+    for name in sorted(on_disk - set(entries)):
+        report.add("E_D0_PACKET_UNLISTED_FILE", "D0 packet directory holds %s, which is not listed in %s" % (name, manifest_rel))
+    if "stage-control.json" not in entries:
+        report.add("E_D0_CONTROL_UNBOUND", "the D0 stage control is not bound by %s" % manifest_rel)
+    if "spec-manifest.json" not in entries:
+        report.add("E_D0_CONTROL_UNBOUND", "the authority spec manifest is not bound by %s" % manifest_rel)
+
+
 def check_spec_fence(ctx) -> None:
     """Every file frozen in the authority spec manifest must still hash the same."""
     report = ctx.report
@@ -689,6 +827,10 @@ class Context:
         self.task_stage_ids = set()
         self.task_stages = {}
         self.schema_metaschema_checked = False
+        self.root = ROOT
+        self.d0_packet_dir = D0_PACKET_DIR
+        self.d0_manifest_expected = FROZEN_D0_PACKET_MANIFEST_SHA256
+        self.stage_control_rel = D0_PACKET_DIR + "/stage-control.json"
 
 
 def collect_hashes(ctx: Context, root: Path, relatives) -> None:
@@ -718,6 +860,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--approval", default="reports/v1-redesign/product-change-approval.json")
     parser.add_argument("--execution-control", default="plans/execution-control.json")
     parser.add_argument("--r1-packet-dir", default=".agent-governance/stages/R1")
+    parser.add_argument("--d0-packet-dir", default=D0_PACKET_DIR, help="D0 stage packet directory (fenced by its own payload manifest)")
+    parser.add_argument("--d0-packet-manifest-sha256", default=FROZEN_D0_PACKET_MANIFEST_SHA256,
+                        help="source-control pinned digest of the D0 packet payload manifest")
     return parser
 
 
@@ -772,6 +917,10 @@ def main(argv=None) -> int:
             ctx.approval_rel = str(Path(args.approval).resolve().relative_to(root))
         except ValueError:
             ctx.approval_rel = args.approval
+    ctx.root = root
+    ctx.d0_packet_dir = args.d0_packet_dir
+    ctx.d0_manifest_expected = args.d0_packet_manifest_sha256
+    ctx.stage_control_rel = args.stage_control
 
     # Hashes of every file the frozen fences talk about.
     spec_files = ctx.spec_manifest.get("files")
@@ -835,6 +984,7 @@ def main(argv=None) -> int:
     check_authorization_accounting(ctx)
     check_contract_and_schema(ctx)
     check_immutability(ctx)
+    check_d0_packet_integrity(ctx)
     check_spec_fence(ctx)
 
     errors = sorted(ctx.report.errors)
