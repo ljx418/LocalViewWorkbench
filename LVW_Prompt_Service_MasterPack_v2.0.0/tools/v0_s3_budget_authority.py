@@ -84,13 +84,20 @@ def debit(request):
         owner=directory/(request['request_id']+'.json')
         identity={'request_id':request['request_id'],'binding_sha256':request['binding_sha256'],
                   'pid':os.getpid(),'birth':protocol.process_birth(os.getpid()),'state':'ENTERED'}
-        with owner.open('x') as stream: json.dump(identity,stream)
+        temporary=owner.with_suffix('.writing')
+        with temporary.open('x') as stream: json.dump(identity,stream)
+        os.link(temporary,owner);temporary.unlink()
     try:
         authority.model_action(child_path)
-    finally:
+    except Exception:
         if owner is not None:
-            identity['state']='RETURNED_FROM_AUTHORITY'
-            owner.write_text(json.dumps(identity))
+            identity['state']='AUTHORITY_RETURNED_ERROR'
+            temporary.write_text(json.dumps(identity));os.replace(temporary,owner)
+        raise
+    else:
+        if owner is not None:
+            identity['state']='AUTHORITY_RETURNED_OK'
+            temporary.write_text(json.dumps(identity));os.replace(temporary,owner)
     return dict(request,status='DEBITED',run_id=b['run_id'],child_sha256=b['child_sha256'],authority_sha256=AUTHORITY_HASH)
 
 
