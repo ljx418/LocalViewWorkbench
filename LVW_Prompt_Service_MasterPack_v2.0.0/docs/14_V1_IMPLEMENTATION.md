@@ -37,3 +37,8 @@ TXT/JSON/轻项目包显式导出；V0 JSON导入创建新的来源和revision�
 ## 测试与产物
 
 24组合编译、API/Schema/类型、ETag/幂等/取消、原图不变、无模型编辑、真实推理/资源、12图+6片、便携包。R1/R2所有产物必须是代码和真实测试，不以HTML设计稿代替React。
+
+
+## 2026-11-11批准的V1范围与角色修订
+
+新增V1-M1依赖R1，提前R2最小子任务但R2最终恢复/包/29项收口保留。 权威执行索引见[新版V1计划](30_V1_REVISED_EXECUTION_PLAN.md)、[详细架构/合同](31_V1_DETAILED_ARCHITECTURE_AND_CONTRACTS.md)、[验收与Orca协作](32_V1_ACCEPTANCE_AND_AGENT_WORKFLOW.md)。本节覆盖此前“自动切镜全部只在V2”的范围表述，不回填任何产品PASS。

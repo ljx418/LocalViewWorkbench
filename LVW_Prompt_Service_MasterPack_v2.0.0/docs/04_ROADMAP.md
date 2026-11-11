@@ -36,3 +36,8 @@ V0-S0是探测不是产品验收，禁止用完整发布项卡住开工。V0-Min
 完整子阶段和证据边界见 [24｜执行总纲](24_EXECUTION_MASTER_PLAN.md)，实时完成度只在 `plans/execution-control.json`。本章是版本路线，不表示每阶段已经执行。S2 仍是当前产品 Stage；计划审阅不切换 Stage。
 
 [25｜提速提案](25_PLAN_OPTIMIZATION_PROPOSAL.md) 全部为待批准项，不能反向修改本章门禁、docs/22–23 已签范围或原失败。V0.2 仍需全部十二项；完整 V1/V2/V3 固定分母分别为21/30/39项。
+
+
+## 2026-11-11批准的V1范围与角色修订
+
+批准顺序在R1后R2前加入V1-M1；S2/S3依赖保留；V2完整R13仍保留。 权威执行索引见[新版V1计划](30_V1_REVISED_EXECUTION_PLAN.md)、[详细架构/合同](31_V1_DETAILED_ARCHITECTURE_AND_CONTRACTS.md)、[验收与Orca协作](32_V1_ACCEPTANCE_AND_AGENT_WORKFLOW.md)。本节覆盖此前“自动切镜全部只在V2”的范围表述，不回填任何产品PASS。

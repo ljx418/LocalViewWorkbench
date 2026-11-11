@@ -47,3 +47,8 @@ V3 GPU协调只约束所有接入协作租约的生产者；不控制未接入�
 ## 部署单元
 
 V0增量工作流/薄扩展；V1一个Python服务（含静态前端）+已有Ollama；V2增加同应用模块而非新数据库服务；V3按需启用外部适配。无Redis/MongoDB/独立向量库/大Agent运行时。Node仅构建，所有浏览器资源本地。
+
+
+## 2026-11-11批准的V1范围与角色修订
+
+V1新增SceneRevisionOwner、FrameEvidenceOwner与有界持久化父子任务，单体/SQLite/单GPU不变。 权威执行索引见[新版V1计划](30_V1_REVISED_EXECUTION_PLAN.md)、[详细架构/合同](31_V1_DETAILED_ARCHITECTURE_AND_CONTRACTS.md)、[验收与Orca协作](32_V1_ACCEPTANCE_AND_AGENT_WORKFLOW.md)。本节覆盖此前“自动切镜全部只在V2”的范围表述，不回填任何产品PASS。

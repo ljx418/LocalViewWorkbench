@@ -1,19 +1,48 @@
 {
   "gates": {
     "V0-Min": {
-      "required_cases": ["V0-A01", "V0-A03", "V0-A04", "V0-A05", "V0-A08"],
+      "required_cases": [
+        "V0-A01",
+        "V0-A03",
+        "V0-A04",
+        "V0-A05",
+        "V0-A08"
+      ],
       "release_label": "V0_MIN_ACCEPTED",
       "earlier_host_evidence": "V0-S0 baseline and identity-bound V0-S1 machine facts",
       "all_must_pass": true
     },
     "V0.1": {
-      "required_cases": ["V0-A01", "V0-A02", "V0-A03", "V0-A04", "V0-A05", "V0-A07", "V0-A08", "V0-A09", "V0-A10"],
+      "required_cases": [
+        "V0-A01",
+        "V0-A02",
+        "V0-A03",
+        "V0-A04",
+        "V0-A05",
+        "V0-A07",
+        "V0-A08",
+        "V0-A09",
+        "V0-A10"
+      ],
       "release_label": "V0_1_ACCEPTED",
       "earlier_host_evidence": "V0-Min cumulative regression plus minimal bounded video path",
       "all_must_pass": true
     },
     "V0.2": {
-      "required_cases": ["V0-A01", "V0-A02", "V0-A03", "V0-A04", "V0-A05", "V0-A06", "V0-A07", "V0-A08", "V0-A09", "V0-A10", "V0-A11", "V0-A12"],
+      "required_cases": [
+        "V0-A01",
+        "V0-A02",
+        "V0-A03",
+        "V0-A04",
+        "V0-A05",
+        "V0-A06",
+        "V0-A07",
+        "V0-A08",
+        "V0-A09",
+        "V0-A10",
+        "V0-A11",
+        "V0-A12"
+      ],
       "release_label": "V0_2_ACCEPTED",
       "earlier_host_evidence": "V0.1 cumulative regression plus packaging, migration and rollback",
       "all_must_pass": true
@@ -60,11 +89,20 @@
         "Q01",
         "X01",
         "X02",
-        "X03"
+        "X03",
+        "MS01",
+        "MS02",
+        "MS03",
+        "MS04",
+        "MS05",
+        "MS06",
+        "MS07",
+        "MS08"
       ],
       "release_label": "V1_ACCEPTED",
       "earlier_host_evidence": "V0合同映射到V1回归；V1独立运行不要求Comfy宿主重新启动",
-      "all_must_pass": true
+      "all_must_pass": true,
+      "scope_amendment": "CHANGE-V1-MULTISHOT-01; legacy required cases retained in original order; MS01–08 additive"
     },
     "V2": {
       "required_cases": [
@@ -97,11 +135,20 @@
         "F06",
         "X04",
         "X05",
-        "X06"
+        "X06",
+        "MS01",
+        "MS02",
+        "MS03",
+        "MS04",
+        "MS05",
+        "MS06",
+        "MS07",
+        "MS08"
       ],
       "release_label": "V2_ACCEPTED",
       "earlier_host_evidence": "V0合同映射到V1回归；V1独立运行不要求Comfy宿主重新启动",
-      "all_must_pass": true
+      "all_must_pass": true,
+      "scope_amendment": "CHANGE-V1-MULTISHOT-01; legacy required cases retained in original order; MS01–08 additive"
     },
     "V3": {
       "required_cases": [
@@ -143,11 +190,20 @@
         "F07",
         "X07",
         "X08",
-        "X09"
+        "X09",
+        "MS01",
+        "MS02",
+        "MS03",
+        "MS04",
+        "MS05",
+        "MS06",
+        "MS07",
+        "MS08"
       ],
       "release_label": "V3_ACCEPTED",
       "earlier_host_evidence": "V0合同映射到V1回归；V1独立运行不要求Comfy宿主重新启动",
-      "all_must_pass": true
+      "all_must_pass": true,
+      "scope_amendment": "CHANGE-V1-MULTISHOT-01; legacy required cases retained in original order; MS01–08 additive"
     }
   },
   "states": [

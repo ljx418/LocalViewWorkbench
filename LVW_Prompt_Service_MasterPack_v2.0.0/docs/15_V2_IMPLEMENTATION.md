@@ -29,3 +29,8 @@ batch拆child job，独立状态、父进度是已终结项/总数；失败项�
 ## 产物
 
 时间与镜头模块、资产/配方UI、迁移SQL、数据导出、batch/recovery、MCP桥接、测试/兼容报告。关键验收A13–A17/F06/X04–X06，累计V1回归。
+
+
+## 2026-11-11批准的V1范围与角色修订
+
+R22短视频切镜/逐镜头子集提前到V1-M1；V2仍承担完整R13、长片、资产/FTS/配方等，不能用MS01替代完整A13/X04。 权威执行索引见[新版V1计划](30_V1_REVISED_EXECUTION_PLAN.md)、[详细架构/合同](31_V1_DETAILED_ARCHITECTURE_AND_CONTRACTS.md)、[验收与Orca协作](32_V1_ACCEPTANCE_AND_AGENT_WORKFLOW.md)。本节覆盖此前“自动切镜全部只在V2”的范围表述，不回填任何产品PASS。

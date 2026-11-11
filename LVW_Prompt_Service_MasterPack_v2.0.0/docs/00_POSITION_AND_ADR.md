@@ -27,3 +27,6 @@ LVW = Visual Prompt & Creative Asset Service。核心是“观察什么、想创
 ## 优先级
 
 最新用户授权 > 本文件ADR > 当前plans/contracts/config > 当前docs > 只读legacy。发现同级矛盾先记录ADR，不自行扩大范围。V0的无数据库不削减V1修订/V2资产；V0依赖Comfy不改变V1独立运行。提前实现不等于提前验收：`R1a` 只提供 V1 早期切片，V1 正式 PASS 仍受完整累计门禁约束。
+
+- ADR-12（2026-11-11，用户已批准）：V1增加R22最小多镜头分析，Stage V1-M1依赖R1骨架并先于R2最终收口；R13完整切镜/长片/资产增强仍属V2。既有V1二十一项保留，新增MS01–MS08，V1累计29项、V2累计38项、V3累计47项；原始历史收据不改分母。具体接口候选在docs/31及plans/v1-multishot-contract.json，经独审/协调者Gate0后激活，不编辑旧R1切片冻结包。
+- ADR-13（同日用户指定）：Codex持有设计、合同和裁决权；ClaudeCode通过Orca可见隔离窗口实现、自检、输出收据；另一隔离实例审查；人类体验与发布签署保留。无额度/未登录进入明确阻塞，不暗中换供应商或由root批量代写。

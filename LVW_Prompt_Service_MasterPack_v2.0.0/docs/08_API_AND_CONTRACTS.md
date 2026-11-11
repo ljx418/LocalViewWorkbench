@@ -25,3 +25,8 @@ capability handshake、Navia evidence import、Narralens brief/suggestion receip
 ## 不当承诺
 
 MCP SDK的存在不代表生产工具实现；OpenAPI是设计合同不是运行中的API；工作流设计别名不是Comfy class_type。Ollama structured output只约束语法，不证明事实正确。不得把浏览器SDK可读路径行为当原始HTTP可接受路径；HTTP图像发送编码内容，路径只留本机服务。
+
+
+## 2026-11-11批准的V1范围与角色修订
+
+旧canonical合同与R1切片packet不静默改；候选overlay由Codex独审后Gate0激活。 权威执行索引见[新版V1计划](30_V1_REVISED_EXECUTION_PLAN.md)、[详细架构/合同](31_V1_DETAILED_ARCHITECTURE_AND_CONTRACTS.md)、[验收与Orca协作](32_V1_ACCEPTANCE_AND_AGENT_WORKFLOW.md)。本节覆盖此前“自动切镜全部只在V2”的范围表述，不回填任何产品PASS。

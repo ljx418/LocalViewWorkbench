@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0",
-  "note": "完整51组设计用例，初始未执行。旧ID保留，断言展开并补强。",
+  "note": "原58组保留；批准增加V1多镜头MS01–MS08，共66组；NOT_RUN不是产品通过。",
   "cases": [
     {
       "case_id": "V0-A01",
@@ -1358,10 +1358,22 @@
       "name": "受控单图媒体边界",
       "priority": "P0",
       "status": "NOT_RUN",
-      "preconditions": ["R1a FastAPI与受控媒体目录可用"],
-      "steps": ["通过公开上传入口验证JPEG/PNG/WebP、20MiB、40MP、hash与预处理边界", "保存候选绑定的原始测试和收据"],
-      "assertions": ["原图hash不变且分析副本最长边不超过1024", "损坏、格式伪装、exact与one-over均fail-closed"],
-      "evidence_required": ["test_receipt.json", "boundary_results.json", "candidate_sha"],
+      "preconditions": [
+        "R1a FastAPI与受控媒体目录可用"
+      ],
+      "steps": [
+        "通过公开上传入口验证JPEG/PNG/WebP、20MiB、40MP、hash与预处理边界",
+        "保存候选绑定的原始测试和收据"
+      ],
+      "assertions": [
+        "原图hash不变且分析副本最长边不超过1024",
+        "损坏、格式伪装、exact与one-over均fail-closed"
+      ],
+      "evidence_required": [
+        "test_receipt.json",
+        "boundary_results.json",
+        "candidate_sha"
+      ],
       "test_layer": "api_and_contract",
       "requires_target_execution": false,
       "evidence_path": null
@@ -1372,10 +1384,22 @@
       "name": "真实单图产品链分析",
       "priority": "P0",
       "status": "NOT_RUN",
-      "preconditions": ["Windows本地Gemma4、同源React/FastAPI及固定非私有图片已授权"],
-      "steps": ["经React上传并由FastAPI调用literal-loopback Ollama", "保存raw、PromptSpec、模型digest与调用账本"],
-      "assertions": ["不是固定demo且真实provider调用恰为1", "raw、观察、推断、未知和建议属于同一run"],
-      "evidence_required": ["live-receipt.json", "browser-result.json", "provider-ledger.json"],
+      "preconditions": [
+        "Windows本地Gemma4、同源React/FastAPI及固定非私有图片已授权"
+      ],
+      "steps": [
+        "经React上传并由FastAPI调用literal-loopback Ollama",
+        "保存raw、PromptSpec、模型digest与调用账本"
+      ],
+      "assertions": [
+        "不是固定demo且真实provider调用恰为1",
+        "raw、观察、推断、未知和建议属于同一run"
+      ],
+      "evidence_required": [
+        "live-receipt.json",
+        "browser-result.json",
+        "provider-ledger.json"
+      ],
       "test_layer": "real_gpu_model_product_path",
       "requires_target_execution": true,
       "evidence_path": null
@@ -1386,10 +1410,22 @@
       "name": "无模型人工编辑与导出",
       "priority": "P0",
       "status": "NOT_RUN",
-      "preconditions": ["React人工工作稿已打开，provider调用账本为空"],
-      "steps": ["填写四输出和标签并执行复制、TXT与JSON导出", "再执行一次真实分析并核对人工稿在显式采纳前不变"],
-      "assertions": ["人工路径产生0次provider调用", "Unicode、空字段和导出内容可预测且无静默覆盖"],
-      "evidence_required": ["manual-export.json", "browser-ledger.json", "provider-ledger.json"],
+      "preconditions": [
+        "React人工工作稿已打开，provider调用账本为空"
+      ],
+      "steps": [
+        "填写四输出和标签并执行复制、TXT与JSON导出",
+        "再执行一次真实分析并核对人工稿在显式采纳前不变"
+      ],
+      "assertions": [
+        "人工路径产生0次provider调用",
+        "Unicode、空字段和导出内容可预测且无静默覆盖"
+      ],
+      "evidence_required": [
+        "manual-export.json",
+        "browser-ledger.json",
+        "provider-ledger.json"
+      ],
       "test_layer": "browser_manual_mode",
       "requires_target_execution": true,
       "evidence_path": null
@@ -1400,10 +1436,23 @@
       "name": "显式采纳与四输出一致性",
       "priority": "P0",
       "status": "NOT_RUN",
-      "preconditions": ["真实单图分析完成且人工稿含未导出修改"],
-      "steps": ["确认建议未自动覆盖，接受替换确认后显式采纳", "核对中文、英文、图像、负向提示词及TXT/JSON"],
-      "assertions": ["切换、编辑、复制和导出不重复分析", "四输出与采纳后的draft逐字段一致"],
-      "evidence_required": ["browser-result.json", "export.txt", "export.json", "provider-ledger.json"],
+      "preconditions": [
+        "真实单图分析完成且人工稿含未导出修改"
+      ],
+      "steps": [
+        "确认建议未自动覆盖，接受替换确认后显式采纳",
+        "核对中文、英文、图像、负向提示词及TXT/JSON"
+      ],
+      "assertions": [
+        "切换、编辑、复制和导出不重复分析",
+        "四输出与采纳后的draft逐字段一致"
+      ],
+      "evidence_required": [
+        "browser-result.json",
+        "export.txt",
+        "export.json",
+        "provider-ledger.json"
+      ],
       "test_layer": "browser_state_and_export",
       "requires_target_execution": true,
       "evidence_path": null
@@ -1414,10 +1463,23 @@
       "name": "真实React构建与响应式产品页",
       "priority": "P0",
       "status": "NOT_RUN",
-      "preconditions": ["Vite dist由冻结候选构建并由FastAPI同源托管"],
-      "steps": ["运行360/1280/1920布局、键盘路径和raw默认折叠检查", "核对无CDN、Node生产服务、Gradio或NiceGUI"],
-      "assertions": ["无水平溢出且关键操作可由键盘触发", "浏览器只访问绑定的loopback同源"],
-      "evidence_required": ["ui-360.png", "ui-1280.png", "ui-1920.png", "browser-result.json"],
+      "preconditions": [
+        "Vite dist由冻结候选构建并由FastAPI同源托管"
+      ],
+      "steps": [
+        "运行360/1280/1920布局、键盘路径和raw默认折叠检查",
+        "核对无CDN、Node生产服务、Gradio或NiceGUI"
+      ],
+      "assertions": [
+        "无水平溢出且关键操作可由键盘触发",
+        "浏览器只访问绑定的loopback同源"
+      ],
+      "evidence_required": [
+        "ui-360.png",
+        "ui-1280.png",
+        "ui-1920.png",
+        "browser-result.json"
+      ],
       "test_layer": "real_browser",
       "requires_target_execution": true,
       "evidence_path": null
@@ -1428,10 +1490,22 @@
       "name": "固定单图独立语义与证据复核",
       "priority": "P0",
       "status": "NOT_RUN",
-      "preconditions": ["固定单图的新鲜真实运行和原始证据已封存"],
-      "steps": ["独立复算观察、推断、未知和提示词是否有图像依据", "复核候选、授权、调用、清理与证据hash"],
-      "assertions": ["观察与推断分离且提示词语义可用", "Fatal=0、Major=0且不依赖实现者结论"],
-      "evidence_required": ["independent-review.md", "artifact-manifest.json", "candidate_sha"],
+      "preconditions": [
+        "固定单图的新鲜真实运行和原始证据已封存"
+      ],
+      "steps": [
+        "独立复算观察、推断、未知和提示词是否有图像依据",
+        "复核候选、授权、调用、清理与证据hash"
+      ],
+      "assertions": [
+        "观察与推断分离且提示词语义可用",
+        "Fatal=0、Major=0且不依赖实现者结论"
+      ],
+      "evidence_required": [
+        "independent-review.md",
+        "artifact-manifest.json",
+        "candidate_sha"
+      ],
       "test_layer": "independent_review",
       "requires_target_execution": true,
       "evidence_path": null
@@ -1442,10 +1516,22 @@
       "name": "同源、loopback与失败安全",
       "priority": "P0",
       "status": "NOT_RUN",
-      "preconditions": ["同源服务、受控上传和浏览器外联拦截已启用"],
-      "steps": ["验证非法Origin/URL/格式/路径、模型失败和dirty draft", "复核双运行域端口、run-owned进程和临时目录清理"],
-      "assertions": ["无云回退、任意路径或浏览器直连Ollama", "失败不覆盖人工稿且不终止非owned进程"],
-      "evidence_required": ["security-results.json", "live-receipt.json", "cleanup-proof.json"],
+      "preconditions": [
+        "同源服务、受控上传和浏览器外联拦截已启用"
+      ],
+      "steps": [
+        "验证非法Origin/URL/格式/路径、模型失败和dirty draft",
+        "复核双运行域端口、run-owned进程和临时目录清理"
+      ],
+      "assertions": [
+        "无云回退、任意路径或浏览器直连Ollama",
+        "失败不覆盖人工稿且不终止非owned进程"
+      ],
+      "evidence_required": [
+        "security-results.json",
+        "live-receipt.json",
+        "cleanup-proof.json"
+      ],
       "test_layer": "security_failure_cleanup",
       "requires_target_execution": true,
       "evidence_path": null
@@ -1474,6 +1560,222 @@
         "evidence_sha256.json"
       ],
       "test_layer": "deployment",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "MS01",
+      "version": "V1",
+      "name": "硬切候选与实际PTS",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "Gate0冻结规格/独立标注/样本哈希，候选及有限授权完整"
+      ],
+      "steps": [
+        "通过生产owner/公开入口驱动，保留失败、raw和机器收据"
+      ],
+      "assertions": [
+        "6段硬切样本至少20个预标切点；一对一匹配，P/R均>=0.90，容差为标注点左右各2个实际源帧；禁止用平均fps换算VFR",
+        "缺失/阻塞/跳过不计PASS，不缩分母，不替换样本；Fatal0/Major0才能出门"
+      ],
+      "evidence_required": [
+        "run_receipt.json",
+        "raw_commands.log",
+        "per_sample_results.json",
+        "candidate_spec_sample_hashes.json",
+        "cleanup_proof.json"
+      ],
+      "test_layer": "contract_cpu_real_ui_and_quality",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "MS02",
+      "version": "V1",
+      "name": "边界编辑与修订",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "Gate0冻结规格/独立标注/样本哈希，候选及有限授权完整"
+      ],
+      "steps": [
+        "通过生产owner/公开入口驱动，保留失败、raw和机器收据"
+      ],
+      "assertions": [
+        "拆分/合并/移动边界；[start,end)有效且顺序连续；If-Match冲突412；边界改动只使受影响结果stale，raw/人工稿不丢",
+        "缺失/阻塞/跳过不计PASS，不缩分母，不替换样本；Fatal0/Major0才能出门"
+      ],
+      "evidence_required": [
+        "run_receipt.json",
+        "raw_commands.log",
+        "per_sample_results.json",
+        "candidate_spec_sample_hashes.json",
+        "cleanup_proof.json"
+      ],
+      "test_layer": "contract_cpu_real_ui_and_quality",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "MS03",
+      "version": "V1",
+      "name": "镜头内抽帧与追溯",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "Gate0冻结规格/独立标注/样本哈希，候选及有限授权完整"
+      ],
+      "steps": [
+        "通过生产owner/公开入口驱动，保留失败、raw和机器收据"
+      ],
+      "assertions": [
+        "全部计划镜头逐项覆盖，帧PTS严格属于本镜头；少帧不复制；原SHA、边界版本、帧SHA与结果一致",
+        "缺失/阻塞/跳过不计PASS，不缩分母，不替换样本；Fatal0/Major0才能出门"
+      ],
+      "evidence_required": [
+        "run_receipt.json",
+        "raw_commands.log",
+        "per_sample_results.json",
+        "candidate_spec_sample_hashes.json",
+        "cleanup_proof.json"
+      ],
+      "test_layer": "contract_cpu_real_ui_and_quality",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "MS04",
+      "version": "V1",
+      "name": "人物场景动作质量",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "Gate0冻结规格/独立标注/样本哈希，候选及有限授权完整"
+      ],
+      "steps": [
+        "通过生产owner/公开入口驱动，保留失败、raw和机器收据"
+      ],
+      "assertions": [
+        "独立18段质量标注全部计分：12段简单动作至少10段动作可用；3模糊+3静态不得强行编造动作；总可用>=15/18且关键幻觉0；五维各0–2，总>=8可用",
+        "缺失/阻塞/跳过不计PASS，不缩分母，不替换样本；Fatal0/Major0才能出门"
+      ],
+      "evidence_required": [
+        "run_receipt.json",
+        "raw_commands.log",
+        "per_sample_results.json",
+        "candidate_spec_sample_hashes.json",
+        "cleanup_proof.json"
+      ],
+      "test_layer": "contract_cpu_real_ui_and_quality",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "MS05",
+      "version": "V1",
+      "name": "串行任务取消与重试",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "Gate0冻结规格/独立标注/样本哈希，候选及有限授权完整"
+      ],
+      "steps": [
+        "通过生产owner/公开入口驱动，保留失败、raw和机器收据"
+      ],
+      "assertions": [
+        "准备/运行/排队真实取消，反馈<=1s，实际释放<=30s；失败子项不回滚成功项，重试新attempt仅失败子项；晚到不得写稿",
+        "缺失/阻塞/跳过不计PASS，不缩分母，不替换样本；Fatal0/Major0才能出门"
+      ],
+      "evidence_required": [
+        "run_receipt.json",
+        "raw_commands.log",
+        "per_sample_results.json",
+        "candidate_spec_sample_hashes.json",
+        "cleanup_proof.json"
+      ],
+      "test_layer": "contract_cpu_real_ui_and_quality",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "MS06",
+      "version": "V1",
+      "name": "逐镜头前端与导出",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "Gate0冻结规格/独立标注/样本哈希，候选及有限授权完整"
+      ],
+      "steps": [
+        "通过生产owner/公开入口驱动，保留失败、raw和机器收据"
+      ],
+      "assertions": [
+        "真实React公开入口切镜/预览/逐镜头采纳编辑/导出闭环；切换不串稿；JSON/CSV清单含每个计划项状态，不以缺失当PASS",
+        "缺失/阻塞/跳过不计PASS，不缩分母，不替换样本；Fatal0/Major0才能出门"
+      ],
+      "evidence_required": [
+        "run_receipt.json",
+        "raw_commands.log",
+        "per_sample_results.json",
+        "candidate_spec_sample_hashes.json",
+        "cleanup_proof.json"
+      ],
+      "test_layer": "contract_cpu_real_ui_and_quality",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "MS07",
+      "version": "V1",
+      "name": "有界资源与安全",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "Gate0冻结规格/独立标注/样本哈希，候选及有限授权完整"
+      ],
+      "steps": [
+        "通过生产owner/公开入口驱动，保留失败、raw和机器收据"
+      ],
+      "assertions": [
+        "镜头数12/13 exact-oneover；全部媒体限制/非法边界/取消清理；不静默只分析前12；单GPU，峰<23552MiB，RAM>=2048MiB，OOM0",
+        "缺失/阻塞/跳过不计PASS，不缩分母，不替换样本；Fatal0/Major0才能出门"
+      ],
+      "evidence_required": [
+        "run_receipt.json",
+        "raw_commands.log",
+        "per_sample_results.json",
+        "candidate_spec_sample_hashes.json",
+        "cleanup_proof.json"
+      ],
+      "test_layer": "contract_cpu_real_ui_and_quality",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "MS08",
+      "version": "V1",
+      "name": "持久化迁移与兼容",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "Gate0冻结规格/独立标注/样本哈希，候选及有限授权完整"
+      ],
+      "steps": [
+        "通过生产owner/公开入口驱动，保留失败、raw和机器收据"
+      ],
+      "assertions": [
+        "重启恢复media/scene/shot/revision/jobs，running->interrupted不自动重放；备份/迁移失败回滚；原V1接口与整体4帧回归；raw/人工分离",
+        "缺失/阻塞/跳过不计PASS，不缩分母，不替换样本；Fatal0/Major0才能出门"
+      ],
+      "evidence_required": [
+        "run_receipt.json",
+        "raw_commands.log",
+        "per_sample_results.json",
+        "candidate_spec_sample_hashes.json",
+        "cleanup_proof.json"
+      ],
+      "test_layer": "contract_cpu_real_ui_and_quality",
       "requires_target_execution": true,
       "evidence_path": null
     }

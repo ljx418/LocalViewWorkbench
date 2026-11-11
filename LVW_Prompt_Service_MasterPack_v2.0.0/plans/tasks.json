@@ -1,7 +1,7 @@
 {
   "design_version": "2.0.0",
   "default_target": "V0-Min",
-  "all_versions_fully_specified": true,
+  "all_versions_fully_specified": false,
   "preferred_sequence": [
     "V0-S0",
     "V0-S1",
@@ -10,6 +10,7 @@
     "V0-S2",
     "V0-S3",
     "R1",
+    "V1-M1",
     "R2",
     "R3",
     "R4",
@@ -17,7 +18,7 @@
     "R5b",
     "R5c"
   ],
-  "sequence_policy": "R1a is an early implementation slice, not a release version; release gates and cumulative acceptance remain unchanged",
+  "sequence_policy": "Original product dependencies retained; V1-M1 after R1 before R2; V1-D0 is parallel offline design/tool preparation, never human acceptance bypass.",
   "stages": [
     {
       "stage_id": "V0-S0",
@@ -216,13 +217,13 @@
         "copy-txt-json-export"
       ],
       "work_on_cases": [
-    "R1A-M01",
-    "R1A-M02",
-    "R1A-M03",
-    "R1A-M04",
-    "R1A-M05",
-    "R1A-M06",
-    "R1A-M07"
+        "R1A-M01",
+        "R1A-M02",
+        "R1A-M03",
+        "R1A-M04",
+        "R1A-M05",
+        "R1A-M06",
+        "R1A-M07"
       ],
       "stage_exit": "真实代码和定向证据达到V1_EARLY_SLICE_READY_FOR_REVIEW；不得声明V1_ACCEPTED，后续累计门禁不变",
       "release_target": null
@@ -280,11 +281,56 @@
       "release_target": null
     },
     {
+      "stage_id": "V1-M1",
+      "version": "V1",
+      "title": "多镜头边界与逐镜头分析",
+      "depends_on": [
+        "R1"
+      ],
+      "status": "NOT_RUN",
+      "requirements": [
+        "R01",
+        "R02",
+        "R06",
+        "R07",
+        "R08",
+        "R09",
+        "R10",
+        "R22"
+      ],
+      "implementation_doc": "docs/30_V1_REVISED_EXECUTION_PLAN.md",
+      "steps": [
+        "M1-A边界/时间轴与实际PTS",
+        "M1-B逐镜头证据/串行子任务",
+        "M1-C统一UI/导出/集中验收"
+      ],
+      "deliverables": [
+        "scene-revision-owner",
+        "per-shot-evidence",
+        "bounded-parent-child-jobs",
+        "unified-shot-timeline",
+        "fixed-MS08-evidence"
+      ],
+      "work_on_cases": [
+        "MS01",
+        "MS02",
+        "MS03",
+        "MS04",
+        "MS05",
+        "MS06",
+        "MS07",
+        "MS08"
+      ],
+      "stage_exit": "MS01–08实际完整、独审Fatal0/Major0、必要人工体验签署；非V1发布",
+      "release_target": null
+    },
+    {
       "stage_id": "R2",
       "version": "V1",
       "title": "推理任务修订与运行包",
       "depends_on": [
-        "R1"
+        "R1",
+        "V1-M1"
       ],
       "status": "NOT_RUN",
       "requirements": [
@@ -299,7 +345,8 @@
         "R09",
         "R10",
         "R11",
-        "R12"
+        "R12",
+        "R22"
       ],
       "implementation_doc": "docs/14_V1_IMPLEMENTATION.md",
       "steps": [
@@ -334,7 +381,15 @@
         "Q01",
         "X01",
         "X02",
-        "X03"
+        "X03",
+        "MS01",
+        "MS02",
+        "MS03",
+        "MS04",
+        "MS05",
+        "MS06",
+        "MS07",
+        "MS08"
       ],
       "stage_exit": "交付物真实存在、阶段用例通过；发布阶段按release_gates判定",
       "release_target": "V1"
@@ -502,5 +557,6 @@
       "stage_exit": "交付物真实存在、阶段用例通过；发布阶段按release_gates判定",
       "release_target": "V3"
     }
-  ]
+  ],
+  "specification_status": "Approved V1 scope; D0 architecture/contracts candidate under independent review; sample/annotation hashes and product Gate0 packets not frozen yet."
 }

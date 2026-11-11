@@ -51,3 +51,8 @@ V0交付真实workflow；本设计包不伪造具体节点。正式代码生成P
 - `docs/25_PLAN_OPTIMIZATION_PROPOSAL.md`：颗粒度、重复回归、安装树校验、压力轮数和修复预算的精确差异；均等待项目负责人批准。
 
 本次只完善文档和用户要求的停止报告格式。原Stage、四权分离、质量阈值、固定分母与运行程序未改变，不因补文档额外重建治理平台。
+
+
+## 2026-11-11批准的V1范围与角色修订
+
+V1-D0设计/工具→原前置→R1四包→M1三包→R2四包；每Stage集中验收、一个实现owner。 权威执行索引见[新版V1计划](30_V1_REVISED_EXECUTION_PLAN.md)、[详细架构/合同](31_V1_DETAILED_ARCHITECTURE_AND_CONTRACTS.md)、[验收与Orca协作](32_V1_ACCEPTANCE_AND_AGENT_WORKFLOW.md)。本节覆盖此前“自动切镜全部只在V2”的范围表述，不回填任何产品PASS。

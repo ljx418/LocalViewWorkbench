@@ -34,7 +34,7 @@
     "TARGET_HARDWARE_TESTED"
   ],
   "next_owner": "project_owner",
-  "next_action": "Use LVW.exe and unified React page for actual image/video experience plus selected held-out videos; explicitly sign only unified media slice candidate621b1bf if acceptable. Codex records actual signature then immediately commits/pushes ordinary configured branch; no completeV1/release approval inferred.",
+  "next_action": "Current slice remains WAIT_HUMAN; in parallel Codex oversees visible Orca ClaudeCode D0 checker and independent design audit. Freeze reviewed R1/M1/R2 packets only after design closure; retain all product prerequisite signatures.",
   "required_authorization": null,
   "authorization_request": "reports/authorization-program-v1-complete-03.request.json",
   "authorization_record": "reports/authorization-program-v1-complete-03.approval.json",
@@ -489,6 +489,35 @@
         "independent_review": "FATAL0_MAJOR0",
         "human_signoff": "PENDING"
       }
+    },
+    {
+      "stage_id": "V1-M1",
+      "delivery": "V1",
+      "title": "多镜头拆分与逐镜头人物场景动作",
+      "substeps": [
+        {
+          "name": "M1-A detection/PTS/boundaries/timeline",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "M1-B per-shot evidence and serial child jobs",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "M1-C per-shot drafts/exports/fixed8 full validation",
+          "status": "PENDING",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 0,
+      "total_substeps": 3,
+      "summary": "用户批准纳入V1；设计/合同审查中，未实现、未测试、未签署",
+      "implementation": "DESIGN_ONLY",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
     },
     {
       "stage_id": "R2",
@@ -967,5 +996,19 @@
     "request": "reports/unified-media/human-signoff-request-live15.json",
     "not_full_R1_V1_or_release": true
   },
-  "current_cpu_receipt": "reports/unified-media/owner-split-final-offline-04/receipt.json"
+  "current_cpu_receipt": "reports/unified-media/owner-split-final-offline-04/receipt.json",
+  "approved_v1_multishot_change": "reports/v1-redesign/product-change-approval.json",
+  "v1_revised_plan": "plans/v1-revised-plan.json",
+  "planning_track": {
+    "id": "V1-D0",
+    "state": "DESIGN_PREPARED_REVIEW_PENDING",
+    "completed_substeps": 1,
+    "total_substeps": 2,
+    "owner": "Codex",
+    "implementer": "Orca ClaudeCode",
+    "scope": "offline plan checker and independent audit, not product runtime",
+    "orca_visibility": "child workspaces with keep-open; worker dispatch receipts are launch authority",
+    "orca_run_id": "run_ec1d5514e718",
+    "worker_dispatch_status": "READY_TO_LAUNCH_AFTER_SOURCE_SEAL"
+  }
 }

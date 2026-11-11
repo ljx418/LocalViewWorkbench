@@ -44,3 +44,8 @@ Vn_ACCEPTED要求该版本全部必选及累计回归PASS。V0-Min 不要求视�
 V0 全部十二项的生产 owner、Oracle、负例和清理映射见 [24｜执行总纲](24_EXECUTION_MASTER_PLAN.md)。最新运行进度与历史签署分别读取 execution-control 与原收据；本文件的“初始 NOT_RUN”不覆盖真实签署。
 
 [25｜提速提案](25_PLAN_OPTIMIZATION_PROPOSAL.md)中的轮数/校验策略尚未批准，现行门限保持不变。对A09方法的任何后移必须新版本化、明确披露S2与S3的证据分工，不能三次冒充十次P95，也不能改写历史NO_GO。
+
+
+## 2026-11-11批准的V1范围与角色修订
+
+V1原21项保留，加MS01–08为29；V2/V3继承38/47；原Q01阈值与样本分母不降。 权威执行索引见[新版V1计划](30_V1_REVISED_EXECUTION_PLAN.md)、[详细架构/合同](31_V1_DETAILED_ARCHITECTURE_AND_CONTRACTS.md)、[验收与Orca协作](32_V1_ACCEPTANCE_AND_AGENT_WORKFLOW.md)。本节覆盖此前“自动切镜全部只在V2”的范围表述，不回填任何产品PASS。
