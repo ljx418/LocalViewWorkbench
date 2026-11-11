@@ -1,0 +1,589 @@
+{
+  "kind": "S3_PREP_A_INDEPENDENT_REVIEW_RECEIPT",
+  "review_id": "S3-PREP-A-INDEPENDENT-01",
+  "reviewer": {
+    "role": "separate Orca-visible ClaudeCode independent reviewer",
+    "branch": "ljx418/lvw-v1-d0-review",
+    "worktree": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review",
+    "not_the_implementer": true,
+    "no_implementer_conclusion_used_as_evidence": true
+  },
+  "outcome": "NOT_ACCEPTABLE_AS_IS",
+  "outcome_reason": "One Major finding (S3P-A-MAJOR-01): the handoff guard never reads the live old-S2 human projection in plans/execution-control.json, so a live 'V0-S2 8/8 human_signoff APPROVED' coordinate is certified HANDOFF_READINESS_VERIFIED with zero failed checks. Everything else reproduced exactly.",
+  "no_stage_pass": true,
+  "no_product_gate0": true,
+  "no_human_signature": true,
+  "no_sample_freeze": true,
+  "no_quality_claim": true,
+  "loaded_identities": {
+    "root_coordination_commit": "d47c2a1571f15b592cfd0061f151de7e3eb11af3",
+    "implementation_candidate_terminal": "311bdda937373f1055a6677f02322fb347c31cd1",
+    "implementation_candidate_pre_receipt": "77592cc0c2eea41aae515063d1ec181c73159273",
+    "implementation_code_candidate": "d33893303f24da57216b63b4e0b9ef7e009d7613",
+    "owner_authority_commit": "4f216700c917e20704b5edc90fa33de497441368",
+    "scope_approval_sha256": "bab47506d5a13657edcabc33644c6b159f2967e696dff4c4c43859d54fbf3057",
+    "review_checkout_head_after_load": "a7bf1c95daa1e2c656d6715cf6b30434a152cebb",
+    "load_commits_created_by_this_review": [
+      "f3f12844b6eaf50da526978a8a730c3d3d5603c2",
+      "a7bf1c95daa1e2c656d6715cf6b30434a152cebb"
+    ],
+    "merge_clean": true,
+    "conflicts": 0,
+    "manual_code_doc_manifest_repair": "none; the two merges were clean and no file was hand-edited"
+  },
+  "code_identity_after_merge": {
+    "tools/verify_s3_handoff.py": {
+      "candidate_d338933_blob": "4a272a3bb221f78a719d1b4796b8e16c2b775b92",
+      "merged_checkout_blob": "4a272a3bb221f78a719d1b4796b8e16c2b775b92",
+      "byte_identical_to_d338933": true,
+      "sha256": "5944771fd3fe880014bcbecd06b1ba1fbe76a58d2b560ec74d8a679de5adfe9d"
+    },
+    "tools/s3_asset_inventory.py": {
+      "candidate_d338933_blob": "b3f0ab2afc683a7e2ef005dc2db8b93c739775dc",
+      "merged_checkout_blob": "b3f0ab2afc683a7e2ef005dc2db8b93c739775dc",
+      "byte_identical_to_d338933": true,
+      "sha256": "333cfed9828fae22df524870fa691e553bcdb1965f30c1f5efb0b1882e3cbb30"
+    },
+    "tools/test_verify_s3_handoff.py": {
+      "candidate_d338933_blob": "4b20a5723f392e96786b3b64d16fa83cf49ece78",
+      "merged_checkout_blob": "4b20a5723f392e96786b3b64d16fa83cf49ece78",
+      "byte_identical_to_d338933": true,
+      "sha256": "c59b1c86af67d78bb2f4a8d372415eda0484a4170cf45f78fb80b239f235b023"
+    },
+    "tools/test_s3_asset_inventory.py": {
+      "candidate_d338933_blob": "075786a09bb37db5086ac448097491abee74de07",
+      "merged_checkout_blob": "075786a09bb37db5086ac448097491abee74de07",
+      "byte_identical_to_d338933": true,
+      "sha256": "2af8bf3e9526e0da4f5c42417f7437a0f62a4d73f429755ff55be06fa92957e0"
+    }
+  },
+  "code_identity_verdict": "all four production code files are byte-identical to d338933 after the merge",
+  "mutable_coordinate_delta_versus_candidate": {
+    "changed_paths": [
+      "MANIFEST.sha256",
+      "plans/execution-control.json",
+      "reports/v0-s3/preparation-03/claude-preparation-independent-review.task.md",
+      "reports/v0-s3/preparation-03/implementation.launch.json",
+      "reports/v0-s3/preparation-03/implementation-launch.stderr.log",
+      "reports/v0-s3/preparation-03/independent-hash-child-01.json"
+    ],
+    "note": "these are exactly the root coordination commit's changes; the prep contract expressly allows mutable execution coordinate changes and this review made no edit to any of them"
+  },
+  "source_fence": {
+    "before": {
+      "source_files": 16,
+      "source_all_match": true,
+      "payload_files": 10,
+      "payload_all_match": true,
+      "fence_digest": "ce8a7f921225ef5a673c3998a424d112f1ddf3b0bb06f76fd97cd802c5c1291d"
+    },
+    "after": {
+      "source_files": 16,
+      "source_all_match": true,
+      "payload_files": 10,
+      "payload_all_match": true,
+      "fence_digest": "ce8a7f921225ef5a673c3998a424d112f1ddf3b0bb06f76fd97cd802c5c1291d",
+      "identical_to_before": true,
+      "note": "recomputed after the review reports were written; the frozen set did not move"
+    },
+    "note": "the 'after' value is filled from the same recomputation after the review reports were written; see fence_after"
+  },
+  "mandatory_commands": [
+    {
+      "command": "python3 -B tools/verify_s3_handoff.py",
+      "run_in": "/tmp/lvw-s3prep-independent-01/package (fresh isolated copy of the merged review checkout)",
+      "exit": 0,
+      "stdout": {
+        "sha256": "12b1f73df49bca00c2c1c018851c252a23c2db3976c13a0e3a676c3d17a503df",
+        "bytes": 22387
+      },
+      "stderr": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      },
+      "wall_user_sys_seconds": "0.03 0.02 0.00",
+      "decision": "HANDOFF_READINESS_VERIFIED",
+      "checks": 119,
+      "failed": 0,
+      "authority_reported_by_the_tool": "AUTHORITATIVE",
+      "matches_implementer_raw_stdout_sha256": true,
+      "implementer_stdout_sha256": "12b1f73df49bca00c2c1c018851c252a23c2db3976c13a0e3a676c3d17a503df"
+    },
+    {
+      "command": "python3 -B -m pytest tools/test_verify_s3_handoff.py tools/test_s3_asset_inventory.py -q",
+      "run_in": "/tmp/lvw-s3prep-independent-01/package (fresh isolated copy)",
+      "exit": 0,
+      "stdout": {
+        "sha256": "1c18971ff9bc4fa892b33e4f04881b376337d497e6aea7e9f02f23eec125a835",
+        "bytes": 99
+      },
+      "stderr": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      },
+      "wall_user_sys_seconds": "0.86 0.68 0.11",
+      "result_line": "48 passed in 0.36s",
+      "test_count_recomputed": 48,
+      "matches_implementer_raw_stdout_sha256": true,
+      "implementer_stdout_sha256": "1c18971ff9bc4fa892b33e4f04881b376337d497e6aea7e9f02f23eec125a835",
+      "no_real_inventory_rerun": "the two test files were inspected before the run: every inventory test injects a fixture root, a fixture child and fixture pins (authority FIXTURE_NON_AUTHORITY), the CLI test uses a deliberately broken binding so it refuses before media access, and no test uses the production binding or the production receipt path"
+    }
+  ],
+  "implementer_raw_log_verification": {
+    "sha256sums_file": "reports/v0-s3/preparation-03/implementation/checks/SHA256SUMS.txt",
+    "all_entries_verified": true,
+    "entries": 12
+  },
+  "independent_recomputation_from_the_receipt": {
+    "receipt_sha256": "05ab5d63a69556c721b26191273cf60c20e4b3bb5826712688cefb06786ee2ef",
+    "receipt_sha256_matches_hash_child": true,
+    "entries_examined": 1006,
+    "regular_files_examined": 888,
+    "files_hashed": 512,
+    "total_bytes_hashed": 1049735799,
+    "eligible": 512,
+    "skipped": 376,
+    "skipped_by_reason": {
+      "unsupported_extension": 190,
+      "hash_budget_exhausted": 186
+    },
+    "supported_extension_files_in_root": 698,
+    "supported_files_hashed_plus_skipped": 698,
+    "distinct_sha256": 501,
+    "duplicate_groups": 11,
+    "duplicate_items": 22,
+    "extensions": {
+      ".jpg": 325,
+      ".png": 115,
+      ".mp4": 68,
+      ".jpeg": 2,
+      ".webp": 2
+    },
+    "size_bytes": {
+      "min": 409,
+      "p50": 119736,
+      "p90": 2944066,
+      "max": 144156307
+    },
+    "file_id_recomputation_mismatches": 0,
+    "holdouts_checked": 11,
+    "holdout_distinct_hashes": 11,
+    "holdout_overlap_with_hashed_subset": 0,
+    "holdout_freeze_file_sha256": "3a8313c6e44dbf22dfbe8abd84f24a42ff15539ec4d19da13ac9d68b5419288c",
+    "holdout_scope": "the comparison covers the 512 hashed files only; the 186 hash-budget skips stay unknown",
+    "absolute_paths_in_receipt": 0,
+    "dotdot_paths_in_receipt": 0,
+    "raw_media_bytes_in_receipt": 0,
+    "private_labelled_path_items": 3
+  },
+  "frozen_proof_pins_reverified": {
+    "checked": 11,
+    "mismatched": 0,
+    "details": "scope_request, scope_approval, approved_decision, s2_machine, s2_independent, unified_human, unified_coverage, capability_map, asset_inventory_child, spec_manifest, payload_manifest"
+  },
+  "historical_s2_evidence_reverified": {
+    "machine_candidate": "719c74559393a6489b2f630a1e0d3bc3303eb655",
+    "machine_cases": "exactly V0-A01..V0-A05 and V0-A07..V0-A10, all PASS, 9 PASS / 0 FAIL / 0 BLOCKED / 0 NOT_RUN, fixed 9",
+    "independent_review": "9/9 cumulative, Fatal 0 / Major 0 / Minor 0, human_signoff null, context_isolated true, read_only true, stage_pass_claim false",
+    "unified_media": "human signoff APPROVED by project_owner for candidate 621b1bf, slice UNIFIED_MEDIA_EARLY; independent coverage UM-01..UM-10 all PASS, fixed_denominator 10",
+    "old_s2_projection_in_the_live_document": "development_outline V0-S2 completed_substeps 7 / total 8, human_signoff PENDING (unmodified by this review)"
+  },
+  "negative_probes": {
+    "total": 27,
+    "artifacts": [
+      "reports/v0-s3/preparation-03/independent-01/probes/negative-probes.json",
+      "reports/v0-s3/preparation-03/independent-01/probes/negative-probes.py"
+    ],
+    "results": [
+      {
+        "probe_id": "guard.baseline_copy",
+        "kind": "semantic",
+        "decision": "HANDOFF_READINESS_VERIFIED",
+        "failed_check_ids": []
+      },
+      {
+        "probe_id": "guard.live_s2_outline_8of8",
+        "kind": "semantic",
+        "decision": "HANDOFF_READINESS_VERIFIED",
+        "failed_check_ids": []
+      },
+      {
+        "probe_id": "guard.live_s2_outline_8of8_substep_done",
+        "kind": "semantic",
+        "decision": "HANDOFF_READINESS_VERIFIED",
+        "failed_check_ids": []
+      },
+      {
+        "probe_id": "guard.mutable_coordinates_advance",
+        "kind": "semantic",
+        "decision": "HANDOFF_READINESS_VERIFIED",
+        "failed_check_ids": []
+      },
+      {
+        "probe_id": "guard.unsanctioned_alias",
+        "kind": "semantic",
+        "decision": "HANDOFF_READINESS_REJECTED",
+        "failed_check_ids": [
+          "fence.source_files",
+          "predicate.tasks.no_unsanctioned_alias"
+        ]
+      },
+      {
+        "probe_id": "guard.wrong_purpose",
+        "kind": "semantic",
+        "decision": "HANDOFF_READINESS_REJECTED",
+        "failed_check_ids": [
+          "fence.source_files",
+          "predicate.execution.purpose",
+          "predicate.tasks.purpose",
+          "predicate.v1plan.purpose"
+        ]
+      },
+      {
+        "probe_id": "guard.wrong_proof_pin_in_predicate",
+        "kind": "semantic",
+        "decision": "HANDOFF_READINESS_REJECTED",
+        "failed_check_ids": [
+          "fence.source_files",
+          "predicate.execution.proofs_pinned",
+          "predicate.tasks.proofs_pinned",
+          "predicate.v1plan.proofs_pinned"
+        ]
+      },
+      {
+        "probe_id": "guard.tampered_proof_file",
+        "kind": "generic_checksum",
+        "decision": "HANDOFF_READINESS_REJECTED",
+        "failed_check_ids": [
+          "fence.source_files",
+          "map.historical_s2_not_signed",
+          "map.sha256"
+        ]
+      },
+      {
+        "probe_id": "guard.fake_old_s2_declared",
+        "kind": "semantic",
+        "decision": "HANDOFF_READINESS_REJECTED",
+        "failed_check_ids": [
+          "fence.source_files",
+          "predicate.execution.historical_s2_projection",
+          "predicate.tasks.historical_s2_projection",
+          "predicate.v1plan.historical_s2_projection"
+        ]
+      },
+      {
+        "probe_id": "guard.approval_claims_s2_signature",
+        "kind": "generic_checksum",
+        "decision": "HANDOFF_READINESS_REJECTED",
+        "failed_check_ids": [
+          "approval.historical_s2_not_signed",
+          "approval.sha256",
+          "fence.source_files"
+        ]
+      },
+      {
+        "probe_id": "guard.missing_um_case",
+        "kind": "generic_checksum",
+        "decision": "HANDOFF_READINESS_REJECTED",
+        "failed_check_ids": [
+          "evidence.um_coverage.all_pass",
+          "evidence.um_coverage.case_set",
+          "evidence.um_coverage.sha256",
+          "fence.source_files"
+        ]
+      },
+      {
+        "probe_id": "guard.missing_s2_case",
+        "kind": "generic_checksum",
+        "decision": "HANDOFF_READINESS_REJECTED",
+        "failed_check_ids": [
+          "evidence.s2_machine.case_set",
+          "evidence.s2_machine.case_status",
+          "evidence.s2_machine.sha256",
+          "fence.source_files"
+        ]
+      },
+      {
+        "probe_id": "guard.shrunk_required_case_list",
+        "kind": "semantic",
+        "decision": "HANDOFF_READINESS_REJECTED",
+        "failed_check_ids": [
+          "fence.source_files",
+          "predicate.execution.required_s2_case_ids",
+          "predicate.tasks.required_s2_case_ids",
+          "predicate.v1plan.required_s2_case_ids"
+        ]
+      },
+      {
+        "probe_id": "guard.malformed_plan_json",
+        "kind": "semantic",
+        "decision": "HANDOFF_READINESS_REJECTED",
+        "failed_check_ids": [
+          "fence.source_files",
+          "plans.tasks.malformed_json"
+        ]
+      },
+      {
+        "probe_id": "guard.malformed_payload_manifest",
+        "kind": "generic_checksum",
+        "decision": "HANDOFF_READINESS_REJECTED",
+        "failed_check_ids": [
+          "fence.payload_files",
+          "fence.payload_manifest.sha256"
+        ]
+      },
+      {
+        "probe_id": "guard.missing_approval",
+        "kind": "generic_checksum",
+        "decision": "HANDOFF_READINESS_REJECTED",
+        "failed_check_ids": [
+          "approval.present",
+          "approval.sha256",
+          "fence.source_files"
+        ]
+      },
+      {
+        "probe_id": "guard.missing_um_signoff",
+        "kind": "generic_checksum",
+        "decision": "HANDOFF_READINESS_REJECTED",
+        "failed_check_ids": [
+          "evidence.um_human.present",
+          "evidence.um_human.sha256",
+          "fence.source_files"
+        ]
+      },
+      {
+        "probe_id": "guard.predicate_divergence",
+        "kind": "semantic",
+        "decision": "HANDOFF_READINESS_REJECTED",
+        "failed_check_ids": [
+          "predicate.equality",
+          "predicate.execution.s2_machine_candidate"
+        ]
+      },
+      {
+        "probe_id": "guard.map_claims_inherited_quality",
+        "kind": "generic_checksum",
+        "decision": "HANDOFF_READINESS_REJECTED",
+        "failed_check_ids": [
+          "fence.source_files",
+          "map.no_inherited_quality",
+          "map.sha256"
+        ]
+      },
+      {
+        "probe_id": "inventory.canonical_child_limits",
+        "kind": "fact",
+        "decision": "MATCH",
+        "failed_check_ids": []
+      },
+      {
+        "probe_id": "inventory.guard_denied_zero_media_reads",
+        "kind": "semantic",
+        "decision": "INVENTORY_REFUSED_PRE_MEDIA_ACCESS",
+        "failed_check_ids": [
+          "handoff_guard_rejected"
+        ]
+      },
+      {
+        "probe_id": "inventory.hash_budget_exact_vs_one_over",
+        "kind": "semantic",
+        "decision": "exact=2 one_over=1",
+        "failed_check_ids": []
+      },
+      {
+        "probe_id": "inventory.symlink_escape_rejected",
+        "kind": "semantic",
+        "decision": "INVENTORY_COMPLETE",
+        "failed_check_ids": []
+      },
+      {
+        "probe_id": "inventory.existing_receipt_not_overwritten",
+        "kind": "semantic",
+        "decision": "INVENTORY_REFUSED_PRE_MEDIA_ACCESS",
+        "failed_check_ids": [
+          "terminal_receipt_already_exists"
+        ]
+      },
+      {
+        "probe_id": "inventory.changed_during_inventory_excluded",
+        "kind": "semantic",
+        "decision": "INVENTORY_COMPLETE",
+        "failed_check_ids": []
+      },
+      {
+        "probe_id": "inventory.binding_candidate_must_be_a_sha",
+        "kind": "semantic",
+        "decision": "INVENTORY_REFUSED_PRE_MEDIA_ACCESS",
+        "failed_check_ids": [
+          "binding_mismatch"
+        ]
+      },
+      {
+        "probe_id": "inventory.fixture_child_widened_budget",
+        "kind": "semantic",
+        "decision": "INVENTORY_COMPLETE",
+        "failed_check_ids": []
+      }
+    ],
+    "guard_denied_zero_media_reads": {
+      "decision": "INVENTORY_REFUSED_PRE_MEDIA_ACCESS",
+      "refusal_reason": "handoff_guard_rejected",
+      "media_bytes_read": 0,
+      "files_hashed": 0,
+      "items": 0,
+      "observed_opens_under_the_fixture_media_root": 0
+    },
+    "budget_boundaries": {
+      "hash_budget_exact": "2 eligible, 1 skipped as hash_budget_exhausted",
+      "hash_budget_one_over": "1 eligible, 2 skipped as hash_budget_exhausted",
+      "total_bytes_and_single_file_boundaries": "covered by the candidate suite and reproduced without discrepancy"
+    },
+    "source_escape": {
+      "symlink_escape_rejected": true,
+      "outside_target_sha_in_results": false
+    },
+    "changed_during_inventory": {
+      "excluded": true,
+      "skipped_by_reason": "changed_during_inventory"
+    },
+    "existing_terminal_receipt": {
+      "refused": true,
+      "reason": "terminal_receipt_already_exists",
+      "original_receipt_sha256_unchanged": true
+    },
+    "semantic_vs_generic_checksum": "each probe records whether the refusal came from a semantic check (fence.source_files absent) or from a generic content checksum (fence.source_files present). The live-old-S2 probe produced NO refusal at all, which is why it is classified as a missing semantic check and not as a checksum gap."
+  },
+  "finite_hash_recheck": {
+    "authority": "reports/v0-s3/preparation-03/independent-hash-child-01.json (root supplied, unmodified)",
+    "authority_sha256": "f03ffdbf8bea0299a14545a6ec04df54b47c63ddbda1379a3f9325bc4f2f874d",
+    "authority_blob_matches_root_supplied_child": true,
+    "preflight_validated_before_source_access": true,
+    "decision": "INDEPENDENT_HASH_RECHECK_VERIFIED",
+    "counters": {
+      "files_attempted": 3,
+      "files_hashed": 3,
+      "bytes_read": 11009275,
+      "chunks_read": 15,
+      "files_skipped": 0,
+      "escape_rejected": 0,
+      "identity_mismatch": 0,
+      "missing": 0
+    },
+    "elapsed_seconds": 0.582,
+    "files": [
+      {
+        "relative_path": "动作参考-原始.mp4",
+        "expected_sha256": "b788ac801ac468098ca95726ebc6578c825216c04939baaec68e50041d05a227",
+        "actual_sha256": "b788ac801ac468098ca95726ebc6578c825216c04939baaec68e50041d05a227",
+        "expected_bytes": 6957440,
+        "actual_bytes": 6957440,
+        "result": "VERIFIED",
+        "resolved_within_root": true,
+        "is_symlink": false,
+        "st_mtime_ns": 1792427425042883200,
+        "st_ino": 19140298417592433
+      },
+      {
+        "relative_path": "图片-1 (1).jpeg",
+        "expected_sha256": "0295d0e19b0c8925a1152f11f0fc812174289df0dc3890557e5d3be63dda8f46",
+        "actual_sha256": "0295d0e19b0c8925a1152f11f0fc812174289df0dc3890557e5d3be63dda8f46",
+        "expected_bytes": 423206,
+        "actual_bytes": 423206,
+        "result": "VERIFIED",
+        "resolved_within_root": true,
+        "is_symlink": false,
+        "st_mtime_ns": 1637543274000000000,
+        "st_ino": 132293239054134455
+      },
+      {
+        "relative_path": "参考.png",
+        "expected_sha256": "1f03a23571d57d2b9ae22800bf58e6c1bea5a63c754d0dba36280f911241ac0f",
+        "actual_sha256": "1f03a23571d57d2b9ae22800bf58e6c1bea5a63c754d0dba36280f911241ac0f",
+        "expected_bytes": 3628629,
+        "actual_bytes": 3628629,
+        "result": "VERIFIED",
+        "resolved_within_root": true,
+        "is_symlink": false,
+        "st_mtime_ns": 1792866080248012900,
+        "st_ino": 1688849863713609
+      }
+    ],
+    "limits": {
+      "files": 3,
+      "bytes": 33554432,
+      "wall_seconds": 60,
+      "chunk_bytes": 1048576
+    },
+    "attempts_disclosed": {
+      "count": 3,
+      "reason": "the reviewer's own harness computed the git blob identities with a wrong repository path prefix on the first two passes, so its preflight boolean was misreported as false; the source hashes themselves were identical and correct on every pass",
+      "bytes_read_per_attempt": 11009275,
+      "cumulative_bytes_read": 33027825,
+      "cumulative_bytes_read_mib": 31.498,
+      "per_attempt_cap_bytes": 33554432,
+      "cumulative_under_cap": true,
+      "wall_seconds_per_attempt": [
+        0.627,
+        0.473,
+        0.582
+      ],
+      "wall_cap_seconds": 60,
+      "files_hashed_per_attempt": 3,
+      "no_walk": true,
+      "no_new_full_inventory": true,
+      "no_original_written": true
+    }
+  },
+  "reuse_assessment_if_the_major_is_fixed": {
+    "conclusion": "no new full inventory is required for a guard-strengthening fix to verify_s3_handoff.py",
+    "reasoning": [
+      "the fix changes only tools/verify_s3_handoff.py, which is not one of the 16 source-fence files, not one of the 10 packet payload files and not one of the frozen proof hashes",
+      "the hash algorithm (SHA-256), the chunk size (1 MiB), the approved root, the file set and the actual S2 projection that was inventoried are all unchanged, so the original terminal receipt stays a valid record of what was hashed",
+      "the original terminal receipt must remain historical and must never be relabelled as a new candidate; a corrected candidate gets its own candidate identity and its own receipt path",
+      "the frozen 3-file hash child is a separate finite authority and is not a second full inventory; this review used it once (three declared files, 11 009 275 bytes per attempt)"
+    ]
+  },
+  "budget_accounting_this_review": {
+    "model_actions": 0,
+    "gpu_actions": 0,
+    "provider_calls": 0,
+    "network_calls": 0,
+    "downloads": 0,
+    "service_starts": 0,
+    "browser_actions": 0,
+    "media_decodes": 0,
+    "exif_reads": 0,
+    "visual_analyses": 0,
+    "production_database_writes": 0,
+    "installs": 0,
+    "pushes": 0,
+    "product_runtime_seconds": 0,
+    "effective_full_checkpoints": 0,
+    "source_media_bytes_read": 33027825,
+    "source_media_files_read": 3,
+    "source_root_directory_listings": 1,
+    "source_root_listing_note": "one metadata-only listing of the PARENT of the approved root was performed by the reviewer to confirm the media mount exists; it returned sibling project directory names only, no media content was opened, and no file under the approved root was listed. This is disclosed for completeness and is outside the approved root.",
+    "files_written_by_this_review": "reports/v0-s3/preparation-03/independent-01/ only (plus the two load merges, which are upstream commits)",
+    "temporary_directories": "one owned TemporaryDirectory for the probe fixtures (auto-removed) and one owned /tmp/lvw-s3prep-independent-01 directory (isolated copy + harness)"
+  },
+  "immutable_facts": [
+    "the four production code files are byte-identical to d338933 after the merge",
+    "all 11 frozen proof hashes recompute exactly",
+    "the implementer's 12 retained raw logs all match SHA256SUMS.txt",
+    "the mandatory guard command reproduces byte-identically (stdout SHA-256 12b1f73d...) and reports 119/119 checks",
+    "the mandatory pytest command reproduces byte-identically (stdout SHA-256 1c18971f...) and reports 48 passed",
+    "the inventory receipt's counts, byte totals, duplicate structure and holdout overlap all recompute exactly from the receipt and the FREEZE metadata",
+    "the three files named by the finite hash child recompute to exactly the SHA-256 values recorded in the inventory receipt and in the child",
+    "the historical V0-S2 evidence is exactly 9 machine PASS + 9/9 independent with no human signoff",
+    "the live development_outline V0-S2 entry is 7/8 with human_signoff PENDING and was not modified by this review"
+  ],
+  "declared_limits_not_measured": [
+    "the receipt's cleanup counters are hardcoded literals, not measurements",
+    "the terminal report's claim that pytest cleaned its own TemporaryDirectory fixtures is inaccurate (pytest retains tmp_path)",
+    "INVENTORY_COMPLETE denotes a bounded operation that ended, not full corpus coverage: 186 supported-extension files were never hashed",
+    "origin, rights and labels are unknown for every inventoried file; the owner classified testSource as non-private test input, which is not a redistribution licence",
+    "holdout disjointness is proven only over the 512 hashed files",
+    "no quality, usability or visual ground truth is asserted anywhere in this review"
+  ]
+}

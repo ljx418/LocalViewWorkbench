@@ -1,0 +1,283 @@
+{
+  "kind": "S3_PREP_A_INDEPENDENT_REVIEW_FINDINGS",
+  "review_id": "S3-PREP-A-INDEPENDENT-01",
+  "reviewer_role": "separate Orca-visible ClaudeCode independent reviewer (not the implementer)",
+  "verdict": "NOT_ACCEPTABLE_AS_IS",
+  "summary": {
+    "Fatal": 0,
+    "Major": 1,
+    "Minor": 7
+  },
+  "blocking": [
+    "S3P-A-MAJOR-01"
+  ],
+  "findings": [
+    {
+      "id": "S3P-A-MAJOR-01",
+      "severity": "Major",
+      "title": "The handoff guard validates only the DECLARED old-S2 projection; the LIVE old-S2 human projection in plans/execution-control.json is never read, so a live 'old S2 8/8 human APPROVED' state is certified green",
+      "position": [
+        "tools/verify_s3_handoff.py:78-107 (PROOF_PINS) and tools/verify_s3_handoff.py:334-394 (check_predicate_shape) - the only old-S2 state compared is the frozen predicate snapshot 'historical_s2_required_state'",
+        "tools/verify_s3_handoff.py:442-447 (approval.historical_s2_not_signed) - the frozen approval record",
+        "tools/verify_s3_handoff.py:549-553 (evidence.s2_independent.human_signoff_still_absent) - the frozen historical independent review",
+        "tools/verify_s3_handoff.py (whole file) - there is no reference to 'development_outline' and no reference to the live 'historical_s2_coordinate'; verified with grep over tools/",
+        "tools/test_verify_s3_handoff.py:198-219 (test_fake_old_s2_signoff_is_rejected) - the only 'fake old S2 human' negative mutates the DECLARED snapshot",
+        "tools/test_verify_s3_handoff.py:340-346 (test_the_historical_s2_coordinate_state_is_not_required_to_stay_wait_human) - the suite positively asserts that the live old-S2 coordinate may advance unchecked"
+      ],
+      "trigger": "In a synthetic copy of the frozen authority, change ONLY plans/execution-control.json -> development_outline entry with stage_id == 'V0-S2': completed_substeps 7 -> 8, human_signoff 'PENDING' -> 'APPROVED', and the 'S2 人工签署与Git同步' substep PENDING -> DONE. Leave every immutable proof file, the declared predicate snapshot in plans/tasks.json and plans/v1-revised-plan.json, and the owner approval record untouched.",
+      "expected": "HANDOFF_READINESS_REJECTED, because AGENTS.md rule 24 and ADR-14 require the historical V0-S2 stage to stay 7/8 with native human signoff PENDING, and .agent-governance/stages/V0-S3/stage-control.json lists 'any attempt to change old S2 signature' as a hard stop. The owner rule preserves the ACTUAL old S2 7/8 state, not only the declared predicate.",
+      "actual": "HANDOFF_READINESS_VERIFIED with 0 failed checks out of 119 and no fence failure. The tool still reports historical_s2_projection = {completed_substeps: 7, total_substeps: 8, human_signoff: 'PENDING'} while the live authority document it just read says 8/8 APPROVED. The terminal report's sentence 'The historical V0-S2 stage is unchanged at 7/8 with native human signoff PENDING' is therefore an unverified assertion.",
+      "evidence": [
+        "reports/v0-s3/preparation-03/independent-01/probes/negative-probes.json -> probe guard.live_s2_outline_8of8 (decision HANDOFF_READINESS_VERIFIED, failed_check_ids [], fence_failures [])",
+        "reports/v0-s3/preparation-03/independent-01/probes/negative-probes.json -> probe guard.live_s2_outline_8of8_substep_done (same result with the last S2 substep marked DONE)",
+        "contrast: probe guard.fake_old_s2_declared (the same semantic attack applied to the DECLARED snapshot) IS rejected - predicate.tasks/execution/v1plan.historical_s2_projection - so the guard is not simply lax, it is pointed at the wrong source of truth",
+        "plans/execution-control.json is deliberately NOT one of the 16 source-fence files, so this is a missing SEMANTIC check, not a generic checksum rejection; adding execution-control.json to the fence would be the wrong fix because that document is the mutable execution coordinate"
+      ],
+      "impact": "A false green on the single owner rule this workpack exists to protect. If the live old-S2 human projection drifts, or is edited by anyone, the guard still certifies the V1-only handoff and the published report asserts an old-S2 state that the live document contradicts.",
+      "fix_direction": "Read the live old-S2 human projection out of plans/execution-control.json and assert it explicitly: development_outline entry stage_id == 'V0-S2' must keep completed_substeps == 7, total_substeps == 8, human_signoff == 'PENDING' and the 'S2 人工签署与Git同步' substep must remain PENDING; the live historical_s2_coordinate human state must likewise not claim a granted signature. Stage/workpack/gate/state and current_blocking_gate must stay free to advance. The existing permissive test test_the_historical_s2_coordinate_state_is_not_required_to_stay_wait_human must be re-decided by the owner rather than deleted silently. This is a guard-strengthening change to verify_s3_handoff.py only; it does not touch the frozen proof set, so the already-executed inventory receipt stays valid (see reuse analysis).",
+      "blocks_acceptance": true
+    },
+    {
+      "id": "S3P-A-MINOR-01",
+      "severity": "Minor",
+      "title": "The machine-readable inventory decision string 'INVENTORY_COMPLETE' does not itself encode the partial hash coverage",
+      "position": [
+        "tools/s3_asset_inventory.py:613-617 - decision is 'INVENTORY_COMPLETE' whenever state['stop_reason'] is None",
+        "tools/s3_asset_inventory.py:223-225 - the file-count hash budget is enforced as a per-file skip, not as a stop_reason",
+        "tools/s3_asset_inventory.py:226-231 - the total-byte budget is likewise a per-file skip"
+      ],
+      "trigger": "The approved root contains more supported-extension files than the frozen 512-file hash cap.",
+      "expected": "A consumer reading only receipt['decision'] and receipt['media_access']['traversal_stop_reason'] should not be able to read 'complete coverage'.",
+      "actual": "decision='INVENTORY_COMPLETE' and traversal_stop_reason=null, while counts.skipped_by_reason shows hash_budget_exhausted: 186 - i.e. 186 of the 698 supported-extension files were never hashed. The disclosure is nevertheless present and correct in counts.skipped_by_reason, receipt['unknown_coverage'], the terminal report section 3/4.1 and the terminal summary open_gaps, so the receipt as a whole does not claim corpus coverage.",
+      "evidence": [
+        "reports/v0-s3/preparation-03/implementation/inventory-01/receipt.json -> decision INVENTORY_COMPLETE, media_access.traversal_stop_reason null, counts.skipped_by_reason {'unsupported_extension': 190, 'hash_budget_exhausted': 186}",
+        "independent recomputation: 1006 entries = 888 regular files + 118 directories/symlinks; 888 - 190 unsupported = 698 supported-extension files; 512 hashed + 186 hash-budget skips = 698"
+      ],
+      "impact": "Low. A reader who joins only the two headline fields can over-read the receipt; the full receipt does disclose the gap.",
+      "fix_direction": "Optionally add an explicit 'partial_coverage' field (or make the hash/byte budgets raise a stop_reason) so the decision string alone is unambiguous. Documentation-level, not a gate change.",
+      "blocks_acceptance": false
+    },
+    {
+      "id": "S3P-A-MINOR-02",
+      "severity": "Minor",
+      "title": "Cleanup counters in the receipt are hardcoded literals, and the terminal report's pytest cleanup sentence is factually wrong",
+      "position": [
+        "tools/s3_asset_inventory.py:599-606 - receipt['cleanup'] counters are written as constant zeros; no measurement backs them",
+        "reports/v0-s3/preparation-03/implementation/terminal-report-01.md section 3 - 'Only the test suite's own TemporaryDirectory fixtures were cleaned, by pytest's own teardown.'"
+      ],
+      "trigger": "Read the cleanup block of the receipt and the terminal report's cleanup paragraph.",
+      "expected": "A cleanup claim backed by an observation, and an accurate description of what pytest does with its own fixtures.",
+      "actual": "The receipt's four cleanup counters are unconditional literals. They are true for this tool (it opens files read-only and deletes nothing), but they are declared, not measured. The terminal report sentence is inaccurate on two counts: the tests use pytest's tmp_path fixture, not tempfile.TemporaryDirectory, and pytest does NOT delete tmp_path directories - it retains them (default tmp_path_retention_count = 3).",
+      "evidence": [
+        "after the mandatory pytest run, /tmp/pytest-of-administrator/ contains pytest-49, pytest-50 and pytest-51 (retained, not deleted); the 'pytest-current' symlink points at pytest-51",
+        "the tests use pytest's tmp_path fixture (tools/test_s3_asset_inventory.py:170 and every other fixture) - no tempfile.TemporaryDirectory is used anywhere in the two test files"
+      ],
+      "impact": "Low and non-blocking: the retained directories contain only synthetic fixture bytes created by the suite; no source media, no private data, no credential. The source media tree is read-only by construction. No S3 acceptance denominator depends on this sentence. It is recorded as an inaccurate cleanup claim, not as a Stage PASS basis in either direction.",
+      "fix_direction": "Re-word the terminal report sentence to 'pytest retains its tmp_path fixtures (last 3 runs); only synthetic fixture bytes are involved and no source media is touched', and mark the receipt cleanup block as 'declared (not measured)' or instrument it.",
+      "blocks_acceptance": false
+    },
+    {
+      "id": "S3P-A-MINOR-03",
+      "severity": "Minor",
+      "title": "The 'AUTHORITATIVE' label is path-relative and is not a provenance attestation",
+      "position": [
+        "tools/verify_s3_handoff.py:42 - ROOT = Path(__file__).resolve().parents[1]",
+        "tools/verify_s3_handoff.py:744-754 - authority is 'AUTHORITATIVE' whenever the evaluated root equals the tool's own parent directory",
+        "tools/s3_asset_inventory.py:339-345 - the inventory's canonical test is the same path-equality test"
+      ],
+      "trigger": "Run the tools from a byte copy of the package in a different directory.",
+      "expected": "'AUTHORITATIVE' should mean 'this is the canonical repository checkout at the bound candidate'.",
+      "actual": "A full byte copy of the package in /tmp reports authority='AUTHORITATIVE' and evaluated_root_is_canonical=true. The label therefore attests only 'this run executed against the tool's own directory and the frozen proof hashes matched'. It does not attest the git origin, the branch or the candidate commit.",
+      "evidence": [
+        "reports/v0-s3/preparation-03/independent-01/raw/verify_s3_handoff.stdout.log -> authority AUTHORITATIVE, evaluated_root_is_canonical true, produced in the fresh isolated copy /tmp/lvw-s3prep-independent-01/package"
+      ],
+      "impact": "Low for media scope: in AUTHORITATIVE mode the approved root still comes from the hash-pinned frozen child, so a copy reads the same authorised root and cannot widen it. The risk is a reader over-reading the label as a provenance guarantee.",
+      "fix_direction": "Either resolve the authority label against the bound candidate commit as well, or rename the value to something like 'PINNED_AUTHORITY_FILES_AT_THIS_ROOT'.",
+      "blocks_acceptance": false
+    },
+    {
+      "id": "S3P-A-MINOR-04",
+      "severity": "Minor",
+      "title": "The binding's candidate_sha is only format-checked and is never resolved against the repository",
+      "position": [
+        "tools/s3_asset_inventory.py:429-430 - only a 40 character hex regex is applied to binding['candidate_sha']"
+      ],
+      "trigger": "Put any 40 character lowercase hex string in the binding's candidate_sha.",
+      "expected": "The candidate identity in the binding should be resolved and shown to exist and to contain the bound scripts.",
+      "actual": "A syntactically valid but non-existent object id is accepted. The material binding is nevertheless intact, because the two script SHA-256 values in the same binding are checked against the files on disk AND are independently pinned by the committed pre-inventory pre-receipt (77592cc), which was committed before the inventory ran.",
+      "evidence": [
+        "reports/v0-s3/preparation-03/independent-01/probes/negative-probes.json -> probe inventory.binding_candidate_must_be_a_sha (a NON-hex id is refused with binding_mismatch and 0 media bytes read)",
+        "reports/v0-s3/preparation-03/implementation/prereceipt-01.json script_sha256 {verify_s3_handoff.py: 5944771f..., s3_asset_inventory.py: 333cfed9...} matches the committed candidate files, and git log shows the pre-receipt and the preflight binding were committed together at 77592cc, before 311bdda carried the receipt"
+      ],
+      "impact": "Low - no bootstrap on candidate-owned hash rewrites is possible for the scripts, because a rewrite would require rewriting the pre-receipt commit.",
+      "fix_direction": "Optionally resolve candidate_sha with git and record the resolution; not required for the gate.",
+      "blocks_acceptance": false
+    },
+    {
+      "id": "S3P-A-MINOR-05",
+      "severity": "Minor",
+      "title": "An unbounded directory listing of the approved root was run outside the single authorised bounded attempt",
+      "position": [
+        "reports/v0-s3/preparation-03/implementation/terminal-report-01.md section 3.2 (Disclosure)"
+      ],
+      "trigger": "The implementer ran 'ls -la' on the approved root during preparation planning, before the guard ran and outside the bounded inventory attempt.",
+      "expected": "Every real source query is covered by the finite authorisation record and by the child's 'One bounded inventory attempt' terminal clause.",
+      "actual": "The listing was metadata-only (names, sizes, timestamps), it stayed inside the approved root, and it is disclosed. It nevertheless precedes the guard and exceeds the child's one-attempt clause. Its scope impact is low: the approved root is the root the child authorises, no media byte was read, decoded or hashed, and no other local root was listed. No retrospective grant is invented here - the disclosure is accepted as a bounded, in-scope, metadata-only deviation and is recorded as such.",
+      "evidence": [
+        "reports/v0-s3/preparation-03/implementation/terminal-report-01.md section 3.2"
+      ],
+      "impact": "Low. The tool's own ordering (guard before any stat/read of source) is correct and was reproduced independently.",
+      "fix_direction": "Fold the planning listing into the bounded attempt, or state explicitly in the packet that a metadata-only existence check of the approved root is pre-authorised.",
+      "blocks_acceptance": false
+    },
+    {
+      "id": "S3P-A-MINOR-06",
+      "severity": "Minor",
+      "title": "A pre-media refusal still occupies the terminal receipt path and permanently blocks that path",
+      "position": [
+        "tools/s3_asset_inventory.py:350-359 - an existing receipt is refused with write_receipt=False",
+        "tools/s3_asset_inventory.py:360-370 - a receipt outside the report root is refused with write_receipt=False",
+        "tools/s3_asset_inventory.py:372-441 and 444-466 and 468-542 - every other refusal path keeps write_receipt=True, so the refusal receipt IS written at the receipt path",
+        "tools/s3_asset_inventory.py:350-359 - a later run at that path is then refused with terminal_receipt_already_exists"
+      ],
+      "trigger": "Run the inventory with a broken binding (or a failing guard) at the production receipt path.",
+      "expected": "A refusal that read no media should not burn the one authorised attempt.",
+      "actual": "The refusal receipt is written and the path is consumed; a later successful run at the same path is refused. In practice the correct follow-up is a NEW receipt path for a NEW candidate, and the historical terminal receipt must never be relabelled as a new candidate, so the intended practice already covers this.",
+      "evidence": [
+        "tools/test_s3_asset_inventory.py:773-816 (the CLI refusal test reads a written refusal receipt back from the report root)",
+        "reports/v0-s3/preparation-03/independent-01/raw/inventory_cli_existing_receipt.stdout.log and .stderr.log - my own CLI run against the frozen command refused with terminal_receipt_already_exists, exit 1, media_bytes_read 0, and the original receipt's SHA-256 was unchanged (05ab5d63...)"
+      ],
+      "impact": "Low; the observed authoritative run consumed its attempt exactly once, as the child requires.",
+      "fix_direction": "Optional: allow a refusal receipt to be written to a sibling .refusal.json so the terminal path stays free, or state the rule explicitly in the packet.",
+      "blocks_acceptance": false
+    },
+    {
+      "id": "S3P-A-MINOR-07",
+      "severity": "Minor",
+      "title": "Data-handling note: three inventoried items sit under an obviously private-labelled directory and their relative paths are committed",
+      "position": [
+        "reports/v0-s3/preparation-03/implementation/inventory-01/receipt.json -> items[] entries whose relative_path starts with the directory named 私人图片-单人多视角图 (3 items, .png)",
+        "reports/v0-s3/preparation-03/implementation/terminal-report-01.md section 4 item 8"
+      ],
+      "trigger": "Any future quality-sample selection, prelabeling or inference proposal that reads the receipt's items[] list.",
+      "expected": "Obviously private-labelled paths are excluded from later inference until the classification is resolved.",
+      "actual": "The relative path strings are committed in the receipt. That exposure is metadata only: the file content was never opened, decoded, viewed or copied into Git, and the receipt contains no raw media bytes. The directory name alone is not proof that the content is private, and the root owner classified the whole testSource root as non-private local test input; but the classification is the owner's to make and it has not been resolved for this subdirectory.",
+      "evidence": [
+        "independent recomputation over the receipt: 3 of 512 items are under that directory; the receipt contains no absolute path ('/mnt/c', 'C:\\', 'videoWorkLine' all absent), no '..' segment and no media bytes",
+        "reports/v0-s3/preparation-03/independent-hash-child-01.json privacy_selection already excludes obviously private-labelled paths from the finite hash recheck"
+      ],
+      "impact": "Committed metadata only, so the data is safe to commit in the sense that no private content was read, decoded or copied; the residual risk is that a later automated selection silently includes those three paths.",
+      "fix_direction": "Root should exclude the obviously private-labelled path prefix from every future inference or sample proposal unless and until the owner resolves that specific classification. No code change is required for this preparation, and this review did not open or view those files.",
+      "blocks_acceptance": false
+    }
+  ],
+  "candidate_catalog_summary": {
+    "source": "reports/v0-s3/preparation-03/implementation/inventory-01/receipt.json (items[] and skipped_items[])",
+    "total_items": 512,
+    "distinct_sha256": 501,
+    "extensions": {
+      ".jpg": 325,
+      ".png": 115,
+      ".mp4": 68,
+      ".jpeg": 2,
+      ".webp": 2
+    },
+    "size_bytes": {
+      "min": 409,
+      "p50": 119736,
+      "p90": 2944066,
+      "max": 144156307,
+      "total": 1049735799
+    },
+    "duplicate_content_groups": 11,
+    "duplicate_items": 22,
+    "path_groups": {
+      "edit": {
+        "items": 442,
+        "distinct_sha": 433,
+        "extensions": {
+          ".jpg": 293,
+          ".png": 90,
+          ".mp4": 59
+        },
+        "bytes": 644670782
+      },
+      "<root>": {
+        "items": 27,
+        "distinct_sha": 27,
+        "extensions": {
+          ".jpg": 8,
+          ".png": 9,
+          ".mp4": 8,
+          ".jpeg": 2
+        },
+        "bytes": 261512212
+      },
+      "婚礼场景": {
+        "items": 18,
+        "distinct_sha": 18,
+        "extensions": {
+          ".jpg": 18
+        },
+        "bytes": 120553424
+      },
+      "多图片参考3": {
+        "items": 9,
+        "distinct_sha": 9,
+        "extensions": {
+          ".png": 7,
+          ".webp": 2
+        },
+        "bytes": 7969060
+      },
+      "多角度参考": {
+        "items": 6,
+        "distinct_sha": 6,
+        "extensions": {
+          ".png": 6
+        },
+        "bytes": 7277818
+      },
+      "多图片参考": {
+        "items": 4,
+        "distinct_sha": 4,
+        "extensions": {
+          ".jpg": 4
+        },
+        "bytes": 1591828
+      },
+      "私人图片-单人多视角图": {
+        "items": 3,
+        "distinct_sha": 3,
+        "extensions": {
+          ".png": 3
+        },
+        "bytes": 5719456,
+        "note": "obviously private-labelled path prefix; excluded from any future inference or sample proposal until the owner resolves the classification; not opened or viewed by this review"
+      },
+      "多图片参考2": {
+        "items": 2,
+        "distinct_sha": 2,
+        "extensions": {
+          ".jpg": 2
+        },
+        "bytes": 294140
+      },
+      "_seedvr2_smoke": {
+        "items": 1,
+        "distinct_sha": 1,
+        "extensions": {
+          ".mp4": 1
+        },
+        "bytes": 147079
+      }
+    },
+    "unhashed_and_unknown": {
+      "supported_extension_files_in_root": 698,
+      "hashed": 512,
+      "not_hashed_hash_budget": 186,
+      "note": "content, size and holdout overlap of the 186 unhashed files are UNKNOWN; the origin hints above come from relative paths only and are not visual ground truth"
+    },
+    "usage_limits": "This is a candidate catalogue only. It assigns no visual ground truth, no quality label and no usability verdict, freezes no sample, and makes no statement about the S3 10/6 images/videos, the V1 Q01 12/6 set or the MS 12 clips / 47 shots / 21 hard cuts denominators."
+  }
+}
