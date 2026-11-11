@@ -1,0 +1,121 @@
+{
+  "kind": "S3_PREP_A_TERMINAL_SUMMARY",
+  "stage_id": "V0-S3",
+  "workpack_id": "S3-PREP-A",
+  "decision": "READY_FOR_REVIEW",
+  "scope": "HANDOFF_READINESS_ONLY",
+  "product_gate0": false,
+  "stage_pass_claim": false,
+  "samples_frozen": false,
+  "quality_claim": "NONE_INVENTORY_IS_NOT_QUALITY_EVIDENCE",
+  "historical_s2_projection": {
+    "completed_substeps": 7,
+    "total_substeps": 8,
+    "human_signoff": "PENDING"
+  },
+  "authority_commit": "4f216700c917e20704b5edc90fa33de497441368",
+  "candidate_sha": "d33893303f24da57216b63b4e0b9ef7e009d7613",
+  "prereceipt_commit": "77592cc0c2eea41aae515063d1ec181c73159273",
+  "branch": "ljx418/lvw-v1-d0-implement",
+  "required_commands": {
+    "python3 -B tools/verify_s3_handoff.py": {
+      "exit": 0,
+      "wall_seconds": 0.05,
+      "stdout_sha256": "12b1f73df49bca00c2c1c018851c252a23c2db3976c13a0e3a676c3d17a503df"
+    },
+    "python3 -B -m pytest tools/test_verify_s3_handoff.py tools/test_s3_asset_inventory.py -q": {
+      "exit": 0,
+      "wall_seconds": 0.72,
+      "stdout_sha256": "1c18971ff9bc4fa892b33e4f04881b376337d497e6aea7e9f02f23eec125a835"
+    },
+    "python3 -B tools/verify_governance.py": {
+      "exit": 0,
+      "wall_seconds": 0.06,
+      "stdout_sha256": "e8927ccbca17c63e6ca696c254e5e232add8617ec564f840df4907579089d7cf"
+    },
+    "python3 -B tools/verify_pack.py": {
+      "exit": 0,
+      "wall_seconds": 0.47,
+      "stdout_sha256": "0371f30cb93e716494e6b74eaad7b72b54e728d9a75e7bae570480e75a4073a5"
+    }
+  },
+  "tests": {
+    "total": 48,
+    "passed": 48,
+    "failed": 0
+  },
+  "handoff_guard": {
+    "decision": "HANDOFF_READINESS_VERIFIED",
+    "checks": 119,
+    "failed": 0
+  },
+  "inventory": {
+    "attempts": 1,
+    "exit": 0,
+    "decision": "INVENTORY_COMPLETE",
+    "authority": "AUTHORITATIVE",
+    "elapsed_seconds": 6.498,
+    "counts": {
+      "eligible": 512,
+      "skipped": 376,
+      "skipped_by_reason": {
+        "unsupported_extension": 190,
+        "hash_budget_exhausted": 186
+      },
+      "eligible_bytes": 1049735799
+    },
+    "media_access": {
+      "entries_examined": 1006,
+      "regular_files_examined": 888,
+      "files_hashed": 512,
+      "total_bytes_hashed": 1049735799,
+      "media_bytes_read": 1049735799,
+      "traversal_stop_reason": null,
+      "wall_budget_seconds": 180,
+      "read_chunk_bytes": 1048576,
+      "extension_match": "case_insensitive_source_casing_preserved"
+    },
+    "holdout_overlap": {
+      "holdouts_checked": 11,
+      "sha256_matches": 0,
+      "coverage": "the 512 hashed files only; the 186 hash-budget skips stay unknown"
+    },
+    "duplicate_content_groups": 11,
+    "distinct_sha256": 501,
+    "receipt_path": "reports/v0-s3/preparation-03/implementation/inventory-01/receipt.json",
+    "receipt_sha256": "05ab5d63a69556c721b26191273cf60c20e4b3bb5826712688cefb06786ee2ef",
+    "stdout_sha256": "b031f7c63ac4f045208fee989ceb7c499cfcf37ee92aa8a397c7081d8c82f57e",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "cleanup": {
+    "source_files_modified": 0,
+    "source_files_deleted": 0,
+    "temporary_directories_created": 0,
+    "deletions_performed": 0,
+    "policy": "read-only source; the inventory creates no temporary directory and never deletes anything; only owned test TemporaryDirectory fixtures are cleaned"
+  },
+  "budgets": {
+    "model_actions": 0,
+    "effective_full_checkpoints": 0,
+    "product_runtime_seconds": 0,
+    "service_starts": 0,
+    "network_calls": 0,
+    "subprocess_starts": 0
+  },
+  "unknown_coverage": [
+    "origin of every inventoried file is unknown (no EXIF or provenance metadata is read)",
+    "rights and redistribution licence are unknown; user supplied non-private test use authority is not a redistribution licence",
+    "content labels, quality scores and sample usability are unknown; an inventory entry is never a quality PASS",
+    "no sample is frozen by this inventory and no disjointness against the future S3 quality set, V1 Q01 set or MS sets is proven",
+    "only testSource was inspected; every other local root stays unread"
+  ],
+  "open_gaps": [
+    "186 supported-extension files were not hashed (frozen 512 file cap); a further pass needs a new child authorisation and this workpack authorises one attempt only",
+    "no independent prelabels for S3 V0-A11 (10 images) and V0-A12 (6 videos)",
+    "no V1 Q01 independent 12 images + 6 videos set",
+    "no MS 12 clips / 47 shots / 21 hard cuts and 18 quality segments, no segmentation, no labels",
+    "disjointness against the development, Q01 and MS sets is unproven",
+    "rights, origin and labels unknown for every inventoried file; test use authority is not a redistribution licence",
+    "V0-A06 install / offline cold start / rollback, packaging contract, model-tool-process binding, execution adapter and finite production budget remain open product Gate0 items"
+  ]
+}

@@ -1,0 +1,134 @@
+{
+  "kind": "S3_PREP_A_PRE_RECEIPT_BEFORE_THE_SINGLE_BOUNDED_INVENTORY",
+  "stage_id": "V0-S3",
+  "workpack_id": "S3-PREP-A",
+  "authority_commit": "4f216700c917e20704b5edc90fa33de497441368",
+  "candidate_sha": "d33893303f24da57216b63b4e0b9ef7e009d7613",
+  "candidate_message": "feat(S3-PREP-A): add V1-only S2 handoff validator and bounded asset inventory",
+  "code_files": [
+    "tools/verify_s3_handoff.py",
+    "tools/s3_asset_inventory.py",
+    "tools/test_verify_s3_handoff.py",
+    "tools/test_s3_asset_inventory.py"
+  ],
+  "script_sha256": {
+    "tools/verify_s3_handoff.py": "5944771fd3fe880014bcbecd06b1ba1fbe76a58d2b560ec74d8a679de5adfe9d",
+    "tools/s3_asset_inventory.py": "333cfed9828fae22df524870fa691e553bcdb1965f30c1f5efb0b1882e3cbb30"
+  },
+  "inventory_child": {
+    "path": "reports/v0-s3/preparation-03/asset-inventory-child.json",
+    "sha256": "50f3db0b9f9263b268cce15b4b150c1bf972250688725cab003856d08e739c4a"
+  },
+  "scope_approval": {
+    "path": "reports/v1-next-stage-readiness/change-v1-s2-handoff-01.approval.json",
+    "sha256": "bab47506d5a13657edcabc33644c6b159f2967e696dff4c4c43859d54fbf3057"
+  },
+  "frozen_proof_hashes": {
+    "scope_request": {
+      "path": "reports/v1-next-stage-readiness/change-v1-s2-handoff-01.request.json",
+      "sha256": "8a6032010e7290325341cf7f54c6de25c68412e9bdb651dab1d7bc4803da2e91"
+    },
+    "scope_approval": {
+      "path": "reports/v1-next-stage-readiness/change-v1-s2-handoff-01.approval.json",
+      "sha256": "bab47506d5a13657edcabc33644c6b159f2967e696dff4c4c43859d54fbf3057"
+    },
+    "s2_machine": {
+      "path": "reports/v0-s2/full-v0-auto-08/receipt.json",
+      "sha256": "53c267a19a60b34b8aa7abc065f696ac8eb46b1549cd66a24135d7b67fb61f96"
+    },
+    "s2_independent": {
+      "path": "reports/v0-s2/full-v0-auto-08/independent-review.json",
+      "sha256": "b6e1e8470d9ef12dba40ac0d3a90b0c96ea5f7fcd906f07001118b7370224d1a"
+    },
+    "unified_human": {
+      "path": "reports/unified-media/human-signoff-live15.json",
+      "sha256": "fab689dc6563fc343e38b8acb645cee45622bf6216f567e5a32a27bcabf73bc9"
+    },
+    "unified_coverage": {
+      "path": "reports/unified-media/independent-live-15/coverage.json",
+      "sha256": "f3e0b494e88a48ce586dc6bab0c96d6fc850d22f5252f4d0859c41e792256b20"
+    },
+    "capability_map": {
+      "path": "reports/v0-s3/handoff-capability-map-01.json",
+      "sha256": "d3ece8c2862b779919a57293361d906d6ffa2d6e351224c828311618ec36dd24"
+    }
+  },
+  "preflight_binding": {
+    "path": "reports/v0-s3/preparation-03/implementation/inventory-01/preflight.json",
+    "sha256": "f9725ead36bacd8f3b62071a5c3394847c9c8595b1ef9adda39a1bc7dd4d32f5"
+  },
+  "required_commands": {
+    "python3 -B tools/verify_s3_handoff.py": 0,
+    "python3 -B -m pytest tools/test_verify_s3_handoff.py tools/test_s3_asset_inventory.py -q": 0
+  },
+  "additional_governance_verification": {
+    "python3 -B tools/verify_governance.py": 0,
+    "python3 -B tools/verify_pack.py": 0
+  },
+  "raw_logs": {
+    "pytest_four_tool_tests.exit.log": {
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "bytes": 2
+    },
+    "pytest_four_tool_tests.stderr.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "pytest_four_tool_tests.stdout.log": {
+      "sha256": "1c18971ff9bc4fa892b33e4f04881b376337d497e6aea7e9f02f23eec125a835",
+      "bytes": 99
+    },
+    "verify_governance.exit.log": {
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "bytes": 2
+    },
+    "verify_governance.stderr.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "verify_governance.stdout.log": {
+      "sha256": "e8927ccbca17c63e6ca696c254e5e232add8617ec564f840df4907579089d7cf",
+      "bytes": 146
+    },
+    "verify_pack.exit.log": {
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "bytes": 2
+    },
+    "verify_pack.stderr.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "verify_pack.stdout.log": {
+      "sha256": "0371f30cb93e716494e6b74eaad7b72b54e728d9a75e7bae570480e75a4073a5",
+      "bytes": 248
+    },
+    "verify_s3_handoff.exit.log": {
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "bytes": 2
+    },
+    "verify_s3_handoff.stderr.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "verify_s3_handoff.stdout.log": {
+      "sha256": "12b1f73df49bca00c2c1c018851c252a23c2db3976c13a0e3a676c3d17a503df",
+      "bytes": 22387
+    }
+  },
+  "budgets": {
+    "model_actions": 0,
+    "effective_full_checkpoints": 0,
+    "product_runtime_seconds": 0,
+    "service_starts": 0,
+    "network_calls": 0,
+    "downloads": 0,
+    "gpu_seconds": 0
+  },
+  "inventory_invocation": {
+    "command": "python3 -B tools/s3_asset_inventory.py --binding reports/v0-s3/preparation-03/implementation/inventory-01/preflight.json --receipt reports/v0-s3/preparation-03/implementation/inventory-01/receipt.json",
+    "attempts_authorised": 1,
+    "retry": "none: a partial or refused run is a retained terminal receipt"
+  },
+  "decision": "READY_FOR_REVIEW",
+  "note": "Implementation owner only. This is not a Stage PASS, not product Gate0 and not a quality claim. The historical V0-S2 stage stays 7/8 with native human signoff PENDING."
+}
