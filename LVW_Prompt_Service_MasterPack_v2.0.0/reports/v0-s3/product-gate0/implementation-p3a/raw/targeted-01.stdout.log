@@ -1,0 +1,2839 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-8.4.2, pluggy-1.6.0 -- /usr/bin/python3
+rootdir: /home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0
+plugins: asyncio-0.23.8, typeguard-4.6.0, anyio-4.13.0, hydra-core-1.3.7
+asyncio: mode=Mode.STRICT
+collecting ... collected 28 items
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_inherited_default_then_warm_install_exact_runtime_root ERROR
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[old-candidate] ERROR
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[package-hash] ERROR
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[manifest-hash] ERROR
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[bad-digest] ERROR
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[missing-bridge] ERROR
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[extra-bridge] ERROR
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[bridge-hash] ERROR
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[workflow-unsealed] ERROR
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[workflow-hash] ERROR
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[missing-marker] ERROR
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[invalid-marker] ERROR
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[marker-link] ERROR
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[package-link] ERROR
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[package-oversize] ERROR
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_installer_and_postinstall_refusals_before_start[bridge-bytes] ERROR
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_installer_and_postinstall_refusals_before_start[workflow-bytes] ERROR
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_installer_and_postinstall_refusals_before_start[extra-file] ERROR
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_installer_and_postinstall_refusals_before_start[missing-file] ERROR
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_installer_and_postinstall_refusals_before_start[payload-link] ERROR
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_installer_and_postinstall_refusals_before_start[owner-bytes] ERROR
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_installer_and_postinstall_refusals_before_start[receipt-identity] ERROR
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_installer_and_postinstall_refusals_before_start[marker-drift] ERROR
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_installer_and_postinstall_refusals_before_start[install-failure] ERROR
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_prepare_rejects_wrong_registered_target[directory] ERROR
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_prepare_rejects_wrong_registered_target[outside] ERROR
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_prepare_rejects_wrong_registered_target[symlink] ERROR
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_prepare_rejects_wrong_registered_target[unregistered] ERROR
+
+==================================== ERRORS ====================================
+_ ERROR at setup of test_inherited_default_then_warm_install_exact_runtime_root _
+
+repo_root = '/tmp/lvw-p3a-owned-62hs4cca/synthetic-git'
+
+    def _git_prefix(repo_root):
+        """payload 源目录相对 Git 根的前缀（MasterPack 可能是仓库的子目录）。"""
+        pack_root = Path(__file__).resolve().parent.parent
+        try:
+>           relative = pack_root.relative_to(Path(repo_root).resolve())
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/v0_incremental_package.py:612: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0')
+other = PosixPath('/tmp/lvw-p3a-owned-62hs4cca/synthetic-git'), walk_up = False
+_deprecated = (), step = 0
+
+    def relative_to(self, other, /, *_deprecated, walk_up=False):
+        """Return the relative path to another path identified by the passed
+        arguments.  If the operation is not possible (because this is not
+        related to the other path), raise ValueError.
+    
+        The *walk_up* parameter controls whether `..` may be used to resolve
+        the path.
+        """
+        if _deprecated:
+            msg = ("support for supplying more than one positional argument "
+                   "to pathlib.PurePath.relative_to() is deprecated and "
+                   "scheduled for removal in Python {remove}")
+            warnings._deprecated("pathlib.PurePath.relative_to(*args)", msg,
+                                 remove=(3, 14))
+        other = self.with_segments(other, *_deprecated)
+        for step, path in enumerate([other] + list(other.parents)):
+            if self.is_relative_to(path):
+                break
+            elif not walk_up:
+>               raise ValueError(f"{str(self)!r} is not in the subpath of {str(other)!r}")
+E               ValueError: '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0' is not in the subpath of '/tmp/lvw-p3a-owned-62hs4cca/synthetic-git'
+
+/usr/lib/python3.12/pathlib.py:682: ValueError
+
+During handling of the above exception, another exception occurred:
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7a9d747913a0>
+
+    @pytest.fixture
+    def fixture(monkeypatch):
+        with tempfile.TemporaryDirectory(prefix='lvw-p3a-owned-') as temporary:
+            root = Path(temporary).resolve()
+            repo = root / 'synthetic-git'; repo.mkdir()
+            original_popen = subprocess.Popen
+            def guarded(command, *args, **kwargs):
+                assert isinstance(command, list) and command[0] == 'git', 'host subprocess forbidden'
+                assert not kwargs.get('shell'), 'shell forbidden'
+                cwd = Path(kwargs.get('cwd', repo)).resolve()
+                assert cwd == repo or cwd.is_relative_to(repo), 'only synthetic Git allowed'
+                if '-C' in command:
+                    assert Path(command[command.index('-C') + 1]).resolve() == repo
+                return original_popen(command, *args, **kwargs)
+            monkeypatch.setattr(subprocess, 'Popen', guarded)
+            monkeypatch.setattr(os, 'system', lambda *a: pytest.fail('shell forbidden'))
+            def git(*args):
+                return subprocess.run(['git', *args], cwd=repo, check=True, capture_output=True).stdout.decode().strip()
+            payload = {
+                package.BRIDGE_SOURCE_DIR + '/__init__.py': b'# synthetic bridge\n',
+                package.BRIDGE_SOURCE_DIR + '/core.py': b'SYNTHETIC = True\n',
+                package.BRIDGE_SOURCE_DIR + '/web/panel.js': b'// synthetic panel\n',
+                package.WORKFLOWS_SOURCE_DIR + '/video_reverse_prompt_v0.ui.json': b'{"synthetic":true}\n',
+                package.WORKFLOWS_SOURCE_DIR + '/manual.json': b'{"synthetic":"manual"}\n',
+            }
+            for name, raw in payload.items():
+                path = repo / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(raw)
+            tool = repo / 'tools/v0_incremental_package.py'; tool.parent.mkdir(); tool.write_text('# synthetic packaged tool identity\n')
+            git('init', '-q'); git('add', '.')
+            git('-c', 'user.name=ljx418', '-c', 'user.email=1173696783@qq.com', 'commit', '-qm', 'synthetic payload')
+            candidate = git('rev-parse', 'HEAD')
+            archive_path = root / 'payload.zip'
+>           build = package.command_build(SimpleNamespace(repo=repo, commit=candidate, out=archive_path, receipt_out=None, redact_root=[]))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_incremental_package.py:1389: in command_build
+    git_prefix = _git_prefix(repo_root)
+                 ^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:614: in _git_prefix
+    _fail(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+code = 'BAD_INPUT'
+message = 'the MasterPack directory is not inside the resolved git repository'
+detail = {'pack_root': '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0', 'repo_root': '/tmp/lvw-p3a-owned-62hs4cca/synthetic-git'}
+
+    def _fail(code, message, **detail):
+>       raise PackageError(code, message, detail or None)
+E       tools.v0_incremental_package.PackageError: the MasterPack directory is not inside the resolved git repository
+
+tools/v0_incremental_package.py:165: PackageError
+_ ERROR at setup of test_preinstall_refusals_persist_and_never_start[old-candidate] _
+
+repo_root = '/tmp/lvw-p3a-owned-n6ftcql0/synthetic-git'
+
+    def _git_prefix(repo_root):
+        """payload 源目录相对 Git 根的前缀（MasterPack 可能是仓库的子目录）。"""
+        pack_root = Path(__file__).resolve().parent.parent
+        try:
+>           relative = pack_root.relative_to(Path(repo_root).resolve())
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/v0_incremental_package.py:612: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0')
+other = PosixPath('/tmp/lvw-p3a-owned-n6ftcql0/synthetic-git'), walk_up = False
+_deprecated = (), step = 0
+
+    def relative_to(self, other, /, *_deprecated, walk_up=False):
+        """Return the relative path to another path identified by the passed
+        arguments.  If the operation is not possible (because this is not
+        related to the other path), raise ValueError.
+    
+        The *walk_up* parameter controls whether `..` may be used to resolve
+        the path.
+        """
+        if _deprecated:
+            msg = ("support for supplying more than one positional argument "
+                   "to pathlib.PurePath.relative_to() is deprecated and "
+                   "scheduled for removal in Python {remove}")
+            warnings._deprecated("pathlib.PurePath.relative_to(*args)", msg,
+                                 remove=(3, 14))
+        other = self.with_segments(other, *_deprecated)
+        for step, path in enumerate([other] + list(other.parents)):
+            if self.is_relative_to(path):
+                break
+            elif not walk_up:
+>               raise ValueError(f"{str(self)!r} is not in the subpath of {str(other)!r}")
+E               ValueError: '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0' is not in the subpath of '/tmp/lvw-p3a-owned-n6ftcql0/synthetic-git'
+
+/usr/lib/python3.12/pathlib.py:682: ValueError
+
+During handling of the above exception, another exception occurred:
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7a9d746a2300>
+
+    @pytest.fixture
+    def fixture(monkeypatch):
+        with tempfile.TemporaryDirectory(prefix='lvw-p3a-owned-') as temporary:
+            root = Path(temporary).resolve()
+            repo = root / 'synthetic-git'; repo.mkdir()
+            original_popen = subprocess.Popen
+            def guarded(command, *args, **kwargs):
+                assert isinstance(command, list) and command[0] == 'git', 'host subprocess forbidden'
+                assert not kwargs.get('shell'), 'shell forbidden'
+                cwd = Path(kwargs.get('cwd', repo)).resolve()
+                assert cwd == repo or cwd.is_relative_to(repo), 'only synthetic Git allowed'
+                if '-C' in command:
+                    assert Path(command[command.index('-C') + 1]).resolve() == repo
+                return original_popen(command, *args, **kwargs)
+            monkeypatch.setattr(subprocess, 'Popen', guarded)
+            monkeypatch.setattr(os, 'system', lambda *a: pytest.fail('shell forbidden'))
+            def git(*args):
+                return subprocess.run(['git', *args], cwd=repo, check=True, capture_output=True).stdout.decode().strip()
+            payload = {
+                package.BRIDGE_SOURCE_DIR + '/__init__.py': b'# synthetic bridge\n',
+                package.BRIDGE_SOURCE_DIR + '/core.py': b'SYNTHETIC = True\n',
+                package.BRIDGE_SOURCE_DIR + '/web/panel.js': b'// synthetic panel\n',
+                package.WORKFLOWS_SOURCE_DIR + '/video_reverse_prompt_v0.ui.json': b'{"synthetic":true}\n',
+                package.WORKFLOWS_SOURCE_DIR + '/manual.json': b'{"synthetic":"manual"}\n',
+            }
+            for name, raw in payload.items():
+                path = repo / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(raw)
+            tool = repo / 'tools/v0_incremental_package.py'; tool.parent.mkdir(); tool.write_text('# synthetic packaged tool identity\n')
+            git('init', '-q'); git('add', '.')
+            git('-c', 'user.name=ljx418', '-c', 'user.email=1173696783@qq.com', 'commit', '-qm', 'synthetic payload')
+            candidate = git('rev-parse', 'HEAD')
+            archive_path = root / 'payload.zip'
+>           build = package.command_build(SimpleNamespace(repo=repo, commit=candidate, out=archive_path, receipt_out=None, redact_root=[]))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_incremental_package.py:1389: in command_build
+    git_prefix = _git_prefix(repo_root)
+                 ^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:614: in _git_prefix
+    _fail(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+code = 'BAD_INPUT'
+message = 'the MasterPack directory is not inside the resolved git repository'
+detail = {'pack_root': '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0', 'repo_root': '/tmp/lvw-p3a-owned-n6ftcql0/synthetic-git'}
+
+    def _fail(code, message, **detail):
+>       raise PackageError(code, message, detail or None)
+E       tools.v0_incremental_package.PackageError: the MasterPack directory is not inside the resolved git repository
+
+tools/v0_incremental_package.py:165: PackageError
+_ ERROR at setup of test_preinstall_refusals_persist_and_never_start[package-hash] _
+
+repo_root = '/tmp/lvw-p3a-owned-kfa57h4i/synthetic-git'
+
+    def _git_prefix(repo_root):
+        """payload 源目录相对 Git 根的前缀（MasterPack 可能是仓库的子目录）。"""
+        pack_root = Path(__file__).resolve().parent.parent
+        try:
+>           relative = pack_root.relative_to(Path(repo_root).resolve())
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/v0_incremental_package.py:612: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0')
+other = PosixPath('/tmp/lvw-p3a-owned-kfa57h4i/synthetic-git'), walk_up = False
+_deprecated = (), step = 0
+
+    def relative_to(self, other, /, *_deprecated, walk_up=False):
+        """Return the relative path to another path identified by the passed
+        arguments.  If the operation is not possible (because this is not
+        related to the other path), raise ValueError.
+    
+        The *walk_up* parameter controls whether `..` may be used to resolve
+        the path.
+        """
+        if _deprecated:
+            msg = ("support for supplying more than one positional argument "
+                   "to pathlib.PurePath.relative_to() is deprecated and "
+                   "scheduled for removal in Python {remove}")
+            warnings._deprecated("pathlib.PurePath.relative_to(*args)", msg,
+                                 remove=(3, 14))
+        other = self.with_segments(other, *_deprecated)
+        for step, path in enumerate([other] + list(other.parents)):
+            if self.is_relative_to(path):
+                break
+            elif not walk_up:
+>               raise ValueError(f"{str(self)!r} is not in the subpath of {str(other)!r}")
+E               ValueError: '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0' is not in the subpath of '/tmp/lvw-p3a-owned-kfa57h4i/synthetic-git'
+
+/usr/lib/python3.12/pathlib.py:682: ValueError
+
+During handling of the above exception, another exception occurred:
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7a9d746a17f0>
+
+    @pytest.fixture
+    def fixture(monkeypatch):
+        with tempfile.TemporaryDirectory(prefix='lvw-p3a-owned-') as temporary:
+            root = Path(temporary).resolve()
+            repo = root / 'synthetic-git'; repo.mkdir()
+            original_popen = subprocess.Popen
+            def guarded(command, *args, **kwargs):
+                assert isinstance(command, list) and command[0] == 'git', 'host subprocess forbidden'
+                assert not kwargs.get('shell'), 'shell forbidden'
+                cwd = Path(kwargs.get('cwd', repo)).resolve()
+                assert cwd == repo or cwd.is_relative_to(repo), 'only synthetic Git allowed'
+                if '-C' in command:
+                    assert Path(command[command.index('-C') + 1]).resolve() == repo
+                return original_popen(command, *args, **kwargs)
+            monkeypatch.setattr(subprocess, 'Popen', guarded)
+            monkeypatch.setattr(os, 'system', lambda *a: pytest.fail('shell forbidden'))
+            def git(*args):
+                return subprocess.run(['git', *args], cwd=repo, check=True, capture_output=True).stdout.decode().strip()
+            payload = {
+                package.BRIDGE_SOURCE_DIR + '/__init__.py': b'# synthetic bridge\n',
+                package.BRIDGE_SOURCE_DIR + '/core.py': b'SYNTHETIC = True\n',
+                package.BRIDGE_SOURCE_DIR + '/web/panel.js': b'// synthetic panel\n',
+                package.WORKFLOWS_SOURCE_DIR + '/video_reverse_prompt_v0.ui.json': b'{"synthetic":true}\n',
+                package.WORKFLOWS_SOURCE_DIR + '/manual.json': b'{"synthetic":"manual"}\n',
+            }
+            for name, raw in payload.items():
+                path = repo / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(raw)
+            tool = repo / 'tools/v0_incremental_package.py'; tool.parent.mkdir(); tool.write_text('# synthetic packaged tool identity\n')
+            git('init', '-q'); git('add', '.')
+            git('-c', 'user.name=ljx418', '-c', 'user.email=1173696783@qq.com', 'commit', '-qm', 'synthetic payload')
+            candidate = git('rev-parse', 'HEAD')
+            archive_path = root / 'payload.zip'
+>           build = package.command_build(SimpleNamespace(repo=repo, commit=candidate, out=archive_path, receipt_out=None, redact_root=[]))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_incremental_package.py:1389: in command_build
+    git_prefix = _git_prefix(repo_root)
+                 ^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:614: in _git_prefix
+    _fail(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+code = 'BAD_INPUT'
+message = 'the MasterPack directory is not inside the resolved git repository'
+detail = {'pack_root': '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0', 'repo_root': '/tmp/lvw-p3a-owned-kfa57h4i/synthetic-git'}
+
+    def _fail(code, message, **detail):
+>       raise PackageError(code, message, detail or None)
+E       tools.v0_incremental_package.PackageError: the MasterPack directory is not inside the resolved git repository
+
+tools/v0_incremental_package.py:165: PackageError
+_ ERROR at setup of test_preinstall_refusals_persist_and_never_start[manifest-hash] _
+
+repo_root = '/tmp/lvw-p3a-owned-djikaw0t/synthetic-git'
+
+    def _git_prefix(repo_root):
+        """payload 源目录相对 Git 根的前缀（MasterPack 可能是仓库的子目录）。"""
+        pack_root = Path(__file__).resolve().parent.parent
+        try:
+>           relative = pack_root.relative_to(Path(repo_root).resolve())
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/v0_incremental_package.py:612: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0')
+other = PosixPath('/tmp/lvw-p3a-owned-djikaw0t/synthetic-git'), walk_up = False
+_deprecated = (), step = 0
+
+    def relative_to(self, other, /, *_deprecated, walk_up=False):
+        """Return the relative path to another path identified by the passed
+        arguments.  If the operation is not possible (because this is not
+        related to the other path), raise ValueError.
+    
+        The *walk_up* parameter controls whether `..` may be used to resolve
+        the path.
+        """
+        if _deprecated:
+            msg = ("support for supplying more than one positional argument "
+                   "to pathlib.PurePath.relative_to() is deprecated and "
+                   "scheduled for removal in Python {remove}")
+            warnings._deprecated("pathlib.PurePath.relative_to(*args)", msg,
+                                 remove=(3, 14))
+        other = self.with_segments(other, *_deprecated)
+        for step, path in enumerate([other] + list(other.parents)):
+            if self.is_relative_to(path):
+                break
+            elif not walk_up:
+>               raise ValueError(f"{str(self)!r} is not in the subpath of {str(other)!r}")
+E               ValueError: '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0' is not in the subpath of '/tmp/lvw-p3a-owned-djikaw0t/synthetic-git'
+
+/usr/lib/python3.12/pathlib.py:682: ValueError
+
+During handling of the above exception, another exception occurred:
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7a9d748f63c0>
+
+    @pytest.fixture
+    def fixture(monkeypatch):
+        with tempfile.TemporaryDirectory(prefix='lvw-p3a-owned-') as temporary:
+            root = Path(temporary).resolve()
+            repo = root / 'synthetic-git'; repo.mkdir()
+            original_popen = subprocess.Popen
+            def guarded(command, *args, **kwargs):
+                assert isinstance(command, list) and command[0] == 'git', 'host subprocess forbidden'
+                assert not kwargs.get('shell'), 'shell forbidden'
+                cwd = Path(kwargs.get('cwd', repo)).resolve()
+                assert cwd == repo or cwd.is_relative_to(repo), 'only synthetic Git allowed'
+                if '-C' in command:
+                    assert Path(command[command.index('-C') + 1]).resolve() == repo
+                return original_popen(command, *args, **kwargs)
+            monkeypatch.setattr(subprocess, 'Popen', guarded)
+            monkeypatch.setattr(os, 'system', lambda *a: pytest.fail('shell forbidden'))
+            def git(*args):
+                return subprocess.run(['git', *args], cwd=repo, check=True, capture_output=True).stdout.decode().strip()
+            payload = {
+                package.BRIDGE_SOURCE_DIR + '/__init__.py': b'# synthetic bridge\n',
+                package.BRIDGE_SOURCE_DIR + '/core.py': b'SYNTHETIC = True\n',
+                package.BRIDGE_SOURCE_DIR + '/web/panel.js': b'// synthetic panel\n',
+                package.WORKFLOWS_SOURCE_DIR + '/video_reverse_prompt_v0.ui.json': b'{"synthetic":true}\n',
+                package.WORKFLOWS_SOURCE_DIR + '/manual.json': b'{"synthetic":"manual"}\n',
+            }
+            for name, raw in payload.items():
+                path = repo / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(raw)
+            tool = repo / 'tools/v0_incremental_package.py'; tool.parent.mkdir(); tool.write_text('# synthetic packaged tool identity\n')
+            git('init', '-q'); git('add', '.')
+            git('-c', 'user.name=ljx418', '-c', 'user.email=1173696783@qq.com', 'commit', '-qm', 'synthetic payload')
+            candidate = git('rev-parse', 'HEAD')
+            archive_path = root / 'payload.zip'
+>           build = package.command_build(SimpleNamespace(repo=repo, commit=candidate, out=archive_path, receipt_out=None, redact_root=[]))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_incremental_package.py:1389: in command_build
+    git_prefix = _git_prefix(repo_root)
+                 ^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:614: in _git_prefix
+    _fail(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+code = 'BAD_INPUT'
+message = 'the MasterPack directory is not inside the resolved git repository'
+detail = {'pack_root': '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0', 'repo_root': '/tmp/lvw-p3a-owned-djikaw0t/synthetic-git'}
+
+    def _fail(code, message, **detail):
+>       raise PackageError(code, message, detail or None)
+E       tools.v0_incremental_package.PackageError: the MasterPack directory is not inside the resolved git repository
+
+tools/v0_incremental_package.py:165: PackageError
+_ ERROR at setup of test_preinstall_refusals_persist_and_never_start[bad-digest] _
+
+repo_root = '/tmp/lvw-p3a-owned-yk6aqdoc/synthetic-git'
+
+    def _git_prefix(repo_root):
+        """payload 源目录相对 Git 根的前缀（MasterPack 可能是仓库的子目录）。"""
+        pack_root = Path(__file__).resolve().parent.parent
+        try:
+>           relative = pack_root.relative_to(Path(repo_root).resolve())
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/v0_incremental_package.py:612: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0')
+other = PosixPath('/tmp/lvw-p3a-owned-yk6aqdoc/synthetic-git'), walk_up = False
+_deprecated = (), step = 0
+
+    def relative_to(self, other, /, *_deprecated, walk_up=False):
+        """Return the relative path to another path identified by the passed
+        arguments.  If the operation is not possible (because this is not
+        related to the other path), raise ValueError.
+    
+        The *walk_up* parameter controls whether `..` may be used to resolve
+        the path.
+        """
+        if _deprecated:
+            msg = ("support for supplying more than one positional argument "
+                   "to pathlib.PurePath.relative_to() is deprecated and "
+                   "scheduled for removal in Python {remove}")
+            warnings._deprecated("pathlib.PurePath.relative_to(*args)", msg,
+                                 remove=(3, 14))
+        other = self.with_segments(other, *_deprecated)
+        for step, path in enumerate([other] + list(other.parents)):
+            if self.is_relative_to(path):
+                break
+            elif not walk_up:
+>               raise ValueError(f"{str(self)!r} is not in the subpath of {str(other)!r}")
+E               ValueError: '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0' is not in the subpath of '/tmp/lvw-p3a-owned-yk6aqdoc/synthetic-git'
+
+/usr/lib/python3.12/pathlib.py:682: ValueError
+
+During handling of the above exception, another exception occurred:
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7a9d748f6d20>
+
+    @pytest.fixture
+    def fixture(monkeypatch):
+        with tempfile.TemporaryDirectory(prefix='lvw-p3a-owned-') as temporary:
+            root = Path(temporary).resolve()
+            repo = root / 'synthetic-git'; repo.mkdir()
+            original_popen = subprocess.Popen
+            def guarded(command, *args, **kwargs):
+                assert isinstance(command, list) and command[0] == 'git', 'host subprocess forbidden'
+                assert not kwargs.get('shell'), 'shell forbidden'
+                cwd = Path(kwargs.get('cwd', repo)).resolve()
+                assert cwd == repo or cwd.is_relative_to(repo), 'only synthetic Git allowed'
+                if '-C' in command:
+                    assert Path(command[command.index('-C') + 1]).resolve() == repo
+                return original_popen(command, *args, **kwargs)
+            monkeypatch.setattr(subprocess, 'Popen', guarded)
+            monkeypatch.setattr(os, 'system', lambda *a: pytest.fail('shell forbidden'))
+            def git(*args):
+                return subprocess.run(['git', *args], cwd=repo, check=True, capture_output=True).stdout.decode().strip()
+            payload = {
+                package.BRIDGE_SOURCE_DIR + '/__init__.py': b'# synthetic bridge\n',
+                package.BRIDGE_SOURCE_DIR + '/core.py': b'SYNTHETIC = True\n',
+                package.BRIDGE_SOURCE_DIR + '/web/panel.js': b'// synthetic panel\n',
+                package.WORKFLOWS_SOURCE_DIR + '/video_reverse_prompt_v0.ui.json': b'{"synthetic":true}\n',
+                package.WORKFLOWS_SOURCE_DIR + '/manual.json': b'{"synthetic":"manual"}\n',
+            }
+            for name, raw in payload.items():
+                path = repo / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(raw)
+            tool = repo / 'tools/v0_incremental_package.py'; tool.parent.mkdir(); tool.write_text('# synthetic packaged tool identity\n')
+            git('init', '-q'); git('add', '.')
+            git('-c', 'user.name=ljx418', '-c', 'user.email=1173696783@qq.com', 'commit', '-qm', 'synthetic payload')
+            candidate = git('rev-parse', 'HEAD')
+            archive_path = root / 'payload.zip'
+>           build = package.command_build(SimpleNamespace(repo=repo, commit=candidate, out=archive_path, receipt_out=None, redact_root=[]))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_incremental_package.py:1389: in command_build
+    git_prefix = _git_prefix(repo_root)
+                 ^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:614: in _git_prefix
+    _fail(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+code = 'BAD_INPUT'
+message = 'the MasterPack directory is not inside the resolved git repository'
+detail = {'pack_root': '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0', 'repo_root': '/tmp/lvw-p3a-owned-yk6aqdoc/synthetic-git'}
+
+    def _fail(code, message, **detail):
+>       raise PackageError(code, message, detail or None)
+E       tools.v0_incremental_package.PackageError: the MasterPack directory is not inside the resolved git repository
+
+tools/v0_incremental_package.py:165: PackageError
+_ ERROR at setup of test_preinstall_refusals_persist_and_never_start[missing-bridge] _
+
+repo_root = '/tmp/lvw-p3a-owned-j2tfvilv/synthetic-git'
+
+    def _git_prefix(repo_root):
+        """payload 源目录相对 Git 根的前缀（MasterPack 可能是仓库的子目录）。"""
+        pack_root = Path(__file__).resolve().parent.parent
+        try:
+>           relative = pack_root.relative_to(Path(repo_root).resolve())
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/v0_incremental_package.py:612: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0')
+other = PosixPath('/tmp/lvw-p3a-owned-j2tfvilv/synthetic-git'), walk_up = False
+_deprecated = (), step = 0
+
+    def relative_to(self, other, /, *_deprecated, walk_up=False):
+        """Return the relative path to another path identified by the passed
+        arguments.  If the operation is not possible (because this is not
+        related to the other path), raise ValueError.
+    
+        The *walk_up* parameter controls whether `..` may be used to resolve
+        the path.
+        """
+        if _deprecated:
+            msg = ("support for supplying more than one positional argument "
+                   "to pathlib.PurePath.relative_to() is deprecated and "
+                   "scheduled for removal in Python {remove}")
+            warnings._deprecated("pathlib.PurePath.relative_to(*args)", msg,
+                                 remove=(3, 14))
+        other = self.with_segments(other, *_deprecated)
+        for step, path in enumerate([other] + list(other.parents)):
+            if self.is_relative_to(path):
+                break
+            elif not walk_up:
+>               raise ValueError(f"{str(self)!r} is not in the subpath of {str(other)!r}")
+E               ValueError: '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0' is not in the subpath of '/tmp/lvw-p3a-owned-j2tfvilv/synthetic-git'
+
+/usr/lib/python3.12/pathlib.py:682: ValueError
+
+During handling of the above exception, another exception occurred:
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7a9d748f58e0>
+
+    @pytest.fixture
+    def fixture(monkeypatch):
+        with tempfile.TemporaryDirectory(prefix='lvw-p3a-owned-') as temporary:
+            root = Path(temporary).resolve()
+            repo = root / 'synthetic-git'; repo.mkdir()
+            original_popen = subprocess.Popen
+            def guarded(command, *args, **kwargs):
+                assert isinstance(command, list) and command[0] == 'git', 'host subprocess forbidden'
+                assert not kwargs.get('shell'), 'shell forbidden'
+                cwd = Path(kwargs.get('cwd', repo)).resolve()
+                assert cwd == repo or cwd.is_relative_to(repo), 'only synthetic Git allowed'
+                if '-C' in command:
+                    assert Path(command[command.index('-C') + 1]).resolve() == repo
+                return original_popen(command, *args, **kwargs)
+            monkeypatch.setattr(subprocess, 'Popen', guarded)
+            monkeypatch.setattr(os, 'system', lambda *a: pytest.fail('shell forbidden'))
+            def git(*args):
+                return subprocess.run(['git', *args], cwd=repo, check=True, capture_output=True).stdout.decode().strip()
+            payload = {
+                package.BRIDGE_SOURCE_DIR + '/__init__.py': b'# synthetic bridge\n',
+                package.BRIDGE_SOURCE_DIR + '/core.py': b'SYNTHETIC = True\n',
+                package.BRIDGE_SOURCE_DIR + '/web/panel.js': b'// synthetic panel\n',
+                package.WORKFLOWS_SOURCE_DIR + '/video_reverse_prompt_v0.ui.json': b'{"synthetic":true}\n',
+                package.WORKFLOWS_SOURCE_DIR + '/manual.json': b'{"synthetic":"manual"}\n',
+            }
+            for name, raw in payload.items():
+                path = repo / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(raw)
+            tool = repo / 'tools/v0_incremental_package.py'; tool.parent.mkdir(); tool.write_text('# synthetic packaged tool identity\n')
+            git('init', '-q'); git('add', '.')
+            git('-c', 'user.name=ljx418', '-c', 'user.email=1173696783@qq.com', 'commit', '-qm', 'synthetic payload')
+            candidate = git('rev-parse', 'HEAD')
+            archive_path = root / 'payload.zip'
+>           build = package.command_build(SimpleNamespace(repo=repo, commit=candidate, out=archive_path, receipt_out=None, redact_root=[]))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_incremental_package.py:1389: in command_build
+    git_prefix = _git_prefix(repo_root)
+                 ^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:614: in _git_prefix
+    _fail(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+code = 'BAD_INPUT'
+message = 'the MasterPack directory is not inside the resolved git repository'
+detail = {'pack_root': '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0', 'repo_root': '/tmp/lvw-p3a-owned-j2tfvilv/synthetic-git'}
+
+    def _fail(code, message, **detail):
+>       raise PackageError(code, message, detail or None)
+E       tools.v0_incremental_package.PackageError: the MasterPack directory is not inside the resolved git repository
+
+tools/v0_incremental_package.py:165: PackageError
+_ ERROR at setup of test_preinstall_refusals_persist_and_never_start[extra-bridge] _
+
+repo_root = '/tmp/lvw-p3a-owned-7ozggym4/synthetic-git'
+
+    def _git_prefix(repo_root):
+        """payload 源目录相对 Git 根的前缀（MasterPack 可能是仓库的子目录）。"""
+        pack_root = Path(__file__).resolve().parent.parent
+        try:
+>           relative = pack_root.relative_to(Path(repo_root).resolve())
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/v0_incremental_package.py:612: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0')
+other = PosixPath('/tmp/lvw-p3a-owned-7ozggym4/synthetic-git'), walk_up = False
+_deprecated = (), step = 0
+
+    def relative_to(self, other, /, *_deprecated, walk_up=False):
+        """Return the relative path to another path identified by the passed
+        arguments.  If the operation is not possible (because this is not
+        related to the other path), raise ValueError.
+    
+        The *walk_up* parameter controls whether `..` may be used to resolve
+        the path.
+        """
+        if _deprecated:
+            msg = ("support for supplying more than one positional argument "
+                   "to pathlib.PurePath.relative_to() is deprecated and "
+                   "scheduled for removal in Python {remove}")
+            warnings._deprecated("pathlib.PurePath.relative_to(*args)", msg,
+                                 remove=(3, 14))
+        other = self.with_segments(other, *_deprecated)
+        for step, path in enumerate([other] + list(other.parents)):
+            if self.is_relative_to(path):
+                break
+            elif not walk_up:
+>               raise ValueError(f"{str(self)!r} is not in the subpath of {str(other)!r}")
+E               ValueError: '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0' is not in the subpath of '/tmp/lvw-p3a-owned-7ozggym4/synthetic-git'
+
+/usr/lib/python3.12/pathlib.py:682: ValueError
+
+During handling of the above exception, another exception occurred:
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7a9d746a1010>
+
+    @pytest.fixture
+    def fixture(monkeypatch):
+        with tempfile.TemporaryDirectory(prefix='lvw-p3a-owned-') as temporary:
+            root = Path(temporary).resolve()
+            repo = root / 'synthetic-git'; repo.mkdir()
+            original_popen = subprocess.Popen
+            def guarded(command, *args, **kwargs):
+                assert isinstance(command, list) and command[0] == 'git', 'host subprocess forbidden'
+                assert not kwargs.get('shell'), 'shell forbidden'
+                cwd = Path(kwargs.get('cwd', repo)).resolve()
+                assert cwd == repo or cwd.is_relative_to(repo), 'only synthetic Git allowed'
+                if '-C' in command:
+                    assert Path(command[command.index('-C') + 1]).resolve() == repo
+                return original_popen(command, *args, **kwargs)
+            monkeypatch.setattr(subprocess, 'Popen', guarded)
+            monkeypatch.setattr(os, 'system', lambda *a: pytest.fail('shell forbidden'))
+            def git(*args):
+                return subprocess.run(['git', *args], cwd=repo, check=True, capture_output=True).stdout.decode().strip()
+            payload = {
+                package.BRIDGE_SOURCE_DIR + '/__init__.py': b'# synthetic bridge\n',
+                package.BRIDGE_SOURCE_DIR + '/core.py': b'SYNTHETIC = True\n',
+                package.BRIDGE_SOURCE_DIR + '/web/panel.js': b'// synthetic panel\n',
+                package.WORKFLOWS_SOURCE_DIR + '/video_reverse_prompt_v0.ui.json': b'{"synthetic":true}\n',
+                package.WORKFLOWS_SOURCE_DIR + '/manual.json': b'{"synthetic":"manual"}\n',
+            }
+            for name, raw in payload.items():
+                path = repo / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(raw)
+            tool = repo / 'tools/v0_incremental_package.py'; tool.parent.mkdir(); tool.write_text('# synthetic packaged tool identity\n')
+            git('init', '-q'); git('add', '.')
+            git('-c', 'user.name=ljx418', '-c', 'user.email=1173696783@qq.com', 'commit', '-qm', 'synthetic payload')
+            candidate = git('rev-parse', 'HEAD')
+            archive_path = root / 'payload.zip'
+>           build = package.command_build(SimpleNamespace(repo=repo, commit=candidate, out=archive_path, receipt_out=None, redact_root=[]))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_incremental_package.py:1389: in command_build
+    git_prefix = _git_prefix(repo_root)
+                 ^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:614: in _git_prefix
+    _fail(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+code = 'BAD_INPUT'
+message = 'the MasterPack directory is not inside the resolved git repository'
+detail = {'pack_root': '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0', 'repo_root': '/tmp/lvw-p3a-owned-7ozggym4/synthetic-git'}
+
+    def _fail(code, message, **detail):
+>       raise PackageError(code, message, detail or None)
+E       tools.v0_incremental_package.PackageError: the MasterPack directory is not inside the resolved git repository
+
+tools/v0_incremental_package.py:165: PackageError
+_ ERROR at setup of test_preinstall_refusals_persist_and_never_start[bridge-hash] _
+
+repo_root = '/tmp/lvw-p3a-owned-hdn4aa13/synthetic-git'
+
+    def _git_prefix(repo_root):
+        """payload 源目录相对 Git 根的前缀（MasterPack 可能是仓库的子目录）。"""
+        pack_root = Path(__file__).resolve().parent.parent
+        try:
+>           relative = pack_root.relative_to(Path(repo_root).resolve())
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/v0_incremental_package.py:612: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0')
+other = PosixPath('/tmp/lvw-p3a-owned-hdn4aa13/synthetic-git'), walk_up = False
+_deprecated = (), step = 0
+
+    def relative_to(self, other, /, *_deprecated, walk_up=False):
+        """Return the relative path to another path identified by the passed
+        arguments.  If the operation is not possible (because this is not
+        related to the other path), raise ValueError.
+    
+        The *walk_up* parameter controls whether `..` may be used to resolve
+        the path.
+        """
+        if _deprecated:
+            msg = ("support for supplying more than one positional argument "
+                   "to pathlib.PurePath.relative_to() is deprecated and "
+                   "scheduled for removal in Python {remove}")
+            warnings._deprecated("pathlib.PurePath.relative_to(*args)", msg,
+                                 remove=(3, 14))
+        other = self.with_segments(other, *_deprecated)
+        for step, path in enumerate([other] + list(other.parents)):
+            if self.is_relative_to(path):
+                break
+            elif not walk_up:
+>               raise ValueError(f"{str(self)!r} is not in the subpath of {str(other)!r}")
+E               ValueError: '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0' is not in the subpath of '/tmp/lvw-p3a-owned-hdn4aa13/synthetic-git'
+
+/usr/lib/python3.12/pathlib.py:682: ValueError
+
+During handling of the above exception, another exception occurred:
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7a9d74430080>
+
+    @pytest.fixture
+    def fixture(monkeypatch):
+        with tempfile.TemporaryDirectory(prefix='lvw-p3a-owned-') as temporary:
+            root = Path(temporary).resolve()
+            repo = root / 'synthetic-git'; repo.mkdir()
+            original_popen = subprocess.Popen
+            def guarded(command, *args, **kwargs):
+                assert isinstance(command, list) and command[0] == 'git', 'host subprocess forbidden'
+                assert not kwargs.get('shell'), 'shell forbidden'
+                cwd = Path(kwargs.get('cwd', repo)).resolve()
+                assert cwd == repo or cwd.is_relative_to(repo), 'only synthetic Git allowed'
+                if '-C' in command:
+                    assert Path(command[command.index('-C') + 1]).resolve() == repo
+                return original_popen(command, *args, **kwargs)
+            monkeypatch.setattr(subprocess, 'Popen', guarded)
+            monkeypatch.setattr(os, 'system', lambda *a: pytest.fail('shell forbidden'))
+            def git(*args):
+                return subprocess.run(['git', *args], cwd=repo, check=True, capture_output=True).stdout.decode().strip()
+            payload = {
+                package.BRIDGE_SOURCE_DIR + '/__init__.py': b'# synthetic bridge\n',
+                package.BRIDGE_SOURCE_DIR + '/core.py': b'SYNTHETIC = True\n',
+                package.BRIDGE_SOURCE_DIR + '/web/panel.js': b'// synthetic panel\n',
+                package.WORKFLOWS_SOURCE_DIR + '/video_reverse_prompt_v0.ui.json': b'{"synthetic":true}\n',
+                package.WORKFLOWS_SOURCE_DIR + '/manual.json': b'{"synthetic":"manual"}\n',
+            }
+            for name, raw in payload.items():
+                path = repo / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(raw)
+            tool = repo / 'tools/v0_incremental_package.py'; tool.parent.mkdir(); tool.write_text('# synthetic packaged tool identity\n')
+            git('init', '-q'); git('add', '.')
+            git('-c', 'user.name=ljx418', '-c', 'user.email=1173696783@qq.com', 'commit', '-qm', 'synthetic payload')
+            candidate = git('rev-parse', 'HEAD')
+            archive_path = root / 'payload.zip'
+>           build = package.command_build(SimpleNamespace(repo=repo, commit=candidate, out=archive_path, receipt_out=None, redact_root=[]))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_incremental_package.py:1389: in command_build
+    git_prefix = _git_prefix(repo_root)
+                 ^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:614: in _git_prefix
+    _fail(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+code = 'BAD_INPUT'
+message = 'the MasterPack directory is not inside the resolved git repository'
+detail = {'pack_root': '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0', 'repo_root': '/tmp/lvw-p3a-owned-hdn4aa13/synthetic-git'}
+
+    def _fail(code, message, **detail):
+>       raise PackageError(code, message, detail or None)
+E       tools.v0_incremental_package.PackageError: the MasterPack directory is not inside the resolved git repository
+
+tools/v0_incremental_package.py:165: PackageError
+_ ERROR at setup of test_preinstall_refusals_persist_and_never_start[workflow-unsealed] _
+
+repo_root = '/tmp/lvw-p3a-owned-utecp5ov/synthetic-git'
+
+    def _git_prefix(repo_root):
+        """payload 源目录相对 Git 根的前缀（MasterPack 可能是仓库的子目录）。"""
+        pack_root = Path(__file__).resolve().parent.parent
+        try:
+>           relative = pack_root.relative_to(Path(repo_root).resolve())
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/v0_incremental_package.py:612: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0')
+other = PosixPath('/tmp/lvw-p3a-owned-utecp5ov/synthetic-git'), walk_up = False
+_deprecated = (), step = 0
+
+    def relative_to(self, other, /, *_deprecated, walk_up=False):
+        """Return the relative path to another path identified by the passed
+        arguments.  If the operation is not possible (because this is not
+        related to the other path), raise ValueError.
+    
+        The *walk_up* parameter controls whether `..` may be used to resolve
+        the path.
+        """
+        if _deprecated:
+            msg = ("support for supplying more than one positional argument "
+                   "to pathlib.PurePath.relative_to() is deprecated and "
+                   "scheduled for removal in Python {remove}")
+            warnings._deprecated("pathlib.PurePath.relative_to(*args)", msg,
+                                 remove=(3, 14))
+        other = self.with_segments(other, *_deprecated)
+        for step, path in enumerate([other] + list(other.parents)):
+            if self.is_relative_to(path):
+                break
+            elif not walk_up:
+>               raise ValueError(f"{str(self)!r} is not in the subpath of {str(other)!r}")
+E               ValueError: '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0' is not in the subpath of '/tmp/lvw-p3a-owned-utecp5ov/synthetic-git'
+
+/usr/lib/python3.12/pathlib.py:682: ValueError
+
+During handling of the above exception, another exception occurred:
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7a9d74432780>
+
+    @pytest.fixture
+    def fixture(monkeypatch):
+        with tempfile.TemporaryDirectory(prefix='lvw-p3a-owned-') as temporary:
+            root = Path(temporary).resolve()
+            repo = root / 'synthetic-git'; repo.mkdir()
+            original_popen = subprocess.Popen
+            def guarded(command, *args, **kwargs):
+                assert isinstance(command, list) and command[0] == 'git', 'host subprocess forbidden'
+                assert not kwargs.get('shell'), 'shell forbidden'
+                cwd = Path(kwargs.get('cwd', repo)).resolve()
+                assert cwd == repo or cwd.is_relative_to(repo), 'only synthetic Git allowed'
+                if '-C' in command:
+                    assert Path(command[command.index('-C') + 1]).resolve() == repo
+                return original_popen(command, *args, **kwargs)
+            monkeypatch.setattr(subprocess, 'Popen', guarded)
+            monkeypatch.setattr(os, 'system', lambda *a: pytest.fail('shell forbidden'))
+            def git(*args):
+                return subprocess.run(['git', *args], cwd=repo, check=True, capture_output=True).stdout.decode().strip()
+            payload = {
+                package.BRIDGE_SOURCE_DIR + '/__init__.py': b'# synthetic bridge\n',
+                package.BRIDGE_SOURCE_DIR + '/core.py': b'SYNTHETIC = True\n',
+                package.BRIDGE_SOURCE_DIR + '/web/panel.js': b'// synthetic panel\n',
+                package.WORKFLOWS_SOURCE_DIR + '/video_reverse_prompt_v0.ui.json': b'{"synthetic":true}\n',
+                package.WORKFLOWS_SOURCE_DIR + '/manual.json': b'{"synthetic":"manual"}\n',
+            }
+            for name, raw in payload.items():
+                path = repo / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(raw)
+            tool = repo / 'tools/v0_incremental_package.py'; tool.parent.mkdir(); tool.write_text('# synthetic packaged tool identity\n')
+            git('init', '-q'); git('add', '.')
+            git('-c', 'user.name=ljx418', '-c', 'user.email=1173696783@qq.com', 'commit', '-qm', 'synthetic payload')
+            candidate = git('rev-parse', 'HEAD')
+            archive_path = root / 'payload.zip'
+>           build = package.command_build(SimpleNamespace(repo=repo, commit=candidate, out=archive_path, receipt_out=None, redact_root=[]))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_incremental_package.py:1389: in command_build
+    git_prefix = _git_prefix(repo_root)
+                 ^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:614: in _git_prefix
+    _fail(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+code = 'BAD_INPUT'
+message = 'the MasterPack directory is not inside the resolved git repository'
+detail = {'pack_root': '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0', 'repo_root': '/tmp/lvw-p3a-owned-utecp5ov/synthetic-git'}
+
+    def _fail(code, message, **detail):
+>       raise PackageError(code, message, detail or None)
+E       tools.v0_incremental_package.PackageError: the MasterPack directory is not inside the resolved git repository
+
+tools/v0_incremental_package.py:165: PackageError
+_ ERROR at setup of test_preinstall_refusals_persist_and_never_start[workflow-hash] _
+
+repo_root = '/tmp/lvw-p3a-owned-8cdkhw72/synthetic-git'
+
+    def _git_prefix(repo_root):
+        """payload 源目录相对 Git 根的前缀（MasterPack 可能是仓库的子目录）。"""
+        pack_root = Path(__file__).resolve().parent.parent
+        try:
+>           relative = pack_root.relative_to(Path(repo_root).resolve())
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/v0_incremental_package.py:612: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0')
+other = PosixPath('/tmp/lvw-p3a-owned-8cdkhw72/synthetic-git'), walk_up = False
+_deprecated = (), step = 0
+
+    def relative_to(self, other, /, *_deprecated, walk_up=False):
+        """Return the relative path to another path identified by the passed
+        arguments.  If the operation is not possible (because this is not
+        related to the other path), raise ValueError.
+    
+        The *walk_up* parameter controls whether `..` may be used to resolve
+        the path.
+        """
+        if _deprecated:
+            msg = ("support for supplying more than one positional argument "
+                   "to pathlib.PurePath.relative_to() is deprecated and "
+                   "scheduled for removal in Python {remove}")
+            warnings._deprecated("pathlib.PurePath.relative_to(*args)", msg,
+                                 remove=(3, 14))
+        other = self.with_segments(other, *_deprecated)
+        for step, path in enumerate([other] + list(other.parents)):
+            if self.is_relative_to(path):
+                break
+            elif not walk_up:
+>               raise ValueError(f"{str(self)!r} is not in the subpath of {str(other)!r}")
+E               ValueError: '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0' is not in the subpath of '/tmp/lvw-p3a-owned-8cdkhw72/synthetic-git'
+
+/usr/lib/python3.12/pathlib.py:682: ValueError
+
+During handling of the above exception, another exception occurred:
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7a9d748f5280>
+
+    @pytest.fixture
+    def fixture(monkeypatch):
+        with tempfile.TemporaryDirectory(prefix='lvw-p3a-owned-') as temporary:
+            root = Path(temporary).resolve()
+            repo = root / 'synthetic-git'; repo.mkdir()
+            original_popen = subprocess.Popen
+            def guarded(command, *args, **kwargs):
+                assert isinstance(command, list) and command[0] == 'git', 'host subprocess forbidden'
+                assert not kwargs.get('shell'), 'shell forbidden'
+                cwd = Path(kwargs.get('cwd', repo)).resolve()
+                assert cwd == repo or cwd.is_relative_to(repo), 'only synthetic Git allowed'
+                if '-C' in command:
+                    assert Path(command[command.index('-C') + 1]).resolve() == repo
+                return original_popen(command, *args, **kwargs)
+            monkeypatch.setattr(subprocess, 'Popen', guarded)
+            monkeypatch.setattr(os, 'system', lambda *a: pytest.fail('shell forbidden'))
+            def git(*args):
+                return subprocess.run(['git', *args], cwd=repo, check=True, capture_output=True).stdout.decode().strip()
+            payload = {
+                package.BRIDGE_SOURCE_DIR + '/__init__.py': b'# synthetic bridge\n',
+                package.BRIDGE_SOURCE_DIR + '/core.py': b'SYNTHETIC = True\n',
+                package.BRIDGE_SOURCE_DIR + '/web/panel.js': b'// synthetic panel\n',
+                package.WORKFLOWS_SOURCE_DIR + '/video_reverse_prompt_v0.ui.json': b'{"synthetic":true}\n',
+                package.WORKFLOWS_SOURCE_DIR + '/manual.json': b'{"synthetic":"manual"}\n',
+            }
+            for name, raw in payload.items():
+                path = repo / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(raw)
+            tool = repo / 'tools/v0_incremental_package.py'; tool.parent.mkdir(); tool.write_text('# synthetic packaged tool identity\n')
+            git('init', '-q'); git('add', '.')
+            git('-c', 'user.name=ljx418', '-c', 'user.email=1173696783@qq.com', 'commit', '-qm', 'synthetic payload')
+            candidate = git('rev-parse', 'HEAD')
+            archive_path = root / 'payload.zip'
+>           build = package.command_build(SimpleNamespace(repo=repo, commit=candidate, out=archive_path, receipt_out=None, redact_root=[]))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_incremental_package.py:1389: in command_build
+    git_prefix = _git_prefix(repo_root)
+                 ^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:614: in _git_prefix
+    _fail(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+code = 'BAD_INPUT'
+message = 'the MasterPack directory is not inside the resolved git repository'
+detail = {'pack_root': '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0', 'repo_root': '/tmp/lvw-p3a-owned-8cdkhw72/synthetic-git'}
+
+    def _fail(code, message, **detail):
+>       raise PackageError(code, message, detail or None)
+E       tools.v0_incremental_package.PackageError: the MasterPack directory is not inside the resolved git repository
+
+tools/v0_incremental_package.py:165: PackageError
+_ ERROR at setup of test_preinstall_refusals_persist_and_never_start[missing-marker] _
+
+repo_root = '/tmp/lvw-p3a-owned-6v4dxlgb/synthetic-git'
+
+    def _git_prefix(repo_root):
+        """payload 源目录相对 Git 根的前缀（MasterPack 可能是仓库的子目录）。"""
+        pack_root = Path(__file__).resolve().parent.parent
+        try:
+>           relative = pack_root.relative_to(Path(repo_root).resolve())
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/v0_incremental_package.py:612: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0')
+other = PosixPath('/tmp/lvw-p3a-owned-6v4dxlgb/synthetic-git'), walk_up = False
+_deprecated = (), step = 0
+
+    def relative_to(self, other, /, *_deprecated, walk_up=False):
+        """Return the relative path to another path identified by the passed
+        arguments.  If the operation is not possible (because this is not
+        related to the other path), raise ValueError.
+    
+        The *walk_up* parameter controls whether `..` may be used to resolve
+        the path.
+        """
+        if _deprecated:
+            msg = ("support for supplying more than one positional argument "
+                   "to pathlib.PurePath.relative_to() is deprecated and "
+                   "scheduled for removal in Python {remove}")
+            warnings._deprecated("pathlib.PurePath.relative_to(*args)", msg,
+                                 remove=(3, 14))
+        other = self.with_segments(other, *_deprecated)
+        for step, path in enumerate([other] + list(other.parents)):
+            if self.is_relative_to(path):
+                break
+            elif not walk_up:
+>               raise ValueError(f"{str(self)!r} is not in the subpath of {str(other)!r}")
+E               ValueError: '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0' is not in the subpath of '/tmp/lvw-p3a-owned-6v4dxlgb/synthetic-git'
+
+/usr/lib/python3.12/pathlib.py:682: ValueError
+
+During handling of the above exception, another exception occurred:
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7a9d74432cc0>
+
+    @pytest.fixture
+    def fixture(monkeypatch):
+        with tempfile.TemporaryDirectory(prefix='lvw-p3a-owned-') as temporary:
+            root = Path(temporary).resolve()
+            repo = root / 'synthetic-git'; repo.mkdir()
+            original_popen = subprocess.Popen
+            def guarded(command, *args, **kwargs):
+                assert isinstance(command, list) and command[0] == 'git', 'host subprocess forbidden'
+                assert not kwargs.get('shell'), 'shell forbidden'
+                cwd = Path(kwargs.get('cwd', repo)).resolve()
+                assert cwd == repo or cwd.is_relative_to(repo), 'only synthetic Git allowed'
+                if '-C' in command:
+                    assert Path(command[command.index('-C') + 1]).resolve() == repo
+                return original_popen(command, *args, **kwargs)
+            monkeypatch.setattr(subprocess, 'Popen', guarded)
+            monkeypatch.setattr(os, 'system', lambda *a: pytest.fail('shell forbidden'))
+            def git(*args):
+                return subprocess.run(['git', *args], cwd=repo, check=True, capture_output=True).stdout.decode().strip()
+            payload = {
+                package.BRIDGE_SOURCE_DIR + '/__init__.py': b'# synthetic bridge\n',
+                package.BRIDGE_SOURCE_DIR + '/core.py': b'SYNTHETIC = True\n',
+                package.BRIDGE_SOURCE_DIR + '/web/panel.js': b'// synthetic panel\n',
+                package.WORKFLOWS_SOURCE_DIR + '/video_reverse_prompt_v0.ui.json': b'{"synthetic":true}\n',
+                package.WORKFLOWS_SOURCE_DIR + '/manual.json': b'{"synthetic":"manual"}\n',
+            }
+            for name, raw in payload.items():
+                path = repo / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(raw)
+            tool = repo / 'tools/v0_incremental_package.py'; tool.parent.mkdir(); tool.write_text('# synthetic packaged tool identity\n')
+            git('init', '-q'); git('add', '.')
+            git('-c', 'user.name=ljx418', '-c', 'user.email=1173696783@qq.com', 'commit', '-qm', 'synthetic payload')
+            candidate = git('rev-parse', 'HEAD')
+            archive_path = root / 'payload.zip'
+>           build = package.command_build(SimpleNamespace(repo=repo, commit=candidate, out=archive_path, receipt_out=None, redact_root=[]))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_incremental_package.py:1389: in command_build
+    git_prefix = _git_prefix(repo_root)
+                 ^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:614: in _git_prefix
+    _fail(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+code = 'BAD_INPUT'
+message = 'the MasterPack directory is not inside the resolved git repository'
+detail = {'pack_root': '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0', 'repo_root': '/tmp/lvw-p3a-owned-6v4dxlgb/synthetic-git'}
+
+    def _fail(code, message, **detail):
+>       raise PackageError(code, message, detail or None)
+E       tools.v0_incremental_package.PackageError: the MasterPack directory is not inside the resolved git repository
+
+tools/v0_incremental_package.py:165: PackageError
+_ ERROR at setup of test_preinstall_refusals_persist_and_never_start[invalid-marker] _
+
+repo_root = '/tmp/lvw-p3a-owned-9jmu6icb/synthetic-git'
+
+    def _git_prefix(repo_root):
+        """payload 源目录相对 Git 根的前缀（MasterPack 可能是仓库的子目录）。"""
+        pack_root = Path(__file__).resolve().parent.parent
+        try:
+>           relative = pack_root.relative_to(Path(repo_root).resolve())
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/v0_incremental_package.py:612: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0')
+other = PosixPath('/tmp/lvw-p3a-owned-9jmu6icb/synthetic-git'), walk_up = False
+_deprecated = (), step = 0
+
+    def relative_to(self, other, /, *_deprecated, walk_up=False):
+        """Return the relative path to another path identified by the passed
+        arguments.  If the operation is not possible (because this is not
+        related to the other path), raise ValueError.
+    
+        The *walk_up* parameter controls whether `..` may be used to resolve
+        the path.
+        """
+        if _deprecated:
+            msg = ("support for supplying more than one positional argument "
+                   "to pathlib.PurePath.relative_to() is deprecated and "
+                   "scheduled for removal in Python {remove}")
+            warnings._deprecated("pathlib.PurePath.relative_to(*args)", msg,
+                                 remove=(3, 14))
+        other = self.with_segments(other, *_deprecated)
+        for step, path in enumerate([other] + list(other.parents)):
+            if self.is_relative_to(path):
+                break
+            elif not walk_up:
+>               raise ValueError(f"{str(self)!r} is not in the subpath of {str(other)!r}")
+E               ValueError: '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0' is not in the subpath of '/tmp/lvw-p3a-owned-9jmu6icb/synthetic-git'
+
+/usr/lib/python3.12/pathlib.py:682: ValueError
+
+During handling of the above exception, another exception occurred:
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7a9d74433f80>
+
+    @pytest.fixture
+    def fixture(monkeypatch):
+        with tempfile.TemporaryDirectory(prefix='lvw-p3a-owned-') as temporary:
+            root = Path(temporary).resolve()
+            repo = root / 'synthetic-git'; repo.mkdir()
+            original_popen = subprocess.Popen
+            def guarded(command, *args, **kwargs):
+                assert isinstance(command, list) and command[0] == 'git', 'host subprocess forbidden'
+                assert not kwargs.get('shell'), 'shell forbidden'
+                cwd = Path(kwargs.get('cwd', repo)).resolve()
+                assert cwd == repo or cwd.is_relative_to(repo), 'only synthetic Git allowed'
+                if '-C' in command:
+                    assert Path(command[command.index('-C') + 1]).resolve() == repo
+                return original_popen(command, *args, **kwargs)
+            monkeypatch.setattr(subprocess, 'Popen', guarded)
+            monkeypatch.setattr(os, 'system', lambda *a: pytest.fail('shell forbidden'))
+            def git(*args):
+                return subprocess.run(['git', *args], cwd=repo, check=True, capture_output=True).stdout.decode().strip()
+            payload = {
+                package.BRIDGE_SOURCE_DIR + '/__init__.py': b'# synthetic bridge\n',
+                package.BRIDGE_SOURCE_DIR + '/core.py': b'SYNTHETIC = True\n',
+                package.BRIDGE_SOURCE_DIR + '/web/panel.js': b'// synthetic panel\n',
+                package.WORKFLOWS_SOURCE_DIR + '/video_reverse_prompt_v0.ui.json': b'{"synthetic":true}\n',
+                package.WORKFLOWS_SOURCE_DIR + '/manual.json': b'{"synthetic":"manual"}\n',
+            }
+            for name, raw in payload.items():
+                path = repo / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(raw)
+            tool = repo / 'tools/v0_incremental_package.py'; tool.parent.mkdir(); tool.write_text('# synthetic packaged tool identity\n')
+            git('init', '-q'); git('add', '.')
+            git('-c', 'user.name=ljx418', '-c', 'user.email=1173696783@qq.com', 'commit', '-qm', 'synthetic payload')
+            candidate = git('rev-parse', 'HEAD')
+            archive_path = root / 'payload.zip'
+>           build = package.command_build(SimpleNamespace(repo=repo, commit=candidate, out=archive_path, receipt_out=None, redact_root=[]))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_incremental_package.py:1389: in command_build
+    git_prefix = _git_prefix(repo_root)
+                 ^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:614: in _git_prefix
+    _fail(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+code = 'BAD_INPUT'
+message = 'the MasterPack directory is not inside the resolved git repository'
+detail = {'pack_root': '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0', 'repo_root': '/tmp/lvw-p3a-owned-9jmu6icb/synthetic-git'}
+
+    def _fail(code, message, **detail):
+>       raise PackageError(code, message, detail or None)
+E       tools.v0_incremental_package.PackageError: the MasterPack directory is not inside the resolved git repository
+
+tools/v0_incremental_package.py:165: PackageError
+_ ERROR at setup of test_preinstall_refusals_persist_and_never_start[marker-link] _
+
+repo_root = '/tmp/lvw-p3a-owned-lg7vy6w4/synthetic-git'
+
+    def _git_prefix(repo_root):
+        """payload 源目录相对 Git 根的前缀（MasterPack 可能是仓库的子目录）。"""
+        pack_root = Path(__file__).resolve().parent.parent
+        try:
+>           relative = pack_root.relative_to(Path(repo_root).resolve())
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/v0_incremental_package.py:612: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0')
+other = PosixPath('/tmp/lvw-p3a-owned-lg7vy6w4/synthetic-git'), walk_up = False
+_deprecated = (), step = 0
+
+    def relative_to(self, other, /, *_deprecated, walk_up=False):
+        """Return the relative path to another path identified by the passed
+        arguments.  If the operation is not possible (because this is not
+        related to the other path), raise ValueError.
+    
+        The *walk_up* parameter controls whether `..` may be used to resolve
+        the path.
+        """
+        if _deprecated:
+            msg = ("support for supplying more than one positional argument "
+                   "to pathlib.PurePath.relative_to() is deprecated and "
+                   "scheduled for removal in Python {remove}")
+            warnings._deprecated("pathlib.PurePath.relative_to(*args)", msg,
+                                 remove=(3, 14))
+        other = self.with_segments(other, *_deprecated)
+        for step, path in enumerate([other] + list(other.parents)):
+            if self.is_relative_to(path):
+                break
+            elif not walk_up:
+>               raise ValueError(f"{str(self)!r} is not in the subpath of {str(other)!r}")
+E               ValueError: '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0' is not in the subpath of '/tmp/lvw-p3a-owned-lg7vy6w4/synthetic-git'
+
+/usr/lib/python3.12/pathlib.py:682: ValueError
+
+During handling of the above exception, another exception occurred:
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7a9d74498230>
+
+    @pytest.fixture
+    def fixture(monkeypatch):
+        with tempfile.TemporaryDirectory(prefix='lvw-p3a-owned-') as temporary:
+            root = Path(temporary).resolve()
+            repo = root / 'synthetic-git'; repo.mkdir()
+            original_popen = subprocess.Popen
+            def guarded(command, *args, **kwargs):
+                assert isinstance(command, list) and command[0] == 'git', 'host subprocess forbidden'
+                assert not kwargs.get('shell'), 'shell forbidden'
+                cwd = Path(kwargs.get('cwd', repo)).resolve()
+                assert cwd == repo or cwd.is_relative_to(repo), 'only synthetic Git allowed'
+                if '-C' in command:
+                    assert Path(command[command.index('-C') + 1]).resolve() == repo
+                return original_popen(command, *args, **kwargs)
+            monkeypatch.setattr(subprocess, 'Popen', guarded)
+            monkeypatch.setattr(os, 'system', lambda *a: pytest.fail('shell forbidden'))
+            def git(*args):
+                return subprocess.run(['git', *args], cwd=repo, check=True, capture_output=True).stdout.decode().strip()
+            payload = {
+                package.BRIDGE_SOURCE_DIR + '/__init__.py': b'# synthetic bridge\n',
+                package.BRIDGE_SOURCE_DIR + '/core.py': b'SYNTHETIC = True\n',
+                package.BRIDGE_SOURCE_DIR + '/web/panel.js': b'// synthetic panel\n',
+                package.WORKFLOWS_SOURCE_DIR + '/video_reverse_prompt_v0.ui.json': b'{"synthetic":true}\n',
+                package.WORKFLOWS_SOURCE_DIR + '/manual.json': b'{"synthetic":"manual"}\n',
+            }
+            for name, raw in payload.items():
+                path = repo / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(raw)
+            tool = repo / 'tools/v0_incremental_package.py'; tool.parent.mkdir(); tool.write_text('# synthetic packaged tool identity\n')
+            git('init', '-q'); git('add', '.')
+            git('-c', 'user.name=ljx418', '-c', 'user.email=1173696783@qq.com', 'commit', '-qm', 'synthetic payload')
+            candidate = git('rev-parse', 'HEAD')
+            archive_path = root / 'payload.zip'
+>           build = package.command_build(SimpleNamespace(repo=repo, commit=candidate, out=archive_path, receipt_out=None, redact_root=[]))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_incremental_package.py:1389: in command_build
+    git_prefix = _git_prefix(repo_root)
+                 ^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:614: in _git_prefix
+    _fail(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+code = 'BAD_INPUT'
+message = 'the MasterPack directory is not inside the resolved git repository'
+detail = {'pack_root': '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0', 'repo_root': '/tmp/lvw-p3a-owned-lg7vy6w4/synthetic-git'}
+
+    def _fail(code, message, **detail):
+>       raise PackageError(code, message, detail or None)
+E       tools.v0_incremental_package.PackageError: the MasterPack directory is not inside the resolved git repository
+
+tools/v0_incremental_package.py:165: PackageError
+_ ERROR at setup of test_preinstall_refusals_persist_and_never_start[package-link] _
+
+repo_root = '/tmp/lvw-p3a-owned-oc0hkocy/synthetic-git'
+
+    def _git_prefix(repo_root):
+        """payload 源目录相对 Git 根的前缀（MasterPack 可能是仓库的子目录）。"""
+        pack_root = Path(__file__).resolve().parent.parent
+        try:
+>           relative = pack_root.relative_to(Path(repo_root).resolve())
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/v0_incremental_package.py:612: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0')
+other = PosixPath('/tmp/lvw-p3a-owned-oc0hkocy/synthetic-git'), walk_up = False
+_deprecated = (), step = 0
+
+    def relative_to(self, other, /, *_deprecated, walk_up=False):
+        """Return the relative path to another path identified by the passed
+        arguments.  If the operation is not possible (because this is not
+        related to the other path), raise ValueError.
+    
+        The *walk_up* parameter controls whether `..` may be used to resolve
+        the path.
+        """
+        if _deprecated:
+            msg = ("support for supplying more than one positional argument "
+                   "to pathlib.PurePath.relative_to() is deprecated and "
+                   "scheduled for removal in Python {remove}")
+            warnings._deprecated("pathlib.PurePath.relative_to(*args)", msg,
+                                 remove=(3, 14))
+        other = self.with_segments(other, *_deprecated)
+        for step, path in enumerate([other] + list(other.parents)):
+            if self.is_relative_to(path):
+                break
+            elif not walk_up:
+>               raise ValueError(f"{str(self)!r} is not in the subpath of {str(other)!r}")
+E               ValueError: '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0' is not in the subpath of '/tmp/lvw-p3a-owned-oc0hkocy/synthetic-git'
+
+/usr/lib/python3.12/pathlib.py:682: ValueError
+
+During handling of the above exception, another exception occurred:
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7a9d744333b0>
+
+    @pytest.fixture
+    def fixture(monkeypatch):
+        with tempfile.TemporaryDirectory(prefix='lvw-p3a-owned-') as temporary:
+            root = Path(temporary).resolve()
+            repo = root / 'synthetic-git'; repo.mkdir()
+            original_popen = subprocess.Popen
+            def guarded(command, *args, **kwargs):
+                assert isinstance(command, list) and command[0] == 'git', 'host subprocess forbidden'
+                assert not kwargs.get('shell'), 'shell forbidden'
+                cwd = Path(kwargs.get('cwd', repo)).resolve()
+                assert cwd == repo or cwd.is_relative_to(repo), 'only synthetic Git allowed'
+                if '-C' in command:
+                    assert Path(command[command.index('-C') + 1]).resolve() == repo
+                return original_popen(command, *args, **kwargs)
+            monkeypatch.setattr(subprocess, 'Popen', guarded)
+            monkeypatch.setattr(os, 'system', lambda *a: pytest.fail('shell forbidden'))
+            def git(*args):
+                return subprocess.run(['git', *args], cwd=repo, check=True, capture_output=True).stdout.decode().strip()
+            payload = {
+                package.BRIDGE_SOURCE_DIR + '/__init__.py': b'# synthetic bridge\n',
+                package.BRIDGE_SOURCE_DIR + '/core.py': b'SYNTHETIC = True\n',
+                package.BRIDGE_SOURCE_DIR + '/web/panel.js': b'// synthetic panel\n',
+                package.WORKFLOWS_SOURCE_DIR + '/video_reverse_prompt_v0.ui.json': b'{"synthetic":true}\n',
+                package.WORKFLOWS_SOURCE_DIR + '/manual.json': b'{"synthetic":"manual"}\n',
+            }
+            for name, raw in payload.items():
+                path = repo / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(raw)
+            tool = repo / 'tools/v0_incremental_package.py'; tool.parent.mkdir(); tool.write_text('# synthetic packaged tool identity\n')
+            git('init', '-q'); git('add', '.')
+            git('-c', 'user.name=ljx418', '-c', 'user.email=1173696783@qq.com', 'commit', '-qm', 'synthetic payload')
+            candidate = git('rev-parse', 'HEAD')
+            archive_path = root / 'payload.zip'
+>           build = package.command_build(SimpleNamespace(repo=repo, commit=candidate, out=archive_path, receipt_out=None, redact_root=[]))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_incremental_package.py:1389: in command_build
+    git_prefix = _git_prefix(repo_root)
+                 ^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:614: in _git_prefix
+    _fail(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+code = 'BAD_INPUT'
+message = 'the MasterPack directory is not inside the resolved git repository'
+detail = {'pack_root': '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0', 'repo_root': '/tmp/lvw-p3a-owned-oc0hkocy/synthetic-git'}
+
+    def _fail(code, message, **detail):
+>       raise PackageError(code, message, detail or None)
+E       tools.v0_incremental_package.PackageError: the MasterPack directory is not inside the resolved git repository
+
+tools/v0_incremental_package.py:165: PackageError
+_ ERROR at setup of test_preinstall_refusals_persist_and_never_start[package-oversize] _
+
+repo_root = '/tmp/lvw-p3a-owned-et2uxrl5/synthetic-git'
+
+    def _git_prefix(repo_root):
+        """payload 源目录相对 Git 根的前缀（MasterPack 可能是仓库的子目录）。"""
+        pack_root = Path(__file__).resolve().parent.parent
+        try:
+>           relative = pack_root.relative_to(Path(repo_root).resolve())
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/v0_incremental_package.py:612: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0')
+other = PosixPath('/tmp/lvw-p3a-owned-et2uxrl5/synthetic-git'), walk_up = False
+_deprecated = (), step = 0
+
+    def relative_to(self, other, /, *_deprecated, walk_up=False):
+        """Return the relative path to another path identified by the passed
+        arguments.  If the operation is not possible (because this is not
+        related to the other path), raise ValueError.
+    
+        The *walk_up* parameter controls whether `..` may be used to resolve
+        the path.
+        """
+        if _deprecated:
+            msg = ("support for supplying more than one positional argument "
+                   "to pathlib.PurePath.relative_to() is deprecated and "
+                   "scheduled for removal in Python {remove}")
+            warnings._deprecated("pathlib.PurePath.relative_to(*args)", msg,
+                                 remove=(3, 14))
+        other = self.with_segments(other, *_deprecated)
+        for step, path in enumerate([other] + list(other.parents)):
+            if self.is_relative_to(path):
+                break
+            elif not walk_up:
+>               raise ValueError(f"{str(self)!r} is not in the subpath of {str(other)!r}")
+E               ValueError: '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0' is not in the subpath of '/tmp/lvw-p3a-owned-et2uxrl5/synthetic-git'
+
+/usr/lib/python3.12/pathlib.py:682: ValueError
+
+During handling of the above exception, another exception occurred:
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7a9d7449a0f0>
+
+    @pytest.fixture
+    def fixture(monkeypatch):
+        with tempfile.TemporaryDirectory(prefix='lvw-p3a-owned-') as temporary:
+            root = Path(temporary).resolve()
+            repo = root / 'synthetic-git'; repo.mkdir()
+            original_popen = subprocess.Popen
+            def guarded(command, *args, **kwargs):
+                assert isinstance(command, list) and command[0] == 'git', 'host subprocess forbidden'
+                assert not kwargs.get('shell'), 'shell forbidden'
+                cwd = Path(kwargs.get('cwd', repo)).resolve()
+                assert cwd == repo or cwd.is_relative_to(repo), 'only synthetic Git allowed'
+                if '-C' in command:
+                    assert Path(command[command.index('-C') + 1]).resolve() == repo
+                return original_popen(command, *args, **kwargs)
+            monkeypatch.setattr(subprocess, 'Popen', guarded)
+            monkeypatch.setattr(os, 'system', lambda *a: pytest.fail('shell forbidden'))
+            def git(*args):
+                return subprocess.run(['git', *args], cwd=repo, check=True, capture_output=True).stdout.decode().strip()
+            payload = {
+                package.BRIDGE_SOURCE_DIR + '/__init__.py': b'# synthetic bridge\n',
+                package.BRIDGE_SOURCE_DIR + '/core.py': b'SYNTHETIC = True\n',
+                package.BRIDGE_SOURCE_DIR + '/web/panel.js': b'// synthetic panel\n',
+                package.WORKFLOWS_SOURCE_DIR + '/video_reverse_prompt_v0.ui.json': b'{"synthetic":true}\n',
+                package.WORKFLOWS_SOURCE_DIR + '/manual.json': b'{"synthetic":"manual"}\n',
+            }
+            for name, raw in payload.items():
+                path = repo / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(raw)
+            tool = repo / 'tools/v0_incremental_package.py'; tool.parent.mkdir(); tool.write_text('# synthetic packaged tool identity\n')
+            git('init', '-q'); git('add', '.')
+            git('-c', 'user.name=ljx418', '-c', 'user.email=1173696783@qq.com', 'commit', '-qm', 'synthetic payload')
+            candidate = git('rev-parse', 'HEAD')
+            archive_path = root / 'payload.zip'
+>           build = package.command_build(SimpleNamespace(repo=repo, commit=candidate, out=archive_path, receipt_out=None, redact_root=[]))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_incremental_package.py:1389: in command_build
+    git_prefix = _git_prefix(repo_root)
+                 ^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:614: in _git_prefix
+    _fail(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+code = 'BAD_INPUT'
+message = 'the MasterPack directory is not inside the resolved git repository'
+detail = {'pack_root': '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0', 'repo_root': '/tmp/lvw-p3a-owned-et2uxrl5/synthetic-git'}
+
+    def _fail(code, message, **detail):
+>       raise PackageError(code, message, detail or None)
+E       tools.v0_incremental_package.PackageError: the MasterPack directory is not inside the resolved git repository
+
+tools/v0_incremental_package.py:165: PackageError
+_ ERROR at setup of test_installer_and_postinstall_refusals_before_start[bridge-bytes] _
+
+repo_root = '/tmp/lvw-p3a-owned-y4qw_ruy/synthetic-git'
+
+    def _git_prefix(repo_root):
+        """payload 源目录相对 Git 根的前缀（MasterPack 可能是仓库的子目录）。"""
+        pack_root = Path(__file__).resolve().parent.parent
+        try:
+>           relative = pack_root.relative_to(Path(repo_root).resolve())
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/v0_incremental_package.py:612: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0')
+other = PosixPath('/tmp/lvw-p3a-owned-y4qw_ruy/synthetic-git'), walk_up = False
+_deprecated = (), step = 0
+
+    def relative_to(self, other, /, *_deprecated, walk_up=False):
+        """Return the relative path to another path identified by the passed
+        arguments.  If the operation is not possible (because this is not
+        related to the other path), raise ValueError.
+    
+        The *walk_up* parameter controls whether `..` may be used to resolve
+        the path.
+        """
+        if _deprecated:
+            msg = ("support for supplying more than one positional argument "
+                   "to pathlib.PurePath.relative_to() is deprecated and "
+                   "scheduled for removal in Python {remove}")
+            warnings._deprecated("pathlib.PurePath.relative_to(*args)", msg,
+                                 remove=(3, 14))
+        other = self.with_segments(other, *_deprecated)
+        for step, path in enumerate([other] + list(other.parents)):
+            if self.is_relative_to(path):
+                break
+            elif not walk_up:
+>               raise ValueError(f"{str(self)!r} is not in the subpath of {str(other)!r}")
+E               ValueError: '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0' is not in the subpath of '/tmp/lvw-p3a-owned-y4qw_ruy/synthetic-git'
+
+/usr/lib/python3.12/pathlib.py:682: ValueError
+
+During handling of the above exception, another exception occurred:
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7a9d74499eb0>
+
+    @pytest.fixture
+    def fixture(monkeypatch):
+        with tempfile.TemporaryDirectory(prefix='lvw-p3a-owned-') as temporary:
+            root = Path(temporary).resolve()
+            repo = root / 'synthetic-git'; repo.mkdir()
+            original_popen = subprocess.Popen
+            def guarded(command, *args, **kwargs):
+                assert isinstance(command, list) and command[0] == 'git', 'host subprocess forbidden'
+                assert not kwargs.get('shell'), 'shell forbidden'
+                cwd = Path(kwargs.get('cwd', repo)).resolve()
+                assert cwd == repo or cwd.is_relative_to(repo), 'only synthetic Git allowed'
+                if '-C' in command:
+                    assert Path(command[command.index('-C') + 1]).resolve() == repo
+                return original_popen(command, *args, **kwargs)
+            monkeypatch.setattr(subprocess, 'Popen', guarded)
+            monkeypatch.setattr(os, 'system', lambda *a: pytest.fail('shell forbidden'))
+            def git(*args):
+                return subprocess.run(['git', *args], cwd=repo, check=True, capture_output=True).stdout.decode().strip()
+            payload = {
+                package.BRIDGE_SOURCE_DIR + '/__init__.py': b'# synthetic bridge\n',
+                package.BRIDGE_SOURCE_DIR + '/core.py': b'SYNTHETIC = True\n',
+                package.BRIDGE_SOURCE_DIR + '/web/panel.js': b'// synthetic panel\n',
+                package.WORKFLOWS_SOURCE_DIR + '/video_reverse_prompt_v0.ui.json': b'{"synthetic":true}\n',
+                package.WORKFLOWS_SOURCE_DIR + '/manual.json': b'{"synthetic":"manual"}\n',
+            }
+            for name, raw in payload.items():
+                path = repo / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(raw)
+            tool = repo / 'tools/v0_incremental_package.py'; tool.parent.mkdir(); tool.write_text('# synthetic packaged tool identity\n')
+            git('init', '-q'); git('add', '.')
+            git('-c', 'user.name=ljx418', '-c', 'user.email=1173696783@qq.com', 'commit', '-qm', 'synthetic payload')
+            candidate = git('rev-parse', 'HEAD')
+            archive_path = root / 'payload.zip'
+>           build = package.command_build(SimpleNamespace(repo=repo, commit=candidate, out=archive_path, receipt_out=None, redact_root=[]))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_incremental_package.py:1389: in command_build
+    git_prefix = _git_prefix(repo_root)
+                 ^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:614: in _git_prefix
+    _fail(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+code = 'BAD_INPUT'
+message = 'the MasterPack directory is not inside the resolved git repository'
+detail = {'pack_root': '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0', 'repo_root': '/tmp/lvw-p3a-owned-y4qw_ruy/synthetic-git'}
+
+    def _fail(code, message, **detail):
+>       raise PackageError(code, message, detail or None)
+E       tools.v0_incremental_package.PackageError: the MasterPack directory is not inside the resolved git repository
+
+tools/v0_incremental_package.py:165: PackageError
+_ ERROR at setup of test_installer_and_postinstall_refusals_before_start[workflow-bytes] _
+
+repo_root = '/tmp/lvw-p3a-owned-do_j2nti/synthetic-git'
+
+    def _git_prefix(repo_root):
+        """payload 源目录相对 Git 根的前缀（MasterPack 可能是仓库的子目录）。"""
+        pack_root = Path(__file__).resolve().parent.parent
+        try:
+>           relative = pack_root.relative_to(Path(repo_root).resolve())
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/v0_incremental_package.py:612: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0')
+other = PosixPath('/tmp/lvw-p3a-owned-do_j2nti/synthetic-git'), walk_up = False
+_deprecated = (), step = 0
+
+    def relative_to(self, other, /, *_deprecated, walk_up=False):
+        """Return the relative path to another path identified by the passed
+        arguments.  If the operation is not possible (because this is not
+        related to the other path), raise ValueError.
+    
+        The *walk_up* parameter controls whether `..` may be used to resolve
+        the path.
+        """
+        if _deprecated:
+            msg = ("support for supplying more than one positional argument "
+                   "to pathlib.PurePath.relative_to() is deprecated and "
+                   "scheduled for removal in Python {remove}")
+            warnings._deprecated("pathlib.PurePath.relative_to(*args)", msg,
+                                 remove=(3, 14))
+        other = self.with_segments(other, *_deprecated)
+        for step, path in enumerate([other] + list(other.parents)):
+            if self.is_relative_to(path):
+                break
+            elif not walk_up:
+>               raise ValueError(f"{str(self)!r} is not in the subpath of {str(other)!r}")
+E               ValueError: '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0' is not in the subpath of '/tmp/lvw-p3a-owned-do_j2nti/synthetic-git'
+
+/usr/lib/python3.12/pathlib.py:682: ValueError
+
+During handling of the above exception, another exception occurred:
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7a9d74498f50>
+
+    @pytest.fixture
+    def fixture(monkeypatch):
+        with tempfile.TemporaryDirectory(prefix='lvw-p3a-owned-') as temporary:
+            root = Path(temporary).resolve()
+            repo = root / 'synthetic-git'; repo.mkdir()
+            original_popen = subprocess.Popen
+            def guarded(command, *args, **kwargs):
+                assert isinstance(command, list) and command[0] == 'git', 'host subprocess forbidden'
+                assert not kwargs.get('shell'), 'shell forbidden'
+                cwd = Path(kwargs.get('cwd', repo)).resolve()
+                assert cwd == repo or cwd.is_relative_to(repo), 'only synthetic Git allowed'
+                if '-C' in command:
+                    assert Path(command[command.index('-C') + 1]).resolve() == repo
+                return original_popen(command, *args, **kwargs)
+            monkeypatch.setattr(subprocess, 'Popen', guarded)
+            monkeypatch.setattr(os, 'system', lambda *a: pytest.fail('shell forbidden'))
+            def git(*args):
+                return subprocess.run(['git', *args], cwd=repo, check=True, capture_output=True).stdout.decode().strip()
+            payload = {
+                package.BRIDGE_SOURCE_DIR + '/__init__.py': b'# synthetic bridge\n',
+                package.BRIDGE_SOURCE_DIR + '/core.py': b'SYNTHETIC = True\n',
+                package.BRIDGE_SOURCE_DIR + '/web/panel.js': b'// synthetic panel\n',
+                package.WORKFLOWS_SOURCE_DIR + '/video_reverse_prompt_v0.ui.json': b'{"synthetic":true}\n',
+                package.WORKFLOWS_SOURCE_DIR + '/manual.json': b'{"synthetic":"manual"}\n',
+            }
+            for name, raw in payload.items():
+                path = repo / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(raw)
+            tool = repo / 'tools/v0_incremental_package.py'; tool.parent.mkdir(); tool.write_text('# synthetic packaged tool identity\n')
+            git('init', '-q'); git('add', '.')
+            git('-c', 'user.name=ljx418', '-c', 'user.email=1173696783@qq.com', 'commit', '-qm', 'synthetic payload')
+            candidate = git('rev-parse', 'HEAD')
+            archive_path = root / 'payload.zip'
+>           build = package.command_build(SimpleNamespace(repo=repo, commit=candidate, out=archive_path, receipt_out=None, redact_root=[]))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_incremental_package.py:1389: in command_build
+    git_prefix = _git_prefix(repo_root)
+                 ^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:614: in _git_prefix
+    _fail(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+code = 'BAD_INPUT'
+message = 'the MasterPack directory is not inside the resolved git repository'
+detail = {'pack_root': '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0', 'repo_root': '/tmp/lvw-p3a-owned-do_j2nti/synthetic-git'}
+
+    def _fail(code, message, **detail):
+>       raise PackageError(code, message, detail or None)
+E       tools.v0_incremental_package.PackageError: the MasterPack directory is not inside the resolved git repository
+
+tools/v0_incremental_package.py:165: PackageError
+_ ERROR at setup of test_installer_and_postinstall_refusals_before_start[extra-file] _
+
+repo_root = '/tmp/lvw-p3a-owned-ovw_9e8k/synthetic-git'
+
+    def _git_prefix(repo_root):
+        """payload 源目录相对 Git 根的前缀（MasterPack 可能是仓库的子目录）。"""
+        pack_root = Path(__file__).resolve().parent.parent
+        try:
+>           relative = pack_root.relative_to(Path(repo_root).resolve())
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/v0_incremental_package.py:612: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0')
+other = PosixPath('/tmp/lvw-p3a-owned-ovw_9e8k/synthetic-git'), walk_up = False
+_deprecated = (), step = 0
+
+    def relative_to(self, other, /, *_deprecated, walk_up=False):
+        """Return the relative path to another path identified by the passed
+        arguments.  If the operation is not possible (because this is not
+        related to the other path), raise ValueError.
+    
+        The *walk_up* parameter controls whether `..` may be used to resolve
+        the path.
+        """
+        if _deprecated:
+            msg = ("support for supplying more than one positional argument "
+                   "to pathlib.PurePath.relative_to() is deprecated and "
+                   "scheduled for removal in Python {remove}")
+            warnings._deprecated("pathlib.PurePath.relative_to(*args)", msg,
+                                 remove=(3, 14))
+        other = self.with_segments(other, *_deprecated)
+        for step, path in enumerate([other] + list(other.parents)):
+            if self.is_relative_to(path):
+                break
+            elif not walk_up:
+>               raise ValueError(f"{str(self)!r} is not in the subpath of {str(other)!r}")
+E               ValueError: '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0' is not in the subpath of '/tmp/lvw-p3a-owned-ovw_9e8k/synthetic-git'
+
+/usr/lib/python3.12/pathlib.py:682: ValueError
+
+During handling of the above exception, another exception occurred:
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7a9d74498e60>
+
+    @pytest.fixture
+    def fixture(monkeypatch):
+        with tempfile.TemporaryDirectory(prefix='lvw-p3a-owned-') as temporary:
+            root = Path(temporary).resolve()
+            repo = root / 'synthetic-git'; repo.mkdir()
+            original_popen = subprocess.Popen
+            def guarded(command, *args, **kwargs):
+                assert isinstance(command, list) and command[0] == 'git', 'host subprocess forbidden'
+                assert not kwargs.get('shell'), 'shell forbidden'
+                cwd = Path(kwargs.get('cwd', repo)).resolve()
+                assert cwd == repo or cwd.is_relative_to(repo), 'only synthetic Git allowed'
+                if '-C' in command:
+                    assert Path(command[command.index('-C') + 1]).resolve() == repo
+                return original_popen(command, *args, **kwargs)
+            monkeypatch.setattr(subprocess, 'Popen', guarded)
+            monkeypatch.setattr(os, 'system', lambda *a: pytest.fail('shell forbidden'))
+            def git(*args):
+                return subprocess.run(['git', *args], cwd=repo, check=True, capture_output=True).stdout.decode().strip()
+            payload = {
+                package.BRIDGE_SOURCE_DIR + '/__init__.py': b'# synthetic bridge\n',
+                package.BRIDGE_SOURCE_DIR + '/core.py': b'SYNTHETIC = True\n',
+                package.BRIDGE_SOURCE_DIR + '/web/panel.js': b'// synthetic panel\n',
+                package.WORKFLOWS_SOURCE_DIR + '/video_reverse_prompt_v0.ui.json': b'{"synthetic":true}\n',
+                package.WORKFLOWS_SOURCE_DIR + '/manual.json': b'{"synthetic":"manual"}\n',
+            }
+            for name, raw in payload.items():
+                path = repo / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(raw)
+            tool = repo / 'tools/v0_incremental_package.py'; tool.parent.mkdir(); tool.write_text('# synthetic packaged tool identity\n')
+            git('init', '-q'); git('add', '.')
+            git('-c', 'user.name=ljx418', '-c', 'user.email=1173696783@qq.com', 'commit', '-qm', 'synthetic payload')
+            candidate = git('rev-parse', 'HEAD')
+            archive_path = root / 'payload.zip'
+>           build = package.command_build(SimpleNamespace(repo=repo, commit=candidate, out=archive_path, receipt_out=None, redact_root=[]))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_incremental_package.py:1389: in command_build
+    git_prefix = _git_prefix(repo_root)
+                 ^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:614: in _git_prefix
+    _fail(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+code = 'BAD_INPUT'
+message = 'the MasterPack directory is not inside the resolved git repository'
+detail = {'pack_root': '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0', 'repo_root': '/tmp/lvw-p3a-owned-ovw_9e8k/synthetic-git'}
+
+    def _fail(code, message, **detail):
+>       raise PackageError(code, message, detail or None)
+E       tools.v0_incremental_package.PackageError: the MasterPack directory is not inside the resolved git repository
+
+tools/v0_incremental_package.py:165: PackageError
+_ ERROR at setup of test_installer_and_postinstall_refusals_before_start[missing-file] _
+
+repo_root = '/tmp/lvw-p3a-owned-dhdwzefa/synthetic-git'
+
+    def _git_prefix(repo_root):
+        """payload 源目录相对 Git 根的前缀（MasterPack 可能是仓库的子目录）。"""
+        pack_root = Path(__file__).resolve().parent.parent
+        try:
+>           relative = pack_root.relative_to(Path(repo_root).resolve())
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/v0_incremental_package.py:612: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0')
+other = PosixPath('/tmp/lvw-p3a-owned-dhdwzefa/synthetic-git'), walk_up = False
+_deprecated = (), step = 0
+
+    def relative_to(self, other, /, *_deprecated, walk_up=False):
+        """Return the relative path to another path identified by the passed
+        arguments.  If the operation is not possible (because this is not
+        related to the other path), raise ValueError.
+    
+        The *walk_up* parameter controls whether `..` may be used to resolve
+        the path.
+        """
+        if _deprecated:
+            msg = ("support for supplying more than one positional argument "
+                   "to pathlib.PurePath.relative_to() is deprecated and "
+                   "scheduled for removal in Python {remove}")
+            warnings._deprecated("pathlib.PurePath.relative_to(*args)", msg,
+                                 remove=(3, 14))
+        other = self.with_segments(other, *_deprecated)
+        for step, path in enumerate([other] + list(other.parents)):
+            if self.is_relative_to(path):
+                break
+            elif not walk_up:
+>               raise ValueError(f"{str(self)!r} is not in the subpath of {str(other)!r}")
+E               ValueError: '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0' is not in the subpath of '/tmp/lvw-p3a-owned-dhdwzefa/synthetic-git'
+
+/usr/lib/python3.12/pathlib.py:682: ValueError
+
+During handling of the above exception, another exception occurred:
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7a9d74432930>
+
+    @pytest.fixture
+    def fixture(monkeypatch):
+        with tempfile.TemporaryDirectory(prefix='lvw-p3a-owned-') as temporary:
+            root = Path(temporary).resolve()
+            repo = root / 'synthetic-git'; repo.mkdir()
+            original_popen = subprocess.Popen
+            def guarded(command, *args, **kwargs):
+                assert isinstance(command, list) and command[0] == 'git', 'host subprocess forbidden'
+                assert not kwargs.get('shell'), 'shell forbidden'
+                cwd = Path(kwargs.get('cwd', repo)).resolve()
+                assert cwd == repo or cwd.is_relative_to(repo), 'only synthetic Git allowed'
+                if '-C' in command:
+                    assert Path(command[command.index('-C') + 1]).resolve() == repo
+                return original_popen(command, *args, **kwargs)
+            monkeypatch.setattr(subprocess, 'Popen', guarded)
+            monkeypatch.setattr(os, 'system', lambda *a: pytest.fail('shell forbidden'))
+            def git(*args):
+                return subprocess.run(['git', *args], cwd=repo, check=True, capture_output=True).stdout.decode().strip()
+            payload = {
+                package.BRIDGE_SOURCE_DIR + '/__init__.py': b'# synthetic bridge\n',
+                package.BRIDGE_SOURCE_DIR + '/core.py': b'SYNTHETIC = True\n',
+                package.BRIDGE_SOURCE_DIR + '/web/panel.js': b'// synthetic panel\n',
+                package.WORKFLOWS_SOURCE_DIR + '/video_reverse_prompt_v0.ui.json': b'{"synthetic":true}\n',
+                package.WORKFLOWS_SOURCE_DIR + '/manual.json': b'{"synthetic":"manual"}\n',
+            }
+            for name, raw in payload.items():
+                path = repo / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(raw)
+            tool = repo / 'tools/v0_incremental_package.py'; tool.parent.mkdir(); tool.write_text('# synthetic packaged tool identity\n')
+            git('init', '-q'); git('add', '.')
+            git('-c', 'user.name=ljx418', '-c', 'user.email=1173696783@qq.com', 'commit', '-qm', 'synthetic payload')
+            candidate = git('rev-parse', 'HEAD')
+            archive_path = root / 'payload.zip'
+>           build = package.command_build(SimpleNamespace(repo=repo, commit=candidate, out=archive_path, receipt_out=None, redact_root=[]))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_incremental_package.py:1389: in command_build
+    git_prefix = _git_prefix(repo_root)
+                 ^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:614: in _git_prefix
+    _fail(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+code = 'BAD_INPUT'
+message = 'the MasterPack directory is not inside the resolved git repository'
+detail = {'pack_root': '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0', 'repo_root': '/tmp/lvw-p3a-owned-dhdwzefa/synthetic-git'}
+
+    def _fail(code, message, **detail):
+>       raise PackageError(code, message, detail or None)
+E       tools.v0_incremental_package.PackageError: the MasterPack directory is not inside the resolved git repository
+
+tools/v0_incremental_package.py:165: PackageError
+_ ERROR at setup of test_installer_and_postinstall_refusals_before_start[payload-link] _
+
+repo_root = '/tmp/lvw-p3a-owned-u584i8yu/synthetic-git'
+
+    def _git_prefix(repo_root):
+        """payload 源目录相对 Git 根的前缀（MasterPack 可能是仓库的子目录）。"""
+        pack_root = Path(__file__).resolve().parent.parent
+        try:
+>           relative = pack_root.relative_to(Path(repo_root).resolve())
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/v0_incremental_package.py:612: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0')
+other = PosixPath('/tmp/lvw-p3a-owned-u584i8yu/synthetic-git'), walk_up = False
+_deprecated = (), step = 0
+
+    def relative_to(self, other, /, *_deprecated, walk_up=False):
+        """Return the relative path to another path identified by the passed
+        arguments.  If the operation is not possible (because this is not
+        related to the other path), raise ValueError.
+    
+        The *walk_up* parameter controls whether `..` may be used to resolve
+        the path.
+        """
+        if _deprecated:
+            msg = ("support for supplying more than one positional argument "
+                   "to pathlib.PurePath.relative_to() is deprecated and "
+                   "scheduled for removal in Python {remove}")
+            warnings._deprecated("pathlib.PurePath.relative_to(*args)", msg,
+                                 remove=(3, 14))
+        other = self.with_segments(other, *_deprecated)
+        for step, path in enumerate([other] + list(other.parents)):
+            if self.is_relative_to(path):
+                break
+            elif not walk_up:
+>               raise ValueError(f"{str(self)!r} is not in the subpath of {str(other)!r}")
+E               ValueError: '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0' is not in the subpath of '/tmp/lvw-p3a-owned-u584i8yu/synthetic-git'
+
+/usr/lib/python3.12/pathlib.py:682: ValueError
+
+During handling of the above exception, another exception occurred:
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7a9d7449dfa0>
+
+    @pytest.fixture
+    def fixture(monkeypatch):
+        with tempfile.TemporaryDirectory(prefix='lvw-p3a-owned-') as temporary:
+            root = Path(temporary).resolve()
+            repo = root / 'synthetic-git'; repo.mkdir()
+            original_popen = subprocess.Popen
+            def guarded(command, *args, **kwargs):
+                assert isinstance(command, list) and command[0] == 'git', 'host subprocess forbidden'
+                assert not kwargs.get('shell'), 'shell forbidden'
+                cwd = Path(kwargs.get('cwd', repo)).resolve()
+                assert cwd == repo or cwd.is_relative_to(repo), 'only synthetic Git allowed'
+                if '-C' in command:
+                    assert Path(command[command.index('-C') + 1]).resolve() == repo
+                return original_popen(command, *args, **kwargs)
+            monkeypatch.setattr(subprocess, 'Popen', guarded)
+            monkeypatch.setattr(os, 'system', lambda *a: pytest.fail('shell forbidden'))
+            def git(*args):
+                return subprocess.run(['git', *args], cwd=repo, check=True, capture_output=True).stdout.decode().strip()
+            payload = {
+                package.BRIDGE_SOURCE_DIR + '/__init__.py': b'# synthetic bridge\n',
+                package.BRIDGE_SOURCE_DIR + '/core.py': b'SYNTHETIC = True\n',
+                package.BRIDGE_SOURCE_DIR + '/web/panel.js': b'// synthetic panel\n',
+                package.WORKFLOWS_SOURCE_DIR + '/video_reverse_prompt_v0.ui.json': b'{"synthetic":true}\n',
+                package.WORKFLOWS_SOURCE_DIR + '/manual.json': b'{"synthetic":"manual"}\n',
+            }
+            for name, raw in payload.items():
+                path = repo / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(raw)
+            tool = repo / 'tools/v0_incremental_package.py'; tool.parent.mkdir(); tool.write_text('# synthetic packaged tool identity\n')
+            git('init', '-q'); git('add', '.')
+            git('-c', 'user.name=ljx418', '-c', 'user.email=1173696783@qq.com', 'commit', '-qm', 'synthetic payload')
+            candidate = git('rev-parse', 'HEAD')
+            archive_path = root / 'payload.zip'
+>           build = package.command_build(SimpleNamespace(repo=repo, commit=candidate, out=archive_path, receipt_out=None, redact_root=[]))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_incremental_package.py:1389: in command_build
+    git_prefix = _git_prefix(repo_root)
+                 ^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:614: in _git_prefix
+    _fail(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+code = 'BAD_INPUT'
+message = 'the MasterPack directory is not inside the resolved git repository'
+detail = {'pack_root': '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0', 'repo_root': '/tmp/lvw-p3a-owned-u584i8yu/synthetic-git'}
+
+    def _fail(code, message, **detail):
+>       raise PackageError(code, message, detail or None)
+E       tools.v0_incremental_package.PackageError: the MasterPack directory is not inside the resolved git repository
+
+tools/v0_incremental_package.py:165: PackageError
+_ ERROR at setup of test_installer_and_postinstall_refusals_before_start[owner-bytes] _
+
+repo_root = '/tmp/lvw-p3a-owned-twoqz_af/synthetic-git'
+
+    def _git_prefix(repo_root):
+        """payload 源目录相对 Git 根的前缀（MasterPack 可能是仓库的子目录）。"""
+        pack_root = Path(__file__).resolve().parent.parent
+        try:
+>           relative = pack_root.relative_to(Path(repo_root).resolve())
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/v0_incremental_package.py:612: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0')
+other = PosixPath('/tmp/lvw-p3a-owned-twoqz_af/synthetic-git'), walk_up = False
+_deprecated = (), step = 0
+
+    def relative_to(self, other, /, *_deprecated, walk_up=False):
+        """Return the relative path to another path identified by the passed
+        arguments.  If the operation is not possible (because this is not
+        related to the other path), raise ValueError.
+    
+        The *walk_up* parameter controls whether `..` may be used to resolve
+        the path.
+        """
+        if _deprecated:
+            msg = ("support for supplying more than one positional argument "
+                   "to pathlib.PurePath.relative_to() is deprecated and "
+                   "scheduled for removal in Python {remove}")
+            warnings._deprecated("pathlib.PurePath.relative_to(*args)", msg,
+                                 remove=(3, 14))
+        other = self.with_segments(other, *_deprecated)
+        for step, path in enumerate([other] + list(other.parents)):
+            if self.is_relative_to(path):
+                break
+            elif not walk_up:
+>               raise ValueError(f"{str(self)!r} is not in the subpath of {str(other)!r}")
+E               ValueError: '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0' is not in the subpath of '/tmp/lvw-p3a-owned-twoqz_af/synthetic-git'
+
+/usr/lib/python3.12/pathlib.py:682: ValueError
+
+During handling of the above exception, another exception occurred:
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7a9d7449e360>
+
+    @pytest.fixture
+    def fixture(monkeypatch):
+        with tempfile.TemporaryDirectory(prefix='lvw-p3a-owned-') as temporary:
+            root = Path(temporary).resolve()
+            repo = root / 'synthetic-git'; repo.mkdir()
+            original_popen = subprocess.Popen
+            def guarded(command, *args, **kwargs):
+                assert isinstance(command, list) and command[0] == 'git', 'host subprocess forbidden'
+                assert not kwargs.get('shell'), 'shell forbidden'
+                cwd = Path(kwargs.get('cwd', repo)).resolve()
+                assert cwd == repo or cwd.is_relative_to(repo), 'only synthetic Git allowed'
+                if '-C' in command:
+                    assert Path(command[command.index('-C') + 1]).resolve() == repo
+                return original_popen(command, *args, **kwargs)
+            monkeypatch.setattr(subprocess, 'Popen', guarded)
+            monkeypatch.setattr(os, 'system', lambda *a: pytest.fail('shell forbidden'))
+            def git(*args):
+                return subprocess.run(['git', *args], cwd=repo, check=True, capture_output=True).stdout.decode().strip()
+            payload = {
+                package.BRIDGE_SOURCE_DIR + '/__init__.py': b'# synthetic bridge\n',
+                package.BRIDGE_SOURCE_DIR + '/core.py': b'SYNTHETIC = True\n',
+                package.BRIDGE_SOURCE_DIR + '/web/panel.js': b'// synthetic panel\n',
+                package.WORKFLOWS_SOURCE_DIR + '/video_reverse_prompt_v0.ui.json': b'{"synthetic":true}\n',
+                package.WORKFLOWS_SOURCE_DIR + '/manual.json': b'{"synthetic":"manual"}\n',
+            }
+            for name, raw in payload.items():
+                path = repo / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(raw)
+            tool = repo / 'tools/v0_incremental_package.py'; tool.parent.mkdir(); tool.write_text('# synthetic packaged tool identity\n')
+            git('init', '-q'); git('add', '.')
+            git('-c', 'user.name=ljx418', '-c', 'user.email=1173696783@qq.com', 'commit', '-qm', 'synthetic payload')
+            candidate = git('rev-parse', 'HEAD')
+            archive_path = root / 'payload.zip'
+>           build = package.command_build(SimpleNamespace(repo=repo, commit=candidate, out=archive_path, receipt_out=None, redact_root=[]))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_incremental_package.py:1389: in command_build
+    git_prefix = _git_prefix(repo_root)
+                 ^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:614: in _git_prefix
+    _fail(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+code = 'BAD_INPUT'
+message = 'the MasterPack directory is not inside the resolved git repository'
+detail = {'pack_root': '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0', 'repo_root': '/tmp/lvw-p3a-owned-twoqz_af/synthetic-git'}
+
+    def _fail(code, message, **detail):
+>       raise PackageError(code, message, detail or None)
+E       tools.v0_incremental_package.PackageError: the MasterPack directory is not inside the resolved git repository
+
+tools/v0_incremental_package.py:165: PackageError
+_ ERROR at setup of test_installer_and_postinstall_refusals_before_start[receipt-identity] _
+
+repo_root = '/tmp/lvw-p3a-owned-2qv9gbwl/synthetic-git'
+
+    def _git_prefix(repo_root):
+        """payload 源目录相对 Git 根的前缀（MasterPack 可能是仓库的子目录）。"""
+        pack_root = Path(__file__).resolve().parent.parent
+        try:
+>           relative = pack_root.relative_to(Path(repo_root).resolve())
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/v0_incremental_package.py:612: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0')
+other = PosixPath('/tmp/lvw-p3a-owned-2qv9gbwl/synthetic-git'), walk_up = False
+_deprecated = (), step = 0
+
+    def relative_to(self, other, /, *_deprecated, walk_up=False):
+        """Return the relative path to another path identified by the passed
+        arguments.  If the operation is not possible (because this is not
+        related to the other path), raise ValueError.
+    
+        The *walk_up* parameter controls whether `..` may be used to resolve
+        the path.
+        """
+        if _deprecated:
+            msg = ("support for supplying more than one positional argument "
+                   "to pathlib.PurePath.relative_to() is deprecated and "
+                   "scheduled for removal in Python {remove}")
+            warnings._deprecated("pathlib.PurePath.relative_to(*args)", msg,
+                                 remove=(3, 14))
+        other = self.with_segments(other, *_deprecated)
+        for step, path in enumerate([other] + list(other.parents)):
+            if self.is_relative_to(path):
+                break
+            elif not walk_up:
+>               raise ValueError(f"{str(self)!r} is not in the subpath of {str(other)!r}")
+E               ValueError: '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0' is not in the subpath of '/tmp/lvw-p3a-owned-2qv9gbwl/synthetic-git'
+
+/usr/lib/python3.12/pathlib.py:682: ValueError
+
+During handling of the above exception, another exception occurred:
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7a9d74499250>
+
+    @pytest.fixture
+    def fixture(monkeypatch):
+        with tempfile.TemporaryDirectory(prefix='lvw-p3a-owned-') as temporary:
+            root = Path(temporary).resolve()
+            repo = root / 'synthetic-git'; repo.mkdir()
+            original_popen = subprocess.Popen
+            def guarded(command, *args, **kwargs):
+                assert isinstance(command, list) and command[0] == 'git', 'host subprocess forbidden'
+                assert not kwargs.get('shell'), 'shell forbidden'
+                cwd = Path(kwargs.get('cwd', repo)).resolve()
+                assert cwd == repo or cwd.is_relative_to(repo), 'only synthetic Git allowed'
+                if '-C' in command:
+                    assert Path(command[command.index('-C') + 1]).resolve() == repo
+                return original_popen(command, *args, **kwargs)
+            monkeypatch.setattr(subprocess, 'Popen', guarded)
+            monkeypatch.setattr(os, 'system', lambda *a: pytest.fail('shell forbidden'))
+            def git(*args):
+                return subprocess.run(['git', *args], cwd=repo, check=True, capture_output=True).stdout.decode().strip()
+            payload = {
+                package.BRIDGE_SOURCE_DIR + '/__init__.py': b'# synthetic bridge\n',
+                package.BRIDGE_SOURCE_DIR + '/core.py': b'SYNTHETIC = True\n',
+                package.BRIDGE_SOURCE_DIR + '/web/panel.js': b'// synthetic panel\n',
+                package.WORKFLOWS_SOURCE_DIR + '/video_reverse_prompt_v0.ui.json': b'{"synthetic":true}\n',
+                package.WORKFLOWS_SOURCE_DIR + '/manual.json': b'{"synthetic":"manual"}\n',
+            }
+            for name, raw in payload.items():
+                path = repo / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(raw)
+            tool = repo / 'tools/v0_incremental_package.py'; tool.parent.mkdir(); tool.write_text('# synthetic packaged tool identity\n')
+            git('init', '-q'); git('add', '.')
+            git('-c', 'user.name=ljx418', '-c', 'user.email=1173696783@qq.com', 'commit', '-qm', 'synthetic payload')
+            candidate = git('rev-parse', 'HEAD')
+            archive_path = root / 'payload.zip'
+>           build = package.command_build(SimpleNamespace(repo=repo, commit=candidate, out=archive_path, receipt_out=None, redact_root=[]))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_incremental_package.py:1389: in command_build
+    git_prefix = _git_prefix(repo_root)
+                 ^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:614: in _git_prefix
+    _fail(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+code = 'BAD_INPUT'
+message = 'the MasterPack directory is not inside the resolved git repository'
+detail = {'pack_root': '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0', 'repo_root': '/tmp/lvw-p3a-owned-2qv9gbwl/synthetic-git'}
+
+    def _fail(code, message, **detail):
+>       raise PackageError(code, message, detail or None)
+E       tools.v0_incremental_package.PackageError: the MasterPack directory is not inside the resolved git repository
+
+tools/v0_incremental_package.py:165: PackageError
+_ ERROR at setup of test_installer_and_postinstall_refusals_before_start[marker-drift] _
+
+repo_root = '/tmp/lvw-p3a-owned-fesbrysy/synthetic-git'
+
+    def _git_prefix(repo_root):
+        """payload 源目录相对 Git 根的前缀（MasterPack 可能是仓库的子目录）。"""
+        pack_root = Path(__file__).resolve().parent.parent
+        try:
+>           relative = pack_root.relative_to(Path(repo_root).resolve())
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/v0_incremental_package.py:612: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0')
+other = PosixPath('/tmp/lvw-p3a-owned-fesbrysy/synthetic-git'), walk_up = False
+_deprecated = (), step = 0
+
+    def relative_to(self, other, /, *_deprecated, walk_up=False):
+        """Return the relative path to another path identified by the passed
+        arguments.  If the operation is not possible (because this is not
+        related to the other path), raise ValueError.
+    
+        The *walk_up* parameter controls whether `..` may be used to resolve
+        the path.
+        """
+        if _deprecated:
+            msg = ("support for supplying more than one positional argument "
+                   "to pathlib.PurePath.relative_to() is deprecated and "
+                   "scheduled for removal in Python {remove}")
+            warnings._deprecated("pathlib.PurePath.relative_to(*args)", msg,
+                                 remove=(3, 14))
+        other = self.with_segments(other, *_deprecated)
+        for step, path in enumerate([other] + list(other.parents)):
+            if self.is_relative_to(path):
+                break
+            elif not walk_up:
+>               raise ValueError(f"{str(self)!r} is not in the subpath of {str(other)!r}")
+E               ValueError: '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0' is not in the subpath of '/tmp/lvw-p3a-owned-fesbrysy/synthetic-git'
+
+/usr/lib/python3.12/pathlib.py:682: ValueError
+
+During handling of the above exception, another exception occurred:
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7a9d7449d3a0>
+
+    @pytest.fixture
+    def fixture(monkeypatch):
+        with tempfile.TemporaryDirectory(prefix='lvw-p3a-owned-') as temporary:
+            root = Path(temporary).resolve()
+            repo = root / 'synthetic-git'; repo.mkdir()
+            original_popen = subprocess.Popen
+            def guarded(command, *args, **kwargs):
+                assert isinstance(command, list) and command[0] == 'git', 'host subprocess forbidden'
+                assert not kwargs.get('shell'), 'shell forbidden'
+                cwd = Path(kwargs.get('cwd', repo)).resolve()
+                assert cwd == repo or cwd.is_relative_to(repo), 'only synthetic Git allowed'
+                if '-C' in command:
+                    assert Path(command[command.index('-C') + 1]).resolve() == repo
+                return original_popen(command, *args, **kwargs)
+            monkeypatch.setattr(subprocess, 'Popen', guarded)
+            monkeypatch.setattr(os, 'system', lambda *a: pytest.fail('shell forbidden'))
+            def git(*args):
+                return subprocess.run(['git', *args], cwd=repo, check=True, capture_output=True).stdout.decode().strip()
+            payload = {
+                package.BRIDGE_SOURCE_DIR + '/__init__.py': b'# synthetic bridge\n',
+                package.BRIDGE_SOURCE_DIR + '/core.py': b'SYNTHETIC = True\n',
+                package.BRIDGE_SOURCE_DIR + '/web/panel.js': b'// synthetic panel\n',
+                package.WORKFLOWS_SOURCE_DIR + '/video_reverse_prompt_v0.ui.json': b'{"synthetic":true}\n',
+                package.WORKFLOWS_SOURCE_DIR + '/manual.json': b'{"synthetic":"manual"}\n',
+            }
+            for name, raw in payload.items():
+                path = repo / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(raw)
+            tool = repo / 'tools/v0_incremental_package.py'; tool.parent.mkdir(); tool.write_text('# synthetic packaged tool identity\n')
+            git('init', '-q'); git('add', '.')
+            git('-c', 'user.name=ljx418', '-c', 'user.email=1173696783@qq.com', 'commit', '-qm', 'synthetic payload')
+            candidate = git('rev-parse', 'HEAD')
+            archive_path = root / 'payload.zip'
+>           build = package.command_build(SimpleNamespace(repo=repo, commit=candidate, out=archive_path, receipt_out=None, redact_root=[]))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_incremental_package.py:1389: in command_build
+    git_prefix = _git_prefix(repo_root)
+                 ^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:614: in _git_prefix
+    _fail(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+code = 'BAD_INPUT'
+message = 'the MasterPack directory is not inside the resolved git repository'
+detail = {'pack_root': '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0', 'repo_root': '/tmp/lvw-p3a-owned-fesbrysy/synthetic-git'}
+
+    def _fail(code, message, **detail):
+>       raise PackageError(code, message, detail or None)
+E       tools.v0_incremental_package.PackageError: the MasterPack directory is not inside the resolved git repository
+
+tools/v0_incremental_package.py:165: PackageError
+_ ERROR at setup of test_installer_and_postinstall_refusals_before_start[install-failure] _
+
+repo_root = '/tmp/lvw-p3a-owned-9apbkobb/synthetic-git'
+
+    def _git_prefix(repo_root):
+        """payload 源目录相对 Git 根的前缀（MasterPack 可能是仓库的子目录）。"""
+        pack_root = Path(__file__).resolve().parent.parent
+        try:
+>           relative = pack_root.relative_to(Path(repo_root).resolve())
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/v0_incremental_package.py:612: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0')
+other = PosixPath('/tmp/lvw-p3a-owned-9apbkobb/synthetic-git'), walk_up = False
+_deprecated = (), step = 0
+
+    def relative_to(self, other, /, *_deprecated, walk_up=False):
+        """Return the relative path to another path identified by the passed
+        arguments.  If the operation is not possible (because this is not
+        related to the other path), raise ValueError.
+    
+        The *walk_up* parameter controls whether `..` may be used to resolve
+        the path.
+        """
+        if _deprecated:
+            msg = ("support for supplying more than one positional argument "
+                   "to pathlib.PurePath.relative_to() is deprecated and "
+                   "scheduled for removal in Python {remove}")
+            warnings._deprecated("pathlib.PurePath.relative_to(*args)", msg,
+                                 remove=(3, 14))
+        other = self.with_segments(other, *_deprecated)
+        for step, path in enumerate([other] + list(other.parents)):
+            if self.is_relative_to(path):
+                break
+            elif not walk_up:
+>               raise ValueError(f"{str(self)!r} is not in the subpath of {str(other)!r}")
+E               ValueError: '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0' is not in the subpath of '/tmp/lvw-p3a-owned-9apbkobb/synthetic-git'
+
+/usr/lib/python3.12/pathlib.py:682: ValueError
+
+During handling of the above exception, another exception occurred:
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7a9d7449db50>
+
+    @pytest.fixture
+    def fixture(monkeypatch):
+        with tempfile.TemporaryDirectory(prefix='lvw-p3a-owned-') as temporary:
+            root = Path(temporary).resolve()
+            repo = root / 'synthetic-git'; repo.mkdir()
+            original_popen = subprocess.Popen
+            def guarded(command, *args, **kwargs):
+                assert isinstance(command, list) and command[0] == 'git', 'host subprocess forbidden'
+                assert not kwargs.get('shell'), 'shell forbidden'
+                cwd = Path(kwargs.get('cwd', repo)).resolve()
+                assert cwd == repo or cwd.is_relative_to(repo), 'only synthetic Git allowed'
+                if '-C' in command:
+                    assert Path(command[command.index('-C') + 1]).resolve() == repo
+                return original_popen(command, *args, **kwargs)
+            monkeypatch.setattr(subprocess, 'Popen', guarded)
+            monkeypatch.setattr(os, 'system', lambda *a: pytest.fail('shell forbidden'))
+            def git(*args):
+                return subprocess.run(['git', *args], cwd=repo, check=True, capture_output=True).stdout.decode().strip()
+            payload = {
+                package.BRIDGE_SOURCE_DIR + '/__init__.py': b'# synthetic bridge\n',
+                package.BRIDGE_SOURCE_DIR + '/core.py': b'SYNTHETIC = True\n',
+                package.BRIDGE_SOURCE_DIR + '/web/panel.js': b'// synthetic panel\n',
+                package.WORKFLOWS_SOURCE_DIR + '/video_reverse_prompt_v0.ui.json': b'{"synthetic":true}\n',
+                package.WORKFLOWS_SOURCE_DIR + '/manual.json': b'{"synthetic":"manual"}\n',
+            }
+            for name, raw in payload.items():
+                path = repo / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(raw)
+            tool = repo / 'tools/v0_incremental_package.py'; tool.parent.mkdir(); tool.write_text('# synthetic packaged tool identity\n')
+            git('init', '-q'); git('add', '.')
+            git('-c', 'user.name=ljx418', '-c', 'user.email=1173696783@qq.com', 'commit', '-qm', 'synthetic payload')
+            candidate = git('rev-parse', 'HEAD')
+            archive_path = root / 'payload.zip'
+>           build = package.command_build(SimpleNamespace(repo=repo, commit=candidate, out=archive_path, receipt_out=None, redact_root=[]))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_incremental_package.py:1389: in command_build
+    git_prefix = _git_prefix(repo_root)
+                 ^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:614: in _git_prefix
+    _fail(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+code = 'BAD_INPUT'
+message = 'the MasterPack directory is not inside the resolved git repository'
+detail = {'pack_root': '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0', 'repo_root': '/tmp/lvw-p3a-owned-9apbkobb/synthetic-git'}
+
+    def _fail(code, message, **detail):
+>       raise PackageError(code, message, detail or None)
+E       tools.v0_incremental_package.PackageError: the MasterPack directory is not inside the resolved git repository
+
+tools/v0_incremental_package.py:165: PackageError
+__ ERROR at setup of test_prepare_rejects_wrong_registered_target[directory] ___
+
+repo_root = '/tmp/lvw-p3a-owned-4rxea7fj/synthetic-git'
+
+    def _git_prefix(repo_root):
+        """payload 源目录相对 Git 根的前缀（MasterPack 可能是仓库的子目录）。"""
+        pack_root = Path(__file__).resolve().parent.parent
+        try:
+>           relative = pack_root.relative_to(Path(repo_root).resolve())
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/v0_incremental_package.py:612: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0')
+other = PosixPath('/tmp/lvw-p3a-owned-4rxea7fj/synthetic-git'), walk_up = False
+_deprecated = (), step = 0
+
+    def relative_to(self, other, /, *_deprecated, walk_up=False):
+        """Return the relative path to another path identified by the passed
+        arguments.  If the operation is not possible (because this is not
+        related to the other path), raise ValueError.
+    
+        The *walk_up* parameter controls whether `..` may be used to resolve
+        the path.
+        """
+        if _deprecated:
+            msg = ("support for supplying more than one positional argument "
+                   "to pathlib.PurePath.relative_to() is deprecated and "
+                   "scheduled for removal in Python {remove}")
+            warnings._deprecated("pathlib.PurePath.relative_to(*args)", msg,
+                                 remove=(3, 14))
+        other = self.with_segments(other, *_deprecated)
+        for step, path in enumerate([other] + list(other.parents)):
+            if self.is_relative_to(path):
+                break
+            elif not walk_up:
+>               raise ValueError(f"{str(self)!r} is not in the subpath of {str(other)!r}")
+E               ValueError: '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0' is not in the subpath of '/tmp/lvw-p3a-owned-4rxea7fj/synthetic-git'
+
+/usr/lib/python3.12/pathlib.py:682: ValueError
+
+During handling of the above exception, another exception occurred:
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7a9d744a5250>
+
+    @pytest.fixture
+    def fixture(monkeypatch):
+        with tempfile.TemporaryDirectory(prefix='lvw-p3a-owned-') as temporary:
+            root = Path(temporary).resolve()
+            repo = root / 'synthetic-git'; repo.mkdir()
+            original_popen = subprocess.Popen
+            def guarded(command, *args, **kwargs):
+                assert isinstance(command, list) and command[0] == 'git', 'host subprocess forbidden'
+                assert not kwargs.get('shell'), 'shell forbidden'
+                cwd = Path(kwargs.get('cwd', repo)).resolve()
+                assert cwd == repo or cwd.is_relative_to(repo), 'only synthetic Git allowed'
+                if '-C' in command:
+                    assert Path(command[command.index('-C') + 1]).resolve() == repo
+                return original_popen(command, *args, **kwargs)
+            monkeypatch.setattr(subprocess, 'Popen', guarded)
+            monkeypatch.setattr(os, 'system', lambda *a: pytest.fail('shell forbidden'))
+            def git(*args):
+                return subprocess.run(['git', *args], cwd=repo, check=True, capture_output=True).stdout.decode().strip()
+            payload = {
+                package.BRIDGE_SOURCE_DIR + '/__init__.py': b'# synthetic bridge\n',
+                package.BRIDGE_SOURCE_DIR + '/core.py': b'SYNTHETIC = True\n',
+                package.BRIDGE_SOURCE_DIR + '/web/panel.js': b'// synthetic panel\n',
+                package.WORKFLOWS_SOURCE_DIR + '/video_reverse_prompt_v0.ui.json': b'{"synthetic":true}\n',
+                package.WORKFLOWS_SOURCE_DIR + '/manual.json': b'{"synthetic":"manual"}\n',
+            }
+            for name, raw in payload.items():
+                path = repo / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(raw)
+            tool = repo / 'tools/v0_incremental_package.py'; tool.parent.mkdir(); tool.write_text('# synthetic packaged tool identity\n')
+            git('init', '-q'); git('add', '.')
+            git('-c', 'user.name=ljx418', '-c', 'user.email=1173696783@qq.com', 'commit', '-qm', 'synthetic payload')
+            candidate = git('rev-parse', 'HEAD')
+            archive_path = root / 'payload.zip'
+>           build = package.command_build(SimpleNamespace(repo=repo, commit=candidate, out=archive_path, receipt_out=None, redact_root=[]))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_incremental_package.py:1389: in command_build
+    git_prefix = _git_prefix(repo_root)
+                 ^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:614: in _git_prefix
+    _fail(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+code = 'BAD_INPUT'
+message = 'the MasterPack directory is not inside the resolved git repository'
+detail = {'pack_root': '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0', 'repo_root': '/tmp/lvw-p3a-owned-4rxea7fj/synthetic-git'}
+
+    def _fail(code, message, **detail):
+>       raise PackageError(code, message, detail or None)
+E       tools.v0_incremental_package.PackageError: the MasterPack directory is not inside the resolved git repository
+
+tools/v0_incremental_package.py:165: PackageError
+___ ERROR at setup of test_prepare_rejects_wrong_registered_target[outside] ____
+
+repo_root = '/tmp/lvw-p3a-owned-_sihpwqr/synthetic-git'
+
+    def _git_prefix(repo_root):
+        """payload 源目录相对 Git 根的前缀（MasterPack 可能是仓库的子目录）。"""
+        pack_root = Path(__file__).resolve().parent.parent
+        try:
+>           relative = pack_root.relative_to(Path(repo_root).resolve())
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/v0_incremental_package.py:612: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0')
+other = PosixPath('/tmp/lvw-p3a-owned-_sihpwqr/synthetic-git'), walk_up = False
+_deprecated = (), step = 0
+
+    def relative_to(self, other, /, *_deprecated, walk_up=False):
+        """Return the relative path to another path identified by the passed
+        arguments.  If the operation is not possible (because this is not
+        related to the other path), raise ValueError.
+    
+        The *walk_up* parameter controls whether `..` may be used to resolve
+        the path.
+        """
+        if _deprecated:
+            msg = ("support for supplying more than one positional argument "
+                   "to pathlib.PurePath.relative_to() is deprecated and "
+                   "scheduled for removal in Python {remove}")
+            warnings._deprecated("pathlib.PurePath.relative_to(*args)", msg,
+                                 remove=(3, 14))
+        other = self.with_segments(other, *_deprecated)
+        for step, path in enumerate([other] + list(other.parents)):
+            if self.is_relative_to(path):
+                break
+            elif not walk_up:
+>               raise ValueError(f"{str(self)!r} is not in the subpath of {str(other)!r}")
+E               ValueError: '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0' is not in the subpath of '/tmp/lvw-p3a-owned-_sihpwqr/synthetic-git'
+
+/usr/lib/python3.12/pathlib.py:682: ValueError
+
+During handling of the above exception, another exception occurred:
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7a9d7449ed20>
+
+    @pytest.fixture
+    def fixture(monkeypatch):
+        with tempfile.TemporaryDirectory(prefix='lvw-p3a-owned-') as temporary:
+            root = Path(temporary).resolve()
+            repo = root / 'synthetic-git'; repo.mkdir()
+            original_popen = subprocess.Popen
+            def guarded(command, *args, **kwargs):
+                assert isinstance(command, list) and command[0] == 'git', 'host subprocess forbidden'
+                assert not kwargs.get('shell'), 'shell forbidden'
+                cwd = Path(kwargs.get('cwd', repo)).resolve()
+                assert cwd == repo or cwd.is_relative_to(repo), 'only synthetic Git allowed'
+                if '-C' in command:
+                    assert Path(command[command.index('-C') + 1]).resolve() == repo
+                return original_popen(command, *args, **kwargs)
+            monkeypatch.setattr(subprocess, 'Popen', guarded)
+            monkeypatch.setattr(os, 'system', lambda *a: pytest.fail('shell forbidden'))
+            def git(*args):
+                return subprocess.run(['git', *args], cwd=repo, check=True, capture_output=True).stdout.decode().strip()
+            payload = {
+                package.BRIDGE_SOURCE_DIR + '/__init__.py': b'# synthetic bridge\n',
+                package.BRIDGE_SOURCE_DIR + '/core.py': b'SYNTHETIC = True\n',
+                package.BRIDGE_SOURCE_DIR + '/web/panel.js': b'// synthetic panel\n',
+                package.WORKFLOWS_SOURCE_DIR + '/video_reverse_prompt_v0.ui.json': b'{"synthetic":true}\n',
+                package.WORKFLOWS_SOURCE_DIR + '/manual.json': b'{"synthetic":"manual"}\n',
+            }
+            for name, raw in payload.items():
+                path = repo / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(raw)
+            tool = repo / 'tools/v0_incremental_package.py'; tool.parent.mkdir(); tool.write_text('# synthetic packaged tool identity\n')
+            git('init', '-q'); git('add', '.')
+            git('-c', 'user.name=ljx418', '-c', 'user.email=1173696783@qq.com', 'commit', '-qm', 'synthetic payload')
+            candidate = git('rev-parse', 'HEAD')
+            archive_path = root / 'payload.zip'
+>           build = package.command_build(SimpleNamespace(repo=repo, commit=candidate, out=archive_path, receipt_out=None, redact_root=[]))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_incremental_package.py:1389: in command_build
+    git_prefix = _git_prefix(repo_root)
+                 ^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:614: in _git_prefix
+    _fail(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+code = 'BAD_INPUT'
+message = 'the MasterPack directory is not inside the resolved git repository'
+detail = {'pack_root': '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0', 'repo_root': '/tmp/lvw-p3a-owned-_sihpwqr/synthetic-git'}
+
+    def _fail(code, message, **detail):
+>       raise PackageError(code, message, detail or None)
+E       tools.v0_incremental_package.PackageError: the MasterPack directory is not inside the resolved git repository
+
+tools/v0_incremental_package.py:165: PackageError
+___ ERROR at setup of test_prepare_rejects_wrong_registered_target[symlink] ____
+
+repo_root = '/tmp/lvw-p3a-owned-p2p0mcu4/synthetic-git'
+
+    def _git_prefix(repo_root):
+        """payload 源目录相对 Git 根的前缀（MasterPack 可能是仓库的子目录）。"""
+        pack_root = Path(__file__).resolve().parent.parent
+        try:
+>           relative = pack_root.relative_to(Path(repo_root).resolve())
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/v0_incremental_package.py:612: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0')
+other = PosixPath('/tmp/lvw-p3a-owned-p2p0mcu4/synthetic-git'), walk_up = False
+_deprecated = (), step = 0
+
+    def relative_to(self, other, /, *_deprecated, walk_up=False):
+        """Return the relative path to another path identified by the passed
+        arguments.  If the operation is not possible (because this is not
+        related to the other path), raise ValueError.
+    
+        The *walk_up* parameter controls whether `..` may be used to resolve
+        the path.
+        """
+        if _deprecated:
+            msg = ("support for supplying more than one positional argument "
+                   "to pathlib.PurePath.relative_to() is deprecated and "
+                   "scheduled for removal in Python {remove}")
+            warnings._deprecated("pathlib.PurePath.relative_to(*args)", msg,
+                                 remove=(3, 14))
+        other = self.with_segments(other, *_deprecated)
+        for step, path in enumerate([other] + list(other.parents)):
+            if self.is_relative_to(path):
+                break
+            elif not walk_up:
+>               raise ValueError(f"{str(self)!r} is not in the subpath of {str(other)!r}")
+E               ValueError: '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0' is not in the subpath of '/tmp/lvw-p3a-owned-p2p0mcu4/synthetic-git'
+
+/usr/lib/python3.12/pathlib.py:682: ValueError
+
+During handling of the above exception, another exception occurred:
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7a9d744a52e0>
+
+    @pytest.fixture
+    def fixture(monkeypatch):
+        with tempfile.TemporaryDirectory(prefix='lvw-p3a-owned-') as temporary:
+            root = Path(temporary).resolve()
+            repo = root / 'synthetic-git'; repo.mkdir()
+            original_popen = subprocess.Popen
+            def guarded(command, *args, **kwargs):
+                assert isinstance(command, list) and command[0] == 'git', 'host subprocess forbidden'
+                assert not kwargs.get('shell'), 'shell forbidden'
+                cwd = Path(kwargs.get('cwd', repo)).resolve()
+                assert cwd == repo or cwd.is_relative_to(repo), 'only synthetic Git allowed'
+                if '-C' in command:
+                    assert Path(command[command.index('-C') + 1]).resolve() == repo
+                return original_popen(command, *args, **kwargs)
+            monkeypatch.setattr(subprocess, 'Popen', guarded)
+            monkeypatch.setattr(os, 'system', lambda *a: pytest.fail('shell forbidden'))
+            def git(*args):
+                return subprocess.run(['git', *args], cwd=repo, check=True, capture_output=True).stdout.decode().strip()
+            payload = {
+                package.BRIDGE_SOURCE_DIR + '/__init__.py': b'# synthetic bridge\n',
+                package.BRIDGE_SOURCE_DIR + '/core.py': b'SYNTHETIC = True\n',
+                package.BRIDGE_SOURCE_DIR + '/web/panel.js': b'// synthetic panel\n',
+                package.WORKFLOWS_SOURCE_DIR + '/video_reverse_prompt_v0.ui.json': b'{"synthetic":true}\n',
+                package.WORKFLOWS_SOURCE_DIR + '/manual.json': b'{"synthetic":"manual"}\n',
+            }
+            for name, raw in payload.items():
+                path = repo / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(raw)
+            tool = repo / 'tools/v0_incremental_package.py'; tool.parent.mkdir(); tool.write_text('# synthetic packaged tool identity\n')
+            git('init', '-q'); git('add', '.')
+            git('-c', 'user.name=ljx418', '-c', 'user.email=1173696783@qq.com', 'commit', '-qm', 'synthetic payload')
+            candidate = git('rev-parse', 'HEAD')
+            archive_path = root / 'payload.zip'
+>           build = package.command_build(SimpleNamespace(repo=repo, commit=candidate, out=archive_path, receipt_out=None, redact_root=[]))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_incremental_package.py:1389: in command_build
+    git_prefix = _git_prefix(repo_root)
+                 ^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:614: in _git_prefix
+    _fail(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+code = 'BAD_INPUT'
+message = 'the MasterPack directory is not inside the resolved git repository'
+detail = {'pack_root': '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0', 'repo_root': '/tmp/lvw-p3a-owned-p2p0mcu4/synthetic-git'}
+
+    def _fail(code, message, **detail):
+>       raise PackageError(code, message, detail or None)
+E       tools.v0_incremental_package.PackageError: the MasterPack directory is not inside the resolved git repository
+
+tools/v0_incremental_package.py:165: PackageError
+_ ERROR at setup of test_prepare_rejects_wrong_registered_target[unregistered] _
+
+repo_root = '/tmp/lvw-p3a-owned-b5ztzo22/synthetic-git'
+
+    def _git_prefix(repo_root):
+        """payload 源目录相对 Git 根的前缀（MasterPack 可能是仓库的子目录）。"""
+        pack_root = Path(__file__).resolve().parent.parent
+        try:
+>           relative = pack_root.relative_to(Path(repo_root).resolve())
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/v0_incremental_package.py:612: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0')
+other = PosixPath('/tmp/lvw-p3a-owned-b5ztzo22/synthetic-git'), walk_up = False
+_deprecated = (), step = 0
+
+    def relative_to(self, other, /, *_deprecated, walk_up=False):
+        """Return the relative path to another path identified by the passed
+        arguments.  If the operation is not possible (because this is not
+        related to the other path), raise ValueError.
+    
+        The *walk_up* parameter controls whether `..` may be used to resolve
+        the path.
+        """
+        if _deprecated:
+            msg = ("support for supplying more than one positional argument "
+                   "to pathlib.PurePath.relative_to() is deprecated and "
+                   "scheduled for removal in Python {remove}")
+            warnings._deprecated("pathlib.PurePath.relative_to(*args)", msg,
+                                 remove=(3, 14))
+        other = self.with_segments(other, *_deprecated)
+        for step, path in enumerate([other] + list(other.parents)):
+            if self.is_relative_to(path):
+                break
+            elif not walk_up:
+>               raise ValueError(f"{str(self)!r} is not in the subpath of {str(other)!r}")
+E               ValueError: '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0' is not in the subpath of '/tmp/lvw-p3a-owned-b5ztzo22/synthetic-git'
+
+/usr/lib/python3.12/pathlib.py:682: ValueError
+
+During handling of the above exception, another exception occurred:
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7a9d744a4350>
+
+    @pytest.fixture
+    def fixture(monkeypatch):
+        with tempfile.TemporaryDirectory(prefix='lvw-p3a-owned-') as temporary:
+            root = Path(temporary).resolve()
+            repo = root / 'synthetic-git'; repo.mkdir()
+            original_popen = subprocess.Popen
+            def guarded(command, *args, **kwargs):
+                assert isinstance(command, list) and command[0] == 'git', 'host subprocess forbidden'
+                assert not kwargs.get('shell'), 'shell forbidden'
+                cwd = Path(kwargs.get('cwd', repo)).resolve()
+                assert cwd == repo or cwd.is_relative_to(repo), 'only synthetic Git allowed'
+                if '-C' in command:
+                    assert Path(command[command.index('-C') + 1]).resolve() == repo
+                return original_popen(command, *args, **kwargs)
+            monkeypatch.setattr(subprocess, 'Popen', guarded)
+            monkeypatch.setattr(os, 'system', lambda *a: pytest.fail('shell forbidden'))
+            def git(*args):
+                return subprocess.run(['git', *args], cwd=repo, check=True, capture_output=True).stdout.decode().strip()
+            payload = {
+                package.BRIDGE_SOURCE_DIR + '/__init__.py': b'# synthetic bridge\n',
+                package.BRIDGE_SOURCE_DIR + '/core.py': b'SYNTHETIC = True\n',
+                package.BRIDGE_SOURCE_DIR + '/web/panel.js': b'// synthetic panel\n',
+                package.WORKFLOWS_SOURCE_DIR + '/video_reverse_prompt_v0.ui.json': b'{"synthetic":true}\n',
+                package.WORKFLOWS_SOURCE_DIR + '/manual.json': b'{"synthetic":"manual"}\n',
+            }
+            for name, raw in payload.items():
+                path = repo / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(raw)
+            tool = repo / 'tools/v0_incremental_package.py'; tool.parent.mkdir(); tool.write_text('# synthetic packaged tool identity\n')
+            git('init', '-q'); git('add', '.')
+            git('-c', 'user.name=ljx418', '-c', 'user.email=1173696783@qq.com', 'commit', '-qm', 'synthetic payload')
+            candidate = git('rev-parse', 'HEAD')
+            archive_path = root / 'payload.zip'
+>           build = package.command_build(SimpleNamespace(repo=repo, commit=candidate, out=archive_path, receipt_out=None, redact_root=[]))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_incremental_package.py:1389: in command_build
+    git_prefix = _git_prefix(repo_root)
+                 ^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_incremental_package.py:614: in _git_prefix
+    _fail(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+code = 'BAD_INPUT'
+message = 'the MasterPack directory is not inside the resolved git repository'
+detail = {'pack_root': '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0', 'repo_root': '/tmp/lvw-p3a-owned-b5ztzo22/synthetic-git'}
+
+    def _fail(code, message, **detail):
+>       raise PackageError(code, message, detail or None)
+E       tools.v0_incremental_package.PackageError: the MasterPack directory is not inside the resolved git repository
+
+tools/v0_incremental_package.py:165: PackageError
+=========================== short test summary info ============================
+ERROR LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_inherited_default_then_warm_install_exact_runtime_root
+ERROR LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[old-candidate]
+ERROR LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[package-hash]
+ERROR LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[manifest-hash]
+ERROR LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[bad-digest]
+ERROR LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[missing-bridge]
+ERROR LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[extra-bridge]
+ERROR LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[bridge-hash]
+ERROR LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[workflow-unsealed]
+ERROR LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[workflow-hash]
+ERROR LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[missing-marker]
+ERROR LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[invalid-marker]
+ERROR LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[marker-link]
+ERROR LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[package-link]
+ERROR LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[package-oversize]
+ERROR LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_installer_and_postinstall_refusals_before_start[bridge-bytes]
+ERROR LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_installer_and_postinstall_refusals_before_start[workflow-bytes]
+ERROR LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_installer_and_postinstall_refusals_before_start[extra-file]
+ERROR LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_installer_and_postinstall_refusals_before_start[missing-file]
+ERROR LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_installer_and_postinstall_refusals_before_start[payload-link]
+ERROR LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_installer_and_postinstall_refusals_before_start[owner-bytes]
+ERROR LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_installer_and_postinstall_refusals_before_start[receipt-identity]
+ERROR LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_installer_and_postinstall_refusals_before_start[marker-drift]
+ERROR LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_installer_and_postinstall_refusals_before_start[install-failure]
+ERROR LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_prepare_rejects_wrong_registered_target[directory]
+ERROR LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_prepare_rejects_wrong_registered_target[outside]
+ERROR LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_prepare_rejects_wrong_registered_target[symlink]
+ERROR LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_prepare_rejects_wrong_registered_target[unregistered]
+============================== 28 errors in 2.21s ==============================

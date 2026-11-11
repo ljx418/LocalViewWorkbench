@@ -1,0 +1,93 @@
+{
+  "status": "READY_FOR_REVIEW",
+  "candidate_sha": "7f84ac56e9d8c9bd39778a787b662634453875be",
+  "architecture_commit": "09c4384ce3250951ca7f4197bda32a464a584b7e",
+  "contract_changes": "none",
+  "legacy_seam_changes": "none",
+  "source_sha256": {
+    "tools/v0_s3_stage_runtime.py": "eeb2105b67f5e7468e954699cc1fa057f798452ed9023b91c82d2888614f18e2",
+    "LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py": "ab89d82329b968f8262ea1f159dc5388cf4a4e48a53fe8fcef4c5934d940d52d"
+  },
+  "checks": [
+    {
+      "run": "targeted-01",
+      "exit": 1,
+      "passed": 0,
+      "failed": 0,
+      "errors": 28,
+      "denominator": 28
+    },
+    {
+      "run": "targeted-02",
+      "exit": 1,
+      "passed": 27,
+      "failed": 1,
+      "errors": 0,
+      "denominator": 28
+    },
+    {
+      "run": "targeted-03",
+      "exit": 0,
+      "passed": 28,
+      "failed": 0,
+      "errors": 0,
+      "denominator": 28
+    },
+    {
+      "run": "targeted-04",
+      "exit": 0,
+      "passed": 30,
+      "failed": 0,
+      "errors": 0,
+      "denominator": 30
+    },
+    {
+      "run": "regression-01",
+      "exit": 0,
+      "passed": 23,
+      "failed": 0,
+      "errors": 0,
+      "denominator": 23
+    },
+    {
+      "run": "regression-02",
+      "exit": 0,
+      "passed": 23,
+      "failed": 0,
+      "errors": 0,
+      "denominator": 23
+    }
+  ],
+  "final_unique_test_denominator": 53,
+  "final_passed": 53,
+  "independent_review": "PENDING",
+  "product_gate0": false,
+  "stage_pass_claim": false,
+  "human_signoff_claim": false,
+  "release_claim": false,
+  "scope": "deployment-only synthetic Git/Python package integration",
+  "execution": {
+    "actual_native_service_starts": 0,
+    "windows_wsl_subprocesses": 0,
+    "powershell_parser_invocations": 0,
+    "host_executable_hashes": 0,
+    "model_gpu_media_network_download_actions": 0,
+    "real_program_ledger_actions": 0,
+    "full_checkpoints": 0
+  },
+  "cleanup": "owned synthetic temporary roots removed by context managers; negative runtime retention is asserted before fixture cleanup; only text evidence retained",
+  "production_call_path": [
+    "Inherited prepare_default/prepare_warm -> StageRuntimeFactory._prepare",
+    "OwnedArchive.register fresh root -> InstalledPackageRuntimeFactory._deploy",
+    "Existing _validate_archive -> exact candidate bridge/workflow seal comparison",
+    "Existing command_install(target=root,sandbox_parent=directory)",
+    "Rehash every installed payload and cross-check original receipt/in-target ownership/marker/lease",
+    "Inherited samples/references/preflight -> native start_comfy(root) -> inherited base-directory identity/registry/profile -> archive/cleanup"
+  ],
+  "limitations": [
+    "Native services substituted; no actual Windows/WSL/parser/services executed",
+    "Complete S3 budgets/profiles and A06 offline network enforcement are not implemented or proven",
+    "Actual rollback and twelve-case quality/resource acceptance remain future coordinator work",
+    "No original packet, coordinate, manifest, budgets, historical failures or quality inputs altered"
+  ]
+}
