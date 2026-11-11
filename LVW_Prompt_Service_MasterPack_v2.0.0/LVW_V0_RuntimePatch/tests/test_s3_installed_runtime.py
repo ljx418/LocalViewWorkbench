@@ -209,7 +209,8 @@ def test_installer_and_postinstall_refusals_before_start(fixture, monkeypatch, c
     if case == 'install-failure':
         rename = package.os.rename
         def fail_owned(source, target, *a, **kw):
-            if str(target).endswith(package.WORKFLOWS_INSTALL_DIR):
+            if (str(target).endswith(package.WORKFLOWS_INSTALL_DIR)
+                    or (str(target) == 'lvw' and kw.get('dst_dir_fd') is not None)):
                 raise OSError('synthetic install transaction failure')
             return rename(source, target, *a, **kw)
         monkeypatch.setattr(package.os, 'rename', fail_owned)
