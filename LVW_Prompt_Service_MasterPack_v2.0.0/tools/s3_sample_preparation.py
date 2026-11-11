@@ -980,6 +980,7 @@ class MediaAdapter:
             output_cap = min(output_cap, budget.limit - budget.total)
             if output_cap <= 0:
                 budget.stop("output_budget_exhausted")
+        entry["capture_limit_bytes"] = output_cap
         captured = {}
         failure = None
 
@@ -1007,10 +1008,12 @@ class MediaAdapter:
             entry["_frame_bytes"] = stdout
         entry["stderr_text"] = stderr.decode("utf-8", "replace")
         self.run_log.append(entry)
+        if entry["error"]:
+            entry.pop("_frame_bytes", None)
         if budget is not None:
-            if failure == "VIDEO_PROCESS_OUTPUT_LIMIT" and kind == "ffmpeg":
-                entry.pop("_frame_bytes", None)
-                budget.stop("output_budget_exhausted")
+            if failure == "VIDEO_PROCESS_OUTPUT_LIMIT":
+                budget.stop("probe_capture_limit_exceeded" if kind == "ffprobe"
+                            else "output_budget_exhausted")
             if failure == "VIDEO_PROCESS_TIMEOUT":
                 entry.pop("_frame_bytes", None)
                 budget.stop("wall_budget_exhausted")
@@ -1027,7 +1030,7 @@ class MediaAdapter:
             "-of", "json", str(path),
         ]
         entry = self._run("ffprobe", argv, PROBE_TIMEOUT_SECONDS, label)
-        if entry["exit_code"] != 0:
+        if entry.get("error") or entry["exit_code"] != 0:
             return entry, None
         try:
             document = json.loads(entry["stdout_text"])
@@ -1048,7 +1051,7 @@ class MediaAdapter:
         ]
         entry = self._run("ffmpeg", argv, FRAME_TIMEOUT_SECONDS, label)
         data = entry.pop("_frame_bytes", b"")
-        if entry["exit_code"] == 0:
+        if not entry.get("error") and entry["exit_code"] == 0:
             budget = getattr(self, "budget", None)
             if budget is not None:
                 budget.check()
@@ -1445,7 +1448,7 @@ def _prepare_video(entry, path: Path, previews: Path, staging: Path, accountant,
     counters["ffprobe_calls"] += 1
     probe_entry, document = adapter.probe_video(path, "probe-%s" % entry["file_id"])
     accountant.check(before=False)
-    if probe_entry.get("exit_code") != 0 or not isinstance(document, dict):
+    if probe_entry.get("error") or probe_entry.get("exit_code") != 0 or not isinstance(document, dict):
         result["reason"] = "video_probe_failed"
         result["probe"] = {"bytes": size_bytes}
         return result
@@ -1522,7 +1525,7 @@ def _prepare_video(entry, path: Path, previews: Path, staging: Path, accountant,
         if staged.is_file():
             accountant.add_staging(staged.stat().st_size)
         accountant.check(before=False)
-        if frame_entry.get("exit_code") != 0 or not staged.is_file():
+        if frame_entry.get("error") or frame_entry.get("exit_code") != 0 or not staged.is_file():
             result["warnings"].append("frame_extraction_failed_at:%.3f" % offset)
             continue
         target = previews / entry["file_id"] / ("frame-%02d.jpg" % (frame_index + 1))
@@ -1869,6 +1872,7 @@ def prepare(
             "kind": entry.get("kind"),
             "exit_code": entry.get("exit_code"),
             "timeout_seconds": entry.get("timeout_seconds"),
+            "capture_limit_bytes": entry.get("capture_limit_bytes"),
             "stdout_bytes": entry.get("stdout_bytes"),
             "decoder_stdout_bytes": entry.get("decoder_stdout_bytes"),
             "decoder_stdout_sha256": entry.get("decoder_stdout_sha256"),
@@ -1981,6 +1985,8 @@ def prepare(
         decision = "PREPARATION_FAILED_CLEANUP_NOT_PROVEN"
     elif not conservation:
         decision = "PREPARATION_FAILED_COUNT_NOT_CONSERVED"
+    elif accountant.failure == "probe_capture_limit_exceeded":
+        decision = "PREPARATION_FAILED_PROBE_CAPTURE_LIMIT_EXCEEDED"
     elif accountant.failure == "wall_budget_exhausted":
         decision = "BUDGET_EXHAUSTED"
     elif accountant.failure == "output_budget_exhausted" or accountant.total > int(limits["output_bytes"]):

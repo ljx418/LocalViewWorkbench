@@ -1312,3 +1312,115 @@ def test_correction_frame_uses_remaining_timeout_and_no_later_frame(tmp_path, mo
     assert calls == [("probe", 20), ("frame", 10)]
     assert receipt["decision"] == "BUDGET_EXHAUSTED"
     assert receipt["candidates"][1]["status"] == "not_run"
+
+# correction-02: reader failures dominate a successful OS exit.
+@pytest.mark.parametrize("stream", ["stdout", "stderr"])
+def test_correction02_owned_probe_capture_cli_stops_globally(tmp_path, monkeypatch, stream):
+    package = correction_package(tmp_path, video=True)
+    package.write_documents()
+    args = _cli_args(package)
+    document = {"format": {"format_name": "mp4", "duration": 4},
+                "streams": [{"codec_type": "video", "width": 8, "height": 8}]}
+    executable = tmp_path / "synthetic-probe"
+    executable.write_text("#!" + sys.executable + "\nimport os\nos.write(1," +
+        repr(json.dumps(document).encode()) + ")\nos.write(" +
+        ("1" if stream == "stdout" else "2") + ", b' '*(4*1024*1024))\n")
+    executable.chmod(0o700)
+    adapter = s3prep.MediaAdapter(executable, executable)
+    preflight = {"decision": "PREFLIGHT_PASSED", "candidate": {"sha": args.candidate},
+        "child": {"sha256": sha256_path(package.root / s3prep.CHILD_REL), "child_id": "SYNTHETIC"},
+        "catalog": {"sha256": sha256_path(package.root / s3prep.CATALOG_REL)},
+        "holdout_manifest": {"sha256": sha256_path(package.root / s3prep.HOLDOUT_REL)},
+        "runtime": {"relative_path": s3prep.relative_to_package(package.runtime_root(), package.root)},
+        "tools": {"ffmpeg": {"real_path": str(executable)}, "ffprobe": {"real_path": str(executable)}}}
+    write_json(Path(args.preflight), preflight)
+    monkeypatch.setattr(s3prep, "HANDOFF_GUARD", stub_guard)
+    monkeypatch.setattr(s3prep, "git_blob", lambda root, sha, rel: (root / rel).read_bytes())
+    monkeypatch.setattr(s3prep, "MediaAdapter", lambda *a: adapter)
+    created = []
+    original_start = subprocess.Popen
+    def start(*a, **kw):
+        process = original_start(*a, **kw)
+        original_poll = process.poll
+        def poll_after_exit():
+            # Select the real short-lived-child race deterministically: readers
+            # are running before the monitor polls; wait for the actual OS exit.
+            process.wait(timeout=2)
+            return original_poll()
+        process.poll = poll_after_exit
+        created.append(process)
+        return process
+    monkeypatch.setattr(subprocess, "Popen", start)
+    original_resolve, original_stat, original_hash = s3prep.resolve_source_path, Path.stat, s3prep.sha256_file
+    later = {"resolve": 0, "stat": 0, "hash": 0, "decode": 0}
+    def resolve(root, relative):
+        if relative == "b.mp4":
+            later["resolve"] += 1
+        return original_resolve(root, relative)
+    def stat(path, *a, **kw):
+        if path == package.source / "b.mp4":
+            later["stat"] += 1
+        return original_stat(path, *a, **kw)
+    def hashing(path, *a, **kw):
+        if Path(path) == package.source / "b.mp4":
+            later["hash"] += 1
+        return original_hash(path, *a, **kw)
+    def frame(*a, **kw):
+        later["decode"] += 1
+        raise AssertionError("frame after failed probe")
+    monkeypatch.setattr(s3prep, "resolve_source_path", resolve)
+    monkeypatch.setattr(Path, "stat", stat)
+    monkeypatch.setattr(s3prep, "sha256_file", hashing)
+    monkeypatch.setattr(adapter, "extract_frame", frame)
+    exit_code = s3prep.command_run(args, package_root=package.root)
+    receipt = json.loads(Path(args.receipt).read_text())
+    entry = adapter.run_log[0]
+    assert exit_code == 1
+    assert receipt["decision"] == "PREPARATION_FAILED_PROBE_CAPTURE_LIMIT_EXCEEDED"
+    assert entry["exit_code"] == 0
+    assert entry["error"].endswith("VIDEO_PROCESS_OUTPUT_LIMIT")
+    assert json.loads(entry["stdout_text"]) == document
+    assert entry["stdout_bytes"] + entry["stderr_bytes"] <= entry["capture_limit_bytes"]
+    assert receipt["budget"]["sticky_failure"] == "probe_capture_limit_exceeded"
+    assert receipt["budget"]["output_bytes_cumulative"] < 83886080
+    assert receipt["budget"]["ffmpeg_frame_calls"] == 0
+    assert later == dict.fromkeys(later, 0)
+    assert receipt["candidates"][1]["status"] == "not_run"
+    assert receipt["cleanup"]["staging_removed"]
+    assert receipt["cleanup"]["cleanup_process"]["reaped"]
+    assert len(created) == 1 and created[0].poll() == 0
+    with pytest.raises(ChildProcessError):
+        os.waitpid(created[0].pid, os.WNOHANG)
+    with pytest.raises(s3prep.BudgetStop, match="probe_capture_limit_exceeded"):
+        adapter.budget.check()
+    print("CORRECTION02_OWNER_PROOF=" + json.dumps({"stream": stream, "cli_exit": exit_code,
+        "entry": {k: v for k, v in entry.items() if k not in ("stdout_text", "stderr_text")},
+        "receipt": receipt, "later_work": later, "pid": created[0].pid, "reaped": True}, sort_keys=True))
+
+
+@pytest.mark.parametrize("operation", ["probe", "frame"])
+@pytest.mark.parametrize("budgeted", [False, True])
+def test_correction02_explicit_runner_error_rejects_valid_payload(tmp_path, monkeypatch, operation, budgeted):
+    from PIL import Image
+    from types import SimpleNamespace
+    import io
+    data = io.BytesIO()
+    Image.new("RGB", (8, 8), "red").save(data, "JPEG")
+    payload = b'{"format":{},"streams":[]}' if operation == "probe" else data.getvalue()
+    def run(argv, *, timeout_seconds, output_limit, on_result):
+        on_result(SimpleNamespace(stdout=payload, stderr=b"", returncode=0))
+        raise RuntimeError("synthetic reader error")
+    monkeypatch.setattr(s3prep, "run_bounded", run)
+    adapter = real_adapter()
+    if budgeted:
+        adapter.budget = s3prep.OutputAccountant()
+    output = tmp_path / "rejected.jpg"
+    if operation == "probe":
+        entry, document = adapter.probe_video(tmp_path / "synthetic", "probe")
+        assert document is None
+    else:
+        entry = adapter.extract_frame(tmp_path / "synthetic", 0, output, "frame")
+        assert not output.exists()
+    assert entry["error"] and entry["exit_code"] == 0
+    assert entry["decoder_stdout_bytes"] == len(payload)
+    assert "_frame_bytes" not in entry
