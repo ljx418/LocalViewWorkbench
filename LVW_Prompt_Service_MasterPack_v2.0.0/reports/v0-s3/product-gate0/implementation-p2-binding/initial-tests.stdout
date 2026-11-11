@@ -1,0 +1,33 @@
+.......................F................................................ [ 86%]
+...........                                                              [100%]
+=================================== FAILURES ===================================
+______ test_resealed_production_binding_still_requires_original_identity _______
+
+fixture = <tools.test_v0_s3_budget_authority.Fixture object at 0x732b867c23f0>
+
+    def test_resealed_production_binding_still_requires_original_identity(fixture):
+        f=fixture
+        f.config['transport']='local-wsl';f.config['harness_transport']='local-wsl'
+        child=json.loads(f.child.read_text())
+        child['s3_budget']={k:v for k,v in f.config.items() if k!='child_sha256'}
+        f.child.write_text(json.dumps(child));f.config['child_sha256']=budget.digest(f.child)
+>       f.authority.bind('synthetic',f.child,ledger=f.ledger);f.save()
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/test_v0_s3_runtime_binding.py:107: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+run = 'synthetic'
+child = PosixPath('/tmp/pytest-of-administrator/pytest-94/test_resealed_production_bindi0/authority/child.json')
+
+    def bind(run, child, *, ledger=LEDGER):
+        with transaction(ledger) as db:
+            row = db.execute('SELECT * FROM children WHERE run=?', (run,)).fetchone()
+            if row is None or row['active'] != 1 or row['child_hash']:
+>               raise ValueError('unreserved/already bound child')
+E               ValueError: unreserved/already bound child
+
+/tmp/pytest-of-administrator/pytest-94/test_resealed_production_bindi0/authority/tools/local_program_authority.py:193: ValueError
+=========================== short test summary info ============================
+FAILED tools/test_v0_s3_runtime_binding.py::test_resealed_production_binding_still_requires_original_identity
+1 failed, 82 passed in 7.36s

@@ -3,7 +3,7 @@ import hashlib
 import json
 import math
 import os
-from pathlib import Path, PureWindowsPath
+from pathlib import Path, PureWindowsPath, PurePosixPath
 import re
 import subprocess
 import threading
@@ -62,15 +62,15 @@ def validate_config(b, now=None, *, allow_expired=False):
         raise ValueError('binding lifetime')
     for key in ('child_path','ledger_path','execution_path','authority_root','binding_path'):
         if not isinstance(b[key],str) or not b[key].startswith('/') or '\x00' in b[key] or '..' in Path(b[key]).parts: raise ValueError('authority path')
-    if b['transport'] not in ('wsl','local-wsl','local-fixture'): raise ValueError('transport')
-    if b['harness_transport'] != ('local-fixture' if b['transport']=='local-fixture' else 'local-wsl'): raise ValueError('harness transport')
+    if b['transport'] not in ('wsl','local-wsl','local-fixture','wsl-fixture'): raise ValueError('transport')
+    if b['harness_transport'] != ('local-fixture' if b['transport'] in ('local-fixture','wsl-fixture') else 'local-wsl'): raise ValueError('harness transport')
     if not isinstance(b['client_binding_path'],str) or not (Path(b['client_binding_path']).is_absolute() or PureWindowsPath(b['client_binding_path']).is_absolute()): raise ValueError('client path')
-    if b['transport']=='wsl':
+    if b['transport'] in ('wsl','wsl-fixture'):
         if not isinstance(b['distribution'],str) or not re.fullmatch('[A-Za-z0-9][A-Za-z0-9._-]{0,79}',b['distribution']): raise ValueError('distribution')
     elif b['distribution'] is not None: raise ValueError('local distribution')
     if not isinstance(b['tools'],dict) or set(b['tools']) != ROLES: raise ValueError('tool roles')
     for role, item in b['tools'].items():
-        if role=='wsl' and b['transport']!='wsl':
+        if role=='wsl' and b['transport'] not in ('wsl','wsl-fixture'):
             if item is not None: raise ValueError('local wsl role')
             continue
         if not isinstance(item,dict) or set(item)!={'path','client_path','sha256'}: raise ValueError('tool schema')
@@ -78,7 +78,35 @@ def validate_config(b, now=None, *, allow_expired=False):
         if not isinstance(item['sha256'],str) or not re.fullmatch('[0-9a-f]{64}',item['sha256']): raise ValueError('tool hash')
     root=Path(b['authority_root'])
     if Path(b['tools']['authority']['path']) != root/'tools/local_program_authority.py' or Path(b['tools']['shim']['path']) != root/'tools/v0_s3_budget_authority.py': raise ValueError('authority root roles')
+    if b['transport']=='wsl-fixture':
+        validate_fixture_mapping(b)
     return b
+
+
+def fixture_unc(path):
+    p=PurePosixPath(path)
+    if not p.is_absolute() or '..' in p.parts or str(p)!=path or '\\' in path:
+        raise ValueError('noncanonical fixture path')
+    return str(PureWindowsPath(r'\\wsl.localhost\Ubuntu-24.04').joinpath(*p.parts[1:]))
+
+
+def validate_fixture_mapping(b):
+    root=PurePosixPath(b['authority_root'])
+    if (root.parent!=PurePosixPath('/tmp') or not root.name.startswith('lvw-s3-p2b-')
+            or b['distribution']!='Ubuntu-24.04'):
+        raise ValueError('fixed WSL fixture root/distribution')
+    for key in ('child_path','ledger_path','execution_path','binding_path'):
+        p=PurePosixPath(b[key])
+        if not p.is_relative_to(root) or str(p)!=b[key] or '..' in p.parts:
+            raise ValueError('fixture path escaped')
+    if b['client_binding_path']!=fixture_unc(b['binding_path']): raise ValueError('fixture UNC mapping')
+    for role in ('authority','shim','python'):
+        item=b['tools'][role]
+        if item['client_path']!=fixture_unc(item['path']): raise ValueError('fixture tool mapping')
+    if b['tools']['python']['path']!='/usr/bin/python3': raise ValueError('fixture Python')
+    wsl=b['tools']['wsl']
+    if wsl['path']!='/mnt/c/Windows/System32/wsl.exe' or wsl['client_path']!=r'C:\Windows\System32\wsl.exe':
+        raise ValueError('fixture wsl path')
 
 
 def load_binding(binding=None, *, allow_expired=False):
@@ -88,6 +116,9 @@ def load_binding(binding=None, *, allow_expired=False):
     b=validate_config(read_json(ref['path'],ref['sha256']),allow_expired=allow_expired)
     expected_path=b['client_binding_path'] if os.name=='nt' else b['binding_path']
     if str(Path(ref['path'])) != expected_path: raise ValueError('substitute client binding path')
+    if b['transport']=='wsl-fixture':
+        root=Path(fixture_unc(b['authority_root']) if os.name=='nt' else b['authority_root'])
+        if not (root/'.s3-synthetic-fixture').is_file(): raise ValueError('fixture marker missing')
     return b, ref['sha256']
 
 
@@ -106,6 +137,7 @@ def _active_s3_profile():
 def validate_profile(profile, now, *, allow_expired=False, binding=None):
     b, seal=load_binding(binding,allow_expired=allow_expired)
     validate_config(b,now,allow_expired=allow_expired)
+    if b['transport']=='wsl-fixture': raise ValueError('fixture forbidden in product profile')
     mapping={'candidate_sha':'candidate_sha','authorization_sha256':'child_sha256','child_sha256':'child_sha256',
              'child_path':'child_path','run_id':'run_id','model_digest':'model_digest',
              'ollama_pid':'ollama_pid','ollama_start_ticks':'ollama_start_ticks'}
@@ -128,10 +160,11 @@ def s3_profile(profile, binding):
 
 def _command(b):
     roles=b['tools']
-    if b['transport']=='wsl' and os.name=='nt':
+    if b['transport'] in ('wsl','wsl-fixture') and os.name=='nt':
         exe=roles['wsl']['client_path']
         if not PureWindowsPath(exe).is_absolute() or PureWindowsPath(exe).name.lower()!='wsl.exe' or digest(exe)!=roles['wsl']['sha256']: raise ValueError('wsl executable')
         return [exe,'-d',b['distribution'],'--exec',roles['python']['path'],'-I','-B',roles['shim']['path']]
+    if b['transport']=='wsl-fixture': raise ValueError('wsl-fixture requires actual Windows client')
     if os.name=='nt': raise ValueError('local transport requires Linux/WSL')
     for role in ('python','shim'):
         item=roles[role]
@@ -139,9 +172,28 @@ def _command(b):
     return [roles['python']['path'],'-I','-B',roles['shim']['path']]
 
 
+def process_birth(pid, process=None):
+    """Read only the identity of an already owned process; never terminate by PID."""
+    if os.name=='nt':
+        import ctypes
+        from ctypes import wintypes
+        created=wintypes.FILETIME(); exited=wintypes.FILETIME()
+        kernel=wintypes.FILETIME(); user=wintypes.FILETIME()
+        fn=ctypes.WinDLL('kernel32',use_last_error=True).GetProcessTimes
+        fn.argtypes=[wintypes.HANDLE]+[ctypes.POINTER(wintypes.FILETIME)]*4
+        fn.restype=wintypes.BOOL
+        if process is None or not fn(wintypes.HANDLE(int(process._handle)),ctypes.byref(created),ctypes.byref(exited),ctypes.byref(kernel),ctypes.byref(user)):
+            raise OSError('owned process birth unavailable')
+        return {'windows_creation_100ns':(created.dwHighDateTime<<32)|created.dwLowDateTime}
+    fields=Path('/proc/%d/stat'%pid).read_text().rsplit(')',1)[1].split()
+    return {'linux_start_ticks':int(fields[19])}
+
+
 def _exchange(command, request, timeout):
     """Drain bounded pipes concurrently, reap only our child, retain real exit + error."""
     process=subprocess.Popen(command,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,bufsize=0)
+    try: birth=process_birth(process.pid, process)
+    except OSError: birth=None
     outputs=[bytearray(),bytearray()];errors=[];overflow=threading.Event()
     def read(index, pipe):
         try:
@@ -173,7 +225,7 @@ def _exchange(command, request, timeout):
     if overflow.is_set(): error=error or 'OUTPUT_LIMIT'
     if errors: error=error or 'PIPE_ERROR'
     if alive: error=error or 'PIPE_NOT_CLOSED'
-    result={'exit_code':exit_code,'error':error,'reaped':process.poll() is not None,'readers_joined':not alive,
+    result={'pid':process.pid,'birth':birth,'os_name':os.name,'pipe_closed':all(p.closed for p in (process.stdin,process.stdout,process.stderr)), 'thread_alive':[t.is_alive() for t in threads], 'exit_code':exit_code,'error':error,'reaped':process.poll() is not None,'readers_joined':not alive,
             'stdout_sha256':hashlib.sha256(outputs[0]).hexdigest(),'stderr_sha256':hashlib.sha256(outputs[1]).hexdigest()}
     return bytes(outputs[0]),result
 

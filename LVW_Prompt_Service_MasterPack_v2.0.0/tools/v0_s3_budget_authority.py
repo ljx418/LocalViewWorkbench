@@ -1,6 +1,7 @@
 """One bounded stdin debit; uses the sealed authority ROOT, never a worktree default DB."""
 import importlib.util
 import json
+import os
 from pathlib import Path
 import sqlite3
 import sys
@@ -53,7 +54,7 @@ def debit(request):
     ledger=Path(b['ledger_path'])
     # Never let model_action's CREATE IF NOT EXISTS turn a missing path into capacity.
     if not ledger.is_file(): raise ValueError('original ledger missing')
-    if b['transport']=='local-fixture':
+    if b['transport'] in ('local-fixture','wsl-fixture'):
         # Explicit synthetic roots only; a production binding cannot select this bypass.
         if not ROOT.is_relative_to(Path(tempfile.gettempdir()).resolve()) or not (ROOT/'.s3-synthetic-fixture').is_file(): raise ValueError('fixture root required')
         if not ledger.resolve().is_relative_to(ROOT): raise ValueError('fixture ledger escaped')
@@ -74,7 +75,22 @@ def debit(request):
         if item is not None and execution.get('s3_'+role)!={'path':item['path'],'sha256':item['sha256']}: raise ValueError('execution role binding')
     helper=ROOT/'LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/program_budget.py'
     if execution.get('s3_protocol')!={'path':str(helper),'sha256':protocol.digest(helper)}: raise ValueError('protocol source binding')
-    authority.model_action(child_path)
+    owner=None
+    if b['transport']=='wsl-fixture':
+        # Path is derived only after all authority, child and source seals pass.
+        directory=ROOT/'.s3-owned-requests'
+        directory.mkdir(exist_ok=True)
+        if directory.is_symlink(): raise ValueError('owner directory symlink')
+        owner=directory/(request['request_id']+'.json')
+        identity={'request_id':request['request_id'],'binding_sha256':request['binding_sha256'],
+                  'pid':os.getpid(),'birth':protocol.process_birth(os.getpid()),'state':'ENTERED'}
+        with owner.open('x') as stream: json.dump(identity,stream)
+    try:
+        authority.model_action(child_path)
+    finally:
+        if owner is not None:
+            identity['state']='RETURNED_FROM_AUTHORITY'
+            owner.write_text(json.dumps(identity))
     return dict(request,status='DEBITED',run_id=b['run_id'],child_sha256=b['child_sha256'],authority_sha256=AUTHORITY_HASH)
 
 
