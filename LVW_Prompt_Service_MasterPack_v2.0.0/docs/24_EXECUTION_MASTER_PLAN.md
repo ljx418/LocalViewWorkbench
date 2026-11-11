@@ -223,3 +223,8 @@ C2 读取哈希固定的1.0.4完整九样本清单，保留旧四样本前缀；
 ## 2026-11-11批准的V1范围与角色修订
 
 当前产品WAIT_HUMAN保持；另设V1-D0离线设计准备线。V1正式范围增加M1三包；R1/M1/R2最终分别4/3/4子项，未实现仍记0。 权威执行索引见[新版V1计划](30_V1_REVISED_EXECUTION_PLAN.md)、[详细架构/合同](31_V1_DETAILED_ARCHITECTURE_AND_CONTRACTS.md)、[验收与Orca协作](32_V1_ACCEPTANCE_AND_AGENT_WORKFLOW.md)。本节覆盖此前“自动切镜全部只在V2”的范围表述，不回填任何产品PASS。
+
+
+### 设计1.1纠偏（2026-11-11）
+
+独审原F1/11Major/10Minor保留，架构owner给出集中裁决待复核：旧generic batch/Scene/FrameRef兼容，新shot-batches/provenance/immutable plan和typed evidence有完整载体。父预算450*n+90(max5490)，正式轮cap72/21600且预留180秒清理，旧硬资源门限及29项不降；固定样本设计47镜头/18质量可复算但实际标签hash未取得。D0设计探针22通过仅结构/内存SQL，不能宣称产品Gate0。原工具漏洞b621297已在1.0布局独立复验关闭，新1.1还需实现者重新冻结校验器。

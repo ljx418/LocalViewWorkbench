@@ -1,0 +1,460 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:lvw:v1-multishot:design-candidate:1",
+  "title": "V1 multi-shot candidate DTOs; not activated production contract",
+  "x-status": "DESIGN_REVIEW",
+  "x-activation": "Codex reviewed Gate0 overlay and migration required",
+  "$defs": {
+    "SceneRevision": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "media_ref_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "origin_pts": {
+          "type": "integer"
+        },
+        "time_base_num": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "time_base_den": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "start_pts": {
+          "type": "integer"
+        },
+        "end_pts": {
+          "type": "integer"
+        },
+        "origin": {
+          "enum": [
+            "detected",
+            "human"
+          ]
+        },
+        "etag": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "id",
+        "media_ref_id",
+        "source_sha256",
+        "version",
+        "origin_pts",
+        "time_base_num",
+        "time_base_den",
+        "start_pts",
+        "end_pts",
+        "origin",
+        "etag"
+      ],
+      "additionalProperties": false,
+      "x-semantic-invariants": [
+        "end_pts>start_pts",
+        "both bounds within original media and verified PTS timeline",
+        "[start,end) interval",
+        "version immutable; edits append a new version"
+      ]
+    },
+    "AnalysisBinding": {
+      "type": "object",
+      "properties": {
+        "shot_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scene_revision_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scene_revision_hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "media_ref_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "media_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "config_hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "attempt_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "cancel_epoch": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "shot_id",
+        "scene_revision_id",
+        "scene_revision_hash",
+        "media_ref_id",
+        "media_sha256",
+        "config_hash",
+        "attempt_id",
+        "cancel_epoch"
+      ],
+      "additionalProperties": false
+    },
+    "FrameRef": {
+      "type": "object",
+      "properties": {
+        "index": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3
+        },
+        "source_pts": {
+          "type": "integer"
+        },
+        "time_base_num": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "time_base_den": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "index",
+        "source_pts",
+        "time_base_num",
+        "time_base_den",
+        "sha256"
+      ],
+      "additionalProperties": false
+    },
+    "Character": {
+      "type": "object",
+      "properties": {
+        "local_actor_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40
+        },
+        "visible_appearance": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 800
+        },
+        "evidence_frame_indices": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 3
+          },
+          "minItems": 1,
+          "maxItems": 4,
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "local_actor_id",
+        "visible_appearance",
+        "evidence_frame_indices"
+      ],
+      "additionalProperties": false
+    },
+    "Action": {
+      "type": "object",
+      "properties": {
+        "actor_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 800
+        },
+        "domain": {
+          "enum": [
+            "observation",
+            "inference"
+          ]
+        },
+        "evidence_frame_indices": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 3
+          },
+          "minItems": 1,
+          "maxItems": 4,
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "actor_ref",
+        "description",
+        "domain",
+        "evidence_frame_indices"
+      ],
+      "additionalProperties": false,
+      "x-semantic-invariants": [
+        "non-null actor_ref resolves within this shot",
+        "action-change inference requires at least two distinct source times",
+        "pose in one frame is not continuous action evidence"
+      ]
+    },
+    "ShotEvidence": {
+      "type": "object",
+      "properties": {
+        "frame_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/FrameRef"
+          },
+          "minItems": 1,
+          "maxItems": 4
+        },
+        "characters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Character"
+          },
+          "maxItems": 32
+        },
+        "scene": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1600
+            },
+            "evidence_frame_indices": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 3
+              },
+              "minItems": 1,
+              "maxItems": 4,
+              "uniqueItems": true
+            }
+          },
+          "required": [
+            "description",
+            "evidence_frame_indices"
+          ],
+          "additionalProperties": false
+        },
+        "actions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Action"
+          },
+          "maxItems": 32
+        },
+        "unknowns": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 800
+          },
+          "maxItems": 32
+        }
+      },
+      "required": [
+        "frame_refs",
+        "characters",
+        "scene",
+        "actions",
+        "unknowns"
+      ],
+      "additionalProperties": false,
+      "x-semantic-invariants": [
+        "all evidence references resolve within same shot",
+        "unique local_actor_ids and frame indices",
+        "all sampled frames lie strictly in bound scene interval",
+        "no cross-shot identity assertion"
+      ]
+    },
+    "BatchAnalyzeRequest": {
+      "type": "object",
+      "properties": {
+        "shot_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "maxItems": 12,
+          "uniqueItems": true
+        },
+        "scene_revision_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "maxItems": 12,
+          "uniqueItems": true
+        },
+        "mode": {
+          "enum": [
+            "documentary",
+            "realistic",
+            "scifi",
+            "science",
+            "cinematic",
+            "stylized"
+          ]
+        },
+        "config_profile": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "content_profile": {
+          "enum": [
+            "standard",
+            "faithful",
+            "adult-art",
+            "medical"
+          ],
+          "default": "standard"
+        },
+        "custom_guidance": {
+          "type": "string",
+          "maxLength": 800,
+          "default": ""
+        }
+      },
+      "required": [
+        "shot_ids",
+        "scene_revision_ids",
+        "mode",
+        "config_profile"
+      ],
+      "additionalProperties": false,
+      "x-semantic-invariants": [
+        "shot_ids and scene_revision_ids equal lengths and matching ordered one-to-one bindings",
+        "immutable complete selected denominator; no dynamic deletion"
+      ]
+    },
+    "ChildSummary": {
+      "type": "object",
+      "properties": {
+        "job_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "shot_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scene_revision_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "enum": [
+            "queued",
+            "preparing",
+            "running",
+            "partial",
+            "succeeded",
+            "failed",
+            "cancelling",
+            "cancelled",
+            "interrupted",
+            "submission_unknown"
+          ]
+        },
+        "result_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "error_code": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "job_id",
+        "shot_id",
+        "scene_revision_id",
+        "status",
+        "result_ref",
+        "error_code"
+      ],
+      "additionalProperties": false
+    },
+    "BatchChildrenResponse": {
+      "type": "object",
+      "properties": {
+        "parent_job_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "total": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 12
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ChildSummary"
+          },
+          "minItems": 1,
+          "maxItems": 12
+        }
+      },
+      "required": [
+        "parent_job_id",
+        "total",
+        "children"
+      ],
+      "additionalProperties": false,
+      "x-semantic-invariants": [
+        "total equals number of immutable planned children, including failed/cancelled/not-run placeholders",
+        "child job IDs unique"
+      ]
+    }
+  }
+}

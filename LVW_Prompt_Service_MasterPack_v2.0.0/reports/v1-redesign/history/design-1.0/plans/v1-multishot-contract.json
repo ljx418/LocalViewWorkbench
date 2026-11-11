@@ -1,0 +1,128 @@
+{
+  "schema_version": "lvw.multishot-contract-candidate/1",
+  "status": "DESIGN_REVIEW_NOT_ACTIVE_OPENAPI",
+  "authority": "docs/31_V1_DETAILED_ARCHITECTURE_AND_CONTRACTS.md",
+  "canonical_activation": "Codex Gate0 after isolated review; versioned migration and explicit API overlay; current oldR1 packet untouched",
+  "reuse_paths": [
+    "/api/v1/scenes/detect",
+    "/api/v1/scenes",
+    "/api/v1/scenes/{id}",
+    "/api/v1/shots",
+    "/api/v1/shots/{id}",
+    "/api/v1/jobs/batch",
+    "/api/v1/jobs/{id}",
+    "/api/v1/jobs/{id}/cancel",
+    "/api/v1/jobs/{id}/retry",
+    "/api/v1/jobs/{id}/children"
+  ],
+  "entities": {
+    "SceneRevision": {
+      "required": [
+        "id",
+        "media_ref_id",
+        "source_sha256",
+        "version",
+        "origin_pts",
+        "time_base_num",
+        "time_base_den",
+        "start_pts",
+        "end_pts",
+        "origin",
+        "etag"
+      ],
+      "invariants": [
+        "end_pts>start_pts",
+        "positive time_base",
+        "verified timestamps",
+        "half-open interval",
+        "append-only revision",
+        "references original media SHA"
+      ]
+    },
+    "AnalysisBinding": {
+      "required": [
+        "shot_id",
+        "scene_revision_id",
+        "scene_revision_hash",
+        "media_ref_id",
+        "media_sha256",
+        "config_hash",
+        "attempt_id",
+        "cancel_epoch"
+      ],
+      "invariants": [
+        "result applies only to exact current binding",
+        "changed boundary marks old result stale, retains raw and human revision"
+      ]
+    },
+    "ShotEvidence": {
+      "required": [
+        "frame_refs",
+        "characters",
+        "scene",
+        "actions",
+        "unknowns"
+      ],
+      "character_fields": [
+        "local_actor_id",
+        "visible_appearance",
+        "evidence_frame_indices"
+      ],
+      "action_fields": [
+        "actor_ref",
+        "description",
+        "domain",
+        "evidence_frame_indices"
+      ],
+      "invariants": [
+        "every cited index exists in same shot",
+        "actor refs local to shot",
+        "unknown not fabricated confidence",
+        "no cross-shot identity promise"
+      ]
+    },
+    "ParentJob": {
+      "required": [
+        "id",
+        "planned_child_ids",
+        "selected_scene_revision_ids",
+        "total",
+        "terminal_count",
+        "deadline",
+        "status"
+      ],
+      "invariants": [
+        "fixed planned denominator",
+        "children statuses explicit",
+        "serialized GPU",
+        "cancel pending children and active lease",
+        "no rollback successful children",
+        "deadline checked before each send"
+      ]
+    }
+  },
+  "http_rules": [
+    "POST Idempotency-Key required; same key/payload same result, mismatch409",
+    "GET returns bound versions; writes If-Match required; missing428, stale412",
+    "segment/batch POST202 creates job before work; no inference in upload",
+    "GET scene previews use controlled ID/segment playback, no arbitrary path/URL API",
+    "errors have code/message/retryable/details; failure never returns success envelope",
+    "GET /jobs/{id} keeps original Job DTO; new controlled GET /jobs/{id}/children returns BatchChildrenResponse. Never append undeclared fields to old strict response."
+  ],
+  "new_error_candidates": [
+    "SHOT_LIMIT_EXCEEDED",
+    "SCENE_TIME_UNVERIFIED",
+    "SCENE_REVISION_CONFLICT",
+    "ANALYSIS_STALE",
+    "BATCH_DEADLINE_EXCEEDED"
+  ],
+  "storage_plan": [
+    "promote scene_revision minimal subset via versioned migration, do not execute baselineDDL ad hoc",
+    "add shot.scene_revision_id with foreign key and required binding in model_run metadata",
+    "immutable scene history, prompt_revision unchanged",
+    "reuse job/attempt; add parent-child relation subset without V2 recovery platform",
+    "database tx never held during FFmpeg/model I/O",
+    "media remains controlled local reference; no per-shot full-video copies"
+  ],
+  "dto_schema": "contracts/v1-multishot.schema.json"
+}

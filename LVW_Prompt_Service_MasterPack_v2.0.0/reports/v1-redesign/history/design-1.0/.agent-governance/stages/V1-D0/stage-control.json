@@ -1,0 +1,77 @@
+{
+  "schema_version": "lvw.stage-control/1",
+  "stage_id": "V1-D0",
+  "status": "FROZEN_OFFLINE_TOOL_SCOPE_ONLY_PRODUCT_GATE0_NOT_READY",
+  "version": "1.0",
+  "product_execution_authorized": false,
+  "roles": {
+    "gate_owner": "Codex",
+    "implementation_owner": "ClaudeCode-D0-Implement",
+    "independent_reviewer": "ClaudeCode-D0-Review"
+  },
+  "workpacks": [
+    {
+      "id": "D0-B-IMPL",
+      "allowed_files": [
+        "tools/verify_v1_plan.py",
+        "tools/test_verify_v1_plan.py",
+        "reports/v1-redesign/d0-worker/"
+      ],
+      "depends_on": [
+        "D0-A-DESIGN-DRAFT"
+      ],
+      "commands": [
+        "python3 -B tools/verify_v1_plan.py",
+        "python3 -B -m pytest tools/test_verify_v1_plan.py -q"
+      ],
+      "outputs": [
+        "implementation receipt",
+        "raw commands",
+        "test exit codes",
+        "risks"
+      ]
+    },
+    {
+      "id": "D0-B-REVIEW",
+      "allowed_files": [
+        "reports/v1-redesign/d0-review/"
+      ],
+      "depends_on": [
+        "D0-A-DESIGN-DRAFT"
+      ],
+      "outputs": [
+        "read-only design review",
+        "source hash fence",
+        "Fatal/Major/Minor list"
+      ]
+    }
+  ],
+  "forbidden_write_paths": [
+    "contracts/",
+    "plans/",
+    "docs/",
+    "lvw/",
+    "LVW_V0_RuntimePatch/",
+    ".agent-governance/",
+    "AGENTS.md"
+  ],
+  "model_gpu_runtime_budget": 0,
+  "product_full_checkpoints": 0,
+  "stage_pass_forbidden": true,
+  "hard_stops": [
+    "spec drift",
+    "scope conflict",
+    "unavailable configured Claude quota/account",
+    "human approval claimed without actual signature"
+  ],
+  "next_owner": "Codex after worker_done",
+  "required_authorization": "none for specified offline work",
+  "external_milestones": {
+    "D0-A-DESIGN-DRAFT": {
+      "state": "PREPARED",
+      "owner": "Codex",
+      "evidence": "docs/30_V1_REVISED_EXECUTION_PLAN.md",
+      "not_product_gate0": true
+    }
+  }
+}

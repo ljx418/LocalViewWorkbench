@@ -1,5 +1,5 @@
 {
-  "schema_version": "lvw.multishot-contract-candidate/1",
+  "schema_version": "lvw.multishot-contract-candidate/1.1",
   "status": "DESIGN_REVIEW_NOT_ACTIVE_OPENAPI",
   "authority": "docs/31_V1_DETAILED_ARCHITECTURE_AND_CONTRACTS.md",
   "canonical_activation": "Codex Gate0 after isolated review; versioned migration and explicit API overlay; current oldR1 packet untouched",
@@ -9,34 +9,25 @@
     "/api/v1/scenes/{id}",
     "/api/v1/shots",
     "/api/v1/shots/{id}",
-    "/api/v1/jobs/batch",
     "/api/v1/jobs/{id}",
-    "/api/v1/jobs/{id}/cancel",
-    "/api/v1/jobs/{id}/retry",
-    "/api/v1/jobs/{id}/children"
+    "/api/v1/jobs/{id}/cancel"
   ],
   "entities": {
-    "SceneRevision": {
+    "SceneRevisionInfo": {
       "required": [
-        "id",
-        "media_ref_id",
+        "scene_revision_id",
+        "scene_id",
+        "scene",
         "source_sha256",
-        "version",
-        "origin_pts",
-        "time_base_num",
-        "time_base_den",
-        "start_pts",
-        "end_pts",
-        "origin",
-        "etag"
+        "scene_revision_hash",
+        "etag",
+        "time_basis"
       ],
       "invariants": [
-        "end_pts>start_pts",
-        "positive time_base",
-        "verified timestamps",
-        "half-open interval",
-        "append-only revision",
-        "references original media SHA"
+        "scene.id==scene_id, scene.revision==immutable revision number",
+        "scene.verified iff time_basis==decoded_pts",
+        "only decoded_pts/verified revisions may start M1 analysis; others reject422 SCENE_TIME_UNVERIFIED",
+        "Scene editor algorithm corresponds detector origin, human to manual edit; no new vocabulary in canonical Scene"
       ]
     },
     "AnalysisBinding": {
@@ -48,12 +39,10 @@
         "media_sha256",
         "config_hash",
         "attempt_id",
+        "lease_token",
         "cancel_epoch"
       ],
-      "invariants": [
-        "result applies only to exact current binding",
-        "changed boundary marks old result stale, retains raw and human revision"
-      ]
+      "invariants": []
     },
     "ShotEvidence": {
       "required": [
@@ -61,11 +50,22 @@
         "characters",
         "scene",
         "actions",
+        "summary",
+        "negative",
+        "tags",
         "unknowns"
+      ],
+      "invariants": [
+        "FrameRefs are server-owned additions; raw MachineShotResponse retained byte-for-byte",
+        "all refs resolve within same shot and all local actor ids unique",
+        "domain routes characters/scene/actions to canonical observation or inference",
+        "unknowns route to canonical unknowns; user_evidence/creative_intent are human-owned, never generated from raw",
+        "bilingual summary supplies canonical text_zh/text_en; absent translation stays absent, no CPU fake translation"
       ],
       "character_fields": [
         "local_actor_id",
         "visible_appearance",
+        "domain",
         "evidence_frame_indices"
       ],
       "action_fields": [
@@ -73,56 +73,124 @@
         "description",
         "domain",
         "evidence_frame_indices"
-      ],
-      "invariants": [
-        "every cited index exists in same shot",
-        "actor refs local to shot",
-        "unknown not fabricated confidence",
-        "no cross-shot identity promise"
       ]
     },
     "ParentJob": {
       "required": [
         "id",
+        "plan_hash",
         "planned_child_ids",
         "selected_scene_revision_ids",
         "total",
         "terminal_count",
-        "deadline",
-        "status"
+        "deadline_at",
+        "execution_budget_seconds",
+        "status",
+        "not_executed_count",
+        "retry_of_parent_id"
       ],
       "invariants": [
-        "fixed planned denominator",
-        "children statuses explicit",
-        "serialized GPU",
-        "cancel pending children and active lease",
-        "no rollback successful children",
-        "deadline checked before each send"
+        "id=canonical Job.id; progress_done=terminal_count; progress_total=total",
+        "execution_budget_seconds=450*total+90; deadline_at=created_at+budget; no extension on restart",
+        "deadline/plan immutable; terminal_count derived from persisted children, not a mutable separate counter",
+        "not_executed_count counts no attempted model send, not no CPU preparation"
       ]
     }
   },
   "http_rules": [
-    "POST Idempotency-Key required; same key/payload same result, mismatch409",
-    "GET returns bound versions; writes If-Match required; missing428, stale412",
-    "segment/batch POST202 creates job before work; no inference in upload",
-    "GET scene previews use controlled ID/segment playback, no arbitrary path/URL API",
-    "errors have code/message/retryable/details; failure never returns success envelope",
-    "GET /jobs/{id} keeps original Job DTO; new controlled GET /jobs/{id}/children returns BatchChildrenResponse. Never append undeclared fields to old strict response."
-  ],
-  "new_error_candidates": [
-    "SHOT_LIMIT_EXCEEDED",
-    "SCENE_TIME_UNVERIFIED",
-    "SCENE_REVISION_CONFLICT",
-    "ANALYSIS_STALE",
-    "BATCH_DEADLINE_EXCEEDED"
+    "canonical POST /jobs/batch {items:[AnalyzeRequest]} remains V2 unchanged; M1 uses distinct bounded /jobs/shot-batches",
+    "canonical Scene JSON preserved on scenes list and PUT; explicitly add GET /scenes/{id} using same Scene; ETag via response header",
+    "revision->version is internal naming only; algorithm<->detector editor mapping; revision-info supplies new provenance separately",
+    "all mutations need Idempotency-Key; same key/payload same result, mismatch409",
+    "Scene write If-Match required428/stale412; append immutable revision and CAS scene_head atomically",
+    "GET /jobs/{id} remains canonical strict Job; GET children returns parent view+ordered full children",
+    "new shot-batch endpoint accepts exactly six canonical product modes; legacy free-string request not modified",
+    "POST segment/shot-batches202 returns canonical Job; no model on upload/detect",
+    "public analysis provenance excludes lease_token; only controlled IDs, no arbitrary paths/URLs"
   ],
   "storage_plan": [
-    "promote scene_revision minimal subset via versioned migration, do not execute baselineDDL ad hoc",
-    "add shot.scene_revision_id with foreign key and required binding in model_run metadata",
-    "immutable scene history, prompt_revision unchanged",
-    "reuse job/attempt; add parent-child relation subset without V2 recovery platform",
-    "database tx never held during FFmpeg/model I/O",
-    "media remains controlled local reference; no per-shot full-video copies"
+    "versioned candidate migration contracts/v1-multishot-migration.sql, never replay canonical baseline or production DB during D0",
+    "scene_revision stays base row; append-only scene_revision_meta carries scene_id/source_sha256/verified/time_basis/hash/etag; scene_head has mutable CAS pointer",
+    "legacy scene IDs remain stable logical IDs; no guessed grouping; legacy verified=False/time_basis=unverified, no invented PTS verification",
+    "optional shot_scene_binding association; manual/image shots need no row or backfill",
+    "immutable shot_analysis_binding includes internal lease_token and normalized scene hash; model_run_artifacts persists canonical frames_json; shot_analysis_evidence persists typed evidence",
+    "new shot_batch_parent/item/seal tables; all child queued jobs and ordered plan inserted in one transaction; seal trigger checks count/ordinal before worker may claim",
+    "existing generic batch_child remains unchanged for V2; job/attempt still own mutable status, plan rows immutable",
+    "attempt_execution records attempted provider send before transport; public model_started derives from persisted attempts",
+    "no SQL transaction during FFmpeg/provider I/O",
+    "revision_source_binding stores model adoption provenance; generic manual revision saves do not claim a model source"
   ],
-  "dto_schema": "contracts/v1-multishot.schema.json"
+  "dto_schema": "contracts/v1-multishot.schema.json",
+  "additive_paths": [
+    "/api/v1/jobs/shot-batches",
+    "/api/v1/jobs/{id}/children",
+    "/api/v1/scenes/{id}/revision-info",
+    "/api/v1/shots/{id}/analyses/{run_id}/evidence",
+    "/api/v1/shots/{id}/scene-binding",
+    "/api/v1/shots/{id}/analyses/{run_id}/adopt"
+  ],
+  "explicit_reserved_v2_paths": [
+    "/api/v1/jobs/batch",
+    "/api/v1/jobs/{id}/retry"
+  ],
+  "request_errors": {
+    "SHOT_LIMIT_EXCEEDED": 422,
+    "SCENE_TIME_UNVERIFIED": 422,
+    "SCENE_REVISION_CONFLICT": 412,
+    "ANALYSIS_STALE": 409,
+    "IDEMPOTENCY_CONFLICT": 409,
+    "MISSING_IF_MATCH": 428,
+    "UNKNOWN_SHOT_MODE": 422
+  },
+  "terminal_errors": {
+    "BATCH_DEADLINE_EXCEEDED": {
+      "child_status": "failed",
+      "parent_status": "failed",
+      "retryable": true
+    },
+    "JOB_CANCELLED": {
+      "child_status": "cancelled",
+      "parent_status": "cancelled",
+      "retryable": false
+    },
+    "CHILD_ANALYSIS_INCOMPLETE": {
+      "parent_status": "partial",
+      "retryable": true
+    },
+    "SCENE_TIME_UNVERIFIED": {
+      "segment_job_status": "failed",
+      "retryable": false
+    }
+  },
+  "canonical_adapters": {
+    "Scene": "base DTO unchanged; Scene.id=logical scene_id, Scene.revision=base version, editor algorithm|human, verified=meta.verified",
+    "FrameRef": "ShotFrameRef same shape and valid instance of core FrameRef, stored in model_run_artifacts.frames_json and returned as canonical ModelRun.frames",
+    "Job": "strict base Job unchanged; parent progress_done/total map to derived terminal_count/planned_count; extra parent metadata only via children response"
+  },
+  "scene_hash": {
+    "algorithm": "sha256 UTF8 canonical JSON sorted keys, compact separators, ensure_ascii=False, allow_nan=False",
+    "fields": [
+      "media_ref_id",
+      "media_sha256",
+      "revision",
+      "start_pts",
+      "end_pts",
+      "origin_pts",
+      "time_base_num",
+      "time_base_den",
+      "editor",
+      "time_basis",
+      "verified"
+    ],
+    "etag": "quoted strong tag scene:<scene_revision_id>:<scene_revision_hash>",
+    "excluded": [
+      "random row id",
+      "created_at",
+      "server clock"
+    ],
+    "storage": "scene_revision_meta.content_sha256/etag; AnalysisBinding.scene_revision_hash immutable copy"
+  },
+  "openapi_overlay": "contracts/v1-multishot.openapi-overlay.json",
+  "storage_migration": "contracts/v1-multishot-migration.sql",
+  "config_hash": "SHA256 canonical JSON of mode/config_profile/content_profile/custom_guidance/profile_id/template_sha256/think/num_ctx/num_predict/temperature/frame_selection_profile_id/scene_revision_hash. Same serialization as scene hash; never nonce/time. ModelRun.input_sha256 remains original media SHA; scene hash+actual FrameRefs distinguish shots."
 }
