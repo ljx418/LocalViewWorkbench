@@ -1,0 +1,123 @@
+==============================================================================
+PROBE P00  [fence=OFF (hash only)]
+purpose : positive control: the unmodified candidate copy passes with the default pin
+exit    : 0
+stdout  : VALIDATION: metaschema_check=jsonschema frame_instance_probe=jsonschema frame_sample=present | PIN: mode=default (frozen stage command pin) expected_default=181c08ee7290f5bef02e22b6f7fd3c874c2d404cc8b4ffff84d2148a71f47eb8 actual=181c08ee7290f5bef02e22b6f7fd3c874c2d404cc8b4ffff84d2148a71f47eb8 | RESULT: PASS (V1=29 V2=38 V3=47; MS01-MS08 once and NOT_RUN; legacy prefix intact; DAG acyclic; parent deadline 450*n+90<=5490; checkpoint 65+ 7=72 actions / 21600 s; no human signature claimed) | NOTE: design 1.1.2 (consolidated correction of NM-1..NM-8, still pending an independent recheck): additive surface 8 operations / 7 paths; reuse annotations 7 paths; strong ETag declared on 2 new GETs and 1 
+note    : the oracle is the reviewer's own: exit 0 and a RESULT: PASS line
+==============================================================================
+PROBE P01  [fence=ON (semantic)]
+purpose : NM-1 replay: a formerly unpinned column alias is rebound (media_sha256)
+exit    : 1
+stdout  : E_SCENE_HASH_MAPPING: the scene hash column alias for media_sha256 is 'scene_revision.media_ref_id', the frozen alias is 'scene_revision_meta.source_sha256 (legacy backfill: media_ref.sha256)' | VALIDATION: metaschema_check=jsonschema frame_instance_probe=jsonschema frame_sample=present | PIN: mode=explicit-override (NON-AUTHORITY: this run did not use the frozen stage command pin) expected_default=181c08ee7290f5bef02e22b6f7fd3c874c2d404cc8b4ffff84d2148a71f47eb8 actual=822365831c3ec9c1ac99af22038b2c4d9428e336b3b2f92c0e699ddc77dca908 override=822365831c3ec9c1ac99af22038b2c4d9428e336b3b2f92c0e699ddc77dca908 | RESULT: FAIL (1 finding(s))
+==============================================================================
+PROBE P02  [fence=ON (semantic)]
+purpose : NM-1 replay: the call-site PTS arguments are permuted
+exit    : 1
+stdout  : E_SCENE_HASH_MAPPING: the lvw_scene_hash call site 1 passes 's.end_pts' for the start_pts field, the frozen column is 'start_pts' | E_SCENE_HASH_MAPPING: the lvw_scene_hash call site 1 passes 's.start_pts' for the end_pts field, the frozen column is 'end_pts' | E_SCENE_HASH_MAPPING: the lvw_scene_hash call site 2 passes 's.end_pts' for the start_pts field, the frozen column is 'start_pts' | E_SCENE_HASH_MAPPING: the lvw_scene_hash call site 2 passes 's.start_pts' for the end_pts field, the frozen column is 'end_pts' | VALIDATION: metaschema_check=jsonschema frame_instance_probe=jsonschema frame_sample=present | PIN: mode=explicit-override (NON-AUTHORITY: this run did not use the frozen stage
+==============================================================================
+PROBE P30  [fence=ON (semantic)]
+purpose : NM-1 new: a second, different call-site permutation (first two arguments)
+exit    : 1
+stdout  : E_SCENE_HASH_MAPPING: the lvw_scene_hash call site 1 passes 'm.sha256' for the media_ref_id field, the frozen column is 'media_ref_id' | E_SCENE_HASH_MAPPING: the lvw_scene_hash call site 1 passes 's.media_ref_id' for the media_sha256 field, the frozen column is 'sha256' | E_SCENE_HASH_MAPPING: the lvw_scene_hash call site 2 passes 'm.sha256' for the media_ref_id field, the frozen column is 'media_ref_id' | E_SCENE_HASH_MAPPING: the lvw_scene_hash call site 2 passes 's.media_ref_id' for the media_sha256 field, the frozen column is 'sha256' | VALIDATION: metaschema_check=jsonschema frame_instance_probe=jsonschema frame_sample=present | PIN: mode=explicit-override (NON-AUTHORITY: this run did 
+==============================================================================
+PROBE P31  [fence=ON (semantic)]
+purpose : NM-1 new: another formerly unpinned alias is rebound (editor)
+exit    : 1
+stdout  : E_SCENE_HASH_MAPPING: the scene hash column alias for editor is 'scene_revision.tb_num', the frozen alias is 'scene_revision.editor' | VALIDATION: metaschema_check=jsonschema frame_instance_probe=jsonschema frame_sample=present | PIN: mode=explicit-override (NON-AUTHORITY: this run did not use the frozen stage command pin) expected_default=181c08ee7290f5bef02e22b6f7fd3c874c2d404cc8b4ffff84d2148a71f47eb8 actual=a7b78c51a7294d20a07fa47da17c7e9f43e664407461627dffb1ed4ad66fd2c0 override=a7b78c51a7294d20a07fa47da17c7e9f43e664407461627dffb1ed4ad66fd2c0 | RESULT: FAIL (1 finding(s))
+==============================================================================
+PROBE P05  [fence=ON (semantic)]
+purpose : NM-2 replay: the new Scene GET returns another candidate component
+exit    : 1
+stdout  : E_SCENE_GET_ENVELOPE: the GET /api/v1/scenes/{id} success envelope differs from the canonical success envelope of PUT /api/v1/scenes/{id} | E_SCENE_GET_ENVELOPE: the GET /api/v1/scenes/{id} success envelope must return the canonical #/components/schemas/Scene DTO, found {'$ref': '#/components/schemas/MultiShot_SceneRevisionInfo'} | VALIDATION: metaschema_check=jsonschema frame_instance_probe=jsonschema frame_sample=present | PIN: mode=explicit-override (NON-AUTHORITY: this run did not use the frozen stage command pin) expected_default=181c08ee7290f5bef02e22b6f7fd3c874c2d404cc8b4ffff84d2148a71f47eb8 actual=e36113a83d230776b53c19f1d169922d9aaa25582101e725fd2a5dffba7855f9 override=e36113a83d230
+==============================================================================
+PROBE P32  [fence=ON (semantic)]
+purpose : NM-2 new: the success envelope gains a property
+exit    : 1
+stdout  : E_SCENE_GET_ENVELOPE: the GET /api/v1/scenes/{id} success envelope carries the properties ['data', 'extra', 'request_id', 'schema_version'], the canonical envelope carries ['data', 'request_id', 'schema_version'] | E_SCENE_GET_ENVELOPE: the GET /api/v1/scenes/{id} success envelope differs from the canonical success envelope of PUT /api/v1/scenes/{id} | VALIDATION: metaschema_check=jsonschema frame_instance_probe=jsonschema frame_sample=present | PIN: mode=explicit-override (NON-AUTHORITY: this run did not use the frozen stage command pin) expected_default=181c08ee7290f5bef02e22b6f7fd3c874c2d404cc8b4ffff84d2148a71f47eb8 actual=736c25437ce7b2c556032be77c724da59e07f4f93cb8bf876ea3fd2379fe8a1d o
+==============================================================================
+PROBE P37  [fence=ON (semantic)]
+purpose : NM-2 new: the success envelope drops a required member
+exit    : 1
+stdout  : E_SCENE_GET_ENVELOPE: the GET /api/v1/scenes/{id} success envelope differs from the canonical success envelope of PUT /api/v1/scenes/{id} | E_SCENE_GET_ENVELOPE: the GET /api/v1/scenes/{id} success envelope requires ['data', 'schema_version'], the canonical envelope requires ['data', 'request_id', 'schema_version'] | VALIDATION: metaschema_check=jsonschema frame_instance_probe=jsonschema frame_sample=present | PIN: mode=explicit-override (NON-AUTHORITY: this run did not use the frozen stage command pin) expected_default=181c08ee7290f5bef02e22b6f7fd3c874c2d404cc8b4ffff84d2148a71f47eb8 actual=dbef2f157591e347dc503394cc06b8d1101744c3d7ed809557e53171726d12d3 override=dbef2f157591e347dc503394cc06
+==============================================================================
+PROBE P22  [fence=ON (semantic)]
+purpose : NM-3 replay: overlay.metadata_only is a list
+exit    : 1
+stdout  : E_OVERLAY_METADATA_SHAPE: the overlay metadata_only must be a JSON object, found list | E_REUSE_METADATA: the overlay declares no metadata_only object | VALIDATION: metaschema_check=jsonschema frame_instance_probe=jsonschema frame_sample=present | PIN: mode=explicit-override (NON-AUTHORITY: this run did not use the frozen stage command pin) expected_default=181c08ee7290f5bef02e22b6f7fd3c874c2d404cc8b4ffff84d2148a71f47eb8 actual=c946f1445043a54423092d01cb24c592e47d02bef32699308c9db4f7e635c0b8 override=c946f1445043a54423092d01cb24c592e47d02bef32699308c9db4f7e635c0b8 | RESULT: FAIL (2 finding(s))
+note    : the oracle is a deterministic E_* on stdout, a non-zero exit and no traceback
+==============================================================================
+PROBE P23  [fence=ON (semantic)]
+purpose : NM-3 replay: overlay.add_response_headers is a list
+exit    : 1
+stdout  : E_ETAG_MISSING: the overlay declares no add_response_headers, so the existing Scene PUT 200 can not carry the ETag | E_OVERLAY_HEADER_SHAPE: the overlay add_response_headers must be a JSON object, found list | E_OVERLAY_HEADER_SHAPE: the overlay add_response_headers must be a JSON object, found list | VALIDATION: metaschema_check=jsonschema frame_instance_probe=jsonschema frame_sample=present | PIN: mode=explicit-override (NON-AUTHORITY: this run did not use the frozen stage command pin) expected_default=181c08ee7290f5bef02e22b6f7fd3c874c2d404cc8b4ffff84d2148a71f47eb8 actual=07aa4d4998703edd82e045c9cc0cf452fbe48662e7357ef54d06d6cc6a0a8dda override=07aa4d4998703edd82e045c9cc0cf452fbe48662e735
+==============================================================================
+PROBE P24  [fence=ON (semantic)]
+purpose : NM-3 replay: the candidate schema carries an invalid regular expression
+exit    : 1
+stdout  : E_FRAME_REF_INCOMPATIBLE: ShotFrameRef.sha256 is not a valid canonical FrameRef: changes the canonical pattern ^[a-f0-9]{64}$ into ([unclosed | E_FRAME_REF_INSTANCE: the retained frame instance probe could not be completed: error: unterminated character set at position 1 | E_SCHEMA_META: candidate schema is not a valid JSON Schema: SchemaError: '([unclosed' is not a 'regex' Failed validating 'format' in metaschema['allOf'][0]['properties']['$defs']['additionalProperties']['$dynamicRef']['allOf'][1]['properties']['properties']['additionalProperties']['$dynamicRef']['allOf'][3]['properties']['pattern']: {'type': 'string', 'format': 'regex'} On schema['$defs']['ShotFrameRef']['properties']['sha
+==============================================================================
+PROBE P33  [fence=ON (semantic)]
+purpose : NM-3 new: a nested metadata value is a list instead of an object
+exit    : 1
+stdout  : E_OVERLAY_METADATA_PATH: the overlay metadata for /api/v1/scenes/{id} is not a non-empty method map | E_OVERLAY_METADATA_SHAPE: the overlay metadata for /api/v1/scenes/{id} must be a JSON object, found list | E_REUSE_METADATA: the overlay does not annotate the reuse path /api/v1/scenes/{id} | VALIDATION: metaschema_check=jsonschema frame_instance_probe=jsonschema frame_sample=present | PIN: mode=explicit-override (NON-AUTHORITY: this run did not use the frozen stage command pin) expected_default=181c08ee7290f5bef02e22b6f7fd3c874c2d404cc8b4ffff84d2148a71f47eb8 actual=72322a35ec2bc120be8accf491aa048b9df31c852eee7732243d12e98116c8f4 override=72322a35ec2bc120be8accf491aa048b9df31c852eee7732243d1
+==============================================================================
+PROBE P34  [fence=ON (semantic)]
+purpose : NM-3 new: a nested response header status map is a list
+exit    : 1
+stdout  : E_ETAG_MISSING: the overlay does not add the ETag to the existing PUT /api/v1/scenes/{id} | E_OVERLAY_HEADER_SHAPE: the overlay response header statuses for PUT /api/v1/scenes/{id} must be a JSON object, found list | VALIDATION: metaschema_check=jsonschema frame_instance_probe=jsonschema frame_sample=present | PIN: mode=explicit-override (NON-AUTHORITY: this run did not use the frozen stage command pin) expected_default=181c08ee7290f5bef02e22b6f7fd3c874c2d404cc8b4ffff84d2148a71f47eb8 actual=7fadd120eaf481b6b59fe87a9b33f2f6add2b0d16c21499db36774f7a0cf6550 override=7fadd120eaf481b6b59fe87a9b33f2f6add2b0d16c21499db36774f7a0cf6550 | RESULT: FAIL (2 finding(s))
+==============================================================================
+PROBE P35  [fence=ON (semantic)]
+purpose : NM-3 new: a nested container of the candidate schema is not an object
+exit    : 1
+stdout  : E_CHECK_SHAPE: check_canonical_compatibility could not be completed on a malformed candidate input: AttributeError: 'list' object has no attribute 'get' | E_CHECK_SHAPE: check_canonical_domain_mapping could not be completed on a malformed candidate input: AttributeError: 'list' object has no attribute 'get' | E_CHECK_SHAPE: check_dto_contract_shape could not be completed on a malformed candidate input: AttributeError: 'list' object has no attribute 'get' | E_CHECK_SHAPE: check_frame_ref_integer_pins could not be completed on a malformed candidate input: AttributeError: 'list' object has no attribute 'get' | E_CHECK_SHAPE: check_parent_budget could not be completed on a malformed candidate in
+==============================================================================
+PROBE P25  [fence=OFF (hash only)]
+purpose : NM-4 replay: the optional jsonschema dependency is not importable
+exit    : 0
+stdout  : NOTE: E_SCHEMA_META_SKIPPED: jsonschema is not importable; only the structural candidate-schema check ran | VALIDATION: metaschema_check=structural-fallback frame_instance_probe=structural frame_sample=present | PIN: mode=default (frozen stage command pin) expected_default=181c08ee7290f5bef02e22b6f7fd3c874c2d404cc8b4ffff84d2148a71f47eb8 actual=181c08ee7290f5bef02e22b6f7fd3c874c2d404cc8b4ffff84d2148a71f47eb8 | RESULT: PASS (V1=29 V2=38 V3=47; MS01-MS08 once and NOT_RUN; legacy prefix intact; DAG acyclic; parent deadline 450*n+90<=5490; checkpoint 65+ 7=72 actions / 21600 s; no human signature claimed) | NOTE: design 1.1.2 (consolidated correction of NM-1..NM-8, still pending an independent re
+note    : a degraded run must be distinguishable from a full run
+==============================================================================
+PROBE P26  [fence=OFF (hash only)]
+purpose : NM-4 replay: the retained frame sample is absent
+exit    : 0
+stdout  : NOTE: E_FRAME_REF_SAMPLE_SKIPPED: no retained frame reference sample was available for the instance probe | VALIDATION: metaschema_check=jsonschema frame_instance_probe=skipped-no-sample frame_sample=absent | PIN: mode=default (frozen stage command pin) expected_default=181c08ee7290f5bef02e22b6f7fd3c874c2d404cc8b4ffff84d2148a71f47eb8 actual=181c08ee7290f5bef02e22b6f7fd3c874c2d404cc8b4ffff84d2148a71f47eb8 | RESULT: PASS (V1=29 V2=38 V3=47; MS01-MS08 once and NOT_RUN; legacy prefix intact; DAG acyclic; parent deadline 450*n+90<=5490; checkpoint 65+ 7=72 actions / 21600 s; no human signature claimed) | NOTE: design 1.1.2 (consolidated correction of NM-1..NM-8, still pending an independent reche
+note    : a degraded run must be distinguishable from a full run
+==============================================================================
+PROBE P27  [fence=ON (semantic)]
+purpose : NM-8: an explicit pin override is marked as a non authority run
+exit    : 0
+stdout  : VALIDATION: metaschema_check=jsonschema frame_instance_probe=jsonschema frame_sample=present | PIN: mode=explicit-override (NON-AUTHORITY: this run did not use the frozen stage command pin) expected_default=181c08ee7290f5bef02e22b6f7fd3c874c2d404cc8b4ffff84d2148a71f47eb8 actual=b1539052cd0e9a467c6c6e43f2ba6998ab2e06152a2d8f404c8113f5abefdbae override=b1539052cd0e9a467c6c6e43f2ba6998ab2e06152a2d8f404c8113f5abefdbae | RESULT: PASS (V1=29 V2=38 V3=47; MS01-MS08 once and NOT_RUN; legacy prefix intact; DAG acyclic; parent deadline 450*n+90<=5490; checkpoint 65+ 7=72 actions / 21600 s; no human signature claimed) | NOTE: design 1.1.2 (consolidated correction of NM-1..NM-8, still pending an indepen
+note    : the oracle is the reviewer's own: exit 0 and a PIN line that names the override
+==============================================================================
+PROBE P28  [fence=ON (semantic)]
+purpose : NM-8: the same copy under the default pin is rejected and reported as the default mode
+exit    : 1
+stdout  : E_D0_PACKET_MANIFEST_PINNED: D0 packet manifest .agent-governance/stages/V1-D0/PAYLOAD_MANIFEST.sha256 hash b1539052cd0e9a467c6c6e43f2ba6998ab2e06152a2d8f404c8113f5abefdbae differs from the source-control pinned 181c08ee7290f5bef02e22b6f7fd3c874c2d404cc8b4ffff84d2148a71f47eb8 | VALIDATION: metaschema_check=jsonschema frame_instance_probe=jsonschema frame_sample=present | PIN: mode=default (frozen stage command pin) expected_default=181c08ee7290f5bef02e22b6f7fd3c874c2d404cc8b4ffff84d2148a71f47eb8 actual=b1539052cd0e9a467c6c6e43f2ba6998ab2e06152a2d8f404c8113f5abefdbae | RESULT: FAIL (1 finding(s))
+note    : the default pin and the explicit override must be distinguishable
+==============================================================================
+PROBE P29  [fence=OFF (hash only)]
+purpose : NM-8: a stale 1.1.1 pin passed explicitly is still rejected
+exit    : 1
+stdout  : E_D0_PACKET_MANIFEST_PINNED: D0 packet manifest .agent-governance/stages/V1-D0/PAYLOAD_MANIFEST.sha256 hash 181c08ee7290f5bef02e22b6f7fd3c874c2d404cc8b4ffff84d2148a71f47eb8 differs from the source-control pinned 04d3bfb4af3c2d7be68e494a6d59624a96051a0ebf28e81d6a0367aa32aa6710 | VALIDATION: metaschema_check=jsonschema frame_instance_probe=jsonschema frame_sample=present | PIN: mode=explicit-override (NON-AUTHORITY: this run did not use the frozen stage command pin) expected_default=181c08ee7290f5bef02e22b6f7fd3c874c2d404cc8b4ffff84d2148a71f47eb8 actual=181c08ee7290f5bef02e22b6f7fd3c874c2d404cc8b4ffff84d2148a71f47eb8 override=04d3bfb4af3c2d7be68e494a6d59624a96051a0ebf28e81d6a0367aa32aa6710 | R
+==============================================================================
+PROBE P40  [fence=OFF (hash only)]
+purpose : NM-8: the design 1.1 pin passed explicitly is still rejected
+exit    : 1
+stdout  : E_D0_PACKET_MANIFEST_PINNED: D0 packet manifest .agent-governance/stages/V1-D0/PAYLOAD_MANIFEST.sha256 hash 181c08ee7290f5bef02e22b6f7fd3c874c2d404cc8b4ffff84d2148a71f47eb8 differs from the source-control pinned 56e6f07b72023928b32ed7350b78f9d1d148daf79108daffecb7d9a175e39c4a | VALIDATION: metaschema_check=jsonschema frame_instance_probe=jsonschema frame_sample=present | PIN: mode=explicit-override (NON-AUTHORITY: this run did not use the frozen stage command pin) expected_default=181c08ee7290f5bef02e22b6f7fd3c874c2d404cc8b4ffff84d2148a71f47eb8 actual=181c08ee7290f5bef02e22b6f7fd3c874c2d404cc8b4ffff84d2148a71f47eb8 override=56e6f07b72023928b32ed7350b78f9d1d148daf79108daffecb7d9a175e39c4a | R
+==============================================================================
+PROBE P41  [fence=OFF (hash only)]
+purpose : NM-8: the design 1.0 pin passed explicitly is still rejected
+exit    : 1
+stdout  : E_D0_PACKET_MANIFEST_PINNED: D0 packet manifest .agent-governance/stages/V1-D0/PAYLOAD_MANIFEST.sha256 hash 181c08ee7290f5bef02e22b6f7fd3c874c2d404cc8b4ffff84d2148a71f47eb8 differs from the source-control pinned 9bffdf2dc968f54fae0404d162c394e265cfb9900f68d9c303683bef756ede7b | VALIDATION: metaschema_check=jsonschema frame_instance_probe=jsonschema frame_sample=present | PIN: mode=explicit-override (NON-AUTHORITY: this run did not use the frozen stage command pin) expected_default=181c08ee7290f5bef02e22b6f7fd3c874c2d404cc8b4ffff84d2148a71f47eb8 actual=181c08ee7290f5bef02e22b6f7fd3c874c2d404cc8b4ffff84d2148a71f47eb8 override=9bffdf2dc968f54fae0404d162c394e265cfb9900f68d9c303683bef756ede7b | R
+==============================================================================
+PROBE P38  [fence=ON (semantic)]
+purpose : NM-6: the declared ref of the scene domain is rebound
+exit    : 1
+stdout  : E_DOMAIN_MAPPING: the canonical domain ref for scene is 'scene_id', the frozen rule is 'scene' | VALIDATION: metaschema_check=jsonschema frame_instance_probe=jsonschema frame_sample=present | PIN: mode=explicit-override (NON-AUTHORITY: this run did not use the frozen stage command pin) expected_default=181c08ee7290f5bef02e22b6f7fd3c874c2d404cc8b4ffff84d2148a71f47eb8 actual=7cabd961fbdc6429a04405550e3c1ca3ebc327902832ea79f093eeb7fa14b8a6 override=7cabd961fbdc6429a04405550e3c1ca3ebc327902832ea79f093eeb7fa14b8a6 | RESULT: FAIL (1 finding(s))
+==============================================================================
+PROBE P39  [fence=ON (semantic)]
+purpose : NM-6: the example also carries entries of the other declared domain
+exit    : 1
+stdout  : E_DOMAIN_MAPPING: the canonical domain example routes its source to the observation domain but also carries 1 inference entries | VALIDATION: metaschema_check=jsonschema frame_instance_probe=jsonschema frame_sample=present | PIN: mode=explicit-override (NON-AUTHORITY: this run did not use the frozen stage command pin) expected_default=181c08ee7290f5bef02e22b6f7fd3c874c2d404cc8b4ffff84d2148a71f47eb8 actual=a557ebadfd77af335f45313fd0ed94566d480873c4608756da0e6287dbdf0395 override=a557ebadfd77af335f45313fd0ed94566d480873c4608756da0e6287dbdf0395 | RESULT: FAIL (1 finding(s))
+==============================================================================
+probes written to /home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v1-redesign/d0-review/design112/checks/probe-results.json

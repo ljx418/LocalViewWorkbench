@@ -1,0 +1,168 @@
+{
+  "prior_test_function_count": 164,
+  "candidate_test_function_count": 223,
+  "carried_function_count": 163,
+  "removed_functions": [
+    "test_d0_packet_pin_is_the_owner_supplied_111_digest"
+  ],
+  "removed_function_replacements": {
+    "test_d0_packet_pin_is_the_owner_supplied_111_digest": "test_d0_packet_pin_is_the_owner_supplied_112_digest"
+  },
+  "added_function_count": 60,
+  "added_functions": [
+    "test_a_degraded_run_without_jsonschema_is_not_byte_identical",
+    "test_a_degraded_run_without_the_frame_sample_is_not_byte_identical",
+    "test_a_malformed_domain_mapping_container_is_rejected",
+    "test_a_malformed_overlay_header_container_is_rejected",
+    "test_a_malformed_overlay_header_entry_is_rejected",
+    "test_a_malformed_overlay_metadata_container_is_rejected",
+    "test_a_malformed_overlay_metadata_entry_is_rejected",
+    "test_a_malformed_sample_design_container_is_rejected",
+    "test_a_malformed_scene_hash_container_is_rejected",
+    "test_a_malformed_spec_manifest_container_is_rejected",
+    "test_a_missing_input_reports_a_clean_input_error_on_stdout",
+    "test_a_stale_pin_is_still_rejected_when_it_is_overridden",
+    "test_an_invalid_candidate_schema_regex_is_rejected",
+    "test_an_overridden_pin_run_is_marked_as_non_authority",
+    "test_an_overridden_pin_run_still_reports_the_computed_actual_pin",
+    "test_an_unexpected_scene_hash_call_site_is_rejected",
+    "test_d0_packet_pin_is_the_owner_supplied_112_digest",
+    "test_every_scene_hash_alias_is_pinned_to_its_frozen_mapping",
+    "test_stale_1_1_1_packet_pin_no_longer_validates_the_owner_packet",
+    "test_the_111_adjudication_stays_the_historical_pending_record",
+    "test_the_112_adjudication_counts_are_the_derived_ones",
+    "test_the_112_adjudication_decision_is_changes_required",
+    "test_the_112_adjudication_keeps_the_review_summary_minor_count",
+    "test_the_112_adjudication_may_not_claim_the_product_gate",
+    "test_the_112_adjudication_may_not_close_a_finding",
+    "test_the_112_adjudication_may_not_invent_a_ninth_finding",
+    "test_the_domain_engine_follows_the_declared_language_order",
+    "test_the_domain_engine_keeps_the_original_action_and_unknown_index",
+    "test_the_domain_engine_keeps_the_raw_text_unchanged",
+    "test_the_domain_engine_never_touches_the_human_domains",
+    "test_the_domain_engine_reports_an_undeclared_domain",
+    "test_the_domain_engine_routes_every_kind_and_both_domains",
+    "test_the_domain_engine_skips_only_an_exactly_empty_language",
+    "test_the_domain_engine_sorts_the_characters_by_actor_id",
+    "test_the_domain_rule_may_not_drop_the_sorted_order_clause",
+    "test_the_domain_rule_may_not_name_another_key_order",
+    "test_the_domain_rule_must_name_a_source_field_the_dto_declares",
+    "test_the_frozen_domain_entry_key_order_is_the_sorted_order",
+    "test_the_frozen_example_may_not_also_carry_the_other_domain",
+    "test_the_frozen_example_source_domain_must_match_its_destination",
+    "test_the_frozen_example_uses_the_sorted_key_order",
+    "test_the_mandatory_owner_run_used_the_frozen_default_pin",
+    "test_the_mandatory_owner_run_used_the_optional_dependency_and_the_real_frames",
+    "test_the_new_scene_get_envelope_may_not_accept_extra_properties",
+    "test_the_new_scene_get_envelope_required_set_is_frozen",
+    "test_the_new_scene_get_may_not_drop_the_canonical_envelope",
+    "test_the_new_scene_get_may_not_return_another_candidate_component",
+    "test_the_new_scene_get_returns_the_canonical_scene_in_the_canonical_envelope",
+    "test_the_owner_migration_declares_exactly_two_backfill_call_sites",
+    "test_the_run_declares_its_validation_capability",
+    "test_the_run_records_the_default_d0_pin",
+    "test_the_scene_hash_mapping_covers_all_eleven_fields",
+    "test_the_scene_hash_sql_call_site_may_not_add_an_argument",
+    "test_the_scene_hash_sql_call_site_may_not_bind_another_column",
+    "test_the_scene_hash_sql_call_site_may_not_drop_an_argument",
+    "test_the_scene_hash_sql_call_site_may_not_permute_the_pts",
+    "test_the_scene_hash_sql_call_site_may_not_swap_two_arguments",
+    "test_the_scene_hash_time_basis_must_stay_a_literal",
+    "test_the_scene_hash_verified_must_stay_an_integer_literal",
+    "test_the_structural_fallback_is_not_claimed_as_a_full_validation"
+  ],
+  "carried_functions_with_a_changed_body": [
+    "test_authority_spec_fence_holds_exactly_the_frozen_inventory",
+    "test_merge_may_not_change_the_canonical_operation_body",
+    "test_stale_1_0_packet_pin_no_longer_validates_the_owner_packet",
+    "test_stale_1_1_packet_pin_no_longer_validates_the_owner_packet"
+  ],
+  "changed_bodies": [
+    {
+      "test": "test_authority_spec_fence_holds_exactly_the_frozen_inventory",
+      "prior_lines": [
+        "def test_authority_spec_fence_holds_exactly_the_frozen_inventory(package):",
+        "    spec = load(package[\"root\"], D0_DIR + \"/spec-manifest.json\")",
+        "    assert len(spec[\"files\"]) == 24",
+        "    assert sorted(spec[\"files\"]) == sorted(checker.FROZEN_SPEC_FENCE_FILES)",
+        "    assert len(checker.FROZEN_D0_PACKET_FILES) == 10"
+      ],
+      "candidate_lines": [
+        "def test_authority_spec_fence_holds_exactly_the_frozen_inventory(package):",
+        "    spec = load(package[\"root\"], D0_DIR + \"/spec-manifest.json\")",
+        "    assert len(spec[\"files\"]) == 25",
+        "    assert sorted(spec[\"files\"]) == sorted(checker.FROZEN_SPEC_FENCE_FILES)",
+        "    assert len(checker.FROZEN_D0_PACKET_FILES) == 10"
+      ]
+    },
+    {
+      "test": "test_merge_may_not_change_the_canonical_operation_body",
+      "prior_lines": [
+        "def test_merge_may_not_change_the_canonical_operation_body(package):",
+        "    # The overlay may not smuggle a body change into a canonical operation.",
+        "    overlay = load(package[\"root\"], OVERLAY_REL)",
+        "    overlay[\"add_paths\"][\"/api/v1/scenes/{id}\"][\"get\"][\"responses\"][\"200\"][\"content\"] = {\"application/json\": {\"schema\": {\"$ref\": \"#/components/schemas/Scene\"}}}",
+        "    save(package[\"root\"], OVERLAY_REL, overlay)",
+        "    refresh_fences(package, [OVERLAY_REL])",
+        "    result = run_package(package)",
+        "    # The new GET is an addition, not a replacement: the canonical PUT must",
+        "    # still be untouched and the added GET must stay a valid candidate.",
+        "    assert result.returncode == 0, result.stdout"
+      ],
+      "candidate_lines": [
+        "def test_merge_may_not_change_the_canonical_operation_body(package):",
+        "    # The overlay may not smuggle a body change into a canonical operation.",
+        "    overlay = load(package[\"root\"], OVERLAY_REL)",
+        "    overlay[\"add_paths\"][\"/api/v1/scenes/{id}\"][\"get\"][\"responses\"][\"200\"][\"content\"] = {\"application/json\": {\"schema\": {\"$ref\": \"#/components/schemas/Scene\"}}}",
+        "    save(package[\"root\"], OVERLAY_REL, overlay)",
+        "    refresh_fences(package, [OVERLAY_REL])",
+        "    result = run_package(package)",
+        "    # design 1.1.2 (NM-2): the new GET is an addition, not a replacement, but",
+        "    # it must keep the canonical success envelope around the canonical Scene.",
+        "    # The envelope the mutation installs is a bare component reference, so the",
+        "    # package is now rejected.",
+        "    assert result.returncode != 0, result.stdout",
+        "    assert \"E_SCENE_GET_ENVELOPE\" in result.stdout",
+        "    # The canonical PUT itself was not touched by the overlay: the merge",
+        "    # guard did not fire.",
+        "    assert \"E_OVERLAY_BASE_MUTATED\" not in result.stdout"
+      ]
+    },
+    {
+      "test": "test_stale_1_0_packet_pin_no_longer_validates_the_owner_packet",
+      "prior_lines": [
+        "def test_stale_1_0_packet_pin_no_longer_validates_the_owner_packet():",
+        "    \"\"\"The 1.1 owner manifest was re-frozen; the superseded 1.0 pin must fail.\"\"\"",
+        "    result = subprocess.run(",
+        "        [sys.executable, \"-B\", str(CHECKER), \"--d0-packet-manifest-sha256\", OLD_D0_MANIFEST_SHA256],",
+        "        capture_output=True, text=True, cwd=str(ROOT),",
+        "    )",
+        "    expect_failure(result, \"E_D0_PACKET_MANIFEST_PINNED\")"
+      ],
+      "candidate_lines": [
+        "def test_stale_1_0_packet_pin_no_longer_validates_the_owner_packet():",
+        "    # The 1.0 owner digest is no longer the pin either.",
+        "    result = run_checker(ROOT, OLD_D0_MANIFEST_SHA256)",
+        "    assert result.returncode != 0",
+        "    assert \"E_D0_PACKET_MANIFEST_PINNED\" in result.stdout"
+      ]
+    },
+    {
+      "test": "test_stale_1_1_packet_pin_no_longer_validates_the_owner_packet",
+      "prior_lines": [
+        "def test_stale_1_1_packet_pin_no_longer_validates_the_owner_packet():",
+        "    # The 1.1 owner digest is no longer the pin; the 1.1.1 digest is.",
+        "    result = run_checker(ROOT, \"56e6f07b72023928b32ed7350b78f9d1d148daf79108daffecb7d9a175e39c4a\")",
+        "    assert result.returncode != 0",
+        "    assert \"E_D0_PACKET_MANIFEST_PINNED\" in result.stdout"
+      ],
+      "candidate_lines": [
+        "def test_stale_1_1_packet_pin_no_longer_validates_the_owner_packet():",
+        "    # The 1.1 owner digest is no longer the pin; the 1.1.2 digest is.",
+        "    result = run_checker(ROOT, OLD_D0_MANIFEST_1_1_SHA256)",
+        "    assert result.returncode != 0",
+        "    assert \"E_D0_PACKET_MANIFEST_PINNED\" in result.stdout"
+      ]
+    }
+  ]
+}

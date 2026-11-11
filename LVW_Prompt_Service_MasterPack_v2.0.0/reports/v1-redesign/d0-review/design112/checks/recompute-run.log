@@ -1,0 +1,372 @@
+{
+  "nm1": {
+    "field_count": 11,
+    "aliases": {
+      "media_ref_id": {
+        "alias": "scene_revision.media_ref_id",
+        "column": "media_ref_id",
+        "column_declared_in_the_migration": true
+      },
+      "media_sha256": {
+        "alias": "scene_revision_meta.source_sha256 (legacy backfill: media_ref.sha256)",
+        "column": "source_sha256",
+        "column_declared_in_the_migration": true
+      },
+      "revision": {
+        "alias": "scene_revision.version (equals scene_revision_meta.revision)",
+        "column": "version",
+        "column_declared_in_the_migration": true
+      },
+      "start_pts": {
+        "alias": "scene_revision.start_pts",
+        "column": "start_pts",
+        "column_declared_in_the_migration": true
+      },
+      "end_pts": {
+        "alias": "scene_revision.end_pts",
+        "column": "end_pts",
+        "column_declared_in_the_migration": true
+      },
+      "origin_pts": {
+        "alias": "scene_revision.origin_pts",
+        "column": "origin_pts",
+        "column_declared_in_the_migration": true
+      },
+      "time_base_num": {
+        "alias": "scene_revision.tb_num",
+        "column": "tb_num",
+        "column_declared_in_the_migration": true
+      },
+      "time_base_den": {
+        "alias": "scene_revision.tb_den",
+        "column": "tb_den",
+        "column_declared_in_the_migration": true
+      },
+      "editor": {
+        "alias": "scene_revision.editor",
+        "column": "editor",
+        "column_declared_in_the_migration": true
+      },
+      "time_basis": {
+        "alias": "scene_revision_meta.time_basis",
+        "column": "time_basis",
+        "column_declared_in_the_migration": true
+      },
+      "verified": {
+        "alias": "scene_revision_meta.verified (SQLite 0/1 converted to JSON false/true)",
+        "column": "verified",
+        "column_declared_in_the_migration": true
+      }
+    },
+    "all_eleven_aliases_present": true,
+    "all_alias_columns_declared_in_the_migration": true,
+    "call_site_count": 2,
+    "call_sites": [
+      {
+        "site": 1,
+        "table": "SCENE_HEAD",
+        "argument_count": 11,
+        "argument_count_matches_the_field_list": true,
+        "arguments": [
+          {
+            "position": 1,
+            "argument": "s.media_ref_id",
+            "kind": "column",
+            "expected": "media_ref_id",
+            "actual": "media_ref_id",
+            "matches": true
+          },
+          {
+            "position": 2,
+            "argument": "m.sha256",
+            "kind": "column",
+            "expected": "sha256",
+            "actual": "sha256",
+            "matches": true
+          },
+          {
+            "position": 3,
+            "argument": "s.version",
+            "kind": "column",
+            "expected": "version",
+            "actual": "version",
+            "matches": true
+          },
+          {
+            "position": 4,
+            "argument": "s.start_pts",
+            "kind": "column",
+            "expected": "start_pts",
+            "actual": "start_pts",
+            "matches": true
+          },
+          {
+            "position": 5,
+            "argument": "s.end_pts",
+            "kind": "column",
+            "expected": "end_pts",
+            "actual": "end_pts",
+            "matches": true
+          },
+          {
+            "position": 6,
+            "argument": "s.origin_pts",
+            "kind": "column",
+            "expected": "origin_pts",
+            "actual": "origin_pts",
+            "matches": true
+          },
+          {
+            "position": 7,
+            "argument": "s.tb_num",
+            "kind": "column",
+            "expected": "tb_num",
+            "actual": "tb_num",
+            "matches": true
+          },
+          {
+            "position": 8,
+            "argument": "s.tb_den",
+            "kind": "column",
+            "expected": "tb_den",
+            "actual": "tb_den",
+            "matches": true
+          },
+          {
+            "position": 9,
+            "argument": "s.editor",
+            "kind": "column",
+            "expected": "editor",
+            "actual": "editor",
+            "matches": true
+          },
+          {
+            "position": 10,
+            "argument": "'unverified'",
+            "kind": "literal",
+            "matches": true
+          },
+          {
+            "position": 11,
+            "argument": "0",
+            "kind": "literal",
+            "matches": true
+          }
+        ],
+        "order_ok": true
+      },
+      {
+        "site": 2,
+        "table": "SCENE_REVISION_META",
+        "argument_count": 11,
+        "argument_count_matches_the_field_list": true,
+        "arguments": [
+          {
+            "position": 1,
+            "argument": "s.media_ref_id",
+            "kind": "column",
+            "expected": "media_ref_id",
+            "actual": "media_ref_id",
+            "matches": true
+          },
+          {
+            "position": 2,
+            "argument": "m.sha256",
+            "kind": "column",
+            "expected": "sha256",
+            "actual": "sha256",
+            "matches": true
+          },
+          {
+            "position": 3,
+            "argument": "s.version",
+            "kind": "column",
+            "expected": "version",
+            "actual": "version",
+            "matches": true
+          },
+          {
+            "position": 4,
+            "argument": "s.start_pts",
+            "kind": "column",
+            "expected": "start_pts",
+            "actual": "start_pts",
+            "matches": true
+          },
+          {
+            "position": 5,
+            "argument": "s.end_pts",
+            "kind": "column",
+            "expected": "end_pts",
+            "actual": "end_pts",
+            "matches": true
+          },
+          {
+            "position": 6,
+            "argument": "s.origin_pts",
+            "kind": "column",
+            "expected": "origin_pts",
+            "actual": "origin_pts",
+            "matches": true
+          },
+          {
+            "position": 7,
+            "argument": "s.tb_num",
+            "kind": "column",
+            "expected": "tb_num",
+            "actual": "tb_num",
+            "matches": true
+          },
+          {
+            "position": 8,
+            "argument": "s.tb_den",
+            "kind": "column",
+            "expected": "tb_den",
+            "actual": "tb_den",
+            "matches": true
+          },
+          {
+            "position": 9,
+            "argument": "s.editor",
+            "kind": "column",
+            "expected": "editor",
+            "actual": "editor",
+            "matches": true
+          },
+          {
+            "position": 10,
+            "argument": "'unverified'",
+            "kind": "literal",
+            "matches": true
+          },
+          {
+            "position": 11,
+            "argument": "0",
+            "kind": "literal",
+            "matches": true
+          }
+        ],
+        "order_ok": true
+      }
+    ],
+    "all_call_sites_in_the_declared_order": true,
+    "independent_fixture_sha256": "91133a6cdfc93456e2bc7d53c68eec9ad1a0faf5bd0e05b84b95dbafe0d9f788",
+    "independent_fixture_etag": "scene:scene-rev-001:91133a6cdfc93456e2bc7d53c68eec9ad1a0faf5bd0e05b84b95dbafe0d9f788",
+    "independent_fixture_etag_matches_the_strong_tag_pattern": true,
+    "verified_is_a_json_bool_in_the_fixture": true,
+    "ddl_of_lvw_scene_hash_in_the_frozen_package": false,
+    "note": "the migration is read as text only; it is never executed"
+  },
+  "nm2": {
+    "new_get_data_ref": {
+      "$ref": "#/components/schemas/Scene"
+    },
+    "new_get_data_ref_is_the_canonical_scene": true,
+    "new_get_envelope_properties": [
+      "data",
+      "request_id",
+      "schema_version"
+    ],
+    "new_get_envelope_required": [
+      "data",
+      "request_id",
+      "schema_version"
+    ],
+    "new_get_envelope_additional_properties": false,
+    "canonical_envelope_properties": [
+      "data",
+      "request_id",
+      "schema_version"
+    ],
+    "canonical_envelope_required": [
+      "data",
+      "request_id",
+      "schema_version"
+    ],
+    "new_get_envelope_equals_the_canonical_envelope": true,
+    "canonical_operation_count": 38,
+    "canonical_operations_mutated": [],
+    "replacements": []
+  },
+  "nm5": {
+    "declared_entry_serialization": "Each nonempty language value produces one string: compact UTF-8 JSON object, sorted keys, ensure_ascii=False, allow_nan=False. The JSON key set is {kind, lang, ref, text}; serialized key order MUST be kind, lang, ref, text (sort_keys=True), never insertion order. No translation, normalization, trim or deduplication; skip only exactly empty strings. Preserve raw model response byte-for-byte.",
+    "declared_key_set_and_order_are_unambiguous": true,
+    "reviewer_recomputed_example": [
+      "{\"kind\":\"character\",\"lang\":\"zh\",\"ref\":\"actor1\",\"text\":\"红衣人物\"}",
+      "{\"kind\":\"character\",\"lang\":\"en\",\"ref\":\"actor1\",\"text\":\"person in red\"}"
+    ],
+    "contract_example": [
+      "{\"kind\":\"character\",\"lang\":\"zh\",\"ref\":\"actor1\",\"text\":\"红衣人物\"}",
+      "{\"kind\":\"character\",\"lang\":\"en\",\"ref\":\"actor1\",\"text\":\"person in red\"}"
+    ],
+    "example_matches_byte_for_byte": true,
+    "key_order_of_the_serialized_entry": [
+      "kind",
+      "lang",
+      "ref",
+      "text"
+    ],
+    "empty_language_is_skipped": true,
+    "whitespace_language_is_retained": true
+  },
+  "nm6": {
+    "two_independent_implementations_agree": {
+      "observation": true,
+      "inference": true,
+      "unknowns": true
+    },
+    "all_three_destinations_agree": true,
+    "reviewer_errors": [],
+    "candidate_errors": [],
+    "kinds_covered": [
+      "action",
+      "character",
+      "scene",
+      "unknown"
+    ],
+    "character_sorted_by_actor_id": [
+      "actor2",
+      "actor2",
+      "actor3",
+      "actor3",
+      "actor4"
+    ],
+    "scene_ref": [
+      "scene",
+      "scene"
+    ],
+    "action_refs": [
+      "0",
+      "0"
+    ],
+    "unknown_refs": [
+      "0",
+      "0",
+      "1"
+    ],
+    "exactly_empty_language_skipped": true,
+    "whitespace_language_retained": true,
+    "raw_text_preserved": true,
+    "language_order_zh_before_en": [
+      [
+        "zh",
+        "character"
+      ],
+      [
+        "en",
+        "character"
+      ],
+      [
+        "zh",
+        "character"
+      ],
+      [
+        "en",
+        "character"
+      ]
+    ],
+    "human_domains_never_written": true,
+    "human_domains_in_the_canonical_domains_dto": true,
+    "scope": "offline declaration conformance only; there is no runtime adapter in this D0 package"
+  }
+}
