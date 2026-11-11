@@ -14,12 +14,16 @@ approved dependency predicate ``S3-V1-ONLY-S2-HANDOFF-01`` is:
 * paired with the frozen capability mapping that keeps every retained S3
   quality, install and rollback duty,
 * still projecting the historical S2 stage as 7/8 with native human signoff
-  PENDING.
+  PENDING -- in the *declared* predicate snapshot **and** in the *actual* live
+  authority ``plans/execution-control.json`` (the ``development_outline``
+  entry ``V0-S2`` and the retained ``historical_s2_coordinate`` snapshot).
 
-Deliberately NOT validated (and deliberately not frozen): the mutable
-execution coordinates of ``plans/execution-control.json`` (stage / workpack /
-gate / state).  Those may advance; only the immutable proof snapshot of the
-predicate is compared.
+Deliberately NOT validated (and deliberately not frozen): the mutable *live*
+execution coordinates of ``plans/execution-control.json`` (``coordinate`` /
+``current_blocking_gate`` / ``updated_at``).  Those may advance.  The document
+is read and interpreted, never hash-frozen: the old-S2 *actual* projection is
+asserted semantically against the live authority, not against a copied
+snapshot or a checksum.
 
 This tool never grants model execution, never grants product Gate0 and never
 declares a Stage PASS.
@@ -137,6 +141,28 @@ HISTORICAL_S2_PROJECTION = {
     "completed_substeps": 7,
     "total_substeps": 8,
     "human_signoff": "PENDING",
+}
+
+# --------------------------------------------------------------------------
+# The ACTUAL old-S2 projection, read live out of ``plans/execution-control.json``.
+#
+# The owner rule (AGENTS.md rule 24 / ADR-14) preserves the actual historical
+# V0-S2 state, not only the declared predicate snapshot.  These constants are
+# the *expected* values; the *observed* values are reported next to them and
+# are never silently asserted as 7/8.
+# --------------------------------------------------------------------------
+EXPECTED_S2_COMPLETED_SUBSTEPS = 7
+EXPECTED_S2_TOTAL_SUBSTEPS = 8
+EXPECTED_S2_HUMAN_SIGNOFF = "PENDING"
+EXPECTED_S2_HUMAN_SUBSTEP_NAME = "S2 人工签署与Git同步"
+
+# The retained historical coordinate is a snapshot, not a second live
+# coordinate: it must stay exactly as recorded.
+EXPECTED_HISTORICAL_S2_COORDINATE = {
+    "stage_id": "V0-S2",
+    "workpack_id": "WP-S2-06",
+    "gate": "GATE5_HUMAN_EXPERIENCE_SIGNOFF",
+    "state": "WAIT_HUMAN",
 }
 
 
@@ -707,6 +733,189 @@ def check_stage_packet(root: Path, pins: dict, report: Report) -> None:
     )
 
 
+def _observed_s2_projection(execution: dict) -> dict:
+    """Read the observed old-S2 projection without asserting any expected value.
+
+    Every defect fails closed: a missing, duplicated or malformed stage entry
+    yields ``None`` for every field, never the declared 7/8 expectation.
+    """
+    observed = {"completed_substeps": None, "total_substeps": None, "human_signoff": None}
+    if not isinstance(execution, dict):
+        return observed
+    outline = execution.get("development_outline")
+    if not isinstance(outline, list):
+        return observed
+    entries = [
+        item
+        for item in outline
+        if isinstance(item, dict) and item.get("stage_id") == "V0-S2"
+    ]
+    if len(entries) != 1:
+        return observed
+    entry = entries[0]
+    observed["completed_substeps"] = entry.get("completed_substeps")
+    observed["total_substeps"] = entry.get("total_substeps")
+    observed["human_signoff"] = entry.get("human_signoff")
+    return observed
+
+
+def check_actual_s2_projection(execution: dict, report: Report) -> dict:
+    """Assert the ACTUAL old-S2 projection carried by the live execution authority.
+
+    ``plans/execution-control.json`` is the mutable execution coordinate and is
+    therefore never hash-frozen.  It is read and *interpreted*: the live
+    ``development_outline`` entry ``V0-S2`` must keep exactly eight substeps of
+    which seven are ``DONE`` and exactly one -- the native human step -- stays
+    ``PENDING`` with null evidence, the counters must stay integer 7 of 8 and
+    the native human signoff must stay ``PENDING``.  The retained
+    ``historical_s2_coordinate`` snapshot must stay exactly as recorded.
+
+    The live ``coordinate`` / ``current_blocking_gate`` / ``updated_at`` fields
+    are deliberately NOT touched here: they are free to advance.
+    """
+    execution = execution if isinstance(execution, dict) else {}
+    first_check = len(report.checks)
+    observed = _observed_s2_projection(execution)
+
+    outline = execution.get("development_outline")
+    report.add(
+        "actual.outline.container",
+        isinstance(outline, list),
+        "development_outline is %s (a list of stage objects is required)"
+        % type(outline).__name__,
+    )
+    entries = []
+    if isinstance(outline, list):
+        entries = [
+            item
+            for item in outline
+            if isinstance(item, dict) and item.get("stage_id") == "V0-S2"
+        ]
+    report.add(
+        "actual.outline.v0_s2_occurrence",
+        len(entries) == 1,
+        "development_outline entries with stage_id 'V0-S2': %d (exactly one required)"
+        % len(entries),
+    )
+    entry = entries[0] if len(entries) == 1 else {}
+
+    completed = entry.get("completed_substeps")
+    report.add(
+        "actual.outline.completed_substeps",
+        isinstance(completed, int)
+        and not isinstance(completed, bool)
+        and completed == EXPECTED_S2_COMPLETED_SUBSTEPS,
+        "observed completed_substeps=%r (expected integer %d)"
+        % (completed, EXPECTED_S2_COMPLETED_SUBSTEPS),
+    )
+    total = entry.get("total_substeps")
+    report.add(
+        "actual.outline.total_substeps",
+        isinstance(total, int)
+        and not isinstance(total, bool)
+        and total == EXPECTED_S2_TOTAL_SUBSTEPS,
+        "observed total_substeps=%r (expected integer %d)"
+        % (total, EXPECTED_S2_TOTAL_SUBSTEPS),
+    )
+    signoff = entry.get("human_signoff")
+    report.add(
+        "actual.outline.human_signoff",
+        signoff == EXPECTED_S2_HUMAN_SIGNOFF,
+        "observed human_signoff=%r (expected %r)" % (signoff, EXPECTED_S2_HUMAN_SIGNOFF),
+    )
+
+    substeps = entry.get("substeps")
+    report.add(
+        "actual.outline.substeps_container",
+        isinstance(substeps, list),
+        "substeps is %s (a list of substep objects is required)" % type(substeps).__name__,
+    )
+    substeps = substeps if isinstance(substeps, list) else []
+    report.add(
+        "actual.outline.substep_count",
+        len(substeps) == EXPECTED_S2_TOTAL_SUBSTEPS,
+        "substep count=%d (expected exactly %d)" % (len(substeps), EXPECTED_S2_TOTAL_SUBSTEPS),
+    )
+    statuses = [item.get("status") for item in substeps if isinstance(item, dict)]
+    report.add(
+        "actual.outline.substep_status_vocabulary",
+        len(statuses) == len(substeps)
+        and all(status in ("DONE", "PENDING") for status in statuses),
+        "substep statuses=%r (only DONE and PENDING are allowed)" % (statuses,),
+    )
+    done = [item for item in substeps if isinstance(item, dict) and item.get("status") == "DONE"]
+    pending = [item for item in substeps if isinstance(item, dict) and item.get("status") == "PENDING"]
+    report.add(
+        "actual.outline.done_count",
+        len(done) == EXPECTED_S2_COMPLETED_SUBSTEPS,
+        "DONE substeps=%d (expected exactly %d)" % (len(done), EXPECTED_S2_COMPLETED_SUBSTEPS),
+    )
+    report.add(
+        "actual.outline.pending_count",
+        len(pending) == 1,
+        "PENDING substeps=%d (expected exactly 1)" % len(pending),
+    )
+    report.add(
+        "actual.outline.done_substep_evidence",
+        len(done) == EXPECTED_S2_COMPLETED_SUBSTEPS
+        and all(isinstance(item.get("evidence"), str) and item.get("evidence") for item in done),
+        "every DONE substep must carry a non-empty evidence path",
+    )
+    human = [
+        item
+        for item in substeps
+        if isinstance(item, dict) and item.get("name") == EXPECTED_S2_HUMAN_SUBSTEP_NAME
+    ]
+    report.add(
+        "actual.outline.human_substep_present",
+        len(human) == 1,
+        "substeps named %r: %d (exactly one required)"
+        % (EXPECTED_S2_HUMAN_SUBSTEP_NAME, len(human)),
+    )
+    human_step = human[0] if len(human) == 1 else {}
+    report.add(
+        "actual.outline.human_substep_pending",
+        human_step.get("status") == "PENDING",
+        "the native human substep status=%r (expected PENDING)"
+        % (human_step.get("status"),),
+    )
+    report.add(
+        "actual.outline.human_substep_evidence_null",
+        "evidence" in human_step and human_step.get("evidence") is None,
+        "the native human substep evidence=%r (expected null)"
+        % (human_step.get("evidence"),),
+    )
+
+    coordinate = execution.get("historical_s2_coordinate")
+    report.add(
+        "actual.historical_s2_coordinate.container",
+        isinstance(coordinate, dict),
+        "historical_s2_coordinate is %s" % type(coordinate).__name__,
+    )
+    coordinate = coordinate if isinstance(coordinate, dict) else {}
+    for field in sorted(EXPECTED_HISTORICAL_S2_COORDINATE):
+        expected = EXPECTED_HISTORICAL_S2_COORDINATE[field]
+        report.add(
+            "actual.historical_s2_coordinate.%s" % field,
+            coordinate.get(field) == expected,
+            "%s=%r (the retained historical snapshot must stay %r)"
+            % (field, coordinate.get(field), expected),
+        )
+    report.add(
+        "actual.historical_s2_coordinate.exact_keys",
+        set(coordinate) == set(EXPECTED_HISTORICAL_S2_COORDINATE),
+        "historical_s2_coordinate keys=%r (expected exactly %r)"
+        % (sorted(coordinate), sorted(EXPECTED_HISTORICAL_S2_COORDINATE)),
+    )
+
+    failed = [item for item in report.checks[first_check:] if not item["passed"]]
+    return {
+        "projection": observed,
+        "coordinate": coordinate if isinstance(execution.get("historical_s2_coordinate"), dict) else None,
+        "ok": not failed,
+    }
+
+
 def evaluate(root: Path = None, pins: dict = None) -> dict:
     """Evaluate the handoff predicate under ``root``.
 
@@ -741,6 +950,10 @@ def evaluate(root: Path = None, pins: dict = None) -> dict:
     check_unified_media(root, pins, report)
     check_capability_map(root, pins, report)
 
+    # The ACTUAL old-S2 projection, read live out of the execution authority.
+    actual = check_actual_s2_projection(execution if execution is not None else {}, report)
+    observed_projection = actual["projection"]
+
     failed = report.failed
     canonical = root.resolve() == ROOT.resolve()
     overridden = pins != PRODUCTION_PINS
@@ -766,19 +979,39 @@ def evaluate(root: Path = None, pins: dict = None) -> dict:
             "dependency_stage": DEPENDENCY_STAGE,
             "purpose": PURPOSE,
         },
-        "historical_s2_projection": dict(HISTORICAL_S2_PROJECTION),
+        "historical_s2_projection": dict(observed_projection),
+        "historical_s2_declared_expected_state": dict(HISTORICAL_S2_PROJECTION),
+        "historical_s2_projection_source": (
+            "plans/execution-control.json#/development_outline (stage_id=V0-S2)"
+        ),
+        "historical_s2_coordinate_observed": actual["coordinate"],
         "product_gate0": False,
         "stage_pass_claim": False,
         "product_execution_authorized": False,
         "authorizes_model_execution": False,
         "authorizes_any_other_stage": False,
         "execution_coordinates_frozen": False,
+        "historical_s2_coordinate_snapshot_enforced": True,
         "notes": [
             "HANDOFF_READINESS_ONLY: this validator proves the approved V1-only dependency predicate only.",
             "It never authorises model execution, product Gate0, a Stage PASS or any other dependency edge.",
-            "Mutable execution coordinates (stage/workpack/gate/state) are deliberately not validated.",
-            "Historical V0-S2 stays 7/8 with native human signoff PENDING.",
-        ],
+            "The live old-S2 projection is READ from plans/execution-control.json and asserted semantically; "
+            "that document is never hash-frozen and no copied snapshot or checksum stands in for it.",
+            "The mutable live coordinate (coordinate / current_blocking_gate / updated_at) stays free to advance.",
+            "The retained historical_s2_coordinate snapshot must stay V0-S2 / WP-S2-06 / "
+            "GATE5_HUMAN_EXPERIENCE_SIGNOFF / WAIT_HUMAN.",
+        ]
+        + (
+            [
+                "Observed historical V0-S2 projection in plans/execution-control.json: "
+                "7/8 substeps with native human signoff PENDING."
+            ]
+            if actual["ok"]
+            else [
+                "Observed historical V0-S2 projection in plans/execution-control.json does NOT match "
+                "the declared expectation; see the failed actual.* checks (no 7/8 is asserted here)."
+            ]
+        ),
         "summary": {
             "checks": len(report.checks),
             "passed": len(report.checks) - len(failed),
