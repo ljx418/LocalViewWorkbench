@@ -235,3 +235,8 @@ C2 读取哈希固定的1.0.4完整九样本清单，保留旧四样本前缀；
 当前进度读取execution-control：V1-D0准备2/2，候选eea5663的独审233通过、Fatal0/Major0，Codex接纳非阻断Minor；结论见[裁决](../reports/v1-redesign/d0-acceptance/decision.md)。docs30–32和D0 packet的审前状态为已封存设计快照，最新审查与收口状态以本裁决及唯一坐标为准；不修改旧候选以伪造已审核状态。该准备收口不激活产品Gate0，不完成R1/M1，也不冻结实际47镜头样本。
 
 产品下一动作仍为621b1bf统一图视频切片的实际人工体验签署，入口见[人工指南](../人工验收指南.html)，具体清单见[请求](../reports/unified-media/human-signoff-request-live15.json)。不是缺GPU/代码/候选权限。人工签署后立即按AGENTS16提交并普通推送，再按S2/S3/R1/M1/R2的既有依赖继续；旧S2和完整V1/发布不能被该切片签署代替。
+
+
+## 2026-11-11｜统一切片实际人工确认已记录
+
+用户确认当前前端与基本视频反推OK，并明确要求作为统一切片人签落盘与普通推送。见[签署](../reports/unified-media/human-signoff-live15.json)及[范围验收](../reports/unified-media/accepted-slice-live15.json)。该签署候选621b1bf，仅统一切片，不回填历史S2或批准完整V1/发布；下一步核对S2/S3依赖与复用范围，再进入有准入证据的Stage。唯一坐标已移除该切片WAIT_HUMAN。

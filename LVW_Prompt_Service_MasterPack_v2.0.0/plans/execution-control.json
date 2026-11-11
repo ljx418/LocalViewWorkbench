@@ -8,22 +8,23 @@
   "coordinate": {
     "stage_id": "R1",
     "workpack_id": "WP-R1-U3",
-    "gate": "UNIFIED_MEDIA_MACHINE_AND_INDEPENDENT_VERIFIED",
-    "state": "WAIT_HUMAN"
+    "gate": "UNIFIED_MEDIA_SLICE_HUMAN_ACCEPTED_SCOPE_ONLY",
+    "state": "SLICE_ACCEPTED_NEXT_STAGE_PREPARATION"
   },
   "last_passed_gate": {
     "gate": "UNIFIED_MEDIA_FIXED_UM10_AND_INDEPENDENT_REVIEW",
     "candidate_sha": "621b1bf386db71bfe08ca2f533fa8ec396b0504b",
     "receipt": "reports/unified-media/independent-live-15/receipt.json",
-    "decision": "10PASS_0FAIL_0BLOCKED_FATAL0_MAJOR0_HUMAN_PENDING",
+    "decision": "10PASS_0FAIL_0BLOCKED_FATAL0_MAJOR0_HUMAN_ACCEPTED_SCOPE_ONLY",
     "cpu_checks": 212,
     "fixed_cases": 10,
-    "passed_cases": 10
+    "passed_cases": 10,
+    "human_signoff": "reports/unified-media/human-signoff-live15.json"
   },
-  "current_blocking_gate": "ACTUAL_UNIFIED_MEDIA_HUMAN_EXPERIENCE_SIGNOFF",
+  "current_blocking_gate": "NEXT_STAGE_DEPENDENCY_AND_GATE0_READINESS",
   "stage_packet": ".agent-governance/stages/R1/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/R1/PAYLOAD_MANIFEST.sha256",
-  "product_status": "UNIFIED_MEDIA_SLICE_MACHINE_AND_INDEPENDENT_VERIFIED_HUMAN_PENDING",
+  "product_status": "UNIFIED_MEDIA_EARLY_ACCEPTED_SCOPE_ONLY_FULL_R1_PENDING",
   "allowed_claim": "V0_MIN_ACCEPTED_NOT_RELEASED",
   "forbidden_claims": [
     "V0_ACCEPTED",
@@ -33,8 +34,8 @@
     "PRODUCTION_RELEASED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "project_owner",
-  "next_action": "D0 offline design/tool preparation is complete. Project owner experiences and signs current unified image/video slice621b1bf; Codex then follows S2/S3/R1/M1/R2 dependencies. Do not rerun closed D0 for cosmetic residuals; do not infer a human signature or new runtime authorization.",
+  "next_owner": "Codex",
+  "next_action": "Immediately commit and ordinary push current accepted slice and real human signoff. Then audit S2/S3 dependencies and reuse scope under docs30; old S2 human signoff is not implied. Prepare next permitted packet, stop on an actual remaining human dependency or contract change.",
   "required_authorization": null,
   "authorization_request": "reports/authorization-program-v1-complete-03.request.json",
   "authorization_record": "reports/authorization-program-v1-complete-03.approval.json",
@@ -60,8 +61,8 @@
   "offline_candidate_sha": "96e77ea3691cf68422ccd159c85985b4d9a118ec",
   "evidence_root": "reports/",
   "gate_decision": "reports/unified-media/gate-decision.md",
-  "human_signoff": null,
-  "product_acceptance": null,
+  "human_signoff": "reports/unified-media/human-signoff-live15.json",
+  "product_acceptance": "reports/unified-media/accepted-slice-live15.json",
   "last_accepted_product": {
     "version": "V0-Min",
     "acceptance": "reports/v0-s1/v0-min-acceptance.json"
@@ -86,7 +87,7 @@
   "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
   "live_terminal_receipt": "reports/unified-media/live-15/receipt.json",
   "independent_review": "reports/unified-media/independent-live-15/review.md",
-  "exact_stop_reason": "WAIT_HUMAN: unified slice live15 fixedUM10/10 and independentFatal0/Major0 passed, actual human experience signature621b1bf absent. D0 preparation accepted on eea5663 with nonblocking Minor records. No missing GPU/code/candidate execution permission; no fullR1/V1/release PASS.",
+  "exact_stop_reason": "No stop requested: accepted unified slice must be committed/pushed now; proceed to next-stage dependency assessment. Historical S2/V0.2/fullR1/fullV1/release not signed.",
   "native_component_authorization": "reports/v0-s2/authorization-native-component-02.json",
   "native_component_terminal_receipt": "reports/v0-s2/native-component-02/receipt.json",
   "local_control_change_decision": "reports/v0-s2/change-decision-video-workbench-01.json",
@@ -475,11 +476,11 @@
       ],
       "completed_substeps": 0,
       "total_substeps": 4,
-      "summary": "最小图视频统一前端切片3/3实现、机器UM10和独审通过；人签待。完整R1四子项仍未正式交付，不折算为4项完成。",
+      "summary": "最小统一图视频切片3/3、UM10机器与独审通过，用户已确认当前前端与基本视频反推；完整R1四子项仍0/4，不补签历史S2/完整V1或发布。",
       "implementation": "EARLY_SLICE_IMPLEMENTED_FULL_R1_PENDING",
       "machine_acceptance": "EARLY_SLICE_UM10_ONLY",
       "independent_review": "EARLY_SLICE_FATAL0_MAJOR0",
-      "human_signoff": "EARLY_SLICE_PENDING",
+      "human_signoff": "EARLY_SLICE_APPROVED_FULL_R1_PENDING",
       "early_slice": {
         "id": "UNIFIED_MEDIA_EARLY",
         "completed_workpacks": 3,
@@ -487,7 +488,8 @@
         "candidate_sha": "621b1bf386db71bfe08ca2f533fa8ec396b0504b",
         "machine_acceptance": "UM10_PASS",
         "independent_review": "FATAL0_MAJOR0",
-        "human_signoff": "PENDING"
+        "human_signoff": "APPROVED",
+        "human_signoff_record": "reports/unified-media/human-signoff-live15.json"
       }
     },
     {
@@ -805,7 +807,7 @@
     "approval": "reports/unified-media/approval.json",
     "completed_workpacks": 3,
     "total_workpacks": 3,
-    "human_signoff": null,
+    "human_signoff": "reports/unified-media/human-signoff-live15.json",
     "workpacks": [
       {
         "id": "WP-R1-U1",
@@ -817,7 +819,7 @@
       },
       {
         "id": "WP-R1-U3",
-        "state": "MACHINE_AND_INDEPENDENT_VERIFIED_HUMAN_PENDING"
+        "state": "MACHINE_INDEPENDENT_AND_HUMAN_ACCEPTED_SCOPE_ONLY"
       }
     ],
     "implementation": "IMPLEMENTED",
@@ -990,11 +992,12 @@
     "C2_browser_cleanup": "reports/unified-media/owner-split-c2-code-review-04/addendum2-receipt.json"
   },
   "required_human_signoff": {
-    "status": "PENDING_ACTUAL_USER_EXPERIENCE",
+    "status": "APPROVED_SCOPE_ONLY",
     "candidate_sha": "621b1bf386db71bfe08ca2f533fa8ec396b0504b",
     "scope": "UNIFIED_MEDIA_EARLY_ONLY",
     "request": "reports/unified-media/human-signoff-request-live15.json",
-    "not_full_R1_V1_or_release": true
+    "not_full_R1_V1_or_release": true,
+    "record": "reports/unified-media/human-signoff-live15.json"
   },
   "current_cpu_receipt": "reports/unified-media/owner-split-final-offline-04/receipt.json",
   "approved_v1_multishot_change": "reports/v1-redesign/product-change-approval.json",
@@ -1030,5 +1033,11 @@
       "NM-6"
     ],
     "completion_is_product_pass": false
+  },
+  "last_accepted_slice": {
+    "id": "UNIFIED_MEDIA_EARLY",
+    "candidate_sha": "621b1bf386db71bfe08ca2f533fa8ec396b0504b",
+    "acceptance": "reports/unified-media/accepted-slice-live15.json",
+    "human_signoff": "reports/unified-media/human-signoff-live15.json"
   }
 }
