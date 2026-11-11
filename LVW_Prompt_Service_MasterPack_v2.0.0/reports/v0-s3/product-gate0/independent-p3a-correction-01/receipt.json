@@ -1,0 +1,123 @@
+{
+  "schema_version": "lvw.independent-p3a-correction-review/1",
+  "author": "ljx418 <1173696783@qq.com>",
+  "candidate_sha": "5497bd1860ae895f394ece23a1ddb5e0b22fad92",
+  "evidence_commit": "bf675ffb84146527f430c46467ec4e236e1fa3a4",
+  "contract_root": "a3361b5f6e43b6a3f8b0f57fd2faa5fc7ffe4822",
+  "prior_independent_commit": "bdbe43c084b2264ecb511f9cf6cd8d852c881efe",
+  "coordinate_read_commit": "f2ba889",
+  "recommendation": "CHANGES_REQUIRED_CORRECTED_OFFLINE_DEPLOYMENT_COMPONENT",
+  "findings": {
+    "Fatal": 0,
+    "Major": 1,
+    "Minor": 0
+  },
+  "closed_original_ids": [
+    "P3A-M01",
+    "P3A-M02",
+    "P3A-m01"
+  ],
+  "open_original_ids": [],
+  "new_open_ids": [
+    "P3A-C01-M03"
+  ],
+  "original_closure_scope": "Original reproduced triggers; new end-to-end failure-evidence gap remains blocking",
+  "checks": [
+    {
+      "run": "targeted",
+      "passed": 44,
+      "failed": 0,
+      "exit": 0,
+      "invocations": 1
+    },
+    {
+      "run": "regression",
+      "passed": 23,
+      "failed": 0,
+      "exit": 0,
+      "invocations": 1
+    },
+    {
+      "run": "owner",
+      "passed": 17,
+      "failed": 0,
+      "exit": 0,
+      "invocations": 1,
+      "boundary": "Python main/parser and real default owner in-process; no external CLI child"
+    },
+    {
+      "run": "probes",
+      "passed": 4,
+      "failed": 1,
+      "exit": 1,
+      "invocations": 1,
+      "meaning": "Four fix assertions pass; new final failure receipt assertion genuinely fails; not counted as acceptance PASS"
+    }
+  ],
+  "fixed_checks_total": 84,
+  "independent_probes": 5,
+  "binding": {
+    "source_blobs": 4,
+    "implementation_checksum_entries": 47,
+    "prior_review_checksum_entries": 56,
+    "all_match": true,
+    "evidence": "raw/binding-recomputation.json"
+  },
+  "candidate_edits": false,
+  "contract_changes": "none",
+  "cleanup": [
+    {
+      "run": "owner",
+      "registered_paths": 12,
+      "remaining": [],
+      "git_children": 0,
+      "denied": []
+    },
+    {
+      "run": "probes",
+      "registered_paths": 11,
+      "remaining": [],
+      "git_children": 55,
+      "denied": []
+    },
+    {
+      "run": "regression",
+      "registered_paths": 38,
+      "remaining": [],
+      "git_children": 0,
+      "denied": []
+    },
+    {
+      "run": "targeted",
+      "registered_paths": 90,
+      "remaining": [],
+      "git_children": 484,
+      "denied": []
+    }
+  ],
+  "scope_counts": {
+    "actual_windows_wsl_children": 0,
+    "powershell_parser": 0,
+    "host_executable_hashes": 0,
+    "models_gpu_real_media": 0,
+    "services_network_download": 0,
+    "program02_sqlite_reads_writes": 0,
+    "old_runtime_or_ledgers": 0,
+    "full_checkpoint": 0
+  },
+  "stage_pass_claim": false,
+  "product_gate0": false,
+  "human_or_release_claim": false,
+  "platform": "Linux POSIX synthetic only; WSL deployment compatibility not executed; native Windows protected mode unsupported/fails closed",
+  "historical_failures_preserved": true,
+  "old_observation_probe_failures_are_not_fix_pass": true,
+  "remaining_limits": [
+    "P3A-C01-M03",
+    "full S3 coordinator/profiles/budgets",
+    "A06 actual network blocking and attempt observation",
+    "real install/rollback acceptance",
+    "fixed quality/resources and same-source complete execution",
+    "required human acceptance/release"
+  ],
+  "review_raw_whitespace_check_exit": 2
+}
