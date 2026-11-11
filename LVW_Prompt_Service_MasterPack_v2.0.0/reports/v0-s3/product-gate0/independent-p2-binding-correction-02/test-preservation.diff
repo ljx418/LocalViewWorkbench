@@ -1,0 +1,144 @@
+diff --git a/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_runtime_binding.py b/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_runtime_binding.py
+index 7a02290..b64f248 100644
+--- a/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_runtime_binding.py
++++ b/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_runtime_binding.py
+@@ -78,6 +78,8 @@ def test_single_consumption_and_preflight_seals(tmp_path,monkeypatch):
+     monkeypatch.setattr(harness,'BASE',tmp_path)
+     monkeypatch.setattr(harness,'claim_path',lambda child:tmp_path/'shared.claim')
+     monkeypatch.setattr(harness.subprocess,'check_output',lambda cmd,**k:'a'*40 if cmd[1]=='rev-parse' else b'')
++    child=json.loads((harness.ROOT/harness.CHILD).read_text());child['status']='AUTHORIZED'
++    monkeypatch.setattr(harness,'authorized_child',lambda:child)
+     value=harness.preflight('a'*40)
+     assert value['real_machine_accesses']==0 and value['tools']==harness.FIXED
+     (tmp_path/'consumed.json').write_text('{}')
+@@ -209,3 +211,130 @@ def test_native_identity_not_interop_field():
+     source=inspect.getsource(harness.windows)
+     assert "'pid':os.getpid()" in source and 'GetCurrentProcess' in source
+     assert 'interop_pid' not in source
++
++
++@pytest.fixture
++def factory_pair(monkeypatch):
++    # Same factory + real SQLite; substitute only external OS tool metadata.
++    original_module=harness.module
++    def module(name,path):
++        value=original_module(name,path)
++        if Path(path).name=='local_program_authority.py':
++            digest=value.digest
++            value.digest=lambda p:'c'*64 if str(p)==harness.FIXED['wsl'] else digest(p)
++        return value
++    monkeypatch.setattr(harness,'module',module)
++    original_open=Path.open
++    def guarded_open(path,*args,**kwargs):
++        assert not str(path).startswith('/mnt/c/'), 'offline test accessed host path'
++        return original_open(path,*args,**kwargs)
++    monkeypatch.setattr(Path,'open',guarded_open)
++    with tempfile.TemporaryDirectory(prefix='lvw-s3-p2b-normal-',dir='/tmp') as n, tempfile.TemporaryDirectory(prefix='lvw-s3-p2b-helper-',dir='/tmp') as h:
++        normal,helper=Path(n),Path(h);normal.rmdir();helper.rmdir()
++        pre={'candidate':'a'*40,'source_hashes':{s:harness.digest(harness.ROOT/s) for s in harness.SOURCES},'wsl_sha256':'c'*64}
++        cfg,plan=harness.make_fixture(normal,pre)
++        bad,badplan=harness.make_fixture(helper,pre,'bad-receipt')
++        yield normal,helper,pre,cfg,plan,bad,badplan
++    assert not normal.exists() and not helper.exists()
++
++
++def test_correction02_factory_admission_and_owned_helper(factory_pair,monkeypatch):
++    import hashlib
++    import sys
++    normal,helper,pre,cfg,plan,bad,badplan=factory_pair
++    admitted=harness.admit_case_plan(normal,helper,pre)
++    assert len(admitted)==5
++    record=next(x for x in admitted if x['case']=='bad-receipt')
++    assert record['driver_root']==str(normal) and record['observer_root']==str(helper)
++    assert harness.digest(normal/'tools/v0_s3_budget_authority.py')==pre['source_hashes']['tools/v0_s3_budget_authority.py']
++    ref={'path':bad['binding_path'],'sha256':badplan['binding']['sha256']}
++    assert budget.load_binding(ref)[0]==bad
++    real_exchange=budget._exchange;captured={}
++    def exchange(command,raw,timeout):
++        output,process=real_exchange(command,raw,timeout)
++        captured.update(request=json.loads(raw),response=json.loads(output),process=process)
++        return output,process
++    # Only OS launch adaptation: the unchanged client still loads the actual factory binding.
++    monkeypatch.setattr(budget,'_command',lambda b:[sys.executable,'-I','-B',b['tools']['shim']['path']])
++    monkeypatch.setattr(budget,'_exchange',exchange)
++    observer=harness.Observer(helper,ref['sha256']);observer.thread.start()
++    try:
++        with pytest.raises(Exception) as error:
++            budget.authorize_model_action('chat',b'{"model":"synthetic-no-model"}',binding=ref)
++    finally:observation=observer.finish()
++    assert error.value.details['subcode']=='S3_BRIDGE_RECEIPT_INVALID'
++    request=captured['request'];response=captured['response'];process=captured['process']
++    expected=dict(request,status='DEBITED',run_id=bad['run_id'],child_sha256=bad['child_sha256'],authority_sha256=bad['tools']['authority']['sha256'])
++    assert {k for k in expected if response[k]!=expected[k]}=={'request_id'}
++    assert set(response)==set(expected)
++    assert process['exit_code']==0 and process['error'] is None and process['reaped'] and process['readers_joined'] and process['pipe_closed']
++    journal=harness.owners(helper)[0]
++    assert journal['request_id']==request['request_id'] and journal['binding_sha256']==ref['sha256']
++    assert journal['pid']==process['pid'] and journal['birth']==process['birth'] and not journal['same_birth_alive']
++    assert journal['state']=='FAULT_HELPER_RETURNED'
++    print(json.dumps({'helper_observation':observation,'helper_process':process}))
++    assert observation['joined'] and observation['two_absences'] and observation['entered'] and observation['error'] is None
++    life={};assert harness.observe_debits(life,helper)==0 and harness.observe_debits(life,normal)==0
++    print(json.dumps({'case_admission':admitted,'owned_helper':captured,'journal':journal,'observer':observation,'debits':life},ensure_ascii=False))
++
++
++@pytest.mark.parametrize('fault',['phase','source','helper-source','marker','execution','child','ledger','unc','candidate','alias'])
++def test_correction02_factory_rejects_drift(factory_pair,fault):
++    normal,helper,pre,cfg,plan,bad,badplan=factory_pair
++    if fault=='phase':plan['phase']='timeout';harness.write(normal/'driver-plan.json',plan)
++    elif fault=='source':(normal/harness.HARNESS).write_text('changed')
++    elif fault=='helper-source':(helper/'tools/v0_s3_budget_authority.py').write_text('changed')
++    elif fault=='marker':(helper/'.s3-synthetic-fixture').unlink()
++    elif fault=='execution':Path(bad['execution_path']).write_text('{}')
++    elif fault=='child':Path(bad['child_path']).write_text('{}')
++    elif fault=='ledger':
++        import sqlite3
++        with sqlite3.connect(bad['ledger_path']) as db:db.execute("UPDATE children SET child_hash='bad'")
++    else:
++        if fault=='unc':bad['client_binding_path']=cfg['client_binding_path']
++        elif fault=='candidate':bad['candidate_sha']='b'*40
++        elif fault=='alias':bad['tools']['shim']['path']=str(helper/'tools/bad_receipt_fixture.py')
++        harness.write(Path(bad['binding_path']),bad)
++        badplan['binding']['sha256']=harness.digest(bad['binding_path']);harness.write(helper/'driver-plan.json',badplan)
++    with pytest.raises(ValueError):harness.admit_case_plan(normal,helper,pre)
++
++
++@pytest.mark.parametrize('child_id,status',[(harness.CHILD_ID,'DRAFT_NOT_AUTHORIZED'),('S3-P2B-01','AUTHORIZED'),('S3-P2B-CORRECTION-01','AUTHORIZED')])
++def test_correction02_draft_retired_zero_external_access(tmp_path,monkeypatch,child_id,status):
++    root=tmp_path/'candidate';root.mkdir();(root/'child.json').write_text(json.dumps({'child_id':child_id,'status':status}))
++    monkeypatch.setattr(harness,'ROOT',root);monkeypatch.setattr(harness,'CHILD','child.json')
++    monkeypatch.setattr(harness,'BASE',tmp_path/'absent-output')
++    def forbidden(*a,**k):raise AssertionError('external access before authorization')
++    monkeypatch.setattr(harness,'claim_path',forbidden);monkeypatch.setattr(harness,'claim_once',forbidden)
++    monkeypatch.setattr(harness.subprocess,'check_output',forbidden);monkeypatch.setattr(harness.subprocess,'Popen',forbidden)
++    monkeypatch.setattr(harness,'digest',forbidden)
++    for action in (lambda:harness.preflight('a'*40),harness.run):
++        with pytest.raises(ValueError,match='not authorized'):action()
++    assert not harness.BASE.exists()
++
++
++def test_correction02_debits_unknown_and_last_observed(factory_pair):
++    import sqlite3
++    normal,helper,*_=factory_pair
++    life={}
++    assert harness.observe_debits(life,normal)==0
++    with sqlite3.connect(normal/'fixture.sqlite') as db:db.execute('UPDATE children SET calls=1')
++    assert harness.observe_debits(life,normal)==1
++    assert life['synthetic_debits']==1
++    harness.mark_exchange(life,normal)
++    assert life['synthetic_debits'] is None and life['debit_observations'][str(normal)]['last_observed']==1
++    (normal/'fixture.sqlite').unlink()
++    with pytest.raises(sqlite3.OperationalError):harness.observe_debits(life,normal)
++    assert life['synthetic_debits'] is None and life['debit_observations'][str(normal)]['last_observed']==1
++    assert harness.observe_debits(life,helper)==0 and life['synthetic_debits'] is None
++
++
++def test_correction02_terminal_registers_every_root(factory_pair,tmp_path,monkeypatch):
++    normal,helper,*_=factory_pair
++    monkeypatch.setattr(harness,'BASE',tmp_path)
++    (tmp_path/'preflight.json').write_text('{}')
++    life={'status':'BLOCKED','fixtures':[str(normal),str(helper)],'cleanup':[],'synthetic_debits':None}
++    harness.terminal({'candidate':'a'*40,'claim_path':str(tmp_path/'claim')},harness.Meter(),life,{},normal,{})
++    assert {x['fixture'] for x in life['cleanup']}=={str(normal),str(helper)}
++    assert all(x['state']=='FAILED_RETAINED' and x['reason'] for x in life['cleanup'])
++    assert json.loads((tmp_path/'cross-os-lifecycle.json').read_text())['synthetic_debits'] is None

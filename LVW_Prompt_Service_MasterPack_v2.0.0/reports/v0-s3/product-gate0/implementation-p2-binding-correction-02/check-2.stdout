@@ -1,0 +1,343 @@
+...................................EEEEEEEEEEE...EE..................... [ 65%]
+......................................                                   [100%]
+==================================== ERRORS ====================================
+____ ERROR at setup of test_correction02_factory_admission_and_owned_helper ____
+
+    @pytest.fixture
+    def factory_pair():
+        # The batch factory, including real SQLite bindings; no installed WSL read.
+        with tempfile.TemporaryDirectory(prefix='lvw-s3-p2b-normal-',dir='/tmp') as n, tempfile.TemporaryDirectory(prefix='lvw-s3-p2b-helper-',dir='/tmp') as h:
+            normal,helper=Path(n),Path(h);normal.rmdir();helper.rmdir()
+            pre={'candidate':'a'*40,'source_hashes':{s:harness.digest(harness.ROOT/s) for s in harness.SOURCES},'wsl_sha256':'c'*64}
+>           cfg,plan=harness.make_fixture(normal,pre)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/test_v0_s3_runtime_binding.py:222: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_s3_runtime_binding.py:232: in make_fixture
+    a.bind(cfg['run_id'],child,ledger=ledger);a.bind_execution(cfg['run_id'],execution,ledger=ledger)
+                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+run = 'synthetic-p2b'
+bindings_path = PosixPath('/tmp/lvw-s3-p2b-normal-p1xhopbl/execution.json')
+
+>   ???
+E   ValueError: runtime tool identity mismatch before start
+
+/tmp/lvw-s3-p2b-normal-p1xhopbl/tools/local_program_authority.py:235: ValueError
+_______ ERROR at setup of test_correction02_factory_rejects_drift[phase] _______
+
+    @pytest.fixture
+    def factory_pair():
+        # The batch factory, including real SQLite bindings; no installed WSL read.
+        with tempfile.TemporaryDirectory(prefix='lvw-s3-p2b-normal-',dir='/tmp') as n, tempfile.TemporaryDirectory(prefix='lvw-s3-p2b-helper-',dir='/tmp') as h:
+            normal,helper=Path(n),Path(h);normal.rmdir();helper.rmdir()
+            pre={'candidate':'a'*40,'source_hashes':{s:harness.digest(harness.ROOT/s) for s in harness.SOURCES},'wsl_sha256':'c'*64}
+>           cfg,plan=harness.make_fixture(normal,pre)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/test_v0_s3_runtime_binding.py:222: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_s3_runtime_binding.py:232: in make_fixture
+    a.bind(cfg['run_id'],child,ledger=ledger);a.bind_execution(cfg['run_id'],execution,ledger=ledger)
+                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+run = 'synthetic-p2b'
+bindings_path = PosixPath('/tmp/lvw-s3-p2b-normal-j07dy_z0/execution.json')
+
+>   ???
+E   ValueError: runtime tool identity mismatch before start
+
+/tmp/lvw-s3-p2b-normal-j07dy_z0/tools/local_program_authority.py:235: ValueError
+______ ERROR at setup of test_correction02_factory_rejects_drift[source] _______
+
+    @pytest.fixture
+    def factory_pair():
+        # The batch factory, including real SQLite bindings; no installed WSL read.
+        with tempfile.TemporaryDirectory(prefix='lvw-s3-p2b-normal-',dir='/tmp') as n, tempfile.TemporaryDirectory(prefix='lvw-s3-p2b-helper-',dir='/tmp') as h:
+            normal,helper=Path(n),Path(h);normal.rmdir();helper.rmdir()
+            pre={'candidate':'a'*40,'source_hashes':{s:harness.digest(harness.ROOT/s) for s in harness.SOURCES},'wsl_sha256':'c'*64}
+>           cfg,plan=harness.make_fixture(normal,pre)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/test_v0_s3_runtime_binding.py:222: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_s3_runtime_binding.py:232: in make_fixture
+    a.bind(cfg['run_id'],child,ledger=ledger);a.bind_execution(cfg['run_id'],execution,ledger=ledger)
+                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+run = 'synthetic-p2b'
+bindings_path = PosixPath('/tmp/lvw-s3-p2b-normal-6r0fnxx2/execution.json')
+
+>   ???
+E   ValueError: runtime tool identity mismatch before start
+
+/tmp/lvw-s3-p2b-normal-6r0fnxx2/tools/local_program_authority.py:235: ValueError
+___ ERROR at setup of test_correction02_factory_rejects_drift[helper-source] ___
+
+    @pytest.fixture
+    def factory_pair():
+        # The batch factory, including real SQLite bindings; no installed WSL read.
+        with tempfile.TemporaryDirectory(prefix='lvw-s3-p2b-normal-',dir='/tmp') as n, tempfile.TemporaryDirectory(prefix='lvw-s3-p2b-helper-',dir='/tmp') as h:
+            normal,helper=Path(n),Path(h);normal.rmdir();helper.rmdir()
+            pre={'candidate':'a'*40,'source_hashes':{s:harness.digest(harness.ROOT/s) for s in harness.SOURCES},'wsl_sha256':'c'*64}
+>           cfg,plan=harness.make_fixture(normal,pre)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/test_v0_s3_runtime_binding.py:222: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_s3_runtime_binding.py:232: in make_fixture
+    a.bind(cfg['run_id'],child,ledger=ledger);a.bind_execution(cfg['run_id'],execution,ledger=ledger)
+                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+run = 'synthetic-p2b'
+bindings_path = PosixPath('/tmp/lvw-s3-p2b-normal-8dqfub7a/execution.json')
+
+>   ???
+E   ValueError: runtime tool identity mismatch before start
+
+/tmp/lvw-s3-p2b-normal-8dqfub7a/tools/local_program_authority.py:235: ValueError
+______ ERROR at setup of test_correction02_factory_rejects_drift[marker] _______
+
+    @pytest.fixture
+    def factory_pair():
+        # The batch factory, including real SQLite bindings; no installed WSL read.
+        with tempfile.TemporaryDirectory(prefix='lvw-s3-p2b-normal-',dir='/tmp') as n, tempfile.TemporaryDirectory(prefix='lvw-s3-p2b-helper-',dir='/tmp') as h:
+            normal,helper=Path(n),Path(h);normal.rmdir();helper.rmdir()
+            pre={'candidate':'a'*40,'source_hashes':{s:harness.digest(harness.ROOT/s) for s in harness.SOURCES},'wsl_sha256':'c'*64}
+>           cfg,plan=harness.make_fixture(normal,pre)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/test_v0_s3_runtime_binding.py:222: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_s3_runtime_binding.py:232: in make_fixture
+    a.bind(cfg['run_id'],child,ledger=ledger);a.bind_execution(cfg['run_id'],execution,ledger=ledger)
+                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+run = 'synthetic-p2b'
+bindings_path = PosixPath('/tmp/lvw-s3-p2b-normal-wt2g0mvp/execution.json')
+
+>   ???
+E   ValueError: runtime tool identity mismatch before start
+
+/tmp/lvw-s3-p2b-normal-wt2g0mvp/tools/local_program_authority.py:235: ValueError
+_____ ERROR at setup of test_correction02_factory_rejects_drift[execution] _____
+
+    @pytest.fixture
+    def factory_pair():
+        # The batch factory, including real SQLite bindings; no installed WSL read.
+        with tempfile.TemporaryDirectory(prefix='lvw-s3-p2b-normal-',dir='/tmp') as n, tempfile.TemporaryDirectory(prefix='lvw-s3-p2b-helper-',dir='/tmp') as h:
+            normal,helper=Path(n),Path(h);normal.rmdir();helper.rmdir()
+            pre={'candidate':'a'*40,'source_hashes':{s:harness.digest(harness.ROOT/s) for s in harness.SOURCES},'wsl_sha256':'c'*64}
+>           cfg,plan=harness.make_fixture(normal,pre)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/test_v0_s3_runtime_binding.py:222: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_s3_runtime_binding.py:232: in make_fixture
+    a.bind(cfg['run_id'],child,ledger=ledger);a.bind_execution(cfg['run_id'],execution,ledger=ledger)
+                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+run = 'synthetic-p2b'
+bindings_path = PosixPath('/tmp/lvw-s3-p2b-normal-u6e9tv_t/execution.json')
+
+>   ???
+E   ValueError: runtime tool identity mismatch before start
+
+/tmp/lvw-s3-p2b-normal-u6e9tv_t/tools/local_program_authority.py:235: ValueError
+_______ ERROR at setup of test_correction02_factory_rejects_drift[child] _______
+
+    @pytest.fixture
+    def factory_pair():
+        # The batch factory, including real SQLite bindings; no installed WSL read.
+        with tempfile.TemporaryDirectory(prefix='lvw-s3-p2b-normal-',dir='/tmp') as n, tempfile.TemporaryDirectory(prefix='lvw-s3-p2b-helper-',dir='/tmp') as h:
+            normal,helper=Path(n),Path(h);normal.rmdir();helper.rmdir()
+            pre={'candidate':'a'*40,'source_hashes':{s:harness.digest(harness.ROOT/s) for s in harness.SOURCES},'wsl_sha256':'c'*64}
+>           cfg,plan=harness.make_fixture(normal,pre)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/test_v0_s3_runtime_binding.py:222: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_s3_runtime_binding.py:232: in make_fixture
+    a.bind(cfg['run_id'],child,ledger=ledger);a.bind_execution(cfg['run_id'],execution,ledger=ledger)
+                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+run = 'synthetic-p2b'
+bindings_path = PosixPath('/tmp/lvw-s3-p2b-normal-msrtw_pq/execution.json')
+
+>   ???
+E   ValueError: runtime tool identity mismatch before start
+
+/tmp/lvw-s3-p2b-normal-msrtw_pq/tools/local_program_authority.py:235: ValueError
+______ ERROR at setup of test_correction02_factory_rejects_drift[ledger] _______
+
+    @pytest.fixture
+    def factory_pair():
+        # The batch factory, including real SQLite bindings; no installed WSL read.
+        with tempfile.TemporaryDirectory(prefix='lvw-s3-p2b-normal-',dir='/tmp') as n, tempfile.TemporaryDirectory(prefix='lvw-s3-p2b-helper-',dir='/tmp') as h:
+            normal,helper=Path(n),Path(h);normal.rmdir();helper.rmdir()
+            pre={'candidate':'a'*40,'source_hashes':{s:harness.digest(harness.ROOT/s) for s in harness.SOURCES},'wsl_sha256':'c'*64}
+>           cfg,plan=harness.make_fixture(normal,pre)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/test_v0_s3_runtime_binding.py:222: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_s3_runtime_binding.py:232: in make_fixture
+    a.bind(cfg['run_id'],child,ledger=ledger);a.bind_execution(cfg['run_id'],execution,ledger=ledger)
+                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+run = 'synthetic-p2b'
+bindings_path = PosixPath('/tmp/lvw-s3-p2b-normal-fn_a38qs/execution.json')
+
+>   ???
+E   ValueError: runtime tool identity mismatch before start
+
+/tmp/lvw-s3-p2b-normal-fn_a38qs/tools/local_program_authority.py:235: ValueError
+________ ERROR at setup of test_correction02_factory_rejects_drift[unc] ________
+
+    @pytest.fixture
+    def factory_pair():
+        # The batch factory, including real SQLite bindings; no installed WSL read.
+        with tempfile.TemporaryDirectory(prefix='lvw-s3-p2b-normal-',dir='/tmp') as n, tempfile.TemporaryDirectory(prefix='lvw-s3-p2b-helper-',dir='/tmp') as h:
+            normal,helper=Path(n),Path(h);normal.rmdir();helper.rmdir()
+            pre={'candidate':'a'*40,'source_hashes':{s:harness.digest(harness.ROOT/s) for s in harness.SOURCES},'wsl_sha256':'c'*64}
+>           cfg,plan=harness.make_fixture(normal,pre)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/test_v0_s3_runtime_binding.py:222: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_s3_runtime_binding.py:232: in make_fixture
+    a.bind(cfg['run_id'],child,ledger=ledger);a.bind_execution(cfg['run_id'],execution,ledger=ledger)
+                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+run = 'synthetic-p2b'
+bindings_path = PosixPath('/tmp/lvw-s3-p2b-normal-_mtoedk5/execution.json')
+
+>   ???
+E   ValueError: runtime tool identity mismatch before start
+
+/tmp/lvw-s3-p2b-normal-_mtoedk5/tools/local_program_authority.py:235: ValueError
+_____ ERROR at setup of test_correction02_factory_rejects_drift[candidate] _____
+
+    @pytest.fixture
+    def factory_pair():
+        # The batch factory, including real SQLite bindings; no installed WSL read.
+        with tempfile.TemporaryDirectory(prefix='lvw-s3-p2b-normal-',dir='/tmp') as n, tempfile.TemporaryDirectory(prefix='lvw-s3-p2b-helper-',dir='/tmp') as h:
+            normal,helper=Path(n),Path(h);normal.rmdir();helper.rmdir()
+            pre={'candidate':'a'*40,'source_hashes':{s:harness.digest(harness.ROOT/s) for s in harness.SOURCES},'wsl_sha256':'c'*64}
+>           cfg,plan=harness.make_fixture(normal,pre)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/test_v0_s3_runtime_binding.py:222: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_s3_runtime_binding.py:232: in make_fixture
+    a.bind(cfg['run_id'],child,ledger=ledger);a.bind_execution(cfg['run_id'],execution,ledger=ledger)
+                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+run = 'synthetic-p2b'
+bindings_path = PosixPath('/tmp/lvw-s3-p2b-normal-4rn7bxk_/execution.json')
+
+>   ???
+E   ValueError: runtime tool identity mismatch before start
+
+/tmp/lvw-s3-p2b-normal-4rn7bxk_/tools/local_program_authority.py:235: ValueError
+_______ ERROR at setup of test_correction02_factory_rejects_drift[alias] _______
+
+    @pytest.fixture
+    def factory_pair():
+        # The batch factory, including real SQLite bindings; no installed WSL read.
+        with tempfile.TemporaryDirectory(prefix='lvw-s3-p2b-normal-',dir='/tmp') as n, tempfile.TemporaryDirectory(prefix='lvw-s3-p2b-helper-',dir='/tmp') as h:
+            normal,helper=Path(n),Path(h);normal.rmdir();helper.rmdir()
+            pre={'candidate':'a'*40,'source_hashes':{s:harness.digest(harness.ROOT/s) for s in harness.SOURCES},'wsl_sha256':'c'*64}
+>           cfg,plan=harness.make_fixture(normal,pre)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/test_v0_s3_runtime_binding.py:222: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_s3_runtime_binding.py:232: in make_fixture
+    a.bind(cfg['run_id'],child,ledger=ledger);a.bind_execution(cfg['run_id'],execution,ledger=ledger)
+                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+run = 'synthetic-p2b'
+bindings_path = PosixPath('/tmp/lvw-s3-p2b-normal-d9h3xj2o/execution.json')
+
+>   ???
+E   ValueError: runtime tool identity mismatch before start
+
+/tmp/lvw-s3-p2b-normal-d9h3xj2o/tools/local_program_authority.py:235: ValueError
+_____ ERROR at setup of test_correction02_debits_unknown_and_last_observed _____
+
+    @pytest.fixture
+    def factory_pair():
+        # The batch factory, including real SQLite bindings; no installed WSL read.
+        with tempfile.TemporaryDirectory(prefix='lvw-s3-p2b-normal-',dir='/tmp') as n, tempfile.TemporaryDirectory(prefix='lvw-s3-p2b-helper-',dir='/tmp') as h:
+            normal,helper=Path(n),Path(h);normal.rmdir();helper.rmdir()
+            pre={'candidate':'a'*40,'source_hashes':{s:harness.digest(harness.ROOT/s) for s in harness.SOURCES},'wsl_sha256':'c'*64}
+>           cfg,plan=harness.make_fixture(normal,pre)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/test_v0_s3_runtime_binding.py:222: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_s3_runtime_binding.py:232: in make_fixture
+    a.bind(cfg['run_id'],child,ledger=ledger);a.bind_execution(cfg['run_id'],execution,ledger=ledger)
+                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+run = 'synthetic-p2b'
+bindings_path = PosixPath('/tmp/lvw-s3-p2b-normal-x0a9wtq7/execution.json')
+
+>   ???
+E   ValueError: runtime tool identity mismatch before start
+
+/tmp/lvw-s3-p2b-normal-x0a9wtq7/tools/local_program_authority.py:235: ValueError
+______ ERROR at setup of test_correction02_terminal_registers_every_root _______
+
+    @pytest.fixture
+    def factory_pair():
+        # The batch factory, including real SQLite bindings; no installed WSL read.
+        with tempfile.TemporaryDirectory(prefix='lvw-s3-p2b-normal-',dir='/tmp') as n, tempfile.TemporaryDirectory(prefix='lvw-s3-p2b-helper-',dir='/tmp') as h:
+            normal,helper=Path(n),Path(h);normal.rmdir();helper.rmdir()
+            pre={'candidate':'a'*40,'source_hashes':{s:harness.digest(harness.ROOT/s) for s in harness.SOURCES},'wsl_sha256':'c'*64}
+>           cfg,plan=harness.make_fixture(normal,pre)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/test_v0_s3_runtime_binding.py:222: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_s3_runtime_binding.py:232: in make_fixture
+    a.bind(cfg['run_id'],child,ledger=ledger);a.bind_execution(cfg['run_id'],execution,ledger=ledger)
+                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+run = 'synthetic-p2b'
+bindings_path = PosixPath('/tmp/lvw-s3-p2b-normal-d9s787qs/execution.json')
+
+>   ???
+E   ValueError: runtime tool identity mismatch before start
+
+/tmp/lvw-s3-p2b-normal-d9s787qs/tools/local_program_authority.py:235: ValueError
+=========================== short test summary info ============================
+ERROR tools/test_v0_s3_runtime_binding.py::test_correction02_factory_admission_and_owned_helper
+ERROR tools/test_v0_s3_runtime_binding.py::test_correction02_factory_rejects_drift[phase]
+ERROR tools/test_v0_s3_runtime_binding.py::test_correction02_factory_rejects_drift[source]
+ERROR tools/test_v0_s3_runtime_binding.py::test_correction02_factory_rejects_drift[helper-source]
+ERROR tools/test_v0_s3_runtime_binding.py::test_correction02_factory_rejects_drift[marker]
+ERROR tools/test_v0_s3_runtime_binding.py::test_correction02_factory_rejects_drift[execution]
+ERROR tools/test_v0_s3_runtime_binding.py::test_correction02_factory_rejects_drift[child]
+ERROR tools/test_v0_s3_runtime_binding.py::test_correction02_factory_rejects_drift[ledger]
+ERROR tools/test_v0_s3_runtime_binding.py::test_correction02_factory_rejects_drift[unc]
+ERROR tools/test_v0_s3_runtime_binding.py::test_correction02_factory_rejects_drift[candidate]
+ERROR tools/test_v0_s3_runtime_binding.py::test_correction02_factory_rejects_drift[alias]
+ERROR tools/test_v0_s3_runtime_binding.py::test_correction02_debits_unknown_and_last_observed
+ERROR tools/test_v0_s3_runtime_binding.py::test_correction02_terminal_registers_every_root
+97 passed, 13 errors in 9.64s

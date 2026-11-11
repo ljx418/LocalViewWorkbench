@@ -1,0 +1,74 @@
+[
+  {
+    "name": "guard",
+    "argv": [
+      "/usr/bin/python3",
+      "-B",
+      "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-p2-binding-correction-02/probes.py",
+      "guard"
+    ],
+    "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0",
+    "exit": 0,
+    "elapsed": 0.3143407280003885
+  },
+  {
+    "name": "check-1",
+    "argv": [
+      "/usr/bin/python3",
+      "-B",
+      "-m",
+      "pytest",
+      "-q",
+      "-s",
+      "-p",
+      "no:cacheprovider",
+      "tools/test_v0_s3_runtime_binding.py",
+      "tools/test_v0_s3_budget_authority.py",
+      "LVW_V0_RuntimePatch/tests/test_s3_program_budget.py",
+      "--basetemp=/tmp/lvw-p2b-independent-check-zt7fba08/pytest"
+    ],
+    "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0",
+    "exit": 0,
+    "elapsed": 11.381278022003244,
+    "owned_basetemp_parent": "/tmp/lvw-p2b-independent-check-zt7fba08",
+    "temporary_root_removed": true
+  },
+  {
+    "name": "check-2",
+    "argv": [
+      "/usr/bin/python3",
+      "-B",
+      "-m",
+      "pytest",
+      "-q",
+      "-s",
+      "-p",
+      "no:cacheprovider",
+      "LVW_V0_RuntimePatch/tests/test_s2_measurements.py",
+      "LVW_V0_RuntimePatch/tests/test_s2_lifecycle_authorization.py",
+      "LVW_V0_RuntimePatch/tests/test_lvw_v0_bridge.py",
+      "LVW_V0_RuntimePatch/tests/test_s2_video_transport.py",
+      "LVW_V0_RuntimePatch/tests/test_s2_native_evidence.py",
+      "LVW_V0_RuntimePatch/tests/test_s2_warm_benchmark.py",
+      "LVW_V0_RuntimePatch/tests/test_s2_runtime.py",
+      "--basetemp=/tmp/lvw-p2b-independent-check-vvjxzqho/pytest"
+    ],
+    "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0",
+    "exit": 0,
+    "elapsed": 2.2667973749994417,
+    "owned_basetemp_parent": "/tmp/lvw-p2b-independent-check-vvjxzqho",
+    "temporary_root_removed": true
+  },
+  {
+    "name": "observer-probe",
+    "argv": [
+      "/usr/bin/python3",
+      "-B",
+      "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-p2-binding-correction-02/probes.py",
+      "observer"
+    ],
+    "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0",
+    "exit": 1,
+    "elapsed": 0.2642398169991793
+  }
+]

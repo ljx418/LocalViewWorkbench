@@ -19,9 +19,9 @@ import types
 import uuid
 
 ROOT = Path(__file__).resolve().parents[1]
-BASE = ROOT/'.agent-governance/runtime/receipts/s3-p2b-correction-01'
-CHILD = 'reports/v0-s3/product-gate0/runtime-binding-correction-01.child.json'
-CONTRACT = 'reports/v0-s3/product-gate0/p2-binding-correction-01.contract.md'
+BASE = ROOT/'.agent-governance/runtime/receipts/s3-p2b-correction-02'
+CHILD = 'reports/v0-s3/product-gate0/runtime-binding-correction-02.child.json'
+CONTRACT = 'reports/v0-s3/product-gate0/p2-binding-correction-02.contract.md'
 PROTOCOL = 'LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/program_budget.py'
 CORE = 'LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/core.py'
 HARNESS = 'tools/v0_s3_runtime_binding.py'
@@ -34,10 +34,10 @@ SOURCES = [HARNESS, PROTOCOL, CORE, 'tools/v0_s3_budget_authority.py',
 FIXED = {'windows_python':'/mnt/c/ComfyUI-aki-v2/python/python.exe',
          'wsl':'/mnt/c/Windows/System32/wsl.exe', 'python':'/usr/bin/python3'}
 LIMITS = {'wall_seconds':1200, 'process_starts':64,'per_command_seconds':30,
-          'metadata_hash_files':3,'metadata_hash_bytes':67108864,
+          'metadata_hash_files':3,'metadata_hash_bytes':268435456,
           'output_bytes':16777216,'synthetic_debits':16}
-CHILD_ID = 'S3-P2B-CORRECTION-01'
-CLAIM = Path('/mnt/c/workSpace/videoWorkLine/.lvw-runtime/lvw-prompt-service/cpu-verification-claims/S3-P2B-CORRECTION-01.claim.json')
+CHILD_ID = 'S3-P2B-CORRECTION-02'
+CLAIM = Path('/mnt/c/workSpace/videoWorkLine/.lvw-runtime/lvw-prompt-service/cpu-verification-claims/S3-P2B-CORRECTION-02.claim.json')
 OLD_SEAL = 'reports/v0-s3/product-gate0/implementation-p2-binding/installed-seal.json'
 TERMINAL_RESERVE = 65536
 ACTIVE_METER = None
@@ -170,12 +170,19 @@ class Meter:
         return record
 
 
+def authorized_child():
+    child=json.loads((ROOT/CHILD).read_text())
+    if child['child_id']!=CHILD_ID or child['status']!='AUTHORIZED':
+        raise ValueError('child not authorized; retired children forbidden')
+    return child
+
+
 def preflight(candidate):
+    child=authorized_child()  # Before git, host metadata, output or shared claim access.
     if len(candidate)!=40 or any(c not in '0123456789abcdef' for c in candidate):raise ValueError('candidate')
     actual=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
     if actual!=candidate:raise ValueError('candidate HEAD')
     if subprocess.check_output(['git','status','--porcelain'],cwd=ROOT):raise ValueError('dirty candidate')
-    child=json.loads((ROOT/CHILD).read_text())
     if digest(ROOT/CONTRACT)!=child['contract_sha256']:raise ValueError('contract seal')
     if digest(ROOT/child['parent_approval'])!=child['parent_approval_sha256']:raise ValueError('parent seal')
     if any(child['limits'][k]!=v for k,v in LIMITS.items()):raise ValueError('budget drift')
@@ -194,18 +201,20 @@ def preflight(candidate):
     return value
 
 
-def make_fixture(root,pre):
+def make_fixture(root,pre,case="normal"):
+    if case not in ("normal","bad-receipt"):raise ValueError("fixed fixture case")
     root.mkdir();(root/'.s3-synthetic-fixture').touch()
     for name in SOURCES:
         path=root/name;path.parent.mkdir(parents=True,exist_ok=True)
         if ACTIVE_METER:ACTIVE_METER.take('output_bytes',(ROOT/name).stat().st_size)
         shutil.copyfile(ROOT/name,path)
+    if case=='bad-receipt':bad_helper(root)
     b=protocol(root);a=module('_p2b_authority',root/'tools/local_program_authority.py')
     ledger=root/'fixture.sqlite';child=root/'child.json';binding=root/'binding 中文 Space.json';execution=root/'execution.json'
     a.reserve('synthetic-p2b','V0-S3',{'model_calls':16,'full_checkpoints':1},600,True,ledger=ledger,root=root)
     def role(path):return {'path':str(path),'client_path':b.fixture_unc(str(path)),'sha256':digest(path)}
     roles={'authority':role(root/'tools/local_program_authority.py'),'shim':role(root/'tools/v0_s3_budget_authority.py'),
-           'python':role(Path('/usr/bin/python3')),'wsl':{'path':FIXED['wsl'],'client_path':r'C:\Windows\System32\wsl.exe','sha256':digest(FIXED['wsl'])}}
+           'python':role(Path('/usr/bin/python3')),'wsl':{'path':FIXED['wsl'],'client_path':r'C:\Windows\System32\wsl.exe','sha256':pre['wsl_sha256']}}
     ex={'s3_'+k:{'path':v['path'],'sha256':v['sha256']} for k,v in roles.items()}
     ex['s3_protocol']={'path':str(root/PROTOCOL),'sha256':digest(root/PROTOCOL)};write(execution,ex)
     now=time.time()
@@ -222,7 +231,7 @@ def make_fixture(root,pre):
     write(child,ch);cfg['child_sha256']=digest(child)
     a.bind(cfg['run_id'],child,ledger=ledger);a.bind_execution(cfg['run_id'],execution,ledger=ledger)
     b.validate_config(cfg);write(binding,cfg)
-    plan={'binding':{'path':cfg['client_binding_path'],'sha256':digest(binding)},'phase':'normal',
+    plan={'binding':{'path':cfg['client_binding_path'],'sha256':digest(binding)},'phase':case,
           'candidate':pre['candidate'],'source_hashes':pre['source_hashes']}
     write(root/'driver-plan.json',plan)
     return cfg,plan
@@ -232,6 +241,7 @@ def windows():
     if os.name!='nt' or not (ROOT/'.s3-synthetic-fixture').is_file():raise ValueError('actual Windows fixture required')
     plan=json.loads((ROOT/'driver-plan.json').read_text(encoding='utf-8'))
     if set(plan)!= {'binding','phase','candidate','source_hashes'} or plan['phase'] not in ('normal','timeout','bad-receipt'):raise ValueError('plan')
+    if set(plan['source_hashes'])!=set(SOURCES):raise ValueError('driver source set')
     for source,seal in plan['source_hashes'].items():
         if source not in SOURCES or digest(ROOT/source)!=seal:raise ValueError('driver source seal')
     b=protocol(ROOT)
@@ -317,8 +327,9 @@ def terminal(pre,meter,life,installed,fixture,claim):
         try:return fn()
         except Exception as e:
             errors.append(label+': '+type(e).__name__+': '+str(e)[:200]);life['status']='BLOCKED'
-    if fixture is not None:
-        live=attempt('owners',lambda:owners(fixture))
+    for fixture in life.get('fixtures',([fixture] if fixture is not None else [])):
+        fixture=Path(fixture)
+        live=attempt('owners '+str(fixture),lambda:owners(fixture))
         life['cleanup'].append({'fixture':str(fixture),'state':'AUDIT_RETAINED' if life['status']=='READY_FOR_REVIEW' else 'FAILED_RETAINED',
                                 'owners':live,'reason':'Registered synthetic reservation/journals retained; no refund/settle0 or remote kill'})
     attempt('budget',meter.check)
@@ -337,10 +348,10 @@ def terminal(pre,meter,life,installed,fixture,claim):
     return life
 
 
-def bad_helper(root,cfg):
+def fault_helper_code():
     # Explicit fixture-only wrong-receipt process, never a debit shim.
-    helper=root/'tools/bad_receipt_fixture.py'
-    code="""import sys,json,os,time,uuid
+    return """# FAULT TEST VECTOR ONLY: never imports/calls authority; no production debit.
+import sys,json,os,time,uuid
 from pathlib import Path
 root=Path(__file__).resolve().parents[1]
 if not (root/'.s3-synthetic-fixture').is_file() or not str(root).startswith('/tmp/lvw-s3-p2b-'):raise SystemExit(2)
@@ -355,22 +366,92 @@ with tmp.open('x') as f:json.dump(v,f)
 os.link(tmp,j);tmp.unlink()
 time.sleep(.3)
 v['state']='FAULT_HELPER_RETURNED';tmp.write_text(json.dumps(v));os.replace(tmp,j)
+b=json.loads(Path(r['binding_path']).read_text())
+r.update(status='DEBITED',run_id=b['run_id'],child_sha256=b['child_sha256'],authority_sha256=b['tools']['authority']['sha256'])
 r['request_id']='00000000-0000-0000-0000-000000000000'
 print(json.dumps(r))
 """
+
+
+def bad_helper(root):
+    helper=root/'tools/v0_s3_budget_authority.py';code=fault_helper_code()
     if ACTIVE_METER:ACTIVE_METER.take('output_bytes',len(code.encode()))
     helper.write_text(code)
-    bad=json.loads(json.dumps(cfg));b=protocol(ROOT)
-    bad['tools']['shim']={'path':str(helper),'client_path':b.fixture_unc(str(helper)),'sha256':digest(helper)}
-    path=root/'bad-binding.json';bad['binding_path']=str(path);bad['client_binding_path']=b.fixture_unc(str(path))
-    write(path,bad)
-    return {'path':bad['client_binding_path'],'sha256':digest(path)}
+    return helper
+
+
+def observe_debits(life,root):
+    key=str(root)
+    observations=life.setdefault('debit_observations',{})
+    record=observations.setdefault(key,{'last_observed':None,'actual':None,'source':'not queried'})
+    try:
+        with sqlite3.connect((root/'fixture.sqlite').as_uri()+'?mode=ro',uri=True) as db:
+            calls=db.execute('SELECT calls FROM children').fetchone()[0]
+    except Exception:
+        record.update(actual=None,source='query failed; last_observed is only a lower bound')
+        life['synthetic_debits']=None
+        raise
+    record.update(actual=calls,last_observed=calls,source='SQLite calls snapshot; not final after another exchange')
+    life['synthetic_debits']=sum(x['actual'] for x in observations.values()) if all(x['actual'] is not None for x in observations.values()) else None
+    return calls
+
+
+def mark_exchange(life,root):
+    record=life['debit_observations'][str(root)]
+    record.update(actual=None,source='exchange started; final debit unknown; last_observed lower bound retained')
+    life['synthetic_debits']=None
+
+
+def admit_case_plan(normal,helper,pre):
+    """Fixed complete factory outputs, before any Windows process. No executable discovery."""
+    b=protocol(ROOT);results=[]
+    if normal==helper:raise ValueError('independent helper root required')
+    for root,case in ((normal,'normal'),(helper,'bad-receipt')):
+        safe_parent(root)
+        plan=json.loads((root/'driver-plan.json').read_text())
+        if plan['phase']!=case or plan['candidate']!=pre['candidate'] or plan['source_hashes']!=pre['source_hashes']:raise ValueError('plan identity')
+        ref={'path':str(root/'binding 中文 Space.json'),'sha256':plan['binding']['sha256']}
+        cfg,seal=b.load_binding(ref)
+        if cfg['authority_root']!=str(root) or cfg['candidate_sha']!=pre['candidate'] or plan['binding']['path']!=cfg['client_binding_path']:raise ValueError('plan root/candidate')
+        for name,sha in pre['source_hashes'].items():
+            expected=sha
+            if case=='bad-receipt' and name=='tools/v0_s3_budget_authority.py':expected=hashlib.sha256(fault_helper_code().encode()).hexdigest()
+            if digest(root/name)!=expected:raise ValueError('source blob')
+        for role in ('authority','shim','python'):
+            if digest(cfg['tools'][role]['path'])!=cfg['tools'][role]['sha256']:raise ValueError('role blob')
+        child=b.read_json(cfg['child_path'],cfg['child_sha256'])
+        ex=b.read_json(cfg['execution_path'],cfg['execution_sha256'])
+        if child['s3_budget']!={k:v for k,v in cfg.items() if k!='child_sha256'} or child['budget_ledger']!=cfg['ledger_path']:raise ValueError('child binding')
+        for role,item in cfg['tools'].items():
+            if ex['s3_'+role]!={k:item[k] for k in ('path','sha256')}:raise ValueError('execution role')
+        if ex['s3_protocol']!={'path':str(root/PROTOCOL),'sha256':digest(root/PROTOCOL)}:raise ValueError('protocol blob')
+        with sqlite3.connect(Path(cfg['ledger_path']).as_uri()+'?mode=ro',uri=True) as db:
+            rows=db.execute('SELECT run,child_path,child_hash,bindings_path,bindings_hash,calls FROM children').fetchall()
+            if rows!=[(cfg['run_id'],cfg['child_path'],cfg['child_sha256'],cfg['execution_path'],cfg['execution_sha256'],0)]:raise ValueError('ledger binding or consumption')
+        results.append(dict(case=case,admission='ACCEPT',expected_stage='receipt' if case=='bad-receipt' else 'debit',
+                            driver_root=str(normal),observer_root=str(root),binding_sha256=seal))
+        if case=='bad-receipt':
+            alias=json.loads(json.dumps(cfg));alias['tools']['shim']['path']=str(root/'tools/bad_receipt_fixture.py')
+            alias['tools']['shim']['client_path']=b.fixture_unc(alias['tools']['shim']['path'])
+            try:b.validate_config(alias)
+            except ValueError as e:
+                if str(e)!='authority root roles':raise
+            else:raise ValueError('alias accepted')
+            results.append(dict(case='legacy-helper-alias',admission='EXPECTED_REJECT',expected_stage='validate_config'))
+        if case=='normal':
+            try:b.load_binding(dict(ref,sha256='0'*64))
+            except ValueError:pass
+            else:raise ValueError('negative hash accepted')
+            results.append(dict(case='bad-binding-hash',admission='EXPECTED_REJECT',expected_stage='load_binding',observer_root=str(root)))
+            results.append(dict(case='timeout',admission='ACCEPT',expected_stage='exchange_timeout',driver_root=str(normal),observer_root=str(root),binding_sha256=seal))
+    return results
 
 
 def run():
     global ACTIVE_METER
+    child=authorized_child()
     pre=json.loads((BASE/'preflight.json').read_text())
-    child=json.loads((ROOT/CHILD).read_text());owner=claim_path(child)
+    owner=claim_path(child)
     if pre['claim_path']!=str(owner) or pre['output_root']!=str(BASE) or pre['tools']!=FIXED or pre['limits']!=LIMITS:raise ValueError('preflight identity')
     if pre['child_sha256']!=digest(ROOT/CHILD) or pre['contract_sha256']!=digest(ROOT/CONTRACT):raise ValueError('grant drift')
     if set(pre['source_hashes'])!=set(SOURCES):raise ValueError('source set')
@@ -381,7 +462,7 @@ def run():
     if pre['historical_authorization_sha256']!=digest(ROOT/'reports/unified-media/live-15/authorization.json') or pre['old_installed_seal_sha256']!=digest(ROOT/OLD_SEAL):raise ValueError('history seal drift')
     claim=claim_once(owner,pre)
     meter=Meter();installed={};life={'status':'BLOCKED','model_sends':0,'real_ledger_accesses':0,
-        'real_checkpoints':0,'synthetic_debits':0,'cleanup':[],'gaps':[]};fixture=None
+        'real_checkpoints':0,'synthetic_debits':None,'fixtures':[],'cleanup':[],'gaps':[]};fixture=None
     try:
         # Owner, preflight/run Python+git, native/interoperability duplication conservatively reserved.
         meter.take('process_starts',10)
@@ -402,24 +483,34 @@ def run():
         # 3*1MiB exceeds 16*128KiB SQLite writes + 12*32KiB JSON + 6*32KiB pipes.
         meter.take('output_bytes',3*1048576)
         fixture=Path(tempfile.mkdtemp(prefix='lvw-s3-p2b-中文 Space-',dir='/tmp'));fixture.rmdir()
+        life['fixtures'].append(str(fixture))
+        pre['wsl_sha256']=installed['wsl']['sha256']
         cfg,plan=make_fixture(fixture,pre);life['binding']=cfg
+        helper=Path(tempfile.mkdtemp(prefix='lvw-s3-p2b-helper-',dir='/tmp'));helper.rmdir()
+        life['fixtures'].append(str(helper))
+        helper_cfg,helper_plan=make_fixture(helper,pre,'bad-receipt')
+        life['case_admission']=admit_case_plan(fixture,helper,pre)
+        observe_debits(life,fixture);observe_debits(life,helper)
         driver=[FIXED['windows_python'],'-I','-B',protocol(ROOT).fixture_unc(str(fixture/HARNESS)),'--windows']
         meter.take('synthetic_debits',16)  # reserved ceiling, actual separately queried
         normal_observer=Observer(fixture,plan['binding']['sha256']);normal_observer.thread.start()
+        mark_exchange(life,fixture)
         try:meter.run(driver,process_cost=8)
         finally:life['normal_observer']=normal_observer.finish()
         normal=json.loads((fixture/'windows-result.json').read_text(encoding='utf-8'));life['normal']=normal
         if normal['os_name']!='nt' or normal['cases'][0]['result'].get('status')!='DEBITED':raise ValueError('no actual Windows debit')
-        with sqlite3.connect(fixture/'fixture.sqlite') as db:calls=db.execute('SELECT calls FROM children').fetchone()[0]
+        calls=observe_debits(life,fixture)
         life['calls_after_normal']=calls
         if calls!=1 or any(x['result'].get('status')=='DEBITED' for x in normal['cases'][1:]):raise ValueError('negative debit boundary')
         original_binding=plan['binding']
-        plan['binding']=bad_helper(fixture,cfg);plan['phase']='bad-receipt';write(fixture/'driver-plan.json',plan)
-        old_ids=[v['request_id'] for v in owners(fixture)]
-        observer=Observer(fixture,plan['binding']['sha256'],old_ids);observer.thread.start()
+        plan['binding']=helper_plan['binding'];plan['phase']='bad-receipt';write(fixture/'driver-plan.json',plan)
+        old_ids=[v['request_id'] for v in owners(helper)]
+        observer=Observer(helper,plan['binding']['sha256'],old_ids);observer.thread.start()
+        mark_exchange(life,helper)
         try:meter.run(driver,process_cost=4)
         finally:life['bad_observer']=observer.finish()
         life['bad_receipt']=json.loads((fixture/'windows-result.json').read_text(encoding='utf-8'))
+        if observe_debits(life,helper)!=0:raise ValueError('fault helper debit')
         bad=life['bad_receipt']['cases'][0]['result']
         if bad.get('details',{}).get('exit_code')!=0 or bad.get('details',{}).get('subcode')!='S3_BRIDGE_RECEIPT_INVALID':raise ValueError('bad helper not rejected as receipt')
         plan['binding']=original_binding;plan['phase']='timeout';write(fixture/'driver-plan.json',plan)
@@ -431,6 +522,7 @@ def run():
         timer=threading.Timer(13,release);timer.start()
         old_ids=[v['request_id'] for v in owners(fixture)]
         observer=Observer(fixture,original_binding['sha256'],old_ids);observer.thread.start()
+        mark_exchange(life,fixture)
         try:
             meter.run(driver,process_cost=4)
             life['wrapper_return_monotonic']=time.monotonic()
@@ -438,7 +530,7 @@ def run():
             life['timeout_observer']=observer.finish()
             timer.join(timeout=1)
         life['timeout']=json.loads((fixture/'windows-result.json').read_text(encoding='utf-8'))
-        with sqlite3.connect(fixture/'fixture.sqlite') as db:life['synthetic_debits']=db.execute('SELECT calls FROM children').fetchone()[0]
+        observe_debits(life,fixture)
         detail=life['timeout']['cases'][0]['result'].get('details',{})
         if detail.get('error')!='TIMEOUT':raise ValueError('timeout not witnessed')
         for name in ('normal_observer','bad_observer','timeout_observer'):

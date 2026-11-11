@@ -1,0 +1,76 @@
+{
+  "status": "READY_FOR_REVIEW",
+  "task_outcome": "failed",
+  "reason": "Implementation reviewable, but zero-original-tool-hash constraint was violated in first synthetic fixture setup; intermittent observer failure not diagnosed conclusively. No activation permitted.",
+  "baseline": "b387ce07e067709a67eb55eb4247fafb01b62c19",
+  "candidate": "d339e53d0394fac172b7c984a1613faab2ec33df",
+  "seals": {
+    "tools/v0_s3_runtime_binding.py": {
+      "sha256": "9833628c3c4ed09cfb0f38357f6eaee33d96638322b843479651a9fa09fe1b66",
+      "git_blob": "f2f039af3d6c448a1689c4908a118eaeae00f487"
+    },
+    "tools/test_v0_s3_runtime_binding.py": {
+      "sha256": "3c5b1eff1b2824b4f52f9cd5823082fae40b7ff6afbfc802f746639c0bb47188",
+      "git_blob": "b64f2480256bba09c60d63bdb93c772f30ef073d"
+    },
+    "tools/v0_s3_budget_authority.py": {
+      "sha256": "80908669be48bbb8db5b9fd5271719a9c927918a52eb6565d152b471423ad1b7",
+      "git_blob": "325be081fa7baacad3cba3601360e14a918eef97"
+    },
+    "tools/local_program_authority.py": {
+      "sha256": "677998fa2ab5b51017b5437fecd07d6ca31c26473a7ac0acede4637f6470f787",
+      "git_blob": "c02f33d409a4259e4e68a2b1388d2ecaa194dbc6"
+    },
+    "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/program_budget.py": {
+      "sha256": "7968f4682dfe272877a814f4b4b46dc50e5fb0775f03cc122f4c121d9dade765",
+      "git_blob": "9db6393e35f0fce086feb3e0ea3ca80a9f721790"
+    },
+    "reports/v0-s3/product-gate0/runtime-binding-correction-02.child.json": {
+      "sha256": "378d1ade88486419cdc12f4b2096887f7807b3a6e3e070372cf2a8b9c8869890",
+      "git_blob": "7a2c78cdc44124a5125e3ac815b29b1091129ca6"
+    },
+    "reports/v0-s3/product-gate0/p2-binding-correction-02.contract.md": {
+      "sha256": "17e926e83a6fe702360509401b95dd8d1289678800d000625a4c2c5a0dc95227",
+      "git_blob": "9e0b98d08217c07ebe14c8b7f8d7e8fa9c6ca82b"
+    }
+  },
+  "checks": [
+    "checks.json",
+    "rechecks.json",
+    "observer-diagnostic.json"
+  ],
+  "final_coverage": {
+    "p2b_p1": 110,
+    "oracle": 84,
+    "old_assertions_retained": 178,
+    "new_tests": 16
+  },
+  "initial_failures": {
+    "directed": "3 passed, 13 setup errors",
+    "combined": "97 passed, 13 setup errors",
+    "cause": "Copied authority bind_execution actually hashed fixed /mnt/c/Windows/System32/wsl.exe; synthetic seal c*64 mismatched. 26 errors imply 26 full digest reads via unchanged authority; no separate read trace was captured. This violates task zero host tool hash requirement."
+  },
+  "second_failure": "1 failed, 109 passed: observer two_absences false; no detailed observer snapshot captured in that failed attempt. Diagnostic-only print then 110 passed; do not call this conclusive flake resolution.",
+  "external_effects": {
+    "windows_wsl_process_starts": 0,
+    "real_cpu_claims_created": 0,
+    "real_ledger_mutations": 0,
+    "old_failure_root_access": 0,
+    "models_gpu_media_services_network_download_checkpoint": 0,
+    "installed_wsl_hash_reads_inferred": 26,
+    "installed_tool_zero_access_claim": false
+  },
+  "test_adaptations": [
+    "Same production batch make_fixture for both roots; only copied authority external WSL digest supplied synthetic seal in fixture after initial failure. Path.open guard rejects /mnt/c reads in later factory tests.",
+    "Original validate_config/load_binding/authorize_model_action/_exchange retained; only _command adapted to owned Linux Python for real helper.",
+    "All new helper temporary roots removed by TemporaryDirectory; subprocess reaped and pipes/readers closed; observer correct root/PID birth/UUID/binding, entered + two absences witnessed in passing directed test."
+  ],
+  "limitations": [
+    "Linux equivalent only, not actual Windows/WSL proof",
+    "Future activation requires independent review and explicit root data activation; draft unchanged",
+    "Future runtime repeated executable hash byte accounting deserves review: copied authority bind_execution and runtime validators rehash outside initial installed meter; no actual batch allowed until resolved",
+    "Original raw 0 counter versus calls_after_normal=1 retained; root erratum remains authoritative"
+  ],
+  "stage_pass": false,
+  "product_gate0": false
+}
