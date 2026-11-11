@@ -1,0 +1,62 @@
+{
+  "os_name": "nt",
+  "native_identity": {
+    "pid": 40864,
+    "birth": {
+      "windows_creation_100ns": 134389092227998098
+    },
+    "os_name": "nt",
+    "started_at": 1794435623.0256612
+  },
+  "python": "C:\\ComfyUI-aki-v2\\python\\python.exe",
+  "cases": [
+    {
+      "case": "normal",
+      "result": {
+        "schema": "lvw.s3-debit/1",
+        "request_id": "a850a07c-2ecd-4921-a03d-14829e29f7e6",
+        "action_kind": "chat",
+        "payload_sha256": "a147d6d390f628a8c7fbff45d5732e00ae120ee94636eb50fd51a5a037230e1e",
+        "model": "synthetic-no-model",
+        "binding_path": "/tmp/lvw-s3-p2b-中文 Space-b65t_ixt/binding 中文 Space.json",
+        "binding_sha256": "e6d373e2ed4b54a13fe6723c281079c886f66c09e7b51538710fa277079dc06b",
+        "status": "DEBITED",
+        "run_id": "synthetic-p2b",
+        "child_sha256": "eb2466c5390bcb834c263bda7877b632c6d9bf35da7bf0f8773ec8523690b670",
+        "authority_sha256": "677998fa2ab5b51017b5437fecd07d6ca31c26473a7ac0acede4637f6470f787",
+        "process": {
+          "pid": 26200,
+          "birth": {
+            "windows_creation_100ns": 134389092230413081
+          },
+          "os_name": "nt",
+          "pipe_closed": true,
+          "thread_alive": [
+            false,
+            false,
+            false
+          ],
+          "exit_code": 0,
+          "error": null,
+          "reaped": true,
+          "readers_joined": true,
+          "stdout_sha256": "a343f26b79ea7e100a5d15fcf6c4aadda8a2d5d3bebdc3c7fa588fa8e09d16b1",
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "model_sends": 0
+    },
+    {
+      "case": "bad-binding-hash",
+      "result": {
+        "exception": "BridgeError",
+        "details": {
+          "subcode": "S3_BUDGET_BINDING_OR_BRIDGE_INVALID",
+          "error_type": "ValueError"
+        },
+        "message": "{\"code\":\"SCOPE_FORBIDDEN\",\"details\":{\"error_type\":\"ValueError\",\"subcode\":\"S3_BUDGET_BINDING_OR_BRIDGE_INVALID\"},\"message\":\"S3 model debit refused\"}"
+      },
+      "model_sends": 0
+    }
+  ]
+}
