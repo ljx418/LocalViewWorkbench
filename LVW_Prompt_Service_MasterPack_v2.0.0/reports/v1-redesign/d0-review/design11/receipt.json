@@ -1,0 +1,202 @@
+{
+  "schema_version": "lvw.implementation-receipt/1",
+  "kind": "D0_B_REVIEW_DESIGN11_READ_ONLY_RECHECK_RECEIPT",
+  "project_id": "lvw-prompt-service",
+  "stage_id": "V1-D0",
+  "workpack_id": "D0-B-REVIEW",
+  "candidate_sha": "932dcbc48bca99c463ffea8bf11d121c36aefe0c",
+  "candidate_meaning": "the Codex authority design1.1 tree (docs/31+32+17+20+29, plans/v1-multishot-contract, plans/v1-multishot-sample-design, plans/v1-revised-plan, contracts/v1-multishot.schema.json + openapi overlay + migration SQL, reports/v1-redesign/design11-adjudication.json). NOT a product implementation candidate.",
+  "authority_load": {
+    "method": "git merge (approved source update; clean merge, no conflict, no manual edit of authority content)",
+    "merge_commit": "4510dec0205a35e66a24d8a235a95c8d4c1a69d8",
+    "authority_commit": "932dcbc48bca99c463ffea8bf11d121c36aefe0c",
+    "authority_parent": "f12aa3615520fefd284e6cd61c5c0c7db5bcdec7",
+    "authority_subject": "docs: resolve V1 design audit with compatible routes immutable plans and bounded budgets",
+    "authority_files_changed": 84,
+    "authority_touched_product_source": false,
+    "authority_touched_product_source_evidence": "checks/contract-recheck-results.json -> H06"
+  },
+  "evidence_commit": "4510dec0205a35e66a24d8a235a95c8d4c1a69d8",
+  "launch_d0_payload_manifest_sha256": "56e6f07b72023928b32ed7350b78f9d1d148daf79108daffecb7d9a175e39c4a",
+  "launch_d0_payload_manifest_sha256_verified": true,
+  "spec_manifest_sha256": "ee9ec4f4cc9277f5fe436465856e9403ffdf904aa86e7ef7eb28d10ee1eb8f51",
+  "stage_control_sha256": "f2447d1387ac7563eff56e51af93cfc15a392308798c4826c670c50bcb0521e1",
+  "spec_manifest_files": 23,
+  "spec_manifest_note": "17 pre-existing review files + 6 design1.1 additions (contracts/v1-multishot-migration.sql, contracts/v1-multishot.openapi-overlay.json, plans/v1-multishot-sample-design.json, docs/17, docs/20, reports/v1-redesign/design11-adjudication.json)",
+  "acceptance_hash_inputs": [
+    "plans/acceptance_cases.json",
+    "docs/32_V1_ACCEPTANCE_AND_AGENT_WORKFLOW.md",
+    "plans/release_gates.json",
+    "plans/v1-multishot-sample-design.json"
+  ],
+  "gate_version": "V1-D0/1.1 (status=FROZEN_OFFLINE_TOOL_SCOPE_ONLY_PRODUCT_GATE0_NOT_READY)",
+  "run_id": "d0-b-review-design11-2026-11-11-01",
+  "environment": {
+    "executor": "isolated Orca-visible ClaudeCode review window (term_28b24013-0c2a-4c4d-8fc2-9216fd3aa26a)",
+    "coordinator": "term_192c2ec6-ba08-4100-ac4c-6b603e2b82d0",
+    "provider": "none (no product/model inference executed by this window)",
+    "model": "none (review-only window; not used for product inference)",
+    "worktree": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review",
+    "branch": "ljx418/lvw-v1-d0-review",
+    "dependency_fingerprint": "Linux 6.18.40.1-microsoft-standard-WSL2 x86_64; python 3.12.3; jsonschema 4.23.0 (used only for metaschema/behavioural probes); sqlite 3.45.1 (in-memory only)"
+  },
+  "changed_files": [
+    "reports/v1-redesign/d0-review/design11/review.md",
+    "reports/v1-redesign/d0-review/design11/findings.json",
+    "reports/v1-redesign/d0-review/design11/receipt.json",
+    "reports/v1-redesign/d0-review/design11/checks/design11_contract_recheck.py",
+    "reports/v1-redesign/d0-review/design11/checks/design11_sql_recheck.py",
+    "reports/v1-redesign/d0-review/design11/checks/hash_fence.py",
+    "reports/v1-redesign/d0-review/design11/checks/contract-recheck-results.json",
+    "reports/v1-redesign/d0-review/design11/checks/storage-recheck-results.json",
+    "reports/v1-redesign/d0-review/design11/checks/commands.log",
+    "reports/v1-redesign/d0-review/design11/checks/hash-fence-before.txt",
+    "reports/v1-redesign/d0-review/design11/checks/hash-fence-after.txt"
+  ],
+  "contract_changes": "none (no canonical or candidate contract, plan, doc, product source or governance file was edited by this window; the only source-level operation was the coordinator-approved clean merge of authority 932dcbc into this review checkout)",
+  "production_paths": [],
+  "commands": [
+    {
+      "command": "git merge 932dcbc48bca99c463ffea8bf11d121c36aefe0c --no-ff",
+      "exit_code": 0,
+      "result": "clean merge; merge commit 4510dec0205a35e66a24d8a235a95c8d4c1a69d8; no conflict, no authority content edited"
+    },
+    {
+      "command": "python3 -B reports/v1-redesign/d0-review/design11/checks/hash_fence.py hash-fence-before.txt 'D0-B-REVIEW design1.1 recheck - source fence BEFORE review'",
+      "exit_code": 0,
+      "result": "FENCED_FILES 23 / MISMATCH_COUNT 0",
+      "log": "reports/v1-redesign/d0-review/design11/checks/hash-fence-before.txt",
+      "log_sha256": "b3fbf4d95b79caad5f6c2ff285b0b9bf34deb727821a5f1bd96819db42c9f836"
+    },
+    {
+      "command": "python3 -B reports/v1-redesign/d0-review/design11/checks/design11_contract_recheck.py",
+      "exit_code": 0,
+      "result": "76 checks executed: 73 PASS / 3 FAIL (C06 additive_paths vs overlay paths, C07 reuse_paths vs overlay metadata_only, C08 ETag not machine-declared) - deterministic, read-only, stdlib + jsonschema",
+      "log": "reports/v1-redesign/d0-review/design11/checks/commands.log",
+      "detail_log": "reports/v1-redesign/d0-review/design11/checks/contract-recheck-results.json",
+      "log_sha256": "4ef69186a0a3ffd2be3177a003c8ad571e43090150ff6a491df0eee8c27923e7",
+      "detail_log_sha256": "5b082db936ed8c39c2f9b90d1aee19f17d3ea5750abd9d7e0bc3b55f2d2b05f2"
+    },
+    {
+      "command": "python3 -B reports/v1-redesign/d0-review/design11/checks/design11_sql_recheck.py",
+      "exit_code": 0,
+      "result": "16 checks executed: 16 PASS / 0 FAIL (in-memory sqlite only; declared deterministic scene-hash function; migration apply/legacy backfill/immutability/seal/constraints/fail-closed/rollback)",
+      "log": "reports/v1-redesign/d0-review/design11/checks/commands.log",
+      "detail_log": "reports/v1-redesign/d0-review/design11/checks/storage-recheck-results.json",
+      "detail_log_sha256": "6a91294f27f37c7c765ea65fd32107d7d56b76dbe7eb1d5380695e2684aea104",
+      "log_sha256": "4ef69186a0a3ffd2be3177a003c8ad571e43090150ff6a491df0eee8c27923e7"
+    },
+    {
+      "command": "python3 -B reports/v1-redesign/d0-review/design11/checks/hash_fence.py hash-fence-after.txt 'D0-B-REVIEW design1.1 recheck - source fence AFTER review'",
+      "exit_code": 0,
+      "result": "FENCED_FILES 23 / MISMATCH_COUNT 0",
+      "log": "reports/v1-redesign/d0-review/design11/checks/hash-fence-after.txt"
+    }
+  ],
+  "check_results": {
+    "contract_design_probes": "76 checks / 73 PASS / 3 FAIL",
+    "storage_migration_probes": "16 checks / 16 PASS / 0 FAIL",
+    "failing_check_ids": [
+      "C06 machine contract additive_paths omits the new GET /api/v1/scenes/{id} that the overlay adds (6 vs 7 paths)",
+      "C07 overlay metadata_only marks only 2 of the 7 declared reuse_paths as V1-usable",
+      "C08 the ETag response header is not machine-declared anywhere in the overlay and metadata_only promotion semantics are undefined"
+    ],
+    "original_findings_rechecked": 22,
+    "original_findings_resolved": 22,
+    "original_findings_resolved_with_minor_residual": 4,
+    "original_findings_unresolved": 0,
+    "new_findings": 6,
+    "new_findings_severity": {
+      "fatal": 0,
+      "major": 0,
+      "minor": 6
+    },
+    "review_findings": {
+      "fatal": 0,
+      "major": 0,
+      "minor": 6
+    },
+    "product_or_human_pass": false,
+    "stage_pass_claim": false,
+    "product_gate0_claim": false
+  },
+  "test_counts": {
+    "denominator": 92,
+    "pass": 89,
+    "fail": 3,
+    "blocked": 0,
+    "skipped": 0,
+    "not_run": 0
+  },
+  "artifact_refs": [
+    {
+      "path": "reports/v1-redesign/d0-review/design11/review.md",
+      "sha256": "7b359af39aa1392c11e2b845f312a3d3f5c62bb58051d31c7653063213059ac5"
+    },
+    {
+      "path": "reports/v1-redesign/d0-review/design11/findings.json",
+      "sha256": "3b600e81250463b29b51b656c4b6ed2ea7ab646ee235071c732c415c183e4554"
+    },
+    {
+      "path": "reports/v1-redesign/d0-review/design11/checks/design11_contract_recheck.py",
+      "sha256": "0e42a0f348367071a8b39099f0148a3e9799194a1b7ff59a45b3f2424f28cef4"
+    },
+    {
+      "path": "reports/v1-redesign/d0-review/design11/checks/design11_sql_recheck.py",
+      "sha256": "e0864b057cde52705b195cfdffad221ba5a64863fe055c34cd9351d7a726b8a9"
+    },
+    {
+      "path": "reports/v1-redesign/d0-review/design11/checks/hash_fence.py",
+      "sha256": "4685ebb3864b3747b883812cf77b7bd4dc8e553df1337a6dd0c8d36a13c2d18f"
+    },
+    {
+      "path": "reports/v1-redesign/d0-review/design11/checks/contract-recheck-results.json",
+      "sha256": "5b082db936ed8c39c2f9b90d1aee19f17d3ea5750abd9d7e0bc3b55f2d2b05f2"
+    },
+    {
+      "path": "reports/v1-redesign/d0-review/design11/checks/storage-recheck-results.json",
+      "sha256": "6a91294f27f37c7c765ea65fd32107d7d56b76dbe7eb1d5380695e2684aea104"
+    },
+    {
+      "path": "reports/v1-redesign/d0-review/design11/checks/commands.log",
+      "sha256": "4ef69186a0a3ffd2be3177a003c8ad571e43090150ff6a491df0eee8c27923e7"
+    },
+    {
+      "path": "reports/v1-redesign/d0-review/design11/checks/hash-fence-before.txt",
+      "sha256": "b3fbf4d95b79caad5f6c2ff285b0b9bf34deb727821a5f1bd96819db42c9f836"
+    },
+    {
+      "path": "reports/v1-redesign/d0-review/design11/checks/hash-fence-after.txt",
+      "sha256": "7ebaa03c1830901a8a43131ca3c1bd774e11abda9b5e8087e1d0a1f16b096ce1"
+    }
+  ],
+  "risks": [
+    "Six new Minor contract-text defects remain open (N1 ETag header not machine-declared; N2 additive_paths omits the new GET /api/v1/scenes/{id}; N3 only 2 of 7 reuse_paths carry a V1-usable annotation; N4 ShotFrameRef dead anyOf null branch; N5 bilingual evidence -> canonical Domains string[] language/ordering not pinned; N6 hashed field names vs DDL column names mapping only in the migration text). They are contract owner (Codex) items before the effective contract is frozen; none of them is a design contradiction.",
+    "The fixed denominators are recomputable but the media are not: all 12 clips still carry null source_sha256/annotation_hash and status NOT_MATERIALIZED_NOT_FROZEN; MS01/MS03/MS04 cannot PASS before real, independent, frozen samples exist.",
+    "The 20735 s checkpoint figure is a declared performance ceiling computed from existing thresholds (300 s per video call, 180 s per image call), not a measured M1 P95, mean or worst-case guarantee; the per-shot profile latency is still unmeasured and must be piloted before the budget can be trusted.",
+    "The D0-B-IMPL checker candidate (tools/verify_v1_plan.py) is absent from this checkout and was deliberately NOT reviewed here; per coordinator instruction the implementation refreeze is a separate worker and a separate read-only code review.",
+    "The 'all jobs + parent + items + seal in one transaction' rule and the worker-claim-must-join-seal rule are owner-side code rules declared in docs/31, not DDL constraints; they can only be proven by a later implementation test.",
+    "MANIFEST.sha256 was not updated (the root manifest is outside this workpack's allowed_files), so these new report files are not manifest-listed; Codex may want to fix that in its own packet."
+  ],
+  "cleanup": {
+    "processes_started": 0,
+    "services_started": 0,
+    "ports_bound": 0,
+    "temp_roots": "none (SQLite :memory: only)",
+    "model_actions": 0,
+    "gpu_actions": 0,
+    "media_operations": 0,
+    "network_operations": 0,
+    "package_installs": 0,
+    "secret_reads": 0,
+    "git_push": false,
+    "parent_or_implementation_branch_touched": false,
+    "files_written_outside_allowed_dir": 0,
+    "note": "read-only design recheck; only reports/v1-redesign/d0-review/design11/ was written; the only source-level operation was the coordinator-approved clean merge of the authority commit into this review worktree"
+  },
+  "implementation_owner_role": "independent reviewer (ClaudeCode-D0-Review), read-only, separate from the implementation session",
+  "implementation_session": "term_28b24013-0c2a-4c4d-8fc2-9216fd3aa26a (this window); coordinator/implementation differ: term_192c2ec6-ba08-4100-ac4c-6b603e2b82d0 coordinator / lvw-v1-d0-implement worktree",
+  "decision": "READY_FOR_REVIEW",
+  "recommended_gate_status": "DESIGN_1_1_CONTRADICTIONS_CLOSED_MINOR_6_OPEN",
+  "exact_stop_reason": "Independent read-only recheck of the Codex design1.1 authority (932dcbc) on the hash-fenced 23-file source set (MISMATCH_COUNT 0 before and after; D0 payload manifest SHA256 56e6f07b... matches the launch value). All 22 original findings (1 Fatal / 11 Major / 10 Minor) were independently rechecked and are RESOLVED at design level: the canonical V2 /jobs/batch body is byte-untouched with the bounded V1 batch on a new /jobs/shot-batches route, the canonical Scene DTO is preserved with a revision-info sidecar and header ETag, ShotFrameRef is a valid canonical FrameRef instance, the fixed denominator (12 clips / 47 shots / 21 hard cuts / 18 quality segments) is recomputable from machine artefacts, the parent budget 450*n+90 <= 5490 s covers its denominator, and the checkpoint caps (72 actions / 21600 s / 21420 s / 180 s, threshold estimate 20735 s) are arithmetically sound and explicitly labelled as performance ceilings rather than measured guarantees. 92 independent probes were executed (76 contract/design + 16 in-memory storage/migration), 89 PASS / 3 FAIL; the 3 failures are genuine Minor contract-text defects and are reported as N1-N3 with N4-N6 found additionally. No product/runtime/model/media/service/browser/network action was taken; no sample was materialised; no product Gate0, Stage PASS, product PASS or human signature is claimed; the product coordinate stays R1/WP-R1-U3/WAIT_HUMAN; the D0-B-IMPL checker code was not reviewed in this task."
+}

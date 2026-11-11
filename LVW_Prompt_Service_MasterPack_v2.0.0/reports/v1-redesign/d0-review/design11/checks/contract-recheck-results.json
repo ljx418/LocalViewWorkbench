@@ -1,0 +1,1436 @@
+{
+  "kind": "D0_B_REVIEW_DESIGN11_INDEPENDENT_RECHECK_CONTRACT_PROBES",
+  "authority_sha": "932dcbc48bca99c463ffea8bf11d121c36aefe0c",
+  "launch_d0_payload_manifest_sha256": "56e6f07b72023928b32ed7350b78f9d1d148daf79108daffecb7d9a175e39c4a",
+  "checks": [
+    {
+      "id": "A01",
+      "group": "A_hash_fence",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "source": ".agent-governance/stages/V1-D0/spec-manifest.json",
+        "declared_files": 23,
+        "mismatch_count": 0,
+        "mismatches": {},
+        "note": "17 pre-existing review files + 6 design1.1 additions (migration.sql, openapi overlay, sample-design, docs/17, docs/20, design11-adjudication.json)"
+      }
+    },
+    {
+      "id": "A02",
+      "group": "A_hash_fence",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "file": ".agent-governance/stages/V1-D0/PAYLOAD_MANIFEST.sha256",
+        "launch_value": "56e6f07b72023928b32ed7350b78f9d1d148daf79108daffecb7d9a175e39c4a",
+        "actual": "56e6f07b72023928b32ed7350b78f9d1d148daf79108daffecb7d9a175e39c4a"
+      }
+    },
+    {
+      "id": "A03",
+      "group": "A_hash_fence",
+      "passed": true,
+      "severity_if_fail": "fatal",
+      "detail": {
+        "entries": 10,
+        "mismatch": [],
+        "rows": [
+          {
+            "file": "00-coordinate.md",
+            "expected": "99832a6bd4cf4177f1cf5e34ded11cf24e565187a1fdee25d78b1d09bebf19fb",
+            "actual": "99832a6bd4cf4177f1cf5e34ded11cf24e565187a1fdee25d78b1d09bebf19fb"
+          },
+          {
+            "file": "01-scope-and-non-goals.md",
+            "expected": "fdf6f6466230400e6c35d01500bca0a15b07d73810fe1a13faaba87c56ee844a",
+            "actual": "fdf6f6466230400e6c35d01500bca0a15b07d73810fe1a13faaba87c56ee844a"
+          },
+          {
+            "file": "02-architecture-and-ownership.md",
+            "expected": "9ef738a25b249af3f088fe1c1b10bb91b1723d8626a89fc606d418e160d69ad9",
+            "actual": "9ef738a25b249af3f088fe1c1b10bb91b1723d8626a89fc606d418e160d69ad9"
+          },
+          {
+            "file": "03-workpack-plan.md",
+            "expected": "595912b1c1e5767429c1d7f6c9e5b0effe4d5a67f24abb33be99c9b52e8334b2",
+            "actual": "595912b1c1e5767429c1d7f6c9e5b0effe4d5a67f24abb33be99c9b52e8334b2"
+          },
+          {
+            "file": "04-acceptance-matrix.md",
+            "expected": "d1d24873272b80638b03fb328169562f8a35d048a09ee2277c3f72a4a9a63cc8",
+            "actual": "d1d24873272b80638b03fb328169562f8a35d048a09ee2277c3f72a4a9a63cc8"
+          },
+          {
+            "file": "05-risk-and-authorization-register.md",
+            "expected": "bb6c7f39c5c38aaccbb6c4239dc7841f8772d7a870f44b4326df34492ddadd9f",
+            "actual": "bb6c7f39c5c38aaccbb6c4239dc7841f8772d7a870f44b4326df34492ddadd9f"
+          },
+          {
+            "file": "06-implementation-prompt.md",
+            "expected": "ff3310bcbd82cd1cda47a9d623c5bb6e029801ca511750316bdb0999e56c19e8",
+            "actual": "ff3310bcbd82cd1cda47a9d623c5bb6e029801ca511750316bdb0999e56c19e8"
+          },
+          {
+            "file": "07-checkpoint-plan.md",
+            "expected": "0abf02c31baffad158d2dd3a745f9fc68bdcc93f69aab777943a4b64e7eeb38c",
+            "actual": "0abf02c31baffad158d2dd3a745f9fc68bdcc93f69aab777943a4b64e7eeb38c"
+          },
+          {
+            "file": "spec-manifest.json",
+            "expected": "ee9ec4f4cc9277f5fe436465856e9403ffdf904aa86e7ef7eb28d10ee1eb8f51",
+            "actual": "ee9ec4f4cc9277f5fe436465856e9403ffdf904aa86e7ef7eb28d10ee1eb8f51"
+          },
+          {
+            "file": "stage-control.json",
+            "expected": "f2447d1387ac7563eff56e51af93cfc15a392308798c4826c670c50bcb0521e1",
+            "actual": "f2447d1387ac7563eff56e51af93cfc15a392308798c4826c670c50bcb0521e1"
+          }
+        ]
+      }
+    },
+    {
+      "id": "A04",
+      "group": "A_hash_fence",
+      "passed": true,
+      "severity_if_fail": "fatal",
+      "detail": {
+        "recorded": {
+          "contracts/openapi.json": "cd9df1bd94a3c4c27476608e4616e9d73e0b64da653973b1225efd902e0eef31",
+          "contracts/lvw.schema.json": "4c0e3383bfa8aa69dfabd323ecb0697ee4d4ddfa51c154eb15baf7107750f718",
+          "contracts/storage.sql": "a2204821fe77225dacb515e761bccfdcb42e42d3296ec8ba26354b60f17029f8"
+        },
+        "actual": {
+          "contracts/openapi.json": "cd9df1bd94a3c4c27476608e4616e9d73e0b64da653973b1225efd902e0eef31",
+          "contracts/lvw.schema.json": "4c0e3383bfa8aa69dfabd323ecb0697ee4d4ddfa51c154eb15baf7107750f718",
+          "contracts/storage.sql": "a2204821fe77225dacb515e761bccfdcb42e42d3296ec8ba26354b60f17029f8"
+        },
+        "note": "canonical OpenAPI/core schema/baseline DDL byte-identical to pre-change record"
+      }
+    },
+    {
+      "id": "A05",
+      "group": "A_hash_fence",
+      "passed": true,
+      "severity_if_fail": "fatal",
+      "detail": {
+        "expected": "38ca0ae572cc74a412a411635e04f21bce3fdcd29d51456fde677f188dd9f307",
+        "actual": "38ca0ae572cc74a412a411635e04f21bce3fdcd29d51456fde677f188dd9f307"
+      }
+    },
+    {
+      "id": "B01",
+      "group": "B_candidate_schema",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "result": "ok"
+      }
+    },
+    {
+      "id": "B02",
+      "group": "B_candidate_schema",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "candidate_CoreScene_equals_openapi_Scene": true,
+        "candidate_CoreScene_equals_lvw_schema_Scene": true,
+        "canonical_Scene_required": [
+          "id",
+          "media_ref_id",
+          "revision",
+          "start_pts",
+          "end_pts",
+          "origin_pts",
+          "time_base_num",
+          "time_base_den",
+          "verified",
+          "editor"
+        ],
+        "canonical_Scene_additionalProperties": false
+      }
+    },
+    {
+      "id": "B03",
+      "group": "B_candidate_schema",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "claim": "ShotFrameRef is a shape-compatible / valid instance of canonical FrameRef",
+        "per_property": {
+          "index": "IDENTICAL",
+          "target_seconds": "IDENTICAL",
+          "source_pts": "NARROWED_TO_NON_NULL_BRANCH_OF_CANONICAL_anyOf",
+          "time_base_num": "NARROWED_TO_NON_NULL_BRANCH_OF_CANONICAL_anyOf",
+          "time_base_den": "NARROWED_TO_NON_NULL_BRANCH_OF_CANONICAL_anyOf",
+          "sha256": "IDENTICAL",
+          "time_basis": "NARROWED_CONST_in_canonical_enum(['sample_target', 'decoded_pts'])"
+        },
+        "candidate_required_not_in_canonical": [],
+        "candidate_additionalProperties": false,
+        "canonical_required": [
+          "index",
+          "target_seconds",
+          "source_pts",
+          "time_base_num",
+          "time_base_den",
+          "sha256",
+          "time_basis"
+        ]
+      }
+    },
+    {
+      "id": "B04",
+      "group": "B_candidate_schema",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "generated_instance": {
+          "index": 0,
+          "target_seconds": 1.5,
+          "source_pts": 900,
+          "time_base_num": 1,
+          "time_base_den": 25,
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "time_basis": "decoded_pts"
+        },
+        "canonical_FrameRef_errors": []
+      }
+    },
+    {
+      "id": "B05",
+      "group": "B_candidate_schema",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "source": "reports/unified-media/live-15/video-model-run.json",
+        "frames_checked": 4,
+        "errors": {}
+      }
+    },
+    {
+      "id": "B06",
+      "group": "B_candidate_schema",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "public_has_lease_token": false,
+        "internal_requires_lease_token": true,
+        "public_instance_with_token_rejected": true,
+        "public_errors": [
+          "Additional properties are not allowed ('lease_token' was unexpected)"
+        ]
+      }
+    },
+    {
+      "id": "B07",
+      "group": "B_candidate_schema",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "candidate_contains_detected_vocabulary": false,
+        "candidate_editor_enum": [
+          "algorithm",
+          "human"
+        ],
+        "canonical_editor_enum": [
+          "algorithm",
+          "human"
+        ]
+      }
+    },
+    {
+      "id": "C01",
+      "group": "C_overlay",
+      "passed": true,
+      "severity_if_fail": "fatal",
+      "detail": {
+        "canonical_batch_requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/AnalyzeRequest"
+                    }
+                  }
+                },
+                "required": [
+                  "items"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "canonical_batch_x_product_version": "V2",
+        "overlay_touches_batch": false,
+        "reserved_v2_paths": [
+          "/api/v1/jobs/batch",
+          "/api/v1/jobs/{id}/retry"
+        ]
+      }
+    },
+    {
+      "id": "C02",
+      "group": "C_overlay",
+      "passed": true,
+      "severity_if_fail": "fatal",
+      "detail": {
+        "new_route_request_ref": "#/components/schemas/MultiShot_BatchAnalyzeRequest",
+        "note": "bounded new route, distinct component, canonical batch body untouched"
+      }
+    },
+    {
+      "id": "C03",
+      "group": "C_overlay",
+      "passed": true,
+      "severity_if_fail": "fatal",
+      "detail": {
+        "replaced_canonical_items": [],
+        "checked_paths": 35,
+        "checked_components": 25
+      }
+    },
+    {
+      "id": "C04",
+      "group": "C_overlay",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "collisions": [],
+        "note": "1.0 finding C18 was a bare FrameRef name collision; 1.1 prefixes every candidate component MultiShot_",
+        "prefix": "MultiShot_"
+      }
+    },
+    {
+      "id": "C05",
+      "group": "C_overlay",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "unresolved_refs": [],
+        "unresolved_count": 0
+      }
+    },
+    {
+      "id": "C06",
+      "group": "C_overlay",
+      "passed": false,
+      "severity_if_fail": "minor",
+      "detail": {
+        "overlay_add_paths": [
+          "/api/v1/jobs/shot-batches",
+          "/api/v1/jobs/{id}/children",
+          "/api/v1/scenes/{id}",
+          "/api/v1/scenes/{id}/revision-info",
+          "/api/v1/shots/{id}/analyses/{run_id}/adopt",
+          "/api/v1/shots/{id}/analyses/{run_id}/evidence",
+          "/api/v1/shots/{id}/scene-binding"
+        ],
+        "contract_additive_paths": [
+          "/api/v1/jobs/shot-batches",
+          "/api/v1/jobs/{id}/children",
+          "/api/v1/scenes/{id}/revision-info",
+          "/api/v1/shots/{id}/analyses/{run_id}/adopt",
+          "/api/v1/shots/{id}/analyses/{run_id}/evidence",
+          "/api/v1/shots/{id}/scene-binding"
+        ],
+        "in_overlay_not_in_contract": [
+          "/api/v1/scenes/{id}"
+        ],
+        "in_contract_not_in_overlay": [],
+        "note": "the machine contract file is the enumeration an implementer/verifier would diff against the overlay"
+      }
+    },
+    {
+      "id": "C07",
+      "group": "C_overlay",
+      "passed": false,
+      "severity_if_fail": "minor",
+      "detail": {
+        "contract_reuse_paths": [
+          "/api/v1/jobs/{id}",
+          "/api/v1/jobs/{id}/cancel",
+          "/api/v1/scenes",
+          "/api/v1/scenes/detect",
+          "/api/v1/scenes/{id}",
+          "/api/v1/shots",
+          "/api/v1/shots/{id}"
+        ],
+        "overlay_metadata_only_keys": [
+          "/api/v1/scenes/detect",
+          "/api/v1/scenes/{id}"
+        ],
+        "reuse_paths_without_overlay_annotation": [
+          "/api/v1/jobs/{id}",
+          "/api/v1/jobs/{id}/cancel",
+          "/api/v1/scenes",
+          "/api/v1/shots",
+          "/api/v1/shots/{id}"
+        ],
+        "note": "docs/31 states the overlay marks the V1-usable subset of scenes/detect and scenes; the overlay only annotates 2 of the 7 declared reuse paths"
+      }
+    },
+    {
+      "id": "C08",
+      "group": "C_overlay",
+      "passed": false,
+      "severity_if_fail": "minor",
+      "detail": {
+        "overlay_metadata_only": {
+          "/api/v1/scenes/detect": {
+            "v1_profile": "local-shot-v1",
+            "v2_profiles_unchanged": true
+          },
+          "/api/v1/scenes/{id}": {
+            "ETag_response_header": "strong scene version hash",
+            "put_body_response_unchanged": true
+          }
+        },
+        "any_openapi_headers_key_in_overlay": false,
+        "docs31_etag_rule": "quoted strong tag scene:<scene_revision_id>:<hash>",
+        "note": "ETag is described in docs/31 and the overlay metadata_only free-text map, but not as an OpenAPI responses.*.headers entry"
+      }
+    },
+    {
+      "id": "C09",
+      "group": "C_overlay",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "case": "the merged effective-openapi must have unique operationIds and every operation a response map",
+        "duplicate_operation_ids": [],
+        "operations_without_responses": [],
+        "operation_count": 46
+      }
+    },
+    {
+      "id": "D_ParentJob",
+      "group": "D_contract_entities",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "contract_required": [
+          "deadline_at",
+          "execution_budget_seconds",
+          "id",
+          "not_executed_count",
+          "plan_hash",
+          "planned_child_ids",
+          "retry_of_parent_id",
+          "selected_scene_revision_ids",
+          "status",
+          "terminal_count",
+          "total"
+        ],
+        "schema_required": [
+          "deadline_at",
+          "execution_budget_seconds",
+          "id",
+          "not_executed_count",
+          "plan_hash",
+          "planned_child_ids",
+          "retry_of_parent_id",
+          "selected_scene_revision_ids",
+          "status",
+          "terminal_count",
+          "total"
+        ]
+      }
+    },
+    {
+      "id": "D_SceneRevisionInfo",
+      "group": "D_contract_entities",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "contract_required": [
+          "etag",
+          "scene",
+          "scene_id",
+          "scene_revision_hash",
+          "scene_revision_id",
+          "source_sha256",
+          "time_basis"
+        ],
+        "schema_required": [
+          "etag",
+          "scene",
+          "scene_id",
+          "scene_revision_hash",
+          "scene_revision_id",
+          "source_sha256",
+          "time_basis"
+        ]
+      }
+    },
+    {
+      "id": "D_AnalysisBinding",
+      "group": "D_contract_entities",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "contract_required": [
+          "attempt_id",
+          "cancel_epoch",
+          "config_hash",
+          "lease_token",
+          "media_ref_id",
+          "media_sha256",
+          "scene_revision_hash",
+          "scene_revision_id",
+          "shot_id"
+        ],
+        "schema_required": [
+          "attempt_id",
+          "cancel_epoch",
+          "config_hash",
+          "lease_token",
+          "media_ref_id",
+          "media_sha256",
+          "scene_revision_hash",
+          "scene_revision_id",
+          "shot_id"
+        ]
+      }
+    },
+    {
+      "id": "D_ShotEvidence",
+      "group": "D_contract_entities",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "contract_required": [
+          "actions",
+          "characters",
+          "frame_refs",
+          "negative",
+          "scene",
+          "summary",
+          "tags",
+          "unknowns"
+        ],
+        "schema_required": [
+          "actions",
+          "characters",
+          "frame_refs",
+          "negative",
+          "scene",
+          "summary",
+          "tags",
+          "unknowns"
+        ]
+      }
+    },
+    {
+      "id": "D01",
+      "group": "D_contract_entities",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "canonical_job_status": [
+          "cancelled",
+          "cancelling",
+          "failed",
+          "interrupted",
+          "partial",
+          "preparing",
+          "queued",
+          "running",
+          "submission_unknown",
+          "succeeded"
+        ],
+        "child_status": [
+          "cancelled",
+          "cancelling",
+          "failed",
+          "interrupted",
+          "partial",
+          "preparing",
+          "queued",
+          "running",
+          "submission_unknown",
+          "succeeded"
+        ],
+        "parent_status": [
+          "cancelled",
+          "cancelling",
+          "failed",
+          "interrupted",
+          "partial",
+          "preparing",
+          "queued",
+          "running",
+          "submission_unknown",
+          "succeeded"
+        ],
+        "invented_not_run": false,
+        "note": "M7 required no invented Job enum; deadline/cancel reuse canonical values plus an explicit error_code"
+      }
+    },
+    {
+      "id": "D02",
+      "group": "D_contract_entities",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "terminal_errors": {
+          "BATCH_DEADLINE_EXCEEDED": {
+            "child_status": "failed",
+            "parent_status": "failed",
+            "retryable": true
+          },
+          "JOB_CANCELLED": {
+            "child_status": "cancelled",
+            "parent_status": "cancelled",
+            "retryable": false
+          },
+          "CHILD_ANALYSIS_INCOMPLETE": {
+            "parent_status": "partial",
+            "retryable": true
+          },
+          "SCENE_TIME_UNVERIFIED": {
+            "segment_job_status": "failed",
+            "retryable": false
+          }
+        },
+        "canonical_job_status": [
+          "cancelled",
+          "cancelling",
+          "failed",
+          "interrupted",
+          "partial",
+          "preparing",
+          "queued",
+          "running",
+          "submission_unknown",
+          "succeeded"
+        ]
+      }
+    },
+    {
+      "id": "D03",
+      "group": "D_contract_entities",
+      "passed": true,
+      "severity_if_fail": "minor",
+      "detail": {
+        "request_errors": {
+          "SHOT_LIMIT_EXCEEDED": 422,
+          "SCENE_TIME_UNVERIFIED": 422,
+          "SCENE_REVISION_CONFLICT": 412,
+          "ANALYSIS_STALE": 409,
+          "IDEMPOTENCY_CONFLICT": 409,
+          "MISSING_IF_MATCH": 428,
+          "UNKNOWN_SHOT_MODE": 422
+        },
+        "shot_batches_declared_responses": [
+          "202",
+          "400",
+          "401",
+          "403",
+          "404",
+          "409",
+          "412",
+          "422",
+          "428",
+          "503"
+        ],
+        "request_errors_without_matching_response_code": {},
+        "note": "m9 asked for request-level vs terminal-level error tables; this checks the request table is routable on the new bounded route"
+      }
+    },
+    {
+      "id": "D04",
+      "group": "D_contract_entities",
+      "passed": true,
+      "severity_if_fail": "minor",
+      "detail": {
+        "contract_scene_hash_fields": [
+          "media_ref_id",
+          "media_sha256",
+          "revision",
+          "start_pts",
+          "end_pts",
+          "origin_pts",
+          "time_base_num",
+          "time_base_den",
+          "editor",
+          "time_basis",
+          "verified"
+        ],
+        "sql_call_args": [
+          "s.media_ref_id",
+          "m.sha256",
+          "s.version",
+          "s.start_pts",
+          "s.end_pts",
+          "s.origin_pts",
+          "s.tb_num",
+          "s.tb_den",
+          "s.editor",
+          "'unverified'",
+          "0"
+        ],
+        "expected_sql_call_args": [
+          "s.media_ref_id",
+          "m.sha256",
+          "s.version",
+          "s.start_pts",
+          "s.end_pts",
+          "s.origin_pts",
+          "s.tb_num",
+          "s.tb_den",
+          "s.editor",
+          "'unverified'",
+          "0"
+        ],
+        "note": "SQL column names tb_num/tb_den vs contract time_base_num/time_base_den; the mapping is implied by the SQL text only"
+      }
+    },
+    {
+      "id": "D05",
+      "group": "D_contract_entities",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "scene_hash": {
+          "algorithm": "sha256 UTF8 canonical JSON sorted keys, compact separators, ensure_ascii=False, allow_nan=False",
+          "fields": [
+            "media_ref_id",
+            "media_sha256",
+            "revision",
+            "start_pts",
+            "end_pts",
+            "origin_pts",
+            "time_base_num",
+            "time_base_den",
+            "editor",
+            "time_basis",
+            "verified"
+          ],
+          "etag": "quoted strong tag scene:<scene_revision_id>:<scene_revision_hash>",
+          "excluded": [
+            "random row id",
+            "created_at",
+            "server clock"
+          ],
+          "storage": "scene_revision_meta.content_sha256/etag; AnalysisBinding.scene_revision_hash immutable copy"
+        }
+      }
+    },
+    {
+      "id": "D06",
+      "group": "D_contract_entities",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "candidate_batch_mode_enum": [
+          "cinematic",
+          "documentary",
+          "realistic",
+          "science",
+          "scifi",
+          "stylized"
+        ],
+        "canonical_PromptSpec_mode_enum": [
+          "cinematic",
+          "documentary",
+          "realistic",
+          "science",
+          "scifi",
+          "stylized"
+        ],
+        "canonical_AnalyzeRequest_mode": {
+          "type": "string"
+        }
+      }
+    },
+    {
+      "id": "E01",
+      "group": "E_sample_design",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "clips": 12,
+        "sum_shots": 47,
+        "sum_hard_cut_annotations": 21,
+        "declared": {
+          "total_clips": 12,
+          "total_shots": 47,
+          "hard_cut_annotation_count": 21
+        }
+      }
+    },
+    {
+      "id": "E02",
+      "group": "E_sample_design",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "subset_size": 18,
+        "counts": {
+          "simple_action": 12,
+          "static": 3,
+          "ambiguous": 3
+        },
+        "declared_quality_counts": {
+          "simple_action": 12,
+          "ambiguous": 3,
+          "static": 3
+        }
+      }
+    },
+    {
+      "id": "E03",
+      "group": "E_sample_design",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "quality_refs_outside_clip_shot_count": [],
+        "note": "segment ids S01.. are 1-based per clip"
+      }
+    },
+    {
+      "id": "E04",
+      "group": "E_sample_design",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "per_clip_quality_attribution_mismatch": []
+      }
+    },
+    {
+      "id": "E05",
+      "group": "E_sample_design",
+      "passed": true,
+      "severity_if_fail": "fatal",
+      "detail": {
+        "clips_claiming_materialisation": [],
+        "status": "DESIGN_ALLOCATION_ONLY_NOT_REAL_FIXTURES",
+        "note": "actual media hashes/annotations are NOT obtained; declared as a future Gate0 prerequisite, not a fake Gate0"
+      }
+    },
+    {
+      "id": "E06",
+      "group": "E_sample_design",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "docs32_rows": 12,
+        "mismatch": []
+      }
+    },
+    {
+      "id": "F01",
+      "group": "F_budgets",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "parent_budget_formula": "450*n+90",
+        "n1": 540,
+        "n12": 5490,
+        "declared_max": 5490,
+        "child_420_plus_release_30": 450,
+        "declared_per_child": 450,
+        "old_1800_removed": true
+      }
+    },
+    {
+      "id": "F02",
+      "group": "F_budgets",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "recomputed_estimate": 20735,
+        "declared_estimate": 20735,
+        "execution_deadline": 21420,
+        "wall": 21600,
+        "cleanup_reserve": 180,
+        "actions": 72,
+        "declared_estimate_basis": "design performance thresholds, not measured current per-shot P95 and not hard worst-case guarantee"
+      }
+    },
+    {
+      "id": "F03",
+      "group": "F_budgets",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "source": "reports/unified-media/complete03-budget-after-live15.json",
+        "observed": {
+          "model_actions": 29,
+          "effective_full_checkpoints": 8,
+          "production_seconds": 1506
+        },
+        "limits": {
+          "model_actions": 1024,
+          "effective_full_checkpoints": 24,
+          "production_seconds": 172800
+        },
+        "residual": {
+          "actions": 995,
+          "rounds": 16,
+          "seconds": 171294
+        },
+        "docs32_claim_min(13,16,7)": 7,
+        "historical_consumption_reset": false
+      }
+    },
+    {
+      "id": "F04",
+      "group": "F_budgets",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "case": "the checkpoint call derivation must be stated and arithmetically reproducible (47 per-shot + Q01 12 images + 6 clips = 65 success calls)",
+        "docs32_sentence_present": true,
+        "declared_video_calls": 53,
+        "expected_video_calls": 53,
+        "declared_image_calls": 12,
+        "declared_success_calls": 65
+      }
+    },
+    {
+      "id": "G01",
+      "group": "G_behaviour",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "case": "BatchAnalyzeRequest 12 shot_ids accepted",
+        "expected_outcome": true,
+        "observed_outcome": true
+      }
+    },
+    {
+      "id": "G02",
+      "group": "G_behaviour",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "case": "BatchAnalyzeRequest 13 shot_ids rejected",
+        "expected_outcome": true,
+        "observed_outcome": true
+      }
+    },
+    {
+      "id": "G03",
+      "group": "G_behaviour",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "case": "BatchAnalyzeRequest unknown mode rejected",
+        "expected_outcome": true,
+        "observed_outcome": true
+      }
+    },
+    {
+      "id": "G04",
+      "group": "G_behaviour",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "case": "BatchAnalyzeRequest unequal list lengths are NOT schema-caught (semantic only)",
+        "note": "documented in x-semantic-invariants, owner-side check",
+        "expected_outcome": true,
+        "observed_outcome": true
+      }
+    },
+    {
+      "id": "G05",
+      "group": "G_behaviour",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "case": "PublicAnalysisBinding rejects lease_token"
+      }
+    },
+    {
+      "id": "G06",
+      "group": "G_behaviour",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "case": "ChildSummary rejects invented not_run status",
+        "expected_outcome": true,
+        "observed_outcome": true
+      }
+    },
+    {
+      "id": "G07",
+      "group": "G_behaviour",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "case": "ParentJob execution_budget_seconds 5491 rejected",
+        "expected_outcome": true,
+        "observed_outcome": true
+      }
+    },
+    {
+      "id": "G08",
+      "group": "G_behaviour",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "case": "ParentJob execution_budget_seconds 539 rejected (450*1+90=540)",
+        "expected_outcome": true,
+        "observed_outcome": true
+      }
+    },
+    {
+      "id": "G09",
+      "group": "G_behaviour",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "case": "Character without domain rejected (M8 domain carrier)",
+        "expected_outcome": true,
+        "observed_outcome": true
+      }
+    },
+    {
+      "id": "G10",
+      "group": "G_behaviour",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "case": "Action domain user_evidence rejected (human-owned domains)",
+        "expected_outcome": true,
+        "observed_outcome": true
+      }
+    },
+    {
+      "id": "G11",
+      "group": "G_behaviour",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "case": "ShotFrameRef missing target_seconds rejected",
+        "expected_outcome": true,
+        "observed_outcome": true
+      }
+    },
+    {
+      "id": "G12",
+      "group": "G_behaviour",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "case": "ShotFrameRef time_basis sample_target rejected (per-shot real PTS only)",
+        "expected_outcome": true,
+        "observed_outcome": true
+      }
+    },
+    {
+      "id": "G13",
+      "group": "G_behaviour",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "case": "SceneRevisionInfo missing time_basis rejected (M2 carrier)",
+        "expected_outcome": true,
+        "observed_outcome": true
+      }
+    },
+    {
+      "id": "G14",
+      "group": "G_behaviour",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "case": "ShotEvidence missing frame_refs rejected",
+        "expected_outcome": true,
+        "observed_outcome": true
+      }
+    },
+    {
+      "id": "G15",
+      "group": "G_behaviour",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "case": "ShotFrameRef with null source_pts is rejected by the candidate schema (anyOf null branch is dead)",
+        "note": "candidate adds a sibling type:integer next to anyOf[int,null]; the null branch can never validate. Intent (per-shot real PTS only) matches docs/31, but the schema text is self-contradictory"
+      }
+    },
+    {
+      "id": "H01",
+      "group": "H_governance",
+      "passed": true,
+      "severity_if_fail": "fatal",
+      "detail": {
+        "human_signoff": null,
+        "product_acceptance": null,
+        "active_slice": "UNIFIED_MEDIA_EARLY",
+        "active_slice_human_signoff": null,
+        "forbidden_claims": [
+          "V0_ACCEPTED",
+          "V0.1_ACCEPTED",
+          "V0.2_ACCEPTED",
+          "V1_ACCEPTED",
+          "PRODUCTION_RELEASED",
+          "TARGET_HARDWARE_TESTED"
+        ]
+      }
+    },
+    {
+      "id": "H02",
+      "group": "H_governance",
+      "passed": true,
+      "severity_if_fail": "fatal",
+      "detail": {
+        "v1_m1_outline": {
+          "stage_id": "V1-M1",
+          "delivery": "V1",
+          "title": "多镜头拆分与逐镜头人物场景动作",
+          "substeps": [
+            {
+              "name": "M1-A detection/PTS/boundaries/timeline",
+              "status": "PENDING",
+              "evidence": null
+            },
+            {
+              "name": "M1-B per-shot evidence and serial child jobs",
+              "status": "PENDING",
+              "evidence": null
+            },
+            {
+              "name": "M1-C per-shot drafts/exports/fixed8 full validation",
+              "status": "PENDING",
+              "evidence": null
+            }
+          ],
+          "completed_substeps": 0,
+          "total_substeps": 3,
+          "summary": "用户批准纳入V1；设计/合同审查中，未实现、未测试、未签署",
+          "implementation": "DESIGN_ONLY",
+          "machine_acceptance": "NOT_RUN",
+          "independent_review": "NOT_RUN",
+          "human_signoff": "NOT_SIGNED"
+        }
+      }
+    },
+    {
+      "id": "H03",
+      "group": "H_governance",
+      "passed": true,
+      "severity_if_fail": "fatal",
+      "detail": {
+        "authorized_stages": [
+          "R0",
+          "R1a",
+          "V0-S2",
+          "V0-S3",
+          "R1",
+          "R2"
+        ],
+        "note": "M1 design_stage maps onto authority_stage R2; no V2 alias"
+      }
+    },
+    {
+      "id": "H04",
+      "group": "H_governance",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "v1_required_cases": 29,
+        "ms_cases": [
+          "MS01",
+          "MS02",
+          "MS03",
+          "MS04",
+          "MS05",
+          "MS06",
+          "MS07",
+          "MS08"
+        ],
+        "original_cases_kept": [
+          "A01",
+          "A02",
+          "A03",
+          "A04",
+          "A05",
+          "A06",
+          "A07",
+          "A08",
+          "A09",
+          "A10",
+          "A11",
+          "A12",
+          "F01",
+          "F02",
+          "F03",
+          "F04",
+          "F05",
+          "Q01",
+          "X01",
+          "X02",
+          "X03"
+        ],
+        "missing_original": []
+      }
+    },
+    {
+      "id": "H05",
+      "group": "H_governance",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "q01_preconditions": [
+          "12图+6片、独立预标注"
+        ],
+        "q01_assertions": [
+          "图>=10/12、片>=5/6、无关键幻觉；不是模型自评",
+          "任何失败不得静默转为跳过或降低门槛。"
+        ]
+      }
+    },
+    {
+      "id": "H06",
+      "group": "H_governance",
+      "passed": true,
+      "severity_if_fail": "fatal",
+      "detail": {
+        "authority_changed_file_count": 84,
+        "product_source_files_touched": [],
+        "note": "the 1.1 authority changes only docs/plans/contracts/reports/.agent-governance/MANIFEST"
+      }
+    },
+    {
+      "id": "I01",
+      "group": "I_docs_machine_coverage",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "m1_documents_that_must_carry_the_2026-11-11_override": [
+          "docs/17_DATA_AND_VERSIONING.md",
+          "docs/20_RELIABILITY_AND_OPERATIONS.md"
+        ],
+        "docs17_mentions_V1-M1": true,
+        "docs20_mentions_V1-M1": true,
+        "docs17_override_present": true,
+        "docs20_override_present": true
+      }
+    },
+    {
+      "id": "I02",
+      "group": "I_docs_machine_coverage",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "m2_rule": "the eleven human holdout clips must be absolutely excluded from MS development, tuning and automatic acceptance",
+        "docs29_absolute_wording": true,
+        "docs32_absolute_wording": true,
+        "docs32_even_with_a_note": true
+      }
+    },
+    {
+      "id": "I03",
+      "group": "I_docs_machine_coverage",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "m3_rule": "development set / new MS set / Q01 set / eleven holdouts must be mutually exclusive at media SHA and origin source id level",
+        "machine_mutual_exclusion": "development set, newMS independent set, existing Q01 set, and eleven current human holdouts must have disjoint media hashes and originating source IDs; no reuse of holdouts even with a note",
+        "docs32_states_sha_and_origin": true
+      }
+    },
+    {
+      "id": "I04",
+      "group": "I_docs_machine_coverage",
+      "passed": true,
+      "severity_if_fail": "minor",
+      "detail": {
+        "m5_rule": "execution-control.updated_at must be refreshed together with the coordinate write",
+        "updated_at": "2026-11-11"
+      }
+    },
+    {
+      "id": "I05",
+      "group": "I_docs_machine_coverage",
+      "passed": true,
+      "severity_if_fail": "minor",
+      "detail": {
+        "m8_rule": "the decode strategy must be stated (bounded scoring + PTS metadata index + per-shot keyframe seek, no N full passes, no full-video tensor)",
+        "missing_phrases_in_docs31": [],
+        "docs31_decode_section_present": true
+      }
+    },
+    {
+      "id": "I06",
+      "group": "I_docs_machine_coverage",
+      "passed": true,
+      "severity_if_fail": "minor",
+      "detail": {
+        "case": "every path the overlay adds must appear in the docs/31 public-route table",
+        "mentioned": {
+          "/api/v1/jobs/shot-batches": true,
+          "/api/v1/scenes/{id}": true,
+          "/api/v1/scenes/{id}/revision-info": true,
+          "/api/v1/jobs/{id}/children": true,
+          "/api/v1/shots/{id}/scene-binding": true,
+          "/api/v1/shots/{id}/analyses/{run_id}/evidence": true,
+          "/api/v1/shots/{id}/analyses/{run_id}/adopt": true
+        }
+      }
+    },
+    {
+      "id": "I07",
+      "group": "I_docs_machine_coverage",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "canonical_job_kind_enum": [
+          "analyze",
+          "segment",
+          "batch",
+          "generate"
+        ],
+        "needed": [
+          "batch (parent shot-batch)",
+          "analyze (child)"
+        ],
+        "note": "the parent job must not require a canonical Job enum extension"
+      }
+    },
+    {
+      "id": "I08",
+      "group": "I_docs_machine_coverage",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "m8_rule": "character / scene / action must each carry domain=observation|inference and a bilingual source",
+        "per_type": {
+          "Character": {
+            "domain": true,
+            "bilingual": true
+          },
+          "SceneEvidence": {
+            "domain": true,
+            "bilingual": true
+          },
+          "Action": {
+            "domain": true,
+            "bilingual": true
+          }
+        }
+      }
+    },
+    {
+      "id": "I09",
+      "group": "I_docs_machine_coverage",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "m4_rule": "the parent view must carry deadline/terminal_count and the children must be ordered",
+        "batch_children_response_required": [
+          "parent",
+          "children"
+        ],
+        "parent_has_deadline_at": true,
+        "parent_has_terminal_count": true,
+        "child_has_ordinal": true
+      }
+    },
+    {
+      "id": "I10",
+      "group": "I_docs_machine_coverage",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "m7_rule": "the legacy free-string mode must stay untouched; only the new bounded route restricts the six modes",
+        "canonical_AnalyzeRequest_mode": {
+          "type": "string"
+        }
+      }
+    },
+    {
+      "id": "J01",
+      "group": "J_preserved_obligations",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "case": "the 1.0 denominators must stay additive (29/38/47) with the original 21 as an unchanged prefix",
+        "V1": 29,
+        "V2": 38,
+        "V3": 47,
+        "V1_original_prefix": [
+          "A01",
+          "A02",
+          "A03",
+          "A04",
+          "A05",
+          "A06",
+          "A07",
+          "A08",
+          "A09",
+          "A10",
+          "A11",
+          "A12",
+          "F01",
+          "F02",
+          "F03",
+          "F04",
+          "F05",
+          "Q01",
+          "X01",
+          "X02",
+          "X03"
+        ],
+        "V1_ms_cases": [
+          "MS01",
+          "MS02",
+          "MS03",
+          "MS04",
+          "MS05",
+          "MS06",
+          "MS07",
+          "MS08"
+        ]
+      }
+    },
+    {
+      "id": "J02",
+      "group": "J_preserved_obligations",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "case": "R13 stays V2, R22 and R06 stay V1 - the 1.1 revision must not widen or narrow the approved scope",
+        "R13": "V2",
+        "R22": "V1",
+        "R06": "V1"
+      }
+    },
+    {
+      "id": "J03",
+      "group": "J_preserved_obligations",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "case": "the task dependency graph must stay acyclic",
+        "cycles": [],
+        "task_count": 14
+      }
+    },
+    {
+      "id": "J04",
+      "group": "J_preserved_obligations",
+      "passed": true,
+      "severity_if_fail": "minor",
+      "detail": {
+        "case": "docs/32 must still state the additive denominators",
+        "v1_statement_present": true,
+        "v2_v3_statement_present": true
+      }
+    }
+  ],
+  "total": 76,
+  "failed": 3,
+  "product_actions": 0,
+  "limits": "design/contract-level static probes only; no product runtime, no model, no media, no network, no sample materialisation"
+}

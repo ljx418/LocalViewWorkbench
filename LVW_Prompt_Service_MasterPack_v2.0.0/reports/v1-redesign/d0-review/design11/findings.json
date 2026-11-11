@@ -1,0 +1,429 @@
+{
+  "kind": "D0_B_REVIEW_DESIGN11_INDEPENDENT_FINDINGS_MAPPING",
+  "stage_id": "V1-D0",
+  "workpack_id": "D0-B-REVIEW",
+  "review_of": "design1.1 candidate (Codex authority 932dcbc48bca99c463ffea8bf11d121c36aefe0c)",
+  "original_review": "reports/v1-redesign/d0-review/review.md",
+  "original_review_counts": {
+    "fatal": 1,
+    "major": 11,
+    "minor": 10
+  },
+  "reviewer_position": "isolated Orca-visible ClaudeCode review window; read-only design recheck; no product/runtime/model/media/network activity; root's 22 architecture probes were read as supporting raw checks only and are not this review's conclusion",
+  "verdict_legend": {
+    "RESOLVED": "the 1.1 design text plus machine artefacts now carry the fix; verified by independent recomputation",
+    "RESOLVED_WITH_RESIDUAL": "the original defect is fixed, but a new Minor residual defect was found in the same area (listed under new_findings)",
+    "UNRESOLVED": "the original defect still stands"
+  },
+  "findings": [
+    {
+      "id": "F1",
+      "original_severity": "Fatal",
+      "title": "canonical POST /api/v1/jobs/batch carries two mutually exclusive request contracts",
+      "root_resolution": "keep canonical {items:[AnalyzeRequest]} for V2; add a bounded POST /api/v1/jobs/shot-batches for the V1 fixed denominator",
+      "verdict": "RESOLVED",
+      "evidence": [
+        "C01 canonical /api/v1/jobs/batch request body {items:[AnalyzeRequest]} untouched by the overlay and byte-identical to the pre-change record (A04)",
+        "C02 new bounded route POST /api/v1/jobs/shot-batches -> #/components/schemas/MultiShot_BatchAnalyzeRequest",
+        "C03 merged effective-openapi keeps every canonical path/method/component byte-equal",
+        "plans/v1-multishot-contract.json explicit_reserved_v2_paths = [/api/v1/jobs/batch, /api/v1/jobs/{id}/retry]",
+        "contracts/v1-multishot.schema.json BatchAnalyzeRequest.x-route = 'POST /api/v1/jobs/shot-batches ONLY; never replaces canonical /jobs/batch items body'"
+      ],
+      "residual_finding": null,
+      "notes": "F1 closed: two different semantics now live on two different paths; the canonical V2 contract is byte-identical to the pre-change record."
+    },
+    {
+      "id": "M1",
+      "original_severity": "Major",
+      "title": "canonical Scene and candidate SceneRevision field sets are mutually exclusive on /scenes and /scenes/{id}",
+      "root_resolution": "keep the canonical Scene body/enums, add GET, add a revision-info sidecar, ETag in the header",
+      "verdict": "RESOLVED_WITH_RESIDUAL",
+      "evidence": [
+        "B02 candidate $defs/CoreScene is exactly the canonical Scene (openapi component and lvw.schema are identical to the candidate copy)",
+        "C03 the canonical PUT /api/v1/scenes/{id} request/response is preserved byte-equal; the overlay only adds a GET method on the same path",
+        "B07 no 'detected' vocabulary introduced anywhere in the candidate schema",
+        "overlay add_paths['/api/v1/scenes/{id}'].get returns #/components/schemas/Scene (canonical DTO)",
+        "overlay add_paths['/api/v1/scenes/{id}/revision-info'].get returns MultiShot_SceneRevisionInfo (sidecar)"
+      ],
+      "residual_finding": "N1",
+      "notes": "The ETag itself is still prose: the overlay carries it in a bespoke 'metadata_only' free-text map, not as an OpenAPI responses.*.headers entry (C08)."
+    },
+    {
+      "id": "M2",
+      "original_severity": "Major",
+      "title": "SceneRevision cannot express unverified/estimated time although SCENE_TIME_UNVERIFIED exists",
+      "root_resolution": "time_basis + verified carriers; missing/non-monotonic PTS fails the detect job; legacy unverified scenes cannot start analysis",
+      "verdict": "RESOLVED",
+      "evidence": [
+        "candidate $defs/SceneRevisionInfo requires time_basis (decoded_pts|estimated|unverified) and embeds the canonical Scene (with verified)",
+        "invariant 'scene.verified iff time_basis==decoded_pts'",
+        "G13 a SceneRevisionInfo without time_basis is rejected by the candidate schema",
+        "S09 the DDL CHECK enforces (verified=1 AND time_basis='decoded_pts') OR (verified=0 AND time_basis!='decoded_pts')",
+        "S02 legacy scene rows are backfilled verified=0 / time_basis='unverified' with no invented verification",
+        "D02/D03 request error SCENE_TIME_UNVERIFIED=422 and terminal segment job status failed are both declared"
+      ],
+      "residual_finding": null,
+      "notes": "Enforcement that only verified+decoded_pts may start analysis remains an application rule (declared in schema invariants and docs/31), as expected for a design candidate."
+    },
+    {
+      "id": "M3",
+      "original_severity": "Major",
+      "title": "candidate FrameRef has the same name but a different shape, so per-shot frames cannot be stored in canonical model_run.frames",
+      "root_resolution": "rename to ShotFrameRef with the full canonical shape including target_seconds/time_basis; real frames stored in model_run_artifacts",
+      "verdict": "RESOLVED_WITH_RESIDUAL",
+      "evidence": [
+        "C04 no component-name collision with the canonical namespace (the 1.0 FrameRef collision is gone)",
+        "B03 ShotFrameRef is shape-compatible with canonical FrameRef (target_seconds/time_basis present, sha256 pattern identical, required set not larger)",
+        "B04 a generated ShotFrameRef instance validates against the canonical FrameRef",
+        "B05 the four real live-15 frame references validate as ShotFrameRef",
+        "S15 model_run_artifacts.frames_json exists; canonical ModelRun.frames is the read path"
+      ],
+      "residual_finding": "N4",
+      "notes": "N4: ShotFrameRef keeps an anyOf[integer,null] branch for source_pts/time_base_num/time_base_den while also declaring a sibling type:integer, so the null branch can never validate (G15). The effective behaviour matches the stated intent (per-shot real PTS only) but the schema text is self-contradictory."
+    },
+    {
+      "id": "M4",
+      "original_severity": "Major",
+      "title": "ParentJob has no DTO and 5 of its 7 required fields have no carrier; canonical Job is strict",
+      "root_resolution": "ParentJob DTO + children envelope carrying deadline/budget/fixed order/counts",
+      "verdict": "RESOLVED",
+      "evidence": [
+        "D_ParentJob: contract entities.ParentJob.required is exactly the candidate $defs/ParentJob.required",
+        "I09 BatchChildrenResponse = {parent: ParentJob, children: [ChildSummary]}; ParentJob carries deadline_at and terminal_count; ChildSummary carries ordinal",
+        "A04 canonical strict Job component is byte-identical to the pre-change record; the parent view is only exposed through the new children route (C03)",
+        "contract canonical_adapters.Job: 'strict base Job unchanged; parent progress_done/total map to derived terminal_count/planned_count'"
+      ],
+      "residual_finding": null,
+      "notes": null
+    },
+    {
+      "id": "M5",
+      "original_severity": "Major",
+      "title": "no immutable child plan and no shot/boundary binding storage, so the fixed denominator cannot be guaranteed",
+      "root_resolution": "parent/item/seal created in one transaction; count/ordinal seal trigger; worker may only claim a sealed plan",
+      "verdict": "RESOLVED",
+      "evidence": [
+        "S15 shot_batch_parent / shot_batch_item / shot_batch_seal / attempt_execution exist with the promised columns",
+        "S05 a parent with fewer items than planned_count cannot be sealed (INCOMPLETE_BATCH_PLAN)",
+        "S06 a plan with an ordinal gap (items 0 and 2 for planned_count=2) cannot be sealed",
+        "S07 a claim that joins the seal sees 0 children before the seal and 2 after it",
+        "S08 parent/item/seal rows are immutable after insert (update/delete/append all abort)",
+        "S16 the generic V2 batch_child table keeps its original two columns and stays empty",
+        "S14 job/attempt status rows stay mutable under their own CAS"
+      ],
+      "residual_finding": null,
+      "notes": "The 'all jobs + parent + items + seal in one transaction' rule is an owner-side code rule stated in docs/31, not a DDL constraint - expected for a design candidate."
+    },
+    {
+      "id": "M6",
+      "original_severity": "Major",
+      "title": "AnalysisBinding has no lease/fencing token and scene_revision_hash has neither algorithm nor storage",
+      "root_resolution": "internal lease_token; explicit canonical scene hash algorithm/etag; public binding without the token",
+      "verdict": "RESOLVED_WITH_RESIDUAL",
+      "evidence": [
+        "D_AnalysisBinding: contract required set (incl. lease_token) equals the candidate schema required set",
+        "B06/G05 PublicAnalysisBinding has no lease_token property and rejects an instance that carries one",
+        "D05 the scene hash algorithm and the exact 11-field list are declared in the machine contract",
+        "S02 the migrated content_sha256 and the quoted etag equal an independently recomputed hash of the declared algorithm",
+        "S15 shot_analysis_binding carries attempt_id/lease_token/cancel_epoch/scene_revision_hash; scene_revision_meta carries content_sha256/etag"
+      ],
+      "residual_finding": "N6",
+      "notes": "N6 (Minor): the migration's SQL column names tb_num/tb_den map onto the contract's hashed field names time_base_num/time_base_den only inside the migration text (D04); an implementer hashing the raw column names would silently produce a different hash."
+    },
+    {
+      "id": "M7",
+      "original_severity": "Major",
+      "title": "no terminal state for not-executed/deadline children and the parent deadline is not observable",
+      "root_resolution": "deadline -> failed + BATCH_DEADLINE_EXCEEDED, user cancel -> cancelled + JOB_CANCELLED, model_started derived from attempt_execution, no Job enum extension",
+      "verdict": "RESOLVED",
+      "evidence": [
+        "D01 ChildSummary.status and ParentJob.status are subsets of the canonical Job.status enum; no 'not_run' value exists (G06 rejects it)",
+        "D02 terminal error table maps BATCH_DEADLINE_EXCEEDED -> child failed / parent failed, JOB_CANCELLED -> child cancelled / parent cancelled, CHILD_ANALYSIS_INCOMPLETE -> parent partial",
+        "BatchChildrenResponse invariants state the deadline and cancel mapping and that all planned rows are retained",
+        "S11 model_started is derivable from a persisted attempt_execution.model_action_at, not from a claimed CPU task"
+      ],
+      "residual_finding": null,
+      "notes": null
+    },
+    {
+      "id": "M8",
+      "original_severity": "Major",
+      "title": "ShotEvidence cannot satisfy the four-domain contract (R06) nor compile into the four per-shot targets",
+      "root_resolution": "character/scene/action each get a domain and bilingual sources; explicit mapping into canonical Domains/PromptSpec; human domains stay separate",
+      "verdict": "RESOLVED_WITH_RESIDUAL",
+      "evidence": [
+        "I08 Character, SceneEvidence and Action each carry domain=observation|inference and a bilingual (BilingualPhrase/BilingualSummary) source",
+        "G09 a Character without domain is rejected; G10 an Action claiming domain user_evidence is rejected (human-owned domains are not model-supplied)",
+        "canonical Domains = {observation, inference, user_evidence, creative_intent, unknowns}; docs/31 gives the deterministic adapter and the merge priority (human lock > shot > scene > recipe > template > machine suggestion)",
+        "J02 R06 remains introduced_in V1 (scope not widened)"
+      ],
+      "residual_finding": "N5",
+      "notes": "N5 (Minor): the canonical Domains observation/inference/unknowns are string[] with no language slot, while the candidate evidence is bilingual; 1.1 does not pin which language variant enters the canonical string array, the ordering, or the per-item entry rule."
+    },
+    {
+      "id": "M9",
+      "original_severity": "Major",
+      "title": "the fixed denominator of 47 shots cannot be recomputed from the documented 12-clip composition",
+      "root_resolution": "publish a 12-row machine sample design table with per-clip shot and cut counts",
+      "verdict": "RESOLVED",
+      "evidence": [
+        "E01 12 clips / 47 shots / 21 hard-cut annotations recomputed from plans/v1-multishot-sample-design.json",
+        "E06 the docs/32 12-row table matches the machine table row by row (shots, cuts, quality attribution)",
+        "E03 every quality segment id resolves inside its clip's shot count; E04 the per-clip attribution equals the derived subset",
+        "E05 no clip claims materialisation (all hashes null, status NOT_MATERIALIZED_NOT_FROZEN)"
+      ],
+      "residual_finding": null,
+      "notes": "The 47-shot denominator is now recomputable from a machine table; the actual media/annotations are still not obtained, which the design declares as a future Gate0 prerequisite (E05)."
+    },
+    {
+      "id": "M10",
+      "original_severity": "Major",
+      "title": "the 1800 s parent deadline cannot cover its own 12 children (12 x 420 s = 5040 s)",
+      "root_resolution": "parent budget = 450*n+90 (max 5490), per child 420 s + 30 s release",
+      "verdict": "RESOLVED",
+      "evidence": [
+        "F01 450*n+90 for n=1..12 never exceeds 5490 and 450*12+90 = 5490; the old 1800 s constant is gone from plans/v1-revised-plan.json limits",
+        "F01 420 s analysis + 30 s release = the declared 450 s per-child budget",
+        "docs/31: the deadline is fixed at created_at, is public via ParentJob.deadline_at, is not extended on restart, and truncated children are kept as failed rows (never deleted)",
+        "D02 the truncation terminal code is declared (BATCH_DEADLINE_EXCEEDED)"
+      ],
+      "residual_finding": null,
+      "notes": "The budget is now arithmetically able to cover the fixed denominator; whether a real machine meets it remains a pilot question (see M11) and the design forbids shrinking the denominator on overrun."
+    },
+    {
+      "id": "M11",
+      "original_severity": "Major",
+      "title": "the per-round budget estimate (10800 s) is below the project's own measured latency envelope",
+      "root_resolution": "72 actions / 21600 s cap, execution deadline 21420 s, 180 s cleanup, threshold estimate 20735 s, explicitly not a measured P95/mean/worst-case guarantee",
+      "verdict": "RESOLVED",
+      "evidence": [
+        "F02 53*300 + 12*180 + 65*30 + 300 + 7*35 + 180 = 20735 <= execution deadline 21420 = 21600-180; action cap 65+7 = 72",
+        "F04 the derivation 47 per-shot + Q01 12 images + 6 clips = 65 success calls is stated in docs/32 and matches the machine budget",
+        "plans/v1-revised-plan.json checkpoint_budget.estimate_basis = 'design performance thresholds, not measured current per-shot P95 and not hard worst-case guarantee'",
+        "docs/32 states '300/180 are existing performance thresholds, not the measured M1 P95 and not a hard worst case per call'",
+        "F03 the global ledger is not reset: 1024-29 = 995 actions, 24-8 = 16 rounds, 172800-1506 = 171294 s, min(13,16,7) = 7 rounds, historical_consumption_reset = false"
+      ],
+      "residual_finding": null,
+      "notes": "Resolved as a declared performance ceiling with an explicit 'not measured' label and a no-shrink/no-auto-extend overrun rule. The 300 s per-video-call threshold itself is still unmeasured for the new per-shot profile and is declared as a pilot prerequisite."
+    },
+    {
+      "id": "m1",
+      "original_severity": "Minor",
+      "title": "docs/17 and docs/20 were not given the 2026-11-11 coverage note, so an implementer would conclude scene/batch/lease are V2",
+      "root_resolution": "add the coverage revision to both documents",
+      "verdict": "RESOLVED",
+      "evidence": [
+        "I01 both documents carry a 2026-11-11 override section naming V1-M1 and stating that only the complete R13/A13/X04/generic batch/recovery stay V2"
+      ],
+      "residual_finding": null,
+      "notes": null
+    },
+    {
+      "id": "m2",
+      "original_severity": "Minor",
+      "title": "the eleven human holdout clips were only banned from 'silent' reuse",
+      "root_resolution": "absolute ban on MS development / tuning / automatic acceptance",
+      "verdict": "RESOLVED",
+      "evidence": [
+        "I02 docs/29 now says the eleven clips are prohibited for this feature's development",
+        "I02 docs/32 says 'absolutely not used for this MS development' and 'not allowed even with a usage note'"
+      ],
+      "residual_finding": null,
+      "notes": null
+    },
+    {
+      "id": "m3",
+      "original_severity": "Minor",
+      "title": "no mutual exclusion was declared against the Q01 12-image + 6-clip set",
+      "root_resolution": "development set / new MS set / Q01 set / eleven holdouts must be disjoint by media hash and origin source id",
+      "verdict": "RESOLVED",
+      "evidence": [
+        "I03 plans/v1-multishot-sample-design.json mutual_exclusion requires disjoint media hashes and originating source IDs, with no reuse even with a note",
+        "I03 docs/32 states the same four-way exclusion at SHA and origin level",
+        "E05 the machine table still carries null hashes/origin ids, so the exclusion is a rule, not a fabricated fact"
+      ],
+      "residual_finding": null,
+      "notes": null
+    },
+    {
+      "id": "m4",
+      "original_severity": "Minor",
+      "title": "the 18-segment quality subset had only a 'pre-selected' rule, no per-segment attribution",
+      "root_resolution": "state the attribution in the machine table and in the 12-row document table",
+      "verdict": "RESOLVED",
+      "evidence": [
+        "E02 18 segments = 12 simple_action + 3 ambiguous + 3 static, matching the declared quality_counts",
+        "E04 every clip's machine-side quality map equals the derived quality_subset rows",
+        "E06 the docs/32 table gives the same attribution per clip"
+      ],
+      "residual_finding": null,
+      "notes": null
+    },
+    {
+      "id": "m5",
+      "original_severity": "Minor",
+      "title": "plans/execution-control.json updated_at lagged the coordinate",
+      "root_resolution": "refresh updated_at to 2026-11-11",
+      "verdict": "RESOLVED",
+      "evidence": [
+        "I04 execution-control.updated_at == 2026-11-11",
+        "H01 human_signoff/product_acceptance still null, V1_ACCEPTED still forbidden, active_slice human signoff still null"
+      ],
+      "residual_finding": null,
+      "notes": null
+    },
+    {
+      "id": "m6",
+      "original_severity": "Minor",
+      "title": "candidate origin[detected|human] contradicted the canonical editor[algorithm|human] vocabulary",
+      "root_resolution": "keep algorithm|human only; no detected vocabulary",
+      "verdict": "RESOLVED",
+      "evidence": [
+        "B07 the candidate schema contains no 'detected' token and its editor enum equals the canonical enum",
+        "B02 the candidate Scene copy is literally the canonical Scene",
+        "plans/v1-multishot-contract.json canonical_adapters.Scene states the algorithm<->detector, human<->manual mapping without adding a public word"
+      ],
+      "residual_finding": null,
+      "notes": null
+    },
+    {
+      "id": "m7",
+      "original_severity": "Minor",
+      "title": "the candidate batch mode enum was stricter than the canonical free-string AnalyzeRequest.mode",
+      "root_resolution": "the new route accepts exactly the six product modes; the legacy free-string request is untouched",
+      "verdict": "RESOLVED",
+      "evidence": [
+        "D06 the six modes are exactly the canonical PromptSpec.mode enum (documentary, realistic, scifi, science, cinematic, stylized)",
+        "I10 canonical AnalyzeRequest.mode is still a free string; A04 the canonical component is byte-identical",
+        "contract http_rules: 'new shot-batch endpoint accepts exactly six canonical product modes; legacy free-string request not modified'"
+      ],
+      "residual_finding": null,
+      "notes": null
+    },
+    {
+      "id": "m8",
+      "original_severity": "Minor",
+      "title": "the per-shot frame extraction strategy (one bounded decode vs N independent decodes) was not stated",
+      "root_resolution": "one bounded scoring pass + PTS metadata index + per-shot keyframe seek",
+      "verdict": "RESOLVED",
+      "evidence": [
+        "I05 docs/31 states the single bounded pass, the compact PTS index (disk <= 16 MiB, detect <= 120 s), the per-shot keyframe seek and the ban on full-video tensors",
+        "plans/v1-revised-plan.json limits carry pts_index_bytes = 16777216 and detection_seconds = 120"
+      ],
+      "residual_finding": null,
+      "notes": null
+    },
+    {
+      "id": "m9",
+      "original_severity": "Minor",
+      "title": "request-level and terminal error codes were mixed in one list",
+      "root_resolution": "split into request errors and terminal errors",
+      "verdict": "RESOLVED",
+      "evidence": [
+        "D03 request_errors map to HTTP statuses and every status is declared in the new route's response map",
+        "D02 terminal_errors map to child/parent job statuses from the canonical Job enum"
+      ],
+      "residual_finding": null,
+      "notes": "SCENE_TIME_UNVERIFIED appears in both tables, but as two different events (HTTP 422 rejection vs a failed detect job); the 1.1 text keeps them distinguishable."
+    },
+    {
+      "id": "m10",
+      "original_severity": "Minor",
+      "title": "the migration strategy for legacy shot rows and the meaning of 'required binding' were undefined",
+      "root_resolution": "optional shot_scene_binding association; no forced backfill; existing revision hashes unchanged",
+      "verdict": "RESOLVED",
+      "evidence": [
+        "S03 shot_scene_binding has 0 rows after the migration while manual and image shots exist; the legacy prompt_revision content_sha256 is unchanged",
+        "S16 the generic V2 batch_child table is untouched",
+        "contract storage_plan: 'optional shot_scene_binding association; manual/image shots need no row or backfill'"
+      ],
+      "residual_finding": null,
+      "notes": null
+    }
+  ],
+  "new_findings": [
+    {
+      "id": "N1",
+      "severity": "Minor",
+      "title": "the ETag response header is not machine-declared in the overlay, and the metadata_only promotion rule is undefined",
+      "where": "contracts/v1-multishot.openapi-overlay.json -> metadata_only['/api/v1/scenes/{id}'].ETag_response_header = 'strong scene version hash'",
+      "trigger": "the implementer builds the effective-openapi from base + overlay and has to decide where the ETag header goes",
+      "expected": "an OpenAPI responses.200.headers entry (header name ETag, string schema, the quoted strong tag format) plus a written rule for how metadata_only is promoted into the effective document",
+      "actual": "the overlay has no 'headers' key anywhere (C08); the header exists only as free text in a bespoke map whose merge semantics are not defined, while the exact format is written down in docs/31 and the machine contract",
+      "evidence": "C08; docs/31 'strong ETag = quoted scene:<scene_revision_id>:<hash>'; plans/v1-multishot-contract.json scene_hash.etag",
+      "owner": "Codex (contract owner)",
+      "note": "Does not change any DTO shape; it leaves the ETag half of the M1 remedy in prose."
+    },
+    {
+      "id": "N2",
+      "severity": "Minor",
+      "title": "the machine contract's additive_paths list omits the new GET /api/v1/scenes/{id} that the overlay adds",
+      "where": "plans/v1-multishot-contract.json additive_paths (6 entries) vs contracts/v1-multishot.openapi-overlay.json add_paths (7 entries)",
+      "trigger": "an implementer or a checker diffs the declared additive path set against the overlay",
+      "expected": "the declared set covers every path/method the overlay introduces, or new paths and new methods on existing paths are listed separately",
+      "actual": "the overlay adds a GET method on the existing path /api/v1/scenes/{id}; that path is absent from additive_paths, so a verifier using the contract list would not see the new GET",
+      "evidence": "C06 in_overlay_not_in_contract = ['/api/v1/scenes/{id}']",
+      "owner": "Codex (contract owner)"
+    },
+    {
+      "id": "N3",
+      "severity": "Minor",
+      "title": "the overlay marks only 2 of the 7 declared reuse paths as V1-usable",
+      "where": "contracts/v1-multishot.openapi-overlay.json metadata_only (2 keys) vs plans/v1-multishot-contract.json reuse_paths (7 keys)",
+      "trigger": "the M1 public surface is built from the reuse paths (scenes list, shots, shots/{id}, jobs/{id}, jobs/{id}/cancel) that docs/31 lists as M1 entry points",
+      "expected": "either a per-path/method V1-usable annotation for all M1 entry points, or an explicit rule that reuse paths need no promotion annotation",
+      "actual": "5 条 reuse 路径在 overlay 中没有任何标注。canonical 中 /api/v1/scenes 的 GET 与 /api/v1/scenes/{id} 的 PUT 仍标 x-product-version: V2，overlay 只在 /api/v1/scenes/detect 标了 v1_profile、在 /api/v1/scenes/{id} 记了 ETag 说明；/api/v1/shots、/api/v1/shots/{id}、/api/v1/jobs/{id}、/api/v1/jobs/{id}/cancel 本身已是 V1，却同样没有提升标注。",
+      "evidence": "C07 reuse_paths_without_overlay_annotation",
+      "owner": "Codex (contract owner)"
+    },
+    {
+      "id": "N4",
+      "severity": "Minor",
+      "title": "ShotFrameRef keeps an unreachable anyOf null branch next to a sibling type:integer",
+      "where": "contracts/v1-multishot.schema.json $defs/ShotFrameRef.properties.source_pts / time_base_num / time_base_den",
+      "trigger": "an implementer reads the anyOf and tries to accept a null source_pts, or a schema linter flags the contradictory keywords",
+      "expected": "either a plain non-null integer, or an anyOf without the contradictory sibling type",
+      "actual": "the null branch can never validate because the sibling type:integer applies at the same level (G15); the effective behaviour matches the stated intent (per-shot real PTS only) but the schema text says both things",
+      "evidence": "G15",
+      "owner": "Codex (contract owner)"
+    },
+    {
+      "id": "N5",
+      "severity": "Minor",
+      "title": "the bilingual evidence -> canonical Domains string[] mapping has no pinned language, ordering or entry rule",
+      "where": "contracts/v1-multishot.schema.json $defs/Character/SceneEvidence/Action (BilingualPhrase) vs canonical contracts/lvw.schema.json $defs/Domains (observation/inference/unknowns are string[])",
+      "trigger": "the per-shot adapter formats evidence into canonical Domains for the four-target compile",
+      "expected": "a pinned rule, e.g. one English entry per evidence item in Domains.observation/inference with the Chinese wording in text_zh, plus the ordering/dedup rule",
+      "actual": "docs/31 says only 'format each field by domain into canonical Domains.observation or inference' and 'the bilingual summary enters text_zh/text_en'; the canonical domain arrays have no language slot, so two implementations can legitimately diverge",
+      "evidence": "I08 (domains present) + canonical lvw.schema.json $defs/Domains (no language slot)",
+      "owner": "Codex (contract owner), with the CompilerOwner"
+    },
+    {
+      "id": "N6",
+      "severity": "Minor",
+      "title": "the hashed field names time_base_num/time_base_den map onto the DDL columns tb_num/tb_den only inside the migration text",
+      "where": "plans/v1-multishot-contract.json scene_hash.fields vs contracts/v1-multishot-migration.sql lvw_scene_hash(s.media_ref_id, m.sha256, s.version, ..., s.tb_num, s.tb_den, ...)",
+      "trigger": "the shared hash function is implemented or ported outside the migration",
+      "expected": "the mapping between hashed field names and DDL column names is declared in the machine contract, not only implied by the SQL call site",
+      "actual": "the contract lists the hashed field names but not the column aliases; a port that hashed the column names would produce a different, silently incompatible hash",
+      "evidence": "D04 (SQL call argument order and names vs contract field list)",
+      "owner": "Codex (contract owner)"
+    }
+  ],
+  "totals": {
+    "original_findings_rechecked": 22,
+    "resolved": 22,
+    "resolved_with_residual_minor": 4,
+    "unresolved": 0,
+    "new_findings": 6,
+    "new_fatal": 0,
+    "new_major": 0,
+    "new_minor": 6,
+    "open_minor": 6
+  },
+  "not_assessed_here": [
+    "the D0-B-IMPL checker candidate (tools/verify_v1_plan.py) is absent from this checkout and was deliberately not reviewed; the implementation refreeze is a separate worker and a separate read-only code review",
+    "product/runtime behaviour, real model output, media handling, browser/service behaviour and sample materialisation",
+    "product Gate0, Stage PASS, product acceptance and the human experience signature"
+  ]
+}
