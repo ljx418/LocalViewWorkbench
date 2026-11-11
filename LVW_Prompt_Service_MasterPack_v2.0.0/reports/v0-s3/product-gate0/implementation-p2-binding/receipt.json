@@ -1,0 +1,718 @@
+{
+  "implementation_status": "READY_FOR_REVIEW",
+  "evidence_completeness": "BLOCKED_GAPS_NOT_STAGE_PASS",
+  "candidate_sha": "34de7b54a529a8947d63736c6f1bd345828cad57",
+  "base_sha": "7e33e6112d9df330ef4385773e41072a7c2f5469",
+  "batch_exit_code": 0,
+  "batch_terminal": "EXPIRED_NO_SECOND_BATCH",
+  "batch_command": [
+    "python3",
+    "-B",
+    "tools/v0_s3_runtime_binding.py",
+    "--run"
+  ],
+  "preflight_command": [
+    "python3",
+    "-B",
+    "tools/v0_s3_runtime_binding.py",
+    "--preflight",
+    "34de7b54a529a8947d63736c6f1bd345828cad57"
+  ],
+  "tests": {
+    "passed": 83,
+    "exit": 0,
+    "candidate": "def6544a62733523c35156acd6b4257ab71cb6ff",
+    "later_change": "only output-root literal to existing ignored receipts directory",
+    "prior_failure": "initial-tests.stdout: invalid synthetic rebind correctly refused"
+  },
+  "raw_artifacts": {
+    "batch.stderr": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "batch.stdout": {
+      "sha256": "744aa470c7d365f94751a623e6a9d8d7f72d7419c31129d2249169bc69e35b28",
+      "bytes": 16584
+    },
+    "consumed.json": {
+      "sha256": "1c570624e989052cc7f6e2040490f8e0906a1bfa28c0470e669b9a79a0c1b8c6",
+      "bytes": 117
+    },
+    "cross-os-lifecycle.json": {
+      "sha256": "5ad19d51db7975862d4234da299ca1354de76ffac18fb8ef58805e92ad3a92e8",
+      "bytes": 20122
+    },
+    "installed-bindings.json": {
+      "sha256": "bb692315991af213dc8a24864504d329165b7db6adc0f1a2ba1271fd7ef4a48a",
+      "bytes": 2350
+    },
+    "installed-seal.json": {
+      "sha256": "0b612613a827def784d06d72be53c347c389e7df7b9533f8be25bbde459abfe6",
+      "bytes": 2660
+    },
+    "preflight.json": {
+      "sha256": "e596de4f5fac4592508d8e2c1af30e8dd1adc8cf1af369bccc10e26952c8c57f",
+      "bytes": 2523
+    }
+  },
+  "raw_root": ".agent-governance/runtime/receipts/s3-p2b-01",
+  "redaction": {
+    "${PACKAGE_ROOT}": "current package root",
+    "${WINDOWS_USER_MOUNT}": "Windows user mount named in frozen FIXED ollama path; exact local raw retained"
+  },
+  "counts": {
+    "batch_wall_seconds": 21.303025421999337,
+    "logical_process_starts_reserved": 13,
+    "direct_commands": 7,
+    "nested_windows_wsl_wrappers": 3,
+    "nested_wsl_shims": 3,
+    "max_direct_command_seconds": 9.5782118490024,
+    "metadata_unique_files": 9,
+    "metadata_unique_bytes": 169955221,
+    "captured_command_stdout_stderr_bytes": 3880,
+    "raw_artifact_bytes": 44356,
+    "synthetic_debits": 1,
+    "real_models": 0,
+    "real_ledger_mutations": 0,
+    "real_full_checkpoints": 0,
+    "gpu_probes": 0,
+    "services_started": 0,
+    "real_media_reads": 0,
+    "downloads": 0,
+    "network_calls": 0
+  },
+  "observed": {
+    "windows_os_name": "nt",
+    "windows_python": "3.12.10",
+    "wsl_python": "3.12.3",
+    "Pillow_metadata": "11.0.0",
+    "numpy_metadata": "1.26.4",
+    "av_metadata": "18.0.0",
+    "normal_wrapper_exit": 0,
+    "missing_child_wrapper_exit": 1,
+    "timeout_wrapper_exit": 1,
+    "timeout_error": "TIMEOUT",
+    "wrapper_pipes_closed": true,
+    "wrapper_threads_joined": true,
+    "remote_owned_requests": [
+      {
+        "request_id": "a3c9bd41-19b3-48e6-8368-3ef585bc2764",
+        "binding_sha256": "f22562cf295998ceda8d0b43d8c4d29af1b53f663a451d64ddece08295f8f862",
+        "pid": 1666044,
+        "birth": {
+          "linux_start_ticks": 4877478
+        },
+        "state": "RETURNED_FROM_AUTHORITY",
+        "same_birth_alive": false
+      },
+      {
+        "request_id": "d47e558a-78b0-4f94-a7d6-b21c5514babe",
+        "binding_sha256": "f22562cf295998ceda8d0b43d8c4d29af1b53f663a451d64ddece08295f8f862",
+        "pid": 1666148,
+        "birth": {
+          "linux_start_ticks": 4877530
+        },
+        "state": "ENTERED",
+        "same_birth_alive": false
+      }
+    ],
+    "actual_unc_unicode_space": true
+  },
+  "cleanup": [
+    {
+      "fixture": "/tmp/lvw-s3-p2b-中文 Space-v3m0dsi2",
+      "state": "FAILED_RETAINED",
+      "owners": [
+        {
+          "request_id": "a3c9bd41-19b3-48e6-8368-3ef585bc2764",
+          "binding_sha256": "f22562cf295998ceda8d0b43d8c4d29af1b53f663a451d64ddece08295f8f862",
+          "pid": 1666044,
+          "birth": {
+            "linux_start_ticks": 4877478
+          },
+          "state": "RETURNED_FROM_AUTHORITY",
+          "same_birth_alive": false
+        },
+        {
+          "request_id": "d47e558a-78b0-4f94-a7d6-b21c5514babe",
+          "binding_sha256": "f22562cf295998ceda8d0b43d8c4d29af1b53f663a451d64ddece08295f8f862",
+          "pid": 1666148,
+          "birth": {
+            "linux_start_ticks": 4877530
+          },
+          "state": "ENTERED",
+          "same_birth_alive": false
+        }
+      ],
+      "reason": "Retain unknown reservation and source copies for coordinator; no remote kill"
+    }
+  ],
+  "reservation": "retained; never refunded or settle0; synthetic only",
+  "schema": {
+    "added_transport": "wsl-fixture",
+    "schema_unchanged": "lvw.s3-budget/1 exact existing keys",
+    "fixed_distribution": "Ubuntu-24.04",
+    "root": "/tmp/lvw-s3-p2b-* with marker",
+    "mapping": "exact case-preserving wsl.localhost UNC for child/binding/tools",
+    "production": "validate_profile rejects wsl-fixture; original samefile path remains for wsl/local-wsl",
+    "owner_record": "derived validated root/.s3-owned-requests/request UUID.json; exclusive create after child/execution/tool/approval checks; PID+Linux start_ticks; no kill API"
+  },
+  "gaps": [
+    "Remote shim actual wait/exit status was not directly collected: final /proc absence proves identity no longer alive, not exit code or causal attribution.",
+    "Timeout owner state remains ENTERED; no returned authority receipt, reservation retained even with observed calls=1.",
+    "Only t~1s remote-live sample exists because wrapper returned before configured t11 sample; final absence is after lock-release timer join, not immediate timeout-edge observation.",
+    "Raw harness gap text says natural bounded lock release observed; only timer release was observed, remote exit cause is UNKNOWN and must not be attributed to natural exit.",
+    "Actual cross-OS malformed receipt and case-variant rejection were not exercised; existing synthetic tests cover these boundaries only.",
+    "13 is fixed command/descendant launch accounting; WSL implicit interop helper process births and Windows Python native PID birth were not independently enumerated; not a complete OS process census.",
+    "Output meter counts command stdout/stderr, not JSON fixture/result writes; raw artifact byte total separately reconstructed and below 16MiB; strict unified output meter remains incomplete.",
+    "Installed hashes bound in installed-seal before command execution; initial preflight binds fixed installed paths and source hashes, not yet-discovered installed binary hashes.",
+    "No new owned cleanup protocol implemented or needed for any observed surviving PID; retained fixture root is explicitly FAILED_RETAINED.",
+    "Installed metadata is not a full dependency lock, Comfy runtime validation, or network isolation proof."
+  ],
+  "production_ledger_facts_reference_only": {
+    "path": "reports/unified-media/complete03-budget-after-live15.json",
+    "source_commit": "7e33e6112d9df330ef4385773e41072a7c2f5469",
+    "read_or_mutated_actual_ledger": false
+  },
+  "development_outline": [
+    {
+      "stage_id": "V0-S0",
+      "delivery": "V0",
+      "title": "基线探索",
+      "substeps": [
+        {
+          "name": "盘点与探索记录",
+          "status": "DONE",
+          "evidence": "reports/v0-s0/gate-decision-rerun-02.md"
+        },
+        {
+          "name": "完整生产基线",
+          "status": "FAILED_HISTORICAL",
+          "evidence": "reports/v0-s0/gate-decision-rerun-02.md"
+        }
+      ],
+      "completed_substeps": 1,
+      "total_substeps": 2,
+      "summary": "历史探索已结束且NO_GO保留；V0-Min按后续范围签署，不回填S0 PASS",
+      "implementation": "ARCHIVED",
+      "machine_acceptance": "NO_GO_HISTORICAL",
+      "independent_review": "COMPLETED_WITH_BLOCKERS",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "V0-S1",
+      "delivery": "V0-Min",
+      "title": "图片与独立人工",
+      "substeps": [
+        {
+          "name": "独立人工稿与导出",
+          "status": "DONE",
+          "evidence": "reports/v0-s1/v0-min-acceptance.json"
+        },
+        {
+          "name": "真实图片与预处理",
+          "status": "DONE",
+          "evidence": "reports/v0-s1/v0-min-acceptance.json"
+        },
+        {
+          "name": "四输出与草稿保护",
+          "status": "DONE",
+          "evidence": "reports/v0-s1/v0-min-acceptance.json"
+        },
+        {
+          "name": "固定证据及独立审查",
+          "status": "DONE",
+          "evidence": "reports/v0-s1/v0-min-acceptance.json"
+        },
+        {
+          "name": "人工签署",
+          "status": "DONE",
+          "evidence": "reports/v0-s1/v0-min-acceptance.json"
+        }
+      ],
+      "completed_substeps": 5,
+      "total_substeps": 5,
+      "summary": "已签仅V0-Min",
+      "implementation": "DELIVERED",
+      "machine_acceptance": "ACCEPTED_SCOPE_ONLY",
+      "independent_review": "COMPLETED",
+      "human_signoff": "APPROVED"
+    },
+    {
+      "stage_id": "R0",
+      "delivery": "V1前置",
+      "title": "独立服务复核",
+      "substeps": [
+        {
+          "name": "独立单图路径在R1a验证",
+          "status": "DONE",
+          "evidence": "reports/r1a/gate-decision-r1a.md"
+        },
+        {
+          "name": "完整复用/许可清单单独闭合",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 1,
+      "total_substeps": 2,
+      "summary": "仅R1a前置单图子集可确认；不把完整视频/Q01算通过",
+      "implementation": "PARTIAL_REUSED",
+      "machine_acceptance": "SINGLE_IMAGE_SUBSET_ONLY",
+      "independent_review": "NO_SEPARATE_R0_VERDICT",
+      "human_signoff": "NO_SEPARATE_R0_SIGNOFF"
+    },
+    {
+      "stage_id": "R1a",
+      "delivery": "V1早期切片",
+      "title": "单图React/FastAPI",
+      "substeps": [
+        {
+          "name": "正式合同子集与前后端",
+          "status": "DONE",
+          "evidence": "reports/r1a/gate-decision-r1a.md"
+        },
+        {
+          "name": "真实单图链路",
+          "status": "DONE",
+          "evidence": "reports/r1a/gate-decision-r1a.md"
+        },
+        {
+          "name": "失败/服务控制与人工稿保护",
+          "status": "DONE",
+          "evidence": "reports/r1a/gate-decision-r1a.md"
+        },
+        {
+          "name": "独立审查七项",
+          "status": "DONE",
+          "evidence": "reports/r1a/gate-decision-r1a.md"
+        },
+        {
+          "name": "人工体验签署",
+          "status": "DONE",
+          "evidence": "reports/r1a/gate-decision-r1a.md"
+        }
+      ],
+      "completed_substeps": 5,
+      "total_substeps": 5,
+      "summary": "已签仅单图切片；完整V1未完成",
+      "implementation": "DELIVERED",
+      "machine_acceptance": "ACCEPTED_SCOPE_ONLY",
+      "independent_review": "COMPLETED",
+      "human_signoff": "APPROVED"
+    },
+    {
+      "stage_id": "V0-S2",
+      "delivery": "V0.1",
+      "title": "视频与资源控制",
+      "substeps": [
+        {
+          "name": "WP-S2-00 冻结准备",
+          "status": "DONE",
+          "evidence": "reports/v0-s2/offline-checkpoint-44/receipt.json"
+        },
+        {
+          "name": "WP-S2-01 媒体owner",
+          "status": "DONE",
+          "evidence": "reports/v0-s2/offline-checkpoint-44/receipt.json"
+        },
+        {
+          "name": "WP-S2-02 公开视频路径",
+          "status": "DONE",
+          "evidence": "reports/v0-s2/offline-checkpoint-44/receipt.json"
+        },
+        {
+          "name": "WP-S2-03 安全/资源/取消",
+          "status": "DONE",
+          "evidence": "reports/v0-s2/offline-checkpoint-44/receipt.json"
+        },
+        {
+          "name": "WP-S2-04 离线集中收口",
+          "status": "DONE",
+          "evidence": "reports/v0-s2/offline-checkpoint-44/receipt.json"
+        },
+        {
+          "name": "WP-S2-05 完整真实验收",
+          "status": "DONE",
+          "evidence": "reports/v0-s2/full-v0-auto-08/receipt.json"
+        },
+        {
+          "name": "WP-S2-06 独立审查",
+          "status": "DONE",
+          "evidence": "reports/v0-s2/full-v0-auto-08/independent-review.json"
+        },
+        {
+          "name": "S2 人工签署与Git同步",
+          "status": "PENDING",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 7,
+      "total_substeps": 8,
+      "summary": "Full08 fresh cumulative9/9, offline541/5checks, independent Fatal0/Major0/Minor0; human signoff and immediate Git sync remain.",
+      "implementation": "IMPLEMENTED",
+      "machine_acceptance": "COMPLETE_FIXED9_PASSED",
+      "independent_review": "COMPLETE_FATAL0_MAJOR0_MINOR0",
+      "human_signoff": "PENDING"
+    },
+    {
+      "stage_id": "V0-S3",
+      "delivery": "V0.2",
+      "title": "离线质量与增量包",
+      "substeps": [
+        {
+          "name": "包/清单/使用说明",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "安装诊断与回滚",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "独立质量集与标注",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "离线集中收口",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "真实十二项及质量",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "独审/人工签署/同步",
+          "status": "PENDING",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 0,
+      "total_substeps": 6,
+      "summary": "已有设计，未完成正式交付；存在代码需进入时复用审计",
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R1",
+      "delivery": "V1",
+      "title": "人工业务骨架",
+      "substeps": [
+        {
+          "name": "受控媒体与人工镜头",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "六模式四目标",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "SQLite/修订/导入",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "组合回归及阶段审查",
+          "status": "PENDING",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "summary": "最小统一图视频切片3/3、UM10机器与独审通过，用户已确认当前前端与基本视频反推；完整R1四子项仍0/4，不补签历史S2/完整V1或发布。",
+      "implementation": "EARLY_SLICE_IMPLEMENTED_FULL_R1_PENDING",
+      "machine_acceptance": "EARLY_SLICE_UM10_ONLY",
+      "independent_review": "EARLY_SLICE_FATAL0_MAJOR0",
+      "human_signoff": "EARLY_SLICE_APPROVED_FULL_R1_PENDING",
+      "early_slice": {
+        "id": "UNIFIED_MEDIA_EARLY",
+        "completed_workpacks": 3,
+        "total_workpacks": 3,
+        "candidate_sha": "621b1bf386db71bfe08ca2f533fa8ec396b0504b",
+        "machine_acceptance": "UM10_PASS",
+        "independent_review": "FATAL0_MAJOR0",
+        "human_signoff": "APPROVED",
+        "human_signoff_record": "reports/unified-media/human-signoff-live15.json"
+      }
+    },
+    {
+      "stage_id": "V1-M1",
+      "delivery": "V1",
+      "title": "多镜头拆分与逐镜头人物场景动作",
+      "substeps": [
+        {
+          "name": "M1-A detection/PTS/boundaries/timeline",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "M1-B per-shot evidence and serial child jobs",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "M1-C per-shot drafts/exports/fixed8 full validation",
+          "status": "PENDING",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 0,
+      "total_substeps": 3,
+      "summary": "用户批准纳入V1；设计/合同审查中，未实现、未测试、未签署",
+      "implementation": "DESIGN_ONLY",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R2",
+      "delivery": "V1",
+      "title": "任务与正式运行包",
+      "substeps": [
+        {
+          "name": "异步任务/CAS/取消",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "真实图视频及质量",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "CLI/导出/便携包",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "V1累计独审及人工签署",
+          "status": "PENDING",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "summary": "已有设计，未完成正式交付；存在代码需进入时复用审计",
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R3",
+      "delivery": "V2",
+      "title": "镜头资产与检索",
+      "substeps": [
+        {
+          "name": "真实PTS/切镜",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "资产/FTS5/配方",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "对比/QC/JSONL",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "阶段验收",
+          "status": "PENDING",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "summary": "已有设计，未完成正式交付；存在代码需进入时复用审计",
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R4",
+      "delivery": "V2",
+      "title": "MCP与恢复",
+      "substeps": [
+        {
+          "name": "MCP真客户端",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "批量/lease/幂等",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "备份恢复",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "V2累计验收签署",
+          "status": "PENDING",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "summary": "已有设计，未完成正式交付；存在代码需进入时复用审计",
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R5a",
+      "delivery": "V3",
+      "title": "证据与建议合同",
+      "substeps": [
+        {
+          "name": "对端握手",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "Navia证据",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "Narralens建议/冲突",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "阶段真实验收",
+          "status": "PENDING",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "summary": "已有设计，未完成正式交付；存在代码需进入时复用审计",
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R5b",
+      "delivery": "V3",
+      "title": "受控生成交接",
+      "substeps": [
+        {
+          "name": "Comfy allowlist/映射",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "收据/outbox",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "GPU/取消协作",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "阶段真实验收",
+          "status": "PENDING",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "summary": "已有设计，未完成正式交付；存在代码需进入时复用审计",
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R5c",
+      "delivery": "V3",
+      "title": "集成与完整交付",
+      "substeps": [
+        {
+          "name": "集成UI",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "升级回滚",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "三系统E2E",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "V3独审及人工签署",
+          "status": "PENDING",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "summary": "已有设计，未完成正式交付；存在代码需进入时复用审计",
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    }
+  ],
+  "planning_track": {
+    "id": "V1-D0",
+    "state": "OFFLINE_PREPARATION_ACCEPTED_WITH_NONBLOCKING_MINORS",
+    "completed_substeps": 2,
+    "total_substeps": 2,
+    "owner": "Codex",
+    "implementer": "Orca ClaudeCode",
+    "scope": "offline plan checker and independent audit, not product runtime",
+    "orca_visibility": "child workspaces with keep-open; worker dispatch receipts are launch authority",
+    "orca_run_id": "run_ec1d5514e718",
+    "worker_dispatch_status": "IMPLEMENTATION_AND_INDEPENDENT_RECHECK_SETTLED",
+    "independent_review": "reports/v1-redesign/d0-review/design112/receipt.json",
+    "open_original_findings": {
+      "Fatal": 0,
+      "Major": 0,
+      "Minor": 0
+    },
+    "note": "D0 preparation accepted on immutable eea5663;233 independent tests,23 probes;nonblocking residuals retained. Current unified slice has SINCE been human-approved and pushed c448ec6; archived D0 WAIT_HUMAN text is historical, not a live blocker.",
+    "open_new_findings": {
+      "Fatal": 0,
+      "Major": 0,
+      "Minor": 2
+    },
+    "adjudication": "reports/v1-redesign/d0-acceptance/decision.json",
+    "audited_candidate_sha": "eea56636b1870586fd8d6b17005334f1b4c63cd7",
+    "frozen_packet_snapshot": "git:eea56636b1870586fd8d6b17005334f1b4c63cd7:LVW_Prompt_Service_MasterPack_v2.0.0/.agent-governance/stages/V1-D0/",
+    "accepted_residuals": [
+      "NM-5/NM-10",
+      "NM-6"
+    ],
+    "completion_is_product_pass": false
+  },
+  "stage_pass": false,
+  "product_gate0": false,
+  "quality_claim": false,
+  "human_signoff": false,
+  "release": false,
+  "next": "Isolated text/synthetic review and coordinator disposition of gaps; no repeat of consumed S3-P2B-01"
+}

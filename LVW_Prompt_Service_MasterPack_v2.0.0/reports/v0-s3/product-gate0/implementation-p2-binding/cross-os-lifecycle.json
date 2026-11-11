@@ -1,0 +1,482 @@
+{
+  "status": "READY_FOR_REVIEW",
+  "model_sends": 0,
+  "real_ledger_accesses": 0,
+  "real_checkpoints": 0,
+  "synthetic_debits": 1,
+  "cleanup": [
+    {
+      "fixture": "/tmp/lvw-s3-p2b-中文 Space-v3m0dsi2",
+      "state": "FAILED_RETAINED",
+      "owners": [
+        {
+          "request_id": "a3c9bd41-19b3-48e6-8368-3ef585bc2764",
+          "binding_sha256": "f22562cf295998ceda8d0b43d8c4d29af1b53f663a451d64ddece08295f8f862",
+          "pid": 1666044,
+          "birth": {
+            "linux_start_ticks": 4877478
+          },
+          "state": "RETURNED_FROM_AUTHORITY",
+          "same_birth_alive": false
+        },
+        {
+          "request_id": "d47e558a-78b0-4f94-a7d6-b21c5514babe",
+          "binding_sha256": "f22562cf295998ceda8d0b43d8c4d29af1b53f663a451d64ddece08295f8f862",
+          "pid": 1666148,
+          "birth": {
+            "linux_start_ticks": 4877530
+          },
+          "state": "ENTERED",
+          "same_birth_alive": false
+        }
+      ],
+      "reason": "Retain unknown reservation and source copies for coordinator; no remote kill"
+    }
+  ],
+  "gaps": [
+    "Bad receipt is covered only by P1 synthetic tests, not a real cross-OS bad-receipt helper",
+    "No production ledger access or model/service/network isolation claim",
+    "Remote cleanup protocol not implemented; natural bounded lock release observed"
+  ],
+  "installed_seal_sha256": "0b612613a827def784d06d72be53c347c389e7df7b9533f8be25bbde459abfe6",
+  "binding": {
+    "schema": "lvw.s3-budget/1",
+    "program": "AUTH-PROGRAM-V1-COMPLETE-03",
+    "approval_sha256": "cd919c7fd24c24e2740366ef11998fee1b3302f16700598a3a5f75c6ef1b0821",
+    "run_id": "synthetic-p2b",
+    "stage_id": "V0-S3",
+    "candidate_sha": "34de7b54a529a8947d63736c6f1bd345828cad57",
+    "child_path": "/tmp/lvw-s3-p2b-中文 Space-v3m0dsi2/child.json",
+    "child_sha256": "0a3e7ce59a4145489a649e16f15d5ca32ef43779e953fdbdd1392371648636e4",
+    "ledger_path": "/tmp/lvw-s3-p2b-中文 Space-v3m0dsi2/fixture.sqlite",
+    "execution_path": "/tmp/lvw-s3-p2b-中文 Space-v3m0dsi2/execution.json",
+    "execution_sha256": "e1d4d8ed2cf22298d58eba01096f42f53f0af5f490af39856844079d66640248",
+    "authority_root": "/tmp/lvw-s3-p2b-中文 Space-v3m0dsi2",
+    "tools": {
+      "authority": {
+        "path": "/tmp/lvw-s3-p2b-中文 Space-v3m0dsi2/tools/local_program_authority.py",
+        "client_path": "\\\\wsl.localhost\\Ubuntu-24.04\\tmp\\lvw-s3-p2b-中文 Space-v3m0dsi2\\tools\\local_program_authority.py",
+        "sha256": "677998fa2ab5b51017b5437fecd07d6ca31c26473a7ac0acede4637f6470f787"
+      },
+      "shim": {
+        "path": "/tmp/lvw-s3-p2b-中文 Space-v3m0dsi2/tools/v0_s3_budget_authority.py",
+        "client_path": "\\\\wsl.localhost\\Ubuntu-24.04\\tmp\\lvw-s3-p2b-中文 Space-v3m0dsi2\\tools\\v0_s3_budget_authority.py",
+        "sha256": "7857c256bc9284b3790fc5149f0ee997c00e27777e30d9d130effab2ab255b16"
+      },
+      "python": {
+        "path": "/usr/bin/python3",
+        "client_path": "\\\\wsl.localhost\\Ubuntu-24.04\\usr\\bin\\python3",
+        "sha256": "e50d468e8b0adfb05733f5b87b3cff34829c4a8c1aea50c865aa8bdfe4bb150f"
+      },
+      "wsl": {
+        "path": "/mnt/c/Windows/System32/wsl.exe",
+        "client_path": "C:\\Windows\\System32\\wsl.exe",
+        "sha256": "ed62eb81a6d753529c01a8ac14aa16f6518d81e5438d536e5dc531d4914a95c8"
+      }
+    },
+    "issued_at": 1794427211.958703,
+    "expires_at": 1794427711.958703,
+    "transport": "wsl-fixture",
+    "harness_transport": "local-fixture",
+    "distribution": "Ubuntu-24.04",
+    "binding_path": "/tmp/lvw-s3-p2b-中文 Space-v3m0dsi2/binding 中文 Space.json",
+    "client_binding_path": "\\\\wsl.localhost\\Ubuntu-24.04\\tmp\\lvw-s3-p2b-中文 Space-v3m0dsi2\\binding 中文 Space.json",
+    "model": "synthetic-no-model",
+    "model_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "ollama_pid": 1,
+    "ollama_start_ticks": 1
+  },
+  "normal": {
+    "os_name": "nt",
+    "python": "C:\\ComfyUI-aki-v2\\python\\python.exe",
+    "cases": [
+      {
+        "case": "normal",
+        "result": {
+          "schema": "lvw.s3-debit/1",
+          "request_id": "a3c9bd41-19b3-48e6-8368-3ef585bc2764",
+          "action_kind": "chat",
+          "payload_sha256": "a147d6d390f628a8c7fbff45d5732e00ae120ee94636eb50fd51a5a037230e1e",
+          "model": "synthetic-no-model",
+          "binding_path": "/tmp/lvw-s3-p2b-中文 Space-v3m0dsi2/binding 中文 Space.json",
+          "binding_sha256": "f22562cf295998ceda8d0b43d8c4d29af1b53f663a451d64ddece08295f8f862",
+          "status": "DEBITED",
+          "run_id": "synthetic-p2b",
+          "child_sha256": "0a3e7ce59a4145489a649e16f15d5ca32ef43779e953fdbdd1392371648636e4",
+          "authority_sha256": "677998fa2ab5b51017b5437fecd07d6ca31c26473a7ac0acede4637f6470f787",
+          "process": {
+            "pid": 27240,
+            "birth": {
+              "windows_creation_100ns": 134389008120420347
+            },
+            "os_name": "nt",
+            "pipe_closed": true,
+            "thread_alive": [
+              false,
+              false,
+              false
+            ],
+            "exit_code": 0,
+            "error": null,
+            "reaped": true,
+            "readers_joined": true,
+            "stdout_sha256": "e7648afddf3879e8f0f0f101c6b68d6f5843a16349a456b39d088889719f9fd6",
+            "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        },
+        "model_sends": 0
+      },
+      {
+        "case": "bad-binding-hash",
+        "result": {
+          "exception": "BridgeError",
+          "details": {
+            "subcode": "S3_BUDGET_BINDING_OR_BRIDGE_INVALID",
+            "error_type": "ValueError"
+          },
+          "message": "{\"code\":\"SCOPE_FORBIDDEN\",\"details\":{\"error_type\":\"ValueError\",\"subcode\":\"S3_BUDGET_BINDING_OR_BRIDGE_INVALID\"},\"message\":\"S3 model debit refused\"}"
+        },
+        "model_sends": 0
+      },
+      {
+        "case": "missing-child",
+        "result": {
+          "exception": "BridgeError",
+          "details": {
+            "subcode": "S3_BRIDGE_PROCESS_FAILED",
+            "pid": 19396,
+            "birth": {
+              "windows_creation_100ns": 134389008122170364
+            },
+            "os_name": "nt",
+            "pipe_closed": true,
+            "thread_alive": [
+              false,
+              false,
+              false
+            ],
+            "exit_code": 1,
+            "error": null,
+            "reaped": true,
+            "readers_joined": true,
+            "stdout_sha256": "29732167f2b549c76a646f5e81f3723590e871d000c19d727daa063f38e9d00a",
+            "stderr_sha256": "c5e82cb507321248d90147ef76bad49adb725fb251ba7a7073c2ee824a5d0fa2",
+            "request_id": "012bf3af-6ae8-45b0-a310-58805f024ecc"
+          },
+          "message": "{\"code\":\"SCOPE_FORBIDDEN\",\"details\":{\"birth\":{\"windows_creation_100ns\":134389008122170364},\"error\":null,\"exit_code\":1,\"os_name\":\"nt\",\"pid\":19396,\"pipe_closed\":true,\"readers_joined\":true,\"reaped\":true,\"request_id\":\"012bf3af-6ae8-45b0-a310-58805f024ecc\",\"stderr_sha256\":\"c5e82cb507321248d90147ef76bad49adb725fb251ba7a7073c2ee824a5d0fa2\",\"stdout_sha256\":\"29732167f2b549c76a646f5e81f3723590e871d000c19d727daa063f38e9d00a\",\"subcode\":\"S3_BRIDGE_PROCESS_FAILED\",\"thread_alive\":[false,false,false]},\"message\":\"S3 model debit refused\"}"
+        },
+        "model_sends": 0
+      }
+    ]
+  },
+  "normal_owners": [
+    {
+      "request_id": "a3c9bd41-19b3-48e6-8368-3ef585bc2764",
+      "binding_sha256": "f22562cf295998ceda8d0b43d8c4d29af1b53f663a451d64ddece08295f8f862",
+      "pid": 1666044,
+      "birth": {
+        "linux_start_ticks": 4877478
+      },
+      "state": "RETURNED_FROM_AUTHORITY",
+      "same_birth_alive": false
+    }
+  ],
+  "calls_after_normal": 1,
+  "timeout_command": {
+    "command": [
+      "/mnt/c/ComfyUI-aki-v2/python/python.exe",
+      "-I",
+      "-B",
+      "\\\\wsl.localhost\\Ubuntu-24.04\\tmp\\lvw-s3-p2b-中文 Space-v3m0dsi2\\tools\\v0_s3_runtime_binding.py",
+      "--windows"
+    ],
+    "pid": 1666078,
+    "birth": {
+      "linux_start_ticks": 4877508
+    },
+    "process_start_reservation": 3,
+    "exit_code": 0,
+    "threads_joined": true,
+    "pipe_closed": [
+      true,
+      true
+    ],
+    "stdout": "",
+    "stderr": "",
+    "elapsed": 9.5782118490024
+  },
+  "timeout_observations": [
+    {
+      "elapsed": 1.0018642759969225,
+      "owners": [
+        {
+          "request_id": "a3c9bd41-19b3-48e6-8368-3ef585bc2764",
+          "binding_sha256": "f22562cf295998ceda8d0b43d8c4d29af1b53f663a451d64ddece08295f8f862",
+          "pid": 1666044,
+          "birth": {
+            "linux_start_ticks": 4877478
+          },
+          "state": "RETURNED_FROM_AUTHORITY",
+          "same_birth_alive": false
+        },
+        {
+          "request_id": "d47e558a-78b0-4f94-a7d6-b21c5514babe",
+          "binding_sha256": "f22562cf295998ceda8d0b43d8c4d29af1b53f663a451d64ddece08295f8f862",
+          "pid": 1666148,
+          "birth": {
+            "linux_start_ticks": 4877530
+          },
+          "state": "ENTERED",
+          "observed_birth": {
+            "linux_start_ticks": 4877530
+          },
+          "same_birth_alive": true
+        }
+      ]
+    }
+  ],
+  "timeout": {
+    "os_name": "nt",
+    "python": "C:\\ComfyUI-aki-v2\\python\\python.exe",
+    "cases": [
+      {
+        "case": "timeout",
+        "result": {
+          "exception": "BridgeError",
+          "details": {
+            "subcode": "S3_BRIDGE_PROCESS_FAILED",
+            "pid": 28452,
+            "birth": {
+              "windows_creation_100ns": 134389008125914790
+            },
+            "os_name": "nt",
+            "pipe_closed": true,
+            "thread_alive": [
+              false,
+              false,
+              false
+            ],
+            "exit_code": 1,
+            "error": "TIMEOUT",
+            "reaped": true,
+            "readers_joined": true,
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "request_id": "d47e558a-78b0-4f94-a7d6-b21c5514babe"
+          },
+          "message": "{\"code\":\"SCOPE_FORBIDDEN\",\"details\":{\"birth\":{\"windows_creation_100ns\":134389008125914790},\"error\":\"TIMEOUT\",\"exit_code\":1,\"os_name\":\"nt\",\"pid\":28452,\"pipe_closed\":true,\"readers_joined\":true,\"reaped\":true,\"request_id\":\"d47e558a-78b0-4f94-a7d6-b21c5514babe\",\"stderr_sha256\":\"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\"stdout_sha256\":\"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\"subcode\":\"S3_BRIDGE_PROCESS_FAILED\",\"thread_alive\":[false,false,false]},\"message\":\"S3 model debit refused\"}"
+        },
+        "model_sends": 0
+      }
+    ]
+  },
+  "final_owners": [
+    {
+      "request_id": "a3c9bd41-19b3-48e6-8368-3ef585bc2764",
+      "binding_sha256": "f22562cf295998ceda8d0b43d8c4d29af1b53f663a451d64ddece08295f8f862",
+      "pid": 1666044,
+      "birth": {
+        "linux_start_ticks": 4877478
+      },
+      "state": "RETURNED_FROM_AUTHORITY",
+      "same_birth_alive": false
+    },
+    {
+      "request_id": "d47e558a-78b0-4f94-a7d6-b21c5514babe",
+      "binding_sha256": "f22562cf295998ceda8d0b43d8c4d29af1b53f663a451d64ddece08295f8f862",
+      "pid": 1666148,
+      "birth": {
+        "linux_start_ticks": 4877530
+      },
+      "state": "ENTERED",
+      "same_birth_alive": false
+    }
+  ],
+  "reservation": "retained; no refund or settle0",
+  "timeout_outcome": "UNKNOWN_RETAINED",
+  "remote_kills": 0,
+  "final_owner_observation": [
+    {
+      "request_id": "a3c9bd41-19b3-48e6-8368-3ef585bc2764",
+      "binding_sha256": "f22562cf295998ceda8d0b43d8c4d29af1b53f663a451d64ddece08295f8f862",
+      "pid": 1666044,
+      "birth": {
+        "linux_start_ticks": 4877478
+      },
+      "state": "RETURNED_FROM_AUTHORITY",
+      "same_birth_alive": false
+    },
+    {
+      "request_id": "d47e558a-78b0-4f94-a7d6-b21c5514babe",
+      "binding_sha256": "f22562cf295998ceda8d0b43d8c4d29af1b53f663a451d64ddece08295f8f862",
+      "pid": 1666148,
+      "birth": {
+        "linux_start_ticks": 4877530
+      },
+      "state": "ENTERED",
+      "same_birth_alive": false
+    }
+  ],
+  "counters": {
+    "wall_seconds": 21.303025421999337,
+    "process_starts": 13,
+    "per_command_seconds": 0,
+    "metadata_hash_files": 9,
+    "metadata_hash_bytes": 169955221,
+    "output_bytes": 3880,
+    "synthetic_debits": 1
+  },
+  "commands": [
+    {
+      "command": [
+        "/mnt/c/ComfyUI-aki-v2/python/python.exe",
+        "-I",
+        "-B",
+        "-c",
+        "import os,sys,importlib.metadata as m,json\npackages={}\nfor n in ('Pillow','numpy','av'):\n try: packages[n]=m.version(n)\n except m.PackageNotFoundError: packages[n]=None\nprint(json.dumps({'os':os.name,'version':sys.version,'packages':packages}))"
+      ],
+      "pid": 1665891,
+      "birth": {
+        "linux_start_ticks": 4877406
+      },
+      "process_start_reservation": 1,
+      "exit_code": 0,
+      "threads_joined": true,
+      "pipe_closed": [
+        true,
+        true
+      ],
+      "stdout": "{\"os\": \"nt\", \"version\": \"3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]\", \"packages\": {\"Pillow\": \"11.0.0\", \"numpy\": \"1.26.4\", \"av\": \"18.0.0\"}}\r\n",
+      "stderr": "",
+      "elapsed": 0.10022295000089798
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "--version"
+      ],
+      "pid": 1665894,
+      "birth": {
+        "linux_start_ticks": 4877419
+      },
+      "process_start_reservation": 1,
+      "exit_code": 0,
+      "threads_joined": true,
+      "pipe_closed": [
+        true,
+        true
+      ],
+      "stdout": "Python 3.12.3\n",
+      "stderr": "",
+      "elapsed": 8.464499842375517e-05
+    },
+    {
+      "command": [
+        "/usr/bin/ffmpeg",
+        "-version"
+      ],
+      "pid": 1665897,
+      "birth": {
+        "linux_start_ticks": 4877420
+      },
+      "process_start_reservation": 1,
+      "exit_code": 0,
+      "threads_joined": true,
+      "pipe_closed": [
+        true,
+        true
+      ],
+      "stdout": "ffmpeg version 6.1.1-3ubuntu5 Copyright (c) 2000-2023 the FFmpeg developers\nbuilt with gcc 13 (Ubuntu 13.2.0-23ubuntu3)\nconfiguration: --prefix=/usr --extra-version=3ubuntu5 --toolchain=hardened --libdir=/usr/lib/x86_64-linux-gnu --incdir=/usr/include/x86_64-linux-gnu --arch=amd64 --enable-gpl --disable-stripping --disable-omx --enable-gnutls --enable-libaom --enable-libass --enable-libbs2b --enable-libcaca --enable-libcdio --enable-libcodec2 --enable-libdav1d --enable-libflite --enable-libfontconfig --enable-libfreetype --enable-libfribidi --enable-libglslang --enable-libgme --enable-libgsm --enable-libharfbuzz --enable-libmp3lame --enable-libmysofa --enable-libopenjpeg --enable-libopenmpt --enable-libopus --enable-librubberband --enable-libshine --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libtwolame --enable-libvidstab --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libx265 --enable-libxml2 --enable-libxvid --enable-libzimg --enable-openal --enable-opencl --enable-opengl --disable-sndio --enable-libvpl --disable-libmfx --enable-libdc1394 --enable-libdrm --enable-libiec61883 --enable-chromaprint --enable-frei0r --enable-ladspa --enable-libbluray --enable-libjack --enable-libpulse --enable-librabbitmq --enable-librist --enable-libsrt --enable-libssh --enable-libsvtav1 --enable-libx264 --enable-libzmq --enable-libzvbi --enable-lv2 --enable-sdl2 --enable-libplacebo --enable-librav1e --enable-pocketsphinx --enable-librsvg --enable-libjxl --enable-shared\nlibavutil      58. 29.100 / 58. 29.100\nlibavcodec     60. 31.102 / 60. 31.102\nlibavformat    60. 16.100 / 60. 16.100\nlibavdevice    60.  3.100 / 60.  3.100\nlibavfilter     9. 12.100 /  9. 12.100\nlibswscale      7.  5.100 /  7.  5.100\nlibswresample   4. 12.100 /  4. 12.100\nlibpostproc    57.  3.100 / 57.  3.100\n",
+      "stderr": "",
+      "elapsed": 0.050148272996011656
+    },
+    {
+      "command": [
+        "/usr/bin/ffprobe",
+        "-version"
+      ],
+      "pid": 1665900,
+      "birth": {
+        "linux_start_ticks": 4877425
+      },
+      "process_start_reservation": 1,
+      "exit_code": 0,
+      "threads_joined": true,
+      "pipe_closed": [
+        true,
+        true
+      ],
+      "stdout": "ffprobe version 6.1.1-3ubuntu5 Copyright (c) 2007-2023 the FFmpeg developers\nbuilt with gcc 13 (Ubuntu 13.2.0-23ubuntu3)\nconfiguration: --prefix=/usr --extra-version=3ubuntu5 --toolchain=hardened --libdir=/usr/lib/x86_64-linux-gnu --incdir=/usr/include/x86_64-linux-gnu --arch=amd64 --enable-gpl --disable-stripping --disable-omx --enable-gnutls --enable-libaom --enable-libass --enable-libbs2b --enable-libcaca --enable-libcdio --enable-libcodec2 --enable-libdav1d --enable-libflite --enable-libfontconfig --enable-libfreetype --enable-libfribidi --enable-libglslang --enable-libgme --enable-libgsm --enable-libharfbuzz --enable-libmp3lame --enable-libmysofa --enable-libopenjpeg --enable-libopenmpt --enable-libopus --enable-librubberband --enable-libshine --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libtwolame --enable-libvidstab --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libx265 --enable-libxml2 --enable-libxvid --enable-libzimg --enable-openal --enable-opencl --enable-opengl --disable-sndio --enable-libvpl --disable-libmfx --enable-libdc1394 --enable-libdrm --enable-libiec61883 --enable-chromaprint --enable-frei0r --enable-ladspa --enable-libbluray --enable-libjack --enable-libpulse --enable-librabbitmq --enable-librist --enable-libsrt --enable-libssh --enable-libsvtav1 --enable-libx264 --enable-libzmq --enable-libzvbi --enable-lv2 --enable-sdl2 --enable-libplacebo --enable-librav1e --enable-pocketsphinx --enable-librsvg --enable-libjxl --enable-shared\nlibavutil      58. 29.100 / 58. 29.100\nlibavcodec     60. 31.102 / 60. 31.102\nlibavformat    60. 16.100 / 60. 16.100\nlibavdevice    60.  3.100 / 60.  3.100\nlibavfilter     9. 12.100 /  9. 12.100\nlibswscale      7.  5.100 /  7.  5.100\nlibswresample   4. 12.100 /  4. 12.100\nlibpostproc    57.  3.100 / 57.  3.100\n",
+      "stderr": "",
+      "elapsed": 0.05015214400191326
+    },
+    {
+      "command": [
+        "/usr/bin/node",
+        "--version"
+      ],
+      "pid": 1665903,
+      "birth": {
+        "linux_start_ticks": 4877438
+      },
+      "process_start_reservation": 1,
+      "exit_code": 0,
+      "threads_joined": true,
+      "pipe_closed": [
+        true,
+        true
+      ],
+      "stdout": "v22.22.1\n",
+      "stderr": "",
+      "elapsed": 3.8416997995227575e-05
+    },
+    {
+      "command": [
+        "/mnt/c/ComfyUI-aki-v2/python/python.exe",
+        "-I",
+        "-B",
+        "\\\\wsl.localhost\\Ubuntu-24.04\\tmp\\lvw-s3-p2b-中文 Space-v3m0dsi2\\tools\\v0_s3_runtime_binding.py",
+        "--windows"
+      ],
+      "pid": 1665906,
+      "birth": {
+        "linux_start_ticks": 4877451
+      },
+      "process_start_reservation": 5,
+      "exit_code": 0,
+      "threads_joined": true,
+      "pipe_closed": [
+        true,
+        true
+      ],
+      "stdout": "",
+      "stderr": "",
+      "elapsed": 0.5510523289995035
+    },
+    {
+      "command": [
+        "/mnt/c/ComfyUI-aki-v2/python/python.exe",
+        "-I",
+        "-B",
+        "\\\\wsl.localhost\\Ubuntu-24.04\\tmp\\lvw-s3-p2b-中文 Space-v3m0dsi2\\tools\\v0_s3_runtime_binding.py",
+        "--windows"
+      ],
+      "pid": 1666078,
+      "birth": {
+        "linux_start_ticks": 4877508
+      },
+      "process_start_reservation": 3,
+      "exit_code": 0,
+      "threads_joined": true,
+      "pipe_closed": [
+        true,
+        true
+      ],
+      "stdout": "",
+      "stderr": "",
+      "elapsed": 9.5782118490024
+    }
+  ],
+  "preflight_sha256": "e596de4f5fac4592508d8e2c1af30e8dd1adc8cf1af369bccc10e26952c8c57f",
+  "candidate": "34de7b54a529a8947d63736c6f1bd345828cad57"
+}
