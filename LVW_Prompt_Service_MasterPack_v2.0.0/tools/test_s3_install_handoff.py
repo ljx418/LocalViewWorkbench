@@ -145,3 +145,117 @@ def test_late_special_file_refused_without_blocking_or_target_write(fixture, mon
     assert 'regular and bounded' in result['error']
     root = Path(result['evidence']['owned_run_root'])
     assert all(not list(p.iterdir()) for p in root.iterdir())
+
+
+def lifecycle_fds(monkeypatch):
+    opened = []
+    original = os.open
+    def track(*args, **kwargs):
+        fd = original(*args, **kwargs); opened.append(fd); return fd
+    monkeypatch.setattr(os, 'open', track)
+    return opened
+
+
+def assert_lifecycle_closed(factory, opened):
+    assert factory._parent_fd is None and factory._root_fds == {}
+    for fd in set(opened):
+        with pytest.raises(OSError): os.fstat(fd)
+
+
+@pytest.mark.parametrize('boundary', ['receipt', 'post-deploy-copy', 'post-deploy-return'])
+def test_failure_lifecycle_stays_on_moved_parent(fixture, monkeypatch, boundary):
+    import json
+    f = fixture; detached = f.root / 'moved-owned-parent'
+    factory = InstalledPackageRuntimeFactory(**f.kwargs)
+    def move():
+        f.directory.rename(detached); f.directory.mkdir()
+        (f.directory / 'foreign').write_bytes(b'UNOWNED')
+    if boundary == 'receipt':
+        save = package.ProtectedInstall.save_receipt
+        def injected(handoff, name, receipt):
+            move(); return save(handoff, name, receipt)
+        monkeypatch.setattr(package.ProtectedInstall, 'save_receipt', injected)
+    elif boundary == 'post-deploy-copy':
+        def fail(*args, **kwargs):
+            move(); raise ValueError('original later copy error')
+        monkeypatch.setattr(factory, '_copy', fail)
+    else:
+        deploy = factory._deploy
+        def injected(root):
+            deploy(root); move()
+        monkeypatch.setattr(factory, '_deploy', injected)
+    opened = lifecycle_fds(monkeypatch)
+    with pytest.raises((ValueError, OSError, package.PackageError)) as caught:
+        factory.prepare_default()
+    assert sorted(p.name for p in f.directory.iterdir()) == ['foreign']
+    assert (f.directory / 'foreign').read_bytes() == b'UNOWNED'
+    record = json.loads((detached / 'default-preparation-failure.json').read_text())
+    assert record['error'] == str(caught.value)
+    assert record['root_retained'] is True
+    assert (detached / record['root_name']).is_dir()
+    assert factory.preparation_failures['default']['persistence']['status'] == 'PERSISTED'
+    assert not {'comfy-start', 'ollama-start'} & set(f.helper.events)
+    assert (detached / 'other-run/keep').read_bytes() == b'OTHER RUN'
+    assert_lifecycle_closed(factory, opened)
+
+
+@pytest.mark.parametrize('failure_kind', ['early', 'deployment', 'conflict', 'open-error', 'write-error', 'fsync-error'])
+def test_failure_persistence_preserves_original_error_and_closes(fixture, monkeypatch, failure_kind):
+    import json
+    f = fixture; factory = InstalledPackageRuntimeFactory(**f.kwargs)
+    if failure_kind == 'early':
+        def fail(): raise ValueError('original binding failure')
+        factory.verify_complete = fail
+    else:
+        factory.package_sha256 = '0'*64
+    filename = f.directory / 'default-preparation-failure.json'
+    if failure_kind == 'conflict': filename.write_bytes(b'PREEXISTING FAILURE')
+    opened = lifecycle_fds(monkeypatch)
+    if failure_kind == 'open-error':
+        original = os.open
+        def fail_open(name, *args, **kwargs):
+            if name == 'default-preparation-failure.json': raise OSError('receipt disk denied')
+            return original(name, *args, **kwargs)
+        monkeypatch.setattr(os, 'open', fail_open)
+    if failure_kind == 'fsync-error':
+        original = os.fsync
+        def fail_sync(fd):
+            if filename.exists() and os.fstat(fd).st_ino == filename.stat().st_ino:
+                raise OSError('receipt sync failed')
+            return original(fd)
+        monkeypatch.setattr(os, 'fsync', fail_sync)
+    if failure_kind == 'write-error':
+        original_write = os.write
+        def fail_write(fd, data):
+            if filename.exists() and os.fstat(fd).st_ino == filename.stat().st_ino:
+                raise OSError('receipt write failed')
+            return original_write(fd, data)
+        monkeypatch.setattr(os, 'write', fail_write)
+    with pytest.raises((ValueError, OSError, package.PackageError)) as caught:
+        factory.prepare_default()
+    record = factory.preparation_failures['default']
+    assert record['error'] == str(caught.value)
+    assert 'receipt disk denied' not in record['error'] and 'receipt sync failed' not in record['error']
+    if failure_kind in ('conflict', 'open-error', 'write-error', 'fsync-error'):
+        assert record['persistence']['status'] == 'PERSISTENCE_UNPROVEN'
+        if failure_kind == 'conflict': assert filename.read_bytes() == b'PREEXISTING FAILURE'
+        elif failure_kind == 'open-error': assert not filename.exists()
+        elif failure_kind == 'write-error': assert filename.read_bytes() == b''
+        else: assert json.loads(filename.read_text())['persistence']['status'] == 'PERSISTENCE_UNPROVEN'
+    else:
+        assert record['persistence']['status'] == 'PERSISTED'
+        assert json.loads(filename.read_text())['error'] == str(caught.value)
+    assert record['root_retained'] is (None if failure_kind == 'early' else True)
+    assert not {'comfy-start', 'ollama-start'} & set(f.helper.events)
+    assert f.sentinel.read_bytes() == b'UNRELATED ORIGINAL'
+    assert (f.sibling / 'keep').read_bytes() == b'OTHER RUN'
+    assert_lifecycle_closed(factory, opened)
+
+
+def test_successful_preparation_releases_lifecycle_handles(fixture, monkeypatch):
+    f = fixture; factory = InstalledPackageRuntimeFactory(**f.kwargs)
+    opened = lifecycle_fds(monkeypatch)
+    context = factory.prepare_default()
+    assert_lifecycle_closed(factory, opened)
+    assert factory.preparation_failures == {}
+    assert f.archive(context, context.driver.cleanup())['proven']

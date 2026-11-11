@@ -1,0 +1,124 @@
+{
+  "schema_version": "lvw.independent-p3a-correction02-review/1",
+  "author": "ljx418 <1173696783@qq.com>",
+  "candidate_sha": "db607d484e9627b8be8b27d581d9d174ea4a9e63",
+  "evidence_commit": "8881098d9a0aa8f2d6434a98ea6d2b23f64d1f48",
+  "contract_root": "1a553726c67c35a0c82aab54d409eb9abcb4ff45",
+  "coordinate_read_commit": "abe960a",
+  "recommendation": "CHANGES_REQUIRED_OFFLINE_DEPLOYMENT_LIFECYCLE",
+  "findings": {
+    "Fatal": 0,
+    "Major": 1,
+    "Minor": 0
+  },
+  "M03": "CLOSED_ORIGINAL_REPRODUCTION",
+  "original_closed_ids": [
+    "P3A-M01",
+    "P3A-M02",
+    "P3A-m01",
+    "P3A-C01-M03"
+  ],
+  "new_open_ids": [
+    "P3A-C02-M04"
+  ],
+  "checks": [
+    {
+      "run": "targeted",
+      "passed": 54,
+      "failed": 0,
+      "exit": 0,
+      "runs": 1
+    },
+    {
+      "run": "regression",
+      "passed": 23,
+      "failed": 0,
+      "exit": 0,
+      "runs": 1
+    },
+    {
+      "run": "probes",
+      "passed": 5,
+      "failed": 0,
+      "exit": 0,
+      "runs": 1,
+      "unchanged_suite": "independent-p3a-correction-01/test_fix_and_failure_probes.py"
+    },
+    {
+      "run": "gap",
+      "passed": 0,
+      "failed": 1,
+      "exit": 1,
+      "runs": 1
+    }
+  ],
+  "fresh_checks": 83,
+  "fresh_passed": 82,
+  "fresh_failed": 1,
+  "reused_not_rerun": {
+    "owner_cases": 17,
+    "evidence": "raw/owner17-reuse.json",
+    "source_byte_identical_to": "5497bd1860ae895f394ece23a1ddb5e0b22fad92",
+    "prior_independent_commit": "e9c910e881572691449dc70da569abee0dc4b195"
+  },
+  "binding": {
+    "source_blobs": 3,
+    "implementation_checksums": 37,
+    "prior_review_checksums": 52,
+    "all_match": true
+  },
+  "candidate_changes": "none",
+  "historical_failures_and_probes": "immutable",
+  "cleanup": [
+    {
+      "run": "gap",
+      "registered_paths": 3,
+      "remaining": [],
+      "git_children": 11,
+      "denied": []
+    },
+    {
+      "run": "probes",
+      "registered_paths": 11,
+      "remaining": [],
+      "git_children": 55,
+      "denied": []
+    },
+    {
+      "run": "regression",
+      "registered_paths": 38,
+      "remaining": [],
+      "git_children": 0,
+      "denied": []
+    },
+    {
+      "run": "targeted",
+      "registered_paths": 109,
+      "remaining": [],
+      "git_children": 594,
+      "denied": []
+    }
+  ],
+  "restricted_actual_counts": {
+    "windows_wsl_children": 0,
+    "powershell_parser": 0,
+    "host_executable_hashes": 0,
+    "model_gpu_real_media": 0,
+    "services_network_download": 0,
+    "testSource_holdouts": 0,
+    "program_ledger_old_runtime": 0,
+    "full_checkpoint": 0
+  },
+  "stage_pass_claim": false,
+  "product_gate0": false,
+  "human_release_claim": false,
+  "platform": "Linux/POSIX synthetic only; actual WSL/native Windows behavior unverified; no universal hostile namespace rename guarantee",
+  "remaining": [
+    "M04 fresh root allocation",
+    "full S3 coordinator/profile/budgets",
+    "A06 network enforcement and attempted-egress observation",
+    "real quality/resource/install/rollback acceptance",
+    "product Gate0 and required human/release gates"
+  ],
+  "raw_whitespace_check_exit": 2
+}
