@@ -1,11 +1,11 @@
 {
-  "kind": "LVW_ADDITIVE_OPENAPI_OVERLAY_DESIGN_1_1",
+  "kind": "LVW_ADDITIVE_OPENAPI_OVERLAY_DESIGN_1_1_1",
   "status": "DESIGN_REVIEW_NOT_ACTIVE",
   "base_file": "contracts/openapi.json",
   "component_source": "contracts/v1-multishot.schema.json",
   "component_prefix": "MultiShot_",
   "ref_rewrite": "#/$defs/X -> #/components/schemas/MultiShot_X",
-  "merge_policy": "No replacement of existing methods/requests/response schemas; add paths/methods/components only. Metadata profile promotion and ETag headers declared separately.",
+  "merge_policy": "Copy base; add disjoint paths/methods and prefixed components; apply only declared additive response headers and x-v1-profile annotations. Never replace existing body schemas, parameters, response codes, x-product-version or V2 semantics. Abort on missing target, key collision or any other mutation.",
   "add_paths": {
     "/api/v1/jobs/shot-batches": {
       "post": {
@@ -197,6 +197,17 @@
                   "additionalProperties": false
                 }
               }
+            },
+            "headers": {
+              "ETag": {
+                "description": "Strong tag for the exact Scene revision in this response; never a weak tag.",
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "pattern": "^\"scene:[^\":]+:[0-9a-f]{64}\"$"
+                },
+                "example": "\"scene:revision-1:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\""
+              }
             }
           },
           "400": {
@@ -341,6 +352,17 @@
                   ],
                   "additionalProperties": false
                 }
+              }
+            },
+            "headers": {
+              "ETag": {
+                "description": "Strong tag for the exact Scene revision in this response; never a weak tag.",
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "pattern": "^\"scene:[^\":]+:[0-9a-f]{64}\"$"
+                },
+                "example": "\"scene:revision-1:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\""
               }
             }
           }
@@ -762,12 +784,68 @@
   },
   "metadata_only": {
     "/api/v1/scenes/detect": {
-      "v1_profile": "local-shot-v1",
-      "v2_profiles_unchanged": true
+      "post": {
+        "x-v1-profile": "local-shot-v1",
+        "x-v2-semantics-unchanged": true
+      }
+    },
+    "/api/v1/scenes": {
+      "get": {
+        "x-v1-profile": "local-shot-v1",
+        "x-v2-semantics-unchanged": true
+      }
     },
     "/api/v1/scenes/{id}": {
-      "ETag_response_header": "strong scene version hash",
-      "put_body_response_unchanged": true
+      "put": {
+        "x-v1-profile": "local-shot-v1",
+        "x-v2-semantics-unchanged": true
+      }
+    },
+    "/api/v1/shots": {
+      "post": {
+        "x-v1-profile": "local-shot-v1",
+        "x-v2-semantics-unchanged": true
+      }
+    },
+    "/api/v1/shots/{id}": {
+      "get": {
+        "x-v1-profile": "local-shot-v1",
+        "x-v2-semantics-unchanged": true
+      },
+      "put": {
+        "x-v1-profile": "local-shot-v1",
+        "x-v2-semantics-unchanged": true
+      }
+    },
+    "/api/v1/jobs/{id}": {
+      "get": {
+        "x-v1-profile": "local-shot-v1",
+        "x-v2-semantics-unchanged": true
+      }
+    },
+    "/api/v1/jobs/{id}/cancel": {
+      "post": {
+        "x-v1-profile": "local-shot-v1",
+        "x-v2-semantics-unchanged": true
+      }
     }
-  }
+  },
+  "add_response_headers": {
+    "/api/v1/scenes/{id}": {
+      "put": {
+        "200": {
+          "ETag": {
+            "description": "Strong tag for the exact Scene revision in this response; never a weak tag.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^\"scene:[^\":]+:[0-9a-f]{64}\"$"
+            },
+            "example": "\"scene:revision-1:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\""
+          }
+        }
+      }
+    }
+  },
+  "metadata_merge_rule": "For each metadata_only[path][method], the target MUST exist in base; add only those absent x-* keys. Keep original x-product-version; x-v1-profile declares the bounded V1 use alongside the unchanged broader V2 contract. For add_response_headers, target path/method/status MUST exist; add headers only with no collision, leave body/content unchanged. Apply new methods first, then these two allowlisted additions; any missing target/collision/other change aborts."
 }

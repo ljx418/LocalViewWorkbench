@@ -1,0 +1,220 @@
+{
+  "schema_version": "lvw.implementation-receipt/1",
+  "kind": "D0_B_IMPL_DESIGN11_REFREEZE_RECEIPT",
+  "project_id": "lvw-prompt-service",
+  "stage_id": "V1-D0",
+  "workpack_id": "D0-B-IMPL",
+  "design_version": "1.1",
+  "status": "READY_FOR_REVIEW",
+  "product_execution_authorized": false,
+  "product_actions": 0,
+  "human_signoff": null,
+  "product_pass": false,
+  "stage_pass_claimed": false,
+
+  "authority": {
+    "authoritative_design_commit": "932dcbc48bca99c463ffea8bf11d121c36aefe0c",
+    "loaded_into_this_checkout_by": "git merge --no-ff 932dcbc48bca99c463ffea8bf11d121c36aefe0c (clean, no conflict)",
+    "merge_commit": "7da0612c23953a127ede25980c49a92a2a2a84bf",
+    "branch": "ljx418/lvw-v1-d0-implement",
+    "worktree": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement",
+    "note": "The authority commit was loaded as-is. No file that belongs to the root authority was edited in this workpack."
+  },
+
+  "frozen_digests": {
+    "d0_payload_manifest_sha256": "56e6f07b72023928b32ed7350b78f9d1d148daf79108daffecb7d9a175e39c4a",
+    "d0_payload_manifest_sha256_supplied_by_root": "56e6f07b72023928b32ed7350b78f9d1d148daf79108daffecb7d9a175e39c4a",
+    "d0_spec_manifest_sha256": "ee9ec4f4cc9277f5fe436465856e9403ffdf904aa86e7ef7eb28d10ee1eb8f51",
+    "d0_stage_control_sha256": "f2447d1387ac7563eff56e51af93cfc15a392308798c4826c670c50bcb0521e1",
+    "checker_pin_re_frozen_to": "56e6f07b72023928b32ed7350b78f9d1d148daf79108daffecb7d9a175e39c4a",
+    "checker_pin_previous_1_0_value": "9bffdf2dc968f54fae0404d162c394e265cfb9900f68d9c303683bef756ede7b",
+    "owner_hashes_regenerated": false,
+    "authority_input_hashes_reverified": {
+      "plans/v1-revised-plan.json": "0cc505cbefe4082bb59ba0bda6d22060e06470f7913466b4ad7723637e6ba9b5",
+      "plans/v1-multishot-contract.json": "e7c86482c96f5711b29fad6ad15a6193d5e226634c2ed6821805a781b9b58c8e",
+      "plans/v1-multishot-sample-design.json": "a249380d5aa251a427b75aedb1d8211acfb282fb3b62b337946cfda714ed2ede",
+      "contracts/v1-multishot.schema.json": "dbaad207a22baa8d3b824234b45f2dc04775da61a51434c73a6021b469faa2ad",
+      "contracts/v1-multishot.openapi-overlay.json": "980d93ea85a18b9a3e7908884db0eebce2f5ad7c2c301b9966f2ef6d30f3e24b",
+      "contracts/v1-multishot-migration.sql": "44f19c8b17b055ad71450e26dd45efe489ede3d0db368614f270921d548a6509",
+      "spec_manifest_files_checked": 23,
+      "spec_manifest_files_mismatched": 0,
+      "d0_payload_manifest_files_checked": 10,
+      "d0_payload_manifest_files_mismatched": 0
+    },
+    "candidate_code": {
+      "tools/verify_v1_plan.py": "b977d5cd8418def4c9c019e6f612a3845b6295252b41fd883555b35a2fa499fb",
+      "tools/test_verify_v1_plan.py": "341436be03ff7409794443c5f6504bcb9cbfffa0adc4d734da739ddbadf9a3ea"
+    }
+  },
+
+  "changed_files": [
+    "tools/verify_v1_plan.py",
+    "tools/test_verify_v1_plan.py",
+    "reports/v1-redesign/d0-worker/design11/implementation-receipt-1.1.json",
+    "reports/v1-redesign/d0-worker/design11/implementation-receipt-1.1.md",
+    "reports/v1-redesign/d0-worker/design11/logs/verify_v1_plan.stdout.log",
+    "reports/v1-redesign/d0-worker/design11/logs/verify_v1_plan.stderr.log",
+    "reports/v1-redesign/d0-worker/design11/logs/verify_v1_plan.exit.log",
+    "reports/v1-redesign/d0-worker/design11/logs/pytest.stdout.log",
+    "reports/v1-redesign/d0-worker/design11/logs/pytest.stderr.log",
+    "reports/v1-redesign/d0-worker/design11/logs/pytest.exit.log",
+    "reports/v1-redesign/d0-worker/design11/logs/root-checker.stdout.log",
+    "reports/v1-redesign/d0-worker/design11/logs/root-checker.stderr.log",
+    "reports/v1-redesign/d0-worker/design11/logs/root-checker.exit.log",
+    "reports/v1-redesign/d0-worker/design11/logs/verify_pack.stdout.log",
+    "reports/v1-redesign/d0-worker/design11/logs/verify_pack.stderr.log",
+    "reports/v1-redesign/d0-worker/design11/logs/verify_pack.exit.log",
+    "reports/v1-redesign/d0-worker/design11/logs/verify_governance.stdout.log",
+    "reports/v1-redesign/d0-worker/design11/logs/verify_governance.stderr.log",
+    "reports/v1-redesign/d0-worker/design11/logs/verify_governance.exit.log"
+  ],
+  "preserved_prior_artifacts": [
+    "reports/v1-redesign/d0-worker/implementation-receipt.json",
+    "reports/v1-redesign/d0-worker/implementation-receipt.md",
+    "reports/v1-redesign/d0-worker/logs/candidate-372575b/",
+    "reports/v1-redesign/d0-worker/logs/candidate-b621297/",
+    "reports/v1-redesign/d0-worker/logs/repro-major-D0-CODE-M01/",
+    "reports/v1-redesign/d0-review/"
+  ],
+
+  "commands": [
+    {
+      "command": "python3 -B tools/verify_v1_plan.py",
+      "cwd": "LVW_Prompt_Service_MasterPack_v2.0.0",
+      "exit_code": 0,
+      "stdout_log": "logs/verify_v1_plan.stdout.log",
+      "stderr_log": "logs/verify_v1_plan.stderr.log",
+      "stdout_sha256": "418195639ecba4603e6bb0e6ebbf788cf5e8825bec510c31f9f4e1ba5c28e813",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exit_log_sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "result": "RESULT: PASS"
+    },
+    {
+      "command": "python3 -B -m pytest tools/test_verify_v1_plan.py -q",
+      "cwd": "LVW_Prompt_Service_MasterPack_v2.0.0",
+      "exit_code": 0,
+      "stdout_log": "logs/pytest.stdout.log",
+      "stderr_log": "logs/pytest.stderr.log",
+      "stdout_sha256": "d9aa6936c95d863d7b9cfe7a99bbb83d99726f27f1e5d2b4e81623512eb9c90a",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exit_log_sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "result": "107 passed"
+    },
+    {
+      "command": "python3 -B reports/v1-redesign/verify-design11.py",
+      "cwd": "LVW_Prompt_Service_MasterPack_v2.0.0",
+      "exit_code": 0,
+      "stdout_log": "logs/root-checker.stdout.log",
+      "stderr_log": "logs/root-checker.stderr.log",
+      "stdout_sha256": "3ef3ca2c39e4f9991bb790374f1ea021459303b7756774c91818e46676c747a9",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exit_log_sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "result": "{\"checks\": 22, \"failed\": 0, \"product_actions\": 0}",
+      "note": "Root-owned architecture probe. It re-wrote reports/v1-redesign/design11-checks.json byte-identically, so no root-owned file is dirty in this worktree."
+    }
+  ],
+  "supplementary_read_only_verifications": [
+    {
+      "command": "python3 -B tools/verify_pack.py",
+      "exit_code": 0,
+      "result": "passed 7408, failed 0 (document and contract validation, not product acceptance)",
+      "stdout_sha256": "47fea0895ebb3832292473907d291f17867c2fb1089d553b614c2ee095f142ab",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exit_log_sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "command": "python3 -B tools/verify_governance.py",
+      "exit_code": 0,
+      "result": "errors [], failed 0",
+      "stdout_sha256": "e8927ccbca17c63e6ca696c254e5e232add8617ec564f840df4907579089d7cf",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exit_log_sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    }
+  ],
+
+  "checker_changes_1_1": {
+    "re_freeze": [
+      "FROZEN_D0_PACKET_MANIFEST_SHA256 re-frozen to the owner manifest digest 56e6f07b... supplied by the root authority, in the same commit as the code change; the owner manifests and their hashes were not regenerated.",
+      "The 1.0 pin 9bffdf2d... no longer validates the 1.1 packet (covered by a CLI test)."
+    ],
+    "kept_from_1_0": [
+      "29/38/47 denominators with the 21/30/39 legacy prefix and MS01-MS08 exactly once",
+      "stage DAG (R1 -> V1-M1 -> R2), no cycles, R22 coverage",
+      "Q01 and MS quality threshold tokens",
+      "no invented completion, no invented human signature, budget_reset=false, stage alias V1-M1 -> R2",
+      "D0 role separation, non-empty control lists, D0 packet manifest fencing, spec fence",
+      "canonical contract immutability and the old R1 packet manifest"
+    ],
+    "new_guards_1_1": [
+      "E_BUDGET_PARENT_FORMULA: the parent deadline is 450*n+90 (n=1..12, 540..5490) in the plan limits, in the ParentJob DTO range and in the contract invariant; a fixed 1800 s guess is rejected",
+      "E_LIMIT_NOT_FINITE / E_LIMIT_NOT_INTEGER: every plan limit must be a finite integer (NaN/Infinity used to compare false against every bound)",
+      "E_LIMIT_LOOSED extended to the 1.1 floors and caps: gpu_free_mib_min>=19047, detection_seconds<=120, pts_index_bytes<=16777216, the 450/90/5490 parent terms, the 72/21600/180 checkpoint terms",
+      "E_CHECKPOINT_* : 65+7=72 actions <= 128, wall 21600, execution deadline = wall - 180 cleanup reserve, video+image calls = success calls, the 20735 s threshold estimate recomputed from the declared threshold inputs and <= the wall budget",
+      "E_CHECKPOINT_ESTIMATE_BASIS: the estimate basis must name the thresholds and must disclaim a measured per-shot P95 and a guaranteed worst case",
+      "E_SAMPLE_*: 12 clips / 47 shots / 21 hard cuts, the explicit 18 row quality subset with 12 simple_action + 3 ambiguous + 3 static, resolvable clip/shot ids, and the materialization placeholders that must stay pending",
+      "E_OVERLAY_*: the overlay may only add; it must not redefine an existing method, must not touch the reserved V2 routes, must not ship a components block, must not reference an unknown candidate component, must keep the bounded shot-batches route and the canonical Job response, and its metadata may not claim an existing body changed",
+      "E_V2_BATCH_BODY_DRIFT: the canonical /api/v1/jobs/batch body must stay {items:[AnalyzeRequest]}",
+      "E_CANONICAL_ALIAS: CoreScene must be an exact alias of the canonical Scene DTO",
+      "E_FRAME_REF_INCOMPATIBLE / E_FRAME_REF_CONSTRAINT / E_FRAME_REF_INSTANCE: ShotFrameRef must be a narrowing of the canonical FrameRef, must pin decoded_pts, must not accept null PTS, and the retained real frame references must stay valid instances",
+      "E_CONTRACT_ENTITY_UNRESOLVED: a declared contract entity without a DTO is a finding, not a silent skip",
+      "E_DTO_MISSING / E_PARENT_DTO_FIELD / E_CHILDREN_ENVELOPE / E_CHILD_ROW_FIELDS / E_EVIDENCE_DTO_FIELDS / E_DOMAIN_DTO_FIELDS / E_MODEL_RESPONSE_SCOPE: the 1.1 parent DTO, the full child rows and the observation/inference domain split must stay",
+      "E_PUBLIC_BINDING_LEASE_TOKEN / E_PUBLIC_BINDING_REF / E_INTERNAL_BINDING_TOKEN: the public binding must not expose the internal lease_token and the evidence route must bind the public one",
+      "E_MS_STATUS_CLAIM / E_STAGE_STATUS_CLAIM / E_R22_STATUS: PASS is legal in the general enum but not at the design-review phase, so the new MS cases, the V1-M1 stage and R22 must stay NOT_RUN",
+      "E_ARTIFACT_DECLARATION / E_ARTIFACT_NOT_HASH_BOUND / E_SQL_DECLARATION / E_SQL_FORBIDDEN: the candidate contract, DTO schema, overlay, migration and sample design must stay declared and hash bound; the SQL is parsed as text only and never executed",
+      "E_ADJUDICATION_CLAIM: the architecture adjudication may not claim a product pass or a human signoff",
+      "E_HUMAN_APPROVAL_CLAIM / E_FORBIDDEN_CLAIM extended to plans/execution-control.json human_signoff and product_acceptance",
+      "E_SPEC_FENCE_INCOMPLETE: the owner spec manifest must fence the 1.1 authority inputs"
+    ],
+    "not_executed": [
+      "No product code, GPU, media/FFmpeg, service, browser, network, pip/npm install or provider switch.",
+      "No product database was opened. The candidate migration SQL was parsed as text by this checker; only the root architecture probe executed it in an in-memory SQLite fixture (exit 0).",
+      "No canonical contract, plan, document, manifest, packet or product source was written.",
+      "No Stage PASS, no product PASS, no human signature, no merge to the parent checkout, no push."
+    ]
+  },
+
+  "tests": {
+    "file": "tools/test_verify_v1_plan.py",
+    "total": 107,
+    "carried_over_from_1_0": 50,
+    "new_for_1_1": 57,
+    "fixture": "synthetic package tree under pytest tmp_path; the canonical tree is never written",
+    "positive_controls": [
+      "the synthetic package exits 0",
+      "the canonical 1.1 package exits 0 and is byte-identical before and after the run",
+      "the superseded 1.0 D0 pin fails with E_D0_PACKET_MANIFEST_PINNED"
+    ]
+  },
+
+  "environment": {
+    "os": "Linux 6.18.40.1-microsoft-standard-WSL2 x86_64",
+    "python": "3.12.3",
+    "pytest": "8.4.2",
+    "jsonschema": "4.23.0 (importable, so the metaschema check and the retained-frame instance probe ran)",
+    "product_model": "none",
+    "product_provider": "none",
+    "product_provider_calls": 0
+  },
+
+  "provider_metadata": {
+    "self_reported": true,
+    "independently_verified": false,
+    "executor": "Orca visible ClaudeCode implementation window (term_192c2ec6-ba08-4100-ac4c-6b603e2b82d0), worktree lvw-v1-d0-implement",
+    "model_as_reported_by_the_session_environment": "MiniMax-M3.1-Flash-Preview",
+    "note": "This is the development assistant that wrote the checker, self-reported from the session environment and not independently verified. It is not a product model and it made no product inference call."
+  },
+
+  "risks_and_open_items": [
+    "The checker is a deterministic plan-structure check. It does not close the 22 adjudication findings (F1/M1-M11/m1-m10, all still PENDING_RECHECK) and it is not the independent recheck.",
+    "The 12 clips / 47 shots / 21 hard cuts / 18 quality rows stay a design allocation. No media, licence, source SHA, PTS index or annotation hash is frozen; the E_SAMPLE_MATERIALIZED guard keeps the placeholders pending and forbids pretending the fixtures exist.",
+    "The 20735 s checkpoint estimate is recomputed from the declared design thresholds (300/180 s). It is not a measured per-shot P95 and not a worst-case guarantee; only a representative pilot can confirm the budget.",
+    "The candidate migration SQL was not executed by this checker. The root in-memory probe passed, but the real R1 migrator against the product baseline is still unproven.",
+    "The MS cases, the V1-M1 stage and R22 are pinned to NOT_RUN. These guards must be re-frozen by the authority when a real checkpoint legitimately produces a PASS; they are expected to fail closed until then.",
+    "On a host without jsonschema the metaschema probe and the retained-frame instance probe degrade to the structural fallback; the instance finding would then only cover the required field names.",
+    "The overlay and the effective merged OpenAPI are still design candidates. No build-time merge was executed here, so a component reference that only resolves after merging would not be seen by this checker.",
+    "The parent deadline formula (450*n+90) is verified as a formula, not as a runtime guarantee that 12 shots always fit inside 5490 s.",
+    "The D0 stage control still forbids product execution and Stage PASS. Nothing in this workpack changes the current 621b1bf slice signature state."
+  ],
+
+  "next_owner": "Codex, then the isolated D0-B-REVIEW instance. Status is READY_FOR_REVIEW only."
+}

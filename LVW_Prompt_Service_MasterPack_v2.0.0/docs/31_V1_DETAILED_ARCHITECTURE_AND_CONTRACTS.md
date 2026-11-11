@@ -1,4 +1,4 @@
-# 31｜V1总体与详细架构：设计1.1
+# 31｜V1总体与详细架构：设计1.1.1
 
 状态DESIGN_REVIEW，2026-11-11。本版集中裁决独审F1/M1–M11/m1–m10；原1.0及失败审查保留于reports/v1-redesign/history与d0-review，未宣布发现已独审关闭。当前产品源码、canonical OpenAPI/core schema/DDL和旧R1 packet不改；候选Schema/迁移/overlay需隔离复核，样本实际冻结和产品Gate0尚待。
 
@@ -99,3 +99,18 @@ M1模型profile候选think=false/ctx4096/predict1536/temp0.2，因新结构不�
 
 
 展示镜头编号S01/S02为1基，仅供人读；机器帧证据index严格0基F0..F3，实际时间来自PTS而不是展示序号。补充API中的lease_token始终内部；公开evidence的binding只用PublicAnalysisBinding。
+
+
+## 设计1.1.1：六项Minor集中纠偏（2026-11-11）
+
+独立设计复核确认原22项在设计层解决；新增N1–N6由本次owner纠偏，是否关闭仍待独立复核。旧1.1源与packet保存在reports/v1-redesign/history/design-1.1；不修改旧失败报告或产品验收。
+
+N1/N3：overlay的新增Scene GET和revision-info GET成功响应直接声明强ETag；原Scene PUT 200通过add_response_headers追加同一Header Object。metadata_only逐路径逐方法声明7条reuse路径的x-v1-profile=local-shot-v1，不覆盖原x-product-version或V2语义。合成顺序：深拷贝base，加入不冲突的新方法/前缀组件，再按metadata_merge_rule仅追加不存在的x-*及响应header；不存在的目标、重名header/元数据或其他变更一律失败。原body、参数、状态码不改。
+
+N2：机器合同additive_paths覆盖全部7条路径；additive_operations逐方法列举，包括既有Scene路径的新GET，不能仅比较新路径名。
+
+N4：ShotFrameRef的source_pts、time_base_num/time_base_den只保留非空integer分支；timebase minimum=1。保持canonical FrameRef兼容，旧canonical不改。
+
+N5：确定性转换以plans/v1-multishot-contract.json的canonical_domain_mapping为唯一机器规则。人物按local_actor_id Unicode码点排序，其后场景、其后动作原数组顺序；按自身domain分流。每个非空语言值按zh、en顺序单独生成一条字符串，内容为含kind/ref/lang/text的compact sorted-key JSON，ensure_ascii=False、allow_nan=False；不翻译、不trim、不去重、不改写raw。人物ref为local_actor_id，场景ref为scene，动作及unknown ref为原数组零起始十进制索引。unknowns仅进unknowns且保持原数组顺序。summary双语原样进入text_zh/en，人工域与锁不受影响。
+
+N6：scene_hash.column_mapping冻结全部11个hash字段到数据库的映射，尤其time_base_num←scene_revision.tb_num、time_base_den←scene_revision.tb_den、revision←version。JSON键只能用合同字段名，不能使用SQL别名；verified的0/1先转JSON bool，PTS/timebase/revision须整数且拒绝bool/float/string。旧行source SHA取media_ref.sha256，新meta保留同值。

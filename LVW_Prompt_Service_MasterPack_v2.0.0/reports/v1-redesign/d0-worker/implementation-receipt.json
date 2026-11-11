@@ -1,0 +1,293 @@
+{
+  "schema_version": "lvw.d0-implementation-receipt/1",
+  "kind": "OFFLINE_TOOL_IMPLEMENTATION_RECEIPT_NOT_STAGE_PASS",
+  "decision": "READY_FOR_REVIEW",
+  "is_stage_pass": false,
+  "is_product_acceptance": false,
+  "is_human_signature": false,
+  "product_coordinate_unchanged": "R1 / WP-R1-U3 / WAIT_HUMAN (plans/execution-control.json)",
+  "project": "LocalViewWorkbench / LVW_Prompt_Service_MasterPack_v2.0.0",
+  "stage_id": "V1-D0",
+  "workpack_id": "D0-B-IMPL",
+  "implementation_owner_role": "ClaudeCode-D0-Implement",
+  "independent_reviewer_role": "ClaudeCode-D0-Review (separate window, not started by this worker)",
+  "gate_owner_role": "Codex",
+  "branch": "ljx418/lvw-v1-d0-implement",
+  "child_worktree": "orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement (Orca visible child worktree)",
+  "parent_checkout_edited": false,
+  "candidate_sha": "b621297fe97a4c33209c3dd55bafa6260b25f180",
+  "candidate_sha_note": "checker + tests after the Major D0-CODE-M01 fix; this receipt is committed separately on top of it",
+  "superseded_candidate_sha": "372575b1a38c322449aece03bdf5670cfb962856",
+  "superseded_candidate_note": "first D0-B-IMPL candidate; reported READY_FOR_REVIEW, then rejected by Codex review with Major D0-CODE-M01. Its real command logs are retained under logs/candidate-372575b/ and the reproduction of the finding under logs/repro-major-D0-CODE-M01/.",
+  "review_findings_addressed": [
+    {
+      "id": "Major D0-CODE-M01",
+      "summary": "check_ownership used 'if allowed and allowed != expected', so an empty allowed_files/commands list bypassed the frozen-list check; the D0 stage control was also unfenced because the authority spec manifest does not list it.",
+      "reproduced": {
+        "method": "temp copy of the actual parent spec layout; only D0-B-IMPL.allowed_files=[] or commands=[] changed; no fence refreshed; candidate 372575b run unmodified",
+        "observed_exit_code": 0,
+        "observed_output": "RESULT: PASS",
+        "evidence": [
+          "reports/v1-redesign/d0-worker/logs/repro-major-D0-CODE-M01/allowed_files_empty.stdout.log",
+          "reports/v1-redesign/d0-worker/logs/repro-major-D0-CODE-M01/commands_empty.stdout.log"
+        ]
+      },
+      "fix": [
+        "require_exact_list compares unconditionally: empty, missing, wrong length and wrong order are findings (E_OWNERSHIP_ALLOWED_FILES, E_OWNERSHIP_COMMANDS, E_OWNERSHIP_REVIEW_FILES, E_OWNERSHIP_FORBIDDEN_PATHS).",
+        "D0-B-IMPL outputs must be non-empty, D0-B-IMPL and D0-B-REVIEW may not claim the same path, the D0 model/checkpoint budget must stay 0, and the validated stage control must be the packet-bound file.",
+        "New check_d0_packet_integrity fences the D0 control plane with the D0 payload manifest: manifest present, pinned by its source-control digest, inventory exactly the frozen packet files, every listed file hash unchanged, no unlisted file, and stage-control.json plus spec-manifest.json bound by it.",
+        "Editing the control and re-signing the packet manifest still fails the source-control pin (E_D0_PACKET_MANIFEST_PINNED)."
+      ],
+      "verified_after_fix": {
+        "allowed_files_empty_exit_code": 1,
+        "commands_empty_exit_code": 1,
+        "regenerated_manifest_exit_code": 1,
+        "note": "checked on a temp copy of the actual parent spec layout with the new candidate"
+      }
+    }
+  ],
+  "entry_path": "python3 -B tools/verify_v1_plan.py",
+  "entry_path_notes": "read-only CLI, default root = the LVW package directory; every input path is overridable so the same entry point validates synthetic or candidate copies",
+  "spec_hash": {
+    "spec_manifest_sha256": "2517ab3d3b2e405bf34fd3ca8610d3e5ea509a87f58ab1a6bc572fb3bc92207c",
+    "spec_manifest_files": {
+      "docs/30_V1_REVISED_EXECUTION_PLAN.md": "d12eb52ac1633a71c74d83516a0080b553a56b234b7c81a95b78f015e7954930",
+      "docs/31_V1_DETAILED_ARCHITECTURE_AND_CONTRACTS.md": "7042fa786837073c20da1976a7c3863eb79efe4958924342ab3a6785737b4e6c",
+      "docs/32_V1_ACCEPTANCE_AND_AGENT_WORKFLOW.md": "2d91c654a1cff93bbcc123b46e9edb36c9ab953f4de872f0e915445460aa003e",
+      "plans/v1-revised-plan.json": "79fabbf2fdd2da0c034d347faa1de8c96380ce81bae24b1734a926ec1616a199",
+      "plans/v1-multishot-contract.json": "c2877f597b1dd935768c05f942694314027f6e46361bbb580f039a7fc16afba4",
+      "plans/requirements.json": "e2c1cc1f9a94e8caf29a6e25dec510dec1c790986e61bf2a6b0a58c373430941",
+      "plans/tasks.json": "0f697ffd569d429bf0706f9b3b0b0a0105f0c5851e71612970eb97ef85344826",
+      "plans/acceptance_cases.json": "44b3aee3f9418aa297b5b4a8756df3195ae3065dc5d5c2966b770b04b8f8ca94",
+      "plans/release_gates.json": "33f9565fc801e350e76ec7c16a836dec953b80746203a1aadf38e5695b05a24c",
+      "plans/execution-control.json": "aff28283da7d81a2aa9b9e67012527f68a1ea083232a75d2dc257e0ef005a12c",
+      "contracts/openapi.json": "cd9df1bd94a3c4c27476608e4616e9d73e0b64da653973b1225efd902e0eef31",
+      "contracts/lvw.schema.json": "4c0e3383bfa8aa69dfabd323ecb0697ee4d4ddfa51c154eb15baf7107750f718",
+      "contracts/storage.sql": "a2204821fe77225dacb515e761bccfdcb42e42d3296ec8ba26354b60f17029f8",
+      "reports/v1-redesign/product-change-approval.json": "82ac415bf101b2165ba279b13ae33bbee9439041de2fa8f194eea0f29b40bba7",
+      "reports/v1-redesign/legacy-gates-before-change.json": "3dda076992fef12fc011959b61cd2e6e19c6a79d27d6081fc258f38e895aceb6",
+      ".agent-governance/stages/R1/PAYLOAD_MANIFEST.sha256": "38ca0ae572cc74a412a411635e04f21bce3fdcd29d51456fde677f188dd9f307",
+      "contracts/v1-multishot.schema.json": "4c1a62b57ec805c999c8e28578ecbf0a1022d9738601a7f2451f5993b0133023"
+    },
+    "d0_packet_manifest_sha256": "9bffdf2dc968f54fae0404d162c394e265cfb9900f68d9c303683bef756ede7b",
+    "d0_packet_manifest_pinned_in_checker": true,
+    "root_plan_sha256": "79fabbf2fdd2da0c034d347faa1de8c96380ce81bae24b1734a926ec1616a199",
+    "baseline_sha256": "3dda076992fef12fc011959b61cd2e6e19c6a79d27d6081fc258f38e895aceb6",
+    "scope_approval_sha256": "82ac415bf101b2165ba279b13ae33bbee9439041de2fa8f194eea0f29b40bba7",
+    "stage_control_sha256": "abeb4317c25a9dfd3701ec7a4220c0a092ca123dde41061abde0dce3cf3a9573",
+    "candidate_contract_sha256": "c2877f597b1dd935768c05f942694314027f6e46361bbb580f039a7fc16afba4",
+    "candidate_schema_sha256": "4c1a62b57ec805c999c8e28578ecbf0a1022d9738601a7f2451f5993b0133023"
+  },
+  "acceptance_hash": {
+    "V1": {
+      "count": 29,
+      "acceptance_hash_sorted": "56488c3434c116e10252fdf335ba9d2a82d87ab74cf99a6b958af9452d51402d",
+      "acceptance_hash_ordered": "e91e8c5b7bd02f37a270132438706ee630207560f9f6323c7498617c01c83af6"
+    },
+    "V2": {
+      "count": 38,
+      "acceptance_hash_sorted": "1a0f4a22ad55767dc80f723f03ea4560e1ef5b3800a5b8d2b0cf40668b19c2ff",
+      "acceptance_hash_ordered": "5230262149184974df7af1a6f1dc1bd243c0a0addc1fee18d790a7ac09f810ce"
+    },
+    "V3": {
+      "count": 47,
+      "acceptance_hash_sorted": "6be49a56d863868101072f42fb525e1bb6010fb92713924171c00bb3630dc357",
+      "acceptance_hash_ordered": "9d3b5ddf12f999ea3172da69e1fed9f33ad43b519fba23c210d312c786294755"
+    }
+  },
+  "files": [
+    {
+      "path": "tools/verify_v1_plan.py",
+      "sha256": "5786bd422a2125b0f1e122c4e94b45bc4879efe5caa1ce7005c141158c81dd87"
+    },
+    {
+      "path": "tools/test_verify_v1_plan.py",
+      "sha256": "4fe6e77a8396cbd6dc8ae2b368842ecaee59d888143c4524d4e997eb381ae1d6"
+    },
+    {
+      "path": "reports/v1-redesign/d0-worker/logs/candidate-b621297/verify_v1_plan.stdout.log",
+      "sha256": "ebb4dfc8b804a4fe064fdb7362c68c3c7e717caf38c99e9d1739ad79c1e0a57b"
+    },
+    {
+      "path": "reports/v1-redesign/d0-worker/logs/candidate-b621297/verify_v1_plan.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "reports/v1-redesign/d0-worker/logs/candidate-b621297/verify_v1_plan.exit.log",
+      "sha256": "418a5c17f33c70e99b0cc0a07fce69191489cfedc94164bfa903785777c5bd4b"
+    },
+    {
+      "path": "reports/v1-redesign/d0-worker/logs/candidate-b621297/pytest.stdout.log",
+      "sha256": "6a2b4b6e3a0ef266a1c0a1a13e97c8d0449fd34648d05047c22bf5f411965c52"
+    },
+    {
+      "path": "reports/v1-redesign/d0-worker/logs/candidate-b621297/pytest.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "reports/v1-redesign/d0-worker/logs/candidate-b621297/pytest.exit.log",
+      "sha256": "418a5c17f33c70e99b0cc0a07fce69191489cfedc94164bfa903785777c5bd4b"
+    },
+    {
+      "path": "reports/v1-redesign/d0-worker/logs/candidate-372575b/verify_v1_plan.stdout.log",
+      "sha256": "ebb4dfc8b804a4fe064fdb7362c68c3c7e717caf38c99e9d1739ad79c1e0a57b"
+    },
+    {
+      "path": "reports/v1-redesign/d0-worker/logs/candidate-372575b/verify_v1_plan.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "reports/v1-redesign/d0-worker/logs/candidate-372575b/verify_v1_plan.exit.log",
+      "sha256": "51780ad005290ce694d499a05e610bb215c734c9c98b61b4d6016d47dfaae323"
+    },
+    {
+      "path": "reports/v1-redesign/d0-worker/logs/candidate-372575b/pytest.stdout.log",
+      "sha256": "8bf47fedf2ae2ed3090199b3c4053904566b03a1aa4648f7fd9159369a9a5d62"
+    },
+    {
+      "path": "reports/v1-redesign/d0-worker/logs/candidate-372575b/pytest.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "reports/v1-redesign/d0-worker/logs/candidate-372575b/pytest.exit.log",
+      "sha256": "856d14a0981a4d175901614671ebd3910ed7eb34748e6e56ceb35def6097427e"
+    },
+    {
+      "path": "reports/v1-redesign/d0-worker/logs/repro-major-D0-CODE-M01/allowed_files_empty.stdout.log",
+      "sha256": "bfa0492aaaca6a93562621a1cc81b1eb7433cd111446e2af3a7ae2b36081b215"
+    },
+    {
+      "path": "reports/v1-redesign/d0-worker/logs/repro-major-D0-CODE-M01/allowed_files_empty.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "reports/v1-redesign/d0-worker/logs/repro-major-D0-CODE-M01/commands_empty.stdout.log",
+      "sha256": "987c2617cdabaca1330783302ada75900d657d4f6f8bacb7f0356edbcbe85e4b"
+    },
+    {
+      "path": "reports/v1-redesign/d0-worker/logs/repro-major-D0-CODE-M01/commands_empty.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "commands": [
+    {
+      "command": "python3 -B tools/verify_v1_plan.py",
+      "cwd": "LVW_Prompt_Service_MasterPack_v2.0.0",
+      "candidate_sha": "b621297fe97a4c33209c3dd55bafa6260b25f180",
+      "exit_code": 0,
+      "stdout_log": "reports/v1-redesign/d0-worker/logs/candidate-b621297/verify_v1_plan.stdout.log",
+      "stdout_log_sha256": "ebb4dfc8b804a4fe064fdb7362c68c3c7e717caf38c99e9d1739ad79c1e0a57b",
+      "stderr_log": "reports/v1-redesign/d0-worker/logs/candidate-b621297/verify_v1_plan.stderr.log",
+      "stderr_log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exit_log_sha256": "418a5c17f33c70e99b0cc0a07fce69191489cfedc94164bfa903785777c5bd4b",
+      "observed": "RESULT: PASS (V1=29 V2=38 V3=47; MS01-MS08 once; legacy prefix intact; DAG acyclic; no human signature claimed)"
+    },
+    {
+      "command": "python3 -B -m pytest tools/test_verify_v1_plan.py -q",
+      "cwd": "LVW_Prompt_Service_MasterPack_v2.0.0",
+      "candidate_sha": "b621297fe97a4c33209c3dd55bafa6260b25f180",
+      "exit_code": 0,
+      "stdout_log": "reports/v1-redesign/d0-worker/logs/candidate-b621297/pytest.stdout.log",
+      "stdout_log_sha256": "6a2b4b6e3a0ef266a1c0a1a13e97c8d0449fd34648d05047c22bf5f411965c52",
+      "stderr_log": "reports/v1-redesign/d0-worker/logs/candidate-b621297/pytest.stderr.log",
+      "stderr_log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exit_log_sha256": "418a5c17f33c70e99b0cc0a07fce69191489cfedc94164bfa903785777c5bd4b",
+      "observed": "50 passed"
+    },
+    {
+      "command": "python3 -B tools/verify_v1_plan.py --root <temp copy of the actual parent spec layout>",
+      "purpose": "fault reproduction and post-fix verification of Major D0-CODE-M01",
+      "exit_codes_observed": {
+        "candidate_372575b_allowed_files_empty": 0,
+        "candidate_372575b_commands_empty": 0,
+        "candidate_b621297_allowed_files_empty": 1,
+        "candidate_b621297_commands_empty": 1,
+        "candidate_b621297_control_and_manifest_resigned": 1
+      },
+      "evidence": "reports/v1-redesign/d0-worker/logs/repro-major-D0-CODE-M01"
+    }
+  ],
+  "checker_behaviour": {
+    "exit_0": "only when every check passes for the root plan",
+    "exit_1": "deterministic findings, one 'E_CODE: detail' line per finding, sorted by code",
+    "exit_2": "an input could not be read or parsed; no verdict is produced",
+    "dependencies": "standard library only; jsonschema is used for metaschema validation when importable and is never required",
+    "side_effects": "read-only; no file is written, no network, no model, no GPU, no service"
+  },
+  "validated_properties": [
+    "V1/V2/V3 denominators are exactly 29/38/47 and the pre-amendment 21/30/39 survive as an ordered prefix",
+    "MS01-MS08 appear exactly once in the release gates, the root plan, the case definitions and the R22 acceptance set",
+    "R22 exists, stays open (NOT_RUN) and is covered by V1-M1 and R2; V1-M1 works on exactly the eight MS cases",
+    "plan DAG is acyclic, V1-M1 depends on R1, R2 depends on V1-M1, and the plan graph matches the tasks.json graph",
+    "no invented completion: stage completed counts stay 0 while the package is in design review; case/stage statuses stay inside NOT_RUN/PASS/FAIL/BLOCKED",
+    "no invented human signature: approval flags stay false, no sign-off fields in the plan, no forbidden release claim",
+    "no relaxed fixed resource limits (12 limits, direction aware) and no drift of the fixed quality thresholds carried by Q01/MS01/MS04/MS05/MS07",
+    "D0 ownership: the frozen control lists (D0-B-IMPL allowed_files/commands, D0-B-REVIEW allowed_files, forbidden_write_paths) are compared unconditionally against their frozen values, so an empty list is a finding",
+    "D0 control plane fenced: the D0 payload manifest must exist, be pinned by its source-control digest, list exactly the frozen packet inventory, hash every listed file unchanged, hold no unlisted file, and bind stage-control.json and spec-manifest.json",
+    "the D0 model/checkpoint budget stays 0, D0-B-IMPL and D0-B-REVIEW may not claim the same path, and the validated stage control must be the packet-bound file",
+    "candidate DTO schema is structurally closed (additionalProperties=false, required subset of properties) and consistent with the candidate contract entities",
+    "old R1 packet manifest and its files and the three canonical contracts still hash as frozen",
+    "the authority spec manifest fence holds for every fenced file",
+    "budget is not reset, the global authority stays AUTH-PROGRAM-V1-COMPLETE-03, and only V1-M1 may be accounted against R2 with the scope record hash bound to the spec manifest"
+  ],
+  "negative_tests": {
+    "count": 50,
+    "style": "pytest, synthetic temporary package trees under tmp_path; canonical plans, packets and manifests are never mutated",
+    "fixture_layout": "mirrors the actual parent layout: the authority spec manifest does not list the D0 stage control or the D0 payload manifest; the D0 packet manifest fences that control plane",
+    "required_fault_classes": {
+      "empty_control_lists": "test_empty_allowed_files_is_rejected, test_empty_commands_is_rejected, test_empty_forbidden_write_paths_is_rejected, test_empty_review_allowed_files_is_rejected",
+      "actual_style_spec_layout_lacking_stage_control_fence": "test_actual_style_layout_without_stage_control_fence_detects_drift",
+      "payload_control_drift_or_missing_or_extra": "test_d0_packet_control_drift_is_rejected, test_d0_packet_manifest_missing_entry_is_rejected, test_d0_packet_manifest_extra_entry_is_rejected, test_d0_packet_manifest_missing_file_is_rejected, test_d0_packet_manifest_missing_is_rejected, test_d0_packet_unlisted_file_is_rejected, test_d0_packet_manifest_not_bound_to_spec_manifest_is_rejected, test_d0_packet_manifest_regenerated_to_hide_drift_is_rejected",
+      "shrink_denominator": "test_shrunk_v1_denominator_is_rejected",
+      "drop_original_case": "test_dropped_legacy_case_breaks_the_prefix",
+      "duplicate_case": "test_duplicate_ms_case_is_rejected, test_duplicate_ms_case_definition_is_rejected, test_plan_duplicate_ms_case_is_rejected",
+      "dag_cycle": "test_dag_cycle_is_rejected",
+      "threshold_drift_resource": "test_relaxed_resource_limit_is_rejected, test_lowered_ram_floor_is_rejected, test_dropped_fixed_limit_is_rejected",
+      "threshold_drift_quality": "test_quality_threshold_drift_is_rejected",
+      "ownership_violation": "test_write_path_ownership_violation_is_rejected, test_unseparated_roles_are_rejected, test_missing_workpack_is_rejected, test_nonzero_d0_budget_is_rejected, test_stage_control_must_be_the_packet_bound_file",
+      "false_human_signature": "test_false_human_signature_in_plan_is_rejected, test_false_human_acceptance_in_approval_is_rejected, test_forbidden_release_claim_is_rejected, test_invented_completion_is_rejected",
+      "invalid_author_stage_alias": "test_unauthorized_stage_alias_is_rejected, test_authority_stage_alias_is_rejected",
+      "protected_artefact_drift": "test_canonical_contract_drift_is_rejected, test_old_r1_packet_drift_is_rejected, test_spec_fence_drift_is_rejected, test_scope_hash_drift_is_rejected",
+      "other": "test_missing_ms_case_is_rejected, test_plan_must_match_the_release_gate_denominator, test_r22_coverage_gap_is_rejected, test_missing_m1_dependency_on_r1_is_rejected, test_missing_r2_dependency_on_m1_is_rejected, test_budget_reset_is_rejected, test_contract_schema_mismatch_is_rejected, test_schema_without_closed_dtos_is_rejected, test_missing_input_exits_nonzero_without_verdict"
+    }
+  },
+  "provider_model": {
+    "reporting_basis": "self-reported by this worker; no external harness metadata was available to verify it",
+    "runtime": "Claude Code session in an Orca visible child worktree, using the configured Claude development account",
+    "model_as_reported_by_this_session": "MiniMax-M3.1-Flash-Preview",
+    "credential_reads": "none",
+    "provider_or_model_switch": "none",
+    "paid_purchase": "none",
+    "quota_issue": "none encountered; the configured account served this task"
+  },
+  "budget_and_cleanup": {
+    "model_actions": 0,
+    "gpu_or_media_or_service_operations": 0,
+    "package_installs": 0,
+    "network_calls": 0,
+    "files_written": [
+      "tools/verify_v1_plan.py",
+      "tools/test_verify_v1_plan.py",
+      "reports/v1-redesign/d0-worker/"
+    ],
+    "canonical_files_modified": "none",
+    "manifest_updated": "no (MANIFEST.sha256, the authority spec manifest and the D0 packet manifest were left untouched)",
+    "git_push": "none",
+    "temporary_state": "pytest tmp_path trees and one temp copy of the package layout used for the fault reproduction; the pytest tmp_path removal was not independently observed and is not asserted here"
+  },
+  "risks": [
+    "The frozen expectation tables (29/38/47, 21/30/39, the 12 resource limits, the quality threshold tokens, the D0 control lists and the D0 packet inventory) live in tools/verify_v1_plan.py. If the authority later changes a denominator, a limit, a control list or the D0 packet, the checker must be re-frozen by its owner in the same commit; this worker did not change any of them.",
+    "The D0 packet manifest is pinned by its own sha256 inside the checker, which is the source-control binding for the control plane that the authority spec manifest does not list. Re-freezing the D0 packet therefore requires a matching checker update; that is intentional but it couples the packet and the checker.",
+    "The quality-threshold check reads Chinese threshold tokens out of the acceptance-case assertion text. If Codex rewrites that wording without changing the numbers, the check reports E_QUALITY_DRIFT and needs a coordinated re-freeze.",
+    "The spec-manifest fence makes the checker fail closed whenever an authority file changes before the manifest is re-frozen; that is the intended 'spec drift' hard stop.",
+    "jsonschema happens to be importable in this environment, so the metaschema path was exercised; on a host without it only the structural candidate-schema check runs and the tool reports E_SCHEMA_META_SKIPPED as a note, never as a silent pass.",
+    "Self-tests are not an independent review. The D0-B-REVIEW window and the Codex gate owner still have to accept the design; this worker claims READY_FOR_REVIEW only.",
+    "The checker validates plan structure and frozen hashes. It does not and cannot validate real product behaviour, sample annotation hashes, quality thresholds in practice, or any human experience signature."
+  ],
+  "not_done": [
+    "no product implementation, no stage/contract/PRD/denominator edit, no sample freezing, no Gate0",
+    "no human experience or release signature",
+    "no push to any remote",
+    "no merge of the candidate into any other branch"
+  ]
+}

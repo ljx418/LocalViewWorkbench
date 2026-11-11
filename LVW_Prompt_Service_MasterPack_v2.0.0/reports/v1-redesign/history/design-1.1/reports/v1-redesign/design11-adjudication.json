@@ -1,0 +1,126 @@
+{
+  "kind": "CODEX_ARCHITECTURE_ADJUDICATION_NOT_INDEPENDENT_CLOSURE",
+  "version": "1.1",
+  "original_review": "reports/v1-redesign/d0-review/receipt.json",
+  "decision": "CORRECTIONS_PROPOSED_AWAIT_ISOLATED_RECHECK",
+  "responses": [
+    {
+      "id": "F1",
+      "resolution": "保留canonical /jobs/batch items体；新增有界/jobs/shot-batches，不替换旧method。",
+      "status": "PENDING_RECHECK"
+    },
+    {
+      "id": "M1",
+      "resolution": "Scene原body/枚举保留，ETag走header；新增GET及revision-info sidecar，明示逻辑scene_id与immutable revision id。",
+      "status": "PENDING_RECHECK"
+    },
+    {
+      "id": "M2",
+      "resolution": "SceneRevisionInfo.time_basis/Scene.verified有载体；缺失/倒序PTS job失败并有诊断，旧未核验scene禁止新分析。",
+      "status": "PENDING_RECHECK"
+    },
+    {
+      "id": "M3",
+      "resolution": "ShotFrameRef包含canonical全部字段且instance兼容，实际FrameRefs存model_run_artifacts。",
+      "status": "PENDING_RECHECK"
+    },
+    {
+      "id": "M4",
+      "resolution": "ParentJob DTO+children envelope完整携带deadline/预算/固定顺序/计数，base Job进度逐字段映射。",
+      "status": "PENDING_RECHECK"
+    },
+    {
+      "id": "M5",
+      "resolution": "shot_batch_parent/item/seal同事务预建全部Job；count/ordinal seal触发器，封印后immutable，worker仅claim sealed计划。",
+      "status": "PENDING_RECHECK"
+    },
+    {
+      "id": "M6",
+      "resolution": "internal AnalysisBinding增加lease_token；明确canonical scene hash算法/etag/各持久表；public binding剔除token。",
+      "status": "PENDING_RECHECK"
+    },
+    {
+      "id": "M7",
+      "resolution": "截止未开始failed+BATCH_DEADLINE_EXCEEDED、用户取消cancelled+JOB_CANCELLED、model_started来源attempt_execution，旧Job enum不扩。",
+      "status": "PENDING_RECHECK"
+    },
+    {
+      "id": "M8",
+      "resolution": "人物/场景/动作均有domain与双语来源；显式映射到canonical Domains/PromptSpec，再由原四目标compiler；人工source不由模型写。",
+      "status": "PENDING_RECHECK"
+    },
+    {
+      "id": "M9",
+      "resolution": "12行机器与文档表明确D01/D02各3镜头；47/21可复算，18段质量归属固定。",
+      "status": "PENDING_RECHECK"
+    },
+    {
+      "id": "M10",
+      "resolution": "父deadline改450*n+90最多5490，保留420s单次+30s释放。原问题是最坏预算覆盖不足，不等于已证明正常机器永远跑不完。",
+      "status": "PENDING_RECHECK"
+    },
+    {
+      "id": "M11",
+      "resolution": "完整轮72动作/21600s、执行截止21420、预留180清理，20735秒阈值估算；明确P95门限不冒充本次实测均值/硬最坏。",
+      "status": "PENDING_RECHECK"
+    },
+    {
+      "id": "m1",
+      "resolution": "docs17/20加覆盖修订，V1-M1只提前最小scene/batch/lease子集。",
+      "status": "PENDING_RECHECK"
+    },
+    {
+      "id": "m2",
+      "resolution": "11人工留样绝对不用于本次MS开发/调优/自动验收。",
+      "status": "PENDING_RECHECK"
+    },
+    {
+      "id": "m3",
+      "resolution": "新MS独立集、开发集、Q01与人工11留样四者SHA/origin互斥。",
+      "status": "PENDING_RECHECK"
+    },
+    {
+      "id": "m4",
+      "resolution": "质量18项归属在机器表和12行文档表逐项给出。",
+      "status": "PENDING_RECHECK"
+    },
+    {
+      "id": "m5",
+      "resolution": "execution-control.updated_at刷新2026-11-11，产品坐标/人签不改。",
+      "status": "PENDING_RECHECK"
+    },
+    {
+      "id": "m6",
+      "resolution": "公开只用algorithm/human，detected仅为原内部提案概念，不进入canonical body。",
+      "status": "PENDING_RECHECK"
+    },
+    {
+      "id": "m7",
+      "resolution": "新shot-batches严格六模式；旧AnalyzeRequest合同不改。",
+      "status": "PENDING_RECHECK"
+    },
+    {
+      "id": "m8",
+      "resolution": "一次有界评分/PTS元数据索引＋逐镜头keyframe seek有限解码，不N遍全片、不全片tensor。",
+      "status": "PENDING_RECHECK"
+    },
+    {
+      "id": "m9",
+      "resolution": "请求HTTP状态与job/child终态码分表明确。",
+      "status": "PENDING_RECHECK"
+    },
+    {
+      "id": "m10",
+      "resolution": "shot_scene_binding可选关联表，旧manual/image无行、不强制回填；既有修订hash不变。",
+      "status": "PENDING_RECHECK"
+    }
+  ],
+  "limitations": [
+    "actual fixtures/annotation hashes not yet acquired",
+    "new profile1536 tokens requires real pilot and hard resource proof",
+    "migration tested only in memory, product handlers not implemented",
+    "new design needs checker authority refreeze; b621297 is only old1.0 code fix candidate"
+  ],
+  "product_pass": false,
+  "human_signoff": null
+}
