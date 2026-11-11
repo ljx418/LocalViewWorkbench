@@ -8,7 +8,7 @@
   "coordinate": {
     "stage_id": "R1",
     "workpack_id": "WP-R1-U3",
-    "gate": "S3_P3A_INSTALLED_PACKAGE_RUNTIME_IMPLEMENTATION",
+    "gate": "S3_P3A_INSTALLED_PACKAGE_INDEPENDENT_REVIEW",
     "state": "PREPARING_NEXT_STAGE"
   },
   "last_passed_gate": {
@@ -34,8 +34,8 @@
     "PRODUCTION_RELEASED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "Visible isolated Codex implementation; root architecture/gate; separate independent review",
-  "next_action": "Implement installed-package deployment in inherited native runtime root under frozen P3A offline contract; then independent review. P2B closed with disclosed minor, no rerun.",
+  "next_owner": "Separate visible Codex independent reviewer, then root gate owner",
+  "next_action": "Independent read-only candidate review of P3A 7f84ac5 / evidence0fc2036; bounded synthetic tests and inherited prepare/installer wiring, no real service run.",
   "required_authorization": null,
   "authorization_request": "reports/authorization-program-v1-complete-03.request.json",
   "authorization_record": "reports/authorization-program-v1-complete-03.approval.json",
@@ -1152,5 +1152,13 @@
   "preparation_addendum": "reports/v0-s3/product-gate0/p3-installed-runtime.contract.md",
   "latest_preparation_disposition": "reports/v0-s3/product-gate0/p2b-closing-decision.json",
   "quality_set_freeze": "reports/v0-s3/preparation-05/quality-set.frozen.json",
-  "last_execution_evidence": "reports/v0-s3/product-gate0/execution-p2-binding-correction-03/report.md"
+  "last_execution_evidence": "reports/v0-s3/product-gate0/execution-p2-binding-correction-03/report.md",
+  "p3a_implementation": {
+    "candidate_sha": "7f84ac56e9d8c9bd39778a787b662634453875be",
+    "evidence_commit": "0fc20361ace1d1ed156a5347c9280bf039b00cb5",
+    "status": "READY_FOR_REVIEW_NOT_PRODUCT_PASS",
+    "targeted_passed": 30,
+    "regression_passed": 23,
+    "new_real_runs": 0
+  }
 }
