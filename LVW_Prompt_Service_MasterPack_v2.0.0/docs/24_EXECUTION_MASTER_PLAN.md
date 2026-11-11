@@ -228,3 +228,10 @@ C2 读取哈希固定的1.0.4完整九样本清单，保留旧四样本前缀；
 ### 设计1.1纠偏（2026-11-11）
 
 独审原F1/11Major/10Minor保留，架构owner给出集中裁决待复核：旧generic batch/Scene/FrameRef兼容，新shot-batches/provenance/immutable plan和typed evidence有完整载体。父预算450*n+90(max5490)，正式轮cap72/21600且预留180秒清理，旧硬资源门限及29项不降；固定样本设计47镜头/18质量可复算但实际标签hash未取得。D0设计探针22通过仅结构/内存SQL，不能宣称产品Gate0。原工具漏洞b621297已在1.0布局独立复验关闭，新1.1还需实现者重新冻结校验器。
+
+
+## 2026-11-11｜D0离线准备已收口，产品人工门槛仍保留
+
+当前进度读取execution-control：V1-D0准备2/2，候选eea5663的独审233通过、Fatal0/Major0，Codex接纳非阻断Minor；结论见[裁决](../reports/v1-redesign/d0-acceptance/decision.md)。docs30–32和D0 packet的审前状态为已封存设计快照，最新审查与收口状态以本裁决及唯一坐标为准；不修改旧候选以伪造已审核状态。该准备收口不激活产品Gate0，不完成R1/M1，也不冻结实际47镜头样本。
+
+产品下一动作仍为621b1bf统一图视频切片的实际人工体验签署，入口见[人工指南](../人工验收指南.html)，具体清单见[请求](../reports/unified-media/human-signoff-request-live15.json)。不是缺GPU/代码/候选权限。人工签署后立即按AGENTS16提交并普通推送，再按S2/S3/R1/M1/R2的既有依赖继续；旧S2和完整V1/发布不能被该切片签署代替。
