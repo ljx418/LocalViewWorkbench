@@ -620,13 +620,26 @@ def build_preflight(
         len(observed_holdouts) == EXPECTED_HOLDOUT_COUNT,
         "holdout videos=%d (expected %d)" % (len(observed_holdouts), EXPECTED_HOLDOUT_COUNT),
     )
+    child_holdout_list = list(child.get("holdout_content_sha256") or [])
+    manifest_hashes = {
+        value
+        for value in (holdout.get("expected_sha256"), holdout.get("assets_manifest_sha256"))
+        if value
+    }
     ledger.add(
-        "holdout.content_sha256_exact",
-        sorted(observed_holdouts) == sorted(child.get("holdout_content_sha256") or []),
-        "the frozen holdout content hashes must be identical to the child's list",
+        "holdout.content_sha256_covers_every_video",
+        set(observed_holdouts) <= set(child_holdout_list),
+        "every protected holdout video hash must be listed in the child",
+    )
+    ledger.add(
+        "holdout.content_sha256_no_unknown_entry",
+        set(child_holdout_list) - set(observed_holdouts) == manifest_hashes,
+        "the child may only list the protected videos plus the freeze manifest's own "
+        "declared hashes; extras=%r"
+        % (sorted(set(child_holdout_list) - set(observed_holdouts)),),
     )
     overlap_holdout = [
-        e.get("relative_path") for e in selected if e.get("sha256") in set(observed_holdouts)
+        e.get("relative_path") for e in selected if e.get("sha256") in set(child_holdout_list)
     ]
     ledger.add(
         "holdout.no_selected_overlap",
@@ -824,6 +837,7 @@ def build_preflight(
                 "sha256": holdout_sha,
                 "expected_sha256": child.get("holdout_manifest_sha256"),
                 "content_sha256_count": len(observed_holdouts),
+                "child_listed_count": len(child_holdout_list),
             },
             "stage_packet": {"path": PACKET_REL, "sha256": packet_sha},
             "candidate": {

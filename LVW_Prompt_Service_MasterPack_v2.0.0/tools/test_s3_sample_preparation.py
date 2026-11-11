@@ -161,6 +161,8 @@ class Package:
         holdout_hashes = [
             sha256_bytes(("holdout:%d" % index).encode("utf-8")) for index in range(holdout_count)
         ]
+        freeze_own = sha256_bytes(b"freeze-manifest-self-hash")
+        assets_manifest = sha256_bytes(b"freeze-assets-manifest-hash")
         child = {
             "kind": s3prep.EXPECTED_CHILD_KIND,
             "child_id": s3prep.EXPECTED_CHILD_ID,
@@ -170,7 +172,7 @@ class Package:
             "catalog_sha256": None,
             "holdout_manifest": s3prep.HOLDOUT_REL,
             "holdout_manifest_sha256": None,
-            "holdout_content_sha256": holdout_hashes,
+            "holdout_content_sha256": holdout_hashes + [freeze_own, assets_manifest],
             "selected_files": selection,
             "limits": limits,
             "quality_frozen": False,
@@ -197,6 +199,8 @@ class Package:
             holdout_path,
             {
                 "kind": "PRE_INFERENCE_HOLDOUT_FREEZE",
+                "expected_sha256": freeze_own,
+                "assets_manifest_sha256": assets_manifest,
                 "videos": [
                     {"id": "V%02d" % (index + 1), "video_sha256": value}
                     for index, value in enumerate(holdout_hashes)
@@ -970,3 +974,37 @@ def test_probe_and_frame_budgets_are_never_exceeded(tmp_path):
     for candidate in receipt["candidates"]:
         frames = candidate.get("sampling", {}).get("frames", [])
         assert len(frames) <= 4
+
+
+def test_preflight_rejects_a_holdout_list_that_drops_a_protected_video(tmp_path):
+    package = _standard_package(tmp_path)
+    package.write_documents(
+        child_mutator=lambda child: child["holdout_content_sha256"].pop(0)
+    )
+    preflight = run_preflight(package)
+    assert preflight["decision"] == "PREFLIGHT_REJECTED"
+    failed = [item["id"] for item in preflight["checks"] if not item["passed"]]
+    assert "holdout.content_sha256_covers_every_video" in failed
+
+
+def test_preflight_rejects_an_unknown_holdout_list_entry(tmp_path):
+    package = _standard_package(tmp_path)
+    package.write_documents(
+        child_mutator=lambda child: child["holdout_content_sha256"].append("9" * 64)
+    )
+    preflight = run_preflight(package)
+    assert preflight["decision"] == "PREFLIGHT_REJECTED"
+    failed = [item["id"] for item in preflight["checks"] if not item["passed"]]
+    assert "holdout.content_sha256_no_unknown_entry" in failed
+
+
+def test_preflight_accepts_the_child_holdout_list_of_the_real_freeze_shape(tmp_path):
+    """The real child lists the 11 videos plus the freeze manifest's own hashes."""
+    package = _standard_package(tmp_path)
+    package.write_documents()
+    preflight = run_preflight(package)
+    assert preflight["decision"] == "PREFLIGHT_PASSED", [
+        item for item in preflight["checks"] if not item["passed"]
+    ]
+    assert preflight["holdout_manifest"]["content_sha256_count"] == 11
+    assert preflight["holdout_manifest"]["child_listed_count"] == 13
