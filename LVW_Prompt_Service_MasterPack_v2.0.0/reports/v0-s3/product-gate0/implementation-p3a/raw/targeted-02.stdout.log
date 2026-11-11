@@ -1,0 +1,86 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-8.4.2, pluggy-1.6.0 -- /usr/bin/python3
+rootdir: /home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0
+plugins: asyncio-0.23.8, typeguard-4.6.0, anyio-4.13.0, hydra-core-1.3.7
+asyncio: mode=Mode.STRICT
+collecting ... collected 28 items
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_inherited_default_then_warm_install_exact_runtime_root FAILED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[old-candidate] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[package-hash] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[manifest-hash] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[bad-digest] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[missing-bridge] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[extra-bridge] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[bridge-hash] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[workflow-unsealed] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[workflow-hash] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[missing-marker] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[invalid-marker] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[marker-link] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[package-link] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[package-oversize] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_installer_and_postinstall_refusals_before_start[bridge-bytes] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_installer_and_postinstall_refusals_before_start[workflow-bytes] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_installer_and_postinstall_refusals_before_start[extra-file] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_installer_and_postinstall_refusals_before_start[missing-file] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_installer_and_postinstall_refusals_before_start[payload-link] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_installer_and_postinstall_refusals_before_start[owner-bytes] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_installer_and_postinstall_refusals_before_start[receipt-identity] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_installer_and_postinstall_refusals_before_start[marker-drift] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_installer_and_postinstall_refusals_before_start[install-failure] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_prepare_rejects_wrong_registered_target[directory] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_prepare_rejects_wrong_registered_target[outside] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_prepare_rejects_wrong_registered_target[symlink] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_prepare_rejects_wrong_registered_target[unregistered] PASSED
+
+=================================== FAILURES ===================================
+_________ test_inherited_default_then_warm_install_exact_runtime_root __________
+
+fixture = namespace(monkeypatch=<_pytest.monkeypatch.MonkeyPatch object at 0x7913135f6840>, temporary='/tmp/lvw-p3a-owned-qnl3de...': PosixPath('/tmp/lvw-p3a-owned-qnl3de_i/comfy_python')}, repo=PosixPath('/tmp/lvw-p3a-owned-qnl3de_i/synthetic-git'))
+
+    def test_inherited_default_then_warm_install_exact_runtime_root(fixture):
+        f = fixture
+        factory = InstalledPackageRuntimeFactory(**f.kwargs)
+        assert InstalledPackageRuntimeFactory._prepare is legacy.StageRuntimeFactory._prepare
+        for label in ('default', 'warm'):
+>           context = factory.prepare_default() if label == 'default' else factory.prepare_warm()
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:128: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_s2_stage_runtime.py:155: in prepare_default
+    def prepare_default(self): return self._prepare(False)
+                                      ^^^^^^^^^^^^^^^^^^^^
+tools/v0_s2_stage_runtime.py:195: in _prepare
+    self._user_root(driver, root)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <tools.v0_s3_stage_runtime.InstalledPackageRuntimeFactory object at 0x791314bc0ad0>
+driver = <tools.v0_s2_runtime.NativeRuntime object at 0x7913135f7230>
+root = PosixPath('/tmp/lvw-p3a-owned-qnl3de_i/隔离 runtime/lvw-s2-default-p_1i5qol')
+
+    def _user_root(self, driver, root):
+        lease = self.user_roots[root]
+        self.archive.lease('warm' if driver.warm_benchmark else 'default')
+        current = plain(root/'user').stat()
+        if (current.st_dev, current.st_ino) != lease: raise EvidenceError('factory user root replaced')
+        birth = driver.owned_listener_birth(8191)
+        raw = driver._powershell(f"(Get-CimInstance Win32_Process -Filter 'ProcessId = {birth['pid']}').CommandLine")
+        actual = strict_argv(raw)
+        expected = [driver._windows_path(str(self.paths['comfy_python'])), '-s', '-B',
+            driver._windows_path(str(self.paths['comfy_main'])), '--listen', '127.0.0.1', '--port', '8191',
+            '--base-directory', driver._windows_path(str(root)), '--user-directory', driver._windows_path(str(root/'user')),
+            '--disable-auto-launch', '--disable-api-nodes', '--disable-all-custom-nodes', '--whitelist-custom-nodes', 'lvw_v0_bridge']
+        for values in (actual, expected):
+            for index in (0, 3, 9, 11):
+                if len(values) <= index: raise EvidenceError('factory Comfy launch arguments missing')
+                values[index] = base.normalized_windows_path(values[index]).casefold()
+>       if actual != expected: raise EvidenceError('factory Comfy CLI/user directory differs from frozen launch')
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       tools.v0_s2_checkpoint_oracles.EvidenceError: factory Comfy CLI/user directory differs from frozen launch
+
+tools/v0_s2_stage_runtime.py:152: EvidenceError
+=========================== short test summary info ============================
+FAILED LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_inherited_default_then_warm_install_exact_runtime_root
+========================= 1 failed, 27 passed in 1.69s =========================

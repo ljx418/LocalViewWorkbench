@@ -1,0 +1,32 @@
+[
+  {
+    "id": "P3A-M01",
+    "severity": "Major",
+    "location": "tools/v0_s3_stage_runtime.py:97-106; tools/v0_incremental_package.py:1885-2010",
+    "trigger": "Replace registered root/custom_nodes with a symlink to a fresh unregistered sibling during the second archive validation, before installer commit.",
+    "expected": "Refuse before writes outside the archive-leased root; retain original error and bounded cleanup evidence.",
+    "actual": "Real installer wrote three bridge files to the foreign fixture directory; later plain(root/bridge) rejected with binding redirect forbidden, zero fake services started, root retained because archive rejected the redirect.",
+    "reproducer": "test_independent_probes.py::test_child_redirect_during_install_validation",
+    "evidence": "raw/probes.stdout.log: INDEPENDENT_OBSERVATION late_child_redirect"
+  },
+  {
+    "id": "P3A-M02",
+    "severity": "Major",
+    "location": "tools/v0_s3_stage_runtime.py:88-106,112-151",
+    "trigger": "After initial validation, rename the package and replace package_path with a symlink to the identical archive before real command_install.",
+    "expected": "Reject changed/redirected package path before service start; initial plain/digest cannot authorize a later independently opened path.",
+    "actual": "Real installer follows link; identical content passes receipt/tree checks; deployment VERIFIED and one fake Comfy start occurs.",
+    "reproducer": "test_independent_probes.py::test_archive_link_between_validation_and_install",
+    "evidence": "raw/probes.stdout.log: INDEPENDENT_OBSERVATION late_archive_link"
+  },
+  {
+    "id": "P3A-m01",
+    "severity": "Minor",
+    "location": "tools/v0_s3_stage_runtime.py:115-127; tools/v0_incremental_package.py:2383-2463",
+    "trigger": "Change only returned install receipt session_id to foreign-session while preserving real owner/hash/bytes.",
+    "expected": "Installation receipt session identity agrees with in-target ownership record or is explicitly excluded from authority.",
+    "actual": "Mismatched session accepted and fake Comfy starts; other owner install_hash and target/payload bindings remain valid, so no deletion escalation demonstrated.",
+    "reproducer": "test_independent_probes.py::test_receipt_session_identity",
+    "evidence": "raw/probes.stdout.log: INDEPENDENT_OBSERVATION receipt_session"
+  }
+]

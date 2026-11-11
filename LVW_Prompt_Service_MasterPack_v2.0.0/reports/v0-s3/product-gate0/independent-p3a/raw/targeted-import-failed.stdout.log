@@ -1,0 +1,20 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-8.4.2, pluggy-1.6.0 -- /usr/bin/python3
+rootdir: /home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0
+collecting ... collected 0 items / 1 error
+
+==================================== ERRORS ====================================
+___ ERROR collecting LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py ____
+ImportError while importing test module '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:12: in <module>
+    from tools import v0_incremental_package as package
+E   ModuleNotFoundError: No module named 'tools'
+=========================== short test summary info ============================
+ERROR LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py
+!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+=============================== 1 error in 0.07s ===============================
