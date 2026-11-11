@@ -1,0 +1,321 @@
+{
+  "status": "READY_FOR_REVIEW",
+  "implementation_candidate": "c3c6bcb6a96576d9ed542acb4eb25c55d6b204d0",
+  "baseline": "28cf4211674fb89d2661474109e6f2d8ef42a0a1",
+  "initial_worktree": "CLEAN; fast-forward merge; no conflicts",
+  "stage": "V0-S3",
+  "workpack": "S3-P1",
+  "contract_changed": false,
+  "allowed_files_check": [
+    "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/benchmark.py",
+    "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/core.py",
+    "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/program_budget.py",
+    "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_evidence.py",
+    "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_transport.py",
+    "LVW_V0_RuntimePatch/tests/test_s3_program_budget.py",
+    "tools/test_v0_s3_budget_authority.py",
+    "tools/v0_s2_runtime.py",
+    "tools/v0_s3_budget_authority.py"
+  ],
+  "frozen_checks": [
+    {
+      "path": ".agent-governance/stages/V0-S3/production-integration/00-coordinate.md",
+      "sha256": "03d21061f66302d39d75eb740d7df55d7db6365175e9ee7e56be36ebdcbdd787"
+    },
+    {
+      "path": ".agent-governance/stages/V0-S3/production-integration/01-scope-and-non-goals.md",
+      "sha256": "29cee9b4bd383cca73f735df67fab5810345aa66839bd8bc1b765a28b597983a"
+    },
+    {
+      "path": ".agent-governance/stages/V0-S3/production-integration/02-architecture-and-ownership.md",
+      "sha256": "1a76ee6d9c65e75a9ab807f39fa5b924337dfcd27cdb56eec01aaf20c6a6b15d"
+    },
+    {
+      "path": ".agent-governance/stages/V0-S3/production-integration/03-workpack-plan.md",
+      "sha256": "69ce33a425f5352eb7902227ccebff8e8d1288572322da553f33d4e294ef5100"
+    },
+    {
+      "path": ".agent-governance/stages/V0-S3/production-integration/04-acceptance-matrix.md",
+      "sha256": "6e4dc6305c6f76b8db1c1465cd5a6bfeebaa0aa15ab53e79fd59d34aaa8ae8d0"
+    },
+    {
+      "path": ".agent-governance/stages/V0-S3/production-integration/05-risk-and-authorization-register.md",
+      "sha256": "497e0fe3c5f16a0f471360cc2cc12d4542ee20533ac0dfdfebe5c4744dab3c87"
+    },
+    {
+      "path": ".agent-governance/stages/V0-S3/production-integration/06-implementation-prompt.md",
+      "sha256": "2c7ba5a77b02fdc267359ac35e92a188ff10bec003131a64f0004a1073a66ae5"
+    },
+    {
+      "path": ".agent-governance/stages/V0-S3/production-integration/07-checkpoint-plan.md",
+      "sha256": "13e85286621fbdc9e2a1a8fe326b03edbe2efd0a9ddfc5cc172236cbd58ab397"
+    },
+    {
+      "path": ".agent-governance/stages/V0-S3/production-integration/spec-manifest.json",
+      "sha256": "0a173edd85b566cb740dada5babebd7d0457c5f67ed06d4629dd1b878585cdd0"
+    },
+    {
+      "path": ".agent-governance/stages/V0-S3/production-integration/stage-control.json",
+      "sha256": "d263bfbdd9773275c886d37dc1990a4e34445655a0b14156a65a62ff0925f1a7"
+    },
+    {
+      "path": "reports/v0-s3/product-gate0/p1-native-budget-contract.md",
+      "sha256": "ad57d3532a37d8bc59a950b200677c4eb7893c3bef2ad7dacd59c716c2065e37"
+    },
+    {
+      "path": "reports/v0-s3/preparation-05/quality-set.frozen.json",
+      "sha256": "c2c49ef68249348975723de2492455c2c071c6c9535d0a2900a3e71eede01884"
+    },
+    {
+      "path": "reports/authorization-program-v1-complete-03.request.json",
+      "sha256": "afcde7f29095a68e9175f454b16da32514566cca475ccafdfceefbcdcb45be25"
+    },
+    {
+      "path": "reports/authorization-program-v1-complete-03.approval.json",
+      "sha256": "cd919c7fd24c24e2740366ef11998fee1b3302f16700598a3a5f75c6ef1b0821"
+    },
+    {
+      "path": "reports/v0-s3/product-gate0/fact-audit-01/source-index.json",
+      "sha256": "9f60efec44096a47b546a14892baa1f746b60b1dcd6adb75b9e5c3b339a16e88"
+    }
+  ],
+  "checks": [
+    {
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "pytest",
+        "tools/test_v0_s3_budget_authority.py",
+        "LVW_V0_RuntimePatch/tests/test_s3_program_budget.py",
+        "LVW_V0_RuntimePatch/tests/test_s2_measurements.py",
+        "LVW_V0_RuntimePatch/tests/test_s2_lifecycle_authorization.py",
+        "-q",
+        "-p",
+        "no:cacheprovider"
+      ],
+      "cwd": "LVW_Prompt_Service_MasterPack_v2.0.0",
+      "candidate_sha": "c3c6bcb6a96576d9ed542acb4eb25c55d6b204d0",
+      "exit_code": 0,
+      "elapsed_seconds": 8.718,
+      "log": "reports/v0-s3/product-gate0/implementation-p1/check-1.log",
+      "log_sha256": "5ed4a1f0f872e4f3e01853f5f2e4ff89a430bd1a3b4fed6d67ea384c616c4f2b"
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "pytest",
+        "LVW_V0_RuntimePatch/tests/test_lvw_v0_bridge.py",
+        "LVW_V0_RuntimePatch/tests/test_s2_video_transport.py",
+        "LVW_V0_RuntimePatch/tests/test_s2_native_evidence.py",
+        "LVW_V0_RuntimePatch/tests/test_s2_warm_benchmark.py",
+        "LVW_V0_RuntimePatch/tests/test_s2_runtime.py",
+        "-q",
+        "-p",
+        "no:cacheprovider"
+      ],
+      "cwd": "LVW_Prompt_Service_MasterPack_v2.0.0",
+      "candidate_sha": "c3c6bcb6a96576d9ed542acb4eb25c55d6b204d0",
+      "exit_code": 0,
+      "elapsed_seconds": 1.121,
+      "log": "reports/v0-s3/product-gate0/implementation-p1/check-2.log",
+      "log_sha256": "77158160ebb7cf8b0f4a02453fbfe01dc8a1f4cbf1ce12fa07311b36fdef9fda"
+    }
+  ],
+  "passed_tests": 143,
+  "production_paths": [
+    "BridgeOwner.analyze_image -> call_one_frame -> OllamaLoopbackTransport._post -> authorize_model_action -> bounded Popen -> shim.debit -> sealed local_program_authority.model_action -> opener.open",
+    "BridgeOwner.analyze_video (4 frames) -> call_one_frame x4 -> InterruptibleOllamaTransport.chat -> authorize_model_action -> same shim and SQLite -> connection.request x4",
+    "NativeRuntime.preload -> exact v0_s2_http JSON bytes -> authorize_model_action -> same shim and SQLite -> _json_request"
+  ],
+  "coverage": [
+    "real SQLite fixture exact cap and one-over; concurrent requests never exceed cap; historical rows retained",
+    "child/source/tool/execution/approval/candidate/root/expiry/schema/absent-ledger rejection before debit; no replacement DB",
+    "default and interruptible owners: image1/video4; preload1 separate; each HTTP boundary observes already-committed calls",
+    "missing/bad binding, bad nonce/JSON, true exit7, exit0 plus transport error, receipt loss, actual timeout/output overflow: zero model sends",
+    "cancel after debit: zero sends, calls1, reservation active; no automatic replay or refund",
+    "owned local process timeout: nonzero real exit, reaped, read/write threads joined, pipes closed",
+    "S3 native/warm profiles bind exact child/candidate/model digest/PID birth; 21600 ceiling and child expiry; legacy7200 retained",
+    "fixed Windows command construction only; Linux/WSL harness path separated from Windows-readable binding path"
+  ],
+  "real_actions": {
+    "media": 0,
+    "preview": 0,
+    "model": 0,
+    "gpu": 0,
+    "services": 0,
+    "network": 0,
+    "downloads": 0,
+    "original_ledger_reads": 0,
+    "original_ledger_mutations": 0,
+    "reservations": 0,
+    "full_product_checkpoints": 0
+  },
+  "cleanup": {
+    "fixture_roots": "pytest fixture yield/finally removes each synthetic authority root; long-profile test uses finally cleanup",
+    "processes": "bounded Popen timeout asserts owned child reaped and all pipe threads joined/closed",
+    "real_processes_started": 0
+  },
+  "prior_attempts": [
+    {
+      "exit_code": 4,
+      "tests_run": 0,
+      "reason": "initial test file write used redundant cwd prefix; corrected immediately"
+    },
+    {
+      "exit_code": 1,
+      "passed": 52,
+      "failed": 11,
+      "reason": "interruptible HTTP test substitute missing debuglevel; fixed test fixture"
+    },
+    {
+      "exit_code": 1,
+      "passed": 52,
+      "failed": 11,
+      "reason": "new production send assertion exposed insertion in cleanup loop rather than chat; moved to exact chat body boundary"
+    },
+    {
+      "exit_code": 0,
+      "passed": 63,
+      "reason": "directed repair verified before adding long-profile/harness/cancel assertions"
+    }
+  ],
+  "prior_attempt_evidence": "Counts and errors transcribed from actual terminal outputs; raw final logs retained; prior raw output not separately saved",
+  "limitations": [
+    "Windows wsl.exe/Python/distribution/installed paths not discovered or executed",
+    "No real ledger reserve or debit; no global availability claim",
+    "P2 must freeze parent/runtime/child/tool/PID/model seals and original ledger, propagate native environment, collect uncertain-send exceptions and settle after cleanup",
+    "WSL remote shim lifetime after Windows wsl.exe timeout requires actual host evidence; local Popen reap is tested, remote cleanup not claimed",
+    "No Stage PASS, full Gate0, product acceptance, independent review or human signature"
+  ],
+  "development_outline": [
+    {
+      "stage_id": "V0-S0",
+      "delivery": "V0",
+      "title": "基线探索",
+      "completed_substeps": 1,
+      "total_substeps": 2
+    },
+    {
+      "stage_id": "V0-S1",
+      "delivery": "V0-Min",
+      "title": "图片与独立人工",
+      "completed_substeps": 5,
+      "total_substeps": 5
+    },
+    {
+      "stage_id": "R0",
+      "delivery": "V1前置",
+      "title": "独立服务复核",
+      "completed_substeps": 1,
+      "total_substeps": 2
+    },
+    {
+      "stage_id": "R1a",
+      "delivery": "V1早期切片",
+      "title": "单图React/FastAPI",
+      "completed_substeps": 5,
+      "total_substeps": 5
+    },
+    {
+      "stage_id": "V0-S2",
+      "delivery": "V0.1",
+      "title": "视频与资源控制",
+      "completed_substeps": 7,
+      "total_substeps": 8
+    },
+    {
+      "stage_id": "V0-S3",
+      "delivery": "V0.2",
+      "title": "离线质量与增量包",
+      "completed_substeps": 0,
+      "total_substeps": 6
+    },
+    {
+      "stage_id": "R1",
+      "delivery": "V1",
+      "title": "人工业务骨架",
+      "completed_substeps": 0,
+      "total_substeps": 4
+    },
+    {
+      "stage_id": "V1-M1",
+      "delivery": "V1",
+      "title": "多镜头拆分与逐镜头人物场景动作",
+      "completed_substeps": 0,
+      "total_substeps": 3
+    },
+    {
+      "stage_id": "R2",
+      "delivery": "V1",
+      "title": "任务与正式运行包",
+      "completed_substeps": 0,
+      "total_substeps": 4
+    },
+    {
+      "stage_id": "R3",
+      "delivery": "V2",
+      "title": "镜头资产与检索",
+      "completed_substeps": 0,
+      "total_substeps": 4
+    },
+    {
+      "stage_id": "R4",
+      "delivery": "V2",
+      "title": "MCP与恢复",
+      "completed_substeps": 0,
+      "total_substeps": 4
+    },
+    {
+      "stage_id": "R5a",
+      "delivery": "V3",
+      "title": "证据与建议合同",
+      "completed_substeps": 0,
+      "total_substeps": 4
+    },
+    {
+      "stage_id": "R5b",
+      "delivery": "V3",
+      "title": "受控生成交接",
+      "completed_substeps": 0,
+      "total_substeps": 4
+    },
+    {
+      "stage_id": "R5c",
+      "delivery": "V3",
+      "title": "集成与完整交付",
+      "completed_substeps": 0,
+      "total_substeps": 4
+    }
+  ],
+  "ten_field_report": {
+    "当前坐标": {
+      "stage_id": "R1",
+      "workpack_id": "WP-R1-U3",
+      "gate": "S3_P1_FROZEN_NATIVE_BUDGET_INTEGRATION",
+      "state": "PREPARING_NEXT_STAGE"
+    },
+    "本批完成": "S3-P1原生扣额接线与143项离线自检，READY_FOR_REVIEW",
+    "最后通过门禁": "UNIFIED_MEDIA_FIXED_UM10_AND_INDEPENDENT_REVIEW",
+    "当前阻塞门禁": "S3_PRODUCT_GATE0_NATIVE_DEBIT_AND_EXECUTOR_BINDING",
+    "全局路线位置": "S3 toward V1; old S2 7/8 unchanged",
+    "剩余工作": "隔离独审、P2执行绑定、实际Windows接线、完整Gate0与真实累计验收",
+    "下一责任人": "独立审查实例及root架构/门禁负责人",
+    "所需授权": "本轮离线范围已授权；没有新增真实运行许可",
+    "证据目录": "reports/v0-s3/product-gate0/implementation-p1",
+    "精确停止原因": "实现候选及定向组合自检完成，待独立审查；不自签Stage PASS"
+  },
+  "source_hashes": {
+    "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/benchmark.py": "bd6e167e6de8c8546a50e689d7958f02aee89d9e9ad2cd88ec180af18fca46ba",
+    "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/core.py": "e123ff938868e7117c369afff468a91b0435741eadeaca8a4685461f56418792",
+    "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/program_budget.py": "db36045dd48855dcee8b0a0a95d3fb20ba734ed3ea960cb58100fed94dc92c94",
+    "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_evidence.py": "217de485ee626861241f6fd4f469f8cf5be380601e2b7272f3db892a57d8cff8",
+    "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_transport.py": "772e5dd80aa82d9f0781442089e6fb41589d133f85bf515360629a02f804788d",
+    "LVW_V0_RuntimePatch/tests/test_s3_program_budget.py": "e6db8a5aa07bafd765adb09eebcaf377e36ffdaec85c2295c94b3d2589da9a96",
+    "tools/test_v0_s3_budget_authority.py": "0d3fcab1be01ddf22abc13679c24768ee1f364f437550b7b16b68b6b9b6976bb",
+    "tools/v0_s2_runtime.py": "3d38dfd37faaa5434c24818ca366208318678a51b7a0b3339aa0b5ac10aaf2c8",
+    "tools/v0_s3_budget_authority.py": "59afc8e87a714adee0b5e613346264c230e95f52c3f3567f5825033cd1e8a36b"
+  }
+}
