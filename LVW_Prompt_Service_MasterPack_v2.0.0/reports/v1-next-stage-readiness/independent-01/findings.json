@@ -1,0 +1,232 @@
+{
+  "kind": "LVW_INDEPENDENT_NEXT_STAGE_READINESS_AUDIT",
+  "schema_version": "lvw.independent-next-stage-audit/1",
+  "date": "2026-11-11",
+  "role": "ClaudeCode independent planning reviewer, Orca-visible isolated workspace lvw-v1-d0-review",
+  "readiness_verdict": "NOT_READY_FOR_ANY_PRODUCT_STAGE_EXECUTION",
+  "verdict_scope": "No product Stage/Workpack may start. One human gate remains on the critical path: the original V0-S2 scope determination.",
+  "stage_pass_claimed": false,
+  "product_gate0": false,
+  "product_change_approved": false,
+  "human_signature_made": false,
+  "release_claimed": false,
+  "false_green_used": false,
+  "source_authority": {
+    "commit": "c448ec657c01708270c83291806a3dccc9fe6090",
+    "subject": "docs: record actual human approval of unified media slice 621b1bf",
+    "loading_method": "git merge --no-edit c448ec657c01708270c83291806a3dccc9fe6090 into the clean child checkout",
+    "merge_commit": "d9a149d",
+    "merge_conflicts": 0,
+    "merge_exit_code": 0,
+    "remote_verified_by": "refs/remotes/origin/main points at the same SHA (local remote-tracking ref; no network read performed by this audit)",
+    "push_performed": false
+  },
+  "reviewer_fence": {
+    "allowed_writes": ["reports/v1-next-stage-readiness/independent-01/"],
+    "services_started": 0,
+    "gpu_actions": 0,
+    "model_calls": 0,
+    "media_reads": 0,
+    "ffmpeg_or_ffprobe_invocations": 0,
+    "browser_starts": 0,
+    "network_requests": 0,
+    "productdb_queries": 0,
+    "downloads": 0,
+    "provider_switches": 0,
+    "budget_consumed": {"model_actions": 0, "effective_full_checkpoints": 0, "production_seconds": 0},
+    "old_evidence_modified": false,
+    "authority_files_modified": false
+  },
+  "bound_candidates": {
+    "human_signed_slice": "621b1bf386db71bfe08ca2f533fa8ec396b0504b",
+    "historical_s2_machine_candidate": "719c74559393a6489b2f630a1e0d3bc3303eb655",
+    "v1_d0_audited_candidate": "eea56636b1870586fd8d6b17005334f1b4c63cd7",
+    "r1a_accepted_candidate": "df4943cef1726350d5e9f1d4111800094c1a8d99",
+    "v0_min_accepted_candidate": "1d48142 (as referenced by docs/24)",
+    "d0_authority_ancestor": "3af446302f6237b41dc500ee290caf2b5075ab80"
+  },
+  "requirement_1_what_the_human_confirmation_discharged": {
+    "discharged": [
+      {"item": "R1 / WP-R1-U3 stage gate for slice UNIFIED_MEDIA_EARLY", "evidence": "plans/execution-control.json last_passed_gate + reports/unified-media/human-signoff-live15.json + reports/unified-media/accepted-slice-live15.json"},
+      {"item": "coordinate transition to SLICE_ACCEPTED_NEXT_STAGE_PREPARATION", "evidence": "plans/execution-control.json coordinate.state"},
+      {"item": "human experience confirmation of the current unified frontend and basic video reverse prompting on candidate 621b1bf", "evidence": "reports/unified-media/human-signoff-live15.json statement + scope"}
+    ],
+    "explicitly_not_discharged": [
+      {"item": "historical V0-S2 human signature / V0.1", "evidence": "execution-control.development_outline[V0-S2] substep 8 status=PENDING, human_signoff=PENDING"},
+      {"item": "V0.2 (V0-S3)", "evidence": "development_outline[V0-S3] 0/6"},
+      {"item": "complete R1", "evidence": "development_outline[R1] 0/4"},
+      {"item": "V1-M1 multi-shot", "evidence": "development_outline[V1-M1] 0/3"},
+      {"item": "complete R2 / V1", "evidence": "development_outline[R2] 0/4"},
+      {"item": "production release", "evidence": "execution-control.forbidden_claims"}
+    ],
+    "kept_intact_historical_signatures": [
+      "reports/v0-s1/v0-min-acceptance.json (V0-Min)",
+      "reports/r1a/human-signoff-r1a-live-08.json (R1a single-image slice)"
+    ],
+    "signature_binding_check": {
+      "statement": "当前前端页面、基本的视频反推 我人工确认OK",
+      "bound_candidate": "621b1bf386db71bfe08ca2f533fa8ec396b0504b",
+      "bound_scope": "UNIFIED_MEDIA_EARLY_ONLY",
+      "explicitly_not_approved": ["historical V0-S2 candidate or V0.1", "V0.2", "complete R1", "complete V1", "multi-shot implementation or acceptance", "production release"],
+      "human_test_coverage_not_claimed": "the user did not necessarily execute each UM case, service-fault scenario, all 11 holdouts, the formal quality set, or any future multi-shot workflow"
+    },
+    "accepted_candidate_product_files_vs_current_post_D0_source": {
+      "method": "git rev-parse <rev>:<path> tree object comparison plus git diff --stat; no runtime execution",
+      "lvw_tree_at_621b1bf": "7e380008c9760e35d66afc51f6d823ba3c116b46",
+      "lvw_tree_at_current_head": "7e380008c9760e35d66afc51f6d823ba3c116b46",
+      "lvw_identical": true,
+      "runtime_patch_tree_at_621b1bf": "5163244ce45f63f5c7a6f1ab61666a8dd026a247",
+      "runtime_patch_tree_at_current_head": "5163244ce45f63f5c7a6f1ab61666a8dd026a247",
+      "runtime_patch_identical": true,
+      "runtime_patch_identical_since_s2_candidate_719c745": true,
+      "post_D0_changes_are": "docs/, plans/, contracts/, reports/, .agent-governance/ only (3224 insertions / 96 deletions); no product source changed",
+      "consequence": "the human-signed product bytes are exactly the current product source; no re-verification of the signed slice is required, and the S2 native implementation is preserved byte-for-byte and remains reusable"
+    }
+  },
+  "requirement_2_S2_to_S3_to_R1_gate_analysis": {
+    "three_gates_distinguished": [
+      {"gate": "historic V0 release signature", "definition_source": "plans/release_gates.json V0.1 required_cases (9, all_must_pass) and V0.2 (12)", "current_state": "V0.1 machine 9/9 PASS on 719c745; V0.1 NOT released (allowed_claim = V0_MIN_ACCEPTED_NOT_RELEASED)"},
+      {"gate": "capability/dependency gate (stage order)", "definition_source": "plans/tasks.json depends_on: V0-S3<-V0-S2; R1<-[R1a,V0-S3]; V1-M1<-R1; R2<-[R1,V1-M1]", "current_state": "V0-S2 incomplete at 7/8; all downstream product stages transitively blocked"},
+      {"gate": "approved unified frontend human entry", "definition_source": "docs/27 APPROVED 2026-11-08 and docs/23 2026-11-08 addendum", "current_state": "used for the unified slice; explicitly NOT used for old S2"}
+    ],
+    "can_existing_approved_docs_satisfy_the_dependency_without_retro_signing_old_S2": false,
+    "reasoning": [
+      {"argument": "docs/27 and docs/23 already moved the human acceptance carrier to the unified frontend", "verdict": "PARTLY_TRUE", "detail": "true for the acceptance carrier of the unified slice only; docs/27 itself states 保留当前S2 7/8及旧机器/独审事实 and 不伪造S2人工签署; docs/23 states 旧S2仍7/8未人工签署"},
+      {"argument": "the remaining item is a scope determination, not another signature", "verdict": "TRUE", "detail": "docs/30 lists 原S2范围判定 as a prerequisite and no source file contains such a determination"},
+      {"argument": "docs/30 retains V0-S2/S3 original obligations AND their prerequisite gates, so the sequence is not waived", "verdict": "TRUE", "detail": "docs/30 范围与顺序 table, 既有前置 row"},
+      {"argument": "the S2 machine and independent facts are reusable for the S3 cumulative regression", "verdict": "TRUE", "detail": "stage-gates.md allows reuse of old evidence when a frozen reuse rule proves it is unaffected; the LVW_V0_RuntimePatch tree is byte-identical from 719c745 to HEAD"},
+      {"argument": "the V1 product does not depend on Comfy, so requiring a Comfy-native signature before any V1 code blocks V1 on a V0 artifact", "verdict": "TRUE_BUT_NOT_AUTHORIZING", "detail": "this correctly identifies the need for a determination; it does not itself cancel the gate, because docs/23 and docs/30 retain it"},
+      {"argument": "S2 is effectively complete because machine 9/9 and independent Fatal0/Major0 are done", "verdict": "FALSE", "detail": "stage-gates.md requires 必要人类签署存在 at independent exit; the S2 gate decision states 不进入S3业务实现 and 不将机器通过称为版本完成"}
+    ],
+    "five_independent_reasons_old_S2_cannot_be_retro_signed": [
+      "candidate SHA differs: 621b1bf vs 719c745",
+      "artefact and interaction surface differ: React/FastAPI unified frontend (launcher/README.md: 无需打开 ComfyUI 或导入节点图) vs the Comfy-native workflow required by reports/v0-s2/full-v0-auto-08/human-signoff-request.md",
+      "the signature record itself excludes it: human-signoff-live15.json explicitly_not_approved[0]",
+      "AGENTS.md rule 23 forbids extending the signature",
+      "plans/v1-revised-plan.json old_slice_human_signoff_waived = false"
+    ],
+    "no_equivalence_decision_invented": true,
+    "old_S2_marked_signed": false,
+    "old_S2_remains": "7/8, human signoff PENDING, evidence reports/v0-s2/full-v0-auto-08/gate-decision.md",
+    "identical_frontend_signoff_requested_again": false
+  },
+  "requirement_3_next_permissible_work": {
+    "executable_product_stage_now": null,
+    "executable_product_workpack_now": null,
+    "reason": "V0-S3 is blocked by V0-S2 (7/8); R1 by V0-S3; V1-M1 by R1; R2 by R1+V1-M1; V1-D0 is closed as D0_PREPARATION_ACCEPTED_WITH_NONBLOCKING_MINORS with product_gate0=false",
+    "chosen_next_action": {
+      "action": "Codex (gate owner) adjudicates the original V0-S2 scope determination and the project owner signs that determination text",
+      "why_this_and_not_something_else": "it is the single unmet human obligation on the whole remaining-V1 critical path; the approved documents already list it as a prerequisite but no source contains it; it is the only thing that can unblock S3 -> R1 -> M1 -> R2",
+      "traceable_rules": ["plans/tasks.json depends_on", "plans/execution-control.json development_outline[V0-S2]", "docs/30 既有前置 row", "docs/27 不伪造S2人工签署", "docs/23 旧S2仍7/8未人工签署", ".agent-governance/stage-gates.md 必要人类签署存在", "reports/v0-s2/full-v0-auto-08/gate-decision.md 不进入S3业务实现"],
+      "self_approval_avoided": true
+    },
+    "permitted_offline_now": [
+      "this audit deliverable set under reports/v1-next-stage-readiness/independent-01/",
+      "the DRAFT scope-determination change request in the same directory (no authority file touched)",
+      "the V0-S3 Gate0 draft checklist in review.md section 5 (document only, does not activate a Stage)",
+      "sample-set acquisition PLANNING only (media download is not covered by COMPLETE03; rights/source must come from the user or the product owner)"
+    ],
+    "not_permitted_now": [
+      "entering V0-S3 business implementation",
+      "any product runtime (service, GPU, model, media, FFmpeg, browser)",
+      "materializing or scoring the 10/6, 12/6 or 12/47 sample sets",
+      "re-requesting the unified frontend human signature"
+    ],
+    "missing_human_or_product_decisions": [
+      {"id": "H-1", "decision": "original V0-S2 scope determination: which deliverable the V0-S2 human experience obligation is bound to", "who": "codex_gate_owner + project_owner", "blocks": ["V0-S3", "R1", "V1-M1", "R2"], "draft_proposal": "draft-change-request-s2-scope-determination.md"},
+      {"id": "P-1", "decision": "source and rights for the S3 10-image/6-video quality set, the V1 Q01 12-image/6-video set and the MS 12-clip/47-shot set (COMPLETE03 authorizes dependency downloads <=2GiB, not media acquisition)", "who": "project_owner / product owner", "blocks": ["V0-A11", "V0-A12", "Q01", "MS01-MS08"]},
+      {"id": "P-2", "decision": "whether the Comfy-native interaction (workflow import, node parameters, node-side adopt/cancel) is still a required human experience surface at all, once V0-S3 packaging exists", "who": "codex_gate_owner + project_owner", "blocks": ["final V0.2 human scope record"]}
+    ],
+    "draft_change_request_produced": true,
+    "draft_change_request_path": "reports/v1-next-stage-readiness/independent-01/draft-change-request-s2-scope-determination.md",
+    "contract_change_invented": false,
+    "active_product_permission_until_adjudication": 0
+  },
+  "requirement_4_reuse_matrix": {
+    "rule": "file presence is not runtime pass; no model was re-scored and no sample was materialized by this audit",
+    "thresholds_source": "config/experience-gates.json",
+    "matrix": [
+      {"id": "R1", "capability": "video decode / actual PTS / path limits / release core", "prior": "S2 native LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/{core,video_decoder,video_input,video_process}", "current": "FastAPI imports the very same modules via synthetic package lvw_cpu_video_kernel in lvw/backend/app/video_kernel.py without Comfy/PromptServer/folder_paths/torch", "status": "COMPLETE_SOURCE_LEVEL", "evidence": ["lvw/backend/app/video_kernel.py:1-30", "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_decoder.py:1-40"], "caveats": ["not extracted into a shared package", "no second independent implementation"]},
+      {"id": "R2", "capability": "real video path evidence (structural surface)", "prior": "S2 full-v0-auto-08 V0-A02 PASS; public15/browser9/cancel2/fault4/cumulative5/warm20; 9/9", "current": "live15 UM-03 PASS with 4 real decoded_pts (12288/36864/61440/86016) + source hash; UM-08 provider3/lease3, GPU peak 22146MiB, RAM min 9333MiB, no_cloud_witness", "status": "COMPLETE", "evidence": ["reports/v0-s2/full-v0-auto-08/receipt.json", "reports/unified-media/live-15/receipt.json"], "caveats": ["live15 reused the S2 structural fixture as its video input"]},
+      {"id": "R3", "capability": "unified frontend / explicit adoption / export / cancel / manual draft with model off", "prior": "none (S2 ran the Comfy-native surface)", "current": "UM-01/02/05/06/07/09/10 all PASS; independent 10/10 Fatal0 Major0", "status": "COMPLETE", "evidence": ["reports/unified-media/live-15/receipt.json", "reports/unified-media/independent-live-15/receipt.json"], "caveats": []},
+      {"id": "R4", "capability": "S3 incremental package: README_V0 / diagnose / install / rollback / manifests", "prior": "absent: no LVW_V0_RuntimePatch/README_V0.md, no scripts/ directory, manifests/ contains only s1-baseline-bindings.json", "current": "contracts/package-manifest.schema.json exists as a reusable output contract; launcher/build.ps1 + START_LVW.cmd + LVW.exe are a V1 portable start, not a V0 extension install/rollback (docs/30 states the two packages differ)", "status": "MISSING", "evidence": ["docs/13_V0_IMPLEMENTATION.md target delivery directory block", "directory inspection"], "caveats": []},
+      {"id": "R5", "capability": "S3 V0-A06 offline incremental migration", "prior": "none", "current": "none", "status": "MISSING", "evidence": ["plans/acceptance_cases.json V0-A06"], "caveats": []},
+      {"id": "R6", "capability": "S3 quality set 10 images + 6 videos with independent pre-annotation", "prior": "only 4 synthetic structural fixtures (static.mp4 7b849279..., tracking.mov b08ea8b0..., fast-cut.mp4 40a33fd9..., vfr.mp4 08f72af8...) which execution-control.fixture_preparation_limitation states prove neither native public workflow nor quality; both preparation slots consumed", "current": "none", "status": "MISSING", "evidence": ["reports/v0-s2/frozen-structural-inputs-02.json", "plans/execution-control.json fixture_preparation_limitation"], "caveats": []},
+      {"id": "R7", "capability": "V1 Q01 12 images + 6 videos + six-mode coverage", "prior": "none", "current": "none", "status": "MISSING", "evidence": ["plans/acceptance_cases.json Q01", "config/experience-gates.json v1_image_samples_min=12 v1_image_usable_min=10 video_samples_min=6 video_usable_min=5 critical_hallucinations_max=0"], "caveats": []},
+      {"id": "R8", "capability": "MS 12 clips / 47 shots / 21 hard-cut annotations / 18 quality segments", "prior": "none", "current": "design allocation only: plans/v1-multishot-sample-design.json status DESIGN_ALLOCATION_ONLY_NOT_REAL_FIXTURES, all 12 clips NOT_MATERIALIZED_NOT_FROZEN with source_sha256/annotation_hash/rights_record/source_path null", "status": "MISSING", "evidence": ["plans/v1-multishot-sample-design.json", "docs/32_V1_ACCEPTANCE_AND_AGENT_WORKFLOW.md"], "caveats": ["thresholds are frozen and machine-readable even though the media is absent"]},
+      {"id": "R9", "capability": "11 human holdouts", "prior": "present and frozen (人工验收视频集/FREEZE.json, 11 SHA entries)", "current": "lvw_status ALL_NOT_RUN; the live15 signoff request listed them as optional and the signoff record forbids inferring the user ran them", "status": "PRESENT_NOT_RUN_PROTECTED", "evidence": ["plans/execution-control.json human_validation_holdout", "reports/unified-media/human-signoff-live15.json not_claimed_human_test_coverage"], "caveats": ["must never serve as a development, tuning or automatic acceptance set"]},
+      {"id": "R10", "capability": "S2 native Comfy implementation reusability", "prior": "719c745", "current": "git diff 719c745 HEAD -- LVW_V0_RuntimePatch/ is empty", "status": "COMPLETE", "evidence": ["tree hash 5163244ce45f63f5c7a6f1ab61666a8dd026a247 at both revisions"], "caveats": []}
+    ],
+    "sample_independence_measured": {
+      "live15_video_input_path": "reports/v0-s2/fixture-preparation-02/fixtures/tracking.mov",
+      "live15_video_input_sha256": "b08ea8b0b9fa3bcd4e62b2b0ad1c05b2bff09359539933f4581a5c2f2c69ff6d",
+      "live15_image_input_path": "reports/unified-media/dev-image.png",
+      "live15_image_input_sha256": "b0303b157ecb6e9f07ae83c460813a743ad4f18e9be83b92abd6ecf4c919e817",
+      "conclusion": "the human confirmation is valid on the chain/function surface (real decode, real PTS, real model, real adoption/export/cancel, real cleanup) and carries ZERO content-quality evidence; it must not count toward V0-A11, V0-A12, Q01 or MS04",
+      "shared_media_warning": "live15 and S2 share the same synthetic structural fixture media, so live15 is not independent media evidence from S2",
+      "required_disjointness": "development set, new MS independent set, existing Q01 set and the 11 human holdouts must be mutually exclusive by media SHA and origin source ID (docs/32 mutual_exclusion); V0-A12 and Q01 share the same 6/5 numbers but are different sets and must not be rewritten into each other"
+    },
+    "budgets_and_history_retained": {
+      "program": "AUTH-PROGRAM-V1-COMPLETE-03 ACTIVE; global 1024 model actions / 24 effective full checkpoints / 172800 production seconds; historical consumption counted, not reset",
+      "consumed_at_live15": "29 model actions / 8 effective full checkpoints / 1506 production seconds (+6 CPU seconds), active reservations 0",
+      "balance_recorded_in_docs32": "995 actions / 16 rounds / 171294 seconds (must be recomputed from the live ledger before any reservation)",
+      "s2_own_budgets_terminal": "supplemental round NO_GO with 0 remaining; resource-ready round NO_GO; oracle-correction slot EXPIRED_NO_GO; native_checkpoint_attempts.remaining_full_rechecks=0; fixture preparation 2/2 consumed with no third preparation allowed without changed authorization",
+      "historical_failures_rewritten": false,
+      "fixed_denominators_changed": false
+    }
+  },
+  "requirement_5_next_stage_gate0_checklist": {
+    "target_stage": "V0-S3 (first product stage in sequence that could become executable)",
+    "checklist": [
+      {"item": "scope / non-goals", "status": "DRAFT_EXISTS", "exact_files": ["reports/v0-s3/preparation-01.md", "reports/v0-s3/preparation-02.md", "docs/13_V0_IMPLEMENTATION.md#V0-S3"]},
+      {"item": "owner separation (root architecture / implementer / independent reviewer / human)", "status": "TEMPLATE_ONLY", "exact_files": [".agent-governance/stages/V0-S2/stage-control.json#roles", "AGENTS.md rules 11 and 22", "docs/30_V1_REVISED_EXECUTION_PLAN.md 工作方式与粒度"], "recommended": "codex_gate_owner / Orca ClaudeCode implementer (1 slot) / separate read-only review instance (1 slot) / project_owner"},
+      {"item": "public interface", "status": "REUSABLE_NO_NEW_CONTRACT", "exact_files": ["contracts/openapi.json", "contracts/errors.json", "contracts/package-manifest.schema.json"]},
+      {"item": "schema + error codes", "status": "PARTIAL", "exact_files": ["contracts/package-manifest.schema.json (exists, no producer yet)", "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/ existing codes"]},
+      {"item": "fixed oracles", "status": "MACHINE_READABLE", "exact_files": ["config/experience-gates.json", "plans/acceptance_cases.json V0-A06/V0-A11/V0-A12"]},
+      {"item": "file allowlist", "status": "NOT_FROZEN", "proposed": ["LVW_V0_RuntimePatch/README_V0.md", "LVW_V0_RuntimePatch/scripts/", "LVW_V0_RuntimePatch/manifests/", "tools/v0_s3_*.py", "reports/v0-s3/"], "forbidden_like_v0_s2": ["contracts/", "plans/acceptance_cases.json", "plans/release_gates.json", "legacy/", "COMFY_ROOT/custom_nodes/prompt-assistant/"]},
+      {"item": "commands", "status": "REUSABLE", "exact_files": ["cd lvw && python3 -B -m pytest (lvw/tests)", "LVW_V0_RuntimePatch/tests", "tools/v0_s2_*.py drivers", "frontend npm run test/typecheck/build"]},
+      {"item": "actual inputs", "status": "MISSING", "detail": "no 10-image/6-video quality set entity, no independent pre-annotation, no SHA/rights records; MS 12/47 NOT_MATERIALIZED_NOT_FROZEN; the 11 holdouts are protected and may not be used", "exact_files": ["reports/v0-s2/frozen-structural-inputs-02.json (structural fixtures only)", "plans/v1-multishot-sample-design.json"]},
+      {"item": "budget", "status": "PARENT_AUTHORIZATION_OK_DERIVATION_PENDING", "detail": "COMPLETE03 global ledger; S3 quality sub-budget at least 16 analyses (10+6) plus install/cold-start/fault obligations; warm-up and model load also consume actions", "exact_files": ["reports/authorization-program-v1-complete-03.approval.json", "reports/v0-s3/preparation-02.md"]},
+      {"item": "cleanup", "status": "PATTERN_EXISTS", "exact_files": ["reports/v0-s2/full-v0-auto-08/receipt.json (default/warm archive manifests)", "reports/unified-media/live-15/receipt.json (run_root_removed, api_listener_absent, ollama_listener_absent)"]},
+      {"item": "stage packet artefact", "status": "MISSING", "detail": ".agent-governance/stages contains only R1, R1a, V0-S0, V0-S1, V0-S2, V1-D0; there is no V0-S3 packet", "exact_files": [".agent-governance/stages/"]},
+      {"item": "prerequisite gate", "status": "OPEN", "detail": "V0-S2 at 7/8 pending the original S2 scope determination"}
+    ],
+    "bounded_recommended_workpack_plan_draft_only": [
+      {"id": "WP-S3-01", "title": "reuse audit + reversible incremental package", "owner": "Orca ClaudeCode implementer", "deliverables": ["LVW_V0_RuntimePatch/README_V0.md", "LVW_V0_RuntimePatch/scripts/{diagnose,install,rollback}.ps1", "LVW_V0_RuntimePatch/manifests/{versions,node-bindings,licenses,sha256}.json"], "reuse": ["the 23 existing bridge modules", "the 4 existing workflow JSONs", "manifests/s1-baseline-bindings.json"], "oracle": "deterministic manifest with per-file SHA; isolated-root install and rollback both reach a real terminal state; no permanent configuration or existing user installation touched"},
+      {"id": "WP-S3-02", "title": "independent quality set 10 images + 6 videos and targeted offline verification", "owner": "Orca ClaudeCode implementer + independent annotator", "prerequisite": "user/product owner supplies media sources and rights records (COMPLETE03 does not authorize media acquisition)", "ordering_constraint": "freeze source bytes and independent pre-annotation BEFORE any model result; never score edited drafts; never use the 11 holdouts; never overlap the Q01/MS/development sets", "oracle": ">=8/10 images usable, >=5/6 videos usable, 0 critical hallucinations; missing/refusal/not-run never shrinks the denominator or replaces a sample"},
+      {"id": "WP-S3-03", "title": "cumulative twelve-case checkpoint on one sealed candidate, independent review, human signature", "owner": "local_ci executor -> isolated read-only reviewer -> project_owner", "binding": ["candidate SHA", "packet manifest", "sample SHAs", "port/process/temp root", "budget", "cleanup strategy", "per-case commands and exit codes"], "ordering_constraint": "offline green first, then one concentrated real checkpoint, then isolated recomputation (Fatal0/Major0), then actual human experience signature, then immediate ordinary Git push (AGENTS.md rule 16)"}
+    ],
+    "role_separation": {
+      "root_architecture_and_gate_owner": "Codex (contracts, fixed denominators, acceptance design, gate adjudication)",
+      "implementer": "Orca-visible ClaudeCode workspace, at most one implementation slot plus one review slot; reports READY_FOR_REVIEW only",
+      "independent_reviewer": "separate isolated read-only workspace that recomputes and cannot implement the candidate",
+      "human": "actual experience signature and release signature"
+    },
+    "no_new_governance_platform_proposed": true,
+    "closed_d0_not_re_audited": true,
+    "d0_state": "reports/v1-redesign/d0-acceptance/decision.json -> D0_PREPARATION_ACCEPTED_WITH_NONBLOCKING_MINORS, Fatal0 Major0, product_gate0=false, product_pass=false, residuals NM-5/NM-6/NM-9/NM-10 accepted; D0 results are not product acceptance and must not be reused as runtime acceptance"
+  },
+  "findings": [
+    {"id": "IND-01", "severity": "Critical", "category": "dependency", "title": "Every remaining product stage is transitively blocked by one unmet human obligation on V0-S2", "detail": "plans/tasks.json makes V0-S3 depend on V0-S2, R1 on [R1a,V0-S3], V1-M1 on R1, R2 on [R1,V1-M1]; V0-S2 is 7/8 with human_signoff PENDING and its gate decision states 不进入S3业务实现. No product Stage or Workpack is legally executable today.", "evidence": ["plans/tasks.json", "plans/execution-control.json development_outline[V0-S2]", "reports/v0-s2/full-v0-auto-08/gate-decision.md"], "blocks": ["V0-S3", "R1", "V1-M1", "R2"]},
+    {"id": "IND-02", "severity": "High", "category": "correctness", "title": "The 2026-11-11 frontend signature cannot discharge the V0-S2 human gate", "detail": "Different candidate, different artefact surface, and the signature record itself excludes historical V0-S2/V0.1. AGENTS.md rule 23 and plans/v1-revised-plan.json old_slice_human_signoff_waived=false forbid the extension. The unified frontend signature must not be re-requested and must not be stretched.", "evidence": ["reports/unified-media/human-signoff-live15.json", "reports/v0-s2/full-v0-auto-08/human-signoff-request.md", "AGENTS.md rule 23", "plans/v1-revised-plan.json"], "blocks": ["V0-S3"]},
+    {"id": "IND-03", "severity": "High", "category": "evidence-traceability", "title": "The human-confirmed video evidence is a synthetic structural fixture and carries zero content-quality evidence", "detail": "live15's video input is S2's own tracking.mov (sha b08ea8b0...) and its image is reports/unified-media/dev-image.png (sha b0303b15...). The confirmation is valid on the chain/function surface only; it must not count toward V0-A11, V0-A12, Q01 or MS04, and live15 is not media-independent from S2.", "evidence": ["reports/unified-media/live-15/video-model-run.json", "reports/unified-media/live-15/image-model-run.json", "reports/v0-s2/frozen-structural-inputs-02.json"], "blocks": []},
+    {"id": "IND-04", "severity": "Medium", "category": "governance-gap", "title": "The 原S2范围判定 that docs/30 lists as an existing prerequisite does not exist in any source file", "detail": "docs/30 makes 现有统一切片实际体验签署 plus 原S2范围判定 the entry condition for S2/S3. The first is satisfied by the live15 signature; the second is absent from docs/23/27/30/31/32, .agent-governance/stages/** and reports/v0-s2/**. This is a gate-owner plus human decision; a DRAFT change request with minimum affected IDs is supplied, not a decision.", "evidence": ["docs/30_V1_REVISED_EXECUTION_PLAN.md", "draft-change-request-s2-scope-determination.md"], "blocks": ["V0-S3"]},
+    {"id": "IND-05", "severity": "Medium", "category": "missing-deliverable", "title": "The S3 incremental package deliverables are absent", "detail": "docs/13 requires LVW_V0_RuntimePatch/README_V0.md, scripts/{diagnose,install,rollback}.ps1 and manifests/{versions,node-bindings,licenses,sha256}.json; none exist (manifests/ holds only s1-baseline-bindings.json). The V1 launcher is a different artefact class, so V0-A06 has no implementation.", "evidence": ["docs/13_V0_IMPLEMENTATION.md", "LVW_V0_RuntimePatch/ directory inspection", "docs/30_V1_REVISED_EXECUTION_PLAN.md"], "blocks": ["V0-A06"]},
+    {"id": "IND-06", "severity": "Medium", "category": "missing-input", "title": "No quality sample set of any kind is materialized", "detail": "S3 10 images/6 videos, V1 Q01 12 images/6 videos and MS 12 clips/47 shots/18 quality segments all lack real media; the MS design table records every clip as NOT_MATERIALIZED_NOT_FROZEN with null SHA/annotation/rights. Thresholds are frozen and machine-readable in config/experience-gates.json and plans/v1-multishot-sample-design.json, and the 11 human holdouts remain NOT_RUN and protected.", "evidence": ["plans/v1-multishot-sample-design.json", "config/experience-gates.json", "plans/execution-control.json human_validation_holdout"], "blocks": ["V0-A11", "V0-A12", "Q01", "MS01-MS08"]},
+    {"id": "IND-07", "severity": "Low", "category": "positive-verification", "title": "Product-code identity between the signed candidate and current source is proven", "detail": "lvw/ tree 7e380008c9760e35d66afc51f6d823ba3c116b46 and LVW_V0_RuntimePatch/ tree 5163244ce45f63f5c7a6f1ab61666a8dd026a247 are identical at 621b1bf and at the merged current HEAD; the post-D0 delta is docs/plans/contracts/reports/governance only. No product drift, no re-verification needed for the signed slice, and the S2 native implementation is preserved byte-for-byte.", "evidence": ["git rev-parse tree objects", "git diff --stat 621b1bf HEAD -- lvw/ (empty)"], "blocks": []},
+    {"id": "IND-08", "severity": "Low", "category": "positive-verification", "title": "The current FastAPI product already reuses the S2 native video kernel at source level", "detail": "lvw/backend/app/video_kernel.py loads core/video_decoder/video_input/video_process from LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge under a synthetic package without Comfy, PromptServer, folder_paths or torch. Decoder/PTS/path-limit reuse is complete; extraction into a shared package is not done and there is no second independent implementation.", "evidence": ["lvw/backend/app/video_kernel.py:1-30"], "blocks": []},
+    {"id": "IND-09", "severity": "Medium", "category": "budget-authorization", "title": "Authorization and budget posture is not a blocker for offline work but is for product runs", "detail": "COMPLETE03 is ACTIVE with a global 1024/24/172800 ledger that is not reset; live15 settled 29 actions / 8 rounds / 1506 s (+6 CPU). S2's own supplemental, resource-ready and oracle-correction budgets are terminal NO_GO with zero remaining, fixture preparation is 2/2 consumed, and no fresh runtime grant is missing because the program covers approved children. A new V0-S3 child must nevertheless be derived from the current ledger, and media acquisition is outside COMPLETE03.", "evidence": ["reports/authorization-program-v1-complete-03.approval.json", "plans/execution-control.json completion_authorization", "reports/unified-media/independent-live-15/receipt.json production_global_consumption"], "blocks": []},
+    {"id": "IND-10", "severity": "Low", "category": "process", "title": "D0 is closed and must not be re-audited or mistaken for product Gate0", "detail": "V1-D0 is D0_PREPARATION_ACCEPTED_WITH_NONBLOCKING_MINORS with Fatal0/Major0 and accepted residuals NM-5/NM-6/NM-9/NM-10; it explicitly sets product_gate0=false and product_pass=false. The R1-CORE, V1-M1 and R2 packets named by plans/v1-revised-plan.json packet_targets do not exist yet.", "evidence": ["reports/v1-redesign/d0-acceptance/decision.json", ".agent-governance/stages/"], "blocks": []}
+  ],
+  "explicitly_not_done": [
+    "no Stage PASS or product approval was issued",
+    "no human signature was made, implied or recorded",
+    "no equivalence between the unified signature and the old S2 signature was invented",
+    "no old S2 was marked signed",
+    "no identical frontend signoff was re-requested",
+    "no authority, contract, plan, governance, product or old-evidence file was modified",
+    "no model was re-scored and no sample was materialized",
+    "no file-presence-to-runtime-pass inference was made",
+    "no push was performed"
+  ]
+}
