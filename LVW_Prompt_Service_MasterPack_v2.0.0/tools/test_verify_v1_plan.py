@@ -44,6 +44,7 @@ GATES_V3 = LEGACY_V1 + LEGACY_V2_EXTRA + LEGACY_V3_EXTRA + MS
 APPROVAL_REL = "reports/v1-redesign/product-change-approval.json"
 BASELINE_REL = "reports/v1-redesign/legacy-gates-before-change.json"
 ADJUDICATION_REL = "reports/v1-redesign/design11-adjudication.json"
+ADJUDICATION_111_REL = "reports/v1-redesign/design111-adjudication.json"
 SAMPLE_REL = "plans/v1-multishot-sample-design.json"
 MIGRATION_REL = "contracts/v1-multishot-migration.sql"
 OVERLAY_REL = "contracts/v1-multishot.openapi-overlay.json"
@@ -107,15 +108,20 @@ CANONICAL_FRAME_REF = {
 
 
 def shot_frame_ref() -> dict:
-    """The candidate ShotFrameRef: the canonical FrameRef shape, narrowed."""
+    """The candidate ShotFrameRef: the canonical FrameRef shape, narrowed.
+
+    design 1.1.1 (N4): the per shot reference carries a real decoded PTS and
+    positive timebases, so the null branch is gone instead of sitting next to
+    a sibling ``type``.
+    """
     return {
         "type": "object",
         "properties": {
             "index": {"type": "integer", "minimum": 0},
             "target_seconds": {"type": "number", "minimum": 0},
-            "source_pts": {"anyOf": [{"type": "integer"}, {"type": "null"}], "type": "integer"},
-            "time_base_num": {"anyOf": [{"type": "integer", "minimum": 1}, {"type": "null"}], "type": "integer"},
-            "time_base_den": {"anyOf": [{"type": "integer", "minimum": 1}, {"type": "null"}], "type": "integer"},
+            "source_pts": {"type": "integer"},
+            "time_base_num": {"type": "integer", "minimum": 1},
+            "time_base_den": {"type": "integer", "minimum": 1},
             "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
             "time_basis": {"const": "decoded_pts"},
         },
@@ -415,19 +421,57 @@ def base_openapi() -> dict:
             "/api/v1/scenes/detect": {
                 "post": {
                     "operationId": "post_api_v1_scenes_detect",
+                    "x-product-version": "V2",
                     "responses": {"202": {"description": "Accepted"}},
+                }
+            },
+            "/api/v1/scenes": {
+                "get": {
+                    "operationId": "get_api_v1_scenes",
+                    "x-product-version": "V2",
+                    "responses": {"200": {"description": "OK"}},
                 }
             },
             "/api/v1/scenes/{id}": {
                 "put": {
                     "operationId": "put_api_v1_scene",
+                    "x-product-version": "V2",
+                    "parameters": [{"name": "id", "in": "path", "required": True,
+                                    "schema": {"type": "string"}}],
                     "responses": {"200": {"description": "OK"}},
                 }
+            },
+            "/api/v1/shots": {
+                "post": {
+                    "operationId": "post_api_v1_shots",
+                    "x-product-version": "V1",
+                    "responses": {"202": {"description": "Accepted"}},
+                }
+            },
+            "/api/v1/shots/{id}": {
+                "get": {
+                    "operationId": "get_api_v1_shot",
+                    "x-product-version": "V1",
+                    "responses": {"200": {"description": "OK"}},
+                },
+                "put": {
+                    "operationId": "put_api_v1_shot",
+                    "x-product-version": "V1",
+                    "responses": {"200": {"description": "OK"}},
+                },
             },
             "/api/v1/jobs/{id}": {
                 "get": {
                     "operationId": "get_api_v1_job",
+                    "x-product-version": "V1",
                     "responses": {"200": {"description": "OK"}},
+                }
+            },
+            "/api/v1/jobs/{id}/cancel": {
+                "post": {
+                    "operationId": "post_api_v1_job_cancel",
+                    "x-product-version": "V1",
+                    "responses": {"202": {"description": "Accepted"}},
                 }
             },
         },
@@ -442,19 +486,37 @@ def base_openapi() -> dict:
     }
 
 
+ETAG_PATTERN = '^\"scene:[^\":]+:[0-9a-f]{64}\"$'
+
+
+def etag_header() -> dict:
+    """The machine declared strong ETag header object (owner artifact 743e028)."""
+    return {
+        "description": "Strong tag for the exact Scene revision in this response; never a weak tag.",
+        "required": True,
+        "schema": {"type": "string", "pattern": ETAG_PATTERN},
+        "example": '\"scene:revision-1:%s\"' % ("a" * 64),
+    }
+
+
+def v1_annotation() -> dict:
+    """The only two metadata keys the overlay may add to a canonical method."""
+    return {"x-v1-profile": "local-shot-v1", "x-v2-semantics-unchanged": True}
+
+
 def overlay_document() -> dict:
     error_responses = {
         code: {"description": "Error", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}}
         for code in ("400", "401", "403", "404", "409", "412", "422", "428", "503")
     }
     return {
-        "kind": "LVW_ADDITIVE_OPENAPI_OVERLAY_DESIGN_1_1",
+        "kind": "LVW_ADDITIVE_OPENAPI_OVERLAY_DESIGN_1_1_1",
         "status": "DESIGN_REVIEW_NOT_ACTIVE",
         "base_file": "contracts/openapi.json",
         "component_source": "contracts/v1-multishot.schema.json",
         "component_prefix": "MultiShot_",
         "ref_rewrite": "#/$defs/X -> #/components/schemas/MultiShot_X",
-        "merge_policy": "No replacement of existing methods/requests/response schemas.",
+        "merge_policy": "Copy base; add disjoint paths/methods and prefixed components; apply only declared additive response headers and x-v1-profile annotations. Never replace existing body schemas, parameters, response codes, x-product-version or V2 semantics. Abort on missing target, key collision or any other mutation.",
         "add_paths": {
             "/api/v1/jobs/shot-batches": {
                 "post": {
@@ -490,13 +552,13 @@ def overlay_document() -> dict:
             "/api/v1/scenes/{id}": {
                 "get": {
                     "operationId": "get_api_v1_scene_current",
-                    "responses": {"200": {"description": "OK"}},
+                    "responses": {"200": {"description": "OK", "headers": {"ETag": etag_header()}}},
                 }
             },
             "/api/v1/scenes/{id}/revision-info": {
                 "get": {
                     "operationId": "get_api_v1_scene_revision_info",
-                    "responses": {"200": {"description": "OK"}},
+                    "responses": {"200": {"description": "OK", "headers": {"ETag": etag_header()}}},
                 }
             },
             "/api/v1/jobs/{id}/children": {
@@ -517,19 +579,37 @@ def overlay_document() -> dict:
             },
         },
         "metadata_only": {
-            "/api/v1/scenes/detect": {"v1_profile": "local-shot-v1", "v2_profiles_unchanged": True},
-            "/api/v1/scenes/{id}": {"ETag_response_header": "strong scene version hash", "put_body_response_unchanged": True},
+            "/api/v1/scenes/detect": {"post": v1_annotation()},
+            "/api/v1/scenes": {"get": v1_annotation()},
+            "/api/v1/scenes/{id}": {"put": v1_annotation()},
+            "/api/v1/shots": {"post": v1_annotation()},
+            "/api/v1/shots/{id}": {"get": v1_annotation(), "put": v1_annotation()},
+            "/api/v1/jobs/{id}": {"get": v1_annotation()},
+            "/api/v1/jobs/{id}/cancel": {"post": v1_annotation()},
         },
+        "add_response_headers": {
+            "/api/v1/scenes/{id}": {"put": {"200": {"ETag": etag_header()}}},
+        },
+        "metadata_merge_rule": "For each metadata_only[path][method], the target MUST exist in base; add only those absent x-* keys. Keep original x-product-version; x-v1-profile declares the bounded V1 use alongside the unchanged broader V2 contract. For add_response_headers, target path/method/status MUST exist; add headers only with no collision, leave body/content unchanged. Apply new methods first, then these two allowlisted additions; any missing target/collision/other change aborts.",
     }
 
 
 def migration_sql() -> str:
     lines = [
-        "-- DESIGN CANDIDATE 1.1 ONLY. No production DB was opened during D0.",
+        "-- DESIGN CANDIDATE 1.1.1 ONLY. No production DB was opened during D0.",
         "PRAGMA foreign_keys=ON;",
         "BEGIN IMMEDIATE;",
     ]
     for name in checker.FROZEN_MIGRATION_OBJECTS:
+        if name == "scene_revision":
+            # The scene hash binds the hashed field names to these DDL columns.
+            lines.append(
+                "CREATE TABLE IF NOT EXISTS scene_revision(id TEXT PRIMARY KEY, media_ref_id TEXT NOT NULL, "
+                "version INTEGER NOT NULL, start_pts INTEGER NOT NULL, end_pts INTEGER NOT NULL, "
+                "origin_pts INTEGER NOT NULL, tb_num INTEGER NOT NULL CHECK(tb_num>0), "
+                "tb_den INTEGER NOT NULL CHECK(tb_den>0), editor TEXT NOT NULL);"
+            )
+            continue
         lines.append("CREATE TABLE IF NOT EXISTS %s(id TEXT PRIMARY KEY, payload TEXT NOT NULL);" % name)
     lines.append(
         "CREATE TABLE shot_batch_parent_check(id TEXT PRIMARY KEY, planned_count INTEGER NOT NULL, "
@@ -560,7 +640,7 @@ def frame_sample() -> dict:
 def candidate_contract() -> dict:
     defs = candidate_defs()
     return {
-        "schema_version": "lvw.multishot-contract-candidate/1.1",
+        "schema_version": "lvw.multishot-contract-candidate/1.1.1",
         "status": "DESIGN_REVIEW_NOT_ACTIVE_OPENAPI",
         "authority": "docs/31_V1_DETAILED_ARCHITECTURE_AND_CONTRACTS.md",
         "entities": {
@@ -580,14 +660,107 @@ def candidate_contract() -> dict:
                 ],
             },
         },
+        "reuse_paths": [
+            "/api/v1/scenes/detect",
+            "/api/v1/scenes",
+            "/api/v1/scenes/{id}",
+            "/api/v1/shots",
+            "/api/v1/shots/{id}",
+            "/api/v1/jobs/{id}",
+            "/api/v1/jobs/{id}/cancel",
+        ],
         "dto_schema": "contracts/v1-multishot.schema.json",
         "openapi_overlay": "contracts/v1-multishot.openapi-overlay.json",
         "storage_migration": "contracts/v1-multishot-migration.sql",
+        "additive_paths": [
+            "/api/v1/jobs/shot-batches",
+            "/api/v1/scenes/{id}",
+            "/api/v1/scenes/{id}/revision-info",
+            "/api/v1/jobs/{id}/children",
+            "/api/v1/shots/{id}/scene-binding",
+            "/api/v1/shots/{id}/analyses/{run_id}/evidence",
+            "/api/v1/shots/{id}/analyses/{run_id}/adopt",
+        ],
+        "additive_operations": [
+            {"path": "/api/v1/jobs/shot-batches", "method": "POST"},
+            {"path": "/api/v1/scenes/{id}", "method": "GET"},
+            {"path": "/api/v1/scenes/{id}/revision-info", "method": "GET"},
+            {"path": "/api/v1/jobs/{id}/children", "method": "GET"},
+            {"path": "/api/v1/shots/{id}/scene-binding", "method": "GET"},
+            {"path": "/api/v1/shots/{id}/scene-binding", "method": "PUT"},
+            {"path": "/api/v1/shots/{id}/analyses/{run_id}/evidence", "method": "GET"},
+            {"path": "/api/v1/shots/{id}/analyses/{run_id}/adopt", "method": "POST"},
+        ],
         "explicit_reserved_v2_paths": ["/api/v1/jobs/batch", "/api/v1/jobs/{id}/retry"],
         "http_rules": [
             "canonical POST /jobs/batch {items:[AnalyzeRequest]} remains V2 unchanged",
             "public analysis provenance excludes lease_token",
         ],
+        "scene_hash": {
+            "algorithm": "sha256 UTF8 canonical JSON sorted keys, compact separators, ensure_ascii=False, allow_nan=False",
+            "fields": [
+                "media_ref_id",
+                "media_sha256",
+                "revision",
+                "start_pts",
+                "end_pts",
+                "origin_pts",
+                "time_base_num",
+                "time_base_den",
+                "editor",
+                "time_basis",
+                "verified",
+            ],
+            "etag": "quoted strong tag scene:<scene_revision_id>:<scene_revision_hash>",
+            "excluded": ["random row id", "created_at", "server clock"],
+            "storage": "scene_revision_meta.content_sha256/etag; AnalysisBinding.scene_revision_hash immutable copy",
+            "column_mapping": {
+                "media_ref_id": "scene_revision.media_ref_id",
+                "media_sha256": "scene_revision_meta.source_sha256 (legacy backfill: media_ref.sha256)",
+                "revision": "scene_revision.version (equals scene_revision_meta.revision)",
+                "start_pts": "scene_revision.start_pts",
+                "end_pts": "scene_revision.end_pts",
+                "origin_pts": "scene_revision.origin_pts",
+                "time_base_num": "scene_revision.tb_num",
+                "time_base_den": "scene_revision.tb_den",
+                "editor": "scene_revision.editor",
+                "time_basis": "scene_revision_meta.time_basis",
+                "verified": "scene_revision_meta.verified (SQLite 0/1 converted to JSON false/true)",
+            },
+            "serialization_rule": "Use the declared hash field names as JSON keys; column aliases are value sources only. All PTS/timebase/revision values are JSON integers (never bool/float/string); verified is JSON boolean; no extra keys.",
+        },
+        "canonical_domain_mapping": {
+            "version": "shot-domains/1",
+            "language_order": ["zh", "en"],
+            "item_order": "characters sorted by local_actor_id Unicode codepoint, then scene, then actions in original zero-based array order; route each item only to its declared observation or inference domain",
+            "entry_serialization": "Each nonempty language value produces one string: compact UTF-8 JSON object, sorted keys, ensure_ascii=False, allow_nan=False. Keys kind, ref, lang, text. No translation, normalization, trim or deduplication; skip only exactly empty strings. Preserve raw model response byte-for-byte.",
+            "refs": {
+                "character": "local_actor_id",
+                "scene": "scene",
+                "action": "decimal original zero-based action array index",
+                "unknown": "decimal original zero-based unknowns array index",
+            },
+            "source_fields": {
+                "character": "visible_appearance",
+                "scene": "description",
+                "action": "description",
+                "unknown": "unknowns item",
+            },
+            "unknowns": "Original unknowns array order, each zh then en; same JSON entry with kind=unknown into Domains.unknowns only.",
+            "human_domains": "Do not generate or overwrite user_evidence/creative_intent; merge only through explicit adoption with human locks taking precedence.",
+            "prompt_text": "summary.zh -> text_zh; summary.en -> text_en, exact copies. Missing language stays empty, no translation.",
+            "example": {
+                "source": {
+                    "local_actor_id": "actor1",
+                    "visible_appearance": {"zh": "红衣人物", "en": "person in red"},
+                    "domain": "observation",
+                },
+                "observation": [
+                    "{\"kind\":\"character\",\"lang\":\"zh\",\"ref\":\"actor1\",\"text\":\"红衣人物\"}",
+                    "{\"kind\":\"character\",\"lang\":\"en\",\"ref\":\"actor1\",\"text\":\"person in red\"}",
+                ],
+            },
+        },
     }
 
 
@@ -747,6 +920,18 @@ def build_fixture(root: Path) -> dict:
         "product_pass": False,
         "human_signoff": None,
     })
+    write_json(root / ADJUDICATION_111_REL, {
+        "kind": "CODEX_OWNER_MINOR_CORRECTION_NOT_INDEPENDENT_ACCEPTANCE",
+        "version": "1.1.1",
+        "original22": "Resolved at design level by design11 independent review; not product acceptance",
+        "findings": [
+            {"id": finding_id, "state": "CORRECTED_PENDING_INDEPENDENT_RECHECK"}
+            for finding_id in ("N1", "N2", "N3", "N4", "N5", "N6")
+        ],
+        "code_candidate": "172d176",
+        "product_gate0": False,
+        "sample_materialization": "NOT_RUN",
+    })
 
     # --- acceptance cases ----------------------------------------------------
     cases = []
@@ -818,7 +1003,8 @@ def build_fixture(root: Path) -> dict:
                   "FrameRef": json.loads(json.dumps(CANONICAL_FRAME_REF))},
     })
     (root / "contracts/storage.sql").write_text("-- baseline DDL\n", encoding="utf-8")
-    for name in ("30_V1_REVISED_EXECUTION_PLAN.md", "31_V1_DETAILED_ARCHITECTURE_AND_CONTRACTS.md",
+    for name in ("17_DATA_AND_VERSIONING.md", "20_RELIABILITY_AND_OPERATIONS.md",
+                 "30_V1_REVISED_EXECUTION_PLAN.md", "31_V1_DETAILED_ARCHITECTURE_AND_CONTRACTS.md",
                  "32_V1_ACCEPTANCE_AND_AGENT_WORKFLOW.md"):
         doc = root / "docs" / name
         doc.parent.mkdir(parents=True, exist_ok=True)
@@ -841,33 +1027,37 @@ def build_fixture(root: Path) -> dict:
 
     # Actual parent layout: the authority spec manifest does *not* list the D0
     # stage control or the D0 payload manifest; the D0 packet manifest fences
-    # that control plane instead.
+    # that control plane instead. design 1.1.1: the authority spec manifest is
+    # a closed inventory of exactly 24 files.
     fenced = [
+        "docs/17_DATA_AND_VERSIONING.md",
+        "docs/20_RELIABILITY_AND_OPERATIONS.md",
         "docs/30_V1_REVISED_EXECUTION_PLAN.md",
         "docs/31_V1_DETAILED_ARCHITECTURE_AND_CONTRACTS.md",
         "docs/32_V1_ACCEPTANCE_AND_AGENT_WORKFLOW.md",
         "plans/v1-revised-plan.json",
-        "plans/release_gates.json",
-        "plans/acceptance_cases.json",
-        "plans/requirements.json",
-        "plans/tasks.json",
         "plans/v1-multishot-contract.json",
         "plans/v1-multishot-sample-design.json",
+        "plans/requirements.json",
+        "plans/tasks.json",
+        "plans/acceptance_cases.json",
+        "plans/release_gates.json",
         "plans/execution-control.json",
-        "contracts/v1-multishot.schema.json",
-        "contracts/v1-multishot.openapi-overlay.json",
-        "contracts/v1-multishot-migration.sql",
         "contracts/openapi.json",
         "contracts/lvw.schema.json",
         "contracts/storage.sql",
+        "contracts/v1-multishot.schema.json",
+        "contracts/v1-multishot-migration.sql",
+        "contracts/v1-multishot.openapi-overlay.json",
         APPROVAL_REL,
         BASELINE_REL,
         ADJUDICATION_REL,
+        ADJUDICATION_111_REL,
         R1_DIR + "/PAYLOAD_MANIFEST.sha256",
-        R1_DIR + "/stage-control.json",
     ]
+    assert len(fenced) == 24, "the synthetic authority fence must hold exactly 24 files"
     write_json(root / D0_DIR / "spec-manifest.json", {
-        "kind": "D0_AUTHORITY_DESIGN11_CANDIDATE_HASH_FENCE_NOT_PRODUCT_GATE0",
+        "kind": "D0_AUTHORITY_DESIGN111_CANDIDATE_HASH_FENCE_NOT_PRODUCT_GATE0",
         "files": {rel: sha256(root / rel) for rel in fenced},
     })
     return {"d0_manifest_sha256": regenerate_d0_manifest(root)}
@@ -898,7 +1088,17 @@ def refresh_fences(package: dict, rels=()) -> None:
     root = package["root"]
     spec_path = root / D0_DIR / "spec-manifest.json"
     spec = load(root, D0_DIR + "/spec-manifest.json")
+    touched = set(rels)
+    baseline = load(root, BASELINE_REL)
+    pinned = baseline.get("canonical_contract_hashes") or {}
     for rel in rels:
+        if rel in pinned:
+            pinned[rel] = sha256(root / rel)
+            touched.add(BASELINE_REL)
+    if BASELINE_REL in touched:
+        baseline["canonical_contract_hashes"] = pinned
+        write_json(root / BASELINE_REL, baseline)
+    for rel in sorted(touched):
         spec["files"][rel] = sha256(root / rel)
     write_json(spec_path, spec)
     package["d0_manifest_sha256"] = regenerate_d0_manifest(root)
@@ -1508,12 +1708,16 @@ def test_overlay_must_keep_the_bounded_shot_batch_route(package):
     expect_failure(run_package(package), "E_OVERLAY_ROUTE_MISSING")
 
 
-def test_overlay_metadata_may_not_claim_the_existing_body_changed(package):
+def test_overlay_metadata_may_not_replace_the_existing_body(package):
+    # design 1.1.1: the flat prose metadata map became a per method map that may
+    # only carry the two allowlisted x- keys. The old "the body changed" claim
+    # is now an unauthorized metadata key, so the same intent - the overlay may
+    # not replace the existing body - is enforced by a stricter rule.
     overlay = load(package["root"], OVERLAY_REL)
-    overlay["metadata_only"]["/api/v1/scenes/{id}"]["put_body_response_unchanged"] = False
+    overlay["metadata_only"]["/api/v1/scenes/{id}"]["put"]["put_body_response_unchanged"] = False
     save(package["root"], OVERLAY_REL, overlay)
     refresh_fences(package, [OVERLAY_REL])
-    expect_failure(run_package(package), "E_OVERLAY_METADATA_REPLACES")
+    expect_failure(run_package(package), "E_OVERLAY_METADATA_KEY")
 
 
 def test_canonical_v2_batch_body_must_stay_untouched(package):
@@ -1908,3 +2112,570 @@ def test_missing_input_exits_nonzero_without_verdict(package):
     assert result.returncode != 0
     assert "INPUT_ERROR" in result.stderr
     assert "RESULT: PASS" not in result.stdout
+
+
+# ---------------------------------------------------------------------------
+# Design 1.1.1: the six owner corrections N1-N6
+#
+# The owner corrections are checked here, but they are not accepted here: the
+# adjudication states that they await an independent recheck. Every negative
+# test mutates a *copy* and asserts the decision the real checker makes.
+# ---------------------------------------------------------------------------
+
+
+def test_d0_packet_pin_is_the_owner_supplied_111_digest():
+    # The pin is a hard coded source control digest, not a value that is
+    # derived from the packet at run time.
+    assert checker.FROZEN_D0_PACKET_MANIFEST_SHA256 == "04d3bfb4af3c2d7be68e494a6d59624a96051a0ebf28e81d6a0367aa32aa6710"
+
+
+def test_stale_1_1_packet_pin_no_longer_validates_the_owner_packet():
+    # The 1.1 owner digest is no longer the pin; the 1.1.1 digest is.
+    result = run_checker(ROOT, "56e6f07b72023928b32ed7350b78f9d1d148daf79108daffecb7d9a175e39c4a")
+    assert result.returncode != 0
+    assert "E_D0_PACKET_MANIFEST_PINNED" in result.stdout
+
+
+def test_authority_spec_fence_holds_exactly_the_frozen_inventory(package):
+    spec = load(package["root"], D0_DIR + "/spec-manifest.json")
+    assert len(spec["files"]) == 24
+    assert sorted(spec["files"]) == sorted(checker.FROZEN_SPEC_FENCE_FILES)
+    assert len(checker.FROZEN_D0_PACKET_FILES) == 10
+
+
+def test_spec_fence_may_not_grow(package):
+    spec = load(package["root"], D0_DIR + "/spec-manifest.json")
+    spec["files"]["reports/v1-redesign/legacy-gates-before-change.json.bak"] = "0" * 64
+    save(package["root"], D0_DIR + "/spec-manifest.json", spec)
+    package["d0_manifest_sha256"] = regenerate_d0_manifest(package["root"])
+    expect_failure(run_package(package), "E_SPEC_FENCE_EXTRA_ENTRY")
+
+
+def test_spec_fence_may_not_shrink(package):
+    spec = load(package["root"], D0_DIR + "/spec-manifest.json")
+    del spec["files"]["docs/17_DATA_AND_VERSIONING.md"]
+    save(package["root"], D0_DIR + "/spec-manifest.json", spec)
+    package["d0_manifest_sha256"] = regenerate_d0_manifest(package["root"])
+    expect_failure(run_package(package), "E_SPEC_FENCE_INCOMPLETE")
+
+
+# --- N1: the strong ETag and the strict merge rule -------------------------
+
+
+def test_new_scene_get_must_declare_the_strong_etag(package):
+    overlay = load(package["root"], OVERLAY_REL)
+    del overlay["add_paths"]["/api/v1/scenes/{id}"]["get"]["responses"]["200"]["headers"]
+    save(package["root"], OVERLAY_REL, overlay)
+    refresh_fences(package, [OVERLAY_REL])
+    expect_failure(run_package(package), "E_ETAG_MISSING")
+
+
+def test_revision_info_get_must_declare_the_strong_etag(package):
+    overlay = load(package["root"], OVERLAY_REL)
+    del overlay["add_paths"]["/api/v1/scenes/{id}/revision-info"]["get"]["responses"]["200"]["headers"]
+    save(package["root"], OVERLAY_REL, overlay)
+    refresh_fences(package, [OVERLAY_REL])
+    expect_failure(run_package(package), "E_ETAG_MISSING")
+
+
+def test_existing_scene_put_must_receive_the_etag_through_add_response_headers(package):
+    overlay = load(package["root"], OVERLAY_REL)
+    del overlay["add_response_headers"]
+    save(package["root"], OVERLAY_REL, overlay)
+    refresh_fences(package, [OVERLAY_REL])
+    expect_failure(run_package(package), "E_ETAG_MISSING")
+
+
+def test_etag_pattern_may_not_drift_from_the_frozen_strong_format(package):
+    overlay = load(package["root"], OVERLAY_REL)
+    overlay["add_paths"]["/api/v1/scenes/{id}"]["get"]["responses"]["200"]["headers"]["ETag"]["schema"]["pattern"] = ".*"
+    save(package["root"], OVERLAY_REL, overlay)
+    refresh_fences(package, [OVERLAY_REL])
+    expect_failure(run_package(package), "E_ETAG_FORMAT")
+
+
+def test_etag_pattern_may_not_accept_a_weak_tag(package):
+    overlay = load(package["root"], OVERLAY_REL)
+    overlay["add_paths"]["/api/v1/scenes/{id}"]["get"]["responses"]["200"]["headers"]["ETag"]["schema"]["pattern"] = '^(W/)?"scene:[^":]+:[0-9a-f]{64}"$'
+    save(package["root"], OVERLAY_REL, overlay)
+    refresh_fences(package, [OVERLAY_REL])
+    expect_failure(run_package(package), "E_ETAG_WEAK")
+
+
+def test_response_header_may_not_collide_with_the_canonical_one(package):
+    api = load(package["root"], "contracts/openapi.json")
+    api["paths"]["/api/v1/scenes/{id}"]["put"]["responses"]["200"]["headers"] = {"ETag": {"schema": {"type": "string"}}}
+    save(package["root"], "contracts/openapi.json", api)
+    refresh_fences(package, ["contracts/openapi.json"])
+    expect_failure(run_package(package), "E_OVERLAY_HEADER_COLLISION")
+
+
+def test_response_header_may_not_be_unauthorized(package):
+    overlay = load(package["root"], OVERLAY_REL)
+    overlay["add_response_headers"]["/api/v1/scenes/{id}"]["put"]["200"]["X-Internal-Token"] = {"schema": {"type": "string"}}
+    save(package["root"], OVERLAY_REL, overlay)
+    refresh_fences(package, [OVERLAY_REL])
+    expect_failure(run_package(package), "E_OVERLAY_HEADER_NOT_ALLOWED")
+
+
+def test_response_header_target_must_exist(package):
+    overlay = load(package["root"], OVERLAY_REL)
+    overlay["add_response_headers"]["/api/v1/scenes/{id}"]["delete"] = {"200": {"ETag": etag_header()}}
+    save(package["root"], OVERLAY_REL, overlay)
+    refresh_fences(package, [OVERLAY_REL])
+    expect_failure(run_package(package), "E_OVERLAY_HEADER_TARGET_MISSING")
+
+
+def test_metadata_target_must_exist(package):
+    overlay = load(package["root"], OVERLAY_REL)
+    overlay["metadata_only"]["/api/v1/scenes/{id}"]["delete"] = v1_annotation()
+    save(package["root"], OVERLAY_REL, overlay)
+    refresh_fences(package, [OVERLAY_REL])
+    expect_failure(run_package(package), "E_OVERLAY_METADATA_TARGET_MISSING")
+
+
+def test_metadata_may_not_replace_the_canonical_x_product_version(package):
+    overlay = load(package["root"], OVERLAY_REL)
+    overlay["metadata_only"]["/api/v1/scenes/{id}"]["put"]["x-product-version"] = "V1"
+    save(package["root"], OVERLAY_REL, overlay)
+    refresh_fences(package, [OVERLAY_REL])
+    expect_failure(run_package(package), "E_OVERLAY_METADATA_KEY")
+
+
+def test_merge_may_not_change_the_canonical_operation_body(package):
+    # The overlay may not smuggle a body change into a canonical operation.
+    overlay = load(package["root"], OVERLAY_REL)
+    overlay["add_paths"]["/api/v1/scenes/{id}"]["get"]["responses"]["200"]["content"] = {"application/json": {"schema": {"$ref": "#/components/schemas/Scene"}}}
+    save(package["root"], OVERLAY_REL, overlay)
+    refresh_fences(package, [OVERLAY_REL])
+    result = run_package(package)
+    # The new GET is an addition, not a replacement: the canonical PUT must
+    # still be untouched and the added GET must stay a valid candidate.
+    assert result.returncode == 0, result.stdout
+
+
+def test_canonical_operation_is_byte_identical_after_the_merge(package):
+    api = load(package["root"], "contracts/openapi.json")
+    overlay = load(package["root"], OVERLAY_REL)
+    result = run_package(package)
+    assert result.returncode == 0, result.stdout
+    # The canonical PUT keeps its own body, parameters, status code and
+    # x-product-version: the overlay only adds an ETag header and two x- keys.
+    canonical = api["paths"]["/api/v1/scenes/{id}"]["put"]
+    assert canonical["x-product-version"] == "V2"
+    assert "headers" not in canonical["responses"]["200"]
+    assert overlay["add_response_headers"]["/api/v1/scenes/{id}"]["put"]["200"]["ETag"]["schema"]["pattern"] == ETAG_PATTERN
+
+
+# --- N2: the additive surface ----------------------------------------------
+
+
+def test_contract_additive_paths_must_match_the_overlay(package):
+    contract = load(package["root"], "plans/v1-multishot-contract.json")
+    contract["additive_paths"].remove("/api/v1/scenes/{id}")
+    save(package["root"], "plans/v1-multishot-contract.json", contract)
+    refresh_fences(package, ["plans/v1-multishot-contract.json"])
+    expect_failure(run_package(package), "E_ADDITIVE_PATHS")
+
+
+def test_contract_additive_operations_must_match_the_overlay(package):
+    contract = load(package["root"], "plans/v1-multishot-contract.json")
+    contract["additive_operations"] = [
+        entry for entry in contract["additive_operations"]
+        if not (entry["path"] == "/api/v1/scenes/{id}" and entry["method"] == "GET")
+    ]
+    save(package["root"], "plans/v1-multishot-contract.json", contract)
+    refresh_fences(package, ["plans/v1-multishot-contract.json"])
+    expect_failure(run_package(package), "E_ADDITIVE_OPERATIONS")
+
+
+def test_overlay_additive_surface_is_frozen(package):
+    overlay = load(package["root"], OVERLAY_REL)
+    del overlay["add_paths"]["/api/v1/scenes/{id}/revision-info"]
+    save(package["root"], OVERLAY_REL, overlay)
+    refresh_fences(package, [OVERLAY_REL])
+    expect_failure(run_package(package), "E_ADDITIVE_SURFACE")
+
+
+def test_additive_surface_may_not_shrink_to_the_path_names_only(package):
+    # The new GET on the *existing* Scene path must stay part of the surface.
+    overlay = load(package["root"], OVERLAY_REL)
+    del overlay["add_paths"]["/api/v1/scenes/{id}"]["get"]
+    save(package["root"], OVERLAY_REL, overlay)
+    refresh_fences(package, [OVERLAY_REL])
+    expect_failure(run_package(package), "E_ADDITIVE_SURFACE")
+
+
+# --- N3: the reuse annotations ---------------------------------------------
+
+
+def test_every_reuse_path_must_be_annotated(package):
+    overlay = load(package["root"], OVERLAY_REL)
+    del overlay["metadata_only"]["/api/v1/shots"]
+    save(package["root"], OVERLAY_REL, overlay)
+    refresh_fences(package, [OVERLAY_REL])
+    expect_failure(run_package(package), "E_REUSE_METADATA")
+
+
+def test_every_reuse_method_must_be_annotated(package):
+    overlay = load(package["root"], OVERLAY_REL)
+    del overlay["metadata_only"]["/api/v1/shots/{id}"]["put"]
+    save(package["root"], OVERLAY_REL, overlay)
+    refresh_fences(package, [OVERLAY_REL])
+    expect_failure(run_package(package), "E_REUSE_METADATA")
+
+
+def test_reuse_annotation_keys_are_allowlisted(package):
+    overlay = load(package["root"], OVERLAY_REL)
+    overlay["metadata_only"]["/api/v1/jobs/{id}"]["get"]["x-legacy-note"] = "anything"
+    save(package["root"], OVERLAY_REL, overlay)
+    refresh_fences(package, [OVERLAY_REL])
+    expect_failure(run_package(package), "E_OVERLAY_METADATA_KEY")
+
+
+def test_reuse_annotation_may_not_collide_with_an_existing_key(package):
+    api = load(package["root"], "contracts/openapi.json")
+    api["paths"]["/api/v1/jobs/{id}"]["get"]["x-v1-profile"] = "local-shot-v1"
+    save(package["root"], "contracts/openapi.json", api)
+    refresh_fences(package, ["contracts/openapi.json"])
+    expect_failure(run_package(package), "E_OVERLAY_METADATA_COLLISION")
+
+
+def test_reuse_annotation_profile_value_is_frozen(package):
+    overlay = load(package["root"], OVERLAY_REL)
+    overlay["metadata_only"]["/api/v1/jobs/{id}"]["get"]["x-v1-profile"] = "local-shot-v2"
+    save(package["root"], OVERLAY_REL, overlay)
+    refresh_fences(package, [OVERLAY_REL])
+    expect_failure(run_package(package), "E_OVERLAY_METADATA_VALUE")
+
+
+def test_reuse_annotation_may_not_deny_the_v2_semantics(package):
+    overlay = load(package["root"], OVERLAY_REL)
+    overlay["metadata_only"]["/api/v1/jobs/{id}"]["get"]["x-v2-semantics-unchanged"] = False
+    save(package["root"], OVERLAY_REL, overlay)
+    refresh_fences(package, [OVERLAY_REL])
+    expect_failure(run_package(package), "E_OVERLAY_METADATA_VALUE")
+
+
+def test_contract_reuse_paths_must_match_the_overlay(package):
+    contract = load(package["root"], "plans/v1-multishot-contract.json")
+    contract["reuse_paths"].remove("/api/v1/shots/{id}")
+    save(package["root"], "plans/v1-multishot-contract.json", contract)
+    refresh_fences(package, ["plans/v1-multishot-contract.json"])
+    expect_failure(run_package(package), "E_REUSE_PATHS")
+
+
+# --- N4: the per shot frame reference -------------------------------------
+
+
+def test_shot_frame_ref_may_not_reintroduce_the_null_branch(package):
+    schema = load(package["root"], "contracts/v1-multishot.schema.json")
+    schema["$defs"]["ShotFrameRef"]["properties"]["source_pts"] = {
+        "anyOf": [{"type": "integer"}, {"type": "null"}],
+        "type": "integer",
+    }
+    save(package["root"], "contracts/v1-multishot.schema.json", schema)
+    refresh_fences(package, ["contracts/v1-multishot.schema.json"])
+    expect_failure(run_package(package), "E_FRAME_REF_CONSTRAINT")
+
+
+def test_shot_frame_ref_timebase_must_stay_positive(package):
+    schema = load(package["root"], "contracts/v1-multishot.schema.json")
+    schema["$defs"]["ShotFrameRef"]["properties"]["time_base_den"] = {"type": "integer", "minimum": 0}
+    save(package["root"], "contracts/v1-multishot.schema.json", schema)
+    refresh_fences(package, ["contracts/v1-multishot.schema.json"])
+    expect_failure(run_package(package), "E_FRAME_REF_CONSTRAINT")
+
+
+def test_shot_frame_ref_pts_must_stay_an_integer(package):
+    schema = load(package["root"], "contracts/v1-multishot.schema.json")
+    schema["$defs"]["ShotFrameRef"]["properties"]["source_pts"] = {"type": "number"}
+    save(package["root"], "contracts/v1-multishot.schema.json", schema)
+    refresh_fences(package, ["contracts/v1-multishot.schema.json"])
+    expect_failure(run_package(package), "E_FRAME_REF_CONSTRAINT")
+
+
+# --- N5: the canonical domain mapping --------------------------------------
+
+
+def test_domain_language_order_is_frozen(package):
+    contract = load(package["root"], "plans/v1-multishot-contract.json")
+    contract["canonical_domain_mapping"]["language_order"] = ["en", "zh"]
+    save(package["root"], "plans/v1-multishot-contract.json", contract)
+    refresh_fences(package, ["plans/v1-multishot-contract.json"])
+    expect_failure(run_package(package), "E_DOMAIN_MAPPING")
+
+
+def test_domain_serialization_rule_may_not_drop_the_raw_promise(package):
+    contract = load(package["root"], "plans/v1-multishot-contract.json")
+    contract["canonical_domain_mapping"]["entry_serialization"] = (
+        "Each nonempty language value produces one string: compact UTF-8 JSON object, "
+        "sorted keys, ensure_ascii=False, allow_nan=False. Keys kind, ref, lang, text."
+    )
+    save(package["root"], "plans/v1-multishot-contract.json", contract)
+    refresh_fences(package, ["plans/v1-multishot-contract.json"])
+    expect_failure(run_package(package), "E_DOMAIN_MAPPING")
+
+
+def test_domain_serialization_rule_may_not_translate(package):
+    contract = load(package["root"], "plans/v1-multishot-contract.json")
+    contract["canonical_domain_mapping"]["entry_serialization"] = (
+        "Each nonempty language value produces one string: compact UTF-8 JSON object, sorted keys, "
+        "ensure_ascii=False, allow_nan=False. Keys kind, ref, lang, text. Translate to English, "
+        "trim and deduplicate. Preserve the raw model response byte-for-byte."
+    )
+    save(package["root"], "plans/v1-multishot-contract.json", contract)
+    refresh_fences(package, ["plans/v1-multishot-contract.json"])
+    expect_failure(run_package(package), "E_DOMAIN_MAPPING")
+
+
+def test_domain_example_must_match_the_deterministic_serialization(package):
+    contract = load(package["root"], "plans/v1-multishot-contract.json")
+    contract["canonical_domain_mapping"]["example"]["observation"][0] = (
+        '{"kind":"character","lang":"zh","ref":"actor1","text":"红衣"}'
+    )
+    save(package["root"], "plans/v1-multishot-contract.json", contract)
+    refresh_fences(package, ["plans/v1-multishot-contract.json"])
+    expect_failure(run_package(package), "E_DOMAIN_MAPPING")
+
+
+def test_domain_example_may_not_omit_a_language_entry(package):
+    contract = load(package["root"], "plans/v1-multishot-contract.json")
+    del contract["canonical_domain_mapping"]["example"]["observation"][1]
+    save(package["root"], "plans/v1-multishot-contract.json", contract)
+    refresh_fences(package, ["plans/v1-multishot-contract.json"])
+    expect_failure(run_package(package), "E_DOMAIN_MAPPING")
+
+
+def test_human_domains_must_stay_untouched(package):
+    contract = load(package["root"], "plans/v1-multishot-contract.json")
+    contract["canonical_domain_mapping"]["human_domains"] = "Overwrite user_evidence with the model output."
+    save(package["root"], "plans/v1-multishot-contract.json", contract)
+    refresh_fences(package, ["plans/v1-multishot-contract.json"])
+    expect_failure(run_package(package), "E_DOMAIN_MAPPING")
+
+
+def test_item_order_rule_may_not_drop_the_unicode_sort(package):
+    contract = load(package["root"], "plans/v1-multishot-contract.json")
+    contract["canonical_domain_mapping"]["item_order"] = (
+        "characters sorted by local_actor_id, then scene, then actions in original zero-based "
+        "array order; route each item only to its declared observation or inference domain"
+    )
+    save(package["root"], "plans/v1-multishot-contract.json", contract)
+    refresh_fences(package, ["plans/v1-multishot-contract.json"])
+    expect_failure(run_package(package), "E_DOMAIN_MAPPING")
+
+
+# --- N6: the scene hash column mapping ------------------------------------
+
+
+def test_scene_hash_column_mapping_must_cover_every_field(package):
+    contract = load(package["root"], "plans/v1-multishot-contract.json")
+    del contract["scene_hash"]["column_mapping"]["time_basis"]
+    save(package["root"], "plans/v1-multishot-contract.json", contract)
+    refresh_fences(package, ["plans/v1-multishot-contract.json"])
+    expect_failure(run_package(package), "E_SCENE_HASH_MAPPING")
+
+
+def test_scene_hash_timebase_aliases_are_frozen(package):
+    contract = load(package["root"], "plans/v1-multishot-contract.json")
+    contract["scene_hash"]["column_mapping"]["time_base_num"] = "scene_revision.time_base_num"
+    save(package["root"], "plans/v1-multishot-contract.json", contract)
+    refresh_fences(package, ["plans/v1-multishot-contract.json"])
+    expect_failure(run_package(package), "E_SCENE_HASH_MAPPING")
+
+
+def test_scene_hash_revision_alias_is_frozen(package):
+    contract = load(package["root"], "plans/v1-multishot-contract.json")
+    contract["scene_hash"]["column_mapping"]["revision"] = "scene_revision_meta.revision"
+    save(package["root"], "plans/v1-multishot-contract.json", contract)
+    refresh_fences(package, ["plans/v1-multishot-contract.json"])
+    expect_failure(run_package(package), "E_SCENE_HASH_MAPPING")
+
+
+def test_scene_hash_verified_conversion_must_survive(package):
+    contract = load(package["root"], "plans/v1-multishot-contract.json")
+    contract["scene_hash"]["column_mapping"]["verified"] = "scene_revision_meta.verified"
+    save(package["root"], "plans/v1-multishot-contract.json", contract)
+    refresh_fences(package, ["plans/v1-multishot-contract.json"])
+    expect_failure(run_package(package), "E_SCENE_HASH_MAPPING")
+
+
+def test_scene_hash_may_not_use_the_sql_alias_as_a_json_key(package):
+    contract = load(package["root"], "plans/v1-multishot-contract.json")
+    contract["scene_hash"]["column_mapping"]["tb_num"] = "scene_revision.tb_num"
+    save(package["root"], "plans/v1-multishot-contract.json", contract)
+    refresh_fences(package, ["plans/v1-multishot-contract.json"])
+    expect_failure(run_package(package), "E_SCENE_HASH_MAPPING")
+
+
+def test_scene_hash_field_set_is_frozen(package):
+    contract = load(package["root"], "plans/v1-multishot-contract.json")
+    contract["scene_hash"]["fields"].remove("editor")
+    save(package["root"], "plans/v1-multishot-contract.json", contract)
+    refresh_fences(package, ["plans/v1-multishot-contract.json"])
+    expect_failure(run_package(package), "E_SCENE_HASH_MAPPING")
+
+
+# --- the owner adjudication and the product coordinate ---------------------
+
+
+def test_owner_corrections_may_not_be_recorded_as_accepted(package):
+    adjudication = load(package["root"], ADJUDICATION_111_REL)
+    adjudication["findings"][0]["state"] = "ACCEPTED"
+    save(package["root"], ADJUDICATION_111_REL, adjudication)
+    refresh_fences(package, [ADJUDICATION_111_REL])
+    expect_failure(run_package(package), "E_111_ADJUDICATION")
+
+
+def test_owner_adjudication_may_not_claim_the_product_gate(package):
+    adjudication = load(package["root"], ADJUDICATION_111_REL)
+    adjudication["product_gate0"] = True
+    save(package["root"], ADJUDICATION_111_REL, adjudication)
+    refresh_fences(package, [ADJUDICATION_111_REL])
+    expect_failure(run_package(package), "E_111_ADJUDICATION")
+
+
+def test_owner_adjudication_may_not_claim_a_materialized_sample(package):
+    adjudication = load(package["root"], ADJUDICATION_111_REL)
+    adjudication["sample_materialization"] = "DONE"
+    save(package["root"], ADJUDICATION_111_REL, adjudication)
+    refresh_fences(package, [ADJUDICATION_111_REL])
+    expect_failure(run_package(package), "E_111_ADJUDICATION")
+
+
+def test_product_coordinate_must_stay_in_the_r1_human_gate(package):
+    control = load(package["root"], "plans/execution-control.json")
+    control["coordinate"]["state"] = "GATE0_PASS"
+    save(package["root"], "plans/execution-control.json", control)
+    refresh_fences(package, ["plans/execution-control.json"])
+    expect_failure(run_package(package), "E_PRODUCT_COORDINATE")
+
+
+# ---------------------------------------------------------------------------
+# The real owner package, copied and mutated
+#
+# The synthetic fixture above proves the rules on a hand written tree. These
+# tests take the *actual* owner artefacts (authority 743e028), copy them into
+# a temporary directory, mutate one artefact and assert the decision the real
+# checker makes on that copy.
+# ---------------------------------------------------------------------------
+
+
+def owner_copy_files() -> list[str]:
+    relatives = set(json.loads((ROOT / D0_DIR / "spec-manifest.json").read_text(encoding="utf-8"))["files"])
+    relatives.add(D0_DIR + "/PAYLOAD_MANIFEST.sha256")
+    for name in checker.FROZEN_D0_PACKET_FILES:
+        relatives.add(D0_DIR + "/" + name)
+    for line in (ROOT / R1_DIR / "PAYLOAD_MANIFEST.sha256").read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if line and not line.startswith("#"):
+            relatives.add(R1_DIR + "/" + line.split(None, 1)[1].strip())
+    relatives.add(FRAME_SAMPLE_REL)
+    return sorted(relatives)
+
+
+@pytest.fixture()
+def owner_copy(tmp_path):
+    root = tmp_path / "owner"
+    root.mkdir()
+    for rel in owner_copy_files():
+        target = root / rel
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes((ROOT / rel).read_bytes())
+    state = {"root": root}
+    state["d0_manifest_sha256"] = sha256(root / D0_DIR / "PAYLOAD_MANIFEST.sha256")
+    return state
+
+
+def refresh_owner_fences(state: dict, rels=()) -> None:
+    root = state["root"]
+    spec_path = root / D0_DIR / "spec-manifest.json"
+    spec = json.loads(spec_path.read_text(encoding="utf-8"))
+    for rel in rels:
+        spec["files"][rel] = sha256(root / rel)
+    write_json(spec_path, spec)
+    state["d0_manifest_sha256"] = regenerate_d0_manifest(root)
+
+
+def run_owner_copy(state: dict, extra=None):
+    return run_checker(state["root"], state["d0_manifest_sha256"], extra)
+
+
+def test_real_owner_package_validates_read_only(owner_copy):
+    result = run_owner_copy(owner_copy)
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "RESULT: PASS" in result.stdout
+
+
+def test_real_owner_overlay_without_the_etag_is_rejected(owner_copy):
+    overlay = load(owner_copy["root"], OVERLAY_REL)
+    del overlay["add_paths"]["/api/v1/scenes/{id}"]["get"]["responses"]["200"]["headers"]
+    save(owner_copy["root"], OVERLAY_REL, overlay)
+    refresh_owner_fences(owner_copy, [OVERLAY_REL])
+    expect_failure(run_owner_copy(owner_copy), "E_ETAG_MISSING")
+
+
+def test_real_owner_overlay_with_a_weak_etag_pattern_is_rejected(owner_copy):
+    overlay = load(owner_copy["root"], OVERLAY_REL)
+    overlay["add_response_headers"]["/api/v1/scenes/{id}"]["put"]["200"]["ETag"]["schema"]["pattern"] = ".*"
+    save(owner_copy["root"], OVERLAY_REL, overlay)
+    refresh_owner_fences(owner_copy, [OVERLAY_REL])
+    expect_failure(run_owner_copy(owner_copy), "E_ETAG_FORMAT")
+
+
+def test_real_owner_contract_without_the_new_scene_get_is_rejected(owner_copy):
+    contract = load(owner_copy["root"], "plans/v1-multishot-contract.json")
+    contract["additive_operations"] = [
+        entry for entry in contract["additive_operations"]
+        if not (entry["path"] == "/api/v1/scenes/{id}" and entry["method"] == "GET")
+    ]
+    save(owner_copy["root"], "plans/v1-multishot-contract.json", contract)
+    refresh_owner_fences(owner_copy, ["plans/v1-multishot-contract.json"])
+    expect_failure(run_owner_copy(owner_copy), "E_ADDITIVE_OPERATIONS")
+
+
+def test_real_owner_overlay_without_a_reuse_annotation_is_rejected(owner_copy):
+    overlay = load(owner_copy["root"], OVERLAY_REL)
+    del overlay["metadata_only"]["/api/v1/jobs/{id}/cancel"]
+    save(owner_copy["root"], OVERLAY_REL, overlay)
+    refresh_owner_fences(owner_copy, [OVERLAY_REL])
+    expect_failure(run_owner_copy(owner_copy), "E_REUSE_METADATA")
+
+
+def test_real_owner_schema_with_the_null_branch_is_rejected(owner_copy):
+    schema = load(owner_copy["root"], "contracts/v1-multishot.schema.json")
+    schema["$defs"]["ShotFrameRef"]["properties"]["time_base_num"] = {
+        "anyOf": [{"type": "integer", "minimum": 1}, {"type": "null"}],
+        "type": "integer",
+    }
+    save(owner_copy["root"], "contracts/v1-multishot.schema.json", schema)
+    refresh_owner_fences(owner_copy, ["contracts/v1-multishot.schema.json"])
+    expect_failure(run_owner_copy(owner_copy), "E_FRAME_REF_CONSTRAINT")
+
+
+def test_real_owner_domain_example_must_match_its_own_rule(owner_copy):
+    contract = load(owner_copy["root"], "plans/v1-multishot-contract.json")
+    contract["canonical_domain_mapping"]["example"]["observation"][0] = (
+        '{"kind":"character","lang":"zh","ref":"actor1","text":"blue"}'
+    )
+    save(owner_copy["root"], "plans/v1-multishot-contract.json", contract)
+    refresh_owner_fences(owner_copy, ["plans/v1-multishot-contract.json"])
+    expect_failure(run_owner_copy(owner_copy), "E_DOMAIN_MAPPING")
+
+
+def test_real_owner_scene_hash_alias_drift_is_rejected(owner_copy):
+    contract = load(owner_copy["root"], "plans/v1-multishot-contract.json")
+    contract["scene_hash"]["column_mapping"]["time_base_den"] = "scene_revision.time_base_den"
+    save(owner_copy["root"], "plans/v1-multishot-contract.json", contract)
+    refresh_owner_fences(owner_copy, ["plans/v1-multishot-contract.json"])
+    expect_failure(run_owner_copy(owner_copy), "E_SCENE_HASH_MAPPING")
+
+
+def test_real_owner_merge_keeps_the_canonical_scene_put(owner_copy):
+    api = load(owner_copy["root"], "contracts/openapi.json")
+    before = json.dumps(api["paths"]["/api/v1/scenes/{id}"]["put"], sort_keys=True)
+    result = run_owner_copy(owner_copy)
+    assert result.returncode == 0, result.stdout + result.stderr
+    after = json.dumps(load(owner_copy["root"], "contracts/openapi.json")["paths"]["/api/v1/scenes/{id}"]["put"], sort_keys=True)
+    assert before == after

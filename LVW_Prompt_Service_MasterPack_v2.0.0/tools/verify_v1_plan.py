@@ -15,6 +15,26 @@ The tool is stdlib-only. ``jsonschema`` is used for metaschema validation and
 for the candidate-instance probe when it happens to be importable, but the tool
 never requires that extra install: a structural fallback check always runs.
 
+Design 1.1.1 re-freeze (owner authority ``743e028``, adjudication
+``design111-adjudication.json``): the six independent-review minors N1-N6 that
+the owner corrected in the design text are now *checked* here:
+
+  * N1 the strong ETag is machine declared on the new Scene GETs and on the
+    existing Scene PUT 200, and the strict merge rule is replayed;
+  * N2 the machine contract's ``additive_paths``/``additive_operations`` must
+    match the overlay exactly, including the new GET on the existing Scene
+    path;
+  * N3 every reuse path/method carries an allowlisted ``x-`` annotation;
+  * N4 the per-shot frame reference carries real integer PTS and positive
+    timebases without an unreachable null branch;
+  * N5 the bilingual -> canonical domain conversion is pinned by the machine
+    contract and recomputed from its own example;
+  * N6 the scene hash field names are bound to the DDL column aliases.
+
+The N1-N6 corrections are *owner* corrections that are still pending an
+independent recheck; this tool never records them as accepted, never claims a
+product gate and never claims a human signature.
+
 Design 1.1 re-freeze (root adjudication ``design11-adjudication.json``):
   * the D0 packet manifest pin below is re-frozen to the owner manifest that
     the root authority supplied for the 1.1 packet;
@@ -28,6 +48,7 @@ Design 1.1 re-freeze (root adjudication ``design11-adjudication.json``):
 from __future__ import annotations
 
 import argparse
+import copy
 import hashlib
 import json
 import math
@@ -193,7 +214,13 @@ FROZEN_D0_PACKET_FILES = (
 # re-frozen to that supplied digest *in the same commit as the 1.1 code
 # changes*; the owner hashes themselves are not regenerated to make a check
 # pass.
-FROZEN_D0_PACKET_MANIFEST_SHA256 = "56e6f07b72023928b32ed7350b78f9d1d148daf79108daffecb7d9a175e39c4a"
+#
+# design 1.1.1 re-freeze: the owner authority 743e028 sealed the V1 D0 1.1.1
+# packet (24 file spec fence + the 10 file D0 payload inventory) and supplied
+# the new payload manifest digest. This constant is re-frozen to that supplied
+# digest *in the same commit as the 1.1.1 code changes*. The owner hashes are
+# never regenerated to make a check pass.
+FROZEN_D0_PACKET_MANIFEST_SHA256 = "04d3bfb4af3c2d7be68e494a6d59624a96051a0ebf28e81d6a0367aa32aa6710"
 # Only this stage display name may be accounted against the R2 authority stage.
 ALLOWED_AUTHORIZATION_MAP = {"V1-M1": "R2"}
 FROZEN_GLOBAL_AUTHORITY = "AUTH-PROGRAM-V1-COMPLETE-03"
@@ -220,23 +247,44 @@ HUMAN_SIGNATURE_KEYS = (
     "signer",
 )
 
-# Authority inputs that the owner spec manifest must fence (design 1.1).
+# Authority inputs that the owner spec manifest must fence (design 1.1.1).
+#
+# design 1.1.1: the owner spec manifest is a closed inventory of exactly 24
+# files. A file that is missing from the inventory, or a file that is fenced
+# but not part of the frozen inventory, is a finding: the fence must not be
+# able to grow or shrink without the source-control pinned D0 payload
+# manifest digest changing.
 FROZEN_SPEC_FENCE_FILES = (
+    "docs/17_DATA_AND_VERSIONING.md",
+    "docs/20_RELIABILITY_AND_OPERATIONS.md",
     "docs/30_V1_REVISED_EXECUTION_PLAN.md",
     "docs/31_V1_DETAILED_ARCHITECTURE_AND_CONTRACTS.md",
     "docs/32_V1_ACCEPTANCE_AND_AGENT_WORKFLOW.md",
     "plans/v1-revised-plan.json",
     "plans/v1-multishot-contract.json",
     "plans/v1-multishot-sample-design.json",
+    "plans/requirements.json",
+    "plans/tasks.json",
+    "plans/acceptance_cases.json",
+    "plans/release_gates.json",
+    "plans/execution-control.json",
     "contracts/openapi.json",
     "contracts/lvw.schema.json",
     "contracts/storage.sql",
     "contracts/v1-multishot.schema.json",
     "contracts/v1-multishot-migration.sql",
     "contracts/v1-multishot.openapi-overlay.json",
+    "reports/v1-redesign/product-change-approval.json",
+    "reports/v1-redesign/legacy-gates-before-change.json",
     "reports/v1-redesign/design11-adjudication.json",
+    "reports/v1-redesign/design111-adjudication.json",
     ".agent-governance/stages/R1/PAYLOAD_MANIFEST.sha256",
 )
+# The inventory is closed: the owner manifest fences exactly this many files.
+FROZEN_SPEC_FENCE_COUNT = 24
+# The owner manifest states its own kind; a manifest that claims a product
+# gate would be a forged authority record.
+FROZEN_SPEC_MANIFEST_KIND = "D0_AUTHORITY_DESIGN111_CANDIDATE_HASH_FENCE_NOT_PRODUCT_GATE0"
 
 # Declared candidate artefacts (path -> frozen relative location).
 FROZEN_ARTIFACT_PATHS = {
@@ -316,6 +364,156 @@ FROZEN_BATCH_MODES = (
 
 # The candidate SQL must not be able to reach outside its own database.
 FROZEN_SQL_FORBIDDEN_TOKENS = ("ATTACH", "DROP TABLE", "DROP COLUMN")
+
+# --------------------------------------------------------------------------
+# Design 1.1.1 frozen expectations (owner authority 743e028, minors N1-N6).
+#
+# These values are review visible and are *not* derived from the candidate:
+# the candidate is compared against them. The six corrections below are owner
+# corrections that still await an independent recheck; the checker only proves
+# that the correction is present and self consistent, it never accepts it.
+# --------------------------------------------------------------------------
+
+# N2: the additive surface of the overlay. The new GET on the *existing*
+# Scene path is part of the surface, so the surface is frozen per
+# (path, method) and not per path name.
+FROZEN_ADDITIVE_OPERATIONS = (
+    ("/api/v1/jobs/shot-batches", "post"),
+    ("/api/v1/scenes/{id}", "get"),
+    ("/api/v1/scenes/{id}/revision-info", "get"),
+    ("/api/v1/jobs/{id}/children", "get"),
+    ("/api/v1/shots/{id}/scene-binding", "get"),
+    ("/api/v1/shots/{id}/scene-binding", "put"),
+    ("/api/v1/shots/{id}/analyses/{run_id}/evidence", "get"),
+    ("/api/v1/shots/{id}/analyses/{run_id}/adopt", "post"),
+)
+FROZEN_ADDITIVE_PATHS = tuple(sorted({path for path, _method in FROZEN_ADDITIVE_OPERATIONS}))
+
+# N3: the reuse paths and the method level annotations that may promote them.
+# Only these two metadata keys may be added, and only these values.
+FROZEN_REUSE_METHODS = (
+    ("/api/v1/scenes/detect", ("post",)),
+    ("/api/v1/scenes", ("get",)),
+    ("/api/v1/scenes/{id}", ("put",)),
+    ("/api/v1/shots", ("post",)),
+    ("/api/v1/shots/{id}", ("get", "put")),
+    ("/api/v1/jobs/{id}", ("get",)),
+    ("/api/v1/jobs/{id}/cancel", ("post",)),
+)
+FROZEN_REUSE_PATHS = tuple(sorted(path for path, _methods in FROZEN_REUSE_METHODS))
+FROZEN_METADATA_KEYS = ("x-v1-profile", "x-v2-semantics-unchanged")
+FROZEN_V1_PROFILE_VALUE = "local-shot-v1"
+
+# N1: the strong ETag. The header object is machine declared on the new
+# Scene GETs and on the existing Scene PUT 200, and the format is frozen so
+# that a weak tag or an unhashed tag can not slip through.
+FROZEN_ETAG_HEADER_NAME = "ETag"
+FROZEN_ETAG_PATTERN = '^\"scene:[^\":]+:[0-9a-f]{64}\"$'
+# The new GET operations that must declare the ETag in their own 200 response.
+FROZEN_ETAG_GET_TARGETS = (
+    ("/api/v1/scenes/{id}", "get"),
+    ("/api/v1/scenes/{id}/revision-info", "get"),
+)
+# The existing operation that receives the same header through
+# add_response_headers.
+FROZEN_ETAG_HEADER_TARGETS = (("/api/v1/scenes/{id}", "put"),)
+FROZEN_ETAG_STATUS = "200"
+# Only this response header may be added to an existing operation.
+FROZEN_ALLOWED_RESPONSE_HEADERS = ("ETag",)
+
+# N4: the per-shot frame reference carries real decoded PTS and positive
+# timebases; an unreachable null branch is a defect, not a feature.
+FROZEN_FRAME_REF_PTS_FIELDS = ("source_pts", "time_base_num", "time_base_den")
+FROZEN_TIMEBASE_MINIMUM = 1
+
+# N5: the bilingual evidence -> canonical domain conversion.
+FROZEN_DOMAIN_LANGUAGES = ("zh", "en")
+FROZEN_DOMAIN_ENTRY_KEYS = ("kind", "ref", "lang", "text")
+FROZEN_DOMAIN_REFS = {
+    "character": "local_actor_id",
+    "scene": "scene",
+    "action": "decimal original zero-based action array index",
+    "unknown": "decimal original zero-based unknowns array index",
+}
+FROZEN_DOMAIN_SOURCE_FIELDS = {
+    "character": "visible_appearance",
+    "scene": "description",
+    "action": "description",
+    "unknown": "unknowns item",
+}
+# The pinned wording of the ordering / serialization / human domain rules.
+FROZEN_DOMAIN_ITEM_ORDER_TOKENS = (
+    "local_actor_id",
+    "unicode",
+    "zero-based",
+    "original",
+    "observation",
+    "inference",
+)
+FROZEN_DOMAIN_SERIALIZATION_TOKENS = (
+    "compact",
+    "utf-8",
+    "sorted keys",
+    "ensure_ascii=false",
+    "allow_nan=false",
+    "kind",
+    "ref",
+    "lang",
+    "text",
+    "no translation",
+    "trim",
+    "deduplication",
+    "byte-for-byte",
+)
+FROZEN_DOMAIN_HUMAN_TOKENS = (
+    "user_evidence",
+    "creative_intent",
+    "adoption",
+    "locks",
+)
+FROZEN_DOMAIN_UNKNOWN_TOKENS = ("original", "zh", "en", "unknowns")
+FROZEN_DOMAIN_PROMPT_TOKENS = ("summary.zh", "text_zh", "summary.en", "text_en")
+
+# N6: the hashed field names and their DDL column aliases.
+FROZEN_SCENE_HASH_FIELDS = (
+    "media_ref_id",
+    "media_sha256",
+    "revision",
+    "start_pts",
+    "end_pts",
+    "origin_pts",
+    "time_base_num",
+    "time_base_den",
+    "editor",
+    "time_basis",
+    "verified",
+)
+FROZEN_SCENE_HASH_COLUMN_ALIASES = {
+    "time_base_num": "scene_revision.tb_num",
+    "time_base_den": "scene_revision.tb_den",
+}
+FROZEN_SCENE_HASH_REVISION_ALIAS = "scene_revision.version"
+FROZEN_SCENE_HASH_VERIFIED_TOKENS = ("0/1", "false", "true")
+FROZEN_SCENE_HASH_SERIALIZATION_TOKENS = (
+    "field names",
+    "integers",
+    "bool",
+    "no extra keys",
+)
+# The hashed field names must be the JSON keys, never the SQL aliases.
+FROZEN_SCENE_HASH_ALIAS_AS_KEY = ("tb_num", "tb_den")
+
+# The 1.1.1 owner adjudication. The N1-N6 corrections are recorded as
+# pending an independent recheck; a state that claims acceptance is a
+# forged closure.
+FROZEN_111_ADJUDICATION_KIND = "CODEX_OWNER_MINOR_CORRECTION_NOT_INDEPENDENT_ACCEPTANCE"
+FROZEN_111_FINDING_IDS = ("N1", "N2", "N3", "N4", "N5", "N6")
+FROZEN_111_PENDING_STATES = ("CORRECTED_PENDING_INDEPENDENT_RECHECK",)
+FROZEN_111_CLOSED_TOKENS = ("ACCEPTED", "CLOSED", "VERIFIED", "RESOLVED", "PASSED")
+
+# The product coordinate stays in the R1 human gate; the design package may
+# not move it.
+FROZEN_PRODUCT_COORDINATE = {"stage_id": "R1", "state": "WAIT_HUMAN"}
 
 
 class InputError(Exception):
@@ -1395,20 +1593,24 @@ def check_overlay_additive(ctx) -> None:
             elif name not in (ctx.base_openapi.get("components") or {}).get("schemas", {}):
                 report.add("E_OVERLAY_COMPONENT_UNKNOWN", "the overlay references %s, which is neither a candidate nor a canonical schema" % ref)
 
-    # Metadata annotations may only describe existing routes.
+    # Metadata annotations may only describe existing routes and existing
+    # methods. design 1.1.1: the flat prose map became a per method map, so
+    # the target of every annotation is now (path, method).
     metadata = overlay.get("metadata_only")
     if isinstance(metadata, dict):
-        for path, notes in sorted(metadata.items()):
+        for path, methods in sorted(metadata.items()):
             if path not in base_paths:
                 report.add("E_OVERLAY_METADATA_PATH", "the overlay annotates %s, which the canonical OpenAPI does not define" % path)
                 continue
-            if not isinstance(notes, dict):
-                report.add("E_OVERLAY_METADATA_PATH", "the overlay metadata for %s is not an object" % path)
+            if not isinstance(methods, dict) or not methods:
+                report.add("E_OVERLAY_METADATA_PATH", "the overlay metadata for %s is not a non-empty method map" % path)
                 continue
-            if notes.get("put_body_response_unchanged") is False:
-                report.add("E_OVERLAY_METADATA_REPLACES", "the overlay metadata for %s claims the existing body/response changed" % path)
-            if notes.get("v2_profiles_unchanged") is False:
-                report.add("E_OVERLAY_METADATA_REPLACES", "the overlay metadata for %s claims the V2 profiles changed" % path)
+            for method, keys in sorted(methods.items()):
+                if method not in (base_paths.get(path) or {}):
+                    report.add("E_OVERLAY_METADATA_PATH", "the overlay annotates %s %s, which the canonical OpenAPI does not define" % (method.upper(), path))
+                    continue
+                if not isinstance(keys, dict) or not keys:
+                    report.add("E_OVERLAY_METADATA_PATH", "the overlay metadata for %s %s is not a non-empty object" % (method.upper(), path))
 
 
 def collect_refs(node):
@@ -1424,6 +1626,543 @@ def collect_refs(node):
         for item in node:
             refs.extend(collect_refs(item))
     return refs
+
+
+def check_additive_surface(ctx) -> None:
+    """N2: the machine contract and the overlay must declare the same surface.
+
+    The surface is compared per (path, method): the new GET on the *existing*
+    Scene path is part of the additive surface and would be invisible to a
+    path-name only comparison.
+    """
+    report = ctx.report
+    contract = ctx.contract
+    overlay = ctx.overlay
+    add_paths = overlay.get("add_paths")
+    if not isinstance(add_paths, dict) or not add_paths:
+        report.add("E_INPUT_SHAPE", "the overlay has no add_paths object")
+        return
+    overlay_operations = []
+    for path, operations in sorted(add_paths.items()):
+        if not isinstance(operations, dict):
+            continue
+        for method in sorted(operations):
+            overlay_operations.append((path, str(method).lower()))
+    if sorted(overlay_operations) != sorted(FROZEN_ADDITIVE_OPERATIONS):
+        report.add(
+            "E_ADDITIVE_SURFACE",
+            "the overlay additive surface %s differs from the frozen additive surface %s"
+            % (sorted(overlay_operations), sorted(FROZEN_ADDITIVE_OPERATIONS)),
+        )
+
+    declared_paths = contract.get("additive_paths")
+    if not isinstance(declared_paths, list) or not all(isinstance(item, str) for item in declared_paths):
+        report.add("E_ADDITIVE_PATHS", "the contract additive_paths must be a list of strings")
+    else:
+        if len(set(declared_paths)) != len(declared_paths):
+            report.add("E_ADDITIVE_PATHS", "the contract additive_paths lists a path twice")
+        if sorted(declared_paths) != sorted(add_paths.keys()):
+            report.add(
+                "E_ADDITIVE_PATHS",
+                "the contract additive_paths %s does not match the overlay add_paths %s"
+                % (sorted(declared_paths), sorted(add_paths.keys())),
+            )
+        if sorted(declared_paths) != sorted(FROZEN_ADDITIVE_PATHS):
+            report.add(
+                "E_ADDITIVE_PATHS",
+                "the contract additive_paths %s differs from the frozen additive path set %s"
+                % (sorted(declared_paths), sorted(FROZEN_ADDITIVE_PATHS)),
+            )
+
+    declared_operations = contract.get("additive_operations")
+    if not isinstance(declared_operations, list) or not declared_operations:
+        report.add("E_ADDITIVE_OPERATIONS", "the contract declares no additive_operations list")
+        return
+    contract_operations = []
+    for entry in declared_operations:
+        if not isinstance(entry, dict):
+            report.add("E_ADDITIVE_OPERATIONS", "the contract additive_operations holds a non-object entry")
+            continue
+        path = entry.get("path")
+        method = entry.get("method")
+        if not isinstance(path, str) or not isinstance(method, str):
+            report.add("E_ADDITIVE_OPERATIONS", "the contract additive_operations entry %r lacks a string path/method" % (entry,))
+            continue
+        contract_operations.append((path, method.lower()))
+    if len(set(contract_operations)) != len(contract_operations):
+        report.add("E_ADDITIVE_OPERATIONS", "the contract additive_operations lists the same path/method twice")
+    if sorted(contract_operations) != sorted(overlay_operations):
+        report.add(
+            "E_ADDITIVE_OPERATIONS",
+            "the contract additive_operations %s does not match the overlay surface %s"
+            % (sorted(contract_operations), sorted(overlay_operations)),
+        )
+
+
+def check_reuse_annotations(ctx) -> None:
+    """N3: every reuse path/method carries an allowlisted V1 annotation."""
+    report = ctx.report
+    base_paths = ctx.base_openapi.get("paths") or {}
+    contract_paths = ctx.contract.get("reuse_paths")
+    if not isinstance(contract_paths, list) or not all(isinstance(item, str) for item in contract_paths):
+        report.add("E_REUSE_PATHS", "the contract reuse_paths must be a list of strings")
+    else:
+        if len(set(contract_paths)) != len(contract_paths):
+            report.add("E_REUSE_PATHS", "the contract reuse_paths lists a path twice")
+        if sorted(contract_paths) != sorted(FROZEN_REUSE_PATHS):
+            report.add(
+                "E_REUSE_PATHS",
+                "the contract reuse_paths %s differs from the frozen reuse paths %s"
+                % (sorted(contract_paths), sorted(FROZEN_REUSE_PATHS)),
+            )
+    metadata = ctx.overlay.get("metadata_only")
+    if not isinstance(metadata, dict):
+        report.add("E_REUSE_METADATA", "the overlay declares no metadata_only object")
+        return
+    if sorted(metadata.keys()) != sorted(FROZEN_REUSE_PATHS):
+        report.add(
+            "E_REUSE_METADATA",
+            "the overlay annotates %s, the frozen reuse paths are %s"
+            % (sorted(metadata.keys()), sorted(FROZEN_REUSE_PATHS)),
+        )
+    expected_methods = dict(FROZEN_REUSE_METHODS)
+    for path in sorted(FROZEN_REUSE_PATHS):
+        methods = metadata.get(path)
+        if not isinstance(methods, dict):
+            report.add("E_REUSE_METADATA", "the overlay does not annotate the reuse path %s" % path)
+            continue
+        wanted = sorted(expected_methods.get(path, ()))
+        if sorted(methods.keys()) != wanted:
+            report.add(
+                "E_REUSE_METADATA",
+                "the overlay annotates %s %s, the frozen annotation set is %s"
+                % (path, sorted(methods.keys()), wanted),
+            )
+        for method in sorted(methods.keys()):
+            keys = methods[method]
+            base_operation = (base_paths.get(path) or {}).get(method)
+            if base_operation is None:
+                report.add(
+                    "E_REUSE_METADATA",
+                    "the overlay annotates %s %s, which the canonical OpenAPI does not define"
+                    % (str(method).upper(), path),
+                )
+                continue
+            if not isinstance(keys, dict) or not keys:
+                report.add("E_REUSE_METADATA", "the overlay metadata for %s %s is empty" % (str(method).upper(), path))
+                continue
+            for key in sorted(keys.keys()):
+                if key not in FROZEN_METADATA_KEYS:
+                    report.add(
+                        "E_OVERLAY_METADATA_KEY",
+                        "the overlay metadata for %s %s carries the unauthorized key %r; only %s may be added"
+                        % (str(method).upper(), path, key, list(FROZEN_METADATA_KEYS)),
+                    )
+                    continue
+                if key in base_operation:
+                    report.add(
+                        "E_OVERLAY_METADATA_COLLISION",
+                        "the overlay metadata for %s %s would replace the existing key %r"
+                        % (str(method).upper(), path, key),
+                    )
+                if key == "x-v1-profile" and keys[key] != FROZEN_V1_PROFILE_VALUE:
+                    report.add(
+                        "E_OVERLAY_METADATA_VALUE",
+                        "the overlay metadata for %s %s declares x-v1-profile=%r, the frozen profile is %r"
+                        % (str(method).upper(), path, keys[key], FROZEN_V1_PROFILE_VALUE),
+                    )
+                if key == "x-v2-semantics-unchanged" and keys[key] is not True:
+                    report.add(
+                        "E_OVERLAY_METADATA_VALUE",
+                        "the overlay metadata for %s %s declares x-v2-semantics-unchanged=%r, it must stay true"
+                        % (str(method).upper(), path, keys[key]),
+                    )
+
+
+def check_etag_header_object(report: Report, header, label: str) -> None:
+    """A machine declared ETag: string schema, frozen strong tag format."""
+    if not isinstance(header, dict):
+        report.add("E_ETAG_MISSING", "the %s does not declare the %s response header" % (label, FROZEN_ETAG_HEADER_NAME))
+        return
+    schema = header.get("schema")
+    if not isinstance(schema, dict):
+        report.add("E_ETAG_SCHEMA", "the %s %s header carries no schema" % (label, FROZEN_ETAG_HEADER_NAME))
+        return
+    if schema.get("type") != "string":
+        report.add("E_ETAG_SCHEMA", "the %s %s header schema type is %r, it must be string" % (label, FROZEN_ETAG_HEADER_NAME, schema.get("type")))
+    if header.get("required") is not True:
+        report.add("E_ETAG_SCHEMA", "the %s %s header must be required" % (label, FROZEN_ETAG_HEADER_NAME))
+    pattern = schema.get("pattern")
+    if not isinstance(pattern, str):
+        report.add("E_ETAG_FORMAT", "the %s %s header carries no pattern" % (label, FROZEN_ETAG_HEADER_NAME))
+        return
+    if pattern != FROZEN_ETAG_PATTERN:
+        report.add(
+            "E_ETAG_FORMAT",
+            "the %s %s pattern %r differs from the frozen strong tag pattern %r"
+            % (label, FROZEN_ETAG_HEADER_NAME, pattern, FROZEN_ETAG_PATTERN),
+        )
+    strong = '"scene:revision-1:%s"' % ("a" * 64)
+    weak = 'W/"scene:revision-1:%s"' % ("a" * 64)
+    try:
+        accepts_strong = bool(re.search(pattern, strong))
+        accepts_weak = bool(re.search(pattern, weak))
+    except re.error:
+        report.add("E_ETAG_FORMAT", "the %s %s pattern is not a valid regular expression" % (label, FROZEN_ETAG_HEADER_NAME))
+        return
+    if not accepts_strong:
+        report.add("E_ETAG_FORMAT", "the %s %s pattern does not accept a strong ETag" % (label, FROZEN_ETAG_HEADER_NAME))
+    if accepts_weak:
+        report.add("E_ETAG_WEAK", "the %s %s pattern still accepts a weak ETag" % (label, FROZEN_ETAG_HEADER_NAME))
+
+
+def check_etag_declaration(ctx) -> None:
+    """N1: the strong ETag is machine declared, on the new GETs and on PUT 200."""
+    report = ctx.report
+    overlay = ctx.overlay
+    add_paths = overlay.get("add_paths") or {}
+    for path, method in FROZEN_ETAG_GET_TARGETS:
+        operation = (add_paths.get(path) or {}).get(method)
+        if not isinstance(operation, dict):
+            report.add("E_ETAG_MISSING", "the overlay does not add %s %s, so the strong ETag cannot be declared" % (method.upper(), path))
+            continue
+        headers = (((operation.get("responses") or {}).get(FROZEN_ETAG_STATUS) or {}).get("headers") or {})
+        check_etag_header_object(report, headers.get(FROZEN_ETAG_HEADER_NAME), "%s %s %s" % (method.upper(), path, FROZEN_ETAG_STATUS))
+    add_headers = overlay.get("add_response_headers")
+    if not isinstance(add_headers, dict) or not add_headers:
+        report.add("E_ETAG_MISSING", "the overlay declares no add_response_headers, so the existing Scene PUT 200 can not carry the ETag")
+        return
+    for path, method in FROZEN_ETAG_HEADER_TARGETS:
+        statuses = (add_headers.get(path) or {}).get(method)
+        if not isinstance(statuses, dict):
+            report.add("E_ETAG_MISSING", "the overlay does not add the ETag to the existing %s %s" % (method.upper(), path))
+            continue
+        header = (statuses.get(FROZEN_ETAG_STATUS) or {}).get(FROZEN_ETAG_HEADER_NAME)
+        check_etag_header_object(report, header, "%s %s %s" % (method.upper(), path, FROZEN_ETAG_STATUS))
+
+
+def strip_allowed_additions(operation, metadata_keys, added_headers):
+    """Undo the allowlisted overlay additions on a merged operation copy."""
+    stripped = copy.deepcopy(operation)
+    for key in metadata_keys:
+        stripped.pop(key, None)
+    for status, names in added_headers.items():
+        response = (stripped.get("responses") or {}).get(status)
+        if not isinstance(response, dict):
+            continue
+        headers = response.get("headers")
+        if not isinstance(headers, dict):
+            continue
+        for name in names:
+            headers.pop(name, None)
+        if not headers:
+            response.pop("headers", None)
+    return stripped
+
+
+def check_overlay_merge(ctx) -> None:
+    """N1: replay the strict merge rule over the canonical document.
+
+    The merge may only add: new methods, the two allowlisted ``x-`` keys and
+    the allowlisted response header. Everything else - the request body, the
+    parameters, the status codes, ``x-product-version`` and the V2 route
+    semantics - must stay byte identical. A missing target, a key collision
+    or any other mutation aborts the merge.
+    """
+    report = ctx.report
+    base = ctx.base_openapi
+    overlay = ctx.overlay
+    base_paths = base.get("paths") or {}
+    merged = copy.deepcopy(base)
+    merged.setdefault("paths", {})
+
+    add_paths = overlay.get("add_paths")
+    if not isinstance(add_paths, dict):
+        report.add("E_INPUT_SHAPE", "the overlay has no add_paths object")
+        return
+    for path, operations in sorted(add_paths.items()):
+        for method, operation in sorted(operations.items()):
+            if method in (merged["paths"].get(path) or {}):
+                report.add("E_OVERLAY_REPLACES_METHOD", "the overlay defines %s %s, which the canonical OpenAPI already defines" % (str(method).upper(), path))
+                continue
+            merged["paths"].setdefault(path, {})[method] = copy.deepcopy(operation)
+
+    metadata = overlay.get("metadata_only") or {}
+    added_meta = {}
+    for path, methods in sorted(metadata.items()):
+        for method, keys in sorted((methods or {}).items()):
+            target = (merged["paths"].get(path) or {}).get(method)
+            if target is None:
+                report.add("E_OVERLAY_METADATA_TARGET_MISSING", "the overlay annotates %s %s, which does not exist in the merged document" % (str(method).upper(), path))
+                continue
+            if not isinstance(keys, dict):
+                report.add("E_OVERLAY_METADATA_KEY", "the overlay metadata for %s %s is not an object" % (str(method).upper(), path))
+                continue
+            for key in sorted(keys.keys()):
+                if key not in FROZEN_METADATA_KEYS:
+                    report.add("E_OVERLAY_METADATA_KEY", "the overlay metadata for %s %s carries the unauthorized key %r" % (str(method).upper(), path, key))
+                    continue
+                if key in target:
+                    report.add("E_OVERLAY_METADATA_COLLISION", "the overlay metadata for %s %s collides with the existing key %r" % (str(method).upper(), path, key))
+                    continue
+                target[key] = copy.deepcopy(keys[key])
+                added_meta.setdefault((path, method), []).append(key)
+
+    add_headers = overlay.get("add_response_headers") or {}
+    added_headers = {}
+    for path, methods in sorted(add_headers.items()):
+        for method, statuses in sorted((methods or {}).items()):
+            target = (merged["paths"].get(path) or {}).get(method)
+            if target is None:
+                report.add("E_OVERLAY_HEADER_TARGET_MISSING", "the overlay adds a response header to %s %s, which does not exist in the merged document" % (str(method).upper(), path))
+                continue
+            for status, headers in sorted((statuses or {}).items()):
+                response = ((target.get("responses") or {}).get(status))
+                if not isinstance(response, dict):
+                    report.add("E_OVERLAY_HEADER_TARGET_MISSING", "the overlay adds a response header to %s %s %s, which does not exist" % (str(method).upper(), path, status))
+                    continue
+                if not isinstance(headers, dict):
+                    report.add("E_OVERLAY_HEADER_NOT_ALLOWED", "the overlay response headers for %s %s %s are not an object" % (str(method).upper(), path, status))
+                    continue
+                existing = response.get("headers") if isinstance(response.get("headers"), dict) else {}
+                for name in sorted(headers.keys()):
+                    if name not in FROZEN_ALLOWED_RESPONSE_HEADERS:
+                        report.add("E_OVERLAY_HEADER_NOT_ALLOWED", "the overlay adds the unauthorized response header %r to %s %s %s" % (name, str(method).upper(), path, status))
+                        continue
+                    if name in existing:
+                        report.add("E_OVERLAY_HEADER_COLLISION", "the overlay response header %r collides with the existing header of %s %s %s" % (name, str(method).upper(), path, status))
+                        continue
+                    response.setdefault("headers", {})[name] = copy.deepcopy(headers[name])
+                    added_headers.setdefault((path, method), {}).setdefault(status, []).append(name)
+
+    # Every canonical operation must survive the merge unchanged, apart from
+    # the allowlisted additions that the merge actually applied.
+    for path, operations in sorted(base_paths.items()):
+        for method, operation in sorted(operations.items()):
+            merged_operation = (merged["paths"].get(path) or {}).get(method)
+            if merged_operation is None:
+                report.add("E_OVERLAY_BASE_MUTATED", "the merge dropped the canonical operation %s %s" % (str(method).upper(), path))
+                continue
+            metadata_keys = added_meta.get((path, method), [])
+            added = added_headers.get((path, method), {})
+            stripped = strip_allowed_additions(merged_operation, metadata_keys, added)
+            if stripped != operation:
+                report.add("E_OVERLAY_BASE_MUTATED", "the merge changed the canonical operation %s %s outside the allowlisted additions" % (str(method).upper(), path))
+            if (operation.get("x-product-version") is not None) and (merged_operation.get("x-product-version") != operation.get("x-product-version")):
+                report.add("E_OVERLAY_BASE_MUTATED", "the merge changed x-product-version of %s %s" % (str(method).upper(), path))
+
+
+def check_frame_ref_integer_pins(ctx) -> None:
+    """N4: real integer PTS and positive timebases, without a dead null branch."""
+    report = ctx.report
+    defs = ctx.schema.get("$defs") or {}
+    reference = defs.get("ShotFrameRef")
+    if not isinstance(reference, dict):
+        report.add("E_FRAME_REF_CONSTRAINT", "the candidate schema has no ShotFrameRef DTO")
+        return
+    properties = reference.get("properties") or {}
+    for name in FROZEN_FRAME_REF_PTS_FIELDS:
+        prop = properties.get(name)
+        if not isinstance(prop, dict):
+            report.add("E_FRAME_REF_CONSTRAINT", "the candidate ShotFrameRef must declare %s" % name)
+            continue
+        if "anyOf" in prop or "oneOf" in prop:
+            report.add("E_FRAME_REF_CONSTRAINT", "the candidate ShotFrameRef.%s keeps an unreachable branch next to its own type" % name)
+        if prop.get("type") != "integer":
+            report.add("E_FRAME_REF_CONSTRAINT", "the candidate ShotFrameRef.%s must be a plain integer, found %r" % (name, prop.get("type")))
+        if allows_null(prop):
+            report.add("E_FRAME_REF_CONSTRAINT", "the candidate ShotFrameRef.%s must not accept null" % name)
+        if name != "source_pts" and prop.get("minimum") != FROZEN_TIMEBASE_MINIMUM:
+            report.add("E_FRAME_REF_CONSTRAINT", "the candidate ShotFrameRef.%s must keep the positive timebase minimum %d, found %r" % (name, FROZEN_TIMEBASE_MINIMUM, prop.get("minimum")))
+    for name, prop in sorted(properties.items()):
+        if not isinstance(prop, dict):
+            continue
+        branches = prop.get("anyOf")
+        if not isinstance(branches, list):
+            continue
+        declared = type_set(prop)
+        if declared is None or "null" in declared:
+            continue
+        if any(allows_null(branch) for branch in branches):
+            report.add("E_FRAME_REF_CONSTRAINT", "the candidate ShotFrameRef.%s keeps an unreachable null branch next to its own type" % name)
+
+
+def require_tokens(report: Report, text, tokens, code: str, label: str) -> None:
+    """Every pinned token must still be present in a frozen rule text."""
+    if not isinstance(text, str) or not text.strip():
+        report.add(code, "the %s rule is missing" % label)
+        return
+    lowered = text.lower()
+    for token in tokens:
+        if token.lower() not in lowered:
+            report.add(code, "the %s rule no longer states %r" % (label, token))
+
+
+def check_canonical_domain_mapping(ctx) -> None:
+    """N5: the bilingual -> canonical domain conversion is pinned and exact."""
+    report = ctx.report
+    mapping = ctx.contract.get("canonical_domain_mapping")
+    if not isinstance(mapping, dict):
+        report.add("E_DOMAIN_MAPPING", "the contract declares no canonical_domain_mapping")
+        return
+    languages = mapping.get("language_order")
+    if languages != list(FROZEN_DOMAIN_LANGUAGES):
+        report.add(
+            "E_DOMAIN_MAPPING",
+            "the canonical domain language order %r differs from the frozen order %r"
+            % (languages, list(FROZEN_DOMAIN_LANGUAGES)),
+        )
+    require_tokens(report, mapping.get("item_order"), FROZEN_DOMAIN_ITEM_ORDER_TOKENS, "E_DOMAIN_MAPPING", "canonical domain item order")
+    require_tokens(report, mapping.get("entry_serialization"), FROZEN_DOMAIN_SERIALIZATION_TOKENS, "E_DOMAIN_MAPPING", "canonical domain entry serialization")
+    require_tokens(report, mapping.get("unknowns"), FROZEN_DOMAIN_UNKNOWN_TOKENS, "E_DOMAIN_MAPPING", "canonical domain unknowns")
+    require_tokens(report, mapping.get("human_domains"), FROZEN_DOMAIN_HUMAN_TOKENS, "E_DOMAIN_MAPPING", "canonical domain human domains")
+    require_tokens(report, mapping.get("prompt_text"), FROZEN_DOMAIN_PROMPT_TOKENS, "E_DOMAIN_MAPPING", "canonical domain prompt text")
+    refs = mapping.get("refs")
+    if not isinstance(refs, dict):
+        report.add("E_DOMAIN_MAPPING", "the canonical domain mapping declares no refs object")
+    else:
+        for name, wanted in sorted(FROZEN_DOMAIN_REFS.items()):
+            if refs.get(name) != wanted:
+                report.add("E_DOMAIN_MAPPING", "the canonical domain ref for %s is %r, the frozen rule is %r" % (name, refs.get(name), wanted))
+    source_fields = mapping.get("source_fields")
+    if not isinstance(source_fields, dict):
+        report.add("E_DOMAIN_MAPPING", "the canonical domain mapping declares no source_fields object")
+    else:
+        for name, wanted in sorted(FROZEN_DOMAIN_SOURCE_FIELDS.items()):
+            if source_fields.get(name) != wanted:
+                report.add("E_DOMAIN_MAPPING", "the canonical domain source field for %s is %r, the frozen rule is %r" % (name, source_fields.get(name), wanted))
+
+    # The example must be the deterministic serialization of its own source.
+    example = mapping.get("example")
+    if not isinstance(example, dict):
+        report.add("E_DOMAIN_MAPPING", "the canonical domain mapping declares no example")
+        return
+    source = example.get("source")
+    observation = example.get("observation")
+    if not isinstance(source, dict) or not isinstance(observation, list):
+        report.add("E_DOMAIN_MAPPING", "the canonical domain example must carry a source object and an observation list")
+        return
+    ref_field = (refs or {}).get("character") if isinstance(refs, dict) else None
+    text_field = (source_fields or {}).get("character") if isinstance(source_fields, dict) else None
+    if not isinstance(ref_field, str) or not isinstance(text_field, str):
+        report.add("E_DOMAIN_MAPPING", "the canonical domain example can not be resolved through the declared refs/source_fields")
+        return
+    if ref_field not in source or text_field not in source:
+        report.add("E_DOMAIN_MAPPING", "the canonical domain example source does not carry the declared character ref/text fields")
+        return
+    values = source[text_field]
+    if not isinstance(values, dict):
+        report.add("E_DOMAIN_MAPPING", "the canonical domain example source text field is not a language map")
+        return
+    order = languages if isinstance(languages, list) else list(FROZEN_DOMAIN_LANGUAGES)
+    expected = []
+    for lang in order:
+        text = values.get(lang)
+        if not isinstance(text, str) or text == "":
+            continue
+        entry = {"kind": "character", "ref": source[ref_field], "lang": lang, "text": text}
+        expected.append(json.dumps(entry, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False))
+    if expected != observation:
+        report.add(
+            "E_DOMAIN_MAPPING",
+            "the canonical domain example entries %s do not match the deterministic serialization %s"
+            % (observation, expected),
+        )
+
+
+def check_scene_hash_column_mapping(ctx) -> None:
+    """N6: the hashed field names are bound to the DDL column aliases."""
+    report = ctx.report
+    scene_hash = ctx.contract.get("scene_hash")
+    if not isinstance(scene_hash, dict):
+        report.add("E_SCENE_HASH_MAPPING", "the contract declares no scene_hash object")
+        return
+    fields = scene_hash.get("fields")
+    if not isinstance(fields, list) or not all(isinstance(item, str) for item in fields):
+        report.add("E_SCENE_HASH_MAPPING", "the contract scene_hash.fields must be a list of strings")
+        fields = []
+    else:
+        if len(set(fields)) != len(fields):
+            report.add("E_SCENE_HASH_MAPPING", "the contract scene_hash.fields lists a field twice")
+        if sorted(fields) != sorted(FROZEN_SCENE_HASH_FIELDS):
+            report.add(
+                "E_SCENE_HASH_MAPPING",
+                "the contract scene_hash.fields %s differs from the frozen field set %s"
+                % (sorted(fields), sorted(FROZEN_SCENE_HASH_FIELDS)),
+            )
+    mapping = scene_hash.get("column_mapping")
+    if not isinstance(mapping, dict):
+        report.add("E_SCENE_HASH_MAPPING", "the contract scene_hash declares no column_mapping")
+        return
+    if sorted(mapping.keys()) != sorted(fields):
+        report.add(
+            "E_SCENE_HASH_MAPPING",
+            "the scene hash column mapping covers %s, the hashed fields are %s"
+            % (sorted(mapping.keys()), sorted(fields)),
+        )
+    for name, wanted in sorted(FROZEN_SCENE_HASH_COLUMN_ALIASES.items()):
+        if mapping.get(name) != wanted:
+            report.add("E_SCENE_HASH_MAPPING", "the scene hash column alias for %s is %r, the frozen alias is %r" % (name, mapping.get(name), wanted))
+    revision = mapping.get("revision")
+    if not isinstance(revision, str) or FROZEN_SCENE_HASH_REVISION_ALIAS not in revision:
+        report.add("E_SCENE_HASH_MAPPING", "the scene hash column alias for revision must name %s, found %r" % (FROZEN_SCENE_HASH_REVISION_ALIAS, revision))
+    verified = mapping.get("verified")
+    require_tokens(report, verified, FROZEN_SCENE_HASH_VERIFIED_TOKENS, "E_SCENE_HASH_MAPPING", "scene hash verified conversion")
+    for alias in FROZEN_SCENE_HASH_ALIAS_AS_KEY:
+        if alias in mapping:
+            report.add("E_SCENE_HASH_MAPPING", "the scene hash column mapping uses the SQL alias %r as a JSON key" % alias)
+    require_tokens(report, scene_hash.get("serialization_rule"), FROZEN_SCENE_HASH_SERIALIZATION_TOKENS, "E_SCENE_HASH_MAPPING", "scene hash serialization")
+    migration = ctx.migration_text.upper()
+    for name, alias in sorted(FROZEN_SCENE_HASH_COLUMN_ALIASES.items()):
+        column = alias.split(".")[-1].upper()
+        if column not in migration:
+            report.add("E_SCENE_HASH_MAPPING", "the candidate migration does not declare the %s column that the scene hash mapping binds" % column)
+
+
+def check_design111_adjudication(ctx) -> None:
+    """The owner corrections are not an independent acceptance."""
+    report = ctx.report
+    document = ctx.adjudication_111
+    if document.get("kind") != FROZEN_111_ADJUDICATION_KIND:
+        report.add("E_111_ADJUDICATION", "the 1.1.1 adjudication kind is %r, the frozen kind is %r" % (document.get("kind"), FROZEN_111_ADJUDICATION_KIND))
+    if document.get("product_gate0") is not False:
+        report.add("E_111_ADJUDICATION", "the 1.1.1 adjudication must keep product_gate0=false")
+    if document.get("sample_materialization") != "NOT_RUN":
+        report.add("E_111_ADJUDICATION", "the 1.1.1 adjudication must keep sample_materialization=NOT_RUN, found %r" % document.get("sample_materialization"))
+    original = document.get("original22")
+    if not isinstance(original, str) or "design" not in original.lower() or "not product acceptance" not in original.lower():
+        report.add("E_111_ADJUDICATION", "the 1.1.1 adjudication must state that the original 22 findings are resolved at design level only")
+    findings = document.get("findings")
+    if not isinstance(findings, list):
+        report.add("E_111_ADJUDICATION", "the 1.1.1 adjudication declares no findings list")
+        return
+    seen = {}
+    for entry in findings:
+        if not isinstance(entry, dict):
+            report.add("E_111_ADJUDICATION", "the 1.1.1 adjudication holds a non-object finding entry")
+            continue
+        seen[entry.get("id")] = entry.get("state")
+    if sorted(seen.keys()) != sorted(FROZEN_111_FINDING_IDS):
+        report.add("E_111_ADJUDICATION", "the 1.1.1 adjudication covers %s, the frozen finding set is %s" % (sorted(seen.keys()), sorted(FROZEN_111_FINDING_IDS)))
+    for finding_id in sorted(seen.keys()):
+        state = seen[finding_id]
+        if state not in FROZEN_111_PENDING_STATES:
+            report.add("E_111_ADJUDICATION", "the owner correction %s is recorded as %r; an owner correction is not an independent acceptance" % (finding_id, state))
+        elif any(token in str(state).upper() for token in FROZEN_111_CLOSED_TOKENS):
+            report.add("E_111_ADJUDICATION", "the owner correction %s claims a closed state %r" % (finding_id, state))
+
+
+def check_product_coordinate(ctx) -> None:
+    """The product coordinate stays in the R1 human gate."""
+    report = ctx.report
+    coordinate = ctx.execution_control.get("coordinate")
+    if not isinstance(coordinate, dict):
+        report.add("E_PRODUCT_COORDINATE", "plans/execution-control.json declares no coordinate object")
+        return
+    if coordinate.get("stage_id") != FROZEN_PRODUCT_COORDINATE["stage_id"]:
+        report.add("E_PRODUCT_COORDINATE", "the product coordinate stage is %r, the frozen coordinate stage is %r" % (coordinate.get("stage_id"), FROZEN_PRODUCT_COORDINATE["stage_id"]))
+    if coordinate.get("state") != FROZEN_PRODUCT_COORDINATE["state"]:
+        report.add("E_PRODUCT_COORDINATE", "the product coordinate state is %r, the frozen coordinate state is %r" % (coordinate.get("state"), FROZEN_PRODUCT_COORDINATE["state"]))
 
 
 def check_sample_design(ctx) -> None:
@@ -1659,15 +2398,28 @@ def check_d0_packet_integrity(ctx) -> None:
 
 
 def check_spec_fence(ctx) -> None:
-    """Every file frozen in the authority spec manifest must still hash the same."""
+    """Every file frozen in the authority spec manifest must still hash the same.
+
+    design 1.1.1: the fence is a closed inventory of exactly 24 files. A file
+    that is missing from the inventory, or a fenced file that is not part of
+    the frozen inventory, is a finding.
+    """
     report = ctx.report
     files = ctx.spec_manifest.get("files")
     if not isinstance(files, dict) or not files:
         report.add("E_INPUT_SHAPE", "spec-manifest.json: missing 'files' object")
         return
+    kind = ctx.spec_manifest.get("kind")
+    if kind != FROZEN_SPEC_MANIFEST_KIND:
+        report.add("E_SPEC_MANIFEST_KIND", "the authority spec manifest kind is %r, the frozen kind is %r" % (kind, FROZEN_SPEC_MANIFEST_KIND))
     for rel in FROZEN_SPEC_FENCE_FILES:
         if rel not in files:
             report.add("E_SPEC_FENCE_INCOMPLETE", "the authority spec manifest does not fence %s" % rel)
+    for rel in sorted(files):
+        if rel not in FROZEN_SPEC_FENCE_FILES:
+            report.add("E_SPEC_FENCE_EXTRA_ENTRY", "the authority spec manifest fences %s, which is not part of the frozen %d file inventory" % (rel, FROZEN_SPEC_FENCE_COUNT))
+    if len(files) != FROZEN_SPEC_FENCE_COUNT:
+        report.add("E_SPEC_FENCE_COUNT", "the authority spec manifest fences %d files, the frozen inventory holds %d" % (len(files), FROZEN_SPEC_FENCE_COUNT))
     for rel, expected in sorted(files.items()):
         actual = ctx.hashes.get(rel)
         if actual is None:
@@ -1721,6 +2473,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--migration", default="contracts/v1-multishot-migration.sql")
     parser.add_argument("--sample-design", default="plans/v1-multishot-sample-design.json")
     parser.add_argument("--adjudication", default="reports/v1-redesign/design11-adjudication.json")
+    parser.add_argument("--adjudication-111", default="reports/v1-redesign/design111-adjudication.json",
+                        help="the 1.1.1 owner adjudication (owner corrections, not an independent acceptance)")
     parser.add_argument("--frame-sample", default="reports/unified-media/live-15/video-model-run.json")
     parser.add_argument("--stage-control", default=".agent-governance/stages/V1-D0/stage-control.json")
     parser.add_argument("--spec-manifest", default=".agent-governance/stages/V1-D0/spec-manifest.json")
@@ -1757,6 +2511,7 @@ def main(argv=None) -> int:
         "overlay": args.overlay,
         "sample-design": args.sample_design,
         "adjudication": args.adjudication,
+        "adjudication-111": args.adjudication_111,
         "stage-control": args.stage_control,
         "spec-manifest": args.spec_manifest,
         "approval": args.approval,
@@ -1798,6 +2553,7 @@ def main(argv=None) -> int:
     ctx.migration_text = migration_text
     ctx.sample_design = documents["sample-design"]
     ctx.adjudication = documents["adjudication"]
+    ctx.adjudication_111 = documents["adjudication-111"]
     ctx.frame_sample = frame_sample
     ctx.stage_control = documents["stage-control"]
     ctx.spec_manifest = documents["spec-manifest"]
@@ -1879,7 +2635,16 @@ def main(argv=None) -> int:
     check_contract_and_schema(ctx)
     check_dto_contract_shape(ctx)
     check_canonical_compatibility(ctx)
+    check_frame_ref_integer_pins(ctx)
     check_overlay_additive(ctx)
+    check_additive_surface(ctx)
+    check_reuse_annotations(ctx)
+    check_etag_declaration(ctx)
+    check_overlay_merge(ctx)
+    check_canonical_domain_mapping(ctx)
+    check_scene_hash_column_mapping(ctx)
+    check_design111_adjudication(ctx)
+    check_product_coordinate(ctx)
     check_sample_design(ctx)
     check_candidate_artifacts(ctx)
     check_adjudication(ctx)
@@ -1908,6 +2673,21 @@ def main(argv=None) -> int:
             FROZEN_CHECKPOINT_INPUTS["controlled_actions_cap"],
             FROZEN_CHECKPOINT_INPUTS["model_actions_cap"],
             FROZEN_CHECKPOINT_INPUTS["wall_seconds"],
+        )
+    )
+    sys.stdout.write(
+        "NOTE: design 1.1.1 (N1-N6 owner corrections, still pending an independent recheck): "
+        "additive surface %d operations / %d paths; reuse annotations %d paths; "
+        "strong ETag declared on %d new GETs and %d existing operation; "
+        "spec fence %d files; D0 payload inventory %d files.\n"
+        % (
+            len(FROZEN_ADDITIVE_OPERATIONS),
+            len(FROZEN_ADDITIVE_PATHS),
+            len(FROZEN_REUSE_PATHS),
+            len(FROZEN_ETAG_GET_TARGETS),
+            len(FROZEN_ETAG_HEADER_TARGETS),
+            FROZEN_SPEC_FENCE_COUNT,
+            len(FROZEN_D0_PACKET_FILES),
         )
     )
     sys.stdout.write(
