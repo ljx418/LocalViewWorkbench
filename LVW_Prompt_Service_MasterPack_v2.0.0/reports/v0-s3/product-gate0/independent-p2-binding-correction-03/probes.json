@@ -1,0 +1,186 @@
+[
+  {
+    "kind": "reservation",
+    "cap": 774,
+    "charged": 0,
+    "partial_synthetic_bytes": 0,
+    "error": "budget metadata_hash_bytes",
+    "reservation": null
+  },
+  {
+    "kind": "reservation",
+    "cap": 775,
+    "charged": 0,
+    "partial_synthetic_bytes": 0,
+    "error": "budget metadata_hash_bytes",
+    "reservation": null
+  },
+  {
+    "kind": "reservation",
+    "cap": 776,
+    "charged": 775,
+    "partial_synthetic_bytes": 2,
+    "error": "[Errno 5] independent partial read",
+    "reservation": {
+      "mode": "CONSERVATIVE_NONREFUNDABLE_RESERVATION",
+      "unique_metadata_roles": 3,
+      "role_sizes": {
+        "windows_python": 7,
+        "wsl": 11,
+        "python": 13
+      },
+      "read_count_bounds": {
+        "windows_python": 1,
+        "wsl": 32,
+        "python": 32
+      },
+      "charged_bytes": 775,
+      "remaining_budget": 1,
+      "actual_digest_bytes": null,
+      "measurement": "NOT_MEASURED",
+      "call_table": [
+        [
+          "installed",
+          1,
+          1,
+          1
+        ],
+        [
+          "factory-normal",
+          0,
+          1,
+          2
+        ],
+        [
+          "factory-helper",
+          0,
+          1,
+          2
+        ],
+        [
+          "admission-normal",
+          0,
+          0,
+          1
+        ],
+        [
+          "admission-helper",
+          0,
+          0,
+          1
+        ],
+        [
+          "client-normal",
+          0,
+          1,
+          0
+        ],
+        [
+          "client-bad-binding",
+          0,
+          0,
+          0
+        ],
+        [
+          "client-helper",
+          0,
+          1,
+          0
+        ],
+        [
+          "client-timeout",
+          0,
+          1,
+          0
+        ],
+        [
+          "shim-normal-and-authority",
+          0,
+          2,
+          2
+        ],
+        [
+          "shim-timeout-and-authority",
+          0,
+          2,
+          2
+        ],
+        [
+          "helper-no-authority",
+          0,
+          0,
+          0
+        ]
+      ]
+    }
+  },
+  {
+    "kind": "observer",
+    "scenario": "eio",
+    "result": {
+      "samples": [],
+      "sampling_times": [],
+      "started_monotonic": 52823.874508084,
+      "sample_count": 0,
+      "max_interval": 0,
+      "elapsed": 0.000495806998515036,
+      "error": "OSError: [Errno 5] synthetic I/O failure",
+      "joined": true,
+      "entered": [],
+      "identities": {},
+      "absence_counts": {},
+      "deadline_reason": "ERROR",
+      "two_absences": false
+    },
+    "lookups": [
+      321
+    ]
+  },
+  {
+    "kind": "observer",
+    "scenario": "bad-observed-birth",
+    "result": {
+      "samples": [],
+      "sampling_times": [],
+      "started_monotonic": 52823.875303025,
+      "sample_count": 0,
+      "max_interval": 0,
+      "elapsed": 0.00027065299946116284,
+      "error": "ValueError: observed birth format",
+      "joined": true,
+      "entered": [],
+      "identities": {},
+      "absence_counts": {},
+      "deadline_reason": "ERROR",
+      "two_absences": false
+    },
+    "lookups": [
+      321
+    ]
+  },
+  {
+    "kind": "observer",
+    "scenario": "bad-bound-birth",
+    "result": {
+      "samples": [],
+      "sampling_times": [],
+      "started_monotonic": 52823.875792243,
+      "sample_count": 0,
+      "max_interval": 0,
+      "elapsed": 0.0003050949962926097,
+      "error": "ValueError: remote birth format",
+      "joined": true,
+      "entered": [],
+      "identities": {},
+      "absence_counts": {},
+      "deadline_reason": "ERROR",
+      "two_absences": false
+    },
+    "lookups": []
+  },
+  {
+    "kind": "cleanup",
+    "owned_tmp": "/tmp/lvw-p2b-independent-probes-6ryskme8",
+    "removed": true
+  }
+]
