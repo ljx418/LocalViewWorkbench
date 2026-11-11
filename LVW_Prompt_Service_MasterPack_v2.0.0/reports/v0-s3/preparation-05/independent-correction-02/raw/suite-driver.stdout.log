@@ -1,0 +1,382 @@
+........................................................................ [ 93%]
+.....                                                                    [100%]
+==================================== PASSES ====================================
+_____________ test_preflight_refuses_to_overwrite_an_existing_file _____________
+----------------------------- Captured stderr call -----------------------------
+{
+  "decision": "PREFLIGHT_REJECTED",
+  "reason": "preflight_file_already_exists",
+  "preflight": "/tmp/s3-independent-correction-suite-2k4qrj47/pytest/test_preflight_refuses_to_over0/pkg/reports/v0-s3/preparation-05/implementation/preflight.json"
+}
+_______ test_cli_refuses_a_rejected_preflight_without_touching_a_source ________
+----------------------------- Captured stderr call -----------------------------
+{
+  "decision": "REFUSED",
+  "reason": "preflight_not_passed"
+}
+_______________________ test_cli_refuses_candidate_drift _______________________
+----------------------------- Captured stderr call -----------------------------
+{
+  "decision": "REFUSED",
+  "reason": "candidate_drift"
+}
+_________________________ test_cli_refuses_child_drift _________________________
+----------------------------- Captured stderr call -----------------------------
+{
+  "decision": "REFUSED",
+  "reason": "child_drift"
+}
+________________________ test_cli_refuses_catalog_drift ________________________
+----------------------------- Captured stderr call -----------------------------
+{
+  "decision": "REFUSED",
+  "reason": "catalog_drift"
+}
+________________ test_cli_refuses_an_existing_terminal_receipt _________________
+----------------------------- Captured stderr call -----------------------------
+{
+  "decision": "REFUSED",
+  "reason": "terminal_receipt_already_exists"
+}
+____________________ test_cli_preflight_then_run_end_to_end ____________________
+----------------------------- Captured stdout call -----------------------------
+{
+  "decision": "PREFLIGHT_PASSED",
+  "summary": {
+    "checks": 48,
+    "passed": 48,
+    "failed": 0
+  },
+  "failed_checks": [],
+  "preflight": "/tmp/s3-independent-correction-suite-2k4qrj47/pytest/test_cli_preflight_then_run_en0/pkg/reports/v0-s3/preparation-05/implementation/preflight.json",
+  "runtime_relative_path": ".agent-governance/runtime/receipts/s3-preview-c01/run-01"
+}
+{
+  "decision": "PREPARATION_COMPLETE_READY_FOR_REVIEW",
+  "counts": {
+    "selected_total": 32,
+    "images_selected": 20,
+    "videos_selected": 12,
+    "eligible": 32,
+    "not_eligible": 0,
+    "not_run": 0,
+    "conservation_ok": true,
+    "conservation_formula": "selected_total == eligible + not_eligible + not_run",
+    "admitted": 32,
+    "admitted_bytes": 767567,
+    "not_eligible_by_reason": {},
+    "not_run_by_reason": {},
+    "internal_error": null
+  },
+  "budget": {
+    "wall_seconds_limit": 1200,
+    "wall_seconds_used": 2.871,
+    "source_files_hashed": 32,
+    "hash_passes_per_file": 1,
+    "source_bytes_hashed": 767567,
+    "admitted_source_bytes": 767567,
+    "admitted_source_bytes_limit": 1073741824,
+    "image_decode_calls": 20,
+    "image_decode_limit_per_image": 1,
+    "ffprobe_calls": 12,
+    "ffprobe_limit_per_video": 1,
+    "ffmpeg_frame_calls": 48,
+    "ffmpeg_frame_limit_per_video": 4,
+    "output_bytes_retained": 1499392,
+    "operational_metadata_bytes": 133099,
+    "output_bytes_cumulative": 2040563,
+    "sticky_failure": null,
+    "output_bytes_staging": 541171,
+    "output_bytes_limit": 83886080,
+    "decoder_disk_io_bytes": "NOT_MEASURED_NOT_CLAIMED",
+    "model_actions": 0,
+    "gpu_actions": 0,
+    "services": 0,
+    "network_calls": 0,
+    "downloads": 0,
+    "full_product_checkpoints": 0,
+    "browser_sessions": 0
+  },
+  "runtime_index_entry": ".agent-governance/runtime/receipts/s3-preview-c01/run-01/index.html"
+}
+____________________ test_cli_refuses_a_runtime_root_drift _____________________
+----------------------------- Captured stderr call -----------------------------
+{
+  "decision": "REFUSED",
+  "reason": "runtime_drift"
+}
+_________________ test_correction_owned_cpu_timeout_is_reaped __________________
+----------------------------- Captured stdout call -----------------------------
+OWNED_CPU_TIMEOUT_PROOF={"exitcode": -15, "operation": "slow", "pid": 1580928, "reaped": true, "timeout_seconds": 0.07989536999957636}
+___________ test_correction_owned_decoder_timeout_remaining_and_reap ___________
+----------------------------- Captured stdout call -----------------------------
+OWNED_DECODER_TIMEOUT_PROOF={"pid": 1580929, "returncode": -15, "timeout": 0.07998058399971342, "reaped": true}
+_____ test_correction_cli_failure_is_nonzero_with_terminal_receipt[source] _____
+----------------------------- Captured stdout call -----------------------------
+{
+  "decision": "SOURCE_CHANGED_TERMINAL",
+  "counts": {
+    "selected_total": 2,
+    "images_selected": 0,
+    "videos_selected": 2,
+    "eligible": 0,
+    "not_eligible": 1,
+    "not_run": 1,
+    "conservation_ok": true,
+    "conservation_formula": "selected_total == eligible + not_eligible + not_run",
+    "admitted": 0,
+    "admitted_bytes": 0,
+    "not_eligible_by_reason": {
+      "SOURCE_CHANGED:source_stat_failed:FileNotFoundError": 1
+    },
+    "not_run_by_reason": {
+      "source_changed_terminal": 1
+    },
+    "internal_error": null
+  },
+  "budget": {
+    "wall_seconds_limit": 1200,
+    "wall_seconds_used": 0.003,
+    "source_files_hashed": 0,
+    "hash_passes_per_file": 1,
+    "source_bytes_hashed": 0,
+    "admitted_source_bytes": 0,
+    "admitted_source_bytes_limit": 1073741824,
+    "image_decode_calls": 0,
+    "image_decode_limit_per_image": 1,
+    "ffprobe_calls": 0,
+    "ffprobe_limit_per_video": 1,
+    "ffmpeg_frame_calls": 0,
+    "ffmpeg_frame_limit_per_video": 4,
+    "output_bytes_retained": 0,
+    "operational_metadata_bytes": 3140,
+    "output_bytes_cumulative": 0,
+    "sticky_failure": null,
+    "output_bytes_staging": 0,
+    "output_bytes_limit": 83886080,
+    "decoder_disk_io_bytes": "NOT_MEASURED_NOT_CLAIMED",
+    "model_actions": 0,
+    "gpu_actions": 0,
+    "services": 0,
+    "network_calls": 0,
+    "downloads": 0,
+    "full_product_checkpoints": 0,
+    "browser_sessions": 0
+  },
+  "runtime_index_entry": ".agent-governance/runtime/receipts/s3-preview-c01/run-01/index.html"
+}
+____ test_correction_cli_failure_is_nonzero_with_terminal_receipt[deadline] ____
+----------------------------- Captured stdout call -----------------------------
+{
+  "decision": "BUDGET_EXHAUSTED",
+  "counts": {
+    "selected_total": 2,
+    "images_selected": 0,
+    "videos_selected": 2,
+    "eligible": 0,
+    "not_eligible": 0,
+    "not_run": 2,
+    "conservation_ok": true,
+    "conservation_formula": "selected_total == eligible + not_eligible + not_run",
+    "admitted": 1,
+    "admitted_bytes": 15,
+    "not_eligible_by_reason": {},
+    "not_run_by_reason": {
+      "wall_budget_exhausted": 2
+    },
+    "internal_error": null
+  },
+  "budget": {
+    "wall_seconds_limit": 1200,
+    "wall_seconds_used": 0.003,
+    "source_files_hashed": 1,
+    "hash_passes_per_file": 1,
+    "source_bytes_hashed": 15,
+    "admitted_source_bytes": 15,
+    "admitted_source_bytes_limit": 1073741824,
+    "image_decode_calls": 0,
+    "image_decode_limit_per_image": 1,
+    "ffprobe_calls": 1,
+    "ffprobe_limit_per_video": 1,
+    "ffmpeg_frame_calls": 0,
+    "ffmpeg_frame_limit_per_video": 4,
+    "output_bytes_retained": 0,
+    "operational_metadata_bytes": 2936,
+    "output_bytes_cumulative": 0,
+    "sticky_failure": "wall_budget_exhausted",
+    "output_bytes_staging": 0,
+    "output_bytes_limit": 83886080,
+    "decoder_disk_io_bytes": "NOT_MEASURED_NOT_CLAIMED",
+    "model_actions": 0,
+    "gpu_actions": 0,
+    "services": 0,
+    "network_calls": 0,
+    "downloads": 0,
+    "full_product_checkpoints": 0,
+    "browser_sessions": 0
+  },
+  "runtime_index_entry": ".agent-governance/runtime/receipts/s3-preview-c01/run-01/index.html"
+}
+_____ test_correction_cli_failure_is_nonzero_with_terminal_receipt[output] _____
+----------------------------- Captured stdout call -----------------------------
+{
+  "decision": "PREPARATION_FAILED_OUTPUT_BUDGET_EXCEEDED",
+  "counts": {
+    "selected_total": 2,
+    "images_selected": 0,
+    "videos_selected": 2,
+    "eligible": 0,
+    "not_eligible": 1,
+    "not_run": 1,
+    "conservation_ok": true,
+    "conservation_formula": "selected_total == eligible + not_eligible + not_run",
+    "admitted": 1,
+    "admitted_bytes": 15,
+    "not_eligible_by_reason": {
+      "output_budget_exhausted": 1
+    },
+    "not_run_by_reason": {
+      "output_budget_exhausted": 1
+    },
+    "internal_error": null
+  },
+  "budget": {
+    "wall_seconds_limit": 1200,
+    "wall_seconds_used": 0.004,
+    "source_files_hashed": 1,
+    "hash_passes_per_file": 1,
+    "source_bytes_hashed": 15,
+    "admitted_source_bytes": 15,
+    "admitted_source_bytes_limit": 1073741824,
+    "image_decode_calls": 0,
+    "image_decode_limit_per_image": 1,
+    "ffprobe_calls": 1,
+    "ffprobe_limit_per_video": 1,
+    "ffmpeg_frame_calls": 1,
+    "ffmpeg_frame_limit_per_video": 4,
+    "output_bytes_retained": 0,
+    "operational_metadata_bytes": 3221,
+    "output_bytes_cumulative": 100634,
+    "sticky_failure": "output_budget_exhausted",
+    "output_bytes_staging": 100634,
+    "output_bytes_limit": 100000,
+    "decoder_disk_io_bytes": "NOT_MEASURED_NOT_CLAIMED",
+    "model_actions": 0,
+    "gpu_actions": 0,
+    "services": 0,
+    "network_calls": 0,
+    "downloads": 0,
+    "full_product_checkpoints": 0,
+    "browser_sessions": 0
+  },
+  "runtime_index_entry": ".agent-governance/runtime/receipts/s3-preview-c01/run-01/index.html"
+}
+_______ test_correction02_owned_probe_capture_cli_stops_globally[stdout] _______
+----------------------------- Captured stdout call -----------------------------
+{
+  "decision": "PREPARATION_FAILED_PROBE_CAPTURE_LIMIT_EXCEEDED",
+  "counts": {
+    "selected_total": 2,
+    "images_selected": 0,
+    "videos_selected": 2,
+    "eligible": 0,
+    "not_eligible": 0,
+    "not_run": 2,
+    "conservation_ok": true,
+    "conservation_formula": "selected_total == eligible + not_eligible + not_run",
+    "admitted": 1,
+    "admitted_bytes": 15,
+    "not_eligible_by_reason": {},
+    "not_run_by_reason": {
+      "probe_capture_limit_exceeded": 2
+    },
+    "internal_error": null
+  },
+  "budget": {
+    "wall_seconds_limit": 1200,
+    "wall_seconds_used": 0.044,
+    "source_files_hashed": 1,
+    "hash_passes_per_file": 1,
+    "source_bytes_hashed": 15,
+    "admitted_source_bytes": 15,
+    "admitted_source_bytes_limit": 1073741824,
+    "image_decode_calls": 0,
+    "image_decode_limit_per_image": 1,
+    "ffprobe_calls": 1,
+    "ffprobe_limit_per_video": 1,
+    "ffmpeg_frame_calls": 0,
+    "ffmpeg_frame_limit_per_video": 4,
+    "output_bytes_retained": 0,
+    "operational_metadata_bytes": 4197639,
+    "output_bytes_cumulative": 0,
+    "sticky_failure": "probe_capture_limit_exceeded",
+    "output_bytes_staging": 0,
+    "output_bytes_limit": 83886080,
+    "decoder_disk_io_bytes": "NOT_MEASURED_NOT_CLAIMED",
+    "model_actions": 0,
+    "gpu_actions": 0,
+    "services": 0,
+    "network_calls": 0,
+    "downloads": 0,
+    "full_product_checkpoints": 0,
+    "browser_sessions": 0
+  },
+  "runtime_index_entry": ".agent-governance/runtime/receipts/s3-preview-c01/run-01/index.html"
+}
+CORRECTION02_OWNER_PROOF={"cli_exit": 1, "entry": {"argv": ["/tmp/s3-independent-correction-suite-2k4qrj47/pytest/test_correction02_owned_probe_0/synthetic-probe", "-v", "error", "-enable_drefs", "0", "-protocol_whitelist", "file,pipe", "-show_entries", "format=format_name,duration,nb_streams:stream=index,codec_type,codec_name,width,height,duration", "-of", "json", "/tmp/s3-independent-correction-suite-2k4qrj47/pytest/test_correction02_owned_probe_0/synthetic/source/a.mp4"], "capture_limit_bytes": 4194304, "decoder_stdout_bytes": 4194304, "decoder_stdout_sha256": "c770c91b02dc91331675b1e6a26e1dbfa9e2e9c76481b204a5e3ef0a30a8ba5c", "error": "BridgeError:MEDIA_LIMIT_EXCEEDED:VIDEO_PROCESS_OUTPUT_LIMIT", "exit_code": 0, "kind": "ffprobe", "label": "probe-4fe730e251082303b3d48f75ef084a3c572b2237d84cea62b2cd09f9b1af4e0a", "stderr_bytes": 0, "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "stdout_bytes": 4194304, "stdout_sha256": "c770c91b02dc91331675b1e6a26e1dbfa9e2e9c76481b204a5e3ef0a30a8ba5c", "timeout_seconds": 20}, "later_work": {"decode": 0, "hash": 0, "resolve": 0, "stat": 0}, "pid": 1580964, "reaped": true, "receipt": {"authority": "AUTHORITATIVE", "budget": {"admitted_source_bytes": 15, "admitted_source_bytes_limit": 1073741824, "browser_sessions": 0, "decoder_disk_io_bytes": "NOT_MEASURED_NOT_CLAIMED", "downloads": 0, "ffmpeg_frame_calls": 0, "ffmpeg_frame_limit_per_video": 4, "ffprobe_calls": 1, "ffprobe_limit_per_video": 1, "full_product_checkpoints": 0, "gpu_actions": 0, "hash_passes_per_file": 1, "image_decode_calls": 0, "image_decode_limit_per_image": 1, "model_actions": 0, "network_calls": 0, "operational_metadata_bytes": 4197639, "output_bytes_cumulative": 0, "output_bytes_limit": 83886080, "output_bytes_retained": 0, "output_bytes_staging": 0, "services": 0, "source_bytes_hashed": 15, "source_files_hashed": 1, "sticky_failure": "probe_capture_limit_exceeded", "wall_seconds_limit": 1200, "wall_seconds_used": 0.044}, "candidate": {"sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}, "candidates": [{"candidate_ref": null, "file_id": "4fe730e251082303b3d48f75ef084a3c572b2237d84cea62b2cd09f9b1af4e0a", "media_kind": "video", "reason": "probe_capture_limit_exceeded", "relative_path": "a.mp4", "status": "not_run"}, {"candidate_ref": null, "file_id": "1c1f781e1e721df77a12e03e222dfe21c067fd32c4e6b0312419ec2a87bb33d9", "media_kind": "video", "reason": "probe_capture_limit_exceeded", "relative_path": "b.mp4", "status": "not_run"}], "catalog": {"sha256": "3953722b6986ea6ee165b51ab7f129909d26223c75da67a0ed14fd88aa460f40"}, "child": {"child_id": "SYNTHETIC", "path": "reports/v0-s3/preparation-05/sample-preparation-child-01.json", "sha256": "c80b8ac464a20bfb6818434617099eb31a2a89df3c8cc9b941d2f2fcc6cf0f61"}, "cleanup": {"cleanup_allowance_seconds": 4, "cleanup_process": {"exitcode": 0, "pid": 1580967, "reaped": true}, "cleanup_seconds_measured": 0.002515160995244514, "cleanup_timeout_seconds_per_owned_process": 2, "cpu_processes": [], "owned_pids_only": true, "source_files_deleted": 0, "source_files_modified": 0, "staging_path": ".agent-governance/runtime/receipts/s3-preview-c01/run-01/staging", "staging_removed": true, "staging_residual_entries": 0, "subprocesses_started": 1, "subprocesses_started_scope": "DECODER_ONLY_CPU_LISTED_SEPARATELY", "temporary_directories_created": 1, "temporary_directories_removed": 1, "zero_action_fields": "CODE_PATH_CONSTANTS_NOT_OS_AUDIT"}, "counts": {"admitted": 1, "admitted_bytes": 15, "conservation_formula": "selected_total == eligible + not_eligible + not_run", "conservation_ok": true, "eligible": 0, "images_selected": 0, "internal_error": null, "not_eligible": 0, "not_eligible_by_reason": {}, "not_run": 2, "not_run_by_reason": {"probe_capture_limit_exceeded": 2}, "selected_total": 2, "videos_selected": 2}, "decision": "PREPARATION_FAILED_PROBE_CAPTURE_LIMIT_EXCEEDED", "finished_at": "2026-11-11T19:08:13.940194+00:00", "handoff_guard": {"authority": "FIXTURE_NON_AUTHORITY", "decision": "HANDOFF_READINESS_VERIFIED", "summary": {"checks": 139, "failed": 0, "passed": 139}}, "holdout_manifest": {"sha256": "ebe8de8dad8100fd09ef75bdfcb124d905627500518a9ef59ed98f27bb500072"}, "kind": "S3_PREP_C_CANDIDATE_PREPARATION_TERMINAL_RECEIPT", "limitations": ["eligibility only: no model, no GPU, no service, no download and no full product checkpoint was used", "no LVW or product analysis call was made and no semantic label, expected answer or quality verdict was produced", "probed size and duration are container facts, not a proof that a full decode ran", "requested sample offsets are not a proof of the actual presentation timestamps", "decoder disk IO was not measured and is not claimed", "the retained preview is material for the next independent prelabel step and is not a quality result", "the source was read only; no source file was copied, modified or deleted"], "preflight": {"decision": "PREFLIGHT_PASSED", "path": "reports/v0-s3/preparation-05/implementation/preflight.json", "sha256": "6eb2ce8c969d49820d413552f0b148b30082f51fb9f0038fef1b0aafd3264d62"}, "prelabel_stage_complete": false, "product_gate0": false, "quality_claim": "NONE_ELIGIBILITY_IS_NOT_QUALITY_EVIDENCE", "quality_set_frozen": false, "raw_evidence": {"commands": [{"capture_limit_bytes": 4194304, "command_sha256": "54a6ec2193d9c3bcdda581d85c1fc7dc6ea0d20d76059365ada21109de7a80d0", "decoder_stdout_bytes": 4194304, "decoder_stdout_sha256": "c770c91b02dc91331675b1e6a26e1dbfa9e2e9c76481b204a5e3ef0a30a8ba5c", "error": "BridgeError:MEDIA_LIMIT_EXCEEDED:VIDEO_PROCESS_OUTPUT_LIMIT", "exit_code": 0, "index": 1, "kind": "ffprobe", "label": "probe-4fe730e251082303b3d48f75ef084a3c572b2237d84cea62b2cd09f9b1af4e0a", "stderr_bytes": 0, "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "stdout_bytes": 4194304, "stdout_sha256": "c770c91b02dc91331675b1e6a26e1dbfa9e2e9c76481b204a5e3ef0a30a8ba5c", "timeout_seconds": 20}], "committed": "reports/v0-s3/preparation-05/implementation/raw", "exact_raw": ".agent-governance/runtime/receipts/s3-preview-c01/run-01/raw", "redacted_copy": {"directory": "reports/v0-s3/preparation-05/implementation/raw", "files": 4, "redactions": 1}, "redaction": "the committed copy replaces the absolute source root and the absolute runtime root; the exact copy stays in the runtime root"}, "run_id": "run-01", "runtime": {"absolute_path_recorded_in": ".agent-governance/runtime/receipts/s3-preview-c01/run-01/runtime-receipt.json", "file_count": 5, "files": [{"bytes": 383, "path": ".agent-governance/runtime/receipts/s3-preview-c01/run-01/raw/001-probe-4fe730e251082303b3d48f75ef084a3c572b2237d84cea62b2cd09f9b1af4e0a.command.log", "sha256": null}, {"bytes": 2, "path": ".agent-governance/runtime/receipts/s3-preview-c01/run-01/raw/001-probe-4fe730e251082303b3d48f75ef084a3c572b2237d84cea62b2cd09f9b1af4e0a.exit.log", "sha256": null}, {"bytes": 0, "path": ".agent-governance/runtime/receipts/s3-preview-c01/run-01/raw/001-probe-4fe730e251082303b3d48f75ef084a3c572b2237d84cea62b2cd09f9b1af4e0a.stderr.log", "sha256": null}, {"bytes": 4194304, "path": ".agent-governance/runtime/receipts/s3-preview-c01/run-01/raw/001-probe-4fe730e251082303b3d48f75ef084a3c572b2237d84cea62b2cd09f9b1af4e0a.stdout.log", "sha256": null}, {"bytes": 2950, "path": ".agent-governance/runtime/receipts/s3-preview-c01/run-01/runtime-receipt.json", "sha256": null}], "index_entry": ".agent-governance/runtime/receipts/s3-preview-c01/run-01/index.html", "is_zero_residue": false, "relative_path": ".agent-governance/runtime/receipts/s3-preview-c01/run-01", "retained": true, "retained_reason": "registered retained artefact for the next independent prelabel step", "total_bytes": 4197639}, "scope": "PREPARATION_ELIGIBILITY_AND_PREVIEW_ONLY", "stage_pass_claim": false, "started_at": "2026-11-11T19:08:13.896026+00:00", "tools": {"ffmpeg": {"real_path": "/tmp/s3-independent-correction-suite-2k4qrj47/pytest/test_correction02_owned_probe_0/synthetic-probe"}, "ffprobe": {"real_path": "/tmp/s3-independent-correction-suite-2k4qrj47/pytest/test_correction02_owned_probe_0/synthetic-probe"}}}, "stream": "stdout"}
+_______ test_correction02_owned_probe_capture_cli_stops_globally[stderr] _______
+----------------------------- Captured stdout call -----------------------------
+{
+  "decision": "PREPARATION_FAILED_PROBE_CAPTURE_LIMIT_EXCEEDED",
+  "counts": {
+    "selected_total": 2,
+    "images_selected": 0,
+    "videos_selected": 2,
+    "eligible": 0,
+    "not_eligible": 0,
+    "not_run": 2,
+    "conservation_ok": true,
+    "conservation_formula": "selected_total == eligible + not_eligible + not_run",
+    "admitted": 1,
+    "admitted_bytes": 15,
+    "not_eligible_by_reason": {},
+    "not_run_by_reason": {
+      "probe_capture_limit_exceeded": 2
+    },
+    "internal_error": null
+  },
+  "budget": {
+    "wall_seconds_limit": 1200,
+    "wall_seconds_used": 0.041,
+    "source_files_hashed": 1,
+    "hash_passes_per_file": 1,
+    "source_bytes_hashed": 15,
+    "admitted_source_bytes": 15,
+    "admitted_source_bytes_limit": 1073741824,
+    "image_decode_calls": 0,
+    "image_decode_limit_per_image": 1,
+    "ffprobe_calls": 1,
+    "ffprobe_limit_per_video": 1,
+    "ffmpeg_frame_calls": 0,
+    "ffmpeg_frame_limit_per_video": 4,
+    "output_bytes_retained": 0,
+    "operational_metadata_bytes": 4197640,
+    "output_bytes_cumulative": 0,
+    "sticky_failure": "probe_capture_limit_exceeded",
+    "output_bytes_staging": 0,
+    "output_bytes_limit": 83886080,
+    "decoder_disk_io_bytes": "NOT_MEASURED_NOT_CLAIMED",
+    "model_actions": 0,
+    "gpu_actions": 0,
+    "services": 0,
+    "network_calls": 0,
+    "downloads": 0,
+    "full_product_checkpoints": 0,
+    "browser_sessions": 0
+  },
+  "runtime_index_entry": ".agent-governance/runtime/receipts/s3-preview-c01/run-01/index.html"
+}
+CORRECTION02_OWNER_PROOF={"cli_exit": 1, "entry": {"argv": ["/tmp/s3-independent-correction-suite-2k4qrj47/pytest/test_correction02_owned_probe_1/synthetic-probe", "-v", "error", "-enable_drefs", "0", "-protocol_whitelist", "file,pipe", "-show_entries", "format=format_name,duration,nb_streams:stream=index,codec_type,codec_name,width,height,duration", "-of", "json", "/tmp/s3-independent-correction-suite-2k4qrj47/pytest/test_correction02_owned_probe_1/synthetic/source/a.mp4"], "capture_limit_bytes": 4194304, "decoder_stdout_bytes": 112, "decoder_stdout_sha256": "26def9339a7f60180bbb91e88131d0d081be633ee00267712dd987e1931c8dbf", "error": "BridgeError:MEDIA_LIMIT_EXCEEDED:VIDEO_PROCESS_OUTPUT_LIMIT", "exit_code": 0, "kind": "ffprobe", "label": "probe-4fe730e251082303b3d48f75ef084a3c572b2237d84cea62b2cd09f9b1af4e0a", "stderr_bytes": 4194192, "stderr_sha256": "c710119f4b0ac147eeb458b28379f81bbfe6e59fe556f8e486e4637dd9780b31", "stdout_bytes": 112, "stdout_sha256": "26def9339a7f60180bbb91e88131d0d081be633ee00267712dd987e1931c8dbf", "timeout_seconds": 20}, "later_work": {"decode": 0, "hash": 0, "resolve": 0, "stat": 0}, "pid": 1580968, "reaped": true, "receipt": {"authority": "AUTHORITATIVE", "budget": {"admitted_source_bytes": 15, "admitted_source_bytes_limit": 1073741824, "browser_sessions": 0, "decoder_disk_io_bytes": "NOT_MEASURED_NOT_CLAIMED", "downloads": 0, "ffmpeg_frame_calls": 0, "ffmpeg_frame_limit_per_video": 4, "ffprobe_calls": 1, "ffprobe_limit_per_video": 1, "full_product_checkpoints": 0, "gpu_actions": 0, "hash_passes_per_file": 1, "image_decode_calls": 0, "image_decode_limit_per_image": 1, "model_actions": 0, "network_calls": 0, "operational_metadata_bytes": 4197640, "output_bytes_cumulative": 0, "output_bytes_limit": 83886080, "output_bytes_retained": 0, "output_bytes_staging": 0, "services": 0, "source_bytes_hashed": 15, "source_files_hashed": 1, "sticky_failure": "probe_capture_limit_exceeded", "wall_seconds_limit": 1200, "wall_seconds_used": 0.041}, "candidate": {"sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}, "candidates": [{"candidate_ref": null, "file_id": "4fe730e251082303b3d48f75ef084a3c572b2237d84cea62b2cd09f9b1af4e0a", "media_kind": "video", "reason": "probe_capture_limit_exceeded", "relative_path": "a.mp4", "status": "not_run"}, {"candidate_ref": null, "file_id": "1c1f781e1e721df77a12e03e222dfe21c067fd32c4e6b0312419ec2a87bb33d9", "media_kind": "video", "reason": "probe_capture_limit_exceeded", "relative_path": "b.mp4", "status": "not_run"}], "catalog": {"sha256": "3953722b6986ea6ee165b51ab7f129909d26223c75da67a0ed14fd88aa460f40"}, "child": {"child_id": "SYNTHETIC", "path": "reports/v0-s3/preparation-05/sample-preparation-child-01.json", "sha256": "2cfe01e004a7e5a23d50e6b506d5f1a5417aac6d8184c202842acc8480ec4097"}, "cleanup": {"cleanup_allowance_seconds": 4, "cleanup_process": {"exitcode": 0, "pid": 1580971, "reaped": true}, "cleanup_seconds_measured": 0.0029315370047697797, "cleanup_timeout_seconds_per_owned_process": 2, "cpu_processes": [], "owned_pids_only": true, "source_files_deleted": 0, "source_files_modified": 0, "staging_path": ".agent-governance/runtime/receipts/s3-preview-c01/run-01/staging", "staging_removed": true, "staging_residual_entries": 0, "subprocesses_started": 1, "subprocesses_started_scope": "DECODER_ONLY_CPU_LISTED_SEPARATELY", "temporary_directories_created": 1, "temporary_directories_removed": 1, "zero_action_fields": "CODE_PATH_CONSTANTS_NOT_OS_AUDIT"}, "counts": {"admitted": 1, "admitted_bytes": 15, "conservation_formula": "selected_total == eligible + not_eligible + not_run", "conservation_ok": true, "eligible": 0, "images_selected": 0, "internal_error": null, "not_eligible": 0, "not_eligible_by_reason": {}, "not_run": 2, "not_run_by_reason": {"probe_capture_limit_exceeded": 2}, "selected_total": 2, "videos_selected": 2}, "decision": "PREPARATION_FAILED_PROBE_CAPTURE_LIMIT_EXCEEDED", "finished_at": "2026-11-11T19:08:13.993530+00:00", "handoff_guard": {"authority": "FIXTURE_NON_AUTHORITY", "decision": "HANDOFF_READINESS_VERIFIED", "summary": {"checks": 139, "failed": 0, "passed": 139}}, "holdout_manifest": {"sha256": "ebe8de8dad8100fd09ef75bdfcb124d905627500518a9ef59ed98f27bb500072"}, "kind": "S3_PREP_C_CANDIDATE_PREPARATION_TERMINAL_RECEIPT", "limitations": ["eligibility only: no model, no GPU, no service, no download and no full product checkpoint was used", "no LVW or product analysis call was made and no semantic label, expected answer or quality verdict was produced", "probed size and duration are container facts, not a proof that a full decode ran", "requested sample offsets are not a proof of the actual presentation timestamps", "decoder disk IO was not measured and is not claimed", "the retained preview is material for the next independent prelabel step and is not a quality result", "the source was read only; no source file was copied, modified or deleted"], "preflight": {"decision": "PREFLIGHT_PASSED", "path": "reports/v0-s3/preparation-05/implementation/preflight.json", "sha256": "06bdb04a641a5d2ccd5ced812ee4e917c3d86ba940b6b259121238c16f5b1b80"}, "prelabel_stage_complete": false, "product_gate0": false, "quality_claim": "NONE_ELIGIBILITY_IS_NOT_QUALITY_EVIDENCE", "quality_set_frozen": false, "raw_evidence": {"commands": [{"capture_limit_bytes": 4194304, "command_sha256": "8457bba21241413451d2cc7ab926cf2ef7fe4ab649cdddd3967676ccb6986b88", "decoder_stdout_bytes": 112, "decoder_stdout_sha256": "26def9339a7f60180bbb91e88131d0d081be633ee00267712dd987e1931c8dbf", "error": "BridgeError:MEDIA_LIMIT_EXCEEDED:VIDEO_PROCESS_OUTPUT_LIMIT", "exit_code": 0, "index": 1, "kind": "ffprobe", "label": "probe-4fe730e251082303b3d48f75ef084a3c572b2237d84cea62b2cd09f9b1af4e0a", "stderr_bytes": 4194192, "stderr_sha256": "c710119f4b0ac147eeb458b28379f81bbfe6e59fe556f8e486e4637dd9780b31", "stdout_bytes": 112, "stdout_sha256": "26def9339a7f60180bbb91e88131d0d081be633ee00267712dd987e1931c8dbf", "timeout_seconds": 20}], "committed": "reports/v0-s3/preparation-05/implementation/raw", "exact_raw": ".agent-governance/runtime/receipts/s3-preview-c01/run-01/raw", "redacted_copy": {"directory": "reports/v0-s3/preparation-05/implementation/raw", "files": 4, "redactions": 1}, "redaction": "the committed copy replaces the absolute source root and the absolute runtime root; the exact copy stays in the runtime root"}, "run_id": "run-01", "runtime": {"absolute_path_recorded_in": ".agent-governance/runtime/receipts/s3-preview-c01/run-01/runtime-receipt.json", "file_count": 5, "files": [{"bytes": 383, "path": ".agent-governance/runtime/receipts/s3-preview-c01/run-01/raw/001-probe-4fe730e251082303b3d48f75ef084a3c572b2237d84cea62b2cd09f9b1af4e0a.command.log", "sha256": null}, {"bytes": 2, "path": ".agent-governance/runtime/receipts/s3-preview-c01/run-01/raw/001-probe-4fe730e251082303b3d48f75ef084a3c572b2237d84cea62b2cd09f9b1af4e0a.exit.log", "sha256": null}, {"bytes": 4194192, "path": ".agent-governance/runtime/receipts/s3-preview-c01/run-01/raw/001-probe-4fe730e251082303b3d48f75ef084a3c572b2237d84cea62b2cd09f9b1af4e0a.stderr.log", "sha256": null}, {"bytes": 112, "path": ".agent-governance/runtime/receipts/s3-preview-c01/run-01/raw/001-probe-4fe730e251082303b3d48f75ef084a3c572b2237d84cea62b2cd09f9b1af4e0a.stdout.log", "sha256": null}, {"bytes": 2951, "path": ".agent-governance/runtime/receipts/s3-preview-c01/run-01/runtime-receipt.json", "sha256": null}], "index_entry": ".agent-governance/runtime/receipts/s3-preview-c01/run-01/index.html", "is_zero_residue": false, "relative_path": ".agent-governance/runtime/receipts/s3-preview-c01/run-01", "retained": true, "retained_reason": "registered retained artefact for the next independent prelabel step", "total_bytes": 4197640}, "scope": "PREPARATION_ELIGIBILITY_AND_PREVIEW_ONLY", "stage_pass_claim": false, "started_at": "2026-11-11T19:08:13.952190+00:00", "tools": {"ffmpeg": {"real_path": "/tmp/s3-independent-correction-suite-2k4qrj47/pytest/test_correction02_owned_probe_1/synthetic-probe"}, "ffprobe": {"real_path": "/tmp/s3-independent-correction-suite-2k4qrj47/pytest/test_correction02_owned_probe_1/synthetic-probe"}}}, "stream": "stderr"}
+77 passed in 21.68s
+
+exit 0 cleaned True

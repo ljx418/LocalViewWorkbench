@@ -1,0 +1,568 @@
+[
+  {
+    "stream": "stdout",
+    "cli_exit": 1,
+    "cli_args": {
+      "child": "/tmp/ic02-stdout-l6c3r8pv/synthetic/reports/v0-s3/preparation-05/sample-preparation-child-01.json",
+      "candidate": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "preflight": "/tmp/ic02-stdout-l6c3r8pv/synthetic/reports/v0-s3/preparation-05/implementation/preflight.json",
+      "runtime_output": "/tmp/ic02-stdout-l6c3r8pv/synthetic/.agent-governance/runtime/receipts/s3-preview-c01/run-01",
+      "receipt": "/tmp/ic02-stdout-l6c3r8pv/synthetic/reports/v0-s3/preparation-05/implementation/receipt.json"
+    },
+    "probe_entry": {
+      "kind": "ffprobe",
+      "label": "probe-4fe730e251082303b3d48f75ef084a3c572b2237d84cea62b2cd09f9b1af4e0a",
+      "argv": [
+        "/tmp/ic02-stdout-l6c3r8pv/probe",
+        "-v",
+        "error",
+        "-enable_drefs",
+        "0",
+        "-protocol_whitelist",
+        "file,pipe",
+        "-show_entries",
+        "format=format_name,duration,nb_streams:stream=index,codec_type,codec_name,width,height,duration",
+        "-of",
+        "json",
+        "/tmp/ic02-stdout-l6c3r8pv/synthetic/source/a.mp4"
+      ],
+      "timeout_seconds": 20,
+      "exit_code": 0,
+      "stdout_bytes": 4194304,
+      "stderr_bytes": 0,
+      "stdout_sha256": "c770c91b02dc91331675b1e6a26e1dbfa9e2e9c76481b204a5e3ef0a30a8ba5c",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "error": "BridgeError:MEDIA_LIMIT_EXCEEDED:VIDEO_PROCESS_OUTPUT_LIMIT",
+      "capture_limit_bytes": 4194304,
+      "decoder_stdout_bytes": 4194304,
+      "decoder_stdout_sha256": "c770c91b02dc91331675b1e6a26e1dbfa9e2e9c76481b204a5e3ef0a30a8ba5c"
+    },
+    "retained_json_valid": true,
+    "capture_hashes_independently_recomputed": true,
+    "frames": 0,
+    "later": {
+      "resolve": 0,
+      "stat": 0,
+      "hash": 0,
+      "decode": 0
+    },
+    "real_processes": [
+      {
+        "pid": 1581408,
+        "returncode": 0,
+        "reaped": true
+      }
+    ],
+    "poll_waits": [
+      {
+        "pid": 1581408,
+        "wait_result": 0,
+        "poll_result": 0,
+        "seconds": 0.03166849200351862
+      },
+      {
+        "pid": 1581408,
+        "wait_result": 0,
+        "poll_result": 0,
+        "seconds": 3.93899972550571e-06
+      }
+    ],
+    "receipt": {
+      "kind": "S3_PREP_C_CANDIDATE_PREPARATION_TERMINAL_RECEIPT",
+      "scope": "PREPARATION_ELIGIBILITY_AND_PREVIEW_ONLY",
+      "authority": "AUTHORITATIVE",
+      "run_id": "run-01",
+      "decision": "PREPARATION_FAILED_PROBE_CAPTURE_LIMIT_EXCEEDED",
+      "product_gate0": false,
+      "stage_pass_claim": false,
+      "quality_claim": "NONE_ELIGIBILITY_IS_NOT_QUALITY_EVIDENCE",
+      "quality_set_frozen": false,
+      "prelabel_stage_complete": false,
+      "started_at": "2026-11-11T19:08:42.951157+00:00",
+      "finished_at": "2026-11-11T19:08:42.997965+00:00",
+      "counts": {
+        "selected_total": 2,
+        "images_selected": 0,
+        "videos_selected": 2,
+        "eligible": 0,
+        "not_eligible": 0,
+        "not_run": 2,
+        "conservation_ok": true,
+        "conservation_formula": "selected_total == eligible + not_eligible + not_run",
+        "admitted": 1,
+        "admitted_bytes": 15,
+        "not_eligible_by_reason": {},
+        "not_run_by_reason": {
+          "probe_capture_limit_exceeded": 2
+        },
+        "internal_error": null
+      },
+      "candidates": [
+        {
+          "candidate_ref": null,
+          "file_id": "4fe730e251082303b3d48f75ef084a3c572b2237d84cea62b2cd09f9b1af4e0a",
+          "relative_path": "a.mp4",
+          "media_kind": "video",
+          "status": "not_run",
+          "reason": "probe_capture_limit_exceeded"
+        },
+        {
+          "candidate_ref": null,
+          "file_id": "1c1f781e1e721df77a12e03e222dfe21c067fd32c4e6b0312419ec2a87bb33d9",
+          "relative_path": "b.mp4",
+          "media_kind": "video",
+          "status": "not_run",
+          "reason": "probe_capture_limit_exceeded"
+        }
+      ],
+      "budget": {
+        "wall_seconds_limit": 1200,
+        "wall_seconds_used": 0.047,
+        "source_files_hashed": 1,
+        "hash_passes_per_file": 1,
+        "source_bytes_hashed": 15,
+        "admitted_source_bytes": 15,
+        "admitted_source_bytes_limit": 1073741824,
+        "image_decode_calls": 0,
+        "image_decode_limit_per_image": 1,
+        "ffprobe_calls": 1,
+        "ffprobe_limit_per_video": 1,
+        "ffmpeg_frame_calls": 0,
+        "ffmpeg_frame_limit_per_video": 4,
+        "output_bytes_retained": 0,
+        "operational_metadata_bytes": 4197334,
+        "output_bytes_cumulative": 0,
+        "sticky_failure": "probe_capture_limit_exceeded",
+        "output_bytes_staging": 0,
+        "output_bytes_limit": 83886080,
+        "decoder_disk_io_bytes": "NOT_MEASURED_NOT_CLAIMED",
+        "model_actions": 0,
+        "gpu_actions": 0,
+        "services": 0,
+        "network_calls": 0,
+        "downloads": 0,
+        "full_product_checkpoints": 0,
+        "browser_sessions": 0
+      },
+      "runtime": {
+        "relative_path": ".agent-governance/runtime/receipts/s3-preview-c01/run-01",
+        "absolute_path_recorded_in": ".agent-governance/runtime/receipts/s3-preview-c01/run-01/runtime-receipt.json",
+        "index_entry": ".agent-governance/runtime/receipts/s3-preview-c01/run-01/index.html",
+        "retained": true,
+        "retained_reason": "registered retained artefact for the next independent prelabel step",
+        "is_zero_residue": false,
+        "file_count": 5,
+        "total_bytes": 4197334,
+        "files": [
+          {
+            "path": ".agent-governance/runtime/receipts/s3-preview-c01/run-01/raw/001-probe-4fe730e251082303b3d48f75ef084a3c572b2237d84cea62b2cd09f9b1af4e0a.command.log",
+            "bytes": 255,
+            "sha256": null
+          },
+          {
+            "path": ".agent-governance/runtime/receipts/s3-preview-c01/run-01/raw/001-probe-4fe730e251082303b3d48f75ef084a3c572b2237d84cea62b2cd09f9b1af4e0a.exit.log",
+            "bytes": 2,
+            "sha256": null
+          },
+          {
+            "path": ".agent-governance/runtime/receipts/s3-preview-c01/run-01/raw/001-probe-4fe730e251082303b3d48f75ef084a3c572b2237d84cea62b2cd09f9b1af4e0a.stderr.log",
+            "bytes": 0,
+            "sha256": null
+          },
+          {
+            "path": ".agent-governance/runtime/receipts/s3-preview-c01/run-01/raw/001-probe-4fe730e251082303b3d48f75ef084a3c572b2237d84cea62b2cd09f9b1af4e0a.stdout.log",
+            "bytes": 4194304,
+            "sha256": null
+          },
+          {
+            "path": ".agent-governance/runtime/receipts/s3-preview-c01/run-01/runtime-receipt.json",
+            "bytes": 2773,
+            "sha256": null
+          }
+        ]
+      },
+      "cleanup": {
+        "staging_path": ".agent-governance/runtime/receipts/s3-preview-c01/run-01/staging",
+        "staging_removed": true,
+        "staging_residual_entries": 0,
+        "temporary_directories_created": 1,
+        "temporary_directories_removed": 1,
+        "subprocesses_started": 1,
+        "owned_pids_only": true,
+        "source_files_modified": 0,
+        "source_files_deleted": 0,
+        "cleanup_process": {
+          "pid": 1581411,
+          "exitcode": 0,
+          "reaped": true
+        },
+        "cleanup_seconds_measured": 0.003259534998505842,
+        "cleanup_allowance_seconds": 4,
+        "subprocesses_started_scope": "DECODER_ONLY_CPU_LISTED_SEPARATELY",
+        "cpu_processes": [],
+        "cleanup_timeout_seconds_per_owned_process": 2,
+        "zero_action_fields": "CODE_PATH_CONSTANTS_NOT_OS_AUDIT"
+      },
+      "raw_evidence": {
+        "committed": "reports/v0-s3/preparation-05/implementation/raw",
+        "exact_raw": ".agent-governance/runtime/receipts/s3-preview-c01/run-01/raw",
+        "redaction": "the committed copy replaces the absolute source root and the absolute runtime root; the exact copy stays in the runtime root",
+        "commands": [
+          {
+            "index": 1,
+            "label": "probe-4fe730e251082303b3d48f75ef084a3c572b2237d84cea62b2cd09f9b1af4e0a",
+            "kind": "ffprobe",
+            "exit_code": 0,
+            "timeout_seconds": 20,
+            "capture_limit_bytes": 4194304,
+            "stdout_bytes": 4194304,
+            "decoder_stdout_bytes": 4194304,
+            "decoder_stdout_sha256": "c770c91b02dc91331675b1e6a26e1dbfa9e2e9c76481b204a5e3ef0a30a8ba5c",
+            "stderr_bytes": 0,
+            "stdout_sha256": "c770c91b02dc91331675b1e6a26e1dbfa9e2e9c76481b204a5e3ef0a30a8ba5c",
+            "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "error": "BridgeError:MEDIA_LIMIT_EXCEEDED:VIDEO_PROCESS_OUTPUT_LIMIT",
+            "command_sha256": "e67301bf73e0781f9da8c183f55359c79f6673e54357b8b0892980e4bc3ae5e4"
+          }
+        ],
+        "redacted_copy": {
+          "files": 4,
+          "redactions": 1,
+          "directory": "reports/v0-s3/preparation-05/implementation/raw"
+        }
+      },
+      "limitations": [
+        "eligibility only: no model, no GPU, no service, no download and no full product checkpoint was used",
+        "no LVW or product analysis call was made and no semantic label, expected answer or quality verdict was produced",
+        "probed size and duration are container facts, not a proof that a full decode ran",
+        "requested sample offsets are not a proof of the actual presentation timestamps",
+        "decoder disk IO was not measured and is not claimed",
+        "the retained preview is material for the next independent prelabel step and is not a quality result",
+        "the source was read only; no source file was copied, modified or deleted"
+      ],
+      "handoff_guard": {
+        "decision": "HANDOFF_READINESS_VERIFIED",
+        "authority": "FIXTURE_NON_AUTHORITY",
+        "summary": {
+          "checks": 139,
+          "passed": 139,
+          "failed": 0
+        }
+      },
+      "preflight": {
+        "path": "reports/v0-s3/preparation-05/implementation/preflight.json",
+        "sha256": "846340b921e49dda9d48101de6a33fc1d0186d67d9d41d1b965bb8d34cc2d7c0",
+        "decision": "PREFLIGHT_PASSED"
+      },
+      "child": {
+        "path": "reports/v0-s3/preparation-05/sample-preparation-child-01.json",
+        "sha256": "93eba0de457d414e07fda4c42592353186ca5ee32a8853bb99fe2559933f5ad3",
+        "child_id": "SYNTHETIC"
+      },
+      "catalog": {
+        "sha256": "3953722b6986ea6ee165b51ab7f129909d26223c75da67a0ed14fd88aa460f40"
+      },
+      "holdout_manifest": {
+        "sha256": "ebe8de8dad8100fd09ef75bdfcb124d905627500518a9ef59ed98f27bb500072"
+      },
+      "candidate": {
+        "sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "tools": {
+        "ffmpeg": {
+          "real_path": "/tmp/ic02-stdout-l6c3r8pv/probe"
+        },
+        "ffprobe": {
+          "real_path": "/tmp/ic02-stdout-l6c3r8pv/probe"
+        }
+      }
+    },
+    "owned_temp": "/tmp/ic02-stdout-l6c3r8pv",
+    "owned_entries_before": 42,
+    "owned_bytes_before": 8569641,
+    "owned_temp_absent_after": true
+  },
+  {
+    "stream": "stderr",
+    "cli_exit": 1,
+    "cli_args": {
+      "child": "/tmp/ic02-stderr-gxc_87b9/synthetic/reports/v0-s3/preparation-05/sample-preparation-child-01.json",
+      "candidate": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "preflight": "/tmp/ic02-stderr-gxc_87b9/synthetic/reports/v0-s3/preparation-05/implementation/preflight.json",
+      "runtime_output": "/tmp/ic02-stderr-gxc_87b9/synthetic/.agent-governance/runtime/receipts/s3-preview-c01/run-01",
+      "receipt": "/tmp/ic02-stderr-gxc_87b9/synthetic/reports/v0-s3/preparation-05/implementation/receipt.json"
+    },
+    "probe_entry": {
+      "kind": "ffprobe",
+      "label": "probe-4fe730e251082303b3d48f75ef084a3c572b2237d84cea62b2cd09f9b1af4e0a",
+      "argv": [
+        "/tmp/ic02-stderr-gxc_87b9/probe",
+        "-v",
+        "error",
+        "-enable_drefs",
+        "0",
+        "-protocol_whitelist",
+        "file,pipe",
+        "-show_entries",
+        "format=format_name,duration,nb_streams:stream=index,codec_type,codec_name,width,height,duration",
+        "-of",
+        "json",
+        "/tmp/ic02-stderr-gxc_87b9/synthetic/source/a.mp4"
+      ],
+      "timeout_seconds": 20,
+      "exit_code": 0,
+      "stdout_bytes": 112,
+      "stderr_bytes": 4194192,
+      "stdout_sha256": "26def9339a7f60180bbb91e88131d0d081be633ee00267712dd987e1931c8dbf",
+      "stderr_sha256": "c710119f4b0ac147eeb458b28379f81bbfe6e59fe556f8e486e4637dd9780b31",
+      "error": "BridgeError:MEDIA_LIMIT_EXCEEDED:VIDEO_PROCESS_OUTPUT_LIMIT",
+      "capture_limit_bytes": 4194304,
+      "decoder_stdout_bytes": 112,
+      "decoder_stdout_sha256": "26def9339a7f60180bbb91e88131d0d081be633ee00267712dd987e1931c8dbf"
+    },
+    "retained_json_valid": true,
+    "capture_hashes_independently_recomputed": true,
+    "frames": 0,
+    "later": {
+      "resolve": 0,
+      "stat": 0,
+      "hash": 0,
+      "decode": 0
+    },
+    "real_processes": [
+      {
+        "pid": 1581413,
+        "returncode": 0,
+        "reaped": true
+      }
+    ],
+    "poll_waits": [
+      {
+        "pid": 1581413,
+        "wait_result": 0,
+        "poll_result": 0,
+        "seconds": 0.03137579599570017
+      },
+      {
+        "pid": 1581413,
+        "wait_result": 0,
+        "poll_result": 0,
+        "seconds": 1.839005562942475e-06
+      }
+    ],
+    "receipt": {
+      "kind": "S3_PREP_C_CANDIDATE_PREPARATION_TERMINAL_RECEIPT",
+      "scope": "PREPARATION_ELIGIBILITY_AND_PREVIEW_ONLY",
+      "authority": "AUTHORITATIVE",
+      "run_id": "run-01",
+      "decision": "PREPARATION_FAILED_PROBE_CAPTURE_LIMIT_EXCEEDED",
+      "product_gate0": false,
+      "stage_pass_claim": false,
+      "quality_claim": "NONE_ELIGIBILITY_IS_NOT_QUALITY_EVIDENCE",
+      "quality_set_frozen": false,
+      "prelabel_stage_complete": false,
+      "started_at": "2026-11-11T19:08:43.014493+00:00",
+      "finished_at": "2026-11-11T19:08:43.056007+00:00",
+      "counts": {
+        "selected_total": 2,
+        "images_selected": 0,
+        "videos_selected": 2,
+        "eligible": 0,
+        "not_eligible": 0,
+        "not_run": 2,
+        "conservation_ok": true,
+        "conservation_formula": "selected_total == eligible + not_eligible + not_run",
+        "admitted": 1,
+        "admitted_bytes": 15,
+        "not_eligible_by_reason": {},
+        "not_run_by_reason": {
+          "probe_capture_limit_exceeded": 2
+        },
+        "internal_error": null
+      },
+      "candidates": [
+        {
+          "candidate_ref": null,
+          "file_id": "4fe730e251082303b3d48f75ef084a3c572b2237d84cea62b2cd09f9b1af4e0a",
+          "relative_path": "a.mp4",
+          "media_kind": "video",
+          "status": "not_run",
+          "reason": "probe_capture_limit_exceeded"
+        },
+        {
+          "candidate_ref": null,
+          "file_id": "1c1f781e1e721df77a12e03e222dfe21c067fd32c4e6b0312419ec2a87bb33d9",
+          "relative_path": "b.mp4",
+          "media_kind": "video",
+          "status": "not_run",
+          "reason": "probe_capture_limit_exceeded"
+        }
+      ],
+      "budget": {
+        "wall_seconds_limit": 1200,
+        "wall_seconds_used": 0.042,
+        "source_files_hashed": 1,
+        "hash_passes_per_file": 1,
+        "source_bytes_hashed": 15,
+        "admitted_source_bytes": 15,
+        "admitted_source_bytes_limit": 1073741824,
+        "image_decode_calls": 0,
+        "image_decode_limit_per_image": 1,
+        "ffprobe_calls": 1,
+        "ffprobe_limit_per_video": 1,
+        "ffmpeg_frame_calls": 0,
+        "ffmpeg_frame_limit_per_video": 4,
+        "output_bytes_retained": 0,
+        "operational_metadata_bytes": 4197335,
+        "output_bytes_cumulative": 0,
+        "sticky_failure": "probe_capture_limit_exceeded",
+        "output_bytes_staging": 0,
+        "output_bytes_limit": 83886080,
+        "decoder_disk_io_bytes": "NOT_MEASURED_NOT_CLAIMED",
+        "model_actions": 0,
+        "gpu_actions": 0,
+        "services": 0,
+        "network_calls": 0,
+        "downloads": 0,
+        "full_product_checkpoints": 0,
+        "browser_sessions": 0
+      },
+      "runtime": {
+        "relative_path": ".agent-governance/runtime/receipts/s3-preview-c01/run-01",
+        "absolute_path_recorded_in": ".agent-governance/runtime/receipts/s3-preview-c01/run-01/runtime-receipt.json",
+        "index_entry": ".agent-governance/runtime/receipts/s3-preview-c01/run-01/index.html",
+        "retained": true,
+        "retained_reason": "registered retained artefact for the next independent prelabel step",
+        "is_zero_residue": false,
+        "file_count": 5,
+        "total_bytes": 4197335,
+        "files": [
+          {
+            "path": ".agent-governance/runtime/receipts/s3-preview-c01/run-01/raw/001-probe-4fe730e251082303b3d48f75ef084a3c572b2237d84cea62b2cd09f9b1af4e0a.command.log",
+            "bytes": 255,
+            "sha256": null
+          },
+          {
+            "path": ".agent-governance/runtime/receipts/s3-preview-c01/run-01/raw/001-probe-4fe730e251082303b3d48f75ef084a3c572b2237d84cea62b2cd09f9b1af4e0a.exit.log",
+            "bytes": 2,
+            "sha256": null
+          },
+          {
+            "path": ".agent-governance/runtime/receipts/s3-preview-c01/run-01/raw/001-probe-4fe730e251082303b3d48f75ef084a3c572b2237d84cea62b2cd09f9b1af4e0a.stderr.log",
+            "bytes": 4194192,
+            "sha256": null
+          },
+          {
+            "path": ".agent-governance/runtime/receipts/s3-preview-c01/run-01/raw/001-probe-4fe730e251082303b3d48f75ef084a3c572b2237d84cea62b2cd09f9b1af4e0a.stdout.log",
+            "bytes": 112,
+            "sha256": null
+          },
+          {
+            "path": ".agent-governance/runtime/receipts/s3-preview-c01/run-01/runtime-receipt.json",
+            "bytes": 2774,
+            "sha256": null
+          }
+        ]
+      },
+      "cleanup": {
+        "staging_path": ".agent-governance/runtime/receipts/s3-preview-c01/run-01/staging",
+        "staging_removed": true,
+        "staging_residual_entries": 0,
+        "temporary_directories_created": 1,
+        "temporary_directories_removed": 1,
+        "subprocesses_started": 1,
+        "owned_pids_only": true,
+        "source_files_modified": 0,
+        "source_files_deleted": 0,
+        "cleanup_process": {
+          "pid": 1581416,
+          "exitcode": 0,
+          "reaped": true
+        },
+        "cleanup_seconds_measured": 0.0025940140039892867,
+        "cleanup_allowance_seconds": 4,
+        "subprocesses_started_scope": "DECODER_ONLY_CPU_LISTED_SEPARATELY",
+        "cpu_processes": [],
+        "cleanup_timeout_seconds_per_owned_process": 2,
+        "zero_action_fields": "CODE_PATH_CONSTANTS_NOT_OS_AUDIT"
+      },
+      "raw_evidence": {
+        "committed": "reports/v0-s3/preparation-05/implementation/raw",
+        "exact_raw": ".agent-governance/runtime/receipts/s3-preview-c01/run-01/raw",
+        "redaction": "the committed copy replaces the absolute source root and the absolute runtime root; the exact copy stays in the runtime root",
+        "commands": [
+          {
+            "index": 1,
+            "label": "probe-4fe730e251082303b3d48f75ef084a3c572b2237d84cea62b2cd09f9b1af4e0a",
+            "kind": "ffprobe",
+            "exit_code": 0,
+            "timeout_seconds": 20,
+            "capture_limit_bytes": 4194304,
+            "stdout_bytes": 112,
+            "decoder_stdout_bytes": 112,
+            "decoder_stdout_sha256": "26def9339a7f60180bbb91e88131d0d081be633ee00267712dd987e1931c8dbf",
+            "stderr_bytes": 4194192,
+            "stdout_sha256": "26def9339a7f60180bbb91e88131d0d081be633ee00267712dd987e1931c8dbf",
+            "stderr_sha256": "c710119f4b0ac147eeb458b28379f81bbfe6e59fe556f8e486e4637dd9780b31",
+            "error": "BridgeError:MEDIA_LIMIT_EXCEEDED:VIDEO_PROCESS_OUTPUT_LIMIT",
+            "command_sha256": "eacb527b0acf199dd1ba352d4c565ba251b1de9019b8ed7ce6594c3d04c69cd1"
+          }
+        ],
+        "redacted_copy": {
+          "files": 4,
+          "redactions": 1,
+          "directory": "reports/v0-s3/preparation-05/implementation/raw"
+        }
+      },
+      "limitations": [
+        "eligibility only: no model, no GPU, no service, no download and no full product checkpoint was used",
+        "no LVW or product analysis call was made and no semantic label, expected answer or quality verdict was produced",
+        "probed size and duration are container facts, not a proof that a full decode ran",
+        "requested sample offsets are not a proof of the actual presentation timestamps",
+        "decoder disk IO was not measured and is not claimed",
+        "the retained preview is material for the next independent prelabel step and is not a quality result",
+        "the source was read only; no source file was copied, modified or deleted"
+      ],
+      "handoff_guard": {
+        "decision": "HANDOFF_READINESS_VERIFIED",
+        "authority": "FIXTURE_NON_AUTHORITY",
+        "summary": {
+          "checks": 139,
+          "passed": 139,
+          "failed": 0
+        }
+      },
+      "preflight": {
+        "path": "reports/v0-s3/preparation-05/implementation/preflight.json",
+        "sha256": "74d1e913c53c3a73de2575fa0a8648f1bdf16ff0a82dd444471ef01ad5155626",
+        "decision": "PREFLIGHT_PASSED"
+      },
+      "child": {
+        "path": "reports/v0-s3/preparation-05/sample-preparation-child-01.json",
+        "sha256": "e611cb9c8f8cc47c9e837296f4fa75a3851afd1ed010616cfba4cf69809a21e8",
+        "child_id": "SYNTHETIC"
+      },
+      "catalog": {
+        "sha256": "3953722b6986ea6ee165b51ab7f129909d26223c75da67a0ed14fd88aa460f40"
+      },
+      "holdout_manifest": {
+        "sha256": "ebe8de8dad8100fd09ef75bdfcb124d905627500518a9ef59ed98f27bb500072"
+      },
+      "candidate": {
+        "sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "tools": {
+        "ffmpeg": {
+          "real_path": "/tmp/ic02-stderr-gxc_87b9/probe"
+        },
+        "ffprobe": {
+          "real_path": "/tmp/ic02-stderr-gxc_87b9/probe"
+        }
+      }
+    },
+    "owned_temp": "/tmp/ic02-stderr-gxc_87b9",
+    "owned_entries_before": 42,
+    "owned_bytes_before": 8569643,
+    "owned_temp_absent_after": true
+  }
+]

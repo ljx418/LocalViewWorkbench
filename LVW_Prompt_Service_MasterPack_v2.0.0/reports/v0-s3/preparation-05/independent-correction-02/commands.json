@@ -1,0 +1,42 @@
+{
+  "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0",
+  "env": {
+    "PYTHONDONTWRITEBYTECODE": "1"
+  },
+  "suite": {
+    "argv": [
+      "python3",
+      "-B",
+      "-m",
+      "pytest",
+      "tools/test_s3_sample_preparation.py",
+      "-q",
+      "-rP",
+      "-p",
+      "no:cacheprovider",
+      "--basetemp=/tmp/s3-independent-correction-suite-2k4qrj47/pytest"
+    ],
+    "env": {
+      "PYTHONDONTWRITEBYTECODE": "1"
+    },
+    "exit": 0,
+    "owned_root": "/tmp/s3-independent-correction-suite-2k4qrj47",
+    "before_cleanup": {
+      "entries": 3778,
+      "files": 2712,
+      "bytes": 48785610
+    },
+    "absent_after": true
+  },
+  "driver_commands": [
+    "python3 -B reports/v0-s3/preparation-05/independent-correction-02/raw/run-suite.py",
+    "python3 -B reports/v0-s3/preparation-05/independent-correction-02/raw/probe-overflow-owner.py",
+    "python3 -B reports/v0-s3/preparation-05/independent-correction-02/raw/verify-bindings.py"
+  ],
+  "driver_exits": [
+    0,
+    0,
+    0
+  ],
+  "notes": "Each stdout/stderr redirected to matching raw logs; suite driver output in suite-driver.*. CLI returns1 in each deliberate failure; synthetic probe OS exits0."
+}
