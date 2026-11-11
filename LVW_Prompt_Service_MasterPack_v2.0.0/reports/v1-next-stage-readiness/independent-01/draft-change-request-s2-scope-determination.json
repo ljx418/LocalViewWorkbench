@@ -1,0 +1,121 @@
+{
+  "kind": "DRAFT_CHANGE_REQUEST_PROPOSAL_NOT_AUTHORITY",
+  "status": "DRAFT_PENDING_CODEX_ADJUDICATION_AND_HUMAN_SIGNATURE",
+  "proposal_id": "CHANGE-V0-S2-HUMAN-BINDING-01",
+  "date": "2026-11-11",
+  "proposed_by": "ClaudeCode independent planning reviewer (read-only)",
+  "authority_to_approve": ["codex_gate_owner", "project_owner"],
+  "reviewer_may_approve": false,
+  "stage_pass_claimed": false,
+  "product_gate0": false,
+  "product_permission_granted": false,
+  "active_product_permission": 0,
+  "question": "To which deliverable is the V0-S2 human experience / range obligation bound, now that the unified React/FastAPI frontend (candidate 621b1bf) has been approved by the project owner as the human acceptance surface for the video capability, and while the original V0-S2 human signature on candidate 719c745 (Comfy-native) remains outstanding at 7/8?",
+  "missing_item_evidence": {
+    "document_that_lists_it_as_a_prerequisite": "docs/30_V1_REVISED_EXECUTION_PLAN.md (S2/S3 准入: 现有统一切片实际体验签署，原S2范围判定)",
+    "first_item_already_satisfied_by": "reports/unified-media/human-signoff-live15.json",
+    "second_item_present_in_any_source_file": false,
+    "searched_locations": [
+      "docs/23_V1_EARLY_FRONTEND_SEQUENCE.md",
+      "docs/27_UNIFIED_MEDIA_FRONTEND_PROPOSAL.md",
+      "docs/30_V1_REVISED_EXECUTION_PLAN.md",
+      "docs/31_V1_DETAILED_ARCHITECTURE_AND_CONTRACTS.md",
+      "docs/32_V1_ACCEPTANCE_AND_AGENT_WORKFLOW.md",
+      ".agent-governance/stages/**",
+      "reports/v0-s2/**"
+    ]
+  },
+  "constraints_that_any_adjudication_must_satisfy": [
+    {"id": "C1", "text": "Do not fabricate an S2 human signature; keep S2 at 7/8 and retain the old machine/independent facts", "source": "docs/27_UNIFIED_MEDIA_FRONTEND_PROPOSAL.md"},
+    {"id": "C2", "text": "Old S2 remains 7/8 unsigned; the Comfy UI is no longer the human acceptance entry for this route", "source": "docs/23_V1_EARLY_FRONTEND_SEQUENCE.md (2026-11-08 addendum)"},
+    {"id": "C3", "text": "Retain V0-S2/S3 original obligations AND their prerequisite gates; do not cancel S3; do not pass new multi-shot results off as the old quality denominator", "source": "docs/30_V1_REVISED_EXECUTION_PLAN.md"},
+    {"id": "C4", "text": "V0.1 video and V0.2 install/rollback/full quality are not cancelled, only deferred in execution order", "source": "docs/23_V1_EARLY_FRONTEND_SEQUENCE.md"},
+    {"id": "C5", "text": "The 2026-11-11 signature covers only the current unified slice; it must not be extended to old S2/V0.2/full R1/full V1/release", "source": "AGENTS.md rule 23"},
+    {"id": "C6", "text": "The old slice human signature is not waived", "source": "plans/v1-revised-plan.json old_slice_human_signoff_waived=false"},
+    {"id": "C7", "text": "Actual experience and release signatures are still performed by the human", "source": "AGENTS.md rule 20"},
+    {"id": "C8", "text": "An isolated review instance does not implement the candidate and does not sign Stage PASS", "source": "AGENTS.md rule 11"}
+  ],
+  "options": [
+    {
+      "option": "A",
+      "recommended_by_reviewer": true,
+      "title": "Re-bind the V0-S2 human experience/range obligation for the demonstrated video capability subset to the already-signed unified slice, and explicitly record what remains unconfirmed",
+      "binds_to_candidate": "621b1bf386db71bfe08ca2f533fa8ec396b0504b",
+      "binds_to_record": "reports/unified-media/human-signoff-live15.json",
+      "must_state": [
+        "S2 machine 9/9 and independent Fatal0/Major0 stay bound to candidate 719c745",
+        "V0.2 cumulative gate remains V0-A01..A12 all passing and must be re-run on the S3 candidate",
+        "V0-A11 (10 images >=8 usable, 0 critical hallucinations) and V0-A12 (6 videos >=5 usable, 0 critical hallucinations) must be freshly run on the S3 candidate with independent pre-annotation",
+        "The 2026-11-11 human confirmation was given on a synthetic structural fixture and carries zero content-quality evidence",
+        "V0-A06 offline incremental migration / install / rollback is untouched and must be built and run",
+        "The Comfy-native node-graph interaction is recorded as NOT human-confirmed and therefore not claimed",
+        "No V0.1 pass, no V0.2 pass, no V0 release, no full V1 pass; allowed_claim stays V0_MIN_ACCEPTED_NOT_RELEASED",
+        "The eleven human holdouts stay NOT_RUN and protected",
+        "plans/tasks.json depends_on edges are unchanged"
+      ],
+      "cost": "User does not have to learn Comfy; V0-S2 human gate can close. V0-S3 still owes the full twelve cases and an independent quality set.",
+      "risk": "A judgement that the Comfy-native experience was never confirmed must be carried forward honestly into the V0.2 record."
+    },
+    {
+      "option": "B",
+      "recommended_by_reviewer": false,
+      "title": "User actually exercises the Comfy-native path and signs the original candidate unchanged",
+      "binds_to_candidate": "719c74559393a6489b2f630a1e0d3bc3303eb655",
+      "instruction_source": "reports/v0-s2/full-v0-auto-08/human-signoff-request.md",
+      "cost": "No new product code, original evidence chain preserved.",
+      "risk": "Runs against the docs/27 approved intent of not requiring the user to learn Comfy first; requires additional user effort."
+    },
+    {
+      "option": "C",
+      "recommended_by_reviewer": false,
+      "title": "Treat the old S2 as already signed on the strength of the unified-slice signature",
+      "status": "NOT_RECOMMENDED_AND_WILL_NOT_BE_USED_TO_PROGRESS",
+      "violates": ["C5", "C6", "AGENTS.md rule 13 (must not lower thresholds)", "reports/unified-media/human-signoff-live15.json explicitly_not_approved[0]"]
+    }
+  ],
+  "minimum_affected_ids_and_files": {
+    "new_files": [
+      {"path": "reports/v0-s2/scope-determination-01.md", "purpose": "human-readable scope determination"},
+      {"path": "reports/v0-s2/scope-determination-01.json", "purpose": "machine-readable determination: id, adjudicator, signer, bound candidate SHA, excluded scope, retained obligations"}
+    ],
+    "existing_files_status_field_updates_only": [
+      {"path": "plans/execution-control.json", "field": "development_outline[V0-S2].substeps[7].status", "from": "PENDING", "to": "DONE", "evidence": "reports/v0-s2/scope-determination-01.json"},
+      {"path": "plans/execution-control.json", "field": "development_outline[V0-S2].human_signoff", "from": "PENDING", "to": "reference to the new determination record (no version-number claim)"},
+      {"path": "plans/execution-control.json", "field": "historical_s2_scope_determination", "from": "ABSENT", "to": "pointer to determination record and bound candidate SHA"}
+    ],
+    "explicitly_unchanged": [
+      "plans/tasks.json (all depends_on edges)",
+      "plans/acceptance_cases.json (V0-A01..A12 and V1 21 + MS01-MS08)",
+      "plans/release_gates.json (all gates and all_must_pass)",
+      "plans/requirements.json, plans/requirement_coverage.json, plans/v1-revised-plan.json, plans/v1-multishot-contract.json, plans/v1-multishot-sample-design.json",
+      "contracts/** (openapi.json, errors.json, package-manifest.schema.json, v1-multishot.*)",
+      "docs/13, docs/23, docs/27, docs/30, docs/31, docs/32 (append-only errata at most)",
+      "reports/v0-s2/**, reports/unified-media/**, reports/v1-redesign/** (no rewrite of any receipt or historical failure)",
+      "AGENTS.md, .agent-governance/stages/**",
+      "config/experience-gates.json (all thresholds)",
+      "plans/execution-control.json: historical_s2_last_passed_gate, allowed_claim, forbidden_claims, candidate_binding_scope"
+    ]
+  },
+  "retained_obligations": {
+    "v0_2_cumulative": "V0-A01..A12 all must pass on the S3 candidate",
+    "v0_a11": "10 independent pre-annotated images, >=8 usable, 0 critical hallucinations",
+    "v0_a12": "6 independent pre-annotated videos, >=5 usable, 0 critical hallucinations",
+    "v0_a06": "offline cold start, install into a Chinese/space path, real rollback, original workflows still run",
+    "v1_denominator": "29 required cases (A01-A12, F01-F05, Q01, X01-X03, MS01-MS08)",
+    "q01": "12 images >=10/12, 6 videos >=5/6, 0 critical hallucinations, six modes each with >=2 images",
+    "ms_thresholds": "MS01 P/R>=0.90 with +/-2 source frames on H01-H06; MS04 >=10/12 simple-action, total >=15/18, five dimensions 0-2 with total >=8, 0 critical hallucinations; MS07 12/13 exact-one-over, GPU<23552MiB, RAM>=2048MiB, OOM 0",
+    "holdouts": "11 human holdouts remain NOT_RUN and are never a development, tuning or automatic acceptance set",
+    "budget": "COMPLETE03 global 1024 model actions / 24 effective full checkpoints / 172800 production seconds; historical consumption counted and not reset",
+    "claims": "no V0 release claim, no V0.1/V0.2 acceptance claim, no full R1/V1 claim, no production release claim"
+  },
+  "activation_conditions": [
+    "Codex adjudicates and selects an option",
+    "project_owner actually signs the determination text",
+    "the record is added to plans/execution-control.json as append-only fields",
+    "a separate V0-S3 Stage Packet is frozen by Codex (Gate0 checklist, file allowlist, sample SHAs, budget, cleanup)",
+    "until all of the above: zero product run permission, zero sample acquisition authorization, zero Stage activation, zero contract change"
+  ],
+  "does_not_require": [
+    "another human signature on the unified frontend slice (already fixed by AGENTS.md rule 23 and must not be re-requested)"
+  ]
+}
