@@ -107,7 +107,7 @@ def run_cli(*args, cwd=None):
     return proc.returncode, payload, stdout_text, stderr_text
 
 
-def make_sandbox(root, name="隔离 沙箱根", marker=True):
+def make_sandbox(root, name="隔离 沙箱根", marker=True, target_name="隔离 目标 目录"):
     """建一个带中文与空格的隔离沙箱：父目录 + 目标目录 + 哨兵文件。"""
     sandbox_parent = root / name
     sandbox_parent.mkdir(parents=True, exist_ok=True)
@@ -116,7 +116,7 @@ def make_sandbox(root, name="隔离 沙箱根", marker=True):
             json.dumps({"magic": SANDBOX_MARKER_MAGIC, "tool": TOOL_NAME}),
             encoding="utf-8",
         )
-    target = sandbox_parent / "隔离 目标 目录"
+    target = sandbox_parent / target_name
     target.mkdir(parents=True, exist_ok=True)
     sentinel = target / "哨兵 文件.txt"
     sentinel.write_bytes(b"SENTINEL-ORIGINAL-BYTES\n")
@@ -1019,3 +1019,581 @@ def test_tool_is_stdlib_only():
             imported.add(stripped[len("from "):].split()[0].split(".")[0])
     third_party = imported & {"requests", "numpy", "yaml", "PIL", "pandas", "click", "toml"}
     assert not third_party, f"工具不得依赖第三方库: {third_party}"
+
+
+# --------------------------------------------------------------------------- #
+# correction-01 回归：独审 F-01 / F-02 / M-01 与所有权记录边界
+#
+# 覆盖：
+#   F-01 收据 owned.files[].install_path 路径穿越 -> 拒绝，外部 victim 零删除
+#   F-02 收据 staging.path 指向任意目录           -> 拒绝，不递归删除
+#   M-01 同名不同沙箱的跨目标回滚                  -> 拒绝，另一沙箱零删除
+#   所有权记录缺失 / 被篡改 / session 不符 / target 不符 -> 全部非零
+#   收据的全部路径字段被篡改                        -> 全部非零且整树不变
+#   脱敏收据 + 显式 --target                        -> 仍可正常回滚
+# --------------------------------------------------------------------------- #
+
+OWNERSHIP_FILE_NAME = ".lvw_v0_incremental_ownership.json"
+
+
+def _install_package(package, sandbox_parent, target, receipt_path, *extra):
+    code, payload, _stdout, stderr = run_cli(
+        "install",
+        "--package",
+        str(package),
+        "--sandbox-parent",
+        str(sandbox_parent),
+        "--target",
+        str(target),
+        "--receipt-out",
+        str(receipt_path),
+        *extra,
+    )
+    assert code == EXIT_CODES["OK"], stderr
+    return payload
+
+
+def _read_receipt(receipt_path):
+    return json.loads(receipt_path.read_text(encoding="utf-8"))
+
+
+def _write_receipt(receipt_path, receipt):
+    receipt_path.write_text(
+        json.dumps(receipt, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+
+
+def _install_synthetic(tmp_path, sandbox_parent, target, receipt_path):
+    package = tmp_path / "pkg.zip"
+    synthetic_package(package, SIMPLE_PAYLOAD)
+    payload = _install_package(package, sandbox_parent, target, receipt_path)
+    return package, payload
+
+
+# --------------------------------------------------------------------------- #
+# F-01 / F-02 / M-01
+# --------------------------------------------------------------------------- #
+
+
+def test_F01_tampered_receipt_install_path_is_rejected_and_victim_survives(tmp_path):
+    """F-01：收据里的 install_path 路径穿越必须被拒绝，外部 victim 零删除、整树不变。"""
+    sandbox_parent, target, sentinel = make_sandbox(tmp_path)
+    victim = tmp_path / "victim.txt"
+    victim_bytes = b"VICTIM-NOT-OWNED-DO-NOT-DELETE\n"
+    victim.write_bytes(victim_bytes)
+    receipt_path = tmp_path / "receipt.json"
+    _install_synthetic(tmp_path, sandbox_parent, target, receipt_path)
+
+    receipt = _read_receipt(receipt_path)
+    receipt["owned"]["files"][0] = {
+        "install_path": "../../victim.txt",
+        "sha256": hashlib.sha256(victim_bytes).hexdigest(),
+        "length": len(victim_bytes),
+    }
+    _write_receipt(receipt_path, receipt)
+
+    before = tree_snapshot(target)
+    code, payload, _stdout, stderr = run_cli(
+        "rollback", "--receipt", str(receipt_path), "--target", str(target)
+    )
+    assert code == EXIT_CODES["PATH_REJECTED"], stderr
+    assert payload["error_code"] == "PATH_REJECTED"
+    # 外部 victim 零删除、零改写。
+    assert victim.exists()
+    assert victim.read_bytes() == victim_bytes
+    # 预检失败：整个目标树零写入零删除。
+    assert tree_snapshot(target) == before
+    assert sentinel.read_bytes() == b"SENTINEL-ORIGINAL-BYTES\n"
+
+
+def test_F01_rejected_rollback_leaves_the_install_rollback_capable(tmp_path):
+    """F-01：拒绝之后状态未被破坏：把收据改回合法值后仍可正常回滚。"""
+    sandbox_parent, target, sentinel = make_sandbox(tmp_path)
+    receipt_path = tmp_path / "receipt.json"
+    _install_synthetic(tmp_path, sandbox_parent, target, receipt_path)
+    original = _read_receipt(receipt_path)
+
+    broken = json.loads(json.dumps(original))
+    broken["owned"]["files"][0]["install_path"] = "../../victim.txt"
+    _write_receipt(receipt_path, broken)
+    code, _payload, _stdout, _stderr = run_cli(
+        "rollback", "--receipt", str(receipt_path), "--target", str(target)
+    )
+    assert code != 0
+
+    _write_receipt(receipt_path, original)
+    code, payload, _stdout, stderr = run_cli(
+        "rollback", "--receipt", str(receipt_path), "--target", str(target)
+    )
+    assert code == EXIT_CODES["OK"], stderr
+    assert payload["status"] == "OK"
+    assert tree_snapshot(target) == {"哨兵 文件.txt": sha256_file(sentinel)}
+
+
+def test_F02_tampered_receipt_staging_path_is_rejected_and_victim_dir_survives(tmp_path):
+    """F-02：收据里的 staging.path 不得触发递归删除。"""
+    sandbox_parent, target, sentinel = make_sandbox(tmp_path)
+    victim_dir = tmp_path / "victim_dir"
+    (victim_dir / "sub").mkdir(parents=True)
+    (victim_dir / "sub" / "keep.txt").write_bytes(b"KEEP\n")
+    receipt_path = tmp_path / "receipt.json"
+    _install_synthetic(tmp_path, sandbox_parent, target, receipt_path)
+
+    receipt = _read_receipt(receipt_path)
+    receipt["staging"] = {"path": str(victim_dir), "removed": False}
+    _write_receipt(receipt_path, receipt)
+
+    before = tree_snapshot(target)
+    code, payload, _stdout, stderr = run_cli(
+        "rollback", "--receipt", str(receipt_path), "--target", str(target)
+    )
+    assert code == EXIT_CODES["ROLLBACK_CONFLICT"], stderr
+    assert payload["error_code"] == "ROLLBACK_CONFLICT"
+    # 外部目录完整保留。
+    assert victim_dir.is_dir()
+    assert (victim_dir / "sub" / "keep.txt").read_bytes() == b"KEEP\n"
+    assert tree_snapshot(target) == before
+
+
+def test_M01_cross_sandbox_same_basename_rollback_is_rejected(tmp_path):
+    """M-01：同名不同沙箱的跨目标回滚必须被拒绝，另一沙箱零删除。"""
+    sandbox_a, target_a, _sentinel_a = make_sandbox(
+        tmp_path, "沙箱 A", target_name="同一 目标"
+    )
+    sandbox_b, target_b, _sentinel_b = make_sandbox(
+        tmp_path, "沙箱 B", target_name="同一 目标"
+    )
+    receipt_path = tmp_path / "receipt.json"
+    _install_synthetic(tmp_path, sandbox_a, target_a, receipt_path)
+
+    # 沙箱 B 里也做一次同名安装，并放一个用户文件。
+    package = tmp_path / "pkg.zip"
+    synthetic_package(package, SIMPLE_PAYLOAD)
+    _install_package(package, sandbox_b, target_b, tmp_path / "receipt-b.json")
+    user_file = target_b / "非 owned 标记.txt"
+    user_file.write_bytes(b"USER\n")
+
+    before = tree_snapshot(target_b)
+    code, payload, _stdout, stderr = run_cli(
+        "rollback", "--receipt", str(receipt_path), "--target", str(target_b)
+    )
+    assert code == EXIT_CODES["ROLLBACK_CONFLICT"], stderr
+    assert payload["error_code"] == "ROLLBACK_CONFLICT"
+    # 沙箱 B 的一个字节都不能被删。
+    assert tree_snapshot(target_b) == before
+    assert user_file.read_bytes() == b"USER\n"
+
+
+def test_rollback_on_a_target_without_an_install_is_rejected(tmp_path):
+    """目标里根本没有安装过：不得删除任何东西。"""
+    sandbox_parent, target, sentinel = make_sandbox(tmp_path)
+    receipt_path = tmp_path / "receipt.json"
+    other_parent, other_target, _other_sentinel = make_sandbox(tmp_path, "沙箱 B")
+    _install_synthetic(tmp_path, other_parent, other_target, receipt_path)
+
+    before = tree_snapshot(target)
+    code, payload, _stdout, stderr = run_cli(
+        "rollback", "--receipt", str(receipt_path), "--target", str(target)
+    )
+    assert code == EXIT_CODES["ROLLBACK_CONFLICT"], stderr
+    assert tree_snapshot(target) == before
+
+
+# --------------------------------------------------------------------------- #
+# 所有权记录边界
+# --------------------------------------------------------------------------- #
+
+
+def test_install_writes_ownership_record_and_rollback_removes_it(tmp_path):
+    """新 oracle：安装成功时目标内有一份所有权记录，回滚后被安全移除。"""
+    sandbox_parent, target, sentinel = make_sandbox(tmp_path)
+    receipt_path = tmp_path / "receipt.json"
+    _package, payload = _install_synthetic(tmp_path, sandbox_parent, target, receipt_path)
+
+    record_path = target / OWNERSHIP_FILE_NAME
+    assert record_path.is_file()
+    record = json.loads(record_path.read_text(encoding="utf-8"))
+    assert record["schema_version"]
+    assert record["session_id"] == payload["session_id"]
+    assert record["install_hash"]
+    assert record["target_identity"] == str(target.resolve())
+    assert record["owned"]["files"]
+    assert payload["ownership"]["sha256"] == sha256_file(record_path)
+    assert payload["ownership"]["install_hash"] == record["install_hash"]
+
+    code, rollback_payload, _stdout, stderr = run_cli(
+        "rollback", "--receipt", str(receipt_path), "--target", str(target)
+    )
+    assert code == EXIT_CODES["OK"], stderr
+    assert rollback_payload["ownership_record"]["removed"] is True
+    assert not record_path.exists()
+    assert tree_snapshot(target) == {"哨兵 文件.txt": sha256_file(sentinel)}
+
+
+def test_rollback_rejects_a_missing_ownership_record(tmp_path):
+    """所有权记录缺失：拒绝，owned 文件一个都不删。"""
+    sandbox_parent, target, sentinel = make_sandbox(tmp_path)
+    receipt_path = tmp_path / "receipt.json"
+    _install_synthetic(tmp_path, sandbox_parent, target, receipt_path)
+    (target / OWNERSHIP_FILE_NAME).unlink()
+
+    before = tree_snapshot(target)
+    code, payload, _stdout, stderr = run_cli(
+        "rollback", "--receipt", str(receipt_path), "--target", str(target)
+    )
+    assert code == EXIT_CODES["ROLLBACK_CONFLICT"], stderr
+    assert payload["error_code"] == "ROLLBACK_CONFLICT"
+    assert tree_snapshot(target) == before
+    assert (target / BRIDGE_INSTALL_DIR / "core.py").is_file()
+
+
+def test_rollback_rejects_a_tampered_ownership_record(tmp_path):
+    """所有权记录被用户改写：拒绝，owned 文件一个都不删。"""
+    sandbox_parent, target, sentinel = make_sandbox(tmp_path)
+    receipt_path = tmp_path / "receipt.json"
+    _install_synthetic(tmp_path, sandbox_parent, target, receipt_path)
+
+    record_path = target / OWNERSHIP_FILE_NAME
+    record = json.loads(record_path.read_text(encoding="utf-8"))
+    record["owned"]["files"][0]["sha256"] = "0" * 64
+    record_path.write_text(json.dumps(record, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    before = tree_snapshot(target)
+    code, payload, _stdout, stderr = run_cli(
+        "rollback", "--receipt", str(receipt_path), "--target", str(target)
+    )
+    assert code == EXIT_CODES["ROLLBACK_CONFLICT"], stderr
+    assert tree_snapshot(target) == before
+    assert (target / BRIDGE_INSTALL_DIR / "core.py").is_file()
+
+
+def test_rollback_rejects_an_ownership_record_with_a_rewritten_owned_list(tmp_path):
+    """所有权记录的 owned 清单被改写（即使 hash 自洽）也必须与收据交叉核对后拒绝。"""
+    sandbox_parent, target, sentinel = make_sandbox(tmp_path)
+    receipt_path = tmp_path / "receipt.json"
+    _install_synthetic(tmp_path, sandbox_parent, target, receipt_path)
+
+    record_path = target / OWNERSHIP_FILE_NAME
+    record = json.loads(record_path.read_text(encoding="utf-8"))
+    record["owned"]["files"] = [
+        {
+            "install_path": f"{BRIDGE_INSTALL_DIR}/其它.py",
+            "sha256": "1" * 64,
+            "length": 1,
+        }
+    ]
+    record_path.write_text(json.dumps(record, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    before = tree_snapshot(target)
+    code, payload, _stdout, stderr = run_cli(
+        "rollback", "--receipt", str(receipt_path), "--target", str(target)
+    )
+    assert code == EXIT_CODES["ROLLBACK_CONFLICT"], stderr
+    assert tree_snapshot(target) == before
+
+
+def test_rollback_rejects_a_mismatched_session(tmp_path):
+    """session 不符：拒绝，owned 文件一个都不删。"""
+    sandbox_parent, target, sentinel = make_sandbox(tmp_path)
+    receipt_path = tmp_path / "receipt.json"
+    _install_synthetic(tmp_path, sandbox_parent, target, receipt_path)
+
+    receipt = _read_receipt(receipt_path)
+    receipt["session_id"] = "sess-00000000000000000000000000000000"
+    _write_receipt(receipt_path, receipt)
+
+    before = tree_snapshot(target)
+    code, payload, _stdout, stderr = run_cli(
+        "rollback", "--receipt", str(receipt_path), "--target", str(target)
+    )
+    assert code == EXIT_CODES["ROLLBACK_CONFLICT"], stderr
+    assert tree_snapshot(target) == before
+
+
+def test_install_refuses_to_overwrite_an_existing_ownership_record_file(tmp_path):
+    """所有权记录路径已存在（用户文件）：拒绝且不覆盖用户字节。"""
+    sandbox_parent, target, sentinel = make_sandbox(tmp_path)
+    record_path = target / OWNERSHIP_FILE_NAME
+    user_bytes = b"# user file with the ownership record name\n"
+    record_path.write_bytes(user_bytes)
+
+    package = tmp_path / "pkg.zip"
+    synthetic_package(package, SIMPLE_PAYLOAD)
+    code, payload, _stdout, stderr = run_cli(
+        "install",
+        "--package",
+        str(package),
+        "--sandbox-parent",
+        str(sandbox_parent),
+        "--target",
+        str(target),
+    )
+    assert code == EXIT_CODES["CONFLICT"], stderr
+    assert payload["error_code"] == "CONFLICT"
+    assert record_path.read_bytes() == user_bytes
+    assert not (target / BRIDGE_INSTALL_DIR).exists()
+
+
+def test_failed_install_leaves_no_ownership_record(tmp_path):
+    """安装中途失败：不得留下所有权记录（也不得留下半安装状态）。"""
+    package = tmp_path / "pkg.zip"
+    synthetic_package(package, SIMPLE_PAYLOAD)
+    sandbox_parent, target, sentinel = make_sandbox(tmp_path)
+    (target / "workflows").write_bytes(b"not a directory\n")
+
+    code, payload, _stdout, stderr = run_cli(
+        "install",
+        "--package",
+        str(package),
+        "--sandbox-parent",
+        str(sandbox_parent),
+        "--target",
+        str(target),
+    )
+    assert code == EXIT_CODES["INSTALL_FAILED"], stderr
+    assert not (target / OWNERSHIP_FILE_NAME).exists()
+    assert not (target / BRIDGE_INSTALL_DIR).exists()
+
+
+def test_rollback_rejects_a_residual_staging_directory_without_deleting_it(tmp_path):
+    """本轮 staging 仍有残留：稳定失败并保留诊断，绝不清理未知目录。"""
+    sandbox_parent, target, sentinel = make_sandbox(tmp_path)
+    receipt_path = tmp_path / "receipt.json"
+    _install_synthetic(tmp_path, sandbox_parent, target, receipt_path)
+
+    record_path = target / OWNERSHIP_FILE_NAME
+    record = json.loads(record_path.read_text(encoding="utf-8"))
+    staging_path = Path(record["staging"]["path"])
+    staging_path.mkdir(parents=True, exist_ok=True)
+    (staging_path / "残留.txt").write_bytes(b"LEFTOVER\n")
+
+    before = tree_snapshot(target)
+    code, payload, _stdout, stderr = run_cli(
+        "rollback", "--receipt", str(receipt_path), "--target", str(target)
+    )
+    assert code == EXIT_CODES["ROLLBACK_CONFLICT"], stderr
+    # 残留目录保留（不被当作授权删除），目标内一个字节都没动。
+    assert staging_path.is_dir()
+    assert (staging_path / "残留.txt").read_bytes() == b"LEFTOVER\n"
+    assert tree_snapshot(target) == before
+
+
+# --------------------------------------------------------------------------- #
+# 收据全部路径字段被篡改
+# --------------------------------------------------------------------------- #
+
+
+def _mutate_owned_install_path(receipt):
+    receipt["owned"]["files"][0]["install_path"] = "../../victim.txt"
+
+
+def _mutate_owned_install_path_absolute(receipt):
+    receipt["owned"]["files"][0]["install_path"] = "/etc/passwd"
+
+
+def _mutate_owned_install_path_drive(receipt):
+    receipt["owned"]["files"][0]["install_path"] = "C:/Windows/system32/x.dll"
+
+
+def _mutate_owned_install_path_backslash(receipt):
+    receipt["owned"]["files"][0]["install_path"] = "..\\..\\victim.txt"
+
+
+def _mutate_owned_install_path_outside_prefix(receipt):
+    receipt["owned"]["files"][0]["install_path"] = "其它 目录/evil.py"
+
+
+def _mutate_owned_directories(receipt):
+    receipt["owned"]["directories"] = ["../../外部 目录"]
+
+
+def _mutate_owned_created_directories(receipt):
+    receipt["owned"]["created_directories"] = ["../../外部 目录"]
+
+
+def _mutate_preimage_path(receipt):
+    receipt["preimage"]["files"][0]["path"] = "../../victim.txt"
+
+
+def _mutate_staging_path(receipt):
+    receipt["staging"]["path"] = "../../外部 目录"
+
+
+def _mutate_target(receipt):
+    receipt["target"] = "../../外部 目录"
+
+
+def _mutate_session(receipt):
+    receipt["session_id"] = "sess-deadbeefdeadbeefdeadbeefdeadbeef"
+
+
+@pytest.mark.parametrize(
+    "mutator",
+    [
+        _mutate_owned_install_path,
+        _mutate_owned_install_path_absolute,
+        _mutate_owned_install_path_drive,
+        _mutate_owned_install_path_backslash,
+        _mutate_owned_install_path_outside_prefix,
+        _mutate_owned_directories,
+        _mutate_owned_created_directories,
+        _mutate_preimage_path,
+        _mutate_staging_path,
+        _mutate_target,
+        _mutate_session,
+    ],
+)
+def test_every_tampered_receipt_path_field_is_rejected_with_zero_side_effects(
+    tmp_path, mutator
+):
+    """收据的每一个路径/身份字段被篡改都必须非零拒绝，且目标整树不变、外部 victim 不动。"""
+    sandbox_parent, target, sentinel = make_sandbox(tmp_path)
+    victim = tmp_path / "victim.txt"
+    victim_bytes = b"VICTIM\n"
+    victim.write_bytes(victim_bytes)
+    outside_dir = tmp_path / "外部 目录"
+    outside_dir.mkdir()
+    (outside_dir / "keep.txt").write_bytes(b"KEEP\n")
+
+    receipt_path = tmp_path / "receipt.json"
+    _install_synthetic(tmp_path, sandbox_parent, target, receipt_path)
+
+    receipt = _read_receipt(receipt_path)
+    mutator(receipt)
+    _write_receipt(receipt_path, receipt)
+
+    before = tree_snapshot(target)
+    code, payload, _stdout, stderr = run_cli(
+        "rollback", "--receipt", str(receipt_path), "--target", str(target)
+    )
+    assert code != 0, f"{mutator.__name__} must be rejected: {payload}"
+    assert payload["status"] == "FAILED"
+    # 整树零写入零删除。
+    assert tree_snapshot(target) == before
+    # 外部内容零删除。
+    assert victim.read_bytes() == victim_bytes
+    assert (outside_dir / "keep.txt").read_bytes() == b"KEEP\n"
+    assert sentinel.read_bytes() == b"SENTINEL-ORIGINAL-BYTES\n"
+
+
+# --------------------------------------------------------------------------- #
+# 脱敏收据 + 显式 --target
+# --------------------------------------------------------------------------- #
+
+
+def test_rollback_works_with_a_redacted_receipt_and_an_explicit_target(tmp_path):
+    """脱敏后的收据必须仍能配合显式 --target 正常回滚（不因脱敏而放宽身份）。"""
+    sandbox_parent, target, sentinel = make_sandbox(tmp_path)
+    receipt_path = tmp_path / "收据.json"
+    package, _payload = _install_synthetic(tmp_path, sandbox_parent, target, receipt_path)
+    # 换一个干净目标再装一次，得到一份脱敏收据（脱敏收据不可二次安装进同一目标）。
+    sandbox2, target2, sentinel2 = make_sandbox(tmp_path, "隔离 沙箱根 2")
+    code, _payload2, _stdout, stderr = run_cli(
+        "install",
+        "--package",
+        str(package),
+        "--sandbox-parent",
+        str(sandbox2),
+        "--target",
+        str(target2),
+        "--receipt-out",
+        str(receipt_path),
+        "--redact-root",
+        str(tmp_path),
+    )
+    assert code == EXIT_CODES["OK"], stderr
+    target = target2
+    sentinel = sentinel2
+
+    receipt_text = receipt_path.read_text(encoding="utf-8")
+    assert "<redacted-root>" in receipt_text
+    assert str(tmp_path) not in receipt_text
+
+    code, payload, _stdout, stderr = run_cli(
+        "rollback", "--receipt", str(receipt_path), "--target", str(target)
+    )
+    assert code == EXIT_CODES["OK"], stderr
+    assert payload["status"] == "OK"
+    assert payload["sentinel_unchanged"] is True
+    assert tree_snapshot(target) == {"哨兵 文件.txt": sha256_file(sentinel)}
+
+
+def test_redacted_receipt_without_target_is_rejected(tmp_path):
+    """脱敏收据缺 --target：稳定拒绝，不猜路径。"""
+    sandbox_parent, target, sentinel = make_sandbox(tmp_path)
+    receipt_path = tmp_path / "收据.json"
+    package = tmp_path / "pkg.zip"
+    synthetic_package(package, SIMPLE_PAYLOAD)
+    code, _payload, _stdout, stderr = run_cli(
+        "install",
+        "--package",
+        str(package),
+        "--sandbox-parent",
+        str(sandbox_parent),
+        "--target",
+        str(target),
+        "--receipt-out",
+        str(receipt_path),
+        "--redact-root",
+        str(tmp_path),
+    )
+    assert code == EXIT_CODES["OK"], stderr
+
+    before = tree_snapshot(target)
+    code, payload, _stdout, stderr = run_cli("rollback", "--receipt", str(receipt_path))
+    assert code == EXIT_CODES["BAD_INPUT"], stderr
+    assert tree_snapshot(target) == before
+
+
+# --------------------------------------------------------------------------- #
+# 同根因低风险纠偏
+# --------------------------------------------------------------------------- #
+
+
+@pytest.mark.parametrize(
+    "bad_name",
+    [
+        "payload/custom_nodes/lvw_v0_bridge/zz.py.",
+        "payload/custom_nodes/lvw_v0_bridge/zz.py ",
+        "payload/custom_nodes/lvw_v0_bridge/NUL",
+        "payload/custom_nodes/lvw_v0_bridge/con.py",
+    ],
+)
+def test_windows_trailing_dot_space_and_reserved_names_are_rejected(tmp_path, bad_name):
+    """m-01：Windows 段尾随点/空格与保留设备名必须被拒绝。"""
+    package = tmp_path / "windows.zip"
+    synthetic_package(package, SIMPLE_PAYLOAD, extra_members=[(bad_name, b"evil\n")])
+    code, payload, _stderr = _diagnose_code(package)
+    assert code == EXIT_CODES["PATH_REJECTED"]
+    assert payload["error_code"] == "PATH_REJECTED"
+
+
+def test_windows_trailing_dot_collision_with_an_existing_member_is_rejected(tmp_path):
+    """m-01：`zz.py` 与 `zz.py.` 在 Windows 上同名，必须按冲突拒绝。"""
+    package = tmp_path / "windows-collision.zip"
+    synthetic_package(
+        package,
+        SIMPLE_PAYLOAD + [(f"{BRIDGE_INSTALL_DIR}/zz.py", b"print('x')\n")],
+        extra_members=[(f"payload/{BRIDGE_INSTALL_DIR}/zz.py.", b"print('x')\n")],
+    )
+    code, payload, _stderr = _diagnose_code(package)
+    assert code == EXIT_CODES["PATH_REJECTED"]
+    assert payload["error_code"] == "PATH_REJECTED"
+
+
+def test_unreadable_external_manifest_is_rejected_as_bad_input(tmp_path):
+    """m-03：外部 --manifest 不可读/非法 JSON 时稳定 BAD_INPUT，不落到 INTERNAL_ERROR。"""
+    package = tmp_path / "pkg.zip"
+    synthetic_package(package, SIMPLE_PAYLOAD)
+
+    broken = tmp_path / "broken-manifest.json"
+    broken.write_text("{ this is not json", encoding="utf-8")
+    code, payload, _stderr = _diagnose_code(package, "--manifest", str(broken))
+    assert code == EXIT_CODES["BAD_INPUT"]
+    assert payload["error_code"] == "BAD_INPUT"
+
+    missing = tmp_path / "missing-manifest.json"
+    code, payload, _stderr = _diagnose_code(package, "--manifest", str(missing))
+    assert code == EXIT_CODES["BAD_INPUT"]
+    assert payload["error_code"] == "BAD_INPUT"

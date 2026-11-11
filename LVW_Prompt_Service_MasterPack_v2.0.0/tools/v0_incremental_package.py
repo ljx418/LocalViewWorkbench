@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""LVW V0 增量包工具（S3-PREP-B 冻结实施合同）。
+"""LVW V0 增量包工具（S3-PREP-B 冻结实施合同 + correction-01 安全纠偏）。
 
 职责：把 Git 候选 commit 中的 LVW_V0_RuntimePatch 生产 payload 打成可复算的离线
 增量包，校验该包，并可在**显式隔离沙箱**中安装与回滚。
@@ -7,12 +7,23 @@
 严格边界（与 stage-packet-preparation-b.md 一致）：
 
 * 只读 Git 对象库，不打包脏工作树；构建绑定完整 commit SHA。
-* 只做离线：���联网、不下载、不读媒体、不用模型/GPU、不起服务。
+* 只做离线：不联网、不下载、不读媒体、不用模型/GPU、不起服务。
 * 只写显式提供的沙箱父目录内的 target；生产宿主路径硬拒绝。
 * 不含任何任意 shell 执行接口，不依赖第三方包。
 
 四个冻结子命令：build / diagnose / install / rollback。
 结构化 JSON 写 stdout，诊断写 stderr，非零退出码表示失败。
+
+correction-01 纠偏要点（针对独审 F-01 / F-02 / M-01）：
+
+* 安装成功时在**目标内部**落一份本轮所有权记录（ownership record），绑定规范化
+  target 身份、沙箱 marker 身份、不可碰撞 session、源 candidate/manifest/payload
+  集合与安装 hash；回滚必须读取这份目标内真实记录，并与外部收据、沙箱 marker
+  交叉核对。外部收据里的任何路径字段都**不是**删除授权。
+* 回滚先做全量预检（路径合法性、唯一性、symlink 逃逸、session/marker/target
+  绑定、逐项 hash），任何一项不通过就零写入零删除并稳定非零退出。
+* 不再以收据里的 staging 路径做递归删除；成功安装时 staging 已在同一事务内
+  清理，回滚只确认其终态。
 """
 
 from __future__ import annotations
@@ -36,12 +47,21 @@ from pathlib import Path, PurePosixPath
 # --------------------------------------------------------------------------- #
 
 TOOL_NAME = "v0_incremental_package.py"
-TOOL_VERSION = "1.0.0"
+TOOL_VERSION = "1.1.0"
 
 PACKAGE_FORMAT_VERSION = "lvw.v0-incremental-package/1"
 MANIFEST_SCHEMA_VERSION = "lvw.v0-incremental-package-manifest/1"
-RECEIPT_SCHEMA_VERSION = "lvw.v0-incremental-package-receipt/1"
+#: correction-01：收据 schema 升到 /2（新增所有权绑定字段）。
+RECEIPT_SCHEMA_VERSION = "lvw.v0-incremental-package-receipt/2"
 DIAGNOSTIC_SCHEMA_VERSION = "lvw.v0-incremental-package-diagnostic/1"
+#: correction-01：目标内所有权记录的 schema 版本（工具内部 schema，不是产品公共 schema）。
+OWNERSHIP_SCHEMA_VERSION = "lvw.v0-incremental-package-ownership/1"
+
+#: 目标内所有权记录的文件名（相对 target 根，不含目录前缀）。
+OWNERSHIP_FILE_NAME = ".lvw_v0_incremental_ownership.json"
+
+#: 暂存目录前缀（安装事务自建，回滚只确认终态、绝不按路径递归删除）。
+STAGING_DIR_PREFIX = ".lvw-v0-stage-"
 
 #: 压缩包与展开 payload 各自适用的硬上限（20 MiB）。
 SIZE_LIMIT_BYTES = 20 * 1024 * 1024
@@ -67,6 +87,11 @@ WORKFLOWS_SOURCE_DIR = "LVW_V0_RuntimePatch/workflows"
 #: 目标安装布局（相对 install root）。
 BRIDGE_INSTALL_DIR = "custom_nodes/lvw_v0_bridge"
 WORKFLOWS_INSTALL_DIR = "workflows/lvw"
+
+#: owned 安装顶层目录（安装事务会创建，回滚按记录逐层 rmdir）。
+OWNED_TOP_LEVEL_DIRS = ("custom_nodes", "workflows")
+#: owned 安装文件前缀：任何 owned 文件路径必须落在其中之一之下。
+OWNED_INSTALL_PREFIXES = (BRIDGE_INSTALL_DIR + "/", WORKFLOWS_INSTALL_DIR + "/")
 
 #: 包内固定成员前缀与名字。
 PAYLOAD_PREFIX = "payload/"
@@ -226,6 +251,138 @@ def _is_hex_sha(value):
 
 def _posix_parts(name):
     return PurePosixPath(name).parts
+
+
+# --------------------------------------------------------------------------- #
+# Windows 路径语义与 owned 相对路径校验
+# --------------------------------------------------------------------------- #
+
+#: Windows 保留设备名（stem 命中即拒绝，避免在 Windows 上别名成设备）。
+_WINDOWS_RESERVED_STEMS = frozenset(
+    ["con", "prn", "aux", "nul"]
+    + [f"com{number}" for number in range(1, 10)]
+    + [f"lpt{number}" for number in range(1, 10)]
+)
+
+
+def _windows_component_key(component):
+    """Windows 归一化后的单段名：去掉段尾随点与空格并小写。
+
+    Windows 上 ``zz.py`` 与 ``zz.py.`` 归一化成同一个文件名，段尾随空格同理。
+    只做 ``lower()`` 不足以防冲突（独审 m-01）。
+    """
+    return component.rstrip(" .").lower()
+
+
+def _windows_path_key(name):
+    """整条 POSIX 相对路径的 Windows 归一化键（用于冲突检测）。"""
+    return "/".join(_windows_component_key(part) for part in name.split("/"))
+
+
+def _path_component_problems(component):
+    """返回该路径段在 Windows 语义下的问题列表。"""
+    problems = []
+    if component != component.rstrip(" ."):
+        problems.append("windows_trailing_dot_or_space")
+    if not component.strip():
+        problems.append("blank_path_component")
+    stem = component.split(".", 1)[0].lower()
+    if stem in _WINDOWS_RESERVED_STEMS:
+        problems.append("windows_reserved_device_name")
+    return problems
+
+
+def _validate_owned_relative_path(value, role, kind):
+    """校验一条 owned 相对路径。
+
+    kind 为 ``"file"`` 或 ``"directory"``。必须是规范 POSIX 相对路径、落在本轮
+    owned 安装前缀之内，并拒绝 ``..``、绝对路径、盘符、反斜杠、Windows 尾随
+    点/空格与保留设备名。任何一项不合法即以 ``PATH_REJECTED`` 稳定拒绝。
+    """
+    if not isinstance(value, str) or not value:
+        _fail(
+            "PATH_REJECTED",
+            f"{role} is not a non-empty relative path",
+            role=role,
+            kind=kind,
+            value=value if isinstance(value, str) else repr(value),
+        )
+    problems = []
+    if "\\" in value:
+        problems.append("backslash_separator")
+    if value.startswith("//"):
+        problems.append("unc_path")
+    elif value.startswith("/"):
+        problems.append("absolute_path")
+    if re.match(r"^[A-Za-z]:", value):
+        problems.append("drive_letter")
+    if value.endswith("/"):
+        problems.append("directory_entry")
+    parts = value.split("/")
+    if any(part == "" for part in parts):
+        problems.append("empty_path_component")
+    if any(part == "." for part in parts):
+        problems.append("dot_path_component")
+    if any(part == ".." for part in parts):
+        problems.append("path_traversal")
+    for part in parts:
+        for problem in _path_component_problems(part):
+            problems.append(problem)
+    if not problems and PurePosixPath(value).as_posix() != value:
+        problems.append("non_canonical_relative_path")
+    if not problems:
+        if kind == "file":
+            if not any(value.startswith(prefix) for prefix in OWNED_INSTALL_PREFIXES):
+                problems.append("outside_owned_install_prefix")
+        else:
+            head = parts[0]
+            if head not in OWNED_TOP_LEVEL_DIRS:
+                problems.append("outside_owned_install_prefix")
+    if problems:
+        _fail(
+            "PATH_REJECTED",
+            f"{role} is not a canonical owned relative path",
+            role=role,
+            kind=kind,
+            value=value,
+            problems=problems,
+        )
+    return value
+
+
+def _assert_no_symlink_escape(target, relative, role):
+    """相对路径解析后必须仍在 target 之内，且沿途没有任何 symlink 段。"""
+    try:
+        target_resolved = Path(target).resolve()
+    except OSError as exc:
+        _fail("PATH_REJECTED", f"cannot resolve the install target for {role}", reason=str(exc))
+    current = target_resolved
+    for part in relative.split("/"):
+        current = current / part
+        try:
+            is_link = current.is_symlink()
+        except OSError as exc:
+            _fail("PATH_REJECTED", f"cannot inspect {role} path component", reason=str(exc))
+        if is_link:
+            _fail(
+                "PATH_REJECTED",
+                f"{role} traverses a symlink",
+                role=role,
+                relative=relative,
+                component=part,
+            )
+    try:
+        resolved = (target_resolved / relative).resolve()
+    except OSError as exc:
+        _fail("PATH_REJECTED", f"cannot resolve {role}", relative=relative, reason=str(exc))
+    if resolved != target_resolved and target_resolved not in resolved.parents:
+        _fail(
+            "PATH_REJECTED",
+            f"{role} escapes the install target",
+            role=role,
+            relative=relative,
+        )
+    return resolved
 
 
 # --------------------------------------------------------------------------- #
@@ -647,6 +804,8 @@ def _usage_text(source_commit, item_count, expanded_bytes, tool_version):
 
 * 工具版本：`v0_incremental_package.py` v{tool_version}
 * 包格式版本：`{PACKAGE_FORMAT_VERSION}`
+* 收据 schema 版本：`{RECEIPT_SCHEMA_VERSION}`
+* 目标内所有权记录 schema 版本：`{OWNERSHIP_SCHEMA_VERSION}`
 * payload 条目数：{item_count}
 * 展开 payload 字节数：{expanded_bytes}
 * 体积硬上限：{SIZE_LIMIT_BYTES} 字节（压缩包与展开 payload 分别检查）
@@ -663,12 +822,13 @@ def _usage_text(source_commit, item_count, expanded_bytes, tool_version):
 
 ## 3. 目录布局
 
-安装后目标根目录下新增两个 owned 顶层目录：
+安装后目标根目录下新增两个 owned 顶层目录与一份所有权记录：
 
 ```
 <target>/
   custom_nodes/lvw_v0_bridge/   # 生产节点模块（含 web/*.js 前端脚本）
   workflows/lvw/                # 工作流 JSON
+  {OWNERSHIP_FILE_NAME}  # 本轮安装的所有权记录（回滚据此判定所有权）
 ```
 
 除此之外目标里的其它内容一律不读不写。
@@ -695,9 +855,11 @@ python3 meta/{TOOL_NAME} rollback --receipt <收据.json> --target <沙箱目标
 
 * build 从显式 Git commit 读字节，不打包脏工作树，绑定完整 commit SHA。
 * diagnose 不使用 `extractall`，逐成员检查路径穿越、绝对路径、盘符、反斜杠、
-  重复成员、大小写冲突、symlink 与 zip bomb。
-* install 只写 owned 路径；已有非 owned 冲突时拒绝且 0 写入。
-* rollback 逐项比对安装时的 hash；用户改写过则报 `ROLLBACK_CONFLICT` 并保留字节。
+  重复成员、大小写冲突（含 Windows 尾随点/空格归一化）、symlink 与 zip bomb。
+* install 只写 owned 路径；已有非 owned 冲突时拒绝且 0 写入；成功时在同一事务内
+  写入目标内所有权记录 `{OWNERSHIP_FILE_NAME}`。
+* rollback 只承认目标内所有权记录所绑定的安装：逐项比对安装时的 hash；用户改写过
+  则报 `ROLLBACK_CONFLICT` 并保留字节。外部收据里的任何路径字段都不是删除授权。
 * 工具不含任何任意 shell 执行接口。
 
 ## 6. 不是产品验收
@@ -783,6 +945,9 @@ def _member_name_problems(name):
         problems.append("path_traversal")
     if name.endswith("/"):
         problems.append("directory_entry")
+    for part in parts:
+        for problem in _path_component_problems(part):
+            problems.append(problem)
     return problems
 
 
@@ -853,7 +1018,7 @@ def _validate_archive(package_path, expect_manifest=None):
         duplicates = sorted({name for name in names if names.count(name) > 1})
         case_groups = {}
         for name in names:
-            case_groups.setdefault(name.lower(), set()).add(name)
+            case_groups.setdefault(_windows_path_key(name), set()).add(name)
         case_collisions = sorted(
             sorted(group) for group in case_groups.values() if len(group) > 1
         )
@@ -1001,7 +1166,30 @@ def _validate_archive(package_path, expect_manifest=None):
                 found=manifest.get("package_format_version"),
             )
         if expect_manifest is not None:
-            external = json.loads(Path(expect_manifest).read_text(encoding="utf-8"))
+            try:
+                external_text = Path(expect_manifest).read_text(encoding="utf-8")
+            except (OSError, UnicodeDecodeError) as exc:
+                _fail(
+                    "BAD_INPUT",
+                    "external manifest file is not readable UTF-8 text",
+                    external_manifest=str(expect_manifest),
+                    reason=str(exc),
+                )
+            try:
+                external = json.loads(external_text)
+            except ValueError as exc:
+                _fail(
+                    "BAD_INPUT",
+                    "external manifest file is not valid JSON",
+                    external_manifest=str(expect_manifest),
+                    reason=str(exc),
+                )
+            if not isinstance(external, dict):
+                _fail(
+                    "BAD_INPUT",
+                    "external manifest file is not a JSON object",
+                    external_manifest=str(expect_manifest),
+                )
             if _sha256_bytes(_dump_json(external).encode("utf-8")) != _sha256_bytes(
                 _dump_json(manifest).encode("utf-8")
             ):
@@ -1423,6 +1611,209 @@ def _inspect_target(target, sandbox_parent):
 
 
 # --------------------------------------------------------------------------- #
+# 目标内所有权记录（correction-01）
+# --------------------------------------------------------------------------- #
+
+
+def _owned_files_signature(entries):
+    """owned 文件集合的稳定签名；格式不合法时返回 None。"""
+    if not isinstance(entries, list):
+        return None
+    signature = []
+    for entry in entries:
+        if not isinstance(entry, dict):
+            return None
+        signature.append(
+            (entry.get("install_path"), entry.get("sha256"), entry.get("length"))
+        )
+    return signature
+
+
+def _ownership_core(record):
+    """参与 install_hash 计算的身份字段（不含 install_hash 自身）。"""
+    return {
+        "schema_version": record["schema_version"],
+        "session_id": record["session_id"],
+        "target_identity": record["target_identity"],
+        "sandbox_parent": record["sandbox_parent"],
+        "sandbox_marker_sha256": record["sandbox_marker"]["sha256"],
+        "source_commit": record["source_commit"],
+        "manifest_sha256": record["manifest_sha256"],
+        "package_sha256": record["package_sha256"],
+        "payload_fingerprint_sha256": record["payload_fingerprint_sha256"],
+        "owned": {
+            "files": [
+                {
+                    "install_path": entry["install_path"],
+                    "sha256": entry["sha256"],
+                    "length": entry["length"],
+                }
+                for entry in record["owned"]["files"]
+            ],
+            "directories": list(record["owned"]["directories"]),
+            "created_directories": list(record["owned"]["created_directories"]),
+        },
+        "installed_top_level": list(record["installed_top_level"]),
+        "created_target_root": bool(record["created_target_root"]),
+        "staging_path_sha256": record["staging"]["path_sha256"],
+    }
+
+
+def _ownership_install_hash(core):
+    """所有权记录的安装 hash：对身份字段的规范化 JSON 求 sha256。"""
+    return _sha256_bytes(_dump_json(core).encode("utf-8"))
+
+
+def _build_ownership_record(*, session_id, target, sandbox_parent, marker,
+                            package_sha256, manifest_sha256, source_commit,
+                            payload_fingerprint, owned_files, owned_dirs, created_dirs,
+                            installed_top_level, created_target_root, staging):
+    """构造目标内所有权记录（先算 install_hash，再落盘）。"""
+    record = {
+        "schema_version": OWNERSHIP_SCHEMA_VERSION,
+        "tool": {"name": TOOL_NAME, "version": TOOL_VERSION},
+        "session_id": session_id,
+        "target_identity": str(target),
+        "target_identity_sha256": _sha256_bytes(str(target).encode("utf-8")),
+        "sandbox_parent": str(sandbox_parent),
+        "sandbox_parent_sha256": _sha256_bytes(str(sandbox_parent).encode("utf-8")),
+        "sandbox_marker": {
+            "name": SANDBOX_MARKER_NAME,
+            "magic": SANDBOX_MARKER_MAGIC,
+            "sha256": marker["sha256"],
+        },
+        "source_commit": source_commit,
+        "manifest_sha256": manifest_sha256,
+        "package_sha256": package_sha256,
+        "payload_fingerprint_sha256": payload_fingerprint,
+        "owned": {
+            "files": [
+                {
+                    "install_path": entry["install_path"],
+                    "sha256": entry["sha256"],
+                    "length": entry["length"],
+                }
+                for entry in owned_files
+            ],
+            "directories": sorted({entry for entry in owned_dirs if entry}),
+            "created_directories": sorted({entry for entry in created_dirs if entry}),
+        },
+        "installed_top_level": list(installed_top_level),
+        "created_target_root": bool(created_target_root),
+        "staging": {
+            "path": str(staging),
+            "path_sha256": _sha256_bytes(str(staging).encode("utf-8")),
+            "removed": True,
+        },
+        "note": (
+            "本记录由本工具在安装事务内写入目标内部，是本轮安装的真实所有权凭据；"
+            "回滚必须读取并核对它，外部收据不构成删除授权。"
+        ),
+    }
+    record["install_hash"] = _ownership_install_hash(_ownership_core(record))
+    return record
+
+
+def _write_ownership_record(target, record):
+    """把所有权记录原子写入目标内部；绝不覆盖已存在的用户文件。"""
+    final = Path(target) / OWNERSHIP_FILE_NAME
+    if final.exists() or final.is_symlink():
+        _fail(
+            "CONFLICT",
+            "the ownership record path already exists; refusing to overwrite a user file",
+            path=OWNERSHIP_FILE_NAME,
+        )
+    payload = _dump_json(record).encode("utf-8")
+    temp = Path(target) / (OWNERSHIP_FILE_NAME + ".tmp-" + uuid.uuid4().hex)
+    try:
+        handle = os.open(str(temp), os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
+        with os.fdopen(handle, "wb") as stream:
+            stream.write(payload)
+            stream.flush()
+            os.fsync(stream.fileno())
+        if final.exists() or final.is_symlink():
+            _fail(
+                "CONFLICT",
+                "the ownership record path appeared while installing; refusing to overwrite",
+                path=OWNERSHIP_FILE_NAME,
+            )
+        os.replace(str(temp), str(final))
+    except BaseException:
+        try:
+            if temp.exists():
+                temp.unlink()
+        except OSError:
+            pass
+        raise
+    return {
+        "path": OWNERSHIP_FILE_NAME,
+        "sha256": _sha256_bytes(payload),
+        "bytes": len(payload),
+    }
+
+
+def _read_ownership_record(target):
+    """读取并校验目标内所有权记录；缺失/被改写都稳定非零拒绝。"""
+    path = Path(target) / OWNERSHIP_FILE_NAME
+    if path.is_symlink():
+        _fail(
+            "ROLLBACK_CONFLICT",
+            "the ownership record path is a symlink; refusing to use it",
+            path=OWNERSHIP_FILE_NAME,
+        )
+    if not path.is_file():
+        _fail(
+            "ROLLBACK_CONFLICT",
+            "the install target carries no ownership record; ownership cannot be established",
+            path=OWNERSHIP_FILE_NAME,
+            target=str(target),
+        )
+    try:
+        raw = path.read_bytes()
+        record = json.loads(raw.decode("utf-8"))
+    except (OSError, UnicodeDecodeError, ValueError) as exc:
+        _fail(
+            "ROLLBACK_CONFLICT",
+            "the ownership record is not readable JSON",
+            path=OWNERSHIP_FILE_NAME,
+            reason=str(exc),
+        )
+    if not isinstance(record, dict):
+        _fail(
+            "ROLLBACK_CONFLICT",
+            "the ownership record is not a JSON object",
+            path=OWNERSHIP_FILE_NAME,
+        )
+    if record.get("schema_version") != OWNERSHIP_SCHEMA_VERSION:
+        _fail(
+            "ROLLBACK_CONFLICT",
+            "ownership record schema mismatch",
+            expected=OWNERSHIP_SCHEMA_VERSION,
+            found=record.get("schema_version"),
+        )
+    try:
+        core = _ownership_core(record)
+    except (KeyError, TypeError) as exc:
+        _fail(
+            "ROLLBACK_CONFLICT",
+            "the ownership record is missing identity fields",
+            path=OWNERSHIP_FILE_NAME,
+            reason=str(exc),
+        )
+    expected_hash = record.get("install_hash")
+    actual_hash = _ownership_install_hash(core)
+    if not isinstance(expected_hash, str) or expected_hash != actual_hash:
+        _fail(
+            "ROLLBACK_CONFLICT",
+            "the ownership record install_hash does not match its own content",
+            path=OWNERSHIP_FILE_NAME,
+            expected=expected_hash,
+            actual=actual_hash,
+        )
+    return record, _sha256_bytes(raw)
+
+
+# --------------------------------------------------------------------------- #
 # 子命令：install
 # --------------------------------------------------------------------------- #
 
@@ -1497,12 +1888,15 @@ def command_install(args):
     manifest = validation["manifest"]
     items = validation["items"]
 
-    # 冲突检查：owned 顶层目录已存在即拒绝，0 写入。
+    # 冲突检查：owned 顶层目录或所有权记录已存在即拒绝，0 写入。
     conflicts = []
     for owned_dir in (BRIDGE_INSTALL_DIR, WORKFLOWS_INSTALL_DIR):
         candidate = target / owned_dir
         if candidate.exists():
             conflicts.append(str(owned_dir))
+    ownership_path = target / OWNERSHIP_FILE_NAME
+    if ownership_path.exists() or ownership_path.is_symlink():
+        conflicts.append(OWNERSHIP_FILE_NAME)
     if conflicts:
         _fail(
             "CONFLICT",
@@ -1513,14 +1907,16 @@ def command_install(args):
 
     preimage = _snapshot_tree(target)
     created_target_root = not target.exists()
-    session_id = args.session_id or ("sess-" + uuid.uuid4().hex[:12])
+    # correction-01：session 不可碰撞（完整 uuid4 hex）。
+    session_id = args.session_id or ("sess-" + uuid.uuid4().hex)
 
-    staging = Path(tempfile.mkdtemp(prefix=".lvw-v0-stage-", dir=str(sandbox_parent)))
+    staging = Path(tempfile.mkdtemp(prefix=STAGING_DIR_PREFIX, dir=str(sandbox_parent)))
     owned_files = []
     owned_dirs = []
     created_target_root_dirs = []
     committed = []
     failure_detail = {}
+    ownership_written = None
     top_level_parents = sorted(
         {owned_dir.split("/")[0] for owned_dir in (BRIDGE_INSTALL_DIR, WORKFLOWS_INSTALL_DIR)}
     )
@@ -1611,8 +2007,45 @@ def command_install(args):
                     install_path=owned["install_path"],
                 )
 
+        # --- staging 清理（同一事务内，只针对本次自建且身份已确认的目录） -- #
+        if not _remove_owned_staging(staging, sandbox_parent):
+            _fail(
+                "INSTALL_FAILED",
+                "the staging directory of this install could not be removed cleanly",
+                staging_prefix=STAGING_DIR_PREFIX,
+            )
+
+        # --- 目标内所有权记录（与安装同一事务边界） ------------------------ #
+        # 记录落盘是本事务的最后一步：落盘失败会连带回退已 commit 的 owned 项，
+        # 因此绝不留下「已安装但无法安全回滚」的无记录终态。
+        record = _build_ownership_record(
+            session_id=session_id,
+            target=target,
+            sandbox_parent=sandbox_parent,
+            marker=marker,
+            package_sha256=validation["package_sha256"],
+            manifest_sha256=validation["manifest_sha256"],
+            source_commit=manifest.get("source_commit"),
+            payload_fingerprint=_fingerprint(
+                [
+                    {"install_path": item["install_path"], "sha256": item["sha256"]}
+                    for item in items
+                ]
+            ),
+            owned_files=owned_files,
+            owned_dirs=owned_dirs,
+            created_dirs=created_target_root_dirs,
+            installed_top_level=committed,
+            created_target_root=created_target_root,
+            staging=staging,
+        )
+        ownership_written = _write_ownership_record(target, record)
+        _diag(f"[install] ownership record written: {OWNERSHIP_FILE_NAME}")
+
     except PackageError as exc:
-        cleanup = _rollback_committed(target, committed, staging, created_target_root_dirs)
+        cleanup = _rollback_committed(
+            target, committed, staging, created_target_root_dirs, ownership_written
+        )
         failure_detail = {
             "original_failure": exc.to_dict(),
             "cleanup": cleanup,
@@ -1623,7 +2056,9 @@ def command_install(args):
             failure_detail,
         )
     except Exception as exc:  # noqa: BLE001
-        cleanup = _rollback_committed(target, committed, staging, created_target_root_dirs)
+        cleanup = _rollback_committed(
+            target, committed, staging, created_target_root_dirs, ownership_written
+        )
         failure_detail = {
             "original_failure": {"error_code": "INTERNAL_ERROR", "message": str(exc)},
             "cleanup": cleanup,
@@ -1634,8 +2069,9 @@ def command_install(args):
             failure_detail,
         )
     finally:
+        # 兜底：staging 只在仍是本次自建目录时才清；身份不符则保留并记录。
         if staging.exists():
-            shutil.rmtree(staging, ignore_errors=True)
+            _remove_owned_staging(staging, sandbox_parent)
 
     receipt = {
         "schema_version": RECEIPT_SCHEMA_VERSION,
@@ -1643,6 +2079,7 @@ def command_install(args):
         "status": "OK",
         "session_id": session_id,
         "tool": {"name": TOOL_NAME, "version": TOOL_VERSION},
+        "ownership_schema_version": OWNERSHIP_SCHEMA_VERSION,
         "source_commit": manifest.get("source_commit"),
         "package": {
             "path": validation["package_path"],
@@ -1655,8 +2092,10 @@ def command_install(args):
             "content": manifest,
         },
         "sandbox_parent": str(sandbox_parent),
+        "sandbox_parent_sha256": _sha256_bytes(str(sandbox_parent).encode("utf-8")),
         "sandbox_marker": {"path": marker["path"], "sha256": marker["sha256"]},
         "target": str(target),
+        "target_identity_sha256": _sha256_bytes(str(target).encode("utf-8")),
         "created_target_root": created_target_root,
         "preimage": preimage,
         "owned": {
@@ -1667,49 +2106,360 @@ def command_install(args):
             ),
         },
         "installed_top_level": committed,
-        "staging": {"path": str(staging), "removed": not staging.exists()},
+        "staging": {
+            "path": str(staging),
+            "path_sha256": _sha256_bytes(str(staging).encode("utf-8")),
+            "removed": not staging.exists(),
+        },
+        "ownership": {
+            "schema_version": OWNERSHIP_SCHEMA_VERSION,
+            "path": OWNERSHIP_FILE_NAME,
+            "sha256": ownership_written["sha256"],
+            "install_hash": record["install_hash"],
+        },
         "checks": validation["checks"],
-        "note": "sandbox install only; this is not a real-host acceptance",
+        "note": (
+            "sandbox install only; this is not a real-host acceptance. The in-target "
+            "ownership record is the authoritative proof of this install's ownership; "
+            "this receipt alone never authorises any deletion."
+        ),
     }
     if args.receipt_out:
         _write_receipt(args.receipt_out, receipt, args.redact_root)
     return receipt
 
 
-def _rollback_committed(target, committed, staging, created_dirs=()):
-    """安装中途失败时，移除已经 commit 的 owned 项，并测量清理结果。"""
+def _remove_owned_staging(staging, sandbox_parent):
+    """只删除本次调用真正创建、身份已确认的 staging 目录。
+
+    身份确认：目录名带本工具的暂存前缀、位于本轮沙箱父目录之内、且不是 symlink。
+    任一条不满足就拒绝删除（返回 False），绝不按路径字符串授予递归删除权。
+    """
+    staging = Path(staging)
+    try:
+        if staging.is_symlink():
+            return False
+        resolved = staging.resolve()
+        parent = Path(sandbox_parent).resolve()
+    except OSError:
+        return False
+    if not resolved.name.startswith(STAGING_DIR_PREFIX):
+        return False
+    if parent == resolved or parent not in resolved.parents:
+        return False
+    if not resolved.is_dir():
+        return not staging.exists()
+    try:
+        shutil.rmtree(staging)
+    except OSError:
+        return False
+    return not staging.exists()
+
+
+def _rollback_committed(target, committed, staging, created_dirs=(), ownership_written=None):
+    """安装中途失败时，移除已经 commit 的 owned 项，并测量清理结果。
+
+    只删本轮 owned 的、位于 target 之内的路径；不碰任何非 owned 内容。
+    """
     removed = []
     remaining = []
+    try:
+        target_resolved = Path(target).resolve()
+    except OSError:
+        target_resolved = Path(target)
     for owned_dir in reversed(committed):
-        path = target / owned_dir
-        if path.exists():
-            try:
-                shutil.rmtree(path)
-                removed.append(owned_dir)
-            except OSError as exc:
-                remaining.append({"path": owned_dir, "reason": str(exc)})
+        path = Path(target) / owned_dir
+        if path.is_symlink():
+            remaining.append({"path": owned_dir, "reason": "symlink_not_removed"})
+            continue
+        if not path.exists():
+            continue
+        try:
+            if target_resolved not in path.resolve().parents:
+                remaining.append({"path": owned_dir, "reason": "outside_install_target"})
+                continue
+            shutil.rmtree(path)
+            removed.append(owned_dir)
+        except OSError as exc:
+            remaining.append({"path": owned_dir, "reason": str(exc)})
     for created in sorted({entry for entry in created_dirs if entry}, reverse=True):
-        path = target / created
-        if path.is_dir():
+        path = Path(target) / created
+        if path.is_dir() and not path.is_symlink():
             try:
                 path.rmdir()
                 removed.append(created)
             except OSError as exc:
                 remaining.append({"path": created, "reason": str(exc)})
+    ownership_removed = False
+    if ownership_written:
+        record_path = Path(target) / OWNERSHIP_FILE_NAME
+        try:
+            if record_path.is_file() and not record_path.is_symlink():
+                record_path.unlink()
+                ownership_removed = True
+        except OSError as exc:
+            remaining.append({"path": OWNERSHIP_FILE_NAME, "reason": str(exc)})
     staging_removed = False
     if staging.exists():
-        shutil.rmtree(staging, ignore_errors=True)
-        staging_removed = not staging.exists()
+        staging_removed = _remove_owned_staging(staging, staging.parent)
     return {
         "removed_owned_paths": removed,
         "remaining_owned_paths": remaining,
         "staging_removed": staging_removed,
+        "ownership_record_removed": ownership_removed,
     }
 
 
 # --------------------------------------------------------------------------- #
 # 子命令：rollback
 # --------------------------------------------------------------------------- #
+
+
+def _validate_relative_within_target(value, role, target, check_containment=True):
+    """校验一条相对目标根的路径（preimage 等非 owned 路径字段也用它）。
+
+    ``check_containment=False`` 时只做语法校验：preimage 只用于只读的漂移检测，
+    目标内本来就可能有用户自建的 symlink，不应因此拒绝回滚。
+    """
+    if not isinstance(value, str) or not value:
+        _fail("PATH_REJECTED", f"{role} is not a non-empty relative path", role=role)
+    problems = []
+    if "\\" in value:
+        problems.append("backslash_separator")
+    if value.startswith("//"):
+        problems.append("unc_path")
+    elif value.startswith("/"):
+        problems.append("absolute_path")
+    if re.match(r"^[A-Za-z]:", value):
+        problems.append("drive_letter")
+    if value.endswith("/"):
+        problems.append("directory_entry")
+    parts = value.split("/")
+    if any(part == "" for part in parts):
+        problems.append("empty_path_component")
+    if any(part == "." for part in parts):
+        problems.append("dot_path_component")
+    if any(part == ".." for part in parts):
+        problems.append("path_traversal")
+    for part in parts:
+        for problem in _path_component_problems(part):
+            problems.append(problem)
+    if not problems and PurePosixPath(value).as_posix() != value:
+        problems.append("non_canonical_relative_path")
+    if problems:
+        _fail(
+            "PATH_REJECTED",
+            f"{role} is not a canonical relative path",
+            role=role,
+            value=value,
+            problems=problems,
+        )
+    if check_containment:
+        _assert_no_symlink_escape(target, value, role)
+    return value
+
+
+def _validate_preimage_entries(preimage, target):
+    """校验 preimage 的路径字段：规范相对路径、位于目标内、不属于 owned 前缀。"""
+    if not isinstance(preimage, dict):
+        _fail("PATH_REJECTED", "the preimage section is malformed")
+    files = preimage.get("files")
+    directories = preimage.get("directories")
+    if not isinstance(files, list) or not isinstance(directories, list):
+        _fail("PATH_REJECTED", "the preimage section is malformed")
+    for index, entry in enumerate(files):
+        role = f"preimage.files[{index}].path"
+        if not isinstance(entry, dict):
+            _fail("PATH_REJECTED", f"{role} is not an object")
+        relative = _validate_relative_within_target(
+            entry.get("path"), role, target, check_containment=False
+        )
+        if any(relative.startswith(prefix) for prefix in OWNED_INSTALL_PREFIXES):
+            _fail(
+                "PATH_REJECTED",
+                "the preimage claims an owned install path; the preimage is pre-install content",
+                role=role,
+                value=relative,
+            )
+        if entry.get("kind") == "symlink":
+            continue
+        digest = entry.get("sha256")
+        if not isinstance(digest, str) or not re.fullmatch(r"[0-9a-f]{64}", digest):
+            _fail(
+                "INTEGRITY_MISMATCH",
+                f"preimage.files[{index}] carries a malformed sha256",
+                path=relative,
+            )
+    for index, value in enumerate(directories):
+        role = f"preimage.directories[{index}]"
+        relative = _validate_relative_within_target(
+            value, role, target, check_containment=False
+        )
+        if any(relative.startswith(prefix) for prefix in OWNED_INSTALL_PREFIXES):
+            _fail(
+                "PATH_REJECTED",
+                "the preimage claims an owned install directory",
+                role=role,
+                value=relative,
+            )
+    return preimage
+
+
+def _validate_owned_entries(entries, source, target):
+    """严格校验 owned 条目的类型、路径合法性与唯一性；返回归一化条目列表。"""
+    if not isinstance(entries, list) or not entries:
+        _fail(
+            "PATH_REJECTED",
+            f"{source} owned file list is missing or malformed",
+            source=source,
+        )
+    normalized = []
+    seen = {}
+    for index, entry in enumerate(entries):
+        role = f"{source}.owned.files[{index}].install_path"
+        if not isinstance(entry, dict):
+            _fail("PATH_REJECTED", f"{role} is not an object", source=source, index=index)
+        install_path = _validate_owned_relative_path(entry.get("install_path"), role, "file")
+        digest = entry.get("sha256")
+        if not isinstance(digest, str) or not re.fullmatch(r"[0-9a-f]{64}", digest):
+            _fail(
+                "INTEGRITY_MISMATCH",
+                f"{source} owned file entry carries a malformed sha256",
+                source=source,
+                install_path=install_path,
+            )
+        length = entry.get("length")
+        if not isinstance(length, int) or isinstance(length, bool) or length < 0:
+            _fail(
+                "INTEGRITY_MISMATCH",
+                f"{source} owned file entry carries a malformed length",
+                source=source,
+                install_path=install_path,
+            )
+        key = _windows_path_key(install_path)
+        if key in seen:
+            _fail(
+                "PATH_REJECTED",
+                f"{source} owned file set contains colliding install paths",
+                source=source,
+                first=seen[key],
+                second=install_path,
+            )
+        seen[key] = install_path
+        _assert_no_symlink_escape(target, install_path, role)
+        normalized.append(
+            {"install_path": install_path, "sha256": digest, "length": length}
+        )
+    return normalized
+
+
+def _validate_owned_directory_entries(entries, source, target):
+    """校验 owned 目录条目：类型、路径合法性与唯一性。"""
+    if not isinstance(entries, list):
+        _fail(
+            "PATH_REJECTED",
+            f"{source} owned directory list is missing or malformed",
+            source=source,
+        )
+    normalized = []
+    seen = set()
+    for index, value in enumerate(entries):
+        role = f"{source}.owned.directories[{index}]"
+        relative = _validate_owned_relative_path(value, role, "directory")
+        key = _windows_path_key(relative)
+        if key in seen:
+            _fail(
+                "PATH_REJECTED",
+                f"{source} owned directory set contains duplicate entries",
+                source=source,
+                duplicate=relative,
+            )
+        seen.add(key)
+        _assert_no_symlink_escape(target, relative, role)
+        normalized.append(relative)
+    return normalized
+
+
+def _cross_check_receipt_against_ownership(receipt, record):
+    """外部收据与目标内所有权记录的逐项交叉核对；返回不一致清单。"""
+    mismatches = []
+    receipt_owned = receipt.get("owned") or {}
+    record_owned = record.get("owned") or {}
+
+    def compare(label, left, right):
+        if left != right:
+            mismatches.append({"field": label, "receipt": left, "ownership_record": right})
+
+    def compare_path(label, left, right):
+        """路径字段比较：收据侧被脱敏时跳过字符串比较，由各自的 sha256 绑定负责。"""
+        if isinstance(left, str) and (
+            "<redacted-root>" in left or "<abs-path-redacted>" in left
+        ):
+            return
+        compare(label, left, right)
+
+    compare(
+        "owned.files",
+        _owned_files_signature(receipt_owned.get("files")),
+        _owned_files_signature(record_owned.get("files")),
+    )
+    compare(
+        "owned.directories",
+        sorted(receipt_owned.get("directories") or []),
+        sorted(record_owned.get("directories") or []),
+    )
+    compare(
+        "owned.created_directories",
+        sorted(receipt_owned.get("created_directories") or []),
+        sorted(record_owned.get("created_directories") or []),
+    )
+    compare("source_commit", receipt.get("source_commit"), record.get("source_commit"))
+    compare(
+        "manifest.sha256",
+        (receipt.get("manifest") or {}).get("sha256"),
+        record.get("manifest_sha256"),
+    )
+    compare(
+        "package.sha256",
+        (receipt.get("package") or {}).get("sha256"),
+        record.get("package_sha256"),
+    )
+    compare(
+        "target_identity_sha256",
+        receipt.get("target_identity_sha256"),
+        record.get("target_identity_sha256"),
+    )
+    compare(
+        "sandbox_parent_sha256",
+        receipt.get("sandbox_parent_sha256"),
+        record.get("sandbox_parent_sha256"),
+    )
+    compare(
+        "sandbox_marker.sha256",
+        (receipt.get("sandbox_marker") or {}).get("sha256"),
+        (record.get("sandbox_marker") or {}).get("sha256"),
+    )
+    compare(
+        "installed_top_level",
+        sorted(receipt.get("installed_top_level") or []),
+        sorted(record.get("installed_top_level") or []),
+    )
+    compare(
+        "created_target_root",
+        receipt.get("created_target_root"),
+        record.get("created_target_root"),
+    )
+    # 路径字段：脱敏的收据跳过字符串比较，由 sha256 绑定负责。
+    compare_path("target", receipt.get("target"), record.get("target_identity"))
+    compare_path(
+        "sandbox_parent", receipt.get("sandbox_parent"), record.get("sandbox_parent")
+    )
+    compare_path(
+        "staging.path",
+        (receipt.get("staging") or {}).get("path"),
+        (record.get("staging") or {}).get("path"),
+    )
+    return mismatches
 
 
 def command_rollback(args):
@@ -1720,6 +2470,8 @@ def command_rollback(args):
         receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
     except (OSError, ValueError) as exc:
         _fail("BAD_INPUT", "install receipt is not readable JSON", reason=str(exc))
+    if not isinstance(receipt, dict):
+        _fail("BAD_INPUT", "install receipt is not a JSON object")
     if receipt.get("schema_version") != RECEIPT_SCHEMA_VERSION:
         _fail(
             "INTEGRITY_MISMATCH",
@@ -1735,36 +2487,148 @@ def command_rollback(args):
             status=receipt.get("status"),
         )
 
-    target = Path(args.target).expanduser() if args.target else Path(receipt["target"])
-    if not args.target and "<redacted-root>" in str(receipt.get("target", "")):
-        _fail(
-            "BAD_INPUT",
-            "the install receipt was written with redacted paths; --target is required",
-            receipt_target=receipt.get("target"),
-        )
+    # --- 目标解析：脱敏收据必须显式给 --target ---------------------------- #
+    receipt_target = receipt.get("target")
+    if args.target:
+        target = Path(args.target).expanduser()
+    else:
+        if not isinstance(receipt_target, str) or not receipt_target:
+            _fail(
+                "BAD_INPUT",
+                "install receipt carries no target path; --target is required",
+            )
+        if "<redacted-root>" in receipt_target or "<abs-path-redacted>" in receipt_target:
+            _fail(
+                "BAD_INPUT",
+                "the install receipt was written with redacted paths; --target is required",
+                receipt_target=receipt_target,
+            )
+        target = Path(receipt_target)
     if not target.is_absolute():
         target = (Path.cwd() / target).resolve()
     else:
         target = target.resolve()
     _require_not_production_host(target, "target")
-    if receipt.get("target") and Path(receipt["target"]).name != target.name:
+
+    # --- 本地所有权记录：唯一的所有权来源 --------------------------------- #
+    record, record_file_sha256 = _read_ownership_record(target)
+
+    # 目标身份绑定：目标内记录必须就是本目标，绝不靠 basename 认定同一目标。
+    target_identity = record.get("target_identity")
+    if not isinstance(target_identity, str) or target_identity != str(target):
         _fail(
-            "BAD_INPUT",
-            "target does not match the install receipt",
-            receipt_target=receipt["target"],
+            "PATH_REJECTED",
+            "the ownership record is bound to a different install target",
+            record_target=target_identity,
             requested_target=str(target),
         )
+    identity_digest = _sha256_bytes(str(target).encode("utf-8"))
+    if record.get("target_identity_sha256") != identity_digest:
+        _fail(
+            "PATH_REJECTED",
+            "the ownership record target identity digest does not match the target",
+            expected=record.get("target_identity_sha256"),
+            actual=identity_digest,
+        )
 
-    owned_files = (receipt.get("owned") or {}).get("files") or []
-    if not owned_files:
-        _fail("BAD_INPUT", "install receipt carries no owned files")
+    # 沙箱绑定：沙箱父目录之内 + 沙箱 marker 身份一致。
+    sandbox_parent = record.get("sandbox_parent")
+    if not isinstance(sandbox_parent, str) or not sandbox_parent:
+        _fail("ROLLBACK_CONFLICT", "the ownership record carries no sandbox parent")
+    sandbox_parent_path = Path(sandbox_parent)
+    if not sandbox_parent_path.is_dir():
+        _fail(
+            "ROLLBACK_CONFLICT",
+            "the recorded sandbox parent no longer exists",
+            sandbox_parent=sandbox_parent,
+        )
+    if not _is_within(target, sandbox_parent_path):
+        _fail(
+            "PATH_REJECTED",
+            "the install target is not inside the recorded sandbox parent",
+            target=str(target),
+            sandbox_parent=sandbox_parent,
+        )
+    try:
+        marker = _read_sandbox_marker(sandbox_parent_path)
+    except PackageError as exc:
+        _fail(
+            "ROLLBACK_CONFLICT",
+            "the sandbox marker of this install could not be verified",
+            marker_error=exc.to_dict(),
+        )
+    if marker["sha256"] != (record.get("sandbox_marker") or {}).get("sha256"):
+        _fail(
+            "ROLLBACK_CONFLICT",
+            "the sandbox marker identity does not match the ownership record",
+            expected=(record.get("sandbox_marker") or {}).get("sha256"),
+            actual=marker["sha256"],
+        )
 
-    # --- 全量预检：逐项比对安装时的 hash ------------------------------- #
+    # session 绑定：不可碰撞的 session 必须与收据一致。
+    record_session = record.get("session_id")
+    receipt_session = receipt.get("session_id")
+    if not isinstance(record_session, str) or not record_session:
+        _fail("ROLLBACK_CONFLICT", "the ownership record carries no session id")
+    if not isinstance(receipt_session, str) or not receipt_session:
+        _fail("BAD_INPUT", "the install receipt carries no session id")
+    if record_session != receipt_session:
+        _fail(
+            "ROLLBACK_CONFLICT",
+            "the install receipt session does not match the ownership record session",
+            receipt_session=receipt_session,
+            record_session=record_session,
+        )
+
+    # --- 收据路径字段合法性（先于交叉核对：路径穿越直接按路径错误拒绝） ---- #
+    receipt_files = _validate_owned_entries(
+        (receipt.get("owned") or {}).get("files"), "receipt", target
+    )
+    _validate_owned_directory_entries(
+        (receipt.get("owned") or {}).get("directories"), "receipt", target
+    )
+    _validate_owned_directory_entries(
+        (receipt.get("owned") or {}).get("created_directories"), "receipt", target
+    )
+    _validate_preimage_entries(receipt.get("preimage") or {}, target)
+
+    # 收据与本地记录的交叉核对：任何不一致都拒绝，零删除。
+    mismatches = _cross_check_receipt_against_ownership(receipt, record)
+    ownership_block = receipt.get("ownership") or {}
+    if isinstance(ownership_block.get("sha256"), str) and ownership_block["sha256"] != record_file_sha256:
+        mismatches.append(
+            {
+                "field": "ownership.sha256",
+                "receipt": ownership_block["sha256"],
+                "ownership_record": record_file_sha256,
+            }
+        )
+    if mismatches:
+        _fail(
+            "ROLLBACK_CONFLICT",
+            "the install receipt does not match the in-target ownership record",
+            mismatches=mismatches,
+        )
+
+    # --- 本地记录的 owned 路径合法性 -------------------------------------- #
+    record_files = _validate_owned_entries(
+        (record.get("owned") or {}).get("files"), "ownership_record", target
+    )
+    _validate_owned_directory_entries(
+        (record.get("owned") or {}).get("directories"), "ownership_record", target
+    )
+    _validate_owned_directory_entries(
+        (record.get("owned") or {}).get("created_directories"), "ownership_record", target
+    )
+    if not record_files:
+        _fail("BAD_INPUT", "the ownership record carries no owned files")
+
+    # --- 全量预检：逐项比对安装时的 hash --------------------------------- #
     drifted = []
     missing = []
-    for owned in owned_files:
+    for owned in record_files:
         path = target / owned["install_path"]
-        if not path.is_file():
+        if path.is_symlink() or not path.is_file():
             missing.append(owned["install_path"])
             continue
         digest = _sha256_file(path)
@@ -1783,13 +2647,13 @@ def command_rollback(args):
             "schema_version": RECEIPT_SCHEMA_VERSION,
             "command": "rollback",
             "status": "ROLLBACK_CONFLICT",
-            "session_id": receipt.get("session_id"),
+            "session_id": receipt_session,
             "target": str(target),
             "drifted_owned_files": drifted,
             "missing_owned_files": missing,
             "preimage_drift": preimage_drift,
             "removed": [],
-            "preserved": [owned["install_path"] for owned in owned_files],
+            "preserved": [owned["install_path"] for owned in record_files],
             "note": "user modified the installed bytes; nothing was removed",
         }
         raise PackageError(
@@ -1798,12 +2662,64 @@ def command_rollback(args):
             report,
         )
 
+    # --- staging 终态：只确认，绝不按路径递归删除 ------------------------- #
+    record_staging = record.get("staging") or {}
+    record_staging_path = record_staging.get("path")
+    record_staging_digest = record_staging.get("path_sha256")
+    if not isinstance(record_staging_path, str) or not record_staging_path:
+        _fail("ROLLBACK_CONFLICT", "the ownership record carries no staging binding")
+    if record_staging_digest != _sha256_bytes(record_staging_path.encode("utf-8")):
+        _fail(
+            "ROLLBACK_CONFLICT",
+            "the ownership record staging binding is inconsistent",
+            expected=record_staging_digest,
+        )
+    staging_path = Path(record_staging_path)
+    if not staging_path.name.startswith(STAGING_DIR_PREFIX):
+        _fail(
+            "ROLLBACK_CONFLICT",
+            "the recorded staging path is not a staging directory of this tool",
+            staging_name=staging_path.name,
+        )
+    if not _is_within(staging_path, sandbox_parent_path):
+        _fail(
+            "ROLLBACK_CONFLICT",
+            "the recorded staging path is not inside the recorded sandbox parent",
+            sandbox_parent=sandbox_parent,
+        )
+    receipt_staging = receipt.get("staging") or {}
+    if receipt_staging.get("path_sha256") != record_staging_digest:
+        _fail(
+            "ROLLBACK_CONFLICT",
+            "the install receipt staging binding does not match the ownership record",
+            receipt_staging_sha256=receipt_staging.get("path_sha256"),
+            record_staging_sha256=record_staging_digest,
+        )
+    staging_present = staging_path.exists()
+    if staging_present:
+        # 残留/不符：稳定失败并保留诊断，绝不清理未知目录。
+        _fail(
+            "ROLLBACK_CONFLICT",
+            "the staging directory of this install is still present; "
+            "refusing to delete an unverified path",
+            staging_name=staging_path.name,
+            staging_state="present",
+        )
+
     # --- 变更：只删本轮 owned 文件与目录 --------------------------------- #
     removed_files = []
     failed_removals = []
-    for owned in owned_files:
+    for owned in record_files:
         path = target / owned["install_path"]
         try:
+            if path.is_symlink() or not path.is_file():
+                failed_removals.append(
+                    {
+                        "install_path": owned["install_path"],
+                        "reason": "not_a_regular_owned_file",
+                    }
+                )
+                continue
             path.unlink()
             removed_files.append(owned["install_path"])
         except OSError as exc:
@@ -1811,16 +2727,15 @@ def command_rollback(args):
 
     removed_dirs = []
     retained_dirs = []
-    owned = receipt.get("owned") or {}
-    owned_dirs = owned.get("directories") or []
-    created_dirs = owned.get("created_directories") or []
+    owned_dirs = (record.get("owned") or {}).get("directories") or []
+    created_dirs = (record.get("owned") or {}).get("created_directories") or []
     for relative in sorted(
         list(owned_dirs) + list(created_dirs),
-        key=lambda value: value.count("/"),
+        key=lambda value: (value.count("/"), value),
         reverse=True,
     ):
         path = target / relative
-        if not path.is_dir():
+        if path.is_symlink() or not path.is_dir():
             continue
         try:
             path.rmdir()
@@ -1837,7 +2752,27 @@ def command_rollback(args):
                 }
             )
 
-    if receipt.get("created_target_root"):
+    remaining_owned = [
+        owned["install_path"]
+        for owned in record_files
+        if (target / owned["install_path"]).exists()
+    ]
+
+    # 所有权记录本身也是本轮 owned：回滚安全移除它；失败则保留以便重试。
+    ownership_removed = False
+    ownership_removal_error = None
+    if not failed_removals and not remaining_owned:
+        record_path = target / OWNERSHIP_FILE_NAME
+        try:
+            if record_path.is_symlink() or not record_path.is_file():
+                ownership_removal_error = "ownership_record_missing_or_not_a_regular_file"
+            else:
+                record_path.unlink()
+                ownership_removed = True
+        except OSError as exc:
+            ownership_removal_error = str(exc)
+
+    if record.get("created_target_root"):
         try:
             target.rmdir()
             removed_dirs.append("")
@@ -1853,21 +2788,8 @@ def command_rollback(args):
                 }
             )
 
-    staging_path = (receipt.get("staging") or {}).get("path")
-    staging_removed = None
-    if staging_path:
-        staging = Path(staging_path)
-        if staging.exists():
-            shutil.rmtree(staging, ignore_errors=True)
-        staging_removed = not staging.exists()
-
     postimage = _snapshot_tree(target)
     sentinel_unchanged = not preimage_drift
-    remaining_owned = [
-        owned["install_path"]
-        for owned in owned_files
-        if (target / owned["install_path"]).exists()
-    ]
     # 目录未删除但仍存在非 owned 内容：这是保护用户字节的正确结果，不算回滚失败。
     blocking_dirs = [
         entry for entry in retained_dirs if not entry.get("non_empty")
@@ -1877,9 +2799,14 @@ def command_rollback(args):
         "schema_version": RECEIPT_SCHEMA_VERSION,
         "command": "rollback",
         "status": "FAILED"
-        if (failed_removals or blocking_dirs or remaining_owned)
+        if (
+            failed_removals
+            or blocking_dirs
+            or remaining_owned
+            or not ownership_removed
+        )
         else "OK",
-        "session_id": receipt.get("session_id"),
+        "session_id": receipt_session,
         "target": str(target),
         "removed_files": removed_files,
         "removed_directories": removed_dirs,
@@ -1889,10 +2816,21 @@ def command_rollback(args):
         "preimage_drift": preimage_drift,
         "sentinel_unchanged": sentinel_unchanged,
         "postimage_files": postimage["files"],
-        "staging_removed": staging_removed,
+        "ownership_record": {
+            "path": OWNERSHIP_FILE_NAME,
+            "schema_version": OWNERSHIP_SCHEMA_VERSION,
+            "install_hash": record.get("install_hash"),
+            "removed": ownership_removed,
+            "removal_error": ownership_removal_error,
+        },
+        "staging_removed": not staging_present,
+        "staging_state": "absent_before_rollback",
+        "staging_deleted_by_rollback": False,
         "note": (
-            "only files owned by this install session were removed; directories holding "
-            "non-owned user bytes are kept and reported"
+            "only files owned by this bound install session were removed; directories "
+            "holding non-owned user bytes are kept and reported; the staging directory "
+            "was already cleaned by the install transaction and this rollback performed "
+            "no recursive deletion"
         ),
     }
     if report["status"] != "OK":
@@ -1944,6 +2882,13 @@ _MARKER_EPILOG = f"""\
      JSON: {{"magic": "{SANDBOX_MARKER_MAGIC}", "tool": "{TOOL_NAME}"}}
   3) --target 必须位于该沙箱父目录之内；
   4) 真实 ComfyUI 宿主路径（路径组件含 comfyui / ComfyUI-aki-v2 等）被硬拒绝。
+
+所有权边界：
+  * install 成功时在目标内部写入所有权记录 {OWNERSHIP_FILE_NAME}
+    （schema {OWNERSHIP_SCHEMA_VERSION}），绑定目标身份、沙箱 marker、session、
+    源 candidate/manifest/payload 集合与安装 hash。
+  * rollback 只承认该记录所绑定的安装，并与外部收据交叉核对；收据里的路径字段
+    一律不是删除授权。回滚只确认暂存目录终态，不做基于路径的递归删除。
 
 稳定错误码：{", ".join(sorted(k for k in EXIT_CODES if k != "OK"))}
 退出码：{", ".join(f"{k}={v}" for k, v in sorted(EXIT_CODES.items(), key=lambda kv: kv[1]))}
@@ -2034,8 +2979,9 @@ def build_parser():
         "rollback",
         help="按安装收据回滚本轮 owned 文件。",
         description=(
-            "按安装收据绑定 session 与 installed hashes 逐项检查；无用户改写才移除本轮 owned "
-            "文件/目录，有改写则报 ROLLBACK_CONFLICT 并保留用户字节。"
+            "按目标内所有权记录绑定 target 身份、沙箱 marker、session 与 installed hashes "
+            "逐项检查；外部收据只作交叉核对，其路径字段不是删除授权。无用户改写才移除本轮 "
+            "owned 文件/目录，有改写则报 ROLLBACK_CONFLICT 并保留用户字节。"
         ),
         epilog=_MARKER_EPILOG,
         formatter_class=argparse.RawDescriptionHelpFormatter,
