@@ -301,7 +301,7 @@ def test_correction02_factory_rejects_drift(factory_pair,fault):
     with pytest.raises(ValueError):harness.admit_case_plan(normal,helper,pre)
 
 
-@pytest.mark.parametrize('child_id,status',[(harness.CHILD_ID,'DRAFT_NOT_AUTHORIZED'),('S3-P2B-01','AUTHORIZED'),('S3-P2B-CORRECTION-01','AUTHORIZED')])
+@pytest.mark.parametrize('child_id,status',[(harness.CHILD_ID,'DRAFT_NOT_AUTHORIZED'),('S3-P2B-01','AUTHORIZED'),('S3-P2B-CORRECTION-01','AUTHORIZED'),('S3-P2B-CORRECTION-02','AUTHORIZED')])
 def test_correction02_draft_retired_zero_external_access(tmp_path,monkeypatch,child_id,status):
     root=tmp_path/'candidate';root.mkdir();(root/'child.json').write_text(json.dumps({'child_id':child_id,'status':status}))
     monkeypatch.setattr(harness,'ROOT',root);monkeypatch.setattr(harness,'CHILD','child.json')
@@ -502,3 +502,149 @@ def test_correction03_fixed_call_graph_spy(tmp_path,monkeypatch):
     assert totals=={'windows_python':1,'wsl':10,'python':11}
     assert all(totals[r]<=harness.METADATA_READ_BOUNDS[r] for r in totals)
     assert not Path(parent).exists()
+
+@pytest.mark.parametrize('fault',[None,'phase2','phase3','observer','cleanup','detail','serialization','native','output'])
+def test_correction04_public_run_maximum(tmp_path,monkeypatch,fault):
+    """Public owner, real factory/roles/SQLite/claim; synthetic host process boundary."""
+    import io
+    import os
+    import threading
+    from types import SimpleNamespace
+    base=tmp_path/'evidence';base.mkdir()
+    monkeypatch.setattr(harness,'BASE',base)
+    monkeypatch.setattr(harness,'ACTIVE_METER',None)
+    original_digest=harness.digest
+    host=set(harness.FIXED.values())-{'/usr/bin/python3'}
+    seals={r:('c'*64 if p in host else original_digest(p)) for r,p in harness.FIXED.items()}
+    monkeypatch.setattr(harness,'digest',lambda p:'c'*64 if str(p) in host else original_digest(p))
+    original_module=harness.module
+    def load(name,path):
+        m=original_module(name,path)
+        if Path(path).name=='local_program_authority.py':
+            original=m.digest
+            m.digest=lambda p:'c'*64 if str(p) in host else original(p)
+        return m
+    monkeypatch.setattr(harness,'module',load)
+    stat=Path.stat
+    monkeypatch.setattr(Path,'stat',lambda p,*a,**k:SimpleNamespace(st_size=1) if str(p) in host else stat(p,*a,**k))
+    read=Path.read_text
+    monkeypatch.setattr(Path,'read_text',lambda p,*a,**k:json.dumps({'tools':{r:{'sha256':v} for r,v in seals.items()}}) if p==harness.ROOT/harness.OLD_SEAL else read(p,*a,**k))
+    opened=Path.open
+    def guarded(p,*a,**k):
+        assert not str(p).startswith('/mnt/c/'),str(p)
+        return opened(p,*a,**k)
+    monkeypatch.setattr(Path,'open',guarded)
+    monkeypatch.setattr(harness.subprocess,'check_output',lambda c,**k:'a'*40 if c[1]=='rev-parse' else b'')
+    child=json.loads((harness.ROOT/harness.CHILD).read_text());child['status']='AUTHORIZED'
+    monkeypatch.setattr(harness,'authorized_child',lambda:child)
+    monkeypatch.setattr(harness,'claim_path',lambda child:tmp_path/'shared.claim')
+    pre=harness.preflight('a'*40)
+    created=[];factory=harness.make_fixture
+    def make(root,pre,case='normal'):
+        created.append(root)
+        return factory(root,pre,case)
+    monkeypatch.setattr(harness,'make_fixture',make)
+    counts={};phase=[0]
+    def owners(root,binding_hash=None,identities=None,exclude=()):
+        if fault=='cleanup' and binding_hash is None and phase[0]==3:raise OSError('synthetic cleanup unknown')
+        if binding_hash is None:return []
+        key=(str(root),id(identities))
+        counts[key]=counts.get(key,0)+1
+        n=counts[key]
+        if fault=='observer' and phase[0]==2 and n>3:raise OSError('synthetic observer error')
+        return [dict(request_id=f'00000000-0000-0000-0000-{i+1:012d}',pid=123456+i,
+            birth={'linux_start_ticks':10+i},binding_sha256=binding_hash,state='ENTERED',
+            same_birth_alive=n<159,owned_path=str(root/('中文 空格'*24))) for i in range(4)]
+    monkeypatch.setattr(harness,'owners',owners)
+    sleep=harness.time.sleep
+    monkeypatch.setattr(harness.time,'sleep',lambda n:sleep(.0001 if threading.current_thread() is not threading.main_thread() else n))
+    protocol=harness.protocol
+    def proto(root):
+        m=protocol(root);birth=m.process_birth
+        m.process_birth=lambda pid,*a:{'linux_start_ticks':99} if pid==987654 else birth(pid,*a)
+        return m
+    monkeypatch.setattr(harness,'protocol',proto)
+    class Process:
+        pid=987654
+        def __init__(self):
+            self.stdout=io.BytesIO(bytes(range(256))*1024)
+            self.stderr=io.BytesIO(b'error metadata\xff\x00'*16000)
+        def poll(self):return 0
+        def wait(self,timeout):return 0
+    def popen(command,**kw):
+        assert command[0]==harness.FIXED['windows_python'] and command[-1]=='--windows'
+        phase[0]+=1;root=created[0];label=('normal','bad-receipt','timeout')[phase[0]-1]
+        if fault=='phase2' and phase[0]==2:raise OSError('synthetic phase2 boundary')
+        if fault=='phase3' and phase[0]==3:raise OSError('synthetic phase3 boundary')
+        native=dict(pid=123,birth={'windows_creation_time_100ns':456},os_name='nt',synthetic=True)
+        if fault!='native' or phase[0]!=2:harness.write(root/('native-'+label+'.json'),native)
+        result={'status':'DEBITED'} if phase[0]==1 else {'details':{'exit_code':0,'subcode':'S3_BRIDGE_RECEIPT_INVALID'}} if phase[0]==2 else {'details':{'error':'TIMEOUT'}}
+        harness.write(root/'windows-result.json',dict(os_name='nt',native_identity=native,cases=[{'result':result}]))
+        if phase[0]==1:
+            import sqlite3
+            with sqlite3.connect(root/'fixture.sqlite') as db:db.execute('UPDATE children SET calls=1')
+        process=Process()
+        if fault=='output' and phase[0]==2:process.stdout=io.BytesIO(b'x'*262145)
+        return process
+    monkeypatch.setattr(harness.subprocess,'Popen',popen)
+    save=harness.EvidenceStore.save
+    def save_fault(store,kind,value=None,raw=None):
+        if phase[0]==2 and kind=='phase' and fault=='detail':raise OSError('synthetic detail failure')
+        if phase[0]==2 and kind=='phase' and fault=='serialization':value={'bad':object()}
+        return save(store,kind,value,raw)
+    monkeypatch.setattr(harness.EvidenceStore,'save',save_fault)
+    try:
+        life=harness.run()
+        terminal=json.loads((base/'cross-os-lifecycle.json').read_text())
+        assert life['terminal_persisted'] and (base/'cross-os-lifecycle.json').stat().st_size<=16384
+        assert terminal['status']==('READY_FOR_REVIEW' if fault is None else 'BLOCKED')
+        claim=json.loads((tmp_path/'shared.claim').read_text())
+        assert claim['status']=='EXPIRED' and claim['terminal_sha256']==original_digest(base/'cross-os-lifecycle.json')
+        refs=terminal['artifact_refs'];total=0;observations=[]
+        for ref in refs:
+            path=base/ref['path'];assert path.stat().st_size==ref['bytes']<=1048576
+            assert original_digest(path)==ref['sha256'];total+=ref['bytes']
+            if ref['kind']=='observer':observations.append(json.loads(path.read_bytes()))
+        assert total==terminal['detail_actual_bytes']<=terminal['detail_reserved_bytes']
+        assert total<terminal['counters']['output_bytes']<=16777216
+        if fault is None:
+            assert len(observations)==6 and all(o['sample_count']==160 for o in observations)
+            assert set(terminal['phase_verdicts'])=={'normal','bad-receipt','timeout'}
+        assert any(ref['kind']=='phase' and json.loads((base/ref['path']).read_bytes())['phase']=='normal' for ref in refs)
+        assert any(o['sample_count']==160 and all(len(s['owners'])==4 for s in o['samples']) for o in observations)
+        assert len(json.dumps(life,ensure_ascii=False).encode())>32768
+        if fault in ('phase2','phase3','detail','serialization','output','native'):assert terminal['synthetic_debits'] is None
+        directory=os.environ.get('P2B_RAW_DIR')
+        if directory:
+            import shutil
+            shutil.copytree(base,Path(directory)/('public-'+str(fault)))
+            for i,root in enumerate(created):shutil.copytree(root,Path(directory)/('factory-'+str(fault)+'-'+str(i)))
+            (Path(directory)/('life-'+str(fault)+'.json')).write_text(json.dumps(life,ensure_ascii=False))
+    finally:
+        monkeypatch.setattr(harness,'ACTIVE_METER',None)
+        import shutil
+        for root in created:shutil.rmtree(root)
+        assert all(not root.exists() for root in created)
+        save_observer_raw('public-cleanup-'+str(fault),dict(roots=[str(r) for r in created],absent=True,synthetic=True))
+
+
+@pytest.mark.parametrize('fault',['tamper','missing','symlink','bound','output'])
+def test_correction04_store_integrity_and_sticky_bounds(tmp_path,fault):
+    meter=harness.Meter();store=harness.EvidenceStore(tmp_path,meter)
+    ref=store.save('phase',{'phase':'normal'})
+    path=tmp_path/ref['path']
+    if fault=='tamper':path.write_bytes(b'changed')
+    elif fault=='missing':path.unlink()
+    elif fault=='symlink':
+        path.unlink();path.symlink_to(tmp_path/'outside')
+    elif fault=='bound':
+        store.save('response',raw=b'x'*1048576)
+        with pytest.raises(ValueError):store.save('response',raw=b'x'*1048577)
+        store.verify();return
+    else:
+        meter.take('output_bytes',harness.LIMITS['output_bytes']-meter.used['output_bytes'])
+        with pytest.raises(ValueError):meter.take('output_bytes',1)
+        store.save('phase',{'failure_prefix':'preserved inside prepaid envelope'})
+        with pytest.raises(ValueError):meter.take('output_bytes',0)
+        assert path.exists();return
+    with pytest.raises((ValueError,OSError)):store.verify()
