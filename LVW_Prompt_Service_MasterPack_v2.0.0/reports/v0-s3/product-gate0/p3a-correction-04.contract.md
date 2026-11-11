@@ -1,0 +1,21 @@
+# P3A 纠偏04：准备后归档的身份与句柄生命周期
+
+Root接受独审9bf2cf2的M05；原M01/M02/m01/M03/M04均保持关闭。原合同权限/门限/分母不变，只修复新adapter在正常prepare返回后的失效保护，不再拓展安装框架。
+
+允许tools/v0_s3_stage_runtime.py及tools/test_s3_install_handoff.py中的新增测试，新增文本证据implementation-p3a-correction-04/。如确需原archive最小内部seam才能保持实际owner执行，可在tools/v0_s2_stage_archive.py有限修改并说明理由；不改旧S2默认语义。原则上不改包owner/StageRuntimeFactory。本补充是root内部联系修复设计，不需人类再次授权。其他白名单、原raw/探针/合同/authority/质量集/坐标/MANIFEST禁止修改；不删旧测试。
+
+## 最小架构
+
+准备阶段仍按原来在return时关闭所有句柄，不能为了归档无期限持有资源。需要保留准备时已证明的parent与各root设备/inode及label/run/candidate绑定（仅固定身份，不根据后来路径重新采纳）。
+
+_DeploymentArchive.__call__在准备成功后的正常路径，为此一次完整归档调用重新建立有限原parent/root句柄上下文：获取前后比对保存的原身份与原archive lease，匹配才允许调用实际OwnedArchive。整个授权、remove_owned_reparse_fixture适配器、inventory/copy/manifest和最后删除均在同一有效生命周期内；callback返回后的guard不再因为_parent_fd=None静默放行。若归档发生在prepare异常块内部，复用有效的同一上下文但核对label/root，禁止错误reentry或采用别的root。不要绕过实际cleanup及原owner的proven/identity/budget/authorization检查。
+
+parent/root已移动或替换，无法匹配原身份时，必须在任何归档新建/复制/删除前拒绝并保留原对象，记录真实原因；不跟随历史path去寻找/删除，不把replacement视为新owner。归档过程中回调后漂移同样拒绝后续写入/删除。成功删除root是合法终态：finally释放句柄时不要再用要求root存在的guard把成功改成失败。句柄在归档success/error、acquire失败、callback失败均有限释放；不留长驻FD。
+
+保留原inode移动限制，不许宣称防任意指令级恶意OS races。该保证针对本合同实际受控callback交接，不能以inactive guard或按当前路径重新采纳掩盖身份失效。失败清理不fallback pathname递归删除。归档未证明完成时不得报告cleanup.proven=true或settle/refund；此组件本身没有真实账本动作。
+
+## 固定验收
+
+正常prepare成功返回且FD全关闭后：执行真实synthetic native cleanup及factory.archive，原M05 callback在remove_owned_reparse_fixture内移动parent，replacement归档目录/文件0，原root保留、无外部删除，所有新FD释放；独审原test_callback_gaps.py的post_prepare断言不得改动并运行一次。增加正常post-prepare归档成功/归档前parent或root替换/回调抛错/归档acquire失败、default归档后warm准备和归档成功等明确Oracle。保留既有失败prepare内归档保护、5+M04gap断言和原65/23/9回归，关键检查均针对最终新候选，不以precursor结果拼接；若owner字节未改可明确复用独立9项，不计新跑，改变则重跑相关9。包owner17同理保持明确复用。
+
+本批只做上述定向有限测试及相关已有回归，不跑P2B/全项目/旧缺陷观察。严格受控Git/Python新synthetic临时夹具，0真实Windows/WSL/PS/Parser/hosthash/媒体/模型/GPU/服务/网络/download/ledger/完整checkpoint。原失败保留，临时路径登记与清理，文本raw命令/退出码/hash/候选绑定。READY_FOR_REVIEW交隔离复验；不得自签PASS。
