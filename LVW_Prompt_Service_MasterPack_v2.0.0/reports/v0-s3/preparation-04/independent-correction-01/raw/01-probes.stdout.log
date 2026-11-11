@@ -1,0 +1,363 @@
+[P01-F01-receipt-owned-install-path-traversal] expect=exit=4(PATH_REJECTED) 且 目标整树不变 且 外部 victim 存在且字节不变 observed={'exit_code': 4, 'error_code': 'PATH_REJECTED', 'target_tree_unchanged': True, 'removed_files': None, 'victim_still_exists': True, 'victim_bytes_unchanged': True, 'sentinel_unchanged': True}
+[P02-F02-receipt-staging-path-arbitrary-rmtree] expect=exit!=0 且 目标整树不变 且 外部 victim 目录及其内容原样存在 observed={'exit_code': 8, 'error_code': 'ROLLBACK_CONFLICT', 'target_tree_unchanged': True, 'removed_files': None, 'victim_dir_still_exists': True, 'victim_dir_tree_unchanged': True, 'victim_file_still_present': True}
+[P03-M01-cross-sandbox-same-basename-rollback] expect=exit!=0 且 沙箱B 整树不变（含其 owned 文件与非 owned 标记）且 沙箱A 整树不变 observed={'exit_code': 8, 'error_code': 'ROLLBACK_CONFLICT', 'target_tree_unchanged': True, 'removed_files': None, 'sandbox_b_tree_unchanged': True, 'sandbox_a_tree_unchanged': True, 'non_owned_marker_still_exists': True, 'b_owned_file_count_before': 32, 'b_owned_file_count_after': 32}
+[P04-receipt-owned-directories-traversal] expect=exit!=0 且 目标整树不变 且 外部 victim 目录原样存在 observed={'exit_code': 4, 'error_code': 'PATH_REJECTED', 'target_tree_unchanged': True, 'removed_files': None, 'victim_dir_tree_unchanged': True, 'victim_dir_still_exists': True}
+[P05-receipt-owned-created-directories-traversal] expect=exit!=0 且 目标整树不变 且 外部 victim 目录原样存在 observed={'exit_code': 4, 'error_code': 'PATH_REJECTED', 'target_tree_unchanged': True, 'removed_files': None, 'victim_dir_tree_unchanged': True, 'victim_dir_still_exists': True}
+[P06-receipt-preimage-path-traversal] expect=exit!=0 且 目标整树不变 且 外部 victim 存在且字节不变 observed={'exit_code': 4, 'error_code': 'PATH_REJECTED', 'target_tree_unchanged': True, 'removed_files': None, 'victim_still_exists': True, 'victim_bytes_unchanged': True}
+[P07-receipt-session-mismatch] expect=exit=8(ROLLBACK_CONFLICT) 且 目标整树不变（零删除） observed={'exit_code': 8, 'error_code': 'ROLLBACK_CONFLICT', 'target_tree_unchanged': True, 'removed_files': None, 'ownership_record_still_present': True}
+[P08-ownership-record-missing] expect=exit=8(ROLLBACK_CONFLICT) 且 目标整树不变（零删除） observed={'exit_code': 8, 'error_code': 'ROLLBACK_CONFLICT', 'target_tree_unchanged': True, 'removed_files': None}
+[P09-ownership-record-tampered-owned-list] expect=exit!=0 且 目标整树不变 且 外部 victim 存在且字节不变 observed={'exit_code': 8, 'error_code': 'ROLLBACK_CONFLICT', 'target_tree_unchanged': True, 'removed_files': None, 'victim_still_exists': True, 'victim_bytes_unchanged': True}
+[P10-ownership-record-rewritten-with-recomputed-install-hash] expect=exit!=0（外部收据交叉核对必须拦下重绑）且 目标整树不变 且 外部 victim 存在且字节不变 observed={'exit_code': 8, 'error_code': 'ROLLBACK_CONFLICT', 'target_tree_unchanged': True, 'removed_files': None, 'victim_still_exists': True, 'victim_bytes_unchanged': True, 'install_hash_recomputed_by_attacker': True}
+[P11-sandbox-marker-missing] expect=exit!=0 且 目标整树不变（零删除） observed={'exit_code': 8, 'error_code': 'ROLLBACK_CONFLICT', 'target_tree_unchanged': True, 'removed_files': None}
+[P12-sandbox-marker-content-changed] expect=exit!=0 且 目标整树不变（零删除） observed={'exit_code': 8, 'error_code': 'ROLLBACK_CONFLICT', 'target_tree_unchanged': True, 'removed_files': None}
+[P13-receipt-target-rebound-to-other-sandbox] expect=exit!=0 且 两个沙箱整树都不变（不得借改绑跨沙箱删除） observed={'exit_code': 8, 'error_code': 'ROLLBACK_CONFLICT', 'target_tree_unchanged': True, 'removed_files': None, 'sandbox_a_tree_unchanged': True, 'sandbox_b_tree_unchanged': True, 'non_owned_marker_still_exists': True}
+[P14-late-failure-residual-staging-not-rmtree] expect=exit!=0 且 目标整树不变（零删除）且 残留 staging 目录与其内容必须原样存在（不得 rmtree） observed={'exit_code': 8, 'error_code': 'ROLLBACK_CONFLICT', 'target_tree_unchanged': True, 'removed_files': None, 'residual_staging_still_exists': True, 'residual_staging_tree_unchanged': True, 'residual_file_still_present': True}
+[P15-late-failure-user-modified-owned-file-zero-deletion] expect=exit=8(ROLLBACK_CONFLICT) 且 目标整树不变（其余 owned 文件也必须零删除，不得先删 28 项再报错） observed={'exit_code': 8, 'error_code': 'ROLLBACK_CONFLICT', 'target_tree_unchanged': True, 'removed_files': None, 'edited_bytes_unchanged': True, 'owned_file_count_before': 24, 'owned_files_after': 24}
+[P16-redacted-receipt-with-explicit-target-rolls-back] expect=exit=0 且 收据 target 确为脱敏串 且 owned 文件全部移除 且 所有权记录被移除 且 哨兵不变 observed={'exit_code': 0, 'error_code': None, 'receipt_target_is_redacted': True, 'owned_files_remaining_after_rollback': 0, 'ownership_record_present_after': False, 'sentinel_unchanged': True}
+[P17-redacted-receipt-with-wrong-explicit-target-rejected] expect=exit!=0 且 两个沙箱整树都不变（脱敏不得成为重绑借口） observed={'exit_code': 8, 'error_code': 'ROLLBACK_CONFLICT', 'sandbox_a_tree_unchanged': True, 'sandbox_b_tree_unchanged': True, 'non_owned_marker_still_exists': True}
+[P18-redacted-receipt-without-target-is-bad-input] expect=exit=2(BAD_INPUT) 且 目标整树不变 observed={'exit_code': 2, 'error_code': 'BAD_INPUT', 'target_tree_unchanged': True}
+[P19-windows-trailing-dot-space-reserved-names-rejected] expect=每个案例都必须 exit=4(PATH_REJECTED) observed=[{'case': 'trailing_dot', 'member': 'payload/custom_nodes/lvw_v0_bridge/zz.py.', 'exit_code': 4, 'error_code': 'PATH_REJECTED'}, {'case': 'trailing_space', 'member': 'payload/custom_nodes/lvw_v0_bridge/zz.py ', 'exit_code': 4, 'error_code': 'PATH_REJECTED'}, {'case': 'reserved_device_name', 'member': 'payload/custom_nodes/lvw_v0_bridge/NUL', 'exit_code': 4, 'error_code': 'PATH_REJECTED'}, {'case': 'reserved_stem_con', 'member': 'payload/custom_nodes/lvw_v0_bridge/con.py', 'exit_code': 4, 'error_code': 'PATH_REJECTED'}]
+[P20-external-manifest-bad-input-is-stable-bad-input] expect=两种坏输入都必须 exit=2(BAD_INPUT) observed={'invalid_json': {'exit_code': 2, 'error_code': 'BAD_INPUT'}, 'unreadable': {'exit_code': 2, 'error_code': 'BAD_INPUT'}}
+[P21-rollback-never-rmtrees-a-receipt-named-directory] expect=exit!=0 且 目标整树不变 且 被收据点名的目录（哪怕在沙箱内）原样存在 observed={'exit_code': 4, 'error_code': 'PATH_REJECTED', 'target_tree_unchanged': True, 'victim_dir_still_exists': True, 'victim_dir_tree_unchanged': True}
+[P22-rollback-on-target-without-install-rejected] expect=exit!=0 且 目标整树不变 observed={'exit_code': 8, 'error_code': 'ROLLBACK_CONFLICT', 'target_tree_unchanged': True}
+{
+  "candidate_commit": "ef8c065346a8f7d78b28b238207e7550444d897e",
+  "kind": "S3_PREP_B_INDEPENDENT_CORRECTION_01_NEGATIVE_PROBES",
+  "media_reads": 0,
+  "model_gpu_calls": 0,
+  "network_calls": 0,
+  "oracle": "本轮独审新写；不复用实现者的 negative_probes.py 判据",
+  "probe_author": "independent reviewer (not the implementer)",
+  "probe_count": 22,
+  "probe_failed": 0,
+  "probe_passed": 22,
+  "probes": [
+    {
+      "expectation": "exit=4(PATH_REJECTED) 且 目标整树不变 且 外部 victim 存在且字节不变",
+      "matches_expectation": true,
+      "observed": {
+        "error_code": "PATH_REJECTED",
+        "exit_code": 4,
+        "removed_files": null,
+        "sentinel_unchanged": true,
+        "target_tree_unchanged": true,
+        "victim_bytes_unchanged": true,
+        "victim_still_exists": true
+      },
+      "probe": "P01-F01-receipt-owned-install-path-traversal"
+    },
+    {
+      "expectation": "exit!=0 且 目标整树不变 且 外部 victim 目录及其内容原样存在",
+      "matches_expectation": true,
+      "observed": {
+        "error_code": "ROLLBACK_CONFLICT",
+        "exit_code": 8,
+        "removed_files": null,
+        "target_tree_unchanged": true,
+        "victim_dir_still_exists": true,
+        "victim_dir_tree_unchanged": true,
+        "victim_file_still_present": true
+      },
+      "probe": "P02-F02-receipt-staging-path-arbitrary-rmtree"
+    },
+    {
+      "expectation": "exit!=0 且 沙箱B 整树不变（含其 owned 文件与非 owned 标记）且 沙箱A 整树不变",
+      "matches_expectation": true,
+      "observed": {
+        "b_owned_file_count_after": 32,
+        "b_owned_file_count_before": 32,
+        "error_code": "ROLLBACK_CONFLICT",
+        "exit_code": 8,
+        "non_owned_marker_still_exists": true,
+        "removed_files": null,
+        "sandbox_a_tree_unchanged": true,
+        "sandbox_b_tree_unchanged": true,
+        "target_tree_unchanged": true
+      },
+      "probe": "P03-M01-cross-sandbox-same-basename-rollback"
+    },
+    {
+      "expectation": "exit!=0 且 目标整树不变 且 外部 victim 目录原样存在",
+      "matches_expectation": true,
+      "observed": {
+        "error_code": "PATH_REJECTED",
+        "exit_code": 4,
+        "removed_files": null,
+        "target_tree_unchanged": true,
+        "victim_dir_still_exists": true,
+        "victim_dir_tree_unchanged": true
+      },
+      "probe": "P04-receipt-owned-directories-traversal"
+    },
+    {
+      "expectation": "exit!=0 且 目标整树不变 且 外部 victim 目录原样存在",
+      "matches_expectation": true,
+      "observed": {
+        "error_code": "PATH_REJECTED",
+        "exit_code": 4,
+        "removed_files": null,
+        "target_tree_unchanged": true,
+        "victim_dir_still_exists": true,
+        "victim_dir_tree_unchanged": true
+      },
+      "probe": "P05-receipt-owned-created-directories-traversal"
+    },
+    {
+      "expectation": "exit!=0 且 目标整树不变 且 外部 victim 存在且字节不变",
+      "matches_expectation": true,
+      "observed": {
+        "error_code": "PATH_REJECTED",
+        "exit_code": 4,
+        "removed_files": null,
+        "target_tree_unchanged": true,
+        "victim_bytes_unchanged": true,
+        "victim_still_exists": true
+      },
+      "probe": "P06-receipt-preimage-path-traversal"
+    },
+    {
+      "expectation": "exit=8(ROLLBACK_CONFLICT) 且 目标整树不变（零删除）",
+      "matches_expectation": true,
+      "observed": {
+        "error_code": "ROLLBACK_CONFLICT",
+        "exit_code": 8,
+        "ownership_record_still_present": true,
+        "removed_files": null,
+        "target_tree_unchanged": true
+      },
+      "probe": "P07-receipt-session-mismatch"
+    },
+    {
+      "expectation": "exit=8(ROLLBACK_CONFLICT) 且 目标整树不变（零删除）",
+      "matches_expectation": true,
+      "observed": {
+        "error_code": "ROLLBACK_CONFLICT",
+        "exit_code": 8,
+        "removed_files": null,
+        "target_tree_unchanged": true
+      },
+      "probe": "P08-ownership-record-missing"
+    },
+    {
+      "expectation": "exit!=0 且 目标整树不变 且 外部 victim 存在且字节不变",
+      "matches_expectation": true,
+      "observed": {
+        "error_code": "ROLLBACK_CONFLICT",
+        "exit_code": 8,
+        "removed_files": null,
+        "target_tree_unchanged": true,
+        "victim_bytes_unchanged": true,
+        "victim_still_exists": true
+      },
+      "probe": "P09-ownership-record-tampered-owned-list"
+    },
+    {
+      "expectation": "exit!=0（外部收据交叉核对必须拦下重绑）且 目标整树不变 且 外部 victim 存在且字节不变",
+      "matches_expectation": true,
+      "observed": {
+        "error_code": "ROLLBACK_CONFLICT",
+        "exit_code": 8,
+        "install_hash_recomputed_by_attacker": true,
+        "removed_files": null,
+        "target_tree_unchanged": true,
+        "victim_bytes_unchanged": true,
+        "victim_still_exists": true
+      },
+      "probe": "P10-ownership-record-rewritten-with-recomputed-install-hash"
+    },
+    {
+      "expectation": "exit!=0 且 目标整树不变（零删除）",
+      "matches_expectation": true,
+      "observed": {
+        "error_code": "ROLLBACK_CONFLICT",
+        "exit_code": 8,
+        "removed_files": null,
+        "target_tree_unchanged": true
+      },
+      "probe": "P11-sandbox-marker-missing"
+    },
+    {
+      "expectation": "exit!=0 且 目标整树不变（零删除）",
+      "matches_expectation": true,
+      "observed": {
+        "error_code": "ROLLBACK_CONFLICT",
+        "exit_code": 8,
+        "removed_files": null,
+        "target_tree_unchanged": true
+      },
+      "probe": "P12-sandbox-marker-content-changed"
+    },
+    {
+      "expectation": "exit!=0 且 两个沙箱整树都不变（不得借改绑跨沙箱删除）",
+      "matches_expectation": true,
+      "observed": {
+        "error_code": "ROLLBACK_CONFLICT",
+        "exit_code": 8,
+        "non_owned_marker_still_exists": true,
+        "removed_files": null,
+        "sandbox_a_tree_unchanged": true,
+        "sandbox_b_tree_unchanged": true,
+        "target_tree_unchanged": true
+      },
+      "probe": "P13-receipt-target-rebound-to-other-sandbox"
+    },
+    {
+      "expectation": "exit!=0 且 目标整树不变（零删除）且 残留 staging 目录与其内容必须原样存在（不得 rmtree）",
+      "matches_expectation": true,
+      "observed": {
+        "error_code": "ROLLBACK_CONFLICT",
+        "exit_code": 8,
+        "removed_files": null,
+        "residual_file_still_present": true,
+        "residual_staging_still_exists": true,
+        "residual_staging_tree_unchanged": true,
+        "target_tree_unchanged": true
+      },
+      "probe": "P14-late-failure-residual-staging-not-rmtree"
+    },
+    {
+      "expectation": "exit=8(ROLLBACK_CONFLICT) 且 目标整树不变（其余 owned 文件也必须零删除，不得先删 28 项再报错）",
+      "matches_expectation": true,
+      "observed": {
+        "edited_bytes_unchanged": true,
+        "error_code": "ROLLBACK_CONFLICT",
+        "exit_code": 8,
+        "owned_file_count_before": 24,
+        "owned_files_after": 24,
+        "removed_files": null,
+        "target_tree_unchanged": true
+      },
+      "probe": "P15-late-failure-user-modified-owned-file-zero-deletion"
+    },
+    {
+      "expectation": "exit=0 且 收据 target 确为脱敏串 且 owned 文件全部移除 且 所有权记录被移除 且 哨兵不变",
+      "matches_expectation": true,
+      "observed": {
+        "error_code": null,
+        "exit_code": 0,
+        "owned_files_remaining_after_rollback": 0,
+        "ownership_record_present_after": false,
+        "receipt_target_is_redacted": true,
+        "sentinel_unchanged": true
+      },
+      "probe": "P16-redacted-receipt-with-explicit-target-rolls-back"
+    },
+    {
+      "expectation": "exit!=0 且 两个沙箱整树都不变（脱敏不得成为重绑借口）",
+      "matches_expectation": true,
+      "observed": {
+        "error_code": "ROLLBACK_CONFLICT",
+        "exit_code": 8,
+        "non_owned_marker_still_exists": true,
+        "sandbox_a_tree_unchanged": true,
+        "sandbox_b_tree_unchanged": true
+      },
+      "probe": "P17-redacted-receipt-with-wrong-explicit-target-rejected"
+    },
+    {
+      "expectation": "exit=2(BAD_INPUT) 且 目标整树不变",
+      "matches_expectation": true,
+      "observed": {
+        "error_code": "BAD_INPUT",
+        "exit_code": 2,
+        "target_tree_unchanged": true
+      },
+      "probe": "P18-redacted-receipt-without-target-is-bad-input"
+    },
+    {
+      "expectation": "每个案例都必须 exit=4(PATH_REJECTED)",
+      "matches_expectation": true,
+      "observed": [
+        {
+          "case": "trailing_dot",
+          "error_code": "PATH_REJECTED",
+          "exit_code": 4,
+          "member": "payload/custom_nodes/lvw_v0_bridge/zz.py."
+        },
+        {
+          "case": "trailing_space",
+          "error_code": "PATH_REJECTED",
+          "exit_code": 4,
+          "member": "payload/custom_nodes/lvw_v0_bridge/zz.py "
+        },
+        {
+          "case": "reserved_device_name",
+          "error_code": "PATH_REJECTED",
+          "exit_code": 4,
+          "member": "payload/custom_nodes/lvw_v0_bridge/NUL"
+        },
+        {
+          "case": "reserved_stem_con",
+          "error_code": "PATH_REJECTED",
+          "exit_code": 4,
+          "member": "payload/custom_nodes/lvw_v0_bridge/con.py"
+        }
+      ],
+      "probe": "P19-windows-trailing-dot-space-reserved-names-rejected"
+    },
+    {
+      "expectation": "两种坏输入都必须 exit=2(BAD_INPUT)",
+      "matches_expectation": true,
+      "observed": {
+        "invalid_json": {
+          "error_code": "BAD_INPUT",
+          "exit_code": 2
+        },
+        "unreadable": {
+          "error_code": "BAD_INPUT",
+          "exit_code": 2
+        }
+      },
+      "probe": "P20-external-manifest-bad-input-is-stable-bad-input"
+    },
+    {
+      "expectation": "exit!=0 且 目标整树不变 且 被收据点名的目录（哪怕在沙箱内）原样存在",
+      "matches_expectation": true,
+      "observed": {
+        "error_code": "PATH_REJECTED",
+        "exit_code": 4,
+        "target_tree_unchanged": true,
+        "victim_dir_still_exists": true,
+        "victim_dir_tree_unchanged": true
+      },
+      "probe": "P21-rollback-never-rmtrees-a-receipt-named-directory"
+    },
+    {
+      "expectation": "exit!=0 且 目标整树不变",
+      "matches_expectation": true,
+      "observed": {
+        "error_code": "ROLLBACK_CONFLICT",
+        "exit_code": 8,
+        "target_tree_unchanged": true
+      },
+      "probe": "P22-rollback-on-target-without-install-rejected"
+    }
+  ],
+  "product_runtime_calls": 0,
+  "temp_root_leftover_entries": [
+    "P01",
+    "P02",
+    "P03",
+    "P04",
+    "P05",
+    "P06",
+    "P07",
+    "P08",
+    "P09",
+    "P10",
+    "P11",
+    "P12",
+    "P13",
+    "P14",
+    "P15",
+    "P16",
+    "P17",
+    "P18",
+    "P19",
+    "P20",
+    "P21",
+    "P22",
+    "pkg.zip"
+  ],
+  "temp_root_removed_after_run": true
+}

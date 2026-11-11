@@ -1,0 +1,21 @@
+{
+  "command": "rollback",
+  "detail": {
+    "kind": "directory",
+    "problems": [
+      "path_traversal",
+      "windows_trailing_dot_or_space",
+      "windows_trailing_dot_or_space"
+    ],
+    "role": "receipt.owned.directories[0]",
+    "value": "../../victim_dir"
+  },
+  "error_code": "PATH_REJECTED",
+  "message": "receipt.owned.directories[0] is not a canonical owned relative path",
+  "schema_version": "lvw.v0-incremental-package-diagnostic/1",
+  "status": "FAILED",
+  "tool": {
+    "name": "v0_incremental_package.py",
+    "version": "1.1.0"
+  }
+}

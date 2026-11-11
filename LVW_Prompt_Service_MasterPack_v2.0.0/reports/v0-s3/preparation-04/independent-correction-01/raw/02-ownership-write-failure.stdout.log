@@ -1,0 +1,68 @@
+[F01-ownership-record-atomic-publish-failure] expect=exit!=0(INSTALL_FAILED) 且 无所有权记录(含临时文件) 且 owned 全部回退 且 哨兵完好 且 staging 已清 observed={'exit_code': 7, 'error_code': 'INSTALL_FAILED', 'ownership_record_present': False, 'ownership_temp_leftovers': [], 'owned_payload_remaining': [], 'sentinel_intact': True, 'cleanup_report_staging_removed_field': False, 'actual_staging_residue_in_sandbox': [], 'original_failure_preserved': True, 'target_tree_back_to_preimage': True}
+[F02-ownership-record-write-function-failure] expect=exit!=0(INSTALL_FAILED) 且 无所有权记录 且 owned 全部回退 且 哨兵完好 且 staging 已清 observed={'exit_code': 7, 'error_code': 'INSTALL_FAILED', 'ownership_record_present': False, 'owned_payload_remaining': [], 'sentinel_intact': True, 'cleanup_report_staging_removed_field': False, 'actual_staging_residue_in_sandbox': [], 'original_failure_preserved': True, 'target_tree_back_to_preimage': True}
+[F03-unusable-ownership-record-blocks-rollback] expect=exit=8(ROLLBACK_CONFLICT) 且 目标整树不变（owned 文件一个都不能少） observed={'rollback_error_code': 'ROLLBACK_CONFLICT', 'rollback_exit_code': 8, 'target_tree_unchanged': True, 'owned_files_still_present': 24, 'sentinel_intact': True}
+{
+  "candidate_commit": "ef8c065346a8f7d78b28b238207e7550444d897e",
+  "candidate_tool_blob_sha256": "b383d2e9292ada578cc8b90b9bcea8b15ce8c49cb439c0ccec6abcc65d899931",
+  "injection": "进程内 monkeypatch；仓库中的候选文件字节未被修改",
+  "kind": "S3_PREP_B_INDEPENDENT_CORRECTION_01_OWNERSHIP_WRITE_FAILURE",
+  "probe_count": 3,
+  "probe_failed": 0,
+  "probe_passed": 3,
+  "probes": [
+    {
+      "expectation": "exit!=0(INSTALL_FAILED) 且 无所有权记录(含临时文件) 且 owned 全部回退 且 哨兵完好 且 staging 已清",
+      "matches_expectation": true,
+      "observed": {
+        "actual_staging_residue_in_sandbox": [],
+        "cleanup_report_staging_removed_field": false,
+        "error_code": "INSTALL_FAILED",
+        "exit_code": 7,
+        "original_failure_preserved": true,
+        "owned_payload_remaining": [],
+        "ownership_record_present": false,
+        "ownership_temp_leftovers": [],
+        "sentinel_intact": true,
+        "target_tree_back_to_preimage": true
+      },
+      "probe": "F01-ownership-record-atomic-publish-failure"
+    },
+    {
+      "expectation": "exit!=0(INSTALL_FAILED) 且 无所有权记录 且 owned 全部回退 且 哨兵完好 且 staging 已清",
+      "matches_expectation": true,
+      "observed": {
+        "actual_staging_residue_in_sandbox": [],
+        "cleanup_report_staging_removed_field": false,
+        "error_code": "INSTALL_FAILED",
+        "exit_code": 7,
+        "original_failure_preserved": true,
+        "owned_payload_remaining": [],
+        "ownership_record_present": false,
+        "sentinel_intact": true,
+        "target_tree_back_to_preimage": true
+      },
+      "probe": "F02-ownership-record-write-function-failure"
+    },
+    {
+      "expectation": "exit=8(ROLLBACK_CONFLICT) 且 目标整树不变（owned 文件一个都不能少）",
+      "matches_expectation": true,
+      "observed": {
+        "owned_files_still_present": 24,
+        "rollback_error_code": "ROLLBACK_CONFLICT",
+        "rollback_exit_code": 8,
+        "sentinel_intact": true,
+        "target_tree_unchanged": true
+      },
+      "probe": "F03-unusable-ownership-record-blocks-rollback"
+    }
+  ],
+  "product_runtime_calls": 0,
+  "temp_root_leftover_entries": [
+    "A",
+    "B",
+    "C",
+    "candidate_tool.py",
+    "pkg.zip"
+  ],
+  "temp_root_removed_after_run": true
+}

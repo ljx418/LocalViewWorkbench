@@ -1,0 +1,36 @@
+{
+  "driver_under_test": "probe/ownership_write_failure.py",
+  "kind": "S3_PREP_B_INDEPENDENT_CORRECTION_01_RUNNER_CLEANUP_SELFTEST",
+  "probe_count": 2,
+  "probe_failed": 0,
+  "probe_passed": 2,
+  "probes": [
+    {
+      "expectation": "exit=0 且 自有临时根已被删除",
+      "matches_expectation": true,
+      "observed": {
+        "exit_code": 0,
+        "recorded_temp_root": "<own-tmp-root>/i_glq4v3",
+        "stderr_tail": [
+          "[receipt] written to <own-tmp-root>/i_glq4v3/C/install-receipt.json"
+        ],
+        "temp_root_still_exists_after_run": false
+      },
+      "probe": "R01-runner-success-path-cleans-its-temp-root"
+    },
+    {
+      "expectation": "exit!=0 且 自有临时根**仍然**已被删除（finally/上下文管理器覆盖失败路径）",
+      "matches_expectation": true,
+      "observed": {
+        "exit_code": 1,
+        "recorded_temp_root": "<own-tmp-root>/611qw8cj",
+        "stderr_tail": [
+          "RuntimeError: simulated runner failure after setup"
+        ],
+        "temp_root_still_exists_after_run": false
+      },
+      "probe": "R02-runner-failure-path-cleans-its-temp-root"
+    }
+  ],
+  "product_runtime_calls": 0
+}

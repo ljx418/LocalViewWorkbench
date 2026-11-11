@@ -1,0 +1,455 @@
+{
+  "blocking_findings": [],
+  "branch": "ljx418/lvw-v1-d0-review",
+  "budgets_consumed": {
+    "contracts_changed": 0,
+    "downloads": 0,
+    "gpu_calls": 0,
+    "manifest_changed": 0,
+    "media_reads": 0,
+    "model_calls": 0,
+    "network_calls": 0,
+    "plans_changed": 0,
+    "prior_reports_changed": 0,
+    "product_code_changed": 0,
+    "product_full_checkpoints": 0,
+    "product_runtime_calls": 0,
+    "real_host_paths_written": 0,
+    "tools_modified_by_reviewer": 0
+  },
+  "candidate_commit": "ef8c065346a8f7d78b28b238207e7550444d897e",
+  "candidate_test_suite": {
+    "claimed_70_verified": true,
+    "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=<pack> python3 -B -m pytest tools/test_v0_incremental_package.py -p no:cacheprovider --basetemp=<owned> -v",
+    "error": 0,
+    "exit_code": 0,
+    "failed": 0,
+    "new_candidate_cases": 70,
+    "new_cases_added": 32,
+    "old_assertions_weakened_or_removed": false,
+    "old_candidate_cases": 38,
+    "old_cases_all_retained": true,
+    "old_cases_missing_from_new": 0,
+    "passed": 70,
+    "raw": "raw/00-pytest.stdout.log"
+  },
+  "environment": {
+    "comfy_real_install_verified": false,
+    "git": "2.43.0",
+    "os": "Linux 6.18.40.1-microsoft-standard-WSL2 x86_64",
+    "pytest": "8.4.2",
+    "python": "3.12.3",
+    "sandbox_kind": "POSIX (WSL2) only",
+    "windows_host_verified": false
+  },
+  "evidence_index": {
+    "chain": "chain-summary.json",
+    "evidence_redaction": "evidence-redaction.json",
+    "negative_probes": "negative-probes.json",
+    "old_test_coverage_retention": "old-test-coverage-retention.json",
+    "ownership_write_failure": "ownership-write-failure.json",
+    "probes": "probe/",
+    "raw": "raw/",
+    "review": "review.md",
+    "runner_cleanup_selftest": "runner-cleanup-selftest.json",
+    "tmp_residue_disclosure": "tmp-residue-disclosure.json"
+  },
+  "evidence_redaction": {
+    "measured_record": "evidence-redaction.json",
+    "note": "本收据生成于脱敏步骤之前，因此此处不重复脱敏的实测数字；实测结果以 evidence-redaction.json 为准（脱敏是流水线的最后一步，覆盖本收据在内的完整证据集）。",
+    "policy": "只替换绝对路径字符串；sha256/退出码/判定字段逐字保留"
+  },
+  "fatal": 0,
+  "finding_closure": [
+    {
+      "evidence": [
+        "P01",
+        "P21",
+        "raw/probes/"
+      ],
+      "id": "F-01",
+      "note": "收据 owned.files[].install_path 穿越现在被 PATH_REJECTED 拦下，外部 victim 字节不变、目标整树不变。",
+      "original_severity": "FATAL",
+      "status": "CLOSED"
+    },
+    {
+      "evidence": [
+        "P02",
+        "P14"
+      ],
+      "id": "F-02",
+      "note": "回滚只确认 staging 终态，从不按路径递归删除；残留 staging 稳定失败并保留。",
+      "original_severity": "FATAL",
+      "status": "CLOSED"
+    },
+    {
+      "evidence": [
+        "P03",
+        "P13",
+        "P17"
+      ],
+      "id": "M-01",
+      "note": "目标身份 + 沙箱 marker + session + 外部收据交叉核对四重绑定，不再用 basename 或同文件 hash。",
+      "original_severity": "MAJOR",
+      "status": "CLOSED"
+    },
+    {
+      "evidence": [
+        "P19"
+      ],
+      "id": "m-01",
+      "note": "Windows 段尾随点/尾随空格/保留设备名现在稳定 PATH_REJECTED。",
+      "original_severity": "MINOR",
+      "status": "CLOSED"
+    },
+    {
+      "evidence": [
+        "R01",
+        "R02"
+      ],
+      "id": "m-02",
+      "note": "本轮新 runner 用 try/finally + TemporaryDirectory 覆盖成功与失败路径并实测已清理；历史残留按合同只披露不删。",
+      "original_severity": "MINOR",
+      "status": "CLOSED"
+    },
+    {
+      "evidence": [
+        "P20"
+      ],
+      "id": "m-03",
+      "note": "外部 --manifest 不可读/非法 JSON 现在稳定 BAD_INPUT。",
+      "original_severity": "MINOR",
+      "status": "CLOSED"
+    }
+  ],
+  "fix_evidence_tip": "c40c6f1769141f7ce2cf85d5b531ffe4e6d25b61",
+  "grants": {
+    "human_signoff": false,
+    "note": "门禁结论由 root / Codex 裁决；本审查只给准备工具层面的建议。",
+    "product_gate0": false,
+    "release": false,
+    "stage_pass": false
+  },
+  "independent_negative_probes": {
+    "author": "independent reviewer (own driver; implementer's script not reused)",
+    "count": 22,
+    "failed": 0,
+    "oracle": "本轮新写，按 correction-01 合同重新表述",
+    "passed": 22,
+    "probes": [
+      {
+        "expectation": "exit=4 PATH_REJECTED; 目标整树不变; 外部 victim 字节不变",
+        "id": "P01",
+        "observed_error_code": "PATH_REJECTED",
+        "observed_exit": 4,
+        "origin": "F-01",
+        "pass": true
+      },
+      {
+        "expectation": "非零; 目标整树不变; 外部 victim 目录及内容原样存在",
+        "id": "P02",
+        "observed_error_code": "ROLLBACK_CONFLICT",
+        "observed_exit": 8,
+        "origin": "F-02",
+        "pass": true
+      },
+      {
+        "expectation": "非零; 同名跨沙箱两个目标整树都不变",
+        "id": "P03",
+        "observed_error_code": "ROLLBACK_CONFLICT",
+        "observed_exit": 8,
+        "origin": "M-01",
+        "pass": true
+      },
+      {
+        "expectation": "非零; 零删除",
+        "id": "P04",
+        "observed_error_code": "PATH_REJECTED",
+        "observed_exit": 4,
+        "origin": "收据 owned.directories 穿越",
+        "pass": true
+      },
+      {
+        "expectation": "非零; 零删除",
+        "id": "P05",
+        "observed_error_code": "PATH_REJECTED",
+        "observed_exit": 4,
+        "origin": "收据 owned.created_directories 穿越",
+        "pass": true
+      },
+      {
+        "expectation": "非零; 零删除",
+        "id": "P06",
+        "observed_error_code": "PATH_REJECTED",
+        "observed_exit": 4,
+        "origin": "收据 preimage 路径穿越",
+        "pass": true
+      },
+      {
+        "expectation": "exit=8; 零删除",
+        "id": "P07",
+        "observed_error_code": "ROLLBACK_CONFLICT",
+        "observed_exit": 8,
+        "origin": "session 不符",
+        "pass": true
+      },
+      {
+        "expectation": "exit=8; 零删除",
+        "id": "P08",
+        "observed_error_code": "ROLLBACK_CONFLICT",
+        "observed_exit": 8,
+        "origin": "所有权记录缺失",
+        "pass": true
+      },
+      {
+        "expectation": "非零; 零删除; victim 字节不变",
+        "id": "P09",
+        "observed_error_code": "ROLLBACK_CONFLICT",
+        "observed_exit": 8,
+        "origin": "所有权记录被改写",
+        "pass": true
+      },
+      {
+        "expectation": "非零（外部收据交叉核对拦下重绑）; 零删除; victim 字节不变",
+        "id": "P10",
+        "observed_error_code": "ROLLBACK_CONFLICT",
+        "observed_exit": 8,
+        "origin": "所有权记录被改写且攻击者重算 install_hash",
+        "pass": true
+      },
+      {
+        "expectation": "非零; 零删除",
+        "id": "P11",
+        "observed_error_code": "ROLLBACK_CONFLICT",
+        "observed_exit": 8,
+        "origin": "沙箱 marker 缺失",
+        "pass": true
+      },
+      {
+        "expectation": "非零; 零删除",
+        "id": "P12",
+        "observed_error_code": "ROLLBACK_CONFLICT",
+        "observed_exit": 8,
+        "origin": "沙箱 marker 被改",
+        "pass": true
+      },
+      {
+        "expectation": "非零; 两个沙箱整树都不变",
+        "id": "P13",
+        "observed_error_code": "ROLLBACK_CONFLICT",
+        "observed_exit": 8,
+        "origin": "收据 target 改绑",
+        "pass": true
+      },
+      {
+        "expectation": "非零; 零删除; 残留目录原样存在（不得 rmtree）",
+        "id": "P14",
+        "observed_error_code": "ROLLBACK_CONFLICT",
+        "observed_exit": 8,
+        "origin": "晚失败: staging 残留",
+        "pass": true
+      },
+      {
+        "expectation": "exit=8; 整树不变（其余 28 项零删除）",
+        "id": "P15",
+        "observed_error_code": "ROLLBACK_CONFLICT",
+        "observed_exit": 8,
+        "origin": "晚失败: 用户改写 29 个 owned 中的 1 个",
+        "pass": true
+      },
+      {
+        "expectation": "exit=0; owned 全移除; 记录被移除; 哨兵不变",
+        "id": "P16",
+        "observed_error_code": null,
+        "observed_exit": 0,
+        "origin": "脱敏收据 + 显式 --target",
+        "pass": true
+      },
+      {
+        "expectation": "非零; 两个沙箱整树都不变",
+        "id": "P17",
+        "observed_error_code": "ROLLBACK_CONFLICT",
+        "observed_exit": 8,
+        "origin": "脱敏收据 + 显式 --target 指向别的目标",
+        "pass": true
+      },
+      {
+        "expectation": "exit=2 BAD_INPUT; 零删除",
+        "id": "P18",
+        "observed_error_code": "BAD_INPUT",
+        "observed_exit": 2,
+        "origin": "脱敏收据 + 不给 --target",
+        "pass": true
+      },
+      {
+        "expectation": "每个案例 exit=4 PATH_REJECTED",
+        "id": "P19",
+        "observed_error_code": "PATH_REJECTED",
+        "observed_exit": 4,
+        "origin": "Windows 段尾随点/尾随空格/保留设备名",
+        "pass": true
+      },
+      {
+        "expectation": "两种都 exit=2 BAD_INPUT",
+        "id": "P20",
+        "observed_error_code": "BAD_INPUT",
+        "observed_exit": 2,
+        "origin": "外部 --manifest 坏输入",
+        "pass": true
+      },
+      {
+        "expectation": "非零; 零删除; 目录原样存在",
+        "id": "P21",
+        "observed_error_code": "PATH_REJECTED",
+        "observed_exit": 4,
+        "origin": "回滚绝不 rmtree 收据点名的目录",
+        "pass": true
+      },
+      {
+        "expectation": "非零; 零删除",
+        "id": "P22",
+        "observed_error_code": "ROLLBACK_CONFLICT",
+        "observed_exit": 8,
+        "origin": "目标根本没装过",
+        "pass": true
+      }
+    ],
+    "raw_records": "raw/probes/"
+  },
+  "independent_real_chain": {
+    "all_steps_exit_0": true,
+    "candidate_commit": "ef8c065346a8f7d78b28b238207e7550444d897e",
+    "checks_passed": 33,
+    "checks_total": 33,
+    "driver": "probe/chain_independent_correction01.py (self-written; implementer's summary not used)",
+    "external_victim_sha256_after_rollback": "f33ec5ef2a27f08188b09a080e402f1c4f52c820b6d0c2fd4b83c3aa3a3960a6",
+    "external_victim_sha256_before": "f33ec5ef2a27f08188b09a080e402f1c4f52c820b6d0c2fd4b83c3aa3a3960a6",
+    "manifest_sha256": "173568308385c260ab01c0c2287c632414dee7154b0706a1d9271b67b2efb589",
+    "manifest_source_commit": "ef8c065346a8f7d78b28b238207e7550444d897e",
+    "manifest_tool_provenance": "git_commit",
+    "manifest_tool_sha256": "b383d2e9292ada578cc8b90b9bcea8b15ce8c49cb439c0ccec6abcc65d899931",
+    "ownership_record_created_after_install": true,
+    "ownership_record_removed_after_rollback": false,
+    "ownership_record_sha256": "dc529ef07b021c27079e80d422b44cd85bcc9cbd717ae97fce1abc31ac08eff7",
+    "ownership_record_sha256_note": "每次安装含随机 session_id，该值逐次不同",
+    "package_removed_after_use": true,
+    "package_sha256": "2c74a8d0c91cb078bd3e5f8f258359e0f0352914aa8966f40f88ad97a33cf898",
+    "package_size_bytes": 98983,
+    "packaged_tool_sha256_equals_candidate_blob": true,
+    "payload_expanded_bytes": 183540,
+    "payload_fingerprint_matches_independent_01_baseline": true,
+    "payload_fingerprint_sha256": "c37d797e27bdfd6e559ac5ddffa30ed39c52dfc24e29db2a95eb93b562db3509",
+    "payload_item_count": 29,
+    "rebuild_byte_identical": true,
+    "remaining_dirs_after_rollback": [],
+    "remaining_files_after_rollback": [
+      "哨兵 文件.txt",
+      "用户 新增 文件.txt"
+    ],
+    "rollback_performed_no_recursive_deletion": true,
+    "rollback_removed_dirs_count": 5,
+    "rollback_removed_files_count": 29,
+    "sentinel_sha256_after_install": "403252aaeacc926cc64bddc9ddce43085c8a1d88e114758e2297760f1d0f239a",
+    "sentinel_sha256_after_rollback": "403252aaeacc926cc64bddc9ddce43085c8a1d88e114758e2297760f1d0f239a",
+    "sentinel_sha256_before": "403252aaeacc926cc64bddc9ddce43085c8a1d88e114758e2297760f1d0f239a",
+    "staging_residue_after_install": [],
+    "staging_residue_after_rollback": [],
+    "steps": [
+      "build",
+      "build(repeat)",
+      "diagnose",
+      "install",
+      "rollback"
+    ],
+    "user_added_file_preserved_sha256": "4d40d51a5d76914cf4cabf2278213c1ee0179c4405c3a4b7284ad9ebef5b68c7",
+    "work_root_removed": true,
+    "zip_member_count": 32,
+    "zip_or_source_copy_committed": false
+  },
+  "invariants_unchanged": {
+    "business_code_changed": false,
+    "contracts_changed": false,
+    "development_outline_entries": 14,
+    "manifest_changed_by_reviewer": false,
+    "old_s2_signed_7_of_8": true,
+    "plans_fixed_denominators_changed": false,
+    "prior_reports_changed_by_reviewer": false,
+    "product_items_12": true,
+    "quality_images_10": true,
+    "quality_videos_6": true,
+    "size_limit_bytes": 20971520,
+    "tools_modified_by_reviewer": false
+  },
+  "kind": "S3_PREP_B_INDEPENDENT_CORRECTION_01_REVIEW",
+  "major": 0,
+  "merged_head": "070b9615c2f81c31d45164b2979ab401cbc64c39",
+  "minor": 1,
+  "new_findings": [
+    {
+      "blocking": false,
+      "detail": "所有权记录写入失败时 staging 早已被同一事务前一步删除，但该字段只在 staging.exists() 为真时置 True，故报 false。实测沙箱内实际 staging 残留为 []，无真实泄漏；属表述精度问题，非合同禁止的『伪造 staging_removed』。",
+      "id": "NEW-m-01",
+      "location": "tools/v0_incremental_package.py::_rollback_committed",
+      "recommendation": "把该字段改成 staging 终态语义（如 staging_absent + staging_removed_by_this_cleanup）。",
+      "severity": "MINOR",
+      "title": "安装失败回退收据的 cleanup.staging_removed 字段低报"
+    }
+  ],
+  "open_items_for_root": [
+    "两个 tools/ 文件与本审查目录仍未登记进根 MANIFEST.sha256（root 维护；冻结 workpack 禁止候选改）。",
+    "宿主 /tmp 的 5 个历史残留由 root 处置（本审查无所有权证明，只披露不删）。"
+  ],
+  "ownership_write_failure_injection": {
+    "count": 3,
+    "failed": 0,
+    "method": "进程内 monkeypatch 候选 commit 的工具 blob；仓库候选文件字节未修改",
+    "passed": 3,
+    "variants": [
+      {
+        "expectation": "非零 INSTALL_FAILED; 无所有权记录(含临时文件); owned 全回退; 哨兵完好; 沙箱内实际 staging 残留=[]",
+        "id": "A",
+        "injected": "os.replace 失败（所有权记录原子发布失败）",
+        "observed_exit": 7,
+        "pass": true
+      },
+      {
+        "expectation": "非零 INSTALL_FAILED; 无所有权记录; owned 全回退; 哨兵完好; 实际 staging 残留=[]",
+        "id": "B",
+        "injected": "_write_ownership_record 抛错",
+        "observed_exit": 7,
+        "pass": true
+      },
+      {
+        "expectation": "exit=8 ROLLBACK_CONFLICT; 整树不变（owned 一个不少）",
+        "id": "C",
+        "injected": "所有权记录写成功但内容被改写（记录不可用）",
+        "observed_exit": 8,
+        "pass": true
+      }
+    ]
+  },
+  "root_adjudication_base": "7d1398527236f760205053e7b886cc3bd04c1fd2",
+  "runner_cleanup_selftest": {
+    "count": 2,
+    "failed": 0,
+    "failure_path_temp_root_removed": true,
+    "passed": 2,
+    "success_path_temp_root_removed": true
+  },
+  "scope": "S3-PREP-B correction-01 独立闭环复验（准备工具层面；非产品验收）",
+  "spec_sha256": {
+    "codex-review-decision-01.json": "fd728bca47319f78c7e47d10074568563709b1f4b16d9351bbacba33a012a497",
+    "correction-01.task.md": "d0c1f8f3f59a9b1753885f7a1bd7290c5aa05e46a837e9ab6eceafa159ba3e86",
+    "stage-packet-preparation-b.md": "cd7076463467ae6545ac86de633a2100ad357f2d2ab5946bf490ddaba2588abd"
+  },
+  "test_file_sha256": "f115219661d12e9ae5dbb4ec1bfb9a3f734c6808995a03dce2a89a55739d2419",
+  "tmp_residue_disclosure": {
+    "blocking_candidate": false,
+    "count": 5,
+    "deleted_by_reviewer": false
+  },
+  "tool_bytes_match_candidate_commit": true,
+  "tool_sha256": "b383d2e9292ada578cc8b90b9bcea8b15ce8c49cb439c0ccec6abcc65d899931",
+  "verdict": "CORRECTION_01_FINDINGS_CLOSED_NO_NEW_BLOCKER",
+  "verdict_is_recommendation_only": true
+}
