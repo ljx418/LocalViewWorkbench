@@ -58,6 +58,8 @@ import html
 import json
 import os
 import shutil
+import multiprocessing
+import errno
 import subprocess
 import sys
 import tempfile
@@ -177,14 +179,17 @@ def sha256_file(path: Path, deadline: float = None, clock=time.monotonic) -> tup
     digest = hashlib.sha256()
     total = 0
     with open(path, "rb") as handle:
+        initial_identity = source_identity(os.fstat(handle.fileno()))
         while True:
-            if deadline is not None and clock() > deadline:
+            if deadline is not None and clock() >= deadline:
                 raise TimeoutError("wall budget exhausted while hashing")
             chunk = handle.read(HASH_CHUNK_BYTES)
             if not chunk:
                 break
             digest.update(chunk)
             total += len(chunk)
+        if source_identity(os.fstat(handle.fileno())) != initial_identity:
+            raise SourceChanged("source_identity_changed_during_read")
     return digest.hexdigest(), total
 
 
@@ -966,7 +971,17 @@ class MediaAdapter:
             "stderr_sha256": None,
             "error": None,
         }
+        budget = getattr(self, "budget", None)
+        if budget is not None:
+            timeout = min(timeout, budget.check())
+            entry["timeout_seconds"] = timeout
+        output_cap = 4 * 1024 * 1024
+        if kind == "ffmpeg" and budget is not None:
+            output_cap = min(output_cap, budget.limit - budget.total)
+            if output_cap <= 0:
+                budget.stop("output_budget_exhausted")
         captured = {}
+        failure = None
 
         def on_result(result) -> None:
             captured["stdout"] = result.stdout
@@ -974,19 +989,32 @@ class MediaAdapter:
             entry["exit_code"] = result.returncode
 
         try:
-            run_bounded(argv, timeout_seconds=timeout, output_limit=4 * 1024 * 1024,
+            run_bounded(argv, timeout_seconds=timeout, output_limit=output_cap,
                         on_result=on_result)
         except Exception as exc:
-            entry["error"] = "%s:%s" % (type(exc).__name__, getattr(exc, "code", "") or "")
+            failure = getattr(exc, "details", {}).get("subcode", "")
+            entry["error"] = "%s:%s:%s" % (type(exc).__name__, getattr(exc, "code", "") or "", failure)
         stdout = captured.get("stdout", b"")
         stderr = captured.get("stderr", b"")
-        entry["stdout_bytes"] = len(stdout)
+        entry["decoder_stdout_bytes"] = len(stdout)
+        entry["decoder_stdout_sha256"] = sha256_bytes(stdout)
+        entry["stdout_bytes"] = len(stdout) if kind != "ffmpeg" else 0
         entry["stderr_bytes"] = len(stderr)
-        entry["stdout_sha256"] = sha256_bytes(stdout)
+        entry["stdout_sha256"] = sha256_bytes(stdout if kind != "ffmpeg" else b"")
         entry["stderr_sha256"] = sha256_bytes(stderr)
-        entry["stdout_text"] = stdout.decode("utf-8", "replace")
+        entry["stdout_text"] = stdout.decode("utf-8", "replace") if kind != "ffmpeg" else ""
+        if kind == "ffmpeg":
+            entry["_frame_bytes"] = stdout
         entry["stderr_text"] = stderr.decode("utf-8", "replace")
         self.run_log.append(entry)
+        if budget is not None:
+            if failure == "VIDEO_PROCESS_OUTPUT_LIMIT" and kind == "ffmpeg":
+                entry.pop("_frame_bytes", None)
+                budget.stop("output_budget_exhausted")
+            if failure == "VIDEO_PROCESS_TIMEOUT":
+                entry.pop("_frame_bytes", None)
+                budget.stop("wall_budget_exhausted")
+            budget.check(before=False)
         return entry
 
     # -- media operations ---------------------------------------------------
@@ -1016,9 +1044,17 @@ class MediaAdapter:
             "-i", str(path),
             "-map", "0:v:0", "-an", "-sn", "-dn", "-frames:v", "1",
             "-vf", "scale=w=min(640\\,iw):h=min(640\\,ih):force_original_aspect_ratio=decrease",
-            "-q:v", "3", "-f", "image2", "-y", str(output),
+            "-q:v", "3", "-f", "image2pipe", "pipe:1",
         ]
         entry = self._run("ffmpeg", argv, FRAME_TIMEOUT_SECONDS, label)
+        data = entry.pop("_frame_bytes", b"")
+        if entry["exit_code"] == 0:
+            budget = getattr(self, "budget", None)
+            if budget is not None:
+                budget.check()
+                if len(data) > budget.limit - budget.total:
+                    budget.stop("output_budget_exhausted")
+            output.write_bytes(data)
         entry["offset_seconds"] = offset
         entry["output"] = str(output)
         return entry
@@ -1192,27 +1228,143 @@ that a full decode happened.</p>
     path.write_text(document, encoding="utf-8")
 
 
-class OutputAccountant:
-    """Counts every byte this run writes, temporary and retained."""
+class SourceChanged(Exception):
+    pass
 
-    def __init__(self) -> None:
+
+def source_identity(info):
+    return (info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns, info.st_ctime_ns)
+
+
+class BudgetStop(Exception):
+    """Sticky, whole-run resource failure."""
+
+
+class OutputAccountant:
+    """Cumulative media/index writes, including removed and partial staging.
+
+    Command logs and terminal JSON are bounded operational metadata, reported
+    separately; binary decoder output is never copied into those logs.
+    """
+
+    def __init__(self, limit=83886080, deadline=float("inf"), clock=time.monotonic):
         self.retained_bytes = 0
         self.staging_bytes = 0
+        self.limit, self.deadline, self.clock = limit, deadline, clock
+        self.failure = None
+        self.processes = []
 
-    def add_retained(self, size: int) -> None:
+    def stop(self, reason):
+        self.failure = self.failure or reason
+        raise BudgetStop(self.failure)
+
+    def check(self, before=True):
+        if self.failure:
+            raise BudgetStop(self.failure)
+        remaining = self.deadline - self.clock()
+        if remaining < 0 or (before and remaining == 0):
+            self.stop("wall_budget_exhausted")
+        return remaining
+
+    def add_retained(self, size):
         self.retained_bytes += int(size)
+        if self.total > self.limit:
+            self.stop("output_budget_exhausted")
 
-    def add_staging(self, size: int) -> None:
+    def add_staging(self, size):
         self.staging_bytes += int(size)
+        if self.total > self.limit:
+            self.stop("output_budget_exhausted")
 
     @property
-    def total(self) -> int:
+    def total(self):
         return self.retained_bytes + self.staging_bytes
+
+    def render(self, function, target, *args, **kwargs):
+        """One owned CPU child, one new output, kernel-enforced file cap.
+
+        Fork is available on the approved Linux/WSL executor. Unsupported
+        platforms fail closed rather than falling back to unbounded Pillow.
+        Parent uses a real monotonic timeout even with an injected test clock.
+        """
+        remaining = self.check()
+        cap = self.limit - self.total
+        if cap <= 0:
+            self.stop("output_budget_exhausted")
+        callback = kwargs.pop("on_decode", None)
+        ctx = multiprocessing.get_context("fork")
+        receiver, sender = ctx.Pipe(duplex=False)
+
+        def work():
+            receiver.close()
+            try:
+                import resource
+                resource.setrlimit(resource.RLIMIT_FSIZE, (cap, cap))
+                if callback is not None:
+                    kwargs["on_decode"] = lambda: sender.send(("decode", None))
+                value = function(*args, **kwargs)
+                sender.send(("ok", value))
+            except OSError as exc:
+                sender.send(("output" if exc.errno == errno.EFBIG else "error", exc))
+            except Exception as exc:
+                sender.send(("error", exc))
+            finally:
+                sender.close()
+
+        process = ctx.Process(target=work)
+        process.start()
+        sender.close()
+        event = {"pid": process.pid, "operation": function.__name__, "exitcode": None,
+                 "reaped": False, "timeout_seconds": remaining}
+        self.processes.append(event)
+        until = time.monotonic() + remaining
+        result = None
+        try:
+            while True:
+                wait = until - time.monotonic()
+                if wait <= 0:
+                    self.stop("wall_budget_exhausted")
+                if receiver.poll(min(wait, .02)):
+                    try:
+                        kind, value = receiver.recv()
+                    except EOFError:
+                        raise RuntimeError("render_child_exited_without_result")
+                    if kind == "decode":
+                        callback()
+                        continue
+                    if kind == "output":
+                        self.stop("output_budget_exhausted")
+                    if kind == "error":
+                        raise value
+                    result = value
+                    break
+                self.check()
+        finally:
+            process.join(timeout=0)
+            if process.is_alive():
+                process.terminate()
+                process.join(timeout=1)
+            if process.is_alive():
+                process.kill()
+                process.join(timeout=1)
+            event.update(exitcode=process.exitcode, reaped=not process.is_alive())
+            receiver.close()
+            # Charge even partial writes on failure, before cleanup can remove them.
+            self.retained_bytes += target.stat().st_size if target.exists() else 0
+            if self.total > self.limit:
+                self.failure = self.failure or "output_budget_exhausted"
+            if process.is_alive():
+                raise RuntimeError("owned_render_cleanup_not_proven")
+        self.check(before=False)
+        return result
 
 
 def _prepare_image(entry, path: Path, previews: Path, accountant, counters, long_edge: int) -> dict:
     result = {"status": "not_eligible", "reason": None, "probe": {}, "sampling": {}, "warnings": []}
-    size_bytes = path.stat().st_size
+    try:
+        size_bytes = path.stat().st_size
+    except OSError as exc:
+        raise SourceChanged("source_disappeared_before_media") from exc
     if size_bytes > IMAGE_MAX_BYTES:
         result["reason"] = "image_bytes_over_limit"
         result["probe"] = {"bytes": size_bytes}
@@ -1228,13 +1380,15 @@ def _prepare_image(entry, path: Path, previews: Path, accountant, counters, long
         counters["image_decode_calls"] += 1
 
     try:
-        info = render_thumbnail(
-            path,
+        info = accountant.render(
+            render_thumbnail, target, path,
             target,
             long_edge,
             max_pixels=int(EXPECTED_LIMITS["image_max_pixels"]),
             on_decode=_count_decode,
         )
+    except BudgetStop:
+        raise
     except ValueError as exc:
         text = str(exc)
         if text.startswith("image_pixels_over_limit"):
@@ -1248,7 +1402,6 @@ def _prepare_image(entry, path: Path, previews: Path, accountant, counters, long
         result["reason"] = "image_decode_failed:%s" % type(exc).__name__
         result["probe"] = {"bytes": size_bytes}
         return result
-    accountant.add_retained(info["bytes"])
     result["status"] = "eligible"
     result["probe"] = {
         "bytes": size_bytes,
@@ -1274,7 +1427,10 @@ def _prepare_image(entry, path: Path, previews: Path, accountant, counters, long
 def _prepare_video(entry, path: Path, previews: Path, staging: Path, accountant, counters,
                    adapter, long_edge: int) -> dict:
     result = {"status": "not_eligible", "reason": None, "probe": {}, "sampling": {}, "warnings": []}
-    size_bytes = path.stat().st_size
+    try:
+        size_bytes = path.stat().st_size
+    except OSError as exc:
+        raise SourceChanged("source_disappeared_before_media") from exc
     if size_bytes > VIDEO_MAX_BYTES:
         result["reason"] = "video_bytes_over_limit"
         result["probe"] = {"bytes": size_bytes}
@@ -1284,8 +1440,11 @@ def _prepare_video(entry, path: Path, previews: Path, staging: Path, accountant,
         result["reason"] = "video_extension_not_allowed"
         result["probe"] = {"bytes": size_bytes}
         return result
+    accountant.check()
+    adapter.budget = accountant
     counters["ffprobe_calls"] += 1
     probe_entry, document = adapter.probe_video(path, "probe-%s" % entry["file_id"])
+    accountant.check(before=False)
     if probe_entry.get("exit_code") != 0 or not isinstance(document, dict):
         result["reason"] = "video_probe_failed"
         result["probe"] = {"bytes": size_bytes}
@@ -1353,23 +1512,27 @@ def _prepare_video(entry, path: Path, previews: Path, staging: Path, accountant,
     frames = []
     seen_hashes = {}
     for frame_index, offset in enumerate(offsets):
+        accountant.check()
         counters["ffmpeg_frame_calls"] += 1
         staged = staging / "frames" / entry["file_id"] / ("frame-%02d.jpg" % (frame_index + 1))
         staged.parent.mkdir(parents=True, exist_ok=True)
         frame_entry = adapter.extract_frame(
             path, offset, staged, "frame-%s-%02d" % (entry["file_id"], frame_index + 1)
         )
+        if staged.is_file():
+            accountant.add_staging(staged.stat().st_size)
+        accountant.check(before=False)
         if frame_entry.get("exit_code") != 0 or not staged.is_file():
             result["warnings"].append("frame_extraction_failed_at:%.3f" % offset)
             continue
-        accountant.add_staging(staged.stat().st_size)
         target = previews / entry["file_id"] / ("frame-%02d.jpg" % (frame_index + 1))
         try:
-            info = render_thumbnail(staged, target, long_edge)
+            info = accountant.render(render_thumbnail, target, staged, target, long_edge)
+        except BudgetStop:
+            raise
         except Exception as exc:
             result["warnings"].append("frame_render_failed:%s" % type(exc).__name__)
             continue
-        accountant.add_retained(info["bytes"])
         duplicate_of = seen_hashes.get(info["sha256"])
         if duplicate_of:
             result["warnings"].append(
@@ -1417,6 +1580,7 @@ def prepare(
     package_root = Path(package_root)
     runtime_root = Path(os.path.abspath(str(runtime_root)))
     receipt_path = Path(receipt_path)
+    started_at = now_iso()
     started = clock()
     limits = child["limits"]
     deadline = started + float(limits["wall_seconds"])
@@ -1427,7 +1591,7 @@ def prepare(
         raise PreflightError("runtime_root_already_exists:%s" % runtime_root)
 
     source_root = Path(source_root if source_root is not None else child["source_root"])
-    accountant = OutputAccountant()
+    accountant = OutputAccountant(int(limits["output_bytes"]), deadline, clock)
     counters = {
         "source_files_hashed": 0,
         "source_bytes_hashed": 0,
@@ -1509,9 +1673,7 @@ def prepare(
 
     try:
         for index, entry in enumerate(selected):
-            if clock() > deadline:
-                mark_not_run(entry, "wall_budget_exhausted")
-                continue
+            accountant.check()
             record = {
                 "candidate_ref": "C%02d" % (index + 1),
                 "file_id": entry.get("file_id"),
@@ -1532,30 +1694,26 @@ def prepare(
             try:
                 stat_result = resolved.stat()
             except OSError as exc:
-                mark_not_eligible(record, "source_stat_failed:%s" % type(exc).__name__)
-                continue
+                raise SourceChanged("source_stat_failed:%s" % type(exc).__name__)
             if not os.path.isfile(str(resolved)):
-                mark_not_eligible(record, "source_not_a_regular_file")
-                continue
+                raise SourceChanged("source_not_a_regular_file")
             if stat_result.st_size != int(entry["bytes"]):
                 record["observed_bytes"] = stat_result.st_size
-                mark_not_eligible(record, "source_size_mismatch")
-                continue
+                raise SourceChanged("source_size_mismatch")
 
             # 3. exactly one hash pass per source file.
             try:
                 digest, read_bytes = sha256_file(resolved, deadline=deadline, clock=clock)
             except TimeoutError:
-                record["status"] = "not_run"
-                record["reason"] = "wall_budget_exhausted_during_hash"
-                counters["not_run"] += 1
-                run_reasons[record["reason"]] = run_reasons.get(record["reason"], 0) + 1
-                candidates.append(record)
-                index_entries.append(index_row(record))
-                continue
+                accountant.stop("wall_budget_exhausted")
             except OSError as exc:
-                mark_not_eligible(record, "source_read_failed:%s" % type(exc).__name__)
-                continue
+                raise SourceChanged("source_read_failed:%s" % type(exc).__name__)
+            accountant.check(before=False)
+            try:
+                if source_identity(resolved.stat()) != source_identity(stat_result):
+                    raise SourceChanged("source_identity_changed_during_hash")
+            except OSError as exc:
+                raise SourceChanged("source_disappeared_during_hash") from exc
             counters["source_files_hashed"] += 1
             counters["source_bytes_hashed"] += read_bytes
             record["source_sha256_observed"] = digest
@@ -1593,6 +1751,11 @@ def prepare(
                     adapter,
                     int(limits["preview_long_edge"]),
                 )
+            try:
+                if source_identity(resolved.stat()) != source_identity(stat_result):
+                    raise SourceChanged("source_identity_changed_during_media")
+            except OSError as exc:
+                raise SourceChanged("source_disappeared_during_media") from exc
             record["status"] = outcome["status"]
             record["reason"] = outcome["reason"]
             record["probe"] = outcome.get("probe", {})
@@ -1606,7 +1769,6 @@ def prepare(
 
             sheet_relative = None
             if outcome["status"] == "eligible":
-                counters["eligible"] += 1
                 if outcome.get("thumbnail"):
                     tiles = [previews / ("%s.jpg" % entry["file_id"])]
                 else:
@@ -1617,17 +1779,19 @@ def prepare(
                 if tiles:
                     sheet = contacts / ("%s.jpg" % entry["file_id"])
                     try:
-                        sheet_info = render_contact_sheet(
-                            tiles, sheet, "%s %s" % (entry["file_id"], entry["media_kind"])
+                        sheet_info = accountant.render(
+                            render_contact_sheet, sheet, tiles, sheet, "%s %s" % (entry["file_id"], entry["media_kind"])
                         )
-                        accountant.add_retained(sheet_info["bytes"])
                         sheet_relative = "contactsheets/%s.jpg" % entry["file_id"]
                         record["contact_sheet"] = sheet_relative
                         record["contact_sheet_sha256"] = sheet_info["sha256"]
+                    except BudgetStop:
+                        raise
                     except Exception as exc:
                         record.setdefault("warnings", []).append(
                             "contact_sheet_failed:%s" % type(exc).__name__
                         )
+                counters["eligible"] += 1
             else:
                 counters["not_eligible"] += 1
                 reasons[outcome["reason"]] = reasons.get(outcome["reason"], 0) + 1
@@ -1649,23 +1813,48 @@ def prepare(
                 for pending in selected[index + 1:]:
                     mark_not_run(pending, "output_budget_exhausted")
                 break
+    except SourceChanged as exc:
+        counters["source_changed"] = True
+        mark_not_eligible(record, "SOURCE_CHANGED:%s" % exc)
+        for pending in selected[len(candidates):]:
+            mark_not_run(pending, "source_changed_terminal")
+    except BudgetStop as exc:
+        if str(exc) == "output_budget_exhausted" and len(candidates) <= index:
+            mark_not_eligible(record, str(exc))
+        for pending in selected[len(candidates):]:
+            mark_not_run(pending, str(exc))
     except Exception as exc:  # a failure is a terminal state, never a retry
         counters["internal_error"] = "%s:%s" % (type(exc).__name__, exc)
         processed = len(candidates)
         for pending in selected[processed:]:
             mark_not_run(pending, "internal_error_terminal")
     finally:
-        # staging is always removed and the removal is measured
-        try:
-            shutil.rmtree(str(staging), ignore_errors=False)
-        except OSError:
-            pass
+        # Independent finite cleanup allowance; it does not reset production time.
+        cleanup_started = time.monotonic()
+        cleaner = multiprocessing.get_context("fork").Process(
+            target=shutil.rmtree, args=(str(staging),))
+        cleaner.start()
+        cleaner.join(timeout=2)
+        if cleaner.is_alive():
+            cleaner.terminate()
+            cleaner.join(timeout=1)
+        if cleaner.is_alive():
+            cleaner.kill()
+            cleaner.join(timeout=1)
+        cleanup["cleanup_process"] = {"pid": cleaner.pid, "exitcode": cleaner.exitcode,
+                                      "reaped": not cleaner.is_alive()}
+        cleanup["cleanup_seconds_measured"] = time.monotonic() - cleanup_started
+        cleanup["cleanup_allowance_seconds"] = 4
         cleanup["staging_removed"] = not staging.exists()
         cleanup["staging_residual_entries"] = (
             len(list(staging.iterdir())) if staging.exists() else 0
         )
         cleanup["temporary_directories_removed"] = 1 if cleanup["staging_removed"] else 0
         cleanup["subprocesses_started"] = len(adapter.run_log)
+        cleanup["subprocesses_started_scope"] = "DECODER_ONLY_CPU_LISTED_SEPARATELY"
+        cleanup["cpu_processes"] = accountant.processes
+        cleanup["cleanup_timeout_seconds_per_owned_process"] = 2
+        cleanup["zero_action_fields"] = "CODE_PATH_CONSTANTS_NOT_OS_AUDIT"
 
     # -- raw command evidence ------------------------------------------------
     raw_entries = []
@@ -1681,6 +1870,8 @@ def prepare(
             "exit_code": entry.get("exit_code"),
             "timeout_seconds": entry.get("timeout_seconds"),
             "stdout_bytes": entry.get("stdout_bytes"),
+            "decoder_stdout_bytes": entry.get("decoder_stdout_bytes"),
+            "decoder_stdout_sha256": entry.get("decoder_stdout_sha256"),
             "stderr_bytes": entry.get("stderr_bytes"),
             "stdout_sha256": entry.get("stdout_sha256"),
             "stderr_sha256": entry.get("stderr_sha256"),
@@ -1712,7 +1903,13 @@ def prepare(
         "not_run": counters["not_run"],
     }
     index_path = runtime_root / "index.html"
-    render_index(index_path, index_entries, summary)
+    if not accountant.failure and not counters["source_changed"]:
+        try:
+            accountant.render(render_index, index_path, index_path, index_entries, summary)
+        except BudgetStop:
+            pass
+        except Exception as exc:
+            counters["internal_error"] = "index:%s" % exc
 
     conservation = (
         counters["eligible"] + counters["not_eligible"] + counters["not_run"] == len(selected)
@@ -1721,12 +1918,8 @@ def prepare(
     # -- runtime receipt (absolute local paths stay here) ---------------------
     runtime_candidates = []
     for item in candidates:
-        absolute = None
-        if item.get("status") != "not_run":
-            try:
-                absolute = str(resolve_source_path(source_root, item["relative_path"]))
-            except PolicyError:
-                absolute = None
+        # Reporting must not re-resolve or stat any source after a terminal stop.
+        absolute = str(source_root / item["relative_path"]) if item.get("status") != "not_run" else None
         runtime_candidates.append(dict(item, absolute_source_path=absolute))
     runtime_receipt = {
         "kind": "S3_PREP_C_RUNTIME_RECEIPT",
@@ -1761,15 +1954,24 @@ def prepare(
     tree = []
     for path in sorted(runtime_root.rglob("*")):
         if path.is_file():
-            tree.append(
-                {
-                    "path": relative_to_package(path, package_root),
-                    "bytes": path.stat().st_size,
-                    "sha256": sha256_file(path)[0],
-                }
-            )
+            digest = None
+            if not accountant.failure and not counters["source_changed"]:
+                try:
+                    accountant.check()
+                    digest = sha256_file(path, deadline=deadline, clock=clock)[0]
+                except (BudgetStop, TimeoutError):
+                    accountant.failure = accountant.failure or "wall_budget_exhausted"
+            tree.append({"path": relative_to_package(path, package_root),
+                         "bytes": path.stat().st_size, "sha256": digest})
     retained_bytes = sum(item["bytes"] for item in tree)
 
+    try:
+        accountant.check(before=False)
+    except BudgetStop:
+        pass
+    finished_elapsed = clock() - started
+    if finished_elapsed > float(limits["wall_seconds"]):
+        accountant.failure = accountant.failure or "wall_budget_exhausted"
     decision = "PREPARATION_COMPLETE_READY_FOR_REVIEW"
     if counters["internal_error"]:
         decision = "PREPARATION_FAILED_INTERNAL_ERROR"
@@ -1779,7 +1981,9 @@ def prepare(
         decision = "PREPARATION_FAILED_CLEANUP_NOT_PROVEN"
     elif not conservation:
         decision = "PREPARATION_FAILED_COUNT_NOT_CONSERVED"
-    elif retained_bytes > int(limits["output_bytes"]):
+    elif accountant.failure == "wall_budget_exhausted":
+        decision = "BUDGET_EXHAUSTED"
+    elif accountant.failure == "output_budget_exhausted" or accountant.total > int(limits["output_bytes"]):
         decision = "PREPARATION_FAILED_OUTPUT_BUDGET_EXCEEDED"
 
     receipt = {
@@ -1793,7 +1997,7 @@ def prepare(
         "quality_claim": "NONE_ELIGIBILITY_IS_NOT_QUALITY_EVIDENCE",
         "quality_set_frozen": False,
         "prelabel_stage_complete": False,
-        "started_at": datetime.fromtimestamp(started, timezone.utc).isoformat(),
+        "started_at": started_at,
         "finished_at": now_iso(),
         "counts": {
             "selected_total": len(selected),
@@ -1813,7 +2017,7 @@ def prepare(
         "candidates": candidates,
         "budget": {
             "wall_seconds_limit": limits["wall_seconds"],
-            "wall_seconds_used": round(clock() - started, 3),
+            "wall_seconds_used": round(finished_elapsed, 3),
             "source_files_hashed": counters["source_files_hashed"],
             "hash_passes_per_file": limits["hash_passes_per_file"],
             "source_bytes_hashed": counters["source_bytes_hashed"],
@@ -1825,7 +2029,10 @@ def prepare(
             "ffprobe_limit_per_video": limits["ffprobe_calls_per_video"],
             "ffmpeg_frame_calls": counters["ffmpeg_frame_calls"],
             "ffmpeg_frame_limit_per_video": limits["frame_extractions_per_video"],
-            "output_bytes_retained": retained_bytes,
+            "output_bytes_retained": accountant.retained_bytes,
+            "operational_metadata_bytes": retained_bytes - accountant.retained_bytes,
+            "output_bytes_cumulative": accountant.total,
+            "sticky_failure": accountant.failure,
             "output_bytes_staging": accountant.staging_bytes,
             "output_bytes_limit": limits["output_bytes"],
             "decoder_disk_io_bytes": "NOT_MEASURED_NOT_CLAIMED",

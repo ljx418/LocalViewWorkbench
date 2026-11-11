@@ -1008,3 +1008,307 @@ def test_preflight_accepts_the_child_holdout_list_of_the_real_freeze_shape(tmp_p
     ]
     assert preflight["holdout_manifest"]["content_sha256_count"] == 11
     assert preflight["holdout_manifest"]["child_listed_count"] == 13
+
+# correction-01: public owner/CLI regression of all three independent findings.
+class ControlledAdapter:
+    def __init__(self, tick=None, probe_advance=0, frame_advance=0, padding=0):
+        self.run_log = []
+        self.calls = []
+        self.tick = tick if tick is not None else [0.0]
+        self.probe_advance, self.frame_advance, self.padding = probe_advance, frame_advance, padding
+
+    def probe_video(self, path, label):
+        self.calls.append("probe")
+        self.tick[0] += self.probe_advance
+        return {"exit_code": 0}, {"format": {"format_name": "mp4", "duration": 4},
+                                  "streams": [{"codec_type": "video", "width": 8, "height": 8}]}
+
+    def extract_frame(self, path, offset, output, label):
+        self.calls.append("frame")
+        self.tick[0] += self.frame_advance
+        make_jpeg(output, size=(8, 8))
+        if self.padding:
+            with output.open("ab") as handle:
+                handle.write(b"x" * self.padding)
+        return {"exit_code": 0}
+
+
+def correction_package(tmp_path, video=False):
+    package = Package(tmp_path / "synthetic")
+    for name in ("a.mp4", "b.mp4") if video else ("a.jpg", "b.jpg"):
+        if video:
+            (package.source / name).write_bytes(b"synthetic-video")
+        else:
+            make_jpeg(package.source / name, size=(8, 8))
+        package.add(name, "video" if video else "image")
+    return package
+
+
+def correction_run(package, adapter=None, tick=None, output=83886080):
+    adapter = adapter or ControlledAdapter()
+    tick = tick if tick is not None else [0.0]
+    limits = dict(s3prep.EXPECTED_LIMITS, output_bytes=output)
+    receipt = s3prep.prepare(package_root=package.root,
+        child={"source_root": str(package.source), "selected_files": package.entries, "limits": limits},
+        runtime_root=package.root / "run", receipt_path=package.root / "terminal.json",
+        adapter=adapter, clock=lambda: tick[0])
+    assert receipt["counts"]["conservation_ok"]
+    assert receipt["cleanup"]["staging_removed"]
+    assert receipt["cleanup"]["cleanup_process"]["reaped"]
+    assert all(p["reaped"] for p in receipt["cleanup"]["cpu_processes"])
+    return receipt
+
+
+@pytest.mark.parametrize("mutation", ["size", "content", "missing", "during_hash", "identity"])
+def test_correction_source_change_stops_before_second_resolve_stat_hash_decode(tmp_path, monkeypatch, mutation):
+    package = correction_package(tmp_path)
+    first = package.source / "a.jpg"
+    original_hash, original_resolve = s3prep.sha256_file, s3prep.resolve_source_path
+    calls = []
+    def resolve(root, relative):
+        calls.append(("resolve", relative))
+        assert relative != "b.jpg"
+        return original_resolve(root, relative)
+    def hash_file(path, *args, **kwargs):
+        if Path(path).parent == package.source:
+            calls.append(("hash", Path(path).name))
+            assert Path(path).name != "b.jpg"
+        result = original_hash(path, *args, **kwargs)
+        if Path(path) == first and mutation in ("during_hash", "identity"):
+            if mutation == "during_hash":
+                first.unlink()
+            else:
+                data = first.read_bytes()
+                first.unlink()
+                first.write_bytes(data)
+        return result
+    if mutation == "size":
+        first.write_bytes(first.read_bytes() + b"changed")
+    elif mutation == "content":
+        first.write_bytes(b"z" * first.stat().st_size)
+    elif mutation == "missing":
+        first.unlink()
+    monkeypatch.setattr(s3prep, "resolve_source_path", resolve)
+    monkeypatch.setattr(s3prep, "sha256_file", hash_file)
+    original_stat = Path.stat
+    def stat(path, *a, **kw):
+        assert path != package.source / "b.jpg", "second frozen source was stat'ed"
+        return original_stat(path, *a, **kw)
+    monkeypatch.setattr(Path, "stat", stat)
+    receipt = correction_run(package)
+    assert receipt["decision"] == "SOURCE_CHANGED_TERMINAL"
+    assert receipt["candidates"][1]["status"] == "not_run"
+    assert receipt["budget"]["image_decode_calls"] == 0
+    assert calls[0] == ("resolve", "a.jpg")
+
+
+@pytest.mark.parametrize("phase,advance,expected", [("probe", 1201, ["probe"]),
+    ("probe", 1200, ["probe"]), ("frame", 1201, ["probe", "frame"]),
+    ("frame", 1200, ["probe", "frame"])])
+def test_correction_deadline_stops_all_later_frames_and_sources(tmp_path, phase, advance, expected):
+    package = correction_package(tmp_path, video=True)
+    tick = [0.0]
+    adapter = ControlledAdapter(tick, probe_advance=advance if phase == "probe" else 0,
+                                frame_advance=advance if phase == "frame" else 0)
+    receipt = correction_run(package, adapter, tick)
+    assert adapter.calls == expected
+    assert receipt["decision"] == "BUDGET_EXHAUSTED"
+    assert receipt["candidates"][1]["status"] == "not_run"
+    assert not receipt["cleanup"]["cpu_processes"]
+
+
+def test_correction_staging_overflow_stays_failed_after_cleanup(tmp_path):
+    package = correction_package(tmp_path, video=True)
+    adapter = ControlledAdapter(padding=100000)
+    receipt = correction_run(package, adapter, output=100000)
+    assert adapter.calls == ["probe", "frame"]
+    assert receipt["decision"] == "PREPARATION_FAILED_OUTPUT_BUDGET_EXCEEDED"
+    assert receipt["budget"]["output_bytes_staging"] > 100000
+    assert receipt["budget"]["output_bytes_retained"] == 0
+    assert receipt["candidates"][1]["status"] == "not_run"
+    assert not (package.root / "run/staging").exists()
+
+
+@pytest.mark.parametrize("phase", ["render_thumbnail", "render_contact_sheet", "render_index"])
+def test_correction_render_return_after_deadline_fails_owner(tmp_path, monkeypatch, phase):
+    package = correction_package(tmp_path)
+    tick = [0.0]
+    original = s3prep.OutputAccountant.render
+    calls = []
+    def render(budget, function, *a, **kw):
+        calls.append(function.__name__)
+        result = original(budget, function, *a, **kw)
+        if function.__name__ == phase:
+            tick[0] = 1201
+            budget.check(before=False)
+        return result
+    monkeypatch.setattr(s3prep.OutputAccountant, "render", render)
+    receipt = correction_run(package, tick=tick)
+    assert receipt["decision"] == "BUDGET_EXHAUSTED"
+    assert calls[-1] == phase
+    if phase != "render_index":
+        assert receipt["candidates"][1]["status"] == "not_run"
+
+
+@pytest.mark.parametrize("over", [False, True])
+def test_correction_final_decision_exact_vs_one_over(tmp_path, monkeypatch, over):
+    package = correction_package(tmp_path)
+    tick = [0.0]
+    original = s3prep.sha256_file
+    def hashing(path, *a, **kw):
+        result = original(path, *a, **kw)
+        # runtime-receipt sorts last: all production work has completed.
+        if Path(path).name == "runtime-receipt.json":
+            tick[0] = 1201 if over else 1200
+        return result
+    monkeypatch.setattr(s3prep, "sha256_file", hashing)
+    receipt = correction_run(package, tick=tick)
+    assert receipt["decision"] == ("BUDGET_EXHAUSTED" if over else "PREPARATION_COMPLETE_READY_FOR_REVIEW")
+    assert receipt["budget"]["wall_seconds_used"] == tick[0]
+    assert int(receipt["started_at"][:4]) >= 2026
+
+
+@pytest.mark.parametrize("over", [False, True])
+def test_correction_kernel_write_limit_exact_and_one_over(tmp_path, over):
+    budget = s3prep.OutputAccountant(limit=1024, deadline=100, clock=lambda: 0)
+    target = tmp_path / "bounded.bin"
+    def write():
+        with target.open("wb") as handle:
+            handle.write(b"x" * (1025 if over else 1024))
+    if over:
+        with pytest.raises(s3prep.BudgetStop, match="output_budget_exhausted"):
+            budget.render(write, target)
+    else:
+        budget.render(write, target)
+        assert budget.failure is None
+    assert target.stat().st_size == 1024
+    assert budget.total == 1024
+    next_target = tmp_path / "forbidden.bin"
+    with pytest.raises(s3prep.BudgetStop):
+        budget.render(lambda: next_target.write_bytes(b"x"), next_target)
+    assert not next_target.exists()
+    assert len(budget.processes) == 1 and budget.processes[0]["reaped"]
+
+
+def test_correction_owned_cpu_timeout_is_reaped(tmp_path):
+    import time
+    budget = s3prep.OutputAccountant(limit=1024, deadline=time.monotonic() + .08)
+    target = tmp_path / "late.bin"
+    def slow():
+        time.sleep(30)
+        target.write_bytes(b"late")
+    with pytest.raises(s3prep.BudgetStop, match="wall_budget_exhausted"):
+        budget.render(slow, target)
+    assert not target.exists()
+    event = budget.processes[0]
+    assert event["reaped"] and event["exitcode"] < 0
+    with pytest.raises(ProcessLookupError):
+        os.kill(event["pid"], 0)
+    print("OWNED_CPU_TIMEOUT_PROOF=" + json.dumps(event, sort_keys=True))
+
+
+def test_correction_owned_decoder_timeout_remaining_and_reap(tmp_path, monkeypatch):
+    import time
+    created = []
+    original = subprocess.Popen
+    def start(*a, **kw):
+        process = original(*a, **kw)
+        created.append(process)
+        return process
+    monkeypatch.setattr(subprocess, "Popen", start)
+    adapter = real_adapter()
+    adapter.budget = s3prep.OutputAccountant(deadline=time.monotonic() + .08)
+    with pytest.raises(s3prep.BudgetStop, match="wall_budget_exhausted"):
+        adapter._run("ffprobe", [sys.executable, "-B", "-c", "import time;time.sleep(30)"], 20, "synthetic-sleeper")
+    assert len(created) == 1 and created[0].poll() is not None
+    assert 0 < adapter.run_log[0]["timeout_seconds"] <= .08
+    with pytest.raises(s3prep.BudgetStop):
+        adapter._run("ffprobe", [sys.executable, "-c", "pass"], 20, "never-start")
+    assert len(created) == 1
+    print("OWNED_DECODER_TIMEOUT_PROOF=" + json.dumps({"pid": created[0].pid,
+        "returncode": created[0].returncode, "timeout": adapter.run_log[0]["timeout_seconds"], "reaped": True}))
+
+
+def test_correction_decoder_output_stream_is_bounded(tmp_path):
+    adapter = real_adapter()
+    adapter.budget = s3prep.OutputAccountant(limit=1024, deadline=100, clock=lambda: 0)
+    with pytest.raises(s3prep.BudgetStop, match="output_budget_exhausted"):
+        adapter._run("ffmpeg", [sys.executable, "-B", "-c",
+            "import os\nwhile True: os.write(1,b'x'*4096)"], 2, "synthetic-output-flood")
+    entry = adapter.run_log[0]
+    assert entry["stdout_bytes"] <= 1024
+    assert entry["stdout_text"] == "" and "_frame_bytes" not in entry
+    assert entry["exit_code"] is not None
+    assert not list(tmp_path.iterdir())
+
+
+@pytest.mark.parametrize("failure", ["source", "deadline", "output"])
+def test_correction_cli_failure_is_nonzero_with_terminal_receipt(tmp_path, monkeypatch, failure):
+    package = correction_package(tmp_path, video=True)
+    package.write_documents()
+    args = _cli_args(package)
+    child = json.loads((package.root / s3prep.CHILD_REL).read_text())
+    if failure == "output":
+        child["limits"]["output_bytes"] = 100000
+        write_json(package.root / s3prep.CHILD_REL, child)
+    preflight = {"decision": "PREFLIGHT_PASSED", "candidate": {"sha": args.candidate},
+        "child": {"sha256": sha256_path(package.root / s3prep.CHILD_REL), "child_id": "SYNTHETIC"},
+        "catalog": {"sha256": sha256_path(package.root / s3prep.CATALOG_REL)},
+        "holdout_manifest": {"sha256": sha256_path(package.root / s3prep.HOLDOUT_REL)},
+        "runtime": {"relative_path": s3prep.relative_to_package(package.runtime_root(), package.root)},
+        "tools": {"ffmpeg": {"real_path": "/synthetic"}, "ffprobe": {"real_path": "/synthetic"}}}
+    write_json(Path(args.preflight), preflight)
+    monkeypatch.setattr(s3prep, "HANDOFF_GUARD", stub_guard)
+    monkeypatch.setattr(s3prep, "git_blob", lambda root, sha, rel: (root / rel).read_bytes())
+    class CLIAdapter(ControlledAdapter):
+        def probe_video(self, *a):
+            result = super().probe_video(*a)
+            if failure == "deadline":
+                self.budget.deadline = self.budget.clock() - 1
+            return result
+    adapter = CLIAdapter(padding=100000 if failure == "output" else 0)
+    monkeypatch.setattr(s3prep, "MediaAdapter", lambda *a: adapter)
+    if failure == "source":
+        (package.source / "a.mp4").unlink()
+    assert s3prep.command_run(args, package_root=package.root) == 1
+    receipt = json.loads(Path(args.receipt).read_text())
+    assert receipt["decision"] == {"source": "SOURCE_CHANGED_TERMINAL", "deadline": "BUDGET_EXHAUSTED",
+        "output": "PREPARATION_FAILED_OUTPUT_BUDGET_EXCEEDED"}[failure]
+    assert receipt["candidates"][1]["status"] == "not_run"
+    assert receipt["cleanup"]["staging_removed"]
+
+
+@pytest.mark.parametrize("over", [False, True])
+def test_correction_owner_cumulative_output_exact_and_one_over(tmp_path, over):
+    baseline = correction_run(correction_package(tmp_path / "baseline"))
+    exact = baseline["budget"]["output_bytes_cumulative"]
+    receipt = correction_run(correction_package(tmp_path / "bounded"), output=exact - int(over))
+    assert receipt["decision"] == ("PREPARATION_FAILED_OUTPUT_BUDGET_EXCEEDED" if over
+                                    else "PREPARATION_COMPLETE_READY_FOR_REVIEW")
+    assert receipt["budget"]["output_bytes_cumulative"] <= exact - int(over)
+
+
+def test_correction_frame_uses_remaining_timeout_and_no_later_frame(tmp_path, monkeypatch):
+    from types import SimpleNamespace
+    import io
+    from PIL import Image
+    image = io.BytesIO()
+    Image.new("RGB", (8, 8), "red").save(image, "JPEG")
+    package = correction_package(tmp_path, video=True)
+    tick = [0.0]
+    calls = []
+    def run(argv, *, timeout_seconds, output_limit, on_result):
+        calls.append(("probe" if "-of" in argv else "frame", timeout_seconds))
+        if "-of" in argv:
+            data = json.dumps({"format": {"format_name": "mp4", "duration": 4},
+                "streams": [{"codec_type": "video", "width": 8, "height": 8}]}).encode()
+            tick[0] = 1190
+        else:
+            data = image.getvalue()
+            tick[0] = 1201
+        on_result(SimpleNamespace(stdout=data, stderr=b"", returncode=0))
+    monkeypatch.setattr(s3prep, "run_bounded", run)
+    receipt = correction_run(package, real_adapter(), tick)
+    assert calls == [("probe", 20), ("frame", 10)]
+    assert receipt["decision"] == "BUDGET_EXHAUSTED"
+    assert receipt["candidates"][1]["status"] == "not_run"
