@@ -1,5 +1,5 @@
 {
-  "schema_version": "lvw.multishot-contract-candidate/1.1.1",
+  "schema_version": "lvw.multishot-contract-candidate/1.1.2",
   "status": "DESIGN_REVIEW_NOT_ACTIVE_OPENAPI",
   "authority": "docs/31_V1_DETAILED_ARCHITECTURE_AND_CONTRACTS.md",
   "canonical_activation": "Codex Gate0 after isolated review; versioned migration and explicit API overlay; current oldR1 packet untouched",
@@ -249,7 +249,7 @@
       "en"
     ],
     "item_order": "characters sorted by local_actor_id Unicode codepoint, then scene, then actions in original zero-based array order; route each item only to its declared observation or inference domain",
-    "entry_serialization": "Each nonempty language value produces one string: compact UTF-8 JSON object, sorted keys, ensure_ascii=False, allow_nan=False. Keys kind, ref, lang, text. No translation, normalization, trim or deduplication; skip only exactly empty strings. Preserve raw model response byte-for-byte.",
+    "entry_serialization": "Each nonempty language value produces one string: compact UTF-8 JSON object, sorted keys, ensure_ascii=False, allow_nan=False. The JSON key set is {kind, lang, ref, text}; serialized key order MUST be kind, lang, ref, text (sort_keys=True), never insertion order. No translation, normalization, trim or deduplication; skip only exactly empty strings. Preserve raw model response byte-for-byte.",
     "refs": {
       "character": "local_actor_id",
       "scene": "scene",

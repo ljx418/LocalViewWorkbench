@@ -1,4 +1,4 @@
-# 31｜V1总体与详细架构：设计1.1.1
+# 31｜V1总体与详细架构：设计1.1.2
 
 状态DESIGN_REVIEW，2026-11-11。本版集中裁决独审F1/M1–M11/m1–m10；原1.0及失败审查保留于reports/v1-redesign/history与d0-review，未宣布发现已独审关闭。当前产品源码、canonical OpenAPI/core schema/DDL和旧R1 packet不改；候选Schema/迁移/overlay需隔离复核，样本实际冻结和产品Gate0尚待。
 
@@ -114,3 +114,12 @@ N4：ShotFrameRef的source_pts、time_base_num/time_base_den只保留非空integ
 N5：确定性转换以plans/v1-multishot-contract.json的canonical_domain_mapping为唯一机器规则。人物按local_actor_id Unicode码点排序，其后场景、其后动作原数组顺序；按自身domain分流。每个非空语言值按zh、en顺序单独生成一条字符串，内容为含kind/ref/lang/text的compact sorted-key JSON，ensure_ascii=False、allow_nan=False；不翻译、不trim、不去重、不改写raw。人物ref为local_actor_id，场景ref为scene，动作及unknown ref为原数组零起始十进制索引。unknowns仅进unknowns且保持原数组顺序。summary双语原样进入text_zh/en，人工域与锁不受影响。
 
 N6：scene_hash.column_mapping冻结全部11个hash字段到数据库的映射，尤其time_base_num←scene_revision.tb_num、time_base_den←scene_revision.tb_den、revision←version。JSON键只能用合同字段名，不能使用SQL别名；verified的0/1先转JSON bool，PTS/timebase/revision须整数且拒绝bool/float/string。旧行source SHA取media_ref.sha256，新meta保留同值。
+
+
+## 设计1.1.2：D0校验器审查纠偏边界
+
+本轮是同一离线D0内集中修复NM-1–NM-8，不扩大产品范围、固定分母或真实运行预算。NM-5仅消除键名列举的阅读歧义：canonical_domain_mapping中的JSON键集合与输出排序都明确为kind/lang/ref/text，sort_keys=True；其余转换语义与已冻结示例字节不变。所有旧审查、失败日志和收据保留，不修改历史数字以覆盖问题。
+
+NM-1要求校验器保护全部11个字段映射以及迁移中每处lvw_scene_hash的11参数顺序；NM-2要求新Scene GET仍返回canonical Scene完整envelope；NM-3要求畸形输入有稳定诊断与非零退出码，而不是无stdout的未捕获异常。NM-4/NM-8要求输出降级检查、实际使用的pin与默认/显式覆盖来源，覆盖pin的合成副本运行不得冒充权威门禁。NM-6要求四类证据及observation/inference/unknowns路由均有确定性负例，不能只计算人物单例。NM-7以追加更正收据绑定旧原始日志中的真实计数，不改写旧收据/失败日志；新收据由本轮机器日志提取统计。
+
+本次独审findings数组实际为3 Major、5 Minor（NM-1..NM-8）；其summary写6 Minor属于计数差异，原报告保留，由下一独审在新收据中核对并说明，不能凭空制造第九条问题。当前候选不通过D0收口，产品仍R1/WAIT_HUMAN。
