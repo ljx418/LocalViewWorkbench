@@ -1,0 +1,29 @@
+{
+  "kind": "ffprobe",
+  "label": "overflow",
+  "argv": [
+    "/tmp/s3-probe-failure-lzrrcc5j/probe",
+    "-v",
+    "error",
+    "-enable_drefs",
+    "0",
+    "-protocol_whitelist",
+    "file,pipe",
+    "-show_entries",
+    "format=format_name,duration,nb_streams:stream=index,codec_type,codec_name,width,height,duration",
+    "-of",
+    "json",
+    "/tmp/s3-probe-failure-lzrrcc5j/unused"
+  ],
+  "timeout_seconds": 4.999987773997418,
+  "exit_code": 0,
+  "stdout_bytes": 4194304,
+  "stderr_bytes": 0,
+  "stdout_sha256": "2b77cfea39b1c4bc17cfdfd6e292155b21b9395e5fc3308283e7897c9af790ad",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "error": "BridgeError:MEDIA_LIMIT_EXCEEDED:VIDEO_PROCESS_OUTPUT_LIMIT",
+  "decoder_stdout_bytes": 4194304,
+  "decoder_stdout_sha256": "2b77cfea39b1c4bc17cfdfd6e292155b21b9395e5fc3308283e7897c9af790ad",
+  "document": {},
+  "temp_absent": true
+}

@@ -1,0 +1,43 @@
+{
+  "initial_clean_status": "git status --short -> empty",
+  "merge": "git merge --no-edit f409d8c85359b51ce5abfa27fec6e9ae9a1d4da2 -> fast-forward exit0",
+  "executions": [
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 -B reports/v0-s3/preparation-05/independent-correction-01/raw/run-suite.py",
+      "stdout": "suite.stdout.log",
+      "stderr": "suite.stderr.log",
+      "exit_log": "suite.exit.log"
+    },
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 -B reports/v0-s3/preparation-05/independent-correction-01/raw/draft-probes.py",
+      "stdout": "draft-probes.stdout.log",
+      "stderr": "draft-probes.stderr.log",
+      "exit_log": "draft-probes.exit.log"
+    },
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 -B reports/v0-s3/preparation-05/independent-correction-01/raw/probes.py",
+      "stdout": "probes.stdout.log",
+      "stderr": "probes.stderr.log",
+      "exit_log": "probes.exit.log"
+    },
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 -B reports/v0-s3/preparation-05/independent-correction-01/raw/probe-failure.py",
+      "stdout": "probe-failure.stdout.log",
+      "stderr": "probe-failure.stderr.log",
+      "exit_log": "probe-failure.exit.log"
+    },
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 -B reports/v0-s3/preparation-05/independent-correction-01/raw/probe-overflow-owner.py",
+      "stdout": "probe-overflow-owner.stdout.log",
+      "stderr": "probe-overflow-owner.stderr.log",
+      "exit_log": "probe-overflow-owner.exit.log"
+    },
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 -B reports/v0-s3/preparation-05/independent-correction-01/raw/verify-bindings.py",
+      "stdout": "bindings.stdout.log",
+      "stderr": "bindings.stderr.log",
+      "exit_log": "bindings.exit.log"
+    }
+  ],
+  "draft_note": "draft-probes.py is archived snapshot of first execution under original name probes.py; original logs retained, hook bug corrected only in reviewer directory"
+}

@@ -1,0 +1,273 @@
+.......................................................................  [100%]
+==================================== PASSES ====================================
+_____________ test_preflight_refuses_to_overwrite_an_existing_file _____________
+----------------------------- Captured stderr call -----------------------------
+{
+  "decision": "PREFLIGHT_REJECTED",
+  "reason": "preflight_file_already_exists",
+  "preflight": "/tmp/s3-independent-correction-suite-rur8vn01/pytest/test_preflight_refuses_to_over0/pkg/reports/v0-s3/preparation-05/implementation/preflight.json"
+}
+_______ test_cli_refuses_a_rejected_preflight_without_touching_a_source ________
+----------------------------- Captured stderr call -----------------------------
+{
+  "decision": "REFUSED",
+  "reason": "preflight_not_passed"
+}
+_______________________ test_cli_refuses_candidate_drift _______________________
+----------------------------- Captured stderr call -----------------------------
+{
+  "decision": "REFUSED",
+  "reason": "candidate_drift"
+}
+_________________________ test_cli_refuses_child_drift _________________________
+----------------------------- Captured stderr call -----------------------------
+{
+  "decision": "REFUSED",
+  "reason": "child_drift"
+}
+________________________ test_cli_refuses_catalog_drift ________________________
+----------------------------- Captured stderr call -----------------------------
+{
+  "decision": "REFUSED",
+  "reason": "catalog_drift"
+}
+________________ test_cli_refuses_an_existing_terminal_receipt _________________
+----------------------------- Captured stderr call -----------------------------
+{
+  "decision": "REFUSED",
+  "reason": "terminal_receipt_already_exists"
+}
+____________________ test_cli_preflight_then_run_end_to_end ____________________
+----------------------------- Captured stdout call -----------------------------
+{
+  "decision": "PREFLIGHT_PASSED",
+  "summary": {
+    "checks": 48,
+    "passed": 48,
+    "failed": 0
+  },
+  "failed_checks": [],
+  "preflight": "/tmp/s3-independent-correction-suite-rur8vn01/pytest/test_cli_preflight_then_run_en0/pkg/reports/v0-s3/preparation-05/implementation/preflight.json",
+  "runtime_relative_path": ".agent-governance/runtime/receipts/s3-preview-c01/run-01"
+}
+{
+  "decision": "PREPARATION_COMPLETE_READY_FOR_REVIEW",
+  "counts": {
+    "selected_total": 32,
+    "images_selected": 20,
+    "videos_selected": 12,
+    "eligible": 32,
+    "not_eligible": 0,
+    "not_run": 0,
+    "conservation_ok": true,
+    "conservation_formula": "selected_total == eligible + not_eligible + not_run",
+    "admitted": 32,
+    "admitted_bytes": 767567,
+    "not_eligible_by_reason": {},
+    "not_run_by_reason": {},
+    "internal_error": null
+  },
+  "budget": {
+    "wall_seconds_limit": 1200,
+    "wall_seconds_used": 2.906,
+    "source_files_hashed": 32,
+    "hash_passes_per_file": 1,
+    "source_bytes_hashed": 767567,
+    "admitted_source_bytes": 767567,
+    "admitted_source_bytes_limit": 1073741824,
+    "image_decode_calls": 20,
+    "image_decode_limit_per_image": 1,
+    "ffprobe_calls": 12,
+    "ffprobe_limit_per_video": 1,
+    "ffmpeg_frame_calls": 48,
+    "ffmpeg_frame_limit_per_video": 4,
+    "output_bytes_retained": 1499392,
+    "operational_metadata_bytes": 133058,
+    "output_bytes_cumulative": 2040563,
+    "sticky_failure": null,
+    "output_bytes_staging": 541171,
+    "output_bytes_limit": 83886080,
+    "decoder_disk_io_bytes": "NOT_MEASURED_NOT_CLAIMED",
+    "model_actions": 0,
+    "gpu_actions": 0,
+    "services": 0,
+    "network_calls": 0,
+    "downloads": 0,
+    "full_product_checkpoints": 0,
+    "browser_sessions": 0
+  },
+  "runtime_index_entry": ".agent-governance/runtime/receipts/s3-preview-c01/run-01/index.html"
+}
+____________________ test_cli_refuses_a_runtime_root_drift _____________________
+----------------------------- Captured stderr call -----------------------------
+{
+  "decision": "REFUSED",
+  "reason": "runtime_drift"
+}
+_________________ test_correction_owned_cpu_timeout_is_reaped __________________
+----------------------------- Captured stdout call -----------------------------
+OWNED_CPU_TIMEOUT_PROOF={"exitcode": -15, "operation": "slow", "pid": 1533870, "reaped": true, "timeout_seconds": 0.07991836400469765}
+___________ test_correction_owned_decoder_timeout_remaining_and_reap ___________
+----------------------------- Captured stdout call -----------------------------
+OWNED_DECODER_TIMEOUT_PROOF={"pid": 1533871, "returncode": -15, "timeout": 0.07997707799950149, "reaped": true}
+_____ test_correction_cli_failure_is_nonzero_with_terminal_receipt[source] _____
+----------------------------- Captured stdout call -----------------------------
+{
+  "decision": "SOURCE_CHANGED_TERMINAL",
+  "counts": {
+    "selected_total": 2,
+    "images_selected": 0,
+    "videos_selected": 2,
+    "eligible": 0,
+    "not_eligible": 1,
+    "not_run": 1,
+    "conservation_ok": true,
+    "conservation_formula": "selected_total == eligible + not_eligible + not_run",
+    "admitted": 0,
+    "admitted_bytes": 0,
+    "not_eligible_by_reason": {
+      "SOURCE_CHANGED:source_stat_failed:FileNotFoundError": 1
+    },
+    "not_run_by_reason": {
+      "source_changed_terminal": 1
+    },
+    "internal_error": null
+  },
+  "budget": {
+    "wall_seconds_limit": 1200,
+    "wall_seconds_used": 0.004,
+    "source_files_hashed": 0,
+    "hash_passes_per_file": 1,
+    "source_bytes_hashed": 0,
+    "admitted_source_bytes": 0,
+    "admitted_source_bytes_limit": 1073741824,
+    "image_decode_calls": 0,
+    "image_decode_limit_per_image": 1,
+    "ffprobe_calls": 0,
+    "ffprobe_limit_per_video": 1,
+    "ffmpeg_frame_calls": 0,
+    "ffmpeg_frame_limit_per_video": 4,
+    "output_bytes_retained": 0,
+    "operational_metadata_bytes": 3139,
+    "output_bytes_cumulative": 0,
+    "sticky_failure": null,
+    "output_bytes_staging": 0,
+    "output_bytes_limit": 83886080,
+    "decoder_disk_io_bytes": "NOT_MEASURED_NOT_CLAIMED",
+    "model_actions": 0,
+    "gpu_actions": 0,
+    "services": 0,
+    "network_calls": 0,
+    "downloads": 0,
+    "full_product_checkpoints": 0,
+    "browser_sessions": 0
+  },
+  "runtime_index_entry": ".agent-governance/runtime/receipts/s3-preview-c01/run-01/index.html"
+}
+____ test_correction_cli_failure_is_nonzero_with_terminal_receipt[deadline] ____
+----------------------------- Captured stdout call -----------------------------
+{
+  "decision": "BUDGET_EXHAUSTED",
+  "counts": {
+    "selected_total": 2,
+    "images_selected": 0,
+    "videos_selected": 2,
+    "eligible": 0,
+    "not_eligible": 0,
+    "not_run": 2,
+    "conservation_ok": true,
+    "conservation_formula": "selected_total == eligible + not_eligible + not_run",
+    "admitted": 1,
+    "admitted_bytes": 15,
+    "not_eligible_by_reason": {},
+    "not_run_by_reason": {
+      "wall_budget_exhausted": 2
+    },
+    "internal_error": null
+  },
+  "budget": {
+    "wall_seconds_limit": 1200,
+    "wall_seconds_used": 0.004,
+    "source_files_hashed": 1,
+    "hash_passes_per_file": 1,
+    "source_bytes_hashed": 15,
+    "admitted_source_bytes": 15,
+    "admitted_source_bytes_limit": 1073741824,
+    "image_decode_calls": 0,
+    "image_decode_limit_per_image": 1,
+    "ffprobe_calls": 1,
+    "ffprobe_limit_per_video": 1,
+    "ffmpeg_frame_calls": 0,
+    "ffmpeg_frame_limit_per_video": 4,
+    "output_bytes_retained": 0,
+    "operational_metadata_bytes": 2936,
+    "output_bytes_cumulative": 0,
+    "sticky_failure": "wall_budget_exhausted",
+    "output_bytes_staging": 0,
+    "output_bytes_limit": 83886080,
+    "decoder_disk_io_bytes": "NOT_MEASURED_NOT_CLAIMED",
+    "model_actions": 0,
+    "gpu_actions": 0,
+    "services": 0,
+    "network_calls": 0,
+    "downloads": 0,
+    "full_product_checkpoints": 0,
+    "browser_sessions": 0
+  },
+  "runtime_index_entry": ".agent-governance/runtime/receipts/s3-preview-c01/run-01/index.html"
+}
+_____ test_correction_cli_failure_is_nonzero_with_terminal_receipt[output] _____
+----------------------------- Captured stdout call -----------------------------
+{
+  "decision": "PREPARATION_FAILED_OUTPUT_BUDGET_EXCEEDED",
+  "counts": {
+    "selected_total": 2,
+    "images_selected": 0,
+    "videos_selected": 2,
+    "eligible": 0,
+    "not_eligible": 1,
+    "not_run": 1,
+    "conservation_ok": true,
+    "conservation_formula": "selected_total == eligible + not_eligible + not_run",
+    "admitted": 1,
+    "admitted_bytes": 15,
+    "not_eligible_by_reason": {
+      "output_budget_exhausted": 1
+    },
+    "not_run_by_reason": {
+      "output_budget_exhausted": 1
+    },
+    "internal_error": null
+  },
+  "budget": {
+    "wall_seconds_limit": 1200,
+    "wall_seconds_used": 0.004,
+    "source_files_hashed": 1,
+    "hash_passes_per_file": 1,
+    "source_bytes_hashed": 15,
+    "admitted_source_bytes": 15,
+    "admitted_source_bytes_limit": 1073741824,
+    "image_decode_calls": 0,
+    "image_decode_limit_per_image": 1,
+    "ffprobe_calls": 1,
+    "ffprobe_limit_per_video": 1,
+    "ffmpeg_frame_calls": 1,
+    "ffmpeg_frame_limit_per_video": 4,
+    "output_bytes_retained": 0,
+    "operational_metadata_bytes": 3221,
+    "output_bytes_cumulative": 100634,
+    "sticky_failure": "output_budget_exhausted",
+    "output_bytes_staging": 100634,
+    "output_bytes_limit": 100000,
+    "decoder_disk_io_bytes": "NOT_MEASURED_NOT_CLAIMED",
+    "model_actions": 0,
+    "gpu_actions": 0,
+    "services": 0,
+    "network_calls": 0,
+    "downloads": 0,
+    "full_product_checkpoints": 0,
+    "browser_sessions": 0
+  },
+  "runtime_index_entry": ".agent-governance/runtime/receipts/s3-preview-c01/run-01/index.html"
+}
+71 passed in 21.51s
