@@ -1,0 +1,48 @@
+{
+  "kind": "S3_FINITE_WINDOWS_WSL_CPU_BINDING_CHILD",
+  "child_id": "S3-P2B-01",
+  "program": "AUTH-PROGRAM-V1-COMPLETE-03",
+  "parent_approval": "reports/authorization-program-v1-complete-03.approval.json",
+  "parent_approval_sha256": "cd919c7fd24c24e2740366ef11998fee1b3302f16700598a3a5f75c6ef1b0821",
+  "status": "AUTHORIZED_PENDING_CANDIDATE_TOOL_PREFLIGHT",
+  "scope": "Read fixed installed tool identities and one bounded actual Windows/WSL fixture transport/lifecycle batch, no production-model/ledger effects",
+  "contract": "reports/v0-s3/product-gate0/p2-binding-contract.md",
+  "contract_sha256": "57fe0d2579f8a050f6c80d370d3896150bff1d92830d43e30b709abc7bf17cea",
+  "limits": {
+    "batches": 1,
+    "wall_seconds": 1200,
+    "process_starts": 64,
+    "per_command_seconds": 30,
+    "metadata_hash_files": 24,
+    "metadata_hash_bytes": 268435456,
+    "output_bytes": 16777216,
+    "synthetic_debits": 16,
+    "real_model_actions": 0,
+    "real_ledger_mutations": 0,
+    "gpu_probes": 0,
+    "service_starts": 0,
+    "real_media_files": 0,
+    "network_calls": 0,
+    "downloads": 0,
+    "effective_full_checkpoints": 0
+  },
+  "expiry": "Any actual batch terminal consumes grant; no second batch. Preserve failures and exact owned cleanup. Parent grant remains active.",
+  "forbidden": [
+    "models/weight directory scan",
+    "private data/profile",
+    "Comfy/Ollama service use",
+    "non-owned process termination",
+    "permanent configuration change",
+    "real ledger mutation",
+    "wsl shutdown/distribution termination"
+  ],
+  "preflight": [
+    "candidate Git SHA and harness hash",
+    "child and contract hash",
+    "exact tool paths and output root",
+    "monotonic time/output/process counters",
+    "cleanup and PID birth verification policy"
+  ],
+  "stage_pass": false,
+  "product_gate0": false
+}
