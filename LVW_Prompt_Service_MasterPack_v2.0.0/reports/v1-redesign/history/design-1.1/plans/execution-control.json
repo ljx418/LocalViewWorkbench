@@ -1,0 +1,1021 @@
+{
+  "schema_version": "lvw.execution-control/1",
+  "updated_at": "2026-11-11",
+  "project_id": "lvw-prompt-service",
+  "design_version": "2.0.0",
+  "target_version": "V1",
+  "next_delivery_target": "V0.1",
+  "coordinate": {
+    "stage_id": "R1",
+    "workpack_id": "WP-R1-U3",
+    "gate": "UNIFIED_MEDIA_MACHINE_AND_INDEPENDENT_VERIFIED",
+    "state": "WAIT_HUMAN"
+  },
+  "last_passed_gate": {
+    "gate": "UNIFIED_MEDIA_FIXED_UM10_AND_INDEPENDENT_REVIEW",
+    "candidate_sha": "621b1bf386db71bfe08ca2f533fa8ec396b0504b",
+    "receipt": "reports/unified-media/independent-live-15/receipt.json",
+    "decision": "10PASS_0FAIL_0BLOCKED_FATAL0_MAJOR0_HUMAN_PENDING",
+    "cpu_checks": 212,
+    "fixed_cases": 10,
+    "passed_cases": 10
+  },
+  "current_blocking_gate": "UM04_SEMANTICS_UM02_UM05_REAL_COVERAGE",
+  "stage_packet": ".agent-governance/stages/R1/stage-control.json",
+  "stage_packet_manifest": ".agent-governance/stages/R1/PAYLOAD_MANIFEST.sha256",
+  "product_status": "UNIFIED_MEDIA_SLICE_MACHINE_AND_INDEPENDENT_VERIFIED_HUMAN_PENDING",
+  "allowed_claim": "V0_MIN_ACCEPTED_NOT_RELEASED",
+  "forbidden_claims": [
+    "V0_ACCEPTED",
+    "V0.1_ACCEPTED",
+    "V0.2_ACCEPTED",
+    "V1_ACCEPTED",
+    "PRODUCTION_RELEASED",
+    "TARGET_HARDWARE_TESTED"
+  ],
+  "next_owner": "project_owner",
+  "next_action": "Current slice remains WAIT_HUMAN; in parallel Codex oversees visible Orca ClaudeCode D0 checker and independent design audit. Freeze reviewed R1/M1/R2 packets only after design closure; retain all product prerequisite signatures.",
+  "required_authorization": null,
+  "authorization_request": "reports/authorization-program-v1-complete-03.request.json",
+  "authorization_record": "reports/authorization-program-v1-complete-03.approval.json",
+  "read_only_binding_authorization": "reports/v0-s2/authorization-binding-inventory-06.json",
+  "cpu_decoder_authorization": "reports/v0-s2/authorization-cpu-decoder-01.json",
+  "cpu_decoder_terminal_receipt": "reports/v0-s2/cpu-decoder-01/receipt.json",
+  "native_decoder_package_authorization": "reports/v0-s2/authorization-native-decoder-packages-01.json",
+  "native_decoder_package_receipt": "reports/v0-s2/native-decoder-packages-01/receipt.json",
+  "decoder_binding_decision": "reports/v0-s2/decoder-binding-decision-01.md",
+  "stage_preparation_receipt": "reports/v0-s2/workbench-implementation-progress-01.md",
+  "historical_authorization_records": [
+    "reports/r1a/authorization-wp-r1a-04-live-01.json",
+    "reports/r1a/authorization-wp-r1a-04-live-02.json",
+    "reports/authorization-program-v1-local-01.json"
+  ],
+  "contract_change_request": "reports/r1a/change-request-r1a-product-controls-02.json",
+  "contract_change_decision": "reports/r1a/change-decision-r1a-product-controls-02.json",
+  "implementation_candidate": "621b1bf386db71bfe08ca2f533fa8ec396b0504b",
+  "implementation_baseline": "0fee9933874f3aa0e163bded2800d9704ee8be0f",
+  "candidate_binding_scope": "Minimum unified media slice; code candidate and its own evidence only. Historical S2 and full R1/R2 remain separate.",
+  "offline_evidence_commit": null,
+  "offline_receipt": "reports/unified-media/runtime-transition-backend-01/receipt.json",
+  "offline_candidate_sha": "96e77ea3691cf68422ccd159c85985b4d9a118ec",
+  "evidence_root": "reports/",
+  "gate_decision": "reports/unified-media/gate-decision.md",
+  "human_signoff": null,
+  "product_acceptance": null,
+  "last_accepted_product": {
+    "version": "V0-Min",
+    "acceptance": "reports/v0-s1/v0-min-acceptance.json"
+  },
+  "accepted_r1a_history": {
+    "implementation_candidate": "df4943cef1726350d5e9f1d4111800094c1a8d99",
+    "offline_evidence_commit": "67ce51fa18e9647ec11819c5baed5c1efe030886",
+    "offline_receipt": "reports/r1a/implementation-receipt-layout-correction-01.json",
+    "gate_decision": "reports/r1a/gate-decision-r1a.md",
+    "human_signoff": "reports/r1a/human-signoff-r1a-live-08.json",
+    "live_terminal_receipt": "reports/r1a/r1a-live-08/live-receipt.json",
+    "independent_review": "reports/r1a/independent-review-r1a-live-08.md"
+  },
+  "route_change_decision": "docs/23_V1_EARLY_FRONTEND_SEQUENCE.md",
+  "terminal_product_control_change": {
+    "previous_sha256": "f9c8ca1c290261cd90a57184472084783c0a05cf432fed5b20ea3d4ed9314698",
+    "current_sha256": "bf077004bc40d9cd8b82ee8e86406bcfc358129bda70b2d799ff61ff27665579",
+    "decision": "reports/r1a/change-decision-r1a-contract-01.json",
+    "meaning": "R1a local acceptance IDs were corrected without changing existing global V1 cases or product scope"
+  },
+  "historical_live_terminal_receipt": "reports/r1a/r1a-live-07/live-receipt.json",
+  "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
+  "live_terminal_receipt": "reports/unified-media/live-15/receipt.json",
+  "independent_review": "reports/unified-media/independent-live-15/review.md",
+  "exact_stop_reason": "WAIT_HUMAN: freshlive15 fixedUM10/10 and independentFatal0/Major0 complete; actual unified image/video experience signature is the remaining gate. NoGPU/code/candidate authorization missing. No fullR1/fullV1 or release PASS. Own runtime/API/browser and temp including empty wrappers removed.",
+  "native_component_authorization": "reports/v0-s2/authorization-native-component-02.json",
+  "native_component_terminal_receipt": "reports/v0-s2/native-component-02/receipt.json",
+  "local_control_change_decision": "reports/v0-s2/change-decision-video-workbench-01.json",
+  "latest_workpack_receipt": "reports/unified-media/consolidated-correction-plan-04.md",
+  "warm_benchmark_blocker": "reports/v0-s2/warm-benchmark-evidence-gap-01.md",
+  "warm_profile_implementation": "reports/v0-s2/warm-profile-implementation-progress-01.md",
+  "warm_profile_decision": "reports/v0-s2/warm-profile-decision-01.md",
+  "measurement_implementation": "reports/v0-s2/measurement-join-progress-01.md",
+  "native_runtime_implementation": "reports/v0-s2/native-runtime-release-progress-01.md",
+  "warm_phase_implementation": "reports/v0-s2/warm-phase-coordinator-progress-01.md",
+  "resource_abort_implementation": "reports/v0-s2/resource-abort-ownership-progress-01.md",
+  "fixture_preparation_authorization": "reports/v0-s2/authorization-fixtures-02.json",
+  "fixture_preparation_terminal_receipt": "reports/v0-s2/fixture-preparation-02/receipt.json",
+  "fixture_preparation_limitation": "Preparation01 remains historical structural success but is rejected for full-stage VFR sampling. Preparation02 is selected as one complete set and exercises rounding in all four windows. Both finite preparation slots are consumed; no third preparation is allowed without changed authorization. Neither set proves native public workflow or quality.",
+  "frozen_fixture_inputs": "reports/v0-s2/frozen-structural-inputs-02.json",
+  "fixture_preparation_implementation": "reports/v0-s2/fixture-preparation-progress-01.md",
+  "public_phase_implementation": "reports/v0-s2/public-phase-progress-01.md",
+  "native_cancel_evidence_implementation": "reports/v0-s2/native-cancel-evidence-progress-01.md",
+  "public_cancellation_phase_implementation": "reports/v0-s2/public-cancellation-phase-progress-01.md",
+  "owned_provider_fault_implementation": "reports/v0-s2/owned-provider-fault-progress-01.md",
+  "short_input_lossless_export_implementation": "reports/v0-s2/short-video-and-lossless-export-progress-01.md",
+  "native_browser_implementation": "reports/v0-s2/native-browser-worker-progress-01.md",
+  "native_browser_root_correction": "reports/v0-s2/native-browser-root-authorization-correction-01.md",
+  "frontend_binding_preparation_decision": "reports/v0-s2/frontend-binding-preparation-decision-01.md",
+  "frontend_binding_authorization": "reports/v0-s2/authorization-frontend-bindings-02.json",
+  "frontend_binding_receipt": "reports/v0-s2/frontend-bindings-02/receipt.json",
+  "frontend_binding_implementation": "reports/v0-s2/frontend-binding-progress-01.md",
+  "native_browser_supervisor_implementation": "reports/v0-s2/browser-supervisor-progress-01.md",
+  "native_decoder_compatibility": {
+    "status": "NATIVE_COMPONENT_VERIFIED_NOT_STAGE_ACCEPTANCE",
+    "candidate_sha": "2e487d063948f76ee08707b9b13010e09ffbbd8c",
+    "receipt": "reports/v0-s2/native-component-02/receipt.json",
+    "receipt_sha256": "eba3304720febb3021b7ce3b3f3e3f5b33985edad0a0b19664836cdb6efd139c",
+    "scope": "one fixed testSource / public LVWControlledVideoInput / 4 frames / no inference or browser",
+    "standalone_attempts_consumed": 2,
+    "cleanup_proven": true,
+    "stage_acceptance": false
+  },
+  "native_browser_analysis_export_implementation": "reports/v0-s2/browser-analysis-evidence-progress-01.md",
+  "native_browser_handler_implementation": "reports/v0-s2/browser-handler-wiring-progress-01.md",
+  "native_browser_terminal_phase_implementation": "reports/v0-s2/browser-terminal-phase-progress-01.md",
+  "cumulative_stage_sequence_implementation": "reports/v0-s2/cumulative-stage-sequence-progress-01.md",
+  "bound_runtime_archive_implementation": "reports/v0-s2/bound-runtime-archive-progress-01.md",
+  "live_authorization_record": "reports/unified-media/live-15/authorization.json",
+  "native_run_id": "full-v0-auto-08",
+  "live_executor_handle": {
+    "kind": "exec_command_session",
+    "id": 99146,
+    "terminal": true,
+    "restart_forbidden": true
+  },
+  "next_stage_document_preparation": "reports/v0-s3/preparation-02.md",
+  "native_checkpoint_attempts": {
+    "initial_consumed": 1,
+    "corrected_recheck_consumed": 1,
+    "remaining_full_rechecks": 0,
+    "original_oracle_slot_consumed": 1,
+    "policy_correction_remaining_full_runs": 0,
+    "profile_lifecycle_full_consumed": 1,
+    "profile_lifecycle_full_remaining": 0
+  },
+  "binding_correction": "reports/v0-s2/binding-correction-01/decision.md",
+  "historical_native_terminal_receipts": [
+    "reports/v0-s2/full-checkpoint-01/receipt.json",
+    "reports/v0-s2/full-recheck-01/receipt.json",
+    "reports/v0-s2/full-supplemental-01/receipt.json",
+    "reports/v0-s2/full-resource-ready-01/receipt.json",
+    "reports/v0-s2/full-oracle-correction-01/receipt.json",
+    "reports/v0-s2/full-profile-lifecycle-correction-01/receipt.json",
+    "reports/v0-s2/full-v0-auto-01/receipt.json",
+    "reports/v0-s2/full-v0-auto-02/receipt.json",
+    "reports/v0-s2/full-v0-auto-03/receipt.json",
+    "reports/v0-s2/full-v0-auto-04/receipt.json",
+    "reports/v0-s2/full-v0-auto-05/receipt.json",
+    "reports/v0-s2/full-v0-auto-06/receipt.json",
+    "reports/v0-s2/full-v0-auto-07/receipt.json",
+    "reports/v0-s2/full-v0-auto-08/receipt.json"
+  ],
+  "retained_root_disposition": "reports/v0-s2/supplemental-cleanup-01/receipt.json",
+  "supplemental_authorization_record": "reports/v0-s2/authorization-s2-supplemental-01.approval.json",
+  "supplemental_native_budget": {
+    "approved_runs": 1,
+    "claimed_runs": 1,
+    "remaining_runs": 0,
+    "additional_rechecks": 0,
+    "terminal": "NO_GO"
+  },
+  "supplemental_cleanup_receipt": "reports/v0-s2/supplemental-cleanup-01/receipt.json",
+  "supplemental_terminal_summary": "reports/v0-s2/supplemental-terminal-summary-01.md",
+  "resource_ready_authorization_record": "reports/v0-s2/authorization-s2-resource-ready-01.approval.json",
+  "resource_ready_run_budget": {
+    "approved_complete_runs": 1,
+    "claimed_complete_runs": 1,
+    "remaining_complete_runs": 0,
+    "readiness_children": 1,
+    "additional_full_rechecks": 0,
+    "terminal": "NO_GO"
+  },
+  "resource_admission_receipt": "reports/v0-s2/resource-admission-01/receipt.json",
+  "failure_fact_recomputation": "reports/v0-s2/resource-ready-failure-facts-01.json",
+  "plan_index": "docs/24_EXECUTION_MASTER_PLAN.md",
+  "optimization_proposal": "docs/25_PLAN_OPTIMIZATION_PROPOSAL.md",
+  "plan_revision_report": "reports/plan-revision-2026-11-05/audit.json",
+  "pending_approved_run": {
+    "approval": "reports/v0-s2/authorization-s2-oracle-correction-01.approval.json",
+    "request": "reports/v0-s2/authorization-s2-oracle-correction-01.request.json",
+    "planned_run_id": "full-oracle-correction-01",
+    "approved_complete_runs": 1,
+    "claimed_complete_runs": 0,
+    "additional_full_rechecks": 0,
+    "status": "EXPIRED_NO_GO_READINESS_GPU_BUSY",
+    "remaining_active_complete_runs": 0
+  },
+  "external_execution_hold": {
+    "active": false,
+    "reason": "New project-owner blanket V0 GPU/code verification authorization supersedes per-run confirmation and authorization-only run caps."
+  },
+  "stop_report_policy": {
+    "include_complete_outline": true,
+    "completion_unit": "completed_substeps/declared_substeps; not effort percentage",
+    "include_current_stage": true,
+    "source": "development_outline",
+    "required_fields": [
+      "当前坐标",
+      "本批完成",
+      "最后通过门禁",
+      "当前阻塞门禁",
+      "全局路线位置",
+      "剩余工作",
+      "下一责任人",
+      "所需授权",
+      "证据目录",
+      "精确停止原因"
+    ]
+  },
+  "development_outline": [
+    {
+      "stage_id": "V0-S0",
+      "delivery": "V0",
+      "title": "基线探索",
+      "substeps": [
+        {
+          "name": "盘点与探索记录",
+          "status": "DONE",
+          "evidence": "reports/v0-s0/gate-decision-rerun-02.md"
+        },
+        {
+          "name": "完整生产基线",
+          "status": "FAILED_HISTORICAL",
+          "evidence": "reports/v0-s0/gate-decision-rerun-02.md"
+        }
+      ],
+      "completed_substeps": 1,
+      "total_substeps": 2,
+      "summary": "历史探索已结束且NO_GO保留；V0-Min按后续范围签署，不回填S0 PASS",
+      "implementation": "ARCHIVED",
+      "machine_acceptance": "NO_GO_HISTORICAL",
+      "independent_review": "COMPLETED_WITH_BLOCKERS",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "V0-S1",
+      "delivery": "V0-Min",
+      "title": "图片与独立人工",
+      "substeps": [
+        {
+          "name": "独立人工稿与导出",
+          "status": "DONE",
+          "evidence": "reports/v0-s1/v0-min-acceptance.json"
+        },
+        {
+          "name": "真实图片与预处理",
+          "status": "DONE",
+          "evidence": "reports/v0-s1/v0-min-acceptance.json"
+        },
+        {
+          "name": "四输出与草稿保护",
+          "status": "DONE",
+          "evidence": "reports/v0-s1/v0-min-acceptance.json"
+        },
+        {
+          "name": "固定证据及独立审查",
+          "status": "DONE",
+          "evidence": "reports/v0-s1/v0-min-acceptance.json"
+        },
+        {
+          "name": "人工签署",
+          "status": "DONE",
+          "evidence": "reports/v0-s1/v0-min-acceptance.json"
+        }
+      ],
+      "completed_substeps": 5,
+      "total_substeps": 5,
+      "summary": "已签仅V0-Min",
+      "implementation": "DELIVERED",
+      "machine_acceptance": "ACCEPTED_SCOPE_ONLY",
+      "independent_review": "COMPLETED",
+      "human_signoff": "APPROVED"
+    },
+    {
+      "stage_id": "R0",
+      "delivery": "V1前置",
+      "title": "独立服务复核",
+      "substeps": [
+        {
+          "name": "独立单图路径在R1a验证",
+          "status": "DONE",
+          "evidence": "reports/r1a/gate-decision-r1a.md"
+        },
+        {
+          "name": "完整复用/许可清单单独闭合",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 1,
+      "total_substeps": 2,
+      "summary": "仅R1a前置单图子集可确认；不把完整视频/Q01算通过",
+      "implementation": "PARTIAL_REUSED",
+      "machine_acceptance": "SINGLE_IMAGE_SUBSET_ONLY",
+      "independent_review": "NO_SEPARATE_R0_VERDICT",
+      "human_signoff": "NO_SEPARATE_R0_SIGNOFF"
+    },
+    {
+      "stage_id": "R1a",
+      "delivery": "V1早期切片",
+      "title": "单图React/FastAPI",
+      "substeps": [
+        {
+          "name": "正式合同子集与前后端",
+          "status": "DONE",
+          "evidence": "reports/r1a/gate-decision-r1a.md"
+        },
+        {
+          "name": "真实单图链路",
+          "status": "DONE",
+          "evidence": "reports/r1a/gate-decision-r1a.md"
+        },
+        {
+          "name": "失败/服务控制与人工稿保护",
+          "status": "DONE",
+          "evidence": "reports/r1a/gate-decision-r1a.md"
+        },
+        {
+          "name": "独立审查七项",
+          "status": "DONE",
+          "evidence": "reports/r1a/gate-decision-r1a.md"
+        },
+        {
+          "name": "人工体验签署",
+          "status": "DONE",
+          "evidence": "reports/r1a/gate-decision-r1a.md"
+        }
+      ],
+      "completed_substeps": 5,
+      "total_substeps": 5,
+      "summary": "已签仅单图切片；完整V1未完成",
+      "implementation": "DELIVERED",
+      "machine_acceptance": "ACCEPTED_SCOPE_ONLY",
+      "independent_review": "COMPLETED",
+      "human_signoff": "APPROVED"
+    },
+    {
+      "stage_id": "V0-S2",
+      "delivery": "V0.1",
+      "title": "视频与资源控制",
+      "substeps": [
+        {
+          "name": "WP-S2-00 冻结准备",
+          "status": "DONE",
+          "evidence": "reports/v0-s2/offline-checkpoint-44/receipt.json"
+        },
+        {
+          "name": "WP-S2-01 媒体owner",
+          "status": "DONE",
+          "evidence": "reports/v0-s2/offline-checkpoint-44/receipt.json"
+        },
+        {
+          "name": "WP-S2-02 公开视频路径",
+          "status": "DONE",
+          "evidence": "reports/v0-s2/offline-checkpoint-44/receipt.json"
+        },
+        {
+          "name": "WP-S2-03 安全/资源/取消",
+          "status": "DONE",
+          "evidence": "reports/v0-s2/offline-checkpoint-44/receipt.json"
+        },
+        {
+          "name": "WP-S2-04 离线集中收口",
+          "status": "DONE",
+          "evidence": "reports/v0-s2/offline-checkpoint-44/receipt.json"
+        },
+        {
+          "name": "WP-S2-05 完整真实验收",
+          "status": "DONE",
+          "evidence": "reports/v0-s2/full-v0-auto-08/receipt.json"
+        },
+        {
+          "name": "WP-S2-06 独立审查",
+          "status": "DONE",
+          "evidence": "reports/v0-s2/full-v0-auto-08/independent-review.json"
+        },
+        {
+          "name": "S2 人工签署与Git同步",
+          "status": "PENDING",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 7,
+      "total_substeps": 8,
+      "summary": "Full08 fresh cumulative9/9, offline541/5checks, independent Fatal0/Major0/Minor0; human signoff and immediate Git sync remain.",
+      "implementation": "IMPLEMENTED",
+      "machine_acceptance": "COMPLETE_FIXED9_PASSED",
+      "independent_review": "COMPLETE_FATAL0_MAJOR0_MINOR0",
+      "human_signoff": "PENDING"
+    },
+    {
+      "stage_id": "V0-S3",
+      "delivery": "V0.2",
+      "title": "离线质量与增量包",
+      "substeps": [
+        {
+          "name": "包/清单/使用说明",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "安装诊断与回滚",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "独立质量集与标注",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "离线集中收口",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "真实十二项及质量",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "独审/人工签署/同步",
+          "status": "PENDING",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 0,
+      "total_substeps": 6,
+      "summary": "已有设计，未完成正式交付；存在代码需进入时复用审计",
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R1",
+      "delivery": "V1",
+      "title": "人工业务骨架",
+      "substeps": [
+        {
+          "name": "受控媒体与人工镜头",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "六模式四目标",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "SQLite/修订/导入",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "组合回归及阶段审查",
+          "status": "PENDING",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "summary": "最小图视频统一前端切片3/3实现、机器UM10和独审通过；人签待。完整R1四子项仍未正式交付，不折算为4项完成。",
+      "implementation": "EARLY_SLICE_IMPLEMENTED_FULL_R1_PENDING",
+      "machine_acceptance": "EARLY_SLICE_UM10_ONLY",
+      "independent_review": "EARLY_SLICE_FATAL0_MAJOR0",
+      "human_signoff": "EARLY_SLICE_PENDING",
+      "early_slice": {
+        "id": "UNIFIED_MEDIA_EARLY",
+        "completed_workpacks": 3,
+        "total_workpacks": 3,
+        "candidate_sha": "621b1bf386db71bfe08ca2f533fa8ec396b0504b",
+        "machine_acceptance": "UM10_PASS",
+        "independent_review": "FATAL0_MAJOR0",
+        "human_signoff": "PENDING"
+      }
+    },
+    {
+      "stage_id": "V1-M1",
+      "delivery": "V1",
+      "title": "多镜头拆分与逐镜头人物场景动作",
+      "substeps": [
+        {
+          "name": "M1-A detection/PTS/boundaries/timeline",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "M1-B per-shot evidence and serial child jobs",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "M1-C per-shot drafts/exports/fixed8 full validation",
+          "status": "PENDING",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 0,
+      "total_substeps": 3,
+      "summary": "用户批准纳入V1；设计/合同审查中，未实现、未测试、未签署",
+      "implementation": "DESIGN_ONLY",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R2",
+      "delivery": "V1",
+      "title": "任务与正式运行包",
+      "substeps": [
+        {
+          "name": "异步任务/CAS/取消",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "真实图视频及质量",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "CLI/导出/便携包",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "V1累计独审及人工签署",
+          "status": "PENDING",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "summary": "已有设计，未完成正式交付；存在代码需进入时复用审计",
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R3",
+      "delivery": "V2",
+      "title": "镜头资产与检索",
+      "substeps": [
+        {
+          "name": "真实PTS/切镜",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "资产/FTS5/配方",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "对比/QC/JSONL",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "阶段验收",
+          "status": "PENDING",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "summary": "已有设计，未完成正式交付；存在代码需进入时复用审计",
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R4",
+      "delivery": "V2",
+      "title": "MCP与恢复",
+      "substeps": [
+        {
+          "name": "MCP真客户端",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "批量/lease/幂等",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "备份恢复",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "V2累计验收签署",
+          "status": "PENDING",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "summary": "已有设计，未完成正式交付；存在代码需进入时复用审计",
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R5a",
+      "delivery": "V3",
+      "title": "证据与建议合同",
+      "substeps": [
+        {
+          "name": "对端握手",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "Navia证据",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "Narralens建议/冲突",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "阶段真实验收",
+          "status": "PENDING",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "summary": "已有设计，未完成正式交付；存在代码需进入时复用审计",
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R5b",
+      "delivery": "V3",
+      "title": "受控生成交接",
+      "substeps": [
+        {
+          "name": "Comfy allowlist/映射",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "收据/outbox",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "GPU/取消协作",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "阶段真实验收",
+          "status": "PENDING",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "summary": "已有设计，未完成正式交付；存在代码需进入时复用审计",
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R5c",
+      "delivery": "V3",
+      "title": "集成与完整交付",
+      "substeps": [
+        {
+          "name": "集成UI",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "升级回滚",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "三系统E2E",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "V3独审及人工签署",
+          "status": "PENDING",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "summary": "已有设计，未完成正式交付；存在代码需进入时复用审计",
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    }
+  ],
+  "oracle_correction_run_budget": {
+    "approved_complete_runs": 1,
+    "claimed_complete_runs": 0,
+    "complete_slot": "full-oracle-correction-01",
+    "complete_slot_exists": false,
+    "readiness_children_approved": 1,
+    "readiness_children_claimed": 1,
+    "remaining_readiness_children": 0,
+    "additional_full_rechecks": 0,
+    "grant_status": "EXPIRED_NO_GO"
+  },
+  "resource_resume_authorization": "reports/v0-s2/authorization-s2-resource-resume-01.approval.json",
+  "resource_resume_budget": {
+    "additional_readiness_approved": 1,
+    "readiness_claimed": 1,
+    "additional_complete_runs": 0,
+    "original_complete_slot": "full-oracle-correction-01",
+    "max_original_complete_claims": 1,
+    "claimed_original_complete_runs": 0,
+    "additional_full_rechecks": 0,
+    "grant_status": "EXPIRED_NO_GO"
+  },
+  "gpu_policy_reassessment": "reports/v0-s2/gpu-policy-reassessment-01/receipt.json",
+  "policy_correction_authorization": "reports/v0-s2/authorization-s2-policy-correction-01.approval.json",
+  "policy_readiness_receipt": "reports/v0-s2/resource-admission-profile-lifecycle-01/receipt.json",
+  "profile_lifecycle_authorization": "reports/v0-s2/authorization-s2-profile-lifecycle-01.approval.json",
+  "v0_verification_program": "reports/authorization-program-v0-local-verification-01.json",
+  "diagnostic_candidate": "0cd6df8ecfc3a85101071058843b01c37b48fda5",
+  "diagnostic_receipts": [
+    "reports/v0-s2/compute-owner-diagnostic-01/receipt.json",
+    "reports/v0-s2/compute-owner-diagnostic-02/receipt.json",
+    "reports/v0-s2/compute-type-snapshot-01/receipt.json",
+    "reports/v0-s2/browser-launch-diagnostic-01/receipt.json",
+    "reports/v0-s2/manual-page-diagnostic-01/receipt.json",
+    "reports/v0-s2/manual-page-diagnostic-02/receipt.json",
+    "reports/v0-s2/manual-page-diagnostic-03/receipt.json",
+    "reports/v0-s2/manual-page-diagnostic-04/receipt.json",
+    "reports/v0-s2/manual-page-diagnostic-05/receipt.json",
+    "reports/v0-s2/binding-memory-diagnostic-01/receipt.json",
+    "reports/v0-s2/manual-page-diagnostic-06/receipt.json"
+  ],
+  "v0_verification_authorization_status": "ACTIVE_NO_PER_RUN_HUMAN_CONFIRMATION",
+  "active_component_run": {
+    "run_id": "warm-component-01",
+    "terminal": true,
+    "full_stage_checkpoint": false,
+    "stage_pass_claim": false,
+    "receipt": "reports/v0-s2/warm-component-01/receipt.json"
+  },
+  "human_review": "验收报告与盲测视频.html",
+  "evidence_directory": "reports/unified-media/",
+  "machine_evidence_review": "验收报告与盲测视频.html",
+  "manual_acceptance_guide": "docs/26_MANUAL_ACCEPTANCE_GUIDE.md",
+  "human_guide_ui_verification": "reports/unified-media/program02-handoff-ui-01/receipt.json",
+  "desktop_launcher": {
+    "entry": "LVW.exe",
+    "shortcut": "启动LVW.lnk",
+    "documentation": "launcher/README.md",
+    "directed_verification": "reports/unified-media/launcher-self-test.json",
+    "acceptance": "UNIFIED_LAUNCHER_CPU_VERIFIED_REAL_FULL_SEQUENCE_INCOMPLETE"
+  },
+  "human_validation_holdout": {
+    "manifest": "人工验收视频集/FREEZE.json",
+    "expected": "人工验收视频集/expected-results.frozen.json",
+    "videos": 11,
+    "lvw_status": "ALL_NOT_RUN",
+    "historical_review": "reports/human-video-validation-2026-11-08/history.json",
+    "report_ui_checks": "reports/human-video-validation-2026-11-08/ui-receipt.json",
+    "formal_quality_set": false
+  },
+  "historical_s2_coordinate": {
+    "stage_id": "V0-S2",
+    "workpack_id": "WP-S2-06",
+    "gate": "GATE5_HUMAN_EXPERIENCE_SIGNOFF",
+    "state": "WAIT_HUMAN"
+  },
+  "active_slice": {
+    "id": "UNIFIED_MEDIA_EARLY",
+    "approval": "reports/unified-media/approval.json",
+    "completed_workpacks": 3,
+    "total_workpacks": 3,
+    "human_signoff": null,
+    "workpacks": [
+      {
+        "id": "WP-R1-U1",
+        "state": "IMPLEMENTED_OFFLINE_VERIFIED"
+      },
+      {
+        "id": "WP-R1-U2",
+        "state": "IMPLEMENTED_CPU_BROWSER_VERIFIED"
+      },
+      {
+        "id": "WP-R1-U3",
+        "state": "MACHINE_AND_INDEPENDENT_VERIFIED_HUMAN_PENDING"
+      }
+    ],
+    "implementation": "IMPLEMENTED",
+    "machine_acceptance": "LIVE15_FIXED_UM10_VERIFIED",
+    "independent_review": "LIVE15_FATAL0_MAJOR0",
+    "latest_harness_review": "reports/unified-media/owner-split-c2-code-review-04/addendum2.md",
+    "latest_harness_candidate": "621b1bf386db71bfe08ca2f533fa8ec396b0504b",
+    "live_executor": {
+      "run_id": "live-15",
+      "terminal": true,
+      "restart_forbidden": true
+    },
+    "proposed_packet_version": "1.0.4_ACTIVE_APPROVED",
+    "latest_correction_review": "reports/unified-media/owner-split-c1-code-review-04/recheck-addendum.md",
+    "live_review_coverage": {
+      "PASS": 10,
+      "FAIL": 0,
+      "BLOCKED": 0,
+      "receipt": "reports/unified-media/independent-live-15/coverage.json"
+    },
+    "offline_cpu_tests": 212,
+    "program_budget_snapshot": "reports/unified-media/complete03-budget-after-live15.json"
+  },
+  "historical_s2_last_passed_gate": {
+    "gate": "GATE5_INDEPENDENT_MACHINE_REVIEW",
+    "candidate_sha": "719c74559393a6489b2f630a1e0d3bc3303eb655",
+    "receipt": "reports/v0-s2/full-v0-auto-08/independent-review.json",
+    "decision": "MACHINE_AND_INDEPENDENT_VERIFIED_HUMAN_PENDING",
+    "unit_tests": 541,
+    "fixed_cases": 9,
+    "passed_cases": 9
+  },
+  "historical_s2_implementation_candidate": "719c74559393a6489b2f630a1e0d3bc3303eb655",
+  "historical_s2_current_runtime_failure": {
+    "code": "CHROMIUM_INSPECTOR_RESPONSE_BODY_EVICTED",
+    "evidence": "reports/v0-s2/full-v0-auto-06/receipt.json",
+    "public_matrix_passed": 15,
+    "public_matrix_fixed": 15,
+    "browser_manual_initial": "PASS",
+    "browser_upload": "FAIL_RESPONSE_BODY_UNAVAILABLE",
+    "native_cleanup_proven": true,
+    "browser_cleanup_proven": true
+  },
+  "historical_s2_runtime_dependency_blocker": {
+    "code": "RESOURCE_NOT_READY_GPU_ABOVE_LIMIT_AND_READINGS_DIFFER",
+    "reported_error_code": "EvidenceError:RESOURCE_NOT_READY: native/WSL GPU disagreement",
+    "evidence": "reports/v0-s2/resource-admission-oracle-resume-01/receipt.json",
+    "limit_mib": 4096,
+    "native_used_mib": 4520,
+    "wsl_used_mib": 4308,
+    "difference_mib": 212,
+    "difference_limit_mib": 128,
+    "available_ram_mib": 8913,
+    "target_listener_count": 0,
+    "target_process_count": 0,
+    "service_starts": 0,
+    "model_calls": 0,
+    "media_reads": 0,
+    "browser_starts": 0,
+    "full_checkpoint_claimed": false,
+    "cleanup_proven": true,
+    "resolved_for_readiness": true,
+    "reassessment": {
+      "evidence": "reports/v0-s2/gpu-policy-reassessment-01/receipt.json",
+      "physical_vram_shortage_proven": false,
+      "wrong_fixed_used_ceiling_identified": true,
+      "draft_replay": "WOULD_ADMIT_MONITORED_ATTEMPT",
+      "requires_more_gpu_release_to4096": false
+    },
+    "resolution_evidence": "reports/v0-s2/resource-admission-policy-correction-01/receipt.json"
+  },
+  "current_runtime_failure": {
+    "code": "SEMANTIC_MAJOR_AND_REAL_COVERAGE_GAPS",
+    "category": "TECHNICAL_NOT_AUTH_RESOURCE_OR_BUDGET",
+    "live_receipt": "reports/unified-media/live-14/receipt.json",
+    "cleanup_proven": true,
+    "model_calls": 3,
+    "effective_full": 1
+  },
+  "resource_readiness_receipt": "reports/unified-media/complete03-resource-handoff-01/receipt.json",
+  "live_candidate_sha": "621b1bf386db71bfe08ca2f533fa8ec396b0504b",
+  "slice_acceptance_receipt": "reports/unified-media/independent-live-15/coverage.json",
+  "last_live_authorization": "reports/unified-media/live-15/authorization.terminal.json",
+  "historical_video_semantic_failure": {
+    "code": "VIDEO_TEMPORAL_SEMANTIC_FAILURE",
+    "live_receipt": "reports/unified-media/live-03/receipt.json",
+    "peak_gpu_mib": 22109,
+    "minimum_ram_mib": 10365,
+    "provider_calls_started": 3,
+    "provider_calls_completed": 2,
+    "lease_releases": 3,
+    "native_exit_proven": true,
+    "cleanup_proven": true,
+    "quality": "four real frames; model says three identical/static"
+  },
+  "authorization_consolidation": {
+    "request": "reports/authorization-program-v1-local-02.request.json",
+    "request_sha256": "212b89a987dba5ad478a2f7cac6be35aa0520d7461c919003b500174fe49d108",
+    "status": "HISTORICAL_PROGRAM02_SUPERSEDED_BY_COMPLETE03",
+    "history_audit": "docs/28_AUTHORIZATION_HISTORY_AND_CONSOLIDATION.md",
+    "absorbs_runtime_request_only_if_approved": true,
+    "alternative_single_run_request": "reports/unified-media/authorization-runtime-transition-01.request.json",
+    "approval": "reports/authorization-program-v1-local-02.approval.json"
+  },
+  "latest_video_semantic_assessment": "live15原始模型回答只描述四帧真实外观，无错误静止/网格恒定/压缩噪声原因断言；AnalysisService独立归因的采样横向相对变化与像素/注册证据逐值吻合。独审UM04PASS，物理运镜与未采样连续动作仍未知，V0-A12/Q01未豁免。",
+  "historical_startup_failure_before_program02": {
+    "code": "STARTUP_CONTROLLER_BUSY_409_BEFORE_JOB",
+    "live_receipt": "reports/unified-media/live-04/receipt.json",
+    "provider_calls": 0,
+    "jobs": 0,
+    "model_runs": 0,
+    "resource_preflight": "reports/unified-media/semantic-approved-preflight-01/receipt.json",
+    "cleanup_proven": true,
+    "native_exit_proven": true,
+    "correction_candidate": "1d1db48328b80eb16a8d093ec09a7619c2f33fa8",
+    "real_semantic_reverification": "NOT_RUN"
+  },
+  "program02_budget_snapshot": "reports/unified-media/program02-budget-final.json",
+  "budget_amendment": {
+    "request": "reports/unified-media/authorization-residual-recheck-01.request.json",
+    "request_sha256": "a00cb9ac41a0ce4a00cb7c5a0934c1fdde8bca75b443f587dbb49f5afabc853b",
+    "status": "ABSORBED_BY_APPROVED_COMPLETE03_NOT_A_SECOND_PERMISSION",
+    "requested_stage_full_limit": 4,
+    "current_stage_full_limit": 3,
+    "additional_full_runs": 1,
+    "candidate_sha": "96e77ea3691cf68422ccd159c85985b4d9a118ec"
+  },
+  "completion_authorization": {
+    "authorization_id": "AUTH-PROGRAM-V1-COMPLETE-03",
+    "approval": "reports/authorization-program-v1-complete-03.approval.json",
+    "request_sha256": "afcde7f29095a68e9175f454b16da32514566cca475ccafdfceefbcdcb45be25",
+    "absorbs_pending_budget_request": true,
+    "status": "ACTIVE_GLOBAL_ONLY_EXECUTOR_INDEPENDENTLY_REVIEWED",
+    "ledger": "reports/unified-media/complete03-ledger-carry-forward.json",
+    "global_only": true,
+    "per_stage_authorization_counts_applied": false
+  },
+  "legacy_stage_authorization_counts_before_complete03": {
+    "full_checkpoints_consumed": 2,
+    "remaining_corrected_full_rechecks": 0,
+    "supplemental_full_rechecks_approved": 1,
+    "supplemental_full_rechecks_consumed": 1,
+    "pending_recovery_full_rechecks": 0
+  },
+  "offline_input_review": "reports/unified-media/owner-split-c1-code-review-04/recheck-addendum.md",
+  "program03_budget_snapshot": "reports/unified-media/complete03-budget-after-live11.json",
+  "resource_handoff": {
+    "worker_session": 93084,
+    "readiness_child": "reports/unified-media/complete03-resource-handoff-01/authorization.json",
+    "fresh_run_if_ready": "live-12",
+    "bounded_wait_seconds": 660,
+    "fresh_run_started": true,
+    "worker_finished": true,
+    "decision": "SUPERSEDED_BY_COMPLETE_LIVE12"
+  },
+  "resource_reclaim_authorization": "reports/authorization-v1-gpu-reclaim-01.json",
+  "model_capability_probe": "reports/unified-media/model-capability-probe-01/receipt.json",
+  "active_component_probe": null,
+  "component_semantic_review": "reports/unified-media/independent-source-component-03/receipt.json",
+  "stage_packet_version": "1.0.4",
+  "fixture_preparation_receipt": "reports/unified-media/real-rejection-fixtures-04/receipt.json",
+  "internal_owner_amendment": "reports/unified-media/change-decision-owner-input-04.json",
+  "owner_split_implementation_receipts": {
+    "C1": "reports/unified-media/owner-split-c1-offline-04/receipt.json",
+    "C1_independent_correction": "reports/unified-media/owner-split-c1-code-review-04/recheck-receipt.json",
+    "C1_C2_CPU": "reports/unified-media/owner-split-c1-c2-offline-04/receipt.json",
+    "frontend_governance": "reports/unified-media/owner-split-c1-c2-offline-04/frontend-governance-receipt.json",
+    "C2_independent": "reports/unified-media/owner-split-c2-code-review-04/recheck-receipt.json",
+    "pilot_safety": "reports/unified-media/owner-split-pilot-safety-review-04/receipt-fix-recheck-02.json",
+    "C2_browser_cleanup": "reports/unified-media/owner-split-c2-code-review-04/addendum2-receipt.json"
+  },
+  "required_human_signoff": {
+    "status": "PENDING_ACTUAL_USER_EXPERIENCE",
+    "candidate_sha": "621b1bf386db71bfe08ca2f533fa8ec396b0504b",
+    "scope": "UNIFIED_MEDIA_EARLY_ONLY",
+    "request": "reports/unified-media/human-signoff-request-live15.json",
+    "not_full_R1_V1_or_release": true
+  },
+  "current_cpu_receipt": "reports/unified-media/owner-split-final-offline-04/receipt.json",
+  "approved_v1_multishot_change": "reports/v1-redesign/product-change-approval.json",
+  "v1_revised_plan": "plans/v1-revised-plan.json",
+  "planning_track": {
+    "id": "V1-D0",
+    "state": "DESIGN_1_1_CORRECTION_PENDING_RECHECK",
+    "completed_substeps": 1,
+    "total_substeps": 2,
+    "owner": "Codex",
+    "implementer": "Orca ClaudeCode",
+    "scope": "offline plan checker and independent audit, not product runtime",
+    "orca_visibility": "child workspaces with keep-open; worker dispatch receipts are launch authority",
+    "orca_run_id": "run_ec1d5514e718",
+    "worker_dispatch_status": "READY_TO_LAUNCH_AFTER_SOURCE_SEAL",
+    "independent_review": "reports/v1-redesign/d0-review/receipt.json",
+    "open_original_findings": {
+      "Fatal": 1,
+      "Major": 11,
+      "Minor": 10
+    },
+    "note": "original review retained; root1.1 corrections unaccepted until isolated recheck"
+  }
+}

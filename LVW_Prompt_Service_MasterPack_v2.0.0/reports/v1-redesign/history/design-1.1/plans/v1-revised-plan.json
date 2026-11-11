@@ -1,0 +1,179 @@
+{
+  "schema_version": "lvw.v1-plan/1.1",
+  "approval": "reports/v1-redesign/product-change-approval.json",
+  "status": "DESIGN_REVIEW_REQUIRED",
+  "roles": {
+    "architect_gate_owner": "Codex",
+    "implementer": "Orca visible ClaudeCode worker",
+    "local_validation": "same implementer plus deterministic executor, not independent",
+    "independent_reviewer": "separate context/workspace, read-only candidate",
+    "human": "actual experience and release signatures"
+  },
+  "product_current_coordinate_source": "plans/execution-control.json",
+  "parallel_preparation": {
+    "id": "V1-D0",
+    "workpacks": [
+      "D0-A architecture/contracts/acceptance design",
+      "D0-B deterministic plan checker and independent design review"
+    ],
+    "product_edits_allowed": false
+  },
+  "stages": [
+    {
+      "id": "R1",
+      "depends_on": [
+        "R1a",
+        "V0-S3"
+      ],
+      "workpacks": [
+        "R1-A SQLite/media/shot repository + migrations",
+        "R1-B immutable revisions/ETag/adoption/locks",
+        "R1-C six modes/four targets + import/CLI shared service",
+        "R1-D regression/independent/human gate"
+      ],
+      "completed": 0,
+      "total": 4
+    },
+    {
+      "id": "V1-M1",
+      "depends_on": [
+        "R1"
+      ],
+      "workpacks": [
+        "M1-A detection/PTS/boundaries/timeline",
+        "M1-B per-shot evidence and serial child jobs",
+        "M1-C per-shot drafts/exports/fixed8 full validation"
+      ],
+      "completed": 0,
+      "total": 3
+    },
+    {
+      "id": "R2",
+      "depends_on": [
+        "R1",
+        "V1-M1"
+      ],
+      "workpacks": [
+        "R2-A persistent CAS/jobs/retry/interruption completeness",
+        "R2-B original Q01 + MS quality combined verification",
+        "R2-C CLI/export/offline portable/upgrade rollback",
+        "R2-D cumulative29 independent/human/release gate"
+      ],
+      "completed": 0,
+      "total": 4
+    }
+  ],
+  "legacy_v0_obligations_retained": true,
+  "old_slice_human_signoff_waived": false,
+  "limits": {
+    "video_seconds": 60,
+    "video_bytes": 268435456,
+    "source_pixels": 8294400,
+    "shots": 12,
+    "frames_per_shot": 4,
+    "gpu_used_mib_exclusive": 23552,
+    "ram_available_mib_min": 2048,
+    "single_analysis_seconds": 420,
+    "release_seconds": 30,
+    "gpu_concurrency": 1,
+    "automatic_model_retries": 0,
+    "batch_per_child_budget_seconds": 450,
+    "batch_fixed_budget_seconds": 90,
+    "batch_deadline_seconds_max": 5490,
+    "checkpoint_model_actions_cap": 72,
+    "checkpoint_seconds_cap": 21600,
+    "checkpoint_cleanup_reserve_seconds": 180,
+    "gpu_free_mib_min": 19047,
+    "detection_seconds": 120,
+    "pts_index_bytes": 16777216
+  },
+  "v1_required_cases": [
+    "A01",
+    "A02",
+    "A03",
+    "A04",
+    "A05",
+    "A06",
+    "A07",
+    "A08",
+    "A09",
+    "A10",
+    "A11",
+    "A12",
+    "F01",
+    "F02",
+    "F03",
+    "F04",
+    "F05",
+    "Q01",
+    "X01",
+    "X02",
+    "X03",
+    "MS01",
+    "MS02",
+    "MS03",
+    "MS04",
+    "MS05",
+    "MS06",
+    "MS07",
+    "MS08"
+  ],
+  "supplement_case_ids": [
+    "MS01",
+    "MS02",
+    "MS03",
+    "MS04",
+    "MS05",
+    "MS06",
+    "MS07",
+    "MS08"
+  ],
+  "contract_candidate": "plans/v1-multishot-contract.json",
+  "acceptance_design": "docs/32_V1_ACCEPTANCE_AND_AGENT_WORKFLOW.md",
+  "global_authority": "AUTH-PROGRAM-V1-COMPLETE-03",
+  "budget_reset": false,
+  "wip": {
+    "implementation_slots": 1,
+    "independent_review_slots": 1,
+    "future_disjoint_slots_max": 2
+  },
+  "next_action": "D0 visible Claude checker implementation + isolated design audit; Codex resolves findings then freezes applicable product packets; do not start product R1/M1 before existing prerequisite signatures.",
+  "authorization_accounting": {
+    "design_stage": "V1-M1",
+    "authority_stage": "R2",
+    "scope_record": "reports/v1-redesign/product-change-approval.json",
+    "policy": "M1 is approved V1/R2 early substage; finite receipt binds both identities and scope hash. Original COMPLETE03 immutable stages/limits remain unchanged, all actions use same ledger; no new counter or V2 alias."
+  },
+  "sample_design": "plans/v1-multishot-sample-design.json",
+  "checkpoint_budget": {
+    "success_calls": 65,
+    "controlled_actions_cap": 7,
+    "model_actions_cap": 72,
+    "wall_seconds": 21600,
+    "execution_deadline_seconds": 21420,
+    "cleanup_reserve_seconds": 180,
+    "estimate_basis": "design performance thresholds, not measured current per-shot P95 and not hard worst-case guarantee",
+    "video_calls": 53,
+    "image_calls": 12,
+    "video_threshold_seconds": 300,
+    "image_threshold_seconds": 180,
+    "release_per_success_seconds": 30,
+    "cpu_browser_overhead_seconds": 300,
+    "controlled_action_seconds_cap": 35,
+    "estimated_total_seconds": 20735,
+    "on_overrun": "all planned rows retained, incomplete/blocked is not PASS; do not shrink denominator or auto-extend; diagnose/replan under remaining parent budget"
+  },
+  "inference_profile_candidate": {
+    "model": "installed native tag/digest bound at runtime",
+    "think": false,
+    "num_ctx": 4096,
+    "num_predict": 1536,
+    "temperature": 0.2,
+    "status": "design configuration to freeze for implementation; representative pilot and hard resource proof required after offline implementation and before full real checkpoint"
+  },
+  "packet_targets": {
+    "R1": ".agent-governance/stages/R1-CORE/",
+    "V1-M1": ".agent-governance/stages/V1-M1/",
+    "R2": ".agent-governance/stages/R2/"
+  }
+}
