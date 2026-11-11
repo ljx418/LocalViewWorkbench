@@ -1,0 +1,53 @@
+C1    PASS spec-manifest hash fence (17 reviewed design files) matches
+C2    PASS release gate cumulative counts V1=29 V2=38 V3=47
+C3    PASS legacy required-case lists preserved as unchanged prefix (original 21/30/39)
+C4    PASS MS01-MS08 appended exactly once per gate, no duplicates
+C5    PASS v1-revised-plan v1_required_cases == release_gates V1 required_cases (order sensitive)
+C6    PASS supplement_case_ids == MS01..MS08 exactly
+C7    PASS no duplicate acceptance case_id and every gate case exists in acceptance_cases
+C8    PASS Q01 retained unchanged (12 images + 6 videos, >=10/12 and >=5/6)
+C9    PASS plans/tasks.json dependency graph is acyclic
+C10   PASS preferred_sequence respects depends_on ordering
+C11   PASS v1-revised-plan stage DAG acyclic (R1 -> V1-M1 -> R2)
+C12   PASS v1-revised-plan declares V1-M1 depends_on R1 and R2 depends_on V1-M1
+C13   PASS plan stage deps consistent with tasks.json stage deps for R1/V1-M1/R2
+C14   PASS canonical openapi/coreSchema/storage byte-identical to pre-change record
+C15   PASS authority_stage R2 is inside COMPLETE03 authorized stages; no V2 stage alias
+C16   PASS plan does not reset budget and does not claim a completed/product pass
+C17   PASS v1-multishot schema: every $ref resolves inside the file
+C18   FAIL no $defs name collides with an existing canonical OpenAPI component name
+        detail: collisions=["FrameRef"]
+C19   FAIL candidate FrameRef is shape-compatible with canonical FrameRef (required fields)
+        detail: canonical_required=["index", "sha256", "source_pts", "target_seconds", "time_base_den", "time_base_num", "time_basis"] candidate_required=["index", "sha256", "source_pts", "time_base_den", "time_base_num"] missing_in_candidate=["target_seconds", "time_basis"]
+C20   FAIL reuse_path /api/v1/jobs/batch canonical request body is compatible with candidate BatchAnalyzeRequest
+        detail: canonical=["items"] candidate=["config_profile", "content_profile", "custom_guidance", "mode", "scene_revision_ids", "shot_ids"]
+C21   PASS reuse_path /api/v1/scenes/detect canonical request body matches docs/31 (media_ref_id+profile)
+C22   FAIL candidate SceneRevision required-field set equals canonical Scene required-field set for reused routes
+        detail: canonical_only=["editor", "revision", "verified"] candidate_only=["etag", "origin", "source_sha256", "version"]
+C23   PASS reuse_paths entries absent from canonical OpenAPI are exactly the declared new ones
+C24   FAIL ParentJob required fields are representable in the strict canonical Job DTO (no field smuggling)
+        detail: not_in_canonical_job=["deadline", "planned_child_ids", "selected_scene_revision_ids", "terminal_count", "total"]
+C25   FAIL candidate schema defines a ParentJob DTO
+        detail: defined_defs=["Action", "AnalysisBinding", "BatchAnalyzeRequest", "BatchChildrenResponse", "Character", "ChildSummary", "FrameRef", "SceneRevision", "ShotEvidence"]
+C26   PASS ChildSummary.status values are a subset of canonical Job.status enum
+C27   FAIL BatchChildrenResponse exposes parent progress (terminal_count/total) and deadline
+        detail: children_props=["children", "parent_job_id", "total"]
+C28   PASS baseline DDL scene_revision has no append-only trigger and no etag/source_sha256 column
+C29   PASS baseline DDL batch_child carries no ordinal / shot_id / scene_revision_id column
+C30   FAIL documented 12-clip composition yields the stated 47 planned shots
+        detail: hard=27 nocut=2 vfr=4 fast=8 dissolve(1..3 shots each)=2..6 total=43..47 stated=47
+C31   PASS doc32 states 47 planned shots and 21 hard-cut annotation points
+C32   PASS MS01 cut-point threshold matches the inherited V2 A13 threshold (>=20 points, +-2 source frames, P/R>=0.90)
+C33   PASS design per-round estimate (80 actions / 10800 s) fits the COMPLETE03 per-child ceilings (128 / 21600)
+C34   PASS global remaining budget can fund several full V1 checkpoint rounds at the design estimate
+C35   FAIL design per-round wall estimate (10800 s) is consistent with the measured video-analysis P95 (300 s) x 47 shots
+        detail: 47 shots x 300 s P95 = 14100 s vs design estimate 10800 s (per-call average implied by estimate = 135.0 s)
+C36   FAIL parent batch deadline (1800 s) covers the measured worst case of its own children (12 x 420 s)
+        detail: 12 children x 420 s = 5040 s vs parent deadline 1800 s; measured video P95 300 s x 8-shot sample = 2400 s
+C37   PASS no human signature or product acceptance claimed; V1_ACCEPTED forbidden
+C38   PASS D0 stage control forbids product execution and Stage PASS
+C39   PASS 11-video human holdout set recorded as non-formal and separate from the new MS sample set
+C40   PASS current 1.8 video template response carries no action/scene/character evidence fields (appearance-only)
+C41   PASS canonical model_run.frames records frames with target_seconds + time_basis (sample_target vs decoded_pts)
+
+TOTAL=41 PASS=31 FAIL=10

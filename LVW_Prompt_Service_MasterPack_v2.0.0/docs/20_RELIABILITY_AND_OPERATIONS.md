@@ -25,3 +25,8 @@ UI≤1s反馈；停止/卸载单独观测。V0 Comfy全局interrupt不能误伤�
 ## 运维命令目标
 
 `diagnose`只读；`backup`一致性snapshot；`restore --dry-run`先校验；`migrate --plan`展示版本；`rollback`切软件+匹配数据；`clean-temp`仅LVW临时根且不碰活动lease；`export-project`显式范围。这些是实施命令合同，不是本包已提供生产命令。
+
+
+## 2026-11-11设计1.1优先覆盖
+
+用户批准V1-M1提前scene_revision最小子集、父子固定计划与内部lease/token终结CAS；原“scene/batch/lease全属V2”只指完整增强。V1细则以docs/31–32和候选Schema/迁移为准：元数据/不可变计划有真实存储载体，旧canonical DTO不变，V2完整R13/A13/X04/通用batch与恢复仍保留。

@@ -1,0 +1,22 @@
+# D0-B-REVIEW raw command log (read-only checks only; no model/GPU/media/service/network/install)
+# cwd=/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0
+# host=Linux 6.18.40.1-microsoft-standard-WSL2 x86_64 python=Python 3.12.3 jsonschema=4.23.0
+# start_utc=2026-11-11T08:40:57Z
+
+$ python3 -B reports/v1-redesign/d0-review/checks/recompute_design_checks.py
+exit=0
+C40   PASS current 1.8 video template response carries no action/scene/character evidence fields (appearance-only)
+C41   PASS canonical model_run.frames records frames with target_seconds + time_basis (sample_target vs decoded_pts)
+
+TOTAL=41 PASS=31 FAIL=10
+
+$ python3 -B reports/v1-redesign/d0-review/checks/metaschema_probe.py
+exit=0
+SceneRevision_zero_length(semantic)        errors=0 
+AnalysisBinding_valid                      errors=0 
+AnalysisBinding_uppercase_hash             errors=1 'BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB' does not match '^[0-9a-f]{64}$'
+NOTE schema_cannot_check: end_pts>start_pts, equal-length id arrays, cross-shot actor refs, frame-in-scene, duplicate-frame hashes, parent total==len(children), deadline -> x-semantic-invariants or owner code only
+
+$ git -C <repo> status --porcelain (write scope check)
+?? LVW_Prompt_Service_MasterPack_v2.0.0/reports/v1-redesign/d0-review/
+exit=0
