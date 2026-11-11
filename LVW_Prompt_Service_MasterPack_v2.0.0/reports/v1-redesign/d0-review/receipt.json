@@ -1,0 +1,129 @@
+{
+  "schema_version": "lvw.implementation-receipt/1",
+  "kind": "D0_B_REVIEW_READ_ONLY_DESIGN_REVIEW_RECEIPT",
+  "project_id": "lvw-prompt-service",
+  "stage_id": "V1-D0",
+  "workpack_id": "D0-B-REVIEW",
+  "candidate_sha": "831e440159f20705ada02d26ecf830271e31b07d",
+  "candidate_meaning": "the frozen V1 multi-shot design candidate tree that was read and reviewed (HEAD at review start); NOT a product implementation candidate",
+  "evidence_commit": "a48cf85f1fc25f09ba276c6e4b91aa1f25d7fb31",
+  "spec_version": "V1-D0 spec-manifest (kind=D0_REVIEWED_INPUT_CANDIDATE_HASH_FENCE_NOT_PRODUCT_GATE0)",
+  "spec_manifest_sha256": "2517ab3d3b2e405bf34fd3ca8610d3e5ea509a87f58ab1a6bc572fb3bc92207c",
+  "stage_control_sha256": "abeb4317c25a9dfd3701ec7a4220c0a092ca123dde41061abde0dce3cf3a9573",
+  "acceptance_hash": "df0d5ba18f737ca214ee2be21286fd19f1155e558301d9ef386381ee650ce10b",
+  "acceptance_hash_inputs": [
+    "plans/acceptance_cases.json",
+    "docs/32_V1_ACCEPTANCE_AND_AGENT_WORKFLOW.md",
+    "plans/release_gates.json"
+  ],
+  "gate_version": "V1-D0/1.0 (status=FROZEN_OFFLINE_TOOL_SCOPE_ONLY_PRODUCT_GATE0_NOT_READY)",
+  "run_id": "d0-b-review-2026-11-11-01",
+  "environment": {
+    "executor": "isolated Orca-visible ClaudeCode review window (term_5671f77b-4db0-4f65-ab26-be6d9406d259)",
+    "provider": "none (no product/model inference executed by this window)",
+    "model": "none (review-only window; not used for product inference)",
+    "dependency_fingerprint": "Linux 6.18.40.1-microsoft-standard-WSL2 x86_64; python 3.12.3; jsonschema 4.23.0 (installed, used only for metaschema/behavioural probes)"
+  },
+  "changed_files": [
+    "reports/v1-redesign/d0-review/review.md",
+    "reports/v1-redesign/d0-review/receipt.json",
+    "reports/v1-redesign/d0-review/checks/recompute_design_checks.py",
+    "reports/v1-redesign/d0-review/checks/recompute-results.json",
+    "reports/v1-redesign/d0-review/checks/recompute-run.log",
+    "reports/v1-redesign/d0-review/checks/metaschema_probe.py",
+    "reports/v1-redesign/d0-review/checks/metaschema-check.log",
+    "reports/v1-redesign/d0-review/checks/hash-fence-before.txt",
+    "reports/v1-redesign/d0-review/checks/hash-fence-after.txt",
+    "reports/v1-redesign/d0-review/checks/commands.log"
+  ],
+  "contract_changes": "none (no canonical or candidate contract, plan, doc, product source or governance file was edited by this window)",
+  "production_paths": [],
+  "commands": [
+    {
+      "command": "python3 -B reports/v1-redesign/d0-review/checks/recompute_design_checks.py",
+      "exit_code": 0,
+      "result": "41 checks executed: 31 PASS / 10 FAIL (deterministic design recomputation, read-only, stdlib only)",
+      "log": "reports/v1-redesign/d0-review/checks/recompute-run.log",
+      "log_sha256": "b7eaf26a1d96d3f474d7c47f806469f277df235a64c7963ccc69c65d18a4f31d"
+    },
+    {
+      "command": "python3 -B reports/v1-redesign/d0-review/checks/metaschema_probe.py",
+      "exit_code": 0,
+      "result": "candidate + canonical metaschema OK; 22 behavioural probes executed (schema-enforced vs semantic-only separated)",
+      "log": "reports/v1-redesign/d0-review/checks/metaschema-check.log",
+      "log_sha256": "ae20381a0533e422598f7bc23ee165977e427bcd7f8f44422d7eb7abfaac8baf"
+    },
+    {
+      "command": "sha256 fence over .agent-governance/stages/V1-D0/spec-manifest.json files (before review and after review)",
+      "exit_code": 0,
+      "result": "17/17 files matched before and after the review (MISMATCH_COUNT 0 both times)",
+      "log": "reports/v1-redesign/d0-review/checks/hash-fence-before.txt | reports/v1-redesign/d0-review/checks/hash-fence-after.txt",
+      "log_sha256": "c502aa0f8c2d819c217c43925d2ce6461d04ffc44111f11d59a54e2c250b6c80 | 63dd10b96ff7309edd766b54d744cd534d69b27d858913e52d3dcc0bb5ce02e2"
+    }
+  ],
+  "check_results": {
+    "independent_recomputation": "41 checks / 31 PASS / 10 FAIL",
+    "failing_check_ids": [
+      "C18 candidate $defs name collides with canonical OpenAPI component name (FrameRef)",
+      "C19 candidate FrameRef not shape-compatible with canonical FrameRef (missing target_seconds, time_basis)",
+      "C20 reuse_path /api/v1/jobs/batch canonical request body incompatible with candidate BatchAnalyzeRequest",
+      "C22 candidate SceneRevision required-field set != canonical Scene required-field set",
+      "C24 ParentJob required fields not representable in strict canonical Job DTO",
+      "C25 candidate schema defines no ParentJob DTO",
+      "C27 BatchChildrenResponse exposes no deadline / terminal_count",
+      "C30 documented 12-clip composition yields 43..47 shots, not the stated 47",
+      "C35 design per-round estimate 10800 s below measured video P95 x 47 shots (14100 s)",
+      "C36 parent deadline 1800 s cannot cover its own 12 children x 420 s (5040 s)"
+    ],
+    "review_findings": {"fatal": 1, "major": 11, "minor": 10},
+    "product_or_human_pass": false,
+    "stage_pass_claim": false,
+    "product_gate0_claim": false
+  },
+  "test_counts": {
+    "denominator": 41,
+    "pass": 31,
+    "fail": 10,
+    "blocked": 0,
+    "skipped": 0,
+    "not_run": 0
+  },
+  "artifact_refs": [
+    {"path": "reports/v1-redesign/d0-review/review.md", "sha256": "b5a32b8d3bf3bd2b166b5964e01db3c2a9415f199107d32f7f772c63c78ce4f0"},
+    {"path": "reports/v1-redesign/d0-review/checks/recompute_design_checks.py", "sha256": "d176d43130ef51b5b3ef519a006af464fed66d22f90e5e59c0cfa3a211ca22b8"},
+    {"path": "reports/v1-redesign/d0-review/checks/recompute-results.json", "sha256": "6b41cfd6dcfdae79d787e92cea5eb2e71d6f47f2828c931b8250c6cab8855a66"},
+    {"path": "reports/v1-redesign/d0-review/checks/metaschema_probe.py", "sha256": "d1780391e2b887ea4b9b6bccdfd125c45643ffd2b22014d8aee69914e4182988"},
+    {"path": "reports/v1-redesign/d0-review/checks/commands.log", "sha256": "b5f9fc04cfa0a152c971eca7c1bb35d59796a7cec10fe2471078ca6b772fbf81"}
+  ],
+  "risks": [
+    "F1 (Fatal): POST /api/v1/jobs/batch is one canonical path that the candidate gives an incompatible request body, while both the V1-M1 fixed-denominator shot batch and the retained V2 batch/R4 semantics need it; contract owner (Codex) must decide before product contract freeze.",
+    "M1-M3: reused scene routes carry mutually exclusive canonical/candidate DTOs, and the candidate FrameRef collides by name and is not a legal canonical FrameRef instance, so per-shot frames cannot be stored in canonical model_run.frames.",
+    "M4-M7: ParentJob has no DTO and 5 of its 7 required fields have no carrier; the immutable child plan, per-child shot/scene binding, stale/binding persistence, lease token and a deadline terminal state are not defined in the storage plan.",
+    "M8: ShotEvidence cannot express observation/inference for characters and scene, so the V1 four-domain obligation R06 and per-shot four-target compilation are not closable.",
+    "M9-M11: the fixed 47-shot denominator is not recomputable from the documented 12-clip composition (43..47), the 1800 s parent deadline cannot cover its own children (12x420 s) and conflicts with the no-truncation rule, and the <=80 calls / 10800 s per-round estimate implies 135 s per call against the project's measured 300 s four-frame video P95.",
+    "Sample hashes, independent annotations, real model output evidence and product packets do not exist yet; no product or human PASS may be inferred from this review.",
+    "This window did NOT receive or review the D0-B-IMPL checker candidate (tools/verify_v1_plan.py absent in this checkout) and does not rely on it; a separate read-only checker-code review is a follow-up task per coordinator instruction.",
+    "MANIFEST.sha256 was not updated (root file is outside this workpack's allowed_files); the new report files are therefore not manifest-listed, which Codex may want to fix in its own packet."
+  ],
+  "cleanup": {
+    "processes_started": 0,
+    "services_started": 0,
+    "ports_bound": 0,
+    "temp_roots": "none",
+    "model_actions": 0,
+    "gpu_actions": 0,
+    "media_operations": 0,
+    "network_operations": 0,
+    "package_installs": 0,
+    "secret_reads": 0,
+    "git_push": false,
+    "parent_or_implementation_branch_touched": false,
+    "files_written_outside_allowed_dir": 0,
+    "note": "read-only review; only reports/v1-redesign/d0-review/ was written; no lingering worker or process"
+  },
+  "implementation_owner_role": "independent reviewer (ClaudeCode-D0-Review), read-only, separate from implementation session",
+  "implementation_session": "term_5671f77b-4db0-4f65-ab26-be6d9406d259 (this window); implementation session differs: term_192c2ec6-ba08-4100-ac4c-6b603e2b82d0 coordinator / lvw-v1-d0-implement worktree",
+  "decision": "READY_FOR_REVIEW",
+  "recommended_gate_status": "NOT_GO_FOR_DESIGN_CONSOLIDATION_ONLY",
+  "exact_stop_reason": "Independent read-only design audit completed on the frozen V1 multi-shot design candidate (hash-fenced before and after). Found 1 Fatal, 11 Major, 10 Minor with file/field, trigger, expected vs actual, raw evidence and bounded corrections. The Fatal contract conflict (F1: /api/v1/jobs/batch request-body conflict between canonical V2 batch and the V1-M1 fixed-denominator shot batch) and the Majors must be resolved by the gate owner (Codex) before product contract freeze; this window made no contract, plan, doc, product or governance edits and claims no product Gate0, Stage PASS, product PASS or human signature."
+}
