@@ -240,3 +240,8 @@ C2 读取哈希固定的1.0.4完整九样本清单，保留旧四样本前缀；
 ## 2026-11-11｜统一切片实际人工确认已记录
 
 用户确认当前前端与基本视频反推OK，并明确要求作为统一切片人签落盘与普通推送。见[签署](../reports/unified-media/human-signoff-live15.json)及[范围验收](../reports/unified-media/accepted-slice-live15.json)。该签署候选621b1bf，仅统一切片，不回填历史S2或批准完整V1/发布；下一步核对S2/S3依赖与复用范围，再进入有准入证据的Stage。唯一坐标已移除该切片WAIT_HUMAN。
+
+
+## 2026-11-11｜下一前置已核实：仅待V1依赖范围决策
+
+统一切片人签与普通推送已完成。独审c810dea核实旧S2未签仍阻塞S3→R1→M1→R2。Codex不把旧S2改成8/8，提出[CHANGE-V1-S2-HANDOFF-01](../reports/v1-next-stage-readiness/change-v1-s2-handoff-01.request.json)，仅申请V1开发衔接条件改绑，保留旧S2状态、S3十二项及所有质量/资源门限。当前WAIT_AUTH只指产品范围决策，不是重复GPU/代码许可；详见[裁决](../reports/v1-next-stage-readiness/codex-decision-01.md)。尚未批准提案，不激活新产品Stage。

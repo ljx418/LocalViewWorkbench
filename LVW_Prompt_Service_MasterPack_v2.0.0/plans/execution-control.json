@@ -8,8 +8,8 @@
   "coordinate": {
     "stage_id": "R1",
     "workpack_id": "WP-R1-U3",
-    "gate": "UNIFIED_MEDIA_SLICE_HUMAN_ACCEPTED_SCOPE_ONLY",
-    "state": "SLICE_ACCEPTED_NEXT_STAGE_PREPARATION"
+    "gate": "NEXT_STAGE_DEPENDENCY_SCOPE_DECISION",
+    "state": "WAIT_AUTH"
   },
   "last_passed_gate": {
     "gate": "UNIFIED_MEDIA_FIXED_UM10_AND_INDEPENDENT_REVIEW",
@@ -21,7 +21,7 @@
     "passed_cases": 10,
     "human_signoff": "reports/unified-media/human-signoff-live15.json"
   },
-  "current_blocking_gate": "NEXT_STAGE_DEPENDENCY_AUDIT_PENDING",
+  "current_blocking_gate": "CHANGE-V1-S2-HANDOFF-01",
   "stage_packet": ".agent-governance/stages/R1/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/R1/PAYLOAD_MANIFEST.sha256",
   "product_status": "UNIFIED_MEDIA_EARLY_ACCEPTED_SCOPE_ONLY_FULL_R1_PENDING",
@@ -34,9 +34,9 @@
     "PRODUCTION_RELEASED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "Codex",
-  "next_action": "Unified slice signature and ordinary push are complete (c448ec6 remote verified). Read the dispatched independent S2/S3 dependency/reuse audit when it reports; Codex adjudicates next permitted packet or exact human/contract decision, without re-requesting accepted frontend signoff.",
-  "required_authorization": null,
+  "next_owner": "project_owner (V1-only dependency scope decision), then Codex",
+  "next_action": "Approve or reject CHANGE-V1-S2-HANDOFF-01. Current frontend is already human-approved and pushed. Root preserves oldS2 7/8 and all quality/resource gates; productStageexecution waits for this dependency decision, then actualGate0readiness.",
+  "required_authorization": "CHANGE-V1-S2-HANDOFF-01",
   "authorization_request": "reports/authorization-program-v1-complete-03.request.json",
   "authorization_record": "reports/authorization-program-v1-complete-03.approval.json",
   "read_only_binding_authorization": "reports/v0-s2/authorization-binding-inventory-06.json",
@@ -87,7 +87,7 @@
   "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
   "live_terminal_receipt": "reports/unified-media/live-15/receipt.json",
   "independent_review": "reports/unified-media/independent-live-15/review.md",
-  "exact_stop_reason": "Verified wait for live Orca dependency audit ctx_dc82e2d50936; current slice human-approved and signed commit c448ec6 pushed. No product Stage activation before prerequisite assessment; no new GPU/code permission missing.",
+  "exact_stop_reason": "WAIT_AUTH_FOR_PRODUCT_SCOPE_ONLY: oldS2 human gate is still pending and currently blocksS3->R1->M1->R2. CurrentUM signed/pushed; noGPU/code/candidate execution authorization missing. The prepared V1-only handoff proposal preserves oldS2 unsigned status; cannot apply contract change without projectowner decision.",
   "native_component_authorization": "reports/v0-s2/authorization-native-component-02.json",
   "native_component_terminal_receipt": "reports/v0-s2/native-component-02/receipt.json",
   "local_control_change_decision": "reports/v0-s2/change-decision-video-workbench-01.json",
@@ -1042,7 +1042,7 @@
   },
   "accepted_slice_git_sync": "reports/unified-media/git-sync-human-live15/receipt.json",
   "next_stage_preparation": {
-    "status": "INDEPENDENT_READINESS_AUDIT_DISPATCHED",
+    "status": "INDEPENDENT_AUDIT_COMPLETE_SCOPE_CHANGE_REQUIRED",
     "candidate_sha": "c448ec657c01708270c83291806a3dccc9fe6090",
     "scope": "S2/S3 and fullV1 dependency/reuse assessment; no product Stage activated",
     "task_spec": "reports/v1-redesign/claude-next-stage-readiness.task.md",
@@ -1050,9 +1050,15 @@
     "dispatch_id": "ctx_dc82e2d50936",
     "task_id": "task_1079dab10b5a",
     "launch_receipt": "reports/v1-redesign/orca/next-stage-readiness.launch.json",
-    "last_observed_liveness": "live",
+    "last_observed_liveness": "succeeded (worker_done received)",
     "observation_source": "orca-ide orchestration worker-show --dispatch ctx_dc82e2d50936 --json, current goal continuation",
     "observation_recorded_at": "2026-11-11T13:13:51.564376+00:00",
-    "not_a_product_permission_or_gate": true
-  }
+    "not_a_product_permission_or_gate": true,
+    "independent_review": "reports/v1-next-stage-readiness/independent-01/receipt.json",
+    "independent_review_commit": "c810dea",
+    "codex_adjudication": "reports/v1-next-stage-readiness/codex-decision-01.json",
+    "required_scope_request": "reports/v1-next-stage-readiness/change-v1-s2-handoff-01.request.json"
+  },
+  "scope_change_request": "reports/v1-next-stage-readiness/change-v1-s2-handoff-01.request.json",
+  "scope_change_decision": "reports/v1-next-stage-readiness/codex-decision-01.json"
 }
