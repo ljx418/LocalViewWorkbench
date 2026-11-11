@@ -1,0 +1,88 @@
+{
+  "kind": "INDEPENDENT_S3_P2B_REVIEW",
+  "candidate": "34de7b54a529a8947d63736c6f1bd345828cad57",
+  "evidence_tip": "210fb1e130ac749e9537bda895472b7a3b5101f9",
+  "root": "7e33e6112d9df330ef4385773e41072a7c2f5469",
+  "initial_worktree_clean": true,
+  "merge_exit": 0,
+  "merge_conflicts": false,
+  "implementation_worker_outcome": "failed",
+  "review_task_complete": true,
+  "tool_acceptability": "CHANGES_REQUIRED",
+  "actual_P2B_readiness": "PARTIAL_NO_GO_FOR_PRODUCTION",
+  "findings": {
+    "Fatal": 0,
+    "Major": 2,
+    "ids": [
+      "P2B-M01",
+      "P2B-M02"
+    ]
+  },
+  "tests": {
+    "implementation_scope": 83,
+    "P1_related_regressions": 84,
+    "each_group_runs": 1,
+    "exit_codes": [
+      0,
+      0
+    ],
+    "all_new_owned_roots_removed": true
+  },
+  "probe_command": [
+    "python3",
+    "-B",
+    "reports/v0-s3/product-gate0/independent-p2-binding/probes.py"
+  ],
+  "probe_exit": 0,
+  "audit_command": [
+    "python3",
+    "-B",
+    "reports/v0-s3/product-gate0/independent-p2-binding/audit_evidence.py"
+  ],
+  "audit_exit": 0,
+  "proven": [
+    "real Windows normal fixture debit=1",
+    "real missing child/hash refusal with zero sends",
+    "wrapper timeout exit1 with joined threads/closed pipes",
+    "remote alive at ~1s and same birth absent after timer join",
+    "owned process bound <=28",
+    "output conservative bound <=16130808 bytes",
+    "P1 echo/decode function bytes unchanged"
+  ],
+  "not_proven": [
+    "real cross-OS malformed receipt",
+    "immediate remote cleanup at wrapper timeout",
+    "remote numerical exit status/cause",
+    "Windows Python native PID birth",
+    "production runtime/real ledger binding"
+  ],
+  "extra_not_original_required": [
+    "whole-machine OS service census",
+    "separate numeric remote exit code when final owned absence already proven"
+  ],
+  "old_fixture": "FAILED_RETAINED_UNCHANGED",
+  "old_reservation": "UNKNOWN_RETAINED_NO_REFUND_NO_SETTLE0",
+  "new_review_real_effects": {
+    "windows_wsl_batches": 0,
+    "installed_metadata_discovery": 0,
+    "installed_binary_hashes": 0,
+    "real_ledger_reads": 0,
+    "real_ledger_mutations": 0,
+    "models": 0,
+    "media": 0,
+    "preview": 0,
+    "gpu": 0,
+    "services": 0,
+    "network": 0,
+    "downloads": 0,
+    "full_checkpoints": 0,
+    "old_pid_observations": 0,
+    "old_pid_terminations": 0
+  },
+  "stage_pass": false,
+  "product_gate0": false,
+  "quality_claim": false,
+  "human_signoff": false,
+  "release": false,
+  "recommendation": "Root freeze and correct finite owner M01/M02; precise new child only for consolidated remaining cross-OS obligations, no repeat human CPU approval and no cleanup implementation before root freeze."
+}

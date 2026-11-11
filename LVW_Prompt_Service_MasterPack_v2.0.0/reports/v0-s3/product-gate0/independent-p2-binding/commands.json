@@ -1,0 +1,45 @@
+{
+  "setup": [
+    {
+      "argv": [
+        "git",
+        "status",
+        "--short"
+      ],
+      "stdout": "",
+      "exit": 0
+    },
+    {
+      "argv": [
+        "git",
+        "merge",
+        "--no-edit",
+        "210fb1e130ac749e9537bda895472b7a3b5101f9"
+      ],
+      "stdout_summary": "Updating f5b63a0..210fb1e; Fast-forward",
+      "exit": 0
+    }
+  ],
+  "tests": "checks.json",
+  "probes": {
+    "argv": [
+      "python3",
+      "-B",
+      "reports/v0-s3/product-gate0/independent-p2-binding/probes.py"
+    ],
+    "stdout": "probes.stdout",
+    "stderr": "probes.stderr",
+    "exit": 0
+  },
+  "audit": {
+    "argv": [
+      "python3",
+      "-B",
+      "reports/v0-s3/product-gate0/independent-p2-binding/audit_evidence.py"
+    ],
+    "stdout": "audit.stdout",
+    "stderr": "audit.stderr",
+    "exit": 0
+  },
+  "supplement": "output-bound-supplement.json is a later static arithmetic derivation, not a new real-machine measurement"
+}
