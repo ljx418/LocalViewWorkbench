@@ -1,0 +1,408 @@
+{
+  "probes": [
+    {
+      "probe_id": "guard.baseline_copy",
+      "kind": "semantic",
+      "decision": "HANDOFF_READINESS_VERIFIED",
+      "failed_check_ids": [],
+      "authority": "FIXTURE_NON_AUTHORITY_COPY",
+      "checks": 119,
+      "note": "an untouched synthetic copy of the frozen authority must verify"
+    },
+    {
+      "probe_id": "guard.live_s2_outline_8of8",
+      "kind": "semantic",
+      "decision": "HANDOFF_READINESS_VERIFIED",
+      "failed_check_ids": [],
+      "authority": "FIXTURE_NON_AUTHORITY_COPY",
+      "changed_stages": [
+        "V0-S2"
+      ],
+      "fence_failures": [],
+      "reported_historical_s2_projection": {
+        "completed_substeps": 7,
+        "total_substeps": 8,
+        "human_signoff": "PENDING"
+      },
+      "actual_development_outline_s2": {
+        "completed_substeps": 8,
+        "human_signoff": "APPROVED"
+      },
+      "note": "ONLY the live execution-control development_outline V0-S2 entry was changed; every immutable proof, the declared predicate snapshot in all three plans and the approval record were left untouched"
+    },
+    {
+      "probe_id": "guard.live_s2_outline_8of8_substep_done",
+      "kind": "semantic",
+      "decision": "HANDOFF_READINESS_VERIFIED",
+      "failed_check_ids": [],
+      "authority": "FIXTURE_NON_AUTHORITY_COPY",
+      "fence_failures": [],
+      "note": "last S2 substep marked DONE with the historical machine receipt as evidence"
+    },
+    {
+      "probe_id": "guard.mutable_coordinates_advance",
+      "kind": "semantic",
+      "decision": "HANDOFF_READINESS_VERIFIED",
+      "failed_check_ids": [],
+      "execution_coordinates_frozen": false,
+      "note": "a true current mutable execution coordinate may advance"
+    },
+    {
+      "probe_id": "guard.unsanctioned_alias",
+      "kind": "semantic",
+      "decision": "HANDOFF_READINESS_REJECTED",
+      "failed_check_ids": [
+        "fence.source_files",
+        "predicate.tasks.no_unsanctioned_alias"
+      ],
+      "fence_failures": [
+        "fence.source_files"
+      ],
+      "note": "an extra unsanctioned dependency-gate alias"
+    },
+    {
+      "probe_id": "guard.wrong_purpose",
+      "kind": "semantic",
+      "decision": "HANDOFF_READINESS_REJECTED",
+      "failed_check_ids": [
+        "fence.source_files",
+        "predicate.execution.purpose",
+        "predicate.tasks.purpose",
+        "predicate.v1plan.purpose"
+      ],
+      "fence_failures": [
+        "fence.source_files"
+      ],
+      "note": "purpose widened to V1_FULL_ACCEPTANCE in all three plans"
+    },
+    {
+      "probe_id": "guard.wrong_proof_pin_in_predicate",
+      "kind": "semantic",
+      "decision": "HANDOFF_READINESS_REJECTED",
+      "failed_check_ids": [
+        "fence.source_files",
+        "predicate.execution.proofs_pinned",
+        "predicate.tasks.proofs_pinned",
+        "predicate.v1plan.proofs_pinned"
+      ],
+      "fence_failures": [
+        "fence.source_files"
+      ],
+      "note": "predicate proof hash replaced with zeros in all three plans"
+    },
+    {
+      "probe_id": "guard.tampered_proof_file",
+      "kind": "generic_checksum",
+      "decision": "HANDOFF_READINESS_REJECTED",
+      "failed_check_ids": [
+        "fence.source_files",
+        "map.historical_s2_not_signed",
+        "map.sha256"
+      ],
+      "fence_failures": [
+        "fence.source_files"
+      ],
+      "note": "the capability map file bytes were edited"
+    },
+    {
+      "probe_id": "guard.fake_old_s2_declared",
+      "kind": "semantic",
+      "decision": "HANDOFF_READINESS_REJECTED",
+      "failed_check_ids": [
+        "fence.source_files",
+        "predicate.execution.historical_s2_projection",
+        "predicate.tasks.historical_s2_projection",
+        "predicate.v1plan.historical_s2_projection"
+      ],
+      "fence_failures": [
+        "fence.source_files"
+      ],
+      "note": "the declared predicate snapshot claims an 8/8 SIGNED historical S2"
+    },
+    {
+      "probe_id": "guard.approval_claims_s2_signature",
+      "kind": "generic_checksum",
+      "decision": "HANDOFF_READINESS_REJECTED",
+      "failed_check_ids": [
+        "approval.historical_s2_not_signed",
+        "approval.sha256",
+        "fence.source_files"
+      ],
+      "fence_failures": [
+        "fence.source_files"
+      ],
+      "note": "the approval record claims an old S2 native human signature"
+    },
+    {
+      "probe_id": "guard.missing_um_case",
+      "kind": "generic_checksum",
+      "decision": "HANDOFF_READINESS_REJECTED",
+      "failed_check_ids": [
+        "evidence.um_coverage.all_pass",
+        "evidence.um_coverage.case_set",
+        "evidence.um_coverage.sha256",
+        "fence.source_files"
+      ],
+      "fence_failures": [
+        "fence.source_files"
+      ],
+      "note": "UM-05 removed from the unified-media coverage"
+    },
+    {
+      "probe_id": "guard.missing_s2_case",
+      "kind": "generic_checksum",
+      "decision": "HANDOFF_READINESS_REJECTED",
+      "failed_check_ids": [
+        "evidence.s2_machine.case_set",
+        "evidence.s2_machine.case_status",
+        "evidence.s2_machine.sha256",
+        "fence.source_files"
+      ],
+      "fence_failures": [
+        "fence.source_files"
+      ],
+      "note": "V0-A07 removed from the historical S2 machine receipt"
+    },
+    {
+      "probe_id": "guard.shrunk_required_case_list",
+      "kind": "semantic",
+      "decision": "HANDOFF_READINESS_REJECTED",
+      "failed_check_ids": [
+        "fence.source_files",
+        "predicate.execution.required_s2_case_ids",
+        "predicate.tasks.required_s2_case_ids",
+        "predicate.v1plan.required_s2_case_ids"
+      ],
+      "fence_failures": [
+        "fence.source_files"
+      ],
+      "note": "the required S2 case list is shrunk in all three plans"
+    },
+    {
+      "probe_id": "guard.malformed_plan_json",
+      "kind": "semantic",
+      "decision": "HANDOFF_READINESS_REJECTED",
+      "failed_check_ids": [
+        "fence.source_files",
+        "plans.tasks.malformed_json"
+      ],
+      "fence_failures": [
+        "fence.source_files"
+      ],
+      "note": "plans/tasks.json is not valid JSON"
+    },
+    {
+      "probe_id": "guard.malformed_payload_manifest",
+      "kind": "generic_checksum",
+      "decision": "HANDOFF_READINESS_REJECTED",
+      "failed_check_ids": [
+        "fence.payload_files",
+        "fence.payload_manifest.sha256"
+      ],
+      "note": "the packet payload manifest line is malformed"
+    },
+    {
+      "probe_id": "guard.missing_approval",
+      "kind": "generic_checksum",
+      "decision": "HANDOFF_READINESS_REJECTED",
+      "failed_check_ids": [
+        "approval.present",
+        "approval.sha256",
+        "fence.source_files"
+      ],
+      "fence_failures": [
+        "fence.source_files"
+      ],
+      "note": "the owner approval file is absent"
+    },
+    {
+      "probe_id": "guard.missing_um_signoff",
+      "kind": "generic_checksum",
+      "decision": "HANDOFF_READINESS_REJECTED",
+      "failed_check_ids": [
+        "evidence.um_human.present",
+        "evidence.um_human.sha256",
+        "fence.source_files"
+      ],
+      "fence_failures": [
+        "fence.source_files"
+      ],
+      "note": "the unified-media human signature file is absent"
+    },
+    {
+      "probe_id": "guard.predicate_divergence",
+      "kind": "semantic",
+      "decision": "HANDOFF_READINESS_REJECTED",
+      "failed_check_ids": [
+        "predicate.equality",
+        "predicate.execution.s2_machine_candidate"
+      ],
+      "fence_failures": [],
+      "note": "the execution-control predicate snapshot differs from the other two plans"
+    },
+    {
+      "probe_id": "guard.map_claims_inherited_quality",
+      "kind": "generic_checksum",
+      "decision": "HANDOFF_READINESS_REJECTED",
+      "failed_check_ids": [
+        "fence.source_files",
+        "map.no_inherited_quality",
+        "map.sha256"
+      ],
+      "note": "the capability map claims inherited quality coverage"
+    },
+    {
+      "probe_id": "inventory.canonical_child_limits",
+      "kind": "fact",
+      "decision": "MATCH",
+      "failed_check_ids": [],
+      "child_limits": {
+        "wall_seconds": 180,
+        "max_regular_files_examined": 2048,
+        "max_files_hashed": 512,
+        "max_total_bytes_hashed": 8589934592,
+        "max_single_file_bytes": 536870912,
+        "read_chunk_bytes": 1048576,
+        "max_directory_entries": 8192
+      },
+      "expected_limits": {
+        "wall_seconds": 180,
+        "max_regular_files_examined": 2048,
+        "max_files_hashed": 512,
+        "max_total_bytes_hashed": 8589934592,
+        "max_single_file_bytes": 536870912,
+        "read_chunk_bytes": 1048576,
+        "max_directory_entries": 8192
+      },
+      "child_extensions": [
+        ".jpg",
+        ".jpeg",
+        ".png",
+        ".webp",
+        ".mp4",
+        ".mov",
+        ".mkv",
+        ".webm",
+        ".avi"
+      ],
+      "expected_extensions": [
+        ".jpg",
+        ".jpeg",
+        ".png",
+        ".webp",
+        ".mp4",
+        ".mov",
+        ".mkv",
+        ".webm",
+        ".avi"
+      ],
+      "child_kind": "BOUNDED_S3_PREPARATION_CHILD_DERIVED_FROM_EXISTING_COMPLETE03",
+      "expected_kind": "BOUNDED_S3_PREPARATION_CHILD_DERIVED_FROM_EXISTING_COMPLETE03",
+      "note": "the frozen child authorisation must carry exactly the frozen limits and extensions"
+    },
+    {
+      "probe_id": "inventory.guard_denied_zero_media_reads",
+      "kind": "semantic",
+      "decision": "INVENTORY_REFUSED_PRE_MEDIA_ACCESS",
+      "failed_check_ids": [
+        "handoff_guard_rejected"
+      ],
+      "refusal": {
+        "reason": "handoff_guard_rejected",
+        "detail": "handoff guard did not verify: ['fence.source_files', 'evidence.um_coverage.sha256', 'evidence.um_coverage.malformed_json']"
+      },
+      "media_bytes_read": 0,
+      "files_hashed": 0,
+      "items": 0,
+      "observed_media_opens": [],
+      "note": "the guard refuses before any source byte is read"
+    },
+    {
+      "probe_id": "inventory.hash_budget_exact_vs_one_over",
+      "kind": "semantic",
+      "decision": "exact=2 one_over=1",
+      "failed_check_ids": [],
+      "exact": {
+        "eligible": 2,
+        "skipped_by_reason": {
+          "hash_budget_exhausted": 1
+        },
+        "files_hashed": 2,
+        "decision": "INVENTORY_COMPLETE"
+      },
+      "one_over": {
+        "eligible": 1,
+        "skipped_by_reason": {
+          "hash_budget_exhausted": 2
+        },
+        "files_hashed": 1,
+        "decision": "INVENTORY_COMPLETE"
+      },
+      "note": "hash budget boundary: exactly N is hashed, N+1 is reported as a skip and never read"
+    },
+    {
+      "probe_id": "inventory.symlink_escape_rejected",
+      "kind": "semantic",
+      "decision": "INVENTORY_COMPLETE",
+      "failed_check_ids": [],
+      "eligible": 1,
+      "skipped_by_reason": {
+        "symlink_escape_rejected": 1
+      },
+      "outside_sha_present": false,
+      "note": "a symlink pointing outside the approved root is never followed"
+    },
+    {
+      "probe_id": "inventory.existing_receipt_not_overwritten",
+      "kind": "semantic",
+      "decision": "INVENTORY_REFUSED_PRE_MEDIA_ACCESS",
+      "failed_check_ids": [
+        "terminal_receipt_already_exists"
+      ],
+      "first_decision": "INVENTORY_COMPLETE",
+      "write_receipt": false,
+      "file_unchanged": true,
+      "note": "an existing terminal receipt is never overwritten"
+    },
+    {
+      "probe_id": "inventory.changed_during_inventory_excluded",
+      "kind": "semantic",
+      "decision": "INVENTORY_COMPLETE",
+      "failed_check_ids": [],
+      "eligible": 0,
+      "skipped_by_reason": {
+        "changed_during_inventory": 1
+      },
+      "files_hashed": 0,
+      "note": "a file changed between the before-stat and the after-stat is excluded"
+    },
+    {
+      "probe_id": "inventory.binding_candidate_must_be_a_sha",
+      "kind": "semantic",
+      "decision": "INVENTORY_REFUSED_PRE_MEDIA_ACCESS",
+      "failed_check_ids": [
+        "binding_mismatch"
+      ],
+      "refusal_detail": "candidate_sha is not a 40 character git object id",
+      "media_bytes_read": 0,
+      "note": "the binding candidate_sha must be a 40 character git object id"
+    },
+    {
+      "probe_id": "inventory.fixture_child_widened_budget",
+      "kind": "semantic",
+      "decision": "INVENTORY_COMPLETE",
+      "failed_check_ids": [],
+      "authority": "FIXTURE_NON_AUTHORITY",
+      "limits_honoured": {
+        "wall_seconds": 180,
+        "max_regular_files_examined": 2048,
+        "max_files_hashed": 999999,
+        "max_total_bytes_hashed": 999999999999,
+        "max_single_file_bytes": 536870912,
+        "read_chunk_bytes": 1048576,
+        "max_directory_entries": 8192
+      },
+      "note": "child limit enforcement is gated on the canonical child"
+    }
+  ]
+}

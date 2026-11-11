@@ -1,0 +1,101 @@
+{
+  "kind": "CODEX_INDEPENDENT_HASH_REVIEW_PROCESS_DEVIATION_NOT_RETROACTIVE_GRANT",
+  "status": "REQUIRES_HARNESS_CORRECTION_AND_APPEND_ONLY_ACCOUNTING",
+  "review_commit": "1a1f7dc",
+  "child": "S3-PREP-REVIEW-HASH-01",
+  "source_attempts": [
+    {
+      "path": "reports/v0-s3/preparation-03/independent-01/hash-recheck/attempt1-hash-mismatch.json",
+      "sha256": "51d324f83b52f64c8180511ad678bc4e954c703e194e304e98160787e0e60afd",
+      "preflight_validated_before_source_access": false,
+      "counters": {
+        "files_attempted": 3,
+        "files_hashed": 3,
+        "bytes_read": 11009275,
+        "chunks_read": 15,
+        "files_skipped": 0,
+        "escape_rejected": 0,
+        "identity_mismatch": 0,
+        "missing": 0
+      },
+      "elapsed_seconds": 0.627,
+      "all_source_hashes_match": true,
+      "source_ids": [
+        "6ec6e856dfacc6bf3cbd8e25fc8430b15e18e2f88ad57ac5b12789a8730ca45b",
+        "9708cebf9d6085de3b3f6d2a4fe105e20698079ddf56a3e7d514bb99ac758a65",
+        "d3a771505adb838e36f75eede1608509aae8f87d579e2d128784dca584e14737"
+      ]
+    },
+    {
+      "path": "reports/v0-s3/preparation-03/independent-01/hash-recheck/attempt2-hash-mismatch.json",
+      "sha256": "daf8cbae75bac572283e8fd4d7031d2d7e5fd393bbcef089aee89fa9d37c0165",
+      "preflight_validated_before_source_access": false,
+      "counters": {
+        "files_attempted": 3,
+        "files_hashed": 3,
+        "bytes_read": 11009275,
+        "chunks_read": 15,
+        "files_skipped": 0,
+        "escape_rejected": 0,
+        "identity_mismatch": 0,
+        "missing": 0
+      },
+      "elapsed_seconds": 0.473,
+      "all_source_hashes_match": true,
+      "source_ids": [
+        "6ec6e856dfacc6bf3cbd8e25fc8430b15e18e2f88ad57ac5b12789a8730ca45b",
+        "9708cebf9d6085de3b3f6d2a4fe105e20698079ddf56a3e7d514bb99ac758a65",
+        "d3a771505adb838e36f75eede1608509aae8f87d579e2d128784dca584e14737"
+      ]
+    },
+    {
+      "path": "reports/v0-s3/preparation-03/independent-01/hash-recheck/hash-recheck-final.json",
+      "sha256": "fd74dcae5fed91be4b0e303eed1d746b3e38ef48657918162b5720c2c560e58a",
+      "preflight_validated_before_source_access": true,
+      "counters": {
+        "files_attempted": 3,
+        "files_hashed": 3,
+        "bytes_read": 11009275,
+        "chunks_read": 15,
+        "files_skipped": 0,
+        "escape_rejected": 0,
+        "identity_mismatch": 0,
+        "missing": 0
+      },
+      "elapsed_seconds": 0.582,
+      "all_source_hashes_match": true,
+      "source_ids": [
+        "6ec6e856dfacc6bf3cbd8e25fc8430b15e18e2f88ad57ac5b12789a8730ca45b",
+        "9708cebf9d6085de3b3f6d2a4fe105e20698079ddf56a3e7d514bb99ac758a65",
+        "d3a771505adb838e36f75eede1608509aae8f87d579e2d128784dca584e14737"
+      ]
+    }
+  ],
+  "derived_totals": {
+    "source_read_passes": 3,
+    "file_read_operations": 9,
+    "unique_source_files": 3,
+    "bytes_read": 33027825,
+    "elapsed_seconds": 1.682
+  },
+  "allowed": {
+    "source_read_passes": 1,
+    "files": 3,
+    "bytes": 33554432,
+    "wall_seconds": 60
+  },
+  "compliance": {
+    "one_pass_limit_met": false,
+    "preflight_before_each_source_access_met": false,
+    "aggregate_byte_cap_met": true,
+    "scope_roots_and_selected_file_set_widened": false
+  },
+  "important_distinction": "Hash equality is reproduced, but finalpositive output does not erase the two preflight-failed source reads. Cannot claim a single fully compliant hash recheck. Originalimplementation inventory remains separatelybound and unaffected.",
+  "required_action": "Copyfix reviewerhelper in newreportpath, guardallprerequisitesbefore anysource stat/open, failclosedon subprocess nonzero/missing/invalidobject IDs. Provefalsepreflight=>zerosourcereads with syntheticfixtures; append truthfulaggregate3passes/9reads. No more realmediareads/rechecks, no originalrecords modified, no retrospectivegrant.",
+  "counters_unchanged": {
+    "model_actions": 0,
+    "effective_full_checkpoints": 0,
+    "product_service_starts": 0
+  },
+  "scope_limits": "No decode/visualview/rawmediacopy/network/unknownroots ororiginalsourcewrites shown in retainedrecords."
+}
