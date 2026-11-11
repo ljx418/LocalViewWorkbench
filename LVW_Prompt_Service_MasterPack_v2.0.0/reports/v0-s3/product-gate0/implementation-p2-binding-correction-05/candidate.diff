@@ -1,0 +1,262 @@
+diff --git a/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_runtime_binding.py b/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_runtime_binding.py
+index eeb1e67..e2d27bb 100644
+--- a/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_runtime_binding.py
++++ b/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_runtime_binding.py
+@@ -505,6 +505,10 @@ def test_correction03_fixed_call_graph_spy(tmp_path,monkeypatch):
+ 
+ @pytest.mark.parametrize('fault',[None,'phase2','phase3','observer','cleanup','detail','serialization','native','output'])
+ def test_correction04_public_run_maximum(tmp_path,monkeypatch,fault):
++    return public_run_maximum(tmp_path,monkeypatch,fault)
++
++
++def public_run_maximum(tmp_path,monkeypatch,fault=None,finalization_fault=None):
+     """Public owner, real factory/roles/SQLite/claim; synthetic host process boundary."""
+     import io
+     import os
+@@ -589,17 +593,88 @@ def test_correction04_public_run_maximum(tmp_path,monkeypatch,fault):
+     monkeypatch.setattr(harness.subprocess,'Popen',popen)
+     save=harness.EvidenceStore.save
+     def save_fault(store,kind,value=None,raw=None):
++        if finalization_fault=='all-permanent' and terminal_started[0]:raise OSError('synthetic all terminal storage unavailable')
+         if phase[0]==2 and kind=='phase' and fault=='detail':raise OSError('synthetic detail failure')
+         if phase[0]==2 and kind=='phase' and fault=='serialization':value={'bad':object()}
+         return save(store,kind,value,raw)
+     monkeypatch.setattr(harness.EvidenceStore,'save',save_fault)
++    writes=[];failures=[];terminal_started=[False]
++    real_terminal=harness.terminal;real_write=harness.write;real_replace=harness.os.replace
++    def terminal_call(*args):
++        terminal_started[0]=True
++        return real_terminal(*args)
++    monkeypatch.setattr(harness,'terminal',terminal_call)
++    def fail_for(label):
++        if finalization_fault is None:return False
++        target,mode=finalization_fault.rsplit('-',1)
++        if target!=label or mode not in ('permanent','transient'):return False
++        if mode=='transient' and failures:return False
++        failures.append(label)
++        return True
++    def faulty_write(path,value):
++        if terminal_started[0]:
++            writes.append(dict(path=str(path),status=value.get('status'),result=value.get('result')))
++            label=('shared' if path==tmp_path/'shared.claim' else 'local' if path==base/'consumed.json'
++                   else 'early' if path==base/'cross-os-lifecycle.json' else '')
++            if finalization_fault=='all-permanent' or fail_for(label):raise OSError('synthetic '+str(finalization_fault))
++            if finalization_fault=='shared-afterwrite' and label=='shared' and not failures:
++                real_write(path,value);failures.append(label);raise OSError('synthetic after successful claim write')
++        return real_write(path,value)
++    monkeypatch.setattr(harness,'write',faulty_write)
++    def replace(src,dst):
++        if Path(src)==base/'terminal-candidate.json' and fail_for('publish'):
++            raise OSError('synthetic READY atomic publish failure')
++        return real_replace(src,dst)
++    monkeypatch.setattr(harness.os,'replace',replace)
+     try:
+         life=harness.run()
+-        terminal=json.loads((base/'cross-os-lifecycle.json').read_text())
+-        assert life['terminal_persisted'] and (base/'cross-os-lifecycle.json').stat().st_size<=16384
+-        assert terminal['status']==('READY_FOR_REVIEW' if fault is None else 'BLOCKED')
+-        claim=json.loads((tmp_path/'shared.claim').read_text())
+-        assert claim['status']=='EXPIRED' and claim['terminal_sha256']==original_digest(base/'cross-os-lifecycle.json')
++        terminal_path=base/'cross-os-lifecycle.json'
++        terminal=json.loads(terminal_path.read_bytes()) if terminal_path.exists() else None
++        claim=json.loads((tmp_path/'shared.claim').read_bytes())
++        consumed_path=base/'consumed.json'
++        consumed=json.loads(consumed_path.read_bytes()) if consumed_path.exists() else None
++        directory=os.environ.get('P2B_RAW_DIR')
++        label=str(finalization_fault or fault)
++        observation=dict(returned_status=life['status'],terminal_index_persisted=life['terminal_index_persisted'],
++            finalization_proven=life['finalization_proven'],terminal=terminal,claim=claim,consumed=consumed,
++            terminal_sha256=original_digest(terminal_path) if terminal_path.exists() else None,
++            writes=writes,failures=failures,phases=life.get('phases'),phase_count=phase[0])
++        # Evidence precedes every new oracle, including failure observations.
++        save_observer_raw('finalization-'+label,observation)
++        if directory:
++            import shutil
++            shutil.copytree(base,Path(directory)/('public-'+label))
++            for i,root in enumerate(created):
++                inventory=[dict(path=str(p.relative_to(root)),bytes=p.stat().st_size,sha256=original_digest(p))
++                           for p in sorted(root.rglob('*')) if p.is_file()]
++                save_observer_raw('factory-'+label+'-'+str(i),dict(root=str(root),files=inventory,synthetic=True))
++            (Path(directory)/('life-'+label+'.json')).write_text(json.dumps(life,ensure_ascii=False))
++        assert phase[0]<=3
++        assert not (terminal and terminal['status']=='READY_FOR_REVIEW' and life['status']=='BLOCKED')
++        assert all(v is None or v.get('result')!='READY_FOR_REVIEW' for v in (claim,consumed))
++        if finalization_fault:
++            assert life['status']=='BLOCKED' and not life['finalization_proven']
++            assert life['phases']['normal']=='PERSISTED'
++            assert life['synthetic_debits']==1
++            assert any(json.loads(p.read_bytes()).get('phase')=='normal' for p in (base/'details').glob('*-phase.raw'))
++            if finalization_fault in ('all-permanent','early-permanent'):
++                assert terminal is None and claim['status']=='RUNNING' and consumed is None
++                assert not life['terminal_index_persisted']
++                return
++            assert terminal['status']=='BLOCKED' and terminal['claim_finalization']=='UNPROVEN'
++            assert life['terminal_index_persisted'] and terminal['finalization_proven'] is False
++            if finalization_fault=='shared-permanent':assert claim['status']=='RUNNING'
++            else:assert claim['status']=='EXPIRED' and claim['terminal_sha256']==original_digest(terminal_path)
++            if finalization_fault=='local-permanent':assert consumed is None
++            else:assert consumed['status']=='EXPIRED' and consumed['terminal_sha256']==original_digest(terminal_path)
++            assert sum(w['status']=='FINALIZING_NOT_PASS' for w in writes)==1
++            assert sum(w['status']=='BLOCKED' and Path(w['path'])==terminal_path for w in writes)==1
++        else:
++            assert life['terminal_persisted'] and life['finalization_proven']
++            assert terminal['status']==('READY_FOR_REVIEW' if fault is None else 'BLOCKED')
++            assert claim['status']=='EXPIRED' and claim['terminal_sha256']==original_digest(terminal_path)
++            assert consumed['status']=='EXPIRED' and consumed['terminal_sha256']==original_digest(terminal_path)
++        assert terminal_path.stat().st_size<=16384
+         refs=terminal['artifact_refs'];total=0;observations=[]
+         for ref in refs:
+             path=base/ref['path'];assert path.stat().st_size==ref['bytes']<=1048576
+@@ -614,18 +689,12 @@ def test_correction04_public_run_maximum(tmp_path,monkeypatch,fault):
+         assert any(o['sample_count']==160 and all(len(s['owners'])==4 for s in o['samples']) for o in observations)
+         assert len(json.dumps(life,ensure_ascii=False).encode())>32768
+         if fault in ('phase2','phase3','detail','serialization','output','native'):assert terminal['synthetic_debits'] is None
+-        directory=os.environ.get('P2B_RAW_DIR')
+-        if directory:
+-            import shutil
+-            shutil.copytree(base,Path(directory)/('public-'+str(fault)))
+-            for i,root in enumerate(created):shutil.copytree(root,Path(directory)/('factory-'+str(fault)+'-'+str(i)))
+-            (Path(directory)/('life-'+str(fault)+'.json')).write_text(json.dumps(life,ensure_ascii=False))
+     finally:
+         monkeypatch.setattr(harness,'ACTIVE_METER',None)
+         import shutil
+         for root in created:shutil.rmtree(root)
+         assert all(not root.exists() for root in created)
+-        save_observer_raw('public-cleanup-'+str(fault),dict(roots=[str(r) for r in created],absent=True,synthetic=True))
++        save_observer_raw('public-cleanup-'+str(finalization_fault or fault),dict(roots=[str(r) for r in created],absent=True,synthetic=True))
+ 
+ 
+ @pytest.mark.parametrize('fault',['tamper','missing','symlink','bound','output'])
+@@ -648,3 +717,10 @@ def test_correction04_store_integrity_and_sticky_bounds(tmp_path,fault):
+         with pytest.raises(ValueError):meter.take('output_bytes',0)
+         assert path.exists();return
+     with pytest.raises((ValueError,OSError)):store.verify()
++
++
++@pytest.mark.parametrize('finalization_fault',[
++    'shared-permanent','shared-transient','shared-afterwrite','local-permanent','local-transient',
++    'publish-permanent','publish-transient','early-permanent','early-transient','all-permanent'])
++def test_correction05_public_finalization_failures(tmp_path,monkeypatch,finalization_fault):
++    public_run_maximum(tmp_path,monkeypatch,finalization_fault=finalization_fault)
+diff --git a/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_runtime_binding.py b/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_runtime_binding.py
+index 4d2ed81..7af8379 100644
+--- a/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_runtime_binding.py
++++ b/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_runtime_binding.py
+@@ -23,7 +23,7 @@ import uuid
+ ROOT = Path(__file__).resolve().parents[1]
+ BASE = ROOT/'.agent-governance/runtime/receipts/s3-p2b-correction-03'
+ CHILD = 'reports/v0-s3/product-gate0/runtime-binding-correction-03.child.json'
+-CONTRACT = 'reports/v0-s3/product-gate0/p2-binding-correction-04.contract.md'
++CONTRACT = 'reports/v0-s3/product-gate0/p2-binding-correction-05.contract.md'
+ PROTOCOL = 'LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/program_budget.py'
+ CORE = 'LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/core.py'
+ HARNESS = 'tools/v0_s3_runtime_binding.py'
+@@ -476,30 +476,83 @@ def terminal(pre,meter,life,installed,fixture,claim):
+         attempt('artifact integrity',store.verify)
+     if life.get('phases')!={'normal':'PERSISTED','bad-receipt':'PERSISTED','timeout':'PERSISTED'}:
+         errors.append('required phases missing');life['status']='BLOCKED'
+-    summary=dict(schema='lvw.p2b-terminal/2',status=life['status'],candidate=pre['candidate'],child_id=CHILD_ID,
++    summary=dict(schema='lvw.p2b-terminal/3',status=life['status'],candidate=pre['candidate'],child_id=CHILD_ID,
+         child_sha256=pre.get('child_sha256'),preflight_sha256=attempt('preflight hash',lambda:digest(BASE/'preflight.json')),
+         initial_claim_sha256=attempt('initial claim hash',lambda:digest(Path(pre['claim_path']))),
+         synthetic_debits=life.get('synthetic_debits'),counters=meter.used,phases=life.get('phases',{}),
+         phase_verdicts=life.get('phase_verdicts',{}),
+-        cleanup='UNKNOWN' if errors or life['status']=='BLOCKED' else 'RETAINED',terminal_errors=errors,error=life.get('error'),
++        cleanup='UNKNOWN' if errors or life['status']=='BLOCKED' else 'RETAINED',terminal_errors=list(errors),error=life.get('error'),
+         artifact_refs=store.refs if store else [],
+         detail_actual_bytes=store.actual_bytes if store else None,detail_reserved_bytes=store.reserved_bytes if store else None)
+-    def index():
+-        summary['status']=life['status']
+-        if len((json.dumps(summary,indent=2,ensure_ascii=False,allow_nan=False)+'\n').encode())>16384:
+-            raise ValueError('terminal index bound')
+-        write(BASE/'cross-os-lifecycle.json',summary)
+-    saved=attempt('terminal',lambda:(index(),True))
+-    if saved:
+-        expired=dict(claim,status='EXPIRED',result=life['status'],terminal_sha256=digest(BASE/'cross-os-lifecycle.json'),
+-                     terminal_path='cross-os-lifecycle.json')
+-        attempt('claim terminal',lambda:write(Path(pre['claim_path']),expired))
+-        attempt('local terminal',lambda:write(BASE/'consumed.json',expired))
+-    life['terminal_persisted']=bool(saved)
+-    if errors:sys.stderr.write('BLOCKED terminal errors: '+json.dumps(errors)[:2000]+'\n')
++    index=BASE/'cross-os-lifecycle.json'
++    staged=BASE/'terminal-candidate.json'
++    def encoded(value):
++        data=(json.dumps(value,indent=2,ensure_ascii=False,allow_nan=False)+'\n').encode('utf-8')
++        if len(data)>16384:raise ValueError('terminal index bound')
++        return data
++    def reference(data):
++        # Consumption is irrevocable, but is never a success decision itself.
++        return dict(claim,schema='lvw.p2b-consumption/2',status='EXPIRED',
++            result='TERMINAL_REFERENCE_NOT_DECISION',candidate=pre['candidate'],child_id=CHILD_ID,
++            child_sha256=pre.get('child_sha256'),terminal_sha256=hashlib.sha256(data).hexdigest(),
++            terminal_path=str(index))
++    life.update(terminal_persisted=False,terminal_index_persisted=False,finalization_proven=False,
++                claim_finalization='UNPROVEN')
++    try:
++        pending=dict(summary,status='FINALIZING_NOT_PASS',claim_finalization='UNPROVEN',
++                     terminal_index_persisted=True,finalization_proven=False)
++        encoded(pending);write(index,pending)
++        summary.update(status=life['status'],claim_finalization='PROVEN',
++                       terminal_index_persisted=True,finalization_proven=True)
++        data=encoded(summary)
++        write(staged,summary)
++        expired=reference(data)
++        write(Path(pre['claim_path']),expired)
++        write(BASE/'consumed.json',expired)
++        # All fallible verification precedes publication, including exact staged bytes.
++        if staged.read_bytes()!=data:raise ValueError('terminal candidate integrity')
++        verify_terminal_references(summary,data,pre,store)
++        os.replace(staged,index)  # Last fallible operation on the successful path.
++    except Exception as e:
++        errors.append('finalization: '+type(e).__name__+': '+str(e)[:200])
++        life['status']='BLOCKED'
++        summary.update(status='BLOCKED',cleanup='UNKNOWN',claim_finalization='UNPROVEN',
++                       terminal_index_persisted=True,finalization_proven=False,terminal_errors=list(errors))
++        # One bounded repair, never recursively retry, refund, unlink or reuse a claim.
++        # A remaining RUNNING claim is the original exclusive capacity tombstone.
++        saved=attempt('blocked index',lambda:(encoded(summary),write(index,summary),True))
++        if saved:
++            life['terminal_index_persisted']=life['terminal_persisted']=True
++            blocked=reference(encoded(summary))
++            attempt('blocked claim',lambda:write(Path(pre['claim_path']),blocked))
++            attempt('blocked local',lambda:write(BASE/'consumed.json',blocked))
++        if errors:sys.stderr.write('BLOCKED terminal errors: '+json.dumps(errors)[:2000]+'\n')
++        life['terminal_errors']=errors
++        return life
++    life.update(terminal_persisted=True,terminal_index_persisted=True,finalization_proven=True,
++                claim_finalization='PROVEN',terminal_errors=errors)
+     return life
+ 
+ 
++def verify_terminal_references(summary, data, pre, store):
++    """Read-only verifier, usable before publish or by an independent reader later.
++
++    It does not mutate the committed decision. The index hashes only the initial
++    RUNNING claim; final consumption references hash the index, avoiding a cycle.
++    """
++    if store is None:raise ValueError('artifact store unavailable')
++    store.verify()
++    for path in (Path(pre['claim_path']),BASE/'consumed.json'):
++        safe_parent(path)
++        value=json.loads(path.read_bytes())
++        if (value.get('schema')!='lvw.p2b-consumption/2' or value.get('status')!='EXPIRED'
++            or value.get('result')!='TERMINAL_REFERENCE_NOT_DECISION'
++            or value.get('terminal_path')!=str(BASE/'cross-os-lifecycle.json')
++            or value.get('terminal_sha256')!=hashlib.sha256(data).hexdigest()
++            or any(value.get(key)!=summary.get(key) for key in ('candidate','child_id','child_sha256'))):
++            raise ValueError('terminal consumption reference integrity')
++
++
+ def fault_helper_code():
+     # Explicit fixture-only wrong-receipt process, never a debit shim.
+     return """# FAULT TEST VECTOR ONLY: never imports/calls authority; no production debit.
+@@ -719,7 +772,7 @@ if __name__=='__main__':
+     if len(sys.argv)==3 and sys.argv[1]=='--preflight':
+         value=preflight(sys.argv[2]);print(json.dumps({'status':'PREFLIGHT','sha256':digest(BASE/'preflight.json')}))
+     elif sys.argv[1:]==['--run']:
+-        value=run();print(json.dumps({'status':value['status'],'terminal_persisted':value.get('terminal_persisted')}))
+-        sys.exit(0 if value['status']=='READY_FOR_REVIEW' and value.get('terminal_persisted') else 1)
++        value=run();print(json.dumps({'status':value['status'],'terminal_persisted':value.get('terminal_persisted'),'terminal_index_persisted':value.get('terminal_index_persisted'),'finalization_proven':value.get('finalization_proven')}))
++        sys.exit(0 if value['status']=='READY_FOR_REVIEW' and value.get('terminal_index_persisted') and value.get('finalization_proven') else 1)
+     elif sys.argv[1:]==['--windows']:windows()
+     else:raise SystemExit('fixed modes only')

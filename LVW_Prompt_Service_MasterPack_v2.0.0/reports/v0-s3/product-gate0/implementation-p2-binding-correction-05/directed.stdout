@@ -1,0 +1,622 @@
+FFFFFFFFFFFFFFFFFFF
+=================================== FAILURES ===================================
+__________________ test_correction04_public_run_maximum[None] __________________
+
+tmp_path = PosixPath('/tmp/lvw-implementation-c05-directed-r184vfa7/pytest/test_correction04_public_run_m0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x710b7b4af530>
+fault = None
+
+    @pytest.mark.parametrize('fault',[None,'phase2','phase3','observer','cleanup','detail','serialization','native','output'])
+    def test_correction04_public_run_maximum(tmp_path,monkeypatch,fault):
+>       return public_run_maximum(tmp_path,monkeypatch,fault)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/test_v0_s3_runtime_binding.py:508: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/test_v0_s3_runtime_binding.py:545: in public_run_maximum
+    pre=harness.preflight('a'*40)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+candidate = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+
+    def preflight(candidate):
+        child=authorized_child()  # Before git, host metadata, output or shared claim access.
+        if len(candidate)!=40 or any(c not in '0123456789abcdef' for c in candidate):raise ValueError('candidate')
+        actual=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
+        if actual!=candidate:raise ValueError('candidate HEAD')
+        if subprocess.check_output(['git','status','--porcelain'],cwd=ROOT):raise ValueError('dirty candidate')
+>       if digest(ROOT/CONTRACT)!=child['contract_sha256']:raise ValueError('contract seal')
+                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       ValueError: contract seal
+
+tools/v0_s3_runtime_binding.py:299: ValueError
+_________________ test_correction04_public_run_maximum[phase2] _________________
+
+tmp_path = PosixPath('/tmp/lvw-implementation-c05-directed-r184vfa7/pytest/test_correction04_public_run_m1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x710b7b4aed50>
+fault = 'phase2'
+
+    @pytest.mark.parametrize('fault',[None,'phase2','phase3','observer','cleanup','detail','serialization','native','output'])
+    def test_correction04_public_run_maximum(tmp_path,monkeypatch,fault):
+>       return public_run_maximum(tmp_path,monkeypatch,fault)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/test_v0_s3_runtime_binding.py:508: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/test_v0_s3_runtime_binding.py:545: in public_run_maximum
+    pre=harness.preflight('a'*40)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+candidate = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+
+    def preflight(candidate):
+        child=authorized_child()  # Before git, host metadata, output or shared claim access.
+        if len(candidate)!=40 or any(c not in '0123456789abcdef' for c in candidate):raise ValueError('candidate')
+        actual=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
+        if actual!=candidate:raise ValueError('candidate HEAD')
+        if subprocess.check_output(['git','status','--porcelain'],cwd=ROOT):raise ValueError('dirty candidate')
+>       if digest(ROOT/CONTRACT)!=child['contract_sha256']:raise ValueError('contract seal')
+                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       ValueError: contract seal
+
+tools/v0_s3_runtime_binding.py:299: ValueError
+_________________ test_correction04_public_run_maximum[phase3] _________________
+
+tmp_path = PosixPath('/tmp/lvw-implementation-c05-directed-r184vfa7/pytest/test_correction04_public_run_m2')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x710b7b4adf70>
+fault = 'phase3'
+
+    @pytest.mark.parametrize('fault',[None,'phase2','phase3','observer','cleanup','detail','serialization','native','output'])
+    def test_correction04_public_run_maximum(tmp_path,monkeypatch,fault):
+>       return public_run_maximum(tmp_path,monkeypatch,fault)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/test_v0_s3_runtime_binding.py:508: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/test_v0_s3_runtime_binding.py:545: in public_run_maximum
+    pre=harness.preflight('a'*40)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+candidate = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+
+    def preflight(candidate):
+        child=authorized_child()  # Before git, host metadata, output or shared claim access.
+        if len(candidate)!=40 or any(c not in '0123456789abcdef' for c in candidate):raise ValueError('candidate')
+        actual=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
+        if actual!=candidate:raise ValueError('candidate HEAD')
+        if subprocess.check_output(['git','status','--porcelain'],cwd=ROOT):raise ValueError('dirty candidate')
+>       if digest(ROOT/CONTRACT)!=child['contract_sha256']:raise ValueError('contract seal')
+                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       ValueError: contract seal
+
+tools/v0_s3_runtime_binding.py:299: ValueError
+________________ test_correction04_public_run_maximum[observer] ________________
+
+tmp_path = PosixPath('/tmp/lvw-implementation-c05-directed-r184vfa7/pytest/test_correction04_public_run_m3')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x710b7b4af980>
+fault = 'observer'
+
+    @pytest.mark.parametrize('fault',[None,'phase2','phase3','observer','cleanup','detail','serialization','native','output'])
+    def test_correction04_public_run_maximum(tmp_path,monkeypatch,fault):
+>       return public_run_maximum(tmp_path,monkeypatch,fault)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/test_v0_s3_runtime_binding.py:508: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/test_v0_s3_runtime_binding.py:545: in public_run_maximum
+    pre=harness.preflight('a'*40)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+candidate = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+
+    def preflight(candidate):
+        child=authorized_child()  # Before git, host metadata, output or shared claim access.
+        if len(candidate)!=40 or any(c not in '0123456789abcdef' for c in candidate):raise ValueError('candidate')
+        actual=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
+        if actual!=candidate:raise ValueError('candidate HEAD')
+        if subprocess.check_output(['git','status','--porcelain'],cwd=ROOT):raise ValueError('dirty candidate')
+>       if digest(ROOT/CONTRACT)!=child['contract_sha256']:raise ValueError('contract seal')
+                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       ValueError: contract seal
+
+tools/v0_s3_runtime_binding.py:299: ValueError
+________________ test_correction04_public_run_maximum[cleanup] _________________
+
+tmp_path = PosixPath('/tmp/lvw-implementation-c05-directed-r184vfa7/pytest/test_correction04_public_run_m4')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x710b7b4b0b30>
+fault = 'cleanup'
+
+    @pytest.mark.parametrize('fault',[None,'phase2','phase3','observer','cleanup','detail','serialization','native','output'])
+    def test_correction04_public_run_maximum(tmp_path,monkeypatch,fault):
+>       return public_run_maximum(tmp_path,monkeypatch,fault)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/test_v0_s3_runtime_binding.py:508: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/test_v0_s3_runtime_binding.py:545: in public_run_maximum
+    pre=harness.preflight('a'*40)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+candidate = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+
+    def preflight(candidate):
+        child=authorized_child()  # Before git, host metadata, output or shared claim access.
+        if len(candidate)!=40 or any(c not in '0123456789abcdef' for c in candidate):raise ValueError('candidate')
+        actual=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
+        if actual!=candidate:raise ValueError('candidate HEAD')
+        if subprocess.check_output(['git','status','--porcelain'],cwd=ROOT):raise ValueError('dirty candidate')
+>       if digest(ROOT/CONTRACT)!=child['contract_sha256']:raise ValueError('contract seal')
+                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       ValueError: contract seal
+
+tools/v0_s3_runtime_binding.py:299: ValueError
+_________________ test_correction04_public_run_maximum[detail] _________________
+
+tmp_path = PosixPath('/tmp/lvw-implementation-c05-directed-r184vfa7/pytest/test_correction04_public_run_m5')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x710b7b4b2b70>
+fault = 'detail'
+
+    @pytest.mark.parametrize('fault',[None,'phase2','phase3','observer','cleanup','detail','serialization','native','output'])
+    def test_correction04_public_run_maximum(tmp_path,monkeypatch,fault):
+>       return public_run_maximum(tmp_path,monkeypatch,fault)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/test_v0_s3_runtime_binding.py:508: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/test_v0_s3_runtime_binding.py:545: in public_run_maximum
+    pre=harness.preflight('a'*40)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+candidate = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+
+    def preflight(candidate):
+        child=authorized_child()  # Before git, host metadata, output or shared claim access.
+        if len(candidate)!=40 or any(c not in '0123456789abcdef' for c in candidate):raise ValueError('candidate')
+        actual=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
+        if actual!=candidate:raise ValueError('candidate HEAD')
+        if subprocess.check_output(['git','status','--porcelain'],cwd=ROOT):raise ValueError('dirty candidate')
+>       if digest(ROOT/CONTRACT)!=child['contract_sha256']:raise ValueError('contract seal')
+                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       ValueError: contract seal
+
+tools/v0_s3_runtime_binding.py:299: ValueError
+_____________ test_correction04_public_run_maximum[serialization] ______________
+
+tmp_path = PosixPath('/tmp/lvw-implementation-c05-directed-r184vfa7/pytest/test_correction04_public_run_m6')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x710b7b4b2c60>
+fault = 'serialization'
+
+    @pytest.mark.parametrize('fault',[None,'phase2','phase3','observer','cleanup','detail','serialization','native','output'])
+    def test_correction04_public_run_maximum(tmp_path,monkeypatch,fault):
+>       return public_run_maximum(tmp_path,monkeypatch,fault)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/test_v0_s3_runtime_binding.py:508: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/test_v0_s3_runtime_binding.py:545: in public_run_maximum
+    pre=harness.preflight('a'*40)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+candidate = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+
+    def preflight(candidate):
+        child=authorized_child()  # Before git, host metadata, output or shared claim access.
+        if len(candidate)!=40 or any(c not in '0123456789abcdef' for c in candidate):raise ValueError('candidate')
+        actual=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
+        if actual!=candidate:raise ValueError('candidate HEAD')
+        if subprocess.check_output(['git','status','--porcelain'],cwd=ROOT):raise ValueError('dirty candidate')
+>       if digest(ROOT/CONTRACT)!=child['contract_sha256']:raise ValueError('contract seal')
+                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       ValueError: contract seal
+
+tools/v0_s3_runtime_binding.py:299: ValueError
+_________________ test_correction04_public_run_maximum[native] _________________
+
+tmp_path = PosixPath('/tmp/lvw-implementation-c05-directed-r184vfa7/pytest/test_correction04_public_run_m7')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x710b7b4b41a0>
+fault = 'native'
+
+    @pytest.mark.parametrize('fault',[None,'phase2','phase3','observer','cleanup','detail','serialization','native','output'])
+    def test_correction04_public_run_maximum(tmp_path,monkeypatch,fault):
+>       return public_run_maximum(tmp_path,monkeypatch,fault)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/test_v0_s3_runtime_binding.py:508: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/test_v0_s3_runtime_binding.py:545: in public_run_maximum
+    pre=harness.preflight('a'*40)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+candidate = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+
+    def preflight(candidate):
+        child=authorized_child()  # Before git, host metadata, output or shared claim access.
+        if len(candidate)!=40 or any(c not in '0123456789abcdef' for c in candidate):raise ValueError('candidate')
+        actual=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
+        if actual!=candidate:raise ValueError('candidate HEAD')
+        if subprocess.check_output(['git','status','--porcelain'],cwd=ROOT):raise ValueError('dirty candidate')
+>       if digest(ROOT/CONTRACT)!=child['contract_sha256']:raise ValueError('contract seal')
+                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       ValueError: contract seal
+
+tools/v0_s3_runtime_binding.py:299: ValueError
+_________________ test_correction04_public_run_maximum[output] _________________
+
+tmp_path = PosixPath('/tmp/lvw-implementation-c05-directed-r184vfa7/pytest/test_correction04_public_run_m8')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x710b7b4b2270>
+fault = 'output'
+
+    @pytest.mark.parametrize('fault',[None,'phase2','phase3','observer','cleanup','detail','serialization','native','output'])
+    def test_correction04_public_run_maximum(tmp_path,monkeypatch,fault):
+>       return public_run_maximum(tmp_path,monkeypatch,fault)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/test_v0_s3_runtime_binding.py:508: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/test_v0_s3_runtime_binding.py:545: in public_run_maximum
+    pre=harness.preflight('a'*40)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+candidate = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+
+    def preflight(candidate):
+        child=authorized_child()  # Before git, host metadata, output or shared claim access.
+        if len(candidate)!=40 or any(c not in '0123456789abcdef' for c in candidate):raise ValueError('candidate')
+        actual=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
+        if actual!=candidate:raise ValueError('candidate HEAD')
+        if subprocess.check_output(['git','status','--porcelain'],cwd=ROOT):raise ValueError('dirty candidate')
+>       if digest(ROOT/CONTRACT)!=child['contract_sha256']:raise ValueError('contract seal')
+                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       ValueError: contract seal
+
+tools/v0_s3_runtime_binding.py:299: ValueError
+_______ test_correction05_public_finalization_failures[shared-permanent] _______
+
+tmp_path = PosixPath('/tmp/lvw-implementation-c05-directed-r184vfa7/pytest/test_correction05_public_final0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x710b7b4b0680>
+finalization_fault = 'shared-permanent'
+
+    @pytest.mark.parametrize('finalization_fault',[
+        'shared-permanent','shared-transient','shared-afterwrite','local-permanent','local-transient',
+        'publish-permanent','publish-transient','early-permanent','early-transient','all-permanent'])
+    def test_correction05_public_finalization_failures(tmp_path,monkeypatch,finalization_fault):
+>       public_run_maximum(tmp_path,monkeypatch,finalization_fault=finalization_fault)
+
+tools/test_v0_s3_runtime_binding.py:724: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/test_v0_s3_runtime_binding.py:545: in public_run_maximum
+    pre=harness.preflight('a'*40)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+candidate = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+
+    def preflight(candidate):
+        child=authorized_child()  # Before git, host metadata, output or shared claim access.
+        if len(candidate)!=40 or any(c not in '0123456789abcdef' for c in candidate):raise ValueError('candidate')
+        actual=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
+        if actual!=candidate:raise ValueError('candidate HEAD')
+        if subprocess.check_output(['git','status','--porcelain'],cwd=ROOT):raise ValueError('dirty candidate')
+>       if digest(ROOT/CONTRACT)!=child['contract_sha256']:raise ValueError('contract seal')
+                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       ValueError: contract seal
+
+tools/v0_s3_runtime_binding.py:299: ValueError
+_______ test_correction05_public_finalization_failures[shared-transient] _______
+
+tmp_path = PosixPath('/tmp/lvw-implementation-c05-directed-r184vfa7/pytest/test_correction05_public_final1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x710b7b4b05c0>
+finalization_fault = 'shared-transient'
+
+    @pytest.mark.parametrize('finalization_fault',[
+        'shared-permanent','shared-transient','shared-afterwrite','local-permanent','local-transient',
+        'publish-permanent','publish-transient','early-permanent','early-transient','all-permanent'])
+    def test_correction05_public_finalization_failures(tmp_path,monkeypatch,finalization_fault):
+>       public_run_maximum(tmp_path,monkeypatch,finalization_fault=finalization_fault)
+
+tools/test_v0_s3_runtime_binding.py:724: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/test_v0_s3_runtime_binding.py:545: in public_run_maximum
+    pre=harness.preflight('a'*40)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+candidate = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+
+    def preflight(candidate):
+        child=authorized_child()  # Before git, host metadata, output or shared claim access.
+        if len(candidate)!=40 or any(c not in '0123456789abcdef' for c in candidate):raise ValueError('candidate')
+        actual=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
+        if actual!=candidate:raise ValueError('candidate HEAD')
+        if subprocess.check_output(['git','status','--porcelain'],cwd=ROOT):raise ValueError('dirty candidate')
+>       if digest(ROOT/CONTRACT)!=child['contract_sha256']:raise ValueError('contract seal')
+                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       ValueError: contract seal
+
+tools/v0_s3_runtime_binding.py:299: ValueError
+______ test_correction05_public_finalization_failures[shared-afterwrite] _______
+
+tmp_path = PosixPath('/tmp/lvw-implementation-c05-directed-r184vfa7/pytest/test_correction05_public_final2')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x710b7b4afad0>
+finalization_fault = 'shared-afterwrite'
+
+    @pytest.mark.parametrize('finalization_fault',[
+        'shared-permanent','shared-transient','shared-afterwrite','local-permanent','local-transient',
+        'publish-permanent','publish-transient','early-permanent','early-transient','all-permanent'])
+    def test_correction05_public_finalization_failures(tmp_path,monkeypatch,finalization_fault):
+>       public_run_maximum(tmp_path,monkeypatch,finalization_fault=finalization_fault)
+
+tools/test_v0_s3_runtime_binding.py:724: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/test_v0_s3_runtime_binding.py:545: in public_run_maximum
+    pre=harness.preflight('a'*40)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+candidate = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+
+    def preflight(candidate):
+        child=authorized_child()  # Before git, host metadata, output or shared claim access.
+        if len(candidate)!=40 or any(c not in '0123456789abcdef' for c in candidate):raise ValueError('candidate')
+        actual=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
+        if actual!=candidate:raise ValueError('candidate HEAD')
+        if subprocess.check_output(['git','status','--porcelain'],cwd=ROOT):raise ValueError('dirty candidate')
+>       if digest(ROOT/CONTRACT)!=child['contract_sha256']:raise ValueError('contract seal')
+                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       ValueError: contract seal
+
+tools/v0_s3_runtime_binding.py:299: ValueError
+_______ test_correction05_public_finalization_failures[local-permanent] ________
+
+tmp_path = PosixPath('/tmp/lvw-implementation-c05-directed-r184vfa7/pytest/test_correction05_public_final3')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x710b7b4b5d90>
+finalization_fault = 'local-permanent'
+
+    @pytest.mark.parametrize('finalization_fault',[
+        'shared-permanent','shared-transient','shared-afterwrite','local-permanent','local-transient',
+        'publish-permanent','publish-transient','early-permanent','early-transient','all-permanent'])
+    def test_correction05_public_finalization_failures(tmp_path,monkeypatch,finalization_fault):
+>       public_run_maximum(tmp_path,monkeypatch,finalization_fault=finalization_fault)
+
+tools/test_v0_s3_runtime_binding.py:724: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/test_v0_s3_runtime_binding.py:545: in public_run_maximum
+    pre=harness.preflight('a'*40)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+candidate = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+
+    def preflight(candidate):
+        child=authorized_child()  # Before git, host metadata, output or shared claim access.
+        if len(candidate)!=40 or any(c not in '0123456789abcdef' for c in candidate):raise ValueError('candidate')
+        actual=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
+        if actual!=candidate:raise ValueError('candidate HEAD')
+        if subprocess.check_output(['git','status','--porcelain'],cwd=ROOT):raise ValueError('dirty candidate')
+>       if digest(ROOT/CONTRACT)!=child['contract_sha256']:raise ValueError('contract seal')
+                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       ValueError: contract seal
+
+tools/v0_s3_runtime_binding.py:299: ValueError
+_______ test_correction05_public_finalization_failures[local-transient] ________
+
+tmp_path = PosixPath('/tmp/lvw-implementation-c05-directed-r184vfa7/pytest/test_correction05_public_final4')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x710b7b4b5340>
+finalization_fault = 'local-transient'
+
+    @pytest.mark.parametrize('finalization_fault',[
+        'shared-permanent','shared-transient','shared-afterwrite','local-permanent','local-transient',
+        'publish-permanent','publish-transient','early-permanent','early-transient','all-permanent'])
+    def test_correction05_public_finalization_failures(tmp_path,monkeypatch,finalization_fault):
+>       public_run_maximum(tmp_path,monkeypatch,finalization_fault=finalization_fault)
+
+tools/test_v0_s3_runtime_binding.py:724: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/test_v0_s3_runtime_binding.py:545: in public_run_maximum
+    pre=harness.preflight('a'*40)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+candidate = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+
+    def preflight(candidate):
+        child=authorized_child()  # Before git, host metadata, output or shared claim access.
+        if len(candidate)!=40 or any(c not in '0123456789abcdef' for c in candidate):raise ValueError('candidate')
+        actual=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
+        if actual!=candidate:raise ValueError('candidate HEAD')
+        if subprocess.check_output(['git','status','--porcelain'],cwd=ROOT):raise ValueError('dirty candidate')
+>       if digest(ROOT/CONTRACT)!=child['contract_sha256']:raise ValueError('contract seal')
+                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       ValueError: contract seal
+
+tools/v0_s3_runtime_binding.py:299: ValueError
+______ test_correction05_public_finalization_failures[publish-permanent] _______
+
+tmp_path = PosixPath('/tmp/lvw-implementation-c05-directed-r184vfa7/pytest/test_correction05_public_final5')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x710b7b4afc20>
+finalization_fault = 'publish-permanent'
+
+    @pytest.mark.parametrize('finalization_fault',[
+        'shared-permanent','shared-transient','shared-afterwrite','local-permanent','local-transient',
+        'publish-permanent','publish-transient','early-permanent','early-transient','all-permanent'])
+    def test_correction05_public_finalization_failures(tmp_path,monkeypatch,finalization_fault):
+>       public_run_maximum(tmp_path,monkeypatch,finalization_fault=finalization_fault)
+
+tools/test_v0_s3_runtime_binding.py:724: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/test_v0_s3_runtime_binding.py:545: in public_run_maximum
+    pre=harness.preflight('a'*40)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+candidate = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+
+    def preflight(candidate):
+        child=authorized_child()  # Before git, host metadata, output or shared claim access.
+        if len(candidate)!=40 or any(c not in '0123456789abcdef' for c in candidate):raise ValueError('candidate')
+        actual=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
+        if actual!=candidate:raise ValueError('candidate HEAD')
+        if subprocess.check_output(['git','status','--porcelain'],cwd=ROOT):raise ValueError('dirty candidate')
+>       if digest(ROOT/CONTRACT)!=child['contract_sha256']:raise ValueError('contract seal')
+                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       ValueError: contract seal
+
+tools/v0_s3_runtime_binding.py:299: ValueError
+______ test_correction05_public_finalization_failures[publish-transient] _______
+
+tmp_path = PosixPath('/tmp/lvw-implementation-c05-directed-r184vfa7/pytest/test_correction05_public_final6')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x710b7b4b1b80>
+finalization_fault = 'publish-transient'
+
+    @pytest.mark.parametrize('finalization_fault',[
+        'shared-permanent','shared-transient','shared-afterwrite','local-permanent','local-transient',
+        'publish-permanent','publish-transient','early-permanent','early-transient','all-permanent'])
+    def test_correction05_public_finalization_failures(tmp_path,monkeypatch,finalization_fault):
+>       public_run_maximum(tmp_path,monkeypatch,finalization_fault=finalization_fault)
+
+tools/test_v0_s3_runtime_binding.py:724: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/test_v0_s3_runtime_binding.py:545: in public_run_maximum
+    pre=harness.preflight('a'*40)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+candidate = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+
+    def preflight(candidate):
+        child=authorized_child()  # Before git, host metadata, output or shared claim access.
+        if len(candidate)!=40 or any(c not in '0123456789abcdef' for c in candidate):raise ValueError('candidate')
+        actual=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
+        if actual!=candidate:raise ValueError('candidate HEAD')
+        if subprocess.check_output(['git','status','--porcelain'],cwd=ROOT):raise ValueError('dirty candidate')
+>       if digest(ROOT/CONTRACT)!=child['contract_sha256']:raise ValueError('contract seal')
+                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       ValueError: contract seal
+
+tools/v0_s3_runtime_binding.py:299: ValueError
+_______ test_correction05_public_finalization_failures[early-permanent] ________
+
+tmp_path = PosixPath('/tmp/lvw-implementation-c05-directed-r184vfa7/pytest/test_correction05_public_final7')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x710b7b4b1d90>
+finalization_fault = 'early-permanent'
+
+    @pytest.mark.parametrize('finalization_fault',[
+        'shared-permanent','shared-transient','shared-afterwrite','local-permanent','local-transient',
+        'publish-permanent','publish-transient','early-permanent','early-transient','all-permanent'])
+    def test_correction05_public_finalization_failures(tmp_path,monkeypatch,finalization_fault):
+>       public_run_maximum(tmp_path,monkeypatch,finalization_fault=finalization_fault)
+
+tools/test_v0_s3_runtime_binding.py:724: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/test_v0_s3_runtime_binding.py:545: in public_run_maximum
+    pre=harness.preflight('a'*40)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+candidate = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+
+    def preflight(candidate):
+        child=authorized_child()  # Before git, host metadata, output or shared claim access.
+        if len(candidate)!=40 or any(c not in '0123456789abcdef' for c in candidate):raise ValueError('candidate')
+        actual=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
+        if actual!=candidate:raise ValueError('candidate HEAD')
+        if subprocess.check_output(['git','status','--porcelain'],cwd=ROOT):raise ValueError('dirty candidate')
+>       if digest(ROOT/CONTRACT)!=child['contract_sha256']:raise ValueError('contract seal')
+                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       ValueError: contract seal
+
+tools/v0_s3_runtime_binding.py:299: ValueError
+_______ test_correction05_public_finalization_failures[early-transient] ________
+
+tmp_path = PosixPath('/tmp/lvw-implementation-c05-directed-r184vfa7/pytest/test_correction05_public_final8')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x710b7b4b6f30>
+finalization_fault = 'early-transient'
+
+    @pytest.mark.parametrize('finalization_fault',[
+        'shared-permanent','shared-transient','shared-afterwrite','local-permanent','local-transient',
+        'publish-permanent','publish-transient','early-permanent','early-transient','all-permanent'])
+    def test_correction05_public_finalization_failures(tmp_path,monkeypatch,finalization_fault):
+>       public_run_maximum(tmp_path,monkeypatch,finalization_fault=finalization_fault)
+
+tools/test_v0_s3_runtime_binding.py:724: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/test_v0_s3_runtime_binding.py:545: in public_run_maximum
+    pre=harness.preflight('a'*40)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+candidate = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+
+    def preflight(candidate):
+        child=authorized_child()  # Before git, host metadata, output or shared claim access.
+        if len(candidate)!=40 or any(c not in '0123456789abcdef' for c in candidate):raise ValueError('candidate')
+        actual=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
+        if actual!=candidate:raise ValueError('candidate HEAD')
+        if subprocess.check_output(['git','status','--porcelain'],cwd=ROOT):raise ValueError('dirty candidate')
+>       if digest(ROOT/CONTRACT)!=child['contract_sha256']:raise ValueError('contract seal')
+                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       ValueError: contract seal
+
+tools/v0_s3_runtime_binding.py:299: ValueError
+________ test_correction05_public_finalization_failures[all-permanent] _________
+
+tmp_path = PosixPath('/tmp/lvw-implementation-c05-directed-r184vfa7/pytest/test_correction05_public_final9')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x710b7b4b52e0>
+finalization_fault = 'all-permanent'
+
+    @pytest.mark.parametrize('finalization_fault',[
+        'shared-permanent','shared-transient','shared-afterwrite','local-permanent','local-transient',
+        'publish-permanent','publish-transient','early-permanent','early-transient','all-permanent'])
+    def test_correction05_public_finalization_failures(tmp_path,monkeypatch,finalization_fault):
+>       public_run_maximum(tmp_path,monkeypatch,finalization_fault=finalization_fault)
+
+tools/test_v0_s3_runtime_binding.py:724: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/test_v0_s3_runtime_binding.py:545: in public_run_maximum
+    pre=harness.preflight('a'*40)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+candidate = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+
+    def preflight(candidate):
+        child=authorized_child()  # Before git, host metadata, output or shared claim access.
+        if len(candidate)!=40 or any(c not in '0123456789abcdef' for c in candidate):raise ValueError('candidate')
+        actual=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
+        if actual!=candidate:raise ValueError('candidate HEAD')
+        if subprocess.check_output(['git','status','--porcelain'],cwd=ROOT):raise ValueError('dirty candidate')
+>       if digest(ROOT/CONTRACT)!=child['contract_sha256']:raise ValueError('contract seal')
+                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       ValueError: contract seal
+
+tools/v0_s3_runtime_binding.py:299: ValueError
+=========================== short test summary info ============================
+FAILED tools/test_v0_s3_runtime_binding.py::test_correction04_public_run_maximum[None]
+FAILED tools/test_v0_s3_runtime_binding.py::test_correction04_public_run_maximum[phase2]
+FAILED tools/test_v0_s3_runtime_binding.py::test_correction04_public_run_maximum[phase3]
+FAILED tools/test_v0_s3_runtime_binding.py::test_correction04_public_run_maximum[observer]
+FAILED tools/test_v0_s3_runtime_binding.py::test_correction04_public_run_maximum[cleanup]
+FAILED tools/test_v0_s3_runtime_binding.py::test_correction04_public_run_maximum[detail]
+FAILED tools/test_v0_s3_runtime_binding.py::test_correction04_public_run_maximum[serialization]
+FAILED tools/test_v0_s3_runtime_binding.py::test_correction04_public_run_maximum[native]
+FAILED tools/test_v0_s3_runtime_binding.py::test_correction04_public_run_maximum[output]
+FAILED tools/test_v0_s3_runtime_binding.py::test_correction05_public_finalization_failures[shared-permanent]
+FAILED tools/test_v0_s3_runtime_binding.py::test_correction05_public_finalization_failures[shared-transient]
+FAILED tools/test_v0_s3_runtime_binding.py::test_correction05_public_finalization_failures[shared-afterwrite]
+FAILED tools/test_v0_s3_runtime_binding.py::test_correction05_public_finalization_failures[local-permanent]
+FAILED tools/test_v0_s3_runtime_binding.py::test_correction05_public_finalization_failures[local-transient]
+FAILED tools/test_v0_s3_runtime_binding.py::test_correction05_public_finalization_failures[publish-permanent]
+FAILED tools/test_v0_s3_runtime_binding.py::test_correction05_public_finalization_failures[publish-transient]
+FAILED tools/test_v0_s3_runtime_binding.py::test_correction05_public_finalization_failures[early-permanent]
+FAILED tools/test_v0_s3_runtime_binding.py::test_correction05_public_finalization_failures[early-transient]
+FAILED tools/test_v0_s3_runtime_binding.py::test_correction05_public_finalization_failures[all-permanent]
+19 failed, 75 deselected in 0.66s

@@ -505,6 +505,10 @@ def test_correction03_fixed_call_graph_spy(tmp_path,monkeypatch):
 
 @pytest.mark.parametrize('fault',[None,'phase2','phase3','observer','cleanup','detail','serialization','native','output'])
 def test_correction04_public_run_maximum(tmp_path,monkeypatch,fault):
+    return public_run_maximum(tmp_path,monkeypatch,fault)
+
+
+def public_run_maximum(tmp_path,monkeypatch,fault=None,finalization_fault=None):
     """Public owner, real factory/roles/SQLite/claim; synthetic host process boundary."""
     import io
     import os
@@ -589,17 +593,88 @@ def test_correction04_public_run_maximum(tmp_path,monkeypatch,fault):
     monkeypatch.setattr(harness.subprocess,'Popen',popen)
     save=harness.EvidenceStore.save
     def save_fault(store,kind,value=None,raw=None):
+        if finalization_fault=='all-permanent' and terminal_started[0]:raise OSError('synthetic all terminal storage unavailable')
         if phase[0]==2 and kind=='phase' and fault=='detail':raise OSError('synthetic detail failure')
         if phase[0]==2 and kind=='phase' and fault=='serialization':value={'bad':object()}
         return save(store,kind,value,raw)
     monkeypatch.setattr(harness.EvidenceStore,'save',save_fault)
+    writes=[];failures=[];terminal_started=[False]
+    real_terminal=harness.terminal;real_write=harness.write;real_replace=harness.os.replace
+    def terminal_call(*args):
+        terminal_started[0]=True
+        return real_terminal(*args)
+    monkeypatch.setattr(harness,'terminal',terminal_call)
+    def fail_for(label):
+        if finalization_fault is None:return False
+        target,mode=finalization_fault.rsplit('-',1)
+        if target!=label or mode not in ('permanent','transient'):return False
+        if mode=='transient' and failures:return False
+        failures.append(label)
+        return True
+    def faulty_write(path,value):
+        if terminal_started[0]:
+            writes.append(dict(path=str(path),status=value.get('status'),result=value.get('result')))
+            label=('shared' if path==tmp_path/'shared.claim' else 'local' if path==base/'consumed.json'
+                   else 'early' if path==base/'cross-os-lifecycle.json' else '')
+            if finalization_fault=='all-permanent' or fail_for(label):raise OSError('synthetic '+str(finalization_fault))
+            if finalization_fault=='shared-afterwrite' and label=='shared' and not failures:
+                real_write(path,value);failures.append(label);raise OSError('synthetic after successful claim write')
+        return real_write(path,value)
+    monkeypatch.setattr(harness,'write',faulty_write)
+    def replace(src,dst):
+        if Path(src)==base/'terminal-candidate.json' and fail_for('publish'):
+            raise OSError('synthetic READY atomic publish failure')
+        return real_replace(src,dst)
+    monkeypatch.setattr(harness.os,'replace',replace)
     try:
         life=harness.run()
-        terminal=json.loads((base/'cross-os-lifecycle.json').read_text())
-        assert life['terminal_persisted'] and (base/'cross-os-lifecycle.json').stat().st_size<=16384
-        assert terminal['status']==('READY_FOR_REVIEW' if fault is None else 'BLOCKED')
-        claim=json.loads((tmp_path/'shared.claim').read_text())
-        assert claim['status']=='EXPIRED' and claim['terminal_sha256']==original_digest(base/'cross-os-lifecycle.json')
+        terminal_path=base/'cross-os-lifecycle.json'
+        terminal=json.loads(terminal_path.read_bytes()) if terminal_path.exists() else None
+        claim=json.loads((tmp_path/'shared.claim').read_bytes())
+        consumed_path=base/'consumed.json'
+        consumed=json.loads(consumed_path.read_bytes()) if consumed_path.exists() else None
+        directory=os.environ.get('P2B_RAW_DIR')
+        label=str(finalization_fault or fault)
+        observation=dict(returned_status=life['status'],terminal_index_persisted=life['terminal_index_persisted'],
+            finalization_proven=life['finalization_proven'],terminal=terminal,claim=claim,consumed=consumed,
+            terminal_sha256=original_digest(terminal_path) if terminal_path.exists() else None,
+            writes=writes,failures=failures,phases=life.get('phases'),phase_count=phase[0])
+        # Evidence precedes every new oracle, including failure observations.
+        save_observer_raw('finalization-'+label,observation)
+        if directory:
+            import shutil
+            shutil.copytree(base,Path(directory)/('public-'+label))
+            for i,root in enumerate(created):
+                inventory=[dict(path=str(p.relative_to(root)),bytes=p.stat().st_size,sha256=original_digest(p))
+                           for p in sorted(root.rglob('*')) if p.is_file()]
+                save_observer_raw('factory-'+label+'-'+str(i),dict(root=str(root),files=inventory,synthetic=True))
+            (Path(directory)/('life-'+label+'.json')).write_text(json.dumps(life,ensure_ascii=False))
+        assert phase[0]<=3
+        assert not (terminal and terminal['status']=='READY_FOR_REVIEW' and life['status']=='BLOCKED')
+        assert all(v is None or v.get('result')!='READY_FOR_REVIEW' for v in (claim,consumed))
+        if finalization_fault:
+            assert life['status']=='BLOCKED' and not life['finalization_proven']
+            assert life['phases']['normal']=='PERSISTED'
+            assert life['synthetic_debits']==1
+            assert any(json.loads(p.read_bytes()).get('phase')=='normal' for p in (base/'details').glob('*-phase.raw'))
+            if finalization_fault in ('all-permanent','early-permanent'):
+                assert terminal is None and claim['status']=='RUNNING' and consumed is None
+                assert not life['terminal_index_persisted']
+                return
+            assert terminal['status']=='BLOCKED' and terminal['claim_finalization']=='UNPROVEN'
+            assert life['terminal_index_persisted'] and terminal['finalization_proven'] is False
+            if finalization_fault=='shared-permanent':assert claim['status']=='RUNNING'
+            else:assert claim['status']=='EXPIRED' and claim['terminal_sha256']==original_digest(terminal_path)
+            if finalization_fault=='local-permanent':assert consumed is None
+            else:assert consumed['status']=='EXPIRED' and consumed['terminal_sha256']==original_digest(terminal_path)
+            assert sum(w['status']=='FINALIZING_NOT_PASS' for w in writes)==1
+            assert sum(w['status']=='BLOCKED' and Path(w['path'])==terminal_path for w in writes)==1
+        else:
+            assert life['terminal_persisted'] and life['finalization_proven']
+            assert terminal['status']==('READY_FOR_REVIEW' if fault is None else 'BLOCKED')
+            assert claim['status']=='EXPIRED' and claim['terminal_sha256']==original_digest(terminal_path)
+            assert consumed['status']=='EXPIRED' and consumed['terminal_sha256']==original_digest(terminal_path)
+        assert terminal_path.stat().st_size<=16384
         refs=terminal['artifact_refs'];total=0;observations=[]
         for ref in refs:
             path=base/ref['path'];assert path.stat().st_size==ref['bytes']<=1048576
@@ -614,18 +689,12 @@ def test_correction04_public_run_maximum(tmp_path,monkeypatch,fault):
         assert any(o['sample_count']==160 and all(len(s['owners'])==4 for s in o['samples']) for o in observations)
         assert len(json.dumps(life,ensure_ascii=False).encode())>32768
         if fault in ('phase2','phase3','detail','serialization','output','native'):assert terminal['synthetic_debits'] is None
-        directory=os.environ.get('P2B_RAW_DIR')
-        if directory:
-            import shutil
-            shutil.copytree(base,Path(directory)/('public-'+str(fault)))
-            for i,root in enumerate(created):shutil.copytree(root,Path(directory)/('factory-'+str(fault)+'-'+str(i)))
-            (Path(directory)/('life-'+str(fault)+'.json')).write_text(json.dumps(life,ensure_ascii=False))
     finally:
         monkeypatch.setattr(harness,'ACTIVE_METER',None)
         import shutil
         for root in created:shutil.rmtree(root)
         assert all(not root.exists() for root in created)
-        save_observer_raw('public-cleanup-'+str(fault),dict(roots=[str(r) for r in created],absent=True,synthetic=True))
+        save_observer_raw('public-cleanup-'+str(finalization_fault or fault),dict(roots=[str(r) for r in created],absent=True,synthetic=True))
 
 
 @pytest.mark.parametrize('fault',['tamper','missing','symlink','bound','output'])
@@ -648,3 +717,10 @@ def test_correction04_store_integrity_and_sticky_bounds(tmp_path,fault):
         with pytest.raises(ValueError):meter.take('output_bytes',0)
         assert path.exists();return
     with pytest.raises((ValueError,OSError)):store.verify()
+
+
+@pytest.mark.parametrize('finalization_fault',[
+    'shared-permanent','shared-transient','shared-afterwrite','local-permanent','local-transient',
+    'publish-permanent','publish-transient','early-permanent','early-transient','all-permanent'])
+def test_correction05_public_finalization_failures(tmp_path,monkeypatch,finalization_fault):
+    public_run_maximum(tmp_path,monkeypatch,finalization_fault=finalization_fault)

@@ -23,7 +23,7 @@ import uuid
 ROOT = Path(__file__).resolve().parents[1]
 BASE = ROOT/'.agent-governance/runtime/receipts/s3-p2b-correction-03'
 CHILD = 'reports/v0-s3/product-gate0/runtime-binding-correction-03.child.json'
-CONTRACT = 'reports/v0-s3/product-gate0/p2-binding-correction-04.contract.md'
+CONTRACT = 'reports/v0-s3/product-gate0/p2-binding-correction-05.contract.md'
 PROTOCOL = 'LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/program_budget.py'
 CORE = 'LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/core.py'
 HARNESS = 'tools/v0_s3_runtime_binding.py'
@@ -476,28 +476,81 @@ def terminal(pre,meter,life,installed,fixture,claim):
         attempt('artifact integrity',store.verify)
     if life.get('phases')!={'normal':'PERSISTED','bad-receipt':'PERSISTED','timeout':'PERSISTED'}:
         errors.append('required phases missing');life['status']='BLOCKED'
-    summary=dict(schema='lvw.p2b-terminal/2',status=life['status'],candidate=pre['candidate'],child_id=CHILD_ID,
+    summary=dict(schema='lvw.p2b-terminal/3',status=life['status'],candidate=pre['candidate'],child_id=CHILD_ID,
         child_sha256=pre.get('child_sha256'),preflight_sha256=attempt('preflight hash',lambda:digest(BASE/'preflight.json')),
         initial_claim_sha256=attempt('initial claim hash',lambda:digest(Path(pre['claim_path']))),
         synthetic_debits=life.get('synthetic_debits'),counters=meter.used,phases=life.get('phases',{}),
         phase_verdicts=life.get('phase_verdicts',{}),
-        cleanup='UNKNOWN' if errors or life['status']=='BLOCKED' else 'RETAINED',terminal_errors=errors,error=life.get('error'),
+        cleanup='UNKNOWN' if errors or life['status']=='BLOCKED' else 'RETAINED',terminal_errors=list(errors),error=life.get('error'),
         artifact_refs=store.refs if store else [],
         detail_actual_bytes=store.actual_bytes if store else None,detail_reserved_bytes=store.reserved_bytes if store else None)
-    def index():
-        summary['status']=life['status']
-        if len((json.dumps(summary,indent=2,ensure_ascii=False,allow_nan=False)+'\n').encode())>16384:
-            raise ValueError('terminal index bound')
-        write(BASE/'cross-os-lifecycle.json',summary)
-    saved=attempt('terminal',lambda:(index(),True))
-    if saved:
-        expired=dict(claim,status='EXPIRED',result=life['status'],terminal_sha256=digest(BASE/'cross-os-lifecycle.json'),
-                     terminal_path='cross-os-lifecycle.json')
-        attempt('claim terminal',lambda:write(Path(pre['claim_path']),expired))
-        attempt('local terminal',lambda:write(BASE/'consumed.json',expired))
-    life['terminal_persisted']=bool(saved)
-    if errors:sys.stderr.write('BLOCKED terminal errors: '+json.dumps(errors)[:2000]+'\n')
+    index=BASE/'cross-os-lifecycle.json'
+    staged=BASE/'terminal-candidate.json'
+    def encoded(value):
+        data=(json.dumps(value,indent=2,ensure_ascii=False,allow_nan=False)+'\n').encode('utf-8')
+        if len(data)>16384:raise ValueError('terminal index bound')
+        return data
+    def reference(data):
+        # Consumption is irrevocable, but is never a success decision itself.
+        return dict(claim,schema='lvw.p2b-consumption/2',status='EXPIRED',
+            result='TERMINAL_REFERENCE_NOT_DECISION',candidate=pre['candidate'],child_id=CHILD_ID,
+            child_sha256=pre.get('child_sha256'),terminal_sha256=hashlib.sha256(data).hexdigest(),
+            terminal_path=str(index))
+    life.update(terminal_persisted=False,terminal_index_persisted=False,finalization_proven=False,
+                claim_finalization='UNPROVEN')
+    try:
+        pending=dict(summary,status='FINALIZING_NOT_PASS',claim_finalization='UNPROVEN',
+                     terminal_index_persisted=True,finalization_proven=False)
+        encoded(pending);write(index,pending)
+        summary.update(status=life['status'],claim_finalization='PROVEN',
+                       terminal_index_persisted=True,finalization_proven=True)
+        data=encoded(summary)
+        write(staged,summary)
+        expired=reference(data)
+        write(Path(pre['claim_path']),expired)
+        write(BASE/'consumed.json',expired)
+        # All fallible verification precedes publication, including exact staged bytes.
+        if staged.read_bytes()!=data:raise ValueError('terminal candidate integrity')
+        verify_terminal_references(summary,data,pre,store)
+        os.replace(staged,index)  # Last fallible operation on the successful path.
+    except Exception as e:
+        errors.append('finalization: '+type(e).__name__+': '+str(e)[:200])
+        life['status']='BLOCKED'
+        summary.update(status='BLOCKED',cleanup='UNKNOWN',claim_finalization='UNPROVEN',
+                       terminal_index_persisted=True,finalization_proven=False,terminal_errors=list(errors))
+        # One bounded repair, never recursively retry, refund, unlink or reuse a claim.
+        # A remaining RUNNING claim is the original exclusive capacity tombstone.
+        saved=attempt('blocked index',lambda:(encoded(summary),write(index,summary),True))
+        if saved:
+            life['terminal_index_persisted']=life['terminal_persisted']=True
+            blocked=reference(encoded(summary))
+            attempt('blocked claim',lambda:write(Path(pre['claim_path']),blocked))
+            attempt('blocked local',lambda:write(BASE/'consumed.json',blocked))
+        if errors:sys.stderr.write('BLOCKED terminal errors: '+json.dumps(errors)[:2000]+'\n')
+        life['terminal_errors']=errors
+        return life
+    life.update(terminal_persisted=True,terminal_index_persisted=True,finalization_proven=True,
+                claim_finalization='PROVEN',terminal_errors=errors)
     return life
+
+
+def verify_terminal_references(summary, data, pre, store):
+    """Read-only verifier, usable before publish or by an independent reader later.
+
+    It does not mutate the committed decision. The index hashes only the initial
+    RUNNING claim; final consumption references hash the index, avoiding a cycle.
+    """
+    if store is None:raise ValueError('artifact store unavailable')
+    store.verify()
+    for path in (Path(pre['claim_path']),BASE/'consumed.json'):
+        safe_parent(path)
+        value=json.loads(path.read_bytes())
+        if (value.get('schema')!='lvw.p2b-consumption/2' or value.get('status')!='EXPIRED'
+            or value.get('result')!='TERMINAL_REFERENCE_NOT_DECISION'
+            or value.get('terminal_path')!=str(BASE/'cross-os-lifecycle.json')
+            or value.get('terminal_sha256')!=hashlib.sha256(data).hexdigest()
+            or any(value.get(key)!=summary.get(key) for key in ('candidate','child_id','child_sha256'))):
+            raise ValueError('terminal consumption reference integrity')
 
 
 def fault_helper_code():
@@ -719,7 +772,7 @@ if __name__=='__main__':
     if len(sys.argv)==3 and sys.argv[1]=='--preflight':
         value=preflight(sys.argv[2]);print(json.dumps({'status':'PREFLIGHT','sha256':digest(BASE/'preflight.json')}))
     elif sys.argv[1:]==['--run']:
-        value=run();print(json.dumps({'status':value['status'],'terminal_persisted':value.get('terminal_persisted')}))
-        sys.exit(0 if value['status']=='READY_FOR_REVIEW' and value.get('terminal_persisted') else 1)
+        value=run();print(json.dumps({'status':value['status'],'terminal_persisted':value.get('terminal_persisted'),'terminal_index_persisted':value.get('terminal_index_persisted'),'finalization_proven':value.get('finalization_proven')}))
+        sys.exit(0 if value['status']=='READY_FOR_REVIEW' and value.get('terminal_index_persisted') and value.get('finalization_proven') else 1)
     elif sys.argv[1:]==['--windows']:windows()
     else:raise SystemExit('fixed modes only')
