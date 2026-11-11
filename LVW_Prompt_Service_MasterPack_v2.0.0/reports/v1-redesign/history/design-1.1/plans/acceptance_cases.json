@@ -1,0 +1,1783 @@
+{
+  "schema_version": "2.0",
+  "note": "原58组保留；批准增加V1多镜头MS01–MS08，共66组；NOT_RUN不是产品通过。",
+  "cases": [
+    {
+      "case_id": "V0-A01",
+      "version": "V0",
+      "name": "图片真实输入",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "目标宿主/节点绑定已确定"
+      ],
+      "steps": [
+        "JPG/PNG/WebP→真模型→raw/建议",
+        "保存原始结果、配置和证据；失败修复后完整复跑。"
+      ],
+      "assertions": [
+        "原文件不变，正确预处理和可用结果",
+        "任何失败不得静默转为跳过或降低门槛。"
+      ],
+      "evidence_required": [
+        "steps_or_command.log",
+        "result_or_screenshot",
+        "runtime_versions.json",
+        "evidence_sha256.json"
+      ],
+      "test_layer": "real_runtime",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "V0-A02",
+      "version": "V0",
+      "name": "视频有限抽帧",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "MP4/MOV短片含VFR/运动"
+      ],
+      "steps": [
+        "默认4帧受控采样→真模型",
+        "保存原始结果、配置和证据；失败修复后完整复跑。"
+      ],
+      "assertions": [
+        "内存有界，时间性质和局限清楚",
+        "任何失败不得静默转为跳过或降低门槛。"
+      ],
+      "evidence_required": [
+        "steps_or_command.log",
+        "result_or_screenshot",
+        "runtime_versions.json",
+        "evidence_sha256.json"
+      ],
+      "test_layer": "real_runtime",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "V0-A03",
+      "version": "V0",
+      "name": "四输出与数据合同",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "图与视频已有建议"
+      ],
+      "steps": [
+        "四视图切换/JSON合同/TXT",
+        "保存原始结果、配置和证据；失败修复后完整复跑。"
+      ],
+      "assertions": [
+        "格式切换0次额外推理，来源/模型可追溯",
+        "任何失败不得静默转为跳过或降低门槛。"
+      ],
+      "evidence_required": [
+        "steps_or_command.log",
+        "result_or_screenshot",
+        "runtime_versions.json",
+        "evidence_sha256.json"
+      ],
+      "test_layer": "real_runtime",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "V0-A04",
+      "version": "V0",
+      "name": "独立人工编辑导出",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "Ollama停止、Comfy界面可用"
+      ],
+      "steps": [
+        "编辑20000字、复制/导出；刷新提示",
+        "保存原始结果、配置和证据；失败修复后完整复跑。"
+      ],
+      "assertions": [
+        "独立于GPU图，结果不能自动覆盖稿",
+        "任何失败不得静默转为跳过或降低门槛。"
+      ],
+      "evidence_required": [
+        "steps_or_command.log",
+        "result_or_screenshot",
+        "runtime_versions.json",
+        "evidence_sha256.json"
+      ],
+      "test_layer": "real_runtime",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "V0-A05",
+      "version": "V0",
+      "name": "异常不覆盖草稿",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "已有工作稿"
+      ],
+      "steps": [
+        "注入非法JSON/超时/OOM/明确未答",
+        "保存原始结果、配置和证据；失败修复后完整复跑。"
+      ],
+      "assertions": [
+        "保存raw，人工仍可导出，无无限重试",
+        "任何失败不得静默转为跳过或降低门槛。"
+      ],
+      "evidence_required": [
+        "steps_or_command.log",
+        "result_or_screenshot",
+        "runtime_versions.json",
+        "evidence_sha256.json"
+      ],
+      "test_layer": "fault_injection_and_security",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "V0-A06",
+      "version": "V0",
+      "name": "断网增量迁移",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "预置宿主模型/最小补丁"
+      ],
+      "steps": [
+        "禁外联冷启动图/片/人工；中文目录安装及回滚",
+        "保存原始结果、配置和证据；失败修复后完整复跑。"
+      ],
+      "assertions": [
+        "无外联尝试、无需新权重、旧工作流仍可用",
+        "任何失败不得静默转为跳过或降低门槛。"
+      ],
+      "evidence_required": [
+        "steps_or_command.log",
+        "result_or_screenshot",
+        "runtime_versions.json",
+        "evidence_sha256.json"
+      ],
+      "test_layer": "real_runtime",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "V0-A07",
+      "version": "V0",
+      "name": "文件输入安全",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "允许根/恶意输入集"
+      ],
+      "steps": [
+        "路径/UNC/重解析/超限/损坏/元数据注入",
+        "保存原始结果、配置和证据；失败修复后完整复跑。"
+      ],
+      "assertions": [
+        "无越界/执行，临时清理只自己目录",
+        "任何失败不得静默转为跳过或降低门槛。"
+      ],
+      "evidence_required": [
+        "steps_or_command.log",
+        "result_or_screenshot",
+        "runtime_versions.json",
+        "evidence_sha256.json"
+      ],
+      "test_layer": "fault_injection_and_security",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "V0-A08",
+      "version": "V0",
+      "name": "无人审审批阻断",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "空人工稿和内容备注"
+      ],
+      "steps": [
+        "不分析、不填备注直接导出；审查配置调用",
+        "保存原始结果、配置和证据；失败修复后完整复跑。"
+      ],
+      "assertions": [
+        "无NSFW节点/云回退/审批状态前置",
+        "任何失败不得静默转为跳过或降低门槛。"
+      ],
+      "evidence_required": [
+        "steps_or_command.log",
+        "result_or_screenshot",
+        "runtime_versions.json",
+        "evidence_sha256.json"
+      ],
+      "test_layer": "real_runtime",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "V0-A09",
+      "version": "V0",
+      "name": "资源与性能",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "冻结默认profile和目标机"
+      ],
+      "steps": [
+        "各10次热图/4帧，另测冷加载",
+        "保存原始结果、配置和证据；失败修复后完整复跑。"
+      ],
+      "assertions": [
+        "GPU<23GiB、RAM可用>=2GiB、P95<=180/300s，0 OOM",
+        "任何失败不得静默转为跳过或降低门槛。"
+      ],
+      "evidence_required": [
+        "steps_or_command.log",
+        "result_or_screenshot",
+        "runtime_versions.json",
+        "evidence_sha256.json"
+      ],
+      "test_layer": "real_runtime",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "V0-A10",
+      "version": "V0",
+      "name": "取消与卸载",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "自有任务与模拟他人占用"
+      ],
+      "steps": [
+        "取消/失败/正常路径清理，晚到测试",
+        "保存原始结果、配置和证据；失败修复后完整复跑。"
+      ],
+      "assertions": [
+        "<=1s反馈；实际停止后30s释放；不抢占别的任务",
+        "任何失败不得静默转为跳过或降低门槛。"
+      ],
+      "evidence_required": [
+        "steps_or_command.log",
+        "result_or_screenshot",
+        "runtime_versions.json",
+        "evidence_sha256.json"
+      ],
+      "test_layer": "real_runtime",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "V0-A11",
+      "version": "V0",
+      "name": "独立图片质量",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "预冻结10张独立标注图片"
+      ],
+      "steps": [
+        "评分原始模型结果，不取编辑后稿",
+        "保存原始结果、配置和证据；失败修复后完整复跑。"
+      ],
+      "assertions": [
+        "至少8/10可用、零关键幻觉",
+        "任何失败不得静默转为跳过或降低门槛。"
+      ],
+      "evidence_required": [
+        "steps_or_command.log",
+        "result_or_screenshot",
+        "runtime_versions.json",
+        "evidence_sha256.json"
+      ],
+      "test_layer": "real_runtime",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "V0-A12",
+      "version": "V0",
+      "name": "独立视频质量",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "预冻结6条独立标注视频"
+      ],
+      "steps": [
+        "评分原始输出的动作/运镜/局限",
+        "保存原始结果、配置和证据；失败修复后完整复跑。"
+      ],
+      "assertions": [
+        "至少5/6可用、零关键幻觉",
+        "任何失败不得静默转为跳过或降低门槛。"
+      ],
+      "evidence_required": [
+        "steps_or_command.log",
+        "result_or_screenshot",
+        "runtime_versions.json",
+        "evidence_sha256.json"
+      ],
+      "test_layer": "real_runtime",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "A01",
+      "version": "V1",
+      "name": "离线/无模型人工编译导出",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "断开Ollama，打开React/CLI，无图创建镜头"
+      ],
+      "steps": [
+        "填写四域/选择目标，CPU编译、保存、TXT/JSON导出",
+        "保存原始结果、配置和证据；失败修复后完整复跑。"
+      ],
+      "assertions": [
+        "不请求模型、保存可回读且无审批条件",
+        "任何失败不得静默转为跳过或降低门槛。"
+      ],
+      "evidence_required": [
+        "steps_or_command.log",
+        "result_or_screenshot",
+        "runtime_versions.json",
+        "evidence_sha256.json"
+      ],
+      "test_layer": "manual mode",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "A02",
+      "version": "V1",
+      "name": "实机Gemma4图片理解",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "Windows目标机、本地Gemma4已核验"
+      ],
+      "steps": [
+        "运行JPEG/PNG/WebP真实图，记录raw/digest/配置",
+        "保存原始结果、配置和证据；失败修复后完整复跑。"
+      ],
+      "assertions": [
+        "输出不是固定demo；原文件hash不变；建议未覆盖人工稿",
+        "任何失败不得静默转为跳过或降低门槛。"
+      ],
+      "evidence_required": [
+        "steps_or_command.log",
+        "result_or_screenshot",
+        "runtime_versions.json",
+        "evidence_sha256.json"
+      ],
+      "test_layer": "real gpu / model",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "A03",
+      "version": "V1",
+      "name": "短视频4-8帧分析",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "准备短MP4/MOV及4帧采样"
+      ],
+      "steps": [
+        "真实抽帧并推理；8帧仅另测profile",
+        "保存原始结果、配置和证据；失败修复后完整复跑。"
+      ],
+      "assertions": [
+        "时间顺序/采样局限可见，无全片GPU张量",
+        "任何失败不得静默转为跳过或降低门槛。"
+      ],
+      "evidence_required": [
+        "steps_or_command.log",
+        "result_or_screenshot",
+        "runtime_versions.json",
+        "evidence_sha256.json"
+      ],
+      "test_layer": "ffmpeg real",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "A04",
+      "version": "V1",
+      "name": "六模式四目标组合",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "冻结六模式与四目标模板"
+      ],
+      "steps": [
+        "执行24组合及image两个rendering、缺语言/未知值",
+        "保存原始结果、配置和证据；失败修复后完整复跑。"
+      ],
+      "assertions": [
+        "确定性可复现、切换不再调用VLM、锁定优先",
+        "任何失败不得静默转为跳过或降低门槛。"
+      ],
+      "evidence_required": [
+        "steps_or_command.log",
+        "result_or_screenshot",
+        "runtime_versions.json",
+        "evidence_sha256.json"
+      ],
+      "test_layer": "unit matrix",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "A05",
+      "version": "V1",
+      "name": "模型拒答与OOM不阻断人工路径",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "已有人工草稿/保存版本"
+      ],
+      "steps": [
+        "注入超时/解析错误/OOM/未回答，恢复模型再分析",
+        "保存原始结果、配置和证据；失败修复后完整复跑。"
+      ],
+      "assertions": [
+        "raw保留，人工编辑保存导出仍可用，无无限重试",
+        "任何失败不得静默转为跳过或降低门槛。"
+      ],
+      "evidence_required": [
+        "steps_or_command.log",
+        "result_or_screenshot",
+        "runtime_versions.json",
+        "evidence_sha256.json"
+      ],
+      "test_layer": "failure injection",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "A06",
+      "version": "V1",
+      "name": "人工revision不被覆盖",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "已有至少3人工修订"
+      ],
+      "steps": [
+        "重分析/并发保存/旧结果晚到",
+        "保存原始结果、配置和证据；失败修复后完整复跑。"
+      ],
+      "assertions": [
+        "已存revision内容hash不变，错误写冲突可见",
+        "任何失败不得静默转为跳过或降低门槛。"
+      ],
+      "evidence_required": [
+        "steps_or_command.log",
+        "result_or_screenshot",
+        "runtime_versions.json",
+        "evidence_sha256.json"
+      ],
+      "test_layer": "db hash",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "A07",
+      "version": "V1",
+      "name": "并发及取消晚到",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "单GPU任务与两个并发请求"
+      ],
+      "steps": [
+        "取消queued/running；安排晚到响应；再提交",
+        "保存原始结果、配置和证据；失败修复后完整复跑。"
+      ],
+      "assertions": [
+        "正确幂等/attempt检查，无越权写及资源抢占",
+        "任何失败不得静默转为跳过或降低门槛。"
+      ],
+      "evidence_required": [
+        "steps_or_command.log",
+        "result_or_screenshot",
+        "runtime_versions.json",
+        "evidence_sha256.json"
+      ],
+      "test_layer": "fault injection",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "A08",
+      "version": "V1",
+      "name": "导入安全与路径控制",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "安全测试素材与允许根"
+      ],
+      "steps": [
+        "路径穿越/UNC/符号链接/损坏/超限/字幕注入输入",
+        "保存原始结果、配置和证据；失败修复后完整复跑。"
+      ],
+      "assertions": [
+        "拒绝非法操作、无shell/URL执行、原文件不变",
+        "任何失败不得静默转为跳过或降低门槛。"
+      ],
+      "evidence_required": [
+        "steps_or_command.log",
+        "result_or_screenshot",
+        "runtime_versions.json",
+        "evidence_sha256.json"
+      ],
+      "test_layer": "security",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "A09",
+      "version": "V1",
+      "name": "完全断网冷启动",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "模型/运行包预置，浏览器冷缓存"
+      ],
+      "steps": [
+        "阻断非loopback外联后重启全流程",
+        "保存原始结果、配置和证据；失败修复后完整复跑。"
+      ],
+      "assertions": [
+        "UI/真实分析/编辑/导出成功且无应用外联尝试",
+        "任何失败不得静默转为跳过或降低门槛。"
+      ],
+      "evidence_required": [
+        "steps_or_command.log",
+        "result_or_screenshot",
+        "runtime_versions.json",
+        "evidence_sha256.json"
+      ],
+      "test_layer": "network observation",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "A10",
+      "version": "V1",
+      "name": "4090/32GB性能与内存",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "目标4090/32GB和冻结profile"
+      ],
+      "steps": [
+        "各10次图/4帧，采集显存/系统可用内存/时长/卸载",
+        "保存原始结果、配置和证据；失败修复后完整复跑。"
+      ],
+      "assertions": [
+        "符合experience-gates；冷加载另报，默认零OOM",
+        "任何失败不得静默转为跳过或降低门槛。"
+      ],
+      "evidence_required": [
+        "steps_or_command.log",
+        "result_or_screenshot",
+        "runtime_versions.json",
+        "evidence_sha256.json"
+      ],
+      "test_layer": "real hardware",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "A11",
+      "version": "V1",
+      "name": "跨目录迁移和恢复",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "V1便携包和测试项目"
+      ],
+      "steps": [
+        "换中文路径/用户名、重绑定素材，恢复snapshot",
+        "保存原始结果、配置和证据；失败修复后完整复跑。"
+      ],
+      "assertions": [
+        "无Node/pip运行依赖，版本/来源/hash不变",
+        "任何失败不得静默转为跳过或降低门槛。"
+      ],
+      "evidence_required": [
+        "steps_or_command.log",
+        "result_or_screenshot",
+        "runtime_versions.json",
+        "evidence_sha256.json"
+      ],
+      "test_layer": "portable package",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "A12",
+      "version": "V1",
+      "name": "etag版本与四来源域",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "两个客户端读同shot etag"
+      ],
+      "steps": [
+        "并发If-Match写入，检查四域和未知项",
+        "保存原始结果、配置和证据；失败修复后完整复跑。"
+      ],
+      "assertions": [
+        "一个成功另一个412，人工可另存，推断不冒充证据",
+        "任何失败不得静默转为跳过或降低门槛。"
+      ],
+      "evidence_required": [
+        "steps_or_command.log",
+        "result_or_screenshot",
+        "runtime_versions.json",
+        "evidence_sha256.json"
+      ],
+      "test_layer": "api+ux",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "A13",
+      "version": "V2",
+      "name": "精确PTS与VFR镜头时间",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "VFR真实片和至少20人工切点"
+      ],
+      "steps": [
+        "检测/映射source_pts/timebase并人工修订",
+        "保存原始结果、配置和证据；失败修复后完整复跑。"
+      ],
+      "assertions": [
+        "真时间映射，切点P/R>=.90容差±2帧；unknown不伪精确",
+        "任何失败不得静默转为跳过或降低门槛。"
+      ],
+      "evidence_required": [
+        "steps_or_command.log",
+        "result_or_screenshot",
+        "runtime_versions.json",
+        "evidence_sha256.json"
+      ],
+      "test_layer": "real video",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "A14",
+      "version": "V2",
+      "name": "1000引用hash去重+检索",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "1000条引用含相同hash不同来源和中文"
+      ],
+      "steps": [
+        "检索/去重/分页/标签过滤",
+        "保存原始结果、配置和证据；失败修复后完整复跑。"
+      ],
+      "assertions": [
+        "引用不误删，P95<=500ms，中文方案明确",
+        "任何失败不得静默转为跳过或降低门槛。"
+      ],
+      "evidence_required": [
+        "steps_or_command.log",
+        "result_or_screenshot",
+        "runtime_versions.json",
+        "evidence_sha256.json"
+      ],
+      "test_layer": "integration",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "A15",
+      "version": "V2",
+      "name": "MCP客户端真实调用",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "真实Codex或Claude Code客户端、本地服务"
+      ],
+      "steps": [
+        "发现8工具并读/分析/poll/cancel/编译/保存",
+        "保存原始结果、配置和证据；失败修复后完整复跑。"
+      ],
+      "assertions": [
+        "共享单worker，参数/权限验证，无任意Shell/路径",
+        "任何失败不得静默转为跳过或降低门槛。"
+      ],
+      "evidence_required": [
+        "steps_or_command.log",
+        "result_or_screenshot",
+        "runtime_versions.json",
+        "evidence_sha256.json"
+      ],
+      "test_layer": "real client",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "A16",
+      "version": "V2",
+      "name": "恢复取消幂等一致性备份",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "SQLite WAL和batch任务"
+      ],
+      "steps": [
+        "杀worker、过期lease、重复提交、磁盘满模拟、snapshot恢复",
+        "保存原始结果、配置和证据；失败修复后完整复跑。"
+      ],
+      "assertions": [
+        "无重复人工修订，成功项不重做，旧attempt无写权，DB一致",
+        "任何失败不得静默转为跳过或降低门槛。"
+      ],
+      "evidence_required": [
+        "steps_or_command.log",
+        "result_or_screenshot",
+        "runtime_versions.json",
+        "evidence_sha256.json"
+      ],
+      "test_layer": "fault injection",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "A17",
+      "version": "V2",
+      "name": "V1数据无损迁移和回归",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "V1真实数据库和发布包"
+      ],
+      "steps": [
+        "V2迁移、FTS重建、前序测试复跑",
+        "保存原始结果、配置和证据；失败修复后完整复跑。"
+      ],
+      "assertions": [
+        "旧ID/hash不变、恢复旧包和库可用",
+        "任何失败不得静默转为跳过或降低门槛。"
+      ],
+      "evidence_required": [
+        "steps_or_command.log",
+        "result_or_screenshot",
+        "runtime_versions.json",
+        "evidence_sha256.json"
+      ],
+      "test_layer": "db migration",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "A18",
+      "version": "V3",
+      "name": "Navia显式许可导入隔离",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "真实Navia授权保存资料、拒绝scope样本"
+      ],
+      "steps": [
+        "导入允许证据，再试凭据/私有路径/撤销范围",
+        "保存原始结果、配置和证据；失败修复后完整复跑。"
+      ],
+      "assertions": [
+        "仅授权引用进入，不读浏览器凭据、不自动下载URL",
+        "任何失败不得静默转为跳过或降低门槛。"
+      ],
+      "evidence_required": [
+        "steps_or_command.log",
+        "result_or_screenshot",
+        "runtime_versions.json",
+        "evidence_sha256.json"
+      ],
+      "test_layer": "integration security",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "A19",
+      "version": "V3",
+      "name": "Narralens生产状态权威保护",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "真实Narralens镜头及源版本"
+      ],
+      "steps": [
+        "建议提交/重复/源镜头改版/采纳回执",
+        "保存原始结果、配置和证据；失败修复后完整复跑。"
+      ],
+      "assertions": [
+        "LVW不写生产审批，旧建议不覆盖新源版本",
+        "任何失败不得静默转为跳过或降低门槛。"
+      ],
+      "evidence_required": [
+        "steps_or_command.log",
+        "result_or_screenshot",
+        "runtime_versions.json",
+        "evidence_sha256.json"
+      ],
+      "test_layer": "contract integration",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "A20",
+      "version": "V3",
+      "name": "Comfy白名单工作流与单GPU",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "已批准Comfy真实工作流，资源协作启用"
+      ],
+      "steps": [
+        "LVW分析释放→Comfy生成；未知占用与取消测试",
+        "保存原始结果、配置和证据；失败修复后完整复跑。"
+      ],
+      "assertions": [
+        "单GPU协作有效，不中断他人任务；任务/工件可追溯",
+        "任何失败不得静默转为跳过或降低门槛。"
+      ],
+      "evidence_required": [
+        "steps_or_command.log",
+        "result_or_screenshot",
+        "runtime_versions.json",
+        "evidence_sha256.json"
+      ],
+      "test_layer": "real gpu",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "A21",
+      "version": "V3",
+      "name": "升级回滚迁移断网",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "V3软件和V2数据备份，干净Windows宿主"
+      ],
+      "steps": [
+        "离线迁移、升级中断、回滚、恢复媒体引用",
+        "保存原始结果、配置和证据；失败修复后完整复跑。"
+      ],
+      "assertions": [
+        "旧新数据一致且软件+对应snapshot成套恢复",
+        "任何失败不得静默转为跳过或降低门槛。"
+      ],
+      "evidence_required": [
+        "steps_or_command.log",
+        "result_or_screenshot",
+        "runtime_versions.json",
+        "evidence_sha256.json"
+      ],
+      "test_layer": "portable rollback",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "A22",
+      "version": "V3",
+      "name": "项目群端到端推荐Prompt与证据",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "Navia/Narralens/Comfy真版本可调用"
+      ],
+      "steps": [
+        "来源→brief→分析/人工版本→建议→生成交接→接收",
+        "保存原始结果、配置和证据；失败修复后完整复跑。"
+      ],
+      "assertions": [
+        "引用/权限/版本链闭合，对端未就绪BLOCKED非Mock PASS",
+        "任何失败不得静默转为跳过或降低门槛。"
+      ],
+      "evidence_required": [
+        "steps_or_command.log",
+        "result_or_screenshot",
+        "runtime_versions.json",
+        "evidence_sha256.json"
+      ],
+      "test_layer": "project group e2e",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "F01",
+      "version": "V1",
+      "name": "React+TS+Vite build and no Python UI framework",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "实际React工程"
+      ],
+      "steps": [
+        "npm ci/TS/test/build及依赖扫描",
+        "保存原始结果、配置和证据；失败修复后完整复跑。"
+      ],
+      "assertions": [
+        "真实dist，无Gradio/NiceGUI，不把设计HTML当产品",
+        "任何失败不得静默转为跳过或降低门槛。"
+      ],
+      "evidence_required": [
+        "steps_or_command.log",
+        "result_or_screenshot",
+        "runtime_versions.json",
+        "evidence_sha256.json"
+      ],
+      "test_layer": "browser",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "F02",
+      "version": "V1",
+      "name": "Responsive 360/768/1280/1920 keyboard and focus",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "产品浏览器"
+      ],
+      "steps": [
+        "360/768/1280/1920及200%/键盘/长中文",
+        "保存原始结果、配置和证据；失败修复后完整复跑。"
+      ],
+      "assertions": [
+        "核心操作可达、焦点清晰、无裁切隐藏",
+        "任何失败不得静默转为跳过或降低门槛。"
+      ],
+      "evidence_required": [
+        "steps_or_command.log",
+        "result_or_screenshot",
+        "runtime_versions.json",
+        "evidence_sha256.json"
+      ],
+      "test_layer": "browser",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "F03",
+      "version": "V1",
+      "name": "Manual editor available on refusal timeout cancel",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "正在编辑未保存稿"
+      ],
+      "steps": [
+        "模拟拒答/取消/超时/迟到",
+        "保存原始结果、配置和证据；失败修复后完整复跑。"
+      ],
+      "assertions": [
+        "草稿保持，人工保存/导出不被禁用",
+        "任何失败不得静默转为跳过或降低门槛。"
+      ],
+      "evidence_required": [
+        "steps_or_command.log",
+        "result_or_screenshot",
+        "runtime_versions.json",
+        "evidence_sha256.json"
+      ],
+      "test_layer": "browser",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "F04",
+      "version": "V1",
+      "name": "API TypeScript/Pydantic parity and etag conflict",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "当前OpenAPI及TS生成"
+      ],
+      "steps": [
+        "合同差异/ETag冲突/旧请求返回",
+        "保存原始结果、配置和证据；失败修复后完整复跑。"
+      ],
+      "assertions": [
+        "类型一致、冲突可见、不自动旧写覆盖",
+        "任何失败不得静默转为跳过或降低门槛。"
+      ],
+      "evidence_required": [
+        "steps_or_command.log",
+        "result_or_screenshot",
+        "runtime_versions.json",
+        "evidence_sha256.json"
+      ],
+      "test_layer": "browser",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "F05",
+      "version": "V1",
+      "name": "Production static build no CDN/Node runtime offline",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "生产dist及便携包"
+      ],
+      "steps": [
+        "无Node和外网冷启动",
+        "保存原始结果、配置和证据；失败修复后完整复跑。"
+      ],
+      "assertions": [
+        "本地JS/CSS/字体加载，无开发服务器依赖",
+        "任何失败不得静默转为跳过或降低门槛。"
+      ],
+      "evidence_required": [
+        "steps_or_command.log",
+        "result_or_screenshot",
+        "runtime_versions.json",
+        "evidence_sha256.json"
+      ],
+      "test_layer": "browser",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "F06",
+      "version": "V2",
+      "name": "Asset list searchable without freezing",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "1000条资产"
+      ],
+      "steps": [
+        "搜索/分页/配方引用/缺素材状态",
+        "保存原始结果、配置和证据；失败修复后完整复跑。"
+      ],
+      "assertions": [
+        "界面不冻结，源可用性与版本清楚",
+        "任何失败不得静默转为跳过或降低门槛。"
+      ],
+      "evidence_required": [
+        "steps_or_command.log",
+        "result_or_screenshot",
+        "runtime_versions.json",
+        "evidence_sha256.json"
+      ],
+      "test_layer": "browser",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "F07",
+      "version": "V3",
+      "name": "Provenance UI project integrations safe failures",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "三对端状态可模拟且真接口可测"
+      ],
+      "steps": [
+        "offline/incompatible/unknown/adopted切换",
+        "保存原始结果、配置和证据；失败修复后完整复跑。"
+      ],
+      "assertions": [
+        "不假报交付，来源/责任明确，人工路径不锁",
+        "任何失败不得静默转为跳过或降低门槛。"
+      ],
+      "evidence_required": [
+        "steps_or_command.log",
+        "result_or_screenshot",
+        "runtime_versions.json",
+        "evidence_sha256.json"
+      ],
+      "test_layer": "browser",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "Q01",
+      "version": "V1",
+      "name": "独立质量与六模式覆盖",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "12图+6片、独立预标注"
+      ],
+      "steps": [
+        "评分原始响应；六模式至少各2图",
+        "保存原始结果、配置和证据；失败修复后完整复跑。"
+      ],
+      "assertions": [
+        "图>=10/12、片>=5/6、无关键幻觉；不是模型自评",
+        "任何失败不得静默转为跳过或降低门槛。"
+      ],
+      "evidence_required": [
+        "steps_or_command.log",
+        "result_or_screenshot",
+        "runtime_versions.json",
+        "evidence_sha256.json"
+      ],
+      "test_layer": "quality",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "X01",
+      "version": "V1",
+      "name": "本地服务Origin/Host与token边界",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "真实服务、恶意网页Origin"
+      ],
+      "steps": [
+        "跨源写/假Host/缺token/字幕注入",
+        "保存原始结果、配置和证据；失败修复后完整复跑。"
+      ],
+      "assertions": [
+        "越权请求拒绝，正常同源人工路径可用",
+        "任何失败不得静默转为跳过或降低门槛。"
+      ],
+      "evidence_required": [
+        "steps_or_command.log",
+        "result_or_screenshot",
+        "runtime_versions.json",
+        "evidence_sha256.json"
+      ],
+      "test_layer": "security",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "X02",
+      "version": "V1",
+      "name": "V0导入及模板版本转换",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "V0导出含manual/sample_target"
+      ],
+      "steps": [
+        "导入V1并改模板、编译、保存",
+        "保存原始结果、配置和证据；失败修复后完整复跑。"
+      ],
+      "assertions": [
+        "新ID有来源，旧近似时间不伪精确，旧稿不变",
+        "任何失败不得静默转为跳过或降低门槛。"
+      ],
+      "evidence_required": [
+        "steps_or_command.log",
+        "result_or_screenshot",
+        "runtime_versions.json",
+        "evidence_sha256.json"
+      ],
+      "test_layer": "migration",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "X03",
+      "version": "V1",
+      "name": "项目包与磁盘异常",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "含篡改hash/zip-slip包"
+      ],
+      "steps": [
+        "导入负例/写盘失败/恢复",
+        "保存原始结果、配置和证据；失败修复后完整复跑。"
+      ],
+      "assertions": [
+        "无越界写和半提交；错误可读，保留草稿",
+        "任何失败不得静默转为跳过或降低门槛。"
+      ],
+      "evidence_required": [
+        "steps_or_command.log",
+        "result_or_screenshot",
+        "runtime_versions.json",
+        "evidence_sha256.json"
+      ],
+      "test_layer": "security",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "X04",
+      "version": "V2",
+      "name": "长视频流式与中文检索",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "2h引用片、中文1000记录"
+      ],
+      "steps": [
+        "分窗处理资源采样/检索",
+        "保存原始结果、配置和证据；失败修复后完整复跑。"
+      ],
+      "assertions": [
+        "无全片张量，活动窗口有界，中文可复现",
+        "任何失败不得静默转为跳过或降低门槛。"
+      ],
+      "evidence_required": [
+        "steps_or_command.log",
+        "result_or_screenshot",
+        "runtime_versions.json",
+        "evidence_sha256.json"
+      ],
+      "test_layer": "hardware",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "X05",
+      "version": "V2",
+      "name": "MCP scope与多客户端共享",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "两个真实或一个真实+隔离测试客户端"
+      ],
+      "steps": [
+        "并行工具/越权/晚到/取消",
+        "保存原始结果、配置和证据；失败修复后完整复跑。"
+      ],
+      "assertions": [
+        "无第二GPU worker，无任意文件/工具逃逸",
+        "任何失败不得静默转为跳过或降低门槛。"
+      ],
+      "evidence_required": [
+        "steps_or_command.log",
+        "result_or_screenshot",
+        "runtime_versions.json",
+        "evidence_sha256.json"
+      ],
+      "test_layer": "real_client",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "X06",
+      "version": "V2",
+      "name": "对比/QC/数据集导出边界",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "两参考版本与QC含正常/黑场/冻结样本"
+      ],
+      "steps": [
+        "结构属性对比、候选QC、分镜/JSONL导出",
+        "保存原始结果、配置和证据；失败修复后完整复跑。"
+      ],
+      "assertions": [
+        "不自动删素材，不冒充真实性鉴定；来源/机器标签明确",
+        "任何失败不得静默转为跳过或降低门槛。"
+      ],
+      "evidence_required": [
+        "steps_or_command.log",
+        "result_or_screenshot",
+        "runtime_versions.json",
+        "evidence_sha256.json"
+      ],
+      "test_layer": "integration",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "X07",
+      "version": "V3",
+      "name": "对端版本与授权撤销",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "真实接口及不兼容合同"
+      ],
+      "steps": [
+        "握手/源版本冲突/撤销后重用",
+        "保存原始结果、配置和证据；失败修复后完整复跑。"
+      ],
+      "assertions": [
+        "拒绝越权或不兼容，历史不篡改，无状态越权",
+        "任何失败不得静默转为跳过或降低门槛。"
+      ],
+      "evidence_required": [
+        "steps_or_command.log",
+        "result_or_screenshot",
+        "runtime_versions.json",
+        "evidence_sha256.json"
+      ],
+      "test_layer": "real_peer",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "X08",
+      "version": "V3",
+      "name": "生成提交未知及取消所有权",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "Comfy提交响应丢失与他人任务"
+      ],
+      "steps": [
+        "reconcile before retry；全局interrupt风险测试",
+        "保存原始结果、配置和证据；失败修复后完整复跑。"
+      ],
+      "assertions": [
+        "无盲目双提交/误停；SUBMISSION_UNKNOWN显式可处理",
+        "任何失败不得静默转为跳过或降低门槛。"
+      ],
+      "evidence_required": [
+        "steps_or_command.log",
+        "result_or_screenshot",
+        "runtime_versions.json",
+        "evidence_sha256.json"
+      ],
+      "test_layer": "fault_and_real_peer",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "R1A-M01",
+      "version": "V1-R1a",
+      "name": "受控单图媒体边界",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "R1a FastAPI与受控媒体目录可用"
+      ],
+      "steps": [
+        "通过公开上传入口验证JPEG/PNG/WebP、20MiB、40MP、hash与预处理边界",
+        "保存候选绑定的原始测试和收据"
+      ],
+      "assertions": [
+        "原图hash不变且分析副本最长边不超过1024",
+        "损坏、格式伪装、exact与one-over均fail-closed"
+      ],
+      "evidence_required": [
+        "test_receipt.json",
+        "boundary_results.json",
+        "candidate_sha"
+      ],
+      "test_layer": "api_and_contract",
+      "requires_target_execution": false,
+      "evidence_path": null
+    },
+    {
+      "case_id": "R1A-M02",
+      "version": "V1-R1a",
+      "name": "真实单图产品链分析",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "Windows本地Gemma4、同源React/FastAPI及固定非私有图片已授权"
+      ],
+      "steps": [
+        "经React上传并由FastAPI调用literal-loopback Ollama",
+        "保存raw、PromptSpec、模型digest与调用账本"
+      ],
+      "assertions": [
+        "不是固定demo且真实provider调用恰为1",
+        "raw、观察、推断、未知和建议属于同一run"
+      ],
+      "evidence_required": [
+        "live-receipt.json",
+        "browser-result.json",
+        "provider-ledger.json"
+      ],
+      "test_layer": "real_gpu_model_product_path",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "R1A-M03",
+      "version": "V1-R1a",
+      "name": "无模型人工编辑与导出",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "React人工工作稿已打开，provider调用账本为空"
+      ],
+      "steps": [
+        "填写四输出和标签并执行复制、TXT与JSON导出",
+        "再执行一次真实分析并核对人工稿在显式采纳前不变"
+      ],
+      "assertions": [
+        "人工路径产生0次provider调用",
+        "Unicode、空字段和导出内容可预测且无静默覆盖"
+      ],
+      "evidence_required": [
+        "manual-export.json",
+        "browser-ledger.json",
+        "provider-ledger.json"
+      ],
+      "test_layer": "browser_manual_mode",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "R1A-M04",
+      "version": "V1-R1a",
+      "name": "显式采纳与四输出一致性",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "真实单图分析完成且人工稿含未导出修改"
+      ],
+      "steps": [
+        "确认建议未自动覆盖，接受替换确认后显式采纳",
+        "核对中文、英文、图像、负向提示词及TXT/JSON"
+      ],
+      "assertions": [
+        "切换、编辑、复制和导出不重复分析",
+        "四输出与采纳后的draft逐字段一致"
+      ],
+      "evidence_required": [
+        "browser-result.json",
+        "export.txt",
+        "export.json",
+        "provider-ledger.json"
+      ],
+      "test_layer": "browser_state_and_export",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "R1A-M05",
+      "version": "V1-R1a",
+      "name": "真实React构建与响应式产品页",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "Vite dist由冻结候选构建并由FastAPI同源托管"
+      ],
+      "steps": [
+        "运行360/1280/1920布局、键盘路径和raw默认折叠检查",
+        "核对无CDN、Node生产服务、Gradio或NiceGUI"
+      ],
+      "assertions": [
+        "无水平溢出且关键操作可由键盘触发",
+        "浏览器只访问绑定的loopback同源"
+      ],
+      "evidence_required": [
+        "ui-360.png",
+        "ui-1280.png",
+        "ui-1920.png",
+        "browser-result.json"
+      ],
+      "test_layer": "real_browser",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "R1A-M06",
+      "version": "V1-R1a",
+      "name": "固定单图独立语义与证据复核",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "固定单图的新鲜真实运行和原始证据已封存"
+      ],
+      "steps": [
+        "独立复算观察、推断、未知和提示词是否有图像依据",
+        "复核候选、授权、调用、清理与证据hash"
+      ],
+      "assertions": [
+        "观察与推断分离且提示词语义可用",
+        "Fatal=0、Major=0且不依赖实现者结论"
+      ],
+      "evidence_required": [
+        "independent-review.md",
+        "artifact-manifest.json",
+        "candidate_sha"
+      ],
+      "test_layer": "independent_review",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "R1A-M07",
+      "version": "V1-R1a",
+      "name": "同源、loopback与失败安全",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "同源服务、受控上传和浏览器外联拦截已启用"
+      ],
+      "steps": [
+        "验证非法Origin/URL/格式/路径、模型失败和dirty draft",
+        "复核双运行域端口、run-owned进程和临时目录清理"
+      ],
+      "assertions": [
+        "无云回退、任意路径或浏览器直连Ollama",
+        "失败不覆盖人工稿且不终止非owned进程"
+      ],
+      "evidence_required": [
+        "security-results.json",
+        "live-receipt.json",
+        "cleanup-proof.json"
+      ],
+      "test_layer": "security_failure_cleanup",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "X09",
+      "version": "V3",
+      "name": "完整恢复及供应链验收",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "干净Windows环境/损坏包/备份"
+      ],
+      "steps": [
+        "验证签收hash、离线恢复、升级失败回滚",
+        "保存原始结果、配置和证据；失败修复后完整复跑。"
+      ],
+      "assertions": [
+        "无需现场安装/编译/权重复制，版本数据一致",
+        "任何失败不得静默转为跳过或降低门槛。"
+      ],
+      "evidence_required": [
+        "steps_or_command.log",
+        "result_or_screenshot",
+        "runtime_versions.json",
+        "evidence_sha256.json"
+      ],
+      "test_layer": "deployment",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "MS01",
+      "version": "V1",
+      "name": "硬切候选与实际PTS",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "Gate0冻结规格/独立标注/样本哈希，候选及有限授权完整"
+      ],
+      "steps": [
+        "通过生产owner/公开入口驱动，保留失败、raw和机器收据"
+      ],
+      "assertions": [
+        "6段硬切样本至少20个预标切点；一对一匹配，P/R均>=0.90，容差为标注点左右各2个实际源帧；禁止用平均fps换算VFR",
+        "缺失/阻塞/跳过不计PASS，不缩分母，不替换样本；Fatal0/Major0才能出门"
+      ],
+      "evidence_required": [
+        "run_receipt.json",
+        "raw_commands.log",
+        "per_sample_results.json",
+        "candidate_spec_sample_hashes.json",
+        "cleanup_proof.json"
+      ],
+      "test_layer": "contract_cpu_real_ui_and_quality",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "MS02",
+      "version": "V1",
+      "name": "边界编辑与修订",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "Gate0冻结规格/独立标注/样本哈希，候选及有限授权完整"
+      ],
+      "steps": [
+        "通过生产owner/公开入口驱动，保留失败、raw和机器收据"
+      ],
+      "assertions": [
+        "拆分/合并/移动边界；[start,end)有效且顺序连续；If-Match冲突412；边界改动只使受影响结果stale，raw/人工稿不丢",
+        "缺失/阻塞/跳过不计PASS，不缩分母，不替换样本；Fatal0/Major0才能出门"
+      ],
+      "evidence_required": [
+        "run_receipt.json",
+        "raw_commands.log",
+        "per_sample_results.json",
+        "candidate_spec_sample_hashes.json",
+        "cleanup_proof.json"
+      ],
+      "test_layer": "contract_cpu_real_ui_and_quality",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "MS03",
+      "version": "V1",
+      "name": "镜头内抽帧与追溯",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "Gate0冻结规格/独立标注/样本哈希，候选及有限授权完整"
+      ],
+      "steps": [
+        "通过生产owner/公开入口驱动，保留失败、raw和机器收据"
+      ],
+      "assertions": [
+        "全部计划镜头逐项覆盖，帧PTS严格属于本镜头；少帧不复制；原SHA、边界版本、帧SHA与结果一致",
+        "缺失/阻塞/跳过不计PASS，不缩分母，不替换样本；Fatal0/Major0才能出门"
+      ],
+      "evidence_required": [
+        "run_receipt.json",
+        "raw_commands.log",
+        "per_sample_results.json",
+        "candidate_spec_sample_hashes.json",
+        "cleanup_proof.json"
+      ],
+      "test_layer": "contract_cpu_real_ui_and_quality",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "MS04",
+      "version": "V1",
+      "name": "人物场景动作质量",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "Gate0冻结规格/独立标注/样本哈希，候选及有限授权完整"
+      ],
+      "steps": [
+        "通过生产owner/公开入口驱动，保留失败、raw和机器收据"
+      ],
+      "assertions": [
+        "独立18段质量标注全部计分：12段简单动作至少10段动作可用；3模糊+3静态不得强行编造动作；总可用>=15/18且关键幻觉0；五维各0–2，总>=8可用",
+        "缺失/阻塞/跳过不计PASS，不缩分母，不替换样本；Fatal0/Major0才能出门"
+      ],
+      "evidence_required": [
+        "run_receipt.json",
+        "raw_commands.log",
+        "per_sample_results.json",
+        "candidate_spec_sample_hashes.json",
+        "cleanup_proof.json"
+      ],
+      "test_layer": "contract_cpu_real_ui_and_quality",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "MS05",
+      "version": "V1",
+      "name": "串行任务取消与重试",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "Gate0冻结规格/独立标注/样本哈希，候选及有限授权完整"
+      ],
+      "steps": [
+        "通过生产owner/公开入口驱动，保留失败、raw和机器收据"
+      ],
+      "assertions": [
+        "准备/运行/排队真实取消，反馈<=1s，实际释放<=30s；失败子项不回滚成功项，重试新attempt仅失败子项；晚到不得写稿",
+        "缺失/阻塞/跳过不计PASS，不缩分母，不替换样本；Fatal0/Major0才能出门"
+      ],
+      "evidence_required": [
+        "run_receipt.json",
+        "raw_commands.log",
+        "per_sample_results.json",
+        "candidate_spec_sample_hashes.json",
+        "cleanup_proof.json"
+      ],
+      "test_layer": "contract_cpu_real_ui_and_quality",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "MS06",
+      "version": "V1",
+      "name": "逐镜头前端与导出",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "Gate0冻结规格/独立标注/样本哈希，候选及有限授权完整"
+      ],
+      "steps": [
+        "通过生产owner/公开入口驱动，保留失败、raw和机器收据"
+      ],
+      "assertions": [
+        "真实React公开入口切镜/预览/逐镜头采纳编辑/导出闭环；切换不串稿；JSON/CSV清单含每个计划项状态，不以缺失当PASS",
+        "缺失/阻塞/跳过不计PASS，不缩分母，不替换样本；Fatal0/Major0才能出门"
+      ],
+      "evidence_required": [
+        "run_receipt.json",
+        "raw_commands.log",
+        "per_sample_results.json",
+        "candidate_spec_sample_hashes.json",
+        "cleanup_proof.json"
+      ],
+      "test_layer": "contract_cpu_real_ui_and_quality",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "MS07",
+      "version": "V1",
+      "name": "有界资源与安全",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "Gate0冻结规格/独立标注/样本哈希，候选及有限授权完整"
+      ],
+      "steps": [
+        "通过生产owner/公开入口驱动，保留失败、raw和机器收据"
+      ],
+      "assertions": [
+        "镜头数12/13 exact-oneover；全部媒体限制/非法边界/取消清理；不静默只分析前12；单GPU，峰<23552MiB，RAM>=2048MiB，OOM0",
+        "缺失/阻塞/跳过不计PASS，不缩分母，不替换样本；Fatal0/Major0才能出门"
+      ],
+      "evidence_required": [
+        "run_receipt.json",
+        "raw_commands.log",
+        "per_sample_results.json",
+        "candidate_spec_sample_hashes.json",
+        "cleanup_proof.json"
+      ],
+      "test_layer": "contract_cpu_real_ui_and_quality",
+      "requires_target_execution": true,
+      "evidence_path": null
+    },
+    {
+      "case_id": "MS08",
+      "version": "V1",
+      "name": "持久化迁移与兼容",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "preconditions": [
+        "Gate0冻结规格/独立标注/样本哈希，候选及有限授权完整"
+      ],
+      "steps": [
+        "通过生产owner/公开入口驱动，保留失败、raw和机器收据"
+      ],
+      "assertions": [
+        "重启恢复media/scene/shot/revision/jobs，running->interrupted不自动重放；备份/迁移失败回滚；原V1接口与整体4帧回归；raw/人工分离",
+        "缺失/阻塞/跳过不计PASS，不缩分母，不替换样本；Fatal0/Major0才能出门"
+      ],
+      "evidence_required": [
+        "run_receipt.json",
+        "raw_commands.log",
+        "per_sample_results.json",
+        "candidate_spec_sample_hashes.json",
+        "cleanup_proof.json"
+      ],
+      "test_layer": "contract_cpu_real_ui_and_quality",
+      "requires_target_execution": true,
+      "evidence_path": null
+    }
+  ]
+}

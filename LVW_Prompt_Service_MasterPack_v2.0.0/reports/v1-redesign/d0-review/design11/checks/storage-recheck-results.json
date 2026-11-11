@@ -1,0 +1,390 @@
+{
+  "kind": "D0_B_REVIEW_DESIGN11_INDEPENDENT_RECHECK_STORAGE_PROBES",
+  "declared_hash_function": {
+    "algorithm": "sha256 UTF8 canonical JSON sorted keys, compact separators, ensure_ascii=False, allow_nan=False",
+    "fields": [
+      "media_ref_id",
+      "media_sha256",
+      "revision",
+      "start_pts",
+      "end_pts",
+      "origin_pts",
+      "time_base_num",
+      "time_base_den",
+      "editor",
+      "time_basis",
+      "verified"
+    ],
+    "implementation": "python hashlib.sha256 over json.dumps(sort_keys=True, separators=(',',':'), ensure_ascii=False, allow_nan=False).encode('utf-8')"
+  },
+  "checks": [
+    {
+      "id": "S01",
+      "group": "A_migration_apply",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "statement": "candidate migration executes on the canonical baseline DDL in memory",
+        "new_tables": [
+          "attempt_execution",
+          "model_run_artifacts",
+          "revision_source_binding",
+          "scene_head",
+          "scene_revision_meta",
+          "shot_analysis_binding",
+          "shot_analysis_evidence",
+          "shot_batch_item",
+          "shot_batch_parent",
+          "shot_batch_seal",
+          "shot_scene_binding"
+        ],
+        "schema_version": 2
+      }
+    },
+    {
+      "id": "S02",
+      "group": "B_legacy_backfill",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "scene_head": [
+          [
+            "s",
+            "s",
+            "\"scene:s:b19b479fb6c84b5c8487b9532ff077d00d87384d6a93eac66fa79bc4bfe1b80a\""
+          ]
+        ],
+        "scene_revision_meta": [
+          [
+            "s",
+            "s",
+            1,
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "unverified",
+            0,
+            "b19b479fb6c84b5c8487b9532ff077d00d87384d6a93eac66fa79bc4bfe1b80a",
+            "\"scene:s:b19b479fb6c84b5c8487b9532ff077d00d87384d6a93eac66fa79bc4bfe1b80a\""
+          ]
+        ],
+        "independently_recomputed_hash": "b19b479fb6c84b5c8487b9532ff077d00d87384d6a93eac66fa79bc4bfe1b80a",
+        "independently_recomputed_etag": "\"scene:s:b19b479fb6c84b5c8487b9532ff077d00d87384d6a93eac66fa79bc4bfe1b80a\"",
+        "note": "legacy scene keeps its id as the logical scene_id, is not falsely verified, and the hash/etag follow the declared algorithm"
+      }
+    },
+    {
+      "id": "S03",
+      "group": "B_legacy_backfill",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "legacy_prompt_revision_content_sha256": "unchanged",
+        "shot_scene_binding_rows": 0,
+        "shot_rows": 3,
+        "generic_batch_child_table_still_present": 1,
+        "note": "manual/image shots are not force-bound and existing revision hashes are untouched"
+      }
+    },
+    {
+      "id": "S04",
+      "group": "C_immutability",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "scene_revision_update": {
+          "aborted": true,
+          "error": "IMMUTABLE_SCENE_REVISION"
+        },
+        "scene_revision_delete": {
+          "aborted": true,
+          "error": "IMMUTABLE_SCENE_REVISION"
+        },
+        "scene_meta_update": {
+          "aborted": true,
+          "error": "IMMUTABLE_SCENE_META"
+        },
+        "scene_meta_delete": {
+          "aborted": true,
+          "error": "IMMUTABLE_SCENE_META"
+        }
+      }
+    },
+    {
+      "id": "S05",
+      "group": "D_batch_plan",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "case": "seal before all planned children exist",
+        "aborted": true,
+        "error": "INCOMPLETE_BATCH_PLAN",
+        "planned_count": 2,
+        "items_present": 0
+      }
+    },
+    {
+      "id": "S06",
+      "group": "D_batch_plan",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "case": "plan with an ordinal gap (items 0 and 2 for planned_count=2) must not seal",
+        "aborted": true,
+        "error": "INCOMPLETE_BATCH_PLAN",
+        "note": "seal trigger requires count=planned_count AND min(ordinal)=0 AND max(ordinal)=planned_count-1"
+      }
+    },
+    {
+      "id": "S07",
+      "group": "D_batch_plan",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "case": "a complete ordered plan seals, and a worker claim that joins the seal sees nothing before it",
+        "seal_succeeded": true,
+        "seal_error": null,
+        "claimable_children_before_seal": 0,
+        "claimable_children_after_seal": 2,
+        "note": "docs/31: 'worker claim必须join seal，绝不领取未提交/未封印的半套计划'"
+      }
+    },
+    {
+      "id": "S08",
+      "group": "C_immutability",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "append_after_seal": {
+          "aborted": true,
+          "error": "IMMUTABLE_BATCH_PLAN"
+        },
+        "update_item_after_seal": {
+          "aborted": true,
+          "error": "IMMUTABLE_BATCH_PLAN"
+        },
+        "delete_item_after_seal": {
+          "aborted": true,
+          "error": "IMMUTABLE_BATCH_PLAN"
+        },
+        "update_parent_after_seal": {
+          "aborted": true,
+          "error": "IMMUTABLE_BATCH_PLAN"
+        },
+        "delete_parent_after_seal": {
+          "aborted": true,
+          "error": "IMMUTABLE_BATCH_PLAN"
+        },
+        "update_seal_after_seal": {
+          "aborted": true,
+          "error": "IMMUTABLE_BATCH_PLAN"
+        }
+      }
+    },
+    {
+      "id": "S09",
+      "group": "E_constraints",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "cases": {
+          "meta_verified_mismatch": {
+            "aborted": true,
+            "expected_abort": true,
+            "error": "SCENE_BINDING_MISMATCH"
+          },
+          "meta_bad_hash_length": {
+            "aborted": true,
+            "expected_abort": true,
+            "error": "SCENE_BINDING_MISMATCH"
+          },
+          "parent_budget_wrong": {
+            "aborted": true,
+            "expected_abort": true,
+            "error": "CHECK constraint failed: execution_budget_seconds=450*planned_count+90"
+          }
+        },
+        "note": "verified<->decoded_pts pairing, 64-hex hash length and execution_budget_seconds=450*planned_count+90 are enforced by the DDL"
+      }
+    },
+    {
+      "id": "S10",
+      "group": "E_constraints",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "foreign_key_check": []
+      }
+    },
+    {
+      "id": "S11",
+      "group": "E_constraints",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "case": "model_started is derived from a persisted attempted send, not from a claimed CPU task",
+        "rows_with_send_before_update": 0,
+        "rows_with_send_after_update": 1
+      }
+    },
+    {
+      "id": "S12",
+      "group": "F_fail_closed",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "case": "legacy media row with a non-hex sha256 must abort the whole migration",
+        "raised": true,
+        "error": "CHECK constraint failed: length(source_sha256)=64 AND source_sha256 NOT GLOB '*[^0-9a-f]*'",
+        "tables_left_behind": [],
+        "schema_version_after": 1,
+        "note": "no half-applied DDL and no silent row loss"
+      }
+    },
+    {
+      "id": "S13",
+      "group": "F_fail_closed",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "case": "legacy scene with an editor value outside {algorithm,human} must abort (no invented vocabulary)",
+        "raised": true,
+        "error": "user-defined function raised exception",
+        "tables_left_behind": []
+      }
+    },
+    {
+      "id": "S14",
+      "group": "G_separation",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "case": "job/attempt status stays mutable under its own CAS while plan rows stay immutable",
+        "job_update_rejected": false,
+        "error": null,
+        "job_state_after": "running"
+      }
+    },
+    {
+      "id": "S15",
+      "group": "G_separation",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "case": "every promised carrier column exists in the candidate migration",
+        "per_table": {
+          "shot_analysis_binding": {
+            "missing": [],
+            "columns": [
+              "attempt_id",
+              "cancel_epoch",
+              "config_hash",
+              "lease_token",
+              "media_sha256",
+              "model_run_id",
+              "scene_revision_hash",
+              "scene_revision_id",
+              "shot_id"
+            ]
+          },
+          "model_run_artifacts": {
+            "missing": [],
+            "columns": [
+              "frames_json",
+              "model_run_id"
+            ]
+          },
+          "shot_analysis_evidence": {
+            "missing": [],
+            "columns": [
+              "evidence_json",
+              "evidence_sha256",
+              "model_run_id",
+              "raw_schema_version"
+            ]
+          },
+          "revision_source_binding": {
+            "missing": [],
+            "columns": [
+              "model_run_id",
+              "revision_id",
+              "scene_revision_hash",
+              "scene_revision_id"
+            ]
+          },
+          "scene_revision_meta": {
+            "missing": [],
+            "columns": [
+              "content_sha256",
+              "etag",
+              "revision",
+              "scene_id",
+              "scene_revision_id",
+              "source_sha256",
+              "time_basis",
+              "verified"
+            ]
+          },
+          "shot_batch_parent": {
+            "missing": [],
+            "columns": [
+              "created_at",
+              "deadline_at",
+              "execution_budget_seconds",
+              "parent_job_id",
+              "plan_hash",
+              "planned_count",
+              "retry_of_parent_id"
+            ]
+          },
+          "shot_batch_item": {
+            "missing": [],
+            "columns": [
+              "child_job_id",
+              "config_hash",
+              "media_sha256",
+              "ordinal",
+              "parent_job_id",
+              "retry_of_child_id",
+              "scene_revision_hash",
+              "scene_revision_id",
+              "shot_id"
+            ]
+          },
+          "shot_batch_seal": {
+            "missing": [],
+            "columns": [
+              "parent_job_id",
+              "plan_hash",
+              "sealed_at"
+            ]
+          },
+          "attempt_execution": {
+            "missing": [],
+            "columns": [
+              "attempt_id",
+              "model_action_at",
+              "provider_call_id"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "S16",
+      "group": "G_separation",
+      "passed": true,
+      "severity_if_fail": "major",
+      "detail": {
+        "case": "the generic V2 batch_child table keeps its original shape and stays empty",
+        "columns": [
+          "child_job_id",
+          "parent_job_id"
+        ],
+        "rows": 0
+      }
+    }
+  ],
+  "total": 16,
+  "failed": 0,
+  "product_actions": 0,
+  "limits": "in-memory sqlite only; structural DDL constraints only, not implemented application handlers"
+}

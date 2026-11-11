@@ -1,0 +1,36 @@
+# raw command / exit-code log for the D0-B-REVIEW design1.1 independent recheck
+# working dir: /home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0
+# branch: ljx418/lvw-v1-d0-review ; authority merge commit: 4510dec0205a35e66a24d8a235a95c8d4c1a69d8
+
+# source fence BEFORE review
+$ python3 -B reports/v1-redesign/d0-review/design11/checks/hash_fence.py hash-fence-before.txt D0-B-REVIEW design1.1 recheck - source fence BEFORE review
+exit=0
+--- stdout ---
+
+FENCED_FILES 23
+MISMATCH_COUNT 0
+--- stderr ---
+======
+# contract/design probes
+$ python3 -B reports/v1-redesign/d0-review/design11/checks/design11_contract_recheck.py
+exit=0
+--- stdout ---
+{"checks": 76, "failed": 3, "failed_ids": ["C06", "C07", "C08"]}
+--- stderr ---
+======
+# storage/migration probes (in-memory sqlite only)
+$ python3 -B reports/v1-redesign/d0-review/design11/checks/design11_sql_recheck.py
+exit=0
+--- stdout ---
+{"checks": 16, "failed": 0, "failed_ids": []}
+--- stderr ---
+======
+# source fence AFTER review
+$ python3 -B reports/v1-redesign/d0-review/design11/checks/hash_fence.py hash-fence-after.txt D0-B-REVIEW design1.1 recheck - source fence AFTER review
+exit=0
+--- stdout ---
+
+FENCED_FILES 23
+MISMATCH_COUNT 0
+--- stderr ---
+======
