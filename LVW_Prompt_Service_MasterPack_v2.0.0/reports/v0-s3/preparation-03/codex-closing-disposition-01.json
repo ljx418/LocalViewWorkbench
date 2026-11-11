@@ -1,0 +1,36 @@
+{
+  "kind": "S3_PREP_A_CLOSING_DISPOSITION_NOT_PRODUCT_ACCEPTANCE",
+  "date": "2026-11-12",
+  "owner": "Codex",
+  "candidate_code": "bc78869231e4dc320dfc9c7198a07aeabf9412fe",
+  "candidate_tip": "491b40df908b7b9c74f110efa8a61aebe61f76ea",
+  "independent_commit": "3814750c4fc7feb4017fd250909a43eedf3ceab3",
+  "decision": "PREPARATION_TOOLING_ACCEPTED_WITH_RETAINED_PROCESS_DEVIATION",
+  "major_01": "CLOSED_INDEPENDENTLY_REVERIFIED",
+  "evidence": {
+    "guard_checks": 139,
+    "pytest_passed": 65,
+    "independent_negative_probes": 15,
+    "independent_positive_probes": 2,
+    "reviewer_helper_fixture_tests": 24
+  },
+  "helper_correction_commit": "c27c157c9745fab9e0cd83ce442212c11f32606d",
+  "helper_disposition": "Reviewed preflight early-return/source adapter ordering and original 24-test/raw CLI evidence; fixture-only, not a production hash runner. Corrective control accepted; prior incident remains noncompliant.",
+  "process_deviation": {
+    "record": "reports/v0-s3/preparation-03/independent-hash-process-deviation-01.json",
+    "passes": 3,
+    "read_operations": 9,
+    "unique_files": 3,
+    "bytes_read": 33027825,
+    "first_two_preflight_failed_but_read": true,
+    "retrospective_authorization": false,
+    "new_real_recheck_required": false,
+    "status": "HISTORICAL_NONCOMPLIANCE_RETAINED_CORRECTIVE_CONTROL_ACCEPTED"
+  },
+  "minor_disposition": "Original seven nonblocking Minors retained and disclosed in codex-review-resolution-01.json and independent correction report; no new code churn.",
+  "inventory_reuse": "512-item receipt remains bound only to d338933 original candidate. Inventory algorithm/tests/receipt unchanged; derivative catalog excludes three private-labelled items. No quality acceptance or new inventory claim.",
+  "product_gate0": false,
+  "stage_pass": false,
+  "human_signoff": false,
+  "next": "S3-PREP-B offline incremental-package tooling, then bounded quality sample preparation and full S3 product Gate0."
+}
