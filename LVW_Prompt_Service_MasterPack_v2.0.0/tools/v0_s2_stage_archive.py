@@ -30,7 +30,7 @@ class OwnedArchive:
         self.auth = authorization_sha256; self.authorize = authorize; self.leases = {}; self.used = set()
         self.max_files = max_files; self.max_file_bytes = max_file_bytes; self.max_bytes = max_bytes
 
-    def register(self, root, label):
+    def register(self, root, label, *, _parent_fd=None, _root_fd=None):
         if label not in ('default', 'warm') or label in self.leases: raise EvidenceError('archive root lease replay/label')
         self.authorize('register_fresh_archive_root', label)
         root = plain(root)
@@ -38,15 +38,37 @@ class OwnedArchive:
         directory = plain(self.directory)
         if directory == root or directory.is_relative_to(root): raise EvidenceError('archive destination is inside run root')
         info = root.lstat()
+        if _parent_fd is not None:
+            parent_info = os.fstat(_parent_fd)
+            pinned_root = os.fstat(_root_fd)
+            if ((parent_info.st_dev, parent_info.st_ino) != (directory.stat().st_dev, directory.stat().st_ino)
+                    or (pinned_root.st_dev, pinned_root.st_ino) != (info.st_dev, info.st_ino)):
+                raise EvidenceError('protected archive registration identity drift')
         record = {'kind': 'FRESH_OWNED_ROOT_IDENTITY_NOT_ACCEPTANCE', 'run_id': self.run_id,
             'candidate_sha': self.candidate, 'authorization_sha256': self.auth,
             'label': label, 'root': str(root), 'device': str(info.st_dev), 'inode': str(info.st_ino),
             'registered_wall_seconds': time.time(), 'stage_pass_claim': False}
         # Persist before population. Recovery must never invent the original
         # identity by adopting whatever happens to occupy a historical path.
-        with (directory/(label+'-root-lease.json')).open('xb') as output:
-            output.write((json.dumps(record, sort_keys=True)+'\n').encode()); output.flush(); os.fsync(output.fileno())
+        self._persist_registration(directory, label, record, _parent_fd=_parent_fd)
         self.leases[label] = (root, info.st_dev, info.st_ino)
+
+    def _persist_registration(self, directory, label, record, *, _parent_fd=None):
+        if _parent_fd is None:
+            with (directory/(label+'-root-lease.json')).open('xb') as output:
+                output.write((json.dumps(record, sort_keys=True)+'\n').encode()); output.flush(); os.fsync(output.fileno())
+            return
+        fd = os.open(label+'-root-lease.json', os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW,
+                     0o600, dir_fd=_parent_fd)
+        try:
+            data = memoryview((json.dumps(record, sort_keys=True)+'\n').encode())
+            while data:
+                count = os.write(fd, data)
+                if count <= 0: raise OSError('registration write made no progress')
+                data = data[count:]
+            os.fsync(fd)
+        finally:
+            os.close(fd)
 
     def lease(self, label):
         root, device, inode = self.leases[label]; plain(root); info = root.lstat()

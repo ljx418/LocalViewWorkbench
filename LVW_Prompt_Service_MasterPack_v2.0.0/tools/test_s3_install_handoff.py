@@ -259,3 +259,168 @@ def test_successful_preparation_releases_lifecycle_handles(fixture, monkeypatch)
     assert_lifecycle_closed(factory, opened)
     assert factory.preparation_failures == {}
     assert f.archive(context, context.driver.cleanup())['proven']
+
+
+@pytest.mark.parametrize('boundary', ['complete-allocation', 'authorize-allocation',
+    'archive-authorization', 'register-directories', 'deploy-samples',
+    'native-final-evidence', 'error-archive'])
+def test_correction03_adjacent_callback_write_audit(fixture, monkeypatch, boundary):
+    import json
+    from tools import v0_s2_stage_runtime as legacy
+    f = fixture; detached = f.root / 'audit-original-parent'
+    moved = []; baseline = []; events_at_move = []
+    def inventory(path):
+        return sorted((p.relative_to(path).as_posix(), p.read_bytes().hex() if p.is_file() else 'DIR')
+                      for p in path.rglob('*'))
+    def move():
+        root = next(f.directory.glob('lvw-s2-default-*'), None)
+        f.directory.rename(detached); f.directory.mkdir()
+        (f.directory / 'foreign').write_bytes(b'FOREIGN SENTINEL')
+        if root is not None:
+            fake = f.directory / root.name; fake.mkdir()
+            # Supply plausible replacement parents so missing-path errors do
+            # not hide a callback-to-write gap.
+            if boundary not in ('archive-authorization', 'register-directories'):
+                for name in ('input', 'output', 'temp', 'custom_nodes'): (fake / name).mkdir()
+        baseline.extend(inventory(f.directory)); moved.append(True)
+        events_at_move.extend(f.helper.events)
+    kwargs = dict(f.kwargs)
+    if boundary == 'authorize-allocation':
+        def authorize(action, *args):
+            if action == 'prepare_bound_native_runtime': move()
+        kwargs['authorize'] = authorize
+    if boundary in ('archive-authorization', 'error-archive'):
+        def authorize(action, *args):
+            wanted = 'register_fresh_archive_root' if boundary == 'archive-authorization' else 'archive_owned_terminal_root'
+            if action == wanted: move()
+        f.archive.authorize = authorize
+    factory = InstalledPackageRuntimeFactory(**kwargs)
+    if boundary == 'complete-allocation':
+        complete = factory.verify_complete
+        def verify():
+            proof = complete(); move(); return proof
+        factory.verify_complete = verify
+    elif boundary == 'register-directories':
+        register = factory.archive.register
+        def registered(*args):
+            result = register(*args); move(); return result
+        monkeypatch.setattr(factory.archive, 'register', registered)
+    elif boundary == 'deploy-samples':
+        deploy = factory._deploy
+        def deployed(root):
+            deploy(root); move()
+        monkeypatch.setattr(factory, '_deploy', deployed)
+    elif boundary == 'native-final-evidence':
+        native = legacy.NativeRuntime
+        def wrapped(args, evidence):
+            driver = native(args, evidence)
+            summary = driver.ownership_summary
+            def finish():
+                result = summary(); move(); return result
+            driver.ownership_summary = finish
+            return driver
+        monkeypatch.setattr(legacy, 'NativeRuntime', wrapped)
+    elif boundary == 'error-archive':
+        def fail(*args, **kwargs): raise ValueError('original later preparation error')
+        monkeypatch.setattr(factory, '_copy', fail)
+    opened = lifecycle_fds(monkeypatch)
+    caught = None
+    try:
+        factory.prepare_default()
+    except (ValueError, OSError, package.PackageError) as error:
+        caught = error
+    print('ADJACENT_BOUNDARY', json.dumps({'boundary': boundary, 'replacement_before': baseline,
+          'replacement_after': inventory(f.directory), 'error': str(caught),
+          'events_at_move': events_at_move, 'events_after': f.helper.events}, sort_keys=True))
+    assert moved and inventory(f.directory) == baseline
+    assert caught is not None
+    assert f.helper.events.count('comfy-start') == events_at_move.count('comfy-start')
+    assert f.helper.events.count('ollama-start') == events_at_move.count('ollama-start')
+    record = json.loads((detached / 'default-preparation-failure.json').read_text())
+    assert record['error'] == str(caught)
+    assert record['root_retained'] is (None if boundary in ('complete-allocation', 'authorize-allocation') else True)
+    assert f.sentinel.read_bytes() == b'UNRELATED ORIGINAL'
+    assert (detached / 'other-run/keep').read_bytes() == b'OTHER RUN'
+    assert_lifecycle_closed(factory, opened)
+
+
+def test_correction03_registration_writer_uses_original_descriptor(fixture, monkeypatch):
+    import json
+    f = fixture; detached = f.root / 'registration-original-parent'
+    persist = f.archive._persist_registration
+    def move(directory, label, record, **kwargs):
+        f.directory.rename(detached); f.directory.mkdir()
+        (f.directory / 'foreign').write_bytes(b'FOREIGN')
+        return persist(directory, label, record, **kwargs)
+    monkeypatch.setattr(f.archive, '_persist_registration', move)
+    factory = InstalledPackageRuntimeFactory(**f.kwargs)
+    opened = lifecycle_fds(monkeypatch)
+    with pytest.raises(ValueError): factory.prepare_default()
+    assert sorted(p.name for p in f.directory.iterdir()) == ['foreign']
+    assert (detached / 'default-root-lease.json').is_file()
+    record = json.loads((detached / 'default-preparation-failure.json').read_text())
+    assert record['root_retained'] is True
+    assert record['root_retention_observation']['archive_registered'] is True
+    assert not {'comfy-start', 'ollama-start'} & set(f.helper.events)
+    assert_lifecycle_closed(factory, opened)
+
+
+def test_correction03_allocation_collisions_are_finite_and_preserved(fixture, monkeypatch):
+    from tools import v0_s3_stage_runtime as runtime
+    f = fixture; name = 'lvw-s2-default-' + 'a'*16
+    existing = f.directory / name; existing.mkdir(); (existing / 'keep').write_bytes(b'OTHER')
+    attempts = []
+    def token(size): attempts.append(size); return 'a'*16
+    monkeypatch.setattr(runtime.secrets, 'token_hex', token)
+    factory = InstalledPackageRuntimeFactory(**f.kwargs)
+    with pytest.raises(ValueError, match='collision budget exhausted'): factory.prepare_default()
+    assert len(attempts) == 8
+    assert (existing / 'keep').read_bytes() == b'OTHER'
+    assert factory.preparation_failures['default']['root_retained'] is None
+    assert not f.archive.leases
+
+
+def test_correction03_allocation_open_failure_is_unknown_without_cleanup(fixture, monkeypatch):
+    f = fixture; original = os.open
+    def refuse(name, *args, **kwargs):
+        if isinstance(name, str) and name.startswith('lvw-s2-default-'):
+            raise OSError('allocation open failed')
+        return original(name, *args, **kwargs)
+    monkeypatch.setattr(os, 'open', refuse)
+    factory = InstalledPackageRuntimeFactory(**f.kwargs)
+    with pytest.raises(OSError, match='allocation open failed'): factory.prepare_default()
+    monkeypatch.setattr(os, 'open', original)  # Restore before the owning fixture removes its retained root.
+    assert len(list(f.directory.glob('lvw-s2-default-*'))) == 1
+    assert factory.preparation_failures['default']['root_retained'] is None
+    assert factory.preparation_failures['default']['persistence']['status'] == 'PERSISTED'
+    assert not f.archive.leases
+    assert not {'comfy-start', 'ollama-start'} & set(f.helper.events)
+
+
+def test_correction03_archive_cleanup_callback_cannot_write_replacement(fixture, monkeypatch):
+    import json
+    from tools import v0_s2_stage_runtime as legacy
+    f = fixture; detached = f.root / 'cleanup-original-parent'; native = legacy.NativeRuntime
+    def boundary(args, evidence):
+        driver = native(args, evidence); remove = driver.remove_owned_reparse_fixture
+        def moved(root):
+            result = remove(root)
+            f.directory.rename(detached); f.directory.mkdir()
+            (f.directory / 'foreign').write_bytes(b'FOREIGN')
+            return result
+        driver.remove_owned_reparse_fixture = moved
+        return driver
+    monkeypatch.setattr(legacy, 'NativeRuntime', boundary)
+    factory = InstalledPackageRuntimeFactory(**f.kwargs)
+    def fail(*args): raise ValueError('original final evidence failure')
+    monkeypatch.setattr(factory, '_persist_preparation_evidence', fail)
+    opened = lifecycle_fds(monkeypatch)
+    with pytest.raises(ValueError, match='original final evidence failure'): factory.prepare_default()
+    after = sorted(p.name for p in f.directory.iterdir())
+    print('ARCHIVE_CLEANUP_BOUNDARY', json.dumps({'replacement_entries': after}))
+    assert after == ['foreign']
+    record = json.loads((detached / 'default-preparation-failure.json').read_text())
+    assert record['root_retained'] is True
+    assert record['error'] == 'original final evidence failure'
+    assert (detached / 'other-run/keep').read_bytes() == b'OTHER RUN'
+    assert_lifecycle_closed(factory, opened)
