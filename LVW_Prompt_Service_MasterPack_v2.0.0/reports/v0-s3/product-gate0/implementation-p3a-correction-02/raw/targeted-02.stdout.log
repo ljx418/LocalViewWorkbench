@@ -1,0 +1,61 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-8.4.2, pluggy-1.6.0 -- /usr/bin/python3
+rootdir: /home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0
+collecting ... collected 54 items
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_inherited_default_then_warm_install_exact_runtime_root PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[old-candidate] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[package-hash] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[manifest-hash] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[bad-digest] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[missing-bridge] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[extra-bridge] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[bridge-hash] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[workflow-unsealed] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[workflow-hash] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[missing-marker] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[invalid-marker] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[marker-link] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[package-link] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[package-oversize] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_installer_and_postinstall_refusals_before_start[bridge-bytes] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_installer_and_postinstall_refusals_before_start[workflow-bytes] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_installer_and_postinstall_refusals_before_start[extra-file] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_installer_and_postinstall_refusals_before_start[missing-file] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_installer_and_postinstall_refusals_before_start[payload-link] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_installer_and_postinstall_refusals_before_start[owner-bytes] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_installer_and_postinstall_refusals_before_start[receipt-identity] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_installer_and_postinstall_refusals_before_start[marker-drift] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_installer_and_postinstall_refusals_before_start[install-failure] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_prepare_rejects_wrong_registered_target[directory] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_prepare_rejects_wrong_registered_target[outside] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_prepare_rejects_wrong_registered_target[symlink] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_prepare_rejects_wrong_registered_target[unregistered] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_prepare_rejects_wrong_registered_target[child-link] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_prepare_rejects_wrong_registered_target[replaced-root] PASSED
+tools/test_s3_install_handoff.py::test_late_child_redirect_after_validation_zero_foreign_writes PASSED
+tools/test_s3_install_handoff.py::test_late_archive_identity_change_zero_start[symlink] PASSED
+tools/test_s3_install_handoff.py::test_late_archive_identity_change_zero_start[identical-file] PASSED
+tools/test_s3_install_handoff.py::test_late_archive_identity_change_zero_start[in-place-write] PASSED
+tools/test_s3_install_handoff.py::test_returned_session_mismatch_zero_start_and_original_receipt PASSED
+tools/test_s3_install_handoff.py::test_descriptor_mutation_and_error_retention_never_follow_replacement[before-commit] PASSED
+tools/test_s3_install_handoff.py::test_descriptor_mutation_and_error_retention_never_follow_replacement[inside-commit] PASSED
+tools/test_s3_install_handoff.py::test_descriptor_mutation_and_error_retention_never_follow_replacement[owner-write] PASSED
+tools/test_s3_install_handoff.py::test_descriptor_mutation_and_error_retention_never_follow_replacement[staging-cleanup] PASSED
+tools/test_s3_install_handoff.py::test_plain_replacement_root_not_deleted_by_inherited_failure_archive PASSED
+tools/test_s3_install_handoff.py::test_unsupported_descriptor_platform_fails_before_writes PASSED
+tools/test_s3_install_handoff.py::test_protected_receipt_binds_snapshot_and_session PASSED
+tools/test_s3_install_handoff.py::test_late_special_file_refused_without_blocking_or_target_write[archive] PASSED
+tools/test_s3_install_handoff.py::test_late_special_file_refused_without_blocking_or_target_write[marker] PASSED
+tools/test_s3_install_handoff.py::test_failure_lifecycle_stays_on_moved_parent[receipt] PASSED
+tools/test_s3_install_handoff.py::test_failure_lifecycle_stays_on_moved_parent[post-deploy-copy] PASSED
+tools/test_s3_install_handoff.py::test_failure_lifecycle_stays_on_moved_parent[post-deploy-return] PASSED
+tools/test_s3_install_handoff.py::test_failure_persistence_preserves_original_error_and_closes[early] PASSED
+tools/test_s3_install_handoff.py::test_failure_persistence_preserves_original_error_and_closes[deployment] PASSED
+tools/test_s3_install_handoff.py::test_failure_persistence_preserves_original_error_and_closes[conflict] PASSED
+tools/test_s3_install_handoff.py::test_failure_persistence_preserves_original_error_and_closes[open-error] PASSED
+tools/test_s3_install_handoff.py::test_failure_persistence_preserves_original_error_and_closes[write-error] PASSED
+tools/test_s3_install_handoff.py::test_failure_persistence_preserves_original_error_and_closes[fsync-error] PASSED
+tools/test_s3_install_handoff.py::test_successful_preparation_releases_lifecycle_handles PASSED
+
+============================== 54 passed in 3.63s ==============================

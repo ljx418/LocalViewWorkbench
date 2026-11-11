@@ -1,0 +1,70 @@
+{
+  "status": "READY_FOR_REVIEW",
+  "candidate_sha": "db607d484e9627b8be8b27d581d9d174ea4a9e63",
+  "authority_commit": "1a553726c67c35a0c82aab54d409eb9abcb4ff45",
+  "prior_candidate": "5497bd1860ae895f394ece23a1ddb5e0b22fad92",
+  "finding": "P3A-C01-M03",
+  "public_contract_changes": "none",
+  "files_modified": [
+    "tools/v0_s2_stage_runtime.py",
+    "tools/v0_s3_stage_runtime.py",
+    "tools/test_s3_install_handoff.py"
+  ],
+  "source_sha256": {
+    "tools/v0_s2_stage_runtime.py": "9c8ae91040ea38b56c0b2101b62406b22862e5f8385ed9af4393c9c458488c63",
+    "tools/v0_s3_stage_runtime.py": "81fd2ead81823b7e2d5e960fc877ff5b90a350776c3eae217f63f10c4aff12d2",
+    "tools/test_s3_install_handoff.py": "81e50a1b983fd42553bc3d7a509af8dd8253ba3c118e2733e23246fbe41e6450"
+  },
+  "checks": [
+    {
+      "run": "targeted-01",
+      "passed": 52,
+      "failed": 1,
+      "denominator": 53,
+      "exit": 1
+    },
+    {
+      "run": "targeted-02",
+      "passed": 54,
+      "failed": 0,
+      "denominator": 54,
+      "exit": 0
+    },
+    {
+      "run": "regression-01",
+      "passed": 23,
+      "failed": 0,
+      "denominator": 23,
+      "exit": 0
+    },
+    {
+      "run": "probes-01",
+      "passed": 5,
+      "failed": 0,
+      "denominator": 5,
+      "exit": 0
+    }
+  ],
+  "final_fresh_checks": 82,
+  "final_fresh_passed": 82,
+  "reused_not_rerun": {
+    "installer_owner_cases": 17,
+    "candidate": "5497bd1860ae895f394ece23a1ddb5e0b22fad92",
+    "independent_commit": "e9c910e881572691449dc70da569abee0dc4b195",
+    "binding_record": "raw/owner-evidence-reuse.json"
+  },
+  "independent_review": "PENDING",
+  "stage_pass_claim": false,
+  "product_gate0": false,
+  "human_signoff_claim": false,
+  "release_claim": false,
+  "actual_restricted_actions": {
+    "windows_wsl_ps_parser_hosthash": 0,
+    "media_model_gpu_service_network_download": 0,
+    "real_or_old_ledger_claim_checkpoint": 0
+  },
+  "cleanup": "All 265 registered temporary paths across four runs absent; original roots retained by production failure policy where required, then removed only by owning fixture contexts",
+  "platform": "POSIX/Linux synthetic checks only; original no-follow directory descriptors required; no native Windows guarantee",
+  "persistence": "Original parent exclusive descriptor-relative write; disk record conservatively says PERSISTENCE_UNPROVEN until writer completes fsync, completion acknowledged as PERSISTED in factory memory only; errors retain original exception and UNPROVEN diagnostics without fallback",
+  "retention": "Registered original root descriptor device/inode/link count, or null/UNKNOWN if no proof; never inferred from stale pathname absence"
+}
