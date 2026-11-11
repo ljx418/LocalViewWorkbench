@@ -1,0 +1,49 @@
+...................................F.................................... [ 65%]
+......................................                                   [100%]
+=================================== FAILURES ===================================
+_____________ test_correction02_factory_admission_and_owned_helper _____________
+
+factory_pair = (PosixPath('/tmp/lvw-s3-p2b-normal-k83t4rl3'), PosixPath('/tmp/lvw-s3-p2b-helper-uvplzc2y'), {'candidate': 'aaaaaaaaaa...-s3-p2b-helper-uvplzc2y/binding 中文 Space.json', 'candidate_sha': 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', ...}, ...)
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7621bb4f2720>
+
+    def test_correction02_factory_admission_and_owned_helper(factory_pair,monkeypatch):
+        import hashlib
+        import sys
+        normal,helper,pre,cfg,plan,bad,badplan=factory_pair
+        admitted=harness.admit_case_plan(normal,helper,pre)
+        assert len(admitted)==5
+        record=next(x for x in admitted if x['case']=='bad-receipt')
+        assert record['driver_root']==str(normal) and record['observer_root']==str(helper)
+        assert harness.digest(normal/'tools/v0_s3_budget_authority.py')==pre['source_hashes']['tools/v0_s3_budget_authority.py']
+        ref={'path':bad['binding_path'],'sha256':badplan['binding']['sha256']}
+        assert budget.load_binding(ref)[0]==bad
+        real_exchange=budget._exchange;captured={}
+        def exchange(command,raw,timeout):
+            output,process=real_exchange(command,raw,timeout)
+            captured.update(request=json.loads(raw),response=json.loads(output),process=process)
+            return output,process
+        # Only OS launch adaptation: the unchanged client still loads the actual factory binding.
+        monkeypatch.setattr(budget,'_command',lambda b:[sys.executable,'-I','-B',b['tools']['shim']['path']])
+        monkeypatch.setattr(budget,'_exchange',exchange)
+        observer=harness.Observer(helper,ref['sha256']);observer.thread.start()
+        try:
+            with pytest.raises(Exception) as error:
+                budget.authorize_model_action('chat',b'{"model":"synthetic-no-model"}',binding=ref)
+        finally:observation=observer.finish()
+        assert error.value.details['subcode']=='S3_BRIDGE_RECEIPT_INVALID'
+        request=captured['request'];response=captured['response'];process=captured['process']
+        expected=dict(request,status='DEBITED',run_id=bad['run_id'],child_sha256=bad['child_sha256'],authority_sha256=bad['tools']['authority']['sha256'])
+        assert {k for k in expected if response[k]!=expected[k]}=={'request_id'}
+        assert set(response)==set(expected)
+        assert process['exit_code']==0 and process['error'] is None and process['reaped'] and process['readers_joined'] and process['pipe_closed']
+        journal=harness.owners(helper)[0]
+        assert journal['request_id']==request['request_id'] and journal['binding_sha256']==ref['sha256']
+        assert journal['pid']==process['pid'] and journal['birth']==process['birth'] and not journal['same_birth_alive']
+        assert journal['state']=='FAULT_HELPER_RETURNED'
+>       assert observation['joined'] and observation['two_absences'] and observation['entered'] and observation['error'] is None
+E       assert (True and False)
+
+tools/test_v0_s3_runtime_binding.py:275: AssertionError
+=========================== short test summary info ============================
+FAILED tools/test_v0_s3_runtime_binding.py::test_correction02_factory_admission_and_owned_helper
+1 failed, 109 passed in 10.92s
