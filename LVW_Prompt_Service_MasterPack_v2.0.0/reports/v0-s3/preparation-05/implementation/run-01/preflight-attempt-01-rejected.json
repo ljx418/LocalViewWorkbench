@@ -1,0 +1,404 @@
+{
+  "kind": "S3_PREP_C_CANDIDATE_PREPARATION_PREFLIGHT",
+  "scope": "PREPARATION_ELIGIBILITY_AND_PREVIEW_ONLY",
+  "product_gate0": false,
+  "stage_pass_claim": false,
+  "quality_claim": "NONE_ELIGIBILITY_IS_NOT_QUALITY_EVIDENCE",
+  "generated_at": "2026-11-11T18:00:54.091176+00:00",
+  "checks": [
+    {
+      "id": "child.present",
+      "passed": true,
+      "detail": "reports/v0-s3/preparation-05/sample-preparation-child-01.json"
+    },
+    {
+      "id": "child.kind",
+      "passed": true,
+      "detail": "kind='S3_QUALITY_CANDIDATE_PREPARATION_CHILD_NOT_INFERENCE' (expected 'S3_QUALITY_CANDIDATE_PREPARATION_CHILD_NOT_INFERENCE')"
+    },
+    {
+      "id": "child.id",
+      "passed": true,
+      "detail": "child_id='S3-PREP-C-01' (expected 'S3-PREP-C-01')"
+    },
+    {
+      "id": "child.limits_frozen",
+      "passed": true,
+      "detail": "the child limits must be identical to the frozen tool criteria"
+    },
+    {
+      "id": "child.quality_not_frozen",
+      "passed": true,
+      "detail": "quality_frozen=False (must be False)"
+    },
+    {
+      "id": "child.no_model_actions",
+      "passed": true,
+      "detail": "model/gpu/service/network/checkpoint budgets must all be 0"
+    },
+    {
+      "id": "child.selection_container",
+      "passed": true,
+      "detail": "selected_files is list"
+    },
+    {
+      "id": "child.selection_count",
+      "passed": true,
+      "detail": "selected=32 (expected exactly 32)"
+    },
+    {
+      "id": "child.selection_kinds",
+      "passed": true,
+      "detail": "kinds={'image': 20, 'video': 12} (expected 20 images and 12 videos)"
+    },
+    {
+      "id": "child.selection_unique_ids",
+      "passed": true,
+      "detail": "unique file ids=32 of 32"
+    },
+    {
+      "id": "child.selection_unique_content",
+      "passed": true,
+      "detail": "unique content hashes=32 of 32"
+    },
+    {
+      "id": "child.selection_unique_paths",
+      "passed": true,
+      "detail": "unique relative paths=32 of 32"
+    },
+    {
+      "id": "child.admitted_bytes_budget",
+      "passed": true,
+      "detail": "selected bytes=83043322 (limit 1073741824)"
+    },
+    {
+      "id": "catalog.sha256",
+      "passed": true,
+      "detail": "reports/v0-s3/preparation-03/candidate-catalog-filtered-01.json expected=5bb786928a143886abc29f8ee2424daa82cfc06476df7a1578bb736926ac7d65 actual=5bb786928a143886abc29f8ee2424daa82cfc06476df7a1578bb736926ac7d65"
+    },
+    {
+      "id": "catalog.selected_exact_subset",
+      "passed": true,
+      "detail": "every selected candidate is present in the frozen catalog with identical id/path/bytes/hash"
+    },
+    {
+      "id": "catalog.no_private_labelled_overlap",
+      "passed": true,
+      "detail": "no selected candidate is private labelled"
+    },
+    {
+      "id": "catalog.sample_labels_not_frozen",
+      "passed": true,
+      "detail": "sample_selection_frozen=False model_execution_authorized_by_catalog=False"
+    },
+    {
+      "id": "holdout.manifest_sha256",
+      "passed": true,
+      "detail": "人工验收视频集/FREEZE.json expected=3a8313c6e44dbf22dfbe8abd84f24a42ff15539ec4d19da13ac9d68b5419288c actual=3a8313c6e44dbf22dfbe8abd84f24a42ff15539ec4d19da13ac9d68b5419288c"
+    },
+    {
+      "id": "holdout.count",
+      "passed": true,
+      "detail": "holdout videos=11 (expected 11)"
+    },
+    {
+      "id": "holdout.content_sha256_exact",
+      "passed": false,
+      "detail": "the frozen holdout content hashes must be identical to the child's list"
+    },
+    {
+      "id": "holdout.no_selected_overlap",
+      "passed": true,
+      "detail": "no selected candidate is one of the 11 protected human holdouts"
+    },
+    {
+      "id": "packet.present",
+      "passed": true,
+      "detail": "reports/v0-s3/preparation-05/stage-packet-preparation-c.md"
+    },
+    {
+      "id": "code.candidate_format",
+      "passed": true,
+      "detail": "candidate='63e195c8b585d670ace1f0bf13079a923a79f16a'"
+    },
+    {
+      "id": "code.script_in_candidate",
+      "passed": true,
+      "detail": "the tool script must exist as a blob in the candidate commit"
+    },
+    {
+      "id": "code.test_in_candidate",
+      "passed": true,
+      "detail": "the test script must exist as a blob in the candidate commit"
+    },
+    {
+      "id": "code.bridge_runner_in_candidate",
+      "passed": true,
+      "detail": "the borrowed bounded process runner must exist in the candidate commit"
+    },
+    {
+      "id": "code.working_tree_matches_candidate",
+      "passed": true,
+      "detail": "the working tree script and test bytes must equal the candidate blobs"
+    },
+    {
+      "id": "code.commit_exists",
+      "passed": true,
+      "detail": "candidate commit must exist in this repository"
+    },
+    {
+      "id": "tool.python",
+      "passed": true,
+      "detail": "tool.python resolved=True version='3.12.3'"
+    },
+    {
+      "id": "tool.pillow",
+      "passed": true,
+      "detail": "tool.pillow resolved=True version='12.2.0'"
+    },
+    {
+      "id": "tool.ffmpeg",
+      "passed": true,
+      "detail": "tool.ffmpeg resolved=True version='ffmpeg version 6.1.1-3ubuntu5 Copyright (c) 2000-2023 the FFmpeg developers'"
+    },
+    {
+      "id": "tool.ffprobe",
+      "passed": true,
+      "detail": "tool.ffprobe resolved=True version='ffprobe version 6.1.1-3ubuntu5 Copyright (c) 2007-2023 the FFmpeg developers'"
+    },
+    {
+      "id": "tool.bounded_runner_available",
+      "passed": true,
+      "detail": "the borrowed bounded direct child runner must be importable"
+    },
+    {
+      "id": "tool.bounded_runner_matches_candidate",
+      "passed": true,
+      "detail": "the borrowed runner bytes must equal the candidate blob"
+    },
+    {
+      "id": "guard.handoff_readiness",
+      "passed": true,
+      "detail": "decision='HANDOFF_READINESS_VERIFIED' summary={'checks': 139, 'passed': 139, 'failed': 0}"
+    },
+    {
+      "id": "runtime.under_ignored_root",
+      "passed": true,
+      "detail": "the runtime root must live under the git ignored .agent-governance/runtime/receipts/s3-preview-c01"
+    },
+    {
+      "id": "runtime.unique_and_absent",
+      "passed": true,
+      "detail": "the runtime root must not exist yet (absolute path is kept out of this file)"
+    },
+    {
+      "id": "runtime.not_inside_package_tracked",
+      "passed": true,
+      "detail": "the runtime root is created by this run and stays untracked"
+    },
+    {
+      "id": "budget.wall_monotonic",
+      "passed": true,
+      "detail": "wall_seconds=1200"
+    },
+    {
+      "id": "budget.output_monotonic",
+      "passed": true,
+      "detail": "output_bytes=83886080"
+    },
+    {
+      "id": "budget.hash_passes_single",
+      "passed": true,
+      "detail": "hash_passes_per_file=1"
+    },
+    {
+      "id": "budget.probe_limits_single",
+      "passed": true,
+      "detail": "decode/probe/frame limits=1/1/4"
+    },
+    {
+      "id": "budget.global_deadline_governs",
+      "passed": true,
+      "detail": "the per process timeouts can exceed the wall budget, so the global deadline governs"
+    },
+    {
+      "id": "source_root.declared_absolute",
+      "passed": true,
+      "detail": "the source root must be an absolute path"
+    },
+    {
+      "id": "source_root.is_directory",
+      "passed": true,
+      "detail": "the source root directory must exist on this machine"
+    },
+    {
+      "id": "source_root.not_a_symlink",
+      "passed": true,
+      "detail": "the source root itself must not be a symbolic link"
+    },
+    {
+      "id": "policy.self_check",
+      "passed": true,
+      "detail": "synthetic path policy self check: {'temporary_root': None, 'temporary_root_removed': True, 'symlink_escape_rejected': True, 'traversal_rejected': True, 'absolute_rejected': True, 'inside_allowed': True, 'all_passed': True}"
+    }
+  ],
+  "child": {
+    "path": "reports/v0-s3/preparation-05/sample-preparation-child-01.json",
+    "sha256": "9989089a4dae7e39949f603482fd118a5228e6ccba9e405ba5678170e20c902b",
+    "kind": "S3_QUALITY_CANDIDATE_PREPARATION_CHILD_NOT_INFERENCE",
+    "child_id": "S3-PREP-C-01",
+    "state": "AUTHORIZED_PENDING_CANDIDATE_AND_TOOL_PREFLIGHT",
+    "selected_count": 32,
+    "selected_bytes": 83043322
+  },
+  "catalog": {
+    "path": "reports/v0-s3/preparation-03/candidate-catalog-filtered-01.json",
+    "sha256": "5bb786928a143886abc29f8ee2424daa82cfc06476df7a1578bb736926ac7d65",
+    "expected_sha256": "5bb786928a143886abc29f8ee2424daa82cfc06476df7a1578bb736926ac7d65"
+  },
+  "holdout_manifest": {
+    "path": "人工验收视频集/FREEZE.json",
+    "sha256": "3a8313c6e44dbf22dfbe8abd84f24a42ff15539ec4d19da13ac9d68b5419288c",
+    "expected_sha256": "3a8313c6e44dbf22dfbe8abd84f24a42ff15539ec4d19da13ac9d68b5419288c",
+    "content_sha256_count": 11
+  },
+  "stage_packet": {
+    "path": "reports/v0-s3/preparation-05/stage-packet-preparation-c.md",
+    "sha256": "a3f98ec3bd76b8c79dcf73bc92370ac32c06e9bf0f583595e9ce0dd3788951da"
+  },
+  "candidate": {
+    "sha": "63e195c8b585d670ace1f0bf13079a923a79f16a",
+    "git_head_at_preflight": "63e195c8b585d670ace1f0bf13079a923a79f16a",
+    "script": {
+      "path": "tools/s3_sample_preparation.py",
+      "blob_sha256": "d4208c2dd9e249c94423f6b7ec2507c783404893e592ef2ee010fefeb4157369",
+      "working_tree_sha256": "d4208c2dd9e249c94423f6b7ec2507c783404893e592ef2ee010fefeb4157369"
+    },
+    "test": {
+      "path": "tools/test_s3_sample_preparation.py",
+      "blob_sha256": "01641a590a1687774a6f7ead2867081f3053e38f09734d4e2e95bb21aad2063d",
+      "working_tree_sha256": "01641a590a1687774a6f7ead2867081f3053e38f09734d4e2e95bb21aad2063d"
+    },
+    "borrowed_runner": {
+      "path": "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_process.py",
+      "blob_sha256": "563402a9c2f466c1484173c6a4dd2b9a8dbe46fd939ad92a6264975217508954",
+      "working_tree_sha256": "563402a9c2f466c1484173c6a4dd2b9a8dbe46fd939ad92a6264975217508954"
+    }
+  },
+  "tools": {
+    "python": {
+      "name": "python",
+      "resolved": true,
+      "real_path": "/usr/bin/python3.12",
+      "sha256": "e50d468e8b0adfb05733f5b87b3cff34829c4a8c1aea50c865aa8bdfe4bb150f",
+      "version": "3.12.3",
+      "version_string": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]"
+    },
+    "pillow": {
+      "name": "pillow",
+      "resolved": true,
+      "version": "12.2.0",
+      "package_path": "/home/administrator/.local/lib/python3.12/site-packages/PIL/__init__.py",
+      "image_module_sha256": "1a3d2ef3dbcbd056fbb4de3415302873348c60e90129a9a107b8829395ea47ea"
+    },
+    "ffmpeg": {
+      "name": "ffmpeg",
+      "resolved": true,
+      "invoked_as": "/usr/bin/ffmpeg",
+      "real_path": "/usr/bin/ffmpeg",
+      "bytes": 342488,
+      "sha256": "ed16af623947494a72e284b6eb8ff225f2da22b38b5d5069c2fd4b4ba3384e41",
+      "version": "ffmpeg version 6.1.1-3ubuntu5 Copyright (c) 2000-2023 the FFmpeg developers"
+    },
+    "ffprobe": {
+      "name": "ffprobe",
+      "resolved": true,
+      "invoked_as": "/usr/bin/ffprobe",
+      "real_path": "/usr/bin/ffprobe",
+      "bytes": 191888,
+      "sha256": "272f6ebc634a63d9c8b4ca68e964119d980f25154e5aa2c35e5487da48e9a58f",
+      "version": "ffprobe version 6.1.1-3ubuntu5 Copyright (c) 2007-2023 the FFmpeg developers"
+    }
+  },
+  "handoff_guard": {
+    "decision": "HANDOFF_READINESS_VERIFIED",
+    "authority": "AUTHORITATIVE",
+    "summary": {
+      "checks": 139,
+      "passed": 139,
+      "failed": 0
+    },
+    "failed_checks": []
+  },
+  "selection": {
+    "count": 32,
+    "images": 20,
+    "videos": 12,
+    "sum_bytes": 83043322,
+    "catalog_exact": true,
+    "private_labelled_overlap": 0,
+    "holdout_overlap": 0
+  },
+  "source_root": {
+    "declared_in_child": true,
+    "is_directory": true,
+    "is_symlink": false,
+    "absolute_path_kept_in": "the runtime receipt only"
+  },
+  "runtime": {
+    "relative_path": ".agent-governance/runtime/receipts/s3-preview-c01/run-01",
+    "exists": false,
+    "absolute_path_kept_in": "the runtime receipt only"
+  },
+  "budgets": {
+    "runs": 1,
+    "wall_seconds": 1200,
+    "distinct_source_files": 32,
+    "admitted_source_bytes": 1073741824,
+    "hash_passes_per_file": 1,
+    "image_decodes_per_image": 1,
+    "ffprobe_calls_per_video": 1,
+    "frame_extractions_per_video": 4,
+    "output_bytes": 83886080,
+    "image_max_pixels": 40000000,
+    "video_max_source_pixels": 8294400,
+    "video_max_duration_seconds": 60,
+    "preview_long_edge": 640,
+    "model_actions": 0,
+    "gpu_actions": 0,
+    "services": 0,
+    "network": 0,
+    "full_product_checkpoints": 0
+  },
+  "policy_self_check": {
+    "temporary_root": null,
+    "temporary_root_removed": true,
+    "symlink_escape_rejected": true,
+    "traversal_rejected": true,
+    "absolute_rejected": true,
+    "inside_allowed": true,
+    "all_passed": true
+  },
+  "summary": {
+    "checks": 47,
+    "passed": 46,
+    "failed": 1
+  },
+  "elapsed_seconds": 0.382,
+  "decision": "PREFLIGHT_REJECTED",
+  "refusal": {
+    "reason": "global_preflight_failed",
+    "failed_checks": [
+      {
+        "id": "holdout.content_sha256_exact",
+        "detail": "the frozen holdout content hashes must be identical to the child's list"
+      }
+    ],
+    "media_access": {
+      "selected_files_stat": 0,
+      "selected_files_hashed": 0,
+      "selected_files_probed": 0,
+      "selected_files_decoded": 0
+    }
+  }
+}
