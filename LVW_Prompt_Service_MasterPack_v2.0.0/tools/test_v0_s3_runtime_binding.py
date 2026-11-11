@@ -196,13 +196,13 @@ def test_observer_waits_for_two_absences_and_identity(monkeypatch,tmp_path):
     (tmp_path/'.s3-synthetic-fixture').touch()
     rid='00000000-0000-0000-0000-000000000001'
     values=iter([True,True,False,False])
-    def observe(root):
+    def observe(root,*args):
         alive=next(values)
         return [{'request_id':rid,'pid':1,'birth':{'linux_start_ticks':10},'binding_sha256':'b','state':'ENTERED','same_birth_alive':alive}]
     monkeypatch.setattr(harness,'owners',observe)
     o=harness.Observer(tmp_path,'b');o.stop.set();o.observe()
     assert o.absent[rid]==2 and len(o.times)==4 and rid in o.entered
-    monkeypatch.setattr(harness,'owners',lambda root:[{'request_id':rid,'binding_sha256':'WRONG'}])
+    monkeypatch.setattr(harness,'owners',lambda root,*args:[{'request_id':rid,'binding_sha256':'WRONG'}])
     o=harness.Observer(tmp_path,'b');o.observe();assert 'binding mismatch' in o.error
 
 
@@ -261,7 +261,9 @@ def test_correction02_factory_admission_and_owned_helper(factory_pair,monkeypatc
     try:
         with pytest.raises(Exception) as error:
             budget.authorize_model_action('chat',b'{"model":"synthetic-no-model"}',binding=ref)
-    finally:observation=observer.finish()
+    finally:
+        observation=observer.finish()
+        save_observer_raw('owned-helper',observation)
     assert error.value.details['subcode']=='S3_BRIDGE_RECEIPT_INVALID'
     request=captured['request'];response=captured['response'];process=captured['process']
     expected=dict(request,status='DEBITED',run_id=bad['run_id'],child_sha256=bad['child_sha256'],authority_sha256=bad['tools']['authority']['sha256'])
@@ -338,3 +340,165 @@ def test_correction02_terminal_registers_every_root(factory_pair,tmp_path,monkey
     assert {x['fixture'] for x in life['cleanup']}=={str(normal),str(helper)}
     assert all(x['state']=='FAILED_RETAINED' and x['reason'] for x in life['cleanup'])
     assert json.loads((tmp_path/'cross-os-lifecycle.json').read_text())['synthetic_debits'] is None
+
+
+def save_observer_raw(name, observation):
+    import os
+    directory=os.environ.get('P2B_RAW_DIR')
+    if directory:
+        path=Path(directory)/(name+'.jsonl')
+        with path.open('a') as out:out.write(json.dumps(observation,ensure_ascii=False)+'\n')
+    print(json.dumps({'raw_observer':name,'result':observation}),flush=True)
+
+
+@pytest.mark.parametrize('extra',[-1,0,1])
+def test_correction03_reservation_before_digest(tmp_path,monkeypatch,extra):
+    paths={r:tmp_path/r for r in harness.FIXED}
+    for i,p in enumerate(paths.values(),1):p.write_bytes(b'x'*i)
+    monkeypatch.setattr(harness,'FIXED',{r:str(p) for r,p in paths.items()})
+    charge=sum(p.stat().st_size*harness.METADATA_READ_BOUNDS[r] for r,p in paths.items())
+    monkeypatch.setitem(harness.LIMITS,'metadata_hash_bytes',charge-extra)
+    calls=[]
+    monkeypatch.setattr(harness,'digest',lambda p:calls.append(p))
+    meter=harness.Meter()
+    if extra>=0:
+        with pytest.raises(ValueError):harness.reserve_metadata(meter)
+        assert calls==[] and meter.used['metadata_hash_bytes']==0
+    else:
+        result=harness.reserve_metadata(meter)
+        assert result['charged_bytes']==charge and result['actual_digest_bytes'] is None
+        assert result['remaining_budget']==1 and meter.used['metadata_hash_files']==3
+        with pytest.raises(ValueError):harness.reserve_metadata(meter)
+        assert meter.used['metadata_hash_bytes']==charge
+
+
+@pytest.mark.parametrize('failure',[PermissionError('read failed'),OSError('partial read')])
+def test_correction03_failed_digest_keeps_reservation(tmp_path,monkeypatch,failure):
+    paths={r:tmp_path/r for r in harness.FIXED}
+    for p in paths.values():p.write_bytes(b'synthetic')
+    monkeypatch.setattr(harness,'FIXED',{r:str(p) for r,p in paths.items()})
+    meter=harness.Meter();result=harness.reserve_metadata(meter)
+    def failed(path):raise failure
+    monkeypatch.setattr(harness,'digest',failed)
+    with pytest.raises(OSError):harness.digest(paths['wsl'])
+    assert meter.used['metadata_hash_bytes']==result['charged_bytes']
+    assert result['actual_digest_bytes'] is None
+
+
+@pytest.mark.parametrize('scenario',['enoent','esrch','reuse','returned','permission','bad-json','binding','identity','deadline','no-identity','thread-error','stop'])
+def test_correction03_observer_matrix(tmp_path,monkeypatch,scenario):
+    import errno
+    from types import SimpleNamespace
+    (tmp_path/'.s3-synthetic-fixture').touch()
+    d=tmp_path/'.s3-owned-requests';d.mkdir()
+    rid='00000000-0000-0000-0000-000000000001'
+    path=d/(rid+'.json')
+    value=dict(request_id=rid,pid=123,birth={'linux_start_ticks':10},binding_sha256='b',state='ENTERED')
+    if scenario=='returned':value['state']='FAULT_HELPER_RETURNED'
+    if scenario=='binding':value['binding_sha256']='wrong'
+    if scenario!='no-identity':path.write_text('{' if scenario=='bad-json' else json.dumps(value))
+    count=[0]
+    def birth(pid):
+        count[0]+=1
+        if scenario=='permission':raise PermissionError(errno.EACCES,'synthetic denied')
+        if scenario=='thread-error':raise RuntimeError('synthetic thread failure')
+        if scenario=='identity' and count[0]==1:
+            value['birth']['linux_start_ticks']=11;path.write_text(json.dumps(value))
+        if scenario=='reuse':return {'linux_start_ticks':11}
+        if scenario in ('returned','stop') or count[0]>1:
+            raise OSError(errno.ESRCH if scenario=='esrch' else errno.ENOENT,'synthetic disappearance')
+        return {'linux_start_ticks':10}
+    monkeypatch.setattr(harness,'protocol',lambda root:SimpleNamespace(process_birth=birth))
+    clock=[100.0]
+    monkeypatch.setattr(harness.time,'monotonic',lambda:clock[0])
+    monkeypatch.setattr(harness.time,'sleep',lambda seconds:clock.__setitem__(0,clock[0]+(31 if scenario=='deadline' else seconds)))
+    o=harness.Observer(tmp_path,'b');o.stop.set();o.thread.start()
+    try:result=o.finish()
+    finally:
+        if 'result' not in locals():result={'samples':o.samples,'error':o.error,'times':o.times}
+        save_observer_raw('matrix-'+scenario,result)
+    if scenario in ('enoent','esrch','reuse','returned','stop'):
+        assert result['two_absences'] and result['joined'] and result['error'] is None
+        assert result['absence_counts'][rid]==2 and result['sample_count']>=2
+    else:
+        assert not result['two_absences'] and result['joined']
+        assert result['deadline_reason'] in ('ERROR','DEADLINE','SAMPLE_LIMIT')
+    if scenario=='binding':assert count[0]==0
+    if scenario=='identity':assert count[0]==1
+
+
+def test_correction03_fixed_call_graph_spy(tmp_path,monkeypatch):
+    """Execute factory/admission/native command/shim/authority with synthetic exe bytes."""
+    import hashlib
+    import sys
+    import uuid
+    from types import SimpleNamespace
+    from collections import Counter
+    synthetic={r:tmp_path/r for r in harness.FIXED}
+    for i,p in enumerate(synthetic.values(),1):p.write_bytes(bytes([i])*i)
+    seals={r:hashlib.sha256(p.read_bytes()).hexdigest() for r,p in synthetic.items()}
+    aliases={v:k for k,v in harness.FIXED.items()}
+    aliases[r'C:\Windows\System32\wsl.exe']='wsl'
+    counts=Counter();phase=['installed'];raw=[]
+    def wrap(original):
+        def spy(path):
+            role=aliases.get(str(path))
+            if role:
+                counts[(phase[0],role)]+=1
+                raw.append(dict(phase=phase[0],role=role,synthetic_bytes=synthetic[role].stat().st_size))
+                return original(synthetic[role])
+            return original(path)
+        return spy
+    original_module=harness.module
+    def load(name,path):
+        m=original_module(name,path)
+        if hasattr(m,'digest'):m.digest=wrap(m.digest)
+        return m
+    monkeypatch.setattr(harness,'module',load)
+    monkeypatch.setattr(harness,'digest',wrap(harness.digest))
+    for path in harness.FIXED.values():harness.digest(path)
+    with tempfile.TemporaryDirectory(prefix='lvw-s3-p2b-spy-normal-',dir='/tmp') as parent, tempfile.TemporaryDirectory(prefix='lvw-s3-p2b-spy-helper-',dir='/tmp') as helper:
+        roots=[Path(parent),Path(helper)]
+        for root in roots:root.rmdir()
+        pre=dict(candidate='a'*40,source_hashes={s:harness.digest(harness.ROOT/s) for s in harness.SOURCES},wsl_sha256=seals['wsl'])
+        phase[0]='factory-normal';cfg,plan=harness.make_fixture(roots[0],pre)
+        phase[0]='factory-helper';bad,badplan=harness.make_fixture(roots[1],pre,'bad-receipt')
+        phase[0]='admission';harness.admit_case_plan(*roots,pre)
+        # Use isolated module OS view only; never change process os.name or launch WSL.
+        b=harness.protocol(roots[0]);b.os=SimpleNamespace(name='nt')
+        for label,c in [('client-normal',cfg),('client-helper',bad),('client-timeout',cfg)]:
+            phase[0]=label;assert b._command(c)[0]==r'C:\Windows\System32\wsl.exe'
+        phase[0]='client-bad-binding'
+        with pytest.raises(ValueError):b.load_binding(dict(path=cfg['binding_path'],sha256='0'*64))
+        shim=load('_spy_shim',roots[0]/'tools/v0_s3_budget_authority.py')
+        shim.module_at=load;shim.sys=SimpleNamespace(executable='/usr/bin/python3')
+        for label in ('shim-normal-and-authority','shim-timeout-and-authority'):
+            phase[0]=label
+            request=dict(schema='lvw.s3-debit/1',request_id=str(uuid.uuid4()),action_kind='chat',payload_sha256='c'*64,
+                         model=cfg['model'],binding_path=cfg['binding_path'],binding_sha256=plan['binding']['sha256'])
+            assert shim.debit(request)['status']=='DEBITED'
+        # Every prefix ending in a failed/partial digest is bounded by these full paths;
+        # no source function has a digest retry loop. Exercise first failing shim read.
+        before=sum(counts.values());phase[0]='failed-shim'
+        def failing_load(name,path):
+            m=load(name,path)
+            if hasattr(m,'digest'):
+                original=m.digest
+                def fail(p):
+                    if str(p) in aliases:
+                        original(p);raise OSError('synthetic partial digest failure')
+                    return original(p)
+                m.digest=fail
+            return m
+        shim.module_at=failing_load
+        with pytest.raises(OSError):shim.debit(dict(request,request_id=str(uuid.uuid4())))
+        assert sum(counts.values())==before+1
+    table={row[0]:dict(zip(('windows_python','wsl','python'),row[1:])) for row in harness.METADATA_CALL_TABLE}
+    for (label,role),n in counts.items():
+        if label=='admission':assert n==table['admission-normal'][role]+table['admission-helper'][role]
+        elif label!='failed-shim':assert n==table[label][role]
+    totals={r:sum(n for (label,role),n in counts.items() if role==r and label!='failed-shim') for r in harness.FIXED}
+    save_observer_raw('metadata-spy',dict(attempts=raw,totals=totals,table=harness.METADATA_CALL_TABLE,measured_synthetic_only=True))
+    assert totals=={'windows_python':1,'wsl':10,'python':11}
+    assert all(totals[r]<=harness.METADATA_READ_BOUNDS[r] for r in totals)
+    assert not Path(parent).exists()

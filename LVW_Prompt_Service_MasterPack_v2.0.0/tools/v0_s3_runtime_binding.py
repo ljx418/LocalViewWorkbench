@@ -3,6 +3,7 @@
 CLI: --preflight <committed SHA>, then --run. Windows --windows is internal,
 requires the marker and the frozen plan beside this copied candidate script.
 """
+import errno
 import hashlib
 import importlib.util
 import json
@@ -41,6 +42,46 @@ CLAIM = Path('/mnt/c/workSpace/videoWorkLine/.lvw-runtime/lvw-prompt-service/cpu
 OLD_SEAL = 'reports/v0-s3/product-gate0/implementation-p2-binding/installed-seal.json'
 TERMINAL_RESERVE = 65536
 ACTIVE_METER = None
+# Fixed source-controlled call graph; no count is accepted from driver-plan JSON.
+METADATA_READ_BOUNDS = {'windows_python':1, 'wsl':32, 'python':32}
+METADATA_CALL_TABLE = (
+    ('installed', 1, 1, 1),
+    ('factory-normal', 0, 1, 2),
+    ('factory-helper', 0, 1, 2),
+    ('admission-normal', 0, 0, 1),
+    ('admission-helper', 0, 0, 1),
+    ('client-normal', 0, 1, 0),
+    ('client-bad-binding', 0, 0, 0),
+    ('client-helper', 0, 1, 0),
+    ('client-timeout', 0, 1, 0),
+    ('shim-normal-and-authority', 0, 2, 2),
+    ('shim-timeout-and-authority', 0, 2, 2),
+    ('helper-no-authority', 0, 0, 0),
+)
+
+
+def reserve_metadata(meter):
+    """Stat only, then charge the entire fixed route before its first exe digest.
+
+    No refund on partial reads, seal rejection or downstream failure. This bounds
+    fixed calls at sealed sizes, not arbitrary concurrent installation mutations.
+    """
+    if getattr(meter, 'metadata_reservation', None) is not None:
+        raise ValueError('metadata already reserved')
+    sizes={role:Path(path).stat().st_size for role,path in FIXED.items()}
+    charged=sum(sizes[r]*METADATA_READ_BOUNDS[r] for r in sizes)
+    # Leave a strict boundary: equality and excess are both pre-digest refusals.
+    if meter.used['metadata_hash_bytes']+charged>=LIMITS['metadata_hash_bytes']:
+        meter.failures.append('budget metadata_hash_bytes')
+        raise ValueError('budget metadata_hash_bytes')
+    meter.take('metadata_hash_files',len(sizes))
+    meter.take('metadata_hash_bytes',charged)
+    meter.metadata_reservation=dict(mode='CONSERVATIVE_NONREFUNDABLE_RESERVATION',
+        unique_metadata_roles=3,role_sizes=sizes,read_count_bounds=dict(METADATA_READ_BOUNDS),
+        charged_bytes=charged,remaining_budget=LIMITS['metadata_hash_bytes']-meter.used['metadata_hash_bytes'],
+        actual_digest_bytes=None,measurement='NOT_MEASURED',call_table=METADATA_CALL_TABLE)
+    return meter.metadata_reservation
+
 
 
 def safe_parent(path):
@@ -263,7 +304,7 @@ def windows():
         action('bad-binding-hash',dict(plan['binding'],sha256='0'*64))
 
 
-def owners(root):
+def owners(root, binding_hash=None, identities=None, exclude=()):
     result=[]
     directory=root/'.s3-owned-requests'
     if directory.is_symlink():raise ValueError('journal symlink')
@@ -272,10 +313,21 @@ def owners(root):
         value=json.loads(path.read_text());pid=value['pid']
         if str(uuid.UUID(path.stem))!=path.stem or value['request_id']!=path.stem:raise ValueError('request journal identity')
         if type(pid) is not int or pid<=0 or set(value['birth'])!={'linux_start_ticks'}:raise ValueError('remote identity')
+        if value['request_id'] in exclude:continue
+        if binding_hash is not None and value.get('binding_sha256')!=binding_hash:raise ValueError('journal binding mismatch')
+        ticks=value['birth']['linux_start_ticks']
+        if type(ticks) is not int or ticks<0:raise ValueError('remote birth format')
+        identity=(pid,ticks)
+        if identities is not None and value['request_id'] in identities and identities[value['request_id']]!=identity:
+            raise ValueError('journal identity drift')
         try:
             birth=protocol(ROOT).process_birth(pid)
+            if set(birth)!={'linux_start_ticks'} or type(birth['linux_start_ticks']) is not int:raise ValueError('observed birth format')
             value['observed_birth']=birth;value['same_birth_alive']=birth==value['birth']
-        except FileNotFoundError:value['same_birth_alive']=False
+        except OSError as e:
+            if e.errno not in (errno.ENOENT,errno.ESRCH):raise
+            value['same_birth_alive']=False
+            value['absence_errno']=e.errno
         result.append(value)
     return result
 
@@ -286,15 +338,15 @@ class Observer:
         if not (root/'.s3-synthetic-fixture').is_file():raise ValueError('observer marker')
         self.root=root;self.binding_hash=binding_hash;self.exclude=set(exclude)
         self.samples=[];self.times=[];self.error=None;self.started=time.monotonic();self.stop=threading.Event()
-        self.identities={};self.absent={};self.entered=set()
+        self.identities={};self.absent={};self.entered=set();self.deadline_reason=None
         self.thread=threading.Thread(target=self.observe,daemon=True)
     def observe(self):
         try:
             for i in range(160):
                 elapsed=time.monotonic()-self.started
-                if elapsed>=30:break
+                if elapsed>=30:self.deadline_reason='DEADLINE';break
                 values=[]
-                for v in owners(self.root):
+                for v in owners(self.root,self.binding_hash,self.identities,self.exclude):
                     rid=v['request_id']
                     if rid in self.exclude:continue
                     if v['binding_sha256']!=self.binding_hash:raise ValueError('journal binding mismatch')
@@ -305,17 +357,21 @@ class Observer:
                     self.absent[rid]=0 if v['same_birth_alive'] else self.absent.get(rid,0)+1
                     values.append(v)
                 self.times.append(elapsed)
-                if not self.samples or self.samples[-1]['owners']!=values:
-                    self.samples.append({'elapsed':elapsed,'owners':values})
-                if self.stop.is_set() and self.identities and all(n>=2 for n in self.absent.values()):break
+                self.samples.append({'elapsed':elapsed,'owners':values})
+                if self.stop.is_set() and self.identities and all(n>=2 for n in self.absent.values()):
+                    self.deadline_reason='STOP_TWO_ABSENCES';break
                 time.sleep(.1)
-        except Exception as e:self.error=type(e).__name__+': '+str(e)
+        except Exception as e:
+            self.error=type(e).__name__+': '+str(e);self.deadline_reason='ERROR'
+        finally:
+            if self.deadline_reason is None:self.deadline_reason='SAMPLE_LIMIT'
     def finish(self):
         self.stop.set();self.thread.join(timeout=max(0,30-(time.monotonic()-self.started))+1)
         gaps=[b-a for a,b in zip(self.times,self.times[1:])]
         return {'samples':self.samples,'sampling_times':self.times,'started_monotonic':self.started,'sample_count':len(self.times),'max_interval':max(gaps,default=0),
                 'elapsed':time.monotonic()-self.started,'error':self.error,'joined':not self.thread.is_alive(),
-                'entered':sorted(self.entered),'two_absences':bool(self.identities) and all(n>=2 for n in self.absent.values())}
+                'entered':sorted(self.entered),'identities':self.identities,'absence_counts':self.absent,'deadline_reason':self.deadline_reason,
+                'two_absences':self.error is None and bool(self.identities) and all(n>=2 for n in self.absent.values())}
 
 
 def terminal(pre,meter,life,installed,fixture,claim):
@@ -333,7 +389,8 @@ def terminal(pre,meter,life,installed,fixture,claim):
         life['cleanup'].append({'fixture':str(fixture),'state':'AUDIT_RETAINED' if life['status']=='READY_FOR_REVIEW' else 'FAILED_RETAINED',
                                 'owners':live,'reason':'Registered synthetic reservation/journals retained; no refund/settle0 or remote kill'})
     attempt('budget',meter.check)
-    life.update(counters=meter.used,commands=meter.commands,candidate=pre['candidate'],terminal_errors=errors)
+    life.update(counters=meter.used,commands=meter.commands,candidate=pre['candidate'],terminal_errors=errors,
+                metadata_reservation=getattr(meter,'metadata_reservation',None))
     life['preflight_sha256']=attempt('preflight hash',lambda:digest(BASE/'preflight.json'))
     attempt('installed',lambda:write(BASE/'installed-bindings.json',installed))
     attempt('terminal',lambda:write(BASE/'cross-os-lifecycle.json',life))
@@ -470,9 +527,10 @@ def run():
         meter.take('output_bytes',TERMINAL_RESERVE)
         ACTIVE_METER=meter
         old=json.loads((ROOT/OLD_SEAL).read_text())['tools']
+        reservation=reserve_metadata(meter)
+        life['metadata_reservation']=reservation
         for role,path in FIXED.items():
-            p=Path(path);size=p.stat().st_size
-            meter.take('metadata_hash_files',1);meter.take('metadata_hash_bytes',size)
+            p=Path(path);size=reservation['role_sizes'][role]
             seal=digest(p)
             installed[role]={'path':path,'sha256':seal,'bytes':size,'old_seal_match':seal==old[role]['sha256']}
             if not installed[role]['old_seal_match']:raise ValueError('installed tool changed')
