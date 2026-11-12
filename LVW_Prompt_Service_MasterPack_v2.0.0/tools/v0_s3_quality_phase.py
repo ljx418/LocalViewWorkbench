@@ -135,6 +135,20 @@ MAX_TOTAL_ARTIFACT_BYTES = 128 * 1024 * 1024
 MAX_ARTIFACT_FILES = 256
 SOURCE_READ_CHUNK_BYTES = 1024 * 1024
 
+# The internal bound of the named custody that one quality evaluation holds.
+#
+# The frozen contract fixes sixteen rows.  One evaluation consumes at most
+# the canonical receipt, the source seal and one raw leaf per row, and it
+# walks at most the shared ``rows`` directory plus one row directory per
+# row.  The bound below is a conservative multiple of that frozen shape, so
+# a genuine evaluation can never reach it.
+#
+# The bound is *internal* and fail-closed.  It is not a public threshold, it
+# is not a platform limit and it is never widened to let a run pass: an
+# evaluation that would need more custody than this refuses instead of
+# growing its descriptor use without bound.
+_CUSTODY_ENTRY_LIMIT = 4 * (FIXED_TOTAL + 2)
+
 IMAGE_SOURCE_MAX_BYTES = 20 * 1024 * 1024
 VIDEO_SOURCE_MAX_BYTES = 256 * 1024 * 1024
 
@@ -2593,6 +2607,78 @@ def _log_evidence(snapshot):
     return {key: value for key, value in snapshot.items() if key != "raw_log"}
 
 
+class _NamedCustody:
+    """The bounded custody of every named entry that one evaluation consumed.
+
+    The custody is owned by the boundary and it lives for the whole
+    evaluation.  Every directory and every leaf that was opened for a read
+    stays pinned, so the *current* name of an entry that was consumed long
+    ago can still be compared with the very object that was actually read.
+
+    A name is taken into the custody once.  A repeated read of the same name
+    reuses the pinned descriptor instead of opening a second one, so the
+    descriptor use of an evaluation is bounded by the number of *distinct*
+    names it consumed and never by the number of reads it performed.
+
+    The bound is internal and fail-closed: it is not a public threshold, it
+    is not a platform limit and it is never widened to make a run pass.  An
+    evaluation that would need more custody than the bound allows refuses.
+    """
+
+    def __init__(self, limit=_CUSTODY_ENTRY_LIMIT):
+        self._limit = limit
+        self._entries = {}
+        self._fds = []
+
+    def find(self, parent_fd, name):
+        """The custody entry of one name below one pinned parent, if any."""
+        return self._entries.get((parent_fd, str(name)))
+
+    def take(self, parent_fd, name, identity, kind, descriptor):
+        """Take custody of one named entry and of its pinned descriptor.
+
+        The descriptor is closed again when the name is already in the
+        custody: the pinned descriptor of the first acquisition stays the
+        only descriptor of that name.
+        """
+        key = (parent_fd, str(name))
+        existing = self._entries.get(key)
+        if existing is not None:
+            os.close(descriptor)
+            return existing
+        if len(self._entries) >= self._limit:
+            os.close(descriptor)
+            raise QualityContractError(
+                "QS_ARTIFACT_CUSTODY_LIMIT_EXCEEDED:" + str(name))
+        entry = {
+            "parent_fd": parent_fd,
+            "name": str(name),
+            "identity": identity,
+            "kind": kind,
+            "fd": descriptor,
+        }
+        self._entries[key] = entry
+        self._fds.append(descriptor)
+        return entry
+
+    def entries(self):
+        """Every custody entry, in the order in which it was acquired."""
+        return list(self._entries.values())
+
+    def count(self):
+        return len(self._entries)
+
+    def close(self):
+        """Close every owned descriptor exactly once."""
+        for descriptor in reversed(self._fds):
+            try:
+                os.close(descriptor)
+            except OSError:
+                pass
+        self._fds = []
+        self._entries = {}
+
+
 class _ArtifactBoundary:
     """The strict artifact-root boundary of the scoring entry point.
 
@@ -2615,6 +2701,17 @@ class _ArtifactBoundary:
     or followed away, and every descriptor that this boundary opens is
     closed again on the ordinary path and on every error path.
 
+    The custody of the consumed names is *not* read-local.  Every directory
+    and every leaf that this boundary opened for a read stays pinned in the
+    boundary-owned ``_NamedCustody`` until the boundary is closed, so the
+    current name of an entry that was consumed long ago is still compared
+    with the very object that was actually read - before a later handoff and
+    before a successful completion.  A canonical receipt, a source seal or a
+    raw artifact that is renamed, replaced, redirected or removed after it
+    was read therefore refuses the evaluation instead of being silently
+    consumed.  The custody is bounded and deduplicated by name, so repeated
+    reads cannot grow the descriptor use without bound.
+
     Every evidence type - the canonical receipt, the source seal and the raw
     artifacts - is read through this one boundary, so no evidence type can
     have a weaker ancestry rule than another.
@@ -2636,6 +2733,7 @@ class _ArtifactBoundary:
         self.run_root_path = literal.parent.parent
         self._fds = []
         self._levels = []
+        self._custody = _NamedCustody()
         self._root_parent_fd = None
         try:
             self._root_parent_fd = self._open_trusted_parent(self.run_root_path.parent)
@@ -2788,12 +2886,18 @@ class _ArtifactBoundary:
             raise QualityContractError(prefix + "_REPLACED:" + str(name))
 
     def verify(self):
-        """Every level must still name the very same object.
+        """Every level and every consumed name must still name the same object.
 
-        The pinned handle is checked against its own recorded identity and
-        the *current* named entry is checked against the pinned handle, so a
-        renamed ancestor that was replaced is refused instead of being
-        adopted.
+        The pinned handle of every level is checked against its own recorded
+        identity and the *current* named entry is checked against the pinned
+        handle, so a renamed ancestor that was replaced is refused instead
+        of being adopted.
+
+        The same rule is applied to every entry of the custody: a directory
+        or a leaf that was consumed by an *earlier* read of this evaluation
+        is verified here as well, so a name that stopped naming the pinned
+        object after its read refuses the evaluation instead of being
+        silently consumed.
         """
         for level in self._levels:
             descriptor = level["fd"]
@@ -2804,6 +2908,63 @@ class _ArtifactBoundary:
                 raise QualityContractError("QS_ARTIFACT_ROOT_REPLACED:" + level["name"])
             self._verify_named_entry(level["parent_fd"], level["name"], level["identity"],
                                      "dir", "QS_ARTIFACT_ROOT")
+        for entry in self._custody.entries():
+            self._verify_custody_entry(entry, "QS_ARTIFACT_CUSTODY")
+
+    def _verify_custody_entry(self, entry, prefix):
+        """One custody entry must still be the very object that was read.
+
+        The pinned handle is compared with the recorded identity - so the
+        handle is never a stale or reused descriptor - and the *current*
+        named entry is compared with the same identity.  A missing entry, a
+        symlink and a plain replacement are all refused; none of them is
+        ever resolved, adopted or reopened as authority.
+        """
+        descriptor = entry["fd"]
+        try:
+            info = os.fstat(descriptor)
+        except OSError as error:
+            raise QualityContractError(
+                prefix + "_UNAVAILABLE:" + entry["name"]) from error
+        if (info.st_dev, info.st_ino) != entry["identity"]:
+            raise QualityContractError(prefix + "_REPLACED:" + entry["name"])
+        self._verify_named_entry(entry["parent_fd"], entry["name"], entry["identity"],
+                                 entry["kind"], prefix)
+
+    # -- custody ---------------------------------------------------------
+    def _retain_directory(self, parent_fd, name):
+        """Open one child directory and take custody of its name.
+
+        A directory that is already in the custody is *reused*: its pinned
+        descriptor is verified against its own recorded identity and against
+        the current named entry before it is used again, and no second
+        descriptor is opened.  The custody therefore never grows with the
+        number of reads.
+        """
+        entry = self._custody.find(parent_fd, name)
+        if entry is not None:
+            self._verify_custody_entry(entry, "SCORE_ARTIFACT")
+            return entry["fd"], entry["identity"]
+        descriptor, identity = self._open_child_directory(parent_fd, name)
+        entry = self._custody.take(parent_fd, name, identity, "dir", descriptor)
+        return entry["fd"], entry["identity"]
+
+    def _retain_leaf(self, parent_fd, name):
+        """Open one leaf and take custody of its name.
+
+        A leaf that is already in the custody is *reused* in the same way as
+        a directory: the pinned descriptor is verified against the recorded
+        identity and against the current named entry, and no second
+        descriptor is opened.  The bytes are then read from the very object
+        that was pinned before.
+        """
+        entry = self._custody.find(parent_fd, name)
+        if entry is not None:
+            self._verify_custody_entry(entry, "SCORE_ARTIFACT")
+            return entry["fd"], entry["identity"]
+        descriptor, identity = self._open_leaf(parent_fd, name)
+        entry = self._custody.take(parent_fd, name, identity, "file", descriptor)
+        return entry["fd"], entry["identity"]
 
     # -- reading ---------------------------------------------------------
     def read(self, relative, max_bytes):
@@ -2815,11 +2976,17 @@ class _ArtifactBoundary:
         pinned handle of its own directory.  Nothing is ever resolved, so a
         redirected ancestor can never be followed away.
 
-        Every opened directory and the leaf itself are recorded as the
-        triple ``(parent_fd, child_name, pinned identity)``, and the current
-        named entries are verified against them *while the handles are still
-        held*.  A renamed or replaced entry is therefore refused even when
-        the pinned descriptors would still read the original genuine bytes.
+        Every opened directory and the leaf itself are recorded in the
+        boundary-owned custody as the quadruple ``(parent_fd, child_name,
+        pinned identity, kind)``, and the current named entries are verified
+        against them *while the handles are still held*.  A renamed or
+        replaced entry is therefore refused even when the pinned descriptors
+        would still read the original genuine bytes.
+
+        The custody outlives this read: the very same names are verified
+        again on every later handoff and before a successful completion, so
+        an entry that is replaced *after* it was read refuses the evaluation
+        as well.
         """
         if not isinstance(relative, str) or not relative:
             raise QualityContractError("SCORE_ARTIFACT_PATH_INVALID")
@@ -2827,49 +2994,53 @@ class _ArtifactBoundary:
         if pure.is_absolute() or ".." in pure.parts or not pure.parts:
             raise QualityContractError("SCORE_ARTIFACT_PATH_INVALID")
         current = self._phase_fd
-        opened = []
-        try:
-            for part in pure.parts[:-1]:
-                descriptor, identity = self._open_child_directory(current, part)
-                opened.append((descriptor, current, part, identity))
-                current = descriptor
-            descriptor, identity = self._open_leaf(current, pure.parts[-1])
-            try:
-                info = os.fstat(descriptor)
-                if not stat.S_ISREG(info.st_mode):
-                    raise QualityContractError("SCORE_ARTIFACT_NOT_PLAIN_FILE")
-                if info.st_size > max_bytes:
-                    raise QualityContractError("SCORE_ARTIFACT_TOO_LARGE")
-                remaining = max_bytes + 1
-                chunks = []
-                while remaining > 0:
-                    chunk = os.read(descriptor, min(1024 * 1024, remaining))
-                    if not chunk:
-                        break
-                    chunks.append(chunk)
-                    remaining -= len(chunk)
-                # The named entries are verified again while the handles are
-                # still held: the leaf must still be this very file inside
-                # its pinned directory and every directory level must still
-                # be this very directory inside its pinned parent.
-                self._verify_named_entry(current, pure.parts[-1], identity,
-                                         "file", "SCORE_ARTIFACT")
-                for child, parent, name, child_identity in opened:
-                    self._verify_named_entry(parent, name, child_identity,
-                                             "dir", "SCORE_ARTIFACT")
-                raw = b"".join(chunks)
-                if len(raw) > max_bytes:
-                    raise QualityContractError("SCORE_ARTIFACT_TOO_LARGE")
-            finally:
-                os.close(descriptor)
-        finally:
-            for child, parent, name, child_identity in reversed(opened):
-                os.close(child)
+        chain = []
+        for part in pure.parts[:-1]:
+            descriptor, identity = self._retain_directory(current, part)
+            chain.append((current, part, identity))
+            current = descriptor
+        descriptor, identity = self._retain_leaf(current, pure.parts[-1])
+        info = os.fstat(descriptor)
+        if not stat.S_ISREG(info.st_mode):
+            raise QualityContractError("SCORE_ARTIFACT_NOT_PLAIN_FILE")
+        if info.st_size > max_bytes:
+            raise QualityContractError("SCORE_ARTIFACT_TOO_LARGE")
+        # The pinned descriptor is read from its own beginning: a reused
+        # descriptor is never read from a stale offset.
+        os.lseek(descriptor, 0, os.SEEK_SET)
+        remaining = max_bytes + 1
+        chunks = []
+        while remaining > 0:
+            chunk = os.read(descriptor, min(1024 * 1024, remaining))
+            if not chunk:
+                break
+            chunks.append(chunk)
+            remaining -= len(chunk)
+        # The named entries are verified again while the handles are
+        # still held: the leaf must still be this very file inside
+        # its pinned directory and every directory level must still
+        # be this very directory inside its pinned parent.
+        self._verify_named_entry(current, pure.parts[-1], identity,
+                                 "file", "SCORE_ARTIFACT")
+        for parent, name, child_identity in chain:
+            self._verify_named_entry(parent, name, child_identity,
+                                     "dir", "SCORE_ARTIFACT")
+        raw = b"".join(chunks)
+        if len(raw) > max_bytes:
+            raise QualityContractError("SCORE_ARTIFACT_TOO_LARGE")
         # The identity of the whole boundary is checked again after the read.
         self.verify()
         return raw
 
     def close(self):
+        """Close every owned descriptor exactly once.
+
+        The custody is closed first, so the pinned leaves and the pinned
+        directories of the consumed names are released before the levels
+        that anchor them.  The method is idempotent: a second call closes
+        nothing again.
+        """
+        self._custody.close()
         for descriptor in reversed(self._fds):
             try:
                 os.close(descriptor)
@@ -2888,12 +3059,16 @@ def _boundary_error_code(error, *, missing, redirect, too_large, unreadable):
     code = str(error)
     if code.startswith("SCORE_ARTIFACT_PATH_INVALID"):
         return "SCORE_ARTIFACT_PATH_INVALID"
-    if code.startswith("SCORE_ARTIFACT_MISSING") or code.startswith("QS_ARTIFACT_ROOT_MISSING"):
+    if (code.startswith("SCORE_ARTIFACT_MISSING")
+            or code.startswith("QS_ARTIFACT_ROOT_MISSING")
+            or code.startswith("QS_ARTIFACT_CUSTODY_MISSING")):
         return missing
     if (code.startswith("SCORE_ARTIFACT_REDIRECT_FORBIDDEN")
             or code.startswith("SCORE_ARTIFACT_REPLACED")
             or code.startswith("QS_ARTIFACT_ROOT_REDIRECT_FORBIDDEN")
-            or code.startswith("QS_ARTIFACT_ROOT_REPLACED")):
+            or code.startswith("QS_ARTIFACT_ROOT_REPLACED")
+            or code.startswith("QS_ARTIFACT_CUSTODY_REDIRECT_FORBIDDEN")
+            or code.startswith("QS_ARTIFACT_CUSTODY_REPLACED")):
         return redirect
     if code.startswith("SCORE_ARTIFACT_TOO_LARGE"):
         return too_large
@@ -2925,7 +3100,7 @@ def load_canonical_receipt(directory, *, max_bytes=MAX_ARTIFACT_BYTES, boundary=
                 redirect="CANONICAL_RECEIPT_REDIRECT_FORBIDDEN",
                 too_large="CANONICAL_RECEIPT_TOO_LARGE",
                 unreadable="CANONICAL_RECEIPT_UNREADABLE")
-            raise QualityContractError(code) from error
+            raise QualityContractError(code + ":" + str(error)) from error
         try:
             document = json.loads(raw.decode("utf-8"))
         except (UnicodeDecodeError, json.JSONDecodeError) as error:
@@ -3583,7 +3758,7 @@ def _recompute_bound_scores(execution_receipt, published, published_rows, sealed
                     redirect="QS_RAW_ARTIFACT_REDIRECT_FORBIDDEN",
                     too_large="QS_RAW_ARTIFACT_TOO_LARGE",
                     unreadable="QS_RAW_ARTIFACT_UNREADABLE")
-                raise QualityContractError(code + ":" + asset_id) from error
+                raise QualityContractError(code + ":" + asset_id + ":" + str(error)) from error
             if sha256_bytes(raw) != row.get("raw_sha256"):
                 raise QualityContractError("QS_RAW_ARTIFACT_HASH_MISMATCH:" + asset_id)
             declared = row.get("raw_bytes")

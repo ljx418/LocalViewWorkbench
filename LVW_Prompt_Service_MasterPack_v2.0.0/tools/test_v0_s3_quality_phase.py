@@ -3748,3 +3748,307 @@ def test_correction06_nm03_no_descriptor_is_leaked_by_the_boundary(tmp_path):
     with pytest.raises(QualityContractError):
         quality._ArtifactBoundary(broken / "temp" / "s3-quality")
     assert len(os.listdir("/proc/self/fd")) <= before, "the failed construction leaked a descriptor"
+
+
+# --------------------------------------------------------------------------
+# correction07 NM03: the custody of every earlier consumed name lives until
+# the final completion check of the whole evaluation.
+#
+# The boundary keeps the named entry of every directory and every leaf it
+# consumed pinned for the whole evaluation.  A name that stops naming the
+# object that was actually read - because it was renamed, replaced by a
+# plain file, replaced by a plain directory, redirected by a symlink or
+# removed - has to refuse the evaluation, even when the bytes that were read
+# were the genuine original bytes and the caller receipt never changed.
+#
+# The six counterexamples below are the ones the independent correction-06
+# review reported as still open.  Every one of them drives the *public* QS
+# entry point after a genuine public-owner run.
+# --------------------------------------------------------------------------
+def _fire_before_the_completion_check(monkeypatch, action):
+    """Fire ``action`` exactly once, immediately before the final check.
+
+    The final verification is the one that ``recompute_scores`` invokes
+    itself; the verifications that happen inside a read and the one that
+    binds the declared run root never fire the action.
+    """
+    original = quality._ArtifactBoundary.verify
+    state = {"fired": 0}
+
+    def hooked(self):
+        if not state["fired"] and sys._getframe(1).f_code.co_name == "recompute_scores":
+            state["fired"] += 1
+            action()
+        return original(self)
+
+    monkeypatch.setattr(quality._ArtifactBoundary, "verify", hooked)
+    return state
+
+
+def test_correction07_nm03_a_canonical_receipt_replaced_after_its_read_is_refused(
+        tmp_path, monkeypatch):
+    """A canonical receipt that is replaced after its read refuses the run."""
+    run = _own_run(tmp_path)
+    canonical = run["artifact_root"] / quality.CANONICAL_RECEIPT_NAME
+    before = canonical.read_bytes()
+    receipt_before = copy.deepcopy(run["receipt"])
+    # The replacement happens during the first raw read, that is *after* the
+    # canonical receipt was consumed.  The replacement carries the very same
+    # bytes: only the name stopped naming the object that was read.
+    raw = run["artifact_root"] / run["receipt"]["rows"][0]["raw_artifact"]
+    state = _fire_during_read(monkeypatch, raw, lambda: _replace_file(canonical))
+    with pytest.raises(QualityContractError) as replaced:
+        recompute_scores(run["receipt"], run["artifact_root"], _own_scores(run),
+                         independence=_independence())
+    assert state["fired"] == 1, state
+    assert "QS_RAW_ARTIFACT_REDIRECT_FORBIDDEN" in str(replaced.value), str(replaced.value)
+    # The custody refused the earlier consumed name, not the current one.
+    assert "QS_ARTIFACT_CUSTODY_REPLACED" in str(replaced.value), str(replaced.value)
+    assert quality.CANONICAL_RECEIPT_NAME in str(replaced.value), str(replaced.value)
+    # The genuine bytes are unchanged and the caller receipt never changed.
+    assert canonical.read_bytes() == before
+    assert run["receipt"] == receipt_before
+
+
+def test_correction07_nm03_a_canonical_receipt_redirected_after_its_read_is_refused(
+        tmp_path, monkeypatch):
+    """A canonical receipt that is redirected after its read refuses the run."""
+    run = _own_run(tmp_path)
+    canonical = run["artifact_root"] / quality.CANONICAL_RECEIPT_NAME
+    before = canonical.read_bytes()
+    receipt_before = copy.deepcopy(run["receipt"])
+    seal = _seal_path(run)
+    # The redirect happens during the source seal read, that is *after* the
+    # canonical receipt was consumed.
+    state = _fire_during_read(monkeypatch, seal, lambda: _redirect_file(canonical))
+    with pytest.raises(QualityContractError) as redirected:
+        recompute_scores(run["receipt"], run["artifact_root"], _own_scores(run),
+                         independence=_independence())
+    assert state["fired"] == 1, state
+    assert "QS_SOURCE_PLAN_REDIRECT_FORBIDDEN" in str(redirected.value), str(redirected.value)
+    assert "QS_ARTIFACT_CUSTODY_REDIRECT_FORBIDDEN" in str(redirected.value), str(redirected.value)
+    # The symlink resolves to the untouched original: the genuine bytes of
+    # the original object are unchanged and the caller receipt never changed.
+    assert canonical.read_bytes() == before
+    assert run["receipt"] == receipt_before
+
+
+def test_correction07_nm03_a_source_seal_that_disappears_after_its_read_is_refused(
+        tmp_path, monkeypatch):
+    """A source seal that vanishes after its read refuses the run."""
+    run = _own_run(tmp_path)
+    seal = _seal_path(run)
+    before = seal.read_bytes()
+    raw = run["artifact_root"] / run["receipt"]["rows"][0]["raw_artifact"]
+    # The seal disappears during the first raw read, that is *after* it was
+    # consumed.  A missing name refuses just like a replaced one.
+    state = _fire_during_read(
+        monkeypatch, raw,
+        lambda: seal.rename(seal.with_name(seal.name + "-retained")))
+    with pytest.raises(QualityContractError) as missing:
+        recompute_scores(run["receipt"], run["artifact_root"], _own_scores(run),
+                         independence=_independence())
+    assert state["fired"] == 1, state
+    assert "QS_RAW_ARTIFACT_UNREADABLE" in str(missing.value), str(missing.value)
+    assert "QS_ARTIFACT_CUSTODY_MISSING" in str(missing.value), str(missing.value)
+    assert seal.with_name(seal.name + "-retained").read_bytes() == before
+
+
+def test_correction07_nm03_a_raw_leaf_redirected_after_its_read_is_refused(
+        tmp_path, monkeypatch):
+    """A raw leaf that is redirected after its read refuses the run."""
+    run = _own_run(tmp_path)
+    raw = run["artifact_root"] / run["receipt"]["rows"][0]["raw_artifact"]
+    before = raw.read_bytes()
+    later = run["artifact_root"] / run["receipt"]["rows"][1]["raw_artifact"]
+    # The redirect happens during the *second* raw read, that is *after* the
+    # first raw leaf was consumed.
+    state = _fire_during_read(monkeypatch, later, lambda: _redirect_file(raw))
+    with pytest.raises(QualityContractError) as redirected:
+        recompute_scores(run["receipt"], run["artifact_root"], _own_scores(run),
+                         independence=_independence())
+    assert state["fired"] == 1, state
+    assert "QS_RAW_ARTIFACT_REDIRECT_FORBIDDEN" in str(redirected.value), str(redirected.value)
+    assert "QS_ARTIFACT_CUSTODY_REDIRECT_FORBIDDEN" in str(redirected.value), str(redirected.value)
+    assert raw.read_bytes() == before
+
+
+def test_correction07_nm03_a_raw_parent_replaced_after_its_read_is_refused(
+        tmp_path, monkeypatch):
+    """A raw parent directory that is replaced after its read refuses the run."""
+    run = _own_run(tmp_path)
+    raw = run["artifact_root"] / run["receipt"]["rows"][0]["raw_artifact"]
+    before = raw.read_bytes()
+    later = run["artifact_root"] / run["receipt"]["rows"][1]["raw_artifact"]
+    # The parent directory of the first raw leaf is replaced by a different
+    # plain directory during the second raw read.  The plain replacement is
+    # refused just like a symlink.
+    state = _fire_during_read(monkeypatch, later, lambda: _replace_directory(raw.parent))
+    with pytest.raises(QualityContractError) as replaced:
+        recompute_scores(run["receipt"], run["artifact_root"], _own_scores(run),
+                         independence=_independence())
+    assert state["fired"] == 1, state
+    assert "QS_RAW_ARTIFACT_REDIRECT_FORBIDDEN" in str(replaced.value), str(replaced.value)
+    assert "QS_ARTIFACT_CUSTODY_REPLACED" in str(replaced.value), str(replaced.value)
+    # The genuine original bytes are still there under the retained name.
+    retained = raw.parent.with_name(raw.parent.name + "-retained")
+    assert (retained / raw.name).read_bytes() == before
+
+
+def test_correction07_nm03_an_earlier_nested_parent_that_disappears_is_refused(
+        tmp_path, monkeypatch):
+    """A nested parent directory that disappears after its read refuses the run."""
+    run = _own_run(tmp_path)
+    raw = run["artifact_root"] / run["receipt"]["rows"][0]["raw_artifact"]
+    before = raw.read_bytes()
+    later = run["artifact_root"] / run["receipt"]["rows"][1]["raw_artifact"]
+    # The nested parent of the *first* raw leaf disappears during the second
+    # raw read.  The nested parent of an earlier consumed leaf is part of
+    # the custody as well, and a missing name refuses like a replaced one.
+    state = _fire_during_read(
+        monkeypatch, later,
+        lambda: raw.parent.rename(raw.parent.with_name(raw.parent.name + "-retained")))
+    with pytest.raises(QualityContractError) as missing:
+        recompute_scores(run["receipt"], run["artifact_root"], _own_scores(run),
+                         independence=_independence())
+    assert state["fired"] == 1, state
+    assert "QS_RAW_ARTIFACT_UNREADABLE" in str(missing.value), str(missing.value)
+    assert "QS_ARTIFACT_CUSTODY_MISSING" in str(missing.value), str(missing.value)
+    retained = raw.parent.with_name(raw.parent.name + "-retained")
+    assert (retained / raw.name).read_bytes() == before
+
+
+def test_correction07_nm03_a_canonical_receipt_redirected_before_the_completion_check_is_refused(
+        tmp_path, monkeypatch):
+    """A canonical receipt that is redirected just before the completion check refuses."""
+    run = _own_run(tmp_path)
+    canonical = run["artifact_root"] / quality.CANONICAL_RECEIPT_NAME
+    before = canonical.read_bytes()
+    state = _fire_before_the_completion_check(
+        monkeypatch, lambda: _redirect_file(canonical))
+    with pytest.raises(QualityContractError) as redirected:
+        recompute_scores(run["receipt"], run["artifact_root"], _own_scores(run),
+                         independence=_independence())
+    assert state["fired"] == 1, state
+    assert "QS_ARTIFACT_CUSTODY_REDIRECT_FORBIDDEN" in str(redirected.value), str(redirected.value)
+    assert quality.CANONICAL_RECEIPT_NAME in str(redirected.value), str(redirected.value)
+    # The original object is untouched: only its name was redirected.
+    assert canonical.read_bytes() == before
+
+
+@pytest.mark.skipif(not os.path.isdir("/proc/self/fd"), reason="no procfs descriptor listing")
+def test_correction07_nm03_a_repeated_read_keeps_a_bounded_custody(completed_run):
+    """Repeated reads of the same names never grow the custody or the descriptors."""
+    boundary = quality._ArtifactBoundary(completed_run["artifact_root"])
+    try:
+        names = [quality.CANONICAL_RECEIPT_NAME,
+                 completed_run["receipt"]["source_plan"]["path"],
+                 completed_run["receipt"]["rows"][0]["raw_artifact"]]
+        first = [boundary.read(name, quality.MAX_ARTIFACT_BYTES) for name in names]
+        entries = boundary._custody.count()
+        descriptors = len(os.listdir("/proc/self/fd"))
+        # The same names are read again and again.  The custody is taken once
+        # per name, so neither the custody nor the descriptor use grows.
+        for _ in range(8):
+            again = [boundary.read(name, quality.MAX_ARTIFACT_BYTES) for name in names]
+            assert again == first
+        assert boundary._custody.count() == entries, boundary._custody.count()
+        assert len(os.listdir("/proc/self/fd")) == descriptors, "the custody grew"
+        # The bound is internal, finite and derived from the frozen shape.
+        assert quality._CUSTODY_ENTRY_LIMIT >= entries, entries
+        assert descriptors <= 4 + quality._CUSTODY_ENTRY_LIMIT, descriptors
+    finally:
+        boundary.close()
+
+
+@pytest.mark.skipif(not os.path.isdir("/proc/self/fd"), reason="no procfs descriptor listing")
+def test_correction07_nm03_the_custody_is_released_when_the_evaluation_refuses(
+        tmp_path, monkeypatch):
+    """A refusing evaluation releases every descriptor it had pinned."""
+    run = _own_run(tmp_path)
+    canonical = run["artifact_root"] / quality.CANONICAL_RECEIPT_NAME
+    raw = run["artifact_root"] / run["receipt"]["rows"][0]["raw_artifact"]
+    before = len(os.listdir("/proc/self/fd"))
+    state = _fire_during_read(monkeypatch, raw, lambda: _redirect_file(canonical))
+    with pytest.raises(QualityContractError):
+        recompute_scores(run["receipt"], run["artifact_root"], _own_scores(run),
+                         independence=_independence())
+    assert state["fired"] == 1, state
+    assert len(os.listdir("/proc/self/fd")) <= before, "the refusal leaked a descriptor"
+
+
+@pytest.mark.skipif(not os.path.isdir("/proc/self/fd"), reason="no procfs descriptor listing")
+def test_correction07_nm03_the_custody_is_released_after_a_successful_evaluation(
+        completed_run):
+    """A successful evaluation releases every descriptor it had pinned."""
+    before = len(os.listdir("/proc/self/fd"))
+    result = recompute_scores(completed_run["receipt"], completed_run["artifact_root"],
+                               _scores(completed_run["receipt"],
+                                       completed_run["projection_sha256"]),
+                               independence=_independence())
+    assert result["aggregate_pass"] is True, result
+    assert len(os.listdir("/proc/self/fd")) <= before, "the evaluation leaked a descriptor"
+
+
+def test_correction07_nm03_a_repeated_tiny_read_is_exact_and_one_over(tmp_path):
+    """The reused descriptor of a repeated read is exact and one over is refused."""
+    run = _own_run(tmp_path)
+    fixture = run["artifact_root"] / "custody-tiny.bin"
+    fixture.write_bytes(b"abcd")
+    boundary = quality._ArtifactBoundary(run["artifact_root"])
+    try:
+        assert boundary.read("custody-tiny.bin", 4) == b"abcd"
+        # The second read reuses the pinned descriptor: the bytes are read
+        # from the very object that was pinned before, and not from a stale
+        # offset of it.
+        assert boundary.read("custody-tiny.bin", 4) == b"abcd"
+        with pytest.raises(QualityContractError) as over:
+            boundary.read("custody-tiny.bin", 3)
+        assert "SCORE_ARTIFACT_TOO_LARGE" in str(over.value), str(over.value)
+    finally:
+        boundary.close()
+        fixture.unlink()
+
+
+def test_correction07_nm03_a_growing_leaf_is_refused_through_the_reused_descriptor(
+        tmp_path, monkeypatch):
+    """A leaf that grows between two reads of the same name is refused."""
+    run = _own_run(tmp_path)
+    fixture = run["artifact_root"] / "custody-growing.bin"
+    fixture.write_bytes(b"abcd")
+    boundary = quality._ArtifactBoundary(run["artifact_root"])
+    try:
+        assert boundary.read("custody-growing.bin", 4) == b"abcd"
+        original = os.read
+        state = {"fired": 0}
+
+        def hooked(descriptor, count):
+            value = original(descriptor, count)
+            if not state["fired"]:
+                state["fired"] += 1
+                with open(fixture, "ab") as stream:
+                    stream.write(b"e")
+            return value
+
+        monkeypatch.setattr(quality.os, "read", hooked)
+        with pytest.raises(QualityContractError) as grown:
+            boundary.read("custody-growing.bin", 4)
+        assert "SCORE_ARTIFACT_TOO_LARGE" in str(grown.value), str(grown.value)
+        assert state["fired"] == 1, state
+    finally:
+        boundary.close()
+        fixture.unlink()
+
+
+def test_correction07_nm03_a_clean_genuine_run_still_aggregates(tmp_path):
+    """One clean honest baseline still passes after the custody was added."""
+    run = _own_run(tmp_path)
+    result = recompute_scores(run["receipt"], run["artifact_root"], _own_scores(run),
+                               independence=_independence())
+    assert result["all_rows_resolved"] is True, result
+    assert result["aggregate_pass"] is True, result
+    assert result["thresholds"]["images_usable"] == 10, result
+    assert result["thresholds"]["videos_usable"] == 6, result
+    assert result["thresholds"]["total_critical_hallucinations"] == 0, result
+    assert result["stage_pass_claim"] is False and result["product_gate0"] is False, result
+    assert result["model_called"] is False, result

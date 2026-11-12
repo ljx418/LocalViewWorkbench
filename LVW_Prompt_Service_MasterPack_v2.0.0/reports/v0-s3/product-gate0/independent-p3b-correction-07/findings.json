@@ -1,0 +1,120 @@
+{
+  "decision": "CHANGES_REQUIRED",
+  "component_only": true,
+  "counts": {
+    "Fatal": 0,
+    "Major": 1,
+    "Minor": 1
+  },
+  "findings": [
+    {
+      "id": "NM03-R1",
+      "severity": "Major",
+      "status": "OPEN",
+      "title": "A post-open metadata failure loses descriptor ownership before custody insertion",
+      "locations": [
+        {
+          "path": "tools/v0_s3_quality_phase.py",
+          "line": 2822,
+          "function": "_ArtifactBoundary._open_child_directory"
+        },
+        {
+          "path": "tools/v0_s3_quality_phase.py",
+          "line": 2850,
+          "function": "_ArtifactBoundary._open_leaf"
+        },
+        {
+          "path": "tools/v0_s3_quality_phase.py",
+          "line": 2948,
+          "function": "_ArtifactBoundary._retain_directory"
+        },
+        {
+          "path": "tools/v0_s3_quality_phase.py",
+          "line": 2965,
+          "function": "_ArtifactBoundary._retain_leaf"
+        }
+      ],
+      "trigger": "In a fresh bounded fixture, let os.open succeed, then inject one ordinary OSError(EIO) in the first os.fstat of that just-opened child directory or leaf; invoke boundary.close after refusal.",
+      "expected": "Every descriptor opened by the boundary has an owner immediately and is closed on refusal, including failures before identity extraction/custody transfer; no error-dependent growth across evaluations.",
+      "actual": "Both hooks fired exactly once; close left the opened descriptor live and procfs count changed 8 to 9 for each isolated observation. Only explicit probe remediation closed the leaked FD, restoring 8. The helper calls fstat before any try/finally or registration; neither _fds nor _custody knows this descriptor.",
+      "evidence": [
+        "targeted-observations.json:postopen_fstat_error_leaf",
+        "targeted-observations.json:postopen_fstat_error_directory",
+        "targeted.stdout.log",
+        "targeted.receipt.json",
+        "targeted.outer.json"
+      ],
+      "observations": [
+        {
+          "error": "OSError: [Errno 5] independent injected metadata failure",
+          "fds_after_boundary_close": 9,
+          "fds_after_probe_remediation": 8,
+          "fds_before": 8,
+          "hook_fired": 1,
+          "name": "postopen_fstat_error_leaf",
+          "opened_descriptor_still_live": true
+        },
+        {
+          "error": "OSError: [Errno 5] independent injected metadata failure",
+          "fds_after_boundary_close": 9,
+          "fds_after_probe_remediation": 8,
+          "fds_before": 8,
+          "hook_fired": 1,
+          "name": "postopen_fstat_error_directory",
+          "opened_descriptor_still_live": true
+        }
+      ],
+      "scope": "Observed at the actual boundary.read owner path, not through public recompute_scores for this injected error. Public recompute_scores uses the same helpers and its finally closes this same boundary; source inspection establishes that it cannot recover an unregistered descriptor. This pre-existing open-helper gap is material to the explicitly assigned NM03 resource/error closure, not a reopened unrelated historical finding.",
+      "impact": "Refusal is fail-closed for scores but not for resources. Repeated metadata failures can accumulate live descriptors outside the finite custody registry; an unconditional cleanup/finite-FD claim is unsupported.",
+      "recommendation": "Keep each successfully opened descriptor under cleanup ownership until transfer into custody succeeds, including metadata/error paths; preserve the original pinned entry on reuse."
+    },
+    {
+      "id": "NM03-r2",
+      "severity": "Minor",
+      "status": "OPEN",
+      "title": "The custody cap refuses only after opening the excess entry",
+      "locations": [
+        {
+          "path": "tools/v0_s3_quality_phase.py",
+          "line": 2649,
+          "function": "_NamedCustody.take"
+        },
+        {
+          "path": "tools/v0_s3_quality_phase.py",
+          "line": 2948,
+          "function": "_ArtifactBoundary._retain_directory"
+        },
+        {
+          "path": "tools/v0_s3_quality_phase.py",
+          "line": 2965,
+          "function": "_ArtifactBoundary._retain_leaf"
+        }
+      ],
+      "trigger": "Fill a fresh boundary with exactly72 distinct four-byte leaves, then read a73rd leaf while counting actual os.open calls and live descriptors.",
+      "expected": "After a dedup miss at the internal72-entry cap, refuse before any excess child/leaf open; retain every existing entry and release all resources.",
+      "actual": "Exact72 succeeds and all old entries remain. The73rd os.open succeeds, transient procfs count grows84 to85, and take then closes the excess FD and raises QS_ARTIFACT_CUSTODY_LIMIT_EXCEEDED:f72. Final boundary cleanup returns8. Thus score refusal and normal finiteness hold, but the explicit before-excess-open obligation does not.",
+      "evidence": [
+        "targeted-observations.json:exact72_oneover73_admission",
+        "targeted.stdout.log",
+        "targeted.receipt.json",
+        "targeted.outer.json"
+      ],
+      "observations": [
+        {
+          "error": "QualityContractError: QS_ARTIFACT_CUSTODY_LIMIT_EXCEEDED:f72",
+          "exact_fds": 84,
+          "extra_opens": 1,
+          "fds_after_close": 8,
+          "fds_before": 8,
+          "name": "exact72_oneover73_admission",
+          "old_entries_retained": true,
+          "peak_fds": 85
+        }
+      ],
+      "impact": "Normal operation has a finite transient bound of4 anchor FDs+72 retained entries+1 unregistered open, rather than the requested4+72 admission bound. No successful aggregate, dropped entry, or unbounded normal growth was observed. This is an internal implementation bound, not a public threshold.",
+      "recommendation": "Check/reserve capacity after the dedup lookup and before opening a new entry, with exception-safe ownership transfer."
+    }
+  ],
+  "stage_pass_claim": false,
+  "product_gate0": false
+}
