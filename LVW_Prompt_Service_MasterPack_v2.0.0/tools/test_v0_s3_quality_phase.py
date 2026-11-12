@@ -426,7 +426,32 @@ class FakeClock:
         self.now += self.step or seconds
 
 
-def _prepare(root, failure=None, rows=None, clock=None, parent_budget=None):
+def _parent_proof(clock, **overrides):
+    """A typed internal parent capacity proof in the phase clock domain.
+
+    This is an internal admission document only.  It never proves that a real
+    reservation exists; the authentic provider and the actual debit stay with
+    the parent coordinator.
+    """
+    now = clock()
+    proof = {
+        "kind": "LVW_PARENT_CAPACITY_PROOF/1",
+        "known": True,
+        "run_id": RUN_ID,
+        "candidate_sha": CANDIDATE_SHA,
+        "authorization_sha256": AUTHORIZATION_SHA,
+        "issued_monotonic": float(now),
+        "expires_monotonic": float(now) + 3600.0,
+        "action_capacity": 34,
+    }
+    proof.update(overrides)
+    return proof
+
+
+_UNSET = object()
+
+
+def _prepare(root, failure=None, rows=None, clock=None, parent_budget=_UNSET):
     for name in ("input", "output", "temp"):
         (root / name).mkdir(parents=True, exist_ok=True)
     if rows is None:
@@ -435,8 +460,8 @@ def _prepare(root, failure=None, rows=None, clock=None, parent_budget=None):
     driver = SyntheticDriver(root, failure)
     if clock is None:
         clock = FakeClock(step=100.0)
-    if parent_budget is None:
-        parent_budget = {"known": True, "action_capacity": 34}
+    if parent_budget is _UNSET:
+        parent_budget = _parent_proof(clock)
     phase = QualityPhase(
         driver, root, run_id=RUN_ID, candidate_sha=CANDIDATE_SHA,
         authorization_sha256=AUTHORIZATION_SHA, projection=projection,
@@ -1222,16 +1247,18 @@ def test_correction_m01_a_receipt_over_the_total_budget_is_refused_explicitly(tm
 
 def test_correction_m02_an_ancestor_redirect_cannot_escape_the_owned_directory(tmp_path):
     phase, driver, _ = _prepare(tmp_path)
-    phase.directory.mkdir(parents=True, exist_ok=True)
-    info = phase.directory.lstat()
-    phase._phase_identity = [info.st_dev, info.st_ino]
-    outside = tmp_path / "redirect-target"
-    outside.mkdir()
-    (phase.directory / "rows").symlink_to(outside, target_is_directory=True)
-    with pytest.raises(QualityContractError) as redirect:
-        phase._artifact("rows/asset/raw.txt", b"synthetic")
-    assert "ARTIFACT_REDIRECT_FORBIDDEN" in str(redirect.value), str(redirect.value)
-    assert not (outside / "asset" / "raw.txt").exists(), outside
+    phase._open_owned_directories()
+    try:
+        outside = tmp_path / "redirect-target"
+        outside.mkdir()
+        (phase.directory / "rows").symlink_to(outside, target_is_directory=True)
+        with pytest.raises(QualityContractError) as redirect:
+            phase._artifact("rows/asset/raw.txt", b"synthetic")
+        assert "ARTIFACT_REDIRECT_FORBIDDEN" in str(redirect.value), str(redirect.value)
+        assert not (outside / "asset" / "raw.txt").exists(), outside
+        assert list(outside.iterdir()) == [], list(outside.iterdir())
+    finally:
+        phase._close_owned_directories()
 
 
 def test_correction_m02_a_preexisting_phase_directory_is_refused_without_writing(tmp_path):
@@ -1262,7 +1289,7 @@ def test_correction_m02_a_replaced_phase_directory_is_refused(tmp_path):
 
     phase.authorize = replace
     receipt = phase.run()
-    assert receipt["rows"][0]["error_code"].startswith("PHASE_DIRECTORY_REPLACED"), receipt["rows"][0]
+    assert receipt["rows"][0]["error_code"].startswith("OWNED_PATH_REPLACED"), receipt["rows"][0]
     assert driver.submissions == 0, driver.submissions
     assert not (phase.directory / "rows").exists(), list(phase.directory.iterdir())
 
@@ -1279,7 +1306,7 @@ def test_correction_m02_a_replaced_run_root_is_refused(tmp_path):
 
     phase.authorize = replace
     receipt = phase.run()
-    assert receipt["rows"][0]["error_code"].startswith("RUN_ROOT_REPLACED"), receipt["rows"][0]
+    assert receipt["rows"][0]["error_code"].startswith("OWNED_PATH_REPLACED"), receipt["rows"][0]
     assert driver.submissions == 0, driver.submissions
 
 
@@ -1521,25 +1548,24 @@ def test_correction_m01_a_non_finite_release_is_rejected(tmp_path):
 
 
 def test_correction_admission_an_unknown_parent_budget_is_refused(tmp_path):
-    with pytest.raises(QualityContractError) as unknown:
-        _prepare(tmp_path, parent_budget={"known": False, "action_capacity": 34})
-    assert "PARENT_BUDGET_PROOF_UNKNOWN" in str(unknown.value)
-    # A missing proof is refused as well, not assumed to be sufficient.
-    rows = _build_sources(tmp_path)
-    projection = _projection_bytes(rows)
-    driver = SyntheticDriver(tmp_path)
-    with pytest.raises(QualityContractError) as missing:
-        QualityPhase(
-            driver, tmp_path, run_id=RUN_ID, candidate_sha=CANDIDATE_SHA,
-            authorization_sha256=AUTHORIZATION_SHA, projection=projection,
-            projection_sha256=hashlib.sha256(projection).hexdigest(),
-            source_identity=_source_identity(), authorize=lambda *args: None,
-            binding=_binding(), parent_budget=None)
-    assert "PARENT_BUDGET_PROOF_MISSING" in str(missing.value)
+    # An unknown or missing proof is refused with zero sends and all sixteen
+    # rows retained; it is never assumed to be sufficient.
+    for label, proof in (("unknown", {"known": False, "action_capacity": 34}),
+                         ("missing", None),
+                         ("untyped", {"known": True, "action_capacity": 34})):
+        phase, driver, _ = _prepare(tmp_path / label, parent_budget=proof)
+        receipt = phase.run()
+        assert receipt["decision"] == "QUALITY_EXECUTION_BLOCKED", (label, receipt)
+        assert receipt["error_code"].startswith("PARENT_BUDGET_PROOF_"), (label, receipt)
+        assert driver.submissions == 0, (label, driver.submissions)
+        assert len(receipt["rows"]) == 16, (label, receipt)
+        assert receipt["test_counts"]["BLOCKED"] == 16, (label, receipt)
 
 
 def test_correction_admission_an_insufficient_parent_capacity_refuses_every_send(tmp_path):
-    phase, driver, _ = _prepare(tmp_path, parent_budget={"known": True, "action_capacity": 10})
+    clock = FakeClock(step=100.0)
+    phase, driver, _ = _prepare(tmp_path, clock=clock,
+                                parent_budget=_parent_proof(clock, action_capacity=10))
     receipt = phase.run()
     assert receipt["decision"] == "QUALITY_EXECUTION_BLOCKED", receipt
     assert receipt["error_code"] == "PARENT_BUDGET_CAPACITY_INSUFFICIENT", receipt
@@ -1577,3 +1603,246 @@ def test_correction_timing_a_late_successful_history_fails_the_deadline(tmp_path
     row = receipt["rows"][0]
     assert row["error_code"] == "HISTORY_TIMEOUT", row
     assert driver.submissions == 1, driver.submissions
+
+
+# --------------------------------------------------------------------------
+# aggregate correction 02: regression coverage for the remaining findings
+#
+# M01 the persisted receipt states its own final bytes and files
+# M02 every owned ancestor is pinned and every write is descriptor relative
+# M08 the public scoring validates the evidence of every row, pass or fail
+# NM01 the typed internal parent capacity proof binds identity and freshness
+# NM02 the phase clock is monotonic and the hard supervision blocker is honest
+# --------------------------------------------------------------------------
+def test_correction02_m01_the_persisted_receipt_states_its_own_final_totals(tmp_path):
+    phase, driver, _ = _prepare(tmp_path)
+    receipt = phase.run()
+    stored_path = phase.directory / "qd-receipt.json"
+    stored_bytes = stored_path.read_bytes()
+    stored = json.loads(stored_bytes.decode("utf-8"))
+    files = [path for path in phase.directory.rglob("*") if path.is_file()]
+    actual_bytes = sum(path.stat().st_size for path in files)
+    assert stored["receipt_bytes"] == len(stored_bytes), (stored["receipt_bytes"], len(stored_bytes))
+    assert stored["artifact_files_including_receipt"] == len(files), stored
+    assert stored["artifact_bytes_including_receipt"] == actual_bytes, stored
+    assert stored["receipt_persisted"] is True, stored
+    assert stored["terminal_status"] == "TERMINAL_RECEIPT_PERSISTED", stored
+    assert stored["artifact_files"] == len(files) - 1, stored
+    assert stored["artifact_bytes"] == actual_bytes - len(stored_bytes), stored
+    # The returned document states the same final totals.
+    assert receipt["receipt_bytes"] == len(stored_bytes), receipt
+    assert receipt["artifact_files_including_receipt"] == len(files), receipt
+
+
+@pytest.mark.parametrize("bound", ["artifact", "total", "files"])
+def test_correction02_m01_the_receipt_caps_are_exact_and_one_over(tmp_path, bound, monkeypatch):
+    outcomes = {}
+    for over in (0, 1):
+        phase, driver, _ = _prepare(tmp_path / (bound + str(over)))
+        phase._open_owned_directories()
+        try:
+            phase._artifact("filler.bin", b"synthetic filler")
+            document = {"synthetic": True, "receipt_persisted": True,
+                        "receipt_persistence_error": None,
+                        "terminal_status": "TERMINAL_RECEIPT_PERSISTED"}
+            raw, _ = phase._serialized_receipt(document)
+            if bound == "artifact":
+                monkeypatch.setattr(quality, "MAX_ARTIFACT_BYTES", len(raw) - over)
+            elif bound == "total":
+                monkeypatch.setattr(quality, "MAX_TOTAL_ARTIFACT_BYTES",
+                                   phase._artifact_bytes + len(raw) - over)
+            else:
+                monkeypatch.setattr(quality, "MAX_ARTIFACT_FILES",
+                                   phase._artifact_files + 1 - over)
+            persisted = phase._write_receipt(document)
+            outcomes[over] = (persisted, document.get("receipt_persistence_error"))
+        finally:
+            phase._close_owned_directories()
+        monkeypatch.undo()
+    assert outcomes[0][0] is True, outcomes
+    assert outcomes[1][0] is False, outcomes
+    assert "RECEIPT" in str(outcomes[1][1]), outcomes
+
+
+def test_correction02_m02_a_temp_ancestor_redirect_writes_nothing_into_the_old_root(tmp_path):
+    phase, driver, _ = _prepare(tmp_path)
+    replaced = []
+
+    def replace_temp(action, subject):
+        if action == "quality_row_begin" and not replaced:
+            replaced.append(True)
+            (phase.root / "temp").rename(phase.root / "old-temp")
+            (phase.root / "temp").symlink_to(phase.root / "old-temp", target_is_directory=True)
+
+    phase.authorize = replace_temp
+    receipt = phase.run()
+    assert driver.submissions == 0, driver.submissions
+    assert receipt["test_counts"]["PASS"] == 0, receipt
+    # The phase directory existed before the redirect, but no file was ever
+    # written through the renamed ancestor and no receipt was persisted.
+    assert [path for path in (phase.root / "old-temp").rglob("*") if path.is_file()] == []
+    assert not (phase.root / "old-temp" / "s3-quality" / "qd-receipt.json").exists()
+    assert receipt["receipt_persisted"] is False, receipt
+
+
+def test_correction02_m02_an_initial_temp_symlink_creates_no_foreign_entry(tmp_path):
+    foreign = tmp_path / "foreign"
+    foreign.mkdir()
+    phase, driver, _ = _prepare(tmp_path)
+    (phase.root / "temp").rmdir()
+    (phase.root / "temp").symlink_to(foreign, target_is_directory=True)
+    receipt = phase.run()
+    assert driver.submissions == 0, driver.submissions
+    assert list(foreign.rglob("*")) == [], list(foreign.rglob("*"))
+    assert receipt["decision"] == "QUALITY_EXECUTION_BLOCKED", receipt
+
+
+def test_correction02_m02_a_deterministic_open_interposition_cannot_write_into_a_foreign_root(tmp_path):
+    phase, driver, _ = _prepare(tmp_path)
+    foreign = tmp_path / "foreign-open"
+    foreign.mkdir()
+    original_open = quality.os.open
+    swapped = []
+
+    def racing_open(path, flags, *args, **kwargs):
+        # The swap happens at the deterministic directory open of the owned
+        # ancestor, which is where the descriptor relative traversal happens.
+        if str(path) == "rows" and flags & os.O_DIRECTORY and not swapped:
+            swapped.append(True)
+            (phase.directory / "rows").rename(phase.directory / "rows-original")
+            (phase.directory / "rows").symlink_to(foreign, target_is_directory=True)
+        return original_open(path, flags, *args, **kwargs)
+
+    quality.os.open = racing_open
+    try:
+        receipt = phase.run()
+    finally:
+        quality.os.open = original_open
+    assert swapped, "the deterministic interposition must have been reached"
+    assert driver.submissions == 0, driver.submissions
+    assert list(foreign.rglob("*")) == [], list(foreign.rglob("*"))
+    assert receipt["test_counts"]["PASS"] == 0, receipt
+
+
+def test_correction02_m02_the_owned_handles_are_closed_after_the_run(tmp_path):
+    phase, driver, _ = _prepare(tmp_path)
+    receipt = phase.run()
+    assert receipt["decision"] == "QUALITY_EXECUTION_COMPLETE_ALL_16_PASS", receipt
+    assert phase._owned_root is None and phase._owned_temp is None and phase._owned_phase is None
+    with pytest.raises(QualityContractError) as closed:
+        phase._artifact("rows/after.txt", b"synthetic")
+    assert "OWNED_DIRECTORY_CLOSED" in str(closed.value), str(closed.value)
+
+
+def test_correction02_m08_a_pass_row_with_unknown_cleanup_cannot_aggregate_pass(completed_run):
+    receipt = copy.deepcopy(completed_run["receipt"])
+    receipt["rows"][0]["release_evidence"] = None
+    scores = _scores(receipt, completed_run["projection_sha256"])
+    result = recompute_scores(receipt, completed_run["artifact_root"], scores, independence=_independence())
+    row = result["rows"][0]
+    assert row["usable"] is False and row["resolved"] is False, row
+    assert row["reason"].startswith("EVIDENCE_UNKNOWN"), row
+    assert result["aggregate_pass"] is False, result
+
+
+def test_correction02_m08_a_known_fail_row_with_unknown_storage_cannot_aggregate_pass(completed_run):
+    receipt = copy.deepcopy(completed_run["receipt"])
+    receipt["storage_unproven"] = True
+    receipt["rows"][0]["execution_status"] = "FAIL"
+    receipt["rows"][0]["error_code"] = "PUBLIC_EXECUTION_NOT_SUCCESSFUL"
+    receipt["rows"][0]["storage_unproven"] = True
+    scores = _scores(receipt, completed_run["projection_sha256"])
+    result = recompute_scores(receipt, completed_run["artifact_root"], scores, independence=_independence())
+    row = result["rows"][0]
+    assert row["usable"] is False and row["resolved"] is False, row
+    assert row["reason"] == "EVIDENCE_UNKNOWN:STORAGE_UNPROVEN", row
+    assert result["aggregate_pass"] is False, result
+
+
+def test_correction02_m08_a_known_fail_row_with_unknown_source_cannot_aggregate_pass(completed_run):
+    receipt = copy.deepcopy(completed_run["receipt"])
+    receipt["rows"][0]["execution_status"] = "FAIL"
+    receipt["rows"][0]["error_code"] = "PUBLIC_EXECUTION_NOT_SUCCESSFUL"
+    receipt["rows"][0]["source_evidence"] = None
+    scores = _scores(receipt, completed_run["projection_sha256"])
+    result = recompute_scores(receipt, completed_run["artifact_root"], scores, independence=_independence())
+    row = result["rows"][0]
+    assert row["usable"] is False and row["resolved"] is False, row
+    assert row["reason"] == "EVIDENCE_UNKNOWN:SOURCE_EVIDENCE_MISSING", row
+    assert result["aggregate_pass"] is False, result
+
+
+def test_correction02_m08_a_valid_known_failure_resolves_with_complete_evidence(completed_run):
+    receipt = copy.deepcopy(completed_run["receipt"])
+    row = receipt["rows"][0]
+    row["execution_status"] = "FAIL"
+    row["error_code"] = "PUBLIC_EXECUTION_NOT_SUCCESSFUL"
+    # The complete evidence is the real one: the source evidence matches the
+    # row identity, the release is proven and the residue is empty.
+    assert row["source_evidence"]["sha256"] == row["source_sha256"], row
+    assert row["release_evidence"]["proven"] is True, row
+    assert row["video_snapshot_residue"] == [], row
+    scores = _scores(receipt, completed_run["projection_sha256"])
+    result = recompute_scores(receipt, completed_run["artifact_root"], scores, independence=_independence())
+    assert result["rows"][0]["resolved"] is True, result["rows"][0]
+    assert result["rows"][0]["usable"] is False, result["rows"][0]
+    assert result["thresholds"]["images_usable"] == 9, result
+    assert result["aggregate_pass"] is True, result
+
+
+def test_correction02_nm01_a_proof_for_another_run_is_refused(tmp_path):
+    clock = FakeClock(step=100.0)
+    proof = _parent_proof(clock, run_id="another-run")
+    phase, driver, _ = _prepare(tmp_path, clock=clock, parent_budget=proof)
+    receipt = phase.run()
+    assert receipt["error_code"] == "PARENT_BUDGET_PROOF_RUN_MISMATCH", receipt
+    assert driver.submissions == 0, driver.submissions
+    assert len(receipt["rows"]) == 16, receipt
+    assert receipt["test_counts"]["BLOCKED"] == 16, receipt
+
+
+def test_correction02_nm01_a_stale_proof_is_refused(tmp_path):
+    clock = FakeClock(step=100.0)
+    proof = _parent_proof(clock, issued_monotonic=-99999.0, expires_monotonic=-1.0)
+    phase, driver, _ = _prepare(tmp_path, clock=clock, parent_budget=proof)
+    receipt = phase.run()
+    assert receipt["error_code"] == "PARENT_BUDGET_PROOF_STALE", receipt
+    assert driver.submissions == 0, driver.submissions
+    assert receipt["test_counts"]["BLOCKED"] == 16, receipt
+
+
+def test_correction02_nm01_a_proof_with_a_non_finite_interval_is_refused(tmp_path):
+    for issued, expires in ((float("nan"), 10.0), (0.0, float("inf")), (True, 10.0)):
+        clock = FakeClock(step=100.0)
+        proof = _parent_proof(clock, issued_monotonic=issued, expires_monotonic=expires)
+        label = "interval-%s-%s" % (issued, expires)
+        phase, driver, _ = _prepare(tmp_path / label, clock=clock, parent_budget=proof)
+        receipt = phase.run()
+        assert receipt["error_code"] == "PARENT_BUDGET_PROOF_INTERVAL_INVALID", (issued, expires, receipt)
+        assert driver.submissions == 0, (issued, expires, driver.submissions)
+
+
+def test_correction02_nm02_a_decreasing_clock_is_refused(tmp_path):
+    phase, driver, _ = _prepare(tmp_path)
+    counter = [0]
+
+    def decreasing():
+        counter[0] += 1
+        return 100000.0 - counter[0] * 0.01
+
+    phase.clock = decreasing
+    receipt = phase.run()
+    assert receipt["test_counts"]["PASS"] == 0, receipt
+    assert receipt["decision"] != "QUALITY_EXECUTION_COMPLETE_ALL_16_PASS", receipt
+    assert driver.submissions == 0, driver.submissions
+
+
+def test_correction02_nm02_the_hard_supervision_blocker_is_recorded(completed_run):
+    receipt = completed_run["receipt"]
+    assurance = receipt["timing_assurance"]
+    assert assurance["hard_end_to_end_supervision"] == "UNIMPLEMENTED_PRODUCT_GATE0_BLOCKER", assurance
+    assert assurance["synchronous_callables_preemptively_bounded"] is False, assurance
+    assert assurance["cooperative_pre_and_post_checks"] is True, assurance
+    assert assurance["sample_history_seconds"] == 600, assurance
+    assert assurance["phase_seconds"] == 10800, assurance
+    assert receipt["hard_timing_blocker"] == "UNIMPLEMENTED_PRODUCT_GATE0_BLOCKER", receipt

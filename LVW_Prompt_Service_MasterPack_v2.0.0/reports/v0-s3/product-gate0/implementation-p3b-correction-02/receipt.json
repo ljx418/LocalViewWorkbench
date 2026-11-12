@@ -1,0 +1,258 @@
+{
+  "adjudication": "reports/v0-s3/product-gate0/p3b-correction-02.adjudication.json",
+  "base_commit": "237760b99501db316ed4328088dd8365992b0f9d",
+  "candidate_sha": "9ed09513eac35636175b24a514b05d9d0c180717",
+  "checks": {
+    "correction01-probe-replay": {
+      "exit_code": 0,
+      "outcome": "PASS",
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 5999,
+      "stdout_sha256": "98e7406f3cf93d15751ef1143e8e7be1210088965ed502a520869b1268bd12b2"
+    },
+    "full-final": {
+      "exit_code": 0,
+      "outcome": "PASS",
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 181,
+      "stdout_sha256": "80d91f865429fe79b51bb042fcfd9d39ac777fe03c2c373aa92066dcd7d442d7"
+    }
+  },
+  "closed_by_the_correction01_review_and_retained": [
+    "M03",
+    "M04",
+    "M05",
+    "M06",
+    "M07",
+    "M09",
+    "m01"
+  ],
+  "commit_author": "ljx418 <1173696783@qq.com>",
+  "contract": "reports/v0-s3/product-gate0/p3b-quality-contract.md",
+  "contract_changes": "none",
+  "contract_sha256": "d06a6688fa618cd9fef1cd7f362b8d165addc0030dde0b5aee77465c2a2c20a3",
+  "correction01_directed_28_repeated": false,
+  "decision": "READY_FOR_REVIEW",
+  "denominator_changes": "none",
+  "earlier_diagnostic_rounds": [
+    {
+      "exit_code": "UNKNOWN",
+      "observed": "46 failed, 60 passed",
+      "round": 1,
+      "scope": "the pipeline masked the pytest exit status; the typed proof and the descriptor relative ownership were not yet applied to the fixtures"
+    },
+    {
+      "exit_code": "UNKNOWN",
+      "observed": "6 failed, 89 passed",
+      "round": 2,
+      "scope": "the pipeline masked the pytest exit status; six expectations still used the previous ownership and admission model"
+    },
+    {
+      "exit_code": "UNKNOWN",
+      "observed": "1 failed, 111 passed",
+      "round": 3,
+      "scope": "the pipeline masked the pytest exit status; the proof helper could not express an explicitly missing proof"
+    }
+  ],
+  "evidence_directory": "reports/v0-s3/product-gate0/implementation-p3b-correction-02",
+  "findings_addressed": {
+    "M01": "the persisted receipt states its own final bytes and files through a bounded fixed point; the read-back agrees with the disk and the 8MiB/128MiB/256 caps stay exact with an explicit non-persisted status",
+    "M02": "run root, temp, phase and nested artifact directories are pinned and every write is descriptor relative; identities are compared after every controlled callback, before the send and before the cleanup handoff; every owned handle is closed on failure and on a refused replay",
+    "M08": "the public scoring validates the source, storage and cleanup evidence of every row, pass or fail; unknown evidence never becomes usable or resolved while the verified critical findings of an unusable row stay visible",
+    "NM01": "the typed internal parent capacity proof binds the exact run, candidate and child authorization with a finite non bool validity interval in the phase monotonic clock; missing, unknown, untyped, foreign, stale or diminished proofs give zero sends and sixteen refused rows",
+    "NM02": "the phase clock is finite and monotonic; the cooperative checks are kept and the mandatory parent process supervision is recorded as UNIMPLEMENTED_PRODUCT_GATE0_BLOCKER with the 600s and 10800s limits unchanged"
+  },
+  "fixed_denominator": {
+    "images": 10,
+    "total": 16,
+    "videos": 6
+  },
+  "fixture_state": {
+    "binary_media_committed": 0,
+    "cleanup_owner": "parent OwnedArchive",
+    "product_cleanup_claimed": false,
+    "repository_generated_phase_dirs": 0,
+    "synthetic_roots": "pytest temporary roots under /tmp/pytest-of-administrator plus the replay's own bounded root, which the replay deletes"
+  },
+  "guard_self_test": {
+    "blocked_attempts": {
+      "os_system": "BLOCKED",
+      "socket_bind": "BLOCKED",
+      "socket_connect": "BLOCKED",
+      "subprocess_popen": "BLOCKED"
+    },
+    "exit_code": 0,
+    "guard_effective": true,
+    "installed_before_pytest_import": true
+  },
+  "human_signature": false,
+  "independent_review": "PENDING_SEPARATE_INSTANCE",
+  "kind": "S3_P3B_AGGREGATE_CORRECTION_02_RECEIPT",
+  "machine_product_acceptance": false,
+  "merged_independent_review": "5894419833fb2ffab5aadb4cffc6881066befb4c",
+  "merged_root_adjudication": "237760b99501db316ed4328088dd8365992b0f9d",
+  "next_owner": "Separate independent reviewer, then root architecture/gate owner",
+  "not_proven": [
+    "the mandatory parent process supervision and owned cleanup (UNIMPLEMENTED_PRODUCT_GATE0_BLOCKER)",
+    "the production video_snapshot_residue adapter",
+    "the parent admission integration and the authentic provider debit",
+    "A06 network enforcement",
+    "the real finite sixteen-row run and the real product quality",
+    "the product Gate0 and its fixed twelve items",
+    "the independent review of this candidate and the human signature"
+  ],
+  "original_39_28_directed_duplicates_repeated": false,
+  "p3a_121_p2b_237_full_project_repeated": false,
+  "product_gate0": false,
+  "projection": "reports/v0-s3/product-gate0/quality-execution-inputs.frozen.json",
+  "projection_sha256": "47e9f14efa66bc4df851bf1a738763b48c1728eed84b76c56a7848d1b01f00c3",
+  "pushed": false,
+  "real_actions": {
+    "downloads": 0,
+    "full_checkpoints": 0,
+    "gpu": 0,
+    "host_exe_hashing": 0,
+    "hung_processes": 0,
+    "ledger_mutations": 0,
+    "media": 0,
+    "model_actions": 0,
+    "model_preloads": 0,
+    "network": 0,
+    "services": 0,
+    "windows_wsl": 0
+  },
+  "replayed_correction01_observations": {
+    "count": 21,
+    "exit_code": 0,
+    "note": "Observations of the correction-01 review's counterexamples against the corrected implementation. A rejected probe is the observation of the correction, not a passing test. The original probe files are immutable and were only read.",
+    "own_fixture_cleanup": true,
+    "probes": [
+      {
+        "detail": null,
+        "outcome": "OBSERVED",
+        "probe": "baseline"
+      },
+      {
+        "detail": null,
+        "outcome": "OBSERVED",
+        "probe": "persisted_receipt_totals"
+      },
+      {
+        "detail": null,
+        "outcome": "OBSERVED",
+        "probe": "PASS_cleanup_unknown"
+      },
+      {
+        "detail": null,
+        "outcome": "OBSERVED",
+        "probe": "known_FAIL_storage_unknown"
+      },
+      {
+        "detail": null,
+        "outcome": "OBSERVED",
+        "probe": "known_FAIL_source_unknown"
+      },
+      {
+        "detail": null,
+        "outcome": "OBSERVED",
+        "probe": "temp_ancestor_callback_redirect"
+      },
+      {
+        "detail": null,
+        "outcome": "OBSERVED",
+        "probe": "artifact_open_ancestor_race"
+      },
+      {
+        "detail": null,
+        "outcome": "OBSERVED",
+        "probe": "initial_temp_redirect"
+      },
+      {
+        "detail": null,
+        "outcome": "OBSERVED",
+        "probe": "existing_directory"
+      },
+      {
+        "detail": null,
+        "outcome": "OBSERVED",
+        "probe": "parent_proof_wrong_identity"
+      },
+      {
+        "detail": null,
+        "outcome": "OBSERVED",
+        "probe": "parent_proof_stale"
+      },
+      {
+        "detail": null,
+        "outcome": "OBSERVED",
+        "probe": "parent_proof_diminished"
+      },
+      {
+        "detail": null,
+        "outcome": "OBSERVED",
+        "probe": "parent_proof_non_finite"
+      },
+      {
+        "detail": null,
+        "outcome": "OBSERVED",
+        "probe": "post_return_elapsed_only"
+      },
+      {
+        "detail": null,
+        "outcome": "OBSERVED",
+        "probe": "decreasing_phase_clock"
+      },
+      {
+        "detail": null,
+        "outcome": "OBSERVED",
+        "probe": "receipt_artifact_exact"
+      },
+      {
+        "detail": null,
+        "outcome": "OBSERVED",
+        "probe": "receipt_artifact_over"
+      },
+      {
+        "detail": null,
+        "outcome": "OBSERVED",
+        "probe": "receipt_total_exact"
+      },
+      {
+        "detail": null,
+        "outcome": "OBSERVED",
+        "probe": "receipt_total_over"
+      },
+      {
+        "detail": null,
+        "outcome": "OBSERVED",
+        "probe": "receipt_files_exact"
+      },
+      {
+        "detail": null,
+        "outcome": "OBSERVED",
+        "probe": "receipt_files_over"
+      }
+    ]
+  },
+  "restored_original_report_bytes": "7a14f62",
+  "scoring_thresholds": {
+    "critical_max": 0,
+    "usable_images": 8,
+    "usable_videos": 5
+  },
+  "source_files": {
+    "reports/v0-s3/product-gate0/implementation-p3b-correction-02/replay_correction01_probes.py": "b59a3dcf3d68ca97c2eb137a0cc594354fd70e9099e17a9a1aa7b990de8ae97b",
+    "reports/v0-s3/product-gate0/implementation-p3b-correction-02/run_guarded_probe.py": "4eea0989e4ba51a130a24ed0498af9c7993fa63705a7cb5c12531512339ccb77",
+    "tools/test_v0_s3_quality_phase.py": "a721d75ec70581d875bf22fb5f182b249e94a7bf68e0a3abc70f5a9e83fce8ab",
+    "tools/v0_s3_quality_phase.py": "d2c12745dcb56230175f2ac6b113dd9beac956f4e6fb0d6be598b7dcfc8db0b4"
+  },
+  "stage_pass_claim": false,
+  "test_denominators": {
+    "new_regressions": 17,
+    "preserved_original": 95,
+    "total": 112
+  },
+  "threshold_changes": "none"
+}
