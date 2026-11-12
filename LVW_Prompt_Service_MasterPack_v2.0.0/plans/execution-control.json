@@ -35,7 +35,7 @@
     "TARGET_HARDWARE_TESTED"
   ],
   "next_owner": "Human restores this ClaudeCode task or explicitly authorizes specific Codex takeover; root only preserves handoff",
-  "next_action": "No retry/reroute/implementation/validation or input to correction08 dispatch. Await explicit user restoration for this429 or specific takeover approval; first resolve external-terminal stop_unknown/custody without duplicate writers, verify WIP/scope and zero retries.",
+  "next_action": "Deliver user-approved restoration to existing idle correction08 dispatch with unchanged WIP and verified zero retries; no duplicate writer or claimed physical stop. Do not mark running until delivery evidence.",
   "required_authorization": null,
   "authorization_request": "reports/authorization-program-v1-complete-03.request.json",
   "authorization_record": "reports/authorization-program-v1-complete-03.approval.json",
@@ -1661,7 +1661,12 @@
       "stop_state": "stop_unknown",
       "last_escalation": "msg_stop_c775311ec06c52d5b0cd297c",
       "implementation_head": "94ade2aa32740830c17849b04dc2d3c365857c3e",
-      "candidate_ready_for_review": false
+      "candidate_ready_for_review": false,
+      "resumption": {
+        "status": "USER_APPROVED_DELIVERY_PENDING",
+        "approval": "reports/v0-s3/product-gate0/correction08-resume-01.approval.json",
+        "same_physical_process_verified": true
+      }
     }
   },
   "a06_read_only_capability_child": {
