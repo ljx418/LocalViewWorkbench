@@ -14,6 +14,7 @@ import importlib.util
 import io
 import json
 import os
+import shutil
 import subprocess as _subprocess
 import sys
 import time
@@ -1056,13 +1057,19 @@ def test_the_session_reservation_is_atomic_and_idempotent(tmp_path):
     assert record['reserved_wall_seconds'] == 60
     document = json.loads(counter.read_text())
     assert document['reserved_wall_seconds'] == 60
-    second = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest,
-                                 session_id='session-fixed')
-    again = second.reserve_session()
+    # the same runtime owner is idempotent and never rebases the window
+    again = first.reserve_session()
     assert again['reserved_wall_seconds'] == 60
+    assert again['admission_deadline_wall'] == record['admission_deadline_wall']
     document = json.loads(counter.read_text())
     assert document['reserved_wall_seconds'] == 60
     assert len(document['sessions']) == 1
+    # a reconstructed executor may not acquire a fresh window
+    second = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest,
+                                 session_id='session-fixed')
+    with pytest.raises(EXECUTOR_MODULE.CpuGateError) as error:
+        second.reserve_session()
+    assert error.value.code == 'CPU_SESSION_OWNER_MISMATCH'
 
 
 def test_the_session_settlement_is_exactly_once_and_accounts_the_actual_wall(tmp_path):
@@ -1071,13 +1078,15 @@ def test_the_session_settlement_is_exactly_once_and_accounts_the_actual_wall(tmp
     path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
     executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest)
     executor.reserve_session()
+    executor.session_started = 0.0
+    executor.clock = lambda: 9.0
     spent = executor.settle_session()
-    assert spent is not None
+    assert spent == 9.0
     assert executor.settle_session() is None
     document = json.loads(counter.read_text())
     assert document['sessions'][0]['state'] == 'SETTLED'
-    assert document['sessions'][0]['spent_wall_seconds'] == spent
-    assert document['spent_wall_seconds'] == 0.0
+    assert document['sessions'][0]['spent_wall_seconds'] == 9.0
+    assert document['spent_wall_seconds'] == 9.0
 
 
 def test_an_unknown_charge_keeps_its_concurrency_slot(tmp_path):
@@ -1118,11 +1127,14 @@ def test_a_repeated_settlement_can_neither_free_an_unknown_nor_double_charge(tmp
     assert executor.counter.finish(0, state='UNKNOWN', exit_code=None, spent=1.0) is True
     document = json.loads(counter.read_text())
     assert document['charges'][0]['state'] == 'UNKNOWN'
-    assert document['spent_wall_seconds'] == 1.0
+    # the child keeps its own observed lifetime; the global wall is the
+    # session wall and is accounted by the settlement of the session
+    assert document['charges'][0]['observed_lifetime_seconds'] == 1.0
+    assert document['spent_wall_seconds'] == 0.0
     assert executor.counter.finish(0, state='STOPPED', exit_code=0, spent=1.0) is False
     document = json.loads(counter.read_text())
     assert document['charges'][0]['state'] == 'UNKNOWN'
-    assert document['spent_wall_seconds'] == 1.0
+    assert document['spent_wall_seconds'] == 0.0
 
 
 def test_the_custody_carries_the_birth_of_the_held_handle(tmp_path):
@@ -1262,3 +1274,254 @@ def test_the_executor_refuses_an_unknown_role(tmp_path):
         build_test_executor(tmp_path, counter_path=counter, binding_digest=digest,
                             role='other')
     assert error.value.code == 'CPU_ROLE_INVALID'
+
+
+# ---------------------------- the lifecycle corrections of the second review
+def load_runner_module():
+    """Load the guarded runner of the new report subtree."""
+    path = PACK_ROOT / ('reports/v0-s3/product-gate0/implementation-integration-01/'
+                        'run_guarded_checks.py')
+    spec = importlib.util.spec_from_file_location('lvw_s3_guarded_runner', path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+RUNNER_MODULE = load_runner_module()
+
+
+def fake_clock():
+    return type('Clock', (), {'now': 0.0, '__call__': lambda self: self.now})()
+
+
+def test_the_sixty_slice_gives_thirty_admission_and_thirty_cleanup(tmp_path):
+    """A: the window is bounded by the actual reserved slice."""
+    counter = fake_root_counter(tmp_path)
+    path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+    clock = fake_clock()
+    executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest,
+                                   clock=clock, session_id='session-slice')
+    record = executor.reserve_session()
+    assert record['reserved_wall_seconds'] == 60
+    assert record['admission_seconds'] == 30
+    assert record['cleanup_seconds'] == 60
+    assert abs(executor.admission_deadline - 30.0) < 0.5
+    assert abs(executor.cleanup_deadline - 60.0) < 0.5
+    context_inside(tmp_path)
+    # inside the admission window the start is admitted
+    clock.now = 29.0
+    executor.admit((sys.executable, executor_prefix() + ['clean_terminal'], None, None))
+    # one over the admission boundary the start is refused
+    clock.now = 30.5
+    with pytest.raises(EXECUTOR_MODULE.CpuGateError) as error:
+        executor.admit((sys.executable, executor_prefix() + ['clean_terminal'], None, None))
+    assert error.value.code == 'SESSION_ADMISSION_WINDOW_CLOSED'
+
+
+def test_a_second_executor_cannot_reset_the_window_of_the_same_session(tmp_path):
+    """A: a reconstructed executor may not acquire a fresh wall window."""
+    counter = fake_root_counter(tmp_path)
+    path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+    first = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest,
+                                session_id='session-owner')
+    record = first.reserve_session()
+    assert record['owner_id'] == first.owner_id
+    second = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest,
+                                 session_id='session-owner')
+    with pytest.raises(EXECUTOR_MODULE.CpuGateError) as error:
+        second.reserve_session()
+    assert error.value.code == 'CPU_SESSION_OWNER_MISMATCH'
+    # the same owner is idempotent and never rebases its deadline
+    again = first.reserve_session()
+    assert again['admission_deadline_wall'] == record['admission_deadline_wall']
+    assert first.admission_deadline == first.admission_deadline
+
+
+def test_the_global_wall_is_the_session_wall_and_not_the_child_sum(tmp_path):
+    """A: the global actual wall is accounted once per session."""
+    counter = fake_root_counter(tmp_path)
+    path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+    first = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest,
+                                session_id='session-one')
+    second = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest,
+                                 session_id='session-two')
+    first.reserve_session()
+    second.reserve_session()
+    context_inside(tmp_path)
+    first.admit((sys.executable, executor_prefix() + ['clean_terminal'], None, None))
+    first.counter.finish(0, state='STOPPED', exit_code=0, spent=7.5)
+    document = json.loads(counter.read_text())
+    # the child keeps its own observed lifetime and the global wall is untouched
+    assert document['charges'][0]['observed_lifetime_seconds'] == 7.5
+    assert document['spent_wall_seconds'] == 0.0
+    first.session_started = 0.0
+    first.clock = lambda: 12.0
+    first.settle_session()
+    second.session_started = 0.0
+    second.clock = lambda: 20.0
+    second.settle_session()
+    document = json.loads(counter.read_text())
+    assert document['spent_wall_seconds'] == 32.0
+    # a repeated settlement is idempotent
+    assert first.settle_session() is None
+    document = json.loads(counter.read_text())
+    assert document['spent_wall_seconds'] == 32.0
+
+
+def test_the_finalizer_stops_a_live_child_that_is_still_young(tmp_path):
+    """B: the finalizer stops a live original handle at once."""
+    counter = fake_root_counter(tmp_path)
+    path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+    clock = fake_clock()
+    executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest,
+                                   clock=clock)
+
+    class LiveProcess:
+        pid = os.getpid()
+
+        def __init__(self):
+            self.terminated = False
+            self.killed = False
+            self.waited = 0
+
+        def poll(self):
+            return None
+
+        def wait(self, timeout=None):
+            self.waited += 1
+            if not self.terminated and not self.killed:
+                raise AssertionError('the child was waited for without a stop')
+            return 0
+
+        def terminate(self):
+            self.terminated = True
+
+        def kill(self):
+            self.killed = True
+
+    process = LiveProcess()
+    executor.register(process)
+    entry = executor.children[0]
+    clock.now = 1.0  # the child is one second old, far below the watchdog
+    proofs = executor.reap()
+    assert process.terminated is True
+    assert entry['state'] == 'STOPPED'
+    assert proofs[0]['proven'] is True
+
+
+def test_a_failing_finalizer_cannot_skip_the_reaper_or_yield_pass(tmp_path):
+    """C: a failing stream, hash or removal never bypasses the reaper."""
+    class FaultyExecutor:
+        def __init__(self):
+            self.revoked = False
+            self.reaped = False
+
+        def revoke_admissions(self):
+            self.revoked = True
+
+        def reap(self):
+            self.reaped = True
+            return [{'proven': True, 'exit_code': 0}]
+
+        def session_evidence(self):
+            return {'kind': 'lvw.s3-finite-cpu-session/1', 'status': 'OK'}
+
+    class FaultyHandle:
+        def flush(self):
+            raise OSError('injected flush failure')
+
+        def close(self):
+            raise OSError('injected close failure')
+
+    owned = tmp_path / 'owned'
+    owned.mkdir()
+    executor = FaultyExecutor()
+    outcome = RUNNER_MODULE.finalize_session(
+        executor=executor, owned=owned, stdout_handle=FaultyHandle(),
+        stderr_handle=FaultyHandle(), saved_out=-1, saved_err=-1, exit_code=0,
+        source_hasher=lambda: (_ for _ in ()).throw(OSError('injected hash failure')),
+        remover=lambda path: (_ for _ in ()).throw(OSError('injected removal failure')))
+    assert executor.revoked is True
+    assert executor.reaped is True
+    assert outcome['cleanup_proven'] is False
+    assert outcome['exit_code'] != 0
+    reasons = outcome['failure_reasons']
+    for prefix in ('STDOUT_HANDLE_FLUSH_FAILED', 'STDOUT_RESTORE_FAILED',
+                   'SOURCE_HASH_FAILED'):
+        assert any(reason.startswith(prefix) for reason in reasons), prefix
+    # the root is retained: an uncertain cleanup never deletes it
+    assert any(reason.startswith('OWNED_ROOT_RETAINED') for reason in reasons)
+    assert owned.exists()
+
+
+def test_a_failing_root_removal_cannot_yield_pass(tmp_path):
+    """C: a failing removal of the owned root is never a pass."""
+    class EmptyExecutor:
+        def revoke_admissions(self):
+            return None
+
+        def reap(self):
+            return []
+
+        def session_evidence(self):
+            return {'kind': 'lvw.s3-finite-cpu-session/1', 'status': 'OK'}
+
+    class GoodHandle:
+        def flush(self):
+            return None
+
+        def close(self):
+            return None
+
+    owned = tmp_path / 'owned'
+    owned.mkdir()
+    saved_out = os.dup(1)
+    saved_err = os.dup(2)
+    outcome = RUNNER_MODULE.finalize_session(
+        executor=EmptyExecutor(), owned=owned, stdout_handle=GoodHandle(),
+        stderr_handle=GoodHandle(), saved_out=saved_out, saved_err=saved_err, exit_code=0,
+        source_hasher=lambda: {},
+        remover=lambda path: (_ for _ in ()).throw(OSError('injected removal failure')))
+    reasons = outcome['failure_reasons']
+    assert any(reason.startswith('ROOT_REMOVAL_FAILED') for reason in reasons)
+    assert outcome['cleanup_proven'] is False
+    assert outcome['exit_code'] != 0
+    assert owned.exists()
+
+
+def test_a_successful_finalizer_removes_the_root_and_keeps_the_proof(tmp_path):
+    """C: a proven cleanup removes the owned root and stays a pass."""
+    class EmptyExecutor:
+        def __init__(self):
+            self.reaped = False
+
+        def revoke_admissions(self):
+            return None
+
+        def reap(self):
+            self.reaped = True
+            return []
+
+        def session_evidence(self):
+            return {'kind': 'lvw.s3-finite-cpu-session/1', 'status': 'OK'}
+
+    class GoodHandle:
+        def flush(self):
+            return None
+
+        def close(self):
+            return None
+
+    owned = tmp_path / 'owned'
+    owned.mkdir()
+    executor = EmptyExecutor()
+    saved_out = os.dup(1)
+    saved_err = os.dup(2)
+    outcome = RUNNER_MODULE.finalize_session(
+        executor=executor, owned=owned, stdout_handle=GoodHandle(),
+        stderr_handle=GoodHandle(), saved_out=saved_out, saved_err=saved_err, exit_code=0,
+        source_hasher=lambda: {}, remover=lambda path: shutil.rmtree(path))
+    assert executor.reaped is True
+    assert outcome['cleanup_proven'] is True
+    assert outcome['exit_code'] == 0
+    assert not owned.exists()

@@ -244,7 +244,7 @@ class SharedCounter:
                 'pid': None,
                 'birth': None,
                 'finished_wall': None,
-                'spent_wall_seconds': None,
+                'observed_lifetime_seconds': None,
                 'settled': False,
             }
             document['charges'].append(record)
@@ -291,39 +291,58 @@ class SharedCounter:
                 record['pid'] = pid if pid is not None else record.get('pid')
                 record['birth'] = birth if birth is not None else record.get('birth')
                 record['finished_wall'] = time.time()
-                record['spent_wall_seconds'] = spent
+                # The child keeps its own observed lifetime.  The global
+                # actual wall of the package is accounted once by the
+                # settlement of the session, never by the sum of the child
+                # ages.
+                record['observed_lifetime_seconds'] = spent
                 record['settled'] = True
                 settled = True
                 break
-            if settled:
-                document['spent_wall_seconds'] = round(
-                    float(document.get('spent_wall_seconds', 0.0)) + float(spent), 3)
             self._write(handle, document)
             return settled
 
-    def reserve_session(self, session_id, *, role, seconds):
+    def reserve_session(self, session_id, *, owner_id, role, seconds):
         """Reserve this session's slice of the shared wall pool.
 
-        The reservation is atomic and idempotent: the same session id never
-        reserves twice.  The reservation is never refunded, so a session that
-        dies still holds its slice of the shared pool.
+        The reservation is atomic and idempotent for the *same* runtime
+        owner: the persisted start and the persisted deadlines are returned
+        unchanged.  A different runtime owner that reuses the same session
+        id is refused: a reconstructed executor may never acquire a fresh
+        wall window.
+
+        The window is bounded by the **actual reserved slice**, not by the
+        remaining pool: a reservation of 60 seconds gives at most 30 seconds
+        of admission and 30 seconds of cleanup.  The reservation is never
+        refunded, so a session that dies still holds its slice.
         """
         with self._open() as handle:
             document = self._read(handle)
             if document.get('budget_id') != self.budget_id:
                 raise CpuGateError('CPU_COUNTER_IDENTITY_MISMATCH')
             for record in document['sessions']:
-                if record.get('session_id') == session_id:
-                    return dict(record)
+                if record.get('session_id') != session_id:
+                    continue
+                if record.get('owner_id') != owner_id:
+                    raise CpuGateError('CPU_SESSION_OWNER_MISMATCH')
+                return dict(record)
             remaining = round(self.limits['shared_pool_seconds']
                               - float(document['reserved_wall_seconds']), 3)
             if remaining <= 0:
                 raise CpuGateError('SHARED_WALL_POOL_EXHAUSTED')
             reservation = round(min(remaining, float(seconds)), 3)
-            record = {'session_id': session_id, 'role': role,
+            span = reservation
+            admission = round(max(0.0, span - float(self.limits['cleanup_reserve_seconds'])), 3)
+            now = time.time()
+            record = {'session_id': session_id, 'owner_id': owner_id, 'role': role,
                       'reserved_wall_seconds': reservation,
                       'remaining_before_seconds': remaining,
-                      'started_wall': time.time(), 'state': 'ACTIVE',
+                      'admission_seconds': admission,
+                      'cleanup_seconds': span,
+                      'reserved_at_wall': now,
+                      'admission_deadline_wall': round(now + admission, 3),
+                      'cleanup_deadline_wall': round(now + span, 3),
+                      'started_wall': now, 'state': 'ACTIVE',
                       'spent_wall_seconds': None}
             document['sessions'].append(record)
             document['reserved_wall_seconds'] = round(
@@ -345,6 +364,9 @@ class SharedCounter:
                 record['state'] = 'SETTLED'
                 record['spent_wall_seconds'] = round(float(spent), 3)
                 record['finished_wall'] = time.time()
+                # The global actual session wall is accounted exactly once.
+                document['spent_wall_seconds'] = round(
+                    float(document.get('spent_wall_seconds', 0.0)) + float(spent), 3)
                 self._write(handle, document)
                 return True
             raise CpuGateError('CPU_SESSION_UNKNOWN')
@@ -374,6 +396,7 @@ class FiniteCpuExecutor:
         self.guard_root = Path(guard_root)
         self.clock = clock or time.monotonic
         self.session_id = session_id or ('session-' + uuid.uuid4().hex)
+        self.owner_id = 'owner-' + uuid.uuid4().hex
         self.session_started = self.clock()
         self.limits = counter.limits
         self.children = []
@@ -399,16 +422,24 @@ class FiniteCpuExecutor:
         system action, even when the local clock of this executor starts at
         zero.
         """
+        if self.reservation is not None:
+            # The same runtime owner is idempotent: the persisted window is
+            # returned unchanged and the deadlines are never rebased.
+            return self.reservation
         record = self.counter.reserve_session(
-            self.session_id, role=self.role,
+            self.session_id, owner_id=self.owner_id, role=self.role,
             seconds=self.limits['session_wall_cap_seconds'])
         self.reservation = record
-        self.reserved_at = self.clock()
-        remaining = float(record['remaining_before_seconds'])
-        reserve = float(self.limits['cleanup_reserve_seconds'])
-        admission = max(0.0, remaining - reserve)
-        self.admission_deadline = self.reserved_at + admission
-        self.cleanup_deadline = self.reserved_at + remaining
+        # The persisted wall deadlines of the shared counter are the
+        # authority.  They are converted once, into the local monotonic
+        # clock of this process, and they are never recomputed.
+        now_wall = time.time()
+        now_mono = self.clock()
+        self.reserved_at = now_mono
+        self.admission_deadline = now_mono + max(
+            0.0, float(record['admission_deadline_wall']) - now_wall)
+        self.cleanup_deadline = now_mono + max(
+            0.0, float(record['cleanup_deadline_wall']) - now_wall)
         return record
 
     # -- G2: the identity of everything that is about to run --------------
@@ -596,22 +627,31 @@ class FiniteCpuExecutor:
                 entry['timed_out'] = True
                 self._stop_child(entry)
 
-    def _stop_child(self, entry):
-        """Stop one owned child with a bounded, bounded cleanup."""
+    def _stop_child(self, entry, session_deadline=None):
+        """Stop one owned child with a bounded cleanup.
+
+        The termination and the waits are clipped to the remaining per child
+        budget *and* to the remaining session deadline.  The child is
+        stopped here, not only by the watchdog: a young child must not
+        survive the finalizer.
+        """
         process = entry['process']
+        budget = float(self.limits['per_child_kill_seconds'])
+        if session_deadline is not None:
+            budget = max(0.0, min(budget, session_deadline - self.clock()))
         try:
             process.terminate()
         except Exception:  # noqa: BLE001 - the failure stays visible
             pass
         try:
-            process.wait(timeout=float(self.limits['per_child_kill_seconds']))
+            process.wait(timeout=budget)
         except Exception:  # noqa: BLE001 - the failure stays visible
             try:
                 process.kill()
             except Exception:  # noqa: BLE001 - the failure stays visible
                 pass
             try:
-                process.wait(timeout=float(self.limits['per_child_kill_seconds']))
+                process.wait(timeout=budget)
             except Exception:  # noqa: BLE001 - the failure stays visible
                 pass
 
@@ -620,7 +660,15 @@ class FiniteCpuExecutor:
         self.revoked = True
 
     def reap(self):
-        """The bounded reaper of the executor with its own deadline."""
+        """The bounded reaper of the executor with its own deadline.
+
+        The finalizer revokes the admissions and stops every live original
+        handle first.  Only a child whose exit is proven is closed; an
+        unproven child keeps its occupied slot, keeps the root and keeps
+        the watchdog armed, because the watchdog is the only remaining
+        safety of a child that did not stop.
+        """
+        self.revoke_admissions()
         deadline = self.cleanup_deadline if self.cleanup_deadline is not None \
             else self.session_started + float(self.limits['shared_pool_seconds'])
         proofs = []
@@ -628,6 +676,14 @@ class FiniteCpuExecutor:
             children = list(self.children)
         for entry in children:
             process = entry['process']
+            try:
+                live = process.poll() is None
+            except Exception:  # noqa: BLE001 - the failure stays visible
+                live = True
+            if live:
+                # The live original handle is stopped here.  The finalizer
+                # never waits for a young child to reach the watchdog.
+                self._stop_child(entry, deadline)
             remaining = max(0.0, deadline - self.clock())
             exit_code = None
             proven = False
@@ -658,7 +714,13 @@ class FiniteCpuExecutor:
                 except CpuGateError:
                     entry['state'] = 'UNKNOWN'
                     self.uncertain = True
-        self._stop.set()
+        if all(proof['proven'] for proof in proofs):
+            # Every child is proven gone: the watchdog may be disarmed.
+            self._stop.set()
+        else:
+            # An unproven child keeps the watchdog armed: it is the only
+            # remaining safety and the session stays uncertain.
+            self.uncertain = True
         return proofs
 
     def settle_session(self):

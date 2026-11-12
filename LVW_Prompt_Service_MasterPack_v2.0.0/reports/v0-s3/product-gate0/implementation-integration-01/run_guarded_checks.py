@@ -99,6 +99,103 @@ EXECUTOR_RELATIVE = ("reports/v0-s3/product-gate0/implementation-integration-01/
 PROCESS_GATE = {"executor": None, "starts": 0, "limit": 0, "allowed": []}
 
 
+def finalize_session(*, executor, owned, stdout_handle, stderr_handle, saved_out,
+                     saved_err, exit_code=0, failure_reasons=None, source_hasher=None,
+                     remover=None):
+    """The mandatory outer finalizer of the runner.
+
+    The order is fixed and every step is guarded on its own:
+
+    1. revoke the admissions of the session;
+    2. restore the streams and close the log handles;
+    3. reap and prove every owned child;
+    4. hash the sources again;
+    5. remove the owned root only after a proven cleanup, and verify the
+       removal instead of ignoring a failure.
+
+    The nested ``finally`` guarantees that the process reaper runs even when
+    the restoration of a stream fails.  Any ordinary I/O failure of the
+    finalizer keeps the root and the reservations and cannot retain exit 0.
+    """
+    failure_reasons = list(failure_reasons or [])
+    cleanup_proven = True
+    session_evidence = None
+    proofs = []
+    source_hasher = source_hasher or source_hashes
+    remover = remover or shutil.rmtree
+
+    def record(code, error=None):
+        failure_reasons.append(code + (':' + type(error).__name__ if error else ''))
+
+    try:
+        try:
+            if executor is not None:
+                try:
+                    executor.revoke_admissions()
+                except Exception as error:  # noqa: BLE001 - the failure stays visible
+                    cleanup_proven = False
+                    record('ADMISSION_REVOKE_FAILED', error)
+            steps = (
+                ('STDOUT_FLUSH_FAILED', lambda: sys.stdout.flush()),
+                ('STDERR_FLUSH_FAILED', lambda: sys.stderr.flush()),
+                ('STDOUT_RESTORE_FAILED', lambda: os.dup2(saved_out, 1)),
+                ('STDERR_RESTORE_FAILED', lambda: os.dup2(saved_err, 2)),
+                ('STDOUT_CLOSE_FAILED', lambda: os.close(saved_out)),
+                ('STDERR_CLOSE_FAILED', lambda: os.close(saved_err)),
+                ('STDOUT_HANDLE_FLUSH_FAILED', lambda: stdout_handle.flush()),
+                ('STDERR_HANDLE_FLUSH_FAILED', lambda: stderr_handle.flush()),
+                ('STDOUT_HANDLE_CLOSE_FAILED', lambda: stdout_handle.close()),
+                ('STDERR_HANDLE_CLOSE_FAILED', lambda: stderr_handle.close()),
+            )
+            for code, step in steps:
+                try:
+                    step()
+                except Exception as error:  # noqa: BLE001 - the failure stays visible
+                    cleanup_proven = False
+                    record(code, error)
+        finally:
+            if executor is not None:
+                try:
+                    proofs = executor.reap()
+                    session_evidence = executor.session_evidence()
+                    if any(not proof.get('proven') for proof in proofs):
+                        cleanup_proven = False
+                        record('CHILD_EXIT_UNPROVEN')
+                except Exception as error:  # noqa: BLE001 - the failure stays visible
+                    cleanup_proven = False
+                    record('REAP_FAILED', error)
+                    session_evidence = {'kind': 'lvw.s3-finite-cpu-session/1',
+                                         'status': 'REAP_FAILED',
+                                         'error_type': type(error).__name__,
+                                         'stage_pass_claim': False}
+            after = None
+            try:
+                after = source_hasher()
+            except Exception as error:  # noqa: BLE001 - the failure stays visible
+                after = None
+                cleanup_proven = False
+                record('SOURCE_HASH_FAILED', error)
+            if cleanup_proven:
+                try:
+                    remover(owned)
+                except Exception as error:  # noqa: BLE001 - the failure stays visible
+                    cleanup_proven = False
+                    record('ROOT_REMOVAL_FAILED', error)
+                else:
+                    if Path(owned).exists():
+                        cleanup_proven = False
+                        record('ROOT_REMOVAL_INCOMPLETE')
+            else:
+                record('OWNED_ROOT_RETAINED')
+    finally:
+        if failure_reasons and exit_code == 0:
+            exit_code = 4
+    return {'exit_code': exit_code, 'cleanup_proven': cleanup_proven,
+            'failure_reasons': sorted(set(failure_reasons)),
+            'after_source_sha256': after, 'proofs': proofs,
+            'session_evidence': session_evidence}
+
+
 def session_identity(role, label, candidate_sha):
     """A stable session identity: the same session never reserves twice."""
     raw = ('%s|%s|%s' % (role, label, candidate_sha)).encode('utf-8')
@@ -332,51 +429,19 @@ def main(argv=None):
         exit_code = 3
         traceback.print_exc()
     finally:
-        # The mandatory outer finalizer.  The order is fixed: revoke the
-        # admissions, restore the streams, reap and prove every owned child,
-        # then hash the sources again, and only a proven cleanup deletes the
-        # owned root.  An uncertain child keeps its root and its reservation.
-        if executor is not None:
-            try:
-                executor.revoke_admissions()
-            except Exception as error:  # noqa: BLE001 - the failure stays visible
-                cleanup_proven = False
-                failure_reasons.append('ADMISSION_REVOKE_FAILED:' + type(error).__name__)
-        sys.stdout.flush()
-        sys.stderr.flush()
-        os.dup2(saved_out, 1)
-        os.dup2(saved_err, 2)
-        os.close(saved_out)
-        os.close(saved_err)
-        stdout_handle.close()
-        stderr_handle.close()
-        if executor is not None:
-            try:
-                proofs = executor.reap()
-                executor.settle_session()
-                session_evidence = executor.session_evidence()
-                if any(not proof.get('proven') for proof in proofs):
-                    cleanup_proven = False
-                    failure_reasons.append('CHILD_EXIT_UNPROVEN')
-            except Exception as error:  # noqa: BLE001 - the failure stays visible
-                cleanup_proven = False
-                failure_reasons.append('REAP_FAILED:' + type(error).__name__)
-                session_evidence = {'kind': 'lvw.s3-finite-cpu-session/1',
-                                     'status': 'REAP_FAILED',
-                                     'error_type': type(error).__name__,
-                                     'stage_pass_claim': False}
-        try:
-            after = source_hashes()
-        except Exception as error:  # noqa: BLE001 - the failure stays visible
-            after = None
-            cleanup_proven = False
-            failure_reasons.append('SOURCE_HASH_FAILED:' + type(error).__name__)
-        if cleanup_proven:
-            shutil.rmtree(owned, ignore_errors=True)
-        else:
-            failure_reasons.append('OWNED_ROOT_RETAINED')
-        if failure_reasons and exit_code == 0:
-            exit_code = 4
+        # The mandatory outer finalizer.  It is exception safe: the process
+        # reaper always runs, even when the restoration of the streams or the
+        # removal of the root fails, and a failed finalization can never
+        # retain exit 0.
+        outcome = finalize_session(executor=executor, owned=owned,
+                                  stdout_handle=stdout_handle, stderr_handle=stderr_handle,
+                                  saved_out=saved_out, saved_err=saved_err,
+                                  exit_code=exit_code, failure_reasons=failure_reasons)
+        exit_code = outcome['exit_code']
+        cleanup_proven = outcome['cleanup_proven']
+        failure_reasons = outcome['failure_reasons']
+        after = outcome['after_source_sha256']
+        session_evidence = outcome['session_evidence']
     receipt = {
         "kind": "S3_P4_OFFLINE_INTEGRATION_GUARDED_CHECK_RECEIPT",
         "label": arguments.label,
