@@ -35,7 +35,7 @@
     "TARGET_HARDWARE_TESTED"
   ],
   "next_owner": "Orca visible ClaudeCode implementation; root architecture then independent review",
-  "next_action": "Await same-Task recovered Claude implementation with preserved partialsource; do not repeat metadata probe or expire/replay oldchildren; independentreview after actual delivery.",
+  "next_action": "Revalidate same Claude dispatch when Orca transport is available, collect actual final report/evidence and independently review; do not duplicate unproven scoring message or restart based on transport failure.",
   "required_authorization": null,
   "authorization_request": "reports/authorization-program-v1-complete-03.request.json",
   "authorization_record": "reports/authorization-program-v1-complete-03.approval.json",
@@ -1250,7 +1250,16 @@
       "original_task_spec": "reports/v0-s3/product-gate0/implementation-p3b.task.md",
       "recovery_guidance": "reports/v0-s3/product-gate0/implementation-p3b-recovery-01.guidance.md",
       "launch_state": "ready",
-      "next": "Await Orca report, first429 immediate stop no fallback"
+      "next": "Await Orca report, first429 immediate stop no fallback",
+      "latest_transport_observation": {
+        "status": "UNAVAILABLE_WSL_ACCEPT4_ERROR110",
+        "meaning": "No current task-exit or quota inference; no automatic restart/resend",
+        "code_commits_observed_in_worktree": [
+          "747bef6",
+          "667da62"
+        ],
+        "formal_report_or_receipt_observed": false
+      }
     },
     "previous_attempt": {
       "run_id": "run_ec1d5514e718",
@@ -1284,6 +1293,11 @@
       "delivery": "reports/v0-s3/product-gate0/p3b-final-evidence-guard-advisory-01.delivery.json",
       "scope": "Before-pytest guard and raw exit capture; earlier diagnostics not retroactively certified",
       "status": "DELIVERED_TO_IMPLEMENTER_NOT_GATE_VERDICT"
+    },
+    "scoring_reviewpoint": {
+      "path": "reports/v0-s3/product-gate0/p3b-scoring-boundary-reviewpoint-01.md",
+      "delivery": "reports/v0-s3/product-gate0/p3b-scoring-boundary-reviewpoint-01.delivery.json",
+      "status": "DELIVERY_UNPROVEN_WSL_TRANSPORT_ERROR_NO_RESEND"
     }
   },
   "a06_read_only_capability_child": {
