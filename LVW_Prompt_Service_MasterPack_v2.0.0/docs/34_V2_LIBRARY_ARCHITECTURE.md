@@ -1,6 +1,6 @@
 # 34｜V2 素材库与命名整理详细架构
 
-CHANGE-V2-LIBRARY-01 / ADR-15，设计候选0.1。部署不变；仅设计已落盘，下面文件名与迁移序号必须按最终V1真实布局重新绑定。候选Schema、HTTP overlay、DDL分别见 contracts/candidates/v2-library，均不能自动执行到用户库。
+CHANGE-V2-LIBRARY-01 / ADR-15，设计候选0.2（独审集中纠偏）。部署不变；仅设计已落盘，下面文件名与迁移序号必须按最终V1真实布局重新绑定。候选Schema、HTTP overlay、DDL分别见 contracts/candidates/v2-library，均不能自动执行到用户库。
 
 ## 唯一owner与生产调用路径
 
@@ -102,3 +102,35 @@ MCP先增加受控describe_assets（需analyze scope）、preview_rename（独�
 Windows官方说明：ReplaceIfExists=FALSE在目标已存在时返回错误，目标RootDirectory可采用目录句柄；这是候选原语选择依据，不是本机race/flush验收。[FILE_RENAME_INFO](https://learn.microsoft.com/en-us/windows/win32/api/winbase/ns-winbase-file_rename_info)。物理身份由卷号与文件ID组成，需本机API能力试验：[FILE_ID_INFO](https://learn.microsoft.com/en-us/windows/win32/api/winbase/ns-winbase-file_id_info)。名称边界另见[Windows命名规范](https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file)。数据库备份采用[SQLite backup API](https://www.sqlite.org/backup.html)，其数据库事务不涵盖媒体文件动作；[atomic commit](https://www.sqlite.org/atomiccommit.html)不构成跨文件系统事务承诺。
 
 缩略图由受控CPU派生或复用已抽取帧，key为source hash/PTS/renderer版本，候选单图<=1MiB、全局LRU<=256MiB，仅清理LVW自有缓存；分页不重新扫描/解码全视频。缓存与采样预算均需pilot冻结。
+
+## 设计0.2｜独审集中纠偏后的线协议
+
+### 描述/模板头的强ETag
+
+GET /api/v2/assets/{id}/description、GET /api/v2/naming-templates/{id}及其revision/create成功响应在HTTP **ETag header** 返回当前可变head的强值，body仍是该head指向的不可变revision，禁止临时给strict revision加未声明etag字段。ETag为带引号的 `lh:` + SHA256(canonical JSON {version,store_epoch,aggregate_kind,aggregate_id,head_revision_id,head_content_sha256,head_sequence})；客户端视为opaque并原样传If-Match。Header必须与同次读出的body revision一致。
+
+成功新修订在同一短事务递增head_sequence并CAS更新head；revision POST返回新head的ETag，后续写用该值。无If-Match返回428，单个精确旧值返回412且不追加revision/不移head，弱值W/、通配*、列表值返回400。新模板只允许If-None-Match:*创建不存在ID，已存在412；返回ETag供第一次编辑。store_epoch在迁移时生成，DB恢复后先更换epoch并废弃旧会话/确认，再协调未决文件；旧etag不能跨恢复复活。头表/epoch的候选载体见DDL，语义与wire例子见semantic-rules.json；尚不是HTTP运行证明。
+
+### 冲突预览与可执行目标保留分离
+
+rename_plan_item不对target_path_key做唯一约束；重复目标的所有源条目都必须持久化，并在预览/分页/完整CSVJSON保留冲突。预览保存成功不表示可apply。确认时按精确选中项重新核对依赖闭包及目标：未选中的潜在重名可通过取消选择排除，但所选目标之间仍冲突、或未选中源实际占位则阻止确认/应用；不得偷偷丢项或改号。
+
+file_target_reservation独立承载可执行目标的唯一(volume,parent_file_id,target_key)，stage/final两类都登记；在一个短事务中查幂等键、验证确认、建立operation并领取全部所需目标保留。第二个重复目标返回409 DUPLICATE_TARGET并回滚事务，完整预览不变，磁盘动作0。保留成功只是协调约束，不能替代native no-replace。未决原writer未确证退出/步骤未协调时不得清空保留，租约到期不构成释放证明；释放留journal事件。
+
+### LibraryIntent与旧Job兼容投影
+
+LibraryIntent是内部版本化载体，经library_job_intent关联**同一个持久job.id**；scan/describe/file_operation父任务均映射旧kind=batch，描述子任务仍analyze。完整映射见job-compatibility.json，旧Job schema和/jobs/batch请求不改。LibraryTask允许reconciling/needs_attention，但旧Job分别投影preparing/interrupted（后者error_code=RECOVERY_AMBIGUOUS），绝不泄漏新枚举。canonical progress_done=terminal_count、progress_total=固定总项；扫描枚举尚未封存时为0/0，不用动态发现数冒充完整目录总数。
+
+旧GET /jobs及/jobs/{id}保留同ID的canonical batch表示、权限过滤和所有旧字段；library父任务result_ref=null，结果经新领域接口读取，不能让旧UI把operation当ModelRun。纯CPU任务不申请GPU，resource_state=released；describe父投影实际active child状态，未知仍unknown。旧cancel按内部intent派发同一领域owner，file_operation不继承旧analyze权限，须发起会话或明确操作控制权限；取消只停后续并收尾已授权副作用。旧retry对library父返回409 LIBRARY_RETRY_REQUIRES_REVIEW，不盲推理/重放磁盘；旧/jobs/batch无法提交任意LibraryIntent。
+
+### 显式重试关系
+
+新增POST /api/v2/file-operations/{id}/retry-plans，If-Match绑定当前operation，body指定失败/未开始项和last_event_seq。仅原writer已确证退出、operation终态且位置已唯一协调时可生成；成功项禁止加入，needs_attention必须先解决歧义。staged项从journal证明的当前临时位置作为新source_relative_path，不假装还在原名，UI显示该位置及原目标。
+
+新plan的retry_of_operation_id、retry_base_event_seq及每项retry_of_item_id/retry_from_event_seq都进入plan_hash；目标/模板/描述版本保留可审阅，后续编辑仍新revision，需全新确认。原operation/events不更新为成功，不重复成功项。普通重试不借undo_of字段；重试一个失败undo时direction仍undo，undo_of仍指原正向操作，retry_of指这次失败的反向操作，两条关系分开。所有依赖闭包和目标保留仍重新核对，不能复用旧token或legacy Job retry。
+
+### 真实调用与耗时的公开投影
+
+LibraryTask.accounting_ref指向同任务的GET /api/v2/library/tasks/{id}/accounting及/accounting/items（默认100/最大200，opaque cursor与snapshot一致）。汇总区分planned/discovered/reused/model_attempted/failed/not_attempted资产数，Provider尝试数与实际观察调用数分开；逐资产关联source_file/child_job/attempt/model_run/analysis_key和动作ID、复用/未尝试/失败状态。多个显式重试是独立task/attempt，累计费用可沿retry关系查询，禁止重复合并成功调用。
+
+统计来自真实attempt/Provider账本与观察记录，未知实际调用数/未测时间为null，accounting_complete=false；不能把缺证据写0。分别报告scan/hash/probe/decode/inference/preview/file_operation/cleanup耗时；扫描发现数不是完整目录覆盖，未封存只展示阶段计数。CPU模板/预览/apply/undo的0模型调用须真实账本证明，非UI推断。只读统计不返回凭据/绝对根；新DTO不改变旧Job字段。

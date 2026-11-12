@@ -1,0 +1,62 @@
+{
+  "schema_version": "lvw.library-semantic-rules/0.2",
+  "status": "DESIGN_CANDIDATE_NOT_ACTIVE",
+  "head_cas": {
+    "transport": "ETag response header",
+    "material_fields": [
+      "version",
+      "store_epoch",
+      "aggregate_kind",
+      "aggregate_id",
+      "head_revision_id",
+      "head_content_sha256",
+      "head_sequence"
+    ],
+    "serialization": "UTF8 compact sort_keys JSON; no NaN",
+    "format": "quoted lh:<sha256>",
+    "missing_if_match": 428,
+    "stale_if_match": 412,
+    "weak_wildcard_list_if_match": 400,
+    "success": "same transaction appends revision and updates head_sequence+etag; returned header binds returned revision",
+    "example_material": {
+      "version": "lvw.library-head/1",
+      "store_epoch": "example-epoch",
+      "aggregate_kind": "description",
+      "aggregate_id": "example-asset",
+      "head_revision_id": "example-r1",
+      "head_content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "head_sequence": 1
+    },
+    "example_etag": "\"lh:2e39fc3b81f5e9f3a52ca2559bb21555761e600db684dc5f6bf5379ad99ea3c8\"",
+    "next_material": {
+      "version": "lvw.library-head/1",
+      "store_epoch": "example-epoch",
+      "aggregate_kind": "description",
+      "aggregate_id": "example-asset",
+      "head_revision_id": "example-r2",
+      "head_content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "head_sequence": 2
+    },
+    "next_etag": "\"lh:4b56868db805304456d5b1c6abfc1c576a94861b9b9ec446b866ee4f6dfce5b9\""
+  },
+  "conflict_preview": {
+    "all_rows_persist": true,
+    "duplicate_targets_allowed_in_preview": true,
+    "selected_duplicate_target_apply": 409,
+    "disk_actions_on_reservation_failure": 0,
+    "reservation_table": "file_target_reservation",
+    "preview_target_index_non_unique": true
+  },
+  "retry": {
+    "route": "/api/v2/file-operations/{id}/retry-plans",
+    "success_items_eligible": false,
+    "unresolved_ambiguity_eligible": false,
+    "fresh_confirmation_required": true,
+    "staged_source": "uniquely reconciled current temporary locator"
+  },
+  "accounting": {
+    "unknown_observed_calls": null,
+    "unmeasured_timing": null,
+    "cpu_no_model_requires_actual_ledger": true
+  }
+}

@@ -22,12 +22,13 @@ CREATE TABLE asset_source_binding(
  source_file_id TEXT NOT NULL REFERENCES source_file(id), binding_version INTEGER NOT NULL CHECK(binding_version>0),
  content_sha256 TEXT NOT NULL, relation TEXT NOT NULL CHECK(relation IN('registered_original','derived_copy')),
  created_at TEXT NOT NULL, UNIQUE(asset_id,source_file_id,binding_version));
-CREATE TABLE asset_description_head(asset_id TEXT PRIMARY KEY REFERENCES asset(id), head_revision_id TEXT, etag TEXT NOT NULL);
+CREATE TABLE library_store_epoch(singleton INTEGER PRIMARY KEY CHECK(singleton=1), epoch TEXT NOT NULL);
+CREATE TABLE asset_description_head(asset_id TEXT PRIMARY KEY REFERENCES asset(id), head_revision_id TEXT, etag TEXT NOT NULL, head_sequence INTEGER NOT NULL DEFAULT 0 CHECK(head_sequence>=0));
 CREATE TABLE asset_description_revision(
  id TEXT PRIMARY KEY, asset_id TEXT NOT NULL REFERENCES asset(id), parent_id TEXT REFERENCES asset_description_revision(id),
  model_run_id TEXT REFERENCES model_run(id), facts_json TEXT NOT NULL, unknowns_json TEXT NOT NULL,
  locked_fields_json TEXT NOT NULL, analysis_key TEXT, content_sha256 TEXT NOT NULL, author TEXT NOT NULL, created_at TEXT NOT NULL);
-CREATE TABLE naming_template_head(id TEXT PRIMARY KEY, head_revision_id TEXT, etag TEXT NOT NULL);
+CREATE TABLE naming_template_head(id TEXT PRIMARY KEY, head_revision_id TEXT, etag TEXT NOT NULL, head_sequence INTEGER NOT NULL DEFAULT 0 CHECK(head_sequence>=0));
 CREATE TABLE naming_template_revision(
  id TEXT PRIMARY KEY, template_id TEXT NOT NULL REFERENCES naming_template_head(id),
  parent_id TEXT REFERENCES naming_template_revision(id), body_json TEXT NOT NULL,
@@ -37,14 +38,16 @@ CREATE TABLE rename_plan_revision(
  id TEXT PRIMARY KEY, plan_id TEXT NOT NULL REFERENCES rename_plan_head(id), revision INTEGER NOT NULL CHECK(revision>0),
  parent_id TEXT REFERENCES rename_plan_revision(id), direction TEXT NOT NULL CHECK(direction IN('forward','undo')),
  undo_of_operation_id TEXT, template_revision_id TEXT NOT NULL REFERENCES naming_template_revision(id),
- plan_hash TEXT NOT NULL, body_json TEXT NOT NULL, created_at TEXT NOT NULL, UNIQUE(plan_id,revision));
+ plan_hash TEXT NOT NULL, body_json TEXT NOT NULL, created_at TEXT NOT NULL,
+ retry_of_operation_id TEXT REFERENCES file_operation(id), retry_base_event_seq INTEGER, UNIQUE(plan_id,revision));
 CREATE TABLE rename_plan_item(
  plan_revision_id TEXT NOT NULL REFERENCES rename_plan_revision(id), id TEXT NOT NULL,
  source_file_id TEXT NOT NULL REFERENCES source_file(id), description_revision_id TEXT NOT NULL REFERENCES asset_description_revision(id),
  target_root_id TEXT NOT NULL REFERENCES source_root(id), target_path_key TEXT NOT NULL,
  ordinal INTEGER NOT NULL CHECK(ordinal>0 AND ordinal<=1000), item_json TEXT NOT NULL,
  PRIMARY KEY(plan_revision_id,id), UNIQUE(plan_revision_id,source_file_id),
- UNIQUE(plan_revision_id,ordinal), UNIQUE(plan_revision_id,target_root_id,target_path_key));
+ UNIQUE(plan_revision_id,ordinal));
+CREATE INDEX ix_preview_target_conflicts ON rename_plan_item(plan_revision_id,target_root_id,target_path_key);
 CREATE TABLE rename_confirmation(
  token_sha256 TEXT PRIMARY KEY, session_id TEXT NOT NULL, plan_revision_id TEXT NOT NULL REFERENCES rename_plan_revision(id),
  plan_hash TEXT NOT NULL, selection_hash TEXT NOT NULL, root_epochs_json TEXT NOT NULL,
@@ -84,3 +87,14 @@ CREATE TRIGGER source_history_no_update BEFORE UPDATE ON source_name_history BEG
 CREATE TRIGGER source_history_no_delete BEFORE DELETE ON source_name_history BEGIN SELECT RAISE(ABORT,'IMMUTABLE_NAME_HISTORY'); END;
 -- Parent/asset/template head consistency, semantic states, root/file custody and hashes enforced by shared service.
 -- Do not infer Windows I/O, transactional external rename, recovery or production migration from this DDL.
+
+-- Conflict previews keep ALL rows. Only selected executable targets are reserved.
+CREATE TABLE library_job_intent(
+ job_id TEXT PRIMARY KEY REFERENCES job(id), intent_kind TEXT NOT NULL CHECK(intent_kind IN('scan','describe','file_operation')),
+ subject_ref TEXT NOT NULL, payload_sha256 TEXT NOT NULL, profile_version TEXT NOT NULL, context_json TEXT NOT NULL);
+CREATE TABLE file_target_reservation(
+ operation_id TEXT NOT NULL REFERENCES file_operation(id), item_id TEXT NOT NULL, purpose TEXT NOT NULL CHECK(purpose IN('stage','final')),
+ volume_serial TEXT NOT NULL, parent_file_id TEXT NOT NULL, target_path_key TEXT NOT NULL,
+ PRIMARY KEY(operation_id,item_id,purpose), UNIQUE(volume_serial,parent_file_id,target_path_key));
+-- Reservation rows are released only after committed/uniquely-reconciled steps and proved custody.
+-- Journal events preserve release history. Unresolved reservations are never cleared by lease expiry.

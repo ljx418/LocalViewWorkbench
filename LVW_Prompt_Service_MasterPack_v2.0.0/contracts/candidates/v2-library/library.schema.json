@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:lvw:candidate:v2-library:0.1",
+  "$id": "urn:lvw:candidate:v2-library:0.2",
   "title": "V2 library naming design candidate, not active",
   "$defs": {
     "FileIdentity": {
@@ -771,6 +771,29 @@
             "maxLength": 128
           },
           "maxItems": 64
+        },
+        "retry_of_item_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "retry_from_event_seq": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       },
       "required": [
@@ -790,9 +813,37 @@
         "temp_relative_path",
         "depends_on",
         "conflicts",
-        "unknowns"
+        "unknowns",
+        "retry_of_item_id",
+        "retry_from_event_seq"
       ],
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "retry_of_item_id": {
+                "type": "null"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "retry_from_event_seq": {
+                "type": "null"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "retry_from_event_seq": {
+                "type": "integer",
+                "minimum": 1
+              }
+            }
+          }
+        }
+      ]
     },
     "RenamePlanRevision": {
       "type": "object",
@@ -877,6 +928,29 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 128
+        },
+        "retry_of_operation_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "retry_base_event_seq": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       },
       "required": [
@@ -892,9 +966,61 @@
         "vocabulary_revision",
         "items",
         "plan_hash",
-        "etag"
+        "etag",
+        "retry_of_operation_id",
+        "retry_base_event_seq"
       ],
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "retry_of_operation_id": {
+                "type": "null"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "retry_base_event_seq": {
+                "type": "null"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "retry_base_event_seq": {
+                "type": "integer",
+                "minimum": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "direction": {
+                "const": "forward"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "undo_of_operation_id": {
+                "type": "null"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "undo_of_operation_id": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      ]
     },
     "CreatePlan": {
       "type": "object",
@@ -1241,7 +1367,8 @@
             "cancelling",
             "cancelled",
             "interrupted",
-            "needs_attention"
+            "needs_attention",
+            "reconciling"
           ]
         },
         "total": {
@@ -1276,6 +1403,18 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 128
+        },
+        "accounting_ref": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       },
       "required": [
@@ -1287,7 +1426,8 @@
         "success_count",
         "not_started_count",
         "cursor",
-        "etag"
+        "etag",
+        "accounting_ref"
       ],
       "additionalProperties": false
     },
@@ -1827,6 +1967,29 @@
           "type": "integer",
           "minimum": 1,
           "maximum": 1000
+        },
+        "retry_of_operation_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "retry_base_event_seq": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       },
       "required": [
@@ -1842,7 +2005,615 @@
         "vocabulary_revision",
         "plan_hash",
         "etag",
-        "item_count"
+        "item_count",
+        "retry_of_operation_id",
+        "retry_base_event_seq"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "retry_of_operation_id": {
+                "type": "null"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "retry_base_event_seq": {
+                "type": "null"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "retry_base_event_seq": {
+                "type": "integer",
+                "minimum": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "direction": {
+                "const": "forward"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "undo_of_operation_id": {
+                "type": "null"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "undo_of_operation_id": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      ]
+    },
+    "RetryPlanRequest": {
+      "type": "object",
+      "properties": {
+        "item_ids": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1000,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          }
+        },
+        "last_event_seq": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "item_ids",
+        "last_event_seq"
+      ],
+      "additionalProperties": false
+    },
+    "LibraryIntent": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "const": "lvw.library-intent/1"
+        },
+        "job_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "intent_kind": {
+          "type": "string",
+          "enum": [
+            "scan",
+            "describe",
+            "file_operation"
+          ]
+        },
+        "subject_ref": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "payload_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "profile_version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "permission_epochs": {
+          "type": "array",
+          "maxItems": 1000,
+          "items": {
+            "type": "object",
+            "properties": {
+              "root_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              },
+              "epoch": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "required": [
+              "root_id",
+              "epoch"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "schema_version",
+        "job_id",
+        "intent_kind",
+        "subject_ref",
+        "payload_sha256",
+        "profile_version",
+        "permission_epochs"
+      ],
+      "additionalProperties": false,
+      "x-internal": true
+    },
+    "LibraryAccounting": {
+      "type": "object",
+      "properties": {
+        "task_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "snapshot_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "is_final": {
+          "type": "boolean"
+        },
+        "accounting_complete": {
+          "type": "boolean"
+        },
+        "planned_assets": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "discovered_assets": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "reused_assets": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "model_attempted_assets": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "failed_assets": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "not_attempted_assets": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "provider_attempts": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "provider_calls_observed": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "elapsed_ms": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "phase_times": {
+          "type": "object",
+          "properties": {
+            "scan_ms": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "hash_ms": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "probe_ms": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "decode_ms": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "inference_ms": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "preview_ms": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "file_operation_ms": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "cleanup_ms": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "scan_ms",
+            "hash_ms",
+            "probe_ms",
+            "decode_ms",
+            "inference_ms",
+            "preview_ms",
+            "file_operation_ms",
+            "cleanup_ms"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "task_id",
+        "snapshot_id",
+        "is_final",
+        "accounting_complete",
+        "planned_assets",
+        "discovered_assets",
+        "reused_assets",
+        "model_attempted_assets",
+        "failed_assets",
+        "not_attempted_assets",
+        "provider_attempts",
+        "provider_calls_observed",
+        "elapsed_ms",
+        "phase_times"
+      ],
+      "additionalProperties": false
+    },
+    "LibraryAccountingItem": {
+      "type": "object",
+      "properties": {
+        "asset_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "source_file_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "child_job_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "model_run_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "analysis_key": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "outcome": {
+          "type": "string",
+          "enum": [
+            "queued",
+            "reused",
+            "succeeded",
+            "failed",
+            "not_attempted",
+            "needs_attention"
+          ]
+        },
+        "provider_action_ids": {
+          "type": "array",
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          }
+        },
+        "provider_attempts": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 8
+        },
+        "provider_calls_observed": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "elapsed_ms": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "phase_times": {
+          "type": "object",
+          "properties": {
+            "scan_ms": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "hash_ms": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "probe_ms": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "decode_ms": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "inference_ms": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "preview_ms": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "file_operation_ms": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "cleanup_ms": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "scan_ms",
+            "hash_ms",
+            "probe_ms",
+            "decode_ms",
+            "inference_ms",
+            "preview_ms",
+            "file_operation_ms",
+            "cleanup_ms"
+          ],
+          "additionalProperties": false
+        },
+        "attempt_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "asset_id",
+        "source_file_id",
+        "child_job_id",
+        "model_run_id",
+        "analysis_key",
+        "outcome",
+        "provider_action_ids",
+        "provider_attempts",
+        "provider_calls_observed",
+        "elapsed_ms",
+        "phase_times",
+        "attempt_id"
+      ],
+      "additionalProperties": false
+    },
+    "LibraryAccountingItemPage": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "maxItems": 200,
+          "items": {
+            "$ref": "#/$defs/LibraryAccountingItem"
+          }
+        },
+        "next_cursor": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 2048
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "snapshot_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": [
+        "items",
+        "next_cursor",
+        "snapshot_id"
       ],
       "additionalProperties": false
     }

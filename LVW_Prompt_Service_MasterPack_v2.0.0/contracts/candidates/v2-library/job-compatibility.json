@@ -1,0 +1,38 @@
+{
+  "schema_version": "lvw.library-job-projection/0.1",
+  "status": "DESIGN_CANDIDATE_NOT_ACTIVE",
+  "internal_carrier": "LibraryIntent + library_job_intent keyed by existing job.id; no canonical Job field/enum change",
+  "kind_projection": {
+    "scan": "batch",
+    "describe": "batch",
+    "file_operation": "batch"
+  },
+  "status_projection": {
+    "queued": "queued",
+    "running": "running",
+    "partial": "partial",
+    "succeeded": "succeeded",
+    "failed": "failed",
+    "cancelling": "cancelling",
+    "cancelled": "cancelled",
+    "interrupted": "interrupted",
+    "needs_attention": "interrupted",
+    "reconciling": "preparing"
+  },
+  "error_projection": {
+    "needs_attention": "RECOVERY_AMBIGUOUS",
+    "reconciling": null
+  },
+  "progress": "progress_done=terminal_count/progress_total=fixed total; scan discovery uses0/0 until a manifest is sealed; discovered count is separately visible and is not whole-directory completeness",
+  "result_ref": "Library parent canonical Job.result_ref=null; use LibraryTask.accounting_ref and typed result routes, not /model-runs on a library ID",
+  "resource_state": "CPU-only scan/file operation released (no GPU acquired); description parent projects actual current child GPU state; unknown remains unknown",
+  "legacy_routes": {
+    "GET /api/v1/jobs": "include library parents as canonical batch with no new fields; same ID; scope-filtered as before",
+    "GET /api/v1/jobs/{id}": "canonical projection only; no needs_attention/reconciling leakage",
+    "POST /api/v1/jobs/{id}/cancel": "dispatcher resolves LibraryIntent to correct domain owner; existing analyze scope alone cannot control a file operation, initiating local session or explicit operation-control permission required",
+    "POST /api/v1/jobs/{id}/retry": "library parents rejected409 LIBRARY_RETRY_REQUIRES_REVIEW; no disk/provider replay",
+    "POST /api/v1/jobs/batch": "request body and legacy behavior unchanged, cannot create arbitrary LibraryIntent"
+  },
+  "new_cancel": "Library task/file-operation cancel delegates to same domain owner and original scope/custody; records cancellation and accounts in-flight authorized effects",
+  "resume": "file operation reconciliation first proves prior writer exit; no forced lease takeover; explicit review/confirmation for new side effects"
+}

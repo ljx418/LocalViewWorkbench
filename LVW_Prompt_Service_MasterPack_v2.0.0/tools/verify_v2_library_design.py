@@ -129,6 +129,73 @@ def main():
             for target in re.findall(r'\]\(([^)]+)\)',path.read_text()):
                 if target.startswith(('#','https:','http:','mailto:')):continue
                 ck('link:'+str(path.relative_to(ROOT))+':'+target,(path.parent/target.split('#')[0]).exists())
+        # Correction01: review-discovered semantic wire/storage gaps, not product runtime tests.
+        rules=load(C/'semantic-rules.json'); projection=load(C/'job-compatibility.json')
+        def head_etag(material):
+            raw=json.dumps(material,ensure_ascii=False,sort_keys=True,separators=(',',':'),allow_nan=False).encode()
+            return '"lh:'+hashlib.sha256(raw).hexdigest()+'"'
+        cas=rules['head_cas'];ck('ETag normative initial vector',head_etag(cas['example_material'])==cas['example_etag'])
+        ck('ETag normative next vector',head_etag(cas['next_material'])==cas['next_etag'] and cas['next_etag']!=cas['example_etag'])
+        for path,method in [('/api/v2/assets/{id}/description','get'),('/api/v2/assets/{id}/description/revisions','post'),('/api/v2/naming-templates/{id}','get'),('/api/v2/naming-templates/{id}/revisions','post'),('/api/v2/naming-templates','post')]:
+            for code,response in overlay['add_paths'][path][method]['responses'].items():
+                if not code.startswith('2'):continue
+                h=response.get('headers',{}).get('ETag',{})
+                ck('required head ETag wire:'+path,h.get('required') is True and Draft202012Validator(h.get('schema',{})).is_valid(cas['example_etag']))
+                ck('strong head rejects weak header:'+path,not Draft202012Validator(h.get('schema',{})).is_valid('W/'+cas['example_etag']))
+        ck('exact CAS status contract',cas['missing_if_match']==428 and cas['stale_if_match']==412 and cas['weak_wildcard_list_if_match']==400)
+        # Actual candidate SQL can persist both duplicate-preview rows; executable claim cannot.
+        mem=sqlite3.connect(':memory:');mem.execute('PRAGMA foreign_keys=ON');mem.executescript((ROOT/'contracts/storage.sql').read_text());mem.executescript(sql)
+        mem.execute("INSERT INTO source_root VALUES('r','server-only-root','root','v','rid','[]',1,'active','e','now')")
+        for n in ('1','2'):
+            mem.execute("INSERT INTO asset VALUES(?,'image','m','title','[]','{}',0)",('a'+n,))
+            mem.execute("INSERT INTO source_file VALUES(?,'r',?,?,'v',?,'hash',1,'1','1','1',1,'available','e')",('s'+n,'old'+n+'.jpg','old'+n+'.jpg','physical'+n))
+            mem.execute("INSERT INTO asset_description_revision VALUES(?,?,NULL,NULL,'[]','[]','[]',NULL,?,'human','now')",('d'+n,'a'+n,'a'*64))
+        mem.execute("INSERT INTO naming_template_head(id,head_revision_id,etag) VALUES('t',NULL,'e')")
+        mem.execute("INSERT INTO naming_template_revision VALUES('tr','t',NULL,'{}','hash','now')")
+        mem.execute("INSERT INTO rename_plan_head VALUES('p',NULL,'e')")
+        mem.execute("INSERT INTO rename_plan_revision(id,plan_id,revision,parent_id,direction,undo_of_operation_id,template_revision_id,plan_hash,body_json,created_at) VALUES('pr','p',1,NULL,'forward',NULL,'tr','hash','{}','now')")
+        for n in ('1','2'):mem.execute("INSERT INTO rename_plan_item VALUES('pr',?,?,?,'r','same.jpg',?,'{}')",('i'+n,'s'+n,'d'+n,int(n)))
+        ck('duplicate preview retains both rows',mem.execute("SELECT COUNT(*) FROM rename_plan_item WHERE target_path_key='same.jpg'").fetchone()[0]==2)
+        mem.execute("INSERT INTO job(id,kind,state,idempotency_key,payload_hash,payload_json,created_at,updated_at) VALUES('j','batch','queued','key','hash','{}','now','now')")
+        op_sql="INSERT INTO file_operation(id,job_id,plan_revision_id,plan_hash,selection_hash,session_id,route,idempotency_key,payload_sha256,state,created_at,updated_at) VALUES('op','j','pr','hash','hash','session','apply','key','hash','queued','now','now')"
+        mem.execute('SAVEPOINT claim')
+        try:
+            mem.execute(op_sql)
+            for n in ('1','2'):mem.execute("INSERT INTO file_target_reservation VALUES('op',?,'final','v','parent','same.jpg')",('i'+n,))
+            ck('duplicate executable target rejected',False)
+        except sqlite3.IntegrityError:
+            ck('duplicate executable target rejected',True);mem.execute('ROLLBACK TO claim')
+        mem.execute('RELEASE claim')
+        ck('failed claim has zero executable reservations/operations',mem.execute('SELECT COUNT(*) FROM file_target_reservation').fetchone()[0]==0 and mem.execute('SELECT COUNT(*) FROM file_operation').fetchone()[0]==0)
+        ck('failed claim never drops preview rows',mem.execute('SELECT COUNT(*) FROM rename_plan_item').fetchone()[0]==2)
+        mem.execute(op_sql);mem.execute("INSERT INTO file_target_reservation VALUES('op','i1','final','v','parent','same.jpg')")
+        ck('one selected target can reserve',mem.execute('SELECT COUNT(*) FROM file_target_reservation').fetchone()[0]==1)
+        material={**cas['example_material'],'aggregate_id':'a1','head_revision_id':'d1'};old_tag=head_etag(material)
+        mem.execute("INSERT INTO asset_description_head VALUES('a1','d1',?,1)",(old_tag,))
+        newer={**material,'head_revision_id':'d3','head_content_sha256':'b'*64,'head_sequence':2};new_tag=head_etag(newer)
+        mem.execute("INSERT INTO asset_description_revision VALUES('d3','a1','d1',NULL,'[]','[]','[]',NULL,?,'human','now')",('b'*64,))
+        changed=mem.execute("UPDATE asset_description_head SET head_revision_id='d3',etag=?,head_sequence=head_sequence+1 WHERE asset_id='a1' AND etag=?",(new_tag,old_tag)).rowcount
+        ck('positive SQL head CAS',changed==1 and mem.execute("SELECT head_sequence FROM asset_description_head WHERE asset_id='a1'").fetchone()[0]==2)
+        mem.execute('SAVEPOINT stale')
+        mem.execute("INSERT INTO asset_description_revision VALUES('d4','a1','d3',NULL,'[]','[]','[]',NULL,'x','human','now')")
+        stale=mem.execute("UPDATE asset_description_head SET head_revision_id='d4' WHERE asset_id='a1' AND etag=?",(old_tag,)).rowcount
+        if stale==0:mem.execute('ROLLBACK TO stale')
+        mem.execute('RELEASE stale')
+        ck('stale CAS appends no revision and moves no head',stale==0 and mem.execute("SELECT COUNT(*) FROM asset_description_revision WHERE id='d4'").fetchone()[0]==0 and mem.execute("SELECT head_revision_id FROM asset_description_head WHERE asset_id='a1'").fetchone()[0]=='d3')
+        ck('corrected memory schema integrity',mem.execute('PRAGMA integrity_check').fetchone()[0]=='ok' and not mem.execute('PRAGMA foreign_key_check').fetchall());mem.close()
+        job_schema=old['components']['schemas']['Job']
+        for kind in ('scan','describe','file_operation'):
+            for state,canonical in projection['status_projection'].items():
+                sample={'id':'example','kind':projection['kind_projection'][kind],'status':canonical,'resource_state':'released','attempt_id':None,'cancel_epoch':0,'progress_done':0,'progress_total':0,'result_ref':None,'error_code':projection['error_projection'].get(state)}
+                ck('strict old Job projection:'+kind+':'+state,Draft202012Validator(job_schema).is_valid(sample))
+        ck('internal LibraryIntent typed',defs['LibraryIntent'].get('additionalProperties') is False)
+        ck('summary GET is summary-only',overlay['add_paths']['/api/v2/rename-plans/{id}']['get']['responses']['200']['content']['application/json']['schema']['$ref'].endswith('PlanSummary') and 'items' not in defs['PlanSummary']['properties'] and not any('first bounded 200 items' in x for x in overlay['semantic_rules']))
+        ck('retry plan route and fields', '/api/v2/file-operations/{id}/retry-plans' in overlay['add_paths'] and all(k in defs['RenamePlanRevision']['properties'] for k in ('retry_of_operation_id','retry_base_event_seq')) and all(k in defs['PlanItem']['properties'] for k in ('retry_of_item_id','retry_from_event_seq')))
+        ck('bounded accounting routes',all('/api/v2/library/tasks/{id}/'+n in overlay['add_paths'] for n in ('accounting','accounting/items')) and defs['LibraryAccountingItemPage']['properties']['items']['maxItems']==200)
+        phase={k:None for k in defs['LibraryAccounting']['properties']['phase_times']['properties']}
+        accounting={'task_id':'task','snapshot_id':'snap','is_final':False,'accounting_complete':False,'planned_assets':2,'discovered_assets':2,'reused_assets':0,'model_attempted_assets':0,'failed_assets':0,'not_attempted_assets':2,'provider_attempts':0,'provider_calls_observed':None,'elapsed_ms':None,'phase_times':phase}
+        ck('unknown calls/times explicitly nullable',valid('LibraryAccounting',accounting))
+        ck('negative elapsed rejected',not valid('LibraryAccounting',{**accounting,'elapsed_ms':-1}))
         if args.self_test:
             altered=copy.deepcopy(gates);altered['gates']['V2']['effective_required_cases'].pop();ck('negative shrink denominator',bool(structural_errors(req,cases,altered,tasks,samples,overlay)))
             altered=copy.deepcopy(overlay);altered['add_paths']['/api/v2/rename-plans/{id}/apply']['post']['parameters']=[];ck('negative remove write guards',bool(structural_errors(req,cases,gates,tasks,samples,altered)))

@@ -1,5 +1,5 @@
 {
-  "schema_version": "lvw.library-overlay/0.1",
+  "schema_version": "lvw.library-overlay/0.2",
   "status": "DESIGN_CANDIDATE_NOT_ACTIVE",
   "base_file": "contracts/openapi.json",
   "component_source": "contracts/candidates/v2-library/library.schema.json",
@@ -1339,6 +1339,16 @@
                   "$ref": "#/components/schemas/Library_AssetDescriptionRevision"
                 }
               }
+            },
+            "headers": {
+              "ETag": {
+                "description": "Required strong opaque mutable-head ETag, quoted lh:<sha256>; binds store_epoch, aggregate identity, current immutable revision/hash and head_sequence. Same head/revision in response body. No W/ or wildcard/list If-Match.",
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "pattern": "^\"lh:[a-f0-9]{64}\"$"
+                }
+              }
             }
           },
           "400": {
@@ -1511,6 +1521,16 @@
                   "$ref": "#/components/schemas/Library_AssetDescriptionRevision"
                 }
               }
+            },
+            "headers": {
+              "ETag": {
+                "description": "Required strong opaque mutable-head ETag, quoted lh:<sha256>; binds store_epoch, aggregate identity, current immutable revision/hash and head_sequence. Same head/revision in response body. No W/ or wildcard/list If-Match.",
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "pattern": "^\"lh:[a-f0-9]{64}\"$"
+                }
+              }
             }
           },
           "400": {
@@ -1661,6 +1681,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Library_NamingTemplateRevision"
+                }
+              }
+            },
+            "headers": {
+              "ETag": {
+                "description": "Required strong opaque mutable-head ETag, quoted lh:<sha256>; binds store_epoch, aggregate identity, current immutable revision/hash and head_sequence. Same head/revision in response body. No W/ or wildcard/list If-Match.",
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "pattern": "^\"lh:[a-f0-9]{64}\"$"
                 }
               }
             }
@@ -1833,6 +1863,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Library_NamingTemplateRevision"
+                }
+              }
+            },
+            "headers": {
+              "ETag": {
+                "description": "Required strong opaque mutable-head ETag, quoted lh:<sha256>; binds store_epoch, aggregate identity, current immutable revision/hash and head_sequence. Same head/revision in response body. No W/ or wildcard/list If-Match.",
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "pattern": "^\"lh:[a-f0-9]{64}\"$"
                 }
               }
             }
@@ -3676,6 +3716,16 @@
                   "$ref": "#/components/schemas/Library_NamingTemplateRevision"
                 }
               }
+            },
+            "headers": {
+              "ETag": {
+                "description": "Required strong opaque mutable-head ETag, quoted lh:<sha256>; binds store_epoch, aggregate identity, current immutable revision/hash and head_sequence. Same head/revision in response body. No W/ or wildcard/list If-Match.",
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "pattern": "^\"lh:[a-f0-9]{64}\"$"
+                }
+              }
             }
           },
           "400": {
@@ -3848,6 +3898,492 @@
           }
         }
       }
+    },
+    "/api/v2/file-operations/{id}/retry-plans": {
+      "post": {
+        "operationId": "library_post_file_operation_retry_plans",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          },
+          {
+            "name": "X-LVW-CSRF",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          }
+        ],
+        "x-product-version": "V2",
+        "x-status": "DESIGN_CANDIDATE_NOT_ACTIVE",
+        "x-local-session-required": true,
+        "responses": {
+          "200": {
+            "description": "Candidate success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Library_PlanSummary"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Stable error per docs34",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Stable error per docs34",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Stable error per docs34",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Stable error per docs34",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Stable error per docs34",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "412": {
+            "description": "Stable error per docs34",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Stable error per docs34",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "423": {
+            "description": "Stable error per docs34",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "428": {
+            "description": "Stable error per docs34",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Stable error per docs34",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "507": {
+            "description": "Stable error per docs34",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Library_RetryPlanRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/library/tasks/{id}/accounting": {
+      "get": {
+        "operationId": "library_get_task_accounting",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          }
+        ],
+        "x-product-version": "V2",
+        "x-status": "DESIGN_CANDIDATE_NOT_ACTIVE",
+        "x-local-session-required": true,
+        "responses": {
+          "200": {
+            "description": "Candidate success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Library_LibraryAccounting"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Stable error per docs34",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Stable error per docs34",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Stable error per docs34",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Stable error per docs34",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Stable error per docs34",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "412": {
+            "description": "Stable error per docs34",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Stable error per docs34",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "423": {
+            "description": "Stable error per docs34",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "428": {
+            "description": "Stable error per docs34",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Stable error per docs34",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "507": {
+            "description": "Stable error per docs34",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/library/tasks/{id}/accounting/items": {
+      "get": {
+        "operationId": "library_get_task_accounting_items",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 2048
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200,
+              "default": 100
+            }
+          }
+        ],
+        "x-product-version": "V2",
+        "x-status": "DESIGN_CANDIDATE_NOT_ACTIVE",
+        "x-local-session-required": true,
+        "responses": {
+          "200": {
+            "description": "Candidate success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Library_LibraryAccountingItemPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Stable error per docs34",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Stable error per docs34",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Stable error per docs34",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Stable error per docs34",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Stable error per docs34",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "412": {
+            "description": "Stable error per docs34",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Stable error per docs34",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "423": {
+            "description": "Stable error per docs34",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "428": {
+            "description": "Stable error per docs34",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Stable error per docs34",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "507": {
+            "description": "Stable error per docs34",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "semantic_rules": [
@@ -3855,7 +4391,11 @@
     "Create template binds caller-provided template_id only if absent with If-None-Match:*; revision/content hashes derived server side.",
     "Canonical Job remains unchanged; LibraryTask.id maps same persistent job id; batch payload is internal typed LibraryIntent. No shot_batch reuse.",
     "Apply validates exact plan revision/hash, ordered selected closure/hash, root epochs and unexpired one-use confirmation; idempotent same payload returns original op without second token consumption.",
-    "GET plan returns metadata plus first bounded200 items; full immutable plan export uses authenticated CSV/JSON attachment streaming, exact plan_hash; no secrets/absolute roots.",
-    "Native root registration uses trusted local IPC/CLI, not HTTP arbitrary-path endpoint."
+    "Native root registration uses trusted local IPC/CLI, not HTTP arbitrary-path endpoint.",
+    "GET /rename-plans/{id} is summary-only (no inline items); /items is bounded keyset pagination. Full exact-plan JSON/CSV exports stream all frozen rows including conflicts.",
+    "Description/template current-head GET/create/revision success MUST return strong ETag header bound to returned revision; If-Match uses exact header, missing428/stale412/no-side-effect; If-None-Match:* creates only absent template.",
+    "Conflict preview rows are retained with duplicate target keys; apply validates selected dependency closure and unique selected targets, then reserves targets atomically in file_target_reservation before disk intent. Duplicate selected targets409 with zero file actions; no dropping rows.",
+    "Forward/undo retry plans use /file-operations/{id}/retry-plans with current operation If-Match and last_event_seq; no blind legacy Job retry. Details in job-compatibility.json and docs34.",
+    "Library task accounting_ref resolves bounded /accounting and /accounting/items views; actual attempts/observed calls separated, unmeasured time/calls null, not manufactured zero."
   ]
 }
