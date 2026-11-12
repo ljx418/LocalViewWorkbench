@@ -1,0 +1,160 @@
+{
+  "count": 8,
+  "kind": "S3_P3B_CORRECTION07_BOUNDED_COUNTEREXAMPLE_OBSERVATIONS",
+  "note": "Bounded observations of the current candidate.  They are not additional product tests and they do not turn a reproduced defect into a passing obligation.",
+  "observations": [
+    {
+      "name": "clean_genuine_baseline",
+      "observation": {
+        "aggregate_pass": true,
+        "all_rows_resolved": true,
+        "decision": "QUALITY_THRESHOLDS_MET_FOR_THIS_BOUND_RUN",
+        "images_usable": 10,
+        "refused": false,
+        "total_critical": 0,
+        "videos_usable": 6
+      },
+      "provider_calls_reserved": 34,
+      "submissions": 16
+    },
+    {
+      "before_sha256": {
+        "canonical": "f07ffb46c4b4240a40fd32b7e786b567a25a2a92b1cdf3253a3ed79fcfdf03f2",
+        "raw0": "86571c8187ae37e4f092f7decc7b75d588272f69a7c745d3748770b69114a033",
+        "seal": "934dad16f869b48110c56632c885c534be0a39fabdaf53ad3acfba64066954b8"
+      },
+      "caller_receipt_unchanged": true,
+      "entry_exists_at_return": true,
+      "entry_is_symlink_at_return": true,
+      "hook_fired": 1,
+      "mutation": "symlink",
+      "name": "after_canonical_read_symlink",
+      "observation": {
+        "error": "QualityContractError: QS_SOURCE_PLAN_REDIRECT_FORBIDDEN:QS_ARTIFACT_CUSTODY_REDIRECT_FORBIDDEN:qd-receipt.json",
+        "refused": true
+      },
+      "original_bytes_unchanged": true,
+      "target_kind": "canonical",
+      "trigger_kind": "seal"
+    },
+    {
+      "before_sha256": {
+        "canonical": "291b142b5cb5af0706347d8ab70a0c349a9af99445115fe2bdce91742892174b",
+        "raw0": "86571c8187ae37e4f092f7decc7b75d588272f69a7c745d3748770b69114a033",
+        "seal": "8d5d993fc79a4868bb44faaeff7528405df7eaf287e8b18bcb2402b89fca469e"
+      },
+      "caller_receipt_unchanged": true,
+      "entry_exists_at_return": true,
+      "entry_is_symlink_at_return": false,
+      "hook_fired": 1,
+      "mutation": "plain",
+      "name": "after_canonical_read_plain",
+      "observation": {
+        "error": "QualityContractError: QS_RAW_ARTIFACT_REDIRECT_FORBIDDEN:SYN-I00:QS_ARTIFACT_CUSTODY_REPLACED:qd-receipt.json",
+        "refused": true
+      },
+      "original_bytes_unchanged": true,
+      "target_kind": "canonical",
+      "trigger_kind": "raw0"
+    },
+    {
+      "before_sha256": {
+        "canonical": "a3cacbdfc03e6f94e62124987ecde542aff6d0a7f865b422bb55a741ac171e96",
+        "raw0": "86571c8187ae37e4f092f7decc7b75d588272f69a7c745d3748770b69114a033",
+        "seal": "5603a565ee6d0dcc90e46f2cbf0fb4e45901874c0a66ab29aa0a156475add5af"
+      },
+      "caller_receipt_unchanged": true,
+      "entry_exists_at_return": false,
+      "entry_is_symlink_at_return": false,
+      "hook_fired": 1,
+      "mutation": "missing",
+      "name": "after_seal_read_missing",
+      "observation": {
+        "error": "QualityContractError: QS_RAW_ARTIFACT_UNREADABLE:SYN-I00:QS_ARTIFACT_CUSTODY_MISSING:qd-source-plan.json",
+        "refused": true
+      },
+      "original_bytes_unchanged": true,
+      "target_kind": "seal",
+      "trigger_kind": "raw0"
+    },
+    {
+      "before_sha256": {
+        "canonical": "05f6396e807dcb522d91417f64f864bc2eca60dda5f470f85605f4b6facc553b",
+        "raw0": "86571c8187ae37e4f092f7decc7b75d588272f69a7c745d3748770b69114a033",
+        "seal": "749a4948f38458286da5bfe6b5166e8841f45af43809e929479557fe6d17912a"
+      },
+      "caller_receipt_unchanged": true,
+      "entry_exists_at_return": true,
+      "entry_is_symlink_at_return": true,
+      "hook_fired": 1,
+      "mutation": "symlink",
+      "name": "after_raw_read_leaf_symlink",
+      "observation": {
+        "error": "QualityContractError: QS_RAW_ARTIFACT_REDIRECT_FORBIDDEN:SYN-I01:QS_ARTIFACT_CUSTODY_REDIRECT_FORBIDDEN:raw.txt",
+        "refused": true
+      },
+      "original_bytes_unchanged": true,
+      "target_kind": "raw0",
+      "trigger_kind": "raw1"
+    },
+    {
+      "before_sha256": {
+        "canonical": "7ae4f29db3580a062e8aa0e29a40c5a1f2d0667fa0d2a3f941009cfe4d15e7b2",
+        "raw0": "86571c8187ae37e4f092f7decc7b75d588272f69a7c745d3748770b69114a033",
+        "seal": "4db4f8157464a8f4bfad9598b12917093ce55f1bbac35f1163e2ea0520c8b50d"
+      },
+      "caller_receipt_unchanged": true,
+      "entry_exists_at_return": true,
+      "entry_is_symlink_at_return": false,
+      "hook_fired": 1,
+      "mutation": "plain",
+      "name": "after_raw_read_parent_plain",
+      "observation": {
+        "error": "QualityContractError: QS_RAW_ARTIFACT_REDIRECT_FORBIDDEN:SYN-I01:QS_ARTIFACT_CUSTODY_REPLACED:SYN-I00",
+        "refused": true
+      },
+      "original_bytes_unchanged": true,
+      "target_kind": "raw_parent",
+      "trigger_kind": "raw1"
+    },
+    {
+      "before_sha256": "19c28807fca92757428ce3f47022b8a814b05f3a62016b58ae871a131609d144",
+      "caller_receipt_unchanged": true,
+      "entry_is_symlink_at_return": true,
+      "hook_fired": 1,
+      "name": "completion_canonical_leaf_redirect",
+      "observation": {
+        "error": "QualityContractError: QS_ARTIFACT_CUSTODY_REDIRECT_FORBIDDEN:qd-receipt.json",
+        "refused": true
+      },
+      "original_bytes_unchanged": true
+    },
+    {
+      "name": "bounded_custody_and_descriptors",
+      "observation": {
+        "close_releases_every_descriptor": true,
+        "custody_entries": 5,
+        "custody_limit": 72,
+        "descriptors_after_close": 8,
+        "descriptors_after_eight_repeats": 17,
+        "descriptors_before": 8,
+        "descriptors_during": 17,
+        "refused": false,
+        "repeated_read_is_stable": true
+      }
+    }
+  ],
+  "owned_root": "/tmp/lvw-c05-counterexamples-bgep645w/lvw-c07-counterexamples-fdbql3y2",
+  "registered_roots": [
+    "/tmp/lvw-c05-counterexamples-bgep645w/lvw-c07-counterexamples-fdbql3y2",
+    "/tmp/lvw-c05-counterexamples-bgep645w/lvw-c07-counterexamples-fdbql3y2/baseline",
+    "/tmp/lvw-c05-counterexamples-bgep645w/lvw-c07-counterexamples-fdbql3y2/after_canonical_read_symlink",
+    "/tmp/lvw-c05-counterexamples-bgep645w/lvw-c07-counterexamples-fdbql3y2/after_canonical_read_plain",
+    "/tmp/lvw-c05-counterexamples-bgep645w/lvw-c07-counterexamples-fdbql3y2/after_seal_read_missing",
+    "/tmp/lvw-c05-counterexamples-bgep645w/lvw-c07-counterexamples-fdbql3y2/after_raw_read_leaf_symlink",
+    "/tmp/lvw-c05-counterexamples-bgep645w/lvw-c07-counterexamples-fdbql3y2/after_raw_read_parent_plain",
+    "/tmp/lvw-c05-counterexamples-bgep645w/lvw-c07-counterexamples-fdbql3y2/completion_canonical_leaf_redirect",
+    "/tmp/lvw-c05-counterexamples-bgep645w/lvw-c07-counterexamples-fdbql3y2/descriptors"
+  ],
+  "removed": true
+}
