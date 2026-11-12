@@ -8,8 +8,8 @@
   "coordinate": {
     "stage_id": "R1",
     "workpack_id": "WP-R1-U3",
-    "gate": "S3_P3B_QUALITY_INTEGRATION_INDEPENDENT_REVIEW",
-    "state": "READY_FOR_REVIEW"
+    "gate": "S3_P4_OFFLINE_INTEGRATION_PREPARATION",
+    "state": "READY"
   },
   "last_passed_gate": {
     "gate": "UNIFIED_MEDIA_FIXED_UM10_AND_INDEPENDENT_REVIEW",
@@ -21,7 +21,7 @@
     "passed_cases": 10,
     "human_signoff": "reports/unified-media/human-signoff-live15.json"
   },
-  "current_blocking_gate": "S3_P3B_CORRECTION08_ISOLATED_REVIEW_PENDING",
+  "current_blocking_gate": "S3_P4_OFFLINE_INTEGRATION_AND_MACHINE_FIXTURE_BINDING_PENDING",
   "stage_packet": ".agent-governance/stages/R1/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/R1/PAYLOAD_MANIFEST.sha256",
   "product_status": "UNIFIED_MEDIA_EARLY_ACCEPTED_SCOPE_ONLY_FULL_R1_PENDING",
@@ -35,7 +35,7 @@
     "TARGET_HARDWARE_TESTED"
   ],
   "next_owner": "Human restores this ClaudeCode task or explicitly authorizes specific Codex takeover; root only preserves handoff",
-  "next_action": "Await Orca correction08 review ctx_82a28efdc14f. Task typed but startup unobserved/outcome_unknown; no duplicate dispatch, resend or abandonment. Inspect same handle if continuation needs liveness evidence. Candidate selfchecks not StagePASS.",
+  "next_action": "Implement frozen S3-P4-OFFLINE A/B/C in visible Claude window. Initially zero subprocess/network only; submit exact candidate/worker/fixture/runner hashes+argv via Orca ask for root finiteCPU binding before any fixture process. No user reauthorization or realruntime.",
   "required_authorization": null,
   "authorization_request": "reports/authorization-program-v1-complete-03.request.json",
   "authorization_record": "reports/authorization-program-v1-complete-03.approval.json",
@@ -1233,7 +1233,7 @@
   },
   "offline_integration_packet": ".agent-governance/stages/V0-S3/production-quality/stage-control.json",
   "p3b_quality": {
-    "status": "CORRECTION08_INDEPENDENT_REVIEW_DISPATCH_START_UNOBSERVED",
+    "status": "ACCEPTED_COMPONENT_SCOPED_OFFLINE_F0_M0",
     "workpacks": [
       "QD_PUBLIC_EXECUTION",
       "QS_INDEPENDENT_SCORE_RECOMPUTATION"
@@ -1647,7 +1647,7 @@
       }
     },
     "correction08": {
-      "status": "READY_FOR_INDEPENDENT_REVIEW",
+      "status": "ACCEPTED_COMPONENT_SCOPED_OFFLINE_F0_M0_m0",
       "task": "reports/v0-s3/product-gate0/implementation-p3b-correction-08.task.md",
       "adjudication": "reports/v0-s3/product-gate0/p3b-correction-08.adjudication.json",
       "stage_pass_claim": false,
@@ -1690,16 +1690,19 @@
         "bounded_observations": 5
       },
       "independent_review": {
-        "status": "DISPATCHED_START_UNOBSERVED_OUTCOME_UNKNOWN",
+        "status": "COMPLETED_FATAL0_MAJOR0_MINOR0",
         "dispatch_id": "ctx_82a28efdc14f",
         "task_id": "task_67a35b278655",
-        "terminal_id": "term_d0604def-fe23-4e5f-95be-76c9c5782a39",
-        "launch_receipt": "reports/v0-s3/product-gate0/independent-p3b-correction-08.launch.json",
-        "task_typed": true,
-        "execution_start_observed": false,
-        "next": "End turn; no resend/abandon/restart. Orca wakes on report; if nothing arrives inspect this exact dispatch via worker-show."
+        "review_commit": "eda30de5655e6262061ce658aeb33044f0a068e9",
+        "message_id": "msg_65a4853e258d",
+        "counts": {
+          "Fatal": 0,
+          "Major": 0,
+          "Minor": 0
+        }
       }
-    }
+    },
+    "root_acceptance": "reports/v0-s3/product-gate0/p3b-component-acceptance-01.json"
   },
   "a06_read_only_capability_child": {
     "authorization": "reports/v0-s3/product-gate0/a06-capability-01.child.json",
@@ -1813,5 +1816,25 @@
       "design_candidate_sha": "b7d12d76ea2bef3161c810871d9480f07e683f07",
       "design_snapshot_sha256": "7c8a7603dce8ab017c4f0d7881ab76cce1bc90a8c69c75f1c7fee9d534adc96b"
     }
+  },
+  "s3_integration": {
+    "workpack_id": "S3-P4-OFFLINE",
+    "status": "FROZEN_IMPLEMENTATION_CPU_EXECUTION_GATE_PENDING",
+    "contract": "reports/v0-s3/product-gate0/s3-integration-offline-contract-01.md",
+    "task": "reports/v0-s3/product-gate0/implementation-integration-01.task.md",
+    "acceptance_matrix": "reports/v0-s3/product-gate0/s3-integration-acceptance-01.json",
+    "python_binding": "reports/v0-s3/product-gate0/s3-integration-python-01.binding.json",
+    "cpu_fixture_execution_permitted": false,
+    "fixture_limits_after_machine_binding": {
+      "total_starts": 24,
+      "implementation_starts": 16,
+      "review_starts": 8,
+      "max_concurrent": 2,
+      "per_process_seconds": 10,
+      "aggregate_wall_seconds": 180,
+      "cleanup_reserve_seconds": 30
+    },
+    "real_runtime_permitted": false,
+    "stage_pass_claim": false
   }
 }
