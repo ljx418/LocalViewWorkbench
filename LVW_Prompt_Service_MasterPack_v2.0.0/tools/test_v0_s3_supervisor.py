@@ -1730,4 +1730,191 @@ def test_a_failing_settlement_keeps_the_root_and_a_nonzero_receipt(tmp_path):
     assert outcome['exit_code'] != 0
     assert any(reason.startswith('SESSION_SETTLEMENT_FAILED')
                for reason in outcome['failure_reasons'])
-    assert owned.exists()
+    # The removal of the owned root happens before the settlement, so the
+    # diagnostic marker of a failed settlement is the control anchor, not the
+    # removed temporary root.
+    anchor = tmp_path / 'anchor.json'
+    outcome = RUNNER_MODULE.finalize_session(
+        executor=executor, owned=owned, stdout_handle=GoodHandle(),
+        stderr_handle=GoodHandle(), saved_out=os.dup(1), saved_err=os.dup(2),
+        exit_code=0, source_hasher=lambda: {},
+        remover=lambda path: shutil.rmtree(path), anchor_path=anchor)
+    assert outcome['exit_code'] != 0
+    assert anchor.exists()
+
+
+# ------------------------- the lifecycle corrections of the fourth review
+def test_the_reap_final_wait_never_passes_the_child_deadline(tmp_path):
+    """CPU-REAP-FINAL-WAIT: the proof wait uses the same absolute deadline."""
+    counter = fake_root_counter(tmp_path)
+    path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+    clock = fake_clock()
+    executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest,
+                                   clock=clock)
+
+    class UnprovableProcess:
+        pid = os.getpid()
+
+        def __init__(self):
+            self.waits = []
+
+        def poll(self):
+            return None
+
+        def wait(self, timeout=None):
+            self.waits.append(timeout)
+            self.clock.now += timeout if timeout else 0.0
+            raise TimeoutError('the child never exits')
+
+        def terminate(self):
+            return None
+
+        def kill(self):
+            return None
+
+    process = UnprovableProcess()
+    process.clock = clock
+    executor.register(process)
+    entry = executor.children[0]
+    clock.now = 9.5
+    proofs = executor.reap()
+    # the last wait is clipped to the absolute child deadline
+    assert clock.now <= 10.0 + 0.001
+    assert process.waits[-1] <= 0.5 + 0.001
+    # the child stays unknown and unproven, and it keeps its slot
+    assert entry['state'] == 'UNKNOWN'
+    assert proofs[0]['proven'] is False
+    assert executor.uncertain is True
+    assert executor.counter._occupied(json.loads(counter.read_text())) == 0
+
+
+def test_the_reap_final_wait_is_clipped_to_the_session_deadline(tmp_path):
+    """CPU-REAP-FINAL-WAIT: the session deadline clips the proof wait."""
+    counter = fake_root_counter(tmp_path)
+    path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+    clock = fake_clock()
+    executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest,
+                                   clock=clock)
+    executor.reserve_session()
+
+    class UnprovableProcess:
+        pid = os.getpid()
+
+        def __init__(self):
+            self.waits = []
+
+        def poll(self):
+            return None
+
+        def wait(self, timeout=None):
+            self.waits.append(timeout)
+            self.clock.now += timeout if timeout else 0.0
+            raise TimeoutError('the child never exits')
+
+        def terminate(self):
+            return None
+
+        def kill(self):
+            return None
+
+    process = UnprovableProcess()
+    process.clock = clock
+    executor.register(process)
+    executor.cleanup_deadline = 9.4
+    clock.now = 9.0
+    executor.reap()
+    assert clock.now <= 9.4 + 0.001
+    assert process.waits[-1] <= 0.4 + 0.001
+
+
+def test_the_whole_terminal_path_is_bounded_and_accounted(tmp_path):
+    """The full path revoke, stop, proof wait, hash, remove, settle, evidence."""
+    counter = fake_root_counter(tmp_path)
+    path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+    clock = fake_clock()
+    executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest,
+                                   clock=clock)
+    executor.reserve_session()
+
+    class UnprovableProcess:
+        pid = os.getpid()
+
+        def __init__(self):
+            self.waits = []
+
+        def poll(self):
+            return None
+
+        def wait(self, timeout=None):
+            self.waits.append(timeout)
+            self.clock.now += timeout if timeout else 0.0
+            raise TimeoutError('the child never exits')
+
+        def terminate(self):
+            return None
+
+        def kill(self):
+            return None
+
+    process = UnprovableProcess()
+    process.clock = clock
+    executor.register(process)
+    owned = tmp_path / 'owned'
+    owned.mkdir()
+    anchor = tmp_path / 'anchor.json'
+
+    def hasher():
+        clock.now += 4.0
+        return {'after': 'hash'}
+
+    def remover(path):
+        clock.now += 3.0
+        shutil.rmtree(path)
+
+    clock.now = 9.0
+    outcome = RUNNER_MODULE.finalize_session(
+        executor=executor, owned=owned, stdout_handle=GoodHandle(),
+        stderr_handle=GoodHandle(), saved_out=os.dup(1), saved_err=os.dup(2),
+        exit_code=0, source_hasher=hasher, remover=remover, anchor_path=anchor)
+    # the proof wait never passes the absolute child deadline
+    assert clock.now <= 10.0 + 4.0 + 3.0 + 0.001
+    assert process.waits[-1] <= 1.0 + 0.001
+    # the unknown custody stays explicit and the charge is never released
+    assert executor.children[0]['state'] == 'UNKNOWN'
+    document = json.loads(counter.read_text())
+    # the global actual wall includes the hash and the removal work
+    assert document['sessions'][0]['state'] == 'SETTLED'
+    assert document['spent_wall_seconds'] >= 7.0
+    assert outcome['session_spent'] >= 7.0
+    # the evidence was captured after the settlement
+    assert outcome['session_evidence']['counter']['sessions'][0]['state'] == 'SETTLED'
+    # an unproven child means no proven cleanup and a nonzero receipt
+    assert outcome['cleanup_proven'] is False
+    assert outcome['exit_code'] != 0
+
+
+def test_a_failed_settlement_keeps_the_anchor_and_the_evidence(tmp_path):
+    """CPU-SETTLE-BEFORE-CLEANUP: a failed settlement keeps a diagnostic marker."""
+    counter = fake_root_counter(tmp_path)
+    path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+    clock = fake_clock()
+    executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest,
+                                   clock=clock)
+    executor.reserve_session()
+    owned = tmp_path / 'owned'
+    owned.mkdir()
+    anchor = tmp_path / 'anchor.json'
+    counter.unlink()
+    counter.mkdir()
+    outcome = RUNNER_MODULE.finalize_session(
+        executor=executor, owned=owned, stdout_handle=GoodHandle(),
+        stderr_handle=GoodHandle(), saved_out=os.dup(1), saved_err=os.dup(2),
+        exit_code=0, source_hasher=lambda: {},
+        remover=lambda path: shutil.rmtree(path), anchor_path=anchor)
+    assert outcome['cleanup_proven'] is False
+    assert outcome['exit_code'] != 0
+    assert any(reason.startswith('SESSION_SETTLEMENT_FAILED')
+               for reason in outcome['failure_reasons'])
+    # the diagnostic anchor survives the failed settlement
+    assert anchor.exists()
+    assert 'lvw.s3-settlement-anchor/1' in anchor.read_text()

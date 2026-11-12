@@ -715,7 +715,12 @@ class FiniteCpuExecutor:
                 # The live original handle is stopped here.  The finalizer
                 # never waits for a young child to reach the watchdog.
                 self._stop_child(entry, deadline)
-            remaining = max(0.0, deadline - self.clock())
+            # The final proof wait uses the *same* absolute child deadline as
+            # the stop.  The lifetime observation of a child therefore never
+            # reaches beyond the per child budget, not even when the stop and
+            # the proof wait both time out.
+            stop_deadline = self._stop_deadline(entry, deadline)
+            remaining = max(0.0, stop_deadline - self.clock())
             exit_code = None
             proven = False
             try:

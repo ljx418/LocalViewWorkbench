@@ -66,7 +66,9 @@
   "lifecycle_corrections": {
     "finalizer_exceptions": "The finalizer is exception safe: every stream, log, hash and removal step is recorded on its own and the process reaper always runs. The root is removed only after a proven cleanup and the removal is verified instead of ignored; any ordinary failure keeps the root, keeps the reservations and cannot retain exit 0.",
     "global_wall_accounting": "The global actual wall is accounted once by the idempotent settlement of the session. The child records keep their own observed lifetime under a truthful label.",
+    "reap_final_wait": "The final proof wait of the reaper uses the same absolute child deadline as the stop, so the lifetime observation of a child never reaches beyond the per child budget even when the stop and the proof wait both time out.",
     "reaper_custody": "At the finalizer revoke the live original handles are terminated and killed with a bounded cleanup that is clipped to the remaining child budget and to the session deadline, before the final wait. An unproven child keeps its occupied charge, keeps the root and keeps the watchdog armed.",
+    "settlement_order": "The terminal accounting is ordered: revoke, stop, final proof wait, source hash, removal, settlement, evidence.  The settlement happens after the hash and the removal, so the global actual wall includes the whole cleanup work.  A control anchor of the session survives until the settlement succeeds and is the diagnostic marker of a failed settlement.",
     "settlement_wiring": "The real finalization settles the session exactly once after the cleanup work and captures the session evidence after the settlement, so the global actual wall of the run reaches the shared counter. An ordinary settlement or counter failure retains the root and yields a nonzero receipt, and the settlement never releases an unknown charge.",
     "termination_deadline": "One absolute stop deadline per child: min(child started + per_process_seconds, session cleanup deadline). The remaining time is recomputed before every wait, the post kill wait included, so the total stop never exceeds the ten second child budget even when both waits time out.",
     "unknown_watchdog": "An unknown live handle stays eligible for the bounded safety action: the watchdog acts on STARTED and on UNKNOWN handles, the charge keeps its slot, the root is retained and the admission stays blocked. The action is bounded by a backoff window and by a declared maximum of attempts, so it is never a busy loop, and no proven cleanup is claimed for an unproven child.",
@@ -175,11 +177,11 @@
       "sha256": "e50d468e8b0adfb05733f5b87b3cff34829c4a8c1aea50c865aa8bdfe4bb150f"
     },
     "source_pins": {
-      "reports/v0-s3/product-gate0/implementation-integration-01/executor.py": "202bdbddfffc464663681f1a5f132ff78a64be8387b909b6084185d520cc17bc",
-      "reports/v0-s3/product-gate0/implementation-integration-01/run_guarded_checks.py": "889e2f891d4c2e59f613344786e25b4c8747930c7868414a72b0412355f79e63",
+      "reports/v0-s3/product-gate0/implementation-integration-01/executor.py": "891e25dd6965b305c0273be88151e487375a0f98c3d779c306ddba78e17ab136",
+      "reports/v0-s3/product-gate0/implementation-integration-01/run_guarded_checks.py": "31ab0956e6e643771258b58f51097babe5f808e024183f39a471e95bd8c6d036",
       "tools/fixtures/v0_s3_supervisor_fixture.py": "f8c8b29d6b280d24d9c1ea9ceccc6db9c4b7df883c700bced472802aa42a9bd3",
       "tools/test_v0_s3_integration.py": "c1a0bb4b45e0380929d986678f425044d5ede4d2ee0b5a7c429ea26ec0e5432c",
-      "tools/test_v0_s3_supervisor.py": "805c65a55632925c6bf84f4fc1f920fc8c4339967b4965d32916810321b6e19d",
+      "tools/test_v0_s3_supervisor.py": "0105b699300f457fa7e0109cbbcd69b325a11713ed8dc9a2b8c2e7407e433642",
       "tools/v0_s2_runtime.py": "a97ea20d02ed80ab4f99f133dd8162331ddba34662bfdcca637fcade40b4dbd2",
       "tools/v0_s2_stage_runtime.py": "cf6ad01d66c0c7885475eedeae5ba66df9bec61bf7281ee511600f6224833e26",
       "tools/v0_s3_coordinator.py": "55dd875c44de3128e4fc64a3ec1729687adb01c94007b8230e71d1717cd7eaf5",

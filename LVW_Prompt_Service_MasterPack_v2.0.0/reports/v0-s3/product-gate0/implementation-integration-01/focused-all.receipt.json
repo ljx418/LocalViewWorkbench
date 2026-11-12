@@ -1,9 +1,9 @@
 {
   "after_source_sha256": {
-    "reports/v0-s3/product-gate0/implementation-integration-01/executor.py": "202bdbddfffc464663681f1a5f132ff78a64be8387b909b6084185d520cc17bc",
+    "reports/v0-s3/product-gate0/implementation-integration-01/executor.py": "891e25dd6965b305c0273be88151e487375a0f98c3d779c306ddba78e17ab136",
     "tools/fixtures/v0_s3_supervisor_fixture.py": "f8c8b29d6b280d24d9c1ea9ceccc6db9c4b7df883c700bced472802aa42a9bd3",
     "tools/test_v0_s3_integration.py": "c1a0bb4b45e0380929d986678f425044d5ede4d2ee0b5a7c429ea26ec0e5432c",
-    "tools/test_v0_s3_supervisor.py": "805c65a55632925c6bf84f4fc1f920fc8c4339967b4965d32916810321b6e19d",
+    "tools/test_v0_s3_supervisor.py": "0105b699300f457fa7e0109cbbcd69b325a11713ed8dc9a2b8c2e7407e433642",
     "tools/v0_s2_runtime.py": "a97ea20d02ed80ab4f99f133dd8162331ddba34662bfdcca637fcade40b4dbd2",
     "tools/v0_s2_stage_runtime.py": "cf6ad01d66c0c7885475eedeae5ba66df9bec61bf7281ee511600f6224833e26",
     "tools/v0_s3_coordinator.py": "55dd875c44de3128e4fc64a3ec1729687adb01c94007b8230e71d1717cd7eaf5",
@@ -16,17 +16,17 @@
     "--mode",
     "focused",
     "--select",
-    "executor or worker or context or charge or session or finalizer or custody or live_child or window or slice or global_wall or unknown or termination or revoked or stop or watchdog or settlement",
+    "executor or worker or context or charge or session or finalizer or custody or live_child or window or slice or global_wall or unknown or termination or revoked or stop or watchdog or settlement or reap or terminal_path or anchor",
     "--label",
     "focused-all",
     "--outdir",
     "reports/v0-s3/product-gate0/implementation-integration-01"
   ],
   "before_source_sha256": {
-    "reports/v0-s3/product-gate0/implementation-integration-01/executor.py": "202bdbddfffc464663681f1a5f132ff78a64be8387b909b6084185d520cc17bc",
+    "reports/v0-s3/product-gate0/implementation-integration-01/executor.py": "891e25dd6965b305c0273be88151e487375a0f98c3d779c306ddba78e17ab136",
     "tools/fixtures/v0_s3_supervisor_fixture.py": "f8c8b29d6b280d24d9c1ea9ceccc6db9c4b7df883c700bced472802aa42a9bd3",
     "tools/test_v0_s3_integration.py": "c1a0bb4b45e0380929d986678f425044d5ede4d2ee0b5a7c429ea26ec0e5432c",
-    "tools/test_v0_s3_supervisor.py": "805c65a55632925c6bf84f4fc1f920fc8c4339967b4965d32916810321b6e19d",
+    "tools/test_v0_s3_supervisor.py": "0105b699300f457fa7e0109cbbcd69b325a11713ed8dc9a2b8c2e7407e433642",
     "tools/v0_s2_runtime.py": "a97ea20d02ed80ab4f99f133dd8162331ddba34662bfdcca637fcade40b4dbd2",
     "tools/v0_s2_stage_runtime.py": "cf6ad01d66c0c7885475eedeae5ba66df9bec61bf7281ee511600f6224833e26",
     "tools/v0_s3_coordinator.py": "55dd875c44de3128e4fc64a3ec1729687adb01c94007b8230e71d1717cd7eaf5",
@@ -37,7 +37,7 @@
   "candidate_sha_claim": "",
   "candidate_sha_claim_is_attestation": false,
   "cleanup_proven": true,
-  "collected_count": 41,
+  "collected_count": 45,
   "collected_nodeids": [
     "tools/test_v0_s3_supervisor.py::test_an_unknown_outcome_retains_the_root_and_the_reservation",
     "tools/test_v0_s3_supervisor.py::test_a_recovery_without_custody_is_blocked",
@@ -79,7 +79,11 @@
     "tools/test_v0_s3_supervisor.py::test_the_stop_is_clipped_to_the_session_deadline",
     "tools/test_v0_s3_supervisor.py::test_the_watchdog_still_acts_on_an_unknown_live_handle",
     "tools/test_v0_s3_supervisor.py::test_the_finalization_settles_the_session_through_the_real_path",
-    "tools/test_v0_s3_supervisor.py::test_a_failing_settlement_keeps_the_root_and_a_nonzero_receipt"
+    "tools/test_v0_s3_supervisor.py::test_a_failing_settlement_keeps_the_root_and_a_nonzero_receipt",
+    "tools/test_v0_s3_supervisor.py::test_the_reap_final_wait_never_passes_the_child_deadline",
+    "tools/test_v0_s3_supervisor.py::test_the_reap_final_wait_is_clipped_to_the_session_deadline",
+    "tools/test_v0_s3_supervisor.py::test_the_whole_terminal_path_is_bounded_and_accounted",
+    "tools/test_v0_s3_supervisor.py::test_a_failed_settlement_keeps_the_anchor_and_the_evidence"
   ],
   "command": [
     "/usr/bin/python3",
@@ -92,7 +96,7 @@
     "--outdir",
     "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-integration-01"
   ],
-  "duration_seconds": 15.717,
+  "duration_seconds": 14.896,
   "executor_session": null,
   "exit_code": 0,
   "failure_reasons": [],
@@ -124,7 +128,7 @@
     "pytest_disable_plugin_autoload": "1"
   },
   "guard_results": null,
-  "guard_root": "/tmp/lvw-s3-integration-ztxdgv83",
+  "guard_root": "/tmp/lvw-s3-integration-d3b1kuj7",
   "imported_modules": {
     "tools.v0_s2_runtime": {
       "module": "tools.v0_s2_runtime",
@@ -167,10 +171,10 @@
   "owned_root_removed": true,
   "product_gate0": false,
   "real_execution_performed": false,
-  "runner_sha256_after": "889e2f891d4c2e59f613344786e25b4c8747930c7868414a72b0412355f79e63",
-  "runner_sha256_before": "889e2f891d4c2e59f613344786e25b4c8747930c7868414a72b0412355f79e63",
+  "runner_sha256_after": "31ab0956e6e643771258b58f51097babe5f808e024183f39a471e95bd8c6d036",
+  "runner_sha256_before": "31ab0956e6e643771258b58f51097babe5f808e024183f39a471e95bd8c6d036",
   "runner_unchanged_during_run": true,
-  "select": "executor or worker or context or charge or session or finalizer or custody or live_child or window or slice or global_wall or unknown or termination or revoked or stop or watchdog or settlement",
+  "select": "executor or worker or context or charge or session or finalizer or custody or live_child or window or slice or global_wall or unknown or termination or revoked or stop or watchdog or settlement or reap or terminal_path or anchor",
   "session_role": null,
   "source_unchanged_during_run": true,
   "stage_pass_claim": false,
@@ -179,5 +183,5 @@
   "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
   "stdout_bytes": 126,
   "stdout_file": "reports/v0-s3/product-gate0/implementation-integration-01/focused-all.stdout.log",
-  "stdout_sha256": "c5094495cd2ddc678a13c5994e404fc70aa0a29b873549d1a2107efa678b4a6b"
+  "stdout_sha256": "67855d4c63a66d6b82aad9313479b8d70e63f7e7bba1dee9858f6e5b912ec66c"
 }

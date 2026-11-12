@@ -101,7 +101,7 @@ PROCESS_GATE = {"executor": None, "starts": 0, "limit": 0, "allowed": []}
 
 def finalize_session(*, executor, owned, stdout_handle, stderr_handle, saved_out,
                      saved_err, exit_code=0, failure_reasons=None, source_hasher=None,
-                     remover=None):
+                     remover=None, anchor_path=None):
     """The mandatory outer finalizer of the runner.
 
     The order is fixed and every step is guarded on its own:
@@ -165,28 +165,6 @@ def finalize_session(*, executor, owned, stdout_handle, stderr_handle, saved_out
                 except Exception as error:  # noqa: BLE001 - the failure stays visible
                     cleanup_proven = False
                     record('REAP_FAILED', error)
-                # The session is settled exactly once, after the cleanup work,
-                # so that the global actual wall of the run reaches the shared
-                # counter.  The settlement never releases an unknown charge.
-                try:
-                    spent = executor.settle_session()
-                    if spent is None:
-                        notes.append('SESSION_SETTLEMENT_ALREADY_APPLIED')
-                    else:
-                        session_spent = spent
-                except Exception as error:  # noqa: BLE001 - the failure stays visible
-                    cleanup_proven = False
-                    record('SESSION_SETTLEMENT_FAILED', error)
-                try:
-                    # The evidence is captured after the settlement.
-                    session_evidence = executor.session_evidence()
-                except Exception as error:  # noqa: BLE001 - the failure stays visible
-                    cleanup_proven = False
-                    record('SESSION_EVIDENCE_FAILED', error)
-                    session_evidence = {'kind': 'lvw.s3-finite-cpu-session/1',
-                                         'status': 'EVIDENCE_FAILED',
-                                         'error_type': type(error).__name__,
-                                         'stage_pass_claim': False}
             after = None
             try:
                 after = source_hasher()
@@ -206,6 +184,50 @@ def finalize_session(*, executor, owned, stdout_handle, stderr_handle, saved_out
                         record('ROOT_REMOVAL_INCOMPLETE')
             else:
                 record('OWNED_ROOT_RETAINED')
+            # The control anchor of the session exists from here on and is
+            # removed only after a successful settlement.  It is the
+            # diagnostic marker that a failed settlement leaves behind.
+            anchor = None
+            if anchor_path is not None:
+                anchor = Path(anchor_path)
+                try:
+                    anchor.parent.mkdir(parents=True, exist_ok=True)
+                    anchor.write_text(json.dumps({'kind': 'lvw.s3-settlement-anchor/1',
+                                                  'session': getattr(executor, 'session_id', None),
+                                                  'root': str(owned),
+                                                  'stage_pass_claim': False},
+                                                 sort_keys=True) + '\n', encoding='utf-8')
+                except Exception as error:  # noqa: BLE001 - the failure stays visible
+                    cleanup_proven = False
+                    record('ANCHOR_WRITE_FAILED', error)
+            # The settlement is the last accounting step: it happens after the
+            # hash and the removal, so the global actual wall of the run
+            # includes the whole cleanup work.
+            if executor is not None:
+                try:
+                    spent = executor.settle_session()
+                    if spent is None:
+                        notes.append('SESSION_SETTLEMENT_ALREADY_APPLIED')
+                    else:
+                        session_spent = spent
+                except Exception as error:  # noqa: BLE001 - the failure stays visible
+                    cleanup_proven = False
+                    record('SESSION_SETTLEMENT_FAILED', error)
+                try:
+                    # The evidence is captured after the settlement.
+                    session_evidence = executor.session_evidence()
+                except Exception as error:  # noqa: BLE001 - the failure stays visible
+                    cleanup_proven = False
+                    record('SESSION_EVIDENCE_FAILED', error)
+                    session_evidence = {'kind': 'lvw.s3-finite-cpu-session/1',
+                                         'status': 'EVIDENCE_FAILED',
+                                         'error_type': type(error).__name__,
+                                         'stage_pass_claim': False}
+            if anchor is not None and anchor.exists() and not failure_reasons:
+                try:
+                    anchor.unlink()
+                except Exception as error:  # noqa: BLE001 - the failure stays visible
+                    record('ANCHOR_REMOVAL_FAILED', error)
     finally:
         if failure_reasons and exit_code == 0:
             exit_code = 4
@@ -456,7 +478,8 @@ def main(argv=None):
         outcome = finalize_session(executor=executor, owned=owned,
                                   stdout_handle=stdout_handle, stderr_handle=stderr_handle,
                                   saved_out=saved_out, saved_err=saved_err,
-                                  exit_code=exit_code, failure_reasons=failure_reasons)
+                                  exit_code=exit_code, failure_reasons=failure_reasons,
+                                  anchor_path=outdir / (arguments.label + '.settlement-anchor.json'))
         exit_code = outcome['exit_code']
         cleanup_proven = outcome['cleanup_proven']
         failure_reasons = outcome['failure_reasons']
