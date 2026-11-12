@@ -205,7 +205,7 @@ def main():
 
     # ---- m01: a non finite release evidence -----------------------------
     def nonfinite_release():
-        local, local_driver, _ = t._prepare(ROOT / "nanrelease")
+        local, local_driver, _ = t._prepare(ROOT / "nanrelease", failure="release-nan")
         try:
             evidence = local._release_evidence({"asset_id": "probe"})
             return {"accepted": evidence["proven"]}
