@@ -1,0 +1,37 @@
+{
+  "kind": "FINITE_READ_ONLY_WFP_CAPABILITY_CHILD",
+  "authorization_id": "S3-A06-WFP-READ-01",
+  "parent": "AUTH-PROGRAM-V1-COMPLETE-03",
+  "parent_approval": "reports/authorization-program-v1-complete-03.approval.json",
+  "parent_approval_sha256": "cd919c7fd24c24e2740366ef11998fee1b3302f16700598a3a5f75c6ef1b0821",
+  "parent_request": "reports/authorization-program-v1-complete-03.request.json",
+  "candidate_sha": "af4f052478d9186234b13b1c1081754edaf69bab",
+  "executor_sha256": "1db1a7f0c5555a1b6058cc5a2435e06dd389da1e5d3b9515bf9d644d64d36c01",
+  "native_probe_sha256": "7188207e3cbc80b71f7fc94b2e8835b311704dd5cce2eb49bba72dc15f4d3122",
+  "native_python_sha256": "4d6f5f81a4bca11191c4c7c6b43632694d0a4ce74e068619d8fdc161d469859a",
+  "claim_path": "/mnt/c/workSpace/videoWorkLine/.lvw-runtime/lvw-prompt-service/cpu-verification-claims/S3-A06-WFP-READ-01.claim.json",
+  "command": [
+    "/mnt/c/ComfyUI-aki-v2/python/python.exe",
+    "-I",
+    "-S",
+    "-B",
+    "-c",
+    "import ctypes,json,os\nfrom ctypes import wintypes as W\nclass V(ctypes.Union):\n _fields_=[('u32',W.UINT),('ptr',ctypes.c_void_p)]\nclass VALUE(ctypes.Structure):\n _fields_=[('type',W.UINT),('value',V)]\nf=ctypes.WinDLL('fwpuclnt.dll');h=ctypes.c_void_p();v=ctypes.POINTER(VALUE)()\nf.FwpmEngineOpen0.argtypes=[W.LPCWSTR,W.UINT,ctypes.c_void_p,ctypes.c_void_p,ctypes.POINTER(ctypes.c_void_p)];f.FwpmEngineOpen0.restype=W.DWORD\nf.FwpmEngineGetOption0.argtypes=[ctypes.c_void_p,W.UINT,ctypes.POINTER(ctypes.POINTER(VALUE))];f.FwpmEngineGetOption0.restype=W.DWORD\nf.FwpmFreeMemory0.argtypes=[ctypes.c_void_p];f.FwpmEngineClose0.argtypes=[ctypes.c_void_p];f.FwpmEngineClose0.restype=W.DWORD\nout={'native_pid':os.getpid(),'is_admin':bool(ctypes.windll.shell32.IsUserAnAdmin()),'open_result':None,'get_option_result':None,'value_type':None,'collect_net_events':None,'close_result':None,'mutation_calls':0}\ntry:\n out['open_result']=int(f.FwpmEngineOpen0(None,10,None,None,ctypes.byref(h)))\n if out['open_result']==0:\n  out['get_option_result']=int(f.FwpmEngineGetOption0(h,0,ctypes.byref(v)))\n  if out['get_option_result']==0 and bool(v):\n   out['value_type']=int(v.contents.type)\n   if out['value_type']==3:out['collect_net_events']=int(v.contents.value.u32)\nfinally:\n if bool(v):f.FwpmFreeMemory0(ctypes.byref(v))\n if h.value:out['close_result']=int(f.FwpmEngineClose0(h))\nprint(json.dumps(out,separators=(',',':')))\n"
+  ],
+  "budgets": {
+    "native_processes": 1,
+    "native_seconds": 8,
+    "native_output_bytes": 4096,
+    "native_python_hash_bytes": 104952,
+    "models": 0,
+    "media": 0,
+    "network": 0,
+    "gpu": 0,
+    "services": 0,
+    "system_changes": 0,
+    "production_ledger": 0,
+    "full_checkpoints": 0
+  },
+  "scope": "Current token admin bool, local WFP engine Open/GetOption(COLLECT_NET_EVENTS)/FreeMemory/Close only. No mutation/filter/subscribe/ACL/elevation/shell/services/network/media/model. One native call batch, no retries, terminal expiry. Documentation does not prove privilege or runtime isolation.",
+  "stage_pass_claim": false
+}

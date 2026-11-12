@@ -1,0 +1,11 @@
+{
+  "argv": [
+    "/mnt/c/ComfyUI-aki-v2/python/python.exe",
+    "-I",
+    "-S",
+    "-B",
+    "-c",
+    "import ctypes,json,os\nfrom ctypes import wintypes as W\nclass V(ctypes.Union):\n _fields_=[('u32',W.UINT),('ptr',ctypes.c_void_p)]\nclass VALUE(ctypes.Structure):\n _fields_=[('type',W.UINT),('value',V)]\nf=ctypes.WinDLL('fwpuclnt.dll');h=ctypes.c_void_p();v=ctypes.POINTER(VALUE)()\nf.FwpmEngineOpen0.argtypes=[W.LPCWSTR,W.UINT,ctypes.c_void_p,ctypes.c_void_p,ctypes.POINTER(ctypes.c_void_p)];f.FwpmEngineOpen0.restype=W.DWORD\nf.FwpmEngineGetOption0.argtypes=[ctypes.c_void_p,W.UINT,ctypes.POINTER(ctypes.POINTER(VALUE))];f.FwpmEngineGetOption0.restype=W.DWORD\nf.FwpmFreeMemory0.argtypes=[ctypes.c_void_p];f.FwpmEngineClose0.argtypes=[ctypes.c_void_p];f.FwpmEngineClose0.restype=W.DWORD\nout={'native_pid':os.getpid(),'is_admin':bool(ctypes.windll.shell32.IsUserAnAdmin()),'open_result':None,'get_option_result':None,'value_type':None,'collect_net_events':None,'close_result':None,'mutation_calls':0}\ntry:\n out['open_result']=int(f.FwpmEngineOpen0(None,10,None,None,ctypes.byref(h)))\n if out['open_result']==0:\n  out['get_option_result']=int(f.FwpmEngineGetOption0(h,0,ctypes.byref(v)))\n  if out['get_option_result']==0 and bool(v):\n   out['value_type']=int(v.contents.type)\n   if out['value_type']==3:out['collect_net_events']=int(v.contents.value.u32)\nfinally:\n if bool(v):f.FwpmFreeMemory0(ctypes.byref(v))\n if h.value:out['close_result']=int(f.FwpmEngineClose0(h))\nprint(json.dumps(out,separators=(',',':')))\n"
+  ],
+  "timeout_seconds": 8
+}

@@ -1,0 +1,22 @@
+import ctypes,json,os
+from ctypes import wintypes as W
+class V(ctypes.Union):
+ _fields_=[('u32',W.UINT),('ptr',ctypes.c_void_p)]
+class VALUE(ctypes.Structure):
+ _fields_=[('type',W.UINT),('value',V)]
+f=ctypes.WinDLL('fwpuclnt.dll');h=ctypes.c_void_p();v=ctypes.POINTER(VALUE)()
+f.FwpmEngineOpen0.argtypes=[W.LPCWSTR,W.UINT,ctypes.c_void_p,ctypes.c_void_p,ctypes.POINTER(ctypes.c_void_p)];f.FwpmEngineOpen0.restype=W.DWORD
+f.FwpmEngineGetOption0.argtypes=[ctypes.c_void_p,W.UINT,ctypes.POINTER(ctypes.POINTER(VALUE))];f.FwpmEngineGetOption0.restype=W.DWORD
+f.FwpmFreeMemory0.argtypes=[ctypes.c_void_p];f.FwpmEngineClose0.argtypes=[ctypes.c_void_p];f.FwpmEngineClose0.restype=W.DWORD
+out={'native_pid':os.getpid(),'is_admin':bool(ctypes.windll.shell32.IsUserAnAdmin()),'open_result':None,'get_option_result':None,'value_type':None,'collect_net_events':None,'close_result':None,'mutation_calls':0}
+try:
+ out['open_result']=int(f.FwpmEngineOpen0(None,10,None,None,ctypes.byref(h)))
+ if out['open_result']==0:
+  out['get_option_result']=int(f.FwpmEngineGetOption0(h,0,ctypes.byref(v)))
+  if out['get_option_result']==0 and bool(v):
+   out['value_type']=int(v.contents.type)
+   if out['value_type']==3:out['collect_net_events']=int(v.contents.value.u32)
+finally:
+ if bool(v):f.FwpmFreeMemory0(ctypes.byref(v))
+ if h.value:out['close_result']=int(f.FwpmEngineClose0(h))
+print(json.dumps(out,separators=(',',':')))
