@@ -1,0 +1,872 @@
+{
+  "root_baseline": "56832a43a2beb05f03ea7a00a66e198acfdd19f7",
+  "candidate": "93d72f9de7c8bc9b88760ed9daef9fb7fd6f8c1f",
+  "execution_control_fields_equal": {
+    "coordinate": true,
+    "target_version": true,
+    "next_delivery_target": true,
+    "development_outline": true,
+    "last_passed_gate": true,
+    "current_blocking_gate": true,
+    "implementation_routing": true,
+    "human_signoff": true,
+    "product_acceptance": true,
+    "implementation_candidate": true,
+    "stop_report_policy": true
+  },
+  "baseline_declared_sources": {
+    "contracts/openapi.json": {
+      "baseline": "cd9df1bd94a3c4c27476608e4616e9d73e0b64da653973b1225efd902e0eef31",
+      "candidate": "cd9df1bd94a3c4c27476608e4616e9d73e0b64da653973b1225efd902e0eef31",
+      "declared": "cd9df1bd94a3c4c27476608e4616e9d73e0b64da653973b1225efd902e0eef31",
+      "equal": true
+    },
+    "contracts/lvw.schema.json": {
+      "baseline": "4c0e3383bfa8aa69dfabd323ecb0697ee4d4ddfa51c154eb15baf7107750f718",
+      "candidate": "4c0e3383bfa8aa69dfabd323ecb0697ee4d4ddfa51c154eb15baf7107750f718",
+      "declared": "4c0e3383bfa8aa69dfabd323ecb0697ee4d4ddfa51c154eb15baf7107750f718",
+      "equal": true
+    },
+    "contracts/job.schema.json": {
+      "baseline": "295800120684f1c5903a0453b55cdafb393ad88672ed68b57e21b4fe1d516829",
+      "candidate": "295800120684f1c5903a0453b55cdafb393ad88672ed68b57e21b4fe1d516829",
+      "declared": "295800120684f1c5903a0453b55cdafb393ad88672ed68b57e21b4fe1d516829",
+      "equal": true
+    },
+    "contracts/storage.sql": {
+      "baseline": "a2204821fe77225dacb515e761bccfdcb42e42d3296ec8ba26354b60f17029f8",
+      "candidate": "a2204821fe77225dacb515e761bccfdcb42e42d3296ec8ba26354b60f17029f8",
+      "declared": "a2204821fe77225dacb515e761bccfdcb42e42d3296ec8ba26354b60f17029f8",
+      "equal": true
+    },
+    "plans/requirements.json": {
+      "baseline": "e2c1cc1f9a94e8caf29a6e25dec510dec1c790986e61bf2a6b0a58c373430941",
+      "candidate": "e2c1cc1f9a94e8caf29a6e25dec510dec1c790986e61bf2a6b0a58c373430941",
+      "declared": "e2c1cc1f9a94e8caf29a6e25dec510dec1c790986e61bf2a6b0a58c373430941",
+      "equal": true
+    },
+    "plans/acceptance_cases.json": {
+      "baseline": "44b3aee3f9418aa297b5b4a8756df3195ae3065dc5d5c2966b770b04b8f8ca94",
+      "candidate": "44b3aee3f9418aa297b5b4a8756df3195ae3065dc5d5c2966b770b04b8f8ca94",
+      "declared": "44b3aee3f9418aa297b5b4a8756df3195ae3065dc5d5c2966b770b04b8f8ca94",
+      "equal": true
+    },
+    "plans/release_gates.json": {
+      "baseline": "33f9565fc801e350e76ec7c16a836dec953b80746203a1aadf38e5695b05a24c",
+      "candidate": "33f9565fc801e350e76ec7c16a836dec953b80746203a1aadf38e5695b05a24c",
+      "declared": "33f9565fc801e350e76ec7c16a836dec953b80746203a1aadf38e5695b05a24c",
+      "equal": true
+    },
+    "plans/tasks.json": {
+      "baseline": "d5f9b332b3af7c32a4c554a2f21fae2214be8d0027cb9ee193b779cf847bf42c",
+      "candidate": "d5f9b332b3af7c32a4c554a2f21fae2214be8d0027cb9ee193b779cf847bf42c",
+      "declared": "d5f9b332b3af7c32a4c554a2f21fae2214be8d0027cb9ee193b779cf847bf42c",
+      "equal": true
+    },
+    "plans/requirement_coverage.json": {
+      "baseline": "120a28803e8c8ae8e42f175868af6921bb92f2423122bdd2fe22978a44022702",
+      "candidate": "120a28803e8c8ae8e42f175868af6921bb92f2423122bdd2fe22978a44022702",
+      "declared": "120a28803e8c8ae8e42f175868af6921bb92f2423122bdd2fe22978a44022702",
+      "equal": true
+    },
+    "plans/v1-revised-plan.json": {
+      "baseline": "5677a11bbf5b61759bd1f98181bee3bd43211c402f39a7f514fda55a679bb3ef",
+      "candidate": "5677a11bbf5b61759bd1f98181bee3bd43211c402f39a7f514fda55a679bb3ef",
+      "declared": "5677a11bbf5b61759bd1f98181bee3bd43211c402f39a7f514fda55a679bb3ef",
+      "equal": true
+    },
+    "plans/v1-multishot-contract.json": {
+      "baseline": "61338be990366d995e8b3814b2e49b136475b669378ead4c2f421c4c386070f8",
+      "candidate": "61338be990366d995e8b3814b2e49b136475b669378ead4c2f421c4c386070f8",
+      "declared": "61338be990366d995e8b3814b2e49b136475b669378ead4c2f421c4c386070f8",
+      "equal": true
+    },
+    "lvw/backend/app/media.py": {
+      "baseline": "7ab26a283b9faa45bfc361702e2106eb9c0e46094225f3f64212b9fbaedc4607",
+      "candidate": "7ab26a283b9faa45bfc361702e2106eb9c0e46094225f3f64212b9fbaedc4607",
+      "declared": "7ab26a283b9faa45bfc361702e2106eb9c0e46094225f3f64212b9fbaedc4607",
+      "equal": true
+    },
+    "lvw/backend/app/service.py": {
+      "baseline": "920938f173f783449e87a0aa6109867ee71ce81ec2306286c55380f0b6698e99",
+      "candidate": "920938f173f783449e87a0aa6109867ee71ce81ec2306286c55380f0b6698e99",
+      "declared": "920938f173f783449e87a0aa6109867ee71ce81ec2306286c55380f0b6698e99",
+      "equal": true
+    },
+    "lvw/backend/app/video_kernel.py": {
+      "baseline": "79ee442fa20746037cc2f13e2fcfc2b468610661296421ee7f93dd9effcd1879",
+      "candidate": "79ee442fa20746037cc2f13e2fcfc2b468610661296421ee7f93dd9effcd1879",
+      "declared": "79ee442fa20746037cc2f13e2fcfc2b468610661296421ee7f93dd9effcd1879",
+      "equal": true
+    },
+    "lvw/backend/app/models.py": {
+      "baseline": "c822649d8de6cd37e0699ca16c5402d2c3221ea2e8a0f84cdece4ccc5f94c2bf",
+      "candidate": "c822649d8de6cd37e0699ca16c5402d2c3221ea2e8a0f84cdece4ccc5f94c2bf",
+      "declared": "c822649d8de6cd37e0699ca16c5402d2c3221ea2e8a0f84cdece4ccc5f94c2bf",
+      "equal": true
+    },
+    ".agent-governance/stages/R1/00-coordinate.md": {
+      "baseline": "38e24416fe559f90e889bb1eb1a9563390cd144bae6b71ea59014bc7fa2ba4f6",
+      "candidate": "38e24416fe559f90e889bb1eb1a9563390cd144bae6b71ea59014bc7fa2ba4f6",
+      "declared": "38e24416fe559f90e889bb1eb1a9563390cd144bae6b71ea59014bc7fa2ba4f6",
+      "equal": true
+    },
+    ".agent-governance/stages/R1/01-scope-and-non-goals.md": {
+      "baseline": "cc5db4b9088273ca74c8c68a9fd54f86c2dfec953c63fb438b287b2b09f1a79d",
+      "candidate": "cc5db4b9088273ca74c8c68a9fd54f86c2dfec953c63fb438b287b2b09f1a79d",
+      "declared": "cc5db4b9088273ca74c8c68a9fd54f86c2dfec953c63fb438b287b2b09f1a79d",
+      "equal": true
+    },
+    ".agent-governance/stages/R1/02-architecture-and-ownership.md": {
+      "baseline": "381b97ac23a589a7f43f799fbc9fd49e0993ad2bf8c33f324da094208d8290c3",
+      "candidate": "381b97ac23a589a7f43f799fbc9fd49e0993ad2bf8c33f324da094208d8290c3",
+      "declared": "381b97ac23a589a7f43f799fbc9fd49e0993ad2bf8c33f324da094208d8290c3",
+      "equal": true
+    },
+    ".agent-governance/stages/R1/03-workpack-plan.md": {
+      "baseline": "12499c56e65737ce073489294dbe7eeba89f10a22ea822db6686514e5d5c324d",
+      "candidate": "12499c56e65737ce073489294dbe7eeba89f10a22ea822db6686514e5d5c324d",
+      "declared": "12499c56e65737ce073489294dbe7eeba89f10a22ea822db6686514e5d5c324d",
+      "equal": true
+    },
+    ".agent-governance/stages/R1/04-acceptance-matrix.md": {
+      "baseline": "b1ac071846b3ebe2a00c85c79f617128038ed2875e7cac340ddcd271bb02d2f8",
+      "candidate": "b1ac071846b3ebe2a00c85c79f617128038ed2875e7cac340ddcd271bb02d2f8",
+      "declared": "b1ac071846b3ebe2a00c85c79f617128038ed2875e7cac340ddcd271bb02d2f8",
+      "equal": true
+    },
+    ".agent-governance/stages/R1/05-risk-and-authorization-register.md": {
+      "baseline": "c3f52853373d903f12cd266571600453be3f71c4ec766556b76c7feb1f7d08a5",
+      "candidate": "c3f52853373d903f12cd266571600453be3f71c4ec766556b76c7feb1f7d08a5",
+      "declared": "c3f52853373d903f12cd266571600453be3f71c4ec766556b76c7feb1f7d08a5",
+      "equal": true
+    },
+    ".agent-governance/stages/R1/06-implementation-prompt.md": {
+      "baseline": "de5dbd9094be19497abd0091abf56e6bb8400eedbc827b0fa11f33fcab7a3d8d",
+      "candidate": "de5dbd9094be19497abd0091abf56e6bb8400eedbc827b0fa11f33fcab7a3d8d",
+      "declared": "de5dbd9094be19497abd0091abf56e6bb8400eedbc827b0fa11f33fcab7a3d8d",
+      "equal": true
+    },
+    ".agent-governance/stages/R1/07-checkpoint-plan.md": {
+      "baseline": "4fa721ac3b0378c09c6fadace24970b9c070a7288f74dafa03b5e5f5aa74cc5f",
+      "candidate": "4fa721ac3b0378c09c6fadace24970b9c070a7288f74dafa03b5e5f5aa74cc5f",
+      "declared": "4fa721ac3b0378c09c6fadace24970b9c070a7288f74dafa03b5e5f5aa74cc5f",
+      "equal": true
+    },
+    ".agent-governance/stages/R1/09-real-acceptance-recipe.json": {
+      "baseline": "6b34e52972f25c224141869d42f67f416b39bca3839993c5163e8ea06b38ee7f",
+      "candidate": "6b34e52972f25c224141869d42f67f416b39bca3839993c5163e8ea06b38ee7f",
+      "declared": "6b34e52972f25c224141869d42f67f416b39bca3839993c5163e8ea06b38ee7f",
+      "equal": true
+    },
+    ".agent-governance/stages/R1/PAYLOAD_MANIFEST.sha256": {
+      "baseline": "38ca0ae572cc74a412a411635e04f21bce3fdcd29d51456fde677f188dd9f307",
+      "candidate": "38ca0ae572cc74a412a411635e04f21bce3fdcd29d51456fde677f188dd9f307",
+      "declared": "38ca0ae572cc74a412a411635e04f21bce3fdcd29d51456fde677f188dd9f307",
+      "equal": true
+    },
+    ".agent-governance/stages/R1/stage-control.json": {
+      "baseline": "7e916cb639c8a1a29169b62c5eb09cff69835232c052eb01cd60796d42461aaa",
+      "candidate": "7e916cb639c8a1a29169b62c5eb09cff69835232c052eb01cd60796d42461aaa",
+      "declared": "7e916cb639c8a1a29169b62c5eb09cff69835232c052eb01cd60796d42461aaa",
+      "equal": true
+    },
+    ".agent-governance/stages/R1a/00-coordinate.md": {
+      "baseline": "25f4f066ebe9351f1afe7e11f7bafb0a28dc12d6b6b515aeccf0c6d3845ecd07",
+      "candidate": "25f4f066ebe9351f1afe7e11f7bafb0a28dc12d6b6b515aeccf0c6d3845ecd07",
+      "declared": "25f4f066ebe9351f1afe7e11f7bafb0a28dc12d6b6b515aeccf0c6d3845ecd07",
+      "equal": true
+    },
+    ".agent-governance/stages/R1a/01-scope-and-non-goals.md": {
+      "baseline": "5c04d89110bd59d99b04a9d9c21c06e4385eeed00629bdd23e03d8ec79b6fe0e",
+      "candidate": "5c04d89110bd59d99b04a9d9c21c06e4385eeed00629bdd23e03d8ec79b6fe0e",
+      "declared": "5c04d89110bd59d99b04a9d9c21c06e4385eeed00629bdd23e03d8ec79b6fe0e",
+      "equal": true
+    },
+    ".agent-governance/stages/R1a/02-architecture-and-ownership.md": {
+      "baseline": "770c154959f56e472f18fbb29e83b5ea2a5162ebaa10b07bcd7ee108d27530d5",
+      "candidate": "770c154959f56e472f18fbb29e83b5ea2a5162ebaa10b07bcd7ee108d27530d5",
+      "declared": "770c154959f56e472f18fbb29e83b5ea2a5162ebaa10b07bcd7ee108d27530d5",
+      "equal": true
+    },
+    ".agent-governance/stages/R1a/03-workpack-plan.md": {
+      "baseline": "4e0e38e656a8a6a5d16ae188b86228bb21a3c06e1fe9d776cd62cafe3e241a4f",
+      "candidate": "4e0e38e656a8a6a5d16ae188b86228bb21a3c06e1fe9d776cd62cafe3e241a4f",
+      "declared": "4e0e38e656a8a6a5d16ae188b86228bb21a3c06e1fe9d776cd62cafe3e241a4f",
+      "equal": true
+    },
+    ".agent-governance/stages/R1a/04-acceptance-matrix.md": {
+      "baseline": "a6cf801089dbe5f8112388194fd2193119bfc0cba37cb71df607d73706d197b8",
+      "candidate": "a6cf801089dbe5f8112388194fd2193119bfc0cba37cb71df607d73706d197b8",
+      "declared": "a6cf801089dbe5f8112388194fd2193119bfc0cba37cb71df607d73706d197b8",
+      "equal": true
+    },
+    ".agent-governance/stages/R1a/05-risk-and-authorization-register.md": {
+      "baseline": "3feae31d00d76290e0540e8049ac682c9b0ab227165bb864dd72895c5fddb948",
+      "candidate": "3feae31d00d76290e0540e8049ac682c9b0ab227165bb864dd72895c5fddb948",
+      "declared": "3feae31d00d76290e0540e8049ac682c9b0ab227165bb864dd72895c5fddb948",
+      "equal": true
+    },
+    ".agent-governance/stages/R1a/06-implementation-prompt.md": {
+      "baseline": "cc95456fd18ae94b211a81a57eccb85453e058953e72b606f4743f1e8b3c767c",
+      "candidate": "cc95456fd18ae94b211a81a57eccb85453e058953e72b606f4743f1e8b3c767c",
+      "declared": "cc95456fd18ae94b211a81a57eccb85453e058953e72b606f4743f1e8b3c767c",
+      "equal": true
+    },
+    ".agent-governance/stages/R1a/07-checkpoint-plan.md": {
+      "baseline": "87631ccc0b51025f698e9a928aef6deee31c15fad655bcafe2fcbcec9a81d6bf",
+      "candidate": "87631ccc0b51025f698e9a928aef6deee31c15fad655bcafe2fcbcec9a81d6bf",
+      "declared": "87631ccc0b51025f698e9a928aef6deee31c15fad655bcafe2fcbcec9a81d6bf",
+      "equal": true
+    },
+    ".agent-governance/stages/R1a/PAYLOAD_MANIFEST.sha256": {
+      "baseline": "d995414f6e5ac4832ae3b2349d0de055f9cecf35fa895393bb8cab2ea93b0feb",
+      "candidate": "d995414f6e5ac4832ae3b2349d0de055f9cecf35fa895393bb8cab2ea93b0feb",
+      "declared": "d995414f6e5ac4832ae3b2349d0de055f9cecf35fa895393bb8cab2ea93b0feb",
+      "equal": true
+    },
+    ".agent-governance/stages/R1a/stage-control.json": {
+      "baseline": "108ddb85a8f1f75ffc54fdb0ed5afd75c8a8471d77e0805136a9b7e95d16bf4a",
+      "candidate": "108ddb85a8f1f75ffc54fdb0ed5afd75c8a8471d77e0805136a9b7e95d16bf4a",
+      "declared": "108ddb85a8f1f75ffc54fdb0ed5afd75c8a8471d77e0805136a9b7e95d16bf4a",
+      "equal": true
+    },
+    ".agent-governance/stages/V0-S0/00-coordinate.md": {
+      "baseline": "baf91dbe555670bc53ed39d482237748157bcaeacdd831791c051747c0ab39ff",
+      "candidate": "baf91dbe555670bc53ed39d482237748157bcaeacdd831791c051747c0ab39ff",
+      "declared": "baf91dbe555670bc53ed39d482237748157bcaeacdd831791c051747c0ab39ff",
+      "equal": true
+    },
+    ".agent-governance/stages/V0-S0/01-scope-and-non-goals.md": {
+      "baseline": "ca5d75d7f5d3827e40f8730b37bca281daac628e7d68959aed79d72ed5ecc913",
+      "candidate": "ca5d75d7f5d3827e40f8730b37bca281daac628e7d68959aed79d72ed5ecc913",
+      "declared": "ca5d75d7f5d3827e40f8730b37bca281daac628e7d68959aed79d72ed5ecc913",
+      "equal": true
+    },
+    ".agent-governance/stages/V0-S0/02-architecture-and-ownership.md": {
+      "baseline": "ccc374f35b6d0bc920b60f679dad4dddfa04f1442e7994b86dbf16f079416a89",
+      "candidate": "ccc374f35b6d0bc920b60f679dad4dddfa04f1442e7994b86dbf16f079416a89",
+      "declared": "ccc374f35b6d0bc920b60f679dad4dddfa04f1442e7994b86dbf16f079416a89",
+      "equal": true
+    },
+    ".agent-governance/stages/V0-S0/03-workpack-plan.md": {
+      "baseline": "32d99f4519191a563da95ad672303b2aaeb8a38aab52f00c18a280c755129736",
+      "candidate": "32d99f4519191a563da95ad672303b2aaeb8a38aab52f00c18a280c755129736",
+      "declared": "32d99f4519191a563da95ad672303b2aaeb8a38aab52f00c18a280c755129736",
+      "equal": true
+    },
+    ".agent-governance/stages/V0-S0/04-acceptance-matrix.md": {
+      "baseline": "3eb130d36dd1c469968214e032b1f25d2c05cde349ca425dac0f8e13ce2142e2",
+      "candidate": "3eb130d36dd1c469968214e032b1f25d2c05cde349ca425dac0f8e13ce2142e2",
+      "declared": "3eb130d36dd1c469968214e032b1f25d2c05cde349ca425dac0f8e13ce2142e2",
+      "equal": true
+    },
+    ".agent-governance/stages/V0-S0/05-risk-and-authorization-register.md": {
+      "baseline": "6cb826defda2badb1afb80cd271a22bb02e3be579e86eb4f02babdbf44cb9393",
+      "candidate": "6cb826defda2badb1afb80cd271a22bb02e3be579e86eb4f02babdbf44cb9393",
+      "declared": "6cb826defda2badb1afb80cd271a22bb02e3be579e86eb4f02babdbf44cb9393",
+      "equal": true
+    },
+    ".agent-governance/stages/V0-S0/06-implementation-prompt.md": {
+      "baseline": "aae09ce9d12e2c85eb79a9873ba3ca2f484f140881895e68aecb7eb695750931",
+      "candidate": "aae09ce9d12e2c85eb79a9873ba3ca2f484f140881895e68aecb7eb695750931",
+      "declared": "aae09ce9d12e2c85eb79a9873ba3ca2f484f140881895e68aecb7eb695750931",
+      "equal": true
+    },
+    ".agent-governance/stages/V0-S0/07-checkpoint-plan.md": {
+      "baseline": "d667870183c89f7be4d525f66cf47072d092115a2653323c69aecd4a6d745c9e",
+      "candidate": "d667870183c89f7be4d525f66cf47072d092115a2653323c69aecd4a6d745c9e",
+      "declared": "d667870183c89f7be4d525f66cf47072d092115a2653323c69aecd4a6d745c9e",
+      "equal": true
+    },
+    ".agent-governance/stages/V0-S0/PAYLOAD_MANIFEST.sha256": {
+      "baseline": "26270b36d399f779da0ac31d27a17be93ac9f8e26c687c942e3449671a1224e9",
+      "candidate": "26270b36d399f779da0ac31d27a17be93ac9f8e26c687c942e3449671a1224e9",
+      "declared": "26270b36d399f779da0ac31d27a17be93ac9f8e26c687c942e3449671a1224e9",
+      "equal": true
+    },
+    ".agent-governance/stages/V0-S0/stage-control.json": {
+      "baseline": "50aaa81a57530d431fef5d95d3b2d273ad0b3aa2c856cc4dfa9fc08e47c17fc2",
+      "candidate": "50aaa81a57530d431fef5d95d3b2d273ad0b3aa2c856cc4dfa9fc08e47c17fc2",
+      "declared": "50aaa81a57530d431fef5d95d3b2d273ad0b3aa2c856cc4dfa9fc08e47c17fc2",
+      "equal": true
+    },
+    ".agent-governance/stages/V0-S1/00-coordinate.md": {
+      "baseline": "6a4831da742f2237581eb27f0fc6390a1067c3977ef5d95e7cc925f40fe21d7f",
+      "candidate": "6a4831da742f2237581eb27f0fc6390a1067c3977ef5d95e7cc925f40fe21d7f",
+      "declared": "6a4831da742f2237581eb27f0fc6390a1067c3977ef5d95e7cc925f40fe21d7f",
+      "equal": true
+    },
+    ".agent-governance/stages/V0-S1/01-scope-and-non-goals.md": {
+      "baseline": "5232a972bcd5e85939be1a6e191b9f979b712c8835698ee58b7b2f326f2cc323",
+      "candidate": "5232a972bcd5e85939be1a6e191b9f979b712c8835698ee58b7b2f326f2cc323",
+      "declared": "5232a972bcd5e85939be1a6e191b9f979b712c8835698ee58b7b2f326f2cc323",
+      "equal": true
+    },
+    ".agent-governance/stages/V0-S1/02-architecture-and-ownership.md": {
+      "baseline": "e98bda7bbe904d84f0ea38184d048cf6059a4341ab2cb0e2e21f24dfcaec82a0",
+      "candidate": "e98bda7bbe904d84f0ea38184d048cf6059a4341ab2cb0e2e21f24dfcaec82a0",
+      "declared": "e98bda7bbe904d84f0ea38184d048cf6059a4341ab2cb0e2e21f24dfcaec82a0",
+      "equal": true
+    },
+    ".agent-governance/stages/V0-S1/03-workpack-plan.md": {
+      "baseline": "e2cc61d8bd84f814a0f1c5419d05d0d549d673cb3e20cccb14bfafb681ced8e7",
+      "candidate": "e2cc61d8bd84f814a0f1c5419d05d0d549d673cb3e20cccb14bfafb681ced8e7",
+      "declared": "e2cc61d8bd84f814a0f1c5419d05d0d549d673cb3e20cccb14bfafb681ced8e7",
+      "equal": true
+    },
+    ".agent-governance/stages/V0-S1/04-acceptance-matrix.md": {
+      "baseline": "d29647d862a640747297aae82de98272eb78c79d97ed7fb9a0f9fc4eb0fb2883",
+      "candidate": "d29647d862a640747297aae82de98272eb78c79d97ed7fb9a0f9fc4eb0fb2883",
+      "declared": "d29647d862a640747297aae82de98272eb78c79d97ed7fb9a0f9fc4eb0fb2883",
+      "equal": true
+    },
+    ".agent-governance/stages/V0-S1/05-risk-and-authorization-register.md": {
+      "baseline": "d30f816f189a4aead3586adce19af7fad22075c7d26b2284b1430d5b4345af79",
+      "candidate": "d30f816f189a4aead3586adce19af7fad22075c7d26b2284b1430d5b4345af79",
+      "declared": "d30f816f189a4aead3586adce19af7fad22075c7d26b2284b1430d5b4345af79",
+      "equal": true
+    },
+    ".agent-governance/stages/V0-S1/06-implementation-prompt.md": {
+      "baseline": "dda5e2a38f904b5acb81358ffedb1d30a356233ad98a4af5dfbb66c8c7157ab7",
+      "candidate": "dda5e2a38f904b5acb81358ffedb1d30a356233ad98a4af5dfbb66c8c7157ab7",
+      "declared": "dda5e2a38f904b5acb81358ffedb1d30a356233ad98a4af5dfbb66c8c7157ab7",
+      "equal": true
+    },
+    ".agent-governance/stages/V0-S1/07-checkpoint-plan.md": {
+      "baseline": "b4be196967fb66e948dd6c930cf4fb5843e4cb41a47e70c9936b6f9d374daa93",
+      "candidate": "b4be196967fb66e948dd6c930cf4fb5843e4cb41a47e70c9936b6f9d374daa93",
+      "declared": "b4be196967fb66e948dd6c930cf4fb5843e4cb41a47e70c9936b6f9d374daa93",
+      "equal": true
+    },
+    ".agent-governance/stages/V0-S1/PAYLOAD_MANIFEST.sha256": {
+      "baseline": "14e43d2fe2534478449104c872b6c53f36778015256897d6461b24be915f19a9",
+      "candidate": "14e43d2fe2534478449104c872b6c53f36778015256897d6461b24be915f19a9",
+      "declared": "14e43d2fe2534478449104c872b6c53f36778015256897d6461b24be915f19a9",
+      "equal": true
+    },
+    ".agent-governance/stages/V0-S1/stage-control.json": {
+      "baseline": "52f8be58dfb95e55cb080629fccd3add9ba5fa7ee19d97af42f8e5629d118d21",
+      "candidate": "52f8be58dfb95e55cb080629fccd3add9ba5fa7ee19d97af42f8e5629d118d21",
+      "declared": "52f8be58dfb95e55cb080629fccd3add9ba5fa7ee19d97af42f8e5629d118d21",
+      "equal": true
+    },
+    ".agent-governance/stages/V0-S2/00-coordinate.md": {
+      "baseline": "5930d0f5de02f18fbb5a25531f6660de9b9d6946aa528f07d3a9eae2366cbc1e",
+      "candidate": "5930d0f5de02f18fbb5a25531f6660de9b9d6946aa528f07d3a9eae2366cbc1e",
+      "declared": "5930d0f5de02f18fbb5a25531f6660de9b9d6946aa528f07d3a9eae2366cbc1e",
+      "equal": true
+    },
+    ".agent-governance/stages/V0-S2/01-scope-and-non-goals.md": {
+      "baseline": "e178565ab3e440402c56ab3349ae3fbb432fd7168053f3f9e80b1a7e61957fa4",
+      "candidate": "e178565ab3e440402c56ab3349ae3fbb432fd7168053f3f9e80b1a7e61957fa4",
+      "declared": "e178565ab3e440402c56ab3349ae3fbb432fd7168053f3f9e80b1a7e61957fa4",
+      "equal": true
+    },
+    ".agent-governance/stages/V0-S2/02-architecture-and-ownership.md": {
+      "baseline": "26ed6b66fb9fa520730cade2e96d6b2b5f4da23dcc42ee1f160a4e7ac27634d5",
+      "candidate": "26ed6b66fb9fa520730cade2e96d6b2b5f4da23dcc42ee1f160a4e7ac27634d5",
+      "declared": "26ed6b66fb9fa520730cade2e96d6b2b5f4da23dcc42ee1f160a4e7ac27634d5",
+      "equal": true
+    },
+    ".agent-governance/stages/V0-S2/03-workpack-plan.md": {
+      "baseline": "48a6723d5ce3788814755018165b1b6d822a93134313f3f96245309cc1112f84",
+      "candidate": "48a6723d5ce3788814755018165b1b6d822a93134313f3f96245309cc1112f84",
+      "declared": "48a6723d5ce3788814755018165b1b6d822a93134313f3f96245309cc1112f84",
+      "equal": true
+    },
+    ".agent-governance/stages/V0-S2/04-acceptance-matrix.md": {
+      "baseline": "a0d491807b4a0394cb7b71d4eb073a0036861ad65c0abb230954e411d41b4638",
+      "candidate": "a0d491807b4a0394cb7b71d4eb073a0036861ad65c0abb230954e411d41b4638",
+      "declared": "a0d491807b4a0394cb7b71d4eb073a0036861ad65c0abb230954e411d41b4638",
+      "equal": true
+    },
+    ".agent-governance/stages/V0-S2/05-risk-and-authorization-register.md": {
+      "baseline": "6b7dd981602fb444217eee1af8d5e329bf5035227d9d6b74f45099593f487379",
+      "candidate": "6b7dd981602fb444217eee1af8d5e329bf5035227d9d6b74f45099593f487379",
+      "declared": "6b7dd981602fb444217eee1af8d5e329bf5035227d9d6b74f45099593f487379",
+      "equal": true
+    },
+    ".agent-governance/stages/V0-S2/06-implementation-prompt.md": {
+      "baseline": "229ce8eb3697e8bae155f0590e793d472780e00b9da77279ec09d631ac670221",
+      "candidate": "229ce8eb3697e8bae155f0590e793d472780e00b9da77279ec09d631ac670221",
+      "declared": "229ce8eb3697e8bae155f0590e793d472780e00b9da77279ec09d631ac670221",
+      "equal": true
+    },
+    ".agent-governance/stages/V0-S2/07-checkpoint-plan.md": {
+      "baseline": "b7a7b13807007794717796213a2b2eb8bf60e00083a7f46c74ddb91e4dd3ff45",
+      "candidate": "b7a7b13807007794717796213a2b2eb8bf60e00083a7f46c74ddb91e4dd3ff45",
+      "declared": "b7a7b13807007794717796213a2b2eb8bf60e00083a7f46c74ddb91e4dd3ff45",
+      "equal": true
+    },
+    ".agent-governance/stages/V0-S2/PAYLOAD_MANIFEST.sha256": {
+      "baseline": "66d311c01d6c3ac8dfad878b77f3d96a7d94915172ababf20f24453221792d90",
+      "candidate": "66d311c01d6c3ac8dfad878b77f3d96a7d94915172ababf20f24453221792d90",
+      "declared": "66d311c01d6c3ac8dfad878b77f3d96a7d94915172ababf20f24453221792d90",
+      "equal": true
+    },
+    ".agent-governance/stages/V0-S2/stage-control.json": {
+      "baseline": "9de60a6d82a9966d77b25b5653b0d1a8c61547b6043509a801bf386fb77148e8",
+      "candidate": "9de60a6d82a9966d77b25b5653b0d1a8c61547b6043509a801bf386fb77148e8",
+      "declared": "9de60a6d82a9966d77b25b5653b0d1a8c61547b6043509a801bf386fb77148e8",
+      "equal": true
+    },
+    ".agent-governance/stages/V0-S3/00-coordinate.md": {
+      "baseline": "0b57444fa3a28dd8339f975c514af22d215bdca2a02d7b6e5a6d73471dc85098",
+      "candidate": "0b57444fa3a28dd8339f975c514af22d215bdca2a02d7b6e5a6d73471dc85098",
+      "declared": "0b57444fa3a28dd8339f975c514af22d215bdca2a02d7b6e5a6d73471dc85098",
+      "equal": true
+    },
+    ".agent-governance/stages/V0-S3/01-scope-and-non-goals.md": {
+      "baseline": "d5bc33c0fae906625e2395fe9a9227c16d6fba9c683a9b3e97ea95670b25c6c8",
+      "candidate": "d5bc33c0fae906625e2395fe9a9227c16d6fba9c683a9b3e97ea95670b25c6c8",
+      "declared": "d5bc33c0fae906625e2395fe9a9227c16d6fba9c683a9b3e97ea95670b25c6c8",
+      "equal": true
+    },
+    ".agent-governance/stages/V0-S3/02-architecture-and-ownership.md": {
+      "baseline": "afd48ca383c849667d9b78fa1e86a34d5f061ed0caf173756b9d7d1dad2c0b2a",
+      "candidate": "afd48ca383c849667d9b78fa1e86a34d5f061ed0caf173756b9d7d1dad2c0b2a",
+      "declared": "afd48ca383c849667d9b78fa1e86a34d5f061ed0caf173756b9d7d1dad2c0b2a",
+      "equal": true
+    },
+    ".agent-governance/stages/V0-S3/03-workpack-plan.md": {
+      "baseline": "5414132c603d30f2c478b1df71e95855403c76dd7d76d01a5a5780e4682e3b29",
+      "candidate": "5414132c603d30f2c478b1df71e95855403c76dd7d76d01a5a5780e4682e3b29",
+      "declared": "5414132c603d30f2c478b1df71e95855403c76dd7d76d01a5a5780e4682e3b29",
+      "equal": true
+    },
+    ".agent-governance/stages/V0-S3/04-acceptance-matrix.md": {
+      "baseline": "87fb0e2c893af34cfc80d57ce5dbabe485d9b6f8a9d7de588456b6904016a802",
+      "candidate": "87fb0e2c893af34cfc80d57ce5dbabe485d9b6f8a9d7de588456b6904016a802",
+      "declared": "87fb0e2c893af34cfc80d57ce5dbabe485d9b6f8a9d7de588456b6904016a802",
+      "equal": true
+    },
+    ".agent-governance/stages/V0-S3/05-risk-and-authorization-register.md": {
+      "baseline": "ea0cb959460f322f472e6eb1fc8246afa7a1d799930a9c72e5a61a46ce2f90b8",
+      "candidate": "ea0cb959460f322f472e6eb1fc8246afa7a1d799930a9c72e5a61a46ce2f90b8",
+      "declared": "ea0cb959460f322f472e6eb1fc8246afa7a1d799930a9c72e5a61a46ce2f90b8",
+      "equal": true
+    },
+    ".agent-governance/stages/V0-S3/06-implementation-prompt.md": {
+      "baseline": "5a0e6fb4561aecd62836c4eeb289299fb6297df40ea0a72c3e7fd07257ae3f69",
+      "candidate": "5a0e6fb4561aecd62836c4eeb289299fb6297df40ea0a72c3e7fd07257ae3f69",
+      "declared": "5a0e6fb4561aecd62836c4eeb289299fb6297df40ea0a72c3e7fd07257ae3f69",
+      "equal": true
+    },
+    ".agent-governance/stages/V0-S3/07-checkpoint-plan.md": {
+      "baseline": "0e7d887258faa494b84ac18c9b0ba08482771f1fbeed03c8fc3ec704ed94c071",
+      "candidate": "0e7d887258faa494b84ac18c9b0ba08482771f1fbeed03c8fc3ec704ed94c071",
+      "declared": "0e7d887258faa494b84ac18c9b0ba08482771f1fbeed03c8fc3ec704ed94c071",
+      "equal": true
+    },
+    ".agent-governance/stages/V0-S3/PAYLOAD_MANIFEST.sha256": {
+      "baseline": "d167feb76e99dc3d9abcaa9892db6754e19e765a27c967ca8d012629a6e77a78",
+      "candidate": "d167feb76e99dc3d9abcaa9892db6754e19e765a27c967ca8d012629a6e77a78",
+      "declared": "d167feb76e99dc3d9abcaa9892db6754e19e765a27c967ca8d012629a6e77a78",
+      "equal": true
+    },
+    ".agent-governance/stages/V0-S3/spec-manifest.json": {
+      "baseline": "4e0018e284094172ac8c20bb5002913e200fcf6d5def0a48ec221b1af05c8dc1",
+      "candidate": "4e0018e284094172ac8c20bb5002913e200fcf6d5def0a48ec221b1af05c8dc1",
+      "declared": "4e0018e284094172ac8c20bb5002913e200fcf6d5def0a48ec221b1af05c8dc1",
+      "equal": true
+    },
+    ".agent-governance/stages/V0-S3/stage-control.json": {
+      "baseline": "0781bd2ac0e9a54c1919383aaaf7a69b484d99465accf21194aa3ef263e6ab21",
+      "candidate": "0781bd2ac0e9a54c1919383aaaf7a69b484d99465accf21194aa3ef263e6ab21",
+      "declared": "0781bd2ac0e9a54c1919383aaaf7a69b484d99465accf21194aa3ef263e6ab21",
+      "equal": true
+    },
+    ".agent-governance/stages/V1-D0/00-coordinate.md": {
+      "baseline": "99832a6bd4cf4177f1cf5e34ded11cf24e565187a1fdee25d78b1d09bebf19fb",
+      "candidate": "99832a6bd4cf4177f1cf5e34ded11cf24e565187a1fdee25d78b1d09bebf19fb",
+      "declared": "99832a6bd4cf4177f1cf5e34ded11cf24e565187a1fdee25d78b1d09bebf19fb",
+      "equal": true
+    },
+    ".agent-governance/stages/V1-D0/01-scope-and-non-goals.md": {
+      "baseline": "fdf6f6466230400e6c35d01500bca0a15b07d73810fe1a13faaba87c56ee844a",
+      "candidate": "fdf6f6466230400e6c35d01500bca0a15b07d73810fe1a13faaba87c56ee844a",
+      "declared": "fdf6f6466230400e6c35d01500bca0a15b07d73810fe1a13faaba87c56ee844a",
+      "equal": true
+    },
+    ".agent-governance/stages/V1-D0/02-architecture-and-ownership.md": {
+      "baseline": "9ef738a25b249af3f088fe1c1b10bb91b1723d8626a89fc606d418e160d69ad9",
+      "candidate": "9ef738a25b249af3f088fe1c1b10bb91b1723d8626a89fc606d418e160d69ad9",
+      "declared": "9ef738a25b249af3f088fe1c1b10bb91b1723d8626a89fc606d418e160d69ad9",
+      "equal": true
+    },
+    ".agent-governance/stages/V1-D0/03-workpack-plan.md": {
+      "baseline": "595912b1c1e5767429c1d7f6c9e5b0effe4d5a67f24abb33be99c9b52e8334b2",
+      "candidate": "595912b1c1e5767429c1d7f6c9e5b0effe4d5a67f24abb33be99c9b52e8334b2",
+      "declared": "595912b1c1e5767429c1d7f6c9e5b0effe4d5a67f24abb33be99c9b52e8334b2",
+      "equal": true
+    },
+    ".agent-governance/stages/V1-D0/04-acceptance-matrix.md": {
+      "baseline": "d1d24873272b80638b03fb328169562f8a35d048a09ee2277c3f72a4a9a63cc8",
+      "candidate": "d1d24873272b80638b03fb328169562f8a35d048a09ee2277c3f72a4a9a63cc8",
+      "declared": "d1d24873272b80638b03fb328169562f8a35d048a09ee2277c3f72a4a9a63cc8",
+      "equal": true
+    },
+    ".agent-governance/stages/V1-D0/05-risk-and-authorization-register.md": {
+      "baseline": "bb6c7f39c5c38aaccbb6c4239dc7841f8772d7a870f44b4326df34492ddadd9f",
+      "candidate": "bb6c7f39c5c38aaccbb6c4239dc7841f8772d7a870f44b4326df34492ddadd9f",
+      "declared": "bb6c7f39c5c38aaccbb6c4239dc7841f8772d7a870f44b4326df34492ddadd9f",
+      "equal": true
+    },
+    ".agent-governance/stages/V1-D0/06-implementation-prompt.md": {
+      "baseline": "ff3310bcbd82cd1cda47a9d623c5bb6e029801ca511750316bdb0999e56c19e8",
+      "candidate": "ff3310bcbd82cd1cda47a9d623c5bb6e029801ca511750316bdb0999e56c19e8",
+      "declared": "ff3310bcbd82cd1cda47a9d623c5bb6e029801ca511750316bdb0999e56c19e8",
+      "equal": true
+    },
+    ".agent-governance/stages/V1-D0/07-checkpoint-plan.md": {
+      "baseline": "0abf02c31baffad158d2dd3a745f9fc68bdcc93f69aab777943a4b64e7eeb38c",
+      "candidate": "0abf02c31baffad158d2dd3a745f9fc68bdcc93f69aab777943a4b64e7eeb38c",
+      "declared": "0abf02c31baffad158d2dd3a745f9fc68bdcc93f69aab777943a4b64e7eeb38c",
+      "equal": true
+    },
+    ".agent-governance/stages/V1-D0/PAYLOAD_MANIFEST.sha256": {
+      "baseline": "181c08ee7290f5bef02e22b6f7fd3c874c2d404cc8b4ffff84d2148a71f47eb8",
+      "candidate": "181c08ee7290f5bef02e22b6f7fd3c874c2d404cc8b4ffff84d2148a71f47eb8",
+      "declared": "181c08ee7290f5bef02e22b6f7fd3c874c2d404cc8b4ffff84d2148a71f47eb8",
+      "equal": true
+    },
+    ".agent-governance/stages/V1-D0/spec-manifest.json": {
+      "baseline": "36e7fb7de4c92e7769ba639040db7322a5c137c8e32fb39b06caf307319be8e6",
+      "candidate": "36e7fb7de4c92e7769ba639040db7322a5c137c8e32fb39b06caf307319be8e6",
+      "declared": "36e7fb7de4c92e7769ba639040db7322a5c137c8e32fb39b06caf307319be8e6",
+      "equal": true
+    },
+    ".agent-governance/stages/V1-D0/stage-control.json": {
+      "baseline": "d5f71fd0cbd75bc4e06735084587977baa2655a2cbbcfc8fa9956107cd40e947",
+      "candidate": "d5f71fd0cbd75bc4e06735084587977baa2655a2cbbcfc8fa9956107cd40e947",
+      "declared": "d5f71fd0cbd75bc4e06735084587977baa2655a2cbbcfc8fa9956107cd40e947",
+      "equal": true
+    },
+    ".agent-governance/stages/V0-S3/production-integration/00-coordinate.md": {
+      "baseline": "03d21061f66302d39d75eb740d7df55d7db6365175e9ee7e56be36ebdcbdd787",
+      "candidate": "03d21061f66302d39d75eb740d7df55d7db6365175e9ee7e56be36ebdcbdd787",
+      "declared": "03d21061f66302d39d75eb740d7df55d7db6365175e9ee7e56be36ebdcbdd787",
+      "equal": true
+    },
+    ".agent-governance/stages/V0-S3/production-integration/01-scope-and-non-goals.md": {
+      "baseline": "29cee9b4bd383cca73f735df67fab5810345aa66839bd8bc1b765a28b597983a",
+      "candidate": "29cee9b4bd383cca73f735df67fab5810345aa66839bd8bc1b765a28b597983a",
+      "declared": "29cee9b4bd383cca73f735df67fab5810345aa66839bd8bc1b765a28b597983a",
+      "equal": true
+    },
+    ".agent-governance/stages/V0-S3/production-integration/02-architecture-and-ownership.md": {
+      "baseline": "1a76ee6d9c65e75a9ab807f39fa5b924337dfcd27cdb56eec01aaf20c6a6b15d",
+      "candidate": "1a76ee6d9c65e75a9ab807f39fa5b924337dfcd27cdb56eec01aaf20c6a6b15d",
+      "declared": "1a76ee6d9c65e75a9ab807f39fa5b924337dfcd27cdb56eec01aaf20c6a6b15d",
+      "equal": true
+    },
+    ".agent-governance/stages/V0-S3/production-integration/03-workpack-plan.md": {
+      "baseline": "69ce33a425f5352eb7902227ccebff8e8d1288572322da553f33d4e294ef5100",
+      "candidate": "69ce33a425f5352eb7902227ccebff8e8d1288572322da553f33d4e294ef5100",
+      "declared": "69ce33a425f5352eb7902227ccebff8e8d1288572322da553f33d4e294ef5100",
+      "equal": true
+    },
+    ".agent-governance/stages/V0-S3/production-integration/04-acceptance-matrix.md": {
+      "baseline": "6e4dc6305c6f76b8db1c1465cd5a6bfeebaa0aa15ab53e79fd59d34aaa8ae8d0",
+      "candidate": "6e4dc6305c6f76b8db1c1465cd5a6bfeebaa0aa15ab53e79fd59d34aaa8ae8d0",
+      "declared": "6e4dc6305c6f76b8db1c1465cd5a6bfeebaa0aa15ab53e79fd59d34aaa8ae8d0",
+      "equal": true
+    },
+    ".agent-governance/stages/V0-S3/production-integration/05-risk-and-authorization-register.md": {
+      "baseline": "497e0fe3c5f16a0f471360cc2cc12d4542ee20533ac0dfdfebe5c4744dab3c87",
+      "candidate": "497e0fe3c5f16a0f471360cc2cc12d4542ee20533ac0dfdfebe5c4744dab3c87",
+      "declared": "497e0fe3c5f16a0f471360cc2cc12d4542ee20533ac0dfdfebe5c4744dab3c87",
+      "equal": true
+    },
+    ".agent-governance/stages/V0-S3/production-integration/06-implementation-prompt.md": {
+      "baseline": "2c7ba5a77b02fdc267359ac35e92a188ff10bec003131a64f0004a1073a66ae5",
+      "candidate": "2c7ba5a77b02fdc267359ac35e92a188ff10bec003131a64f0004a1073a66ae5",
+      "declared": "2c7ba5a77b02fdc267359ac35e92a188ff10bec003131a64f0004a1073a66ae5",
+      "equal": true
+    },
+    ".agent-governance/stages/V0-S3/production-integration/07-checkpoint-plan.md": {
+      "baseline": "13e85286621fbdc9e2a1a8fe326b03edbe2efd0a9ddfc5cc172236cbd58ab397",
+      "candidate": "13e85286621fbdc9e2a1a8fe326b03edbe2efd0a9ddfc5cc172236cbd58ab397",
+      "declared": "13e85286621fbdc9e2a1a8fe326b03edbe2efd0a9ddfc5cc172236cbd58ab397",
+      "equal": true
+    },
+    ".agent-governance/stages/V0-S3/production-integration/PAYLOAD_MANIFEST.sha256": {
+      "baseline": "cbf20e12d0a4c16e0fe2baeeaafaf91fa14731ff40021560ff96ff14ce3b5913",
+      "candidate": "cbf20e12d0a4c16e0fe2baeeaafaf91fa14731ff40021560ff96ff14ce3b5913",
+      "declared": "cbf20e12d0a4c16e0fe2baeeaafaf91fa14731ff40021560ff96ff14ce3b5913",
+      "equal": true
+    },
+    ".agent-governance/stages/V0-S3/production-integration/spec-manifest.json": {
+      "baseline": "0a173edd85b566cb740dada5babebd7d0457c5f67ed06d4629dd1b878585cdd0",
+      "candidate": "0a173edd85b566cb740dada5babebd7d0457c5f67ed06d4629dd1b878585cdd0",
+      "declared": "0a173edd85b566cb740dada5babebd7d0457c5f67ed06d4629dd1b878585cdd0",
+      "equal": true
+    },
+    ".agent-governance/stages/V0-S3/production-integration/stage-control.json": {
+      "baseline": "d263bfbdd9773275c886d37dc1990a4e34445655a0b14156a65a62ff0925f1a7",
+      "candidate": "d263bfbdd9773275c886d37dc1990a4e34445655a0b14156a65a62ff0925f1a7",
+      "declared": "d263bfbdd9773275c886d37dc1990a4e34445655a0b14156a65a62ff0925f1a7",
+      "equal": true
+    },
+    ".agent-governance/stages/V0-S3/production-quality/00-coordinate.md": {
+      "baseline": "07b15da5004b2f73295198094efe08fc964df7abf714994ed9d5f83f9be11660",
+      "candidate": "07b15da5004b2f73295198094efe08fc964df7abf714994ed9d5f83f9be11660",
+      "declared": "07b15da5004b2f73295198094efe08fc964df7abf714994ed9d5f83f9be11660",
+      "equal": true
+    },
+    ".agent-governance/stages/V0-S3/production-quality/01-scope-and-non-goals.md": {
+      "baseline": "9bbe3f7fda3ae2df29e96301b5c505060f47f58fa6081dd7761b08e1d2f05204",
+      "candidate": "9bbe3f7fda3ae2df29e96301b5c505060f47f58fa6081dd7761b08e1d2f05204",
+      "declared": "9bbe3f7fda3ae2df29e96301b5c505060f47f58fa6081dd7761b08e1d2f05204",
+      "equal": true
+    },
+    ".agent-governance/stages/V0-S3/production-quality/02-architecture-and-ownership.md": {
+      "baseline": "4ad8ae438b082bed8c54c080bf44336edf979de90825cdbfef327e5c0a8b6562",
+      "candidate": "4ad8ae438b082bed8c54c080bf44336edf979de90825cdbfef327e5c0a8b6562",
+      "declared": "4ad8ae438b082bed8c54c080bf44336edf979de90825cdbfef327e5c0a8b6562",
+      "equal": true
+    },
+    ".agent-governance/stages/V0-S3/production-quality/03-workpack-plan.md": {
+      "baseline": "f630044e306e99069d8dae3a3ff57e4e158bef1b84a9a8639d1a9eebb178fb71",
+      "candidate": "f630044e306e99069d8dae3a3ff57e4e158bef1b84a9a8639d1a9eebb178fb71",
+      "declared": "f630044e306e99069d8dae3a3ff57e4e158bef1b84a9a8639d1a9eebb178fb71",
+      "equal": true
+    },
+    ".agent-governance/stages/V0-S3/production-quality/04-acceptance-matrix.md": {
+      "baseline": "48c3e8433398b7a571d51956b05b28418653b2d3c21a45f05cc06830f70fc602",
+      "candidate": "48c3e8433398b7a571d51956b05b28418653b2d3c21a45f05cc06830f70fc602",
+      "declared": "48c3e8433398b7a571d51956b05b28418653b2d3c21a45f05cc06830f70fc602",
+      "equal": true
+    },
+    ".agent-governance/stages/V0-S3/production-quality/05-risk-and-authorization-register.md": {
+      "baseline": "d6e423d063aeba1da0c059a183e0b4382eddbb5bf85917d3559f45d1ef51128f",
+      "candidate": "d6e423d063aeba1da0c059a183e0b4382eddbb5bf85917d3559f45d1ef51128f",
+      "declared": "d6e423d063aeba1da0c059a183e0b4382eddbb5bf85917d3559f45d1ef51128f",
+      "equal": true
+    },
+    ".agent-governance/stages/V0-S3/production-quality/06-implementation-prompt.md": {
+      "baseline": "25c5b91f572fcab1522b0ae3196a433dfc0855cad69926d53e935b0f2a018991",
+      "candidate": "25c5b91f572fcab1522b0ae3196a433dfc0855cad69926d53e935b0f2a018991",
+      "declared": "25c5b91f572fcab1522b0ae3196a433dfc0855cad69926d53e935b0f2a018991",
+      "equal": true
+    },
+    ".agent-governance/stages/V0-S3/production-quality/07-checkpoint-plan.md": {
+      "baseline": "efb616101d466024e2ddfbe72bc38584ce888decf002251c20b40bfc1ab94464",
+      "candidate": "efb616101d466024e2ddfbe72bc38584ce888decf002251c20b40bfc1ab94464",
+      "declared": "efb616101d466024e2ddfbe72bc38584ce888decf002251c20b40bfc1ab94464",
+      "equal": true
+    },
+    ".agent-governance/stages/V0-S3/production-quality/PAYLOAD_MANIFEST.sha256": {
+      "baseline": "97a851a8985e43b8b2b381c905c6b96140ff1faf9fa8647ba0d1f7d56f75033a",
+      "candidate": "97a851a8985e43b8b2b381c905c6b96140ff1faf9fa8647ba0d1f7d56f75033a",
+      "declared": "97a851a8985e43b8b2b381c905c6b96140ff1faf9fa8647ba0d1f7d56f75033a",
+      "equal": true
+    },
+    ".agent-governance/stages/V0-S3/production-quality/spec-manifest.json": {
+      "baseline": "b1fac45e760892bc78bbbb94ba7bdef85a42ba0de30f340391a81b85709d95b6",
+      "candidate": "b1fac45e760892bc78bbbb94ba7bdef85a42ba0de30f340391a81b85709d95b6",
+      "declared": "b1fac45e760892bc78bbbb94ba7bdef85a42ba0de30f340391a81b85709d95b6",
+      "equal": true
+    },
+    ".agent-governance/stages/V0-S3/production-quality/stage-control.json": {
+      "baseline": "29b71320202b03f71c85c0e35476c1ba5ed4aaa779d01522577de22d5a6948a7",
+      "candidate": "29b71320202b03f71c85c0e35476c1ba5ed4aaa779d01522577de22d5a6948a7",
+      "declared": "29b71320202b03f71c85c0e35476c1ba5ed4aaa779d01522577de22d5a6948a7",
+      "equal": true
+    }
+  },
+  "candidate_manifest": {
+    "contracts/candidates/v2-library/README.md": {
+      "expected": "6faeb2ccd189a5af7ccb2e7cb9c3bb559e64c0bf706444a292aff58a1a280538",
+      "actual": "6faeb2ccd189a5af7ccb2e7cb9c3bb559e64c0bf706444a292aff58a1a280538",
+      "matches": true
+    },
+    "contracts/candidates/v2-library/library.schema.json": {
+      "expected": "7812f124c359f9a04208890417e9fe1c100470706ce9e75783b64d279f5d01b6",
+      "actual": "7812f124c359f9a04208890417e9fe1c100470706ce9e75783b64d279f5d01b6",
+      "matches": true
+    },
+    "contracts/candidates/v2-library/mcp-additions.json": {
+      "expected": "66ed4aaa064bdedeabb758fa3175dd889f71a4ea252b252a0631b13a86905896",
+      "actual": "66ed4aaa064bdedeabb758fa3175dd889f71a4ea252b252a0631b13a86905896",
+      "matches": true
+    },
+    "contracts/candidates/v2-library/openapi-overlay.json": {
+      "expected": "678ece3af7176510ad655cecef35bf2924a346754a1d5bfe6f77e771294cf25d",
+      "actual": "678ece3af7176510ad655cecef35bf2924a346754a1d5bfe6f77e771294cf25d",
+      "matches": true
+    },
+    "contracts/candidates/v2-library/storage-additions.sql": {
+      "expected": "2c1d79ee47abb2d7a341c4e5d0e16d7a523758f174784be764c14c369fbe60a2",
+      "actual": "2c1d79ee47abb2d7a341c4e5d0e16d7a523758f174784be764c14c369fbe60a2",
+      "matches": true
+    },
+    "docs/33_V2_PRODUCT_REBASELINE.md": {
+      "expected": "357862884be0767301217f3a4ba819ec07d3dfc00b53e2ad95f8679e1185a867",
+      "actual": "357862884be0767301217f3a4ba819ec07d3dfc00b53e2ad95f8679e1185a867",
+      "matches": true
+    },
+    "docs/34_V2_LIBRARY_ARCHITECTURE.md": {
+      "expected": "278b4f78748485388e787e9725a1e35101fb6643370c4302c3f6bd2fadbc9754",
+      "actual": "278b4f78748485388e787e9725a1e35101fb6643370c4302c3f6bd2fadbc9754",
+      "matches": true
+    },
+    "docs/35_V2_LIBRARY_EXECUTION_AND_ACCEPTANCE.md": {
+      "expected": "bd879642f822dacca338ffec38f620533a2c576b88e126f90d270fb6ef304529",
+      "actual": "bd879642f822dacca338ffec38f620533a2c576b88e126f90d270fb6ef304529",
+      "matches": true
+    },
+    "docs/adr/ADR-15-V2-LIBRARY-NAMING.md": {
+      "expected": "30b511bbd21333141ef58839523a686344521a7d3f890566c3852d7346317308",
+      "actual": "30b511bbd21333141ef58839523a686344521a7d3f890566c3852d7346317308",
+      "matches": true
+    },
+    "plans/candidates/v2-library/acceptance_cases.json": {
+      "expected": "0c0c4f86c02a938dc875d63bc4448c9ac175153b720bd784dc139a12ed03ff3c",
+      "actual": "0c0c4f86c02a938dc875d63bc4448c9ac175153b720bd784dc139a12ed03ff3c",
+      "matches": true
+    },
+    "plans/candidates/v2-library/activation.json": {
+      "expected": "d48abebd079073c24cd632e958f334945f63a121c6de7c04e1025295bcbf6e25",
+      "actual": "d48abebd079073c24cd632e958f334945f63a121c6de7c04e1025295bcbf6e25",
+      "matches": true
+    },
+    "plans/candidates/v2-library/prompts.md": {
+      "expected": "6b9331955ea3d166ece28db89b3d588a860dc9bb71ba7aa0fccbc2e1f0f8cc7c",
+      "actual": "6b9331955ea3d166ece28db89b3d588a860dc9bb71ba7aa0fccbc2e1f0f8cc7c",
+      "matches": true
+    },
+    "plans/candidates/v2-library/release_gates.overlay.json": {
+      "expected": "0c99ffbdf846e9e96262e1439ce744047dad3f1d3085c42621336921ae62e37d",
+      "actual": "0c99ffbdf846e9e96262e1439ce744047dad3f1d3085c42621336921ae62e37d",
+      "matches": true
+    },
+    "plans/candidates/v2-library/requirement_coverage.json": {
+      "expected": "c05f0b30c6134a8d3208f1a0a1d4dd890580f71446c2b15ad2f9be3a3c4423d0",
+      "actual": "c05f0b30c6134a8d3208f1a0a1d4dd890580f71446c2b15ad2f9be3a3c4423d0",
+      "matches": true
+    },
+    "plans/candidates/v2-library/requirements.json": {
+      "expected": "db1c2370b2a20bdd515f860faec8b61c0a451f0089b46e128d59f33fe8f2fbe0",
+      "actual": "db1c2370b2a20bdd515f860faec8b61c0a451f0089b46e128d59f33fe8f2fbe0",
+      "matches": true
+    },
+    "plans/candidates/v2-library/sample-design.json": {
+      "expected": "b3675b93554c527e6f04a4839e099aaf302371d86d46af108726180be1982fb4",
+      "actual": "b3675b93554c527e6f04a4839e099aaf302371d86d46af108726180be1982fb4",
+      "matches": true
+    },
+    "plans/candidates/v2-library/tasks.json": {
+      "expected": "91d928a1acf4e7b7e1282e215eeba52e14ab5403de643458ef0bef00a66443d8",
+      "actual": "91d928a1acf4e7b7e1282e215eeba52e14ab5403de643458ef0bef00a66443d8",
+      "matches": true
+    },
+    "reports/v2-library-design-2026-11-12/baseline.json": {
+      "expected": "50e77647c58df57cfe768dffee448557f49e87e7881aa15d6b790ec120e1c762",
+      "actual": "50e77647c58df57cfe768dffee448557f49e87e7881aa15d6b790ec120e1c762",
+      "matches": true
+    },
+    "reports/v2-library-design-2026-11-12/change-record.json": {
+      "expected": "5d197a73c18f53f3b09d678b068115ab092e82ec52a96e34f55eeec6baca7728",
+      "actual": "5d197a73c18f53f3b09d678b068115ab092e82ec52a96e34f55eeec6baca7728",
+      "matches": true
+    },
+    "tools/build_full_spec.py": {
+      "expected": "97290691d5d9d83447c3fef341f78581d8feba153f288fe1b75fdf4adb76e748",
+      "actual": "97290691d5d9d83447c3fef341f78581d8feba153f288fe1b75fdf4adb76e748",
+      "matches": true
+    },
+    "tools/verify_v2_library_design.py": {
+      "expected": "3a20325dd5d5f1615dea94cdc8565049a9875edfff00547dae44a35a98c7c4a7",
+      "actual": "3a20325dd5d5f1615dea94cdc8565049a9875edfff00547dae44a35a98c7c4a7",
+      "matches": true
+    }
+  },
+  "changed_baseline_existing_evidence": [],
+  "candidate_diff_vs_root_baseline": [
+    "M\tLVW_Prompt_Service_MasterPack_v2.0.0/AGENTS.md",
+    "M\tLVW_Prompt_Service_MasterPack_v2.0.0/FULL_SPEC.md",
+    "M\tLVW_Prompt_Service_MasterPack_v2.0.0/MANIFEST.sha256",
+    "M\tLVW_Prompt_Service_MasterPack_v2.0.0/README.md",
+    "M\tLVW_Prompt_Service_MasterPack_v2.0.0/START_HERE.html",
+    "A\tLVW_Prompt_Service_MasterPack_v2.0.0/contracts/candidates/v2-library/CANDIDATE_MANIFEST.sha256",
+    "A\tLVW_Prompt_Service_MasterPack_v2.0.0/contracts/candidates/v2-library/README.md",
+    "A\tLVW_Prompt_Service_MasterPack_v2.0.0/contracts/candidates/v2-library/library.schema.json",
+    "A\tLVW_Prompt_Service_MasterPack_v2.0.0/contracts/candidates/v2-library/mcp-additions.json",
+    "A\tLVW_Prompt_Service_MasterPack_v2.0.0/contracts/candidates/v2-library/openapi-overlay.json",
+    "A\tLVW_Prompt_Service_MasterPack_v2.0.0/contracts/candidates/v2-library/storage-additions.sql",
+    "M\tLVW_Prompt_Service_MasterPack_v2.0.0/docs/00_POSITION_AND_ADR.md",
+    "M\tLVW_Prompt_Service_MasterPack_v2.0.0/docs/01_PRD.md",
+    "M\tLVW_Prompt_Service_MasterPack_v2.0.0/docs/03_ARCHITECTURE.md",
+    "M\tLVW_Prompt_Service_MasterPack_v2.0.0/docs/04_ROADMAP.md",
+    "M\tLVW_Prompt_Service_MasterPack_v2.0.0/docs/15_V2_IMPLEMENTATION.md",
+    "M\tLVW_Prompt_Service_MasterPack_v2.0.0/docs/17_DATA_AND_VERSIONING.md",
+    "M\tLVW_Prompt_Service_MasterPack_v2.0.0/docs/21_RISK_AND_CHANGE_CONTROL.md",
+    "M\tLVW_Prompt_Service_MasterPack_v2.0.0/docs/24_EXECUTION_MASTER_PLAN.md",
+    "M\tLVW_Prompt_Service_MasterPack_v2.0.0/docs/30_V1_REVISED_EXECUTION_PLAN.md",
+    "M\tLVW_Prompt_Service_MasterPack_v2.0.0/docs/31_V1_DETAILED_ARCHITECTURE_AND_CONTRACTS.md",
+    "M\tLVW_Prompt_Service_MasterPack_v2.0.0/docs/32_V1_ACCEPTANCE_AND_AGENT_WORKFLOW.md",
+    "A\tLVW_Prompt_Service_MasterPack_v2.0.0/docs/33_V2_PRODUCT_REBASELINE.md",
+    "A\tLVW_Prompt_Service_MasterPack_v2.0.0/docs/34_V2_LIBRARY_ARCHITECTURE.md",
+    "A\tLVW_Prompt_Service_MasterPack_v2.0.0/docs/35_V2_LIBRARY_EXECUTION_AND_ACCEPTANCE.md",
+    "A\tLVW_Prompt_Service_MasterPack_v2.0.0/docs/adr/ADR-15-V2-LIBRARY-NAMING.md",
+    "A\tLVW_Prompt_Service_MasterPack_v2.0.0/plans/candidates/v2-library/acceptance_cases.json",
+    "A\tLVW_Prompt_Service_MasterPack_v2.0.0/plans/candidates/v2-library/activation.json",
+    "A\tLVW_Prompt_Service_MasterPack_v2.0.0/plans/candidates/v2-library/prompts.md",
+    "A\tLVW_Prompt_Service_MasterPack_v2.0.0/plans/candidates/v2-library/release_gates.overlay.json",
+    "A\tLVW_Prompt_Service_MasterPack_v2.0.0/plans/candidates/v2-library/requirement_coverage.json",
+    "A\tLVW_Prompt_Service_MasterPack_v2.0.0/plans/candidates/v2-library/requirements.json",
+    "A\tLVW_Prompt_Service_MasterPack_v2.0.0/plans/candidates/v2-library/sample-design.json",
+    "A\tLVW_Prompt_Service_MasterPack_v2.0.0/plans/candidates/v2-library/tasks.json",
+    "M\tLVW_Prompt_Service_MasterPack_v2.0.0/plans/execution-control.json",
+    "A\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v2-library-design-2026-11-12/README.md",
+    "A\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v2-library-design-2026-11-12/baseline.json",
+    "A\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v2-library-design-2026-11-12/candidate-design.receipt.json",
+    "A\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v2-library-design-2026-11-12/candidate-design.stderr.log",
+    "A\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v2-library-design-2026-11-12/candidate-design.stdout.log",
+    "A\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v2-library-design-2026-11-12/candidate-final.receipt.json",
+    "A\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v2-library-design-2026-11-12/candidate-final.stderr.log",
+    "A\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v2-library-design-2026-11-12/candidate-final.stdout.log",
+    "A\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v2-library-design-2026-11-12/change-record.json",
+    "A\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v2-library-design-2026-11-12/diff-format-final.receipt.json",
+    "A\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v2-library-design-2026-11-12/diff-format-final.stderr.log",
+    "A\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v2-library-design-2026-11-12/diff-format-final.stdout.log",
+    "A\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v2-library-design-2026-11-12/formatting-note.json",
+    "A\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v2-library-design-2026-11-12/full-spec-final.receipt.json",
+    "A\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v2-library-design-2026-11-12/full-spec-final.stderr.log",
+    "A\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v2-library-design-2026-11-12/full-spec-final.stdout.log",
+    "A\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v2-library-design-2026-11-12/full-spec-format-final.receipt.json",
+    "A\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v2-library-design-2026-11-12/full-spec-format-final.stderr.log",
+    "A\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v2-library-design-2026-11-12/full-spec-format-final.stdout.log",
+    "A\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v2-library-design-2026-11-12/full-spec.receipt.json",
+    "A\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v2-library-design-2026-11-12/full-spec.stderr.log",
+    "A\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v2-library-design-2026-11-12/full-spec.stdout.log",
+    "A\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v2-library-design-2026-11-12/governance.receipt.json",
+    "A\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v2-library-design-2026-11-12/governance.stderr.log",
+    "A\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v2-library-design-2026-11-12/governance.stdout.log",
+    "A\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v2-library-design-2026-11-12/independent-review.task.md",
+    "A\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v2-library-design-2026-11-12/modified-files.json",
+    "A\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v2-library-design-2026-11-12/open-items.md",
+    "A\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v2-library-design-2026-11-12/pre-review-design.receipt.json",
+    "A\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v2-library-design-2026-11-12/pre-review-design.stderr.log",
+    "A\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v2-library-design-2026-11-12/pre-review-design.stdout.log",
+    "A\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v2-library-design-2026-11-12/pre-review-full-spec.receipt.json",
+    "A\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v2-library-design-2026-11-12/pre-review-full-spec.stderr.log",
+    "A\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v2-library-design-2026-11-12/pre-review-full-spec.stdout.log",
+    "A\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v2-library-design-2026-11-12/pre-review-governance.receipt.json",
+    "A\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v2-library-design-2026-11-12/pre-review-governance.stderr.log",
+    "A\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v2-library-design-2026-11-12/pre-review-governance.stdout.log",
+    "A\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v2-library-design-2026-11-12/validation-summary.json",
+    "A\tLVW_Prompt_Service_MasterPack_v2.0.0/tools/build_full_spec.py",
+    "A\tLVW_Prompt_Service_MasterPack_v2.0.0/tools/verify_v2_library_design.py"
+  ],
+  "external_input": {
+    "path": "/mnt/c/Users/Administrator/Desktop/myAssistant/reports/lvw-v2-renaming-2026-11-12/开发目标调整与架构考察.md",
+    "sha256": "47a08763acc7942719295ef6a417d1729d4a9605dcc8da923300061d5f7d84bc",
+    "role": "design input independently checked, not implementation evidence",
+    "actual_sha256": "47a08763acc7942719295ef6a417d1729d4a9605dcc8da923300061d5f7d84bc",
+    "matches": true,
+    "authority": "input only; no execution/approval inheritance; no user media read"
+  }
+}

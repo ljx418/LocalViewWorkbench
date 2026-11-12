@@ -1,0 +1,94 @@
+[
+  {
+    "id": "M01",
+    "severity": "M",
+    "title": "Description/template CAS has no specified ETag read transport",
+    "location": [
+      "docs/34_V2_LIBRARY_ARCHITECTURE.md:41,96",
+      "contracts/candidates/v2-library/library.schema.json:415 ($defs.AssetDescriptionRevision),570 ($defs.NamingTemplateRevision)",
+      "contracts/candidates/v2-library/openapi-overlay.json:1315,1639 (GET success responses)"
+    ],
+    "trigger": "A client reads an existing asset description or naming template, then creates the next revision using the required If-Match header.",
+    "expected": "A documented strong ETag for the mutable head is returned, with a defined relationship to the revision/head and exact If-Match semantics.",
+    "actual": "Both GET responses return only their immutable revision DTO, whose additionalProperties=false and properties omit etag; neither response declares ETag headers. The POST revision responses have the same gap, so the next legitimate CAS value is unspecified.",
+    "evidence": "semantic-probes.stdout.log observations 1–6; header/body inspection, no HTTP server run.",
+    "impact": "A conforming client cannot derive the specified head CAS value; implementers must invent an undocumented response/header or weaken the required concurrency contract.",
+    "requested_design_resolution": "Specify ETag response headers on description/template reads and revision/create responses, or an explicit head DTO/read route; bind head/revision and stale/write behavior. Add bounded positive and stale CAS wire-contract probes. No product implementation requested."
+  },
+  {
+    "id": "M02",
+    "severity": "M",
+    "title": "Duplicate-target conflict previews cannot persist all planned rows",
+    "location": [
+      "docs/34_V2_LIBRARY_ARCHITECTURE.md:49,51,53",
+      "plans/candidates/v2-library/acceptance_cases.json /cases/RN04",
+      "contracts/candidates/v2-library/storage-additions.sql:41–47"
+    ],
+    "trigger": "Two distinct files render to the same target under collision_policy=block; the required preview must show both frozen rows and allow editing or deterministic suffix revision.",
+    "expected": "Both conflicting rows remain representable in one immutable reviewable plan, with conflict reasons and application blocked until resolved; the CSV/JSON and item list retain the same complete plan.",
+    "actual": "UNIQUE(plan_revision_id,target_root_id,target_path_key) rejects the second preview row. The in-memory DDL probe retains 1 row and raises sqlite3.IntegrityError; no alternate persisted conflict-draft representation or alternate failure/preview contract is specified.",
+    "evidence": "semantic-probes.stdout.log duplicate-target-preview-second-row and retained-row-count; exact failing constraint recorded, integrity_check=ok and foreign_key_check empty.",
+    "impact": "The common duplicate-name review/edit workflow conflicts with the executable storage contract. Dropping the offending row would also violate the full frozen-plan obligation. This is not a claim that native rename overwrites anything.",
+    "requested_design_resolution": "Separate preview conflict representation from executable target reservations, or explicitly define a complete conflict-draft carrier and its revision/export path; keep duplicate-target apply forbidden. Add a static/in-memory test that preserves two conflicting rows and blocks their application."
+  },
+  {
+    "id": "m01",
+    "severity": "m",
+    "title": "GET-plan semantic rule contradicts its summary-only response",
+    "location": [
+      "contracts/candidates/v2-library/openapi-overlay.json:3858 (semantic_rules[4])",
+      "contracts/candidates/v2-library/library.schema.json:1750 ($defs.PlanSummary)",
+      "contracts/candidates/v2-library/openapi-overlay.json /add_paths/~1api~1v2~1rename-plans~1{id}/get/responses/200"
+    ],
+    "trigger": "A client follows the semantic rule promising metadata plus the first bounded 200 items from GET plan.",
+    "expected": "The rule and response DTO agree on whether this route returns items.",
+    "actual": "The response is PlanSummary, which has no items and forbids additional properties. A separate bounded /items route exists, so the workflow remains possible.",
+    "evidence": "semantic-probes.stdout.log GET-plan-response-schema, PlanSummary-has-items, PlanSummary-additional-properties and bounded-items-route-exists.",
+    "requested_design_resolution": "Prefer documenting summary-only GET plus /items pagination, or explicitly change the candidate response schema; preserve the bounded page contract."
+  },
+  {
+    "id": "m02",
+    "severity": "m",
+    "title": "Library facade to persistent strict Job needs an explicit compatibility projection",
+    "location": [
+      "contracts/candidates/v2-library/openapi-overlay.json:3856 (semantic_rules[2])",
+      "contracts/candidates/v2-library/library.schema.json:1217 ($defs.LibraryTask)",
+      "contracts/candidates/v2-library/storage-additions.sql:53",
+      "contracts/job.schema.json /$defs/Job"
+    ],
+    "trigger": "A library scan/describe/file operation uses the shared persistent job ID, then is listed, polled or cancelled through an old Job-facing consumer, including recovery/needs_attention.",
+    "expected": "A design mapping defines internal typed intent, canonical Job kind/status/progress/result/error projection, old-list visibility, and cancel/retry ownership without changing strict old schemas or /jobs/batch.",
+    "actual": "The overlay names internal typed LibraryIntent but defines no such carrier or projection table; LibraryTask introduces needs_attention and file_operation introduces reconciling outside canonical Job states. Separate DTOs are an appropriate boundary, but same-ID storage alone does not define old-consumer behavior.",
+    "evidence": "semantic-probes.stdout.log LibraryIntent-schema-defined=false and both enum sets; baseline canonical API preservation checks pass.",
+    "requested_design_resolution": "Before L1 freezing, specify an additive internal intent/projection table and old route policy. This is a nonblocking D0 elaboration item, not a demand to bind unshipped final V1 tables now and not a reproduced runtime failure."
+  },
+  {
+    "id": "m03",
+    "severity": "m",
+    "title": "Forward retry lineage is required in prose but absent from the candidate wire plan",
+    "location": [
+      "docs/34_V2_LIBRARY_ARCHITECTURE.md:53,80",
+      "contracts/candidates/v2-library/library.schema.json:797,899 ($defs.RenamePlanRevision/CreatePlan)"
+    ],
+    "trigger": "A cancelled/partial operation, including an item left at a frozen temporary location, is reviewed and retried as a new plan/attempt without redoing successful items.",
+    "expected": "The new forward plan has an unambiguous original operation/item/event lineage and review semantics, distinct from undo; selection and confirmation bind the intended retry.",
+    "actual": "CreatePlan exposes no retry_of reference; RenamePlanRevision exposes only parent_id for plan revision and undo_of_operation_id. The prose requires a new operation-chain binding but supplies no forward retry carrier, event relation or service-side derivation rule.",
+    "evidence": "semantic-probes.stdout.log CreatePlan-properties and RenamePlanRevision-properties; docs34 explicitly preserves successful items and requires fresh confirmation.",
+    "requested_design_resolution": "Before L3 freezing, specify explicit forward retry lineage or a deterministic server-derived relation plus its public review display, including staged items. Do not repurpose the legacy Job retry route or replay old tokens."
+  },
+  {
+    "id": "m04",
+    "severity": "m",
+    "title": "Goal 8 transparency lacks a defined public library-task accounting projection",
+    "location": [
+      "docs/33_V2_PRODUCT_REBASELINE.md:22",
+      "docs/35_V2_LIBRARY_EXECUTION_AND_ACCEPTANCE.md:33–45",
+      "contracts/candidates/v2-library/library.schema.json:1217 ($defs.LibraryTask)"
+    ],
+    "trigger": "The user reviews pending assets, exact cache reuse, actual Provider actions, failures and elapsed time for a description batch.",
+    "expected": "The design identifies a bounded read projection of actual per-asset/run accounting and timing, and distinguishes reused, not attempted and failed items.",
+    "actual": "The design requires Provider ledgers and separately measured timings as evidence, but LibraryTask exposes only totals/cursor/etag; no library accounting/result-ref carrier or explicit old run-detail traversal is defined. This leaves the user-facing cost transparency part of the eighth input goal less concrete than its backend evidence obligations.",
+    "evidence": "semantic-probes.stdout.log LibraryTask-properties; external input section 4 core goal 8; all references are static.",
+    "requested_design_resolution": "Before the describe-batch packet freezes, name the read DTO/route or existing detail traversal and required accounting/timing fields. It can remain additive and bounded; no runtime implementation needed at D0."
+  }
+]

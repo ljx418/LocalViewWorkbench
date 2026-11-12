@@ -1,0 +1,167 @@
+{
+  "kind": "INDEPENDENT_D0_SEMANTIC_EVIDENCE_NOT_RUNTIME",
+  "observations": [
+    {
+      "name": "AssetDescriptionRevision:body_etag_declared",
+      "actual": false
+    },
+    {
+      "name": "AssetDescriptionRevision:response_etag_header_declared",
+      "actual": false
+    },
+    {
+      "name": "AssetDescriptionRevision:additional_properties",
+      "actual": false
+    },
+    {
+      "name": "NamingTemplateRevision:body_etag_declared",
+      "actual": false
+    },
+    {
+      "name": "NamingTemplateRevision:response_etag_header_declared",
+      "actual": false
+    },
+    {
+      "name": "NamingTemplateRevision:additional_properties",
+      "actual": false
+    },
+    {
+      "name": "duplicate-target-preview-second-row",
+      "actual": "UNIQUE constraint failed: rename_plan_item.plan_revision_id, rename_plan_item.target_root_id, rename_plan_item.target_path_key"
+    },
+    {
+      "name": "duplicate-target-preview-retained-row-count",
+      "actual": 1
+    },
+    {
+      "name": "memory-ddl-integrity",
+      "actual": "ok"
+    },
+    {
+      "name": "memory-ddl-foreign-key-errors",
+      "actual": []
+    },
+    {
+      "name": "GET-plan-response-schema",
+      "actual": {
+        "$ref": "#/components/schemas/Library_PlanSummary"
+      }
+    },
+    {
+      "name": "PlanSummary-has-items",
+      "actual": false
+    },
+    {
+      "name": "PlanSummary-additional-properties",
+      "actual": false
+    },
+    {
+      "name": "bounded-items-route-exists",
+      "actual": true
+    },
+    {
+      "name": "CreatePlan-properties",
+      "actual": [
+        "source_file_ids",
+        "template_revision_id",
+        "description_revision_ids",
+        "target_root_id",
+        "target_relative_directory",
+        "sort_policy",
+        "collision_policy"
+      ]
+    },
+    {
+      "name": "RenamePlanRevision-properties",
+      "actual": [
+        "id",
+        "plan_id",
+        "revision",
+        "parent_id",
+        "direction",
+        "undo_of_operation_id",
+        "template_revision_id",
+        "template_revision_sha256",
+        "compiler_version",
+        "vocabulary_revision",
+        "items",
+        "plan_hash",
+        "etag"
+      ]
+    },
+    {
+      "name": "LibraryTask-properties",
+      "actual": [
+        "id",
+        "task_kind",
+        "state",
+        "total",
+        "terminal_count",
+        "success_count",
+        "not_started_count",
+        "cursor",
+        "etag"
+      ]
+    },
+    {
+      "name": "LibraryTask-states",
+      "actual": [
+        "queued",
+        "running",
+        "partial",
+        "succeeded",
+        "failed",
+        "cancelling",
+        "cancelled",
+        "interrupted",
+        "needs_attention"
+      ]
+    },
+    {
+      "name": "canonical-Job-kinds",
+      "actual": [
+        "analyze",
+        "segment",
+        "batch",
+        "generate"
+      ]
+    },
+    {
+      "name": "canonical-Job-states",
+      "actual": [
+        "queued",
+        "preparing",
+        "running",
+        "partial",
+        "succeeded",
+        "failed",
+        "cancelling",
+        "cancelled",
+        "interrupted",
+        "submission_unknown"
+      ]
+    },
+    {
+      "name": "LibraryIntent-schema-defined",
+      "actual": false
+    },
+    {
+      "name": "unconfirmed-inference-DJ-cannot-be-confirmed",
+      "actual": true
+    },
+    {
+      "name": "creative_intent-field-rejected",
+      "actual": true
+    },
+    {
+      "name": "MCP-write-tools",
+      "actual": []
+    }
+  ],
+  "design_obligations_unsatisfied": [
+    "M01_ETAG_TRANSPORT",
+    "M02_CONFLICT_PREVIEW_STORAGE"
+  ],
+  "product_gate0": false,
+  "native_actions": 0
+}
