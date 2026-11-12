@@ -9,7 +9,7 @@
     "stage_id": "R1",
     "workpack_id": "WP-R1-U3",
     "gate": "S3_P3B_QUALITY_INTEGRATION_INDEPENDENT_REVIEW",
-    "state": "READY_FOR_REVIEW"
+    "state": "RUNNING"
   },
   "last_passed_gate": {
     "gate": "UNIFIED_MEDIA_FIXED_UM10_AND_INDEPENDENT_REVIEW",
@@ -35,7 +35,7 @@
     "TARGET_HARDWARE_TESTED"
   ],
   "next_owner": "Human restores this ClaudeCode task or explicitly authorizes specific Codex takeover; root only preserves handoff",
-  "next_action": "Dispatch isolated correction04 independent review of5de0947/evidence0d28fd4; do not accept implementer PASS or claimed limitations without independent evidence. Preserve undelivered guidance exception and historical erratum.",
+  "next_action": "Await Orca isolated correction04 independent review ctx_e75734509d5a. Aggregate findings before root disposition; do not restart settled implementer or credit undelivered guidance.",
   "required_authorization": null,
   "authorization_request": "reports/authorization-program-v1-complete-03.request.json",
   "authorization_record": "reports/authorization-program-v1-complete-03.approval.json",
@@ -1517,7 +1517,14 @@
         "guard": 4,
         "replay_observations": 29
       },
-      "supplemental_guidance_delivery": "NOT_DELIVERED_MSG_A30E3CA84E71_NO_COMPLIANCE_CREDIT"
+      "supplemental_guidance_delivery": "NOT_DELIVERED_MSG_A30E3CA84E71_NO_COMPLIANCE_CREDIT",
+      "independent_review": {
+        "status": "DISPATCHED_NOT_COMPLETED",
+        "dispatch_id": "ctx_e75734509d5a",
+        "task_id": "task_4d9d9163ac61",
+        "terminal_id": "term_9695c411-e5aa-4071-b68e-ffa1e8bc853d",
+        "launch_receipt": "reports/v0-s3/product-gate0/independent-p3b-correction-04.launch.json"
+      }
     }
   },
   "a06_read_only_capability_child": {
