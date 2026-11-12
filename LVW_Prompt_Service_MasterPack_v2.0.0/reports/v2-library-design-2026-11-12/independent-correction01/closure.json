@@ -1,0 +1,83 @@
+{
+  "closed": [
+    {
+      "id": "M01",
+      "old_severity": "M",
+      "status": "CLOSED_AT_DESIGN_LEVEL",
+      "location": [
+        "docs/34_V2_LIBRARY_ARCHITECTURE.md /设计0.2/描述与模板头的强ETag",
+        "contracts/candidates/v2-library/semantic-rules.json /head_cas",
+        "contracts/candidates/v2-library/openapi-overlay.json /description and naming-template 200 responses/headers/ETag",
+        "contracts/candidates/v2-library/storage-additions.sql /library_store_epoch and head_sequence"
+      ],
+      "evidence": "Required strong quoted lh headers on all five read/create/revision responses; exact head/body binding, store_epoch/revision/hash/sequence material and two recomputed vectors; missing428/stale412/weak-wildcard-list400 rules; independent memory SQL positive and stale full-transaction rollback for both description and template heads.",
+      "limits": "The local probe demonstrates candidate schema/SQL and normative transaction examples, not production CAS/HTTP handler execution."
+    },
+    {
+      "id": "M02",
+      "old_severity": "M",
+      "status": "CLOSED_AT_DESIGN_LEVEL",
+      "location": [
+        "contracts/candidates/v2-library/storage-additions.sql /rename_plan_item,ix_preview_target_conflicts,file_target_reservation",
+        "docs/34_V2_LIBRARY_ARCHITECTURE.md /冲突预览与可执行目标保留分离",
+        "contracts/candidates/v2-library/semantic-rules.json /conflict_preview"
+      ],
+      "evidence": "Two duplicate-target preview rows persist; unique volume/parent/target reservations are separate. The local memory probe rejects duplicate selected reservations, rolls back operation and all new reservations, retains both preview rows, accepts one selected reservation, and rejects a competing operation without clearing the first reservation. Normative contract requires zero file actions before successful reservation.",
+      "limits": "No actual file actions/native race tested; SQL uniqueness is a coordination mechanism, not a replacement for native no-replace."
+    },
+    {
+      "id": "m01",
+      "old_severity": "m",
+      "status": "CLOSED_AT_DESIGN_LEVEL",
+      "location": [
+        "contracts/candidates/v2-library/openapi-overlay.json /semantic_rules and GET rename-plans/{id},items,exports",
+        "contracts/candidates/v2-library/library.schema.json /$defs/PlanSummary,PlanItemPage"
+      ],
+      "evidence": "GET is explicitly summary-only; separate keyset /items is bounded 200; exact-plan CSV/JSON streaming export retains all frozen rows including conflicts. The old promise of inline first-200 rows is removed.",
+      "limits": "Streaming/pagination behavior still needs actual public-entry tests at the appropriate packet."
+    },
+    {
+      "id": "m02",
+      "old_severity": "m",
+      "status": "CLOSED_AT_DESIGN_LEVEL",
+      "location": [
+        "contracts/candidates/v2-library/job-compatibility.json",
+        "contracts/candidates/v2-library/library.schema.json /$defs/LibraryIntent,LibraryTask",
+        "contracts/candidates/v2-library/storage-additions.sql /library_job_intent"
+      ],
+      "evidence": "Typed internal intent is keyed to the same persistent job ID. All three parent kinds project to batch; reconciling/preparing and needs_attention/interrupted+RECOVERY_AMBIGUOUS are explicit. Fixed terminal/total progress, scan unsealed0/0, resource state, null parent result_ref and typed result traversal are specified. Legacy list/get remain strict; cancel dispatch checks operation-control authority, legacy retry rejects409 without replay, batch body is unchanged. Independent schema projection checks cover all30 kind/status combinations.",
+      "limits": "Actual final V1 Job/Attempt/storage reuse and dispatch authorization remain implementation/pilot packet obligations, not existing runtime claims."
+    },
+    {
+      "id": "m03",
+      "old_severity": "m",
+      "status": "CLOSED_AT_DESIGN_LEVEL",
+      "location": [
+        "docs/34_V2_LIBRARY_ARCHITECTURE.md /显式重试关系",
+        "contracts/candidates/v2-library/library.schema.json /$defs/RetryPlanRequest,RenamePlanRevision,PlanSummary,PlanItem",
+        "contracts/candidates/v2-library/openapi-overlay.json /file-operations/{id}/retry-plans"
+      ],
+      "evidence": "Dedicated reviewed retry-plans route binds current operation If-Match and last_event_seq; plan and item lineage fields enter plan_hash. Terminal operation/proved writer exit/uniquely reconciled locations are required; successful or ambiguous items are excluded. A staged item uses its real current temporary locator. Failed undo retry preserves direction=undo and distinct undo_of original-forward versus retry_of failed-undo. Fresh selection/closure/reservation/confirmation is mandatory. Complete positive forward/undo DTOs and negative missing-lineage/duplicate-selection fixtures pass.",
+      "limits": "No native recovery, staged-file movement or replay executed; runtime must enforce eligibility and custody beyond JSON shape."
+    },
+    {
+      "id": "m04",
+      "old_severity": "m",
+      "status": "CLOSED_AT_DESIGN_LEVEL",
+      "location": [
+        "docs/34_V2_LIBRARY_ARCHITECTURE.md /真实调用与耗时的公开投影",
+        "contracts/candidates/v2-library/library.schema.json /$defs/LibraryTask,LibraryAccounting,LibraryAccountingItem,LibraryAccountingItemPage",
+        "contracts/candidates/v2-library/openapi-overlay.json /library/tasks/{id}/accounting and accounting/items"
+      ],
+      "evidence": "Task accounting_ref traverses bounded actual accounting. Per-asset rows bind child/attempt/model_run/analysis_key/action IDs; attempts and observed calls differ, phase times are explicit, unknown observed calls/unmeasured times are null with incomplete accounting. Independent complete fixtures validate unknown and measured values, reject negative values, allow200/reject201 item pages. CPU zero calls still requires actual Provider ledger evidence.",
+      "limits": "Counter consistency, truthful observed ledger collection and timing must later be tested through actual owner/read routes."
+    }
+  ],
+  "new_findings": [],
+  "new_counts": {
+    "F": 0,
+    "M": 0,
+    "m": 0
+  },
+  "goal2": "Typed source/language-aware TagFact is a clarification of existing goal2, with no additional product requirement or case denominator."
+}
