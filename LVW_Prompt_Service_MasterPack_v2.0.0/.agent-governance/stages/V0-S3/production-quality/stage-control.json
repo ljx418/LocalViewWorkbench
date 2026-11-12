@@ -1,0 +1,66 @@
+{
+  "schema_version": "lvw.stage-control/1",
+  "stage_id": "V0-S3",
+  "version": "1.0-offline-p3b",
+  "phase": "OFFLINE_QUALITY_INTEGRATION_ONLY",
+  "status": "FROZEN_OFFLINE_P3B_PRODUCT_GATE0_PENDING",
+  "state": "FROZEN_OFFLINE_P3B_PRODUCT_GATE0_PENDING",
+  "product_execution_authorized": false,
+  "stage_pass_forbidden": true,
+  "gate_owner": "Codex",
+  "implementation_owner": "Orca visible ClaudeCode",
+  "independent_reviewer": "Separate isolated reviewer",
+  "base_candidate": "2a49ce199f53c1dc441befaadfa83a0c58c8ac02",
+  "contract": "reports/v0-s3/product-gate0/p3b-quality-contract.md",
+  "projection": "reports/v0-s3/product-gate0/quality-execution-inputs.frozen.json",
+  "projection_sha256": "47e9f14efa66bc4df851bf1a738763b48c1728eed84b76c56a7848d1b01f00c3",
+  "quality_set_sha256": "c2c49ef68249348975723de2492455c2c071c6c9535d0a2900a3e71eede01884",
+  "workpacks": [
+    {
+      "id": "S3-P3B-QD",
+      "depends_on": [
+        "P3A_OFFLINE_ACCEPTED"
+      ],
+      "outputs": [
+        "public workflow16-row execution",
+        "raw evidence and targeted tests"
+      ]
+    },
+    {
+      "id": "S3-P3B-QS",
+      "depends_on": [
+        "S3-P3B-QD"
+      ],
+      "outputs": [
+        "bound independent score aggregation",
+        "negative tests",
+        "combined receipt READY_FOR_REVIEW"
+      ]
+    }
+  ],
+  "allowed_files": [
+    "tools/v0_s3_quality_phase.py",
+    "tools/test_v0_s3_quality_phase.py",
+    "reports/v0-s3/product-gate0/implementation-p3b/"
+  ],
+  "commands": [
+    "python3 -B -m pytest tools/test_v0_s3_quality_phase.py -q -p no:cacheprovider (inside pre-import subprocess/network guard)"
+  ],
+  "budgets": {
+    "real_model_actions": 0,
+    "real_services": 0,
+    "real_media": 0,
+    "real_gpu": 0,
+    "network": 0,
+    "real_ledger_mutations": 0,
+    "effective_full_checkpoints": 0
+  },
+  "hard_stops": [
+    "ClaudeCode HTTP429 immediately WAIT_BUDGET no automatic fallback",
+    "public contract/denominator change",
+    "actual external/native/runtime action",
+    "unknown ownership/conflict",
+    "two same-route repairs without evidence progress"
+  ],
+  "next_owner": "Root after implementation; separate independent review required"
+}
