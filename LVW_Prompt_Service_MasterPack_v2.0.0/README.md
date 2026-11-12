@@ -60,3 +60,5 @@ LVW定位为**本地优先的视觉素材理解与整理工作台**：共享有�
 入口：[产品目标](docs/33_V2_PRODUCT_REBASELINE.md) · [详细架构/文件协议](docs/34_V2_LIBRARY_ARCHITECTURE.md) · [执行/验收](docs/35_V2_LIBRARY_EXECUTION_AND_ACCEPTANCE.md) · [ADR-15](docs/adr/ADR-15-V2-LIBRARY-NAMING.md) · [候选激活条件](plans/candidates/v2-library/activation.json)。候选R23–R30/RN01–RN18追加后V2/V3为56/65项，未激活canonical旧38/47；V1保持29。旧30/39只是历史基线。设计不是已实现或原件写授权，指标与预算待pilot及正式冻结。
 
 完整规范从docs生成：`python3 -B tools/build_full_spec.py`，一致性只读检查加`--check`；本轮候选校验：`python3 -B tools/verify_v2_library_design.py`。
+
+V2-D0文档调整已完成，设计独审及聚焦复审F0/M0/m0，Codex已作[文档就绪裁决](reports/v2-library-design-2026-11-12/decision.md)。这仅冻结可实施设计快照，原生能力/pilot/样本/预算及正式Stage准入仍待；未激活V2或恢复当前V1。
