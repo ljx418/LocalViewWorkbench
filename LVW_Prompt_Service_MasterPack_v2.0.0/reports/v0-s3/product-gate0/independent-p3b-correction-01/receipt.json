@@ -1,0 +1,199 @@
+{
+  "kind": "INDEPENDENT_P3B_CORRECTION_01_REVIEW",
+  "decision": "CHANGES_REQUIRED_OFFLINE_COMPONENT",
+  "counts": {
+    "Fatal": 0,
+    "Major": 5,
+    "Minor": 0
+  },
+  "candidate_sha": "376ea9283cb7096c2fc35f6eab561919c07b6d1f",
+  "implementation_evidence_commit": "e16274256509078f6a94182196539eb7a43a5dc5",
+  "reviewed_merge_head": "ed00535dd4b94b524d6cfe4318a27a3e6569983d",
+  "root_coordinate_read_only": "b1a9386",
+  "adjudication": "0c7d27b436abb81042e6ef160ef663ff3e1c4d22",
+  "original_review": "e2294724463efcab1a202a25563f76a24eea798f",
+  "test_counts": {
+    "combined_once": 95,
+    "passed": 95,
+    "failed": 0,
+    "skipped": 0,
+    "deselected": 0,
+    "preserved_original_recomputed": 67,
+    "new_recomputed": 28,
+    "directed28_rerun": false,
+    "guard_selftest_once": 4,
+    "guard_blocked": 4,
+    "replayed_observations": 13,
+    "additional_observations": 17
+  },
+  "earlier_two_debug_rounds": "UNKNOWN_RETAINED_NOT_RETRO_CERTIFIED",
+  "findings": [
+    {
+      "id": "M01",
+      "severity": "Major",
+      "location": "tools/v0_s3_quality_phase.py:1490-1534",
+      "trigger": "Complete QualityPhase.run and read persisted qd-receipt.json.",
+      "expected": "Persist honest final bytes/files including the receipt itself.",
+      "actual": "In-memory counts are 137 files/165510 bytes, but disk has only pre-receipt counts 136/117094; receipt_bytes and both *_including_receipt keys are absent. Serialization precedes adding final fields. Caps now reject one-over, but persistent terminal accounting is still incomplete.",
+      "evidence": "probes.stdout.log:persisted_receipt_totals; receipt_artifact_exact/over, receipt_total_exact/over, receipt_files_exact/over",
+      "original_disposition": "PARTIALLY_FIXED_REMAINS_OPEN: suffix classification, halt,16-row retention, exact/oneover caps and honest nonpersistence fixed; stored totals not fixed"
+    },
+    {
+      "id": "M02",
+      "severity": "Major",
+      "location": "tools/v0_s3_quality_phase.py:510-551,794-842,1490-1534,1548-1579",
+      "trigger": "quality_row_begin moves temp to old-temp and replaces temp with symlink to old-temp; alternatively substitute rows at final os.open.",
+      "expected": "Pin all original ancestors across callbacks and actual writes; write zero into old/foreign paths and stop on redirect.",
+      "actual": "Temp ancestor redirect accepts all16 submissions and COMPLETE_ALL_16_PASS while persisting receipt in old-temp. Deterministic final-open interposition writes SYN-I00/provider-before.log into a foreign root and still permits one send before later rejection. Initial temp symlink creates foreign s3-quality before detecting escape. Leaf O_NOFOLLOW and prechecks do not protect ancestor traversal.",
+      "evidence": "probes.stdout.log:temp_ancestor_callback_redirect,artifact_open_ancestor_race,initial_temp_redirect; targeted_probes.py",
+      "original_disposition": "PARTIALLY_FIXED_REMAINS_OPEN: existing-directory replay and direct root/phase replacement tested refusals fixed; all-ancestor pinning/write confinement not fixed"
+    },
+    {
+      "id": "M08",
+      "severity": "Major",
+      "location": "tools/v0_s3_quality_phase.py:1824-1991",
+      "trigger": "QS input has PASS row with missing release proof, or known FAIL with storage_unproven=true, or missing source_evidence.",
+      "expected": "Unknown source/storage/cleanup cannot aggregate PASS; known failed rows may resolve only with proven evidence, always remain unusable.",
+      "actual": "All three public recompute_scores probes aggregate_pass=true. PASS row has cleanup_proven=false yet becomes usable/resolved. Known FAIL rows with explicit unknown storage or missing source still resolve. Critical3 now survives and ordinary known FAIL with valid evidence correctly yields9/10+6/6 usable, so original scoring policy improvements are retained.",
+      "evidence": "probes.stdout.log:PASS_cleanup_unknown,known_FAIL_storage_unknown,known_FAIL_source_unknown; replayed-observations.json:failed_row_critical_evidence,known_failed_independently_scored",
+      "original_disposition": "PARTIALLY_FIXED_REMAINS_OPEN: critical evidence and no extra all-technical-success requirement fixed; evidence-resolution fail-closed incomplete"
+    },
+    {
+      "id": "NM01",
+      "severity": "Major",
+      "location": "tools/v0_s3_quality_phase.py:458-473,1585-1593",
+      "trigger": "Parent proof known=true/capacity34 but wrong run/candidate/authorization or expired timestamp.",
+      "expected": "Internal admission rejects stale and wrong-identity proofs as well as unknown/insufficient capacity before any send; authentic provider remains pending integration.",
+      "actual": "Both stale and explicitly wrong identity dictionaries permit all16 submissions and COMPLETE_ALL_16_PASS. Only known and numeric capacity are checked; no freshness or identity is bound. This is internal validation, not a request to create a ledger API or infer guaranteed34 capacity.",
+      "evidence": "probes.stdout.log:parent_proof_wrong_identity,parent_proof_stale; suite95 admission checks",
+      "original_disposition": "ADDITIONAL_ORIGINAL_OBLIGATION_NOT_CLOSED"
+    },
+    {
+      "id": "NM02",
+      "severity": "Major",
+      "location": "tools/v0_s3_quality_phase.py:554-582,1003-1090,1155-1175,1490-1534; tools/v0_s2_http.py:56-78,100-148",
+      "trigger": "Callback/observer/persistence/release callable does not return; or finite phase clock decreases.",
+      "expected": "Original600s history/10800s phase bounds require actual bounded calls or enforceable parent admission, not only post-return rejection; clock evidence must be monotonic.",
+      "actual": "_authorize and _bounded invoke callables synchronously and check elapsed only after return/finally; persistence and receipt writes also have no preemptive bound. A bounded synthetic callback returns only after simulated10801s before rejection. Decreasing finite clock allows all16 to PASS. No intentionally hung process was launched. Native HTTP has absolute request/socket deadlines in _request and owned cancellation, but observer callbacks in request are synchronous; these semantics do not bound arbitrary callbacks or guarantee the entire phase.",
+      "evidence": "probes.stdout.log:post_return_elapsed_only,decreasing_phase_clock; static production source locations",
+      "original_disposition": "ADDITIONAL_ORIGINAL_OBLIGATION_PARTIAL: late SUCCESS history rejection fixed, hard callable bounds/monotonic phase clock not proved"
+    }
+  ],
+  "original_finding_disposition": {
+    "M03": {
+      "status": "CLOSED_SCOPED_OFFLINE",
+      "evidence": "replayed-observations.json:source_mutation_in_authorize; suite95 source replacement/growth tests",
+      "reason": "Final source validation follows authorize, compares descriptor/path identity after bounded read, and changed source yields zero sends; does not promise universal hostile OS race immunity."
+    },
+    "M04": {
+      "status": "CLOSED_SCOPED_OFFLINE",
+      "evidence": "replayed-observations.json:residue_exception; suite95 test_correction_m04",
+      "reason": "OSError produces full16 terminal rows, attempts release, persists diagnostics and blocks later sends."
+    },
+    "M05": {
+      "status": "CLOSED_SCOPED_OFFLINE",
+      "evidence": "replayed-observations.json:failed_submit_counter; suite95 reservation test",
+      "reason": "Attempt precharged even when submit fails, successful returns counted separately; reservation maximum34 retained."
+    },
+    "M06": {
+      "status": "CLOSED_SCOPED_OFFLINE",
+      "evidence": "replayed-observations.json:cross_paired_reviewer_session; suite95 exact pair",
+      "reason": "Exact reviewer/session pairs enforced; string identity alone still is not independent provenance."
+    },
+    "M07": {
+      "status": "CLOSED_SCOPED_OFFLINE",
+      "evidence": "replayed-observations.json:execution_raw_length_mismatch; suite95 hash/path substitution cases",
+      "reason": "Reads actual raw and checks execution hash/length plus score hash/path/declared length."
+    },
+    "M09": {
+      "status": "CLOSED_SCOPED_OFFLINE",
+      "evidence": "suite95 test_correction_m09_*; source test SyntheticDriver.submit/BridgeError.__str__; production-bindings.json",
+      "reason": "Synthetic provider returns invalid exact envelope into actual production image/video nodes and BridgeOwner; str(BridgeError) is serialized into execution_error history, raw_response and prior_frame_raw_responses are extracted before validation; provider-after snapshot/count taken before persistence. These assertions execute in combined95 once, not rerun as a separate directed batch."
+    },
+    "m01": {
+      "status": "CLOSED_SCOPED_OFFLINE",
+      "evidence": "replayed-observations.json:nonfinite_release; suite95 test_correction_m01_a_non_finite_release_is_rejected; source892-943",
+      "reason": "NaN/inf/bool elapsed and nonfinite/bool GPU moments refused; strict increasing gap-bounded release samples. Global clock defect separately NM02."
+    },
+    "M01": {
+      "status": "OPEN_PARTIALLY_FIXED",
+      "finding": "M01",
+      "reason": "PARTIALLY_FIXED_REMAINS_OPEN: suffix classification, halt,16-row retention, exact/oneover caps and honest nonpersistence fixed; stored totals not fixed"
+    },
+    "M02": {
+      "status": "OPEN_PARTIALLY_FIXED",
+      "finding": "M02",
+      "reason": "PARTIALLY_FIXED_REMAINS_OPEN: existing-directory replay and direct root/phase replacement tested refusals fixed; all-ancestor pinning/write confinement not fixed"
+    },
+    "M08": {
+      "status": "OPEN_PARTIALLY_FIXED",
+      "finding": "M08",
+      "reason": "PARTIALLY_FIXED_REMAINS_OPEN: critical evidence and no extra all-technical-success requirement fixed; evidence-resolution fail-closed incomplete"
+    }
+  },
+  "cleanup": {
+    "suite": {
+      "owned_suite_root": "/tmp/lvw-independent-p3bc01-f4ad-suite-uhpr84u2",
+      "removed": true,
+      "other_pytest_roots_scanned_or_deleted": false
+    },
+    "targeted_probes": {
+      "root": "/tmp/lvw-independent-p3bc01-f4ad-probes-16urs67l",
+      "removed": true
+    },
+    "replay": {
+      "root": "/tmp/lvw-p3b-correction-01-probes-q19tkrgt",
+      "removed": true
+    },
+    "real_product_cleanup_claim": false
+  },
+  "not_proven": [
+    "authentic parent capacity provider",
+    "NativeRuntime.video_snapshot_residue adapter",
+    "new integration",
+    "A06",
+    "network enforcement",
+    "rollback",
+    "real16 quality",
+    "full12",
+    "product Gate0",
+    "human signature",
+    "release"
+  ],
+  "real_actions": {
+    "nativeWindows": 0,
+    "WSL": 0,
+    "PowerShell": 0,
+    "parser": 0,
+    "host_exe_hashing": 0,
+    "models": 0,
+    "GPU": 0,
+    "realmedia": 0,
+    "FFmpeg": 0,
+    "services": 0,
+    "networktest": 0,
+    "download": 0,
+    "realprogramledger": 0,
+    "claims": 0,
+    "fullcheckpoint": 0
+  },
+  "machine_product_acceptance": false,
+  "stage_pass_claim": false,
+  "product_gate0": false,
+  "human_signature": false,
+  "pushed": false,
+  "independence": {
+    "separate_dispatched_reviewer": true,
+    "implementation_participation": false,
+    "source_edits": false
+  },
+  "retention": "Only new text reports/harness/logs in independent-p3b-correction-01; own synthetic fixtures deleted; no binaries/DB/ZIP/copied source",
+  "hash_evidence": "binding-results.json,production-bindings.json,SHA256SUMS",
+  "scope": "Offline component only; no semantic quality attestation; no candidate fixes/selfsigning",
+  "root_scope_disposition": {
+    "message_id": "msg_fcaa6c30bbc5",
+    "root_commit": "7a14f62",
+    "status": "DOCUMENTED_COSMETIC_DEVIATION_NONBLOCKING",
+    "note": "Root message msg_fcaa6c30bbc5 confirms the cosmetic old-report deviation is nonblocking: root7a14f62 restores exact original implementation-p3b/report.md and SHA256SUMS at integration and records correction01-history-scope-disposition.json, preserving supplied commits; no raw failure log changed. This review continues to bind immutable376ea92/e162742, with no metadata merge or additional test round."
+  }
+}
