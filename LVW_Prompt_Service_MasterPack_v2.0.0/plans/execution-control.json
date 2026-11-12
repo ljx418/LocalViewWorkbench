@@ -87,7 +87,7 @@
   "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
   "live_terminal_receipt": "reports/unified-media/live-15/receipt.json",
   "independent_review": "reports/unified-media/independent-live-15/review.md",
-  "exact_stop_reason": "Correction02 independent review merged; correction03 root architecture frozen for visible ClaudeCode implementation. No new human authorization required for this offline batch.",
+  "exact_stop_reason": "Visible ClaudeCode correction03 dispatched; awaiting Orca worker_done, then isolated independent review. No product PASS or new human authorization requested.",
   "native_component_authorization": "reports/v0-s2/authorization-native-component-02.json",
   "native_component_terminal_receipt": "reports/v0-s2/native-component-02/receipt.json",
   "local_control_change_decision": "reports/v0-s2/change-decision-video-workbench-01.json",
@@ -1445,11 +1445,15 @@
       "new_runtime_processes_started": 0
     },
     "correction03": {
-      "status": "FROZEN_AWAITING_VISIBLE_DISPATCH",
+      "status": "DISPATCHED_TO_VISIBLE_CLAUDE",
       "task": "reports/v0-s3/product-gate0/implementation-p3b-correction-03.task.md",
       "decision": "reports/v0-s3/product-gate0/p3b-correction-03.adjudication.json",
       "review_commit": "12906163857a34bfc9afa8fa52a66dfa6fae296a",
-      "stage_pass_claim": false
+      "stage_pass_claim": false,
+      "dispatch_id": "ctx_f68ebe5afdf8",
+      "task_id": "task_542faace7614",
+      "terminal_id": "term_0dc8ee2ecc17d4703b9f4ccd024045a1",
+      "dispatch_receipt": "reports/v0-s3/product-gate0/implementation-p3b-correction-03.dispatch.json"
     }
   },
   "a06_read_only_capability_child": {
