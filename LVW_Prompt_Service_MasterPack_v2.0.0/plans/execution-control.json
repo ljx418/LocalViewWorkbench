@@ -1239,6 +1239,25 @@
     "projection": "reports/v0-s3/product-gate0/quality-execution-inputs.frozen.json",
     "projection_sha256": "47e9f14efa66bc4df851bf1a738763b48c1728eed84b76c56a7848d1b01f00c3",
     "real_runs_allowed": false,
-    "product_gate0": false
+    "product_gate0": false,
+    "worker": {
+      "run_id": "run_ec1d5514e718",
+      "dispatch_id": "ctx_1e9a5a3ba89a",
+      "task_id": "task_be463818b029",
+      "terminal": "term_4053253a-419b-4351-89c7-45cd1e5e35cc",
+      "agent": "claude",
+      "launch_receipt": "reports/v0-s3/product-gate0/implementation-p3b.launch.json",
+      "task_spec": "reports/v0-s3/product-gate0/implementation-p3b.task.md",
+      "last_observation": {
+        "source": "orca-ide orchestration worker-show --dispatch ctx_1e9a5a3ba89a --json",
+        "liveness": "live",
+        "stage": "input_accepted",
+        "state": "ready",
+        "terminal_state": "retained",
+        "recorded_at_utc": "2026-11-12T00:47:01.640961+00:00",
+        "meaning": "Coordinator observed specific worker live; not implementation completion or quota/model-route proof"
+      },
+      "next": "Await Orca worker report; no polling/restart/Codex fallback"
+    }
   }
 }
