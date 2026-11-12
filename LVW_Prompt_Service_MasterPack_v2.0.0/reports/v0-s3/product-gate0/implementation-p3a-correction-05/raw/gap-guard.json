@@ -1,0 +1,132 @@
+{
+  "mode": "gap",
+  "exit": 0,
+  "subprocesses": [
+    {
+      "argv": [
+        "git",
+        "init",
+        "-q"
+      ],
+      "cwd": "/tmp/lvw-p3a-owned-xinqg5i9/synthetic-git"
+    },
+    {
+      "argv": [
+        "git",
+        "add",
+        "."
+      ],
+      "cwd": "/tmp/lvw-p3a-owned-xinqg5i9/synthetic-git"
+    },
+    {
+      "argv": [
+        "git",
+        "-c",
+        "user.name=ljx418",
+        "-c",
+        "user.email=1173696783@qq.com",
+        "commit",
+        "-qm",
+        "synthetic payload"
+      ],
+      "cwd": "/tmp/lvw-p3a-owned-xinqg5i9/synthetic-git"
+    },
+    {
+      "argv": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "cwd": "/tmp/lvw-p3a-owned-xinqg5i9/synthetic-git"
+    },
+    {
+      "argv": [
+        "git",
+        "-C",
+        "/tmp/lvw-p3a-owned-xinqg5i9/synthetic-git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "cwd": "/tmp/lvw-p3a-owned-xinqg5i9/synthetic-git"
+    },
+    {
+      "argv": [
+        "git",
+        "-C",
+        "/tmp/lvw-p3a-owned-xinqg5i9/synthetic-git",
+        "rev-parse",
+        "--verify",
+        "d16b3daf4e7100d8ae8bc2b624913bcf2b9a904e^{commit}"
+      ],
+      "cwd": "/tmp/lvw-p3a-owned-xinqg5i9/synthetic-git"
+    },
+    {
+      "argv": [
+        "git",
+        "-C",
+        "/tmp/lvw-p3a-owned-xinqg5i9/synthetic-git",
+        "cat-file",
+        "-t",
+        "d16b3daf4e7100d8ae8bc2b624913bcf2b9a904e"
+      ],
+      "cwd": "/tmp/lvw-p3a-owned-xinqg5i9/synthetic-git"
+    },
+    {
+      "argv": [
+        "git",
+        "-C",
+        "/tmp/lvw-p3a-owned-xinqg5i9/synthetic-git",
+        "status",
+        "--porcelain"
+      ],
+      "cwd": "/tmp/lvw-p3a-owned-xinqg5i9/synthetic-git"
+    },
+    {
+      "argv": [
+        "git",
+        "-C",
+        "/tmp/lvw-p3a-owned-xinqg5i9/synthetic-git",
+        "ls-tree",
+        "-r",
+        "-z",
+        "--full-tree",
+        "d16b3daf4e7100d8ae8bc2b624913bcf2b9a904e",
+        "--",
+        "pack/LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge",
+        "pack/LVW_V0_RuntimePatch/workflows"
+      ],
+      "cwd": "/tmp/lvw-p3a-owned-xinqg5i9/synthetic-git"
+    },
+    {
+      "argv": [
+        "git",
+        "-C",
+        "/tmp/lvw-p3a-owned-xinqg5i9/synthetic-git",
+        "cat-file",
+        "--batch"
+      ],
+      "cwd": "/tmp/lvw-p3a-owned-xinqg5i9/synthetic-git"
+    },
+    {
+      "argv": [
+        "git",
+        "-C",
+        "/tmp/lvw-p3a-owned-xinqg5i9/synthetic-git",
+        "cat-file",
+        "blob",
+        "d16b3daf4e7100d8ae8bc2b624913bcf2b9a904e:pack/tools/v0_incremental_package.py"
+      ],
+      "cwd": "/tmp/lvw-p3a-owned-xinqg5i9/synthetic-git"
+    }
+  ],
+  "temporary_roots": [
+    {
+      "path": "/tmp/lvw-p3a-correction05-tests-xppbsabp",
+      "exists_after": false
+    },
+    {
+      "path": "/tmp/lvw-p3a-owned-xinqg5i9",
+      "exists_after": false
+    }
+  ]
+}

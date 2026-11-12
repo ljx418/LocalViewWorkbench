@@ -220,7 +220,21 @@ class InstalledPackageRuntimeFactory(StageRuntimeFactory):
         self._preparation_guard()
 
     def prepare_default(self):
-        return self._with_preparation(False)
+        context = self._with_preparation(False)
+        # Keep the inherited closures, including launch's internal verify call.
+        # The identity scope itself neither invokes nor consumes the archive.
+        def bounded(callback):
+            def invoke(*args, **kwargs):
+                with self._archive_lifecycle(context):
+                    if 'default' in self.archive.original.used:
+                        raise EvidenceError('returned callback root already archived')
+                    result = callback(*args, **kwargs)
+                    self._preparation_guard()
+                    return result
+            return invoke
+        context.verify_bindings = bounded(context.verify_bindings)
+        context.authorize_launch = bounded(context.authorize_launch)
+        return context
 
     def prepare_warm(self):
         return self._with_preparation(True)

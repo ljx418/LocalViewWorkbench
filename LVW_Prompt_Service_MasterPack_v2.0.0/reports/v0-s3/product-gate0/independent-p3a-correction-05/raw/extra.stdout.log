@@ -1,0 +1,103 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-8.4.2, pluggy-1.6.0 -- /usr/bin/python3
+rootdir: /home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0
+collecting ... collected 2 items
+
+reports/v0-s3/product-gate0/independent-p3a-correction-05/test_callback_provenance.py::test_returned_callback_cannot_adopt_other_prepared_label[verify_bindings] FAILED
+reports/v0-s3/product-gate0/independent-p3a-correction-05/test_callback_provenance.py::test_returned_callback_cannot_adopt_other_prepared_label[authorize_launch] FAILED
+
+=================================== FAILURES ===================================
+__ test_returned_callback_cannot_adopt_other_prepared_label[verify_bindings] ___
+
+fixture = namespace(monkeypatch=<_pytest.monkeypatch.MonkeyPatch object at 0x706a12a8eba0>, temporary='/tmp/lvw-p3a-owned-vp74u5...xe': PosixPath('/tmp/lvw-p3a-owned-vp74u5rl/ffmpeg_exe')}, repo=PosixPath('/tmp/lvw-p3a-owned-vp74u5rl/synthetic-git'))
+callback = 'verify_bindings'
+
+    @pytest.mark.parametrize('callback', ['verify_bindings','authorize_launch'])
+    def test_returned_callback_cannot_adopt_other_prepared_label(fixture, callback):
+        f=fixture
+        observed=[]
+        kwargs=dict(f.kwargs)
+        kwargs['guard_critical']=lambda: {'complete_rehash':False,'manifest_sha256':'e'*64,
+                                          'critical_files':[key.upper() for key in TOOL_KEYS]}
+        def authority(*args):
+            observed.append({'action':args[0],'pinned_labels':list(factory._root_fds)})
+        kwargs['authorize']=authority
+        factory=InstalledPackageRuntimeFactory(**kwargs)
+        default=factory.prepare_default()
+        original_root=default.root
+>       warm=factory.prepare_warm()
+             ^^^^^^^^^^^^^^^^^^^^^^
+
+reports/v0-s3/product-gate0/independent-p3a-correction-05/test_callback_provenance.py:22: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_s3_stage_runtime.py:240: in prepare_warm
+    return self._with_preparation(True)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_s3_stage_runtime.py:251: in _with_preparation
+    return super()._prepare(warm)
+           ^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <tools.v0_s3_stage_runtime.InstalledPackageRuntimeFactory object at 0x706a12182420>
+warm = True
+
+    def _prepare(self, warm):
+        directed_warm=self.component_scope=='DIRECTED_WARM_COMPONENT_DEPENDENCIES_NOT_FULL_STAGE_SEAL'
+        if warm and self.component_scope is not None and not directed_warm:raise EvidenceError('directed browser component has no warm benchmark authority')
+        if directed_warm and not warm:raise EvidenceError('directed warm component has no default/browser authority')
+        label = 'warm' if warm else 'default'
+        if (label in self.used or (warm and not directed_warm and ('default' not in self.contexts
+>               or self.contexts['default'].root.exists()))): raise EvidenceError('factory order/replay/default root not closed')
+                                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E               tools.v0_s2_checkpoint_oracles.EvidenceError: factory order/replay/default root not closed
+
+tools/v0_s2_stage_runtime.py:164: EvidenceError
+__ test_returned_callback_cannot_adopt_other_prepared_label[authorize_launch] __
+
+fixture = namespace(monkeypatch=<_pytest.monkeypatch.MonkeyPatch object at 0x706a11ca5ac0>, temporary='/tmp/lvw-p3a-owned-zun1qd...xe': PosixPath('/tmp/lvw-p3a-owned-zun1qdta/ffmpeg_exe')}, repo=PosixPath('/tmp/lvw-p3a-owned-zun1qdta/synthetic-git'))
+callback = 'authorize_launch'
+
+    @pytest.mark.parametrize('callback', ['verify_bindings','authorize_launch'])
+    def test_returned_callback_cannot_adopt_other_prepared_label(fixture, callback):
+        f=fixture
+        observed=[]
+        kwargs=dict(f.kwargs)
+        kwargs['guard_critical']=lambda: {'complete_rehash':False,'manifest_sha256':'e'*64,
+                                          'critical_files':[key.upper() for key in TOOL_KEYS]}
+        def authority(*args):
+            observed.append({'action':args[0],'pinned_labels':list(factory._root_fds)})
+        kwargs['authorize']=authority
+        factory=InstalledPackageRuntimeFactory(**kwargs)
+        default=factory.prepare_default()
+        original_root=default.root
+>       warm=factory.prepare_warm()
+             ^^^^^^^^^^^^^^^^^^^^^^
+
+reports/v0-s3/product-gate0/independent-p3a-correction-05/test_callback_provenance.py:22: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_s3_stage_runtime.py:240: in prepare_warm
+    return self._with_preparation(True)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_s3_stage_runtime.py:251: in _with_preparation
+    return super()._prepare(warm)
+           ^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <tools.v0_s3_stage_runtime.InstalledPackageRuntimeFactory object at 0x706a11ca7260>
+warm = True
+
+    def _prepare(self, warm):
+        directed_warm=self.component_scope=='DIRECTED_WARM_COMPONENT_DEPENDENCIES_NOT_FULL_STAGE_SEAL'
+        if warm and self.component_scope is not None and not directed_warm:raise EvidenceError('directed browser component has no warm benchmark authority')
+        if directed_warm and not warm:raise EvidenceError('directed warm component has no default/browser authority')
+        label = 'warm' if warm else 'default'
+        if (label in self.used or (warm and not directed_warm and ('default' not in self.contexts
+>               or self.contexts['default'].root.exists()))): raise EvidenceError('factory order/replay/default root not closed')
+                                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E               tools.v0_s2_checkpoint_oracles.EvidenceError: factory order/replay/default root not closed
+
+tools/v0_s2_stage_runtime.py:164: EvidenceError
+=========================== short test summary info ============================
+FAILED reports/v0-s3/product-gate0/independent-p3a-correction-05/test_callback_provenance.py::test_returned_callback_cannot_adopt_other_prepared_label[verify_bindings]
+FAILED reports/v0-s3/product-gate0/independent-p3a-correction-05/test_callback_provenance.py::test_returned_callback_cannot_adopt_other_prepared_label[authorize_launch]
+============================== 2 failed in 0.42s ===============================

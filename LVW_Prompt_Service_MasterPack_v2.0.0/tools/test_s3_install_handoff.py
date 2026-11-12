@@ -520,3 +520,96 @@ def test_correction04_archive_refuses_and_releases(fixture, monkeypatch, fault):
     else: assert context.root.is_dir()
     monkeypatch.setattr(os, 'open', original_open)
     _correction04_closed(factory, opened)
+
+
+def _correction05_factory(f):
+    from tools.v0_s2_stage_runtime import TOOL_KEYS
+    actions = []
+    kwargs = dict(f.kwargs, authorize=lambda *args: actions.append(args),
+        guard_critical=lambda: {'complete_rehash': False, 'manifest_sha256': 'e'*64,
+                               'critical_files': [key.upper() for key in TOOL_KEYS]})
+    return InstalledPackageRuntimeFactory(**kwargs), actions
+
+
+def test_correction05_returned_callable_inventory_and_repeat(fixture, monkeypatch):
+    f = fixture
+    factory, actions = _correction05_factory(f)
+    opened = _correction04_track(monkeypatch)
+    context = factory.prepare_default()
+    assert {key for key, value in vars(context).items() if callable(value)} == {'verify_bindings', 'authorize_launch'}
+    for callback in ('verify_bindings', 'verify_bindings', 'authorize_launch', 'verify_bindings'):
+        before = len(actions)
+        result = (context.verify_bindings(context.browser_config, 'repeat') if callback == 'verify_bindings'
+                  else context.authorize_launch(context.browser_config))
+        assert result['owned_run_root'] == str(context.root)
+        assert result['ephemeral_user_root_verified'] is True
+        assert actions[before:][0][0] == ('verify_browser_runtime_bindings' if callback == 'verify_bindings' else 'authorize_original_browser_worker')
+        if callback == 'authorize_launch':
+            assert actions[-1] == ('verify_browser_runtime_bindings', 'before_node_launch')
+            assert result['candidate_sha'] == f.candidate
+        assert f.archive.used == set()
+        _correction04_closed(factory, opened)
+    assert factory.archive(context, context.driver.cleanup())['proven']
+    with pytest.raises((ValueError, OSError)): context.verify_bindings(context.browser_config, 'deleted')
+    warm = factory.prepare_warm()
+    assert not {key for key, value in vars(warm).items() if callable(value)}
+    assert factory.archive(warm, warm.driver.cleanup())['proven']
+    _correction04_closed(factory, opened)
+
+
+@pytest.mark.parametrize('fault', ['bad-config', 'bad-binding', 'authority-error', 'critical-error',
+                                  'parent-replaced', 'root-replaced', 'authority-drift',
+                                  'critical-drift', 'complete-drift', 'resource-drift'])
+def test_correction05_delayed_callback_failure_closes(fixture, monkeypatch, fault):
+    f = fixture
+    factory, actions = _correction05_factory(f)
+    context = factory.prepare_default()
+    opened = _correction04_track(monkeypatch)
+    config = dict(context.browser_config)
+    detached = f.root / 'correction05-detached'
+    def drift():
+        f.directory.rename(detached); f.directory.mkdir()
+        (f.directory / 'foreign').write_bytes(b'ORIGINAL')
+    def error(): raise ValueError('correction05 callback failure')
+    if fault == 'bad-config': config['protocol_nonce'] = 'wrong'
+    if fault == 'bad-binding': context.binding['candidate_sha'] = 'wrong'
+    if fault == 'parent-replaced': drift()
+    if fault == 'root-replaced':
+        context.root.rename(detached); context.root.mkdir()
+        (context.root / 'foreign').write_bytes(b'ORIGINAL')
+    if fault.startswith('authority-'):
+        original = factory.authorize
+        def authority(*args):
+            original(*args)
+            if fault == 'authority-error': error()
+            drift()
+        monkeypatch.setattr(factory, 'authorize', authority)
+    if fault.startswith('critical-'):
+        original = factory.guard_critical
+        def critical():
+            if fault == 'critical-error': error()
+            result = original(); drift(); return result
+        monkeypatch.setattr(factory, 'guard_critical', critical)
+    if fault == 'complete-drift':
+        original = factory.verify_complete
+        def complete():
+            result = original(); drift(); return result
+        monkeypatch.setattr(factory, 'verify_complete', complete)
+    if fault == 'resource-drift':
+        original = context.driver.resource_observer
+        def resource():
+            result = original(); drift(); return result
+        monkeypatch.setattr(context.driver, 'resource_observer', resource)
+    with pytest.raises((ValueError, OSError)):
+        if fault == 'complete-drift': context.authorize_launch(config)
+        else: context.verify_bindings(config, 'failure')
+    _correction04_closed(factory, opened)
+    assert f.archive.used == set()
+    assert not (f.directory / 'default-raw').exists()
+    if fault in ('parent-replaced', 'authority-drift', 'critical-drift', 'complete-drift', 'resource-drift'):
+        assert sorted(p.name for p in f.directory.iterdir()) == ['foreign']
+        assert (detached / context.root.name).is_dir()
+        assert (f.directory / 'foreign').read_bytes() == b'ORIGINAL'
+    elif fault == 'root-replaced':
+        assert detached.is_dir() and (context.root / 'foreign').read_bytes() == b'ORIGINAL'
+    else: assert context.root.is_dir()
