@@ -69,6 +69,63 @@ def sha256_file(path):
         return hashlib.sha256(stream.read()).hexdigest()
 
 
+def guard_selftest(outdir, label, candidate_sha):
+    """Prove that the audit hook really blocks the offline boundary.
+
+    A guard that is never exercised is decoration.  This mode attempts one
+    loopback connect, one host child process and one shell call and records
+    the actual outcome of each attempt.
+    """
+    import socket
+    import subprocess
+
+    outcomes = {}
+
+    def attempt(name, action):
+        try:
+            action()
+            outcomes[name] = "NOT_BLOCKED"
+        except OfflineBoundaryViolation as error:
+            outcomes[name] = "BLOCKED"
+            outcomes[name + "_detail"] = str(error)
+        except Exception as error:  # noqa: BLE001 - the real outcome is recorded
+            outcomes[name] = "OTHER:" + type(error).__name__
+
+    def connect():
+        handle = socket.socket()
+        try:
+            handle.connect(("127.0.0.1", 9))
+        finally:
+            handle.close()
+
+    attempt("socket_connect", connect)
+    attempt("socket_bind", lambda: socket.socket().bind(("127.0.0.1", 0)))
+    attempt("subprocess_popen", lambda: subprocess.Popen(["/bin/true"]).wait())
+    attempt("os_system", lambda: os.system("true"))
+
+    blocked = all(outcomes.get(name) == "BLOCKED" for name in
+                  ("socket_connect", "socket_bind", "subprocess_popen", "os_system"))
+    receipt = {
+        "kind": "S3_P3B_OFFLINE_GUARD_SELFTEST",
+        "label": label,
+        "candidate_sha": candidate_sha,
+        "installed_before_pytest_import": True,
+        "audit_hook_events": list(BLOCKED_EVENTS),
+        "outcomes": outcomes,
+        "guard_effective": blocked,
+        "stage_pass_claim": False,
+        "product_gate0": False,
+        "real_execution_performed": False,
+    }
+    path = os.path.join(outdir, label + ".guard-selftest.json")
+    with open(path, "w", encoding="utf-8") as stream:
+        json.dump(receipt, stream, ensure_ascii=False, sort_keys=True, indent=2)
+        stream.write("\n")
+    sys.stdout.write(json.dumps(receipt, ensure_ascii=False, sort_keys=True) + "\n")
+    sys.stdout.flush()
+    return 0 if blocked else 1
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser()
     parser.add_argument("--outdir", required=True)
@@ -76,10 +133,14 @@ def main(argv=None):
     parser.add_argument("--candidate-sha", default="")
     parser.add_argument("--testpath", default="tools/test_v0_s3_quality_phase.py")
     parser.add_argument("--select", default="")
+    parser.add_argument("--guard-selftest", action="store_true")
     arguments = parser.parse_args(argv)
 
     outdir = os.path.abspath(arguments.outdir)
     os.makedirs(outdir, exist_ok=True)
+
+    if arguments.guard_selftest:
+        return guard_selftest(outdir, arguments.label, arguments.candidate_sha)
 
     import pytest  # imported only after the audit hook is active
 
