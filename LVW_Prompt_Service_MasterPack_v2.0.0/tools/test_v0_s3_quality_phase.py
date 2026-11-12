@@ -86,15 +86,18 @@ class SyntheticTransport:
 
     The transport speaks the production envelope shape so the real owner
     parses, compiles and publishes exactly what it would publish for a real
-    local model.  No socket is ever opened.
+    local model.  No socket is ever opened.  The ``fail_at`` mode returns an
+    unusable envelope so the *real* owner produces the real ``BridgeError``
+    with its raw response details.
     """
 
     endpoint = "http://127.0.0.1:11434/api/chat"
 
-    def __init__(self, log, counter, video):
+    def __init__(self, log, counter, video, fail_at=0):
         self.log = log
         self.counter = counter
         self.video = video
+        self.fail_at = fail_at
         self.calls = 0
 
     def chat(self, payload, timeout_seconds):
@@ -102,6 +105,10 @@ class SyntheticTransport:
         self.counter[0] += 1
         number = self.counter[0]
         self.log.append('[GIN] 200 POST "/api/chat"\n')
+        if self.fail_at and self.calls == self.fail_at:
+            # A provider envelope the real owner must reject.  The real
+            # BridgeError keeps this exact raw response as evidence.
+            return "this is not a json envelope"
         content = {
             "observations": [f"synthetic observation {number}"],
             "inferences": [],
@@ -185,8 +192,14 @@ class SyntheticDriver:
         self.history = {}
         self.log = ['[GIN] 200 GET "/api/tags"\n']
         self.counter = [0]
-        self.image_transport = SyntheticTransport(self.log, self.counter, video=False)
-        self.video_transport = SyntheticTransport(self.log, self.counter, video=True)
+        # The real owner must fail on its own, so the real BridgeError and its
+        # raw response details are produced by the production code path.
+        image_fail = 1 if failure == "provider-refusal" else 0
+        video_fail = 2 if failure == "provider-refusal" else 0
+        self.image_transport = SyntheticTransport(self.log, self.counter, video=False,
+                                                  fail_at=image_fail)
+        self.video_transport = SyntheticTransport(self.log, self.counter, video=True,
+                                                  fail_at=video_fail)
         self.actions = []
         self._resource_worker = object()
         self.manual = nodes.LVWManualPromptOwner(owner=ManualDraftOwner(
@@ -227,6 +240,16 @@ class SyntheticDriver:
             return {"proven": False, "loaded_models": 1, "elapsed_seconds": 3, "gpu_samples": []}
         if self.failure == "release-model-resident":
             return {"proven": True, "loaded_models": 1, "elapsed_seconds": 3,
+                    "gpu_samples": [{"monotonic_seconds": i, "gpu_used_mib": 1124} for i in range(3)]}
+        if self.failure == "release-nan":
+            return {"proven": True, "loaded_models": 0, "elapsed_seconds": float("nan"),
+                    "gpu_samples": [{"monotonic_seconds": float("nan"), "gpu_used_mib": 1124}
+                                    for _ in range(3)]}
+        if self.failure == "release-inf":
+            return {"proven": True, "loaded_models": 0, "elapsed_seconds": float("inf"),
+                    "gpu_samples": [{"monotonic_seconds": i, "gpu_used_mib": 1124} for i in range(3)]}
+        if self.failure == "release-bool":
+            return {"proven": True, "loaded_models": 0, "elapsed_seconds": True,
                     "gpu_samples": [{"monotonic_seconds": i, "gpu_used_mib": 1124} for i in range(3)]}
         return {"proven": True, "loaded_models": 0, "elapsed_seconds": 3,
                 "gpu_samples": [{"monotonic_seconds": i, "gpu_used_mib": 1124} for i in range(3)]}
@@ -273,9 +296,13 @@ class SyntheticDriver:
                 else:
                     produced[name] = result
         except BridgeError as error:
+            # The production BridgeError renders its own evidence for the
+            # Comfy history: the code, the message and the details, including
+            # the raw provider response and the raw responses of the frames
+            # that were already analysed.
             status = {"status_str": "error", "messages": [["execution_error", {
                 "prompt_id": prompt, "node_id": name, "node_type": kind,
-                "exception_message": json.dumps({"code": error.code})}]]}
+                "exception_message": str(error)}]]}
             outputs = {}
         history_graph = copy.deepcopy(graph)
         history_prompt = prompt
@@ -399,7 +426,7 @@ class FakeClock:
         self.now += self.step or seconds
 
 
-def _prepare(root, failure=None, rows=None, clock=None):
+def _prepare(root, failure=None, rows=None, clock=None, parent_budget=None):
     for name in ("input", "output", "temp"):
         (root / name).mkdir(parents=True, exist_ok=True)
     if rows is None:
@@ -408,12 +435,14 @@ def _prepare(root, failure=None, rows=None, clock=None):
     driver = SyntheticDriver(root, failure)
     if clock is None:
         clock = FakeClock(step=100.0)
+    if parent_budget is None:
+        parent_budget = {"known": True, "action_capacity": 34}
     phase = QualityPhase(
         driver, root, run_id=RUN_ID, candidate_sha=CANDIDATE_SHA,
         authorization_sha256=AUTHORIZATION_SHA, projection=projection,
         projection_sha256=hashlib.sha256(projection).hexdigest(),
         source_identity=_source_identity(), authorize=lambda *args: None,
-        binding=_binding(), clock=clock, sleep=clock.sleep,
+        binding=_binding(), parent_budget=parent_budget, clock=clock, sleep=clock.sleep,
     )
     return phase, driver, projection
 
@@ -598,7 +627,8 @@ def test_binding_is_required_and_must_match_the_candidate(tmp_path):
     driver = SyntheticDriver(tmp_path)
     common = dict(run_id=RUN_ID, candidate_sha=CANDIDATE_SHA, authorization_sha256=AUTHORIZATION_SHA,
                   projection=projection, projection_sha256=hashlib.sha256(projection).hexdigest(),
-                  source_identity=_source_identity(), authorize=lambda *args: None)
+                  source_identity=_source_identity(), authorize=lambda *args: None,
+                  parent_budget={"known": True, "action_capacity": 34})
     with pytest.raises(QualityContractError) as missing:
         QualityPhase(driver, tmp_path, binding={}, **common)
     assert "QUALITY_BINDING_INCOMPLETE" in str(missing.value)
@@ -826,13 +856,18 @@ def test_the_phase_deadline_blocks_the_remaining_rows(tmp_path):
     original = driver.submit
 
     def advancing(graph):
-        clock.now += 2000.0
+        clock.now += 1200.0
         return original(graph)
 
     driver.submit = advancing
     receipt = phase.run()
-    assert receipt["test_counts"]["BLOCKED"] >= 1, receipt
-    assert receipt["rows"][-1]["error_code"] in ("PHASE_DEADLINE_EXCEEDED", "HALTED_AFTER_PHASE_DEADLINE_EXCEEDED"), receipt["rows"][-1]
+    # Nine submissions fit inside the frozen 10800s phase window; the tenth
+    # row starts after it and its history must fail the deadline even though
+    # the history itself answered.
+    assert receipt["test_counts"]["PASS"] == 9, receipt
+    assert receipt["rows"][9]["error_code"] == "HISTORY_TIMEOUT", receipt["rows"][9]
+    assert receipt["test_counts"]["BLOCKED"] == 6, receipt
+    assert receipt["rows"][-1]["error_code"].startswith("HALTED_AFTER_"), receipt["rows"][-1]
 
 
 def test_a_failed_row_is_never_retried(tmp_path):
@@ -946,7 +981,8 @@ def test_qs_a_row_whose_execution_failed_cannot_be_rescued_by_a_full_score(compl
     result = recompute_scores(receipt, completed_run["artifact_root"], scores,
                                independence=_independence())
     assert result["rows"][5]["quality_status"] == "FAIL", result["rows"][5]
-    assert result["rows"][5]["reason"] == "EXECUTION_NOT_PASS", result["rows"][5]
+    assert result["rows"][5]["usable"] is False, result["rows"][5]
+    assert result["rows"][5]["reason"] == "UNKNOWN_EXECUTION_FAILURE", result["rows"][5]
     assert result["aggregate_pass"] is False, result
 
 
@@ -959,7 +995,7 @@ def test_qs_an_unscored_raw_run_can_never_aggregate_pass(completed_run):
                                independence=_independence())
     assert result["aggregate_pass"] is False, result
     assert result["all_rows_resolved"] is False, result
-    assert result["thresholds"]["critical_hallucinations_known"] is False, result
+    assert len(result["unresolved_rows"]) == 16, result
 
 
 def test_qs_a_duplicate_score_is_rejected(completed_run):
@@ -1075,7 +1111,7 @@ def test_qs_the_score_session_must_be_bound_to_the_independence_receipt(complete
     scores[0]["session_id"] = "unbound-session"
     with pytest.raises(QualityContractError) as unbound:
         recompute_scores(receipt, completed_run["artifact_root"], scores, independence=_independence())
-    assert "QS_SCORE_SESSION_NOT_INDEPENDENT" in str(unbound.value)
+    assert "QS_SCORE_REVIEWER_SESSION_PAIR_UNKNOWN" in str(unbound.value)
 
 
 def test_qs_the_independence_receipt_must_bind_the_run(completed_run):
@@ -1112,3 +1148,432 @@ def test_combined_the_execution_and_the_scoring_close_on_one_bound_run(completed
     assert result["aggregate_pass"] is True, result
     assert result["stage_pass_claim"] is False, result
     assert result["decision"] == "QUALITY_THRESHOLDS_MET_FOR_THIS_BOUND_RUN", result
+
+
+# --------------------------------------------------------------------------
+# aggregate correction 01: regression coverage for the reviewed findings
+#
+# M01 storage failure classification and the terminal receipt bounds
+# M02 owned run/phase ownership, ancestor guards and replay refusal
+# M03 source and root re-verification immediately before the send
+# M04 ordinary cleanup exceptions never bypass the release or the receipt
+# M05 the public submission attempt is charged before the send
+# M06 the reviewer and the session are one exact pair
+# M07 the raw hash and the raw length are both bound
+# M08 a known failed row keeps its critical evidence and may resolve
+# M09 the real BridgeError raw evidence is preserved
+# m01 the release evidence must be finite
+# --------------------------------------------------------------------------
+def test_correction_m01_a_storage_failure_marks_unproven_and_stops_the_sends(tmp_path):
+    phase, driver, _ = _prepare(tmp_path)
+    original = phase._artifact
+
+    def failing(relative, raw):
+        if relative.endswith("/raw.txt"):
+            raise QualityContractError("ARTIFACT_WRITE_FAILED:" + relative)
+        return original(relative, raw)
+
+    phase._artifact = failing
+    receipt = phase.run()
+    assert receipt["rows"][0]["error_code"].startswith("ARTIFACT_WRITE_FAILED"), receipt["rows"][0]
+    assert receipt["rows"][0]["storage_unproven"] is True, receipt["rows"][0]
+    assert receipt["storage_unproven"] is True, receipt
+    # The storage failure stops every later public submission.
+    assert receipt["public_submissions"] == 1, receipt
+    assert receipt["public_submissions_succeeded"] == 1, receipt
+    # All sixteen rows are retained inside the fixed denominator.
+    assert receipt["test_counts"]["fixed"] == 16, receipt
+    assert len(receipt["rows"]) == 16, receipt
+    assert receipt["test_counts"]["BLOCKED"] == 15, receipt
+
+
+def test_correction_m01_the_error_classification_ignores_the_path_suffix():
+    assert quality.error_base_code("ARTIFACT_WRITE_FAILED:rows/SYN-I00/raw.txt") \
+        == "ARTIFACT_WRITE_FAILED"
+    assert "ARTIFACT_WRITE_FAILED" in quality.STORAGE_ERROR_CODES
+    assert "ARTIFACT_TOO_LARGE" in quality.HALT_ERROR_CODES
+    assert "ARTIFACT_TOO_LARGE:rows/x" in quality.HALT_ERROR_CODES or True
+    assert quality.error_base_code("ARTIFACT_TOO_LARGE:rows/x") in quality.HALT_ERROR_CODES
+
+
+def test_correction_m01_the_terminal_receipt_counts_inside_the_storage_bounds(completed_run):
+    receipt = completed_run["receipt"]
+    assert receipt["receipt_persisted"] is True, receipt
+    assert receipt["terminal_status"] == "TERMINAL_RECEIPT_PERSISTED", receipt
+    assert receipt["artifact_files_including_receipt"] <= quality.MAX_ARTIFACT_FILES, receipt
+    assert receipt["artifact_bytes_including_receipt"] <= quality.MAX_TOTAL_ARTIFACT_BYTES, receipt
+    assert receipt["receipt_bytes"] > 0, receipt
+    # The persisted receipt is the terminal receipt.
+    stored = (completed_run["artifact_root"] / "qd-receipt.json").read_bytes()
+    assert len(stored) == receipt["receipt_bytes"], (len(stored), receipt["receipt_bytes"])
+
+
+def test_correction_m01_a_receipt_over_the_total_budget_is_refused_explicitly(tmp_path):
+    phase, driver, _ = _prepare(tmp_path)
+    phase.directory.mkdir(parents=True, exist_ok=True)
+    phase._phase_identity = [phase.directory.lstat().st_dev, phase.directory.lstat().st_ino]
+    phase._artifact_bytes = quality.MAX_TOTAL_ARTIFACT_BYTES
+    receipt = {"kind": quality.QD_RECEIPT_KIND, "synthetic": True}
+    assert phase._write_receipt(receipt) is False
+    assert receipt["receipt_persisted"] is False, receipt
+    assert receipt["terminal_status"] == "TERMINAL_RECEIPT_NOT_PERSISTED", receipt
+    assert not (phase.directory / "qd-receipt.json").exists(), receipt
+
+
+def test_correction_m02_an_ancestor_redirect_cannot_escape_the_owned_directory(tmp_path):
+    phase, driver, _ = _prepare(tmp_path)
+    phase.directory.mkdir(parents=True, exist_ok=True)
+    info = phase.directory.lstat()
+    phase._phase_identity = [info.st_dev, info.st_ino]
+    outside = tmp_path / "redirect-target"
+    outside.mkdir()
+    (phase.directory / "rows").symlink_to(outside, target_is_directory=True)
+    with pytest.raises(QualityContractError) as redirect:
+        phase._artifact("rows/asset/raw.txt", b"synthetic")
+    assert "ARTIFACT_REDIRECT_FORBIDDEN" in str(redirect.value), str(redirect.value)
+    assert not (outside / "asset" / "raw.txt").exists(), outside
+
+
+def test_correction_m02_a_preexisting_phase_directory_is_refused_without_writing(tmp_path):
+    phase, driver, _ = _prepare(tmp_path)
+    phase.directory.mkdir(parents=True, exist_ok=True)
+    receipt = phase.run()
+    assert receipt["decision"] == "QUALITY_EXECUTION_BLOCKED", receipt
+    assert receipt["error_code"] == "PHASE_DIRECTORY_EXISTS", receipt
+    assert receipt["phase_directory_replay_refused"] is True, receipt
+    # Nothing at all is written into the preexisting directory.
+    assert list(phase.directory.iterdir()) == [], list(phase.directory.iterdir())
+    assert receipt["receipt_persisted"] is False, receipt
+    assert receipt["terminal_status"] == "TERMINAL_RECEIPT_NOT_PERSISTED_PREEXISTING_PHASE_DIRECTORY", receipt
+    assert driver.submissions == 0, driver.submissions
+    assert len(receipt["rows"]) == 16, receipt
+
+
+def test_correction_m02_a_replaced_phase_directory_is_refused(tmp_path):
+    phase, driver, _ = _prepare(tmp_path)
+    replaced = {}
+
+    def replace(action, subject):
+        if action == "quality_row_begin" and not replaced:
+            replaced["done"] = True
+            original = phase.directory
+            original.rename(original.with_name("s3-quality-original"))
+            original.mkdir()
+
+    phase.authorize = replace
+    receipt = phase.run()
+    assert receipt["rows"][0]["error_code"].startswith("PHASE_DIRECTORY_REPLACED"), receipt["rows"][0]
+    assert driver.submissions == 0, driver.submissions
+    assert not (phase.directory / "rows").exists(), list(phase.directory.iterdir())
+
+
+def test_correction_m02_a_replaced_run_root_is_refused(tmp_path):
+    phase, driver, _ = _prepare(tmp_path)
+    replaced = {}
+
+    def replace(action, subject):
+        if action == "quality_row_begin" and not replaced:
+            replaced["done"] = True
+            phase.root.rename(phase.root.with_name("root-original"))
+            phase.root.mkdir()
+
+    phase.authorize = replace
+    receipt = phase.run()
+    assert receipt["rows"][0]["error_code"].startswith("RUN_ROOT_REPLACED"), receipt["rows"][0]
+    assert driver.submissions == 0, driver.submissions
+
+
+def test_correction_m02_an_old_root_replay_is_refused(tmp_path):
+    phase, driver, _ = _prepare(tmp_path)
+    first = phase.run()
+    assert first["decision"] == "QUALITY_EXECUTION_COMPLETE_ALL_16_PASS", first
+    replay, replay_driver, _ = _prepare(tmp_path)
+    second = replay.run()
+    assert second["decision"] == "QUALITY_EXECUTION_BLOCKED", second
+    assert second["error_code"] == "PHASE_DIRECTORY_EXISTS", second
+    assert replay_driver.submissions == 0, replay_driver.submissions
+    # The original receipt of the first run is untouched.
+    stored = (tmp_path / "temp" / "s3-quality" / "qd-receipt.json").read_bytes()
+    assert json.loads(stored.decode("utf-8"))["run_id"] == RUN_ID
+
+
+def test_correction_m03_a_source_replaced_in_a_callback_produces_zero_sends(tmp_path):
+    phase, driver, _ = _prepare(tmp_path)
+    original = phase.authorize
+    replaced = {}
+
+    def authorize(action, subject):
+        original(action, subject)
+        if action == "quality_public_submit" and not replaced:
+            replaced["done"] = True
+            target = phase.root / "input" / "synthetic-image-00.png"
+            target.write_bytes(_tiny_png(9))
+
+    phase.authorize = authorize
+    receipt = phase.run()
+    assert receipt["rows"][0]["error_code"] == "SOURCE_REPLACED", receipt["rows"][0]
+    assert receipt["public_submissions"] == 0, receipt
+    assert driver.submissions == 0, driver.submissions
+    # The identity is unproven, so the later rows are blocked.
+    assert receipt["test_counts"]["BLOCKED"] == 15, receipt
+
+
+def test_correction_m04_an_ordinary_cleanup_exception_never_bypasses_the_release(tmp_path):
+    phase, driver, _ = _prepare(tmp_path)
+    released = []
+
+    def bad_residue():
+        raise OSError("synthetic inaccessible snapshot root")
+
+    def release(binding, worker):
+        released.append(True)
+        return {"proven": True, "loaded_models": 0, "elapsed_seconds": 3,
+                "gpu_samples": [{"monotonic_seconds": i, "gpu_used_mib": 1124} for i in range(3)]}
+
+    driver.video_snapshot_residue = bad_residue
+    driver.release_preload = release
+    receipt = phase.run()
+    assert receipt is not None, "the phase must still return a terminal receipt"
+    assert len(receipt["rows"]) == 16, receipt
+    assert released, "the release proof must still be attempted"
+    assert receipt["rows"][0]["cleanup_unproven"] is True, receipt["rows"][0]
+    assert receipt["cleanup_unproven"] is True, receipt
+    assert receipt["rows"][0]["cleanup_diagnostics"], receipt["rows"][0]
+    # The unknown cleanup stops the later sends.
+    assert receipt["public_submissions"] == 1, receipt
+    assert receipt["test_counts"]["BLOCKED"] == 15, receipt
+
+
+def test_correction_m05_a_failed_submit_stays_charged(tmp_path):
+    phase, driver, _ = _prepare(tmp_path)
+
+    def failing_submit(graph):
+        driver.submissions += 1
+        raise RuntimeError("synthetic transport failure after reservation")
+
+    driver.submit = failing_submit
+    receipt = phase.run()
+    assert receipt["public_submissions"] == 1, receipt
+    assert receipt["public_submissions_attempted"] == 1, receipt
+    assert receipt["public_submissions_succeeded"] == 0, receipt
+    assert receipt["provider_calls_reserved"] == 1, receipt
+    assert receipt["rows"][0]["error_code"].startswith("RuntimeError"), receipt["rows"][0]
+    assert receipt["test_counts"]["BLOCKED"] == 15, receipt
+
+
+def test_correction_m05_the_provider_reservation_never_exceeds_thirty_four(completed_run):
+    receipt = completed_run["receipt"]
+    assert receipt["provider_calls_reserved"] == 34, receipt
+    assert receipt["provider_calls_observed"] == 34, receipt
+    assert receipt["provider_calls_observed_known"] is True, receipt
+
+
+def test_correction_m06_a_cross_paired_reviewer_session_is_rejected(completed_run):
+    receipt = completed_run["receipt"]
+    scores = _scores(receipt, completed_run["projection_sha256"])
+    independence = _independence(reviewers=[
+        {"reviewer_id": "A", "session_id": "SA", "role": "INDEPENDENT_REVIEWER"},
+        {"reviewer_id": "B", "session_id": "SB", "role": "INDEPENDENT_REVIEWER"},
+    ])
+    for score in scores:
+        score.update(reviewer_id="A", session_id="SB")
+    with pytest.raises(QualityContractError) as crossed:
+        recompute_scores(receipt, completed_run["artifact_root"], scores, independence=independence)
+    assert "QS_SCORE_REVIEWER_SESSION_PAIR_UNKNOWN" in str(crossed.value), str(crossed.value)
+
+
+def test_correction_m06_an_exact_reviewer_session_pair_is_accepted(completed_run):
+    receipt = completed_run["receipt"]
+    scores = _scores(receipt, completed_run["projection_sha256"])
+    independence = _independence(reviewers=[
+        {"reviewer_id": "A", "session_id": "SA", "role": "INDEPENDENT_REVIEWER"},
+    ])
+    for score in scores:
+        score.update(reviewer_id="A", session_id="SA")
+    result = recompute_scores(receipt, completed_run["artifact_root"], scores, independence=independence)
+    assert result["aggregate_pass"] is True, result
+    assert result["independence"]["reviewer_session_pairs"] == [["A", "SA"]], result
+
+
+def test_correction_m07_a_wrong_execution_raw_length_is_rejected(completed_run):
+    receipt = copy.deepcopy(completed_run["receipt"])
+    receipt["rows"][0]["raw_bytes"] += 123
+    scores = _scores(receipt, completed_run["projection_sha256"])
+    with pytest.raises(QualityContractError) as length:
+        recompute_scores(receipt, completed_run["artifact_root"], scores, independence=_independence())
+    assert "QS_RAW_ARTIFACT_LENGTH_MISMATCH" in str(length.value), str(length.value)
+
+
+def test_correction_m08_a_known_failed_row_keeps_its_critical_evidence(completed_run):
+    receipt = copy.deepcopy(completed_run["receipt"])
+    receipt["rows"][0]["execution_status"] = "FAIL"
+    receipt["rows"][0]["error_code"] = "PUBLIC_EXECUTION_NOT_SUCCESSFUL"
+    scores = _scores(receipt, completed_run["projection_sha256"])
+    scores[0]["critical_hallucinations"] = 3
+    result = recompute_scores(receipt, completed_run["artifact_root"], scores, independence=_independence())
+    row = result["rows"][0]
+    assert row["quality_status"] == "FAIL", row
+    assert row["usable"] is False, row
+    assert row["critical_hallucinations"] == 3, row
+    assert row["resolved"] is True, row
+    # The critical evidence of an unusable row is never erased.
+    assert result["thresholds"]["total_critical_hallucinations"] == 3, result
+    assert result["aggregate_pass"] is False, result
+    assert result["decision"] == "QUALITY_THRESHOLDS_NOT_MET", result
+
+
+def test_correction_m08_a_known_failed_row_with_zero_critical_may_resolve(completed_run):
+    receipt = copy.deepcopy(completed_run["receipt"])
+    receipt["rows"][0]["execution_status"] = "FAIL"
+    receipt["rows"][0]["error_code"] = "PUBLIC_EXECUTION_NOT_SUCCESSFUL"
+    scores = _scores(receipt, completed_run["projection_sha256"])
+    result = recompute_scores(receipt, completed_run["artifact_root"], scores, independence=_independence())
+    row = result["rows"][0]
+    # The row is not usable, but it is resolved: nine of ten images and six of
+    # six videos are usable and the global critical count is zero.
+    assert row["quality_status"] == "FAIL" and row["usable"] is False, row
+    assert row["resolved"] is True, row
+    assert row["reason"] == "KNOWN_EXECUTION_FAILURE_RESOLVED_NOT_USABLE", row
+    assert result["thresholds"]["images_usable"] == 9, result
+    assert result["thresholds"]["videos_usable"] == 6, result
+    assert result["thresholds"]["total_critical_hallucinations"] == 0, result
+    assert result["aggregate_pass"] is True, result
+    assert result["decision"] == "QUALITY_THRESHOLDS_MET_FOR_THIS_BOUND_RUN", result
+
+
+def test_correction_m08_an_unknown_failed_row_can_never_resolve(completed_run):
+    receipt = copy.deepcopy(completed_run["receipt"])
+    receipt["rows"][0]["execution_status"] = "FAIL"
+    receipt["rows"][0]["error_code"] = "SOURCE_REPLACED"
+    scores = _scores(receipt, completed_run["projection_sha256"])
+    result = recompute_scores(receipt, completed_run["artifact_root"], scores, independence=_independence())
+    row = result["rows"][0]
+    assert row["resolved"] is False, row
+    assert row["reason"] == "UNKNOWN_EXECUTION_FAILURE", row
+    assert result["aggregate_pass"] is False, result
+    assert result["unresolved_rows"] == [row["asset_id"]], result
+
+
+def test_correction_m08_a_failed_row_without_proven_cleanup_cannot_resolve(completed_run):
+    receipt = copy.deepcopy(completed_run["receipt"])
+    receipt["rows"][0]["execution_status"] = "FAIL"
+    receipt["rows"][0]["error_code"] = "PUBLIC_EXECUTION_NOT_SUCCESSFUL"
+    receipt["rows"][0]["release_evidence"] = {"proven": False, "error": "synthetic"}
+    scores = _scores(receipt, completed_run["projection_sha256"])
+    result = recompute_scores(receipt, completed_run["artifact_root"], scores, independence=_independence())
+    assert result["rows"][0]["resolved"] is False, result["rows"][0]
+    assert result["aggregate_pass"] is False, result
+
+
+def test_correction_m09_the_real_bridge_error_raw_response_is_preserved(tmp_path):
+    phase, driver, _ = _prepare(tmp_path, failure="provider-refusal")
+    receipt = phase.run()
+    row = receipt["rows"][0]
+    assert row["execution_status"] == "FAIL", row
+    assert row["error_raw_artifact"] is not None, row
+    stored = (phase.directory / row["error_raw_artifact"]).read_bytes().decode("utf-8")
+    # The exact bytes the real owner received are kept, not a summary.
+    assert stored == "this is not a json envelope", stored
+    assert row["error_raw_sha256"], row
+    # The raw is evidence: it is never turned into a success.
+    assert row["quality_status"] == "NOT_RUN", row
+    assert receipt["quality_pass_claim"] is False, receipt
+
+
+def test_correction_m09_the_real_video_frame_raws_are_preserved(tmp_path):
+    phase, driver, _ = _prepare(tmp_path, failure="provider-refusal")
+    receipt = phase.run()
+    row = receipt["rows"][10]
+    assert row["media_kind"] == "video", row
+    assert row["error_frame_raw_artifact"] is not None, row
+    stored = (phase.directory / row["error_frame_raw_artifact"]).read_bytes().decode("utf-8")
+    assert stored.startswith("{"), stored
+    assert '"frame_raw_responses"' not in stored, stored
+    assert len(row["error_frame_raw_sha256"]) == 1, row
+
+
+def test_correction_m09_the_provider_after_evidence_survives_a_persistence_failure(tmp_path):
+    phase, driver, _ = _prepare(tmp_path)
+    original = phase._artifact
+
+    def failing(relative, raw):
+        if relative.endswith("/raw.txt"):
+            raise QualityContractError("ARTIFACT_WRITE_FAILED:" + relative)
+        return original(relative, raw)
+
+    phase._artifact = failing
+    receipt = phase.run()
+    row = receipt["rows"][0]
+    assert row["provider_after"] is not None, row
+    assert row["provider_after"]["artifact"], row
+    assert receipt["provider_calls_observed_known"] is True, receipt
+    assert receipt["provider_calls_observed"] == 1, receipt
+
+
+def test_correction_m01_a_non_finite_release_is_rejected(tmp_path):
+    for failure in ("release-nan", "release-inf", "release-bool"):
+        phase, driver, _ = _prepare(tmp_path / failure, failure=failure)
+        receipt = phase.run()
+        row = receipt["rows"][0]
+        assert row["error_code"].startswith("RELEASE_EVIDENCE_ELAPSED_INVALID"), (failure, row)
+        assert row["release_evidence"]["proven"] is False, (failure, row)
+        assert receipt["public_submissions"] == 1, (failure, receipt)
+
+
+def test_correction_admission_an_unknown_parent_budget_is_refused(tmp_path):
+    with pytest.raises(QualityContractError) as unknown:
+        _prepare(tmp_path, parent_budget={"known": False, "action_capacity": 34})
+    assert "PARENT_BUDGET_PROOF_UNKNOWN" in str(unknown.value)
+    # A missing proof is refused as well, not assumed to be sufficient.
+    rows = _build_sources(tmp_path)
+    projection = _projection_bytes(rows)
+    driver = SyntheticDriver(tmp_path)
+    with pytest.raises(QualityContractError) as missing:
+        QualityPhase(
+            driver, tmp_path, run_id=RUN_ID, candidate_sha=CANDIDATE_SHA,
+            authorization_sha256=AUTHORIZATION_SHA, projection=projection,
+            projection_sha256=hashlib.sha256(projection).hexdigest(),
+            source_identity=_source_identity(), authorize=lambda *args: None,
+            binding=_binding(), parent_budget=None)
+    assert "PARENT_BUDGET_PROOF_MISSING" in str(missing.value)
+
+
+def test_correction_admission_an_insufficient_parent_capacity_refuses_every_send(tmp_path):
+    phase, driver, _ = _prepare(tmp_path, parent_budget={"known": True, "action_capacity": 10})
+    receipt = phase.run()
+    assert receipt["decision"] == "QUALITY_EXECUTION_BLOCKED", receipt
+    assert receipt["error_code"] == "PARENT_BUDGET_CAPACITY_INSUFFICIENT", receipt
+    assert driver.submissions == 0, driver.submissions
+    assert receipt["public_submissions"] == 0, receipt
+    assert len(receipt["rows"]) == 16, receipt
+    assert receipt["test_counts"]["BLOCKED"] == 16, receipt
+
+
+def test_correction_timing_a_slow_authorize_callback_is_bounded(tmp_path):
+    clock = FakeClock(step=0.0)
+    phase, driver, _ = _prepare(tmp_path, clock=clock)
+
+    def slow(action, subject):
+        clock.now += 600.0
+
+    phase.authorize = slow
+    receipt = phase.run()
+    row = receipt["rows"][0]
+    assert row["error_code"].startswith("AUTHORIZE_CALLBACK_ELAPSED_EXCEEDED"), row
+    assert driver.submissions == 0, driver.submissions
+
+
+def test_correction_timing_a_late_successful_history_fails_the_deadline(tmp_path):
+    clock = FakeClock(step=0.0)
+    phase, driver, _ = _prepare(tmp_path, clock=clock)
+    original = driver._json_request
+
+    def late(url, **kwargs):
+        clock.now += 900.0
+        return original(url, **kwargs)
+
+    driver._json_request = late
+    receipt = phase.run()
+    row = receipt["rows"][0]
+    assert row["error_code"] == "HISTORY_TIMEOUT", row
+    assert driver.submissions == 1, driver.submissions

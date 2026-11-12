@@ -1,0 +1,62 @@
+{
+  "candidate_sha": "376ea9283cb7096c2fc35f6eab561919c07b6d1f",
+  "command": [
+    "/usr/bin/python3",
+    "-B",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b/run_offline_checks.py",
+    "--outdir",
+    "reports/v0-s3/product-gate0/implementation-p3b-correction-01",
+    "--label",
+    "correction-directed",
+    "--candidate-sha",
+    "376ea9283cb7096c2fc35f6eab561919c07b6d1f",
+    "--testpath",
+    "tools/test_v0_s3_quality_phase.py",
+    "--select",
+    "correction"
+  ],
+  "exit_code": 0,
+  "guard": {
+    "audit_hook_events": [
+      "socket.connect",
+      "socket.bind",
+      "socket.getaddrinfo",
+      "socket.gethostbyname",
+      "subprocess.Popen",
+      "os.system",
+      "os.exec",
+      "os.spawn",
+      "os.posix_spawn",
+      "os.fork",
+      "os.forkpty"
+    ],
+    "bytecode_written": false,
+    "cache_provider": "disabled",
+    "host_subprocess": "blocked",
+    "installed_before_pytest_import": true,
+    "network": "blocked",
+    "pytest_disable_plugin_autoload": "1"
+  },
+  "kind": "S3_P3B_OFFLINE_CHECK_RECEIPT",
+  "label": "correction-directed",
+  "outcome": "PASS",
+  "product_gate0": false,
+  "pytest_arguments": [
+    "tools/test_v0_s3_quality_phase.py",
+    "-q",
+    "-p",
+    "no:cacheprovider",
+    "--no-header",
+    "-rN",
+    "-k",
+    "correction"
+  ],
+  "real_execution_performed": false,
+  "stage_pass_claim": false,
+  "stderr_bytes": 0,
+  "stderr_file": "reports/v0-s3/product-gate0/implementation-p3b-correction-01/correction-directed.stderr.log",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 114,
+  "stdout_file": "reports/v0-s3/product-gate0/implementation-p3b-correction-01/correction-directed.stdout.log",
+  "stdout_sha256": "b4c56cc7eee24fdc4f65ee615d8b4503edc1bd74c2ff87c7de42f6383278eb23"
+}
