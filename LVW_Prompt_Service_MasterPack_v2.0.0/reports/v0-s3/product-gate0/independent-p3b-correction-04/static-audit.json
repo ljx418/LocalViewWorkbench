@@ -1,0 +1,1210 @@
+{
+  "changed_prior_definitions": [
+    "_prepare",
+    "test_the_artifact_budget_is_exact_and_one_over",
+    "test_correction02_m02_a_temp_ancestor_redirect_writes_nothing_into_the_old_root"
+  ],
+  "removed_prior_definitions": [],
+  "new_definitions": [
+    "DynamicAccessorDriver",
+    "_own_run",
+    "_own_scores",
+    "_tamper_same_length",
+    "test_correction04_m01_a_corrupt_canonical_receipt_fails_closed",
+    "test_correction04_m01_a_foreign_canonical_receipt_fails_closed",
+    "test_correction04_m01_a_forged_provider_counter_is_refused",
+    "test_correction04_m01_a_forged_verdict_can_only_be_stricter",
+    "test_correction04_m01_a_missing_canonical_receipt_fails_closed",
+    "test_correction04_m01_a_redirected_artifact_root_is_refused",
+    "test_correction04_m01_a_staged_only_receipt_is_not_authority",
+    "test_correction04_m01_an_oversized_canonical_receipt_is_refused",
+    "test_correction04_m01_the_published_receipt_is_the_only_authority",
+    "test_correction04_m01_the_supplied_execution_content_must_be_the_published_one",
+    "test_correction04_m08_a_changed_source_hash_is_unknown_in_the_scoring",
+    "test_correction04_m08_a_changed_source_identity_is_unknown_in_the_scoring",
+    "test_correction04_m08_a_changed_source_path_is_unknown_in_the_scoring",
+    "test_correction04_m08_a_changed_source_size_is_unknown_in_the_scoring",
+    "test_correction04_m08_a_missing_source_plan_is_refused",
+    "test_correction04_m08_a_replayed_source_plan_is_refused",
+    "test_correction04_m08_a_source_plan_failure_produces_zero_sends",
+    "test_correction04_m08_a_source_plan_from_another_run_is_refused",
+    "test_correction04_m08_a_tampered_source_plan_is_refused",
+    "test_correction04_m08_the_bound_context_must_be_typed",
+    "test_correction04_m08_the_execution_uses_the_same_shared_validators",
+    "test_correction04_m08_the_source_media_need_not_stay_on_disk",
+    "test_correction04_m08_the_source_plan_seals_all_sixteen_original_identities",
+    "test_correction04_nm01_a_diminishing_limit_accessor_refuses_every_send",
+    "test_correction04_nm01_a_diminishing_submit_binding_refuses_every_send",
+    "test_correction04_nm01_an_advancing_clock_accessor_refuses_every_send",
+    "test_correction04_nm01_the_driver_state_is_resolved_before_the_final_guard",
+    "test_correction04_nm02_the_guard_reads_the_clock_exactly_once",
+    "test_correction04_nm02_the_hard_supervision_blocker_is_still_recorded",
+    "test_correction04_nm02_the_phase_boundary_is_exact_and_one_over"
+  ],
+  "prior_test_functions": 100,
+  "current_test_functions": 130,
+  "checksum_entries": [
+    {
+      "path": "editing-diagnostics/edit-01.receipt.json",
+      "expected": "ebbf24edf09aaf8b3e507844a1b7d225d7ee0647a923a243248c53787e0e007e",
+      "actual": "ebbf24edf09aaf8b3e507844a1b7d225d7ee0647a923a243248c53787e0e007e",
+      "matches": true
+    },
+    {
+      "path": "editing-diagnostics/edit-01.stderr.log",
+      "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "actual": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches": true
+    },
+    {
+      "path": "editing-diagnostics/edit-01.stdout.log",
+      "expected": "f4e059cb819772128bfefd0a68f164728729076dd75f7a0bc7ccce4bad0024f8",
+      "actual": "f4e059cb819772128bfefd0a68f164728729076dd75f7a0bc7ccce4bad0024f8",
+      "matches": true
+    },
+    {
+      "path": "editing-diagnostics/edit-02.receipt.json",
+      "expected": "eb5c8cc8b55bcf02adfefb4774a1a6685d89f041fba12d88544e0156834824ea",
+      "actual": "eb5c8cc8b55bcf02adfefb4774a1a6685d89f041fba12d88544e0156834824ea",
+      "matches": true
+    },
+    {
+      "path": "editing-diagnostics/edit-02.stderr.log",
+      "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "actual": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches": true
+    },
+    {
+      "path": "editing-diagnostics/edit-02.stdout.log",
+      "expected": "33011a8f26bd73eb8bf63a9386c10e179d97d9a9c07167500248b6562caf90e9",
+      "actual": "33011a8f26bd73eb8bf63a9386c10e179d97d9a9c07167500248b6562caf90e9",
+      "matches": true
+    },
+    {
+      "path": "editing-diagnostics/edit-03.receipt.json",
+      "expected": "fb37e4250889bc4184836d58ad00ac82a1d0b958219d4de439b13e59cd7244ba",
+      "actual": "fb37e4250889bc4184836d58ad00ac82a1d0b958219d4de439b13e59cd7244ba",
+      "matches": true
+    },
+    {
+      "path": "editing-diagnostics/edit-03.stderr.log",
+      "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "actual": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches": true
+    },
+    {
+      "path": "editing-diagnostics/edit-03.stdout.log",
+      "expected": "60fb3371b7d2f53cf7a44a8add7e188dec4f4f43d368e438349fccfb3b633886",
+      "actual": "60fb3371b7d2f53cf7a44a8add7e188dec4f4f43d368e438349fccfb3b633886",
+      "matches": true
+    },
+    {
+      "path": "editing-diagnostics/edit-04.receipt.json",
+      "expected": "e56607db60fefce971a7fe5440680e2ae3d36dfc1cf3e38c472a9f74576fd305",
+      "actual": "e56607db60fefce971a7fe5440680e2ae3d36dfc1cf3e38c472a9f74576fd305",
+      "matches": true
+    },
+    {
+      "path": "editing-diagnostics/edit-04.stderr.log",
+      "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "actual": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches": true
+    },
+    {
+      "path": "editing-diagnostics/edit-04.stdout.log",
+      "expected": "a14927dff9325d507aef3931ed1c5f30b94a2a2810d65b50329929e752af1baf",
+      "actual": "a14927dff9325d507aef3931ed1c5f30b94a2a2810d65b50329929e752af1baf",
+      "matches": true
+    },
+    {
+      "path": "editing-diagnostics/edit-05.receipt.json",
+      "expected": "70cdf631488ba1d1c4c7fedfce046aa7ce47364d3448bd9ea167738d3cf7f0a8",
+      "actual": "70cdf631488ba1d1c4c7fedfce046aa7ce47364d3448bd9ea167738d3cf7f0a8",
+      "matches": true
+    },
+    {
+      "path": "editing-diagnostics/edit-05.stderr.log",
+      "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "actual": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches": true
+    },
+    {
+      "path": "editing-diagnostics/edit-05.stdout.log",
+      "expected": "e0b4ad922b127b7e6a709ca82d821ee5c778f9d0a4c891e040f415b8c21674ee",
+      "actual": "e0b4ad922b127b7e6a709ca82d821ee5c778f9d0a4c891e040f415b8c21674ee",
+      "matches": true
+    },
+    {
+      "path": "editing-diagnostics/edit-06.receipt.json",
+      "expected": "8bc8d784530daaab2243f3a1c6efb35233473be58bc198ee10f73bd57adb71c1",
+      "actual": "8bc8d784530daaab2243f3a1c6efb35233473be58bc198ee10f73bd57adb71c1",
+      "matches": true
+    },
+    {
+      "path": "editing-diagnostics/edit-06.stderr.log",
+      "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "actual": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches": true
+    },
+    {
+      "path": "editing-diagnostics/edit-06.stdout.log",
+      "expected": "b53bbf2c34c3e297ad283376debdfdc2f0747b270fd66eb0ff639cdbe13136fd",
+      "actual": "b53bbf2c34c3e297ad283376debdfdc2f0747b270fd66eb0ff639cdbe13136fd",
+      "matches": true
+    },
+    {
+      "path": "editing-diagnostics/edit-07.receipt.json",
+      "expected": "c72645f8e2a53ef2c5d7ba20ec71ce3af844dc180ffed5770289defcf313613a",
+      "actual": "c72645f8e2a53ef2c5d7ba20ec71ce3af844dc180ffed5770289defcf313613a",
+      "matches": true
+    },
+    {
+      "path": "editing-diagnostics/edit-07.stderr.log",
+      "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "actual": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches": true
+    },
+    {
+      "path": "editing-diagnostics/edit-07.stdout.log",
+      "expected": "1d3a423cc8fdcdc8dbe76188adc1b9de93d4584ed17d792645f00f2896f332b7",
+      "actual": "1d3a423cc8fdcdc8dbe76188adc1b9de93d4584ed17d792645f00f2896f332b7",
+      "matches": true
+    },
+    {
+      "path": "editing-diagnostics/edit-08.receipt.json",
+      "expected": "dd8e58de4facce27150bae501f04b6bac78716f9e54857d3e0ff164808916215",
+      "actual": "dd8e58de4facce27150bae501f04b6bac78716f9e54857d3e0ff164808916215",
+      "matches": true
+    },
+    {
+      "path": "editing-diagnostics/edit-08.stderr.log",
+      "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "actual": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches": true
+    },
+    {
+      "path": "editing-diagnostics/edit-08.stdout.log",
+      "expected": "cf94b88d6bf120794670ddd4649143b52d7d286071d6dbfe9955eae924884746",
+      "actual": "cf94b88d6bf120794670ddd4649143b52d7d286071d6dbfe9955eae924884746",
+      "matches": true
+    },
+    {
+      "path": "editing-diagnostics/edit-09.receipt.json",
+      "expected": "7586304d5554bbcb6dbbdf699cfd7982984081a1aa7702c40671230cfec3c863",
+      "actual": "7586304d5554bbcb6dbbdf699cfd7982984081a1aa7702c40671230cfec3c863",
+      "matches": true
+    },
+    {
+      "path": "editing-diagnostics/edit-09.stderr.log",
+      "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "actual": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches": true
+    },
+    {
+      "path": "editing-diagnostics/edit-09.stdout.log",
+      "expected": "a84b96c051b59d8722cd9c4c7bdacd026d4a880b3c3d8a06e5f50b79f1650378",
+      "actual": "a84b96c051b59d8722cd9c4c7bdacd026d4a880b3c3d8a06e5f50b79f1650378",
+      "matches": true
+    },
+    {
+      "path": "editing-diagnostics/edit-10.receipt.json",
+      "expected": "dc973d8f34732052cb6012f64049694d08c0db09defe66382e24a16dfbe61da3",
+      "actual": "dc973d8f34732052cb6012f64049694d08c0db09defe66382e24a16dfbe61da3",
+      "matches": true
+    },
+    {
+      "path": "editing-diagnostics/edit-10.stderr.log",
+      "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "actual": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches": true
+    },
+    {
+      "path": "editing-diagnostics/edit-10.stdout.log",
+      "expected": "4071ecd0e53f1a536c490209125e3caab7b281cc2d81012d9aa4e1b06f8b11b8",
+      "actual": "4071ecd0e53f1a536c490209125e3caab7b281cc2d81012d9aa4e1b06f8b11b8",
+      "matches": true
+    },
+    {
+      "path": "editing-diagnostics/edit-11.receipt.json",
+      "expected": "15aa0663f421ea9d28bc6f106ee96b87d3a80b0e27299386eb7586e976f4d301",
+      "actual": "15aa0663f421ea9d28bc6f106ee96b87d3a80b0e27299386eb7586e976f4d301",
+      "matches": true
+    },
+    {
+      "path": "editing-diagnostics/edit-11.stderr.log",
+      "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "actual": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches": true
+    },
+    {
+      "path": "editing-diagnostics/edit-11.stdout.log",
+      "expected": "b350bea942d4359b935204a2d3cd42b56a15b515acabb55dea8f10351cb7db5d",
+      "actual": "b350bea942d4359b935204a2d3cd42b56a15b515acabb55dea8f10351cb7db5d",
+      "matches": true
+    },
+    {
+      "path": "full-final.receipt.json",
+      "expected": "5710e67726d25177463ba131e75b43fb2f8164e73663d66fb1ac63d08a98d471",
+      "actual": "5710e67726d25177463ba131e75b43fb2f8164e73663d66fb1ac63d08a98d471",
+      "matches": true
+    },
+    {
+      "path": "full-final.stderr.log",
+      "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "actual": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches": true
+    },
+    {
+      "path": "full-final.stdout.log",
+      "expected": "55e33f44442db4c8b7188851b7b3cd8ece1483d53cfd62045d9237e517bc8c68",
+      "actual": "55e33f44442db4c8b7188851b7b3cd8ece1483d53cfd62045d9237e517bc8c68",
+      "matches": true
+    },
+    {
+      "path": "guard-selftest.receipt.json",
+      "expected": "7f620a63df6ec8df2fc6c7c48c1ca6141b90504d600455d2c75bb9036fc98994",
+      "actual": "7f620a63df6ec8df2fc6c7c48c1ca6141b90504d600455d2c75bb9036fc98994",
+      "matches": true
+    },
+    {
+      "path": "guard-selftest.stderr.log",
+      "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "actual": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches": true
+    },
+    {
+      "path": "guard-selftest.stdout.log",
+      "expected": "6e3db9bee7880783c6d86acad60653571ecf173c497793d487ec8c3758f8db7d",
+      "actual": "6e3db9bee7880783c6d86acad60653571ecf173c497793d487ec8c3758f8db7d",
+      "matches": true
+    },
+    {
+      "path": "receipt.json",
+      "expected": "0cc6f0a7027a76f07f032bf965bcd764dab909f2cf3dd419115a872217e7adc7",
+      "actual": "0cc6f0a7027a76f07f032bf965bcd764dab909f2cf3dd419115a872217e7adc7",
+      "matches": true
+    },
+    {
+      "path": "replay-correction03-counterexamples.receipt.json",
+      "expected": "dea6846f12a6f7a6dc05db3e1f93d9cfa1aed5b6d2bef293670c895f0695249a",
+      "actual": "dea6846f12a6f7a6dc05db3e1f93d9cfa1aed5b6d2bef293670c895f0695249a",
+      "matches": true
+    },
+    {
+      "path": "replay-correction03-counterexamples.stderr.log",
+      "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "actual": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches": true
+    },
+    {
+      "path": "replay-correction03-counterexamples.stdout.log",
+      "expected": "e562f59709bbf0f9f131b114e673ee39aab8711de3a0a374e96b01ea5a87cc1b",
+      "actual": "e562f59709bbf0f9f131b114e673ee39aab8711de3a0a374e96b01ea5a87cc1b",
+      "matches": true
+    },
+    {
+      "path": "replay-fixtures.json",
+      "expected": "9c9edcf4a7687e83035ba3b109f59a2ce8a2f4def7c4dd91b0ea0d599e258611",
+      "actual": "9c9edcf4a7687e83035ba3b109f59a2ce8a2f4def7c4dd91b0ea0d599e258611",
+      "matches": true
+    },
+    {
+      "path": "replay-observations.json",
+      "expected": "c1bcaf43d6956e5b7db94b14b0167f54af2695f7ce558015a76421caa3890fea",
+      "actual": "c1bcaf43d6956e5b7db94b14b0167f54af2695f7ce558015a76421caa3890fea",
+      "matches": true
+    },
+    {
+      "path": "replay_correction03_counterexamples.py",
+      "expected": "d1729b89196f557402027e4d31e457757ec788acb1f13cde540b1778b7545faf",
+      "actual": "d1729b89196f557402027e4d31e457757ec788acb1f13cde540b1778b7545faf",
+      "matches": true
+    },
+    {
+      "path": "report.md",
+      "expected": "b536e40a80e78836da89016545f979b10ed4a4d5dc33a2a44421b90a59e774cd",
+      "actual": "b536e40a80e78836da89016545f979b10ed4a4d5dc33a2a44421b90a59e774cd",
+      "matches": true
+    },
+    {
+      "path": "run_guarded_checks.py",
+      "expected": "77385fceaf403cbf60529c1161ed9c38693db803b526189ee9bfd87989c1425f",
+      "actual": "77385fceaf403cbf60529c1161ed9c38693db803b526189ee9bfd87989c1425f",
+      "matches": true
+    }
+  ],
+  "implementation_attempts": [
+    {
+      "path": "editing-diagnostics/edit-01.receipt.json",
+      "exit": 0,
+      "guard": {
+        "audit_hook_installed_before_product_import": true,
+        "audit_hook_installed_before_pytest": true,
+        "blocked_events": [
+          "socket.connect",
+          "socket.connect_ex",
+          "socket.bind",
+          "socket.getaddrinfo",
+          "socket.gethostbyname",
+          "socket.gethostbyaddr",
+          "socket.getnameinfo",
+          "subprocess.Popen",
+          "os.system",
+          "os.exec",
+          "os.spawn",
+          "os.posix_spawn",
+          "os.fork",
+          "os.forkpty"
+        ],
+        "bytecode_written": false,
+        "cacheprovider": "disabled",
+        "host_subprocess": "blocked",
+        "network": "blocked",
+        "pytest_disable_plugin_autoload": "1"
+      },
+      "source_unchanged": true,
+      "before": {
+        "tools/test_v0_s3_quality_phase.py": "cd1eec5f8265e0e5e9e3ce49f35012f18236f8d3fe86719cfe851c3b333698d5",
+        "tools/v0_s3_quality_phase.py": "1949f42f0534a925be2ab16c8e23bc2cb7fce92094efd0cf99bcf0ce113ef9fe"
+      },
+      "after": {
+        "tools/test_v0_s3_quality_phase.py": "cd1eec5f8265e0e5e9e3ce49f35012f18236f8d3fe86719cfe851c3b333698d5",
+        "tools/v0_s3_quality_phase.py": "1949f42f0534a925be2ab16c8e23bc2cb7fce92094efd0cf99bcf0ce113ef9fe"
+      },
+      "imports": {
+        "tools.test_v0_s3_quality_phase": null,
+        "tools.v0_s3_quality_phase": {
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_quality_phase.py",
+          "sha256": "1949f42f0534a925be2ab16c8e23bc2cb7fce92094efd0cf99bcf0ce113ef9fe"
+        }
+      },
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-04/run_guarded_checks.py",
+        "--mode",
+        "focused",
+        "--label",
+        "edit-01",
+        "--outdir",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-04/editing-diagnostics"
+      ]
+    },
+    {
+      "path": "editing-diagnostics/edit-02.receipt.json",
+      "exit": 0,
+      "guard": {
+        "audit_hook_installed_before_product_import": true,
+        "audit_hook_installed_before_pytest": true,
+        "blocked_events": [
+          "socket.connect",
+          "socket.connect_ex",
+          "socket.bind",
+          "socket.getaddrinfo",
+          "socket.gethostbyname",
+          "socket.gethostbyaddr",
+          "socket.getnameinfo",
+          "subprocess.Popen",
+          "os.system",
+          "os.exec",
+          "os.spawn",
+          "os.posix_spawn",
+          "os.fork",
+          "os.forkpty"
+        ],
+        "bytecode_written": false,
+        "cacheprovider": "disabled",
+        "host_subprocess": "blocked",
+        "network": "blocked",
+        "pytest_disable_plugin_autoload": "1"
+      },
+      "source_unchanged": true,
+      "before": {
+        "tools/test_v0_s3_quality_phase.py": "cd1eec5f8265e0e5e9e3ce49f35012f18236f8d3fe86719cfe851c3b333698d5",
+        "tools/v0_s3_quality_phase.py": "1949f42f0534a925be2ab16c8e23bc2cb7fce92094efd0cf99bcf0ce113ef9fe"
+      },
+      "after": {
+        "tools/test_v0_s3_quality_phase.py": "cd1eec5f8265e0e5e9e3ce49f35012f18236f8d3fe86719cfe851c3b333698d5",
+        "tools/v0_s3_quality_phase.py": "1949f42f0534a925be2ab16c8e23bc2cb7fce92094efd0cf99bcf0ce113ef9fe"
+      },
+      "imports": {
+        "test_v0_s3_quality_phase": {
+          "module": "test_v0_s3_quality_phase",
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_quality_phase.py",
+          "sha256": "cd1eec5f8265e0e5e9e3ce49f35012f18236f8d3fe86719cfe851c3b333698d5"
+        },
+        "tools.v0_s3_quality_phase": {
+          "module": "tools.v0_s3_quality_phase",
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_quality_phase.py",
+          "sha256": "1949f42f0534a925be2ab16c8e23bc2cb7fce92094efd0cf99bcf0ce113ef9fe"
+        }
+      },
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-04/run_guarded_checks.py",
+        "--mode",
+        "focused",
+        "--label",
+        "edit-02",
+        "--outdir",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-04/editing-diagnostics"
+      ]
+    },
+    {
+      "path": "editing-diagnostics/edit-03.receipt.json",
+      "exit": 1,
+      "guard": {
+        "audit_hook_installed_before_product_import": true,
+        "audit_hook_installed_before_pytest": true,
+        "blocked_events": [
+          "socket.connect",
+          "socket.connect_ex",
+          "socket.bind",
+          "socket.getaddrinfo",
+          "socket.gethostbyname",
+          "socket.gethostbyaddr",
+          "socket.getnameinfo",
+          "subprocess.Popen",
+          "os.system",
+          "os.exec",
+          "os.spawn",
+          "os.posix_spawn",
+          "os.fork",
+          "os.forkpty"
+        ],
+        "bytecode_written": false,
+        "cacheprovider": "disabled",
+        "host_subprocess": "blocked",
+        "network": "blocked",
+        "pytest_disable_plugin_autoload": "1"
+      },
+      "source_unchanged": true,
+      "before": {
+        "tools/test_v0_s3_quality_phase.py": "cd1eec5f8265e0e5e9e3ce49f35012f18236f8d3fe86719cfe851c3b333698d5",
+        "tools/v0_s3_quality_phase.py": "1949f42f0534a925be2ab16c8e23bc2cb7fce92094efd0cf99bcf0ce113ef9fe"
+      },
+      "after": {
+        "tools/test_v0_s3_quality_phase.py": "cd1eec5f8265e0e5e9e3ce49f35012f18236f8d3fe86719cfe851c3b333698d5",
+        "tools/v0_s3_quality_phase.py": "1949f42f0534a925be2ab16c8e23bc2cb7fce92094efd0cf99bcf0ce113ef9fe"
+      },
+      "imports": {
+        "test_v0_s3_quality_phase": {
+          "module": "test_v0_s3_quality_phase",
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_quality_phase.py",
+          "sha256": "cd1eec5f8265e0e5e9e3ce49f35012f18236f8d3fe86719cfe851c3b333698d5"
+        },
+        "tools.v0_s3_quality_phase": {
+          "module": "tools.v0_s3_quality_phase",
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_quality_phase.py",
+          "sha256": "1949f42f0534a925be2ab16c8e23bc2cb7fce92094efd0cf99bcf0ce113ef9fe"
+        }
+      },
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-04/run_guarded_checks.py",
+        "--mode",
+        "focused",
+        "--label",
+        "edit-03",
+        "--outdir",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-04/editing-diagnostics"
+      ]
+    },
+    {
+      "path": "editing-diagnostics/edit-04.receipt.json",
+      "exit": 0,
+      "guard": {
+        "audit_hook_installed_before_product_import": true,
+        "audit_hook_installed_before_pytest": true,
+        "blocked_events": [
+          "socket.connect",
+          "socket.connect_ex",
+          "socket.bind",
+          "socket.getaddrinfo",
+          "socket.gethostbyname",
+          "socket.gethostbyaddr",
+          "socket.getnameinfo",
+          "subprocess.Popen",
+          "os.system",
+          "os.exec",
+          "os.spawn",
+          "os.posix_spawn",
+          "os.fork",
+          "os.forkpty"
+        ],
+        "bytecode_written": false,
+        "cacheprovider": "disabled",
+        "host_subprocess": "blocked",
+        "network": "blocked",
+        "pytest_disable_plugin_autoload": "1"
+      },
+      "source_unchanged": true,
+      "before": {
+        "tools/test_v0_s3_quality_phase.py": "45a61a0520fc45268bea08d49b9f2861fffb0f15a05ca6decb48ebb71611c14c",
+        "tools/v0_s3_quality_phase.py": "1949f42f0534a925be2ab16c8e23bc2cb7fce92094efd0cf99bcf0ce113ef9fe"
+      },
+      "after": {
+        "tools/test_v0_s3_quality_phase.py": "45a61a0520fc45268bea08d49b9f2861fffb0f15a05ca6decb48ebb71611c14c",
+        "tools/v0_s3_quality_phase.py": "1949f42f0534a925be2ab16c8e23bc2cb7fce92094efd0cf99bcf0ce113ef9fe"
+      },
+      "imports": {
+        "test_v0_s3_quality_phase": {
+          "module": "test_v0_s3_quality_phase",
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_quality_phase.py",
+          "sha256": "45a61a0520fc45268bea08d49b9f2861fffb0f15a05ca6decb48ebb71611c14c"
+        },
+        "tools.v0_s3_quality_phase": {
+          "module": "tools.v0_s3_quality_phase",
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_quality_phase.py",
+          "sha256": "1949f42f0534a925be2ab16c8e23bc2cb7fce92094efd0cf99bcf0ce113ef9fe"
+        }
+      },
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-04/run_guarded_checks.py",
+        "--mode",
+        "focused",
+        "--label",
+        "edit-04",
+        "--outdir",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-04/editing-diagnostics"
+      ]
+    },
+    {
+      "path": "editing-diagnostics/edit-05.receipt.json",
+      "exit": 1,
+      "guard": {
+        "audit_hook_installed_before_product_import": true,
+        "audit_hook_installed_before_pytest": true,
+        "blocked_events": [
+          "socket.connect",
+          "socket.connect_ex",
+          "socket.bind",
+          "socket.getaddrinfo",
+          "socket.gethostbyname",
+          "socket.gethostbyaddr",
+          "socket.getnameinfo",
+          "subprocess.Popen",
+          "os.system",
+          "os.exec",
+          "os.spawn",
+          "os.posix_spawn",
+          "os.fork",
+          "os.forkpty"
+        ],
+        "bytecode_written": false,
+        "cacheprovider": "disabled",
+        "host_subprocess": "blocked",
+        "network": "blocked",
+        "pytest_disable_plugin_autoload": "1"
+      },
+      "source_unchanged": true,
+      "before": {
+        "tools/test_v0_s3_quality_phase.py": "45a61a0520fc45268bea08d49b9f2861fffb0f15a05ca6decb48ebb71611c14c",
+        "tools/v0_s3_quality_phase.py": "1949f42f0534a925be2ab16c8e23bc2cb7fce92094efd0cf99bcf0ce113ef9fe"
+      },
+      "after": {
+        "tools/test_v0_s3_quality_phase.py": "45a61a0520fc45268bea08d49b9f2861fffb0f15a05ca6decb48ebb71611c14c",
+        "tools/v0_s3_quality_phase.py": "1949f42f0534a925be2ab16c8e23bc2cb7fce92094efd0cf99bcf0ce113ef9fe"
+      },
+      "imports": {
+        "test_v0_s3_quality_phase": {
+          "module": "test_v0_s3_quality_phase",
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_quality_phase.py",
+          "sha256": "45a61a0520fc45268bea08d49b9f2861fffb0f15a05ca6decb48ebb71611c14c"
+        },
+        "tools.v0_s3_quality_phase": {
+          "module": "tools.v0_s3_quality_phase",
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_quality_phase.py",
+          "sha256": "1949f42f0534a925be2ab16c8e23bc2cb7fce92094efd0cf99bcf0ce113ef9fe"
+        }
+      },
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-04/run_guarded_checks.py",
+        "--mode",
+        "focused",
+        "--label",
+        "edit-05",
+        "--outdir",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-04/editing-diagnostics"
+      ]
+    },
+    {
+      "path": "editing-diagnostics/edit-06.receipt.json",
+      "exit": 0,
+      "guard": {
+        "audit_hook_installed_before_product_import": true,
+        "audit_hook_installed_before_pytest": true,
+        "blocked_events": [
+          "socket.connect",
+          "socket.connect_ex",
+          "socket.bind",
+          "socket.getaddrinfo",
+          "socket.gethostbyname",
+          "socket.gethostbyaddr",
+          "socket.getnameinfo",
+          "subprocess.Popen",
+          "os.system",
+          "os.exec",
+          "os.spawn",
+          "os.posix_spawn",
+          "os.fork",
+          "os.forkpty"
+        ],
+        "bytecode_written": false,
+        "cacheprovider": "disabled",
+        "host_subprocess": "blocked",
+        "network": "blocked",
+        "pytest_disable_plugin_autoload": "1"
+      },
+      "source_unchanged": true,
+      "before": {
+        "tools/test_v0_s3_quality_phase.py": "62c117ebf21904dd223d052f109dfc8bc3e7f30b51d8c87c1b7f326809128fac",
+        "tools/v0_s3_quality_phase.py": "1949f42f0534a925be2ab16c8e23bc2cb7fce92094efd0cf99bcf0ce113ef9fe"
+      },
+      "after": {
+        "tools/test_v0_s3_quality_phase.py": "62c117ebf21904dd223d052f109dfc8bc3e7f30b51d8c87c1b7f326809128fac",
+        "tools/v0_s3_quality_phase.py": "1949f42f0534a925be2ab16c8e23bc2cb7fce92094efd0cf99bcf0ce113ef9fe"
+      },
+      "imports": {
+        "test_v0_s3_quality_phase": {
+          "module": "test_v0_s3_quality_phase",
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_quality_phase.py",
+          "sha256": "62c117ebf21904dd223d052f109dfc8bc3e7f30b51d8c87c1b7f326809128fac"
+        },
+        "tools.v0_s3_quality_phase": {
+          "module": "tools.v0_s3_quality_phase",
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_quality_phase.py",
+          "sha256": "1949f42f0534a925be2ab16c8e23bc2cb7fce92094efd0cf99bcf0ce113ef9fe"
+        }
+      },
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-04/run_guarded_checks.py",
+        "--mode",
+        "focused",
+        "--label",
+        "edit-06",
+        "--outdir",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-04/editing-diagnostics"
+      ]
+    },
+    {
+      "path": "editing-diagnostics/edit-07.receipt.json",
+      "exit": 1,
+      "guard": {
+        "audit_hook_installed_before_product_import": true,
+        "audit_hook_installed_before_pytest": true,
+        "blocked_events": [
+          "socket.connect",
+          "socket.connect_ex",
+          "socket.bind",
+          "socket.getaddrinfo",
+          "socket.gethostbyname",
+          "socket.gethostbyaddr",
+          "socket.getnameinfo",
+          "subprocess.Popen",
+          "os.system",
+          "os.exec",
+          "os.spawn",
+          "os.posix_spawn",
+          "os.fork",
+          "os.forkpty"
+        ],
+        "bytecode_written": false,
+        "cacheprovider": "disabled",
+        "host_subprocess": "blocked",
+        "network": "blocked",
+        "pytest_disable_plugin_autoload": "1"
+      },
+      "source_unchanged": true,
+      "before": {
+        "tools/test_v0_s3_quality_phase.py": "e4c8d835a556e4989b703e51bc6a24cbb9085aefa8a3f24dc6711097e7eca0f3",
+        "tools/v0_s3_quality_phase.py": "1949f42f0534a925be2ab16c8e23bc2cb7fce92094efd0cf99bcf0ce113ef9fe"
+      },
+      "after": {
+        "tools/test_v0_s3_quality_phase.py": "e4c8d835a556e4989b703e51bc6a24cbb9085aefa8a3f24dc6711097e7eca0f3",
+        "tools/v0_s3_quality_phase.py": "1949f42f0534a925be2ab16c8e23bc2cb7fce92094efd0cf99bcf0ce113ef9fe"
+      },
+      "imports": {
+        "test_v0_s3_quality_phase": {
+          "module": "test_v0_s3_quality_phase",
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_quality_phase.py",
+          "sha256": "e4c8d835a556e4989b703e51bc6a24cbb9085aefa8a3f24dc6711097e7eca0f3"
+        },
+        "tools.v0_s3_quality_phase": {
+          "module": "tools.v0_s3_quality_phase",
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_quality_phase.py",
+          "sha256": "1949f42f0534a925be2ab16c8e23bc2cb7fce92094efd0cf99bcf0ce113ef9fe"
+        }
+      },
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-04/run_guarded_checks.py",
+        "--mode",
+        "focused",
+        "--label",
+        "edit-07",
+        "--outdir",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-04/editing-diagnostics"
+      ]
+    },
+    {
+      "path": "editing-diagnostics/edit-08.receipt.json",
+      "exit": 1,
+      "guard": {
+        "audit_hook_installed_before_product_import": true,
+        "audit_hook_installed_before_pytest": true,
+        "blocked_events": [
+          "socket.connect",
+          "socket.connect_ex",
+          "socket.bind",
+          "socket.getaddrinfo",
+          "socket.gethostbyname",
+          "socket.gethostbyaddr",
+          "socket.getnameinfo",
+          "subprocess.Popen",
+          "os.system",
+          "os.exec",
+          "os.spawn",
+          "os.posix_spawn",
+          "os.fork",
+          "os.forkpty"
+        ],
+        "bytecode_written": false,
+        "cacheprovider": "disabled",
+        "host_subprocess": "blocked",
+        "network": "blocked",
+        "pytest_disable_plugin_autoload": "1"
+      },
+      "source_unchanged": true,
+      "before": {
+        "tools/test_v0_s3_quality_phase.py": "92838cda62ad7e78341ccc115a498ab07414d03860ecd6e38f78543da339a274",
+        "tools/v0_s3_quality_phase.py": "db78f5314df765aa4b27efec4e0fb1f13faf8e47fdc516c55f4f3a6fe4b6973d"
+      },
+      "after": {
+        "tools/test_v0_s3_quality_phase.py": "92838cda62ad7e78341ccc115a498ab07414d03860ecd6e38f78543da339a274",
+        "tools/v0_s3_quality_phase.py": "db78f5314df765aa4b27efec4e0fb1f13faf8e47fdc516c55f4f3a6fe4b6973d"
+      },
+      "imports": {
+        "test_v0_s3_quality_phase": {
+          "module": "test_v0_s3_quality_phase",
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_quality_phase.py",
+          "sha256": "92838cda62ad7e78341ccc115a498ab07414d03860ecd6e38f78543da339a274"
+        },
+        "tools.v0_s3_quality_phase": {
+          "module": "tools.v0_s3_quality_phase",
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_quality_phase.py",
+          "sha256": "db78f5314df765aa4b27efec4e0fb1f13faf8e47fdc516c55f4f3a6fe4b6973d"
+        }
+      },
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-04/run_guarded_checks.py",
+        "--mode",
+        "focused",
+        "--label",
+        "edit-08",
+        "--outdir",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-04/editing-diagnostics"
+      ]
+    },
+    {
+      "path": "editing-diagnostics/edit-09.receipt.json",
+      "exit": 0,
+      "guard": {
+        "audit_hook_installed_before_product_import": true,
+        "audit_hook_installed_before_pytest": true,
+        "blocked_events": [
+          "socket.connect",
+          "socket.connect_ex",
+          "socket.bind",
+          "socket.getaddrinfo",
+          "socket.gethostbyname",
+          "socket.gethostbyaddr",
+          "socket.getnameinfo",
+          "subprocess.Popen",
+          "os.system",
+          "os.exec",
+          "os.spawn",
+          "os.posix_spawn",
+          "os.fork",
+          "os.forkpty"
+        ],
+        "bytecode_written": false,
+        "cacheprovider": "disabled",
+        "host_subprocess": "blocked",
+        "network": "blocked",
+        "pytest_disable_plugin_autoload": "1"
+      },
+      "source_unchanged": true,
+      "before": {
+        "tools/test_v0_s3_quality_phase.py": "8469e072d92efc15110bd634f781878241a0bcc7b86925f3d840ec98d7c41751",
+        "tools/v0_s3_quality_phase.py": "db78f5314df765aa4b27efec4e0fb1f13faf8e47fdc516c55f4f3a6fe4b6973d"
+      },
+      "after": {
+        "tools/test_v0_s3_quality_phase.py": "8469e072d92efc15110bd634f781878241a0bcc7b86925f3d840ec98d7c41751",
+        "tools/v0_s3_quality_phase.py": "db78f5314df765aa4b27efec4e0fb1f13faf8e47fdc516c55f4f3a6fe4b6973d"
+      },
+      "imports": {
+        "test_v0_s3_quality_phase": {
+          "module": "test_v0_s3_quality_phase",
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_quality_phase.py",
+          "sha256": "8469e072d92efc15110bd634f781878241a0bcc7b86925f3d840ec98d7c41751"
+        },
+        "tools.v0_s3_quality_phase": {
+          "module": "tools.v0_s3_quality_phase",
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_quality_phase.py",
+          "sha256": "db78f5314df765aa4b27efec4e0fb1f13faf8e47fdc516c55f4f3a6fe4b6973d"
+        }
+      },
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-04/run_guarded_checks.py",
+        "--mode",
+        "focused",
+        "--label",
+        "edit-09",
+        "--outdir",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-04/editing-diagnostics"
+      ]
+    },
+    {
+      "path": "editing-diagnostics/edit-10.receipt.json",
+      "exit": 0,
+      "guard": {
+        "audit_hook_installed_before_product_import": true,
+        "audit_hook_installed_before_pytest": true,
+        "blocked_events": [
+          "socket.connect",
+          "socket.connect_ex",
+          "socket.bind",
+          "socket.getaddrinfo",
+          "socket.gethostbyname",
+          "socket.gethostbyaddr",
+          "socket.getnameinfo",
+          "subprocess.Popen",
+          "os.system",
+          "os.exec",
+          "os.spawn",
+          "os.posix_spawn",
+          "os.fork",
+          "os.forkpty"
+        ],
+        "bytecode_written": false,
+        "cacheprovider": "disabled",
+        "host_subprocess": "blocked",
+        "network": "blocked",
+        "pytest_disable_plugin_autoload": "1"
+      },
+      "source_unchanged": true,
+      "before": {
+        "tools/test_v0_s3_quality_phase.py": "8469e072d92efc15110bd634f781878241a0bcc7b86925f3d840ec98d7c41751",
+        "tools/v0_s3_quality_phase.py": "db78f5314df765aa4b27efec4e0fb1f13faf8e47fdc516c55f4f3a6fe4b6973d"
+      },
+      "after": {
+        "tools/test_v0_s3_quality_phase.py": "8469e072d92efc15110bd634f781878241a0bcc7b86925f3d840ec98d7c41751",
+        "tools/v0_s3_quality_phase.py": "db78f5314df765aa4b27efec4e0fb1f13faf8e47fdc516c55f4f3a6fe4b6973d"
+      },
+      "imports": {
+        "test_v0_s3_quality_phase": {
+          "module": "test_v0_s3_quality_phase",
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_quality_phase.py",
+          "sha256": "8469e072d92efc15110bd634f781878241a0bcc7b86925f3d840ec98d7c41751"
+        },
+        "tools.v0_s3_quality_phase": {
+          "module": "tools.v0_s3_quality_phase",
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_quality_phase.py",
+          "sha256": "db78f5314df765aa4b27efec4e0fb1f13faf8e47fdc516c55f4f3a6fe4b6973d"
+        }
+      },
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-04/run_guarded_checks.py",
+        "--mode",
+        "focused",
+        "--label",
+        "edit-10",
+        "--outdir",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-04/editing-diagnostics"
+      ]
+    },
+    {
+      "path": "editing-diagnostics/edit-11.receipt.json",
+      "exit": 0,
+      "guard": {
+        "audit_hook_installed_before_product_import": true,
+        "audit_hook_installed_before_pytest": true,
+        "blocked_events": [
+          "socket.connect",
+          "socket.connect_ex",
+          "socket.bind",
+          "socket.getaddrinfo",
+          "socket.gethostbyname",
+          "socket.gethostbyaddr",
+          "socket.getnameinfo",
+          "subprocess.Popen",
+          "os.system",
+          "os.exec",
+          "os.spawn",
+          "os.posix_spawn",
+          "os.fork",
+          "os.forkpty"
+        ],
+        "bytecode_written": false,
+        "cacheprovider": "disabled",
+        "host_subprocess": "blocked",
+        "network": "blocked",
+        "pytest_disable_plugin_autoload": "1"
+      },
+      "source_unchanged": true,
+      "before": {
+        "tools/test_v0_s3_quality_phase.py": "8469e072d92efc15110bd634f781878241a0bcc7b86925f3d840ec98d7c41751",
+        "tools/v0_s3_quality_phase.py": "db78f5314df765aa4b27efec4e0fb1f13faf8e47fdc516c55f4f3a6fe4b6973d"
+      },
+      "after": {
+        "tools/test_v0_s3_quality_phase.py": "8469e072d92efc15110bd634f781878241a0bcc7b86925f3d840ec98d7c41751",
+        "tools/v0_s3_quality_phase.py": "db78f5314df765aa4b27efec4e0fb1f13faf8e47fdc516c55f4f3a6fe4b6973d"
+      },
+      "imports": {
+        "test_v0_s3_quality_phase": {
+          "module": "test_v0_s3_quality_phase",
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_quality_phase.py",
+          "sha256": "8469e072d92efc15110bd634f781878241a0bcc7b86925f3d840ec98d7c41751"
+        },
+        "tools.v0_s3_quality_phase": {
+          "module": "tools.v0_s3_quality_phase",
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_quality_phase.py",
+          "sha256": "db78f5314df765aa4b27efec4e0fb1f13faf8e47fdc516c55f4f3a6fe4b6973d"
+        }
+      },
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-04/run_guarded_checks.py",
+        "--mode",
+        "focused",
+        "--label",
+        "edit-11",
+        "--outdir",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-04/editing-diagnostics"
+      ]
+    },
+    {
+      "path": "full-final.receipt.json",
+      "exit": 0,
+      "guard": {
+        "audit_hook_installed_before_product_import": true,
+        "audit_hook_installed_before_pytest": true,
+        "blocked_events": [
+          "socket.connect",
+          "socket.connect_ex",
+          "socket.bind",
+          "socket.getaddrinfo",
+          "socket.gethostbyname",
+          "socket.gethostbyaddr",
+          "socket.getnameinfo",
+          "subprocess.Popen",
+          "os.system",
+          "os.exec",
+          "os.spawn",
+          "os.posix_spawn",
+          "os.fork",
+          "os.forkpty"
+        ],
+        "bytecode_written": false,
+        "cacheprovider": "disabled",
+        "host_subprocess": "blocked",
+        "network": "blocked",
+        "pytest_disable_plugin_autoload": "1"
+      },
+      "source_unchanged": true,
+      "before": {
+        "tools/test_v0_s3_quality_phase.py": "8469e072d92efc15110bd634f781878241a0bcc7b86925f3d840ec98d7c41751",
+        "tools/v0_s3_quality_phase.py": "db78f5314df765aa4b27efec4e0fb1f13faf8e47fdc516c55f4f3a6fe4b6973d"
+      },
+      "after": {
+        "tools/test_v0_s3_quality_phase.py": "8469e072d92efc15110bd634f781878241a0bcc7b86925f3d840ec98d7c41751",
+        "tools/v0_s3_quality_phase.py": "db78f5314df765aa4b27efec4e0fb1f13faf8e47fdc516c55f4f3a6fe4b6973d"
+      },
+      "imports": {
+        "test_v0_s3_quality_phase": {
+          "module": "test_v0_s3_quality_phase",
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_quality_phase.py",
+          "sha256": "8469e072d92efc15110bd634f781878241a0bcc7b86925f3d840ec98d7c41751"
+        },
+        "tools.v0_s3_quality_phase": {
+          "module": "tools.v0_s3_quality_phase",
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_quality_phase.py",
+          "sha256": "db78f5314df765aa4b27efec4e0fb1f13faf8e47fdc516c55f4f3a6fe4b6973d"
+        }
+      },
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-04/run_guarded_checks.py",
+        "--mode",
+        "suite",
+        "--label",
+        "full-final",
+        "--outdir",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-04"
+      ]
+    },
+    {
+      "path": "guard-selftest.receipt.json",
+      "exit": 0,
+      "guard": {
+        "audit_hook_installed_before_product_import": true,
+        "audit_hook_installed_before_pytest": true,
+        "blocked_events": [
+          "socket.connect",
+          "socket.connect_ex",
+          "socket.bind",
+          "socket.getaddrinfo",
+          "socket.gethostbyname",
+          "socket.gethostbyaddr",
+          "socket.getnameinfo",
+          "subprocess.Popen",
+          "os.system",
+          "os.exec",
+          "os.spawn",
+          "os.posix_spawn",
+          "os.fork",
+          "os.forkpty"
+        ],
+        "bytecode_written": false,
+        "cacheprovider": "disabled",
+        "host_subprocess": "blocked",
+        "network": "blocked",
+        "pytest_disable_plugin_autoload": "1"
+      },
+      "source_unchanged": true,
+      "before": {
+        "tools/test_v0_s3_quality_phase.py": "8469e072d92efc15110bd634f781878241a0bcc7b86925f3d840ec98d7c41751",
+        "tools/v0_s3_quality_phase.py": "db78f5314df765aa4b27efec4e0fb1f13faf8e47fdc516c55f4f3a6fe4b6973d"
+      },
+      "after": {
+        "tools/test_v0_s3_quality_phase.py": "8469e072d92efc15110bd634f781878241a0bcc7b86925f3d840ec98d7c41751",
+        "tools/v0_s3_quality_phase.py": "db78f5314df765aa4b27efec4e0fb1f13faf8e47fdc516c55f4f3a6fe4b6973d"
+      },
+      "imports": {},
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-04/run_guarded_checks.py",
+        "--mode",
+        "guard",
+        "--label",
+        "guard-selftest",
+        "--outdir",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-04"
+      ]
+    },
+    {
+      "path": "replay-correction03-counterexamples.receipt.json",
+      "exit": 0,
+      "guard": {
+        "audit_hook_installed_before_product_import": true,
+        "audit_hook_installed_before_pytest": true,
+        "blocked_events": [
+          "socket.connect",
+          "socket.connect_ex",
+          "socket.bind",
+          "socket.getaddrinfo",
+          "socket.gethostbyname",
+          "socket.gethostbyaddr",
+          "socket.getnameinfo",
+          "subprocess.Popen",
+          "os.system",
+          "os.exec",
+          "os.spawn",
+          "os.posix_spawn",
+          "os.fork",
+          "os.forkpty"
+        ],
+        "bytecode_written": false,
+        "cacheprovider": "disabled",
+        "host_subprocess": "blocked",
+        "network": "blocked",
+        "pytest_disable_plugin_autoload": "1"
+      },
+      "source_unchanged": true,
+      "before": {
+        "tools/test_v0_s3_quality_phase.py": "8469e072d92efc15110bd634f781878241a0bcc7b86925f3d840ec98d7c41751",
+        "tools/v0_s3_quality_phase.py": "db78f5314df765aa4b27efec4e0fb1f13faf8e47fdc516c55f4f3a6fe4b6973d"
+      },
+      "after": {
+        "tools/test_v0_s3_quality_phase.py": "8469e072d92efc15110bd634f781878241a0bcc7b86925f3d840ec98d7c41751",
+        "tools/v0_s3_quality_phase.py": "db78f5314df765aa4b27efec4e0fb1f13faf8e47fdc516c55f4f3a6fe4b6973d"
+      },
+      "imports": {
+        "tools.test_v0_s3_quality_phase": {
+          "module": "tools.test_v0_s3_quality_phase",
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_quality_phase.py",
+          "sha256": "8469e072d92efc15110bd634f781878241a0bcc7b86925f3d840ec98d7c41751"
+        },
+        "tools.v0_s3_quality_phase": {
+          "module": "tools.v0_s3_quality_phase",
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_quality_phase.py",
+          "sha256": "db78f5314df765aa4b27efec4e0fb1f13faf8e47fdc516c55f4f3a6fe4b6973d"
+        }
+      },
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-04/run_guarded_checks.py",
+        "--mode",
+        "script",
+        "--label",
+        "replay-correction03-counterexamples",
+        "--outdir",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-04"
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "path": "tools/v0_s3_quality_phase.py",
+      "working_sha256": "db78f5314df765aa4b27efec4e0fb1f13faf8e47fdc516c55f4f3a6fe4b6973d",
+      "candidate_sha256": "db78f5314df765aa4b27efec4e0fb1f13faf8e47fdc516c55f4f3a6fe4b6973d",
+      "matches": true
+    },
+    {
+      "path": "tools/test_v0_s3_quality_phase.py",
+      "working_sha256": "8469e072d92efc15110bd634f781878241a0bcc7b86925f3d840ec98d7c41751",
+      "candidate_sha256": "8469e072d92efc15110bd634f781878241a0bcc7b86925f3d840ec98d7c41751",
+      "matches": true
+    },
+    {
+      "path": "reports/v0-s3/product-gate0/p3b-quality-contract.md",
+      "working_sha256": "d06a6688fa618cd9fef1cd7f362b8d165addc0030dde0b5aee77465c2a2c20a3",
+      "candidate_sha256": "d06a6688fa618cd9fef1cd7f362b8d165addc0030dde0b5aee77465c2a2c20a3",
+      "matches": true
+    },
+    {
+      "path": "reports/v0-s3/product-gate0/quality-execution-inputs.frozen.json",
+      "working_sha256": "47e9f14efa66bc4df851bf1a738763b48c1728eed84b76c56a7848d1b01f00c3",
+      "candidate_sha256": "47e9f14efa66bc4df851bf1a738763b48c1728eed84b76c56a7848d1b01f00c3",
+      "matches": true
+    },
+    {
+      "path": "reports/v0-s3/product-gate0/implementation-p3b-correction-04/run_guarded_checks.py",
+      "working_sha256": "77385fceaf403cbf60529c1161ed9c38693db803b526189ee9bfd87989c1425f",
+      "candidate_sha256": "77385fceaf403cbf60529c1161ed9c38693db803b526189ee9bfd87989c1425f",
+      "matches": true
+    }
+  ],
+  "head": "eae2a46b0db23ae05fe0b99a41735b568afc0832",
+  "root_task_commit": "67d5c87eaa1a4429c78e49602f760a807f81711f"
+}

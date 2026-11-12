@@ -1,0 +1,895 @@
+{
+  "kind": "INDEPENDENT_P3B_CORRECTION04_AGGREGATE_REVIEW",
+  "reviewer_role": "Fresh isolated Codex reviewer; no implementation ownership/no subagents/no model override",
+  "candidate_sha": "5de09478a4af6e3dd91410d4dde90c9020a77bfd",
+  "evidence_commit": "0d28fd4d607808c1980f66ff86b289cbcc5134e8",
+  "review_merge_head": "eae2a46b0db23ae05fe0b99a41735b568afc0832",
+  "root_gitshow_only_task_commit": "67d5c87eaa1a4429c78e49602f760a807f81711f",
+  "adjudication_commit": "55a6bc005fb4e44c0ad7e5b937f786a1b5c05f14",
+  "recommendation": "CHANGES_REQUIRED_COMPONENT_REVIEW_ONLY",
+  "counts": {
+    "Fatal": 0,
+    "Major": 4,
+    "Minor": 0
+  },
+  "executions": {
+    "combined_suite": {
+      "once": true,
+      "passed": 175,
+      "old_instances": 145,
+      "new_instances": 30
+    },
+    "guard_selftest": {
+      "once": true,
+      "blocked": 4
+    },
+    "replay_observations": {
+      "once": true,
+      "count": 29
+    },
+    "focused_observations": {
+      "once": true,
+      "count": 38
+    },
+    "observations_are_product_tests": false
+  },
+  "synthetic_run_binding": {
+    "run_id": "synthetic-quality-run",
+    "candidate_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "authorization_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "origin": "Pinned actual imported test fixture constants and _prepare/QualityPhase constructor; these are synthetic identities, not a claim that real run used code candidate as its media candidate.",
+    "synthetic_projection": "Bound bytes/hash passed by actual fixture constructor and validated by production phase; digest not separately exported in focused summaries. Formal frozen projection verified static only; no real frozen media execution."
+  },
+  "runs": [
+    {
+      "label": "suite",
+      "actual_argv": [
+        "python3",
+        "-B",
+        "reports/v0-s3/product-gate0/implementation-p3b-correction-04/run_guarded_checks.py",
+        "--mode",
+        "suite",
+        "--label",
+        "suite",
+        "--outdir",
+        "reports/v0-s3/product-gate0/independent-p3b-correction-04",
+        "--candidate-sha",
+        "5de09478a4af6e3dd91410d4dde90c9020a77bfd"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "shell_stdout": "suite.runner.stdout.log",
+      "shell_stderr": "suite.runner.stderr.log",
+      "outer_true_exit": 0,
+      "inner_true_exit": 0,
+      "before": {
+        "tools/test_v0_s3_quality_phase.py": "8469e072d92efc15110bd634f781878241a0bcc7b86925f3d840ec98d7c41751",
+        "tools/v0_s3_quality_phase.py": "db78f5314df765aa4b27efec4e0fb1f13faf8e47fdc516c55f4f3a6fe4b6973d"
+      },
+      "after": {
+        "tools/test_v0_s3_quality_phase.py": "8469e072d92efc15110bd634f781878241a0bcc7b86925f3d840ec98d7c41751",
+        "tools/v0_s3_quality_phase.py": "db78f5314df765aa4b27efec4e0fb1f13faf8e47fdc516c55f4f3a6fe4b6973d"
+      },
+      "actual_imports": {
+        "test_v0_s3_quality_phase": {
+          "module": "test_v0_s3_quality_phase",
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_quality_phase.py",
+          "sha256": "8469e072d92efc15110bd634f781878241a0bcc7b86925f3d840ec98d7c41751"
+        },
+        "tools.v0_s3_quality_phase": {
+          "module": "tools.v0_s3_quality_phase",
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_quality_phase.py",
+          "sha256": "db78f5314df765aa4b27efec4e0fb1f13faf8e47fdc516c55f4f3a6fe4b6973d"
+        }
+      },
+      "runner_sha256_before": "77385fceaf403cbf60529c1161ed9c38693db803b526189ee9bfd87989c1425f",
+      "runner_sha256_after": "77385fceaf403cbf60529c1161ed9c38693db803b526189ee9bfd87989c1425f",
+      "raw_stream_hashes_verified": true,
+      "owned_root_removed": true,
+      "raw_receipt": "suite.receipt.json"
+    },
+    {
+      "label": "guard",
+      "actual_argv": [
+        "python3",
+        "-B",
+        "reports/v0-s3/product-gate0/implementation-p3b-correction-04/run_guarded_checks.py",
+        "--mode",
+        "guard",
+        "--label",
+        "guard",
+        "--outdir",
+        "reports/v0-s3/product-gate0/independent-p3b-correction-04",
+        "--candidate-sha",
+        "5de09478a4af6e3dd91410d4dde90c9020a77bfd"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "shell_stdout": "guard.runner.stdout.log",
+      "shell_stderr": "guard.runner.stderr.log",
+      "outer_true_exit": 0,
+      "inner_true_exit": 0,
+      "before": {
+        "tools/test_v0_s3_quality_phase.py": "8469e072d92efc15110bd634f781878241a0bcc7b86925f3d840ec98d7c41751",
+        "tools/v0_s3_quality_phase.py": "db78f5314df765aa4b27efec4e0fb1f13faf8e47fdc516c55f4f3a6fe4b6973d"
+      },
+      "after": {
+        "tools/test_v0_s3_quality_phase.py": "8469e072d92efc15110bd634f781878241a0bcc7b86925f3d840ec98d7c41751",
+        "tools/v0_s3_quality_phase.py": "db78f5314df765aa4b27efec4e0fb1f13faf8e47fdc516c55f4f3a6fe4b6973d"
+      },
+      "actual_imports": {},
+      "runner_sha256_before": "77385fceaf403cbf60529c1161ed9c38693db803b526189ee9bfd87989c1425f",
+      "runner_sha256_after": "77385fceaf403cbf60529c1161ed9c38693db803b526189ee9bfd87989c1425f",
+      "raw_stream_hashes_verified": true,
+      "owned_root_removed": true,
+      "raw_receipt": "guard.receipt.json"
+    },
+    {
+      "label": "replay",
+      "actual_argv": [
+        "python3",
+        "-B",
+        "reports/v0-s3/product-gate0/implementation-p3b-correction-04/run_guarded_checks.py",
+        "--mode",
+        "script",
+        "--script",
+        "reports/v0-s3/product-gate0/independent-p3b-correction-04/replay_adapter.py",
+        "--label",
+        "replay",
+        "--outdir",
+        "reports/v0-s3/product-gate0/independent-p3b-correction-04",
+        "--candidate-sha",
+        "5de09478a4af6e3dd91410d4dde90c9020a77bfd"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "shell_stdout": "replay.runner.stdout.log",
+      "shell_stderr": "replay.runner.stderr.log",
+      "outer_true_exit": 0,
+      "inner_true_exit": 0,
+      "before": {
+        "tools/test_v0_s3_quality_phase.py": "8469e072d92efc15110bd634f781878241a0bcc7b86925f3d840ec98d7c41751",
+        "tools/v0_s3_quality_phase.py": "db78f5314df765aa4b27efec4e0fb1f13faf8e47fdc516c55f4f3a6fe4b6973d"
+      },
+      "after": {
+        "tools/test_v0_s3_quality_phase.py": "8469e072d92efc15110bd634f781878241a0bcc7b86925f3d840ec98d7c41751",
+        "tools/v0_s3_quality_phase.py": "db78f5314df765aa4b27efec4e0fb1f13faf8e47fdc516c55f4f3a6fe4b6973d"
+      },
+      "actual_imports": {
+        "tools.test_v0_s3_quality_phase": {
+          "module": "tools.test_v0_s3_quality_phase",
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_quality_phase.py",
+          "sha256": "8469e072d92efc15110bd634f781878241a0bcc7b86925f3d840ec98d7c41751"
+        },
+        "tools.v0_s3_quality_phase": {
+          "module": "tools.v0_s3_quality_phase",
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_quality_phase.py",
+          "sha256": "db78f5314df765aa4b27efec4e0fb1f13faf8e47fdc516c55f4f3a6fe4b6973d"
+        }
+      },
+      "runner_sha256_before": "77385fceaf403cbf60529c1161ed9c38693db803b526189ee9bfd87989c1425f",
+      "runner_sha256_after": "77385fceaf403cbf60529c1161ed9c38693db803b526189ee9bfd87989c1425f",
+      "raw_stream_hashes_verified": true,
+      "owned_root_removed": true,
+      "raw_receipt": "replay.receipt.json"
+    },
+    {
+      "label": "focused",
+      "actual_argv": [
+        "python3",
+        "-B",
+        "reports/v0-s3/product-gate0/implementation-p3b-correction-04/run_guarded_checks.py",
+        "--mode",
+        "script",
+        "--script",
+        "reports/v0-s3/product-gate0/independent-p3b-correction-04/focused.py",
+        "--label",
+        "focused",
+        "--outdir",
+        "reports/v0-s3/product-gate0/independent-p3b-correction-04",
+        "--candidate-sha",
+        "5de09478a4af6e3dd91410d4dde90c9020a77bfd"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "shell_stdout": "focused.runner.stdout.log",
+      "shell_stderr": "focused.runner.stderr.log",
+      "outer_true_exit": 0,
+      "inner_true_exit": 0,
+      "before": {
+        "tools/test_v0_s3_quality_phase.py": "8469e072d92efc15110bd634f781878241a0bcc7b86925f3d840ec98d7c41751",
+        "tools/v0_s3_quality_phase.py": "db78f5314df765aa4b27efec4e0fb1f13faf8e47fdc516c55f4f3a6fe4b6973d"
+      },
+      "after": {
+        "tools/test_v0_s3_quality_phase.py": "8469e072d92efc15110bd634f781878241a0bcc7b86925f3d840ec98d7c41751",
+        "tools/v0_s3_quality_phase.py": "db78f5314df765aa4b27efec4e0fb1f13faf8e47fdc516c55f4f3a6fe4b6973d"
+      },
+      "actual_imports": {
+        "tools.test_v0_s3_quality_phase": {
+          "module": "tools.test_v0_s3_quality_phase",
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_quality_phase.py",
+          "sha256": "8469e072d92efc15110bd634f781878241a0bcc7b86925f3d840ec98d7c41751"
+        },
+        "tools.v0_s3_quality_phase": {
+          "module": "tools.v0_s3_quality_phase",
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_quality_phase.py",
+          "sha256": "db78f5314df765aa4b27efec4e0fb1f13faf8e47fdc516c55f4f3a6fe4b6973d"
+        }
+      },
+      "runner_sha256_before": "77385fceaf403cbf60529c1161ed9c38693db803b526189ee9bfd87989c1425f",
+      "runner_sha256_after": "77385fceaf403cbf60529c1161ed9c38693db803b526189ee9bfd87989c1425f",
+      "raw_stream_hashes_verified": true,
+      "owned_root_removed": true,
+      "raw_receipt": "focused.receipt.json"
+    }
+  ],
+  "source_bindings": [
+    {
+      "path": "tools/v0_s3_quality_phase.py",
+      "working_sha256": "db78f5314df765aa4b27efec4e0fb1f13faf8e47fdc516c55f4f3a6fe4b6973d",
+      "candidate_sha256": "db78f5314df765aa4b27efec4e0fb1f13faf8e47fdc516c55f4f3a6fe4b6973d",
+      "matches": true
+    },
+    {
+      "path": "tools/test_v0_s3_quality_phase.py",
+      "working_sha256": "8469e072d92efc15110bd634f781878241a0bcc7b86925f3d840ec98d7c41751",
+      "candidate_sha256": "8469e072d92efc15110bd634f781878241a0bcc7b86925f3d840ec98d7c41751",
+      "matches": true
+    },
+    {
+      "path": "reports/v0-s3/product-gate0/p3b-quality-contract.md",
+      "working_sha256": "d06a6688fa618cd9fef1cd7f362b8d165addc0030dde0b5aee77465c2a2c20a3",
+      "candidate_sha256": "d06a6688fa618cd9fef1cd7f362b8d165addc0030dde0b5aee77465c2a2c20a3",
+      "matches": true
+    },
+    {
+      "path": "reports/v0-s3/product-gate0/quality-execution-inputs.frozen.json",
+      "working_sha256": "47e9f14efa66bc4df851bf1a738763b48c1728eed84b76c56a7848d1b01f00c3",
+      "candidate_sha256": "47e9f14efa66bc4df851bf1a738763b48c1728eed84b76c56a7848d1b01f00c3",
+      "matches": true
+    },
+    {
+      "path": "reports/v0-s3/product-gate0/implementation-p3b-correction-04/run_guarded_checks.py",
+      "working_sha256": "77385fceaf403cbf60529c1161ed9c38693db803b526189ee9bfd87989c1425f",
+      "candidate_sha256": "77385fceaf403cbf60529c1161ed9c38693db803b526189ee9bfd87989c1425f",
+      "matches": true
+    }
+  ],
+  "historical_current_edit_exits": [
+    0,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    1,
+    0,
+    0,
+    0
+  ],
+  "implementation_sha256sums_verified": 48,
+  "all48_matched": true,
+  "prior_closure_map": [
+    {
+      "id": "M02",
+      "status": "CLOSED_SCOPED_OFFLINE_PRESERVED",
+      "evidence": "Unchanged prior obligations in test-obligation-audit.json, once-only175 suite and static source review; no broader product claim"
+    },
+    {
+      "id": "M03",
+      "status": "CLOSED_SCOPED_OFFLINE_PRESERVED",
+      "evidence": "Unchanged prior obligations in test-obligation-audit.json, once-only175 suite and static source review; no broader product claim"
+    },
+    {
+      "id": "M04",
+      "status": "CLOSED_SCOPED_OFFLINE_PRESERVED",
+      "evidence": "Unchanged prior obligations in test-obligation-audit.json, once-only175 suite and static source review; no broader product claim"
+    },
+    {
+      "id": "M05",
+      "status": "CLOSED_SCOPED_OFFLINE_PRESERVED",
+      "evidence": "Unchanged prior obligations in test-obligation-audit.json, once-only175 suite and static source review; no broader product claim"
+    },
+    {
+      "id": "M06",
+      "status": "CLOSED_SCOPED_OFFLINE_PRESERVED",
+      "evidence": "Unchanged prior obligations in test-obligation-audit.json, once-only175 suite and static source review; no broader product claim"
+    },
+    {
+      "id": "M07",
+      "status": "CLOSED_SCOPED_OFFLINE_PRESERVED",
+      "evidence": "Unchanged prior obligations in test-obligation-audit.json, once-only175 suite and static source review; no broader product claim"
+    },
+    {
+      "id": "M09",
+      "status": "CLOSED_SCOPED_OFFLINE_PRESERVED",
+      "evidence": "Unchanged prior obligations in test-obligation-audit.json, once-only175 suite and static source review; no broader product claim"
+    },
+    {
+      "id": "m01",
+      "status": "CLOSED_SCOPED_OFFLINE_PRESERVED",
+      "evidence": "Unchanged prior obligations in test-obligation-audit.json, once-only175 suite and static source review; no broader product claim"
+    },
+    {
+      "id": "M01",
+      "status": "PARTIALLY_FIXED_REMAINS_OPEN",
+      "evidence": "Canonical missing/corrupt/foreign/staged-only and field bindings improve; see M01/NM03 residuals."
+    },
+    {
+      "id": "M08",
+      "status": "PARTIALLY_FIXED_REMAINS_OPEN",
+      "evidence": "Actual exclusive original16 seal, QD48source/16release, QS32source/32release, mandatory typed contexts and original tuple comparison work; seal row alignment M08 and accessor source handoff NM04 remain."
+    },
+    {
+      "id": "NM01",
+      "status": "CLOSED_ORIGINAL_CAPACITY_ACCESSOR_COUNTEREXAMPLE_SCOPED_OFFLINE",
+      "evidence": "replay limit capacity0 and focused submissions capacity0 / submit clock10801 all zero-send16BLOCKED; separate new source handoff NM04."
+    },
+    {
+      "id": "NM02",
+      "status": "CLOSED_SCOPED_COOPERATIVE_ONLY",
+      "evidence": "One final clock sample reused for both phase/parent proof; original second read absent; actual public exact10800 accepted/10801 rejected in once175. Parent hard preemption remains unimplemented."
+    },
+    {
+      "id": "E01",
+      "status": "CLOSED_FACTUAL_CORRECTION_ONLY_HISTORY_UNCREDITED",
+      "evidence": "Root55a6bc0 append-only erratum authoritative; original12 exits UNKNOWN/zero-external-actions NOT_PROVEN remain uncredited. New current guarded evidence cannot certify history."
+    },
+    {
+      "id": "E02",
+      "status": "CLOSED_APPEND_ONLY_COUNT_LABEL_ERRATUM",
+      "evidence": "correction03 actual22 vs older21, current correction04 replay29 observations. Exact frozen cap proofs remain prior independent six realcap observations, not cap-mutating replay labels."
+    }
+  ],
+  "environment": {
+    "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+    "executable": "/usr/bin/python3",
+    "platform": "linux",
+    "pytest_distribution": "8.4.2",
+    "plugin_autoload": "disabled before pytest",
+    "cache": "disabled",
+    "bytecode": "disabled -B and sys.dont_write_bytecode",
+    "audit_events": "Python audit connect/bind/DNS/Popen/system/exec/spawn/fork variants; no universal native-extension/direct-syscall assurance",
+    "retry_launch_env": "Root independently verified launch retry environment; this reviewer did not infer or override model settings"
+  },
+  "cleanup": {
+    "runner_owned_roots_removed": true,
+    "focused_owned_root": "/tmp/lvw-c04-focused-7cq1eynq/lvw-independent-c04-0mjgrpqy",
+    "focused_removed": true,
+    "replay_owned_root": "/tmp/lvw-c04-replay-jvu14opc/lvw-c04-replay-ph2nkc43",
+    "replay_removed": true,
+    "handles_closed": true,
+    "scope": "Only fresh owned /tmp roots; no earlier roots scanned/deleted; all fixture media/artifacts removed. Runner receipts attest removal but do not expose exact outer root paths; script nested roots recorded. Pytest cleanup is not production OwnedArchive proof."
+  },
+  "historical_exception": {
+    "original12_exits": "UNKNOWN",
+    "original12_zero_external_actions": "NOT_PROVEN",
+    "original12_credit": false,
+    "correction03_replay_actual": 22,
+    "undelivered_recovery_message": "msg_a30e3ca84e71 NOT delivered despite root send receipt",
+    "worker_actual_merge": "55a6bc0, not6bbfeb9",
+    "current_review_basis": "Actual pinned code/runner/commands and frozen task, not undelivered guidance"
+  },
+  "remaining_not_proven": [
+    "parent hard supervision and owned cleanup",
+    "native residue/admission integration",
+    "A06 enforcement/attempt observation",
+    "actual registration baseline and install/rollback",
+    "real quality/full12",
+    "product Gate0",
+    "human/release signature",
+    "authentic real parent budget reservation/debit",
+    "crash durability of parent directory entry"
+  ],
+  "stage_pass_claim": false,
+  "product_gate0": false,
+  "real_execution_performed": false,
+  "actual_windows_wsl_powershell_parser_host_exe_realmedia_ffmpeg_models_gpu_services_network_download_realledger_fullcheckpoint_actions": 0,
+  "root_coordinate": {
+    "stage_id": "R1",
+    "workpack_id": "WP-R1-U3",
+    "gate": "S3_P3B_QUALITY_INTEGRATION_INDEPENDENT_REVIEW",
+    "state": "READY_FOR_REVIEW"
+  },
+  "development_outline": [
+    {
+      "stage_id": "V0-S0",
+      "delivery": "V0",
+      "title": "基线探索",
+      "substeps": [
+        {
+          "name": "盘点与探索记录",
+          "status": "DONE",
+          "evidence": "reports/v0-s0/gate-decision-rerun-02.md"
+        },
+        {
+          "name": "完整生产基线",
+          "status": "FAILED_HISTORICAL",
+          "evidence": "reports/v0-s0/gate-decision-rerun-02.md"
+        }
+      ],
+      "completed_substeps": 1,
+      "total_substeps": 2,
+      "summary": "历史探索已结束且NO_GO保留；V0-Min按后续范围签署，不回填S0 PASS",
+      "implementation": "ARCHIVED",
+      "machine_acceptance": "NO_GO_HISTORICAL",
+      "independent_review": "COMPLETED_WITH_BLOCKERS",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "V0-S1",
+      "delivery": "V0-Min",
+      "title": "图片与独立人工",
+      "substeps": [
+        {
+          "name": "独立人工稿与导出",
+          "status": "DONE",
+          "evidence": "reports/v0-s1/v0-min-acceptance.json"
+        },
+        {
+          "name": "真实图片与预处理",
+          "status": "DONE",
+          "evidence": "reports/v0-s1/v0-min-acceptance.json"
+        },
+        {
+          "name": "四输出与草稿保护",
+          "status": "DONE",
+          "evidence": "reports/v0-s1/v0-min-acceptance.json"
+        },
+        {
+          "name": "固定证据及独立审查",
+          "status": "DONE",
+          "evidence": "reports/v0-s1/v0-min-acceptance.json"
+        },
+        {
+          "name": "人工签署",
+          "status": "DONE",
+          "evidence": "reports/v0-s1/v0-min-acceptance.json"
+        }
+      ],
+      "completed_substeps": 5,
+      "total_substeps": 5,
+      "summary": "已签仅V0-Min",
+      "implementation": "DELIVERED",
+      "machine_acceptance": "ACCEPTED_SCOPE_ONLY",
+      "independent_review": "COMPLETED",
+      "human_signoff": "APPROVED"
+    },
+    {
+      "stage_id": "R0",
+      "delivery": "V1前置",
+      "title": "独立服务复核",
+      "substeps": [
+        {
+          "name": "独立单图路径在R1a验证",
+          "status": "DONE",
+          "evidence": "reports/r1a/gate-decision-r1a.md"
+        },
+        {
+          "name": "完整复用/许可清单单独闭合",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 1,
+      "total_substeps": 2,
+      "summary": "仅R1a前置单图子集可确认；不把完整视频/Q01算通过",
+      "implementation": "PARTIAL_REUSED",
+      "machine_acceptance": "SINGLE_IMAGE_SUBSET_ONLY",
+      "independent_review": "NO_SEPARATE_R0_VERDICT",
+      "human_signoff": "NO_SEPARATE_R0_SIGNOFF"
+    },
+    {
+      "stage_id": "R1a",
+      "delivery": "V1早期切片",
+      "title": "单图React/FastAPI",
+      "substeps": [
+        {
+          "name": "正式合同子集与前后端",
+          "status": "DONE",
+          "evidence": "reports/r1a/gate-decision-r1a.md"
+        },
+        {
+          "name": "真实单图链路",
+          "status": "DONE",
+          "evidence": "reports/r1a/gate-decision-r1a.md"
+        },
+        {
+          "name": "失败/服务控制与人工稿保护",
+          "status": "DONE",
+          "evidence": "reports/r1a/gate-decision-r1a.md"
+        },
+        {
+          "name": "独立审查七项",
+          "status": "DONE",
+          "evidence": "reports/r1a/gate-decision-r1a.md"
+        },
+        {
+          "name": "人工体验签署",
+          "status": "DONE",
+          "evidence": "reports/r1a/gate-decision-r1a.md"
+        }
+      ],
+      "completed_substeps": 5,
+      "total_substeps": 5,
+      "summary": "已签仅单图切片；完整V1未完成",
+      "implementation": "DELIVERED",
+      "machine_acceptance": "ACCEPTED_SCOPE_ONLY",
+      "independent_review": "COMPLETED",
+      "human_signoff": "APPROVED"
+    },
+    {
+      "stage_id": "V0-S2",
+      "delivery": "V0.1",
+      "title": "视频与资源控制",
+      "substeps": [
+        {
+          "name": "WP-S2-00 冻结准备",
+          "status": "DONE",
+          "evidence": "reports/v0-s2/offline-checkpoint-44/receipt.json"
+        },
+        {
+          "name": "WP-S2-01 媒体owner",
+          "status": "DONE",
+          "evidence": "reports/v0-s2/offline-checkpoint-44/receipt.json"
+        },
+        {
+          "name": "WP-S2-02 公开视频路径",
+          "status": "DONE",
+          "evidence": "reports/v0-s2/offline-checkpoint-44/receipt.json"
+        },
+        {
+          "name": "WP-S2-03 安全/资源/取消",
+          "status": "DONE",
+          "evidence": "reports/v0-s2/offline-checkpoint-44/receipt.json"
+        },
+        {
+          "name": "WP-S2-04 离线集中收口",
+          "status": "DONE",
+          "evidence": "reports/v0-s2/offline-checkpoint-44/receipt.json"
+        },
+        {
+          "name": "WP-S2-05 完整真实验收",
+          "status": "DONE",
+          "evidence": "reports/v0-s2/full-v0-auto-08/receipt.json"
+        },
+        {
+          "name": "WP-S2-06 独立审查",
+          "status": "DONE",
+          "evidence": "reports/v0-s2/full-v0-auto-08/independent-review.json"
+        },
+        {
+          "name": "S2 人工签署与Git同步",
+          "status": "PENDING",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 7,
+      "total_substeps": 8,
+      "summary": "Full08 fresh cumulative9/9, offline541/5checks, independent Fatal0/Major0/Minor0; human signoff and immediate Git sync remain.",
+      "implementation": "IMPLEMENTED",
+      "machine_acceptance": "COMPLETE_FIXED9_PASSED",
+      "independent_review": "COMPLETE_FATAL0_MAJOR0_MINOR0",
+      "human_signoff": "PENDING"
+    },
+    {
+      "stage_id": "V0-S3",
+      "delivery": "V0.2",
+      "title": "离线质量与增量包",
+      "substeps": [
+        {
+          "name": "包/清单/使用说明",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "安装诊断与回滚",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "独立质量集与标注",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "离线集中收口",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "真实十二项及质量",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "独审/人工签署/同步",
+          "status": "PENDING",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 0,
+      "total_substeps": 6,
+      "summary": "已有设计，未完成正式交付；存在代码需进入时复用审计",
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R1",
+      "delivery": "V1",
+      "title": "人工业务骨架",
+      "substeps": [
+        {
+          "name": "受控媒体与人工镜头",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "六模式四目标",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "SQLite/修订/导入",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "组合回归及阶段审查",
+          "status": "PENDING",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "summary": "最小统一图视频切片3/3、UM10机器与独审通过，用户已确认当前前端与基本视频反推；完整R1四子项仍0/4，不补签历史S2/完整V1或发布。",
+      "implementation": "EARLY_SLICE_IMPLEMENTED_FULL_R1_PENDING",
+      "machine_acceptance": "EARLY_SLICE_UM10_ONLY",
+      "independent_review": "EARLY_SLICE_FATAL0_MAJOR0",
+      "human_signoff": "EARLY_SLICE_APPROVED_FULL_R1_PENDING",
+      "early_slice": {
+        "id": "UNIFIED_MEDIA_EARLY",
+        "completed_workpacks": 3,
+        "total_workpacks": 3,
+        "candidate_sha": "621b1bf386db71bfe08ca2f533fa8ec396b0504b",
+        "machine_acceptance": "UM10_PASS",
+        "independent_review": "FATAL0_MAJOR0",
+        "human_signoff": "APPROVED",
+        "human_signoff_record": "reports/unified-media/human-signoff-live15.json"
+      }
+    },
+    {
+      "stage_id": "V1-M1",
+      "delivery": "V1",
+      "title": "多镜头拆分与逐镜头人物场景动作",
+      "substeps": [
+        {
+          "name": "M1-A detection/PTS/boundaries/timeline",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "M1-B per-shot evidence and serial child jobs",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "M1-C per-shot drafts/exports/fixed8 full validation",
+          "status": "PENDING",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 0,
+      "total_substeps": 3,
+      "summary": "用户批准纳入V1；设计/合同审查中，未实现、未测试、未签署",
+      "implementation": "DESIGN_ONLY",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R2",
+      "delivery": "V1",
+      "title": "任务与正式运行包",
+      "substeps": [
+        {
+          "name": "异步任务/CAS/取消",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "真实图视频及质量",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "CLI/导出/便携包",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "V1累计独审及人工签署",
+          "status": "PENDING",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "summary": "已有设计，未完成正式交付；存在代码需进入时复用审计",
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R3",
+      "delivery": "V2",
+      "title": "镜头资产与检索",
+      "substeps": [
+        {
+          "name": "真实PTS/切镜",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "资产/FTS5/配方",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "对比/QC/JSONL",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "阶段验收",
+          "status": "PENDING",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "summary": "已有设计，未完成正式交付；存在代码需进入时复用审计",
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R4",
+      "delivery": "V2",
+      "title": "MCP与恢复",
+      "substeps": [
+        {
+          "name": "MCP真客户端",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "批量/lease/幂等",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "备份恢复",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "V2累计验收签署",
+          "status": "PENDING",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "summary": "已有设计，未完成正式交付；存在代码需进入时复用审计",
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R5a",
+      "delivery": "V3",
+      "title": "证据与建议合同",
+      "substeps": [
+        {
+          "name": "对端握手",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "Navia证据",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "Narralens建议/冲突",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "阶段真实验收",
+          "status": "PENDING",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "summary": "已有设计，未完成正式交付；存在代码需进入时复用审计",
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R5b",
+      "delivery": "V3",
+      "title": "受控生成交接",
+      "substeps": [
+        {
+          "name": "Comfy allowlist/映射",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "收据/outbox",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "GPU/取消协作",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "阶段真实验收",
+          "status": "PENDING",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "summary": "已有设计，未完成正式交付；存在代码需进入时复用审计",
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R5c",
+      "delivery": "V3",
+      "title": "集成与完整交付",
+      "substeps": [
+        {
+          "name": "集成UI",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "升级回滚",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "三系统E2E",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "V3独审及人工签署",
+          "status": "PENDING",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "summary": "已有设计，未完成正式交付；存在代码需进入时复用审计",
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    }
+  ],
+  "completed_at_utc": "2026-11-12T07:46:20.227953+00:00"
+}

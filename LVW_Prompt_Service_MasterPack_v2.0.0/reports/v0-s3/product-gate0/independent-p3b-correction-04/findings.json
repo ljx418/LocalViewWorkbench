@@ -1,0 +1,67 @@
+[
+  {
+    "id": "M01",
+    "severity": "Major",
+    "status": "PARTIALLY_FIXED_REMAINS_OPEN",
+    "location": "tools/v0_s3_quality_phase.py:165 QS_RECEIPT_CONTENT_FIELDS;174 QS_ROW_CONTENT_FIELDS;2698 _verify_execution_content;2740 _effective_error_code;2976 known-failure resolution",
+    "trigger": "After genuine public production-owner run, inject exactly one unknown validation failure after original oracle, retaining its raw and release evidence. Change only supplied rows[0].error_code from INDEPENDENT_UNKNOWN_VALIDATION to PUBLIC_EXECUTION_NOT_SUCCESSFUL; keep canonical/seal/raw untouched.",
+    "expected": "Published unknown failure stays unresolved; supplied verdict overrides can only be stricter. All supplied actual execution content must be bound to canonical.",
+    "actual": "Canonical unknown FAIL aggregates false and unresolved. Supplied known error gives resolved=true and aggregate=true (9/10 images,6/6 videos,critical0); row stays unusable. Additionally valid fabricated GPU samples, bound baseline100->200 plus supplied releases, test_counts and row attempt flag all return aggregate=true with unchanged canonical.",
+    "prerequisites": "Control supplied receipt dictionary; one unknown ordinary validation error with complete raw/source/release evidence. Reproduction injects that unknown failure after real owner/oracle rather than claiming a naturally observed native failure. No artifact-root write required.",
+    "evidence": [
+      "focused-observations.json:published_unknown_failure",
+      "focused-observations.json:published_unknown_failure_supplied_known_error",
+      "focused-observations.json:valid_but_fabricated_release_samples",
+      "focused-observations.json:fabricated_bound_baseline_and_release",
+      "focused-observations.json:fabricated_terminal_counts",
+      "focused-observations.json:fabricated_attempt_row"
+    ],
+    "recommendation": "Determine known/unknown failure resolution from both authoritative and supplied verdicts; a published unknown error may never be replaced by a known one. Bind actual baseline/release/counters/attempt content, or consume authoritative values while allowing explicitly stricter constraints. Preserve fully verified known FAIL resolved/notusable and critical evidence."
+  },
+  {
+    "id": "M08",
+    "severity": "Major",
+    "status": "PARTIALLY_FIXED_REMAINS_OPEN",
+    "location": "tools/v0_s3_quality_phase.py:2537 load_source_plan;2634 _row_evidence_complete;2866 recompute_scores sealed_rows[index]",
+    "trigger": "After genuine run, change source-plan first-row asset_id to FOREIGN-ASSET, media_kind to video, or input_reference to foreign.png; update only canonical/supplied source_plan length/hash to describe changed bytes. Keep canonical execution row, raw, descriptor path/identity and all other source fields intact.",
+    "expected": "Seal asset/kind/reference/ordinal/bytes/hash/path/descriptor must align to corresponding canonical frozen-order execution row. Internally contradictory seal cannot certify that row even with correct artifact hash.",
+    "actual": "All three inconsistent labels yield usable=true,resolved=true,aggregate=true. Loader enforces key set and ordinal but never compares asset_id/media_kind/input_reference against execution row; source validator compares descriptor identity/bytes/hash/path only. Whole row swaps reject on ordinal; descriptor swap remains unresolved.",
+    "prerequisites": "Write seal and canonical/supplied source_plan binding hash/length. This is not a dictionary-only hash bypass, nor total coherent rewrite of canonical execution content: execution row still contradicts loaded seal.",
+    "evidence": [
+      "focused-observations.json:seal_label_alignment.asset_id",
+      "focused-observations.json:seal_label_alignment.media_kind",
+      "focused-observations.json:seal_label_alignment.input_reference",
+      "focused-observations.json:seal_swap.swap_whole_rows",
+      "focused-observations.json:seal_swap.swap_descriptor"
+    ],
+    "recommendation": "Cross-check every loaded seal row against canonical row and fixed projection order/identity before using it. Original descriptor equality and mandatory typed contexts now work and must remain. A total coherent rewrite of both trusted originals requires a separate parent archive trust/attestation decision; universal hostile-host signatures are not requested."
+  },
+  {
+    "id": "NM03",
+    "severity": "Major",
+    "status": "OPEN",
+    "location": "tools/v0_s3_quality_phase.py:2454 load_published_execution_receipt;2408 load_canonical_receipt;2556 _safe_artifact_path",
+    "trigger": "After genuine run, rename owned run_root/temp to retained-temp and replace temp with symlink to retained-temp; pass original run_root/temp/s3-quality to public QS, original receipt/scores.",
+    "expected": "Strict canonical artifact-root ancestry rejects redirected temp/run-root paths, preserving actual run-root/temp/s3-quality trust boundary.",
+    "actual": "aggregate=true,usable=true,resolved=true while temp is a symlink. Only final s3-quality and canonical leaf symlinks are checked; root.parent.parent.resolve matches original run_root and _safe_artifact_path resolves away redirected ancestor. No canonical/seal/raw edits needed.",
+    "prerequisites": "Write/rename owned temp ancestor; original trusted artifacts unchanged. Reproduction is bounded same-root redirection, not evidence of arbitrary native-host access.",
+    "evidence": [
+      "focused-observations.json:qs_temp_ancestor_symlink"
+    ],
+    "recommendation": "Validate canonical/source-plan/raw ancestry against strict actual run root without silently following redirected ancestors; preserve bounded reads and exclusive publication."
+  },
+  {
+    "id": "NM04",
+    "severity": "Major",
+    "status": "OPEN",
+    "location": "tools/v0_s3_quality_phase.py:1556 _execute_row final _validate_source then1559 _resolve_driver_state then1566 _send_admission_guard;949 guard checks ownership/clock/proof only",
+    "trigger": "Conforming max_public_submissions getter changes first source mtime/ctime with os.utime after final source validation; same source content/hash/path and actual production owner still execute.",
+    "expected": "A controlled accessor handoff cannot invalidate original full descriptor identity without another source validation; zero sends,16 terminal refusals when first source identity changes.",
+    "actual": "16 sends,16 charges,34 reserved/observed,16 PASS; actual source mtime/ctime differ from sealed/recorded identity and public QS aggregates true. Final guard checks directory ownership, phase time and parent proof but does not revalidate source after driver accessors.",
+    "prerequisites": "A controlled driver accessor mutates prepared source descriptor before first send. No canonical/seal/dictionary rewrite or real media.",
+    "evidence": [
+      "focused-observations.json:limit_source_identity_changed"
+    ],
+    "recommendation": "Finish controlled driver accessors before the final bounded source check, then perform coherent final clock/proof admission and immediate charge/cached submit without unchecked callbacks. Preserve no-refund/no-retry accounting. This is a source handoff gap; the original capacity/time accessor counterexamples are fixed."
+  }
+]
