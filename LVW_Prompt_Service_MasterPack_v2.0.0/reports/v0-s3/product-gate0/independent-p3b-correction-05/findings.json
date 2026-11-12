@@ -1,0 +1,39 @@
+[
+  {
+    "actual": "Each caller-only substitution returns aggregate_pass=true/all_rows_resolved=true with10usable images/6videos/critical0. source_evidence is exempt from exhaustive row comparison, and its validator ignores added fields. Top-level added fields are never checked. Python equality accepts true==1 for row facts and seal ordinal; the seal-only boolean ordinal also aggregates true.",
+    "evidence": [
+      "focused-observations.json:attempt_true_to_int1",
+      "focused-observations.json:counter_one_to_bool",
+      "focused-observations.json:source_extra_fact",
+      "focused-observations.json:receipt_extra_fact",
+      "boundary-observations.json:seal_only_ordinal"
+    ],
+    "expected": "Actual fact bindings distinguish typed booleans and integers where truth/accounting matters; source evidence and new facts cannot be fabricated outside explicitly restrictive overlays. Seal ordinals reproduce the original integer order.",
+    "fixed_portion": "Published unknown failure remains unresolved after caller-only known substitution. KnownFAIL suppliedPASS stays unusable/resolved; publishedPASS supplied knownFAIL can be resolved/unusable. Well-typed different release vectors are unresolved, changed baseline/counts/false attempt/run context reject. Unknown cleanup/storage/source and independently scored critical3 cannot be hidden.",
+    "id": "M01",
+    "location": "tools/v0_s3_quality_phase.py:595 validate_source_evidence;2812 _verify_seal_row_alignment;2979 _row_evidence_complete;3051 _verify_execution_content",
+    "prerequisites": "Caller controls supplied dictionary for primary reproductions; no artifact edits. Companion ordinal reproduction requires seal write plus canonical/supplied hash-length update, but no execution-row rewrite. Arbitrary coherent rewrite of both trusted original records is not the finding.",
+    "recommendation": "Use type-aware equality or explicit field validation for authoritative facts; compare complete source evidence conservatively or consume it canonically while rejecting unsupported additions. Close top-level extra-field handling and require integer seal ordinal, preserving restrictive evidence declarations and knownFAIL semantics.",
+    "severity": "Major",
+    "status": "PARTIALLY_FIXED_REMAINS_OPEN",
+    "trigger": "After a genuine complete public-owner run, change supplied rows[0].public_submission_attempted from true to integer1, or provider_calls from integer1 to true; alternatively append a caller-only source_evidence fact or top-level receipt fact. Leave canonical/seal/raw unchanged. A companion seal-only ordinal1->true probe updates only source-plan bytes/hash/length, keeping all execution rows unchanged."
+  },
+  {
+    "actual": "All three deterministic in-process handoffs return aggregate_pass=true/all_rows_resolved=true while the selected run_root/temp/phase entry remains a symlink at return. verify() only fstats already-open descriptors and compares them to their own original identities. It never re-stats the run-root path or temp/phase entries relative to pinned parents. Literal declared run-root equality returns early. Descriptors keep reading original genuine bytes, but the path-to-hierarchy invariant is no longer true.",
+    "evidence": [
+      "focused-observations.json:redirect_during_read_run_root",
+      "focused-observations.json:redirect_during_read_temp",
+      "focused-observations.json:redirect_during_read_phase",
+      "focused-observations.json:redirect_during_read_raw_parent"
+    ],
+    "expected": "Pinned ancestry is revalidated against the actual directory entries after reads. A redirected/replaced ancestor during read refuses; the selected original path must still name the pinned hierarchy.",
+    "fixed_portion": "Already-redirected run_root/temp/phase/canonical/source-plan/raw entries refuse. One descriptor-relative owner supplies canonical, source-plan and raw reads; bounded caps and common refusal cleanup work. Redirected raw parent before opening it refuses.",
+    "id": "NM03",
+    "location": "tools/v0_s3_quality_phase.py:2510 _ArtifactBoundary;2632 verify;2647 read;2760 _verify_run_root_binding",
+    "prerequisites": "Bounded mutation of only the owned fixture during an audited Python read; no concurrent native adversary, hostile kernel, universal immunity or Windows reparse guarantee is assumed.",
+    "recommendation": "Compare pinned directory handles with their current named entries at the anchored parent levels after reads and at completion; include child directory/leaf identity observations required by the existing boundary. Preserve descriptor-relative no-follow reads and exception cleanup.",
+    "severity": "Major",
+    "status": "PARTIALLY_FIXED_REMAINS_OPEN",
+    "trigger": "During the first bounded canonical os.read, after boundary descriptors have opened, rename the owned run_root, temp or phase directory and replace the original entry with a symlink to the retained directory. Keep all genuine canonical/seal/raw bytes unchanged; perform public QS in the same call."
+  }
+]
