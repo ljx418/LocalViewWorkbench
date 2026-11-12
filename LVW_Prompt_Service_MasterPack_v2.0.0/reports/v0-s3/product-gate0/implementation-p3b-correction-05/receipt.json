@@ -1,0 +1,332 @@
+{
+  "accepted_trust_boundary": "a total coherent rewrite of both the original trusted canonical document and the original trusted seal is not a new cryptographic signature obligation; the parent must bind the selected owned archive or an independent attestation before a real consumer run",
+  "code_baseline_before": "5de09478a4af6e3dd91410d4dde90c9020a77bfd",
+  "code_candidate": "44ad8c7a30ee418af41834de6cc87685f80d42fa",
+  "evidence_baseline_before": "0d28fd4d607808c1980f66ff86b289cbcc5134e8",
+  "findings": [
+    {
+      "cleanup": "the supplied document is never written to; every owned fixture root of the batch is registered and removed; the owned phase handles are closed",
+      "counterexample_observations": [
+        "published_unknown_failure",
+        "published_unknown_failure_supplied_known_error",
+        "published_fail_supplied_pass",
+        "published_fail_critical3",
+        "valid_but_fabricated_release_samples",
+        "fabricated_bound_baseline_and_release",
+        "fabricated_terminal_counts",
+        "fabricated_attempt_row",
+        "fabricated_run_context"
+      ],
+      "id": "M01",
+      "negative": [
+        "a published unknown validation failure stays unresolved under a supplied known error",
+        "a published known failure supplied as a pass stays resolved and not usable",
+        "a published pass downgraded by a supplied known failure stays resolved and not usable",
+        "a fabricated release sample vector leaves the row unresolved",
+        "a fabricated bound baseline is refused",
+        "a fabricated terminal count is refused",
+        "a fabricated row attempt flag is refused",
+        "an extra fabricated row fact is refused",
+        "a fabricated run context is refused",
+        "every published field outside the closed overlay is bound"
+      ],
+      "oracle": "the canonical receipt that is actually published on disk under the owned artifact root, the sealed original source plan and the independent scoring receipts",
+      "production_path": [
+        "tools/v0_s3_quality_phase.py:217 QS_RECEIPT_OVERLAY_FIELDS",
+        "tools/v0_s3_quality_phase.py:222 QS_ROW_OVERLAY_FIELDS",
+        "tools/v0_s3_quality_phase.py:251 QS_RECEIPT_TYPED_CONTEXTS",
+        "tools/v0_s3_quality_phase.py:2979 _row_evidence_complete",
+        "tools/v0_s3_quality_phase.py:3051 _verify_execution_content",
+        "tools/v0_s3_quality_phase.py:3101 _effective_failure_verdict",
+        "tools/v0_s3_quality_phase.py:3182 recompute_scores"
+      ],
+      "severity": "Major",
+      "status": "CORRECTED_IN_THIS_BATCH",
+      "terminal": [
+        "QS_EXECUTION_CONTENT_MISMATCH:<field>",
+        "EVIDENCE_UNKNOWN:RELEASE_EVIDENCE_NOT_CANONICAL",
+        "UNKNOWN_EXECUTION_FAILURE",
+        "QUALITY_INCOMPLETE_UNRESOLVED_ROWS"
+      ]
+    },
+    {
+      "cleanup": "the negative cases write only inside their own private owned root and the root is removed; no old evidence root is written",
+      "counterexample_observations": [
+        "seal_label_alignment.asset_id",
+        "seal_label_alignment.media_kind",
+        "seal_label_alignment.input_reference",
+        "seal_swap.swap_whole_rows",
+        "seal_swap.swap_descriptor"
+      ],
+      "id": "M08",
+      "negative": [
+        "a seal row whose asset contradicts the execution row is refused",
+        "a seal row whose media kind contradicts the execution row is refused",
+        "a seal row whose input reference contradicts the execution row is refused",
+        "a seal row whose size contradicts the execution row is refused",
+        "a seal row whose hash contradicts the execution row is refused",
+        "a seal row whose path contradicts the execution row is refused",
+        "a seal row whose descriptor identity contradicts the execution row is refused",
+        "a seal row with a wrong ordinal is refused",
+        "two swapped seal rows are refused"
+      ],
+      "oracle": "the canonical execution row of the published receipt and the fixed admitted projection order and identity",
+      "production_path": [
+        "tools/v0_s3_quality_phase.py:2812 _verify_seal_row_alignment",
+        "tools/v0_s3_quality_phase.py:2840 load_source_plan",
+        "tools/v0_s3_quality_phase.py:1338 _persist_source_plan"
+      ],
+      "severity": "Major",
+      "status": "CORRECTED_IN_THIS_BATCH",
+      "terminal": [
+        "QS_SOURCE_PLAN_ROW_ALIGNMENT_MISMATCH:<field>:<index>",
+        "QS_SOURCE_PLAN_ORDER_INVALID"
+      ]
+    },
+    {
+      "accepted_limitation": "an in-process inode observation inside the existing audited Python/filesystem trust model; no immunity against a hostile kernel, a native Windows reparse point or a filesystem that moves inodes underneath the process is claimed",
+      "cleanup": "every descriptor of the boundary is closed in a finally block and every owned fixture root of the batch is removed",
+      "counterexample_observations": [
+        "qs_temp_ancestor_symlink",
+        "qs_phase_ancestor_symlink",
+        "qs_canonical_leaf_symlink"
+      ],
+      "id": "NM03",
+      "negative": [
+        "a redirected temp ancestor is refused",
+        "a redirected run root is refused",
+        "a redirected phase directory is refused",
+        "a redirected canonical receipt is refused",
+        "a redirected source plan is refused",
+        "a redirected raw artifact is refused"
+      ],
+      "oracle": "the real <run root>/temp/s3-quality directory of the run, opened level by level against its own pinned parent",
+      "production_path": [
+        "tools/v0_s3_quality_phase.py:2510 _ArtifactBoundary",
+        "tools/v0_s3_quality_phase.py:2700 _boundary_error_code",
+        "tools/v0_s3_quality_phase.py:2716 load_canonical_receipt",
+        "tools/v0_s3_quality_phase.py:2760 _verify_run_root_binding",
+        "tools/v0_s3_quality_phase.py:2840 load_source_plan",
+        "tools/v0_s3_quality_phase.py:3182 recompute_scores"
+      ],
+      "severity": "Major",
+      "status": "CORRECTED_IN_THIS_BATCH",
+      "terminal": [
+        "QS_ARTIFACT_ROOT_REDIRECT_FORBIDDEN:<level>",
+        "CANONICAL_RECEIPT_REDIRECT_FORBIDDEN",
+        "QS_SOURCE_PLAN_REDIRECT_FORBIDDEN",
+        "QS_RAW_ARTIFACT_REDIRECT_FORBIDDEN"
+      ]
+    },
+    {
+      "cleanup": "the phase closes every owned handle after the run and the private owned root of the case is removed",
+      "counterexample_observations": [
+        "limit_source_identity_changed",
+        "later_source_identity_changed"
+      ],
+      "id": "NM04",
+      "negative": [
+        "a controlled accessor that changes the first source produces zero sends, zero charges, zero reserved calls and sixteen terminal refusals",
+        "a controlled accessor that changes a later source preserves the earlier real attempts and charges and stops every later send",
+        "the final source check is the last observation before the single admission",
+        "the sealed original identity is the source authority"
+      ],
+      "oracle": "the exclusive source seal written once before the first public submission and the bounded five component descriptor identity that it records",
+      "production_path": [
+        "tools/v0_s3_quality_phase.py:1583 _execute_row",
+        "tools/v0_s3_quality_phase.py:1260 _validate_source",
+        "tools/v0_s3_quality_phase.py:1076 _resolve_driver_state",
+        "tools/v0_s3_quality_phase.py:1026 _send_admission_guard",
+        "tools/v0_s3_quality_phase.py:1338 _persist_source_plan"
+      ],
+      "severity": "Major",
+      "status": "CORRECTED_IN_THIS_BATCH",
+      "terminal": [
+        "SOURCE_REPLACED",
+        "HALTED_AFTER_SOURCE_REPLACED"
+      ]
+    }
+  ],
+  "guard": {
+    "audit_hook_installed_before_product_import": true,
+    "audit_hook_installed_before_pytest": true,
+    "blocked_events": [
+      "socket.connect",
+      "socket.connect_ex",
+      "socket.bind",
+      "socket.getaddrinfo",
+      "socket.gethostbyname",
+      "socket.gethostbyaddr",
+      "socket.getnameinfo",
+      "subprocess.Popen",
+      "os.system",
+      "os.exec",
+      "os.spawn",
+      "os.posix_spawn",
+      "os.fork",
+      "os.forkpty"
+    ],
+    "bytecode_written": false,
+    "cacheprovider": "disabled",
+    "host_subprocess": "blocked",
+    "network": "blocked",
+    "pytest_disable_plugin_autoload": "1"
+  },
+  "independent_review_consumed": "8ea70dac74a81ae407fa149ca7f3d8c716c103ae",
+  "kind": "S3_P3B_CORRECTION_05_IMPLEMENTATION_RECEIPT",
+  "not_proven": [
+    "parent archive or retained original attestation binding and its integration",
+    "parent hard end to end process supervision",
+    "native residue admission and A06 enforcement and attempt observation",
+    "registration baseline, install and rollback",
+    "authentic parent ledger debit",
+    "real quality against the real frozen quality set",
+    "the real twelve fixed items",
+    "the product Gate0",
+    "the human experience signature",
+    "the release signature",
+    "the crash durability of the parent directory entry"
+  ],
+  "obligation_audit": {
+    "adapted_definitions": [],
+    "added_definitions": 25,
+    "baseline_revision": "5de09478a4af6e3dd91410d4dde90c9020a77bfd",
+    "baseline_test_definitions": 130,
+    "candidate_revision": "HEAD",
+    "candidate_test_definitions": 155,
+    "deleted_definitions": [],
+    "evidence": "reports/v0-s3/product-gate0/implementation-p3b-correction-05/obligation-audit.json",
+    "identical_definitions": 130
+  },
+  "obligation_audit_script_sha256": "bb8e1c4ee95f381bbdbb63e1a51cb8ab86dfacd2e5e706c1ce8b07b65325e079",
+  "probe_sha256": "202b14adc23c773896b85de503bac1ea19a047184fd1f28c2abf4580160f6ffa",
+  "product_gate0": false,
+  "ready_for_review": true,
+  "real_execution_performed": false,
+  "root_adjudication": "reports/v0-s3/product-gate0/p3b-correction-05.adjudication.json",
+  "root_disposition_merged": "08e6fbe8f0bcf4443b1832758327de798d78481b",
+  "runner_sha256": "016e61a06d415266fe7442ad9dcd1672ff42a19e5c1fafb707727fc05c95bdb8",
+  "runs": [
+    {
+      "argv": [
+        "reports/v0-s3/product-gate0/implementation-p3b-correction-05/run_guarded_checks.py",
+        "--mode",
+        "suite",
+        "--label",
+        "full-final",
+        "--outdir",
+        "reports/v0-s3/product-gate0/implementation-p3b-correction-05"
+      ],
+      "collected_count": 206,
+      "exit_code": 0,
+      "label": "full-final",
+      "mode": "suite",
+      "owned_root_removed": true,
+      "probe_unchanged_during_run": true,
+      "runner_unchanged_during_run": true,
+      "source_unchanged_during_run": true,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "ddff6ec6c95a40c9d7b6d328f5232c7bf0ee0f7b54c2d4aa1cfdcefa45568069"
+    },
+    {
+      "argv": [
+        "reports/v0-s3/product-gate0/implementation-p3b-correction-05/run_guarded_checks.py",
+        "--mode",
+        "guard",
+        "--label",
+        "guard-selftest",
+        "--outdir",
+        "reports/v0-s3/product-gate0/implementation-p3b-correction-05"
+      ],
+      "blocked_events": [
+        "socket.connect",
+        "socket.connect_ex",
+        "socket.bind",
+        "socket.getaddrinfo",
+        "socket.gethostbyname",
+        "socket.gethostbyaddr",
+        "socket.getnameinfo",
+        "subprocess.Popen",
+        "os.system",
+        "os.exec",
+        "os.spawn",
+        "os.posix_spawn",
+        "os.fork",
+        "os.forkpty"
+      ],
+      "exit_code": 0,
+      "guard_results": {
+        "Popen": "offline boundary violation: subprocess.Popen ('/bin/true', ['/bin/true'], None, None)",
+        "bind": "offline boundary violation: socket.bind (<socket.socket fd=7, family=2, type=1, proto=0, laddr=('0.0.0.0', 0)>, ('127.0.0.1', 0))",
+        "connect": "offline boundary violation: socket.connect (<socket.socket fd=7, family=2, type=1, proto=0, laddr=('0.0.0.0', 0)>, ('127.0.0.1', 9))",
+        "system": "offline boundary violation: os.system (b'true',)"
+      },
+      "label": "guard-selftest",
+      "mode": "guard",
+      "owned_root_removed": true,
+      "source_unchanged_during_run": true,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "6e3db9bee7880783c6d86acad60653571ecf173c497793d487ec8c3758f8db7d"
+    },
+    {
+      "argv": [
+        "reports/v0-s3/product-gate0/implementation-p3b-correction-05/run_guarded_checks.py",
+        "--mode",
+        "script",
+        "--label",
+        "counterexamples",
+        "--script",
+        "reports/v0-s3/product-gate0/implementation-p3b-correction-05/probe_correction05_counterexamples.py",
+        "--outdir",
+        "reports/v0-s3/product-gate0/implementation-p3b-correction-05"
+      ],
+      "exit_code": 0,
+      "label": "counterexamples",
+      "mode": "script",
+      "observation_count": 21,
+      "owned_root_removed": true,
+      "probe_unchanged_during_run": true,
+      "source_unchanged_during_run": true,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "cf70567ce3d03e1df5164c8d33f662700a5801f34b6ee3ba4af51221fdc55d44"
+    }
+  ],
+  "scope": {
+    "binary_media_database_archive_or_copied_source_committed": false,
+    "changed_paths": [
+      "tools/v0_s3_quality_phase.py",
+      "tools/test_v0_s3_quality_phase.py",
+      "reports/v0-s3/product-gate0/implementation-p3b-correction-05/"
+    ],
+    "contract_changes": "none",
+    "git_push": false,
+    "ledger_api": false,
+    "new_infrastructure": false,
+    "old_evidence_immutable": true,
+    "permanent_configuration": false,
+    "real_ledger_or_full_checkpoint": false,
+    "real_media_ffmpeg_models_gpu_services_network_download": false,
+    "real_runtime_execution": false,
+    "signing_platform": false,
+    "test_source_holdout_or_full_prelabel_read": false,
+    "windows_wsl_powershell_parser_host_hashing": false
+  },
+  "source_sha256": {
+    "tools/test_v0_s3_quality_phase.py": "052502d17bfb462b3831c75c8135a1384422a28b978880e68b4d1a98681e102a",
+    "tools/v0_s3_quality_phase.py": "6229569649fde3a5542a4d5c1ced95ea0268cb885baae3a9f18b4a69cc41fbaf"
+  },
+  "stage_pass_claim": false,
+  "status": "READY_FOR_REVIEW",
+  "test_counts": {
+    "added_nodeids": 31,
+    "baseline_collected_nodeids": 175,
+    "baseline_nodeids_missing": [],
+    "candidate_collected_nodeids": 206,
+    "counterexample_observations": 21,
+    "counterexample_observations_are_product_tests": false,
+    "guard_attempts": 4,
+    "guard_blocked": 4,
+    "suite_failed": 0,
+    "suite_passed": 206
+  }
+}

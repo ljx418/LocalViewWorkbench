@@ -1,0 +1,749 @@
+{
+  "baseline_revision": "5de09478a4af6e3dd91410d4dde90c9020a77bfd",
+  "baseline_sha256": "8469e072d92efc15110bd634f781878241a0bcc7b86925f3d840ec98d7c41751",
+  "candidate_sha256": "052502d17bfb462b3831c75c8135a1384422a28b978880e68b4d1a98681e102a",
+  "old_definitions": 130,
+  "identical_old_definitions": [
+    "test_projection_is_strict_and_never_carries_labels",
+    "test_source_hash_mismatch_blocks_every_row_with_zero_submissions",
+    "test_source_symlink_is_refused_before_any_submission",
+    "test_source_growth_during_the_read_is_detected",
+    "test_workflow_source_identity_mismatch_blocks_the_run",
+    "test_binding_is_required_and_must_match_the_candidate",
+    "test_sixteen_rows_pass_with_exact_provider_counts",
+    "test_the_real_production_nodes_produced_the_observed_outputs",
+    "test_raw_is_persisted_before_a_structural_rejection",
+    "test_wrong_history_graph_is_rejected",
+    "test_wrong_history_prompt_id_is_rejected",
+    "test_a_reused_prompt_id_across_rows_is_rejected",
+    "test_a_rewritten_provider_log_is_rejected",
+    "test_a_wrong_provider_call_count_is_rejected_and_stops_the_batch",
+    "test_a_listener_identity_drift_is_rejected",
+    "test_an_unproven_release_stops_every_further_submission",
+    "test_a_resident_model_is_not_accepted_as_a_release",
+    "test_a_leftover_video_snapshot_stops_the_row",
+    "test_a_missing_public_node_output_is_a_row_failure_with_history_kept",
+    "test_a_broken_image_metadata_binding_is_rejected",
+    "test_a_wrong_video_frame_denominator_is_rejected_after_the_raw_was_kept",
+    "test_a_bounded_history_wait_fails_the_row_without_an_unbounded_poll",
+    "test_the_phase_cannot_be_executed_twice",
+    "test_an_existing_phase_directory_blocks_the_run",
+    "test_the_public_submission_budget_is_exact_and_one_over",
+    "test_the_artifact_budget_is_exact_and_one_over",
+    "test_the_phase_deadline_blocks_the_remaining_rows",
+    "test_a_failed_row_is_never_retried",
+    "test_the_execution_path_never_calls_the_scoring_entry_point",
+    "test_qs_the_aggregate_passes_only_at_the_exact_thresholds",
+    "test_qs_one_usable_image_below_the_threshold_fails_the_aggregate",
+    "test_qs_one_usable_video_below_the_threshold_fails_the_aggregate",
+    "test_qs_a_critical_hallucination_fails_the_sample_and_the_aggregate",
+    "test_qs_a_missing_score_keeps_the_sixteen_row_denominator",
+    "test_qs_a_row_whose_execution_failed_cannot_be_rescued_by_a_full_score",
+    "test_qs_an_unscored_raw_run_can_never_aggregate_pass",
+    "test_qs_a_duplicate_score_is_rejected",
+    "test_qs_a_foreign_row_is_rejected",
+    "test_qs_a_score_bound_to_another_run_candidate_source_or_raw_is_rejected",
+    "test_qs_a_suggestion_artifact_cannot_substitute_the_raw",
+    "test_qs_an_escaping_artifact_path_is_rejected",
+    "test_qs_a_malformed_score_is_rejected",
+    "test_qs_a_reviewer_string_alone_does_not_prove_independence",
+    "test_qs_the_reviewer_must_be_separated_from_the_implementer",
+    "test_qs_the_score_session_must_be_bound_to_the_independence_receipt",
+    "test_qs_the_independence_receipt_must_bind_the_run",
+    "test_qs_verify_independence_rejects_a_reused_reviewer_or_session",
+    "test_combined_the_execution_and_the_scoring_close_on_one_bound_run",
+    "test_correction_m01_a_storage_failure_marks_unproven_and_stops_the_sends",
+    "test_correction_m01_the_error_classification_ignores_the_path_suffix",
+    "test_correction_m01_the_terminal_receipt_counts_inside_the_storage_bounds",
+    "test_correction_m01_a_receipt_over_the_total_budget_is_refused_explicitly",
+    "test_correction_m02_an_ancestor_redirect_cannot_escape_the_owned_directory",
+    "test_correction_m02_a_preexisting_phase_directory_is_refused_without_writing",
+    "test_correction_m02_a_replaced_phase_directory_is_refused",
+    "test_correction_m02_a_replaced_run_root_is_refused",
+    "test_correction_m02_an_old_root_replay_is_refused",
+    "test_correction_m03_a_source_replaced_in_a_callback_produces_zero_sends",
+    "test_correction_m04_an_ordinary_cleanup_exception_never_bypasses_the_release",
+    "test_correction_m05_a_failed_submit_stays_charged",
+    "test_correction_m05_the_provider_reservation_never_exceeds_thirty_four",
+    "test_correction_m06_a_cross_paired_reviewer_session_is_rejected",
+    "test_correction_m06_an_exact_reviewer_session_pair_is_accepted",
+    "test_correction_m07_a_wrong_execution_raw_length_is_rejected",
+    "test_correction_m08_a_known_failed_row_keeps_its_critical_evidence",
+    "test_correction_m08_a_known_failed_row_with_zero_critical_may_resolve",
+    "test_correction_m08_an_unknown_failed_row_can_never_resolve",
+    "test_correction_m08_a_failed_row_without_proven_cleanup_cannot_resolve",
+    "test_correction_m09_the_real_bridge_error_raw_response_is_preserved",
+    "test_correction_m09_the_real_video_frame_raws_are_preserved",
+    "test_correction_m09_the_provider_after_evidence_survives_a_persistence_failure",
+    "test_correction_m01_a_non_finite_release_is_rejected",
+    "test_correction_admission_an_unknown_parent_budget_is_refused",
+    "test_correction_admission_an_insufficient_parent_capacity_refuses_every_send",
+    "test_correction_timing_a_slow_authorize_callback_is_bounded",
+    "test_correction_timing_a_late_successful_history_fails_the_deadline",
+    "test_correction02_m01_the_persisted_receipt_states_its_own_final_totals",
+    "test_correction02_m01_the_receipt_caps_are_exact_and_one_over",
+    "test_correction02_m02_a_temp_ancestor_redirect_writes_nothing_into_the_old_root",
+    "test_correction02_m02_an_initial_temp_symlink_creates_no_foreign_entry",
+    "test_correction02_m02_a_deterministic_open_interposition_cannot_write_into_a_foreign_root",
+    "test_correction02_m02_the_owned_handles_are_closed_after_the_run",
+    "test_correction02_m08_a_pass_row_with_unknown_cleanup_cannot_aggregate_pass",
+    "test_correction02_m08_a_known_fail_row_with_unknown_storage_cannot_aggregate_pass",
+    "test_correction02_m08_a_known_fail_row_with_unknown_source_cannot_aggregate_pass",
+    "test_correction02_m08_a_valid_known_failure_resolves_with_complete_evidence",
+    "test_correction02_nm01_a_proof_for_another_run_is_refused",
+    "test_correction02_nm01_a_stale_proof_is_refused",
+    "test_correction02_nm01_a_proof_with_a_non_finite_interval_is_refused",
+    "test_correction02_nm02_a_decreasing_clock_is_refused",
+    "test_correction02_nm02_the_hard_supervision_blocker_is_recorded",
+    "test_correction03_m01_a_staging_failure_leaves_no_canonical_receipt",
+    "test_correction03_m01_a_successful_publication_is_durable_and_counted",
+    "test_correction03_m08_every_mandatory_evidence_field_is_validated",
+    "test_correction03_m08_an_unpublished_receipt_is_not_authority",
+    "test_correction03_nm01_a_proof_that_expires_at_the_first_authorize_refuses_every_send",
+    "test_correction03_nm01_a_proof_diminished_at_the_handoff_refuses_every_send",
+    "test_correction03_nm02_a_callback_past_the_phase_deadline_refuses_the_send",
+    "test_correction03_nm02_the_phase_boundary_is_exact_and_one_over",
+    "test_correction03_nm01_a_later_row_expiry_preserves_the_prior_attempts",
+    "test_correction04_m01_a_missing_canonical_receipt_fails_closed",
+    "test_correction04_m01_a_corrupt_canonical_receipt_fails_closed",
+    "test_correction04_m01_a_foreign_canonical_receipt_fails_closed",
+    "test_correction04_m01_a_staged_only_receipt_is_not_authority",
+    "test_correction04_m01_a_redirected_artifact_root_is_refused",
+    "test_correction04_m01_an_oversized_canonical_receipt_is_refused",
+    "test_correction04_m01_the_supplied_execution_content_must_be_the_published_one",
+    "test_correction04_m01_a_forged_provider_counter_is_refused",
+    "test_correction04_m01_a_forged_verdict_can_only_be_stricter",
+    "test_correction04_m01_the_published_receipt_is_the_only_authority",
+    "test_correction04_m08_the_source_plan_seals_all_sixteen_original_identities",
+    "test_correction04_m08_a_changed_source_identity_is_unknown_in_the_scoring",
+    "test_correction04_m08_a_changed_source_size_is_unknown_in_the_scoring",
+    "test_correction04_m08_a_changed_source_hash_is_unknown_in_the_scoring",
+    "test_correction04_m08_a_changed_source_path_is_unknown_in_the_scoring",
+    "test_correction04_m08_a_tampered_source_plan_is_refused",
+    "test_correction04_m08_a_missing_source_plan_is_refused",
+    "test_correction04_m08_a_replayed_source_plan_is_refused",
+    "test_correction04_m08_a_source_plan_from_another_run_is_refused",
+    "test_correction04_m08_the_source_media_need_not_stay_on_disk",
+    "test_correction04_m08_a_source_plan_failure_produces_zero_sends",
+    "test_correction04_m08_the_bound_context_must_be_typed",
+    "test_correction04_m08_the_execution_uses_the_same_shared_validators",
+    "test_correction04_nm01_a_diminishing_limit_accessor_refuses_every_send",
+    "test_correction04_nm01_an_advancing_clock_accessor_refuses_every_send",
+    "test_correction04_nm01_a_diminishing_submit_binding_refuses_every_send",
+    "test_correction04_nm01_the_driver_state_is_resolved_before_the_final_guard",
+    "test_correction04_nm02_the_guard_reads_the_clock_exactly_once",
+    "test_correction04_nm02_the_phase_boundary_is_exact_and_one_over",
+    "test_correction04_nm02_the_hard_supervision_blocker_is_still_recorded"
+  ],
+  "changed_old_definitions": [],
+  "deleted_old_definitions": [],
+  "changed_old_helpers": [],
+  "old_collected_count": 175,
+  "current_collected_count": 206,
+  "missing_old_nodeids": [],
+  "new_collected_nodeids": [
+    "tools/test_v0_s3_quality_phase.py::test_correction05_m01_a_fabricated_bound_baseline_is_refused",
+    "tools/test_v0_s3_quality_phase.py::test_correction05_m01_a_fabricated_extra_row_fact_is_refused",
+    "tools/test_v0_s3_quality_phase.py::test_correction05_m01_a_fabricated_release_sample_vector_is_not_accepted",
+    "tools/test_v0_s3_quality_phase.py::test_correction05_m01_a_fabricated_row_attempt_flag_is_refused",
+    "tools/test_v0_s3_quality_phase.py::test_correction05_m01_a_fabricated_run_context_is_refused",
+    "tools/test_v0_s3_quality_phase.py::test_correction05_m01_a_fabricated_terminal_count_is_refused",
+    "tools/test_v0_s3_quality_phase.py::test_correction05_m01_a_published_known_failure_supplied_pass_stays_resolved_and_not_usable",
+    "tools/test_v0_s3_quality_phase.py::test_correction05_m01_a_published_pass_downgraded_by_a_supplied_known_failure_stays_resolved_and_not_usable",
+    "tools/test_v0_s3_quality_phase.py::test_correction05_m01_a_published_unknown_failure_stays_unresolved_under_a_supplied_known_error",
+    "tools/test_v0_s3_quality_phase.py::test_correction05_m01_every_published_fact_outside_the_overlay_is_bound",
+    "tools/test_v0_s3_quality_phase.py::test_correction05_m01_the_verdict_overlay_is_a_closed_enumeration",
+    "tools/test_v0_s3_quality_phase.py::test_correction05_m08_a_seal_row_that_contradicts_the_execution_row_is_refused[asset_id-FOREIGN-ASSET-QS_SOURCE_PLAN_ROW_ALIGNMENT_MISMATCH:asset_id]",
+    "tools/test_v0_s3_quality_phase.py::test_correction05_m08_a_seal_row_that_contradicts_the_execution_row_is_refused[input_reference-foreign.png-QS_SOURCE_PLAN_ROW_ALIGNMENT_MISMATCH:input_reference]",
+    "tools/test_v0_s3_quality_phase.py::test_correction05_m08_a_seal_row_that_contradicts_the_execution_row_is_refused[media_kind-video-QS_SOURCE_PLAN_ROW_ALIGNMENT_MISMATCH:media_kind]",
+    "tools/test_v0_s3_quality_phase.py::test_correction05_m08_a_seal_row_that_contradicts_the_execution_row_is_refused[ordinal-2-QS_SOURCE_PLAN_ORDER_INVALID]",
+    "tools/test_v0_s3_quality_phase.py::test_correction05_m08_a_seal_row_that_contradicts_the_execution_row_is_refused[path-/foreign/not-the-bound-source-QS_SOURCE_PLAN_ROW_ALIGNMENT_MISMATCH:path]",
+    "tools/test_v0_s3_quality_phase.py::test_correction05_m08_a_seal_row_that_contradicts_the_execution_row_is_refused[source_bytes-1-QS_SOURCE_PLAN_ROW_ALIGNMENT_MISMATCH:source_bytes]",
+    "tools/test_v0_s3_quality_phase.py::test_correction05_m08_a_seal_row_that_contradicts_the_execution_row_is_refused[source_sha256-0000000000000000000000000000000000000000000000000000000000000000-QS_SOURCE_PLAN_ROW_ALIGNMENT_MISMATCH:source_sha256]",
+    "tools/test_v0_s3_quality_phase.py::test_correction05_m08_a_seal_row_with_a_contradicting_descriptor_identity_is_refused",
+    "tools/test_v0_s3_quality_phase.py::test_correction05_m08_the_seal_of_a_genuine_run_still_aligns_with_its_rows",
+    "tools/test_v0_s3_quality_phase.py::test_correction05_m08_two_swapped_seal_rows_are_refused",
+    "tools/test_v0_s3_quality_phase.py::test_correction05_nm03_a_redirected_canonical_receipt_is_refused",
+    "tools/test_v0_s3_quality_phase.py::test_correction05_nm03_a_redirected_phase_directory_is_refused",
+    "tools/test_v0_s3_quality_phase.py::test_correction05_nm03_a_redirected_raw_artifact_is_refused",
+    "tools/test_v0_s3_quality_phase.py::test_correction05_nm03_a_redirected_run_root_is_refused",
+    "tools/test_v0_s3_quality_phase.py::test_correction05_nm03_a_redirected_source_plan_is_refused",
+    "tools/test_v0_s3_quality_phase.py::test_correction05_nm03_a_redirected_temp_ancestor_is_refused",
+    "tools/test_v0_s3_quality_phase.py::test_correction05_nm04_a_later_source_change_preserves_the_earlier_attempts",
+    "tools/test_v0_s3_quality_phase.py::test_correction05_nm04_a_source_changed_by_a_controlled_accessor_produces_zero_sends",
+    "tools/test_v0_s3_quality_phase.py::test_correction05_nm04_the_final_source_check_is_the_last_thing_before_the_guard",
+    "tools/test_v0_s3_quality_phase.py::test_correction05_nm04_the_sealed_original_identity_is_the_source_authority"
+  ],
+  "new_tests": [
+    {
+      "name": "test_correction05_m01_a_published_unknown_failure_stays_unresolved_under_a_supplied_known_error",
+      "line": 2833,
+      "assertions": [
+        "row['usable'] is False and row['resolved'] is False",
+        "row['reason'] == 'UNKNOWN_EXECUTION_FAILURE'",
+        "result['thresholds']['images_usable'] == 9",
+        "result['thresholds']['videos_usable'] == 6",
+        "result['thresholds']['total_critical_hallucinations'] == 0",
+        "result['all_rows_resolved'] is False",
+        "result['aggregate_pass'] is False",
+        "result['decision'] == 'QUALITY_INCOMPLETE_UNRESOLVED_ROWS'"
+      ],
+      "fixture_arguments": [
+        "tmp_path"
+      ],
+      "calls": [
+        "_canonical_scores",
+        "_independence",
+        "_own_run",
+        "_rewrite_canonical",
+        "copy.deepcopy",
+        "recompute_scores"
+      ],
+      "decorators": []
+    },
+    {
+      "name": "test_correction05_m01_a_published_known_failure_supplied_pass_stays_resolved_and_not_usable",
+      "line": 2865,
+      "assertions": [
+        "row['usable'] is False",
+        "row['resolved'] is True",
+        "row['reason'] == 'KNOWN_EXECUTION_FAILURE_RESOLVED_NOT_USABLE'",
+        "result['thresholds']['images_usable'] == 9"
+      ],
+      "fixture_arguments": [
+        "tmp_path"
+      ],
+      "calls": [
+        "_canonical_scores",
+        "_independence",
+        "_own_run",
+        "_rewrite_canonical",
+        "copy.deepcopy",
+        "recompute_scores"
+      ],
+      "decorators": []
+    },
+    {
+      "name": "test_correction05_m01_a_published_pass_downgraded_by_a_supplied_known_failure_stays_resolved_and_not_usable",
+      "line": 2887,
+      "assertions": [
+        "row['usable'] is False",
+        "row['resolved'] is True",
+        "row['reason'] == 'KNOWN_EXECUTION_FAILURE_RESOLVED_NOT_USABLE'",
+        "result['thresholds']['images_usable'] == 9",
+        "result['aggregate_pass'] is True"
+      ],
+      "fixture_arguments": [
+        "tmp_path"
+      ],
+      "calls": [
+        "_independence",
+        "_own_run",
+        "_own_scores",
+        "copy.deepcopy",
+        "recompute_scores"
+      ],
+      "decorators": []
+    },
+    {
+      "name": "test_correction05_m01_a_fabricated_release_sample_vector_is_not_accepted",
+      "line": 2902,
+      "assertions": [
+        "row['usable'] is False and row['resolved'] is False",
+        "row['evidence_reason'] == 'RELEASE_EVIDENCE_NOT_CANONICAL'",
+        "result['aggregate_pass'] is False"
+      ],
+      "fixture_arguments": [
+        "tmp_path"
+      ],
+      "calls": [
+        "_independence",
+        "_own_run",
+        "_own_scores",
+        "copy.deepcopy",
+        "range",
+        "recompute_scores"
+      ],
+      "decorators": []
+    },
+    {
+      "name": "test_correction05_m01_a_fabricated_bound_baseline_is_refused",
+      "line": 2918,
+      "assertions": [
+        "'QS_EXECUTION_CONTENT_MISMATCH' in str(fabricated.value)"
+      ],
+      "fixture_arguments": [
+        "tmp_path"
+      ],
+      "calls": [
+        "_independence",
+        "_own_run",
+        "_own_scores",
+        "copy.deepcopy",
+        "pytest.raises",
+        "recompute_scores",
+        "str"
+      ],
+      "decorators": []
+    },
+    {
+      "name": "test_correction05_m01_a_fabricated_terminal_count_is_refused",
+      "line": 2929,
+      "assertions": [
+        "'QS_EXECUTION_CONTENT_MISMATCH:test_counts' in str(fabricated.value)"
+      ],
+      "fixture_arguments": [
+        "tmp_path"
+      ],
+      "calls": [
+        "_independence",
+        "_own_run",
+        "_own_scores",
+        "copy.deepcopy",
+        "pytest.raises",
+        "recompute_scores",
+        "str"
+      ],
+      "decorators": []
+    },
+    {
+      "name": "test_correction05_m01_a_fabricated_row_attempt_flag_is_refused",
+      "line": 2940,
+      "assertions": [
+        "'QS_EXECUTION_CONTENT_MISMATCH:public_submission_attempted' in str(fabricated.value)"
+      ],
+      "fixture_arguments": [
+        "tmp_path"
+      ],
+      "calls": [
+        "_independence",
+        "_own_run",
+        "_own_scores",
+        "copy.deepcopy",
+        "pytest.raises",
+        "recompute_scores",
+        "str"
+      ],
+      "decorators": []
+    },
+    {
+      "name": "test_correction05_m01_a_fabricated_extra_row_fact_is_refused",
+      "line": 2951,
+      "assertions": [
+        "'QS_EXECUTION_CONTENT_MISMATCH:provider_calls_succeeded' in str(fabricated.value)"
+      ],
+      "fixture_arguments": [
+        "tmp_path"
+      ],
+      "calls": [
+        "_independence",
+        "_own_run",
+        "_own_scores",
+        "copy.deepcopy",
+        "pytest.raises",
+        "recompute_scores",
+        "str"
+      ],
+      "decorators": []
+    },
+    {
+      "name": "test_correction05_m01_a_fabricated_run_context_is_refused",
+      "line": 2962,
+      "assertions": [
+        "'QS_EXECUTION_CONTENT_MISMATCH:run_root' in str(fabricated.value)"
+      ],
+      "fixture_arguments": [
+        "tmp_path"
+      ],
+      "calls": [
+        "_independence",
+        "_own_run",
+        "_own_scores",
+        "copy.deepcopy",
+        "pytest.raises",
+        "recompute_scores",
+        "str"
+      ],
+      "decorators": []
+    },
+    {
+      "name": "test_correction05_m01_every_published_fact_outside_the_overlay_is_bound",
+      "line": 2972,
+      "assertions": [
+        "checked >= 20",
+        "field in typed",
+        "result['aggregate_pass'] is False"
+      ],
+      "fixture_arguments": [
+        "completed_run"
+      ],
+      "calls": [
+        "_independence",
+        "_scores",
+        "canonical.read_bytes",
+        "canonical.read_bytes().decode",
+        "copy.deepcopy",
+        "json.loads",
+        "recompute_scores"
+      ],
+      "decorators": []
+    },
+    {
+      "name": "test_correction05_m01_the_verdict_overlay_is_a_closed_enumeration",
+      "line": 3005,
+      "assertions": [
+        "quality.QS_RECEIPT_OVERLAY_FIELDS <= set(published)",
+        "row_overlay == set(quality.QS_ROW_OVERLAY_FIELDS)",
+        "effective in ('PASS', 'FAIL')",
+        "known is False"
+      ],
+      "fixture_arguments": [
+        "completed_run"
+      ],
+      "calls": [
+        "dict",
+        "quality._effective_failure_verdict",
+        "set"
+      ],
+      "decorators": []
+    },
+    {
+      "name": "test_correction05_m08_a_seal_row_that_contradicts_the_execution_row_is_refused",
+      "line": 3038,
+      "assertions": [
+        "published['rows'][0]['asset_id'] == run['receipt']['rows'][0]['asset_id']",
+        "expected in str(rejected.value)"
+      ],
+      "fixture_arguments": [
+        "tmp_path",
+        "field",
+        "value",
+        "expected"
+      ],
+      "calls": [
+        "_canonical_scores",
+        "_independence",
+        "_own_run",
+        "_rewrite_seal",
+        "copy.deepcopy",
+        "pytest.mark.parametrize",
+        "pytest.raises",
+        "recompute_scores",
+        "str"
+      ],
+      "decorators": [
+        "pytest.mark.parametrize('field,value,expected', [('asset_id', 'FOREIGN-ASSET', 'QS_SOURCE_PLAN_ROW_ALIGNMENT_MISMATCH:asset_id'), ('media_kind', 'video', 'QS_SOURCE_PLAN_ROW_ALIGNMENT_MISMATCH:media_kind'), ('input_reference', 'foreign.png', 'QS_SOURCE_PLAN_ROW_ALIGNMENT_MISMATCH:input_reference'), ('source_bytes', 1, 'QS_SOURCE_PLAN_ROW_ALIGNMENT_MISMATCH:source_bytes'), ('source_sha256', '0' * 64, 'QS_SOURCE_PLAN_ROW_ALIGNMENT_MISMATCH:source_sha256'), ('path', '/foreign/not-the-bound-source', 'QS_SOURCE_PLAN_ROW_ALIGNMENT_MISMATCH:path'), ('ordinal', 2, 'QS_SOURCE_PLAN_ORDER_INVALID')])"
+      ]
+    },
+    {
+      "name": "test_correction05_m08_a_seal_row_with_a_contradicting_descriptor_identity_is_refused",
+      "line": 3056,
+      "assertions": [
+        "'QS_SOURCE_PLAN_ROW_ALIGNMENT_MISMATCH:identity' in str(rejected.value)"
+      ],
+      "fixture_arguments": [
+        "tmp_path"
+      ],
+      "calls": [
+        "_canonical_scores",
+        "_independence",
+        "_own_run",
+        "_rewrite_seal",
+        "copy.deepcopy",
+        "list",
+        "pytest.raises",
+        "recompute_scores",
+        "str"
+      ],
+      "decorators": []
+    },
+    {
+      "name": "test_correction05_m08_two_swapped_seal_rows_are_refused",
+      "line": 3073,
+      "assertions": [
+        "'QS_SOURCE_PLAN_ROW_ALIGNMENT_MISMATCH' in str(rejected.value)"
+      ],
+      "fixture_arguments": [
+        "tmp_path"
+      ],
+      "calls": [
+        "_canonical_scores",
+        "_independence",
+        "_own_run",
+        "_rewrite_seal",
+        "copy.deepcopy",
+        "dict",
+        "pytest.raises",
+        "recompute_scores",
+        "rows[0].update",
+        "rows[1].update",
+        "str"
+      ],
+      "decorators": []
+    },
+    {
+      "name": "test_correction05_m08_the_seal_of_a_genuine_run_still_aligns_with_its_rows",
+      "line": 3095,
+      "assertions": [
+        "len(document['rows']) == 16",
+        "sealed['ordinal'] == index + 1",
+        "sealed['asset_id'] == row['asset_id']",
+        "sealed['media_kind'] == row['media_kind']",
+        "sealed['input_reference'] == row['input_reference']",
+        "sealed['source_bytes'] == row['source_bytes']",
+        "sealed['source_sha256'] == row['source_sha256']",
+        "sealed['path'] == row['source_evidence']['path']",
+        "sealed['identity'] == row['source_evidence']['identity']"
+      ],
+      "fixture_arguments": [
+        "tmp_path"
+      ],
+      "calls": [
+        "_own_run",
+        "_seal_path",
+        "_seal_path(run).read_bytes",
+        "_seal_path(run).read_bytes().decode",
+        "enumerate",
+        "json.loads",
+        "len",
+        "zip"
+      ],
+      "decorators": []
+    },
+    {
+      "name": "test_correction05_nm03_a_redirected_temp_ancestor_is_refused",
+      "line": 3112,
+      "assertions": [
+        "(retained / 's3-quality' / quality.CANONICAL_RECEIPT_NAME).is_file()",
+        "'QS_ARTIFACT_ROOT_REDIRECT_FORBIDDEN' in str(redirected.value)"
+      ],
+      "fixture_arguments": [
+        "tmp_path"
+      ],
+      "calls": [
+        "(retained / 's3-quality' / quality.CANONICAL_RECEIPT_NAME).is_file",
+        "(root / 'temp').rename",
+        "(root / 'temp').symlink_to",
+        "_independence",
+        "_own_run",
+        "_own_scores",
+        "pytest.raises",
+        "recompute_scores",
+        "str"
+      ],
+      "decorators": []
+    },
+    {
+      "name": "test_correction05_nm03_a_redirected_run_root_is_refused",
+      "line": 3127,
+      "assertions": [
+        "'QS_ARTIFACT_ROOT_REDIRECT_FORBIDDEN' in str(redirected.value)"
+      ],
+      "fixture_arguments": [
+        "tmp_path"
+      ],
+      "calls": [
+        "_independence",
+        "_own_run",
+        "_own_scores",
+        "pytest.raises",
+        "recompute_scores",
+        "root.rename",
+        "root.symlink_to",
+        "str"
+      ],
+      "decorators": []
+    },
+    {
+      "name": "test_correction05_nm03_a_redirected_phase_directory_is_refused",
+      "line": 3139,
+      "assertions": [
+        "'QS_ARTIFACT_ROOT_REDIRECT_FORBIDDEN' in str(redirected.value)"
+      ],
+      "fixture_arguments": [
+        "tmp_path"
+      ],
+      "calls": [
+        "(temp / 's3-quality').rename",
+        "(temp / 's3-quality').symlink_to",
+        "_independence",
+        "_own_run",
+        "_own_scores",
+        "pytest.raises",
+        "recompute_scores",
+        "str"
+      ],
+      "decorators": []
+    },
+    {
+      "name": "test_correction05_nm03_a_redirected_canonical_receipt_is_refused",
+      "line": 3151,
+      "assertions": [
+        "canonical.read_bytes() == before",
+        "'CANONICAL_RECEIPT_REDIRECT_FORBIDDEN' in str(redirected.value)"
+      ],
+      "fixture_arguments": [
+        "tmp_path"
+      ],
+      "calls": [
+        "_independence",
+        "_own_run",
+        "_own_scores",
+        "canonical.read_bytes",
+        "canonical.symlink_to",
+        "canonical.unlink",
+        "pytest.raises",
+        "recompute_scores",
+        "str"
+      ],
+      "decorators": []
+    },
+    {
+      "name": "test_correction05_nm03_a_redirected_source_plan_is_refused",
+      "line": 3166,
+      "assertions": [
+        "seal.read_bytes() == before",
+        "'QS_SOURCE_PLAN_REDIRECT_FORBIDDEN' in str(redirected.value)"
+      ],
+      "fixture_arguments": [
+        "tmp_path"
+      ],
+      "calls": [
+        "_independence",
+        "_own_run",
+        "_own_scores",
+        "_seal_path",
+        "pytest.raises",
+        "recompute_scores",
+        "retained.write_bytes",
+        "seal.read_bytes",
+        "seal.symlink_to",
+        "seal.unlink",
+        "str"
+      ],
+      "decorators": []
+    },
+    {
+      "name": "test_correction05_nm03_a_redirected_raw_artifact_is_refused",
+      "line": 3181,
+      "assertions": [
+        "raw.read_bytes() == before",
+        "'QS_RAW_ARTIFACT_REDIRECT_FORBIDDEN' in str(redirected.value)"
+      ],
+      "fixture_arguments": [
+        "tmp_path"
+      ],
+      "calls": [
+        "_independence",
+        "_own_run",
+        "_own_scores",
+        "pytest.raises",
+        "raw.read_bytes",
+        "raw.symlink_to",
+        "raw.unlink",
+        "recompute_scores",
+        "retained.write_bytes",
+        "str"
+      ],
+      "decorators": []
+    },
+    {
+      "name": "test_correction05_nm04_a_source_changed_by_a_controlled_accessor_produces_zero_sends",
+      "line": 3230,
+      "assertions": [
+        "driver.mutations == 1",
+        "driver.submissions == 0",
+        "receipt['public_submissions'] == 0",
+        "receipt['public_submissions_attempted'] == 0",
+        "receipt['provider_calls_reserved'] == 0",
+        "len(receipt['rows']) == 16",
+        "all((row['execution_status'] in ('FAIL', 'BLOCKED') for row in receipt['rows']))",
+        "receipt['rows'][0]['error_code'] == 'SOURCE_REPLACED'",
+        "receipt['test_counts']['BLOCKED'] == 15",
+        "receipt['decision'] == 'QUALITY_EXECUTION_PARTIAL'"
+      ],
+      "fixture_arguments": [
+        "tmp_path"
+      ],
+      "calls": [
+        "FakeClock",
+        "SourceMutatingDriver",
+        "_parent_proof",
+        "_prepare",
+        "all",
+        "len",
+        "phase.run"
+      ],
+      "decorators": []
+    },
+    {
+      "name": "test_correction05_nm04_a_later_source_change_preserves_the_earlier_attempts",
+      "line": 3250,
+      "assertions": [
+        "driver.mutations == 1",
+        "driver.submissions == 5",
+        "receipt['public_submissions'] == 5",
+        "receipt['provider_calls_reserved'] == 5",
+        "receipt['test_counts']['PASS'] == 5",
+        "receipt['rows'][5]['error_code'] == 'SOURCE_REPLACED'",
+        "receipt['test_counts']['BLOCKED'] == 10",
+        "receipt['public_submissions'] == 5"
+      ],
+      "fixture_arguments": [
+        "tmp_path"
+      ],
+      "calls": [
+        "FakeClock",
+        "SourceMutatingDriver",
+        "_parent_proof",
+        "_prepare",
+        "phase.run"
+      ],
+      "decorators": []
+    },
+    {
+      "name": "test_correction05_nm04_the_final_source_check_is_the_last_thing_before_the_guard",
+      "line": 3268,
+      "assertions": [
+        "source.index('_resolve_driver_state()') < source.rindex('_validate_source(')",
+        "source.rindex('_validate_source(') < source.index('_send_admission_guard(')",
+        "source.index('_send_admission_guard(') < source.index('driver_state[\"submit\"]')",
+        "'sealed=self._sealed_identities.get(' in source",
+        "'self._now(' not in between",
+        "'getattr(' not in between",
+        "'self.driver' not in between",
+        "'self.authorize' not in between",
+        "'self._validate_source' not in between"
+      ],
+      "fixture_arguments": [],
+      "calls": [
+        "inspect.getsource",
+        "source.index",
+        "source.rindex"
+      ],
+      "decorators": []
+    },
+    {
+      "name": "test_correction05_nm04_the_sealed_original_identity_is_the_source_authority",
+      "line": 3289,
+      "assertions": [
+        "len(sealed) == 16",
+        "sealed[row['asset_id']] == row['source_evidence']['identity']"
+      ],
+      "fixture_arguments": [
+        "tmp_path"
+      ],
+      "calls": [
+        "(phase.directory / quality.CANONICAL_RECEIPT_NAME).read_bytes",
+        "(phase.directory / quality.CANONICAL_RECEIPT_NAME).read_bytes().decode",
+        "_prepare",
+        "json.loads",
+        "len",
+        "original",
+        "phase.run",
+        "sealed.update"
+      ],
+      "decorators": []
+    }
+  ]
+}

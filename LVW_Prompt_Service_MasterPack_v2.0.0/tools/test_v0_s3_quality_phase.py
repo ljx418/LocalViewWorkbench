@@ -2766,3 +2766,540 @@ def test_correction04_nm02_the_hard_supervision_blocker_is_still_recorded(tmp_pa
     assert receipt["timing_assurance"]["hard_end_to_end_supervision"] == \
         "UNIMPLEMENTED_PRODUCT_GATE0_BLOCKER", receipt
     assert receipt["timing_assurance"]["synchronous_callables_preemptively_bounded"] is False, receipt
+
+
+# ======================================================================
+# aggregate correction-05: M01, M08, NM03 and NM04
+#
+# The four findings of the independent correction-04 review are closed
+# here.  Every negative case runs through the *public* entry points after a
+# genuine public production-owner run, in its own private root, and every
+# assertion is about an observable product behaviour - never about a
+# constant and never about a probe name.
+# ======================================================================
+
+
+def _rewrite_canonical(run, mutate):
+    """Rewrite the published canonical document of a private run.
+
+    The document on disk is the authority.  Rewriting it is how a published
+    fact is changed on purpose; the caller has to say exactly which fact it
+    changes.  The staged entry shares the inode of the canonical entry, so
+    the retained staging stays consistent with it.
+    """
+    canonical = run["artifact_root"] / quality.CANONICAL_RECEIPT_NAME
+    document = json.loads(canonical.read_bytes().decode("utf-8"))
+    mutate(document)
+    canonical.write_bytes(json.dumps(document, ensure_ascii=False, sort_keys=True,
+                                     separators=(",", ":")).encode("utf-8"))
+    return document
+
+
+def _seal_path(run):
+    binding = run["receipt"]["source_plan"]
+    return run["artifact_root"] / binding["path"]
+
+
+def _rewrite_seal(run, mutate):
+    """Rewrite the sealed source plan and rebind it in the canonical receipt.
+
+    The seal bytes change, so the canonical receipt has to bind the new
+    length and the new hash.  The execution rows themselves are *not*
+    touched: the seal now contradicts the execution row it claims to seal.
+    """
+    path = _seal_path(run)
+    document = json.loads(path.read_bytes().decode("utf-8"))
+    mutate(document)
+    raw = json.dumps(document, ensure_ascii=False, sort_keys=True,
+                     separators=(",", ":")).encode("utf-8")
+    path.write_bytes(raw)
+
+    def rebind(receipt):
+        receipt["source_plan"]["bytes"] = len(raw)
+        receipt["source_plan"]["sha256"] = hashlib.sha256(raw).hexdigest()
+
+    return _rewrite_canonical(run, rebind)
+
+
+def _canonical_scores(run, document):
+    """The independent scores of a rewritten canonical document."""
+    scores = []
+    for row in document["rows"]:
+        scores.append(_score_for(row, projection_sha=run["projection_sha256"]))
+    return scores
+
+
+# ---- M01: the canonical document is the authority ------------------------
+def test_correction05_m01_a_published_unknown_failure_stays_unresolved_under_a_supplied_known_error(tmp_path):
+    run = _own_run(tmp_path)
+
+    def publish_unknown(document):
+        # The canonical document records one unknown validation failure with
+        # its raw, its source and its release evidence intact.
+        document["rows"][0]["execution_status"] = "FAIL"
+        document["rows"][0]["error_code"] = "INDEPENDENT_UNKNOWN_VALIDATION"
+
+    published = _rewrite_canonical(run, publish_unknown)
+    supplied = copy.deepcopy(published)
+    # The supplied document claims that the very same failure was a known
+    # ordinary refusal.
+    supplied["rows"][0]["execution_status"] = "FAIL"
+    supplied["rows"][0]["error_code"] = "PUBLIC_EXECUTION_NOT_SUCCESSFUL"
+    scores = _canonical_scores(run, published)
+    result = recompute_scores(supplied, run["artifact_root"], scores, independence=_independence())
+    row = result["rows"][0]
+    # The published unknown failure is never resolved by a supplied known one.
+    assert row["usable"] is False and row["resolved"] is False, row
+    assert row["reason"] == "UNKNOWN_EXECUTION_FAILURE", row
+    # The other fifteen rows keep their usable state, so the aggregate is
+    # still nine of ten images, six of six videos and zero critical
+    # hallucinations - and it is still not a pass.
+    assert result["thresholds"]["images_usable"] == 9, result["thresholds"]
+    assert result["thresholds"]["videos_usable"] == 6, result["thresholds"]
+    assert result["thresholds"]["total_critical_hallucinations"] == 0, result["thresholds"]
+    assert result["all_rows_resolved"] is False, result
+    assert result["aggregate_pass"] is False, result
+    assert result["decision"] == "QUALITY_INCOMPLETE_UNRESOLVED_ROWS", result
+
+
+def test_correction05_m01_a_published_known_failure_supplied_pass_stays_resolved_and_not_usable(tmp_path):
+    run = _own_run(tmp_path)
+
+    def publish_known(document):
+        document["rows"][0]["execution_status"] = "FAIL"
+        document["rows"][0]["error_code"] = "PUBLIC_EXECUTION_NOT_SUCCESSFUL"
+
+    published = _rewrite_canonical(run, publish_known)
+    supplied = copy.deepcopy(published)
+    # The supplied document claims that the row passed.
+    supplied["rows"][0]["execution_status"] = "PASS"
+    supplied["rows"][0]["error_code"] = None
+    scores = _canonical_scores(run, published)
+    result = recompute_scores(supplied, run["artifact_root"], scores, independence=_independence())
+    row = result["rows"][0]
+    # A published known failure is never usable and stays resolved.
+    assert row["usable"] is False, row
+    assert row["resolved"] is True, row
+    assert row["reason"] == "KNOWN_EXECUTION_FAILURE_RESOLVED_NOT_USABLE", row
+    assert result["thresholds"]["images_usable"] == 9, result["thresholds"]
+
+
+def test_correction05_m01_a_published_pass_downgraded_by_a_supplied_known_failure_stays_resolved_and_not_usable(tmp_path):
+    run = _own_run(tmp_path)
+    receipt = copy.deepcopy(run["receipt"])
+    receipt["rows"][0]["execution_status"] = "FAIL"
+    receipt["rows"][0]["error_code"] = "PUBLIC_EXECUTION_NOT_SUCCESSFUL"
+    scores = _own_scores(run)
+    result = recompute_scores(receipt, run["artifact_root"], scores, independence=_independence())
+    row = result["rows"][0]
+    assert row["usable"] is False, row
+    assert row["resolved"] is True, row
+    assert row["reason"] == "KNOWN_EXECUTION_FAILURE_RESOLVED_NOT_USABLE", row
+    assert result["thresholds"]["images_usable"] == 9, result["thresholds"]
+    assert result["aggregate_pass"] is True, result
+
+
+def test_correction05_m01_a_fabricated_release_sample_vector_is_not_accepted(tmp_path):
+    run = _own_run(tmp_path)
+    receipt = copy.deepcopy(run["receipt"])
+    evidence = receipt["rows"][0]["release_evidence"]
+    # A well typed but fabricated GPU sample vector: every sample is
+    # plausible and the proof still validates on its own.
+    evidence["gpu_samples"] = [{"monotonic_seconds": index, "gpu_used_mib": 1024}
+                                for index in range(3)]
+    scores = _own_scores(run)
+    result = recompute_scores(receipt, run["artifact_root"], scores, independence=_independence())
+    row = result["rows"][0]
+    assert row["usable"] is False and row["resolved"] is False, row
+    assert row["evidence_reason"] == "RELEASE_EVIDENCE_NOT_CANONICAL", row
+    assert result["aggregate_pass"] is False, result
+
+
+def test_correction05_m01_a_fabricated_bound_baseline_is_refused(tmp_path):
+    run = _own_run(tmp_path)
+    receipt = copy.deepcopy(run["receipt"])
+    receipt["parent_budget_baseline_gpu_mib"] = BASE_GPU_MIB + 100
+    receipt["rows"][0]["release_evidence"]["baseline_gpu_mib"] = BASE_GPU_MIB + 100
+    scores = _own_scores(run)
+    with pytest.raises(QualityContractError) as fabricated:
+        recompute_scores(receipt, run["artifact_root"], scores, independence=_independence())
+    assert "QS_EXECUTION_CONTENT_MISMATCH" in str(fabricated.value), str(fabricated.value)
+
+
+def test_correction05_m01_a_fabricated_terminal_count_is_refused(tmp_path):
+    run = _own_run(tmp_path)
+    receipt = copy.deepcopy(run["receipt"])
+    receipt["test_counts"]["PASS"] = 15
+    receipt["test_counts"]["BLOCKED"] = 1
+    scores = _own_scores(run)
+    with pytest.raises(QualityContractError) as fabricated:
+        recompute_scores(receipt, run["artifact_root"], scores, independence=_independence())
+    assert "QS_EXECUTION_CONTENT_MISMATCH:test_counts" in str(fabricated.value), str(fabricated.value)
+
+
+def test_correction05_m01_a_fabricated_row_attempt_flag_is_refused(tmp_path):
+    run = _own_run(tmp_path)
+    receipt = copy.deepcopy(run["receipt"])
+    receipt["rows"][0]["public_submission_attempted"] = False
+    scores = _own_scores(run)
+    with pytest.raises(QualityContractError) as fabricated:
+        recompute_scores(receipt, run["artifact_root"], scores, independence=_independence())
+    assert "QS_EXECUTION_CONTENT_MISMATCH:public_submission_attempted" in str(fabricated.value), \
+        str(fabricated.value)
+
+
+def test_correction05_m01_a_fabricated_extra_row_fact_is_refused(tmp_path):
+    run = _own_run(tmp_path)
+    receipt = copy.deepcopy(run["receipt"])
+    receipt["rows"][0]["provider_calls_succeeded"] = 4
+    scores = _own_scores(run)
+    with pytest.raises(QualityContractError) as fabricated:
+        recompute_scores(receipt, run["artifact_root"], scores, independence=_independence())
+    assert "QS_EXECUTION_CONTENT_MISMATCH:provider_calls_succeeded" in str(fabricated.value), \
+        str(fabricated.value)
+
+
+def test_correction05_m01_a_fabricated_run_context_is_refused(tmp_path):
+    run = _own_run(tmp_path)
+    receipt = copy.deepcopy(run["receipt"])
+    receipt["run_root"] = str(run["root"].parent / "another-run")
+    scores = _own_scores(run)
+    with pytest.raises(QualityContractError) as fabricated:
+        recompute_scores(receipt, run["artifact_root"], scores, independence=_independence())
+    assert "QS_EXECUTION_CONTENT_MISMATCH:run_root" in str(fabricated.value), str(fabricated.value)
+
+
+def test_correction05_m01_every_published_fact_outside_the_overlay_is_bound(completed_run):
+    """The fact binding is exhaustive by construction.
+
+    Every field of the published document that is not part of the closed
+    verdict overlay is an actual execution fact.  Tampering with any one of
+    them can never produce an aggregate pass: it is either refused outright
+    or it leaves the rows unresolved.
+    """
+    supplied = completed_run["receipt"]
+    canonical = completed_run["artifact_root"] / quality.CANONICAL_RECEIPT_NAME
+    published = json.loads(canonical.read_bytes().decode("utf-8"))
+    overlay = quality.QS_RECEIPT_OVERLAY_FIELDS
+    typed = quality.QS_RECEIPT_TYPED_CONTEXTS
+    checked = 0
+    for field in published:
+        if field in overlay or field == "rows":
+            continue
+        checked += 1
+        receipt = copy.deepcopy(supplied)
+        receipt[field] = "TAMPERED-VALUE"
+        scores = _scores(receipt, completed_run["projection_sha256"])
+        try:
+            result = recompute_scores(receipt, completed_run["artifact_root"], scores,
+                                      independence=_independence())
+        except QualityContractError:
+            continue
+        # A mistyped bound context is an invalid declaration: the rows stay
+        # unknown and the aggregate never passes.
+        assert field in typed, field
+        assert result["aggregate_pass"] is False, (field, result)
+    assert checked >= 20, checked
+
+
+def test_correction05_m01_the_verdict_overlay_is_a_closed_enumeration(completed_run):
+    published = completed_run["receipt"]
+    # The overlay is closed: it names verdict and declaration fields only,
+    # and every one of them really exists in the published document.
+    assert quality.QS_RECEIPT_OVERLAY_FIELDS <= set(published), quality.QS_RECEIPT_OVERLAY_FIELDS
+    row_overlay = set()
+    for row in published["rows"]:
+        row_overlay |= quality.QS_ROW_OVERLAY_FIELDS & set(row)
+    assert row_overlay == set(quality.QS_ROW_OVERLAY_FIELDS), row_overlay
+    # The verdict overlay is monotone: the effective verdict of a row is
+    # never better than the published one.
+    published_row = published["rows"][0]
+    for status, error in (("PASS", None), ("FAIL", "PUBLIC_EXECUTION_NOT_SUCCESSFUL"),
+                           ("FAIL", "SOURCE_REPLACED"), ("BLOCKED", "PHASE_DEADLINE_EXCEEDED")):
+        supplied_row = dict(published_row)
+        supplied_row["execution_status"] = status
+        supplied_row["error_code"] = error
+        effective, _, known = quality._effective_failure_verdict(supplied_row, published_row)
+        assert effective in ("PASS", "FAIL"), (status, error, effective)
+        if status == "PASS":
+            assert known is False, (status, error)
+
+
+# ---- M08: the seal must describe the very same execution row ------------
+@pytest.mark.parametrize("field,value,expected", [
+    ("asset_id", "FOREIGN-ASSET", "QS_SOURCE_PLAN_ROW_ALIGNMENT_MISMATCH:asset_id"),
+    ("media_kind", "video", "QS_SOURCE_PLAN_ROW_ALIGNMENT_MISMATCH:media_kind"),
+    ("input_reference", "foreign.png", "QS_SOURCE_PLAN_ROW_ALIGNMENT_MISMATCH:input_reference"),
+    ("source_bytes", 1, "QS_SOURCE_PLAN_ROW_ALIGNMENT_MISMATCH:source_bytes"),
+    ("source_sha256", "0" * 64, "QS_SOURCE_PLAN_ROW_ALIGNMENT_MISMATCH:source_sha256"),
+    ("path", "/foreign/not-the-bound-source", "QS_SOURCE_PLAN_ROW_ALIGNMENT_MISMATCH:path"),
+    ("ordinal", 2, "QS_SOURCE_PLAN_ORDER_INVALID"),
+])
+def test_correction05_m08_a_seal_row_that_contradicts_the_execution_row_is_refused(
+        tmp_path, field, value, expected):
+    run = _own_run(tmp_path)
+
+    def contradict(document):
+        document["rows"][0][field] = value
+
+    published = _rewrite_seal(run, contradict)
+    # The execution rows themselves are untouched: the seal contradicts the
+    # row it claims to seal.
+    assert published["rows"][0]["asset_id"] == run["receipt"]["rows"][0]["asset_id"], published
+    supplied = copy.deepcopy(published)
+    scores = _canonical_scores(run, published)
+    with pytest.raises(QualityContractError) as rejected:
+        recompute_scores(supplied, run["artifact_root"], scores, independence=_independence())
+    assert expected in str(rejected.value), str(rejected.value)
+
+
+def test_correction05_m08_a_seal_row_with_a_contradicting_descriptor_identity_is_refused(tmp_path):
+    run = _own_run(tmp_path)
+
+    def contradict(document):
+        identity = list(document["rows"][0]["identity"])
+        identity[2] = identity[2] + 1
+        document["rows"][0]["identity"] = identity
+
+    published = _rewrite_seal(run, contradict)
+    supplied = copy.deepcopy(published)
+    scores = _canonical_scores(run, published)
+    with pytest.raises(QualityContractError) as rejected:
+        recompute_scores(supplied, run["artifact_root"], scores, independence=_independence())
+    assert "QS_SOURCE_PLAN_ROW_ALIGNMENT_MISMATCH:identity" in str(rejected.value), \
+        str(rejected.value)
+
+
+def test_correction05_m08_two_swapped_seal_rows_are_refused(tmp_path):
+    run = _own_run(tmp_path)
+
+    def swap(document):
+        rows = document["rows"]
+        first, second = dict(rows[0]), dict(rows[1])
+        # The rows keep their ordinal, so only their content is swapped.
+        rows[0].update({key: second[key] for key in
+                        ("asset_id", "media_kind", "input_reference", "source_bytes",
+                         "source_sha256", "path", "identity")})
+        rows[1].update({key: first[key] for key in
+                        ("asset_id", "media_kind", "input_reference", "source_bytes",
+                         "source_sha256", "path", "identity")})
+
+    published = _rewrite_seal(run, swap)
+    supplied = copy.deepcopy(published)
+    scores = _canonical_scores(run, published)
+    with pytest.raises(QualityContractError) as rejected:
+        recompute_scores(supplied, run["artifact_root"], scores, independence=_independence())
+    assert "QS_SOURCE_PLAN_ROW_ALIGNMENT_MISMATCH" in str(rejected.value), str(rejected.value)
+
+
+def test_correction05_m08_the_seal_of_a_genuine_run_still_aligns_with_its_rows(tmp_path):
+    run = _own_run(tmp_path)
+    document = json.loads(_seal_path(run).read_bytes().decode("utf-8"))
+    rows = run["receipt"]["rows"]
+    assert len(document["rows"]) == 16, document
+    for index, (sealed, row) in enumerate(zip(document["rows"], rows)):
+        assert sealed["ordinal"] == index + 1, sealed
+        assert sealed["asset_id"] == row["asset_id"], sealed
+        assert sealed["media_kind"] == row["media_kind"], sealed
+        assert sealed["input_reference"] == row["input_reference"], sealed
+        assert sealed["source_bytes"] == row["source_bytes"], sealed
+        assert sealed["source_sha256"] == row["source_sha256"], sealed
+        assert sealed["path"] == row["source_evidence"]["path"], sealed
+        assert sealed["identity"] == row["source_evidence"]["identity"], sealed
+
+
+# ---- NM03: the strict artifact ancestry ---------------------------------
+def test_correction05_nm03_a_redirected_temp_ancestor_is_refused(tmp_path):
+    run = _own_run(tmp_path)
+    root = run["root"]
+    retained = root / "retained-temp"
+    (root / "temp").rename(retained)
+    (root / "temp").symlink_to(retained, target_is_directory=True)
+    # The trusted bytes are unchanged: the artifacts are still the very same
+    # files, they are only reached through a redirected ancestor.
+    assert (retained / "s3-quality" / quality.CANONICAL_RECEIPT_NAME).is_file()
+    with pytest.raises(QualityContractError) as redirected:
+        recompute_scores(run["receipt"], run["artifact_root"], _own_scores(run),
+                         independence=_independence())
+    assert "QS_ARTIFACT_ROOT_REDIRECT_FORBIDDEN" in str(redirected.value), str(redirected.value)
+
+
+def test_correction05_nm03_a_redirected_run_root_is_refused(tmp_path):
+    run = _own_run(tmp_path)
+    root = run["root"]
+    retained = root.parent / (root.name + "-retained")
+    root.rename(retained)
+    root.symlink_to(retained, target_is_directory=True)
+    with pytest.raises(QualityContractError) as redirected:
+        recompute_scores(run["receipt"], run["artifact_root"], _own_scores(run),
+                         independence=_independence())
+    assert "QS_ARTIFACT_ROOT_REDIRECT_FORBIDDEN" in str(redirected.value), str(redirected.value)
+
+
+def test_correction05_nm03_a_redirected_phase_directory_is_refused(tmp_path):
+    run = _own_run(tmp_path)
+    temp = run["root"] / "temp"
+    retained = temp / "retained-phase"
+    (temp / "s3-quality").rename(retained)
+    (temp / "s3-quality").symlink_to(retained, target_is_directory=True)
+    with pytest.raises(QualityContractError) as redirected:
+        recompute_scores(run["receipt"], run["artifact_root"], _own_scores(run),
+                         independence=_independence())
+    assert "QS_ARTIFACT_ROOT_REDIRECT_FORBIDDEN" in str(redirected.value), str(redirected.value)
+
+
+def test_correction05_nm03_a_redirected_canonical_receipt_is_refused(tmp_path):
+    run = _own_run(tmp_path)
+    canonical = run["artifact_root"] / quality.CANONICAL_RECEIPT_NAME
+    staged = run["artifact_root"] / quality.STAGED_RECEIPT_NAME
+    before = canonical.read_bytes()
+    canonical.unlink()
+    canonical.symlink_to(staged)
+    # The bytes behind the redirect are the original trusted bytes.
+    assert canonical.read_bytes() == before
+    with pytest.raises(QualityContractError) as redirected:
+        recompute_scores(run["receipt"], run["artifact_root"], _own_scores(run),
+                         independence=_independence())
+    assert "CANONICAL_RECEIPT_REDIRECT_FORBIDDEN" in str(redirected.value), str(redirected.value)
+
+
+def test_correction05_nm03_a_redirected_source_plan_is_refused(tmp_path):
+    run = _own_run(tmp_path)
+    seal = _seal_path(run)
+    before = seal.read_bytes()
+    retained = run["artifact_root"] / "retained-source-plan.json"
+    retained.write_bytes(before)
+    seal.unlink()
+    seal.symlink_to(retained)
+    assert seal.read_bytes() == before
+    with pytest.raises(QualityContractError) as redirected:
+        recompute_scores(run["receipt"], run["artifact_root"], _own_scores(run),
+                         independence=_independence())
+    assert "QS_SOURCE_PLAN_REDIRECT_FORBIDDEN" in str(redirected.value), str(redirected.value)
+
+
+def test_correction05_nm03_a_redirected_raw_artifact_is_refused(tmp_path):
+    run = _own_run(tmp_path)
+    receipt = run["receipt"]
+    raw = run["artifact_root"] / receipt["rows"][0]["raw_artifact"]
+    before = raw.read_bytes()
+    retained = raw.parent / "retained-raw.json"
+    retained.write_bytes(before)
+    raw.unlink()
+    raw.symlink_to(retained)
+    assert raw.read_bytes() == before
+    with pytest.raises(QualityContractError) as redirected:
+        recompute_scores(receipt, run["artifact_root"], _own_scores(run),
+                         independence=_independence())
+    assert "QS_RAW_ARTIFACT_REDIRECT_FORBIDDEN" in str(redirected.value), str(redirected.value)
+
+
+# ---- NM04: the final source handoff --------------------------------------
+class SourceMutatingDriver(DynamicAccessorDriver):
+    """A driver whose controlled limit accessor changes a prepared source.
+
+    The accessor is a conforming public driver accessor: it returns the
+    public submission limit and it does nothing else than changing the
+    timestamps of one prepared source file.  The phase has to notice that
+    the sealed original source identity changed before it admits the send.
+    """
+
+    def __init__(self, root, target_index=0, mutate_on_read=1):
+        self.target_index = target_index
+        self.mutate_on_read = mutate_on_read
+        self.limit_reads = 0
+        self.mutations = 0
+        super().__init__(root)
+
+    @property
+    def max_public_submissions(self):
+        self.limit_reads += 1
+        if self.limit_reads == self.mutate_on_read:
+            target = self.root / "input" / ("synthetic-image-%02d.png" % self.target_index)
+            info = target.stat()
+            stamp = info.st_mtime + 10
+            os.utime(target, (stamp, stamp))
+            self.mutations += 1
+        return self._limit_value
+
+    @max_public_submissions.setter
+    def max_public_submissions(self, value):
+        self._limit_value = value
+
+
+def test_correction05_nm04_a_source_changed_by_a_controlled_accessor_produces_zero_sends(tmp_path):
+    clock = FakeClock(step=0.0)
+    proof = _parent_proof(clock, expires_monotonic=20000.0)
+    driver = SourceMutatingDriver(tmp_path, target_index=0, mutate_on_read=1)
+    phase, driver, _ = _prepare(tmp_path, clock=clock, parent_budget=proof, driver=driver)
+    receipt = phase.run()
+    assert driver.mutations == 1, driver.mutations
+    # Zero sends, zero charges and zero reserved provider calls.
+    assert driver.submissions == 0, driver.submissions
+    assert receipt["public_submissions"] == 0, receipt
+    assert receipt["public_submissions_attempted"] == 0, receipt
+    assert receipt["provider_calls_reserved"] == 0, receipt
+    # All sixteen rows are terminal refusals; none of them stays NOT_RUN.
+    assert len(receipt["rows"]) == 16, receipt
+    assert all(row["execution_status"] in ("FAIL", "BLOCKED") for row in receipt["rows"]), receipt
+    assert receipt["rows"][0]["error_code"] == "SOURCE_REPLACED", receipt["rows"][0]
+    assert receipt["test_counts"]["BLOCKED"] == 15, receipt
+    assert receipt["decision"] == "QUALITY_EXECUTION_PARTIAL", receipt
+
+
+def test_correction05_nm04_a_later_source_change_preserves_the_earlier_attempts(tmp_path):
+    clock = FakeClock(step=0.0)
+    proof = _parent_proof(clock, expires_monotonic=20000.0)
+    driver = SourceMutatingDriver(tmp_path, target_index=5, mutate_on_read=6)
+    phase, driver, _ = _prepare(tmp_path, clock=clock, parent_budget=proof, driver=driver)
+    receipt = phase.run()
+    assert driver.mutations == 1, driver.mutations
+    # The five earlier rows really ran and really stay charged.
+    assert driver.submissions == 5, driver.submissions
+    assert receipt["public_submissions"] == 5, receipt
+    assert receipt["provider_calls_reserved"] == 5, receipt
+    assert receipt["test_counts"]["PASS"] == 5, receipt
+    # The changed source stops every later send; nothing is refunded.
+    assert receipt["rows"][5]["error_code"] == "SOURCE_REPLACED", receipt["rows"][5]
+    assert receipt["test_counts"]["BLOCKED"] == 10, receipt
+    assert receipt["public_submissions"] == 5, receipt
+
+
+def test_correction05_nm04_the_final_source_check_is_the_last_thing_before_the_guard():
+    source = inspect.getsource(quality.QualityPhase._execute_row)
+    # The controlled driver accessors are resolved before the final bounded
+    # source verification.
+    assert source.index("_resolve_driver_state()") < source.rindex("_validate_source("), source
+    # The final bounded source verification is the last observation before
+    # the single coherent admission.
+    assert source.rindex("_validate_source(") < source.index("_send_admission_guard("), source
+    assert source.index("_send_admission_guard(") < source.index('driver_state["submit"]'), source
+    # It is bound to the sealed original identity, not to a value that an
+    # accessor could have produced.
+    assert "sealed=self._sealed_identities.get(" in source, source
+    # Nothing unchecked happens between the admission and the submit.
+    between = source[source.index("_send_admission_guard("):source.index('driver_state["submit"]')]
+    assert "self._now(" not in between, between
+    assert "getattr(" not in between, between
+    assert "self.driver" not in between, between
+    assert "self.authorize" not in between, between
+    assert "self._validate_source" not in between, between
+
+
+def test_correction05_nm04_the_sealed_original_identity_is_the_source_authority(tmp_path):
+    phase, driver, _ = _prepare(tmp_path)
+    sealed = {}
+    original = phase._persist_source_plan
+
+    def capture(rows):
+        result = original(rows)
+        sealed.update(phase._sealed_identities)
+        return result
+
+    phase._persist_source_plan = capture
+    phase.run()
+    assert len(sealed) == 16, sealed
+    receipt = json.loads(
+        (phase.directory / quality.CANONICAL_RECEIPT_NAME).read_bytes().decode("utf-8"))
+    for row in receipt["rows"]:
+        assert sealed[row["asset_id"]] == row["source_evidence"]["identity"], row

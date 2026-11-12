@@ -1,0 +1,660 @@
+{
+  "count": 21,
+  "owned_root": "/tmp/lvw-c05-counterexamples-wx_gqgz1/lvw-c05-counterexamples-eeerop00",
+  "removed": true,
+  "results": [
+    {
+      "actual_bytes": 230042,
+      "actual_files": 139,
+      "probe": "baseline",
+      "qs": {
+        "aggregate": true,
+        "decision": "QUALITY_THRESHOLDS_MET_FOR_THIS_BOUND_RUN",
+        "first": {
+          "asset_id": "SYN-I00",
+          "cleanup_proven": true,
+          "critical_hallucinations": 0,
+          "dimensions": {
+            "Prompt\u53ef\u7528\u6027": 2,
+            "\u4e3b\u4f53/\u73af\u5883": 2,
+            "\u4e8b\u5b9e/\u521b\u4f5c\u5206\u79bb": 2,
+            "\u5149\u7ebf/\u6784\u56fe/\u98ce\u683c": 2,
+            "\u52a8\u4f5c/\u65f6\u95f4\u6216\u9759\u56fe\u4e0d\u865a\u6784": 2
+          },
+          "evidence_complete": true,
+          "evidence_reason": null,
+          "execution_status": "PASS",
+          "media_kind": "image",
+          "quality_status": "PASS",
+          "raw_artifact": "rows/SYN-I00/raw.txt",
+          "raw_bytes": 244,
+          "raw_sha256": "86571c8187ae37e4f092f7decc7b75d588272f69a7c745d3748770b69114a033",
+          "reason": "USABLE",
+          "resolved": true,
+          "reviewer_id": "independent-reviewer-01",
+          "session_id": "independent-session-01",
+          "total": 10,
+          "usable": true
+        },
+        "resolved": true,
+        "thresholds": {
+          "critical_hallucinations_known": true,
+          "critical_hallucinations_max": 0,
+          "dimension_max": 2,
+          "images_required": 8,
+          "images_usable": 10,
+          "per_sample_total_min": 8,
+          "scored_rows": 16,
+          "total_critical_hallucinations": 0,
+          "videos_required": 5,
+          "videos_usable": 6
+        }
+      },
+      "run": {
+        "charges": 16,
+        "cleanup_unproven": false,
+        "closed": true,
+        "counts": {
+          "BLOCKED": 0,
+          "FAIL": 0,
+          "NOT_RUN": 0,
+          "PASS": 16,
+          "fixed": 16
+        },
+        "first_error": null,
+        "last_error": null,
+        "observed": 34,
+        "reserved": 34,
+        "retries": 0,
+        "rows": 16,
+        "sends": 16,
+        "storage_unproven": false
+      },
+      "seal_initial_bytes": 6526
+    },
+    {
+      "probe": "published_unknown_failure",
+      "qs": {
+        "aggregate": false,
+        "decision": "QUALITY_INCOMPLETE_UNRESOLVED_ROWS",
+        "first": {
+          "asset_id": "SYN-I00",
+          "cleanup_proven": true,
+          "critical_hallucinations": 0,
+          "dimensions": {
+            "Prompt\u53ef\u7528\u6027": 2,
+            "\u4e3b\u4f53/\u73af\u5883": 2,
+            "\u4e8b\u5b9e/\u521b\u4f5c\u5206\u79bb": 2,
+            "\u5149\u7ebf/\u6784\u56fe/\u98ce\u683c": 2,
+            "\u52a8\u4f5c/\u65f6\u95f4\u6216\u9759\u56fe\u4e0d\u865a\u6784": 2
+          },
+          "evidence_complete": true,
+          "evidence_reason": null,
+          "execution_status": "FAIL",
+          "media_kind": "image",
+          "quality_status": "FAIL",
+          "raw_artifact": "rows/SYN-I00/raw.txt",
+          "raw_bytes": 244,
+          "raw_sha256": "86571c8187ae37e4f092f7decc7b75d588272f69a7c745d3748770b69114a033",
+          "reason": "UNKNOWN_EXECUTION_FAILURE",
+          "resolved": false,
+          "reviewer_id": "independent-reviewer-01",
+          "session_id": "independent-session-01",
+          "total": 10,
+          "usable": false
+        },
+        "resolved": false,
+        "thresholds": {
+          "critical_hallucinations_known": true,
+          "critical_hallucinations_max": 0,
+          "dimension_max": 2,
+          "images_required": 8,
+          "images_usable": 9,
+          "per_sample_total_min": 8,
+          "scored_rows": 16,
+          "total_critical_hallucinations": 0,
+          "videos_required": 5,
+          "videos_usable": 6
+        }
+      },
+      "run": {
+        "charges": 16,
+        "cleanup_unproven": false,
+        "closed": true,
+        "counts": {
+          "BLOCKED": 0,
+          "FAIL": 1,
+          "NOT_RUN": 0,
+          "PASS": 15,
+          "fixed": 16
+        },
+        "first_error": "INDEPENDENT_UNKNOWN_VALIDATION",
+        "last_error": null,
+        "observed": 34,
+        "reserved": 34,
+        "retries": 0,
+        "rows": 16,
+        "sends": 16,
+        "storage_unproven": false
+      }
+    },
+    {
+      "canonical_error": "INDEPENDENT_UNKNOWN_VALIDATION",
+      "expected": "the published unknown failure stays unresolved",
+      "only_changed": "supplied rows[0].error_code",
+      "probe": "published_unknown_failure_supplied_known_error",
+      "qs": {
+        "aggregate": false,
+        "decision": "QUALITY_INCOMPLETE_UNRESOLVED_ROWS",
+        "first": {
+          "asset_id": "SYN-I00",
+          "cleanup_proven": true,
+          "critical_hallucinations": 0,
+          "dimensions": {
+            "Prompt\u53ef\u7528\u6027": 2,
+            "\u4e3b\u4f53/\u73af\u5883": 2,
+            "\u4e8b\u5b9e/\u521b\u4f5c\u5206\u79bb": 2,
+            "\u5149\u7ebf/\u6784\u56fe/\u98ce\u683c": 2,
+            "\u52a8\u4f5c/\u65f6\u95f4\u6216\u9759\u56fe\u4e0d\u865a\u6784": 2
+          },
+          "evidence_complete": true,
+          "evidence_reason": null,
+          "execution_status": "FAIL",
+          "media_kind": "image",
+          "quality_status": "FAIL",
+          "raw_artifact": "rows/SYN-I00/raw.txt",
+          "raw_bytes": 244,
+          "raw_sha256": "86571c8187ae37e4f092f7decc7b75d588272f69a7c745d3748770b69114a033",
+          "reason": "UNKNOWN_EXECUTION_FAILURE",
+          "resolved": false,
+          "reviewer_id": "independent-reviewer-01",
+          "session_id": "independent-session-01",
+          "total": 10,
+          "usable": false
+        },
+        "resolved": false,
+        "thresholds": {
+          "critical_hallucinations_known": true,
+          "critical_hallucinations_max": 0,
+          "dimension_max": 2,
+          "images_required": 8,
+          "images_usable": 9,
+          "per_sample_total_min": 8,
+          "scored_rows": 16,
+          "total_critical_hallucinations": 0,
+          "videos_required": 5,
+          "videos_usable": 6
+        }
+      }
+    },
+    {
+      "probe": "published_fail_supplied_pass",
+      "qs": {
+        "aggregate": true,
+        "decision": "QUALITY_THRESHOLDS_MET_FOR_THIS_BOUND_RUN",
+        "first": {
+          "asset_id": "SYN-I00",
+          "cleanup_proven": true,
+          "critical_hallucinations": 0,
+          "dimensions": {
+            "Prompt\u53ef\u7528\u6027": 2,
+            "\u4e3b\u4f53/\u73af\u5883": 2,
+            "\u4e8b\u5b9e/\u521b\u4f5c\u5206\u79bb": 2,
+            "\u5149\u7ebf/\u6784\u56fe/\u98ce\u683c": 2,
+            "\u52a8\u4f5c/\u65f6\u95f4\u6216\u9759\u56fe\u4e0d\u865a\u6784": 2
+          },
+          "evidence_complete": true,
+          "evidence_reason": null,
+          "execution_status": "FAIL",
+          "media_kind": "image",
+          "quality_status": "FAIL",
+          "raw_artifact": "rows/SYN-I00/raw.txt",
+          "raw_bytes": 244,
+          "raw_sha256": "86571c8187ae37e4f092f7decc7b75d588272f69a7c745d3748770b69114a033",
+          "reason": "KNOWN_EXECUTION_FAILURE_RESOLVED_NOT_USABLE",
+          "resolved": true,
+          "reviewer_id": "independent-reviewer-01",
+          "session_id": "independent-session-01",
+          "total": 10,
+          "usable": false
+        },
+        "resolved": true,
+        "thresholds": {
+          "critical_hallucinations_known": true,
+          "critical_hallucinations_max": 0,
+          "dimension_max": 2,
+          "images_required": 8,
+          "images_usable": 9,
+          "per_sample_total_min": 8,
+          "scored_rows": 16,
+          "total_critical_hallucinations": 0,
+          "videos_required": 5,
+          "videos_usable": 6
+        }
+      },
+      "run": {
+        "charges": 16,
+        "cleanup_unproven": false,
+        "closed": true,
+        "counts": {
+          "BLOCKED": 0,
+          "FAIL": 1,
+          "NOT_RUN": 0,
+          "PASS": 15,
+          "fixed": 16
+        },
+        "first_error": "PUBLIC_EXECUTION_NOT_SUCCESSFUL",
+        "last_error": null,
+        "observed": 34,
+        "reserved": 34,
+        "retries": 0,
+        "rows": 16,
+        "sends": 16,
+        "storage_unproven": false
+      }
+    },
+    {
+      "probe": "published_fail_critical3",
+      "qs": {
+        "aggregate": false,
+        "decision": "QUALITY_THRESHOLDS_NOT_MET",
+        "first": {
+          "asset_id": "SYN-I00",
+          "cleanup_proven": true,
+          "critical_hallucinations": 3,
+          "dimensions": {
+            "Prompt\u53ef\u7528\u6027": 2,
+            "\u4e3b\u4f53/\u73af\u5883": 2,
+            "\u4e8b\u5b9e/\u521b\u4f5c\u5206\u79bb": 2,
+            "\u5149\u7ebf/\u6784\u56fe/\u98ce\u683c": 2,
+            "\u52a8\u4f5c/\u65f6\u95f4\u6216\u9759\u56fe\u4e0d\u865a\u6784": 2
+          },
+          "evidence_complete": true,
+          "evidence_reason": null,
+          "execution_status": "FAIL",
+          "media_kind": "image",
+          "quality_status": "FAIL",
+          "raw_artifact": "rows/SYN-I00/raw.txt",
+          "raw_bytes": 244,
+          "raw_sha256": "86571c8187ae37e4f092f7decc7b75d588272f69a7c745d3748770b69114a033",
+          "reason": "KNOWN_EXECUTION_FAILURE_RESOLVED_NOT_USABLE",
+          "resolved": true,
+          "reviewer_id": "independent-reviewer-01",
+          "session_id": "independent-session-01",
+          "total": 10,
+          "usable": false
+        },
+        "resolved": true,
+        "thresholds": {
+          "critical_hallucinations_known": true,
+          "critical_hallucinations_max": 0,
+          "dimension_max": 2,
+          "images_required": 8,
+          "images_usable": 9,
+          "per_sample_total_min": 8,
+          "scored_rows": 16,
+          "total_critical_hallucinations": 3,
+          "videos_required": 5,
+          "videos_usable": 6
+        }
+      }
+    },
+    {
+      "canonical_unchanged": true,
+      "expected": "the fabricated fact is refused or leaves the row unresolved",
+      "probe": "valid_but_fabricated_release_samples",
+      "qs": {
+        "aggregate": false,
+        "decision": "QUALITY_INCOMPLETE_UNRESOLVED_ROWS",
+        "first": {
+          "asset_id": "SYN-I00",
+          "cleanup_proven": false,
+          "critical_hallucinations": 0,
+          "dimensions": {
+            "Prompt\u53ef\u7528\u6027": 2,
+            "\u4e3b\u4f53/\u73af\u5883": 2,
+            "\u4e8b\u5b9e/\u521b\u4f5c\u5206\u79bb": 2,
+            "\u5149\u7ebf/\u6784\u56fe/\u98ce\u683c": 2,
+            "\u52a8\u4f5c/\u65f6\u95f4\u6216\u9759\u56fe\u4e0d\u865a\u6784": 2
+          },
+          "evidence_complete": false,
+          "evidence_reason": "RELEASE_EVIDENCE_NOT_CANONICAL",
+          "execution_status": "PASS",
+          "media_kind": "image",
+          "quality_status": "FAIL",
+          "raw_artifact": "rows/SYN-I00/raw.txt",
+          "raw_bytes": 244,
+          "raw_sha256": "86571c8187ae37e4f092f7decc7b75d588272f69a7c745d3748770b69114a033",
+          "reason": "EVIDENCE_UNKNOWN:RELEASE_EVIDENCE_NOT_CANONICAL",
+          "resolved": false,
+          "reviewer_id": "independent-reviewer-01",
+          "session_id": "independent-session-01",
+          "total": 10,
+          "usable": false
+        },
+        "resolved": false,
+        "thresholds": {
+          "critical_hallucinations_known": true,
+          "critical_hallucinations_max": 0,
+          "dimension_max": 2,
+          "images_required": 8,
+          "images_usable": 9,
+          "per_sample_total_min": 8,
+          "scored_rows": 16,
+          "total_critical_hallucinations": 0,
+          "videos_required": 5,
+          "videos_usable": 6
+        }
+      }
+    },
+    {
+      "canonical_unchanged": true,
+      "expected": "the fabricated fact is refused or leaves the row unresolved",
+      "probe": "fabricated_bound_baseline_and_release",
+      "qs": {
+        "detail": "QS_EXECUTION_CONTENT_MISMATCH:parent_budget_baseline_gpu_mib",
+        "rejected": "QualityContractError"
+      }
+    },
+    {
+      "canonical_unchanged": true,
+      "expected": "the fabricated fact is refused or leaves the row unresolved",
+      "probe": "fabricated_terminal_counts",
+      "qs": {
+        "detail": "QS_EXECUTION_CONTENT_MISMATCH:test_counts",
+        "rejected": "QualityContractError"
+      }
+    },
+    {
+      "canonical_unchanged": true,
+      "expected": "the fabricated fact is refused or leaves the row unresolved",
+      "probe": "fabricated_attempt_row",
+      "qs": {
+        "detail": "QS_EXECUTION_CONTENT_MISMATCH:public_submission_attempted:SYN-I00",
+        "rejected": "QualityContractError"
+      }
+    },
+    {
+      "canonical_unchanged": true,
+      "expected": "the fabricated fact is refused or leaves the row unresolved",
+      "probe": "fabricated_run_context",
+      "qs": {
+        "detail": "QS_EXECUTION_CONTENT_MISMATCH:run_root",
+        "rejected": "QualityContractError"
+      }
+    },
+    {
+      "expected": "the contradictory seal row never certifies the execution row",
+      "prerequisites": "write the seal bytes and the canonical source_plan binding; the canonical execution rows and the raw stay untouched",
+      "probe": "seal_label_alignment.asset_id",
+      "qs": {
+        "detail": "QS_SOURCE_PLAN_ROW_ALIGNMENT_MISMATCH:asset_id:0",
+        "rejected": "QualityContractError"
+      }
+    },
+    {
+      "expected": "the contradictory seal row never certifies the execution row",
+      "prerequisites": "write the seal bytes and the canonical source_plan binding; the canonical execution rows and the raw stay untouched",
+      "probe": "seal_label_alignment.media_kind",
+      "qs": {
+        "detail": "QS_SOURCE_PLAN_ROW_ALIGNMENT_MISMATCH:media_kind:0",
+        "rejected": "QualityContractError"
+      }
+    },
+    {
+      "expected": "the contradictory seal row never certifies the execution row",
+      "prerequisites": "write the seal bytes and the canonical source_plan binding; the canonical execution rows and the raw stay untouched",
+      "probe": "seal_label_alignment.input_reference",
+      "qs": {
+        "detail": "QS_SOURCE_PLAN_ROW_ALIGNMENT_MISMATCH:input_reference:0",
+        "rejected": "QualityContractError"
+      }
+    },
+    {
+      "expected": "the swapped seal never certifies the execution row",
+      "probe": "seal_swap.swap_whole_rows",
+      "qs": {
+        "detail": "QS_SOURCE_PLAN_ORDER_INVALID",
+        "rejected": "QualityContractError"
+      }
+    },
+    {
+      "expected": "the swapped seal never certifies the execution row",
+      "probe": "seal_swap.swap_descriptor",
+      "qs": {
+        "detail": "QS_SOURCE_PLAN_ROW_ALIGNMENT_MISMATCH:identity:0",
+        "rejected": "QualityContractError"
+      }
+    },
+    {
+      "accepted_trust_boundary": "a total coherent rewrite of both trusted originals is not a new cryptographic-signature obligation; the parent must bind the selected owned archive or an independent attestation before a real consumer run (integration NOT_PROVEN)",
+      "prerequisites": "write the original seal, the authoritative canonical row and the source_plan hash, plus the supplied receipt; no independent parent attestation is supplied",
+      "probe": "consistent_seal_and_canonical_identity_rewrite",
+      "qs": {
+        "aggregate": true,
+        "decision": "QUALITY_THRESHOLDS_MET_FOR_THIS_BOUND_RUN",
+        "first": {
+          "asset_id": "SYN-I00",
+          "cleanup_proven": true,
+          "critical_hallucinations": 0,
+          "dimensions": {
+            "Prompt\u53ef\u7528\u6027": 2,
+            "\u4e3b\u4f53/\u73af\u5883": 2,
+            "\u4e8b\u5b9e/\u521b\u4f5c\u5206\u79bb": 2,
+            "\u5149\u7ebf/\u6784\u56fe/\u98ce\u683c": 2,
+            "\u52a8\u4f5c/\u65f6\u95f4\u6216\u9759\u56fe\u4e0d\u865a\u6784": 2
+          },
+          "evidence_complete": true,
+          "evidence_reason": null,
+          "execution_status": "PASS",
+          "media_kind": "image",
+          "quality_status": "PASS",
+          "raw_artifact": "rows/SYN-I00/raw.txt",
+          "raw_bytes": 244,
+          "raw_sha256": "86571c8187ae37e4f092f7decc7b75d588272f69a7c745d3748770b69114a033",
+          "reason": "USABLE",
+          "resolved": true,
+          "reviewer_id": "independent-reviewer-01",
+          "session_id": "independent-session-01",
+          "total": 10,
+          "usable": true
+        },
+        "resolved": true,
+        "thresholds": {
+          "critical_hallucinations_known": true,
+          "critical_hallucinations_max": 0,
+          "dimension_max": 2,
+          "images_required": 8,
+          "images_usable": 10,
+          "per_sample_total_min": 8,
+          "scored_rows": 16,
+          "total_critical_hallucinations": 0,
+          "videos_required": 5,
+          "videos_usable": 6
+        }
+      }
+    },
+    {
+      "canonical_bytes_unchanged": true,
+      "expected": "the redirected ancestor is refused, never resolved away",
+      "probe": "qs_temp_ancestor_symlink",
+      "qs": {
+        "detail": "QS_ARTIFACT_ROOT_REDIRECT_FORBIDDEN:temp",
+        "rejected": "QualityContractError"
+      },
+      "symlink": "/tmp/lvw-c05-counterexamples-wx_gqgz1/lvw-c05-counterexamples-eeerop00/temp-redirect/temp"
+    },
+    {
+      "expected": "the redirected phase directory is refused",
+      "probe": "qs_phase_ancestor_symlink",
+      "qs": {
+        "detail": "QS_ARTIFACT_ROOT_REDIRECT_FORBIDDEN:s3-quality",
+        "rejected": "QualityContractError"
+      }
+    },
+    {
+      "bytes_unchanged": true,
+      "expected": "the redirected leaf is refused",
+      "probe": "qs_canonical_leaf_symlink",
+      "qs": {
+        "detail": "CANONICAL_RECEIPT_REDIRECT_FORBIDDEN",
+        "rejected": "QualityContractError"
+      }
+    },
+    {
+      "actual_identity": [
+        2112,
+        2636432,
+        77,
+        1794471670882986423,
+        1794471670889197234
+      ],
+      "changed": true,
+      "expected": "zero sends, zero charges and zero reserved calls, and sixteen terminal refusals",
+      "probe": "limit_source_identity_changed",
+      "qs": {
+        "aggregate": false,
+        "decision": "QUALITY_INCOMPLETE_UNRESOLVED_ROWS",
+        "first": {
+          "asset_id": "SYN-I00",
+          "cleanup_proven": true,
+          "critical_hallucinations": null,
+          "dimensions": null,
+          "evidence_complete": true,
+          "evidence_reason": null,
+          "execution_status": "FAIL",
+          "media_kind": "image",
+          "quality_status": "FAIL",
+          "raw_artifact": null,
+          "raw_bytes": null,
+          "raw_sha256": null,
+          "reason": "MISSING_SCORE",
+          "resolved": false,
+          "reviewer_id": null,
+          "session_id": null,
+          "total": null,
+          "usable": false
+        },
+        "resolved": false,
+        "thresholds": {
+          "critical_hallucinations_known": false,
+          "critical_hallucinations_max": 0,
+          "dimension_max": 2,
+          "images_required": 8,
+          "images_usable": 0,
+          "per_sample_total_min": 8,
+          "scored_rows": 0,
+          "total_critical_hallucinations": 0,
+          "videos_required": 5,
+          "videos_usable": 0
+        }
+      },
+      "run": {
+        "charges": 0,
+        "cleanup_unproven": false,
+        "closed": true,
+        "counts": {
+          "BLOCKED": 15,
+          "FAIL": 1,
+          "NOT_RUN": 0,
+          "PASS": 0,
+          "fixed": 16
+        },
+        "first_error": "SOURCE_REPLACED",
+        "last_error": "HALTED_AFTER_SOURCE_REPLACED",
+        "observed": 0,
+        "reserved": 0,
+        "retries": 0,
+        "rows": 16,
+        "sends": 0,
+        "storage_unproven": false
+      },
+      "sealed_identity": [
+        2112,
+        2636432,
+        77,
+        1794471670881986423,
+        1794471670881986423
+      ],
+      "trigger": [
+        "max_public_submissions"
+      ]
+    },
+    {
+      "changed_row_error": "SOURCE_REPLACED",
+      "expected": "the earlier attempts and charges are preserved and every later send stops",
+      "probe": "later_source_identity_changed",
+      "qs": {
+        "aggregate": false,
+        "decision": "QUALITY_INCOMPLETE_UNRESOLVED_ROWS",
+        "first": {
+          "asset_id": "SYN-I00",
+          "cleanup_proven": true,
+          "critical_hallucinations": 0,
+          "dimensions": {
+            "Prompt\u53ef\u7528\u6027": 2,
+            "\u4e3b\u4f53/\u73af\u5883": 2,
+            "\u4e8b\u5b9e/\u521b\u4f5c\u5206\u79bb": 2,
+            "\u5149\u7ebf/\u6784\u56fe/\u98ce\u683c": 2,
+            "\u52a8\u4f5c/\u65f6\u95f4\u6216\u9759\u56fe\u4e0d\u865a\u6784": 2
+          },
+          "evidence_complete": true,
+          "evidence_reason": null,
+          "execution_status": "PASS",
+          "media_kind": "image",
+          "quality_status": "PASS",
+          "raw_artifact": "rows/SYN-I00/raw.txt",
+          "raw_bytes": 244,
+          "raw_sha256": "86571c8187ae37e4f092f7decc7b75d588272f69a7c745d3748770b69114a033",
+          "reason": "USABLE",
+          "resolved": true,
+          "reviewer_id": "independent-reviewer-01",
+          "session_id": "independent-session-01",
+          "total": 10,
+          "usable": true
+        },
+        "resolved": false,
+        "thresholds": {
+          "critical_hallucinations_known": false,
+          "critical_hallucinations_max": 0,
+          "dimension_max": 2,
+          "images_required": 8,
+          "images_usable": 5,
+          "per_sample_total_min": 8,
+          "scored_rows": 5,
+          "total_critical_hallucinations": 0,
+          "videos_required": 5,
+          "videos_usable": 0
+        }
+      },
+      "run": {
+        "charges": 5,
+        "cleanup_unproven": false,
+        "closed": true,
+        "counts": {
+          "BLOCKED": 10,
+          "FAIL": 1,
+          "NOT_RUN": 0,
+          "PASS": 5,
+          "fixed": 16
+        },
+        "first_error": null,
+        "last_error": "HALTED_AFTER_SOURCE_REPLACED",
+        "observed": 5,
+        "reserved": 5,
+        "retries": 0,
+        "rows": 16,
+        "sends": 5,
+        "storage_unproven": false
+      },
+      "trigger": [
+        "max_public_submissions",
+        "max_public_submissions",
+        "max_public_submissions",
+        "max_public_submissions",
+        "max_public_submissions",
+        "max_public_submissions"
+      ]
+    }
+  ]
+}

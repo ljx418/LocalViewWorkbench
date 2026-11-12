@@ -54,6 +54,31 @@ The phase validates every one of those facts itself.  A driver cannot assert a
 pass by returning a favourable string: the phase recomputes the provider chat
 count from the raw log bytes, re-reads every persisted artifact, and re-hashes
 every source file.
+
+Send boundary
+-------------
+Every controlled driver accessor - the submission counter, the public
+submission limit and the submit callable itself - and every controlled
+callback is resolved *before* the final bounded source verification of a row.
+That verification is made against the *sealed original* five component
+descriptor identity that was written into the exclusive source seal before
+the first public submission, so an accessor that changes the content, the
+identity or the path of a prepared source produces zero sends, zero charges
+and zero reserved provider calls.  The single coherent admission - the
+ownership check, the one final monotonic clock sample, the typed parent
+proof and the remaining capacity - then decides the send, and nothing
+unchecked happens between that admission and the cached submit callable.
+
+Scoring boundary
+----------------
+The scoring entry point reads the *actually published* canonical receipt
+through a strict, descriptor relative artifact boundary: the run root, the
+``temp`` directory and the phase directory are opened with
+``O_DIRECTORY|O_NOFOLLOW``, so a renamed ancestor that was replaced by a
+symlink is refused instead of being resolved away.  The canonical document is
+the authority.  A supplied receipt may only restrict it: the permitted
+verdict overlay is a closed enumeration and every other published field is an
+actual execution fact that has to be reproduced exactly.
 """
 
 from __future__ import annotations
@@ -156,31 +181,77 @@ SOURCE_PLAN_ROW_KEYS = frozenset({
     "source_bytes", "source_sha256", "path", "identity",
 })
 
-# The execution content that the supplied receipt must reproduce exactly
-# against the actually published canonical document.  The verdict fields (the
-# execution status, the error code and the evidence declarations) are *not*
-# here: they are evaluated for the supplied and for the published document
-# together, so a forged verdict can never make the aggregate pass.
-QS_RECEIPT_CONTENT_FIELDS = (
-    "kind", "phase", "contract", "run_id", "candidate_sha", "authorization_sha256",
-    "projection_sha256", "fixed_denominator", "source_identity_sha256",
-    "public_submissions", "public_submissions_succeeded", "public_submissions_attempted",
-    "provider_calls_observed", "provider_calls_observed_known", "provider_calls_reserved",
-    "history_polls", "artifact_files", "artifact_bytes",
-    "parent_budget_capacity", "parent_budget_required_actions",
-    "bounds", "source_plan", "decision",
-)
-QS_ROW_CONTENT_FIELDS = (
-    "asset_id", "media_kind", "ordinal", "source_sha256", "source_bytes",
-    "input_reference", "prompt_id", "graph_sha256", "graph_artifact",
-    "raw_sha256", "raw_bytes", "raw_artifact", "raw_preserved",
-    "suggestion_sha256", "suggestion_artifact", "metadata_sha256", "metadata_artifact",
-    "frame_raw_sha256", "history_sha256", "history_artifact",
-    "error_raw_sha256", "error_raw_artifact", "error_frame_raw_sha256",
-    "provider_calls", "provider_calls_reserved", "provider_calls_observed",
-    "provider_calls_observed_known", "provider_before", "provider_after",
-    "listener_before", "listener_after", "automatic_retries",
-)
+# The permitted verdict overlay of the scoring entry point.
+#
+# The canonical receipt that is *actually published* on disk is the authority.
+# A supplied receipt may only restrict that authority: it can downgrade a
+# row, but it can never improve a verdict, it can never replace an actually
+# observed execution fact and it can never turn an unknown published failure
+# into a known one.
+#
+# These two sets are the *closed* enumeration of the fields in which a
+# supplied document may differ from the published one.  Every other field of
+# the published document is an actual execution fact - the run context, the
+# counters, the baseline, the accounting, the assurances and the per row
+# attempt, counter, artifact and observation content - and it has to be
+# reproduced exactly.  The comparison is therefore exhaustive by
+# construction: a fact that is not named here can never be forged, and a new
+# fact that the execution starts to record is bound automatically.
+#
+# Monotone semantics of the overlay:
+#   * ``execution_status`` / ``error_code`` / ``quality_status``: the
+#     effective verdict is derived from the supplied *and* the published
+#     document together.  A published unknown failure is never replaced by a
+#     supplied known failure, and a published known failure is never upgraded
+#     by a supplied pass.
+#   * ``source_evidence`` / ``release_evidence`` / ``video_snapshot_residue``:
+#     the evidence declarations.  A declaration only ever completes a row
+#     when it is complete for the supplied document *and* for the published
+#     document, when it reproduces the sealed original source descriptor and
+#     when it is the published observation itself.  A missing, invalid or
+#     contradicting declaration is unknown, never a pass.
+#   * ``storage_unproven`` / ``cleanup_unproven``: the uncertainty flags.
+#     The effective value is the stricter of the two documents.
+#   * ``cleanup_diagnostics`` / ``stage``: the recorded diagnostics of the
+#     failure.  They never decide a verdict.
+QS_RECEIPT_OVERLAY_FIELDS = frozenset({
+    "rows",
+    "storage_unproven",
+    "cleanup_unproven",
+})
+QS_ROW_OVERLAY_FIELDS = frozenset({
+    "execution_status",
+    "error_code",
+    "quality_status",
+    "source_evidence",
+    "release_evidence",
+    "video_snapshot_residue",
+    "storage_unproven",
+    "cleanup_unproven",
+    "cleanup_diagnostics",
+    "stage",
+})
+
+
+def _is_typed_run_root(value):
+    """A bound run root is a non empty path string."""
+    return isinstance(value, str) and bool(value.strip())
+
+
+def _is_typed_baseline(value):
+    """A bound baseline is a non negative integer.  ``bool`` is not one."""
+    return _is_int(value) and value >= 0
+
+
+# The two bound contexts of the receipt.  A *mistyped* context is an invalid
+# declaration, not a fact: the per row evidence validation makes the row
+# unknown and the mistyped value is never compared and never accepted.  A
+# *well typed* context is an actual execution fact and has to reproduce the
+# canonical one exactly.
+QS_RECEIPT_TYPED_CONTEXTS = {
+    "run_root": _is_typed_run_root,
+    "parent_budget_baseline_gpu_mib": _is_typed_baseline,
+}
 
 # The mandatory hard end-to-end process supervision is not implemented in this
 # offline component.  It belongs to the thin parent coordinator and must be
@@ -848,6 +919,12 @@ class QualityPhase:
         self._root_identity = self._object_identity(self.root.lstat())
         self._last_clock = None
         self._source_plan = None
+        # The original five component descriptor identity of every source,
+        # retained in memory from the moment the exclusive seal was written.
+        # The final bounded source verification of a row is made against this
+        # sealed original identity, so a controlled accessor can never
+        # invalidate the sealed source behind the final send admission.
+        self._sealed_identities = {}
 
     # -- ownership -------------------------------------------------------
     @staticmethod
@@ -1180,7 +1257,7 @@ class QualityPhase:
     def _identity(info):
         return [info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns, info.st_ctime_ns]
 
-    def _validate_source(self, row, previous=None):
+    def _validate_source(self, row, previous=None, sealed=None):
         """Re-derive one source file with a bounded read and a stable identity.
 
         The read never runs past the frozen byte count, so a file that grows
@@ -1188,6 +1265,12 @@ class QualityPhase:
         The identity tuple proves the very same object is still in place, and
         the descriptor identity is compared with the path identity *after* the
         read, so a replacement during the read cannot pass unnoticed.
+
+        When the sealed original identity is supplied, the observed identity
+        must reproduce it exactly.  That is the identity that was written into
+        the exclusive source seal before the first public submission, so a
+        controlled accessor that changes the size, the mode or the timestamps
+        of a prepared source is refused instead of being adopted.
 
         This is a bounded, in-process observation of one path.  It is not a
         universal guarantee against a hostile racing filesystem, and it does
@@ -1227,6 +1310,12 @@ class QualityPhase:
         if self._identity(before) != self._identity(after):
             raise QualityContractError("SOURCE_REPLACED")
         if previous is not None and list(previous) != self._identity(after):
+            raise QualityContractError("SOURCE_REPLACED")
+        if sealed is not None and list(sealed) != self._identity(after):
+            # The sealed original identity is the authority for this row.  A
+            # source whose descriptor identity changed after the seal - a
+            # replaced file, a changed size or changed timestamps - is refused
+            # here and never certified by the final send admission.
             raise QualityContractError("SOURCE_REPLACED")
         if digest.hexdigest() != row["source_sha256"]:
             raise QualityContractError("SOURCE_HASH_MISMATCH")
@@ -1268,6 +1357,7 @@ class QualityPhase:
             "projection_sha256": self.projection_sha256,
             "rows": [],
         }
+        sealed_identities = {}
         for row in rows:
             evidence = row.get("source_evidence")
             if not isinstance(evidence, dict):
@@ -1286,8 +1376,14 @@ class QualityPhase:
                 "path": evidence.get("path"),
                 "identity": list(identity),
             })
+            sealed_identities[row["asset_id"]] = list(identity)
         raw = canonical_json(document).encode("utf-8")
         artifact = self._artifact(SOURCE_PLAN_NAME, raw)
+        # The seal exists on disk now, so the original identities are retained
+        # in memory as well: the final bounded source verification of every
+        # row is made against this sealed original identity and never against
+        # a value that a controlled accessor could have produced.
+        self._sealed_identities = sealed_identities
         self._source_plan = {
             "path": artifact["path"],
             "bytes": artifact["bytes"],
@@ -1540,25 +1636,31 @@ class QualityPhase:
             result["provider_before"] = _log_evidence(before)
             result["listener_before"] = self._listener_identity()
             # The critical source is re-verified immediately before the send:
-            # same object, same hash, bounded read.
+            # same object, same hash, bounded read, and the same sealed
+            # original identity that was written into the exclusive seal
+            # before the first public submission.
             result["source_evidence"] = self._validate_source(
-                row, previous=(row.get("source_evidence") or {}).get("identity"))
+                row, previous=(row.get("source_evidence") or {}).get("identity"),
+                sealed=self._sealed_identities.get(row["asset_id"]))
             graph, expected_node = self._build_graph(row, workflows)
             result["graph_sha256"] = sha256_bytes(canonical_json(graph).encode("utf-8"))
             stage = "submit"
             self._authorize("quality_public_submit", row["asset_id"])
-            # After every controlled callback the source and the owned root
-            # are re-verified immediately before the send.  A changed source
-            # produces zero sends and zero charges for this row.
-            result["source_evidence"] = self._validate_source(
-                row, previous=result["source_evidence"]["identity"])
             # Every controlled driver value and the submit callable itself are
-            # resolved *before* the final admission guard, so a dynamic
-            # accessor cannot change the admitted capacity or the clock after
-            # the admission decision.
+            # resolved *before* the final bounded source verification, so a
+            # dynamic accessor cannot change the admitted capacity, the clock
+            # or the sealed source identity behind the final admission guard.
             driver_state = self._resolve_driver_state()
             if driver_state["submissions"] >= driver_state["limit"]:
                 raise QualityContractError("PUBLIC_SUBMISSION_BUDGET_EXCEEDED")
+            # The final bounded source verification against the sealed
+            # ORIGINAL identity.  It happens after every controlled callback
+            # and after every controlled accessor, so a source whose content,
+            # identity or path changed in one of them produces zero sends and
+            # zero charges for this row.
+            result["source_evidence"] = self._validate_source(
+                row, previous=result["source_evidence"]["identity"],
+                sealed=self._sealed_identities.get(row["asset_id"]))
             # The final local send-admission guard: the original ownership,
             # the phase deadline and the exact typed parent proof with its
             # current remaining capacity.  Nothing unchecked happens between
@@ -2405,7 +2507,213 @@ def _log_evidence(snapshot):
     return {key: value for key, value in snapshot.items() if key != "raw_log"}
 
 
-def load_canonical_receipt(directory, *, max_bytes=MAX_ARTIFACT_BYTES):
+class _ArtifactBoundary:
+    """The strict artifact-root boundary of the scoring entry point.
+
+    The run root, the ``temp`` directory and the phase directory are opened
+    against their own pinned parent with ``O_DIRECTORY|O_NOFOLLOW``.  A
+    renamed ancestor that was replaced by a symlink is therefore *refused*
+    instead of being silently resolved and adopted, and the identity of every
+    level is checked again after every read.
+
+    Every evidence type - the canonical receipt, the source seal and the raw
+    artifacts - is read through this one boundary, so no evidence type can
+    have a weaker ancestry rule than another.
+
+    Accepted limitation: this is an in-process inode observation inside the
+    existing audited Python/filesystem trust model.  It does not claim
+    immunity against a hostile kernel, against a native Windows reparse
+    point or against a filesystem that moves inodes underneath the process.
+    """
+
+    def __init__(self, artifact_root):
+        if isinstance(artifact_root, bool) or not isinstance(artifact_root, (str, os.PathLike)):
+            raise QualityContractError("QS_ARTIFACT_ROOT_INVALID")
+        literal = Path(artifact_root)
+        if literal.name != "s3-quality" or literal.parent.name != "temp":
+            raise QualityContractError("QS_ARTIFACT_ROOT_LOCATION_INVALID")
+        self.run_root_path = literal.parent.parent
+        self._fds = []
+        try:
+            self._run_fd, self.run_root_identity = self._open_directory(
+                str(self.run_root_path), None)
+            self._temp_fd, self._temp_identity = self._open_directory("temp", self._run_fd)
+            self._phase_fd, self._phase_identity = self._open_directory(
+                "s3-quality", self._temp_fd)
+        except BaseException:
+            self.close()
+            raise
+
+    # -- opening ---------------------------------------------------------
+    def _open_directory(self, name, parent_fd):
+        flags = os.O_RDONLY | os.O_DIRECTORY | getattr(os, "O_NOFOLLOW", 0)
+        try:
+            if parent_fd is None:
+                descriptor = os.open(name, flags)
+            else:
+                descriptor = os.open(name, flags, dir_fd=parent_fd)
+        except OSError as error:
+            if error.errno in (errno.ELOOP, errno.ENOTDIR):
+                raise QualityContractError(
+                    "QS_ARTIFACT_ROOT_REDIRECT_FORBIDDEN:" + str(name)) from error
+            if error.errno == errno.ENOENT:
+                raise QualityContractError(
+                    "QS_ARTIFACT_ROOT_MISSING:" + str(name)) from error
+            raise QualityContractError(
+                "QS_ARTIFACT_ROOT_UNAVAILABLE:" + str(name)) from error
+        self._fds.append(descriptor)
+        info = os.fstat(descriptor)
+        identity = (info.st_dev, info.st_ino)
+        # The entry is inspected relative to its pinned parent and without
+        # following a symlink, so a replaced ancestor is detected instead of
+        # being adopted.
+        try:
+            if parent_fd is None:
+                entry = os.lstat(name)
+            else:
+                entry = os.stat(name, dir_fd=parent_fd, follow_symlinks=False)
+        except OSError as error:
+            raise QualityContractError(
+                "QS_ARTIFACT_ROOT_MISSING:" + str(name)) from error
+        if not stat.S_ISDIR(entry.st_mode):
+            raise QualityContractError(
+                "QS_ARTIFACT_ROOT_REDIRECT_FORBIDDEN:" + str(name))
+        if (entry.st_dev, entry.st_ino) != identity:
+            raise QualityContractError(
+                "QS_ARTIFACT_ROOT_REPLACED:" + str(name))
+        return descriptor, identity
+
+    def _open_child_directory(self, parent_fd, name):
+        flags = os.O_RDONLY | os.O_DIRECTORY | getattr(os, "O_NOFOLLOW", 0)
+        try:
+            descriptor = os.open(name, flags, dir_fd=parent_fd)
+        except OSError as error:
+            if error.errno in (errno.ELOOP, errno.ENOTDIR):
+                raise QualityContractError(
+                    "SCORE_ARTIFACT_REDIRECT_FORBIDDEN:" + name) from error
+            if error.errno == errno.ENOENT:
+                raise QualityContractError(
+                    "SCORE_ARTIFACT_MISSING:" + name) from error
+            raise QualityContractError(
+                "SCORE_ARTIFACT_UNAVAILABLE:" + name) from error
+        info = os.fstat(descriptor)
+        try:
+            entry = os.stat(name, dir_fd=parent_fd, follow_symlinks=False)
+        except OSError as error:
+            os.close(descriptor)
+            raise QualityContractError(
+                "SCORE_ARTIFACT_MISSING:" + name) from error
+        if (not stat.S_ISDIR(entry.st_mode)
+                or (entry.st_dev, entry.st_ino) != (info.st_dev, info.st_ino)):
+            os.close(descriptor)
+            raise QualityContractError(
+                "SCORE_ARTIFACT_REDIRECT_FORBIDDEN:" + name)
+        return descriptor
+
+    def _open_leaf(self, parent_fd, name):
+        try:
+            return os.open(name, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0),
+                           dir_fd=parent_fd)
+        except OSError as error:
+            if error.errno == errno.ELOOP:
+                raise QualityContractError(
+                    "SCORE_ARTIFACT_REDIRECT_FORBIDDEN:" + name) from error
+            if error.errno == errno.ENOENT:
+                raise QualityContractError(
+                    "SCORE_ARTIFACT_MISSING:" + name) from error
+            raise QualityContractError(
+                "SCORE_ARTIFACT_UNAVAILABLE:" + name) from error
+
+    # -- identity --------------------------------------------------------
+    def verify(self):
+        """The three levels must still name the very same objects."""
+        for descriptor, identity, label in (
+                (self._run_fd, self.run_root_identity, "run_root"),
+                (self._temp_fd, self._temp_identity, "temp"),
+                (self._phase_fd, self._phase_identity, "phase")):
+            if descriptor is None:
+                raise QualityContractError("QS_ARTIFACT_ROOT_UNAVAILABLE:" + label)
+            info = os.fstat(descriptor)
+            if (info.st_dev, info.st_ino) != identity:
+                raise QualityContractError("QS_ARTIFACT_ROOT_REPLACED:" + label)
+
+    # -- reading ---------------------------------------------------------
+    def read(self, relative, max_bytes):
+        """Read one artifact below the phase directory, anchored and bounded.
+
+        The read is descriptor relative: every directory level is opened
+        against the pinned handle of its parent with
+        ``O_DIRECTORY|O_NOFOLLOW`` and the file itself is opened against the
+        pinned handle of its own directory.  Nothing is ever resolved, so a
+        redirected ancestor can never be followed away.
+        """
+        if not isinstance(relative, str) or not relative:
+            raise QualityContractError("SCORE_ARTIFACT_PATH_INVALID")
+        pure = PurePosixPath(relative)
+        if pure.is_absolute() or ".." in pure.parts or not pure.parts:
+            raise QualityContractError("SCORE_ARTIFACT_PATH_INVALID")
+        current = self._phase_fd
+        opened = []
+        try:
+            for part in pure.parts[:-1]:
+                current = self._open_child_directory(current, part)
+                opened.append(current)
+            descriptor = self._open_leaf(current, pure.parts[-1])
+            try:
+                info = os.fstat(descriptor)
+                if not stat.S_ISREG(info.st_mode):
+                    raise QualityContractError("SCORE_ARTIFACT_NOT_PLAIN_FILE")
+                if info.st_size > max_bytes:
+                    raise QualityContractError("SCORE_ARTIFACT_TOO_LARGE")
+                remaining = max_bytes + 1
+                chunks = []
+                while remaining > 0:
+                    chunk = os.read(descriptor, min(1024 * 1024, remaining))
+                    if not chunk:
+                        break
+                    chunks.append(chunk)
+                    remaining -= len(chunk)
+            finally:
+                os.close(descriptor)
+        finally:
+            for descriptor in reversed(opened):
+                os.close(descriptor)
+        raw = b"".join(chunks)
+        if len(raw) > max_bytes:
+            raise QualityContractError("SCORE_ARTIFACT_TOO_LARGE")
+        # The identity of the boundary is checked again after the read.
+        self.verify()
+        return raw
+
+    def close(self):
+        for descriptor in reversed(self._fds):
+            try:
+                os.close(descriptor)
+            except OSError:
+                pass
+        self._fds = []
+        self._run_fd = None
+        self._temp_fd = None
+        self._phase_fd = None
+
+
+def _boundary_error_code(error, *, missing, redirect, too_large, unreadable):
+    """Translate one boundary failure into the caller's own vocabulary."""
+    code = str(error)
+    if code.startswith("SCORE_ARTIFACT_PATH_INVALID"):
+        return "SCORE_ARTIFACT_PATH_INVALID"
+    if code.startswith("SCORE_ARTIFACT_MISSING") or code.startswith("QS_ARTIFACT_ROOT_MISSING"):
+        return missing
+    if (code.startswith("SCORE_ARTIFACT_REDIRECT_FORBIDDEN")
+            or code.startswith("QS_ARTIFACT_ROOT_REDIRECT_FORBIDDEN")
+            or code.startswith("QS_ARTIFACT_ROOT_REPLACED")):
+        return redirect
+    if code.startswith("SCORE_ARTIFACT_TOO_LARGE"):
+        return too_large
+    return unreadable
+
+
+def load_canonical_receipt(directory, *, max_bytes=MAX_ARTIFACT_BYTES, boundary=None):
     """Load the authoritative terminal receipt.
 
     Only the canonical name is authority.  A staged file, even with identical
@@ -2414,44 +2722,62 @@ def load_canonical_receipt(directory, *, max_bytes=MAX_ARTIFACT_BYTES):
 
     The read is bounded: at most ``max_bytes`` bytes are accepted and at most
     ``max_bytes + 1`` bytes are ever read, so a huge or substituted file can
-    never be pulled into the consumer.  A redirected directory or a
+    never be pulled into the consumer.  The read is descriptor relative
+    through the strict artifact boundary, so a redirected directory or a
     symlinked receipt is refused instead of being followed.
     """
-    root = Path(directory)
-    if root.is_symlink():
-        raise QualityContractError("CANONICAL_RECEIPT_REDIRECT_FORBIDDEN")
-    candidate = root / CANONICAL_RECEIPT_NAME
-    if candidate.is_symlink() or not candidate.is_file():
-        raise QualityContractError("CANONICAL_RECEIPT_ABSENT")
+    owned = None
+    if boundary is None:
+        boundary = owned = _ArtifactBoundary(directory)
     try:
-        size = candidate.stat().st_size
-    except OSError as error:
-        raise QualityContractError("CANONICAL_RECEIPT_UNREADABLE") from error
-    if size > max_bytes:
-        raise QualityContractError("CANONICAL_RECEIPT_TOO_LARGE")
-    try:
-        with candidate.open("rb") as stream:
-            raw = stream.read(max_bytes + 1)
-    except OSError as error:
-        raise QualityContractError("CANONICAL_RECEIPT_UNREADABLE") from error
-    if len(raw) > max_bytes:
-        raise QualityContractError("CANONICAL_RECEIPT_TOO_LARGE")
-    try:
-        document = json.loads(raw.decode("utf-8"))
-    except (UnicodeDecodeError, json.JSONDecodeError) as error:
-        raise QualityContractError("CANONICAL_RECEIPT_UNREADABLE") from error
-    if not isinstance(document, dict):
-        raise QualityContractError("CANONICAL_RECEIPT_UNREADABLE")
-    if document.get("published_as") != CANONICAL_RECEIPT_NAME:
-        raise QualityContractError("CANONICAL_RECEIPT_NOT_AUTHORITATIVE")
-    if document.get("receipt_persisted") is not True:
-        raise QualityContractError("CANONICAL_RECEIPT_NOT_PERSISTED")
-    if document.get("terminal_status") != "TERMINAL_RECEIPT_PERSISTED":
-        raise QualityContractError("CANONICAL_RECEIPT_NOT_PERSISTED")
-    return document
+        try:
+            raw = boundary.read(CANONICAL_RECEIPT_NAME, max_bytes)
+        except QualityContractError as error:
+            code = _boundary_error_code(
+                error, missing="CANONICAL_RECEIPT_ABSENT",
+                redirect="CANONICAL_RECEIPT_REDIRECT_FORBIDDEN",
+                too_large="CANONICAL_RECEIPT_TOO_LARGE",
+                unreadable="CANONICAL_RECEIPT_UNREADABLE")
+            raise QualityContractError(code) from error
+        try:
+            document = json.loads(raw.decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError) as error:
+            raise QualityContractError("CANONICAL_RECEIPT_UNREADABLE") from error
+        if not isinstance(document, dict):
+            raise QualityContractError("CANONICAL_RECEIPT_UNREADABLE")
+        if document.get("published_as") != CANONICAL_RECEIPT_NAME:
+            raise QualityContractError("CANONICAL_RECEIPT_NOT_AUTHORITATIVE")
+        if document.get("receipt_persisted") is not True:
+            raise QualityContractError("CANONICAL_RECEIPT_NOT_PERSISTED")
+        if document.get("terminal_status") != "TERMINAL_RECEIPT_PERSISTED":
+            raise QualityContractError("CANONICAL_RECEIPT_NOT_PERSISTED")
+        return document
+    finally:
+        if owned is not None:
+            owned.close()
 
 
-def load_published_execution_receipt(artifact_root):
+def _verify_run_root_binding(declared, boundary):
+    """The published run root must be this very run root.
+
+    The declared path is compared literally first.  A different literal path
+    is only accepted when it names the very same directory object; a
+    redirected (symlinked) run root is never adopted.
+    """
+    literal = Path(declared)
+    if literal == boundary.run_root_path:
+        return
+    try:
+        entry = os.lstat(str(literal))
+    except OSError as error:
+        raise QualityContractError("QS_CANONICAL_RECEIPT_RUN_ROOT_INVALID") from error
+    if not stat.S_ISDIR(entry.st_mode):
+        raise QualityContractError("QS_CANONICAL_RECEIPT_RUN_ROOT_REDIRECTED")
+    if (entry.st_dev, entry.st_ino) != boundary.run_root_identity:
+        raise QualityContractError("QS_CANONICAL_RECEIPT_RUN_ROOT_MISMATCH")
+
+
+def load_published_execution_receipt(artifact_root, *, boundary=None):
     """Load the *actually published* canonical receipt of this artifact root.
 
     A consumer may never trust the publication flags that a caller supplies
@@ -2460,37 +2786,67 @@ def load_published_execution_receipt(artifact_root):
     corrupt, a staged-only or a foreign document, a redirected directory and
     a root that is not the actual ``<run root>/temp/s3-quality`` location of
     this run.
+
+    The strict artifact boundary is established first: the run root, the
+    ``temp`` directory and the phase directory must all be real directories
+    of this run.  A renamed ancestor that was replaced by a symlink is
+    refused here and never resolved away.
     """
-    if isinstance(artifact_root, bool) or not isinstance(artifact_root, (str, os.PathLike)):
-        raise QualityContractError("QS_ARTIFACT_ROOT_INVALID")
-    root = Path(artifact_root)
-    if root.is_symlink():
-        raise QualityContractError("QS_ARTIFACT_ROOT_REDIRECT_FORBIDDEN")
-    if root.name != "s3-quality" or root.parent.name != "temp":
-        raise QualityContractError("QS_ARTIFACT_ROOT_LOCATION_INVALID")
-    document = load_canonical_receipt(root)
-    if document.get("kind") != QD_RECEIPT_KIND:
-        raise QualityContractError("QS_CANONICAL_RECEIPT_KIND_INVALID")
-    run_root = document.get("run_root")
-    if not isinstance(run_root, str) or not run_root:
-        raise QualityContractError("QS_CANONICAL_RECEIPT_RUN_ROOT_INVALID")
+    owned = None
+    if boundary is None:
+        boundary = owned = _ArtifactBoundary(artifact_root)
     try:
-        expected = root.parent.parent.resolve(strict=True)
-    except OSError as error:
-        raise QualityContractError("QS_ARTIFACT_ROOT_LOCATION_INVALID") from error
-    if Path(run_root) != expected:
-        raise QualityContractError("QS_CANONICAL_RECEIPT_RUN_ROOT_MISMATCH")
-    return document
+        document = load_canonical_receipt(artifact_root, boundary=boundary)
+        if document.get("kind") != QD_RECEIPT_KIND:
+            raise QualityContractError("QS_CANONICAL_RECEIPT_KIND_INVALID")
+        run_root = document.get("run_root")
+        if not isinstance(run_root, str) or not run_root:
+            raise QualityContractError("QS_CANONICAL_RECEIPT_RUN_ROOT_INVALID")
+        _verify_run_root_binding(run_root, boundary)
+        return document
+    finally:
+        if owned is not None:
+            owned.close()
 
 
-def load_source_plan(artifact_root, receipt):
+def _verify_seal_row_alignment(sealed, canonical, index):
+    """One sealed row must describe the very same canonical execution row.
+
+    The seal binds the original source identity of the sixteen rows.  Every
+    label of a sealed row - the ordinal, the asset, the media kind, the
+    input reference, the size, the hash, the path and the full five
+    component descriptor identity - must reproduce the corresponding
+    canonical execution row.  A seal that contradicts the execution row it
+    claims to seal can never certify that row, even when its own artifact
+    hash and length binding is consistent.
+    """
+    for field in ("ordinal", "asset_id", "media_kind", "input_reference",
+                  "source_bytes", "source_sha256"):
+        if sealed.get(field) != canonical.get(field):
+            raise QualityContractError(
+                "QS_SOURCE_PLAN_ROW_ALIGNMENT_MISMATCH:" + field + ":" + str(index))
+    evidence = canonical.get("source_evidence")
+    if not isinstance(evidence, dict):
+        raise QualityContractError(
+            "QS_SOURCE_PLAN_ROW_ALIGNMENT_MISMATCH:source_evidence:" + str(index))
+    if sealed.get("identity") != evidence.get("identity"):
+        raise QualityContractError(
+            "QS_SOURCE_PLAN_ROW_ALIGNMENT_MISMATCH:identity:" + str(index))
+    if sealed.get("path") != evidence.get("path"):
+        raise QualityContractError(
+            "QS_SOURCE_PLAN_ROW_ALIGNMENT_MISMATCH:path:" + str(index))
+
+
+def load_source_plan(artifact_root, receipt, *, boundary=None):
     """Load and verify the sealed original source plan.
 
     The seal is read from the same owned artifact root as the canonical
-    receipt.  Its actual bytes must match the length and the hash that the
-    receipt binds, its binding must be this run, and its sixteen ordered rows
-    must reproduce the original source descriptors.  The live source media is
-    never re-stat'ed and never has to be retained after the run.
+    receipt, through the same strict artifact boundary.  Its actual bytes
+    must match the length and the hash that the receipt binds, its binding
+    must be this run, and its sixteen ordered rows must reproduce the
+    original source descriptors *and* the corresponding canonical execution
+    rows.  The live source media is never re-stat'ed and never has to be
+    retained after the run.
     """
     binding = receipt.get("source_plan")
     if not isinstance(binding, dict):
@@ -2498,23 +2854,22 @@ def load_source_plan(artifact_root, receipt):
     relative = binding.get("path")
     if not isinstance(relative, str) or not relative:
         raise QualityContractError("QS_SOURCE_PLAN_PATH_INVALID")
+    owned = None
+    if boundary is None:
+        boundary = owned = _ArtifactBoundary(artifact_root)
     try:
-        path = _safe_artifact_path(artifact_root, relative)
-    except OSError as error:
-        raise QualityContractError("QS_SOURCE_PLAN_MISSING") from error
-    try:
-        size = path.stat().st_size
-    except OSError as error:
-        raise QualityContractError("QS_SOURCE_PLAN_UNREADABLE") from error
-    if size > MAX_ARTIFACT_BYTES:
-        raise QualityContractError("QS_SOURCE_PLAN_TOO_LARGE")
-    try:
-        with path.open("rb") as stream:
-            raw = stream.read(MAX_ARTIFACT_BYTES + 1)
-    except OSError as error:
-        raise QualityContractError("QS_SOURCE_PLAN_UNREADABLE") from error
-    if len(raw) > MAX_ARTIFACT_BYTES:
-        raise QualityContractError("QS_SOURCE_PLAN_TOO_LARGE")
+        try:
+            raw = boundary.read(relative, MAX_ARTIFACT_BYTES)
+        except QualityContractError as error:
+            code = _boundary_error_code(
+                error, missing="QS_SOURCE_PLAN_MISSING",
+                redirect="QS_SOURCE_PLAN_REDIRECT_FORBIDDEN",
+                too_large="QS_SOURCE_PLAN_TOO_LARGE",
+                unreadable="QS_SOURCE_PLAN_UNREADABLE")
+            raise QualityContractError(code + ":" + str(error)) from error
+    finally:
+        if owned is not None:
+            owned.close()
     if not _is_int(binding.get("bytes")) or len(raw) != binding["bytes"]:
         raise QualityContractError("QS_SOURCE_PLAN_LENGTH_MISMATCH")
     if sha256_bytes(raw) != binding.get("sha256"):
@@ -2533,6 +2888,21 @@ def load_source_plan(artifact_root, receipt):
     rows = document.get("rows")
     if not isinstance(rows, list) or len(rows) != FIXED_TOTAL:
         raise QualityContractError("QS_SOURCE_PLAN_ROW_COUNT_INVALID")
+    published_rows = receipt.get("rows")
+    if not isinstance(published_rows, list) or len(published_rows) != FIXED_TOTAL:
+        raise QualityContractError("QS_SOURCE_PLAN_ROW_COUNT_INVALID")
+    # The fixed admitted order of the canonical execution rows: the ordinals
+    # are the frozen ones and every asset appears exactly once.
+    seen_assets = set()
+    for index, canonical in enumerate(published_rows):
+        if canonical.get("ordinal") != index + 1:
+            raise QualityContractError(
+                "QS_SOURCE_PLAN_ROW_ALIGNMENT_MISMATCH:ordinal:" + str(index))
+        asset_id = canonical.get("asset_id")
+        if not isinstance(asset_id, str) or not asset_id or asset_id in seen_assets:
+            raise QualityContractError(
+                "QS_SOURCE_PLAN_ROW_ALIGNMENT_MISMATCH:asset_id:" + str(index))
+        seen_assets.add(asset_id)
     sealed = []
     for index, row in enumerate(rows):
         if not isinstance(row, dict) or set(row) != SOURCE_PLAN_ROW_KEYS:
@@ -2549,34 +2919,9 @@ def load_source_plan(artifact_root, receipt):
             raise QualityContractError("QS_SOURCE_PLAN_HASH_INVALID")
         if not isinstance(row.get("path"), str) or not row["path"]:
             raise QualityContractError("QS_SOURCE_PLAN_PATH_INVALID")
+        _verify_seal_row_alignment(row, published_rows[index], index)
         sealed.append(row)
     return sealed
-
-
-def _safe_artifact_path(artifact_root, relative):
-    """Resolve one artifact path without escaping the owned artifact root."""
-    root = Path(artifact_root).resolve(strict=True)
-    if not isinstance(relative, str) or not relative:
-        raise QualityContractError("SCORE_ARTIFACT_PATH_INVALID")
-    pure = PurePosixPath(relative)
-    if pure.is_absolute() or ".." in pure.parts:
-        raise QualityContractError("SCORE_ARTIFACT_PATH_INVALID")
-    candidate = root / relative
-    for ancestor in (candidate, *candidate.parents):
-        if ancestor == root:
-            break
-        if ancestor.is_symlink():
-            raise QualityContractError("SCORE_ARTIFACT_REDIRECT_FORBIDDEN")
-    if candidate.is_symlink():
-        raise QualityContractError("SCORE_ARTIFACT_REDIRECT_FORBIDDEN")
-    resolved = candidate.resolve(strict=True)
-    try:
-        resolved.relative_to(root)
-    except ValueError as error:
-        raise QualityContractError("SCORE_ARTIFACT_OUTSIDE_ROOT") from error
-    if resolved != candidate or not candidate.is_file():
-        raise QualityContractError("SCORE_ARTIFACT_NOT_PLAIN_FILE")
-    return candidate
 
 
 def verify_independence(independence, *, implementer_identity=None, run_id=None):
@@ -2631,7 +2976,7 @@ def verify_independence(independence, *, implementer_identity=None, run_id=None)
     }
 
 
-def _row_evidence_complete(row, receipt, *, sealed=None):
+def _row_evidence_complete(row, receipt, *, sealed=None, canonical=None):
     """Validate the source, storage and cleanup evidence of one row.
 
     Every row is checked, whether its execution passed or failed.  The same
@@ -2643,6 +2988,12 @@ def _row_evidence_complete(row, receipt, *, sealed=None):
     When the sealed original source descriptor is supplied, the evidence must
     reproduce it exactly: the full five component identity, the size and the
     hash.  The live source file is never re-stat'ed here.
+
+    When the canonical row is supplied, the release proof of this row must be
+    the release proof that the canonical document actually recorded.  The
+    release proof is an observation - a bounded GPU sample vector, a bound
+    baseline and an elapsed time - and a well typed but different observation
+    is a fabricated observation, never a proof.
     """
     valid, reason = validate_source_evidence(
         row.get("source_evidence"),
@@ -2658,6 +3009,8 @@ def _row_evidence_complete(row, receipt, *, sealed=None):
         baseline_gpu_mib=receipt.get("parent_budget_baseline_gpu_mib"))
     if not valid:
         return False, reason
+    if canonical is not None and row.get("release_evidence") != canonical.get("release_evidence"):
+        return False, "RELEASE_EVIDENCE_NOT_CANONICAL"
     residue = row.get("video_snapshot_residue")
     if not isinstance(residue, list):
         return False, "RESIDUE_EVIDENCE_MISSING"
@@ -2698,50 +3051,96 @@ def _verify_published_binding(supplied, published):
 def _verify_execution_content(supplied, published):
     """The supplied execution content must reproduce the published document.
 
-    Every field that describes *what was executed* - the artifacts, their
-    hashes and lengths, the prompt identities, the provider counters and the
-    source seal binding - must be identical in the supplied receipt and in
-    the actually published canonical document.  A mismatch means the supplied
-    document is not the published one and the whole verdict is refused.
+    Every field of the published document that is not part of the closed
+    verdict overlay is an actual execution fact: the run context, the
+    counters, the bound baseline, the accounting, the recorded assurances,
+    the source seal binding and every per row attempt, counter, artifact and
+    observation content.  Such a fact has to be identical in the supplied
+    receipt and in the actually published canonical document.  A mismatch
+    means the supplied document is not the published one and the whole
+    verdict is refused.
+
+    The comparison is exhaustive over the published document: a fact that is
+    not named in the overlay can never be forged, and a fact that the
+    execution starts to record later is bound automatically.  A supplied row
+    may not even carry an extra fact that the published row does not have.
 
     The verdict fields themselves are deliberately *not* compared here: they
     are evaluated for both documents together, so that a forged verdict can
     only ever make a row stricter, never usable.
     """
-    for field in QS_RECEIPT_CONTENT_FIELDS:
-        if supplied.get(field) != published.get(field):
+    for field, value in published.items():
+        if field in QS_RECEIPT_OVERLAY_FIELDS:
+            continue
+        typed = QS_RECEIPT_TYPED_CONTEXTS.get(field)
+        if typed is not None and not typed(supplied.get(field)):
+            # A mistyped bound context is an invalid declaration, not a fact.
+            # The per row evidence validation makes every row unknown, so the
+            # mistyped value is never compared and never accepted.
+            continue
+        if field not in supplied or supplied[field] != value:
             raise QualityContractError("QS_EXECUTION_CONTENT_MISMATCH:" + field)
     supplied_rows = supplied.get("rows") or []
     published_rows = published.get("rows") or []
     for index, published_row in enumerate(published_rows):
         supplied_row = supplied_rows[index]
-        for field in QS_ROW_CONTENT_FIELDS:
-            if supplied_row.get(field) != published_row.get(field):
+        for field, value in published_row.items():
+            if field in QS_ROW_OVERLAY_FIELDS:
+                continue
+            if field not in supplied_row or supplied_row[field] != value:
                 raise QualityContractError(
                     "QS_EXECUTION_CONTENT_MISMATCH:" + field + ":"
                     + str(published_row.get("asset_id")))
+        extra = sorted(set(supplied_row) - set(published_row) - QS_ROW_OVERLAY_FIELDS)
+        if extra:
+            raise QualityContractError(
+                "QS_EXECUTION_CONTENT_MISMATCH:" + extra[0] + ":"
+                + str(published_row.get("asset_id")))
 
 
-def _effective_execution_status(supplied_row, published_row):
-    """The stricter of the supplied and the published execution status.
+def _effective_failure_verdict(supplied_row, published_row):
+    """The effective verdict of one row, derived from both documents.
 
-    A supplied document can never claim a pass that the published document
-    did not record; it may only be stricter.
+    The canonical document is the authority.  A supplied document may only be
+    stricter, so the resolution of a failure is decided conservatively from
+    the published *and* the supplied state and error:
+
+    * a published failure is never replaced by a supplied pass;
+    * a published unknown failure is never resolved by a supplied known
+      failure - the canonical error stays unknown;
+    * a published pass that is downgraded by a supplied known failure keeps
+      the existing resolved but not usable obligation;
+    * a published known failure that is supplied as a pass stays resolved
+      and never usable.
+
+    The returned tuple is the effective execution status, the effective error
+    code and whether the failure is a *known* ordinary failure at all.
     """
-    supplied = supplied_row.get("execution_status")
-    published = published_row.get("execution_status")
-    if supplied == "PASS" and published == "PASS":
-        return "PASS"
-    if supplied != "PASS":
-        return supplied
-    return published
-
-
-def _effective_error_code(supplied_row, published_row):
-    """The error code that belongs to the effective execution status."""
-    if supplied_row.get("execution_status") != "PASS":
-        return supplied_row.get("error_code")
-    return published_row.get("error_code")
+    supplied_status = supplied_row.get("execution_status")
+    published_status = published_row.get("execution_status")
+    supplied_failed = supplied_status != "PASS"
+    published_failed = published_status != "PASS"
+    if not supplied_failed and not published_failed:
+        return "PASS", None, False
+    if published_failed and not supplied_failed:
+        # The canonical failure is the verdict; a supplied pass cannot hide it.
+        error = published_row.get("error_code")
+        known = error_base_code(error or "") in KNOWN_EXECUTION_FAILURE_CODES
+        return "FAIL", error, known
+    if supplied_failed and not published_failed:
+        # The canonical pass is downgraded by the supplied document.  The
+        # downgrade only resolves when it names a known ordinary failure.
+        error = supplied_row.get("error_code")
+        known = error_base_code(error or "") in KNOWN_EXECUTION_FAILURE_CODES
+        return "FAIL", error, known
+    # Both documents record a failure.  The failure is known only when both
+    # of them name a known ordinary failure: an unknown canonical error is
+    # never resolved by a known supplied error.
+    published_error = published_row.get("error_code")
+    supplied_error = supplied_row.get("error_code")
+    published_known = error_base_code(published_error or "") in KNOWN_EXECUTION_FAILURE_CODES
+    supplied_known = error_base_code(supplied_error or "") in KNOWN_EXECUTION_FAILURE_CODES
+    return "FAIL", published_error, published_known and supplied_known
 
 
 def _validate_score_document(score):
@@ -2810,16 +3209,46 @@ def recompute_scores(execution_receipt, artifact_root, score_receipts, *,
     if not isinstance(run_id, str) or not _is_hex(candidate_sha, 40) or not _is_hex(projection_sha256, 64):
         raise QualityContractError("QS_EXECUTION_RECEIPT_IDENTITY_INVALID")
 
-    # ---- the actually published document is the authority ---------------
-    # A missing, corrupt, foreign, staged-only or redirected canonical
-    # receipt is refused here, before any score is looked at.
-    published = load_published_execution_receipt(artifact_root)
-    _verify_published_binding(execution_receipt, published)
-    published_rows = published.get("rows")
-    if not isinstance(published_rows, list) or len(published_rows) != FIXED_TOTAL:
-        raise QualityContractError("QS_ROW_COUNT_INVALID")
-    # ---- the sealed original source identity is loaded from the same root
-    sealed_rows = load_source_plan(artifact_root, published)
+    # ---- the strict artifact boundary of this run ----------------------
+    # The run root, the temp directory and the phase directory are opened
+    # once, without following a redirect, and every evidence type below is
+    # read through that one boundary.
+    boundary = _ArtifactBoundary(artifact_root)
+    try:
+        # ---- the actually published document is the authority -----------
+        # A missing, corrupt, foreign, staged-only or redirected canonical
+        # receipt is refused here, before any score is looked at.
+        published = load_published_execution_receipt(artifact_root, boundary=boundary)
+        _verify_published_binding(execution_receipt, published)
+        published_rows = published.get("rows")
+        if not isinstance(published_rows, list) or len(published_rows) != FIXED_TOTAL:
+            raise QualityContractError("QS_ROW_COUNT_INVALID")
+        # ---- the sealed original source identity is loaded from the same root
+        # and is cross-checked against the canonical execution rows.
+        sealed_rows = load_source_plan(artifact_root, published, boundary=boundary)
+        return _recompute_bound_scores(
+            execution_receipt, published, published_rows, sealed_rows, boundary,
+            score_receipts, independence=independence,
+            implementer_identity=implementer_identity)
+    finally:
+        boundary.close()
+
+
+def _recompute_bound_scores(execution_receipt, published, published_rows, sealed_rows,
+                            boundary, score_receipts, *, independence=None,
+                            implementer_identity=None):
+    """The scoring of the sixteen bound rows inside the strict boundary.
+
+    The caller has already established the strict artifact boundary, loaded
+    the actually published canonical document and loaded the sealed original
+    source plan.  This function is the pure validation and aggregation part:
+    it never executes a model, never matches keywords and never invents a
+    semantic judgement.
+    """
+    rows = execution_receipt.get("rows")
+    run_id = execution_receipt.get("run_id")
+    candidate_sha = execution_receipt.get("candidate_sha")
+    projection_sha256 = execution_receipt.get("projection_sha256")
 
     by_asset = {}
     for row in rows:
@@ -2868,8 +3297,8 @@ def recompute_scores(execution_receipt, artifact_root, score_receipts, *,
         media_kind = row.get("media_kind")
         published_row = published_rows[index]
         sealed_row = sealed_rows[index]
-        effective_status = _effective_execution_status(row, published_row)
-        effective_error = _effective_error_code(row, published_row)
+        effective_status, effective_error, failure_known = _effective_failure_verdict(
+            row, published_row)
         entry = {
             "asset_id": asset_id,
             "media_kind": media_kind,
@@ -2893,9 +3322,11 @@ def recompute_scores(execution_receipt, artifact_root, score_receipts, *,
         # The evidence must be complete for the supplied document *and* for
         # the actually published document, and it must reproduce the sealed
         # original source descriptor in both.  A declaration that is only
-        # favourable in the supplied dictionary can never complete a row.
+        # favourable in the supplied dictionary can never complete a row, and
+        # a release proof that is not the published observation can never
+        # complete a row either.
         supplied_complete, supplied_reason = _row_evidence_complete(
-            row, execution_receipt, sealed=sealed_row)
+            row, execution_receipt, sealed=sealed_row, canonical=published_row)
         published_complete, published_reason = _row_evidence_complete(
             published_row, published, sealed=sealed_row)
         evidence_complete = supplied_complete and published_complete
@@ -2909,14 +3340,18 @@ def recompute_scores(execution_receipt, artifact_root, score_receipts, *,
         # length match both the execution record and the scoring record.
         raw = None
         if row.get("raw_preserved") is True and row.get("raw_artifact"):
-            artifact = _safe_artifact_path(artifact_root, row.get("raw_artifact"))
+            # The raw is read through the same strict boundary as the
+            # canonical receipt and the seal, so a redirected ancestor can
+            # never serve a different artifact.
             try:
-                with artifact.open("rb") as stream:
-                    raw = stream.read(MAX_ARTIFACT_BYTES + 1)
-            except OSError as error:
-                raise QualityContractError("QS_RAW_ARTIFACT_UNREADABLE:" + asset_id) from error
-            if len(raw) > MAX_ARTIFACT_BYTES:
-                raise QualityContractError("QS_RAW_ARTIFACT_TOO_LARGE:" + asset_id)
+                raw = boundary.read(row.get("raw_artifact"), MAX_ARTIFACT_BYTES)
+            except QualityContractError as error:
+                code = _boundary_error_code(
+                    error, missing="QS_RAW_ARTIFACT_UNREADABLE",
+                    redirect="QS_RAW_ARTIFACT_REDIRECT_FORBIDDEN",
+                    too_large="QS_RAW_ARTIFACT_TOO_LARGE",
+                    unreadable="QS_RAW_ARTIFACT_UNREADABLE")
+                raise QualityContractError(code + ":" + asset_id) from error
             if sha256_bytes(raw) != row.get("raw_sha256"):
                 raise QualityContractError("QS_RAW_ARTIFACT_HASH_MISMATCH:" + asset_id)
             declared = row.get("raw_bytes")
@@ -2972,8 +3407,7 @@ def recompute_scores(execution_receipt, artifact_root, score_receipts, *,
             # never be resolved.
             entry["quality_status"] = "FAIL"
             entry["usable"] = False
-            base = error_base_code(effective_error or "")
-            if base in KNOWN_EXECUTION_FAILURE_CODES and evidence_complete:
+            if failure_known and evidence_complete:
                 entry["resolved"] = True
                 entry["reason"] = "KNOWN_EXECUTION_FAILURE_RESOLVED_NOT_USABLE"
             elif not evidence_complete:
@@ -3040,15 +3474,23 @@ def recompute_scores(execution_receipt, artifact_root, score_receipts, *,
             "execution_failure_is_usable": False,
             "all_technical_rows_pass_required": False,
             "all_rows_evidence_resolved_required": True,
+            "canonical_document_is_the_authority": True,
+            "supplied_receipt_may_only_restrict": True,
+            "verdict_overlay_fields": sorted(QS_RECEIPT_OVERLAY_FIELDS | QS_ROW_OVERLAY_FIELDS),
+            "published_unknown_failure_is_never_resolved_by_a_supplied_known_error": True,
             "failed_row_with_verified_raw": (
                 "The independent score identity, raw hash and raw length are validated and its "
                 "critical findings contribute to the global total. The row stays a quality FAIL. "
                 "A known ordinary refusal or structure failure with verified raw and proven "
-                "cleanup is resolved without being usable."),
+                "cleanup is resolved without being usable. The known failure is decided from the "
+                "published and the supplied document together: a published unknown failure is "
+                "never resolved by a supplied known error."),
             "unknown_source_storage_cleanup_or_review": (
                 "Cannot aggregate PASS. A missing raw or a missing review is not a known zero "
                 "critical count."),
             "authority": "reports/v0-s3/product-gate0/p3b-correction-01.adjudication.json",
+            "aggregate_correction_authority": (
+                "reports/v0-s3/product-gate0/p3b-correction-05.adjudication.json"),
         },
         "limitations": [
             "Four sampled frames cannot prove full motion continuity or physical camera movement.",
@@ -3056,6 +3498,13 @@ def recompute_scores(execution_receipt, artifact_root, score_receipts, *,
             "The supplied reviewer identities are a schema and binding check; genuine independent "
             "provenance remains parent coordinator evidence.",
             "This verdict covers only the bound sixteen rows of this run.",
+            "The artifact boundary is an in-process inode observation of the existing audited "
+            "Python/filesystem trust model. It does not claim immunity against a hostile kernel, "
+            "against a native Windows reparse point or against a filesystem that moves inodes "
+            "underneath the process.",
+            "Before a real consumer run the parent has to bind the selected owned archive or root "
+            "to the retained original artifacts or an independent attestation. That integration is "
+            "not proven by this component.",
         ],
         "stage_pass_claim": False,
         "product_gate0": False,
