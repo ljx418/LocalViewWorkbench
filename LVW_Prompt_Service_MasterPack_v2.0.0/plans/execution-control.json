@@ -1231,7 +1231,7 @@
   },
   "offline_integration_packet": ".agent-governance/stages/V0-S3/production-quality/stage-control.json",
   "p3b_quality": {
-    "status": "READY_FOR_REVIEW_NOT_PRODUCT_ACCEPTED",
+    "status": "CHANGES_REQUIRED_OFFLINE_F0_M9_m1",
     "workpacks": [
       "QD_PUBLIC_EXECUTION",
       "QS_INDEPENDENT_SCORE_RECOMPUTATION"
@@ -1307,7 +1307,7 @@
       "earlier_diagnostic_exit": "UNKNOWN_NOT_ACCEPTANCE"
     },
     "independent_review": {
-      "status": "DISPATCHED_NOT_ACCEPTED",
+      "status": "COMPLETED_CHANGES_REQUIRED",
       "dispatch_id": "ctx_47e80c96f167",
       "task_id": "task_139573f7d67b",
       "terminal": "term_8b140293-1371-4637-a7af-304b2bbb9bc5",
@@ -1320,7 +1320,19 @@
         "outcome": "in_progress",
         "state": "ready"
       },
-      "next": "Await Orca report; do not poll or restart live reviewer"
+      "next": "Await Orca report; do not poll or restart live reviewer",
+      "review_commit": "e2294724463efcab1a202a25563f76a24eea798f",
+      "receipt": "reports/v0-s3/product-gate0/independent-p3b/receipt.json",
+      "counts": {
+        "Fatal": 0,
+        "Major": 9,
+        "Minor": 1
+      }
+    },
+    "correction01": {
+      "adjudication": "reports/v0-s3/product-gate0/p3b-correction-01.adjudication.json",
+      "task_spec": "reports/v0-s3/product-gate0/implementation-p3b-correction-01.task.md",
+      "status": "PREPARED_FOR_VISIBLE_CLAUDE"
     }
   },
   "a06_read_only_capability_child": {
