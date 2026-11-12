@@ -1,6 +1,6 @@
 # P3B implementation receipt — READY_FOR_REVIEW
 
-Candidate: `667da6238abdf43caa33d17e556e13469346401e` (final, binds every check below).
+Candidate: `cea5bf328ea35a5aa1d1feb51ac3ef8946a964fa` (final, binds every check below).
 Base / frozen authority: `35f1ee4df74e3a6054e021ee9cbbd066eaba5490` (root freeze commit, already the
 HEAD of this worktree before the batch; nothing to merge, no reset, no rebase).
 Frozen contract: `reports/v0-s3/product-gate0/p3b-quality-contract.md`
@@ -17,7 +17,7 @@ was modified.
 | File | sha256 | lines | role |
 |---|---|---:|---|
 | `tools/v0_s3_quality_phase.py` | `7211f23d4fe2dc7f840c13ba0a9db1535c78f480b4f39bf0cbeadd50f23b2c26` | 1534 | QD execution phase + QS independent score recomputation |
-| `tools/test_v0_s3_quality_phase.py` | `7329b72ea2eeab103c8d4184d55a555a274689fb7b947217cb04bd9bbdaa03ad` | 1115 | 67 offline acceptance checks |
+| `tools/test_v0_s3_quality_phase.py` | `372555acfcef7b55bbd00dbb6edb6ad16e796a7e25c3a0dfb408a1fbeea28c48` | 1114 | 67 offline acceptance checks |
 | `reports/v0-s3/product-gate0/implementation-p3b/run_offline_checks.py` | `d1261c15c58d6b5e5bd16b7e5a683112d2746a09f432ade836022078dda183f6` | 254 | guarded runner (audit hook before pytest import) |
 
 Commit history of this worktree for the task:
@@ -27,6 +27,8 @@ Commit history of this worktree for the task:
   so the interruption state is not lost and is not mistaken for a delivery.
 - `747bef6` — the completed QD + QS implementation, the offline test module and the guarded runner.
 - `667da62` — the runner gained an executed guard self-test.
+- `cea5bf3` — an unused import was removed from the test module; no behaviour change. This is the
+  final candidate that every check below binds.
 
 ## Complete V0–V3 outline (unchanged coordinate)
 
@@ -65,7 +67,7 @@ completion count was advanced by this batch.** V0-S3 stays 0/6: this is offline 
 5. 全局路线位置: offline quality integration (QD+QS) → independent review of this candidate → root
    architecture/gate decision → frozen complete product Gate0 (real profiles, A06, rollback, the fixed
    twelve items) → finite same-source real run → independent acceptance → required human signature.
-6. 剩余工作: independent isolated review of candidate `667da62`; the real runtime staging (actual
+6. 剩余工作: independent isolated review of candidate `cea5bf3`; the real runtime staging (actual
    profile, model digest, media preparation, child authorization, single GPU), the real finite
    sixteen-row run, the independent scoring pass on the real raw artifacts and the required human
    experience signature.
@@ -197,7 +199,7 @@ reconstructed as raw streams:
 
 No failed run was rewritten or deleted, and no diagnostic round is counted as a passing acceptance.
 Only the four guarded runs above are acceptance evidence, and they bind the final candidate
-`667da62`. Every repair round produced new evidence (a different, newly located defect), so this is
+`cea5bf3`. Every repair round produced new evidence (a different, newly located defect), so this is
 not the prohibited two-same-route-repairs-without-evidence pattern; the sequence stopped as soon as
 the frozen contract was fully covered.
 
