@@ -1,0 +1,274 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-8.4.2, pluggy-1.6.0 -- /usr/bin/python3
+rootdir: /home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0
+collecting ... collected 74 items
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_inherited_default_then_warm_install_exact_runtime_root FAILED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[old-candidate] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[package-hash] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[manifest-hash] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[bad-digest] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[missing-bridge] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[extra-bridge] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[bridge-hash] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[workflow-unsealed] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[workflow-hash] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[missing-marker] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[invalid-marker] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[marker-link] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[package-link] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_preinstall_refusals_persist_and_never_start[package-oversize] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_installer_and_postinstall_refusals_before_start[bridge-bytes] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_installer_and_postinstall_refusals_before_start[workflow-bytes] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_installer_and_postinstall_refusals_before_start[extra-file] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_installer_and_postinstall_refusals_before_start[missing-file] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_installer_and_postinstall_refusals_before_start[payload-link] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_installer_and_postinstall_refusals_before_start[owner-bytes] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_installer_and_postinstall_refusals_before_start[receipt-identity] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_installer_and_postinstall_refusals_before_start[marker-drift] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_installer_and_postinstall_refusals_before_start[install-failure] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_prepare_rejects_wrong_registered_target[directory] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_prepare_rejects_wrong_registered_target[outside] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_prepare_rejects_wrong_registered_target[symlink] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_prepare_rejects_wrong_registered_target[unregistered] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_prepare_rejects_wrong_registered_target[child-link] PASSED
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_prepare_rejects_wrong_registered_target[replaced-root] PASSED
+tools/test_s3_install_handoff.py::test_late_child_redirect_after_validation_zero_foreign_writes PASSED
+tools/test_s3_install_handoff.py::test_late_archive_identity_change_zero_start[symlink] PASSED
+tools/test_s3_install_handoff.py::test_late_archive_identity_change_zero_start[identical-file] PASSED
+tools/test_s3_install_handoff.py::test_late_archive_identity_change_zero_start[in-place-write] PASSED
+tools/test_s3_install_handoff.py::test_returned_session_mismatch_zero_start_and_original_receipt PASSED
+tools/test_s3_install_handoff.py::test_descriptor_mutation_and_error_retention_never_follow_replacement[before-commit] PASSED
+tools/test_s3_install_handoff.py::test_descriptor_mutation_and_error_retention_never_follow_replacement[inside-commit] PASSED
+tools/test_s3_install_handoff.py::test_descriptor_mutation_and_error_retention_never_follow_replacement[owner-write] PASSED
+tools/test_s3_install_handoff.py::test_descriptor_mutation_and_error_retention_never_follow_replacement[staging-cleanup] PASSED
+tools/test_s3_install_handoff.py::test_plain_replacement_root_not_deleted_by_inherited_failure_archive PASSED
+tools/test_s3_install_handoff.py::test_unsupported_descriptor_platform_fails_before_writes PASSED
+tools/test_s3_install_handoff.py::test_protected_receipt_binds_snapshot_and_session FAILED
+tools/test_s3_install_handoff.py::test_late_special_file_refused_without_blocking_or_target_write[archive] PASSED
+tools/test_s3_install_handoff.py::test_late_special_file_refused_without_blocking_or_target_write[marker] PASSED
+tools/test_s3_install_handoff.py::test_failure_lifecycle_stays_on_moved_parent[receipt] PASSED
+tools/test_s3_install_handoff.py::test_failure_lifecycle_stays_on_moved_parent[post-deploy-copy] PASSED
+tools/test_s3_install_handoff.py::test_failure_lifecycle_stays_on_moved_parent[post-deploy-return] PASSED
+tools/test_s3_install_handoff.py::test_failure_persistence_preserves_original_error_and_closes[early] PASSED
+tools/test_s3_install_handoff.py::test_failure_persistence_preserves_original_error_and_closes[deployment] PASSED
+tools/test_s3_install_handoff.py::test_failure_persistence_preserves_original_error_and_closes[conflict] PASSED
+tools/test_s3_install_handoff.py::test_failure_persistence_preserves_original_error_and_closes[open-error] PASSED
+tools/test_s3_install_handoff.py::test_failure_persistence_preserves_original_error_and_closes[write-error] PASSED
+tools/test_s3_install_handoff.py::test_failure_persistence_preserves_original_error_and_closes[fsync-error] PASSED
+tools/test_s3_install_handoff.py::test_successful_preparation_releases_lifecycle_handles FAILED
+tools/test_s3_install_handoff.py::test_correction03_adjacent_callback_write_audit[complete-allocation] ADJACENT_BOUNDARY {"boundary": "complete-allocation", "error": "preparation parent identity drift", "events_after": [], "events_at_move": [], "replacement_after": [["foreign", "464f524549474e2053454e54494e454c"]], "replacement_before": [["foreign", "464f524549474e2053454e54494e454c"]]}
+PASSED
+tools/test_s3_install_handoff.py::test_correction03_adjacent_callback_write_audit[authorize-allocation] ADJACENT_BOUNDARY {"boundary": "authorize-allocation", "error": "preparation parent identity drift", "events_after": [], "events_at_move": [], "replacement_after": [["foreign", "464f524549474e2053454e54494e454c"]], "replacement_before": [["foreign", "464f524549474e2053454e54494e454c"]]}
+PASSED
+tools/test_s3_install_handoff.py::test_correction03_adjacent_callback_write_audit[archive-authorization] ADJACENT_BOUNDARY {"boundary": "archive-authorization", "error": "preparation parent identity drift", "events_after": [], "events_at_move": [], "replacement_after": [["foreign", "464f524549474e2053454e54494e454c"], ["lvw-s2-default-d5a9b77ccf3f3362", "DIR"]], "replacement_before": [["foreign", "464f524549474e2053454e54494e454c"], ["lvw-s2-default-d5a9b77ccf3f3362", "DIR"]]}
+PASSED
+tools/test_s3_install_handoff.py::test_correction03_adjacent_callback_write_audit[register-directories] ADJACENT_BOUNDARY {"boundary": "register-directories", "error": "preparation parent identity drift", "events_after": [], "events_at_move": [], "replacement_after": [["foreign", "464f524549474e2053454e54494e454c"], ["lvw-s2-default-6bdb811ba58bef9b", "DIR"]], "replacement_before": [["foreign", "464f524549474e2053454e54494e454c"], ["lvw-s2-default-6bdb811ba58bef9b", "DIR"]]}
+PASSED
+tools/test_s3_install_handoff.py::test_correction03_adjacent_callback_write_audit[deploy-samples] ADJACENT_BOUNDARY {"boundary": "deploy-samples", "error": "preparation parent identity drift", "events_after": ["cleanup"], "events_at_move": [], "replacement_after": [["foreign", "464f524549474e2053454e54494e454c"], ["lvw-s2-default-4fd18c0f898cd7c0", "DIR"], ["lvw-s2-default-4fd18c0f898cd7c0/custom_nodes", "DIR"], ["lvw-s2-default-4fd18c0f898cd7c0/input", "DIR"], ["lvw-s2-default-4fd18c0f898cd7c0/output", "DIR"], ["lvw-s2-default-4fd18c0f898cd7c0/temp", "DIR"]], "replacement_before": [["foreign", "464f524549474e2053454e54494e454c"], ["lvw-s2-default-4fd18c0f898cd7c0", "DIR"], ["lvw-s2-default-4fd18c0f898cd7c0/custom_nodes", "DIR"], ["lvw-s2-default-4fd18c0f898cd7c0/input", "DIR"], ["lvw-s2-default-4fd18c0f898cd7c0/output", "DIR"], ["lvw-s2-default-4fd18c0f898cd7c0/temp", "DIR"]]}
+PASSED
+tools/test_s3_install_handoff.py::test_correction03_adjacent_callback_write_audit[native-final-evidence] ADJACENT_BOUNDARY {"boundary": "native-final-evidence", "error": "preparation parent identity drift", "events_after": ["ollama-start", "comfy-start", "sampler-start", "cleanup"], "events_at_move": ["ollama-start", "comfy-start", "sampler-start"], "replacement_after": [["foreign", "464f524549474e2053454e54494e454c"], ["lvw-s2-default-6a0d57e46e7c38b7", "DIR"], ["lvw-s2-default-6a0d57e46e7c38b7/custom_nodes", "DIR"], ["lvw-s2-default-6a0d57e46e7c38b7/input", "DIR"], ["lvw-s2-default-6a0d57e46e7c38b7/output", "DIR"], ["lvw-s2-default-6a0d57e46e7c38b7/temp", "DIR"]], "replacement_before": [["foreign", "464f524549474e2053454e54494e454c"], ["lvw-s2-default-6a0d57e46e7c38b7", "DIR"], ["lvw-s2-default-6a0d57e46e7c38b7/custom_nodes", "DIR"], ["lvw-s2-default-6a0d57e46e7c38b7/input", "DIR"], ["lvw-s2-default-6a0d57e46e7c38b7/output", "DIR"], ["lvw-s2-default-6a0d57e46e7c38b7/temp", "DIR"]]}
+PASSED
+tools/test_s3_install_handoff.py::test_correction03_adjacent_callback_write_audit[error-archive] ADJACENT_BOUNDARY {"boundary": "error-archive", "error": "original later preparation error", "events_after": ["cleanup"], "events_at_move": ["cleanup"], "replacement_after": [["foreign", "464f524549474e2053454e54494e454c"], ["lvw-s2-default-2a1421b0d6adb65c", "DIR"], ["lvw-s2-default-2a1421b0d6adb65c/custom_nodes", "DIR"], ["lvw-s2-default-2a1421b0d6adb65c/input", "DIR"], ["lvw-s2-default-2a1421b0d6adb65c/output", "DIR"], ["lvw-s2-default-2a1421b0d6adb65c/temp", "DIR"]], "replacement_before": [["foreign", "464f524549474e2053454e54494e454c"], ["lvw-s2-default-2a1421b0d6adb65c", "DIR"], ["lvw-s2-default-2a1421b0d6adb65c/custom_nodes", "DIR"], ["lvw-s2-default-2a1421b0d6adb65c/input", "DIR"], ["lvw-s2-default-2a1421b0d6adb65c/output", "DIR"], ["lvw-s2-default-2a1421b0d6adb65c/temp", "DIR"]]}
+PASSED
+tools/test_s3_install_handoff.py::test_correction03_registration_writer_uses_original_descriptor PASSED
+tools/test_s3_install_handoff.py::test_correction03_allocation_collisions_are_finite_and_preserved PASSED
+tools/test_s3_install_handoff.py::test_correction03_allocation_open_failure_is_unknown_without_cleanup PASSED
+tools/test_s3_install_handoff.py::test_correction03_archive_cleanup_callback_cannot_write_replacement ARCHIVE_CLEANUP_BOUNDARY {"replacement_entries": ["foreign"]}
+PASSED
+tools/test_s3_install_handoff.py::test_correction04_post_prepare_default_archive_warm_archive FAILED
+tools/test_s3_install_handoff.py::test_correction04_archive_refuses_and_releases[parent-replaced] PASSED
+tools/test_s3_install_handoff.py::test_correction04_archive_refuses_and_releases[root-replaced] PASSED
+tools/test_s3_install_handoff.py::test_correction04_archive_refuses_and_releases[parent-open] FAILED
+tools/test_s3_install_handoff.py::test_correction04_archive_refuses_and_releases[root-open] PASSED
+tools/test_s3_install_handoff.py::test_correction04_archive_refuses_and_releases[callback-error] PASSED
+tools/test_s3_install_handoff.py::test_correction04_archive_refuses_and_releases[callback-move] PASSED
+tools/test_s3_install_handoff.py::test_correction04_archive_refuses_and_releases[authorize-move] PASSED
+tools/test_s3_install_handoff.py::test_correction04_archive_refuses_and_releases[reentry] PASSED
+
+=================================== FAILURES ===================================
+_________ test_inherited_default_then_warm_install_exact_runtime_root __________
+
+fixture = namespace(monkeypatch=<_pytest.monkeypatch.MonkeyPatch object at 0x7d27a11fb5c0>, temporary='/tmp/lvw-p3a-owned-_vmofg...in': PosixPath('/tmp/lvw-p3a-owned-_vmofg0r/comfy_main')}, repo=PosixPath('/tmp/lvw-p3a-owned-_vmofg0r/synthetic-git'))
+
+    def test_inherited_default_then_warm_install_exact_runtime_root(fixture):
+        f = fixture
+        factory = InstalledPackageRuntimeFactory(**f.kwargs)
+        assert InstalledPackageRuntimeFactory._prepare is legacy.StageRuntimeFactory._prepare
+        for label in ('default', 'warm'):
+            context = factory.prepare_default() if label == 'default' else factory.prepare_warm()
+            receipt = json.loads((f.directory / (label + '-package-install.json')).read_text())
+            assert receipt['target'] == str(context.root) == str(context.driver.root)
+            assert f.archive.lease(label) == context.root
+            assert context.binding['candidate_sha'] == f.candidate
+            assert factory.evidence[label]['deployment']['status'] == 'VERIFIED'
+            assert factory.evidence[label]['deployment']['payload_files'] == len(f.payload)
+            assert (context.root / package.OWNERSHIP_FILE_NAME).exists()
+            for item in f.build['payload']['items']:
+                raw = (context.root / item['install_path']).read_bytes()
+                assert raw == f.payload[item['source_path']]
+                assert (sha(raw), len(raw)) == (item['sha256'], item['length'])
+>           assert f.archive(context, context.driver.cleanup())['proven']
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py:159: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_s2_stage_archive.py:129: in __call__
+    self.authorize('archive_owned_terminal_root', label)
+tools/v0_s3_stage_runtime.py:96: in archive_authorize
+    self._preparation_guard()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <tools.v0_s3_stage_runtime.InstalledPackageRuntimeFactory object at 0x7d27a12a8680>
+
+    def _preparation_guard(self):
+        if self._parent_fd is None:
+>           raise EvidenceError('protected lifecycle descriptor unavailable')
+E           tools.v0_s2_checkpoint_oracles.EvidenceError: protected lifecycle descriptor unavailable
+
+tools/v0_s3_stage_runtime.py:104: EvidenceError
+______________ test_protected_receipt_binds_snapshot_and_session _______________
+
+fixture = namespace(monkeypatch=<_pytest.monkeypatch.MonkeyPatch object at 0x7d27a0342c60>, temporary='/tmp/lvw-p3a-owned-2a8hu4...in': PosixPath('/tmp/lvw-p3a-owned-2a8hu4rs/comfy_main')}, repo=PosixPath('/tmp/lvw-p3a-owned-2a8hu4rs/synthetic-git'))
+
+    def test_protected_receipt_binds_snapshot_and_session(fixture):
+        f = fixture; factory = InstalledPackageRuntimeFactory(**f.kwargs)
+        context = factory.prepare_default()
+        receipt = factory.evidence['default']['deployment']['install_receipt']
+        owner, _ = package._read_ownership_record(context.root)
+        assert owner['session_id'] == receipt['session_id']
+        proof = receipt['protected_source']
+        assert proof['sha256'] == f.kwargs['package_sha256']
+        assert proof['bytes'] == f.archive_path.stat().st_size
+        assert proof['file_identity'][:2] == [f.archive_path.stat().st_dev, f.archive_path.stat().st_ino]
+>       assert f.archive(context, context.driver.cleanup())['proven']
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/test_s3_install_handoff.py:133: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_s2_stage_archive.py:129: in __call__
+    self.authorize('archive_owned_terminal_root', label)
+tools/v0_s3_stage_runtime.py:96: in archive_authorize
+    self._preparation_guard()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <tools.v0_s3_stage_runtime.InstalledPackageRuntimeFactory object at 0x7d27a04afec0>
+
+    def _preparation_guard(self):
+        if self._parent_fd is None:
+>           raise EvidenceError('protected lifecycle descriptor unavailable')
+E           tools.v0_s2_checkpoint_oracles.EvidenceError: protected lifecycle descriptor unavailable
+
+tools/v0_s3_stage_runtime.py:104: EvidenceError
+____________ test_successful_preparation_releases_lifecycle_handles ____________
+
+fixture = namespace(monkeypatch=<_pytest.monkeypatch.MonkeyPatch object at 0x7d27a034c5c0>, temporary='/tmp/lvw-p3a-owned-qsasg0...in': PosixPath('/tmp/lvw-p3a-owned-qsasg0n2/comfy_main')}, repo=PosixPath('/tmp/lvw-p3a-owned-qsasg0n2/synthetic-git'))
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7d27a034c5c0>
+
+    def test_successful_preparation_releases_lifecycle_handles(fixture, monkeypatch):
+        f = fixture; factory = InstalledPackageRuntimeFactory(**f.kwargs)
+        opened = lifecycle_fds(monkeypatch)
+        context = factory.prepare_default()
+        assert_lifecycle_closed(factory, opened)
+        assert factory.preparation_failures == {}
+>       assert f.archive(context, context.driver.cleanup())['proven']
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/test_s3_install_handoff.py:261: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_s2_stage_archive.py:129: in __call__
+    self.authorize('archive_owned_terminal_root', label)
+tools/v0_s3_stage_runtime.py:96: in archive_authorize
+    self._preparation_guard()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <tools.v0_s3_stage_runtime.InstalledPackageRuntimeFactory object at 0x7d27a034da60>
+
+    def _preparation_guard(self):
+        if self._parent_fd is None:
+>           raise EvidenceError('protected lifecycle descriptor unavailable')
+E           tools.v0_s2_checkpoint_oracles.EvidenceError: protected lifecycle descriptor unavailable
+
+tools/v0_s3_stage_runtime.py:104: EvidenceError
+_________ test_correction04_post_prepare_default_archive_warm_archive __________
+
+fixture = namespace(monkeypatch=<_pytest.monkeypatch.MonkeyPatch object at 0x7d27a03422d0>, temporary='/tmp/lvw-p3a-owned-w7yr10...in': PosixPath('/tmp/lvw-p3a-owned-w7yr10st/comfy_main')}, repo=PosixPath('/tmp/lvw-p3a-owned-w7yr10st/synthetic-git'))
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7d27a03422d0>
+
+    def test_correction04_post_prepare_default_archive_warm_archive(fixture, monkeypatch):
+        import json
+        f = fixture
+        factory = InstalledPackageRuntimeFactory(**f.kwargs)
+        opened = _correction04_track(monkeypatch)
+        for label in ('default', 'warm'):
+            context = factory.prepare_default() if label == 'default' else factory.prepare_warm()
+            _correction04_closed(factory, opened)
+            result = factory.archive(context, context.driver.cleanup())
+            assert result['proven'] is True and not context.root.exists()
+            manifest = json.loads((f.directory / (label + '-raw/ARCHIVE_MANIFEST.json')).read_text())
+            assert manifest['cleanup']['proven'] is True
+>           assert manifest['owned_reparse_cleanup']['proven'] is True
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           TypeError: 'NoneType' object is not subscriptable
+
+tools/test_s3_install_handoff.py:459: TypeError
+_________ test_correction04_archive_refuses_and_releases[parent-open] __________
+
+fixture = namespace(monkeypatch=<_pytest.monkeypatch.MonkeyPatch object at 0x7d27a0345df0>, temporary='/tmp/lvw-p3a-owned-mzgcrh...in': PosixPath('/tmp/lvw-p3a-owned-mzgcrhc9/comfy_main')}, repo=PosixPath('/tmp/lvw-p3a-owned-mzgcrhc9/synthetic-git'))
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7d27a0345df0>
+fault = 'parent-open'
+
+    @pytest.mark.parametrize('fault', ['parent-replaced', 'root-replaced', 'parent-open', 'root-open',
+                                      'callback-error', 'callback-move', 'authorize-move', 'reentry'])
+    def test_correction04_archive_refuses_and_releases(fixture, monkeypatch, fault):
+        f = fixture
+        factory = InstalledPackageRuntimeFactory(**f.kwargs)
+        context = factory.prepare_default()
+        cleanup = context.driver.cleanup()
+        opened = _correction04_track(monkeypatch)
+        original_open = os.open
+        detached = f.root / 'correction04-detached'
+        def move_parent():
+            f.directory.rename(detached)
+            f.directory.mkdir()
+            (f.directory / 'foreign').write_bytes(b'UNCHANGED')
+        if fault == 'parent-replaced': move_parent()
+        if fault == 'root-replaced':
+            context.root.rename(detached)
+            context.root.mkdir()
+            (context.root / 'foreign').write_bytes(b'UNCHANGED')
+        if fault in ('parent-open', 'root-open'):
+            def fail_open(path, flags, *args, **kwargs):
+                if (fault == 'parent-open' and Path(path) == f.directory or
+                        fault == 'root-open' and path == context.root.name):
+                    raise OSError('correction04 acquire failure')
+                return original_open(path, flags, *args, **kwargs)
+            monkeypatch.setattr(os, 'open', fail_open)
+        remove = context.driver.remove_owned_reparse_fixture
+        if fault in ('callback-error', 'callback-move', 'reentry'):
+            def callback(root):
+                result = remove(root)
+                if fault == 'callback-error': raise ValueError('correction04 callback failure')
+                if fault == 'callback-move': move_parent()
+                if fault == 'reentry': factory.archive(context, cleanup)
+                return result
+            monkeypatch.setattr(context.driver, 'remove_owned_reparse_fixture', callback)
+        if fault == 'authorize-move':
+            # Keep the production wrapper; mutate in its original authority callback.
+            original = factory.archive.original.authorize
+            def authorize(*args):
+                result = original(*args)
+                move_parent()
+                return result
+            monkeypatch.setattr(factory.archive.original, 'authorize', authorize)
+>       with pytest.raises((ValueError, OSError)):
+E       Failed: DID NOT RAISE any of (<class 'ValueError'>, <class 'OSError'>)
+
+tools/test_s3_install_handoff.py:509: Failed
+=========================== short test summary info ============================
+FAILED LVW_V0_RuntimePatch/tests/test_s3_installed_runtime.py::test_inherited_default_then_warm_install_exact_runtime_root
+FAILED tools/test_s3_install_handoff.py::test_protected_receipt_binds_snapshot_and_session
+FAILED tools/test_s3_install_handoff.py::test_successful_preparation_releases_lifecycle_handles
+FAILED tools/test_s3_install_handoff.py::test_correction04_post_prepare_default_archive_warm_archive
+FAILED tools/test_s3_install_handoff.py::test_correction04_archive_refuses_and_releases[parent-open]
+========================= 5 failed, 69 passed in 6.03s =========================
