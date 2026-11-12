@@ -1,0 +1,30 @@
+{
+  "terminal": "term_3586f565-23eb-4c71-b7b0-714d43b1f1aa",
+  "source": "actual Orca terminal screen last24 lines",
+  "tail": [
+    "      4463      state = _fail_the_metadata_of_the_next_open(monkeypatch)",
+    "      4464      boundary = quality._ArtifactBoundary(root)",
+    "      4465 +    during = _descriptor_count()",
+    "      4466      try:",
+    "      4467          with pytest.raises(OSError):",
+    "      4468              boundary.read(\"admission-a.bin\", 4)",
+    "      4469          assert state[\"fired\"] == 1, state",
+    "      4470 +        assert _descriptor_count() == during, \"the refused admission leaked a de",
+    "           +scriptor\"",
+    "      4471          assert boundary._custody.count() == 0, boundary._custody.count()",
+    "      4472          assert boundary._custody.reserved() == 0, boundary._custody.reserved()",
+    "      4473          # The refused admission consumed no slot: the next name is admitted",
+    "  Thought for 10s, ran 1 shell command",
+    "● Now the negative control — the new tests against the unfixed baseline product code:",
+    "  Thought for 12s, searched for 1 pattern, ran 3 shell commands",
+    "● Now a pre-commit debug run of the full combined suite to catch regressions before committing:",
+    "  Ran 1 shell command",
+    "● API Error: Request rejected (429) · 已达到 Token Plan 用量上限：请升级 Token Plan",
+    "  套餐或购买积分补充用量。 (2056)",
+    "✻ Brewed for 12m 33s · done 6:08 PM",
+    "───────────────────────────────────────────────────────────────────────────────────────────────────",
+    "❯",
+    "───────────────────────────────────────────────────────────────────────────────────────────────────",
+    "  ⏵⏵ auto mode on (shift+tab to cycle) · ← for agents"
+  ]
+}
