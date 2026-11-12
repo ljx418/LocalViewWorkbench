@@ -1231,7 +1231,7 @@
   },
   "offline_integration_packet": ".agent-governance/stages/V0-S3/production-quality/stage-control.json",
   "p3b_quality": {
-    "status": "CORRECTION02_PREPARED_AFTER_F0_M5_REVIEW",
+    "status": "CORRECTION02_READY_FOR_INDEPENDENT_REVIEW",
     "workpacks": [
       "QD_PUBLIC_EXECUTION",
       "QS_INDEPENDENT_SCORE_RECOMPUTATION"
@@ -1383,7 +1383,7 @@
       }
     },
     "correction02": {
-      "status": "DISPATCHED_WAIT_IMPLEMENTATION",
+      "status": "IMPLEMENTER_READY_FOR_REVIEW_NOT_ACCEPTED",
       "adjudication": "reports/v0-s3/product-gate0/p3b-correction-02.adjudication.json",
       "task_spec": "reports/v0-s3/product-gate0/implementation-p3b-correction-02.task.md",
       "parent_hard_timing": "UNIMPLEMENTED_PRODUCT_GATE0_BLOCKER",
@@ -1398,7 +1398,19 @@
         "state": "ready",
         "stage": "input_accepted",
         "terminal_state": "retained"
-      }
+      },
+      "candidate_sha": "9ed09513eac35636175b24a514b05d9d0c180717",
+      "evidence_commit": "18c950e6e3497c425ddb11fcbb85b75da4ded4b1",
+      "delivery_message_id": "msg_6176d0094c31",
+      "self_checks": {
+        "combined": 112,
+        "preserved_original": 95,
+        "new": 17,
+        "guard_blocked": 4,
+        "replay_observations": 21,
+        "early_diagnostic_exits": "UNKNOWN"
+      },
+      "review_task_spec": "reports/v0-s3/product-gate0/independent-p3b-correction-02.task.md"
     },
     "parent_supervision": {
       "status": "DESIGN_ONLY_UNIMPLEMENTED_PRODUCT_GATE0_BLOCKER",
