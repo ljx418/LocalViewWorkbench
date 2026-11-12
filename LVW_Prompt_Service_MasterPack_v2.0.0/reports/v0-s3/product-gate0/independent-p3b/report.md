@@ -176,3 +176,5 @@ Extracted from root215c60f, not advanced by this review. Current product coordin
 |V3|R5c|0/4|NOT_DELIVERED|NOT_RUN|NOT_RUN|NOT_SIGNED|已有设计，未完成正式交付；存在代码需进入时复用审计|
 
 Review procedure note: setup briefly created and immediately removed an empty `reports/v0-s3/product-gate0/independent-p3b-tmp.txt` outside the allowed new subtree; no candidate or historical bytes changed. This is disclosed as a reviewer scope deviation, not candidate behavior. Actual outer command lines are in commands.json; implementation receipt command arrays are reconstructed by its runner. Production owner/workflow Git bindings and all10 packet checksum entries also match (production-bindings.json).
+
+Evidence capture correction: initial candidate-change/rebind-diff commands used cwd-relative pathspecs and returned empty exit0 streams; preserved as failed evidence selection, not substantive proof. Corrected top-anchored commands and full raw diffs are candidate-change-top/rebind-diff-top logs with git-pathspec-correction.json. No acceptance test was repeated.

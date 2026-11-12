@@ -1,0 +1,25 @@
+commit cea5bf328ea35a5aa1d1feb51ac3ef8946a964fa
+Author: ljx418 <1173696783@qq.com>
+Date:   Thu Nov 12 10:39:19 2026 +0800
+
+    Drop an unused import from the offline quality test module
+    
+    No behaviour change: the module never used the tempfile import.  The test
+    denominator, the frozen contract, the thresholds and the fixed sixteen row
+    denominator are untouched.  The acceptance evidence is re-bound to the new
+    candidate by re-running the guarded checks.
+    
+    Co-Authored-By: Claude Code <noreply@anthropic.com>
+
+diff --git a/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_quality_phase.py b/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_quality_phase.py
+index 4247f40..00ae2fe 100644
+--- a/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_quality_phase.py
++++ b/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_quality_phase.py
+@@ -20,7 +20,6 @@ import os
+ import socket
+ import subprocess
+ import sys
+-import tempfile
+ from pathlib import Path
+ from types import SimpleNamespace
+ 
