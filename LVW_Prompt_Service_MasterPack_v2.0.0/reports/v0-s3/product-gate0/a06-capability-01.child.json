@@ -1,0 +1,44 @@
+{
+  "kind": "FINITE_READ_ONLY_A06_CAPABILITY_CHILD",
+  "authorization_id": "S3-A06-CAPABILITY-01",
+  "parent": "AUTH-PROGRAM-V1-COMPLETE-03",
+  "parent_approval": "reports/authorization-program-v1-complete-03.approval.json",
+  "parent_approval_sha256": "cd919c7fd24c24e2740366ef11998fee1b3302f16700598a3a5f75c6ef1b0821",
+  "parent_request": "reports/authorization-program-v1-complete-03.request.json",
+  "candidate_sha": "ce9b15c662425399d35626899a93e81887f305e4",
+  "executor_sha256": "2920097db18fe48dee4ddf6ec1149defff7fc6d35cb39f48ded79c7a70d46532",
+  "claim_path": "/mnt/c/workSpace/videoWorkLine/.lvw-runtime/lvw-prompt-service/cpu-verification-claims/S3-A06-CAPABILITY-01.claim.json",
+  "files": {
+    "native_python": "/mnt/c/ComfyUI-aki-v2/python/python.exe",
+    "main": "/mnt/c/ComfyUI-aki-v2/ComfyUI/main.py",
+    "nodes": "/mnt/c/ComfyUI-aki-v2/ComfyUI/nodes.py",
+    "cli_args": "/mnt/c/ComfyUI-aki-v2/ComfyUI/comfy/cli_args.py"
+  },
+  "command": [
+    "/mnt/c/ComfyUI-aki-v2/python/python.exe",
+    "-I",
+    "-S",
+    "-B",
+    "-c",
+    "import ctypes,json,os,sys; print(json.dumps({'is_admin':bool(ctypes.windll.shell32.IsUserAnAdmin()),'native_pid':os.getpid(),'platform':sys.platform}))"
+  ],
+  "budgets": {
+    "source_total_bytes": 4194304,
+    "per_file_bytes": 2097152,
+    "native_processes": 1,
+    "native_seconds": 8,
+    "native_output_bytes": 2048,
+    "batch_seconds": 30,
+    "model_actions": 0,
+    "media_reads": 0,
+    "services": 0,
+    "network": 0,
+    "gpu": 0,
+    "system_changes": 0,
+    "full_checkpoints": 0
+  },
+  "scope": "Read only four exact installed executable/source roles and AST declarations; native stdlib-only admin-token bool/PID/platform observation once. No WFP/network setup/importing Comfy/media/runtime/models, no raw source copied. One terminal receipt consumes child, no retries.",
+  "status": "AUTHORIZED_ONE_SHOT_UNDER_APPROVED_PARENT",
+  "on_timeout": "No further action or retry; report unproven, do not terminate unrelated processes.",
+  "stage_pass_claim": false
+}

@@ -1,0 +1,11 @@
+{
+  "argv": [
+    "/mnt/c/ComfyUI-aki-v2/python/python.exe",
+    "-I",
+    "-S",
+    "-B",
+    "-c",
+    "import ctypes,json,os,sys; print(json.dumps({'is_admin':bool(ctypes.windll.shell32.IsUserAnAdmin()),'native_pid':os.getpid(),'platform':sys.platform}))"
+  ],
+  "timeout_seconds": 8
+}

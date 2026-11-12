@@ -8,7 +8,7 @@
   "coordinate": {
     "stage_id": "R1",
     "workpack_id": "WP-R1-U3",
-    "gate": "S3_P3B_QUALITY_INTEGRATION_IMPLEMENTATION",
+    "gate": "S3_P3B_QUALITY_INTEGRATION_INDEPENDENT_REVIEW",
     "state": "PREPARING_NEXT_STAGE"
   },
   "last_passed_gate": {
@@ -21,7 +21,7 @@
     "passed_cases": 10,
     "human_signoff": "reports/unified-media/human-signoff-live15.json"
   },
-  "current_blocking_gate": "S3_QUALITY_EXECUTOR_A06_COORDINATOR_AND_GATE0_PENDING",
+  "current_blocking_gate": "S3_P3B_INDEPENDENT_REVIEW_AND_COMPLETE_PRODUCT_GATE0_PENDING",
   "stage_packet": ".agent-governance/stages/R1/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/R1/PAYLOAD_MANIFEST.sha256",
   "product_status": "UNIFIED_MEDIA_EARLY_ACCEPTED_SCOPE_ONLY_FULL_R1_PENDING",
@@ -34,8 +34,8 @@
     "PRODUCTION_RELEASED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "Orca visible ClaudeCode implementation; root architecture then independent review",
-  "next_action": "ClaudeCode sequential QD public16-row quality execution and QS independent score recomputation under production-quality packet; offline only; first429 immediate stop no Codexfallback.",
+  "next_owner": "Separate visible read-only independent reviewer, root adjudication; Claude owns any corrections",
+  "next_action": "Independently review delivered cea5bf3/evidencee0e54a4, actual67checks+guard4 and bounded probes; do not promote offline code to realquality/StagePASS.",
   "required_authorization": null,
   "authorization_request": "reports/authorization-program-v1-complete-03.request.json",
   "authorization_record": "reports/authorization-program-v1-complete-03.approval.json",
@@ -1231,7 +1231,7 @@
   },
   "offline_integration_packet": ".agent-governance/stages/V0-S3/production-quality/stage-control.json",
   "p3b_quality": {
-    "status": "FROZEN_OFFLINE_IMPLEMENTATION_ONLY",
+    "status": "CHANGES_REQUIRED_OFFLINE_F0_M9_m1",
     "workpacks": [
       "QD_PUBLIC_EXECUTION",
       "QS_INDEPENDENT_SCORE_RECOMPUTATION"
@@ -1239,6 +1239,127 @@
     "projection": "reports/v0-s3/product-gate0/quality-execution-inputs.frozen.json",
     "projection_sha256": "47e9f14efa66bc4df851bf1a738763b48c1728eed84b76c56a7848d1b01f00c3",
     "real_runs_allowed": false,
-    "product_gate0": false
+    "product_gate0": false,
+    "worker": {
+      "run_id": "run_ec1d5514e718",
+      "dispatch_id": "ctx_f9b402dfa3f5",
+      "task_id": "task_be463818b029",
+      "terminal": "term_295cf8bd-4721-49d0-b21a-9475777db81b",
+      "agent": "claude",
+      "launch_receipt": "reports/v0-s3/product-gate0/implementation-p3b-recovery-01-ready.launch.json",
+      "original_task_spec": "reports/v0-s3/product-gate0/implementation-p3b.task.md",
+      "recovery_guidance": "reports/v0-s3/product-gate0/implementation-p3b-recovery-01.guidance.md",
+      "launch_state": "ready",
+      "next": "Await Orca report, first429 immediate stop no fallback",
+      "latest_transport_observation": {
+        "status": "RECOVERED_MESSAGE_RECEIVED",
+        "prior_error_retained": true,
+        "unproven_scoring_message_not_resent": true
+      },
+      "reported_outcome": "succeeded",
+      "delivery_message_id": "msg_ba3f867f352c"
+    },
+    "previous_attempt": {
+      "run_id": "run_ec1d5514e718",
+      "dispatch_id": "ctx_1e9a5a3ba89a",
+      "task_id": "task_be463818b029",
+      "terminal": "term_4053253a-419b-4351-89c7-45cd1e5e35cc",
+      "agent": "claude",
+      "launch_receipt": "reports/v0-s3/product-gate0/implementation-p3b.launch.json",
+      "task_spec": "reports/v0-s3/product-gate0/implementation-p3b.task.md",
+      "last_observation": {
+        "source": "orca-ide orchestration worker-show --dispatch ctx_1e9a5a3ba89a --json",
+        "liveness": "live",
+        "stage": "input_accepted",
+        "state": "ready",
+        "terminal_state": "retained",
+        "recorded_at_utc": "2026-11-12T00:47:01.640961+00:00",
+        "meaning": "Coordinator observed specific worker live; not implementation completion or quota/model-route proof"
+      },
+      "next": "Await Orca worker report; no polling/restart/Codex fallback",
+      "recovery_observations": "reports/v0-s3/product-gate0/implementation-p3b-recovery-01.observations.json",
+      "old_assignment_terminal": "ABANDONED_TERMINAL_MISSING"
+    },
+    "architect_interface_review": {
+      "path": "reports/v0-s3/product-gate0/p3b-preimplementation-interface-review-01.md",
+      "scope": "Read-only review of interrupted WIP, not independent acceptance",
+      "source_sha256": "62a6b51594ec838d309bd14a4a2584a6a66c06cdb0db18cf7ac2df9b8be8d186",
+      "next": "Implementer addresses existing frozen obligations within original QD/QS batch; independent review after delivery"
+    },
+    "final_evidence_advisory": {
+      "path": "reports/v0-s3/product-gate0/p3b-final-evidence-guard-advisory-01.md",
+      "delivery": "reports/v0-s3/product-gate0/p3b-final-evidence-guard-advisory-01.delivery.json",
+      "scope": "Before-pytest guard and raw exit capture; earlier diagnostics not retroactively certified",
+      "status": "DELIVERED_TO_IMPLEMENTER_NOT_GATE_VERDICT"
+    },
+    "scoring_reviewpoint": {
+      "path": "reports/v0-s3/product-gate0/p3b-scoring-boundary-reviewpoint-01.md",
+      "delivery": "reports/v0-s3/product-gate0/p3b-scoring-boundary-reviewpoint-01.delivery.json",
+      "status": "DELIVERY_UNPROVEN_WSL_TRANSPORT_ERROR_NO_RESEND"
+    },
+    "candidate_sha": "cea5bf328ea35a5aa1d1feb51ac3ef8946a964fa",
+    "evidence_commit": "e0e54a4b889050de218d483a36532cec9127dd0a",
+    "self_check_counts": {
+      "qd": 39,
+      "qs": 28,
+      "combined": 67,
+      "guard_blocked_attempts": 4,
+      "earlier_diagnostic_exit": "UNKNOWN_NOT_ACCEPTANCE"
+    },
+    "independent_review": {
+      "status": "COMPLETED_CHANGES_REQUIRED",
+      "dispatch_id": "ctx_47e80c96f167",
+      "task_id": "task_139573f7d67b",
+      "terminal": "term_8b140293-1371-4637-a7af-304b2bbb9bc5",
+      "launch_receipt": "reports/v0-s3/product-gate0/independent-p3b.launch.json",
+      "task_spec": "reports/v0-s3/product-gate0/independent-p3b.task.md",
+      "observation": {
+        "at_utc": "2026-11-12T02:49:27.133850+00:00",
+        "source": "orca-ide orchestration worker-list --run run_ec1d5514e718 --json",
+        "liveness": "live",
+        "outcome": "in_progress",
+        "state": "ready"
+      },
+      "next": "Await Orca report; do not poll or restart live reviewer",
+      "review_commit": "e2294724463efcab1a202a25563f76a24eea798f",
+      "receipt": "reports/v0-s3/product-gate0/independent-p3b/receipt.json",
+      "counts": {
+        "Fatal": 0,
+        "Major": 9,
+        "Minor": 1
+      }
+    },
+    "correction01": {
+      "adjudication": "reports/v0-s3/product-gate0/p3b-correction-01.adjudication.json",
+      "task_spec": "reports/v0-s3/product-gate0/implementation-p3b-correction-01.task.md",
+      "status": "PREPARED_FOR_VISIBLE_CLAUDE"
+    }
+  },
+  "a06_read_only_capability_child": {
+    "authorization": "reports/v0-s3/product-gate0/a06-capability-01.child.json",
+    "executor": "reports/v0-s3/product-gate0/a06-capability-01/executor.py",
+    "scope": "Root architectural read-only facts, separate from Claude offline zero-native implementation task",
+    "status": "EXPIRED_FACTS_COLLECTED_NOT_GATE0",
+    "receipt": "reports/v0-s3/product-gate0/a06-capability-01/receipt.json",
+    "report": "reports/v0-s3/product-gate0/a06-capability-01/report.md",
+    "constraints": "reports/v0-s3/product-gate0/a06-design-constraints-01.md",
+    "native_admin": false,
+    "native_processes": 1,
+    "source_bytes_read": 272697,
+    "models_media_services_gpu_network_system_changes": 0,
+    "static_builtin_candidates": [
+      "LoadImage",
+      "SaveImage"
+    ],
+    "runtime_registry_verified": false
+  },
+  "s3_remaining_budget_design": {
+    "path": "reports/v0-s3/product-gate0/remaining-integration-budget-02.json",
+    "status": "DESIGN_ONLY_NOT_RESERVED",
+    "quality_webp_coverage": false,
+    "separate_webp_format_case_planned": true,
+    "known_child_A_cap": 103,
+    "known_child_B_before_unresolved_costs": 40,
+    "final_product_gate0": false
   }
 }

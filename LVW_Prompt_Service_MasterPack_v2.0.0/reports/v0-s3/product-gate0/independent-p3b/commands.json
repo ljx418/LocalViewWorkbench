@@ -1,0 +1,88 @@
+{
+  "commands": [
+    {
+      "label": "guard-selftest",
+      "argv": [
+        "python3",
+        "-B",
+        "reports/v0-s3/product-gate0/independent-p3b/audit_runner.py",
+        "guard-selftest"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "exit": 0,
+      "stdout": "guard-selftest.stdout.log",
+      "stderr": "guard-selftest.stderr.log"
+    },
+    {
+      "label": "suite",
+      "argv": [
+        "python3",
+        "-B",
+        "reports/v0-s3/product-gate0/independent-p3b/audit_runner.py",
+        "suite"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "exit": 0,
+      "stdout": "suite.runner.stdout.log",
+      "stderr": "suite.runner.stderr.log"
+    },
+    {
+      "label": "probes",
+      "argv": [
+        "python3",
+        "-B",
+        "reports/v0-s3/product-gate0/independent-p3b/audit_runner.py",
+        "probes"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "exit": 0,
+      "stdout": "probes.stdout.log",
+      "stderr": "probes.stderr.log"
+    },
+    {
+      "label": "boundaries",
+      "argv": [
+        "python3",
+        "-B",
+        "reports/v0-s3/product-gate0/independent-p3b/boundary_probes.py"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "exit": 0,
+      "stdout": "boundaries.stdout.log",
+      "stderr": "boundaries.stderr.log"
+    },
+    {
+      "label": "bindings",
+      "argv": [
+        "python3",
+        "-B",
+        "reports/v0-s3/product-gate0/independent-p3b/bindings.py"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "exit": 0,
+      "stdout": "bindings.stdout.log",
+      "stderr": "bindings.stderr.log"
+    },
+    {
+      "label": "cleanup",
+      "argv": [
+        "python3",
+        "-B",
+        "reports/v0-s3/product-gate0/independent-p3b/cleanup.py"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "exit": 0,
+      "stdout": "cleanup.stdout.log",
+      "stderr": "cleanup.stderr.log"
+    }
+  ],
+  "guarded_modes": [
+    "guard-selftest",
+    "suite",
+    "probes",
+    "boundaries"
+  ],
+  "git_audit_separate": true,
+  "pytest_options": "--basetemp=/tmp/lvw-independent-p3b-139573-suite; -q -p no:cacheprovider --no-header -rN",
+  "note": "Implementation runner receipt reconstructs its own command; actual review entry argv is recorded here. Initial merge and navigation reads are in Orca tool transcript; no retrospective full raw shell trace claimed."
+}

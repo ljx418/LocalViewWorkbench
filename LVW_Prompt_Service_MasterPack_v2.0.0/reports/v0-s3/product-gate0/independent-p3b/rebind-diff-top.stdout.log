@@ -1,0 +1,247 @@
+commit e0e54a4b889050de218d483a36532cec9127dd0a
+Author: ljx418 <1173696783@qq.com>
+Date:   Thu Nov 12 10:40:15 2026 +0800
+
+    Rebind the S3-P3B acceptance evidence to the final candidate
+    
+    The final candidate is cea5bf328ea35a5aa1d1feb51ac3ef8946a964fa: the only
+    change since 667da62 is the removal of an unused import from the test module,
+    with no behaviour change, no contract change and no denominator change.
+    
+    The four guarded checks were re-executed against that candidate and their raw
+    streams and real exit codes were rewritten in place:
+    
+      guard-selftest  exit 0  four boundary attempts, all blocked
+      qd-directed     exit 0  39 passed, 28 deselected
+      qs-directed     exit 0  28 passed, 39 deselected
+      combined-final  exit 0  67 passed
+    
+    report.md, receipt.json and SHA256SUMS now carry the final candidate SHA and
+    the matching source hashes.  READY_FOR_REVIEW only; no Stage PASS, no product
+    Gate0, no human signature and no push.
+    
+    Co-Authored-By: Claude Code <noreply@anthropic.com>
+
+diff --git a/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b/SHA256SUMS b/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b/SHA256SUMS
+index d47df5f..1f20e40 100644
+--- a/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b/SHA256SUMS
++++ b/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b/SHA256SUMS
+@@ -1,13 +1,13 @@
+-322a2f50dee0a3785f2c4c9b7b8c7dde266aea2320272ed54dff0507e296a69a  combined-final.receipt.json
++61bb9142244636ef263bf12ea21a82e6c0db46b65fcfd4a84294e00dfd60f682  combined-final.receipt.json
+ e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  combined-final.stderr.log
+-4e1bf22cd02e0e05cbe00f09385194819d59ba2598686b0f789224091c0fbf2b  combined-final.stdout.log
+-730d35ae577b7e1879c77bb0a4f63a3d7579b4a8b7d355d10b17a7cc077e5ad1  guard-selftest.guard-selftest.json
+-96f0a18eed2f8a528089fb654d0f5c3b7294bfeafe25a680a4131a14790ffc67  qd-directed.receipt.json
++48191d77f25eff11f5a3bc05a90e6219b6350ceabfc9003f00282d8a411a6dbb  combined-final.stdout.log
++33ad44033ec9e8c1a594b253bec8af819bd4283ed0f62c1cae32a5aaf07d8e60  guard-selftest.guard-selftest.json
++3c8788c94c3f70b6b10d1280d310cc544d37041336e70b5dfd616ddbf91e8fc2  qd-directed.receipt.json
+ e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  qd-directed.stderr.log
+-26444bd1ac0539e42832277d7164eb9901b02299f6f237046da7280fed00d8fe  qd-directed.stdout.log
+-aae97cf017f85dea4d6f35d4d7d08fde35018c3d77e361b2c32135ffc42f226e  qs-directed.receipt.json
++302efa7f71a9f812ad7c38b288c472a46e84672ba6dcc084f3a371434a2dc1fb  qd-directed.stdout.log
++88799e189a453435fe2ebdd9e9f8d6662ecc251561cc0f9dba900047a6740348  qs-directed.receipt.json
+ e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  qs-directed.stderr.log
+-818b6c489f9ae9fabeb5670de4552b6519b559bf060bae59ca36a06c22a1aa44  qs-directed.stdout.log
+-bd55d35d25725e221427f7f8e648148d73cb042264162ab6354a09b754166dfe  receipt.json
+-5e7889fbdbce83f2aa50e8a299728fc640d732d5143051a48a8564f249840b08  report.md
++e743306f6fc31a5eec4b3b3e55b1ae2efae95866af8e9a05118d6129beb59906  qs-directed.stdout.log
++854cebf6eb21717244bab1039b0ecf905b10604f7aeba2745ad2e8f0148a88d5  receipt.json
++406d8dde6beb0c8296bd51c88d76ace731a041c736cc5987718c670d31c0c646  report.md
+ d1261c15c58d6b5e5bd16b7e5a683112d2746a09f432ade836022078dda183f6  run_offline_checks.py
+diff --git a/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b/combined-final.receipt.json b/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b/combined-final.receipt.json
+index 51e0c8b..c7ee0cb 100644
+--- a/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b/combined-final.receipt.json
++++ b/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b/combined-final.receipt.json
+@@ -1,5 +1,5 @@
+ {
+-  "candidate_sha": "667da6238abdf43caa33d17e556e13469346401e",
++  "candidate_sha": "cea5bf328ea35a5aa1d1feb51ac3ef8946a964fa",
+   "command": [
+     "/usr/bin/python3",
+     "-B",
+@@ -9,7 +9,7 @@
+     "--label",
+     "combined-final",
+     "--candidate-sha",
+-    "667da6238abdf43caa33d17e556e13469346401e",
++    "cea5bf328ea35a5aa1d1feb51ac3ef8946a964fa",
+     "--testpath",
+     "tools/test_v0_s3_quality_phase.py",
+     "--select",
+@@ -56,5 +56,5 @@
+   "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "stdout_bytes": 99,
+   "stdout_file": "reports/v0-s3/product-gate0/implementation-p3b/combined-final.stdout.log",
+-  "stdout_sha256": "4e1bf22cd02e0e05cbe00f09385194819d59ba2598686b0f789224091c0fbf2b"
++  "stdout_sha256": "48191d77f25eff11f5a3bc05a90e6219b6350ceabfc9003f00282d8a411a6dbb"
+ }
+diff --git a/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b/combined-final.stdout.log b/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b/combined-final.stdout.log
+index dab7691..921e41f 100644
+--- a/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b/combined-final.stdout.log
++++ b/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b/combined-final.stdout.log
+@@ -1,2 +1,2 @@
+ ...................................................................      [100%]
+-67 passed in 8.04s
++67 passed in 7.96s
+diff --git a/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b/guard-selftest.guard-selftest.json b/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b/guard-selftest.guard-selftest.json
+index d51ee28..581e012 100644
+--- a/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b/guard-selftest.guard-selftest.json
++++ b/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b/guard-selftest.guard-selftest.json
+@@ -12,7 +12,7 @@
+     "os.fork",
+     "os.forkpty"
+   ],
+-  "candidate_sha": "667da6238abdf43caa33d17e556e13469346401e",
++  "candidate_sha": "cea5bf328ea35a5aa1d1feb51ac3ef8946a964fa",
+   "guard_effective": true,
+   "installed_before_pytest_import": true,
+   "kind": "S3_P3B_OFFLINE_GUARD_SELFTEST",
+diff --git a/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b/qd-directed.receipt.json b/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b/qd-directed.receipt.json
+index 8fa3d55..b097049 100644
+--- a/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b/qd-directed.receipt.json
++++ b/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b/qd-directed.receipt.json
+@@ -1,5 +1,5 @@
+ {
+-  "candidate_sha": "667da6238abdf43caa33d17e556e13469346401e",
++  "candidate_sha": "cea5bf328ea35a5aa1d1feb51ac3ef8946a964fa",
+   "command": [
+     "/usr/bin/python3",
+     "-B",
+@@ -9,7 +9,7 @@
+     "--label",
+     "qd-directed",
+     "--candidate-sha",
+-    "667da6238abdf43caa33d17e556e13469346401e",
++    "cea5bf328ea35a5aa1d1feb51ac3ef8946a964fa",
+     "--testpath",
+     "tools/test_v0_s3_quality_phase.py",
+     "--select",
+@@ -58,5 +58,5 @@
+   "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "stdout_bytes": 114,
+   "stdout_file": "reports/v0-s3/product-gate0/implementation-p3b/qd-directed.stdout.log",
+-  "stdout_sha256": "26444bd1ac0539e42832277d7164eb9901b02299f6f237046da7280fed00d8fe"
++  "stdout_sha256": "302efa7f71a9f812ad7c38b288c472a46e84672ba6dcc084f3a371434a2dc1fb"
+ }
+diff --git a/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b/qd-directed.stdout.log b/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b/qd-directed.stdout.log
+index a4dcf7c..66d1d04 100644
+--- a/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b/qd-directed.stdout.log
++++ b/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b/qd-directed.stdout.log
+@@ -1,2 +1,2 @@
+ .......................................                                  [100%]
+-39 passed, 28 deselected in 8.13s
++39 passed, 28 deselected in 8.27s
+diff --git a/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b/qs-directed.receipt.json b/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b/qs-directed.receipt.json
+index 558b5f5..e1bcf7a 100644
+--- a/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b/qs-directed.receipt.json
++++ b/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b/qs-directed.receipt.json
+@@ -1,5 +1,5 @@
+ {
+-  "candidate_sha": "667da6238abdf43caa33d17e556e13469346401e",
++  "candidate_sha": "cea5bf328ea35a5aa1d1feb51ac3ef8946a964fa",
+   "command": [
+     "/usr/bin/python3",
+     "-B",
+@@ -9,7 +9,7 @@
+     "--label",
+     "qs-directed",
+     "--candidate-sha",
+-    "667da6238abdf43caa33d17e556e13469346401e",
++    "cea5bf328ea35a5aa1d1feb51ac3ef8946a964fa",
+     "--testpath",
+     "tools/test_v0_s3_quality_phase.py",
+     "--select",
+@@ -58,5 +58,5 @@
+   "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "stdout_bytes": 114,
+   "stdout_file": "reports/v0-s3/product-gate0/implementation-p3b/qs-directed.stdout.log",
+-  "stdout_sha256": "818b6c489f9ae9fabeb5670de4552b6519b559bf060bae59ca36a06c22a1aa44"
++  "stdout_sha256": "e743306f6fc31a5eec4b3b3e55b1ae2efae95866af8e9a05118d6129beb59906"
+ }
+diff --git a/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b/qs-directed.stdout.log b/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b/qs-directed.stdout.log
+index bd866d6..cfebc91 100644
+--- a/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b/qs-directed.stdout.log
++++ b/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b/qs-directed.stdout.log
+@@ -1,2 +1,2 @@
+ ............................                                             [100%]
+-28 passed, 39 deselected in 1.84s
++28 passed, 39 deselected in 2.14s
+diff --git a/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b/receipt.json b/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b/receipt.json
+index 1cfe61d..d55dbf3 100644
+--- a/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b/receipt.json
++++ b/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b/receipt.json
+@@ -1,6 +1,6 @@
+ {
+   "base_commit": "35f1ee4df74e3a6054e021ee9cbbd066eaba5490",
+-  "candidate_sha": "667da6238abdf43caa33d17e556e13469346401e",
++  "candidate_sha": "cea5bf328ea35a5aa1d1feb51ac3ef8946a964fa",
+   "checks": {
+     "combined-final": {
+       "exit_code": 0,
+@@ -8,7 +8,7 @@
+       "stderr_bytes": 0,
+       "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+       "stdout_bytes": 99,
+-      "stdout_sha256": "4e1bf22cd02e0e05cbe00f09385194819d59ba2598686b0f789224091c0fbf2b"
++      "stdout_sha256": "48191d77f25eff11f5a3bc05a90e6219b6350ceabfc9003f00282d8a411a6dbb"
+     },
+     "qd-directed": {
+       "exit_code": 0,
+@@ -16,7 +16,7 @@
+       "stderr_bytes": 0,
+       "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+       "stdout_bytes": 114,
+-      "stdout_sha256": "26444bd1ac0539e42832277d7164eb9901b02299f6f237046da7280fed00d8fe"
++      "stdout_sha256": "302efa7f71a9f812ad7c38b288c472a46e84672ba6dcc084f3a371434a2dc1fb"
+     },
+     "qs-directed": {
+       "exit_code": 0,
+@@ -24,7 +24,7 @@
+       "stderr_bytes": 0,
+       "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+       "stdout_bytes": 114,
+-      "stdout_sha256": "818b6c489f9ae9fabeb5670de4552b6519b559bf060bae59ca36a06c22a1aa44"
++      "stdout_sha256": "e743306f6fc31a5eec4b3b3e55b1ae2efae95866af8e9a05118d6129beb59906"
+     }
+   },
+   "commit_author": "ljx418 <1173696783@qq.com>",
+@@ -136,7 +136,7 @@
+   ],
+   "source_files": {
+     "reports/v0-s3/product-gate0/implementation-p3b/run_offline_checks.py": "d1261c15c58d6b5e5bd16b7e5a683112d2746a09f432ade836022078dda183f6",
+-    "tools/test_v0_s3_quality_phase.py": "7329b72ea2eeab103c8d4184d55a555a274689fb7b947217cb04bd9bbdaa03ad",
++    "tools/test_v0_s3_quality_phase.py": "372555acfcef7b55bbd00dbb6edb6ad16e796a7e25c3a0dfb408a1fbeea28c48",
+     "tools/v0_s3_quality_phase.py": "7211f23d4fe2dc7f840c13ba0a9db1535c78f480b4f39bf0cbeadd50f23b2c26"
+   },
+   "stage_pass_claim": false,
+diff --git a/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b/report.md b/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b/report.md
+index e2109e4..d2c2f63 100644
+--- a/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b/report.md
++++ b/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b/report.md
+@@ -1,6 +1,6 @@
+ # P3B implementation receipt — READY_FOR_REVIEW
+ 
+-Candidate: `667da6238abdf43caa33d17e556e13469346401e` (final, binds every check below).
++Candidate: `cea5bf328ea35a5aa1d1feb51ac3ef8946a964fa` (final, binds every check below).
+ Base / frozen authority: `35f1ee4df74e3a6054e021ee9cbbd066eaba5490` (root freeze commit, already the
+ HEAD of this worktree before the batch; nothing to merge, no reset, no rebase).
+ Frozen contract: `reports/v0-s3/product-gate0/p3b-quality-contract.md`
+@@ -17,7 +17,7 @@ was modified.
+ | File | sha256 | lines | role |
+ |---|---|---:|---|
+ | `tools/v0_s3_quality_phase.py` | `7211f23d4fe2dc7f840c13ba0a9db1535c78f480b4f39bf0cbeadd50f23b2c26` | 1534 | QD execution phase + QS independent score recomputation |
+-| `tools/test_v0_s3_quality_phase.py` | `7329b72ea2eeab103c8d4184d55a555a274689fb7b947217cb04bd9bbdaa03ad` | 1115 | 67 offline acceptance checks |
++| `tools/test_v0_s3_quality_phase.py` | `372555acfcef7b55bbd00dbb6edb6ad16e796a7e25c3a0dfb408a1fbeea28c48` | 1114 | 67 offline acceptance checks |
+ | `reports/v0-s3/product-gate0/implementation-p3b/run_offline_checks.py` | `d1261c15c58d6b5e5bd16b7e5a683112d2746a09f432ade836022078dda183f6` | 254 | guarded runner (audit hook before pytest import) |
+ 
+ Commit history of this worktree for the task:
+@@ -27,6 +27,8 @@ Commit history of this worktree for the task:
+   so the interruption state is not lost and is not mistaken for a delivery.
+ - `747bef6` — the completed QD + QS implementation, the offline test module and the guarded runner.
+ - `667da62` — the runner gained an executed guard self-test.
++- `cea5bf3` — an unused import was removed from the test module; no behaviour change. This is the
++  final candidate that every check below binds.
+ 
+ ## Complete V0–V3 outline (unchanged coordinate)
+ 

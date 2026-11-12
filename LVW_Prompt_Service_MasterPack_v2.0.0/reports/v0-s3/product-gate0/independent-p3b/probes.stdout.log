@@ -1,0 +1,158 @@
+{
+  "kind": "INDEPENDENT_SYNTHETIC_PROBES",
+  "results": [
+    {
+      "probe": "baseline",
+      "decision": "QUALITY_EXECUTION_COMPLETE_ALL_16_PASS",
+      "public_submissions": 16,
+      "provider_calls_reserved": 34,
+      "test_counts": {
+        "fixed": 16,
+        "PASS": 16,
+        "FAIL": 0,
+        "BLOCKED": 0,
+        "NOT_RUN": 0
+      },
+      "storage_unproven": null,
+      "receipt_persisted": true
+    },
+    {
+      "probe": "cross_paired_reviewer_session",
+      "aggregate_pass": true
+    },
+    {
+      "probe": "execution_raw_length_mismatch",
+      "aggregate_pass": true,
+      "declared": 367,
+      "actual": 244
+    },
+    {
+      "probe": "failed_row_critical_evidence",
+      "aggregate_pass": false,
+      "thresholds": {
+        "images_usable": 9,
+        "images_required": 8,
+        "videos_usable": 6,
+        "videos_required": 5,
+        "total_critical_hallucinations": 0,
+        "critical_hallucinations_max": 0,
+        "critical_hallucinations_known": false,
+        "per_sample_total_min": 8,
+        "dimension_max": 2,
+        "scored_rows": 15
+      },
+      "row": {
+        "asset_id": "SYN-I00",
+        "media_kind": "image",
+        "execution_status": "FAIL",
+        "quality_status": "FAIL",
+        "reason": "EXECUTION_NOT_PASS",
+        "total": null,
+        "critical_hallucinations": null,
+        "dimensions": null,
+        "reviewer_id": null,
+        "session_id": null,
+        "raw_sha256": "86571c8187ae37e4f092f7decc7b75d588272f69a7c745d3748770b69114a033",
+        "raw_bytes": null,
+        "raw_artifact": "rows/SYN-I00/raw.txt"
+      }
+    },
+    {
+      "probe": "known_failed_independently_scored",
+      "aggregate_pass": false,
+      "thresholds_met": true,
+      "all_rows_resolved": false
+    },
+    {
+      "probe": "raw_persistence_failure",
+      "decision": "QUALITY_EXECUTION_PARTIAL",
+      "public_submissions": 16,
+      "provider_calls_reserved": 34,
+      "test_counts": {
+        "fixed": 16,
+        "PASS": 0,
+        "FAIL": 16,
+        "BLOCKED": 0,
+        "NOT_RUN": 0
+      },
+      "storage_unproven": null,
+      "receipt_persisted": true,
+      "first_error": "ARTIFACT_WRITE_FAILED:rows/SYN-I00/raw.txt",
+      "raw_preserved": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "probe": "source_mutation_in_authorize",
+      "decision": "QUALITY_EXECUTION_PARTIAL",
+      "public_submissions": 16,
+      "provider_calls_reserved": 34,
+      "test_counts": {
+        "fixed": 16,
+        "PASS": 15,
+        "FAIL": 1,
+        "BLOCKED": 0,
+        "NOT_RUN": 0
+      },
+      "storage_unproven": null,
+      "receipt_persisted": true,
+      "first_error": "IMAGE_METADATA_BINDING_INVALID",
+      "sent": 16
+    },
+    {
+      "probe": "failed_submit_counter",
+      "decision": "QUALITY_EXECUTION_PARTIAL",
+      "public_submissions": 0,
+      "provider_calls_reserved": 1,
+      "test_counts": {
+        "fixed": 16,
+        "PASS": 0,
+        "FAIL": 1,
+        "BLOCKED": 15,
+        "NOT_RUN": 0
+      },
+      "storage_unproven": null,
+      "receipt_persisted": true,
+      "driver_attempts": 1
+    },
+    {
+      "probe": "residue_exception",
+      "returned": false,
+      "error": "OSError",
+      "receipt": null,
+      "submissions": 1
+    },
+    {
+      "probe": "receipt_total_cap",
+      "persisted": true,
+      "cap": 134217728,
+      "actual_accounted": 134217804
+    },
+    {
+      "probe": "artifact_ancestor_redirect",
+      "escaped": true
+    },
+    {
+      "probe": "nonfinite_release",
+      "accepted": true
+    }
+  ],
+  "owned_fixture_root": "/tmp/lvw-independent-p3b-probes-139573-cfswc5l5",
+  "own_fixture_cleanup": true,
+  "real_execution": false
+}

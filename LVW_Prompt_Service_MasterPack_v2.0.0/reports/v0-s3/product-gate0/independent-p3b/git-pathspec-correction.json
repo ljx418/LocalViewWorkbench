@@ -1,0 +1,27 @@
+{
+  "reason": "Earlier Git show pathspecs were repository-prefixed but resolved relative to pack cwd, producing empty exit0 streams; preserved and not treated as diff evidence. New top-anchored read-only commands capture actual diffs; no test rerun.",
+  "commands": [
+    {
+      "argv": [
+        "git",
+        "show",
+        "cea5bf328ea35a5aa1d1feb51ac3ef8946a964fa",
+        "--",
+        ":(top)LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_quality_phase.py"
+      ],
+      "label": "candidate-change-top",
+      "exit_code": 0
+    },
+    {
+      "argv": [
+        "git",
+        "show",
+        "e0e54a4b889050de218d483a36532cec9127dd0a",
+        "--",
+        ":(top)LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b"
+      ],
+      "label": "rebind-diff-top",
+      "exit_code": 0
+    }
+  ]
+}
