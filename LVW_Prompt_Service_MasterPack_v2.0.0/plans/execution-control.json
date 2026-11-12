@@ -9,7 +9,7 @@
     "stage_id": "R1",
     "workpack_id": "WP-R1-U3",
     "gate": "S3_P3B_QUALITY_INTEGRATION_INDEPENDENT_REVIEW",
-    "state": "RUNNING"
+    "state": "READY_FOR_REVIEW"
   },
   "last_passed_gate": {
     "gate": "UNIFIED_MEDIA_FIXED_UM10_AND_INDEPENDENT_REVIEW",
@@ -21,7 +21,7 @@
     "passed_cases": 10,
     "human_signoff": "reports/unified-media/human-signoff-live15.json"
   },
-  "current_blocking_gate": "S3_P3B_CORRECTION04_IMPLEMENTATION_AND_INDEPENDENT_REVIEW_PENDING",
+  "current_blocking_gate": "S3_P3B_CORRECTION04_ISOLATED_REVIEW_PENDING",
   "stage_packet": ".agent-governance/stages/R1/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/R1/PAYLOAD_MANIFEST.sha256",
   "product_status": "UNIFIED_MEDIA_EARLY_ACCEPTED_SCOPE_ONLY_FULL_R1_PENDING",
@@ -35,7 +35,7 @@
     "TARGET_HARDWARE_TESTED"
   ],
   "next_owner": "Human restores this ClaudeCode task or explicitly authorizes specific Codex takeover; root only preserves handoff",
-  "next_action": "Await resumed Claude correction04 worker report ctx_b7a25232fd40. First429 immediate stop, no retry/reroute; then verify candidate receipt and dispatch isolated independent review. No Stage PASS or product runtime authorized by this offline task.",
+  "next_action": "Dispatch isolated correction04 independent review of5de0947/evidence0d28fd4; do not accept implementer PASS or claimed limitations without independent evidence. Preserve undelivered guidance exception and historical erratum.",
   "required_authorization": null,
   "authorization_request": "reports/authorization-program-v1-complete-03.request.json",
   "authorization_record": "reports/authorization-program-v1-complete-03.approval.json",
@@ -1484,7 +1484,7 @@
       }
     },
     "correction04": {
-      "status": "CLAUDE_RESUMED_IMPLEMENTATION_PENDING",
+      "status": "READY_FOR_INDEPENDENT_REVIEW",
       "task": "reports/v0-s3/product-gate0/implementation-p3b-correction-04.task.md",
       "adjudication": "reports/v0-s3/product-gate0/p3b-correction-04.adjudication.json",
       "historical_erratum": "reports/v0-s3/product-gate0/correction03-historical-execution-erratum.json",
@@ -1506,7 +1506,18 @@
         "guidance_message_id": "msg_a30e3ca84e71",
         "launch_state": "ready",
         "completion_proven": false
-      }
+      },
+      "candidate_sha": "5de09478a4af6e3dd91410d4dde90c9020a77bfd",
+      "evidence_commit": "0d28fd4",
+      "worker_done_message_id": "msg_6ee040e29039",
+      "intake": "reports/v0-s3/product-gate0/correction04-intake-01.json",
+      "review_task": "reports/v0-s3/product-gate0/independent-p3b-correction-04.task.md",
+      "implementer_checks": {
+        "combined": 175,
+        "guard": 4,
+        "replay_observations": 29
+      },
+      "supplemental_guidance_delivery": "NOT_DELIVERED_MSG_A30E3CA84E71_NO_COMPLIANCE_CREDIT"
     }
   },
   "a06_read_only_capability_child": {
