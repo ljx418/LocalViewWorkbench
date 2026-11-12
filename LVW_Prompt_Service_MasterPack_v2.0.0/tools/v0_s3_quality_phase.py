@@ -59,6 +59,7 @@ every source file.
 from __future__ import annotations
 
 import copy
+import errno
 import hashlib
 import importlib.util
 import json
@@ -125,6 +126,33 @@ VIDEO_EXTENSIONS = frozenset({".mp4", ".mov"})
 PROJECTION_TOP_LEVEL_KEYS = frozenset({"schema_version", "spec_version", "fixed_denominator", "samples"})
 PROJECTION_ROW_KEYS = frozenset({"asset_id", "media_kind", "source_sha256", "source_bytes", "input_reference"})
 
+# The parent capacity proof is a typed internal input.  It is not a ledger API
+# and a document like this never proves that a real reservation exists; the
+# authentic provider and the actual debit stay with the parent coordinator.
+PARENT_PROOF_KIND = "LVW_PARENT_CAPACITY_PROOF/1"
+
+# The receipt states its own serialized size.  The padding field absorbs the
+# difference between the assumed and the actual length so that the fixed point
+# is exact.
+RECEIPT_PADDING_KEY = "receipt_padding"
+RECEIPT_FIXED_POINT_ITERATIONS = 64
+
+# The mandatory hard end-to-end process supervision is not implemented in this
+# offline component.  It belongs to the thin parent coordinator and must be
+# demonstrated before a real run or the product Gate0.  The frozen 600s and
+# 10800s limits are unchanged.
+TIMING_ASSURANCE = {
+    "cooperative_pre_and_post_checks": True,
+    "synchronous_callables_preemptively_bounded": False,
+    "hard_end_to_end_supervision": "UNIMPLEMENTED_PRODUCT_GATE0_BLOCKER",
+    "hard_supervision_owner": "parent coordinator thin watchdog",
+    "sample_history_seconds": SAMPLE_HISTORY_TIMEOUT_SECONDS,
+    "phase_seconds": PHASE_TIMEOUT_SECONDS,
+    "note": ("A synchronous callable cannot be preemptively bounded by a post-return elapsed "
+             "check.  The phase performs cooperative pre and post checks and records the "
+             "mandatory parent process supervision as an unimplemented product Gate0 blocker."),
+}
+
 # --- bounded elapsed ceilings for the controlled phases of one row ----------
 # The frozen 600s/10800s/6000 ceilings bound the whole run; these bound the
 # individual controlled steps so one slow callback, observation, persistence
@@ -157,9 +185,32 @@ HALT_ERROR_CODES = frozenset({
     "SOURCE_GROWTH",
     "SOURCE_TRUNCATED",
     "RUN_ROOT_REPLACED",
+    "RUN_ROOT_REDIRECT",
+    "RUN_ROOT_UNAVAILABLE",
     "PHASE_DIRECTORY_REPLACED",
     "PHASE_DIRECTORY_MISSING",
     "PHASE_DIRECTORY_REDIRECT",
+    "PHASE_DIRECTORY_EXISTS",
+    "OWNED_DIRECTORY_CLOSED",
+    "OWNED_DIRECTORY_REPLACED",
+    "OWNED_PATH_REPLACED",
+    "OWNED_PATH_MISSING",
+    "OWNED_CHILD_DIRECTORY_MISSING",
+    "OWNED_CHILD_DIRECTORY_UNAVAILABLE",
+    "OWNED_CHILD_FILE_UNAVAILABLE",
+    "OWNED_MKDIR_FAILED",
+    "CLOCK_NOT_MONOTONIC",
+    "RECEIPT_FIXED_POINT_UNREACHED",
+    "PARENT_BUDGET_PROOF_MISSING",
+    "PARENT_BUDGET_PROOF_UNKNOWN",
+    "PARENT_BUDGET_PROOF_KIND_INVALID",
+    "PARENT_BUDGET_PROOF_RUN_MISMATCH",
+    "PARENT_BUDGET_PROOF_CANDIDATE_MISMATCH",
+    "PARENT_BUDGET_PROOF_AUTHORIZATION_MISMATCH",
+    "PARENT_BUDGET_PROOF_INTERVAL_INVALID",
+    "PARENT_BUDGET_PROOF_NOT_YET_VALID",
+    "PARENT_BUDGET_PROOF_STALE",
+    "PARENT_BUDGET_CAPACITY_INVALID",
     # bounded elapsed ceilings
     "AUTHORIZE_CALLBACK_ELAPSED_EXCEEDED",
     "OBSERVATION_ELAPSED_EXCEEDED",
@@ -388,6 +439,113 @@ def _validate_prompt_spec(suggestion):
         raise QualityContractError("PROMPT_SPEC_INVALID:" + type(error).__name__) from error
 
 
+class _OwnedDirectory:
+    """One pinned owned directory.
+
+    Every access below is *descriptor relative*: the child is opened or
+    created against the pinned handle of its parent, never against an
+    absolute path.  The handle and the original path must keep naming the
+    same object, and the identity is compared again after every controlled
+    callback, before a send and before the cleanup handoff.
+
+    Accepted limitation: this is an in-process inode observation.  It does not
+    claim immunity against a hostile kernel or a filesystem that moves inodes
+    underneath the process; it claims that a renamed or replaced ancestor is
+    detected and never silently adopted.
+    """
+
+    def __init__(self, path, fd, identity, parent=None, name=None):
+        self.path = Path(path)
+        self.fd = fd
+        self.identity = tuple(identity)
+        self.parent = parent
+        self.name = name
+        self.closed = False
+
+    @staticmethod
+    def identity_of(info):
+        return (info.st_dev, info.st_ino)
+
+    def verify(self):
+        """The handle and the original path must still name one object."""
+        if self.closed or self.fd is None:
+            raise QualityContractError("OWNED_DIRECTORY_CLOSED:" + str(self.path))
+        try:
+            info = os.fstat(self.fd)
+        except OSError as error:
+            raise QualityContractError("OWNED_DIRECTORY_CLOSED:" + str(self.path)) from error
+        if self.identity_of(info) != self.identity:
+            raise QualityContractError("OWNED_DIRECTORY_REPLACED:" + str(self.path))
+        try:
+            # The entry is inspected relative to its pinned parent and without
+            # following a symlink, exactly like the accepted protected
+            # directory pattern: a renamed ancestor that was replaced by a
+            # symlink to the very same object is still detected, because the
+            # phase must never write through such a symlink.
+            if self.parent is not None and self.name is not None:
+                path_info = os.stat(self.name, dir_fd=self.parent.fd, follow_symlinks=False)
+            else:
+                path_info = os.lstat(str(self.path))
+        except OSError as error:
+            raise QualityContractError("OWNED_PATH_MISSING:" + str(self.path)) from error
+        if not stat.S_ISDIR(path_info.st_mode):
+            raise QualityContractError("OWNED_PATH_REPLACED:" + str(self.path))
+        if self.identity_of(path_info) != self.identity:
+            raise QualityContractError("OWNED_PATH_REPLACED:" + str(self.path))
+        return info
+
+    def open_child_directory(self, name):
+        """Open one child directory relative to this handle."""
+        self.verify()
+        flags = os.O_RDONLY | os.O_DIRECTORY | getattr(os, "O_NOFOLLOW", 0)
+        try:
+            fd = os.open(name, flags, dir_fd=self.fd)
+        except OSError as error:
+            if error.errno in (errno.ELOOP, errno.ENOTDIR):
+                raise QualityContractError("ARTIFACT_REDIRECT_FORBIDDEN:" + name) from error
+            if error.errno == errno.ENOENT:
+                raise QualityContractError("OWNED_CHILD_DIRECTORY_MISSING:" + name) from error
+            raise QualityContractError("OWNED_CHILD_DIRECTORY_UNAVAILABLE:" + name
+                                       + ":" + type(error).__name__) from error
+        info = os.fstat(fd)
+        return _OwnedDirectory(self.path / name, fd, self.identity_of(info),
+                               parent=self, name=name)
+
+    def open_child_file(self, name, flags, mode=0o600):
+        """Open one child file relative to this handle."""
+        self.verify()
+        try:
+            return os.open(name, flags | getattr(os, "O_NOFOLLOW", 0), mode, dir_fd=self.fd)
+        except FileExistsError:
+            raise
+        except OSError as error:
+            if error.errno in (errno.ELOOP, errno.ENOTDIR):
+                raise QualityContractError("ARTIFACT_REDIRECT_FORBIDDEN:" + name) from error
+            raise QualityContractError("OWNED_CHILD_FILE_UNAVAILABLE:" + name
+                                       + ":" + type(error).__name__) from error
+
+    def mkdir_child(self, name):
+        """Create one child directory relative to this handle."""
+        self.verify()
+        try:
+            os.mkdir(name, 0o700, dir_fd=self.fd)
+        except FileExistsError:
+            return False
+        except OSError as error:
+            raise QualityContractError("OWNED_MKDIR_FAILED:" + name
+                                       + ":" + type(error).__name__) from error
+        return True
+
+    def close(self):
+        if not self.closed and self.fd is not None:
+            try:
+                os.close(self.fd)
+            except OSError:
+                pass
+        self.closed = True
+        self.fd = None
+
+
 class QualityPhase:
     """QD: fixed sixteen-row public quality execution.
 
@@ -457,18 +615,19 @@ class QualityPhase:
             raise QualityContractError("QUALITY_BINDING_BASELINE_INVALID")
 
         # Parent capacity admission.  The parent owns the budget; the phase may
-        # never pretend that an unknown parent budget is sufficient.  This is
-        # an internal bounded input, not a ledger API: the parent integration
-        # that produces this proof is still pending.
-        if not isinstance(parent_budget, dict):
-            raise QualityContractError("PARENT_BUDGET_PROOF_MISSING")
-        if parent_budget.get("known") is not True:
-            raise QualityContractError("PARENT_BUDGET_PROOF_UNKNOWN")
-        capacity = parent_budget.get("action_capacity")
-        if not _is_int(capacity) or capacity < 0:
-            raise QualityContractError("PARENT_BUDGET_CAPACITY_INVALID")
-        self.parent_budget = copy.deepcopy(parent_budget)
-        self.parent_budget_capacity = capacity
+        # never pretend that an unknown parent budget is sufficient.  The proof
+        # is a typed internal document that binds this exact run, candidate
+        # and child authorization, and carries a finite validity interval in
+        # the phase monotonic clock.  It is not a ledger API and it never proves
+        # that a real reservation exists: the authentic provider and the actual
+        # debit stay with the parent coordinator.
+        self.parent_budget = copy.deepcopy(parent_budget) if isinstance(parent_budget, dict) else None
+        self.parent_budget_capacity = 0
+        self._admission_error = None
+        try:
+            self._validate_parent_proof(self.parent_budget)
+        except QualityContractError as error:
+            self._admission_error = str(error)
 
         for name in ("submit", "chat_log_snapshot", "owned_listener_birth",
                      "release_preload", "video_snapshot_residue"):
@@ -497,8 +656,11 @@ class QualityPhase:
         self._started = None
         self._storage_unproven = False
         self._cleanup_unproven = False
-        self._phase_identity = None
+        self._owned_root = None
+        self._owned_temp = None
+        self._owned_phase = None
         self._root_identity = self._object_identity(self.root.lstat())
+        self._last_clock = None
 
     # -- ownership -------------------------------------------------------
     @staticmethod
@@ -507,63 +669,140 @@ class QualityPhase:
         every legitimate child creation, so only the object identity pins it."""
         return [info.st_dev, info.st_ino]
 
-    def _assert_run_root(self):
-        """The owned run root must still be the same object."""
+    def _open_owned_directories(self):
+        """Open and pin the owned run root, temp directory and phase directory.
+
+        Every directory is opened relative to its pinned parent handle with
+        O_DIRECTORY|O_NOFOLLOW, so a redirected ancestor is refused before any
+        foreign entry can be created.
+        """
+        flags = os.O_RDONLY | os.O_DIRECTORY | getattr(os, "O_NOFOLLOW", 0)
         try:
-            info = self.root.lstat()
+            root_fd = os.open(str(self.root), flags)
         except OSError as error:
-            raise QualityContractError("RUN_ROOT_MISSING:" + type(error).__name__) from error
-        if stat.S_ISLNK(info.st_mode) or getattr(info, "st_file_attributes", 0) & 0x400:
-            raise QualityContractError("RUN_ROOT_REDIRECT")
-        if self._object_identity(info) != list(self._root_identity):
+            if error.errno in (errno.ELOOP, errno.ENOTDIR):
+                raise QualityContractError("RUN_ROOT_REDIRECT:" + type(error).__name__) from error
+            raise QualityContractError("RUN_ROOT_UNAVAILABLE:" + type(error).__name__) from error
+        root_identity = _OwnedDirectory.identity_of(os.fstat(root_fd))
+        if list(root_identity) != list(self._root_identity):
+            os.close(root_fd)
             raise QualityContractError("RUN_ROOT_REPLACED")
-        return info
-
-    def _assert_phase_directory(self):
-        """The owned phase directory must still be the same object."""
-        self._assert_run_root()
+        self._owned_root = _OwnedDirectory(self.root, root_fd, root_identity)
         try:
-            info = self.directory.lstat()
-        except OSError as error:
-            raise QualityContractError("PHASE_DIRECTORY_MISSING:" + type(error).__name__) from error
-        if stat.S_ISLNK(info.st_mode) or getattr(info, "st_file_attributes", 0) & 0x400:
-            raise QualityContractError("PHASE_DIRECTORY_REDIRECT")
-        if self._phase_identity is None:
-            raise QualityContractError("PHASE_DIRECTORY_MISSING")
-        if self._object_identity(info) != list(self._phase_identity):
-            raise QualityContractError("PHASE_DIRECTORY_REPLACED")
-        return info
+            temp = self._owned_root.open_child_directory("temp")
+        except QualityContractError as error:
+            # The preparation directory is owned by the parent.  A missing one
+            # may be created under the pinned root handle; a redirected one is
+            # refused before anything is created.
+            if "OWNED_CHILD_DIRECTORY_MISSING" not in str(error):
+                raise
+            self._owned_root.mkdir_child("temp")
+            temp = self._owned_root.open_child_directory("temp")
+        self._owned_temp = temp
+        created = self._owned_temp.mkdir_child("s3-quality")
+        if not created:
+            # A preexisting phase directory is a replay of an older root.  It
+            # is refused and nothing at all is written into it.
+            raise QualityContractError("PHASE_DIRECTORY_EXISTS")
+        self._owned_phase = self._owned_temp.open_child_directory("s3-quality")
 
-    def _assert_no_redirect(self, base, relative_parts):
-        """Every ancestor between the owned base and the target must be plain."""
-        current = base
-        for part in relative_parts:
-            current = current / part
-            if current.is_symlink():
-                raise QualityContractError("ARTIFACT_REDIRECT_FORBIDDEN:" + str(part))
-            try:
-                info = current.lstat()
-            except FileNotFoundError:
-                continue
-            except OSError as error:
-                raise QualityContractError("ARTIFACT_REDIRECT_FORBIDDEN:" + type(error).__name__) from error
-            if getattr(info, "st_file_attributes", 0) & 0x400:
-                raise QualityContractError("ARTIFACT_REDIRECT_FORBIDDEN:" + str(part))
+    def _close_owned_directories(self):
+        """Close every owned handle, also on a failure or a refused replay."""
+        for handle in (self._owned_phase, self._owned_temp, self._owned_root):
+            if handle is not None:
+                handle.close()
+        self._owned_phase = None
+        self._owned_temp = None
+        self._owned_root = None
+
+    def _verify_owned(self):
+        """Compare the original path and handle identities of every owner.
+
+        This runs after every controlled callback, before a send and before
+        the cleanup handoff, so a renamed or replaced ancestor is detected
+        instead of being adopted.
+        """
+        if self._owned_root is None:
+            raise QualityContractError("OWNED_DIRECTORY_CLOSED:" + str(self.root))
+        self._owned_root.verify()
+        if self._owned_temp is not None:
+            self._owned_temp.verify()
+        if self._owned_phase is not None:
+            self._owned_phase.verify()
+
+    def _validate_parent_proof(self, proof):
+        """Validate the typed internal parent capacity proof."""
+        if not isinstance(proof, dict):
+            raise QualityContractError("PARENT_BUDGET_PROOF_MISSING")
+        if proof.get("kind") != PARENT_PROOF_KIND:
+            raise QualityContractError("PARENT_BUDGET_PROOF_KIND_INVALID")
+        if proof.get("known") is not True:
+            raise QualityContractError("PARENT_BUDGET_PROOF_UNKNOWN")
+        if proof.get("run_id") != self.run_id:
+            raise QualityContractError("PARENT_BUDGET_PROOF_RUN_MISMATCH")
+        if proof.get("candidate_sha") != self.candidate_sha:
+            raise QualityContractError("PARENT_BUDGET_PROOF_CANDIDATE_MISMATCH")
+        if proof.get("authorization_sha256") != self.authorization_sha256:
+            raise QualityContractError("PARENT_BUDGET_PROOF_AUTHORIZATION_MISMATCH")
+        issued = proof.get("issued_monotonic")
+        expires = proof.get("expires_monotonic")
+        if not _is_finite_number(issued) or not _is_finite_number(expires):
+            raise QualityContractError("PARENT_BUDGET_PROOF_INTERVAL_INVALID")
+        if expires <= issued:
+            raise QualityContractError("PARENT_BUDGET_PROOF_INTERVAL_INVALID")
+        capacity = proof.get("action_capacity")
+        if not _is_int(capacity) or capacity < 0:
+            raise QualityContractError("PARENT_BUDGET_CAPACITY_INVALID")
+        self.parent_budget_capacity = capacity
+
+    def _parent_proof_is_fresh(self):
+        """The proof must still be inside its validity interval."""
+        try:
+            self._validate_parent_proof(self.parent_budget)
+        except QualityContractError as error:
+            return str(error)
+        now = self._now()
+        issued = self.parent_budget["issued_monotonic"]
+        expires = self.parent_budget["expires_monotonic"]
+        if now < issued:
+            return "PARENT_BUDGET_PROOF_NOT_YET_VALID"
+        if now >= expires:
+            return "PARENT_BUDGET_PROOF_STALE"
+        if self.parent_budget_capacity < MAX_TOTAL_PROVIDER_CALLS:
+            return "PARENT_BUDGET_CAPACITY_INSUFFICIENT"
+        return None
 
     # -- bounded controlled steps ----------------------------------------
     def _now(self):
+        """The phase monotonic clock.
+
+        A finite but decreasing reading is refused: a clock that moves
+        backwards cannot prove a deadline.  The observation is cooperative; it
+        does not preempt a call that never returns.
+        """
         value = self.clock()
         if not _is_finite_number(value):
             raise QualityContractError("CLOCK_NOT_FINITE")
-        return float(value)
+        value = float(value)
+        if self._last_clock is not None and value < self._last_clock:
+            raise QualityContractError("CLOCK_NOT_MONOTONIC")
+        self._last_clock = value
+        return value
 
     def _authorize(self, action, subject):
-        """Run one controlled authorization callback under a bounded elapsed."""
+        """Run one controlled authorization callback under a bounded elapsed.
+
+        The owned path and handle identities are compared again after the
+        callback, so a redirected or replaced ancestor is detected instead of
+        being adopted.  The elapsed check is a cooperative post-return check:
+        a callback that never returns cannot be preempted here.
+        """
         start = self._now()
         self.authorize(action, subject)
         elapsed = self._now() - start
         if elapsed > CALLBACK_MAX_SECONDS:
             raise QualityContractError("AUTHORIZE_CALLBACK_ELAPSED_EXCEEDED:" + action)
+        self._verify_owned()
 
     def _observe(self, label, function, *args, **kwargs):
         """Run one observation under a bounded elapsed."""
@@ -705,7 +944,7 @@ class QualityPhase:
         universal guarantee against a hostile racing filesystem, and it does
         not claim to be one.
         """
-        self._assert_run_root()
+        self._verify_owned()
         path = self._source_path(row["input_reference"])
         descriptor = None
         try:
@@ -794,10 +1033,11 @@ class QualityPhase:
     def _artifact(self, relative, raw: bytes):
         """Persist one artifact under the owned phase directory.
 
-        The owned phase directory is pinned by identity, and every ancestor
-        between it and the target is checked for a redirect.  Nothing is ever
-        written outside the originally owned directory, and an existing file is
-        never overwritten.
+        The write is descriptor relative: every directory level is opened
+        against the pinned handle of its parent with O_DIRECTORY|O_NOFOLLOW and
+        the file itself is created exclusively against the pinned handle of its
+        own directory.  Nothing is ever written outside the originally owned
+        directory, and an existing file is never overwritten.
         """
         if not isinstance(relative, str) or not relative:
             raise QualityContractError("ARTIFACT_PATH_INVALID")
@@ -810,32 +1050,31 @@ class QualityPhase:
             raise QualityContractError("ARTIFACT_FILE_BUDGET_EXCEEDED")
         if self._artifact_bytes + len(raw) > MAX_TOTAL_ARTIFACT_BYTES:
             raise QualityContractError("ARTIFACT_TOTAL_BUDGET_EXCEEDED")
-        self._assert_phase_directory()
-        self._assert_no_redirect(self.directory, pure.parts[:-1])
-        target = self.directory / relative
-        if target.is_symlink():
-            raise QualityContractError("ARTIFACT_REDIRECT_FORBIDDEN:" + relative)
+        if self._owned_phase is None:
+            raise QualityContractError("OWNED_DIRECTORY_CLOSED:" + str(self.directory))
+        self._verify_owned()
+        handles = []
         try:
-            target.parent.mkdir(parents=True, exist_ok=True)
-        except OSError as error:
-            raise QualityContractError("ARTIFACT_WRITE_FAILED:" + relative) from error
-        # The ancestors are checked again after the directories were created.
-        self._assert_no_redirect(self.directory, pure.parts[:-1])
-        try:
-            descriptor = os.open(str(target),
-                                  os.O_WRONLY | os.O_CREAT | os.O_EXCL
-                                  | getattr(os, "O_NOFOLLOW", 0), 0o600)
-        except FileExistsError as error:
-            raise QualityContractError("ARTIFACT_REPLAY_FORBIDDEN:" + relative) from error
-        except OSError as error:
-            raise QualityContractError("ARTIFACT_WRITE_FAILED:" + relative) from error
-        try:
-            with os.fdopen(descriptor, "wb") as stream:
-                stream.write(raw)
-                stream.flush()
-                os.fsync(stream.fileno())
-        except OSError as error:
-            raise QualityContractError("ARTIFACT_WRITE_FAILED:" + relative) from error
+            current = self._owned_phase
+            for part in pure.parts[:-1]:
+                current.mkdir_child(part)
+                current = current.open_child_directory(part)
+                handles.append(current)
+            try:
+                descriptor = current.open_child_file(
+                    pure.parts[-1], os.O_WRONLY | os.O_CREAT | os.O_EXCL)
+            except FileExistsError as error:
+                raise QualityContractError("ARTIFACT_REPLAY_FORBIDDEN:" + relative) from error
+            try:
+                with os.fdopen(descriptor, "wb") as stream:
+                    stream.write(raw)
+                    stream.flush()
+                    os.fsync(stream.fileno())
+            except OSError as error:
+                raise QualityContractError("ARTIFACT_WRITE_FAILED:" + relative) from error
+        finally:
+            for handle in reversed(handles):
+                handle.close()
         self._artifact_files += 1
         self._artifact_bytes += len(raw)
         return {"path": relative, "bytes": len(raw), "sha256": sha256_bytes(raw)}
@@ -1018,7 +1257,9 @@ class QualityPhase:
             # produces zero sends and zero charges for this row.
             result["source_evidence"] = self._validate_source(
                 row, previous=result["source_evidence"]["identity"])
-            self._assert_run_root()
+            # The owned ancestors are compared again immediately before the
+            # send, so a renamed or replaced root is never adopted.
+            self._verify_owned()
             driver_submissions = int(getattr(self.driver, "submissions", 0))
             driver_limit = int(getattr(self.driver, "max_public_submissions", MAX_PUBLIC_SUBMISSIONS))
             if driver_submissions >= driver_limit:
@@ -1123,6 +1364,15 @@ class QualityPhase:
             # Cleanup never bypasses the release proof and never escapes the
             # row: an ordinary exception is recorded as a cleanup diagnostic
             # and stops every later public submission.
+            try:
+                # The cleanup handoff compares the owned identities again.
+                # A failed comparison is recorded, but it never skips the
+                # release proof itself.
+                self._verify_owned()
+            except Exception as error:  # noqa: BLE001 - the ownership gap is recorded
+                result["cleanup_diagnostics"].append(
+                    "OWNED_IDENTITY_CHECK_FAILED:" + type(error).__name__ + ":" + str(error)[:160])
+                result["halt"] = True
             try:
                 result["video_snapshot_residue"] = self._video_residue(row)
             except Exception as error:  # noqa: BLE001 - the cleanup gap is recorded
@@ -1481,49 +1731,105 @@ class QualityPhase:
             "receipt_persisted": None,
             "receipt_persistence_error": None,
             "terminal_status": None,
+            "timing_assurance": copy.deepcopy(TIMING_ASSURANCE),
+            "hard_timing_blocker": TIMING_ASSURANCE["hard_end_to_end_supervision"],
+            "ownership_assurance": {
+                "descriptor_relative_writes": True,
+                "all_ancestors_pinned": ["run_root", "temp", "phase", "nested artifact directories"],
+                "identity_checked_after_callbacks": True,
+                "identity_checked_before_send": True,
+                "identity_checked_before_cleanup_handoff": True,
+                "exclusive_single_write": True,
+                "accepted_limitation": (
+                    "This is an in-process inode observation of the owned "
+                    "directories.  It detects a renamed, replaced or symlinked "
+                    "ancestor and refuses to write through it.  It does not "
+                    "claim immunity against a hostile kernel or a filesystem "
+                    "that moves inodes underneath the process."),
+            },
         }
         if extra:
             receipt.update(extra)
         self.receipt = receipt
         return receipt
 
+    def _serialized_receipt(self, receipt):
+        """Serialize the receipt so that it states its own final size exactly.
+
+        The receipt states its own byte count and its own file count, so the
+        document grows when those fields are filled in.  The size is computed
+        to a bounded fixed point: the fields are filled with the assumed
+        length, the document is serialized, and a padding field absorbs the
+        remaining difference so that the serialized length is exactly the
+        recorded value.  The iteration is bounded; a document that cannot
+        reach a fixed point is an explicit failure, never a silent truncation.
+        """
+        document = dict(receipt)
+        document["receipt_persisted"] = True
+        document["receipt_persistence_error"] = None
+        document["terminal_status"] = "TERMINAL_RECEIPT_PERSISTED"
+        document["artifact_files_including_receipt"] = self._artifact_files + 1
+        document["artifact_bytes_including_receipt"] = self._artifact_bytes
+        document["receipt_bytes"] = 0
+        document[RECEIPT_PADDING_KEY] = ""
+        assumed = len(canonical_json(document).encode("utf-8")) + 64
+        for _ in range(RECEIPT_FIXED_POINT_ITERATIONS):
+            document["receipt_bytes"] = assumed
+            document["artifact_bytes_including_receipt"] = self._artifact_bytes + assumed
+            document["artifact_files_including_receipt"] = self._artifact_files + 1
+            raw = canonical_json(document).encode("utf-8")
+            actual = len(raw)
+            if actual == assumed:
+                return raw, document
+            if actual < assumed:
+                document[RECEIPT_PADDING_KEY] = "x" * (assumed - actual)
+                padded = canonical_json(document).encode("utf-8")
+                if len(padded) == assumed:
+                    return padded, document
+                assumed = len(padded)
+                continue
+            assumed = actual
+        raise QualityContractError("RECEIPT_FIXED_POINT_UNREACHED")
+
     def _write_receipt(self, receipt):
-        """Persist the receipt.
+        """Persist the terminal receipt.
 
         The terminal receipt is itself an artifact: its own bytes and file
         count are inside the frozen 8MiB / 128MiB / 256 bounds, the totals
-        reported are the honest post-write totals, and an impossible receipt
-        is reported as an explicit non-persisted terminal status instead of
-        being truncated or overwritten.
+        reported are the honest post-write totals that agree with the file on
+        disk, and an impossible receipt is reported as an explicit
+        non-persisted terminal status instead of being truncated, overwritten
+        or erased.
         """
         receipt["receipt_persisted"] = True
         receipt["receipt_persistence_error"] = None
         receipt["terminal_status"] = "TERMINAL_RECEIPT_PERSISTED"
         try:
-            raw = canonical_json(receipt).encode("utf-8")
+            raw, document = self._serialized_receipt(receipt)
             if len(raw) > MAX_ARTIFACT_BYTES:
                 raise QualityContractError("RECEIPT_OVER_ARTIFACT_CAP")
             if self._artifact_files + 1 > MAX_ARTIFACT_FILES:
                 raise QualityContractError("RECEIPT_FILE_BUDGET_EXCEEDED")
             if self._artifact_bytes + len(raw) > MAX_TOTAL_ARTIFACT_BYTES:
                 raise QualityContractError("RECEIPT_TOTAL_BUDGET_EXCEEDED")
-            self._assert_phase_directory()
-            self._assert_no_redirect(self.directory, ("qd-receipt.json",))
-            target = self.directory / "qd-receipt.json"
-            if target.is_symlink():
-                raise QualityContractError("ARTIFACT_REDIRECT_FORBIDDEN:qd-receipt.json")
-            descriptor = os.open(str(target),
-                                  os.O_WRONLY | os.O_CREAT | os.O_EXCL
-                                  | getattr(os, "O_NOFOLLOW", 0), 0o600)
+            if self._owned_phase is None:
+                raise QualityContractError("OWNED_DIRECTORY_CLOSED:" + str(self.directory))
+            self._verify_owned()
+            try:
+                descriptor = self._owned_phase.open_child_file(
+                    "qd-receipt.json", os.O_WRONLY | os.O_CREAT | os.O_EXCL)
+            except FileExistsError as error:
+                raise QualityContractError("ARTIFACT_REPLAY_FORBIDDEN:qd-receipt.json") from error
             with os.fdopen(descriptor, "wb") as stream:
                 stream.write(raw)
                 stream.flush()
                 os.fsync(stream.fileno())
             self._artifact_files += 1
             self._artifact_bytes += len(raw)
-            receipt["receipt_bytes"] = len(raw)
-            receipt["artifact_files_including_receipt"] = self._artifact_files
-            receipt["artifact_bytes_including_receipt"] = self._artifact_bytes
+            receipt.update(document)
+            receipt["receipt_persisted"] = True
+            receipt["receipt_persistence_error"] = None
+            receipt["terminal_status"] = "TERMINAL_RECEIPT_PERSISTED"
             return True
         except Exception as error:  # noqa: BLE001 - the failure must be visible
             receipt["receipt_persisted"] = False
@@ -1550,42 +1856,54 @@ class QualityPhase:
         if self._ran:
             raise QualityContractError("QUALITY_PHASE_ALREADY_EXECUTED")
         self._ran = True
-        self._started = self._now()
+        try:
+            self._started = self._now()
+        except QualityContractError as error:
+            # A clock that is not finite or not monotonic cannot prove a
+            # deadline, so the run is refused before any public action.
+            rows = self._empty_rows(str(error))
+            return self._finish(rows, "QUALITY_EXECUTION_BLOCKED",
+                                {"error_code": str(error)}, persist=False)
         self._phase_deadline = self._started + PHASE_TIMEOUT_SECONDS
         try:
-            self.directory.mkdir(parents=True, exist_ok=False)
-        except FileExistsError:
-            # A preexisting phase directory is a replay of an older root.  It
-            # is refused and *nothing* is written into it.
-            rows = self._empty_rows("PHASE_DIRECTORY_EXISTS")
-            return self._finish(rows, "QUALITY_EXECUTION_BLOCKED",
-                                {"error_code": "PHASE_DIRECTORY_EXISTS",
-                                 "phase_directory_replay_refused": True},
-                                persist=False)
+            self._open_owned_directories()
+        except QualityContractError as error:
+            # The refusal happens before any owned entry can be created, so a
+            # redirected ancestor never receives a foreign file.
+            rows = self._empty_rows(str(error))
+            receipt = self._finish(rows, "QUALITY_EXECUTION_BLOCKED",
+                                   {"error_code": str(error),
+                                    "owned_directories_closed": True,
+                                    "phase_directory_replay_refused":
+                                        str(error) == "PHASE_DIRECTORY_EXISTS"},
+                                   persist=False)
+            self._close_owned_directories()
+            return receipt
         except OSError as error:
             rows = self._empty_rows("PHASE_DIRECTORY_UNAVAILABLE")
-            return self._finish(rows, "QUALITY_EXECUTION_BLOCKED",
-                                {"error_code": "PHASE_DIRECTORY_UNAVAILABLE:" + type(error).__name__})
+            receipt = self._finish(rows, "QUALITY_EXECUTION_BLOCKED",
+                                   {"error_code": "PHASE_DIRECTORY_UNAVAILABLE:" + type(error).__name__},
+                                   persist=False)
+            self._close_owned_directories()
+            return receipt
         try:
-            info = self.directory.lstat()
-            if stat.S_ISLNK(info.st_mode) or getattr(info, "st_file_attributes", 0) & 0x400:
-                raise QualityContractError("PHASE_DIRECTORY_REDIRECT")
-            if self.directory.resolve() != (self.root / "temp" / "s3-quality"):
-                raise QualityContractError("PHASE_DIRECTORY_ESCAPE")
-            self._phase_identity = [info.st_dev, info.st_ino]
-        except QualityContractError as error:
-            rows = self._empty_rows(str(error))
-            return self._finish(rows, "QUALITY_EXECUTION_BLOCKED", {"error_code": str(error)})
-        except OSError as error:
-            rows = self._empty_rows("PHASE_DIRECTORY_ESCAPE")
-            return self._finish(rows, "QUALITY_EXECUTION_BLOCKED",
-                                {"error_code": "PHASE_DIRECTORY_ESCAPE:" + type(error).__name__})
+            return self._run_owned()
+        finally:
+            # Every owned handle is closed, also on a failure or a replay, and
+            # no write can happen after the root closure.
+            self._close_owned_directories()
 
+    def _run_owned(self):
+        """The sixteen row execution with the owned directories pinned."""
         # ---- parent capacity admission before the first public action ----
-        if self.parent_budget_capacity < MAX_TOTAL_PROVIDER_CALLS:
-            rows = self._empty_rows("PARENT_BUDGET_CAPACITY_INSUFFICIENT")
+        try:
+            admission_error = self._admission_error or self._parent_proof_is_fresh()
+        except QualityContractError as error:
+            admission_error = str(error)
+        if admission_error:
+            rows = self._empty_rows(admission_error)
             return self._finish(rows, "QUALITY_EXECUTION_BLOCKED",
-                                {"error_code": "PARENT_BUDGET_CAPACITY_INSUFFICIENT",
+                                {"error_code": admission_error,
                                  "parent_budget_capacity": self.parent_budget_capacity,
                                  "parent_budget_required_actions": MAX_TOTAL_PROVIDER_CALLS})
 
@@ -1628,7 +1946,14 @@ class QualityPhase:
 
         results = []
         for index, row in enumerate(rows):
-            if self._now() - self._started > PHASE_TIMEOUT_SECONDS:
+            try:
+                expired = self._now() - self._started > PHASE_TIMEOUT_SECONDS
+            except QualityContractError as error:
+                for pending in rows[index:]:
+                    pending["execution_status"] = "BLOCKED"
+                    pending["error_code"] = str(error)
+                break
+            if expired:
                 for pending in rows[index:]:
                     pending["execution_status"] = "BLOCKED"
                     pending["error_code"] = "PHASE_DEADLINE_EXCEEDED"
@@ -1785,6 +2110,41 @@ def verify_independence(independence, *, implementer_identity=None, run_id=None)
     }
 
 
+def _row_evidence_complete(row, receipt):
+    """Validate the source, storage and cleanup evidence of one row.
+
+    Every row is checked, whether its execution passed or failed.  A missing
+    release proof, a missing or non-empty residue observation, missing source
+    evidence that does not match the row identity, or an explicit storage or
+    cleanup uncertainty leaves the row unresolved.  A bare status string is
+    never accepted and nothing is defaulted to a pass.
+    """
+    source = row.get("source_evidence")
+    if not isinstance(source, dict):
+        return False, "SOURCE_EVIDENCE_MISSING"
+    if source.get("sha256") != row.get("source_sha256"):
+        return False, "SOURCE_EVIDENCE_MISMATCH"
+    if source.get("bytes") != row.get("source_bytes"):
+        return False, "SOURCE_EVIDENCE_MISMATCH"
+    release = row.get("release_evidence")
+    if not isinstance(release, dict):
+        return False, "RELEASE_EVIDENCE_MISSING"
+    if release.get("proven") is not True:
+        return False, "RELEASE_EVIDENCE_UNPROVEN"
+    if release.get("model_inventory_empty") is not True:
+        return False, "RELEASE_EVIDENCE_UNPROVEN"
+    residue = row.get("video_snapshot_residue")
+    if not isinstance(residue, list):
+        return False, "RESIDUE_EVIDENCE_MISSING"
+    if residue:
+        return False, "RESIDUE_EVIDENCE_PRESENT"
+    if row.get("storage_unproven") is True or receipt.get("storage_unproven") is True:
+        return False, "STORAGE_UNPROVEN"
+    if row.get("cleanup_unproven") is True or receipt.get("cleanup_unproven") is True:
+        return False, "CLEANUP_UNPROVEN"
+    return True, None
+
+
 def _validate_score_document(score):
     """Validate one independent scoring receipt."""
     if not isinstance(score, dict):
@@ -1908,10 +2268,11 @@ def recompute_scores(execution_receipt, artifact_root, score_receipts, *,
         }
         score = scores.get(asset_id)
         execution_passed = row.get("execution_status") == "PASS"
-        cleanup = row.get("release_evidence")
-        cleanup_proven = (isinstance(cleanup, dict) and cleanup.get("proven") is True
-                          and row.get("video_snapshot_residue") == [])
+        evidence_complete, evidence_reason = _row_evidence_complete(row, execution_receipt)
+        cleanup_proven = evidence_complete
         entry["cleanup_proven"] = cleanup_proven
+        entry["evidence_complete"] = evidence_complete
+        entry["evidence_reason"] = evidence_reason
         # The raw evidence is verified for every applicable row: a row with an
         # independent score must have a preserved raw whose hash *and* byte
         # length match both the execution record and the scoring record.
@@ -1947,15 +2308,23 @@ def recompute_scores(execution_receipt, artifact_root, score_receipts, *,
         entry["reviewer_id"] = score["reviewer_id"]
         entry["session_id"] = score["session_id"]
         if execution_passed:
-            usable = total >= PER_SAMPLE_TOTAL_MIN and critical <= CRITICAL_HALLUCINATIONS_MAX
-            entry["resolved"] = True
-            if usable:
-                entry["quality_status"] = "PASS"
-                entry["usable"] = True
-                entry["reason"] = "USABLE"
+            if not evidence_complete:
+                # A passed execution whose source, storage or cleanup
+                # evidence is unknown can never become usable or resolved.
+                entry["resolved"] = False
+                entry["usable"] = False
+                entry["reason"] = "EVIDENCE_UNKNOWN:" + str(evidence_reason)
             else:
-                entry["reason"] = ("CRITICAL_HALLUCINATION" if critical > CRITICAL_HALLUCINATIONS_MAX
-                                   else "TOTAL_BELOW_THRESHOLD")
+                usable = total >= PER_SAMPLE_TOTAL_MIN and critical <= CRITICAL_HALLUCINATIONS_MAX
+                entry["resolved"] = True
+                if usable:
+                    entry["quality_status"] = "PASS"
+                    entry["usable"] = True
+                    entry["reason"] = "USABLE"
+                else:
+                    entry["reason"] = ("CRITICAL_HALLUCINATION"
+                                       if critical > CRITICAL_HALLUCINATIONS_MAX
+                                       else "TOTAL_BELOW_THRESHOLD")
         else:
             # An execution failure stays a quality FAIL inside the fixed
             # sixteen row denominator.  Its verified, independently reviewed
@@ -1967,9 +2336,12 @@ def recompute_scores(execution_receipt, artifact_root, score_receipts, *,
             entry["quality_status"] = "FAIL"
             entry["usable"] = False
             base = error_base_code(row.get("error_code") or "")
-            if base in KNOWN_EXECUTION_FAILURE_CODES and cleanup_proven:
+            if base in KNOWN_EXECUTION_FAILURE_CODES and evidence_complete:
                 entry["resolved"] = True
                 entry["reason"] = "KNOWN_EXECUTION_FAILURE_RESOLVED_NOT_USABLE"
+            elif not evidence_complete:
+                entry["resolved"] = False
+                entry["reason"] = "EVIDENCE_UNKNOWN:" + str(evidence_reason)
             else:
                 entry["resolved"] = False
                 entry["reason"] = "UNKNOWN_EXECUTION_FAILURE"
