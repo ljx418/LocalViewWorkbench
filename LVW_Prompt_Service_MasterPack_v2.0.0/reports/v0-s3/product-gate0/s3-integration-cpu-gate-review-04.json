@@ -1,0 +1,38 @@
+{
+  "kind": "ROOT_CPU_MACHINE_GATE_REVIEW_04_NOT_EXECUTION_GRANT",
+  "at_utc": "2026-11-12T15:16:29.442631+00:00",
+  "question_id": "msg_c5814bdf6fe1",
+  "candidate_sha": "57dff7c261c4dee79dc81240063644273cbffff4",
+  "source_pins_verified": 11,
+  "decision": "CHANGES_REQUIRED_CHILD_DEADLINE_UNKNOWN_AND_SETTLEMENT_WIRING",
+  "execution_permitted": false,
+  "human_authorization_required": false,
+  "progress": [
+    "Actual reserved slice and immutable deadlines corrected",
+    "Same-session other-owner reopening refused",
+    "Exception-safe stream restoration/reaper and checked root removal present"
+  ],
+  "findings": [
+    {
+      "id": "CPU-TERMINATION-DEADLINE",
+      "location": "executor.py:630 _stop_child",
+      "actual": "budget is min(kill_seconds, session remaining), with no child remaining cap; same budget reused for both waits without recomputation. At child age9.5 and session remaining>2, two timeout waits may consume2s beyond per-process10s.",
+      "required": "One absolute stop deadline=min(child started+10, session cleanup deadline); recompute remaining before every wait, including post-kill wait. Test near child and session deadlines with fake clock advancing per wait."
+    },
+    {
+      "id": "CPU-UNKNOWN-WATCHDOG",
+      "location": "executor.py:610 _watch and :662 reap",
+      "actual": "reap marks unproven child UNKNOWN and leaves watchdog armed, but _watch skips every state except STARTED. Thus UNKNOWN live handle receives no further safety action.",
+      "required": "Keep unknown original handles eligible for bounded safety action while retaining occupied counter/root and blocking admission; do not claim proven cleanup. Define bounded/no-busy-loop behavior after deadlines. Test failed initial stop followed by watchdog action on UNKNOWN original handle."
+    },
+    {
+      "id": "CPU-SETTLEMENT-NOT-WIRED",
+      "location": "run_guarded_checks.py:102 finalize_session; executor.py:726 settle_session",
+      "actual": "Real runner never invokes executor.settle_session; calls exist only in fake executor tests. Session remains ACTIVE and global spent_wall_seconds does not receive actual run wall.",
+      "required": "Wire exactly-once session settlement into real finalization after cleanup work, with final evidence captured after settlement. Ordinary settlement/counter failure must retain root and nonzero receipt; unknown custody must remain explicit and never release charge. Test through finalize_session actual call path, not manual direct method-only calls."
+    }
+  ],
+  "verification": "Read-only source/hash review; no candidate imports, fixture subprocess, budget counter or product runtime. No tests rerun.",
+  "stage_pass_claim": false,
+  "product_gate0": false
+}

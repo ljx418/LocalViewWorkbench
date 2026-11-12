@@ -1819,7 +1819,7 @@
   },
   "s3_integration": {
     "workpack_id": "S3-P4-OFFLINE",
-    "status": "CLAUDE_MACHINE_GATE_RESERVATION_FINALIZER_CORRECTION_ZERO_PROCESS",
+    "status": "CLAUDE_MACHINE_GATE_CHILD_DEADLINE_AND_SETTLEMENT_CORRECTION_ZERO_PROCESS",
     "contract": "reports/v0-s3/product-gate0/s3-integration-offline-contract-01.md",
     "task": "reports/v0-s3/product-gate0/implementation-integration-01.task.md",
     "acceptance_matrix": "reports/v0-s3/product-gate0/s3-integration-acceptance-01.json",
@@ -1842,16 +1842,15 @@
     "launch_receipt": "reports/v0-s3/product-gate0/implementation-integration-01.launch.json",
     "retry_env": "reports/v0-s3/product-gate0/implementation-integration-01.retry-env.json",
     "machine_gate": {
-      "status": "CHANGES_REQUIRED_RESERVATION_DEADLINE_AND_FINALIZER",
-      "review": "reports/v0-s3/product-gate0/s3-integration-cpu-gate-review-03.json",
-      "question_id": "msg_537b3ef19885",
-      "candidate_sha": "d7c0f37ff7f9907dce32ad2d74b925b1030d2d3d",
+      "status": "CHANGES_REQUIRED_CHILD_DEADLINE_UNKNOWN_AND_SETTLEMENT_WIRING",
+      "review": "reports/v0-s3/product-gate0/s3-integration-cpu-gate-review-04.json",
+      "question_id": "msg_c5814bdf6fe1",
+      "candidate_sha": "57dff7c261c4dee79dc81240063644273cbffff4",
       "fixture_starts_authorized": 0,
       "human_authorization_required": false,
-      "reply_message_id": "msg_b01b09f2bb1f",
-      "reply_body": "reports/v0-s3/product-gate0/s3-integration-cpu-gate-review-03.reply-body.txt",
       "execution_permitted": false,
-      "next": "Correct actual reserved-slice immutable deadlines, session-wall accounting, active-child finalization and ordinary log/cleanup error paths; focused zero-process tests then root recheck. No fixture start grant."
+      "reply_body": "reports/v0-s3/product-gate0/s3-integration-cpu-gate-review-04.reply-body.txt",
+      "next": "Correct bounded child termination, UNKNOWN watchdog action and actual runner session settlement; focused zero-process validation then root recheck."
     }
   }
 }
