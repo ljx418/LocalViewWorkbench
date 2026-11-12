@@ -13,11 +13,13 @@ process either.
 """
 
 import copy
+import errno
 import hashlib
 import inspect
 import json
 import os
 import socket
+import stat
 import subprocess
 import sys
 from pathlib import Path
@@ -4052,3 +4054,460 @@ def test_correction07_nm03_a_clean_genuine_run_still_aggregates(tmp_path):
     assert result["thresholds"]["total_critical_hallucinations"] == 0, result
     assert result["stage_pass_claim"] is False and result["product_gate0"] is False, result
     assert result["model_called"] is False, result
+
+
+# --------------------------------------------------------------------------
+# correction08 NM03: the ownership of every opened descriptor and the
+# admission bound of the custody.
+#
+# Two resource roots of the independent correction-07 review are closed
+# here:
+#
+#   NM03-R1  a descriptor whose ``os.open`` succeeded but whose metadata
+#            could not be read afterwards was owned by nobody.  Neither
+#            the custody nor the boundary knew it, ``boundary.close()``
+#            left it live and the descriptor use of the evaluation grew
+#            with every metadata failure.
+#   NM03-r2  the custody bound was checked *after* the excess entry had
+#            been opened.  A refused admission therefore still opened one
+#            descriptor and the transient descriptor use was one above the
+#            internal bound.
+#
+# Every fault is injected into the owner itself and nothing is repaired
+# afterwards: a leaked descriptor stays visible in the descriptor count, so
+# no probe remediation can hide it and a "fake cleanup" cannot pass here.
+# --------------------------------------------------------------------------
+def _descriptor_count():
+    """The number of open descriptors of this process."""
+    return len(os.listdir("/proc/self/fd"))
+
+
+def _fail_the_metadata_of_the_next_open(monkeypatch, *, any_descriptor=False,
+                                        arm_after_the_boundary=True):
+    """Fail the metadata of the next opened descriptor exactly once.
+
+    The injection watches the ``os.open`` of the boundary and fails the
+    very first ``os.fstat`` of the descriptor that it opened with an
+    ordinary ``OSError(EIO)`` - the fault the independent review reported.
+    The fault is injected into the product's own ``os`` module, so the
+    product code that opens the descriptor is the code that fails.
+
+    ``arm_after_the_boundary`` waits for the construction of the boundary
+    to finish, so the fault hits the *first read* and not the levels of the
+    pinned hierarchy.  ``any_descriptor`` fails the first metadata read of
+    any descriptor instead of the metadata of the opened one; it is used
+    for the audit of the construction of the boundary.
+    """
+    state = {"armed": not arm_after_the_boundary, "fired": 0, "descriptor": None}
+    original_open = quality.os.open
+    original_fstat = quality.os.fstat
+
+    def hooked_open(path, flags, *args, **kwargs):
+        descriptor = original_open(path, flags, *args, **kwargs)
+        if state["armed"] and state["descriptor"] is None:
+            state["descriptor"] = descriptor
+        return descriptor
+
+    def hooked_fstat(descriptor):
+        if state["fired"] == 0 and state["armed"]:
+            if any_descriptor or descriptor == state["descriptor"]:
+                state["fired"] += 1
+                raise OSError(errno.EIO, "injected metadata failure")
+        return original_fstat(descriptor)
+
+    monkeypatch.setattr(quality.os, "open", hooked_open)
+    monkeypatch.setattr(quality.os, "fstat", hooked_fstat)
+    if arm_after_the_boundary:
+        original_init = quality._ArtifactBoundary.__init__
+
+        def hooked_init(self, *args, **kwargs):
+            original_init(self, *args, **kwargs)
+            state["armed"] = True
+
+        monkeypatch.setattr(quality._ArtifactBoundary, "__init__", hooked_init)
+    return state
+
+
+def _falsify_the_named_stat_of_the_next_open(monkeypatch, *, replacement=None,
+                                             error=None):
+    """Falsify the named stat of the next opened entry exactly once.
+
+    The no-follow, parent relative ``stat`` of the entry that was just
+    opened is replaced by the stat of another, genuinely different object
+    of the same parent, so the identity or the type validation of the
+    entry fails.  With ``error`` the stat fails with an ordinary
+    ``OSError`` instead.
+
+    The replacement is a real object of the own fixture of the test: no
+    stat result is fabricated, so the refusal is produced by the product's
+    own validation and not by the probe.
+    """
+    state = {"armed": False, "fired": 0, "replacement": None}
+    original_stat = quality.os.stat
+    original_init = quality._ArtifactBoundary.__init__
+
+    def hooked_stat(path, *args, **kwargs):
+        if state["armed"] and state["fired"] == 0:
+            state["fired"] += 1
+            if error is not None:
+                raise error
+            directory = kwargs.get("dir_fd")
+            result = original_stat(replacement, dir_fd=directory, follow_symlinks=False)
+            state["replacement"] = {
+                "name": replacement,
+                "inode": result.st_ino,
+                "is_directory": stat.S_ISDIR(result.st_mode),
+                "is_file": stat.S_ISREG(result.st_mode),
+            }
+            return result
+        return original_stat(path, *args, **kwargs)
+
+    def hooked_init(self, *args, **kwargs):
+        original_init(self, *args, **kwargs)
+        state["armed"] = True
+
+    monkeypatch.setattr(quality.os, "stat", hooked_stat)
+    monkeypatch.setattr(quality._ArtifactBoundary, "__init__", hooked_init)
+    return state
+
+
+class _RefusingCustodyRegistry(dict):
+    """A custody registry that refuses to take a new entry.
+
+    Every lookup behaves like a normal dictionary, but the insertion of a
+    new entry fails with an ordinary ``OSError(EIO)``.  The fault is the
+    insertion of the entry into the custody - not the lookup, not the open
+    and not the metadata - so the ownership of the descriptor has to be
+    transferred back to the boundary when the insertion fails.
+    """
+
+    def __setitem__(self, key, value):
+        raise OSError(errno.EIO, "injected insertion failure")
+
+
+def _fill_the_custody_bound(root):
+    """Fill a fixture with exactly the internal bound of tiny leaves."""
+    names = []
+    for index in range(quality._CUSTODY_ENTRY_LIMIT):
+        name = "bound-%04d.bin" % index
+        (root / name).write_bytes(b"abcd")
+        names.append(name)
+    return names
+
+
+def _remove_the_filled_leaves(root, names):
+    """Remove the own leaves of this test; never touch an older root."""
+    for name in names:
+        (root / name).unlink(missing_ok=True)
+
+
+@pytest.mark.skipif(not os.path.isdir("/proc/self/fd"), reason="no procfs descriptor listing")
+def test_correction08_nm03_a_child_directory_whose_metadata_fails_after_the_open_is_closed(
+        tmp_path, monkeypatch):
+    """A child directory whose metadata fails after the open owns nobody."""
+    run = _own_run(tmp_path)
+    nested = run["receipt"]["rows"][0]["raw_artifact"]
+    before = _descriptor_count()
+    state = _fail_the_metadata_of_the_next_open(monkeypatch)
+    boundary = quality._ArtifactBoundary(run["artifact_root"])
+    during = _descriptor_count()
+    try:
+        with pytest.raises(OSError) as failed:
+            boundary.read(nested, quality.MAX_ARTIFACT_BYTES)
+        assert failed.value.errno == errno.EIO, failed.value.errno
+        assert state["fired"] == 1, state
+        # The refused child directory is already closed: the descriptor use
+        # of the boundary is exactly the use of its pinned levels.
+        assert _descriptor_count() == during, "the refused child directory leaked a descriptor"
+        # It is owned by nobody: it is not in the custody and it is not a
+        # reserved slot either.
+        assert boundary._custody.count() == 0, boundary._custody.count()
+        assert boundary._custody.reserved() == 0, boundary._custody.reserved()
+    finally:
+        boundary.close()
+    assert _descriptor_count() <= before, "the refused child directory leaked a descriptor"
+
+
+@pytest.mark.skipif(not os.path.isdir("/proc/self/fd"), reason="no procfs descriptor listing")
+def test_correction08_nm03_a_leaf_whose_metadata_fails_after_the_open_is_closed(
+        tmp_path, monkeypatch):
+    """A leaf whose metadata fails after the open owns nobody."""
+    run = _own_run(tmp_path)
+    before = _descriptor_count()
+    state = _fail_the_metadata_of_the_next_open(monkeypatch)
+    boundary = quality._ArtifactBoundary(run["artifact_root"])
+    during = _descriptor_count()
+    try:
+        with pytest.raises(OSError) as failed:
+            boundary.read(quality.CANONICAL_RECEIPT_NAME, quality.MAX_ARTIFACT_BYTES)
+        assert failed.value.errno == errno.EIO, failed.value.errno
+        assert state["fired"] == 1, state
+        assert _descriptor_count() == during, "the refused leaf leaked a descriptor"
+        assert boundary._custody.count() == 0, boundary._custody.count()
+        assert boundary._custody.reserved() == 0, boundary._custody.reserved()
+    finally:
+        boundary.close()
+    assert _descriptor_count() <= before, "the refused leaf leaked a descriptor"
+
+
+@pytest.mark.skipif(not os.path.isdir("/proc/self/fd"), reason="no procfs descriptor listing")
+def test_correction08_nm03_a_child_directory_whose_named_stat_fails_is_closed(
+        tmp_path, monkeypatch):
+    """A child directory whose named stat fails after the open is closed."""
+    run = _own_run(tmp_path)
+    nested = run["receipt"]["rows"][0]["raw_artifact"]
+    before = _descriptor_count()
+    state = _falsify_the_named_stat_of_the_next_open(
+        monkeypatch, error=OSError(errno.EIO, "injected named stat failure"))
+    boundary = quality._ArtifactBoundary(run["artifact_root"])
+    during = _descriptor_count()
+    try:
+        with pytest.raises(QualityContractError) as refused:
+            boundary.read(nested, quality.MAX_ARTIFACT_BYTES)
+        assert "SCORE_ARTIFACT_MISSING" in str(refused.value), str(refused.value)
+        assert state["fired"] == 1, state
+        assert _descriptor_count() == during, "the refused child directory leaked a descriptor"
+        assert boundary._custody.count() == 0, boundary._custody.count()
+        assert boundary._custody.reserved() == 0, boundary._custody.reserved()
+    finally:
+        boundary.close()
+    assert _descriptor_count() <= before, "the refused child directory leaked a descriptor"
+
+
+@pytest.mark.skipif(not os.path.isdir("/proc/self/fd"), reason="no procfs descriptor listing")
+def test_correction08_nm03_a_leaf_whose_named_identity_differs_is_closed(
+        tmp_path, monkeypatch):
+    """A leaf whose named entry names another object is closed and refused."""
+    run = _own_run(tmp_path)
+    root = run["artifact_root"]
+    sibling = root / "identity-sibling.bin"
+    sibling.write_bytes(b"abcd")
+    canonical = root / quality.CANONICAL_RECEIPT_NAME
+    before = _descriptor_count()
+    state = _falsify_the_named_stat_of_the_next_open(
+        monkeypatch, replacement="identity-sibling.bin")
+    boundary = quality._ArtifactBoundary(root)
+    during = _descriptor_count()
+    try:
+        with pytest.raises(QualityContractError) as refused:
+            boundary.read(quality.CANONICAL_RECEIPT_NAME, quality.MAX_ARTIFACT_BYTES)
+        assert "SCORE_ARTIFACT_REDIRECT_FORBIDDEN" in str(refused.value), str(refused.value)
+        assert state["fired"] == 1, state
+        assert _descriptor_count() == during, "the refused leaf leaked a descriptor"
+        # The replacement really is another object of the same parent, so
+        # the identity validation - and not the type validation - failed.
+        assert state["replacement"]["is_file"] is True, state["replacement"]
+        assert state["replacement"]["inode"] != canonical.stat().st_ino, state["replacement"]
+        assert boundary._custody.count() == 0, boundary._custody.count()
+        assert boundary._custody.reserved() == 0, boundary._custody.reserved()
+    finally:
+        boundary.close()
+        sibling.unlink(missing_ok=True)
+    assert _descriptor_count() <= before, "the refused leaf leaked a descriptor"
+
+
+@pytest.mark.skipif(not os.path.isdir("/proc/self/fd"), reason="no procfs descriptor listing")
+def test_correction08_nm03_a_leaf_whose_named_type_differs_is_closed(
+        tmp_path, monkeypatch):
+    """A leaf whose named entry is a directory is closed and refused."""
+    run = _own_run(tmp_path)
+    root = run["artifact_root"]
+    before = _descriptor_count()
+    # The parent of the leaf is a directory: the named entry is therefore
+    # not a plain file and the type validation has to fail.
+    state = _falsify_the_named_stat_of_the_next_open(monkeypatch, replacement=".")
+    boundary = quality._ArtifactBoundary(root)
+    during = _descriptor_count()
+    try:
+        with pytest.raises(QualityContractError) as refused:
+            boundary.read(quality.CANONICAL_RECEIPT_NAME, quality.MAX_ARTIFACT_BYTES)
+        assert "SCORE_ARTIFACT_REDIRECT_FORBIDDEN" in str(refused.value), str(refused.value)
+        assert state["fired"] == 1, state
+        assert _descriptor_count() == during, "the refused leaf leaked a descriptor"
+        assert state["replacement"]["is_directory"] is True, state["replacement"]
+        assert boundary._custody.count() == 0, boundary._custody.count()
+        assert boundary._custody.reserved() == 0, boundary._custody.reserved()
+    finally:
+        boundary.close()
+    assert _descriptor_count() <= before, "the refused leaf leaked a descriptor"
+
+
+@pytest.mark.skipif(not os.path.isdir("/proc/self/fd"), reason="no procfs descriptor listing")
+def test_correction08_nm03_an_insertion_failure_closes_the_descriptor_and_leaves_the_custody_intact(
+        tmp_path, monkeypatch):
+    """A custody that refuses the insertion closes the descriptor of the entry."""
+    run = _own_run(tmp_path)
+    root = run["artifact_root"]
+    leaf = root / "insertion.bin"
+    leaf.write_bytes(b"abcd")
+    before = _descriptor_count()
+    boundary = quality._ArtifactBoundary(root)
+    during = _descriptor_count()
+    try:
+        boundary._custody._entries = _RefusingCustodyRegistry()
+        with pytest.raises(OSError) as failed:
+            boundary.read("insertion.bin", 4)
+        assert failed.value.errno == errno.EIO, failed.value.errno
+        assert _descriptor_count() == during, "the failed insertion leaked a descriptor"
+        # The refused insertion left no entry, no reserved slot and no
+        # descriptor behind.
+        assert boundary._custody.count() == 0, boundary._custody.count()
+        assert boundary._custody.reserved() == 0, boundary._custody.reserved()
+        assert boundary._custody._fds == [], boundary._custody._fds
+    finally:
+        boundary.close()
+        leaf.unlink(missing_ok=True)
+    assert _descriptor_count() <= before, "the failed insertion leaked a descriptor"
+
+
+@pytest.mark.skipif(not os.path.isdir("/proc/self/fd"), reason="no procfs descriptor listing")
+def test_correction08_nm03_a_public_evaluation_whose_metadata_fails_releases_every_descriptor(
+        tmp_path, monkeypatch):
+    """The public scoring entry point releases everything when a read fails."""
+    run = _own_run(tmp_path)
+    before = _descriptor_count()
+    state = _fail_the_metadata_of_the_next_open(monkeypatch)
+    with pytest.raises(OSError) as failed:
+        recompute_scores(run["receipt"], run["artifact_root"], _own_scores(run),
+                         independence=_independence())
+    assert failed.value.errno == errno.EIO, failed.value.errno
+    assert state["fired"] == 1, state
+    assert _descriptor_count() <= before, "the refusing evaluation leaked a descriptor"
+
+
+@pytest.mark.skipif(not os.path.isdir("/proc/self/fd"), reason="no procfs descriptor listing")
+def test_correction08_nm03_the_custody_bound_is_checked_before_the_excess_open(
+        tmp_path, monkeypatch):
+    """The internal bound refuses the excess entry before it is opened."""
+    run = _own_run(tmp_path)
+    root = run["artifact_root"]
+    names = _fill_the_custody_bound(root)
+    boundary = quality._ArtifactBoundary(root)
+    opened = {"count": 0}
+    original_open = quality.os.open
+
+    def hooked_open(path, flags, *args, **kwargs):
+        opened["count"] += 1
+        return original_open(path, flags, *args, **kwargs)
+
+    monkeypatch.setattr(quality.os, "open", hooked_open)
+    before = _descriptor_count()
+    try:
+        for name in names:
+            assert boundary.read(name, 4) == b"abcd"
+        assert opened["count"] == quality._CUSTODY_ENTRY_LIMIT, opened["count"]
+        assert boundary._custody.count() == quality._CUSTODY_ENTRY_LIMIT
+        during = _descriptor_count()
+        # The excess name is refused *before* it is opened.
+        excess = "bound-excess.bin"
+        (root / excess).write_bytes(b"abcd")
+        with pytest.raises(QualityContractError) as refused:
+            boundary.read(excess, 4)
+        assert "QS_ARTIFACT_CUSTODY_LIMIT_EXCEEDED" in str(refused.value), str(refused.value)
+        assert opened["count"] == quality._CUSTODY_ENTRY_LIMIT, "the excess entry was opened"
+        assert _descriptor_count() == during, "the refused entry opened a descriptor"
+        # Every entry that was taken earlier is still verifiable and usable.
+        assert boundary._custody.count() == quality._CUSTODY_ENTRY_LIMIT
+        boundary.verify()
+        assert boundary.read(names[0], 4) == b"abcd"
+        assert opened["count"] == quality._CUSTODY_ENTRY_LIMIT, "a reused name was opened again"
+    finally:
+        boundary.close()
+        _remove_the_filled_leaves(root, names + ["bound-excess.bin"])
+    assert _descriptor_count() <= before, "the boundary leaked a descriptor"
+
+
+@pytest.mark.skipif(not os.path.isdir("/proc/self/fd"), reason="no procfs descriptor listing")
+def test_correction08_nm03_a_repeated_name_at_the_custody_bound_opens_nothing(
+        tmp_path, monkeypatch):
+    """A repeated name at the internal bound reuses its pinned descriptor."""
+    run = _own_run(tmp_path)
+    root = run["artifact_root"]
+    names = _fill_the_custody_bound(root)
+    boundary = quality._ArtifactBoundary(root)
+    opened = {"count": 0}
+    original_open = quality.os.open
+
+    def hooked_open(path, flags, *args, **kwargs):
+        opened["count"] += 1
+        return original_open(path, flags, *args, **kwargs)
+
+    monkeypatch.setattr(quality.os, "open", hooked_open)
+    before = _descriptor_count()
+    try:
+        for name in names:
+            assert boundary.read(name, 4) == b"abcd"
+        assert opened["count"] == quality._CUSTODY_ENTRY_LIMIT, opened["count"]
+        during = _descriptor_count()
+        # The same names are read again at the bound: the pinned descriptor
+        # is reused and nothing is opened a second time.
+        for name in names:
+            assert boundary.read(name, 4) == b"abcd"
+        assert opened["count"] == quality._CUSTODY_ENTRY_LIMIT, "a repeated name was opened again"
+        assert _descriptor_count() == during, "the repeated reads grew the descriptor use"
+        assert boundary._custody.count() == quality._CUSTODY_ENTRY_LIMIT
+    finally:
+        boundary.close()
+        _remove_the_filled_leaves(root, names)
+    assert _descriptor_count() <= before, "the boundary leaked a descriptor"
+
+
+@pytest.mark.skipif(not os.path.isdir("/proc/self/fd"), reason="no procfs descriptor listing")
+def test_correction08_nm03_a_refused_admission_does_not_consume_a_custody_slot(
+        tmp_path, monkeypatch):
+    """A refused admission gives its reserved slot back and keeps the earlier ones."""
+    run = _own_run(tmp_path)
+    root = run["artifact_root"]
+    (root / "admission-a.bin").write_bytes(b"abcd")
+    (root / "admission-b.bin").write_bytes(b"abcd")
+    state = _fail_the_metadata_of_the_next_open(monkeypatch)
+    boundary = quality._ArtifactBoundary(root)
+    during = _descriptor_count()
+    try:
+        with pytest.raises(OSError):
+            boundary.read("admission-a.bin", 4)
+        assert state["fired"] == 1, state
+        assert _descriptor_count() == during, "the refused admission leaked a descriptor"
+        assert boundary._custody.count() == 0, boundary._custody.count()
+        assert boundary._custody.reserved() == 0, boundary._custody.reserved()
+        # The refused admission consumed no slot: the next name is admitted
+        # normally and the earlier custody is untouched.
+        assert boundary.read("admission-b.bin", 4) == b"abcd"
+        assert boundary._custody.count() == 1, boundary._custody.count()
+    finally:
+        boundary.close()
+        (root / "admission-a.bin").unlink(missing_ok=True)
+        (root / "admission-b.bin").unlink(missing_ok=True)
+
+
+@pytest.mark.skipif(not os.path.isdir("/proc/self/fd"), reason="no procfs descriptor listing")
+def test_correction08_nm03_a_boundary_that_fails_its_construction_releases_every_descriptor(
+        tmp_path, monkeypatch):
+    """The construction of the boundary releases everything when it fails."""
+    run = _own_run(tmp_path)
+    before = _descriptor_count()
+    state = _fail_the_metadata_of_the_next_open(monkeypatch, any_descriptor=True,
+                                                arm_after_the_boundary=False)
+    with pytest.raises(OSError) as failed:
+        quality._ArtifactBoundary(run["artifact_root"])
+    assert failed.value.errno == errno.EIO, failed.value.errno
+    assert state["fired"] == 1, state
+    assert _descriptor_count() <= before, "the failed construction leaked a descriptor"
+
+
+def test_correction08_nm03_the_genuine_sixteen_rows_stay_inside_the_custody_bound(
+        completed_run):
+    """The genuine evaluation of the sixteen rows stays inside the bound."""
+    boundary = quality._ArtifactBoundary(completed_run["artifact_root"])
+    try:
+        names = [quality.CANONICAL_RECEIPT_NAME,
+                 completed_run["receipt"]["source_plan"]["path"]]
+        names += [row["raw_artifact"] for row in completed_run["receipt"]["rows"]]
+        for name in names:
+            boundary.read(name, quality.MAX_ARTIFACT_BYTES)
+        entries = boundary._custody.count()
+        assert 0 < entries < quality._CUSTODY_ENTRY_LIMIT, entries
+        assert boundary._custody.reserved() == 0, boundary._custody.reserved()
+        boundary.verify()
+    finally:
+        boundary.close()

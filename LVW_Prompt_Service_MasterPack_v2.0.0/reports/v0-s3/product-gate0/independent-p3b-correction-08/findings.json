@@ -1,0 +1,267 @@
+{
+  "closed_assigned_findings": [
+    {
+      "actual": "Both owner faults close once before boundary.close, all existing custody preserved and retry admitted; public canonical leaf and raw child-directory faults each fire once, scoring raises EIO and finally closes every acquired FD once; no probe FD remediation",
+      "evidence": [
+        "targeted-observations.json:leaf_fstat",
+        "targeted-observations.json:directory_fstat",
+        "targeted-observations.json:public_leaf_postopen_fstat",
+        "targeted-observations.json:public_directory_postopen_fstat",
+        "counterexample-observations.json",
+        "targeted.receipt.json",
+        "suite.receipt.json"
+      ],
+      "expected": "One owner closes the refused descriptor once; existing entries and capacity survive; public QS refuses without residual live FDs",
+      "id": "NM03-R1_POST_OPEN_METADATA_EXCEPTION_DESCRIPTOR_LEAK",
+      "limits": "Injected ordinary errors on cooperative Linux Python boundary; not observation of an actual OS EIO, universal allocator failure, native Windows or hostile kernel",
+      "locations": [
+        "tools/v0_s3_quality_phase.py:2894 _open_child_directory",
+        "tools/v0_s3_quality_phase.py:2929 _open_leaf",
+        "tools/v0_s3_quality_phase.py:2682 _NamedCustody.take",
+        "tools/v0_s3_quality_phase.py:3736 recompute_scores"
+      ],
+      "prior_severity": "Major",
+      "status": "CLOSED_SCOPED_OFFLINE",
+      "trigger": "Actual successful child-directory or leaf os.open followed by exactly one EIO at its first fstat, before custody insertion"
+    },
+    {
+      "actual": "Exactly72 entries/opens;73rd zero opens and high-water84 unchanged; all72 reused and verified, unchanged registry,0 pending reservations; close8; genuine public16 uses35 entries and closes47 to8",
+      "evidence": [
+        "targeted-observations.json:exact72_excess73_repeat72",
+        "targeted-observations.json:genuine_full16_public_success",
+        "counterexample-observations.json",
+        "targeted.receipt.json",
+        "suite.receipt.json"
+      ],
+      "expected": "Refuse before excess open, zero transient FD increase, no lost entries, no consumed failed slot, final baseline",
+      "id": "NM03-r2_CAP_CHECK_AFTER_EXCESS_OPEN",
+      "limits": "72 is unchanged internal capacity, not public threshold or platform/concurrency guarantee",
+      "locations": [
+        "tools/v0_s3_quality_phase.py:2654 _NamedCustody.reserve",
+        "tools/v0_s3_quality_phase.py:3032 _retain_directory",
+        "tools/v0_s3_quality_phase.py:3063 _retain_leaf"
+      ],
+      "prior_severity": "Minor",
+      "status": "CLOSED_SCOPED_OFFLINE",
+      "trigger": "72 distinct four-byte leaf names retained, then dedup miss for 73rd and repeats at full capacity"
+    }
+  ],
+  "counts": {
+    "fatal": 0,
+    "major": 0,
+    "minor": 0
+  },
+  "historical_process_observations": [
+    {
+      "actual": "Retained debug-suite inner0,257 passed90.67s pytest /95.06s runner; distinct final suite inner0,257 passed83.51s (0:01:23) pytest /88.777s runner",
+      "blocking": false,
+      "disposition": "Actual execution-discipline deviation, not repaired by final green; retain history; no mandatory fresh correction or cosmetic rerun just for prose",
+      "evidence": [
+        "static-audit.json:history",
+        "implementation-p3b-correction-08/debug/debug-suite.stdout.log",
+        "root-intake.json:execution_notes"
+      ],
+      "expected": "Focused checks during editing and one final combined acceptance on committed candidate",
+      "id": "EXECUTION_DISCIPLINE_PRECOMMIT_FULL_SUITE",
+      "location": "implementation-p3b-correction-08/debug/debug-suite.receipt.json",
+      "trigger": "Full257 run during precommit editing despite focused-editing plan",
+      "type": "ACKNOWLEDGED_HISTORICAL_DEVIATION"
+    },
+    {
+      "actual": "Distinct final focused invocation inner0,12 passed245 deselected,11.427s runner; all12 already in257",
+      "blocking": false,
+      "disposition": "Retain distinct invocation, zero added coverage credit, not rerun independently",
+      "evidence": [
+        "static-audit.json:history",
+        "root-intake.json:execution_notes"
+      ],
+      "id": "REDUNDANT_FINAL_FOCUSED12",
+      "location": "implementation-p3b-correction-08/focused.receipt.json",
+      "type": "REDUNDANT_EXECUTION_NO_COVERAGE_CREDIT"
+    }
+  ],
+  "kind": "INDEPENDENT_P3B_CORRECTION08_AGGREGATE_FINDINGS",
+  "open_current_findings": [],
+  "prior_closure_mapping": [
+    {
+      "evidence": [
+        "static-audit.json:test_audit",
+        "suite.receipt.json:collected_nodeids"
+      ],
+      "id": "M02",
+      "prior_review_commit": "9d2c51de4e8df6e5f882405cbff1332356dc8269",
+      "prior_status": "CLOSED_SCOPED_OFFLINE_PRESERVED",
+      "scope": "193 original test definitions/decorators/bodies and old helpers identical; all 245 prior cases retained in once257; inspected product diff",
+      "status": "PRESERVED_SCOPED_OFFLINE"
+    },
+    {
+      "evidence": [
+        "static-audit.json:test_audit",
+        "suite.receipt.json:collected_nodeids"
+      ],
+      "id": "M03",
+      "prior_review_commit": "9d2c51de4e8df6e5f882405cbff1332356dc8269",
+      "prior_status": "CLOSED_SCOPED_OFFLINE_PRESERVED",
+      "scope": "193 original test definitions/decorators/bodies and old helpers identical; all 245 prior cases retained in once257; inspected product diff",
+      "status": "PRESERVED_SCOPED_OFFLINE"
+    },
+    {
+      "evidence": [
+        "static-audit.json:test_audit",
+        "suite.receipt.json:collected_nodeids"
+      ],
+      "id": "M04",
+      "prior_review_commit": "9d2c51de4e8df6e5f882405cbff1332356dc8269",
+      "prior_status": "CLOSED_SCOPED_OFFLINE_PRESERVED",
+      "scope": "193 original test definitions/decorators/bodies and old helpers identical; all 245 prior cases retained in once257; inspected product diff",
+      "status": "PRESERVED_SCOPED_OFFLINE"
+    },
+    {
+      "evidence": [
+        "static-audit.json:test_audit",
+        "suite.receipt.json:collected_nodeids"
+      ],
+      "id": "M05",
+      "prior_review_commit": "9d2c51de4e8df6e5f882405cbff1332356dc8269",
+      "prior_status": "CLOSED_SCOPED_OFFLINE_PRESERVED",
+      "scope": "193 original test definitions/decorators/bodies and old helpers identical; all 245 prior cases retained in once257; inspected product diff",
+      "status": "PRESERVED_SCOPED_OFFLINE"
+    },
+    {
+      "evidence": [
+        "static-audit.json:test_audit",
+        "suite.receipt.json:collected_nodeids"
+      ],
+      "id": "M06",
+      "prior_review_commit": "9d2c51de4e8df6e5f882405cbff1332356dc8269",
+      "prior_status": "CLOSED_SCOPED_OFFLINE_PRESERVED",
+      "scope": "193 original test definitions/decorators/bodies and old helpers identical; all 245 prior cases retained in once257; inspected product diff",
+      "status": "PRESERVED_SCOPED_OFFLINE"
+    },
+    {
+      "evidence": [
+        "static-audit.json:test_audit",
+        "suite.receipt.json:collected_nodeids"
+      ],
+      "id": "M07",
+      "prior_review_commit": "9d2c51de4e8df6e5f882405cbff1332356dc8269",
+      "prior_status": "CLOSED_SCOPED_OFFLINE_PRESERVED",
+      "scope": "193 original test definitions/decorators/bodies and old helpers identical; all 245 prior cases retained in once257; inspected product diff",
+      "status": "PRESERVED_SCOPED_OFFLINE"
+    },
+    {
+      "evidence": [
+        "static-audit.json:test_audit",
+        "suite.receipt.json:collected_nodeids"
+      ],
+      "id": "M09",
+      "prior_review_commit": "9d2c51de4e8df6e5f882405cbff1332356dc8269",
+      "prior_status": "CLOSED_SCOPED_OFFLINE_PRESERVED",
+      "scope": "193 original test definitions/decorators/bodies and old helpers identical; all 245 prior cases retained in once257; inspected product diff",
+      "status": "PRESERVED_SCOPED_OFFLINE"
+    },
+    {
+      "evidence": [
+        "static-audit.json:test_audit",
+        "suite.receipt.json:collected_nodeids"
+      ],
+      "id": "m01",
+      "prior_review_commit": "9d2c51de4e8df6e5f882405cbff1332356dc8269",
+      "prior_status": "CLOSED_SCOPED_OFFLINE_PRESERVED",
+      "scope": "193 original test definitions/decorators/bodies and old helpers identical; all 245 prior cases retained in once257; inspected product diff",
+      "status": "PRESERVED_SCOPED_OFFLINE"
+    },
+    {
+      "evidence": [
+        "static-audit.json:test_audit",
+        "suite.receipt.json:collected_nodeids"
+      ],
+      "id": "M01",
+      "prior_review_commit": "9d2c51de4e8df6e5f882405cbff1332356dc8269",
+      "prior_status": "CLOSED_SCOPED_OFFLINE",
+      "scope": "193 original test definitions/decorators/bodies and old helpers identical; all 245 prior cases retained in once257; inspected product diff",
+      "status": "PRESERVED_SCOPED_OFFLINE"
+    },
+    {
+      "evidence": [
+        "static-audit.json:test_audit",
+        "suite.receipt.json:collected_nodeids"
+      ],
+      "id": "M08",
+      "prior_review_commit": "9d2c51de4e8df6e5f882405cbff1332356dc8269",
+      "prior_status": "CLOSED_SCOPED_OFFLINE_PRESERVED",
+      "scope": "193 original test definitions/decorators/bodies and old helpers identical; all 245 prior cases retained in once257; inspected product diff",
+      "status": "PRESERVED_SCOPED_OFFLINE"
+    },
+    {
+      "evidence": [
+        "targeted-observations.json",
+        "counterexample-observations.json",
+        "suite.receipt.json"
+      ],
+      "id": "NM03",
+      "prior_review_commit": "9d2c51de4e8df6e5f882405cbff1332356dc8269",
+      "prior_status": "NAMED_LIFETIME_CLOSED_RESOURCE_ERROR_AND_ADMISSION_REMAIN_OPEN",
+      "scope": "193 original test definitions/decorators/bodies and old helpers identical; all 245 prior cases retained in once257; inspected product diff",
+      "status": "CLOSED_SCOPED_COOPERATIVE_RESOURCE_AND_NAMED_CUSTODY"
+    },
+    {
+      "evidence": [
+        "static-audit.json:test_audit",
+        "suite.receipt.json:collected_nodeids"
+      ],
+      "id": "NM04",
+      "prior_review_commit": "9d2c51de4e8df6e5f882405cbff1332356dc8269",
+      "prior_status": "CLOSED_SCOPED_COOPERATIVE_ONLY",
+      "scope": "193 original test definitions/decorators/bodies and old helpers identical; all 245 prior cases retained in once257; inspected product diff",
+      "status": "PRESERVED_SCOPED_OFFLINE"
+    },
+    {
+      "evidence": [
+        "static-audit.json:test_audit",
+        "suite.receipt.json:collected_nodeids"
+      ],
+      "id": "NM01",
+      "prior_review_commit": "9d2c51de4e8df6e5f882405cbff1332356dc8269",
+      "prior_status": "CLOSED_ORIGINAL_CAPACITY_TIME_ACCESSORS_PRESERVED",
+      "scope": "193 original test definitions/decorators/bodies and old helpers identical; all 245 prior cases retained in once257; inspected product diff",
+      "status": "PRESERVED_SCOPED_OFFLINE"
+    },
+    {
+      "evidence": [
+        "static-audit.json:test_audit",
+        "suite.receipt.json:collected_nodeids"
+      ],
+      "id": "NM02",
+      "prior_review_commit": "9d2c51de4e8df6e5f882405cbff1332356dc8269",
+      "prior_status": "CLOSED_SCOPED_COOPERATIVE_ONLY",
+      "scope": "193 original test definitions/decorators/bodies and old helpers identical; all 245 prior cases retained in once257; inspected product diff",
+      "status": "PRESERVED_SCOPED_OFFLINE"
+    },
+    {
+      "evidence": [
+        "static-audit.json:test_audit",
+        "suite.receipt.json:collected_nodeids"
+      ],
+      "id": "E01",
+      "prior_review_commit": "9d2c51de4e8df6e5f882405cbff1332356dc8269",
+      "prior_status": "HISTORY_UNCREDITED_UNCHANGED",
+      "scope": "No historical recertification or cosmetic rerun",
+      "status": "ORIGINAL_CORRECTION03_UNGUARDED12_UNKNOWN_UNCREDITED"
+    },
+    {
+      "evidence": [
+        "static-audit.json:test_audit",
+        "suite.receipt.json:collected_nodeids"
+      ],
+      "id": "E02",
+      "prior_review_commit": "9d2c51de4e8df6e5f882405cbff1332356dc8269",
+      "prior_status": "COUNT_ERRATA_PRESERVED",
+      "scope": "Current independent257 once, guard4 once, replay5 once, targeted25 once; no focused12 rerun",
+      "status": "COUNT_ERRATA_PRESERVED"
+    }
+  ],
+  "product_gate0": false,
+  "recommendation": "ACCEPT_COMPONENT_SCOPED_OFFLINE_F0_M0_m0",
+  "stage_pass_claim": false
+}

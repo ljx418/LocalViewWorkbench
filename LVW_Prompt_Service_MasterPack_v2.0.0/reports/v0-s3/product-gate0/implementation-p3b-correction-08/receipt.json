@@ -1,0 +1,1426 @@
+{
+  "baseline_code_commit": "fd96cbc37574b382f483e757e8d7235ed5d2598c",
+  "baseline_evidence_commit": "55e5463ae1bd1dd9f6c9c19bda347fe5900051ff",
+  "batch": "S3-P3B aggregate correction 08",
+  "candidate_code_commit": "6c9a0a07c66060e53b00e690ebdd98047167511d",
+  "candidate_code_commit_short": "6c9a0a0",
+  "cleanup": {
+    "media_or_binary_or_database_in_git": false,
+    "older_roots_scanned_or_deleted": false,
+    "probe_owned_root": "/tmp/lvw-c05-counterexamples-wj1oinid/lvw-c08-observations-v35t0m0e",
+    "probe_registered_roots": [
+      "/tmp/lvw-c05-counterexamples-wj1oinid/lvw-c08-observations-v35t0m0e",
+      "/tmp/lvw-c05-counterexamples-wj1oinid/lvw-c08-observations-v35t0m0e/owner_child_directory_metadata",
+      "/tmp/lvw-c05-counterexamples-wj1oinid/lvw-c08-observations-v35t0m0e/owner_leaf_metadata",
+      "/tmp/lvw-c05-counterexamples-wj1oinid/lvw-c08-observations-v35t0m0e/public_evaluation_metadata",
+      "/tmp/lvw-c05-counterexamples-wj1oinid/lvw-c08-observations-v35t0m0e/custody_bound",
+      "/tmp/lvw-c05-counterexamples-wj1oinid/lvw-c08-observations-v35t0m0e/failed_admission"
+    ],
+    "probe_root_removed_by_the_probe_finally": true,
+    "product_source_copy_in_git": false,
+    "runner_owned_root_removed": {
+      "counterexamples": true,
+      "focused": true,
+      "guard": true,
+      "suite": true
+    }
+  },
+  "closed_roots": [
+    "NM03_R1_POST_OPEN_METADATA_EXCEPTION_DESCRIPTOR_LEAK",
+    "NM03_r2_CAP_CHECK_AFTER_EXCESS_OPEN"
+  ],
+  "code_sha256": {
+    "reports/v0-s3/product-gate0/implementation-p3b-correction-05/run_guarded_checks.py": "016e61a06d415266fe7442ad9dcd1672ff42a19e5c1fafb707727fc05c95bdb8",
+    "reports/v0-s3/product-gate0/implementation-p3b-correction-08/audit_test_obligations.py": "2a338c20a902b34cd46fb3109be472391821fcc838fe1b2ff2b5bde6004096e7",
+    "reports/v0-s3/product-gate0/implementation-p3b-correction-08/probe_correction08_counterexamples.py": "e664f586d1d6db6b049c7de05475b77dbf9fe5848985b8fd160a9aa5b7e235d9",
+    "tools/test_v0_s3_quality_phase.py": "eb8327f936a3cc5281e1ba2064b6baba43779a15eee4539b93adcfc504999e2f",
+    "tools/v0_s3_quality_phase.py": "395f1a24bb9d9846b7dc23cae43d0c3f76699bdfd6b8de7f6941f3fccf2c1e1b"
+  },
+  "contract_change": "none: the existing cleanup and before-excess-open bounds are enforced; no threshold, no denominator, no public schema and no quality rule changed",
+  "coordinate": {
+    "gate": "S3_P3B_QUALITY_INTEGRATION_INDEPENDENT_REVIEW",
+    "stage_id": "R1",
+    "state": "READY",
+    "workpack_id": "WP-R1-U3"
+  },
+  "counts": {
+    "adapted_definitions": 0,
+    "added_helper_definitions": 6,
+    "baseline_test_definitions": 193,
+    "bounded_observations": 5,
+    "candidate_test_definitions": 205,
+    "changed_old_helpers": 0,
+    "deleted_definitions": 0,
+    "focused_cases": 12,
+    "guard_events_blocked": 4,
+    "identical_definitions": 193,
+    "missing_frozen_nodeids": 0,
+    "new_cases": 12,
+    "observed_violations": 0,
+    "original_frozen_cases": 245,
+    "product_test_cases": 257
+  },
+  "current_blocking_gate": "S3_P3B_CORRECTION08_IMPLEMENTATION_AND_INDEPENDENT_REVIEW_PENDING",
+  "definition_audit": {
+    "adapted_definitions": [],
+    "added_definitions": [
+      "test_correction08_nm03_a_boundary_that_fails_its_construction_releases_every_descriptor",
+      "test_correction08_nm03_a_child_directory_whose_metadata_fails_after_the_open_is_closed",
+      "test_correction08_nm03_a_child_directory_whose_named_stat_fails_is_closed",
+      "test_correction08_nm03_a_leaf_whose_metadata_fails_after_the_open_is_closed",
+      "test_correction08_nm03_a_leaf_whose_named_identity_differs_is_closed",
+      "test_correction08_nm03_a_leaf_whose_named_type_differs_is_closed",
+      "test_correction08_nm03_a_public_evaluation_whose_metadata_fails_releases_every_descriptor",
+      "test_correction08_nm03_a_refused_admission_does_not_consume_a_custody_slot",
+      "test_correction08_nm03_a_repeated_name_at_the_custody_bound_opens_nothing",
+      "test_correction08_nm03_an_insertion_failure_closes_the_descriptor_and_leaves_the_custody_intact",
+      "test_correction08_nm03_the_custody_bound_is_checked_before_the_excess_open",
+      "test_correction08_nm03_the_genuine_sixteen_rows_stay_inside_the_custody_bound"
+    ],
+    "added_helper_definitions": [
+      "_RefusingCustodyRegistry",
+      "_descriptor_count",
+      "_fail_the_metadata_of_the_next_open",
+      "_falsify_the_named_stat_of_the_next_open",
+      "_fill_the_custody_bound",
+      "_remove_the_filled_leaves"
+    ],
+    "baseline_revision": "fd96cbc37574b382f483e757e8d7235ed5d2598c",
+    "candidate_revision": "6c9a0a07c66060e53b00e690ebdd98047167511d",
+    "changed_old_helpers": [],
+    "deleted_definitions": [],
+    "identical_names": [
+      "test_a_bounded_history_wait_fails_the_row_without_an_unbounded_poll",
+      "test_a_broken_image_metadata_binding_is_rejected",
+      "test_a_failed_row_is_never_retried",
+      "test_a_leftover_video_snapshot_stops_the_row",
+      "test_a_listener_identity_drift_is_rejected",
+      "test_a_missing_public_node_output_is_a_row_failure_with_history_kept",
+      "test_a_resident_model_is_not_accepted_as_a_release",
+      "test_a_reused_prompt_id_across_rows_is_rejected",
+      "test_a_rewritten_provider_log_is_rejected",
+      "test_a_wrong_provider_call_count_is_rejected_and_stops_the_batch",
+      "test_a_wrong_video_frame_denominator_is_rejected_after_the_raw_was_kept",
+      "test_an_existing_phase_directory_blocks_the_run",
+      "test_an_unproven_release_stops_every_further_submission",
+      "test_binding_is_required_and_must_match_the_candidate",
+      "test_combined_the_execution_and_the_scoring_close_on_one_bound_run",
+      "test_correction02_m01_the_persisted_receipt_states_its_own_final_totals",
+      "test_correction02_m01_the_receipt_caps_are_exact_and_one_over",
+      "test_correction02_m02_a_deterministic_open_interposition_cannot_write_into_a_foreign_root",
+      "test_correction02_m02_a_temp_ancestor_redirect_writes_nothing_into_the_old_root",
+      "test_correction02_m02_an_initial_temp_symlink_creates_no_foreign_entry",
+      "test_correction02_m02_the_owned_handles_are_closed_after_the_run",
+      "test_correction02_m08_a_known_fail_row_with_unknown_source_cannot_aggregate_pass",
+      "test_correction02_m08_a_known_fail_row_with_unknown_storage_cannot_aggregate_pass",
+      "test_correction02_m08_a_pass_row_with_unknown_cleanup_cannot_aggregate_pass",
+      "test_correction02_m08_a_valid_known_failure_resolves_with_complete_evidence",
+      "test_correction02_nm01_a_proof_for_another_run_is_refused",
+      "test_correction02_nm01_a_proof_with_a_non_finite_interval_is_refused",
+      "test_correction02_nm01_a_stale_proof_is_refused",
+      "test_correction02_nm02_a_decreasing_clock_is_refused",
+      "test_correction02_nm02_the_hard_supervision_blocker_is_recorded",
+      "test_correction03_m01_a_staging_failure_leaves_no_canonical_receipt",
+      "test_correction03_m01_a_successful_publication_is_durable_and_counted",
+      "test_correction03_m08_an_unpublished_receipt_is_not_authority",
+      "test_correction03_m08_every_mandatory_evidence_field_is_validated",
+      "test_correction03_nm01_a_later_row_expiry_preserves_the_prior_attempts",
+      "test_correction03_nm01_a_proof_diminished_at_the_handoff_refuses_every_send",
+      "test_correction03_nm01_a_proof_that_expires_at_the_first_authorize_refuses_every_send",
+      "test_correction03_nm02_a_callback_past_the_phase_deadline_refuses_the_send",
+      "test_correction03_nm02_the_phase_boundary_is_exact_and_one_over",
+      "test_correction04_m01_a_corrupt_canonical_receipt_fails_closed",
+      "test_correction04_m01_a_foreign_canonical_receipt_fails_closed",
+      "test_correction04_m01_a_forged_provider_counter_is_refused",
+      "test_correction04_m01_a_forged_verdict_can_only_be_stricter",
+      "test_correction04_m01_a_missing_canonical_receipt_fails_closed",
+      "test_correction04_m01_a_redirected_artifact_root_is_refused",
+      "test_correction04_m01_a_staged_only_receipt_is_not_authority",
+      "test_correction04_m01_an_oversized_canonical_receipt_is_refused",
+      "test_correction04_m01_the_published_receipt_is_the_only_authority",
+      "test_correction04_m01_the_supplied_execution_content_must_be_the_published_one",
+      "test_correction04_m08_a_changed_source_hash_is_unknown_in_the_scoring",
+      "test_correction04_m08_a_changed_source_identity_is_unknown_in_the_scoring",
+      "test_correction04_m08_a_changed_source_path_is_unknown_in_the_scoring",
+      "test_correction04_m08_a_changed_source_size_is_unknown_in_the_scoring",
+      "test_correction04_m08_a_missing_source_plan_is_refused",
+      "test_correction04_m08_a_replayed_source_plan_is_refused",
+      "test_correction04_m08_a_source_plan_failure_produces_zero_sends",
+      "test_correction04_m08_a_source_plan_from_another_run_is_refused",
+      "test_correction04_m08_a_tampered_source_plan_is_refused",
+      "test_correction04_m08_the_bound_context_must_be_typed",
+      "test_correction04_m08_the_execution_uses_the_same_shared_validators",
+      "test_correction04_m08_the_source_media_need_not_stay_on_disk",
+      "test_correction04_m08_the_source_plan_seals_all_sixteen_original_identities",
+      "test_correction04_nm01_a_diminishing_limit_accessor_refuses_every_send",
+      "test_correction04_nm01_a_diminishing_submit_binding_refuses_every_send",
+      "test_correction04_nm01_an_advancing_clock_accessor_refuses_every_send",
+      "test_correction04_nm01_the_driver_state_is_resolved_before_the_final_guard",
+      "test_correction04_nm02_the_guard_reads_the_clock_exactly_once",
+      "test_correction04_nm02_the_hard_supervision_blocker_is_still_recorded",
+      "test_correction04_nm02_the_phase_boundary_is_exact_and_one_over",
+      "test_correction05_m01_a_fabricated_bound_baseline_is_refused",
+      "test_correction05_m01_a_fabricated_extra_row_fact_is_refused",
+      "test_correction05_m01_a_fabricated_release_sample_vector_is_not_accepted",
+      "test_correction05_m01_a_fabricated_row_attempt_flag_is_refused",
+      "test_correction05_m01_a_fabricated_run_context_is_refused",
+      "test_correction05_m01_a_fabricated_terminal_count_is_refused",
+      "test_correction05_m01_a_published_known_failure_supplied_pass_stays_resolved_and_not_usable",
+      "test_correction05_m01_a_published_pass_downgraded_by_a_supplied_known_failure_stays_resolved_and_not_usable",
+      "test_correction05_m01_a_published_unknown_failure_stays_unresolved_under_a_supplied_known_error",
+      "test_correction05_m01_every_published_fact_outside_the_overlay_is_bound",
+      "test_correction05_m01_the_verdict_overlay_is_a_closed_enumeration",
+      "test_correction05_m08_a_seal_row_that_contradicts_the_execution_row_is_refused",
+      "test_correction05_m08_a_seal_row_with_a_contradicting_descriptor_identity_is_refused",
+      "test_correction05_m08_the_seal_of_a_genuine_run_still_aligns_with_its_rows",
+      "test_correction05_m08_two_swapped_seal_rows_are_refused",
+      "test_correction05_nm03_a_redirected_canonical_receipt_is_refused",
+      "test_correction05_nm03_a_redirected_phase_directory_is_refused",
+      "test_correction05_nm03_a_redirected_raw_artifact_is_refused",
+      "test_correction05_nm03_a_redirected_run_root_is_refused",
+      "test_correction05_nm03_a_redirected_source_plan_is_refused",
+      "test_correction05_nm03_a_redirected_temp_ancestor_is_refused",
+      "test_correction05_nm04_a_later_source_change_preserves_the_earlier_attempts",
+      "test_correction05_nm04_a_source_changed_by_a_controlled_accessor_produces_zero_sends",
+      "test_correction05_nm04_the_final_source_check_is_the_last_thing_before_the_guard",
+      "test_correction05_nm04_the_sealed_original_identity_is_the_source_authority",
+      "test_correction06_m01_a_boolean_is_not_an_integer_actual_fact",
+      "test_correction06_m01_a_caller_only_gpu_sample_fact_is_unknown",
+      "test_correction06_m01_a_caller_only_receipt_fact_is_refused",
+      "test_correction06_m01_a_caller_only_release_evidence_fact_is_unknown",
+      "test_correction06_m01_a_caller_only_source_evidence_fact_is_unknown",
+      "test_correction06_m01_a_nested_counter_substitution_is_unknown",
+      "test_correction06_m01_a_nested_identity_substitution_is_unknown",
+      "test_correction06_m01_a_seal_only_typed_ordinal_is_refused",
+      "test_correction06_m01_an_equal_float_in_a_nested_count_is_refused",
+      "test_correction06_m01_an_equal_float_is_not_an_integer_actual_fact",
+      "test_correction06_m01_an_integer_counter_is_not_a_boolean_actual_fact",
+      "test_correction06_m01_the_published_and_the_returned_receipt_carry_the_same_fields",
+      "test_correction06_nm03_a_bounded_tiny_read_is_exact_and_one_over",
+      "test_correction06_nm03_a_growing_leaf_is_refused_by_the_final_bound",
+      "test_correction06_nm03_a_missing_named_entry_during_the_raw_read_is_refused",
+      "test_correction06_nm03_a_phase_redirected_during_the_canonical_read_is_refused",
+      "test_correction06_nm03_a_raw_leaf_replaced_by_another_file_during_the_raw_read_is_refused",
+      "test_correction06_nm03_a_raw_parent_redirected_during_the_raw_read_is_refused",
+      "test_correction06_nm03_a_run_root_redirected_during_the_canonical_read_is_refused",
+      "test_correction06_nm03_a_run_root_replaced_by_another_directory_during_the_read_is_refused",
+      "test_correction06_nm03_a_source_plan_leaf_redirected_during_its_read_is_refused",
+      "test_correction06_nm03_a_source_plan_parent_redirected_during_its_read_is_refused",
+      "test_correction06_nm03_a_temp_redirected_during_the_canonical_read_is_refused",
+      "test_correction06_nm03_an_identical_declared_run_root_does_not_skip_the_verification",
+      "test_correction06_nm03_no_descriptor_is_leaked_by_the_boundary",
+      "test_correction07_nm03_a_canonical_receipt_redirected_after_its_read_is_refused",
+      "test_correction07_nm03_a_canonical_receipt_redirected_before_the_completion_check_is_refused",
+      "test_correction07_nm03_a_canonical_receipt_replaced_after_its_read_is_refused",
+      "test_correction07_nm03_a_clean_genuine_run_still_aggregates",
+      "test_correction07_nm03_a_growing_leaf_is_refused_through_the_reused_descriptor",
+      "test_correction07_nm03_a_raw_leaf_redirected_after_its_read_is_refused",
+      "test_correction07_nm03_a_raw_parent_replaced_after_its_read_is_refused",
+      "test_correction07_nm03_a_repeated_read_keeps_a_bounded_custody",
+      "test_correction07_nm03_a_repeated_tiny_read_is_exact_and_one_over",
+      "test_correction07_nm03_a_source_seal_that_disappears_after_its_read_is_refused",
+      "test_correction07_nm03_an_earlier_nested_parent_that_disappears_is_refused",
+      "test_correction07_nm03_the_custody_is_released_after_a_successful_evaluation",
+      "test_correction07_nm03_the_custody_is_released_when_the_evaluation_refuses",
+      "test_correction_admission_an_insufficient_parent_capacity_refuses_every_send",
+      "test_correction_admission_an_unknown_parent_budget_is_refused",
+      "test_correction_m01_a_non_finite_release_is_rejected",
+      "test_correction_m01_a_receipt_over_the_total_budget_is_refused_explicitly",
+      "test_correction_m01_a_storage_failure_marks_unproven_and_stops_the_sends",
+      "test_correction_m01_the_error_classification_ignores_the_path_suffix",
+      "test_correction_m01_the_terminal_receipt_counts_inside_the_storage_bounds",
+      "test_correction_m02_a_preexisting_phase_directory_is_refused_without_writing",
+      "test_correction_m02_a_replaced_phase_directory_is_refused",
+      "test_correction_m02_a_replaced_run_root_is_refused",
+      "test_correction_m02_an_ancestor_redirect_cannot_escape_the_owned_directory",
+      "test_correction_m02_an_old_root_replay_is_refused",
+      "test_correction_m03_a_source_replaced_in_a_callback_produces_zero_sends",
+      "test_correction_m04_an_ordinary_cleanup_exception_never_bypasses_the_release",
+      "test_correction_m05_a_failed_submit_stays_charged",
+      "test_correction_m05_the_provider_reservation_never_exceeds_thirty_four",
+      "test_correction_m06_a_cross_paired_reviewer_session_is_rejected",
+      "test_correction_m06_an_exact_reviewer_session_pair_is_accepted",
+      "test_correction_m07_a_wrong_execution_raw_length_is_rejected",
+      "test_correction_m08_a_failed_row_without_proven_cleanup_cannot_resolve",
+      "test_correction_m08_a_known_failed_row_keeps_its_critical_evidence",
+      "test_correction_m08_a_known_failed_row_with_zero_critical_may_resolve",
+      "test_correction_m08_an_unknown_failed_row_can_never_resolve",
+      "test_correction_m09_the_provider_after_evidence_survives_a_persistence_failure",
+      "test_correction_m09_the_real_bridge_error_raw_response_is_preserved",
+      "test_correction_m09_the_real_video_frame_raws_are_preserved",
+      "test_correction_timing_a_late_successful_history_fails_the_deadline",
+      "test_correction_timing_a_slow_authorize_callback_is_bounded",
+      "test_projection_is_strict_and_never_carries_labels",
+      "test_qs_a_critical_hallucination_fails_the_sample_and_the_aggregate",
+      "test_qs_a_duplicate_score_is_rejected",
+      "test_qs_a_foreign_row_is_rejected",
+      "test_qs_a_malformed_score_is_rejected",
+      "test_qs_a_missing_score_keeps_the_sixteen_row_denominator",
+      "test_qs_a_reviewer_string_alone_does_not_prove_independence",
+      "test_qs_a_row_whose_execution_failed_cannot_be_rescued_by_a_full_score",
+      "test_qs_a_score_bound_to_another_run_candidate_source_or_raw_is_rejected",
+      "test_qs_a_suggestion_artifact_cannot_substitute_the_raw",
+      "test_qs_an_escaping_artifact_path_is_rejected",
+      "test_qs_an_unscored_raw_run_can_never_aggregate_pass",
+      "test_qs_one_usable_image_below_the_threshold_fails_the_aggregate",
+      "test_qs_one_usable_video_below_the_threshold_fails_the_aggregate",
+      "test_qs_the_aggregate_passes_only_at_the_exact_thresholds",
+      "test_qs_the_independence_receipt_must_bind_the_run",
+      "test_qs_the_reviewer_must_be_separated_from_the_implementer",
+      "test_qs_the_score_session_must_be_bound_to_the_independence_receipt",
+      "test_qs_verify_independence_rejects_a_reused_reviewer_or_session",
+      "test_raw_is_persisted_before_a_structural_rejection",
+      "test_sixteen_rows_pass_with_exact_provider_counts",
+      "test_source_growth_during_the_read_is_detected",
+      "test_source_hash_mismatch_blocks_every_row_with_zero_submissions",
+      "test_source_symlink_is_refused_before_any_submission",
+      "test_the_artifact_budget_is_exact_and_one_over",
+      "test_the_execution_path_never_calls_the_scoring_entry_point",
+      "test_the_phase_cannot_be_executed_twice",
+      "test_the_phase_deadline_blocks_the_remaining_rows",
+      "test_the_public_submission_budget_is_exact_and_one_over",
+      "test_the_real_production_nodes_produced_the_observed_outputs",
+      "test_workflow_source_identity_mismatch_blocks_the_run",
+      "test_wrong_history_graph_is_rejected",
+      "test_wrong_history_prompt_id_is_rejected"
+    ],
+    "no_frozen_nodeid_lost": true,
+    "no_old_helper_changed": true,
+    "no_original_obligation_adapted": true,
+    "no_original_obligation_deleted": true
+  },
+  "descriptor_ownership": {
+    "child_directory_metadata_failure": {
+      "descriptors_after_close": 8,
+      "descriptors_after_the_refused_read": 12,
+      "descriptors_before": 8,
+      "descriptors_during": 12,
+      "hook_fired": 1,
+      "refused": "OSError: [Errno 5] injected metadata failure",
+      "the_boundary_releases_everything": true,
+      "the_custody_is_undamaged": true,
+      "the_refused_descriptor_is_closed": true
+    },
+    "failed_admission": {
+      "custody_entries_after_the_admission": 1,
+      "custody_entries_after_the_refusal": 0,
+      "descriptors_after_the_refused_admission": 12,
+      "descriptors_during": 12,
+      "hook_fired": 1,
+      "refused": "OSError: [Errno 5] injected metadata failure",
+      "reserved_slots_after_the_refusal": 0,
+      "the_next_name_is_admitted": "abcd",
+      "the_refused_admission_closed_its_descriptor": true,
+      "the_refused_admission_consumed_no_slot": true
+    },
+    "leaf_metadata_failure": {
+      "descriptors_after_close": 8,
+      "descriptors_after_the_refused_read": 12,
+      "descriptors_before": 8,
+      "descriptors_during": 12,
+      "hook_fired": 1,
+      "refused": "OSError: [Errno 5] injected metadata failure",
+      "the_boundary_releases_everything": true,
+      "the_custody_is_undamaged": true,
+      "the_refused_descriptor_is_closed": true
+    },
+    "no_probe_remediation": "the injected faults are never repaired by the probe; a leaked descriptor would stay visible in the descriptor count",
+    "public_evaluation_metadata_failure": {
+      "descriptors_after": 8,
+      "descriptors_before": 8,
+      "hook_fired": 1,
+      "refused": "OSError: [Errno 5] injected metadata failure",
+      "the_public_refusal_releases_everything": true
+    }
+  },
+  "development_outline": [
+    {
+      "completed_substeps": 1,
+      "delivery": "V0",
+      "human_signoff": "NOT_SIGNED",
+      "implementation": "ARCHIVED",
+      "independent_review": "COMPLETED_WITH_BLOCKERS",
+      "machine_acceptance": "NO_GO_HISTORICAL",
+      "stage_id": "V0-S0",
+      "substeps": [
+        {
+          "evidence": "reports/v0-s0/gate-decision-rerun-02.md",
+          "name": "盘点与探索记录",
+          "status": "DONE"
+        },
+        {
+          "evidence": "reports/v0-s0/gate-decision-rerun-02.md",
+          "name": "完整生产基线",
+          "status": "FAILED_HISTORICAL"
+        }
+      ],
+      "summary": "历史探索已结束且NO_GO保留；V0-Min按后续范围签署，不回填S0 PASS",
+      "title": "基线探索",
+      "total_substeps": 2
+    },
+    {
+      "completed_substeps": 5,
+      "delivery": "V0-Min",
+      "human_signoff": "APPROVED",
+      "implementation": "DELIVERED",
+      "independent_review": "COMPLETED",
+      "machine_acceptance": "ACCEPTED_SCOPE_ONLY",
+      "stage_id": "V0-S1",
+      "substeps": [
+        {
+          "evidence": "reports/v0-s1/v0-min-acceptance.json",
+          "name": "独立人工稿与导出",
+          "status": "DONE"
+        },
+        {
+          "evidence": "reports/v0-s1/v0-min-acceptance.json",
+          "name": "真实图片与预处理",
+          "status": "DONE"
+        },
+        {
+          "evidence": "reports/v0-s1/v0-min-acceptance.json",
+          "name": "四输出与草稿保护",
+          "status": "DONE"
+        },
+        {
+          "evidence": "reports/v0-s1/v0-min-acceptance.json",
+          "name": "固定证据及独立审查",
+          "status": "DONE"
+        },
+        {
+          "evidence": "reports/v0-s1/v0-min-acceptance.json",
+          "name": "人工签署",
+          "status": "DONE"
+        }
+      ],
+      "summary": "已签仅V0-Min",
+      "title": "图片与独立人工",
+      "total_substeps": 5
+    },
+    {
+      "completed_substeps": 1,
+      "delivery": "V1前置",
+      "human_signoff": "NO_SEPARATE_R0_SIGNOFF",
+      "implementation": "PARTIAL_REUSED",
+      "independent_review": "NO_SEPARATE_R0_VERDICT",
+      "machine_acceptance": "SINGLE_IMAGE_SUBSET_ONLY",
+      "stage_id": "R0",
+      "substeps": [
+        {
+          "evidence": "reports/r1a/gate-decision-r1a.md",
+          "name": "独立单图路径在R1a验证",
+          "status": "DONE"
+        },
+        {
+          "evidence": null,
+          "name": "完整复用/许可清单单独闭合",
+          "status": "NOT_VERIFIED"
+        }
+      ],
+      "summary": "仅R1a前置单图子集可确认；不把完整视频/Q01算通过",
+      "title": "独立服务复核",
+      "total_substeps": 2
+    },
+    {
+      "completed_substeps": 5,
+      "delivery": "V1早期切片",
+      "human_signoff": "APPROVED",
+      "implementation": "DELIVERED",
+      "independent_review": "COMPLETED",
+      "machine_acceptance": "ACCEPTED_SCOPE_ONLY",
+      "stage_id": "R1a",
+      "substeps": [
+        {
+          "evidence": "reports/r1a/gate-decision-r1a.md",
+          "name": "正式合同子集与前后端",
+          "status": "DONE"
+        },
+        {
+          "evidence": "reports/r1a/gate-decision-r1a.md",
+          "name": "真实单图链路",
+          "status": "DONE"
+        },
+        {
+          "evidence": "reports/r1a/gate-decision-r1a.md",
+          "name": "失败/服务控制与人工稿保护",
+          "status": "DONE"
+        },
+        {
+          "evidence": "reports/r1a/gate-decision-r1a.md",
+          "name": "独立审查七项",
+          "status": "DONE"
+        },
+        {
+          "evidence": "reports/r1a/gate-decision-r1a.md",
+          "name": "人工体验签署",
+          "status": "DONE"
+        }
+      ],
+      "summary": "已签仅单图切片；完整V1未完成",
+      "title": "单图React/FastAPI",
+      "total_substeps": 5
+    },
+    {
+      "completed_substeps": 7,
+      "delivery": "V0.1",
+      "human_signoff": "PENDING",
+      "implementation": "IMPLEMENTED",
+      "independent_review": "COMPLETE_FATAL0_MAJOR0_MINOR0",
+      "machine_acceptance": "COMPLETE_FIXED9_PASSED",
+      "stage_id": "V0-S2",
+      "substeps": [
+        {
+          "evidence": "reports/v0-s2/offline-checkpoint-44/receipt.json",
+          "name": "WP-S2-00 冻结准备",
+          "status": "DONE"
+        },
+        {
+          "evidence": "reports/v0-s2/offline-checkpoint-44/receipt.json",
+          "name": "WP-S2-01 媒体owner",
+          "status": "DONE"
+        },
+        {
+          "evidence": "reports/v0-s2/offline-checkpoint-44/receipt.json",
+          "name": "WP-S2-02 公开视频路径",
+          "status": "DONE"
+        },
+        {
+          "evidence": "reports/v0-s2/offline-checkpoint-44/receipt.json",
+          "name": "WP-S2-03 安全/资源/取消",
+          "status": "DONE"
+        },
+        {
+          "evidence": "reports/v0-s2/offline-checkpoint-44/receipt.json",
+          "name": "WP-S2-04 离线集中收口",
+          "status": "DONE"
+        },
+        {
+          "evidence": "reports/v0-s2/full-v0-auto-08/receipt.json",
+          "name": "WP-S2-05 完整真实验收",
+          "status": "DONE"
+        },
+        {
+          "evidence": "reports/v0-s2/full-v0-auto-08/independent-review.json",
+          "name": "WP-S2-06 独立审查",
+          "status": "DONE"
+        },
+        {
+          "evidence": null,
+          "name": "S2 人工签署与Git同步",
+          "status": "PENDING"
+        }
+      ],
+      "summary": "Full08 fresh cumulative9/9, offline541/5checks, independent Fatal0/Major0/Minor0; human signoff and immediate Git sync remain.",
+      "title": "视频与资源控制",
+      "total_substeps": 8
+    },
+    {
+      "completed_substeps": 0,
+      "delivery": "V0.2",
+      "human_signoff": "NOT_SIGNED",
+      "implementation": "NOT_DELIVERED",
+      "independent_review": "NOT_RUN",
+      "machine_acceptance": "NOT_RUN",
+      "stage_id": "V0-S3",
+      "substeps": [
+        {
+          "evidence": null,
+          "name": "包/清单/使用说明",
+          "status": "PENDING"
+        },
+        {
+          "evidence": null,
+          "name": "安装诊断与回滚",
+          "status": "PENDING"
+        },
+        {
+          "evidence": null,
+          "name": "独立质量集与标注",
+          "status": "PENDING"
+        },
+        {
+          "evidence": null,
+          "name": "离线集中收口",
+          "status": "PENDING"
+        },
+        {
+          "evidence": null,
+          "name": "真实十二项及质量",
+          "status": "PENDING"
+        },
+        {
+          "evidence": null,
+          "name": "独审/人工签署/同步",
+          "status": "PENDING"
+        }
+      ],
+      "summary": "已有设计，未完成正式交付；存在代码需进入时复用审计",
+      "title": "离线质量与增量包",
+      "total_substeps": 6
+    },
+    {
+      "completed_substeps": 0,
+      "delivery": "V1",
+      "early_slice": {
+        "candidate_sha": "621b1bf386db71bfe08ca2f533fa8ec396b0504b",
+        "completed_workpacks": 3,
+        "human_signoff": "APPROVED",
+        "human_signoff_record": "reports/unified-media/human-signoff-live15.json",
+        "id": "UNIFIED_MEDIA_EARLY",
+        "independent_review": "FATAL0_MAJOR0",
+        "machine_acceptance": "UM10_PASS",
+        "total_workpacks": 3
+      },
+      "human_signoff": "EARLY_SLICE_APPROVED_FULL_R1_PENDING",
+      "implementation": "EARLY_SLICE_IMPLEMENTED_FULL_R1_PENDING",
+      "independent_review": "EARLY_SLICE_FATAL0_MAJOR0",
+      "machine_acceptance": "EARLY_SLICE_UM10_ONLY",
+      "stage_id": "R1",
+      "substeps": [
+        {
+          "evidence": null,
+          "name": "受控媒体与人工镜头",
+          "status": "PENDING"
+        },
+        {
+          "evidence": null,
+          "name": "六模式四目标",
+          "status": "PENDING"
+        },
+        {
+          "evidence": null,
+          "name": "SQLite/修订/导入",
+          "status": "PENDING"
+        },
+        {
+          "evidence": null,
+          "name": "组合回归及阶段审查",
+          "status": "PENDING"
+        }
+      ],
+      "summary": "最小统一图视频切片3/3、UM10机器与独审通过，用户已确认当前前端与基本视频反推；完整R1四子项仍0/4，不补签历史S2/完整V1或发布。",
+      "title": "人工业务骨架",
+      "total_substeps": 4
+    },
+    {
+      "completed_substeps": 0,
+      "delivery": "V1",
+      "human_signoff": "NOT_SIGNED",
+      "implementation": "DESIGN_ONLY",
+      "independent_review": "NOT_RUN",
+      "machine_acceptance": "NOT_RUN",
+      "stage_id": "V1-M1",
+      "substeps": [
+        {
+          "evidence": null,
+          "name": "M1-A detection/PTS/boundaries/timeline",
+          "status": "PENDING"
+        },
+        {
+          "evidence": null,
+          "name": "M1-B per-shot evidence and serial child jobs",
+          "status": "PENDING"
+        },
+        {
+          "evidence": null,
+          "name": "M1-C per-shot drafts/exports/fixed8 full validation",
+          "status": "PENDING"
+        }
+      ],
+      "summary": "用户批准纳入V1；设计/合同审查中，未实现、未测试、未签署",
+      "title": "多镜头拆分与逐镜头人物场景动作",
+      "total_substeps": 3
+    },
+    {
+      "completed_substeps": 0,
+      "delivery": "V1",
+      "human_signoff": "NOT_SIGNED",
+      "implementation": "NOT_DELIVERED",
+      "independent_review": "NOT_RUN",
+      "machine_acceptance": "NOT_RUN",
+      "stage_id": "R2",
+      "substeps": [
+        {
+          "evidence": null,
+          "name": "异步任务/CAS/取消",
+          "status": "PENDING"
+        },
+        {
+          "evidence": null,
+          "name": "真实图视频及质量",
+          "status": "PENDING"
+        },
+        {
+          "evidence": null,
+          "name": "CLI/导出/便携包",
+          "status": "PENDING"
+        },
+        {
+          "evidence": null,
+          "name": "V1累计独审及人工签署",
+          "status": "PENDING"
+        }
+      ],
+      "summary": "已有设计，未完成正式交付；存在代码需进入时复用审计",
+      "title": "任务与正式运行包",
+      "total_substeps": 4
+    },
+    {
+      "completed_substeps": 0,
+      "delivery": "V2",
+      "human_signoff": "NOT_SIGNED",
+      "implementation": "NOT_DELIVERED",
+      "independent_review": "NOT_RUN",
+      "machine_acceptance": "NOT_RUN",
+      "stage_id": "R3",
+      "substeps": [
+        {
+          "evidence": null,
+          "name": "真实PTS/切镜",
+          "status": "PENDING"
+        },
+        {
+          "evidence": null,
+          "name": "资产/FTS5/配方",
+          "status": "PENDING"
+        },
+        {
+          "evidence": null,
+          "name": "对比/QC/JSONL",
+          "status": "PENDING"
+        },
+        {
+          "evidence": null,
+          "name": "阶段验收",
+          "status": "PENDING"
+        }
+      ],
+      "summary": "已有设计，未完成正式交付；存在代码需进入时复用审计",
+      "title": "镜头资产与检索",
+      "total_substeps": 4
+    },
+    {
+      "completed_substeps": 0,
+      "delivery": "V2",
+      "human_signoff": "NOT_SIGNED",
+      "implementation": "NOT_DELIVERED",
+      "independent_review": "NOT_RUN",
+      "machine_acceptance": "NOT_RUN",
+      "stage_id": "R4",
+      "substeps": [
+        {
+          "evidence": null,
+          "name": "MCP真客户端",
+          "status": "PENDING"
+        },
+        {
+          "evidence": null,
+          "name": "批量/lease/幂等",
+          "status": "PENDING"
+        },
+        {
+          "evidence": null,
+          "name": "备份恢复",
+          "status": "PENDING"
+        },
+        {
+          "evidence": null,
+          "name": "V2累计验收签署",
+          "status": "PENDING"
+        }
+      ],
+      "summary": "已有设计，未完成正式交付；存在代码需进入时复用审计",
+      "title": "MCP与恢复",
+      "total_substeps": 4
+    },
+    {
+      "completed_substeps": 0,
+      "delivery": "V3",
+      "human_signoff": "NOT_SIGNED",
+      "implementation": "NOT_DELIVERED",
+      "independent_review": "NOT_RUN",
+      "machine_acceptance": "NOT_RUN",
+      "stage_id": "R5a",
+      "substeps": [
+        {
+          "evidence": null,
+          "name": "对端握手",
+          "status": "PENDING"
+        },
+        {
+          "evidence": null,
+          "name": "Navia证据",
+          "status": "PENDING"
+        },
+        {
+          "evidence": null,
+          "name": "Narralens建议/冲突",
+          "status": "PENDING"
+        },
+        {
+          "evidence": null,
+          "name": "阶段真实验收",
+          "status": "PENDING"
+        }
+      ],
+      "summary": "已有设计，未完成正式交付；存在代码需进入时复用审计",
+      "title": "证据与建议合同",
+      "total_substeps": 4
+    },
+    {
+      "completed_substeps": 0,
+      "delivery": "V3",
+      "human_signoff": "NOT_SIGNED",
+      "implementation": "NOT_DELIVERED",
+      "independent_review": "NOT_RUN",
+      "machine_acceptance": "NOT_RUN",
+      "stage_id": "R5b",
+      "substeps": [
+        {
+          "evidence": null,
+          "name": "Comfy allowlist/映射",
+          "status": "PENDING"
+        },
+        {
+          "evidence": null,
+          "name": "收据/outbox",
+          "status": "PENDING"
+        },
+        {
+          "evidence": null,
+          "name": "GPU/取消协作",
+          "status": "PENDING"
+        },
+        {
+          "evidence": null,
+          "name": "阶段真实验收",
+          "status": "PENDING"
+        }
+      ],
+      "summary": "已有设计，未完成正式交付；存在代码需进入时复用审计",
+      "title": "受控生成交接",
+      "total_substeps": 4
+    },
+    {
+      "completed_substeps": 0,
+      "delivery": "V3",
+      "human_signoff": "NOT_SIGNED",
+      "implementation": "NOT_DELIVERED",
+      "independent_review": "NOT_RUN",
+      "machine_acceptance": "NOT_RUN",
+      "stage_id": "R5c",
+      "substeps": [
+        {
+          "evidence": null,
+          "name": "集成UI",
+          "status": "PENDING"
+        },
+        {
+          "evidence": null,
+          "name": "升级回滚",
+          "status": "PENDING"
+        },
+        {
+          "evidence": null,
+          "name": "三系统E2E",
+          "status": "PENDING"
+        },
+        {
+          "evidence": null,
+          "name": "V3独审及人工签署",
+          "status": "PENDING"
+        }
+      ],
+      "summary": "已有设计，未完成正式交付；存在代码需进入时复用审计",
+      "title": "集成与完整交付",
+      "total_substeps": 4
+    }
+  ],
+  "diagnostics": [
+    {
+      "collected_count": 0,
+      "duration_seconds": 4.577,
+      "inner_exit_code": 0,
+      "label": "debug-counterexamples-2",
+      "mode": "script",
+      "outcome": "PASS",
+      "product_source_sha256_during_the_run": "395f1a24bb9d9846b7dc23cae43d0c3f76699bdfd6b8de7f6941f3fccf2c1e1b",
+      "role": "PRE_COMMIT_DIAGNOSTIC_NOT_FINAL_EVIDENCE",
+      "script": "reports/v0-s3/product-gate0/implementation-p3b-correction-08/probe_correction08_counterexamples.py",
+      "select": null,
+      "stderr_file": "reports/v0-s3/product-gate0/implementation-p3b-correction-08/debug/debug-counterexamples-2.stderr.log",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_file": "reports/v0-s3/product-gate0/implementation-p3b-correction-08/debug/debug-counterexamples-2.stdout.log",
+      "stdout_sha256": "47ad68200de914453caef1cb2beee61f00332b5818129152ad512342836abefa",
+      "summary": "bounded resource observations: 5 observations, 0 violations"
+    },
+    {
+      "collected_count": 0,
+      "duration_seconds": 5.582,
+      "inner_exit_code": 1,
+      "label": "debug-counterexamples",
+      "mode": "script",
+      "outcome": "FAIL",
+      "product_source_sha256_during_the_run": "395f1a24bb9d9846b7dc23cae43d0c3f76699bdfd6b8de7f6941f3fccf2c1e1b",
+      "role": "PRE_COMMIT_DIAGNOSTIC_NOT_FINAL_EVIDENCE",
+      "script": "reports/v0-s3/product-gate0/implementation-p3b-correction-08/probe_correction08_counterexamples.py",
+      "select": null,
+      "stderr_file": "reports/v0-s3/product-gate0/implementation-p3b-correction-08/debug/debug-counterexamples.stderr.log",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_file": "reports/v0-s3/product-gate0/implementation-p3b-correction-08/debug/debug-counterexamples.stdout.log",
+      "stdout_sha256": "06e05626a0c20361654a17293b51e254741ad470c250acde515d1ca42c901dad",
+      "summary": "bounded resource observations: 5 observations, 1 violations"
+    },
+    {
+      "collected_count": 12,
+      "duration_seconds": 10.042,
+      "inner_exit_code": 0,
+      "label": "debug-focused-2",
+      "mode": "focused",
+      "outcome": "PASS",
+      "product_source_sha256_during_the_run": "395f1a24bb9d9846b7dc23cae43d0c3f76699bdfd6b8de7f6941f3fccf2c1e1b",
+      "role": "PRE_COMMIT_DIAGNOSTIC_NOT_FINAL_EVIDENCE",
+      "script": null,
+      "select": "correction08_nm03",
+      "stderr_file": "reports/v0-s3/product-gate0/implementation-p3b-correction-08/debug/debug-focused-2.stderr.log",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_file": "reports/v0-s3/product-gate0/implementation-p3b-correction-08/debug/debug-focused-2.stdout.log",
+      "stdout_sha256": "96852c6a7902467142025daf640b4d20828d3b89d2e386328f28e82d745ad22b",
+      "summary": "12 passed, 245 deselected in 9.76s"
+    },
+    {
+      "collected_count": 12,
+      "duration_seconds": 12.278,
+      "inner_exit_code": 0,
+      "label": "debug-focused",
+      "mode": "focused",
+      "outcome": "PASS",
+      "product_source_sha256_during_the_run": "395f1a24bb9d9846b7dc23cae43d0c3f76699bdfd6b8de7f6941f3fccf2c1e1b",
+      "role": "PRE_COMMIT_DIAGNOSTIC_NOT_FINAL_EVIDENCE",
+      "script": null,
+      "select": "correction08_nm03",
+      "stderr_file": "reports/v0-s3/product-gate0/implementation-p3b-correction-08/debug/debug-focused.stderr.log",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_file": "reports/v0-s3/product-gate0/implementation-p3b-correction-08/debug/debug-focused.stdout.log",
+      "stdout_sha256": "ce079b2033f59a02db7359a3cfb376f2933c9d5bde74d01d52df5168b56552df",
+      "summary": "12 passed, 245 deselected in 11.96s"
+    },
+    {
+      "collected_count": 12,
+      "duration_seconds": 11.526,
+      "inner_exit_code": 1,
+      "label": "debug-negative-control",
+      "mode": "focused",
+      "outcome": "FAIL",
+      "product_source_sha256_during_the_run": "e670b330f239ab931ab512dcf6f13ec8b3ec35b0d3932d88e8198b94c34bac22",
+      "role": "PRE_COMMIT_DIAGNOSTIC_NOT_FINAL_EVIDENCE",
+      "script": null,
+      "select": "correction08_nm03",
+      "stderr_file": "reports/v0-s3/product-gate0/implementation-p3b-correction-08/debug/debug-negative-control.stderr.log",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_file": "reports/v0-s3/product-gate0/implementation-p3b-correction-08/debug/debug-negative-control.stdout.log",
+      "stdout_sha256": "0026f0f718ebbcf040794cdaad52a977b6390b59ee74b6aab32dd6cc173b3883",
+      "summary": "10 failed, 2 passed, 245 deselected in 11.19s"
+    },
+    {
+      "collected_count": 257,
+      "duration_seconds": 95.06,
+      "inner_exit_code": 0,
+      "label": "debug-suite",
+      "mode": "suite",
+      "outcome": "PASS",
+      "product_source_sha256_during_the_run": "395f1a24bb9d9846b7dc23cae43d0c3f76699bdfd6b8de7f6941f3fccf2c1e1b",
+      "role": "PRE_COMMIT_DIAGNOSTIC_NOT_FINAL_EVIDENCE",
+      "script": null,
+      "select": null,
+      "stderr_file": "reports/v0-s3/product-gate0/implementation-p3b-correction-08/debug/debug-suite.stderr.log",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_file": "reports/v0-s3/product-gate0/implementation-p3b-correction-08/debug/debug-suite.stdout.log",
+      "stdout_sha256": "04f697e54e58d7f8bf88a1dbc38d346fab42832e9a49fad0dfa0812b0fae2dee",
+      "summary": "257 passed in 90.67s (0:01:30)"
+    }
+  ],
+  "finite_resource_bound": {
+    "custody_entry_limit": 72,
+    "custody_entry_limit_is_a_public_threshold": false,
+    "custody_entry_limit_is_internal": true,
+    "derivation": "4 * (FIXED_TOTAL + 2): a conservative multiple of the frozen sixteen row shape - the canonical receipt, the source seal and one raw leaf per row plus the shared rows directory and one row directory per row",
+    "descriptors_after_close": 8,
+    "descriptors_after_the_refused_excess": 84,
+    "descriptors_after_the_repeated_name": 84,
+    "descriptors_at_the_bound": 84,
+    "descriptors_before": 12,
+    "exact_entries_at_the_bound": 72,
+    "extra_opens_for_the_excess": 0,
+    "opens_after_the_repeated_name": 72,
+    "opens_for_the_exact_bound": 72,
+    "the_earlier_custody_is_still_verifiable": true,
+    "the_excess_is_refused_without_an_open": true,
+    "the_repeated_name_at_the_bound_opens_nothing": true
+  },
+  "independent_review_commit": "9d2c51de4e8df6e5f882405cbff1332356dc8269",
+  "invocations": [
+    {
+      "after_source_sha256": {
+        "tools/test_v0_s3_quality_phase.py": "eb8327f936a3cc5281e1ba2064b6baba43779a15eee4539b93adcfc504999e2f",
+        "tools/v0_s3_quality_phase.py": "395f1a24bb9d9846b7dc23cae43d0c3f76699bdfd6b8de7f6941f3fccf2c1e1b"
+      },
+      "argv": [
+        "reports/v0-s3/product-gate0/implementation-p3b-correction-05/run_guarded_checks.py",
+        "--mode",
+        "suite",
+        "--label",
+        "suite",
+        "--candidate-sha",
+        "6c9a0a07c66060e53b00e690ebdd98047167511d",
+        "--outdir",
+        "reports/v0-s3/product-gate0/implementation-p3b-correction-08"
+      ],
+      "before_source_sha256": {
+        "tools/test_v0_s3_quality_phase.py": "eb8327f936a3cc5281e1ba2064b6baba43779a15eee4539b93adcfc504999e2f",
+        "tools/v0_s3_quality_phase.py": "395f1a24bb9d9846b7dc23cae43d0c3f76699bdfd6b8de7f6941f3fccf2c1e1b"
+      },
+      "candidate_sha_claim": "6c9a0a07c66060e53b00e690ebdd98047167511d",
+      "candidate_sha_claim_is_attestation": false,
+      "collected_count": 257,
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-05/run_guarded_checks.py",
+        "--mode",
+        "suite",
+        "--label",
+        "suite",
+        "--outdir",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-08"
+      ],
+      "duration_seconds": 88.777,
+      "guard": {
+        "audit_hook_installed_before_product_import": true,
+        "audit_hook_installed_before_pytest": true,
+        "blocked_events": [
+          "socket.connect",
+          "socket.connect_ex",
+          "socket.bind",
+          "socket.getaddrinfo",
+          "socket.gethostbyname",
+          "socket.gethostbyaddr",
+          "socket.getnameinfo",
+          "subprocess.Popen",
+          "os.system",
+          "os.exec",
+          "os.spawn",
+          "os.posix_spawn",
+          "os.fork",
+          "os.forkpty"
+        ],
+        "bytecode_written": false,
+        "cacheprovider": "disabled",
+        "host_subprocess": "blocked",
+        "network": "blocked",
+        "pytest_disable_plugin_autoload": "1"
+      },
+      "guard_results": null,
+      "imported_modules": {
+        "test_v0_s3_quality_phase": {
+          "module": "test_v0_s3_quality_phase",
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_quality_phase.py",
+          "sha256": "eb8327f936a3cc5281e1ba2064b6baba43779a15eee4539b93adcfc504999e2f"
+        },
+        "tools.v0_s3_quality_phase": {
+          "module": "tools.v0_s3_quality_phase",
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_quality_phase.py",
+          "sha256": "395f1a24bb9d9846b7dc23cae43d0c3f76699bdfd6b8de7f6941f3fccf2c1e1b"
+        }
+      },
+      "inner_exit_code": 0,
+      "label": "suite",
+      "mode": "suite",
+      "outcome": "PASS",
+      "outer_exit_code": 0,
+      "owned_root_removed": true,
+      "probe_sha256_after": null,
+      "probe_sha256_before": null,
+      "probe_unchanged_during_run": true,
+      "role": "COMBINED_PRODUCT_SUITE_ONCE",
+      "runner_sha256_after": "016e61a06d415266fe7442ad9dcd1672ff42a19e5c1fafb707727fc05c95bdb8",
+      "runner_sha256_before": "016e61a06d415266fe7442ad9dcd1672ff42a19e5c1fafb707727fc05c95bdb8",
+      "runner_unchanged_during_run": true,
+      "script": null,
+      "select": null,
+      "source_unchanged_during_run": true,
+      "stderr_bytes": 0,
+      "stderr_file": "reports/v0-s3/product-gate0/implementation-p3b-correction-08/suite.stderr.log",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 351,
+      "stdout_file": "reports/v0-s3/product-gate0/implementation-p3b-correction-08/suite.stdout.log",
+      "stdout_sha256": "5cf2c54a1146365e8650fd56aaea23ff4d4fd06b40e9e1421b612e30c97612d9"
+    },
+    {
+      "after_source_sha256": {
+        "tools/test_v0_s3_quality_phase.py": "eb8327f936a3cc5281e1ba2064b6baba43779a15eee4539b93adcfc504999e2f",
+        "tools/v0_s3_quality_phase.py": "395f1a24bb9d9846b7dc23cae43d0c3f76699bdfd6b8de7f6941f3fccf2c1e1b"
+      },
+      "argv": [
+        "reports/v0-s3/product-gate0/implementation-p3b-correction-05/run_guarded_checks.py",
+        "--mode",
+        "guard",
+        "--label",
+        "guard",
+        "--candidate-sha",
+        "6c9a0a07c66060e53b00e690ebdd98047167511d",
+        "--outdir",
+        "reports/v0-s3/product-gate0/implementation-p3b-correction-08"
+      ],
+      "before_source_sha256": {
+        "tools/test_v0_s3_quality_phase.py": "eb8327f936a3cc5281e1ba2064b6baba43779a15eee4539b93adcfc504999e2f",
+        "tools/v0_s3_quality_phase.py": "395f1a24bb9d9846b7dc23cae43d0c3f76699bdfd6b8de7f6941f3fccf2c1e1b"
+      },
+      "candidate_sha_claim": "6c9a0a07c66060e53b00e690ebdd98047167511d",
+      "candidate_sha_claim_is_attestation": false,
+      "collected_count": 0,
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-05/run_guarded_checks.py",
+        "--mode",
+        "guard",
+        "--label",
+        "guard",
+        "--outdir",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-08"
+      ],
+      "duration_seconds": 0.003,
+      "guard": {
+        "audit_hook_installed_before_product_import": true,
+        "audit_hook_installed_before_pytest": true,
+        "blocked_events": [
+          "socket.connect",
+          "socket.connect_ex",
+          "socket.bind",
+          "socket.getaddrinfo",
+          "socket.gethostbyname",
+          "socket.gethostbyaddr",
+          "socket.getnameinfo",
+          "subprocess.Popen",
+          "os.system",
+          "os.exec",
+          "os.spawn",
+          "os.posix_spawn",
+          "os.fork",
+          "os.forkpty"
+        ],
+        "bytecode_written": false,
+        "cacheprovider": "disabled",
+        "host_subprocess": "blocked",
+        "network": "blocked",
+        "pytest_disable_plugin_autoload": "1"
+      },
+      "guard_results": {
+        "Popen": "offline boundary violation: subprocess.Popen ('/bin/true', ['/bin/true'], None, None)",
+        "bind": "offline boundary violation: socket.bind (<socket.socket fd=7, family=2, type=1, proto=0, laddr=('0.0.0.0', 0)>, ('127.0.0.1', 0))",
+        "connect": "offline boundary violation: socket.connect (<socket.socket fd=7, family=2, type=1, proto=0, laddr=('0.0.0.0', 0)>, ('127.0.0.1', 9))",
+        "system": "offline boundary violation: os.system (b'true',)"
+      },
+      "imported_modules": {},
+      "inner_exit_code": 0,
+      "label": "guard",
+      "mode": "guard",
+      "outcome": "PASS",
+      "outer_exit_code": 0,
+      "owned_root_removed": true,
+      "probe_sha256_after": null,
+      "probe_sha256_before": null,
+      "probe_unchanged_during_run": true,
+      "role": "GUARD_SELFTEST_ONCE",
+      "runner_sha256_after": "016e61a06d415266fe7442ad9dcd1672ff42a19e5c1fafb707727fc05c95bdb8",
+      "runner_sha256_before": "016e61a06d415266fe7442ad9dcd1672ff42a19e5c1fafb707727fc05c95bdb8",
+      "runner_unchanged_during_run": true,
+      "script": null,
+      "select": null,
+      "source_unchanged_during_run": true,
+      "stderr_bytes": 0,
+      "stderr_file": "reports/v0-s3/product-gate0/implementation-p3b-correction-08/guard.stderr.log",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 459,
+      "stdout_file": "reports/v0-s3/product-gate0/implementation-p3b-correction-08/guard.stdout.log",
+      "stdout_sha256": "6e3db9bee7880783c6d86acad60653571ecf173c497793d487ec8c3758f8db7d"
+    },
+    {
+      "after_source_sha256": {
+        "tools/test_v0_s3_quality_phase.py": "eb8327f936a3cc5281e1ba2064b6baba43779a15eee4539b93adcfc504999e2f",
+        "tools/v0_s3_quality_phase.py": "395f1a24bb9d9846b7dc23cae43d0c3f76699bdfd6b8de7f6941f3fccf2c1e1b"
+      },
+      "argv": [
+        "reports/v0-s3/product-gate0/implementation-p3b-correction-05/run_guarded_checks.py",
+        "--mode",
+        "focused",
+        "--label",
+        "focused",
+        "--select",
+        "correction08_nm03",
+        "--candidate-sha",
+        "6c9a0a07c66060e53b00e690ebdd98047167511d",
+        "--outdir",
+        "reports/v0-s3/product-gate0/implementation-p3b-correction-08"
+      ],
+      "before_source_sha256": {
+        "tools/test_v0_s3_quality_phase.py": "eb8327f936a3cc5281e1ba2064b6baba43779a15eee4539b93adcfc504999e2f",
+        "tools/v0_s3_quality_phase.py": "395f1a24bb9d9846b7dc23cae43d0c3f76699bdfd6b8de7f6941f3fccf2c1e1b"
+      },
+      "candidate_sha_claim": "6c9a0a07c66060e53b00e690ebdd98047167511d",
+      "candidate_sha_claim_is_attestation": false,
+      "collected_count": 12,
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-05/run_guarded_checks.py",
+        "--mode",
+        "focused",
+        "--label",
+        "focused",
+        "--outdir",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-08"
+      ],
+      "duration_seconds": 11.427,
+      "guard": {
+        "audit_hook_installed_before_product_import": true,
+        "audit_hook_installed_before_pytest": true,
+        "blocked_events": [
+          "socket.connect",
+          "socket.connect_ex",
+          "socket.bind",
+          "socket.getaddrinfo",
+          "socket.gethostbyname",
+          "socket.gethostbyaddr",
+          "socket.getnameinfo",
+          "subprocess.Popen",
+          "os.system",
+          "os.exec",
+          "os.spawn",
+          "os.posix_spawn",
+          "os.fork",
+          "os.forkpty"
+        ],
+        "bytecode_written": false,
+        "cacheprovider": "disabled",
+        "host_subprocess": "blocked",
+        "network": "blocked",
+        "pytest_disable_plugin_autoload": "1"
+      },
+      "guard_results": null,
+      "imported_modules": {
+        "test_v0_s3_quality_phase": {
+          "module": "test_v0_s3_quality_phase",
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_quality_phase.py",
+          "sha256": "eb8327f936a3cc5281e1ba2064b6baba43779a15eee4539b93adcfc504999e2f"
+        },
+        "tools.v0_s3_quality_phase": {
+          "module": "tools.v0_s3_quality_phase",
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_quality_phase.py",
+          "sha256": "395f1a24bb9d9846b7dc23cae43d0c3f76699bdfd6b8de7f6941f3fccf2c1e1b"
+        }
+      },
+      "inner_exit_code": 0,
+      "label": "focused",
+      "mode": "focused",
+      "outcome": "PASS",
+      "outer_exit_code": 0,
+      "owned_root_removed": true,
+      "probe_sha256_after": null,
+      "probe_sha256_before": null,
+      "probe_unchanged_during_run": true,
+      "role": "FOCUSED_RESOURCE_COUNTEREXAMPLES_ONCE",
+      "runner_sha256_after": "016e61a06d415266fe7442ad9dcd1672ff42a19e5c1fafb707727fc05c95bdb8",
+      "runner_sha256_before": "016e61a06d415266fe7442ad9dcd1672ff42a19e5c1fafb707727fc05c95bdb8",
+      "runner_unchanged_during_run": true,
+      "script": null,
+      "select": "correction08_nm03",
+      "source_unchanged_during_run": true,
+      "stderr_bytes": 0,
+      "stderr_file": "reports/v0-s3/product-gate0/implementation-p3b-correction-08/focused.stderr.log",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 115,
+      "stdout_file": "reports/v0-s3/product-gate0/implementation-p3b-correction-08/focused.stdout.log",
+      "stdout_sha256": "67b623e3e5eaa985c20d5b804d01c527207e54c6fa2e112017ff8700a2990924"
+    },
+    {
+      "after_source_sha256": {
+        "tools/test_v0_s3_quality_phase.py": "eb8327f936a3cc5281e1ba2064b6baba43779a15eee4539b93adcfc504999e2f",
+        "tools/v0_s3_quality_phase.py": "395f1a24bb9d9846b7dc23cae43d0c3f76699bdfd6b8de7f6941f3fccf2c1e1b"
+      },
+      "argv": [
+        "reports/v0-s3/product-gate0/implementation-p3b-correction-05/run_guarded_checks.py",
+        "--mode",
+        "script",
+        "--label",
+        "counterexamples",
+        "--script",
+        "reports/v0-s3/product-gate0/implementation-p3b-correction-08/probe_correction08_counterexamples.py",
+        "--candidate-sha",
+        "6c9a0a07c66060e53b00e690ebdd98047167511d",
+        "--outdir",
+        "reports/v0-s3/product-gate0/implementation-p3b-correction-08"
+      ],
+      "before_source_sha256": {
+        "tools/test_v0_s3_quality_phase.py": "eb8327f936a3cc5281e1ba2064b6baba43779a15eee4539b93adcfc504999e2f",
+        "tools/v0_s3_quality_phase.py": "395f1a24bb9d9846b7dc23cae43d0c3f76699bdfd6b8de7f6941f3fccf2c1e1b"
+      },
+      "candidate_sha_claim": "6c9a0a07c66060e53b00e690ebdd98047167511d",
+      "candidate_sha_claim_is_attestation": false,
+      "collected_count": 0,
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-05/run_guarded_checks.py",
+        "--mode",
+        "script",
+        "--label",
+        "counterexamples",
+        "--outdir",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-08"
+      ],
+      "duration_seconds": 4.763,
+      "guard": {
+        "audit_hook_installed_before_product_import": true,
+        "audit_hook_installed_before_pytest": true,
+        "blocked_events": [
+          "socket.connect",
+          "socket.connect_ex",
+          "socket.bind",
+          "socket.getaddrinfo",
+          "socket.gethostbyname",
+          "socket.gethostbyaddr",
+          "socket.getnameinfo",
+          "subprocess.Popen",
+          "os.system",
+          "os.exec",
+          "os.spawn",
+          "os.posix_spawn",
+          "os.fork",
+          "os.forkpty"
+        ],
+        "bytecode_written": false,
+        "cacheprovider": "disabled",
+        "host_subprocess": "blocked",
+        "network": "blocked",
+        "pytest_disable_plugin_autoload": "1"
+      },
+      "guard_results": null,
+      "imported_modules": {
+        "tools.test_v0_s3_quality_phase": {
+          "module": "tools.test_v0_s3_quality_phase",
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_quality_phase.py",
+          "sha256": "eb8327f936a3cc5281e1ba2064b6baba43779a15eee4539b93adcfc504999e2f"
+        },
+        "tools.v0_s3_quality_phase": {
+          "module": "tools.v0_s3_quality_phase",
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_quality_phase.py",
+          "sha256": "395f1a24bb9d9846b7dc23cae43d0c3f76699bdfd6b8de7f6941f3fccf2c1e1b"
+        }
+      },
+      "inner_exit_code": 0,
+      "label": "counterexamples",
+      "mode": "script",
+      "outcome": "PASS",
+      "outer_exit_code": 0,
+      "owned_root_removed": true,
+      "probe_sha256_after": "e664f586d1d6db6b049c7de05475b77dbf9fe5848985b8fd160a9aa5b7e235d9",
+      "probe_sha256_before": "e664f586d1d6db6b049c7de05475b77dbf9fe5848985b8fd160a9aa5b7e235d9",
+      "probe_unchanged_during_run": true,
+      "role": "INDEPENDENT_BOUNDED_RESOURCE_OBSERVATIONS",
+      "runner_sha256_after": "016e61a06d415266fe7442ad9dcd1672ff42a19e5c1fafb707727fc05c95bdb8",
+      "runner_sha256_before": "016e61a06d415266fe7442ad9dcd1672ff42a19e5c1fafb707727fc05c95bdb8",
+      "runner_unchanged_during_run": true,
+      "script": "reports/v0-s3/product-gate0/implementation-p3b-correction-08/probe_correction08_counterexamples.py",
+      "select": null,
+      "source_unchanged_during_run": true,
+      "stderr_bytes": 0,
+      "stderr_file": "reports/v0-s3/product-gate0/implementation-p3b-correction-08/counterexamples.stderr.log",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 3859,
+      "stdout_file": "reports/v0-s3/product-gate0/implementation-p3b-correction-08/counterexamples.stdout.log",
+      "stdout_sha256": "fddda978e993a51ba5a3935e0b0f051d13cec38bce142b92f78de395b2b614b6"
+    }
+  ],
+  "kind": "S3_P3B_CORRECTION_08_ACCEPTANCE_RECEIPT",
+  "last_passed_gate": {
+    "candidate_sha": "621b1bf386db71bfe08ca2f533fa8ec396b0504b",
+    "cpu_checks": 212,
+    "decision": "10PASS_0FAIL_0BLOCKED_FATAL0_MAJOR0_HUMAN_ACCEPTED_SCOPE_ONLY",
+    "fixed_cases": 10,
+    "gate": "UNIFIED_MEDIA_FIXED_UM10_AND_INDEPENDENT_REVIEW",
+    "human_signoff": "reports/unified-media/human-signoff-live15.json",
+    "passed_cases": 10,
+    "receipt": "reports/unified-media/independent-live-15/receipt.json"
+  },
+  "negative_control": {
+    "inner_exit_code": 1,
+    "label": "debug-negative-control",
+    "meaning": "the new cases reproduce the two resource roots of the independent review against the baseline and pass against the candidate",
+    "not_a_final_evidence_run": true,
+    "product_source_sha256_during_the_run": "e670b330f239ab931ab512dcf6f13ec8b3ec35b0d3932d88e8198b94c34bac22",
+    "summary": "10 failed, 2 passed, 245 deselected in 11.19s",
+    "what": "the new correction-08 cases were executed against the unfixed baseline product code fd96cbc in the debug phase of this batch"
+  },
+  "negatives": {
+    "child_directory_metadata_failure_after_the_open": "REFUSED_AND_CLOSED",
+    "child_directory_named_stat_failure": "REFUSED_AND_CLOSED",
+    "clean_genuine_run": "AGGREGATE_PASS",
+    "custody_bound_exact": "ACCEPTED",
+    "custody_bound_one_over": "REFUSED_WITHOUT_AN_OPEN",
+    "custody_insertion_failure": "REFUSED_AND_CLOSED",
+    "earlier_read_and_completion_mutations": "STILL_REFUSED",
+    "failed_boundary_construction": "REFUSED_AND_RELEASED",
+    "leaf_metadata_failure_after_the_open": "REFUSED_AND_CLOSED",
+    "leaf_named_identity_mismatch": "REFUSED_AND_CLOSED",
+    "leaf_named_type_mismatch": "REFUSED_AND_CLOSED",
+    "public_evaluation_metadata_failure": "REFUSED_AND_RELEASED",
+    "refused_admission": "REFUSED_WITHOUT_A_CONSUMED_SLOT",
+    "repeated_name_at_the_bound": "REUSED_WITHOUT_AN_OPEN"
+  },
+  "not_proven": [
+    "parent owned original archive or retained independent attestation and the selected root binding",
+    "parent hard watchdog (UNIMPLEMENTED_PRODUCT_GATE0_BLOCKER)",
+    "native Windows and WSL deployment, residue admission and A06",
+    "actual registration baseline, installation and rollback",
+    "authentic parent ledger debit",
+    "real quality sixteen, full twelve, product Gate0 and human release",
+    "a total coherent rewrite of both trusted originals",
+    "immunity against a hostile kernel, a native Windows reparse point, a filesystem that moves inodes underneath the process or any universal concurrency guarantee"
+  ],
+  "production_path": {
+    "admission_rule": "the custody slot is reserved before the descriptor of a new name is opened; a refused admission consumes no slot",
+    "boundary": "_ArtifactBoundary",
+    "custody": "_NamedCustody",
+    "custody_is_boundary_owned": true,
+    "custody_lifetime": "the whole QS evaluation, until the boundary is closed",
+    "module": "tools/v0_s3_quality_phase.py",
+    "oracles_retained": true,
+    "ownership_rule": "every successful os.open has exactly one owner until the descriptor is closed: the level openers hand the descriptor to the boundary before they read any metadata, the child and leaf openers own it until the metadata was validated and the custody has taken it over",
+    "public_entry_point": "recompute_scores",
+    "public_production_owners_retained": true
+  },
+  "root_disposition_commit": "94ade2aa32740830c17849b04dc2d3c365857c3e",
+  "root_resume_approval_commit": "4de8379eaf658d10f53fe3a1c954ff29773c95ae",
+  "terminal": {
+    "human_release_claim": false,
+    "inner_exit_codes": {
+      "counterexamples": 0,
+      "focused": 0,
+      "guard": 0,
+      "suite": 0
+    },
+    "outer_exit_codes": {
+      "counterexamples": 0,
+      "focused": 0,
+      "guard": 0,
+      "suite": 0
+    },
+    "product_gate0": false,
+    "real_execution_performed": false,
+    "stage_pass_claim": false,
+    "state": "READY_FOR_REVIEW",
+    "terminal_kept_visible": true
+  }
+}

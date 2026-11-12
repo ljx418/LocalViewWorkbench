@@ -1,0 +1,99 @@
+{
+  "count": 5,
+  "kind": "S3_P3B_CORRECTION08_BOUNDED_RESOURCE_OBSERVATIONS",
+  "note": "Bounded observations of the current candidate.  They are not additional product tests and they do not turn an observation into a passing obligation.",
+  "observations": [
+    {
+      "name": "owner_child_directory_metadata",
+      "observation": {
+        "custody_entries": 0,
+        "descriptors_after_close": 8,
+        "descriptors_after_the_refused_read": 12,
+        "descriptors_before": 8,
+        "descriptors_during": 12,
+        "hook_fired": 1,
+        "refused": "OSError: [Errno 5] injected metadata failure",
+        "relative": "rows/SYN-I00/raw.txt",
+        "reserved_slots": 0,
+        "the_boundary_releases_everything": true,
+        "the_custody_is_undamaged": true,
+        "the_refused_descriptor_is_closed": true
+      }
+    },
+    {
+      "name": "owner_leaf_metadata",
+      "observation": {
+        "custody_entries": 0,
+        "descriptors_after_close": 8,
+        "descriptors_after_the_refused_read": 12,
+        "descriptors_before": 8,
+        "descriptors_during": 12,
+        "hook_fired": 1,
+        "refused": "OSError: [Errno 5] injected metadata failure",
+        "relative": "qd-receipt.json",
+        "reserved_slots": 0,
+        "the_boundary_releases_everything": true,
+        "the_custody_is_undamaged": true,
+        "the_refused_descriptor_is_closed": true
+      }
+    },
+    {
+      "name": "public_evaluation_metadata",
+      "observation": {
+        "descriptors_after": 8,
+        "descriptors_before": 8,
+        "hook_fired": 1,
+        "refused": "OSError: [Errno 5] injected metadata failure",
+        "the_public_refusal_releases_everything": true
+      }
+    },
+    {
+      "name": "custody_bound_exact_and_one_over",
+      "observation": {
+        "custody_limit": 72,
+        "descriptors_after_close": 8,
+        "descriptors_after_the_refused_excess": 84,
+        "descriptors_after_the_repeated_name": 84,
+        "descriptors_at_the_bound": 84,
+        "descriptors_before": 12,
+        "exact_entries": 72,
+        "extra_opens_for_the_excess": 0,
+        "opens_after_the_repeated_name": 72,
+        "opens_for_the_exact_bound": 72,
+        "refused": "QualityContractError: QS_ARTIFACT_CUSTODY_LIMIT_EXCEEDED:bound-excess.bin",
+        "the_close_releases_everything": true,
+        "the_earlier_custody_is_still_verifiable": true,
+        "the_excess_is_refused_without_an_open": true,
+        "the_repeated_name_at_the_bound_opens_nothing": true
+      }
+    },
+    {
+      "name": "failed_admission",
+      "observation": {
+        "custody_entries_after_the_admission": 1,
+        "custody_entries_after_the_refusal": 0,
+        "descriptors_after_the_refused_admission": 12,
+        "descriptors_during": 12,
+        "hook_fired": 1,
+        "refused": "OSError: [Errno 5] injected metadata failure",
+        "reserved_slots_after_the_refusal": 0,
+        "the_next_name_is_admitted": "abcd",
+        "the_refused_admission_closed_its_descriptor": true,
+        "the_refused_admission_consumed_no_slot": true
+      }
+    }
+  ],
+  "owned_root": "/tmp/lvw-c05-debug-counterexamples-2-4_lbuvaw/lvw-c08-observations-9v5ftq_h",
+  "product_gate0": false,
+  "registered_roots": [
+    "/tmp/lvw-c05-debug-counterexamples-2-4_lbuvaw/lvw-c08-observations-9v5ftq_h",
+    "/tmp/lvw-c05-debug-counterexamples-2-4_lbuvaw/lvw-c08-observations-9v5ftq_h/owner_child_directory_metadata",
+    "/tmp/lvw-c05-debug-counterexamples-2-4_lbuvaw/lvw-c08-observations-9v5ftq_h/owner_leaf_metadata",
+    "/tmp/lvw-c05-debug-counterexamples-2-4_lbuvaw/lvw-c08-observations-9v5ftq_h/public_evaluation_metadata",
+    "/tmp/lvw-c05-debug-counterexamples-2-4_lbuvaw/lvw-c08-observations-9v5ftq_h/custody_bound",
+    "/tmp/lvw-c05-debug-counterexamples-2-4_lbuvaw/lvw-c08-observations-9v5ftq_h/failed_admission"
+  ],
+  "removed": true,
+  "stage_pass_claim": false,
+  "violations": []
+}
