@@ -19,6 +19,7 @@ def render():
             relative = posixpath.normpath(str(path.parent.relative_to(ROOT)) + '/' + name)
             return '](' + relative + (sep + fragment if sep else '') + ')'
         text = re.sub(r'\]\(([^)]+)\)', relocate, path.read_text(encoding='utf-8'))
+        text = '\n'.join(line.rstrip() + ('<br>' if line.endswith('  ') else '') for line in text.splitlines())
         sections.append('<!-- source: ' + str(path.relative_to(ROOT)) + ' -->\n\n' + text.rstrip())
     return '# LVW · V0–V3 当前设计汇编\n\n由 tools/build_full_spec.py 从 docs 生成；单一产品坐标读取 plans/execution-control.json。设计与候选不代表产品已验收。\n\n' + '\n\n---\n\n'.join(sections) + '\n'
 
