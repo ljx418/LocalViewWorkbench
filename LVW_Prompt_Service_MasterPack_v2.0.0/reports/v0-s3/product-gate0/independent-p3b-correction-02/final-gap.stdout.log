@@ -1,0 +1,60 @@
+{
+  "results": [
+    {
+      "probe": "cooperative_phase_deadline_before_send",
+      "events": [
+        {
+          "action": "quality_public_submit",
+          "returned_at": 10801.0,
+          "phase_deadline": 10800.0
+        }
+      ],
+      "submissions": 1,
+      "first_error": "HISTORY_TIMEOUT",
+      "decision": "QUALITY_EXECUTION_PARTIAL",
+      "counts": {
+        "fixed": 16,
+        "PASS": 0,
+        "FAIL": 1,
+        "BLOCKED": 15,
+        "NOT_RUN": 0
+      },
+      "hard_timing_blocker": "UNIMPLEMENTED_PRODUCT_GATE0_BLOCKER"
+    },
+    {
+      "probe": "actual_run_receipt_fsync_failure",
+      "trigger_reached": true,
+      "submissions": 16,
+      "returned": {
+        "decision": "QUALITY_EXECUTION_BLOCKED",
+        "receipt_persisted": false,
+        "terminal_status": "TERMINAL_RECEIPT_NOT_PERSISTED",
+        "storage_unproven": true,
+        "error_code": "RECEIPT_PERSISTENCE_FAILED"
+      },
+      "disk": {
+        "decision": "QUALITY_EXECUTION_COMPLETE_ALL_16_PASS",
+        "receipt_persisted": true,
+        "terminal_status": "TERMINAL_RECEIPT_PERSISTED",
+        "storage_unproven": false,
+        "error_code": null
+      },
+      "handles_closed": true
+    },
+    {
+      "probe": "clock_nonfinite",
+      "submissions": 0,
+      "rows": 16,
+      "error": "CLOCK_NOT_FINITE"
+    },
+    {
+      "probe": "clock_boolean",
+      "submissions": 0,
+      "rows": 16,
+      "error": "CLOCK_NOT_FINITE"
+    }
+  ],
+  "owned_root": "/tmp/lvw-independent-p3bc02-185ef48a-lastgap-nmpevj2r",
+  "removed": true,
+  "classification": "counterexample observations; not product passing tests"
+}

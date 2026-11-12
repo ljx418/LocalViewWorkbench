@@ -1,0 +1,64 @@
+[
+  {
+    "id": "M01",
+    "severity": "Major",
+    "status": "PARTIALLY_FIXED_REMAINS_OPEN",
+    "location": "tools/v0_s3_quality_phase.py:1794-1840 (_write_receipt),1842-1854 (_finish)",
+    "trigger": "Run actual QualityPhase.run with os.fsync raising only on the exclusively opened final qd-receipt.json FD.",
+    "expected": "A failed terminal persistence must not leave an authoritative-looking success receipt contradicting the returned terminal evidence; preserve failure and do not overwrite old evidence.",
+    "actual": "All16 sends finish, then returned decision is QUALITY_EXECUTION_BLOCKED, receipt_persisted=false, storage_unproven=true; readable on-disk receipt says COMPLETE_ALL_16_PASS, persisted=true, storage_unproven=false. A retry refuses overwrite and retains those misleading bytes.",
+    "evidence": [
+      "final-gap.stdout.log:actual_run_receipt_fsync_failure",
+      "focused.stdout.log:receipt_fsync_failure"
+    ],
+    "fixed": "Canonical self-inclusive successful disk/returned receipt and real 8MiB/128MiB/256 exact/oneover caps independently verified."
+  },
+  {
+    "id": "M08",
+    "severity": "Major",
+    "status": "PARTIALLY_FIXED_REMAINS_OPEN",
+    "location": "tools/v0_s3_quality_phase.py:2113-2149 (_row_evidence_complete),2269-2348 (QS callers)",
+    "trigger": "On public recompute_scores with verified real synthetic raw artifacts, remove global storage_unproven or cleanup_unproven, set storage_unproven=null, omit source_evidence.identity or substitute source_evidence.path, or retain only the two favourable release booleans.",
+    "expected": "Unknown source/storage/cleanup remains unresolved and cannot aggregate PASS; source and release evidence must retain their bound identity and complete proof.",
+    "actual": "Every focused variant yields aggregate_pass=true and row usable=true/resolved=true/evidence_complete=true. Only explicit True uncertainty is rejected, source path/identity are never examined, and a two-boolean release dictionary suffices.",
+    "evidence": [
+      "focused.stdout.log:storage_flag_missing",
+      "focused.stdout.log:storage_flag_null",
+      "focused.stdout.log:cleanup_flag_missing",
+      "focused.stdout.log:source_identity_missing",
+      "focused.stdout.log:source_path_foreign",
+      "focused.stdout.log:release_details_missing"
+    ],
+    "fixed": "Original three concrete unknown cases now refuse; complete known failure stays resolved/not usable, critical3 stays visible and aggregate fails."
+  },
+  {
+    "id": "NM01",
+    "severity": "Major",
+    "status": "PARTIALLY_FIXED_REMAINS_OPEN",
+    "location": "tools/v0_s3_quality_phase.py:758-773,1250-1278,1898-1910",
+    "trigger": "Admit a valid typed proof expiring at clock2; during the first quality_public_submit callback advance clock0 to2 (under30s callback ceiling). Separate observation diminishes the internal capacity to0 at that same handoff.",
+    "expected": "Freshness and sufficient remaining capacity must hold after preparation/authorization immediately before the first send; invalid proof gives zero sends/full16 refused.",
+    "actual": "Both observations permit16 sends and COMPLETE_ALL_16_PASS. _parent_proof_is_fresh runs only once at phase entry; expiry/capacity is not rechecked at the actual send.",
+    "evidence": [
+      "focused.stdout.log:proof_expires_before_first_send",
+      "focused.stdout.log:proof_diminishes_before_first_send"
+    ],
+    "fixed": "Initial missing/untyped/foreign/stale/nonfinite/insufficient proofs refuse; no authentic provider/reservation/debit attestation inferred."
+  },
+  {
+    "id": "NM02",
+    "severity": "Major",
+    "status": "LOCAL_COOPERATIVE_DEADLINE_GAP_PLUS_SEPARATE_PARENT_INTEGRATION_BLOCKER",
+    "location": "tools/v0_s3_quality_phase.py:792-806,1250-1278,1405-1427,1948-1963",
+    "trigger": "Bounded fake clock: source/workflow preparation returns at10799; first submit authorization consumes2s and returns normally at10801, within its30s ceiling. Parent proof expiry20000 isolates the phase deadline.",
+    "expected": "Cooperative whole-phase deadline refusal before the next send after callback return. Actual preemption of hung calls remains mandatory parent responsibility.",
+    "actual": "One request is sent at10801 after deadline10800; only the later history check rejects with HISTORY_TIMEOUT (FAIL1/BLOCKED15). This is a missing cooperative pre-send check, not a demand for a local worker platform.",
+    "evidence": [
+      "final-gap.stdout.log:cooperative_phase_deadline_before_send",
+      "replay.stdout.log:post_return_elapsed_only",
+      "final-gap.stdout.log:clock_nonfinite",
+      "final-gap.stdout.log:clock_boolean"
+    ],
+    "fixed": "Finite/nonbool/monotonic clock enforcement and late history rejection work; synchronous callbacks explicitly not preemptively bounded. Mandatory parent watchdog/owned cleanup is still UNIMPLEMENTED_PRODUCT_GATE0_BLOCKER."
+  }
+]

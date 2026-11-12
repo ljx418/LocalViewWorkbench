@@ -1,0 +1,80 @@
+{
+  "M02": {
+    "status": "CLOSED_SCOPED_OFFLINE",
+    "reason": "Descriptor-relative O_DIRECTORY|O_NOFOLLOW parent handles and exclusive dir_fd writes cover all artifact and receipt paths; initial temp symlink creates zero foreign entries, callback temp redirect gives zero sends/no files in old root, rows-open swap zero foreign entries/zero sends; original root/phase replacements and replay rejection retained.",
+    "evidence": "replay.stdout.log; suite.stdout.log:test_correction_m02_*,test_correction02_m02_*; focused.stdout.log:receipt_final_open_ancestor_swap"
+  },
+  "M03": {
+    "status": "CLOSED_SCOPED_OFFLINE",
+    "reason": "Final bounded source read follows authorization, checks prior inode/hash and descriptor/path identity; source callback mutation yields zero sends.",
+    "evidence": "suite.stdout.log:test_correction_m03_a_source_replaced_in_a_callback_produces_zero_sends; source growth/hash/symlink checks"
+  },
+  "M04": {
+    "status": "CLOSED_SCOPED_OFFLINE",
+    "reason": "Ordinary cleanup error preserves16 terminal rows, attempts release, records unknown cleanup, stops later sends.",
+    "evidence": "suite.stdout.log:test_correction_m04_an_ordinary_cleanup_exception_never_bypasses_the_release"
+  },
+  "M05": {
+    "status": "CLOSED_SCOPED_OFFLINE",
+    "reason": "Submission attempts and1/4 provider reservations charged before actual send, no retries, max34 unchanged.",
+    "evidence": "suite.stdout.log:test_correction_m05_a_failed_submit_stays_charged,test_correction_m05_the_provider_reservation_never_exceeds_thirty_four"
+  },
+  "M06": {
+    "status": "CLOSED_SCOPED_OFFLINE",
+    "reason": "Exact reviewer/session pairs required, cross-pair refused; authentic independent isolation remains external evidence.",
+    "evidence": "suite.stdout.log:test_correction_m06_*"
+  },
+  "M07": {
+    "status": "CLOSED_SCOPED_OFFLINE",
+    "reason": "Actual raw path/hash/bytes checked against QD and scoring evidence; suggestion substitution and escapes refused.",
+    "evidence": "suite.stdout.log:test_correction_m07_a_wrong_execution_raw_length_is_rejected; original QS binding/path tests"
+  },
+  "M09": {
+    "status": "CLOSED_SCOPED_OFFLINE",
+    "reason": "Actual production BridgeOwner invalid envelope generates BridgeError; public image/video nodes expose error history; exact raw_response/prior frame raw retained. Provider-after evidence precedes persistence.",
+    "evidence": "suite.stdout.log:test_correction_m09_*; bindings.json production owner hashes"
+  },
+  "m01": {
+    "status": "CLOSED_SCOPED_OFFLINE",
+    "reason": "Release elapsed/GPU evidence finite/nonbool, strictly increasing/gap-bounded and stable at baseline; original tests retained.",
+    "evidence": "suite.stdout.log:test_correction_m01_a_non_finite_release_is_rejected"
+  },
+  "M01": {
+    "status": "PARTIALLY_FIXED_REMAINS_OPEN",
+    "finding": "M01",
+    "evidence": [
+      "final-gap.stdout.log:actual_run_receipt_fsync_failure",
+      "focused.stdout.log:receipt_fsync_failure"
+    ]
+  },
+  "M08": {
+    "status": "PARTIALLY_FIXED_REMAINS_OPEN",
+    "finding": "M08",
+    "evidence": [
+      "focused.stdout.log:storage_flag_missing",
+      "focused.stdout.log:storage_flag_null",
+      "focused.stdout.log:cleanup_flag_missing",
+      "focused.stdout.log:source_identity_missing",
+      "focused.stdout.log:source_path_foreign",
+      "focused.stdout.log:release_details_missing"
+    ]
+  },
+  "NM01": {
+    "status": "PARTIALLY_FIXED_REMAINS_OPEN",
+    "finding": "NM01",
+    "evidence": [
+      "focused.stdout.log:proof_expires_before_first_send",
+      "focused.stdout.log:proof_diminishes_before_first_send"
+    ]
+  },
+  "NM02": {
+    "status": "LOCAL_COOPERATIVE_DEADLINE_GAP_PLUS_SEPARATE_PARENT_INTEGRATION_BLOCKER",
+    "finding": "NM02",
+    "evidence": [
+      "final-gap.stdout.log:cooperative_phase_deadline_before_send",
+      "replay.stdout.log:post_return_elapsed_only",
+      "final-gap.stdout.log:clock_nonfinite",
+      "final-gap.stdout.log:clock_boolean"
+    ]
+  }
+}
