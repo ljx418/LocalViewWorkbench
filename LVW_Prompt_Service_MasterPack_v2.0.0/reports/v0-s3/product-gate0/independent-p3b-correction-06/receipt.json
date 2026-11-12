@@ -1,0 +1,1945 @@
+{
+  "kind": "INDEPENDENT_P3B_CORRECTION06_AGGREGATE_REVIEW",
+  "recommendation": "CHANGES_REQUIRED",
+  "counts": {
+    "Fatal": 0,
+    "Major": 1,
+    "Minor": 0
+  },
+  "code_sha": "ba34b1581fc5e8e8b4de6ba469484e8eae416da1",
+  "evidence_sha": "b66aebaddedab3eb2bee88dda18d7657b94ff6d4",
+  "integrated_head": "b66aebaddedab3eb2bee88dda18d7657b94ff6d4",
+  "root_gitshow_only_revision": "08caf9f0e93ff7ff5acee7783c730346fc3c2c9c",
+  "prior_review_sha": "1618614798b7eaa23d603ab3d89b2e1176fc0e93",
+  "root_adjudication_sha": "c05ee011a73a790917000e5ab0e615851053a2eb",
+  "sources_final": {
+    "tools/v0_s3_quality_phase.py": "c01b0103dcf436c8604a70234cef21978a0b52c644692db33b2612bd64105c67",
+    "tools/test_v0_s3_quality_phase.py": "9771baf7b68566a9b379de40a1474d821c3e2b3d7de54b796e0dcd6653e53456",
+    "reports/v0-s3/product-gate0/p3b-quality-contract.md": "d06a6688fa618cd9fef1cd7f362b8d165addc0030dde0b5aee77465c2a2c20a3",
+    "reports/v0-s3/product-gate0/quality-execution-inputs.frozen.json": "47e9f14efa66bc4df851bf1a738763b48c1728eed84b76c56a7848d1b01f00c3",
+    "reports/v0-s3/product-gate0/implementation-p3b-correction-05/run_guarded_checks.py": "016e61a06d415266fe7442ad9dcd1672ff42a19e5c1fafb707727fc05c95bdb8",
+    "reports/v0-s3/product-gate0/implementation-p3b-correction-06/probe_correction06_counterexamples.py": "6892409b377a737dd6161f55d33d0067aeceefe5ff6f5ac8f454805229c5a966"
+  },
+  "invocations": {
+    "suite": {
+      "after_source_sha256": {
+        "tools/test_v0_s3_quality_phase.py": "9771baf7b68566a9b379de40a1474d821c3e2b3d7de54b796e0dcd6653e53456",
+        "tools/v0_s3_quality_phase.py": "c01b0103dcf436c8604a70234cef21978a0b52c644692db33b2612bd64105c67"
+      },
+      "argv": [
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-05/run_guarded_checks.py",
+        "--mode",
+        "suite",
+        "--label",
+        "suite",
+        "--outdir",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-p3b-correction-06"
+      ],
+      "before_source_sha256": {
+        "tools/test_v0_s3_quality_phase.py": "9771baf7b68566a9b379de40a1474d821c3e2b3d7de54b796e0dcd6653e53456",
+        "tools/v0_s3_quality_phase.py": "c01b0103dcf436c8604a70234cef21978a0b52c644692db33b2612bd64105c67"
+      },
+      "candidate_sha_claim": "",
+      "candidate_sha_claim_is_attestation": false,
+      "collected_count": 232,
+      "collected_nodeids": [
+        "tools/test_v0_s3_quality_phase.py::test_projection_is_strict_and_never_carries_labels[duplicate-asset-id-PROJECTION_DUPLICATE_ASSET_ID]",
+        "tools/test_v0_s3_quality_phase.py::test_projection_is_strict_and_never_carries_labels[duplicate-source-hash-PROJECTION_DUPLICATE_SOURCE_HASH]",
+        "tools/test_v0_s3_quality_phase.py::test_projection_is_strict_and_never_carries_labels[duplicate-reference-PROJECTION_DUPLICATE_REFERENCE]",
+        "tools/test_v0_s3_quality_phase.py::test_projection_is_strict_and_never_carries_labels[wrong-denominator-PROJECTION_DENOMINATOR_INVALID]",
+        "tools/test_v0_s3_quality_phase.py::test_projection_is_strict_and_never_carries_labels[wrong-row-count-PROJECTION_ROW_COUNT_INVALID]",
+        "tools/test_v0_s3_quality_phase.py::test_projection_is_strict_and_never_carries_labels[path-escape-reference-PROJECTION_REFERENCE_NOT_SIMPLE_NAME]",
+        "tools/test_v0_s3_quality_phase.py::test_projection_is_strict_and_never_carries_labels[video-extension-widened-PROJECTION_REFERENCE_EXTENSION_INVALID]",
+        "tools/test_v0_s3_quality_phase.py::test_projection_is_strict_and_never_carries_labels[label-field-smuggled-PROJECTION_ROW_UNEXPECTED_FIELD]",
+        "tools/test_v0_s3_quality_phase.py::test_projection_is_strict_and_never_carries_labels[top-level-extra-field-PROJECTION_UNEXPECTED_FIELD]",
+        "tools/test_v0_s3_quality_phase.py::test_projection_is_strict_and_never_carries_labels[source-bytes-over-limit-PROJECTION_SOURCE_BYTES_OVER_LIMIT]",
+        "tools/test_v0_s3_quality_phase.py::test_source_hash_mismatch_blocks_every_row_with_zero_submissions",
+        "tools/test_v0_s3_quality_phase.py::test_source_symlink_is_refused_before_any_submission",
+        "tools/test_v0_s3_quality_phase.py::test_source_growth_during_the_read_is_detected",
+        "tools/test_v0_s3_quality_phase.py::test_workflow_source_identity_mismatch_blocks_the_run",
+        "tools/test_v0_s3_quality_phase.py::test_binding_is_required_and_must_match_the_candidate",
+        "tools/test_v0_s3_quality_phase.py::test_sixteen_rows_pass_with_exact_provider_counts",
+        "tools/test_v0_s3_quality_phase.py::test_the_real_production_nodes_produced_the_observed_outputs",
+        "tools/test_v0_s3_quality_phase.py::test_raw_is_persisted_before_a_structural_rejection",
+        "tools/test_v0_s3_quality_phase.py::test_wrong_history_graph_is_rejected",
+        "tools/test_v0_s3_quality_phase.py::test_wrong_history_prompt_id_is_rejected",
+        "tools/test_v0_s3_quality_phase.py::test_a_reused_prompt_id_across_rows_is_rejected",
+        "tools/test_v0_s3_quality_phase.py::test_a_rewritten_provider_log_is_rejected",
+        "tools/test_v0_s3_quality_phase.py::test_a_wrong_provider_call_count_is_rejected_and_stops_the_batch",
+        "tools/test_v0_s3_quality_phase.py::test_a_listener_identity_drift_is_rejected",
+        "tools/test_v0_s3_quality_phase.py::test_an_unproven_release_stops_every_further_submission",
+        "tools/test_v0_s3_quality_phase.py::test_a_resident_model_is_not_accepted_as_a_release",
+        "tools/test_v0_s3_quality_phase.py::test_a_leftover_video_snapshot_stops_the_row",
+        "tools/test_v0_s3_quality_phase.py::test_a_missing_public_node_output_is_a_row_failure_with_history_kept",
+        "tools/test_v0_s3_quality_phase.py::test_a_broken_image_metadata_binding_is_rejected",
+        "tools/test_v0_s3_quality_phase.py::test_a_wrong_video_frame_denominator_is_rejected_after_the_raw_was_kept",
+        "tools/test_v0_s3_quality_phase.py::test_a_bounded_history_wait_fails_the_row_without_an_unbounded_poll",
+        "tools/test_v0_s3_quality_phase.py::test_the_phase_cannot_be_executed_twice",
+        "tools/test_v0_s3_quality_phase.py::test_an_existing_phase_directory_blocks_the_run",
+        "tools/test_v0_s3_quality_phase.py::test_the_public_submission_budget_is_exact_and_one_over",
+        "tools/test_v0_s3_quality_phase.py::test_the_artifact_budget_is_exact_and_one_over",
+        "tools/test_v0_s3_quality_phase.py::test_the_phase_deadline_blocks_the_remaining_rows",
+        "tools/test_v0_s3_quality_phase.py::test_a_failed_row_is_never_retried",
+        "tools/test_v0_s3_quality_phase.py::test_the_execution_path_never_calls_the_scoring_entry_point",
+        "tools/test_v0_s3_quality_phase.py::test_qs_the_aggregate_passes_only_at_the_exact_thresholds",
+        "tools/test_v0_s3_quality_phase.py::test_qs_one_usable_image_below_the_threshold_fails_the_aggregate",
+        "tools/test_v0_s3_quality_phase.py::test_qs_one_usable_video_below_the_threshold_fails_the_aggregate",
+        "tools/test_v0_s3_quality_phase.py::test_qs_a_critical_hallucination_fails_the_sample_and_the_aggregate",
+        "tools/test_v0_s3_quality_phase.py::test_qs_a_missing_score_keeps_the_sixteen_row_denominator",
+        "tools/test_v0_s3_quality_phase.py::test_qs_a_row_whose_execution_failed_cannot_be_rescued_by_a_full_score",
+        "tools/test_v0_s3_quality_phase.py::test_qs_an_unscored_raw_run_can_never_aggregate_pass",
+        "tools/test_v0_s3_quality_phase.py::test_qs_a_duplicate_score_is_rejected",
+        "tools/test_v0_s3_quality_phase.py::test_qs_a_foreign_row_is_rejected",
+        "tools/test_v0_s3_quality_phase.py::test_qs_a_score_bound_to_another_run_candidate_source_or_raw_is_rejected[run_id-other-run-QS_SCORE_RUN_MISMATCH]",
+        "tools/test_v0_s3_quality_phase.py::test_qs_a_score_bound_to_another_run_candidate_source_or_raw_is_rejected[candidate_sha-cccccccccccccccccccccccccccccccccccccccc-QS_SCORE_CANDIDATE_MISMATCH]",
+        "tools/test_v0_s3_quality_phase.py::test_qs_a_score_bound_to_another_run_candidate_source_or_raw_is_rejected[projection_sha256-eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee-QS_SCORE_PROJECTION_MISMATCH]",
+        "tools/test_v0_s3_quality_phase.py::test_qs_a_score_bound_to_another_run_candidate_source_or_raw_is_rejected[source_sha256-ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff-QS_SCORE_SOURCE_MISMATCH]",
+        "tools/test_v0_s3_quality_phase.py::test_qs_a_score_bound_to_another_run_candidate_source_or_raw_is_rejected[raw_sha256-1111111111111111111111111111111111111111111111111111111111111111-QS_SCORE_RAW_HASH_MISMATCH]",
+        "tools/test_v0_s3_quality_phase.py::test_qs_a_suggestion_artifact_cannot_substitute_the_raw",
+        "tools/test_v0_s3_quality_phase.py::test_qs_an_escaping_artifact_path_is_rejected",
+        "tools/test_v0_s3_quality_phase.py::test_qs_a_malformed_score_is_rejected[bool-score-SCORE_DIMENSION_NOT_INTEGER]",
+        "tools/test_v0_s3_quality_phase.py::test_qs_a_malformed_score_is_rejected[float-score-SCORE_DIMENSION_NOT_INTEGER]",
+        "tools/test_v0_s3_quality_phase.py::test_qs_a_malformed_score_is_rejected[out-of-range-SCORE_DIMENSION_OUT_OF_RANGE]",
+        "tools/test_v0_s3_quality_phase.py::test_qs_a_malformed_score_is_rejected[unknown-dimension-SCORE_DIMENSION_SET_INVALID]",
+        "tools/test_v0_s3_quality_phase.py::test_qs_a_malformed_score_is_rejected[negative-critical-SCORE_CRITICAL_HALLUCINATIONS_NEGATIVE]",
+        "tools/test_v0_s3_quality_phase.py::test_qs_a_malformed_score_is_rejected[bool-critical-SCORE_CRITICAL_HALLUCINATIONS_NOT_INTEGER]",
+        "tools/test_v0_s3_quality_phase.py::test_qs_a_malformed_score_is_rejected[missing-basis-SCORE_BASIS_MISSING]",
+        "tools/test_v0_s3_quality_phase.py::test_qs_a_reviewer_string_alone_does_not_prove_independence",
+        "tools/test_v0_s3_quality_phase.py::test_qs_the_reviewer_must_be_separated_from_the_implementer",
+        "tools/test_v0_s3_quality_phase.py::test_qs_the_score_session_must_be_bound_to_the_independence_receipt",
+        "tools/test_v0_s3_quality_phase.py::test_qs_the_independence_receipt_must_bind_the_run",
+        "tools/test_v0_s3_quality_phase.py::test_qs_verify_independence_rejects_a_reused_reviewer_or_session",
+        "tools/test_v0_s3_quality_phase.py::test_combined_the_execution_and_the_scoring_close_on_one_bound_run",
+        "tools/test_v0_s3_quality_phase.py::test_correction_m01_a_storage_failure_marks_unproven_and_stops_the_sends",
+        "tools/test_v0_s3_quality_phase.py::test_correction_m01_the_error_classification_ignores_the_path_suffix",
+        "tools/test_v0_s3_quality_phase.py::test_correction_m01_the_terminal_receipt_counts_inside_the_storage_bounds",
+        "tools/test_v0_s3_quality_phase.py::test_correction_m01_a_receipt_over_the_total_budget_is_refused_explicitly",
+        "tools/test_v0_s3_quality_phase.py::test_correction_m02_an_ancestor_redirect_cannot_escape_the_owned_directory",
+        "tools/test_v0_s3_quality_phase.py::test_correction_m02_a_preexisting_phase_directory_is_refused_without_writing",
+        "tools/test_v0_s3_quality_phase.py::test_correction_m02_a_replaced_phase_directory_is_refused",
+        "tools/test_v0_s3_quality_phase.py::test_correction_m02_a_replaced_run_root_is_refused",
+        "tools/test_v0_s3_quality_phase.py::test_correction_m02_an_old_root_replay_is_refused",
+        "tools/test_v0_s3_quality_phase.py::test_correction_m03_a_source_replaced_in_a_callback_produces_zero_sends",
+        "tools/test_v0_s3_quality_phase.py::test_correction_m04_an_ordinary_cleanup_exception_never_bypasses_the_release",
+        "tools/test_v0_s3_quality_phase.py::test_correction_m05_a_failed_submit_stays_charged",
+        "tools/test_v0_s3_quality_phase.py::test_correction_m05_the_provider_reservation_never_exceeds_thirty_four",
+        "tools/test_v0_s3_quality_phase.py::test_correction_m06_a_cross_paired_reviewer_session_is_rejected",
+        "tools/test_v0_s3_quality_phase.py::test_correction_m06_an_exact_reviewer_session_pair_is_accepted",
+        "tools/test_v0_s3_quality_phase.py::test_correction_m07_a_wrong_execution_raw_length_is_rejected",
+        "tools/test_v0_s3_quality_phase.py::test_correction_m08_a_known_failed_row_keeps_its_critical_evidence",
+        "tools/test_v0_s3_quality_phase.py::test_correction_m08_a_known_failed_row_with_zero_critical_may_resolve",
+        "tools/test_v0_s3_quality_phase.py::test_correction_m08_an_unknown_failed_row_can_never_resolve",
+        "tools/test_v0_s3_quality_phase.py::test_correction_m08_a_failed_row_without_proven_cleanup_cannot_resolve",
+        "tools/test_v0_s3_quality_phase.py::test_correction_m09_the_real_bridge_error_raw_response_is_preserved",
+        "tools/test_v0_s3_quality_phase.py::test_correction_m09_the_real_video_frame_raws_are_preserved",
+        "tools/test_v0_s3_quality_phase.py::test_correction_m09_the_provider_after_evidence_survives_a_persistence_failure",
+        "tools/test_v0_s3_quality_phase.py::test_correction_m01_a_non_finite_release_is_rejected",
+        "tools/test_v0_s3_quality_phase.py::test_correction_admission_an_unknown_parent_budget_is_refused",
+        "tools/test_v0_s3_quality_phase.py::test_correction_admission_an_insufficient_parent_capacity_refuses_every_send",
+        "tools/test_v0_s3_quality_phase.py::test_correction_timing_a_slow_authorize_callback_is_bounded",
+        "tools/test_v0_s3_quality_phase.py::test_correction_timing_a_late_successful_history_fails_the_deadline",
+        "tools/test_v0_s3_quality_phase.py::test_correction02_m01_the_persisted_receipt_states_its_own_final_totals",
+        "tools/test_v0_s3_quality_phase.py::test_correction02_m01_the_receipt_caps_are_exact_and_one_over[artifact]",
+        "tools/test_v0_s3_quality_phase.py::test_correction02_m01_the_receipt_caps_are_exact_and_one_over[total]",
+        "tools/test_v0_s3_quality_phase.py::test_correction02_m01_the_receipt_caps_are_exact_and_one_over[files]",
+        "tools/test_v0_s3_quality_phase.py::test_correction02_m02_a_temp_ancestor_redirect_writes_nothing_into_the_old_root",
+        "tools/test_v0_s3_quality_phase.py::test_correction02_m02_an_initial_temp_symlink_creates_no_foreign_entry",
+        "tools/test_v0_s3_quality_phase.py::test_correction02_m02_a_deterministic_open_interposition_cannot_write_into_a_foreign_root",
+        "tools/test_v0_s3_quality_phase.py::test_correction02_m02_the_owned_handles_are_closed_after_the_run",
+        "tools/test_v0_s3_quality_phase.py::test_correction02_m08_a_pass_row_with_unknown_cleanup_cannot_aggregate_pass",
+        "tools/test_v0_s3_quality_phase.py::test_correction02_m08_a_known_fail_row_with_unknown_storage_cannot_aggregate_pass",
+        "tools/test_v0_s3_quality_phase.py::test_correction02_m08_a_known_fail_row_with_unknown_source_cannot_aggregate_pass",
+        "tools/test_v0_s3_quality_phase.py::test_correction02_m08_a_valid_known_failure_resolves_with_complete_evidence",
+        "tools/test_v0_s3_quality_phase.py::test_correction02_nm01_a_proof_for_another_run_is_refused",
+        "tools/test_v0_s3_quality_phase.py::test_correction02_nm01_a_stale_proof_is_refused",
+        "tools/test_v0_s3_quality_phase.py::test_correction02_nm01_a_proof_with_a_non_finite_interval_is_refused",
+        "tools/test_v0_s3_quality_phase.py::test_correction02_nm02_a_decreasing_clock_is_refused",
+        "tools/test_v0_s3_quality_phase.py::test_correction02_nm02_the_hard_supervision_blocker_is_recorded",
+        "tools/test_v0_s3_quality_phase.py::test_correction03_m01_a_staging_failure_leaves_no_canonical_receipt[write]",
+        "tools/test_v0_s3_quality_phase.py::test_correction03_m01_a_staging_failure_leaves_no_canonical_receipt[flush]",
+        "tools/test_v0_s3_quality_phase.py::test_correction03_m01_a_staging_failure_leaves_no_canonical_receipt[fsync]",
+        "tools/test_v0_s3_quality_phase.py::test_correction03_m01_a_successful_publication_is_durable_and_counted",
+        "tools/test_v0_s3_quality_phase.py::test_correction03_m08_every_mandatory_evidence_field_is_validated[receipt-storage-flag-missing]",
+        "tools/test_v0_s3_quality_phase.py::test_correction03_m08_every_mandatory_evidence_field_is_validated[receipt-storage-flag-null]",
+        "tools/test_v0_s3_quality_phase.py::test_correction03_m08_every_mandatory_evidence_field_is_validated[receipt-cleanup-flag-missing]",
+        "tools/test_v0_s3_quality_phase.py::test_correction03_m08_every_mandatory_evidence_field_is_validated[row-storage-flag-missing]",
+        "tools/test_v0_s3_quality_phase.py::test_correction03_m08_every_mandatory_evidence_field_is_validated[row-cleanup-flag-missing]",
+        "tools/test_v0_s3_quality_phase.py::test_correction03_m08_every_mandatory_evidence_field_is_validated[row-storage-flag-null]",
+        "tools/test_v0_s3_quality_phase.py::test_correction03_m08_every_mandatory_evidence_field_is_validated[source-identity-missing]",
+        "tools/test_v0_s3_quality_phase.py::test_correction03_m08_every_mandatory_evidence_field_is_validated[source-identity-truncated]",
+        "tools/test_v0_s3_quality_phase.py::test_correction03_m08_every_mandatory_evidence_field_is_validated[source-path-foreign]",
+        "tools/test_v0_s3_quality_phase.py::test_correction03_m08_every_mandatory_evidence_field_is_validated[source-bytes-mismatch]",
+        "tools/test_v0_s3_quality_phase.py::test_correction03_m08_every_mandatory_evidence_field_is_validated[source-hash-mismatch]",
+        "tools/test_v0_s3_quality_phase.py::test_correction03_m08_every_mandatory_evidence_field_is_validated[release-two-booleans]",
+        "tools/test_v0_s3_quality_phase.py::test_correction03_m08_every_mandatory_evidence_field_is_validated[release-missing]",
+        "tools/test_v0_s3_quality_phase.py::test_correction03_m08_every_mandatory_evidence_field_is_validated[release-loaded-models]",
+        "tools/test_v0_s3_quality_phase.py::test_correction03_m08_every_mandatory_evidence_field_is_validated[release-elapsed-nan]",
+        "tools/test_v0_s3_quality_phase.py::test_correction03_m08_every_mandatory_evidence_field_is_validated[release-elapsed-out-of-range]",
+        "tools/test_v0_s3_quality_phase.py::test_correction03_m08_every_mandatory_evidence_field_is_validated[release-baseline-mismatch]",
+        "tools/test_v0_s3_quality_phase.py::test_correction03_m08_every_mandatory_evidence_field_is_validated[release-samples-missing]",
+        "tools/test_v0_s3_quality_phase.py::test_correction03_m08_every_mandatory_evidence_field_is_validated[release-samples-too-few]",
+        "tools/test_v0_s3_quality_phase.py::test_correction03_m08_every_mandatory_evidence_field_is_validated[release-cadence-broken]",
+        "tools/test_v0_s3_quality_phase.py::test_correction03_m08_every_mandatory_evidence_field_is_validated[release-stability-broken]",
+        "tools/test_v0_s3_quality_phase.py::test_correction03_m08_every_mandatory_evidence_field_is_validated[residue-missing]",
+        "tools/test_v0_s3_quality_phase.py::test_correction03_m08_every_mandatory_evidence_field_is_validated[residue-present]",
+        "tools/test_v0_s3_quality_phase.py::test_correction03_m08_an_unpublished_receipt_is_not_authority",
+        "tools/test_v0_s3_quality_phase.py::test_correction03_nm01_a_proof_that_expires_at_the_first_authorize_refuses_every_send",
+        "tools/test_v0_s3_quality_phase.py::test_correction03_nm01_a_proof_diminished_at_the_handoff_refuses_every_send",
+        "tools/test_v0_s3_quality_phase.py::test_correction03_nm02_a_callback_past_the_phase_deadline_refuses_the_send",
+        "tools/test_v0_s3_quality_phase.py::test_correction03_nm02_the_phase_boundary_is_exact_and_one_over",
+        "tools/test_v0_s3_quality_phase.py::test_correction03_nm01_a_later_row_expiry_preserves_the_prior_attempts",
+        "tools/test_v0_s3_quality_phase.py::test_correction04_m01_a_missing_canonical_receipt_fails_closed",
+        "tools/test_v0_s3_quality_phase.py::test_correction04_m01_a_corrupt_canonical_receipt_fails_closed",
+        "tools/test_v0_s3_quality_phase.py::test_correction04_m01_a_foreign_canonical_receipt_fails_closed",
+        "tools/test_v0_s3_quality_phase.py::test_correction04_m01_a_staged_only_receipt_is_not_authority",
+        "tools/test_v0_s3_quality_phase.py::test_correction04_m01_a_redirected_artifact_root_is_refused",
+        "tools/test_v0_s3_quality_phase.py::test_correction04_m01_an_oversized_canonical_receipt_is_refused",
+        "tools/test_v0_s3_quality_phase.py::test_correction04_m01_the_supplied_execution_content_must_be_the_published_one",
+        "tools/test_v0_s3_quality_phase.py::test_correction04_m01_a_forged_provider_counter_is_refused",
+        "tools/test_v0_s3_quality_phase.py::test_correction04_m01_a_forged_verdict_can_only_be_stricter",
+        "tools/test_v0_s3_quality_phase.py::test_correction04_m01_the_published_receipt_is_the_only_authority",
+        "tools/test_v0_s3_quality_phase.py::test_correction04_m08_the_source_plan_seals_all_sixteen_original_identities",
+        "tools/test_v0_s3_quality_phase.py::test_correction04_m08_a_changed_source_identity_is_unknown_in_the_scoring",
+        "tools/test_v0_s3_quality_phase.py::test_correction04_m08_a_changed_source_size_is_unknown_in_the_scoring",
+        "tools/test_v0_s3_quality_phase.py::test_correction04_m08_a_changed_source_hash_is_unknown_in_the_scoring",
+        "tools/test_v0_s3_quality_phase.py::test_correction04_m08_a_changed_source_path_is_unknown_in_the_scoring",
+        "tools/test_v0_s3_quality_phase.py::test_correction04_m08_a_tampered_source_plan_is_refused",
+        "tools/test_v0_s3_quality_phase.py::test_correction04_m08_a_missing_source_plan_is_refused",
+        "tools/test_v0_s3_quality_phase.py::test_correction04_m08_a_replayed_source_plan_is_refused",
+        "tools/test_v0_s3_quality_phase.py::test_correction04_m08_a_source_plan_from_another_run_is_refused",
+        "tools/test_v0_s3_quality_phase.py::test_correction04_m08_the_source_media_need_not_stay_on_disk",
+        "tools/test_v0_s3_quality_phase.py::test_correction04_m08_a_source_plan_failure_produces_zero_sends",
+        "tools/test_v0_s3_quality_phase.py::test_correction04_m08_the_bound_context_must_be_typed",
+        "tools/test_v0_s3_quality_phase.py::test_correction04_m08_the_execution_uses_the_same_shared_validators",
+        "tools/test_v0_s3_quality_phase.py::test_correction04_nm01_a_diminishing_limit_accessor_refuses_every_send",
+        "tools/test_v0_s3_quality_phase.py::test_correction04_nm01_an_advancing_clock_accessor_refuses_every_send",
+        "tools/test_v0_s3_quality_phase.py::test_correction04_nm01_a_diminishing_submit_binding_refuses_every_send",
+        "tools/test_v0_s3_quality_phase.py::test_correction04_nm01_the_driver_state_is_resolved_before_the_final_guard",
+        "tools/test_v0_s3_quality_phase.py::test_correction04_nm02_the_guard_reads_the_clock_exactly_once",
+        "tools/test_v0_s3_quality_phase.py::test_correction04_nm02_the_phase_boundary_is_exact_and_one_over",
+        "tools/test_v0_s3_quality_phase.py::test_correction04_nm02_the_hard_supervision_blocker_is_still_recorded",
+        "tools/test_v0_s3_quality_phase.py::test_correction05_m01_a_published_unknown_failure_stays_unresolved_under_a_supplied_known_error",
+        "tools/test_v0_s3_quality_phase.py::test_correction05_m01_a_published_known_failure_supplied_pass_stays_resolved_and_not_usable",
+        "tools/test_v0_s3_quality_phase.py::test_correction05_m01_a_published_pass_downgraded_by_a_supplied_known_failure_stays_resolved_and_not_usable",
+        "tools/test_v0_s3_quality_phase.py::test_correction05_m01_a_fabricated_release_sample_vector_is_not_accepted",
+        "tools/test_v0_s3_quality_phase.py::test_correction05_m01_a_fabricated_bound_baseline_is_refused",
+        "tools/test_v0_s3_quality_phase.py::test_correction05_m01_a_fabricated_terminal_count_is_refused",
+        "tools/test_v0_s3_quality_phase.py::test_correction05_m01_a_fabricated_row_attempt_flag_is_refused",
+        "tools/test_v0_s3_quality_phase.py::test_correction05_m01_a_fabricated_extra_row_fact_is_refused",
+        "tools/test_v0_s3_quality_phase.py::test_correction05_m01_a_fabricated_run_context_is_refused",
+        "tools/test_v0_s3_quality_phase.py::test_correction05_m01_every_published_fact_outside_the_overlay_is_bound",
+        "tools/test_v0_s3_quality_phase.py::test_correction05_m01_the_verdict_overlay_is_a_closed_enumeration",
+        "tools/test_v0_s3_quality_phase.py::test_correction05_m08_a_seal_row_that_contradicts_the_execution_row_is_refused[asset_id-FOREIGN-ASSET-QS_SOURCE_PLAN_ROW_ALIGNMENT_MISMATCH:asset_id]",
+        "tools/test_v0_s3_quality_phase.py::test_correction05_m08_a_seal_row_that_contradicts_the_execution_row_is_refused[media_kind-video-QS_SOURCE_PLAN_ROW_ALIGNMENT_MISMATCH:media_kind]",
+        "tools/test_v0_s3_quality_phase.py::test_correction05_m08_a_seal_row_that_contradicts_the_execution_row_is_refused[input_reference-foreign.png-QS_SOURCE_PLAN_ROW_ALIGNMENT_MISMATCH:input_reference]",
+        "tools/test_v0_s3_quality_phase.py::test_correction05_m08_a_seal_row_that_contradicts_the_execution_row_is_refused[source_bytes-1-QS_SOURCE_PLAN_ROW_ALIGNMENT_MISMATCH:source_bytes]",
+        "tools/test_v0_s3_quality_phase.py::test_correction05_m08_a_seal_row_that_contradicts_the_execution_row_is_refused[source_sha256-0000000000000000000000000000000000000000000000000000000000000000-QS_SOURCE_PLAN_ROW_ALIGNMENT_MISMATCH:source_sha256]",
+        "tools/test_v0_s3_quality_phase.py::test_correction05_m08_a_seal_row_that_contradicts_the_execution_row_is_refused[path-/foreign/not-the-bound-source-QS_SOURCE_PLAN_ROW_ALIGNMENT_MISMATCH:path]",
+        "tools/test_v0_s3_quality_phase.py::test_correction05_m08_a_seal_row_that_contradicts_the_execution_row_is_refused[ordinal-2-QS_SOURCE_PLAN_ORDER_INVALID]",
+        "tools/test_v0_s3_quality_phase.py::test_correction05_m08_a_seal_row_with_a_contradicting_descriptor_identity_is_refused",
+        "tools/test_v0_s3_quality_phase.py::test_correction05_m08_two_swapped_seal_rows_are_refused",
+        "tools/test_v0_s3_quality_phase.py::test_correction05_m08_the_seal_of_a_genuine_run_still_aligns_with_its_rows",
+        "tools/test_v0_s3_quality_phase.py::test_correction05_nm03_a_redirected_temp_ancestor_is_refused",
+        "tools/test_v0_s3_quality_phase.py::test_correction05_nm03_a_redirected_run_root_is_refused",
+        "tools/test_v0_s3_quality_phase.py::test_correction05_nm03_a_redirected_phase_directory_is_refused",
+        "tools/test_v0_s3_quality_phase.py::test_correction05_nm03_a_redirected_canonical_receipt_is_refused",
+        "tools/test_v0_s3_quality_phase.py::test_correction05_nm03_a_redirected_source_plan_is_refused",
+        "tools/test_v0_s3_quality_phase.py::test_correction05_nm03_a_redirected_raw_artifact_is_refused",
+        "tools/test_v0_s3_quality_phase.py::test_correction05_nm04_a_source_changed_by_a_controlled_accessor_produces_zero_sends",
+        "tools/test_v0_s3_quality_phase.py::test_correction05_nm04_a_later_source_change_preserves_the_earlier_attempts",
+        "tools/test_v0_s3_quality_phase.py::test_correction05_nm04_the_final_source_check_is_the_last_thing_before_the_guard",
+        "tools/test_v0_s3_quality_phase.py::test_correction05_nm04_the_sealed_original_identity_is_the_source_authority",
+        "tools/test_v0_s3_quality_phase.py::test_correction06_m01_a_boolean_is_not_an_integer_actual_fact",
+        "tools/test_v0_s3_quality_phase.py::test_correction06_m01_an_integer_counter_is_not_a_boolean_actual_fact",
+        "tools/test_v0_s3_quality_phase.py::test_correction06_m01_an_equal_float_is_not_an_integer_actual_fact",
+        "tools/test_v0_s3_quality_phase.py::test_correction06_m01_an_equal_float_in_a_nested_count_is_refused",
+        "tools/test_v0_s3_quality_phase.py::test_correction06_m01_a_nested_identity_substitution_is_unknown",
+        "tools/test_v0_s3_quality_phase.py::test_correction06_m01_a_nested_counter_substitution_is_unknown",
+        "tools/test_v0_s3_quality_phase.py::test_correction06_m01_a_caller_only_receipt_fact_is_refused",
+        "tools/test_v0_s3_quality_phase.py::test_correction06_m01_a_caller_only_source_evidence_fact_is_unknown",
+        "tools/test_v0_s3_quality_phase.py::test_correction06_m01_a_caller_only_release_evidence_fact_is_unknown",
+        "tools/test_v0_s3_quality_phase.py::test_correction06_m01_a_caller_only_gpu_sample_fact_is_unknown",
+        "tools/test_v0_s3_quality_phase.py::test_correction06_m01_a_seal_only_typed_ordinal_is_refused[True]",
+        "tools/test_v0_s3_quality_phase.py::test_correction06_m01_a_seal_only_typed_ordinal_is_refused[1.0]",
+        "tools/test_v0_s3_quality_phase.py::test_correction06_m01_the_published_and_the_returned_receipt_carry_the_same_fields",
+        "tools/test_v0_s3_quality_phase.py::test_correction06_nm03_a_run_root_redirected_during_the_canonical_read_is_refused",
+        "tools/test_v0_s3_quality_phase.py::test_correction06_nm03_a_temp_redirected_during_the_canonical_read_is_refused",
+        "tools/test_v0_s3_quality_phase.py::test_correction06_nm03_a_phase_redirected_during_the_canonical_read_is_refused",
+        "tools/test_v0_s3_quality_phase.py::test_correction06_nm03_a_run_root_replaced_by_another_directory_during_the_read_is_refused",
+        "tools/test_v0_s3_quality_phase.py::test_correction06_nm03_a_source_plan_leaf_redirected_during_its_read_is_refused",
+        "tools/test_v0_s3_quality_phase.py::test_correction06_nm03_a_source_plan_parent_redirected_during_its_read_is_refused",
+        "tools/test_v0_s3_quality_phase.py::test_correction06_nm03_a_raw_parent_redirected_during_the_raw_read_is_refused",
+        "tools/test_v0_s3_quality_phase.py::test_correction06_nm03_a_raw_leaf_replaced_by_another_file_during_the_raw_read_is_refused",
+        "tools/test_v0_s3_quality_phase.py::test_correction06_nm03_a_missing_named_entry_during_the_raw_read_is_refused",
+        "tools/test_v0_s3_quality_phase.py::test_correction06_nm03_an_identical_declared_run_root_does_not_skip_the_verification",
+        "tools/test_v0_s3_quality_phase.py::test_correction06_nm03_a_bounded_tiny_read_is_exact_and_one_over",
+        "tools/test_v0_s3_quality_phase.py::test_correction06_nm03_a_growing_leaf_is_refused_by_the_final_bound",
+        "tools/test_v0_s3_quality_phase.py::test_correction06_nm03_no_descriptor_is_leaked_by_the_boundary"
+      ],
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-05/run_guarded_checks.py",
+        "--mode",
+        "suite",
+        "--label",
+        "suite",
+        "--outdir",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-p3b-correction-06"
+      ],
+      "duration_seconds": 86.14,
+      "exit_code": 0,
+      "guard": {
+        "audit_hook_installed_before_product_import": true,
+        "audit_hook_installed_before_pytest": true,
+        "blocked_events": [
+          "socket.connect",
+          "socket.connect_ex",
+          "socket.bind",
+          "socket.getaddrinfo",
+          "socket.gethostbyname",
+          "socket.gethostbyaddr",
+          "socket.getnameinfo",
+          "subprocess.Popen",
+          "os.system",
+          "os.exec",
+          "os.spawn",
+          "os.posix_spawn",
+          "os.fork",
+          "os.forkpty"
+        ],
+        "bytecode_written": false,
+        "cacheprovider": "disabled",
+        "host_subprocess": "blocked",
+        "network": "blocked",
+        "pytest_disable_plugin_autoload": "1"
+      },
+      "guard_results": null,
+      "imported_modules": {
+        "test_v0_s3_quality_phase": {
+          "module": "test_v0_s3_quality_phase",
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_quality_phase.py",
+          "sha256": "9771baf7b68566a9b379de40a1474d821c3e2b3d7de54b796e0dcd6653e53456"
+        },
+        "tools.v0_s3_quality_phase": {
+          "module": "tools.v0_s3_quality_phase",
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_quality_phase.py",
+          "sha256": "c01b0103dcf436c8604a70234cef21978a0b52c644692db33b2612bd64105c67"
+        }
+      },
+      "kind": "S3_P3B_CORRECTION_05_GUARDED_CHECK_RECEIPT",
+      "label": "suite",
+      "mode": "suite",
+      "outcome": "PASS",
+      "owned_root_removed": true,
+      "probe_sha256_after": null,
+      "probe_sha256_before": null,
+      "probe_unchanged_during_run": true,
+      "product_gate0": false,
+      "real_execution_performed": false,
+      "runner_sha256_after": "016e61a06d415266fe7442ad9dcd1672ff42a19e5c1fafb707727fc05c95bdb8",
+      "runner_sha256_before": "016e61a06d415266fe7442ad9dcd1672ff42a19e5c1fafb707727fc05c95bdb8",
+      "runner_unchanged_during_run": true,
+      "script": null,
+      "select": null,
+      "source_unchanged_during_run": true,
+      "stage_pass_claim": false,
+      "stderr_bytes": 0,
+      "stderr_file": "reports/v0-s3/product-gate0/independent-p3b-correction-06/suite.stderr.log",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 351,
+      "stdout_file": "reports/v0-s3/product-gate0/independent-p3b-correction-06/suite.stdout.log",
+      "stdout_sha256": "02e5f4a51fa924bb2b646dc20713e468346fcc3d4e7a56b67d0aa7f057e470bd"
+    },
+    "guard": {
+      "after_source_sha256": {
+        "tools/test_v0_s3_quality_phase.py": "9771baf7b68566a9b379de40a1474d821c3e2b3d7de54b796e0dcd6653e53456",
+        "tools/v0_s3_quality_phase.py": "c01b0103dcf436c8604a70234cef21978a0b52c644692db33b2612bd64105c67"
+      },
+      "argv": [
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-05/run_guarded_checks.py",
+        "--mode",
+        "guard",
+        "--label",
+        "guard",
+        "--outdir",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-p3b-correction-06"
+      ],
+      "before_source_sha256": {
+        "tools/test_v0_s3_quality_phase.py": "9771baf7b68566a9b379de40a1474d821c3e2b3d7de54b796e0dcd6653e53456",
+        "tools/v0_s3_quality_phase.py": "c01b0103dcf436c8604a70234cef21978a0b52c644692db33b2612bd64105c67"
+      },
+      "candidate_sha_claim": "",
+      "candidate_sha_claim_is_attestation": false,
+      "collected_count": 0,
+      "collected_nodeids": [],
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-05/run_guarded_checks.py",
+        "--mode",
+        "guard",
+        "--label",
+        "guard",
+        "--outdir",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-p3b-correction-06"
+      ],
+      "duration_seconds": 0.003,
+      "exit_code": 0,
+      "guard": {
+        "audit_hook_installed_before_product_import": true,
+        "audit_hook_installed_before_pytest": true,
+        "blocked_events": [
+          "socket.connect",
+          "socket.connect_ex",
+          "socket.bind",
+          "socket.getaddrinfo",
+          "socket.gethostbyname",
+          "socket.gethostbyaddr",
+          "socket.getnameinfo",
+          "subprocess.Popen",
+          "os.system",
+          "os.exec",
+          "os.spawn",
+          "os.posix_spawn",
+          "os.fork",
+          "os.forkpty"
+        ],
+        "bytecode_written": false,
+        "cacheprovider": "disabled",
+        "host_subprocess": "blocked",
+        "network": "blocked",
+        "pytest_disable_plugin_autoload": "1"
+      },
+      "guard_results": {
+        "Popen": "offline boundary violation: subprocess.Popen ('/bin/true', ['/bin/true'], None, None)",
+        "bind": "offline boundary violation: socket.bind (<socket.socket fd=7, family=2, type=1, proto=0, laddr=('0.0.0.0', 0)>, ('127.0.0.1', 0))",
+        "connect": "offline boundary violation: socket.connect (<socket.socket fd=7, family=2, type=1, proto=0, laddr=('0.0.0.0', 0)>, ('127.0.0.1', 9))",
+        "system": "offline boundary violation: os.system (b'true',)"
+      },
+      "imported_modules": {},
+      "kind": "S3_P3B_CORRECTION_05_GUARDED_CHECK_RECEIPT",
+      "label": "guard",
+      "mode": "guard",
+      "outcome": "PASS",
+      "owned_root_removed": true,
+      "probe_sha256_after": null,
+      "probe_sha256_before": null,
+      "probe_unchanged_during_run": true,
+      "product_gate0": false,
+      "real_execution_performed": false,
+      "runner_sha256_after": "016e61a06d415266fe7442ad9dcd1672ff42a19e5c1fafb707727fc05c95bdb8",
+      "runner_sha256_before": "016e61a06d415266fe7442ad9dcd1672ff42a19e5c1fafb707727fc05c95bdb8",
+      "runner_unchanged_during_run": true,
+      "script": null,
+      "select": null,
+      "source_unchanged_during_run": true,
+      "stage_pass_claim": false,
+      "stderr_bytes": 0,
+      "stderr_file": "reports/v0-s3/product-gate0/independent-p3b-correction-06/guard.stderr.log",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 459,
+      "stdout_file": "reports/v0-s3/product-gate0/independent-p3b-correction-06/guard.stdout.log",
+      "stdout_sha256": "6e3db9bee7880783c6d86acad60653571ecf173c497793d487ec8c3758f8db7d"
+    },
+    "replay": {
+      "after_source_sha256": {
+        "tools/test_v0_s3_quality_phase.py": "9771baf7b68566a9b379de40a1474d821c3e2b3d7de54b796e0dcd6653e53456",
+        "tools/v0_s3_quality_phase.py": "c01b0103dcf436c8604a70234cef21978a0b52c644692db33b2612bd64105c67"
+      },
+      "argv": [
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-05/run_guarded_checks.py",
+        "--mode",
+        "script",
+        "--label",
+        "replay",
+        "--outdir",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-p3b-correction-06",
+        "--script",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-p3b-correction-06/replay_adapter.py"
+      ],
+      "before_source_sha256": {
+        "tools/test_v0_s3_quality_phase.py": "9771baf7b68566a9b379de40a1474d821c3e2b3d7de54b796e0dcd6653e53456",
+        "tools/v0_s3_quality_phase.py": "c01b0103dcf436c8604a70234cef21978a0b52c644692db33b2612bd64105c67"
+      },
+      "candidate_sha_claim": "",
+      "candidate_sha_claim_is_attestation": false,
+      "collected_count": 0,
+      "collected_nodeids": [],
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-05/run_guarded_checks.py",
+        "--mode",
+        "script",
+        "--label",
+        "replay",
+        "--outdir",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-p3b-correction-06"
+      ],
+      "duration_seconds": 15.256,
+      "exit_code": 0,
+      "guard": {
+        "audit_hook_installed_before_product_import": true,
+        "audit_hook_installed_before_pytest": true,
+        "blocked_events": [
+          "socket.connect",
+          "socket.connect_ex",
+          "socket.bind",
+          "socket.getaddrinfo",
+          "socket.gethostbyname",
+          "socket.gethostbyaddr",
+          "socket.getnameinfo",
+          "subprocess.Popen",
+          "os.system",
+          "os.exec",
+          "os.spawn",
+          "os.posix_spawn",
+          "os.fork",
+          "os.forkpty"
+        ],
+        "bytecode_written": false,
+        "cacheprovider": "disabled",
+        "host_subprocess": "blocked",
+        "network": "blocked",
+        "pytest_disable_plugin_autoload": "1"
+      },
+      "guard_results": null,
+      "imported_modules": {
+        "tools.test_v0_s3_quality_phase": {
+          "module": "tools.test_v0_s3_quality_phase",
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_quality_phase.py",
+          "sha256": "9771baf7b68566a9b379de40a1474d821c3e2b3d7de54b796e0dcd6653e53456"
+        },
+        "tools.v0_s3_quality_phase": {
+          "module": "tools.v0_s3_quality_phase",
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_quality_phase.py",
+          "sha256": "c01b0103dcf436c8604a70234cef21978a0b52c644692db33b2612bd64105c67"
+        }
+      },
+      "kind": "S3_P3B_CORRECTION_05_GUARDED_CHECK_RECEIPT",
+      "label": "replay",
+      "mode": "script",
+      "outcome": "PASS",
+      "owned_root_removed": true,
+      "probe_sha256_after": "3e0e70da6bfa20adc08074672cc28bf4a66e7a73d7255531fed0231796be5a21",
+      "probe_sha256_before": "3e0e70da6bfa20adc08074672cc28bf4a66e7a73d7255531fed0231796be5a21",
+      "probe_unchanged_during_run": true,
+      "product_gate0": false,
+      "real_execution_performed": false,
+      "runner_sha256_after": "016e61a06d415266fe7442ad9dcd1672ff42a19e5c1fafb707727fc05c95bdb8",
+      "runner_sha256_before": "016e61a06d415266fe7442ad9dcd1672ff42a19e5c1fafb707727fc05c95bdb8",
+      "runner_unchanged_during_run": true,
+      "script": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-p3b-correction-06/replay_adapter.py",
+      "select": null,
+      "source_unchanged_during_run": true,
+      "stage_pass_claim": false,
+      "stderr_bytes": 0,
+      "stderr_file": "reports/v0-s3/product-gate0/independent-p3b-correction-06/replay.stderr.log",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 8924,
+      "stdout_file": "reports/v0-s3/product-gate0/independent-p3b-correction-06/replay.stdout.log",
+      "stdout_sha256": "87f3790ba39093bf9adea097fa86c9e579122880f0d99792ba7e9111b994573a"
+    },
+    "targeted": {
+      "after_source_sha256": {
+        "tools/test_v0_s3_quality_phase.py": "9771baf7b68566a9b379de40a1474d821c3e2b3d7de54b796e0dcd6653e53456",
+        "tools/v0_s3_quality_phase.py": "c01b0103dcf436c8604a70234cef21978a0b52c644692db33b2612bd64105c67"
+      },
+      "argv": [
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-05/run_guarded_checks.py",
+        "--mode",
+        "script",
+        "--label",
+        "targeted",
+        "--outdir",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-p3b-correction-06",
+        "--script",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-p3b-correction-06/targeted.py"
+      ],
+      "before_source_sha256": {
+        "tools/test_v0_s3_quality_phase.py": "9771baf7b68566a9b379de40a1474d821c3e2b3d7de54b796e0dcd6653e53456",
+        "tools/v0_s3_quality_phase.py": "c01b0103dcf436c8604a70234cef21978a0b52c644692db33b2612bd64105c67"
+      },
+      "candidate_sha_claim": "",
+      "candidate_sha_claim_is_attestation": false,
+      "collected_count": 0,
+      "collected_nodeids": [],
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-05/run_guarded_checks.py",
+        "--mode",
+        "script",
+        "--label",
+        "targeted",
+        "--outdir",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-p3b-correction-06"
+      ],
+      "duration_seconds": 12.802,
+      "exit_code": 0,
+      "guard": {
+        "audit_hook_installed_before_product_import": true,
+        "audit_hook_installed_before_pytest": true,
+        "blocked_events": [
+          "socket.connect",
+          "socket.connect_ex",
+          "socket.bind",
+          "socket.getaddrinfo",
+          "socket.gethostbyname",
+          "socket.gethostbyaddr",
+          "socket.getnameinfo",
+          "subprocess.Popen",
+          "os.system",
+          "os.exec",
+          "os.spawn",
+          "os.posix_spawn",
+          "os.fork",
+          "os.forkpty"
+        ],
+        "bytecode_written": false,
+        "cacheprovider": "disabled",
+        "host_subprocess": "blocked",
+        "network": "blocked",
+        "pytest_disable_plugin_autoload": "1"
+      },
+      "guard_results": null,
+      "imported_modules": {
+        "tools.test_v0_s3_quality_phase": {
+          "module": "tools.test_v0_s3_quality_phase",
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_quality_phase.py",
+          "sha256": "9771baf7b68566a9b379de40a1474d821c3e2b3d7de54b796e0dcd6653e53456"
+        },
+        "tools.v0_s3_quality_phase": {
+          "module": "tools.v0_s3_quality_phase",
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_quality_phase.py",
+          "sha256": "c01b0103dcf436c8604a70234cef21978a0b52c644692db33b2612bd64105c67"
+        }
+      },
+      "kind": "S3_P3B_CORRECTION_05_GUARDED_CHECK_RECEIPT",
+      "label": "targeted",
+      "mode": "script",
+      "outcome": "PASS",
+      "owned_root_removed": true,
+      "probe_sha256_after": "a96ba98dcb10e7f3015e79a19082d5ce4e5874c61008a9659a4797e47afcd0fb",
+      "probe_sha256_before": "a96ba98dcb10e7f3015e79a19082d5ce4e5874c61008a9659a4797e47afcd0fb",
+      "probe_unchanged_during_run": true,
+      "product_gate0": false,
+      "real_execution_performed": false,
+      "runner_sha256_after": "016e61a06d415266fe7442ad9dcd1672ff42a19e5c1fafb707727fc05c95bdb8",
+      "runner_sha256_before": "016e61a06d415266fe7442ad9dcd1672ff42a19e5c1fafb707727fc05c95bdb8",
+      "runner_unchanged_during_run": true,
+      "script": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-p3b-correction-06/targeted.py",
+      "select": null,
+      "source_unchanged_during_run": true,
+      "stage_pass_claim": false,
+      "stderr_bytes": 0,
+      "stderr_file": "reports/v0-s3/product-gate0/independent-p3b-correction-06/targeted.stderr.log",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 42024,
+      "stdout_file": "reports/v0-s3/product-gate0/independent-p3b-correction-06/targeted.stdout.log",
+      "stdout_sha256": "7984d4d42bd4c6027b7374e6b4da012ba307f7f0b421a5668b7c5541b670f231"
+    }
+  },
+  "outer_invocations": {
+    "suite": {
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-05/run_guarded_checks.py",
+        "--mode",
+        "suite",
+        "--label",
+        "suite",
+        "--outdir",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-p3b-correction-06"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "exit_code": 0
+    },
+    "guard": {
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-05/run_guarded_checks.py",
+        "--mode",
+        "guard",
+        "--label",
+        "guard",
+        "--outdir",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-p3b-correction-06"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "exit_code": 0
+    },
+    "replay": {
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-05/run_guarded_checks.py",
+        "--mode",
+        "script",
+        "--label",
+        "replay",
+        "--outdir",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-p3b-correction-06",
+        "--script",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-p3b-correction-06/replay_adapter.py"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "exit_code": 0
+    },
+    "targeted": {
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-05/run_guarded_checks.py",
+        "--mode",
+        "script",
+        "--label",
+        "targeted",
+        "--outdir",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-p3b-correction-06",
+        "--script",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-p3b-correction-06/targeted.py"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "exit_code": 0
+    }
+  },
+  "replay_original_before_asserted_sha256": "6892409b377a737dd6161f55d33d0067aeceefe5ff6f5ac8f454805229c5a966",
+  "replay_original_after_read_sha256": "6892409b377a737dd6161f55d33d0067aeceefe5ff6f5ac8f454805229c5a966",
+  "replay_adapter_only_change": "In-memory OUT assignment; immutable original script compiled at original filename under inspected guard",
+  "counts_separate": {
+    "product_cases": 232,
+    "guard_selftest_events": 4,
+    "replay_observations": 22,
+    "targeted_independent_observations": 33,
+    "new_product_cases": 26,
+    "original_product_cases_preserved": 206,
+    "original_definitions_ast_identical": 155,
+    "adapted_original_definitions": 0,
+    "deleted_original_definitions": 0
+  },
+  "implementation_diagnostics_and_bindings": [
+    {
+      "path": "reports/v0-s3/product-gate0/implementation-p3b-correction-06/editing-diagnostics/dev-focus-1.receipt.json",
+      "exit": 0,
+      "streams": [
+        {
+          "stream": "stdout",
+          "declared_path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-06/dev-focus-1.stdout.log",
+          "declared_path_matches": false,
+          "retained_path": "reports/v0-s3/product-gate0/implementation-p3b-correction-06/editing-diagnostics/dev-focus-1.stdout.log",
+          "retained_matches": true
+        },
+        {
+          "stream": "stderr",
+          "declared_path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-06/dev-focus-1.stderr.log",
+          "declared_path_matches": false,
+          "retained_path": "reports/v0-s3/product-gate0/implementation-p3b-correction-06/editing-diagnostics/dev-focus-1.stderr.log",
+          "retained_matches": true
+        }
+      ],
+      "source_unchanged": true,
+      "before": {
+        "tools/test_v0_s3_quality_phase.py": "052502d17bfb462b3831c75c8135a1384422a28b978880e68b4d1a98681e102a",
+        "tools/v0_s3_quality_phase.py": "c01b0103dcf436c8604a70234cef21978a0b52c644692db33b2612bd64105c67"
+      },
+      "after": {
+        "tools/test_v0_s3_quality_phase.py": "052502d17bfb462b3831c75c8135a1384422a28b978880e68b4d1a98681e102a",
+        "tools/v0_s3_quality_phase.py": "c01b0103dcf436c8604a70234cef21978a0b52c644692db33b2612bd64105c67"
+      },
+      "runner_before": "016e61a06d415266fe7442ad9dcd1672ff42a19e5c1fafb707727fc05c95bdb8",
+      "runner_after": "016e61a06d415266fe7442ad9dcd1672ff42a19e5c1fafb707727fc05c95bdb8",
+      "probe_before": null,
+      "probe_after": null,
+      "cleanup": true,
+      "imports": {
+        "test_v0_s3_quality_phase": {
+          "module": "test_v0_s3_quality_phase",
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_quality_phase.py",
+          "sha256": "052502d17bfb462b3831c75c8135a1384422a28b978880e68b4d1a98681e102a"
+        },
+        "tools.v0_s3_quality_phase": {
+          "module": "tools.v0_s3_quality_phase",
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_quality_phase.py",
+          "sha256": "c01b0103dcf436c8604a70234cef21978a0b52c644692db33b2612bd64105c67"
+        }
+      }
+    },
+    {
+      "path": "reports/v0-s3/product-gate0/implementation-p3b-correction-06/editing-diagnostics/dev-focus-2.receipt.json",
+      "exit": 1,
+      "streams": [
+        {
+          "stream": "stdout",
+          "declared_path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-06/dev-focus-2.stdout.log",
+          "declared_path_matches": false,
+          "retained_path": "reports/v0-s3/product-gate0/implementation-p3b-correction-06/editing-diagnostics/dev-focus-2.stdout.log",
+          "retained_matches": true
+        },
+        {
+          "stream": "stderr",
+          "declared_path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-06/dev-focus-2.stderr.log",
+          "declared_path_matches": false,
+          "retained_path": "reports/v0-s3/product-gate0/implementation-p3b-correction-06/editing-diagnostics/dev-focus-2.stderr.log",
+          "retained_matches": true
+        }
+      ],
+      "source_unchanged": true,
+      "before": {
+        "tools/test_v0_s3_quality_phase.py": "b12a12fe37c49c933a722201c3753221d2c239bb91d3379929c8509101324d9d",
+        "tools/v0_s3_quality_phase.py": "c01b0103dcf436c8604a70234cef21978a0b52c644692db33b2612bd64105c67"
+      },
+      "after": {
+        "tools/test_v0_s3_quality_phase.py": "b12a12fe37c49c933a722201c3753221d2c239bb91d3379929c8509101324d9d",
+        "tools/v0_s3_quality_phase.py": "c01b0103dcf436c8604a70234cef21978a0b52c644692db33b2612bd64105c67"
+      },
+      "runner_before": "016e61a06d415266fe7442ad9dcd1672ff42a19e5c1fafb707727fc05c95bdb8",
+      "runner_after": "016e61a06d415266fe7442ad9dcd1672ff42a19e5c1fafb707727fc05c95bdb8",
+      "probe_before": null,
+      "probe_after": null,
+      "cleanup": true,
+      "imports": {
+        "test_v0_s3_quality_phase": {
+          "module": "test_v0_s3_quality_phase",
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_quality_phase.py",
+          "sha256": "b12a12fe37c49c933a722201c3753221d2c239bb91d3379929c8509101324d9d"
+        },
+        "tools.v0_s3_quality_phase": {
+          "module": "tools.v0_s3_quality_phase",
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_quality_phase.py",
+          "sha256": "c01b0103dcf436c8604a70234cef21978a0b52c644692db33b2612bd64105c67"
+        }
+      }
+    },
+    {
+      "path": "reports/v0-s3/product-gate0/implementation-p3b-correction-06/editing-diagnostics/dev-focus-3.receipt.json",
+      "exit": 0,
+      "streams": [
+        {
+          "stream": "stdout",
+          "declared_path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-06/dev-focus-3.stdout.log",
+          "declared_path_matches": false,
+          "retained_path": "reports/v0-s3/product-gate0/implementation-p3b-correction-06/editing-diagnostics/dev-focus-3.stdout.log",
+          "retained_matches": true
+        },
+        {
+          "stream": "stderr",
+          "declared_path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-06/dev-focus-3.stderr.log",
+          "declared_path_matches": false,
+          "retained_path": "reports/v0-s3/product-gate0/implementation-p3b-correction-06/editing-diagnostics/dev-focus-3.stderr.log",
+          "retained_matches": true
+        }
+      ],
+      "source_unchanged": true,
+      "before": {
+        "tools/test_v0_s3_quality_phase.py": "9771baf7b68566a9b379de40a1474d821c3e2b3d7de54b796e0dcd6653e53456",
+        "tools/v0_s3_quality_phase.py": "c01b0103dcf436c8604a70234cef21978a0b52c644692db33b2612bd64105c67"
+      },
+      "after": {
+        "tools/test_v0_s3_quality_phase.py": "9771baf7b68566a9b379de40a1474d821c3e2b3d7de54b796e0dcd6653e53456",
+        "tools/v0_s3_quality_phase.py": "c01b0103dcf436c8604a70234cef21978a0b52c644692db33b2612bd64105c67"
+      },
+      "runner_before": "016e61a06d415266fe7442ad9dcd1672ff42a19e5c1fafb707727fc05c95bdb8",
+      "runner_after": "016e61a06d415266fe7442ad9dcd1672ff42a19e5c1fafb707727fc05c95bdb8",
+      "probe_before": null,
+      "probe_after": null,
+      "cleanup": true,
+      "imports": {
+        "test_v0_s3_quality_phase": {
+          "module": "test_v0_s3_quality_phase",
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_quality_phase.py",
+          "sha256": "9771baf7b68566a9b379de40a1474d821c3e2b3d7de54b796e0dcd6653e53456"
+        },
+        "tools.v0_s3_quality_phase": {
+          "module": "tools.v0_s3_quality_phase",
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_quality_phase.py",
+          "sha256": "c01b0103dcf436c8604a70234cef21978a0b52c644692db33b2612bd64105c67"
+        }
+      }
+    },
+    {
+      "path": "reports/v0-s3/product-gate0/implementation-p3b-correction-06/editing-diagnostics/dev-focused-1.receipt.json",
+      "exit": 0,
+      "streams": [
+        {
+          "stream": "stdout",
+          "declared_path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-06/dev-focused-1.stdout.log",
+          "declared_path_matches": false,
+          "retained_path": "reports/v0-s3/product-gate0/implementation-p3b-correction-06/editing-diagnostics/dev-focused-1.stdout.log",
+          "retained_matches": true
+        },
+        {
+          "stream": "stderr",
+          "declared_path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-06/dev-focused-1.stderr.log",
+          "declared_path_matches": false,
+          "retained_path": "reports/v0-s3/product-gate0/implementation-p3b-correction-06/editing-diagnostics/dev-focused-1.stderr.log",
+          "retained_matches": true
+        }
+      ],
+      "source_unchanged": true,
+      "before": {
+        "tools/test_v0_s3_quality_phase.py": "9771baf7b68566a9b379de40a1474d821c3e2b3d7de54b796e0dcd6653e53456",
+        "tools/v0_s3_quality_phase.py": "c01b0103dcf436c8604a70234cef21978a0b52c644692db33b2612bd64105c67"
+      },
+      "after": {
+        "tools/test_v0_s3_quality_phase.py": "9771baf7b68566a9b379de40a1474d821c3e2b3d7de54b796e0dcd6653e53456",
+        "tools/v0_s3_quality_phase.py": "c01b0103dcf436c8604a70234cef21978a0b52c644692db33b2612bd64105c67"
+      },
+      "runner_before": "016e61a06d415266fe7442ad9dcd1672ff42a19e5c1fafb707727fc05c95bdb8",
+      "runner_after": "016e61a06d415266fe7442ad9dcd1672ff42a19e5c1fafb707727fc05c95bdb8",
+      "probe_before": "6892409b377a737dd6161f55d33d0067aeceefe5ff6f5ac8f454805229c5a966",
+      "probe_after": "6892409b377a737dd6161f55d33d0067aeceefe5ff6f5ac8f454805229c5a966",
+      "cleanup": true,
+      "imports": {
+        "tools.test_v0_s3_quality_phase": {
+          "module": "tools.test_v0_s3_quality_phase",
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_quality_phase.py",
+          "sha256": "9771baf7b68566a9b379de40a1474d821c3e2b3d7de54b796e0dcd6653e53456"
+        },
+        "tools.v0_s3_quality_phase": {
+          "module": "tools.v0_s3_quality_phase",
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_quality_phase.py",
+          "sha256": "c01b0103dcf436c8604a70234cef21978a0b52c644692db33b2612bd64105c67"
+        }
+      }
+    },
+    {
+      "path": "reports/v0-s3/product-gate0/implementation-p3b-correction-06/editing-diagnostics/dev-suite-1.receipt.json",
+      "exit": 0,
+      "streams": [
+        {
+          "stream": "stdout",
+          "declared_path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-06/dev-suite-1.stdout.log",
+          "declared_path_matches": false,
+          "retained_path": "reports/v0-s3/product-gate0/implementation-p3b-correction-06/editing-diagnostics/dev-suite-1.stdout.log",
+          "retained_matches": true
+        },
+        {
+          "stream": "stderr",
+          "declared_path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-06/dev-suite-1.stderr.log",
+          "declared_path_matches": false,
+          "retained_path": "reports/v0-s3/product-gate0/implementation-p3b-correction-06/editing-diagnostics/dev-suite-1.stderr.log",
+          "retained_matches": true
+        }
+      ],
+      "source_unchanged": true,
+      "before": {
+        "tools/test_v0_s3_quality_phase.py": "9771baf7b68566a9b379de40a1474d821c3e2b3d7de54b796e0dcd6653e53456",
+        "tools/v0_s3_quality_phase.py": "c01b0103dcf436c8604a70234cef21978a0b52c644692db33b2612bd64105c67"
+      },
+      "after": {
+        "tools/test_v0_s3_quality_phase.py": "9771baf7b68566a9b379de40a1474d821c3e2b3d7de54b796e0dcd6653e53456",
+        "tools/v0_s3_quality_phase.py": "c01b0103dcf436c8604a70234cef21978a0b52c644692db33b2612bd64105c67"
+      },
+      "runner_before": "016e61a06d415266fe7442ad9dcd1672ff42a19e5c1fafb707727fc05c95bdb8",
+      "runner_after": "016e61a06d415266fe7442ad9dcd1672ff42a19e5c1fafb707727fc05c95bdb8",
+      "probe_before": null,
+      "probe_after": null,
+      "cleanup": true,
+      "imports": {
+        "test_v0_s3_quality_phase": {
+          "module": "test_v0_s3_quality_phase",
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_quality_phase.py",
+          "sha256": "9771baf7b68566a9b379de40a1474d821c3e2b3d7de54b796e0dcd6653e53456"
+        },
+        "tools.v0_s3_quality_phase": {
+          "module": "tools.v0_s3_quality_phase",
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_quality_phase.py",
+          "sha256": "c01b0103dcf436c8604a70234cef21978a0b52c644692db33b2612bd64105c67"
+        }
+      }
+    },
+    {
+      "path": "reports/v0-s3/product-gate0/implementation-p3b-correction-06/focused.receipt.json",
+      "exit": 0,
+      "streams": [
+        {
+          "stream": "stdout",
+          "declared_path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-06/focused.stdout.log",
+          "declared_path_matches": true,
+          "retained_path": "reports/v0-s3/product-gate0/implementation-p3b-correction-06/focused.stdout.log",
+          "retained_matches": true
+        },
+        {
+          "stream": "stderr",
+          "declared_path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-06/focused.stderr.log",
+          "declared_path_matches": true,
+          "retained_path": "reports/v0-s3/product-gate0/implementation-p3b-correction-06/focused.stderr.log",
+          "retained_matches": true
+        }
+      ],
+      "source_unchanged": true,
+      "before": {
+        "tools/test_v0_s3_quality_phase.py": "9771baf7b68566a9b379de40a1474d821c3e2b3d7de54b796e0dcd6653e53456",
+        "tools/v0_s3_quality_phase.py": "c01b0103dcf436c8604a70234cef21978a0b52c644692db33b2612bd64105c67"
+      },
+      "after": {
+        "tools/test_v0_s3_quality_phase.py": "9771baf7b68566a9b379de40a1474d821c3e2b3d7de54b796e0dcd6653e53456",
+        "tools/v0_s3_quality_phase.py": "c01b0103dcf436c8604a70234cef21978a0b52c644692db33b2612bd64105c67"
+      },
+      "runner_before": "016e61a06d415266fe7442ad9dcd1672ff42a19e5c1fafb707727fc05c95bdb8",
+      "runner_after": "016e61a06d415266fe7442ad9dcd1672ff42a19e5c1fafb707727fc05c95bdb8",
+      "probe_before": "6892409b377a737dd6161f55d33d0067aeceefe5ff6f5ac8f454805229c5a966",
+      "probe_after": "6892409b377a737dd6161f55d33d0067aeceefe5ff6f5ac8f454805229c5a966",
+      "cleanup": true,
+      "imports": {
+        "tools.test_v0_s3_quality_phase": {
+          "module": "tools.test_v0_s3_quality_phase",
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_quality_phase.py",
+          "sha256": "9771baf7b68566a9b379de40a1474d821c3e2b3d7de54b796e0dcd6653e53456"
+        },
+        "tools.v0_s3_quality_phase": {
+          "module": "tools.v0_s3_quality_phase",
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_quality_phase.py",
+          "sha256": "c01b0103dcf436c8604a70234cef21978a0b52c644692db33b2612bd64105c67"
+        }
+      }
+    },
+    {
+      "path": "reports/v0-s3/product-gate0/implementation-p3b-correction-06/guard.receipt.json",
+      "exit": 0,
+      "streams": [
+        {
+          "stream": "stdout",
+          "declared_path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-06/guard.stdout.log",
+          "declared_path_matches": true,
+          "retained_path": "reports/v0-s3/product-gate0/implementation-p3b-correction-06/guard.stdout.log",
+          "retained_matches": true
+        },
+        {
+          "stream": "stderr",
+          "declared_path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-06/guard.stderr.log",
+          "declared_path_matches": true,
+          "retained_path": "reports/v0-s3/product-gate0/implementation-p3b-correction-06/guard.stderr.log",
+          "retained_matches": true
+        }
+      ],
+      "source_unchanged": true,
+      "before": {
+        "tools/test_v0_s3_quality_phase.py": "9771baf7b68566a9b379de40a1474d821c3e2b3d7de54b796e0dcd6653e53456",
+        "tools/v0_s3_quality_phase.py": "c01b0103dcf436c8604a70234cef21978a0b52c644692db33b2612bd64105c67"
+      },
+      "after": {
+        "tools/test_v0_s3_quality_phase.py": "9771baf7b68566a9b379de40a1474d821c3e2b3d7de54b796e0dcd6653e53456",
+        "tools/v0_s3_quality_phase.py": "c01b0103dcf436c8604a70234cef21978a0b52c644692db33b2612bd64105c67"
+      },
+      "runner_before": "016e61a06d415266fe7442ad9dcd1672ff42a19e5c1fafb707727fc05c95bdb8",
+      "runner_after": "016e61a06d415266fe7442ad9dcd1672ff42a19e5c1fafb707727fc05c95bdb8",
+      "probe_before": null,
+      "probe_after": null,
+      "cleanup": true,
+      "imports": {}
+    },
+    {
+      "path": "reports/v0-s3/product-gate0/implementation-p3b-correction-06/suite.receipt.json",
+      "exit": 0,
+      "streams": [
+        {
+          "stream": "stdout",
+          "declared_path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-06/suite.stdout.log",
+          "declared_path_matches": true,
+          "retained_path": "reports/v0-s3/product-gate0/implementation-p3b-correction-06/suite.stdout.log",
+          "retained_matches": true
+        },
+        {
+          "stream": "stderr",
+          "declared_path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-06/suite.stderr.log",
+          "declared_path_matches": true,
+          "retained_path": "reports/v0-s3/product-gate0/implementation-p3b-correction-06/suite.stderr.log",
+          "retained_matches": true
+        }
+      ],
+      "source_unchanged": true,
+      "before": {
+        "tools/test_v0_s3_quality_phase.py": "9771baf7b68566a9b379de40a1474d821c3e2b3d7de54b796e0dcd6653e53456",
+        "tools/v0_s3_quality_phase.py": "c01b0103dcf436c8604a70234cef21978a0b52c644692db33b2612bd64105c67"
+      },
+      "after": {
+        "tools/test_v0_s3_quality_phase.py": "9771baf7b68566a9b379de40a1474d821c3e2b3d7de54b796e0dcd6653e53456",
+        "tools/v0_s3_quality_phase.py": "c01b0103dcf436c8604a70234cef21978a0b52c644692db33b2612bd64105c67"
+      },
+      "runner_before": "016e61a06d415266fe7442ad9dcd1672ff42a19e5c1fafb707727fc05c95bdb8",
+      "runner_after": "016e61a06d415266fe7442ad9dcd1672ff42a19e5c1fafb707727fc05c95bdb8",
+      "probe_before": null,
+      "probe_after": null,
+      "cleanup": true,
+      "imports": {
+        "test_v0_s3_quality_phase": {
+          "module": "test_v0_s3_quality_phase",
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_quality_phase.py",
+          "sha256": "9771baf7b68566a9b379de40a1474d821c3e2b3d7de54b796e0dcd6653e53456"
+        },
+        "tools.v0_s3_quality_phase": {
+          "module": "tools.v0_s3_quality_phase",
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_quality_phase.py",
+          "sha256": "c01b0103dcf436c8604a70234cef21978a0b52c644692db33b2612bd64105c67"
+        }
+      }
+    }
+  ],
+  "implementation_checksum_entries": [
+    {
+      "path": "LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-06/audit_test_obligations.py",
+      "expected": "5d729f358cbeaea6572d68e553ee66f54c730c410a8364395e8a7e582b4c75bd",
+      "actual": "5d729f358cbeaea6572d68e553ee66f54c730c410a8364395e8a7e582b4c75bd",
+      "matches": true
+    },
+    {
+      "path": "LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-06/editing-diagnostics/dev-focus-1.receipt.json",
+      "expected": "417905d13e0defb904740b585e5c999c5fb9f9cac6beca0a9a5c36791464451c",
+      "actual": "417905d13e0defb904740b585e5c999c5fb9f9cac6beca0a9a5c36791464451c",
+      "matches": true
+    },
+    {
+      "path": "LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-06/editing-diagnostics/dev-focus-1.stderr.log",
+      "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "actual": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches": true
+    },
+    {
+      "path": "LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-06/editing-diagnostics/dev-focus-1.stdout.log",
+      "expected": "e13cbc4bbe1e4f14b9d2c5870b059d4ed0a03f2de89542070050d402b25f97ec",
+      "actual": "e13cbc4bbe1e4f14b9d2c5870b059d4ed0a03f2de89542070050d402b25f97ec",
+      "matches": true
+    },
+    {
+      "path": "LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-06/editing-diagnostics/dev-focus-2.receipt.json",
+      "expected": "cdb1b188ed9b9c8b2b34e336857d46be3b5a25578870eb0dbb4775cdfe9288da",
+      "actual": "cdb1b188ed9b9c8b2b34e336857d46be3b5a25578870eb0dbb4775cdfe9288da",
+      "matches": true
+    },
+    {
+      "path": "LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-06/editing-diagnostics/dev-focus-2.stderr.log",
+      "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "actual": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches": true
+    },
+    {
+      "path": "LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-06/editing-diagnostics/dev-focus-2.stdout.log",
+      "expected": "529bf087c2eecd806be5b6956544336ba61176defb7a029a4efc2133ea264599",
+      "actual": "529bf087c2eecd806be5b6956544336ba61176defb7a029a4efc2133ea264599",
+      "matches": true
+    },
+    {
+      "path": "LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-06/editing-diagnostics/dev-focus-3.receipt.json",
+      "expected": "d60044466d60e3240ce2d10f512f9a4142422c6a225b1d2da2c034a28c3f26d4",
+      "actual": "d60044466d60e3240ce2d10f512f9a4142422c6a225b1d2da2c034a28c3f26d4",
+      "matches": true
+    },
+    {
+      "path": "LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-06/editing-diagnostics/dev-focus-3.stderr.log",
+      "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "actual": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches": true
+    },
+    {
+      "path": "LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-06/editing-diagnostics/dev-focus-3.stdout.log",
+      "expected": "dd9e97f63a3d4fb3cc12585506ddd9e9327e263f0da8f7f1896ebc97f3ab7ce1",
+      "actual": "dd9e97f63a3d4fb3cc12585506ddd9e9327e263f0da8f7f1896ebc97f3ab7ce1",
+      "matches": true
+    },
+    {
+      "path": "LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-06/editing-diagnostics/dev-focused-1.receipt.json",
+      "expected": "24f5e9124ec0a9e54d54ae080ebb518359bb91a0b5d5200afefc8d36d7484e36",
+      "actual": "24f5e9124ec0a9e54d54ae080ebb518359bb91a0b5d5200afefc8d36d7484e36",
+      "matches": true
+    },
+    {
+      "path": "LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-06/editing-diagnostics/dev-focused-1.stderr.log",
+      "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "actual": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches": true
+    },
+    {
+      "path": "LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-06/editing-diagnostics/dev-focused-1.stdout.log",
+      "expected": "9e722c498c547006f78b432c9e63216f245acd950225b5643c68bfdb81ab5ba2",
+      "actual": "9e722c498c547006f78b432c9e63216f245acd950225b5643c68bfdb81ab5ba2",
+      "matches": true
+    },
+    {
+      "path": "LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-06/editing-diagnostics/dev-suite-1.receipt.json",
+      "expected": "fffd15e016455af953daa89fa7fb354440446ec9a5b9010a6b59984a15daf66b",
+      "actual": "fffd15e016455af953daa89fa7fb354440446ec9a5b9010a6b59984a15daf66b",
+      "matches": true
+    },
+    {
+      "path": "LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-06/editing-diagnostics/dev-suite-1.stderr.log",
+      "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "actual": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches": true
+    },
+    {
+      "path": "LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-06/editing-diagnostics/dev-suite-1.stdout.log",
+      "expected": "d686181f2fc9326e8b84b369d7efb05d69da5d4cc3f5250eaa3f3b8ea6483c29",
+      "actual": "d686181f2fc9326e8b84b369d7efb05d69da5d4cc3f5250eaa3f3b8ea6483c29",
+      "matches": true
+    },
+    {
+      "path": "LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-06/focused-observations.json",
+      "expected": "0266336c81f8866c63122c12e29190388d742bdfe3e7add034357d19fe207205",
+      "actual": "0266336c81f8866c63122c12e29190388d742bdfe3e7add034357d19fe207205",
+      "matches": true
+    },
+    {
+      "path": "LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-06/focused.receipt.json",
+      "expected": "e0df32d334645754bceb58c88a1a7b688131f408489eaa3488d892b06888eb60",
+      "actual": "e0df32d334645754bceb58c88a1a7b688131f408489eaa3488d892b06888eb60",
+      "matches": true
+    },
+    {
+      "path": "LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-06/focused.stderr.log",
+      "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "actual": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches": true
+    },
+    {
+      "path": "LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-06/focused.stdout.log",
+      "expected": "0266336c81f8866c63122c12e29190388d742bdfe3e7add034357d19fe207205",
+      "actual": "0266336c81f8866c63122c12e29190388d742bdfe3e7add034357d19fe207205",
+      "matches": true
+    },
+    {
+      "path": "LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-06/guard.receipt.json",
+      "expected": "a8277aa313c5ab426f0b64557af11cf2146080ce17b59f05a363ce54e1cd622e",
+      "actual": "a8277aa313c5ab426f0b64557af11cf2146080ce17b59f05a363ce54e1cd622e",
+      "matches": true
+    },
+    {
+      "path": "LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-06/guard.stderr.log",
+      "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "actual": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches": true
+    },
+    {
+      "path": "LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-06/guard.stdout.log",
+      "expected": "6e3db9bee7880783c6d86acad60653571ecf173c497793d487ec8c3758f8db7d",
+      "actual": "6e3db9bee7880783c6d86acad60653571ecf173c497793d487ec8c3758f8db7d",
+      "matches": true
+    },
+    {
+      "path": "LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-06/obligation-audit.json",
+      "expected": "66911cd74eaa60f17c39d4adba8afcb7bd4aaf6455fe071fa47bee464eae97ca",
+      "actual": "66911cd74eaa60f17c39d4adba8afcb7bd4aaf6455fe071fa47bee464eae97ca",
+      "matches": true
+    },
+    {
+      "path": "LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-06/probe_correction06_counterexamples.py",
+      "expected": "6892409b377a737dd6161f55d33d0067aeceefe5ff6f5ac8f454805229c5a966",
+      "actual": "6892409b377a737dd6161f55d33d0067aeceefe5ff6f5ac8f454805229c5a966",
+      "matches": true
+    },
+    {
+      "path": "LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-06/receipt.json",
+      "expected": "45f0ea89c9bc127af98798493fa85443b0fa13449f0e0f910c328db369e8ef76",
+      "actual": "45f0ea89c9bc127af98798493fa85443b0fa13449f0e0f910c328db369e8ef76",
+      "matches": true
+    },
+    {
+      "path": "LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-06/report.md",
+      "expected": "699bd27c6b179f93e3ac070fb867f59fcbf4620791618ba902cb1cf779759fe6",
+      "actual": "699bd27c6b179f93e3ac070fb867f59fcbf4620791618ba902cb1cf779759fe6",
+      "matches": true
+    },
+    {
+      "path": "LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-06/suite.receipt.json",
+      "expected": "054b82de1b47ba844a9ca9fe4519cf4eaffe08b74e974ff1ab32b344512146d2",
+      "actual": "054b82de1b47ba844a9ca9fe4519cf4eaffe08b74e974ff1ab32b344512146d2",
+      "matches": true
+    },
+    {
+      "path": "LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-06/suite.stderr.log",
+      "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "actual": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches": true
+    },
+    {
+      "path": "LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-06/suite.stdout.log",
+      "expected": "6088e11268a5541497faf59d03e3e5dd5c731c69ba44ea88b2dca4ebfb77d2ea",
+      "actual": "6088e11268a5541497faf59d03e3e5dd5c731c69ba44ea88b2dca4ebfb77d2ea",
+      "matches": true
+    },
+    {
+      "path": "LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-06/write_receipt.py",
+      "expected": "be83415f3f773a1c72a1549cd4d43458341a7abe08a48a82a6dbe429ccb3eb94",
+      "actual": "be83415f3f773a1c72a1549cd4d43458341a7abe08a48a82a6dbe429ccb3eb94",
+      "matches": true
+    }
+  ],
+  "prior_closure_mapping": [
+    {
+      "evidence": "Original206 nodeids retained;155 original definitions/helpers AST-identical;232 once passed; candidate diff and corresponding tests inspected. All original175 nodeids retained;130 old definitions and all old helpers AST-identical; once206 pass plus static call graph audit.",
+      "id": "M02",
+      "status": "CLOSED_SCOPED_OFFLINE_PRESERVED"
+    },
+    {
+      "evidence": "Original206 nodeids retained;155 original definitions/helpers AST-identical;232 once passed; candidate diff and corresponding tests inspected. All original175 nodeids retained;130 old definitions and all old helpers AST-identical; once206 pass plus static call graph audit.",
+      "id": "M03",
+      "status": "CLOSED_SCOPED_OFFLINE_PRESERVED"
+    },
+    {
+      "evidence": "Original206 nodeids retained;155 original definitions/helpers AST-identical;232 once passed; candidate diff and corresponding tests inspected. All original175 nodeids retained;130 old definitions and all old helpers AST-identical; once206 pass plus static call graph audit.",
+      "id": "M04",
+      "status": "CLOSED_SCOPED_OFFLINE_PRESERVED"
+    },
+    {
+      "evidence": "Original206 nodeids retained;155 original definitions/helpers AST-identical;232 once passed; candidate diff and corresponding tests inspected. All original175 nodeids retained;130 old definitions and all old helpers AST-identical; once206 pass plus static call graph audit.",
+      "id": "M05",
+      "status": "CLOSED_SCOPED_OFFLINE_PRESERVED"
+    },
+    {
+      "evidence": "Original206 nodeids retained;155 original definitions/helpers AST-identical;232 once passed; candidate diff and corresponding tests inspected. All original175 nodeids retained;130 old definitions and all old helpers AST-identical; once206 pass plus static call graph audit.",
+      "id": "M06",
+      "status": "CLOSED_SCOPED_OFFLINE_PRESERVED"
+    },
+    {
+      "evidence": "Original206 nodeids retained;155 original definitions/helpers AST-identical;232 once passed; candidate diff and corresponding tests inspected. All original175 nodeids retained;130 old definitions and all old helpers AST-identical; once206 pass plus static call graph audit.",
+      "id": "M07",
+      "status": "CLOSED_SCOPED_OFFLINE_PRESERVED"
+    },
+    {
+      "evidence": "Original206 nodeids retained;155 original definitions/helpers AST-identical;232 once passed; candidate diff and corresponding tests inspected. All original175 nodeids retained;130 old definitions and all old helpers AST-identical; once206 pass plus static call graph audit.",
+      "id": "M09",
+      "status": "CLOSED_SCOPED_OFFLINE_PRESERVED"
+    },
+    {
+      "evidence": "Original206 nodeids retained;155 original definitions/helpers AST-identical;232 once passed; candidate diff and corresponding tests inspected. All original175 nodeids retained;130 old definitions and all old helpers AST-identical; once206 pass plus static call graph audit.",
+      "id": "m01",
+      "status": "CLOSED_SCOPED_OFFLINE_PRESERVED"
+    },
+    {
+      "evidence": "232 combined suite;22 replay;33 independent observations. Recursive typed bindings and closed keysets exercised through public QS; conservative unknown and known failure/critical semantics preserved.",
+      "id": "M01",
+      "status": "CLOSED_SCOPED_OFFLINE"
+    },
+    {
+      "evidence": "All original seal label/descriptor/swap obligations preserved; strict-int seal ordinals True/1.0 reject with QS_SOURCE_PLAN_ORDER_INVALID without execution row changes.",
+      "id": "M08",
+      "status": "CLOSED_SCOPED_OFFLINE_PRESERVED"
+    },
+    {
+      "evidence": "Earlier during-current-read ancestry and leaf attacks now refuse;6 new cross-read/final-completion named custody counterexamples still aggregate true. See findings.json.",
+      "id": "NM03",
+      "status": "PARTIALLY_FIXED_REMAINS_OPEN"
+    },
+    {
+      "evidence": "Original206 nodeids retained;155 original definitions/helpers AST-identical;232 once passed; candidate diff and corresponding tests inspected. Limit mtime replay, independent submissions/content, submit/path and limit/ctime first changes all0send/0charge/0reserved,1FAIL+15BLOCKED; later submit/content and submissions/path preserve5send/5charge/5reserved with1FAIL+10BLOCKED.",
+      "id": "NM04",
+      "status": "CLOSED_SCOPED_COOPERATIVE_ONLY"
+    },
+    {
+      "evidence": "Original206 nodeids retained;155 original definitions/helpers AST-identical;232 once passed; candidate diff and corresponding tests inspected. Unchanged collected tests2641/2661 and related dynamic accessors pass; capacity0 and clock10801 refuse.",
+      "id": "NM01",
+      "status": "CLOSED_ORIGINAL_CAPACITY_TIME_ACCESSORS_PRESERVED"
+    },
+    {
+      "evidence": "Original206 nodeids retained;155 original definitions/helpers AST-identical;232 once passed; candidate diff and corresponding tests inspected. Unchanged single-clock/exact10800/oneover10801/later-proof obligations pass; final source check then coherent guard then reservation/charge/cached submit, no unchecked driver getter/callback/extra clock in between. Parent hard watchdog UNIMPLEMENTED_PRODUCT_GATE0_BLOCKER.",
+      "id": "NM02",
+      "status": "CLOSED_SCOPED_COOPERATIVE_ONLY"
+    },
+    {
+      "evidence": "Original correction03 unguarded12 remain UNKNOWN and zero-external-actions NOT_PROVEN under append-only erratum; current guarded evidence provides no retroactive certification.",
+      "id": "E01",
+      "status": "HISTORY_UNCREDITED_UNCHANGED"
+    },
+    {
+      "evidence": "Current232 product cases once;guard4 once;correction06 replay22 once;independent33 once. These observations are not additional product tests; no old21/32/10 broad reruns.",
+      "id": "E02",
+      "status": "COUNT_ERRATA_PRESERVED"
+    }
+  ],
+  "ten_fields": {
+    "1_current_coordinate": {
+      "stage_id": "R1",
+      "workpack_id": "WP-R1-U3",
+      "gate": "S3_P3B_QUALITY_INTEGRATION_INDEPENDENT_REVIEW",
+      "state": "READY_FOR_REVIEW"
+    },
+    "2_this_batch": "Independent CHANGES_REQUIRED F0/M1/m0;232 product cases once,guard4 once,replay22 once,targeted33 observations once",
+    "3_last_passed_gate": {
+      "gate": "UNIFIED_MEDIA_FIXED_UM10_AND_INDEPENDENT_REVIEW",
+      "candidate_sha": "621b1bf386db71bfe08ca2f533fa8ec396b0504b",
+      "receipt": "reports/unified-media/independent-live-15/receipt.json",
+      "decision": "10PASS_0FAIL_0BLOCKED_FATAL0_MAJOR0_HUMAN_ACCEPTED_SCOPE_ONLY",
+      "cpu_checks": 212,
+      "fixed_cases": 10,
+      "passed_cases": 10,
+      "human_signoff": "reports/unified-media/human-signoff-live15.json"
+    },
+    "4_current_blocking_gate": "S3_P3B_CORRECTION06_ISOLATED_REVIEW_PENDING",
+    "5_route_position": "Root adjudication -> bounded component correction -> isolated independent review -> parent/native/A06/Gate0 -> finite real quality and human/release gates",
+    "6_remaining_work": [
+      "NM03 earlier-read named entry custody remains Major",
+      "Parent original archive/retained attestation and selected-root binding NOTPROVEN",
+      "Parent hard watchdog UNIMPLEMENTED_PRODUCT_GATE0_BLOCKER; synchronous callbacks not preempted",
+      "Native residue/admission and A06 enforcement/attempt observation NOTPROVEN",
+      "Actual registration baseline, installation and rollback NOTPROVEN",
+      "Authentic parent ledger debit NOTPROVEN",
+      "Real quality16/full12/productGate0/human-release NOTPROVEN"
+    ],
+    "7_next_owner": "Root architecture/gate owner for disposition; implementation remains separate from review",
+    "8_authorization": "Already authorized offline independent review only; no new human approval required; no actual product runtime authorization inferred",
+    "9_evidence_directory": "reports/v0-s3/product-gate0/independent-p3b-correction-06/",
+    "10_exact_stop_reason": "Assigned review completed; hand off report/counts/full commit SHA; keep terminal visible"
+  },
+  "development_outline": [
+    {
+      "stage_id": "V0-S0",
+      "delivery": "V0",
+      "title": "基线探索",
+      "substeps": [
+        {
+          "name": "盘点与探索记录",
+          "status": "DONE",
+          "evidence": "reports/v0-s0/gate-decision-rerun-02.md"
+        },
+        {
+          "name": "完整生产基线",
+          "status": "FAILED_HISTORICAL",
+          "evidence": "reports/v0-s0/gate-decision-rerun-02.md"
+        }
+      ],
+      "completed_substeps": 1,
+      "total_substeps": 2,
+      "summary": "历史探索已结束且NO_GO保留；V0-Min按后续范围签署，不回填S0 PASS",
+      "implementation": "ARCHIVED",
+      "machine_acceptance": "NO_GO_HISTORICAL",
+      "independent_review": "COMPLETED_WITH_BLOCKERS",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "V0-S1",
+      "delivery": "V0-Min",
+      "title": "图片与独立人工",
+      "substeps": [
+        {
+          "name": "独立人工稿与导出",
+          "status": "DONE",
+          "evidence": "reports/v0-s1/v0-min-acceptance.json"
+        },
+        {
+          "name": "真实图片与预处理",
+          "status": "DONE",
+          "evidence": "reports/v0-s1/v0-min-acceptance.json"
+        },
+        {
+          "name": "四输出与草稿保护",
+          "status": "DONE",
+          "evidence": "reports/v0-s1/v0-min-acceptance.json"
+        },
+        {
+          "name": "固定证据及独立审查",
+          "status": "DONE",
+          "evidence": "reports/v0-s1/v0-min-acceptance.json"
+        },
+        {
+          "name": "人工签署",
+          "status": "DONE",
+          "evidence": "reports/v0-s1/v0-min-acceptance.json"
+        }
+      ],
+      "completed_substeps": 5,
+      "total_substeps": 5,
+      "summary": "已签仅V0-Min",
+      "implementation": "DELIVERED",
+      "machine_acceptance": "ACCEPTED_SCOPE_ONLY",
+      "independent_review": "COMPLETED",
+      "human_signoff": "APPROVED"
+    },
+    {
+      "stage_id": "R0",
+      "delivery": "V1前置",
+      "title": "独立服务复核",
+      "substeps": [
+        {
+          "name": "独立单图路径在R1a验证",
+          "status": "DONE",
+          "evidence": "reports/r1a/gate-decision-r1a.md"
+        },
+        {
+          "name": "完整复用/许可清单单独闭合",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 1,
+      "total_substeps": 2,
+      "summary": "仅R1a前置单图子集可确认；不把完整视频/Q01算通过",
+      "implementation": "PARTIAL_REUSED",
+      "machine_acceptance": "SINGLE_IMAGE_SUBSET_ONLY",
+      "independent_review": "NO_SEPARATE_R0_VERDICT",
+      "human_signoff": "NO_SEPARATE_R0_SIGNOFF"
+    },
+    {
+      "stage_id": "R1a",
+      "delivery": "V1早期切片",
+      "title": "单图React/FastAPI",
+      "substeps": [
+        {
+          "name": "正式合同子集与前后端",
+          "status": "DONE",
+          "evidence": "reports/r1a/gate-decision-r1a.md"
+        },
+        {
+          "name": "真实单图链路",
+          "status": "DONE",
+          "evidence": "reports/r1a/gate-decision-r1a.md"
+        },
+        {
+          "name": "失败/服务控制与人工稿保护",
+          "status": "DONE",
+          "evidence": "reports/r1a/gate-decision-r1a.md"
+        },
+        {
+          "name": "独立审查七项",
+          "status": "DONE",
+          "evidence": "reports/r1a/gate-decision-r1a.md"
+        },
+        {
+          "name": "人工体验签署",
+          "status": "DONE",
+          "evidence": "reports/r1a/gate-decision-r1a.md"
+        }
+      ],
+      "completed_substeps": 5,
+      "total_substeps": 5,
+      "summary": "已签仅单图切片；完整V1未完成",
+      "implementation": "DELIVERED",
+      "machine_acceptance": "ACCEPTED_SCOPE_ONLY",
+      "independent_review": "COMPLETED",
+      "human_signoff": "APPROVED"
+    },
+    {
+      "stage_id": "V0-S2",
+      "delivery": "V0.1",
+      "title": "视频与资源控制",
+      "substeps": [
+        {
+          "name": "WP-S2-00 冻结准备",
+          "status": "DONE",
+          "evidence": "reports/v0-s2/offline-checkpoint-44/receipt.json"
+        },
+        {
+          "name": "WP-S2-01 媒体owner",
+          "status": "DONE",
+          "evidence": "reports/v0-s2/offline-checkpoint-44/receipt.json"
+        },
+        {
+          "name": "WP-S2-02 公开视频路径",
+          "status": "DONE",
+          "evidence": "reports/v0-s2/offline-checkpoint-44/receipt.json"
+        },
+        {
+          "name": "WP-S2-03 安全/资源/取消",
+          "status": "DONE",
+          "evidence": "reports/v0-s2/offline-checkpoint-44/receipt.json"
+        },
+        {
+          "name": "WP-S2-04 离线集中收口",
+          "status": "DONE",
+          "evidence": "reports/v0-s2/offline-checkpoint-44/receipt.json"
+        },
+        {
+          "name": "WP-S2-05 完整真实验收",
+          "status": "DONE",
+          "evidence": "reports/v0-s2/full-v0-auto-08/receipt.json"
+        },
+        {
+          "name": "WP-S2-06 独立审查",
+          "status": "DONE",
+          "evidence": "reports/v0-s2/full-v0-auto-08/independent-review.json"
+        },
+        {
+          "name": "S2 人工签署与Git同步",
+          "status": "PENDING",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 7,
+      "total_substeps": 8,
+      "summary": "Full08 fresh cumulative9/9, offline541/5checks, independent Fatal0/Major0/Minor0; human signoff and immediate Git sync remain.",
+      "implementation": "IMPLEMENTED",
+      "machine_acceptance": "COMPLETE_FIXED9_PASSED",
+      "independent_review": "COMPLETE_FATAL0_MAJOR0_MINOR0",
+      "human_signoff": "PENDING"
+    },
+    {
+      "stage_id": "V0-S3",
+      "delivery": "V0.2",
+      "title": "离线质量与增量包",
+      "substeps": [
+        {
+          "name": "包/清单/使用说明",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "安装诊断与回滚",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "独立质量集与标注",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "离线集中收口",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "真实十二项及质量",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "独审/人工签署/同步",
+          "status": "PENDING",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 0,
+      "total_substeps": 6,
+      "summary": "已有设计，未完成正式交付；存在代码需进入时复用审计",
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R1",
+      "delivery": "V1",
+      "title": "人工业务骨架",
+      "substeps": [
+        {
+          "name": "受控媒体与人工镜头",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "六模式四目标",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "SQLite/修订/导入",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "组合回归及阶段审查",
+          "status": "PENDING",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "summary": "最小统一图视频切片3/3、UM10机器与独审通过，用户已确认当前前端与基本视频反推；完整R1四子项仍0/4，不补签历史S2/完整V1或发布。",
+      "implementation": "EARLY_SLICE_IMPLEMENTED_FULL_R1_PENDING",
+      "machine_acceptance": "EARLY_SLICE_UM10_ONLY",
+      "independent_review": "EARLY_SLICE_FATAL0_MAJOR0",
+      "human_signoff": "EARLY_SLICE_APPROVED_FULL_R1_PENDING",
+      "early_slice": {
+        "id": "UNIFIED_MEDIA_EARLY",
+        "completed_workpacks": 3,
+        "total_workpacks": 3,
+        "candidate_sha": "621b1bf386db71bfe08ca2f533fa8ec396b0504b",
+        "machine_acceptance": "UM10_PASS",
+        "independent_review": "FATAL0_MAJOR0",
+        "human_signoff": "APPROVED",
+        "human_signoff_record": "reports/unified-media/human-signoff-live15.json"
+      }
+    },
+    {
+      "stage_id": "V1-M1",
+      "delivery": "V1",
+      "title": "多镜头拆分与逐镜头人物场景动作",
+      "substeps": [
+        {
+          "name": "M1-A detection/PTS/boundaries/timeline",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "M1-B per-shot evidence and serial child jobs",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "M1-C per-shot drafts/exports/fixed8 full validation",
+          "status": "PENDING",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 0,
+      "total_substeps": 3,
+      "summary": "用户批准纳入V1；设计/合同审查中，未实现、未测试、未签署",
+      "implementation": "DESIGN_ONLY",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R2",
+      "delivery": "V1",
+      "title": "任务与正式运行包",
+      "substeps": [
+        {
+          "name": "异步任务/CAS/取消",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "真实图视频及质量",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "CLI/导出/便携包",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "V1累计独审及人工签署",
+          "status": "PENDING",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "summary": "已有设计，未完成正式交付；存在代码需进入时复用审计",
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R3",
+      "delivery": "V2",
+      "title": "镜头资产与检索",
+      "substeps": [
+        {
+          "name": "真实PTS/切镜",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "资产/FTS5/配方",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "对比/QC/JSONL",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "阶段验收",
+          "status": "PENDING",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "summary": "已有设计，未完成正式交付；存在代码需进入时复用审计",
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R4",
+      "delivery": "V2",
+      "title": "MCP与恢复",
+      "substeps": [
+        {
+          "name": "MCP真客户端",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "批量/lease/幂等",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "备份恢复",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "V2累计验收签署",
+          "status": "PENDING",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "summary": "已有设计，未完成正式交付；存在代码需进入时复用审计",
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R5a",
+      "delivery": "V3",
+      "title": "证据与建议合同",
+      "substeps": [
+        {
+          "name": "对端握手",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "Navia证据",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "Narralens建议/冲突",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "阶段真实验收",
+          "status": "PENDING",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "summary": "已有设计，未完成正式交付；存在代码需进入时复用审计",
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R5b",
+      "delivery": "V3",
+      "title": "受控生成交接",
+      "substeps": [
+        {
+          "name": "Comfy allowlist/映射",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "收据/outbox",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "GPU/取消协作",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "阶段真实验收",
+          "status": "PENDING",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "summary": "已有设计，未完成正式交付；存在代码需进入时复用审计",
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R5c",
+      "delivery": "V3",
+      "title": "集成与完整交付",
+      "substeps": [
+        {
+          "name": "集成UI",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "升级回滚",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "三系统E2E",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "V3独审及人工签署",
+          "status": "PENDING",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "summary": "已有设计，未完成正式交付；存在代码需进入时复用审计",
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    }
+  ],
+  "remaining": [
+    "NM03 earlier-read named entry custody remains Major",
+    "Parent original archive/retained attestation and selected-root binding NOTPROVEN",
+    "Parent hard watchdog UNIMPLEMENTED_PRODUCT_GATE0_BLOCKER; synchronous callbacks not preempted",
+    "Native residue/admission and A06 enforcement/attempt observation NOTPROVEN",
+    "Actual registration baseline, installation and rollback NOTPROVEN",
+    "Authentic parent ledger debit NOTPROVEN",
+    "Real quality16/full12/productGate0/human-release NOTPROVEN"
+  ],
+  "cleanup": {
+    "runner_owned_roots_removed": true,
+    "targeted_own_root_removed": true,
+    "targeted_registered_roots": [
+      "/tmp/lvw-c05-targeted-tgeq39bi/independent-c06-lkva82w3/typed",
+      "/tmp/lvw-c05-targeted-tgeq39bi/independent-c06-lkva82w3/seal_read_run_root_symlink",
+      "/tmp/lvw-c05-targeted-tgeq39bi/independent-c06-lkva82w3/seal_read_temp_plain",
+      "/tmp/lvw-c05-targeted-tgeq39bi/independent-c06-lkva82w3/seal_read_leaf_plain",
+      "/tmp/lvw-c05-targeted-tgeq39bi/independent-c06-lkva82w3/canonical_read_temp_missing",
+      "/tmp/lvw-c05-targeted-tgeq39bi/independent-c06-lkva82w3/canonical_read_leaf_plain",
+      "/tmp/lvw-c05-targeted-tgeq39bi/independent-c06-lkva82w3/raw_read_parent_plain",
+      "/tmp/lvw-c05-targeted-tgeq39bi/independent-c06-lkva82w3/raw_read_leaf_missing",
+      "/tmp/lvw-c05-targeted-tgeq39bi/independent-c06-lkva82w3/after_canonical_read_symlink",
+      "/tmp/lvw-c05-targeted-tgeq39bi/independent-c06-lkva82w3/after_canonical_read_plain",
+      "/tmp/lvw-c05-targeted-tgeq39bi/independent-c06-lkva82w3/after_seal_read_missing",
+      "/tmp/lvw-c05-targeted-tgeq39bi/independent-c06-lkva82w3/after_raw_read_leaf_symlink",
+      "/tmp/lvw-c05-targeted-tgeq39bi/independent-c06-lkva82w3/after_raw_read_parent_plain",
+      "/tmp/lvw-c05-targeted-tgeq39bi/independent-c06-lkva82w3/completion_leaf",
+      "/tmp/lvw-c05-targeted-tgeq39bi/independent-c06-lkva82w3/fd",
+      "/tmp/lvw-c05-targeted-tgeq39bi/independent-c06-lkva82w3/partial"
+    ],
+    "old_roots_scanned_or_deleted": false,
+    "fixture_boundary": "fresh4x4PNG/tinyfakevideo via real ControlledImageOwner/BridgeOwner/public oracles; only syntheticprovider/HTTP/tinydecoder boundaries"
+  },
+  "zero_actual": [
+    "Windows",
+    "WSL",
+    "PowerShell",
+    "parser",
+    "hostexe hashing",
+    "real media",
+    "FFmpeg",
+    "models",
+    "GPU",
+    "services",
+    "network",
+    "download",
+    "real ledger",
+    "claims",
+    "full checkpoint"
+  ],
+  "product_gate0": false,
+  "stage_pass_claim": false,
+  "product_pass_claim": false,
+  "audit_guard_limit": "Named Python audit events only; no direct-syscall/native-extension immunity claim",
+  "original_correction03_unguarded12": "UNKNOWN_UNCREDITED per immutable erratum; no cosmetic reruns or retroactive zero-external certification"
+}
