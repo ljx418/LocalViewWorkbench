@@ -143,6 +143,45 @@ RECEIPT_FIXED_POINT_ITERATIONS = 64
 CANONICAL_RECEIPT_NAME = "qd-receipt.json"
 STAGED_RECEIPT_NAME = "qd-receipt.staging"
 
+# The original source identity seal.  It is written once, exclusively, under
+# the owned phase directory before the first public submission and it binds the
+# run, the candidate, the child authorization and the projection together with
+# the original descriptor identity of all sixteen sources.  It is internal
+# evidence, not a public product contract, and it changes no threshold, no
+# denominator and no public schema.
+SOURCE_PLAN_NAME = "qd-source-plan.json"
+SOURCE_PLAN_SCHEMA_VERSION = "lvw.s3-quality-source-plan/1"
+SOURCE_PLAN_ROW_KEYS = frozenset({
+    "ordinal", "asset_id", "media_kind", "input_reference",
+    "source_bytes", "source_sha256", "path", "identity",
+})
+
+# The execution content that the supplied receipt must reproduce exactly
+# against the actually published canonical document.  The verdict fields (the
+# execution status, the error code and the evidence declarations) are *not*
+# here: they are evaluated for the supplied and for the published document
+# together, so a forged verdict can never make the aggregate pass.
+QS_RECEIPT_CONTENT_FIELDS = (
+    "kind", "phase", "contract", "run_id", "candidate_sha", "authorization_sha256",
+    "projection_sha256", "fixed_denominator", "source_identity_sha256",
+    "public_submissions", "public_submissions_succeeded", "public_submissions_attempted",
+    "provider_calls_observed", "provider_calls_observed_known", "provider_calls_reserved",
+    "history_polls", "artifact_files", "artifact_bytes",
+    "parent_budget_capacity", "parent_budget_required_actions",
+    "bounds", "source_plan", "decision",
+)
+QS_ROW_CONTENT_FIELDS = (
+    "asset_id", "media_kind", "ordinal", "source_sha256", "source_bytes",
+    "input_reference", "prompt_id", "graph_sha256", "graph_artifact",
+    "raw_sha256", "raw_bytes", "raw_artifact", "raw_preserved",
+    "suggestion_sha256", "suggestion_artifact", "metadata_sha256", "metadata_artifact",
+    "frame_raw_sha256", "history_sha256", "history_artifact",
+    "error_raw_sha256", "error_raw_artifact", "error_frame_raw_sha256",
+    "provider_calls", "provider_calls_reserved", "provider_calls_observed",
+    "provider_calls_observed_known", "provider_before", "provider_after",
+    "listener_before", "listener_after", "automatic_retries",
+)
+
 # The mandatory hard end-to-end process supervision is not implemented in this
 # offline component.  It belongs to the thin parent coordinator and must be
 # demonstrated before a real run or the product Gate0.  The frozen 600s and
@@ -275,6 +314,7 @@ NOT_ATTEMPTED_ERROR_CODES = frozenset({
     "OWNED_PATH_MISSING",
     "CLOCK_NOT_MONOTONIC",
     "CLOCK_NOT_FINITE",
+    "SOURCE_PLAN_PERSISTENCE_FAILED",
 })
 
 # A storage failure means the evidence is not proven to exist.  It is reported
@@ -289,6 +329,7 @@ STORAGE_ERROR_CODES = frozenset({
     "ARTIFACT_PATH_INVALID",
     "RECEIPT_PERSISTENCE_FAILED",
     "PERSISTENCE_ELAPSED_EXCEEDED",
+    "SOURCE_PLAN_PERSISTENCE_FAILED",
 })
 
 # A cleanup failure means the resource state is unknown.  It is reported
@@ -481,13 +522,19 @@ def receipt_document(receipt):
 
 
 def validate_source_evidence(evidence, *, source_sha256, source_bytes,
-                              input_reference, run_root):
+                              input_reference, run_root, sealed=None):
     """Validate one row's source evidence.
 
     The same pure validator is used by the execution phase and by the scoring
     entry point, so a row that the execution could not prove is unknown in
     both.  Missing, null or malformed evidence is unknown; it is never
     defaulted to a pass.
+
+    The bound run root is a mandatory typed context: an absent, null, empty
+    or non string context never disables the path binding.  When ``sealed``
+    is supplied the evidence must additionally reproduce the sealed original
+    descriptor identity, size and hash exactly.  The live source file is
+    never re-stat'ed here and never has to be retained after the run.
     """
     if not isinstance(evidence, dict):
         return False, "SOURCE_EVIDENCE_MISSING"
@@ -495,6 +542,17 @@ def validate_source_evidence(evidence, *, source_sha256, source_bytes,
     if (not isinstance(identity, list) or len(identity) != 5
             or any(not _is_int(value) or value < 0 for value in identity)):
         return False, "SOURCE_IDENTITY_INVALID"
+    if sealed is not None:
+        # The sealed original descriptor is the authority.  The evidence must
+        # reproduce its identity, its size, its hash and its path exactly.
+        if list(identity) != list(sealed.get("identity") or []):
+            return False, "SOURCE_SEAL_IDENTITY_MISMATCH"
+        if evidence.get("bytes") != sealed.get("source_bytes"):
+            return False, "SOURCE_SEAL_BYTES_MISMATCH"
+        if evidence.get("sha256") != sealed.get("source_sha256"):
+            return False, "SOURCE_SEAL_HASH_MISMATCH"
+        if evidence.get("path") != sealed.get("path"):
+            return False, "SOURCE_SEAL_PATH_MISMATCH"
     if not _is_int(evidence.get("bytes")) or evidence["bytes"] <= 0:
         return False, "SOURCE_BYTES_INVALID"
     if evidence["bytes"] != source_bytes:
@@ -508,11 +566,10 @@ def validate_source_evidence(evidence, *, source_sha256, source_bytes,
         return False, "SOURCE_PATH_INVALID"
     if not isinstance(input_reference, str) or not input_reference:
         return False, "SOURCE_REFERENCE_INVALID"
-    if run_root is not None:
-        if not isinstance(run_root, str) or not run_root:
-            return False, "SOURCE_RUN_ROOT_INVALID"
-        if Path(path) != Path(run_root) / "input" / input_reference:
-            return False, "SOURCE_PATH_FOREIGN"
+    if not isinstance(run_root, str) or not run_root:
+        return False, "SOURCE_RUN_ROOT_INVALID"
+    if Path(path) != Path(run_root) / "input" / input_reference:
+        return False, "SOURCE_PATH_FOREIGN"
     return True, None
 
 
@@ -538,7 +595,11 @@ def validate_release_evidence(evidence, *, baseline_gpu_mib):
     baseline = evidence.get("baseline_gpu_mib")
     if not _is_int(baseline) or baseline < 0:
         return False, "RELEASE_EVIDENCE_BASELINE_INVALID"
-    if baseline_gpu_mib is not None and baseline != baseline_gpu_mib:
+    # The bound baseline is a mandatory typed context: an absent, null,
+    # floating point or boolean context never disables the baseline binding.
+    if not _is_int(baseline_gpu_mib) or baseline_gpu_mib < 0:
+        return False, "RELEASE_EVIDENCE_BASELINE_INVALID"
+    if baseline != baseline_gpu_mib:
         return False, "RELEASE_EVIDENCE_BASELINE_MISMATCH"
     samples = evidence.get("gpu_samples")
     if not isinstance(samples, list) or not 3 <= len(samples) <= 32:
@@ -786,6 +847,7 @@ class QualityPhase:
         self._owned_phase = None
         self._root_identity = self._object_identity(self.root.lstat())
         self._last_clock = None
+        self._source_plan = None
 
     # -- ownership -------------------------------------------------------
     @staticmethod
@@ -878,18 +940,22 @@ class QualityPhase:
         capacity = proof.get("action_capacity")
         if not _is_int(capacity) or capacity < 0:
             raise QualityContractError("PARENT_BUDGET_CAPACITY_INVALID")
+        if capacity > MAX_TOTAL_PROVIDER_CALLS:
+            # The admitted capacity can never exceed the frozen provider call
+            # ceiling: a proof that claims more is not a usable proof.
+            raise QualityContractError("PARENT_BUDGET_CAPACITY_INVALID")
         self.parent_budget_capacity = capacity
 
     def _send_admission_guard(self, row, expected_calls):
         """The final local send-admission guard.
 
-        It runs after every controlled preparation, authorization and source
-        callback and directly before the local reservation, the attempt charge
-        and the submit itself, so nothing unchecked happens in between.  It
-        revalidates the original ownership, the finite non boolean
-        non decreasing clock and the phase deadline, and the exact typed
-        parent proof with its validity interval and the current sufficient
-        remaining capacity.
+        It runs after every controlled preparation, authorization, source and
+        driver callback and directly before the local reservation, the attempt
+        charge and the submit itself, so nothing unchecked happens in
+        between.  It revalidates the original ownership, and it takes exactly
+        ONE final latest trusted monotonic sample.  That single sample decides
+        the phase deadline *and* the parent proof interval, so a later clock
+        read can never invalidate a deadline that was already checked.
 
         This is a cooperative local guard.  It does not preempt a synchronous
         callback that never returns; that remains the mandatory parent
@@ -901,20 +967,25 @@ class QualityPhase:
             raise QualityContractError("CLOCK_NOT_FINITE")
         if self._started is None or now - self._started > PHASE_TIMEOUT_SECONDS:
             raise QualityContractError("PHASE_DEADLINE_EXCEEDED")
-        admission_error = self._parent_proof_is_fresh()
+        admission_error = self._parent_proof_is_fresh(now=now)
         if admission_error:
             raise QualityContractError(admission_error)
         admitted = min(self.parent_budget_capacity, MAX_TOTAL_PROVIDER_CALLS)
         if self._provider_calls_reserved + expected_calls > admitted:
             raise QualityContractError("PARENT_BUDGET_CAPACITY_INSUFFICIENT")
 
-    def _parent_proof_is_fresh(self):
-        """The proof must still be inside its validity interval."""
+    def _parent_proof_is_fresh(self, now=None):
+        """The proof must still be inside its validity interval.
+
+        The caller may pass the one final clock sample it already took; then
+        this function never reads the clock again.
+        """
         try:
             self._validate_parent_proof(self.parent_budget)
         except QualityContractError as error:
             return str(error)
-        now = self._now()
+        if now is None:
+            now = self._now()
         issued = self.parent_budget["issued_monotonic"]
         expires = self.parent_budget["expires_monotonic"]
         if now < issued:
@@ -924,6 +995,31 @@ class QualityPhase:
         if self.parent_budget_capacity < MAX_TOTAL_PROVIDER_CALLS:
             return "PARENT_BUDGET_CAPACITY_INSUFFICIENT"
         return None
+
+    def _resolve_driver_state(self):
+        """Resolve every controlled driver value before the final guard.
+
+        The public submission counter, the public submission limit and the
+        submit callable itself are read and bound *before* the final
+        admission guard.  A dynamic accessor therefore cannot change the
+        admitted capacity or the clock behind the back of the guard, and no
+        ``getattr``, property, authorize, observer or clock read happens
+        between the final admission and the send.
+        """
+        try:
+            raw_submissions = getattr(self.driver, "submissions", 0)
+            raw_limit = getattr(self.driver, "max_public_submissions", MAX_PUBLIC_SUBMISSIONS)
+            submit = getattr(self.driver, "submit", None)
+        except Exception as error:  # noqa: BLE001 - an unreadable driver state is a refusal
+            raise QualityContractError("PUBLIC_SUBMISSION_STATE_UNAVAILABLE:"
+                                       + type(error).__name__) from error
+        if not _is_int(raw_submissions) or raw_submissions < 0:
+            raise QualityContractError("PUBLIC_SUBMISSION_COUNT_INVALID")
+        if not _is_int(raw_limit) or raw_limit < 0:
+            raise QualityContractError("PUBLIC_SUBMISSION_LIMIT_INVALID")
+        if not callable(submit):
+            raise QualityContractError("QUALITY_DRIVER_PROTOCOL_INCOMPLETE:submit")
+        return {"submissions": raw_submissions, "limit": raw_limit, "submit": submit}
 
     # -- bounded controlled steps ----------------------------------------
     def _now(self):
@@ -1134,8 +1230,72 @@ class QualityPhase:
             raise QualityContractError("SOURCE_REPLACED")
         if digest.hexdigest() != row["source_sha256"]:
             raise QualityContractError("SOURCE_HASH_MISMATCH")
-        return {"path": str(path), "bytes": before.st_size, "sha256": digest.hexdigest(),
-                "identity": self._identity(after)}
+        evidence = {"path": str(path), "bytes": before.st_size, "sha256": digest.hexdigest(),
+                    "identity": self._identity(after)}
+        # The very same pure validator that the scoring entry point uses is
+        # applied here, so the execution and the scoring can never disagree
+        # about what a proven source looks like.
+        valid, reason = validate_source_evidence(
+            evidence,
+            source_sha256=row["source_sha256"],
+            source_bytes=row["source_bytes"],
+            input_reference=row["input_reference"],
+            run_root=str(self.root))
+        if not valid:
+            raise QualityContractError(reason)
+        return evidence
+
+    # -- source seal ----------------------------------------------------
+    def _persist_source_plan(self, rows):
+        """Seal the original source identity of all sixteen rows.
+
+        The seal is written once, exclusively, under the owned phase
+        directory, after the initial bounded source validation and before the
+        first public submission.  It binds this run, candidate, child
+        authorization and projection and records the original five component
+        descriptor identity of every source file.
+
+        Nothing here is fabricated: the identity is the one that the bounded
+        read actually observed, and the file is written with the same
+        exclusive, bounded and descriptor relative primitive as every other
+        artifact.
+        """
+        document = {
+            "schema_version": SOURCE_PLAN_SCHEMA_VERSION,
+            "run_id": self.run_id,
+            "candidate_sha": self.candidate_sha,
+            "authorization_sha256": self.authorization_sha256,
+            "projection_sha256": self.projection_sha256,
+            "rows": [],
+        }
+        for row in rows:
+            evidence = row.get("source_evidence")
+            if not isinstance(evidence, dict):
+                raise QualityContractError("SOURCE_PLAN_EVIDENCE_MISSING")
+            identity = evidence.get("identity")
+            if (not isinstance(identity, list) or len(identity) != 5
+                    or any(not _is_int(value) or value < 0 for value in identity)):
+                raise QualityContractError("SOURCE_PLAN_IDENTITY_INVALID")
+            document["rows"].append({
+                "ordinal": row["ordinal"],
+                "asset_id": row["asset_id"],
+                "media_kind": row["media_kind"],
+                "input_reference": row["input_reference"],
+                "source_bytes": row["source_bytes"],
+                "source_sha256": row["source_sha256"],
+                "path": evidence.get("path"),
+                "identity": list(identity),
+            })
+        raw = canonical_json(document).encode("utf-8")
+        artifact = self._artifact(SOURCE_PLAN_NAME, raw)
+        self._source_plan = {
+            "path": artifact["path"],
+            "bytes": artifact["bytes"],
+            "sha256": artifact["sha256"],
+            "schema_version": SOURCE_PLAN_SCHEMA_VERSION,
+            "rows": len(document["rows"]),
+        }
+        return self._source_plan
 
     # -- workflows -------------------------------------------------------
     def _load_workflows(self):
@@ -1392,15 +1552,18 @@ class QualityPhase:
             # produces zero sends and zero charges for this row.
             result["source_evidence"] = self._validate_source(
                 row, previous=result["source_evidence"]["identity"])
+            # Every controlled driver value and the submit callable itself are
+            # resolved *before* the final admission guard, so a dynamic
+            # accessor cannot change the admitted capacity or the clock after
+            # the admission decision.
+            driver_state = self._resolve_driver_state()
+            if driver_state["submissions"] >= driver_state["limit"]:
+                raise QualityContractError("PUBLIC_SUBMISSION_BUDGET_EXCEEDED")
             # The final local send-admission guard: the original ownership,
             # the phase deadline and the exact typed parent proof with its
             # current remaining capacity.  Nothing unchecked happens between
             # this guard and the submit.
             self._send_admission_guard(row, expected_calls)
-            driver_submissions = int(getattr(self.driver, "submissions", 0))
-            driver_limit = int(getattr(self.driver, "max_public_submissions", MAX_PUBLIC_SUBMISSIONS))
-            if driver_submissions >= driver_limit:
-                raise QualityContractError("PUBLIC_SUBMISSION_BUDGET_EXCEEDED")
             # The provider budget is reserved before the attempt, so a failed or
             # unknown submission can never be under-counted and re-sent.
             if self._provider_calls_reserved + expected_calls > MAX_TOTAL_PROVIDER_CALLS:
@@ -1412,7 +1575,7 @@ class QualityPhase:
             # and never retried.
             self._submissions += 1
             result["public_submission_attempted"] = True
-            prompt_id = self.driver.submit(graph)
+            prompt_id = driver_state["submit"](graph)
             if (not isinstance(prompt_id, str)
                     or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._:-]{0,79}", prompt_id)):
                 raise QualityContractError("PROMPT_ID_INVALID")
@@ -1823,6 +1986,7 @@ class QualityPhase:
             "published_as": CANONICAL_RECEIPT_NAME,
             "staged_as": STAGED_RECEIPT_NAME,
             "source_identity_sha256": sha256_bytes(canonical_json(self.source_identity).encode("utf-8")),
+            "source_plan": copy.deepcopy(self._source_plan),
             "fixed_denominator": {"images": FIXED_IMAGES, "videos": FIXED_VIDEOS, "total": FIXED_TOTAL},
             "rows": rows,
             "test_counts": {
@@ -2127,6 +2291,24 @@ class QualityPhase:
                                 {"error_code": sorted(set(codes.values()))[0],
                                  "public_submissions": 0})
 
+        # ---- the original source identity is sealed before the first send --
+        # A seal that cannot be persisted is a storage failure: the batch
+        # produces zero sends and all sixteen rows stay terminal.
+        try:
+            self._persist_source_plan(rows)
+        except QualityContractError as error:
+            code = error_base_code(error)
+            self._storage_unproven = True
+            for row in rows:
+                row["execution_status"] = "BLOCKED"
+                row["quality_status"] = QUALITY_NOT_RUN
+                row["error_code"] = "SOURCE_PLAN_PERSISTENCE_FAILED"
+                row["storage_unproven"] = True
+            return self._finish(rows, "QUALITY_EXECUTION_BLOCKED",
+                                {"error_code": "SOURCE_PLAN_PERSISTENCE_FAILED:" + code,
+                                 "public_submissions": 0,
+                                 "storage_unproven": True})
+
         try:
             workflows = self._load_workflows()
         except QualityContractError as error:
@@ -2223,18 +2405,37 @@ def _log_evidence(snapshot):
     return {key: value for key, value in snapshot.items() if key != "raw_log"}
 
 
-def load_canonical_receipt(directory):
+def load_canonical_receipt(directory, *, max_bytes=MAX_ARTIFACT_BYTES):
     """Load the authoritative terminal receipt.
 
     Only the canonical name is authority.  A staged file, even with identical
     bytes, is explicitly non-authoritative and is rejected here, so an
     unpublished staging can never be consumed as a terminal receipt.
+
+    The read is bounded: at most ``max_bytes`` bytes are accepted and at most
+    ``max_bytes + 1`` bytes are ever read, so a huge or substituted file can
+    never be pulled into the consumer.  A redirected directory or a
+    symlinked receipt is refused instead of being followed.
     """
     root = Path(directory)
+    if root.is_symlink():
+        raise QualityContractError("CANONICAL_RECEIPT_REDIRECT_FORBIDDEN")
     candidate = root / CANONICAL_RECEIPT_NAME
     if candidate.is_symlink() or not candidate.is_file():
         raise QualityContractError("CANONICAL_RECEIPT_ABSENT")
-    raw = candidate.read_bytes()
+    try:
+        size = candidate.stat().st_size
+    except OSError as error:
+        raise QualityContractError("CANONICAL_RECEIPT_UNREADABLE") from error
+    if size > max_bytes:
+        raise QualityContractError("CANONICAL_RECEIPT_TOO_LARGE")
+    try:
+        with candidate.open("rb") as stream:
+            raw = stream.read(max_bytes + 1)
+    except OSError as error:
+        raise QualityContractError("CANONICAL_RECEIPT_UNREADABLE") from error
+    if len(raw) > max_bytes:
+        raise QualityContractError("CANONICAL_RECEIPT_TOO_LARGE")
     try:
         document = json.loads(raw.decode("utf-8"))
     except (UnicodeDecodeError, json.JSONDecodeError) as error:
@@ -2248,6 +2449,108 @@ def load_canonical_receipt(directory):
     if document.get("terminal_status") != "TERMINAL_RECEIPT_PERSISTED":
         raise QualityContractError("CANONICAL_RECEIPT_NOT_PERSISTED")
     return document
+
+
+def load_published_execution_receipt(artifact_root):
+    """Load the *actually published* canonical receipt of this artifact root.
+
+    A consumer may never trust the publication flags that a caller supplies
+    in memory.  This loader reads the real canonical document from the real
+    artifact root and refuses everything that is not authority: a missing, a
+    corrupt, a staged-only or a foreign document, a redirected directory and
+    a root that is not the actual ``<run root>/temp/s3-quality`` location of
+    this run.
+    """
+    if isinstance(artifact_root, bool) or not isinstance(artifact_root, (str, os.PathLike)):
+        raise QualityContractError("QS_ARTIFACT_ROOT_INVALID")
+    root = Path(artifact_root)
+    if root.is_symlink():
+        raise QualityContractError("QS_ARTIFACT_ROOT_REDIRECT_FORBIDDEN")
+    if root.name != "s3-quality" or root.parent.name != "temp":
+        raise QualityContractError("QS_ARTIFACT_ROOT_LOCATION_INVALID")
+    document = load_canonical_receipt(root)
+    if document.get("kind") != QD_RECEIPT_KIND:
+        raise QualityContractError("QS_CANONICAL_RECEIPT_KIND_INVALID")
+    run_root = document.get("run_root")
+    if not isinstance(run_root, str) or not run_root:
+        raise QualityContractError("QS_CANONICAL_RECEIPT_RUN_ROOT_INVALID")
+    try:
+        expected = root.parent.parent.resolve(strict=True)
+    except OSError as error:
+        raise QualityContractError("QS_ARTIFACT_ROOT_LOCATION_INVALID") from error
+    if Path(run_root) != expected:
+        raise QualityContractError("QS_CANONICAL_RECEIPT_RUN_ROOT_MISMATCH")
+    return document
+
+
+def load_source_plan(artifact_root, receipt):
+    """Load and verify the sealed original source plan.
+
+    The seal is read from the same owned artifact root as the canonical
+    receipt.  Its actual bytes must match the length and the hash that the
+    receipt binds, its binding must be this run, and its sixteen ordered rows
+    must reproduce the original source descriptors.  The live source media is
+    never re-stat'ed and never has to be retained after the run.
+    """
+    binding = receipt.get("source_plan")
+    if not isinstance(binding, dict):
+        raise QualityContractError("QS_SOURCE_PLAN_MISSING")
+    relative = binding.get("path")
+    if not isinstance(relative, str) or not relative:
+        raise QualityContractError("QS_SOURCE_PLAN_PATH_INVALID")
+    try:
+        path = _safe_artifact_path(artifact_root, relative)
+    except OSError as error:
+        raise QualityContractError("QS_SOURCE_PLAN_MISSING") from error
+    try:
+        size = path.stat().st_size
+    except OSError as error:
+        raise QualityContractError("QS_SOURCE_PLAN_UNREADABLE") from error
+    if size > MAX_ARTIFACT_BYTES:
+        raise QualityContractError("QS_SOURCE_PLAN_TOO_LARGE")
+    try:
+        with path.open("rb") as stream:
+            raw = stream.read(MAX_ARTIFACT_BYTES + 1)
+    except OSError as error:
+        raise QualityContractError("QS_SOURCE_PLAN_UNREADABLE") from error
+    if len(raw) > MAX_ARTIFACT_BYTES:
+        raise QualityContractError("QS_SOURCE_PLAN_TOO_LARGE")
+    if not _is_int(binding.get("bytes")) or len(raw) != binding["bytes"]:
+        raise QualityContractError("QS_SOURCE_PLAN_LENGTH_MISMATCH")
+    if sha256_bytes(raw) != binding.get("sha256"):
+        raise QualityContractError("QS_SOURCE_PLAN_HASH_MISMATCH")
+    try:
+        document = json.loads(raw.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise QualityContractError("QS_SOURCE_PLAN_UNREADABLE") from error
+    if not isinstance(document, dict):
+        raise QualityContractError("QS_SOURCE_PLAN_UNREADABLE")
+    if document.get("schema_version") != SOURCE_PLAN_SCHEMA_VERSION:
+        raise QualityContractError("QS_SOURCE_PLAN_SCHEMA_INVALID")
+    for key in ("run_id", "candidate_sha", "authorization_sha256", "projection_sha256"):
+        if document.get(key) != receipt.get(key):
+            raise QualityContractError("QS_SOURCE_PLAN_BINDING_MISMATCH:" + key)
+    rows = document.get("rows")
+    if not isinstance(rows, list) or len(rows) != FIXED_TOTAL:
+        raise QualityContractError("QS_SOURCE_PLAN_ROW_COUNT_INVALID")
+    sealed = []
+    for index, row in enumerate(rows):
+        if not isinstance(row, dict) or set(row) != SOURCE_PLAN_ROW_KEYS:
+            raise QualityContractError("QS_SOURCE_PLAN_ROW_INVALID")
+        if row.get("ordinal") != index + 1:
+            raise QualityContractError("QS_SOURCE_PLAN_ORDER_INVALID")
+        identity = row.get("identity")
+        if (not isinstance(identity, list) or len(identity) != 5
+                or any(not _is_int(value) or value < 0 for value in identity)):
+            raise QualityContractError("QS_SOURCE_PLAN_IDENTITY_INVALID")
+        if not _is_int(row.get("source_bytes")) or row["source_bytes"] <= 0:
+            raise QualityContractError("QS_SOURCE_PLAN_BYTES_INVALID")
+        if not _is_hex(row.get("source_sha256"), 64):
+            raise QualityContractError("QS_SOURCE_PLAN_HASH_INVALID")
+        if not isinstance(row.get("path"), str) or not row["path"]:
+            raise QualityContractError("QS_SOURCE_PLAN_PATH_INVALID")
+        sealed.append(row)
+    return sealed
 
 
 def _safe_artifact_path(artifact_root, relative):
@@ -2328,7 +2631,7 @@ def verify_independence(independence, *, implementer_identity=None, run_id=None)
     }
 
 
-def _row_evidence_complete(row, receipt):
+def _row_evidence_complete(row, receipt, *, sealed=None):
     """Validate the source, storage and cleanup evidence of one row.
 
     Every row is checked, whether its execution passed or failed.  The same
@@ -2336,13 +2639,18 @@ def _row_evidence_complete(row, receipt):
     that the execution could not prove is unknown in both.  A missing, null
     or malformed declaration is unknown: the uncertainty flags must be the
     literal boolean False, and nothing is ever defaulted to a pass.
+
+    When the sealed original source descriptor is supplied, the evidence must
+    reproduce it exactly: the full five component identity, the size and the
+    hash.  The live source file is never re-stat'ed here.
     """
     valid, reason = validate_source_evidence(
         row.get("source_evidence"),
         source_sha256=row.get("source_sha256"),
         source_bytes=row.get("source_bytes"),
         input_reference=row.get("input_reference"),
-        run_root=receipt.get("run_root"))
+        run_root=receipt.get("run_root"),
+        sealed=sealed)
     if not valid:
         return False, reason
     valid, reason = validate_release_evidence(
@@ -2364,6 +2672,76 @@ def _row_evidence_complete(row, receipt):
     if receipt.get("cleanup_unproven") is not False:
         return False, "CLEANUP_UNPROVEN"
     return True, None
+
+
+def _verify_published_binding(supplied, published):
+    """The supplied receipt must be bound to the actually published document.
+
+    A consumer may not score a document that belongs to another run, another
+    candidate, another child authorization, another projection or another
+    row set.  The publication flags that the caller supplies in memory are
+    never authority; the published document is.
+    """
+    for key in ("run_id", "candidate_sha", "authorization_sha256", "projection_sha256"):
+        if supplied.get(key) != published.get(key):
+            raise QualityContractError("QS_EXECUTION_RECEIPT_BINDING_MISMATCH:" + key)
+    if supplied.get("fixed_denominator") != published.get("fixed_denominator"):
+        raise QualityContractError("QS_EXECUTION_RECEIPT_BINDING_MISMATCH:fixed_denominator")
+    supplied_rows = supplied.get("rows")
+    published_rows = published.get("rows")
+    if not isinstance(supplied_rows, list) or not isinstance(published_rows, list):
+        raise QualityContractError("QS_EXECUTION_RECEIPT_BINDING_MISMATCH:rows")
+    if [row.get("asset_id") for row in supplied_rows] != [row.get("asset_id") for row in published_rows]:
+        raise QualityContractError("QS_EXECUTION_RECEIPT_BINDING_MISMATCH:rows")
+
+
+def _verify_execution_content(supplied, published):
+    """The supplied execution content must reproduce the published document.
+
+    Every field that describes *what was executed* - the artifacts, their
+    hashes and lengths, the prompt identities, the provider counters and the
+    source seal binding - must be identical in the supplied receipt and in
+    the actually published canonical document.  A mismatch means the supplied
+    document is not the published one and the whole verdict is refused.
+
+    The verdict fields themselves are deliberately *not* compared here: they
+    are evaluated for both documents together, so that a forged verdict can
+    only ever make a row stricter, never usable.
+    """
+    for field in QS_RECEIPT_CONTENT_FIELDS:
+        if supplied.get(field) != published.get(field):
+            raise QualityContractError("QS_EXECUTION_CONTENT_MISMATCH:" + field)
+    supplied_rows = supplied.get("rows") or []
+    published_rows = published.get("rows") or []
+    for index, published_row in enumerate(published_rows):
+        supplied_row = supplied_rows[index]
+        for field in QS_ROW_CONTENT_FIELDS:
+            if supplied_row.get(field) != published_row.get(field):
+                raise QualityContractError(
+                    "QS_EXECUTION_CONTENT_MISMATCH:" + field + ":"
+                    + str(published_row.get("asset_id")))
+
+
+def _effective_execution_status(supplied_row, published_row):
+    """The stricter of the supplied and the published execution status.
+
+    A supplied document can never claim a pass that the published document
+    did not record; it may only be stricter.
+    """
+    supplied = supplied_row.get("execution_status")
+    published = published_row.get("execution_status")
+    if supplied == "PASS" and published == "PASS":
+        return "PASS"
+    if supplied != "PASS":
+        return supplied
+    return published
+
+
+def _effective_error_code(supplied_row, published_row):
+    """The error code that belongs to the effective execution status."""
+    if supplied_row.get("execution_status") != "PASS":
+        return supplied_row.get("error_code")
+    return published_row.get("error_code")
 
 
 def _validate_score_document(score):
@@ -2432,6 +2810,17 @@ def recompute_scores(execution_receipt, artifact_root, score_receipts, *,
     if not isinstance(run_id, str) or not _is_hex(candidate_sha, 40) or not _is_hex(projection_sha256, 64):
         raise QualityContractError("QS_EXECUTION_RECEIPT_IDENTITY_INVALID")
 
+    # ---- the actually published document is the authority ---------------
+    # A missing, corrupt, foreign, staged-only or redirected canonical
+    # receipt is refused here, before any score is looked at.
+    published = load_published_execution_receipt(artifact_root)
+    _verify_published_binding(execution_receipt, published)
+    published_rows = published.get("rows")
+    if not isinstance(published_rows, list) or len(published_rows) != FIXED_TOTAL:
+        raise QualityContractError("QS_ROW_COUNT_INVALID")
+    # ---- the sealed original source identity is loaded from the same root
+    sealed_rows = load_source_plan(artifact_root, published)
+
     by_asset = {}
     for row in rows:
         asset_id = row.get("asset_id")
@@ -2474,13 +2863,17 @@ def recompute_scores(execution_receipt, artifact_root, score_receipts, *,
         scores[asset_id] = score
 
     computed = []
-    for row in rows:
+    for index, row in enumerate(rows):
         asset_id = row["asset_id"]
         media_kind = row.get("media_kind")
+        published_row = published_rows[index]
+        sealed_row = sealed_rows[index]
+        effective_status = _effective_execution_status(row, published_row)
+        effective_error = _effective_error_code(row, published_row)
         entry = {
             "asset_id": asset_id,
             "media_kind": media_kind,
-            "execution_status": row.get("execution_status"),
+            "execution_status": effective_status,
             "quality_status": "FAIL",
             "usable": False,
             "resolved": False,
@@ -2496,8 +2889,17 @@ def recompute_scores(execution_receipt, artifact_root, score_receipts, *,
             "cleanup_proven": False,
         }
         score = scores.get(asset_id)
-        execution_passed = row.get("execution_status") == "PASS"
-        evidence_complete, evidence_reason = _row_evidence_complete(row, execution_receipt)
+        execution_passed = effective_status == "PASS"
+        # The evidence must be complete for the supplied document *and* for
+        # the actually published document, and it must reproduce the sealed
+        # original source descriptor in both.  A declaration that is only
+        # favourable in the supplied dictionary can never complete a row.
+        supplied_complete, supplied_reason = _row_evidence_complete(
+            row, execution_receipt, sealed=sealed_row)
+        published_complete, published_reason = _row_evidence_complete(
+            published_row, published, sealed=sealed_row)
+        evidence_complete = supplied_complete and published_complete
+        evidence_reason = supplied_reason or published_reason
         cleanup_proven = evidence_complete
         entry["cleanup_proven"] = cleanup_proven
         entry["evidence_complete"] = evidence_complete
@@ -2508,7 +2910,13 @@ def recompute_scores(execution_receipt, artifact_root, score_receipts, *,
         raw = None
         if row.get("raw_preserved") is True and row.get("raw_artifact"):
             artifact = _safe_artifact_path(artifact_root, row.get("raw_artifact"))
-            raw = artifact.read_bytes()
+            try:
+                with artifact.open("rb") as stream:
+                    raw = stream.read(MAX_ARTIFACT_BYTES + 1)
+            except OSError as error:
+                raise QualityContractError("QS_RAW_ARTIFACT_UNREADABLE:" + asset_id) from error
+            if len(raw) > MAX_ARTIFACT_BYTES:
+                raise QualityContractError("QS_RAW_ARTIFACT_TOO_LARGE:" + asset_id)
             if sha256_bytes(raw) != row.get("raw_sha256"):
                 raise QualityContractError("QS_RAW_ARTIFACT_HASH_MISMATCH:" + asset_id)
             declared = row.get("raw_bytes")
@@ -2564,7 +2972,7 @@ def recompute_scores(execution_receipt, artifact_root, score_receipts, *,
             # never be resolved.
             entry["quality_status"] = "FAIL"
             entry["usable"] = False
-            base = error_base_code(row.get("error_code") or "")
+            base = error_base_code(effective_error or "")
             if base in KNOWN_EXECUTION_FAILURE_CODES and evidence_complete:
                 entry["resolved"] = True
                 entry["reason"] = "KNOWN_EXECUTION_FAILURE_RESOLVED_NOT_USABLE"
@@ -2575,6 +2983,11 @@ def recompute_scores(execution_receipt, artifact_root, score_receipts, *,
                 entry["resolved"] = False
                 entry["reason"] = "UNKNOWN_EXECUTION_FAILURE"
         computed.append(entry)
+
+    # ---- the supplied execution content must be the published content ---
+    # This runs after the per row verification, so a malformed artifact or a
+    # wrong raw length is reported with its own precise reason first.
+    _verify_execution_content(execution_receipt, published)
 
     images_usable = sum(1 for entry in computed
                          if entry["media_kind"] == "image" and entry["usable"])

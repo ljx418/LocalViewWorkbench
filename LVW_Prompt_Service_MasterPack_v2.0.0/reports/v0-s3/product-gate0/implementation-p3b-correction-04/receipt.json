@@ -1,0 +1,399 @@
+{
+  "acceptance_runs": [
+    {
+      "blocked": 4,
+      "denominator": 4,
+      "exit_code": 0,
+      "label": "guard-selftest",
+      "outcome": "PASS",
+      "owned_root_removed": true,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "6e3db9bee7880783c6d86acad60653571ecf173c497793d487ec8c3758f8db7d"
+    },
+    {
+      "after_source_sha256": {
+        "tools/test_v0_s3_quality_phase.py": "8469e072d92efc15110bd634f781878241a0bcc7b86925f3d840ec98d7c41751",
+        "tools/v0_s3_quality_phase.py": "db78f5314df765aa4b27efec4e0fb1f13faf8e47fdc516c55f4f3a6fe4b6973d"
+      },
+      "before_source_sha256": {
+        "tools/test_v0_s3_quality_phase.py": "8469e072d92efc15110bd634f781878241a0bcc7b86925f3d840ec98d7c41751",
+        "tools/v0_s3_quality_phase.py": "db78f5314df765aa4b27efec4e0fb1f13faf8e47fdc516c55f4f3a6fe4b6973d"
+      },
+      "candidate_sha_claim_is_attestation": false,
+      "denominator": 175,
+      "exit_code": 0,
+      "failed": 0,
+      "imported_modules": {
+        "test_v0_s3_quality_phase": {
+          "module": "test_v0_s3_quality_phase",
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_quality_phase.py",
+          "sha256": "8469e072d92efc15110bd634f781878241a0bcc7b86925f3d840ec98d7c41751"
+        },
+        "tools.v0_s3_quality_phase": {
+          "module": "tools.v0_s3_quality_phase",
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_quality_phase.py",
+          "sha256": "db78f5314df765aa4b27efec4e0fb1f13faf8e47fdc516c55f4f3a6fe4b6973d"
+        }
+      },
+      "label": "full-final",
+      "outcome": "PASS",
+      "owned_root_removed": true,
+      "passed": 175,
+      "source_unchanged_during_run": true,
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 261,
+      "stdout_sha256": "55e33f44442db4c8b7188851b7b3cd8ece1483d53cfd62045d9237e517bc8c68"
+    },
+    {
+      "after_source_sha256": {
+        "tools/test_v0_s3_quality_phase.py": "8469e072d92efc15110bd634f781878241a0bcc7b86925f3d840ec98d7c41751",
+        "tools/v0_s3_quality_phase.py": "db78f5314df765aa4b27efec4e0fb1f13faf8e47fdc516c55f4f3a6fe4b6973d"
+      },
+      "before_source_sha256": {
+        "tools/test_v0_s3_quality_phase.py": "8469e072d92efc15110bd634f781878241a0bcc7b86925f3d840ec98d7c41751",
+        "tools/v0_s3_quality_phase.py": "db78f5314df765aa4b27efec4e0fb1f13faf8e47fdc516c55f4f3a6fe4b6973d"
+      },
+      "classification": "bounded observations of the correction-03 counterexamples against the correction-04 candidate; not additional product passing tests",
+      "denominator": 29,
+      "exit_code": 0,
+      "fixture_adaptation": [
+        "the public scorer loads the actually published canonical receipt and the sealed source plan from the artifact root",
+        "the identity counterexamples reach the seal comparison",
+        "the typed context observations reach the mandatory typed context",
+        "the driver accessor and the second clock read counterexamples are unchanged"
+      ],
+      "imported_modules": {
+        "tools.test_v0_s3_quality_phase": {
+          "module": "tools.test_v0_s3_quality_phase",
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_quality_phase.py",
+          "sha256": "8469e072d92efc15110bd634f781878241a0bcc7b86925f3d840ec98d7c41751"
+        },
+        "tools.v0_s3_quality_phase": {
+          "module": "tools.v0_s3_quality_phase",
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_quality_phase.py",
+          "sha256": "db78f5314df765aa4b27efec4e0fb1f13faf8e47fdc516c55f4f3a6fe4b6973d"
+        }
+      },
+      "label": "replay-correction03-counterexamples",
+      "outcome": "PASS",
+      "owned_root_removed": true,
+      "source_unchanged_during_run": true,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "e562f59709bbf0f9f131b114e673ee39aab8711de3a0a374e96b01ea5a87cc1b"
+    }
+  ],
+  "accepted_limitations": [
+    "there is no signature: a consistent rewrite of both the published canonical receipt and the seal stays self-consistent",
+    "a supplied known-failure error code may resolve a row the published document recorded as a pass; it never creates a usable row",
+    "the scoring consumer must be given the artifact root of the run it scores"
+  ],
+  "candidate_sha": "5de09478a4af6e3dd91410d4dde90c9020a77bfd",
+  "candidate_sources": {
+    "tools/test_v0_s3_quality_phase.py": "8469e072d92efc15110bd634f781878241a0bcc7b86925f3d840ec98d7c41751",
+    "tools/v0_s3_quality_phase.py": "db78f5314df765aa4b27efec4e0fb1f13faf8e47fdc516c55f4f3a6fe4b6973d"
+  },
+  "contract_changes": "none",
+  "editing_diagnostics": [
+    {
+      "collected_count": 1,
+      "exit_code": 0,
+      "label": "edit-01",
+      "outcome": "PASS",
+      "select": "qs_the_aggregate_passes_only_at_the_exact_thresholds",
+      "source_unchanged_during_run": true,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "f4e059cb819772128bfefd0a68f164728729076dd75f7a0bc7ccce4bad0024f8"
+    },
+    {
+      "collected_count": 67,
+      "exit_code": 0,
+      "label": "edit-02",
+      "outcome": "PASS",
+      "select": "qs_ or correction03_m08 or correction02_m08 or correction_m08 or correction_m07 or combined or correction_m09 or correction_m06",
+      "source_unchanged_during_run": true,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "33011a8f26bd73eb8bf63a9386c10e179d97d9a9c07167500248b6562caf90e9"
+    },
+    {
+      "collected_count": 17,
+      "exit_code": 1,
+      "label": "edit-03",
+      "outcome": "FAIL",
+      "select": "correction03_nm or correction02_nm or correction_admission or correction_timing or submission_budget or artifact_budget or phase_deadline or deadline",
+      "source_unchanged_during_run": true,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "60fb3371b7d2f53cf7a44a8add7e188dec4f4f43d368e438349fccfb3b633886"
+    },
+    {
+      "collected_count": 20,
+      "exit_code": 0,
+      "label": "edit-04",
+      "outcome": "PASS",
+      "select": "correction03_nm or correction02_nm or correction_admission or correction_timing or submission_budget or artifact_budget or phase_deadline or deadline or correction_m03 or correction_m05",
+      "source_unchanged_during_run": true,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "a14927dff9325d507aef3931ed1c5f30b94a2a2810d65b50329929e752af1baf"
+    },
+    {
+      "collected_count": 86,
+      "exit_code": 1,
+      "label": "edit-05",
+      "outcome": "FAIL",
+      "select": "projection or source or workflow or binding or sixteen or production_nodes or raw_is_persisted or history or prompt or listener or release or residue or node_output or metadata or frame or phase_cannot or existing_phase or failed_row or execution_path or correction_m01 or correction_m02 or correction_m04 or correction02_m01 or correction02_m02 or correction03_m01",
+      "source_unchanged_during_run": true,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "e0b4ad922b127b7e6a709ca82d821ee5c778f9d0a4c891e040f415b8c21674ee"
+    },
+    {
+      "collected_count": 18,
+      "exit_code": 0,
+      "label": "edit-06",
+      "outcome": "PASS",
+      "select": "correction02_m02 or correction_m02 or correction03_m01 or correction02_m01 or artifact_budget or artifact_totals",
+      "source_unchanged_during_run": true,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "b53bbf2c34c3e297ad283376debdfdc2f0747b270fd66eb0ff639cdbe13136fd"
+    },
+    {
+      "collected_count": 27,
+      "exit_code": 1,
+      "label": "edit-07",
+      "outcome": "FAIL",
+      "select": "correction04",
+      "source_unchanged_during_run": true,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "1d3a423cc8fdcdc8dbe76188adc1b9de93d4584ed17d792645f00f2896f332b7"
+    },
+    {
+      "collected_count": 30,
+      "exit_code": 1,
+      "label": "edit-08",
+      "outcome": "FAIL",
+      "select": "correction04",
+      "source_unchanged_during_run": true,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "cf94b88d6bf120794670ddd4649143b52d7d286071d6dbfe9955eae924884746"
+    },
+    {
+      "collected_count": 30,
+      "exit_code": 0,
+      "label": "edit-09",
+      "outcome": "PASS",
+      "select": "correction04",
+      "source_unchanged_during_run": true,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "a84b96c051b59d8722cd9c4c7bdacd026d4a880b3c3d8a06e5f50b79f1650378"
+    },
+    {
+      "collected_count": 80,
+      "exit_code": 0,
+      "label": "edit-10",
+      "outcome": "PASS",
+      "select": "m08 or m07 or qs_ or combined or correction_m09 or correction_m06",
+      "source_unchanged_during_run": true,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "4071ecd0e53f1a536c490209125e3caab7b281cc2d81012d9aa4e1b06f8b11b8"
+    },
+    {
+      "collected_count": 114,
+      "exit_code": 0,
+      "label": "edit-11",
+      "outcome": "PASS",
+      "select": "projection or source or workflow or binding or sixteen or production_nodes or raw_is_persisted or history or prompt or listener or release or residue or node_output or metadata or frame or phase_cannot or existing_phase or failed_row or execution_path or correction_m01 or correction_m02 or correction_m04 or correction02_m01 or correction02_m02 or correction03_m01 or submission_budget or artifact_budget or deadline or correction_admission or correction_timing or correction03_nm or correction02_nm",
+      "source_unchanged_during_run": true,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "b350bea942d4359b935204a2d3cd42b56a15b515acabb55dea8f10351cb7db5d"
+    }
+  ],
+  "finding_evidence": {
+    "M01": {
+      "cleanup": "each negative case owns its own run root and removes it",
+      "observations": [
+        "missing_canonical_retained_stage",
+        "corrupt_canonical",
+        "foreign_canonical"
+      ],
+      "public_path": "tools/v0_s3_quality_phase.py:recompute_scores -> load_published_execution_receipt -> load_canonical_receipt",
+      "terminal": "the consumer refuses the verdict; it never returns an aggregate from favourable in-memory flags",
+      "tests": [
+        "test_correction04_m01_a_missing_canonical_receipt_fails_closed",
+        "test_correction04_m01_a_corrupt_canonical_receipt_fails_closed",
+        "test_correction04_m01_a_foreign_canonical_receipt_fails_closed",
+        "test_correction04_m01_a_staged_only_receipt_is_not_authority",
+        "test_correction04_m01_a_redirected_artifact_root_is_refused",
+        "test_correction04_m01_an_oversized_canonical_receipt_is_refused",
+        "test_correction04_m01_the_supplied_execution_content_must_be_the_published_one",
+        "test_correction04_m01_a_forged_provider_counter_is_refused",
+        "test_correction04_m01_a_forged_verdict_can_only_be_stricter",
+        "test_correction04_m01_the_published_receipt_is_the_only_authority"
+      ]
+    },
+    "M08": {
+      "cleanup": "the seal is one counted artifact inside the frozen bounds; the live media may be deleted afterwards",
+      "observations": [
+        "source_plan_shape",
+        "shared_validator_calls"
+      ],
+      "public_path": "tools/v0_s3_quality_phase.py:QualityPhase._persist_source_plan -> validate_source_evidence(sealed=...) -> load_source_plan -> _row_evidence_complete",
+      "terminal": "a seal that cannot be persisted gives zero sends and sixteen terminal rows; a row that does not reproduce the seal is never usable and never resolved",
+      "tests": [
+        "test_correction04_m08_the_source_plan_seals_all_sixteen_original_identities",
+        "test_correction04_m08_a_changed_source_identity_is_unknown_in_the_scoring",
+        "test_correction04_m08_a_changed_source_size_is_unknown_in_the_scoring",
+        "test_correction04_m08_a_changed_source_hash_is_unknown_in_the_scoring",
+        "test_correction04_m08_a_changed_source_path_is_unknown_in_the_scoring",
+        "test_correction04_m08_a_tampered_source_plan_is_refused",
+        "test_correction04_m08_a_missing_source_plan_is_refused",
+        "test_correction04_m08_a_replayed_source_plan_is_refused",
+        "test_correction04_m08_a_source_plan_from_another_run_is_refused",
+        "test_correction04_m08_the_source_media_need_not_stay_on_disk",
+        "test_correction04_m08_a_source_plan_failure_produces_zero_sends",
+        "test_correction04_m08_the_bound_context_must_be_typed",
+        "test_correction04_m08_the_execution_uses_the_same_shared_validators"
+      ]
+    },
+    "NM01": {
+      "cleanup": "only the synthetic fixture driver is involved",
+      "observations": [
+        "driver_accessor_capacity_zero",
+        "driver_accessor_phase_expired"
+      ],
+      "public_path": "tools/v0_s3_quality_phase.py:QualityPhase._resolve_driver_state -> _send_admission_guard -> _execute_row",
+      "terminal": "zero sends, all sixteen rows refused, the earlier attempts and charges preserved",
+      "tests": [
+        "test_correction04_nm01_a_diminishing_limit_accessor_refuses_every_send",
+        "test_correction04_nm01_an_advancing_clock_accessor_refuses_every_send",
+        "test_correction04_nm01_a_diminishing_submit_binding_refuses_every_send",
+        "test_correction04_nm01_the_driver_state_is_resolved_before_the_final_guard"
+      ]
+    },
+    "NM02": {
+      "cleanup": "the cooperative guard is not a preemption; the parent watchdog stays UNIMPLEMENTED_PRODUCT_GATE0_BLOCKER",
+      "observations": [
+        "final_guard_second_clock_crosses_phase_deadline",
+        "later_true_interval_expiry"
+      ],
+      "public_path": "tools/v0_s3_quality_phase.py:QualityPhase._send_admission_guard -> _parent_proof_is_fresh(now=...)",
+      "terminal": "exactly 10800 is accepted, 10801 is refused with sixteen refused rows",
+      "tests": [
+        "test_correction04_nm02_the_guard_reads_the_clock_exactly_once",
+        "test_correction04_nm02_the_phase_boundary_is_exact_and_one_over",
+        "test_correction04_nm02_the_hard_supervision_blocker_is_still_recorded"
+      ]
+    }
+  },
+  "frozen_inputs": {
+    "contract": {
+      "path": "reports/v0-s3/product-gate0/p3b-quality-contract.md",
+      "sha256": "d06a6688fa618cd9fef1cd7f362b8d165addc0030dde0b5aee77465c2a2c20a3"
+    },
+    "projection": {
+      "path": "reports/v0-s3/product-gate0/quality-execution-inputs.frozen.json",
+      "sha256": "47e9f14efa66bc4df851bf1a738763b48c1728eed84b76c56a7848d1b01f00c3"
+    }
+  },
+  "historical_erratum": {
+    "acceptance_credit_for_historical_attempts": false,
+    "accepted_as_written": true,
+    "historical_direct_debug_imports": 2,
+    "historical_piped_pytest_attempts": 10,
+    "historical_pre_import_guard_compliance": "NOT_PROVEN",
+    "historical_underlying_exits": "UNKNOWN",
+    "historical_zero_external_action_claim": "NOT_PROVEN",
+    "old_report_modified": false,
+    "path": "reports/v0-s3/product-gate0/correction03-historical-execution-erratum.json",
+    "sha256": "8a7722ce5a078f6ec9d6415f67446badf27b19e2a1016d4ab5fef15cca89014d"
+  },
+  "human_signature_claim": false,
+  "independent_review_commit": "0d5c023712651b20f3554ed4f0feb2b56b974bd6",
+  "internal_evidence_added": [
+    "reports/v0-s3/product-gate0/implementation-p3b-correction-04/*"
+  ],
+  "kind": "S3_P3B_AGGREGATE_CORRECTION_04_IMPLEMENTATION_RECEIPT",
+  "machine_product_acceptance_claim": false,
+  "not_proven": [
+    "parent hard process supervision (UNIMPLEMENTED_PRODUCT_GATE0_BLOCKER)",
+    "native residue and admission integration",
+    "A06 enforcement and attempt observation",
+    "actual registration baseline and install rollback",
+    "real quality run and the full twelve",
+    "product Gate0",
+    "human signature",
+    "release signature"
+  ],
+  "offline_only": true,
+  "product_gate0": false,
+  "public_scope_changes": "none",
+  "real_execution_performed": false,
+  "replay_script": {
+    "path": "reports/v0-s3/product-gate0/implementation-p3b-correction-04/replay_correction03_counterexamples.py",
+    "sha256": "d1729b89196f557402027e4d31e457757ec788acb1f13cde540b1778b7545faf"
+  },
+  "retained_historical_evidence": {
+    "coordinate_modified": false,
+    "global_manifest_modified": false,
+    "old_checksums_modified": false,
+    "old_logs_modified": false,
+    "old_probes_modified": false,
+    "old_reports_modified": false,
+    "old_runners_modified": false
+  },
+  "root_adjudication": {
+    "decision": "CHANGES_REQUIRED_FOUR_CODE_ROOT_CAUSES_AND_APPEND_ONLY_EVIDENCE_CORRECTION",
+    "path": "reports/v0-s3/product-gate0/p3b-correction-04.adjudication.json",
+    "review_counts": {
+      "Fatal": 0,
+      "Major": 5,
+      "Minor": 1
+    },
+    "sha256": "1aa132b565803c6caa873b7ee9f4be022eda76668bbd5680aa342243446d15dc"
+  },
+  "root_disposition_commit": "55a6bc005fb4e44c0ad7e5b937f786a1b5c05f14",
+  "runner": {
+    "blocked_events": [
+      "socket.connect",
+      "socket.connect_ex",
+      "socket.bind",
+      "socket.getaddrinfo",
+      "socket.gethostbyname",
+      "socket.gethostbyaddr",
+      "socket.getnameinfo",
+      "subprocess.Popen",
+      "os.system",
+      "os.exec",
+      "os.spawn",
+      "os.posix_spawn",
+      "os.fork",
+      "os.forkpty"
+    ],
+    "bytecode_written": false,
+    "cacheprovider": "disabled",
+    "guard_installed_before_product_import": true,
+    "guard_installed_before_pytest": true,
+    "path": "reports/v0-s3/product-gate0/implementation-p3b-correction-04/run_guarded_checks.py",
+    "pytest_disable_plugin_autoload": "1",
+    "sha256": "77385fceaf403cbf60529c1161ed9c38693db803b526189ee9bfd87989c1425f"
+  },
+  "stage_pass_claim": false,
+  "status": "READY_FOR_REVIEW",
+  "test_obligations": {
+    "adapted_expectations": [
+      {
+        "change": "the file ceiling moved from 7 to 8 because the sealed source plan is one more retained artifact",
+        "check": "test_the_artifact_budget_is_exact_and_one_over",
+        "obligation_preserved": "the exact and the one-over behaviour, one public submission and fifteen blocked rows"
+      },
+      {
+        "change": "the file set below the renamed ancestor is compared before and after the redirect instead of requiring it to be empty",
+        "check": "test_correction02_m02_a_temp_ancestor_redirect_writes_nothing_into_the_old_root",
+        "obligation_preserved": "nothing was written through the renamed ancestor and no receipt was persisted"
+      }
+    ],
+    "added_in_correction04": 30,
+    "deleted": 0,
+    "preserved_from_correction03": 145,
+    "total": 175,
+    "weakened": 0
+  }
+}

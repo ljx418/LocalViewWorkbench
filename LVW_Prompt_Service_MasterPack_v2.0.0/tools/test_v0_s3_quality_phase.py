@@ -464,13 +464,14 @@ def _parent_proof(clock, **overrides):
 _UNSET = object()
 
 
-def _prepare(root, failure=None, rows=None, clock=None, parent_budget=_UNSET):
+def _prepare(root, failure=None, rows=None, clock=None, parent_budget=_UNSET, driver=None):
     for name in ("input", "output", "temp"):
         (root / name).mkdir(parents=True, exist_ok=True)
     if rows is None:
         rows = _build_sources(root)
     projection = _projection_bytes(rows)
-    driver = SyntheticDriver(root, failure)
+    if driver is None:
+        driver = SyntheticDriver(root, failure)
     if clock is None:
         clock = FakeClock(step=100.0)
     if parent_budget is _UNSET:
@@ -876,7 +877,11 @@ def test_the_public_submission_budget_is_exact_and_one_over(tmp_path):
 
 def test_the_artifact_budget_is_exact_and_one_over(tmp_path, monkeypatch):
     phase, driver, _ = _prepare(tmp_path)
-    monkeypatch.setattr(quality, "MAX_ARTIFACT_FILES", 7)
+    # The sealed original source plan is one retained artifact of the batch, so
+    # the exact ceiling is one file higher than before.  The exact and the
+    # one-over behaviour is unchanged: the first row fits and the second row
+    # is refused by the storage ceiling.
+    monkeypatch.setattr(quality, "MAX_ARTIFACT_FILES", 8)
     receipt = phase.run()
     monkeypatch.undo()
     assert receipt["rows"][0]["error_code"] is None, receipt["rows"][0]
@@ -1689,10 +1694,17 @@ def test_correction02_m01_the_receipt_caps_are_exact_and_one_over(tmp_path, boun
 def test_correction02_m02_a_temp_ancestor_redirect_writes_nothing_into_the_old_root(tmp_path):
     phase, driver, _ = _prepare(tmp_path)
     replaced = []
+    before = {}
 
     def replace_temp(action, subject):
         if action == "quality_row_begin" and not replaced:
             replaced.append(True)
+            # The files that exist below the ancestor at the moment of the
+            # redirect.  The sealed source plan was already written through
+            # the legitimate owned handle before this point.
+            before["files"] = sorted(str(path.relative_to(phase.root / "temp"))
+                                     for path in (phase.root / "temp").rglob("*")
+                                     if path.is_file())
             (phase.root / "temp").rename(phase.root / "old-temp")
             (phase.root / "temp").symlink_to(phase.root / "old-temp", target_is_directory=True)
 
@@ -1700,9 +1712,12 @@ def test_correction02_m02_a_temp_ancestor_redirect_writes_nothing_into_the_old_r
     receipt = phase.run()
     assert driver.submissions == 0, driver.submissions
     assert receipt["test_counts"]["PASS"] == 0, receipt
-    # The phase directory existed before the redirect, but no file was ever
-    # written through the renamed ancestor and no receipt was persisted.
-    assert [path for path in (phase.root / "old-temp").rglob("*") if path.is_file()] == []
+    # The phase directory existed before the redirect and no file was ever
+    # written *through* the renamed ancestor: the file set below it did not
+    # grow, and no receipt was persisted.
+    after = sorted(str(path.relative_to(phase.root / "old-temp"))
+                   for path in (phase.root / "old-temp").rglob("*") if path.is_file())
+    assert after == before["files"], (after, before["files"])
     assert not (phase.root / "old-temp" / "s3-quality" / "qd-receipt.json").exists()
     assert receipt["receipt_persisted"] is False, receipt
 
@@ -2220,3 +2235,534 @@ def test_correction03_nm01_a_later_row_expiry_preserves_the_prior_attempts(tmp_p
     assert receipt["rows"][-1]["execution_status"] == "BLOCKED", receipt["rows"][-1]
     assert len(receipt["rows"]) == 16, receipt
     assert receipt["provider_calls_reserved"] >= 1, receipt
+
+
+# --------------------------------------------------------------------------
+# aggregate correction 04: the consumer, the source seal and the send
+# boundary
+#
+# M01  the public scorer loads the actually published canonical receipt
+# M08  the original source identity is sealed and the bound context is typed
+# NM01 every controlled driver value is resolved before the final guard
+# NM02 one final latest clock sample decides the deadline and the interval
+# --------------------------------------------------------------------------
+def _own_run(tmp_path, name="run", **kwargs):
+    """A genuine public run in a private root.
+
+    The destructive negative cases need a root of their own: they remove,
+    corrupt or replace the published evidence, and they must never touch the
+    shared fixture of the other checks.
+    """
+    phase, driver, projection = _prepare(tmp_path / name, **kwargs)
+    receipt = phase.run()
+    return {
+        "phase": phase,
+        "driver": driver,
+        "receipt": receipt,
+        "artifact_root": phase.directory,
+        "root": phase.root,
+        "projection": projection,
+        "projection_sha256": hashlib.sha256(projection).hexdigest(),
+    }
+
+
+def _own_scores(run):
+    return _scores(run["receipt"], run["projection_sha256"])
+
+
+class DynamicAccessorDriver(SyntheticDriver):
+    """A driver whose controlled accessors are observable properties.
+
+    The public submission limit and the submit callable are properties, so
+    reading them runs the callback that the phase has to observe *before*
+    its final admission guard.
+    """
+
+    def __init__(self, root, failure=None, on_limit_read=None, on_submit_bind=None):
+        self.limit_reads = 0
+        self.submit_binds = 0
+        self.submit_calls = 0
+        self._on_limit_read = on_limit_read
+        self._on_submit_bind = on_submit_bind
+        super().__init__(root, failure)
+
+    @property
+    def max_public_submissions(self):
+        self.limit_reads += 1
+        if self._on_limit_read is not None:
+            self._on_limit_read()
+        return self._limit_value
+
+    @max_public_submissions.setter
+    def max_public_submissions(self, value):
+        self._limit_value = value
+
+    @property
+    def submit(self):
+        self.submit_binds += 1
+        if self._on_submit_bind is not None:
+            self._on_submit_bind()
+        driver = self
+
+        def bound(graph):
+            driver.submit_calls += 1
+            return SyntheticDriver.submit(driver, graph)
+
+        return bound
+
+
+# ---- M01: the public scorer consumes the actually published document ----
+def test_correction04_m01_a_missing_canonical_receipt_fails_closed(tmp_path):
+    run = _own_run(tmp_path)
+    canonical = run["artifact_root"] / quality.CANONICAL_RECEIPT_NAME
+    assert canonical.is_file(), canonical
+    canonical.unlink()
+    # The staged bytes are retained, but they are never authority.
+    assert (run["artifact_root"] / quality.STAGED_RECEIPT_NAME).is_file()
+    with pytest.raises(QualityContractError) as absent:
+        recompute_scores(run["receipt"], run["artifact_root"], _own_scores(run),
+                         independence=_independence())
+    assert "CANONICAL_RECEIPT_ABSENT" in str(absent.value), str(absent.value)
+
+
+def test_correction04_m01_a_corrupt_canonical_receipt_fails_closed(tmp_path):
+    run = _own_run(tmp_path)
+    canonical = run["artifact_root"] / quality.CANONICAL_RECEIPT_NAME
+    canonical.write_bytes(b'{"kind": "S3_P3B_QD_EXECUTION_RECEIPT", "rows": [')
+    with pytest.raises(QualityContractError) as corrupt:
+        recompute_scores(run["receipt"], run["artifact_root"], _own_scores(run),
+                         independence=_independence())
+    assert "CANONICAL_RECEIPT_UNREADABLE" in str(corrupt.value), str(corrupt.value)
+
+
+def test_correction04_m01_a_foreign_canonical_receipt_fails_closed(tmp_path):
+    run = _own_run(tmp_path)
+    canonical = run["artifact_root"] / quality.CANONICAL_RECEIPT_NAME
+    document = json.loads(canonical.read_bytes().decode("utf-8"))
+    document["run_id"] = "a-different-run"
+    canonical.write_bytes(json.dumps(document).encode("utf-8"))
+    with pytest.raises(QualityContractError) as foreign:
+        recompute_scores(run["receipt"], run["artifact_root"], _own_scores(run),
+                         independence=_independence())
+    assert "QS_EXECUTION_RECEIPT_BINDING_MISMATCH" in str(foreign.value), str(foreign.value)
+
+
+def test_correction04_m01_a_staged_only_receipt_is_not_authority(tmp_path):
+    run = _own_run(tmp_path)
+    canonical = run["artifact_root"] / quality.CANONICAL_RECEIPT_NAME
+    staged = run["artifact_root"] / quality.STAGED_RECEIPT_NAME
+    assert canonical.stat().st_ino == staged.stat().st_ino
+    canonical.unlink()
+    with pytest.raises(QualityContractError) as staged_only:
+        recompute_scores(run["receipt"], run["artifact_root"], _own_scores(run),
+                         independence=_independence())
+    assert "CANONICAL_RECEIPT_ABSENT" in str(staged_only.value), str(staged_only.value)
+
+
+def test_correction04_m01_a_redirected_artifact_root_is_refused(tmp_path):
+    run = _own_run(tmp_path)
+    foreign = tmp_path / "foreign-root"
+    foreign.mkdir()
+    (foreign / "s3-quality").mkdir()
+    with pytest.raises(QualityContractError) as location:
+        recompute_scores(run["receipt"], foreign / "s3-quality", _own_scores(run),
+                         independence=_independence())
+    assert "QS_ARTIFACT_ROOT_LOCATION_INVALID" in str(location.value), str(location.value)
+
+
+def test_correction04_m01_an_oversized_canonical_receipt_is_refused(tmp_path):
+    run = _own_run(tmp_path)
+    canonical = run["artifact_root"] / quality.CANONICAL_RECEIPT_NAME
+    # The consumer never reads more than the frozen 8MiB plus one byte.
+    canonical.write_bytes(b"x" * (quality.MAX_ARTIFACT_BYTES + 1))
+    with pytest.raises(QualityContractError) as oversized:
+        recompute_scores(run["receipt"], run["artifact_root"], _own_scores(run),
+                         independence=_independence())
+    assert "CANONICAL_RECEIPT_TOO_LARGE" in str(oversized.value), str(oversized.value)
+
+
+def test_correction04_m01_the_supplied_execution_content_must_be_the_published_one(tmp_path):
+    run = _own_run(tmp_path)
+    receipt = copy.deepcopy(run["receipt"])
+    # A content field that the published document records is forged.
+    receipt["rows"][0]["raw_bytes"] = receipt["rows"][0]["raw_bytes"] + 1
+    scores = _own_scores(run)
+    with pytest.raises(QualityContractError) as forged:
+        recompute_scores(receipt, run["artifact_root"], scores, independence=_independence())
+    assert "QS_RAW_ARTIFACT_LENGTH_MISMATCH" in str(forged.value), str(forged.value)
+
+
+def test_correction04_m01_a_forged_provider_counter_is_refused(tmp_path):
+    run = _own_run(tmp_path)
+    receipt = copy.deepcopy(run["receipt"])
+    receipt["provider_calls_reserved"] = 1
+    scores = _own_scores(run)
+    with pytest.raises(QualityContractError) as forged:
+        recompute_scores(receipt, run["artifact_root"], scores, independence=_independence())
+    assert "QS_EXECUTION_CONTENT_MISMATCH" in str(forged.value), str(forged.value)
+
+
+def test_correction04_m01_a_forged_verdict_can_only_be_stricter(tmp_path):
+    run = _own_run(tmp_path)
+    receipt = copy.deepcopy(run["receipt"])
+    # The published document recorded a pass; the supplied document claims a
+    # failure.  The row is then not usable and not resolved.
+    receipt["rows"][0]["execution_status"] = "FAIL"
+    receipt["rows"][0]["error_code"] = "SOURCE_REPLACED"
+    scores = _own_scores(run)
+    result = recompute_scores(receipt, run["artifact_root"], scores, independence=_independence())
+    row = result["rows"][0]
+    assert row["usable"] is False and row["resolved"] is False, row
+    assert result["aggregate_pass"] is False, result
+
+
+def test_correction04_m01_the_published_receipt_is_the_only_authority(completed_run):
+    # The unchanged happy path still closes: the published document, the
+    # sealed source plan and the supplied receipt agree.
+    receipt = completed_run["receipt"]
+    scores = _scores(receipt, completed_run["projection_sha256"])
+    result = recompute_scores(receipt, completed_run["artifact_root"], scores,
+                               independence=_independence())
+    assert result["aggregate_pass"] is True, result
+    assert result["decision"] == "QUALITY_THRESHOLDS_MET_FOR_THIS_BOUND_RUN", result
+
+
+# ---- M08: the original source identity seal ----------------------------
+def test_correction04_m08_the_source_plan_seals_all_sixteen_original_identities(tmp_path):
+    run = _own_run(tmp_path)
+    receipt = run["receipt"]
+    binding = receipt["source_plan"]
+    assert binding is not None, receipt
+    plan_path = run["artifact_root"] / binding["path"]
+    assert plan_path.is_file(), plan_path
+    raw = plan_path.read_bytes()
+    assert len(raw) == binding["bytes"], binding
+    assert hashlib.sha256(raw).hexdigest() == binding["sha256"], binding
+    document = json.loads(raw.decode("utf-8"))
+    assert document["schema_version"] == quality.SOURCE_PLAN_SCHEMA_VERSION, document
+    assert document["run_id"] == receipt["run_id"], document
+    assert document["candidate_sha"] == receipt["candidate_sha"], document
+    assert document["authorization_sha256"] == receipt["authorization_sha256"], document
+    assert document["projection_sha256"] == receipt["projection_sha256"], document
+    assert len(document["rows"]) == 16, document
+    for index, (sealed, row) in enumerate(zip(document["rows"], receipt["rows"])):
+        assert sealed["ordinal"] == index + 1, sealed
+        assert sealed["asset_id"] == row["asset_id"], sealed
+        assert sealed["media_kind"] == row["media_kind"], sealed
+        assert sealed["input_reference"] == row["input_reference"], sealed
+        assert sealed["source_bytes"] == row["source_bytes"], sealed
+        assert sealed["source_sha256"] == row["source_sha256"], sealed
+        # The sealed identity is the original five component descriptor
+        # identity of the source file.
+        assert sealed["identity"] == row["source_evidence"]["identity"], sealed
+        assert len(sealed["identity"]) == 5, sealed
+
+
+def test_correction04_m08_a_changed_source_identity_is_unknown_in_the_scoring(tmp_path):
+    run = _own_run(tmp_path)
+    receipt = copy.deepcopy(run["receipt"])
+    row = receipt["rows"][0]
+    identity = list(row["source_evidence"]["identity"])
+    identity[2] = identity[2] + 1
+    row["source_evidence"]["identity"] = identity
+    scores = _own_scores(run)
+    result = recompute_scores(receipt, run["artifact_root"], scores, independence=_independence())
+    entry = result["rows"][0]
+    assert entry["usable"] is False and entry["resolved"] is False, entry
+    assert entry["evidence_reason"] == "SOURCE_SEAL_IDENTITY_MISMATCH", entry
+    assert result["aggregate_pass"] is False, result
+
+
+def test_correction04_m08_a_changed_source_size_is_unknown_in_the_scoring(tmp_path):
+    run = _own_run(tmp_path)
+    receipt = copy.deepcopy(run["receipt"])
+    receipt["rows"][0]["source_evidence"]["bytes"] += 1
+    scores = _own_scores(run)
+    result = recompute_scores(receipt, run["artifact_root"], scores, independence=_independence())
+    entry = result["rows"][0]
+    assert entry["usable"] is False and entry["resolved"] is False, entry
+    assert entry["evidence_reason"] == "SOURCE_SEAL_BYTES_MISMATCH", entry
+    assert result["aggregate_pass"] is False, result
+
+
+def test_correction04_m08_a_changed_source_hash_is_unknown_in_the_scoring(tmp_path):
+    run = _own_run(tmp_path)
+    receipt = copy.deepcopy(run["receipt"])
+    receipt["rows"][0]["source_evidence"]["sha256"] = "0" * 64
+    scores = _own_scores(run)
+    result = recompute_scores(receipt, run["artifact_root"], scores, independence=_independence())
+    entry = result["rows"][0]
+    assert entry["usable"] is False and entry["resolved"] is False, entry
+    assert entry["evidence_reason"] == "SOURCE_SEAL_HASH_MISMATCH", entry
+    assert result["aggregate_pass"] is False, result
+
+
+def test_correction04_m08_a_changed_source_path_is_unknown_in_the_scoring(tmp_path):
+    run = _own_run(tmp_path)
+    receipt = copy.deepcopy(run["receipt"])
+    receipt["rows"][0]["source_evidence"]["path"] = str(run["root"] / "input" / "other.png")
+    scores = _own_scores(run)
+    result = recompute_scores(receipt, run["artifact_root"], scores, independence=_independence())
+    entry = result["rows"][0]
+    assert entry["usable"] is False and entry["resolved"] is False, entry
+    assert entry["evidence_reason"] == "SOURCE_SEAL_PATH_MISMATCH", entry
+    assert result["aggregate_pass"] is False, result
+
+
+def _tamper_same_length(raw, marker, replacement):
+    """Replace one byte of ``raw`` after ``marker`` without changing the length."""
+    index = raw.index(marker) + len(marker)
+    original = raw[index:index + 1]
+    changed = b"9" if original != b"9" else b"8"
+    return raw[:index] + changed + raw[index + 1:]
+
+
+def test_correction04_m08_a_tampered_source_plan_is_refused(tmp_path):
+    run = _own_run(tmp_path)
+    binding = run["receipt"]["source_plan"]
+    plan_path = run["artifact_root"] / binding["path"]
+    raw = plan_path.read_bytes()
+    # The tamper keeps the byte length, so the length check passes and the
+    # hash that the published receipt binds is what refuses it.
+    tampered = _tamper_same_length(raw, b'"identity":[', b"")
+    plan_path.write_bytes(tampered)
+    assert len(tampered) == len(raw)
+    with pytest.raises(QualityContractError) as rejected:
+        recompute_scores(run["receipt"], run["artifact_root"], _own_scores(run),
+                         independence=_independence())
+    assert "QS_SOURCE_PLAN_HASH_MISMATCH" in str(rejected.value), str(rejected.value)
+
+
+def test_correction04_m08_a_missing_source_plan_is_refused(tmp_path):
+    run = _own_run(tmp_path)
+    binding = run["receipt"]["source_plan"]
+    (run["artifact_root"] / binding["path"]).unlink()
+    with pytest.raises(QualityContractError) as missing:
+        recompute_scores(run["receipt"], run["artifact_root"], _own_scores(run),
+                         independence=_independence())
+    assert "QS_SOURCE_PLAN_MISSING" in str(missing.value), str(missing.value)
+
+
+def test_correction04_m08_a_replayed_source_plan_is_refused(tmp_path):
+    run = _own_run(tmp_path)
+    binding = run["receipt"]["source_plan"]
+    plan_path = run["artifact_root"] / binding["path"]
+    raw = plan_path.read_bytes()
+    replayed = raw.replace(b"synthetic-quality-run", b"synthetic-quality-rin")
+    assert len(replayed) == len(raw)
+    plan_path.write_bytes(replayed)
+    # The published receipt binds the original seal hash, so the replay is
+    # refused before its binding is even inspected.
+    with pytest.raises(QualityContractError) as rejected:
+        recompute_scores(run["receipt"], run["artifact_root"], _own_scores(run),
+                         independence=_independence())
+    assert "QS_SOURCE_PLAN_HASH_MISMATCH" in str(rejected.value), str(rejected.value)
+
+
+def test_correction04_m08_a_source_plan_from_another_run_is_refused(tmp_path):
+    run = _own_run(tmp_path)
+    binding = run["receipt"]["source_plan"]
+    plan_path = run["artifact_root"] / binding["path"]
+    raw = plan_path.read_bytes()
+    replayed = raw.replace(b"synthetic-quality-run", b"synthetic-quality-rin")
+    plan_path.write_bytes(replayed)
+    # A consistent forgery of the seal *and* of the published receipt is
+    # still refused: the seal has to be bound to the run of the receipt.
+    canonical = run["artifact_root"] / quality.CANONICAL_RECEIPT_NAME
+    document = json.loads(canonical.read_bytes().decode("utf-8"))
+    document["source_plan"]["sha256"] = hashlib.sha256(replayed).hexdigest()
+    canonical.write_bytes(json.dumps(document).encode("utf-8"))
+    with pytest.raises(QualityContractError) as rejected:
+        recompute_scores(run["receipt"], run["artifact_root"], _own_scores(run),
+                         independence=_independence())
+    assert "QS_SOURCE_PLAN_BINDING_MISMATCH" in str(rejected.value), str(rejected.value)
+
+
+def test_correction04_m08_the_source_media_need_not_stay_on_disk(tmp_path):
+    run = _own_run(tmp_path)
+    # The archive may delete the original media: the scoring never re-stats a
+    # live source, it compares the recorded evidence with the seal.
+    for path in (run["root"] / "input").iterdir():
+        path.unlink()
+    scores = _own_scores(run)
+    result = recompute_scores(run["receipt"], run["artifact_root"], scores,
+                               independence=_independence())
+    assert result["aggregate_pass"] is True, result
+
+
+def test_correction04_m08_a_source_plan_failure_produces_zero_sends(tmp_path):
+    phase, driver, _ = _prepare(tmp_path)
+    original = phase._artifact
+
+    def failing(relative, raw):
+        if relative == quality.SOURCE_PLAN_NAME:
+            raise QualityContractError("ARTIFACT_WRITE_FAILED:" + relative)
+        return original(relative, raw)
+
+    phase._artifact = failing
+    receipt = phase.run()
+    assert receipt["decision"] == "QUALITY_EXECUTION_BLOCKED", receipt
+    assert receipt["error_code"].startswith("SOURCE_PLAN_PERSISTENCE_FAILED"), receipt
+    assert driver.submissions == 0, driver.submissions
+    assert receipt["public_submissions"] == 0, receipt
+    assert len(receipt["rows"]) == 16, receipt
+    assert all(row["execution_status"] in ("BLOCKED", "FAIL") for row in receipt["rows"]), receipt
+    assert all(row["execution_status"] != "NOT_RUN" for row in receipt["rows"]), receipt
+    assert receipt["storage_unproven"] is True, receipt
+
+
+def test_correction04_m08_the_bound_context_must_be_typed(tmp_path):
+    run = _own_run(tmp_path)
+    for field, value in (("run_root", None), ("run_root", 0),
+                          ("parent_budget_baseline_gpu_mib", 100.0),
+                          ("parent_budget_baseline_gpu_mib", True),
+                          ("parent_budget_baseline_gpu_mib", None)):
+        receipt = copy.deepcopy(run["receipt"])
+        receipt[field] = value
+        scores = _own_scores(run)
+        result = recompute_scores(receipt, run["artifact_root"], scores,
+                                   independence=_independence())
+        assert result["aggregate_pass"] is False, (field, value, result)
+        assert result["all_rows_resolved"] is False, (field, value, result)
+
+
+def test_correction04_m08_the_execution_uses_the_same_shared_validators():
+    # The execution path really calls the shared source validator, so the two
+    # entry points can never disagree about a proven source.
+    source = inspect.getsource(quality.QualityPhase._validate_source)
+    assert "validate_source_evidence(" in source, source
+    source = inspect.getsource(quality.QualityPhase._release_evidence)
+    assert "validate_release_evidence(" in source, source
+    source = inspect.getsource(quality.QualityPhase._run_owned)
+    assert "_persist_source_plan(" in source, source
+
+
+# ---- NM01: every controlled driver value is resolved before the guard ----
+def test_correction04_nm01_a_diminishing_limit_accessor_refuses_every_send(tmp_path):
+    clock = FakeClock(step=0.0)
+    proof = _parent_proof(clock, expires_monotonic=20000.0)
+    holder = {}
+
+    def diminish():
+        # The admitted capacity is diminished when the limit is read.
+        holder["phase"].parent_budget["action_capacity"] = 0
+
+    driver = DynamicAccessorDriver(tmp_path, on_limit_read=diminish)
+    phase, driver, _ = _prepare(tmp_path, clock=clock, parent_budget=proof, driver=driver)
+    holder["phase"] = phase
+    receipt = phase.run()
+    assert driver.limit_reads >= 1, driver.limit_reads
+    assert driver.submissions == 0, driver.submissions
+    assert receipt["public_submissions"] == 0, receipt
+    assert receipt["rows"][0]["error_code"] == "PARENT_BUDGET_CAPACITY_INSUFFICIENT", receipt["rows"][0]
+    assert receipt["test_counts"]["BLOCKED"] == 16, receipt
+
+
+def test_correction04_nm01_an_advancing_clock_accessor_refuses_every_send(tmp_path):
+    clock = FakeClock(step=0.0)
+    proof = _parent_proof(clock, expires_monotonic=20000.0)
+
+    def advance():
+        clock.now = 10801.0
+
+    driver = DynamicAccessorDriver(tmp_path, on_limit_read=advance)
+    phase, driver, _ = _prepare(tmp_path, clock=clock, parent_budget=proof, driver=driver)
+    receipt = phase.run()
+    assert driver.submissions == 0, driver.submissions
+    assert receipt["public_submissions"] == 0, receipt
+    assert receipt["rows"][0]["error_code"] == "PHASE_DEADLINE_EXCEEDED", receipt["rows"][0]
+    assert receipt["test_counts"]["BLOCKED"] == 16, receipt
+
+
+def test_correction04_nm01_a_diminishing_submit_binding_refuses_every_send(tmp_path):
+    clock = FakeClock(step=0.0)
+    proof = _parent_proof(clock, expires_monotonic=20000.0)
+    holder = {}
+
+    def diminish():
+        # The driver protocol check reads the callable once during the
+        # construction; only a read inside a row may diminish the capacity.
+        phase_ref = holder.get("phase")
+        if phase_ref is not None:
+            phase_ref.parent_budget["action_capacity"] = 0
+
+    driver = DynamicAccessorDriver(tmp_path, on_submit_bind=diminish)
+    phase, driver, _ = _prepare(tmp_path, clock=clock, parent_budget=proof, driver=driver)
+    holder["phase"] = phase
+    receipt = phase.run()
+    # The submit callable is bound before the final guard, so the capacity
+    # that the binding diminished is the capacity the guard refuses.
+    assert driver.submit_binds >= 1, driver.submit_binds
+    assert driver.submit_calls == 0, driver.submit_calls
+    assert driver.submissions == 0, driver.submissions
+    assert receipt["test_counts"]["BLOCKED"] == 16, receipt
+
+
+def test_correction04_nm01_the_driver_state_is_resolved_before_the_final_guard():
+    source = inspect.getsource(quality.QualityPhase._execute_row)
+    assert source.index("_resolve_driver_state()") < source.index("_send_admission_guard("), source
+    assert source.index("_send_admission_guard(") < source.index('driver_state["submit"]'), source
+    # No controlled accessor is resolved after the final admission.
+    tail = source[source.index("_send_admission_guard("):]
+    assert "getattr(self.driver" not in tail, tail
+    assert "self.driver." not in tail, tail
+
+
+def test_correction04_nm02_the_guard_reads_the_clock_exactly_once(tmp_path):
+    phase, driver, _ = _prepare(tmp_path)
+    readings = []
+    inner = phase.clock
+
+    def counting():
+        value = inner()
+        readings.append(value)
+        return value
+
+    phase.clock = counting
+    phase._started = 0.0
+    phase._phase_deadline = quality.PHASE_TIMEOUT_SECONDS
+    phase._open_owned_directories()
+    try:
+        row = {"ordinal": 1, "asset_id": "SYN-I00", "media_kind": "image",
+               "source_sha256": "0" * 64, "source_bytes": 1, "input_reference": "x.png"}
+        phase._send_admission_guard(row, 1)
+    finally:
+        phase._close_owned_directories()
+    assert len(readings) == 1, readings
+
+
+def test_correction04_nm02_the_phase_boundary_is_exact_and_one_over(tmp_path):
+    for prepared, expected_sends in ((10798.0, 1), (10799.0, 0)):
+        clock = FakeClock(step=0.0)
+        proof = _parent_proof(clock, expires_monotonic=20000.0)
+        phase, driver, _ = _prepare(tmp_path / str(prepared), clock=clock, parent_budget=proof)
+        load = phase._load_workflows
+
+        def load_near_deadline(prepared=prepared):
+            result = load()
+            clock.now = prepared
+            return result
+
+        phase._load_workflows = load_near_deadline
+
+        def authorize(action, subject):
+            if action == "quality_public_submit":
+                clock.now += 2.0
+
+        phase.authorize = authorize
+        receipt = phase.run()
+        assert driver.submissions == expected_sends, (prepared, driver.submissions)
+        if expected_sends == 0:
+            assert receipt["rows"][0]["error_code"] == "PHASE_DEADLINE_EXCEEDED", (prepared, receipt)
+            assert receipt["test_counts"]["BLOCKED"] == 16, (prepared, receipt)
+        else:
+            assert receipt["test_counts"]["PASS"] >= 1, (prepared, receipt)
+
+
+def test_correction04_nm02_the_hard_supervision_blocker_is_still_recorded(tmp_path):
+    run = _own_run(tmp_path)
+    receipt = run["receipt"]
+    assert receipt["hard_timing_blocker"] == "UNIMPLEMENTED_PRODUCT_GATE0_BLOCKER", receipt
+    assert receipt["timing_assurance"]["hard_end_to_end_supervision"] == \
+        "UNIMPLEMENTED_PRODUCT_GATE0_BLOCKER", receipt
+    assert receipt["timing_assurance"]["synchronous_callables_preemptively_bounded"] is False, receipt
