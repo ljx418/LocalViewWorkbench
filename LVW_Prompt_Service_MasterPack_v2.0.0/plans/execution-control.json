@@ -9,7 +9,7 @@
     "stage_id": "R1",
     "workpack_id": "WP-R1-U3",
     "gate": "S3_P3B_QUALITY_INTEGRATION_INDEPENDENT_REVIEW",
-    "state": "READY"
+    "state": "RUNNING"
   },
   "last_passed_gate": {
     "gate": "UNIFIED_MEDIA_FIXED_UM10_AND_INDEPENDENT_REVIEW",
@@ -35,7 +35,7 @@
     "TARGET_HARDWARE_TESTED"
   ],
   "next_owner": "Human restores this ClaudeCode task or explicitly authorizes specific Codex takeover; root only preserves handoff",
-  "next_action": "Start visible Claude correction05 for aggregate M01/M08/NM03/NM04 with verified process-scoped zero429 retries. Preserve175 obligations, frozen scope and prior closures; isolated review after candidate.",
+  "next_action": "Await visible Claude correction05 ctx_49284fc584f8 report; first429 immediately stop/no retry/fallback. Then inspect bounded candidate evidence and separate independent review. No Stage PASS or native runtime from this offline batch.",
   "required_authorization": null,
   "authorization_request": "reports/authorization-program-v1-complete-03.request.json",
   "authorization_record": "reports/authorization-program-v1-complete-03.approval.json",
@@ -1534,10 +1534,15 @@
       }
     },
     "correction05": {
-      "status": "FROZEN_READY",
+      "status": "CLAUDE_IMPLEMENTATION_DISPATCHED",
       "task": "reports/v0-s3/product-gate0/implementation-p3b-correction-05.task.md",
       "adjudication": "reports/v0-s3/product-gate0/p3b-correction-05.adjudication.json",
-      "stage_pass_claim": false
+      "stage_pass_claim": false,
+      "dispatch_id": "ctx_49284fc584f8",
+      "task_id": "task_5b6f31469c95",
+      "terminal_id": "term_e2e3aeea-9512-45f0-acc8-c181b7f1043a",
+      "launch_receipt": "reports/v0-s3/product-gate0/implementation-p3b-correction-05.launch.json",
+      "retry_env_verification": "reports/v0-s3/product-gate0/implementation-p3b-correction-05.retry-env.json"
     }
   },
   "a06_read_only_capability_child": {
