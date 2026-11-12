@@ -3303,3 +3303,448 @@ def test_correction05_nm04_the_sealed_original_identity_is_the_source_authority(
         (phase.directory / quality.CANONICAL_RECEIPT_NAME).read_bytes().decode("utf-8"))
     for row in receipt["rows"]:
         assert sealed[row["asset_id"]] == row["source_evidence"]["identity"], row
+
+
+# ==========================================================================
+# correction 06: M01 typed actual facts and NM03 named hierarchy
+#
+# The two roots of the correction-05 independent review are closed here:
+# the comparison of an authoritative actual fact is type aware and the key
+# sets of the receipt, of the row and of the nested evidence declarations
+# are closed (M01), and the *named* hierarchy of the artifact root is
+# verified against the pinned handles before a read, after a read and
+# before a successful completion (NM03).
+# ==========================================================================
+
+
+def _fire_during_read(monkeypatch, target, action):
+    """Fire ``action`` exactly once, during the bounded read of ``target``.
+
+    The hook observes the descriptor of the read, so it fires on the read of
+    the named artifact and on no other read.  The genuine bytes of the
+    artifact are never changed: only the *names* of the hierarchy are.
+    """
+    original = os.read
+    state = {"fired": 0}
+    inode = os.stat(target).st_ino
+
+    def hooked(descriptor, count):
+        value = original(descriptor, count)
+        if not state["fired"]:
+            try:
+                info = os.fstat(descriptor)
+            except OSError:
+                return value
+            if info.st_ino == inode:
+                state["fired"] += 1
+                action()
+        return value
+
+    monkeypatch.setattr(quality.os, "read", hooked)
+    return state
+
+
+def _redirect_directory(path):
+    """Rename ``path`` and replace the entry with a symlink to the retained one."""
+    retained = path.with_name(path.name + "-retained")
+    path.rename(retained)
+    path.symlink_to(retained, target_is_directory=True)
+    return retained
+
+
+def _replace_directory(path):
+    """Rename ``path`` and put a *different* plain directory at the same path."""
+    retained = path.with_name(path.name + "-retained")
+    path.rename(retained)
+    path.mkdir()
+    return retained
+
+
+def _redirect_file(path):
+    """Rename ``path`` and replace the entry with a symlink to the retained file."""
+    retained = path.with_name(path.name + "-retained")
+    path.rename(retained)
+    path.symlink_to(retained)
+    return retained
+
+
+def _replace_file(path):
+    """Rename ``path`` and put a *different* plain file with the same bytes."""
+    retained = path.with_name(path.name + "-retained")
+    raw = path.read_bytes()
+    path.rename(retained)
+    path.write_bytes(raw)
+    return retained
+
+
+# ---- M01: the actual facts are typed and the key sets are closed ----------
+def test_correction06_m01_a_boolean_is_not_an_integer_actual_fact(tmp_path):
+    run = _own_run(tmp_path)
+    receipt = copy.deepcopy(run["receipt"])
+    row = receipt["rows"][0]
+    assert row["public_submission_attempted"] is True, row
+    # The canonical document records a boolean.  The integer 1 is not that
+    # boolean, even though Python compares the two as equal.
+    row["public_submission_attempted"] = 1
+    with pytest.raises(QualityContractError) as substituted:
+        recompute_scores(receipt, run["artifact_root"], _own_scores(run),
+                         independence=_independence())
+    assert "QS_EXECUTION_CONTENT_MISMATCH:public_submission_attempted" in str(substituted.value), \
+        str(substituted.value)
+
+
+def test_correction06_m01_an_integer_counter_is_not_a_boolean_actual_fact(tmp_path):
+    run = _own_run(tmp_path)
+    receipt = copy.deepcopy(run["receipt"])
+    row = receipt["rows"][0]
+    assert row["provider_calls"] == 1, row
+    # The counter of the row is an integer; the boolean is not that counter.
+    row["provider_calls"] = True
+    with pytest.raises(QualityContractError) as substituted:
+        recompute_scores(receipt, run["artifact_root"], _own_scores(run),
+                         independence=_independence())
+    assert "QS_EXECUTION_CONTENT_MISMATCH:provider_calls" in str(substituted.value), \
+        str(substituted.value)
+
+
+def test_correction06_m01_an_equal_float_is_not_an_integer_actual_fact(tmp_path):
+    run = _own_run(tmp_path)
+    receipt = copy.deepcopy(run["receipt"])
+    # A top level counter is a fact with an exact type as well.
+    receipt["public_submissions"] = float(receipt["public_submissions"])
+    with pytest.raises(QualityContractError) as substituted:
+        recompute_scores(receipt, run["artifact_root"], _own_scores(run),
+                         independence=_independence())
+    assert str(substituted.value).endswith("QS_EXECUTION_CONTENT_MISMATCH:public_submissions"), \
+        str(substituted.value)
+
+
+def test_correction06_m01_an_equal_float_in_a_nested_count_is_refused(tmp_path):
+    run = _own_run(tmp_path)
+    receipt = copy.deepcopy(run["receipt"])
+    # The nested denominator is a fact too: 16.0 is not the integer 16.
+    receipt["fixed_denominator"]["total"] = float(receipt["fixed_denominator"]["total"])
+    with pytest.raises(QualityContractError) as substituted:
+        recompute_scores(receipt, run["artifact_root"], _own_scores(run),
+                         independence=_independence())
+    assert "QS_EXECUTION_CONTENT_MISMATCH:fixed_denominator" in str(substituted.value), \
+        str(substituted.value)
+
+
+def test_correction06_m01_a_nested_identity_substitution_is_unknown(tmp_path):
+    run = _own_run(tmp_path)
+    receipt = copy.deepcopy(run["receipt"])
+    identity = list(receipt["rows"][0]["source_evidence"]["identity"])
+    # A boolean is not an integer, not even inside the sealed identity.
+    identity[0] = True
+    receipt["rows"][0]["source_evidence"]["identity"] = identity
+    result = recompute_scores(receipt, run["artifact_root"], _own_scores(run),
+                              independence=_independence())
+    row = result["rows"][0]
+    assert row["usable"] is False and row["resolved"] is False, row
+    assert row["evidence_reason"] == "SOURCE_IDENTITY_INVALID", row
+    assert result["aggregate_pass"] is False, result
+
+
+def test_correction06_m01_a_nested_counter_substitution_is_unknown(tmp_path):
+    run = _own_run(tmp_path)
+    receipt = copy.deepcopy(run["receipt"])
+    samples = receipt["rows"][0]["release_evidence"]["gpu_samples"]
+    # The measured GPU counter is an integer; the boolean is not that counter.
+    samples[0]["gpu_used_mib"] = True
+    result = recompute_scores(receipt, run["artifact_root"], _own_scores(run),
+                              independence=_independence())
+    row = result["rows"][0]
+    assert row["usable"] is False and row["resolved"] is False, row
+    assert row["evidence_reason"] == "RELEASE_EVIDENCE_GPU_SAMPLES_INVALID", row
+    assert result["aggregate_pass"] is False, result
+
+
+def test_correction06_m01_a_caller_only_receipt_fact_is_refused(tmp_path):
+    run = _own_run(tmp_path)
+    receipt = copy.deepcopy(run["receipt"])
+    # A field that the published document does not have is an own fact of
+    # the caller.  The top level key set is closed.
+    receipt["caller_only_fact"] = "fabricated"
+    with pytest.raises(QualityContractError) as forged:
+        recompute_scores(receipt, run["artifact_root"], _own_scores(run),
+                         independence=_independence())
+    assert "QS_EXECUTION_CONTENT_MISMATCH:caller_only_fact" in str(forged.value), str(forged.value)
+
+
+def test_correction06_m01_a_caller_only_source_evidence_fact_is_unknown(tmp_path):
+    run = _own_run(tmp_path)
+    receipt = copy.deepcopy(run["receipt"])
+    # The source evidence is an overlay declared evidence, but its own key
+    # set is closed as well: it cannot carry a fact of the caller.
+    receipt["rows"][0]["source_evidence"]["caller_only_fact"] = "fabricated"
+    result = recompute_scores(receipt, run["artifact_root"], _own_scores(run),
+                              independence=_independence())
+    row = result["rows"][0]
+    assert row["usable"] is False and row["resolved"] is False, row
+    assert row["evidence_reason"] == "SOURCE_EVIDENCE_UNEXPECTED_FIELD", row
+    assert result["aggregate_pass"] is False, result
+
+
+def test_correction06_m01_a_caller_only_release_evidence_fact_is_unknown(tmp_path):
+    run = _own_run(tmp_path)
+    receipt = copy.deepcopy(run["receipt"])
+    receipt["rows"][0]["release_evidence"]["caller_only_fact"] = "fabricated"
+    result = recompute_scores(receipt, run["artifact_root"], _own_scores(run),
+                              independence=_independence())
+    row = result["rows"][0]
+    assert row["usable"] is False and row["resolved"] is False, row
+    assert row["evidence_reason"] == "RELEASE_EVIDENCE_UNEXPECTED_FIELD", row
+    assert result["aggregate_pass"] is False, result
+
+
+def test_correction06_m01_a_caller_only_gpu_sample_fact_is_unknown(tmp_path):
+    run = _own_run(tmp_path)
+    receipt = copy.deepcopy(run["receipt"])
+    receipt["rows"][0]["release_evidence"]["gpu_samples"][0]["caller_only_fact"] = 1
+    result = recompute_scores(receipt, run["artifact_root"], _own_scores(run),
+                              independence=_independence())
+    row = result["rows"][0]
+    assert row["usable"] is False and row["resolved"] is False, row
+    assert row["evidence_reason"] == "RELEASE_EVIDENCE_GPU_SAMPLES_INVALID", row
+    assert result["aggregate_pass"] is False, result
+
+
+@pytest.mark.parametrize("substituted", [True, 1.0])
+def test_correction06_m01_a_seal_only_typed_ordinal_is_refused(tmp_path, substituted):
+    run = _own_run(tmp_path)
+
+    def contradict(document):
+        document["rows"][0]["ordinal"] = substituted
+
+    _rewrite_seal(run, contradict)
+    # The execution rows themselves are untouched and the seal hash and
+    # length are consistent again: only the ordinal carries the wrong type.
+    with pytest.raises(QualityContractError) as refused:
+        recompute_scores(run["receipt"], run["artifact_root"], _own_scores(run),
+                         independence=_independence())
+    assert "QS_SOURCE_PLAN_ORDER_INVALID" in str(refused.value), str(refused.value)
+
+
+def test_correction06_m01_the_published_and_the_returned_receipt_carry_the_same_fields(tmp_path):
+    run = _own_run(tmp_path)
+    published = json.loads(
+        (run["artifact_root"] / quality.CANONICAL_RECEIPT_NAME).read_bytes().decode("utf-8"))
+    # The key set of the top level is closed: the returned receipt and the
+    # published document carry exactly the same fields, so a supplied
+    # document can never add a field of its own.
+    assert set(run["receipt"]) == set(published), sorted(set(run["receipt"]) ^ set(published))
+    assert quality.QS_RECEIPT_OVERLAY_FIELDS <= set(published), quality.QS_RECEIPT_OVERLAY_FIELDS
+
+
+# ---- NM03: the named hierarchy during a bounded read ---------------------
+def test_correction06_nm03_a_run_root_redirected_during_the_canonical_read_is_refused(
+        tmp_path, monkeypatch):
+    run = _own_run(tmp_path)
+    canonical = run["artifact_root"] / quality.CANONICAL_RECEIPT_NAME
+    before = canonical.read_bytes()
+    state = _fire_during_read(monkeypatch, canonical,
+                               lambda: _redirect_directory(run["root"]))
+    with pytest.raises(QualityContractError) as redirected:
+        recompute_scores(run["receipt"], run["artifact_root"], _own_scores(run),
+                         independence=_independence())
+    assert state["fired"] == 1, state
+    assert "CANONICAL_RECEIPT_REDIRECT_FORBIDDEN" in str(redirected.value), str(redirected.value)
+    # The genuine bytes are unchanged: only the name of the run root stopped
+    # naming the pinned hierarchy.
+    assert canonical.read_bytes() == before
+
+
+def test_correction06_nm03_a_temp_redirected_during_the_canonical_read_is_refused(
+        tmp_path, monkeypatch):
+    run = _own_run(tmp_path)
+    canonical = run["artifact_root"] / quality.CANONICAL_RECEIPT_NAME
+    before = canonical.read_bytes()
+    state = _fire_during_read(monkeypatch, canonical,
+                               lambda: _redirect_directory(run["root"] / "temp"))
+    with pytest.raises(QualityContractError) as redirected:
+        recompute_scores(run["receipt"], run["artifact_root"], _own_scores(run),
+                         independence=_independence())
+    assert state["fired"] == 1, state
+    assert "CANONICAL_RECEIPT_REDIRECT_FORBIDDEN" in str(redirected.value), str(redirected.value)
+    assert canonical.read_bytes() == before
+
+
+def test_correction06_nm03_a_phase_redirected_during_the_canonical_read_is_refused(
+        tmp_path, monkeypatch):
+    run = _own_run(tmp_path)
+    canonical = run["artifact_root"] / quality.CANONICAL_RECEIPT_NAME
+    before = canonical.read_bytes()
+    state = _fire_during_read(monkeypatch, canonical,
+                               lambda: _redirect_directory(run["artifact_root"]))
+    with pytest.raises(QualityContractError) as redirected:
+        recompute_scores(run["receipt"], run["artifact_root"], _own_scores(run),
+                         independence=_independence())
+    assert state["fired"] == 1, state
+    assert "CANONICAL_RECEIPT_REDIRECT_FORBIDDEN" in str(redirected.value), str(redirected.value)
+    assert canonical.read_bytes() == before
+
+
+def test_correction06_nm03_a_run_root_replaced_by_another_directory_during_the_read_is_refused(
+        tmp_path, monkeypatch):
+    run = _own_run(tmp_path)
+    canonical = run["artifact_root"] / quality.CANONICAL_RECEIPT_NAME
+    before = canonical.read_bytes()
+    state = _fire_during_read(monkeypatch, canonical,
+                               lambda: _replace_directory(run["root"]))
+    with pytest.raises(QualityContractError) as replaced:
+        recompute_scores(run["receipt"], run["artifact_root"], _own_scores(run),
+                         independence=_independence())
+    assert state["fired"] == 1, state
+    assert "CANONICAL_RECEIPT_REDIRECT_FORBIDDEN" in str(replaced.value), str(replaced.value)
+    # The genuine bytes are still there, but they are no longer reachable
+    # under the name that the run root is bound to.
+    retained = run["root"].with_name(run["root"].name + "-retained")
+    assert (retained / "temp" / "s3-quality" / quality.CANONICAL_RECEIPT_NAME).read_bytes() == before
+
+
+def test_correction06_nm03_a_source_plan_leaf_redirected_during_its_read_is_refused(
+        tmp_path, monkeypatch):
+    run = _own_run(tmp_path)
+    seal = _seal_path(run)
+    before = seal.read_bytes()
+    state = _fire_during_read(monkeypatch, seal, lambda: _redirect_file(seal))
+    with pytest.raises(QualityContractError) as redirected:
+        recompute_scores(run["receipt"], run["artifact_root"], _own_scores(run),
+                         independence=_independence())
+    assert state["fired"] == 1, state
+    assert "QS_SOURCE_PLAN_REDIRECT_FORBIDDEN" in str(redirected.value), str(redirected.value)
+    assert seal.read_bytes() == before
+
+
+def test_correction06_nm03_a_source_plan_parent_redirected_during_its_read_is_refused(
+        tmp_path, monkeypatch):
+    run = _own_run(tmp_path)
+    seal = _seal_path(run)
+    before = seal.read_bytes()
+    state = _fire_during_read(monkeypatch, seal,
+                               lambda: _redirect_directory(run["artifact_root"]))
+    with pytest.raises(QualityContractError) as redirected:
+        recompute_scores(run["receipt"], run["artifact_root"], _own_scores(run),
+                         independence=_independence())
+    assert state["fired"] == 1, state
+    assert "QS_SOURCE_PLAN_REDIRECT_FORBIDDEN" in str(redirected.value), str(redirected.value)
+    assert seal.read_bytes() == before
+
+
+def test_correction06_nm03_a_raw_parent_redirected_during_the_raw_read_is_refused(
+        tmp_path, monkeypatch):
+    run = _own_run(tmp_path)
+    raw = run["artifact_root"] / run["receipt"]["rows"][0]["raw_artifact"]
+    before = raw.read_bytes()
+    state = _fire_during_read(monkeypatch, raw, lambda: _redirect_directory(raw.parent))
+    with pytest.raises(QualityContractError) as redirected:
+        recompute_scores(run["receipt"], run["artifact_root"], _own_scores(run),
+                         independence=_independence())
+    assert state["fired"] == 1, state
+    assert "QS_RAW_ARTIFACT_REDIRECT_FORBIDDEN" in str(redirected.value), str(redirected.value)
+    assert raw.read_bytes() == before
+
+
+def test_correction06_nm03_a_raw_leaf_replaced_by_another_file_during_the_raw_read_is_refused(
+        tmp_path, monkeypatch):
+    run = _own_run(tmp_path)
+    raw = run["artifact_root"] / run["receipt"]["rows"][0]["raw_artifact"]
+    before = raw.read_bytes()
+    state = _fire_during_read(monkeypatch, raw, lambda: _replace_file(raw))
+    with pytest.raises(QualityContractError) as replaced:
+        recompute_scores(run["receipt"], run["artifact_root"], _own_scores(run),
+                         independence=_independence())
+    assert state["fired"] == 1, state
+    assert "QS_RAW_ARTIFACT_REDIRECT_FORBIDDEN" in str(replaced.value), str(replaced.value)
+    # The replacement carries the very same bytes: only the name stopped
+    # naming the pinned object.
+    assert raw.read_bytes() == before
+
+
+def test_correction06_nm03_a_missing_named_entry_during_the_raw_read_is_refused(
+        tmp_path, monkeypatch):
+    run = _own_run(tmp_path)
+    raw = run["artifact_root"] / run["receipt"]["rows"][0]["raw_artifact"]
+    before = raw.read_bytes()
+    state = _fire_during_read(monkeypatch, raw,
+                               lambda: raw.rename(raw.with_name(raw.name + "-retained")))
+    with pytest.raises(QualityContractError) as missing:
+        recompute_scores(run["receipt"], run["artifact_root"], _own_scores(run),
+                         independence=_independence())
+    assert state["fired"] == 1, state
+    assert "QS_RAW_ARTIFACT_UNREADABLE" in str(missing.value), str(missing.value)
+    assert raw.with_name(raw.name + "-retained").read_bytes() == before
+
+
+def test_correction06_nm03_an_identical_declared_run_root_does_not_skip_the_verification(tmp_path):
+    run = _own_run(tmp_path)
+    boundary = quality._ArtifactBoundary(run["artifact_root"])
+    try:
+        _redirect_directory(run["root"])
+        # The declared run root is this very run root.  The literal equality
+        # may not return before the pinned hierarchy has been verified.
+        with pytest.raises(QualityContractError) as replaced:
+            quality._verify_run_root_binding(str(run["root"]), boundary)
+        assert "QS_ARTIFACT_ROOT_REDIRECT_FORBIDDEN" in str(replaced.value), str(replaced.value)
+    finally:
+        boundary.close()
+
+
+def test_correction06_nm03_a_bounded_tiny_read_is_exact_and_one_over(tmp_path):
+    run = _own_run(tmp_path)
+    fixture = run["artifact_root"] / "bounded-tiny.bin"
+    fixture.write_bytes(b"abcd")
+    boundary = quality._ArtifactBoundary(run["artifact_root"])
+    try:
+        assert boundary.read("bounded-tiny.bin", 4) == b"abcd"
+        with pytest.raises(QualityContractError) as over:
+            boundary.read("bounded-tiny.bin", 3)
+        assert "SCORE_ARTIFACT_TOO_LARGE" in str(over.value), str(over.value)
+    finally:
+        boundary.close()
+        fixture.unlink()
+
+
+def test_correction06_nm03_a_growing_leaf_is_refused_by_the_final_bound(tmp_path, monkeypatch):
+    run = _own_run(tmp_path)
+    fixture = run["artifact_root"] / "growing.bin"
+    fixture.write_bytes(b"abcd")
+    original = os.read
+    state = {"fired": 0}
+
+    def hooked(descriptor, count):
+        value = original(descriptor, count)
+        if not state["fired"]:
+            state["fired"] += 1
+            with open(fixture, "ab") as stream:
+                stream.write(b"e")
+        return value
+
+    monkeypatch.setattr(quality.os, "read", hooked)
+    boundary = quality._ArtifactBoundary(run["artifact_root"])
+    try:
+        with pytest.raises(QualityContractError) as grown:
+            boundary.read("growing.bin", 4)
+        assert "SCORE_ARTIFACT_TOO_LARGE" in str(grown.value), str(grown.value)
+        assert state["fired"] == 1, state
+    finally:
+        boundary.close()
+        fixture.unlink()
+
+
+@pytest.mark.skipif(not os.path.isdir("/proc/self/fd"), reason="no procfs descriptor listing")
+def test_correction06_nm03_no_descriptor_is_leaked_by_the_boundary(tmp_path):
+    run = _own_run(tmp_path)
+    before = len(os.listdir("/proc/self/fd"))
+    boundary = quality._ArtifactBoundary(run["artifact_root"])
+    boundary.read(quality.CANONICAL_RECEIPT_NAME, quality.MAX_ARTIFACT_BYTES)
+    boundary.close()
+    assert len(os.listdir("/proc/self/fd")) <= before, "the boundary leaked a descriptor"
+    # A construction that fails has to close its own descriptors as well.
+    broken = tmp_path / "broken"
+    broken.mkdir()
+    (broken / "temp").write_bytes(b"not a directory")
+    with pytest.raises(QualityContractError):
+        quality._ArtifactBoundary(broken / "temp" / "s3-quality")
+    assert len(os.listdir("/proc/self/fd")) <= before, "the failed construction leaked a descriptor"

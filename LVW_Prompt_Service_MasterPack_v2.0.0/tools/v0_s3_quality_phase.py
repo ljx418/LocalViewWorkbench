@@ -232,6 +232,30 @@ QS_ROW_OVERLAY_FIELDS = frozenset({
     "stage",
 })
 
+# The closed key sets of the two evidence declarations of one row.
+#
+# The source evidence and the release evidence are actual execution facts
+# that a verdict depends on.  A caller may not extend them with an own
+# fact: a declaration that carries a key outside these sets is malformed,
+# and a malformed declaration is unknown - it is never a pass and it never
+# silently completes a row.
+#
+# The release evidence may carry the optional native proof fields of the
+# public release path.  They belong to the same bounded declaration and they
+# are never an own fact of the caller.
+QS_SOURCE_EVIDENCE_KEYS = frozenset({
+    "path", "bytes", "sha256", "identity",
+})
+QS_RELEASE_EVIDENCE_KEYS = frozenset({
+    "proven", "loaded_models", "elapsed_seconds", "baseline_gpu_mib",
+    "gpu_samples",
+    "run_token", "model", "owner_pid", "owner_start_ticks",
+    "unload_acknowledged",
+})
+QS_GPU_SAMPLE_KEYS = frozenset({
+    "monotonic_seconds", "gpu_used_mib",
+})
+
 
 def _is_typed_run_root(value):
     """A bound run root is a non empty path string."""
@@ -497,6 +521,53 @@ def _is_int(value) -> bool:
     return type(value) is int
 
 
+def _json_fact_equal(left, right):
+    """Type aware equality of one JSON fact.
+
+    Python's ``==`` accepts ``True == 1`` and ``1 == 1.0``, so a plain
+    comparison of an authoritative fact would accept a boolean where the
+    canonical document records an integer and an integer where it records
+    a float.  An actual execution fact has to reproduce the canonical value
+    *exactly*, including its JSON type:
+
+    * a boolean is never an integer and never a float;
+    * an integer is never a float;
+    * the comparison recurses into nested objects and into the elements of
+      a list, so a typed substitution inside a nested fact is a difference
+      too.
+
+    Only JSON facts are compared.  This is not a claim against arbitrary
+    hostile Python objects and not a claim against a total forgery of the
+    trusted originals.
+    """
+    if isinstance(left, bool) or isinstance(right, bool):
+        return isinstance(left, bool) and isinstance(right, bool) and left is right
+    if left is None or right is None:
+        return left is None and right is None
+    if _is_int(left) or _is_int(right):
+        return _is_int(left) and _is_int(right) and left == right
+    if isinstance(left, float) or isinstance(right, float):
+        if not (isinstance(left, float) and isinstance(right, float)):
+            return False
+        return math.isfinite(left) and math.isfinite(right) and left == right
+    if isinstance(left, str) or isinstance(right, str):
+        return isinstance(left, str) and isinstance(right, str) and left == right
+    if isinstance(left, list) or isinstance(right, list):
+        if not (isinstance(left, list) and isinstance(right, list)):
+            return False
+        if len(left) != len(right):
+            return False
+        return all(_json_fact_equal(one, other) for one, other in zip(left, right))
+    if isinstance(left, dict) or isinstance(right, dict):
+        if not (isinstance(left, dict) and isinstance(right, dict)):
+            return False
+        if set(left) != set(right):
+            return False
+        return all(_json_fact_equal(left[key], right[key]) for key in left)
+    # An object that is not a JSON fact is never an authoritative fact.
+    return False
+
+
 def _is_hex(value, length: int) -> bool:
     return isinstance(value, str) and re.fullmatch(r"[0-9a-f]{%d}" % length, value) is not None
 
@@ -641,6 +712,11 @@ def validate_source_evidence(evidence, *, source_sha256, source_bytes,
         return False, "SOURCE_RUN_ROOT_INVALID"
     if Path(path) != Path(run_root) / "input" / input_reference:
         return False, "SOURCE_PATH_FOREIGN"
+    if set(evidence) - QS_SOURCE_EVIDENCE_KEYS:
+        # The declaration is closed: a key outside the closed set is an own
+        # fact of the caller and never a proven observation.  A malformed
+        # declaration is unknown, never a pass.
+        return False, "SOURCE_EVIDENCE_UNEXPECTED_FIELD"
     return True, None
 
 
@@ -2184,10 +2260,20 @@ class QualityPhase:
         document["artifact_files_including_receipt"] = self._artifact_files + 2
         document["artifact_bytes_including_receipt"] = self._artifact_bytes
         document["receipt_bytes"] = 0
+        # The publication bookkeeping of the staged entry is part of the
+        # published document itself, so that the returned receipt and the
+        # published document carry exactly the same fields.  A consumer can
+        # therefore close the top level key set without an exception for the
+        # two fields that the publication itself records.  The staged entry
+        # holds exactly the published payload, so its length is the length of
+        # the published receipt.
+        document["staged_receipt_retained"] = True
+        document["staged_receipt_bytes"] = 0
         document[RECEIPT_PADDING_KEY] = ""
         assumed = len(canonical_json(document).encode("utf-8")) + 64
         for _ in range(RECEIPT_FIXED_POINT_ITERATIONS):
             document["receipt_bytes"] = assumed
+            document["staged_receipt_bytes"] = assumed
             document["artifact_bytes_including_receipt"] = self._artifact_bytes + 2 * assumed
             document["artifact_files_including_receipt"] = self._artifact_files + 2
             raw = canonical_json(document).encode("utf-8")
@@ -2511,19 +2597,34 @@ class _ArtifactBoundary:
     """The strict artifact-root boundary of the scoring entry point.
 
     The run root, the ``temp`` directory and the phase directory are opened
-    against their own pinned parent with ``O_DIRECTORY|O_NOFOLLOW``.  A
-    renamed ancestor that was replaced by a symlink is therefore *refused*
-    instead of being silently resolved and adopted, and the identity of every
-    level is checked again after every read.
+    against their own pinned parent with ``O_DIRECTORY|O_NOFOLLOW``.  The
+    trusted parent of the run root is pinned once, and every level is
+    recorded as the triple ``(parent_fd, child_name, pinned identity)``.
+
+    The recorded triple is not only checked when the entry is opened: the
+    *current* named entry is verified with a no-follow, parent relative
+    ``stat`` against the pinned handle and against the original identity -
+    before a read, after a read and before a successful completion.  A
+    renamed ancestor that was replaced by a symlink, by another directory or
+    by another file is therefore refused even when the pinned descriptors
+    would still read the original genuine bytes: the selected path has to
+    keep naming the pinned hierarchy.
+
+    The same rule applies to every directory and to the leaf that is opened
+    for a read below the phase directory.  Nothing is ever resolved, adopted
+    or followed away, and every descriptor that this boundary opens is
+    closed again on the ordinary path and on every error path.
 
     Every evidence type - the canonical receipt, the source seal and the raw
     artifacts - is read through this one boundary, so no evidence type can
     have a weaker ancestry rule than another.
 
-    Accepted limitation: this is an in-process inode observation inside the
-    existing audited Python/filesystem trust model.  It does not claim
-    immunity against a hostile kernel, against a native Windows reparse
-    point or against a filesystem that moves inodes underneath the process.
+    Accepted limitation: this is an in-process inode and name observation
+    inside the existing audited Python/filesystem trust model.  It is a
+    cooperative, finite observation.  It does not claim immunity against a
+    hostile kernel, against a native Windows reparse point, against a
+    filesystem that moves inodes underneath the process or against a
+    universal concurrency guarantee.
     """
 
     def __init__(self, artifact_root):
@@ -2534,9 +2635,12 @@ class _ArtifactBoundary:
             raise QualityContractError("QS_ARTIFACT_ROOT_LOCATION_INVALID")
         self.run_root_path = literal.parent.parent
         self._fds = []
+        self._levels = []
+        self._root_parent_fd = None
         try:
+            self._root_parent_fd = self._open_trusted_parent(self.run_root_path.parent)
             self._run_fd, self.run_root_identity = self._open_directory(
-                str(self.run_root_path), None)
+                self.run_root_path.name, self._root_parent_fd)
             self._temp_fd, self._temp_identity = self._open_directory("temp", self._run_fd)
             self._phase_fd, self._phase_identity = self._open_directory(
                 "s3-quality", self._temp_fd)
@@ -2545,13 +2649,29 @@ class _ArtifactBoundary:
             raise
 
     # -- opening ---------------------------------------------------------
+    def _open_trusted_parent(self, path):
+        """Pin the trusted parent of the run root.
+
+        The parent is the anchor of the trust model: it is opened as a
+        directory and it is only ever used to open the run root *by name*.
+        It is never used to resolve an artifact path and it never grants a
+        fallback to an absolute path.
+        """
+        try:
+            descriptor = os.open(str(path), os.O_RDONLY | os.O_DIRECTORY)
+        except OSError as error:
+            if error.errno == errno.ENOENT:
+                raise QualityContractError(
+                    "QS_ARTIFACT_ROOT_MISSING:" + str(path)) from error
+            raise QualityContractError(
+                "QS_ARTIFACT_ROOT_UNAVAILABLE:" + str(path)) from error
+        self._fds.append(descriptor)
+        return descriptor
+
     def _open_directory(self, name, parent_fd):
         flags = os.O_RDONLY | os.O_DIRECTORY | getattr(os, "O_NOFOLLOW", 0)
         try:
-            if parent_fd is None:
-                descriptor = os.open(name, flags)
-            else:
-                descriptor = os.open(name, flags, dir_fd=parent_fd)
+            descriptor = os.open(name, flags, dir_fd=parent_fd)
         except OSError as error:
             if error.errno in (errno.ELOOP, errno.ENOTDIR):
                 raise QualityContractError(
@@ -2568,10 +2688,7 @@ class _ArtifactBoundary:
         # following a symlink, so a replaced ancestor is detected instead of
         # being adopted.
         try:
-            if parent_fd is None:
-                entry = os.lstat(name)
-            else:
-                entry = os.stat(name, dir_fd=parent_fd, follow_symlinks=False)
+            entry = os.stat(name, dir_fd=parent_fd, follow_symlinks=False)
         except OSError as error:
             raise QualityContractError(
                 "QS_ARTIFACT_ROOT_MISSING:" + str(name)) from error
@@ -2581,6 +2698,14 @@ class _ArtifactBoundary:
         if (entry.st_dev, entry.st_ino) != identity:
             raise QualityContractError(
                 "QS_ARTIFACT_ROOT_REPLACED:" + str(name))
+        # The level is recorded so that the *named* entry can be verified
+        # again against the pinned handle later on.
+        self._levels.append({
+            "fd": descriptor,
+            "parent_fd": parent_fd,
+            "name": str(name),
+            "identity": identity,
+        })
         return descriptor, identity
 
     def _open_child_directory(self, parent_fd, name):
@@ -2597,6 +2722,7 @@ class _ArtifactBoundary:
             raise QualityContractError(
                 "SCORE_ARTIFACT_UNAVAILABLE:" + name) from error
         info = os.fstat(descriptor)
+        identity = (info.st_dev, info.st_ino)
         try:
             entry = os.stat(name, dir_fd=parent_fd, follow_symlinks=False)
         except OSError as error:
@@ -2604,16 +2730,16 @@ class _ArtifactBoundary:
             raise QualityContractError(
                 "SCORE_ARTIFACT_MISSING:" + name) from error
         if (not stat.S_ISDIR(entry.st_mode)
-                or (entry.st_dev, entry.st_ino) != (info.st_dev, info.st_ino)):
+                or (entry.st_dev, entry.st_ino) != identity):
             os.close(descriptor)
             raise QualityContractError(
                 "SCORE_ARTIFACT_REDIRECT_FORBIDDEN:" + name)
-        return descriptor
+        return descriptor, identity
 
     def _open_leaf(self, parent_fd, name):
         try:
-            return os.open(name, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0),
-                           dir_fd=parent_fd)
+            descriptor = os.open(name, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0),
+                                 dir_fd=parent_fd)
         except OSError as error:
             if error.errno == errno.ELOOP:
                 raise QualityContractError(
@@ -2623,19 +2749,61 @@ class _ArtifactBoundary:
                     "SCORE_ARTIFACT_MISSING:" + name) from error
             raise QualityContractError(
                 "SCORE_ARTIFACT_UNAVAILABLE:" + name) from error
+        info = os.fstat(descriptor)
+        identity = (info.st_dev, info.st_ino)
+        try:
+            entry = os.stat(name, dir_fd=parent_fd, follow_symlinks=False)
+        except OSError as error:
+            os.close(descriptor)
+            raise QualityContractError(
+                "SCORE_ARTIFACT_MISSING:" + name) from error
+        if (not stat.S_ISREG(entry.st_mode)
+                or (entry.st_dev, entry.st_ino) != identity):
+            os.close(descriptor)
+            raise QualityContractError(
+                "SCORE_ARTIFACT_REDIRECT_FORBIDDEN:" + name)
+        return descriptor, identity
 
     # -- identity --------------------------------------------------------
+    def _verify_named_entry(self, parent_fd, name, identity, kind, prefix):
+        """The named entry must still be the very object that was pinned.
+
+        The observation is a no-follow, parent relative ``stat``: it looks
+        at the *current* directory entry and compares it with the pinned
+        handle and with the identity that was recorded when the entry was
+        opened.  A renamed entry that was replaced by a symlink, by another
+        directory or by another file is refused here; it is never resolved,
+        adopted or followed away.
+        """
+        try:
+            entry = os.stat(name, dir_fd=parent_fd, follow_symlinks=False)
+        except OSError as error:
+            raise QualityContractError(prefix + "_MISSING:" + str(name)) from error
+        if kind == "dir":
+            if not stat.S_ISDIR(entry.st_mode):
+                raise QualityContractError(prefix + "_REDIRECT_FORBIDDEN:" + str(name))
+        elif not stat.S_ISREG(entry.st_mode):
+            raise QualityContractError(prefix + "_REDIRECT_FORBIDDEN:" + str(name))
+        if (entry.st_dev, entry.st_ino) != identity:
+            raise QualityContractError(prefix + "_REPLACED:" + str(name))
+
     def verify(self):
-        """The three levels must still name the very same objects."""
-        for descriptor, identity, label in (
-                (self._run_fd, self.run_root_identity, "run_root"),
-                (self._temp_fd, self._temp_identity, "temp"),
-                (self._phase_fd, self._phase_identity, "phase")):
+        """Every level must still name the very same object.
+
+        The pinned handle is checked against its own recorded identity and
+        the *current* named entry is checked against the pinned handle, so a
+        renamed ancestor that was replaced is refused instead of being
+        adopted.
+        """
+        for level in self._levels:
+            descriptor = level["fd"]
             if descriptor is None:
-                raise QualityContractError("QS_ARTIFACT_ROOT_UNAVAILABLE:" + label)
+                raise QualityContractError("QS_ARTIFACT_ROOT_UNAVAILABLE:" + level["name"])
             info = os.fstat(descriptor)
-            if (info.st_dev, info.st_ino) != identity:
-                raise QualityContractError("QS_ARTIFACT_ROOT_REPLACED:" + label)
+            if (info.st_dev, info.st_ino) != level["identity"]:
+                raise QualityContractError("QS_ARTIFACT_ROOT_REPLACED:" + level["name"])
+            self._verify_named_entry(level["parent_fd"], level["name"], level["identity"],
+                                     "dir", "QS_ARTIFACT_ROOT")
 
     # -- reading ---------------------------------------------------------
     def read(self, relative, max_bytes):
@@ -2646,6 +2814,12 @@ class _ArtifactBoundary:
         ``O_DIRECTORY|O_NOFOLLOW`` and the file itself is opened against the
         pinned handle of its own directory.  Nothing is ever resolved, so a
         redirected ancestor can never be followed away.
+
+        Every opened directory and the leaf itself are recorded as the
+        triple ``(parent_fd, child_name, pinned identity)``, and the current
+        named entries are verified against them *while the handles are still
+        held*.  A renamed or replaced entry is therefore refused even when
+        the pinned descriptors would still read the original genuine bytes.
         """
         if not isinstance(relative, str) or not relative:
             raise QualityContractError("SCORE_ARTIFACT_PATH_INVALID")
@@ -2656,9 +2830,10 @@ class _ArtifactBoundary:
         opened = []
         try:
             for part in pure.parts[:-1]:
-                current = self._open_child_directory(current, part)
-                opened.append(current)
-            descriptor = self._open_leaf(current, pure.parts[-1])
+                descriptor, identity = self._open_child_directory(current, part)
+                opened.append((descriptor, current, part, identity))
+                current = descriptor
+            descriptor, identity = self._open_leaf(current, pure.parts[-1])
             try:
                 info = os.fstat(descriptor)
                 if not stat.S_ISREG(info.st_mode):
@@ -2673,15 +2848,24 @@ class _ArtifactBoundary:
                         break
                     chunks.append(chunk)
                     remaining -= len(chunk)
+                # The named entries are verified again while the handles are
+                # still held: the leaf must still be this very file inside
+                # its pinned directory and every directory level must still
+                # be this very directory inside its pinned parent.
+                self._verify_named_entry(current, pure.parts[-1], identity,
+                                         "file", "SCORE_ARTIFACT")
+                for child, parent, name, child_identity in opened:
+                    self._verify_named_entry(parent, name, child_identity,
+                                             "dir", "SCORE_ARTIFACT")
+                raw = b"".join(chunks)
+                if len(raw) > max_bytes:
+                    raise QualityContractError("SCORE_ARTIFACT_TOO_LARGE")
             finally:
                 os.close(descriptor)
         finally:
-            for descriptor in reversed(opened):
-                os.close(descriptor)
-        raw = b"".join(chunks)
-        if len(raw) > max_bytes:
-            raise QualityContractError("SCORE_ARTIFACT_TOO_LARGE")
-        # The identity of the boundary is checked again after the read.
+            for child, parent, name, child_identity in reversed(opened):
+                os.close(child)
+        # The identity of the whole boundary is checked again after the read.
         self.verify()
         return raw
 
@@ -2692,6 +2876,8 @@ class _ArtifactBoundary:
             except OSError:
                 pass
         self._fds = []
+        self._levels = []
+        self._root_parent_fd = None
         self._run_fd = None
         self._temp_fd = None
         self._phase_fd = None
@@ -2705,6 +2891,7 @@ def _boundary_error_code(error, *, missing, redirect, too_large, unreadable):
     if code.startswith("SCORE_ARTIFACT_MISSING") or code.startswith("QS_ARTIFACT_ROOT_MISSING"):
         return missing
     if (code.startswith("SCORE_ARTIFACT_REDIRECT_FORBIDDEN")
+            or code.startswith("SCORE_ARTIFACT_REPLACED")
             or code.startswith("QS_ARTIFACT_ROOT_REDIRECT_FORBIDDEN")
             or code.startswith("QS_ARTIFACT_ROOT_REPLACED")):
         return redirect
@@ -2763,9 +2950,15 @@ def _verify_run_root_binding(declared, boundary):
     The declared path is compared literally first.  A different literal path
     is only accepted when it names the very same directory object; a
     redirected (symlinked) run root is never adopted.
+
+    A literal equality is never a shortcut past the boundary verification:
+    the pinned hierarchy is verified in both branches, so a run root that was
+    renamed and replaced between the construction of the boundary and this
+    check is refused here as well.
     """
     literal = Path(declared)
     if literal == boundary.run_root_path:
+        boundary.verify()
         return
     try:
         entry = os.lstat(str(literal))
@@ -2775,6 +2968,7 @@ def _verify_run_root_binding(declared, boundary):
         raise QualityContractError("QS_CANONICAL_RECEIPT_RUN_ROOT_REDIRECTED")
     if (entry.st_dev, entry.st_ino) != boundary.run_root_identity:
         raise QualityContractError("QS_CANONICAL_RECEIPT_RUN_ROOT_MISMATCH")
+    boundary.verify()
 
 
 def load_published_execution_receipt(artifact_root, *, boundary=None):
@@ -2822,17 +3016,17 @@ def _verify_seal_row_alignment(sealed, canonical, index):
     """
     for field in ("ordinal", "asset_id", "media_kind", "input_reference",
                   "source_bytes", "source_sha256"):
-        if sealed.get(field) != canonical.get(field):
+        if not _json_fact_equal(sealed.get(field), canonical.get(field)):
             raise QualityContractError(
                 "QS_SOURCE_PLAN_ROW_ALIGNMENT_MISMATCH:" + field + ":" + str(index))
     evidence = canonical.get("source_evidence")
     if not isinstance(evidence, dict):
         raise QualityContractError(
             "QS_SOURCE_PLAN_ROW_ALIGNMENT_MISMATCH:source_evidence:" + str(index))
-    if sealed.get("identity") != evidence.get("identity"):
+    if not _json_fact_equal(sealed.get("identity"), evidence.get("identity")):
         raise QualityContractError(
             "QS_SOURCE_PLAN_ROW_ALIGNMENT_MISMATCH:identity:" + str(index))
-    if sealed.get("path") != evidence.get("path"):
+    if not _json_fact_equal(sealed.get("path"), evidence.get("path")):
         raise QualityContractError(
             "QS_SOURCE_PLAN_ROW_ALIGNMENT_MISMATCH:path:" + str(index))
 
@@ -2895,7 +3089,7 @@ def load_source_plan(artifact_root, receipt, *, boundary=None):
     # are the frozen ones and every asset appears exactly once.
     seen_assets = set()
     for index, canonical in enumerate(published_rows):
-        if canonical.get("ordinal") != index + 1:
+        if not _is_int(canonical.get("ordinal")) or canonical.get("ordinal") != index + 1:
             raise QualityContractError(
                 "QS_SOURCE_PLAN_ROW_ALIGNMENT_MISMATCH:ordinal:" + str(index))
         asset_id = canonical.get("asset_id")
@@ -2907,7 +3101,7 @@ def load_source_plan(artifact_root, receipt, *, boundary=None):
     for index, row in enumerate(rows):
         if not isinstance(row, dict) or set(row) != SOURCE_PLAN_ROW_KEYS:
             raise QualityContractError("QS_SOURCE_PLAN_ROW_INVALID")
-        if row.get("ordinal") != index + 1:
+        if not _is_int(row.get("ordinal")) or row.get("ordinal") != index + 1:
             raise QualityContractError("QS_SOURCE_PLAN_ORDER_INVALID")
         identity = row.get("identity")
         if (not isinstance(identity, list) or len(identity) != 5
@@ -3009,8 +3203,24 @@ def _row_evidence_complete(row, receipt, *, sealed=None, canonical=None):
         baseline_gpu_mib=receipt.get("parent_budget_baseline_gpu_mib"))
     if not valid:
         return False, reason
-    if canonical is not None and row.get("release_evidence") != canonical.get("release_evidence"):
-        return False, "RELEASE_EVIDENCE_NOT_CANONICAL"
+    release = row.get("release_evidence")
+    if set(release) - QS_RELEASE_EVIDENCE_KEYS:
+        # The declaration is closed: a key outside the closed set is an own
+        # fact of the caller.  A malformed declaration is unknown.
+        return False, "RELEASE_EVIDENCE_UNEXPECTED_FIELD"
+    for sample in release.get("gpu_samples") or []:
+        if set(sample) - QS_GPU_SAMPLE_KEYS:
+            return False, "RELEASE_EVIDENCE_GPU_SAMPLES_INVALID"
+    if canonical is not None:
+        # The two evidence declarations of the supplied row must be the
+        # observations that the published document actually recorded.  The
+        # comparison is type aware: a boolean is never an integer and an
+        # integer is never a float, so a typed substitution inside a nested
+        # fact is a difference too.
+        if not _json_fact_equal(release, canonical.get("release_evidence")):
+            return False, "RELEASE_EVIDENCE_NOT_CANONICAL"
+        if not _json_fact_equal(row.get("source_evidence"), canonical.get("source_evidence")):
+            return False, "SOURCE_EVIDENCE_NOT_CANONICAL"
     residue = row.get("video_snapshot_residue")
     if not isinstance(residue, list):
         return False, "RESIDUE_EVIDENCE_MISSING"
@@ -3065,10 +3275,26 @@ def _verify_execution_content(supplied, published):
     execution starts to record later is bound automatically.  A supplied row
     may not even carry an extra fact that the published row does not have.
 
+    The comparison is *type aware*: a fact has to reproduce the canonical
+    value exactly, including its JSON type.  Python's ``==`` would accept a
+    boolean where the canonical document records an integer and an integer
+    where it records a float; an authoritative fact may not be substituted
+    that way, neither at the top level nor inside a nested fact.
+
+    The key sets are closed on both levels: the supplied document may not
+    carry a field that the published document does not have, and the
+    supplied row may not carry a field that the published row does not have.
+    The only fields in which the two may differ are the closed verdict
+    overlay and the evidence declarations inside it, and those declarations
+    have their own closed key sets.
+
     The verdict fields themselves are deliberately *not* compared here: they
     are evaluated for both documents together, so that a forged verdict can
     only ever make a row stricter, never usable.
     """
+    extra = sorted(set(supplied) - set(published) - QS_RECEIPT_OVERLAY_FIELDS)
+    if extra:
+        raise QualityContractError("QS_EXECUTION_CONTENT_MISMATCH:" + extra[0])
     for field, value in published.items():
         if field in QS_RECEIPT_OVERLAY_FIELDS:
             continue
@@ -3078,7 +3304,7 @@ def _verify_execution_content(supplied, published):
             # The per row evidence validation makes every row unknown, so the
             # mistyped value is never compared and never accepted.
             continue
-        if field not in supplied or supplied[field] != value:
+        if field not in supplied or not _json_fact_equal(supplied[field], value):
             raise QualityContractError("QS_EXECUTION_CONTENT_MISMATCH:" + field)
     supplied_rows = supplied.get("rows") or []
     published_rows = published.get("rows") or []
@@ -3087,7 +3313,7 @@ def _verify_execution_content(supplied, published):
         for field, value in published_row.items():
             if field in QS_ROW_OVERLAY_FIELDS:
                 continue
-            if field not in supplied_row or supplied_row[field] != value:
+            if field not in supplied_row or not _json_fact_equal(supplied_row[field], value):
                 raise QualityContractError(
                     "QS_EXECUTION_CONTENT_MISMATCH:" + field + ":"
                     + str(published_row.get("asset_id")))
@@ -3226,10 +3452,16 @@ def recompute_scores(execution_receipt, artifact_root, score_receipts, *,
         # ---- the sealed original source identity is loaded from the same root
         # and is cross-checked against the canonical execution rows.
         sealed_rows = load_source_plan(artifact_root, published, boundary=boundary)
-        return _recompute_bound_scores(
+        result = _recompute_bound_scores(
             execution_receipt, published, published_rows, sealed_rows, boundary,
             score_receipts, independence=independence,
             implementer_identity=implementer_identity)
+        # The pinned hierarchy is verified once more before the verdict is
+        # returned: a run root, a temp directory or a phase directory that
+        # was renamed and replaced while the evidence was read never yields
+        # a successful completion.
+        boundary.verify()
+        return result
     finally:
         boundary.close()
 
