@@ -1,0 +1,171 @@
+{
+  "base_commit": "35f1ee4df74e3a6054e021ee9cbbd066eaba5490",
+  "candidate_sha": "cea5bf328ea35a5aa1d1feb51ac3ef8946a964fa",
+  "checks": {
+    "combined-final": {
+      "exit_code": 0,
+      "outcome": "PASS",
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 99,
+      "stdout_sha256": "48191d77f25eff11f5a3bc05a90e6219b6350ceabfc9003f00282d8a411a6dbb"
+    },
+    "qd-directed": {
+      "exit_code": 0,
+      "outcome": "PASS",
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 114,
+      "stdout_sha256": "302efa7f71a9f812ad7c38b288c472a46e84672ba6dcc084f3a371434a2dc1fb"
+    },
+    "qs-directed": {
+      "exit_code": 0,
+      "outcome": "PASS",
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 114,
+      "stdout_sha256": "e743306f6fc31a5eec4b3b3e55b1ae2efae95866af8e9a05118d6129beb59906"
+    }
+  },
+  "commit_author": "ljx418 <1173696783@qq.com>",
+  "contract": "reports/v0-s3/product-gate0/p3b-quality-contract.md",
+  "contract_changes": "none",
+  "contract_sha256": "d06a6688fa618cd9fef1cd7f362b8d165addc0030dde0b5aee77465c2a2c20a3",
+  "decision": "READY_FOR_REVIEW",
+  "earlier_diagnostic_rounds": [
+    {
+      "exit_code": "UNKNOWN",
+      "observed": "34 failed, 2 passed, 31 errors",
+      "round": 1,
+      "scope": "pipeline masked the pytest exit code; not executed under the pre-pytest audit hook"
+    },
+    {
+      "exit_code": "UNKNOWN",
+      "observed": "14 failed, 63 passed",
+      "round": 2,
+      "scope": "pipeline masked the pytest exit code; not executed under the pre-pytest audit hook"
+    },
+    {
+      "exit_code": "UNKNOWN",
+      "observed": "4 failed, 63 passed",
+      "round": 3,
+      "scope": "pipeline masked the pytest exit code; not executed under the pre-pytest audit hook"
+    },
+    {
+      "exit_code": "UNKNOWN",
+      "observed": "67 passed",
+      "round": 4,
+      "scope": "same source as the final candidate; still not executed under the audit hook"
+    }
+  ],
+  "evidence_directory": "reports/v0-s3/product-gate0/implementation-p3b",
+  "fixed_denominator": {
+    "images": 10,
+    "total": 16,
+    "videos": 6
+  },
+  "fixture_state": {
+    "binary_media_committed": 0,
+    "cleanup_owner": "parent OwnedArchive",
+    "product_cleanup_claimed": false,
+    "repository_generated_phase_dirs": 0,
+    "synthetic_roots": "/tmp/pytest-of-administrator (3 retained sessions, ~21 MiB)"
+  },
+  "guard": {
+    "audit_hook_events": [
+      "socket.connect",
+      "socket.bind",
+      "socket.getaddrinfo",
+      "socket.gethostbyname",
+      "subprocess.Popen",
+      "os.system",
+      "os.exec",
+      "os.spawn",
+      "os.posix_spawn",
+      "os.fork",
+      "os.forkpty"
+    ],
+    "blocked_attempts": {
+      "os_system": "BLOCKED",
+      "socket_bind": "BLOCKED",
+      "socket_connect": "BLOCKED",
+      "subprocess_popen": "BLOCKED"
+    },
+    "bytecode_written": false,
+    "cache_provider": "disabled",
+    "guard_effective": true,
+    "installed_before_pytest_import": true,
+    "pytest_disable_plugin_autoload": "1"
+  },
+  "human_signature": false,
+  "independent_review": "PENDING_SEPARATE_INSTANCE",
+  "kind": "S3_P3B_IMPLEMENTATION_RECEIPT",
+  "machine_product_acceptance": false,
+  "merge_note": "The root freeze commit 35f1ee4df74e3a6054e021ee9cbbd066eaba5490 was already the HEAD of this worktree; nothing to merge, no reset, no rebase.",
+  "merge_required": false,
+  "next_owner": "Separate independent reviewer, then root architecture/gate owner",
+  "p3a_121_or_p2b_237_repeated": false,
+  "preserved_interrupted_source": {
+    "accepted": false,
+    "bytes": 58886,
+    "commit": "8f76dd8f8bd63796237eb1cffc8d140dd6efd112",
+    "label": "PARTIAL_NOT_ACCEPTED_NO_TESTS",
+    "sha256": "62a6b51594ec838d309bd14a4a2584a6a66c06cdb0db18cf7ac2df9b8be8d186"
+  },
+  "product_gate0": false,
+  "projection": "reports/v0-s3/product-gate0/quality-execution-inputs.frozen.json",
+  "projection_sha256": "47e9f14efa66bc4df851bf1a738763b48c1728eed84b76c56a7848d1b01f00c3",
+  "pushed": false,
+  "real_actions": {
+    "downloads": 0,
+    "full_checkpoints": 0,
+    "gpu": 0,
+    "host_exe_hashing": 0,
+    "ledger_mutations": 0,
+    "media": 0,
+    "model_actions": 0,
+    "network": 0,
+    "services": 0,
+    "windows_wsl": 0
+  },
+  "required_before_real_run": [
+    "complete product Gate0 freeze (real profile, model digest, media preparation, child authorization)",
+    "production video_snapshot_residue accessor supplied by the parent as a read-only adapter",
+    "independent review of this candidate",
+    "required human experience signature"
+  ],
+  "source_files": {
+    "reports/v0-s3/product-gate0/implementation-p3b/run_offline_checks.py": "d1261c15c58d6b5e5bd16b7e5a683112d2746a09f432ade836022078dda183f6",
+    "tools/test_v0_s3_quality_phase.py": "372555acfcef7b55bbd00dbb6edb6ad16e796a7e25c3a0dfb408a1fbeea28c48",
+    "tools/v0_s3_quality_phase.py": "7211f23d4fe2dc7f840c13ba0a9db1535c78f480b4f39bf0cbeadd50f23b2c26"
+  },
+  "stage_pass_claim": false,
+  "test_denominators": {
+    "combined": 67,
+    "qd_directed": 39,
+    "qs_directed": 28,
+    "total": 67
+  },
+  "workpacks": [
+    {
+      "id": "S3-P3B-QD",
+      "outputs": [
+        "public workflow 16-row execution phase",
+        "raw-before-validation evidence",
+        "39 directed checks"
+      ],
+      "receipt_kind": "S3_P3B_QD_EXECUTION_RECEIPT",
+      "status": "IMPLEMENTED_OFFLINE_CHECKED"
+    },
+    {
+      "id": "S3-P3B-QS",
+      "outputs": [
+        "bound independent score aggregation",
+        "28 directed negative checks",
+        "one combined run"
+      ],
+      "receipt_kind": "S3_P3B_QS_SCORE_RECEIPT",
+      "status": "IMPLEMENTED_OFFLINE_CHECKED"
+    }
+  ]
+}
