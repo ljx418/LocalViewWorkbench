@@ -1,0 +1,52 @@
+[
+  {
+    "id": "M01",
+    "severity": "Major",
+    "location": "tools/v0_s3_quality_phase.py:1490-1534",
+    "trigger": "Complete QualityPhase.run and read persisted qd-receipt.json.",
+    "expected": "Persist honest final bytes/files including the receipt itself.",
+    "actual": "In-memory counts are 137 files/165510 bytes, but disk has only pre-receipt counts 136/117094; receipt_bytes and both *_including_receipt keys are absent. Serialization precedes adding final fields. Caps now reject one-over, but persistent terminal accounting is still incomplete.",
+    "evidence": "probes.stdout.log:persisted_receipt_totals; receipt_artifact_exact/over, receipt_total_exact/over, receipt_files_exact/over",
+    "original_disposition": "PARTIALLY_FIXED_REMAINS_OPEN: suffix classification, halt,16-row retention, exact/oneover caps and honest nonpersistence fixed; stored totals not fixed"
+  },
+  {
+    "id": "M02",
+    "severity": "Major",
+    "location": "tools/v0_s3_quality_phase.py:510-551,794-842,1490-1534,1548-1579",
+    "trigger": "quality_row_begin moves temp to old-temp and replaces temp with symlink to old-temp; alternatively substitute rows at final os.open.",
+    "expected": "Pin all original ancestors across callbacks and actual writes; write zero into old/foreign paths and stop on redirect.",
+    "actual": "Temp ancestor redirect accepts all16 submissions and COMPLETE_ALL_16_PASS while persisting receipt in old-temp. Deterministic final-open interposition writes SYN-I00/provider-before.log into a foreign root and still permits one send before later rejection. Initial temp symlink creates foreign s3-quality before detecting escape. Leaf O_NOFOLLOW and prechecks do not protect ancestor traversal.",
+    "evidence": "probes.stdout.log:temp_ancestor_callback_redirect,artifact_open_ancestor_race,initial_temp_redirect; targeted_probes.py",
+    "original_disposition": "PARTIALLY_FIXED_REMAINS_OPEN: existing-directory replay and direct root/phase replacement tested refusals fixed; all-ancestor pinning/write confinement not fixed"
+  },
+  {
+    "id": "M08",
+    "severity": "Major",
+    "location": "tools/v0_s3_quality_phase.py:1824-1991",
+    "trigger": "QS input has PASS row with missing release proof, or known FAIL with storage_unproven=true, or missing source_evidence.",
+    "expected": "Unknown source/storage/cleanup cannot aggregate PASS; known failed rows may resolve only with proven evidence, always remain unusable.",
+    "actual": "All three public recompute_scores probes aggregate_pass=true. PASS row has cleanup_proven=false yet becomes usable/resolved. Known FAIL rows with explicit unknown storage or missing source still resolve. Critical3 now survives and ordinary known FAIL with valid evidence correctly yields9/10+6/6 usable, so original scoring policy improvements are retained.",
+    "evidence": "probes.stdout.log:PASS_cleanup_unknown,known_FAIL_storage_unknown,known_FAIL_source_unknown; replayed-observations.json:failed_row_critical_evidence,known_failed_independently_scored",
+    "original_disposition": "PARTIALLY_FIXED_REMAINS_OPEN: critical evidence and no extra all-technical-success requirement fixed; evidence-resolution fail-closed incomplete"
+  },
+  {
+    "id": "NM01",
+    "severity": "Major",
+    "location": "tools/v0_s3_quality_phase.py:458-473,1585-1593",
+    "trigger": "Parent proof known=true/capacity34 but wrong run/candidate/authorization or expired timestamp.",
+    "expected": "Internal admission rejects stale and wrong-identity proofs as well as unknown/insufficient capacity before any send; authentic provider remains pending integration.",
+    "actual": "Both stale and explicitly wrong identity dictionaries permit all16 submissions and COMPLETE_ALL_16_PASS. Only known and numeric capacity are checked; no freshness or identity is bound. This is internal validation, not a request to create a ledger API or infer guaranteed34 capacity.",
+    "evidence": "probes.stdout.log:parent_proof_wrong_identity,parent_proof_stale; suite95 admission checks",
+    "original_disposition": "ADDITIONAL_ORIGINAL_OBLIGATION_NOT_CLOSED"
+  },
+  {
+    "id": "NM02",
+    "severity": "Major",
+    "location": "tools/v0_s3_quality_phase.py:554-582,1003-1090,1155-1175,1490-1534; tools/v0_s2_http.py:56-78,100-148",
+    "trigger": "Callback/observer/persistence/release callable does not return; or finite phase clock decreases.",
+    "expected": "Original600s history/10800s phase bounds require actual bounded calls or enforceable parent admission, not only post-return rejection; clock evidence must be monotonic.",
+    "actual": "_authorize and _bounded invoke callables synchronously and check elapsed only after return/finally; persistence and receipt writes also have no preemptive bound. A bounded synthetic callback returns only after simulated10801s before rejection. Decreasing finite clock allows all16 to PASS. No intentionally hung process was launched. Native HTTP has absolute request/socket deadlines in _request and owned cancellation, but observer callbacks in request are synchronous; these semantics do not bound arbitrary callbacks or guarantee the entire phase.",
+    "evidence": "probes.stdout.log:post_return_elapsed_only,decreasing_phase_clock; static production source locations",
+    "original_disposition": "ADDITIONAL_ORIGINAL_OBLIGATION_PARTIAL: late SUCCESS history rejection fixed, hard callable bounds/monotonic phase clock not proved"
+  }
+]

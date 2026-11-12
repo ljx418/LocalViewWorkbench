@@ -1,0 +1,218 @@
+{
+  "results": [
+    {
+      "probe": "replay_13",
+      "count": 13,
+      "own_cleanup": true
+    },
+    {
+      "probe": "persisted_receipt_totals",
+      "memory": {
+        "receipt_bytes": 48416,
+        "artifact_files": 136,
+        "artifact_bytes": 117094,
+        "artifact_files_including_receipt": 137,
+        "artifact_bytes_including_receipt": 165510
+      },
+      "disk": {
+        "receipt_bytes": null,
+        "artifact_files": 136,
+        "artifact_bytes": 117094,
+        "artifact_files_including_receipt": null,
+        "artifact_bytes_including_receipt": null
+      },
+      "actual_files": 137,
+      "actual_bytes": 165510
+    },
+    {
+      "probe": "PASS_cleanup_unknown",
+      "aggregate_pass": true,
+      "row": {
+        "asset_id": "SYN-I00",
+        "media_kind": "image",
+        "execution_status": "PASS",
+        "quality_status": "PASS",
+        "usable": true,
+        "resolved": true,
+        "reason": "USABLE",
+        "total": 10,
+        "critical_hallucinations": 0,
+        "dimensions": {
+          "\u4e3b\u4f53/\u73af\u5883": 2,
+          "\u5149\u7ebf/\u6784\u56fe/\u98ce\u683c": 2,
+          "\u52a8\u4f5c/\u65f6\u95f4\u6216\u9759\u56fe\u4e0d\u865a\u6784": 2,
+          "\u4e8b\u5b9e/\u521b\u4f5c\u5206\u79bb": 2,
+          "Prompt\u53ef\u7528\u6027": 2
+        },
+        "reviewer_id": "independent-reviewer-01",
+        "session_id": "independent-session-01",
+        "raw_sha256": "86571c8187ae37e4f092f7decc7b75d588272f69a7c745d3748770b69114a033",
+        "raw_bytes": 244,
+        "raw_artifact": "rows/SYN-I00/raw.txt",
+        "cleanup_proven": false
+      }
+    },
+    {
+      "probe": "known_FAIL_storage_unknown",
+      "aggregate_pass": true,
+      "row": {
+        "asset_id": "SYN-I00",
+        "media_kind": "image",
+        "execution_status": "FAIL",
+        "quality_status": "FAIL",
+        "usable": false,
+        "resolved": true,
+        "reason": "KNOWN_EXECUTION_FAILURE_RESOLVED_NOT_USABLE",
+        "total": 10,
+        "critical_hallucinations": 0,
+        "dimensions": {
+          "\u4e3b\u4f53/\u73af\u5883": 2,
+          "\u5149\u7ebf/\u6784\u56fe/\u98ce\u683c": 2,
+          "\u52a8\u4f5c/\u65f6\u95f4\u6216\u9759\u56fe\u4e0d\u865a\u6784": 2,
+          "\u4e8b\u5b9e/\u521b\u4f5c\u5206\u79bb": 2,
+          "Prompt\u53ef\u7528\u6027": 2
+        },
+        "reviewer_id": "independent-reviewer-01",
+        "session_id": "independent-session-01",
+        "raw_sha256": "86571c8187ae37e4f092f7decc7b75d588272f69a7c745d3748770b69114a033",
+        "raw_bytes": 244,
+        "raw_artifact": "rows/SYN-I00/raw.txt",
+        "cleanup_proven": true
+      }
+    },
+    {
+      "probe": "known_FAIL_source_unknown",
+      "aggregate_pass": true,
+      "row": {
+        "asset_id": "SYN-I00",
+        "media_kind": "image",
+        "execution_status": "FAIL",
+        "quality_status": "FAIL",
+        "usable": false,
+        "resolved": true,
+        "reason": "KNOWN_EXECUTION_FAILURE_RESOLVED_NOT_USABLE",
+        "total": 10,
+        "critical_hallucinations": 0,
+        "dimensions": {
+          "\u4e3b\u4f53/\u73af\u5883": 2,
+          "\u5149\u7ebf/\u6784\u56fe/\u98ce\u683c": 2,
+          "\u52a8\u4f5c/\u65f6\u95f4\u6216\u9759\u56fe\u4e0d\u865a\u6784": 2,
+          "\u4e8b\u5b9e/\u521b\u4f5c\u5206\u79bb": 2,
+          "Prompt\u53ef\u7528\u6027": 2
+        },
+        "reviewer_id": "independent-reviewer-01",
+        "session_id": "independent-session-01",
+        "raw_sha256": "86571c8187ae37e4f092f7decc7b75d588272f69a7c745d3748770b69114a033",
+        "raw_bytes": 244,
+        "raw_artifact": "rows/SYN-I00/raw.txt",
+        "cleanup_proven": true
+      }
+    },
+    {
+      "probe": "temp_ancestor_callback_redirect",
+      "submissions": 16,
+      "decision": "QUALITY_EXECUTION_COMPLETE_ALL_16_PASS",
+      "files_in_old_directory": 161,
+      "receipt_in_old": true
+    },
+    {
+      "probe": "artifact_open_ancestor_race",
+      "foreign_files": [
+        "SYN-I00/provider-before.log"
+      ],
+      "submissions": 1,
+      "first_error": "PROVIDER_AFTER_SNAPSHOT_FAILED:QualityContractError:ARTIFACT_REDIRECT_FORBIDDEN:rows"
+    },
+    {
+      "probe": "initial_temp_redirect",
+      "foreign_entries": [
+        "s3-quality"
+      ],
+      "submissions": 0,
+      "error": "RECEIPT_PERSISTENCE_FAILED"
+    },
+    {
+      "probe": "parent_proof_wrong_identity",
+      "submissions": 16,
+      "decision": "QUALITY_EXECUTION_COMPLETE_ALL_16_PASS",
+      "supplied": {
+        "known": true,
+        "action_capacity": 34,
+        "run_id": "WRONG",
+        "candidate_sha": "0000000000000000000000000000000000000000",
+        "authorization_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+      }
+    },
+    {
+      "probe": "parent_proof_stale",
+      "submissions": 16,
+      "decision": "QUALITY_EXECUTION_COMPLETE_ALL_16_PASS",
+      "supplied": {
+        "known": true,
+        "action_capacity": 34,
+        "issued_monotonic": -99999,
+        "expires_monotonic": -1
+      }
+    },
+    {
+      "probe": "post_return_elapsed_only",
+      "events": [
+        "callback_returned_after_phase_deadline"
+      ],
+      "submissions": 0,
+      "error": "AUTHORIZE_CALLBACK_ELAPSED_EXCEEDED:quality_public_submit",
+      "clock": 10801.0
+    },
+    {
+      "probe": "decreasing_phase_clock",
+      "submissions": 16,
+      "decision": "QUALITY_EXECUTION_COMPLETE_ALL_16_PASS",
+      "elapsed": null
+    },
+    {
+      "probe": "receipt_artifact_exact",
+      "persisted": true,
+      "bytes": 8388608,
+      "files": 1,
+      "error": null
+    },
+    {
+      "probe": "receipt_artifact_over",
+      "persisted": false,
+      "bytes": 0,
+      "files": 0,
+      "error": "QualityContractError:RECEIPT_OVER_ARTIFACT_CAP"
+    },
+    {
+      "probe": "receipt_total_exact",
+      "persisted": true,
+      "bytes": 134217728,
+      "files": 1,
+      "error": null
+    },
+    {
+      "probe": "receipt_total_over",
+      "persisted": false,
+      "bytes": 134217593,
+      "files": 0,
+      "error": "QualityContractError:RECEIPT_TOTAL_BUDGET_EXCEEDED"
+    },
+    {
+      "probe": "receipt_files_exact",
+      "persisted": true,
+      "bytes": 136,
+      "files": 256,
+      "error": null
+    },
+    {
+      "probe": "receipt_files_over",
+      "persisted": false,
+      "bytes": 0,
+      "files": 256,
+      "error": "QualityContractError:RECEIPT_FILE_BUDGET_EXCEEDED"
+    }
+  ],
+  "owned_root": "/tmp/lvw-independent-p3bc01-f4ad-probes-16urs67l",
+  "removed": true,
+  "note": "Observations; defect observations are not product PASS; no real/native execution."
+}
