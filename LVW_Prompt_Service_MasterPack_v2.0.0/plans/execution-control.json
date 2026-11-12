@@ -34,8 +34,8 @@
     "PRODUCTION_RELEASED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "Visible ClaudeCode correction03 implementation, then separate independent review and root adjudication",
-  "next_action": "Execute aggregate P3B correction03 for four independently reproduced local persistence/evidence/final-send findings; no product acceptance inferred.",
+  "next_owner": "Separate visible independent reviewer, then root adjudication",
+  "next_action": "Independently verify correction03 candidate630853c and evidence0e045c7, four local root causes and execution-deviation claims; no Stage PASS inferred.",
   "required_authorization": null,
   "authorization_request": "reports/authorization-program-v1-complete-03.request.json",
   "authorization_record": "reports/authorization-program-v1-complete-03.approval.json",
@@ -87,7 +87,7 @@
   "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
   "live_terminal_receipt": "reports/unified-media/live-15/receipt.json",
   "independent_review": "reports/unified-media/independent-live-15/review.md",
-  "exact_stop_reason": "Visible ClaudeCode correction03 dispatched; awaiting Orca worker_done, then isolated independent review. No product PASS or new human authorization requested.",
+  "exact_stop_reason": "Formal Claude correction03 delivery msg_729156239259 received; isolated independent review being dispatched. Offline authorization remains sufficient.",
   "native_component_authorization": "reports/v0-s2/authorization-native-component-02.json",
   "native_component_terminal_receipt": "reports/v0-s2/native-component-02/receipt.json",
   "local_control_change_decision": "reports/v0-s2/change-decision-video-workbench-01.json",
@@ -1445,7 +1445,7 @@
       "new_runtime_processes_started": 0
     },
     "correction03": {
-      "status": "DISPATCHED_TO_VISIBLE_CLAUDE",
+      "status": "READY_FOR_INDEPENDENT_REVIEW",
       "task": "reports/v0-s3/product-gate0/implementation-p3b-correction-03.task.md",
       "decision": "reports/v0-s3/product-gate0/p3b-correction-03.adjudication.json",
       "review_commit": "12906163857a34bfc9afa8fa52a66dfa6fae296a",
@@ -1454,7 +1454,14 @@
       "task_id": "task_542faace7614",
       "terminal_id": "term_0dc8ee2ecc17d4703b9f4ccd024045a1",
       "dispatch_receipt": "reports/v0-s3/product-gate0/implementation-p3b-correction-03.dispatch.json",
-      "execution_warning": "reports/v0-s3/product-gate0/correction03-test-execution-warning-01.json"
+      "execution_warning": "reports/v0-s3/product-gate0/correction03-test-execution-warning-01.json",
+      "candidate_sha": "630853c63a919433ccf31958d36179e4e0b3bdee",
+      "evidence_commit": "0e045c71f05ed316a519c6363649b7852739d101",
+      "message_id": "msg_729156239259",
+      "implementation_receipt": "reports/v0-s3/product-gate0/implementation-p3b-correction-03/receipt.json",
+      "review_task": "reports/v0-s3/product-gate0/independent-p3b-correction-03.task.md",
+      "reported_tests": 145,
+      "execution_deviations_pending_verification": true
     }
   },
   "a06_read_only_capability_child": {
