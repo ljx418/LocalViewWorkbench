@@ -1231,7 +1231,7 @@
   },
   "offline_integration_packet": ".agent-governance/stages/V0-S3/production-quality/stage-control.json",
   "p3b_quality": {
-    "status": "CORRECTION01_READY_FOR_INDEPENDENT_REVIEW",
+    "status": "CORRECTION02_PREPARED_AFTER_F0_M5_REVIEW",
     "workpacks": [
       "QD_PUBLIC_EXECUTION",
       "QS_INDEPENDENT_SCORE_RECOMPUTATION"
@@ -1359,7 +1359,7 @@
       },
       "review_task_spec": "reports/v0-s3/product-gate0/independent-p3b-correction-01.task.md",
       "independent_review": {
-        "status": "DISPATCHED_NOT_ACCEPTED",
+        "status": "COMPLETED_CHANGES_REQUIRED",
         "dispatch_id": "ctx_4d2d46bfb961",
         "task_id": "task_f4ad22042b35",
         "terminal": "term_4691b341-a8e6-485b-9892-c9613eea7a93",
@@ -1372,8 +1372,21 @@
           "state": "ready",
           "stage": "input_accepted",
           "terminal_state": "retained"
+        },
+        "review_commit": "5894419833fb2ffab5aadb4cffc6881066befb4c",
+        "receipt": "reports/v0-s3/product-gate0/independent-p3b-correction-01/receipt.json",
+        "counts": {
+          "Fatal": 0,
+          "Major": 5,
+          "Minor": 0
         }
       }
+    },
+    "correction02": {
+      "status": "PREPARED_FOR_VISIBLE_CLAUDE",
+      "adjudication": "reports/v0-s3/product-gate0/p3b-correction-02.adjudication.json",
+      "task_spec": "reports/v0-s3/product-gate0/implementation-p3b-correction-02.task.md",
+      "parent_hard_timing": "UNIMPLEMENTED_PRODUCT_GATE0_BLOCKER"
     }
   },
   "a06_read_only_capability_child": {

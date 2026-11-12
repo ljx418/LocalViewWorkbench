@@ -1,0 +1,43 @@
+{
+  "kind": "ROOT_P3B_CORRECTION02_AGGREGATE_DISPOSITION",
+  "review_commit": "5894419833fb2ffab5aadb4cffc6881066befb4c",
+  "review_message_id": "msg_b37eb5320da0",
+  "candidate_sha": "376ea9283cb7096c2fc35f6eab561919c07b6d1f",
+  "decision": "CHANGES_REQUIRED_WITH_MANDATORY_PARENT_TIMING_INTEGRATION",
+  "review_counts": {
+    "Fatal": 0,
+    "Major": 5,
+    "Minor": 0
+  },
+  "closed_scoped_offline": [
+    "M03",
+    "M04",
+    "M05",
+    "M06",
+    "M07",
+    "M09",
+    "m01"
+  ],
+  "local_correction_required": [
+    "M01 persisted receipt accounting",
+    "M02 original ancestor ownership and descriptor-relative writes",
+    "M08 unknown evidence fail-closed on every row",
+    "NM01 parent proof identity and freshness",
+    "NM02 monotonic clock validation and honest timing assurance"
+  ],
+  "NM02_architecture_ownership": {
+    "phase_owner": "Finite polling and cooperative pre/post deadline checks; reject decreasing/nonfinite clock, late histories and stale admission. Do not claim synchronous arbitrary callbacks or OS filesystem I/O are preemptively bounded.",
+    "parent_coordinator_owner": "Mandatory real finite process supervision, owned task/process cleanup and pending-I/O evidence; prove on controlled blocked operation before product Gate0 or real acceptance. No detached timeout thread or untrusted proof boolean substitutes.",
+    "current_status": "HARD_END_TO_END_SUPERVISION_NOT_IMPLEMENTED_REMAINS_PRODUCT_BLOCKER",
+    "original_limits_preserved": {
+      "history_seconds": 600,
+      "phase_seconds": 10800
+    },
+    "no_quality_or_product_pass_inferred_from_reassignment": true,
+    "rationale": "Already frozen parent owns native lifecycle and cleanup. Keep this unsatisfied runtime obligation explicit and integrate it with the thin coordinator, rather than pretending post-return checks preempt a hung callable or building a separate worker platform."
+  },
+  "same_route_progress": "First correction independently closed seven original findings and supplied new evidence for remaining ones; this is not two consecutive corrections without progress. Next correction is one aggregate batch.",
+  "contract_scope": "No public API/quality threshold/denominator/auth change; internal owner responsibility recorded explicitly. Frozen original text and all old failures retained.",
+  "product_gate0": false,
+  "stage_pass_claim": false
+}
