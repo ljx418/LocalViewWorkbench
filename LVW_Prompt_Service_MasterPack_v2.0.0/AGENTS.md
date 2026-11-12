@@ -32,3 +32,5 @@
 23. 2026-11-11用户明确确认“当前前端页面、基本的视频反推 我人工确认OK”，并在goal中要求绑定现有统一切片与普通推送。签署见reports/unified-media/human-signoff-live15.json，候选621b1bf，仅当前统一切片；规则22中的“体验签署仍待”是此前历史状态。不得再请求该切片重复人签，也不将此次签署扩大到旧S2/V0.2/完整R1/V1/发布。按docs30及实际依赖继续，旧范围若仍缺必要人签须明确区分。
 
 24. 2026-11-11用户批准CHANGE-V1-S2-HANDOFF-01并要求继续goal。记录reports/v1-next-stage-readiness/change-v1-s2-handoff-01.approval.json，ADR-14生效：仅S3向V1开发衔接可使用原S2机器/独审与当前统一前端实际人签，严格校验候选和证据。旧S2保持7/8未签；不再把此衔接范围列为待人批，不扩大到其他依赖、历史版本接受或发布。当前准入与准备仍以execution-control和新S3packet为准，产品Gate0、固定质量/资源、有限运行、独审及后续人签均保留。
+
+25. 2026-11-12用户明确提出并授权CHANGE-V2-LIBRARY-01未来V2目标与详细设计落盘：本地视觉素材理解/描述标签、可审核命名归档及恢复撤销，见docs/33–35与ADR-15。候选合同/需求/用例在contracts/candidates/v2-library及plans/candidates/v2-library；原R3/R4义务保留，候选V2/V3分母56/65尚未激活。当前V1坐标、已签范围和429停止规则不变；本次不授权V2业务实施、私有素材扫描或原件写入、模型/GPU运行及新增数值门限批准。不得据旧门禁签新增范围PASS。

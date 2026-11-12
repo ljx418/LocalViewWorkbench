@@ -64,3 +64,6 @@ Claude在冻结Stage内连续实现Workpack并保留定向测试/收据，只报
 Codex负责总体/详细架构、合同、验收/协调/审核；Claude实现窗口只写允许owner和自检，另一隔离窗口审查，不一边改一边独立自签。Orca可见独立子工作区、Dispatch mailbox回报、保持窗口供用户查看；最多一个实现＋一个审查，接口冻结且owner无冲突才再开第二实现槽。Codex不默认批量代写，窗口数量不是证据。
 
 每次任务含source/spec/acceptance hashes、允许/禁止文件、命令/退出码/原日志、生产调用路径、风险/清理。未知provider/model如实写unknown或self-reported，不能以模型自述证明真实路由。pytest tmp_path保留期不等于实际删除，不虚报清理。失败保留；两次同路线无进展停止复盘；额度/登录/启动失败如实BLOCKED/WAIT_BUDGET，不偷偷换提供商/买套餐。实际人签后立即普通Git推送，不自动发布。
+
+
+2026-11-12未来V2增量导航：[ADR-15](adr/ADR-15-V2-LIBRARY-NAMING.md)及[33–35](33_V2_PRODUCT_REBASELINE.md)新增候选命名整理目标；本章V1语义、29项与旧设计/收据保持，38/47是未激活增量前的基线，未来候选56/65不反写本章冻结历史。开头状态为当时设计快照，实际签署/在途坐标读取execution-control。

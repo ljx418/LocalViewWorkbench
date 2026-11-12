@@ -15,3 +15,9 @@
 任何范围/技术栈/硬门限改变需ADR：problem、evidence、options、chosen、compatibility、migration、tests、approval。不得因为失败将P0改optional；不得悄悄新增自动内容审核。开发者可以修不改变合同的bug，但需重跑受影响用例。
 
 终态：V0/V1/V2/V3_ACCEPTED、ENGINEERING_READY/QUALITY_PENDING、INTEGRATION_BLOCKED、NOT_ACCEPTED。文档检查通过只叫DOCS_VALIDATED。每阶段留下未完成项和原因，避免“设计完成”变成“产品可用”。
+
+## ADR-15新增风险与停止边界
+
+原件误覆盖/丢失、预览后替换、junction/并发目标争抢、环形临时态、DB与外部文件不一致、事实编造和第三方工程路径失效列为V2核心风险。采用native no-replace/稳定句柄、独占写owner、持久intent、逐项协调/反向计划、原ID/hash守恒、映射导出和保留needs_attention。
+
+参见[34](34_V2_LIBRARY_ARCHITECTURE.md)、[35](35_V2_LIBRARY_EXECUTION_AND_ACCEPTANCE.md)。任何源根/预算/模型运行都需未来明确授权，不因本次产品意图扩用V1母授权。新增质量/性能数值为PROPOSED_PENDING_PILOT；安全义务不得放宽，独审/人工签署保留。

@@ -1,0 +1,546 @@
+{
+  "schema_version": "lvw.v2-library-cases/0.1",
+  "status": "DESIGN_CANDIDATE_NOT_ACTIVE",
+  "cases": [
+    {
+      "case_id": "RN01",
+      "version": "V2",
+      "name": "原件与派生副本/重复内容引用",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "owner_entry": "SourceRegistry→media/asset shared service",
+      "steps": [
+        "登记普通源JPEG/MP4，上传副本与同内容不同路径分开；分页扫描取消、缺失重绑定"
+      ],
+      "assertions": [
+        "源文件不被复制/转码为写目标；业务ID/物理ID/hash分离，绑定与授权各自校验"
+      ],
+      "negative_cases": [
+        "无source_file绑定的上传对象、缺失与错误重绑定拒绝apply；两个同hash不同fileid不合并"
+      ],
+      "stage_workpack": "R3-L1",
+      "terminal_oracle": "All planned rows retained with explicit success/fail/blocked/needs_attention; skipped is not PASS",
+      "cleanup_oracle": "Only owned fixtures cleaned after actual journal/identity checks; ambiguity preserves bounded evidence and original files",
+      "evidence_required": [
+        "candidate_spec_sample_tool_hashes",
+        "raw_commands_true_exits",
+        "per_item_before_after_identity_hash",
+        "journal_and_db_snapshot",
+        "model_call_ledger",
+        "cleanup_or_retention_proof"
+      ],
+      "requires_target_execution": true,
+      "threshold_status": "DESIGN_PROTOCOL_OBLIGATION"
+    },
+    {
+      "case_id": "RN02",
+      "version": "V2",
+      "name": "事实来源/unknown/人工锁",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "owner_entry": "AssetDescriptor→description revisions",
+      "steps": [
+        "真实帧/probe/人工证据生成修订，编辑锁定后重分析"
+      ],
+      "assertions": [
+        "creative_intent不能成为事实；姓名/事件/日期无确认保持unknown；人工head不被覆盖"
+      ],
+      "negative_cases": [
+        "原文件名/OCR/mtime候选不得自动确认为演出信息；ETag旧值拒绝"
+      ],
+      "stage_workpack": "R3-L2",
+      "terminal_oracle": "All planned rows retained with explicit success/fail/blocked/needs_attention; skipped is not PASS",
+      "cleanup_oracle": "Only owned fixtures cleaned after actual journal/identity checks; ambiguity preserves bounded evidence and original files",
+      "evidence_required": [
+        "candidate_spec_sample_tool_hashes",
+        "raw_commands_true_exits",
+        "per_item_before_after_identity_hash",
+        "journal_and_db_snapshot",
+        "model_call_ledger",
+        "cleanup_or_retention_proof"
+      ],
+      "requires_target_execution": true,
+      "threshold_status": "DESIGN_PROTOCOL_OBLIGATION"
+    },
+    {
+      "case_id": "RN03",
+      "version": "V2",
+      "name": "确定性编译与零模型调用",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "owner_entry": "NamingCompiler→preview/apply/undo public service",
+      "steps": [
+        "固定同一事实/模板/词表/清单重复渲染，再更模板/选子集/apply/undo"
+      ],
+      "assertions": [
+        "输出hash及编号稳定；CPU路径Provider日志/计数增量严格0"
+      ],
+      "negative_cases": [
+        "无模型仍手工可用，缺英文不伪翻译；模板任意代码注入拒绝"
+      ],
+      "stage_workpack": "R3-L2",
+      "terminal_oracle": "All planned rows retained with explicit success/fail/blocked/needs_attention; skipped is not PASS",
+      "cleanup_oracle": "Only owned fixtures cleaned after actual journal/identity checks; ambiguity preserves bounded evidence and original files",
+      "evidence_required": [
+        "candidate_spec_sample_tool_hashes",
+        "raw_commands_true_exits",
+        "per_item_before_after_identity_hash",
+        "journal_and_db_snapshot",
+        "model_call_ledger",
+        "cleanup_or_retention_proof"
+      ],
+      "requires_target_execution": true,
+      "threshold_status": "DESIGN_PROTOCOL_OBLIGATION"
+    },
+    {
+      "case_id": "RN04",
+      "version": "V2",
+      "name": "Windows名称与边界",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "owner_entry": "NamingCompiler→RenamePlanner",
+      "steps": [
+        "设备名/非法字符/尾点空格/NFC-NFD/大小写/路径/扩展名/1000项exact与one-over"
+      ],
+      "assertions": [
+        "重名冲突可见，扩展名不改，稳定序号及合法长度，不静默截分母"
+      ],
+      "negative_cases": [
+        "CON.txt/COM1/ADS/目录穿越/UTF16代理截断/1001项拒绝"
+      ],
+      "stage_workpack": "R3-L2",
+      "terminal_oracle": "All planned rows retained with explicit success/fail/blocked/needs_attention; skipped is not PASS",
+      "cleanup_oracle": "Only owned fixtures cleaned after actual journal/identity checks; ambiguity preserves bounded evidence and original files",
+      "evidence_required": [
+        "candidate_spec_sample_tool_hashes",
+        "raw_commands_true_exits",
+        "per_item_before_after_identity_hash",
+        "journal_and_db_snapshot",
+        "model_call_ledger",
+        "cleanup_or_retention_proof"
+      ],
+      "requires_target_execution": true,
+      "threshold_status": "DESIGN_PROTOCOL_OBLIGATION"
+    },
+    {
+      "case_id": "RN05",
+      "version": "V2",
+      "name": "原生身份与并发不覆盖",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "owner_entry": "FileOperationService→native adapter",
+      "steps": [
+        "原生junction/根替换/源替换/撤权/目标并发争抢/跨卷"
+      ],
+      "assertions": [
+        "无越界、无覆盖、旧目标hash不变；失败在副作用前或明确needs_attention"
+      ],
+      "negative_cases": [
+        "exists预检后争抢目标仍原子拒绝；未知身份/alias/reparse拒绝"
+      ],
+      "stage_workpack": "R4-L3",
+      "terminal_oracle": "All planned rows retained with explicit success/fail/blocked/needs_attention; skipped is not PASS",
+      "cleanup_oracle": "Only owned fixtures cleaned after actual journal/identity checks; ambiguity preserves bounded evidence and original files",
+      "evidence_required": [
+        "candidate_spec_sample_tool_hashes",
+        "raw_commands_true_exits",
+        "per_item_before_after_identity_hash",
+        "journal_and_db_snapshot",
+        "model_call_ledger",
+        "cleanup_or_retention_proof"
+      ],
+      "requires_target_execution": true,
+      "threshold_status": "DESIGN_PROTOCOL_OBLIGATION"
+    },
+    {
+      "case_id": "RN06",
+      "version": "V2",
+      "name": "大小写/环形/同卷归档",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "owner_entry": "RenamePlanner→FileOperationService",
+      "steps": [
+        "仅大小写、A↔B/三节点环、同卷登记目标目录"
+      ],
+      "assertions": [
+        "每步no-replace，内容hash/fileID守恒，临时位置可解释；无误删"
+      ],
+      "negative_cases": [
+        "选择缺依赖闭包、临时名被占、不同卷/未登记目录拒绝"
+      ],
+      "stage_workpack": "R4-L3",
+      "terminal_oracle": "All planned rows retained with explicit success/fail/blocked/needs_attention; skipped is not PASS",
+      "cleanup_oracle": "Only owned fixtures cleaned after actual journal/identity checks; ambiguity preserves bounded evidence and original files",
+      "evidence_required": [
+        "candidate_spec_sample_tool_hashes",
+        "raw_commands_true_exits",
+        "per_item_before_after_identity_hash",
+        "journal_and_db_snapshot",
+        "model_call_ledger",
+        "cleanup_or_retention_proof"
+      ],
+      "requires_target_execution": true,
+      "threshold_status": "DESIGN_PROTOCOL_OBLIGATION"
+    },
+    {
+      "case_id": "RN07",
+      "version": "V2",
+      "name": "稳定错误和部分成功",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "owner_entry": "FileOperationService→journal",
+      "steps": [
+        "持锁/磁盘满/无权限/外部编辑或移动/丢失/DB busy"
+      ],
+      "assertions": [
+        "稳定错误、成功项保留、全部固定项有终态、不谎称整批原子"
+      ],
+      "negative_cases": [
+        "发生部分副作用必须可定位；不得捕获异常后计成功"
+      ],
+      "stage_workpack": "R4-L3",
+      "terminal_oracle": "All planned rows retained with explicit success/fail/blocked/needs_attention; skipped is not PASS",
+      "cleanup_oracle": "Only owned fixtures cleaned after actual journal/identity checks; ambiguity preserves bounded evidence and original files",
+      "evidence_required": [
+        "candidate_spec_sample_tool_hashes",
+        "raw_commands_true_exits",
+        "per_item_before_after_identity_hash",
+        "journal_and_db_snapshot",
+        "model_call_ledger",
+        "cleanup_or_retention_proof"
+      ],
+      "requires_target_execution": true,
+      "threshold_status": "DESIGN_PROTOCOL_OBLIGATION"
+    },
+    {
+      "case_id": "RN08",
+      "version": "V2",
+      "name": "持久intent与崩溃协调",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "owner_entry": "Journal→native step→reconcile",
+      "steps": [
+        "自有进程分别终止在intent后/临时后/最终后DB前并真实重启"
+      ],
+      "assertions": [
+        "按old/temp/target身份唯一判定；目标已完成不再rename，歧义needs_attention"
+      ],
+      "negative_cases": [
+        "未知child仍活着或多处身份/日志冲突禁止新writer，不盲重放"
+      ],
+      "stage_workpack": "R4-L3",
+      "terminal_oracle": "All planned rows retained with explicit success/fail/blocked/needs_attention; skipped is not PASS",
+      "cleanup_oracle": "Only owned fixtures cleaned after actual journal/identity checks; ambiguity preserves bounded evidence and original files",
+      "evidence_required": [
+        "candidate_spec_sample_tool_hashes",
+        "raw_commands_true_exits",
+        "per_item_before_after_identity_hash",
+        "journal_and_db_snapshot",
+        "model_call_ledger",
+        "cleanup_or_retention_proof"
+      ],
+      "requires_target_execution": true,
+      "threshold_status": "DESIGN_PROTOCOL_OBLIGATION"
+    },
+    {
+      "case_id": "RN09",
+      "version": "V2",
+      "name": "可审阅撤销与撤销恢复",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "owner_entry": "undo-plan→confirm→same apply/journal",
+      "steps": [
+        "成功项生成反向计划，人工确认，含undo各崩溃点重启"
+      ],
+      "assertions": [
+        "原日志保留，未改内容正常恢复，反向操作幂等/部分成功可追踪"
+      ],
+      "negative_cases": [
+        "旧名占位/目标被改写或丢失/权限撤销逐项拒绝"
+      ],
+      "stage_workpack": "R4-L3",
+      "terminal_oracle": "All planned rows retained with explicit success/fail/blocked/needs_attention; skipped is not PASS",
+      "cleanup_oracle": "Only owned fixtures cleaned after actual journal/identity checks; ambiguity preserves bounded evidence and original files",
+      "evidence_required": [
+        "candidate_spec_sample_tool_hashes",
+        "raw_commands_true_exits",
+        "per_item_before_after_identity_hash",
+        "journal_and_db_snapshot",
+        "model_call_ledger",
+        "cleanup_or_retention_proof"
+      ],
+      "requires_target_execution": true,
+      "threshold_status": "DESIGN_PROTOCOL_OBLIGATION"
+    },
+    {
+      "case_id": "RN10",
+      "version": "V2",
+      "name": "通用批次取消/重试/幂等",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "owner_entry": "PersistentJobOwner→library task/file operation",
+      "steps": [
+        "1000项固定计划，重复key/取消/失败项显式retry/跨重启进度"
+      ],
+      "assertions": [
+        "终结与成功数分开，成功副作用不重做；不借shot_batch12"
+      ],
+      "negative_cases": [
+        "同key不同payload409；过期lease不能越过旧worker custody；不得自动重推理"
+      ],
+      "stage_workpack": "R4-L4",
+      "terminal_oracle": "All planned rows retained with explicit success/fail/blocked/needs_attention; skipped is not PASS",
+      "cleanup_oracle": "Only owned fixtures cleaned after actual journal/identity checks; ambiguity preserves bounded evidence and original files",
+      "evidence_required": [
+        "candidate_spec_sample_tool_hashes",
+        "raw_commands_true_exits",
+        "per_item_before_after_identity_hash",
+        "journal_and_db_snapshot",
+        "model_call_ledger",
+        "cleanup_or_retention_proof"
+      ],
+      "requires_target_execution": true,
+      "threshold_status": "DESIGN_PROTOCOL_OBLIGATION"
+    },
+    {
+      "case_id": "RN11",
+      "version": "V2",
+      "name": "稳定引用/当前位置/旧名检索",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "owner_entry": "source binding→asset/FTS→open media",
+      "steps": [
+        "改名/同卷移动后查询新旧名并打开旧Prompt/Scene引用"
+      ],
+      "assertions": [
+        "asset/media/revision ID和历史hash不变，新位置可开、旧名可查"
+      ],
+      "negative_cases": [
+        "同basename/hash不同物理对象不能偷换历史引用"
+      ],
+      "stage_workpack": "R4-L4",
+      "terminal_oracle": "All planned rows retained with explicit success/fail/blocked/needs_attention; skipped is not PASS",
+      "cleanup_oracle": "Only owned fixtures cleaned after actual journal/identity checks; ambiguity preserves bounded evidence and original files",
+      "evidence_required": [
+        "candidate_spec_sample_tool_hashes",
+        "raw_commands_true_exits",
+        "per_item_before_after_identity_hash",
+        "journal_and_db_snapshot",
+        "model_call_ledger",
+        "cleanup_or_retention_proof"
+      ],
+      "requires_target_execution": true,
+      "threshold_status": "DESIGN_PROTOCOL_OBLIGATION"
+    },
+    {
+      "case_id": "RN12",
+      "version": "V2",
+      "name": "离线/手工/MCP隔离",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "owner_entry": "React/API→local provider; actual MCP client",
+      "steps": [
+        "真实禁云本地分析，模型关闭完成人工命名/apply/undo，MCP读/预览真调用"
+      ],
+      "assertions": [
+        "同源UI，模型不可用不阻人工；原analyze scope无写权限"
+      ],
+      "negative_cases": [
+        "MCP任意path/SQL/Shell及apply/undo/越权scope拒绝"
+      ],
+      "stage_workpack": "R4-L4",
+      "terminal_oracle": "All planned rows retained with explicit success/fail/blocked/needs_attention; skipped is not PASS",
+      "cleanup_oracle": "Only owned fixtures cleaned after actual journal/identity checks; ambiguity preserves bounded evidence and original files",
+      "evidence_required": [
+        "candidate_spec_sample_tool_hashes",
+        "raw_commands_true_exits",
+        "per_item_before_after_identity_hash",
+        "journal_and_db_snapshot",
+        "model_call_ledger",
+        "cleanup_or_retention_proof"
+      ],
+      "requires_target_execution": true,
+      "threshold_status": "DESIGN_PROTOCOL_OBLIGATION"
+    },
+    {
+      "case_id": "RN13",
+      "version": "V2",
+      "name": "1000引用分页检索性能",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "owner_entry": "SQLite/FTS→library API→UI preview",
+      "steps": [
+        "1000资产page100，30查询和30CPU预览，冷热分别记录nearest-rankP95"
+      ],
+      "assertions": [
+        "候选search<=1s/preview<=2s，排除首次hash/解码/推理另报；固定1000不缩水"
+      ],
+      "negative_cases": [
+        "失效cursor/筛选变更/重复页/one-over page200拒绝，不全量载内存"
+      ],
+      "stage_workpack": "R4-L4",
+      "terminal_oracle": "All planned rows retained with explicit success/fail/blocked/needs_attention; skipped is not PASS",
+      "cleanup_oracle": "Only owned fixtures cleaned after actual journal/identity checks; ambiguity preserves bounded evidence and original files",
+      "evidence_required": [
+        "candidate_spec_sample_tool_hashes",
+        "raw_commands_true_exits",
+        "per_item_before_after_identity_hash",
+        "journal_and_db_snapshot",
+        "model_call_ledger",
+        "cleanup_or_retention_proof"
+      ],
+      "requires_target_execution": true,
+      "threshold_status": "PROPOSED_PENDING_PILOT"
+    },
+    {
+      "case_id": "RN14",
+      "version": "V2",
+      "name": "保留V1及原V2门禁",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "owner_entry": "release gate executor→same candidate",
+      "steps": [
+        "原V1 29及原V2九项增量逐项累计复算，含PTS/配方/QC/JSONL/MCP"
+      ],
+      "assertions": [
+        "旧义务都在56候选集合，不能仅RN通过宣布V2；旧阈值保留"
+      ],
+      "negative_cases": [
+        "旧29/38/47证据不改计数，不用mock替真实对端"
+      ],
+      "stage_workpack": "R4-L4",
+      "terminal_oracle": "All planned rows retained with explicit success/fail/blocked/needs_attention; skipped is not PASS",
+      "cleanup_oracle": "Only owned fixtures cleaned after actual journal/identity checks; ambiguity preserves bounded evidence and original files",
+      "evidence_required": [
+        "candidate_spec_sample_tool_hashes",
+        "raw_commands_true_exits",
+        "per_item_before_after_identity_hash",
+        "journal_and_db_snapshot",
+        "model_call_ledger",
+        "cleanup_or_retention_proof"
+      ],
+      "requires_target_execution": true,
+      "threshold_status": "DESIGN_PROTOCOL_OBLIGATION"
+    },
+    {
+      "case_id": "RN15",
+      "version": "V2",
+      "name": "真实大视频有界profile",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "owner_entry": "SourceRegistry→LibrarySampling→provider",
+      "steps": [
+        "授权真实>256MiB MP4/MOV，流式hash/probe/seek，显示实际PTS/coverage"
+      ],
+      "assertions": [
+        "不复制/不载全片像素、不每镜头重扫；预算/帧/内存有界，稀疏局限可见"
+      ],
+      "negative_cases": [
+        "20GiB/2h/帧像素exact和one-over，seek失败/无索引/不支持codec明确失败"
+      ],
+      "stage_workpack": "R3-L2",
+      "terminal_oracle": "All planned rows retained with explicit success/fail/blocked/needs_attention; skipped is not PASS",
+      "cleanup_oracle": "Only owned fixtures cleaned after actual journal/identity checks; ambiguity preserves bounded evidence and original files",
+      "evidence_required": [
+        "candidate_spec_sample_tool_hashes",
+        "raw_commands_true_exits",
+        "per_item_before_after_identity_hash",
+        "journal_and_db_snapshot",
+        "model_call_ledger",
+        "cleanup_or_retention_proof"
+      ],
+      "requires_target_execution": true,
+      "threshold_status": "DESIGN_PROTOCOL_OBLIGATION"
+    },
+    {
+      "case_id": "RN16",
+      "version": "V2",
+      "name": "本地凭证与精确计划授权",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "owner_entry": "trusted local registry→confirmations→apply",
+      "steps": [
+        "UI选择确切计划revision/item集合，撤scope/改选项/变源后尝试旧token"
+      ],
+      "assertions": [
+        "session/Origin/Host/CSRF/If-Match/key/hash/epochs全部有效才执行，token不泄漏"
+      ],
+      "negative_cases": [
+        "伪造Origin/绝对路径/旧ETag/过期确认/改选项/漏依赖闭包拒绝；相同幂等请求返回旧op"
+      ],
+      "stage_workpack": "R4-L3",
+      "terminal_oracle": "All planned rows retained with explicit success/fail/blocked/needs_attention; skipped is not PASS",
+      "cleanup_oracle": "Only owned fixtures cleaned after actual journal/identity checks; ambiguity preserves bounded evidence and original files",
+      "evidence_required": [
+        "candidate_spec_sample_tool_hashes",
+        "raw_commands_true_exits",
+        "per_item_before_after_identity_hash",
+        "journal_and_db_snapshot",
+        "model_call_ledger",
+        "cleanup_or_retention_proof"
+      ],
+      "requires_target_execution": true,
+      "threshold_status": "DESIGN_PROTOCOL_OBLIGATION"
+    },
+    {
+      "case_id": "RN17",
+      "version": "V2",
+      "name": "迁移/备份及外部文件协调",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "owner_entry": "migration/backup→journal mirror→reconcile",
+      "steps": [
+        "最终V1真实schema fixture迁移/失败回滚，一致性backup后执行文件动作再恢复旧DB"
+      ],
+      "assertions": [
+        "旧ID/hash/修订不变；恢复后先协调，不宣称恢复DB撤销文件，镜像不被旧库覆盖"
+      ],
+      "negative_cases": [
+        "损坏backup/镜像不可写/DB与sidecar不符/后续动作缺失needs_attention"
+      ],
+      "stage_workpack": "R4-L4",
+      "terminal_oracle": "All planned rows retained with explicit success/fail/blocked/needs_attention; skipped is not PASS",
+      "cleanup_oracle": "Only owned fixtures cleaned after actual journal/identity checks; ambiguity preserves bounded evidence and original files",
+      "evidence_required": [
+        "candidate_spec_sample_tool_hashes",
+        "raw_commands_true_exits",
+        "per_item_before_after_identity_hash",
+        "journal_and_db_snapshot",
+        "model_call_ledger",
+        "cleanup_or_retention_proof"
+      ],
+      "requires_target_execution": true,
+      "threshold_status": "DESIGN_PROTOCOL_OBLIGATION"
+    },
+    {
+      "case_id": "RN18",
+      "version": "V2",
+      "name": "DJ与通用素材独立质量",
+      "priority": "P0",
+      "status": "NOT_RUN",
+      "owner_entry": "authorized sample manifest→AssetDescriptor→independent scorer",
+      "steps": [
+        "设计30样本开发18/留样12，冻结许可/hash/先验标签，固定模型/采样运行"
+      ],
+      "assertions": [
+        "候选>=27/30且开发>=17/18留样>=11/12，编造0；失败/未知/不支持仍占分母"
+      ],
+      "negative_cases": [
+        "不从视觉猜BPM/调性/曲名/真实身份，未见片段不当事实；不得换样/调留样"
+      ],
+      "stage_workpack": "R4-L4",
+      "terminal_oracle": "All planned rows retained with explicit success/fail/blocked/needs_attention; skipped is not PASS",
+      "cleanup_oracle": "Only owned fixtures cleaned after actual journal/identity checks; ambiguity preserves bounded evidence and original files",
+      "evidence_required": [
+        "candidate_spec_sample_tool_hashes",
+        "raw_commands_true_exits",
+        "per_item_before_after_identity_hash",
+        "journal_and_db_snapshot",
+        "model_call_ledger",
+        "cleanup_or_retention_proof"
+      ],
+      "requires_target_execution": true,
+      "threshold_status": "PROPOSED_PENDING_PILOT"
+    }
+  ]
+}

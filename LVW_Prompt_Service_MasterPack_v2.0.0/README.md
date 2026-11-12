@@ -24,7 +24,7 @@
 |---|---|---|
 | **V0 / MVP** | 本地上传图片或短视频，反推、编辑、复制/导出四类 Prompt | 现有 ComfyUI + Prompt Assistant + Ollama；无业务数据库 |
 | **V1 / 独立服务** | 六类创作模式、四类目标编译、人工版本、独立运行 | React + TypeScript + Vite / FastAPI / SQLite / Ollama |
-| **V2 / 创作资产服务** | 镜头切分、精确时间、风格配方、检索、批量恢复、Agent调用 | 复用现有后端，增加 PySceneDetect、FTS5、官方 MCP SDK |
+| **V2 / 素材理解与整理** | 保留镜头/配方/检索/MCP，新增来源描述、命名预览、不覆盖归档与恢复撤销（候选） | 复用现有后端，增加 PySceneDetect、FTS5、官方 MCP SDK |
 | **V3 / 项目群适配** | Navia证据 → LVW提示词 → Narralens建议；受控Comfy生成交接 | 薄适配、版本合同、GPU协调、迁移回滚及真实E2E |
 
 **完整包含V3本身，不只写“未来再做”。** 当前批准的实施优先级为 `V0-Min(PASS) → R0 → R1a → V0.1 → V0.2 → R1/R2 → V2 → V3`；发布与验收顺序并未改变。Codex依据机器可读计划和冻结 Stage Packet 推进，不一次性混建全部功能。
@@ -52,3 +52,11 @@ PRD、目标体验及门限、全阶段架构与实现方案、分期开发计�
 在 Windows 资源管理器中双击项目根目录的 **`启动LVW.lnk`**（或直接双击 `LVW.exe`），在启动窗口选择图片、视频或人工验收指南，无需输入命令。图片入口复用 `START_LVW.cmd`；视频入口自动准备隔离环境并打开本机页面。详细说明见 [启动器说明](launcher/README.md)，图片旧入口说明见 `lvw/README.md`。
 
 解压后打开START_HERE.html；无CDN/外部字体。文档结构检查：`python3 tools/verify_pack.py`。完整Schema验证：`python3 tools/verify_pack.py --schema`（构建/验收环境需预装jsonschema）。治理与反假绿负例：`python3 tools/verify_governance.py --self-test`。产品证据检查：`python3 tools/check_release.py reports/product-results.template.json --target V0`，模板未执行，预期拒绝发布。
+
+## 2026-11-12｜V2产品目标已调整，业务尚未激活
+
+LVW定位为**本地优先的视觉素材理解与整理工作台**：共享有来源的观察，服务提示词反推、描述/标签、可审核的本地命名与同卷归档/撤销。V1目标及签署范围保持；V2以R3/R4扩展，原PTS/配方/FTS/MCP/批量恢复/备份义务保留。
+
+入口：[产品目标](docs/33_V2_PRODUCT_REBASELINE.md) · [详细架构/文件协议](docs/34_V2_LIBRARY_ARCHITECTURE.md) · [执行/验收](docs/35_V2_LIBRARY_EXECUTION_AND_ACCEPTANCE.md) · [ADR-15](docs/adr/ADR-15-V2-LIBRARY-NAMING.md) · [候选激活条件](plans/candidates/v2-library/activation.json)。候选R23–R30/RN01–RN18追加后V2/V3为56/65项，未激活canonical旧38/47；V1保持29。旧30/39只是历史基线。设计不是已实现或原件写授权，指标与预算待pilot及正式冻结。
+
+完整规范从docs生成：`python3 -B tools/build_full_spec.py`，一致性只读检查加`--check`；本轮候选校验：`python3 -B tools/verify_v2_library_design.py`。

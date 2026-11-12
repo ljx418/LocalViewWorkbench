@@ -28,3 +28,9 @@ ID碰撞同hash复用，不同hash拒绝或生成映射并保留原ID，不能�
 ## 2026-11-11设计1.1优先覆盖
 
 用户批准V1-M1提前scene_revision最小子集、父子固定计划与内部lease/token终结CAS；原“scene/batch/lease全属V2”只指完整增强。V1细则以docs/31–32和候选Schema/迁移为准：元数据/不可变计划有真实存储载体，旧canonical DTO不变，V2完整R13/A13/X04/通用batch与恢复仍保留。
+
+## ADR-15｜V2原件位置与不可变事实
+
+新增source_root/source_file/asset_source_binding、asset_description_revision、naming_template_revision、rename_plan_revision/item、file_operation/event与旧名历史。source_file业务ID/卷文件ID/hash独立；相同内容不同路径不合并。当前位置经FileOperationService短事务更新，原Prompt/Scene/revision内容与hash不改。临时stage后同样登记实际source_file定位，避免环形改名时DB唯一目标路径仍占旧名。
+
+描述与人工head/CAS、不可变计划和精确选择确认、外部文件journal镜像及DB备份恢复边界见[34](34_V2_LIBRARY_ARCHITECTURE.md)。候选DDL不代表已部署，迁移版本依最终V1实际schema确定。旧Job和batch DTO不改，新LibraryTask是同一持久job/attempt上的领域投影。

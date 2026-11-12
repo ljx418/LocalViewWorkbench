@@ -250,3 +250,9 @@ C2 读取哈希固定的1.0.4完整九样本清单，保留旧四样本前缀；
 ## 2026-11-11｜V1专用S2衔接已批准
 
 用户批准CHANGE-V1-S2-HANDOFF-01并要求继续goal。批准见[记录](../reports/v1-next-stage-readiness/change-v1-s2-handoff-01.approval.json)，应用见[决定](../reports/v1-next-stage-readiness/change-v1-s2-handoff-01.approved-decision.json)。已解除该范围WAIT_AUTH；旧S2仍7/8，当前统一切片人签不改。下一步S3前置工具与有界素材盘点，再补齐独立质量集/标注、包装/回滚合同、精确命令和有限预算，冻结实际产品Gate0。
+
+## 2026-11-12｜V2-D0目标与设计准备入口
+
+本轮新增未来V2设计线，当前stage/target/WAIT_BUDGET与原outline计数不改。读取[33目标](33_V2_PRODUCT_REBASELINE.md)、[34架构与文件操作协议](34_V2_LIBRARY_ARCHITECTURE.md)、[35执行验收](35_V2_LIBRARY_EXECUTION_AND_ACCEPTANCE.md)及[候选激活状态](../plans/candidates/v2-library/activation.json)。R3-L1/L2、R4-L3/L4纳入原阶段，追加18项候选用例形成56/65，不把设计包或旧30/38门禁当新V2通过。
+
+本章早期表格21/30/39是历史快照；当前生效基线29/38/47及V1在途状态以canonical plans和execution-control为准。V2-D0文档只证明设计准备，不完成R3/R4产品子项；需最终V1复用审计、独审、pilot、具体文件授权和StageGate0后才可业务实施。

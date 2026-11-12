@@ -123,3 +123,6 @@ N6：scene_hash.column_mapping冻结全部11个hash字段到数据库的映射�
 NM-1要求校验器保护全部11个字段映射以及迁移中每处lvw_scene_hash的11参数顺序；NM-2要求新Scene GET仍返回canonical Scene完整envelope；NM-3要求畸形输入有稳定诊断与非零退出码，而不是无stdout的未捕获异常。NM-4/NM-8要求输出降级检查、实际使用的pin与默认/显式覆盖来源，覆盖pin的合成副本运行不得冒充权威门禁。NM-6要求四类证据及observation/inference/unknowns路由均有确定性负例，不能只计算人物单例。NM-7以追加更正收据绑定旧原始日志中的真实计数，不改写旧收据/失败日志；新收据由本轮机器日志提取统计。
 
 本次独审findings数组实际为3 Major、5 Minor（NM-1..NM-8）；其summary写6 Minor属于计数差异，原报告保留，由下一独审在新收据中核对并说明，不能凭空制造第九条问题。当前候选不通过D0收口，产品仍R1/WAIT_HUMAN。
+
+
+2026-11-12未来V2增量导航：[ADR-15](adr/ADR-15-V2-LIBRARY-NAMING.md)及[33–35](33_V2_PRODUCT_REBASELINE.md)新增候选命名整理目标；本章V1语义、29项与旧设计/收据保持，38/47是未激活增量前的基线，未来候选56/65不反写本章冻结历史。开头状态为当时设计快照，实际签署/在途坐标读取execution-control。

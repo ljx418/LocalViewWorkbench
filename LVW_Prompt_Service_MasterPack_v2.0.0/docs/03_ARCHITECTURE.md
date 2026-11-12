@@ -52,3 +52,9 @@ V0增量工作流/薄扩展；V1一个Python服务（含静态前端）+已有Ol
 ## 2026-11-11批准的V1范围与角色修订
 
 V1新增SceneRevisionOwner、FrameEvidenceOwner与有界持久化父子任务，单体/SQLite/单GPU不变。 权威执行索引见[新版V1计划](30_V1_REVISED_EXECUTION_PLAN.md)、[详细架构/合同](31_V1_DETAILED_ARCHITECTURE_AND_CONTRACTS.md)、[验收与Orca协作](32_V1_ACCEPTANCE_AND_AGENT_WORKFLOW.md)。本节覆盖此前“自动切镜全部只在V2”的范围表述，不回填任何产品PASS。
+
+## 2026-11-12｜V2共享视觉事实与安全文件操作
+
+同一FastAPI/SQLite增加SourceRegistry、AssetDescriptor、NamingCompiler、RenamePlanner、FileOperationService/Journal。最后一项是唯一原件写owner；Repository仍是唯一数据库写边界。浏览器/MCP只用ID与相对展示位置，无新桌面/数据库/微服务。最终V1持久任务与修订须以真实交付核验后复用；现有内存字典不当作库。
+
+analysis_key的template版本指**分析模板**；命名模板仅参与plan_hash，改命名模板不重推理。创作输出不升级事实；源文件业务ID、物理身份与内容hash分离。native no-replace、短事务intent/文件动作/event、恢复及反向计划完整规范在[34](34_V2_LIBRARY_ARCHITECTURE.md)。候选设计未激活，原件写权限不从V1继承。

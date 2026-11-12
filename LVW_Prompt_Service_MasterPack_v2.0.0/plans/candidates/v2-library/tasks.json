@@ -1,0 +1,134 @@
+{
+  "status": "DESIGN_CANDIDATE_NOT_ACTIVE",
+  "current_coordinate_unchanged": true,
+  "workpacks": [
+    {
+      "id": "V2-D0",
+      "depends_on": [],
+      "deliverables": [
+        "ADR15",
+        "docs33-35",
+        "candidate schema/API/SQL",
+        "RN01-18 and R23-30",
+        "pilot/sample/authorization plans",
+        "deterministic validation",
+        "isolated design review"
+      ],
+      "business_implementation_allowed": false
+    },
+    {
+      "id": "R3-L1",
+      "depends_on": [
+        "V2-D0",
+        "V1_FINAL_ACCEPTED",
+        "V2_STAGE_GATE0"
+      ],
+      "owners": [
+        "SourceRegistry",
+        "AssetRepository"
+      ],
+      "cases": [
+        "RN01",
+        "RN05",
+        "RN11",
+        "RN16"
+      ],
+      "legacy_mapping": [
+        "R3.assets_fts"
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "R3-L2",
+      "depends_on": [
+        "R3-L1"
+      ],
+      "owners": [
+        "AssetDescriptor",
+        "LibrarySampling",
+        "NamingCompiler",
+        "RenamePlanner"
+      ],
+      "cases": [
+        "RN02",
+        "RN03",
+        "RN04",
+        "RN15"
+      ],
+      "legacy_mapping": [
+        "R3.assets_fts",
+        "R3.compare_qc_jsonl"
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "R4-L3",
+      "depends_on": [
+        "R3-L2",
+        "R3_GATE",
+        "NATIVE_FILE_CAPABILITY_PILOT"
+      ],
+      "owners": [
+        "FileOperationService",
+        "FileOperationJournal"
+      ],
+      "cases": [
+        "RN05",
+        "RN06",
+        "RN07",
+        "RN08",
+        "RN09",
+        "RN16"
+      ],
+      "legacy_mapping": [
+        "R4.batch_recovery",
+        "R4.backup"
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "R4-L4",
+      "depends_on": [
+        "R4-L3"
+      ],
+      "owners": [
+        "PersistentJobOwner",
+        "AssetRepository",
+        "MCPAdapter"
+      ],
+      "cases": [
+        "RN10",
+        "RN11",
+        "RN12",
+        "RN13",
+        "RN14",
+        "RN17",
+        "RN18"
+      ],
+      "legacy_mapping": [
+        "R4.mcp",
+        "R4.batch_recovery",
+        "R4.backup",
+        "R4.cumulative_gate"
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "L5",
+      "depends_on": [
+        "V2_FINAL_ACCEPTED",
+        "NEW_SCOPE_AND_AUTHORIZATION"
+      ],
+      "business_implementation_allowed": false
+    }
+  ],
+  "external_prerequisites": [
+    "V1_FINAL_ACCEPTED",
+    "V2_STAGE_GATE0",
+    "R3_GATE",
+    "NATIVE_FILE_CAPABILITY_PILOT",
+    "V2_FINAL_ACCEPTED",
+    "NEW_SCOPE_AND_AUTHORIZATION"
+  ],
+  "preserved_original_R3_R4_substeps": true
+}

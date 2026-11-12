@@ -34,3 +34,11 @@ batch拆child job，独立状态、父进度是已终结项/总数；失败项�
 ## 2026-11-11批准的V1范围与角色修订
 
 R22短视频切镜/逐镜头子集提前到V1-M1；V2仍承担完整R13、长片、资产/FTS/配方等，不能用MS01替代完整A13/X04。 权威执行索引见[新版V1计划](30_V1_REVISED_EXECUTION_PLAN.md)、[详细架构/合同](31_V1_DETAILED_ARCHITECTURE_AND_CONTRACTS.md)、[验收与Orca协作](32_V1_ACCEPTANCE_AND_AGENT_WORKFLOW.md)。本节覆盖此前“自动切镜全部只在V2”的范围表述，不回填任何产品PASS。
+
+## ADR-15增量实施：本地视觉素材命名与整理
+
+R3/R4承载新核心目标，不另建桌面应用/资源平台。新增源根与原片引用、独立描述修订和unknown、CPU模板、精确审阅计划、唯一文件写owner/journal、同卷归档/恢复/冲突撤销。最大12镜头的shot_batch不用于千文件；最终V1通用持久任务需重核实际交付。
+
+详细生产路径/权限/状态机/故障与迁移见[34](34_V2_LIBRARY_ARCHITECTURE.md)，原/新工作包映射、30样本设计和RN01–RN18见[35](35_V2_LIBRARY_EXECUTION_AND_ACCEPTANCE.md)。R3-L1/L2、R4-L3/L4是原阶段内有序包，PTS/配方/QC/JSONL/MCP/备份及累计V1回归不删。候选V2分母56，不用旧30或38项宣称新范围完成。
+
+source_root/source_file/asset_source_binding、description/template/rename_plan revisions、file_operation/event增量DDL与API只存在候选目录。原件注册与写scope通过可信本地入口，浏览器不接任意绝对路径；Windows原生no-replace/文件ID必须真实验证，不能用WSL字符串或os.replace。取消/崩溃/undo均保留日志与部分成功，恢复DB必须再协调外部文件。L5与真实运行权限不在本次设计落盘范围。

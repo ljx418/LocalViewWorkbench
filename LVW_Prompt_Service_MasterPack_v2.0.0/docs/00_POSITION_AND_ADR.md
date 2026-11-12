@@ -32,3 +32,7 @@ LVW = Visual Prompt & Creative Asset Service。核心是“观察什么、想创
 - ADR-13（同日用户指定）：Codex持有设计、合同和裁决权；ClaudeCode通过Orca可见隔离窗口实现、自检、输出收据；另一隔离实例审查；人类体验与发布签署保留。无额度/未登录进入明确阻塞，不暗中换供应商或由root批量代写。
 
 - ADR-14（2026-11-11，CHANGE-V1-S2-HANDOFF-01已获用户批准）：仅为V1开发衔接，S3的S2前置可由原S2九项机器/独审证据＋当前621b1bf统一前端实际人签满足，按plans/tasks.json的S3-V1-ONLY-S2-HANDOFF-01逐字段/哈希核验。旧S2保持7/8未签，旧版本发布义务不变。只改变这一条准入谓词，不减少S3十二项、Q01/MS质量或资源门限，不自动激活产品Gate0。
+
+## ADR-15｜2026-11-12 V2视觉素材理解与整理
+
+用户已授权新增未来V2目标及详细设计，采用同一单体共享观察，增加源目录、事实描述修订、CPU命名、精确计划和唯一文件写owner。原件写入仅V2登记scope+有效确认例外；不扩大当前V1权限。详见[ADR-15](adr/ADR-15-V2-LIBRARY-NAMING.md)、[目标](33_V2_PRODUCT_REBASELINE.md)和[详细协议](34_V2_LIBRARY_ARCHITECTURE.md)。候选18项追加到现有38/47得到56/65，设计未激活；原29项V1、旧收据/失败/人签不变。

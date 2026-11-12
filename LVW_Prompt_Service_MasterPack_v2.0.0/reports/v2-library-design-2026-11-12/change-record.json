@@ -1,0 +1,81 @@
+{
+  "change_id": "CHANGE-V2-LIBRARY-01",
+  "date": "2026-11-12",
+  "kind": "PRODUCT_INTENT_ADOPTED_DESIGN_CANDIDATE",
+  "user_authorization": "Explicit current user request to add future V2 product goals and write detailed design/plan; not V2 runtime/private media/original-file write authorization",
+  "proposal": {
+    "path": "/mnt/c/Users/Administrator/Desktop/myAssistant/reports/lvw-v2-renaming-2026-11-12/开发目标调整与架构考察.md",
+    "sha256": "47a08763acc7942719295ef6a417d1729d4a9605dcc8da923300061d5f7d84bc",
+    "role": "design input independently checked, not implementation evidence"
+  },
+  "baseline_head": "56832a43a2beb05f03ea7a00a66e198acfdd19f7",
+  "baseline": "reports/v2-library-design-2026-11-12/baseline.json",
+  "facts": [
+    {
+      "path": "lvw/backend/app/media.py",
+      "sha256": "7ab26a283b9faa45bfc361702e2106eb9c0e46094225f3f64212b9fbaedc4607"
+    },
+    {
+      "path": "lvw/backend/app/service.py",
+      "sha256": "920938f173f783449e87a0aa6109867ee71ce81ec2306286c55380f0b6698e99"
+    },
+    {
+      "path": "lvw/backend/app/video_kernel.py",
+      "sha256": "79ee442fa20746037cc2f13e2fcfc2b468610661296421ee7f93dd9effcd1879"
+    },
+    {
+      "path": "lvw/backend/app/models.py",
+      "sha256": "c822649d8de6cd37e0699ca16c5402d2c3221ea2e8a0f84cdece4ccc5f94c2bf"
+    },
+    {
+      "path": "contracts/storage.sql",
+      "sha256": "a2204821fe77225dacb515e761bccfdcb42e42d3296ec8ba26354b60f17029f8"
+    },
+    {
+      "path": "docs/31_V1_DETAILED_ARCHITECTURE_AND_CONTRACTS.md",
+      "sha256": "7af5ff9760008c62d4fd19b787d6e1b60a61357f1958242c5c871dd9adbec26b"
+    }
+  ],
+  "concurrency": {
+    "implementation_dispatch": "ctx_ca02b8995178",
+    "implementation_state": "stopped/exited429",
+    "implementation_head": "0e045c71f05ed316a519c6363649b7852739d101",
+    "review_dispatch": "ctx_92876dc13ae4",
+    "review_assignment": "succeeded; retained terminal live is not an active implementation",
+    "review_head": "0d5c023712651b20f3554ed4f0feb2b56b974bd6",
+    "tracked_other_worktree_changes": 0,
+    "historical_unverifiable_terminals": "Preserved; liveness not inferred, no termination/reuse",
+    "untracked_artifacts": "Preserved; no cleanup or broad add"
+  },
+  "conflicts_and_decisions": [
+    {
+      "conflict": "external audit HEAD b1a9386 is stale",
+      "decision": "use56832a4 actual coordinateWAIT_BUDGET; originalV1 remains stopped"
+    },
+    {
+      "conflict": "original source ownership/read-only versus requested rename",
+      "decision": "V2 explicit registered scope+reviewed plan only, unique file writer; V1 defaults unchanged, ADR15"
+    },
+    {
+      "conflict": "old30/39 vs postMS38/47 vs newscope",
+      "decision": "append18 candidate cases to38/47 =>56/65; canonical gates byte-identical until formal activation; cannot use old gate for expandedPASS"
+    },
+    {
+      "conflict": "reference schema/DDL and docs31 versus runtime",
+      "decision": "separate current reusable code, finalV1 prerequisites and V2 additions"
+    },
+    {
+      "conflict": "candidate quality/performance targets versus user approval",
+      "decision": "PROPOSED_PENDING_PILOT, numeric threshold approval/runtimebudget/writepaths allnull"
+    },
+    {
+      "conflict": "FULL_SPEC static old assembly without tracked generator",
+      "decision": "no existing generator found by tracked script search; add deterministic build_full_spec.py and document source/--check workflow, not a parallel spec"
+    }
+  ],
+  "v2_runtime_authorization": null,
+  "current_v1_resumed": false,
+  "business_code_changed": false,
+  "product_gate0": false,
+  "stage_pass_claim": false
+}

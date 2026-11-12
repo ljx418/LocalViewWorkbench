@@ -1,0 +1,59 @@
+{
+  "status": "DESIGN_CANDIDATE_NOT_ACTIVE",
+  "transport": "existing stdio thin proxy",
+  "tools": [
+    {
+      "name": "lvw_describe_assets",
+      "scope": "analyze",
+      "request": {
+        "$ref": "#/$defs/DescriptionBatch"
+      }
+    },
+    {
+      "name": "lvw_preview_rename",
+      "scope": "naming_preview",
+      "request": {
+        "$ref": "#/$defs/CreatePlan"
+      }
+    },
+    {
+      "name": "lvw_get_rename_plan",
+      "scope": "read",
+      "request": {
+        "type": "object",
+        "properties": {
+          "plan_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          }
+        },
+        "required": [
+          "plan_id"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "lvw_get_file_operation",
+      "scope": "read",
+      "request": {
+        "type": "object",
+        "properties": {
+          "operation_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          }
+        },
+        "required": [
+          "operation_id"
+        ],
+        "additionalProperties": false
+      }
+    }
+  ],
+  "schema_source": "contracts/candidates/v2-library/library.schema.json",
+  "write_tools": [],
+  "invariant": "Old analyze scope never grants filesystem rename/apply/undo. Request IDs only; no arbitrary paths/SQL/Shell."
+}
