@@ -1,0 +1,58 @@
+{
+  "kind": "ROOT_S3_CPU_FIXTURE_MACHINE_GATE_REVIEW_NOT_EXECUTION_AUTHORIZATION",
+  "at_utc": "2026-11-12T14:15:26.815560+00:00",
+  "question_id": "msg_c822a282d155",
+  "dispatch_id": "ctx_acda509961b1",
+  "candidate_sha": "a7b61e2ed996f6def7c9c2e76cd44fa8010b9927",
+  "proposal_candidate_sha": "58c1a69c52f492e66796f9c097e13451f5259a46",
+  "source_pins_verified": {
+    "reports/v0-s3/product-gate0/implementation-integration-01/run_guarded_checks.py": "aa9124bbde3daa5fd08da2223b6eeb8167bd408463018ed4751ce2d9edf4b752",
+    "tools/fixtures/v0_s3_supervisor_fixture.py": "f8c8b29d6b280d24d9c1ea9ceccc6db9c4b7df883c700bced472802aa42a9bd3",
+    "tools/test_v0_s3_integration.py": "c1a0bb4b45e0380929d986678f425044d5ede4d2ee0b5a7c429ea26ec0e5432c",
+    "tools/test_v0_s3_supervisor.py": "8867688236b3d1e20f2b294d30f85af77c301da6ef74000d373f63927ae8fb29",
+    "tools/v0_s2_runtime.py": "a97ea20d02ed80ab4f99f133dd8162331ddba34662bfdcca637fcade40b4dbd2",
+    "tools/v0_s2_stage_runtime.py": "cf6ad01d66c0c7885475eedeae5ba66df9bec61bf7281ee511600f6224833e26",
+    "tools/v0_s3_coordinator.py": "55dd875c44de3128e4fc64a3ec1729687adb01c94007b8230e71d1717cd7eaf5",
+    "tools/v0_s3_quality_phase.py": "90552ea113ccf53a2a1cedff3e3f399642ad932bf0f71bb1f9a57e1adb6e8789",
+    "tools/v0_s3_quality_worker.py": "2366a67ba132091c338c3c01876deee431e3d46790d8ff009e6126c9ea3e728f",
+    "tools/v0_s3_supervisor.py": "6fdb1ad3386991d8fc7fd67b25956dfd430e6e8997a5da195e93140378ffba86"
+  },
+  "decision": "CHANGES_REQUIRED_BEFORE_CPU_EXECUTION_ACK",
+  "execution_permitted": false,
+  "human_authorization_required": false,
+  "contract": "reports/v0-s3/product-gate0/s3-integration-offline-contract-01.md",
+  "findings": [
+    {
+      "id": "CPU-G1",
+      "location": "implementation-integration-01/run_guarded_checks.py PROCESS_GATE and load_machine_binding",
+      "actual": "starts is module-local and resets per runner; total_starts is not tied to shared persistent count or implementation/review allocation",
+      "required": "Root-created external shared counter, no auto-create/reset; atomic charge before each actual start, no refunds, enforce24total/16implementation/8review across invocations and candidate rebinds."
+    },
+    {
+      "id": "CPU-G2",
+      "location": "load_machine_binding/_gate_subprocess",
+      "actual": "Only Python digest verified; source_bindings, fixture digest, actual candidate/source and issuer-bound file identity not checked at execution boundary",
+      "required": "ACK binds exact root file path/hash, current candidate and all source/runner/fixture/Python pins. Reverify before each child spawn; source drift refuses before open/start. Reject arbitrary same-kind documents and old proposal SHA; no cryptographic platform needed."
+    },
+    {
+      "id": "CPU-G3",
+      "location": "_gate_subprocess and test executor lifecycle",
+      "actual": "No independent enforcement of concurrency, per-process10s, cumulative180s/last30cleanup, or owned process cleanup; relies on supervisor under test",
+      "required": "Executor holds original child handles, enforces max2 plus independent per-child deadline<=10s and cumulative session admission<=150s/cleanup<=180s, records real exits/cleanup and retains uncertain reservations. Cannot use only candidate supervisor timeout as outer safety."
+    },
+    {
+      "id": "CPU-G4",
+      "location": "fixture context and finite command plan",
+      "required": "Exact argv/scenario/Python/source/cwd/env plan; context file must be bounded JSON in fresh owned runner root, no arbitrary private path; fixture remains stdlib only and no descendants/network. No wholesale git-init regression or widening subprocess beyond closed scenario plan."
+    }
+  ],
+  "notes": [
+    "No process binding issued; implementation continues only zero-process guarded corrections.",
+    "Existing source pins match proposal but proposal candidate SHA58c1a69 is older than currenta7b61e2; rebind to exact new commit after guard corrections.",
+    "55 guard-blocked git-init errors are an attempted command with exit1, not never-executed checks; retain BLOCKED_BY_GUARD diagnostics without rerun/widening.",
+    "Correct arithmetic/status mapping for24 obligations (question says5 partial but lists6 IDs); no new fullsuite just to fix prose.",
+    "Production implementation review remains separate; current binding request is not component acceptance."
+  ],
+  "stage_pass_claim": false,
+  "product_gate0": false
+}
