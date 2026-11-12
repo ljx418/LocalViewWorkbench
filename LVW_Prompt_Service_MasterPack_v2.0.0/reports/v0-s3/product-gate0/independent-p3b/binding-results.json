@@ -1,0 +1,146 @@
+{
+  "candidate": "cea5bf328ea35a5aa1d1feb51ac3ef8946a964fa",
+  "evidence": "e0e54a4b889050de218d483a36532cec9127dd0a",
+  "authority": "35f1ee4df74e3a6054e021ee9cbbd066eaba5490",
+  "files": {
+    "reports/v0-s3/product-gate0/implementation-p3b/run_offline_checks.py": {
+      "sha256": "d1261c15c58d6b5e5bd16b7e5a683112d2746a09f432ade836022078dda183f6",
+      "bytes": 8286,
+      "receipt_matches": true,
+      "candidate_matches": true
+    },
+    "tools/test_v0_s3_quality_phase.py": {
+      "sha256": "372555acfcef7b55bbd00dbb6edb6ad16e796a7e25c3a0dfb408a1fbeea28c48",
+      "bytes": 50739,
+      "receipt_matches": true,
+      "candidate_matches": true
+    },
+    "tools/v0_s3_quality_phase.py": {
+      "sha256": "7211f23d4fe2dc7f840c13ba0a9db1535c78f480b4f39bf0cbeadd50f23b2c26",
+      "bytes": 76199,
+      "receipt_matches": true,
+      "candidate_matches": true
+    },
+    "reports/v0-s3/product-gate0/p3b-quality-contract.md": {
+      "sha256": "d06a6688fa618cd9fef1cd7f362b8d165addc0030dde0b5aee77465c2a2c20a3",
+      "bytes": 8706,
+      "receipt_matches": true,
+      "candidate_matches": true,
+      "authority_matches": true
+    },
+    "reports/v0-s3/product-gate0/quality-execution-inputs.frozen.json": {
+      "sha256": "47e9f14efa66bc4df851bf1a738763b48c1728eed84b76c56a7848d1b01f00c3",
+      "bytes": 3823,
+      "receipt_matches": true,
+      "candidate_matches": true,
+      "authority_matches": true
+    }
+  },
+  "implementation_streams": {
+    "combined-final": {
+      "stdout": {
+        "hash_matches": true,
+        "bytes_match": true,
+        "text": "...................................................................      [100%]\n67 passed in 7.96s\n"
+      },
+      "stderr": {
+        "hash_matches": true,
+        "bytes_match": true,
+        "text": ""
+      },
+      "candidate_matches": true
+    },
+    "qd-directed": {
+      "stdout": {
+        "hash_matches": true,
+        "bytes_match": true,
+        "text": ".......................................                                  [100%]\n39 passed, 28 deselected in 8.27s\n"
+      },
+      "stderr": {
+        "hash_matches": true,
+        "bytes_match": true,
+        "text": ""
+      },
+      "candidate_matches": true
+    },
+    "qs-directed": {
+      "stdout": {
+        "hash_matches": true,
+        "bytes_match": true,
+        "text": "............................                                             [100%]\n28 passed, 39 deselected in 2.14s\n"
+      },
+      "stderr": {
+        "hash_matches": true,
+        "bytes_match": true,
+        "text": ""
+      },
+      "candidate_matches": true
+    }
+  },
+  "git_commands": [
+    {
+      "label": "authority-ancestry",
+      "argv": [
+        "git",
+        "merge-base",
+        "--is-ancestor",
+        "35f1ee4df74e3a6054e021ee9cbbd066eaba5490",
+        "cea5bf328ea35a5aa1d1feb51ac3ef8946a964fa"
+      ],
+      "exit_code": 0
+    },
+    {
+      "label": "evidence-ancestry",
+      "argv": [
+        "git",
+        "merge-base",
+        "--is-ancestor",
+        "cea5bf328ea35a5aa1d1feb51ac3ef8946a964fa",
+        "e0e54a4b889050de218d483a36532cec9127dd0a"
+      ],
+      "exit_code": 0
+    },
+    {
+      "label": "final-diff",
+      "argv": [
+        "git",
+        "diff",
+        "cea5bf328ea35a5aa1d1feb51ac3ef8946a964fa",
+        "e0e54a4b889050de218d483a36532cec9127dd0a",
+        "--stat"
+      ],
+      "exit_code": 0
+    },
+    {
+      "label": "rebind-diff",
+      "argv": [
+        "git",
+        "show",
+        "e0e54a4b889050de218d483a36532cec9127dd0a",
+        "--",
+        "LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b"
+      ],
+      "exit_code": 0
+    },
+    {
+      "label": "candidate-change",
+      "argv": [
+        "git",
+        "show",
+        "cea5bf328ea35a5aa1d1feb51ac3ef8946a964fa",
+        "--",
+        "LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_quality_phase.py"
+      ],
+      "exit_code": 0
+    },
+    {
+      "label": "status",
+      "argv": [
+        "git",
+        "status",
+        "--short"
+      ],
+      "exit_code": 0
+    }
+  ]
+}

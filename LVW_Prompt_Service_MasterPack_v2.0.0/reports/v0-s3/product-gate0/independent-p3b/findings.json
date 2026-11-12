@@ -1,0 +1,92 @@
+[
+  {
+    "id": "M01",
+    "severity": "Major",
+    "location": "tools/v0_s3_quality_phase.py:549-581, 808-827, 1101-1133",
+    "trigger": "Artifact write fails with the production error suffix :rows/...; receipt follows a full total-byte allowance.",
+    "expected": "Storage UNPROVEN, stop subsequent sends, retain all 16 rows; include receipt in total/file limits.",
+    "actual": "HALT_ERROR_CODES compares whole strings, whereas write/size/replay errors append paths. Injected raw-write failure sends all16/reserves34 with zero raw preserved and no storage_unproven. _write_receipt never checks total bytes: a counter at134217728 accepts76 additional bytes; receipt counters also describe pre-receipt totals.",
+    "evidence": "probes.stdout.log:raw_persistence_failure,receipt_total_cap; boundaries.stdout.log"
+  },
+  {
+    "id": "M02",
+    "severity": "Major",
+    "location": "tools/v0_s3_quality_phase.py:549-581, 1101-1162",
+    "trigger": "rows ancestor is a symlink while immediate target parent does not yet exist; or phase directory already exists.",
+    "expected": "Every artifact/receipt confined to the original owned phase directory; reject replay without writing into old roots.",
+    "actual": "_artifact checks only immediate parent and target. rows/asset/raw.txt writes through a rows symlink to a sibling target. Existing directory rejection still invokes _finish and creates qd-receipt.json there if absent; receipt open has no equivalent ancestor guard. Constructor resolves root without retaining original inode identity.",
+    "evidence": "probes.stdout.log:artifact_ancestor_redirect; boundaries.stdout.log:existing_directory; static receipt path"
+  },
+  {
+    "id": "M03",
+    "severity": "Major",
+    "location": "tools/v0_s3_quality_phase.py:739-771",
+    "trigger": "quality_public_submit authorize callback replaces source after _validate_source.",
+    "expected": "Revalidate source/root identity after controlled callbacks and before sending; changed source must not be sent.",
+    "actual": "Callback replaces the first PNG with another 4x4 generated PNG. All16 sends occur; only later output metadata detects first-row mismatch. _validate_source closes descriptor before callback and performs no final path identity check after read.",
+    "evidence": "probes.stdout.log:source_mutation_in_authorize"
+  },
+  {
+    "id": "M04",
+    "severity": "Major",
+    "location": "tools/v0_s3_quality_phase.py:830-856, 1210-1248",
+    "trigger": "video_snapshot_residue raises ordinary OSError rather than QualityContractError.",
+    "expected": "Unknown cleanup stops sends and returns/persists all16 terminal rows; release still attempted.",
+    "actual": "Exception escapes the first finally handler before release_evidence; run raises after one submission, phase.receipt remains null, and no full16 terminal receipt is produced.",
+    "evidence": "probes.stdout.log:residue_exception"
+  },
+  {
+    "id": "M05",
+    "severity": "Major",
+    "location": "tools/v0_s3_quality_phase.py:767-773, 1064; tools/v0_s2_driver.py:381-395",
+    "trigger": "Public submit reserves a driver attempt then raises (failed/unknown HTTP outcome).",
+    "expected": "Attempt count must stay charged, never report zero for a permitted attempted send.",
+    "actual": "Driver attempt=1, provider reserved=1, phase public_submissions=0 because increment follows successful return. Later rows halt correctly, but the public receipt understates attempted sends. Existing S2 driver correctly precharges, so phase should preserve that distinction.",
+    "evidence": "probes.stdout.log:failed_submit_counter"
+  },
+  {
+    "id": "M06",
+    "severity": "Major",
+    "location": "tools/v0_s3_quality_phase.py:1286-1339, 1403-1433",
+    "trigger": "Independent receipt lists A/SA and B/SB; score claims A/SB.",
+    "expected": "Validate exact reviewer/session pairs.",
+    "actual": "Separate membership sets accept cross-pair A/SB and aggregate_pass=true for all16. This is a schema/binding failure independent of real identity attestation.",
+    "evidence": "probes.stdout.log:cross_paired_reviewer_session"
+  },
+  {
+    "id": "M07",
+    "severity": "Major",
+    "location": "tools/v0_s3_quality_phase.py:1471-1484",
+    "trigger": "QD raw_bytes changed from244 to367 while actual bytes and score length remain244.",
+    "expected": "Recompute actual hash AND byte length against both bound execution and scoring records.",
+    "actual": "Aggregate remains true; execution row raw_bytes is never checked. Optional score raw_bytes does not substitute QD length binding.",
+    "evidence": "probes.stdout.log:execution_raw_length_mismatch"
+  },
+  {
+    "id": "M08",
+    "severity": "Major",
+    "location": "tools/v0_s3_quality_phase.py:1452-1462, 1504-1523",
+    "trigger": "Technically failed row still has independently reviewed actual raw and critical_hallucinations=3.",
+    "expected": "Keep failed row unusable, retain/validate its independent critical evidence; do not erase global critical evidence.",
+    "actual": "Immediate execution!=PASS continue discards score/raw verification and reports total critical0/knownfalse instead of the supplied3. Aggregate is false (no demonstrated false aggregate PASS). A known failed row with verified raw and zero critical also forces unresolved and aggregatefalse despite9/10+6/6 usable. Root must adjudicate this extra all-technical-success prerequisite against docs06 and original frozen quality rules; this review makes no scoring policy edits.",
+    "evidence": "probes.stdout.log:failed_row_critical_evidence,known_failed_independently_scored; docs/06_ACCEPTANCE.md business scoring; p3b contract QS"
+  },
+  {
+    "id": "M09",
+    "severity": "Major",
+    "location": "tools/v0_s3_quality_phase.py:784-790, 886-908, 937-942; bridge/core.py:381-399,515-522; bridge/nodes.py:50-53",
+    "trigger": "Real BridgeOwner rejects provider JSON/refusal before public UI text exists, or video raw shape parsing fails in persistence.",
+    "expected": "Persist available exact raw failure envelopes and full before/after provider evidence independently of parsing success.",
+    "actual": "BridgeError carries raw_response/prior_frame_raw_responses in its serialized history exception; QD only extracts outputs[node].text, so failure history is stored but separate original raw/frames are not extracted. _persist_row can raise before after-snapshot, leaving provider_after absent and observed calls0 despite attempted calls. Existing bad-raw tests mutate successful UI output, and SyntheticDriver catches BridgeError into a code-only message, so they do not exercise real error-detail preservation.",
+    "evidence": "Static production chain: core.BridgeError.__str__,call_one_frame,analyze_video; QD _persist_row/_execute_row; test SyntheticDriver.submit:264-270 and faults:296ff"
+  },
+  {
+    "id": "m01",
+    "severity": "Minor",
+    "location": "tools/v0_s3_quality_phase.py:659-678",
+    "trigger": "Release elapsed or monotonic sample is NaN.",
+    "expected": "Reject non-finite numeric evidence before declaring release proven.",
+    "actual": "_release_evidence accepts NaN due to comparison semantics. This helper probe does not establish whole-run success: canonical JSON allow_nan=False would later reject persisted NaN elapsed. Still, intermediate cleanup validation is weaker than existing finite-number oracle.",
+    "evidence": "probes.stdout.log:nonfinite_release"
+  }
+]
