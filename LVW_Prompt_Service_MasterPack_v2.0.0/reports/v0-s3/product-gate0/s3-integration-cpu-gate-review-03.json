@@ -18,7 +18,9 @@
       "id": "CPU-WALL-ALLOCATION",
       "location": "executor.py FiniteCpuExecutor.reserve_session, SharedCounter.reserve_session",
       "actual": "Session reserves min(remaining,60) but deadline uses remaining_before_seconds (first180), so first60 slice may spend180; reopening same session returns old record but resets reserved_at to current clock.",
-      "required": "Deadlines bounded by actual reserved_wall_seconds and immutable persisted original session start/deadline. Same-id reuse must not acquire fresh wall window; simplest refuse second runtime owner/restart or return original deadlines. 60 reservation gives at most30 admission+30cleanup, not150/180. Summed reservations remain<=180."
+      "required": "Deadlines bounded by actual reserved_wall_seconds and immutable persisted original session start/deadline. Same-id reuse must not acquire fresh wall window; simplest refuse second runtime owner/restart or return original deadlines. 60 reservation gives at most30 admission+30cleanup, not150/180. Summed reservations remain<=180.",
+      "additional_actual": "SharedCounter.finish still adds per-child ages to global spent_wall_seconds; settle_session records its own wall but does not update the global actual-session total.",
+      "additional_required": "Accumulate global actual session wall idempotently in session settlement, separate child lifetime/upper-bound observations without double charging."
     },
     {
       "id": "CPU-REAPER-CUSTODY",
