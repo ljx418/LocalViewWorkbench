@@ -27,7 +27,7 @@ CREATE TABLE asset_description_head(asset_id TEXT PRIMARY KEY REFERENCES asset(i
 CREATE TABLE asset_description_revision(
  id TEXT PRIMARY KEY, asset_id TEXT NOT NULL REFERENCES asset(id), parent_id TEXT REFERENCES asset_description_revision(id),
  model_run_id TEXT REFERENCES model_run(id), facts_json TEXT NOT NULL, unknowns_json TEXT NOT NULL,
- locked_fields_json TEXT NOT NULL, analysis_key TEXT, content_sha256 TEXT NOT NULL, author TEXT NOT NULL, created_at TEXT NOT NULL);
+ locked_fields_json TEXT NOT NULL, analysis_key TEXT, content_sha256 TEXT NOT NULL, author TEXT NOT NULL, created_at TEXT NOT NULL, tags_json TEXT NOT NULL DEFAULT '[]');
 CREATE TABLE naming_template_head(id TEXT PRIMARY KEY, head_revision_id TEXT, etag TEXT NOT NULL, head_sequence INTEGER NOT NULL DEFAULT 0 CHECK(head_sequence>=0));
 CREATE TABLE naming_template_revision(
  id TEXT PRIMARY KEY, template_id TEXT NOT NULL REFERENCES naming_template_head(id),

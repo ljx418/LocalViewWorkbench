@@ -118,17 +118,24 @@ def main():
         db=sqlite3.connect(':memory:');db.execute('PRAGMA foreign_keys=ON');db.executescript((ROOT/'contracts/storage.sql').read_text());db.executescript(sql)
         ck('incremental DDL memory only',db.execute('PRAGMA integrity_check').fetchone()[0]=='ok')
         db.execute("INSERT INTO asset VALUES('a','image','m','title','[]','{}',0)")
-        db.execute("INSERT INTO asset_description_revision VALUES('d','a',NULL,NULL,'[]','[]','[]',NULL,'hash','human','now')")
+        db.execute("INSERT INTO asset_description_revision(id,asset_id,parent_id,model_run_id,facts_json,unknowns_json,locked_fields_json,analysis_key,content_sha256,author,created_at) VALUES('d','a',NULL,NULL,'[]','[]','[]',NULL,'hash','human','now')")
         for command in ("UPDATE asset_description_revision SET facts_json='{}' WHERE id='d'","DELETE FROM asset_description_revision WHERE id='d'"):
             try:db.execute(command);ck('immutable description:'+command,False)
             except sqlite3.IntegrityError:ck('immutable description:'+command,True)
-        try:db.execute("INSERT INTO asset_description_revision VALUES('bad','missing',NULL,NULL,'[]','[]','[]',NULL,'x','human','now')");ck('foreign key rejects missing asset',False)
+        try:db.execute("INSERT INTO asset_description_revision(id,asset_id,parent_id,model_run_id,facts_json,unknowns_json,locked_fields_json,analysis_key,content_sha256,author,created_at) VALUES('bad','missing',NULL,NULL,'[]','[]','[]',NULL,'x','human','now')");ck('foreign key rejects missing asset',False)
         except sqlite3.IntegrityError:ck('foreign key rejects missing asset',True)
         ck('foreign keys intact',not db.execute('PRAGMA foreign_key_check').fetchall());db.close()
         for path in [ROOT/'README.md',*sorted((ROOT/'docs').rglob('*.md')),P/'prompts.md']:
             for target in re.findall(r'\]\(([^)]+)\)',path.read_text()):
                 if target.startswith(('#','https:','http:','mailto:')):continue
                 ck('link:'+str(path.relative_to(ROOT))+':'+target,(path.parent/target.split('#')[0]).exists())
+        tag={'label':'蓝色灯光','language':'zh','source_kind':'observed','source_ref':'frame','source_revision':'frame-v1','confirmation':'confirmed','coverage':['f1']}
+        ck('typed tag positive provenance',valid('TagFact',tag))
+        ck('tag creative intent rejected',not valid('TagFact',{**tag,'source_kind':'creative_intent'}))
+        ck('confirmed tag missing provenance rejected',not valid('TagFact',{**tag,'source_ref':None}))
+        fact={'field':'DJ','value':'candidate-person','language':'und','source_kind':'inference','source_ref':'frame','source_revision':'r1','confirmation':'confirmed','coverage':['f1']}
+        ck('confirmed guessed DJ rejected with complete fixture',not valid('FieldFact',fact))
+        ck('manual confirmed DJ with provenance allowed',valid('FieldFact',{**fact,'source_kind':'user_confirmed'}))
         # Correction01: review-discovered semantic wire/storage gaps, not product runtime tests.
         rules=load(C/'semantic-rules.json'); projection=load(C/'job-compatibility.json')
         def head_etag(material):
@@ -149,7 +156,7 @@ def main():
         for n in ('1','2'):
             mem.execute("INSERT INTO asset VALUES(?,'image','m','title','[]','{}',0)",('a'+n,))
             mem.execute("INSERT INTO source_file VALUES(?,'r',?,?,'v',?,'hash',1,'1','1','1',1,'available','e')",('s'+n,'old'+n+'.jpg','old'+n+'.jpg','physical'+n))
-            mem.execute("INSERT INTO asset_description_revision VALUES(?,?,NULL,NULL,'[]','[]','[]',NULL,?,'human','now')",('d'+n,'a'+n,'a'*64))
+            mem.execute("INSERT INTO asset_description_revision(id,asset_id,parent_id,model_run_id,facts_json,unknowns_json,locked_fields_json,analysis_key,content_sha256,author,created_at) VALUES(?,?,NULL,NULL,'[]','[]','[]',NULL,?,'human','now')",('d'+n,'a'+n,'a'*64))
         mem.execute("INSERT INTO naming_template_head(id,head_revision_id,etag) VALUES('t',NULL,'e')")
         mem.execute("INSERT INTO naming_template_revision VALUES('tr','t',NULL,'{}','hash','now')")
         mem.execute("INSERT INTO rename_plan_head VALUES('p',NULL,'e')")
@@ -173,11 +180,11 @@ def main():
         material={**cas['example_material'],'aggregate_id':'a1','head_revision_id':'d1'};old_tag=head_etag(material)
         mem.execute("INSERT INTO asset_description_head VALUES('a1','d1',?,1)",(old_tag,))
         newer={**material,'head_revision_id':'d3','head_content_sha256':'b'*64,'head_sequence':2};new_tag=head_etag(newer)
-        mem.execute("INSERT INTO asset_description_revision VALUES('d3','a1','d1',NULL,'[]','[]','[]',NULL,?,'human','now')",('b'*64,))
+        mem.execute("INSERT INTO asset_description_revision(id,asset_id,parent_id,model_run_id,facts_json,unknowns_json,locked_fields_json,analysis_key,content_sha256,author,created_at) VALUES('d3','a1','d1',NULL,'[]','[]','[]',NULL,?,'human','now')",('b'*64,))
         changed=mem.execute("UPDATE asset_description_head SET head_revision_id='d3',etag=?,head_sequence=head_sequence+1 WHERE asset_id='a1' AND etag=?",(new_tag,old_tag)).rowcount
         ck('positive SQL head CAS',changed==1 and mem.execute("SELECT head_sequence FROM asset_description_head WHERE asset_id='a1'").fetchone()[0]==2)
         mem.execute('SAVEPOINT stale')
-        mem.execute("INSERT INTO asset_description_revision VALUES('d4','a1','d3',NULL,'[]','[]','[]',NULL,'x','human','now')")
+        mem.execute("INSERT INTO asset_description_revision(id,asset_id,parent_id,model_run_id,facts_json,unknowns_json,locked_fields_json,analysis_key,content_sha256,author,created_at) VALUES('d4','a1','d3',NULL,'[]','[]','[]',NULL,'x','human','now')")
         stale=mem.execute("UPDATE asset_description_head SET head_revision_id='d4' WHERE asset_id='a1' AND etag=?",(old_tag,)).rowcount
         if stale==0:mem.execute('ROLLBACK TO stale')
         mem.execute('RELEASE stale')

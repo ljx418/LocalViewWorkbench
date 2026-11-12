@@ -282,6 +282,14 @@
             "maxLength": 128
           },
           "maxItems": 8
+        },
+        "language": {
+          "type": "string",
+          "enum": [
+            "zh",
+            "en",
+            "und"
+          ]
         }
       },
       "required": [
@@ -291,7 +299,8 @@
         "source_ref",
         "source_revision",
         "confirmation",
-        "coverage"
+        "coverage",
+        "language"
       ],
       "additionalProperties": false,
       "allOf": [
@@ -502,6 +511,13 @@
         "content_sha256": {
           "type": "string",
           "pattern": "^[a-f0-9]{64}$"
+        },
+        "tags": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "$ref": "#/$defs/TagFact"
+          }
         }
       },
       "required": [
@@ -513,7 +529,8 @@
         "locked_fields",
         "analysis_key",
         "model_run_id",
-        "content_sha256"
+        "content_sha256",
+        "tags"
       ],
       "additionalProperties": false
     },
@@ -558,12 +575,20 @@
             "maxLength": 128
           },
           "maxItems": 64
+        },
+        "tags": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "$ref": "#/$defs/TagFact"
+          }
         }
       },
       "required": [
         "facts",
         "unknowns",
-        "locked_fields"
+        "locked_fields",
+        "tags"
       ],
       "additionalProperties": false
     },
@@ -2616,6 +2641,130 @@
         "snapshot_id"
       ],
       "additionalProperties": false
+    },
+    "TagFact": {
+      "type": "object",
+      "properties": {
+        "source_kind": {
+          "type": "string",
+          "enum": [
+            "observed",
+            "trusted_metadata",
+            "user_confirmed",
+            "candidate",
+            "inference"
+          ]
+        },
+        "source_ref": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "source_revision": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "confirmation": {
+          "type": "string",
+          "enum": [
+            "confirmed",
+            "unconfirmed",
+            "unknown"
+          ]
+        },
+        "coverage": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "maxItems": 8
+        },
+        "language": {
+          "type": "string",
+          "enum": [
+            "zh",
+            "en",
+            "und"
+          ]
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        }
+      },
+      "required": [
+        "source_kind",
+        "source_ref",
+        "source_revision",
+        "confirmation",
+        "coverage",
+        "language",
+        "label"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "confirmation": {
+                "const": "confirmed"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "source_ref": {
+                "type": "string",
+                "minLength": 1
+              },
+              "source_revision": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "source_kind": {
+                "const": "observed"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "coverage": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 8,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          }
+        }
+      ]
     }
   }
 }

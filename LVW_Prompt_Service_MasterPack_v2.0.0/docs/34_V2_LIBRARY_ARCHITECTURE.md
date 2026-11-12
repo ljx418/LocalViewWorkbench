@@ -134,3 +134,5 @@ LibraryIntent是内部版本化载体，经library_job_intent关联**同一个�
 LibraryTask.accounting_ref指向同任务的GET /api/v2/library/tasks/{id}/accounting及/accounting/items（默认100/最大200，opaque cursor与snapshot一致）。汇总区分planned/discovered/reused/model_attempted/failed/not_attempted资产数，Provider尝试数与实际观察调用数分开；逐资产关联source_file/child_job/attempt/model_run/analysis_key和动作ID、复用/未尝试/失败状态。多个显式重试是独立task/attempt，累计费用可沿retry关系查询，禁止重复合并成功调用。
 
 统计来自真实attempt/Provider账本与观察记录，未知实际调用数/未测时间为null，accounting_complete=false；不能把缺证据写0。分别报告scan/hash/probe/decode/inference/preview/file_operation/cleanup耗时；扫描发现数不是完整目录覆盖，未封存只展示阶段计数。CPU模板/预览/apply/undo的0模型调用须真实账本证明，非UI推断。只读统计不返回凭据/绝对根；新DTO不改变旧Job字段。
+
+描述修订显式携带typed tags（TagFact：label/language/source_kind/source_ref/source_revision/confirmation/coverage），facts按(field,language)唯一，标签按规范label/language及来源合并展示但保留证据，不用无来源字符串覆盖人工标签。facts_json与tags_json分别保存；整个tags路径可锁定。NamingCompiler按模板语言选择同语言事实或语言无关技术元数据；bilingual缺任一所需语言仍按缺值策略处理，绝不隐式翻译。标签候选/推断显示其域，不自动升级已确认事实或进入命名确定字段。
