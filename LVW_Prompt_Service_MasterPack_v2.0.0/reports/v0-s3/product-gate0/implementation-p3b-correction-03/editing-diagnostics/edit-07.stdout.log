@@ -1,0 +1,238 @@
+FFF..                                                                    [100%]
+=================================== FAILURES ===================================
+__ test_correction03_m01_a_staging_failure_leaves_no_canonical_receipt[write] __
+
+tmp_path = PosixPath('/tmp/pytest-of-administrator/pytest-53/test_correction03_m01_a_stagin0')
+failure = 'write'
+
+    @pytest.mark.parametrize("failure", ["write", "flush", "fsync"])
+    def test_correction03_m01_a_staging_failure_leaves_no_canonical_receipt(tmp_path, failure):
+        phase, driver, _ = _prepare(tmp_path)
+        original_open = quality.os.open
+        original_fsync = quality.os.fsync
+        staged = []
+    
+        def opening(path, flags, *args, **kwargs):
+            descriptor = original_open(path, flags, *args, **kwargs)
+            if str(path) == quality.STAGED_RECEIPT_NAME:
+                staged.append(descriptor)
+            return descriptor
+    
+        def failing_flush(descriptor):
+            if staged and descriptor == staged[-1]:
+                raise OSError("injected staging failure")
+    
+        def failing_fsync(descriptor):
+            if staged and descriptor == staged[-1]:
+                raise OSError("injected staging fsync failure")
+    
+        if failure == "fsync":
+            quality.os.fsync = failing_fsync
+        else:
+            quality.os.fsync = failing_fsync if failure == "flush" else original_fsync
+        quality.os.open = opening
+        try:
+            receipt = phase.run()
+        finally:
+            quality.os.open = original_open
+            quality.os.fsync = original_fsync
+        # The canonical success is absent: no consumer can read a terminal receipt.
+>       assert not (phase.directory / "qd-receipt.json").exists(), failure
+E       AssertionError: write
+E       assert not True
+E        +  where True = exists()
+E        +    where exists = (PosixPath('/tmp/pytest-of-administrator/pytest-53/test_correction03_m01_a_stagin0/temp/s3-quality') / 'qd-receipt.json').exists
+E        +      where PosixPath('/tmp/pytest-of-administrator/pytest-53/test_correction03_m01_a_stagin0/temp/s3-quality') = <tools.v0_s3_quality_phase.QualityPhase object at 0x780d93c96660>.directory
+
+tools/test_v0_s3_quality_phase.py:1936: AssertionError
+__ test_correction03_m01_a_staging_failure_leaves_no_canonical_receipt[flush] __
+
+tmp_path = PosixPath('/tmp/pytest-of-administrator/pytest-53/test_correction03_m01_a_stagin1')
+failure = 'flush'
+
+    @pytest.mark.parametrize("failure", ["write", "flush", "fsync"])
+    def test_correction03_m01_a_staging_failure_leaves_no_canonical_receipt(tmp_path, failure):
+        phase, driver, _ = _prepare(tmp_path)
+        original_open = quality.os.open
+        original_fsync = quality.os.fsync
+        staged = []
+    
+        def opening(path, flags, *args, **kwargs):
+            descriptor = original_open(path, flags, *args, **kwargs)
+            if str(path) == quality.STAGED_RECEIPT_NAME:
+                staged.append(descriptor)
+            return descriptor
+    
+        def failing_flush(descriptor):
+            if staged and descriptor == staged[-1]:
+                raise OSError("injected staging failure")
+    
+        def failing_fsync(descriptor):
+            if staged and descriptor == staged[-1]:
+                raise OSError("injected staging fsync failure")
+    
+        if failure == "fsync":
+            quality.os.fsync = failing_fsync
+        else:
+            quality.os.fsync = failing_fsync if failure == "flush" else original_fsync
+        quality.os.open = opening
+        try:
+            receipt = phase.run()
+        finally:
+            quality.os.open = original_open
+            quality.os.fsync = original_fsync
+        # The canonical success is absent: no consumer can read a terminal receipt.
+        assert not (phase.directory / "qd-receipt.json").exists(), failure
+        # The failed staging is preserved as explicitly non-authoritative evidence.
+        staged_path = phase.directory / quality.STAGED_RECEIPT_NAME
+        assert staged_path.exists(), failure
+        assert receipt["receipt_persisted"] is False, (failure, receipt)
+        assert receipt["terminal_status"] == "TERMINAL_RECEIPT_NOT_PERSISTED", (failure, receipt)
+        assert receipt["storage_unproven"] is True, (failure, receipt)
+        assert receipt["decision"] == "QUALITY_EXECUTION_BLOCKED", (failure, receipt)
+        with pytest.raises(QualityContractError) as rejected:
+            quality.load_canonical_receipt(phase.directory)
+        assert "CANONICAL_RECEIPT_ABSENT" in str(rejected.value), str(rejected.value)
+        # A replay cannot overwrite the retained failed evidence.
+        before = staged_path.read_bytes()
+>       phase._open_owned_directories()
+
+tools/test_v0_s3_quality_phase.py:1949: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <tools.v0_s3_quality_phase.QualityPhase object at 0x780c48f96930>
+
+    def _open_owned_directories(self):
+        """Open and pin the owned run root, temp directory and phase directory.
+    
+        Every directory is opened relative to its pinned parent handle with
+        O_DIRECTORY|O_NOFOLLOW, so a redirected ancestor is refused before any
+        foreign entry can be created.
+        """
+        flags = os.O_RDONLY | os.O_DIRECTORY | getattr(os, "O_NOFOLLOW", 0)
+        try:
+            root_fd = os.open(str(self.root), flags)
+        except OSError as error:
+            if error.errno in (errno.ELOOP, errno.ENOTDIR):
+                raise QualityContractError("RUN_ROOT_REDIRECT:" + type(error).__name__) from error
+            raise QualityContractError("RUN_ROOT_UNAVAILABLE:" + type(error).__name__) from error
+        root_identity = _OwnedDirectory.identity_of(os.fstat(root_fd))
+        if list(root_identity) != list(self._root_identity):
+            os.close(root_fd)
+            raise QualityContractError("RUN_ROOT_REPLACED")
+        self._owned_root = _OwnedDirectory(self.root, root_fd, root_identity)
+        try:
+            temp = self._owned_root.open_child_directory("temp")
+        except QualityContractError as error:
+            # The preparation directory is owned by the parent.  A missing one
+            # may be created under the pinned root handle; a redirected one is
+            # refused before anything is created.
+            if "OWNED_CHILD_DIRECTORY_MISSING" not in str(error):
+                raise
+            self._owned_root.mkdir_child("temp")
+            temp = self._owned_root.open_child_directory("temp")
+        self._owned_temp = temp
+        created = self._owned_temp.mkdir_child("s3-quality")
+        if not created:
+            # A preexisting phase directory is a replay of an older root.  It
+            # is refused and nothing at all is written into it.
+>           raise QualityContractError("PHASE_DIRECTORY_EXISTS")
+E           tools.v0_s3_quality_phase.QualityContractError: PHASE_DIRECTORY_EXISTS
+
+tools/v0_s3_quality_phase.py:831: QualityContractError
+__ test_correction03_m01_a_staging_failure_leaves_no_canonical_receipt[fsync] __
+
+tmp_path = PosixPath('/tmp/pytest-of-administrator/pytest-53/test_correction03_m01_a_stagin2')
+failure = 'fsync'
+
+    @pytest.mark.parametrize("failure", ["write", "flush", "fsync"])
+    def test_correction03_m01_a_staging_failure_leaves_no_canonical_receipt(tmp_path, failure):
+        phase, driver, _ = _prepare(tmp_path)
+        original_open = quality.os.open
+        original_fsync = quality.os.fsync
+        staged = []
+    
+        def opening(path, flags, *args, **kwargs):
+            descriptor = original_open(path, flags, *args, **kwargs)
+            if str(path) == quality.STAGED_RECEIPT_NAME:
+                staged.append(descriptor)
+            return descriptor
+    
+        def failing_flush(descriptor):
+            if staged and descriptor == staged[-1]:
+                raise OSError("injected staging failure")
+    
+        def failing_fsync(descriptor):
+            if staged and descriptor == staged[-1]:
+                raise OSError("injected staging fsync failure")
+    
+        if failure == "fsync":
+            quality.os.fsync = failing_fsync
+        else:
+            quality.os.fsync = failing_fsync if failure == "flush" else original_fsync
+        quality.os.open = opening
+        try:
+            receipt = phase.run()
+        finally:
+            quality.os.open = original_open
+            quality.os.fsync = original_fsync
+        # The canonical success is absent: no consumer can read a terminal receipt.
+        assert not (phase.directory / "qd-receipt.json").exists(), failure
+        # The failed staging is preserved as explicitly non-authoritative evidence.
+        staged_path = phase.directory / quality.STAGED_RECEIPT_NAME
+        assert staged_path.exists(), failure
+        assert receipt["receipt_persisted"] is False, (failure, receipt)
+        assert receipt["terminal_status"] == "TERMINAL_RECEIPT_NOT_PERSISTED", (failure, receipt)
+        assert receipt["storage_unproven"] is True, (failure, receipt)
+        assert receipt["decision"] == "QUALITY_EXECUTION_BLOCKED", (failure, receipt)
+        with pytest.raises(QualityContractError) as rejected:
+            quality.load_canonical_receipt(phase.directory)
+        assert "CANONICAL_RECEIPT_ABSENT" in str(rejected.value), str(rejected.value)
+        # A replay cannot overwrite the retained failed evidence.
+        before = staged_path.read_bytes()
+>       phase._open_owned_directories()
+
+tools/test_v0_s3_quality_phase.py:1949: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <tools.v0_s3_quality_phase.QualityPhase object at 0x780c48fb59d0>
+
+    def _open_owned_directories(self):
+        """Open and pin the owned run root, temp directory and phase directory.
+    
+        Every directory is opened relative to its pinned parent handle with
+        O_DIRECTORY|O_NOFOLLOW, so a redirected ancestor is refused before any
+        foreign entry can be created.
+        """
+        flags = os.O_RDONLY | os.O_DIRECTORY | getattr(os, "O_NOFOLLOW", 0)
+        try:
+            root_fd = os.open(str(self.root), flags)
+        except OSError as error:
+            if error.errno in (errno.ELOOP, errno.ENOTDIR):
+                raise QualityContractError("RUN_ROOT_REDIRECT:" + type(error).__name__) from error
+            raise QualityContractError("RUN_ROOT_UNAVAILABLE:" + type(error).__name__) from error
+        root_identity = _OwnedDirectory.identity_of(os.fstat(root_fd))
+        if list(root_identity) != list(self._root_identity):
+            os.close(root_fd)
+            raise QualityContractError("RUN_ROOT_REPLACED")
+        self._owned_root = _OwnedDirectory(self.root, root_fd, root_identity)
+        try:
+            temp = self._owned_root.open_child_directory("temp")
+        except QualityContractError as error:
+            # The preparation directory is owned by the parent.  A missing one
+            # may be created under the pinned root handle; a redirected one is
+            # refused before anything is created.
+            if "OWNED_CHILD_DIRECTORY_MISSING" not in str(error):
+                raise
+            self._owned_root.mkdir_child("temp")
+            temp = self._owned_root.open_child_directory("temp")
+        self._owned_temp = temp
+        created = self._owned_temp.mkdir_child("s3-quality")
+        if not created:
+            # A preexisting phase directory is a replay of an older root.  It
+            # is refused and nothing at all is written into it.
+>           raise QualityContractError("PHASE_DIRECTORY_EXISTS")
+E           tools.v0_s3_quality_phase.QualityContractError: PHASE_DIRECTORY_EXISTS
+
+tools/v0_s3_quality_phase.py:831: QualityContractError
+3 failed, 2 passed, 140 deselected in 2.45s
