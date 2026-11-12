@@ -1,0 +1,36 @@
+{
+  "fatal": 0,
+  "major": 1,
+  "minor": 0,
+  "closed": [
+    "P3A-M01",
+    "P3A-M02",
+    "P3A-m01",
+    "P3A-C01-M03",
+    "P3A-C02-M04",
+    "P3A-C03-M05"
+  ],
+  "open": [
+    {
+      "id": "P3A-C04-M06",
+      "severity": "Major",
+      "status": "OPEN",
+      "locations": [
+        "tools/v0_s3_stage_runtime.py:88-93",
+        "tools/v0_s3_stage_runtime.py:106-108",
+        "tools/v0_s2_stage_runtime.py:238-252",
+        "tools/v0_s2_stage_sequence.py:142-145"
+      ],
+      "trigger": "Call returned verify_bindings or authorize_launch after successful inherited prepare_default with no mutation",
+      "expected": "Valid inherited post-prepare browser callbacks reach authority and binding validation under an appropriate finite lifecycle",
+      "actual": "Both raise EvidenceError protected lifecycle descriptor unavailable before original authority, parent_fd None; authority calls0",
+      "evidence": [
+        "raw/extra.command.json",
+        "raw/extra.stdout.log",
+        "raw/extra.exit.log",
+        "test_archive_lifetime_gaps.py"
+      ],
+      "recommendation": "CHANGES_REQUIRED; root adjudicates minimal lifetime correction; reviewer did not repair"
+    }
+  ]
+}
