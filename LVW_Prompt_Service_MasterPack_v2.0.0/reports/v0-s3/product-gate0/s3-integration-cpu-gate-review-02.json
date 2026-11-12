@@ -1,0 +1,62 @@
+{
+  "kind": "ROOT_S3_CPU_MACHINE_GATE_REVIEW_02_NOT_EXECUTION_GRANT",
+  "at_utc": "2026-11-12T14:35:50.058478+00:00",
+  "question_id": "msg_b18797f7bca7",
+  "candidate_sha": "eec332b2fa2b389a41d676d17d4228fd4daa30a3",
+  "source_pins_verified": {
+    "reports/v0-s3/product-gate0/implementation-integration-01/executor.py": "86c78404513ed8f9b70b468ba33edfff39d558b81a4a2a3fc5359fc7a3097c3e",
+    "reports/v0-s3/product-gate0/implementation-integration-01/run_guarded_checks.py": "207ec60bd9d91d8c16e479c3aff0647dffc05e194935e2d789e8fc39a2867ab4",
+    "tools/fixtures/v0_s3_supervisor_fixture.py": "f8c8b29d6b280d24d9c1ea9ceccc6db9c4b7df883c700bced472802aa42a9bd3",
+    "tools/test_v0_s3_integration.py": "c1a0bb4b45e0380929d986678f425044d5ede4d2ee0b5a7c429ea26ec0e5432c",
+    "tools/test_v0_s3_supervisor.py": "db7464c37de9c8a2072f8946f11e8009bded4cca08945f839a7d3a712166eee0",
+    "tools/v0_s2_runtime.py": "a97ea20d02ed80ab4f99f133dd8162331ddba34662bfdcca637fcade40b4dbd2",
+    "tools/v0_s2_stage_runtime.py": "cf6ad01d66c0c7885475eedeae5ba66df9bec61bf7281ee511600f6224833e26",
+    "tools/v0_s3_coordinator.py": "55dd875c44de3128e4fc64a3ec1729687adb01c94007b8230e71d1717cd7eaf5",
+    "tools/v0_s3_quality_phase.py": "90552ea113ccf53a2a1cedff3e3f399642ad932bf0f71bb1f9a57e1adb6e8789",
+    "tools/v0_s3_quality_worker.py": "1e1490c86ce6dd7f6f0734967b75652ced872b82848e6a1966dd1a147e38b6d3",
+    "tools/v0_s3_supervisor.py": "6fdb1ad3386991d8fc7fd67b25956dfd430e6e8997a5da195e93140378ffba86"
+  },
+  "decision": "CHANGES_REQUIRED_RESIDUAL_EXECUTOR_LIFECYCLE",
+  "execution_permitted": false,
+  "human_authorization_required": false,
+  "progress": [
+    "Persistent start counts and source/candidate/Python/binding hash checks now present",
+    "Exact argv and scaled fixture deadlines added",
+    "Scope/obligation arithmetic/guard-blocked attempts corrected"
+  ],
+  "findings": [
+    {
+      "id": "CPU-G1-WALL",
+      "location": "executor.py FiniteCpuExecutor._check_session/SharedCounter.charge/finish",
+      "actual": "Admission checks only current session clock; stored spent_wall_seconds never read for admission. reap adds per-child ages at reap (not global session wall), and repeated reap adds spend again.",
+      "required": "Shared across-invocation monotonic session accounting/reservation; no new150s admission window resetting180s pool. Charge actual session wall once, including error cleanup, idempotently. Atomically account active sessions/reserved time or conservatively single active session; last30s cleanup-only across shared budget."
+    },
+    {
+      "id": "CPU-G1-UNKNOWN",
+      "location": "executor.py SharedCounter._active/finish",
+      "actual": "Only STARTED counts toward concurrency. finish sets UNKNOWN, which immediately stops counting while process stop is unproven.",
+      "required": "Unknown/unregistered/failed-spawn uncertainty keeps occupied reservation and blocks new admission until original-handle proof or root reconciliation. Finish verifies budget_id/index/state and is idempotent; cannot double-count or overwrite settled proof."
+    },
+    {
+      "id": "CPU-G3-CUSTODY",
+      "location": "executor.py FiniteCpuExecutor.spawn/register/_watch/reap",
+      "actual": "Popen returns before register takes custody; registration/watchdog failure may lose owned child. Watchdog begins terminate only after10s then waits1s, exceeding child10s; stops even with unknown children after reap.",
+      "required": "Immediate exception-safe handle custody, independent cleanup budget within perchilddeadline, admission revoked on uncertain termination. Preserve original pid/birth proof; do not leave live child untracked or stop safety while claiming cleanup. Cooperative scheduler/OS limitations stated, no universal kill guarantee."
+    },
+    {
+      "id": "CPU-G3-CLEANUP_ORDER",
+      "location": "run_guarded_checks.py finally cleanup before executor.reap",
+      "actual": "Owned root rmtree happens before child reaping; source_hashes failure between may bypass reaper entirely. Cleanup exceptions recorded but can leave exit0/PASS.",
+      "required": "Mandatory outer finally reaps/stops registered and pending children first; if process/readers/cleanup unproven retain root and reservation, nonPASS. Root deletion only after actual cleanup proof; sourcehash/log errors cannot bypass finalizer. Preserve raw trueexit and structured terminal."
+    }
+  ],
+  "execution_scope": "Still only zero-process guarded focused tests for executor corrections. No root counter or true binding created yet.",
+  "test_guidance": [
+    "Fake-clock shared counter already179s must refuse new spawn before OS, fresh session cannot reset time.",
+    "TwoUNKNOWN entries consume concurrency, repeatedfinish/reap cannot release or spend twice.",
+    "Fake handle register failure remains owned and cleaned, reap/sourcehash errors cannot delete active root or reportPASS.",
+    "Do not rerun257 or earlier71 suites for this controller-only correction; exact13 nodes will be selected by root ACK once safe."
+  ],
+  "stage_pass_claim": false,
+  "product_gate0": false
+}
