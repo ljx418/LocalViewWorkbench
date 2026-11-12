@@ -1819,12 +1819,12 @@
   },
   "s3_integration": {
     "workpack_id": "S3-P4-OFFLINE",
-    "status": "CLAUDE_MACHINE_GATE_FULL_FINALIZER_CORRECTION_ZERO_PROCESS",
+    "status": "CLAUDE_FINITE_FIXTURE_RUN_AUTHORIZED",
     "contract": "reports/v0-s3/product-gate0/s3-integration-offline-contract-01.md",
     "task": "reports/v0-s3/product-gate0/implementation-integration-01.task.md",
     "acceptance_matrix": "reports/v0-s3/product-gate0/s3-integration-acceptance-01.json",
     "python_binding": "reports/v0-s3/product-gate0/s3-integration-python-01.binding.json",
-    "cpu_fixture_execution_permitted": false,
+    "cpu_fixture_execution_permitted": true,
     "fixture_limits_after_machine_binding": {
       "total_starts": 24,
       "implementation_starts": 16,
@@ -1842,15 +1842,19 @@
     "launch_receipt": "reports/v0-s3/product-gate0/implementation-integration-01.launch.json",
     "retry_env": "reports/v0-s3/product-gate0/implementation-integration-01.retry-env.json",
     "machine_gate": {
-      "status": "CHANGES_REQUIRED_FULL_FINALIZER_DEADLINE_AND_ACCOUNTING",
-      "review": "reports/v0-s3/product-gate0/s3-integration-cpu-gate-review-05.json",
-      "question_id": "msg_83dd0c0fff47",
-      "candidate_sha": "ab71876b57663c60cc5ca39cb528e24055b48c4a",
-      "fixture_starts_authorized": 0,
+      "status": "FINITE_FIXTURE_EXECUTION_AUTHORIZED_NOT_PRODUCT_ACCEPTANCE",
+      "review": "reports/v0-s3/product-gate0/s3-integration-cpu-gate-review-06.json",
+      "question_id": "msg_3b503956ea61",
+      "candidate_sha": "763f3d561772ec8efa7aafe597b62ac77a3b7969",
+      "fixture_starts_authorized": 13,
+      "max_runs": 1,
       "human_authorization_required": false,
-      "execution_permitted": false,
-      "reply_body": "reports/v0-s3/product-gate0/s3-integration-cpu-gate-review-05.reply-body.txt",
-      "next": "Fix final reaper wait deadline and cleanup-inclusive terminal accounting via full finalizer tests."
+      "execution_permitted": true,
+      "binding_path": "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/implementation.binding.json",
+      "binding_sha256": "3594b3a30d12e1fbfe54d71118d06b996a5e21872679e4af25bc9818d41dfee1",
+      "counter_path": "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json",
+      "budget_id": "s3-p4-9618f7c7bf12403b8877c90b92ed99a7",
+      "reply_body": "reports/v0-s3/product-gate0/s3-integration-cpu-gate-review-06.reply-body.txt"
     }
   }
 }

@@ -1,0 +1,67 @@
+{
+  "kind": "ROOT_CPU_MACHINE_GATE_FINITE_GRANT_01",
+  "at_utc": "2026-11-12T15:38:11.102949+00:00",
+  "decision": "FINITE_FIXTURE_EXECUTION_AUTHORIZED_NOT_PRODUCT_ACCEPTANCE",
+  "candidate_sha": "763f3d561772ec8efa7aafe597b62ac77a3b7969",
+  "source_pins_verified": 11,
+  "python_verified": {
+    "bytes": 8020928,
+    "path": "/usr/bin/python3.12",
+    "sha256": "e50d468e8b0adfb05733f5b87b3cff34829c4a8c1aea50c865aa8bdfe4bb150f"
+  },
+  "binding_path": "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/implementation.binding.json",
+  "binding_sha256": "3594b3a30d12e1fbfe54d71118d06b996a5e21872679e4af25bc9818d41dfee1",
+  "counter_path": "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json",
+  "counter_initial_sha256": "38f16e2c41a4f9927bbe85220a9f7926a7bab7a7aae8b057c1a86f28eb24388d",
+  "budget_id": "s3-p4-9618f7c7bf12403b8877c90b92ed99a7",
+  "limits": {
+    "budget_id": "s3-p4-9618f7c7bf12403b8877c90b92ed99a7",
+    "cleanup_reserve_seconds": 30,
+    "counter_path": "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json",
+    "max_concurrent": 2,
+    "max_starts_by_role": {
+      "implementation": 16,
+      "independent_review": 8
+    },
+    "max_total_starts": 24,
+    "per_child_kill_seconds": 1,
+    "per_child_stop_attempts": 3,
+    "per_child_termination_margin_seconds": 2,
+    "per_process_seconds": 10,
+    "session_wall_cap_seconds": 60,
+    "shared_pool_seconds": 180
+  },
+  "implementation_argv": [
+    "/usr/bin/python3.12",
+    "-B",
+    "reports/v0-s3/product-gate0/implementation-integration-01/run_guarded_checks.py",
+    "--mode",
+    "suite",
+    "--label",
+    "finite-fixture-implementation-01",
+    "--binding",
+    "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/implementation.binding.json",
+    "--binding-sha256",
+    "3594b3a30d12e1fbfe54d71118d06b996a5e21872679e4af25bc9818d41dfee1",
+    "--role",
+    "implementation",
+    "--candidate-sha",
+    "763f3d561772ec8efa7aafe597b62ac77a3b7969",
+    "--modules",
+    "tools/test_v0_s3_supervisor.py::test_the_fixture_clean_terminal_is_verified_by_the_parent,tools/test_v0_s3_supervisor.py::test_a_blocking_callback_is_actually_stopped,tools/test_v0_s3_supervisor.py::test_a_blocking_persistence_is_actually_stopped,tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[history_replay],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[sequence_reversal],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[duplicate_sequence],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[oversize_message],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[foreign_identity],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[unexpected_field],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[nonfinite_number],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[early_exit],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[message_flood],tools/test_v0_s3_supervisor.py::test_a_bad_terminal_reference_is_refused",
+    "--outdir",
+    "reports/v0-s3/product-gate0/implementation-integration-01"
+  ],
+  "execution_permitted": true,
+  "max_runs_this_grant": 1,
+  "max_starts_this_grant": 13,
+  "human_authorization_required": false,
+  "review_method": "Read-only full finalizer and deadline source review plus candidate/11source/python pin verification. No candidate imports or fixture runs by root.",
+  "limitations": [
+    "Fixture protocol only; not production worker/native dependency closure",
+    "No GPU/model/network/native services or original product ledger",
+    "No stage/product Gate0 PASS; independent review remains required"
+  ],
+  "stage_pass_claim": false,
+  "product_gate0": false
+}
