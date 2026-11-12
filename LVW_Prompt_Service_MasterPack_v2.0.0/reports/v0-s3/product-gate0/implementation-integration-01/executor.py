@@ -4,7 +4,7 @@ This executor is the custody of the finite fixture process plan.  It is
 *not* the supervisor that is under test: it is the outer, independent guard
 of the process budget, of the source identity and of the wall clock.
 
-Four properties are enforced here and nowhere else:
+Five properties are enforced here and nowhere else:
 
 G1  The shared budget is a **root created external counter**.  The executor
     never creates it, never resets it and never treats a missing counter as
@@ -20,27 +20,35 @@ G2  Before every spawn the executor verifies the exact root binding path and
 
 G3  The executor holds the original child handles and enforces the
     concurrency bound, an independent per child deadline and the cumulative
-    session admission bound with a cleanup only reserve.  The reaper has its
-    own deadline and records the raw exit proof of every child.  An
-    uncertain exit keeps the reservation.
+    session wall.  The wall is **shared across invocations**: a session
+    reserves its slice of the shared pool atomically and the admission and
+    the cleanup deadlines are derived from the shared remaining pool with
+    the last reserve cleanup only.  The reaper has its own deadline and
+    records the raw exit proof of every child.  An uncertain exit keeps the
+    reservation and keeps the slot occupied.
 
 G4  The argv, the scenario, the working directory and the bounded context
     document are exactly the sealed plan.  The context document lives in the
     fresh runner owned root; no arbitrary private path is accepted.
 
+G5  The custody of a child is taken **immediately** after the operating
+    system action and survives a failure of the registration or of the
+    watchdog setup.  The bounded termination starts early enough that the
+    whole per child budget, cleanup included, stays inside the seal.  The
+    completion proof carries the birth that was read from the held handle.
+
 The executor never downloads, never opens a socket, never starts a service
 and never touches the original product ledger.
 """
-import errno
 import fcntl
 import hashlib
 import json
 import os
 import re
 import subprocess
-import sys
 import threading
 import time
+import uuid
 from pathlib import Path
 
 COUNTER_SCHEMA = 'lvw.s3-cpu-budget/1'
@@ -48,6 +56,10 @@ BINDING_SCHEMA = 'S3_INTEGRATION_MACHINE_BINDING/1'
 ROLES = ('implementation', 'independent_review')
 CONTEXT_ENVIRONMENT_VARIABLE = 'LVW_S3_FIXTURE_CONTEXT'
 GUARD_ROOT_ENVIRONMENT_VARIABLE = 'LVW_S3_GUARD_ROOT'
+# The states of a charge that still occupy the concurrency slot.  An
+# unresolved start is never released by a late or a repeated settlement.
+OCCUPIED_STATES = ('PENDING', 'STARTED', 'UNKNOWN')
+TERMINAL_STATES = ('STOPPED', 'TIMED_OUT', 'UNKNOWN')
 
 
 class CpuGateError(RuntimeError):
@@ -65,6 +77,22 @@ def sha256_file(path):
         for chunk in iter(lambda: stream.read(1024 * 1024), b''):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def process_birth(pid):
+    """Read the birth identity of a process that this executor holds.
+
+    The identity is read from the operating system for the process that the
+    executor itself started.  It is never taken from a value that the child
+    reported about itself.
+    """
+    if type(pid) is not int or pid <= 0:
+        return None
+    try:
+        fields = Path('/proc/%d/stat' % pid).read_text().rsplit(')', 1)[1].split()
+        return {'linux_start_ticks': int(fields[19])}
+    except (OSError, IndexError, ValueError):
+        return None
 
 
 def _packed_ref(gitdir, ref):
@@ -162,7 +190,10 @@ class SharedCounter:
             raise CpuGateError('CPU_COUNTER_INACTIVE')
         if (type(document.get('starts_total')) is not int
                 or not isinstance(document.get('starts_by_role'), dict)
-                or not isinstance(document.get('charges'), list)):
+                or not isinstance(document.get('charges'), list)
+                or not isinstance(document.get('sessions'), list)
+                or type(document.get('reserved_wall_seconds')) not in (int, float)
+                or type(document.get('spent_wall_seconds')) not in (int, float)):
             raise CpuGateError('CPU_COUNTER_INVALID')
         return document
 
@@ -176,8 +207,15 @@ class SharedCounter:
         os.fsync(handle.fileno())
 
     @staticmethod
-    def _active(document):
-        return sum(1 for record in document['charges'] if record.get('state') == 'STARTED')
+    def _occupied(document):
+        """The number of charges that still hold a concurrency slot.
+
+        A pending, a started and an unknown charge all occupy a slot: an
+        unresolved start is never released by a late or a repeated
+        settlement.
+        """
+        return sum(1 for record in document['charges']
+                   if record.get('state') in OCCUPIED_STATES)
 
     def charge(self, *, role, scenario, argv):
         """Charge one start atomically, before the operating system action."""
@@ -188,7 +226,7 @@ class SharedCounter:
             if document.get('budget_id') != self.budget_id:
                 raise CpuGateError('CPU_COUNTER_IDENTITY_MISMATCH')
             limits = self.limits
-            if self._active(document) >= limits['max_concurrent']:
+            if self._occupied(document) >= limits['max_concurrent']:
                 raise CpuGateError('CPU_CONCURRENCY_LIMIT')
             if document['starts_total'] >= limits['max_total_starts']:
                 raise CpuGateError('CPU_TOTAL_BUDGET_EXCEEDED')
@@ -201,12 +239,13 @@ class SharedCounter:
                 'scenario': scenario,
                 'argv': list(argv),
                 'started_wall': time.time(),
-                'state': 'STARTED',
+                'state': 'PENDING',
                 'exit_code': None,
                 'pid': None,
                 'birth': None,
                 'finished_wall': None,
                 'spent_wall_seconds': None,
+                'settled': False,
             }
             document['charges'].append(record)
             document['starts_total'] += 1
@@ -215,22 +254,100 @@ class SharedCounter:
             self._write(handle, document)
             return record['index']
 
-    def finish(self, index, *, state, exit_code, spent, pid=None, birth=None):
-        """Close one charge.  A charge is never removed and never refunded."""
+    def mark_started(self, index, *, pid, birth):
+        """Record the original handle of a charged start."""
         with self._open() as handle:
             document = self._read(handle)
             for record in document['charges']:
                 if record.get('index') == index:
-                    record['state'] = state
-                    record['exit_code'] = exit_code
+                    record['state'] = 'STARTED'
                     record['pid'] = pid
                     record['birth'] = birth
-                    record['finished_wall'] = time.time()
-                    record['spent_wall_seconds'] = spent
                     break
-            document['spent_wall_seconds'] = round(
-                float(document.get('spent_wall_seconds', 0.0)) + float(spent), 3)
             self._write(handle, document)
+
+    def finish(self, index, *, state, exit_code, spent, pid=None, birth=None):
+        """Settle one charge exactly once.
+
+        A charge is never removed and never refunded.  A repeated settlement
+        of the same charge does nothing: it can neither free an unknown
+        charge nor charge the budget twice.
+        """
+        if state not in TERMINAL_STATES:
+            raise CpuGateError('CPU_CHARGE_STATE_INVALID')
+        with self._open() as handle:
+            document = self._read(handle)
+            if document.get('budget_id') != self.budget_id:
+                raise CpuGateError('CPU_COUNTER_IDENTITY_MISMATCH')
+            settled = False
+            for record in document['charges']:
+                if record.get('index') != index:
+                    continue
+                if record.get('settled') is True:
+                    settled = False
+                    break
+                record['state'] = state
+                record['exit_code'] = exit_code
+                record['pid'] = pid if pid is not None else record.get('pid')
+                record['birth'] = birth if birth is not None else record.get('birth')
+                record['finished_wall'] = time.time()
+                record['spent_wall_seconds'] = spent
+                record['settled'] = True
+                settled = True
+                break
+            if settled:
+                document['spent_wall_seconds'] = round(
+                    float(document.get('spent_wall_seconds', 0.0)) + float(spent), 3)
+            self._write(handle, document)
+            return settled
+
+    def reserve_session(self, session_id, *, role, seconds):
+        """Reserve this session's slice of the shared wall pool.
+
+        The reservation is atomic and idempotent: the same session id never
+        reserves twice.  The reservation is never refunded, so a session that
+        dies still holds its slice of the shared pool.
+        """
+        with self._open() as handle:
+            document = self._read(handle)
+            if document.get('budget_id') != self.budget_id:
+                raise CpuGateError('CPU_COUNTER_IDENTITY_MISMATCH')
+            for record in document['sessions']:
+                if record.get('session_id') == session_id:
+                    return dict(record)
+            remaining = round(self.limits['shared_pool_seconds']
+                              - float(document['reserved_wall_seconds']), 3)
+            if remaining <= 0:
+                raise CpuGateError('SHARED_WALL_POOL_EXHAUSTED')
+            reservation = round(min(remaining, float(seconds)), 3)
+            record = {'session_id': session_id, 'role': role,
+                      'reserved_wall_seconds': reservation,
+                      'remaining_before_seconds': remaining,
+                      'started_wall': time.time(), 'state': 'ACTIVE',
+                      'spent_wall_seconds': None}
+            document['sessions'].append(record)
+            document['reserved_wall_seconds'] = round(
+                float(document['reserved_wall_seconds']) + reservation, 3)
+            self._write(handle, document)
+            return dict(record)
+
+    def settle_session(self, session_id, *, spent):
+        """Settle this session exactly once and account its actual wall."""
+        with self._open() as handle:
+            document = self._read(handle)
+            if document.get('budget_id') != self.budget_id:
+                raise CpuGateError('CPU_COUNTER_IDENTITY_MISMATCH')
+            for record in document['sessions']:
+                if record.get('session_id') != session_id:
+                    continue
+                if record.get('state') == 'SETTLED':
+                    return False
+                record['state'] = 'SETTLED'
+                record['spent_wall_seconds'] = round(float(spent), 3)
+                record['finished_wall'] = time.time()
+                self._write(handle, document)
+                return True
+            raise CpuGateError('CPU_SESSION_UNKNOWN')
 
     def snapshot(self):
         with self._open() as handle:
@@ -243,7 +360,8 @@ class FiniteCpuExecutor:
     """The outer, independent guard of the finite fixture process plan."""
 
     def __init__(self, *, binding_path, binding_sha256, counter, role, python, pins,
-                 candidate_sha, repository_root, package_root, guard_root, clock=None):
+                 candidate_sha, repository_root, package_root, guard_root, clock=None,
+                 session_id=None):
         self.binding_path = Path(binding_path)
         self.binding_sha256 = binding_sha256
         self.counter = counter
@@ -255,13 +373,43 @@ class FiniteCpuExecutor:
         self.package_root = Path(package_root)
         self.guard_root = Path(guard_root)
         self.clock = clock or time.monotonic
+        self.session_id = session_id or ('session-' + uuid.uuid4().hex)
         self.session_started = self.clock()
         self.limits = counter.limits
         self.children = []
         self.refusals = []
+        self.reservation = None
+        self.reserved_at = None
+        self.admission_deadline = None
+        self.cleanup_deadline = None
+        self.revoked = False
+        self.uncertain = False
         self._lock = threading.Lock()
         self._watchdog = None
         self._stop = threading.Event()
+        self._pending = []
+
+    # -- the shared wall of this session ----------------------------------
+    def reserve_session(self):
+        """Reserve the slice of the shared wall pool of this session.
+
+        The admission and the cleanup deadlines are derived from the shared
+        remaining pool with the last reserve cleanup only.  A shared pool
+        that is nearly exhausted refuses the session before any operating
+        system action, even when the local clock of this executor starts at
+        zero.
+        """
+        record = self.counter.reserve_session(
+            self.session_id, role=self.role,
+            seconds=self.limits['session_wall_cap_seconds'])
+        self.reservation = record
+        self.reserved_at = self.clock()
+        remaining = float(record['remaining_before_seconds'])
+        reserve = float(self.limits['cleanup_reserve_seconds'])
+        admission = max(0.0, remaining - reserve)
+        self.admission_deadline = self.reserved_at + admission
+        self.cleanup_deadline = self.reserved_at + remaining
+        return record
 
     # -- G2: the identity of everything that is about to run --------------
     def verify_identity(self):
@@ -334,8 +482,17 @@ class FiniteCpuExecutor:
         return path
 
     def _check_session(self):
-        elapsed = self.clock() - self.session_started
-        if elapsed > self.limits['session_admission_seconds']:
+        """The shared wall of this session, before the operating system action."""
+        if self.revoked:
+            raise CpuGateError('SESSION_ADMISSIONS_REVOKED')
+        if self.uncertain:
+            raise CpuGateError('SESSION_UNCERTAIN_CUSTODY')
+        if self.reservation is None:
+            # The slice of the shared pool is taken when the session first
+            # asks for an admission.  A pool that is exhausted refuses here,
+            # before the operating system action.
+            self.reserve_session()
+        if self.clock() >= self.admission_deadline:
             raise CpuGateError('SESSION_ADMISSION_WINDOW_CLOSED')
 
     # -- the admission that the audit hook calls --------------------------
@@ -366,28 +523,52 @@ class FiniteCpuExecutor:
             self.refusals.append(error.code)
             raise
         with self._lock:
-            self._pending = getattr(self, '_pending', [])
             self._pending.append(index)
         return True
 
-    # -- the custody of the started children ------------------------------
+    # -- G5: the custody of the started children --------------------------
     def spawn(self, command):
-        """Start one child and take the custody of its original handle."""
+        """Start one child and take the custody of its original handle.
+
+        The custody is taken immediately.  A failure of the registration or
+        of the watchdog setup never loses the handle: the child is still
+        stopped by this executor and the cleanup still runs.
+        """
         process = subprocess.Popen(command, stdin=subprocess.PIPE,
                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                    bufsize=0, cwd=str(self.guard_root))
-        self.register(process)
+        entry = self._take_custody(process)
+        try:
+            self._ensure_watchdog()
+        except BaseException:
+            # The watchdog could not be armed.  The handle is still owned.
+            self._stop_child(entry)
+            raise
         return process
 
-    def register(self, process):
+    def _take_custody(self, process):
+        pid = getattr(process, 'pid', None)
+        entry = {'index': None, 'process': process, 'pid': pid,
+                 'birth': process_birth(pid), 'started': self.clock(),
+                 'state': 'STARTED', 'exit_code': None, 'timed_out': False,
+                 'proven': False}
         with self._lock:
-            pending = getattr(self, '_pending', [])
-            index = pending.pop(0) if pending else None
-            self.children.append({'index': index, 'process': process,
-                                  'started': self.clock(), 'state': 'STARTED',
-                                  'exit_code': None, 'timed_out': False})
+            index = self._pending.pop(0) if self._pending else None
+            entry['index'] = index
+            self.children.append(entry)
+        if index is not None:
+            try:
+                self.counter.mark_started(index, pid=pid, birth=entry['birth'])
+            except CpuGateError:
+                entry['state'] = 'UNKNOWN'
+                self.uncertain = True
+        return entry
+
+    def register(self, process):
+        """Take the custody of a child that was started elsewhere."""
+        entry = self._take_custody(process)
         self._ensure_watchdog()
-        return index
+        return entry
 
     def _ensure_watchdog(self):
         if self._watchdog is not None:
@@ -396,33 +577,52 @@ class FiniteCpuExecutor:
         self._watchdog.start()
 
     def _watch(self):
-        """The independent per child deadline of the executor."""
-        limit = self.limits['per_process_seconds']
+        """The independent per child deadline of the executor.
+
+        The bounded termination starts early enough that the whole per
+        child budget, the cleanup included, stays inside the seal.
+        """
+        limit = float(self.limits['per_process_seconds'])
+        margin = float(self.limits['per_child_termination_margin_seconds'])
+        stop_at = max(0.0, limit - margin)
         while not self._stop.wait(0.02):
             with self._lock:
                 children = list(self.children)
             for entry in children:
                 if entry['state'] != 'STARTED':
                     continue
-                if self.clock() - entry['started'] <= limit:
+                if self.clock() - entry['started'] <= stop_at:
                     continue
                 entry['timed_out'] = True
-                process = entry['process']
-                try:
-                    process.terminate()
-                except Exception:  # noqa: BLE001 - the failure stays visible
-                    pass
-                try:
-                    process.wait(timeout=1.0)
-                except Exception:  # noqa: BLE001 - the failure stays visible
-                    try:
-                        process.kill()
-                    except Exception:  # noqa: BLE001 - the failure stays visible
-                        pass
+                self._stop_child(entry)
+
+    def _stop_child(self, entry):
+        """Stop one owned child with a bounded, bounded cleanup."""
+        process = entry['process']
+        try:
+            process.terminate()
+        except Exception:  # noqa: BLE001 - the failure stays visible
+            pass
+        try:
+            process.wait(timeout=float(self.limits['per_child_kill_seconds']))
+        except Exception:  # noqa: BLE001 - the failure stays visible
+            try:
+                process.kill()
+            except Exception:  # noqa: BLE001 - the failure stays visible
+                pass
+            try:
+                process.wait(timeout=float(self.limits['per_child_kill_seconds']))
+            except Exception:  # noqa: BLE001 - the failure stays visible
+                pass
+
+    def revoke_admissions(self):
+        """Stop every further admission of this session."""
+        self.revoked = True
 
     def reap(self):
         """The bounded reaper of the executor with its own deadline."""
-        deadline = self.session_started + self.limits['session_cleanup_seconds']
+        deadline = self.cleanup_deadline if self.cleanup_deadline is not None \
+            else self.session_started + float(self.limits['shared_pool_seconds'])
         proofs = []
         with self._lock:
             children = list(self.children)
@@ -433,30 +633,42 @@ class FiniteCpuExecutor:
             proven = False
             try:
                 exit_code = process.wait(timeout=min(remaining, 5.0))
-                proven = True
+                proven = exit_code is not None
             except Exception:  # noqa: BLE001 - the failure stays visible
                 exit_code = None
             entry['exit_code'] = exit_code
             spent = round(self.clock() - entry['started'], 3)
             if not proven:
                 entry['state'] = 'UNKNOWN'
+                self.uncertain = True
             elif entry['timed_out']:
                 entry['state'] = 'TIMED_OUT'
             else:
                 entry['state'] = 'STOPPED'
+            entry['proven'] = proven
             proofs.append({'index': entry['index'], 'state': entry['state'],
                            'exit_code': exit_code, 'spent_wall_seconds': spent,
-                           'timed_out': entry['timed_out'],
-                           'pid': getattr(process, 'pid', None)})
+                           'timed_out': entry['timed_out'], 'pid': entry['pid'],
+                           'birth': entry['birth'], 'proven': proven})
             if entry['index'] is not None:
                 try:
                     self.counter.finish(entry['index'], state=entry['state'],
                                         exit_code=exit_code, spent=spent,
-                                        pid=getattr(process, 'pid', None))
+                                        pid=entry['pid'], birth=entry['birth'])
                 except CpuGateError:
                     entry['state'] = 'UNKNOWN'
+                    self.uncertain = True
         self._stop.set()
         return proofs
+
+    def settle_session(self):
+        """Account the actual wall of this session, cleanup included."""
+        spent = round(self.clock() - self.session_started, 3)
+        try:
+            settled = self.counter.settle_session(self.session_id, spent=spent)
+        except CpuGateError:
+            return None
+        return spent if settled else None
 
     def session_evidence(self):
         try:
@@ -466,28 +678,36 @@ class FiniteCpuExecutor:
         return {
             'kind': 'lvw.s3-finite-cpu-session/1',
             'role': self.role,
+            'session_id': self.session_id,
             'binding_path': str(self.binding_path),
             'binding_sha256': self.binding_sha256,
             'candidate_sha': self.candidate_sha,
             'counter_path': str(self.counter.path),
             'counter_budget_id': self.counter.budget_id,
+            'reservation': self.reservation,
+            'admission_deadline': self.admission_deadline,
+            'cleanup_deadline': self.cleanup_deadline,
             'starts_total': counter.get('starts_total') if isinstance(counter, dict) else None,
             'starts_by_role': counter.get('starts_by_role') if isinstance(counter, dict) else None,
+            'reserved_wall_seconds': counter.get('reserved_wall_seconds') if isinstance(counter, dict) else None,
             'spent_wall_seconds': counter.get('spent_wall_seconds') if isinstance(counter, dict) else None,
             'counter': counter,
             'children': [{'index': entry['index'], 'state': entry['state'],
                           'exit_code': entry['exit_code'],
                           'timed_out': entry['timed_out'],
-                          'pid': getattr(entry['process'], 'pid', None)}
+                          'proven': entry['proven'],
+                          'pid': entry['pid'], 'birth': entry['birth']}
                          for entry in self.children],
             'refusals': list(self.refusals),
+            'uncertain': self.uncertain,
+            'admissions_revoked': self.revoked,
             'stage_pass_claim': False,
             'product_gate0': False,
         }
 
 
 def build_executor(*, binding_path, binding_sha256, role, repository_root, package_root,
-                   guard_root):
+                   guard_root, clock=None, session_id=None):
     """Build the executor from the sealed root binding."""
     if role not in ROLES:
         raise CpuGateError('CPU_ROLE_INVALID')
@@ -505,15 +725,25 @@ def build_executor(*, binding_path, binding_sha256, role, repository_root, packa
         'max_starts_by_role': budget.get('max_starts_by_role'),
         'max_concurrent': budget.get('max_concurrent'),
         'per_process_seconds': budget.get('per_process_seconds'),
-        'session_admission_seconds': budget.get('session_admission_seconds'),
-        'session_cleanup_seconds': budget.get('session_cleanup_seconds'),
+        'shared_pool_seconds': budget.get('shared_pool_seconds'),
+        'session_wall_cap_seconds': budget.get('session_wall_cap_seconds'),
+        'cleanup_reserve_seconds': budget.get('cleanup_reserve_seconds'),
+        'per_child_termination_margin_seconds': budget.get(
+            'per_child_termination_margin_seconds'),
+        'per_child_kill_seconds': budget.get('per_child_kill_seconds'),
     }
     for key in ('max_total_starts', 'max_concurrent', 'per_process_seconds',
-                'session_admission_seconds', 'session_cleanup_seconds'):
+                'shared_pool_seconds', 'session_wall_cap_seconds',
+                'cleanup_reserve_seconds', 'per_child_termination_margin_seconds',
+                'per_child_kill_seconds'):
         if type(limits[key]) is not int or limits[key] <= 0:
             raise CpuGateError('BINDING_CPU_BUDGET_INVALID:' + key)
     if not isinstance(limits['max_starts_by_role'], dict):
         raise CpuGateError('BINDING_CPU_BUDGET_INVALID:max_starts_by_role')
+    if limits['cleanup_reserve_seconds'] >= limits['shared_pool_seconds']:
+        raise CpuGateError('BINDING_CPU_BUDGET_INVALID:cleanup_reserve_seconds')
+    if limits['per_child_termination_margin_seconds'] >= limits['per_process_seconds']:
+        raise CpuGateError('BINDING_CPU_BUDGET_INVALID:per_child_termination_margin_seconds')
     counter = SharedCounter(budget.get('counter_path'), budget_id=budget.get('budget_id'),
                             limits=limits)
     pins = document.get('source_pins')
@@ -526,4 +756,4 @@ def build_executor(*, binding_path, binding_sha256, role, repository_root, packa
                               counter=counter, role=role, python=python, pins=pins,
                               candidate_sha=document.get('candidate_sha'),
                               repository_root=repository_root, package_root=package_root,
-                              guard_root=guard_root)
+                              guard_root=guard_root, clock=clock, session_id=session_id)

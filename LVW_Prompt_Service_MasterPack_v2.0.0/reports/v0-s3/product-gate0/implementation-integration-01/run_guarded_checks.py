@@ -99,6 +99,12 @@ EXECUTOR_RELATIVE = ("reports/v0-s3/product-gate0/implementation-integration-01/
 PROCESS_GATE = {"executor": None, "starts": 0, "limit": 0, "allowed": []}
 
 
+def session_identity(role, label, candidate_sha):
+    """A stable session identity: the same session never reserves twice."""
+    raw = ('%s|%s|%s' % (role, label, candidate_sha)).encode('utf-8')
+    return 'session-' + hashlib.sha256(raw).hexdigest()[:32]
+
+
 def _load_executor_module():
     """Load the independent executor of this report subtree."""
     path = PACK_ROOT / EXECUTOR_RELATIVE
@@ -252,8 +258,6 @@ def main(argv=None):
     stdout_path = outdir / (arguments.label + ".stdout.log")
     stderr_path = outdir / (arguments.label + ".stderr.log")
 
-    before = source_hashes()
-    runner_before = runner_hash()
     owned = Path(tempfile.mkdtemp(prefix="lvw-s3-integration-"))
     os.environ["TMPDIR"] = str(owned)
     tempfile.tempdir = str(owned)
@@ -263,24 +267,16 @@ def main(argv=None):
 
     executor = None
     executor_module = _load_executor_module()
-    if binding is not None:
-        if not arguments.role:
-            raise SystemExit("the machine gate needs the role of this session")
-        executor = executor_module.build_executor(
-            binding_path=arguments.binding, binding_sha256=arguments.binding_sha256,
-            role=arguments.role, repository_root=REPOSITORY_ROOT,
-            package_root=PACK_ROOT, guard_root=owned)
-        sys.modules.setdefault('lvw_s3_finite_cpu_executor', executor_module)
-        executor_module.EXECUTOR = executor
-        os.environ['LVW_S3_MACHINE_BINDING'] = str(arguments.binding)
-        PROCESS_GATE["executor"] = executor
-        PROCESS_GATE["limit"] = executor.limits['max_total_starts']
-        PROCESS_GATE["allowed"] = list(binding.get("allowed_scenarios", []))
-
     started = time.time()
     exit_code = 0
     collected = []
     guard_results = None
+    before = None
+    after = None
+    runner_before = None
+    session_evidence = None
+    cleanup_proven = True
+    failure_reasons = []
     stdout_handle = open(stdout_path, "wb")
     stderr_handle = open(stderr_path, "wb")
     saved_out = os.dup(1)
@@ -288,6 +284,27 @@ def main(argv=None):
     os.dup2(stdout_handle.fileno(), 1)
     os.dup2(stderr_handle.fileno(), 2)
     try:
+        before = source_hashes()
+        runner_before = runner_hash()
+        if binding is not None:
+            if not arguments.role:
+                raise SystemExit("the machine gate needs the role of this session")
+            executor = executor_module.build_executor(
+                binding_path=arguments.binding, binding_sha256=arguments.binding_sha256,
+                role=arguments.role, repository_root=REPOSITORY_ROOT,
+                package_root=PACK_ROOT, guard_root=owned,
+                session_id=session_identity(arguments.role, arguments.label,
+                                            binding.get('candidate_sha')))
+            sys.modules.setdefault('lvw_s3_finite_cpu_executor', executor_module)
+            executor_module.EXECUTOR = executor
+            os.environ['LVW_S3_MACHINE_BINDING'] = str(arguments.binding)
+            PROCESS_GATE["executor"] = executor
+            PROCESS_GATE["limit"] = executor.limits['max_total_starts']
+            PROCESS_GATE["allowed"] = list(binding.get("allowed_scenarios", []))
+            # The slice of the shared wall pool is reserved before the first
+            # child.  A nearly exhausted pool refuses the session here, before
+            # any operating system action.
+            executor.reserve_session()
         if arguments.mode == "guard":
             guard_results = run_guard_selftest()
             sys.stdout.write(json.dumps(guard_results, indent=2, sort_keys=True) + "\n")
@@ -315,6 +332,16 @@ def main(argv=None):
         exit_code = 3
         traceback.print_exc()
     finally:
+        # The mandatory outer finalizer.  The order is fixed: revoke the
+        # admissions, restore the streams, reap and prove every owned child,
+        # then hash the sources again, and only a proven cleanup deletes the
+        # owned root.  An uncertain child keeps its root and its reservation.
+        if executor is not None:
+            try:
+                executor.revoke_admissions()
+            except Exception as error:  # noqa: BLE001 - the failure stays visible
+                cleanup_proven = False
+                failure_reasons.append('ADMISSION_REVOKE_FAILED:' + type(error).__name__)
         sys.stdout.flush()
         sys.stderr.flush()
         os.dup2(saved_out, 1)
@@ -323,19 +350,33 @@ def main(argv=None):
         os.close(saved_err)
         stdout_handle.close()
         stderr_handle.close()
-        shutil.rmtree(owned, ignore_errors=True)
-
-    after = source_hashes()
-    session_evidence = None
-    if executor is not None:
+        if executor is not None:
+            try:
+                proofs = executor.reap()
+                executor.settle_session()
+                session_evidence = executor.session_evidence()
+                if any(not proof.get('proven') for proof in proofs):
+                    cleanup_proven = False
+                    failure_reasons.append('CHILD_EXIT_UNPROVEN')
+            except Exception as error:  # noqa: BLE001 - the failure stays visible
+                cleanup_proven = False
+                failure_reasons.append('REAP_FAILED:' + type(error).__name__)
+                session_evidence = {'kind': 'lvw.s3-finite-cpu-session/1',
+                                     'status': 'REAP_FAILED',
+                                     'error_type': type(error).__name__,
+                                     'stage_pass_claim': False}
         try:
-            executor.reap()
-            session_evidence = executor.session_evidence()
+            after = source_hashes()
         except Exception as error:  # noqa: BLE001 - the failure stays visible
-            session_evidence = {'kind': 'lvw.s3-finite-cpu-session/1',
-                                 'status': 'REAP_FAILED',
-                                 'error_type': type(error).__name__,
-                                 'stage_pass_claim': False}
+            after = None
+            cleanup_proven = False
+            failure_reasons.append('SOURCE_HASH_FAILED:' + type(error).__name__)
+        if cleanup_proven:
+            shutil.rmtree(owned, ignore_errors=True)
+        else:
+            failure_reasons.append('OWNED_ROOT_RETAINED')
+        if failure_reasons and exit_code == 0:
+            exit_code = 4
     receipt = {
         "kind": "S3_P4_OFFLINE_INTEGRATION_GUARDED_CHECK_RECEIPT",
         "label": arguments.label,
@@ -376,6 +417,8 @@ def main(argv=None):
             "host_subprocess": "blocked" if binding is None else "bound_fixture_plan_only",
         },
         "owned_root_removed": not owned.exists(),
+        "cleanup_proven": cleanup_proven,
+        "failure_reasons": sorted(set(failure_reasons)),
         "duration_seconds": round(time.time() - started, 3),
         "exit_code": exit_code,
         "outcome": "PASS" if exit_code == 0 else "FAIL",

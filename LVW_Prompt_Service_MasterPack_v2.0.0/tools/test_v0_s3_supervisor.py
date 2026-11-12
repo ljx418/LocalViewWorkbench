@@ -16,6 +16,7 @@ import json
 import os
 import subprocess as _subprocess
 import sys
+import time
 from pathlib import Path
 
 import pytest
@@ -807,8 +808,11 @@ def fake_root_binding(tmp_path, *, counter_path, budget_id='budget-under-test',
                         'max_starts_by_role': {'implementation': 16,
                                                'independent_review': 8},
                         'max_concurrent': 2, 'per_process_seconds': 10,
-                        'session_admission_seconds': 150,
-                        'session_cleanup_seconds': 180}
+                        'shared_pool_seconds': 180,
+                        'session_wall_cap_seconds': 60,
+                        'cleanup_reserve_seconds': 30,
+                        'per_child_termination_margin_seconds': 2,
+                        'per_child_kill_seconds': 1}
     supervisor = PACK_ROOT / 'tools/v0_s3_supervisor.py'
     binding = {
         'kind': 'S3_INTEGRATION_MACHINE_BINDING/1',
@@ -832,24 +836,28 @@ def fake_root_binding(tmp_path, *, counter_path, budget_id='budget-under-test',
 
 
 def fake_root_counter(tmp_path, *, budget_id='budget-under-test', starts_total=0,
-                      by_role=None, charges=None, active=True, name='counter.json'):
+                      by_role=None, charges=None, active=True, name='counter.json',
+                      reserved_wall_seconds=0.0):
     """The counter that the root creates.  The executor never creates it."""
     document = {'kind': 'lvw.s3-cpu-budget/1', 'budget_id': budget_id,
                 'starts_total': starts_total,
                 'starts_by_role': by_role if by_role is not None
                 else {'implementation': 0, 'independent_review': 0},
-                'spent_wall_seconds': 0.0, 'active': active,
-                'charges': charges if charges is not None else []}
+                'spent_wall_seconds': 0.0,
+                'reserved_wall_seconds': reserved_wall_seconds,
+                'active': active, 'charges': charges if charges is not None else [],
+                'sessions': []}
     path = tmp_path / name
     path.write_text(json.dumps(document, sort_keys=True))
     return path
 
 
-def build_test_executor(tmp_path, *, counter_path, binding_digest, role='implementation'):
+def build_test_executor(tmp_path, *, counter_path, binding_digest, role='implementation',
+                        session_id=None, clock=None):
     return EXECUTOR_MODULE.build_executor(
         binding_path=str(tmp_path / 'binding.json'), binding_sha256=binding_digest,
         role=role, repository_root=REPOSITORY_ROOT, package_root=PACK_ROOT,
-        guard_root=tmp_path)
+        guard_root=tmp_path, clock=clock, session_id=session_id)
 
 
 def executor_prefix():
@@ -985,6 +993,11 @@ def test_the_charge_is_written_before_the_start_and_is_never_removed(tmp_path):
     assert document['starts_total'] == 1
     assert document['starts_by_role']['implementation'] == 1
     assert len(document['charges']) == 1
+    # The charge is pending before the operating system action and it only
+    # becomes started when the original handle has been taken.
+    assert document['charges'][0]['state'] == 'PENDING'
+    executor.counter.mark_started(0, pid=os.getpid(), birth={'linux_start_ticks': 1})
+    document = json.loads(counter.read_text())
     assert document['charges'][0]['state'] == 'STARTED'
     executor.admit((sys.executable, executor_prefix() + ['clean_terminal'], None, None))
     document = json.loads(counter.read_text())
@@ -1007,16 +1020,198 @@ def test_the_executor_refuses_a_context_outside_the_guard_root(tmp_path, monkeyp
 
 
 def test_the_executor_refuses_a_closed_admission_window(tmp_path):
-    """G3: the cumulative session admission window closes before the cleanup."""
-    counter = fake_root_counter(tmp_path)
+    """G3: the admission window is derived from the shared remaining pool."""
+    counter = fake_root_counter(tmp_path, reserved_wall_seconds=179.0)
     path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
     executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest)
     context_inside(tmp_path)
-    executor.session_started = executor.clock() - 151.0
+    # A fresh invocation of the executor starts its own clock at zero, but
+    # the shared pool is nearly exhausted: the start is refused before the
+    # operating system action.
+    executor.clock = lambda: 0.0
+    executor.reserve_session()
     with pytest.raises(EXECUTOR_MODULE.CpuGateError) as error:
         executor.admit((sys.executable, executor_prefix() + ['clean_terminal'], None, None))
     assert error.value.code == 'SESSION_ADMISSION_WINDOW_CLOSED'
     assert json.loads(counter.read_text())['starts_total'] == 0
+
+
+def test_the_shared_wall_pool_refuses_an_exhausted_pool(tmp_path):
+    """G1: the shared wall pool is shared across invocations and rebinds."""
+    counter = fake_root_counter(tmp_path, reserved_wall_seconds=180.0)
+    path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+    executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest)
+    with pytest.raises(EXECUTOR_MODULE.CpuGateError) as error:
+        executor.reserve_session()
+    assert error.value.code == 'SHARED_WALL_POOL_EXHAUSTED'
+
+
+def test_the_session_reservation_is_atomic_and_idempotent(tmp_path):
+    """G1: one session never reserves the shared pool twice."""
+    counter = fake_root_counter(tmp_path)
+    path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+    first = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest,
+                                session_id='session-fixed')
+    record = first.reserve_session()
+    assert record['reserved_wall_seconds'] == 60
+    document = json.loads(counter.read_text())
+    assert document['reserved_wall_seconds'] == 60
+    second = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest,
+                                 session_id='session-fixed')
+    again = second.reserve_session()
+    assert again['reserved_wall_seconds'] == 60
+    document = json.loads(counter.read_text())
+    assert document['reserved_wall_seconds'] == 60
+    assert len(document['sessions']) == 1
+
+
+def test_the_session_settlement_is_exactly_once_and_accounts_the_actual_wall(tmp_path):
+    """G1: the session is settled once and the actual wall is accounted once."""
+    counter = fake_root_counter(tmp_path)
+    path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+    executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest)
+    executor.reserve_session()
+    spent = executor.settle_session()
+    assert spent is not None
+    assert executor.settle_session() is None
+    document = json.loads(counter.read_text())
+    assert document['sessions'][0]['state'] == 'SETTLED'
+    assert document['sessions'][0]['spent_wall_seconds'] == spent
+    assert document['spent_wall_seconds'] == 0.0
+
+
+def test_an_unknown_charge_keeps_its_concurrency_slot(tmp_path):
+    """G2: an unresolved start stays occupied and blocks a new admission."""
+    charges = [{'index': 0, 'role': 'implementation', 'scenario': 'clean_terminal',
+                'argv': [], 'started_wall': 0.0, 'state': 'UNKNOWN', 'exit_code': None,
+                'pid': None, 'birth': None, 'finished_wall': None,
+                'spent_wall_seconds': None, 'settled': True},
+               {'index': 1, 'role': 'implementation', 'scenario': 'clean_terminal',
+                'argv': [], 'started_wall': 0.0, 'state': 'STARTED', 'exit_code': None,
+                'pid': None, 'birth': None, 'finished_wall': None,
+                'spent_wall_seconds': None, 'settled': False}]
+    counter = fake_root_counter(tmp_path, starts_total=2,
+                                by_role={'implementation': 2, 'independent_review': 0},
+                                charges=charges)
+    path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+    executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest)
+    context_inside(tmp_path)
+    # The unknown charge still holds its slot: an unresolved start is never
+    # released by a late settlement.
+    assert executor.counter._occupied(json.loads(counter.read_text())) == 2
+    with pytest.raises(EXECUTOR_MODULE.CpuGateError) as error:
+        executor.admit((sys.executable, executor_prefix() + ['clean_terminal'], None, None))
+    assert error.value.code == 'CPU_CONCURRENCY_LIMIT'
+
+
+def test_a_repeated_settlement_can_neither_free_an_unknown_nor_double_charge(tmp_path):
+    """G2: the settlement of a charge happens exactly once."""
+    charges = [{'index': 0, 'role': 'implementation', 'scenario': 'clean_terminal',
+                'argv': [], 'started_wall': 0.0, 'state': 'STARTED', 'exit_code': None,
+                'pid': None, 'birth': None, 'finished_wall': None,
+                'spent_wall_seconds': None, 'settled': False}]
+    counter = fake_root_counter(tmp_path, starts_total=1,
+                                by_role={'implementation': 1, 'independent_review': 0},
+                                charges=charges)
+    path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+    executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest)
+    assert executor.counter.finish(0, state='UNKNOWN', exit_code=None, spent=1.0) is True
+    document = json.loads(counter.read_text())
+    assert document['charges'][0]['state'] == 'UNKNOWN'
+    assert document['spent_wall_seconds'] == 1.0
+    assert executor.counter.finish(0, state='STOPPED', exit_code=0, spent=1.0) is False
+    document = json.loads(counter.read_text())
+    assert document['charges'][0]['state'] == 'UNKNOWN'
+    assert document['spent_wall_seconds'] == 1.0
+
+
+def test_the_custody_carries_the_birth_of_the_held_handle(tmp_path):
+    """G5: the completion proof carries the birth of the process it holds."""
+    counter = fake_root_counter(tmp_path)
+    path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+    executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest)
+
+    class FakeProcess:
+        pid = os.getpid()
+
+        def poll(self):
+            return None
+
+        def wait(self, timeout=None):
+            return 0
+
+        def terminate(self):
+            self.terminated = True
+
+        def kill(self):
+            self.killed = True
+
+    process = FakeProcess()
+    executor.register(process)
+    entry = executor.children[0]
+    assert entry['state'] == 'STARTED'
+    assert entry['pid'] == os.getpid()
+    assert entry['birth'] is not None
+    assert 'linux_start_ticks' in entry['birth']
+    assert entry['birth'] == EXECUTOR_MODULE.process_birth(os.getpid())
+
+
+def test_the_bounded_termination_starts_before_the_per_child_deadline(tmp_path):
+    """G5: the bounded termination starts early enough for the whole budget."""
+    counter = fake_root_counter(tmp_path)
+    path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+    clock = type('Clock', (), {'now': 0.0, '__call__': lambda self: self.now})()
+    executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest,
+                                   clock=clock)
+
+    class FakeProcess:
+        pid = os.getpid()
+
+        def __init__(self):
+            self.terminated = False
+            self.killed = False
+
+        def poll(self):
+            return None
+
+        def wait(self, timeout=None):
+            return 0
+
+        def terminate(self):
+            self.terminated = True
+
+        def kill(self):
+            self.killed = True
+
+    process = FakeProcess()
+    executor.register(process)
+    entry = executor.children[0]
+    clock.now = 9.0  # past the margin of the ten second per child budget
+    deadline = time.monotonic() + 3.0
+    while not entry['timed_out'] and time.monotonic() < deadline:
+        time.sleep(0.02)
+    assert entry['timed_out'] is True
+    assert process.terminated is True
+    executor.revoke_admissions()
+    executor.reap()
+
+
+def test_the_revoked_or_uncertain_session_refuses_a_new_start(tmp_path):
+    """G3/G5: a revoked or uncertain session admits nothing further."""
+    counter = fake_root_counter(tmp_path)
+    path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+    executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest)
+    context_inside(tmp_path)
+    executor.reserve_session()
+    executor.revoke_admissions()
+    with pytest.raises(EXECUTOR_MODULE.CpuGateError) as error:
+        executor.admit((sys.executable, executor_prefix() + ['clean_terminal'], None, None))
+    assert error.value.code == 'SESSION_ADMISSIONS_REVOKED'
+    executor.revoked = False
+    executor.uncertain = True
+    with pytest.raises(EXECUTOR_MODULE.CpuGateError) as error:
+        executor.admit((sys.executable, executor_prefix() + ['clean_terminal'], None, None))
+    assert error.value.code == 'SESSION_UNCERTAIN_CUSTODY'
 
 
 def test_the_executor_refuses_an_argv_outside_the_plan(tmp_path):

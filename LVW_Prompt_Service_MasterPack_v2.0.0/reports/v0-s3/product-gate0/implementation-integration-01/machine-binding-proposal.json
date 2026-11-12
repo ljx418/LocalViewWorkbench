@@ -13,6 +13,20 @@
   },
   "candidate_sha": null,
   "candidate_sha_note": "The root binds the exact SHA of the commit that carries this proposal. The executor verifies the actual HEAD against the sealed candidate before every spawn and refuses a drift.",
+  "counter_document_to_create": {
+    "active": true,
+    "budget_id": "<the budget identity that the root creates>",
+    "charges": [],
+    "kind": "lvw.s3-cpu-budget/1",
+    "reserved_wall_seconds": 0.0,
+    "sessions": [],
+    "spent_wall_seconds": 0.0,
+    "starts_by_role": {
+      "implementation": 0,
+      "independent_review": 0
+    },
+    "starts_total": 0
+  },
   "dependency_manifest": {
     "files": [
       {
@@ -49,6 +63,12 @@
   "environment": "the inherited environment of the runner; a replaced environment is refused",
   "execution_permitted": false,
   "kind": "S3_INTEGRATION_MACHINE_BINDING_PROPOSAL/1",
+  "lifecycle_corrections": {
+    "popen_to_register": "The original handle is taken immediately after the operating system action and survives a failure of the registration or of the watchdog setup; the bounded termination starts 2 seconds before the 10 second per child deadline and the completion proof carries the birth that was read from the held handle.",
+    "runner_finalizer": "The mandatory outer finalizer revokes the admissions, reaps and proves every owned child, hashes the sources again and only a proven cleanup deletes the owned root; a failed reap, hash or cleanup keeps the root, keeps the reservations and cannot retain exit 0.",
+    "shared_wall": "The session reserves its slice of the shared 180 second pool atomically; the admission closes 30 seconds before the cleanup; a nearly exhausted pool refuses before the operating system action even with a fresh local clock.",
+    "unknown_custody": "PENDING, STARTED and UNKNOWN occupy a concurrency slot; the settlement of a charge is exactly once; an unresolved start blocks the new admission until the original handle proof or the root reconciliation."
+  },
   "note": "This document is the proposal of the implementer. It is NOT an authorization and it does NOT open the machine gate. The guarded runner refuses this document: it accepts only a sealed binding of the root with kind S3_INTEGRATION_MACHINE_BINDING/1, execution_permitted true, an absolute path and the SHA256 that the root supplies out of band. The root seals the binding inside the existing COMPLETE03 authorization; no human permission request is involved.",
   "outputs": {
     "new_text_evidence_bytes": 8388608,
@@ -129,6 +149,7 @@
     "candidate_sha": "<the exact commit SHA that the root binds>",
     "cpu_budget": {
       "budget_id": "<the budget identity that the root creates>",
+      "cleanup_reserve_seconds": 30,
       "counter_path": "<the absolute path of the counter that the root creates>",
       "max_concurrent": 2,
       "max_starts_by_role": {
@@ -136,9 +157,11 @@
         "independent_review": 8
       },
       "max_total_starts": 24,
+      "per_child_kill_seconds": 1,
+      "per_child_termination_margin_seconds": 2,
       "per_process_seconds": 10,
-      "session_admission_seconds": 150,
-      "session_cleanup_seconds": 180
+      "session_wall_cap_seconds": 60,
+      "shared_pool_seconds": 180
     },
     "execution_permitted": true,
     "kind": "S3_INTEGRATION_MACHINE_BINDING/1",
@@ -148,11 +171,11 @@
       "sha256": "e50d468e8b0adfb05733f5b87b3cff34829c4a8c1aea50c865aa8bdfe4bb150f"
     },
     "source_pins": {
-      "reports/v0-s3/product-gate0/implementation-integration-01/executor.py": "86c78404513ed8f9b70b468ba33edfff39d558b81a4a2a3fc5359fc7a3097c3e",
-      "reports/v0-s3/product-gate0/implementation-integration-01/run_guarded_checks.py": "207ec60bd9d91d8c16e479c3aff0647dffc05e194935e2d789e8fc39a2867ab4",
+      "reports/v0-s3/product-gate0/implementation-integration-01/executor.py": "b6c7a87007205fd0ea16518c7f58d3ae4db3bea0582412b04dc5dd8ce29e24d4",
+      "reports/v0-s3/product-gate0/implementation-integration-01/run_guarded_checks.py": "83030833b128c9995b98f701308f520b48f5ef8940f37bbf29adb606746d674c",
       "tools/fixtures/v0_s3_supervisor_fixture.py": "f8c8b29d6b280d24d9c1ea9ceccc6db9c4b7df883c700bced472802aa42a9bd3",
       "tools/test_v0_s3_integration.py": "c1a0bb4b45e0380929d986678f425044d5ede4d2ee0b5a7c429ea26ec0e5432c",
-      "tools/test_v0_s3_supervisor.py": "db7464c37de9c8a2072f8946f11e8009bded4cca08945f839a7d3a712166eee0",
+      "tools/test_v0_s3_supervisor.py": "2dfdce83ea440a82c0e5658c298c1394920e496fdd912f6e7032dcaa5bf482dd",
       "tools/v0_s2_runtime.py": "a97ea20d02ed80ab4f99f133dd8162331ddba34662bfdcca637fcade40b4dbd2",
       "tools/v0_s2_stage_runtime.py": "cf6ad01d66c0c7885475eedeae5ba66df9bec61bf7281ee511600f6224833e26",
       "tools/v0_s3_coordinator.py": "55dd875c44de3128e4fc64a3ec1729687adb01c94007b8230e71d1717cd7eaf5",
@@ -173,7 +196,8 @@
       "pid",
       "birth",
       "finished_wall",
-      "spent_wall_seconds"
+      "spent_wall_seconds",
+      "settled"
     ],
     "created_by": "root",
     "fields": [
@@ -181,17 +205,34 @@
       "starts_total",
       "starts_by_role",
       "spent_wall_seconds",
+      "reserved_wall_seconds",
       "active",
-      "charges"
+      "charges",
+      "sessions"
     ],
     "kind": "lvw.s3-cpu-budget/1",
     "rules": [
       "The executor never creates, resets or truncates the counter.",
       "A missing counter is a refusal, never an empty budget.",
-      "Every start is charged atomically under an exclusive file lock BEFORE the operating system action.",
-      "A charge is never removed and never refunded; an unknown start keeps its reservation.",
+      "Every start is charged atomically under an exclusive file lock BEFORE the operating system action; the charge is PENDING until the original handle has been taken and then STARTED.",
+      "A charge is never removed and never refunded; an unknown start keeps its reservation and keeps its concurrency slot.",
+      "PENDING, STARTED and UNKNOWN all occupy a concurrency slot; only STOPPED and TIMED_OUT release it.",
+      "The settlement of a charge happens exactly once; a repeated settlement can neither free an unknown charge nor charge the budget twice.",
+      "The shared wall pool is reserved atomically per session and is never refunded; the admission and the cleanup deadlines are derived from the shared remaining pool with the last 30 seconds cleanup only.",
+      "The session wall is the actual session span including the cleanup, not the sum of the child ages at a late reap.",
+      "A shared pool at 179 seconds refuses a new start before the operating system action even when the local clock of a fresh executor starts at zero.",
       "The counter identity is the budget_id that the root seals; a foreign identity is refused.",
-      "The shared count spans invocations and candidate rebinds; it never resets."
+      "The shared count spans invocations and candidate rebinds; it never resets and a rebind never refills it."
+    ],
+    "session_record": [
+      "session_id",
+      "role",
+      "reserved_wall_seconds",
+      "remaining_before_seconds",
+      "started_wall",
+      "state",
+      "spent_wall_seconds",
+      "finished_wall"
     ]
   },
   "stage_pass_claim": false,
