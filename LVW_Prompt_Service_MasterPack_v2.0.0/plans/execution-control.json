@@ -35,7 +35,7 @@
     "TARGET_HARDWARE_TESTED"
   ],
   "next_owner": "Orca visible ClaudeCode implementation; root architecture then independent review",
-  "next_action": "ClaudeCode sequential QD public16-row quality execution and QS independent score recomputation under production-quality packet; offline only; first429 immediate stop no Codexfallback.",
+  "next_action": "Recover same P3B Task in Claude after observed terminal loss; preserve partial source and original offline contract, first429 STOP. Do not treat partial source as tested delivery.",
   "required_authorization": null,
   "authorization_request": "reports/authorization-program-v1-complete-03.request.json",
   "authorization_record": "reports/authorization-program-v1-complete-03.approval.json",
@@ -1231,7 +1231,7 @@
   },
   "offline_integration_packet": ".agent-governance/stages/V0-S3/production-quality/stage-control.json",
   "p3b_quality": {
-    "status": "FROZEN_OFFLINE_IMPLEMENTATION_ONLY",
+    "status": "RECOVERY_PENDING_SAME_CLAUDE_TASK_PARTIAL_NOT_ACCEPTED",
     "workpacks": [
       "QD_PUBLIC_EXECUTION",
       "QS_INDEPENDENT_SCORE_RECOMPUTATION"
@@ -1257,7 +1257,9 @@
         "recorded_at_utc": "2026-11-12T00:47:01.640961+00:00",
         "meaning": "Coordinator observed specific worker live; not implementation completion or quota/model-route proof"
       },
-      "next": "Await Orca worker report; no polling/restart/Codex fallback"
+      "next": "Await Orca worker report; no polling/restart/Codex fallback",
+      "recovery_observations": "reports/v0-s3/product-gate0/implementation-p3b-recovery-01.observations.json",
+      "old_assignment_terminal": "ABANDONED_TERMINAL_MISSING"
     }
   },
   "a06_read_only_capability_child": {

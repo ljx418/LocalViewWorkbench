@@ -1,0 +1,59 @@
+{
+  "kind": "COORDINATOR_RECOVERY_OBSERVATIONS_NOT_IMPLEMENTATION_VERDICT",
+  "recorded_at_utc": "2026-11-12T01:46:36.648362+00:00",
+  "task_id": "task_be463818b029",
+  "old_dispatch": "ctx_1e9a5a3ba89a",
+  "old_worker_state": "abandoned",
+  "old_worker_stage": "terminal_missing",
+  "old_worker_liveness": "unverifiable",
+  "worker_read_error": "worker_identity_changed",
+  "workspace_runtime": {
+    "status": "inactive",
+    "live_terminal_count": 0,
+    "unverifiable_terminal_count": 0,
+    "terminal_verdict": "none"
+  },
+  "same_uid_process_observations": {
+    "claude_in_target_workspace": 0,
+    "readable_cwd_processes_in_target_workspace": 0,
+    "unreadable_cwd_system_processes": [
+      {
+        "pid": 358,
+        "name": "systemd",
+        "ppid": 1
+      },
+      {
+        "pid": 359,
+        "name": "(sd-pam)",
+        "ppid": 358
+      }
+    ],
+    "no_signals_sent": true,
+    "scope": "Runtime and visible current-uid process evidence, not a whole-OS exit audit"
+  },
+  "durable_history": {
+    "session_id": "79a45b7d-50a7-44a7-95b8-a05f48814830",
+    "bytes": 2490368,
+    "sha256": "740d6be91aba9ac8271708eee0f4c3f10c06a5b6bf650b6d1e9ac253446ee510",
+    "api_error_records_found": 0,
+    "api429_observed": false,
+    "last_record": "api-request",
+    "last_record_time": "2026-11-12T00:52:06.285Z",
+    "last_request_outcome": "UNKNOWN",
+    "full_transcript_not_copied": true
+  },
+  "partial_source": {
+    "worktree_relative_path": "LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_quality_phase.py",
+    "bytes": 58886,
+    "sha256": "62a6b51594ec838d309bd14a4a2584a6a66c06cdb0db18cf7ac2df9b8be8d186",
+    "tracked": false,
+    "tests_or_receipt_delivered": false,
+    "accepted": false
+  },
+  "decision": "Recover same Task using Claude in original now-inactive workspace; preserve WIP, no Codex takeover, first429 STOP; no budget reset or real product run.",
+  "automatic_retry_budget": {
+    "this_recovery_attempts": 1,
+    "unbounded_retries": false
+  },
+  "stage_pass_claim": false
+}

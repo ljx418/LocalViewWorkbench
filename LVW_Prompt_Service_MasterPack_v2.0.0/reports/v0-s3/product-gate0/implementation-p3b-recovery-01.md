@@ -1,0 +1,7 @@
+# P3B恢复01
+
+Orca恢复后原派发ctx_1e9a5a3ba89a已abandoned/terminal_missing，worker-read包括显式transcript均返回worker_identity_changed。原工作区运行时inactive、livePTy0，目标工作区中无可见本用户Claude进程；不可读cwd的两项为systemd及其sd-pam登录辅助，未作信号或终止。此为有范围的恢复证据，不是全OS进程退出审计。
+
+通过用户已启用的Orca会话索引定位了精确Claude session，仅在本机读取该会话记录。其未记录API429/APIerror，最后一次api-request结果未知，不能推断已完成或额度耗尽。无需凭窗口缺失发起Codex接手；按同一Task用Claude恢复一次，若报429立即停止。原source58886字节未提交且无测试/收据，不视为候选交付；新实现者须先保存其WIP版本、读冻结合同继续，禁止reset/删除旧文件或伪造旧测试。
+
+不创建新Task绕过历史，不重新执行任何终态授权，不重置产品母预算。原质量离线范围、固定16项、独立审查/人工签署保留。原窗口恢复失败不由root擅自标completed；新attempt启动后等待Orca回报。
