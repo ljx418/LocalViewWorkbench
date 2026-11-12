@@ -9,7 +9,7 @@
     "stage_id": "R1",
     "workpack_id": "WP-R1-U3",
     "gate": "S3_P3B_QUALITY_INTEGRATION_INDEPENDENT_REVIEW",
-    "state": "RUNNING"
+    "state": "READY"
   },
   "last_passed_gate": {
     "gate": "UNIFIED_MEDIA_FIXED_UM10_AND_INDEPENDENT_REVIEW",
@@ -21,7 +21,7 @@
     "passed_cases": 10,
     "human_signoff": "reports/unified-media/human-signoff-live15.json"
   },
-  "current_blocking_gate": "S3_P3B_CORRECTION06_ISOLATED_REVIEW_PENDING",
+  "current_blocking_gate": "S3_P3B_CORRECTION07_IMPLEMENTATION_AND_INDEPENDENT_REVIEW_PENDING",
   "stage_packet": ".agent-governance/stages/R1/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/R1/PAYLOAD_MANIFEST.sha256",
   "product_status": "UNIFIED_MEDIA_EARLY_ACCEPTED_SCOPE_ONLY_FULL_R1_PENDING",
@@ -35,7 +35,7 @@
     "TARGET_HARDWARE_TESTED"
   ],
   "next_owner": "Human restores this ClaudeCode task or explicitly authorizes specific Codex takeover; root only preserves handoff",
-  "next_action": "Await correction06 isolated reviewer ctx_860c4605ddde report, aggregate findings and root disposition. Advance authorized integration dependencies only after accepted component evidence; no StagePASS yet.",
+  "next_action": "Start visible Claude correction07 for boundary-owned bounded custody of all earlier evidence entries until final QS completion; preserve232 and prior closures, zero429 retry controls; isolated review next.",
   "required_authorization": null,
   "authorization_request": "reports/authorization-program-v1-complete-03.request.json",
   "authorization_record": "reports/authorization-program-v1-complete-03.approval.json",
@@ -1233,7 +1233,7 @@
   },
   "offline_integration_packet": ".agent-governance/stages/V0-S3/production-quality/stage-control.json",
   "p3b_quality": {
-    "status": "CORRECTION06_INDEPENDENT_REVIEW_PENDING",
+    "status": "CORRECTION06_INDEPENDENT_CHANGES_REQUIRED_F0_M1",
     "workpacks": [
       "QD_PUBLIC_EXECUTION",
       "QS_INDEPENDENT_SCORE_RECOMPUTATION"
@@ -1571,7 +1571,7 @@
       }
     },
     "correction06": {
-      "status": "READY_FOR_INDEPENDENT_REVIEW",
+      "status": "INDEPENDENT_CHANGES_REQUIRED_F0_M1_m0",
       "task": "reports/v0-s3/product-gate0/implementation-p3b-correction-06.task.md",
       "adjudication": "reports/v0-s3/product-gate0/p3b-correction-06.adjudication.json",
       "stage_pass_claim": false,
@@ -1594,12 +1594,25 @@
         "focused_observations": 22
       },
       "independent_review": {
-        "status": "DISPATCHED_NOT_COMPLETED",
+        "status": "COMPLETED_CHANGES_REQUIRED",
         "dispatch_id": "ctx_860c4605ddde",
         "task_id": "task_6eb145413f4d",
         "terminal_id": "term_43f78243-36cc-4939-b7ed-6d797ce0869c",
-        "launch_receipt": "reports/v0-s3/product-gate0/independent-p3b-correction-06.launch.json"
+        "launch_receipt": "reports/v0-s3/product-gate0/independent-p3b-correction-06.launch.json",
+        "review_commit": "4fb52ff3d4ef0b6bb4bcadabbd0598ce581a81af",
+        "message_id": "msg_c4aa9d547375",
+        "counts": {
+          "Fatal": 0,
+          "Major": 1,
+          "Minor": 0
+        }
       }
+    },
+    "correction07": {
+      "status": "FROZEN_READY",
+      "task": "reports/v0-s3/product-gate0/implementation-p3b-correction-07.task.md",
+      "adjudication": "reports/v0-s3/product-gate0/p3b-correction-07.adjudication.json",
+      "stage_pass_claim": false
     }
   },
   "a06_read_only_capability_child": {
