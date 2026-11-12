@@ -21,17 +21,34 @@ Two independent entry points live here:
     receipts.  It never executes a model, never keyword-matches a raw response
     and never fabricates a semantic judgement.  The QD path never calls it.
 
-Driver protocol (implemented by the future production driver and by the bounded
-synthetic driver used by the offline tests)::
+Driver protocol
+---------------
 
-    driver.submit(graph) -> prompt_id
-    driver.chat_log_snapshot() -> {'raw_log','chat_calls','source_log_bytes','source_log_sha256'}
-    driver.resource_observer() -> None
-    driver._json_request(url, *, payload=None, timeout=..., observer=...) -> (status, value)
-    driver.owned_listener_birth(port) -> {'pid','start_ticks','name', ...}
-    driver.release_resources(kind, binding, reference) -> release evidence
+The phase owns no process, no budget and no ledger.  The parent coordinator
+owns the real profile, the model digest, the media staging, the child
+authorization, the single GPU, the original process ownership and the later
+archive.  The phase consumes the *existing public* ``NativeRuntime`` surface
+(``tools/v0_s2_runtime.py``); every method below already exists in that
+runtime except one read-only residue accessor that the parent supplies as a
+thin adapter when it stages the real runtime::
+
+    driver.submit(graph) -> str                       # existing public submit
+    driver.chat_log_snapshot() -> dict                # existing public snapshot
+    driver.resource_observer() -> None                # existing public observer
+    driver._json_request(url, *, payload=None,
+                          timeout=..., observer=...)  # existing public JSON call
+    driver.owned_listener_birth(port) -> dict         # existing public ownership
+    driver.release_preload(binding, worker) -> dict   # existing public release
+    driver.video_snapshot_residue() -> list          # owned video snapshot residue
     driver.submissions -> int
     driver.max_public_submissions -> int
+
+``release_preload`` is the accepted default image release path; it is reused
+unchanged so that no release marker is ever fabricated by this phase.  The
+``video_snapshot_residue`` accessor must enumerate the owned ``lvw-video-*``
+snapshot directories that the public video owner would have created below the
+Comfy temporary parent; a non-empty list is a cleanup failure and stops the
+phase.  No owner, source or product file is modified to provide it.
 
 The phase validates every one of those facts itself.  A driver cannot assert a
 pass by returning a favourable string: the phase recomputes the provider chat
@@ -52,14 +69,18 @@ from pathlib import Path, PurePosixPath
 
 from tools.v0_s2_cancel_evidence import count as provider_chat_count
 from tools.v0_s2_checkpoint_oracles import EvidenceError, public_video_oracle
+from tools.v0_s2_driver import ROOT, base
 from tools.v0_s2_measurements import spec_validator
 
-ROOT = Path(__file__).resolve().parents[1]
-COMFY_URL = "http://127.0.0.1:8188"
 WORKFLOW_DIR = ROOT / "LVW_V0_RuntimePatch" / "workflows"
 IMAGE_WORKFLOW = "image_reverse_prompt_v0.api.json"
 VIDEO_WORKFLOW = "video_reverse_prompt_v0.api.json"
 LEGACY_GRAPH_HELPERS = ROOT / "reports/v0-s1/stage-checkpoint-phase-a/checkpoint.py"
+
+COMFY_URL = base.COMFY_URL
+MODEL_TAG = base.MODEL
+COMFY_PORT = 8191
+OLLAMA_PORT = 11434
 
 # --- frozen S3 quality execution bounds (contract section "QD") -------------
 PHASE_KIND = "S3_P3B_OFFLINE_QUALITY_PHASE"
@@ -89,13 +110,70 @@ SOURCE_READ_CHUNK_BYTES = 1024 * 1024
 IMAGE_SOURCE_MAX_BYTES = 20 * 1024 * 1024
 VIDEO_SOURCE_MAX_BYTES = 256 * 1024 * 1024
 
-MODEL_TAG = "gemma4:26b"
 PROMPT_MODE = "realistic"
 PROMPT_USER_INSTRUCTION = ""
 PROMPT_TIMEOUT_SECONDS = 120
+IMAGE_LONG_EDGE = 1024
 
+# The public controlled image owner accepts JPEG/PNG/WebP; the public video
+# owner accepts MP4/MOV only.  The projection may not widen either set.
 IMAGE_EXTENSIONS = frozenset({".jpg", ".jpeg", ".png", ".webp"})
-VIDEO_EXTENSIONS = frozenset({".mp4", ".mov", ".mkv", ".webm"})
+VIDEO_EXTENSIONS = frozenset({".mp4", ".mov"})
+
+PROJECTION_TOP_LEVEL_KEYS = frozenset({"schema_version", "spec_version", "fixed_denominator", "samples"})
+PROJECTION_ROW_KEYS = frozenset({"asset_id", "media_kind", "source_sha256", "source_bytes", "input_reference"})
+
+# A row failure that must stop every later public submission.
+HALT_ERROR_CODES = frozenset({
+    # frozen action budgets
+    "PUBLIC_SUBMISSION_BUDGET_EXCEEDED",
+    "PROVIDER_CALL_BUDGET_EXCEEDED",
+    "HISTORY_POLL_BUDGET_EXCEEDED",
+    "PHASE_DEADLINE_EXCEEDED",
+    # uncertain public state: fail closed, never send again
+    "PROVIDER_SNAPSHOT_INVALID",
+    "PROVIDER_LOG_REWRITTEN",
+    "PROVIDER_CALL_COUNT_MISMATCH",
+    "PROMPT_ID_INVALID",
+    "PROMPT_ID_REUSED",
+    "LISTENER_IDENTITY_INVALID",
+    "LISTENER_IDENTITY_DRIFT",
+    "SOURCE_REPLACED",
+    "SOURCE_GROWTH",
+    # storage failures
+    "ARTIFACT_TOO_LARGE",
+    "ARTIFACT_TOTAL_BUDGET_EXCEEDED",
+    "ARTIFACT_FILE_BUDGET_EXCEEDED",
+    "ARTIFACT_WRITE_FAILED",
+    "ARTIFACT_REPLAY_FORBIDDEN",
+    "ARTIFACT_REDIRECT_FORBIDDEN",
+    "ARTIFACT_PATH_INVALID",
+    "RECEIPT_PERSISTENCE_FAILED",
+    # cleanup / ownership uncertainty
+    "RELEASE_EVIDENCE_MISSING",
+    "RELEASE_EVIDENCE_UNPROVEN",
+    "RELEASE_EVIDENCE_MODEL_RESIDENT",
+    "RELEASE_EVIDENCE_GPU_SAMPLES_INVALID",
+    "RELEASE_EVIDENCE_GPU_CADENCE_INVALID",
+    "RELEASE_EVIDENCE_GPU_STABILITY_INVALID",
+    "RELEASE_EVIDENCE_ELAPSED_INVALID",
+    "RELEASE_WORKER_MISSING",
+    "VIDEO_SNAPSHOT_RESIDUE",
+    "VIDEO_SNAPSHOT_RESIDUE_INVALID",
+})
+
+# The stages in which a failure leaves the public provider state unknown.
+UNCERTAIN_STAGES = frozenset({"submit", "history", "observe"})
+
+# A row that was never publicly started is BLOCKED, never a FAIL: it stays in
+# the fixed denominator without pretending that an execution happened.
+NOT_ATTEMPTED_ERROR_CODES = frozenset({
+    "PUBLIC_SUBMISSION_BUDGET_EXCEEDED",
+    "PROVIDER_CALL_BUDGET_EXCEEDED",
+    "ARTIFACT_FILE_BUDGET_EXCEEDED",
+    "ARTIFACT_TOTAL_BUDGET_EXCEEDED",
+    "ARTIFACT_TOO_LARGE",
+})
 
 # --- frozen S3 quality scoring bounds (contract section "QS") --------------
 # The five dimensions are the frozen quality-set rubric.  They are embedded as
@@ -118,6 +196,8 @@ INDEPENDENT_REVIEWER_ROLE = "INDEPENDENT_REVIEWER"
 
 TERMINAL_EXECUTION_STATES = ("PASS", "FAIL", "BLOCKED", "NOT_RUN")
 QUALITY_NOT_RUN = "NOT_RUN"
+
+CONTRACT_PATH = "reports/v0-s3/product-gate0/p3b-quality-contract.md"
 
 
 class QualityContractError(ValueError):
@@ -147,11 +227,11 @@ def load_projection_bytes(path) -> bytes:
     The caller binds the returned bytes to the registered SHA; this helper never
     parses or relaxes the projection.
     """
-    raw = Path(path).read_bytes()
-    return raw
+    return Path(path).read_bytes()
 
 
 _GRAPH_HELPERS = None
+_SPEC_VALIDATOR = None
 
 
 def _legacy_graph_helpers():
@@ -167,6 +247,23 @@ def _legacy_graph_helpers():
     return _GRAPH_HELPERS
 
 
+def _prompt_spec_validator():
+    global _SPEC_VALIDATOR
+    if _SPEC_VALIDATOR is None:
+        _SPEC_VALIDATOR = spec_validator()
+    return _SPEC_VALIDATOR
+
+
+def _validate_prompt_spec(suggestion):
+    """Validate one machine suggestion against the frozen PromptSpec schema."""
+    if not isinstance(suggestion, dict):
+        raise QualityContractError("PROMPT_SPEC_NOT_OBJECT")
+    try:
+        _prompt_spec_validator().validate(suggestion)
+    except Exception as error:  # noqa: BLE001 - every schema failure is a contract failure
+        raise QualityContractError("PROMPT_SPEC_INVALID:" + type(error).__name__) from error
+
+
 class QualityPhase:
     """QD: fixed sixteen-row public quality execution.
 
@@ -176,7 +273,7 @@ class QualityPhase:
     """
 
     def __init__(self, driver, run_root, *, run_id, candidate_sha, authorization_sha256,
-                 projection, projection_sha256, source_identity, authorize, binding=None,
+                 projection, projection_sha256, source_identity, authorize, binding,
                  clock=None, sleep=None):
         self.driver = driver
         self.root = Path(run_root).resolve(strict=True)
@@ -218,7 +315,25 @@ class QualityPhase:
         if sha256_bytes(self.projection_bytes) != projection_sha256:
             raise QualityContractError("QUALITY_PROJECTION_SHA_MISMATCH")
 
-        for name in ("submit", "chat_log_snapshot", "owned_listener_birth", "release_resources"):
+        # The child identity has to be bound before a single public action; a
+        # missing binding must never skip the release proof.
+        for key in ("candidate_sha", "authorization_sha256", "ollama_pid",
+                    "ollama_start_ticks", "baseline_gpu_mib"):
+            if key not in self.binding:
+                raise QualityContractError("QUALITY_BINDING_INCOMPLETE:" + key)
+        if self.binding["candidate_sha"] != candidate_sha:
+            raise QualityContractError("QUALITY_BINDING_CANDIDATE_MISMATCH")
+        if self.binding["authorization_sha256"] != authorization_sha256:
+            raise QualityContractError("QUALITY_BINDING_AUTHORIZATION_MISMATCH")
+        if not _is_int(self.binding["ollama_pid"]) or self.binding["ollama_pid"] <= 0:
+            raise QualityContractError("QUALITY_BINDING_OLLAMA_PID_INVALID")
+        if not _is_int(self.binding["ollama_start_ticks"]) or self.binding["ollama_start_ticks"] <= 0:
+            raise QualityContractError("QUALITY_BINDING_OLLAMA_BIRTH_INVALID")
+        if not _is_int(self.binding["baseline_gpu_mib"]) or self.binding["baseline_gpu_mib"] < 0:
+            raise QualityContractError("QUALITY_BINDING_BASELINE_INVALID")
+
+        for name in ("submit", "chat_log_snapshot", "owned_listener_birth",
+                     "release_preload", "video_snapshot_residue"):
             if not callable(getattr(driver, name, None)):
                 raise QualityContractError("QUALITY_DRIVER_PROTOCOL_INCOMPLETE:" + name)
         if not callable(getattr(driver, "resource_observer", None)):
@@ -230,12 +345,16 @@ class QualityPhase:
         self.receipt = None
         self._ran = False
         self._polls = 0
-        self._provider_calls = 0
+        self._provider_calls_observed = 0
+        self._provider_calls_reserved = 0
         self._submissions = 0
         self._artifact_bytes = 0
         self._artifact_files = 0
         self._halted = False
         self._halt_reason = None
+        self._seen_prompt_ids = set()
+        self._phase_deadline = None
+        self._started = None
 
     # -- projection ------------------------------------------------------
     def _parse_projection(self):
@@ -246,8 +365,12 @@ class QualityPhase:
             raise QualityContractError("PROJECTION_NOT_JSON") from error
         if not isinstance(document, dict):
             raise QualityContractError("PROJECTION_NOT_OBJECT")
+        if set(document) - PROJECTION_TOP_LEVEL_KEYS:
+            raise QualityContractError("PROJECTION_UNEXPECTED_FIELD")
         if document.get("schema_version") != PROJECTION_SCHEMA_VERSION:
             raise QualityContractError("PROJECTION_SCHEMA_VERSION_INVALID")
+        if not isinstance(document.get("spec_version"), str) or not document["spec_version"].strip():
+            raise QualityContractError("PROJECTION_SPEC_VERSION_INVALID")
         denominator = document.get("fixed_denominator")
         if (not isinstance(denominator, dict)
                 or denominator.get("images") != FIXED_IMAGES
@@ -265,6 +388,8 @@ class QualityPhase:
         for index, sample in enumerate(samples):
             if not isinstance(sample, dict):
                 raise QualityContractError("PROJECTION_ROW_NOT_OBJECT")
+            if set(sample) != PROJECTION_ROW_KEYS:
+                raise QualityContractError("PROJECTION_ROW_UNEXPECTED_FIELD")
             asset_id = sample.get("asset_id")
             media_kind = sample.get("media_kind")
             source_sha = sample.get("source_sha256")
@@ -339,22 +464,50 @@ class QualityPhase:
             raise QualityContractError("SOURCE_NOT_PLAIN_FILE")
         return candidate
 
-    def _validate_source(self, row):
-        """Stream one source file and re-derive its size and SHA."""
+    @staticmethod
+    def _identity(info):
+        return [info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns, info.st_ctime_ns]
+
+    def _validate_source(self, row, previous=None):
+        """Re-derive one source file with a bounded read and a stable identity.
+
+        The read never runs past the frozen byte count, so a file that grows
+        while it is read is detected instead of being silently followed to EOF.
+        The identity tuple proves the very same object is still in place.
+        """
         path = self._source_path(row["input_reference"])
-        size = path.stat().st_size
-        if size != row["source_bytes"]:
-            raise QualityContractError("SOURCE_SIZE_MISMATCH")
-        digest = hashlib.sha256()
-        with path.open("rb") as stream:
-            while True:
-                chunk = stream.read(SOURCE_READ_CHUNK_BYTES)
+        descriptor = None
+        try:
+            descriptor = os.open(str(path), os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0))
+            before = os.fstat(descriptor)
+            if not os.path.samestat(before, os.stat(str(path))):
+                raise QualityContractError("SOURCE_REPLACED")
+            if before.st_size != row["source_bytes"]:
+                raise QualityContractError("SOURCE_SIZE_MISMATCH")
+            digest = hashlib.sha256()
+            remaining = row["source_bytes"]
+            while remaining > 0:
+                chunk = os.read(descriptor, min(SOURCE_READ_CHUNK_BYTES, remaining))
                 if not chunk:
-                    break
+                    raise QualityContractError("SOURCE_TRUNCATED")
                 digest.update(chunk)
+                remaining -= len(chunk)
+            if os.read(descriptor, 1):
+                raise QualityContractError("SOURCE_GROWTH")
+            after = os.fstat(descriptor)
+        except OSError as error:
+            raise QualityContractError("SOURCE_UNAVAILABLE:" + type(error).__name__) from error
+        finally:
+            if descriptor is not None:
+                os.close(descriptor)
+        if self._identity(before) != self._identity(after):
+            raise QualityContractError("SOURCE_REPLACED")
+        if previous is not None and list(previous) != self._identity(after):
+            raise QualityContractError("SOURCE_REPLACED")
         if digest.hexdigest() != row["source_sha256"]:
             raise QualityContractError("SOURCE_HASH_MISMATCH")
-        return {"path": str(path), "bytes": size, "sha256": digest.hexdigest()}
+        return {"path": str(path), "bytes": before.st_size, "sha256": digest.hexdigest(),
+                "identity": self._identity(after)}
 
     # -- workflows -------------------------------------------------------
     def _load_workflows(self):
@@ -404,6 +557,11 @@ class QualityPhase:
     # -- artifacts -------------------------------------------------------
     def _artifact(self, relative, raw: bytes):
         """Persist one artifact under the owned phase directory."""
+        if not isinstance(relative, str) or not relative:
+            raise QualityContractError("ARTIFACT_PATH_INVALID")
+        pure = PurePosixPath(relative)
+        if pure.is_absolute() or ".." in pure.parts or not pure.parts:
+            raise QualityContractError("ARTIFACT_PATH_INVALID")
         if len(raw) > MAX_ARTIFACT_BYTES:
             raise QualityContractError("ARTIFACT_TOO_LARGE:" + relative)
         if self._artifact_files + 1 > MAX_ARTIFACT_FILES:
@@ -411,37 +569,52 @@ class QualityPhase:
         if self._artifact_bytes + len(raw) > MAX_TOTAL_ARTIFACT_BYTES:
             raise QualityContractError("ARTIFACT_TOTAL_BUDGET_EXCEEDED")
         target = self.directory / relative
-        resolved_parent = target.parent
-        if resolved_parent.is_symlink():
+        if target.parent.is_symlink() or target.is_symlink():
             raise QualityContractError("ARTIFACT_REDIRECT_FORBIDDEN")
-        resolved_parent.mkdir(parents=True, exist_ok=True)
-        with target.open("xb") as stream:
-            stream.write(raw)
-            stream.flush()
-            os.fsync(stream.fileno())
+        try:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            with target.open("xb") as stream:
+                stream.write(raw)
+                stream.flush()
+                os.fsync(stream.fileno())
+        except FileExistsError as error:
+            raise QualityContractError("ARTIFACT_REPLAY_FORBIDDEN:" + relative) from error
+        except OSError as error:
+            raise QualityContractError("ARTIFACT_WRITE_FAILED:" + relative) from error
         self._artifact_files += 1
         self._artifact_bytes += len(raw)
         return {"path": relative, "bytes": len(raw), "sha256": sha256_bytes(raw)}
 
     # -- provider --------------------------------------------------------
-    def _provider_snapshot(self, label):
+    def _provider_snapshot(self, label, relative=None):
         self.authorize("quality_provider_" + label, self.run_id)
         self.driver.resource_observer()
         snapshot = self.driver.chat_log_snapshot()
-        observed = provider_chat_count(snapshot)
+        if not isinstance(snapshot, dict):
+            raise QualityContractError("PROVIDER_SNAPSHOT_INVALID")
+        try:
+            observed = provider_chat_count(snapshot)
+        except (ValueError, KeyError, TypeError) as error:
+            raise QualityContractError("PROVIDER_SNAPSHOT_INVALID:" + type(error).__name__) from error
         if not isinstance(snapshot.get("raw_log"), str):
             raise QualityContractError("PROVIDER_SNAPSHOT_INVALID")
-        return {
+        evidence = {
             "label": label,
-            "raw_log": snapshot["raw_log"],
             "chat_calls": observed,
             "source_log_bytes": snapshot["source_log_bytes"],
             "source_log_sha256": snapshot["source_log_sha256"],
+            "raw_log": snapshot["raw_log"],
         }
+        if relative is not None:
+            artifact = self._artifact(relative, snapshot["raw_log"].encode("utf-8"))
+            evidence["artifact"] = artifact["path"]
+            evidence["artifact_sha256"] = artifact["sha256"]
+            evidence["artifact_bytes"] = artifact["bytes"]
+        return evidence
 
     def _listener_identity(self):
         identity = {}
-        for port in (8191, 11434):
+        for port in (COMFY_PORT, OLLAMA_PORT):
             proof = self.driver.owned_listener_birth(port)
             if (not isinstance(proof, dict) or not _is_int(proof.get("pid")) or proof["pid"] <= 0
                     or not _is_int(proof.get("start_ticks")) or proof["start_ticks"] <= 0):
@@ -450,47 +623,77 @@ class QualityPhase:
         return identity
 
     # -- release ---------------------------------------------------------
+    def _release_worker(self):
+        accessor = getattr(self.driver, "resource_worker", None)
+        if callable(accessor):
+            worker = accessor()
+            if worker is not None:
+                return worker
+        worker = getattr(self.driver, "_resource_worker", None)
+        if worker is None:
+            raise QualityContractError("RELEASE_WORKER_MISSING")
+        return worker
+
     def _release_evidence(self, row):
-        """Require proven release evidence; never fabricate a release marker."""
-        evidence = self.driver.release_resources(row["media_kind"], self.binding, row["input_reference"])
+        """Require proven release evidence; never fabricate a release marker.
+
+        The public ``release_preload`` path is reused unchanged.  The accepted
+        release semantics are the ones the cumulative phase already enforces:
+        a proven release, an empty model inventory, monotone gap-bounded GPU
+        samples and the last three samples back at the baseline.
+        """
+        self.authorize("quality_release", row["asset_id"])
+        worker = self._release_worker()
+        binding = dict(self.binding)
+        evidence = self.driver.release_preload(binding, worker)
         if not isinstance(evidence, dict):
             raise QualityContractError("RELEASE_EVIDENCE_MISSING")
-        if evidence.get("proven") is not True or evidence.get("model_inventory_empty") is not True:
+        if evidence.get("proven") is not True:
             raise QualityContractError("RELEASE_EVIDENCE_UNPROVEN")
         if evidence.get("loaded_models") != 0:
             raise QualityContractError("RELEASE_EVIDENCE_MODEL_RESIDENT")
-        residual = evidence.get("residual_snapshots")
-        if not isinstance(residual, list) or residual:
-            raise QualityContractError("RELEASE_EVIDENCE_SNAPSHOT_RESIDUE")
         samples = evidence.get("gpu_samples")
         if not isinstance(samples, list) or not 3 <= len(samples) <= 32:
             raise QualityContractError("RELEASE_EVIDENCE_GPU_SAMPLES_INVALID")
         elapsed = evidence.get("elapsed_seconds")
-        if not isinstance(elapsed, (int, float)) or isinstance(elapsed, bool) or elapsed < 0 or elapsed > 30:
+        if (not isinstance(elapsed, (int, float)) or isinstance(elapsed, bool)
+                or elapsed < 0 or elapsed > 30):
             raise QualityContractError("RELEASE_EVIDENCE_ELAPSED_INVALID")
-        baseline = self.binding.get("baseline_gpu_mib")
+        baseline = self.binding["baseline_gpu_mib"]
         previous = None
         for sample in samples:
             if not isinstance(sample, dict):
                 raise QualityContractError("RELEASE_EVIDENCE_GPU_SAMPLES_INVALID")
-            moment = sample.get("elapsed_seconds")
+            moment = sample.get("monotonic_seconds")
             used = sample.get("gpu_used_mib")
             if (not isinstance(moment, (int, float)) or isinstance(moment, bool) or moment < 0
                     or not _is_int(used) or used < 0):
                 raise QualityContractError("RELEASE_EVIDENCE_GPU_SAMPLES_INVALID")
-            if previous is not None and moment <= previous:
-                raise QualityContractError("RELEASE_EVIDENCE_GPU_CADENCE_INVALID")
+            if previous is not None:
+                if moment <= previous:
+                    raise QualityContractError("RELEASE_EVIDENCE_GPU_CADENCE_INVALID")
+                if moment - previous > 1.5:
+                    raise QualityContractError("RELEASE_EVIDENCE_GPU_CADENCE_INVALID")
             previous = moment
-        if _is_int(baseline) and any(sample["gpu_used_mib"] > baseline + 1024 for sample in samples[-3:]):
+        if any(sample["gpu_used_mib"] > baseline + 1024 for sample in samples[-3:]):
             raise QualityContractError("RELEASE_EVIDENCE_GPU_STABILITY_INVALID")
         return {
             "proven": True,
             "loaded_models": 0,
             "model_inventory_empty": True,
-            "residual_snapshots": [],
             "gpu_samples": len(samples),
             "elapsed_seconds": elapsed,
+            "baseline_gpu_mib": baseline,
         }
+
+    def _video_residue(self, row):
+        self.authorize("quality_residue", row["asset_id"])
+        residue = self.driver.video_snapshot_residue()
+        if not isinstance(residue, list):
+            raise QualityContractError("VIDEO_SNAPSHOT_RESIDUE_INVALID")
+        if residue:
+            raise QualityContractError("VIDEO_SNAPSHOT_RESIDUE")
+        return []
 
     # -- execution -------------------------------------------------------
     def _execute_row(self, row, workflows):
@@ -507,70 +710,119 @@ class QualityPhase:
             "execution_status": "FAIL",
             "quality_status": QUALITY_NOT_RUN,
             "error_code": None,
+            "stage": None,
             "prompt_id": None,
             "provider_calls": 0,
+            "provider_calls_reserved": 0,
             "graph_sha256": None,
+            "graph_artifact": None,
             "raw_sha256": None,
-            "suggestion_sha256": None,
-            "metadata_sha256": None,
-            "history_sha256": None,
+            "raw_bytes": None,
             "raw_artifact": None,
             "raw_preserved": False,
-            "automatic_retries": 0,
+            "suggestion_sha256": None,
+            "suggestion_artifact": None,
+            "metadata_sha256": None,
+            "metadata_artifact": None,
+            "frame_raw_sha256": [],
+            "history_sha256": None,
+            "history_artifact": None,
+            "provider_before": None,
+            "provider_after": None,
+            "source_evidence": None,
             "listener_before": None,
             "listener_after": None,
             "release_evidence": None,
+            "video_snapshot_residue": None,
+            "automatic_retries": 0,
             "halt": False,
         }
-        before = None
-        graph = None
+        stage = "prepare"
         try:
             self.authorize("quality_row_begin", row["asset_id"])
-            before = self._provider_snapshot("before")
+            before = self._provider_snapshot(
+                "before", "rows/" + row["asset_id"] + "/provider-before.log")
+            result["provider_before"] = _log_evidence(before)
             result["listener_before"] = self._listener_identity()
+            # The critical source is re-verified immediately before the send:
+            # same object, same hash, bounded read.
+            result["source_evidence"] = self._validate_source(
+                row, previous=(row.get("source_evidence") or {}).get("identity"))
             graph, expected_node = self._build_graph(row, workflows)
             result["graph_sha256"] = sha256_bytes(canonical_json(graph).encode("utf-8"))
+            stage = "submit"
             self.authorize("quality_public_submit", row["asset_id"])
             driver_submissions = int(getattr(self.driver, "submissions", 0))
             driver_limit = int(getattr(self.driver, "max_public_submissions", MAX_PUBLIC_SUBMISSIONS))
             if driver_submissions >= driver_limit:
                 raise QualityContractError("PUBLIC_SUBMISSION_BUDGET_EXCEEDED")
-            if self._provider_calls + expected_calls > MAX_TOTAL_PROVIDER_CALLS:
+            # The provider budget is reserved before the attempt, so a failed or
+            # unknown submission can never be under-counted and re-sent.
+            if self._provider_calls_reserved + expected_calls > MAX_TOTAL_PROVIDER_CALLS:
                 raise QualityContractError("PROVIDER_CALL_BUDGET_EXCEEDED")
+            self._provider_calls_reserved += expected_calls
+            result["provider_calls_reserved"] = expected_calls
             prompt_id = self.driver.submit(graph)
             self._submissions += 1
             if (not isinstance(prompt_id, str)
                     or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._:-]{0,79}", prompt_id)):
                 raise QualityContractError("PROMPT_ID_INVALID")
+            if prompt_id in self._seen_prompt_ids:
+                raise QualityContractError("PROMPT_ID_REUSED")
+            self._seen_prompt_ids.add(prompt_id)
             result["prompt_id"] = prompt_id
-            history = self._await_history(row, prompt_id, deadline)
-            after = self._provider_snapshot("after")
+            stage = "history"
+            history = self._await_history(row, prompt_id)
+            record = history[prompt_id]
+            stage = "persist"
+            # ---- the actual raw bytes are persisted BEFORE any validation
+            self._persist_row(row, graph, record, expected_node, result)
+            stage = "observe"
+            after = self._provider_snapshot(
+                "after", "rows/" + row["asset_id"] + "/provider-after.log")
+            result["provider_after"] = _log_evidence(after)
             result["listener_after"] = self._listener_identity()
             if result["listener_after"] != result["listener_before"]:
                 raise QualityContractError("LISTENER_IDENTITY_DRIFT")
+            if not after["artifact_sha256"] or after["source_log_sha256"] != after["artifact_sha256"]:
+                raise QualityContractError("PROVIDER_SNAPSHOT_INVALID")
+            # The before log must remain the exact original prefix of the
+            # after log: a cleared or rewritten provider log is never accepted.
             if not after["raw_log"].startswith(before["raw_log"]):
                 raise QualityContractError("PROVIDER_LOG_REWRITTEN")
             calls = after["chat_calls"] - before["chat_calls"]
             result["provider_calls"] = calls
+            if calls >= 0:
+                self._provider_calls_observed += calls
             if calls != expected_calls:
                 raise QualityContractError("PROVIDER_CALL_COUNT_MISMATCH")
-            self._provider_calls += calls
-            record = history[prompt_id]
-            # ---- persist the actual raw bytes BEFORE structural validation
-            self._persist_row(row, graph, record, expected_node, result)
-            # ---- now validate the structure
-            self._validate_row(row, record, expected_node, result, graph,
+            stage = "validate"
+            self._validate_row(row, history, record, expected_node, result, graph,
                                before["chat_calls"], after["chat_calls"])
             result["execution_status"] = "PASS"
         except QualityContractError as error:
             result["error_code"] = str(error)
-            if str(error) in HALT_ERROR_CODES:
+            result["stage"] = stage
+            if str(error) in NOT_ATTEMPTED_ERROR_CODES:
+                result["execution_status"] = "BLOCKED"
+            if stage in UNCERTAIN_STAGES or str(error) in HALT_ERROR_CODES:
                 result["halt"] = True
         except Exception as error:  # noqa: BLE001 - the failure must be recorded, never hidden
             result["error_code"] = type(error).__name__ + ":" + str(error)[:200]
+            result["stage"] = stage
+            if stage in UNCERTAIN_STAGES:
+                result["halt"] = True
         finally:
             # Release evidence is required for every attempted row.  When it is
             # not proven, no further submission may happen.
+            try:
+                result["video_snapshot_residue"] = self._video_residue(row)
+            except QualityContractError as error:
+                result["video_snapshot_residue"] = {"error": str(error)}
+                result["halt"] = True
+                if result["execution_status"] == "PASS":
+                    result["execution_status"] = "FAIL"
+                result["error_code"] = result["error_code"] or str(error)
             try:
                 result["release_evidence"] = self._release_evidence(row)
             except QualityContractError as error:
@@ -588,9 +840,9 @@ class QualityPhase:
             result["halt"] = True
         return result
 
-    def _await_history(self, row, prompt_id, phase_deadline):
+    def _await_history(self, row, prompt_id):
         """Poll the public history endpoint under the frozen sample bounds."""
-        deadline = min(self.clock() + SAMPLE_HISTORY_TIMEOUT_SECONDS, phase_deadline)
+        deadline = min(self.clock() + SAMPLE_HISTORY_TIMEOUT_SECONDS, self._phase_deadline)
         while True:
             if self._polls >= MAX_HISTORY_POLLS:
                 raise QualityContractError("HISTORY_POLL_BUDGET_EXCEEDED")
@@ -605,12 +857,18 @@ class QualityPhase:
             self.sleep(HISTORY_POLL_INTERVAL_SECONDS)
 
     def _persist_row(self, row, graph, record, expected_node, result):
-        """Save raw, suggestion and metadata as separate UTF-8 artifacts."""
+        """Save raw, suggestion and metadata as separate UTF-8 artifacts.
+
+        The actual raw string is written *before* any structural judgement, so
+        a rejected row still keeps the exact bytes the public owner produced.
+        """
         directory = "rows/" + row["asset_id"]
-        self._artifact(directory + "/graph.json", canonical_json(graph).encode("utf-8"))
+        graph_artifact = self._artifact(directory + "/graph.json", canonical_json(graph).encode("utf-8"))
+        result["graph_artifact"] = graph_artifact["path"]
         history_raw = canonical_json(record).encode("utf-8")
         result["history_sha256"] = sha256_bytes(history_raw)
-        self._artifact(directory + "/history.json", history_raw)
+        history_artifact = self._artifact(directory + "/history.json", history_raw)
+        result["history_artifact"] = history_artifact["path"]
         outputs = record.get("outputs")
         if not isinstance(outputs, dict) or not isinstance(outputs.get(expected_node), dict):
             raise QualityContractError("PUBLIC_NODE_OUTPUT_MISSING")
@@ -621,36 +879,48 @@ class QualityPhase:
             if len(text) < 2:
                 raise QualityContractError("PUBLIC_IMAGE_OUTPUT_INCOMPLETE")
             raw_text, suggestion_text = text[0], text[1]
-            metadata_text = self._image_metadata(record)
-            frames = []
         else:
             if len(text) < 3:
                 raise QualityContractError("PUBLIC_VIDEO_OUTPUT_INCOMPLETE")
-            raw_text, suggestion_text, metadata_text = text[0], text[1], text[2]
-            frames = self._video_frame_raws(raw_text)
+            raw_text, suggestion_text = text[0], text[1]
+        # ---- the raw bytes are persisted first, unconditionally
         raw_artifact = self._artifact(directory + "/raw.txt", raw_text.encode("utf-8"))
         result["raw_artifact"] = raw_artifact["path"]
         result["raw_sha256"] = raw_artifact["sha256"]
         result["raw_bytes"] = raw_artifact["bytes"]
         result["raw_preserved"] = True
         suggestion_artifact = self._artifact(directory + "/suggestion.txt", suggestion_text.encode("utf-8"))
+        result["suggestion_artifact"] = suggestion_artifact["path"]
         result["suggestion_sha256"] = suggestion_artifact["sha256"]
+        # ---- the controlled metadata is resolved after the raw was kept
+        if row["media_kind"] == "image":
+            metadata_text = self._image_metadata(record)
+        else:
+            metadata_text = text[2]
         metadata_artifact = self._artifact(directory + "/metadata.txt", metadata_text.encode("utf-8"))
+        result["metadata_artifact"] = metadata_artifact["path"]
         result["metadata_sha256"] = metadata_artifact["sha256"]
-        for index, frame_raw in enumerate(frames):
-            self._artifact(directory + "/frames/frame-%d.txt" % index, frame_raw.encode("utf-8"))
-        result["frame_raw_sha256"] = [sha256_bytes(item.encode("utf-8")) for item in frames]
+        if row["media_kind"] == "video":
+            frames = self._video_frame_raws(raw_text)
+            for index, frame_raw in enumerate(frames):
+                self._artifact(directory + "/frames/frame-%d.txt" % index, frame_raw.encode("utf-8"))
+            result["frame_raw_sha256"] = [sha256_bytes(item.encode("utf-8")) for item in frames]
 
     def _image_metadata(self, record):
         """Read the controlled image metadata through the public manual node."""
-        helper = _legacy_graph_helpers()
         outputs = record.get("outputs")
         if not isinstance(outputs, dict) or not isinstance(outputs.get("3"), dict):
             raise QualityContractError("IMAGE_METADATA_NODE_MISSING")
         text = outputs["3"].get("text")
         if not isinstance(text, list) or len(text) != 2 or not all(isinstance(item, str) for item in text):
             raise QualityContractError("IMAGE_METADATA_NODE_MISSING")
-        payload = helper._manual_payload(text)
+        helper = _legacy_graph_helpers()
+        try:
+            payload = helper._manual_payload(text)
+        except Exception as error:  # noqa: BLE001 - any legacy failure is a contract failure
+            raise QualityContractError("IMAGE_METADATA_NOT_JSON:" + type(error).__name__) from error
+        if not isinstance(payload, dict):
+            raise QualityContractError("IMAGE_METADATA_NOT_OBJECT")
         draft = payload.get("draft")
         if not isinstance(draft, dict) or not isinstance(draft.get("natural_zh"), str):
             raise QualityContractError("IMAGE_METADATA_MISSING")
@@ -670,7 +940,7 @@ class QualityPhase:
             raise QualityContractError("VIDEO_RAW_NOT_STRING")
         return frames
 
-    def _validate_row(self, row, record, expected_node, result, graph, chat_before, chat_after):
+    def _validate_row(self, row, history, record, expected_node, result, graph, chat_before, chat_after):
         """Structural validation of the actual public history record."""
         prompt_id = result["prompt_id"]
         status = record.get("status")
@@ -690,7 +960,7 @@ class QualityPhase:
         if row["media_kind"] == "image":
             self._validate_image(row, record, text, result)
         else:
-            self._validate_video(row, record, text, result, chat_before, chat_after)
+            self._validate_video(row, history, record, text, result, chat_before, chat_after)
 
     def _validate_image(self, row, record, text, result):
         submitted = record["prompt"][2]
@@ -723,25 +993,29 @@ class QualityPhase:
             raise QualityContractError("IMAGE_METADATA_NOT_JSON") from error
         if not isinstance(metadata, dict):
             raise QualityContractError("IMAGE_METADATA_NOT_OBJECT")
+        dimensions = metadata.get("output_dimensions")
         if (metadata.get("source_sha256") != row["source_sha256"]
                 or metadata.get("source_bytes") != row["source_bytes"]
                 or not _is_hex(metadata.get("output_rgb_sha256"), 64)
-                or not isinstance(metadata.get("output_dimensions"), list)
-                or not metadata["output_dimensions"]
-                or any(not _is_int(value) or value <= 0 for value in metadata["output_dimensions"])):
+                or not isinstance(dimensions, list) or not dimensions
+                or any(not _is_int(value) or value <= 0 for value in dimensions)
+                or max(dimensions) > IMAGE_LONG_EDGE):
             raise QualityContractError("IMAGE_METADATA_BINDING_INVALID")
         result["image_metadata"] = metadata
 
-    def _validate_video(self, row, record, text, result, chat_before, chat_after):
+    def _validate_video(self, row, history, record, text, result, chat_before, chat_after):
         submitted = record["prompt"][2]
         if (submitted.get("1", {}).get("class_type") != "LVWVideoPromptOwner"
                 or submitted.get("1", {}).get("inputs", {}).get("video_reference") != row["input_reference"]):
             raise QualityContractError("VIDEO_PUBLIC_PATH_BYPASSED")
-        public_video_oracle(
-            record, result["prompt_id"],
-            source_sha256=row["source_sha256"], expected_model=MODEL_TAG,
-            chat_calls_before=chat_before, chat_calls_after=chat_after,
-        )
+        try:
+            public_video_oracle(
+                history, result["prompt_id"],
+                source_sha256=row["source_sha256"], expected_model=MODEL_TAG,
+                chat_calls_before=chat_before, chat_calls_after=chat_after,
+            )
+        except EvidenceError as error:
+            raise QualityContractError("VIDEO_PUBLIC_ORACLE_FAILED:" + str(error)) from error
         try:
             suggestion = json.loads(text[1])
         except json.JSONDecodeError as error:
@@ -749,15 +1023,17 @@ class QualityPhase:
         _validate_prompt_spec(suggestion)
 
     # -- orchestration ---------------------------------------------------
-    def _empty_rows(self):
+    def _empty_rows(self, code):
         return [{"asset_id": None, "media_kind": None, "ordinal": index + 1,
                  "execution_status": "BLOCKED", "quality_status": QUALITY_NOT_RUN,
-                 "error_code": "PROJECTION_INVALID", "source_sha256": None,
+                 "error_code": code, "source_sha256": None,
                  "source_bytes": None, "input_reference": None, "prompt_id": None,
-                 "provider_calls": 0, "graph_sha256": None, "raw_sha256": None,
+                 "provider_calls": 0, "provider_calls_reserved": 0,
+                 "graph_sha256": None, "raw_sha256": None,
                  "suggestion_sha256": None, "metadata_sha256": None, "history_sha256": None,
                  "raw_artifact": None, "raw_preserved": False, "automatic_retries": 0,
-                 "listener_before": None, "listener_after": None, "release_evidence": None}
+                 "listener_before": None, "listener_after": None, "release_evidence": None,
+                 "video_snapshot_residue": None, "halt": False}
                 for index in range(FIXED_TOTAL)]
 
     def _finalize(self, rows, decision, extra=None):
@@ -765,10 +1041,12 @@ class QualityPhase:
         receipt = {
             "kind": QD_RECEIPT_KIND,
             "phase": PHASE_KIND,
+            "contract": CONTRACT_PATH,
             "run_id": self.run_id,
             "candidate_sha": self.candidate_sha,
             "authorization_sha256": self.authorization_sha256,
             "projection_sha256": self.projection_sha256,
+            "source_identity_sha256": sha256_bytes(canonical_json(self.source_identity).encode("utf-8")),
             "fixed_denominator": {"images": FIXED_IMAGES, "videos": FIXED_VIDEOS, "total": FIXED_TOTAL},
             "rows": rows,
             "test_counts": {
@@ -779,20 +1057,66 @@ class QualityPhase:
                 "NOT_RUN": statuses.count("NOT_RUN"),
             },
             "public_submissions": self._submissions,
-            "provider_calls": self._provider_calls,
+            "provider_calls_observed": self._provider_calls_observed,
+            "provider_calls_reserved": self._provider_calls_reserved,
             "history_polls": self._polls,
             "artifact_files": self._artifact_files,
             "artifact_bytes": self._artifact_bytes,
+            "bounds": {
+                "max_public_submissions": MAX_PUBLIC_SUBMISSIONS,
+                "max_provider_calls": MAX_TOTAL_PROVIDER_CALLS,
+                "sample_history_timeout_seconds": SAMPLE_HISTORY_TIMEOUT_SECONDS,
+                "phase_timeout_seconds": PHASE_TIMEOUT_SECONDS,
+                "max_history_polls": MAX_HISTORY_POLLS,
+                "max_artifact_bytes": MAX_ARTIFACT_BYTES,
+                "max_total_artifact_bytes": MAX_TOTAL_ARTIFACT_BYTES,
+                "max_artifact_files": MAX_ARTIFACT_FILES,
+                "image_source_max_bytes": IMAGE_SOURCE_MAX_BYTES,
+                "video_source_max_bytes": VIDEO_SOURCE_MAX_BYTES,
+                "automatic_retries": 0,
+            },
             "decision": decision,
             "stage_pass_claim": False,
             "product_gate0": False,
             "quality_pass_claim": False,
             "scoring_executed": False,
             "real_execution_performed": False,
+            "receipt_persisted": None,
+            "receipt_persistence_error": None,
         }
         if extra:
             receipt.update(extra)
         self.receipt = receipt
+        return receipt
+
+    def _write_receipt(self, receipt):
+        """Persist the receipt.  A persistence failure is reported, never hidden."""
+        receipt["receipt_persisted"] = True
+        receipt["receipt_persistence_error"] = None
+        try:
+            raw = canonical_json(receipt).encode("utf-8")
+            if len(raw) > MAX_ARTIFACT_BYTES:
+                raise QualityContractError("RECEIPT_OVER_ARTIFACT_CAP")
+            if self._artifact_files >= MAX_ARTIFACT_FILES:
+                raise QualityContractError("RECEIPT_FILE_BUDGET_EXCEEDED")
+            with (self.directory / "qd-receipt.json").open("xb") as stream:
+                stream.write(raw)
+                stream.flush()
+                os.fsync(stream.fileno())
+            self._artifact_files += 1
+            self._artifact_bytes += len(raw)
+            return True
+        except Exception as error:  # noqa: BLE001 - the failure must be visible
+            receipt["receipt_persisted"] = False
+            receipt["receipt_persistence_error"] = type(error).__name__ + ":" + str(error)[:200]
+            return False
+
+    def _finish(self, rows, decision, extra=None):
+        receipt = self._finalize(rows, decision, extra)
+        if not self._write_receipt(receipt):
+            receipt["decision"] = "QUALITY_EXECUTION_BLOCKED"
+            receipt["error_code"] = "RECEIPT_PERSISTENCE_FAILED"
+            receipt["storage_unproven"] = True
         return receipt
 
     def run(self):
@@ -800,60 +1124,56 @@ class QualityPhase:
         if self._ran:
             raise QualityContractError("QUALITY_PHASE_ALREADY_EXECUTED")
         self._ran = True
-        started = self.clock()
+        self._started = self.clock()
+        self._phase_deadline = self._started + PHASE_TIMEOUT_SECONDS
         try:
             self.directory.mkdir(parents=True, exist_ok=False)
         except FileExistsError:
-            rows = self._empty_rows()
-            for row in rows:
-                row["error_code"] = "PHASE_DIRECTORY_EXISTS"
-            receipt = self._finalize(rows, "QUALITY_EXECUTION_BLOCKED",
-                                     {"error_code": "PHASE_DIRECTORY_EXISTS"})
-            self._write_receipt(receipt)
-            return receipt
+            rows = self._empty_rows("PHASE_DIRECTORY_EXISTS")
+            return self._finish(rows, "QUALITY_EXECUTION_BLOCKED",
+                                {"error_code": "PHASE_DIRECTORY_EXISTS"})
         except OSError as error:
-            rows = self._empty_rows()
-            for row in rows:
-                row["error_code"] = "PHASE_DIRECTORY_UNAVAILABLE"
-            receipt = self._finalize(rows, "QUALITY_EXECUTION_BLOCKED",
-                                     {"error_code": "PHASE_DIRECTORY_UNAVAILABLE:" + type(error).__name__})
-            self._write_receipt(receipt)
-            return receipt
+            rows = self._empty_rows("PHASE_DIRECTORY_UNAVAILABLE")
+            return self._finish(rows, "QUALITY_EXECUTION_BLOCKED",
+                                {"error_code": "PHASE_DIRECTORY_UNAVAILABLE:" + type(error).__name__})
+        try:
+            if self.directory.resolve() != (self.root / "temp" / "s3-quality"):
+                raise QualityContractError("PHASE_DIRECTORY_ESCAPE")
+            if self.directory.is_symlink():
+                raise QualityContractError("PHASE_DIRECTORY_REDIRECT")
+        except OSError as error:
+            rows = self._empty_rows("PHASE_DIRECTORY_ESCAPE")
+            return self._finish(rows, "QUALITY_EXECUTION_BLOCKED",
+                                {"error_code": "PHASE_DIRECTORY_ESCAPE:" + type(error).__name__})
 
         try:
             rows = self._parse_projection()
         except QualityContractError as error:
-            rows = self._empty_rows()
-            for row in rows:
-                row["error_code"] = str(error)
-            receipt = self._finalize(rows, "QUALITY_EXECUTION_BLOCKED", {"error_code": str(error)})
-            self._write_receipt(receipt)
-            return receipt
+            rows = self._empty_rows(str(error))
+            return self._finish(rows, "QUALITY_EXECUTION_BLOCKED", {"error_code": str(error)})
 
         # ---- every source is validated before the first submission --------
-        source_failure = None
+        source_failures = []
         for row in rows:
             try:
                 row["source_evidence"] = self._validate_source(row)
             except QualityContractError as error:
-                source_failure = (row, str(error))
-                break
+                source_failures.append((row, str(error)))
             except OSError as error:
-                source_failure = (row, "SOURCE_UNAVAILABLE:" + type(error).__name__)
-                break
-        if source_failure is not None:
-            failed_row, code = source_failure
+                source_failures.append((row, "SOURCE_UNAVAILABLE:" + type(error).__name__))
+        if source_failures:
+            failed = {id(row) for row, _ in source_failures}
+            codes = {id(row): code for row, code in source_failures}
             for row in rows:
-                if row is failed_row:
+                if id(row) in failed:
                     row["execution_status"] = "FAIL"
-                    row["error_code"] = code
+                    row["error_code"] = codes[id(row)]
                 else:
                     row["execution_status"] = "BLOCKED"
                     row["error_code"] = "SOURCE_PRECONDITION_FAILED"
-            receipt = self._finalize(rows, "QUALITY_EXECUTION_BLOCKED",
-                                     {"error_code": code, "public_submissions": 0})
-            self._write_receipt(receipt)
-            return receipt
+            return self._finish(rows, "QUALITY_EXECUTION_BLOCKED",
+                                {"error_code": sorted(set(codes.values()))[0],
+                                 "public_submissions": 0})
 
         try:
             workflows = self._load_workflows()
@@ -861,13 +1181,11 @@ class QualityPhase:
             for row in rows:
                 row["execution_status"] = "BLOCKED"
                 row["error_code"] = str(error)
-            receipt = self._finalize(rows, "QUALITY_EXECUTION_BLOCKED", {"error_code": str(error)})
-            self._write_receipt(receipt)
-            return receipt
+            return self._finish(rows, "QUALITY_EXECUTION_BLOCKED", {"error_code": str(error)})
 
         results = []
         for index, row in enumerate(rows):
-            if self.clock() - started > PHASE_TIMEOUT_SECONDS:
+            if self.clock() - self._started > PHASE_TIMEOUT_SECONDS:
                 for pending in rows[index:]:
                     pending["execution_status"] = "BLOCKED"
                     pending["error_code"] = "PHASE_DEADLINE_EXCEEDED"
@@ -877,7 +1195,7 @@ class QualityPhase:
                     pending["execution_status"] = "BLOCKED"
                     pending["error_code"] = "PUBLIC_SUBMISSION_BUDGET_EXCEEDED"
                 break
-            if self._provider_calls >= MAX_TOTAL_PROVIDER_CALLS:
+            if self._provider_calls_reserved >= MAX_TOTAL_PROVIDER_CALLS:
                 for pending in rows[index:]:
                     pending["execution_status"] = "BLOCKED"
                     pending["error_code"] = "PROVIDER_CALL_BUDGET_EXCEEDED"
@@ -885,6 +1203,8 @@ class QualityPhase:
             outcome = self._execute_row(row, workflows)
             results.append(outcome)
             if outcome["halt"]:
+                self._halted = True
+                self._halt_reason = outcome["error_code"]
                 for pending in rows[index + 1:]:
                     pending["execution_status"] = "BLOCKED"
                     pending["error_code"] = "HALTED_AFTER_" + (outcome["error_code"] or "UNKNOWN")
@@ -907,29 +1227,18 @@ class QualityPhase:
             decision = "QUALITY_EXECUTION_BLOCKED"
         else:
             decision = "QUALITY_EXECUTION_PARTIAL"
-        receipt = self._finalize(merged, decision)
-        self._write_receipt(receipt)
-        return receipt
-
-    def _write_receipt(self, receipt):
-        try:
-            raw = canonical_json(receipt).encode("utf-8")
-            if len(raw) <= MAX_ARTIFACT_BYTES and self._artifact_files < MAX_ARTIFACT_FILES:
-                with (self.directory / "qd-receipt.json").open("xb") as stream:
-                    stream.write(raw)
-                    stream.flush()
-                    os.fsync(stream.fileno())
-                self._artifact_files += 1
-                self._artifact_bytes += len(raw)
-        except (OSError, ValueError):
-            # The receipt is returned in memory; a failed write is reported by
-            # the caller through the returned document.
-            pass
+        extra = {"halted": self._halted, "halt_reason": self._halt_reason}
+        return self._finish(merged, decision, extra)
 
 
 # ======================================================================
 # QS: independent score recomputation
 # ======================================================================
+
+def _log_evidence(snapshot):
+    """The receipt keeps the hashes and counts, never the whole provider log."""
+    return {key: value for key, value in snapshot.items() if key != "raw_log"}
+
 
 def _safe_artifact_path(artifact_root, relative):
     """Resolve one artifact path without escaping the owned artifact root."""
@@ -957,7 +1266,7 @@ def _safe_artifact_path(artifact_root, relative):
     return candidate
 
 
-def verify_independence(independence, *, implementer_identity=None):
+def verify_independence(independence, *, implementer_identity=None, run_id=None):
     """Prove reviewer separation from an isolation receipt.
 
     A reviewer identity string alone proves nothing; the isolation receipt is
@@ -965,6 +1274,8 @@ def verify_independence(independence, *, implementer_identity=None):
     """
     if not isinstance(independence, dict):
         raise QualityContractError("INDEPENDENCE_RECEIPT_MISSING")
+    if run_id is not None and independence.get("run_id") != run_id:
+        raise QualityContractError("INDEPENDENCE_RUN_BINDING_MISMATCH")
     separation = independence.get("separation")
     if not isinstance(separation, dict):
         raise QualityContractError("INDEPENDENCE_SEPARATION_MISSING")
@@ -1004,7 +1315,7 @@ def _validate_score_document(score):
     if not isinstance(score, dict):
         raise QualityContractError("SCORE_RECEIPT_NOT_OBJECT")
     for key in ("run_id", "candidate_sha", "projection_sha256", "asset_id",
-                "source_sha256", "raw_sha256", "reviewer_id", "session_id"):
+                "source_sha256", "raw_sha256", "raw_artifact", "reviewer_id", "session_id"):
         value = score.get(key)
         if not isinstance(value, str) or not value.strip():
             raise QualityContractError("SCORE_RECEIPT_FIELD_MISSING:" + key)
@@ -1047,7 +1358,7 @@ def recompute_scores(execution_receipt, artifact_root, score_receipts, *,
     denominator = execution_receipt.get("fixed_denominator")
     if (not isinstance(denominator, dict) or denominator.get("total") != FIXED_TOTAL
             or denominator.get("images") != FIXED_IMAGES or denominator.get("videos") != FIXED_VIDEOS):
-        raise QualityContractError("QS_DENOMINATOR_INVALID")
+        raise QualityContractError("QS_DENOMATOR_INVALID")
     rows = execution_receipt.get("rows")
     if not isinstance(rows, list) or len(rows) != FIXED_TOTAL:
         raise QualityContractError("QS_ROW_COUNT_INVALID")
@@ -1070,8 +1381,10 @@ def recompute_scores(execution_receipt, artifact_root, score_receipts, *,
         score_receipts = score_receipts.get("scores")
     if not isinstance(score_receipts, list):
         raise QualityContractError("QS_SCORE_RECEIPTS_INVALID")
-    independence_evidence = verify_independence(independence, implementer_identity=implementer_identity)
+    independence_evidence = verify_independence(
+        independence, implementer_identity=implementer_identity, run_id=run_id)
     known_reviewers = set(independence_evidence["reviewer_ids"])
+    known_sessions = set(independence_evidence["session_ids"])
 
     scores = {}
     for document in score_receipts:
@@ -1092,6 +1405,8 @@ def recompute_scores(execution_receipt, artifact_root, score_receipts, *,
             raise QualityContractError("QS_SCORE_SOURCE_MISMATCH:" + asset_id)
         if score["reviewer_id"] not in known_reviewers:
             raise QualityContractError("QS_SCORE_REVIEWER_NOT_INDEPENDENT:" + asset_id)
+        if score["session_id"] not in known_sessions:
+            raise QualityContractError("QS_SCORE_SESSION_NOT_INDEPENDENT:" + asset_id)
         scores[asset_id] = score
 
     computed = []
@@ -1108,6 +1423,7 @@ def recompute_scores(execution_receipt, artifact_root, score_receipts, *,
             "critical_hallucinations": None,
             "dimensions": None,
             "reviewer_id": None,
+            "session_id": None,
             "raw_sha256": row.get("raw_sha256"),
             "raw_bytes": None,
             "raw_artifact": row.get("raw_artifact"),
@@ -1117,10 +1433,16 @@ def recompute_scores(execution_receipt, artifact_root, score_receipts, *,
             entry["reason"] = "EXECUTION_NOT_PASS"
             computed.append(entry)
             continue
+        if row.get("raw_preserved") is not True:
+            entry["reason"] = "RAW_NOT_PRESERVED"
+            computed.append(entry)
+            continue
         if score is None:
             entry["reason"] = "MISSING_SCORE"
             computed.append(entry)
             continue
+        if score["raw_artifact"] != row.get("raw_artifact"):
+            raise QualityContractError("QS_SCORE_ARTIFACT_SUBSTITUTED:" + asset_id)
         artifact = _safe_artifact_path(artifact_root, row.get("raw_artifact"))
         raw = artifact.read_bytes()
         if sha256_bytes(raw) != row.get("raw_sha256"):
@@ -1137,6 +1459,7 @@ def recompute_scores(execution_receipt, artifact_root, score_receipts, *,
         entry["critical_hallucinations"] = critical
         entry["dimensions"] = dict(score["dimensions"])
         entry["reviewer_id"] = score["reviewer_id"]
+        entry["session_id"] = score["session_id"]
         entry["raw_bytes"] = len(raw)
         usable = total >= PER_SAMPLE_TOTAL_MIN and critical <= CRITICAL_HALLUCINATIONS_MAX
         if usable:
@@ -1151,13 +1474,17 @@ def recompute_scores(execution_receipt, artifact_root, score_receipts, *,
                          if entry["media_kind"] == "image" and entry["quality_status"] == "PASS")
     videos_usable = sum(1 for entry in computed
                          if entry["media_kind"] == "video" and entry["quality_status"] == "PASS")
-    total_critical = sum(entry["critical_hallucinations"] or 0 for entry in computed)
+    resolved_critical = [entry["critical_hallucinations"] for entry in computed
+                         if entry["critical_hallucinations"] is not None]
+    total_critical = sum(resolved_critical)
+    critical_known = len(resolved_critical) == FIXED_TOTAL
     unresolved = [entry["asset_id"] for entry in computed
-                  if entry["execution_status"] != "PASS" or entry["reason"] == "MISSING_SCORE"]
+                  if entry["execution_status"] != "PASS" or entry["reason"] == "MISSING_SCORE"
+                  or entry["reason"] == "RAW_NOT_PRESERVED"]
     thresholds_met = (images_usable >= IMAGE_USABLE_MIN and videos_usable >= VIDEO_USABLE_MIN
                       and total_critical <= CRITICAL_HALLUCINATIONS_MAX)
     all_rows_resolved = not unresolved
-    aggregate_pass = bool(thresholds_met and all_rows_resolved)
+    aggregate_pass = bool(thresholds_met and all_rows_resolved and critical_known)
     if aggregate_pass:
         decision = "QUALITY_THRESHOLDS_MET_FOR_THIS_BOUND_RUN"
     elif not all_rows_resolved:
@@ -1168,6 +1495,7 @@ def recompute_scores(execution_receipt, artifact_root, score_receipts, *,
     return {
         "kind": QS_RECEIPT_KIND,
         "phase": PHASE_KIND,
+        "contract": CONTRACT_PATH,
         "run_id": run_id,
         "candidate_sha": candidate_sha,
         "projection_sha256": projection_sha256,
@@ -1180,8 +1508,10 @@ def recompute_scores(execution_receipt, artifact_root, score_receipts, *,
             "videos_required": VIDEO_USABLE_MIN,
             "total_critical_hallucinations": total_critical,
             "critical_hallucinations_max": CRITICAL_HALLUCINATIONS_MAX,
+            "critical_hallucinations_known": critical_known,
             "per_sample_total_min": PER_SAMPLE_TOTAL_MIN,
             "dimension_max": DIMENSION_MAX,
+            "scored_rows": len(resolved_critical),
         },
         "thresholds_met": thresholds_met,
         "all_rows_resolved": all_rows_resolved,
@@ -1189,9 +1519,16 @@ def recompute_scores(execution_receipt, artifact_root, score_receipts, *,
         "aggregate_pass": aggregate_pass,
         "decision": decision,
         "independence": independence_evidence,
+        "limitations": [
+            "Four sampled frames cannot prove full motion continuity or physical camera movement.",
+            "Semantic judgements come only from the independent scoring receipts.",
+            "This verdict covers only the bound sixteen rows of this run.",
+        ],
         "stage_pass_claim": False,
         "product_gate0": False,
         "scoring_source": "INDEPENDENT_SCORING_RECEIPTS_ONLY",
         "model_called": False,
         "keyword_scoring": False,
+        "automatic_semantic_scoring": False,
+        "frame_continuity_claimed": False,
     }

@@ -1,0 +1,1115 @@
+"""Offline acceptance tests for the S3-P3B quality phase (QD execution + QS scoring).
+
+The suite is offline only.  It never starts a service, never opens a socket,
+never launches a host process, never decodes the real quality-set media and
+never calls a model.  The public production node classes, the public
+``BridgeOwner`` and the public S2 oracles are exercised for real; only the
+native HTTP/provider boundary and the media decoder are replaced by bounded
+synthetic fixtures.
+
+The subprocess and network guards below are installed *before* any project
+module is imported, so no plugin or import can open a socket or start a host
+process either.
+"""
+
+import copy
+import hashlib
+import inspect
+import json
+import os
+import socket
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
+from types import SimpleNamespace
+
+
+# --------------------------------------------------------------------------
+# offline guard, installed before pytest and before any project import
+# --------------------------------------------------------------------------
+class OfflineGuardError(RuntimeError):
+    """Raised when a test tries to leave the offline boundary."""
+
+
+def _blocked_network(*args, **kwargs):
+    raise OfflineGuardError("network access is blocked in the offline quality tests")
+
+
+def _blocked_subprocess(*args, **kwargs):
+    raise OfflineGuardError("host subprocess execution is blocked in the offline quality tests")
+
+
+def _install_offline_guard():
+    socket.socket.connect = _blocked_network
+    socket.socket.connect_ex = _blocked_network
+    socket.socket.bind = _blocked_network
+    socket.create_connection = _blocked_network
+    socket.getaddrinfo = _blocked_network
+    subprocess.Popen = _blocked_subprocess
+    os.system = _blocked_subprocess
+    os.popen = _blocked_subprocess
+
+
+_install_offline_guard()
+
+import pytest  # noqa: E402  (imported only after the offline guard is active)
+
+PACK_ROOT = Path(__file__).resolve().parents[1]
+if str(PACK_ROOT) not in sys.path:
+    sys.path.insert(0, str(PACK_ROOT))
+
+from LVW_V0_RuntimePatch.custom_nodes.lvw_v0_bridge import nodes            # noqa: E402
+from LVW_V0_RuntimePatch.custom_nodes.lvw_v0_bridge.core import BridgeError, BridgeOwner  # noqa: E402
+from LVW_V0_RuntimePatch.custom_nodes.lvw_v0_bridge.image_input import ControlledImageOwner  # noqa: E402
+from LVW_V0_RuntimePatch.custom_nodes.lvw_v0_bridge.manual import ManualDraftOwner  # noqa: E402
+from LVW_V0_RuntimePatch.custom_nodes.lvw_v0_bridge.video_api import LVWVideoPromptOwner  # noqa: E402
+from tools import v0_s3_quality_phase as quality                            # noqa: E402
+from tools.v0_s3_quality_phase import (                                     # noqa: E402
+    FIXED_IMAGES, FIXED_TOTAL, FIXED_VIDEOS, FROZEN_DIMENSIONS, IMAGE_WORKFLOW,
+    MAX_PUBLIC_SUBMISSIONS, MAX_TOTAL_PROVIDER_CALLS, QualityContractError,
+    QualityPhase, VIDEO_WORKFLOW, WORKFLOW_DIR, recompute_scores, verify_independence,
+)
+
+CANDIDATE_SHA = "a" * 40
+AUTHORIZATION_SHA = "b" * 64
+RUN_ID = "synthetic-quality-run"
+REVIEWER_ID = "independent-reviewer-01"
+REVIEWER_SESSION = "independent-session-01"
+BASE_GPU_MIB = 100
+
+
+# --------------------------------------------------------------------------
+# synthetic production boundary
+# --------------------------------------------------------------------------
+class SyntheticTransport:
+    """A bounded synthetic provider boundary for the real ``BridgeOwner``.
+
+    The transport speaks the production envelope shape so the real owner
+    parses, compiles and publishes exactly what it would publish for a real
+    local model.  No socket is ever opened.
+    """
+
+    endpoint = "http://127.0.0.1:11434/api/chat"
+
+    def __init__(self, log, counter, video):
+        self.log = log
+        self.counter = counter
+        self.video = video
+        self.calls = 0
+
+    def chat(self, payload, timeout_seconds):
+        self.calls += 1
+        self.counter[0] += 1
+        number = self.counter[0]
+        self.log.append('[GIN] 200 POST "/api/chat"\n')
+        content = {
+            "observations": [f"synthetic observation {number}"],
+            "inferences": [],
+            "unknowns": [],
+            "prompt": f"synthetic prompt {number}",
+            "tags": [f"synthetic tag {number}"],
+        }
+        if self.video:
+            content["change"] = f"synthetic change {number}"
+        return json.dumps({
+            "model": "gemma4:26b",
+            "done": True,
+            "done_reason": "stop",
+            "message": {"content": json.dumps(content, ensure_ascii=False)},
+        })
+
+    def cleanup(self, *args):
+        return None
+
+
+def _encoder(frame):
+    return "c3ludGhldGljLWZhbWUtZnJhbWU="
+
+
+def _frame():
+    return SimpleNamespace(shape=(4, 4, 3))
+
+
+class SyntheticVideoOwner:
+    """Adapter around the real ``BridgeOwner`` for the real video node class.
+
+    The node class, the owner, the four provider calls, the raw envelope array
+    and the machine suggestion are production code.  Only the decoder and the
+    media bytes are synthetic.
+    """
+
+    def __init__(self, transport, input_root):
+        self.transport = transport
+        self.input_root = Path(input_root)
+
+    def run(self, token, reference, **kwargs):
+        owner = BridgeOwner(transport=self.transport, encoder=_encoder)
+        raw, suggestion = owner.analyze_video(
+            [_frame() for _ in range(4)], model="gemma4:26b", user_instruction="",
+            mode="realistic", timeout_seconds=120)
+        manifest = []
+        for index in range(4):
+            manifest.append({
+                "index": index,
+                "pts": index * 1000,
+                "time_base_num": 1,
+                "time_base_den": 1000,
+                "time_seconds": float(index),
+                "sha256": hashlib.sha256(f"synthetic-frame-{index}".encode("utf-8")).hexdigest(),
+            })
+        source = self.input_root / reference
+        return {
+            "raw_response": raw,
+            "suggestion": suggestion,
+            "source_sha256": hashlib.sha256(source.read_bytes()).hexdigest(),
+            "run_token": token,
+            "cancel_epoch": 0,
+            "frames": manifest,
+        }
+
+
+class SyntheticDriver:
+    """The bounded native queue/provider boundary used by the offline tests.
+
+    The surface is the public ``NativeRuntime`` surface the phase consumes:
+    ``submit``, ``chat_log_snapshot``, ``resource_observer``, ``_json_request``,
+    ``owned_listener_birth``, ``release_preload``, ``video_snapshot_residue``,
+    ``submissions`` and ``max_public_submissions``.
+    """
+
+    def __init__(self, root, failure=None):
+        self.root = Path(root)
+        self.failure = failure
+        self.submissions = 0
+        self.max_public_submissions = MAX_PUBLIC_SUBMISSIONS
+        self.history = {}
+        self.log = ['[GIN] 200 GET "/api/tags"\n']
+        self.counter = [0]
+        self.image_transport = SyntheticTransport(self.log, self.counter, video=False)
+        self.video_transport = SyntheticTransport(self.log, self.counter, video=True)
+        self.actions = []
+        self._resource_worker = object()
+        self.manual = nodes.LVWManualPromptOwner(owner=ManualDraftOwner(
+            export_root=self.root / "output/lvw_manual",
+            export_parent=self.root / "output",
+            clipboard=SimpleNamespace(write=lambda value: None)))
+        self.image = nodes.LVWControlledImageInput(owner=ControlledImageOwner(self.root / "input"))
+        self.bridge = nodes.LVWImagePromptBridge(transport=self.image_transport, encoder=_encoder)
+        self.video = LVWVideoPromptOwner(owner=SyntheticVideoOwner(self.video_transport, self.root / "input"))
+
+    # -- public runtime surface -----------------------------------------
+    def resource_observer(self):
+        return None
+
+    def owned_listener_birth(self, port):
+        birth = 100
+        if self.failure == "listener-drift" and self.submissions >= 1:
+            birth = 101
+        return {"pid": 20 + port % 100, "start_ticks": birth}
+
+    def chat_log_snapshot(self):
+        raw = "".join(self.log)
+        if self.failure == "rewritten-log" and self.submissions >= 1:
+            # A cleared and rewritten provider log: the earlier prefix is gone.
+            raw = '[GIN] 200 POST "/api/chat"\n'
+        data = raw.encode("utf-8")
+        return {
+            "raw_log": raw,
+            "source_log_bytes": len(data),
+            "source_log_sha256": hashlib.sha256(data).hexdigest(),
+            "chat_calls": sum("POST" in line and '"/api/chat"' in line for line in raw.splitlines()),
+        }
+
+    def release_preload(self, binding, worker):
+        self.log.append('[GIN] 200 POST "/api/generate"\n')
+        self.log.append('[GIN] 200 GET "/api/ps"\n')
+        if self.failure == "release-unproven":
+            return {"proven": False, "loaded_models": 1, "elapsed_seconds": 3, "gpu_samples": []}
+        if self.failure == "release-model-resident":
+            return {"proven": True, "loaded_models": 1, "elapsed_seconds": 3,
+                    "gpu_samples": [{"monotonic_seconds": i, "gpu_used_mib": 1124} for i in range(3)]}
+        return {"proven": True, "loaded_models": 0, "elapsed_seconds": 3,
+                "gpu_samples": [{"monotonic_seconds": i, "gpu_used_mib": 1124} for i in range(3)]}
+
+    def video_snapshot_residue(self):
+        if self.failure == "residue":
+            return ["/comfy/temp/lvw-video-leftover"]
+        return []
+
+    def _json_request(self, url, **kwargs):
+        if self.failure == "history-timeout":
+            return 200, {}
+        return 200, copy.deepcopy(self.history)
+
+    def submit(self, graph):
+        self.submissions += 1
+        prompt = f"{self.submissions:032x}"
+        if self.failure == "duplicate-prompt":
+            prompt = "constant-prompt-id"
+        produced, outputs = {}, {}
+        status = {"status_str": "success", "messages": []}
+        try:
+            for name in sorted(graph, key=int):
+                definition = graph[name]
+                inputs = copy.deepcopy(definition["inputs"])
+                for key, value in list(inputs.items()):
+                    if (isinstance(value, list) and len(value) == 2 and isinstance(value[0], str)
+                            and value[0] in produced):
+                        inputs[key] = produced[value[0]][value[1]]
+                kind = definition["class_type"]
+                if kind == "LVWControlledImageInput":
+                    result = self.image.load(**inputs)
+                elif kind == "LVWImagePromptBridge":
+                    result = self.bridge.analyze(**inputs)
+                elif kind == "LVWManualPromptOwner":
+                    result = self.manual.process(**inputs)
+                elif kind == "LVWVideoPromptOwner":
+                    result = self.video.analyze(**inputs)
+                else:
+                    raise AssertionError("unfrozen class_type " + str(kind))
+                if isinstance(result, dict):
+                    outputs[name] = result["ui"]
+                    produced[name] = result["result"]
+                else:
+                    produced[name] = result
+        except BridgeError as error:
+            status = {"status_str": "error", "messages": [["execution_error", {
+                "prompt_id": prompt, "node_id": name, "node_type": kind,
+                "exception_message": json.dumps({"code": error.code})}]]}
+            outputs = {}
+        history_graph = copy.deepcopy(graph)
+        history_prompt = prompt
+        if self.failure == "history-graph":
+            history_graph = {}
+        if self.failure == "history-prompt-id":
+            history_prompt = "different-prompt-id"
+        self.history[prompt] = {
+            "prompt": [0, history_prompt, history_graph],
+            "outputs": outputs,
+            "status": status,
+        }
+        self._inject_output_fault(prompt)
+        return prompt
+
+    def _inject_output_fault(self, prompt):
+        record = self.history.get(prompt)
+        if record is None or not isinstance(record.get("outputs"), dict):
+            return
+        outputs = record["outputs"]
+        for node, entries in list(outputs.items()):
+            text = entries.get("text")
+            if not isinstance(text, list) or not text:
+                continue
+            if self.failure == "bad-suggestion" and node == "2":
+                text[1] = json.dumps({"schema_version": "lvw.prompt/1"})
+            if self.failure == "bad-raw" and node == "2":
+                text[0] = json.dumps({"model": "gemma4:26b", "done": False, "message": {"content": ""}})
+            if self.failure == "video-frames-3" and node == "1":
+                raw = json.loads(text[0])
+                raw["frame_raw_responses"] = raw["frame_raw_responses"][:3]
+                text[0] = json.dumps(raw, ensure_ascii=False, separators=(",", ":"))
+            if self.failure == "image-metadata-mismatch" and node == "3":
+                payload = json.loads(text[1])
+                payload["draft"]["natural_zh"] = json.dumps({
+                    "source_sha256": "c" * 64, "source_bytes": 1,
+                    "output_rgb_sha256": "d" * 64, "output_dimensions": [4, 4]})
+                text[1] = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+            if self.failure == "missing-node-output":
+                record["outputs"].pop(node, None)
+
+
+# --------------------------------------------------------------------------
+# fixtures
+# --------------------------------------------------------------------------
+def _tiny_png(index):
+    from io import BytesIO
+    from PIL import Image
+    buffer = BytesIO()
+    Image.new("RGB", (4, 4), (index * 20 % 256, 40, 60)).save(buffer, format="PNG")
+    return buffer.getvalue()
+
+
+def _build_sources(root):
+    """Create the ten synthetic images and six synthetic videos."""
+    rows = []
+    for index in range(FIXED_IMAGES):
+        name = "synthetic-image-%02d.png" % index
+        data = _tiny_png(index)
+        (root / "input" / name).write_bytes(data)
+        rows.append({
+            "asset_id": "SYN-I%02d" % index,
+            "media_kind": "image",
+            "source_sha256": hashlib.sha256(data).hexdigest(),
+            "source_bytes": len(data),
+            "input_reference": name,
+        })
+    for index in range(FIXED_VIDEOS):
+        name = "synthetic-video-%02d.mp4" % index
+        data = b"synthetic-video-fixture-%02d" % index
+        (root / "input" / name).write_bytes(data)
+        rows.append({
+            "asset_id": "SYN-V%02d" % index,
+            "media_kind": "video",
+            "source_sha256": hashlib.sha256(data).hexdigest(),
+            "source_bytes": len(data),
+            "input_reference": name,
+        })
+    return rows
+
+
+def _projection_bytes(rows):
+    document = {
+        "schema_version": "lvw.s3-quality-execution/1",
+        "spec_version": "SYN-Q16-01",
+        "fixed_denominator": {"images": FIXED_IMAGES, "videos": FIXED_VIDEOS, "total": FIXED_TOTAL},
+        "samples": rows,
+    }
+    return json.dumps(document, ensure_ascii=False, sort_keys=True, indent=2).encode("utf-8")
+
+
+def _source_identity():
+    workflows = {}
+    for name in (IMAGE_WORKFLOW, VIDEO_WORKFLOW):
+        raw = (WORKFLOW_DIR / name).read_bytes()
+        workflows[name] = {"sha256": hashlib.sha256(raw).hexdigest(), "bytes": len(raw)}
+    return {"candidate_sha": CANDIDATE_SHA, "workflows": workflows}
+
+
+def _binding():
+    return {
+        "candidate_sha": CANDIDATE_SHA,
+        "authorization_sha256": AUTHORIZATION_SHA,
+        "ollama_pid": 20,
+        "ollama_start_ticks": 100,
+        "baseline_gpu_mib": BASE_GPU_MIB,
+    }
+
+
+class FakeClock:
+    """A deterministic monotonic clock for the bounded offline tests."""
+
+    def __init__(self, step=0.0):
+        self.now = 0.0
+        self.step = step
+
+    def __call__(self):
+        return self.now
+
+    def sleep(self, seconds):
+        self.now += self.step or seconds
+
+
+def _prepare(root, failure=None, rows=None, clock=None):
+    for name in ("input", "output", "temp"):
+        (root / name).mkdir(parents=True, exist_ok=True)
+    if rows is None:
+        rows = _build_sources(root)
+    projection = _projection_bytes(rows)
+    driver = SyntheticDriver(root, failure)
+    if clock is None:
+        clock = FakeClock(step=100.0)
+    phase = QualityPhase(
+        driver, root, run_id=RUN_ID, candidate_sha=CANDIDATE_SHA,
+        authorization_sha256=AUTHORIZATION_SHA, projection=projection,
+        projection_sha256=hashlib.sha256(projection).hexdigest(),
+        source_identity=_source_identity(), authorize=lambda *args: None,
+        binding=_binding(), clock=clock, sleep=clock.sleep,
+    )
+    return phase, driver, projection
+
+
+@pytest.fixture()
+def prepared(tmp_path):
+    phase, driver, projection = _prepare(tmp_path)
+    return phase, driver, projection
+
+
+@pytest.fixture(scope="module")
+def completed_run(tmp_path_factory):
+    root = tmp_path_factory.mktemp("s3-quality-completed")
+    clock = FakeClock(step=0.0)
+    phase, driver, projection = _prepare(root, clock=clock)
+    receipt = phase.run()
+    return {
+        "receipt": receipt,
+        "artifact_root": root / "temp" / "s3-quality",
+        "root": root,
+        "driver": driver,
+        "projection": projection,
+        "projection_sha256": hashlib.sha256(projection).hexdigest(),
+    }
+
+
+def _score_for(row, *, total=10, critical=0, reviewer=REVIEWER_ID, session=REVIEWER_SESSION,
+               raw_sha=None, raw_artifact=None, run_id=RUN_ID, candidate=CANDIDATE_SHA,
+               projection_sha=None):
+    per_dimension = {name: total // len(FROZEN_DIMENSIONS) for name in FROZEN_DIMENSIONS}
+    per_dimension[FROZEN_DIMENSIONS[0]] += total - sum(per_dimension.values())
+    return {
+        "run_id": run_id,
+        "candidate_sha": candidate,
+        "projection_sha256": projection_sha or "d" * 64,
+        "asset_id": row["asset_id"],
+        "source_sha256": row["source_sha256"],
+        "raw_sha256": raw_sha or row["raw_sha256"],
+        "raw_artifact": raw_artifact or row["raw_artifact"],
+        "raw_bytes": row.get("raw_bytes"),
+        "reviewer_id": reviewer,
+        "session_id": session,
+        "dimensions": per_dimension,
+        "critical_hallucinations": critical,
+        "basis": "synthetic independent review basis",
+    }
+
+
+def _independence(run_id=RUN_ID, reviewers=None):
+    return {
+        "run_id": run_id,
+        "separation": {
+            "isolated_instance": True,
+            "separate_session": True,
+            "no_implementation_participation": True,
+        },
+        "reviewers": reviewers or [{
+            "reviewer_id": REVIEWER_ID, "session_id": REVIEWER_SESSION, "role": "INDEPENDENT_REVIEWER",
+        }],
+    }
+
+
+def _scores(receipt, projection_sha, **kwargs):
+    scores = []
+    for row in receipt["rows"]:
+        scores.append(_score_for(row, projection_sha=projection_sha, **kwargs))
+    return scores
+
+
+# --------------------------------------------------------------------------
+# QD: projection and source preconditions
+# --------------------------------------------------------------------------
+@pytest.mark.parametrize("mutation,expected", [
+    ("duplicate-asset-id", "PROJECTION_DUPLICATE_ASSET_ID"),
+    ("duplicate-source-hash", "PROJECTION_DUPLICATE_SOURCE_HASH"),
+    ("duplicate-reference", "PROJECTION_DUPLICATE_REFERENCE"),
+    ("wrong-denominator", "PROJECTION_DENOMINATOR_INVALID"),
+    ("wrong-row-count", "PROJECTION_ROW_COUNT_INVALID"),
+    ("path-escape-reference", "PROJECTION_REFERENCE_NOT_SIMPLE_NAME"),
+    ("video-extension-widened", "PROJECTION_REFERENCE_EXTENSION_INVALID"),
+    ("label-field-smuggled", "PROJECTION_ROW_UNEXPECTED_FIELD"),
+    ("top-level-extra-field", "PROJECTION_UNEXPECTED_FIELD"),
+    ("source-bytes-over-limit", "PROJECTION_SOURCE_BYTES_OVER_LIMIT"),
+])
+def test_projection_is_strict_and_never_carries_labels(tmp_path, mutation, expected):
+    root = tmp_path / mutation
+    rows = _build_sources(root) if (root / "input").is_dir() else None
+    (root / "input").mkdir(parents=True, exist_ok=True)
+    (root / "output").mkdir(parents=True, exist_ok=True)
+    (root / "temp").mkdir(parents=True, exist_ok=True)
+    rows = _build_sources(root)
+    document = json.loads(_projection_bytes(rows).decode("utf-8"))
+    if mutation == "duplicate-asset-id":
+        document["samples"][1]["asset_id"] = document["samples"][0]["asset_id"]
+    elif mutation == "duplicate-source-hash":
+        document["samples"][1]["source_sha256"] = document["samples"][0]["source_sha256"]
+    elif mutation == "duplicate-reference":
+        document["samples"][1]["input_reference"] = document["samples"][0]["input_reference"]
+    elif mutation == "wrong-denominator":
+        document["fixed_denominator"]["total"] = 18
+    elif mutation == "wrong-row-count":
+        document["samples"] = document["samples"][:15]
+    elif mutation == "path-escape-reference":
+        document["samples"][0]["input_reference"] = "../outside.png"
+    elif mutation == "video-extension-widened":
+        document["samples"][10]["input_reference"] = "synthetic-video-00.mkv"
+    elif mutation == "label-field-smuggled":
+        document["samples"][0]["prelabel"] = "not allowed in the execution projection"
+    elif mutation == "top-level-extra-field":
+        document["prelabels"] = []
+    elif mutation == "source-bytes-over-limit":
+        document["samples"][0]["source_bytes"] = 20 * 1024 * 1024 + 1
+    projection = json.dumps(document, ensure_ascii=False, sort_keys=True, indent=2).encode("utf-8")
+    phase, driver, _ = _prepare(root, rows=rows)
+    phase.projection_bytes = projection
+    phase.projection_sha256 = hashlib.sha256(projection).hexdigest()
+    receipt = phase.run()
+    assert receipt["decision"] == "QUALITY_EXECUTION_BLOCKED", receipt
+    assert receipt["error_code"] == expected, receipt["error_code"]
+    assert receipt["public_submissions"] == 0, receipt
+    assert receipt["test_counts"] == {"fixed": 16, "PASS": 0, "FAIL": 0, "BLOCKED": 16, "NOT_RUN": 0}, receipt
+
+
+def test_source_hash_mismatch_blocks_every_row_with_zero_submissions(tmp_path):
+    phase, driver, _ = _prepare(tmp_path)
+    rows = json.loads(phase.projection_bytes.decode("utf-8"))
+    rows["samples"][3]["source_sha256"] = "e" * 64
+    phase.projection_bytes = json.dumps(rows, sort_keys=True).encode("utf-8")
+    phase.projection_sha256 = hashlib.sha256(phase.projection_bytes).hexdigest()
+    receipt = phase.run()
+    assert receipt["public_submissions"] == 0, receipt
+    assert receipt["test_counts"]["PASS"] == 0, receipt
+    assert receipt["test_counts"]["FAIL"] == 1, receipt
+    assert receipt["test_counts"]["BLOCKED"] == 15, receipt
+    assert receipt["rows"][3]["error_code"] == "SOURCE_HASH_MISMATCH", receipt["rows"][3]
+
+
+def test_source_symlink_is_refused_before_any_submission(tmp_path):
+    phase, driver, _ = _prepare(tmp_path)
+    target = tmp_path / "input" / "synthetic-image-00.png"
+    link = tmp_path / "input" / "synthetic-image-01.png"
+    real = tmp_path / "input" / "synthetic-image-02.png"
+    link.unlink()
+    link.symlink_to(real)
+    receipt = phase.run()
+    assert receipt["public_submissions"] == 0, receipt
+    assert receipt["test_counts"]["PASS"] == 0, receipt
+    assert any(row["error_code"] == "SOURCE_REDIRECT_FORBIDDEN" for row in receipt["rows"]), receipt
+
+
+def test_source_growth_during_the_read_is_detected(tmp_path, monkeypatch):
+    phase, driver, _ = _prepare(tmp_path)
+    original = os.read
+    calls = {"n": 0}
+
+    def growing_read(descriptor, count):
+        calls["n"] += 1
+        if calls["n"] >= 2:
+            return b"x"
+        return original(descriptor, count)
+
+    monkeypatch.setattr(os, "read", growing_read)
+    receipt = phase.run()
+    monkeypatch.undo()
+    assert receipt["public_submissions"] == 0, receipt
+    assert any(row["error_code"] == "SOURCE_GROWTH" for row in receipt["rows"]), receipt
+
+
+def test_workflow_source_identity_mismatch_blocks_the_run(tmp_path):
+    phase, driver, _ = _prepare(tmp_path)
+    phase.source_identity["workflows"][IMAGE_WORKFLOW]["sha256"] = "f" * 64
+    receipt = phase.run()
+    assert receipt["decision"] == "QUALITY_EXECUTION_BLOCKED", receipt
+    assert receipt["error_code"].startswith("WORKFLOW_SOURCE_IDENTITY_MISMATCH"), receipt
+    assert receipt["public_submissions"] == 0, receipt
+
+
+def test_binding_is_required_and_must_match_the_candidate(tmp_path):
+    (tmp_path / "input").mkdir(parents=True, exist_ok=True)
+    rows = _build_sources(tmp_path)
+    projection = _projection_bytes(rows)
+    driver = SyntheticDriver(tmp_path)
+    common = dict(run_id=RUN_ID, candidate_sha=CANDIDATE_SHA, authorization_sha256=AUTHORIZATION_SHA,
+                  projection=projection, projection_sha256=hashlib.sha256(projection).hexdigest(),
+                  source_identity=_source_identity(), authorize=lambda *args: None)
+    with pytest.raises(QualityContractError) as missing:
+        QualityPhase(driver, tmp_path, binding={}, **common)
+    assert "QUALITY_BINDING_INCOMPLETE" in str(missing.value)
+    wrong = _binding()
+    wrong["candidate_sha"] = "c" * 40
+    with pytest.raises(QualityContractError) as mismatch:
+        QualityPhase(driver, tmp_path, binding=wrong, **common)
+    assert "QUALITY_BINDING_CANDIDATE_MISMATCH" in str(mismatch.value)
+
+
+# --------------------------------------------------------------------------
+# QD: the fixed sixteen row execution
+# --------------------------------------------------------------------------
+def test_sixteen_rows_pass_with_exact_provider_counts(completed_run):
+    receipt = completed_run["receipt"]
+    assert receipt["decision"] == "QUALITY_EXECUTION_COMPLETE_ALL_16_PASS", receipt
+    assert receipt["test_counts"] == {"fixed": 16, "PASS": 16, "FAIL": 0, "BLOCKED": 0, "NOT_RUN": 0}, receipt
+    assert receipt["public_submissions"] == 16, receipt
+    assert receipt["provider_calls_observed"] == MAX_TOTAL_PROVIDER_CALLS == 34, receipt
+    assert receipt["provider_calls_reserved"] == 34, receipt
+    assert len(receipt["rows"]) == 16, receipt
+    assert all(row["quality_status"] == "NOT_RUN" for row in receipt["rows"]), receipt
+    assert all(row["raw_preserved"] for row in receipt["rows"]), receipt
+    assert all(row["automatic_retries"] == 0 for row in receipt["rows"]), receipt
+    assert receipt["stage_pass_claim"] is False and receipt["product_gate0"] is False, receipt
+    assert receipt["scoring_executed"] is False and receipt["quality_pass_claim"] is False, receipt
+    images = [row for row in receipt["rows"] if row["media_kind"] == "image"]
+    videos = [row for row in receipt["rows"] if row["media_kind"] == "video"]
+    assert len(images) == 10 and len(videos) == 6, receipt
+    assert all(row["provider_calls"] == 1 for row in images), receipt
+    assert all(row["provider_calls"] == 4 for row in videos), receipt
+    assert all(len(row["frame_raw_sha256"]) == 4 for row in videos), receipt
+    assert all(row["release_evidence"]["proven"] for row in receipt["rows"]), receipt
+    assert all(row["video_snapshot_residue"] == [] for row in receipt["rows"]), receipt
+
+
+def test_the_real_production_nodes_produced_the_observed_outputs(completed_run):
+    receipt = completed_run["receipt"]
+    artifact_root = completed_run["artifact_root"]
+    for row in receipt["rows"]:
+        raw = (artifact_root / row["raw_artifact"]).read_bytes().decode("utf-8")
+        if row["media_kind"] == "image":
+            envelope = json.loads(raw)
+            assert envelope["model"] == "gemma4:26b" and envelope["done"] is True, envelope
+            assert envelope["message"]["content"], envelope
+        else:
+            frames = json.loads(raw)["frame_raw_responses"]
+            assert len(frames) == 4, frames
+            for frame in frames:
+                inner = json.loads(frame)
+                assert inner["model"] == "gemma4:26b" and inner["done"] is True, inner
+        suggestion = json.loads((artifact_root / row["suggestion_artifact"]).read_bytes().decode("utf-8"))
+        assert suggestion["schema_version"] == "lvw.prompt/1", suggestion
+        assert suggestion["domains"]["observation"], suggestion
+
+
+def test_raw_is_persisted_before_a_structural_rejection(tmp_path):
+    phase, driver, _ = _prepare(tmp_path, failure="bad-suggestion")
+    receipt = phase.run()
+    assert receipt["test_counts"]["FAIL"] == 10, receipt
+    row = receipt["rows"][0]
+    assert row["execution_status"] == "FAIL", row
+    assert row["error_code"].startswith("PROMPT_SPEC_INVALID"), row
+    assert row["raw_preserved"] is True, row
+    artifact = phase.directory / row["raw_artifact"]
+    assert artifact.is_file(), artifact
+    envelope = json.loads(artifact.read_bytes().decode("utf-8"))
+    assert envelope["model"] == "gemma4:26b" and envelope["done"] is True, envelope
+    assert (phase.directory / row["history_artifact"]).is_file(), row
+
+
+def test_wrong_history_graph_is_rejected(tmp_path):
+    phase, driver, _ = _prepare(tmp_path, failure="history-graph")
+    receipt = phase.run()
+    assert receipt["rows"][0]["error_code"] == "PUBLIC_GRAPH_MISMATCH", receipt["rows"][0]
+    assert receipt["test_counts"]["PASS"] == 0, receipt
+
+
+def test_wrong_history_prompt_id_is_rejected(tmp_path):
+    phase, driver, _ = _prepare(tmp_path, failure="history-prompt-id")
+    receipt = phase.run()
+    assert receipt["rows"][0]["error_code"] == "PUBLIC_PROMPT_ID_MISMATCH", receipt["rows"][0]
+
+
+def test_a_reused_prompt_id_across_rows_is_rejected(tmp_path):
+    phase, driver, _ = _prepare(tmp_path, failure="duplicate-prompt")
+    receipt = phase.run()
+    assert receipt["rows"][0]["error_code"] is None, receipt["rows"][0]
+    assert receipt["rows"][1]["error_code"] == "PROMPT_ID_REUSED", receipt["rows"][1]
+    assert receipt["public_submissions"] == 2, receipt
+    assert receipt["test_counts"]["BLOCKED"] == 14, receipt
+
+
+def test_a_rewritten_provider_log_is_rejected(tmp_path):
+    phase, driver, _ = _prepare(tmp_path, failure="rewritten-log")
+    receipt = phase.run()
+    assert receipt["rows"][0]["error_code"] == "PROVIDER_LOG_REWRITTEN", receipt["rows"][0]
+    assert receipt["public_submissions"] == 1, receipt
+
+
+def test_a_wrong_provider_call_count_is_rejected_and_stops_the_batch(tmp_path):
+    phase, driver, _ = _prepare(tmp_path)
+    original = driver.image_transport.chat
+
+    def double(payload, timeout_seconds):
+        original(payload, timeout_seconds)
+        return original(payload, timeout_seconds)
+
+    driver.image_transport.chat = double
+    receipt = phase.run()
+    assert receipt["rows"][0]["error_code"] == "PROVIDER_CALL_COUNT_MISMATCH", receipt["rows"][0]
+    assert receipt["public_submissions"] == 1, receipt
+    assert receipt["test_counts"]["BLOCKED"] == 15, receipt
+
+
+def test_a_listener_identity_drift_is_rejected(tmp_path):
+    phase, driver, _ = _prepare(tmp_path, failure="listener-drift")
+    receipt = phase.run()
+    assert receipt["rows"][0]["error_code"] == "LISTENER_IDENTITY_DRIFT", receipt["rows"][0]
+    assert receipt["public_submissions"] == 1, receipt
+
+
+def test_an_unproven_release_stops_every_further_submission(tmp_path):
+    phase, driver, _ = _prepare(tmp_path, failure="release-unproven")
+    receipt = phase.run()
+    assert receipt["rows"][0]["release_evidence"]["proven"] is False, receipt["rows"][0]
+    assert receipt["public_submissions"] == 1, receipt
+    assert receipt["test_counts"]["BLOCKED"] == 15, receipt
+    assert receipt["halted"] is True, receipt
+
+
+def test_a_resident_model_is_not_accepted_as_a_release(tmp_path):
+    phase, driver, _ = _prepare(tmp_path, failure="release-model-resident")
+    receipt = phase.run()
+    assert receipt["rows"][0]["error_code"] == "RELEASE_EVIDENCE_MODEL_RESIDENT", receipt["rows"][0]
+    assert receipt["public_submissions"] == 1, receipt
+
+
+def test_a_leftover_video_snapshot_stops_the_row(tmp_path):
+    phase, driver, _ = _prepare(tmp_path, failure="residue")
+    receipt = phase.run()
+    assert receipt["rows"][0]["error_code"] == "VIDEO_SNAPSHOT_RESIDUE", receipt["rows"][0]
+    assert receipt["public_submissions"] == 1, receipt
+
+
+def test_a_missing_public_node_output_is_a_row_failure_with_history_kept(tmp_path):
+    phase, driver, _ = _prepare(tmp_path, failure="missing-node-output")
+    receipt = phase.run()
+    row = receipt["rows"][0]
+    assert row["error_code"] == "PUBLIC_NODE_OUTPUT_MISSING", row
+    assert (phase.directory / row["history_artifact"]).is_file(), row
+    assert (phase.directory / row["graph_artifact"]).is_file(), row
+
+
+def test_a_broken_image_metadata_binding_is_rejected(tmp_path):
+    phase, driver, _ = _prepare(tmp_path, failure="image-metadata-mismatch")
+    receipt = phase.run()
+    assert receipt["rows"][0]["error_code"] == "IMAGE_METADATA_BINDING_INVALID", receipt["rows"][0]
+
+
+def test_a_wrong_video_frame_denominator_is_rejected_after_the_raw_was_kept(tmp_path):
+    phase, driver, _ = _prepare(tmp_path, failure="video-frames-3")
+    receipt = phase.run()
+    row = receipt["rows"][10]
+    assert row["error_code"] == "VIDEO_RAW_DENOMINATOR_INVALID", row
+    assert row["raw_preserved"] is True, row
+    assert (phase.directory / row["raw_artifact"]).is_file(), row
+
+
+def test_a_bounded_history_wait_fails_the_row_without_an_unbounded_poll(tmp_path):
+    phase, driver, _ = _prepare(tmp_path, failure="history-timeout")
+    receipt = phase.run()
+    row = receipt["rows"][0]
+    assert row["error_code"] == "HISTORY_TIMEOUT", row
+    assert receipt["history_polls"] < quality.MAX_HISTORY_POLLS, receipt
+    assert receipt["public_submissions"] == 1, receipt
+    assert receipt["test_counts"]["BLOCKED"] == 15, receipt
+
+
+def test_the_phase_cannot_be_executed_twice(completed_run):
+    root = completed_run["root"]
+    phase, driver, projection = _prepare(root / "second")
+    phase.run()
+    with pytest.raises(QualityContractError) as repeated:
+        phase.run()
+    assert "QUALITY_PHASE_ALREADY_EXECUTED" in str(repeated.value)
+
+
+def test_an_existing_phase_directory_blocks_the_run(tmp_path):
+    phase, driver, _ = _prepare(tmp_path)
+    (tmp_path / "temp" / "s3-quality").mkdir(parents=True)
+    receipt = phase.run()
+    assert receipt["decision"] == "QUALITY_EXECUTION_BLOCKED", receipt
+    assert receipt["error_code"] == "PHASE_DIRECTORY_EXISTS", receipt
+    assert receipt["public_submissions"] == 0, receipt
+
+
+def test_the_public_submission_budget_is_exact_and_one_over(tmp_path):
+    phase, driver, _ = _prepare(tmp_path)
+    driver.max_public_submissions = 15
+    receipt = phase.run()
+    assert receipt["public_submissions"] == 15, receipt
+    assert receipt["rows"][15]["error_code"] == "PUBLIC_SUBMISSION_BUDGET_EXCEEDED", receipt["rows"][15]
+    assert receipt["test_counts"]["PASS"] == 15, receipt
+    assert receipt["test_counts"]["BLOCKED"] == 1, receipt
+
+
+def test_the_artifact_budget_is_exact_and_one_over(tmp_path, monkeypatch):
+    phase, driver, _ = _prepare(tmp_path)
+    monkeypatch.setattr(quality, "MAX_ARTIFACT_FILES", 7)
+    receipt = phase.run()
+    monkeypatch.undo()
+    assert receipt["rows"][0]["error_code"] is None, receipt["rows"][0]
+    assert receipt["rows"][1]["error_code"] == "ARTIFACT_FILE_BUDGET_EXCEEDED", receipt["rows"][1]
+    # The storage ceiling is detected before the second public send, so no
+    # further provider action is started.
+    assert receipt["public_submissions"] == 1, receipt
+    assert receipt["test_counts"]["PASS"] == 1, receipt
+    assert receipt["test_counts"]["BLOCKED"] == 15, receipt
+
+
+def test_the_phase_deadline_blocks_the_remaining_rows(tmp_path):
+    clock = FakeClock(step=0.0)
+    phase, driver, _ = _prepare(tmp_path, clock=clock)
+    original = driver.submit
+
+    def advancing(graph):
+        clock.now += 2000.0
+        return original(graph)
+
+    driver.submit = advancing
+    receipt = phase.run()
+    assert receipt["test_counts"]["BLOCKED"] >= 1, receipt
+    assert receipt["rows"][-1]["error_code"] in ("PHASE_DEADLINE_EXCEEDED", "HALTED_AFTER_PHASE_DEADLINE_EXCEEDED"), receipt["rows"][-1]
+
+
+def test_a_failed_row_is_never_retried(tmp_path):
+    phase, driver, _ = _prepare(tmp_path, failure="bad-suggestion")
+    receipt = phase.run()
+    assert driver.submissions == 16, driver.submissions
+    assert receipt["provider_calls_reserved"] == 34, receipt
+    assert all(row["automatic_retries"] == 0 for row in receipt["rows"]), receipt
+    assert receipt["rows"][0]["provider_calls"] == 1, receipt["rows"][0]
+
+
+def test_the_execution_path_never_calls_the_scoring_entry_point():
+    source = inspect.getsource(quality.QualityPhase)
+    assert "recompute_scores" not in source, "QD must never call the QS entry point"
+    assert "verify_independence" not in source, "QD must never verify scoring independence"
+    assert "FROZEN_DIMENSIONS" not in source, "QD must not know the scoring rubric"
+    assert "critical_hallucinations" not in source, "QD must not score quality"
+
+
+# --------------------------------------------------------------------------
+# QS: independent score recomputation
+# --------------------------------------------------------------------------
+def _degrade(scores, asset_ids):
+    """Make the named rows unusable without touching the other rows."""
+    for score in scores:
+        if score["asset_id"] in asset_ids:
+            score["dimensions"] = {name: 1 for name in FROZEN_DIMENSIONS}
+    return scores
+
+
+def test_qs_the_aggregate_passes_only_at_the_exact_thresholds(completed_run):
+    receipt = completed_run["receipt"]
+    scores = _scores(receipt, completed_run["projection_sha256"])
+    image_rows = [row["asset_id"] for row in receipt["rows"] if row["media_kind"] == "image"]
+    video_rows = [row["asset_id"] for row in receipt["rows"] if row["media_kind"] == "video"]
+    # Exactly the frozen minimum: eight usable images out of ten and five
+    # usable videos out of six.
+    _degrade(scores, set(image_rows[8:]) | set(video_rows[5:]))
+    result = recompute_scores(receipt, completed_run["artifact_root"], scores,
+                               independence=_independence(), implementer_identity="claude-implementer")
+    assert result["thresholds_met"] is True, result
+    assert result["all_rows_resolved"] is True, result
+    assert result["aggregate_pass"] is True, result
+    assert result["thresholds"]["images_usable"] == 8, result
+    assert result["thresholds"]["videos_usable"] == 5, result
+    assert result["thresholds"]["total_critical_hallucinations"] == 0, result
+    assert result["stage_pass_claim"] is False and result["product_gate0"] is False, result
+    assert result["model_called"] is False and result["keyword_scoring"] is False, result
+    assert result["automatic_semantic_scoring"] is False, result
+    assert len(result["rows"]) == 16, result
+
+
+def test_qs_one_usable_image_below_the_threshold_fails_the_aggregate(completed_run):
+    receipt = completed_run["receipt"]
+    scores = _scores(receipt, completed_run["projection_sha256"])
+    image_rows = [row["asset_id"] for row in receipt["rows"] if row["media_kind"] == "image"]
+    # Seven usable images is one below the frozen eight of ten.
+    _degrade(scores, set(image_rows[7:]))
+    result = recompute_scores(receipt, completed_run["artifact_root"], scores,
+                               independence=_independence())
+    assert result["thresholds"]["images_usable"] == 7, result
+    assert result["aggregate_pass"] is False, result
+    assert result["decision"] == "QUALITY_THRESHOLDS_NOT_MET", result
+    failing = [row for row in result["rows"] if row["quality_status"] == "FAIL"]
+    assert len(failing) == 3, failing
+
+
+def test_qs_one_usable_video_below_the_threshold_fails_the_aggregate(completed_run):
+    receipt = completed_run["receipt"]
+    scores = _scores(receipt, completed_run["projection_sha256"])
+    video_rows = [row["asset_id"] for row in receipt["rows"] if row["media_kind"] == "video"]
+    # Four usable videos is one below the frozen five of six.
+    _degrade(scores, set(video_rows[4:]))
+    result = recompute_scores(receipt, completed_run["artifact_root"], scores,
+                               independence=_independence())
+    assert result["thresholds"]["videos_usable"] == 4, result
+    assert result["aggregate_pass"] is False, result
+    assert result["decision"] == "QUALITY_THRESHOLDS_NOT_MET", result
+
+
+def test_qs_a_critical_hallucination_fails_the_sample_and_the_aggregate(completed_run):
+    receipt = completed_run["receipt"]
+    scores = _scores(receipt, completed_run["projection_sha256"])
+    scores[0]["critical_hallucinations"] = 1
+    result = recompute_scores(receipt, completed_run["artifact_root"], scores,
+                               independence=_independence())
+    assert result["rows"][0]["quality_status"] == "FAIL", result["rows"][0]
+    assert result["rows"][0]["reason"] == "CRITICAL_HALLUCINATION", result["rows"][0]
+    assert result["aggregate_pass"] is False, result
+    assert result["thresholds"]["total_critical_hallucinations"] == 1, result
+
+
+def test_qs_a_missing_score_keeps_the_sixteen_row_denominator(completed_run):
+    receipt = completed_run["receipt"]
+    scores = _scores(receipt, completed_run["projection_sha256"])
+    dropped = scores.pop(3)
+    result = recompute_scores(receipt, completed_run["artifact_root"], scores,
+                               independence=_independence())
+    assert len(result["rows"]) == 16, result
+    assert result["rows"][3]["quality_status"] == "FAIL", result["rows"][3]
+    assert result["rows"][3]["reason"] == "MISSING_SCORE", result["rows"][3]
+    assert result["unresolved_rows"] == [dropped["asset_id"]], result
+    assert result["aggregate_pass"] is False, result
+    assert result["decision"] == "QUALITY_INCOMPLETE_UNRESOLVED_ROWS", result
+
+
+def test_qs_a_row_whose_execution_failed_cannot_be_rescued_by_a_full_score(completed_run):
+    receipt = copy.deepcopy(completed_run["receipt"])
+    receipt["rows"][5]["execution_status"] = "FAIL"
+    scores = _scores(receipt, completed_run["projection_sha256"])
+    result = recompute_scores(receipt, completed_run["artifact_root"], scores,
+                               independence=_independence())
+    assert result["rows"][5]["quality_status"] == "FAIL", result["rows"][5]
+    assert result["rows"][5]["reason"] == "EXECUTION_NOT_PASS", result["rows"][5]
+    assert result["aggregate_pass"] is False, result
+
+
+def test_qs_an_unscored_raw_run_can_never_aggregate_pass(completed_run):
+    receipt = copy.deepcopy(completed_run["receipt"])
+    for row in receipt["rows"]:
+        row["execution_status"] = "NOT_RUN"
+    scores = _scores(receipt, completed_run["projection_sha256"])
+    result = recompute_scores(receipt, completed_run["artifact_root"], scores,
+                               independence=_independence())
+    assert result["aggregate_pass"] is False, result
+    assert result["all_rows_resolved"] is False, result
+    assert result["thresholds"]["critical_hallucinations_known"] is False, result
+
+
+def test_qs_a_duplicate_score_is_rejected(completed_run):
+    receipt = completed_run["receipt"]
+    scores = _scores(receipt, completed_run["projection_sha256"])
+    scores.append(copy.deepcopy(scores[0]))
+    with pytest.raises(QualityContractError) as duplicate:
+        recompute_scores(receipt, completed_run["artifact_root"], scores, independence=_independence())
+    assert "QS_DUPLICATE_SCORE" in str(duplicate.value)
+
+
+def test_qs_a_foreign_row_is_rejected(completed_run):
+    receipt = completed_run["receipt"]
+    scores = _scores(receipt, completed_run["projection_sha256"])
+    scores[0]["asset_id"] = "SYN-FOREIGN"
+    with pytest.raises(QualityContractError) as foreign:
+        recompute_scores(receipt, completed_run["artifact_root"], scores, independence=_independence())
+    assert "QS_FOREIGN_ROW" in str(foreign.value)
+
+
+@pytest.mark.parametrize("field,value,expected", [
+    ("run_id", "other-run", "QS_SCORE_RUN_MISMATCH"),
+    ("candidate_sha", "c" * 40, "QS_SCORE_CANDIDATE_MISMATCH"),
+    ("projection_sha256", "e" * 64, "QS_SCORE_PROJECTION_MISMATCH"),
+    ("source_sha256", "f" * 64, "QS_SCORE_SOURCE_MISMATCH"),
+    ("raw_sha256", "1" * 64, "QS_SCORE_RAW_HASH_MISMATCH"),
+])
+def test_qs_a_score_bound_to_another_run_candidate_source_or_raw_is_rejected(
+        completed_run, field, value, expected):
+    receipt = completed_run["receipt"]
+    scores = _scores(receipt, completed_run["projection_sha256"])
+    scores[0][field] = value
+    with pytest.raises(QualityContractError) as mismatch:
+        recompute_scores(receipt, completed_run["artifact_root"], scores, independence=_independence())
+    assert expected in str(mismatch.value), str(mismatch.value)
+
+
+def test_qs_a_suggestion_artifact_cannot_substitute_the_raw(completed_run):
+    receipt = completed_run["receipt"]
+    scores = _scores(receipt, completed_run["projection_sha256"])
+    scores[0]["raw_artifact"] = receipt["rows"][0]["suggestion_artifact"]
+    with pytest.raises(QualityContractError) as substituted:
+        recompute_scores(receipt, completed_run["artifact_root"], scores, independence=_independence())
+    assert "QS_SCORE_ARTIFACT_SUBSTITUTED" in str(substituted.value)
+
+
+def test_qs_an_escaping_artifact_path_is_rejected(completed_run):
+    receipt = copy.deepcopy(completed_run["receipt"])
+    receipt["rows"][0]["raw_artifact"] = "../../outside.txt"
+    scores = _scores(receipt, completed_run["projection_sha256"])
+    with pytest.raises(QualityContractError) as escaped:
+        recompute_scores(receipt, completed_run["artifact_root"], scores, independence=_independence())
+    assert "SCORE_ARTIFACT_PATH_INVALID" in str(escaped.value)
+
+
+@pytest.mark.parametrize("mutation,expected", [
+    ("bool-score", "SCORE_DIMENSION_NOT_INTEGER"),
+    ("float-score", "SCORE_DIMENSION_NOT_INTEGER"),
+    ("out-of-range", "SCORE_DIMENSION_OUT_OF_RANGE"),
+    ("unknown-dimension", "SCORE_DIMENSION_SET_INVALID"),
+    ("negative-critical", "SCORE_CRITICAL_HALLUCINATIONS_NEGATIVE"),
+    ("bool-critical", "SCORE_CRITICAL_HALLUCINATIONS_NOT_INTEGER"),
+    ("missing-basis", "SCORE_BASIS_MISSING"),
+])
+def test_qs_a_malformed_score_is_rejected(completed_run, mutation, expected):
+    receipt = completed_run["receipt"]
+    scores = _scores(receipt, completed_run["projection_sha256"])
+    if mutation == "bool-score":
+        scores[0]["dimensions"][FROZEN_DIMENSIONS[0]] = True
+    elif mutation == "float-score":
+        scores[0]["dimensions"][FROZEN_DIMENSIONS[0]] = 1.5
+    elif mutation == "out-of-range":
+        scores[0]["dimensions"][FROZEN_DIMENSIONS[0]] = 3
+    elif mutation == "unknown-dimension":
+        scores[0]["dimensions"]["额外维度"] = 2
+    elif mutation == "negative-critical":
+        scores[0]["critical_hallucinations"] = -1
+    elif mutation == "bool-critical":
+        scores[0]["critical_hallucinations"] = True
+    elif mutation == "missing-basis":
+        scores[0]["basis"] = "   "
+    with pytest.raises(QualityContractError) as malformed:
+        recompute_scores(receipt, completed_run["artifact_root"], scores, independence=_independence())
+    assert expected in str(malformed.value), str(malformed.value)
+
+
+def test_qs_a_reviewer_string_alone_does_not_prove_independence(completed_run):
+    receipt = completed_run["receipt"]
+    scores = _scores(receipt, completed_run["projection_sha256"])
+    with pytest.raises(QualityContractError) as missing:
+        recompute_scores(receipt, completed_run["artifact_root"], scores)
+    assert "INDEPENDENCE_RECEIPT_MISSING" in str(missing.value)
+    weak = {"run_id": RUN_ID,
+            "reviewers": [{"reviewer_id": REVIEWER_ID, "session_id": REVIEWER_SESSION,
+                           "role": "INDEPENDENT_REVIEWER"}]}
+    with pytest.raises(QualityContractError) as separation:
+        recompute_scores(receipt, completed_run["artifact_root"], scores, independence=weak)
+    assert "INDEPENDENCE_SEPARATION_MISSING" in str(separation.value)
+
+
+def test_qs_the_reviewer_must_be_separated_from_the_implementer(completed_run):
+    receipt = completed_run["receipt"]
+    scores = _scores(receipt, completed_run["projection_sha256"])
+    with pytest.raises(QualityContractError) as same:
+        recompute_scores(receipt, completed_run["artifact_root"], scores,
+                         independence=_independence(), implementer_identity=REVIEWER_ID)
+    assert "INDEPENDENCE_REVIEWER_IS_IMPLEMENTER" in str(same.value)
+
+
+def test_qs_the_score_session_must_be_bound_to_the_independence_receipt(completed_run):
+    receipt = completed_run["receipt"]
+    scores = _scores(receipt, completed_run["projection_sha256"])
+    scores[0]["session_id"] = "unbound-session"
+    with pytest.raises(QualityContractError) as unbound:
+        recompute_scores(receipt, completed_run["artifact_root"], scores, independence=_independence())
+    assert "QS_SCORE_SESSION_NOT_INDEPENDENT" in str(unbound.value)
+
+
+def test_qs_the_independence_receipt_must_bind_the_run(completed_run):
+    receipt = completed_run["receipt"]
+    scores = _scores(receipt, completed_run["projection_sha256"])
+    with pytest.raises(QualityContractError) as other_run:
+        recompute_scores(receipt, completed_run["artifact_root"], scores,
+                         independence=_independence(run_id="another-run"))
+    assert "INDEPENDENCE_RUN_BINDING_MISMATCH" in str(other_run.value)
+
+
+def test_qs_verify_independence_rejects_a_reused_reviewer_or_session():
+    duplicated = _independence(reviewers=[
+        {"reviewer_id": REVIEWER_ID, "session_id": REVIEWER_SESSION, "role": "INDEPENDENT_REVIEWER"},
+        {"reviewer_id": REVIEWER_ID, "session_id": "other-session", "role": "INDEPENDENT_REVIEWER"},
+    ])
+    with pytest.raises(QualityContractError) as reused:
+        verify_independence(duplicated)
+    assert "INDEPENDENCE_REVIEWER_NOT_UNIQUE" in str(reused.value)
+
+
+# --------------------------------------------------------------------------
+# combined offline check
+# --------------------------------------------------------------------------
+def test_combined_the_execution_and_the_scoring_close_on_one_bound_run(completed_run):
+    receipt = completed_run["receipt"]
+    scores = _scores(receipt, completed_run["projection_sha256"])
+    result = recompute_scores(receipt, completed_run["artifact_root"], scores,
+                               independence=_independence(), implementer_identity="claude-implementer")
+    assert receipt["scoring_executed"] is False, receipt
+    assert result["run_id"] == receipt["run_id"], result
+    assert result["candidate_sha"] == receipt["candidate_sha"], result
+    assert result["projection_sha256"] == receipt["projection_sha256"], result
+    assert result["aggregate_pass"] is True, result
+    assert result["stage_pass_claim"] is False, result
+    assert result["decision"] == "QUALITY_THRESHOLDS_MET_FOR_THIS_BOUND_RUN", result
