@@ -1,0 +1,59 @@
+{
+  "kind": "ROOT_P3B_CORRECTION03_AGGREGATE_DISPOSITION",
+  "review_commit": "12906163857a34bfc9afa8fa52a66dfa6fae296a",
+  "review_message_id": "msg_d7361a96fd51",
+  "candidate_sha": "9ed09513eac35636175b24a514b05d9d0c180717",
+  "decision": "CHANGES_REQUIRED_FOUR_LOCAL_ROOT_CAUSES",
+  "review_counts": {
+    "Fatal": 0,
+    "Major": 4,
+    "Minor": 0
+  },
+  "closed_scoped_offline": [
+    "M02",
+    "M03",
+    "M04",
+    "M05",
+    "M06",
+    "M07",
+    "M09",
+    "m01"
+  ],
+  "local_correction_required": [
+    "M01 durable payload before authoritative publication",
+    "M08 full typed source/storage/cleanup/release evidence",
+    "NM01 fresh capacity reservation at final send boundary",
+    "NM02 final cooperative phase-deadline guard"
+  ],
+  "receipt_architecture": {
+    "required_order": "Prepare bounded canonical payload; exclusive descriptor-relative staging write; flush and fsync staged file successfully; only then publish canonical receipt without overwriting. No post-serialization flag mutation as evidence.",
+    "authority": "Unpublished staging bytes are not a terminal receipt and must be rejected as authoritative by consumers. Persist failures preserve non-authoritative partial artifacts; canonical success must be absent when staging write/flush/fsync fails.",
+    "publication": "Use a supported no-overwrite publication primitive with pinned parent handles. Account for every retained staging/final directory entry and bytes inside unchanged caps. Do not silently fall back to overwriting rename or unprotected absolute writes.",
+    "durability_limit": "File fsync and successful no-overwrite publication do not prove crash durability of the parent directory. State that limit explicitly; no new crash-survival/product PASS claim. Do not perform another fallible validation after publication and then leave a success-looking canonical receipt while returning failure.",
+    "scope": "Internal harness persistence/validation contract correction only; original frozen packet and historical receipts remain immutable. If safe publication cannot be implemented within current owner, ask root before changing another owner."
+  },
+  "evidence_architecture": {
+    "source": "Shared QD/QS validators require exact typed descriptor identity, positive bounded size/hash, and bound source path matching run root/input reference and original identity. Missing/null/malformed evidence is unknown.",
+    "release": "Persist bounded actual release_preload proof rather than two favorable booleans or a sample count: proven, loaded_models=0 (strict int), actual 3..32 GPU sample list, elapsed<=30s, bound baseline, monotone cadence and last-three baseline+1024. Reuse same pure validator in QD and QS. No new sampler/model calls.",
+    "flags": "QD explicitly emits receipt and every-row storage_unproven and cleanup_unproven booleans. QS requires literal False for complete evidence; absent/null/wrong type never defaults to success.",
+    "known_failures": "Complete verified known failure remains resolved/not usable; verified critical evidence remains visible independently; 8/10 images,5/6 videos,score>=8 and globalcritical0 unchanged."
+  },
+  "send_boundary_architecture": {
+    "guard": "One final local send-admission guard after all controlled prep/authorization/source work: original ownership, monotone phase clock/deadline, exact typed parent proof identity/interval/capacity, then local 1/4 reservation and attempt charge immediately before submit without another unchecked callback.",
+    "capacity": "Require sufficient current proof capacity and remaining bounded allocation at each send; cumulative local reservation never exceeds admitted capacity or34. No refund/retry on failed or unknown submit. Expiry or diminution before first send produces zero sends and all16 refused; later refusal retains all prior attempts.",
+    "parent": "Authentic original-ledger reservation/debit and preemptive parent supervision remain required future integration; no new ledger API or timeout thread."
+  },
+  "same_route_progress": "Correction02 independently closed M02 and corrected canonical size accounting, initial typed admission and monotonic clock behavior. New batch addresses demonstrated remaining root causes; not two consecutive attempts without evidence/progress.",
+  "unchanged_blockers": [
+    "parent hard supervision and owned cleanup",
+    "native residue accessor/integration",
+    "real resource admission",
+    "A06 enforceable isolation",
+    "real quality",
+    "full12",
+    "product Gate0",
+    "human signoff"
+  ],
+  "product_gate0": false,
+  "stage_pass_claim": false
+}
