@@ -1,0 +1,35 @@
+{
+  "kind": "CLAUDE429_STOP_AND_HANDOFF_NOT_PRODUCT_RECEIPT",
+  "dispatch_id": "ctx_ca02b8995178",
+  "task_id": "task_e9a668493916",
+  "terminal_id": "term_d4bcb9581c9c6defa018404a323c782b",
+  "run_id": "run_ec1d5514e718",
+  "status": "WAIT_BUDGET",
+  "observed_screen_error": "429 已达到 Token Plan 用量上限：请升级 Token Plan 套餐或购买… · Retrying in 17s · attempt 7/10",
+  "error_observation_scope": "Actual terminal screen seen at first root check after dispatch. Earlier individual attempt errors/exits were not captured; their details remain UNKNOWN. Harness was already displaying automatic retry7/10 when observed, so zero-retry compliance is not claimed.",
+  "stop_receipt": "reports/v0-s3/product-gate0/correction04-429-stop.receipt.json",
+  "stop_result": "stopped / processAction closed_agent_terminal / ptyKilled true",
+  "physical_stop_confirmed": true,
+  "implementation_worktree_head": "0e045c71f05ed316a519c6363649b7852739d101",
+  "tracked_implementation_changes": false,
+  "untracked_status_file": "reports/v0-s3/product-gate0/correction04-429-worktree-status.txt",
+  "root_actions_after_observation": [
+    "read versioned guarded-stop guide",
+    "guarded worker-stop on exact owned dispatch",
+    "read-only state/identity capture",
+    "save handoff and WAIT_BUDGET coordinate"
+  ],
+  "not_performed": [
+    "model/account/provider/Harness switch",
+    "Codex takeover",
+    "task restart",
+    "package purchase",
+    "continued correction04 implementation",
+    "real product execution"
+  ],
+  "remaining_task": "Frozen correction04: canonical QS loading/binding, original source seal/typed context, final driver accessor and single-clock admission. Existing145 obligations and independent review required.",
+  "resume_conditions": "User explicitly restores this ClaudeCode task after quota recovery OR specifically authorizes Codex takeover for this interruption. Before any resumed Claude execution, arrange task-scoped disabling of automatic429 retries; do not alter permanent config or retry to test availability.",
+  "policy": ".agent-governance/routing-policy.md:3",
+  "product_gate0": false,
+  "stage_pass_claim": false
+}

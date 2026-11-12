@@ -9,7 +9,7 @@
     "stage_id": "R1",
     "workpack_id": "WP-R1-U3",
     "gate": "S3_P3B_QUALITY_INTEGRATION_INDEPENDENT_REVIEW",
-    "state": "PREPARING_NEXT_STAGE"
+    "state": "WAIT_BUDGET"
   },
   "last_passed_gate": {
     "gate": "UNIFIED_MEDIA_FIXED_UM10_AND_INDEPENDENT_REVIEW",
@@ -21,7 +21,7 @@
     "passed_cases": 10,
     "human_signoff": "reports/unified-media/human-signoff-live15.json"
   },
-  "current_blocking_gate": "S3_P3B_INDEPENDENT_REVIEW_AND_COMPLETE_PRODUCT_GATE0_PENDING",
+  "current_blocking_gate": "WAIT_BUDGET_CLAUDE429_CORRECTION04_STOPPED_NO_TAKEOVER_AUTHORIZATION",
   "stage_packet": ".agent-governance/stages/R1/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/R1/PAYLOAD_MANIFEST.sha256",
   "product_status": "UNIFIED_MEDIA_EARLY_ACCEPTED_SCOPE_ONLY_FULL_R1_PENDING",
@@ -34,8 +34,8 @@
     "PRODUCTION_RELEASED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "Visible ClaudeCode correction04, then isolated independent review and root adjudication",
-  "next_action": "Execute one aggregate correction04 for canonical QS wiring, sealed source/context validation and final accessor/single-clock send boundary; historical unsupported claims superseded append-only, no cosmetic retest.",
+  "next_owner": "Human restores this ClaudeCode task or explicitly authorizes specific Codex takeover; root only preserves handoff",
+  "next_action": "Do not restart/reroute/implement. Await explicit resumption instruction for this429 interruption; then verify unchanged source/finite scope and task-scoped no-auto429-retry before resuming.",
   "required_authorization": null,
   "authorization_request": "reports/authorization-program-v1-complete-03.request.json",
   "authorization_record": "reports/authorization-program-v1-complete-03.approval.json",
@@ -87,7 +87,7 @@
   "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
   "live_terminal_receipt": "reports/unified-media/live-15/receipt.json",
   "independent_review": "reports/unified-media/independent-live-15/review.md",
-  "exact_stop_reason": "Visible ClaudeCode correction04 dispatched; awaiting actual worker_done then fresh isolated review. Historical E01 claims superseded, old bytes/unknown exits retained; no Stage PASS or new human authorization required.",
+  "exact_stop_reason": "ClaudeCode Token Plan429 observed, Harness displayed attempt7/10; exact owned worker stopped with ptyKilled proof. User rule requires WAIT_BUDGET, no automatic retry or Codex takeover.",
   "native_component_authorization": "reports/v0-s2/authorization-native-component-02.json",
   "native_component_terminal_receipt": "reports/v0-s2/native-component-02/receipt.json",
   "local_control_change_decision": "reports/v0-s2/change-decision-video-workbench-01.json",
@@ -1484,7 +1484,7 @@
       }
     },
     "correction04": {
-      "status": "DISPATCHED_TO_VISIBLE_CLAUDE",
+      "status": "WAIT_BUDGET_STOPPED_HTTP429",
       "task": "reports/v0-s3/product-gate0/implementation-p3b-correction-04.task.md",
       "adjudication": "reports/v0-s3/product-gate0/p3b-correction-04.adjudication.json",
       "historical_erratum": "reports/v0-s3/product-gate0/correction03-historical-execution-erratum.json",
@@ -1492,7 +1492,10 @@
       "dispatch_id": "ctx_ca02b8995178",
       "task_id": "task_e9a668493916",
       "terminal_id": "term_d4bcb9581c9c6defa018404a323c782b",
-      "dispatch_receipt": "reports/v0-s3/product-gate0/implementation-p3b-correction-04.dispatch.txt"
+      "dispatch_receipt": "reports/v0-s3/product-gate0/implementation-p3b-correction-04.dispatch.txt",
+      "handoff": "reports/v0-s3/product-gate0/correction04-429-handoff.json",
+      "physical_stop_confirmed": true,
+      "implementation_worktree_head": "0e045c71f05ed316a519c6363649b7852739d101"
     }
   },
   "a06_read_only_capability_child": {
