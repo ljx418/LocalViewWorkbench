@@ -1,0 +1,218 @@
+{
+  "kind": "ROOT_P3B_CORRECTION08_AGGREGATE_DISPOSITION",
+  "review_commit": "9d2c51de4e8df6e5f882405cbff1332356dc8269",
+  "review_message_id": "msg_1b7f9f10f465",
+  "candidate_sha": "fd96cbc37574b382f483e757e8d7235ed5d2598c",
+  "decision": "CHANGES_REQUIRED_F0_M1_m1",
+  "accepted_findings": [
+    "NM03-R1_POST_OPEN_METADATA_EXCEPTION_DESCRIPTOR_LEAK",
+    "NM03-r2_CAP_CHECK_AFTER_EXCESS_OPEN"
+  ],
+  "verified_closure": "Six earlier-read/completion named-custody substitutions now independently refused; retain identity semantics and finite registry.",
+  "same_route_progress": "Correction07 closed named-custody lifetime, new evidence identifies concrete error-dependent resource leak. Correct both related resource branches in same owner/batch; minor does not cause separate round or quality relaxation.",
+  "task": "reports/v0-s3/product-gate0/implementation-p3b-correction-08.task.md",
+  "checksums": [
+    {
+      "path": "closure-map.json",
+      "matches": true
+    },
+    {
+      "path": "commands.json",
+      "matches": true
+    },
+    {
+      "path": "counterexample-observations.json",
+      "matches": true
+    },
+    {
+      "path": "final-bindings.json",
+      "matches": true
+    },
+    {
+      "path": "findings.json",
+      "matches": true
+    },
+    {
+      "path": "guard.outer.json",
+      "matches": true
+    },
+    {
+      "path": "guard.receipt.json",
+      "matches": true
+    },
+    {
+      "path": "guard.runner.stderr.log",
+      "matches": true
+    },
+    {
+      "path": "guard.runner.stdout.log",
+      "matches": true
+    },
+    {
+      "path": "guard.stderr.log",
+      "matches": true
+    },
+    {
+      "path": "guard.stdout.log",
+      "matches": true
+    },
+    {
+      "path": "invoke.py",
+      "matches": true
+    },
+    {
+      "path": "receipt.json",
+      "matches": true
+    },
+    {
+      "path": "replay.outer.json",
+      "matches": true
+    },
+    {
+      "path": "replay.receipt.json",
+      "matches": true
+    },
+    {
+      "path": "replay.runner.stderr.log",
+      "matches": true
+    },
+    {
+      "path": "replay.runner.stdout.log",
+      "matches": true
+    },
+    {
+      "path": "replay.stderr.log",
+      "matches": true
+    },
+    {
+      "path": "replay.stdout.log",
+      "matches": true
+    },
+    {
+      "path": "replay_adapter.py",
+      "matches": true
+    },
+    {
+      "path": "review.md",
+      "matches": true
+    },
+    {
+      "path": "root-current-control.json",
+      "matches": true
+    },
+    {
+      "path": "static-audit.json",
+      "matches": true
+    },
+    {
+      "path": "static.stdout.log",
+      "matches": true
+    },
+    {
+      "path": "static_audit.py",
+      "matches": true
+    },
+    {
+      "path": "suite.outer.json",
+      "matches": true
+    },
+    {
+      "path": "suite.receipt.json",
+      "matches": true
+    },
+    {
+      "path": "suite.runner.stderr.log",
+      "matches": true
+    },
+    {
+      "path": "suite.runner.stdout.log",
+      "matches": true
+    },
+    {
+      "path": "suite.stderr.log",
+      "matches": true
+    },
+    {
+      "path": "suite.stdout.log",
+      "matches": true
+    },
+    {
+      "path": "targeted-observations.json",
+      "matches": true
+    },
+    {
+      "path": "targeted.outer.json",
+      "matches": true
+    },
+    {
+      "path": "targeted.py",
+      "matches": true
+    },
+    {
+      "path": "targeted.receipt.json",
+      "matches": true
+    },
+    {
+      "path": "targeted.runner.stderr.log",
+      "matches": true
+    },
+    {
+      "path": "targeted.runner.stdout.log",
+      "matches": true
+    },
+    {
+      "path": "targeted.stderr.log",
+      "matches": true
+    },
+    {
+      "path": "targeted.stdout.log",
+      "matches": true
+    },
+    {
+      "path": "test-obligation-audit.json",
+      "matches": true
+    },
+    {
+      "path": "write_review.py",
+      "matches": true
+    }
+  ],
+  "raw_streams": [
+    {
+      "file": "guard.stdout.log",
+      "matches": true
+    },
+    {
+      "file": "guard.stderr.log",
+      "matches": true
+    },
+    {
+      "file": "replay.stdout.log",
+      "matches": true
+    },
+    {
+      "file": "replay.stderr.log",
+      "matches": true
+    },
+    {
+      "file": "suite.stdout.log",
+      "matches": true
+    },
+    {
+      "file": "suite.stderr.log",
+      "matches": true
+    },
+    {
+      "file": "targeted.stdout.log",
+      "matches": true
+    },
+    {
+      "file": "targeted.stderr.log",
+      "matches": true
+    }
+  ],
+  "root_product_tests_rerun": false,
+  "contract_changes": "none: enforce original cleanup and before-excess-open bound",
+  "product_gate0": false,
+  "stage_pass_claim": false
+}
