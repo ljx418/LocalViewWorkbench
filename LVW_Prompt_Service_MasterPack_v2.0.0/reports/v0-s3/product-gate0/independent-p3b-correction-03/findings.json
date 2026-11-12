@@ -1,0 +1,108 @@
+[
+  {
+    "id": "M01",
+    "severity": "Major",
+    "category": "reproducible current code defect",
+    "status": "PARTIALLY_FIXED_REMAINS_OPEN",
+    "location": "tools/v0_s3_quality_phase.py:2226-2250 load_canonical_receipt; 2405-2430 recompute_scores",
+    "trigger": "After actual QualityPhase.run, keep the original successful execution dictionary and real raw artifacts but remove canonical qd-receipt.json (leaving staging), corrupt its bytes, or replace it with a foreign-run canonical document; call public recompute_scores.",
+    "expected": "Consumer must establish actual canonical publication and identity/content binding for this execution/artifact root; staged-only, absent, corrupt or foreign terminal evidence cannot become aggregate PASS from favorable dictionary flags.",
+    "actual": "All three public scorer calls return aggregate_pass=true, usable=true, resolved=true. The canonical loader rejects absent/corrupt bytes when called separately, but is never called by recompute_scores; foreign canonical loader returns foreign-run. Public QS only checks published_as/receipt_persisted/terminal_status fields supplied in memory.",
+    "evidence": [
+      "focused-observations.json:missing_canonical_retained_stage",
+      "focused-observations.json:corrupt_canonical",
+      "focused-observations.json:foreign_canonical"
+    ],
+    "recommendation": "Wire canonical loading and exact bound-execution validation into public QS (including run/candidate/projection/root/actual canonical evidence), retaining staged bytes as nonauthority. Do not infer authority from publication booleans alone.",
+    "verified_progress": "Actual exclusive staging write/flush/fsync/close failures preserve partial/non-authoritative evidence, canonical absent, returned blocked/storage unknown, loader rejects and replay preserves bytes. No-overwrite pinned-dirfd link and real exact/one-over caps are verified; parent-directory crash durability remains explicitly unproven."
+  },
+  {
+    "id": "M08",
+    "severity": "Major",
+    "category": "reproducible current code defect",
+    "status": "PARTIALLY_FIXED_REMAINS_OPEN",
+    "location": "tools/v0_s3_quality_phase.py:483-516 validate_source_evidence; 519-563 validate_release_evidence;1087-1138 _validate_source;2331-2367 _row_evidence_complete",
+    "trigger": "Mutate each original descriptor identity component (device/inode/size/mtime/ctime), substitute [0,0,0,0,0], or remove/null run_root or parent_budget_baseline_gpu_mib, through public QS on PASS and complete known FAIL rows; also pass float baseline context100.0. Trace actual validator invocations through QD and QS.",
+    "expected": "Complete typed mandatory context, exact source path and original descriptor identity/size/time/inode binding, and strict bound baseline are required. Missing/null/wrong-type evidence stays unknown on PASS/FAIL; shared QD/QS source and release validators must actually run.",
+    "actual": "All five integer identity substitutions and all-zero tuple are accepted. Missing/null run_root bypasses path binding; missing/null parent baseline bypasses release-baseline equality; float100.0 is accepted as bound100. For PASS each yields usable/resolved/aggregate true; for known FAIL it stays unusable but falsely resolved and aggregate true. QD source-validator calls=0 and release=16; QS source=16/release=16. Source helper verifies only tuple shape/nonnegative integers, not identity[2]==bytes or equality with original sealed identity.",
+    "evidence": [
+      "focused-observations.json:qs.PASS.source.identity.changed_size",
+      "focused-observations.json:qs.FAIL.source.identity.allzero",
+      "focused-observations.json:qs.PASS.receipt.run_root.missing",
+      "focused-observations.json:qs.FAIL.receipt.baseline.null",
+      "focused-observations.json:shared_validator_calls",
+      "context.stdout.log:context_parent_budget_baseline_gpu_mib_float"
+    ],
+    "recommendation": "Require typed nonempty bound run_root and strict integer bound baseline before per-row validation, bind full evidence tuple to original QD evidence and enforce size consistency, and actually share source validation between QD and QS. Preserve verified known failures as resolved/not usable and independently verified critical evidence. This does not require permanent retention/live restat of deleted source media or broader hostile-filesystem guarantees.",
+    "verified_progress": "All literal False uncertainty fields, malformed/missing source evidence, foreign source path and raw hash/length rejection improve correctly. Release proof loaded_models strict int0,3..32 actual samples, finite nonbool elapsed0..30, cadence<=1.5 and last3<=baseline+1024 are checked when typed context is present. Thresholds8/10,5/6,score>=8,global critical0 remain unchanged."
+  },
+  {
+    "id": "NM01",
+    "severity": "Major",
+    "category": "reproducible current code defect",
+    "status": "PARTIALLY_FIXED_REMAINS_OPEN",
+    "location": "tools/v0_s3_quality_phase.py:883-909 _send_admission_guard;1394-1415 driver counter/limit reads and reservation/submit",
+    "trigger": "Use a conforming driver with dynamic max_public_submissions property; on its read after the final guard set phase.parent_budget.action_capacity=0. Execute actual QualityPhase.run with original production fixture semantics.",
+    "expected": "Finish all driver/accessor callbacks before the final typed proof validation; reserve/charge/send only with current sufficient proof capacity, no unchecked callback between validation and send. Diminution before first send must give0 sends and16 refused.",
+    "actual": "Property runs after guard at capacity34, changes capacity0, and one public submission is sent/charged/reserved1; first row passes and next15 block. Current capacity is0, violating cumulative reservation<=current admitted capacity at the first send.",
+    "evidence": [
+      "focused-observations.json:driver_accessor_capacity_zero",
+      "focused.py:ObservedDriver.max_public_submissions"
+    ],
+    "recommendation": "Resolve driver counters/limits and callable submit handoff before the final guard, then recheck exact typed proof and reserve/charge immediately before the saved submit, with no unchecked controlled accessor afterward. No retries/refunds or new ledger API.",
+    "verified_progress": "Ordinary authorize expiry2/capacity0 already gives0 sends/all16 BLOCKED. Wrong run/candidate/auth and bool interval/capacity refuse sends. Later valid interval expiry and diminution preserve first charged/reserved attempt and block remaining15. Authentic parent ledger reservation/debit remains NOT_PROVEN."
+  },
+  {
+    "id": "NM02",
+    "severity": "Major",
+    "category": "reproducible current code defect",
+    "status": "PARTIALLY_FIXED_REMAINS_OPEN",
+    "location": "tools/v0_s3_quality_phase.py:898-924 _send_admission_guard/_parent_proof_is_fresh;1397-1415 driver accessors before submit",
+    "trigger": "Use finite nondecreasing clock values where the first final-guard read is within phase limit and the second read inside _parent_proof_is_fresh returns10801, with proofexpiry20000; separately move clock10801 through the post-guard driver limit accessor.",
+    "expected": "The latest cooperative clock observed immediately before reservation/send must meet phase10800 and parent validity together. A later clock read or callback cannot invalidate a previously checked deadline without another check.",
+    "actual": "Both cases submit and charge1 at clock10801, then report HISTORY_TIMEOUT/FAIL with15 BLOCKED. The second _now() is used only for parent interval, leaving the earlier phase check stale; dynamic driver limit is another unchecked callback after validation.",
+    "evidence": [
+      "focused-observations.json:final_guard_second_clock_crosses_phase_deadline",
+      "focused-observations.json:driver_accessor_phase_expired"
+    ],
+    "recommendation": "Use one final latest clock sample to validate both phase deadline and current proof after all controlled callbacks/accessors. Keep exact deadline10800 accepted and one-over refused. This remains cooperative validation, not the missing parent supervisor.",
+    "verified_progress": "Requested prep10799/authorize+2=>10801/proofexpiry20000 counterexample now refuses0/all16. Existing exact10800/oneover tests pass. Nonfinite/bool/decreasing clocks refuse. Mandatory parent hard-process supervision remains UNIMPLEMENTED_PRODUCT_GATE0_BLOCKER, with no process/platform tests performed."
+  },
+  {
+    "id": "E01",
+    "severity": "Major",
+    "category": "historical execution/evidence uncertainty; not a proven current product defect or proven external action",
+    "status": "FACTUAL_CORRECTION_REQUIRED",
+    "location": "implementation-p3b-correction-03/report.md:143-170; receipt.json:316-322; tools/test_v0_s3_quality_phase.py:24-60; root warnings msg_9967e153e87a and msg_91d0a21059c2",
+    "trigger": "Compare admitted ten direct piped pytest rounds plus two ad-hoc debug imports before second warning with the assertion that the test module guard before its local import pytest proves no prior socket/process/external actions. Inspect installed pytest CLI startup and retained diagnostics.",
+    "expected": "Preserve twelve underlying exits UNKNOWN and distinguish known execution-order violation, missing event/command/raw-stream evidence and unsupported zero-event claims. Test-module monkeypatches cannot retrocertify CLI startup.",
+    "actual": "python -m pytest executes import pytest in __main__ before console_main; pytest configuration/plugin loading occurs before collection imports the test module. Thus test module monkeypatches are too late to guard CLI/plugin startup, although they precede its own local import statement. Historical12 exact raw streams/true exits/pre-import audit are absent; the14 retained guarded edit diagnostics are separate runs with true exits0,1,1,1,0,1,1,0,1,1,1,1,0,0. No actual forbidden external action evidence was identified; no blanket zero-event certification is supported.",
+    "evidence": [
+      "pytest-import-order.json",
+      "historical-evidence-audit.json",
+      "root-warning01.json",
+      "root-warning02.json",
+      "source-bindings.json:suite_runner"
+    ],
+    "recommendation": "Append a factual erratum to the implementation narrative/receipt: test-module guard does not establish pre-pytest guarding, exits remain UNKNOWN and early zero external actions are NOT_PROVEN. Keep original wording and failed/unknown records. Do not run a cosmetic new full suite to repair historical prose; no rerun can retrocertify those attempts.",
+    "verified_progress": "Final retained145 receipt has actual exit0, raw stream hashes/bytes match, and the immutable final runner installs audit hook before pytest. Current independent145 executes pinned candidate bytes with before/after hashes under a pre-import guard; early diagnostics receive no acceptance credit. Historical final receipt lacks per-run before/after imported-source hashes, so its candidate argument alone is not a full execution attestation."
+  },
+  {
+    "id": "E02",
+    "severity": "Minor",
+    "category": "count/label erratum",
+    "status": "APPENDED_ACCURATE_ERRATUM",
+    "location": "implementation-p3b-correction-03/report.md:135 versus receipt.json:179-180; replay_correction02_probes.py:229-268",
+    "trigger": "Count actual unique result.probe entries rather than copy21 from prose or reinterpret the replay cap labels as actual frozen-cap tests.",
+    "expected": "Accurate separated observation counts and honest cap evidence labels.",
+    "actual": "Committed implementation correction03 replay and this once-only replay each have22 unique observations; report row says21 while receipt22 is correct. Previous independent correction02 replay really has21; its focused18 plus final-gap4 are22 separate observations. Current replay actual_* cap probes mutate cap constants and do not establish real8MiB/128MiB/256 limits.",
+    "evidence": [
+      "replay-count-erratum.json",
+      "replay.stdout.log",
+      "focused-observations.json:realcap_artifact_exact",
+      "focused-observations.json:realcap_total_exact",
+      "focused-observations.json:realcap_files_exact"
+    ],
+    "recommendation": "Preserve old text; this append records current replay22, earlier replay21 and earlier focused18+4 separately. Actual frozen-cap evidence is the new six focused realcap observations; no replay repeated just to fix prose."
+  }
+]

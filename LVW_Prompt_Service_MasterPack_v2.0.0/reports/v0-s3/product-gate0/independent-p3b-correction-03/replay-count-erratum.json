@@ -1,0 +1,127 @@
+{
+  "actual": {
+    "new_replay": {
+      "count": 22,
+      "unique_count": 22,
+      "names": [
+        "baseline",
+        "persisted_receipt_totals",
+        "actual_run_staging_fsync_failure",
+        "storage_flag_missing",
+        "storage_flag_null",
+        "cleanup_flag_missing",
+        "source_identity_missing",
+        "source_path_foreign",
+        "release_details_missing",
+        "known_failed_critical3",
+        "proof_expires_before_first_send",
+        "proof_diminishes_before_first_send",
+        "cooperative_phase_deadline_before_send",
+        "clock_nonfinite",
+        "clock_boolean",
+        "actual_artifact_exact",
+        "actual_artifact_over",
+        "actual_total_exact",
+        "actual_total_over",
+        "actual_files_exact",
+        "actual_files_over",
+        "receipt_replay_cannot_overwrite"
+      ],
+      "sha256": "1756397483ab442d8fde6c75f5e66bbd441094485ee2417df5cbdbdfbe753420"
+    },
+    "implementation_replay": {
+      "count": 22,
+      "unique_count": 22,
+      "names": [
+        "baseline",
+        "persisted_receipt_totals",
+        "actual_run_staging_fsync_failure",
+        "storage_flag_missing",
+        "storage_flag_null",
+        "cleanup_flag_missing",
+        "source_identity_missing",
+        "source_path_foreign",
+        "release_details_missing",
+        "known_failed_critical3",
+        "proof_expires_before_first_send",
+        "proof_diminishes_before_first_send",
+        "cooperative_phase_deadline_before_send",
+        "clock_nonfinite",
+        "clock_boolean",
+        "actual_artifact_exact",
+        "actual_artifact_over",
+        "actual_total_exact",
+        "actual_total_over",
+        "actual_files_exact",
+        "actual_files_over",
+        "receipt_replay_cannot_overwrite"
+      ],
+      "sha256": "c08a30216e7e156cb23fd91845b09fc5be0e2ccb038819cf712ce5f95110b542"
+    },
+    "previous_review_replay": {
+      "count": 21,
+      "unique_count": 21,
+      "names": [
+        "baseline",
+        "persisted_receipt_totals",
+        "PASS_cleanup_unknown",
+        "known_FAIL_storage_unknown",
+        "known_FAIL_source_unknown",
+        "temp_ancestor_callback_redirect",
+        "artifact_open_ancestor_race",
+        "initial_temp_redirect",
+        "existing_directory",
+        "parent_proof_wrong_identity",
+        "parent_proof_stale",
+        "parent_proof_diminished",
+        "parent_proof_non_finite",
+        "post_return_elapsed_only",
+        "decreasing_phase_clock",
+        "receipt_artifact_exact",
+        "receipt_artifact_over",
+        "receipt_total_exact",
+        "receipt_total_over",
+        "receipt_files_exact",
+        "receipt_files_over"
+      ],
+      "sha256": "f7fb90b15e4a94c364ed083e6e6695954246482b0ed00b252ac9de2b94aa60e4"
+    },
+    "previous_focused": {
+      "count": 18,
+      "unique_count": 18,
+      "names": [
+        "baseline_exact_disk_receipt",
+        "storage_flag_missing",
+        "storage_flag_null",
+        "cleanup_flag_missing",
+        "source_identity_missing",
+        "source_path_foreign",
+        "release_details_missing",
+        "known_failed_critical3",
+        "proof_expires_before_first_send",
+        "proof_diminishes_before_first_send",
+        "actual_artifact_exact",
+        "actual_artifact_over",
+        "actual_total_exact",
+        "actual_total_over",
+        "actual_files_exact",
+        "actual_files_over",
+        "receipt_fsync_failure",
+        "receipt_final_open_ancestor_swap"
+      ],
+      "sha256": "a6726013234098c62a3ad1824e3ecbce9d1c636c74513ea8d5af07ee50466e2c"
+    },
+    "previous_final_gap": {
+      "count": 4,
+      "unique_count": 4,
+      "names": [
+        "cooperative_phase_deadline_before_send",
+        "actual_run_receipt_fsync_failure",
+        "clock_nonfinite",
+        "clock_boolean"
+      ],
+      "sha256": "2369848ac5a0c6d5f26e99dc8a296f4c47a76d6e31493a9472429824fcba217f"
+    }
+  },
+  "erratum": "Correction03 committed replay and independent once-only replay each contain22 unique observations, agreeing with implementation receipt179-180; implementation report135/message21 is incorrect. Previous independent correction02 replay contains21 (its receipt also21), while its focused18+final-gap4 contain22 distinct further observations. Replay actual_* caps mutate constants; new realcap_* evidence alone here exercises frozen limits."
+}
