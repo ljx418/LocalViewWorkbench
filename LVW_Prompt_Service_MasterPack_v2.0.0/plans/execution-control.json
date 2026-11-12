@@ -9,7 +9,7 @@
     "stage_id": "R1",
     "workpack_id": "WP-R1-U3",
     "gate": "S3_P3B_QUALITY_INTEGRATION_INDEPENDENT_REVIEW",
-    "state": "READY"
+    "state": "RUNNING"
   },
   "last_passed_gate": {
     "gate": "UNIFIED_MEDIA_FIXED_UM10_AND_INDEPENDENT_REVIEW",
@@ -35,7 +35,7 @@
     "TARGET_HARDWARE_TESTED"
   ],
   "next_owner": "Human restores this ClaudeCode task or explicitly authorizes specific Codex takeover; root only preserves handoff",
-  "next_action": "Resume same ClaudeCode correction04 task in visible isolated workspace with verified task-scoped MAX_RETRIES=0 and RETRY_WATCHDOG=0; preserve frozen scope; stop on first429; isolated review after candidate receipt.",
+  "next_action": "Await resumed Claude correction04 worker report ctx_b7a25232fd40. First429 immediate stop, no retry/reroute; then verify candidate receipt and dispatch isolated independent review. No Stage PASS or product runtime authorized by this offline task.",
   "required_authorization": null,
   "authorization_request": "reports/authorization-program-v1-complete-03.request.json",
   "authorization_record": "reports/authorization-program-v1-complete-03.approval.json",
@@ -1484,7 +1484,7 @@
       }
     },
     "correction04": {
-      "status": "USER_APPROVED_RESUMPTION_READY",
+      "status": "CLAUDE_RESUMED_IMPLEMENTATION_PENDING",
       "task": "reports/v0-s3/product-gate0/implementation-p3b-correction-04.task.md",
       "adjudication": "reports/v0-s3/product-gate0/p3b-correction-04.adjudication.json",
       "historical_erratum": "reports/v0-s3/product-gate0/correction03-historical-execution-erratum.json",
@@ -1500,7 +1500,12 @@
         "approval": "reports/v0-s3/product-gate0/correction04-resume-01.approval.json",
         "task_id": "task_e9a668493916",
         "terminal_id": "term_4b9c03d0-bbeb-4886-8e1c-1c1f097a0b7c",
-        "old_stop_preserved": true
+        "old_stop_preserved": true,
+        "dispatch_id": "ctx_b7a25232fd40",
+        "launch_receipt": "reports/v0-s3/product-gate0/correction04-resume-01.launch.json",
+        "guidance_message_id": "msg_a30e3ca84e71",
+        "launch_state": "ready",
+        "completion_proven": false
       }
     }
   },
