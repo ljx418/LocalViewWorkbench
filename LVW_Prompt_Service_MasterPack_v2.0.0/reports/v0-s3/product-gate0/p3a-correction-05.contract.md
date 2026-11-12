@@ -1,0 +1,15 @@
+# P3A纠偏05：准备后浏览器回调的有限身份上下文
+
+Root接受c51274e独审M06；M05及之前所有原缺陷保持关闭。104项旧要求已独立通过，但两个正常返回回调失败构成功能回归，不能接受。此为恢复原继承功能，不增产品范围/权限/门限。
+
+允许tools/v0_s3_stage_runtime.py及tools/test_s3_install_handoff.py新增测试，新文本收据implementation-p3a-correction-05/。优先只在S3工厂为返回DefaultContext的verify_bindings与authorize_launch包装有限上下文，不改基类闭包/API和原算法；若确需基类最小内部seam，须先向root说明，不自行扩大。禁止包/旧archiveowner/authority/合同/坐标/MANIFEST/历史probe/raw修改，不删断言。
+
+设计：沿用已保存准备身份及已验证的no-follow原parent/root重新获取机制，给每次合法返回回调建立一次调用范围内上下文，原闭包必须真实执行：原authorize、_complete、guard_critical、resource_observer、_user_root、config相等和生产输出字段全部保留。成功返回前校验身份，异常/成功均释放本次句柄；prepare返回后不常驻FD。authorize_launch闭包内部调用verify是合法同对象嵌套，不应被误判成归档重入；归档嵌套/重放拒绝仍保留。可以复用现有有限身份上下文内部机制，但不得让“只读回调”消耗归档状态或删除root。
+
+严格guard仍拒绝无上下文，不把return早退加回；不能以跳过authorize、伪造birth/config回执或mock生产闭包救绿。上下文匹配原label/root/run/candidate/auth；替换parent/root、错误config/binding、已归档/删除root的回调拒绝，不重新采纳当前路径。正常一次或多次合法verify以及launch后verify仍可用，所有调用按原授权执行；不擅自给合法只读verify新增单次限制。回调内authorize/verify_complete/guard_critical等受控执行返回后变更身份必须被拒绝，保持原M01–M05保护。
+
+本轮列出返回context的全部延迟callable及其预期调用阶段，验证受严格guard影响的合法入口都可用，不只测试归档；有限枚举，不建设通用调用器。原浏览器不真实启动，NativeRuntime/tool/budget观察边界保持synthetic。
+
+验收：最终candidate上原74+新增、旧23S2、原5+M04gap+M05post一次；原独审test_archive_lifetime_gaps.py六项断言不改并执行一次，两个原M06正常callback必须通过；添加callback身份漂移/错误config与异常FD释放/回调后实际archive成功、default→warm不破坏的明确Oracle。每次正常callback原authority真正被调用，不只是没抛异常。包17/archive9未改可验证字节/依赖后明确复用，不计新跑。
+
+只做定向有限受控Git/Python synthetic夹具，真实Windows/WSL/PS/Parser/hosthash/媒体/模型/GPU/服务/网络/download/ledger/完整checkpoint全部0，不跑P2B/全项目/旧缺陷观察。保存真实失败/命令/退出码/候选绑定、临时路径清理和Linux/POSIX局限。READY_FOR_REVIEW，隔离复验/root裁决，不自签产品Gate0/Stage/人签。
