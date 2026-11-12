@@ -1,0 +1,274 @@
+{
+  "kind": "S3_P3B_CORRECTION_03_REPLAYED_CORRECTION02_PROBES",
+  "note": "Observations of the correction-02 review's counterexamples against the corrected implementation. A rejected probe is the observation of the correction, not a passing test. The original probe files are immutable and were only read.",
+  "results": [
+    {
+      "probe": "baseline",
+      "decision": "QUALITY_EXECUTION_COMPLETE_ALL_16_PASS",
+      "public_submissions": 16,
+      "provider_calls_reserved": 34,
+      "provider_calls_observed": 34,
+      "receipt_persisted": true,
+      "terminal_status": "TERMINAL_RECEIPT_PERSISTED",
+      "test_counts": {
+        "fixed": 16,
+        "PASS": 16,
+        "FAIL": 0,
+        "BLOCKED": 0,
+        "NOT_RUN": 0
+      }
+    },
+    {
+      "probe": "persisted_receipt_totals",
+      "outcome": {
+        "stored_receipt_bytes": 53257,
+        "actual_receipt_bytes": 53257,
+        "stored_files_including_receipt": 138,
+        "actual_files": 138,
+        "stored_bytes_including_receipt": 223608,
+        "actual_bytes": 223608,
+        "staging_retained": true,
+        "shares_one_inode": true,
+        "agrees": true
+      }
+    },
+    {
+      "probe": "actual_run_staging_fsync_failure",
+      "outcome": {
+        "canonical_exists": false,
+        "staging_retained": true,
+        "returned": {
+          "decision": "QUALITY_EXECUTION_BLOCKED",
+          "receipt_persisted": false,
+          "terminal_status": "TERMINAL_RECEIPT_NOT_PERSISTED",
+          "storage_unproven": true,
+          "error_code": "RECEIPT_PERSISTENCE_FAILED"
+        },
+        "submissions": 16
+      }
+    },
+    {
+      "probe": "storage_flag_missing",
+      "outcome": {
+        "aggregate_pass": false,
+        "row_usable": false,
+        "row_resolved": false,
+        "row_reason": "EVIDENCE_UNKNOWN:STORAGE_UNPROVEN"
+      }
+    },
+    {
+      "probe": "storage_flag_null",
+      "outcome": {
+        "aggregate_pass": false,
+        "row_usable": false,
+        "row_resolved": false,
+        "row_reason": "EVIDENCE_UNKNOWN:STORAGE_UNPROVEN"
+      }
+    },
+    {
+      "probe": "cleanup_flag_missing",
+      "outcome": {
+        "aggregate_pass": false,
+        "row_usable": false,
+        "row_resolved": false,
+        "row_reason": "EVIDENCE_UNKNOWN:CLEANUP_UNPROVEN"
+      }
+    },
+    {
+      "probe": "source_identity_missing",
+      "outcome": {
+        "aggregate_pass": false,
+        "row_usable": false,
+        "row_resolved": false,
+        "row_reason": "EVIDENCE_UNKNOWN:SOURCE_IDENTITY_INVALID"
+      }
+    },
+    {
+      "probe": "source_path_foreign",
+      "outcome": {
+        "aggregate_pass": false,
+        "row_usable": false,
+        "row_resolved": false,
+        "row_reason": "EVIDENCE_UNKNOWN:SOURCE_PATH_FOREIGN"
+      }
+    },
+    {
+      "probe": "release_details_missing",
+      "outcome": {
+        "aggregate_pass": false,
+        "row_usable": false,
+        "row_resolved": false,
+        "row_reason": "EVIDENCE_UNKNOWN:RELEASE_EVIDENCE_MODEL_RESIDENT"
+      }
+    },
+    {
+      "probe": "known_failed_critical3",
+      "outcome": {
+        "aggregate_pass": false,
+        "row_quality_status": "FAIL",
+        "row_usable": false,
+        "row_resolved": true,
+        "row_critical": 3,
+        "total_critical": 3
+      }
+    },
+    {
+      "probe": "proof_expires_before_first_send",
+      "outcome": {
+        "submissions": 0,
+        "decision": "QUALITY_EXECUTION_BLOCKED",
+        "error": null,
+        "rows": 16,
+        "counts": {
+          "fixed": 16,
+          "PASS": 0,
+          "FAIL": 0,
+          "BLOCKED": 16,
+          "NOT_RUN": 0
+        }
+      }
+    },
+    {
+      "probe": "proof_diminishes_before_first_send",
+      "outcome": {
+        "submissions": 0,
+        "decision": "QUALITY_EXECUTION_BLOCKED",
+        "error": null,
+        "rows": 16,
+        "counts": {
+          "fixed": 16,
+          "PASS": 0,
+          "FAIL": 0,
+          "BLOCKED": 16,
+          "NOT_RUN": 0
+        }
+      }
+    },
+    {
+      "probe": "cooperative_phase_deadline_before_send",
+      "outcome": {
+        "events": [
+          {
+            "action": "quality_public_submit",
+            "returned_at": 10801.0,
+            "phase_deadline": 10800.0
+          }
+        ],
+        "submissions": 0,
+        "first_error": "PHASE_DEADLINE_EXCEEDED",
+        "decision": "QUALITY_EXECUTION_BLOCKED",
+        "counts": {
+          "fixed": 16,
+          "PASS": 0,
+          "FAIL": 0,
+          "BLOCKED": 16,
+          "NOT_RUN": 0
+        },
+        "hard_timing_blocker": "UNIMPLEMENTED_PRODUCT_GATE0_BLOCKER"
+      }
+    },
+    {
+      "probe": "clock_nonfinite",
+      "outcome": {
+        "submissions": 0,
+        "rows": 16,
+        "error": "CLOCK_NOT_FINITE"
+      }
+    },
+    {
+      "probe": "clock_boolean",
+      "outcome": {
+        "submissions": 0,
+        "rows": 16,
+        "error": "CLOCK_NOT_FINITE"
+      }
+    },
+    {
+      "probe": "actual_artifact_exact",
+      "outcome": {
+        "persisted": true,
+        "error": null,
+        "limits": [
+          552,
+          134217728,
+          256
+        ]
+      }
+    },
+    {
+      "probe": "actual_artifact_over",
+      "outcome": {
+        "persisted": false,
+        "error": "QualityContractError:RECEIPT_OVER_ARTIFACT_CAP",
+        "limits": [
+          551,
+          134217728,
+          256
+        ]
+      }
+    },
+    {
+      "probe": "actual_total_exact",
+      "outcome": {
+        "persisted": true,
+        "error": null,
+        "limits": [
+          8388608,
+          1104,
+          256
+        ]
+      }
+    },
+    {
+      "probe": "actual_total_over",
+      "outcome": {
+        "persisted": false,
+        "error": "QualityContractError:RECEIPT_TOTAL_BUDGET_EXCEEDED",
+        "limits": [
+          8388608,
+          1103,
+          256
+        ]
+      }
+    },
+    {
+      "probe": "actual_files_exact",
+      "outcome": {
+        "persisted": true,
+        "error": null,
+        "limits": [
+          8388608,
+          134217728,
+          2
+        ]
+      }
+    },
+    {
+      "probe": "actual_files_over",
+      "outcome": {
+        "persisted": false,
+        "error": "QualityContractError:RECEIPT_FILE_BUDGET_EXCEEDED",
+        "limits": [
+          8388608,
+          134217728,
+          1
+        ]
+      }
+    },
+    {
+      "probe": "receipt_replay_cannot_overwrite",
+      "outcome": {
+        "first_persisted": true,
+        "replay_persisted": false,
+        "replay_error": null,
+        "original_bytes_unchanged": true
+      }
+    }
+  ],
+  "owned_fixture_root": "/tmp/lvw-independent-c03-6e497-replay-3i5r0r6_/lvw-p3b-correction-03-probes-e1wnbmut",
+  "own_fixture_cleanup": true,
+  "real_execution": false,
+  "real_media": false,
+  "network": false,
+  "hung_process": false
+}

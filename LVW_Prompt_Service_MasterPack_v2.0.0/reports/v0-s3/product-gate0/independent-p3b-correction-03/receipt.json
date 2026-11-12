@@ -1,0 +1,1088 @@
+{
+  "kind": "INDEPENDENT_S3_P3B_CORRECTION03_AGGREGATE_REVIEW",
+  "reviewer_role": "fresh isolated reviewer, no implementation participation; task_6e497e41e8c1 / term_7ea03e5f-f229-418b-8f39-8c03f5e1e156",
+  "candidate_sha": "630853c63a919433ccf31958d36179e4e0b3bdee",
+  "evidence_commit": "0e045c71f05ed316a519c6363649b7852739d101",
+  "previous_independent_review": "12906163857a34bfc9afa8fa52a66dfa6fae296a",
+  "adjudication_commit": "1294f0c23b5352a8afc4fd0d6d0fe101c6cb8bbd",
+  "coordinate_git_show_only": "4bcb640c1b9d2dd70779c3cf3e25a44586eac486",
+  "recommendation": "CHANGES_REQUIRED_INDEPENDENT_COMPONENT_ONLY",
+  "counts": {
+    "Fatal": 0,
+    "Major": 5,
+    "Minor": 1
+  },
+  "counts_by_category": {
+    "reproducible_current_code_major": 4,
+    "historical_process_evidence_major": 1,
+    "count_label_minor": 1
+  },
+  "checks": {
+    "combined_pytest": {
+      "runs": 1,
+      "passed": 145,
+      "preserved_original_instances": 112,
+      "new_implementation_instances": 33,
+      "exit_code": 0
+    },
+    "guard_selftest": {
+      "runs": 1,
+      "blocked": 4,
+      "exit_code": 0
+    },
+    "replay": {
+      "runs": 1,
+      "actual_unique_observations": 22,
+      "exit_code": 0
+    },
+    "new_independent_observations": {
+      "focused": 170,
+      "supplement": 8,
+      "root_context": 5,
+      "total": 183,
+      "passing_test_count_claim": false
+    },
+    "separate112_or33_runs": 0,
+    "p3a121_p2b237_full_project_runs": 0
+  },
+  "source_bindings": {
+    "module": {
+      "path": "tools/v0_s3_quality_phase.py",
+      "sha256": "ca599e9da68c9a6f9405b9f89ae8bd999a43a1ecc237e469207ffede7ae98c42",
+      "expected": "ca599e9da68c9a6f9405b9f89ae8bd999a43a1ecc237e469207ffede7ae98c42",
+      "matches_expected": true,
+      "matches_candidate": true
+    },
+    "test": {
+      "path": "tools/test_v0_s3_quality_phase.py",
+      "sha256": "cd1eec5f8265e0e5e9e3ce49f35012f18236f8d3fe86719cfe851c3b333698d5",
+      "expected": "cd1eec5f8265e0e5e9e3ce49f35012f18236f8d3fe86719cfe851c3b333698d5",
+      "matches_expected": true,
+      "matches_candidate": true
+    },
+    "replay": {
+      "path": "reports/v0-s3/product-gate0/implementation-p3b-correction-03/replay_correction02_probes.py",
+      "sha256": "1babdad243f9194bcf4129d9d763c8020a365846de2a430108075bcfb8873d8b",
+      "expected": "1babdad243f9194bcf4129d9d763c8020a365846de2a430108075bcfb8873d8b",
+      "matches_expected": true,
+      "matches_candidate": true
+    },
+    "guarded_probe": {
+      "path": "reports/v0-s3/product-gate0/implementation-p3b-correction-03/run_guarded_probe.py",
+      "sha256": "c1f375c8030cae6daf75a23667b13debd0f3372ecdd4a6d31ab46b8c4cbfb81b",
+      "expected": "c1f375c8030cae6daf75a23667b13debd0f3372ecdd4a6d31ab46b8c4cbfb81b",
+      "matches_expected": true,
+      "matches_candidate": true
+    },
+    "contract": {
+      "path": "reports/v0-s3/product-gate0/p3b-quality-contract.md",
+      "sha256": "d06a6688fa618cd9fef1cd7f362b8d165addc0030dde0b5aee77465c2a2c20a3",
+      "expected": "d06a6688fa618cd9fef1cd7f362b8d165addc0030dde0b5aee77465c2a2c20a3",
+      "matches_expected": true,
+      "matches_candidate": true
+    },
+    "projection": {
+      "path": "reports/v0-s3/product-gate0/quality-execution-inputs.frozen.json",
+      "sha256": "47e9f14efa66bc4df851bf1a738763b48c1728eed84b76c56a7848d1b01f00c3",
+      "expected": "47e9f14efa66bc4df851bf1a738763b48c1728eed84b76c56a7848d1b01f00c3",
+      "matches_expected": true,
+      "matches_candidate": true
+    },
+    "suite_runner": {
+      "path": "reports/v0-s3/product-gate0/implementation-p3b/run_offline_checks.py",
+      "sha256": "d1261c15c58d6b5e5bd16b7e5a683112d2746a09f432ade836022078dda183f6",
+      "expected": null,
+      "matches_expected": null,
+      "matches_candidate": true
+    },
+    "manifest": {
+      "reports/v0-s3/product-gate0/p3b-quality-contract.md": {
+        "actual": "d06a6688fa618cd9fef1cd7f362b8d165addc0030dde0b5aee77465c2a2c20a3",
+        "expected": "d06a6688fa618cd9fef1cd7f362b8d165addc0030dde0b5aee77465c2a2c20a3",
+        "matches": true
+      },
+      "reports/v0-s3/product-gate0/quality-execution-inputs.frozen.json": {
+        "actual": "47e9f14efa66bc4df851bf1a738763b48c1728eed84b76c56a7848d1b01f00c3",
+        "expected": "47e9f14efa66bc4df851bf1a738763b48c1728eed84b76c56a7848d1b01f00c3",
+        "matches": true
+      },
+      "reports/v0-s3/product-gate0/p3a-closing-decision.json": {
+        "actual": "9068a68385de5e34705d0b3431a74b400caae263514288daf4de30030f3b7810",
+        "expected": "9068a68385de5e34705d0b3431a74b400caae263514288daf4de30030f3b7810",
+        "matches": true
+      }
+    },
+    "candidate_scope": "commit 630853c63a919433ccf31958d36179e4e0b3bdee\nAuthor:     ljx418 <1173696783@qq.com>\nAuthorDate: Thu Nov 12 12:47:32 2026 +0800\nCommit:     ljx418 <1173696783@qq.com>\nCommitDate: Thu Nov 12 12:47:32 2026 +0800\n\n    Correct the four remaining P3B root causes in one aggregate round\n    \n    Root adjudication: reports/v0-s3/product-gate0/p3b-correction-03.adjudication.json\n    (CHANGES_REQUIRED_FOUR_LOCAL_ROOT_CAUSES; 0 fatal, 4 major).  The\n    correction-02 independent review 12906163857a34bfc9afa8fa52a66dfa6fae296a\n    is the authoritative trigger.  The findings it closed stay closed and all of\n    their obligations are retained.  No public API, quality threshold,\n    denominator, authorization or contract changed.\n    \n    M01  The terminal receipt is now durable before it is authoritative.  The\n         bounded canonical payload is written to an exclusive staged file under\n         the pinned descriptor parent, flushed and fsynced there, and only a\n         successful durable staging is published under the canonical name with a\n         no-overwrite hard link between the pinned handles.  There is no\n         rename-overwrite and no absolute-path fallback.  While the staging is\n         unpublished, no canonical receipt exists, so no consumer can read it as\n         a terminal receipt; the staged bytes are explicitly non-authoritative\n         and the canonical loader rejects them.  A failed write, flush or fsync\n         at the staging descriptor leaves no canonical success, returns a\n         blocked receipt with an unknown storage state, and preserves the failed\n         staging as retained non-authoritative evidence that a replay cannot\n         overwrite.  The honest accounting counts both retained entries and\n         their bytes, the frozen 8MiB/128MiB/256 caps stay exact, and the\n         receipt states that a file fsync and a successful publication do not\n         prove the crash durability of the parent directory entry.\n    \n    M08  The source, storage and cleanup evidence now has complete typed shared\n         validators that the execution phase and the scoring entry point both\n         use.  The source evidence carries the full typed descriptor identity,\n         the positive bounded size and hash and a source path bound to the run\n         root and the input reference; the release evidence carries the actual\n         bounded release proof with the strict integer empty model inventory,\n         the actual 3..32 native sample dictionaries, the finite non-boolean\n         elapsed time, the bound baseline, the monotone cadence and the last\n         three samples at the baseline.  The execution phase emits the receipt\n         and per row storage_unproven and cleanup_unproven booleans explicitly\n         and the scoring entry point requires the literal False; absent, null or\n         wrong typed declarations are unknown and never default to a pass.  Only\n         a published canonical receipt is authority at the consumer boundary.\n    \n    NM01 and NM02  One final local send-admission guard now runs after every\n         controlled preparation, authorization and source callback and directly\n         before the local reservation, the attempt charge and the submit, with\n         no unchecked callback in between.  It revalidates the original\n         ownership, the finite non-boolean non-decreasing clock and the phase\n         deadline, and the exact typed parent proof with its validity interval\n         and the current sufficient remaining capacity; the cumulative local\n         reservation never exceeds the admitted capacity or 34, and there is no\n         refund and no retry.  A proof that expires or is diminished at the send\n         boundary, or a callback that returns past the phase deadline, produces\n         zero sends and all sixteen rows refused, while a later refusal keeps\n         the earlier attempts and their charges.  The cooperative guard is not a\n         preemption of a synchronous callback; the mandatory parent watchdog\n         stays UNIMPLEMENTED_PRODUCT_GATE0_BLOCKER.\n    \n    The original 112 checks are preserved; 33 focused regressions were added,\n    145 in total.  Every check was executed through the guarded runner with the\n    audit hook installed before pytest and before any product import.\n\n .../replay_correction02_probes.py                  | 297 +++++++++++++++\n .../run_guarded_probe.py                           | 140 +++++++\n .../tools/test_v0_s3_quality_phase.py              | 422 +++++++++++++++++++--\n .../tools/v0_s3_quality_phase.py                   | 397 +++++++++++++++----\n 4 files changed, 1148 insertions(+), 108 deletions(-)\n",
+    "inherited_merge_scope": "M\tLVW_Prompt_Service_MasterPack_v2.0.0/MANIFEST.sha256\nM\tLVW_Prompt_Service_MasterPack_v2.0.0/plans/execution-control.json\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-02.dispatch.json\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-02.dispatch.stderr.log\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-03.task.md\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-03/SHA256SUMS\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-03/correction02-probe-replay.receipt.json\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-03/correction02-probe-replay.stderr.log\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-03/correction02-probe-replay.stdout.log\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-03/editing-diagnostics/edit-01.receipt.json\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-03/editing-diagnostics/edit-01.stderr.log\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-03/editing-diagnostics/edit-01.stdout.log\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-03/editing-diagnostics/edit-02.receipt.json\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-03/editing-diagnostics/edit-02.stderr.log\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-03/editing-diagnostics/edit-02.stdout.log\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-03/editing-diagnostics/edit-03.receipt.json\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-03/editing-diagnostics/edit-03.stderr.log\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-03/editing-diagnostics/edit-03.stdout.log\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-03/editing-diagnostics/edit-04.receipt.json\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-03/editing-diagnostics/edit-04.stderr.log\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-03/editing-diagnostics/edit-04.stdout.log\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-03/editing-diagnostics/edit-05.receipt.json\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-03/editing-diagnostics/edit-05.stderr.log\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-03/editing-diagnostics/edit-05.stdout.log\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-03/editing-diagnostics/edit-06.receipt.json\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-03/editing-diagnostics/edit-06.stderr.log\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-03/editing-diagnostics/edit-06.stdout.log\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-03/editing-diagnostics/edit-07.receipt.json\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-03/editing-diagnostics/edit-07.stderr.log\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-03/editing-diagnostics/edit-07.stdout.log\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-03/editing-diagnostics/edit-08.receipt.json\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-03/editing-diagnostics/edit-08.stderr.log\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-03/editing-diagnostics/edit-08.stdout.log\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-03/editing-diagnostics/edit-09.receipt.json\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-03/editing-diagnostics/edit-09.stderr.log\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-03/editing-diagnostics/edit-09.stdout.log\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-03/editing-diagnostics/edit-10.receipt.json\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-03/editing-diagnostics/edit-10.stderr.log\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-03/editing-diagnostics/edit-10.stdout.log\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-03/editing-diagnostics/edit-11.receipt.json\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-03/editing-diagnostics/edit-11.stderr.log\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-03/editing-diagnostics/edit-11.stdout.log\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-03/editing-diagnostics/edit-12.receipt.json\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-03/editing-diagnostics/edit-12.stderr.log\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-03/editing-diagnostics/edit-12.stdout.log\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-03/editing-diagnostics/edit-13.receipt.json\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-03/editing-diagnostics/edit-13.stderr.log\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-03/editing-diagnostics/edit-13.stdout.log\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-03/editing-diagnostics/edit-14.receipt.json\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-03/editing-diagnostics/edit-14.stderr.log\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-03/editing-diagnostics/edit-14.stdout.log\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-03/full-final.receipt.json\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-03/full-final.stderr.log\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-03/full-final.stdout.log\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-03/guard-selftest.guard-selftest.json\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-03/receipt.json\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-03/replay_correction02_probes.py\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-03/report.md\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-03/run_guarded_probe.py\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-p3b-correction-02.launch.json\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-p3b-correction-02.launch.stderr.log\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-p3b-correction-02.task.md\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/p3b-correction-03.adjudication.json\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/parent-supervision-design-01.md\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v1-redesign/r1-core-reuse-map-01.md\nM\tLVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_quality_phase.py\nM\tLVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_quality_phase.py\n",
+    "review_start_head": "12906163857a34bfc9afa8fa52a66dfa6fae296a",
+    "merge_head": "0e045c71f05ed316a519c6363649b7852739d101",
+    "initial_status": "clean (git status --short empty before merge)"
+  },
+  "execution_receipts": {
+    "guard": {
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-p3b-correction-03/launch.py",
+        "guard"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "candidate_sha": "630853c63a919433ccf31958d36179e4e0b3bdee",
+      "before": {
+        "tools/v0_s3_quality_phase.py": "ca599e9da68c9a6f9405b9f89ae8bd999a43a1ecc237e469207ffede7ae98c42",
+        "tools/test_v0_s3_quality_phase.py": "cd1eec5f8265e0e5e9e3ce49f35012f18236f8d3fe86719cfe851c3b333698d5",
+        "reports/v0-s3/product-gate0/independent-p3b-correction-03/launch.py": "4db9f4b687a83d70c9eda86aeee49545daac0afb70a15329de737d4811ff9adc"
+      },
+      "exit_code": 0,
+      "after": {
+        "tools/v0_s3_quality_phase.py": "ca599e9da68c9a6f9405b9f89ae8bd999a43a1ecc237e469207ffede7ae98c42",
+        "tools/test_v0_s3_quality_phase.py": "cd1eec5f8265e0e5e9e3ce49f35012f18236f8d3fe86719cfe851c3b333698d5",
+        "reports/v0-s3/product-gate0/independent-p3b-correction-03/launch.py": "4db9f4b687a83d70c9eda86aeee49545daac0afb70a15329de737d4811ff9adc"
+      },
+      "streams": {
+        "stdout": {
+          "sha256": "f2f63806a385358ac05f89d4eaa91500b80049f06d6b397ffcb08402ccfed60a",
+          "bytes": 235
+        },
+        "stderr": {
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        }
+      }
+    },
+    "suite": {
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-p3b-correction-03/launch.py",
+        "suite"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "candidate_sha": "630853c63a919433ccf31958d36179e4e0b3bdee",
+      "before": {
+        "tools/v0_s3_quality_phase.py": "ca599e9da68c9a6f9405b9f89ae8bd999a43a1ecc237e469207ffede7ae98c42",
+        "tools/test_v0_s3_quality_phase.py": "cd1eec5f8265e0e5e9e3ce49f35012f18236f8d3fe86719cfe851c3b333698d5",
+        "reports/v0-s3/product-gate0/independent-p3b-correction-03/launch.py": "4db9f4b687a83d70c9eda86aeee49545daac0afb70a15329de737d4811ff9adc"
+      },
+      "exit_code": 0,
+      "after": {
+        "tools/v0_s3_quality_phase.py": "ca599e9da68c9a6f9405b9f89ae8bd999a43a1ecc237e469207ffede7ae98c42",
+        "tools/test_v0_s3_quality_phase.py": "cd1eec5f8265e0e5e9e3ce49f35012f18236f8d3fe86719cfe851c3b333698d5",
+        "reports/v0-s3/product-gate0/independent-p3b-correction-03/launch.py": "4db9f4b687a83d70c9eda86aeee49545daac0afb70a15329de737d4811ff9adc"
+      },
+      "streams": {
+        "stdout": {
+          "sha256": "b13142ae6da442606fada2859ea99207eaefcce420885a6d55be3cb434b30942",
+          "bytes": 261
+        },
+        "stderr": {
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        }
+      }
+    },
+    "replay": {
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-p3b-correction-03/launch.py",
+        "replay"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "candidate_sha": "630853c63a919433ccf31958d36179e4e0b3bdee",
+      "before": {
+        "tools/v0_s3_quality_phase.py": "ca599e9da68c9a6f9405b9f89ae8bd999a43a1ecc237e469207ffede7ae98c42",
+        "tools/test_v0_s3_quality_phase.py": "cd1eec5f8265e0e5e9e3ce49f35012f18236f8d3fe86719cfe851c3b333698d5",
+        "reports/v0-s3/product-gate0/independent-p3b-correction-03/launch.py": "4db9f4b687a83d70c9eda86aeee49545daac0afb70a15329de737d4811ff9adc",
+        "reports/v0-s3/product-gate0/implementation-p3b-correction-03/replay_correction02_probes.py": "1babdad243f9194bcf4129d9d763c8020a365846de2a430108075bcfb8873d8b"
+      },
+      "exit_code": 0,
+      "after": {
+        "tools/v0_s3_quality_phase.py": "ca599e9da68c9a6f9405b9f89ae8bd999a43a1ecc237e469207ffede7ae98c42",
+        "tools/test_v0_s3_quality_phase.py": "cd1eec5f8265e0e5e9e3ce49f35012f18236f8d3fe86719cfe851c3b333698d5",
+        "reports/v0-s3/product-gate0/independent-p3b-correction-03/launch.py": "4db9f4b687a83d70c9eda86aeee49545daac0afb70a15329de737d4811ff9adc",
+        "reports/v0-s3/product-gate0/implementation-p3b-correction-03/replay_correction02_probes.py": "1babdad243f9194bcf4129d9d763c8020a365846de2a430108075bcfb8873d8b"
+      },
+      "streams": {
+        "stdout": {
+          "sha256": "1756397483ab442d8fde6c75f5e66bbd441094485ee2417df5cbdbdfbe753420",
+          "bytes": 6782
+        },
+        "stderr": {
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        }
+      }
+    },
+    "focused": {
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-p3b-correction-03/launch.py",
+        "focused"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "candidate_sha": "630853c63a919433ccf31958d36179e4e0b3bdee",
+      "before": {
+        "tools/v0_s3_quality_phase.py": "ca599e9da68c9a6f9405b9f89ae8bd999a43a1ecc237e469207ffede7ae98c42",
+        "tools/test_v0_s3_quality_phase.py": "cd1eec5f8265e0e5e9e3ce49f35012f18236f8d3fe86719cfe851c3b333698d5",
+        "reports/v0-s3/product-gate0/independent-p3b-correction-03/launch.py": "4db9f4b687a83d70c9eda86aeee49545daac0afb70a15329de737d4811ff9adc",
+        "reports/v0-s3/product-gate0/independent-p3b-correction-03/focused.py": "32b852f16e9ad19bf86fa6bf3c99f2925b02815063ae3fa51916a3a46128459c"
+      },
+      "exit_code": 0,
+      "after": {
+        "tools/v0_s3_quality_phase.py": "ca599e9da68c9a6f9405b9f89ae8bd999a43a1ecc237e469207ffede7ae98c42",
+        "tools/test_v0_s3_quality_phase.py": "cd1eec5f8265e0e5e9e3ce49f35012f18236f8d3fe86719cfe851c3b333698d5",
+        "reports/v0-s3/product-gate0/independent-p3b-correction-03/launch.py": "4db9f4b687a83d70c9eda86aeee49545daac0afb70a15329de737d4811ff9adc",
+        "reports/v0-s3/product-gate0/independent-p3b-correction-03/focused.py": "32b852f16e9ad19bf86fa6bf3c99f2925b02815063ae3fa51916a3a46128459c"
+      },
+      "streams": {
+        "stdout": {
+          "sha256": "08a64d1b34d9f25df5a62c0088673fa7e9df305f19453c62931a9e30885a4667",
+          "bytes": 132603
+        },
+        "stderr": {
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        }
+      }
+    },
+    "supplement": {
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-03/run_guarded_probe.py",
+        "--script",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-p3b-correction-03/supplement.py",
+        "--outdir",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-p3b-correction-03",
+        "--label",
+        "supplement",
+        "--candidate-sha",
+        "630853c63a919433ccf31958d36179e4e0b3bdee"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "before": {
+        "reports/v0-s3/product-gate0/implementation-p3b-correction-03/run_guarded_probe.py": "c1f375c8030cae6daf75a23667b13debd0f3372ecdd4a6d31ab46b8c4cbfb81b",
+        "reports/v0-s3/product-gate0/independent-p3b-correction-03/supplement.py": "83243fbbd1e3be22152f57d1033ad7149e8d1273db08ed05f0306f341bed9f8d",
+        "tools/v0_s3_quality_phase.py": "ca599e9da68c9a6f9405b9f89ae8bd999a43a1ecc237e469207ffede7ae98c42",
+        "tools/test_v0_s3_quality_phase.py": "cd1eec5f8265e0e5e9e3ce49f35012f18236f8d3fe86719cfe851c3b333698d5"
+      },
+      "real_exit_code": 0,
+      "after": {
+        "reports/v0-s3/product-gate0/implementation-p3b-correction-03/run_guarded_probe.py": "c1f375c8030cae6daf75a23667b13debd0f3372ecdd4a6d31ab46b8c4cbfb81b",
+        "reports/v0-s3/product-gate0/independent-p3b-correction-03/supplement.py": "83243fbbd1e3be22152f57d1033ad7149e8d1273db08ed05f0306f341bed9f8d",
+        "tools/v0_s3_quality_phase.py": "ca599e9da68c9a6f9405b9f89ae8bd999a43a1ecc237e469207ffede7ae98c42",
+        "tools/test_v0_s3_quality_phase.py": "cd1eec5f8265e0e5e9e3ce49f35012f18236f8d3fe86719cfe851c3b333698d5"
+      }
+    },
+    "context": {
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-03/run_guarded_probe.py",
+        "--script",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-p3b-correction-03/context.py",
+        "--outdir",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-p3b-correction-03",
+        "--label",
+        "context",
+        "--candidate-sha",
+        "630853c63a919433ccf31958d36179e4e0b3bdee"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "before": {
+        "reports/v0-s3/product-gate0/implementation-p3b-correction-03/run_guarded_probe.py": "c1f375c8030cae6daf75a23667b13debd0f3372ecdd4a6d31ab46b8c4cbfb81b",
+        "reports/v0-s3/product-gate0/independent-p3b-correction-03/context.py": "ecb36814d6eb9a44178438c9bbb303e495c77f2921f5d6747d6396f48ebeea40",
+        "tools/v0_s3_quality_phase.py": "ca599e9da68c9a6f9405b9f89ae8bd999a43a1ecc237e469207ffede7ae98c42",
+        "tools/test_v0_s3_quality_phase.py": "cd1eec5f8265e0e5e9e3ce49f35012f18236f8d3fe86719cfe851c3b333698d5"
+      },
+      "root_request_message": "msg_11c956d415dc",
+      "real_exit_code": 0,
+      "after": {
+        "reports/v0-s3/product-gate0/implementation-p3b-correction-03/run_guarded_probe.py": "c1f375c8030cae6daf75a23667b13debd0f3372ecdd4a6d31ab46b8c4cbfb81b",
+        "reports/v0-s3/product-gate0/independent-p3b-correction-03/context.py": "ecb36814d6eb9a44178438c9bbb303e495c77f2921f5d6747d6396f48ebeea40",
+        "tools/v0_s3_quality_phase.py": "ca599e9da68c9a6f9405b9f89ae8bd999a43a1ecc237e469207ffede7ae98c42",
+        "tools/test_v0_s3_quality_phase.py": "cd1eec5f8265e0e5e9e3ce49f35012f18236f8d3fe86719cfe851c3b333698d5"
+      }
+    }
+  },
+  "findings": [
+    {
+      "id": "M01",
+      "severity": "Major",
+      "category": "reproducible current code defect",
+      "status": "PARTIALLY_FIXED_REMAINS_OPEN",
+      "location": "tools/v0_s3_quality_phase.py:2226-2250 load_canonical_receipt; 2405-2430 recompute_scores",
+      "trigger": "After actual QualityPhase.run, keep the original successful execution dictionary and real raw artifacts but remove canonical qd-receipt.json (leaving staging), corrupt its bytes, or replace it with a foreign-run canonical document; call public recompute_scores.",
+      "expected": "Consumer must establish actual canonical publication and identity/content binding for this execution/artifact root; staged-only, absent, corrupt or foreign terminal evidence cannot become aggregate PASS from favorable dictionary flags.",
+      "actual": "All three public scorer calls return aggregate_pass=true, usable=true, resolved=true. The canonical loader rejects absent/corrupt bytes when called separately, but is never called by recompute_scores; foreign canonical loader returns foreign-run. Public QS only checks published_as/receipt_persisted/terminal_status fields supplied in memory.",
+      "evidence": [
+        "focused-observations.json:missing_canonical_retained_stage",
+        "focused-observations.json:corrupt_canonical",
+        "focused-observations.json:foreign_canonical"
+      ],
+      "recommendation": "Wire canonical loading and exact bound-execution validation into public QS (including run/candidate/projection/root/actual canonical evidence), retaining staged bytes as nonauthority. Do not infer authority from publication booleans alone.",
+      "verified_progress": "Actual exclusive staging write/flush/fsync/close failures preserve partial/non-authoritative evidence, canonical absent, returned blocked/storage unknown, loader rejects and replay preserves bytes. No-overwrite pinned-dirfd link and real exact/one-over caps are verified; parent-directory crash durability remains explicitly unproven."
+    },
+    {
+      "id": "M08",
+      "severity": "Major",
+      "category": "reproducible current code defect",
+      "status": "PARTIALLY_FIXED_REMAINS_OPEN",
+      "location": "tools/v0_s3_quality_phase.py:483-516 validate_source_evidence; 519-563 validate_release_evidence;1087-1138 _validate_source;2331-2367 _row_evidence_complete",
+      "trigger": "Mutate each original descriptor identity component (device/inode/size/mtime/ctime), substitute [0,0,0,0,0], or remove/null run_root or parent_budget_baseline_gpu_mib, through public QS on PASS and complete known FAIL rows; also pass float baseline context100.0. Trace actual validator invocations through QD and QS.",
+      "expected": "Complete typed mandatory context, exact source path and original descriptor identity/size/time/inode binding, and strict bound baseline are required. Missing/null/wrong-type evidence stays unknown on PASS/FAIL; shared QD/QS source and release validators must actually run.",
+      "actual": "All five integer identity substitutions and all-zero tuple are accepted. Missing/null run_root bypasses path binding; missing/null parent baseline bypasses release-baseline equality; float100.0 is accepted as bound100. For PASS each yields usable/resolved/aggregate true; for known FAIL it stays unusable but falsely resolved and aggregate true. QD source-validator calls=0 and release=16; QS source=16/release=16. Source helper verifies only tuple shape/nonnegative integers, not identity[2]==bytes or equality with original sealed identity.",
+      "evidence": [
+        "focused-observations.json:qs.PASS.source.identity.changed_size",
+        "focused-observations.json:qs.FAIL.source.identity.allzero",
+        "focused-observations.json:qs.PASS.receipt.run_root.missing",
+        "focused-observations.json:qs.FAIL.receipt.baseline.null",
+        "focused-observations.json:shared_validator_calls",
+        "context.stdout.log:context_parent_budget_baseline_gpu_mib_float"
+      ],
+      "recommendation": "Require typed nonempty bound run_root and strict integer bound baseline before per-row validation, bind full evidence tuple to original QD evidence and enforce size consistency, and actually share source validation between QD and QS. Preserve verified known failures as resolved/not usable and independently verified critical evidence. This does not require permanent retention/live restat of deleted source media or broader hostile-filesystem guarantees.",
+      "verified_progress": "All literal False uncertainty fields, malformed/missing source evidence, foreign source path and raw hash/length rejection improve correctly. Release proof loaded_models strict int0,3..32 actual samples, finite nonbool elapsed0..30, cadence<=1.5 and last3<=baseline+1024 are checked when typed context is present. Thresholds8/10,5/6,score>=8,global critical0 remain unchanged."
+    },
+    {
+      "id": "NM01",
+      "severity": "Major",
+      "category": "reproducible current code defect",
+      "status": "PARTIALLY_FIXED_REMAINS_OPEN",
+      "location": "tools/v0_s3_quality_phase.py:883-909 _send_admission_guard;1394-1415 driver counter/limit reads and reservation/submit",
+      "trigger": "Use a conforming driver with dynamic max_public_submissions property; on its read after the final guard set phase.parent_budget.action_capacity=0. Execute actual QualityPhase.run with original production fixture semantics.",
+      "expected": "Finish all driver/accessor callbacks before the final typed proof validation; reserve/charge/send only with current sufficient proof capacity, no unchecked callback between validation and send. Diminution before first send must give0 sends and16 refused.",
+      "actual": "Property runs after guard at capacity34, changes capacity0, and one public submission is sent/charged/reserved1; first row passes and next15 block. Current capacity is0, violating cumulative reservation<=current admitted capacity at the first send.",
+      "evidence": [
+        "focused-observations.json:driver_accessor_capacity_zero",
+        "focused.py:ObservedDriver.max_public_submissions"
+      ],
+      "recommendation": "Resolve driver counters/limits and callable submit handoff before the final guard, then recheck exact typed proof and reserve/charge immediately before the saved submit, with no unchecked controlled accessor afterward. No retries/refunds or new ledger API.",
+      "verified_progress": "Ordinary authorize expiry2/capacity0 already gives0 sends/all16 BLOCKED. Wrong run/candidate/auth and bool interval/capacity refuse sends. Later valid interval expiry and diminution preserve first charged/reserved attempt and block remaining15. Authentic parent ledger reservation/debit remains NOT_PROVEN."
+    },
+    {
+      "id": "NM02",
+      "severity": "Major",
+      "category": "reproducible current code defect",
+      "status": "PARTIALLY_FIXED_REMAINS_OPEN",
+      "location": "tools/v0_s3_quality_phase.py:898-924 _send_admission_guard/_parent_proof_is_fresh;1397-1415 driver accessors before submit",
+      "trigger": "Use finite nondecreasing clock values where the first final-guard read is within phase limit and the second read inside _parent_proof_is_fresh returns10801, with proofexpiry20000; separately move clock10801 through the post-guard driver limit accessor.",
+      "expected": "The latest cooperative clock observed immediately before reservation/send must meet phase10800 and parent validity together. A later clock read or callback cannot invalidate a previously checked deadline without another check.",
+      "actual": "Both cases submit and charge1 at clock10801, then report HISTORY_TIMEOUT/FAIL with15 BLOCKED. The second _now() is used only for parent interval, leaving the earlier phase check stale; dynamic driver limit is another unchecked callback after validation.",
+      "evidence": [
+        "focused-observations.json:final_guard_second_clock_crosses_phase_deadline",
+        "focused-observations.json:driver_accessor_phase_expired"
+      ],
+      "recommendation": "Use one final latest clock sample to validate both phase deadline and current proof after all controlled callbacks/accessors. Keep exact deadline10800 accepted and one-over refused. This remains cooperative validation, not the missing parent supervisor.",
+      "verified_progress": "Requested prep10799/authorize+2=>10801/proofexpiry20000 counterexample now refuses0/all16. Existing exact10800/oneover tests pass. Nonfinite/bool/decreasing clocks refuse. Mandatory parent hard-process supervision remains UNIMPLEMENTED_PRODUCT_GATE0_BLOCKER, with no process/platform tests performed."
+    },
+    {
+      "id": "E01",
+      "severity": "Major",
+      "category": "historical execution/evidence uncertainty; not a proven current product defect or proven external action",
+      "status": "FACTUAL_CORRECTION_REQUIRED",
+      "location": "implementation-p3b-correction-03/report.md:143-170; receipt.json:316-322; tools/test_v0_s3_quality_phase.py:24-60; root warnings msg_9967e153e87a and msg_91d0a21059c2",
+      "trigger": "Compare admitted ten direct piped pytest rounds plus two ad-hoc debug imports before second warning with the assertion that the test module guard before its local import pytest proves no prior socket/process/external actions. Inspect installed pytest CLI startup and retained diagnostics.",
+      "expected": "Preserve twelve underlying exits UNKNOWN and distinguish known execution-order violation, missing event/command/raw-stream evidence and unsupported zero-event claims. Test-module monkeypatches cannot retrocertify CLI startup.",
+      "actual": "python -m pytest executes import pytest in __main__ before console_main; pytest configuration/plugin loading occurs before collection imports the test module. Thus test module monkeypatches are too late to guard CLI/plugin startup, although they precede its own local import statement. Historical12 exact raw streams/true exits/pre-import audit are absent; the14 retained guarded edit diagnostics are separate runs with true exits0,1,1,1,0,1,1,0,1,1,1,1,0,0. No actual forbidden external action evidence was identified; no blanket zero-event certification is supported.",
+      "evidence": [
+        "pytest-import-order.json",
+        "historical-evidence-audit.json",
+        "root-warning01.json",
+        "root-warning02.json",
+        "source-bindings.json:suite_runner"
+      ],
+      "recommendation": "Append a factual erratum to the implementation narrative/receipt: test-module guard does not establish pre-pytest guarding, exits remain UNKNOWN and early zero external actions are NOT_PROVEN. Keep original wording and failed/unknown records. Do not run a cosmetic new full suite to repair historical prose; no rerun can retrocertify those attempts.",
+      "verified_progress": "Final retained145 receipt has actual exit0, raw stream hashes/bytes match, and the immutable final runner installs audit hook before pytest. Current independent145 executes pinned candidate bytes with before/after hashes under a pre-import guard; early diagnostics receive no acceptance credit. Historical final receipt lacks per-run before/after imported-source hashes, so its candidate argument alone is not a full execution attestation."
+    },
+    {
+      "id": "E02",
+      "severity": "Minor",
+      "category": "count/label erratum",
+      "status": "APPENDED_ACCURATE_ERRATUM",
+      "location": "implementation-p3b-correction-03/report.md:135 versus receipt.json:179-180; replay_correction02_probes.py:229-268",
+      "trigger": "Count actual unique result.probe entries rather than copy21 from prose or reinterpret the replay cap labels as actual frozen-cap tests.",
+      "expected": "Accurate separated observation counts and honest cap evidence labels.",
+      "actual": "Committed implementation correction03 replay and this once-only replay each have22 unique observations; report row says21 while receipt22 is correct. Previous independent correction02 replay really has21; its focused18 plus final-gap4 are22 separate observations. Current replay actual_* cap probes mutate cap constants and do not establish real8MiB/128MiB/256 limits.",
+      "evidence": [
+        "replay-count-erratum.json",
+        "replay.stdout.log",
+        "focused-observations.json:realcap_artifact_exact",
+        "focused-observations.json:realcap_total_exact",
+        "focused-observations.json:realcap_files_exact"
+      ],
+      "recommendation": "Preserve old text; this append records current replay22, earlier replay21 and earlier focused18+4 separately. Actual frozen-cap evidence is the new six focused realcap observations; no replay repeated just to fix prose."
+    }
+  ],
+  "prior_closure_map": {
+    "M01": {
+      "status": "PARTIALLY_FIXED_REMAINS_OPEN",
+      "evidence": "M01; focused actual_run_staging_{write,flush,fsync,close}, realcap_* and canonical consumer observations"
+    },
+    "M02": {
+      "status": "CLOSED_SCOPED_OFFLINE",
+      "evidence": "Original112 ancestor/temp/root/phase replacement and replay tests pass within145; _OwnedDirectory pinning/O_NOFOLLOW/dir_fd, exclusive writes, close paths audited. Accepted in-process inode-moving/hostile-kernel limit retained; no reopening."
+    },
+    "M03": {
+      "status": "CLOSED_SCOPED_OFFLINE",
+      "evidence": "Original112 source replacement/growth/hash/path tests and final post-authorization source read remain; descriptor before/after/path hash identity checked. M08 scorer evidence binding is distinct from accepted execution source ownership."
+    },
+    "M04": {
+      "status": "CLOSED_SCOPED_OFFLINE",
+      "evidence": "Original cleanup-exception tests, _execute_row finally and diagnostic/release ownership remain; every row unknown cleanup halts. Parent OwnedArchive cleanup still required."
+    },
+    "M05": {
+      "status": "CLOSED_SCOPED_OFFLINE",
+      "evidence": "Failed/unknown submit stays charged before call,1/4 local reservation max34, no refund/retry; original failed-submit/reservation tests pass. NM01 final timing gap does not erase retained accounting closure."
+    },
+    "M06": {
+      "status": "CLOSED_SCOPED_OFFLINE",
+      "evidence": "verify_independence exact (reviewer,session) pairs retained; original cross-pair/reused/implementer negatives pass."
+    },
+    "M07": {
+      "status": "CLOSED_SCOPED_OFFLINE",
+      "evidence": "Public scorer actual raw artifact hash/strict byte length checks preserved; original raw length tests and3 new focused raw mutations reject."
+    },
+    "M08": {
+      "status": "PARTIALLY_FIXED_REMAINS_OPEN",
+      "evidence": "M08;140 PASS/FAIL evidence-field observations plus context/boundary checks; known-failure critical3 retained; exact8images5videos with3 resolved failures aggregates true as intended."
+    },
+    "M09": {
+      "status": "CLOSED_SCOPED_OFFLINE",
+      "evidence": "Original BridgeError raw, video prior frame raw, provider-after persistence-failure tests pass; actual production node/BridgeOwner path retained."
+    },
+    "m01": {
+      "status": "CLOSED_SCOPED_OFFLINE",
+      "evidence": "Strict nonfinite/bool release evidence validation persists; original release-nan/inf/bool tests pass; new typed/public release negatives reject with bound context."
+    },
+    "NM01": {
+      "status": "PARTIALLY_FIXED_REMAINS_OPEN",
+      "evidence": "NM01; ordinary first/later authorize proof checks improved but unchecked driver accessor remains."
+    },
+    "NM02": {
+      "status": "PARTIALLY_FIXED_REMAINS_OPEN",
+      "evidence": "NM02; ordinary authorize-phase deadline improved; latest clock/accessor gap remains. Parent hard supervision explicitly not implemented."
+    }
+  },
+  "coordinate": {
+    "stage_id": "R1",
+    "workpack_id": "WP-R1-U3",
+    "gate": "S3_P3B_QUALITY_INTEGRATION_INDEPENDENT_REVIEW",
+    "state": "PREPARING_NEXT_STAGE"
+  },
+  "development_outline": [
+    {
+      "stage_id": "V0-S0",
+      "delivery": "V0",
+      "title": "基线探索",
+      "substeps": [
+        {
+          "name": "盘点与探索记录",
+          "status": "DONE",
+          "evidence": "reports/v0-s0/gate-decision-rerun-02.md"
+        },
+        {
+          "name": "完整生产基线",
+          "status": "FAILED_HISTORICAL",
+          "evidence": "reports/v0-s0/gate-decision-rerun-02.md"
+        }
+      ],
+      "completed_substeps": 1,
+      "total_substeps": 2,
+      "summary": "历史探索已结束且NO_GO保留；V0-Min按后续范围签署，不回填S0 PASS",
+      "implementation": "ARCHIVED",
+      "machine_acceptance": "NO_GO_HISTORICAL",
+      "independent_review": "COMPLETED_WITH_BLOCKERS",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "V0-S1",
+      "delivery": "V0-Min",
+      "title": "图片与独立人工",
+      "substeps": [
+        {
+          "name": "独立人工稿与导出",
+          "status": "DONE",
+          "evidence": "reports/v0-s1/v0-min-acceptance.json"
+        },
+        {
+          "name": "真实图片与预处理",
+          "status": "DONE",
+          "evidence": "reports/v0-s1/v0-min-acceptance.json"
+        },
+        {
+          "name": "四输出与草稿保护",
+          "status": "DONE",
+          "evidence": "reports/v0-s1/v0-min-acceptance.json"
+        },
+        {
+          "name": "固定证据及独立审查",
+          "status": "DONE",
+          "evidence": "reports/v0-s1/v0-min-acceptance.json"
+        },
+        {
+          "name": "人工签署",
+          "status": "DONE",
+          "evidence": "reports/v0-s1/v0-min-acceptance.json"
+        }
+      ],
+      "completed_substeps": 5,
+      "total_substeps": 5,
+      "summary": "已签仅V0-Min",
+      "implementation": "DELIVERED",
+      "machine_acceptance": "ACCEPTED_SCOPE_ONLY",
+      "independent_review": "COMPLETED",
+      "human_signoff": "APPROVED"
+    },
+    {
+      "stage_id": "R0",
+      "delivery": "V1前置",
+      "title": "独立服务复核",
+      "substeps": [
+        {
+          "name": "独立单图路径在R1a验证",
+          "status": "DONE",
+          "evidence": "reports/r1a/gate-decision-r1a.md"
+        },
+        {
+          "name": "完整复用/许可清单单独闭合",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 1,
+      "total_substeps": 2,
+      "summary": "仅R1a前置单图子集可确认；不把完整视频/Q01算通过",
+      "implementation": "PARTIAL_REUSED",
+      "machine_acceptance": "SINGLE_IMAGE_SUBSET_ONLY",
+      "independent_review": "NO_SEPARATE_R0_VERDICT",
+      "human_signoff": "NO_SEPARATE_R0_SIGNOFF"
+    },
+    {
+      "stage_id": "R1a",
+      "delivery": "V1早期切片",
+      "title": "单图React/FastAPI",
+      "substeps": [
+        {
+          "name": "正式合同子集与前后端",
+          "status": "DONE",
+          "evidence": "reports/r1a/gate-decision-r1a.md"
+        },
+        {
+          "name": "真实单图链路",
+          "status": "DONE",
+          "evidence": "reports/r1a/gate-decision-r1a.md"
+        },
+        {
+          "name": "失败/服务控制与人工稿保护",
+          "status": "DONE",
+          "evidence": "reports/r1a/gate-decision-r1a.md"
+        },
+        {
+          "name": "独立审查七项",
+          "status": "DONE",
+          "evidence": "reports/r1a/gate-decision-r1a.md"
+        },
+        {
+          "name": "人工体验签署",
+          "status": "DONE",
+          "evidence": "reports/r1a/gate-decision-r1a.md"
+        }
+      ],
+      "completed_substeps": 5,
+      "total_substeps": 5,
+      "summary": "已签仅单图切片；完整V1未完成",
+      "implementation": "DELIVERED",
+      "machine_acceptance": "ACCEPTED_SCOPE_ONLY",
+      "independent_review": "COMPLETED",
+      "human_signoff": "APPROVED"
+    },
+    {
+      "stage_id": "V0-S2",
+      "delivery": "V0.1",
+      "title": "视频与资源控制",
+      "substeps": [
+        {
+          "name": "WP-S2-00 冻结准备",
+          "status": "DONE",
+          "evidence": "reports/v0-s2/offline-checkpoint-44/receipt.json"
+        },
+        {
+          "name": "WP-S2-01 媒体owner",
+          "status": "DONE",
+          "evidence": "reports/v0-s2/offline-checkpoint-44/receipt.json"
+        },
+        {
+          "name": "WP-S2-02 公开视频路径",
+          "status": "DONE",
+          "evidence": "reports/v0-s2/offline-checkpoint-44/receipt.json"
+        },
+        {
+          "name": "WP-S2-03 安全/资源/取消",
+          "status": "DONE",
+          "evidence": "reports/v0-s2/offline-checkpoint-44/receipt.json"
+        },
+        {
+          "name": "WP-S2-04 离线集中收口",
+          "status": "DONE",
+          "evidence": "reports/v0-s2/offline-checkpoint-44/receipt.json"
+        },
+        {
+          "name": "WP-S2-05 完整真实验收",
+          "status": "DONE",
+          "evidence": "reports/v0-s2/full-v0-auto-08/receipt.json"
+        },
+        {
+          "name": "WP-S2-06 独立审查",
+          "status": "DONE",
+          "evidence": "reports/v0-s2/full-v0-auto-08/independent-review.json"
+        },
+        {
+          "name": "S2 人工签署与Git同步",
+          "status": "PENDING",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 7,
+      "total_substeps": 8,
+      "summary": "Full08 fresh cumulative9/9, offline541/5checks, independent Fatal0/Major0/Minor0; human signoff and immediate Git sync remain.",
+      "implementation": "IMPLEMENTED",
+      "machine_acceptance": "COMPLETE_FIXED9_PASSED",
+      "independent_review": "COMPLETE_FATAL0_MAJOR0_MINOR0",
+      "human_signoff": "PENDING"
+    },
+    {
+      "stage_id": "V0-S3",
+      "delivery": "V0.2",
+      "title": "离线质量与增量包",
+      "substeps": [
+        {
+          "name": "包/清单/使用说明",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "安装诊断与回滚",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "独立质量集与标注",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "离线集中收口",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "真实十二项及质量",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "独审/人工签署/同步",
+          "status": "PENDING",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 0,
+      "total_substeps": 6,
+      "summary": "已有设计，未完成正式交付；存在代码需进入时复用审计",
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R1",
+      "delivery": "V1",
+      "title": "人工业务骨架",
+      "substeps": [
+        {
+          "name": "受控媒体与人工镜头",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "六模式四目标",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "SQLite/修订/导入",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "组合回归及阶段审查",
+          "status": "PENDING",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "summary": "最小统一图视频切片3/3、UM10机器与独审通过，用户已确认当前前端与基本视频反推；完整R1四子项仍0/4，不补签历史S2/完整V1或发布。",
+      "implementation": "EARLY_SLICE_IMPLEMENTED_FULL_R1_PENDING",
+      "machine_acceptance": "EARLY_SLICE_UM10_ONLY",
+      "independent_review": "EARLY_SLICE_FATAL0_MAJOR0",
+      "human_signoff": "EARLY_SLICE_APPROVED_FULL_R1_PENDING",
+      "early_slice": {
+        "id": "UNIFIED_MEDIA_EARLY",
+        "completed_workpacks": 3,
+        "total_workpacks": 3,
+        "candidate_sha": "621b1bf386db71bfe08ca2f533fa8ec396b0504b",
+        "machine_acceptance": "UM10_PASS",
+        "independent_review": "FATAL0_MAJOR0",
+        "human_signoff": "APPROVED",
+        "human_signoff_record": "reports/unified-media/human-signoff-live15.json"
+      }
+    },
+    {
+      "stage_id": "V1-M1",
+      "delivery": "V1",
+      "title": "多镜头拆分与逐镜头人物场景动作",
+      "substeps": [
+        {
+          "name": "M1-A detection/PTS/boundaries/timeline",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "M1-B per-shot evidence and serial child jobs",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "M1-C per-shot drafts/exports/fixed8 full validation",
+          "status": "PENDING",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 0,
+      "total_substeps": 3,
+      "summary": "用户批准纳入V1；设计/合同审查中，未实现、未测试、未签署",
+      "implementation": "DESIGN_ONLY",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R2",
+      "delivery": "V1",
+      "title": "任务与正式运行包",
+      "substeps": [
+        {
+          "name": "异步任务/CAS/取消",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "真实图视频及质量",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "CLI/导出/便携包",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "V1累计独审及人工签署",
+          "status": "PENDING",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "summary": "已有设计，未完成正式交付；存在代码需进入时复用审计",
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R3",
+      "delivery": "V2",
+      "title": "镜头资产与检索",
+      "substeps": [
+        {
+          "name": "真实PTS/切镜",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "资产/FTS5/配方",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "对比/QC/JSONL",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "阶段验收",
+          "status": "PENDING",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "summary": "已有设计，未完成正式交付；存在代码需进入时复用审计",
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R4",
+      "delivery": "V2",
+      "title": "MCP与恢复",
+      "substeps": [
+        {
+          "name": "MCP真客户端",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "批量/lease/幂等",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "备份恢复",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "V2累计验收签署",
+          "status": "PENDING",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "summary": "已有设计，未完成正式交付；存在代码需进入时复用审计",
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R5a",
+      "delivery": "V3",
+      "title": "证据与建议合同",
+      "substeps": [
+        {
+          "name": "对端握手",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "Navia证据",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "Narralens建议/冲突",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "阶段真实验收",
+          "status": "PENDING",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "summary": "已有设计，未完成正式交付；存在代码需进入时复用审计",
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R5b",
+      "delivery": "V3",
+      "title": "受控生成交接",
+      "substeps": [
+        {
+          "name": "Comfy allowlist/映射",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "收据/outbox",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "GPU/取消协作",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "阶段真实验收",
+          "status": "PENDING",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "summary": "已有设计，未完成正式交付；存在代码需进入时复用审计",
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R5c",
+      "delivery": "V3",
+      "title": "集成与完整交付",
+      "substeps": [
+        {
+          "name": "集成UI",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "升级回滚",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "三系统E2E",
+          "status": "PENDING",
+          "evidence": null
+        },
+        {
+          "name": "V3独审及人工签署",
+          "status": "PENDING",
+          "evidence": null
+        }
+      ],
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "summary": "已有设计，未完成正式交付；存在代码需进入时复用审计",
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    }
+  ],
+  "ten_fields": {
+    "当前坐标": "R1 / WP-R1-U3 / S3_P3B_QUALITY_INTEGRATION_INDEPENDENT_REVIEW / PREPARING_NEXT_STAGE; read-only root4bcb640c, unchanged.",
+    "本批完成": "Independent correction03 review complete:145/145 once (112 original obligations+33 added), guard4/4 once, replay22 once, 183 new independent observations (170+8+5); Fatal0/Major5/Minor1. Observations are not additional passing product tests.",
+    "最后通过门禁": "UNIFIED_MEDIA_FIXED_UM10_AND_INDEPENDENT_REVIEW on621b1bf386db71bfe08ca2f533fa8ec396b0504b; existing scoped human acceptance unchanged.",
+    "当前阻塞门禁": "S3_P3B_INDEPENDENT_REVIEW_AND_COMPLETE_PRODUCT_GATE0_PENDING; local CHANGES_REQUIRED, mandatory parent hard supervision remains open.",
+    "全局路线位置": "Root aggregate disposition → bounded correction → separate independent review → thin coordinator/native residue/admission/A06/Gate0 → finite real16 → independent semantic scores → required human/release gates.",
+    "剩余工作": "Four precise local code root causes plus historical evidence correction, and all listed global/native acceptance obligations; no Stage advancement.",
+    "下一责任人": "Root architecture/gate owner for aggregate disposition; authorized visible implementer for corrections; separate reviewer after corrected candidate.",
+    "所需授权": "None additional for completed authorized offline review. No real runtime permission inferred and no repeated user authorization requested.",
+    "证据目录": "reports/v0-s3/product-gate0/independent-p3b-correction-03/; aggregate report/receipt/findings/source pins/AST audit/commands/raw streams/cleanup/count erratum.",
+    "精确停止原因": "Assigned independent review delivered with reproduced current code defects and separated historical uncertainty; return once with full commit SHA and keep terminal visible."
+  },
+  "not_proven": [
+    "parent preemptive hard process supervision and owned pending-I/O cleanup: UNIMPLEMENTED_PRODUCT_GATE0_BLOCKER",
+    "native video-residue accessor and coordinator integration",
+    "authentic real resource admission/original-ledger reservation and debit",
+    "A06 enforceable network isolation",
+    "real16 semantic quality and independent real scores",
+    "full12 S3 acceptance",
+    "product Gate0",
+    "human experience/signoff beyond already accepted slice",
+    "release/production acceptance",
+    "parent-directory crash durability",
+    "universal native-extension/direct-syscall/hostile-kernel immunity",
+    "zero external actions in historical12 unguarded diagnostic attempts"
+  ],
+  "stage_pass_claim": false,
+  "product_gate0": false,
+  "machine_product_acceptance": false,
+  "human_signature": false,
+  "scope": "only NEW independent-p3b-correction-03 text authored/committed; inherited product/reports/logs/spec/projection immutable",
+  "cleanup": {
+    "guard_suite_replay_focused": [
+      {
+        "mode": "guard",
+        "before_pytest_import": true,
+        "before_product_import": true,
+        "blocked_events": [
+          "socket.connect",
+          "socket.bind",
+          "subprocess.Popen",
+          "os.system"
+        ],
+        "owned_roots": [
+          "/tmp/lvw-independent-c03-6e497-guard-rnjxklj5"
+        ],
+        "exit_code": 0,
+        "owned_roots_removed": true,
+        "launcher_sha256": "4db9f4b687a83d70c9eda86aeee49545daac0afb70a15329de737d4811ff9adc",
+        "native_or_direct_syscall_immunity_claim": false
+      },
+      {
+        "mode": "suite",
+        "before_pytest_import": true,
+        "before_product_import": true,
+        "blocked_events": [],
+        "owned_roots": [
+          "/tmp/lvw-independent-c03-6e497-suite-m2sxw1j_"
+        ],
+        "exit_code": 0,
+        "owned_roots_removed": true,
+        "launcher_sha256": "4db9f4b687a83d70c9eda86aeee49545daac0afb70a15329de737d4811ff9adc",
+        "native_or_direct_syscall_immunity_claim": false
+      },
+      {
+        "mode": "replay",
+        "before_pytest_import": true,
+        "before_product_import": true,
+        "blocked_events": [],
+        "owned_roots": [
+          "/tmp/lvw-independent-c03-6e497-replay-3i5r0r6_"
+        ],
+        "exit_code": 0,
+        "owned_roots_removed": true,
+        "launcher_sha256": "4db9f4b687a83d70c9eda86aeee49545daac0afb70a15329de737d4811ff9adc",
+        "native_or_direct_syscall_immunity_claim": false
+      },
+      {
+        "mode": "focused",
+        "before_pytest_import": true,
+        "before_product_import": true,
+        "blocked_events": [],
+        "owned_roots": [
+          "/tmp/lvw-independent-c03-6e497-focused-70wb8h8c"
+        ],
+        "exit_code": 0,
+        "owned_roots_removed": true,
+        "launcher_sha256": "4db9f4b687a83d70c9eda86aeee49545daac0afb70a15329de737d4811ff9adc",
+        "native_or_direct_syscall_immunity_claim": false
+      }
+    ],
+    "supplement": {
+      "owned_root": "/tmp/lvw-independent-c03-supplement-6e497-_ziqyxnx",
+      "removed": true
+    },
+    "context": {
+      "owned_root": "/tmp/lvw-independent-c03-context-6e497-_fm6z5gw",
+      "removed": true
+    },
+    "old_fixture_roots_scanned_or_deleted": false,
+    "parent_product_cleanup_proven": false
+  },
+  "offline_boundary": {
+    "executed_native_external_actions": 0,
+    "guard_selftest_attempts_blocked": 4,
+    "actual_windows_wsl_powershell_parser_hostexe_hash_realmedia_ffmpeg_model_gpu_service_network_download_ledger_fullcheckpoint": 0,
+    "universal_native_or_syscall_immunity_claim": false,
+    "historical_zero_actions": "NOT_PROVEN"
+  },
+  "push": false,
+  "permanent_config_changes": false
+}
