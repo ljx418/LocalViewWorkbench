@@ -1,0 +1,215 @@
+{
+  "count": 20,
+  "note": "Observations are not extra product tests; exit0 means capture completed, including defects.",
+  "observations": [
+    {
+      "caller_receipt_unchanged": true,
+      "fds_after": 8,
+      "fds_before": 8,
+      "hook_fired": 1,
+      "name": "earlier_canonical_missing",
+      "observation": {
+        "error": "QualityContractError: QS_RAW_ARTIFACT_UNREADABLE:SYN-I00:QS_ARTIFACT_CUSTODY_MISSING:qd-receipt.json",
+        "refused": true
+      },
+      "original_bytes_unchanged": true
+    },
+    {
+      "caller_receipt_unchanged": true,
+      "fds_after": 8,
+      "fds_before": 8,
+      "hook_fired": 1,
+      "name": "earlier_seal_plain",
+      "observation": {
+        "error": "QualityContractError: QS_RAW_ARTIFACT_REDIRECT_FORBIDDEN:SYN-I00:QS_ARTIFACT_CUSTODY_REPLACED:qd-source-plan.json",
+        "refused": true
+      },
+      "original_bytes_unchanged": true
+    },
+    {
+      "caller_receipt_unchanged": true,
+      "fds_after": 8,
+      "fds_before": 8,
+      "hook_fired": 1,
+      "name": "earlier_seal_symlink",
+      "observation": {
+        "error": "QualityContractError: QS_RAW_ARTIFACT_REDIRECT_FORBIDDEN:SYN-I00:QS_ARTIFACT_CUSTODY_REDIRECT_FORBIDDEN:qd-source-plan.json",
+        "refused": true
+      },
+      "original_bytes_unchanged": true
+    },
+    {
+      "caller_receipt_unchanged": true,
+      "fds_after": 8,
+      "fds_before": 8,
+      "hook_fired": 1,
+      "name": "earlier_raw_leaf_plain",
+      "observation": {
+        "error": "QualityContractError: QS_RAW_ARTIFACT_REDIRECT_FORBIDDEN:SYN-I01:QS_ARTIFACT_CUSTODY_REPLACED:raw.txt",
+        "refused": true
+      },
+      "original_bytes_unchanged": true
+    },
+    {
+      "caller_receipt_unchanged": true,
+      "fds_after": 8,
+      "fds_before": 8,
+      "hook_fired": 1,
+      "name": "earlier_raw_leaf_missing",
+      "observation": {
+        "error": "QualityContractError: QS_RAW_ARTIFACT_UNREADABLE:SYN-I01:QS_ARTIFACT_CUSTODY_MISSING:raw.txt",
+        "refused": true
+      },
+      "original_bytes_unchanged": true
+    },
+    {
+      "caller_receipt_unchanged": true,
+      "fds_after": 8,
+      "fds_before": 8,
+      "hook_fired": 1,
+      "name": "earlier_raw_parent_missing",
+      "observation": {
+        "error": "QualityContractError: QS_RAW_ARTIFACT_UNREADABLE:SYN-I01:QS_ARTIFACT_CUSTODY_MISSING:SYN-I00",
+        "refused": true
+      },
+      "original_bytes_unchanged": true
+    },
+    {
+      "caller_receipt_unchanged": true,
+      "fds_after": 8,
+      "fds_before": 8,
+      "hook_fired": 1,
+      "name": "earlier_raw_parent_symlink",
+      "observation": {
+        "error": "QualityContractError: QS_RAW_ARTIFACT_REDIRECT_FORBIDDEN:SYN-I01:QS_ARTIFACT_CUSTODY_REDIRECT_FORBIDDEN:SYN-I00",
+        "refused": true
+      },
+      "original_bytes_unchanged": true
+    },
+    {
+      "caller_receipt_unchanged": true,
+      "fds_after": 8,
+      "fds_before": 8,
+      "hook_fired": 1,
+      "name": "final_seal_missing",
+      "observation": {
+        "error": "QualityContractError: QS_ARTIFACT_CUSTODY_MISSING:qd-source-plan.json",
+        "refused": true
+      },
+      "original_bytes_unchanged": true
+    },
+    {
+      "caller_receipt_unchanged": true,
+      "fds_after": 8,
+      "fds_before": 8,
+      "hook_fired": 1,
+      "name": "final_raw_parent_plain",
+      "observation": {
+        "error": "QualityContractError: QS_ARTIFACT_CUSTODY_REPLACED:SYN-I00",
+        "refused": true
+      },
+      "original_bytes_unchanged": true
+    },
+    {
+      "entries": 35,
+      "fds_after_close": 8,
+      "fds_after_repeat": 47,
+      "fds_before": 8,
+      "fds_during": 47,
+      "limit": 72,
+      "name": "full16_shape_repeat_and_normal_cleanup",
+      "registry_unchanged": true,
+      "reserved": 34,
+      "rows": 16,
+      "submissions": 16
+    },
+    {
+      "error": "QualityContractError: QS_ARTIFACT_CUSTODY_LIMIT_EXCEEDED:f72",
+      "exact_fds": 84,
+      "extra_opens": 1,
+      "fds_after_close": 8,
+      "fds_before": 8,
+      "name": "exact72_oneover73_admission",
+      "old_entries_retained": true,
+      "peak_fds": 85
+    },
+    {
+      "error": "QualityContractError: SCORE_ARTIFACT_REPLACED:reuse",
+      "held_original_identity": true,
+      "name": "dedup_replaced_plain",
+      "registry_identity_unchanged": true
+    },
+    {
+      "error": "QualityContractError: SCORE_ARTIFACT_MISSING:reuse",
+      "held_original_identity": true,
+      "name": "dedup_replaced_missing",
+      "registry_identity_unchanged": true
+    },
+    {
+      "error": "QualityContractError: SCORE_ARTIFACT_REDIRECT_FORBIDDEN:reuse",
+      "held_original_identity": true,
+      "name": "dedup_replaced_symlink",
+      "registry_identity_unchanged": true
+    },
+    {
+      "error": "OSError: [Errno 5] independent injected metadata failure",
+      "fds_after_boundary_close": 9,
+      "fds_after_probe_remediation": 8,
+      "fds_before": 8,
+      "hook_fired": 1,
+      "name": "postopen_fstat_error_leaf",
+      "opened_descriptor_still_live": true
+    },
+    {
+      "error": "OSError: [Errno 5] independent injected metadata failure",
+      "fds_after_boundary_close": 9,
+      "fds_after_probe_remediation": 8,
+      "fds_before": 8,
+      "hook_fired": 1,
+      "name": "postopen_fstat_error_directory",
+      "opened_descriptor_still_live": true
+    },
+    {
+      "error": "QS_ARTIFACT_ROOT_REDIRECT_FORBIDDEN:temp",
+      "fds_after": 8,
+      "fds_before": 8,
+      "name": "constructor_error_cleanup"
+    },
+    {
+      "error": "[Errno 5] independent injected read failure",
+      "fds_after_close": 8,
+      "fds_before": 8,
+      "hook_fired": 1,
+      "name": "retained_read_error_cleanup"
+    },
+    {
+      "error": "[Errno 5] independent injected lseek failure",
+      "fds_after_close": 8,
+      "fds_before": 8,
+      "hook_fired": 1,
+      "name": "retained_lseek_error_cleanup"
+    },
+    {
+      "error": "SCORE_ARTIFACT_MISSING:f0",
+      "fds_after_close": 8,
+      "fds_before": 8,
+      "hook_fired": 1,
+      "name": "retained_stat_error_cleanup"
+    }
+  ],
+  "owned_root": "/tmp/lvw-c05-targeted-l8lyjo23/lvw-independent-c07-gevodsm6",
+  "registered_roots": [
+    "/tmp/lvw-c05-targeted-l8lyjo23/lvw-independent-c07-gevodsm6",
+    "/tmp/lvw-c05-targeted-l8lyjo23/lvw-independent-c07-gevodsm6/earlier_canonical_missing",
+    "/tmp/lvw-c05-targeted-l8lyjo23/lvw-independent-c07-gevodsm6/earlier_seal_plain",
+    "/tmp/lvw-c05-targeted-l8lyjo23/lvw-independent-c07-gevodsm6/earlier_seal_symlink",
+    "/tmp/lvw-c05-targeted-l8lyjo23/lvw-independent-c07-gevodsm6/earlier_raw_leaf_plain",
+    "/tmp/lvw-c05-targeted-l8lyjo23/lvw-independent-c07-gevodsm6/earlier_raw_leaf_missing",
+    "/tmp/lvw-c05-targeted-l8lyjo23/lvw-independent-c07-gevodsm6/earlier_raw_parent_missing",
+    "/tmp/lvw-c05-targeted-l8lyjo23/lvw-independent-c07-gevodsm6/earlier_raw_parent_symlink",
+    "/tmp/lvw-c05-targeted-l8lyjo23/lvw-independent-c07-gevodsm6/final_seal_missing",
+    "/tmp/lvw-c05-targeted-l8lyjo23/lvw-independent-c07-gevodsm6/final_raw_parent_plain",
+    "/tmp/lvw-c05-targeted-l8lyjo23/lvw-independent-c07-gevodsm6/full_shape"
+  ],
+  "removed": true
+}

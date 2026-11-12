@@ -1,0 +1,93 @@
+{
+  "invocations": [
+    {
+      "label": "suite",
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-05/run_guarded_checks.py",
+        "--mode",
+        "suite",
+        "--label",
+        "suite",
+        "--outdir",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-p3b-correction-07"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "inner_exit": 0,
+      "outer_exit": 0
+    },
+    {
+      "label": "guard",
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-05/run_guarded_checks.py",
+        "--mode",
+        "guard",
+        "--label",
+        "guard",
+        "--outdir",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-p3b-correction-07"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "inner_exit": 0,
+      "outer_exit": 0
+    },
+    {
+      "label": "replay",
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-05/run_guarded_checks.py",
+        "--mode",
+        "script",
+        "--label",
+        "replay",
+        "--outdir",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-p3b-correction-07",
+        "--script",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-p3b-correction-07/replay_adapter.py"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "inner_exit": 0,
+      "outer_exit": 0
+    },
+    {
+      "label": "targeted",
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-05/run_guarded_checks.py",
+        "--mode",
+        "script",
+        "--label",
+        "targeted",
+        "--outdir",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-p3b-correction-07",
+        "--script",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-p3b-correction-07/targeted.py"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "inner_exit": 0,
+      "outer_exit": 0
+    }
+  ],
+  "static_command": [
+    "python3",
+    "-B",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-p3b-correction-07/static_audit.py"
+  ],
+  "static_exit": 0,
+  "report_assembly_attempts": [
+    {
+      "exit_code": 1,
+      "error": "KeyError: current_stage; corrected report-only root-key lookup to coordinate; no product/test code imported"
+    },
+    {
+      "exit_code": 0
+    }
+  ],
+  "static_operations": "Git show and AST/hash/JSON reads only; no product/test imports or product execution",
+  "navigation_error": "One read-only git diff used a mistyped baseline hash and exited128 before correct baseline was read; no validation or candidate change occurred."
+}

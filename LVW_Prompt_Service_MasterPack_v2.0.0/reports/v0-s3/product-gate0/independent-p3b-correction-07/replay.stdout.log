@@ -1,0 +1,160 @@
+{
+  "count": 8,
+  "kind": "S3_P3B_CORRECTION07_BOUNDED_COUNTEREXAMPLE_OBSERVATIONS",
+  "note": "Bounded observations of the current candidate.  They are not additional product tests and they do not turn a reproduced defect into a passing obligation.",
+  "observations": [
+    {
+      "name": "clean_genuine_baseline",
+      "observation": {
+        "aggregate_pass": true,
+        "all_rows_resolved": true,
+        "decision": "QUALITY_THRESHOLDS_MET_FOR_THIS_BOUND_RUN",
+        "images_usable": 10,
+        "refused": false,
+        "total_critical": 0,
+        "videos_usable": 6
+      },
+      "provider_calls_reserved": 34,
+      "submissions": 16
+    },
+    {
+      "before_sha256": {
+        "canonical": "9af72e76a368a32466eed3453cd49df4cddbefa46399a390c6f93815afc22c7e",
+        "raw0": "86571c8187ae37e4f092f7decc7b75d588272f69a7c745d3748770b69114a033",
+        "seal": "6cfacacf9d69d73c5258687190f30a0a0c170b5fcf55eb571e234d521f243e20"
+      },
+      "caller_receipt_unchanged": true,
+      "entry_exists_at_return": true,
+      "entry_is_symlink_at_return": true,
+      "hook_fired": 1,
+      "mutation": "symlink",
+      "name": "after_canonical_read_symlink",
+      "observation": {
+        "error": "QualityContractError: QS_SOURCE_PLAN_REDIRECT_FORBIDDEN:QS_ARTIFACT_CUSTODY_REDIRECT_FORBIDDEN:qd-receipt.json",
+        "refused": true
+      },
+      "original_bytes_unchanged": true,
+      "target_kind": "canonical",
+      "trigger_kind": "seal"
+    },
+    {
+      "before_sha256": {
+        "canonical": "91a895366496db7e669e45f9b246007745e35afdf58185c29a93124863b3b35f",
+        "raw0": "86571c8187ae37e4f092f7decc7b75d588272f69a7c745d3748770b69114a033",
+        "seal": "5ecc5fca819a4f703b02a23ffa1edd263f6548db532132c0e1874524988b4ccf"
+      },
+      "caller_receipt_unchanged": true,
+      "entry_exists_at_return": true,
+      "entry_is_symlink_at_return": false,
+      "hook_fired": 1,
+      "mutation": "plain",
+      "name": "after_canonical_read_plain",
+      "observation": {
+        "error": "QualityContractError: QS_RAW_ARTIFACT_REDIRECT_FORBIDDEN:SYN-I00:QS_ARTIFACT_CUSTODY_REPLACED:qd-receipt.json",
+        "refused": true
+      },
+      "original_bytes_unchanged": true,
+      "target_kind": "canonical",
+      "trigger_kind": "raw0"
+    },
+    {
+      "before_sha256": {
+        "canonical": "bc4c85863995c27db83a0fd779b318c24196e58f6a079e02cc97c5341a6240f4",
+        "raw0": "86571c8187ae37e4f092f7decc7b75d588272f69a7c745d3748770b69114a033",
+        "seal": "9b4e08a5c03e164f5cc5741ee8731c930fed619fc8f52935f51393e62995148f"
+      },
+      "caller_receipt_unchanged": true,
+      "entry_exists_at_return": false,
+      "entry_is_symlink_at_return": false,
+      "hook_fired": 1,
+      "mutation": "missing",
+      "name": "after_seal_read_missing",
+      "observation": {
+        "error": "QualityContractError: QS_RAW_ARTIFACT_UNREADABLE:SYN-I00:QS_ARTIFACT_CUSTODY_MISSING:qd-source-plan.json",
+        "refused": true
+      },
+      "original_bytes_unchanged": true,
+      "target_kind": "seal",
+      "trigger_kind": "raw0"
+    },
+    {
+      "before_sha256": {
+        "canonical": "229b09aa000d8e40a4681453e3b51fb2a845ef3410a064686196ccfdc95f0a34",
+        "raw0": "86571c8187ae37e4f092f7decc7b75d588272f69a7c745d3748770b69114a033",
+        "seal": "fcbf5805fa896b8f7329614c6d4ec5db8adbe88442c3ca7e82414f5615721a19"
+      },
+      "caller_receipt_unchanged": true,
+      "entry_exists_at_return": true,
+      "entry_is_symlink_at_return": true,
+      "hook_fired": 1,
+      "mutation": "symlink",
+      "name": "after_raw_read_leaf_symlink",
+      "observation": {
+        "error": "QualityContractError: QS_RAW_ARTIFACT_REDIRECT_FORBIDDEN:SYN-I01:QS_ARTIFACT_CUSTODY_REDIRECT_FORBIDDEN:raw.txt",
+        "refused": true
+      },
+      "original_bytes_unchanged": true,
+      "target_kind": "raw0",
+      "trigger_kind": "raw1"
+    },
+    {
+      "before_sha256": {
+        "canonical": "010af888282c7fe5c29f1dd946718fd3e30c755a2a37378aa508b19f90b56d53",
+        "raw0": "86571c8187ae37e4f092f7decc7b75d588272f69a7c745d3748770b69114a033",
+        "seal": "13631e5de866cb437f406db5539860ef6636e47f9d7b0a9730478f30ab6f39f9"
+      },
+      "caller_receipt_unchanged": true,
+      "entry_exists_at_return": true,
+      "entry_is_symlink_at_return": false,
+      "hook_fired": 1,
+      "mutation": "plain",
+      "name": "after_raw_read_parent_plain",
+      "observation": {
+        "error": "QualityContractError: QS_RAW_ARTIFACT_REDIRECT_FORBIDDEN:SYN-I01:QS_ARTIFACT_CUSTODY_REPLACED:SYN-I00",
+        "refused": true
+      },
+      "original_bytes_unchanged": true,
+      "target_kind": "raw_parent",
+      "trigger_kind": "raw1"
+    },
+    {
+      "before_sha256": "e3656b09154290f66056decb9a112f984223aa68bd0b2af9b2070ecc35027db2",
+      "caller_receipt_unchanged": true,
+      "entry_is_symlink_at_return": true,
+      "hook_fired": 1,
+      "name": "completion_canonical_leaf_redirect",
+      "observation": {
+        "error": "QualityContractError: QS_ARTIFACT_CUSTODY_REDIRECT_FORBIDDEN:qd-receipt.json",
+        "refused": true
+      },
+      "original_bytes_unchanged": true
+    },
+    {
+      "name": "bounded_custody_and_descriptors",
+      "observation": {
+        "close_releases_every_descriptor": true,
+        "custody_entries": 5,
+        "custody_limit": 72,
+        "descriptors_after_close": 8,
+        "descriptors_after_eight_repeats": 17,
+        "descriptors_before": 8,
+        "descriptors_during": 17,
+        "refused": false,
+        "repeated_read_is_stable": true
+      }
+    }
+  ],
+  "owned_root": "/tmp/lvw-c05-replay-2_56v91q/lvw-c07-counterexamples-9fc08xq5",
+  "registered_roots": [
+    "/tmp/lvw-c05-replay-2_56v91q/lvw-c07-counterexamples-9fc08xq5",
+    "/tmp/lvw-c05-replay-2_56v91q/lvw-c07-counterexamples-9fc08xq5/baseline",
+    "/tmp/lvw-c05-replay-2_56v91q/lvw-c07-counterexamples-9fc08xq5/after_canonical_read_symlink",
+    "/tmp/lvw-c05-replay-2_56v91q/lvw-c07-counterexamples-9fc08xq5/after_canonical_read_plain",
+    "/tmp/lvw-c05-replay-2_56v91q/lvw-c07-counterexamples-9fc08xq5/after_seal_read_missing",
+    "/tmp/lvw-c05-replay-2_56v91q/lvw-c07-counterexamples-9fc08xq5/after_raw_read_leaf_symlink",
+    "/tmp/lvw-c05-replay-2_56v91q/lvw-c07-counterexamples-9fc08xq5/after_raw_read_parent_plain",
+    "/tmp/lvw-c05-replay-2_56v91q/lvw-c07-counterexamples-9fc08xq5/completion_canonical_leaf_redirect",
+    "/tmp/lvw-c05-replay-2_56v91q/lvw-c07-counterexamples-9fc08xq5/descriptors"
+  ],
+  "removed": true
+}
