@@ -1,0 +1,99 @@
+{
+  "after_source_sha256": {
+    "tools/test_v0_s3_quality_phase.py": "cd1eec5f8265e0e5e9e3ce49f35012f18236f8d3fe86719cfe851c3b333698d5",
+    "tools/v0_s3_quality_phase.py": "1949f42f0534a925be2ab16c8e23bc2cb7fce92094efd0cf99bcf0ce113ef9fe"
+  },
+  "before_source_sha256": {
+    "tools/test_v0_s3_quality_phase.py": "cd1eec5f8265e0e5e9e3ce49f35012f18236f8d3fe86719cfe851c3b333698d5",
+    "tools/v0_s3_quality_phase.py": "1949f42f0534a925be2ab16c8e23bc2cb7fce92094efd0cf99bcf0ce113ef9fe"
+  },
+  "candidate_sha_claim": "",
+  "candidate_sha_claim_is_attestation": false,
+  "collected_count": 17,
+  "collected_nodeids": [
+    "tools/test_v0_s3_quality_phase.py::test_the_public_submission_budget_is_exact_and_one_over",
+    "tools/test_v0_s3_quality_phase.py::test_the_artifact_budget_is_exact_and_one_over",
+    "tools/test_v0_s3_quality_phase.py::test_the_phase_deadline_blocks_the_remaining_rows",
+    "tools/test_v0_s3_quality_phase.py::test_correction_admission_an_unknown_parent_budget_is_refused",
+    "tools/test_v0_s3_quality_phase.py::test_correction_admission_an_insufficient_parent_capacity_refuses_every_send",
+    "tools/test_v0_s3_quality_phase.py::test_correction_timing_a_slow_authorize_callback_is_bounded",
+    "tools/test_v0_s3_quality_phase.py::test_correction_timing_a_late_successful_history_fails_the_deadline",
+    "tools/test_v0_s3_quality_phase.py::test_correction02_nm01_a_proof_for_another_run_is_refused",
+    "tools/test_v0_s3_quality_phase.py::test_correction02_nm01_a_stale_proof_is_refused",
+    "tools/test_v0_s3_quality_phase.py::test_correction02_nm01_a_proof_with_a_non_finite_interval_is_refused",
+    "tools/test_v0_s3_quality_phase.py::test_correction02_nm02_a_decreasing_clock_is_refused",
+    "tools/test_v0_s3_quality_phase.py::test_correction02_nm02_the_hard_supervision_blocker_is_recorded",
+    "tools/test_v0_s3_quality_phase.py::test_correction03_nm01_a_proof_that_expires_at_the_first_authorize_refuses_every_send",
+    "tools/test_v0_s3_quality_phase.py::test_correction03_nm01_a_proof_diminished_at_the_handoff_refuses_every_send",
+    "tools/test_v0_s3_quality_phase.py::test_correction03_nm02_a_callback_past_the_phase_deadline_refuses_the_send",
+    "tools/test_v0_s3_quality_phase.py::test_correction03_nm02_the_phase_boundary_is_exact_and_one_over",
+    "tools/test_v0_s3_quality_phase.py::test_correction03_nm01_a_later_row_expiry_preserves_the_prior_attempts"
+  ],
+  "command": [
+    "/usr/bin/python3",
+    "-B",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-04/run_guarded_checks.py",
+    "--mode",
+    "focused",
+    "--label",
+    "edit-03",
+    "--outdir",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-04/editing-diagnostics"
+  ],
+  "duration_seconds": 3.747,
+  "exit_code": 1,
+  "guard": {
+    "audit_hook_installed_before_product_import": true,
+    "audit_hook_installed_before_pytest": true,
+    "blocked_events": [
+      "socket.connect",
+      "socket.connect_ex",
+      "socket.bind",
+      "socket.getaddrinfo",
+      "socket.gethostbyname",
+      "socket.gethostbyaddr",
+      "socket.getnameinfo",
+      "subprocess.Popen",
+      "os.system",
+      "os.exec",
+      "os.spawn",
+      "os.posix_spawn",
+      "os.fork",
+      "os.forkpty"
+    ],
+    "bytecode_written": false,
+    "cacheprovider": "disabled",
+    "host_subprocess": "blocked",
+    "network": "blocked",
+    "pytest_disable_plugin_autoload": "1"
+  },
+  "guard_results": null,
+  "imported_modules": {
+    "test_v0_s3_quality_phase": {
+      "module": "test_v0_s3_quality_phase",
+      "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_quality_phase.py",
+      "sha256": "cd1eec5f8265e0e5e9e3ce49f35012f18236f8d3fe86719cfe851c3b333698d5"
+    },
+    "tools.v0_s3_quality_phase": {
+      "module": "tools.v0_s3_quality_phase",
+      "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_quality_phase.py",
+      "sha256": "1949f42f0534a925be2ab16c8e23bc2cb7fce92094efd0cf99bcf0ce113ef9fe"
+    }
+  },
+  "kind": "S3_P3B_CORRECTION_04_GUARDED_CHECK_RECEIPT",
+  "label": "edit-03",
+  "mode": "focused",
+  "outcome": "FAIL",
+  "owned_root_removed": true,
+  "product_gate0": false,
+  "real_execution_performed": false,
+  "select": "correction03_nm or correction02_nm or correction_admission or correction_timing or submission_budget or artifact_budget or phase_deadline or deadline",
+  "source_unchanged_during_run": true,
+  "stage_pass_claim": false,
+  "stderr_bytes": 0,
+  "stderr_file": "reports/v0-s3/product-gate0/implementation-p3b-correction-04/editing-diagnostics/edit-03.stderr.log",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 1016,
+  "stdout_file": "reports/v0-s3/product-gate0/implementation-p3b-correction-04/editing-diagnostics/edit-03.stdout.log",
+  "stdout_sha256": "60fb3371b7d2f53cf7a44a8add7e188dec4f4f43d368e438349fccfb3b633886"
+}
