@@ -1,0 +1,209 @@
+{
+  "additional_obligations_closed": [
+    "a late successful history fails the deadline",
+    "bounded elapsed ceilings for the authorize, observation, persistence and release steps",
+    "parent capacity admission: an unknown parent budget is refused and never assumed sufficient"
+  ],
+  "adjudication": "reports/v0-s3/product-gate0/p3b-correction-01.adjudication.json",
+  "base_commit": "0c7d27b436abb81042e6ef160ef663ff3e1c4d22",
+  "candidate_sha": "376ea9283cb7096c2fc35f6eab561919c07b6d1f",
+  "checks": {
+    "correction-directed": {
+      "exit_code": 0,
+      "outcome": "PASS",
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 114,
+      "stdout_sha256": "b4c56cc7eee24fdc4f65ee615d8b4503edc1bd74c2ff87c7de42f6383278eb23"
+    },
+    "full-final": {
+      "exit_code": 0,
+      "outcome": "PASS",
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 180,
+      "stdout_sha256": "b3eb493172690ac5d696ea388adb1e635a7674c5d3998d63686c8620d321bd24"
+    }
+  },
+  "commit_author": "ljx418 <1173696783@qq.com>",
+  "contract": "reports/v0-s3/product-gate0/p3b-quality-contract.md",
+  "contract_changes": "none",
+  "contract_sha256": "d06a6688fa618cd9fef1cd7f362b8d165addc0030dde0b5aee77465c2a2c20a3",
+  "decision": "READY_FOR_REVIEW",
+  "earlier_diagnostic_rounds": [
+    {
+      "exit_code": "UNKNOWN",
+      "observed": "7 failed, 60 passed",
+      "round": 1,
+      "scope": "the pipeline masked the pytest exit status; the intended behaviour changes had not yet been applied to the affected expectations"
+    },
+    {
+      "exit_code": "UNKNOWN",
+      "observed": "2 failed, 65 passed",
+      "round": 2,
+      "scope": "the pipeline masked the pytest exit status; the cleanup diagnostic still carried a type suffix that changed the stable base code"
+    }
+  ],
+  "evidence_directory": "reports/v0-s3/product-gate0/implementation-p3b-correction-01",
+  "findings_addressed": {
+    "M01": "stable base-code classification, storage UNPROVEN halts the sends, terminal receipt inside the 8MiB/128MiB/256 bounds with honest post-write totals and an explicit non-persisted status",
+    "M02": "pinned run root and phase directory identity, full ancestor redirect guard, O_EXCL|O_NOFOLLOW writes, preexisting phase directory refused without any write",
+    "M03": "source and root re-verified immediately before the send, descriptor identity compared with the path identity after the bounded read, a changed source yields zero sends",
+    "M04": "ordinary cleanup exceptions never bypass the release or the full sixteen row terminal receipt, the original failure and the cleanup diagnostics are both kept",
+    "M05": "the public submission attempt is charged before the send, attempted and successful sends are reported separately, the provider reservation stays at 34",
+    "M06": "the reviewer and the session are one exact pair, a cross pair is rejected",
+    "M07": "the actual raw hash and the actual raw length are bound to both the execution record and the scoring record on every applicable row",
+    "M08": "per the adjudication: execution failure stays a quality FAIL, the verified critical evidence of an unusable row is retained, a known failure with verified raw and proven cleanup may resolve without being usable, the aggregate gate stays 8/10 + 5/6 + global critical zero, unknown evidence never passes",
+    "M09": "the exact production BridgeError raw envelopes and prior frame raw strings are preserved independently of the parse success, the provider after evidence is taken before the persistence",
+    "m01": "the release evidence must be finite; NaN, infinity and a boolean are rejected before a release is proven"
+  },
+  "fixed_denominator": {
+    "images": 10,
+    "total": 16,
+    "videos": 6
+  },
+  "fixture_state": {
+    "binary_media_committed": 0,
+    "cleanup_owner": "parent OwnedArchive",
+    "product_cleanup_claimed": false,
+    "repository_generated_phase_dirs": 0,
+    "synthetic_roots": "pytest temporary roots under /tmp/pytest-of-administrator plus the replay's own bounded root, which the replay deletes"
+  },
+  "guard_self_test": {
+    "blocked_attempts": {
+      "os_system": "BLOCKED",
+      "socket_bind": "BLOCKED",
+      "socket_connect": "BLOCKED",
+      "subprocess_popen": "BLOCKED"
+    },
+    "exit_code": 0,
+    "guard_effective": true,
+    "installed_before_pytest_import": true
+  },
+  "human_signature": false,
+  "independent_review": "PENDING_SEPARATE_INSTANCE",
+  "kind": "S3_P3B_AGGREGATE_CORRECTION_01_RECEIPT",
+  "machine_product_acceptance": false,
+  "merged_independent_review": "e2294724463efcab1a202a25563f76a24eea798f",
+  "merged_root_adjudication": "0c7d27b436abb81042e6ef160ef663ff3e1c4d22",
+  "next_owner": "Separate independent reviewer, then root architecture/gate owner",
+  "not_proven": [
+    "the parent capacity proof integration and the production video_snapshot_residue adapter",
+    "A06 network enforcement",
+    "the real finite sixteen-row run and the real product quality",
+    "the product Gate0, the independent scoring pass on real raw artifacts",
+    "the independent review of this candidate and the human signature"
+  ],
+  "original_39_28_directed_duplicates_repeated": false,
+  "p3a_121_p2b_237_full_project_repeated": false,
+  "product_gate0": false,
+  "projection": "reports/v0-s3/product-gate0/quality-execution-inputs.frozen.json",
+  "projection_sha256": "47e9f14efa66bc4df851bf1a738763b48c1728eed84b76c56a7848d1b01f00c3",
+  "pushed": false,
+  "real_actions": {
+    "downloads": 0,
+    "full_checkpoints": 0,
+    "gpu": 0,
+    "host_exe_hashing": 0,
+    "ledger_mutations": 0,
+    "media": 0,
+    "model_actions": 0,
+    "model_preloads": 0,
+    "network": 0,
+    "services": 0,
+    "windows_wsl": 0
+  },
+  "replayed_review_observations": {
+    "count": 13,
+    "exit_code": 0,
+    "note": "Observations of the independent review's counterexamples against the corrected implementation. A rejected probe is the observation of the correction, not a passing test.",
+    "own_fixture_cleanup": true,
+    "probes": [
+      {
+        "detail": null,
+        "outcome": "OBSERVED",
+        "probe": "baseline"
+      },
+      {
+        "detail": "QS_SCORE_REVIEWER_SESSION_PAIR_UNKNOWN:SYN-I00",
+        "outcome": "REJECTED",
+        "probe": "cross_paired_reviewer_session"
+      },
+      {
+        "detail": "QS_RAW_ARTIFACT_LENGTH_MISMATCH:SYN-I00",
+        "outcome": "REJECTED",
+        "probe": "execution_raw_length_mismatch"
+      },
+      {
+        "detail": null,
+        "outcome": "OBSERVED",
+        "probe": "failed_row_critical_evidence"
+      },
+      {
+        "detail": null,
+        "outcome": "OBSERVED",
+        "probe": "known_failed_independently_scored"
+      },
+      {
+        "detail": null,
+        "outcome": "OBSERVED",
+        "probe": "raw_persistence_failure"
+      },
+      {
+        "detail": null,
+        "outcome": "OBSERVED",
+        "probe": "source_mutation_in_authorize"
+      },
+      {
+        "detail": null,
+        "outcome": "OBSERVED",
+        "probe": "failed_submit_counter"
+      },
+      {
+        "detail": null,
+        "outcome": "OBSERVED",
+        "probe": "residue_exception"
+      },
+      {
+        "detail": null,
+        "outcome": "OBSERVED",
+        "probe": "receipt_total_cap"
+      },
+      {
+        "detail": null,
+        "outcome": "OBSERVED",
+        "probe": "artifact_ancestor_redirect"
+      },
+      {
+        "detail": null,
+        "outcome": "OBSERVED",
+        "probe": "nonfinite_release"
+      },
+      {
+        "detail": null,
+        "outcome": "OBSERVED",
+        "probe": "existing_directory"
+      }
+    ]
+  },
+  "scoring_thresholds": {
+    "critical_max": 0,
+    "usable_images": 8,
+    "usable_videos": 5
+  },
+  "source_files": {
+    "reports/v0-s3/product-gate0/implementation-p3b-correction-01/replay_review_probes.py": "05e2a4355440146c2ba47dc487208d95c7943dee9b46bc529649c37394eeeeb0",
+    "reports/v0-s3/product-gate0/implementation-p3b-correction-01/run_guarded_probe.py": "93b67413d8d7958274eebb41732cde602070eec5df89937b966076fa10857ef4",
+    "tools/test_v0_s3_quality_phase.py": "82fd901ea060ec17b4cbb4e54940214fed8a574f9300481314d650e35924fd57",
+    "tools/v0_s3_quality_phase.py": "941432c730a4cc6758b54dacb0a44e4000ac847dccbfc4aee492f2b13baa2dd3"
+  },
+  "stage_pass_claim": false,
+  "test_denominators": {
+    "directed_new_run": 28,
+    "full_run": 95,
+    "new_regressions": 28,
+    "preserved_original": 67,
+    "total": 95
+  },
+  "threshold_changes": "none"
+}
