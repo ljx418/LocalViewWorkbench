@@ -424,3 +424,99 @@ def test_correction03_archive_cleanup_callback_cannot_write_replacement(fixture,
     assert record['error'] == 'original final evidence failure'
     assert (detached / 'other-run/keep').read_bytes() == b'OTHER RUN'
     assert_lifecycle_closed(factory, opened)
+
+
+def _correction04_track(monkeypatch):
+    opened = []
+    original = os.open
+    def track(*args, **kwargs):
+        fd = original(*args, **kwargs)
+        opened.append(fd)
+        return fd
+    monkeypatch.setattr(os, 'open', track)
+    return opened
+
+
+def _correction04_closed(factory, opened):
+    assert factory._parent_fd is None and factory._root_fds == {}
+    assert factory._archiving is False
+    for fd in set(opened):
+        with pytest.raises(OSError): os.fstat(fd)
+
+
+def test_correction04_post_prepare_default_archive_warm_archive(fixture, monkeypatch):
+    import json
+    f = fixture
+    factory = InstalledPackageRuntimeFactory(**f.kwargs)
+    opened = _correction04_track(monkeypatch)
+    for label in ('default', 'warm'):
+        context = factory.prepare_default() if label == 'default' else factory.prepare_warm()
+        _correction04_closed(factory, opened)
+        result = factory.archive(context, context.driver.cleanup())
+        assert result['proven'] is True and not context.root.exists()
+        manifest = json.loads((f.directory / (label + '-raw/ARCHIVE_MANIFEST.json')).read_text())
+        assert manifest['cleanup']['proven'] is True
+        if label == 'default': assert manifest['owned_reparse_cleanup']['proven'] is True
+        else: assert manifest['owned_reparse_cleanup'] is None
+        assert manifest['candidate_sha'] == f.candidate
+        _correction04_closed(factory, opened)
+    assert f.sentinel.read_bytes() == b'UNRELATED ORIGINAL'
+    assert (f.sibling / 'keep').read_bytes() == b'OTHER RUN'
+
+
+@pytest.mark.parametrize('fault', ['parent-replaced', 'root-replaced', 'parent-open', 'root-open',
+                                  'callback-error', 'callback-move', 'authorize-move', 'reentry'])
+def test_correction04_archive_refuses_and_releases(fixture, monkeypatch, fault):
+    f = fixture
+    factory = InstalledPackageRuntimeFactory(**f.kwargs)
+    context = factory.prepare_default()
+    cleanup = context.driver.cleanup()
+    opened = _correction04_track(monkeypatch)
+    original_open = os.open
+    detached = f.root / 'correction04-detached'
+    def move_parent():
+        f.directory.rename(detached)
+        f.directory.mkdir()
+        (f.directory / 'foreign').write_bytes(b'UNCHANGED')
+    if fault == 'parent-replaced': move_parent()
+    if fault == 'root-replaced':
+        context.root.rename(detached)
+        context.root.mkdir()
+        (context.root / 'foreign').write_bytes(b'UNCHANGED')
+    if fault in ('parent-open', 'root-open'):
+        def fail_open(path, flags, *args, **kwargs):
+            if (fault == 'parent-open' and path == f.directory.name or
+                    fault == 'root-open' and path == context.root.name):
+                raise OSError('correction04 acquire failure')
+            return original_open(path, flags, *args, **kwargs)
+        monkeypatch.setattr(os, 'open', fail_open)
+    remove = context.driver.remove_owned_reparse_fixture
+    if fault in ('callback-error', 'callback-move', 'reentry'):
+        def callback(root):
+            result = remove(root)
+            if fault == 'callback-error': raise ValueError('correction04 callback failure')
+            if fault == 'callback-move': move_parent()
+            if fault == 'reentry': factory.archive(context, cleanup)
+            return result
+        monkeypatch.setattr(context.driver, 'remove_owned_reparse_fixture', callback)
+    if fault == 'authorize-move':
+        # Keep the production wrapper; mutate in its original authority callback.
+        original = factory.archive.original.authorize
+        def authorize(*args):
+            result = original(*args)
+            move_parent()
+            return result
+        monkeypatch.setattr(factory.archive.original, 'authorize', authorize)
+    with pytest.raises((ValueError, OSError)):
+        factory.archive(context, cleanup)
+    assert not (f.directory / 'default-raw').exists()
+    if fault in ('parent-replaced', 'callback-move', 'authorize-move'):
+        assert sorted(p.name for p in f.directory.iterdir()) == ['foreign']
+        assert (f.directory / 'foreign').read_bytes() == b'UNCHANGED'
+        assert (detached / context.root.name).is_dir()
+        assert (detached / 'other-run/keep').read_bytes() == b'OTHER RUN'
+    elif fault == 'root-replaced':
+        assert detached.is_dir() and (context.root / 'foreign').read_bytes() == b'UNCHANGED'
+    else: assert context.root.is_dir()
+    monkeypatch.setattr(os, 'open', original_open)
+    _correction04_closed(factory, opened)

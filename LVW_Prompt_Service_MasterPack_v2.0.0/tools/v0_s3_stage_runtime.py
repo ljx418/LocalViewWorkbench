@@ -7,7 +7,7 @@ import copy
 import os
 import stat
 import secrets
-from contextlib import ExitStack
+from contextlib import ExitStack, contextmanager
 import re
 import time
 from pathlib import Path
@@ -66,10 +66,10 @@ class _DeploymentArchive:
     def __call__(self, context, cleanup):
         if context.root in self.retained:
             raise EvidenceError('failed protected deployment retained; pathname archive deletion forbidden')
-        self.factory._preparation_guard()
-        archive_context = SimpleNamespace(root=context.root, binding=context.binding,
-            driver=_ArchiveCleanupBoundary(context.driver, self.factory))
-        return self.original(archive_context, cleanup)
+        with self.factory._archive_lifecycle(context):
+            archive_context = SimpleNamespace(root=context.root, binding=context.binding,
+                driver=_ArchiveCleanupBoundary(context.driver, self.factory))
+            return self.original(archive_context, cleanup)
 
 
 class InstalledPackageRuntimeFactory(StageRuntimeFactory):
@@ -82,6 +82,8 @@ class InstalledPackageRuntimeFactory(StageRuntimeFactory):
         self.preparation_failures = {}
         self._parent_fd = None
         self._root_fds = {}
+        self._archive_identities = {}
+        self._archiving = False
         original_authorize = self.authorize
         def authorize(*args):
             self._preparation_guard()
@@ -91,6 +93,10 @@ class InstalledPackageRuntimeFactory(StageRuntimeFactory):
         self.authorize = authorize
         original_archive_authorize = self.archive.original.authorize
         def archive_authorize(*args):
+            # Direct legacy-owner callers retain their existing semantics;
+            # the protected adapter always establishes its own active context.
+            if self._parent_fd is None:
+                return original_archive_authorize(*args)
             self._preparation_guard()
             result = original_archive_authorize(*args)
             self._preparation_guard()
@@ -99,7 +105,7 @@ class InstalledPackageRuntimeFactory(StageRuntimeFactory):
 
     def _preparation_guard(self):
         if self._parent_fd is None:
-            return  # Outside preparation, existing context ownership checks apply.
+            raise EvidenceError('protected lifecycle descriptor unavailable')
         current = plain(self.directory).stat()
         pinned = os.fstat(self._parent_fd)
         if (current.st_dev, current.st_ino) != (pinned.st_dev, pinned.st_ino):
@@ -115,6 +121,57 @@ class InstalledPackageRuntimeFactory(StageRuntimeFactory):
         fd, name, identity = self._root_fds[label]
         if identity != (before.st_dev, before.st_ino):
             raise EvidenceError('registered root differs from allocated original identity')
+        parent = os.fstat(self._parent_fd)
+        self._archive_identities[label] = ((parent.st_dev, parent.st_ino), name,
+            identity, self.run_id, self.candidate, self.auth)
+
+    @contextmanager
+    def _archive_lifecycle(self, context):
+        if self._archiving:
+            raise EvidenceError('archive lifecycle reentry')
+        matches = [label for label, record in self._archive_identities.items()
+                   if self.directory / record[1] == context.root]
+        if len(matches) != 1:
+            raise EvidenceError('archive original preparation identity unavailable')
+        label = matches[0]
+        parent_identity, name, identity, run_id, candidate, auth = self._archive_identities[label]
+        if ((self.run_id, self.candidate, self.auth) != (run_id, candidate, auth)
+                or context.binding.get('run_id', run_id) != run_id
+                or context.binding.get('candidate_sha') != candidate
+                or context.binding.get('authorization_sha256') != auth
+                or self.archive.original.leases.get(label) != (context.root, *identity)):
+            raise EvidenceError('archive preparation binding mismatch')
+        active = self._parent_fd is not None
+        self._archiving = True
+        try:
+            with ExitStack() as stack:
+                if active:
+                    if set(self._root_fds) != {label} or self._root_fds[label][1:] != (name, identity):
+                        raise EvidenceError('archive active preparation root mismatch')
+                else:
+                    parent = stack.enter_context(directory_handle(self.directory))
+                    info = os.fstat(parent)
+                    if (info.st_dev, info.st_ino) != parent_identity:
+                        raise EvidenceError('archive original parent identity drift')
+                    root = os.open(name, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=parent)
+                    stack.callback(os.close, root)
+                    info = os.fstat(root)
+                    if (info.st_dev, info.st_ino) != identity:
+                        raise EvidenceError('archive original root identity drift')
+                    self._parent_fd = parent
+                    self._root_fds[label] = (root, name, identity)
+                info = os.fstat(self._parent_fd)
+                if (info.st_dev, info.st_ino) != parent_identity:
+                    raise EvidenceError('archive active parent identity mismatch')
+                self._preparation_guard()
+                self.archive.original.lease(label)
+                yield
+                # Successful owner deletion is terminal: do not require root existence here.
+        finally:
+            if not active:
+                self._root_fds.clear()
+                self._parent_fd = None
+            self._archiving = False
 
     def _preparation_boundary(self):
         self._preparation_guard()

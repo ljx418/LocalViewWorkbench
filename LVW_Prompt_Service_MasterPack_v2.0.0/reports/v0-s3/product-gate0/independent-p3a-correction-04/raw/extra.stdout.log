@@ -1,0 +1,104 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-8.4.2, pluggy-1.6.0 -- /usr/bin/python3
+rootdir: /home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0
+collecting ... collected 6 items
+
+reports/v0-s3/product-gate0/independent-p3a-correction-04/test_archive_lifetime_gaps.py::test_returned_browser_context_remains_usable_after_prepare[verify_bindings] RETURNED_BROWSER_CONTEXT {"authority_calls_after_prepare": 0, "callback": "verify_bindings", "error": "protected lifecycle descriptor unavailable", "error_type": "EvidenceError", "parent_fd": null, "root_exists": true}
+FAILED
+reports/v0-s3/product-gate0/independent-p3a-correction-04/test_archive_lifetime_gaps.py::test_returned_browser_context_remains_usable_after_prepare[authorize_launch] RETURNED_BROWSER_CONTEXT {"authority_calls_after_prepare": 0, "callback": "authorize_launch", "error": "protected lifecycle descriptor unavailable", "error_type": "EvidenceError", "parent_fd": null, "root_exists": true}
+FAILED
+reports/v0-s3/product-gate0/independent-p3a-correction-04/test_archive_lifetime_gaps.py::test_archive_context_mismatch_refused_before_owner_side_effects[candidate_sha] ARCHIVE_CONTEXT_REFUSAL {"field": "candidate_sha", "rejected": true, "valid_original_after_refusal": true}
+PASSED
+reports/v0-s3/product-gate0/independent-p3a-correction-04/test_archive_lifetime_gaps.py::test_archive_context_mismatch_refused_before_owner_side_effects[authorization_sha256] ARCHIVE_CONTEXT_REFUSAL {"field": "authorization_sha256", "rejected": true, "valid_original_after_refusal": true}
+PASSED
+reports/v0-s3/product-gate0/independent-p3a-correction-04/test_archive_lifetime_gaps.py::test_archive_context_mismatch_refused_before_owner_side_effects[run_id] ARCHIVE_CONTEXT_REFUSAL {"field": "run_id", "rejected": true, "valid_original_after_refusal": true}
+PASSED
+reports/v0-s3/product-gate0/independent-p3a-correction-04/test_archive_lifetime_gaps.py::test_successful_archive_cannot_be_replayed ARCHIVE_REPLAY_REFUSED {"error": "[Errno 2] No such file or directory: 'lvw-s2-default-0ffa5f4a9a3dcd68'", "manifest_unchanged": true}
+PASSED
+
+=================================== FAILURES ===================================
+_ test_returned_browser_context_remains_usable_after_prepare[verify_bindings] __
+
+fixture = namespace(monkeypatch=<_pytest.monkeypatch.MonkeyPatch object at 0x7d46c1f817f0>, temporary='/tmp/lvw-p3a-owned-4w7rv8...ll': PosixPath('/tmp/lvw-p3a-owned-4w7rv8nb/powershell')}, repo=PosixPath('/tmp/lvw-p3a-owned-4w7rv8nb/synthetic-git'))
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7d46c1f817f0>
+callback = 'verify_bindings'
+
+    @pytest.mark.parametrize('callback', ['verify_bindings', 'authorize_launch'])
+    def test_returned_browser_context_remains_usable_after_prepare(fixture, monkeypatch, callback):
+        f = fixture
+        actions = []
+        kwargs = dict(f.kwargs)
+        kwargs['authorize'] = lambda *args: actions.append(args)
+        kwargs['guard_critical'] = lambda: {'complete_rehash':False, 'manifest_sha256':'e'*64,
+                                          'critical_files':[key.upper() for key in TOOL_KEYS]}
+        factory = InstalledPackageRuntimeFactory(**kwargs)
+        context = factory.prepare_default()
+        assert factory._parent_fd is None and factory._root_fds == {}
+        before = len(actions)
+        try:
+            if callback == 'verify_bindings':
+>               result = context.verify_bindings(context.browser_config, 'independent-probe')
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+reports/v0-s3/product-gate0/independent-p3a-correction-04/test_archive_lifetime_gaps.py:24: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_s2_stage_runtime.py:239: in verify
+    self.authorize('verify_browser_runtime_bindings', action)
+tools/v0_s3_stage_runtime.py:89: in authorize
+    self._preparation_guard()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <tools.v0_s3_stage_runtime.InstalledPackageRuntimeFactory object at 0x7d46c20ea420>
+
+    def _preparation_guard(self):
+        if self._parent_fd is None:
+>           raise EvidenceError('protected lifecycle descriptor unavailable')
+E           tools.v0_s2_checkpoint_oracles.EvidenceError: protected lifecycle descriptor unavailable
+
+tools/v0_s3_stage_runtime.py:108: EvidenceError
+_ test_returned_browser_context_remains_usable_after_prepare[authorize_launch] _
+
+fixture = namespace(monkeypatch=<_pytest.monkeypatch.MonkeyPatch object at 0x7d46c1f83d70>, temporary='/tmp/lvw-p3a-owned-wf18p_...ll': PosixPath('/tmp/lvw-p3a-owned-wf18p_lr/powershell')}, repo=PosixPath('/tmp/lvw-p3a-owned-wf18p_lr/synthetic-git'))
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7d46c1f83d70>
+callback = 'authorize_launch'
+
+    @pytest.mark.parametrize('callback', ['verify_bindings', 'authorize_launch'])
+    def test_returned_browser_context_remains_usable_after_prepare(fixture, monkeypatch, callback):
+        f = fixture
+        actions = []
+        kwargs = dict(f.kwargs)
+        kwargs['authorize'] = lambda *args: actions.append(args)
+        kwargs['guard_critical'] = lambda: {'complete_rehash':False, 'manifest_sha256':'e'*64,
+                                          'critical_files':[key.upper() for key in TOOL_KEYS]}
+        factory = InstalledPackageRuntimeFactory(**kwargs)
+        context = factory.prepare_default()
+        assert factory._parent_fd is None and factory._root_fds == {}
+        before = len(actions)
+        try:
+            if callback == 'verify_bindings':
+                result = context.verify_bindings(context.browser_config, 'independent-probe')
+            else:
+>               result = context.authorize_launch(context.browser_config)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+reports/v0-s3/product-gate0/independent-p3a-correction-04/test_archive_lifetime_gaps.py:26: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_s2_stage_runtime.py:248: in launch
+    self.authorize('authorize_original_browser_worker', label); self._complete()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_s3_stage_runtime.py:89: in authorize
+    self._preparation_guard()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <tools.v0_s3_stage_runtime.InstalledPackageRuntimeFactory object at 0x7d46c1f83e00>
+
+    def _preparation_guard(self):
+        if self._parent_fd is None:
+>           raise EvidenceError('protected lifecycle descriptor unavailable')
+E           tools.v0_s2_checkpoint_oracles.EvidenceError: protected lifecycle descriptor unavailable
+
+tools/v0_s3_stage_runtime.py:108: EvidenceError
+=========================== short test summary info ============================
+FAILED reports/v0-s3/product-gate0/independent-p3a-correction-04/test_archive_lifetime_gaps.py::test_returned_browser_context_remains_usable_after_prepare[verify_bindings]
+FAILED reports/v0-s3/product-gate0/independent-p3a-correction-04/test_archive_lifetime_gaps.py::test_returned_browser_context_remains_usable_after_prepare[authorize_launch]
+========================= 2 failed, 4 passed in 0.92s ==========================
