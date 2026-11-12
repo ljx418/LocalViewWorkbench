@@ -1,0 +1,8 @@
+Root复核完整候选ab71876b57663c60cc5ca39cb528e24055b48c4a，11 pins一致。前三项已有实质进展，但完整终结调用路径仍有两处遗漏，暂不签发机器绑定，启动数0；既有授权足够，不需人工再批。
+CPU-REAP-FINAL-WAIT
+实际：_stop_child now recomputes child/session remaining correctly. But reap then calls process.wait(timeout=min(session_remaining,5.0)), ignoring child deadline. At age9.5 after failed stop consumes remaining0.5, this final wait may extend lifetime observation to15s.
+要求：Use the same child/session absolute deadline for EVERY wait including reap final proof wait. Test through reap (not just _stop_child): fake clock9.5, terminate/kill cannot prove exit, each wait advances by timeout; no final wait beyond10.0, UNKNOWN retained. Also session-limited variant.
+CPU-SETTLE-BEFORE-CLEANUP
+实际：Session settlement/evidence occur before source_hasher and remover. Their elapsed wall is absent from global actual wall and settled receipt, contrary to cleanup-inclusive budget.
+要求：Reorder terminal accounting to include hash/removal work. Preserve a root/control anchor until successful settlement; settlement failure must retain/recreate a diagnostic root/marker and nonzero receipt. Capture evidence after settlement. Use fake clock advanced by hasher/remover to verify real finalizer global wall includes cleanup, failure paths retain evidence, and settlement remains exactly once. No new general-purpose transaction framework needed.
+请本次一次性审视从revoke、stop、最后wait、hash、remove、settlement、evidence的完整路径，避免仅helper测试通过而调用者绕过。只做针对性零进程fake-clock/fake-handle/finalizer测试并保留原始日志/退出码，不重跑旧71/257套件；禁止创建counter/启动fixture。提交后回报完整SHA供root复核。429立即停止规则不变。根记录 reports/v0-s3/product-gate0/s3-integration-cpu-gate-review-05.json。

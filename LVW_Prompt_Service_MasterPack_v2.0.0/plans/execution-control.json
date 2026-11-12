@@ -1819,7 +1819,7 @@
   },
   "s3_integration": {
     "workpack_id": "S3-P4-OFFLINE",
-    "status": "CLAUDE_MACHINE_GATE_CHILD_DEADLINE_AND_SETTLEMENT_CORRECTION_ZERO_PROCESS",
+    "status": "CLAUDE_MACHINE_GATE_FULL_FINALIZER_CORRECTION_ZERO_PROCESS",
     "contract": "reports/v0-s3/product-gate0/s3-integration-offline-contract-01.md",
     "task": "reports/v0-s3/product-gate0/implementation-integration-01.task.md",
     "acceptance_matrix": "reports/v0-s3/product-gate0/s3-integration-acceptance-01.json",
@@ -1842,16 +1842,15 @@
     "launch_receipt": "reports/v0-s3/product-gate0/implementation-integration-01.launch.json",
     "retry_env": "reports/v0-s3/product-gate0/implementation-integration-01.retry-env.json",
     "machine_gate": {
-      "status": "CHANGES_REQUIRED_CHILD_DEADLINE_UNKNOWN_AND_SETTLEMENT_WIRING",
-      "review": "reports/v0-s3/product-gate0/s3-integration-cpu-gate-review-04.json",
-      "question_id": "msg_c5814bdf6fe1",
-      "candidate_sha": "57dff7c261c4dee79dc81240063644273cbffff4",
+      "status": "CHANGES_REQUIRED_FULL_FINALIZER_DEADLINE_AND_ACCOUNTING",
+      "review": "reports/v0-s3/product-gate0/s3-integration-cpu-gate-review-05.json",
+      "question_id": "msg_83dd0c0fff47",
+      "candidate_sha": "ab71876b57663c60cc5ca39cb528e24055b48c4a",
       "fixture_starts_authorized": 0,
       "human_authorization_required": false,
       "execution_permitted": false,
-      "reply_body": "reports/v0-s3/product-gate0/s3-integration-cpu-gate-review-04.reply-body.txt",
-      "next": "Correct bounded child termination, UNKNOWN watchdog action and actual runner session settlement; focused zero-process validation then root recheck.",
-      "reply_message_id": "msg_06b7fa6d88ac"
+      "reply_body": "reports/v0-s3/product-gate0/s3-integration-cpu-gate-review-05.reply-body.txt",
+      "next": "Fix final reaper wait deadline and cleanup-inclusive terminal accounting via full finalizer tests."
     }
   }
 }

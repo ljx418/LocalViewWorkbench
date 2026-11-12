@@ -1,0 +1,32 @@
+{
+  "kind": "ROOT_CPU_MACHINE_GATE_REVIEW_05_NOT_EXECUTION_GRANT",
+  "at_utc": "2026-11-12T15:29:32.840608+00:00",
+  "question_id": "msg_83dd0c0fff47",
+  "candidate_sha": "ab71876b57663c60cc5ca39cb528e24055b48c4a",
+  "source_pins_verified": 11,
+  "decision": "CHANGES_REQUIRED_FULL_FINALIZER_DEADLINE_AND_ACCOUNTING",
+  "execution_permitted": false,
+  "human_authorization_required": false,
+  "progress": [
+    "Absolute deadline inside stop helper fixed",
+    "UNKNOWN watchdog action bounded and retained",
+    "Real finalizer invokes settlement and captures settlement failures"
+  ],
+  "findings": [
+    {
+      "id": "CPU-REAP-FINAL-WAIT",
+      "location": "executor.py FiniteCpuExecutor.reap final process.wait",
+      "actual": "_stop_child now recomputes child/session remaining correctly. But reap then calls process.wait(timeout=min(session_remaining,5.0)), ignoring child deadline. At age9.5 after failed stop consumes remaining0.5, this final wait may extend lifetime observation to15s.",
+      "required": "Use the same child/session absolute deadline for EVERY wait including reap final proof wait. Test through reap (not just _stop_child): fake clock9.5, terminate/kill cannot prove exit, each wait advances by timeout; no final wait beyond10.0, UNKNOWN retained. Also session-limited variant."
+    },
+    {
+      "id": "CPU-SETTLE-BEFORE-CLEANUP",
+      "location": "run_guarded_checks.py finalize_session",
+      "actual": "Session settlement/evidence occur before source_hasher and remover. Their elapsed wall is absent from global actual wall and settled receipt, contrary to cleanup-inclusive budget.",
+      "required": "Reorder terminal accounting to include hash/removal work. Preserve a root/control anchor until successful settlement; settlement failure must retain/recreate a diagnostic root/marker and nonzero receipt. Capture evidence after settlement. Use fake clock advanced by hasher/remover to verify real finalizer global wall includes cleanup, failure paths retain evidence, and settlement remains exactly once. No new general-purpose transaction framework needed."
+    }
+  ],
+  "verification": "Read-only source and 11 hash pins; no candidate imports, test subprocess, counter creation or product runtime. No suites rerun.",
+  "stage_pass_claim": false,
+  "product_gate0": false
+}
