@@ -67,7 +67,7 @@ completion count was advanced by this batch.** V0-S3 stays 0/6: this is offline 
 5. 全局路线位置: offline quality integration (QD+QS) → independent review of this candidate → root
    architecture/gate decision → frozen complete product Gate0 (real profiles, A06, rollback, the fixed
    twelve items) → finite same-source real run → independent acceptance → required human signature.
-6. 剩余工作: independent isolated review of candidate `667da62`; the real runtime staging (actual
+6. 剩余工作: independent isolated review of candidate `cea5bf3`; the real runtime staging (actual
    profile, model digest, media preparation, child authorization, single GPU), the real finite
    sixteen-row run, the independent scoring pass on the real raw artifacts and the required human
    experience signature.
@@ -199,7 +199,7 @@ reconstructed as raw streams:
 
 No failed run was rewritten or deleted, and no diagnostic round is counted as a passing acceptance.
 Only the four guarded runs above are acceptance evidence, and they bind the final candidate
-`667da62`. Every repair round produced new evidence (a different, newly located defect), so this is
+`cea5bf3`. Every repair round produced new evidence (a different, newly located defect), so this is
 not the prohibited two-same-route-repairs-without-evidence pattern; the sequence stopped as soon as
 the frozen contract was fully covered.
 
