@@ -1,0 +1,30 @@
+........................................................................ [ 64%]
+.......................F................                                 [100%]
+=================================== FAILURES ===================================
+___ test_correction02_m01_the_persisted_receipt_states_its_own_final_totals ____
+
+tmp_path = PosixPath('/tmp/pytest-of-administrator/pytest-50/test_correction02_m01_the_pers0')
+
+    def test_correction02_m01_the_persisted_receipt_states_its_own_final_totals(tmp_path):
+        phase, driver, _ = _prepare(tmp_path)
+        receipt = phase.run()
+        stored_path = phase.directory / "qd-receipt.json"
+        stored_bytes = stored_path.read_bytes()
+        stored = json.loads(stored_bytes.decode("utf-8"))
+        files = [path for path in phase.directory.rglob("*") if path.is_file()]
+        actual_bytes = sum(path.stat().st_size for path in files)
+        assert stored["receipt_bytes"] == len(stored_bytes), (stored["receipt_bytes"], len(stored_bytes))
+        assert stored["artifact_files_including_receipt"] == len(files), stored
+        assert stored["artifact_bytes_including_receipt"] == actual_bytes, stored
+        assert stored["receipt_persisted"] is True, stored
+        assert stored["terminal_status"] == "TERMINAL_RECEIPT_PERSISTED", stored
+        # The publication retains the staged entry and the canonical entry; both
+        # share one inode and both are counted.
+        assert stored["artifact_files"] == len(files) - 2, stored
+        assert stored["artifact_bytes"] == actual_bytes - 2 * len(stored_bytes), stored
+>       assert stored["staged_receipt_retained"] is True, stored
+E       AssertionError: {'artifact_bytes': 117094, 'artifact_bytes_including_receipt': 222800, 'artifact_files': 136, 'artifact_files_including_receipt': 138, ...}
+E       assert False is True
+
+tools/test_v0_s3_quality_phase.py:1650: AssertionError
+1 failed, 111 passed in 12.15s

@@ -1,0 +1,24 @@
+.............................F...                                        [100%]
+=================================== FAILURES ===================================
+_ test_correction03_nm01_a_proof_diminished_at_the_handoff_refuses_every_send __
+
+tmp_path = PosixPath('/tmp/pytest-of-administrator/pytest-58/test_correction03_nm01_a_proof1')
+
+    def test_correction03_nm01_a_proof_diminished_at_the_handoff_refuses_every_send(tmp_path):
+        clock = FakeClock(step=0.0)
+        proof = _parent_proof(clock)
+        phase, driver, _ = _prepare(tmp_path, clock=clock, parent_budget=proof)
+    
+        def authorize(action, subject):
+            if action == "quality_public_submit":
+                proof["action_capacity"] = 0
+    
+        phase.authorize = authorize
+        receipt = phase.run()
+>       assert driver.submissions == 0, driver.submissions
+E       AssertionError: 16
+E       assert 16 == 0
+E        +  where 16 = <test_v0_s3_quality_phase.SyntheticDriver object at 0x7ebca3bbeab0>.submissions
+
+tools/test_v0_s3_quality_phase.py:2137: AssertionError
+1 failed, 32 passed, 112 deselected in 5.69s

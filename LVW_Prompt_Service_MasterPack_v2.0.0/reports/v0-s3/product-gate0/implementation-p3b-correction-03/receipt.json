@@ -1,0 +1,323 @@
+{
+  "adjudication": "reports/v0-s3/product-gate0/p3b-correction-03.adjudication.json",
+  "base_commit": "1294f0c23b5352a8afc4fd0d6d0fe101c6cb8bbd",
+  "candidate_sha": "630853c63a919433ccf31958d36179e4e0b3bdee",
+  "checks": {
+    "correction02-probe-replay": {
+      "exit_code": 0,
+      "outcome": "PASS",
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 6740,
+      "stdout_sha256": "c08a30216e7e156cb23fd91845b09fc5be0e2ccb038819cf712ce5f95110b542"
+    },
+    "full-final": {
+      "exit_code": 0,
+      "outcome": "PASS",
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 261,
+      "stdout_sha256": "2b15d92bc4ccc81b8ae80a06d656f1cf3076eeda9c8f78d51a153a3a8e2e5c78"
+    }
+  },
+  "closed_by_the_correction02_review_and_retained": [
+    "M02",
+    "M03",
+    "M04",
+    "M05",
+    "M06",
+    "M07",
+    "M09",
+    "m01"
+  ],
+  "commit_author": "ljx418 <1173696783@qq.com>",
+  "contract": "reports/v0-s3/product-gate0/p3b-quality-contract.md",
+  "contract_changes": "none",
+  "contract_sha256": "d06a6688fa618cd9fef1cd7f362b8d165addc0030dde0b5aee77465c2a2c20a3",
+  "correction01_directed_28_repeated": false,
+  "decision": "READY_FOR_REVIEW",
+  "denominator_changes": "none",
+  "editing_diagnostics": [
+    {
+      "exit_code": 0,
+      "label": "edit-01",
+      "outcome": "PASS"
+    },
+    {
+      "exit_code": 1,
+      "label": "edit-02",
+      "outcome": "FAIL"
+    },
+    {
+      "exit_code": 1,
+      "label": "edit-03",
+      "outcome": "FAIL"
+    },
+    {
+      "exit_code": 1,
+      "label": "edit-04",
+      "outcome": "FAIL"
+    },
+    {
+      "exit_code": 0,
+      "label": "edit-05",
+      "outcome": "PASS"
+    },
+    {
+      "exit_code": 1,
+      "label": "edit-06",
+      "outcome": "FAIL"
+    },
+    {
+      "exit_code": 1,
+      "label": "edit-07",
+      "outcome": "FAIL"
+    },
+    {
+      "exit_code": 0,
+      "label": "edit-08",
+      "outcome": "PASS"
+    },
+    {
+      "exit_code": 1,
+      "label": "edit-09",
+      "outcome": "FAIL"
+    },
+    {
+      "exit_code": 1,
+      "label": "edit-10",
+      "outcome": "FAIL"
+    },
+    {
+      "exit_code": 1,
+      "label": "edit-11",
+      "outcome": "FAIL"
+    },
+    {
+      "exit_code": 1,
+      "label": "edit-12",
+      "outcome": "FAIL"
+    },
+    {
+      "exit_code": 0,
+      "label": "edit-13",
+      "outcome": "PASS"
+    },
+    {
+      "exit_code": 0,
+      "label": "edit-14",
+      "outcome": "PASS"
+    }
+  ],
+  "evidence_directory": "reports/v0-s3/product-gate0/implementation-p3b-correction-03",
+  "findings_addressed": {
+    "M01": "the bounded canonical payload is staged under the pinned descriptor parent, flushed and fsynced there, and only a successful durable staging is published under the canonical name with a no-overwrite hard link; unpublished staged bytes are explicitly non-authoritative and rejected by the canonical loader; a failed staging leaves no canonical success, returns a blocked receipt with unknown storage and preserves the failed evidence that a replay cannot overwrite; the honest accounting counts both retained entries; the crash durability limit is stated",
+    "M08": "the source, storage and cleanup evidence has complete typed shared validators used by both the execution phase and the scoring entry point; the source carries the full typed descriptor identity, size, hash and a run-root bound path; the release carries the actual bounded native proof; the execution emits the uncertainty booleans explicitly and the scoring requires the literal False; only a published canonical receipt is authority",
+    "NM01": "one final local send-admission guard after all controlled callbacks revalidates the ownership, the typed parent proof identity, validity interval and current remaining capacity; the reservation and the attempt charge happen immediately before the submit with no unchecked callback in between; the cumulative reservation never exceeds the admitted capacity or 34; there is no refund and no retry",
+    "NM02": "the same guard refuses a send past the phase deadline and a non finite, boolean or decreasing clock; the cooperative checks are kept and the mandatory parent process supervision stays UNIMPLEMENTED_PRODUCT_GATE0_BLOCKER"
+  },
+  "fixed_denominator": {
+    "images": 10,
+    "total": 16,
+    "videos": 6
+  },
+  "fixture_state": {
+    "binary_media_committed": 0,
+    "cleanup_owner": "parent OwnedArchive",
+    "editing_diagnostics_retained": "reports/v0-s3/product-gate0/implementation-p3b-correction-03/editing-diagnostics",
+    "product_cleanup_claimed": false,
+    "repository_generated_phase_dirs": 0,
+    "synthetic_roots": "pytest temporary roots under /tmp/pytest-of-administrator plus the replay's own bounded root, which the replay deletes"
+  },
+  "guard_self_test": {
+    "blocked_attempts": {
+      "os_system": "BLOCKED",
+      "socket_bind": "BLOCKED",
+      "socket_connect": "BLOCKED",
+      "subprocess_popen": "BLOCKED"
+    },
+    "exit_code": 0,
+    "guard_effective": true,
+    "installed_before_pytest_import": true
+  },
+  "human_signature": false,
+  "independent_review": "PENDING_SEPARATE_INSTANCE",
+  "kind": "S3_P3B_AGGREGATE_CORRECTION_03_RECEIPT",
+  "machine_product_acceptance": false,
+  "merged_independent_review": "12906163857a34bfc9afa8fa52a66dfa6fae296a",
+  "merged_root_adjudication": "1294f0c23b5352a8afc4fd0d6d0fe101c6cb8bbd",
+  "next_owner": "Separate independent reviewer, then root architecture/gate owner",
+  "not_proven": [
+    "the mandatory parent process supervision and owned cleanup (UNIMPLEMENTED_PRODUCT_GATE0_BLOCKER)",
+    "the production video_snapshot_residue adapter",
+    "the parent admission integration and the authentic provider debit",
+    "A06 network enforcement",
+    "the real finite sixteen-row run and the real product quality",
+    "the product Gate0 and its fixed twelve items",
+    "the independent review of this candidate and the human signature"
+  ],
+  "original_39_28_directed_duplicates_repeated": false,
+  "p3a_121_p2b_237_full_project_repeated": false,
+  "product_gate0": false,
+  "projection": "reports/v0-s3/product-gate0/quality-execution-inputs.frozen.json",
+  "projection_sha256": "47e9f14efa66bc4df851bf1a738763b48c1728eed84b76c56a7848d1b01f00c3",
+  "pushed": false,
+  "real_actions": {
+    "downloads": 0,
+    "full_checkpoints": 0,
+    "gpu": 0,
+    "host_exe_hashing": 0,
+    "hung_processes": 0,
+    "ledger_mutations": 0,
+    "media": 0,
+    "model_actions": 0,
+    "model_preloads": 0,
+    "network": 0,
+    "services": 0,
+    "windows_wsl": 0
+  },
+  "replayed_correction02_observations": {
+    "count": 22,
+    "exit_code": 0,
+    "note": "Observations of the correction-02 review's counterexamples against the corrected implementation. A rejected probe is the observation of the correction, not a passing test. The original probe files are immutable and were only read.",
+    "own_fixture_cleanup": true,
+    "probes": [
+      {
+        "detail": null,
+        "outcome": "OBSERVED",
+        "probe": "baseline"
+      },
+      {
+        "detail": null,
+        "outcome": "OBSERVED",
+        "probe": "persisted_receipt_totals"
+      },
+      {
+        "detail": null,
+        "outcome": "OBSERVED",
+        "probe": "actual_run_staging_fsync_failure"
+      },
+      {
+        "detail": null,
+        "outcome": "OBSERVED",
+        "probe": "storage_flag_missing"
+      },
+      {
+        "detail": null,
+        "outcome": "OBSERVED",
+        "probe": "storage_flag_null"
+      },
+      {
+        "detail": null,
+        "outcome": "OBSERVED",
+        "probe": "cleanup_flag_missing"
+      },
+      {
+        "detail": null,
+        "outcome": "OBSERVED",
+        "probe": "source_identity_missing"
+      },
+      {
+        "detail": null,
+        "outcome": "OBSERVED",
+        "probe": "source_path_foreign"
+      },
+      {
+        "detail": null,
+        "outcome": "OBSERVED",
+        "probe": "release_details_missing"
+      },
+      {
+        "detail": null,
+        "outcome": "OBSERVED",
+        "probe": "known_failed_critical3"
+      },
+      {
+        "detail": null,
+        "outcome": "OBSERVED",
+        "probe": "proof_expires_before_first_send"
+      },
+      {
+        "detail": null,
+        "outcome": "OBSERVED",
+        "probe": "proof_diminishes_before_first_send"
+      },
+      {
+        "detail": null,
+        "outcome": "OBSERVED",
+        "probe": "cooperative_phase_deadline_before_send"
+      },
+      {
+        "detail": null,
+        "outcome": "OBSERVED",
+        "probe": "clock_nonfinite"
+      },
+      {
+        "detail": null,
+        "outcome": "OBSERVED",
+        "probe": "clock_boolean"
+      },
+      {
+        "detail": null,
+        "outcome": "OBSERVED",
+        "probe": "actual_artifact_exact"
+      },
+      {
+        "detail": null,
+        "outcome": "OBSERVED",
+        "probe": "actual_artifact_over"
+      },
+      {
+        "detail": null,
+        "outcome": "OBSERVED",
+        "probe": "actual_total_exact"
+      },
+      {
+        "detail": null,
+        "outcome": "OBSERVED",
+        "probe": "actual_total_over"
+      },
+      {
+        "detail": null,
+        "outcome": "OBSERVED",
+        "probe": "actual_files_exact"
+      },
+      {
+        "detail": null,
+        "outcome": "OBSERVED",
+        "probe": "actual_files_over"
+      },
+      {
+        "detail": null,
+        "outcome": "OBSERVED",
+        "probe": "receipt_replay_cannot_overwrite"
+      }
+    ]
+  },
+  "scoring_thresholds": {
+    "critical_max": 0,
+    "per_sample_score_min": 8,
+    "usable_images": 8,
+    "usable_videos": 5
+  },
+  "source_files": {
+    "reports/v0-s3/product-gate0/implementation-p3b-correction-03/replay_correction02_probes.py": "1babdad243f9194bcf4129d9d763c8020a365846de2a430108075bcfb8873d8b",
+    "reports/v0-s3/product-gate0/implementation-p3b-correction-03/run_guarded_probe.py": "c1f375c8030cae6daf75a23667b13debd0f3372ecdd4a6d31ab46b8c4cbfb81b",
+    "tools/test_v0_s3_quality_phase.py": "cd1eec5f8265e0e5e9e3ce49f35012f18236f8d3fe86719cfe851c3b333698d5",
+    "tools/v0_s3_quality_phase.py": "ca599e9da68c9a6f9405b9f89ae8bd999a43a1ecc237e469207ffede7ae98c42"
+  },
+  "stage_pass_claim": false,
+  "test_denominators": {
+    "new_regressions": 33,
+    "preserved_original": 112,
+    "total": 145
+  },
+  "threshold_changes": "none",
+  "unguarded_diagnostics": {
+    "acceptance_evidence": false,
+    "ad_hoc_python_debug_imports": 2,
+    "direct_piped_pytest_rounds": 10,
+    "exit_codes": "UNKNOWN: the pipeline and the heredoc masked the pytest status",
+    "scope": "The test module installs its own socket and subprocess guard before it imports pytest, so no socket was opened and no host process was started, and no real media, model, service, GPU, network, download or ledger action occurred. The runner level pre-pytest audit hook was not installed for these rounds, so they are diagnostics and not acceptance evidence."
+  }
+}

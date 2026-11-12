@@ -1,0 +1,158 @@
+...................................F.................................... [ 64%]
+.......................FFFF.............                                 [100%]
+=================================== FAILURES ===================================
+______________ test_the_phase_deadline_blocks_the_remaining_rows _______________
+
+tmp_path = PosixPath('/tmp/pytest-of-administrator/pytest-48/test_the_phase_deadline_blocks0')
+
+    def test_the_phase_deadline_blocks_the_remaining_rows(tmp_path):
+        clock = FakeClock(step=0.0)
+        phase, driver, _ = _prepare(tmp_path, clock=clock)
+        original = driver.submit
+    
+        def advancing(graph):
+            clock.now += 1200.0
+            return original(graph)
+    
+        driver.submit = advancing
+        receipt = phase.run()
+        # Nine submissions fit inside the frozen 10800s phase window; the tenth
+        # row starts after it and its history must fail the deadline even though
+        # the history itself answered.
+>       assert receipt["test_counts"]["PASS"] == 9, receipt
+E       AssertionError: {'artifact_bytes': 14135, 'artifact_bytes_including_receipt': 58197, 'artifact_files': 22, 'artifact_files_including_receipt': 24, ...}
+E       assert 3 == 9
+
+tools/test_v0_s3_quality_phase.py:905: AssertionError
+___ test_correction02_m01_the_persisted_receipt_states_its_own_final_totals ____
+
+tmp_path = PosixPath('/tmp/pytest-of-administrator/pytest-48/test_correction02_m01_the_pers0')
+
+    def test_correction02_m01_the_persisted_receipt_states_its_own_final_totals(tmp_path):
+        phase, driver, _ = _prepare(tmp_path)
+        receipt = phase.run()
+        stored_path = phase.directory / "qd-receipt.json"
+        stored_bytes = stored_path.read_bytes()
+        stored = json.loads(stored_bytes.decode("utf-8"))
+        files = [path for path in phase.directory.rglob("*") if path.is_file()]
+        actual_bytes = sum(path.stat().st_size for path in files)
+        assert stored["receipt_bytes"] == len(stored_bytes), (stored["receipt_bytes"], len(stored_bytes))
+        assert stored["artifact_files_including_receipt"] == len(files), stored
+        assert stored["artifact_bytes_including_receipt"] == actual_bytes, stored
+        assert stored["receipt_persisted"] is True, stored
+        assert stored["terminal_status"] == "TERMINAL_RECEIPT_PERSISTED", stored
+>       assert stored["artifact_files"] == len(files) - 1, stored
+E       AssertionError: {'artifact_bytes': 117094, 'artifact_bytes_including_receipt': 222800, 'artifact_files': 136, 'artifact_files_including_receipt': 138, ...}
+E       assert 136 == (138 - 1)
+E        +  where 138 = len([PosixPath('/tmp/pytest-of-administrator/pytest-48/test_correction02_m01_the_pers0/temp/s3-quality/qd-receipt.staging'...'/tmp/pytest-of-administrator/pytest-48/test_correction02_m01_the_pers0/temp/s3-quality/rows/SYN-V02/graph.json'), ...])
+
+tools/test_v0_s3_quality_phase.py:1643: AssertionError
+___ test_correction02_m01_the_receipt_caps_are_exact_and_one_over[artifact] ____
+
+tmp_path = PosixPath('/tmp/pytest-of-administrator/pytest-48/test_correction02_m01_the_rece0')
+bound = 'artifact'
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x73464d186f60>
+
+    @pytest.mark.parametrize("bound", ["artifact", "total", "files"])
+    def test_correction02_m01_the_receipt_caps_are_exact_and_one_over(tmp_path, bound, monkeypatch):
+        outcomes = {}
+        for over in (0, 1):
+            phase, driver, _ = _prepare(tmp_path / (bound + str(over)))
+            phase._open_owned_directories()
+            try:
+                phase._artifact("filler.bin", b"synthetic filler")
+                document = {"synthetic": True, "receipt_persisted": True,
+                            "receipt_persistence_error": None,
+                            "terminal_status": "TERMINAL_RECEIPT_PERSISTED"}
+                raw, _ = phase._serialized_receipt(document)
+                if bound == "artifact":
+                    monkeypatch.setattr(quality, "MAX_ARTIFACT_BYTES", len(raw) - over)
+                elif bound == "total":
+                    monkeypatch.setattr(quality, "MAX_TOTAL_ARTIFACT_BYTES",
+                                       phase._artifact_bytes + len(raw) - over)
+                else:
+                    monkeypatch.setattr(quality, "MAX_ARTIFACT_FILES",
+                                       phase._artifact_files + 1 - over)
+                persisted = phase._write_receipt(document)
+                outcomes[over] = (persisted, document.get("receipt_persistence_error"))
+            finally:
+                phase._close_owned_directories()
+            monkeypatch.undo()
+>       assert outcomes[0][0] is True, outcomes
+E       AssertionError: {0: (False, 'QualityContractError:RECEIPT_OVER_ARTIFACT_CAP'), 1: (False, 'QualityContractError:RECEIPT_OVER_ARTIFACT_CAP')}
+E       assert False is True
+
+tools/test_v0_s3_quality_phase.py:1675: AssertionError
+_____ test_correction02_m01_the_receipt_caps_are_exact_and_one_over[total] _____
+
+tmp_path = PosixPath('/tmp/pytest-of-administrator/pytest-48/test_correction02_m01_the_rece1')
+bound = 'total'
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x73464d1f17f0>
+
+    @pytest.mark.parametrize("bound", ["artifact", "total", "files"])
+    def test_correction02_m01_the_receipt_caps_are_exact_and_one_over(tmp_path, bound, monkeypatch):
+        outcomes = {}
+        for over in (0, 1):
+            phase, driver, _ = _prepare(tmp_path / (bound + str(over)))
+            phase._open_owned_directories()
+            try:
+                phase._artifact("filler.bin", b"synthetic filler")
+                document = {"synthetic": True, "receipt_persisted": True,
+                            "receipt_persistence_error": None,
+                            "terminal_status": "TERMINAL_RECEIPT_PERSISTED"}
+                raw, _ = phase._serialized_receipt(document)
+                if bound == "artifact":
+                    monkeypatch.setattr(quality, "MAX_ARTIFACT_BYTES", len(raw) - over)
+                elif bound == "total":
+                    monkeypatch.setattr(quality, "MAX_TOTAL_ARTIFACT_BYTES",
+                                       phase._artifact_bytes + len(raw) - over)
+                else:
+                    monkeypatch.setattr(quality, "MAX_ARTIFACT_FILES",
+                                       phase._artifact_files + 1 - over)
+                persisted = phase._write_receipt(document)
+                outcomes[over] = (persisted, document.get("receipt_persistence_error"))
+            finally:
+                phase._close_owned_directories()
+            monkeypatch.undo()
+>       assert outcomes[0][0] is True, outcomes
+E       AssertionError: {0: (False, 'QualityContractError:RECEIPT_TOTAL_BUDGET_EXCEEDED'), 1: (False, 'QualityContractError:RECEIPT_TOTAL_BUDGET_EXCEEDED')}
+E       assert False is True
+
+tools/test_v0_s3_quality_phase.py:1675: AssertionError
+_____ test_correction02_m01_the_receipt_caps_are_exact_and_one_over[files] _____
+
+tmp_path = PosixPath('/tmp/pytest-of-administrator/pytest-48/test_correction02_m01_the_rece2')
+bound = 'files'
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x73464d1f2c30>
+
+    @pytest.mark.parametrize("bound", ["artifact", "total", "files"])
+    def test_correction02_m01_the_receipt_caps_are_exact_and_one_over(tmp_path, bound, monkeypatch):
+        outcomes = {}
+        for over in (0, 1):
+            phase, driver, _ = _prepare(tmp_path / (bound + str(over)))
+            phase._open_owned_directories()
+            try:
+                phase._artifact("filler.bin", b"synthetic filler")
+                document = {"synthetic": True, "receipt_persisted": True,
+                            "receipt_persistence_error": None,
+                            "terminal_status": "TERMINAL_RECEIPT_PERSISTED"}
+                raw, _ = phase._serialized_receipt(document)
+                if bound == "artifact":
+                    monkeypatch.setattr(quality, "MAX_ARTIFACT_BYTES", len(raw) - over)
+                elif bound == "total":
+                    monkeypatch.setattr(quality, "MAX_TOTAL_ARTIFACT_BYTES",
+                                       phase._artifact_bytes + len(raw) - over)
+                else:
+                    monkeypatch.setattr(quality, "MAX_ARTIFACT_FILES",
+                                       phase._artifact_files + 1 - over)
+                persisted = phase._write_receipt(document)
+                outcomes[over] = (persisted, document.get("receipt_persistence_error"))
+            finally:
+                phase._close_owned_directories()
+            monkeypatch.undo()
+>       assert outcomes[0][0] is True, outcomes
+E       AssertionError: {0: (False, 'QualityContractError:RECEIPT_FILE_BUDGET_EXCEEDED'), 1: (False, 'QualityContractError:RECEIPT_FILE_BUDGET_EXCEEDED')}
+E       assert False is True
+
+tools/test_v0_s3_quality_phase.py:1675: AssertionError
+5 failed, 107 passed in 13.17s

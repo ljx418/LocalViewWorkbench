@@ -1,0 +1,62 @@
+{
+  "candidate_sha": "",
+  "command": [
+    "/usr/bin/python3",
+    "-B",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b/run_offline_checks.py",
+    "--outdir",
+    "/tmp/lvw-p3b-c03-editing",
+    "--label",
+    "edit-08",
+    "--candidate-sha",
+    "",
+    "--testpath",
+    "tools/test_v0_s3_quality_phase.py",
+    "--select",
+    "nm01_a_proof_that_expires"
+  ],
+  "exit_code": 0,
+  "guard": {
+    "audit_hook_events": [
+      "socket.connect",
+      "socket.bind",
+      "socket.getaddrinfo",
+      "socket.gethostbyname",
+      "subprocess.Popen",
+      "os.system",
+      "os.exec",
+      "os.spawn",
+      "os.posix_spawn",
+      "os.fork",
+      "os.forkpty"
+    ],
+    "bytecode_written": false,
+    "cache_provider": "disabled",
+    "host_subprocess": "blocked",
+    "installed_before_pytest_import": true,
+    "network": "blocked",
+    "pytest_disable_plugin_autoload": "1"
+  },
+  "kind": "S3_P3B_OFFLINE_CHECK_RECEIPT",
+  "label": "edit-08",
+  "outcome": "PASS",
+  "product_gate0": false,
+  "pytest_arguments": [
+    "tools/test_v0_s3_quality_phase.py",
+    "-q",
+    "-p",
+    "no:cacheprovider",
+    "--no-header",
+    "-rN",
+    "-k",
+    "nm01_a_proof_that_expires"
+  ],
+  "real_execution_performed": false,
+  "stage_pass_claim": false,
+  "stderr_bytes": 0,
+  "stderr_file": "../../../../../../../tmp/lvw-p3b-c03-editing/edit-08.stderr.log",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 114,
+  "stdout_file": "../../../../../../../tmp/lvw-p3b-c03-editing/edit-08.stdout.log",
+  "stdout_sha256": "fc5fb1bba25806769561255752270be66676fceee0ceb0eefacde9d08e36d72d"
+}
