@@ -1,0 +1,54 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_________ test_s3_warm_first_profile_write_carries_the_budget_binding __________
+
+tmp_path = PosixPath('/tmp/lvw-s3-integration-o20thaki/pytest/test_s3_warm_first_profile_wri0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7b7acb9ed190>
+
+    def test_s3_warm_first_profile_write_carries_the_budget_binding(tmp_path, monkeypatch):
+        """I02: the warm preparation carries the binding on its first write."""
+        reference, root, document = synthetic_binding(tmp_path / 'authority')
+        provider = S3BudgetBindingProvider(binding=reference, run_id=RUN_ID,
+                                            candidate_sha=CANDIDATE_SHA,
+                                            authorization_sha256=CHILD_SHA,
+                                            model_digest=MODEL_DIGEST, model=MODEL_TAG,
+                                            authority_root=root, ledger_path=root / 'original.sqlite')
+        factory, directory = build_factory(tmp_path, factory_class=S3InstalledRuntimeFactory,
+                                           provider=provider)
+        patch_runtime(monkeypatch, factory)
+        # The accepted factory closes the default root before the warm
+        # preparation, so the warm preparation is the second one of the batch.
+        factory.prepare_default()
+        print('DEBUG contexts', factory.contexts, 'used', factory.used,
+              'root', factory.contexts['default'].root,
+              'exists', factory.contexts['default'].root.exists())
+>       context = factory.prepare_warm()
+                  ^^^^^^^^^^^^^^^^^^^^^^
+
+tools/test_v0_s3_integration.py:319: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_s3_stage_runtime.py:240: in prepare_warm
+    return self._with_preparation(True)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_s3_stage_runtime.py:251: in _with_preparation
+    return super()._prepare(warm)
+           ^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <tools.v0_s3_coordinator.S3InstalledRuntimeFactory object at 0x7b7acb9ed4f0>
+warm = True
+
+    def _prepare(self, warm):
+        directed_warm=self.component_scope=='DIRECTED_WARM_COMPONENT_DEPENDENCIES_NOT_FULL_STAGE_SEAL'
+        if warm and self.component_scope is not None and not directed_warm:raise EvidenceError('directed browser component has no warm benchmark authority')
+        if directed_warm and not warm:raise EvidenceError('directed warm component has no default/browser authority')
+        label = 'warm' if warm else 'default'
+        if (label in self.used or (warm and not directed_warm and ('default' not in self.contexts
+>               or self.contexts['default'].root.exists()))): raise EvidenceError('factory order/replay/default root not closed')
+                                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E               tools.v0_s2_checkpoint_oracles.EvidenceError: factory order/replay/default root not closed
+
+tools/v0_s2_stage_runtime.py:164: EvidenceError
+----------------------------- Captured stdout call -----------------------------
+DEBUG contexts {'default': DefaultContext(driver=<test_v0_s3_integration.FakeNativeRuntime object at 0x7b7acb9ecdd0>, root=PosixPath('/tmp/lvw-s3-integration-o20thaki/pytest/test_s3_warm_first_profile_wri0/factory/lvw-s2-default-58f5c3de4b1de7a5'), binding={'candidate_sha': 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', 'authorization_sha256': 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb', 'model_digest': '5571076f3d70050487b26b341705799e0ab29b808164f90d20d4cf84f699d251', 'program_authorization_id': 'AUTH-PROGRAM-V1-COMPLETE-03', 'scope': 'V0_S3_NATIVE_CHECKPOINT', 'max_runs': 19, 'ollama_pid': 4242, 'ollama_start_ticks': 99, 'issued_at': 1794491664.618569, 'expires_at': 1794495264.611745, 'child_path': '/tmp/lvw-s3-integration-o20thaki/pytest/test_s3_warm_first_profile_wri0/authority/child.json', 'child_sha256': 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb', 'run_id': 's3-integration-offline', 'budget_binding_sha256': '9ffea7e0759b7d13d6d9b85878ff2b32823426d45d6b5978f1ce8b4857439e16'}, image={'reference': 'authorized-image.png', 'sha256': '62432147ca99358d1ae63c3589043444ae8c79937d1b13639c2e4cb774454d15', 'bytes': 40}, baseline_gpu_mib=1024, fixture_plan={'categories': {'tracking': {'path': '/tmp/lvw-s3-integration-o20thaki/pytest/test_s3_warm_first_profile_wri0/factory/sample.png', 'sha256': '62432147ca99358d1ae63c3589043444ae8c79937d1b13639c2e4cb774454d15', 'bytes': 40}, 'static': {'path': '/tmp/lvw-s3-integration-o20thaki/pytest/test_s3_warm_first_profile_wri0/factory/sample.png', 'sha256': '62432147ca99358d1ae63c3589043444ae8c79937d1b13639c2e4cb774454d15', 'bytes': 40}}}, references={'tracking': 'sample.png'}, primary_category='tracking', browser_config={'schema_version': 'lvw.s2.browser-config/1', 'run_id': 's3-integration-offline', 'candidate_sha': 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', 'authorization_sha256': 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb', 'expires_at': 1794495264.611745, 'run_root': '/tmp/lvw-s3-integration-o20thaki/pytest/test_s3_warm_first_profile_wri0/factory/lvw-s2-default-58f5c3de4b1de7a5', 'sample_path': '/tmp/lvw-s3-integration-o20thaki/pytest/test_s3_warm_first_profile_wri0/factory/lvw-s2-default-58f5c3de4b1de7a5/input/sample.png', 'sample_sha256': '62432147ca99358d1ae63c3589043444ae8c79937d1b13639c2e4cb774454d15', 'sample_bytes': 40, 'browser_executable': '/tmp/lvw-s3-integration-o20thaki/pytest/test_s3_warm_first_profile_wri0/factory/browser_executable.exe', 'browser_executable_sha256': 'dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd', 'playwright_module': '/tmp/lvw-s3-integration-o20thaki/pytest/test_s3_warm_first_profile_wri0/factory/playwright_module.exe', 'playwright_entry_sha256': 'dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd', 'protocol_nonce': '41aeefe77ef3140ba09a6975e472cc720e2802f34d3650cdb03dd0ec779e19d3', 'budget': {'browser_starts': 1, 'uploads': 1, 'public_submissions': 2, 'previews': 8, 'adoptions': 2, 'cancellations': 1, 'held_responses': 1, 'downloads': 6, 'user_writes': 16}, 'harness_sha256': '1111111111111111111111111111111111111111111111111111111111111111', 'policy_sha256': '2222222222222222222222222222222222222222222222222222222222222222', 'ui_workflow_sha256': '3333333333333333333333333333333333333333333333333333333333333333'}, node_executable='/tmp/lvw-s3-integration-o20thaki/pytest/test_s3_warm_first_profile_wri0/factory/node_executable.exe', node_sha256='dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd', authorize_launch=<function InstalledPackageRuntimeFactory.prepare_default.<locals>.bounded.<locals>.invoke at 0x7b7acba5eca0>, verify_bindings=<function InstalledPackageRuntimeFactory.prepare_default.<locals>.bounded.<locals>.invoke at 0x7b7acba5eb60>, nvidia_exe='/tmp/lvw-s3-integration-o20thaki/pytest/test_s3_warm_first_profile_wri0/factory/nvidia_exe.exe', nvidia_sha256='dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd')} used {'default'} root /tmp/lvw-s3-integration-o20thaki/pytest/test_s3_warm_first_profile_wri0/factory/lvw-s2-default-58f5c3de4b1de7a5 exists True
+1 failed, 70 deselected in 0.64s

@@ -1,0 +1,104 @@
+{
+  "kind": "S3_INTEGRATION_MACHINE_BINDING_PROPOSAL/1",
+  "execution_permitted": false,
+  "note": "This document is the proposal of the implementer. It is NOT an authorization and it does NOT open the machine gate. The guarded runner refuses this document: it accepts only a sealed binding of the root with kind S3_INTEGRATION_MACHINE_BINDING/1 and execution_permitted true. The root seals the binding inside the existing COMPLETE03 authorization; no human permission request is involved.",
+  "workpack_id": "S3-P4-OFFLINE",
+  "candidate_sha": null,
+  "python": {
+    "path": "/usr/bin/python3.12",
+    "sha256": "e50d468e8b0adfb05733f5b87b3cff34829c4a8c1aea50c865aa8bdfe4bb150f",
+    "bytes": 8020928,
+    "argv_prefix": ["-I", "-S", "-B"]
+  },
+  "argv_prefix": [
+    "/usr/bin/python3.12",
+    "-I",
+    "-S",
+    "-B",
+    "<ABSOLUTE>/tools/fixtures/v0_s3_supervisor_fixture.py",
+    "--scenario"
+  ],
+  "argv_prefix_note": "The absolute path of the fixture script is bound by the root for the worktree that runs the fixture. The implementer worktree path is /home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py.",
+  "allowed_scenarios": [
+    "clean_terminal",
+    "blocking_callback",
+    "blocking_persistence",
+    "history_replay",
+    "sequence_reversal",
+    "duplicate_sequence",
+    "oversize_message",
+    "foreign_identity",
+    "unexpected_field",
+    "nonfinite_number",
+    "early_exit",
+    "message_flood",
+    "bad_terminal_reference"
+  ],
+  "scenario_context_environment_variable": "LVW_S3_FIXTURE_CONTEXT",
+  "scenario_context_note": "The fixture reads its identity, its sealed plan and its bound root from the JSON document that this environment variable names. The argument vector stays exactly the frozen prefix plus one enumerated scenario.",
+  "budget": {
+    "total_starts": 24,
+    "implementation_starts": 16,
+    "independent_review_starts": 8,
+    "max_concurrent": 2,
+    "per_process_seconds": 10,
+    "aggregate_process_validation_seconds": 180,
+    "cleanup_reserve_seconds": 30,
+    "never_resets": true
+  },
+  "outputs": {
+    "stdout_bytes_per_stream": 262144,
+    "stderr_bytes_per_stream": 262144,
+    "protocol_message_bytes": 32768,
+    "protocol_message_count": 1024,
+    "new_text_evidence_bytes": 8388608
+  },
+  "prohibited": [
+    "shell",
+    "WSL",
+    "PowerShell",
+    "native executable",
+    "service",
+    "network",
+    "browser",
+    "FFmpeg",
+    "GPU",
+    "download",
+    "real ledger access",
+    "real model reservation"
+  ],
+  "dependency_manifest": {
+    "kind": "lvw.s3-dependency-manifest/1",
+    "path": "/home/administrator/.local/lib/python3.12/site-packages",
+    "note": "The fixture entry uses the standard library only. The manifest binds the existing Pillow path that the accepted quality phase needs, so that the dependency is an explicit, hash bound path and never a download or an environment bypass.",
+    "files": [
+      {
+        "path": "/home/administrator/.local/lib/python3.12/site-packages/PIL/__init__.py",
+        "sha256": "7361b6ad3878589affe5956e4a4da24d71398b0891fd3a8c15e9362217b4ca01"
+      },
+      {
+        "path": "/home/administrator/.local/lib/python3.12/site-packages/PIL/_version.py",
+        "sha256": "8c7ebd8b32fa1eafec490167c8356c2d4108c87275d6064fb3514b612adfe3f6"
+      },
+      {
+        "path": "/home/administrator/.local/lib/python3.12/site-packages/PIL/_imaging.cpython-312-x86_64-linux-gnu.so",
+        "sha256": null
+      }
+    ],
+    "file_digests_note": "The remaining digests are computed by the implementer at the moment of the ask and are re-verified by the guarded runner when the binding is sealed."
+  },
+  "source_bindings": {
+    "tools/v0_s3_coordinator.py": "55dd875c44de3128e4fc64a3ec1729687adb01c94007b8230e71d1717cd7eaf5",
+    "tools/v0_s3_supervisor.py": "6fdb1ad3386991d8fc7fd67b25956dfd430e6e8997a5da195e93140378ffba86",
+    "tools/v0_s3_quality_worker.py": "2366a67ba132091c338c3c01876deee431e3d46790d8ff009e6126c9ea3e728f",
+    "tools/fixtures/v0_s3_supervisor_fixture.py": "f8c8b29d6b280d24d9c1ea9ceccc6db9c4b7df883c700bced472802aa42a9bd3",
+    "tools/test_v0_s3_integration.py": "c1a0bb4b45e0380929d986678f425044d5ede4d2ee0b5a7c429ea26ec0e5432c",
+    "tools/test_v0_s3_supervisor.py": "8867688236b3d1e20f2b294d30f85af77c301da6ef74000d373f63927ae8fb29",
+    "tools/v0_s2_stage_runtime.py": "cf6ad01d66c0c7885475eedeae5ba66df9bec61bf7281ee511600f6224833e26",
+    "tools/v0_s2_runtime.py": "a97ea20d02ed80ab4f99f133dd8162331ddba34662bfdcca637fcade40b4dbd2",
+    "tools/v0_s3_quality_phase.py": "90552ea113ccf53a2a1cedff3e3f399642ad932bf0f71bb1f9a57e1adb6e8789",
+    "reports/v0-s3/product-gate0/implementation-integration-01/run_guarded_checks.py": "aa9124bbde3daa5fd08da2223b6eeb8167bd408463018ed4751ce2d9edf4b752"
+  },
+  "stage_pass_claim": false,
+  "product_gate0": false
+}

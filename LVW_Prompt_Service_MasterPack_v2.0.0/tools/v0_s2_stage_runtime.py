@@ -209,11 +209,7 @@ class StageRuntimeFactory:
             # Comfy startup can clear temp. Install the finite profile only
             # after readiness, owned CLI/user-root and registry verification,
             # before any production request; the writer still refuses overwrite.
-            parameters = dict(candidate_sha=self.candidate, authorization_sha256=self.auth, model_digest=self.model)
-            if warm:
-                binding = driver.write_warm_binding(root, **parameters, nvidia_sha256=self.digests['nvidia_exe'], baseline_gpu_mib=baseline)
-            else:
-                binding = driver.write_native_binding(root, **parameters, max_runs=19)
+            binding = self._write_profile_binding(driver, root, label, baseline)
             context.binding = binding
             self._preparation_boundary()
             self.authorize('start_owned_resource_sampler', label)
@@ -281,6 +277,35 @@ class StageRuntimeFactory:
 
     def _preparation_boundary(self):
         """Protected subclasses may reject namespace drift after callbacks."""
+
+    def _profile_binding_parameters(self, *, root, label, baseline):
+        """Private hook for the extra parameters of the first profile write.
+
+        The accepted S2 behaviour is the empty mapping.  Every existing S2
+        call site therefore keeps its exact arguments and its exact profile
+        bytes, and no S2 call is changed by this hook.  A subclass that owns
+        a different budget regime returns exactly its own additional key here;
+        the hook is consulted once, before the first and only exclusive
+        profile write of this preparation.
+        """
+        return {}
+
+    def _write_profile_binding(self, driver, root, label, baseline):
+        """The first exclusive profile write of this preparation.
+
+        The extra parameters are resolved *before* the writer runs, so a bound
+        budget capability is part of the very first write.  There is no
+        earlier LOCAL01 profile that is written first and overwritten later:
+        the writers create their file exclusively and refuse an overwrite.
+        """
+        parameters = dict(candidate_sha=self.candidate, authorization_sha256=self.auth, model_digest=self.model)
+        extra = self._profile_binding_parameters(root=root, label=label, baseline=baseline)
+        if not isinstance(extra, dict):
+            raise EvidenceError('profile binding hook must return a mapping')
+        if label == 'warm':
+            return driver.write_warm_binding(root, **parameters, **extra,
+                nvidia_sha256=self.digests['nvidia_exe'], baseline_gpu_mib=baseline)
+        return driver.write_native_binding(root, **parameters, **extra, max_runs=19)
 
     def _allocate_preparation_root(self, label):
         return Path(tempfile.mkdtemp(prefix='lvw-s2-'+label+'-', dir=self.directory)).resolve(strict=True)

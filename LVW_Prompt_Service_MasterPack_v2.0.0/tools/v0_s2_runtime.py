@@ -7,13 +7,22 @@ from LVW_V0_RuntimePatch.custom_nodes.lvw_v0_bridge.resource_policy import valid
 import hashlib
 import json
 import math
+import os
 import re
+import stat
 from pathlib import Path
 import subprocess
 import time
 
 from tools.v0_s2_driver import S2SystemDriver,ROOT,base
 from LVW_V0_RuntimePatch.custom_nodes.lvw_v0_bridge import core as bridge_core
+
+# The bounded resource limits of the controlled video snapshot residue
+# accessor.  They are internal limits of this accessor; they are not a claim
+# about any native Windows behaviour and they are not measured on Windows.
+VIDEO_SNAPSHOT_RESIDUE_PREFIX = 'lvw-video-'
+VIDEO_SNAPSHOT_MAX_ENTRIES = 512
+VIDEO_SNAPSHOT_MAX_RESIDUE = 256
 
 
 def read_jsonl(path,*,limit):
@@ -39,6 +48,13 @@ class NativeRuntime(S2SystemDriver):
         self.clock_limit=getattr(args,'max_native_clock_reads',64)
         if type(self.clock_limit) is not int or not 1<=self.clock_limit<=128:
             raise base.StopProbe('NATIVE_CLOCK_BUDGET_INVALID')
+        # The controlled video snapshot residue accessor is unbound until the
+        # owning factory binds the verified run root exactly once.
+        self._video_snapshot_root=None
+        self._video_snapshot_root_identity=None
+        self._video_snapshot_temp_identity=None
+        self._video_snapshot_root_fd=None
+        self._video_snapshot_temp_fd=None
 
     def preflight(self):
         """Current policy override; historical S1 Harness stays immutable."""
@@ -275,6 +291,114 @@ class NativeRuntime(S2SystemDriver):
             'observed_bytes':len(raw)}
 
     def chat_log_count(self):return self.chat_log_snapshot()['chat_calls']
+
+    # -- controlled video snapshot residue (S3 integration, read only) ---
+    def bind_video_snapshot_root(self, run_root):
+        """Bind the owned run root for the read-only residue accessor.
+
+        The root must be the run root that this runtime's own factory
+        evidence records as ``owned_run_root``.  The root and its ``temp``
+        child are opened without following a link, and their object
+        identities are pinned.  The binding happens once: a second call, or a
+        call for a different root, is refused instead of re-pointing the
+        accessor at another tree.
+
+        Nothing is read, written or deleted here.
+        """
+        if self._video_snapshot_temp_fd is not None:
+            raise base.StopProbe('VIDEO_SNAPSHOT_ROOT_ALREADY_BOUND')
+        owned = self.evidence.get('owned_run_root') if isinstance(self.evidence, dict) else None
+        if not isinstance(owned, str) or not owned:
+            raise base.StopProbe('VIDEO_SNAPSHOT_ROOT_NOT_FACTORY_OWNED')
+        if str(run_root) != owned:
+            raise base.StopProbe('VIDEO_SNAPSHOT_ROOT_NOT_FACTORY_OWNED')
+        root = Path(run_root)
+        try:
+            root_info = root.lstat()
+            temp_info = (root / 'temp').lstat()
+        except OSError as error:
+            raise base.StopProbe('VIDEO_SNAPSHOT_ROOT_UNAVAILABLE') from error
+        if not stat.S_ISDIR(root_info.st_mode) or not stat.S_ISDIR(temp_info.st_mode):
+            raise base.StopProbe('VIDEO_SNAPSHOT_ROOT_UNAVAILABLE')
+        root_fd = os.open(str(root), os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+        try:
+            opened = os.fstat(root_fd)
+            if (opened.st_dev, opened.st_ino) != (root_info.st_dev, root_info.st_ino):
+                raise base.StopProbe('VIDEO_SNAPSHOT_ROOT_IDENTITY_DRIFT')
+            temp_fd = os.open('temp', os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=root_fd)
+        except BaseException:
+            os.close(root_fd)
+            raise
+        try:
+            opened_temp = os.fstat(temp_fd)
+            if (opened_temp.st_dev, opened_temp.st_ino) != (temp_info.st_dev, temp_info.st_ino):
+                raise base.StopProbe('VIDEO_SNAPSHOT_TEMP_IDENTITY_DRIFT')
+        except BaseException:
+            os.close(temp_fd)
+            os.close(root_fd)
+            raise
+        self._video_snapshot_root = root
+        self._video_snapshot_root_identity = (root_info.st_dev, root_info.st_ino)
+        self._video_snapshot_temp_identity = (temp_info.st_dev, temp_info.st_ino)
+        self._video_snapshot_root_fd = root_fd
+        self._video_snapshot_temp_fd = temp_fd
+        return {'root': str(root), 'root_identity': list(self._video_snapshot_root_identity),
+                'temp_identity': list(self._video_snapshot_temp_identity)}
+
+    def _verify_video_snapshot_binding(self):
+        """Re-check the pinned identities before every residue observation."""
+        if self._video_snapshot_temp_fd is None or self._video_snapshot_root_fd is None:
+            raise base.StopProbe('VIDEO_SNAPSHOT_ROOT_NOT_BOUND')
+        opened = os.fstat(self._video_snapshot_root_fd)
+        if (opened.st_dev, opened.st_ino) != self._video_snapshot_root_identity:
+            raise base.StopProbe('VIDEO_SNAPSHOT_ROOT_IDENTITY_DRIFT')
+        try:
+            current = self._video_snapshot_root.lstat()
+        except OSError as error:
+            raise base.StopProbe('VIDEO_SNAPSHOT_ROOT_UNAVAILABLE') from error
+        if (current.st_dev, current.st_ino) != self._video_snapshot_root_identity:
+            raise base.StopProbe('VIDEO_SNAPSHOT_ROOT_REPLACED')
+        try:
+            temp = os.stat('temp', dir_fd=self._video_snapshot_root_fd, follow_symlinks=False)
+        except OSError as error:
+            raise base.StopProbe('VIDEO_SNAPSHOT_TEMP_UNAVAILABLE') from error
+        if (temp.st_dev, temp.st_ino) != self._video_snapshot_temp_identity:
+            raise base.StopProbe('VIDEO_SNAPSHOT_TEMP_IDENTITY_DRIFT')
+
+    def video_snapshot_residue(self):
+        """Read-only, bounded observation of the video snapshot residue.
+
+        Only the first level of the bound ``temp`` directory is observed and
+        only the ``lvw-video-*`` names are reported.  Nothing is followed, no
+        file content is read and nothing is deleted.  A missing or replaced
+        root, a symbolic link or reparse point at a matching name, an I/O
+        failure and a resource bound are explicit failures: an unknown
+        residue never becomes an empty list.
+        """
+        self._verify_video_snapshot_binding()
+        try:
+            names = os.listdir(self._video_snapshot_temp_fd)
+        except OSError as error:
+            raise base.StopProbe('VIDEO_SNAPSHOT_RESIDUE_UNREADABLE') from error
+        if len(names) > VIDEO_SNAPSHOT_MAX_ENTRIES:
+            raise base.StopProbe('VIDEO_SNAPSHOT_ENTRY_BUDGET_EXCEEDED')
+        matching = sorted(name for name in names if name.startswith(VIDEO_SNAPSHOT_RESIDUE_PREFIX))
+        if len(matching) > VIDEO_SNAPSHOT_MAX_RESIDUE:
+            raise base.StopProbe('VIDEO_SNAPSHOT_RESIDUE_BUDGET_EXCEEDED')
+        residue = []
+        for name in matching:
+            try:
+                info = os.stat(name, dir_fd=self._video_snapshot_temp_fd, follow_symlinks=False)
+            except OSError as error:
+                raise base.StopProbe('VIDEO_SNAPSHOT_RESIDUE_UNREADABLE') from error
+            if stat.S_ISLNK(info.st_mode):
+                raise base.StopProbe('VIDEO_SNAPSHOT_RESIDUE_REDIRECT_FORBIDDEN')
+            if getattr(info, 'st_file_attributes', 0) & 0x400:
+                raise base.StopProbe('VIDEO_SNAPSHOT_RESIDUE_REDIRECT_FORBIDDEN')
+            if not stat.S_ISDIR(info.st_mode):
+                raise base.StopProbe('VIDEO_SNAPSHOT_RESIDUE_NOT_A_DIRECTORY')
+            residue.append(name)
+        return residue
 
     def cleanup(self):
         workers=[]

@@ -903,7 +903,7 @@ class QualityPhase:
 
     def __init__(self, driver, run_root, *, run_id, candidate_sha, authorization_sha256,
                  projection, projection_sha256, source_identity, authorize, binding,
-                 parent_budget, clock=None, sleep=None):
+                 parent_budget, clock=None, sleep=None, progress_sink=None):
         self.driver = driver
         self.root = Path(run_root).resolve(strict=True)
         self.clock = clock or time.monotonic
@@ -971,6 +971,15 @@ class QualityPhase:
         self.parent_budget = copy.deepcopy(parent_budget) if isinstance(parent_budget, dict) else None
         self.parent_budget_capacity = 0
         self._admission_error = None
+        # The optional progress sink of the S3 parent supervision.  It is
+        # closed by default, so the accepted behaviour, the verification, the
+        # scoring, the thresholds, the retention caps and the original
+        # evidence of this phase stay exactly as they are.  A sink may only
+        # observe; it never changes a result, a deadline or a sample.
+        if progress_sink is not None and not callable(progress_sink):
+            raise QualityContractError("QUALITY_PROGRESS_SINK_INVALID")
+        self.progress_sink = progress_sink
+        self._history_wait_emitted = set()
         try:
             self._validate_parent_proof(self.parent_budget)
         except QualityContractError as error:
@@ -1234,6 +1243,22 @@ class QualityPhase:
             elapsed = self._now() - start
             if elapsed > ceiling:
                 raise QualityContractError(code + ":" + label)
+
+    def _emit(self, event, payload):
+        """Send one bounded progress fact to the optional progress sink.
+
+        The sink is closed by default.  When it is open, it only observes:
+        it cannot change a result, a deadline or a sample.  A failing sink is
+        an explicit failure of the phase, never a silently dropped fact.
+        """
+        if self.progress_sink is None:
+            return
+        try:
+            self.progress_sink(event, dict(payload))
+        except QualityContractError:
+            raise
+        except Exception as error:  # noqa: BLE001 - the failure stays visible
+            raise QualityContractError("PROGRESS_SINK_FAILED:" + type(error).__name__) from error
 
     # -- projection ------------------------------------------------------
     def _parse_projection(self):
@@ -1900,6 +1925,15 @@ class QualityPhase:
         A late but successful history is still a deadline failure: the sample
         window is checked again after the response arrived.
         """
+        # The history start is announced once per row and *before* the first
+        # possibly blocking history wait, so the parent can fix the history
+        # deadline of this row at its first announcement.  A repeated
+        # announcement is not sent: it could only look like a deadline reset.
+        if row["asset_id"] not in self._history_wait_emitted:
+            self._history_wait_emitted.add(row["asset_id"])
+            self._emit("HISTORY_WAIT_STARTED", {"asset_id": row["asset_id"],
+                                                "ordinal": row["ordinal"],
+                                                "prompt_id": prompt_id})
         deadline = min(self._now() + SAMPLE_HISTORY_TIMEOUT_SECONDS, self._phase_deadline)
         while True:
             if self._polls >= MAX_HISTORY_POLLS:
@@ -2543,6 +2577,9 @@ class QualityPhase:
                     pending["execution_status"] = "BLOCKED"
                     pending["error_code"] = "PROVIDER_CALL_BUDGET_EXCEEDED"
                 break
+            self._emit("ROW_STARTED", {"asset_id": row["asset_id"],
+                                       "ordinal": row["ordinal"],
+                                       "media_kind": row["media_kind"]})
             try:
                 outcome = self._execute_row(row, workflows)
             except Exception as error:  # noqa: BLE001 - one row may never abort the phase
@@ -2569,6 +2606,15 @@ class QualityPhase:
                 }
                 self._cleanup_unproven = True
             results.append(outcome)
+            self._emit("ROW_FINISHED", {"asset_id": outcome.get("asset_id"),
+                                        "ordinal": outcome.get("ordinal"),
+                                        "execution_status": outcome.get("execution_status"),
+                                        "quality_status": outcome.get("quality_status"),
+                                        "error_code": outcome.get("error_code")})
+            self._emit("PROGRESS", {"rows_finished": len(results),
+                                    "rows_total": len(rows),
+                                    "public_submissions": self._submissions,
+                                    "provider_calls_reserved": self._provider_calls_reserved})
             if outcome["halt"]:
                 self._halted = True
                 self._halt_reason = outcome["error_code"]
