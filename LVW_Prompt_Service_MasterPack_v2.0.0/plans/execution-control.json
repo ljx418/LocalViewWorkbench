@@ -35,7 +35,7 @@
     "TARGET_HARDWARE_TESTED"
   ],
   "next_owner": "Orca visible ClaudeCode implementation; root architecture then independent review",
-  "next_action": "Recover same P3B Task in Claude after observed terminal loss; preserve partial source and original offline contract, first429 STOP. Do not treat partial source as tested delivery.",
+  "next_action": "Await same-Task recovered Claude implementation with preserved partialsource; do not repeat metadata probe or expire/replay oldchildren; independentreview after actual delivery.",
   "required_authorization": null,
   "authorization_request": "reports/authorization-program-v1-complete-03.request.json",
   "authorization_record": "reports/authorization-program-v1-complete-03.approval.json",
@@ -1231,7 +1231,7 @@
   },
   "offline_integration_packet": ".agent-governance/stages/V0-S3/production-quality/stage-control.json",
   "p3b_quality": {
-    "status": "RECOVERY_PENDING_SAME_CLAUDE_TASK_PARTIAL_NOT_ACCEPTED",
+    "status": "SAME_TASK_CLAUDE_RECOVERED_LAUNCH_READY_NOT_DELIVERED",
     "workpacks": [
       "QD_PUBLIC_EXECUTION",
       "QS_INDEPENDENT_SCORE_RECOMPUTATION"
@@ -1241,6 +1241,18 @@
     "real_runs_allowed": false,
     "product_gate0": false,
     "worker": {
+      "run_id": "run_ec1d5514e718",
+      "dispatch_id": "ctx_f9b402dfa3f5",
+      "task_id": "task_be463818b029",
+      "terminal": "term_295cf8bd-4721-49d0-b21a-9475777db81b",
+      "agent": "claude",
+      "launch_receipt": "reports/v0-s3/product-gate0/implementation-p3b-recovery-01-ready.launch.json",
+      "original_task_spec": "reports/v0-s3/product-gate0/implementation-p3b.task.md",
+      "recovery_guidance": "reports/v0-s3/product-gate0/implementation-p3b-recovery-01.guidance.md",
+      "launch_state": "ready",
+      "next": "Await Orca report, first429 immediate stop no fallback"
+    },
+    "previous_attempt": {
       "run_id": "run_ec1d5514e718",
       "dispatch_id": "ctx_1e9a5a3ba89a",
       "task_id": "task_be463818b029",
