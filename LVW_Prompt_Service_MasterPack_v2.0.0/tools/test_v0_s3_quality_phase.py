@@ -234,25 +234,38 @@ class SyntheticDriver:
         }
 
     def release_preload(self, binding, worker):
+        # The production release shape: the actual bounded native proof with
+        # the bound baseline, the strict empty model inventory, the elapsed
+        # time and the actual GPU sample list.
         self.log.append('[GIN] 200 POST "/api/generate"\n')
         self.log.append('[GIN] 200 GET "/api/ps"\n')
+        samples = [{"monotonic_seconds": index, "gpu_used_mib": 1124} for index in range(3)]
+        proof = {"proven": True, "loaded_models": 0, "baseline_gpu_mib": BASE_GPU_MIB,
+                 "elapsed_seconds": 3, "gpu_samples": samples}
         if self.failure == "release-unproven":
-            return {"proven": False, "loaded_models": 1, "elapsed_seconds": 3, "gpu_samples": []}
-        if self.failure == "release-model-resident":
-            return {"proven": True, "loaded_models": 1, "elapsed_seconds": 3,
-                    "gpu_samples": [{"monotonic_seconds": i, "gpu_used_mib": 1124} for i in range(3)]}
-        if self.failure == "release-nan":
-            return {"proven": True, "loaded_models": 0, "elapsed_seconds": float("nan"),
-                    "gpu_samples": [{"monotonic_seconds": float("nan"), "gpu_used_mib": 1124}
-                                    for _ in range(3)]}
-        if self.failure == "release-inf":
-            return {"proven": True, "loaded_models": 0, "elapsed_seconds": float("inf"),
-                    "gpu_samples": [{"monotonic_seconds": i, "gpu_used_mib": 1124} for i in range(3)]}
-        if self.failure == "release-bool":
-            return {"proven": True, "loaded_models": 0, "elapsed_seconds": True,
-                    "gpu_samples": [{"monotonic_seconds": i, "gpu_used_mib": 1124} for i in range(3)]}
-        return {"proven": True, "loaded_models": 0, "elapsed_seconds": 3,
-                "gpu_samples": [{"monotonic_seconds": i, "gpu_used_mib": 1124} for i in range(3)]}
+            proof.update(proven=False, loaded_models=1)
+        elif self.failure == "release-model-resident":
+            proof.update(loaded_models=1)
+        elif self.failure == "release-nan":
+            proof.update(elapsed_seconds=float("nan"),
+                         gpu_samples=[{"monotonic_seconds": float("nan"), "gpu_used_mib": 1124}
+                                      for _ in range(3)])
+        elif self.failure == "release-inf":
+            proof.update(elapsed_seconds=float("inf"))
+        elif self.failure == "release-bool":
+            proof.update(elapsed_seconds=True)
+        elif self.failure == "release-baseline":
+            proof.update(baseline_gpu_mib=BASE_GPU_MIB + 4096)
+        elif self.failure == "release-cadence":
+            proof.update(gpu_samples=[{"monotonic_seconds": index * 4, "gpu_used_mib": 1124}
+                                      for index in range(3)])
+        elif self.failure == "release-samples":
+            proof.update(gpu_samples=[{"monotonic_seconds": index, "gpu_used_mib": 1124}
+                                      for index in range(2)])
+        elif self.failure == "release-stability":
+            proof.update(gpu_samples=[{"monotonic_seconds": index, "gpu_used_mib": BASE_GPU_MIB + 4096}
+                                      for index in range(3)])
+        return proof
 
     def video_snapshot_residue(self):
         if self.failure == "residue":
@@ -877,7 +890,10 @@ def test_the_artifact_budget_is_exact_and_one_over(tmp_path, monkeypatch):
 
 def test_the_phase_deadline_blocks_the_remaining_rows(tmp_path):
     clock = FakeClock(step=0.0)
-    phase, driver, _ = _prepare(tmp_path, clock=clock)
+    # The parent proof must not be the binding constraint here: the phase
+    # deadline is what must stop the batch.
+    phase, driver, _ = _prepare(tmp_path, clock=clock,
+                                parent_budget=_parent_proof(clock, expires_monotonic=20000.0))
     original = driver.submit
 
     def advancing(graph):
@@ -1627,8 +1643,13 @@ def test_correction02_m01_the_persisted_receipt_states_its_own_final_totals(tmp_
     assert stored["artifact_bytes_including_receipt"] == actual_bytes, stored
     assert stored["receipt_persisted"] is True, stored
     assert stored["terminal_status"] == "TERMINAL_RECEIPT_PERSISTED", stored
-    assert stored["artifact_files"] == len(files) - 1, stored
-    assert stored["artifact_bytes"] == actual_bytes - len(stored_bytes), stored
+    # The publication retains the staged entry and the canonical entry; both
+    # share one inode and both are counted.
+    assert stored["artifact_files"] == len(files) - 2, stored
+    assert stored["artifact_bytes"] == actual_bytes - 2 * len(stored_bytes), stored
+    assert stored["staging_entry_retained_on_publication"] is True, stored
+    assert stored["published_as"] == "qd-receipt.json", stored
+    assert receipt["staged_receipt_retained"] is True, receipt
     # The returned document states the same final totals.
     assert receipt["receipt_bytes"] == len(stored_bytes), receipt
     assert receipt["artifact_files_including_receipt"] == len(files), receipt
@@ -1642,18 +1663,19 @@ def test_correction02_m01_the_receipt_caps_are_exact_and_one_over(tmp_path, boun
         phase._open_owned_directories()
         try:
             phase._artifact("filler.bin", b"synthetic filler")
-            document = {"synthetic": True, "receipt_persisted": True,
-                        "receipt_persistence_error": None,
-                        "terminal_status": "TERMINAL_RECEIPT_PERSISTED"}
+            document = quality.receipt_document(
+                {"synthetic": True, "receipt_persisted": True,
+                 "receipt_persistence_error": None,
+                 "terminal_status": "TERMINAL_RECEIPT_PERSISTED"})
             raw, _ = phase._serialized_receipt(document)
             if bound == "artifact":
                 monkeypatch.setattr(quality, "MAX_ARTIFACT_BYTES", len(raw) - over)
             elif bound == "total":
                 monkeypatch.setattr(quality, "MAX_TOTAL_ARTIFACT_BYTES",
-                                   phase._artifact_bytes + len(raw) - over)
+                                   phase._artifact_bytes + 2 * len(raw) - over)
             else:
                 monkeypatch.setattr(quality, "MAX_ARTIFACT_FILES",
-                                   phase._artifact_files + 1 - over)
+                                   phase._artifact_files + 2 - over)
             persisted = phase._write_receipt(document)
             outcomes[over] = (persisted, document.get("receipt_persistence_error"))
         finally:
@@ -1846,3 +1868,355 @@ def test_correction02_nm02_the_hard_supervision_blocker_is_recorded(completed_ru
     assert assurance["sample_history_seconds"] == 600, assurance
     assert assurance["phase_seconds"] == 10800, assurance
     assert receipt["hard_timing_blocker"] == "UNIMPLEMENTED_PRODUCT_GATE0_BLOCKER", receipt
+
+
+# --------------------------------------------------------------------------
+# aggregate correction 03: regression coverage for the four remaining causes
+#
+# M01  the durable staging precedes the authoritative publication
+# M08  the complete typed shared evidence validators
+# NM01 the final local send-admission guard with a fresh typed proof
+# NM02 the final cooperative phase-deadline guard
+# --------------------------------------------------------------------------
+def _inject_staging_failure(phase, failure):
+    """Fail the staging descriptor of the terminal receipt."""
+    original_open = quality.os.open
+    original_fsync = quality.os.fsync
+    staged = []
+
+    def opening(path, flags, *args, **kwargs):
+        descriptor = original_open(path, flags, *args, **kwargs)
+        if str(path) == quality.STAGED_RECEIPT_NAME:
+            staged.append(descriptor)
+        return descriptor
+
+    def syncing(descriptor):
+        if staged and descriptor == staged[-1]:
+            raise OSError("injected staging fsync failure")
+        return original_fsync(descriptor)
+
+    quality.os.open = opening
+    quality.os.fsync = syncing
+    return lambda: (setattr(quality.os, "open", original_open),
+                     setattr(quality.os, "fsync", original_fsync))
+
+
+@pytest.mark.parametrize("failure", ["write", "flush", "fsync"])
+def test_correction03_m01_a_staging_failure_leaves_no_canonical_receipt(tmp_path, failure):
+    phase, driver, _ = _prepare(tmp_path)
+    original_open = quality.os.open
+    original_write = quality.os.write
+    original_fsync = quality.os.fsync
+    staged = []
+
+    def opening(path, flags, *args, **kwargs):
+        descriptor = original_open(path, flags, *args, **kwargs)
+        if str(path) == quality.STAGED_RECEIPT_NAME:
+            staged.append(descriptor)
+        return descriptor
+
+    def failing_write(descriptor, data):
+        if staged and descriptor == staged[-1]:
+            raise OSError("injected staging write failure")
+        return original_write(descriptor, data)
+
+    def failing_fsync(descriptor):
+        if staged and descriptor == staged[-1]:
+            raise OSError("injected staging fsync failure")
+        return original_fsync(descriptor)
+
+    original_fdopen = quality.os.fdopen
+
+    class FailingStagedStream:
+        """The staged stream whose write or flush fails."""
+
+        def __init__(self, descriptor):
+            self._stream = original_fdopen(descriptor, "wb")
+
+        def write(self, data):
+            if failure == "write":
+                raise OSError("injected staging write failure")
+            return self._stream.write(data)
+
+        def flush(self):
+            if failure == "flush":
+                raise OSError("injected staging flush failure")
+            return self._stream.flush()
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *exception):
+            self._stream.close()
+            return False
+
+    def fdopen(descriptor, *args, **kwargs):
+        if staged and descriptor == staged[-1] and failure in ("write", "flush"):
+            return FailingStagedStream(descriptor)
+        return original_fdopen(descriptor, *args, **kwargs)
+
+    quality.os.open = opening
+    quality.os.fdopen = fdopen
+    if failure == "fsync":
+        quality.os.fsync = failing_fsync
+    try:
+        receipt = phase.run()
+    finally:
+        quality.os.open = original_open
+        quality.os.fdopen = original_fdopen
+        quality.os.write = original_write
+        quality.os.fsync = original_fsync
+    # The canonical success is absent: no consumer can read a terminal receipt.
+    assert not (phase.directory / "qd-receipt.json").exists(), failure
+    # The failed staging is preserved as explicitly non-authoritative evidence.
+    staged_path = phase.directory / quality.STAGED_RECEIPT_NAME
+    assert staged_path.exists(), failure
+    assert receipt["receipt_persisted"] is False, (failure, receipt)
+    assert receipt["terminal_status"] == "TERMINAL_RECEIPT_NOT_PERSISTED", (failure, receipt)
+    assert receipt["storage_unproven"] is True, (failure, receipt)
+    assert receipt["decision"] == "QUALITY_EXECUTION_BLOCKED", (failure, receipt)
+    with pytest.raises(QualityContractError) as rejected:
+        quality.load_canonical_receipt(phase.directory)
+    assert "CANONICAL_RECEIPT_ABSENT" in str(rejected.value), str(rejected.value)
+    # A replay cannot overwrite the retained failed evidence.
+    before = staged_path.read_bytes()
+    phase._open_owned_directories(allow_existing=True)
+    try:
+        again = phase._write_receipt({"synthetic": True})
+    finally:
+        phase._close_owned_directories()
+    assert again is False, (failure, again)
+    assert staged_path.read_bytes() == before, failure
+
+
+def test_correction03_m01_a_successful_publication_is_durable_and_counted(tmp_path):
+    phase, driver, _ = _prepare(tmp_path)
+    receipt = phase.run()
+    stored = quality.load_canonical_receipt(phase.directory)
+    assert stored["receipt_persisted"] is True, stored
+    assert stored["terminal_status"] == "TERMINAL_RECEIPT_PERSISTED", stored
+    files = [path for path in phase.directory.rglob("*") if path.is_file()]
+    actual_bytes = sum(path.stat().st_size for path in files)
+    assert stored["artifact_files_including_receipt"] == len(files), stored
+    assert stored["artifact_bytes_including_receipt"] == actual_bytes, stored
+    staged = phase.directory / quality.STAGED_RECEIPT_NAME
+    canonical = phase.directory / quality.CANONICAL_RECEIPT_NAME
+    assert staged.exists() and canonical.exists()
+    assert staged.stat().st_ino == canonical.stat().st_ino, "the publication shares one inode"
+    # The staged entry is never authority.
+    with pytest.raises(QualityContractError):
+        quality.load_canonical_receipt(phase.directory / "rows")
+
+
+@pytest.mark.parametrize("mutation", [
+    "receipt-storage-flag-missing",
+    "receipt-storage-flag-null",
+    "receipt-cleanup-flag-missing",
+    "row-storage-flag-missing",
+    "row-cleanup-flag-missing",
+    "row-storage-flag-null",
+    "source-identity-missing",
+    "source-identity-truncated",
+    "source-path-foreign",
+    "source-bytes-mismatch",
+    "source-hash-mismatch",
+    "release-two-booleans",
+    "release-missing",
+    "release-loaded-models",
+    "release-elapsed-nan",
+    "release-elapsed-out-of-range",
+    "release-baseline-mismatch",
+    "release-samples-missing",
+    "release-samples-too-few",
+    "release-cadence-broken",
+    "release-stability-broken",
+    "residue-missing",
+    "residue-present",
+])
+def test_correction03_m08_every_mandatory_evidence_field_is_validated(completed_run, mutation):
+    receipt = copy.deepcopy(completed_run["receipt"])
+    row = receipt["rows"][0]
+    if mutation == "receipt-storage-flag-missing":
+        receipt.pop("storage_unproven")
+    elif mutation == "receipt-storage-flag-null":
+        receipt["storage_unproven"] = None
+    elif mutation == "receipt-cleanup-flag-missing":
+        receipt.pop("cleanup_unproven")
+    elif mutation == "row-storage-flag-missing":
+        row.pop("storage_unproven")
+    elif mutation == "row-cleanup-flag-missing":
+        row.pop("cleanup_unproven")
+    elif mutation == "row-storage-flag-null":
+        row["storage_unproven"] = None
+    elif mutation == "source-identity-missing":
+        row["source_evidence"].pop("identity")
+    elif mutation == "source-identity-truncated":
+        row["source_evidence"]["identity"] = row["source_evidence"]["identity"][:2]
+    elif mutation == "source-path-foreign":
+        row["source_evidence"]["path"] = "/foreign/not-the-bound-input"
+    elif mutation == "source-bytes-mismatch":
+        row["source_evidence"]["bytes"] = row["source_evidence"]["bytes"] + 1
+    elif mutation == "source-hash-mismatch":
+        row["source_evidence"]["sha256"] = "0" * 64
+    elif mutation == "release-two-booleans":
+        row["release_evidence"] = {"proven": True, "model_inventory_empty": True}
+    elif mutation == "release-missing":
+        row["release_evidence"] = None
+    elif mutation == "release-loaded-models":
+        row["release_evidence"]["loaded_models"] = 1
+    elif mutation == "release-elapsed-nan":
+        row["release_evidence"]["elapsed_seconds"] = float("nan")
+    elif mutation == "release-elapsed-out-of-range":
+        row["release_evidence"]["elapsed_seconds"] = 31
+    elif mutation == "release-baseline-mismatch":
+        row["release_evidence"]["baseline_gpu_mib"] = BASE_GPU_MIB + 4096
+    elif mutation == "release-samples-missing":
+        row["release_evidence"].pop("gpu_samples")
+    elif mutation == "release-samples-too-few":
+        row["release_evidence"]["gpu_samples"] = row["release_evidence"]["gpu_samples"][:2]
+    elif mutation == "release-cadence-broken":
+        row["release_evidence"]["gpu_samples"][1]["monotonic_seconds"] = 0
+    elif mutation == "release-stability-broken":
+        row["release_evidence"]["gpu_samples"][-1]["gpu_used_mib"] = BASE_GPU_MIB + 4096
+    elif mutation == "residue-missing":
+        row.pop("video_snapshot_residue")
+    elif mutation == "residue-present":
+        row["video_snapshot_residue"] = ["/comfy/temp/lvw-video-leftover"]
+    scores = _scores(receipt, completed_run["projection_sha256"])
+    result = recompute_scores(receipt, completed_run["artifact_root"], scores, independence=_independence())
+    assert result["rows"][0]["usable"] is False, (mutation, result["rows"][0])
+    assert result["rows"][0]["resolved"] is False, (mutation, result["rows"][0])
+    assert result["aggregate_pass"] is False, (mutation, result)
+
+
+def test_correction03_m08_an_unpublished_receipt_is_not_authority(completed_run):
+    receipt = copy.deepcopy(completed_run["receipt"])
+    receipt["receipt_persisted"] = False
+    receipt["terminal_status"] = "TERMINAL_RECEIPT_NOT_PERSISTED"
+    scores = _scores(receipt, completed_run["projection_sha256"])
+    with pytest.raises(QualityContractError) as rejected:
+        recompute_scores(receipt, completed_run["artifact_root"], scores, independence=_independence())
+    assert "QS_EXECUTION_RECEIPT_NOT_PERSISTED" in str(rejected.value), str(rejected.value)
+    staged = copy.deepcopy(completed_run["receipt"])
+    staged["published_as"] = "qd-receipt.staging"
+    with pytest.raises(QualityContractError) as staged_receipt:
+        recompute_scores(staged, completed_run["artifact_root"], scores, independence=_independence())
+    assert "QS_EXECUTION_RECEIPT_NOT_AUTHORITATIVE" in str(staged_receipt.value), str(staged_receipt.value)
+
+
+def test_correction03_nm01_a_proof_that_expires_at_the_first_authorize_refuses_every_send(tmp_path):
+    clock = FakeClock(step=0.0)
+    proof = _parent_proof(clock, expires_monotonic=2.0)
+    phase, driver, _ = _prepare(tmp_path, clock=clock, parent_budget=proof)
+
+    def authorize(action, subject):
+        if action == "quality_public_submit":
+            clock.now = 2.0
+
+    phase.authorize = authorize
+    receipt = phase.run()
+    assert driver.submissions == 0, driver.submissions
+    assert receipt["public_submissions"] == 0, receipt
+    assert receipt["rows"][0]["error_code"] == "PARENT_BUDGET_PROOF_STALE", receipt["rows"][0]
+    assert receipt["rows"][0]["execution_status"] == "BLOCKED", receipt["rows"][0]
+    assert receipt["test_counts"]["BLOCKED"] == 16, receipt
+    assert len(receipt["rows"]) == 16, receipt
+
+
+def test_correction03_nm01_a_proof_diminished_at_the_handoff_refuses_every_send(tmp_path):
+    clock = FakeClock(step=0.0)
+    proof = _parent_proof(clock)
+    phase, driver, _ = _prepare(tmp_path, clock=clock, parent_budget=proof)
+
+    def authorize(action, subject):
+        if action == "quality_public_submit":
+            # The admitted capacity is diminished at the send handoff.
+            phase.parent_budget["action_capacity"] = 0
+
+    phase.authorize = authorize
+    receipt = phase.run()
+    assert driver.submissions == 0, driver.submissions
+    assert receipt["rows"][0]["error_code"] == "PARENT_BUDGET_CAPACITY_INSUFFICIENT", receipt["rows"][0]
+    assert receipt["rows"][0]["execution_status"] == "BLOCKED", receipt["rows"][0]
+    assert receipt["test_counts"]["BLOCKED"] == 16, receipt
+
+
+def test_correction03_nm02_a_callback_past_the_phase_deadline_refuses_the_send(tmp_path):
+    clock = FakeClock(step=0.0)
+    proof = _parent_proof(clock, expires_monotonic=20000.0)
+    phase, driver, _ = _prepare(tmp_path, clock=clock, parent_budget=proof)
+    load = phase._load_workflows
+
+    def load_near_deadline():
+        result = load()
+        clock.now = 10799.0
+        return result
+
+    phase._load_workflows = load_near_deadline
+
+    def authorize(action, subject):
+        if action == "quality_public_submit":
+            clock.now += 2.0
+
+    phase.authorize = authorize
+    receipt = phase.run()
+    assert driver.submissions == 0, driver.submissions
+    assert receipt["rows"][0]["error_code"] == "PHASE_DEADLINE_EXCEEDED", receipt["rows"][0]
+    assert receipt["rows"][0]["execution_status"] == "BLOCKED", receipt["rows"][0]
+    assert receipt["test_counts"]["BLOCKED"] == 16, receipt
+    assert receipt["hard_timing_blocker"] == "UNIMPLEMENTED_PRODUCT_GATE0_BLOCKER", receipt
+
+
+def test_correction03_nm02_the_phase_boundary_is_exact_and_one_over(tmp_path):
+    # The preparatory work ends just inside the deadline and the bounded
+    # callback consumes the remaining seconds, exactly like the independent
+    # review's observation.
+    for prepared, expected_sends in ((10798.0, 1), (10799.0, 0)):
+        clock = FakeClock(step=0.0)
+        proof = _parent_proof(clock, expires_monotonic=20000.0)
+        phase, driver, _ = _prepare(tmp_path / str(prepared), clock=clock, parent_budget=proof)
+        load = phase._load_workflows
+
+        def load_near_deadline(prepared=prepared):
+            result = load()
+            clock.now = prepared
+            return result
+
+        phase._load_workflows = load_near_deadline
+
+        def authorize(action, subject):
+            if action == "quality_public_submit":
+                clock.now += 2.0
+
+        phase.authorize = authorize
+        receipt = phase.run()
+        assert driver.submissions == expected_sends, (prepared, driver.submissions)
+        if expected_sends == 0:
+            assert receipt["rows"][0]["error_code"] == "PHASE_DEADLINE_EXCEEDED", (prepared, receipt)
+        else:
+            assert receipt["test_counts"]["PASS"] >= 1, (prepared, receipt)
+
+
+def test_correction03_nm01_a_later_row_expiry_preserves_the_prior_attempts(tmp_path):
+    clock = FakeClock(step=0.0)
+    proof = _parent_proof(clock, expires_monotonic=20000.0)
+    phase, driver, _ = _prepare(tmp_path, clock=clock, parent_budget=proof)
+
+    submit = driver.submit
+
+    def advancing_submit(graph):
+        result = submit(graph)
+        # The clock moves in the driver, outside every bounded phase step.
+        clock.now += 7000.0
+        return result
+
+    driver.submit = advancing_submit
+    receipt = phase.run()
+    # The first rows were really sent and stay charged; the expiry stops the
+    # later ones without refunding or retrying the earlier ones.
+    assert driver.submissions >= 1, driver.submissions
+    assert receipt["public_submissions"] == driver.submissions, receipt
+    assert receipt["test_counts"]["PASS"] >= 1, receipt
+    assert receipt["rows"][-1]["execution_status"] == "BLOCKED", receipt["rows"][-1]
+    assert len(receipt["rows"]) == 16, receipt
+    assert receipt["provider_calls_reserved"] >= 1, receipt

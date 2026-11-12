@@ -137,6 +137,12 @@ PARENT_PROOF_KIND = "LVW_PARENT_CAPACITY_PROOF/1"
 RECEIPT_PADDING_KEY = "receipt_padding"
 RECEIPT_FIXED_POINT_ITERATIONS = 64
 
+# The canonical receipt name is the only authoritative terminal receipt.  The
+# staged name carries the same bytes but is never authority: a consumer that
+# loads it must reject it.
+CANONICAL_RECEIPT_NAME = "qd-receipt.json"
+STAGED_RECEIPT_NAME = "qd-receipt.staging"
+
 # The mandatory hard end-to-end process supervision is not implemented in this
 # offline component.  It belongs to the thin parent coordinator and must be
 # demonstrated before a real run or the product Gate0.  The frozen 600s and
@@ -253,6 +259,22 @@ NOT_ATTEMPTED_ERROR_CODES = frozenset({
     "ARTIFACT_TOTAL_BUDGET_EXCEEDED",
     "ARTIFACT_TOO_LARGE",
     "PARENT_BUDGET_CAPACITY_INSUFFICIENT",
+    "PARENT_BUDGET_PROOF_STALE",
+    "PARENT_BUDGET_PROOF_NOT_YET_VALID",
+    "PARENT_BUDGET_PROOF_RUN_MISMATCH",
+    "PARENT_BUDGET_PROOF_CANDIDATE_MISMATCH",
+    "PARENT_BUDGET_PROOF_AUTHORIZATION_MISMATCH",
+    "PARENT_BUDGET_PROOF_INTERVAL_INVALID",
+    "PARENT_BUDGET_PROOF_UNKNOWN",
+    "PARENT_BUDGET_PROOF_KIND_INVALID",
+    "PARENT_BUDGET_PROOF_MISSING",
+    "PHASE_DEADLINE_EXCEEDED",
+    "OWNED_DIRECTORY_CLOSED",
+    "OWNED_DIRECTORY_REPLACED",
+    "OWNED_PATH_REPLACED",
+    "OWNED_PATH_MISSING",
+    "CLOCK_NOT_MONOTONIC",
+    "CLOCK_NOT_FINITE",
 })
 
 # A storage failure means the evidence is not proven to exist.  It is reported
@@ -437,6 +459,109 @@ def _validate_prompt_spec(suggestion):
         _prompt_spec_validator().validate(suggestion)
     except Exception as error:  # noqa: BLE001 - every schema failure is a contract failure
         raise QualityContractError("PROMPT_SPEC_INVALID:" + type(error).__name__) from error
+
+
+def receipt_document(receipt):
+    """The document that the publication stage writes.
+
+    The pre-publication fields are applied here, so the exact serialized
+    length of the terminal receipt can be computed before it is written.
+    """
+    document = dict(receipt)
+    document["receipt_persisted"] = False
+    document["receipt_persistence_error"] = None
+    document["terminal_status"] = "TERMINAL_RECEIPT_NOT_PERSISTED"
+    document["published_as"] = CANONICAL_RECEIPT_NAME
+    document["staged_as"] = STAGED_RECEIPT_NAME
+    document["staging_entry_retained_on_publication"] = True
+    document["durability_limit"] = (
+        "A file fsync and a successful no-overwrite publication do not prove the crash "
+        "durability of the parent directory entry.")
+    return document
+
+
+def validate_source_evidence(evidence, *, source_sha256, source_bytes,
+                              input_reference, run_root):
+    """Validate one row's source evidence.
+
+    The same pure validator is used by the execution phase and by the scoring
+    entry point, so a row that the execution could not prove is unknown in
+    both.  Missing, null or malformed evidence is unknown; it is never
+    defaulted to a pass.
+    """
+    if not isinstance(evidence, dict):
+        return False, "SOURCE_EVIDENCE_MISSING"
+    identity = evidence.get("identity")
+    if (not isinstance(identity, list) or len(identity) != 5
+            or any(not _is_int(value) or value < 0 for value in identity)):
+        return False, "SOURCE_IDENTITY_INVALID"
+    if not _is_int(evidence.get("bytes")) or evidence["bytes"] <= 0:
+        return False, "SOURCE_BYTES_INVALID"
+    if evidence["bytes"] != source_bytes:
+        return False, "SOURCE_BYTES_MISMATCH"
+    if not _is_hex(evidence.get("sha256"), 64):
+        return False, "SOURCE_HASH_INVALID"
+    if evidence["sha256"] != source_sha256:
+        return False, "SOURCE_HASH_MISMATCH"
+    path = evidence.get("path")
+    if not isinstance(path, str) or not path:
+        return False, "SOURCE_PATH_INVALID"
+    if not isinstance(input_reference, str) or not input_reference:
+        return False, "SOURCE_REFERENCE_INVALID"
+    if run_root is not None:
+        if not isinstance(run_root, str) or not run_root:
+            return False, "SOURCE_RUN_ROOT_INVALID"
+        if Path(path) != Path(run_root) / "input" / input_reference:
+            return False, "SOURCE_PATH_FOREIGN"
+    return True, None
+
+
+def validate_release_evidence(evidence, *, baseline_gpu_mib):
+    """Validate the actual bounded release proof.
+
+    The proof is the native evidence itself: the proven flag, a strict integer
+    empty model inventory, the actual bounded GPU sample list, the finite
+    elapsed time, the bound baseline, the monotone cadence and the last three
+    samples back at the baseline.  No sample and no PID evidence is ever
+    fabricated here.
+    """
+    if not isinstance(evidence, dict):
+        return False, "RELEASE_EVIDENCE_MISSING"
+    if evidence.get("proven") is not True:
+        return False, "RELEASE_EVIDENCE_UNPROVEN"
+    loaded = evidence.get("loaded_models")
+    if not _is_int(loaded) or loaded != 0:
+        return False, "RELEASE_EVIDENCE_MODEL_RESIDENT"
+    elapsed = evidence.get("elapsed_seconds")
+    if not _is_finite_number(elapsed) or elapsed < 0 or elapsed > 30:
+        return False, "RELEASE_EVIDENCE_ELAPSED_INVALID"
+    baseline = evidence.get("baseline_gpu_mib")
+    if not _is_int(baseline) or baseline < 0:
+        return False, "RELEASE_EVIDENCE_BASELINE_INVALID"
+    if baseline_gpu_mib is not None and baseline != baseline_gpu_mib:
+        return False, "RELEASE_EVIDENCE_BASELINE_MISMATCH"
+    samples = evidence.get("gpu_samples")
+    if not isinstance(samples, list) or not 3 <= len(samples) <= 32:
+        return False, "RELEASE_EVIDENCE_GPU_SAMPLES_INVALID"
+    previous = None
+    for sample in samples:
+        if not isinstance(sample, dict):
+            return False, "RELEASE_EVIDENCE_GPU_SAMPLES_INVALID"
+        moment = sample.get("monotonic_seconds")
+        used = sample.get("gpu_used_mib")
+        if not _is_finite_number(moment) or moment < 0:
+            return False, "RELEASE_EVIDENCE_GPU_SAMPLES_INVALID"
+        if not _is_int(used) or used < 0:
+            return False, "RELEASE_EVIDENCE_GPU_SAMPLES_INVALID"
+        if previous is not None:
+            if moment <= previous:
+                return False, "RELEASE_EVIDENCE_GPU_CADENCE_INVALID"
+            if moment - previous > 1.5:
+                return False, "RELEASE_EVIDENCE_GPU_CADENCE_INVALID"
+        previous = moment
+    if any(sample["gpu_used_mib"] > baseline + 1024 for sample in samples[-3:]):
+        return False, "RELEASE_EVIDENCE_GPU_STABILITY_INVALID"
+    return True, None
 
 
 class _OwnedDirectory:
@@ -669,7 +794,7 @@ class QualityPhase:
         every legitimate child creation, so only the object identity pins it."""
         return [info.st_dev, info.st_ino]
 
-    def _open_owned_directories(self):
+    def _open_owned_directories(self, allow_existing=False):
         """Open and pin the owned run root, temp directory and phase directory.
 
         Every directory is opened relative to its pinned parent handle with
@@ -700,7 +825,7 @@ class QualityPhase:
             temp = self._owned_root.open_child_directory("temp")
         self._owned_temp = temp
         created = self._owned_temp.mkdir_child("s3-quality")
-        if not created:
+        if not created and not allow_existing:
             # A preexisting phase directory is a replay of an older root.  It
             # is refused and nothing at all is written into it.
             raise QualityContractError("PHASE_DIRECTORY_EXISTS")
@@ -754,6 +879,34 @@ class QualityPhase:
         if not _is_int(capacity) or capacity < 0:
             raise QualityContractError("PARENT_BUDGET_CAPACITY_INVALID")
         self.parent_budget_capacity = capacity
+
+    def _send_admission_guard(self, row, expected_calls):
+        """The final local send-admission guard.
+
+        It runs after every controlled preparation, authorization and source
+        callback and directly before the local reservation, the attempt charge
+        and the submit itself, so nothing unchecked happens in between.  It
+        revalidates the original ownership, the finite non boolean
+        non decreasing clock and the phase deadline, and the exact typed
+        parent proof with its validity interval and the current sufficient
+        remaining capacity.
+
+        This is a cooperative local guard.  It does not preempt a synchronous
+        callback that never returns; that remains the mandatory parent
+        watchdog obligation and stays UNIMPLEMENTED_PRODUCT_GATE0_BLOCKER.
+        """
+        self._verify_owned()
+        now = self._now()
+        if not _is_finite_number(now):
+            raise QualityContractError("CLOCK_NOT_FINITE")
+        if self._started is None or now - self._started > PHASE_TIMEOUT_SECONDS:
+            raise QualityContractError("PHASE_DEADLINE_EXCEEDED")
+        admission_error = self._parent_proof_is_fresh()
+        if admission_error:
+            raise QualityContractError(admission_error)
+        admitted = min(self.parent_budget_capacity, MAX_TOTAL_PROVIDER_CALLS)
+        if self._provider_calls_reserved + expected_calls > admitted:
+            raise QualityContractError("PARENT_BUDGET_CAPACITY_INSUFFICIENT")
 
     def _parent_proof_is_fresh(self):
         """The proof must still be inside its validity interval."""
@@ -1142,44 +1295,24 @@ class QualityPhase:
         evidence = self._bounded("release_preload", RELEASE_MAX_SECONDS,
                                  "RELEASE_ELAPSED_EXCEEDED",
                                  self.driver.release_preload, binding, worker)
-        if not isinstance(evidence, dict):
-            raise QualityContractError("RELEASE_EVIDENCE_MISSING")
-        if evidence.get("proven") is not True:
-            raise QualityContractError("RELEASE_EVIDENCE_UNPROVEN")
-        if evidence.get("loaded_models") != 0:
-            raise QualityContractError("RELEASE_EVIDENCE_MODEL_RESIDENT")
-        samples = evidence.get("gpu_samples")
-        if not isinstance(samples, list) or not 3 <= len(samples) <= 32:
-            raise QualityContractError("RELEASE_EVIDENCE_GPU_SAMPLES_INVALID")
-        elapsed = evidence.get("elapsed_seconds")
-        if not _is_finite_number(elapsed) or elapsed < 0 or elapsed > 30:
-            raise QualityContractError("RELEASE_EVIDENCE_ELAPSED_INVALID")
         baseline = self.binding["baseline_gpu_mib"]
-        previous = None
-        for sample in samples:
-            if not isinstance(sample, dict):
-                raise QualityContractError("RELEASE_EVIDENCE_GPU_SAMPLES_INVALID")
-            moment = sample.get("monotonic_seconds")
-            used = sample.get("gpu_used_mib")
-            if (not _is_finite_number(moment) or moment < 0
-                    or not _is_int(used) or used < 0):
-                raise QualityContractError("RELEASE_EVIDENCE_GPU_SAMPLES_INVALID")
-            if previous is not None:
-                if moment <= previous:
-                    raise QualityContractError("RELEASE_EVIDENCE_GPU_CADENCE_INVALID")
-                if moment - previous > 1.5:
-                    raise QualityContractError("RELEASE_EVIDENCE_GPU_CADENCE_INVALID")
-            previous = moment
-        if any(sample["gpu_used_mib"] > baseline + 1024 for sample in samples[-3:]):
-            raise QualityContractError("RELEASE_EVIDENCE_GPU_STABILITY_INVALID")
-        return {
+        # The same pure validator that the scoring entry point uses.
+        valid, reason = validate_release_evidence(evidence, baseline_gpu_mib=baseline)
+        if not valid:
+            raise QualityContractError(reason)
+        # The actual native proof is retained as it is; no sample, count or
+        # PID evidence is ever fabricated here.
+        proof = {
             "proven": True,
-            "loaded_models": 0,
-            "model_inventory_empty": True,
-            "gpu_samples": len(samples),
-            "elapsed_seconds": elapsed,
-            "baseline_gpu_mib": baseline,
+            "loaded_models": evidence["loaded_models"],
+            "elapsed_seconds": evidence["elapsed_seconds"],
+            "baseline_gpu_mib": evidence["baseline_gpu_mib"],
+            "gpu_samples": copy.deepcopy(evidence["gpu_samples"]),
         }
+        for key in ("run_token", "model", "owner_pid", "owner_start_ticks", "unload_acknowledged"):
+            if key in evidence:
+                proof[key] = evidence[key]
+        return proof
 
     def _video_residue(self, row):
         self._authorize("quality_residue", row["asset_id"])
@@ -1233,6 +1366,8 @@ class QualityPhase:
             "listener_after": None,
             "release_evidence": None,
             "video_snapshot_residue": None,
+            "storage_unproven": False,
+            "cleanup_unproven": False,
             "cleanup_diagnostics": [],
             "automatic_retries": 0,
             "halt": False,
@@ -1252,14 +1387,16 @@ class QualityPhase:
             result["graph_sha256"] = sha256_bytes(canonical_json(graph).encode("utf-8"))
             stage = "submit"
             self._authorize("quality_public_submit", row["asset_id"])
-            # After the controlled callbacks the source and the owned root are
-            # re-verified immediately before the send.  A changed source
+            # After every controlled callback the source and the owned root
+            # are re-verified immediately before the send.  A changed source
             # produces zero sends and zero charges for this row.
             result["source_evidence"] = self._validate_source(
                 row, previous=result["source_evidence"]["identity"])
-            # The owned ancestors are compared again immediately before the
-            # send, so a renamed or replaced root is never adopted.
-            self._verify_owned()
+            # The final local send-admission guard: the original ownership,
+            # the phase deadline and the exact typed parent proof with its
+            # current remaining capacity.  Nothing unchecked happens between
+            # this guard and the submit.
+            self._send_admission_guard(row, expected_calls)
             driver_submissions = int(getattr(self.driver, "submissions", 0))
             driver_limit = int(getattr(self.driver, "max_public_submissions", MAX_PUBLIC_SUBMISSIONS))
             if driver_submissions >= driver_limit:
@@ -1668,7 +1805,8 @@ class QualityPhase:
                  "suggestion_sha256": None, "metadata_sha256": None, "history_sha256": None,
                  "raw_artifact": None, "raw_preserved": False, "automatic_retries": 0,
                  "listener_before": None, "listener_after": None, "release_evidence": None,
-                 "video_snapshot_residue": None, "halt": False}
+                 "video_snapshot_residue": None, "storage_unproven": False,
+                 "cleanup_unproven": False, "halt": False}
                 for index in range(FIXED_TOTAL)]
 
     def _finalize(self, rows, decision, extra=None):
@@ -1681,6 +1819,9 @@ class QualityPhase:
             "candidate_sha": self.candidate_sha,
             "authorization_sha256": self.authorization_sha256,
             "projection_sha256": self.projection_sha256,
+            "run_root": str(self.root),
+            "published_as": CANONICAL_RECEIPT_NAME,
+            "staged_as": STAGED_RECEIPT_NAME,
             "source_identity_sha256": sha256_bytes(canonical_json(self.source_identity).encode("utf-8")),
             "fixed_denominator": {"images": FIXED_IMAGES, "videos": FIXED_VIDEOS, "total": FIXED_TOTAL},
             "rows": rows,
@@ -1705,6 +1846,7 @@ class QualityPhase:
             "cleanup_unproven": self._cleanup_unproven,
             "parent_budget_capacity": self.parent_budget_capacity,
             "parent_budget_required_actions": MAX_TOTAL_PROVIDER_CALLS,
+            "parent_budget_baseline_gpu_mib": self.binding["baseline_gpu_mib"],
             "bounds": {
                 "max_public_submissions": MAX_PUBLIC_SUBMISSIONS,
                 "max_provider_calls": MAX_TOTAL_PROVIDER_CALLS,
@@ -1763,20 +1905,25 @@ class QualityPhase:
         remaining difference so that the serialized length is exactly the
         recorded value.  The iteration is bounded; a document that cannot
         reach a fixed point is an explicit failure, never a silent truncation.
+
+        The publication creates two retained directory entries: the staged
+        file and the canonical hard link to it.  Both are counted honestly.
         """
         document = dict(receipt)
         document["receipt_persisted"] = True
         document["receipt_persistence_error"] = None
         document["terminal_status"] = "TERMINAL_RECEIPT_PERSISTED"
-        document["artifact_files_including_receipt"] = self._artifact_files + 1
+        document["published_as"] = CANONICAL_RECEIPT_NAME
+        document["staged_as"] = STAGED_RECEIPT_NAME
+        document["artifact_files_including_receipt"] = self._artifact_files + 2
         document["artifact_bytes_including_receipt"] = self._artifact_bytes
         document["receipt_bytes"] = 0
         document[RECEIPT_PADDING_KEY] = ""
         assumed = len(canonical_json(document).encode("utf-8")) + 64
         for _ in range(RECEIPT_FIXED_POINT_ITERATIONS):
             document["receipt_bytes"] = assumed
-            document["artifact_bytes_including_receipt"] = self._artifact_bytes + assumed
-            document["artifact_files_including_receipt"] = self._artifact_files + 1
+            document["artifact_bytes_including_receipt"] = self._artifact_bytes + 2 * assumed
+            document["artifact_files_including_receipt"] = self._artifact_files + 2
             raw = canonical_json(document).encode("utf-8")
             actual = len(raw)
             if actual == assumed:
@@ -1791,45 +1938,89 @@ class QualityPhase:
             assumed = actual
         raise QualityContractError("RECEIPT_FIXED_POINT_UNREACHED")
 
-    def _write_receipt(self, receipt):
-        """Persist the terminal receipt.
+    def _stage_receipt(self, raw):
+        """Write the payload to an exclusive staged file and make it durable.
 
-        The terminal receipt is itself an artifact: its own bytes and file
-        count are inside the frozen 8MiB / 128MiB / 256 bounds, the totals
-        reported are the honest post-write totals that agree with the file on
-        disk, and an impossible receipt is reported as an explicit
-        non-persisted terminal status instead of being truncated, overwritten
-        or erased.
+        The staged file is created relative to the pinned phase handle, it is
+        flushed and fsynced, and it is never published under the canonical
+        name.  A failed staging is retained as explicitly non-authoritative
+        evidence; it is never deleted and never overwritten.
         """
-        receipt["receipt_persisted"] = True
-        receipt["receipt_persistence_error"] = None
-        receipt["terminal_status"] = "TERMINAL_RECEIPT_PERSISTED"
+        descriptor = self._owned_phase.open_child_file(
+            STAGED_RECEIPT_NAME, os.O_WRONLY | os.O_CREAT | os.O_EXCL)
+        staged = {"name": STAGED_RECEIPT_NAME, "bytes": len(raw)}
         try:
-            raw, document = self._serialized_receipt(receipt)
-            if len(raw) > MAX_ARTIFACT_BYTES:
-                raise QualityContractError("RECEIPT_OVER_ARTIFACT_CAP")
-            if self._artifact_files + 1 > MAX_ARTIFACT_FILES:
-                raise QualityContractError("RECEIPT_FILE_BUDGET_EXCEEDED")
-            if self._artifact_bytes + len(raw) > MAX_TOTAL_ARTIFACT_BYTES:
-                raise QualityContractError("RECEIPT_TOTAL_BUDGET_EXCEEDED")
-            if self._owned_phase is None:
-                raise QualityContractError("OWNED_DIRECTORY_CLOSED:" + str(self.directory))
-            self._verify_owned()
-            try:
-                descriptor = self._owned_phase.open_child_file(
-                    "qd-receipt.json", os.O_WRONLY | os.O_CREAT | os.O_EXCL)
-            except FileExistsError as error:
-                raise QualityContractError("ARTIFACT_REPLAY_FORBIDDEN:qd-receipt.json") from error
             with os.fdopen(descriptor, "wb") as stream:
                 stream.write(raw)
                 stream.flush()
                 os.fsync(stream.fileno())
-            self._artifact_files += 1
-            self._artifact_bytes += len(raw)
+        except Exception:
+            # The staged bytes stay on disk as non-authoritative evidence.
+            staged["durable"] = False
+            raise
+        staged["durable"] = True
+        return staged
+
+    def _publish_receipt(self):
+        """Publish the staged bytes under the canonical name without overwrite.
+
+        A hard link is the supported no-overwrite publication primitive: it
+        fails when the canonical name already exists, so a prior receipt is
+        never overwritten.  There is no rename-overwrite and no absolute path
+        fallback.
+        """
+        try:
+            os.link(STAGED_RECEIPT_NAME, CANONICAL_RECEIPT_NAME,
+                    src_dir_fd=self._owned_phase.fd, dst_dir_fd=self._owned_phase.fd,
+                    follow_symlinks=False)
+        except FileExistsError as error:
+            raise QualityContractError("ARTIFACT_REPLAY_FORBIDDEN:" + CANONICAL_RECEIPT_NAME) from error
+        except OSError as error:
+            raise QualityContractError("RECEIPT_PUBLICATION_FAILED:" + type(error).__name__) from error
+
+    def _write_receipt(self, receipt):
+        """Persist the terminal receipt.
+
+        The order is fixed: the bounded canonical payload is prepared, it is
+        written to an exclusive staged file under the pinned descriptor parent
+        and flushed and fsynced there, and only a successful durable staging
+        is published under the canonical name with a no-overwrite primitive.
+        Staged bytes are never authority: while they are unpublished, no
+        canonical receipt exists, so no consumer can read them as a terminal
+        receipt.
+
+        The terminal receipt is itself an artifact: its own bytes and file
+        count are inside the frozen 8MiB / 128MiB / 256 bounds, the totals
+        reported are the honest post-write totals that agree with the files on
+        disk, and an impossible receipt is reported as an explicit
+        non-persisted terminal status instead of being truncated, overwritten
+        or erased.
+        """
+        receipt.update(receipt_document(receipt))
+        try:
+            raw, document = self._serialized_receipt(receipt)
+            if len(raw) > MAX_ARTIFACT_BYTES:
+                raise QualityContractError("RECEIPT_OVER_ARTIFACT_CAP")
+            if self._artifact_files + 2 > MAX_ARTIFACT_FILES:
+                raise QualityContractError("RECEIPT_FILE_BUDGET_EXCEEDED")
+            if self._artifact_bytes + 2 * len(raw) > MAX_TOTAL_ARTIFACT_BYTES:
+                raise QualityContractError("RECEIPT_TOTAL_BUDGET_EXCEEDED")
+            if self._owned_phase is None:
+                raise QualityContractError("OWNED_DIRECTORY_CLOSED:" + str(self.directory))
+            self._verify_owned()
+            staged = self._stage_receipt(raw)
+            receipt["staged_receipt_retained"] = True
+            self._publish_receipt()
+            # The staged entry and the published entry are both retained and
+            # both counted; they share one inode.
+            self._artifact_files += 2
+            self._artifact_bytes += 2 * len(raw)
             receipt.update(document)
             receipt["receipt_persisted"] = True
             receipt["receipt_persistence_error"] = None
             receipt["terminal_status"] = "TERMINAL_RECEIPT_PERSISTED"
+            receipt["staged_receipt_retained"] = True
+            receipt["staged_receipt_bytes"] = staged["bytes"]
             return True
         except Exception as error:  # noqa: BLE001 - the failure must be visible
             receipt["receipt_persisted"] = False
@@ -2032,6 +2223,33 @@ def _log_evidence(snapshot):
     return {key: value for key, value in snapshot.items() if key != "raw_log"}
 
 
+def load_canonical_receipt(directory):
+    """Load the authoritative terminal receipt.
+
+    Only the canonical name is authority.  A staged file, even with identical
+    bytes, is explicitly non-authoritative and is rejected here, so an
+    unpublished staging can never be consumed as a terminal receipt.
+    """
+    root = Path(directory)
+    candidate = root / CANONICAL_RECEIPT_NAME
+    if candidate.is_symlink() or not candidate.is_file():
+        raise QualityContractError("CANONICAL_RECEIPT_ABSENT")
+    raw = candidate.read_bytes()
+    try:
+        document = json.loads(raw.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise QualityContractError("CANONICAL_RECEIPT_UNREADABLE") from error
+    if not isinstance(document, dict):
+        raise QualityContractError("CANONICAL_RECEIPT_UNREADABLE")
+    if document.get("published_as") != CANONICAL_RECEIPT_NAME:
+        raise QualityContractError("CANONICAL_RECEIPT_NOT_AUTHORITATIVE")
+    if document.get("receipt_persisted") is not True:
+        raise QualityContractError("CANONICAL_RECEIPT_NOT_PERSISTED")
+    if document.get("terminal_status") != "TERMINAL_RECEIPT_PERSISTED":
+        raise QualityContractError("CANONICAL_RECEIPT_NOT_PERSISTED")
+    return document
+
+
 def _safe_artifact_path(artifact_root, relative):
     """Resolve one artifact path without escaping the owned artifact root."""
     root = Path(artifact_root).resolve(strict=True)
@@ -2113,34 +2331,37 @@ def verify_independence(independence, *, implementer_identity=None, run_id=None)
 def _row_evidence_complete(row, receipt):
     """Validate the source, storage and cleanup evidence of one row.
 
-    Every row is checked, whether its execution passed or failed.  A missing
-    release proof, a missing or non-empty residue observation, missing source
-    evidence that does not match the row identity, or an explicit storage or
-    cleanup uncertainty leaves the row unresolved.  A bare status string is
-    never accepted and nothing is defaulted to a pass.
+    Every row is checked, whether its execution passed or failed.  The same
+    pure validators that the execution phase uses are applied here, so a row
+    that the execution could not prove is unknown in both.  A missing, null
+    or malformed declaration is unknown: the uncertainty flags must be the
+    literal boolean False, and nothing is ever defaulted to a pass.
     """
-    source = row.get("source_evidence")
-    if not isinstance(source, dict):
-        return False, "SOURCE_EVIDENCE_MISSING"
-    if source.get("sha256") != row.get("source_sha256"):
-        return False, "SOURCE_EVIDENCE_MISMATCH"
-    if source.get("bytes") != row.get("source_bytes"):
-        return False, "SOURCE_EVIDENCE_MISMATCH"
-    release = row.get("release_evidence")
-    if not isinstance(release, dict):
-        return False, "RELEASE_EVIDENCE_MISSING"
-    if release.get("proven") is not True:
-        return False, "RELEASE_EVIDENCE_UNPROVEN"
-    if release.get("model_inventory_empty") is not True:
-        return False, "RELEASE_EVIDENCE_UNPROVEN"
+    valid, reason = validate_source_evidence(
+        row.get("source_evidence"),
+        source_sha256=row.get("source_sha256"),
+        source_bytes=row.get("source_bytes"),
+        input_reference=row.get("input_reference"),
+        run_root=receipt.get("run_root"))
+    if not valid:
+        return False, reason
+    valid, reason = validate_release_evidence(
+        row.get("release_evidence"),
+        baseline_gpu_mib=receipt.get("parent_budget_baseline_gpu_mib"))
+    if not valid:
+        return False, reason
     residue = row.get("video_snapshot_residue")
     if not isinstance(residue, list):
         return False, "RESIDUE_EVIDENCE_MISSING"
     if residue:
         return False, "RESIDUE_EVIDENCE_PRESENT"
-    if row.get("storage_unproven") is True or receipt.get("storage_unproven") is True:
+    if row.get("storage_unproven") is not False:
         return False, "STORAGE_UNPROVEN"
-    if row.get("cleanup_unproven") is True or receipt.get("cleanup_unproven") is True:
+    if receipt.get("storage_unproven") is not False:
+        return False, "STORAGE_UNPROVEN"
+    if row.get("cleanup_unproven") is not False:
+        return False, "CLEANUP_UNPROVEN"
+    if receipt.get("cleanup_unproven") is not False:
         return False, "CLEANUP_UNPROVEN"
     return True, None
 
@@ -2190,6 +2411,14 @@ def recompute_scores(execution_receipt, artifact_root, score_receipts, *,
     """
     if not isinstance(execution_receipt, dict) or execution_receipt.get("kind") != QD_RECEIPT_KIND:
         raise QualityContractError("QS_EXECUTION_RECEIPT_INVALID")
+    # Only a published canonical receipt is authority.  A staged or failed
+    # terminal receipt is rejected here, at the consumer loading boundary.
+    if execution_receipt.get("published_as") != CANONICAL_RECEIPT_NAME:
+        raise QualityContractError("QS_EXECUTION_RECEIPT_NOT_AUTHORITATIVE")
+    if execution_receipt.get("receipt_persisted") is not True:
+        raise QualityContractError("QS_EXECUTION_RECEIPT_NOT_PERSISTED")
+    if execution_receipt.get("terminal_status") != "TERMINAL_RECEIPT_PERSISTED":
+        raise QualityContractError("QS_EXECUTION_RECEIPT_NOT_PERSISTED")
     denominator = execution_receipt.get("fixed_denominator")
     if (not isinstance(denominator, dict) or denominator.get("total") != FIXED_TOTAL
             or denominator.get("images") != FIXED_IMAGES or denominator.get("videos") != FIXED_VIDEOS):
