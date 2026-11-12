@@ -9,7 +9,7 @@
     "stage_id": "R1",
     "workpack_id": "WP-R1-U3",
     "gate": "S3_P4_OFFLINE_INTEGRATION_PREPARATION",
-    "state": "READY"
+    "state": "RUNNING"
   },
   "last_passed_gate": {
     "gate": "UNIFIED_MEDIA_FIXED_UM10_AND_INDEPENDENT_REVIEW",
@@ -35,7 +35,7 @@
     "TARGET_HARDWARE_TESTED"
   ],
   "next_owner": "Human restores this ClaudeCode task or explicitly authorizes specific Codex takeover; root only preserves handoff",
-  "next_action": "Implement frozen S3-P4-OFFLINE A/B/C in visible Claude window. Initially zero subprocess/network only; submit exact candidate/worker/fixture/runner hashes+argv via Orca ask for root finiteCPU binding before any fixture process. No user reauthorization or realruntime.",
+  "next_action": "Await visible Claude S3 integration ctx_acda509961b1: source/zero-process tests first; answer exact CPU fixture hash/argv/budget machine-gate ask automatically within existing authorization before any fixture process. First429 stop/no retry/fallback. No productruntime or StagePASS.",
   "required_authorization": null,
   "authorization_request": "reports/authorization-program-v1-complete-03.request.json",
   "authorization_record": "reports/authorization-program-v1-complete-03.approval.json",
@@ -1819,7 +1819,7 @@
   },
   "s3_integration": {
     "workpack_id": "S3-P4-OFFLINE",
-    "status": "FROZEN_IMPLEMENTATION_CPU_EXECUTION_GATE_PENDING",
+    "status": "CLAUDE_IMPLEMENTATION_ACTIVE_CPU_EXECUTION_GATE_PENDING",
     "contract": "reports/v0-s3/product-gate0/s3-integration-offline-contract-01.md",
     "task": "reports/v0-s3/product-gate0/implementation-integration-01.task.md",
     "acceptance_matrix": "reports/v0-s3/product-gate0/s3-integration-acceptance-01.json",
@@ -1835,6 +1835,11 @@
       "cleanup_reserve_seconds": 30
     },
     "real_runtime_permitted": false,
-    "stage_pass_claim": false
+    "stage_pass_claim": false,
+    "dispatch_id": "ctx_acda509961b1",
+    "task_id": "task_e93a3d1ae96d",
+    "terminal_id": "term_561b6c89-8e15-4f3b-b771-bf3b0022418c",
+    "launch_receipt": "reports/v0-s3/product-gate0/implementation-integration-01.launch.json",
+    "retry_env": "reports/v0-s3/product-gate0/implementation-integration-01.retry-env.json"
   }
 }
