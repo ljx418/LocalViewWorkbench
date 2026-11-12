@@ -9,7 +9,7 @@
     "stage_id": "R1",
     "workpack_id": "WP-R1-U3",
     "gate": "S3_P3B_QUALITY_INTEGRATION_INDEPENDENT_REVIEW",
-    "state": "RUNNING"
+    "state": "READY_FOR_REVIEW"
   },
   "last_passed_gate": {
     "gate": "UNIFIED_MEDIA_FIXED_UM10_AND_INDEPENDENT_REVIEW",
@@ -21,7 +21,7 @@
     "passed_cases": 10,
     "human_signoff": "reports/unified-media/human-signoff-live15.json"
   },
-  "current_blocking_gate": "S3_P3B_CORRECTION06_IMPLEMENTATION_AND_INDEPENDENT_REVIEW_PENDING",
+  "current_blocking_gate": "S3_P3B_CORRECTION06_ISOLATED_REVIEW_PENDING",
   "stage_packet": ".agent-governance/stages/R1/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/R1/PAYLOAD_MANIFEST.sha256",
   "product_status": "UNIFIED_MEDIA_EARLY_ACCEPTED_SCOPE_ONLY_FULL_R1_PENDING",
@@ -35,7 +35,7 @@
     "TARGET_HARDWARE_TESTED"
   ],
   "next_owner": "Human restores this ClaudeCode task or explicitly authorizes specific Codex takeover; root only preserves handoff",
-  "next_action": "Await correction06 Claude ctx_b28ce8e91117 report, first429 immediate stop/no retry/fallback; verify candidate and isolated review. No StagePASS/native run from this offline batch.",
+  "next_action": "Dispatch isolated correction06 review ofba34b15/evidenceb66aeba, inspect typed truth and named custody generic owners, preserve232 obligations and prior closures. Self-check is not StagePASS.",
   "required_authorization": null,
   "authorization_request": "reports/authorization-program-v1-complete-03.request.json",
   "authorization_record": "reports/authorization-program-v1-complete-03.approval.json",
@@ -1571,7 +1571,7 @@
       }
     },
     "correction06": {
-      "status": "CLAUDE_IMPLEMENTATION_DISPATCHED",
+      "status": "READY_FOR_INDEPENDENT_REVIEW",
       "task": "reports/v0-s3/product-gate0/implementation-p3b-correction-06.task.md",
       "adjudication": "reports/v0-s3/product-gate0/p3b-correction-06.adjudication.json",
       "stage_pass_claim": false,
@@ -1580,7 +1580,19 @@
       "terminal_id": "term_6ce760f1-6171-4216-898c-ff3cfd67afb4",
       "launch_receipt": "reports/v0-s3/product-gate0/implementation-p3b-correction-06.launch.json",
       "retry_env": "reports/v0-s3/product-gate0/implementation-p3b-correction-06.fresh-retry-env.json",
-      "prior_reuse_refusal": "agent_unconfigured, before task creation; old terminal preserved, fresh visible process verified"
+      "prior_reuse_refusal": "agent_unconfigured, before task creation; old terminal preserved, fresh visible process verified",
+      "candidate_sha": "ba34b1581fc5e8e8b4de6ba469484e8eae416da1",
+      "evidence_commit": "b66aebaddedab3eb2bee88dda18d7657b94ff6d4",
+      "worker_done_message_id": "msg_5914e27dcad8",
+      "intake": "reports/v0-s3/product-gate0/correction06-intake-01.json",
+      "review_task": "reports/v0-s3/product-gate0/independent-p3b-correction-06.task.md",
+      "reported_checks": {
+        "combined": 232,
+        "preserved": 206,
+        "new": 26,
+        "guard": 4,
+        "focused_observations": 22
+      }
     }
   },
   "a06_read_only_capability_child": {
