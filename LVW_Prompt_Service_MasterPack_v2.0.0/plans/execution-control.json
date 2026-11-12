@@ -1,6 +1,6 @@
 {
   "schema_version": "lvw.execution-control/1",
-  "updated_at": "2026-11-12",
+  "updated_at": "2026-11-13",
   "project_id": "lvw-prompt-service",
   "design_version": "2.0.0",
   "target_version": "V1",
@@ -9,7 +9,7 @@
     "stage_id": "R1",
     "workpack_id": "WP-R1-U3",
     "gate": "S3_P4_OFFLINE_INTEGRATION_PREPARATION",
-    "state": "RUNNING"
+    "state": "WAIT_BUDGET"
   },
   "last_passed_gate": {
     "gate": "UNIFIED_MEDIA_FIXED_UM10_AND_INDEPENDENT_REVIEW",
@@ -21,7 +21,7 @@
     "passed_cases": 10,
     "human_signoff": "reports/unified-media/human-signoff-live15.json"
   },
-  "current_blocking_gate": "S3_P4_OFFLINE_INTEGRATION_AND_MACHINE_FIXTURE_BINDING_PENDING",
+  "current_blocking_gate": "CLAUDE_429_AND_AUTO_MODE_CLASSIFIER_BLOCKED_BEFORE_FINITE_FIXTURES",
   "stage_packet": ".agent-governance/stages/R1/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/R1/PAYLOAD_MANIFEST.sha256",
   "product_status": "UNIFIED_MEDIA_EARLY_ACCEPTED_SCOPE_ONLY_FULL_R1_PENDING",
@@ -34,8 +34,8 @@
     "PRODUCTION_RELEASED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "Human restores this ClaudeCode task or explicitly authorizes specific Codex takeover; root only preserves handoff",
-  "next_action": "Await revised CPU executor proposal from same Claude task ctx_acda509961b1 after reply03; no repeated whole suites or actualfixture starts, no new human authorization.",
+  "next_owner": "Human explicitly resumes this Claude task or authorizes this interruption-specific takeover; root preserves evidence only",
+  "next_action": "Await explicit recovery instruction; do not retry/relaunch/switch provider or execute suspended finite fixture grant.",
   "required_authorization": null,
   "authorization_request": "reports/authorization-program-v1-complete-03.request.json",
   "authorization_record": "reports/authorization-program-v1-complete-03.approval.json",
@@ -87,7 +87,7 @@
   "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
   "live_terminal_receipt": "reports/unified-media/live-15/receipt.json",
   "independent_review": "reports/unified-media/independent-live-15/review.md",
-  "exact_stop_reason": "ClaudeCode Token Plan429 observed, Harness displayed attempt7/10; exact owned worker stopped with ptyKilled proof. User rule requires WAIT_BUDGET, no automatic retry or Codex takeover.",
+  "exact_stop_reason": "Claude Token Plan429 after repeated auto-mode classifier rejection; fixture starts0, candidate preserved, CPU counter suspended; agent terminal retained/live, physical exit not claimed.",
   "native_component_authorization": "reports/v0-s2/authorization-native-component-02.json",
   "native_component_terminal_receipt": "reports/v0-s2/native-component-02/receipt.json",
   "local_control_change_decision": "reports/v0-s2/change-decision-video-workbench-01.json",
@@ -1819,12 +1819,12 @@
   },
   "s3_integration": {
     "workpack_id": "S3-P4-OFFLINE",
-    "status": "CLAUDE_FINITE_FIXTURE_RUN_AUTHORIZED",
+    "status": "WAIT_BUDGET_CLAUDE_429_FIXTURES_NOT_EXECUTED",
     "contract": "reports/v0-s3/product-gate0/s3-integration-offline-contract-01.md",
     "task": "reports/v0-s3/product-gate0/implementation-integration-01.task.md",
     "acceptance_matrix": "reports/v0-s3/product-gate0/s3-integration-acceptance-01.json",
     "python_binding": "reports/v0-s3/product-gate0/s3-integration-python-01.binding.json",
-    "cpu_fixture_execution_permitted": true,
+    "cpu_fixture_execution_permitted": false,
     "fixture_limits_after_machine_binding": {
       "total_starts": 24,
       "implementation_starts": 16,
@@ -1842,20 +1842,21 @@
     "launch_receipt": "reports/v0-s3/product-gate0/implementation-integration-01.launch.json",
     "retry_env": "reports/v0-s3/product-gate0/implementation-integration-01.retry-env.json",
     "machine_gate": {
-      "status": "FINITE_FIXTURE_EXECUTION_AUTHORIZED_NOT_PRODUCT_ACCEPTANCE",
+      "status": "SUSPENDED_CLAUDE_429_COUNTER_INACTIVE",
       "review": "reports/v0-s3/product-gate0/s3-integration-cpu-gate-review-06.json",
       "question_id": "msg_3b503956ea61",
       "candidate_sha": "763f3d561772ec8efa7aafe597b62ac77a3b7969",
       "fixture_starts_authorized": 13,
       "max_runs": 1,
       "human_authorization_required": false,
-      "execution_permitted": true,
+      "execution_permitted": false,
       "binding_path": "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/implementation.binding.json",
       "binding_sha256": "3594b3a30d12e1fbfe54d71118d06b996a5e21872679e4af25bc9818d41dfee1",
       "counter_path": "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json",
       "budget_id": "s3-p4-9618f7c7bf12403b8877c90b92ed99a7",
       "reply_body": "reports/v0-s3/product-gate0/s3-integration-cpu-gate-review-06.reply-body.txt",
       "reply_message_id": "msg_7358b1a4c383"
-    }
+    },
+    "interruption_receipt": "reports/v0-s3/product-gate0/integration-fixture-429-01.json"
   }
 }
