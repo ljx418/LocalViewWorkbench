@@ -1,0 +1,286 @@
+FFFFFFFF.F.F                                                             [100%]
+=================================== FAILURES ===================================
+_ test_correction08_nm03_a_child_directory_whose_metadata_fails_after_the_open_is_closed _
+
+tmp_path = PosixPath('/tmp/lvw-c05-debug-negative-control-nm5s4ig7/pytest/test_correction08_nm03_a_child0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7457df3b6540>
+
+    @pytest.mark.skipif(not os.path.isdir("/proc/self/fd"), reason="no procfs descriptor listing")
+    def test_correction08_nm03_a_child_directory_whose_metadata_fails_after_the_open_is_closed(
+            tmp_path, monkeypatch):
+        """A child directory whose metadata fails after the open owns nobody."""
+        run = _own_run(tmp_path)
+        nested = run["receipt"]["rows"][0]["raw_artifact"]
+        before = _descriptor_count()
+        state = _fail_the_metadata_of_the_next_open(monkeypatch)
+        boundary = quality._ArtifactBoundary(run["artifact_root"])
+        during = _descriptor_count()
+        try:
+            with pytest.raises(OSError) as failed:
+                boundary.read(nested, quality.MAX_ARTIFACT_BYTES)
+            assert failed.value.errno == errno.EIO, failed.value.errno
+            assert state["fired"] == 1, state
+            # The refused child directory is already closed: the descriptor use
+            # of the boundary is exactly the use of its pinned levels.
+>           assert _descriptor_count() == during, "the refused child directory leaked a descriptor"
+E           AssertionError: the refused child directory leaked a descriptor
+E           assert 21 == 20
+E            +  where 21 = _descriptor_count()
+
+tools/test_v0_s3_quality_phase.py:4221: AssertionError
+_ test_correction08_nm03_a_leaf_whose_metadata_fails_after_the_open_is_closed __
+
+tmp_path = PosixPath('/tmp/lvw-c05-debug-negative-control-nm5s4ig7/pytest/test_correction08_nm03_a_leaf_0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7457213e0230>
+
+    @pytest.mark.skipif(not os.path.isdir("/proc/self/fd"), reason="no procfs descriptor listing")
+    def test_correction08_nm03_a_leaf_whose_metadata_fails_after_the_open_is_closed(
+            tmp_path, monkeypatch):
+        """A leaf whose metadata fails after the open owns nobody."""
+        run = _own_run(tmp_path)
+        before = _descriptor_count()
+        state = _fail_the_metadata_of_the_next_open(monkeypatch)
+        boundary = quality._ArtifactBoundary(run["artifact_root"])
+        during = _descriptor_count()
+        try:
+            with pytest.raises(OSError) as failed:
+                boundary.read(quality.CANONICAL_RECEIPT_NAME, quality.MAX_ARTIFACT_BYTES)
+            assert failed.value.errno == errno.EIO, failed.value.errno
+            assert state["fired"] == 1, state
+>           assert _descriptor_count() == during, "the refused leaf leaked a descriptor"
+E           AssertionError: the refused leaf leaked a descriptor
+E           assert 22 == 21
+E            +  where 22 = _descriptor_count()
+
+tools/test_v0_s3_quality_phase.py:4245: AssertionError
+__ test_correction08_nm03_a_child_directory_whose_named_stat_fails_is_closed ___
+
+tmp_path = PosixPath('/tmp/lvw-c05-debug-negative-control-nm5s4ig7/pytest/test_correction08_nm03_a_child1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x74569c542de0>
+
+    @pytest.mark.skipif(not os.path.isdir("/proc/self/fd"), reason="no procfs descriptor listing")
+    def test_correction08_nm03_a_child_directory_whose_named_stat_fails_is_closed(
+            tmp_path, monkeypatch):
+        """A child directory whose named stat fails after the open is closed."""
+        run = _own_run(tmp_path)
+        nested = run["receipt"]["rows"][0]["raw_artifact"]
+        before = _descriptor_count()
+        state = _falsify_the_named_stat_of_the_next_open(
+            monkeypatch, error=OSError(errno.EIO, "injected named stat failure"))
+        boundary = quality._ArtifactBoundary(run["artifact_root"])
+        during = _descriptor_count()
+        try:
+            with pytest.raises(QualityContractError) as refused:
+                boundary.read(nested, quality.MAX_ARTIFACT_BYTES)
+            assert "SCORE_ARTIFACT_MISSING" in str(refused.value), str(refused.value)
+            assert state["fired"] == 1, state
+            assert _descriptor_count() == during, "the refused child directory leaked a descriptor"
+            assert boundary._custody.count() == 0, boundary._custody.count()
+>           assert boundary._custody.reserved() == 0, boundary._custody.reserved()
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: '_NamedCustody' object has no attribute 'reserved'
+
+tools/test_v0_s3_quality_phase.py:4271: AttributeError
+_____ test_correction08_nm03_a_leaf_whose_named_identity_differs_is_closed _____
+
+tmp_path = PosixPath('/tmp/lvw-c05-debug-negative-control-nm5s4ig7/pytest/test_correction08_nm03_a_leaf_1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x74569c5afd70>
+
+    @pytest.mark.skipif(not os.path.isdir("/proc/self/fd"), reason="no procfs descriptor listing")
+    def test_correction08_nm03_a_leaf_whose_named_identity_differs_is_closed(
+            tmp_path, monkeypatch):
+        """A leaf whose named entry names another object is closed and refused."""
+        run = _own_run(tmp_path)
+        root = run["artifact_root"]
+        sibling = root / "identity-sibling.bin"
+        sibling.write_bytes(b"abcd")
+        canonical = root / quality.CANONICAL_RECEIPT_NAME
+        before = _descriptor_count()
+        state = _falsify_the_named_stat_of_the_next_open(
+            monkeypatch, replacement="identity-sibling.bin")
+        boundary = quality._ArtifactBoundary(root)
+        during = _descriptor_count()
+        try:
+            with pytest.raises(QualityContractError) as refused:
+                boundary.read(quality.CANONICAL_RECEIPT_NAME, quality.MAX_ARTIFACT_BYTES)
+            assert "SCORE_ARTIFACT_REDIRECT_FORBIDDEN" in str(refused.value), str(refused.value)
+            assert state["fired"] == 1, state
+            assert _descriptor_count() == during, "the refused leaf leaked a descriptor"
+            # The replacement really is another object of the same parent, so
+            # the identity validation - and not the type validation - failed.
+            assert state["replacement"]["is_file"] is True, state["replacement"]
+            assert state["replacement"]["inode"] != canonical.stat().st_ino, state["replacement"]
+            assert boundary._custody.count() == 0, boundary._custody.count()
+>           assert boundary._custody.reserved() == 0, boundary._custody.reserved()
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: '_NamedCustody' object has no attribute 'reserved'
+
+tools/test_v0_s3_quality_phase.py:4302: AttributeError
+_______ test_correction08_nm03_a_leaf_whose_named_type_differs_is_closed _______
+
+tmp_path = PosixPath('/tmp/lvw-c05-debug-negative-control-nm5s4ig7/pytest/test_correction08_nm03_a_leaf_2')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x74569c5affe0>
+
+    @pytest.mark.skipif(not os.path.isdir("/proc/self/fd"), reason="no procfs descriptor listing")
+    def test_correction08_nm03_a_leaf_whose_named_type_differs_is_closed(
+            tmp_path, monkeypatch):
+        """A leaf whose named entry is a directory is closed and refused."""
+        run = _own_run(tmp_path)
+        root = run["artifact_root"]
+        before = _descriptor_count()
+        # The parent of the leaf is a directory: the named entry is therefore
+        # not a plain file and the type validation has to fail.
+        state = _falsify_the_named_stat_of_the_next_open(monkeypatch, replacement=".")
+        boundary = quality._ArtifactBoundary(root)
+        during = _descriptor_count()
+        try:
+            with pytest.raises(QualityContractError) as refused:
+                boundary.read(quality.CANONICAL_RECEIPT_NAME, quality.MAX_ARTIFACT_BYTES)
+            assert "SCORE_ARTIFACT_REDIRECT_FORBIDDEN" in str(refused.value), str(refused.value)
+            assert state["fired"] == 1, state
+            assert _descriptor_count() == during, "the refused leaf leaked a descriptor"
+            assert state["replacement"]["is_directory"] is True, state["replacement"]
+            assert boundary._custody.count() == 0, boundary._custody.count()
+>           assert boundary._custody.reserved() == 0, boundary._custody.reserved()
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: '_NamedCustody' object has no attribute 'reserved'
+
+tools/test_v0_s3_quality_phase.py:4329: AttributeError
+_ test_correction08_nm03_an_insertion_failure_closes_the_descriptor_and_leaves_the_custody_intact _
+
+tmp_path = PosixPath('/tmp/lvw-c05-debug-negative-control-nm5s4ig7/pytest/test_correction08_nm03_an_inse0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x74569c5f7c20>
+
+    @pytest.mark.skipif(not os.path.isdir("/proc/self/fd"), reason="no procfs descriptor listing")
+    def test_correction08_nm03_an_insertion_failure_closes_the_descriptor_and_leaves_the_custody_intact(
+            tmp_path, monkeypatch):
+        """A custody that refuses the insertion closes the descriptor of the entry."""
+        run = _own_run(tmp_path)
+        root = run["artifact_root"]
+        leaf = root / "insertion.bin"
+        leaf.write_bytes(b"abcd")
+        before = _descriptor_count()
+        boundary = quality._ArtifactBoundary(root)
+        during = _descriptor_count()
+        try:
+            boundary._custody._entries = _RefusingCustodyRegistry()
+            with pytest.raises(OSError) as failed:
+                boundary.read("insertion.bin", 4)
+            assert failed.value.errno == errno.EIO, failed.value.errno
+>           assert _descriptor_count() == during, "the failed insertion leaked a descriptor"
+E           AssertionError: the failed insertion leaked a descriptor
+E           assert 23 == 22
+E            +  where 23 = _descriptor_count()
+
+tools/test_v0_s3_quality_phase.py:4351: AssertionError
+_ test_correction08_nm03_a_public_evaluation_whose_metadata_fails_releases_every_descriptor _
+
+tmp_path = PosixPath('/tmp/lvw-c05-debug-negative-control-nm5s4ig7/pytest/test_correction08_nm03_a_publi0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x74569c543bc0>
+
+    @pytest.mark.skipif(not os.path.isdir("/proc/self/fd"), reason="no procfs descriptor listing")
+    def test_correction08_nm03_a_public_evaluation_whose_metadata_fails_releases_every_descriptor(
+            tmp_path, monkeypatch):
+        """The public scoring entry point releases everything when a read fails."""
+        run = _own_run(tmp_path)
+        before = _descriptor_count()
+        state = _fail_the_metadata_of_the_next_open(monkeypatch)
+        with pytest.raises(OSError) as failed:
+            recompute_scores(run["receipt"], run["artifact_root"], _own_scores(run),
+                             independence=_independence())
+        assert failed.value.errno == errno.EIO, failed.value.errno
+        assert state["fired"] == 1, state
+>       assert _descriptor_count() <= before, "the refusing evaluation leaked a descriptor"
+E       AssertionError: the refusing evaluation leaked a descriptor
+E       assert 20 <= 19
+E        +  where 20 = _descriptor_count()
+
+tools/test_v0_s3_quality_phase.py:4375: AssertionError
+__ test_correction08_nm03_the_custody_bound_is_checked_before_the_excess_open __
+
+tmp_path = PosixPath('/tmp/lvw-c05-debug-negative-control-nm5s4ig7/pytest/test_correction08_nm03_the_cus0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x74569c570290>
+
+    @pytest.mark.skipif(not os.path.isdir("/proc/self/fd"), reason="no procfs descriptor listing")
+    def test_correction08_nm03_the_custody_bound_is_checked_before_the_excess_open(
+            tmp_path, monkeypatch):
+        """The internal bound refuses the excess entry before it is opened."""
+        run = _own_run(tmp_path)
+        root = run["artifact_root"]
+        names = _fill_the_custody_bound(root)
+        boundary = quality._ArtifactBoundary(root)
+        opened = {"count": 0}
+        original_open = quality.os.open
+    
+        def hooked_open(path, flags, *args, **kwargs):
+            opened["count"] += 1
+            return original_open(path, flags, *args, **kwargs)
+    
+        monkeypatch.setattr(quality.os, "open", hooked_open)
+        before = _descriptor_count()
+        try:
+            for name in names:
+                assert boundary.read(name, 4) == b"abcd"
+            assert opened["count"] == quality._CUSTODY_ENTRY_LIMIT, opened["count"]
+            assert boundary._custody.count() == quality._CUSTODY_ENTRY_LIMIT
+            during = _descriptor_count()
+            # The excess name is refused *before* it is opened.
+            excess = "bound-excess.bin"
+            (root / excess).write_bytes(b"abcd")
+            with pytest.raises(QualityContractError) as refused:
+                boundary.read(excess, 4)
+            assert "QS_ARTIFACT_CUSTODY_LIMIT_EXCEEDED" in str(refused.value), str(refused.value)
+>           assert opened["count"] == quality._CUSTODY_ENTRY_LIMIT, "the excess entry was opened"
+E           AssertionError: the excess entry was opened
+E           assert 73 == 72
+E            +  where 72 = quality._CUSTODY_ENTRY_LIMIT
+
+tools/test_v0_s3_quality_phase.py:4407: AssertionError
+__ test_correction08_nm03_a_refused_admission_does_not_consume_a_custody_slot __
+
+tmp_path = PosixPath('/tmp/lvw-c05-debug-negative-control-nm5s4ig7/pytest/test_correction08_nm03_a_refus0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x74569c572bd0>
+
+    @pytest.mark.skipif(not os.path.isdir("/proc/self/fd"), reason="no procfs descriptor listing")
+    def test_correction08_nm03_a_refused_admission_does_not_consume_a_custody_slot(
+            tmp_path, monkeypatch):
+        """A refused admission gives its reserved slot back and keeps the earlier ones."""
+        run = _own_run(tmp_path)
+        root = run["artifact_root"]
+        (root / "admission-a.bin").write_bytes(b"abcd")
+        (root / "admission-b.bin").write_bytes(b"abcd")
+        state = _fail_the_metadata_of_the_next_open(monkeypatch)
+        boundary = quality._ArtifactBoundary(root)
+        during = _descriptor_count()
+        try:
+            with pytest.raises(OSError):
+                boundary.read("admission-a.bin", 4)
+            assert state["fired"] == 1, state
+>           assert _descriptor_count() == during, "the refused admission leaked a descriptor"
+E           AssertionError: the refused admission leaked a descriptor
+E           assert 25 == 24
+E            +  where 25 = _descriptor_count()
+
+tools/test_v0_s3_quality_phase.py:4470: AssertionError
+_ test_correction08_nm03_the_genuine_sixteen_rows_stay_inside_the_custody_bound _
+
+completed_run = {'artifact_root': PosixPath('/tmp/lvw-c05-debug-negative-control-nm5s4ig7/pytest/s3-quality-completed0/temp/s3-quality...rsion": "SYN-Q16-01"\n}', 'projection_sha256': '55580235d38d8d785e9e5eb0c2b3f5191d246d231f6dd3faa7c1f82df27192f6', ...}
+
+    def test_correction08_nm03_the_genuine_sixteen_rows_stay_inside_the_custody_bound(
+            completed_run):
+        """The genuine evaluation of the sixteen rows stays inside the bound."""
+        boundary = quality._ArtifactBoundary(completed_run["artifact_root"])
+        try:
+            names = [quality.CANONICAL_RECEIPT_NAME,
+                     completed_run["receipt"]["source_plan"]["path"]]
+            names += [row["raw_artifact"] for row in completed_run["receipt"]["rows"]]
+            for name in names:
+                boundary.read(name, quality.MAX_ARTIFACT_BYTES)
+            entries = boundary._custody.count()
+            assert 0 < entries < quality._CUSTODY_ENTRY_LIMIT, entries
+>           assert boundary._custody.reserved() == 0, boundary._custody.reserved()
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: '_NamedCustody' object has no attribute 'reserved'
+
+tools/test_v0_s3_quality_phase.py:4510: AttributeError
+10 failed, 2 passed, 245 deselected in 11.19s
