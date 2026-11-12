@@ -1,0 +1,40 @@
+........................................................................ [ 34%]
+........................................................................ [ 69%]
+........................................F.....................           [100%]
+=================================== FAILURES ===================================
+___ test_correction05_m01_every_published_fact_outside_the_overlay_is_bound ____
+
+completed_run = {'artifact_root': PosixPath('/tmp/lvw-c05-edit-03-yvencnqn/pytest/s3-quality-completed0/temp/s3-quality'), 'driver': <...rsion": "SYN-Q16-01"\n}', 'projection_sha256': '55580235d38d8d785e9e5eb0c2b3f5191d246d231f6dd3faa7c1f82df27192f6', ...}
+
+    def test_correction05_m01_every_published_fact_outside_the_overlay_is_bound(completed_run):
+        """The fact binding is exhaustive by construction.
+    
+        Every field of the published document that is not part of the closed
+        verdict overlay is an actual execution fact.  Tampering with any one of
+        them can never produce an aggregate pass: it is either refused outright
+        or it leaves the rows unresolved.
+        """
+        published = completed_run["receipt"]
+        overlay = quality.QS_RECEIPT_OVERLAY_FIELDS
+        typed = quality.QS_RECEIPT_TYPED_CONTEXTS
+        checked = 0
+        for field, value in published.items():
+            if field in overlay or field == "rows":
+                continue
+            checked += 1
+            receipt = copy.deepcopy(published)
+            receipt[field] = "TAMPERED-VALUE"
+            scores = _scores(receipt, completed_run["projection_sha256"])
+            try:
+                result = recompute_scores(receipt, completed_run["artifact_root"], scores,
+                                          independence=_independence())
+            except QualityContractError:
+                continue
+            # A mistyped bound context is an invalid declaration: the rows stay
+            # unknown and the aggregate never passes.
+>           assert field in typed, field
+E           AssertionError: staged_receipt_retained
+E           assert 'staged_receipt_retained' in {'parent_budget_baseline_gpu_mib': <function _is_typed_baseline at 0x7126e8058040>, 'run_root': <function _is_typed_run_root at 0x7126e7fa1080>}
+
+tools/test_v0_s3_quality_phase.py:2998: AssertionError
+1 failed, 205 passed in 93.42s (0:01:33)

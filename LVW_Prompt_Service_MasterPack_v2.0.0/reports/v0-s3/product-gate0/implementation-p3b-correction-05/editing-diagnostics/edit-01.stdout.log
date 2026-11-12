@@ -1,0 +1,77 @@
+.....................................................F.................. [ 41%]
+........................................................................ [ 82%]
+......................F........                                          [100%]
+=================================== FAILURES ===================================
+________________ test_qs_an_escaping_artifact_path_is_rejected _________________
+
+completed_run = {'artifact_root': PosixPath('/tmp/lvw-c05-edit-01-o63xr2dz/pytest/s3-quality-completed0/temp/s3-quality'), 'driver': <...rsion": "SYN-Q16-01"\n}', 'projection_sha256': '55580235d38d8d785e9e5eb0c2b3f5191d246d231f6dd3faa7c1f82df27192f6', ...}
+
+    def test_qs_an_escaping_artifact_path_is_rejected(completed_run):
+        receipt = copy.deepcopy(completed_run["receipt"])
+        receipt["rows"][0]["raw_artifact"] = "../../outside.txt"
+        scores = _scores(receipt, completed_run["projection_sha256"])
+        with pytest.raises(QualityContractError) as escaped:
+            recompute_scores(receipt, completed_run["artifact_root"], scores, independence=_independence())
+>       assert "SCORE_ARTIFACT_PATH_INVALID" in str(escaped.value)
+E       AssertionError: assert 'SCORE_ARTIFACT_PATH_INVALID' in 'QS_RAW_ARTIFACT_UNREADABLE:SYN-I00'
+E        +  where 'QS_RAW_ARTIFACT_UNREADABLE:SYN-I00' = str(QualityContractError('QS_RAW_ARTIFACT_UNREADABLE:SYN-I00'))
+E        +    where QualityContractError('QS_RAW_ARTIFACT_UNREADABLE:SYN-I00') = <ExceptionInfo QualityContractError('QS_RAW_ARTIFACT_UNREADABLE:SYN-I00') tblen=3>.value
+
+tools/test_v0_s3_quality_phase.py:1097: AssertionError
+____________ test_correction04_m08_the_bound_context_must_be_typed _____________
+
+tmp_path = PosixPath('/tmp/lvw-c05-edit-01-o63xr2dz/pytest/test_correction04_m08_the_boun0')
+
+    def test_correction04_m08_the_bound_context_must_be_typed(tmp_path):
+        run = _own_run(tmp_path)
+        for field, value in (("run_root", None), ("run_root", 0),
+                              ("parent_budget_baseline_gpu_mib", 100.0),
+                              ("parent_budget_baseline_gpu_mib", True),
+                              ("parent_budget_baseline_gpu_mib", None)):
+            receipt = copy.deepcopy(run["receipt"])
+            receipt[field] = value
+            scores = _own_scores(run)
+>           result = recompute_scores(receipt, run["artifact_root"], scores,
+                                       independence=_independence())
+
+tools/test_v0_s3_quality_phase.py:2623: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_s3_quality_phase.py:3175: in recompute_scores
+    return _recompute_bound_scores(
+tools/v0_s3_quality_phase.py:3370: in _recompute_bound_scores
+    _verify_execution_content(execution_receipt, published)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+supplied = {'artifact_bytes': 123508, 'artifact_bytes_including_receipt': 229692, 'artifact_files': 137, 'artifact_files_including_receipt': 139, ...}
+published = {'artifact_bytes': 123508, 'artifact_bytes_including_receipt': 229692, 'artifact_files': 137, 'artifact_files_including_receipt': 139, ...}
+
+    def _verify_execution_content(supplied, published):
+        """The supplied execution content must reproduce the published document.
+    
+        Every field of the published document that is not part of the closed
+        verdict overlay is an actual execution fact: the run context, the
+        counters, the bound baseline, the accounting, the recorded assurances,
+        the source seal binding and every per row attempt, counter, artifact and
+        observation content.  Such a fact has to be identical in the supplied
+        receipt and in the actually published canonical document.  A mismatch
+        means the supplied document is not the published one and the whole
+        verdict is refused.
+    
+        The comparison is exhaustive over the published document: a fact that is
+        not named in the overlay can never be forged, and a fact that the
+        execution starts to record later is bound automatically.  A supplied row
+        may not even carry an extra fact that the published row does not have.
+    
+        The verdict fields themselves are deliberately *not* compared here: they
+        are evaluated for both documents together, so that a forged verdict can
+        only ever make a row stricter, never usable.
+        """
+        for field, value in published.items():
+            if field in QS_RECEIPT_OVERLAY_FIELDS:
+                continue
+            if field not in supplied or supplied[field] != value:
+>               raise QualityContractError("QS_EXECUTION_CONTENT_MISMATCH:" + field)
+E               tools.v0_s3_quality_phase.QualityContractError: QS_EXECUTION_CONTENT_MISMATCH:run_root
+
+tools/v0_s3_quality_phase.py:3028: QualityContractError
+2 failed, 173 passed in 37.17s
