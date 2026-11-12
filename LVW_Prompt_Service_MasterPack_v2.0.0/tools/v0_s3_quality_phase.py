@@ -2607,6 +2607,22 @@ def _log_evidence(snapshot):
     return {key: value for key, value in snapshot.items() if key != "raw_log"}
 
 
+def _close_owned_descriptor(descriptor):
+    """Close one owned descriptor exactly once.
+
+    The descriptor is closed here and it is closed nowhere else: the owner
+    of a descriptor is always exactly one place, so a descriptor is never
+    closed twice and a number that the operating system handed out again
+    later is never closed by mistake.  A close that the operating system
+    refuses is not retried - the descriptor is not valid any more and a
+    second close could hit an unrelated descriptor.
+    """
+    try:
+        os.close(descriptor)
+    except OSError:
+        pass
+
+
 class _NamedCustody:
     """The bounded custody of every named entry that one evaluation consumed.
 
@@ -2629,37 +2645,81 @@ class _NamedCustody:
         self._limit = limit
         self._entries = {}
         self._fds = []
+        self._reservations = {}
 
     def find(self, parent_fd, name):
         """The custody entry of one name below one pinned parent, if any."""
         return self._entries.get((parent_fd, str(name)))
 
-    def take(self, parent_fd, name, identity, kind, descriptor):
-        """Take custody of one named entry and of its pinned descriptor.
+    def reserve(self, parent_fd, name):
+        """Reserve one custody slot before the entry is opened.
 
-        The descriptor is closed again when the name is already in the
-        custody: the pinned descriptor of the first acquisition stays the
-        only descriptor of that name.
+        The reservation is the *capacity* of the custody and not an entry:
+        it holds no descriptor and it is taken **before** the descriptor of
+        the name is opened.  A name that does not fit into the internal
+        bound is therefore refused without opening anything at all, so the
+        descriptor use of a refused evaluation never rises above the bound.
+
+        A reservation is released again as soon as the open, the metadata
+        validation or the insertion of the entry fails.  A refused
+        reservation never consumes a slot and it never disables an entry
+        that was taken earlier.
         """
         key = (parent_fd, str(name))
-        existing = self._entries.get(key)
-        if existing is not None:
-            os.close(descriptor)
-            return existing
-        if len(self._entries) >= self._limit:
-            os.close(descriptor)
+        if key in self._entries or key in self._reservations:
+            return key
+        if len(self._entries) + len(self._reservations) >= self._limit:
             raise QualityContractError(
                 "QS_ARTIFACT_CUSTODY_LIMIT_EXCEEDED:" + str(name))
-        entry = {
-            "parent_fd": parent_fd,
-            "name": str(name),
-            "identity": identity,
-            "kind": kind,
-            "fd": descriptor,
-        }
-        self._entries[key] = entry
-        self._fds.append(descriptor)
-        return entry
+        self._reservations[key] = True
+        return key
+
+    def release(self, reservation):
+        """Give a reserved slot back; it was never consumed."""
+        if reservation is not None:
+            self._reservations.pop(reservation, None)
+
+    def take(self, parent_fd, name, identity, kind, descriptor, reservation=None):
+        """Take custody of one named entry and of its pinned descriptor.
+
+        The caller hands the ownership of the descriptor over to this
+        method: the descriptor is closed again when the name is already in
+        the custody - the pinned descriptor of the first acquisition stays
+        the only descriptor of that name - it is closed again when the
+        custody refuses the name and it is transferred into the custody
+        only when the entry was really inserted.  The descriptor is
+        therefore closed exactly once on every refusal and it is never left
+        behind.
+        """
+        key = (parent_fd, str(name))
+        try:
+            existing = self._entries.get(key)
+            if existing is not None:
+                _close_owned_descriptor(descriptor)
+                return existing
+            if reservation is None or reservation not in self._reservations:
+                _close_owned_descriptor(descriptor)
+                raise QualityContractError(
+                    "QS_ARTIFACT_CUSTODY_LIMIT_EXCEEDED:" + str(name))
+            entry = {
+                "parent_fd": parent_fd,
+                "name": str(name),
+                "identity": identity,
+                "kind": kind,
+                "fd": descriptor,
+            }
+            try:
+                self._entries[key] = entry
+                self._fds.append(descriptor)
+            except BaseException:
+                # The entry was not inserted: the custody does not own the
+                # descriptor and it does not know the name either.
+                self._entries.pop(key, None)
+                _close_owned_descriptor(descriptor)
+                raise
+            return entry
+        finally:
+            self.release(reservation)
 
     def entries(self):
         """Every custody entry, in the order in which it was acquired."""
@@ -2668,15 +2728,17 @@ class _NamedCustody:
     def count(self):
         return len(self._entries)
 
+    def reserved(self):
+        """The number of slots that are reserved but not filled yet."""
+        return len(self._reservations)
+
     def close(self):
         """Close every owned descriptor exactly once."""
         for descriptor in reversed(self._fds):
-            try:
-                os.close(descriptor)
-            except OSError:
-                pass
+            _close_owned_descriptor(descriptor)
         self._fds = []
         self._entries = {}
+        self._reservations = {}
 
 
 class _ArtifactBoundary:
@@ -2700,6 +2762,15 @@ class _ArtifactBoundary:
     for a read below the phase directory.  Nothing is ever resolved, adopted
     or followed away, and every descriptor that this boundary opens is
     closed again on the ordinary path and on every error path.
+
+    Every successful open has exactly one owner from the very first
+    ``os.open`` until the descriptor is closed: the level openers hand the
+    descriptor to the boundary, the child and leaf openers own it until the
+    metadata of the entry was validated and the custody has taken it over.
+    A metadata error, a missing name, a wrong type, a replaced identity, a
+    refused admission or a failed insertion therefore closes the descriptor
+    exactly once, and a descriptor is never closed twice and never left
+    behind outside the finite custody.
 
     The custody of the consumed names is *not* read-local.  Every directory
     and every leaf that this boundary opened for a read stays pinned in the
@@ -2763,7 +2834,14 @@ class _ArtifactBoundary:
                     "QS_ARTIFACT_ROOT_MISSING:" + str(path)) from error
             raise QualityContractError(
                 "QS_ARTIFACT_ROOT_UNAVAILABLE:" + str(path)) from error
-        self._fds.append(descriptor)
+        # The ownership of the descriptor is transferred to the boundary
+        # here, before any metadata is read.  A transfer that fails must not
+        # leave the descriptor behind.
+        try:
+            self._fds.append(descriptor)
+        except BaseException:
+            _close_owned_descriptor(descriptor)
+            raise
         return descriptor
 
     def _open_directory(self, name, parent_fd):
@@ -2779,7 +2857,14 @@ class _ArtifactBoundary:
                     "QS_ARTIFACT_ROOT_MISSING:" + str(name)) from error
             raise QualityContractError(
                 "QS_ARTIFACT_ROOT_UNAVAILABLE:" + str(name)) from error
-        self._fds.append(descriptor)
+        # The ownership of the descriptor is transferred to the boundary
+        # here, before any metadata is read, so a metadata failure below can
+        # never leave the descriptor behind.
+        try:
+            self._fds.append(descriptor)
+        except BaseException:
+            _close_owned_descriptor(descriptor)
+            raise
         info = os.fstat(descriptor)
         identity = (info.st_dev, info.st_ino)
         # The entry is inspected relative to its pinned parent and without
@@ -2819,19 +2904,26 @@ class _ArtifactBoundary:
                     "SCORE_ARTIFACT_MISSING:" + name) from error
             raise QualityContractError(
                 "SCORE_ARTIFACT_UNAVAILABLE:" + name) from error
-        info = os.fstat(descriptor)
-        identity = (info.st_dev, info.st_ino)
+        # The descriptor is owned by this method from the very first
+        # successful open until the custody has taken it over.  Every
+        # failure below - a metadata error, a missing name, a wrong type or
+        # a replaced identity - closes it exactly once and hands the
+        # failure on unchanged.
         try:
-            entry = os.stat(name, dir_fd=parent_fd, follow_symlinks=False)
-        except OSError as error:
-            os.close(descriptor)
-            raise QualityContractError(
-                "SCORE_ARTIFACT_MISSING:" + name) from error
-        if (not stat.S_ISDIR(entry.st_mode)
-                or (entry.st_dev, entry.st_ino) != identity):
-            os.close(descriptor)
-            raise QualityContractError(
-                "SCORE_ARTIFACT_REDIRECT_FORBIDDEN:" + name)
+            info = os.fstat(descriptor)
+            identity = (info.st_dev, info.st_ino)
+            try:
+                entry = os.stat(name, dir_fd=parent_fd, follow_symlinks=False)
+            except OSError as error:
+                raise QualityContractError(
+                    "SCORE_ARTIFACT_MISSING:" + name) from error
+            if (not stat.S_ISDIR(entry.st_mode)
+                    or (entry.st_dev, entry.st_ino) != identity):
+                raise QualityContractError(
+                    "SCORE_ARTIFACT_REDIRECT_FORBIDDEN:" + name)
+        except BaseException:
+            _close_owned_descriptor(descriptor)
+            raise
         return descriptor, identity
 
     def _open_leaf(self, parent_fd, name):
@@ -2847,19 +2939,24 @@ class _ArtifactBoundary:
                     "SCORE_ARTIFACT_MISSING:" + name) from error
             raise QualityContractError(
                 "SCORE_ARTIFACT_UNAVAILABLE:" + name) from error
-        info = os.fstat(descriptor)
-        identity = (info.st_dev, info.st_ino)
+        # The descriptor is owned by this method from the very first
+        # successful open until the custody has taken it over; see
+        # ``_open_child_directory``.
         try:
-            entry = os.stat(name, dir_fd=parent_fd, follow_symlinks=False)
-        except OSError as error:
-            os.close(descriptor)
-            raise QualityContractError(
-                "SCORE_ARTIFACT_MISSING:" + name) from error
-        if (not stat.S_ISREG(entry.st_mode)
-                or (entry.st_dev, entry.st_ino) != identity):
-            os.close(descriptor)
-            raise QualityContractError(
-                "SCORE_ARTIFACT_REDIRECT_FORBIDDEN:" + name)
+            info = os.fstat(descriptor)
+            identity = (info.st_dev, info.st_ino)
+            try:
+                entry = os.stat(name, dir_fd=parent_fd, follow_symlinks=False)
+            except OSError as error:
+                raise QualityContractError(
+                    "SCORE_ARTIFACT_MISSING:" + name) from error
+            if (not stat.S_ISREG(entry.st_mode)
+                    or (entry.st_dev, entry.st_ino) != identity):
+                raise QualityContractError(
+                    "SCORE_ARTIFACT_REDIRECT_FORBIDDEN:" + name)
+        except BaseException:
+            _close_owned_descriptor(descriptor)
+            raise
         return descriptor, identity
 
     # -- identity --------------------------------------------------------
@@ -2940,13 +3037,27 @@ class _ArtifactBoundary:
         the current named entry before it is used again, and no second
         descriptor is opened.  The custody therefore never grows with the
         number of reads.
+
+        A directory that is *not* in the custody gets its custody slot
+        reserved **before** the descriptor is opened.  A name that does not
+        fit into the internal bound is therefore refused without opening
+        anything, and a failed open or a failed metadata validation gives
+        the reserved slot back instead of consuming it.
         """
         entry = self._custody.find(parent_fd, name)
         if entry is not None:
             self._verify_custody_entry(entry, "SCORE_ARTIFACT")
             return entry["fd"], entry["identity"]
-        descriptor, identity = self._open_child_directory(parent_fd, name)
-        entry = self._custody.take(parent_fd, name, identity, "dir", descriptor)
+        reservation = self._custody.reserve(parent_fd, name)
+        try:
+            descriptor, identity = self._open_child_directory(parent_fd, name)
+        except BaseException:
+            self._custody.release(reservation)
+            raise
+        # The custody takes the ownership of the descriptor here: it closes
+        # it on every refusal and it transfers it on success.
+        entry = self._custody.take(parent_fd, name, identity, "dir", descriptor,
+                                    reservation=reservation)
         return entry["fd"], entry["identity"]
 
     def _retain_leaf(self, parent_fd, name):
@@ -2957,13 +3068,24 @@ class _ArtifactBoundary:
         identity and against the current named entry, and no second
         descriptor is opened.  The bytes are then read from the very object
         that was pinned before.
+
+        The custody slot is reserved before the leaf is opened, so an
+        excess leaf is refused without opening it at all.
         """
         entry = self._custody.find(parent_fd, name)
         if entry is not None:
             self._verify_custody_entry(entry, "SCORE_ARTIFACT")
             return entry["fd"], entry["identity"]
-        descriptor, identity = self._open_leaf(parent_fd, name)
-        entry = self._custody.take(parent_fd, name, identity, "file", descriptor)
+        reservation = self._custody.reserve(parent_fd, name)
+        try:
+            descriptor, identity = self._open_leaf(parent_fd, name)
+        except BaseException:
+            self._custody.release(reservation)
+            raise
+        # The custody takes the ownership of the descriptor here: it closes
+        # it on every refusal and it transfers it on success.
+        entry = self._custody.take(parent_fd, name, identity, "file", descriptor,
+                                    reservation=reservation)
         return entry["fd"], entry["identity"]
 
     # -- reading ---------------------------------------------------------
@@ -3042,10 +3164,7 @@ class _ArtifactBoundary:
         """
         self._custody.close()
         for descriptor in reversed(self._fds):
-            try:
-                os.close(descriptor)
-            except OSError:
-                pass
+            _close_owned_descriptor(descriptor)
         self._fds = []
         self._levels = []
         self._root_parent_fd = None
