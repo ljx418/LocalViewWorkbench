@@ -1,0 +1,31 @@
+............................................................F........... [ 83%]
+..............                                                           [100%]
+=================================== FAILURES ===================================
+_ test_correction02_m02_a_temp_ancestor_redirect_writes_nothing_into_the_old_root _
+
+tmp_path = PosixPath('/tmp/lvw-c04-edit-05-a_8eg_yc/pytest/test_correction02_m02_a_temp_a0')
+
+    def test_correction02_m02_a_temp_ancestor_redirect_writes_nothing_into_the_old_root(tmp_path):
+        phase, driver, _ = _prepare(tmp_path)
+        replaced = []
+    
+        def replace_temp(action, subject):
+            if action == "quality_row_begin" and not replaced:
+                replaced.append(True)
+                (phase.root / "temp").rename(phase.root / "old-temp")
+                (phase.root / "temp").symlink_to(phase.root / "old-temp", target_is_directory=True)
+    
+        phase.authorize = replace_temp
+        receipt = phase.run()
+        assert driver.submissions == 0, driver.submissions
+        assert receipt["test_counts"]["PASS"] == 0, receipt
+        # The phase directory existed before the redirect, but no file was ever
+        # written through the renamed ancestor and no receipt was persisted.
+>       assert [path for path in (phase.root / "old-temp").rglob("*") if path.is_file()] == []
+E       AssertionError: assert [PosixPath('/...e-plan.json')] == []
+E         
+E         Left contains one more item: PosixPath('/tmp/lvw-c04-edit-05-a_8eg_yc/pytest/test_correction02_m02_a_temp_a0/old-temp/s3-quality/qd-source-plan.json')
+E         Use -v to get more diff
+
+tools/test_v0_s3_quality_phase.py:1709: AssertionError
+1 failed, 85 passed, 59 deselected in 14.85s

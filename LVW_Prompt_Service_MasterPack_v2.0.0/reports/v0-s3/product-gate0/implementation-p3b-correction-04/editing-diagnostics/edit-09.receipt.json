@@ -1,0 +1,112 @@
+{
+  "after_source_sha256": {
+    "tools/test_v0_s3_quality_phase.py": "8469e072d92efc15110bd634f781878241a0bcc7b86925f3d840ec98d7c41751",
+    "tools/v0_s3_quality_phase.py": "db78f5314df765aa4b27efec4e0fb1f13faf8e47fdc516c55f4f3a6fe4b6973d"
+  },
+  "before_source_sha256": {
+    "tools/test_v0_s3_quality_phase.py": "8469e072d92efc15110bd634f781878241a0bcc7b86925f3d840ec98d7c41751",
+    "tools/v0_s3_quality_phase.py": "db78f5314df765aa4b27efec4e0fb1f13faf8e47fdc516c55f4f3a6fe4b6973d"
+  },
+  "candidate_sha_claim": "",
+  "candidate_sha_claim_is_attestation": false,
+  "collected_count": 30,
+  "collected_nodeids": [
+    "tools/test_v0_s3_quality_phase.py::test_correction04_m01_a_missing_canonical_receipt_fails_closed",
+    "tools/test_v0_s3_quality_phase.py::test_correction04_m01_a_corrupt_canonical_receipt_fails_closed",
+    "tools/test_v0_s3_quality_phase.py::test_correction04_m01_a_foreign_canonical_receipt_fails_closed",
+    "tools/test_v0_s3_quality_phase.py::test_correction04_m01_a_staged_only_receipt_is_not_authority",
+    "tools/test_v0_s3_quality_phase.py::test_correction04_m01_a_redirected_artifact_root_is_refused",
+    "tools/test_v0_s3_quality_phase.py::test_correction04_m01_an_oversized_canonical_receipt_is_refused",
+    "tools/test_v0_s3_quality_phase.py::test_correction04_m01_the_supplied_execution_content_must_be_the_published_one",
+    "tools/test_v0_s3_quality_phase.py::test_correction04_m01_a_forged_provider_counter_is_refused",
+    "tools/test_v0_s3_quality_phase.py::test_correction04_m01_a_forged_verdict_can_only_be_stricter",
+    "tools/test_v0_s3_quality_phase.py::test_correction04_m01_the_published_receipt_is_the_only_authority",
+    "tools/test_v0_s3_quality_phase.py::test_correction04_m08_the_source_plan_seals_all_sixteen_original_identities",
+    "tools/test_v0_s3_quality_phase.py::test_correction04_m08_a_changed_source_identity_is_unknown_in_the_scoring",
+    "tools/test_v0_s3_quality_phase.py::test_correction04_m08_a_changed_source_size_is_unknown_in_the_scoring",
+    "tools/test_v0_s3_quality_phase.py::test_correction04_m08_a_changed_source_hash_is_unknown_in_the_scoring",
+    "tools/test_v0_s3_quality_phase.py::test_correction04_m08_a_changed_source_path_is_unknown_in_the_scoring",
+    "tools/test_v0_s3_quality_phase.py::test_correction04_m08_a_tampered_source_plan_is_refused",
+    "tools/test_v0_s3_quality_phase.py::test_correction04_m08_a_missing_source_plan_is_refused",
+    "tools/test_v0_s3_quality_phase.py::test_correction04_m08_a_replayed_source_plan_is_refused",
+    "tools/test_v0_s3_quality_phase.py::test_correction04_m08_a_source_plan_from_another_run_is_refused",
+    "tools/test_v0_s3_quality_phase.py::test_correction04_m08_the_source_media_need_not_stay_on_disk",
+    "tools/test_v0_s3_quality_phase.py::test_correction04_m08_a_source_plan_failure_produces_zero_sends",
+    "tools/test_v0_s3_quality_phase.py::test_correction04_m08_the_bound_context_must_be_typed",
+    "tools/test_v0_s3_quality_phase.py::test_correction04_m08_the_execution_uses_the_same_shared_validators",
+    "tools/test_v0_s3_quality_phase.py::test_correction04_nm01_a_diminishing_limit_accessor_refuses_every_send",
+    "tools/test_v0_s3_quality_phase.py::test_correction04_nm01_an_advancing_clock_accessor_refuses_every_send",
+    "tools/test_v0_s3_quality_phase.py::test_correction04_nm01_a_diminishing_submit_binding_refuses_every_send",
+    "tools/test_v0_s3_quality_phase.py::test_correction04_nm01_the_driver_state_is_resolved_before_the_final_guard",
+    "tools/test_v0_s3_quality_phase.py::test_correction04_nm02_the_guard_reads_the_clock_exactly_once",
+    "tools/test_v0_s3_quality_phase.py::test_correction04_nm02_the_phase_boundary_is_exact_and_one_over",
+    "tools/test_v0_s3_quality_phase.py::test_correction04_nm02_the_hard_supervision_blocker_is_still_recorded"
+  ],
+  "command": [
+    "/usr/bin/python3",
+    "-B",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-04/run_guarded_checks.py",
+    "--mode",
+    "focused",
+    "--label",
+    "edit-09",
+    "--outdir",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-p3b-correction-04/editing-diagnostics"
+  ],
+  "duration_seconds": 17.514,
+  "exit_code": 0,
+  "guard": {
+    "audit_hook_installed_before_product_import": true,
+    "audit_hook_installed_before_pytest": true,
+    "blocked_events": [
+      "socket.connect",
+      "socket.connect_ex",
+      "socket.bind",
+      "socket.getaddrinfo",
+      "socket.gethostbyname",
+      "socket.gethostbyaddr",
+      "socket.getnameinfo",
+      "subprocess.Popen",
+      "os.system",
+      "os.exec",
+      "os.spawn",
+      "os.posix_spawn",
+      "os.fork",
+      "os.forkpty"
+    ],
+    "bytecode_written": false,
+    "cacheprovider": "disabled",
+    "host_subprocess": "blocked",
+    "network": "blocked",
+    "pytest_disable_plugin_autoload": "1"
+  },
+  "guard_results": null,
+  "imported_modules": {
+    "test_v0_s3_quality_phase": {
+      "module": "test_v0_s3_quality_phase",
+      "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_quality_phase.py",
+      "sha256": "8469e072d92efc15110bd634f781878241a0bcc7b86925f3d840ec98d7c41751"
+    },
+    "tools.v0_s3_quality_phase": {
+      "module": "tools.v0_s3_quality_phase",
+      "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_quality_phase.py",
+      "sha256": "db78f5314df765aa4b27efec4e0fb1f13faf8e47fdc516c55f4f3a6fe4b6973d"
+    }
+  },
+  "kind": "S3_P3B_CORRECTION_04_GUARDED_CHECK_RECEIPT",
+  "label": "edit-09",
+  "mode": "focused",
+  "outcome": "PASS",
+  "owned_root_removed": true,
+  "product_gate0": false,
+  "real_execution_performed": false,
+  "select": "correction04",
+  "source_unchanged_during_run": true,
+  "stage_pass_claim": false,
+  "stderr_bytes": 0,
+  "stderr_file": "reports/v0-s3/product-gate0/implementation-p3b-correction-04/editing-diagnostics/edit-09.stderr.log",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 116,
+  "stdout_file": "reports/v0-s3/product-gate0/implementation-p3b-correction-04/editing-diagnostics/edit-09.stdout.log",
+  "stdout_sha256": "a84b96c051b59d8722cd9c4c7bdacd026d4a880b3c3d8a06e5f50b79f1650378"
+}

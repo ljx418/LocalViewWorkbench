@@ -1,0 +1,232 @@
+............FFFF....F.F.F..                                              [100%]
+=================================== FAILURES ===================================
+____ test_correction04_m08_a_changed_source_size_is_unknown_in_the_scoring _____
+
+tmp_path = PosixPath('/tmp/lvw-c04-edit-07-7e3q9s5x/pytest/test_correction04_m08_a_change1')
+
+    def test_correction04_m08_a_changed_source_size_is_unknown_in_the_scoring(tmp_path):
+        run = _own_run(tmp_path)
+        receipt = copy.deepcopy(run["receipt"])
+        receipt["rows"][0]["source_evidence"]["bytes"] += 1
+        receipt["rows"][0]["source_bytes"] += 1
+        scores = _own_scores(run)
+>       result = recompute_scores(receipt, run["artifact_root"], scores, independence=_independence())
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/test_v0_s3_quality_phase.py:2482: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_s3_quality_phase.py:2985: in recompute_scores
+    _verify_execution_content(execution_receipt, published)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+supplied = {'artifact_bytes': 123508, 'artifact_bytes_including_receipt': 229692, 'artifact_files': 137, 'artifact_files_including_receipt': 139, ...}
+published = {'artifact_bytes': 123508, 'artifact_bytes_including_receipt': 229692, 'artifact_files': 137, 'artifact_files_including_receipt': 139, ...}
+
+    def _verify_execution_content(supplied, published):
+        """The supplied execution content must reproduce the published document.
+    
+        Every field that describes *what was executed* - the artifacts, their
+        hashes and lengths, the prompt identities, the provider counters and the
+        source seal binding - must be identical in the supplied receipt and in
+        the actually published canonical document.  A mismatch means the supplied
+        document is not the published one and the whole verdict is refused.
+    
+        The verdict fields themselves are deliberately *not* compared here: they
+        are evaluated for both documents together, so that a forged verdict can
+        only ever make a row stricter, never usable.
+        """
+        for field in QS_RECEIPT_CONTENT_FIELDS:
+            if supplied.get(field) != published.get(field):
+                raise QualityContractError("QS_EXECUTION_CONTENT_MISMATCH:" + field)
+        supplied_rows = supplied.get("rows") or []
+        published_rows = published.get("rows") or []
+        for index, published_row in enumerate(published_rows):
+            supplied_row = supplied_rows[index]
+            for field in QS_ROW_CONTENT_FIELDS:
+                if supplied_row.get(field) != published_row.get(field):
+>                   raise QualityContractError(
+                        "QS_EXECUTION_CONTENT_MISMATCH:" + field + ":"
+                        + str(published_row.get("asset_id")))
+E                   tools.v0_s3_quality_phase.QualityContractError: QS_EXECUTION_CONTENT_MISMATCH:source_bytes:SYN-I00
+
+tools/v0_s3_quality_phase.py:2715: QualityContractError
+___________ test_correction04_m08_a_tampered_source_plan_is_refused ____________
+
+tmp_path = PosixPath('/tmp/lvw-c04-edit-07-7e3q9s5x/pytest/test_correction04_m08_a_tamper0')
+
+    def test_correction04_m08_a_tampered_source_plan_is_refused(tmp_path):
+        run = _own_run(tmp_path)
+        binding = run["receipt"]["source_plan"]
+        plan_path = run["artifact_root"] / binding["path"]
+        document = json.loads(plan_path.read_bytes().decode("utf-8"))
+        document["rows"][0]["identity"][0] += 1
+        plan_path.write_bytes(json.dumps(document).encode("utf-8"))
+        with pytest.raises(QualityContractError) as tampered:
+            recompute_scores(run["receipt"], run["artifact_root"], _own_scores(run),
+                             independence=_independence())
+>       assert "QS_SOURCE_PLAN_HASH_MISMATCH" in str(tampered.value), str(tampered.value)
+E       AssertionError: QS_SOURCE_PLAN_LENGTH_MISMATCH
+E       assert 'QS_SOURCE_PLAN_HASH_MISMATCH' in 'QS_SOURCE_PLAN_LENGTH_MISMATCH'
+E        +  where 'QS_SOURCE_PLAN_LENGTH_MISMATCH' = str(QualityContractError('QS_SOURCE_PLAN_LENGTH_MISMATCH'))
+E        +    where QualityContractError('QS_SOURCE_PLAN_LENGTH_MISMATCH') = <ExceptionInfo QualityContractError('QS_SOURCE_PLAN_LENGTH_MISMATCH') tblen=3>.value
+
+tools/test_v0_s3_quality_phase.py:2498: AssertionError
+____________ test_correction04_m08_a_missing_source_plan_is_refused ____________
+
+tmp_path = PosixPath('/tmp/lvw-c04-edit-07-7e3q9s5x/pytest/test_correction04_m08_a_missin0')
+
+    def test_correction04_m08_a_missing_source_plan_is_refused(tmp_path):
+        run = _own_run(tmp_path)
+        binding = run["receipt"]["source_plan"]
+        (run["artifact_root"] / binding["path"]).unlink()
+        with pytest.raises(QualityContractError) as missing:
+>           recompute_scores(run["receipt"], run["artifact_root"], _own_scores(run),
+                             independence=_independence())
+
+tools/test_v0_s3_quality_phase.py:2506: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/v0_s3_quality_phase.py:2817: in recompute_scores
+    sealed_rows = load_source_plan(artifact_root, published)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_s3_quality_phase.py:2499: in load_source_plan
+    path = _safe_artifact_path(artifact_root, relative)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_s3_quality_phase.py:2567: in _safe_artifact_path
+    resolved = candidate.resolve(strict=True)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.12/pathlib.py:1242: in resolve
+    s = self._flavour.realpath(self, strict=strict)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen posixpath>:432: in realpath
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+path = '/tmp/lvw-c04-edit-07-7e3q9s5x/pytest/test_correction04_m08_a_missin0/run/temp/s3-quality'
+rest = '', strict = True, seen = {}
+
+>   ???
+E   FileNotFoundError: [Errno 2] No such file or directory: '/tmp/lvw-c04-edit-07-7e3q9s5x/pytest/test_correction04_m08_a_missin0/run/temp/s3-quality/qd-source-plan.json'
+
+<frozen posixpath>:476: FileNotFoundError
+___________ test_correction04_m08_a_replayed_source_plan_is_refused ____________
+
+tmp_path = PosixPath('/tmp/lvw-c04-edit-07-7e3q9s5x/pytest/test_correction04_m08_a_replay0')
+
+    def test_correction04_m08_a_replayed_source_plan_is_refused(tmp_path):
+        run = _own_run(tmp_path)
+        binding = run["receipt"]["source_plan"]
+        plan_path = run["artifact_root"] / binding["path"]
+        document = json.loads(plan_path.read_bytes().decode("utf-8"))
+        document["run_id"] = "a-different-run"
+        raw = json.dumps(document).encode("utf-8")
+        plan_path.write_bytes(raw)
+        # The replay does not even reach the content check: the seal bytes no
+        # longer match the hash that the published receipt binds.
+        with pytest.raises(QualityContractError) as replayed:
+            recompute_scores(run["receipt"], run["artifact_root"], _own_scores(run),
+                             independence=_independence())
+>       assert "QS_SOURCE_PLAN_HASH_MISMATCH" in str(replayed.value), str(replayed.value)
+E       AssertionError: QS_SOURCE_PLAN_LENGTH_MISMATCH
+E       assert 'QS_SOURCE_PLAN_HASH_MISMATCH' in 'QS_SOURCE_PLAN_LENGTH_MISMATCH'
+E        +  where 'QS_SOURCE_PLAN_LENGTH_MISMATCH' = str(QualityContractError('QS_SOURCE_PLAN_LENGTH_MISMATCH'))
+E        +    where QualityContractError('QS_SOURCE_PLAN_LENGTH_MISMATCH') = <ExceptionInfo QualityContractError('QS_SOURCE_PLAN_LENGTH_MISMATCH') tblen=3>.value
+
+tools/test_v0_s3_quality_phase.py:2524: AssertionError
+____ test_correction04_nm01_a_diminishing_limit_accessor_refuses_every_send ____
+
+tmp_path = PosixPath('/tmp/lvw-c04-edit-07-7e3q9s5x/pytest/test_correction04_nm01_a_dimin0')
+
+    def test_correction04_nm01_a_diminishing_limit_accessor_refuses_every_send(tmp_path):
+        clock = FakeClock(step=0.0)
+        proof = _parent_proof(clock, expires_monotonic=20000.0)
+    
+        def diminish():
+            # The admitted capacity is diminished when the limit is read.
+            proof["action_capacity"] = 0
+    
+        driver = DynamicAccessorDriver(tmp_path, on_limit_read=diminish)
+        phase, driver, _ = _prepare(tmp_path, clock=clock, parent_budget=proof, driver=driver)
+        receipt = phase.run()
+        assert driver.limit_reads >= 1, driver.limit_reads
+>       assert driver.submissions == 0, driver.submissions
+E       AssertionError: 16
+E       assert 16 == 0
+E        +  where 16 = <test_v0_s3_quality_phase.DynamicAccessorDriver object at 0x7099fb8b9c40>.submissions
+
+tools/test_v0_s3_quality_phase.py:2599: AssertionError
+____ test_correction04_nm01_a_diminishing_submit_binding_refuses_every_send ____
+
+tmp_path = PosixPath('/tmp/lvw-c04-edit-07-7e3q9s5x/pytest/test_correction04_nm01_a_dimin1')
+
+    def test_correction04_nm01_a_diminishing_submit_binding_refuses_every_send(tmp_path):
+        clock = FakeClock(step=0.0)
+        proof = _parent_proof(clock, expires_monotonic=20000.0)
+    
+        def diminish():
+            proof["action_capacity"] = 0
+    
+        driver = DynamicAccessorDriver(tmp_path, on_submit_bind=diminish)
+        phase, driver, _ = _prepare(tmp_path, clock=clock, parent_budget=proof, driver=driver)
+        receipt = phase.run()
+        # The submit callable is bound before the final guard, so the capacity
+        # that the binding diminished is the capacity the guard refuses.
+        assert driver.submit_binds >= 1, driver.submit_binds
+>       assert driver.submit_calls == 0, driver.submit_calls
+E       AssertionError: 16
+E       assert 16 == 0
+E        +  where 16 = <test_v0_s3_quality_phase.DynamicAccessorDriver object at 0x709b472411f0>.submit_calls
+
+tools/test_v0_s3_quality_phase.py:2634: AssertionError
+________ test_correction04_nm02_the_guard_reads_the_clock_exactly_once _________
+
+tmp_path = PosixPath('/tmp/lvw-c04-edit-07-7e3q9s5x/pytest/test_correction04_nm02_the_gua0')
+
+    def test_correction04_nm02_the_guard_reads_the_clock_exactly_once(tmp_path):
+        phase, driver, _ = _prepare(tmp_path)
+        readings = []
+        inner = phase.clock
+    
+        def counting():
+            value = inner()
+            readings.append(value)
+            return value
+    
+        phase.clock = counting
+        phase._open_owned_directories()
+        try:
+            row = {"ordinal": 1, "asset_id": "SYN-I00", "media_kind": "image",
+                   "source_sha256": "0" * 64, "source_bytes": 1, "input_reference": "x.png"}
+>           phase._send_admission_guard(row, 1)
+
+tools/test_v0_s3_quality_phase.py:2664: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <tools.v0_s3_quality_phase.QualityPhase object at 0x7099fb898bf0>
+row = {'asset_id': 'SYN-I00', 'input_reference': 'x.png', 'media_kind': 'image', 'ordinal': 1, ...}
+expected_calls = 1
+
+    def _send_admission_guard(self, row, expected_calls):
+        """The final local send-admission guard.
+    
+        It runs after every controlled preparation, authorization, source and
+        driver callback and directly before the local reservation, the attempt
+        charge and the submit itself, so nothing unchecked happens in
+        between.  It revalidates the original ownership, and it takes exactly
+        ONE final latest trusted monotonic sample.  That single sample decides
+        the phase deadline *and* the parent proof interval, so a later clock
+        read can never invalidate a deadline that was already checked.
+    
+        This is a cooperative local guard.  It does not preempt a synchronous
+        callback that never returns; that remains the mandatory parent
+        watchdog obligation and stays UNIMPLEMENTED_PRODUCT_GATE0_BLOCKER.
+        """
+        self._verify_owned()
+        now = self._now()
+        if not _is_finite_number(now):
+            raise QualityContractError("CLOCK_NOT_FINITE")
+        if self._started is None or now - self._started > PHASE_TIMEOUT_SECONDS:
+>           raise QualityContractError("PHASE_DEADLINE_EXCEEDED")
+E           tools.v0_s3_quality_phase.QualityContractError: PHASE_DEADLINE_EXCEEDED
+
+tools/v0_s3_quality_phase.py:967: QualityContractError
+7 failed, 20 passed, 145 deselected in 18.60s

@@ -1,0 +1,366 @@
+{
+  "count": 29,
+  "removed": true,
+  "results": [
+    {
+      "probe": "public_baseline",
+      "run": {
+        "sends": 16,
+        "charged": 16,
+        "reserved": 34,
+        "counts": {
+          "fixed": 16,
+          "PASS": 16,
+          "FAIL": 0,
+          "BLOCKED": 0,
+          "NOT_RUN": 0
+        },
+        "first_error": null,
+        "last_error": null
+      },
+      "score": {
+        "aggregate_pass": true,
+        "usable": true,
+        "resolved": true,
+        "reason": "USABLE",
+        "evidence_reason": null
+      },
+      "canonical_loaded": "synthetic-quality-run",
+      "handles_closed": true
+    },
+    {
+      "probe": "missing_canonical_retained_stage",
+      "canonical_loader": {
+        "rejected": "QualityContractError",
+        "detail": "CANONICAL_RECEIPT_ABSENT"
+      },
+      "public_scorer": {
+        "rejected": "QualityContractError",
+        "detail": "CANONICAL_RECEIPT_ABSENT"
+      },
+      "staging_exists": true
+    },
+    {
+      "probe": "corrupt_canonical",
+      "canonical_loader": {
+        "rejected": "QualityContractError",
+        "detail": "CANONICAL_RECEIPT_UNREADABLE"
+      },
+      "public_scorer": {
+        "rejected": "QualityContractError",
+        "detail": "CANONICAL_RECEIPT_UNREADABLE"
+      },
+      "staging_exists": true
+    },
+    {
+      "probe": "foreign_canonical",
+      "canonical_loader": {
+        "value": "foreign-run"
+      },
+      "public_scorer": {
+        "rejected": "QualityContractError",
+        "detail": "QS_EXECUTION_RECEIPT_BINDING_MISMATCH:run_id"
+      },
+      "staging_exists": true
+    },
+    {
+      "probe": "qs.PASS.source.identity.changed_device",
+      "expected": "unknown/unresolved; never aggregate pass",
+      "actual": {
+        "value": {
+          "aggregate_pass": false,
+          "usable": false,
+          "resolved": false,
+          "reason": "EVIDENCE_UNKNOWN:SOURCE_SEAL_IDENTITY_MISMATCH",
+          "evidence_reason": "SOURCE_SEAL_IDENTITY_MISMATCH"
+        }
+      }
+    },
+    {
+      "probe": "qs.PASS.source.identity.changed_inode",
+      "expected": "unknown/unresolved; never aggregate pass",
+      "actual": {
+        "value": {
+          "aggregate_pass": false,
+          "usable": false,
+          "resolved": false,
+          "reason": "EVIDENCE_UNKNOWN:SOURCE_SEAL_IDENTITY_MISMATCH",
+          "evidence_reason": "SOURCE_SEAL_IDENTITY_MISMATCH"
+        }
+      }
+    },
+    {
+      "probe": "qs.PASS.source.identity.changed_size",
+      "expected": "unknown/unresolved; never aggregate pass",
+      "actual": {
+        "value": {
+          "aggregate_pass": false,
+          "usable": false,
+          "resolved": false,
+          "reason": "EVIDENCE_UNKNOWN:SOURCE_SEAL_IDENTITY_MISMATCH",
+          "evidence_reason": "SOURCE_SEAL_IDENTITY_MISMATCH"
+        }
+      }
+    },
+    {
+      "probe": "qs.PASS.source.identity.changed_mtime",
+      "expected": "unknown/unresolved; never aggregate pass",
+      "actual": {
+        "value": {
+          "aggregate_pass": false,
+          "usable": false,
+          "resolved": false,
+          "reason": "EVIDENCE_UNKNOWN:SOURCE_SEAL_IDENTITY_MISMATCH",
+          "evidence_reason": "SOURCE_SEAL_IDENTITY_MISMATCH"
+        }
+      }
+    },
+    {
+      "probe": "qs.PASS.source.identity.changed_ctime",
+      "expected": "unknown/unresolved; never aggregate pass",
+      "actual": {
+        "value": {
+          "aggregate_pass": false,
+          "usable": false,
+          "resolved": false,
+          "reason": "EVIDENCE_UNKNOWN:SOURCE_SEAL_IDENTITY_MISMATCH",
+          "evidence_reason": "SOURCE_SEAL_IDENTITY_MISMATCH"
+        }
+      }
+    },
+    {
+      "probe": "qs.PASS.source.identity.allzero",
+      "expected": "unknown/unresolved; never aggregate pass",
+      "actual": {
+        "value": {
+          "aggregate_pass": false,
+          "usable": false,
+          "resolved": false,
+          "reason": "EVIDENCE_UNKNOWN:SOURCE_SEAL_IDENTITY_MISMATCH",
+          "evidence_reason": "SOURCE_SEAL_IDENTITY_MISMATCH"
+        }
+      }
+    },
+    {
+      "probe": "context_parent_budget_baseline_gpu_mib_float",
+      "value": 100.0,
+      "actual": {
+        "value": {
+          "aggregate_pass": false,
+          "usable": false,
+          "resolved": false,
+          "reason": "EVIDENCE_UNKNOWN:RELEASE_EVIDENCE_BASELINE_INVALID",
+          "evidence_reason": "RELEASE_EVIDENCE_BASELINE_INVALID"
+        }
+      }
+    },
+    {
+      "probe": "context_parent_budget_baseline_gpu_mib_bool",
+      "value": true,
+      "actual": {
+        "value": {
+          "aggregate_pass": false,
+          "usable": false,
+          "resolved": false,
+          "reason": "EVIDENCE_UNKNOWN:RELEASE_EVIDENCE_BASELINE_INVALID",
+          "evidence_reason": "RELEASE_EVIDENCE_BASELINE_INVALID"
+        }
+      }
+    },
+    {
+      "probe": "context_parent_budget_baseline_gpu_mib_string",
+      "value": "100",
+      "actual": {
+        "value": {
+          "aggregate_pass": false,
+          "usable": false,
+          "resolved": false,
+          "reason": "EVIDENCE_UNKNOWN:RELEASE_EVIDENCE_BASELINE_INVALID",
+          "evidence_reason": "RELEASE_EVIDENCE_BASELINE_INVALID"
+        }
+      }
+    },
+    {
+      "probe": "context_parent_budget_baseline_gpu_mib_negative",
+      "value": -1,
+      "actual": {
+        "value": {
+          "aggregate_pass": false,
+          "usable": false,
+          "resolved": false,
+          "reason": "EVIDENCE_UNKNOWN:RELEASE_EVIDENCE_BASELINE_INVALID",
+          "evidence_reason": "RELEASE_EVIDENCE_BASELINE_INVALID"
+        }
+      }
+    },
+    {
+      "probe": "context_run_root_integer",
+      "value": 0,
+      "actual": {
+        "value": {
+          "aggregate_pass": false,
+          "usable": false,
+          "resolved": false,
+          "reason": "EVIDENCE_UNKNOWN:SOURCE_RUN_ROOT_INVALID",
+          "evidence_reason": "SOURCE_RUN_ROOT_INVALID"
+        }
+      }
+    },
+    {
+      "probe": "context_run_root_missing",
+      "value": null,
+      "actual": {
+        "value": {
+          "aggregate_pass": false,
+          "usable": false,
+          "resolved": false,
+          "reason": "EVIDENCE_UNKNOWN:SOURCE_RUN_ROOT_INVALID",
+          "evidence_reason": "SOURCE_RUN_ROOT_INVALID"
+        }
+      }
+    },
+    {
+      "probe": "shared_validator_calls",
+      "qd": {
+        "source": 48,
+        "release": 16
+      },
+      "qs": {
+        "source": 32,
+        "release": 32
+      }
+    },
+    {
+      "probe": "source_plan_shape",
+      "rows": 16,
+      "schema_version": "lvw.s3-quality-source-plan/1",
+      "run_bound": true,
+      "identity_matches_row": true
+    },
+    {
+      "probe": "final_guard_second_clock_crosses_phase_deadline",
+      "actual": {
+        "sends": 16,
+        "charged": 16,
+        "reserved": 34,
+        "counts": {
+          "fixed": 16,
+          "PASS": 16,
+          "FAIL": 0,
+          "BLOCKED": 0,
+          "NOT_RUN": 0
+        },
+        "first_error": null,
+        "last_error": null
+      },
+      "clock_now": 0.0
+    },
+    {
+      "probe": "driver_accessor_capacity_zero",
+      "actual": {
+        "sends": 0,
+        "charged": 0,
+        "reserved": 0,
+        "counts": {
+          "fixed": 16,
+          "PASS": 0,
+          "FAIL": 0,
+          "BLOCKED": 16,
+          "NOT_RUN": 0
+        },
+        "first_error": "PARENT_BUDGET_CAPACITY_INSUFFICIENT",
+        "last_error": "HALTED_AFTER_PARENT_BUDGET_CAPACITY_INSUFFICIENT"
+      },
+      "trigger": [
+        {
+          "before": 0.0,
+          "capacity_before": 34
+        }
+      ],
+      "current_capacity": 0
+    },
+    {
+      "probe": "driver_accessor_phase_expired",
+      "actual": {
+        "sends": 0,
+        "charged": 0,
+        "reserved": 0,
+        "counts": {
+          "fixed": 16,
+          "PASS": 0,
+          "FAIL": 0,
+          "BLOCKED": 16,
+          "NOT_RUN": 0
+        },
+        "first_error": "PHASE_DEADLINE_EXCEEDED",
+        "last_error": "HALTED_AFTER_PHASE_DEADLINE_EXCEEDED"
+      },
+      "trigger": [
+        {
+          "before": 0.0,
+          "capacity_before": 34
+        }
+      ],
+      "current_capacity": 34
+    },
+    {
+      "probe": "later_true_interval_expiry",
+      "issued": 0.0,
+      "expires": 2.0,
+      "clock": 2.0,
+      "sends": 1,
+      "charged": 1,
+      "reserved": 1,
+      "second_error": "PARENT_BUDGET_PROOF_STALE",
+      "counts": {
+        "fixed": 16,
+        "PASS": 1,
+        "FAIL": 0,
+        "BLOCKED": 15,
+        "NOT_RUN": 0
+      }
+    },
+    {
+      "probe": "release_boundary_samples32",
+      "actual": {
+        "value": true
+      }
+    },
+    {
+      "probe": "release_boundary_elapsed0",
+      "actual": {
+        "value": true
+      }
+    },
+    {
+      "probe": "release_boundary_elapsed30",
+      "actual": {
+        "value": true
+      }
+    },
+    {
+      "probe": "release_boundary_cadence1.5",
+      "actual": {
+        "value": true
+      }
+    },
+    {
+      "probe": "release_boundary_cadence1.500001",
+      "actual": {
+        "value": false
+      }
+    },
+    {
+      "probe": "release_boundary_elapsed30.000001",
+      "actual": {
+        "value": false
+      }
+    },
+    {
+      "probe": "release_boundary_loaded_models_false",
+      "actual": {
+        "value": false
+      }
+    }
+  ]
+}

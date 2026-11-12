@@ -1,0 +1,36 @@
+.........................F....                                           [100%]
+=================================== FAILURES ===================================
+____ test_correction04_nm01_a_diminishing_submit_binding_refuses_every_send ____
+
+tmp_path = PosixPath('/tmp/lvw-c04-edit-08-fox0037x/pytest/test_correction04_nm01_a_dimin1')
+
+    def test_correction04_nm01_a_diminishing_submit_binding_refuses_every_send(tmp_path):
+        clock = FakeClock(step=0.0)
+        proof = _parent_proof(clock, expires_monotonic=20000.0)
+        holder = {}
+    
+        def diminish():
+            holder["phase"].parent_budget["action_capacity"] = 0
+    
+        driver = DynamicAccessorDriver(tmp_path, on_submit_bind=diminish)
+>       phase, driver, _ = _prepare(tmp_path, clock=clock, parent_budget=proof, driver=driver)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/test_v0_s3_quality_phase.py:2686: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/test_v0_s3_quality_phase.py:479: in _prepare
+    phase = QualityPhase(
+tools/v0_s3_quality_phase.py:820: in __init__
+    if not callable(getattr(driver, name, None)):
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/test_v0_s3_quality_phase.py:2304: in submit
+    self._on_submit_bind()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def diminish():
+>       holder["phase"].parent_budget["action_capacity"] = 0
+        ^^^^^^^^^^^^^^^
+E       KeyError: 'phase'
+
+tools/test_v0_s3_quality_phase.py:2683: KeyError
+1 failed, 29 passed, 145 deselected in 16.89s

@@ -1,0 +1,18 @@
+.F...............                                                        [100%]
+=================================== FAILURES ===================================
+________________ test_the_artifact_budget_is_exact_and_one_over ________________
+
+tmp_path = PosixPath('/tmp/lvw-c04-edit-03-ut055s8z/pytest/test_the_artifact_budget_is_ex0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7335c989c080>
+
+    def test_the_artifact_budget_is_exact_and_one_over(tmp_path, monkeypatch):
+        phase, driver, _ = _prepare(tmp_path)
+        monkeypatch.setattr(quality, "MAX_ARTIFACT_FILES", 7)
+        receipt = phase.run()
+        monkeypatch.undo()
+>       assert receipt["rows"][0]["error_code"] is None, receipt["rows"][0]
+E       AssertionError: {'asset_id': 'SYN-I00', 'automatic_retries': 0, 'cleanup_diagnostics': [], 'cleanup_unproven': False, ...}
+E       assert 'ARTIFACT_FILE_BUDGET_EXCEEDED' is None
+
+tools/test_v0_s3_quality_phase.py:882: AssertionError
+1 failed, 16 passed, 128 deselected in 3.41s
