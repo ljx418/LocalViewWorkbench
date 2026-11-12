@@ -20,7 +20,6 @@ import os
 import socket
 import subprocess
 import sys
-import tempfile
 from pathlib import Path
 from types import SimpleNamespace
 
