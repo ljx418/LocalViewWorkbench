@@ -1,0 +1,46 @@
+................F.........                                               [100%]
+=================================== FAILURES ===================================
+_ test_correction06_nm03_a_run_root_replaced_by_another_directory_during_the_read_is_refused _
+
+tmp_path = PosixPath('/tmp/lvw-c05-dev-focus-2-5hd5mwmk/pytest/test_correction06_nm03_a_run_r1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7cb31fe1e090>
+
+    def test_correction06_nm03_a_run_root_replaced_by_another_directory_during_the_read_is_refused(
+            tmp_path, monkeypatch):
+        run = _own_run(tmp_path)
+        canonical = run["artifact_root"] / quality.CANONICAL_RECEIPT_NAME
+        before = canonical.read_bytes()
+        state = _fire_during_read(monkeypatch, canonical,
+                                   lambda: _replace_directory(run["root"]))
+        with pytest.raises(QualityContractError) as replaced:
+            recompute_scores(run["receipt"], run["artifact_root"], _own_scores(run),
+                             independence=_independence())
+        assert state["fired"] == 1, state
+        assert "CANONICAL_RECEIPT_REDIRECT_FORBIDDEN" in str(replaced.value), str(replaced.value)
+>       assert canonical.read_bytes() == before
+               ^^^^^^^^^^^^^^^^^^^^^^
+
+tools/test_v0_s3_quality_phase.py:3600: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/lib/python3.12/pathlib.py:1021: in read_bytes
+    with self.open(mode='rb') as f:
+         ^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/tmp/lvw-c05-dev-focus-2-5hd5mwmk/pytest/test_correction06_nm03_a_run_r1/run/temp/s3-quality/qd-receipt.json')
+mode = 'rb', buffering = -1, encoding = None, errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/tmp/lvw-c05-dev-focus-2-5hd5mwmk/pytest/test_correction06_nm03_a_run_r1/run/temp/s3-quality/qd-receipt.json'
+
+/usr/lib/python3.12/pathlib.py:1015: FileNotFoundError
+1 failed, 25 passed, 206 deselected in 21.63s

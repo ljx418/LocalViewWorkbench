@@ -1,0 +1,376 @@
+{
+  "recommendation": "CHANGES_REQUIRED",
+  "counts": {
+    "Fatal": 0,
+    "Major": 1,
+    "Minor": 0
+  },
+  "findings": [
+    {
+      "id": "NM03",
+      "severity": "Major",
+      "status": "PARTIALLY_FIXED_REMAINS_OPEN",
+      "title": "Earlier-read child directories and leaves lose named custody before QS completion",
+      "locations": [
+        {
+          "path": "tools/v0_s3_quality_phase.py",
+          "line": 2790,
+          "symbol": "_ArtifactBoundary.verify"
+        },
+        {
+          "path": "tools/v0_s3_quality_phase.py",
+          "line": 2809,
+          "symbol": "_ArtifactBoundary.read"
+        },
+        {
+          "path": "tools/v0_s3_quality_phase.py",
+          "line": 3465,
+          "symbol": "recompute_scores final verification"
+        }
+      ],
+      "contract": "Frozen correction06 task requires parent_fd/name/originalidentity/type comparisons for read child directories/leaves before and after reads and before successful completion while handles remain held.",
+      "prerequisites": "A genuine completed synthetic public-owner run; bounded controlled in-process mutation of only this probe fixture during another artifact os.read. No caller receipt modification, no canonical/seal byte rewrite, no host process or native attacker.",
+      "evidence": [
+        {
+          "name": "after_canonical_read_symlink",
+          "result": {
+            "aggregate_pass": true,
+            "all_rows_resolved": true,
+            "thresholds": {
+              "images_usable": 10,
+              "images_required": 8,
+              "videos_usable": 6,
+              "videos_required": 5,
+              "total_critical_hallucinations": 0,
+              "critical_hallucinations_max": 0,
+              "critical_hallucinations_known": true,
+              "per_sample_total_min": 8,
+              "dimension_max": 2,
+              "scored_rows": 16
+            },
+            "row0": {
+              "asset_id": "SYN-I00",
+              "media_kind": "image",
+              "execution_status": "PASS",
+              "quality_status": "PASS",
+              "usable": true,
+              "resolved": true,
+              "reason": "USABLE",
+              "total": 10,
+              "critical_hallucinations": 0,
+              "dimensions": {
+                "主体/环境": 2,
+                "光线/构图/风格": 2,
+                "动作/时间或静图不虚构": 2,
+                "事实/创作分离": 2,
+                "Prompt可用性": 2
+              },
+              "reviewer_id": "independent-reviewer-01",
+              "session_id": "independent-session-01",
+              "raw_sha256": "86571c8187ae37e4f092f7decc7b75d588272f69a7c745d3748770b69114a033",
+              "raw_bytes": 244,
+              "raw_artifact": "rows/SYN-I00/raw.txt",
+              "cleanup_proven": true,
+              "evidence_complete": true,
+              "evidence_reason": null
+            }
+          },
+          "trigger_kind": "seal",
+          "target_kind": "canonical",
+          "mutation": "symlink",
+          "hook_fired": 1,
+          "entry_symlink_at_return": true,
+          "entry_exists_at_return": true,
+          "before_hashes": {
+            "canonical": "e15eb511eb9f978bcd7828f19a3bc6a887ce6d06171b35751b40f18c06b6fbf5",
+            "seal": "d26929bd8ef79ef63d3028efa328c7044a60098e52beb50aa7f5256c8586d3a4",
+            "raw0": "86571c8187ae37e4f092f7decc7b75d588272f69a7c745d3748770b69114a033"
+          },
+          "retained_sha256": "e15eb511eb9f978bcd7828f19a3bc6a887ce6d06171b35751b40f18c06b6fbf5"
+        },
+        {
+          "name": "after_canonical_read_plain",
+          "result": {
+            "aggregate_pass": true,
+            "all_rows_resolved": true,
+            "thresholds": {
+              "images_usable": 10,
+              "images_required": 8,
+              "videos_usable": 6,
+              "videos_required": 5,
+              "total_critical_hallucinations": 0,
+              "critical_hallucinations_max": 0,
+              "critical_hallucinations_known": true,
+              "per_sample_total_min": 8,
+              "dimension_max": 2,
+              "scored_rows": 16
+            },
+            "row0": {
+              "asset_id": "SYN-I00",
+              "media_kind": "image",
+              "execution_status": "PASS",
+              "quality_status": "PASS",
+              "usable": true,
+              "resolved": true,
+              "reason": "USABLE",
+              "total": 10,
+              "critical_hallucinations": 0,
+              "dimensions": {
+                "主体/环境": 2,
+                "光线/构图/风格": 2,
+                "动作/时间或静图不虚构": 2,
+                "事实/创作分离": 2,
+                "Prompt可用性": 2
+              },
+              "reviewer_id": "independent-reviewer-01",
+              "session_id": "independent-session-01",
+              "raw_sha256": "86571c8187ae37e4f092f7decc7b75d588272f69a7c745d3748770b69114a033",
+              "raw_bytes": 244,
+              "raw_artifact": "rows/SYN-I00/raw.txt",
+              "cleanup_proven": true,
+              "evidence_complete": true,
+              "evidence_reason": null
+            }
+          },
+          "trigger_kind": "raw0",
+          "target_kind": "canonical",
+          "mutation": "plain",
+          "hook_fired": 1,
+          "entry_symlink_at_return": false,
+          "entry_exists_at_return": true,
+          "before_hashes": {
+            "canonical": "58bd4af7a0d9d2074987c5485bda1fde3a0fa64ee8f0320801c691d71407e417",
+            "seal": "b7795502e6ec8e88a74bab710f6f517a6609518be652b004f5d8f854519061f0",
+            "raw0": "86571c8187ae37e4f092f7decc7b75d588272f69a7c745d3748770b69114a033"
+          },
+          "retained_sha256": "58bd4af7a0d9d2074987c5485bda1fde3a0fa64ee8f0320801c691d71407e417"
+        },
+        {
+          "name": "after_seal_read_missing",
+          "result": {
+            "aggregate_pass": true,
+            "all_rows_resolved": true,
+            "thresholds": {
+              "images_usable": 10,
+              "images_required": 8,
+              "videos_usable": 6,
+              "videos_required": 5,
+              "total_critical_hallucinations": 0,
+              "critical_hallucinations_max": 0,
+              "critical_hallucinations_known": true,
+              "per_sample_total_min": 8,
+              "dimension_max": 2,
+              "scored_rows": 16
+            },
+            "row0": {
+              "asset_id": "SYN-I00",
+              "media_kind": "image",
+              "execution_status": "PASS",
+              "quality_status": "PASS",
+              "usable": true,
+              "resolved": true,
+              "reason": "USABLE",
+              "total": 10,
+              "critical_hallucinations": 0,
+              "dimensions": {
+                "主体/环境": 2,
+                "光线/构图/风格": 2,
+                "动作/时间或静图不虚构": 2,
+                "事实/创作分离": 2,
+                "Prompt可用性": 2
+              },
+              "reviewer_id": "independent-reviewer-01",
+              "session_id": "independent-session-01",
+              "raw_sha256": "86571c8187ae37e4f092f7decc7b75d588272f69a7c745d3748770b69114a033",
+              "raw_bytes": 244,
+              "raw_artifact": "rows/SYN-I00/raw.txt",
+              "cleanup_proven": true,
+              "evidence_complete": true,
+              "evidence_reason": null
+            }
+          },
+          "trigger_kind": "raw0",
+          "target_kind": "seal",
+          "mutation": "missing",
+          "hook_fired": 1,
+          "entry_symlink_at_return": false,
+          "entry_exists_at_return": false,
+          "before_hashes": {
+            "canonical": "2b910405c62a0d192f6352f5c5950f4f03a4768632207879170cdb7748b1040e",
+            "seal": "50838ba45573ca10282a771470a9dbb0911f0741d316adc46829bc7a3db7f701",
+            "raw0": "86571c8187ae37e4f092f7decc7b75d588272f69a7c745d3748770b69114a033"
+          },
+          "retained_sha256": "50838ba45573ca10282a771470a9dbb0911f0741d316adc46829bc7a3db7f701"
+        },
+        {
+          "name": "after_raw_read_leaf_symlink",
+          "result": {
+            "aggregate_pass": true,
+            "all_rows_resolved": true,
+            "thresholds": {
+              "images_usable": 10,
+              "images_required": 8,
+              "videos_usable": 6,
+              "videos_required": 5,
+              "total_critical_hallucinations": 0,
+              "critical_hallucinations_max": 0,
+              "critical_hallucinations_known": true,
+              "per_sample_total_min": 8,
+              "dimension_max": 2,
+              "scored_rows": 16
+            },
+            "row0": {
+              "asset_id": "SYN-I00",
+              "media_kind": "image",
+              "execution_status": "PASS",
+              "quality_status": "PASS",
+              "usable": true,
+              "resolved": true,
+              "reason": "USABLE",
+              "total": 10,
+              "critical_hallucinations": 0,
+              "dimensions": {
+                "主体/环境": 2,
+                "光线/构图/风格": 2,
+                "动作/时间或静图不虚构": 2,
+                "事实/创作分离": 2,
+                "Prompt可用性": 2
+              },
+              "reviewer_id": "independent-reviewer-01",
+              "session_id": "independent-session-01",
+              "raw_sha256": "86571c8187ae37e4f092f7decc7b75d588272f69a7c745d3748770b69114a033",
+              "raw_bytes": 244,
+              "raw_artifact": "rows/SYN-I00/raw.txt",
+              "cleanup_proven": true,
+              "evidence_complete": true,
+              "evidence_reason": null
+            }
+          },
+          "trigger_kind": "raw1",
+          "target_kind": "raw0",
+          "mutation": "symlink",
+          "hook_fired": 1,
+          "entry_symlink_at_return": true,
+          "entry_exists_at_return": true,
+          "before_hashes": {
+            "canonical": "d4d1292f8b98a7228d2bcb8616bda3873fc42cc4a42a44976074cec041518c72",
+            "seal": "83df1f04c9afe4ff05a8fbcc120bb87ae8c337f41382f04a6d214fc386cb52f3",
+            "raw0": "86571c8187ae37e4f092f7decc7b75d588272f69a7c745d3748770b69114a033"
+          },
+          "retained_sha256": "86571c8187ae37e4f092f7decc7b75d588272f69a7c745d3748770b69114a033"
+        },
+        {
+          "name": "after_raw_read_parent_plain",
+          "result": {
+            "aggregate_pass": true,
+            "all_rows_resolved": true,
+            "thresholds": {
+              "images_usable": 10,
+              "images_required": 8,
+              "videos_usable": 6,
+              "videos_required": 5,
+              "total_critical_hallucinations": 0,
+              "critical_hallucinations_max": 0,
+              "critical_hallucinations_known": true,
+              "per_sample_total_min": 8,
+              "dimension_max": 2,
+              "scored_rows": 16
+            },
+            "row0": {
+              "asset_id": "SYN-I00",
+              "media_kind": "image",
+              "execution_status": "PASS",
+              "quality_status": "PASS",
+              "usable": true,
+              "resolved": true,
+              "reason": "USABLE",
+              "total": 10,
+              "critical_hallucinations": 0,
+              "dimensions": {
+                "主体/环境": 2,
+                "光线/构图/风格": 2,
+                "动作/时间或静图不虚构": 2,
+                "事实/创作分离": 2,
+                "Prompt可用性": 2
+              },
+              "reviewer_id": "independent-reviewer-01",
+              "session_id": "independent-session-01",
+              "raw_sha256": "86571c8187ae37e4f092f7decc7b75d588272f69a7c745d3748770b69114a033",
+              "raw_bytes": 244,
+              "raw_artifact": "rows/SYN-I00/raw.txt",
+              "cleanup_proven": true,
+              "evidence_complete": true,
+              "evidence_reason": null
+            }
+          },
+          "trigger_kind": "raw1",
+          "target_kind": "raw_parent",
+          "mutation": "plain",
+          "hook_fired": 1,
+          "entry_symlink_at_return": false,
+          "entry_exists_at_return": true,
+          "before_hashes": {
+            "canonical": "1ed2d5215926c0f26b89c153e5fa432c7279ab9ae798ce5f25c37630af31d14a",
+            "seal": "442ad7bae091c5352464f4b2719fad83953474e8bd1a43b58aac8279bebf9b5a",
+            "raw0": "86571c8187ae37e4f092f7decc7b75d588272f69a7c745d3748770b69114a033"
+          }
+        },
+        {
+          "name": "completion_canonical_leaf_redirect",
+          "result": {
+            "aggregate_pass": true,
+            "all_rows_resolved": true,
+            "thresholds": {
+              "images_usable": 10,
+              "images_required": 8,
+              "videos_usable": 6,
+              "videos_required": 5,
+              "total_critical_hallucinations": 0,
+              "critical_hallucinations_max": 0,
+              "critical_hallucinations_known": true,
+              "per_sample_total_min": 8,
+              "dimension_max": 2,
+              "scored_rows": 16
+            },
+            "row0": {
+              "asset_id": "SYN-I00",
+              "media_kind": "image",
+              "execution_status": "PASS",
+              "quality_status": "PASS",
+              "usable": true,
+              "resolved": true,
+              "reason": "USABLE",
+              "total": 10,
+              "critical_hallucinations": 0,
+              "dimensions": {
+                "主体/环境": 2,
+                "光线/构图/风格": 2,
+                "动作/时间或静图不虚构": 2,
+                "事实/创作分离": 2,
+                "Prompt可用性": 2
+              },
+              "reviewer_id": "independent-reviewer-01",
+              "session_id": "independent-session-01",
+              "raw_sha256": "86571c8187ae37e4f092f7decc7b75d588272f69a7c745d3748770b69114a033",
+              "raw_bytes": 244,
+              "raw_artifact": "rows/SYN-I00/raw.txt",
+              "cleanup_proven": true,
+              "evidence_complete": true,
+              "evidence_reason": null
+            }
+          },
+          "hook_fired": 1,
+          "entry_symlink_at_return": true
+        }
+      ],
+      "expected": "A renamed/replaced/missing earlier evidence name must prevent successful completion; retain necessary custody until final entry checks finish.",
+      "actual": "All six controlled handoffs return aggregate_pass=true/all_rows_resolved=true,10 usable images/6 videos/critical0. Canonical may be a symlink/different file, seal absent, raw leaf a symlink or earlier raw directory replaced at return.",
+      "cause": "read() verifies only its current leaf/child directories then closes all their descriptors and discards their names/identities. _levels contains only run_root/temp/phase. Final verify() cannot inspect previously read canonical/seal/raw names or raw parent directories.",
+      "fixed_portion": "Trusted parent pinned; run_root/temp/phase current named-entry comparisons close earlier during-read ancestry reproductions, including literal root equality. Current-read canonical/source-plan/raw child directory and leaf replacements/missing entries refuse with intended reasons.",
+      "recommendation": "Extend the existing reader custody owner to retain the necessary child directory/leaf bindings through final verification, recheck their current names while corresponding descriptors remain held, and close all descriptors on success and errors. No new platform or cryptographic infrastructure is requested.",
+      "boundary": "Cooperative finite Python inode/name observations only; universal hostilekernel/concurrency/nativeWindows immunity outside scope."
+    }
+  ],
+  "stage_pass_claim": false,
+  "product_pass_claim": false
+}
