@@ -1,0 +1,54 @@
+{
+  "kind": "ROOT_APPEND_ONLY_CORRECTION03_HISTORICAL_EXECUTION_ERRATUM",
+  "review_commit": "0d5c023712651b20f3554ed4f0feb2b56b974bd6",
+  "finding_ids": [
+    "E01",
+    "E02"
+  ],
+  "superseded_claim_locations": [
+    "implementation-p3b-correction-03/report.md:143-170",
+    "implementation-p3b-correction-03/receipt.json:316-322"
+  ],
+  "correction": "A test-module monkeypatch before its local import pytest does not establish guarding before python -m pytest CLI/plugin startup. Ten piped pytest attempts and two direct debug imports lack original true exits and complete pre-import audit/raw-event records. Their exits remain UNKNOWN and absence of forbidden external actions is NOT_PROVEN. No evidence identifying an actual forbidden external action was found; absence of such evidence is not zero-event certification.",
+  "historical_attempts": {
+    "piped_pytest": 10,
+    "direct_debug_imports": 2,
+    "underlying_exits": "UNKNOWN",
+    "pre_import_guard_compliance": "NOT_PROVEN",
+    "zero_external_action_claim": "NOT_PROVEN",
+    "acceptance_credit": false
+  },
+  "separate_guarded_edit_attempts": {
+    "count": 14,
+    "exit_codes": [
+      0,
+      1,
+      1,
+      1,
+      0,
+      1,
+      1,
+      0,
+      1,
+      1,
+      1,
+      1,
+      0,
+      0
+    ],
+    "note": "Different runs, never replacements for historical12."
+  },
+  "final_evidence_scope": "Independent reviewer verified current pinned candidate145/145 under pre-import guard and before/after source hashes. Historical final implementation receipt binds command/log hashes but lacks equivalent before/after imported-source attestation; no retroactive promotion.",
+  "count_correction": {
+    "correction03_replay_actual_unique": 22,
+    "correction03_report_prose21": "SUPERSEDED_BY_ACTUAL22",
+    "correction02_prior_replay": 21,
+    "correction02_prior_focused": 18,
+    "correction02_prior_final_gap": 4
+  },
+  "cap_label_correction": "Implementation replay actual_* labels reduce configured limits; they do not prove actual frozen8MiB/128MiB/256. Actual frozen caps are independently verified by correction03 review six realcap observations.",
+  "disposition": "E01 factual claim superseded by this append-only correction; E02 count/label correction acknowledged. Historical audit uncertainty retained and not repaired by rerunning tests. Neither is a waiver of four current code defects.",
+  "old_bytes_retained": true,
+  "new_runtime_actions": 0,
+  "stage_pass_claim": false
+}

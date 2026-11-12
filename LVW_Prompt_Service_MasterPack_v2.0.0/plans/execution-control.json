@@ -34,8 +34,8 @@
     "PRODUCTION_RELEASED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "Separate visible independent reviewer, then root adjudication",
-  "next_action": "Independently verify correction03 candidate630853c and evidence0e045c7, four local root causes and execution-deviation claims; no Stage PASS inferred.",
+  "next_owner": "Visible ClaudeCode correction04, then isolated independent review and root adjudication",
+  "next_action": "Execute one aggregate correction04 for canonical QS wiring, sealed source/context validation and final accessor/single-clock send boundary; historical unsupported claims superseded append-only, no cosmetic retest.",
   "required_authorization": null,
   "authorization_request": "reports/authorization-program-v1-complete-03.request.json",
   "authorization_record": "reports/authorization-program-v1-complete-03.approval.json",
@@ -87,7 +87,7 @@
   "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
   "live_terminal_receipt": "reports/unified-media/live-15/receipt.json",
   "independent_review": "reports/unified-media/independent-live-15/review.md",
-  "exact_stop_reason": "Fresh isolated correction03 reviewer dispatched; awaiting Orca worker_done. Four local findings and two execution-deviation warnings require independent evidence; no product acceptance claimed.",
+  "exact_stop_reason": "Correction03 independent report received F0/M5/m1; root accepted four code findings and appended historical factual erratum. Authorized correction04 frozen for visible implementation.",
   "native_component_authorization": "reports/v0-s2/authorization-native-component-02.json",
   "native_component_terminal_receipt": "reports/v0-s2/native-component-02/receipt.json",
   "local_control_change_decision": "reports/v0-s2/change-decision-video-workbench-01.json",
@@ -1152,7 +1152,7 @@
     "product_execution_authorized_by_predicate_alone": false
   },
   "preparation_addendum": "reports/v0-s3/product-gate0/p3b-quality-contract.md",
-  "latest_preparation_disposition": "reports/v0-s3/product-gate0/p3b-correction-03.adjudication.json",
+  "latest_preparation_disposition": "reports/v0-s3/product-gate0/p3b-correction-04.adjudication.json",
   "quality_set_freeze": "reports/v0-s3/preparation-05/quality-set.frozen.json",
   "last_execution_evidence": "reports/v0-s3/product-gate0/execution-p2-binding-correction-03/report.md",
   "p3a_implementation": {
@@ -1467,7 +1467,14 @@
         "task_id": "task_6e497e41e8c1",
         "terminal_id": "term_7ea03e5f-f229-418b-8f39-8c03f5e1e156",
         "receipt": "reports/v0-s3/product-gate0/independent-p3b-correction-03.launch.json",
-        "status": "DISPATCHED"
+        "status": "COMPLETED_CHANGES_REQUIRED",
+        "review_commit": "0d5c023712651b20f3554ed4f0feb2b56b974bd6",
+        "message_id": "msg_86574145968c",
+        "counts": {
+          "Fatal": 0,
+          "Major": 5,
+          "Minor": 1
+        }
       },
       "local_integration": {
         "status": "MERGED_UNACCEPTED_INDEPENDENT_REVIEW_PENDING",
@@ -1475,6 +1482,13 @@
         "raw_stream_bindings_verified": 4,
         "product_tests_rerun": false
       }
+    },
+    "correction04": {
+      "status": "FROZEN_AWAITING_VISIBLE_DISPATCH",
+      "task": "reports/v0-s3/product-gate0/implementation-p3b-correction-04.task.md",
+      "adjudication": "reports/v0-s3/product-gate0/p3b-correction-04.adjudication.json",
+      "historical_erratum": "reports/v0-s3/product-gate0/correction03-historical-execution-erratum.json",
+      "stage_pass_claim": false
     }
   },
   "a06_read_only_capability_child": {
