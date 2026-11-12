@@ -116,6 +116,7 @@ S3InstalledRuntimeFactory._profile_binding_parameters(root, label, baseline)
 | 守卫自检（不启动任何进程） | `final-guard` | 0 | 4/4 事件被阻断（connect/bind/Popen/system） |
 | 本批次集成套件 | `final-integration-suite` | 0 | **71 passed, 13 skipped**（13 个为待机器门放行的 fixture 进程用例） |
 | 已接受 P3B 质量相位套件（必要定向回归） | `regression-p3b-quality-phase` | 0 | **257 passed** |
+| 机器门负例（候选自己的提案不得开门） | `gate-negative-proposal` | 1 | runner 拒绝提案：`machine binding is not a sealed root binding` |
 
 中间失败记录（按合同保留原始日志，不重写历史）：
 
