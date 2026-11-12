@@ -9,7 +9,7 @@
     "stage_id": "R1",
     "workpack_id": "WP-R1-U3",
     "gate": "S3_P3B_QUALITY_INTEGRATION_INDEPENDENT_REVIEW",
-    "state": "RUNNING"
+    "state": "READY_FOR_REVIEW"
   },
   "last_passed_gate": {
     "gate": "UNIFIED_MEDIA_FIXED_UM10_AND_INDEPENDENT_REVIEW",
@@ -21,7 +21,7 @@
     "passed_cases": 10,
     "human_signoff": "reports/unified-media/human-signoff-live15.json"
   },
-  "current_blocking_gate": "S3_P3B_CORRECTION08_IMPLEMENTATION_AND_INDEPENDENT_REVIEW_PENDING",
+  "current_blocking_gate": "S3_P3B_CORRECTION08_ISOLATED_REVIEW_PENDING",
   "stage_packet": ".agent-governance/stages/R1/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/R1/PAYLOAD_MANIFEST.sha256",
   "product_status": "UNIFIED_MEDIA_EARLY_ACCEPTED_SCOPE_ONLY_FULL_R1_PENDING",
@@ -35,7 +35,7 @@
     "TARGET_HARDWARE_TESTED"
   ],
   "next_owner": "Human restores this ClaudeCode task or explicitly authorizes specific Codex takeover; root only preserves handoff",
-  "next_action": "Await resumed original correction08 Claude dispatch ctx_f008c936b517 report. Actual terminal resumed, historical stop_unknown retained. First new429 immediately stop/no retry/fallback; inspect final candidate then isolated independent review. No StagePASS.",
+  "next_action": "Dispatch isolated correction08 review of6c9a0a0/evidence833c847, verify exception-safe descriptor ownership and pre-open cap admission. Preserve257/prior closures; capture redundant diagnostic runs without cosmetic reruns, no StagePASS.",
   "required_authorization": null,
   "authorization_request": "reports/authorization-program-v1-complete-03.request.json",
   "authorization_record": "reports/authorization-program-v1-complete-03.approval.json",
@@ -1647,7 +1647,7 @@
       }
     },
     "correction08": {
-      "status": "CLAUDE_RESUMED_IMPLEMENTATION_PENDING",
+      "status": "READY_FOR_INDEPENDENT_REVIEW",
       "task": "reports/v0-s3/product-gate0/implementation-p3b-correction-08.task.md",
       "adjudication": "reports/v0-s3/product-gate0/p3b-correction-08.adjudication.json",
       "stage_pass_claim": false,
@@ -1663,7 +1663,7 @@
       "implementation_head": "94ade2aa32740830c17849b04dc2d3c365857c3e",
       "candidate_ready_for_review": false,
       "resumption": {
-        "status": "RUNNING_OBSERVED_IN_EXISTING_TERMINAL",
+        "status": "IMPLEMENTATION_DELIVERED_AFTER_EXPLICIT_RESUMPTION",
         "approval": "reports/v0-s3/product-gate0/correction08-resume-01.approval.json",
         "same_physical_process_verified": true,
         "delivery_message_id": "msg_0cc3987257c8",
@@ -1674,7 +1674,20 @@
         "orchestration_liveness": "live",
         "physical_stop_claim": false,
         "new_implementation_process_started": false,
-        "completion_proven": false
+        "completion_proven": true
+      },
+      "candidate_sha": "6c9a0a07c66060e53b00e690ebdd98047167511d",
+      "evidence_commit": "833c8476f03ef96983cbc84871a8ea24fb42449e",
+      "worker_done_message_id": "msg_d10d0864fea3",
+      "intake": "reports/v0-s3/product-gate0/correction08-intake-01.json",
+      "review_task": "reports/v0-s3/product-gate0/independent-p3b-correction-08.task.md",
+      "reported_checks": {
+        "combined": 257,
+        "preserved": 245,
+        "new": 12,
+        "guard": 4,
+        "redundant_focused": 12,
+        "bounded_observations": 5
       }
     }
   },
