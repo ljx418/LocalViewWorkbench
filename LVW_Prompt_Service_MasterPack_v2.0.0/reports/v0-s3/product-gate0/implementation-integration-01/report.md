@@ -276,6 +276,28 @@ root 第三轮复审（`CHANGES_REQUIRED_RESERVATION_DEADLINE_AND_FINALIZER`）�
 墙钟只计一次、重复结算幂等、终结器提前停止年轻存活子进程、flush/dup2/rmtree 故障不能
 绕过收割或产出 PASS。
 
+### 10.3 root 第四轮复审的三项剩余校正（已实现，零进程）
+
+root 第四轮复审（`CHANGES_REQUIRED_CHILD_DEADLINE_UNKNOWN_AND_SETTLEMENT_WIRING`）的三项：
+
+1. **子进程终止截止**：原先每次等待复用同一个 budget（min(kill_seconds, 会话剩余)），
+   没有子进程剩余上限，9.5 秒龄的子进程两次超时等待可超出 10 秒。现在每个子进程只有
+   **一个绝对停止截止** = min(起始 + 10s, 会话清理截止)，**每次等待前重算剩余**
+   （含 kill 之后的等待），因此总停止时间永不超过每子进程预算。
+2. **UNKNOWN 看门狗**：原先收割把未证明的子进程记为 UNKNOWN 后，看门狗只处理 STARTED，
+   于是 UNKNOWN 的存活句柄得不到任何后续安全动作。现在看门狗对 **STARTED 与 UNKNOWN**
+   都执行**有界**安全动作（扣费占位保留、原根保留、准入继续被阻塞、绝不声称已证明
+   清理）；动作受退避窗口与**声明的最大尝试次数**约束，**不是忙循环**。
+3. **结算接线**：原先真实 runner 从不调用 `executor.settle_session()`，只有假执行器测试
+   调用过，会话一直是 ACTIVE、全局 `spent_wall_seconds` 收不到实际运行墙钟。现在
+   **真实终结路径**在清理工作之后**恰好一次**结算会话，并在结算**之后**采集会话证据；
+   普通结算/计数器失败保留原根并给出非零收据；结算**绝不释放** UNKNOWN 扣费。
+
+新增定向零进程测试（`focused-lifecycle3` / `focused-all`）：**35 / 38 passed、2~3 skipped、
+零实际启动**，覆盖绝对停止截止（子进程与会话两侧、假时钟每次等待推进）、
+UNKNOWN 句柄的后续有界看门狗动作、经**真实 finalize_session 调用路径**的会话结算、
+结算失败保留原根且非零。
+
 ## 11. 未闭合的集成风险（明确保留）
 
 * 真实 A06 隔离（网络隔离后端与尝试观测）——未证明。

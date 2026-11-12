@@ -67,6 +67,9 @@
     "finalizer_exceptions": "The finalizer is exception safe: every stream, log, hash and removal step is recorded on its own and the process reaper always runs. The root is removed only after a proven cleanup and the removal is verified instead of ignored; any ordinary failure keeps the root, keeps the reservations and cannot retain exit 0.",
     "global_wall_accounting": "The global actual wall is accounted once by the idempotent settlement of the session. The child records keep their own observed lifetime under a truthful label.",
     "reaper_custody": "At the finalizer revoke the live original handles are terminated and killed with a bounded cleanup that is clipped to the remaining child budget and to the session deadline, before the final wait. An unproven child keeps its occupied charge, keeps the root and keeps the watchdog armed.",
+    "settlement_wiring": "The real finalization settles the session exactly once after the cleanup work and captures the session evidence after the settlement, so the global actual wall of the run reaches the shared counter. An ordinary settlement or counter failure retains the root and yields a nonzero receipt, and the settlement never releases an unknown charge.",
+    "termination_deadline": "One absolute stop deadline per child: min(child started + per_process_seconds, session cleanup deadline). The remaining time is recomputed before every wait, the post kill wait included, so the total stop never exceeds the ten second child budget even when both waits time out.",
+    "unknown_watchdog": "An unknown live handle stays eligible for the bounded safety action: the watchdog acts on STARTED and on UNKNOWN handles, the charge keeps its slot, the root is retained and the admission stays blocked. The action is bounded by a backoff window and by a declared maximum of attempts, so it is never a busy loop, and no proven cleanup is claimed for an unproven child.",
     "wall_allocation": "The window is derived from the actual reserved slice and the persisted session deadlines. A second runtime owner that reuses the session id is refused; the same owner is idempotent and never rebases the window."
   },
   "note": "This document is the proposal of the implementer. It is NOT an authorization and it does NOT open the machine gate. The guarded runner refuses this document: it accepts only a sealed binding of the root with kind S3_INTEGRATION_MACHINE_BINDING/1, execution_permitted true, an absolute path and the SHA256 that the root supplies out of band. The root seals the binding inside the existing COMPLETE03 authorization; no human permission request is involved.",
@@ -158,6 +161,7 @@
       },
       "max_total_starts": 24,
       "per_child_kill_seconds": 1,
+      "per_child_stop_attempts": 3,
       "per_child_termination_margin_seconds": 2,
       "per_process_seconds": 10,
       "session_wall_cap_seconds": 60,
@@ -171,11 +175,11 @@
       "sha256": "e50d468e8b0adfb05733f5b87b3cff34829c4a8c1aea50c865aa8bdfe4bb150f"
     },
     "source_pins": {
-      "reports/v0-s3/product-gate0/implementation-integration-01/executor.py": "97db41ee1c64ae8bb49821b2c404d4d4dad6a6b63abf52f5ad1e75541c0282cd",
-      "reports/v0-s3/product-gate0/implementation-integration-01/run_guarded_checks.py": "5cbff158aa84dbc2cedb4833e197dfa1e597615991d5474f2c460ef8e3d10f16",
+      "reports/v0-s3/product-gate0/implementation-integration-01/executor.py": "202bdbddfffc464663681f1a5f132ff78a64be8387b909b6084185d520cc17bc",
+      "reports/v0-s3/product-gate0/implementation-integration-01/run_guarded_checks.py": "889e2f891d4c2e59f613344786e25b4c8747930c7868414a72b0412355f79e63",
       "tools/fixtures/v0_s3_supervisor_fixture.py": "f8c8b29d6b280d24d9c1ea9ceccc6db9c4b7df883c700bced472802aa42a9bd3",
       "tools/test_v0_s3_integration.py": "c1a0bb4b45e0380929d986678f425044d5ede4d2ee0b5a7c429ea26ec0e5432c",
-      "tools/test_v0_s3_supervisor.py": "f1e185d380b985ee2ec2b58a09c5adce0a122d97b9218fd2d818db963c82be56",
+      "tools/test_v0_s3_supervisor.py": "805c65a55632925c6bf84f4fc1f920fc8c4339967b4965d32916810321b6e19d",
       "tools/v0_s2_runtime.py": "a97ea20d02ed80ab4f99f133dd8162331ddba34662bfdcca637fcade40b4dbd2",
       "tools/v0_s2_stage_runtime.py": "cf6ad01d66c0c7885475eedeae5ba66df9bec61bf7281ee511600f6224833e26",
       "tools/v0_s3_coordinator.py": "55dd875c44de3128e4fc64a3ec1729687adb01c94007b8230e71d1717cd7eaf5",

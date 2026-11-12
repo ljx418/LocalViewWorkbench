@@ -813,7 +813,8 @@ def fake_root_binding(tmp_path, *, counter_path, budget_id='budget-under-test',
                         'session_wall_cap_seconds': 60,
                         'cleanup_reserve_seconds': 30,
                         'per_child_termination_margin_seconds': 2,
-                        'per_child_kill_seconds': 1}
+                        'per_child_kill_seconds': 1,
+                        'per_child_stop_attempts': 3}
     supervisor = PACK_ROOT / 'tools/v0_s3_supervisor.py'
     binding = {
         'kind': 'S3_INTEGRATION_MACHINE_BINDING/1',
@@ -1423,6 +1424,9 @@ def test_a_failing_finalizer_cannot_skip_the_reaper_or_yield_pass(tmp_path):
             self.reaped = True
             return [{'proven': True, 'exit_code': 0}]
 
+        def settle_session(self):
+            return 1.0
+
         def session_evidence(self):
             return {'kind': 'lvw.s3-finite-cpu-session/1', 'status': 'OK'}
 
@@ -1463,6 +1467,9 @@ def test_a_failing_root_removal_cannot_yield_pass(tmp_path):
         def reap(self):
             return []
 
+        def settle_session(self):
+            return 1.0
+
         def session_evidence(self):
             return {'kind': 'lvw.s3-finite-cpu-session/1', 'status': 'OK'}
 
@@ -1502,6 +1509,9 @@ def test_a_successful_finalizer_removes_the_root_and_keeps_the_proof(tmp_path):
             self.reaped = True
             return []
 
+        def settle_session(self):
+            return 1.0
+
         def session_evidence(self):
             return {'kind': 'lvw.s3-finite-cpu-session/1', 'status': 'OK'}
 
@@ -1525,3 +1535,199 @@ def test_a_successful_finalizer_removes_the_root_and_keeps_the_proof(tmp_path):
     assert outcome['cleanup_proven'] is True
     assert outcome['exit_code'] == 0
     assert not owned.exists()
+
+
+# ------------------------- the lifecycle corrections of the third review
+class GoodHandle:
+    def flush(self):
+        return None
+
+    def close(self):
+        return None
+
+
+def test_the_stop_never_exceeds_the_absolute_child_deadline(tmp_path):
+    """CPU-TERMINATION-DEADLINE: one absolute stop deadline."""
+    counter = fake_root_counter(tmp_path)
+    path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+    clock = fake_clock()
+    executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest,
+                                   clock=clock)
+
+    class AdvancingProcess:
+        pid = os.getpid()
+
+        def __init__(self):
+            self.waits = []
+
+        def poll(self):
+            return None
+
+        def wait(self, timeout=None):
+            self.waits.append(timeout)
+            self.clock.now += timeout if timeout else 0.0
+            raise TimeoutError('injected timeout')
+
+        def terminate(self):
+            return None
+
+        def kill(self):
+            return None
+
+    process = AdvancingProcess()
+    process.clock = clock
+    executor.register(process)
+    entry = executor.children[0]
+    clock.now = 9.5
+    executor._stop_child(entry, session_deadline=clock.now + 100.0)
+    # the stop never passes the ten second child deadline, not even with two
+    # timeout waits
+    assert clock.now <= 10.0 + 0.001
+    assert process.waits[0] <= 0.5 + 0.001
+    assert process.waits[1] <= 0.001
+    assert len(process.waits) == 2
+
+
+def test_the_stop_is_clipped_to_the_session_deadline(tmp_path):
+    """CPU-TERMINATION-DEADLINE: the session deadline clips the stop."""
+    counter = fake_root_counter(tmp_path)
+    path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+    clock = fake_clock()
+    executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest,
+                                   clock=clock)
+
+    class AdvancingProcess:
+        pid = os.getpid()
+
+        def __init__(self):
+            self.waits = []
+
+        def poll(self):
+            return None
+
+        def wait(self, timeout=None):
+            self.waits.append(timeout)
+            self.clock.now += timeout if timeout else 0.0
+            raise TimeoutError('injected timeout')
+
+        def terminate(self):
+            return None
+
+        def kill(self):
+            return None
+
+    process = AdvancingProcess()
+    process.clock = clock
+    executor.register(process)
+    entry = executor.children[0]
+    clock.now = 9.0
+    executor._stop_child(entry, session_deadline=9.4)
+    assert clock.now <= 9.4 + 0.001
+    assert process.waits[1] <= 0.001
+
+
+def test_the_watchdog_still_acts_on_an_unknown_live_handle(tmp_path):
+    """CPU-UNKNOWN-WATCHDOG: an unknown handle keeps the bounded safety."""
+    counter = fake_root_counter(tmp_path)
+    path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+    clock = fake_clock()
+    executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest,
+                                   clock=clock)
+
+    class FailingProcess:
+        pid = os.getpid()
+        attempts = 0
+
+        def poll(self):
+            return None
+
+        def wait(self, timeout=None):
+            raise TimeoutError('the child never exits')
+
+        def terminate(self):
+            FailingProcess.attempts += 1
+            raise OSError('injected terminate failure')
+
+        def kill(self):
+            FailingProcess.attempts += 1
+            raise OSError('injected kill failure')
+
+    process = FailingProcess()
+    executor.register(process)
+    entry = executor.children[0]
+    clock.now = 9.0
+    proofs = executor.reap()
+    # the initial stop failed: the child stays unknown and unproven
+    assert entry['state'] == 'UNKNOWN'
+    assert proofs[0]['proven'] is False
+    assert executor.uncertain is True
+    # the watchdog still performs the bounded safety action on the unknown
+    # original handle
+    clock.now = 9.5
+    deadline = time.monotonic() + 3.0
+    while entry.get('stop_attempts', 0) == 0 and time.monotonic() < deadline:
+        time.sleep(0.02)
+    assert entry.get('stop_attempts', 0) >= 1
+    # the action is bounded and never a busy loop
+    time.sleep(0.25)
+    assert entry['stop_attempts'] <= 3
+    executor.revoke_admissions()
+
+
+def test_the_finalization_settles_the_session_through_the_real_path(tmp_path):
+    """CPU-SETTLEMENT-NOT-WIRED: the real finalization settles the session."""
+    charges = [{'index': 0, 'role': 'implementation', 'scenario': 'clean_terminal',
+                'argv': [], 'started_wall': 0.0, 'state': 'UNKNOWN', 'exit_code': None,
+                'pid': None, 'birth': None, 'finished_wall': None,
+                'observed_lifetime_seconds': None, 'settled': True}]
+    counter = fake_root_counter(tmp_path, starts_total=1,
+                                by_role={'implementation': 1, 'independent_review': 0},
+                                charges=charges)
+    path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+    clock = fake_clock()
+    executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest,
+                                   clock=clock)
+    executor.reserve_session()
+    clock.now = 12.0
+    owned = tmp_path / 'owned'
+    owned.mkdir()
+    outcome = RUNNER_MODULE.finalize_session(
+        executor=executor, owned=owned, stdout_handle=GoodHandle(),
+        stderr_handle=GoodHandle(), saved_out=os.dup(1), saved_err=os.dup(2),
+        exit_code=0, source_hasher=lambda: {}, remover=lambda path: shutil.rmtree(path))
+    document = json.loads(counter.read_text())
+    assert document['sessions'][0]['state'] == 'SETTLED'
+    assert document['spent_wall_seconds'] == 12.0
+    assert outcome['session_spent'] == 12.0
+    assert outcome['cleanup_proven'] is True
+    assert outcome['exit_code'] == 0
+    # the evidence is captured after the settlement
+    assert outcome['session_evidence']['counter']['sessions'][0]['state'] == 'SETTLED'
+    # the unknown custody stays explicit and the charge is never released
+    assert document['charges'][0]['state'] == 'UNKNOWN'
+    assert executor.counter._occupied(document) == 1
+
+
+def test_a_failing_settlement_keeps_the_root_and_a_nonzero_receipt(tmp_path):
+    """CPU-SETTLEMENT-NOT-WIRED: an ordinary settlement failure is not a pass."""
+    counter = fake_root_counter(tmp_path)
+    path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+    clock = fake_clock()
+    executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest,
+                                   clock=clock)
+    executor.reserve_session()
+    clock.now = 5.0
+    # the counter becomes unusable for the settlement
+    counter.unlink()
+    counter.mkdir()
+    owned = tmp_path / 'owned'
+    owned.mkdir()
+    outcome = RUNNER_MODULE.finalize_session(
+        executor=executor, owned=owned, stdout_handle=GoodHandle(),
+        stderr_handle=GoodHandle(), saved_out=os.dup(1), saved_err=os.dup(2),
+        exit_code=0, source_hasher=lambda: {}, remover=lambda path: shutil.rmtree(path))
+    assert outcome['cleanup_proven'] is False
+    assert outcome['exit_code'] != 0
+    assert any(reason.startswith('SESSION_SETTLEMENT_FAILED')
+               for reason in outcome['failure_reasons'])
+    assert owned.exists()

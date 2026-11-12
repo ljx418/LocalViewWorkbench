@@ -582,7 +582,7 @@ class FiniteCpuExecutor:
         entry = {'index': None, 'process': process, 'pid': pid,
                  'birth': process_birth(pid), 'started': self.clock(),
                  'state': 'STARTED', 'exit_code': None, 'timed_out': False,
-                 'proven': False}
+                 'proven': False, 'stop_attempts': 0, 'last_stop_attempt': None}
         with self._lock:
             index = self._pending.pop(0) if self._pending else None
             entry['index'] = index
@@ -611,47 +611,78 @@ class FiniteCpuExecutor:
         """The independent per child deadline of the executor.
 
         The bounded termination starts early enough that the whole per
-        child budget, the cleanup included, stays inside the seal.
+        child budget, the cleanup included, stays inside the seal.  An
+        *unknown* live handle stays eligible for this bounded safety
+        action: it keeps its occupied charge and its root and it blocks the
+        admission, but it is never left without the only remaining safety.
+
+        The action is bounded and never a busy loop: at most one attempt per
+        backoff window and never more than the declared maximum of attempts.
         """
         limit = float(self.limits['per_process_seconds'])
         margin = float(self.limits['per_child_termination_margin_seconds'])
-        stop_at = max(0.0, limit - margin)
+        backoff = float(self.limits['per_child_kill_seconds'])
+        maximum = int(self.limits['per_child_stop_attempts'])
         while not self._stop.wait(0.02):
             with self._lock:
                 children = list(self.children)
+            now = self.clock()
             for entry in children:
-                if entry['state'] != 'STARTED':
+                if entry['state'] not in ('STARTED', 'UNKNOWN'):
                     continue
-                if self.clock() - entry['started'] <= stop_at:
+                if entry.get('proven') is True:
                     continue
+                stop_deadline = self._stop_deadline(entry, self.cleanup_deadline)
+                if now < stop_deadline - margin:
+                    continue
+                if entry.get('stop_attempts', 0) >= maximum:
+                    continue
+                last = entry.get('last_stop_attempt')
+                if last is not None and now - last < backoff:
+                    continue
+                entry['stop_attempts'] = entry.get('stop_attempts', 0) + 1
+                entry['last_stop_attempt'] = now
                 entry['timed_out'] = True
-                self._stop_child(entry)
+                self._stop_child(entry, self.cleanup_deadline)
+
+    def _stop_deadline(self, entry, session_deadline=None):
+        """The one absolute deadline of the stop of one child.
+
+        It is the earlier of the per child budget and the session cleanup
+        deadline.  Every wait of the stop is clipped to it.
+        """
+        deadline = entry['started'] + float(self.limits['per_process_seconds'])
+        if session_deadline is not None:
+            deadline = min(deadline, session_deadline)
+        return deadline
+
+    def _wait_budget(self, stop_deadline):
+        """The remaining time of the stop, recomputed before every wait."""
+        remaining = max(0.0, stop_deadline - self.clock())
+        return min(float(self.limits['per_child_kill_seconds']), remaining)
 
     def _stop_child(self, entry, session_deadline=None):
         """Stop one owned child with a bounded cleanup.
 
-        The termination and the waits are clipped to the remaining per child
-        budget *and* to the remaining session deadline.  The child is
-        stopped here, not only by the watchdog: a young child must not
-        survive the finalizer.
+        There is exactly one absolute stop deadline and the remaining time is
+        recomputed before every wait, the post kill wait included.  The
+        total stop therefore never exceeds the per child budget.
         """
         process = entry['process']
-        budget = float(self.limits['per_child_kill_seconds'])
-        if session_deadline is not None:
-            budget = max(0.0, min(budget, session_deadline - self.clock()))
+        stop_deadline = self._stop_deadline(entry, session_deadline)
         try:
             process.terminate()
         except Exception:  # noqa: BLE001 - the failure stays visible
             pass
         try:
-            process.wait(timeout=budget)
+            process.wait(timeout=self._wait_budget(stop_deadline))
         except Exception:  # noqa: BLE001 - the failure stays visible
             try:
                 process.kill()
             except Exception:  # noqa: BLE001 - the failure stays visible
                 pass
             try:
-                process.wait(timeout=budget)
+                process.wait(timeout=self._wait_budget(stop_deadline))
             except Exception:  # noqa: BLE001 - the failure stays visible
                 pass
 
@@ -726,10 +757,9 @@ class FiniteCpuExecutor:
     def settle_session(self):
         """Account the actual wall of this session, cleanup included."""
         spent = round(self.clock() - self.session_started, 3)
-        try:
-            settled = self.counter.settle_session(self.session_id, spent=spent)
-        except CpuGateError:
-            return None
+        # An ordinary failure of the settlement is visible: it is never
+        # swallowed into a silent success.
+        settled = self.counter.settle_session(self.session_id, spent=spent)
         return spent if settled else None
 
     def session_evidence(self):
@@ -793,11 +823,12 @@ def build_executor(*, binding_path, binding_sha256, role, repository_root, packa
         'per_child_termination_margin_seconds': budget.get(
             'per_child_termination_margin_seconds'),
         'per_child_kill_seconds': budget.get('per_child_kill_seconds'),
+        'per_child_stop_attempts': budget.get('per_child_stop_attempts'),
     }
     for key in ('max_total_starts', 'max_concurrent', 'per_process_seconds',
                 'shared_pool_seconds', 'session_wall_cap_seconds',
                 'cleanup_reserve_seconds', 'per_child_termination_margin_seconds',
-                'per_child_kill_seconds'):
+                'per_child_kill_seconds', 'per_child_stop_attempts'):
         if type(limits[key]) is not int or limits[key] <= 0:
             raise CpuGateError('BINDING_CPU_BUDGET_INVALID:' + key)
     if not isinstance(limits['max_starts_by_role'], dict):

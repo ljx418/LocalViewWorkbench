@@ -120,6 +120,8 @@ def finalize_session(*, executor, owned, stdout_handle, stderr_handle, saved_out
     failure_reasons = list(failure_reasons or [])
     cleanup_proven = True
     session_evidence = None
+    session_spent = None
+    notes = []
     proofs = []
     source_hasher = source_hasher or source_hashes
     remover = remover or shutil.rmtree
@@ -157,15 +159,32 @@ def finalize_session(*, executor, owned, stdout_handle, stderr_handle, saved_out
             if executor is not None:
                 try:
                     proofs = executor.reap()
-                    session_evidence = executor.session_evidence()
                     if any(not proof.get('proven') for proof in proofs):
                         cleanup_proven = False
                         record('CHILD_EXIT_UNPROVEN')
                 except Exception as error:  # noqa: BLE001 - the failure stays visible
                     cleanup_proven = False
                     record('REAP_FAILED', error)
+                # The session is settled exactly once, after the cleanup work,
+                # so that the global actual wall of the run reaches the shared
+                # counter.  The settlement never releases an unknown charge.
+                try:
+                    spent = executor.settle_session()
+                    if spent is None:
+                        notes.append('SESSION_SETTLEMENT_ALREADY_APPLIED')
+                    else:
+                        session_spent = spent
+                except Exception as error:  # noqa: BLE001 - the failure stays visible
+                    cleanup_proven = False
+                    record('SESSION_SETTLEMENT_FAILED', error)
+                try:
+                    # The evidence is captured after the settlement.
+                    session_evidence = executor.session_evidence()
+                except Exception as error:  # noqa: BLE001 - the failure stays visible
+                    cleanup_proven = False
+                    record('SESSION_EVIDENCE_FAILED', error)
                     session_evidence = {'kind': 'lvw.s3-finite-cpu-session/1',
-                                         'status': 'REAP_FAILED',
+                                         'status': 'EVIDENCE_FAILED',
                                          'error_type': type(error).__name__,
                                          'stage_pass_claim': False}
             after = None
@@ -193,7 +212,8 @@ def finalize_session(*, executor, owned, stdout_handle, stderr_handle, saved_out
     return {'exit_code': exit_code, 'cleanup_proven': cleanup_proven,
             'failure_reasons': sorted(set(failure_reasons)),
             'after_source_sha256': after, 'proofs': proofs,
-            'session_evidence': session_evidence}
+            'session_evidence': session_evidence, 'session_spent': session_spent,
+            'notes': sorted(set(notes))}
 
 
 def session_identity(role, label, candidate_sha):
