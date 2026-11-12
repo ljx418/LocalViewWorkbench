@@ -117,6 +117,8 @@ S3InstalledRuntimeFactory._profile_binding_parameters(root, label, baseline)
 | 本批次集成套件 | `final-integration-suite` | 0 | **71 passed, 13 skipped**（13 个为待机器门放行的 fixture 进程用例） |
 | 已接受 P3B 质量相位套件（必要定向回归） | `regression-p3b-quality-phase` | 0 | **257 passed** |
 | 机器门负例（候选自己的提案不得开门） | `gate-negative-proposal` | 1 | runner 拒绝提案：`machine binding is not a sealed root binding` |
+| 机器门负例（缺根给出的摘要不得开门） | `gate-negative-no-digest` | 1 | runner 拒绝：`machine binding needs the root supplied digest` |
+| 门校正后的定向零进程守卫测试 | `focused-executor` | 0 | **14 passed**（执行器准入/预算/身份/argv/环境/工作目录拒绝，全部零实际启动） |
 
 中间失败记录（按合同保留原始日志，不重写历史）：
 
@@ -126,10 +128,28 @@ S3InstalledRuntimeFactory._profile_binding_parameters(root, label, baseline)
 | `integration-suite`（第 2 轮） | 1 | 2 failed / 69 passed：warm 顺序规则读反（需要默认根已关闭）、终态引用逃逸未捕获 | 改为经归档 owner 关闭默认根；`_derive_row_status` 捕获 `SupervisionError` |
 | `integration-suite`（第 3 轮） | 1 | 1 failed / 70 passed：终态引用逃逸在派生行状态时未捕获 | 同上 |
 | `final-integration-suite` | 0 | 71 passed / 13 skipped | 最终一次 |
-| `regression-install-handoff` | 1 | 55 errors：该已接受套件需要 `git init` 主机进程，在零进程守卫下不可运行 | 保留为已知未运行的必要回归，不在本批次绕过 |
+| `regression-install-handoff` | 1 | 55 errors：该已接受套件需要 `git init` 主机进程，在零进程守卫下被阻断 | 这是**已尝试且真退出 1** 的命令，状态 `BLOCKED_BY_GUARD`，不是"从未执行"；不放宽 subprocess 权限重跑 |
 
 `tools/test_s3_install_handoff.py`（覆盖被改动的继承 `_prepare`）需要 `git init`
-主机进程，超出零进程授权范围，**保持 NOT_RUN**，本包不以任何替代方式声称其通过。
+主机进程。它已被**实际尝试**，在零进程守卫下真退出 1，55 个错误全部是守卫阻断的
+`git init`；其状态是 `BLOCKED_BY_GUARD`，不是"从未执行"。本包不放宽 subprocess
+权限去重跑它，也不以任何替代方式声称它通过。
+
+### 6.1 门校正后的源变动范围（按 root 要求不做整套重跑）
+
+root 明确要求：门校正不得重跑 257 或 71 的整套，只需定向零进程守卫测试。
+`final-integration-suite` 收据中的**产品源**（coordinator / supervisor / worker /
+S2 钩子 / quality phase / fixture）与当前候选逐字节一致，**唯一**在收据之后变化的是：
+
+* `tools/test_v0_s3_supervisor.py`（加入执行器准入负例与基于执行器的 fixture 驱动）；
+* `tools/v0_s3_quality_worker.py`（只改依赖清单的**范围声明**：只绑定被点名文件，
+  拒绝"传递封存完整"的说法，并把该限制写进终态事件）；
+* 新报告子树的 `executor.py` 与 `run_guarded_checks.py`。
+
+这三项由定向运行 `focused-worker-executor`（**17 passed、1 skipped、零实际启动**）
+与 `focused-executor`（**14 passed、零实际启动**）覆盖。产品源的字节未变，
+因此 `final-integration-suite` 的 71/13 收据对其仍然成立；收据的 `after_source_sha256`
+与当前差异仅限上述三项，已在此逐项说明。
 
 ## 7. 生产调用路径清单
 
@@ -148,9 +168,16 @@ S3InstalledRuntimeFactory._profile_binding_parameters(root, label, baseline)
 ## 8. 24 项内部义务映射
 
 完整映射见 `reports/v0-s3/product-gate0/implementation-integration-01/obligation-mapping.json`。
-汇总：PASS 19 项，PARTIAL_BLOCKED_MACHINE_GATE 5 项（I08、I09、I10、I12、I13、I24 中
-零进程部分已证、真实进程部分待门），无一项用常量、名称存在或 exit0 独立充数。
-这些义务**不替换**产品十二项，也不替换旧门禁。
+汇总（与 `obligation-mapping.json` 的 `status_counts` 一致）：
+**PASS 17 项、PARTIAL_BLOCKED_MACHINE_GATE 6 项（I08、I09、I10、I12、I13、I24）、
+PARTIAL_NATIVE_COMBINATION_INCOMPLETE 1 项（I07）**，合计 24。
+无一项用常量、名称存在或 exit0 独立充数。这些义务**不替换**产品十二项，也不替换旧门禁。
+
+I07 的诚实边界：worker 入口**真的**调用已接受的 `QualityPhase`，跑完 16 行封存计划并
+产生真实 canonical receipt（用显式 fake runtime 接缝，已证）。但**生产原生驱动组合**
+与生产 worker 的传递依赖闭包**仍未证明**；`clean_terminal` fixture 场景只是协议证据，
+**不**当作 QualityPhase worker 证明，本提案的门也**不**授权生产 quality_worker/Pillow
+子进程。
 
 ## 9. 有界 CPU 计数与清理
 
@@ -163,7 +190,7 @@ S3InstalledRuntimeFactory._profile_binding_parameters(root, label, baseline)
   每次 ≤10s、含进程验证累计墙钟 ≤180s、最后 30s 只清理；输出 256KiB/stream、
   消息 32KiB、消息数 1024、新增文本证据 ≤8MiB。**预算不重置。**
 
-## 10. 机器门（尚未开启）
+## 10. 机器门（尚未开启）与 CPU-G1..G4 校正
 
 当前权限只允许源编辑与**零 subprocess/网络**的守卫测试。fixture 进程放行**尚未**绑定。
 本包提交的是**提案**，不是授权：
@@ -172,9 +199,33 @@ S3InstalledRuntimeFactory._profile_binding_parameters(root, label, baseline)
 （`kind = S3_INTEGRATION_MACHINE_BINDING_PROPOSAL/1`，`execution_permitted = false`）。
 
 受控 runner 只接受 `kind = S3_INTEGRATION_MACHINE_BINDING/1` 且
-`execution_permitted = true` 的根封存文档；提案会被 runner 拒绝。候选自带的
-宽松 subprocess monkeypatch 不构成可信白名单：白名单只来自根绑定，argv 必须
-精确等于冻结前缀 + 一个枚举场景，计数受共享预算约束。
+`execution_permitted = true`、并且**绝对路径 + 根给出的 SHA256**同时匹配的文档；
+提案被拒绝（真退出 1），缺摘要也被拒绝（真退出 1）。候选自带的宽松 subprocess
+monkeypatch 不构成可信白名单：白名单只来自根绑定。
+
+按 root 的 CPU-G1..G4 校正，本批新增**独立有限 CPU 执行器**
+`reports/v0-s3/product-gate0/implementation-integration-01/executor.py`
+（新报告子树，非产品平台）：
+
+* **G1 共享持久预算**：预算是**根创建的外部计数器**，schema `lvw.s3-cpu-budget/1`
+  （`budget_id`、`starts_total`、`starts_by_role`、`spent_wall_seconds`、`active`、`charges`）。
+  执行器**从不创建、从不重置**它，缺失即拒绝（绝不当作 0）。每次真实启动在
+  **操作系统动作之前**用 `flock` 排他锁**原子扣费**；扣费**永不删除、永不退款**，
+  失败或状态不明的启动保留其预约。计数跨调用、跨候选重新绑定共享，不重置。
+* **G2 执行边界身份**：每次 spawn 之前复验根绑定的**绝对路径与 SHA256**、**实际候选**
+  （直接读 git 元数据，不起 git 进程）、**全部 source/runner/supervisor/fixture/Python
+  pin**。任何漂移在 OS 动作**之前**拒绝。同类但根未签发的 JSON 不是签发证明。
+* **G3 独立托管与墙钟**：执行器**自己**持有原始 child 句柄，独立执行并发 ≤2、
+  每 child ≤10s、会话准入 ≤150s、清理 ≤180s（最后 30s 只清理、不再准入）。
+  收割器有自己的截止并记录每个 child 的**真实退出证明**；退出不可证时状态为
+  `UNKNOWN` 且保留预约（不重置、不退款）。它**不**依赖被测 supervisor 的超时作为外层安全。
+* **G4 精确计划**：argv 必须精确等于冻结前缀 + 一个枚举场景；工作目录必须在
+  **runner 自有临时根**内；上下�� JSON 必须在同一根内且有界（≤64KiB）；
+  环境必须是继承环境（不接受替换 env）；fixture 只用标准库并在导入前自装
+  零网络/零后代进程守卫。
+
+被测的 `ParentSupervisor` **不再自己启动进程**：它拿的是执行器给出的句柄，
+因此"父监督超时"不能被当成外层安全。
 
 ## 11. 未闭合的集成风险（明确保留）
 
@@ -185,6 +236,8 @@ S3InstalledRuntimeFactory._profile_binding_parameters(root, label, baseline)
 * 原账本真实扣账——未证明；本包不访问原账本。
 * 最终 A/B 预算与新鲜真实十二项/质量分——未证明。
 * 产品 Gate0 与人工发布签署——未做，`stage_pass_claim = false`。
+* 生产 worker 的**传递依赖闭包**：现有 6 个 Pillow 文件的哈希绑定**不是**完整传递封存；
+  该清单只绑定被点名的文件。提案的门**不**授权生产 quality_worker/Pillow 子进程。
 * 真实父崩溃看护、原生 custody 交接、归档后逻辑根迁移——按合同保持 `BLOCKED`，
   不用 Linux fixture 冒充实现保证。
 * 父硬看护标志不得在原生清理证明之前或超出已证 Linux 范围提升。

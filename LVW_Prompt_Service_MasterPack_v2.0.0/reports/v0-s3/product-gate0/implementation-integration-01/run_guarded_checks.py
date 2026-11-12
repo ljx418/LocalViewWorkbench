@@ -35,6 +35,7 @@ Usage::
 
 import argparse
 import hashlib
+import importlib.util
 import json
 import os
 import shutil
@@ -67,6 +68,7 @@ BLOCKED_EVENTS = (
 )
 
 PACK_ROOT = Path(__file__).resolve().parents[4]
+REPOSITORY_ROOT = PACK_ROOT.parent
 if str(PACK_ROOT) not in sys.path:
     sys.path.insert(0, str(PACK_ROOT))
 
@@ -80,6 +82,7 @@ SOURCE_FILES = (
     "tools/test_v0_s3_integration.py",
     "tools/test_v0_s3_supervisor.py",
     "tools/fixtures/v0_s3_supervisor_fixture.py",
+    "reports/v0-s3/product-gate0/implementation-integration-01/executor.py",
 )
 TEST_MODULES = (
     "tools/test_v0_s3_integration.py",
@@ -87,46 +90,36 @@ TEST_MODULES = (
 )
 RUNNER_RELATIVE = ("reports/v0-s3/product-gate0/implementation-integration-01/"
                     "run_guarded_checks.py")
+EXECUTOR_RELATIVE = ("reports/v0-s3/product-gate0/implementation-integration-01/"
+                      "executor.py")
 
-# The machine gate is closed until the root supplies a binding.  The state is
-# module level, because the audit hook has to see it.
-PROCESS_GATE = {"binding": None, "starts": 0, "limit": 0, "allowed": []}
+# The machine gate is closed until the root supplies a sealed binding.  The
+# independent executor owns the shared budget, the source identity and the
+# wall clock; the audit hook only asks it for an admission.
+PROCESS_GATE = {"executor": None, "starts": 0, "limit": 0, "allowed": []}
+
+
+def _load_executor_module():
+    """Load the independent executor of this report subtree."""
+    path = PACK_ROOT / EXECUTOR_RELATIVE
+    spec = importlib.util.spec_from_file_location("lvw_s3_finite_cpu_executor", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
 def _audit_hook(event, arguments):
-    if event == "subprocess.Popen" and PROCESS_GATE["binding"] is not None:
-        _gate_subprocess(arguments)
+    if event == "subprocess.Popen" and PROCESS_GATE["executor"] is not None:
+        try:
+            PROCESS_GATE["executor"].admit(arguments)
+        except Exception as error:  # noqa: BLE001 - the refusal is the guard
+            code = getattr(error, 'code', type(error).__name__)
+            raise OfflineBoundaryViolation("finite cpu gate refused: " + str(code))
+        PROCESS_GATE["starts"] += 1
         return
     if event in BLOCKED_EVENTS:
         raise OfflineBoundaryViolation(
             "offline boundary violation: " + event + " " + repr(arguments))
-
-
-def _gate_subprocess(arguments):
-    """Allow exactly one bound fixture start of the root machine binding.
-
-    The binding is a document of the root, not of the candidate.  The
-    candidate cannot widen it: the argv has to be the frozen prefix plus one
-    enumerated scenario, the count has to stay inside the shared budget and
-    every other process event stays blocked.
-    """
-    binding = PROCESS_GATE["binding"]
-    if PROCESS_GATE["starts"] >= PROCESS_GATE["limit"]:
-        raise OfflineBoundaryViolation("fixture process budget exhausted")
-    argv = list(arguments[1]) if len(arguments) > 1 and arguments[1] else []
-    executable = arguments[0] if arguments else None
-    prefix = list(binding.get("argv_prefix", []))
-    scenarios = binding.get("allowed_scenarios", [])
-    if not prefix or len(argv) != len(prefix) + 1:
-        raise OfflineBoundaryViolation("fixture process is not in the machine binding")
-    if argv[:len(prefix)] != prefix:
-        raise OfflineBoundaryViolation("fixture process argv differs from the machine binding")
-    if argv[len(prefix)] not in scenarios:
-        raise OfflineBoundaryViolation("fixture scenario is not in the machine binding")
-    if executable is not None and str(executable) != prefix[0]:
-        raise OfflineBoundaryViolation("fixture executable is not the bound python")
-    PROCESS_GATE["starts"] += 1
-    return
 
 
 sys.addaudithook(_audit_hook)
@@ -198,18 +191,25 @@ def run_guard_selftest():
     return results
 
 
-def load_machine_binding(path):
-    """Read the root machine binding of the finite fixture process plan.
+def load_machine_binding(path, expected_sha256):
+    """Read the sealed root binding of the finite fixture process plan.
 
-    Only a sealed binding of the root opens the gate.  A proposal of this
-    batch is not a binding: its kind and its execution permission say so,
-    and the runner refuses it.
+    The issuer proof is the absolute path *and* the digest that the root
+    supplied out of band.  A document of the same kind that the root did not
+    seal is not issuer proof: it is refused.
     """
     if not path:
         return None
     binding_path = Path(path)
     if not binding_path.is_absolute():
-        binding_path = PACK_ROOT / binding_path
+        raise SystemExit("machine binding path must be absolute")
+    if not expected_sha256:
+        raise SystemExit("machine binding needs the root supplied digest")
+    if not binding_path.is_file():
+        raise SystemExit("machine binding file is missing")
+    actual = sha256_file(binding_path)
+    if actual != expected_sha256:
+        raise SystemExit("machine binding digest drift")
     document = json.loads(binding_path.read_text(encoding="utf-8"))
     if not isinstance(document, dict):
         raise SystemExit("machine binding is not an object")
@@ -217,26 +217,6 @@ def load_machine_binding(path):
         raise SystemExit("machine binding is not a sealed root binding")
     if document.get("execution_permitted") is not True:
         raise SystemExit("machine binding does not permit the fixture execution")
-    limit = document.get("total_starts")
-    if type(limit) is not int or limit < 0:
-        raise SystemExit("machine binding has no finite start budget")
-    executable = document.get("python", {}).get("path")
-    if not isinstance(executable, str) or not executable:
-        raise SystemExit("machine binding has no bound python")
-    actual = sha256_file(executable)
-    if actual != document["python"].get("sha256"):
-        raise SystemExit("machine binding python digest drift")
-    prefix = document.get("argv_prefix")
-    scenarios = document.get("allowed_scenarios")
-    if (not isinstance(prefix, list) or not prefix
-            or not isinstance(scenarios, list) or not scenarios
-            or any(not isinstance(item, str) or not item for item in scenarios)):
-        raise SystemExit("machine binding command plan is malformed")
-    if prefix[0] != executable:
-        raise SystemExit("machine binding argv prefix is not the bound python")
-    PROCESS_GATE["binding"] = document
-    PROCESS_GATE["limit"] = limit
-    PROCESS_GATE["allowed"] = scenarios
     return document
 
 
@@ -247,14 +227,19 @@ def main(argv=None):
     parser.add_argument("--outdir", required=True)
     parser.add_argument("--select", default=None)
     parser.add_argument("--binding", default=None,
-                        help="the root machine binding of the finite fixture plan")
+                        help="the absolute path of the sealed root machine binding")
+    parser.add_argument("--binding-sha256", default=None,
+                        help="the digest of the sealed root binding, supplied by the root")
+    parser.add_argument("--role", default=None,
+                        choices=["implementation", "independent_review"],
+                        help="the role of this session in the shared budget")
     parser.add_argument("--modules", default=None,
                         help="a comma separated list of test modules of this pack")
     parser.add_argument("--candidate-sha", default="",
                         help="recorded as a claim only, never as an attestation")
     arguments = parser.parse_args(argv)
 
-    binding = load_machine_binding(arguments.binding)
+    binding = load_machine_binding(arguments.binding, arguments.binding_sha256)
     if arguments.modules:
         test_modules = [item for item in arguments.modules.split(',') if item]
     else:
@@ -272,6 +257,25 @@ def main(argv=None):
     owned = Path(tempfile.mkdtemp(prefix="lvw-s3-integration-"))
     os.environ["TMPDIR"] = str(owned)
     tempfile.tempdir = str(owned)
+    # The fresh runner owned root is the only place where the bounded
+    # context document of a fixture scenario may live.
+    os.environ["LVW_S3_GUARD_ROOT"] = str(owned)
+
+    executor = None
+    executor_module = _load_executor_module()
+    if binding is not None:
+        if not arguments.role:
+            raise SystemExit("the machine gate needs the role of this session")
+        executor = executor_module.build_executor(
+            binding_path=arguments.binding, binding_sha256=arguments.binding_sha256,
+            role=arguments.role, repository_root=REPOSITORY_ROOT,
+            package_root=PACK_ROOT, guard_root=owned)
+        sys.modules.setdefault('lvw_s3_finite_cpu_executor', executor_module)
+        executor_module.EXECUTOR = executor
+        os.environ['LVW_S3_MACHINE_BINDING'] = str(arguments.binding)
+        PROCESS_GATE["executor"] = executor
+        PROCESS_GATE["limit"] = executor.limits['max_total_starts']
+        PROCESS_GATE["allowed"] = list(binding.get("allowed_scenarios", []))
 
     started = time.time()
     exit_code = 0
@@ -322,6 +326,16 @@ def main(argv=None):
         shutil.rmtree(owned, ignore_errors=True)
 
     after = source_hashes()
+    session_evidence = None
+    if executor is not None:
+        try:
+            executor.reap()
+            session_evidence = executor.session_evidence()
+        except Exception as error:  # noqa: BLE001 - the failure stays visible
+            session_evidence = {'kind': 'lvw.s3-finite-cpu-session/1',
+                                 'status': 'REAP_FAILED',
+                                 'error_type': type(error).__name__,
+                                 'stage_pass_claim': False}
     receipt = {
         "kind": "S3_P4_OFFLINE_INTEGRATION_GUARDED_CHECK_RECEIPT",
         "label": arguments.label,
@@ -334,9 +348,13 @@ def main(argv=None):
         "candidate_sha_claim": arguments.candidate_sha,
         "candidate_sha_claim_is_attestation": False,
         "machine_binding": arguments.binding,
+        "machine_binding_sha256": arguments.binding_sha256,
         "machine_binding_present": binding is not None,
+        "session_role": arguments.role,
         "fixture_process_starts": PROCESS_GATE["starts"],
         "fixture_process_limit": PROCESS_GATE["limit"],
+        "executor_session": session_evidence,
+        "guard_root": str(owned),
         "before_source_sha256": before,
         "after_source_sha256": after,
         "source_unchanged_during_run": before == after,

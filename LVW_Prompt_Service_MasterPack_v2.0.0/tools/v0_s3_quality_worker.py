@@ -43,7 +43,8 @@ DRIVER_ARGUMENT_KEYS = frozenset({'powershell', 'comfy_main', 'comfy_python',
                                    'ollama_exe', 'ffmpeg_exe', 'nvidia_exe'})
 BINDING_KEYS = frozenset({'candidate_sha', 'authorization_sha256', 'ollama_pid',
                           'ollama_start_ticks', 'baseline_gpu_mib'})
-DEPENDENCY_MANIFEST_SCHEMA = 'lvw.s3-dependency-manifest/1'
+DEPENDENCY_MANIFEST_SCHEMA = 'lvw.s3-dependency-path-manifest/1'
+DEPENDENCY_MANIFEST_SCOPE = 'named_files_only_not_a_transitive_seal'
 DEFAULT_CANONICAL_REFERENCE = 'temp/s3-quality/' + CANONICAL_RECEIPT_NAME
 
 
@@ -172,6 +173,11 @@ class WorkerContext:
             raise WorkerError('WORKER_DEPENDENCY_MANIFEST_NOT_JSON') from error
         if not isinstance(value, dict) or value.get('schema') != DEPENDENCY_MANIFEST_SCHEMA:
             raise WorkerError('WORKER_DEPENDENCY_MANIFEST_INVALID')
+        # The manifest binds the named files only.  It never claims a complete
+        # transitive dependency closure, so the scope is part of the contract
+        # and a claim of completeness is refused.
+        if value.get('scope') != DEPENDENCY_MANIFEST_SCOPE:
+            raise WorkerError('WORKER_DEPENDENCY_MANIFEST_SCOPE_INVALID')
         directory = value.get('path')
         files = value.get('files')
         if (not isinstance(directory, str) or not directory
@@ -293,6 +299,9 @@ def run_worker(context, *, driver=None, emit=None, authorize=None, clock=None, s
                                             'bytes': len(raw),
                                             'sha256': sha256_bytes(raw)},
                       'decision': receipt.get('decision'),
+                      'dependency_scope': manifest['scope'],
+                      'dependency_transitive_seal_complete':
+                          manifest.get('transitive_seal_complete') is True,
                       'stage_pass_claim': False,
                       'product_gate0': False})
     return receipt

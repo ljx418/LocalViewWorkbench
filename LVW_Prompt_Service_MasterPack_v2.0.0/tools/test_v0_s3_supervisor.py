@@ -10,6 +10,7 @@ execution is permitted.  Without that binding they are skipped, and the
 zero process part of this module stays complete.
 """
 import hashlib
+import importlib.util
 import io
 import json
 import os
@@ -38,9 +39,32 @@ from tools.v0_s3_supervisor import (  # noqa: E402
     SupervisionError, build_fixture_command, build_production_command, decode_message)
 
 PACK_ROOT = Path(__file__).resolve().parents[1]
+REPOSITORY_ROOT = PACK_ROOT.parent
 RUN_ID = 'synthetic-quality-run'
 CANDIDATE_SHA = 'a' * 40
 AUTHORIZATION_SHA = 'b' * 64
+EXECUTOR_RELATIVE = ('reports/v0-s3/product-gate0/implementation-integration-01/'
+                     'executor.py')
+
+
+def load_executor_module():
+    """Load the independent finite CPU executor of the new report subtree."""
+    path = PACK_ROOT / EXECUTOR_RELATIVE
+    spec = importlib.util.spec_from_file_location('lvw_s3_finite_cpu_executor', path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+EXECUTOR_MODULE = load_executor_module()
+
+
+def bound_executor():
+    """The executor instance that the guarded runner installed, if any."""
+    module = sys.modules.get('lvw_s3_finite_cpu_executor')
+    if module is None:
+        return None
+    return getattr(module, 'EXECUTOR', None)
 
 
 def sixteen_rows():
@@ -498,8 +522,10 @@ def dependency_manifest():
             continue
         files.append({'path': str(path),
                       'sha256': hashlib.sha256(path.read_bytes()).hexdigest()})
-    return {'schema': 'lvw.s3-dependency-manifest/1', 'path': str(package.parent),
-            'files': files}
+    return {'schema': 'lvw.s3-dependency-path-manifest/1',
+            'scope': 'named_files_only_not_a_transitive_seal',
+            'transitive_seal_complete': False,
+            'path': str(package.parent), 'files': files}
 
 
 def build_worker_context(tmp_path, root, *, clock):
@@ -661,31 +687,51 @@ requires_machine_gate = pytest.mark.skipif(
     reason='the finite fixture process machine gate is not bound by the root')
 
 
-def fixture_context(tmp_path, root, rows):
-    """The context document of one fixture scenario."""
+def fixture_context(guard_root, root, rows):
+    """The bounded context document of one fixture scenario.
+
+    The document lives in the fresh runner owned root.  No arbitrary private
+    path is accepted by the executor.
+    """
     document = {'run_id': RUN_ID, 'candidate_sha': CANDIDATE_SHA,
                 'authorization_sha256': AUTHORIZATION_SHA, 'root': str(root),
                 'terminal_reference': 'temp/s3-quality/qd-receipt.json',
                 'plan': rows}
-    path = tmp_path / 'fixture-context.json'
+    path = Path(guard_root) / 'fixture-context.json'
     path.write_text(json.dumps(document))
     return path
 
 
-def run_fixture(tmp_path, scenario, *, rows=None, root=None, timeout=10):
-    """Run one enumerated fixture scenario under the real parent."""
+def run_fixture(tmp_path, scenario, *, rows=None, root=None, phase_seconds=1.0,
+                grace_seconds=0.25):
+    """Run one enumerated fixture scenario under the real parent.
+
+    The executor of the guarded runner owns the start: it charges the shared
+    counter before the operating system action, it holds the original child
+    handle and it enforces the independent per child deadline.  The parent
+    supervisor under test never starts a process itself.
+    """
     rows = rows if rows is not None else sixteen_rows()
     root = root if root is not None else (tmp_path / 'run')
     (root / 'temp/s3-quality').mkdir(parents=True, exist_ok=True)
-    context = fixture_context(tmp_path, root, rows)
+    guard_root = os.environ.get('LVW_S3_GUARD_ROOT')
+    if not guard_root:
+        raise AssertionError('the guarded runner did not publish its owned root')
+    executor = bound_executor()
+    if executor is None:
+        raise AssertionError('the guarded runner did not publish its executor')
+    context = fixture_context(guard_root, root, rows)
     os.environ['LVW_S3_FIXTURE_CONTEXT'] = str(context)
     command = build_fixture_command(scenario,
                                     python=MACHINE_BINDING['python']['path'])
     supervisor = ParentSupervisor(command=command, run_id=RUN_ID,
                                   candidate_sha=CANDIDATE_SHA,
                                   authorization_sha256=AUTHORIZATION_SHA,
-                                  plan=plan(), root=root, phase_timeout=timeout,
-                                  child_timeout=timeout * 2, grace_seconds=2.0)
+                                  plan=plan(), root=root,
+                                  phase_timeout=phase_seconds,
+                                  child_timeout=phase_seconds * 2,
+                                  grace_seconds=grace_seconds)
+    supervisor.spawner = executor.spawn
     try:
         return supervisor.run()
     finally:
@@ -751,3 +797,273 @@ def test_a_bad_terminal_reference_is_refused(tmp_path):
     evidence = run_fixture(tmp_path, 'bad_terminal_reference')
     assert evidence['canonical_receipt_verified'] is False
     assert evidence['root_retained'] is True
+
+
+# ------------------------------------- the finite CPU executor, zero process
+def fake_root_binding(tmp_path, *, counter_path, budget_id='budget-under-test',
+                      limits=None, pins=None, candidate_sha=None, python=None):
+    """A sealed binding that the root would issue, built for the unit tests."""
+    limits = limits or {'max_total_starts': 24,
+                        'max_starts_by_role': {'implementation': 16,
+                                               'independent_review': 8},
+                        'max_concurrent': 2, 'per_process_seconds': 10,
+                        'session_admission_seconds': 150,
+                        'session_cleanup_seconds': 180}
+    supervisor = PACK_ROOT / 'tools/v0_s3_supervisor.py'
+    binding = {
+        'kind': 'S3_INTEGRATION_MACHINE_BINDING/1',
+        'execution_permitted': True,
+        'candidate_sha': candidate_sha or EXECUTOR_MODULE.resolve_head_commit(REPOSITORY_ROOT),
+        'python': python or {'path': sys.executable,
+                             'sha256': hashlib.sha256(Path(sys.executable).read_bytes()).hexdigest()},
+        'argv_prefix': [sys.executable, '-I', '-S', '-B',
+                        str(PACK_ROOT / 'tools/fixtures/v0_s3_supervisor_fixture.py'),
+                        '--scenario'],
+        'allowed_scenarios': ['clean_terminal'],
+        'source_pins': pins if pins is not None else {
+            'tools/v0_s3_supervisor.py':
+                hashlib.sha256(supervisor.read_bytes()).hexdigest()},
+        'cpu_budget': dict({'counter_path': str(counter_path), 'budget_id': budget_id},
+                           **limits),
+    }
+    path = tmp_path / 'binding.json'
+    path.write_text(json.dumps(binding, sort_keys=True))
+    return path, hashlib.sha256(path.read_bytes()).hexdigest(), binding
+
+
+def fake_root_counter(tmp_path, *, budget_id='budget-under-test', starts_total=0,
+                      by_role=None, charges=None, active=True, name='counter.json'):
+    """The counter that the root creates.  The executor never creates it."""
+    document = {'kind': 'lvw.s3-cpu-budget/1', 'budget_id': budget_id,
+                'starts_total': starts_total,
+                'starts_by_role': by_role if by_role is not None
+                else {'implementation': 0, 'independent_review': 0},
+                'spent_wall_seconds': 0.0, 'active': active,
+                'charges': charges if charges is not None else []}
+    path = tmp_path / name
+    path.write_text(json.dumps(document, sort_keys=True))
+    return path
+
+
+def build_test_executor(tmp_path, *, counter_path, binding_digest, role='implementation'):
+    return EXECUTOR_MODULE.build_executor(
+        binding_path=str(tmp_path / 'binding.json'), binding_sha256=binding_digest,
+        role=role, repository_root=REPOSITORY_ROOT, package_root=PACK_ROOT,
+        guard_root=tmp_path)
+
+
+def executor_prefix():
+    return [sys.executable, '-I', '-S', '-B',
+            str(PACK_ROOT / 'tools/fixtures/v0_s3_supervisor_fixture.py'), '--scenario']
+
+
+def context_inside(tmp_path):
+    path = tmp_path / 'fixture-context.json'
+    path.write_text(json.dumps({'run_id': RUN_ID}))
+    os.environ['LVW_S3_FIXTURE_CONTEXT'] = str(path)
+    return path
+
+
+def test_the_executor_refuses_a_missing_counter(tmp_path):
+    """G1: a missing counter is a refusal, never an empty budget."""
+    counter = tmp_path / 'missing-counter.json'
+    path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+    executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest)
+    context_inside(tmp_path)
+    with pytest.raises(EXECUTOR_MODULE.CpuGateError) as error:
+        executor.admit((sys.executable, executor_prefix() + ['clean_terminal'], None, None))
+    assert error.value.code == 'CPU_COUNTER_MISSING'
+    assert not counter.exists()
+
+
+def test_the_executor_refuses_a_binding_digest_drift(tmp_path):
+    """G2: the issuer proof is the path and the digest of the root binding."""
+    counter = fake_root_counter(tmp_path)
+    path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+    # The root supplies the digest out of band; a drifted document is not
+    # issuer proof even when it has the right kind.
+    executor = build_test_executor(tmp_path, counter_path=counter,
+                                   binding_digest='0' * 64)
+    context_inside(tmp_path)
+    with pytest.raises(EXECUTOR_MODULE.CpuGateError) as error:
+        executor.admit((sys.executable, executor_prefix() + ['clean_terminal'], None, None))
+    assert error.value.code == 'BINDING_DIGEST_DRIFT'
+    assert json.loads(counter.read_text())['starts_total'] == 0
+
+
+def test_the_executor_refuses_a_source_pin_drift_before_the_charge(tmp_path):
+    """G2: a drifted source pin refuses the start before the OS action."""
+    counter = fake_root_counter(tmp_path)
+    path, digest, _ = fake_root_binding(tmp_path, counter_path=counter,
+                                         pins={'tools/v0_s3_supervisor.py': '0' * 64})
+    executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest)
+    context_inside(tmp_path)
+    with pytest.raises(EXECUTOR_MODULE.CpuGateError) as error:
+        executor.admit((sys.executable, executor_prefix() + ['clean_terminal'], None, None))
+    assert error.value.code.startswith('PIN_DRIFT')
+    assert json.loads(counter.read_text())['starts_total'] == 0
+
+
+def test_the_executor_refuses_a_candidate_drift(tmp_path):
+    """G2: the actual candidate is verified before every spawn."""
+    counter = fake_root_counter(tmp_path)
+    path, digest, _ = fake_root_binding(tmp_path, counter_path=counter,
+                                         candidate_sha='1' * 40)
+    executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest)
+    context_inside(tmp_path)
+    with pytest.raises(EXECUTOR_MODULE.CpuGateError) as error:
+        executor.admit((sys.executable, executor_prefix() + ['clean_terminal'], None, None))
+    assert error.value.code in ('BINDING_CANDIDATE_MISMATCH', 'CANDIDATE_DRIFT')
+    assert json.loads(counter.read_text())['starts_total'] == 0
+
+
+def test_the_executor_refuses_an_inactive_or_foreign_counter(tmp_path):
+    """G1: an inactive counter and a foreign budget identity are refused."""
+    counter = fake_root_counter(tmp_path, active=False)
+    path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+    executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest)
+    context_inside(tmp_path)
+    with pytest.raises(EXECUTOR_MODULE.CpuGateError) as error:
+        executor.admit((sys.executable, executor_prefix() + ['clean_terminal'], None, None))
+    assert error.value.code == 'CPU_COUNTER_INACTIVE'
+
+    counter = fake_root_counter(tmp_path, budget_id='other-budget')
+    path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+    executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest)
+    context_inside(tmp_path)
+    with pytest.raises(EXECUTOR_MODULE.CpuGateError) as error:
+        executor.admit((sys.executable, executor_prefix() + ['clean_terminal'], None, None))
+    assert error.value.code == 'CPU_COUNTER_IDENTITY_MISMATCH'
+
+
+def test_the_executor_refuses_an_exhausted_total_or_role_budget(tmp_path):
+    """G1: the shared total and the role budget are enforced."""
+    counter = fake_root_counter(tmp_path, starts_total=24,
+                                by_role={'implementation': 16, 'independent_review': 8})
+    path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+    executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest)
+    context_inside(tmp_path)
+    with pytest.raises(EXECUTOR_MODULE.CpuGateError) as error:
+        executor.admit((sys.executable, executor_prefix() + ['clean_terminal'], None, None))
+    assert error.value.code == 'CPU_TOTAL_BUDGET_EXCEEDED'
+
+    counter = fake_root_counter(tmp_path, starts_total=16,
+                                by_role={'implementation': 16, 'independent_review': 0})
+    path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+    executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest)
+    context_inside(tmp_path)
+    with pytest.raises(EXECUTOR_MODULE.CpuGateError) as error:
+        executor.admit((sys.executable, executor_prefix() + ['clean_terminal'], None, None))
+    assert error.value.code == 'CPU_ROLE_BUDGET_EXCEEDED'
+
+
+def test_the_executor_refuses_beyond_the_concurrency_limit(tmp_path):
+    """G3: the concurrency bound is enforced by the shared counter."""
+    charges = [{'index': index, 'role': 'implementation', 'scenario': 'clean_terminal',
+                'argv': [], 'started_wall': 0.0, 'state': 'STARTED', 'exit_code': None,
+                'pid': None, 'birth': None, 'finished_wall': None,
+                'spent_wall_seconds': None} for index in range(2)]
+    counter = fake_root_counter(tmp_path, starts_total=2,
+                                by_role={'implementation': 2, 'independent_review': 0},
+                                charges=charges)
+    path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+    executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest)
+    context_inside(tmp_path)
+    with pytest.raises(EXECUTOR_MODULE.CpuGateError) as error:
+        executor.admit((sys.executable, executor_prefix() + ['clean_terminal'], None, None))
+    assert error.value.code == 'CPU_CONCURRENCY_LIMIT'
+
+
+def test_the_charge_is_written_before_the_start_and_is_never_removed(tmp_path):
+    """G1: the charge happens before the start and is never refunded."""
+    counter = fake_root_counter(tmp_path)
+    path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+    executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest)
+    context_inside(tmp_path)
+    executor.admit((sys.executable, executor_prefix() + ['clean_terminal'], None, None))
+    document = json.loads(counter.read_text())
+    assert document['starts_total'] == 1
+    assert document['starts_by_role']['implementation'] == 1
+    assert len(document['charges']) == 1
+    assert document['charges'][0]['state'] == 'STARTED'
+    executor.admit((sys.executable, executor_prefix() + ['clean_terminal'], None, None))
+    document = json.loads(counter.read_text())
+    assert document['starts_total'] == 2
+    assert len(document['charges']) == 2
+
+
+def test_the_executor_refuses_a_context_outside_the_guard_root(tmp_path, monkeypatch):
+    """G4: the bounded context document lives in the runner owned root."""
+    counter = fake_root_counter(tmp_path)
+    path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+    executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest)
+    outside = tmp_path.parent / 'outside-context.json'
+    outside.write_text(json.dumps({'run_id': RUN_ID}))
+    monkeypatch.setenv('LVW_S3_FIXTURE_CONTEXT', str(outside))
+    with pytest.raises(EXECUTOR_MODULE.CpuGateError) as error:
+        executor.admit((sys.executable, executor_prefix() + ['clean_terminal'], None, None))
+    assert error.value.code == 'FIXTURE_CONTEXT_OUTSIDE_GUARD_ROOT'
+    assert json.loads(counter.read_text())['starts_total'] == 0
+
+
+def test_the_executor_refuses_a_closed_admission_window(tmp_path):
+    """G3: the cumulative session admission window closes before the cleanup."""
+    counter = fake_root_counter(tmp_path)
+    path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+    executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest)
+    context_inside(tmp_path)
+    executor.session_started = executor.clock() - 151.0
+    with pytest.raises(EXECUTOR_MODULE.CpuGateError) as error:
+        executor.admit((sys.executable, executor_prefix() + ['clean_terminal'], None, None))
+    assert error.value.code == 'SESSION_ADMISSION_WINDOW_CLOSED'
+    assert json.loads(counter.read_text())['starts_total'] == 0
+
+
+def test_the_executor_refuses_an_argv_outside_the_plan(tmp_path):
+    """G4: only the frozen prefix plus one enumerated scenario is admitted."""
+    counter = fake_root_counter(tmp_path)
+    path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+    executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest)
+    context_inside(tmp_path)
+    with pytest.raises(EXECUTOR_MODULE.CpuGateError) as error:
+        executor.admit((sys.executable, executor_prefix() + ['not-a-scenario'], None, None))
+    assert error.value.code == 'SCENARIO_NOT_IN_PLAN'
+    with pytest.raises(EXECUTOR_MODULE.CpuGateError) as error:
+        executor.admit((sys.executable, executor_prefix() + ['clean_terminal', 'extra'],
+                        None, None))
+    assert error.value.code == 'ARGV_DIFFERS_FROM_PLAN'
+    assert json.loads(counter.read_text())['starts_total'] == 0
+
+
+def test_the_executor_refuses_a_non_inherited_environment(tmp_path):
+    """G4: the plan requires the inherited environment of the runner."""
+    counter = fake_root_counter(tmp_path)
+    path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+    executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest)
+    context_inside(tmp_path)
+    with pytest.raises(EXECUTOR_MODULE.CpuGateError) as error:
+        executor.admit((sys.executable, executor_prefix() + ['clean_terminal'], None,
+                        {'PATH': '/usr/bin'}))
+    assert error.value.code == 'SPAWN_ENVIRONMENT_NOT_INHERITED'
+
+
+def test_the_executor_refuses_a_cwd_outside_the_guard_root(tmp_path):
+    """G4: the working directory stays inside the runner owned root."""
+    counter = fake_root_counter(tmp_path)
+    path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+    executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest)
+    context_inside(tmp_path)
+    with pytest.raises(EXECUTOR_MODULE.CpuGateError) as error:
+        executor.admit((sys.executable, executor_prefix() + ['clean_terminal'],
+                        str(tmp_path.parent), None))
+    assert error.value.code == 'SPAWN_CWD_OUTSIDE_GUARD_ROOT'
+
+
+def test_the_executor_refuses_an_unknown_role(tmp_path):
+    """G1: only the two sealed roles may charge the shared counter."""
+    counter = fake_root_counter(tmp_path)
+    path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+    with pytest.raises(EXECUTOR_MODULE.CpuGateError) as error:
+        build_test_executor(tmp_path, counter_path=counter, binding_digest=digest,
+                            role='other')
+    assert error.value.code == 'CPU_ROLE_INVALID'
