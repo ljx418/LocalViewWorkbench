@@ -87,7 +87,7 @@
   "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
   "live_terminal_receipt": "reports/unified-media/live-15/receipt.json",
   "independent_review": "reports/unified-media/independent-live-15/review.md",
-  "exact_stop_reason": "Correction03 independent report received F0/M5/m1; root accepted four code findings and appended historical factual erratum. Authorized correction04 frozen for visible implementation.",
+  "exact_stop_reason": "Visible ClaudeCode correction04 dispatched; awaiting actual worker_done then fresh isolated review. Historical E01 claims superseded, old bytes/unknown exits retained; no Stage PASS or new human authorization required.",
   "native_component_authorization": "reports/v0-s2/authorization-native-component-02.json",
   "native_component_terminal_receipt": "reports/v0-s2/native-component-02/receipt.json",
   "local_control_change_decision": "reports/v0-s2/change-decision-video-workbench-01.json",
@@ -1484,11 +1484,15 @@
       }
     },
     "correction04": {
-      "status": "FROZEN_AWAITING_VISIBLE_DISPATCH",
+      "status": "DISPATCHED_TO_VISIBLE_CLAUDE",
       "task": "reports/v0-s3/product-gate0/implementation-p3b-correction-04.task.md",
       "adjudication": "reports/v0-s3/product-gate0/p3b-correction-04.adjudication.json",
       "historical_erratum": "reports/v0-s3/product-gate0/correction03-historical-execution-erratum.json",
-      "stage_pass_claim": false
+      "stage_pass_claim": false,
+      "dispatch_id": "ctx_ca02b8995178",
+      "task_id": "task_e9a668493916",
+      "terminal_id": "term_d4bcb9581c9c6defa018404a323c782b",
+      "dispatch_receipt": "reports/v0-s3/product-gate0/implementation-p3b-correction-04.dispatch.txt"
     }
   },
   "a06_read_only_capability_child": {
