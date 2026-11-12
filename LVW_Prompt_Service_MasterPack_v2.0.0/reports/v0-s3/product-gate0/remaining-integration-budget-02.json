@@ -1,0 +1,76 @@
+{
+  "kind": "S3_REMAINING_INTEGRATION_BUDGET_DESIGN_NOT_RESERVATION",
+  "authority": "AUTH-PROGRAM-V1-COMPLETE-03",
+  "quality_set_sha256": "c2c49ef68249348975723de2492455c2c071c6c9535d0a2900a3e71eede01884",
+  "format_fact_scope": "Frozen repository metadata only, no new media read or decoder execution",
+  "frozen_quality_formats": {
+    "JPEG": [
+      "C01",
+      "C04",
+      "C10",
+      "C12",
+      "C14",
+      "C15"
+    ],
+    "PNG": [
+      "C03",
+      "C07",
+      "C13",
+      "C18"
+    ],
+    "WebP": []
+  },
+  "planned_format_obligation": {
+    "id": "F-WEBP-01",
+    "purpose": "V0-A01 input-format coverage, explicitly outside independent quality denominator",
+    "source_asset_id": "C03",
+    "source_sha256": "fc4278ec17a8f4e97d0513dac93a6a2578d85a6e963c6f30af0783e96b15ac3d",
+    "source_bytes": 1086664,
+    "planned_transformation": "Deterministic controlled CPU image normalization to RGB, longest side<=1024, then lossless WebP; freeze actual tool/config/output hashes before any inference. No quality-result-dependent selection or replacement.",
+    "status": "NOT_MATERIALIZED_OR_HASH_FROZEN",
+    "inference_cap": 1,
+    "provider_retries": 0,
+    "quality_scores_allowed": false
+  },
+  "sequential_children_design": [
+    {
+      "label": "A",
+      "scope": "Fresh original native nine obligations, default/cumulative/public/browser/cancel/fault/warm with existing source oracles",
+      "known_model_min": 94,
+      "known_model_cap": 103,
+      "full": true
+    },
+    {
+      "label": "B",
+      "scope": "Independent16 quality(34)+cold image/video(5)+WebP format(1)+A06 original baseline/install/rollback obligations",
+      "known_model_min": 40,
+      "known_model_cap_before_unresolved_costs": 40,
+      "components": {
+        "quality_images": 10,
+        "quality_videos": 24,
+        "offline_cold_image_video": 5,
+        "separate_webp": 1
+      },
+      "baseline_graph_expected_model_calls": 0,
+      "baseline_graph_model_calls_status": "CPU LoadImage/SaveImage proposal only; runtime schema/graph still pending",
+      "full": true
+    }
+  ],
+  "known_combined_model_min": 134,
+  "known_combined_model_cap_before_unresolved_costs": 143,
+  "effective_full_slots_if_both_reach_first_debit": 2,
+  "per_child_model_limit": 128,
+  "single_child_composition_allowed": false,
+  "budget_reserved": false,
+  "budget_reset": false,
+  "cross_candidate_or_historical_success_reuse_allowed": false,
+  "unresolved_before_product_gate0": [
+    "Exact actual baseline graph/schema and before/after install-root lifecycle",
+    "Temporary owned-process offline enforcement and outbound-attempt observation under actual available privileges",
+    "Additional controlled inference/load/fault actions, if any; final B cap cannot be frozen by ignoring them",
+    "Finite ports/process/control/I-O/time/cleanup plan and fresh tool/model/source bindings",
+    "Source and derived WebP exact output hash/tool-version seal and offline bounds proof"
+  ],
+  "stage_pass_claim": false,
+  "product_gate0": false
+}
