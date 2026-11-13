@@ -1,0 +1,36 @@
+.....................................................................................................................F.........................F..............F...F........F...
+=================================== FAILURES ===================================
+_____ test_n03_r01_a_failed_birth_keeps_the_original_handles_with_the_api ______
+tools/test_v0_s3_native_custody_regressions.py:578: in test_n03_r01_a_failed_birth_keeps_the_original_handles_with_the_api
+    assert report[0]['released'] is True
+E   assert False is True
+________ test_n05_r11_no_role_is_created_or_resumed_after_the_deadline _________
+tools/test_v0_s3_native_custody_correction05.py:925: in test_n05_r11_no_role_is_created_or_resumed_after_the_deadline
+    core.arm()
+tools/v0_s3_native_broker.py:2128: in arm
+    self.check_startup_budget('ARM:JOB')
+tools/v0_s3_native_broker.py:2035: in check_startup_budget
+    raise BrokerError('BROKER_STARTUP_DEADLINE_EXCEEDED', stage)
+E   tools.v0_s3_native_broker.BrokerError: BROKER_STARTUP_DEADLINE_EXCEEDED
+____ test_n07_r02_the_recovery_keeps_the_handle_until_the_exit_is_confirmed ____
+tools/test_v0_s3_native_custody_correction07.py:246: in test_n07_r02_the_recovery_keeps_the_handle_until_the_exit_is_confirmed
+    with pytest.raises(KeyboardInterrupt):
+E   Failed: DID NOT RAISE <class 'KeyboardInterrupt'>
+___________ test_n07_r06_the_cancellation_of_a_wait_reaches_the_top ____________
+tools/test_v0_s3_native_custody_correction07.py:547: in test_n07_r06_the_cancellation_of_a_wait_reaches_the_top
+    assert any(item['stage'] == 'exit_code' for item in cancellations)
+E   assert False
+E    +  where False = any(<generator object test_n07_r06_the_cancellation_of_a_wait_reaches_the_top.<locals>.<genexpr> at 0x78d4d8e6bed0>)
+______ test_n07_r15_the_real_chain_is_coordinated_again_by_the_same_owner ______
+tools/test_v0_s3_native_custody_correction07.py:1331: in test_n07_r15_the_real_chain_is_coordinated_again_by_the_same_owner
+    assert session.broker is None
+E   assert <tools.v0_s3_native_broker.BrokerProcess object at 0x78d4d9b32bd0> is None
+E    +  where <tools.v0_s3_native_broker.BrokerProcess object at 0x78d4d9b32bd0> = <tools.v0_s3_native_custody.NativeCustodySession object at 0x78d4d8bf76e0>.broker
+=========================== short test summary info ============================
+FAILED tools/test_v0_s3_native_custody_regressions.py::test_n03_r01_a_failed_birth_keeps_the_original_handles_with_the_api
+FAILED tools/test_v0_s3_native_custody_correction05.py::test_n05_r11_no_role_is_created_or_resumed_after_the_deadline
+FAILED tools/test_v0_s3_native_custody_correction07.py::test_n07_r02_the_recovery_keeps_the_handle_until_the_exit_is_confirmed
+FAILED tools/test_v0_s3_native_custody_correction07.py::test_n07_r06_the_cancellation_of_a_wait_reaches_the_top
+FAILED tools/test_v0_s3_native_custody_correction07.py::test_n07_r15_the_real_chain_is_coordinated_again_by_the_same_owner
+5 failed, 170 passed in 23.48s
+{"pytest_exit": 1, "call_count": 175, "pass_count": 170, "fail_count": 5, "skip_count": 0, "functional_pass_count": 168, "cleanup_proven_for_batch": true}
