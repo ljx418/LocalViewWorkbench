@@ -152,12 +152,50 @@ def _require_absolute_windows_path(value, code):
 
 
 def _require_log_reference(value):
-    """A relative reference of a log of this run, below the run root."""
+    """A relative reference of a log of this run, below the run root.
+
+    The reference is judged with the semantics of a **Windows** path and
+    not with the semantics of the host that runs the check.  The package
+    is validated on a POSIX host and the round runs on Windows, so a check
+    that used the rules of the host would accept a reference that the
+    broker of the round resolves somewhere else.  ``pathlib`` is not used
+    here for the same reason: ``Path('C:/Windows/temp/x.log').is_absolute()``
+    is ``False`` on Linux and ``True`` on Windows.
+
+    A reference is refused when it is
+
+    * empty, not a string or longer than the closed limit;
+    * absolute in the POSIX sense (``/var/log/comfy.log``);
+    * absolute in the Windows sense (``C:/Windows/temp/comfy.log``);
+    * relative to a drive (``C:comfy.log``);
+    * a UNC reference or a mixed separator reference
+      (``\\\\server\\share\\comfy.log``, ``temp\\native\\comfy.log``);
+    * an alternate data stream (``temp/native/comfy.log:stream``);
+    * a traversal (``../comfy.log``, ``temp/../comfy.log``);
+    * a reference with an empty or a dot segment
+      (``temp//comfy.log``, ``temp/./comfy.log``).
+
+    A plain relative reference below the run root is accepted.  The
+    refusal happens in ``validate_launch_plan``, before any job, any
+    process and any log of the round exists, and the broker validates the
+    plan again before it consumes it.
+    """
     if not isinstance(value, str) or not value or len(value) > 255:
         raise CustodyError('CUSTODY_PLAN_LOG_INVALID')
-    if value.startswith('/') or value.startswith('\\') or '\\' in value:
+    # A colon is the separator of a drive and the separator of an
+    # alternate data stream.  Both are refused: the reference stays a
+    # plain relative name of the run root.
+    if ':' in value:
         raise CustodyError('CUSTODY_PLAN_LOG_INVALID')
-    if not _LOG_REFERENCE.match(value):
+    # A backslash is a path separator of Windows.  A UNC reference and a
+    # reference with a mixed separator are refused with it.
+    if '\\' in value:
+        raise CustodyError('CUSTODY_PLAN_LOG_INVALID')
+    # A leading slash is an absolute reference in POSIX and in Windows.
+    if value.startswith('/'):
+        raise CustodyError('CUSTODY_PLAN_LOG_INVALID')
+    # The closed character set of the reference.
+    if not _LOG_REFERENCE.fullmatch(value):
         raise CustodyError('CUSTODY_PLAN_LOG_INVALID')
     parts = value.split('/')
     if any(part in ('', '.', '..') for part in parts):

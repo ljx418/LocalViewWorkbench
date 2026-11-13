@@ -45,6 +45,51 @@ from tools.v0_s3_native_custody import (  # noqa: E402 - the path is set above
 
 # -- the in-process façades ------------------------------------------------
 
+# The stable broker codes of the production Windows façade.  Every entry
+# names the production position that raises the code, so that the mapping
+# of the façade is proved against the production source and not against a
+# wish of the test.  The production file is not changed by this package,
+# so the positions below are the positions of the candidate.
+FAKE_FAILURE_CODES = {
+    'create_job': ('BROKER_JOB_CREATE_FAILED',
+                   'WindowsApi.create_job -> tools/v0_s3_native_broker.py:341'),
+    'job_limit': ('BROKER_JOB_LIMIT_FAILED',
+                  'WindowsApi.set_job_kill_on_close -> tools/v0_s3_native_broker.py:357'),
+    'terminate_job': ('BROKER_TERMINATE_FAILED',
+                      'WindowsApi.terminate_job -> tools/v0_s3_native_broker.py:363'),
+    'query_job': ('BROKER_JOB_QUERY_UNKNOWN',
+                  'WindowsApi.job_process_ids -> tools/v0_s3_native_broker.py:387'),
+    'create': ('BROKER_PROCESS_CREATE_FAILED',
+               'WindowsApi.create_process_suspended -> tools/v0_s3_native_broker.py:451'),
+    'assign': ('BROKER_ASSIGN_FAILED',
+               'WindowsApi.assign_process_to_job -> tools/v0_s3_native_broker.py:477'),
+    'resume': ('BROKER_RESUME_FAILED',
+               'WindowsApi.resume_thread -> tools/v0_s3_native_broker.py:484'),
+    'terminate': ('BROKER_TERMINATE_FAILED',
+                  'WindowsApi.terminate_process -> tools/v0_s3_native_broker.py:490'),
+    'close': ('BROKER_HANDLE_CLOSE_FAILED',
+              'WindowsApi.close_handle -> tools/v0_s3_native_broker.py:511'),
+    'pipe': ('BROKER_PIPE_FAILED',
+             'WindowsApi.create_pipe -> tools/v0_s3_native_broker.py:524'),
+}
+
+
+def _failure_points(value):
+    """The failure points that a façade was asked to fail at.
+
+    An unknown failure point is refused here and not ignored: a façade
+    that cannot fail where it was told to fail would report a success
+    that never happened.
+    """
+    if value is None:
+        return frozenset()
+    names = (value,) if isinstance(value, str) else tuple(value)
+    unknown = sorted(set(names) - set(FAKE_FAILURE_CODES))
+    if unknown:
+        raise BrokerError('BROKER_FAKE_FAILURE_POINT_UNKNOWN', ','.join(unknown))
+    return frozenset(names)
+
+
 class FakeWin32:
     """The in-process façade of the Windows primitives.
 
@@ -53,10 +98,17 @@ class FakeWin32:
     creates a process, never opens a socket and never touches a file: it
     is a pure in-process object, and the assertions of this package are
     made on its record, not on a claim of the implementation.
+
+    A failure of the façade raises the **stable broker code of the
+    production façade** at that position, never a code of the test: the
+    broker reacts to its own codes, and a façade that raised a foreign
+    code would drive a branch that the production source does not have.
     """
 
     def __init__(self, *, fail_at=None, job_process_ids=None, stream_payload=None):
         self.fail_at = fail_at
+        self.failures_requested = _failure_points(fail_at)
+        self.failure_fired = False
         self.calls = []
         self.closed = []
         self.terminated = []
@@ -76,17 +128,29 @@ class FakeWin32:
         return self._next_handle
 
     def _fail(self, name):
-        if self.fail_at == name:
-            raise BrokerError('BROKER_FAKE_FAILURE_' + name.upper())
+        """Fail at one named call with the code of the production source.
+
+        The failure point is recorded: a test that asked for a failure
+        can prove that the failure really happened and did not pass
+        because the point was never reached.
+        """
+        if name in self.failures_requested:
+            self.failure_fired = True
+            code, _position = FAKE_FAILURE_CODES[name]
+            raise BrokerError(code, 'FAKE_FAILURE_AT_' + name.upper())
 
     def names(self):
         return [call[0] for call in self.calls]
 
     # -- the job -----------------------------------------------------------
     def create_job(self):
-        self.calls.append(('create_job',))
+        # The handle that the façade really allocates is the handle that
+        # the record carries: the job handle of the round is never a
+        # guess and never a placeholder.
+        handle = self._handle()
+        self.calls.append(('create_job', handle))
         self._fail('create_job')
-        return self._handle()
+        return handle
 
     def set_job_kill_on_close(self, job):
         self.calls.append(('set_job_kill_on_close', job))
@@ -488,6 +552,95 @@ def test_an_absolute_log_reference_is_refused():
         raise AssertionError('an absolute log reference was accepted')
 
 
+def test_a_drive_relative_log_reference_is_refused():
+    document = plan_document()
+    document['roles'][0]['log'] = 'C:comfy.log'
+    try:
+        validate_launch_plan(document)
+    except CustodyError as error:
+        assert error.code == 'CUSTODY_PLAN_LOG_INVALID'
+    else:
+        raise AssertionError('a drive relative log reference was accepted')
+
+
+def test_an_alternate_data_stream_log_reference_is_refused():
+    document = plan_document()
+    document['roles'][0]['log'] = 'temp/native/comfy.log:stream'
+    try:
+        validate_launch_plan(document)
+    except CustodyError as error:
+        assert error.code == 'CUSTODY_PLAN_LOG_INVALID'
+    else:
+        raise AssertionError('an alternate data stream log reference was accepted')
+
+
+def test_a_unc_or_backslash_log_reference_is_refused():
+    for reference in ('\\\\server\\share\\comfy.log', 'temp\\native\\comfy.log'):
+        document = plan_document()
+        document['roles'][0]['log'] = reference
+        try:
+            validate_launch_plan(document)
+        except CustodyError as error:
+            assert error.code == 'CUSTODY_PLAN_LOG_INVALID', reference
+        else:
+            raise AssertionError('a UNC log reference was accepted: ' + reference)
+
+
+def test_a_posix_absolute_log_reference_is_refused():
+    document = plan_document()
+    document['roles'][0]['log'] = '/var/log/comfy.log'
+    try:
+        validate_launch_plan(document)
+    except CustodyError as error:
+        assert error.code == 'CUSTODY_PLAN_LOG_INVALID'
+    else:
+        raise AssertionError('a POSIX absolute log reference was accepted')
+
+
+def test_a_legal_relative_log_reference_is_accepted():
+    for reference in ('comfy.log', 'temp/native/comfy.log', 'temp/native/sub/comfy.log'):
+        document = plan_document()
+        document['roles'][0]['log'] = reference
+        plan = validate_launch_plan(document)
+        assert plan.roles[0]['log'] == reference
+
+
+def test_an_illegal_log_reference_creates_nothing(tmp_path):
+    # The oracle of this check is the façade of the round: it records
+    # every call of the broker, so it shows that the refusal happened
+    # before the job, before the process and before any log of the round.
+    win32 = FakeWin32()
+    document = plan_document()
+    document['roles'][0]['log'] = 'C:/Windows/temp/comfy.log'
+    refused = False
+    try:
+        validate_launch_plan(document)
+    except CustodyError as error:
+        refused = True
+        assert error.code == 'CUSTODY_PLAN_LOG_INVALID'
+    assert refused is True
+    # Zero call, zero job and zero process of the round.
+    assert win32.calls == []
+    assert win32.created == []
+    # Zero log: the run root holds nothing at all and the reference that
+    # points outside of it was not written next to the sources either.
+    assert list(tmp_path.rglob('*')) == []
+    assert not (Path.cwd() / 'C:').exists()
+    assert not (Path.cwd() / 'comfy.log').exists()
+
+
+def test_the_broker_validates_the_plan_before_it_consumes_it():
+    # The broker consumes a plan only after it validated it itself, with
+    # the same closed rules: the validation of the parent is not the only
+    # boundary of the round.
+    source = (PACK_ROOT / 'tools/v0_s3_native_broker.py').read_text(encoding='utf-8')
+    validation = source.index('validate_launch_plan(document, now=time.time())')
+    creation = source.index('core = BrokerCore(win32=win32, plan=plan')
+    assert validation < creation
+    assert 'from tools.v0_s3_native_custody import' in source
+    assert 'validate_launch_plan' in source.split('def main(')[0]
+
+
 def test_a_role_data_key_is_refused():
     document = plan_document()
     document['roles'][0]['data'] = {'user_directory': 'user', 'eval': 'x'}
@@ -652,6 +805,7 @@ def test_a_create_failure_creates_nothing(tmp_path):
         assert error.code == 'BROKER_PROCESS_CREATE_FAILED'
     else:
         raise AssertionError('a failed creation did not refuse')
+    assert win32.failure_fired is True
     assert win32.names().count('create_process_suspended') == 1
     assert core.state == 'UNKNOWN_RETAINED'
     assert core.records[0]['created'] is False
@@ -667,6 +821,7 @@ def test_an_assign_failure_stops_only_the_new_suspended_process(tmp_path):
         assert error.code == 'BROKER_ASSIGN_FAILED'
     else:
         raise AssertionError('a failed assignment did not refuse')
+    assert win32.failure_fired is True
     # Exactly one creation, no retry without the job.
     assert win32.names().count('create_process_suspended') == 1
     assert win32.names().count('assign_process_to_job') == 1
@@ -689,9 +844,91 @@ def test_a_resume_failure_keeps_the_round_unknown(tmp_path):
         assert error.code == 'BROKER_RESUME_FAILED'
     else:
         raise AssertionError('a failed resume did not refuse')
+    assert win32.failure_fired is True
     assert win32.names().count('create_process_suspended') == 1
     assert win32.names().count('resume_thread') == 1
     assert core.state == 'UNKNOWN_RETAINED'
+
+
+def test_a_job_creation_failure_creates_nothing(tmp_path):
+    win32 = FakeWin32(fail_at='create_job')
+    core = _core(tmp_path, win32=win32)
+    try:
+        core.arm()
+    except BrokerError as error:
+        assert error.code == 'BROKER_JOB_CREATE_FAILED'
+    else:
+        raise AssertionError('a failed job creation did not refuse')
+    assert win32.failure_fired is True
+    assert core.state == 'UNKNOWN_RETAINED'
+    assert core.failures == [{'stage': 'create_job', 'code': 'BROKER_JOB_CREATE_FAILED'}]
+    # Nothing of the round exists: no process and no other handle.
+    assert win32.created == []
+    assert win32.closed == []
+
+
+def test_a_job_limit_failure_closes_the_job_handle(tmp_path):
+    win32 = FakeWin32(fail_at='job_limit')
+    core = _core(tmp_path, win32=win32)
+    try:
+        core.arm()
+    except BrokerError as error:
+        assert error.code == 'BROKER_JOB_LIMIT_FAILED'
+    else:
+        raise AssertionError('a failed job limit did not refuse')
+    assert win32.failure_fired is True
+    assert core.state == 'UNKNOWN_RETAINED'
+    # The job of the round is closed again and it is not left open.
+    job = [call[1] for call in win32.calls if call[0] == 'create_job'][0]
+    assert job in win32.closed
+    assert win32.created == []
+
+
+def test_a_pipe_failure_creates_nothing(tmp_path):
+    win32 = FakeWin32(fail_at='pipe')
+    core = _core(tmp_path, win32=win32)
+    core.arm()
+    try:
+        core.launch()
+    except BrokerError as error:
+        assert error.code == 'BROKER_PIPE_FAILED'
+    else:
+        raise AssertionError('a failed pipe did not refuse')
+    assert win32.failure_fired is True
+    assert core.state == 'UNKNOWN_RETAINED'
+    # The process of the role was never created.
+    assert win32.created == []
+    assert core.records[0]['created'] is False
+
+
+def test_a_failed_termination_stays_visible(tmp_path):
+    # The termination of the owned process fails as well.  The failure of
+    # the termination is never reported as a successful stop.
+    win32 = FakeWin32(fail_at=('assign', 'terminate'))
+    core = _core(tmp_path, win32=win32)
+    core.arm()
+    try:
+        core.launch()
+    except BrokerError as error:
+        assert error.code == 'BROKER_ASSIGN_FAILED'
+    else:
+        raise AssertionError('a failed assignment did not refuse')
+    assert win32.failure_fired is True
+    assert core.state == 'UNKNOWN_RETAINED'
+    # The process was not stopped and the failure is on the record.
+    assert win32.terminated == []
+    assert core.records[0]['terminated'] is False
+    assert {'stage': 'terminate', 'reason': 'ASSIGN_FAILED',
+            'code': 'BROKER_TERMINATE_FAILED'} in core.failures
+
+
+def test_an_unknown_failure_point_is_refused():
+    try:
+        FakeWin32(fail_at='not_a_real_call')
+    except BrokerError as error:
+        assert error.code == 'BROKER_FAKE_FAILURE_POINT_UNKNOWN'
+    else:
+        raise AssertionError('an unknown failure point was accepted')
 
 
 def test_a_foreign_process_is_never_stopped(tmp_path):
@@ -744,9 +981,12 @@ def test_an_unknown_job_query_is_not_zero(tmp_path):
     core.arm()
     core.launch()
     core.stop('STOP')
+    assert win32.failure_fired is True
     assert core.job_active_known is False
     assert core.job_active is None
     assert core.state == 'UNKNOWN_RETAINED'
+    # The query of the job failed with the code of the production source.
+    assert {'stage': 'query_job', 'code': 'BROKER_JOB_QUERY_UNKNOWN'} in core.failures
 
 
 def test_an_over_limit_job_query_is_not_zero(tmp_path):
@@ -766,9 +1006,14 @@ def test_a_close_failure_keeps_the_round_unknown(tmp_path):
     core.arm()
     core.launch()
     core.stop('STOP')
+    assert win32.failure_fired is True
     assert core.job_closed is False
     assert core.state == 'UNKNOWN_RETAINED'
     assert any(item['stage'] == 'close_handle' for item in core.failures)
+    # The close of a handle failed with the code of the production source.
+    assert any(item['stage'] == 'close_handle'
+               and item['code'] == 'BROKER_HANDLE_CLOSE_FAILED'
+               for item in core.failures)
 
 
 def test_a_stop_is_idempotent(tmp_path):
@@ -959,8 +1204,20 @@ def test_a_repeated_stop_is_idempotent(tmp_path):
     second = session.stop()
     assert first['state'] == second['state']
     assert first['channel']['frames_sent'] == second['channel']['frames_sent']
-    # One status command of the start and one stop command, and nothing more.
-    assert len(sent) == 2
+    # The start of the round does not send a command of its own: the
+    # broker sends its STATUS and the parent reads it.  The only frame of
+    # the parent is therefore the one STOP command.
+    assert len(sent) == 1
+    command = json.loads(sent[0])
+    assert command['command'] == 'STOP'
+    assert command['sequence'] == 1
+    assert first['channel']['last_sequence_sent'] == 1
+    # The repeated stop sends no further frame and does not repeat the
+    # sequence of the first one.
+    assert list(broker.outbound) == sent
+    assert second['channel']['last_sequence_sent'] == 1
+    assert second['channel']['frames_sent'] == 1
+    # The original handle of the broker is closed exactly once.
     assert broker.close_count == 1
 
 
@@ -1017,7 +1274,7 @@ OLD_OWNERS = {
     'tools/v0_s3_supervisor.py':
         '7d210429e70761cea633e8f2e64d8a1f01709930068a21de5cbc3c5a519ce6d8',
     'tools/v0_s3_coordinator.py':
-        '14e8dd284971aeab00999f010679d5c95deb88ee3bff8f4ca0708d958b56f12b',
+        '14e8dd284971aeab00999f010679d5c95deb88ee3bff8f4ca0708d958b56f12c',
     'tools/v0_s2_runtime.py':
         'a97ea20d02ed80ab4f99f133dd8162331ddba34662bfdcca637fcade40b4dbd2',
     'tools/v0_s2_driver.py':
