@@ -922,6 +922,21 @@ def test_a_failed_termination_stays_visible(tmp_path):
             'code': 'BROKER_TERMINATE_FAILED'} in core.failures
 
 
+def test_a_job_termination_failure_is_not_a_release(tmp_path):
+    win32 = FakeWin32(fail_at='terminate_job')
+    core = _core(tmp_path, win32=win32)
+    core.arm()
+    core.launch()
+    core.stop('STOP')
+    assert win32.failure_fired is True
+    # The job of the round was not terminated and the round is not a
+    # release: the failure of the termination is on the record.
+    assert core.job_terminated is False
+    assert core.state == 'UNKNOWN_RETAINED'
+    assert {'stage': 'terminate_job',
+            'code': 'BROKER_TERMINATE_FAILED'} in core.failures
+
+
 def test_an_unknown_failure_point_is_refused():
     try:
         FakeWin32(fail_at='not_a_real_call')

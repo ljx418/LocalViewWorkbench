@@ -192,7 +192,7 @@ def create_job(self):
 **旧 owner 文件本身一个字节未改**，只改了测试里的字面期望。其余 9 项 `OLD_OWNERS`
 未动，`test_the_old_refusal_points_are_still_declared` 的三处拒绝点断言未动。
 
-### 3.5 新增节点（12 个）
+### 3.5 新增节点（13 个）
 
 路径新边界（7）：
 
@@ -206,7 +206,7 @@ def create_job(self):
 | `test_an_illegal_log_reference_creates_nothing` | 拒绝早于任何创建（FakeWin32 作 Oracle，零 job / 零进程 / 零日志） |
 | `test_the_broker_validates_the_plan_before_it_consumes_it` | broker 消费前用同一闭合规则再校验一次 |
 
-假 façade 映射与失败/清理分支（5）：
+假 façade 映射与失败/清理分支（6）：
 
 | 节点 | 证明 |
 |---|---|
@@ -214,14 +214,19 @@ def create_job(self):
 | `test_a_job_limit_failure_closes_the_job_handle` | `BROKER_JOB_LIMIT_FAILED`，job 句柄被关闭，不泄漏 |
 | `test_a_pipe_failure_creates_nothing` | `BROKER_PIPE_FAILED`，进程未被创建 |
 | `test_a_failed_termination_stays_visible` | 终止失败**不会**被报成成功停止（`{'stage':'terminate','reason':'ASSIGN_FAILED','code':'BROKER_TERMINATE_FAILED'}` 在失败记录里，`terminated` 仍为 `[]`） |
+| `test_a_job_termination_failure_is_not_a_release` | job 终止失败**不会**被报成 RELEASED（`job_terminated` 仍为假，轮次为 `UNKNOWN_RETAINED`） |
 | `test_an_unknown_failure_point_is_refused` | 未知失败点被拒，不默认为成功 |
+
+加上既有节点，**假 façade 的每一个失败点**（`create_job` / `job_limit` /
+`terminate_job` / `query_job` / `create` / `assign` / `resume` / `terminate` /
+`close` / `pipe`）在节点集合里都有**至少一个**节点驱动它的**失败**分支。
 
 另外把两个既有节点的期望**收紧到稳定码**
 （`test_an_unknown_job_query_is_not_zero` → `BROKER_JOB_QUERY_UNKNOWN`；
 `test_a_close_failure_keeps_the_round_unknown` → `BROKER_HANDLE_CLOSE_FAILED`），
 并给每个失败节点加上 `failure_fired` 断言。
 
-节点总数：54 → **66**（+12）。分母、门限、既有断言**一个未减**。
+节点总数：54 → **67**（+13）。分母、门限、既有断言**一个未减**。
 
 ---
 
@@ -292,7 +297,7 @@ def create_job(self):
 计划文件：`reports/v0-s3/product-gate0/implementation-native-custody-correction-01/plan.json`
 （结构与根的 `validation-plan-02/plan.json` 同构）。
 
-* **选中集合：31 个节点**（66 个里的严格子集），不是 54 全套：
+* **选中集合：32 个节点**（67 个里的严格子集），不是 54 全套：
 
   * 上一批 **8 个失败节点**：全部在集合内（`test_an_absolute_log_reference_is_refused`、
     `test_the_child_inherits_only_its_own_streams`、`test_a_create_failure_creates_nothing`、
@@ -311,9 +316,9 @@ def create_job(self):
   * **完整性 2 个**：`test_the_old_owners_are_unchanged`、
     `test_the_old_refusal_points_are_still_declared`——**只算完整性事实，不算功能通过**。
 
-  被改动的 Fake façade 的每一个失败点（`create_job` / `job_limit` / `query_job` /
-  `create` / `assign` / `resume` / `terminate` / `close` / `pipe`）在集合里都有
-  **至少一个**节点覆盖其**失败**分支，`create_job`/`job_limit`/`create`/`assign`/
+  被改动的 Fake façade 的每一个失败点（`create_job` / `job_limit` / `terminate_job` /
+  `query_job` / `create` / `assign` / `resume` / `terminate` / `close` / `pipe`）在集合里
+  都有**至少一个**节点覆盖其**失败**分支，`create_job`/`job_limit`/`create`/`assign`/
   `resume`/`close` 的**成功**分支由 `test_the_success_path_is_suspend_assign_resume`、
   `test_the_child_inherits_only_its_own_streams`、`test_the_job_is_closed_with_kill_on_close`
   覆盖；**没有重复计数**（同一节点不在集合里出现两次）。
@@ -357,7 +362,7 @@ def create_job(self):
 
 * 本实现者**只报 READY_FOR_REVIEW**，**不签 Stage PASS，不签产品 Gate0**。
 * 上一批的结果仍是 **FAIL（46 PASS / 8 FAIL）**，本轮**尚未执行**，因此本轮
-  **没有任何"通过"的结论**；31 节点批次的结论要等 root ACK 后由 root 的执行器产生。
+  **没有任何"通过"的结论**；32 节点批次的结论要等 root ACK 后由 root 的执行器产生。
 * 本报告不改变任何 native 结论：`grant_authority = NOT_VERIFIED`、
   `admission_produced = false`，native 执行、native 清理、GPU 释放、端口释放、
   sampler、父崩溃恢复、Windows stdin EOF 全部 **NOT_PROVEN**。
