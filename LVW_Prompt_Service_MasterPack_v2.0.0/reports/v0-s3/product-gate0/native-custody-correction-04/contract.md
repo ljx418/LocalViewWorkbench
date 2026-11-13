@@ -1,0 +1,22 @@
+# N1 correction04：关闭协调与启动/清理竞态集中纠正
+
+失败候选895bfb9cd76c3f5ad714f52a11ed98f8a670fa86，证据提交2c7121dcf412914f5ca7d4f5eb481d712f67d217。真实结果133调用130PASS3FAIL0SKIP/exit1/cleanup=false，批末2个heartbeat。14pump已消失不等于本轮清理完成。旧两轮证据不覆盖。
+
+## 架构裁决
+采纳_close_attempted把“正在关闭”当作“已完成”的缺陷，但仅加Event不构成完整修复。静态亦可见_start_heartbeat重新创建stop Event，pump.start后立即报错可让closer在心跳创建前完成_stop_background，然后start再启动新心跳；必须与本次一起解决。不得宣称两个heartbeat已被单一原因完全证明。
+
+一个会话保留一个清理owner和一个原始绝对cleanup deadline。明确NOT_STARTED/IN_PROGRESS/FINISHED（FINISHED仅指尝试结束，不代表资源已释放），关闭完成事件在所有成功/普通异常/KI/SystemExit路径finally发布。竞争者不因IN_PROGRESS立即假定完成，而在相同绝对期限内等待；超期具名UNKNOWN、保留原broker/closer/heartbeat/pump引用及未完事实，不能重新生成5s。等待中不持有owner锁；owner线程不等自身；pump/heartbeat回调不能等待一个正在join该回调线程的closer形成循环依赖。事件和锁只做局部生命周期协调，不另建调度平台。
+
+停止/失败须在允许任何后续后台启动之前闩锁。心跳stop Event不得在停止后重建；线程对象登记、是否允许启动及closer清理快照必须有可证明顺序。若startup与close竞争，在共享期限内协调启动结束/清理接管，禁止清理已完成后再新启pump/heartbeat，禁止晚到READY/STATUS把UNKNOWN覆成RUNNING。不持有锁跨join、阻塞IO或用户回调。每个实际存活线程有原引用owner和有限收口；线程未启动、start抛错、closer.start抛错也不得留下IN_PROGRESS永不通知或丢原broker。不能让测试sleep/事后轮询peer.close_count掩盖产品失败返回时的事实。
+
+清理步骤彼此独立；_stop_background异常不能跳过可安全执行的原broker关闭，primary/secondary并存，UNKNOWN不假绿。成功close不重复关闭。未确认资源保留同owner协调；只能在原期限内恢复，不盲重放/无限重试。会话停止/证据必须反映IN_PROGRESS/UNKNOWN与真实reader/pump/heartbeat/closer；close_done不等于清理事实全部True。保持原required close facts与retained recovery保证。
+
+## 实现范围
+基线2c7121d，其源仍895bfb9。只可修改tools/v0_s3_native_custody.py、tools/test_v0_s3_native_custody.py、tools/test_v0_s3_native_custody_regressions.py，新增NEW reports/v0-s3/product-gate0/implementation-native-custody-correction-04/。broker保持627e829d6f4862f4dc098a0b83d6ff9d26a28813e6eb4b11e921593d86f54b36原字节，其他旧owner/合同/control/MANIFEST/阈值/旧报告不改。若必需跨范围先askroot。
+
+保留现有133节点顺序和断言强度；新增确定性event/barrier测试覆盖：并发关闭者在可完成清理前不得提前成功返回；共享截止到期保留原owner；pump错误发生在heartbeat构造/start之前/期间/之后不晚启不遗留；回调与closer互等/自join拒绝；关闭或线程启动异常仍通知等待者并保存原资源；反复stop不双关，原primary保留；返回时与测试salvage后事实分开。优先在现有R06/R11/R14组内补场景，必要新增测试节点由root冻结追加，不删原133。不靠定时sleep碰运气或无限循环，多轮调度由有限明确事件触发。原16组root冻结义务不变。
+
+## 验证与交付
+先静态修改、AST检查并精确路径提交候选；不得import候选/collection/pytest。候选提交后askroot精确执行计划，包含原133+必要新增nodeids有序清单、候选SHA、source/tool pins、原223文件级依赖与3stdlib pins、root外部guard、三条命令argv/cwd、单批<=300s、真实FD身份及线程清理证明。计划由root另冻结后才可执行，当前只授权静态实现。测试输出只NEW correction04目录。
+
+保留唯一可信stdlib preload ctypes.dlopen(None)在候选/pytest之前关闭，不调用真实Win32API/Job/服务/进程/GPU/模型/网络/socket/sqlite/私有媒体/原ledger、不下载。counter仅未来ACK的外层前后各一次只读，不导入候选期间保留FD，不写/清零/退款/复活。失败不自动重跑或覆盖候选，所有原始收据保留。FIRST429立即WAIT_BUDGET，禁止自动retry、切路由、root接手；FIRST审批拒绝/超时立即停止不包装绕过。禁止派生Agent或清理他人文件。只READY_FOR_REVIEW，不签StagePASS；8Major仍待真正独审，N2/I24/产品12/Windows/质量/人签未证。
