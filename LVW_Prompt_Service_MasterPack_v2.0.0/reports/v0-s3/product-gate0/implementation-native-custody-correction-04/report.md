@@ -1,7 +1,9 @@
 # N1 correction 04 — implementation receipt — READY_FOR_REVIEW
 
-Candidate: `ebe41cb795d2e80c5fa8afe75f659ff4a9e331e6` (static correction 04 of the N1 native
-custody; it binds every byte of the three N1 sources below).
+Candidate: `d751bced75cdc1d21cee072892860a7c4f8ac542` (static correction 04 of the N1 native
+custody; it binds every byte of the three N1 sources below). The candidate is the last commit
+that touches a source of the package; the tree that it names is
+`5a75eefd399c7df0fa135370db453cb4936818f4`.
 Failed candidate that is corrected: `895bfb9cd76c3f5ad714f52a11ed98f8a670fa86`.
 Failed evidence commit that is kept: `2c7121dcf412914f5ca7d4f5eb481d712f67d217`.
 Root frozen package: `reports/v0-s3/product-gate0/native-custody-correction-04/contract.md` and
@@ -64,7 +66,22 @@ that result.
 | a late READY/STATUS never turns UNKNOWN into RUNNING | `_apply_state` refuses to overwrite `UNKNOWN_RETAINED` and names `CUSTODY_LATE_STATE_IGNORED` |
 | the stop blocks the heartbeat that would follow it | `_stop_background` sets `_stopping` and the stop event of the heartbeat before it joins anything |
 
-### C — the checks
+### C — the failure of the reader reaches the owner of the round
+
+The start of the round builds the pump, starts it and starts the heartbeat before it reads the
+first reply. The reader of the channel may fail in that window and the close that the failure
+starts may stop the reader before the owner of the round reads the first reply. The owner of the
+round then saw a closed channel instead of the failure that the reader really saw, and a
+cancellation of the reader could be lost.
+
+The reader now keeps its failure with the round (`_pump_error`), the own code of that failure
+stays visible in the failures of the round (`_on_pump_error` records it) and the owner of the
+round raises the cancellation of the reader when the reader is already gone. The start of the
+round does not raise on the refusal of a background thread either: it continues to the exchange
+of the start and the failure that leaves it is the failure of the reader of the channel. This
+keeps the frozen assertions of the correction 03 true in **every** order of the two threads.
+
+### D — the checks
 
 The 133 ordered node ids are **byte for byte the node ids of the frozen plan of the second batch**
 (verified by extracting the test functions of the two modules in file order and comparing the two
@@ -113,7 +130,7 @@ package allows the static implementation only until the ACK of the root.
 
 | File | sha256 |
 |---|---|
-| `tools/v0_s3_native_custody.py` | `c090cab7a157a1f348dcc3a278810a879fb456d3a8fc0e5dcdd611be58bae33d` |
+| `tools/v0_s3_native_custody.py` | `fee267aed425bcb5c96dcc77609766d01ca1c6ef66f173157de8249502468c39` |
 | `tools/test_v0_s3_native_custody.py` | `348aa4ba2775de54a102cd19237642572a1eba118a4bd6aeea0b8b84f38ba4b7` |
 | `tools/test_v0_s3_native_custody_regressions.py` | `eb4decc7c773628f6ce5995345f9f2c7998e21d7f7d9acd8fdec5623d6595947` |
 | `tools/v0_s3_native_broker.py` (unchanged) | `627e829d6f4862f4dc098a0b83d6ff9d26a28813e6eb4b11e921593d86f54b36` |
