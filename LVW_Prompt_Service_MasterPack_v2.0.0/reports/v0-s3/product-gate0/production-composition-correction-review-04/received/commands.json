@@ -1,0 +1,112 @@
+{
+  "kind": "lvw.s3-production-composition-correction-commands/1",
+  "correction": "production-composition-correction-04",
+  "batches": 1,
+  "attempts": 1,
+  "root_decision": "ACK_ONCE_ROOT_AMENDED_FD_IDENTITY_DIAGNOSTIC",
+  "root_ack_message_id": "msg_06f51ccf0df6",
+  "root_ack_file": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/production-composition-correction-04/validation-plan-01/ack.json",
+  "root_ack_sha256": "087277ce46f6d6d5872b13895052c17886553c75994dbf5907c45d8df88c7ee7",
+  "submitted_plan_sha256": "589eb16c90309206f4e6a24ef7051fee85388916763def5af2bc1c7bffdd7ff6",
+  "root_amendment": "Only batch FD diagnostic: verified dev/inode/mode, EBADF filtered, unknown None, detect reused FD identity. Explicit original impl PACK_ROOT/REPORT. No product edit or scope/threshold change.",
+  "author_runner_submitted": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-production-composition-correction-04/run_directed_scope.py",
+  "author_runner_submitted_sha256": "a6520d6c1892ca6ddb820857cc71ecfa785b900ef41d2c0f50cb80ca6cc8ce5d",
+  "author_runner_executed": false,
+  "author_runner_was_not_modified": true,
+  "root_runner_executed": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/production-composition-correction-04/validation-plan-01/run_root_frozen_scope.py",
+  "root_runner_sha256": "fe0e30a0a6a53d608a2bc837f7398da382b71f452ea7ad3653cffe98b87acfda",
+  "only_the_batch_argv_was_replaced_by_the_root_runner": true,
+  "the_original_impl_PACK_ROOT_and_REPORT_are_kept_explicitly_by_the_root_runner": true,
+  "argv_paths_are_absolute": true,
+  "commands": [
+    {
+      "label": "counter-readonly-before",
+      "order": 0,
+      "argv": [
+        "/usr/bin/python3",
+        "-I",
+        "-B",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-production-composition-correction-04/outer_counter_read.py",
+        "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-production-composition-correction-04/counter-before.json"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "purpose": "one read only observation of the shared counter of the root, outside the guarded batch; the file is never written, never refunded, never reset, never replaced, no new counter is created and no old grant is revived",
+      "exit_code": 0,
+      "wall_seconds": 0.0,
+      "stdout_log": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-production-composition-correction-04/counter-readonly-before.stdout.log",
+      "stderr_log": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-production-composition-correction-04/counter-readonly-before.stderr.log",
+      "the_logs_are_kept_as_they_are": true
+    },
+    {
+      "label": "guarded-directed-scope",
+      "order": 1,
+      "argv": [
+        "/usr/bin/python3",
+        "-I",
+        "-B",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-production-composition-correction-04/guard.py",
+        "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/production-composition-correction-04/validation-plan-01/run_root_frozen_scope.py",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-production-composition-correction-04/directed-scope.guard.json"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "purpose": "the one batch of the directed scope of the correction 04; the guard is armed before the candidate and pytest are imported",
+      "exit_code": 0,
+      "wall_seconds": 22.068174191,
+      "stdout_log": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-production-composition-correction-04/directed-scope.stdout.log",
+      "stderr_log": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-production-composition-correction-04/directed-scope.stderr.log",
+      "the_logs_are_kept_as_they_are": true
+    },
+    {
+      "label": "counter-readonly-after",
+      "order": 2,
+      "argv": [
+        "/usr/bin/python3",
+        "-I",
+        "-B",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-production-composition-correction-04/outer_counter_read.py",
+        "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-production-composition-correction-04/counter-after.json"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "purpose": "the second and last read only observation of the shared counter",
+      "exit_code": 0,
+      "wall_seconds": 0.0,
+      "stdout_log": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-production-composition-correction-04/counter-readonly-after.stdout.log",
+      "stderr_log": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-production-composition-correction-04/counter-readonly-after.stderr.log",
+      "the_logs_are_kept_as_they_are": true
+    }
+  ],
+  "batch_result": {
+    "exit": 0,
+    "duration_seconds": 21.762,
+    "cases_collected": 20,
+    "invocations": 20,
+    "passed": 20,
+    "failed": 0,
+    "skipped": 0,
+    "the_exact_node_set_matches_the_ack": true,
+    "guard_denials": 0,
+    "guard_precedes_the_candidate_and_pytest": true,
+    "fd_leaked": [],
+    "the_fd_identity_is_compared_not_only_the_number": true,
+    "only_the_main_thread_remains": true,
+    "counter_untouched": {
+      "path": "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json",
+      "sha256": "acbdb8b154864b6f079ae783d670f11ec138b6be0617d1fa4f56c28c33223b98",
+      "active": false,
+      "starts_total": 28,
+      "reserved_wall_seconds": 240.0,
+      "spent_wall_seconds": 12.362,
+      "identical_before_and_after": true,
+      "written_by_this_run": false,
+      "refunded_by_this_run": false,
+      "reset_by_this_run": false,
+      "new_counter_created": false,
+      "old_grant_revived": false
+    },
+    "no_rerun_and_no_automatic_retry": true
+  },
+  "stage_pass_claim": false,
+  "product_gate0": false
+}
