@@ -1,0 +1,151 @@
+{
+  "admission_produced": false,
+  "authority": {
+    "ack_decision": "ACK_ONCE_ROOT_FROZEN_EXTERNAL_RUNNER",
+    "ack_message_id": "msg_a468b84960db",
+    "executed_runner": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-implementation-01/validation-plan-02/runner.py",
+    "root_plan_path": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-implementation-01/validation-plan-02/plan.json",
+    "root_plan_sha256": "f028d42a3f652a09f798e4d2269e8726c9cefc89235d11dce9738c8fd9f84cd9",
+    "root_plan_sha256_in_the_ack": "f028d42a3f652a09f798e4d2269e8726c9cefc89235d11dce9738c8fd9f84cd9",
+    "root_plan_sha256_matches_the_ack": true,
+    "submitted_plan_sha256": "86a7702e9e13617a9b80231e239fbb8e9041b2b3ffa8b312ea5b20f43a8eadc3",
+    "submitted_runner_executed": false
+  },
+  "batch_seconds": 0.709,
+  "batches_executed": 1,
+  "batches_max": 1,
+  "commands": [
+    {
+      "argv": [
+        "/usr/bin/python3.12",
+        "-I",
+        "-B",
+        "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-implementation-01/validation-plan-02/outer_counter_read.py",
+        "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-01/counter-before.json"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "exit_code": 0,
+      "label": "counter-before",
+      "seconds": 0.027,
+      "stderr_bytes": 0,
+      "stderr_file": "reports/v0-s3/product-gate0/implementation-native-custody-01/native-custody-01.counter-before.stderr.log",
+      "stdout_bytes": 21258,
+      "stdout_file": "reports/v0-s3/product-gate0/implementation-native-custody-01/native-custody-01.counter-before.stdout.log"
+    },
+    {
+      "argv": [
+        "/usr/bin/python3.12",
+        "-I",
+        "-B",
+        "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-implementation-01/validation-plan-02/guard.py",
+        "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-implementation-01/validation-plan-02/runner.py",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-01/native-custody-01.guard.json"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "exit_code": 1,
+      "label": "guarded-validation",
+      "seconds": 0.655,
+      "stderr_bytes": 0,
+      "stderr_file": "reports/v0-s3/product-gate0/implementation-native-custody-01/native-custody-01.guarded-validation.stderr.log",
+      "stdout_bytes": 5968,
+      "stdout_file": "reports/v0-s3/product-gate0/implementation-native-custody-01/native-custody-01.guarded-validation.stdout.log"
+    },
+    {
+      "argv": [
+        "/usr/bin/python3.12",
+        "-I",
+        "-B",
+        "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-implementation-01/validation-plan-02/outer_counter_read.py",
+        "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-01/counter-after.json"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "exit_code": 0,
+      "label": "counter-after",
+      "seconds": 0.027,
+      "stderr_bytes": 0,
+      "stderr_file": "reports/v0-s3/product-gate0/implementation-native-custody-01/native-custody-01.counter-after.stderr.log",
+      "stdout_bytes": 21258,
+      "stdout_file": "reports/v0-s3/product-gate0/implementation-native-custody-01/native-custody-01.counter-after.stdout.log"
+    }
+  ],
+  "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+  "executed_candidate_pins": {
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/lvw/backend/app/native_runtime.py": "16bf3e6396f9548312f92007eebbda55a448f0bdc6bab4a10afd71179b231a85",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-01/correction-note-01.md": "4d5f06446bbd3637694cc603b075bd3d3936810acffbb3c11a363f04a66baaeb",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-01/guard.py": "12816fba33dd0874664f195847a599e1160099e85f5e8d3a89165b22744dfc80",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-01/runner.py": "c1ffb88686a4515aaddca3f362cd100a63db6653bc2fcf8d9939a14824fe8fd7",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-01/superseded-test-module-5cae1123.py.txt": "5cae1123a49683389661bcb1dbe2ff8c680bcdae10c71fbded98438f595ddef4",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/local_program_authority.py": "677998fa2ab5b51017b5437fecd07d6ca31c26473a7ac0acede4637f6470f787",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody.py": "d0d5d4c07b7c073d3f3759e6c66fac94df6f8714d91ade3cef5a40b574f483fa",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s2_driver.py": "72883e2fa0c252aef7655708f40ada88a755978d71f632043c8203b53b42afed",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s2_runtime.py": "a97ea20d02ed80ab4f99f133dd8162331ddba34662bfdcca637fcade40b4dbd2",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_budget_authority.py": "80908669be48bbb8db5b9fd5271719a9c927918a52eb6565d152b471423ad1b7",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_coordinator.py": "14e8dd284971aeab00999f010679d5c95deb88ee3bff8f4ca0708d958b56f12c",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_native_broker.py": "f2c10e6625e06aeb4da70506d5e75903ff28ecba3492017f06b4867d7d394a6f",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_native_custody.py": "fbf4df5751ce6a819ebf2e677e39242b991186e6de040f99a8c96cfbefcf8e90",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_production_controller.py": "a452275a866b8b496175ecf3cba37d86fd0109be91020c09948f9bf9583a2b38",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_quality_phase.py": "90552ea113ccf53a2a1cedff3e3f399642ad932bf0f71bb1f9a57e1adb6e8789",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_quality_worker.py": "e3648446f39d6e7a1c31f180248ccb59c36272ddc10c80edbe544f7d3c595592",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_supervisor.py": "7d210429e70761cea633e8f2e64d8a1f01709930068a21de5cbc3c5a519ce6d8",
+    "/usr/bin/python3.12": "e50d468e8b0adfb05733f5b87b3cff34829c4a8c1aea50c865aa8bdfe4bb150f"
+  },
+  "failure_policy": "Every failure is kept. The batch was not rerun and no additional node was added.",
+  "grant_authority": "NOT_VERIFIED",
+  "guarded_validation_seconds": 0.655,
+  "kind": "S3_N3_NATIVE_CUSTODY_EXECUTION_COMMANDS/1",
+  "label": "native-custody-01",
+  "max_seconds": 300,
+  "not_proven": [
+    "native_execution",
+    "native_cleanup",
+    "gpu_released",
+    "port_released",
+    "sampler",
+    "parent_crash_recovery",
+    "windows_stdin_eof"
+  ],
+  "outputs": {
+    "counter_after": "reports/v0-s3/product-gate0/implementation-native-custody-01/counter-after.json",
+    "counter_before": "reports/v0-s3/product-gate0/implementation-native-custody-01/counter-before.json",
+    "execution_report": "reports/v0-s3/product-gate0/implementation-native-custody-01/native-custody-01.execution-report.md",
+    "guard_record": "reports/v0-s3/product-gate0/implementation-native-custody-01/native-custody-01.guard.json",
+    "receipt": "reports/v0-s3/product-gate0/implementation-native-custody-01/native-custody-01.receipt.json"
+  },
+  "product_gate0": false,
+  "result": {
+    "call_count": 54,
+    "cleanup_proven_for_batch": true,
+    "collection_matches_the_frozen_order": true,
+    "counter_sha256": "acbdb8b154864b6f079ae783d670f11ec138b6be0617d1fa4f56c28c33223b98",
+    "counter_unchanged": true,
+    "counter_written_by_this_run": false,
+    "fail_count": 8,
+    "failed_nodes": [
+      "tools/test_v0_s3_native_custody.py::test_an_absolute_log_reference_is_refused",
+      "tools/test_v0_s3_native_custody.py::test_the_child_inherits_only_its_own_streams",
+      "tools/test_v0_s3_native_custody.py::test_a_create_failure_creates_nothing",
+      "tools/test_v0_s3_native_custody.py::test_an_assign_failure_stops_only_the_new_suspended_process",
+      "tools/test_v0_s3_native_custody.py::test_a_resume_failure_keeps_the_round_unknown",
+      "tools/test_v0_s3_native_custody.py::test_the_job_is_closed_with_kill_on_close",
+      "tools/test_v0_s3_native_custody.py::test_a_repeated_stop_is_idempotent",
+      "tools/test_v0_s3_native_custody.py::test_the_old_owners_are_unchanged"
+    ],
+    "functional_node_count": 52,
+    "functional_pass_count": 45,
+    "guard_precedes_candidate_and_pytest": true,
+    "guard_runtime_denials": 0,
+    "guard_selftest_denials": 6,
+    "integrity_node_count": 2,
+    "outcome": "FAIL",
+    "pass_count": 46,
+    "pytest_exit": 1,
+    "skip_count": 0
+  },
+  "stage_pass_claim": false,
+  "tool": {
+    "path": "/usr/bin/python3.12",
+    "sha256": "e50d468e8b0adfb05733f5b87b3cff34829c4a8c1aea50c865aa8bdfe4bb150f"
+  }
+}

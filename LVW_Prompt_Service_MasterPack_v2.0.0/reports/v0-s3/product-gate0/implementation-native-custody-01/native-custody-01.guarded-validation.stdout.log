@@ -1,0 +1,103 @@
+................F..........FFFF......F..........F...F.
+=================================== FAILURES ===================================
+__________________ test_an_absolute_log_reference_is_refused ___________________
+tools/test_v0_s3_native_custody.py:488: in test_an_absolute_log_reference_is_refused
+    raise AssertionError('an absolute log reference was accepted')
+E   AssertionError: an absolute log reference was accepted
+_________________ test_the_child_inherits_only_its_own_streams _________________
+tools/test_v0_s3_native_custody.py:639: in test_the_child_inherits_only_its_own_streams
+    job = [call[1] for call in win32.calls if call[0] == 'create_job'][0]
+           ^^^^^^^
+E   IndexError: tuple index out of range
+____________________ test_a_create_failure_creates_nothing _____________________
+tools/test_v0_s3_native_custody.py:650: in test_a_create_failure_creates_nothing
+    core.launch()
+tools/v0_s3_native_broker.py:749: in launch
+    self._launch_role(role)
+tools/v0_s3_native_broker.py:790: in _launch_role
+    created = self.win32.create_process_suspended(
+tools/test_v0_s3_native_custody.py:112: in create_process_suspended
+    self._fail('create')
+tools/test_v0_s3_native_custody.py:80: in _fail
+    raise BrokerError('BROKER_FAKE_FAILURE_' + name.upper())
+E   tools.v0_s3_native_broker.BrokerError: BROKER_FAKE_FAILURE_CREATE
+
+During handling of the above exception, another exception occurred:
+tools/test_v0_s3_native_custody.py:652: in test_a_create_failure_creates_nothing
+    assert error.code == 'BROKER_PROCESS_CREATE_FAILED'
+E   AssertionError: assert 'BROKER_FAKE_FAILURE_CREATE' == 'BROKER_PROCESS_CREATE_FAILED'
+E     
+E     - BROKER_PROCESS_CREATE_FAILED
+E     + BROKER_FAKE_FAILURE_CREATE
+_________ test_an_assign_failure_stops_only_the_new_suspended_process __________
+tools/test_v0_s3_native_custody.py:665: in test_an_assign_failure_stops_only_the_new_suspended_process
+    core.launch()
+tools/v0_s3_native_broker.py:749: in launch
+    self._launch_role(role)
+tools/v0_s3_native_broker.py:811: in _launch_role
+    self.win32.assign_process_to_job(self.job, created.process)
+tools/test_v0_s3_native_custody.py:123: in assign_process_to_job
+    self._fail('assign')
+tools/test_v0_s3_native_custody.py:80: in _fail
+    raise BrokerError('BROKER_FAKE_FAILURE_' + name.upper())
+E   tools.v0_s3_native_broker.BrokerError: BROKER_FAKE_FAILURE_ASSIGN
+
+During handling of the above exception, another exception occurred:
+tools/test_v0_s3_native_custody.py:667: in test_an_assign_failure_stops_only_the_new_suspended_process
+    assert error.code == 'BROKER_ASSIGN_FAILED'
+E   AssertionError: assert 'BROKER_FAKE_FAILURE_ASSIGN' == 'BROKER_ASSIGN_FAILED'
+E     
+E     - BROKER_ASSIGN_FAILED
+E     + BROKER_FAKE_FAILURE_ASSIGN
+________________ test_a_resume_failure_keeps_the_round_unknown _________________
+tools/test_v0_s3_native_custody.py:687: in test_a_resume_failure_keeps_the_round_unknown
+    core.launch()
+tools/v0_s3_native_broker.py:749: in launch
+    self._launch_role(role)
+tools/v0_s3_native_broker.py:822: in _launch_role
+    self.win32.resume_thread(created.thread)
+tools/test_v0_s3_native_custody.py:128: in resume_thread
+    self._fail('resume')
+tools/test_v0_s3_native_custody.py:80: in _fail
+    raise BrokerError('BROKER_FAKE_FAILURE_' + name.upper())
+E   tools.v0_s3_native_broker.BrokerError: BROKER_FAKE_FAILURE_RESUME
+
+During handling of the above exception, another exception occurred:
+tools/test_v0_s3_native_custody.py:689: in test_a_resume_failure_keeps_the_round_unknown
+    assert error.code == 'BROKER_RESUME_FAILED'
+E   AssertionError: assert 'BROKER_FAKE_FAILURE_RESUME' == 'BROKER_RESUME_FAILED'
+E     
+E     - BROKER_RESUME_FAILED
+E     + BROKER_FAKE_FAILURE_RESUME
+__________________ test_the_job_is_closed_with_kill_on_close ___________________
+tools/test_v0_s3_native_custody.py:794: in test_the_job_is_closed_with_kill_on_close
+    job = [call[1] for call in win32.calls if call[0] == 'create_job'][0]
+           ^^^^^^^
+E   IndexError: tuple index out of range
+______________________ test_a_repeated_stop_is_idempotent ______________________
+tools/test_v0_s3_native_custody.py:963: in test_a_repeated_stop_is_idempotent
+    assert len(sent) == 2
+E   assert 1 == 2
+E    +  where 1 = len([b'{"authorization_sha256":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","candidate_sha":"aaaaaaa...32b4f6ffa1860d8915d966ecd4e1","run_id":"native-custody-01","schema":"lvw.s3-native-custody-channel/1","sequence":1}\n'])
+______________________ test_the_old_owners_are_unchanged _______________________
+tools/test_v0_s3_native_custody.py:1038: in test_the_old_owners_are_unchanged
+    assert hashlib.sha256(path.read_bytes()).hexdigest() == digest, relative
+E   AssertionError: tools/v0_s3_coordinator.py
+E   assert '14e8dd284971...08d958b56f12c' == '14e8dd284971...08d958b56f12b'
+E     
+E     Skipping 53 identical leading characters in diff, use -v to show
+E     - d958b56f12b
+E     ?           ^
+E     + d958b56f12c
+E     ?           ^
+=========================== short test summary info ============================
+FAILED tools/test_v0_s3_native_custody.py::test_an_absolute_log_reference_is_refused
+FAILED tools/test_v0_s3_native_custody.py::test_the_child_inherits_only_its_own_streams
+FAILED tools/test_v0_s3_native_custody.py::test_a_create_failure_creates_nothing
+FAILED tools/test_v0_s3_native_custody.py::test_an_assign_failure_stops_only_the_new_suspended_process
+FAILED tools/test_v0_s3_native_custody.py::test_a_resume_failure_keeps_the_round_unknown
+FAILED tools/test_v0_s3_native_custody.py::test_the_job_is_closed_with_kill_on_close
+FAILED tools/test_v0_s3_native_custody.py::test_a_repeated_stop_is_idempotent
+FAILED tools/test_v0_s3_native_custody.py::test_the_old_owners_are_unchanged
+8 failed, 46 passed in 0.48s
+{"pytest_exit": 1, "call_count": 54, "pass_count": 46, "fail_count": 8, "skip_count": 0, "functional_pass_count": 45, "cleanup_proven_for_batch": true}
