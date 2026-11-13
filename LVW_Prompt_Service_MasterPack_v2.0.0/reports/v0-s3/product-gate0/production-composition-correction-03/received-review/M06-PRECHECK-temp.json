@@ -1,0 +1,338 @@
+{
+  "exit": 4,
+  "receipt": {
+    "admission": {
+      "accepted": false,
+      "budget_authority": "S3BudgetBindingProvider",
+      "budget_binding_scope": "SEALED_BINDING_SHAPE_ONLY_NOT_BALANCE_NOT_AUTHORIZATION_NOT_CUSTODY",
+      "debit_owner": "original_ledger_authority",
+      "kind": "lvw.s3-native-admission-report/1",
+      "native_execution_backend_code": "NATIVE_EXECUTION_BACKEND_NOT_READY",
+      "native_execution_backend_ready": false,
+      "original_ledger_touched_by_this_controller": false,
+      "primary_reason": "NATIVE_ADMISSION_NOT_REQUIRED_FOR_THE_OFFLINE_SEAM",
+      "product_gate0": false,
+      "reasons": [
+        "NATIVE_ADMISSION_NOT_REQUIRED_FOR_THE_OFFLINE_SEAM"
+      ],
+      "stage_pass_claim": false,
+      "verified": [],
+      "verified_scope": "SHAPE_AND_IDENTITY_OF_SEALED_DOCUMENTS_ONLY"
+    },
+    "archive_allowed": false,
+    "authorization_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "candidate_sha": "8f375f887f0121ab5a0395f032dd74d8a6f0cf0b",
+    "command": [
+      "python3",
+      "-I",
+      "-B",
+      "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_quality_worker.py",
+      "--context",
+      "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-02/cases/m06-PRECHECK-temp/run/contexts/worker-context.json",
+      "--context-sha256",
+      "218f6de80599b1cfc4206bc0e9eacfd292cf87ae77d8d02962f469c52c45d923"
+    ],
+    "composition_facts": [],
+    "duration_seconds": 0.056165,
+    "execution_attempts": 1,
+    "execution_mode": "OFFLINE_SYNTHETIC_COMPOSITION",
+    "fd_cleanup": {
+      "controller_anchor_descriptors": [
+        3,
+        4
+      ],
+      "controller_anchor_descriptors_scope": "THE_BOUND_ROOT_AND_THE_OUTPUT_DIRECTORY_OF_THIS_RUN;THEY_ARE_HELD_BY_THE_RUN_AND_CLOSED_WHEN_THE_RUN_RETURNS",
+      "fd_after": {
+        "closed_entries": [
+          6
+        ],
+        "identity": {
+          "0": {
+            "device": 15,
+            "inode": 6305650,
+            "mode": 4480
+          },
+          "1": {
+            "device": 2112,
+            "inode": 2890428,
+            "mode": 33188
+          },
+          "2": {
+            "device": 2112,
+            "inode": 2890429,
+            "mode": 33188
+          },
+          "3": {
+            "device": 2112,
+            "inode": 2891496,
+            "mode": 16877
+          },
+          "4": {
+            "device": 2112,
+            "inode": 2891526,
+            "mode": 16832
+          }
+        },
+        "open": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "unverified_entries": []
+      },
+      "fd_before": {
+        "closed_entries": [
+          4
+        ],
+        "identity": {
+          "0": {
+            "device": 15,
+            "inode": 6305650,
+            "mode": 4480
+          },
+          "1": {
+            "device": 2112,
+            "inode": 2890428,
+            "mode": 33188
+          },
+          "2": {
+            "device": 2112,
+            "inode": 2890429,
+            "mode": 33188
+          }
+        },
+        "open": [
+          0,
+          1,
+          2
+        ],
+        "unverified_entries": []
+      },
+      "fd_leaked": [],
+      "observation_point": "PRE_RELEASE: the snapshot is taken at the end of the run body, before this run releases the descriptors it held; the descriptors of this run are named below and are excluded from the leak set",
+      "readers_closed": {
+        "closed_streams": [
+          "stdout",
+          "stderr"
+        ],
+        "stderr_drain_complete": true,
+        "stderr_read_error": null,
+        "stdout_drain_complete": true,
+        "stdout_read_error": null
+      },
+      "worker_exit_code": 2,
+      "worker_lifecycle": {
+        "cooperative_cancel_observed": false,
+        "cooperative_cancel_requested": false,
+        "late_write_after_return_is_possible": false,
+        "lifecycle_owner": "offline_seam",
+        "worker_thread_alive": false,
+        "worker_thread_finished": true,
+        "worker_thread_killable": false,
+        "worker_thread_retained": false
+      },
+      "worker_thread_finished": true
+    },
+    "fd_cleanup_post_release": {
+      "fd_leaked": [],
+      "observation_point": "POST_RELEASE: the snapshot is taken after this run released the descriptors that it held",
+      "product_gate0": false,
+      "snapshot": {
+        "closed_entries": [
+          4
+        ],
+        "identity": {
+          "0": {
+            "device": 15,
+            "inode": 6305650,
+            "mode": 4480
+          },
+          "1": {
+            "device": 2112,
+            "inode": 2890428,
+            "mode": 33188
+          },
+          "2": {
+            "device": 2112,
+            "inode": 2890429,
+            "mode": 33188
+          }
+        },
+        "open": [
+          0,
+          1,
+          2
+        ],
+        "unverified_entries": []
+      },
+      "stage_pass_claim": false,
+      "the_persisted_receipt_carries": "PRE_RELEASE"
+    },
+    "kind": "lvw.s3-production-controller-receipt/1",
+    "native_execution_backend_code": "NATIVE_EXECUTION_BACKEND_NOT_READY",
+    "native_execution_backend_ready": false,
+    "node_id": "2dd498bd81834f8a1cb5f130a990dec9",
+    "offline_receipts_are_not_product_receipts": true,
+    "plan": {
+      "plan_sha256": "720c791031ad53987374860d55e48617872d36421debd669e2b0024289e026c1",
+      "projection_sha256": "55580235d38d8d785e9e5eb0c2b3f5191d246d231f6dd3faa7c1f82df27192f6",
+      "rows": 16
+    },
+    "product_gate0": false,
+    "real_execution_performed": false,
+    "receipt_path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-02/cases/m06-PRECHECK-temp/run/temp/s3-production-controller/receipt-s3-p4-composition-01.json",
+    "receipt_persisted": true,
+    "receipt_persistence_error": null,
+    "receipt_persistence_intent": "WRITTEN_WITH_O_EXCL",
+    "recovery": {
+      "reason": "CUSTODY_EVIDENCE_UNAVAILABLE",
+      "replay_allowed": false,
+      "resend_allowed": false,
+      "stage_pass_claim": false,
+      "status": "BLOCKED"
+    },
+    "refund_allowed": false,
+    "refusals": [],
+    "resend_allowed": false,
+    "reservation": "reservation-s3-p4-composition-01.json",
+    "reservation_retained": true,
+    "root": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-02/cases/m06-PRECHECK-temp/run",
+    "root_retained": true,
+    "run_id": "s3-p4-composition-01",
+    "source_sha256": {
+      "tools/v0_s3_coordinator.py": "14e8dd284971aeab00999f010679d5c95deb88ee3bff8f4ca0708d958b56f12c",
+      "tools/v0_s3_production_controller.py": "517d1e4b89e5bef3f57ddd123ad15d1bb9426d438e5c512f420d9bd11359890f",
+      "tools/v0_s3_quality_phase.py": "90552ea113ccf53a2a1cedff3e3f399642ad932bf0f71bb1f9a57e1adb6e8789",
+      "tools/v0_s3_quality_worker.py": "6bac34ebc6f6ee32e3b9cc13768dabb59ac8ceb901188cd29ebb3d333f32c3bb",
+      "tools/v0_s3_supervisor.py": "7d210429e70761cea633e8f2e64d8a1f01709930068a21de5cbc3c5a519ce6d8"
+    },
+    "spawn_attempts": 1,
+    "stage_pass_claim": false,
+    "started_wall": 1794572362.1772316,
+    "state": "UNKNOWN_RETAINED",
+    "summary_persisted": false,
+    "supervision": {
+      "archive_allowed": false,
+      "authorization_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "birth": null,
+      "candidate_sha": "8f375f887f0121ab5a0395f032dd74d8a6f0cf0b",
+      "canonical_receipt": null,
+      "canonical_receipt_verified": false,
+      "child_timeout_seconds": 21600,
+      "cleanup": {
+        "birth": null,
+        "cooperative_cancel": true,
+        "exit_code": 2,
+        "killed": false,
+        "native_cleanup_owner": "original_driver",
+        "native_cleanup_proven": false,
+        "pid": null,
+        "proven_stopped": true,
+        "requested": false,
+        "terminated": false
+      },
+      "command": [
+        "python3",
+        "-I",
+        "-B",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_quality_worker.py",
+        "--context",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-02/cases/m06-PRECHECK-temp/run/contexts/worker-context.json",
+        "--context-sha256",
+        "218f6de80599b1cfc4206bc0e9eacfd292cf87ae77d8d02962f469c52c45d923"
+      ],
+      "cooperative_cancel_requested": true,
+      "drain_timeout_seconds": 0.5,
+      "drain_violation": null,
+      "exit_code": 2,
+      "history_completed_rows": [],
+      "history_deadlines": {},
+      "history_records": {},
+      "history_timeout_seconds": 600,
+      "incomplete_frame": false,
+      "kind": "lvw.s3-supervision-evidence/1",
+      "message_count": 0,
+      "message_limit": 1024,
+      "native_gpu_release_proven": false,
+      "native_service_cleanup_proven": false,
+      "next_phase_allowed": false,
+      "notes": [],
+      "parent_crash_recovery_proven": false,
+      "phase_deadline_reached": false,
+      "phase_timeout_seconds": 10800,
+      "pid": null,
+      "plan_sha256": "dd8bc5a9f2c4c984a65cbe0d43e65a2c2b74a3c9bbc74856d58f829793d341d2",
+      "product_gate0": false,
+      "protocol_violation": "WORKER_EXITED_WITHOUT_TERMINAL",
+      "real_execution_performed": false,
+      "refund_allowed": false,
+      "resend_allowed": false,
+      "reservation_retained": true,
+      "root_retained": true,
+      "row_count": 16,
+      "row_status": {
+        "SYN-I00": "BLOCKED",
+        "SYN-I01": "BLOCKED",
+        "SYN-I02": "BLOCKED",
+        "SYN-I03": "BLOCKED",
+        "SYN-I04": "BLOCKED",
+        "SYN-I05": "BLOCKED",
+        "SYN-I06": "BLOCKED",
+        "SYN-I07": "BLOCKED",
+        "SYN-I08": "BLOCKED",
+        "SYN-I09": "BLOCKED",
+        "SYN-V00": "BLOCKED",
+        "SYN-V01": "BLOCKED",
+        "SYN-V02": "BLOCKED",
+        "SYN-V03": "BLOCKED",
+        "SYN-V04": "BLOCKED",
+        "SYN-V05": "BLOCKED"
+      },
+      "run_id": "s3-p4-composition-01",
+      "stage_pass_claim": false,
+      "stderr_bytes": 55,
+      "stderr_bytes_retained": 55,
+      "stderr_drain_complete": true,
+      "stderr_hash_scope": "all_observed",
+      "stderr_hashed_bytes": 55,
+      "stderr_overflow": false,
+      "stderr_read_error": null,
+      "stderr_sha256": "865453b499dafcd8a142c98a3680bb70226f24d916ca3962bcb0ab299ba4a387",
+      "stderr_total_observed": 55,
+      "stdout_bytes": 0,
+      "stdout_bytes_retained": 0,
+      "stdout_drain_complete": true,
+      "stdout_hash_scope": "all_observed",
+      "stdout_hashed_bytes": 0,
+      "stdout_overflow": false,
+      "stdout_read_error": null,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_total_observed": 0,
+      "stream_byte_limit": 262144,
+      "stream_violation": null,
+      "terminal_received": false,
+      "unknown_outcome": true
+    },
+    "transitions": [
+      "PRECHECK",
+      "PLAN_SEALED",
+      "WORKER_SUPERVISED"
+    ],
+    "unknown_reason": "WORKER_EXITED_WITHOUT_TERMINAL"
+  },
+  "stdout": "{\"admission\":{\"accepted\":false,\"budget_authority\":\"S3BudgetBindingProvider\",\"budget_binding_scope\":\"SEALED_BINDING_SHAPE_ONLY_NOT_BALANCE_NOT_AUTHORIZATION_NOT_CUSTODY\",\"debit_owner\":\"original_ledger_authority\",\"kind\":\"lvw.s3-native-admission-report/1\",\"native_execution_backend_code\":\"NATIVE_EXECUTION_BACKEND_NOT_READY\",\"native_execution_backend_ready\":false,\"original_ledger_touched_by_this_controller\":false,\"primary_reason\":\"NATIVE_ADMISSION_NOT_REQUIRED_FOR_THE_OFFLINE_SEAM\",\"product_gate0\":false,\"reasons\":[\"NATIVE_ADMISSION_NOT_REQUIRED_FOR_THE_OFFLINE_SEAM\"],\"stage_pass_claim\":false,\"verified\":[],\"verified_scope\":\"SHAPE_AND_IDENTITY_OF_SEALED_DOCUMENTS_ONLY\"},\"archive_allowed\":false,\"authorization_sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"candidate_sha\":\"8f375f887f0121ab5a0395f032dd74d8a6f0cf0b\",\"command\":[\"python3\",\"-I\",\"-B\",\"/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_quality_worker.py\",\"--context\",\"/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-02/cases/m06-PRECHECK-temp/run/contexts/worker-context.json\",\"--context-sha256\",\"218f6de80599b1cfc4206bc0e9eacfd292cf87ae77d8d02962f469c52c45d923\"],\"composition_facts\":[],\"duration_seconds\":0.056165,\"execution_attempts\":1,\"execution_mode\":\"OFFLINE_SYNTHETIC_COMPOSITION\",\"fd_cleanup\":{\"controller_anchor_descriptors\":[3,4],\"controller_anchor_descriptors_scope\":\"THE_BOUND_ROOT_AND_THE_OUTPUT_DIRECTORY_OF_THIS_RUN;THEY_ARE_HELD_BY_THE_RUN_AND_CLOSED_WHEN_THE_RUN_RETURNS\",\"fd_after\":{\"closed_entries\":[6],\"identity\":{\"0\":{\"device\":15,\"inode\":6305650,\"mode\":4480},\"1\":{\"device\":2112,\"inode\":2890428,\"mode\":33188},\"2\":{\"device\":2112,\"inode\":2890429,\"mode\":33188},\"3\":{\"device\":2112,\"inode\":2891496,\"mode\":16877},\"4\":{\"device\":2112,\"inode\":2891526,\"mode\":16832}},\"open\":[0,1,2,3,4],\"unverified_entries\":[]},\"fd_before\":{\"closed_entries\":[4],\"identity\":{\"0\":{\"device\":15,\"inode\":6305650,\"mode\":4480},\"1\":{\"device\":2112,\"inode\":2890428,\"mode\":33188},\"2\":{\"device\":2112,\"inode\":2890429,\"mode\":33188}},\"open\":[0,1,2],\"unverified_entries\":[]},\"fd_leaked\":[],\"observation_point\":\"PRE_RELEASE: the snapshot is taken at the end of the run body, before this run releases the descriptors it held; the descriptors of this run are named below and are excluded from the leak set\",\"readers_closed\":{\"closed_streams\":[\"stdout\",\"stderr\"],\"stderr_drain_complete\":true,\"stderr_read_error\":null,\"stdout_drain_complete\":true,\"stdout_read_error\":null},\"worker_exit_code\":2,\"worker_lifecycle\":{\"cooperative_cancel_observed\":false,\"cooperative_cancel_requested\":false,\"late_write_after_return_is_possible\":false,\"lifecycle_owner\":\"offline_seam\",\"worker_thread_alive\":false,\"worker_thread_finished\":true,\"worker_thread_killable\":false,\"worker_thread_retained\":false},\"worker_thread_finished\":true},\"fd_cleanup_post_release\":{\"fd_leaked\":[],\"observation_point\":\"POST_RELEASE: the snapshot is taken after this run released the descriptors that it held\",\"product_gate0\":false,\"snapshot\":{\"closed_entries\":[4],\"identity\":{\"0\":{\"device\":15,\"inode\":6305650,\"mode\":4480},\"1\":{\"device\":2112,\"inode\":2890428,\"mode\":33188},\"2\":{\"device\":2112,\"inode\":2890429,\"mode\":33188}},\"open\":[0,1,2],\"unverified_entries\":[]},\"stage_pass_claim\":false,\"the_persisted_receipt_carries\":\"PRE_RELEASE\"},\"kind\":\"lvw.s3-production-controller-receipt/1\",\"native_execution_backend_code\":\"NATIVE_EXECUTION_BACKEND_NOT_READY\",\"native_execution_backend_ready\":false,\"node_id\":\"2dd498bd81834f8a1cb5f130a990dec9\",\"offline_receipts_are_not_product_receipts\":true,\"plan\":{\"plan_sha256\":\"720c791031ad53987374860d55e48617872d36421debd669e2b0024289e026c1\",\"projection_sha256\":\"55580235d38d8d785e9e5eb0c2b3f5191d246d231f6dd3faa7c1f82df27192f6\",\"rows\":16},\"product_gate0\":false,\"real_execution_performed\":false,\"receipt_path\":\"/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-02/cases/m06-PRECHECK-temp/run/temp/s3-production-controller/receipt-s3-p4-composition-01.json\",\"receipt_persisted\":true,\"receipt_persistence_error\":null,\"receipt_persistence_intent\":\"WRITTEN_WITH_O_EXCL\",\"recovery\":{\"reason\":\"CUSTODY_EVIDENCE_UNAVAILABLE\",\"replay_allowed\":false,\"resend_allowed\":false,\"stage_pass_claim\":false,\"status\":\"BLOCKED\"},\"refund_allowed\":false,\"refusals\":[],\"resend_allowed\":false,\"reservation\":\"reservation-s3-p4-composition-01.json\",\"reservation_retained\":true,\"root\":\"/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-02/cases/m06-PRECHECK-temp/run\",\"root_retained\":true,\"run_id\":\"s3-p4-composition-01\",\"source_sha256\":{\"tools/v0_s3_coordinator.py\":\"14e8dd284971aeab00999f010679d5c95deb88ee3bff8f4ca0708d958b56f12c\",\"tools/v0_s3_production_controller.py\":\"517d1e4b89e5bef3f57ddd123ad15d1bb9426d438e5c512f420d9bd11359890f\",\"tools/v0_s3_quality_phase.py\":\"90552ea113ccf53a2a1cedff3e3f399642ad932bf0f71bb1f9a57e1adb6e8789\",\"tools/v0_s3_quality_worker.py\":\"6bac34ebc6f6ee32e3b9cc13768dabb59ac8ceb901188cd29ebb3d333f32c3bb\",\"tools/v0_s3_supervisor.py\":\"7d210429e70761cea633e8f2e64d8a1f01709930068a21de5cbc3c5a519ce6d8\"},\"spawn_attempts\":1,\"stage_pass_claim\":false,\"started_wall\":1794572362.1772316,\"state\":\"UNKNOWN_RETAINED\",\"summary_persisted\":false,\"supervision\":{\"archive_allowed\":false,\"authorization_sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"birth\":null,\"candidate_sha\":\"8f375f887f0121ab5a0395f032dd74d8a6f0cf0b\",\"canonical_receipt\":null,\"canonical_receipt_verified\":false,\"child_timeout_seconds\":21600,\"cleanup\":{\"birth\":null,\"cooperative_cancel\":true,\"exit_code\":2,\"killed\":false,\"native_cleanup_owner\":\"original_driver\",\"native_cleanup_proven\":false,\"pid\":null,\"proven_stopped\":true,\"requested\":false,\"terminated\":false},\"command\":[\"python3\",\"-I\",\"-B\",\"/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_quality_worker.py\",\"--context\",\"/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-02/cases/m06-PRECHECK-temp/run/contexts/worker-context.json\",\"--context-sha256\",\"218f6de80599b1cfc4206bc0e9eacfd292cf87ae77d8d02962f469c52c45d923\"],\"cooperative_cancel_requested\":true,\"drain_timeout_seconds\":0.5,\"drain_violation\":null,\"exit_code\":2,\"history_completed_rows\":[],\"history_deadlines\":{},\"history_records\":{},\"history_timeout_seconds\":600,\"incomplete_frame\":false,\"kind\":\"lvw.s3-supervision-evidence/1\",\"message_count\":0,\"message_limit\":1024,\"native_gpu_release_proven\":false,\"native_service_cleanup_proven\":false,\"next_phase_allowed\":false,\"notes\":[],\"parent_crash_recovery_proven\":false,\"phase_deadline_reached\":false,\"phase_timeout_seconds\":10800,\"pid\":null,\"plan_sha256\":\"dd8bc5a9f2c4c984a65cbe0d43e65a2c2b74a3c9bbc74856d58f829793d341d2\",\"product_gate0\":false,\"protocol_violation\":\"WORKER_EXITED_WITHOUT_TERMINAL\",\"real_execution_performed\":false,\"refund_allowed\":false,\"resend_allowed\":false,\"reservation_retained\":true,\"root_retained\":true,\"row_count\":16,\"row_status\":{\"SYN-I00\":\"BLOCKED\",\"SYN-I01\":\"BLOCKED\",\"SYN-I02\":\"BLOCKED\",\"SYN-I03\":\"BLOCKED\",\"SYN-I04\":\"BLOCKED\",\"SYN-I05\":\"BLOCKED\",\"SYN-I06\":\"BLOCKED\",\"SYN-I07\":\"BLOCKED\",\"SYN-I08\":\"BLOCKED\",\"SYN-I09\":\"BLOCKED\",\"SYN-V00\":\"BLOCKED\",\"SYN-V01\":\"BLOCKED\",\"SYN-V02\":\"BLOCKED\",\"SYN-V03\":\"BLOCKED\",\"SYN-V04\":\"BLOCKED\",\"SYN-V05\":\"BLOCKED\"},\"run_id\":\"s3-p4-composition-01\",\"stage_pass_claim\":false,\"stderr_bytes\":55,\"stderr_bytes_retained\":55,\"stderr_drain_complete\":true,\"stderr_hash_scope\":\"all_observed\",\"stderr_hashed_bytes\":55,\"stderr_overflow\":false,\"stderr_read_error\":null,\"stderr_sha256\":\"865453b499dafcd8a142c98a3680bb70226f24d916ca3962bcb0ab299ba4a387\",\"stderr_total_observed\":55,\"stdout_bytes\":0,\"stdout_bytes_retained\":0,\"stdout_drain_complete\":true,\"stdout_hash_scope\":\"all_observed\",\"stdout_hashed_bytes\":0,\"stdout_overflow\":false,\"stdout_read_error\":null,\"stdout_sha256\":\"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\"stdout_total_observed\":0,\"stream_byte_limit\":262144,\"stream_violation\":null,\"terminal_received\":false,\"unknown_outcome\":true},\"transitions\":[\"PRECHECK\",\"PLAN_SEALED\",\"WORKER_SUPERVISED\"],\"unknown_reason\":\"WORKER_EXITED_WITHOUT_TERMINAL\"}\n",
+  "stderr": "",
+  "exception": null,
+  "thread_alive": false,
+  "oracle": {
+    "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-02/cases/m06-PRECHECK-temp/run/temp",
+    "retained": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-02/cases/m06-PRECHECK-temp/run/temp-retained",
+    "files_before": []
+  },
+  "new_files": [
+    "s3-production-controller/receipt-s3-p4-composition-01.json",
+    "s3-production-controller/reservation-s3-p4-composition-01.json"
+  ]
+}
