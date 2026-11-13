@@ -1,0 +1,88 @@
+{
+  "message_id": "msg_06f51ccf0df6",
+  "decision": "ACK_ONCE_ROOT_AMENDED_FD_IDENTITY_DIAGNOSTIC",
+  "submitted_plan_sha256": "589eb16c90309206f4e6a24ef7051fee85388916763def5af2bc1c7bffdd7ff6",
+  "base_candidate_sha": "6885f7a62b223f5e2c7904a9f929e760396fd88b",
+  "commands": [
+    {
+      "label": "counter-readonly-before",
+      "order": 0,
+      "argv": [
+        "/usr/bin/python3",
+        "-I",
+        "-B",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-production-composition-correction-04/outer_counter_read.py",
+        "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-production-composition-correction-04/counter-before.json"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "purpose": "one read only observation of the shared counter of the root, outside the guarded batch; the file is never written, never refunded, never reset, never replaced, no new counter is created and no old grant is revived"
+    },
+    {
+      "label": "guarded-directed-scope",
+      "order": 1,
+      "argv": [
+        "/usr/bin/python3",
+        "-I",
+        "-B",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-production-composition-correction-04/guard.py",
+        "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/production-composition-correction-04/validation-plan-01/run_root_frozen_scope.py",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-production-composition-correction-04/directed-scope.guard.json"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "purpose": "the one batch of the directed scope of the correction 04; the guard is armed before the candidate and pytest are imported"
+    },
+    {
+      "label": "counter-readonly-after",
+      "order": 2,
+      "argv": [
+        "/usr/bin/python3",
+        "-I",
+        "-B",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-production-composition-correction-04/outer_counter_read.py",
+        "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-production-composition-correction-04/counter-after.json"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "purpose": "the second and last read only observation of the shared counter"
+    }
+  ],
+  "runner_sha256": "fe0e30a0a6a53d608a2bc837f7398da382b71f452ea7ad3653cffe98b87acfda",
+  "source_pins": {
+    "tools/v0_s3_production_controller.py": "a452275a866b8b496175ecf3cba37d86fd0109be91020c09948f9bf9583a2b38",
+    "tools/test_v0_s3_production_composition.py": "5ba03b1b45f1d002d813b0619982a532af51ad5e63e78791348a84f711a59758",
+    "tools/v0_s3_controller_io.py": "15305e4e3731a0e1533518725cf2bf27186b2b042e86167aee8130586ff8e7b1",
+    "tools/v0_s3_quality_worker.py": "e3648446f39d6e7a1c31f180248ccb59c36272ddc10c80edbe544f7d3c595592",
+    "tools/v0_s3_quality_phase.py": "90552ea113ccf53a2a1cedff3e3f399642ad932bf0f71bb1f9a57e1adb6e8789",
+    "tools/v0_s3_supervisor.py": "7d210429e70761cea633e8f2e64d8a1f01709930068a21de5cbc3c5a519ce6d8",
+    "tools/test_v0_s3_supervisor.py": "9783239ad1b48b243b6922c88ea8ce0f629544bd03beb16490bfb2e8493cf3e9"
+  },
+  "exact_nodeids": [
+    "tools/test_v0_s3_production_composition.py::test_a_failure_of_the_disk_observation_is_a_structured_unknown",
+    "tools/test_v0_s3_production_composition.py::test_the_observation_of_the_descriptors_at_the_end_of_the_run_is_unknown",
+    "tools/test_v0_s3_production_composition.py::test_a_failure_of_the_finish_releases_the_owned_pipe_and_the_thread",
+    "tools/test_v0_s3_production_composition.py::test_the_fact_of_the_write_of_the_summary_is_not_revoked_by_a_failed_observation",
+    "tools/test_v0_s3_production_composition.py::test_a_failure_of_the_close_of_the_owner_is_kept_and_never_a_fake_cleanup",
+    "tools/test_v0_s3_production_composition.py::test_the_formal_entry_runs_the_whole_chain_and_persists_the_summary",
+    "tools/test_v0_s3_production_composition.py::test_a_failed_terminal_receipt_is_a_structured_unknown",
+    "tools/test_v0_s3_production_composition.py::test_a_primary_failure_and_a_terminal_persistence_failure_stay_separate",
+    "tools/test_v0_s3_production_composition.py::test_a_cancellation_of_the_terminal_persistence_releases_the_anchors[keyboard-interrupt]",
+    "tools/test_v0_s3_production_composition.py::test_a_cancellation_of_the_terminal_persistence_releases_the_anchors[system-exit]",
+    "tools/test_v0_s3_production_composition.py::test_the_release_of_the_anchors_touches_only_its_own_descriptors",
+    "tools/test_v0_s3_production_composition.py::test_a_failure_of_the_terminal_observation_is_a_structured_unknown",
+    "tools/test_v0_s3_production_composition.py::test_the_cooperative_cancel_stops_the_worker_and_the_thread_is_joined",
+    "tools/test_v0_s3_production_composition.py::test_a_worker_that_does_not_cooperate_is_retained_and_the_run_stays_unknown",
+    "tools/test_v0_s3_production_composition.py::test_an_ordinary_storage_failure_keeps_a_structured_unknown",
+    "tools/test_v0_s3_production_composition.py::test_the_fd_snapshot_ignores_closed_enumeration_entries",
+    "tools/test_v0_s3_production_composition.py::test_the_fd_snapshot_detects_a_real_open_descriptor_until_closed",
+    "tools/test_v0_s3_production_composition.py::test_the_native_path_is_refused_before_any_spawn",
+    "tools/test_v0_s3_production_composition.py::test_the_output_identity_of_the_run_is_bound_before_every_write[root]",
+    "tools/test_v0_s3_production_composition.py::test_the_summary_is_never_written_outside_the_bound_root"
+  ],
+  "batches_max": 1,
+  "wall_seconds_max": 300,
+  "static_pins_and_selection_verified": true,
+  "amendment": "Only batch FD diagnostic: verified dev/inode/mode, EBADF filtered, unknown None, detect reused FD identity. Explicit original impl PACK_ROOT/REPORT. No product edit or scope/threshold change.",
+  "static_preparation_note": "Two root bookkeeping scripts failed before candidate/test execution (indentation parsing; then tool_pins relative-path interpretation). Corrected static-only checks; no candidate imports/test calls.",
+  "stage_pass_claim": false
+}
