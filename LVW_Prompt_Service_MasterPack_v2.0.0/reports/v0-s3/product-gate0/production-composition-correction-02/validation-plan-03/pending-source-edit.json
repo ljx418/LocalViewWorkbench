@@ -1,0 +1,8 @@
+{
+  "path": "tools/v0_s3_production_controller.py",
+  "before_sha256": "74cff814078294a8870b00a72dac6b621ef07f7821a62df2608a7f915c933e36",
+  "exact_old": "        except OSError:  # pragma: no cover - defensive\n            names = []",
+  "exact_new": "        except OSError:  # pragma: no cover - defensive\n            return None",
+  "expected_after_sha256": "517d1e4b89e5bef3f57ddd123ad15d1bb9426d438e5c512f420d9bd11359890f",
+  "reason": "Enumeration failure must stay unknown (None), not false-empty. Worker applies this exact bounded edit before validation; root has not changed product source."
+}
