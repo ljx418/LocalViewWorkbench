@@ -18,16 +18,17 @@ accepted owners:
 * ``ParentOriginalEvidence``, ``S3BudgetBindingProvider`` and
   ``aggregate_twelve_keys`` of ``tools.v0_s3_coordinator.py``.
 
-Two boundaries are absolute.
+Three boundaries are absolute.
 
-* The *native* execution path is refused by default.  A real run needs an
-  accepted admission record that binds the accepted budget authority, the
-  native descendant custody, the GPU release, the installation and its
-  rollback, the finite root sub authorization and the tool dependency
-  closure.  None of them exists for this platform today, so the native path
-  stops in ``PRECHECK`` with ``0`` spawn.  A boolean, a platform string or a
-  self written capability document never replaces the accepted admission
-  authority, and there is no ``--force`` switch.
+* The *native* execution path is refused by default.  There is no accepted
+  native execution backend on this platform: no accepted admission
+  authority, no accepted finite grant, no accepted native descendant
+  custody and no accepted GPU release exist.  The controller and the
+  worker therefore refuse with the stable code
+  ``NATIVE_EXECUTION_BACKEND_NOT_READY`` before any spawn and before any
+  native driver is constructed.  A boolean, a platform string, a self
+  written capability document or a self computed hash never replaces the
+  missing authority, and there is no ``--force`` switch.
 * The *offline composition* is an explicit in-process seam.  It injects a
   synthetic driver, a synthetic spawner and a synthetic clock into the very
   same controller, worker, phase, protocol, parent reader, canonical
@@ -36,6 +37,11 @@ Two boundaries are absolute.
   seam is a Python object; it is never serialised into a context document
   and it is never reachable from the command line, so it can never become a
   back door of a real execution.
+* Every *input* of the controller is bounded and safe.  The reads are
+  bounded before the bytes are taken, they never follow a link and they
+  never read a special file as a file; the summary and the reservation are
+  written exclusively inside the bound root, and the originals are
+  re-verified at the consumption boundary before anything is published.
 
 Nothing in this module proves a product gate.  Every document that it writes
 carries ``stage_pass_claim = False`` and ``product_gate0 = False``, and the
@@ -54,6 +60,10 @@ PACK_ROOT = Path(__file__).resolve().parents[1]
 if str(PACK_ROOT) not in sys.path:
     sys.path.insert(0, str(PACK_ROOT))
 
+from tools.v0_s3_controller_io import (  # noqa: E402 - the path is set above
+    ControllerIOError, ensure_directory_chain, exists_at, open_root_directory,
+    read_bounded_in_root, read_bounded_regular, write_exclusive_at,
+    write_exclusive_path)
 from tools.v0_s3_coordinator import (  # noqa: E402 - the path is set above
     AGGREGATE_RECEIPT_KIND, ParentOriginalEvidence, S3BudgetBindingProvider,
     S3IntegrationError, aggregate_twelve_keys)
@@ -69,6 +79,40 @@ CONTROLLER_CONTEXT_SCHEMA = 'lvw.s3-production-controller-context/1'
 CONTROLLER_RECEIPT_KIND = 'lvw.s3-production-controller-receipt/1'
 NATIVE_ADMISSION_KIND = 'lvw.s3-native-admission/1'
 SUMMARY_KIND = 'lvw.s3-production-summary/1'
+RESERVATION_KIND = 'lvw.s3-controller-reservation/1'
+
+# The stable code of the one missing capability of this platform.
+#
+# There is no accepted native execution backend today: no accepted
+# admission authority, no accepted finite grant, no accepted native
+# descendant custody and no accepted GPU release exist for this
+# platform.  The native path therefore refuses *before* any spawn and
+# before any native driver is constructed, and the refusal is the same
+# stable code on the controller side and on the worker side.  A self
+# written capability document, a boolean, a platform string or a self
+# computed hash never replaces the missing authority.
+NATIVE_EXECUTION_BACKEND_NOT_READY = 'NATIVE_EXECUTION_BACKEND_NOT_READY'
+
+# The directory of this controller inside the bound run root.  Every
+# component is opened or created relative to the descriptor of its own
+# parent, so a link in the chain is never followed.
+CONTROLLER_DIRECTORY_PARTS = ('temp', 's3-production-controller')
+
+# The keys of a row of the canonical receipt that name an artefact of the
+# run.  They are the references that the parent seals and that the
+# ``no_overwrite`` obligation is about.
+ROW_ARTEFACT_KEYS = ('raw_artifact', 'graph_artifact', 'suggestion_artifact',
+                      'metadata_artifact', 'history_artifact', 'error_raw_artifact',
+                      'error_frame_raw_artifact')
+
+# The artefact of a row and the digest that the row claims for it.  The
+# parent sealed the real bytes of every artefact of the run, so the digest
+# of the seal and the digest of the row have to be the same.
+ROW_ARTEFACT_DIGEST_KEYS = (('raw_artifact', 'raw_sha256'),
+                             ('graph_artifact', 'graph_sha256'),
+                             ('suggestion_artifact', 'suggestion_sha256'),
+                             ('metadata_artifact', 'metadata_sha256'),
+                             ('history_artifact', 'history_sha256'))
 
 # The single state machine of one composition.
 STATE_PRECHECK = 'PRECHECK'
@@ -139,14 +183,26 @@ def sha256_bytes(raw):
 
 
 def _read_bounded(path, limit=8 * 1024 * 1024):
-    target = Path(path)
+    """Read one explicit entry file with a real bound.
+
+    The bytes are taken from the handle that was opened and verified, and
+    the bound is applied to the bytes that are really requested from the
+    kernel.  An oversized file is therefore refused without being read
+    into the memory of the process, and a link or a special file is never
+    read as a file.
+    """
     try:
-        raw = target.read_bytes()
-    except OSError as error:
-        raise ControllerError('CONTROLLER_FILE_UNREADABLE') from error
-    if len(raw) > limit:
-        raise ControllerError('CONTROLLER_FILE_TOO_LARGE')
-    return raw
+        return read_bounded_regular(path, limit)
+    except ControllerIOError as error:
+        raise ControllerError('CONTROLLER_' + error.code) from error
+
+
+def _read_bounded_in_root(root, relative, limit=8 * 1024 * 1024):
+    """Read one root relative reference through the bound root."""
+    try:
+        return read_bounded_in_root(root, relative, limit)
+    except ControllerIOError as error:
+        raise ControllerError('CONTROLLER_' + error.code) from error
 
 
 def _fd_snapshot():
@@ -260,17 +316,26 @@ class ControllerContext:
         self.candidate_sha = document['candidate_sha']
         self.authorization_sha256 = document['authorization_sha256']
         self.root = Path(root)
+        # The digest and the length of the very bytes of this context.
+        # They are the identity of the controller context itself and not
+        # the identity of the worker context that it names.
+        self.document_sha256 = None
+        self.document_bytes = None
 
     @classmethod
     def load(cls, path, *, expected_sha256=None):
         raw = _read_bounded(path)
-        if expected_sha256 is not None and sha256_bytes(raw) != expected_sha256:
+        digest = sha256_bytes(raw)
+        if expected_sha256 is not None and digest != expected_sha256:
             raise ControllerError('CONTROLLER_CONTEXT_SEAL_MISMATCH')
         try:
             document = json.loads(raw.decode('utf-8'))
         except (UnicodeDecodeError, ValueError) as error:
             raise ControllerError('CONTROLLER_CONTEXT_NOT_JSON') from error
-        return cls(document)
+        context = cls(document)
+        context.document_sha256 = digest
+        context.document_bytes = len(raw)
+        return context
 
 
 # --------------------------------------------------------------------------
@@ -317,7 +382,18 @@ def _load_referenced(reference, *, label, reasons, mapping=True):
 
 
 def _bound_receipt(document, context, *, label, reasons, required=None):
-    """A receipt of the run has to carry the identity of this run."""
+    """A receipt of the run has to carry the identity of this run.
+
+    The comparison of a *value* is a comparison of the type and of the
+    value: a string is compared with ``==`` and not with an identity
+    test, so a string that was decoded from a JSON document is equal to
+    the expected literal.  A boolean is compared with its identity, so
+    the number one and the string ``"true"`` are never a proof.
+
+    The comparison of a value proves nothing about the *truth* of a
+    receipt.  The admission of this platform stays refused in any case:
+    see :func:`verify_native_admission`.
+    """
     for key in ('run_id', 'candidate_sha'):
         if document.get(key) != getattr(context, key):
             reasons.append(label + ':BINDING_MISMATCH')
@@ -325,7 +401,16 @@ def _bound_receipt(document, context, *, label, reasons, required=None):
     if required is None:
         return True
     for key, expected in required.items():
-        if document.get(key) is not expected:
+        actual = document.get(key)
+        if isinstance(expected, bool):
+            # A boolean proof is compared with its identity: the type
+            # has to be exactly ``bool`` and the value has to be the very
+            # same object.
+            if type(actual) is not bool or actual is not expected:
+                reasons.append(label + ':PROOF_MISSING:' + key)
+                return False
+            continue
+        if type(actual) is not str or type(expected) is not str or actual != expected:
             reasons.append(label + ':PROOF_MISSING:' + key)
             return False
     return True
@@ -341,6 +426,14 @@ def verify_native_admission(context, document):
     written capability document can never replace the real authority of the
     original ledger.
 
+    The verification of this function is a *diagnostic* and never an
+    execution permission.  There is no accepted native execution backend
+    on this platform, so the report is never accepted: the stable code
+    ``NATIVE_EXECUTION_BACKEND_NOT_READY`` is the primary reason of every
+    report, whatever the elements of the chain say.  A document that names
+    a status of ``PROVEN`` and that carries the right strings is not a
+    proof of a native custody, of a budget balance or of a finite grant.
+
     The report names every missing element.  An admission that is not
     complete is never repaired and never guessed: the native path stays
     blocked.
@@ -353,30 +446,31 @@ def verify_native_admission(context, document):
               'accepted': False,
               'reasons': reasons,
               'verified': [],
+              'verified_scope': 'SHAPE_AND_IDENTITY_OF_SEALED_DOCUMENTS_ONLY',
               'budget_authority': 'S3BudgetBindingProvider',
+              'budget_binding_scope': ('SEALED_BINDING_SHAPE_ONLY_'
+                                       'NOT_BALANCE_NOT_AUTHORIZATION_NOT_CUSTODY'),
+              'native_execution_backend_ready': False,
+              'native_execution_backend_code': NATIVE_EXECUTION_BACKEND_NOT_READY,
               'original_ledger_touched_by_this_controller': False,
               'debit_owner': 'original_ledger_authority',
               'stage_pass_claim': False,
               'product_gate0': False}
     if not isinstance(document, dict) or document.get('kind') != NATIVE_ADMISSION_KIND:
         reasons.append('ADMISSION_DOCUMENT_INVALID')
-        report['primary_reason'] = reasons[0]
-        return report
+        return _close_admission_report(report, reasons)
     if set(document) != ADMISSION_KEYS:
         reasons.append('ADMISSION_KEY_SET_INVALID')
-        report['primary_reason'] = reasons[0]
-        return report
+        return _close_admission_report(report, reasons)
     if document['run_id'] != context.run_id \
             or document['candidate_sha'] != context.candidate_sha \
             or document['authorization_sha256'] != context.authorization_sha256:
         reasons.append('ADMISSION_IDENTITY_MISMATCH')
-        report['primary_reason'] = reasons[0]
-        return report
+        return _close_admission_report(report, reasons)
     references = document['admission_references']
     if not isinstance(references, dict) or set(references) != set(ADMISSION_REFERENCE_KEYS):
         reasons.append('ADMISSION_REFERENCE_SET_INVALID')
-        report['primary_reason'] = reasons[0]
-        return report
+        return _close_admission_report(report, reasons)
 
     # ---- the accepted budget authority ---------------------------------
     binding_reference = references['budget_binding']
@@ -445,8 +539,21 @@ def verify_native_admission(context, document):
             if not broken:
                 report['verified'].append('tool_closure')
 
-    report['accepted'] = not reasons
-    report['primary_reason'] = reasons[0] if reasons else None
+    return _close_admission_report(report, reasons)
+
+
+def _close_admission_report(report, reasons):
+    """Close an admission report that can never be accepted.
+
+    The missing native execution backend is the primary reason of every
+    report, whatever the elements of the chain say.  The chain is only a
+    diagnostic: it names what a future admission would have to bind, and
+    it never authorises an execution.
+    """
+    if NATIVE_EXECUTION_BACKEND_NOT_READY not in reasons:
+        reasons.append(NATIVE_EXECUTION_BACKEND_NOT_READY)
+    report['accepted'] = False
+    report['primary_reason'] = NATIVE_EXECUTION_BACKEND_NOT_READY
     return report
 
 
@@ -543,6 +650,65 @@ class _FaultStream:
         self.stream.write(canonical_json(message).encode('utf-8') + b'\n')
 
 
+class SeamCancelled(RuntimeError):
+    """The cooperative cancel of the offline seam."""
+
+
+class _CancellableDriver:
+    """The driver of the seam with a cooperative cancel boundary.
+
+    The proxy delegates every attribute to the synthetic driver, but it
+    checks the cancel event *before* every controlled call of the phase.
+    The cancel is therefore checked before the next submission is
+    allowed, and the worker stops on its own.
+
+    A driver that does not cooperate - a driver that is blocked inside
+    its own callback - is never killed here: a thread of this process can
+    not be killed safely.  Such a driver stays retained and the run stays
+    unknown; the seam reports the retention instead of pretending that the
+    worker is gone.
+    """
+
+    def __init__(self, driver, cancel_event):
+        self._driver = driver
+        self._cancel_event = cancel_event
+
+    def __getattr__(self, name):
+        return getattr(self._driver, name)
+
+    def _check(self):
+        if self._cancel_event.is_set():
+            raise SeamCancelled('SEAM_COOPERATIVE_CANCEL')
+
+    def submit(self, graph):
+        self._check()
+        return self._driver.submit(graph)
+
+    def chat_log_snapshot(self):
+        self._check()
+        return self._driver.chat_log_snapshot()
+
+    def resource_observer(self):
+        self._check()
+        return self._driver.resource_observer()
+
+    def owned_listener_birth(self, port):
+        self._check()
+        return self._driver.owned_listener_birth(port)
+
+    def release_preload(self, binding, worker):
+        self._check()
+        return self._driver.release_preload(binding, worker)
+
+    def video_snapshot_residue(self):
+        self._check()
+        return self._driver.video_snapshot_residue()
+
+    def _json_request(self, *args, **kwargs):
+        self._check()
+        return self._driver._json_request(*args, **kwargs)
+
+
 class _InProcessWorker:
     """The in-process stand in of the supervised worker.
 
@@ -554,9 +720,14 @@ class _InProcessWorker:
     The handle has no process identity of its own: ``pid`` is ``None`` and
     the birth identity of the parent therefore stays unknown, because no
     child was ever created.
+
+    The thread is not a daemon.  The lifecycle of the worker is the
+    cooperative cancel and the join, and never the daemon flag: a daemon
+    thread is not an exit proof.
     """
 
-    def __init__(self, command, *, driver_factory, context_sha256, fault):
+    def __init__(self, command, *, driver_factory, context_sha256, fault,
+                 cancel_event=None):
         self.command = list(command)
         self.pid = None
         self._exit_code = None
@@ -575,8 +746,9 @@ class _InProcessWorker:
         self._stdin_write = os.fdopen(in_write, 'wb', 0)
         self._driver_factory = driver_factory
         self._context_sha256 = context_sha256
+        self._cancel_event = cancel_event if cancel_event is not None else threading.Event()
         self._thread = threading.Thread(target=self._run, name='s3-composition-worker',
-                                        daemon=True)
+                                        daemon=False)
         self._thread.start()
 
     # -- the process like surface of the parent --------------------------
@@ -586,10 +758,28 @@ class _InProcessWorker:
         return None
 
     def terminate(self):
-        return None
+        """The cooperative cancel of the worker.
+
+        A thread of this process can not be terminated like a child
+        process.  The only safe request is the cooperative one: the
+        standard input of the worker is closed and the worker stops on
+        its own.  The method reports that the request was made and never
+        that the worker is gone.
+        """
+        self._cancel_event.set()
+        try:
+            self.stdin.close()
+        except OSError:  # pragma: no cover - the close may race
+            pass
+        return True
 
     def kill(self):
-        return None
+        """A thread of this process can not be killed.
+
+        The refusal is explicit, so the parent records a failed kill
+        instead of a successful one.
+        """
+        raise OSError('LVW_S3_THREAD_CANNOT_BE_KILLED')
 
     def wait(self, timeout=None):
         self._finished.wait(timeout)
@@ -603,16 +793,35 @@ class _InProcessWorker:
                 return arguments[index + 1]
         raise ControllerError('CONTROLLER_COMMAND_WITHOUT_CONTEXT')
 
+    def _command_context_hash(self):
+        """The pre-sealed hash of the worker context, as the command carries it.
+
+        The expected hash is never computed here: it is taken from the
+        command that the controller built from the sealed reference, so
+        the worker can not replace the expectation with its own
+        recomputation.
+        """
+        arguments = self.command
+        for index, item in enumerate(arguments):
+            if item == '--context-sha256' and index + 1 < len(arguments):
+                return arguments[index + 1]
+        raise ControllerError('CONTROLLER_COMMAND_WITHOUT_CONTEXT_HASH')
+
     def _run(self):
         code = 0
         try:
-            expected = self._context_sha256
+            expected = self._command_context_hash()
+            if self._context_sha256 is not None and expected != self._context_sha256:
+                # The command does not carry the pre-sealed hash of the
+                # seam: the worker refuses before it touches anything.
+                raise ControllerError('CONTROLLER_CONTEXT_HASH_MISMATCH')
             if self._fault == 'context_seal_mismatch':
                 # The worker refuses the context on its own seal check.
                 expected = 'f' * 64
             context = WorkerContext.load(self._context_path(), expected_sha256=expected)
             driver = self._driver_factory(context)
-            argv = ['--context', self._context_path()]
+            driver = _CancellableDriver(driver, self._cancel_event)
+            argv = ['--context', self._context_path(), '--context-sha256', expected]
             code = worker_main(argv, driver=driver, stream=self._stdout_write,
                                 error_stream=self._stderr_write)
         except ControllerError as error:
@@ -661,7 +870,7 @@ class _InProcessWorker:
 
     def _root_of_the_context(self):
         context = WorkerContext.load(self._context_path(),
-                                     expected_sha256=self._context_sha256)
+                                     expected_sha256=self._command_context_hash())
         return Path(context.document['root'])
 
     def close_pipes(self):
@@ -698,12 +907,19 @@ class OfflineCompositionSeam:
     document, it is never reachable from the command line and it can not
     start a native service, because the native driver construction is never
     called while the seam is active.
+
+    The seam owns the *lifecycle* of the worker thread.  The cancel is a
+    cooperative request that is checked before every controlled call of the
+    phase, and the thread is joined when it ends.  A worker that does not
+    cooperate can not be killed: it stays retained, the seam reports the
+    retention, and the run stays unknown.
     """
 
     synthetic = True
 
     def __init__(self, *, driver_factory, context_sha256=None, clock=None, sleep=None,
-                 fault='none', label='offline-synthetic-composition'):
+                 fault='none', label='offline-synthetic-composition',
+                 worker_wait_timeout=5.0):
         if not callable(driver_factory):
             raise ControllerError('CONTROLLER_SEAM_DRIVER_FACTORY_REQUIRED')
         self.driver_factory = driver_factory
@@ -712,36 +928,100 @@ class OfflineCompositionSeam:
         self.sleep = sleep
         self.fault = fault
         self.label = label
+        self.worker_wait_timeout = worker_wait_timeout
         self.spawns = 0
         self.worker_exit_code = None
         self.worker_thread_finished = False
+        self.worker_thread_retained = False
+        self.cooperative_cancel_requested = False
+        self.cooperative_cancel_observed = False
         self.faults_applied = []
         self.on_transition = None
+        self._cancel_event = threading.Event()
 
     def spawn(self, command):
         """The synthetic spawner: a thread and two real pipes."""
         self.spawns += 1
         worker = _InProcessWorker(command, driver_factory=self.driver_factory,
                                   context_sha256=self.context_sha256,
-                                  fault=self.fault)
+                                  fault=self.fault, cancel_event=self._cancel_event)
         self._worker = worker
         return worker
 
-    def wait_for_worker(self, timeout=30.0):
-        """Wait for the worker thread and return its exit code."""
+    def cancel(self):
+        """The cooperative cancel of the worker.
+
+        The request is checked before every controlled call of the phase,
+        so the worker stops before its next submission.  It is a request
+        and not a proof that the worker is gone.
+        """
+        self.cooperative_cancel_requested = True
+        self._cancel_event.set()
+        worker = getattr(self, '_worker', None)
+        if worker is not None:
+            try:
+                worker.stdin.close()
+            except OSError:  # pragma: no cover - the close may race
+                pass
+        return True
+
+    def wait_for_worker(self, timeout=None):
+        """Wait for the worker thread and return its exit code.
+
+        The wait is bounded.  A thread that is still running after the
+        bound is reported as *not finished* and as *retained*: the run
+        never claims that the worker is gone.
+        """
         worker = getattr(self, '_worker', None)
         if worker is None:
             return None
+        if timeout is None:
+            timeout = self.worker_wait_timeout
         worker._finished.wait(timeout)
         self.worker_thread_finished = worker._finished.is_set()
         self.worker_exit_code = worker._exit_code
+        self.worker_thread_retained = not self.worker_thread_finished
+        self.cooperative_cancel_observed = self._cancel_event.is_set()
         return self.worker_exit_code
+
+    def release_and_join(self, timeout=30.0):
+        """The bounded, cooperative end of the worker thread.
+
+        The cancel is requested, the thread is joined and the result is
+        reported honestly.  A thread that does not end inside the bound is
+        *retained*: it is not killed and it is not forgotten.
+        """
+        worker = getattr(self, '_worker', None)
+        if worker is None:
+            return True
+        if not worker._finished.is_set():
+            self.cancel()
+        worker._thread.join(timeout)
+        self.worker_thread_finished = worker._finished.is_set()
+        self.worker_thread_retained = not self.worker_thread_finished
+        self.worker_exit_code = worker._exit_code
+        return self.worker_thread_finished
 
     def close(self):
         """Close every descriptor that the seam owns."""
         worker = getattr(self, '_worker', None)
         if worker is not None:
             worker.close_pipes()
+
+    def lifecycle(self):
+        """The honest lifecycle facts of the worker thread."""
+        worker = getattr(self, '_worker', None)
+        alive = bool(worker is not None and worker._thread.is_alive())
+        return {
+            'worker_thread_alive': alive,
+            'worker_thread_finished': bool(self.worker_thread_finished),
+            'worker_thread_retained': bool(self.worker_thread_retained or alive),
+            'worker_thread_killable': False,
+            'cooperative_cancel_requested': bool(self.cooperative_cancel_requested),
+            'cooperative_cancel_observed': bool(self.cooperative_cancel_observed),
+            'late_write_after_return_is_possible': alive,
+            'lifecycle_owner': 'offline_seam',
+        }
 
 
 # --------------------------------------------------------------------------
@@ -776,6 +1056,19 @@ class ProductionController:
         self.spawn_attempts = 0
         self.refusals = []
         self.unknown_reason = None
+        self.reservation = None
+        self.reservation_acquired = False
+        self.summary_path = None
+        self.summary_sha256 = None
+        self.receipt_path = None
+        self.receipt_persisted = False
+        self.receipt_persistence_error = None
+        self.consumption_reverified = False
+        self.consumption_reverification = None
+        self.canonical_bytes = None
+        self.canonical_digest = None
+        self.source_plan_bytes = None
+        self.source_plan_digest = None
 
     # -- the state machine -------------------------------------------------
     def _enter(self, state):
@@ -830,7 +1123,12 @@ class ProductionController:
             raise ControllerError('CONTROLLER_PARENT_BUDGET_IDENTITY_MISMATCH')
         self.rows = rows
         self.projection_sha256 = worker.document['projection_sha256']
-        self.command = build_production_command(worker_reference['path'])
+        # The fixed production command carries the *pre-sealed* hash of the
+        # worker context down to the worker.  The worker never recomputes
+        # the expectation itself: it verifies every load against the hash
+        # that this command carries.
+        self.command = build_production_command(worker_reference['path'],
+                                                context_sha256=worker_reference['sha256'])
 
     # -- the native admission ----------------------------------------------
     def _admission_report(self):
@@ -858,12 +1156,80 @@ class ProductionController:
                 'accepted': False,
                 'reasons': [reason],
                 'verified': [],
+                'verified_scope': 'SHAPE_AND_IDENTITY_OF_SEALED_DOCUMENTS_ONLY',
                 'primary_reason': reason,
                 'budget_authority': 'S3BudgetBindingProvider',
+                'budget_binding_scope': ('SEALED_BINDING_SHAPE_ONLY_'
+                                         'NOT_BALANCE_NOT_AUTHORIZATION_NOT_CUSTODY'),
+                'native_execution_backend_ready': False,
+                'native_execution_backend_code': NATIVE_EXECUTION_BACKEND_NOT_READY,
                 'original_ledger_touched_by_this_controller': False,
                 'debit_owner': 'original_ledger_authority',
                 'stage_pass_claim': False,
                 'product_gate0': False}
+
+    # -- the execution right of this run -----------------------------------
+    def _controller_directory(self):
+        """The directory of this controller inside the bound run root.
+
+        The root is opened without following a link and every component of
+        the chain is opened or created relative to the descriptor of its
+        own parent, so a link in the chain is never followed and the
+        directory is always inside the bound root.  The returned
+        descriptor is owned by the caller.
+        """
+        try:
+            root_descriptor = open_root_directory(self.context.root)
+        except ControllerIOError as error:
+            raise ControllerError('CONTROLLER_' + error.code) from error
+        try:
+            return ensure_directory_chain(root_descriptor, CONTROLLER_DIRECTORY_PARTS)
+        except ControllerIOError as error:
+            raise ControllerError('CONTROLLER_' + error.code) from error
+        finally:
+            os.close(root_descriptor)
+
+    def _acquire_reservation(self):
+        """Take the exclusive execution right of this run.
+
+        The reservation is taken *after* the precheck and *before* any
+        worker is sent.  It is an exclusive creation inside the bound
+        root, so a second run of the same run id finds the reservation of
+        the first one and refuses instead of sending the sixteen rows a
+        second time.  An existing summary of the same run is a terminal
+        state as well and is refused before the reservation is taken.
+
+        The reservation is never deleted here.  A failed or unknown run
+        keeps its reservation, so the history of the run stays visible and
+        a retry can not silently replace it.
+        """
+        directory = self._controller_directory()
+        try:
+            summary_name = 'summary-' + self.context.run_id + '.json'
+            if exists_at(directory, summary_name):
+                raise ControllerError('CONTROLLER_SUMMARY_ALREADY_EXISTS')
+            name = 'reservation-' + self.context.run_id + '.json'
+            document = canonical_json({
+                'kind': RESERVATION_KIND,
+                'run_id': self.context.run_id,
+                'candidate_sha': self.context.candidate_sha,
+                'authorization_sha256': self.context.authorization_sha256,
+                'root': str(self.context.root),
+                'reserved_wall': time.time(),
+                'stage_pass_claim': False,
+                'product_gate0': False,
+            }).encode('utf-8')
+            try:
+                write_exclusive_at(directory, name, document)
+            except ControllerIOError as error:
+                if error.code == 'OUTPUT_ALREADY_EXISTS':
+                    raise ControllerError('CONTROLLER_RESERVATION_ALREADY_EXISTS') from error
+                raise ControllerError('CONTROLLER_RESERVATION_UNWRITABLE:' + error.code) from error
+            self.reservation = name
+            self.reservation_acquired = True
+        finally:
+            os.close(directory)
+        return self.reservation
 
     # -- the plan -----------------------------------------------------------
     def _seal_plan(self):
@@ -894,7 +1260,7 @@ class ProductionController:
             kwargs['spawner'] = seam.spawn
             if seam.clock is not None:
                 kwargs['clock'] = seam.clock
-        self.spawn_attempts = 1
+        self.spawn_attempts = 0
         supervisor = ParentSupervisor(**kwargs)
         self.supervisor = supervisor
         try:
@@ -904,6 +1270,10 @@ class ProductionController:
         finally:
             if seam is not None:
                 seam.wait_for_worker()
+                # The number of the sends of this run is the number of the
+                # workers that the seam really started.  It is never a
+                # promise and never a guess.
+                self.spawn_attempts = seam.spawns
         return self.evidence
 
     # -- the originals ------------------------------------------------------
@@ -928,6 +1298,17 @@ class ProductionController:
         self.source_plan = source_plan
         raw = self._raw_references(canonical)
         source_plan_reference = 'temp/s3-quality/' + str(canonical['source_plan']['path'])
+        # The bytes that the controller consumes are read through the bound
+        # root, without following a link and with a real bound.  The digest
+        # of these bytes is compared with the seal of the owner below, so a
+        # canonical receipt that changed between the parse and the seal is
+        # refused instead of being consumed with a stale seal.
+        canonical_bytes = _read_bounded_in_root(self.context.root, reference)
+        source_plan_bytes = _read_bounded_in_root(self.context.root, source_plan_reference)
+        self.canonical_bytes = canonical_bytes
+        self.canonical_digest = sha256_bytes(canonical_bytes)
+        self.source_plan_bytes = source_plan_bytes
+        self.source_plan_digest = sha256_bytes(source_plan_bytes)
         try:
             self.original_evidence.seal_originals(canonical=reference,
                                                   source_plan=source_plan_reference,
@@ -935,95 +1316,188 @@ class ProductionController:
             self.manifest = self.original_evidence.manifest()
         except S3IntegrationError as error:
             raise ControllerError('CONTROLLER_ORIGINALS_REFUSED:' + error.reason) from error
-        return self.manifest
+        sealed_canonical = self.manifest['originals']['canonical'][0]
+        sealed_source_plan = self.manifest['originals']['source_plan'][0]
+        if sealed_canonical['sha256'] != self.canonical_digest \
+                or sealed_source_plan['sha256'] != self.source_plan_digest:
+            # The owner sealed a different content than the content that
+            # this controller consumed: the run is refused, never repaired.
+            raise ControllerError('CONTROLLER_ORIGINALS_CHANGED_BEFORE_SEAL')
+        # The consumption boundary of the originals: the parent re-reads
+        # every sealed original through its own verified handle right after
+        # the seal, so an original that changed inside the seal window is
+        # refused here.
+        return self._reverify_consumption_boundary()
+
+    def _reverify_consumption_boundary(self):
+        """Re-verify the root, the manifest and the originals before the write.
+
+        The manifest is the consumption boundary of the originals.  The
+        parent re-reads every sealed original through its own verified
+        handle right before the summary is built, so an original that
+        changed after the first verification is refused here and the run
+        stays unknown.  The boundary is the last real observation of the
+        originals: it is not a promise about a later change and it is not
+        an atomic snapshot of a batch.
+        """
+        try:
+            manifest = self.original_evidence.manifest()
+        except S3IntegrationError as error:
+            raise ControllerError('CONTROLLER_ORIGINALS_CHANGED_AT_CONSUMPTION:'
+                                  + error.reason) from error
+        self.manifest = manifest
+        self.consumption_reverified = True
+        self.consumption_reverification = manifest.get('reverification')
+        return manifest
 
     @staticmethod
     def _raw_references(canonical):
         """The root relative references of the raw artefacts of the run."""
-        references = []
-        for row in canonical.get('rows', []):
-            if not isinstance(row, dict):
-                continue
-            for key in ('raw_artifact', 'graph_artifact', 'suggestion_artifact',
-                        'metadata_artifact', 'history_artifact', 'error_raw_artifact',
-                        'error_frame_raw_artifact'):
-                value = row.get(key)
-                if isinstance(value, str) and value:
-                    references.append('temp/s3-quality/' + value)
-        return references
+        return ProductionController._artefact_references(canonical.get('rows', []))
 
     # -- the receipts -------------------------------------------------------
     def _bind_receipts(self):
         """The aggregate receipts of this run, derived from the run facts.
 
-        A receipt is derived only from a fact of this run.  A receipt whose
-        truth belongs to the native or the product side stays unproven and
-        is never filled with a promise.
+        A receipt is derived only from a fact of this run, and it is only
+        a pass when the *complete* obligation of that receipt is proven by
+        the machine evidence of this run.  The existence of a file and a
+        count that is not ``None`` are never a proof: a receipt whose
+        evidence is incomplete is a failure, and a receipt whose truth
+        belongs to the native or the product side stays unproven and is
+        never filled with a promise.
+
+        The outer status of the run never hides an inner fact: an inner
+        receipt that failed is a failure here, whatever the outer state
+        of the run is.
         """
         canonical = self.canonical
         receipts = {}
-        evidence = self.evidence
         rows = canonical.get('rows', [])
+        total = len(rows)
+        passed = [row for row in rows if row.get('execution_status') == 'PASS']
+        all_passed = total == 16 and len(passed) == total
+        counts = canonical.get('test_counts') or {}
+        phase_pass = counts.get('PASS')
+        phase_fail = counts.get('FAIL')
         images = [row for row in rows if row.get('media_kind') == 'image']
         videos = [row for row in rows if row.get('media_kind') == 'video']
-        executed = [row for row in rows if row.get('execution_status') == 'PASS']
         provenance = self._provenance()
 
-        def make(name, status, reason, sources):
-            return {'kind': AGGREGATE_RECEIPT_KIND,
-                    'name': name,
-                    'status': status,
-                    'run_id': self.context.run_id,
-                    'candidate_sha': self.context.candidate_sha,
-                    'authorization_sha256': self.context.authorization_sha256,
-                    'reason': reason,
-                    'sources': sources,
-                    'evidence_scope': 'OFFLINE_SYNTHETIC_COMPOSITION',
-                    'product_pass_claimed': False,
-                    'stage_pass_claim': False,
-                    'product_gate0': False}
+        def make(name, status, reason, sources, obligation=None):
+            document = {'kind': AGGREGATE_RECEIPT_KIND,
+                        'name': name,
+                        'status': status,
+                        'run_id': self.context.run_id,
+                        'candidate_sha': self.context.candidate_sha,
+                        'authorization_sha256': self.context.authorization_sha256,
+                        'reason': reason,
+                        'sources': sources,
+                        'evidence_scope': 'OFFLINE_SYNTHETIC_COMPOSITION',
+                        'product_pass_claimed': False,
+                        'stage_pass_claim': False,
+                        'product_gate0': False}
+            if obligation is not None:
+                document['obligation'] = obligation
+            return document
+
+        # -- the artefacts of the run ---------------------------------------
+        artefact_references = self._artefact_references(rows)
+        sealed_raw = {}
+        if self.manifest:
+            sealed_raw = {entry['reference']: entry['sha256']
+                          for entry in self.manifest['originals']['raw']}
+        unique_artefacts = len(set(artefact_references)) == len(artefact_references)
+        inside_phase = all(reference.startswith('temp/s3-quality/')
+                           for reference in artefact_references)
+        covered_by_manifest = bool(artefact_references) \
+            and set(artefact_references) <= set(sealed_raw)
+        # The digest that the parent sealed for every artefact and the
+        # digest that the row claims for it have to be the same.  The
+        # artefacts of the run are therefore the bytes that the parent
+        # re-verified, and not only the names that the phase wrote.
+        digests_agree = bool(rows)
+        for row in rows:
+            if not isinstance(row, dict):
+                digests_agree = False
+                continue
+            for artefact_key, digest_key in ROW_ARTEFACT_DIGEST_KEYS:
+                artefact = row.get(artefact_key)
+                claimed = row.get(digest_key)
+                if not isinstance(artefact, str) or not artefact:
+                    continue
+                reference = 'temp/s3-quality/' + artefact
+                if sealed_raw.get(reference) != claimed:
+                    digests_agree = False
+        ownership = canonical.get('ownership_assurance') or {}
+        exclusive_single_write = ownership.get('exclusive_single_write') is True
+        descriptor_relative_writes = ownership.get('descriptor_relative_writes') is True
+        outputs = [row for row in rows
+                   if row.get('raw_artifact') and row.get('suggestion_artifact')]
+        reserved = canonical.get('provider_calls_reserved')
+        capacity = canonical.get('parent_budget_capacity')
+        budget_accounted = (type(reserved) is int and reserved >= 0
+                            and type(capacity) is int and reserved <= capacity
+                            and phase_fail in (0, None))
 
         receipts['stage_binding'] = make(
             'stage_binding', 'PASS',
             'THE_SEALED_BINDING_AND_THE_IDENTITY_OF_THIS_RUN_WERE_VERIFIED',
-            [{'source': 'worker_context', 'sha256': self.context.document['worker_context']['sha256']},
-             {'source': 'canonical_receipt', 'sha256': provenance['canonical']['sha256']}])
+            [{'source': 'controller_context', 'sha256': provenance['controller_context']['sha256']},
+             {'source': 'worker_context', 'sha256': self.context.document['worker_context']['sha256']},
+             {'source': 'canonical_receipt', 'sha256': provenance['canonical']['sha256']}],
+            'THE_IDENTITY_OF_THIS_RUN_MATCHES_EVERY_SEALED_DOCUMENT')
         receipts['image_input'] = make(
-            'image_input', 'PASS' if len(executed) == len(rows) and images else 'FAIL',
+            'image_input', 'PASS' if all_passed and images else 'FAIL',
             'THE_IMAGE_ROWS_OF_THIS_RUN_WERE_EXECUTED_WITH_THEIR_SEALED_SOURCE_IDENTITY',
             [{'source': 'source_plan', 'sha256': provenance['source_plan']['sha256']},
-             {'source': 'canonical_receipt', 'sha256': provenance['canonical']['sha256']}])
+             {'source': 'canonical_receipt', 'sha256': provenance['canonical']['sha256']}],
+            'EVERY_IMAGE_ROW_OF_THIS_RUN_EXECUTED_AND_PUBLISHED')
         receipts['video_input'] = make(
-            'video_input', 'PASS' if len(executed) == len(rows) and videos else 'FAIL',
+            'video_input', 'PASS' if all_passed and videos else 'FAIL',
             'THE_VIDEO_ROWS_OF_THIS_RUN_WERE_EXECUTED_WITH_THEIR_SEALED_SOURCE_IDENTITY',
             [{'source': 'source_plan', 'sha256': provenance['source_plan']['sha256']},
-             {'source': 'canonical_receipt', 'sha256': provenance['canonical']['sha256']}])
-        outputs = [row for row in rows if row.get('raw_artifact') and row.get('suggestion_artifact')]
+             {'source': 'canonical_receipt', 'sha256': provenance['canonical']['sha256']}],
+            'EVERY_VIDEO_ROW_OF_THIS_RUN_EXECUTED_AND_PUBLISHED')
         receipts['output_contract'] = make(
-            'output_contract', 'PASS' if len(outputs) == len(rows) and rows else 'FAIL',
+            'output_contract',
+            'PASS' if all_passed and len(outputs) == total and total == 16
+            and covered_by_manifest and digests_agree else 'FAIL',
             'EVERY_ROW_PUBLISHED_ITS_RAW_AND_SUGGESTION_ARTEFACTS',
-            [{'source': 'canonical_receipt', 'sha256': provenance['canonical']['sha256']}])
+            [{'source': 'canonical_receipt', 'sha256': provenance['canonical']['sha256']},
+             {'source': 'parent_manifest', 'sha256': provenance['manifest']['sha256']}],
+            'EVERY_ONE_OF_THE_SIXTEEN_ROWS_PUBLISHED_BOTH_ARTEFACTS')
         receipts['no_overwrite'] = make(
-            'no_overwrite', 'PASS',
+            'no_overwrite',
+            'PASS' if all_passed and exclusive_single_write and descriptor_relative_writes
+            and unique_artefacts and inside_phase and covered_by_manifest
+            and digests_agree else 'FAIL',
             'EVERY_ARTEFACT_OF_THIS_RUN_WAS_CREATED_EXCLUSIVELY_INSIDE_THE_OWNED_PHASE_DIRECTORY',
-            [{'source': 'canonical_receipt', 'sha256': provenance['canonical']['sha256']}])
+            [{'source': 'canonical_receipt', 'sha256': provenance['canonical']['sha256']},
+             {'source': 'parent_manifest', 'sha256': provenance['manifest']['sha256']}],
+            'NO_ARTEFACT_OF_THIS_RUN_REPLACED_AN_EXISTING_FILE')
         receipts['file_safety'] = make(
-            'file_safety', 'PASS' if self.manifest else 'FAIL',
+            'file_safety',
+            'PASS' if self.manifest and self.consumption_reverified
+            and (self.manifest.get('reverification') or {}).get('verified') is True else 'FAIL',
             'THE_PARENT_REVERIFIED_EVERY_ORIGINAL_THROUGH_THE_NO_FOLLOW_PROCEDURE',
-            [{'source': 'parent_manifest', 'sha256': provenance['manifest']['sha256']}])
+            [{'source': 'parent_manifest', 'sha256': provenance['manifest']['sha256']}],
+            'EVERY_ORIGINAL_WAS_REVERIFIED_AT_THE_CONSUMPTION_BOUNDARY')
         receipts['resource_budget'] = make(
-            'resource_budget',
-            'PASS' if canonical.get('provider_calls_reserved') is not None else 'FAIL',
+            'resource_budget', 'PASS' if all_passed and budget_accounted else 'FAIL',
             'THE_PROVIDER_CALL_BUDGET_OF_THIS_RUN_WAS_ACCOUNTED_BY_THE_PHASE',
-            [{'source': 'canonical_receipt', 'sha256': provenance['canonical']['sha256']}])
+            [{'source': 'canonical_receipt', 'sha256': provenance['canonical']['sha256']}],
+            'EVERY_PROVIDER_CALL_OF_THIS_RUN_WAS_RESERVED_INSIDE_THE_ACCEPTED_BUDGET')
         receipts['quality_16_rows'] = make(
             'quality_16_rows',
-            'PASS' if canonical.get('test_counts', {}).get('PASS') == 16 else 'FAIL',
+            'PASS' if phase_pass == 16 and counts.get('fixed') == 16 and total == 16 else 'FAIL',
             'THE_SIXTEEN_ROWS_OF_THIS_RUN_WERE_EXECUTED_AND_SEALED_BY_THE_PHASE_OWNER',
             [{'source': 'canonical_receipt', 'sha256': provenance['canonical']['sha256']},
-             {'source': 'source_plan', 'sha256': provenance['source_plan']['sha256']}])
+             {'source': 'source_plan', 'sha256': provenance['source_plan']['sha256']}],
+            'THE_FIXED_DENOMINATOR_OF_SIXTEEN_ROWS_WAS_EXECUTED')
         for name, reason in UNPROVEN_RECEIPTS.items():
             receipts[name] = make(name, 'BLOCKED', reason, [])
+        receipts['cleanup']['cleanup_proven'] = False
         independent = self._independent_score_receipt()
         if independent is not None:
             # The independent score of the run is only ever the verdict of
@@ -1044,6 +1518,19 @@ class ProductionController:
                                                'residue_rows': residue_open}]
         self.receipts = receipts
         return receipts
+
+    @staticmethod
+    def _artefact_references(rows):
+        """The root relative references of every artefact of the run."""
+        references = []
+        for row in rows:
+            if not isinstance(row, dict):
+                continue
+            for key in ROW_ARTEFACT_KEYS:
+                value = row.get(key)
+                if isinstance(value, str) and value:
+                    references.append('temp/s3-quality/' + value)
+        return references
 
     @staticmethod
     def _residue_observations(rows):
@@ -1115,32 +1602,51 @@ class ProductionController:
 
     # -- the provenance -----------------------------------------------------
     def _provenance(self):
-        """The same source chain from the context to the summary."""
-        canonical_reference = self.evidence['canonical_receipt']['reference']
-        canonical_bytes = (self.context.root / canonical_reference).read_bytes()
-        source_plan_bytes = (self.context.root / 'temp' / 's3-quality'
-                             / str(self.canonical['source_plan']['path'])).read_bytes()
+        """The same source chain from the context to the summary.
+
+        Every digest of this chain comes from the *owner* of the artefact:
+        the controller context from the bytes that were read and verified,
+        the canonical receipt and the source plan from the sealed manifest
+        of the parent, the manifest from the document of the parent.  The
+        controller never reads an original a second time on its own, so
+        the provenance can not contradict the manifest.
+        """
+        canonical_entry = self._sealed_entry('canonical')
+        source_plan_entry = self._sealed_entry('source_plan')
         manifest_bytes = canonical_json(self.manifest).encode('utf-8')
         return {
-            'controller_context': {'sha256': self.context.document['worker_context']['sha256'],
+            'controller_context': {'sha256': self.context.document_sha256,
+                                   'bytes': self.context.document_bytes,
                                    'owner': 'controller_context'},
             'projection': {'sha256': self.projection_sha256, 'owner': 'quality_phase_projection'},
             'plan': {'sha256': self.plan_sha256, 'owner': 'ParentOriginalEvidence'},
             'worker_context': {'sha256': self.context.document['worker_context']['sha256'],
                                'owner': 'WorkerContext'},
-            'canonical': {'reference': canonical_reference,
-                          'sha256': sha256_bytes(canonical_bytes),
-                          'bytes': len(canonical_bytes),
+            'canonical': {'reference': canonical_entry['reference'],
+                          'sha256': canonical_entry['sha256'],
+                          'bytes': canonical_entry['bytes'],
                           'owner': 'quality_phase_canonical_receipt'},
-            'source_plan': {'sha256': sha256_bytes(source_plan_bytes),
-                            'bytes': len(source_plan_bytes),
+            'source_plan': {'sha256': source_plan_entry['sha256'],
+                            'bytes': source_plan_entry['bytes'],
                             'owner': 'quality_phase_source_plan'},
             'manifest': {'sha256': sha256_bytes(manifest_bytes),
                          'owner': 'ParentOriginalEvidence'},
         }
 
+    def _sealed_entry(self, category):
+        """The sealed entry of one category of the manifest of the parent."""
+        if not self.manifest:
+            raise ControllerError('CONTROLLER_MANIFEST_MISSING')
+        entries = (self.manifest.get('originals') or {}).get(category) or []
+        if len(entries) != 1:
+            raise ControllerError('CONTROLLER_MANIFEST_ENTRY_INVALID:' + category)
+        return entries[0]
+
     # -- the summary --------------------------------------------------------
     def _build_summary(self):
+        # The consumption boundary: the root, the manifest and every
+        # original are re-verified right before the summary is built.
+        self._reverify_consumption_boundary()
         receipts = dict(self.receipts)
         binding = {'run_id': self.context.run_id, 'candidate_sha': self.context.candidate_sha}
         summary = aggregate_twelve_keys(receipts=receipts, binding=binding)
@@ -1154,42 +1660,92 @@ class ProductionController:
         summary['stage_pass_claim'] = False
         summary['product_gate0'] = False
         summary['real_execution_performed'] = False
+        summary['native_execution_backend_ready'] = False
+        summary['native_execution_backend_code'] = NATIVE_EXECUTION_BACKEND_NOT_READY
         return summary
 
     def _persist_summary(self):
-        directory = self.context.root / 'temp' / 's3-production-controller'
-        directory.mkdir(parents=True, exist_ok=True)
-        summary_path = directory / ('summary-' + self.context.run_id + '.json')
-        receipt_path = directory / ('receipt-' + self.context.run_id + '.json')
-        for path in (summary_path, receipt_path):
-            if path.exists():
-                raise ControllerError('CONTROLLER_SUMMARY_ALREADY_EXISTS')
-        summary_bytes = canonical_json(self.summary).encode('utf-8')
-        self._write_exclusive(summary_path, summary_bytes)
-        self.summary_path = summary_path
-        self.summary_sha256 = sha256_bytes(summary_bytes)
-        return summary_path
+        """Write the summary exactly once, inside the bound root.
+
+        The directory is walked from the bound root without following a
+        link and the leaf is created with ``O_EXCL``, so a summary is
+        never written outside the root and an existing summary is never
+        replaced.
+        """
+        directory = self._controller_directory()
+        try:
+            name = 'summary-' + self.context.run_id + '.json'
+            summary_bytes = canonical_json(self.summary).encode('utf-8')
+            try:
+                write_exclusive_at(directory, name, summary_bytes)
+            except ControllerIOError as error:
+                raise ControllerError('CONTROLLER_SUMMARY_' + error.code) from error
+            self.summary_path = self.context.root.joinpath(*CONTROLLER_DIRECTORY_PARTS) / name
+            self.summary_sha256 = sha256_bytes(summary_bytes)
+        finally:
+            os.close(directory)
+        return self.summary_path
+
+    def _persist_receipt(self, receipt):
+        """Write the receipt of this run exactly once, inside the bound root.
+
+        The receipt is written when the run took its execution right, so a
+        refused run that never sent a worker leaves no artefact in the
+        root.  A receipt that can not be written is reported as *not
+        persisted*: the failure is never hidden behind a success.
+        """
+        if not self.reservation_acquired:
+            self.receipt_persisted = False
+            self.receipt_persistence_error = 'CONTROLLER_RECEIPT_NOT_APPLICABLE_NO_RESERVATION'
+            return False
+        receipt['receipt_persistence_intent'] = 'WRITTEN_WITH_O_EXCL'
+        directory = None
+        try:
+            directory = self._controller_directory()
+            name = 'receipt-' + self.context.run_id + '.json'
+            raw = canonical_json(receipt).encode('utf-8')
+            write_exclusive_at(directory, name, raw)
+            self.receipt_path = self.context.root.joinpath(*CONTROLLER_DIRECTORY_PARTS) / name
+            self.receipt_sha256 = sha256_bytes(raw)
+            self.receipt_persisted = True
+            self.receipt_persistence_error = None
+            return True
+        except ControllerIOError as error:
+            self.receipt_persisted = False
+            self.receipt_persistence_error = 'CONTROLLER_RECEIPT_' + error.code
+            return False
+        except ControllerError as error:
+            self.receipt_persisted = False
+            self.receipt_persistence_error = error.code
+            return False
+        finally:
+            if directory is not None:
+                os.close(directory)
 
     @staticmethod
     def _write_exclusive(path, raw):
-        """Write a file exactly once.  An existing file is never replaced."""
+        """Write one explicit output file exactly once.
+
+        The file is never replaced.  This is the output of an explicit
+        entry point of a trusted local caller; every artefact of the run
+        itself is written inside the bound root.
+        """
         try:
-            descriptor = os.open(str(path), os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
-        except FileExistsError as error:
-            raise ControllerError('CONTROLLER_OUTPUT_ALREADY_EXISTS') from error
-        except OSError as error:
-            raise ControllerError('CONTROLLER_OUTPUT_UNWRITABLE') from error
-        try:
-            with os.fdopen(descriptor, 'wb') as stream:
-                stream.write(raw)
-                stream.flush()
-                os.fsync(stream.fileno())
-        except OSError as error:
-            raise ControllerError('CONTROLLER_OUTPUT_UNWRITABLE') from error
+            write_exclusive_path(path, raw)
+        except ControllerIOError as error:
+            raise ControllerError('CONTROLLER_' + error.code) from error
 
     # -- the run ------------------------------------------------------------
     def run(self):
-        """Run the composition and return the controller receipt."""
+        """Run the composition and return the controller receipt.
+
+        Every ordinary exception of the run ends in a *persisted unknown*:
+        the receipt keeps the state of the run, the reservation is kept,
+        the partial evidence is kept and the descriptors of this run are
+        closed in a bounded way.  A cancellation - ``KeyboardInterrupt``
+        or ``SystemExit`` - is never swallowed: it is re-raised after the
+        bounded cleanup.
+        """
         started = time.time()
         fd_before = _fd_snapshot()
         receipt = {'kind': CONTROLLER_RECEIPT_KIND,
@@ -1207,67 +1763,118 @@ class ProductionController:
                    'product_gate0': False,
                    'real_execution_performed': False,
                    'offline_receipts_are_not_product_receipts': True,
+                   'native_execution_backend_ready': False,
+                   'native_execution_backend_code': NATIVE_EXECUTION_BACKEND_NOT_READY,
                    'started_wall': started}
         try:
-            self._precheck()
-            receipt['admission'] = self._admission_report()
-            if self.seam is None and not receipt['admission']['accepted']:
-                raise ControllerError('CONTROLLER_NATIVE_ADMISSION_NOT_PROVEN:'
-                                      + str(receipt['admission']['primary_reason']))
-            self._enter(STATE_PRECHECK)
-            self._seal_plan()
-            self._enter(STATE_PLAN_SEALED)
-            receipt['command'] = list(self.command)
-            receipt['plan'] = {'rows': 16, 'plan_sha256': self.plan_sha256,
-                               'projection_sha256': self.projection_sha256}
-            self._supervise()
-            self._enter(STATE_WORKER_SUPERVISED)
-            receipt['supervision'] = self.evidence
-            receipt['spawn_attempts'] = self.spawn_attempts
-            if self.evidence.get('unknown_outcome') or not self.evidence.get('canonical_receipt_verified'):
-                receipt['unknown_reason'] = self.evidence.get('protocol_violation') \
-                    or 'TERMINAL_RECEIPT_NOT_VERIFIED'
-                receipt['recovery'] = self._recovery_entry()
-                receipt['state'] = STATE_UNKNOWN
+            try:
+                self._precheck()
+                receipt['admission'] = self._admission_report()
+                if self.seam is None:
+                    # There is no accepted native execution backend on this
+                    # platform.  The native path refuses here, before any
+                    # spawn and before any native driver is constructed, and
+                    # the refusal has the same stable code on the worker
+                    # side.
+                    raise ControllerError('CONTROLLER_' + NATIVE_EXECUTION_BACKEND_NOT_READY)
+                self._enter(STATE_PRECHECK)
+                # The exclusive execution right of this run is taken before
+                # any worker is sent.
+                self._acquire_reservation()
+                receipt['reservation'] = self.reservation
+                self._seal_plan()
+                self._enter(STATE_PLAN_SEALED)
+                receipt['command'] = list(self.command)
+                receipt['plan'] = {'rows': 16, 'plan_sha256': self.plan_sha256,
+                                   'projection_sha256': self.projection_sha256}
+                self._supervise()
+                self._enter(STATE_WORKER_SUPERVISED)
+                receipt['supervision'] = self.evidence
+                receipt['spawn_attempts'] = self.spawn_attempts
+                if self.evidence.get('unknown_outcome') \
+                        or not self.evidence.get('canonical_receipt_verified'):
+                    receipt['unknown_reason'] = self.evidence.get('protocol_violation') \
+                        or 'TERMINAL_RECEIPT_NOT_VERIFIED'
+                    receipt['recovery'] = self._recovery_entry()
+                    receipt['state'] = STATE_UNKNOWN
+                    receipt['root_retained'] = True
+                    receipt['reservation_retained'] = True
+                    receipt['refund_allowed'] = False
+                    receipt['resend_allowed'] = False
+                    receipt['archive_allowed'] = False
+                    receipt['summary_persisted'] = False
+                    return receipt
+                self._verify_originals()
+                self._enter(STATE_ORIGINALS_VERIFIED)
+                receipt['manifest'] = self.manifest
+                self._bind_receipts()
+                self._enter(STATE_RECEIPTS_BOUND)
+                receipt['receipts'] = self.receipts
+                receipt['residue_observations'] = self.residue_observations
+                self.summary = self._build_summary()
+                receipt['summary'] = self.summary
+                receipt['consumption_reverified'] = self.consumption_reverified
+                self._persist_summary()
+                self._enter(STATE_SUMMARY_PERSISTED)
+                receipt['state'] = STATE_SUMMARY_PERSISTED
+                receipt['summary_persisted'] = True
+                receipt['summary_path'] = str(self.summary_path)
+                receipt['summary_sha256'] = self.summary_sha256
+                # The root and the reservation are retained whenever the
+                # cleanup of the product is not proven.  The exit of the
+                # worker proves the worker and never the cleanup of a
+                # native service that was never started here.
+                receipt['cleanup_proven'] = False
+                receipt['root_retained'] = True
+                receipt['reservation_retained'] = True
+                receipt['root_retained_reason'] = 'PRODUCT_CLEANUP_NOT_PROVEN'
+                receipt['refund_allowed'] = False
+                receipt['resend_allowed'] = False
+            except ControllerError as error:
+                receipt['refusals'].append(error.code)
+                # A refusal that happened before any worker was sent is a
+                # refusal of the run, not an unknown outcome: nothing was
+                # started and nothing can arrive late.
+                receipt['state'] = STATE_REFUSED if self.spawn_attempts == 0 else STATE_UNKNOWN
+                receipt['summary_persisted'] = False
+                receipt['cleanup_proven'] = False
                 receipt['root_retained'] = True
                 receipt['reservation_retained'] = True
                 receipt['refund_allowed'] = False
                 receipt['resend_allowed'] = False
                 receipt['archive_allowed'] = False
+                receipt['unknown_reason'] = error.code
+                if self.state is not None and self.state != STATE_PRECHECK:
+                    receipt['recovery'] = self._recovery_entry()
+            except Exception as error:  # noqa: BLE001 - the failure stays visible
+                # An ordinary exception of the run is an unknown outcome of
+                # the run, never a success and never a silent exit.
+                code = 'CONTROLLER_UNEXPECTED_EXCEPTION:' + type(error).__name__
+                receipt['refusals'].append(code)
+                receipt['state'] = STATE_UNKNOWN
                 receipt['summary_persisted'] = False
-                return self._finish(receipt, fd_before)
-            self._verify_originals()
-            self._enter(STATE_ORIGINALS_VERIFIED)
-            receipt['manifest'] = self.manifest
-            self._bind_receipts()
-            self._enter(STATE_RECEIPTS_BOUND)
-            receipt['receipts'] = self.receipts
-            receipt['residue_observations'] = self.residue_observations
-            self.summary = self._build_summary()
-            receipt['summary'] = self.summary
-            self._persist_summary()
-            self._enter(STATE_SUMMARY_PERSISTED)
-            receipt['state'] = STATE_SUMMARY_PERSISTED
-            receipt['summary_persisted'] = True
-            receipt['summary_path'] = str(self.summary_path)
-            receipt['summary_sha256'] = self.summary_sha256
-            receipt['root_retained'] = bool(self.evidence.get('root_retained'))
-            receipt['reservation_retained'] = bool(self.evidence.get('reservation_retained'))
-            receipt['refund_allowed'] = False
-            receipt['resend_allowed'] = False
-        except ControllerError as error:
-            receipt['refusals'].append(error.code)
-            receipt['state'] = STATE_REFUSED if not self.transitions else STATE_UNKNOWN
-            receipt['summary_persisted'] = False
-            receipt['root_retained'] = True
-            receipt['reservation_retained'] = True
-            receipt['refund_allowed'] = False
-            receipt['resend_allowed'] = False
-            receipt['archive_allowed'] = False
-            receipt['unknown_reason'] = error.code
-            if self.state is not None and self.state != STATE_PRECHECK:
-                receipt['recovery'] = self._recovery_entry()
-        return self._finish(receipt, fd_before)
+                receipt['cleanup_proven'] = False
+                receipt['root_retained'] = True
+                receipt['reservation_retained'] = True
+                receipt['refund_allowed'] = False
+                receipt['resend_allowed'] = False
+                receipt['archive_allowed'] = False
+                receipt['unknown_reason'] = code
+                receipt['exception_detail'] = repr(error)[:400]
+                if self.state is not None and self.state != STATE_PRECHECK:
+                    receipt['recovery'] = self._recovery_entry()
+            finally:
+                self._finish(receipt, fd_before)
+                self._persist_receipt(receipt)
+                receipt['receipt_persisted'] = self.receipt_persisted
+                receipt['receipt_persistence_error'] = self.receipt_persistence_error
+                receipt['receipt_path'] = str(self.receipt_path) if self.receipt_path else None
+        except (KeyboardInterrupt, SystemExit):
+            # A cancellation is never swallowed and never turned into a
+            # success.  The bounded cleanup already happened in the inner
+            # ``finally``.
+            raise
+        return receipt
 
     def _recovery_entry(self):
         """The recovery entry of an unknown outcome.
@@ -1294,11 +1901,22 @@ class ProductionController:
         return RecoveryEntry(custody=custody).recover()
 
     def _finish(self, receipt, fd_before):
+        """The bounded end of the run.
+
+        The descriptors of this run are closed here and the facts of the
+        cleanup are recorded here.  A worker thread that did not end is
+        *retained* and reported as retained: the run never claims that
+        nothing can write after it returned.
+        """
         if self.seam is not None:
             # The seam closes its own descriptors before the descriptor
             # snapshot of the receipt is taken.
-            self.seam.close()
+            try:
+                self.seam.close()
+            except Exception:  # noqa: BLE001 - the cleanup stays bounded
+                pass
         receipt['transitions'] = list(self.transitions)
+        receipt['spawn_attempts'] = self.spawn_attempts
         receipt['duration_seconds'] = round(time.time() - receipt['started_wall'], 6)
         receipt['source_sha256'] = self._source_digests()
         receipt['node_id'] = self._node_id(receipt)
@@ -1313,7 +1931,9 @@ class ProductionController:
                                       self.seam.worker_thread_finished) if self.seam else None,
                                   'worker_exit_code': (self.seam.worker_exit_code
                                                        if self.seam else None),
-                                  'readers_closed': self._readers_closed()}
+                                  'readers_closed': self._readers_closed(),
+                                  'worker_lifecycle': (self.seam.lifecycle()
+                                                       if self.seam else None)}
         receipt['stage_pass_claim'] = False
         receipt['product_gate0'] = False
         receipt['real_execution_performed'] = False
@@ -1358,10 +1978,13 @@ class ProductionController:
 def main(argv=None):
     """The formal command line entry of the controller.
 
-    The argument set is closed: the sealed controller context, the optional
-    seal of that context and the optional path of the receipt.  There is no
-    switch that turns a refusal into an execution and there is no argument
-    that names a command, a module or a callback.
+    The argument set is closed: the sealed controller context, the *exact*
+    seal of that context and the optional path of the receipt.  The seal is
+    not optional: the entry never computes the expectation itself, so a
+    context that was replaced between the sealing and the start is refused
+    here and not later.  There is no switch that turns a refusal into an
+    execution and there is no argument that names a command, a module or a
+    callback.
     """
     arguments = list(sys.argv[1:] if argv is None else argv)
     context_path = None
@@ -1386,6 +2009,12 @@ def main(argv=None):
         return EXIT_REFUSED
     if context_path is None:
         sys.stderr.write('S3_CONTROLLER_REFUSED CONTROLLER_CONTEXT_ARGUMENT_REQUIRED\n')
+        return EXIT_REFUSED
+    if context_sha256 is None:
+        sys.stderr.write('S3_CONTROLLER_REFUSED CONTROLLER_CONTEXT_HASH_ARGUMENT_REQUIRED\n')
+        return EXIT_REFUSED
+    if not re.fullmatch(r'[0-9a-f]{64}', context_sha256):
+        sys.stderr.write('S3_CONTROLLER_REFUSED CONTROLLER_CONTEXT_HASH_INVALID\n')
         return EXIT_REFUSED
     try:
         context = ControllerContext.load(context_path, expected_sha256=context_sha256)

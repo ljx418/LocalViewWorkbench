@@ -26,11 +26,20 @@ PACK_ROOT = Path(__file__).resolve().parents[1]
 if str(PACK_ROOT) not in sys.path:
     sys.path.insert(0, str(PACK_ROOT))
 
+from tools.v0_s3_controller_io import (  # noqa: E402 - the path is set above
+    ControllerIOError, read_bounded_in_root, read_bounded_regular)
 from tools.v0_s3_quality_phase import (  # noqa: E402 - the path is set above
     CANONICAL_RECEIPT_NAME, QualityPhase, QualityContractError)
 from tools.v0_s3_supervisor import PROTOCOL_SCHEMA  # noqa: E402 - the path is set above
 
 CONTEXT_SCHEMA = 'lvw.s3-quality-worker-context/1'
+
+# The stable code of the one missing capability of this platform.  There
+# is no accepted native execution backend today, so the *default* entry of
+# the worker refuses before any native driver is constructed.  The typed
+# offline driver of the composition is a Python object and is never
+# reachable from the command line.
+NATIVE_EXECUTION_BACKEND_NOT_READY = 'NATIVE_EXECUTION_BACKEND_NOT_READY'
 CONTEXT_KEYS = frozenset({
     'schema', 'run_id', 'candidate_sha', 'authorization_sha256', 'root',
     'projection_path', 'projection_sha256', 'source_identity_path',
@@ -68,16 +77,21 @@ def sha256_bytes(raw):
 
 
 def _read_sealed(path, expected_sha256, limit=8 * 1024 * 1024):
-    """Read one bounded file and check its seal again."""
+    """Read one bounded file and check its seal again.
+
+    The bytes are taken from the handle that was opened and verified, and
+    the bound is applied to the bytes that are really requested from the
+    kernel: an oversized file is refused without being read into the
+    memory of the process, and a link or a special file is never read as
+    a file.
+    """
     target = Path(path)
     if not target.is_absolute():
         target = PACK_ROOT / target
     try:
-        raw = target.read_bytes()
-    except OSError as error:
-        raise WorkerError('WORKER_FILE_UNREADABLE') from error
-    if len(raw) > limit:
-        raise WorkerError('WORKER_FILE_TOO_LARGE')
+        raw = read_bounded_regular(target, limit)
+    except ControllerIOError as error:
+        raise WorkerError('WORKER_FILE_' + error.code) from error
     if sha256_bytes(raw) != expected_sha256:
         raise WorkerError('WORKER_FILE_SEAL_MISMATCH')
     return raw
@@ -122,15 +136,26 @@ class WorkerContext:
         self.authorization_sha256 = document['authorization_sha256']
         self.root = Path(document['root'])
         self.canonical_receipt_reference = reference
+        # The digest and the length of the very bytes of this context.
+        self.document_sha256 = None
+        self.document_bytes = None
 
     @classmethod
     def load(cls, path, *, expected_sha256=None):
-        raw = _read_sealed(path, expected_sha256) if expected_sha256 else Path(path).read_bytes()
+        if not expected_sha256:
+            # The worker never computes the expectation itself: the hash of
+            # the context is always given to it by the caller that sealed
+            # it.
+            raise WorkerError('WORKER_CONTEXT_HASH_REQUIRED')
+        raw = _read_sealed(path, expected_sha256)
         try:
             document = json.loads(raw.decode('utf-8'))
         except (UnicodeDecodeError, ValueError) as error:
             raise WorkerError('WORKER_CONTEXT_NOT_JSON') from error
-        return cls(document)
+        context = cls(document)
+        context.document_sha256 = sha256_bytes(raw)
+        context.document_bytes = len(raw)
+        return context
 
     def projection(self):
         return _read_sealed(self.document['projection_path'],
@@ -189,12 +214,12 @@ class WorkerContext:
                     or not re.fullmatch('[0-9a-f]{64}', str(entry.get('sha256')))):
                 raise WorkerError('WORKER_DEPENDENCY_MANIFEST_INVALID')
             target = Path(entry['path'])
-            if not target.is_file():
-                raise WorkerError('WORKER_DEPENDENCY_FILE_MISSING')
             try:
-                actual = sha256_bytes(target.read_bytes())
-            except OSError as error:
-                raise WorkerError('WORKER_DEPENDENCY_FILE_UNREADABLE') from error
+                actual = sha256_bytes(read_bounded_regular(target))
+            except ControllerIOError as error:
+                if error.code == 'FILE_UNREADABLE' and error.detail == 'ENOENT':
+                    raise WorkerError('WORKER_DEPENDENCY_FILE_MISSING') from error
+                raise WorkerError('WORKER_DEPENDENCY_FILE_' + error.code) from error
             if actual != entry['sha256']:
                 raise WorkerError('WORKER_DEPENDENCY_FILE_DRIFT')
         return value
@@ -290,11 +315,12 @@ def run_worker(context, *, driver=None, emit=None, authorize=None, clock=None, s
                           clock=clock, sleep=sleep, progress_sink=sink)
     receipt = phase.run()
     reference = context.canonical_receipt_reference
-    path = context.root / reference
     try:
-        raw = path.read_bytes()
-    except OSError as error:
-        raise WorkerError('WORKER_CANONICAL_RECEIPT_UNREADABLE') from error
+        # The canonical receipt is read through the bound root, without
+        # following a link and with a real bound.
+        raw = read_bounded_in_root(context.root, reference)
+    except ControllerIOError as error:
+        raise WorkerError('WORKER_CANONICAL_RECEIPT_' + error.code) from error
     emit('TERMINAL', {'canonical_receipt': {'reference': reference,
                                             'bytes': len(raw),
                                             'sha256': sha256_bytes(raw)},
@@ -307,44 +333,90 @@ def run_worker(context, *, driver=None, emit=None, authorize=None, clock=None, s
     return receipt
 
 
+def _write_refusal(stream, text):
+    """Write one refusal to a text stream or to a binary stream.
+
+    The exact code of the refusal is preserved in both cases.  A binary
+    stream receives the UTF-8 bytes of the very same text, so a
+    ``TypeError`` of the stream can never replace the code of the
+    refusal with an exception of its own.
+    """
+    try:
+        stream.write(text)
+        return
+    except TypeError:
+        pass
+    except (OSError, ValueError):
+        return
+    try:
+        stream.write(text.encode('utf-8'))
+    except (OSError, ValueError):
+        pass
+
+
 def main(argv=None, *, driver=None, stream=None, error_stream=None):
     """The production entry of the worker.
 
     The three keyword only arguments are the internal wiring of the
     composition: they let an in-process caller replace the *construction* of
     the native driver and the two output streams.  The command line entry
-    passes none of them, so the production path always builds the native
-    driver from the bound context and always speaks on the standard output
-    of the process.  The seam is a Python argument and never a document or
-    a switch, so it can not become a back door of a real execution.
+    passes none of them, so the command line path can never construct a
+    native driver at all.
+
+    The command line entry of this worker refuses the native execution
+    with the stable code ``NATIVE_EXECUTION_BACKEND_NOT_READY``: there is
+    no accepted native execution backend on this platform, so the refusal
+    happens before any driver is constructed and before any model is
+    touched.  The typed offline driver of the composition is a Python
+    object that is never reachable from the command line and never
+    serialised into a context document.
+
+    The context of the worker is always loaded against the hash that the
+    caller sealed.  The worker never computes the expectation itself, so
+    a context that was replaced after the sealing is refused on every
+    load.
     """
     arguments = list(sys.argv[1:] if argv is None else argv)
     context_path = None
-    index = 0
-    while index < len(arguments):
-        if arguments[index] == '--context' and index + 1 < len(arguments):
-            context_path = arguments[index + 1]
-            index += 2
-            continue
-        raise WorkerError('WORKER_ARGUMENT_INVALID')
-    if context_path is None:
-        raise WorkerError('WORKER_CONTEXT_ARGUMENT_REQUIRED')
+    context_sha256 = None
     target = stream if stream is not None else sys.stdout.buffer
     errors = error_stream if error_stream is not None else sys.stderr
+    index = 0
     try:
-        context = WorkerContext.load(context_path)
+        while index < len(arguments):
+            if arguments[index] == '--context' and index + 1 < len(arguments):
+                context_path = arguments[index + 1]
+                index += 2
+                continue
+            if arguments[index] == '--context-sha256' and index + 1 < len(arguments):
+                context_sha256 = arguments[index + 1]
+                index += 2
+                continue
+            raise WorkerError('WORKER_ARGUMENT_INVALID')
+        if context_path is None:
+            raise WorkerError('WORKER_CONTEXT_ARGUMENT_REQUIRED')
+        if context_sha256 is None:
+            raise WorkerError('WORKER_CONTEXT_HASH_ARGUMENT_REQUIRED')
+        if not re.fullmatch(r'[0-9a-f]{64}', context_sha256):
+            raise WorkerError('WORKER_CONTEXT_HASH_INVALID')
         if driver is None:
-            driver = build_native_driver(context)
+            # The default entry of the worker refuses the native
+            # execution before any driver is constructed.
+            raise WorkerError(NATIVE_EXECUTION_BACKEND_NOT_READY)
+        context = WorkerContext.load(context_path, expected_sha256=context_sha256)
         run_worker(context, driver=driver,
                    emit=ProtocolWriter(target, run_id=context.run_id,
                                        candidate_sha=context.candidate_sha,
                                        authorization_sha256=context.authorization_sha256
                                        ).emit)
     except WorkerError as error:
-        errors.write('S3_WORKER_REFUSED ' + error.code + '\n')
+        _write_refusal(errors, 'S3_WORKER_REFUSED ' + error.code + '\n')
         return 2
     except QualityContractError as error:
-        errors.write('S3_WORKER_REFUSED QUALITY ' + str(error)[:120] + '\n')
+        _write_refusal(errors, 'S3_WORKER_REFUSED QUALITY ' + str(error)[:120] + '\n')
+        return 3
+    except Exception as error:  # noqa: BLE001 - the failure stays visible
+        _write_refusal(errors, 'S3_WORKER_REFUSED EXCEPTION ' + type(error).__name__ + '\n')
         return 3
     return 0
 
@@ -355,6 +427,13 @@ def build_native_driver(context):
     The native driver is the accepted ``NativeRuntime``.  It is only built
     from the bound context; nothing is imported dynamically and no service is
     started by this function.
+
+    This function is the *future* interface of the native execution and it
+    is not reachable from the command line of this worker: the default
+    entry refuses the native execution with
+    ``NATIVE_EXECUTION_BACKEND_NOT_READY`` before any driver is
+    constructed.  A caller that reaches this function has already proved
+    the admission of the native execution somewhere else.
     """
     from tools.v0_s2_runtime import NativeRuntime
     values = context.document['driver_arguments']

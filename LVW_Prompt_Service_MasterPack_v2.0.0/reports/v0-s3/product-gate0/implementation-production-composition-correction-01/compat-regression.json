@@ -1,0 +1,109 @@
+{
+  "kind": "lvw.s3-production-composition-correction-compat/1",
+  "batches": [
+    {
+      "label": "compat-supervisor",
+      "argv": [
+        "/usr/bin/python3",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "--tb=line",
+        "tools/test_v0_s3_supervisor.py"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "targets": [
+        "tools/test_v0_s3_supervisor.py"
+      ],
+      "started_utc": "2026-11-13T11:04:08Z",
+      "ended_utc": "2026-11-13T11:05:09Z",
+      "duration_seconds": 61.631,
+      "exit_code": 0,
+      "stdout_log": "compat-supervisor.stdout.log",
+      "stderr_log": "compat-supervisor.stderr.log",
+      "is_part_of_the_directed_scope": false,
+      "note": "compatibility regression of the frozen owners; the machine gate of the fixture process tests is not bound, so those nodes are skipped and no host process was started"
+    },
+    {
+      "label": "compat-integration-quality-phase",
+      "argv": [
+        "/usr/bin/python3",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "--tb=line",
+        "tools/test_v0_s3_integration.py",
+        "tools/test_v0_s3_quality_phase.py"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "targets": [
+        "tools/test_v0_s3_integration.py",
+        "tools/test_v0_s3_quality_phase.py"
+      ],
+      "started_utc": "2026-11-13T11:05:09Z",
+      "ended_utc": "2026-11-13T11:06:50Z",
+      "duration_seconds": 100.837,
+      "exit_code": 0,
+      "stdout_log": "compat-integration-quality-phase.stdout.log",
+      "stderr_log": "compat-integration-quality-phase.stderr.log",
+      "is_part_of_the_directed_scope": false,
+      "note": "compatibility regression of the frozen owners; the machine gate of the fixture process tests is not bound, so those nodes are skipped and no host process was started"
+    },
+    {
+      "label": "compat-budget-authority",
+      "argv": [
+        "/usr/bin/python3",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "--tb=line",
+        "tools/test_v0_s3_budget_authority.py"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "targets": [
+        "tools/test_v0_s3_budget_authority.py"
+      ],
+      "started_utc": "2026-11-13T11:06:50Z",
+      "ended_utc": "2026-11-13T11:06:53Z",
+      "duration_seconds": 2.374,
+      "exit_code": 0,
+      "stdout_log": "compat-budget-authority.stdout.log",
+      "stderr_log": "compat-budget-authority.stderr.log",
+      "is_part_of_the_directed_scope": false,
+      "note": "compatibility regression of the frozen owners; the machine gate of the fixture process tests is not bound, so those nodes are skipped and no host process was started"
+    },
+    {
+      "label": "compat-runtime-binding",
+      "argv": [
+        "/usr/bin/python3",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "--tb=line",
+        "tools/test_v0_s3_runtime_binding.py"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "targets": [
+        "tools/test_v0_s3_runtime_binding.py"
+      ],
+      "started_utc": "2026-11-13T11:06:53Z",
+      "ended_utc": "2026-11-13T11:09:47Z",
+      "duration_seconds": 174.345,
+      "exit_code": 0,
+      "stdout_log": "compat-runtime-binding.stdout.log",
+      "stderr_log": "compat-runtime-binding.stderr.log",
+      "is_part_of_the_directed_scope": false,
+      "note": "compatibility regression of the frozen owners; the machine gate of the fixture process tests is not bound, so those nodes are skipped and no host process was started"
+    }
+  ],
+  "cases_are_not_the_directed_scope": true,
+  "the_old_denominators_are_not_counted_here": true
+}

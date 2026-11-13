@@ -1138,21 +1138,34 @@ FIXTURE_SCENARIOS = (
 )
 
 
-def build_production_command(context_path, *, python=None):
+def build_production_command(context_path, *, python=None, context_sha256=None):
     """The frozen production command of the quality worker.
 
     The production entry starts exactly the fixed quality worker with one
     context document.  A fixture script, a dynamic import or an arbitrary
     argument vector is never a production command.
+
+    The command carries the *pre-sealed* hash of the worker context down to
+    the worker.  The worker never computes the expectation itself: it
+    verifies every load of the context against the hash that this command
+    carries, so a context that was replaced after the sealing is refused
+    instead of being loaded with a recomputed expectation.  The hash is the
+    only internal argument that the command adds; it names no command, no
+    module and no callback.
     """
     script = PACK_ROOT / WORKER_SCRIPT
     if not script.is_file():
         raise SupervisionError('WORKER_SCRIPT_MISSING')
+    if context_sha256 is None:
+        raise SupervisionError('WORKER_CONTEXT_HASH_REQUIRED')
+    if not re.fullmatch(r'[0-9a-f]{64}', str(context_sha256)):
+        raise SupervisionError('WORKER_CONTEXT_HASH_INVALID')
     executable = python or 'python3'
     context = Path(context_path)
     if not context.is_absolute():
         context = PACK_ROOT / context
-    return [executable, '-I', '-B', str(script), '--context', str(context)]
+    return [executable, '-I', '-B', str(script), '--context', str(context),
+            '--context-sha256', str(context_sha256)]
 
 
 def build_fixture_command(scenario, *, python=None, arguments=()):

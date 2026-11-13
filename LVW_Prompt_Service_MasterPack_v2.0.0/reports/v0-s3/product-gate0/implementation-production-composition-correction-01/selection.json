@@ -1,0 +1,22 @@
+{
+  "scope": "concentrated_directed_scope",
+  "positive_example": "tools/test_v0_s3_production_composition.py::test_the_formal_entry_runs_the_whole_chain_and_persists_the_summary",
+  "composition_file": "tools/test_v0_s3_production_composition.py",
+  "compatibility_nodes": [
+    "tools/test_v0_s3_supervisor.py::test_the_worker_really_invokes_the_quality_phase",
+    "tools/test_v0_s3_supervisor.py::test_the_history_wait_is_announced_before_the_row_finishes",
+    "tools/test_v0_s3_supervisor.py::test_a_context_with_a_wrong_seal_is_refused",
+    "tools/test_v0_s3_supervisor.py::test_a_context_with_an_unknown_key_is_refused",
+    "tools/test_v0_s3_supervisor.py::test_the_production_command_is_the_fixed_worker",
+    "tools/test_v0_s3_supervisor.py::test_the_production_command_carries_the_pre_sealed_context_hash"
+  ],
+  "rationale": "one positive example of the whole chain, one negative example for every finding of the independent review (M01-M09, m01, m02) and the necessary compatibility nodes of the frozen owners; the old 123/84/13/41/186/257 denominators are not rerun and are not counted here",
+  "not_rerun": [
+    "the 84 node integration suite",
+    "the 13 node fixture suite",
+    "the 41 node supervisor suite",
+    "the 186 and 257 node suites",
+    "the original ledger",
+    "any native execution"
+  ]
+}

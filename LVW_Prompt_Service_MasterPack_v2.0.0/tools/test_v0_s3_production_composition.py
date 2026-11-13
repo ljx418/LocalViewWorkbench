@@ -18,7 +18,9 @@ they are replaced by an explicit in-process seam.
 Every receipt of this suite is labelled as an offline synthetic fact.  None
 of them is a product pass, a stage pass or a gate.
 """
+import contextlib
 import hashlib
+import io
 import json
 import os
 import shutil
@@ -26,6 +28,7 @@ import socket
 import sqlite3
 import subprocess
 import sys
+import threading
 import time
 from pathlib import Path
 
@@ -315,21 +318,23 @@ def test_the_command_line_entry_refuses_a_wrong_context_seal(tmp_path):
 
 
 def test_the_native_path_is_refused_before_any_spawn(tmp_path):
-    """A/C01: the native path stops in the precheck with zero spawn.
+    """A/C01/M02: the native path stops in the precheck with zero spawn.
 
-    The admission record of this composition names no accepted native
-    custody, no GPU release, no installation, no rollback, no grant and no
-    tool closure, so the native execution is not admitted.  Nothing is
-    spawned and no artefact of the run is written.
+    There is no accepted native execution backend on this platform, so the
+    native path refuses with the stable code
+    ``NATIVE_EXECUTION_BACKEND_NOT_READY`` before any spawn and before
+    any native driver is constructed.  Nothing is spawned and no artefact
+    of the run is written.
     """
     composition = _build_composition(tmp_path)
     context = _controller_context(composition['controller_context_path'])
     receipt = controller.ProductionController(context).run()
     assert receipt['state'] == controller.STATE_REFUSED
     assert receipt['spawn_attempts'] == 0
-    assert receipt['refusals'] == ['CONTROLLER_NATIVE_ADMISSION_NOT_PROVEN:'
-                                    + str(receipt['admission']['primary_reason'])]
+    assert receipt['refusals'] == ['CONTROLLER_NATIVE_EXECUTION_BACKEND_NOT_READY']
     assert receipt['admission']['accepted'] is False
+    assert receipt['admission']['native_execution_backend_ready'] is False
+    assert receipt['admission']['primary_reason'] == 'NATIVE_EXECUTION_BACKEND_NOT_READY'
     assert receipt['stage_pass_claim'] is False
     assert receipt['product_gate0'] is False
     # no business artefact of the run was written
@@ -345,7 +350,9 @@ def test_the_command_line_entry_of_a_valid_context_refuses_the_native_run(tmp_pa
     turns the refusal into an execution.
     """
     composition = _build_composition(tmp_path)
-    code = controller.main(['--context', str(composition['controller_context_path'])])
+    code = controller.main(['--context', str(composition['controller_context_path']),
+                            '--context-sha256',
+                            _digest_of(composition['controller_context_path'])])
     assert code == controller.EXIT_REFUSED
     captured = capsys.readouterr()
     receipt = json.loads(captured.out)
@@ -961,3 +968,646 @@ def test_a_residue_that_is_not_empty_is_never_read_as_an_empty_residue(tmp_path)
     # the controller deleted nothing of the run root
     assert (composition['root'] / 'temp/s3-quality').is_dir()
     assert (composition['root'] / 'input').is_dir()
+
+
+# --------------------------------------------------------------------------
+# E: the directed correction scope of the production composition correction 01
+#
+# The scope is one positive example of the whole chain and one negative
+# example for every finding of the independent review: M01, M02, M03, M04,
+# M05, M06, M07, M08, M09, m01 and m02.  Nothing of the old denominators
+# is rerun mechanically here: the scope is the findings themselves.
+#
+# Every example drives the *formal* command line entry of the controller.
+# The offline seam is injected at the Python construction site only, so the
+# argument set of the entry stays closed and the entry never learns about
+# the seam.
+# --------------------------------------------------------------------------
+def _formal_main(composition, monkeypatch, *, fault='none', transition=None,
+                 factory=None, driver_failure=None, clock=None, holder=None,
+                 worker_wait_timeout=5.0):
+    """Run the formal command line entry of the controller.
+
+    The entry receives the sealed controller context and its *exact* hash.
+    The seam is a Python object that is injected into the construction of
+    the controller and that is never an argument, a document field or a
+    switch.
+    """
+    if driver_failure is None:
+        driver_failure = composition.get('driver_failure')
+    seam = controller.OfflineCompositionSeam(
+        driver_factory=factory or (lambda ctx: _helpers().SyntheticDriver(
+            Path(ctx.document['root']), driver_failure)),
+        context_sha256=composition['worker_context_sha256'],
+        fault=fault,
+        clock=clock,
+        worker_wait_timeout=worker_wait_timeout)
+    seam.on_transition = transition
+    if holder is not None:
+        holder['seam'] = seam
+    original = controller.ProductionController
+
+    class Injected(original):
+        def __init__(self, context):
+            super().__init__(context, seam=seam)
+
+    output = io.StringIO()
+    errors = io.StringIO()
+    arguments = ['--context', str(composition['controller_context_path']),
+                 '--context-sha256', _digest_of(composition['controller_context_path'])]
+    with monkeypatch.context() as scope:
+        scope.setattr(controller, 'ProductionController', Injected)
+        with contextlib.redirect_stdout(output), contextlib.redirect_stderr(errors):
+            code = controller.main(arguments)
+    receipt = None
+    if output.getvalue().strip():
+        receipt = json.loads(output.getvalue())
+    return code, receipt, seam, errors.getvalue()
+
+
+def _controller_directory_of(composition):
+    return composition['root'] / 'temp' / 's3-production-controller'
+
+
+# ---- the positive example ------------------------------------------------
+def test_the_formal_entry_runs_the_whole_chain_and_persists_the_summary(tmp_path, monkeypatch):
+    """C02/I07: the positive example of the whole production chain.
+
+    The formal entry of the controller starts the fixed production command,
+    the formal worker entry loads the sealed context, the real quality
+    phase executes the sixteen rows, the real protocol writer speaks over a
+    real pipe, the real parent reader reads it, the real canonical receipt
+    is sealed by the real parent evidence, the receipts are adapted from
+    the facts of this run and the summary is persisted inside the bound
+    root.
+    """
+    composition = _build_composition(tmp_path)
+    code, receipt, seam, errors = _formal_main(composition, monkeypatch)
+
+    assert code == controller.EXIT_PERSISTED
+    assert receipt['state'] == controller.STATE_SUMMARY_PERSISTED
+    assert receipt['transitions'] == ['PRECHECK', 'PLAN_SEALED', 'WORKER_SUPERVISED',
+                                      'ORIGINALS_VERIFIED', 'RECEIPTS_BOUND',
+                                      'SUMMARY_PERSISTED']
+    assert seam.spawns == 1
+    assert receipt['spawn_attempts'] == 1
+
+    # the fixed production command carries the pre-sealed worker hash
+    command = receipt['command']
+    assert command[1:4] == ['-I', '-B', str(PACK_ROOT / 'tools/v0_s3_quality_worker.py')]
+    assert command[4:6] == ['--context', str(composition['worker_context_path'])]
+    assert command[6:8] == ['--context-sha256', composition['worker_context_sha256']]
+
+    # the real phase really wrote its canonical receipt
+    canonical = json.loads((composition['root'] / 'temp/s3-quality/qd-receipt.json')
+                           .read_text('utf-8'))
+    assert len(canonical['rows']) == 16
+    assert canonical['test_counts']['PASS'] == 16
+    assert receipt['supervision']['message_count'] > 16
+    assert receipt['supervision']['canonical_receipt_verified'] is True
+
+    # the manifest is the consumption boundary of the originals
+    assert receipt['manifest']['reverification']['verified'] is True
+    assert receipt['consumption_reverified'] is True
+
+    # the summary and the receipt are written exactly once, inside the root
+    directory = _controller_directory_of(composition)
+    summary_path = directory / ('summary-' + RUN_ID + '.json')
+    receipt_path = directory / ('receipt-' + RUN_ID + '.json')
+    assert summary_path.is_file()
+    assert receipt_path.is_file()
+    summary = json.loads(summary_path.read_text('utf-8'))
+    assert summary['kind'] == controller.SUMMARY_KIND
+    assert summary['key_count'] == 12
+    assert summary['pass_count'] == 0
+    assert summary['stage_pass_claim'] is False
+    assert summary['product_gate0'] is False
+    assert receipt['receipt_persisted'] is True
+
+    # the provenance names the real controller context and the worker context
+    provenance = summary['provenance']
+    assert provenance['controller_context']['sha256'] == \
+        _digest_of(composition['controller_context_path'])
+    assert provenance['worker_context']['sha256'] == composition['worker_context_sha256']
+    assert provenance['canonical']['sha256'] == \
+        receipt['manifest']['originals']['canonical'][0]['sha256']
+
+    # the lifecycle of the worker thread is honest
+    lifecycle = receipt['fd_cleanup']['worker_lifecycle']
+    assert lifecycle['worker_thread_finished'] is True
+    assert lifecycle['worker_thread_retained'] is False
+    assert lifecycle['late_write_after_return_is_possible'] is False
+    assert receipt['fd_cleanup']['fd_leaked'] == []
+
+
+# ---- M01: the comparison of a value ---------------------------------------
+def test_the_comparison_of_a_value_is_a_comparison_of_the_type_and_the_value(tmp_path):
+    """M01: a decoded string is equal to the expected literal.
+
+    The comparison of a *value* was an identity test, so every normally
+    decoded document was refused and only a Python literal that happened to
+    be the very same object passed.  The comparison is now a comparison of
+    the type and of the value, and a boolean proof is still compared with
+    its identity.
+    """
+    composition = _build_composition(tmp_path)
+    context = _controller_context(composition['controller_context_path'])
+    decoded = json.loads(json.dumps({'run_id': RUN_ID, 'candidate_sha': CANDIDATE_SHA,
+                                     'status': 'PROVEN', 'grant_active': True}))
+    reasons = []
+    assert controller._bound_receipt(decoded, context, label='grant', reasons=reasons,
+                                     required={'status': 'PROVEN', 'grant_active': True}) is True
+    assert reasons == []
+    # a number is never a boolean proof
+    loose = dict(decoded, grant_active=1)
+    reasons = []
+    assert controller._bound_receipt(loose, context, label='grant', reasons=reasons,
+                                     required={'status': 'PROVEN', 'grant_active': True}) is False
+    assert reasons == ['grant:PROOF_MISSING:grant_active']
+    # a foreign run is still refused
+    reasons = []
+    assert controller._bound_receipt(dict(decoded, run_id='another-run'), context,
+                                     label='grant', reasons=reasons,
+                                     required={'status': 'PROVEN'}) is False
+    assert reasons == ['grant:BINDING_MISMATCH']
+
+
+# ---- M02: the missing native execution backend ----------------------------
+def test_a_complete_self_written_proof_chain_is_never_an_admission(tmp_path):
+    """M02: a self written PROVEN chain never authorises a native execution.
+
+    Every element of the chain is written by this test with the right
+    strings and the right booleans.  The admission is refused anyway: the
+    trusted native execution backend does not exist on this platform, and
+    the report names that as its primary reason.  The budget binding is
+    only verified in its shape.
+    """
+    composition = _build_composition(tmp_path)
+    context = _controller_context(composition['controller_context_path'])
+    document = json.loads((composition['root'] / 'contexts' / 'admission.json')
+                          .read_text('utf-8'))
+    proof_fields = {'native_custody': ['descendant_handles_closed', 'native_services_stopped'],
+                    'gpu_release': ['gpu_released'],
+                    'install': ['installed'],
+                    'rollback': ['rollback_verified'],
+                    'grant': ['grant_active']}
+    for name in controller.ADMISSION_REFERENCE_KEYS:
+        path = composition['root'] / 'contexts' / ('own-' + name + '.json')
+        proof = {'run_id': RUN_ID, 'candidate_sha': CANDIDATE_SHA, 'status': 'PROVEN'}
+        for key in proof_fields.get(name, []):
+            proof[key] = True
+        if name == 'grant':
+            proof.update(expires_at=0, scope='outside-the-authorized-scope', budget=0,
+                         authorization_sha256='e' * 64)
+        if name == 'tool_closure':
+            proof['files'] = [{'path': str(composition['controller_context_path']),
+                               'sha256': _digest_of(composition['controller_context_path'])}]
+        _write_json(path, proof)
+        document['admission_references'][name] = {'path': str(path), 'sha256': _digest_of(path)}
+    report = controller.verify_native_admission(context, document)
+    assert report['accepted'] is False
+    assert report['primary_reason'] == 'NATIVE_EXECUTION_BACKEND_NOT_READY'
+    assert report['native_execution_backend_ready'] is False
+    assert report['budget_binding_scope'].startswith('SEALED_BINDING_SHAPE_ONLY')
+    assert report['original_ledger_touched_by_this_controller'] is False
+
+
+def test_the_default_entries_refuse_the_native_execution_with_zero_spawn(tmp_path, monkeypatch):
+    """M02: the controller and the worker refuse before any spawn.
+
+    The controller refuses with the stable code of the missing backend and
+    spawns nothing.  The worker refuses with the very same code and never
+    constructs a native driver: the spy of the construction is never
+    called.
+    """
+    from tools import v0_s3_quality_worker as worker
+    composition = _build_composition(tmp_path)
+    context = _controller_context(composition['controller_context_path'])
+    receipt = controller.ProductionController(context).run()
+    assert receipt['state'] == controller.STATE_REFUSED
+    assert receipt['spawn_attempts'] == 0
+    assert receipt['refusals'] == ['CONTROLLER_NATIVE_EXECUTION_BACKEND_NOT_READY']
+    assert receipt['admission']['accepted'] is False
+
+    calls = []
+
+    def deny(worker_context):
+        calls.append(worker_context)
+        raise AssertionError('the native driver must never be constructed')
+
+    monkeypatch.setattr(worker, 'build_native_driver', deny)
+    errors = io.StringIO()
+    code = worker.main(['--context', str(composition['worker_context_path']),
+                        '--context-sha256', composition['worker_context_sha256']],
+                       stream=io.BytesIO(), error_stream=errors)
+    assert code == 2
+    assert errors.getvalue() == 'S3_WORKER_REFUSED NATIVE_EXECUTION_BACKEND_NOT_READY\n'
+    assert calls == []
+
+
+# ---- M03: the chain of the context hash -----------------------------------
+def test_the_command_line_entry_demands_the_exact_controller_context_hash(tmp_path, capsys):
+    """M03: the entry never computes the expectation of the seal itself."""
+    composition = _build_composition(tmp_path)
+    assert controller.main(['--context', str(composition['controller_context_path'])]) \
+        == controller.EXIT_REFUSED
+    assert 'CONTROLLER_CONTEXT_HASH_ARGUMENT_REQUIRED' in capsys.readouterr().err
+    assert controller.main(['--context', str(composition['controller_context_path']),
+                            '--context-sha256', 'not-a-digest']) == controller.EXIT_REFUSED
+    assert 'CONTROLLER_CONTEXT_HASH_INVALID' in capsys.readouterr().err
+    assert controller.main(['--context', str(composition['controller_context_path']),
+                            '--context-sha256', '0' * 64]) == controller.EXIT_REFUSED
+    assert 'CONTROLLER_CONTEXT_SEAL_MISMATCH' in capsys.readouterr().err
+
+
+def test_a_worker_context_that_changed_between_the_two_loads_is_refused(tmp_path, monkeypatch):
+    """M03: the worker verifies every load against the sealed hash.
+
+    The context is changed between the first load of the seam and the
+    second load of the formal worker entry.  The second load refuses, the
+    worker never sends a row and the run stays unknown.
+    """
+    composition = _build_composition(tmp_path)
+    original = Path(composition['worker_context_path']).read_bytes()
+
+    def factory(worker_context):
+        document = json.loads(original)
+        document['driver_arguments']['powershell'] = 'C:/changed-after-the-seal.exe'
+        _write_json(Path(composition['worker_context_path']), document)
+        return _helpers().SyntheticDriver(Path(worker_context.document['root']))
+
+    code, receipt, seam, errors = _formal_main(composition, monkeypatch, factory=factory)
+    assert original != Path(composition['worker_context_path']).read_bytes()
+    assert receipt['state'] == controller.STATE_UNKNOWN
+    assert receipt['summary_persisted'] is False
+    assert seam.worker_exit_code == 2
+    assert not (_controller_directory_of(composition) / ('summary-' + RUN_ID + '.json')).exists()
+
+
+# ---- M04: the bounded and safe reads --------------------------------------
+def test_the_reads_are_bounded_regular_and_never_follow_a_link(tmp_path, monkeypatch):
+    """M04: the bound is applied before the bytes are taken.
+
+    An oversized file is refused without being read, the read loop never
+    asks for more than the bound plus one byte, a special file is never
+    read as a file and an ancestor that is a link is refused.
+    """
+    from tools import v0_s3_controller_io as io_module
+    limit = io_module.MAX_BOUNDED_BYTES
+
+    exact = tmp_path / 'exact.bin'
+    exact.write_bytes(b'a' * limit)
+    assert len(io_module.read_bounded_regular(exact)) == limit
+
+    over = tmp_path / 'over.bin'
+    over.write_bytes(b'a' * (limit + 1))
+    taken = []
+    original_read = os.read
+
+    def spy(descriptor, size):
+        block = original_read(descriptor, size)
+        taken.append(len(block))
+        return block
+
+    monkeypatch.setattr(os, 'read', spy)
+    with pytest.raises(io_module.ControllerIOError) as error:
+        io_module.read_bounded_regular(over)
+    assert error.value.code == 'FILE_TOO_LARGE'
+    assert sum(taken) <= limit + 1
+
+    # a file whose size lies about itself: the loop stops at the bound
+    taken.clear()
+    with pytest.raises(io_module.ControllerIOError) as error:
+        io_module.read_bounded_regular('/proc/self/status', 16)
+    assert error.value.code == 'FILE_TOO_LARGE'
+    assert sum(taken) <= 17
+    monkeypatch.undo()
+
+    # a fifo and a device are never read as a file
+    fifo = tmp_path / 'fifo'
+    os.mkfifo(fifo)
+    with pytest.raises(io_module.ControllerIOError) as error:
+        io_module.read_bounded_regular(fifo)
+    assert error.value.code == 'FILE_NOT_A_REGULAR_FILE'
+    with pytest.raises(io_module.ControllerIOError) as error:
+        io_module.read_bounded_regular('/dev/null')
+    assert error.value.code == 'FILE_NOT_A_REGULAR_FILE'
+
+    # an ancestor that is a link is refused
+    root = tmp_path / 'root'
+    (root / 'real').mkdir(parents=True)
+    (root / 'real' / 'artifact.bin').write_bytes(b'x')
+    os.symlink(str(root / 'real'), str(root / 'link'))
+    with pytest.raises(io_module.ControllerIOError) as error:
+        io_module.read_bounded_in_root(root, 'link/artifact.bin')
+    assert error.value.code in ('DIRECTORY_UNUSABLE', 'ANCESTOR_NOT_A_DIRECTORY')
+
+
+# ---- M05: the consumption boundary ----------------------------------------
+@pytest.mark.parametrize('target', ['raw', 'canonical', 'root'])
+def test_an_original_that_changed_after_the_verification_is_refused(tmp_path, monkeypatch, target):
+    """M05: a controlled change after the verification keeps the run unknown.
+
+    The original is changed after the parent verified it.  The consumption
+    boundary re-verifies the root, the manifest and the originals, so the
+    run stays unknown, no summary is written and no contradictory hash is
+    published.
+    """
+    composition = _build_composition(tmp_path)
+    changed = {}
+
+    def fault(state, instance):
+        if state != controller.STATE_ORIGINALS_VERIFIED:
+            return
+        if target == 'root':
+            root = composition['root']
+            moved = root.with_name(root.name + '-moved')
+            os.rename(root, moved)
+            os.symlink(str(moved), str(root), target_is_directory=True)
+            changed['sealed'] = str(root)
+            return
+        if target == 'canonical':
+            path = composition['root'] / 'temp' / 's3-quality' / 'qd-receipt.json'
+        else:
+            entry = instance.manifest['originals']['raw'][0]
+            path = composition['root'] / entry['reference']
+        changed['sealed'] = instance.manifest['originals'][
+            'canonical' if target == 'canonical' else 'raw'][0]['sha256']
+        path.write_bytes(path.read_bytes() + b' ')
+        changed['actual'] = _digest_of(path)
+
+    code, receipt, seam, errors = _formal_main(composition, monkeypatch, transition=fault)
+    assert receipt['state'] == controller.STATE_UNKNOWN
+    assert receipt['summary_persisted'] is False
+    assert 'CONTROLLER_ORIGINALS_CHANGED_AT_CONSUMPTION' in receipt['unknown_reason']
+    assert not (_controller_directory_of(composition) / ('summary-' + RUN_ID + '.json')).exists()
+    assert receipt['root_retained'] is True
+    assert receipt['reservation_retained'] is True
+
+
+# ---- M06: the exclusive summary inside the bound root ----------------------
+def test_the_summary_is_never_written_outside_the_bound_root(tmp_path, monkeypatch):
+    """M06: the summary stays inside the bound root.
+
+    The directory of the controller is replaced by a link to a directory
+    outside of the root.  The exclusive write walks the chain of the
+    bound root without following a link, so it refuses and nothing is
+    written outside.
+    """
+    composition = _build_composition(tmp_path)
+    outside = tmp_path / 'outside'
+    outside.mkdir()
+
+    def fault(state, instance):
+        if state != controller.STATE_RECEIPTS_BOUND:
+            return
+        directory = _controller_directory_of(composition)
+        moved = directory.with_name(directory.name + '-moved')
+        os.rename(directory, moved)
+        os.symlink(str(outside), str(directory), target_is_directory=True)
+
+    code, receipt, seam, errors = _formal_main(composition, monkeypatch, transition=fault)
+    assert receipt['state'] == controller.STATE_UNKNOWN
+    assert receipt['summary_persisted'] is False
+    assert 'CONTROLLER_DIRECTORY_UNUSABLE' in receipt['unknown_reason']
+    assert list(outside.glob('*.json')) == []
+    assert not (_controller_directory_of(composition) / ('summary-' + RUN_ID + '.json')).exists()
+
+
+# ---- M07: the internal receipts follow the complete obligation -------------
+@pytest.mark.parametrize('failure', ['release-unproven', 'residue', 'provider-refusal'])
+def test_a_failed_row_never_produces_an_internal_pass(tmp_path, monkeypatch, failure):
+    """M07: an inner failure is never hidden by the outer state.
+
+    The receipts of the run are derived from the complete obligation of
+    each of them.  A row that failed is not a pass of the output, of the
+    budget, of the no-overwrite or of the sixteen rows, and the outer
+    status of the run never hides that.
+    """
+    composition = _build_composition(tmp_path, driver_failure=failure)
+    code, receipt, seam, errors = _formal_main(composition, monkeypatch)
+    assert receipt['state'] == controller.STATE_SUMMARY_PERSISTED
+    canonical = json.loads((composition['root'] / 'temp/s3-quality/qd-receipt.json')
+                           .read_text('utf-8'))
+    assert canonical['test_counts']['FAIL'] > 0
+    statuses = {name: document['status'] for name, document in receipt['receipts'].items()}
+    for name in ('output_contract', 'resource_budget', 'no_overwrite', 'quality_16_rows'):
+        assert statuses[name] != 'PASS', name
+    assert receipt['summary']['pass_count'] == 0
+    # the cleanup of the product is not proven: the root and the reservation stay
+    assert receipt['cleanup_proven'] is False
+    assert receipt['root_retained'] is True
+    assert receipt['reservation_retained'] is True
+    assert receipt['refund_allowed'] is False
+
+
+def test_the_last_row_of_the_run_is_not_hidden_by_the_outer_state(tmp_path, monkeypatch):
+    """M07: the failure of the sixteenth row is an inner failure.
+
+    Fifteen rows pass and the sixteenth one fails.  The receipts of the
+    run stay failures: the existence of the artefacts and a count that is
+    not ``None`` are never a proof.
+    """
+    composition = _build_composition(tmp_path)
+
+    class LastFailure(_helpers().SyntheticDriver):
+        def release_preload(self, binding, worker):
+            self.failure = 'release-unproven' if self.submissions == 16 else None
+            return super().release_preload(binding, worker)
+
+    code, receipt, seam, errors = _formal_main(
+        composition, monkeypatch,
+        factory=lambda ctx: LastFailure(Path(ctx.document['root'])))
+    canonical = json.loads((composition['root'] / 'temp/s3-quality/qd-receipt.json')
+                           .read_text('utf-8'))
+    assert canonical['test_counts']['PASS'] == 15
+    assert canonical['test_counts']['FAIL'] == 1
+    statuses = {name: document['status'] for name, document in receipt['receipts'].items()}
+    for name in ('output_contract', 'resource_budget', 'no_overwrite', 'quality_16_rows'):
+        assert statuses[name] != 'PASS', name
+    assert receipt['summary']['pass_count'] == 0
+
+
+# ---- M08: an ordinary exception -------------------------------------------
+def test_an_ordinary_exception_keeps_a_persisted_unknown_and_cleans_up(tmp_path, monkeypatch):
+    """M08: an ordinary exception ends in a persisted unknown.
+
+    The receipt of the unknown run is persisted inside the bound root, the
+    descriptors of the run are closed in a bounded way, the partial
+    evidence is kept and no summary is written.
+    """
+
+    def broken(self):
+        raise RuntimeError('independent-exception-probe')
+
+    composition = _build_composition(tmp_path)
+    monkeypatch.setattr(controller.ProductionController, '_bind_receipts', broken)
+    code, receipt, seam, errors = _formal_main(composition, monkeypatch)
+    assert receipt['state'] == controller.STATE_UNKNOWN
+    assert receipt['unknown_reason'] == 'CONTROLLER_UNEXPECTED_EXCEPTION:RuntimeError'
+    assert receipt['refusals'] == ['CONTROLLER_UNEXPECTED_EXCEPTION:RuntimeError']
+    assert receipt['summary_persisted'] is False
+    assert receipt['fd_cleanup']['fd_leaked'] == []
+    receipt_path = _controller_directory_of(composition) / ('receipt-' + RUN_ID + '.json')
+    assert receipt_path.is_file()
+    persisted = json.loads(receipt_path.read_text('utf-8'))
+    assert persisted['state'] == controller.STATE_UNKNOWN
+    assert persisted['unknown_reason'] == 'CONTROLLER_UNEXPECTED_EXCEPTION:RuntimeError'
+    assert not (_controller_directory_of(composition) / ('summary-' + RUN_ID + '.json')).exists()
+
+
+# ---- M09: the execution right of the run -----------------------------------
+def test_a_second_run_of_the_same_run_id_is_refused_before_any_send(tmp_path, monkeypatch):
+    """M09: the exclusive execution right is taken before the first send.
+
+    The reservation of the first run is kept.  The second run finds it and
+    refuses before it sends anything, so the sixteen rows are never run
+    twice and the summary of the first run is never replaced.
+    """
+    composition = _build_composition(tmp_path)
+    code, receipt, seam, errors = _formal_main(composition, monkeypatch)
+    assert receipt['state'] == controller.STATE_SUMMARY_PERSISTED
+    summary_path = _controller_directory_of(composition) / ('summary-' + RUN_ID + '.json')
+    before = summary_path.read_bytes()
+
+    code, receipt, seam, errors = _formal_main(composition, monkeypatch)
+    assert seam.spawns == 0
+    assert receipt['spawn_attempts'] == 0
+    assert receipt['state'] == controller.STATE_REFUSED
+    assert receipt['refusals'] in (['CONTROLLER_RESERVATION_ALREADY_EXISTS'],
+                                   ['CONTROLLER_SUMMARY_ALREADY_EXISTS'])
+    assert summary_path.read_bytes() == before
+
+
+def test_a_pre_existing_summary_is_refused_before_any_send(tmp_path, monkeypatch):
+    """M09: an existing terminal state of the run is refused."""
+    composition = _build_composition(tmp_path)
+    directory = _controller_directory_of(composition)
+    directory.mkdir(parents=True, exist_ok=True)
+    summary_path = directory / ('summary-' + RUN_ID + '.json')
+    summary_path.write_bytes(b'prior-summary')
+
+    code, receipt, seam, errors = _formal_main(composition, monkeypatch)
+    assert seam.spawns == 0
+    assert receipt['spawn_attempts'] == 0
+    assert receipt['state'] == controller.STATE_REFUSED
+    assert receipt['refusals'] == ['CONTROLLER_SUMMARY_ALREADY_EXISTS']
+    assert summary_path.read_bytes() == b'prior-summary'
+
+
+# ---- m01: the lifecycle of the offline seam --------------------------------
+def test_the_cooperative_cancel_stops_the_worker_and_the_thread_is_joined(tmp_path, monkeypatch):
+    """m01: the cancel is checked before the next submission.
+
+    The seam requests the cooperative cancel inside the driver.  The next
+    controlled call of the phase refuses, the worker stops on its own and
+    the thread is joined: the run never claims that nothing can write
+    after it returned.
+    """
+    composition = _build_composition(tmp_path)
+    holder = {}
+
+    def factory(worker_context):
+        driver = _helpers().SyntheticDriver(Path(worker_context.document['root']))
+        original_submit = driver.submit
+
+        def submit(graph):
+            result = original_submit(graph)
+            holder['seam'].cancel()
+            return result
+
+        driver.submit = submit
+        return driver
+
+    code, receipt, seam, errors = _formal_main(composition, monkeypatch,
+                                                factory=factory, holder=holder)
+    lifecycle = receipt['fd_cleanup']['worker_lifecycle']
+    assert lifecycle['cooperative_cancel_requested'] is True
+    assert lifecycle['worker_thread_finished'] is True
+    assert lifecycle['worker_thread_retained'] is False
+    assert lifecycle['worker_thread_killable'] is False
+    assert lifecycle['late_write_after_return_is_possible'] is False
+    assert receipt['fd_cleanup']['fd_leaked'] == []
+
+
+def test_a_worker_that_does_not_cooperate_is_retained_and_the_run_stays_unknown(
+        tmp_path, monkeypatch):
+    """m01: a thread that can not be stopped is retained and reported.
+
+    The driver blocks inside its own callback and does not cooperate.  A
+    thread of this process can not be killed, so the run stays unknown, the
+    thread stays retained and the receipt says that a late write after the
+    return of the run is still possible.
+    """
+    composition = _build_composition(tmp_path)
+    entered = threading.Event()
+    release = threading.Event()
+    baseline = time.monotonic()
+    holder = {}
+
+    class Blocking(_helpers().SyntheticDriver):
+        def submit(self, graph):
+            entered.set()
+            release.wait(120)
+            return super().submit(graph)
+
+    def factory(worker_context):
+        return Blocking(Path(worker_context.document['root']))
+
+    def clock():
+        return baseline + 22000 if entered.is_set() else time.monotonic()
+
+    try:
+        code, receipt, seam, errors = _formal_main(composition, monkeypatch,
+                                                    factory=factory, clock=clock,
+                                                    holder=holder,
+                                                    worker_wait_timeout=0.5)
+        lifecycle = receipt['fd_cleanup']['worker_lifecycle']
+        assert receipt['state'] == controller.STATE_UNKNOWN
+        assert lifecycle['worker_thread_finished'] is False
+        assert lifecycle['worker_thread_retained'] is True
+        assert lifecycle['worker_thread_killable'] is False
+        assert lifecycle['late_write_after_return_is_possible'] is True
+        assert receipt['root_retained'] is True
+        assert receipt['reservation_retained'] is True
+    finally:
+        release.set()
+        seam = holder.get('seam')
+        if seam is not None:
+            seam.release_and_join(15)
+
+
+# ---- m02: the error stream of the worker -----------------------------------
+def test_the_refusal_of_the_worker_keeps_its_code_on_a_text_and_on_a_binary_stream(
+        tmp_path, monkeypatch):
+    """m02: the exact code of a refusal survives both stream types.
+
+    The stream of the composition is a binary stream.  A refusal that was
+    written as text into it became a ``TypeError`` and the code of the
+    refusal was lost.  Both stream types carry the very same code now.
+    """
+    from tools import v0_s3_quality_worker as worker
+    composition = _build_composition(tmp_path)
+    driver = _helpers().SyntheticDriver(composition['root'])
+
+    text = io.StringIO()
+    code = worker.main(['--context', str(composition['worker_context_path']),
+                        '--context-sha256', '0' * 64],
+                       driver=driver, stream=io.BytesIO(), error_stream=text)
+    assert code == 2
+    assert text.getvalue() == 'S3_WORKER_REFUSED WORKER_FILE_SEAL_MISMATCH\n'
+
+    binary = io.BytesIO()
+    code = worker.main(['--context', str(composition['worker_context_path']),
+                        '--context-sha256', '0' * 64],
+                       driver=driver, stream=io.BytesIO(), error_stream=binary)
+    assert code == 2
+    assert binary.getvalue() == b'S3_WORKER_REFUSED WORKER_FILE_SEAL_MISMATCH\n'
+
+    # the default entry refuses the native execution on both stream types
+    binary = io.BytesIO()
+    code = worker.main(['--context', str(composition['worker_context_path']),
+                        '--context-sha256', composition['worker_context_sha256']],
+                       stream=io.BytesIO(), error_stream=binary)
+    assert code == 2
+    assert binary.getvalue() == b'S3_WORKER_REFUSED NATIVE_EXECUTION_BACKEND_NOT_READY\n'

@@ -63,6 +63,16 @@ EXECUTOR_RELATIVE = ('reports/v0-s3/product-gate0/implementation-integration-01/
                      'executor.py')
 
 
+def _context_digest(context_path):
+    """The sealed digest of a worker context document.
+
+    The worker never computes the expectation of the seal of its own
+    context: every load of a context is verified against a hash that the
+    caller sealed before the run.
+    """
+    return hashlib.sha256(Path(context_path).read_bytes()).hexdigest()
+
+
 def load_executor_module():
     """Load the independent finite CPU executor of the new report subtree."""
     path = PACK_ROOT / EXECUTOR_RELATIVE
@@ -791,7 +801,7 @@ def test_the_worker_really_invokes_the_quality_phase(tmp_path):
     root = tmp_path / 'run'
     clock = _p3b.FakeClock(step=0.0)
     context_path, rows = build_worker_context(tmp_path, root, clock=clock)
-    context = WorkerContext.load(context_path)
+    context = WorkerContext.load(context_path, expected_sha256=_context_digest(context_path))
     events = []
 
     def emit(event, payload):
@@ -820,7 +830,7 @@ def test_the_history_wait_is_announced_before_the_row_finishes(tmp_path):
     root = tmp_path / 'run'
     clock = _p3b.FakeClock(step=0.0)
     context_path, rows = build_worker_context(tmp_path, root, clock=clock)
-    context = WorkerContext.load(context_path)
+    context = WorkerContext.load(context_path, expected_sha256=_context_digest(context_path))
     events = []
     driver = _p3b.SyntheticDriver(root, None)
     run_worker(context, driver=driver, emit=lambda event, payload: events.append(event),
@@ -850,17 +860,36 @@ def test_a_context_with_an_unknown_key_is_refused(tmp_path):
     document['unexpected'] = True
     context_path.write_text(json.dumps(document))
     with pytest.raises(WorkerError) as error:
-        WorkerContext.load(context_path)
+        WorkerContext.load(context_path, expected_sha256=_context_digest(context_path))
     assert error.value.code == 'WORKER_CONTEXT_KEY_SET_INVALID'
 
 
 # -------------------------------------------------- the frozen command plans
 def test_the_production_command_is_the_fixed_worker():
     """I23: the production entry starts exactly the fixed quality worker."""
-    command = build_production_command('/tmp/context.json')
+    command = build_production_command('/tmp/context.json', context_sha256='a' * 64)
     assert command[1:4] == ['-I', '-B', str(PACK_ROOT / 'tools/v0_s3_quality_worker.py')]
-    assert command[-2:] == ['--context', '/tmp/context.json']
+    assert command[4:6] == ['--context', '/tmp/context.json']
     assert 'fixture' not in ' '.join(command)
+
+
+def test_the_production_command_carries_the_pre_sealed_context_hash():
+    """M03: the fixed command hands the sealed hash down to the worker.
+
+    The worker never recomputes the expectation of the seal of its own
+    context: the command carries the hash that the caller sealed, and the
+    worker verifies every load against it.  The hash is the only internal
+    argument that the command adds.
+    """
+    command = build_production_command('/tmp/context.json', context_sha256='b' * 64)
+    assert command[-2:] == ['--context-sha256', 'b' * 64]
+    assert command.count('--context-sha256') == 1
+    with pytest.raises(SupervisionError) as error:
+        build_production_command('/tmp/context.json')
+    assert error.value.code == 'WORKER_CONTEXT_HASH_REQUIRED'
+    with pytest.raises(SupervisionError) as error:
+        build_production_command('/tmp/context.json', context_sha256='not-a-digest')
+    assert error.value.code == 'WORKER_CONTEXT_HASH_INVALID'
 
 
 def test_the_fixture_command_is_one_enumerated_scenario():
