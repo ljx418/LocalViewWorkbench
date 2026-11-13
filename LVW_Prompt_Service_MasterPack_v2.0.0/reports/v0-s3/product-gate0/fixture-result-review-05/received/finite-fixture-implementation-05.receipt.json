@@ -1,0 +1,1542 @@
+{
+  "admission_refusals": {
+    "codes": [],
+    "count": 0
+  },
+  "admitted_attempts": 13,
+  "after_source_sha256": {
+    "reports/v0-s3/product-gate0/implementation-integration-01/executor.py": "0565c967724fd1d921c342f6cac5b89541efa1c88596e845e877f64ac5ece818",
+    "tools/fixtures/v0_s3_supervisor_fixture.py": "1432a6503c07ebed43e9ce36100c18f9840e51af5f6c8d81472ab7439a66df4a",
+    "tools/test_v0_s3_integration.py": "bde478e54a048a4824b5c54db2b4c06da2d19845f56554a53817dccfeadd7e40",
+    "tools/test_v0_s3_supervisor.py": "683bf1e2344355c6507c2f7bd3f58c2d781bc6e9f1969f723e2138695ff088c7",
+    "tools/v0_s2_runtime.py": "a97ea20d02ed80ab4f99f133dd8162331ddba34662bfdcca637fcade40b4dbd2",
+    "tools/v0_s2_stage_runtime.py": "cf6ad01d66c0c7885475eedeae5ba66df9bec61bf7281ee511600f6224833e26",
+    "tools/v0_s3_coordinator.py": "14e8dd284971aeab00999f010679d5c95deb88ee3bff8f4ca0708d958b56f12c",
+    "tools/v0_s3_quality_phase.py": "90552ea113ccf53a2a1cedff3e3f399642ad932bf0f71bb1f9a57e1adb6e8789",
+    "tools/v0_s3_quality_worker.py": "1e1490c86ce6dd7f6f0734967b75652ced872b82848e6a1966dd1a147e38b6d3",
+    "tools/v0_s3_supervisor.py": "c669e97f06f2d90061a1a8cedf859db454c5783daf6591418f7ff13bb9d848b3"
+  },
+  "argv": [
+    "reports/v0-s3/product-gate0/implementation-integration-01/run_guarded_checks.py",
+    "--mode",
+    "suite",
+    "--label",
+    "finite-fixture-implementation-05",
+    "--binding",
+    "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/implementation-final-05.binding.json",
+    "--binding-sha256",
+    "3ae86ac3ce5fa5afff95770145717181fc1d380956fdfdd4b684deffb4f972c2",
+    "--role",
+    "implementation",
+    "--candidate-sha",
+    "07277a6f2f6f730dc7b9383bfeaf8c412126fe16",
+    "--modules",
+    "tools/test_v0_s3_supervisor.py::test_the_fixture_clean_terminal_is_verified_by_the_parent,tools/test_v0_s3_supervisor.py::test_a_blocking_callback_is_actually_stopped,tools/test_v0_s3_supervisor.py::test_a_blocking_persistence_is_actually_stopped,tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[history_replay-MESSAGE_HISTORY_STARTED_REPEATED],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[sequence_reversal-MESSAGE_SEQUENCE_NOT_INCREASING],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[duplicate_sequence-MESSAGE_SEQUENCE_NOT_INCREASING],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[oversize_message-MESSAGE_TOO_LARGE],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[foreign_identity-MESSAGE_RUN_ID_MISMATCH],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[unexpected_field-MESSAGE_KEY_SET_INVALID],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[nonfinite_number-MESSAGE_NONFINITE_NUMBER],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[early_exit-WORKER_EXITED_WITHOUT_TERMINAL],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[message_flood-MESSAGE_COUNT_EXCEEDED],tools/test_v0_s3_supervisor.py::test_a_bad_terminal_reference_is_refused",
+    "--outdir",
+    "reports/v0-s3/product-gate0/finite-fixture-implementation-05"
+  ],
+  "before_source_sha256": {
+    "reports/v0-s3/product-gate0/implementation-integration-01/executor.py": "0565c967724fd1d921c342f6cac5b89541efa1c88596e845e877f64ac5ece818",
+    "tools/fixtures/v0_s3_supervisor_fixture.py": "1432a6503c07ebed43e9ce36100c18f9840e51af5f6c8d81472ab7439a66df4a",
+    "tools/test_v0_s3_integration.py": "bde478e54a048a4824b5c54db2b4c06da2d19845f56554a53817dccfeadd7e40",
+    "tools/test_v0_s3_supervisor.py": "683bf1e2344355c6507c2f7bd3f58c2d781bc6e9f1969f723e2138695ff088c7",
+    "tools/v0_s2_runtime.py": "a97ea20d02ed80ab4f99f133dd8162331ddba34662bfdcca637fcade40b4dbd2",
+    "tools/v0_s2_stage_runtime.py": "cf6ad01d66c0c7885475eedeae5ba66df9bec61bf7281ee511600f6224833e26",
+    "tools/v0_s3_coordinator.py": "14e8dd284971aeab00999f010679d5c95deb88ee3bff8f4ca0708d958b56f12c",
+    "tools/v0_s3_quality_phase.py": "90552ea113ccf53a2a1cedff3e3f399642ad932bf0f71bb1f9a57e1adb6e8789",
+    "tools/v0_s3_quality_worker.py": "1e1490c86ce6dd7f6f0734967b75652ced872b82848e6a1966dd1a147e38b6d3",
+    "tools/v0_s3_supervisor.py": "c669e97f06f2d90061a1a8cedf859db454c5783daf6591418f7ff13bb9d848b3"
+  },
+  "candidate_sha_claim": "07277a6f2f6f730dc7b9383bfeaf8c412126fe16",
+  "candidate_sha_claim_is_attestation": false,
+  "charges_without_handle": [],
+  "child_handles_obtained": 13,
+  "cleanup_proven": true,
+  "collected_count": 13,
+  "collected_nodeids": [
+    "tools/test_v0_s3_supervisor.py::test_the_fixture_clean_terminal_is_verified_by_the_parent",
+    "tools/test_v0_s3_supervisor.py::test_a_blocking_callback_is_actually_stopped",
+    "tools/test_v0_s3_supervisor.py::test_a_blocking_persistence_is_actually_stopped",
+    "tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[history_replay-MESSAGE_HISTORY_STARTED_REPEATED]",
+    "tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[sequence_reversal-MESSAGE_SEQUENCE_NOT_INCREASING]",
+    "tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[duplicate_sequence-MESSAGE_SEQUENCE_NOT_INCREASING]",
+    "tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[oversize_message-MESSAGE_TOO_LARGE]",
+    "tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[foreign_identity-MESSAGE_RUN_ID_MISMATCH]",
+    "tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[unexpected_field-MESSAGE_KEY_SET_INVALID]",
+    "tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[nonfinite_number-MESSAGE_NONFINITE_NUMBER]",
+    "tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[early_exit-WORKER_EXITED_WITHOUT_TERMINAL]",
+    "tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[message_flood-MESSAGE_COUNT_EXCEEDED]",
+    "tools/test_v0_s3_supervisor.py::test_a_bad_terminal_reference_is_refused"
+  ],
+  "command": [
+    "/usr/bin/python3.12",
+    "-B",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-integration-01/run_guarded_checks.py",
+    "--mode",
+    "suite",
+    "--label",
+    "finite-fixture-implementation-05",
+    "--outdir",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/finite-fixture-implementation-05",
+    "--modules",
+    "tools/test_v0_s3_supervisor.py::test_the_fixture_clean_terminal_is_verified_by_the_parent,tools/test_v0_s3_supervisor.py::test_a_blocking_callback_is_actually_stopped,tools/test_v0_s3_supervisor.py::test_a_blocking_persistence_is_actually_stopped,tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[history_replay-MESSAGE_HISTORY_STARTED_REPEATED],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[sequence_reversal-MESSAGE_SEQUENCE_NOT_INCREASING],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[duplicate_sequence-MESSAGE_SEQUENCE_NOT_INCREASING],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[oversize_message-MESSAGE_TOO_LARGE],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[foreign_identity-MESSAGE_RUN_ID_MISMATCH],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[unexpected_field-MESSAGE_KEY_SET_INVALID],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[nonfinite_number-MESSAGE_NONFINITE_NUMBER],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[early_exit-WORKER_EXITED_WITHOUT_TERMINAL],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[message_flood-MESSAGE_COUNT_EXCEEDED],tools/test_v0_s3_supervisor.py::test_a_bad_terminal_reference_is_refused",
+    "--binding",
+    "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/implementation-final-05.binding.json",
+    "--binding-sha256",
+    "3ae86ac3ce5fa5afff95770145717181fc1d380956fdfdd4b684deffb4f972c2",
+    "--role",
+    "implementation",
+    "--candidate-sha",
+    "07277a6f2f6f730dc7b9383bfeaf8c412126fe16"
+  ],
+  "command_semantics": "the complete effective command of this run; it reproduces the run exactly and it is not a base command",
+  "duration_seconds": 3.922,
+  "effective_arguments": {
+    "binding": "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/implementation-final-05.binding.json",
+    "binding_sha256": "3ae86ac3ce5fa5afff95770145717181fc1d380956fdfdd4b684deffb4f972c2",
+    "candidate_sha": "07277a6f2f6f730dc7b9383bfeaf8c412126fe16",
+    "label": "finite-fixture-implementation-05",
+    "mode": "suite",
+    "modules": "tools/test_v0_s3_supervisor.py::test_the_fixture_clean_terminal_is_verified_by_the_parent,tools/test_v0_s3_supervisor.py::test_a_blocking_callback_is_actually_stopped,tools/test_v0_s3_supervisor.py::test_a_blocking_persistence_is_actually_stopped,tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[history_replay-MESSAGE_HISTORY_STARTED_REPEATED],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[sequence_reversal-MESSAGE_SEQUENCE_NOT_INCREASING],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[duplicate_sequence-MESSAGE_SEQUENCE_NOT_INCREASING],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[oversize_message-MESSAGE_TOO_LARGE],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[foreign_identity-MESSAGE_RUN_ID_MISMATCH],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[unexpected_field-MESSAGE_KEY_SET_INVALID],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[nonfinite_number-MESSAGE_NONFINITE_NUMBER],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[early_exit-WORKER_EXITED_WITHOUT_TERMINAL],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[message_flood-MESSAGE_COUNT_EXCEEDED],tools/test_v0_s3_supervisor.py::test_a_bad_terminal_reference_is_refused",
+    "outdir": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/finite-fixture-implementation-05",
+    "role": "implementation",
+    "select": null
+  },
+  "executor_session": {
+    "admission_deadline": 109968.36301006636,
+    "admissions_revoked": true,
+    "admitted_attempts": 13,
+    "binding_path": "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/implementation-final-05.binding.json",
+    "binding_sha256": "3ae86ac3ce5fa5afff95770145717181fc1d380956fdfdd4b684deffb4f972c2",
+    "candidate_sha": "07277a6f2f6f730dc7b9383bfeaf8c412126fe16",
+    "charge_ledger": [
+      {
+        "admitted_wall": 1794561616.550668,
+        "argv": [
+          "/usr/bin/python3.12",
+          "-I",
+          "-S",
+          "-B",
+          "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+          "--scenario",
+          "clean_terminal"
+        ],
+        "created": null,
+        "handle_obtained": true,
+        "handle_proven": true,
+        "index": 15,
+        "outcome": "HANDLE",
+        "refusal_code": null,
+        "scenario": "clean_terminal",
+        "settlement_error": null,
+        "settlement_persisted": true
+      },
+      {
+        "admitted_wall": 1794561616.6353545,
+        "argv": [
+          "/usr/bin/python3.12",
+          "-I",
+          "-S",
+          "-B",
+          "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+          "--scenario",
+          "blocking_callback"
+        ],
+        "created": null,
+        "handle_obtained": true,
+        "handle_proven": true,
+        "index": 16,
+        "outcome": "HANDLE",
+        "refusal_code": null,
+        "scenario": "blocking_callback",
+        "settlement_error": null,
+        "settlement_persisted": true
+      },
+      {
+        "admitted_wall": 1794561617.6764476,
+        "argv": [
+          "/usr/bin/python3.12",
+          "-I",
+          "-S",
+          "-B",
+          "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+          "--scenario",
+          "blocking_persistence"
+        ],
+        "created": null,
+        "handle_obtained": true,
+        "handle_proven": true,
+        "index": 17,
+        "outcome": "HANDLE",
+        "refusal_code": null,
+        "scenario": "blocking_persistence",
+        "settlement_error": null,
+        "settlement_persisted": true
+      },
+      {
+        "admitted_wall": 1794561618.7130682,
+        "argv": [
+          "/usr/bin/python3.12",
+          "-I",
+          "-S",
+          "-B",
+          "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+          "--scenario",
+          "history_replay"
+        ],
+        "created": null,
+        "handle_obtained": true,
+        "handle_proven": true,
+        "index": 18,
+        "outcome": "HANDLE",
+        "refusal_code": null,
+        "scenario": "history_replay",
+        "settlement_error": null,
+        "settlement_persisted": true
+      },
+      {
+        "admitted_wall": 1794561618.7990334,
+        "argv": [
+          "/usr/bin/python3.12",
+          "-I",
+          "-S",
+          "-B",
+          "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+          "--scenario",
+          "sequence_reversal"
+        ],
+        "created": null,
+        "handle_obtained": true,
+        "handle_proven": true,
+        "index": 19,
+        "outcome": "HANDLE",
+        "refusal_code": null,
+        "scenario": "sequence_reversal",
+        "settlement_error": null,
+        "settlement_persisted": true
+      },
+      {
+        "admitted_wall": 1794561618.8850727,
+        "argv": [
+          "/usr/bin/python3.12",
+          "-I",
+          "-S",
+          "-B",
+          "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+          "--scenario",
+          "duplicate_sequence"
+        ],
+        "created": null,
+        "handle_obtained": true,
+        "handle_proven": true,
+        "index": 20,
+        "outcome": "HANDLE",
+        "refusal_code": null,
+        "scenario": "duplicate_sequence",
+        "settlement_error": null,
+        "settlement_persisted": true
+      },
+      {
+        "admitted_wall": 1794561618.9829214,
+        "argv": [
+          "/usr/bin/python3.12",
+          "-I",
+          "-S",
+          "-B",
+          "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+          "--scenario",
+          "oversize_message"
+        ],
+        "created": null,
+        "handle_obtained": true,
+        "handle_proven": true,
+        "index": 21,
+        "outcome": "HANDLE",
+        "refusal_code": null,
+        "scenario": "oversize_message",
+        "settlement_error": null,
+        "settlement_persisted": true
+      },
+      {
+        "admitted_wall": 1794561619.0729988,
+        "argv": [
+          "/usr/bin/python3.12",
+          "-I",
+          "-S",
+          "-B",
+          "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+          "--scenario",
+          "foreign_identity"
+        ],
+        "created": null,
+        "handle_obtained": true,
+        "handle_proven": true,
+        "index": 22,
+        "outcome": "HANDLE",
+        "refusal_code": null,
+        "scenario": "foreign_identity",
+        "settlement_error": null,
+        "settlement_persisted": true
+      },
+      {
+        "admitted_wall": 1794561619.1573758,
+        "argv": [
+          "/usr/bin/python3.12",
+          "-I",
+          "-S",
+          "-B",
+          "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+          "--scenario",
+          "unexpected_field"
+        ],
+        "created": null,
+        "handle_obtained": true,
+        "handle_proven": true,
+        "index": 23,
+        "outcome": "HANDLE",
+        "refusal_code": null,
+        "scenario": "unexpected_field",
+        "settlement_error": null,
+        "settlement_persisted": true
+      },
+      {
+        "admitted_wall": 1794561619.2417066,
+        "argv": [
+          "/usr/bin/python3.12",
+          "-I",
+          "-S",
+          "-B",
+          "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+          "--scenario",
+          "nonfinite_number"
+        ],
+        "created": null,
+        "handle_obtained": true,
+        "handle_proven": true,
+        "index": 24,
+        "outcome": "HANDLE",
+        "refusal_code": null,
+        "scenario": "nonfinite_number",
+        "settlement_error": null,
+        "settlement_persisted": true
+      },
+      {
+        "admitted_wall": 1794561619.328783,
+        "argv": [
+          "/usr/bin/python3.12",
+          "-I",
+          "-S",
+          "-B",
+          "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+          "--scenario",
+          "early_exit"
+        ],
+        "created": null,
+        "handle_obtained": true,
+        "handle_proven": true,
+        "index": 25,
+        "outcome": "HANDLE",
+        "refusal_code": null,
+        "scenario": "early_exit",
+        "settlement_error": null,
+        "settlement_persisted": true
+      },
+      {
+        "admitted_wall": 1794561619.411586,
+        "argv": [
+          "/usr/bin/python3.12",
+          "-I",
+          "-S",
+          "-B",
+          "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+          "--scenario",
+          "message_flood"
+        ],
+        "created": null,
+        "handle_obtained": true,
+        "handle_proven": true,
+        "index": 26,
+        "outcome": "HANDLE",
+        "refusal_code": null,
+        "scenario": "message_flood",
+        "settlement_error": null,
+        "settlement_persisted": true
+      },
+      {
+        "admitted_wall": 1794561619.5020359,
+        "argv": [
+          "/usr/bin/python3.12",
+          "-I",
+          "-S",
+          "-B",
+          "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+          "--scenario",
+          "bad_terminal_reference"
+        ],
+        "created": null,
+        "handle_obtained": true,
+        "handle_proven": true,
+        "index": 27,
+        "outcome": "HANDLE",
+        "refusal_code": null,
+        "scenario": "bad_terminal_reference",
+        "settlement_error": null,
+        "settlement_persisted": true
+      }
+    ],
+    "charges_without_handle": [],
+    "child_handles_obtained": 13,
+    "children": [
+      {
+        "birth": {
+          "linux_start_ticks": 10993923
+        },
+        "exit_code": 0,
+        "index": 15,
+        "pid": 3134767,
+        "proven": true,
+        "state": "STOPPED",
+        "timed_out": false
+      },
+      {
+        "birth": {
+          "linux_start_ticks": 10993932
+        },
+        "exit_code": -15,
+        "index": 16,
+        "pid": 3134771,
+        "proven": true,
+        "state": "STOPPED",
+        "timed_out": false
+      },
+      {
+        "birth": {
+          "linux_start_ticks": 10994036
+        },
+        "exit_code": -15,
+        "index": 17,
+        "pid": 3134784,
+        "proven": true,
+        "state": "STOPPED",
+        "timed_out": false
+      },
+      {
+        "birth": {
+          "linux_start_ticks": 10994140
+        },
+        "exit_code": -15,
+        "index": 18,
+        "pid": 3134790,
+        "proven": true,
+        "state": "STOPPED",
+        "timed_out": false
+      },
+      {
+        "birth": {
+          "linux_start_ticks": 10994148
+        },
+        "exit_code": -15,
+        "index": 19,
+        "pid": 3134793,
+        "proven": true,
+        "state": "STOPPED",
+        "timed_out": false
+      },
+      {
+        "birth": {
+          "linux_start_ticks": 10994157
+        },
+        "exit_code": -15,
+        "index": 20,
+        "pid": 3134796,
+        "proven": true,
+        "state": "STOPPED",
+        "timed_out": false
+      },
+      {
+        "birth": {
+          "linux_start_ticks": 10994167
+        },
+        "exit_code": -15,
+        "index": 21,
+        "pid": 3134858,
+        "proven": true,
+        "state": "STOPPED",
+        "timed_out": false
+      },
+      {
+        "birth": {
+          "linux_start_ticks": 10994176
+        },
+        "exit_code": -15,
+        "index": 22,
+        "pid": 3134870,
+        "proven": true,
+        "state": "STOPPED",
+        "timed_out": false
+      },
+      {
+        "birth": {
+          "linux_start_ticks": 10994184
+        },
+        "exit_code": -15,
+        "index": 23,
+        "pid": 3134873,
+        "proven": true,
+        "state": "STOPPED",
+        "timed_out": false
+      },
+      {
+        "birth": {
+          "linux_start_ticks": 10994192
+        },
+        "exit_code": -15,
+        "index": 24,
+        "pid": 3134876,
+        "proven": true,
+        "state": "STOPPED",
+        "timed_out": false
+      },
+      {
+        "birth": {
+          "linux_start_ticks": 10994201
+        },
+        "exit_code": 0,
+        "index": 25,
+        "pid": 3134879,
+        "proven": true,
+        "state": "STOPPED",
+        "timed_out": false
+      },
+      {
+        "birth": {
+          "linux_start_ticks": 10994209
+        },
+        "exit_code": -15,
+        "index": 26,
+        "pid": 3134882,
+        "proven": true,
+        "state": "STOPPED",
+        "timed_out": false
+      },
+      {
+        "birth": {
+          "linux_start_ticks": 10994219
+        },
+        "exit_code": -15,
+        "index": 27,
+        "pid": 3134885,
+        "proven": true,
+        "state": "STOPPED",
+        "timed_out": false
+      }
+    ],
+    "cleanup_deadline": 109998.36301006636,
+    "counter": {
+      "active": true,
+      "budget_id": "s3-p4-9618f7c7bf12403b8877c90b92ed99a7",
+      "charges": [
+        {
+          "argv": [
+            "/usr/bin/python3.12",
+            "-I",
+            "-S",
+            "-B",
+            "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+            "--scenario",
+            "clean_terminal"
+          ],
+          "birth": null,
+          "exit_code": null,
+          "finished_wall": null,
+          "index": 0,
+          "observed_lifetime_seconds": null,
+          "pid": null,
+          "reconciliation": {
+            "disposition": "HISTORICAL_AUDIT_REFUSAL_BEFORE_OS_CREATION",
+            "previous_state": "PENDING",
+            "receipt": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/fixture-final-03/historical-reconciliation.json",
+            "sha256": "0f266e14b794d6e712855b185ea69fc3c3888aa4279bece03897f73b23d56949"
+          },
+          "role": "implementation",
+          "scenario": "clean_terminal",
+          "settled": true,
+          "started_wall": 1794534906.5769243,
+          "state": "REFUSED_BEFORE_FORK"
+        },
+        {
+          "argv": [
+            "/usr/bin/python3.12",
+            "-I",
+            "-S",
+            "-B",
+            "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+            "--scenario",
+            "blocking_callback"
+          ],
+          "birth": null,
+          "exit_code": null,
+          "finished_wall": null,
+          "index": 1,
+          "observed_lifetime_seconds": null,
+          "pid": null,
+          "reconciliation": {
+            "disposition": "HISTORICAL_AUDIT_REFUSAL_BEFORE_OS_CREATION",
+            "previous_state": "PENDING",
+            "receipt": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/fixture-final-03/historical-reconciliation.json",
+            "sha256": "0f266e14b794d6e712855b185ea69fc3c3888aa4279bece03897f73b23d56949"
+          },
+          "role": "implementation",
+          "scenario": "blocking_callback",
+          "settled": true,
+          "started_wall": 1794534906.660391,
+          "state": "REFUSED_BEFORE_FORK"
+        },
+        {
+          "argv": [
+            "/usr/bin/python3.12",
+            "-I",
+            "-S",
+            "-B",
+            "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+            "--scenario",
+            "clean_terminal"
+          ],
+          "birth": {
+            "linux_start_ticks": 9047911
+          },
+          "exit_code": 0,
+          "finished_wall": 1794542152.4695494,
+          "index": 2,
+          "observed_lifetime_seconds": 0.079,
+          "pid": 2686731,
+          "role": "implementation",
+          "scenario": "clean_terminal",
+          "settled": true,
+          "started_wall": 1794542152.384869,
+          "state": "STOPPED"
+        },
+        {
+          "argv": [
+            "/usr/bin/python3.12",
+            "-I",
+            "-S",
+            "-B",
+            "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+            "--scenario",
+            "blocking_callback"
+          ],
+          "birth": {
+            "linux_start_ticks": 9047920
+          },
+          "exit_code": -15,
+          "finished_wall": 1794542153.5167594,
+          "index": 3,
+          "observed_lifetime_seconds": 1.036,
+          "pid": 2686736,
+          "role": "implementation",
+          "scenario": "blocking_callback",
+          "settled": true,
+          "started_wall": 1794542152.4755368,
+          "state": "STOPPED"
+        },
+        {
+          "argv": [
+            "/usr/bin/python3.12",
+            "-I",
+            "-S",
+            "-B",
+            "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+            "--scenario",
+            "blocking_persistence"
+          ],
+          "birth": {
+            "linux_start_ticks": 9048025
+          },
+          "exit_code": -15,
+          "finished_wall": 1794542154.5579858,
+          "index": 4,
+          "observed_lifetime_seconds": 1.031,
+          "pid": 2686773,
+          "role": "implementation",
+          "scenario": "blocking_persistence",
+          "settled": true,
+          "started_wall": 1794542153.5216305,
+          "state": "STOPPED"
+        },
+        {
+          "argv": [
+            "/usr/bin/python3.12",
+            "-I",
+            "-S",
+            "-B",
+            "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+            "--scenario",
+            "history_replay"
+          ],
+          "birth": {
+            "linux_start_ticks": 9048136
+          },
+          "exit_code": -15,
+          "finished_wall": 1794542154.7144816,
+          "index": 5,
+          "observed_lifetime_seconds": 0.082,
+          "pid": 2686799,
+          "role": "implementation",
+          "scenario": "history_replay",
+          "settled": true,
+          "started_wall": 1794542154.622945,
+          "state": "STOPPED"
+        },
+        {
+          "argv": [
+            "/usr/bin/python3.12",
+            "-I",
+            "-S",
+            "-B",
+            "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+            "--scenario",
+            "sequence_reversal"
+          ],
+          "birth": {
+            "linux_start_ticks": 9048146
+          },
+          "exit_code": -15,
+          "finished_wall": 1794542154.8152556,
+          "index": 6,
+          "observed_lifetime_seconds": 0.082,
+          "pid": 2686802,
+          "role": "implementation",
+          "scenario": "sequence_reversal",
+          "settled": true,
+          "started_wall": 1794542154.7238643,
+          "state": "STOPPED"
+        },
+        {
+          "argv": [
+            "/usr/bin/python3.12",
+            "-I",
+            "-S",
+            "-B",
+            "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+            "--scenario",
+            "duplicate_sequence"
+          ],
+          "birth": {
+            "linux_start_ticks": 9048155
+          },
+          "exit_code": -15,
+          "finished_wall": 1794542154.9073262,
+          "index": 7,
+          "observed_lifetime_seconds": 0.081,
+          "pid": 2686806,
+          "role": "implementation",
+          "scenario": "duplicate_sequence",
+          "settled": true,
+          "started_wall": 1794542154.821268,
+          "state": "STOPPED"
+        },
+        {
+          "argv": [
+            "/usr/bin/python3.12",
+            "-I",
+            "-S",
+            "-B",
+            "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+            "--scenario",
+            "oversize_message"
+          ],
+          "birth": {
+            "linux_start_ticks": 9048164
+          },
+          "exit_code": -15,
+          "finished_wall": 1794542154.997934,
+          "index": 8,
+          "observed_lifetime_seconds": 0.08,
+          "pid": 2686811,
+          "role": "implementation",
+          "scenario": "oversize_message",
+          "settled": true,
+          "started_wall": 1794542154.9122465,
+          "state": "STOPPED"
+        },
+        {
+          "argv": [
+            "/usr/bin/python3.12",
+            "-I",
+            "-S",
+            "-B",
+            "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+            "--scenario",
+            "foreign_identity"
+          ],
+          "birth": {
+            "linux_start_ticks": 9048173
+          },
+          "exit_code": -15,
+          "finished_wall": 1794542155.0903895,
+          "index": 9,
+          "observed_lifetime_seconds": 0.081,
+          "pid": 2686887,
+          "role": "implementation",
+          "scenario": "foreign_identity",
+          "settled": true,
+          "started_wall": 1794542155.003524,
+          "state": "STOPPED"
+        },
+        {
+          "argv": [
+            "/usr/bin/python3.12",
+            "-I",
+            "-S",
+            "-B",
+            "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+            "--scenario",
+            "unexpected_field"
+          ],
+          "birth": {
+            "linux_start_ticks": 9048182
+          },
+          "exit_code": -15,
+          "finished_wall": 1794542155.1826036,
+          "index": 10,
+          "observed_lifetime_seconds": 0.081,
+          "pid": 2686892,
+          "role": "implementation",
+          "scenario": "unexpected_field",
+          "settled": true,
+          "started_wall": 1794542155.0953717,
+          "state": "STOPPED"
+        },
+        {
+          "argv": [
+            "/usr/bin/python3.12",
+            "-I",
+            "-S",
+            "-B",
+            "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+            "--scenario",
+            "nonfinite_number"
+          ],
+          "birth": {
+            "linux_start_ticks": 9048192
+          },
+          "exit_code": -15,
+          "finished_wall": 1794542156.2627835,
+          "index": 11,
+          "observed_lifetime_seconds": 1.07,
+          "pid": 2686895,
+          "role": "implementation",
+          "scenario": "nonfinite_number",
+          "settled": true,
+          "started_wall": 1794542155.1872787,
+          "state": "STOPPED"
+        },
+        {
+          "argv": [
+            "/usr/bin/python3.12",
+            "-I",
+            "-S",
+            "-B",
+            "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+            "--scenario",
+            "early_exit"
+          ],
+          "birth": {
+            "linux_start_ticks": 9048300
+          },
+          "exit_code": 0,
+          "finished_wall": 1794542156.3627934,
+          "index": 12,
+          "observed_lifetime_seconds": 0.089,
+          "pid": 2686937,
+          "role": "implementation",
+          "scenario": "early_exit",
+          "settled": true,
+          "started_wall": 1794542156.2681308,
+          "state": "STOPPED"
+        },
+        {
+          "argv": [
+            "/usr/bin/python3.12",
+            "-I",
+            "-S",
+            "-B",
+            "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+            "--scenario",
+            "message_flood"
+          ],
+          "birth": {
+            "linux_start_ticks": 9048310
+          },
+          "exit_code": -15,
+          "finished_wall": 1794542157.4508643,
+          "index": 13,
+          "observed_lifetime_seconds": 1.078,
+          "pid": 2686940,
+          "role": "implementation",
+          "scenario": "message_flood",
+          "settled": true,
+          "started_wall": 1794542156.3677356,
+          "state": "STOPPED"
+        },
+        {
+          "argv": [
+            "/usr/bin/python3.12",
+            "-I",
+            "-S",
+            "-B",
+            "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+            "--scenario",
+            "bad_terminal_reference"
+          ],
+          "birth": {
+            "linux_start_ticks": 9048418
+          },
+          "exit_code": -15,
+          "finished_wall": 1794542157.5534508,
+          "index": 14,
+          "observed_lifetime_seconds": 0.092,
+          "pid": 2686980,
+          "role": "implementation",
+          "scenario": "bad_terminal_reference",
+          "settled": true,
+          "started_wall": 1794542157.4560003,
+          "state": "STOPPED"
+        },
+        {
+          "argv": [
+            "/usr/bin/python3.12",
+            "-I",
+            "-S",
+            "-B",
+            "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+            "--scenario",
+            "clean_terminal"
+          ],
+          "birth": {
+            "linux_start_ticks": 10993923
+          },
+          "exit_code": 0,
+          "finished_wall": 1794561616.625906,
+          "index": 15,
+          "observed_lifetime_seconds": 0.075,
+          "pid": 3134767,
+          "role": "implementation",
+          "scenario": "clean_terminal",
+          "settled": true,
+          "started_wall": 1794561616.5461645,
+          "state": "STOPPED"
+        },
+        {
+          "argv": [
+            "/usr/bin/python3.12",
+            "-I",
+            "-S",
+            "-B",
+            "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+            "--scenario",
+            "blocking_callback"
+          ],
+          "birth": {
+            "linux_start_ticks": 10993932
+          },
+          "exit_code": -15,
+          "finished_wall": 1794561617.666949,
+          "index": 16,
+          "observed_lifetime_seconds": 1.031,
+          "pid": 3134771,
+          "role": "implementation",
+          "scenario": "blocking_callback",
+          "settled": true,
+          "started_wall": 1794561616.6308877,
+          "state": "STOPPED"
+        },
+        {
+          "argv": [
+            "/usr/bin/python3.12",
+            "-I",
+            "-S",
+            "-B",
+            "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+            "--scenario",
+            "blocking_persistence"
+          ],
+          "birth": {
+            "linux_start_ticks": 10994036
+          },
+          "exit_code": -15,
+          "finished_wall": 1794561618.7037094,
+          "index": 17,
+          "observed_lifetime_seconds": 1.027,
+          "pid": 3134784,
+          "role": "implementation",
+          "scenario": "blocking_persistence",
+          "settled": true,
+          "started_wall": 1794561617.6722274,
+          "state": "STOPPED"
+        },
+        {
+          "argv": [
+            "/usr/bin/python3.12",
+            "-I",
+            "-S",
+            "-B",
+            "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+            "--scenario",
+            "history_replay"
+          ],
+          "birth": {
+            "linux_start_ticks": 10994140
+          },
+          "exit_code": -15,
+          "finished_wall": 1794561618.7898643,
+          "index": 18,
+          "observed_lifetime_seconds": 0.076,
+          "pid": 3134790,
+          "role": "implementation",
+          "scenario": "history_replay",
+          "settled": true,
+          "started_wall": 1794561618.7084398,
+          "state": "STOPPED"
+        },
+        {
+          "argv": [
+            "/usr/bin/python3.12",
+            "-I",
+            "-S",
+            "-B",
+            "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+            "--scenario",
+            "sequence_reversal"
+          ],
+          "birth": {
+            "linux_start_ticks": 10994148
+          },
+          "exit_code": -15,
+          "finished_wall": 1794561618.8761876,
+          "index": 19,
+          "observed_lifetime_seconds": 0.076,
+          "pid": 3134793,
+          "role": "implementation",
+          "scenario": "sequence_reversal",
+          "settled": true,
+          "started_wall": 1794561618.794703,
+          "state": "STOPPED"
+        },
+        {
+          "argv": [
+            "/usr/bin/python3.12",
+            "-I",
+            "-S",
+            "-B",
+            "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+            "--scenario",
+            "duplicate_sequence"
+          ],
+          "birth": {
+            "linux_start_ticks": 10994157
+          },
+          "exit_code": -15,
+          "finished_wall": 1794561618.963678,
+          "index": 20,
+          "observed_lifetime_seconds": 0.078,
+          "pid": 3134796,
+          "role": "implementation",
+          "scenario": "duplicate_sequence",
+          "settled": true,
+          "started_wall": 1794561618.8808265,
+          "state": "STOPPED"
+        },
+        {
+          "argv": [
+            "/usr/bin/python3.12",
+            "-I",
+            "-S",
+            "-B",
+            "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+            "--scenario",
+            "oversize_message"
+          ],
+          "birth": {
+            "linux_start_ticks": 10994167
+          },
+          "exit_code": -15,
+          "finished_wall": 1794561619.063513,
+          "index": 21,
+          "observed_lifetime_seconds": 0.08,
+          "pid": 3134858,
+          "role": "implementation",
+          "scenario": "oversize_message",
+          "settled": true,
+          "started_wall": 1794561618.9732294,
+          "state": "STOPPED"
+        },
+        {
+          "argv": [
+            "/usr/bin/python3.12",
+            "-I",
+            "-S",
+            "-B",
+            "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+            "--scenario",
+            "foreign_identity"
+          ],
+          "birth": {
+            "linux_start_ticks": 10994176
+          },
+          "exit_code": -15,
+          "finished_wall": 1794561619.14791,
+          "index": 22,
+          "observed_lifetime_seconds": 0.074,
+          "pid": 3134870,
+          "role": "implementation",
+          "scenario": "foreign_identity",
+          "settled": true,
+          "started_wall": 1794561619.0685642,
+          "state": "STOPPED"
+        },
+        {
+          "argv": [
+            "/usr/bin/python3.12",
+            "-I",
+            "-S",
+            "-B",
+            "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+            "--scenario",
+            "unexpected_field"
+          ],
+          "birth": {
+            "linux_start_ticks": 10994184
+          },
+          "exit_code": -15,
+          "finished_wall": 1794561619.2321105,
+          "index": 23,
+          "observed_lifetime_seconds": 0.074,
+          "pid": 3134873,
+          "role": "implementation",
+          "scenario": "unexpected_field",
+          "settled": true,
+          "started_wall": 1794561619.152851,
+          "state": "STOPPED"
+        },
+        {
+          "argv": [
+            "/usr/bin/python3.12",
+            "-I",
+            "-S",
+            "-B",
+            "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+            "--scenario",
+            "nonfinite_number"
+          ],
+          "birth": {
+            "linux_start_ticks": 10994192
+          },
+          "exit_code": -15,
+          "finished_wall": 1794561619.319085,
+          "index": 24,
+          "observed_lifetime_seconds": 0.076,
+          "pid": 3134876,
+          "role": "implementation",
+          "scenario": "nonfinite_number",
+          "settled": true,
+          "started_wall": 1794561619.2370474,
+          "state": "STOPPED"
+        },
+        {
+          "argv": [
+            "/usr/bin/python3.12",
+            "-I",
+            "-S",
+            "-B",
+            "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+            "--scenario",
+            "early_exit"
+          ],
+          "birth": {
+            "linux_start_ticks": 10994201
+          },
+          "exit_code": 0,
+          "finished_wall": 1794561619.402082,
+          "index": 25,
+          "observed_lifetime_seconds": 0.073,
+          "pid": 3134879,
+          "role": "implementation",
+          "scenario": "early_exit",
+          "settled": true,
+          "started_wall": 1794561619.3240943,
+          "state": "STOPPED"
+        },
+        {
+          "argv": [
+            "/usr/bin/python3.12",
+            "-I",
+            "-S",
+            "-B",
+            "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+            "--scenario",
+            "message_flood"
+          ],
+          "birth": {
+            "linux_start_ticks": 10994209
+          },
+          "exit_code": -15,
+          "finished_wall": 1794561619.492639,
+          "index": 26,
+          "observed_lifetime_seconds": 0.081,
+          "pid": 3134882,
+          "role": "implementation",
+          "scenario": "message_flood",
+          "settled": true,
+          "started_wall": 1794561619.4070663,
+          "state": "STOPPED"
+        },
+        {
+          "argv": [
+            "/usr/bin/python3.12",
+            "-I",
+            "-S",
+            "-B",
+            "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+            "--scenario",
+            "bad_terminal_reference"
+          ],
+          "birth": {
+            "linux_start_ticks": 10994219
+          },
+          "exit_code": -15,
+          "finished_wall": 1794561619.5848289,
+          "index": 27,
+          "observed_lifetime_seconds": 0.082,
+          "pid": 3134885,
+          "role": "implementation",
+          "scenario": "bad_terminal_reference",
+          "settled": true,
+          "started_wall": 1794561619.4974246,
+          "state": "STOPPED"
+        }
+      ],
+      "kind": "lvw.s3-cpu-budget/1",
+      "operational_limit_revisions": [
+        {
+          "amendment": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/fixture-resume-05/budget-amendment.json",
+          "at_utc": "2026-11-13T09:18:22.613887+00:00",
+          "before_sha256": "8f12beb38c78378e51d3164cf02f54e54d619f55f2286a8d128b81249dc0fb18",
+          "new_binding_sha256": "3ae86ac3ce5fa5afff95770145717181fc1d380956fdfdd4b684deffb4f972c2",
+          "new_limits": {
+            "budget_id": "s3-p4-9618f7c7bf12403b8877c90b92ed99a7",
+            "cleanup_reserve_seconds": 30,
+            "counter_path": "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json",
+            "max_concurrent": 2,
+            "max_starts_by_role": {
+              "implementation": 28,
+              "independent_review": 8
+            },
+            "max_total_starts": 28,
+            "per_child_kill_seconds": 1,
+            "per_child_stop_attempts": 3,
+            "per_child_termination_margin_seconds": 2,
+            "per_process_seconds": 10,
+            "session_wall_cap_seconds": 60,
+            "shared_pool_seconds": 240
+          },
+          "revision": 2,
+          "sha256": "ab5d9d76588be31130462ff2ca9081706f21b10c3843fdd49ce5b3fc331f9392"
+        }
+      ],
+      "reconciliation_events": [
+        {
+          "at_utc": "2026-11-13T02:58:37.394902+00:00",
+          "counts_preserved": true,
+          "indices": [
+            0,
+            1
+          ],
+          "receipt": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/fixture-final-03/historical-reconciliation.json",
+          "sha256": "0f266e14b794d6e712855b185ea69fc3c3888aa4279bece03897f73b23d56949"
+        }
+      ],
+      "reserved_wall_seconds": 240.0,
+      "resume_basis": "Explicit root operational revision2 under COMPLETE03; same15 admissions/180 reserved/8.446 spent retained",
+      "resumed_at_utc": "2026-11-13T01:48:40.614495+00:00",
+      "sessions": [
+        {
+          "admission_deadline_wall": 1794534571.831,
+          "admission_seconds": 30.0,
+          "cleanup_deadline_wall": 1794534601.831,
+          "cleanup_seconds": 60.0,
+          "finished_wall": 1794534542.5383573,
+          "owner_id": "owner-ef21ffb2086f4260a088ce3cd078980d",
+          "remaining_before_seconds": 180.0,
+          "reserved_at_wall": 1794534541.830529,
+          "reserved_wall_seconds": 60.0,
+          "role": "implementation",
+          "session_id": "session-5cc6f255f8b579ae5cb94931d71379eb",
+          "spent_wall_seconds": 0.708,
+          "started_wall": 1794534541.830529,
+          "state": "SETTLED"
+        },
+        {
+          "admission_deadline_wall": 1794534936.052,
+          "admission_seconds": 30.0,
+          "cleanup_deadline_wall": 1794534966.052,
+          "cleanup_seconds": 60.0,
+          "finished_wall": 1794534908.2401826,
+          "owner_id": "owner-90905e03bd224c7cbfa266565c25f3a8",
+          "remaining_before_seconds": 120.0,
+          "reserved_at_wall": 1794534906.051888,
+          "reserved_wall_seconds": 60.0,
+          "role": "implementation",
+          "session_id": "session-a1c075996f29bcac7e48dabd0ef9eed3",
+          "spent_wall_seconds": 2.188,
+          "started_wall": 1794534906.051888,
+          "state": "SETTLED"
+        },
+        {
+          "admission_deadline_wall": 1794542182.01,
+          "admission_seconds": 30.0,
+          "cleanup_deadline_wall": 1794542212.01,
+          "cleanup_seconds": 60.0,
+          "finished_wall": 1794542157.5602493,
+          "owner_id": "owner-ac0443d9878d4558998043dfab8ca536",
+          "remaining_before_seconds": 60.0,
+          "reserved_at_wall": 1794542152.0098147,
+          "reserved_wall_seconds": 60.0,
+          "role": "implementation",
+          "session_id": "session-6b8a5e40c8d4383821e8ddaecbf6f919",
+          "spent_wall_seconds": 5.55,
+          "started_wall": 1794542152.0098147,
+          "state": "SETTLED"
+        },
+        {
+          "admission_deadline_wall": 1794561645.675,
+          "admission_seconds": 30.0,
+          "cleanup_deadline_wall": 1794561675.675,
+          "cleanup_seconds": 60.0,
+          "finished_wall": 1794561619.5910935,
+          "owner_id": "owner-4b11afda892042d098c429d3d0b70462",
+          "remaining_before_seconds": 60.0,
+          "reserved_at_wall": 1794561615.6750197,
+          "reserved_wall_seconds": 60.0,
+          "role": "implementation",
+          "session_id": "session-97acf02d9448f7312b973d6ab0d5e12a",
+          "spent_wall_seconds": 3.916,
+          "started_wall": 1794561615.6750197,
+          "state": "SETTLED"
+        }
+      ],
+      "spent_wall_seconds": 12.362,
+      "starts_by_role": {
+        "implementation": 28,
+        "independent_review": 0
+      },
+      "starts_total": 28,
+      "suspended_at_utc": "2026-11-13T00:48:52.436257+00:00",
+      "suspension_reason": "ORIGINAL180_POOL_FULLY_RESERVED_FINAL04_11PASS_2FAIL"
+    },
+    "counter_budget_id": "s3-p4-9618f7c7bf12403b8877c90b92ed99a7",
+    "counter_path": "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json",
+    "kind": "lvw.s3-finite-cpu-session/1",
+    "product_gate0": false,
+    "proven_child_handles": 13,
+    "refusals": [],
+    "reservation": {
+      "admission_deadline_wall": 1794561645.675,
+      "admission_seconds": 30.0,
+      "cleanup_deadline_wall": 1794561675.675,
+      "cleanup_seconds": 60.0,
+      "owner_id": "owner-4b11afda892042d098c429d3d0b70462",
+      "remaining_before_seconds": 60.0,
+      "reserved_at_wall": 1794561615.6750197,
+      "reserved_wall_seconds": 60.0,
+      "role": "implementation",
+      "session_id": "session-97acf02d9448f7312b973d6ab0d5e12a",
+      "spent_wall_seconds": null,
+      "started_wall": 1794561615.6750197,
+      "state": "ACTIVE"
+    },
+    "reserved_wall_seconds": 240.0,
+    "role": "implementation",
+    "session_id": "session-97acf02d9448f7312b973d6ab0d5e12a",
+    "settlement_failures": [],
+    "spent_wall_seconds": 12.362,
+    "stage_pass_claim": false,
+    "starts_by_role": {
+      "implementation": 28,
+      "independent_review": 0
+    },
+    "starts_total": 28,
+    "uncertain": false
+  },
+  "exit_code": 0,
+  "failure_reasons": [],
+  "fixture_process_limit": 28,
+  "fixture_process_starts": 13,
+  "fixture_process_starts_semantics": "the number of admitted audit hook attempts; it is NOT a number of created or successful process starts",
+  "guard": {
+    "audit_hook_installed_before_product_import": true,
+    "audit_hook_installed_before_pytest": true,
+    "blocked_events": [
+      "socket.connect",
+      "socket.connect_ex",
+      "socket.bind",
+      "socket.getaddrinfo",
+      "socket.gethostbyname",
+      "socket.gethostbyaddr",
+      "socket.getnameinfo",
+      "subprocess.Popen",
+      "os.system",
+      "os.exec",
+      "os.spawn",
+      "os.posix_spawn",
+      "os.fork",
+      "os.forkpty"
+    ],
+    "bytecode_written": false,
+    "cacheprovider": "disabled",
+    "handshake_confirmed": true,
+    "handshake_count": 1,
+    "handshake_event": "lvw.s3.offline.guard.handshake",
+    "hook_install_count": 1,
+    "host_subprocess": "bound_fixture_plan_only",
+    "install_attempts": 1,
+    "install_error": null,
+    "installed_by": "run_guarded_checks.py",
+    "network": "blocked",
+    "owner_id": "owner-3e71c4932947b73c0682ad7d0f877e15",
+    "process_creation_events": [
+      "subprocess.Popen",
+      "os.posix_spawn",
+      "os.fork",
+      "os.forkpty"
+    ],
+    "pytest_disable_plugin_autoload": "1",
+    "single_owner_gate": true
+  },
+  "guard_results": null,
+  "guard_root": "/tmp/lvw-s3-integration-a68jkcw8",
+  "imported_modules": {
+    "tools.v0_s3_quality_phase": {
+      "module": "tools.v0_s3_quality_phase",
+      "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_quality_phase.py",
+      "sha256": "90552ea113ccf53a2a1cedff3e3f399642ad932bf0f71bb1f9a57e1adb6e8789"
+    },
+    "tools.v0_s3_quality_worker": {
+      "module": "tools.v0_s3_quality_worker",
+      "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_quality_worker.py",
+      "sha256": "1e1490c86ce6dd7f6f0734967b75652ced872b82848e6a1966dd1a147e38b6d3"
+    },
+    "tools.v0_s3_supervisor": {
+      "module": "tools.v0_s3_supervisor",
+      "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_supervisor.py",
+      "sha256": "c669e97f06f2d90061a1a8cedf859db454c5783daf6591418f7ff13bb9d848b3"
+    }
+  },
+  "invocation": {
+    "effective_arguments": [
+      "--mode",
+      "suite",
+      "--label",
+      "finite-fixture-implementation-05",
+      "--outdir",
+      "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/finite-fixture-implementation-05",
+      "--modules",
+      "tools/test_v0_s3_supervisor.py::test_the_fixture_clean_terminal_is_verified_by_the_parent,tools/test_v0_s3_supervisor.py::test_a_blocking_callback_is_actually_stopped,tools/test_v0_s3_supervisor.py::test_a_blocking_persistence_is_actually_stopped,tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[history_replay-MESSAGE_HISTORY_STARTED_REPEATED],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[sequence_reversal-MESSAGE_SEQUENCE_NOT_INCREASING],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[duplicate_sequence-MESSAGE_SEQUENCE_NOT_INCREASING],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[oversize_message-MESSAGE_TOO_LARGE],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[foreign_identity-MESSAGE_RUN_ID_MISMATCH],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[unexpected_field-MESSAGE_KEY_SET_INVALID],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[nonfinite_number-MESSAGE_NONFINITE_NUMBER],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[early_exit-WORKER_EXITED_WITHOUT_TERMINAL],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[message_flood-MESSAGE_COUNT_EXCEEDED],tools/test_v0_s3_supervisor.py::test_a_bad_terminal_reference_is_refused",
+      "--binding",
+      "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/implementation-final-05.binding.json",
+      "--binding-sha256",
+      "3ae86ac3ce5fa5afff95770145717181fc1d380956fdfdd4b684deffb4f972c2",
+      "--role",
+      "implementation",
+      "--candidate-sha",
+      "07277a6f2f6f730dc7b9383bfeaf8c412126fe16"
+    ],
+    "kind": "process",
+    "outer_arguments": [
+      "--mode",
+      "suite",
+      "--label",
+      "finite-fixture-implementation-05",
+      "--binding",
+      "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/implementation-final-05.binding.json",
+      "--binding-sha256",
+      "3ae86ac3ce5fa5afff95770145717181fc1d380956fdfdd4b684deffb4f972c2",
+      "--role",
+      "implementation",
+      "--candidate-sha",
+      "07277a6f2f6f730dc7b9383bfeaf8c412126fe16",
+      "--modules",
+      "tools/test_v0_s3_supervisor.py::test_the_fixture_clean_terminal_is_verified_by_the_parent,tools/test_v0_s3_supervisor.py::test_a_blocking_callback_is_actually_stopped,tools/test_v0_s3_supervisor.py::test_a_blocking_persistence_is_actually_stopped,tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[history_replay-MESSAGE_HISTORY_STARTED_REPEATED],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[sequence_reversal-MESSAGE_SEQUENCE_NOT_INCREASING],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[duplicate_sequence-MESSAGE_SEQUENCE_NOT_INCREASING],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[oversize_message-MESSAGE_TOO_LARGE],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[foreign_identity-MESSAGE_RUN_ID_MISMATCH],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[unexpected_field-MESSAGE_KEY_SET_INVALID],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[nonfinite_number-MESSAGE_NONFINITE_NUMBER],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[early_exit-WORKER_EXITED_WITHOUT_TERMINAL],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[message_flood-MESSAGE_COUNT_EXCEEDED],tools/test_v0_s3_supervisor.py::test_a_bad_terminal_reference_is_refused",
+      "--outdir",
+      "reports/v0-s3/product-gate0/finite-fixture-implementation-05"
+    ],
+    "outer_argv": [
+      "/usr/bin/python3.12",
+      "-B",
+      "reports/v0-s3/product-gate0/implementation-integration-01/run_guarded_checks.py",
+      "--mode",
+      "suite",
+      "--label",
+      "finite-fixture-implementation-05",
+      "--binding",
+      "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/implementation-final-05.binding.json",
+      "--binding-sha256",
+      "3ae86ac3ce5fa5afff95770145717181fc1d380956fdfdd4b684deffb4f972c2",
+      "--role",
+      "implementation",
+      "--candidate-sha",
+      "07277a6f2f6f730dc7b9383bfeaf8c412126fe16",
+      "--modules",
+      "tools/test_v0_s3_supervisor.py::test_the_fixture_clean_terminal_is_verified_by_the_parent,tools/test_v0_s3_supervisor.py::test_a_blocking_callback_is_actually_stopped,tools/test_v0_s3_supervisor.py::test_a_blocking_persistence_is_actually_stopped,tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[history_replay-MESSAGE_HISTORY_STARTED_REPEATED],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[sequence_reversal-MESSAGE_SEQUENCE_NOT_INCREASING],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[duplicate_sequence-MESSAGE_SEQUENCE_NOT_INCREASING],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[oversize_message-MESSAGE_TOO_LARGE],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[foreign_identity-MESSAGE_RUN_ID_MISMATCH],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[unexpected_field-MESSAGE_KEY_SET_INVALID],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[nonfinite_number-MESSAGE_NONFINITE_NUMBER],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[early_exit-WORKER_EXITED_WITHOUT_TERMINAL],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[message_flood-MESSAGE_COUNT_EXCEEDED],tools/test_v0_s3_supervisor.py::test_a_bad_terminal_reference_is_refused",
+      "--outdir",
+      "reports/v0-s3/product-gate0/finite-fixture-implementation-05"
+    ],
+    "outer_matches_effective": true
+  },
+  "kind": "S3_P4_OFFLINE_INTEGRATION_GUARDED_CHECK_RECEIPT",
+  "label": "finite-fixture-implementation-05",
+  "machine_binding": "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/implementation-final-05.binding.json",
+  "machine_binding_present": true,
+  "machine_binding_sha256": "3ae86ac3ce5fa5afff95770145717181fc1d380956fdfdd4b684deffb4f972c2",
+  "mode": "suite",
+  "orig_argv": [
+    "/usr/bin/python3.12",
+    "-B",
+    "reports/v0-s3/product-gate0/implementation-integration-01/run_guarded_checks.py",
+    "--mode",
+    "suite",
+    "--label",
+    "finite-fixture-implementation-05",
+    "--binding",
+    "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/implementation-final-05.binding.json",
+    "--binding-sha256",
+    "3ae86ac3ce5fa5afff95770145717181fc1d380956fdfdd4b684deffb4f972c2",
+    "--role",
+    "implementation",
+    "--candidate-sha",
+    "07277a6f2f6f730dc7b9383bfeaf8c412126fe16",
+    "--modules",
+    "tools/test_v0_s3_supervisor.py::test_the_fixture_clean_terminal_is_verified_by_the_parent,tools/test_v0_s3_supervisor.py::test_a_blocking_callback_is_actually_stopped,tools/test_v0_s3_supervisor.py::test_a_blocking_persistence_is_actually_stopped,tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[history_replay-MESSAGE_HISTORY_STARTED_REPEATED],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[sequence_reversal-MESSAGE_SEQUENCE_NOT_INCREASING],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[duplicate_sequence-MESSAGE_SEQUENCE_NOT_INCREASING],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[oversize_message-MESSAGE_TOO_LARGE],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[foreign_identity-MESSAGE_RUN_ID_MISMATCH],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[unexpected_field-MESSAGE_KEY_SET_INVALID],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[nonfinite_number-MESSAGE_NONFINITE_NUMBER],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[early_exit-WORKER_EXITED_WITHOUT_TERMINAL],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[message_flood-MESSAGE_COUNT_EXCEEDED],tools/test_v0_s3_supervisor.py::test_a_bad_terminal_reference_is_refused",
+    "--outdir",
+    "reports/v0-s3/product-gate0/finite-fixture-implementation-05"
+  ],
+  "outcome": "PASS",
+  "owned_root_removed": true,
+  "product_gate0": false,
+  "proven_child_handles": 13,
+  "real_execution_performed": false,
+  "runner_sha256_after": "da688b1502dcf625bbbf883c5e7e519d0c4c386a51fafa15539a69e2331d1005",
+  "runner_sha256_before": "da688b1502dcf625bbbf883c5e7e519d0c4c386a51fafa15539a69e2331d1005",
+  "runner_unchanged_during_run": true,
+  "select": null,
+  "session_role": "implementation",
+  "source_unchanged_during_run": true,
+  "stage_pass_claim": false,
+  "stderr_bytes": 0,
+  "stderr_file": "reports/v0-s3/product-gate0/finite-fixture-implementation-05/finite-fixture-implementation-05.stderr.log",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 99,
+  "stdout_file": "reports/v0-s3/product-gate0/finite-fixture-implementation-05/finite-fixture-implementation-05.stdout.log",
+  "stdout_sha256": "bcf8d6d27b1a59d8ab4f1ca75a20e65447a9e26733f799275d3e8256e9f430f2"
+}
