@@ -38,13 +38,14 @@ _subprocess.Popen = _ORIGINAL_POPEN
 from tools.v0_s3_quality_worker import (  # noqa: E402
     WorkerContext, WorkerError, run_worker)
 from tools.v0_s3_supervisor import (  # noqa: E402
-    CHILD_TIMEOUT_SECONDS, EVENTS, FIXTURE_SCENARIOS, HISTORY_TIMEOUT_SECONDS,
-    MAX_MESSAGE_BYTES, MAX_MESSAGES, MAX_STREAM_BYTES, MESSAGE_KEYS,
-    PHASE_TIMEOUT_SECONDS, PROTOCOL_SCHEMA, STDERR_STREAM_LIMIT_EXCEEDED,
-    STDERR_STREAM_READ_FAILED, STDOUT_STREAM_LIMIT_EXCEEDED,
-    STDOUT_STREAM_READ_FAILED, ParentSupervisor, ProtocolState, RecoveryEntry,
-    SealedPlan, SupervisionError, build_fixture_command, build_production_command,
-    decode_message)
+    CHILD_TIMEOUT_SECONDS, DRAIN_TIMEOUT_SECONDS, EVENTS, FIXTURE_SCENARIOS,
+    HISTORY_TIMEOUT_SECONDS, MAX_MESSAGE_BYTES, MAX_MESSAGES, MAX_STREAM_BYTES,
+    MESSAGE_INCOMPLETE_FRAME, MESSAGE_KEYS, PHASE_TIMEOUT_SECONDS, PROTOCOL_SCHEMA,
+    STDERR_STREAM_DRAIN_INCOMPLETE, STDERR_STREAM_LIMIT_EXCEEDED,
+    STDERR_STREAM_READ_FAILED, STDOUT_STREAM_DRAIN_INCOMPLETE,
+    STDOUT_STREAM_LIMIT_EXCEEDED, STDOUT_STREAM_READ_FAILED, ParentSupervisor,
+    ProtocolState, RecoveryEntry, SealedPlan, SupervisionError,
+    _StreamReader, build_fixture_command, build_production_command, decode_message)
 
 PACK_ROOT = Path(__file__).resolve().parents[1]
 REPOSITORY_ROOT = PACK_ROOT.parent
@@ -291,7 +292,28 @@ class FakeProcess:
         os.write(self.out_write, raw)
 
     def close_stdout(self):
+        if self.out_write is None:
+            return
         os.close(self.out_write)
+        self.out_write = None
+
+    def close_streams(self):
+        """Close the write ends of the fake child.
+
+        A child that is gone closes its own ends of the pipes.  The fake
+        holds those ends, so the fake closes them when the child is gone.
+        Without that the readers of the parent would never see the end of
+        their stream and the parent would refuse a run that is really over.
+        """
+        for name in ('out_write', 'err_write', 'in_write'):
+            descriptor = getattr(self, name, None)
+            if descriptor is None:
+                continue
+            try:
+                os.close(descriptor)
+            except OSError:
+                pass
+            setattr(self, name, None)
 
     def poll(self):
         return self.returncode
@@ -444,7 +466,7 @@ def test_the_parent_reads_the_real_canonical_receipt_bytes(tmp_path):
     process.emit(message('TERMINAL', {'canonical_receipt': {
         'reference': 'temp/s3-quality/qd-receipt.json', 'bytes': len(payload),
         'sha256': hashlib.sha256(payload).hexdigest()}}, sequence=2))
-    process.close_stdout()
+    process.close_streams()
     process.returncode = 0
     supervisor = make_supervisor(tmp_path, process=process, root=root)
     evidence = supervisor.run()
@@ -464,7 +486,7 @@ def test_a_wrong_terminal_hash_is_not_verified(tmp_path):
     process.emit(message('TERMINAL', {'canonical_receipt': {
         'reference': 'temp/s3-quality/qd-receipt.json', 'bytes': 12,
         'sha256': '0' * 64}}, sequence=2))
-    process.close_stdout()
+    process.close_streams()
     process.returncode = 0
     supervisor = make_supervisor(tmp_path, process=process, root=root)
     evidence = supervisor.run()
@@ -480,7 +502,7 @@ def test_a_terminal_reference_outside_the_root_is_refused(tmp_path):
     process.emit(message('STARTED', {}, sequence=1))
     process.emit(message('TERMINAL', {'canonical_receipt': {
         'reference': '../outside.json', 'bytes': 12, 'sha256': '0' * 64}}, sequence=2))
-    process.close_stdout()
+    process.close_streams()
     process.returncode = 0
     supervisor = make_supervisor(tmp_path, process=process, root=root)
     evidence = supervisor.run()
@@ -999,7 +1021,7 @@ def test_the_parent_refuses_the_nonfinite_frame_on_a_real_pipe(tmp_path, monkeyp
                                sixteen_rows())
     process = FakeProcess()
     process.emit_raw(raw)
-    process.close_stdout()
+    process.close_streams()
     process.returncode = 0
     supervisor = make_supervisor(tmp_path, process=process, clock=time.monotonic)
     evidence = supervisor.run()
@@ -1068,7 +1090,7 @@ def test_the_parent_accepts_exactly_the_message_limit(tmp_path, monkeypatch):
     # wire is larger than the buffer of a pipe
     supervisor.start()
     process.emit_raw(exact)
-    process.close_stdout()
+    process.close_streams()
     process.returncode = 0
     evidence = supervisor.run()
     assert evidence['message_count'] == MAX_MESSAGES
@@ -1096,6 +1118,9 @@ def test_the_parent_refuses_the_one_over_message_count(tmp_path, monkeypatch):
 
     thread = threading.Thread(target=deliver, daemon=True)
     thread.start()
+    # the error stream of the fake child ends with the child
+    os.close(process.err_write)
+    process.err_write = None
     supervisor = make_supervisor(tmp_path, process=process, clock=time.monotonic,
                                  run_id=FLOOD_RUN_ID)
     evidence = supervisor.run()
@@ -1115,7 +1140,7 @@ def test_the_stdout_stream_at_the_exact_cap_is_not_refused(tmp_path):
     supervisor = make_supervisor(tmp_path, process=process, clock=time.monotonic)
     supervisor.start()
     process.emit_raw(b'x' * MAX_STREAM_BYTES)
-    process.close_stdout()
+    process.close_streams()
     process.returncode = 0
     evidence = supervisor.run()
     assert evidence['stdout_overflow'] is False
@@ -1130,7 +1155,7 @@ def test_the_parent_refuses_an_overlong_stdout_stream(tmp_path):
                                  phase_timeout=5.0)
     supervisor.start()
     process.emit_raw(b'x' * (MAX_STREAM_BYTES + 1))
-    process.close_stdout()
+    process.close_streams()
     process.returncode = 0
     evidence = supervisor.run()
     assert evidence['protocol_violation'] == STDOUT_STREAM_LIMIT_EXCEEDED
@@ -1150,7 +1175,7 @@ def test_the_stderr_stream_at_the_exact_cap_is_not_refused(tmp_path):
     supervisor.start()
     os.write(process.err_write, b'y' * MAX_STREAM_BYTES)
     os.close(process.err_write)
-    process.close_stdout()
+    process.close_streams()
     process.returncode = 0
     evidence = supervisor.run()
     assert evidence['stderr_overflow'] is False
@@ -1166,7 +1191,7 @@ def test_the_parent_refuses_an_overlong_stderr_stream(tmp_path):
     supervisor.start()
     os.write(process.err_write, b'y' * (MAX_STREAM_BYTES + 1))
     os.close(process.err_write)
-    process.close_stdout()
+    process.close_streams()
     process.returncode = 0
     evidence = supervisor.run()
     assert evidence['protocol_violation'] == STDERR_STREAM_LIMIT_EXCEEDED
@@ -1218,7 +1243,7 @@ def test_a_terminal_with_a_stream_overflow_is_not_a_success(tmp_path):
     supervisor.start()
     process.emit_raw(terminal)
     process.emit_raw(b'x' * (MAX_STREAM_BYTES + 1))
-    process.close_stdout()
+    process.close_streams()
     process.returncode = 0
     evidence = supervisor.run()
     assert evidence['protocol_violation'] == STDOUT_STREAM_LIMIT_EXCEEDED
@@ -1261,6 +1286,456 @@ def test_the_frozen_caps_of_the_protocol_are_unchanged():
     assert STDERR_STREAM_LIMIT_EXCEEDED == 'STDERR_STREAM_LIMIT_EXCEEDED'
     assert STDOUT_STREAM_READ_FAILED == 'STDOUT_STREAM_READ_FAILED'
     assert STDERR_STREAM_READ_FAILED == 'STDERR_STREAM_READ_FAILED'
+    # the new internal codes of the drain and of the trailing frame
+    assert STDOUT_STREAM_DRAIN_INCOMPLETE == 'STDOUT_STREAM_DRAIN_INCOMPLETE'
+    assert STDERR_STREAM_DRAIN_INCOMPLETE == 'STDERR_STREAM_DRAIN_INCOMPLETE'
+    assert MESSAGE_INCOMPLETE_FRAME == 'MESSAGE_INCOMPLETE_FRAME'
+    # the shared budget of the drain is the one of the last round
+    assert DRAIN_TIMEOUT_SECONDS == 0.5
+    # the public protocol of the contract is unchanged
+    assert EVENTS == ('STARTED', 'ROW_STARTED', 'HISTORY_WAIT_STARTED',
+                      'ROW_FINISHED', 'PROGRESS', 'TERMINAL')
+    assert MESSAGE_KEYS == frozenset({'schema', 'run_id', 'candidate_sha',
+                                       'authorization_sha256', 'sequence', 'event',
+                                       'payload'})
+    assert len(FIXTURE_SCENARIOS) == 13
+
+
+# -------------------------- the second correction of the streams, zero process
+# The three findings of the independent review are checked here without any
+# process: real pipes, real threads, the real reader and the real parent.
+# No fixture process is started, no socket is opened, no model, no GPU, no
+# service and no ledger is touched.
+class HeldPipeProcess:
+    """A fake child that is gone but whose pipes are still held open.
+
+    No process is started.  The write ends of the pipes stay open, so the
+    readers of the parent never see the end of their stream.  The exit of
+    the handle says nothing about the end of the streams.
+    """
+
+    def __init__(self, pid=4343, stderr_factory=None):
+        self.out_read, self.out_write = os.pipe()
+        self.err_read, self.err_write = os.pipe()
+        self.stdout = os.fdopen(self.out_read, 'rb', buffering=0)
+        self.stderr = (stderr_factory(self.err_read) if stderr_factory is not None
+                       else os.fdopen(self.err_read, 'rb', buffering=0))
+        self.stdin = None
+        self.pid = pid
+        self.returncode = 0
+
+    def poll(self):
+        return self.returncode
+
+    def wait(self, timeout=None):
+        return self.returncode
+
+    def terminate(self):
+        raise AssertionError('a child that is gone must not be terminated')
+
+    def kill(self):
+        raise AssertionError('no other handle may be killed')
+
+    def release(self):
+        """Close the write ends, so the readers of the parent can end."""
+        for name in ('out_write', 'err_write'):
+            descriptor = getattr(self, name, None)
+            if descriptor is None:
+                continue
+            try:
+                os.close(descriptor)
+            except OSError:  # noqa: BLE001 - the pipe may be closed
+                pass
+            setattr(self, name, None)
+
+
+class LateFailingStream:
+    """A stream that can be read once and that fails on the next read."""
+
+    def __init__(self, descriptor):
+        self.descriptor = descriptor
+        self.calls = 0
+
+    def fileno(self):
+        self.calls += 1
+        if self.calls == 1:
+            return self.descriptor
+        raise OSError('the child stream can not be read any more')
+
+
+def canonical_terminal(root, *, run_id=RUN_ID, sequence=1):
+    """A legal terminal frame that names a real canonical receipt."""
+    payload = b'{"rows": []}'
+    (root / 'canonical.json').write_bytes(payload)
+    return encoded(message('TERMINAL',
+                            {'canonical_receipt': {
+                                'reference': 'canonical.json',
+                                'bytes': len(payload),
+                                'sha256': hashlib.sha256(payload).hexdigest()}},
+                            sequence=sequence, run_id=run_id)) + b'\n'
+
+
+def wait_for_the_reader(reader, wanted, *, timeout=5.0):
+    """Wait until the reader has taken the bytes that the test wrote."""
+    end = time.monotonic() + timeout
+    while reader.total < wanted and time.monotonic() < end:
+        time.sleep(0.001)
+    return reader.total >= wanted
+
+
+def test_the_drain_without_a_proven_end_of_the_stream_is_not_archived(tmp_path):
+    """M1: an unproven end of the streams is never an archiveable success."""
+    root = tmp_path / 'run'
+    root.mkdir()
+    process = HeldPipeProcess()
+    supervisor = make_supervisor(tmp_path, process=process, clock=time.monotonic,
+                                 root=root)
+    supervisor.start()
+    terminal = canonical_terminal(root)
+    os.write(process.out_write, terminal)
+    assert wait_for_the_reader(supervisor.stdout_reader, len(terminal))
+    try:
+        evidence = supervisor.run()
+        # the readers are still active: they are not stopped and not faked
+        stdout_active = supervisor.stdout_reader.finished.is_set() is False
+        stderr_active = supervisor.stderr_reader.finished.is_set() is False
+    finally:
+        process.release()
+    # the terminal and the canonical receipt are there and both are legal
+    assert evidence['terminal_received'] is True
+    assert evidence['canonical_receipt_verified'] is True
+    # the end of the streams is not proven
+    assert evidence['drain_violation'] == STDOUT_STREAM_DRAIN_INCOMPLETE
+    assert evidence['stdout_drain_complete'] is False
+    assert evidence['stderr_drain_complete'] is False
+    assert evidence['protocol_violation'] == STDOUT_STREAM_DRAIN_INCOMPLETE
+    assert evidence['unknown_outcome'] is True
+    assert evidence['root_retained'] is True
+    assert evidence['reservation_retained'] is True
+    assert evidence['archive_allowed'] is False
+    assert evidence['next_phase_allowed'] is False
+    assert evidence['refund_allowed'] is False
+    assert evidence['resend_allowed'] is False
+    # the exit of the handle is not the end of the stream
+    assert evidence['cleanup']['proven_stopped'] is True
+    assert stdout_active is True
+    assert stderr_active is True
+
+
+def test_the_drain_uses_one_shared_bounded_deadline(tmp_path):
+    """M1: the two readers share one budget, they do not get one each."""
+    root = tmp_path / 'run'
+    root.mkdir()
+    process = HeldPipeProcess()
+    supervisor = make_supervisor(tmp_path, process=process, clock=time.monotonic,
+                                 root=root)
+    supervisor.start()
+    os.write(process.out_write, canonical_terminal(root))
+    try:
+        start = time.monotonic()
+        evidence = supervisor.run()
+        elapsed = time.monotonic() - start
+    finally:
+        process.release()
+    # one budget for the two readers and not one budget for each of them
+    assert elapsed < 2 * DRAIN_TIMEOUT_SECONDS
+    assert evidence['drain_violation'] == STDOUT_STREAM_DRAIN_INCOMPLETE
+    assert evidence['archive_allowed'] is False
+
+
+def test_the_drain_never_waits_beyond_the_child_deadline(tmp_path):
+    """M1: a run without any remaining time waits no fixed extra time."""
+    root = tmp_path / 'run'
+    root.mkdir()
+    process = HeldPipeProcess()
+    supervisor = make_supervisor(tmp_path, process=process, clock=time.monotonic,
+                                 root=root, phase_timeout=0.05, child_timeout=0.10)
+    supervisor.start()
+    terminal = canonical_terminal(root)
+    os.write(process.out_write, terminal)
+    assert wait_for_the_reader(supervisor.stdout_reader, len(terminal))
+    try:
+        start = time.monotonic()
+        evidence = supervisor.run()
+        elapsed = time.monotonic() - start
+    finally:
+        process.release()
+    # the drain stopped at the deadline of the run and did not add a wait
+    assert elapsed < 0.10
+    assert evidence['terminal_received'] is True
+    assert evidence['drain_violation'] == STDOUT_STREAM_DRAIN_INCOMPLETE
+    assert evidence['archive_allowed'] is False
+
+
+def test_a_late_overflow_after_the_terminal_is_not_a_success(tmp_path):
+    """M1: a failure that arrives after the run never keeps an archive."""
+    root = tmp_path / 'run'
+    root.mkdir()
+    process = HeldPipeProcess()
+    supervisor = make_supervisor(tmp_path, process=process, clock=time.monotonic,
+                                 root=root)
+    supervisor.start()
+    terminal = canonical_terminal(root)
+    os.write(process.out_write, terminal)
+    assert wait_for_the_reader(supervisor.stdout_reader, len(terminal))
+    try:
+        evidence = supervisor.run()
+        # the run already refused, the late failure can not change that
+        assert evidence['archive_allowed'] is False
+        assert evidence['root_retained'] is True
+        assert evidence['drain_violation'] == STDOUT_STREAM_DRAIN_INCOMPLETE
+        assert evidence['stderr_overflow'] is False
+
+        def deliver():
+            try:
+                os.write(process.err_write, b'l' * (MAX_STREAM_BYTES + 1))
+            except OSError:  # noqa: BLE001 - the pipe may be closed
+                pass
+
+        thread = threading.Thread(target=deliver, daemon=True)
+        thread.start()
+        assert supervisor.stderr_reader.finished.wait(10)
+        thread.join(10)
+    finally:
+        process.release()
+    # the late overflow is a real failure of the stream
+    assert supervisor.stderr_reader.overflow is True
+    assert supervisor._stream_failure() == STDERR_STREAM_LIMIT_EXCEEDED
+    # and the returned evidence never claimed a success
+    assert evidence['archive_allowed'] is False
+
+
+def test_a_late_read_error_is_not_hidden_by_the_terminal(tmp_path):
+    """M1: a read error stays the primary reason, the drain is recorded."""
+    root = tmp_path / 'run'
+    root.mkdir()
+    process = HeldPipeProcess(stderr_factory=LateFailingStream)
+    supervisor = make_supervisor(tmp_path, process=process, clock=time.monotonic,
+                                 root=root)
+    supervisor.start()
+    terminal = canonical_terminal(root)
+    os.write(process.err_write, b'partial')
+    os.write(process.out_write, terminal)
+    assert wait_for_the_reader(supervisor.stdout_reader, len(terminal))
+    try:
+        evidence = supervisor.run()
+    finally:
+        process.release()
+    # the read error of the stream is the primary reason of the refusal
+    assert evidence['stderr_read_error'] == 'OSError'
+    assert evidence['protocol_violation'] == STDERR_STREAM_READ_FAILED
+    # the drain that was not complete is recorded on its own
+    assert evidence['drain_violation'] == STDOUT_STREAM_DRAIN_INCOMPLETE
+    assert evidence['archive_allowed'] is False
+    assert evidence['root_retained'] is True
+
+
+def test_a_trailing_partial_frame_after_the_terminal_is_refused(tmp_path):
+    """M1: a stream that ends in the middle of a frame is not a success."""
+    root = tmp_path / 'run'
+    root.mkdir()
+    process = FakeProcess()
+    supervisor = make_supervisor(tmp_path, process=process, clock=time.monotonic,
+                                 root=root)
+    supervisor.start()
+    process.emit_raw(canonical_terminal(root))
+    process.emit_raw(b'{"schema":"lvw.s3')  # the frame is never closed
+    process.close_streams()
+    process.returncode = 0
+    evidence = supervisor.run()
+    assert evidence['terminal_received'] is True
+    assert evidence['canonical_receipt_verified'] is True
+    # the end of the stream is proven, the frame is not closed
+    assert evidence['stdout_drain_complete'] is True
+    assert evidence['stderr_drain_complete'] is True
+    assert evidence['drain_violation'] is None
+    assert evidence['incomplete_frame'] is True
+    assert evidence['protocol_violation'] == MESSAGE_INCOMPLETE_FRAME
+    assert evidence['archive_allowed'] is False
+    assert evidence['root_retained'] is True
+    assert evidence['unknown_outcome'] is True
+
+
+def test_a_normal_bounded_run_with_a_proven_end_of_the_streams_succeeds(tmp_path):
+    """M1: a run whose streams really end is a success and it is archived."""
+    root = tmp_path / 'run'
+    root.mkdir()
+    process = FakeProcess()
+    supervisor = make_supervisor(tmp_path, process=process, clock=time.monotonic,
+                                 root=root)
+    supervisor.start()
+    process.emit_raw(canonical_terminal(root))
+    process.close_streams()
+    process.returncode = 0
+    evidence = supervisor.run()
+    assert evidence['protocol_violation'] is None
+    assert evidence['drain_violation'] is None
+    assert evidence['stdout_drain_complete'] is True
+    assert evidence['stderr_drain_complete'] is True
+    assert evidence['canonical_receipt_verified'] is True
+    assert evidence['message_count'] == 1
+    assert evidence['root_retained'] is False
+    assert evidence['archive_allowed'] is True
+    assert evidence['next_phase_allowed'] is True
+
+
+def test_the_hash_scope_of_an_overlong_stream_is_honest(tmp_path):
+    """m1: the digest of an overlong stream covers the prefix and says so."""
+    process = FakeProcess()
+    supervisor = make_supervisor(tmp_path, process=process, clock=time.monotonic,
+                                 phase_timeout=5.0)
+    supervisor.start()
+    payload = b'x' * (MAX_STREAM_BYTES + 1)
+    process.emit_raw(payload)
+    process.close_streams()
+    process.returncode = 0
+    evidence = supervisor.run()
+    assert evidence['protocol_violation'] == STDOUT_STREAM_LIMIT_EXCEEDED
+    assert evidence['stdout_overflow'] is True
+    # the digest covers the prefix that is still inside the budget
+    assert evidence['stdout_hash_scope'] == 'prefix_within_budget'
+    assert evidence['stdout_hashed_bytes'] == MAX_STREAM_BYTES
+    assert evidence['stdout_total_observed'] == MAX_STREAM_BYTES + 1
+    assert evidence['stdout_bytes'] == MAX_STREAM_BYTES + 1
+    # the digest is the digest of that prefix and can be recomputed
+    assert evidence['stdout_sha256'] == hashlib.sha256(b'x' * MAX_STREAM_BYTES).hexdigest()
+    # the digest is never the digest of the whole stream
+    assert evidence['stdout_sha256'] != hashlib.sha256(payload).hexdigest()
+    # the digest is recomputable from the raw bytes that the reader kept
+    assert evidence['stdout_sha256'] == hashlib.sha256(
+        supervisor.stdout_reader.raw()).hexdigest()
+    # a stream that stayed inside its budget is the digest of everything
+    assert evidence['stderr_hash_scope'] == 'all_observed'
+    assert evidence['stderr_hashed_bytes'] == evidence['stderr_total_observed']
+
+
+def test_the_hash_scope_of_the_error_stream_is_honest(tmp_path):
+    """m1: the digest of an overlong error stream covers the prefix."""
+    process = FakeProcess()
+    supervisor = make_supervisor(tmp_path, process=process, clock=time.monotonic,
+                                 phase_timeout=5.0)
+    supervisor.start()
+    payload = b'y' * (MAX_STREAM_BYTES + 1)
+    os.write(process.err_write, payload)
+    process.close_streams()
+    process.returncode = 0
+    evidence = supervisor.run()
+    assert evidence['protocol_violation'] == STDERR_STREAM_LIMIT_EXCEEDED
+    assert evidence['stderr_overflow'] is True
+    assert evidence['stderr_hash_scope'] == 'prefix_within_budget'
+    assert evidence['stderr_hashed_bytes'] == MAX_STREAM_BYTES
+    assert evidence['stderr_total_observed'] == MAX_STREAM_BYTES + 1
+    assert evidence['stderr_sha256'] == hashlib.sha256(b'y' * MAX_STREAM_BYTES).hexdigest()
+    assert evidence['stderr_sha256'] != hashlib.sha256(payload).hexdigest()
+
+
+def test_the_hash_of_an_exact_stream_covers_everything_it_delivered(tmp_path):
+    """m1: a stream inside its budget is digested in full."""
+    process = FakeProcess()
+    supervisor = make_supervisor(tmp_path, process=process, clock=time.monotonic,
+                                 phase_timeout=5.0)
+    supervisor.start()
+    stdout_payload = b'x' * MAX_STREAM_BYTES
+    stderr_payload = b'y' * MAX_STREAM_BYTES
+    process.emit_raw(stdout_payload)
+    os.write(process.err_write, stderr_payload)
+    process.close_streams()
+    process.returncode = 0
+    evidence = supervisor.run()
+    assert evidence['stdout_overflow'] is False
+    assert evidence['stderr_overflow'] is False
+    assert evidence['stdout_hash_scope'] == 'all_observed'
+    assert evidence['stderr_hash_scope'] == 'all_observed'
+    assert evidence['stdout_hashed_bytes'] == MAX_STREAM_BYTES
+    assert evidence['stdout_total_observed'] == MAX_STREAM_BYTES
+    assert evidence['stderr_hashed_bytes'] == MAX_STREAM_BYTES
+    assert evidence['stderr_total_observed'] == MAX_STREAM_BYTES
+    assert evidence['stdout_sha256'] == hashlib.sha256(stdout_payload).hexdigest()
+    assert evidence['stderr_sha256'] == hashlib.sha256(stderr_payload).hexdigest()
+    # the digests are recomputable from the raw bytes of the readers
+    assert evidence['stdout_sha256'] == hashlib.sha256(
+        supervisor.stdout_reader.raw()).hexdigest()
+    assert evidence['stderr_sha256'] == hashlib.sha256(
+        supervisor.stderr_reader.raw()).hexdigest()
+
+
+def test_the_raw_digest_survives_the_consumption(tmp_path):
+    """m1: the digest of a stream does not change when the parent consumes."""
+    process = FakeProcess()
+    supervisor = make_supervisor(tmp_path, process=process, clock=time.monotonic)
+    supervisor.start()
+    payload = encoded(message('STARTED', {})) + b'\n'
+    process.emit_raw(payload)
+    assert wait_for_the_reader(supervisor.stdout_reader, len(payload))
+    before = supervisor.stdout_reader.raw()
+    digest_before = hashlib.sha256(before).hexdigest()
+    supervisor._consume_stdout()
+    after = supervisor.stdout_reader.raw()
+    assert after == before
+    assert hashlib.sha256(after).hexdigest() == digest_before
+    # the bytes are consumed, the stream is not empty
+    assert supervisor.stdout_reader.retained() == 0
+    assert len(after) == len(payload)
+    process.close_streams()
+    process.returncode = 0
+    evidence = supervisor.run()
+    assert evidence['stdout_sha256'] == digest_before
+    assert evidence['stdout_hashed_bytes'] == len(payload)
+    assert evidence['stdout_total_observed'] == len(payload)
+    assert evidence['stdout_hash_scope'] == 'all_observed'
+    assert evidence['stdout_bytes'] == len(payload)
+
+
+def test_the_controlled_handoff_keeps_the_frame(tmp_path):
+    """M2: a frame that is appended while the parent takes is not lost.
+
+    The interleaving is the one of the independent review: the reader is
+    paused inside the handoff, the parent takes the pending bytes at that
+    moment and the reader continues afterwards.  The frame has to reach the
+    protocol state of the parent.
+    """
+    import dis
+    reader_fd, writer_fd = os.pipe()
+    stream = os.fdopen(reader_fd, 'rb', buffering=0)
+    reader = _StreamReader(stream, MAX_STREAM_BYTES)
+    code = _StreamReader._retain.__code__
+    target = next(instruction.offset for instruction in dis.get_instructions(code)
+                  if instruction.opname == 'CALL')
+    paused = threading.Event()
+    release = threading.Event()
+
+    def instruction(code_object, offset):
+        if offset == target:
+            paused.set()
+            release.wait(5)
+
+    sys.monitoring.use_tool_id(5, 'lvw-s3-handoff')
+    sys.monitoring.register_callback(5, sys.monitoring.events.INSTRUCTION, instruction)
+    sys.monitoring.set_local_events(5, code, sys.monitoring.events.INSTRUCTION)
+    try:
+        worker = threading.Thread(target=reader.run, daemon=True)
+        worker.start()
+        raw = encoded(message('STARTED', {})) + b'\n'
+        os.write(writer_fd, raw)
+        assert paused.wait(5) is True
+        parent = make_supervisor(tmp_path, process=FakeProcess(), clock=time.monotonic)
+        parent.stdout_reader = reader
+        # the parent takes the pending bytes while the reader is in the
+        # middle of the handoff
+        parent._consume_stdout()
+        release.set()
+        worker.join(5)
+        # the frame has to reach the protocol state of the parent
+        parent._consume_stdout()
+        assert parent.state.count == 1
+        assert parent.messages[0]['event'] == 'STARTED'
+        assert len(reader.raw()) == len(raw)
+    finally:
+        sys.monitoring.set_local_events(5, code, 0)
+        sys.monitoring.free_tool_id(5)
+        release.set()
+        os.close(writer_fd)
+        stream.close()
 
 
 # ------------------------------------- the finite CPU executor, zero process

@@ -56,13 +56,26 @@ STDERR_STREAM_LIMIT_EXCEEDED = 'STDERR_STREAM_LIMIT_EXCEEDED'
 STDOUT_STREAM_READ_FAILED = 'STDOUT_STREAM_READ_FAILED'
 STDERR_STREAM_READ_FAILED = 'STDERR_STREAM_READ_FAILED'
 
+# The stable refusal codes of a drain that did not prove the end of a stream.
+# A reader that is still active when the one shared drain deadline passes
+# does not prove that its stream ended: the end of the stream is unknown and
+# the run keeps its root and its reservation.
+STDOUT_STREAM_DRAIN_INCOMPLETE = 'STDOUT_STREAM_DRAIN_INCOMPLETE'
+STDERR_STREAM_DRAIN_INCOMPLETE = 'STDERR_STREAM_DRAIN_INCOMPLETE'
+# The stable refusal code of a stream that ended in the middle of a frame.
+# The bytes of the last frame are there, but the frame is not a message.
+MESSAGE_INCOMPLETE_FRAME = 'MESSAGE_INCOMPLETE_FRAME'
+
 PHASE_TIMEOUT_SECONDS = 10800
 HISTORY_TIMEOUT_SECONDS = 600
 CHILD_TIMEOUT_SECONDS = 21600
 DEFAULT_GRACE_SECONDS = 5.0
 POLL_INTERVAL_SECONDS = 0.05
-# The bounded wait for the readers of the worker that was stopped.  The
-# readers reach the end of their stream as soon as the worker is gone.
+# The one bounded budget of the final drain of the readers of the worker that
+# was stopped.  The budget is shared by both readers and it is clipped by the
+# remaining phase and child lifetime of the run: the drain never adds a
+# second budget for a second stream and never waits beyond the deadlines of
+# the contract.
 DRAIN_TIMEOUT_SECONDS = 0.5
 
 
@@ -268,21 +281,28 @@ class _StreamReader(threading.Thread):
 
     The thread only reads bytes.  It never calls the worker, never runs an
     observer and never writes.  The parent loop never blocks on the pipe: it
-    drains the collected chunks.
+    drains the collected blocks.
 
     The reader keeps three separate accounts, because they mean different
-    things: ``total`` is every byte that the stream delivered, ``received``
-    holds those bytes for the evidence and ``chunks`` holds the bytes that
-    the parent has not consumed yet.  A consumed buffer is never reported
-    as an empty stream.
+    things: ``total`` is every byte that the stream delivered, the kept
+    blocks are the bytes that this reader holds and the cursor marks the
+    bytes that the parent has not consumed yet.  A consumed buffer is never
+    reported as an empty stream.
+
+    The handoff to the parent is atomic and it is never a swap.  The reader
+    only ever appends to one list and the parent only ever moves a cursor
+    over that list, so a block that is appended while the parent takes the
+    pending bytes can not be orphaned: it stays pending for the next call.
+    The critical path of the reader holds no lock, it never waits and it
+    never calls anything but the list itself.
     """
 
     def __init__(self, stream, limit):
         super().__init__(daemon=True)
         self.stream = stream
         self.limit = limit
-        self.chunks = []
-        self.received = []
+        self._blocks = []
+        self._cursor = 0
         self.total = 0
         self.overflow = False
         self.error = None
@@ -290,47 +310,99 @@ class _StreamReader(threading.Thread):
 
     def run(self):
         try:
-            descriptor = self.stream.fileno()
             while True:
+                # The stream is asked for its descriptor on every read, so a
+                # stream that stops being readable is noticed at once and not
+                # only at the start of the run.
+                descriptor = self.stream.fileno()
                 block = os.read(descriptor, 65536)
                 if not block:
                     break
                 before = self.total
-                self.total += len(block)
-                if self.total > self.limit:
+                if before + len(block) > self.limit:
                     # The bytes that are still inside the budget are kept,
                     # the rest of the block is dropped: the retained bytes
-                    # never exceed the frozen budget of the stream.
+                    # never exceed the frozen budget of the stream.  The
+                    # dropped bytes are observed but never kept, so the
+                    # digest of this reader covers the prefix only.
                     allowed = self.limit - before
                     if allowed > 0:
                         self._retain(block[:allowed])
+                    self.total = before + len(block)
                     self.overflow = True
                     break
                 self._retain(block)
+                self.total = before + len(block)
         except Exception as error:  # noqa: BLE001 - the failure stays visible
             self.error = type(error).__name__
         finally:
             self.finished.set()
 
     def _retain(self, block):
-        self.chunks.append(block)
-        self.received.append(block)
+        """Keep one block for the parent.
+
+        The block is appended to the one list of this reader.  The parent
+        never replaces that list, so a block that is appended while the
+        parent takes the pending bytes is never lost.
+        """
+        self._blocks.append(block)
 
     def take(self):
-        chunks = self.chunks
-        self.chunks = []
-        return b''.join(chunks)
+        """The bytes that the parent has not consumed yet.
+
+        The end of the list is read before the cursor is moved, so a block
+        that arrives in between stays pending for the next call.
+        """
+        end = len(self._blocks)
+        blocks = self._blocks[self._cursor:end]
+        self._cursor = end
+        return b''.join(blocks)
 
     def raw(self):
-        """Every byte that this reader received, consumed or not."""
-        return b''.join(self.received)
+        """Every byte that this reader kept, consumed or not."""
+        return b''.join(self._blocks)
 
     def retained(self):
         """The bytes that the parent has not consumed yet."""
-        return sum(len(chunk) for chunk in self.chunks)
+        return sum(len(block) for block in self._blocks[self._cursor:])
 
     def text(self):
-        return b''.join(self.chunks).decode('utf-8', 'replace')
+        return b''.join(self._blocks[self._cursor:]).decode('utf-8', 'replace')
+
+    def snapshot(self):
+        """One consistent view of the accounts of this reader.
+
+        The observed bytes, the kept bytes, the digest of the kept bytes and
+        the scope of that digest are read together, so the evidence of the
+        parent never mixes two moments and never calls a prefix the whole
+        stream.
+
+        ``hash_scope`` names what the digest really covers:
+        ``all_observed`` is every byte that the stream delivered,
+        ``prefix_within_budget`` is the prefix that is still inside the
+        frozen budget after an overflow and ``in_flight_prefix`` is a view
+        that was taken while a block was still on its way.
+        """
+        end = len(self._blocks)
+        kept = b''.join(self._blocks[:end])
+        total = self.total
+        if self.overflow:
+            scope = 'prefix_within_budget'
+        elif len(kept) == total:
+            scope = 'all_observed'
+        else:
+            scope = 'in_flight_prefix'
+        return {
+            'total_observed': total,
+            'kept_bytes': len(kept),
+            'hashed_bytes': len(kept),
+            'hash_scope': scope,
+            'sha256': sha256_bytes(kept),
+            'retained_bytes': sum(len(block) for block in self._blocks[self._cursor:end]),
+            'overflow': bool(self.overflow),
+            'error': self.error,
+            'complete': self.finished.is_set(),
+        }
 
 
 class ParentSupervisor:
@@ -394,6 +466,15 @@ class ParentSupervisor:
         self.cooperative_cancel = False
         self.notes = []
         self.poll_interval = POLL_INTERVAL_SECONDS
+        # The state of the final drain of the two readers.  The drain has one
+        # absolute deadline that both readers share and that the remaining
+        # phase and child lifetime of this run clip.
+        self._drain_deadline_value = None
+        self.drain_violation = None
+        self.stdout_drain_complete = True
+        self.stderr_drain_complete = True
+        self.incomplete_frame = False
+        self.closed_streams = []
 
     # -- the frozen command plans -----------------------------------------
     def _spawn(self, command):
@@ -532,10 +613,10 @@ class ParentSupervisor:
             if status is not None:
                 # The worker left.  Wait for the bounded readers to reach the
                 # end of their stream and drain them, so a terminal event
-                # that is already in the pipe is not lost.
-                for reader in (self.stdout_reader, self.stderr_reader):
-                    if reader is not None:
-                        reader.finished.wait(timeout=2.0)
+                # that is already in the pipe is not lost.  The wait uses the
+                # one shared drain deadline, so it can not outlive the
+                # deadlines of this run.
+                self._await_readers(self._drain_deadline())
                 try:
                     self._consume_stdout()
                 except SupervisionError as error:
@@ -558,6 +639,116 @@ class ParentSupervisor:
         return self.evidence()
 
     # -- the final drain of the streams -------------------------------------
+    def _drain_deadline(self):
+        """The one absolute deadline of the drain of the stopped worker.
+
+        The drain never extends the frozen deadlines of the contract: the
+        budget is clipped by the remaining phase and child lifetime of this
+        run.  Both readers share this one deadline, so a second stream never
+        gets a second budget and a run without any remaining time never waits
+        a fixed extra time at all.
+        """
+        if self._drain_deadline_value is None:
+            limit = self.clock() + DRAIN_TIMEOUT_SECONDS
+            for bound in (self.effective_phase_deadline, self.child_deadline):
+                if bound is not None and bound < limit:
+                    limit = bound
+            self._drain_deadline_value = limit
+        return self._drain_deadline_value
+
+    def _await_readers(self, deadline):
+        """Wait for both readers against the one shared deadline.
+
+        The wait is bounded: a reader that is still active when the deadline
+        passes keeps its bytes and stays active.  The parent does not kill
+        it and it does not pretend that the stream ended.
+        """
+        budget = deadline - self.clock()
+        if budget <= 0:
+            return False
+        end = time.monotonic() + budget
+        complete = True
+        for reader in (self.stdout_reader, self.stderr_reader):
+            if reader is None:
+                continue
+            remaining = end - time.monotonic()
+            if remaining <= 0:
+                complete = False
+                continue
+            if not reader.finished.wait(timeout=remaining):
+                complete = False
+        return complete
+
+    def _record_drain_state(self):
+        """Record which reader reached the end of its stream.
+
+        A reader that is still active when the shared drain deadline passes
+        does not prove the end of its stream.  The drain is then incomplete:
+        the outcome of the run is unknown, the root and the reservation are
+        retained and nothing is archived, even when the canonical receipt is
+        there and the terminal event was legal.
+        """
+        failures = []
+        self.stdout_drain_complete = True
+        self.stderr_drain_complete = True
+        for reader, code in ((self.stdout_reader, STDOUT_STREAM_DRAIN_INCOMPLETE),
+                             (self.stderr_reader, STDERR_STREAM_DRAIN_INCOMPLETE)):
+            if reader is None:
+                continue
+            if reader.finished.is_set():
+                continue
+            failures.append(code)
+            if reader is self.stdout_reader:
+                self.stdout_drain_complete = False
+            else:
+                self.stderr_drain_complete = False
+        self.drain_violation = failures[0] if failures else None
+        if self.drain_violation is not None:
+            # An earlier violation stays the primary reason of the refusal.
+            # The incomplete drain is recorded on its own.
+            if self.violation is None:
+                self.violation = self.drain_violation
+            else:
+                self.notes.append('the drain of the streams was not complete: '
+                                  + ','.join(failures))
+        return self.drain_violation
+
+    def _refuse_an_incomplete_frame(self):
+        """Refuse a stream that ended in the middle of a frame.
+
+        The bytes of the last frame are there, but the frame is not a
+        message.  A stream that ends in the middle of a frame is not a
+        complete protocol and the refusal is stable.
+        """
+        if not self.stdout_buffer:
+            return None
+        self.incomplete_frame = True
+        if self.violation is None:
+            self.violation = MESSAGE_INCOMPLETE_FRAME
+        else:
+            self.notes.append('the stdout stream ended with an unclosed frame')
+        return MESSAGE_INCOMPLETE_FRAME
+
+    def _close_owned_streams(self):
+        """Close the read ends that this parent owns.
+
+        Only a reader that reached the end of its stream is closed.  The
+        parent closes what it owns, it never stops a reader that is still
+        active and it never touches a process that it does not hold.
+        """
+        closed = []
+        for name, reader in (('stdout', self.stdout_reader),
+                             ('stderr', self.stderr_reader)):
+            if reader is None or not reader.finished.is_set():
+                continue
+            try:
+                reader.stream.close()
+            except Exception:  # noqa: BLE001 - the failure stays visible
+                continue
+            closed.append(name)
+        self.closed_streams = closed
+        return closed
+
     def _drain_streams(self):
         """Drain the streams of the worker that was stopped.
 
@@ -566,10 +757,14 @@ class ParentSupervisor:
         arrives with the last bytes of a stream is never hidden by a
         terminal event of the same batch: the outcome is unknown and the
         root and the reservation are retained.
+
+        The drain is bounded by one absolute deadline that both readers
+        share and that the remaining phase and child lifetime of this run
+        clip.  When a reader is still active when that deadline passes, the
+        end of that stream is not proven: the run is unknown, the root and
+        the reservation are retained and nothing is archived.
         """
-        for reader in (self.stdout_reader, self.stderr_reader):
-            if reader is not None:
-                reader.finished.wait(timeout=DRAIN_TIMEOUT_SECONDS)
+        self._await_readers(self._drain_deadline())
         try:
             self._consume_stdout()
         except SupervisionError as error:
@@ -578,6 +773,12 @@ class ParentSupervisor:
         failure = self._stream_failure()
         if failure is not None and self.violation is None:
             self.violation = failure
+        # The end of the streams is recorded before the trailing frame is
+        # refused: a stream whose end is not proven is an unknown outcome
+        # first, a frame that was never closed is a refusal of its own.
+        self._record_drain_state()
+        self._refuse_an_incomplete_frame()
+        self._close_owned_streams()
 
     # -- the cooperative cancel and the owned termination ------------------
     def _request_cooperative_cancel(self):
@@ -708,21 +909,34 @@ class ParentSupervisor:
 
     # -- the evidence ------------------------------------------------------
     def evidence(self):
-        """The parent's own evidence of this supervision."""
-        stdout_raw = b''
-        stderr_raw = b''
-        stdout_bytes = 0
-        stderr_bytes = 0
-        stdout_retained = len(self.stdout_buffer)
-        stderr_retained = 0
+        """The parent's own evidence of this supervision.
+
+        The accounts of the two streams are taken from one snapshot per
+        reader, so the evidence never mixes two moments.  The compatibility
+        fields keep their meaning:
+
+        ``stdout_bytes`` and ``stderr_bytes`` are the bytes that the stream
+        delivered, ``stdout_bytes_retained`` and ``stderr_bytes_retained``
+        are the bytes that the parent has not consumed yet and
+        ``stdout_sha256`` and ``stderr_sha256`` are the digests of the
+        bytes that the reader kept.  The digest of a stream that overflowed
+        covers the prefix that is still inside the budget and not the whole
+        stream: ``stdout_hash_scope`` names that scope and
+        ``stdout_hashed_bytes`` and ``stdout_total_observed`` give the two
+        numbers, so the digest can be recomputed from the raw bytes.
+        """
+        empty = {'total_observed': 0, 'kept_bytes': 0, 'hashed_bytes': 0,
+                 'hash_scope': 'all_observed', 'sha256': sha256_bytes(b''),
+                 'retained_bytes': 0, 'overflow': False, 'error': None,
+                 'complete': True}
+        stdout_snapshot = empty
+        stderr_snapshot = empty
         if self.stdout_reader is not None:
-            stdout_raw = self.stdout_reader.raw()
-            stdout_bytes = self.stdout_reader.total
-            stdout_retained += self.stdout_reader.retained()
+            stdout_snapshot = self.stdout_reader.snapshot()
         if self.stderr_reader is not None:
-            stderr_raw = self.stderr_reader.raw()
-            stderr_bytes = self.stderr_reader.total
-            stderr_retained = self.stderr_reader.retained()
+            stderr_snapshot = self.stderr_reader.snapshot()
+        stdout_retained = len(self.stdout_buffer) + stdout_snapshot['retained_bytes']
+        stderr_retained = stderr_snapshot['retained_bytes']
         # A refusal is never a success: a terminal event that was read in the
         # same batch does not turn a protocol violation or a stream failure
         # into a proven outcome.
@@ -742,19 +956,28 @@ class ParentSupervisor:
             'message_count': self.state.count,
             'message_limit': MAX_MESSAGES,
             'stream_byte_limit': MAX_STREAM_BYTES,
-            'stdout_bytes': stdout_bytes,
-            'stderr_bytes': stderr_bytes,
+            'stdout_bytes': stdout_snapshot['total_observed'],
+            'stderr_bytes': stderr_snapshot['total_observed'],
+            'stdout_total_observed': stdout_snapshot['total_observed'],
+            'stderr_total_observed': stderr_snapshot['total_observed'],
+            'stdout_hashed_bytes': stdout_snapshot['hashed_bytes'],
+            'stderr_hashed_bytes': stderr_snapshot['hashed_bytes'],
+            'stdout_hash_scope': stdout_snapshot['hash_scope'],
+            'stderr_hash_scope': stderr_snapshot['hash_scope'],
             'stdout_bytes_retained': stdout_retained,
             'stderr_bytes_retained': stderr_retained,
-            'stdout_sha256': sha256_bytes(stdout_raw),
-            'stderr_sha256': sha256_bytes(stderr_raw),
-            'stdout_overflow': bool(self.stdout_reader and self.stdout_reader.overflow),
-            'stderr_overflow': bool(self.stderr_reader and self.stderr_reader.overflow),
-            'stdout_read_error': (self.stdout_reader.error if self.stdout_reader
-                                  is not None else None),
-            'stderr_read_error': (self.stderr_reader.error if self.stderr_reader
-                                  is not None else None),
+            'stdout_sha256': stdout_snapshot['sha256'],
+            'stderr_sha256': stderr_snapshot['sha256'],
+            'stdout_overflow': bool(stdout_snapshot['overflow']),
+            'stderr_overflow': bool(stderr_snapshot['overflow']),
+            'stdout_read_error': stdout_snapshot['error'],
+            'stderr_read_error': stderr_snapshot['error'],
             'stream_violation': self._stream_failure(),
+            'drain_violation': self.drain_violation,
+            'stdout_drain_complete': bool(self.stdout_drain_complete),
+            'stderr_drain_complete': bool(self.stderr_drain_complete),
+            'drain_timeout_seconds': DRAIN_TIMEOUT_SECONDS,
+            'incomplete_frame': bool(self.incomplete_frame),
             'phase_timeout_seconds': self.phase_timeout,
             'history_timeout_seconds': self.history_timeout,
             'child_timeout_seconds': self.child_timeout,
