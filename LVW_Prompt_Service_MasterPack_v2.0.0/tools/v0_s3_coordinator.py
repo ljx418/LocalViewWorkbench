@@ -20,6 +20,7 @@ Nothing in this module proves a product gate.  Every document it produces
 carries ``stage_pass_claim = False`` and ``product_gate0 = False``.  A
 synthetic fixture never counts as a product pass.
 """
+import errno
 import hashlib
 import json
 import os
@@ -42,24 +43,37 @@ TWELVE_KEYS = tuple('V0-A%02d' % index for index in range(1, 13))
 # its own product obligation needs.  The old S2 nine key phase facts and the
 # old 45+20 submissions are phase facts of the S2 stage; they are never
 # accepted here as an S3 receipt, so they cannot fill a green key.
+#
+# The cleanup of the run is a global obligation: every key of this summary
+# describes a stage of a run that has to end clean.  The cleanup receipt is
+# therefore required by every key, and a key without a proven cleanup can
+# never be green.  The fixed set of the twelve keys and the product
+# denominator are not changed by this.
 TWELVE_REQUIREMENTS = {
-    'V0-A01': ('stage_binding', 'image_input'),
-    'V0-A02': ('stage_binding', 'video_input'),
-    'V0-A03': ('stage_binding', 'output_contract'),
-    'V0-A04': ('stage_binding', 'manual_export'),
-    'V0-A05': ('stage_binding', 'no_overwrite'),
-    'V0-A06': ('stage_binding', 'a06_isolation', 'install', 'rollback'),
-    'V0-A07': ('stage_binding', 'file_safety'),
-    'V0-A08': ('stage_binding', 'no_approval_gate'),
-    'V0-A09': ('stage_binding', 'resource_budget'),
-    'V0-A10': ('stage_binding', 'cancel_release'),
-    'V0-A11': ('stage_binding', 'quality_16_rows', 'independent_score'),
-    'V0-A12': ('stage_binding', 'quality_16_rows', 'independent_score', 'webp_format'),
+    'V0-A01': ('stage_binding', 'image_input', 'cleanup'),
+    'V0-A02': ('stage_binding', 'video_input', 'cleanup'),
+    'V0-A03': ('stage_binding', 'output_contract', 'cleanup'),
+    'V0-A04': ('stage_binding', 'manual_export', 'cleanup'),
+    'V0-A05': ('stage_binding', 'no_overwrite', 'cleanup'),
+    'V0-A06': ('stage_binding', 'a06_isolation', 'install', 'rollback', 'cleanup'),
+    'V0-A07': ('stage_binding', 'file_safety', 'cleanup'),
+    'V0-A08': ('stage_binding', 'no_approval_gate', 'cleanup'),
+    'V0-A09': ('stage_binding', 'resource_budget', 'cleanup'),
+    'V0-A10': ('stage_binding', 'cancel_release', 'cleanup'),
+    'V0-A11': ('stage_binding', 'quality_16_rows', 'independent_score', 'cleanup'),
+    'V0-A12': ('stage_binding', 'quality_16_rows', 'independent_score', 'webp_format',
+               'cleanup'),
 }
 
 # The receipts whose own truth is not a single phase result: the A06 real
 # isolation, the independent quality score and the cleanup proof.
 BLOCKING_RECEIPTS = ('a06_isolation', 'independent_score')
+
+# The receipt that carries the proof that the run ended clean.  It is a
+# normal aggregate receipt: it has the kind, the status, the stage claim
+# flag and the run/candidate binding of every other receipt, and it has to
+# state the cleanup proof with the strict boolean ``True``.
+CLEANUP_RECEIPT = 'cleanup'
 
 
 class S3IntegrationError(RuntimeError):
@@ -84,27 +98,37 @@ def sha256_bytes(raw):
     return hashlib.sha256(raw).hexdigest()
 
 
-def _digest_file(path, limit=MAX_SEALED_ORIGINAL_BYTES):
-    """Bounded, symlink free digest of one regular file."""
-    path = Path(path)
-    info = path.lstat()
-    if stat.S_ISLNK(info.st_mode):
-        raise S3IntegrationError('ORIGINAL_NOT_A_REGULAR_FILE')
-    if not stat.S_ISREG(info.st_mode):
-        raise S3IntegrationError('ORIGINAL_NOT_A_REGULAR_FILE')
-    if info.st_size > limit:
-        raise S3IntegrationError('ORIGINAL_EXCEEDS_BOUND')
+def _no_follow_open_supported():
+    """Whether this platform has the safe opening primitives.
+
+    The originals of a bound root are only ever opened through the
+    directory descriptor of their own parent with ``O_NOFOLLOW``.  A
+    platform that does not have these primitives is not silently treated
+    as if it had them: the caller fails closed and the run stays
+    ``NOT_PROVEN``.
+    """
+    if not hasattr(os, 'O_NOFOLLOW') or not hasattr(os, 'O_DIRECTORY'):
+        return False
+    return os.open in getattr(os, 'supports_dir_fd', ())
+
+
+def _digest_handle(descriptor, limit=MAX_SEALED_ORIGINAL_BYTES):
+    """The digest and the length of the bytes of one verified handle.
+
+    The bytes are read from the handle that was opened and verified, so
+    the digest and the identity belong to the same object.  There is no
+    second, unchecked open of the same path.
+    """
     digest = hashlib.sha256()
     length = 0
-    with path.open('rb') as stream:
-        while True:
-            block = stream.read(1024 * 1024)
-            if not block:
-                break
-            length += len(block)
-            if length > limit:
-                raise S3IntegrationError('ORIGINAL_EXCEEDS_BOUND')
-            digest.update(block)
+    while True:
+        block = os.read(descriptor, 1024 * 1024)
+        if not block:
+            break
+        length += len(block)
+        if length > limit:
+            raise S3IntegrationError('ORIGINAL_EXCEEDS_BOUND')
+        digest.update(block)
     return digest.hexdigest(), length
 
 
@@ -275,6 +299,13 @@ class ParentOriginalEvidence:
 
     The worker can never replace this list by changing an in-memory return
     value: every entry is read from the parent's own root.
+
+    The originals are opened through the bound root without following a
+    link: every component of a reference is opened from the descriptor of
+    its own parent with ``O_NOFOLLOW``, so an ancestor that points out of
+    the root is refused and not only a link on the artifact itself.  The
+    digest is computed from the handle that was verified.  A platform that
+    does not have these primitives fails closed and stays ``NOT_PROVEN``.
     """
 
     def __init__(self, *, run_id, candidate_sha, child_sha256, root, projection_sha256):
@@ -335,21 +366,131 @@ class ParentOriginalEvidence:
         self.root_identity = [int(root_identity[0]), int(root_identity[1])]
         return self.root_identity
 
-    def _resolve_inside_root(self, relative, category='original'):
-        """Resolve one artifact of the selected root, without following a link."""
+    def _bound_root_fd(self):
+        """Open the bound root and verify its object identity.
+
+        The root is opened without following a link and the identity of the
+        opened object is compared with the sealed one.  A root that was
+        replaced, that became a link or that vanished is refused here,
+        before any original is touched.
+        """
+        if self.root_identity is None:
+            raise S3IntegrationError('S3_SELECTED_ROOT_NOT_SEALED')
+        if not _no_follow_open_supported():
+            # The platform can not open an artifact of the root without
+            # following a link.  The run stays NOT_PROVEN instead of
+            # claiming that the originals are inside the root.
+            raise S3IntegrationError('S3_ORIGINAL_SAFE_OPEN_UNSUPPORTED')
+        try:
+            descriptor = os.open(self.root, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+        except OSError as error:
+            if error.errno in (errno.ELOOP, errno.ENOTDIR):
+                raise S3IntegrationError('S3_SELECTED_ROOT_REPLACED') from error
+            raise S3IntegrationError('S3_SELECTED_ROOT_UNAVAILABLE') from error
+        try:
+            info = os.fstat(descriptor)
+            if not stat.S_ISDIR(info.st_mode):
+                raise S3IntegrationError('S3_SELECTED_ROOT_REPLACED')
+            if [info.st_dev, info.st_ino] != list(self.root_identity):
+                raise S3IntegrationError('S3_SELECTED_ROOT_REPLACED')
+        except BaseException:
+            os.close(descriptor)
+            raise
+        return descriptor
+
+    @staticmethod
+    def _reference_parts(relative):
+        """The components of one root relative reference."""
         if not isinstance(relative, str) or not relative:
             raise S3IntegrationError('S3_ORIGINAL_REFERENCE_INVALID')
         pure = Path(relative)
         if pure.is_absolute() or '..' in pure.parts:
             raise S3IntegrationError('S3_ORIGINAL_REFERENCE_INVALID')
-        path = self.root / pure
+        parts = [part for part in pure.parts if part != '.']
+        if not parts:
+            raise S3IntegrationError('S3_ORIGINAL_REFERENCE_INVALID')
+        return parts
+
+    @staticmethod
+    def _open_error(error, category):
+        """The stable refusal of one refused opening."""
+        if error.errno == errno.ELOOP:
+            return S3IntegrationError('S3_ORIGINAL_REDIRECT_FORBIDDEN:' + category)
+        if error.errno == errno.ENOTDIR:
+            return S3IntegrationError('S3_ORIGINAL_ANCESTOR_NOT_A_DIRECTORY:' + category)
+        return S3IntegrationError('S3_ORIGINAL_UNREADABLE:' + category)
+
+    @staticmethod
+    def _is_link(directory, name):
+        """Whether one component of a reference is a link.
+
+        The classification never decides whether an artifact is safe: the
+        safe opening with ``O_NOFOLLOW`` already refused the artifact.  It
+        only names the reason of that refusal.
+        """
         try:
-            info = path.lstat()
+            info = os.stat(name, dir_fd=directory, follow_symlinks=False)
+        except (OSError, ValueError, NotImplementedError):
+            return False
+        return stat.S_ISLNK(info.st_mode)
+
+    def _open_inside_root(self, relative, category='original'):
+        """Open one artifact of the bound root without following a link.
+
+        Every component of the reference is opened one by one from the
+        descriptor of its own parent directory with ``O_NOFOLLOW``.  An
+        ancestor that is a link is therefore refused: the artifact is never
+        reached through a link, and the bytes that are digested are the
+        bytes of the handle that was verified.  There is no pre-check of
+        the path and no second, unchecked open of the same path.
+        """
+        parts = self._reference_parts(relative)
+        directory = self._bound_root_fd()
+        try:
+            for part in parts[:-1]:
+                try:
+                    child = os.open(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW,
+                                    dir_fd=directory)
+                except OSError as error:
+                    if self._is_link(directory, part):
+                        raise S3IntegrationError(
+                            'S3_ORIGINAL_REDIRECT_FORBIDDEN:' + category) from error
+                    raise self._open_error(error, category) from error
+                os.close(directory)
+                directory = child
+            try:
+                descriptor = os.open(parts[-1], os.O_RDONLY | os.O_NOFOLLOW,
+                                     dir_fd=directory)
+            except OSError as error:
+                if self._is_link(directory, parts[-1]):
+                    raise S3IntegrationError(
+                        'S3_ORIGINAL_REDIRECT_FORBIDDEN:' + category) from error
+                raise self._open_error(error, category) from error
+        finally:
+            os.close(directory)
+        return descriptor
+
+    def _seal_one(self, reference, category):
+        """Read one original through its verified handle and seal it."""
+        try:
+            descriptor = self._open_inside_root(reference, category)
+        except ValueError as error:
+            raise S3IntegrationError('S3_ORIGINAL_REFERENCE_INVALID') from error
+        try:
+            info = os.fstat(descriptor)
+            if not stat.S_ISREG(info.st_mode):
+                raise S3IntegrationError('ORIGINAL_NOT_A_REGULAR_FILE')
+            if info.st_size > MAX_SEALED_ORIGINAL_BYTES:
+                raise S3IntegrationError('ORIGINAL_EXCEEDS_BOUND')
+            digest, length = _digest_handle(descriptor, MAX_SEALED_ORIGINAL_BYTES)
         except OSError as error:
             raise S3IntegrationError('S3_ORIGINAL_UNREADABLE:' + category) from error
-        if stat.S_ISLNK(info.st_mode):
-            raise S3IntegrationError('S3_ORIGINAL_REDIRECT_FORBIDDEN:' + category)
-        return path
+        finally:
+            os.close(descriptor)
+        return {'reference': reference, 'sha256': digest, 'bytes': length,
+                'identity': [int(info.st_dev), int(info.st_ino)],
+                'change_time_ns': int(info.st_ctime_ns),
+                'modify_time_ns': int(info.st_mtime_ns)}
 
     def seal_originals(self, *, canonical, source_plan, raw=()):
         """Read the real originals of the selected root and seal their bytes.
@@ -357,8 +498,12 @@ class ParentOriginalEvidence:
         ``canonical`` and ``source_plan`` are root relative references of the
         canonical receipt and of the sealed source plan.  ``raw`` is the
         sequence of the root relative raw artifact references.  A missing,
-        foreign or changed original is refused; it is never recorded as an
-        empty result.
+        foreign, redirected or changed original is refused; it is never
+        recorded as an empty result.
+
+        Every artifact is opened through the bound root without following a
+        link, so an ancestor that points out of the root is refused as well
+        and not only a link on the artifact itself.
         """
         if self.root_identity is None or self.rows is None:
             raise S3IntegrationError('S3_ORIGINALS_NOT_SEALABLE')
@@ -367,41 +512,87 @@ class ParentOriginalEvidence:
                                  ('raw', list(raw))):
             sealed = []
             for reference in references:
-                path = self._resolve_inside_root(reference, name)
-                try:
-                    digest, length = _digest_file(path)
-                except OSError as error:
-                    raise S3IntegrationError('S3_ORIGINAL_UNREADABLE:' + name) from error
-                sealed.append({'reference': reference, 'sha256': digest, 'bytes': length})
+                sealed.append(self._seal_one(reference, name))
             entries[name] = sealed
         self.originals = entries
         return entries
 
+    def verify_originals(self):
+        """Re-read every sealed original through its verified handle.
+
+        The re-check is independent of the seal: it opens the artifact
+        again, compares the object identity, the length and the digest with
+        the sealed values and refuses every difference.  The identity of the
+        root is not the identity of the originals: a replaced, rewritten,
+        vanished or redirected original is refused even when the root is
+        still the sealed one.
+        """
+        if not self.originals:
+            raise S3IntegrationError('S3_ORIGINALS_NOT_SEALED')
+        self.verify_selected_root()
+        checked = []
+        for category, entries in self.originals.items():
+            for entry in entries:
+                try:
+                    descriptor = self._open_inside_root(entry['reference'], category)
+                except ValueError as error:
+                    raise S3IntegrationError('S3_ORIGINAL_REFERENCE_INVALID') from error
+                try:
+                    info = os.fstat(descriptor)
+                    if not stat.S_ISREG(info.st_mode):
+                        raise S3IntegrationError('S3_ORIGINAL_REPLACED:' + category)
+                    digest, length = _digest_handle(descriptor, MAX_SEALED_ORIGINAL_BYTES)
+                except OSError as error:
+                    raise S3IntegrationError('S3_ORIGINAL_UNREADABLE:' + category) from error
+                finally:
+                    os.close(descriptor)
+                identity = [int(info.st_dev), int(info.st_ino)]
+                if identity != list(entry.get('identity', [])):
+                    raise S3IntegrationError('S3_ORIGINAL_REPLACED:' + category)
+                # The change time of the object is part of its identity: a
+                # file that was replaced by another file with the very same
+                # bytes can reuse the number of the object on some file
+                # systems, and the change time still tells the two apart.
+                if int(info.st_ctime_ns) != int(entry.get('change_time_ns', -1)) \
+                        or int(info.st_mtime_ns) != int(entry.get('modify_time_ns', -1)):
+                    raise S3IntegrationError('S3_ORIGINAL_REPLACED:' + category)
+                if length != entry['bytes'] or digest != entry['sha256']:
+                    raise S3IntegrationError('S3_ORIGINAL_CHANGED:' + category)
+                checked.append({'category': category, 'reference': entry['reference'],
+                                'sha256': digest, 'bytes': length,
+                                'identity': identity})
+        return {'root': str(self.root), 'identity': list(self.root_identity),
+                'checked': checked, 'verified': True}
+
     def verify_selected_root(self, root=None):
         """Re-check that the selected root is still the sealed root.
 
-        A root that was archived and migrated is *not* accepted silently: the
-        caller has to keep the migration blocked until it is proven.
+        The root is opened without following a link and the identity of the
+        opened object is compared with the sealed one.  A root that was
+        archived and migrated is *not* accepted silently: the caller has to
+        keep the migration blocked until it is proven.
         """
         target = self.root if root is None else Path(root)
         if str(target) != str(self.root):
             raise S3IntegrationError('S3_SELECTED_ROOT_MISMATCH')
         if self.root_identity is None:
             raise S3IntegrationError('S3_SELECTED_ROOT_NOT_SEALED')
-        try:
-            info = target.lstat()
-        except OSError as error:
-            raise S3IntegrationError('S3_SELECTED_ROOT_UNAVAILABLE') from error
-        if stat.S_ISLNK(info.st_mode) or not stat.S_ISDIR(info.st_mode):
-            raise S3IntegrationError('S3_SELECTED_ROOT_REPLACED')
-        if [info.st_dev, info.st_ino] != list(self.root_identity):
-            raise S3IntegrationError('S3_SELECTED_ROOT_REPLACED')
+        descriptor = self._bound_root_fd()
+        os.close(descriptor)
         return {'root': str(target), 'identity': list(self.root_identity)}
 
     def manifest(self):
-        """The parent's own manifest of the sealed originals."""
+        """The parent's own manifest of the sealed originals.
+
+        The manifest is the consumption boundary of the originals: it calls
+        the re-check of the root and of every original before it hands the
+        document out.  A manifest that would be built from a root whose
+        originals changed, vanished or were redirected is refused instead of
+        being written from the stale seal.
+        """
         if self.rows is None or self.root_identity is None:
             raise S3IntegrationError('S3_ORIGINALS_NOT_SEALED')
+        reverification = self.verify_originals()
         return {
             'kind': 'lvw.s3-parent-originals/1',
             'run_id': self.run_id,
@@ -413,6 +604,8 @@ class ParentOriginalEvidence:
             'root': str(self.root),
             'root_identity': list(self.root_identity),
             'originals': self.originals,
+            'reverification': reverification,
+            'original_open_primitive': 'no_follow_dirfd',
             'stage_pass_claim': False,
             'product_gate0': False,
             'real_execution_performed': False,
@@ -421,6 +614,8 @@ class ParentOriginalEvidence:
 
 def _receipt_status(receipt):
     """The status of one aggregate receipt, with its refusals."""
+    if receipt is None:
+        return 'NOT_RUN', 'RECEIPT_MISSING'
     if not isinstance(receipt, dict):
         return 'NOT_RUN', 'RECEIPT_NOT_A_DOCUMENT'
     if receipt.get('kind') != AGGREGATE_RECEIPT_KIND:
@@ -444,6 +639,12 @@ def aggregate_twelve_keys(*, receipts, binding):
     * a key whose receipt is present but whose independent score, real
       isolation or cleanup proof is missing is ``BLOCKED``;
     * only a complete, matching, passing receipt set is ``PASS``.
+
+    The cleanup of the run is a global obligation: every key needs the
+    cleanup receipt, and the cleanup receipt has to state the cleanup proof
+    with the strict boolean ``True``.  A missing cleanup, a cleanup of a
+    foreign kind, a cleanup of another candidate and a cleanup that only
+    claims the proof as a string can never fill a green key.
 
     The old S2 nine key phase facts and the old 45+20 submissions are facts
     of their own stage.  They are not aggregate receipts, so they can never
@@ -486,10 +687,16 @@ def aggregate_twelve_keys(*, receipts, binding):
             if name == 'independent_score' and receipt.get('independent') is not True:
                 status = 'BLOCKED' if status != 'FAIL' else status
                 reasons.append(name + ':INDEPENDENT_SCORE_MISSING')
-        if receipts.get('cleanup') is not None and isinstance(receipts.get('cleanup'), dict) \
-                and receipts['cleanup'].get('cleanup_proven') is not True:
+        # The cleanup proof of the run.  The receipt itself was already
+        # accepted or refused as a required receipt above, so only a legal
+        # receipt can reach this point; its own proof has to be the strict
+        # boolean ``True``.  A claim that is not the boolean - the string
+        # ``true``, the number one or a missing field - is not a proof.
+        cleanup = receipts.get(CLEANUP_RECEIPT)
+        if isinstance(cleanup, dict) and cleanup.get('kind') == AGGREGATE_RECEIPT_KIND \
+                and cleanup.get('cleanup_proven') is not True:
             status = 'BLOCKED' if status != 'FAIL' else status
-            reasons.append('cleanup:CLEANUP_UNPROVEN')
+            reasons.append(CLEANUP_RECEIPT + ':CLEANUP_UNPROVEN')
         keys[key] = {
             'key': key,
             'status': status,
@@ -499,6 +706,10 @@ def aggregate_twelve_keys(*, receipts, binding):
             'product_gate0': False,
         }
     statuses = [entry['status'] for entry in keys.values()]
+    cleanup = receipts.get(CLEANUP_RECEIPT)
+    cleanup_proven = (isinstance(cleanup, dict)
+                      and cleanup.get('kind') == AGGREGATE_RECEIPT_KIND
+                      and cleanup.get('cleanup_proven') is True)
     return {
         'kind': 'lvw.s3-twelve-key-summary/1',
         'run_id': binding['run_id'],
@@ -509,6 +720,8 @@ def aggregate_twelve_keys(*, receipts, binding):
         'fail_count': statuses.count('FAIL'),
         'blocked_count': statuses.count('BLOCKED'),
         'not_run_count': statuses.count('NOT_RUN'),
+        'cleanup_receipt_required': True,
+        'cleanup_proven': bool(cleanup_proven),
         'old_s2_nine_keys_accepted_as_green': False,
         'old_s2_submissions_accepted_as_budget': False,
         'synthetic_fixtures_count_as_product_pass': False,

@@ -1,0 +1,163 @@
+{
+  "all_steps_zero": true,
+  "argv": [
+    "reports/v0-s3/product-gate0/implementation-integration-correction-03/run_guarded_checks.py"
+  ],
+  "candidate_sources": {
+    "tools/test_v0_s3_integration.py": "1bee589688e0d343c228ac0faf267b20cc1dbeacf831ab38ca87badb9edb5814",
+    "tools/test_v0_s3_supervisor.py": "683bf1e2344355c6507c2f7bd3f58c2d781bc6e9f1969f723e2138695ff088c7",
+    "tools/v0_s3_coordinator.py": "a026a8576d7433199b5202059243f972bbbfeeead1a38c7aac241ec665b3164d",
+    "tools/v0_s3_supervisor.py": "c669e97f06f2d90061a1a8cedf859db454c5783daf6591418f7ff13bb9d848b3"
+  },
+  "counter_after": {
+    "active": false,
+    "path": "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json",
+    "present": true,
+    "reserved_wall_seconds": 180.0,
+    "sha256": "8f12beb38c78378e51d3164cf02f54e54d619f55f2286a8d128b81249dc0fb18",
+    "spent_wall_seconds": 8.446,
+    "starts_total": 15
+  },
+  "counter_before": {
+    "active": false,
+    "path": "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json",
+    "present": true,
+    "reserved_wall_seconds": 180.0,
+    "sha256": "8f12beb38c78378e51d3164cf02f54e54d619f55f2286a8d128b81249dc0fb18",
+    "spent_wall_seconds": 8.446,
+    "starts_total": 15
+  },
+  "counter_unchanged": true,
+  "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+  "kind": "lvw.s3-integration-correction-03-run/1",
+  "machine_gate_tests_deselected": [
+    "test_the_single_guard_admits_a_start_once_and_is_never_vetoed_twice",
+    "test_the_offline_boundary_still_blocks_a_process_and_a_socket",
+    "test_a_refused_start_that_never_forked_is_settled_and_frees_its_slot",
+    "test_the_machine_accounting_separates_the_admissions_from_the_created_handles",
+    "test_the_real_guard_refusal_releases_the_slot_of_its_own_charge",
+    "test_a_copied_marker_and_a_copied_gate_error_release_nothing",
+    "test_a_replayed_real_guard_refusal_releases_nothing",
+    "test_a_charge_whose_settlement_failed_stays_open_and_keeps_the_root",
+    "test_the_proof_of_a_child_is_never_written_before_its_settlement"
+  ],
+  "no_process_started_by_the_runner": true,
+  "package_root": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+  "product_gate0": false,
+  "python": "/usr/bin/python3",
+  "real_execution_performed": false,
+  "stage_pass_claim": false,
+  "steps": [
+    {
+      "argv": [
+        "/usr/bin/python3",
+        "-B",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-integration-correction-03/hardguard.py",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-integration-correction-03/probes.py",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-integration-correction-03/probes.guard.json"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "elapsed_seconds": 0.78,
+      "exit_code": 0,
+      "guard_denials": [],
+      "guard_installed_before_candidate_import": true,
+      "guard_receipt": "reports/v0-s3/product-gate0/implementation-integration-correction-03/probes.guard.json",
+      "label": "probes",
+      "stderr_log": "reports/v0-s3/product-gate0/implementation-integration-correction-03/probes.outer.stderr.log",
+      "stdout_log": "reports/v0-s3/product-gate0/implementation-integration-correction-03/probes.outer.stdout.log"
+    },
+    {
+      "argv": [
+        "/usr/bin/python3",
+        "-B",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-integration-correction-03/hardguard.py",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-integration-correction-03/owner_probe.py",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-integration-correction-03/owner-probe.guard.json"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "elapsed_seconds": 0.14,
+      "exit_code": 0,
+      "guard_denials": [],
+      "guard_installed_before_candidate_import": true,
+      "guard_receipt": "reports/v0-s3/product-gate0/implementation-integration-correction-03/owner-probe.guard.json",
+      "label": "owner-probe",
+      "stderr_log": "reports/v0-s3/product-gate0/implementation-integration-correction-03/owner-probe.outer.stderr.log",
+      "stdout_log": "reports/v0-s3/product-gate0/implementation-integration-correction-03/owner-probe.outer.stdout.log"
+    },
+    {
+      "argv": [
+        "/usr/bin/python3",
+        "-B",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-integration-correction-03/hardguard.py",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-integration-correction-03/pytest_entry.py",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-integration-correction-03/focused-supervisor.guard.json",
+        "tools/test_v0_s3_supervisor.py",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "-k",
+        "history or deadline or row_started or row_reopen or snapshot or hash or scope or handoff or drain or stream or protocol or evidence or overflow or terminal"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "elapsed_seconds": 10.565,
+      "exit_code": 0,
+      "guard_denials": [],
+      "guard_installed_before_candidate_import": true,
+      "guard_receipt": "reports/v0-s3/product-gate0/implementation-integration-correction-03/focused-supervisor.guard.json",
+      "label": "focused-supervisor",
+      "stderr_log": "reports/v0-s3/product-gate0/implementation-integration-correction-03/focused-supervisor.outer.stderr.log",
+      "stdout_log": "reports/v0-s3/product-gate0/implementation-integration-correction-03/focused-supervisor.outer.stdout.log"
+    },
+    {
+      "argv": [
+        "/usr/bin/python3",
+        "-B",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-integration-correction-03/hardguard.py",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-integration-correction-03/pytest_entry.py",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-integration-correction-03/focused-integration.guard.json",
+        "tools/test_v0_s3_integration.py",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "-k",
+        "twelve or receipt or cleanup or parent or original or key or aggregate or isolation or score"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "elapsed_seconds": 0.294,
+      "exit_code": 0,
+      "guard_denials": [],
+      "guard_installed_before_candidate_import": true,
+      "guard_receipt": "reports/v0-s3/product-gate0/implementation-integration-correction-03/focused-integration.guard.json",
+      "label": "focused-integration",
+      "stderr_log": "reports/v0-s3/product-gate0/implementation-integration-correction-03/focused-integration.outer.stderr.log",
+      "stdout_log": "reports/v0-s3/product-gate0/implementation-integration-correction-03/focused-integration.outer.stdout.log"
+    },
+    {
+      "argv": [
+        "/usr/bin/python3",
+        "-B",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-integration-correction-03/hardguard.py",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-integration-correction-03/pytest_entry.py",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-integration-correction-03/affected-modules.guard.json",
+        "tools/test_v0_s3_supervisor.py",
+        "tools/test_v0_s3_integration.py",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "-k",
+        "not (single_guard or offline_boundary or refused_start or machine_accounting or real_guard_refusal or copied_marker or replayed_real_guard_refusal or charge_whose_settlement or proof_of_a_child)"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "elapsed_seconds": 62.886,
+      "exit_code": 0,
+      "guard_denials": [
+        "subprocess.Popen"
+      ],
+      "guard_installed_before_candidate_import": true,
+      "guard_receipt": "reports/v0-s3/product-gate0/implementation-integration-correction-03/affected-modules.guard.json",
+      "label": "affected-modules",
+      "stderr_log": "reports/v0-s3/product-gate0/implementation-integration-correction-03/affected-modules.outer.stderr.log",
+      "stdout_log": "reports/v0-s3/product-gate0/implementation-integration-correction-03/affected-modules.outer.stdout.log"
+    }
+  ]
+}

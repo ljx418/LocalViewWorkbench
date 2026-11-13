@@ -402,6 +402,183 @@ def test_an_expired_history_deadline_is_detected(tmp_path):
     assert supervisor._deadline_state() == 'PHASE_DEADLINE_EXCEEDED'
 
 
+# ------------------------------------------------- H: the history lifetime
+def row_event(event, asset_id, ordinal, sequence):
+    """One row event of the protocol, with its own sequence."""
+    return message(event, {'asset_id': asset_id, 'ordinal': ordinal}, sequence=sequence)
+
+
+def consume_until(supervisor, sequence, *, timeout=5.0):
+    """Consume the protocol until the state has the given sequence."""
+    end = time.monotonic() + timeout
+    while supervisor.state.last_sequence < sequence and time.monotonic() < end:
+        supervisor._consume_stdout()
+        time.sleep(0.001)
+    assert supervisor.state.last_sequence == sequence
+
+
+def test_a_finished_row_does_not_constrain_the_later_rows(tmp_path):
+    """H: a history deadline only constrains the wait of its own row.
+
+    The first row started its history wait at zero and finished at ten, so
+    its deadline of six hundred is in the past when the second row starts
+    its own wait at five hundred.  The finished row does not interrupt the
+    second row.
+    """
+    clock = SteppingClock(step=0.0)
+    process = FakeProcess()
+    supervisor = make_supervisor(tmp_path, process=process, clock=clock,
+                                  phase_timeout=100000, history_timeout=600,
+                                  child_timeout=100000)
+    supervisor.start()
+    clock.now = 0.0
+    process.emit(row_event('ROW_STARTED', 'SYN-01', 1, 1))
+    process.emit(row_event('HISTORY_WAIT_STARTED', 'SYN-01', 1, 2))
+    consume_until(supervisor, 2)
+    assert supervisor.history_deadlines['SYN-01'] == 600
+    clock.now = 10.0
+    process.emit(row_event('ROW_FINISHED', 'SYN-01', 1, 3))
+    consume_until(supervisor, 3)
+    assert supervisor.history_completed == {'SYN-01'}
+    clock.now = 500.0
+    process.emit(row_event('ROW_STARTED', 'SYN-02', 2, 4))
+    process.emit(row_event('HISTORY_WAIT_STARTED', 'SYN-02', 2, 5))
+    consume_until(supervisor, 5)
+    assert supervisor.history_deadlines['SYN-02'] == 1100
+    # the deadline of the finished row is in the past and does not stop the
+    # run of the second row
+    for moment in (600.0, 601.0, 1099.0, 1100.0):
+        clock.now = moment
+        assert supervisor._deadline_state() is None
+
+
+def test_the_history_deadline_of_the_active_row_is_exact_and_one_over(tmp_path):
+    """H: the deadline of the active row is exact and one over is a refusal."""
+    clock = SteppingClock(step=0.0)
+    process = FakeProcess()
+    supervisor = make_supervisor(tmp_path, process=process, clock=clock,
+                                  phase_timeout=100000, history_timeout=600,
+                                  child_timeout=100000)
+    supervisor.start()
+    supervisor._fix_history_deadline('SYN-01')
+    clock.now = 600.0
+    assert supervisor._deadline_state() is None
+    clock.now = 600.001
+    assert supervisor._deadline_state() == 'HISTORY_DEADLINE_EXCEEDED:SYN-01'
+
+
+def test_the_phase_and_the_child_deadline_stay_exact_and_one_over(tmp_path):
+    """H: the phase and the child deadline are exact and one over refuses."""
+    clock = SteppingClock(step=0.0)
+    supervisor = make_supervisor(tmp_path, process=FakeProcess(), clock=clock,
+                                 phase_timeout=1000, history_timeout=600,
+                                 child_timeout=2000)
+    supervisor.start()
+    clock.now = 1000.0
+    assert supervisor._deadline_state() is None
+    clock.now = 1000.001
+    assert supervisor._deadline_state() == 'PHASE_DEADLINE_EXCEEDED'
+    clock = SteppingClock(step=0.0)
+    supervisor = make_supervisor(tmp_path, process=FakeProcess(), clock=clock,
+                                 phase_timeout=1000, history_timeout=600,
+                                 child_timeout=100)
+    supervisor.start()
+    clock.now = 100.0
+    assert supervisor._deadline_state() is None
+    clock.now = 100.001
+    assert supervisor._deadline_state() == 'PHASE_DEADLINE_EXCEEDED'
+
+
+def test_the_history_audit_is_kept_and_a_row_is_not_reopened(tmp_path):
+    """H: the audit of a finished row stays and the row is not reopened."""
+    clock = SteppingClock(step=0.0)
+    process = FakeProcess()
+    supervisor = make_supervisor(tmp_path, process=process, clock=clock,
+                                  phase_timeout=100000, history_timeout=600,
+                                  child_timeout=100000)
+    supervisor.start()
+    supervisor._fix_history_deadline('SYN-01')
+    clock.now = 10.0
+    supervisor._close_history_deadline('SYN-01')
+    # the first start, the fixed deadline and the completion stay in the audit
+    assert supervisor.history_deadlines['SYN-01'] == 600
+    record = supervisor.history_records['SYN-01']
+    assert record['first_start'] == 0.0
+    assert record['deadline'] == 600
+    assert record['completed_at'] == 10.0
+    # the audit is not deleted to make a repeated start acceptable
+    state = supervisor.state
+    payload = {'asset_id': 'SYN-01', 'ordinal': 1}
+    state.accept(decode_message(encoded(message('ROW_STARTED', payload, sequence=1))))
+    state.accept(decode_message(encoded(message('HISTORY_WAIT_STARTED', payload,
+                                                 sequence=2))))
+    with pytest.raises(SupervisionError) as error:
+        state.accept(decode_message(encoded(message('ROW_STARTED', payload, sequence=3))))
+    assert error.value.code == 'MESSAGE_ROW_STARTED_REPEATED'
+    with pytest.raises(SupervisionError) as error:
+        state.accept(decode_message(encoded(message('HISTORY_WAIT_STARTED', payload,
+                                                     sequence=4))))
+    assert error.value.code == 'MESSAGE_HISTORY_STARTED_REPEATED'
+    state.accept(decode_message(encoded(message('ROW_FINISHED', payload, sequence=5))))
+    with pytest.raises(SupervisionError) as error:
+        state.accept(decode_message(encoded(message('ROW_STARTED', payload, sequence=6))))
+    assert error.value.code == 'MESSAGE_ROW_REOPENED'
+    with pytest.raises(SupervisionError) as error:
+        state.accept(decode_message(encoded(message('ROW_FINISHED', payload, sequence=7))))
+    assert error.value.code == 'MESSAGE_ROW_FINISHED_REPEATED'
+    with pytest.raises(SupervisionError) as error:
+        state.accept(decode_message(encoded(message('HISTORY_WAIT_STARTED', payload,
+                                                     sequence=8))))
+    assert error.value.code == 'MESSAGE_ROW_REOPENED'
+    # the audit of the row is still there
+    assert supervisor.history_records['SYN-01']['deadline'] == 600
+
+
+def test_a_finished_row_does_not_stop_the_run(tmp_path):
+    """H: the run of the later rows is not interrupted by a finished row."""
+    root = tmp_path / 'run'
+    root.mkdir()
+    payload = b'{"rows": []}'
+    (root / 'canonical.json').write_bytes(payload)
+    clock = SteppingClock(step=0.0)
+    process = FakeProcess()
+    supervisor = make_supervisor(tmp_path, process=process, clock=clock, root=root,
+                                  phase_timeout=100000, history_timeout=600,
+                                  child_timeout=100000)
+    supervisor.start()
+    written = 0
+    clock.now = 0.0
+    for value in (row_event('ROW_STARTED', 'SYN-01', 1, 1),
+                  row_event('HISTORY_WAIT_STARTED', 'SYN-01', 1, 2)):
+        process.emit(value)
+        written += len(encoded(value)) + 1
+    consume_until(supervisor, 2)
+    clock.now = 10.0
+    process.emit(row_event('ROW_FINISHED', 'SYN-01', 1, 3))
+    written += len(encoded(row_event('ROW_FINISHED', 'SYN-01', 1, 3))) + 1
+    consume_until(supervisor, 3)
+    clock.now = 500.0
+    for value in (row_event('ROW_STARTED', 'SYN-02', 2, 4),
+                  row_event('HISTORY_WAIT_STARTED', 'SYN-02', 2, 5)):
+        process.emit(value)
+        written += len(encoded(value)) + 1
+    consume_until(supervisor, 5)
+    terminal = canonical_terminal(root, sequence=6)
+    os.write(process.out_write, terminal)
+    assert wait_for_the_reader(supervisor.stdout_reader, written + len(terminal))
+    process.close_streams()
+    process.returncode = 0
+    clock.now = 601.0
+    evidence = supervisor.run()
+    # the deadline of the finished row did not interrupt the run
+    assert evidence['protocol_violation'] is None
+    assert evidence['unknown_outcome'] is False
+    assert evidence['canonical_receipt_verified'] is True
+    assert evidence['history_completed_rows'] == ['SYN-01']
+    assert evidence['history_deadlines'] == {'SYN-01': 600, 'SYN-02': 1100}
+    assert evidence['history_records']['SYN-01']['completed_at'] == 10.0
+
+
 # ---------------------------------------------------------- the parent hold
 def test_the_parent_terminates_only_the_handle_it_holds(tmp_path):
     """I08/I24: the parent stops the worker that it started itself."""
@@ -1735,6 +1912,171 @@ def test_the_controlled_handoff_keeps_the_frame(tmp_path):
         sys.monitoring.free_tool_id(5)
         release.set()
         os.close(writer_fd)
+        stream.close()
+
+
+# --------------------------------------- S: the published state of a reader
+def assert_consistent_snapshot(snapshot, raw):
+    """A snapshot is one moment: its accounts belong to each other."""
+    assert snapshot['hashed_bytes'] == snapshot['kept_bytes']
+    assert snapshot['total_observed'] >= snapshot['kept_bytes']
+    assert snapshot['sha256'] == hashlib.sha256(
+        raw[:snapshot['hashed_bytes']]).hexdigest()
+    if snapshot['overflow']:
+        assert snapshot['hash_scope'] == 'prefix_within_budget'
+    elif snapshot['complete']:
+        assert snapshot['hash_scope'] == 'all_observed'
+    else:
+        assert snapshot['hash_scope'] == 'observed_prefix'
+
+
+def test_an_unfinished_stream_is_only_an_observed_prefix(tmp_path):
+    """S: a stream that did not end is never reported as the whole stream."""
+    reader_fd, writer_fd = os.pipe()
+    stream = os.fdopen(reader_fd, 'rb', buffering=0)
+    reader = _StreamReader(stream, MAX_STREAM_BYTES)
+    worker = threading.Thread(target=reader.run, daemon=True)
+    worker.start()
+    try:
+        empty = reader.snapshot()
+        assert empty['total_observed'] == 0
+        assert empty['hashed_bytes'] == 0
+        assert empty['complete'] is False
+        # an empty stream that did not end is not the whole stream
+        assert empty['hash_scope'] == 'observed_prefix'
+        os.write(writer_fd, b'later')
+        assert wait_for_the_reader(reader, 5)
+        partial = reader.snapshot()
+        assert partial['total_observed'] == 5
+        assert partial['hashed_bytes'] == 5
+        assert partial['complete'] is False
+        # the hashed bytes and the observed bytes are equal and it is still
+        # only the observed prefix
+        assert partial['hash_scope'] == 'observed_prefix'
+        assert_consistent_snapshot(partial, reader.raw())
+        os.close(writer_fd)
+        worker.join(5)
+        final = reader.snapshot()
+        assert final['complete'] is True
+        assert final['hash_scope'] == 'all_observed'
+        assert_consistent_snapshot(final, reader.raw())
+    finally:
+        stream.close()
+
+
+def test_the_snapshot_never_mixes_two_moments(tmp_path):
+    """S: a snapshot is not the state of one step and of another step.
+
+    The interleaving is the one of the independent review: the snapshot is
+    paused after it read the published state, the reader publishes the
+    bytes and the end of the stream in the meantime and the snapshot
+    returns afterwards.  The snapshot that is returned is one moment and it
+    never claims that a stream ended while its digest is empty.
+    """
+    import dis
+    reader_fd, writer_fd = os.pipe()
+    stream = os.fdopen(reader_fd, 'rb', buffering=0)
+    reader = _StreamReader(stream, MAX_STREAM_BYTES)
+    code = _StreamReader.snapshot.__code__
+    target = next(instruction.offset for instruction in dis.get_instructions(code)
+                  if instruction.opname == 'STORE_SUBSCR')
+    paused = threading.Event()
+    release = threading.Event()
+
+    def instruction(code_object, offset):
+        if offset == target:
+            paused.set()
+            release.wait(5)
+
+    sys.monitoring.use_tool_id(5, 'lvw-s3-snapshot')
+    sys.monitoring.register_callback(5, sys.monitoring.events.INSTRUCTION, instruction)
+    sys.monitoring.set_local_events(5, code, sys.monitoring.events.INSTRUCTION)
+    try:
+        worker = threading.Thread(target=reader.run, daemon=True)
+        worker.start()
+        box = {}
+        snapshotter = threading.Thread(target=lambda: box.update(reader.snapshot()))
+        snapshotter.start()
+        assert paused.wait(5) is True
+        # the reader publishes the bytes and the end of the stream while the
+        # snapshot is paused
+        os.write(writer_fd, b'hello')
+        os.close(writer_fd)
+        worker.join(5)
+        assert reader.finished.is_set()
+        release.set()
+        snapshotter.join(5)
+        # the returned snapshot is one moment and it is not the mixed state
+        # of the old publication
+        assert_consistent_snapshot(box, reader.raw())
+        assert not (box['complete'] and box['hashed_bytes'] != box['total_observed'])
+        assert not (box['hashed_bytes'] == 5 and box['total_observed'] == 0)
+        # the state after the publication is complete and consistent
+        final = reader.snapshot()
+        assert final['complete'] is True
+        assert final['total_observed'] == 5
+        assert final['hashed_bytes'] == 5
+        assert final['hash_scope'] == 'all_observed'
+        assert final['sha256'] == hashlib.sha256(b'hello').hexdigest()
+        assert_consistent_snapshot(final, reader.raw())
+    finally:
+        sys.monitoring.set_local_events(5, code, 0)
+        sys.monitoring.free_tool_id(5)
+        release.set()
+        stream.close()
+
+
+def test_the_reader_publishes_the_bytes_and_the_total_together(tmp_path):
+    """S: the observed bytes and the kept bytes are one publication.
+
+    The reader is paused after it read the bytes of the stream and before
+    it publishes them.  A snapshot of that moment is the older, complete
+    state of the reader and never a state in which the bytes are hashed but
+    the total of the stream is still the old one.
+    """
+    import dis
+    reader_fd, writer_fd = os.pipe()
+    stream = os.fdopen(reader_fd, 'rb', buffering=0)
+    reader = _StreamReader(stream, MAX_STREAM_BYTES)
+    code = _StreamReader.run.__code__
+    targets = [instruction.offset for instruction in dis.get_instructions(code)
+               if instruction.opname == 'LOAD_ATTR' and instruction.argval == '_retain']
+    assert targets, 'the reader has no publication point'
+    target = targets[-1]
+    paused = threading.Event()
+    release = threading.Event()
+
+    def instruction(code_object, offset):
+        if offset == target:
+            paused.set()
+            release.wait(5)
+
+    sys.monitoring.use_tool_id(5, 'lvw-s3-publication')
+    sys.monitoring.register_callback(5, sys.monitoring.events.INSTRUCTION, instruction)
+    sys.monitoring.set_local_events(5, code, sys.monitoring.events.INSTRUCTION)
+    try:
+        worker = threading.Thread(target=reader.run, daemon=True)
+        worker.start()
+        os.write(writer_fd, b'world')
+        assert paused.wait(5) is True
+        snapshot = reader.snapshot()
+        release.set()
+        os.close(writer_fd)
+        worker.join(5)
+        # the mixed state of the old publication is gone
+        assert not (snapshot['hashed_bytes'] == 5 and snapshot['total_observed'] == 0)
+        assert snapshot['hashed_bytes'] == snapshot['total_observed']
+        assert_consistent_snapshot(snapshot, reader.raw())
+        final = reader.snapshot()
+        assert final['total_observed'] == 5
+        assert final['hashed_bytes'] == 5
+        assert final['complete'] is True
+        assert final['hash_scope'] == 'all_observed'
+        assert final['sha256'] == hashlib.sha256(b'world').hexdigest()
+    finally:
+        sys.monitoring.set_local_events(5, code, 0)
+        sys.monitoring.free_tool_id(5)
+        release.set()
         stream.close()
 
 

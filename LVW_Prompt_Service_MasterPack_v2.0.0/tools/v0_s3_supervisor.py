@@ -202,6 +202,8 @@ class ProtocolState:
         self.terminal = None
         self.history_started = {}
         self.row_events = {}
+        self.rows_started = {}
+        self.rows_finished = {}
         self.terminal_payload = None
 
     def accept(self, message):
@@ -232,8 +234,21 @@ class ProtocolState:
             row = self.plan.row(asset_id)
             if payload.get('ordinal') != row['ordinal']:
                 raise SupervisionError('MESSAGE_ROW_ORDINAL_MISMATCH')
-            if event == 'HISTORY_WAIT_STARTED' and asset_id in self.history_started:
-                raise SupervisionError('MESSAGE_HISTORY_STARTED_REPEATED')
+            # A row is started once and finished once.  The audit of the row
+            # is never deleted to make a repeated start acceptable: the
+            # repeated start and the re-opened row are refused.
+            if event == 'ROW_STARTED':
+                if asset_id in self.rows_finished:
+                    raise SupervisionError('MESSAGE_ROW_REOPENED')
+                if asset_id in self.rows_started:
+                    raise SupervisionError('MESSAGE_ROW_STARTED_REPEATED')
+            elif event == 'HISTORY_WAIT_STARTED':
+                if asset_id in self.rows_finished:
+                    raise SupervisionError('MESSAGE_ROW_REOPENED')
+                if asset_id in self.history_started:
+                    raise SupervisionError('MESSAGE_HISTORY_STARTED_REPEATED')
+            elif asset_id in self.rows_finished:
+                raise SupervisionError('MESSAGE_ROW_FINISHED_REPEATED')
         elif event == 'PROGRESS':
             # A progress message carries no result and no deadline.  It may
             # not name a row that is not in the sealed plan.
@@ -267,13 +282,30 @@ class ProtocolState:
             self.started = True
         elif event in ROW_EVENTS:
             asset_id = payload['asset_id']
-            if event == 'HISTORY_WAIT_STARTED':
+            if event == 'ROW_STARTED':
+                self.rows_started[asset_id] = True
+            elif event == 'HISTORY_WAIT_STARTED':
                 self.history_started[asset_id] = True
+            elif event == 'ROW_FINISHED':
+                self.rows_finished[asset_id] = True
             self.row_events.setdefault(asset_id, []).append(event)
         elif event == 'TERMINAL':
             self.terminal = message
             self.terminal_payload = payload
         return message
+
+
+def _stream_state(*, total, kept, digest, scope, overflow, error, complete):
+    """One published state of a stream reader.
+
+    The state is built once and never changed afterwards.  Every account of
+    a reader - the observed bytes, the kept bytes, the digest, the scope of
+    that digest, the overflow flag, the read error and the completion flag -
+    belongs to the same moment, because they are published together.
+    """
+    return {'total_observed': int(total), 'kept_bytes': int(kept),
+            'hashed_bytes': int(kept), 'hash_scope': scope, 'sha256': digest,
+            'overflow': bool(overflow), 'error': error, 'complete': bool(complete)}
 
 
 class _StreamReader(threading.Thread):
@@ -295,6 +327,17 @@ class _StreamReader(threading.Thread):
     pending bytes can not be orphaned: it stays pending for the next call.
     The critical path of the reader holds no lock, it never waits and it
     never calls anything but the list itself.
+
+    The accounts of this reader are *published*.  The observed bytes, the
+    kept bytes, the digest of the kept bytes, the scope of that digest and
+    the completion flag are one publication under one lock, and the parent
+    reads exactly one published state.  A snapshot therefore never mixes
+    two moments: it is not the state of one step and the state of another
+    step at the same time.  The atomicity of the publication comes from the
+    lock of the reader and not from the byte code interpreter, and the
+    critical section never reads a stream, never waits for anything and
+    never calls anything but the list, the digest and the state itself, so
+    the deadline of the parent is never blocked by the reader.
     """
 
     def __init__(self, stream, limit):
@@ -307,6 +350,14 @@ class _StreamReader(threading.Thread):
         self.overflow = False
         self.error = None
         self.finished = threading.Event()
+        self._publish_lock = threading.Lock()
+        self._digest = hashlib.sha256()
+        self._kept = 0
+        self._complete = False
+        self._published = _stream_state(total=0, kept=0,
+                                        digest=self._digest.hexdigest(),
+                                        scope='observed_prefix', overflow=False,
+                                        error=None, complete=False)
 
     def run(self):
         try:
@@ -326,26 +377,70 @@ class _StreamReader(threading.Thread):
                     # dropped bytes are observed but never kept, so the
                     # digest of this reader covers the prefix only.
                     allowed = self.limit - before
-                    if allowed > 0:
-                        self._retain(block[:allowed])
-                    self.total = before + len(block)
-                    self.overflow = True
+                    kept = block[:allowed] if allowed > 0 else b''
+                    self._retain(kept, before + len(block), overflow=True)
                     break
-                self._retain(block)
-                self.total = before + len(block)
+                self._retain(block, before + len(block))
+            self._publish_end()
         except Exception as error:  # noqa: BLE001 - the failure stays visible
-            self.error = type(error).__name__
+            self._publish_error(type(error).__name__)
         finally:
             self.finished.set()
 
-    def _retain(self, block):
-        """Keep one block for the parent.
+    def _retain(self, block, total=None, *, overflow=False):
+        """Keep one block for the parent and publish the new state.
 
         The block is appended to the one list of this reader.  The parent
         never replaces that list, so a block that is appended while the
         parent takes the pending bytes is never lost.
+
+        The append, the digest, the observed total and the publication are
+        one step under one lock, so the kept bytes, the digest, the total
+        and the scope of the digest always belong to the same moment.
         """
-        self._blocks.append(block)
+        self._publish_lock.acquire()
+        try:
+            self._blocks.append(block)
+            self._digest.update(block)
+            self._kept += len(block)
+            if total is not None:
+                self.total = total
+            if overflow:
+                self.overflow = True
+            self._publish_locked()
+        finally:
+            self._publish_lock.release()
+
+    def _publish_locked(self):
+        """Build and publish the state of this reader.  The lock is held."""
+        if self.overflow:
+            scope = 'prefix_within_budget'
+        elif self._complete:
+            scope = 'all_observed'
+        else:
+            scope = 'observed_prefix'
+        self._published = _stream_state(total=self.total, kept=self._kept,
+                                        digest=self._digest.hexdigest(), scope=scope,
+                                        overflow=self.overflow, error=self.error,
+                                        complete=self._complete)
+
+    def _publish_end(self):
+        """Publish the proven end of this stream."""
+        self._publish_lock.acquire()
+        try:
+            self._complete = True
+            self._publish_locked()
+        finally:
+            self._publish_lock.release()
+
+    def _publish_error(self, name):
+        """Publish a stream that could not be read any more."""
+        self._publish_lock.acquire()
+        try:
+            self.error = name
+            self._publish_locked()
+        finally:
+            self._publish_lock.release()
 
     def take(self):
         """The bytes that the parent has not consumed yet.
@@ -372,37 +467,26 @@ class _StreamReader(threading.Thread):
     def snapshot(self):
         """One consistent view of the accounts of this reader.
 
-        The observed bytes, the kept bytes, the digest of the kept bytes and
-        the scope of that digest are read together, so the evidence of the
-        parent never mixes two moments and never calls a prefix the whole
-        stream.
+        The observed bytes, the kept bytes, the digest of the kept bytes,
+        the scope of that digest and the completion flag are read from one
+        published state, so the evidence of the parent never mixes two
+        moments and never calls a prefix the whole stream.
 
         ``hash_scope`` names what the digest really covers:
-        ``all_observed`` is every byte that the stream delivered,
+        ``all_observed`` is every byte of a stream whose end was proven,
         ``prefix_within_budget`` is the prefix that is still inside the
-        frozen budget after an overflow and ``in_flight_prefix`` is a view
-        that was taken while a block was still on its way.
+        frozen budget after an overflow and ``observed_prefix`` is the
+        prefix that was observed while the end of the stream was still not
+        proven.  A stream that did not reach its end is never reported as a
+        whole stream, not even when it is empty and not even when the
+        hashed bytes and the observed bytes are equal.
         """
-        end = len(self._blocks)
-        kept = b''.join(self._blocks[:end])
-        total = self.total
-        if self.overflow:
-            scope = 'prefix_within_budget'
-        elif len(kept) == total:
-            scope = 'all_observed'
-        else:
-            scope = 'in_flight_prefix'
-        return {
-            'total_observed': total,
-            'kept_bytes': len(kept),
-            'hashed_bytes': len(kept),
-            'hash_scope': scope,
-            'sha256': sha256_bytes(kept),
-            'retained_bytes': sum(len(block) for block in self._blocks[self._cursor:end]),
-            'overflow': bool(self.overflow),
-            'error': self.error,
-            'complete': self.finished.is_set(),
-        }
+        with self._publish_lock:
+            state = dict(self._published)
+            end = len(self._blocks)
+            retained = sum(len(block) for block in self._blocks[self._cursor:end])
+        state['retained_bytes'] = retained
+        return state
 
 
 class ParentSupervisor:
@@ -452,6 +536,8 @@ class ParentSupervisor:
         self.child_deadline = None
         self.effective_phase_deadline = None
         self.history_deadlines = {}
+        self.history_records = {}
+        self.history_completed = set()
         self.stdout_reader = None
         self.stderr_reader = None
         self.stdout_buffer = bytearray()
@@ -559,6 +645,8 @@ class ParentSupervisor:
             self.messages.append(message)
             if message['event'] == 'HISTORY_WAIT_STARTED':
                 self._fix_history_deadline(message['payload']['asset_id'])
+            if message['event'] == 'ROW_FINISHED':
+                self._close_history_deadline(message['payload']['asset_id'])
             if message['event'] == 'TERMINAL':
                 self.terminal_receipt = message['payload']['canonical_receipt']
 
@@ -566,20 +654,43 @@ class ParentSupervisor:
         """Fix the history deadline of one row at its first history wait.
 
         The deadline is never moved again.  A repeated history start for the
-        same row is a protocol violation and is refused by the state.
+        same row is a protocol violation and is refused by the state.  The
+        first start of the row and its fixed deadline stay in the audit.
         """
         if asset_id in self.history_deadlines:
             return
         started = self.clock()
-        self.history_deadlines[asset_id] = min(started + self.history_timeout,
-                                               self.effective_phase_deadline,
-                                               self.child_deadline)
+        deadline = min(started + self.history_timeout, self.effective_phase_deadline,
+                       self.child_deadline)
+        self.history_deadlines[asset_id] = deadline
+        self.history_records[asset_id] = {'first_start': started, 'deadline': deadline,
+                                          'completed_at': None}
+
+    def _close_history_deadline(self, asset_id):
+        """Close the history wait of a row that finished.
+
+        A history deadline constrains the wait of the row that owns it and
+        nothing else.  Once that row is finished the deadline does not
+        constrain the later rows any more.  Nothing is deleted: the first
+        start, the fixed deadline and the moment of the completion stay in
+        the audit, and a row that is started again is refused by the state.
+        """
+        record = self.history_records.get(asset_id)
+        if record is None:
+            return
+        if record.get('completed_at') is None:
+            record['completed_at'] = self.clock()
+        self.history_completed.add(asset_id)
 
     def _deadline_state(self):
         now = self.clock()
         if now > self.effective_phase_deadline:
             return 'PHASE_DEADLINE_EXCEEDED'
         for asset_id, deadline in self.history_deadlines.items():
+            if asset_id in self.history_completed:
+                # The row that owns this deadline is finished: it does not
+                # constrain the later rows.
+                continue
             if now > deadline:
                 return 'HISTORY_DEADLINE_EXCEEDED:' + asset_id
         return None
@@ -982,6 +1093,10 @@ class ParentSupervisor:
             'history_timeout_seconds': self.history_timeout,
             'child_timeout_seconds': self.child_timeout,
             'phase_deadline_reached': self.deadline_exceeded,
+            'history_deadlines': dict(self.history_deadlines),
+            'history_records': {asset: dict(record)
+                                for asset, record in self.history_records.items()},
+            'history_completed_rows': sorted(self.history_completed),
             'protocol_violation': self.violation,
             'terminal_received': self.state.terminal is not None,
             'canonical_receipt': self.terminal_receipt,

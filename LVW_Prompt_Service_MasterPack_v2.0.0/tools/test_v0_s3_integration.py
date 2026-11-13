@@ -639,6 +639,154 @@ def test_parent_seals_the_plan_and_the_originals(tmp_path):
     manifest = evidence.manifest()
     assert manifest['row_count'] == 16
     assert manifest['stage_pass_claim'] is False
+    # the manifest is the consumption boundary: it re-checks the root and
+    # every original before it hands the document out
+    assert manifest['reverification']['verified'] is True
+    assert len(manifest['reverification']['checked']) == 3
+
+
+def test_parent_refuses_an_ancestor_link_out_of_the_bound_root(tmp_path):
+    """O: an ancestor that points out of the bound root is refused."""
+    root = tmp_path / 'run'
+    root.mkdir()
+    outside = tmp_path / 'outside'
+    outside.mkdir()
+    (outside / 'canonical.json').write_bytes(b'{"rows": []}')
+    (outside / 'source.json').write_bytes(b'{"plan": []}')
+    (outside / 'raw.bin').write_bytes(b'EXTERNAL')
+    (root / 'redirect').symlink_to(outside, target_is_directory=True)
+    evidence = ParentOriginalEvidence(run_id=RUN_ID, candidate_sha=CANDIDATE_SHA,
+                                       child_sha256=CHILD_SHA, root=root,
+                                       projection_sha256='a' * 64)
+    evidence.seal_plan(sixteen_rows())
+    identity = os.stat(root)
+    evidence.seal_root([identity.st_dev, identity.st_ino])
+    with pytest.raises(S3IntegrationError) as error:
+        evidence.seal_originals(canonical='redirect/canonical.json',
+                                source_plan='redirect/source.json',
+                                raw=['redirect/raw.bin'])
+    assert error.value.reason == 'S3_ORIGINAL_REDIRECT_FORBIDDEN:canonical'
+    # nothing of the escape was sealed
+    assert evidence.originals == {}
+
+
+def test_parent_refuses_a_link_on_the_artifact_itself(tmp_path):
+    """O: a link on the artifact itself is refused."""
+    root = tmp_path / 'run'
+    root.mkdir()
+    outside = tmp_path / 'outside'
+    outside.mkdir()
+    (outside / 'canonical.json').write_bytes(b'{"rows": []}')
+    (root / 'canonical.json').symlink_to(outside / 'canonical.json')
+    evidence = ParentOriginalEvidence(run_id=RUN_ID, candidate_sha=CANDIDATE_SHA,
+                                       child_sha256=CHILD_SHA, root=root,
+                                       projection_sha256='a' * 64)
+    evidence.seal_plan(sixteen_rows())
+    identity = os.stat(root)
+    evidence.seal_root([identity.st_dev, identity.st_ino])
+    with pytest.raises(S3IntegrationError) as error:
+        evidence.seal_originals(canonical='canonical.json',
+                                source_plan='canonical.json')
+    assert error.value.reason == 'S3_ORIGINAL_REDIRECT_FORBIDDEN:canonical'
+
+
+def test_the_manifest_refuses_an_original_that_changed_after_the_seal(tmp_path):
+    """O: the re-check refuses an original that was rewritten."""
+    root = tmp_path / 'run'
+    (root / 'temp').mkdir(parents=True)
+    (root / 'temp' / 'raw.bin').write_bytes(b'raw')
+    evidence = ParentOriginalEvidence(run_id=RUN_ID, candidate_sha=CANDIDATE_SHA,
+                                       child_sha256=CHILD_SHA, root=root,
+                                       projection_sha256='a' * 64)
+    evidence.seal_plan(sixteen_rows())
+    identity = os.stat(root)
+    evidence.seal_root([identity.st_dev, identity.st_ino])
+    evidence.seal_originals(canonical='temp/raw.bin', source_plan='temp/raw.bin')
+    (root / 'temp' / 'raw.bin').write_bytes(b'REWRITTEN')
+    with pytest.raises(S3IntegrationError) as error:
+        evidence.manifest()
+    assert error.value.reason.startswith('S3_ORIGINAL_')
+
+
+def test_the_manifest_refuses_an_original_that_was_replaced(tmp_path):
+    """O: the re-check refuses an original that was replaced by another file."""
+    root = tmp_path / 'run'
+    (root / 'temp').mkdir(parents=True)
+    (root / 'temp' / 'raw.bin').write_bytes(b'raw')
+    evidence = ParentOriginalEvidence(run_id=RUN_ID, candidate_sha=CANDIDATE_SHA,
+                                       child_sha256=CHILD_SHA, root=root,
+                                       projection_sha256='a' * 64)
+    evidence.seal_plan(sixteen_rows())
+    identity = os.stat(root)
+    evidence.seal_root([identity.st_dev, identity.st_ino])
+    evidence.seal_originals(canonical='temp/raw.bin', source_plan='temp/raw.bin')
+    # the same bytes in another object: the identity of the original changed
+    (root / 'temp' / 'raw.bin').unlink()
+    (root / 'temp' / 'raw.bin').write_bytes(b'raw')
+    with pytest.raises(S3IntegrationError) as error:
+        evidence.manifest()
+    assert error.value.reason == 'S3_ORIGINAL_REPLACED:canonical'
+
+
+def test_the_manifest_refuses_an_original_that_vanished(tmp_path):
+    """O: the re-check refuses an original that is gone."""
+    root = tmp_path / 'run'
+    (root / 'temp').mkdir(parents=True)
+    (root / 'temp' / 'raw.bin').write_bytes(b'raw')
+    evidence = ParentOriginalEvidence(run_id=RUN_ID, candidate_sha=CANDIDATE_SHA,
+                                       child_sha256=CHILD_SHA, root=root,
+                                       projection_sha256='a' * 64)
+    evidence.seal_plan(sixteen_rows())
+    identity = os.stat(root)
+    evidence.seal_root([identity.st_dev, identity.st_ino])
+    evidence.seal_originals(canonical='temp/raw.bin', source_plan='temp/raw.bin')
+    (root / 'temp' / 'raw.bin').unlink()
+    with pytest.raises(S3IntegrationError) as error:
+        evidence.manifest()
+    assert error.value.reason == 'S3_ORIGINAL_UNREADABLE:canonical'
+
+
+def test_the_manifest_refuses_a_replaced_root(tmp_path):
+    """O: the re-check refuses a root that was replaced after the seal."""
+    root = tmp_path / 'run'
+    (root / 'temp').mkdir(parents=True)
+    (root / 'temp' / 'raw.bin').write_bytes(b'raw')
+    evidence = ParentOriginalEvidence(run_id=RUN_ID, candidate_sha=CANDIDATE_SHA,
+                                       child_sha256=CHILD_SHA, root=root,
+                                       projection_sha256='a' * 64)
+    evidence.seal_plan(sixteen_rows())
+    identity = os.stat(root)
+    evidence.seal_root([identity.st_dev, identity.st_ino])
+    evidence.seal_originals(canonical='temp/raw.bin', source_plan='temp/raw.bin')
+    replacement = tmp_path / 'replacement'
+    replacement.mkdir()
+    shutil.rmtree(root)
+    os.rename(replacement, root)
+    with pytest.raises(S3IntegrationError) as error:
+        evidence.manifest()
+    assert error.value.reason == 'S3_SELECTED_ROOT_REPLACED'
+
+
+def test_the_manifest_refuses_an_ancestor_link_after_the_seal(tmp_path):
+    """O: the re-check refuses an original that was redirected after the seal."""
+    root = tmp_path / 'run'
+    (root / 'temp').mkdir(parents=True)
+    (root / 'temp' / 'raw.bin').write_bytes(b'raw')
+    evidence = ParentOriginalEvidence(run_id=RUN_ID, candidate_sha=CANDIDATE_SHA,
+                                       child_sha256=CHILD_SHA, root=root,
+                                       projection_sha256='a' * 64)
+    evidence.seal_plan(sixteen_rows())
+    identity = os.stat(root)
+    evidence.seal_root([identity.st_dev, identity.st_ino])
+    evidence.seal_originals(canonical='temp/raw.bin', source_plan='temp/raw.bin')
+    outside = tmp_path / 'outside'
+    outside.mkdir()
+    (outside / 'raw.bin').write_bytes(b'raw')
+    shutil.rmtree(root / 'temp')
+    (root / 'temp').symlink_to(outside, target_is_directory=True)
+    with pytest.raises(S3IntegrationError) as error:
+        evidence.manifest()
+    assert error.value.reason == 'S3_ORIGINAL_REDIRECT_FORBIDDEN:canonical'
 
 
 def test_parent_refuses_an_incomplete_plan(tmp_path):
@@ -703,6 +851,12 @@ def receipt(name, *, status='PASS', run_id=RUN_ID, candidate_sha=CANDIDATE_SHA, 
 
 
 def complete_receipts():
+    """Every required receipt of the twelve keys, including the cleanup.
+
+    The cleanup receipt is the legal one of this round: the same kind, the
+    same status, the same stage claim flag, the same run and candidate
+    binding and the strict boolean proof of the cleanup.
+    """
     receipts = {'stage_binding': receipt('stage_binding')}
     for name in ('image_input', 'video_input', 'output_contract', 'manual_export',
                  'no_overwrite', 'file_safety', 'no_approval_gate', 'resource_budget',
@@ -713,6 +867,7 @@ def complete_receipts():
     receipts['rollback'] = receipt('rollback')
     receipts['independent_score'] = receipt('independent_score', independent=True)
     receipts['webp_format'] = receipt('webp_format')
+    receipts['cleanup'] = receipt('cleanup', cleanup_proven=True)
     return receipts
 
 
@@ -726,6 +881,124 @@ def test_twelve_keys_are_exactly_twelve_and_complete():
     assert summary['pass_count'] == 12
     assert summary['stage_pass_claim'] is False
     assert summary['product_gate0'] is False
+
+
+def test_the_cleanup_is_a_required_receipt_of_every_key():
+    """C: every key of the summary names the cleanup receipt."""
+    for key, entry in aggregate_twelve_keys(
+            receipts=complete_receipts(),
+            binding={'run_id': RUN_ID, 'candidate_sha': CANDIDATE_SHA})['keys'].items():
+        assert 'cleanup' in entry['required_receipts'], key
+
+
+def test_a_missing_cleanup_keeps_every_key_not_run():
+    """C: without the cleanup receipt no key is green."""
+    receipts = complete_receipts()
+    del receipts['cleanup']
+    summary = aggregate_twelve_keys(receipts=receipts,
+                                    binding={'run_id': RUN_ID,
+                                             'candidate_sha': CANDIDATE_SHA})
+    assert summary['pass_count'] == 0
+    assert summary['not_run_count'] == 12
+    assert summary['cleanup_proven'] is False
+    for entry in summary['keys'].values():
+        assert entry['status'] == 'NOT_RUN'
+        assert 'cleanup:RECEIPT_MISSING' in entry['reasons']
+
+
+def test_a_cleanup_without_a_proof_blocks_every_key():
+    """C: a cleanup receipt that does not prove the cleanup blocks every key."""
+    receipts = complete_receipts()
+    receipts['cleanup'] = receipt('cleanup', cleanup_proven=False)
+    summary = aggregate_twelve_keys(receipts=receipts,
+                                    binding={'run_id': RUN_ID,
+                                             'candidate_sha': CANDIDATE_SHA})
+    assert summary['pass_count'] == 0
+    assert summary['blocked_count'] == 12
+    assert summary['cleanup_proven'] is False
+    for entry in summary['keys'].values():
+        assert entry['status'] == 'BLOCKED'
+        assert 'cleanup:CLEANUP_UNPROVEN' in entry['reasons']
+
+
+def test_a_cleanup_that_only_claims_the_proof_as_a_string_blocks_every_key():
+    """C: the string ``true`` is not the proof of a cleanup."""
+    receipts = complete_receipts()
+    receipts['cleanup'] = receipt('cleanup', cleanup_proven='true')
+    summary = aggregate_twelve_keys(receipts=receipts,
+                                    binding={'run_id': RUN_ID,
+                                             'candidate_sha': CANDIDATE_SHA})
+    assert summary['pass_count'] == 0
+    assert summary['cleanup_proven'] is False
+    for entry in summary['keys'].values():
+        assert entry['status'] == 'BLOCKED'
+        assert 'cleanup:CLEANUP_UNPROVEN' in entry['reasons']
+
+
+def test_a_cleanup_without_the_proof_field_blocks_every_key():
+    """C: a cleanup receipt that does not state the proof blocks every key."""
+    receipts = complete_receipts()
+    receipts['cleanup'] = receipt('cleanup')
+    summary = aggregate_twelve_keys(receipts=receipts,
+                                    binding={'run_id': RUN_ID,
+                                             'candidate_sha': CANDIDATE_SHA})
+    assert summary['pass_count'] == 0
+    assert summary['blocked_count'] == 12
+
+
+def test_a_failed_cleanup_fails_every_key():
+    """C: a failed cleanup keeps the failure of the run."""
+    receipts = complete_receipts()
+    receipts['cleanup'] = receipt('cleanup', status='FAIL', cleanup_proven=False)
+    summary = aggregate_twelve_keys(receipts=receipts,
+                                    binding={'run_id': RUN_ID,
+                                             'candidate_sha': CANDIDATE_SHA})
+    assert summary['pass_count'] == 0
+    assert summary['fail_count'] == 12
+    for entry in summary['keys'].values():
+        assert entry['status'] == 'FAIL'
+
+
+def test_a_cleanup_of_another_candidate_fails_every_key():
+    """C: a cleanup receipt of another candidate never fills the key."""
+    receipts = complete_receipts()
+    receipts['cleanup'] = receipt('cleanup', candidate_sha='c' * 40, cleanup_proven=True)
+    summary = aggregate_twelve_keys(receipts=receipts,
+                                    binding={'run_id': RUN_ID,
+                                             'candidate_sha': CANDIDATE_SHA})
+    assert summary['pass_count'] == 0
+    assert summary['fail_count'] == 12
+    for entry in summary['keys'].values():
+        assert entry['status'] == 'FAIL'
+        assert 'cleanup:BINDING_MISMATCH' in entry['reasons']
+
+
+def test_a_cleanup_of_a_foreign_kind_never_fills_a_green_key():
+    """C: a document of another kind is not the cleanup receipt."""
+    receipts = complete_receipts()
+    receipts['cleanup'] = {'kind': 'S2_PHASE_RECEIPT', 'status': 'PASS',
+                           'run_id': RUN_ID, 'candidate_sha': CANDIDATE_SHA,
+                           'stage_pass_claim': False, 'cleanup_proven': True}
+    summary = aggregate_twelve_keys(receipts=receipts,
+                                    binding={'run_id': RUN_ID,
+                                             'candidate_sha': CANDIDATE_SHA})
+    assert summary['pass_count'] == 0
+    for entry in summary['keys'].values():
+        assert entry['status'] == 'NOT_RUN'
+        assert 'cleanup:RECEIPT_KIND_NOT_ACCEPTED' in entry['reasons']
+
+
+def test_a_cleanup_that_claims_a_stage_pass_is_refused():
+    """C: a cleanup receipt that claims a stage pass is not accepted."""
+    receipts = complete_receipts()
+    receipts['cleanup'] = receipt('cleanup', stage_pass_claim=True, cleanup_proven=True)
+    summary = aggregate_twelve_keys(receipts=receipts,
+                                    binding={'run_id': RUN_ID,
+                                             'candidate_sha': CANDIDATE_SHA})
+    assert summary['pass_count'] == 0
+    for entry in summary['keys'].values():
+        assert entry['status'] == 'BLOCKED'
+        assert 'cleanup:RECEIPT_STAGE_PASS_CLAIM_INVALID' in entry['reasons']
 
 
 def test_old_s2_nine_keys_cannot_fill_a_green_key():

@@ -1,0 +1,19 @@
+{
+  "arguments": [
+    "tools/test_v0_s3_supervisor.py",
+    "tools/test_v0_s3_integration.py",
+    "-q",
+    "-p",
+    "no:cacheprovider",
+    "-k",
+    "not (single_guard or offline_boundary or refused_start or machine_accounting or real_guard_refusal or copied_marker or replayed_real_guard_refusal or charge_whose_settlement or proof_of_a_child)"
+  ],
+  "denials": [
+    "subprocess.Popen"
+  ],
+  "entry": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-integration-correction-03/pytest_entry.py",
+  "exit_code": 0,
+  "installed_before_candidate_import": true,
+  "process_and_network_denied": true,
+  "protected_state_denied": true
+}
