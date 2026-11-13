@@ -1800,12 +1800,14 @@ def test_the_session_closes_the_broker_on_a_parse_error(tmp_path):
     session = NativeCustodySession(plan=document, run_root=tmp_path,
                                    parent_child_remaining_seconds=600,
                                    launcher=launcher, wall=lambda: 1000.0)
-    caught = None
-    try:
-        session.start()
-    except BaseException as error:
-        caught = type(error).__name__
-    assert caught == 'CustodyError'
+    # An ordinary failure of the start is a **structured** terminal state
+    # of the round: the named code of the failure is kept, the original
+    # handle of the broker is released there and the round stays
+    # unknown.  Only a cancellation continues to propagate.
+    evidence = session.start()
+    assert evidence['state'] == 'UNKNOWN_RETAINED'
+    assert 'CUSTODY_FRAME_INVALID' in evidence['failures']
+    assert 'CUSTODY_PUMP_FAILED:CustodyError' in evidence['failures']
     assert state['peer'].close_count == 1
     assert session.state == 'UNKNOWN_RETAINED'
 
@@ -1876,8 +1878,11 @@ def test_the_heartbeat_keeps_a_long_round_alive(tmp_path):
         if session._heartbeat_step():
             beats += 1
     # One heartbeat every 60 seconds over the six hours of the round.
-    assert beats == 360
-    assert len(peer.outbound) == 360
+    # The beat at the expiry instant is not sent: the absolute lease of
+    # the round is over at that moment and a heartbeat may never be sent
+    # after it.
+    assert beats == 359
+    assert len(peer.outbound) == 359
     # The frames of the round stay inside the budget of the channel and
     # the frames of the terminal exchange are reserved.
     evidence = session.evidence()
