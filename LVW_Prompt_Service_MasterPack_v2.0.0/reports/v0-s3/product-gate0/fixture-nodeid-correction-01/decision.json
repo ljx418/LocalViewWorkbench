@@ -1,0 +1,96 @@
+{
+  "kind": "ROOT_FROZEN_COMMAND_NODEID_CORRECTION_NOT_THRESHOLD_CHANGE",
+  "at_utc": "2026-11-13T01:53:20.767226+00:00",
+  "previous_run": {
+    "outcome": "FAIL",
+    "outer_exit": 4,
+    "collected": 0,
+    "fixture_starts": 0,
+    "reserved_wall_seconds": 60,
+    "actual_spent_seconds": 0.708,
+    "retained": true
+  },
+  "responsibility": "Root froze incomplete parameter nodeids and failed to validate actual collection; worker stopped correctly.",
+  "correction": "Only9 pytest nodeid suffixes, new label/binding; source candidate/scenarios/oracles/fixed13/24 obligations unchanged.",
+  "collection_precheck": {
+    "path": "collect-only-path-fixed.stdout.log",
+    "collected": 13,
+    "exact_match": true,
+    "test_functions_executed": 0,
+    "fixture_starts": 0,
+    "guard_blocked_events": [],
+    "initial_precheck_error": "Root collector lacked cwd on sys.path; failed artifact retained, corrected harness path then successful collection."
+  },
+  "authorization_basis": "Existing COMPLETE03 permits bounded offline command correction and goal continuation; no extra fixture/action budget. This is root-reviewed next binding, not automatic retry or classifier bypass.",
+  "candidate_sha": "763f3d561772ec8efa7aafe597b62ac77a3b7969",
+  "binding_path": "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/implementation-nodeid-corrected-02.binding.json",
+  "binding_sha256": "940d5e3cafcccc27c83f5d418db9b1a734fe92729dd61e56c878a49c20bfd5b7",
+  "argv": [
+    "/usr/bin/python3.12",
+    "-B",
+    "reports/v0-s3/product-gate0/implementation-integration-01/run_guarded_checks.py",
+    "--mode",
+    "suite",
+    "--label",
+    "finite-fixture-implementation-02",
+    "--binding",
+    "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/implementation-nodeid-corrected-02.binding.json",
+    "--binding-sha256",
+    "940d5e3cafcccc27c83f5d418db9b1a734fe92729dd61e56c878a49c20bfd5b7",
+    "--role",
+    "implementation",
+    "--candidate-sha",
+    "763f3d561772ec8efa7aafe597b62ac77a3b7969",
+    "--modules",
+    "tools/test_v0_s3_supervisor.py::test_the_fixture_clean_terminal_is_verified_by_the_parent,tools/test_v0_s3_supervisor.py::test_a_blocking_callback_is_actually_stopped,tools/test_v0_s3_supervisor.py::test_a_blocking_persistence_is_actually_stopped,tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[history_replay-MESSAGE_HISTORY_STARTED_REPEATED],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[sequence_reversal-MESSAGE_SEQUENCE_NOT_INCREASING],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[duplicate_sequence-MESSAGE_SEQUENCE_NOT_INCREASING],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[oversize_message-MESSAGE_TOO_LARGE],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[foreign_identity-MESSAGE_RUN_ID_MISMATCH],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[unexpected_field-MESSAGE_KEY_SET_INVALID],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[nonfinite_number-MESSAGE_NONFINITE_NUMBER],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[early_exit-WORKER_EXITED_WITHOUT_TERMINAL],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[message_flood-MESSAGE_COUNT_EXCEEDED],tools/test_v0_s3_supervisor.py::test_a_bad_terminal_reference_is_refused",
+    "--outdir",
+    "reports/v0-s3/product-gate0/implementation-integration-01"
+  ],
+  "counter_path": "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json",
+  "budget_before": {
+    "active": true,
+    "budget_id": "s3-p4-9618f7c7bf12403b8877c90b92ed99a7",
+    "charges": [],
+    "kind": "lvw.s3-cpu-budget/1",
+    "reserved_wall_seconds": 60.0,
+    "resume_basis": "Explicit user single direct attempt; registered Claude runtime retry env hot reload verified",
+    "resumed_at_utc": "2026-11-13T01:48:40.614495+00:00",
+    "sessions": [
+      {
+        "admission_deadline_wall": 1794534571.831,
+        "admission_seconds": 30.0,
+        "cleanup_deadline_wall": 1794534601.831,
+        "cleanup_seconds": 60.0,
+        "finished_wall": 1794534542.5383573,
+        "owner_id": "owner-ef21ffb2086f4260a088ce3cd078980d",
+        "remaining_before_seconds": 180.0,
+        "reserved_at_wall": 1794534541.830529,
+        "reserved_wall_seconds": 60.0,
+        "role": "implementation",
+        "session_id": "session-5cc6f255f8b579ae5cb94931d71379eb",
+        "spent_wall_seconds": 0.708,
+        "started_wall": 1794534541.830529,
+        "state": "SETTLED"
+      }
+    ],
+    "spent_wall_seconds": 0.708,
+    "starts_by_role": {
+      "implementation": 0,
+      "independent_review": 0
+    },
+    "starts_total": 0,
+    "suspended_at_utc": "2026-11-13T00:48:52.436257+00:00"
+  },
+  "next_session_reservation": 60,
+  "remaining_pool_after_next_reservation": 60,
+  "max_additional_runs_this_binding": 1,
+  "temporary_env": {
+    "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/.claude/settings.local.json",
+    "sha256": "7e6320a52b689bfe6ff1441909c74d04f1a9620f75684d6d4bbff6508010c1b0",
+    "original_file_existed": false,
+    "original_directory_existed": false,
+    "cleanup": "Remove only if unchanged hash after phase, remove directory only if originally absent and empty"
+  },
+  "stage_pass_claim": false,
+  "product_gate0": false
+}
