@@ -87,7 +87,7 @@
   "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
   "live_terminal_receipt": "reports/unified-media/live-15/receipt.json",
   "independent_review": "reports/unified-media/independent-live-15/review.md",
-  "exact_stop_reason": "Claude auto-mode refused first resumed attempt as Auto-Mode Bypass, explicitly requires user confirmation; starts0, no test results, counter suspended.",
+  "exact_stop_reason": "Implementation worker formally ended task with failed/BLOCKED_BY_CLASSIFIER. Original exact13 run never executed, counter inactive and0 starts. Await explicit user retry confirmation; worker_done is not acceptance.",
   "native_component_authorization": "reports/v0-s2/authorization-native-component-02.json",
   "native_component_terminal_receipt": "reports/v0-s2/native-component-02/receipt.json",
   "local_control_change_decision": "reports/v0-s2/change-decision-video-workbench-01.json",
@@ -1859,6 +1859,12 @@
     },
     "interruption_receipt": "reports/v0-s3/product-gate0/integration-fixture-429-01.json",
     "resume_receipt": "reports/v0-s3/product-gate0/integration-fixture-resume-01.json",
-    "classifier_block_receipt": "reports/v0-s3/product-gate0/integration-fixture-classifier-block-01.json"
+    "classifier_block_receipt": "reports/v0-s3/product-gate0/integration-fixture-classifier-block-01.json",
+    "worker_delivery": {
+      "message_id": "msg_50d3c2a39393",
+      "outcome": "failed",
+      "status": "BLOCKED_BY_CLASSIFIER",
+      "receipt": "reports/v0-s3/product-gate0/integration-fixture-blocked-worker-done-01.json"
+    }
   }
 }
