@@ -1,0 +1,48 @@
+{
+  "prior_integrity_verified": 46,
+  "prior_raw_H_C_O_S_confirmed": true,
+  "author_raw_read_not_used_as_independent_proof": true,
+  "historical_candidate": "01453ee07b4774a55711c5cf5642c12d0394a35c",
+  "historical_counts": {
+    "PASSED": 11,
+    "FAILED": 2
+  },
+  "historical_failed_nodes": [
+    {
+      "birth": {
+        "linux_start_ticks": 9048192
+      },
+      "charge_index": 11,
+      "charge_settled": true,
+      "charge_state": "STOPPED",
+      "exit_code": -15,
+      "expected": "MESSAGE_NONFINITE_NUMBER",
+      "nodeid": "tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[nonfinite_number-MESSAGE_NONFINITE_NUMBER]",
+      "observed": "PHASE_DEADLINE_EXCEEDED",
+      "observed_lifetime_seconds": 1.07,
+      "pid": 2686895,
+      "result": "FAILED",
+      "scenario": "nonfinite_number",
+      "skipped": false
+    },
+    {
+      "birth": {
+        "linux_start_ticks": 9048310
+      },
+      "charge_index": 13,
+      "charge_settled": true,
+      "charge_state": "STOPPED",
+      "exit_code": -15,
+      "expected": "MESSAGE_COUNT_EXCEEDED",
+      "nodeid": "tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[message_flood-MESSAGE_COUNT_EXCEEDED]",
+      "observed": "PHASE_DEADLINE_EXCEEDED",
+      "observed_lifetime_seconds": 1.078,
+      "pid": 2686940,
+      "result": "FAILED",
+      "scenario": "message_flood",
+      "skipped": false
+    }
+  ],
+  "historical_node_results_sha256": "476e62490e211f9c808db81c6db1b3030cf6fb629130dcf7e51a70d8be543ad3",
+  "historical_failure_artifacts_unchanged": true
+}

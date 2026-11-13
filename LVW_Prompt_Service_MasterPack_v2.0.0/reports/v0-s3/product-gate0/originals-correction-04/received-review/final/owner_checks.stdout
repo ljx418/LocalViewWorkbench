@@ -1,0 +1,230 @@
+{
+  "C": {
+    "variants": {
+      "missing": {
+        "counts": {
+          "pass_count": 0,
+          "fail_count": 0,
+          "blocked_count": 0,
+          "not_run_count": 12
+        },
+        "cleanup_proven": false
+      },
+      "bad_kind": {
+        "counts": {
+          "pass_count": 0,
+          "fail_count": 0,
+          "blocked_count": 0,
+          "not_run_count": 12
+        },
+        "cleanup_proven": false
+      },
+      "bad_status": {
+        "counts": {
+          "pass_count": 0,
+          "fail_count": 0,
+          "blocked_count": 0,
+          "not_run_count": 12
+        },
+        "cleanup_proven": true
+      },
+      "wrong_binding": {
+        "counts": {
+          "pass_count": 0,
+          "fail_count": 12,
+          "blocked_count": 0,
+          "not_run_count": 0
+        },
+        "cleanup_proven": true
+      },
+      "string_true": {
+        "counts": {
+          "pass_count": 0,
+          "fail_count": 0,
+          "blocked_count": 12,
+          "not_run_count": 0
+        },
+        "cleanup_proven": false
+      },
+      "string_false": {
+        "counts": {
+          "pass_count": 0,
+          "fail_count": 0,
+          "blocked_count": 12,
+          "not_run_count": 0
+        },
+        "cleanup_proven": false
+      },
+      "false": {
+        "counts": {
+          "pass_count": 0,
+          "fail_count": 0,
+          "blocked_count": 12,
+          "not_run_count": 0
+        },
+        "cleanup_proven": false
+      },
+      "integer_one": {
+        "counts": {
+          "pass_count": 0,
+          "fail_count": 0,
+          "blocked_count": 12,
+          "not_run_count": 0
+        },
+        "cleanup_proven": false
+      },
+      "FAIL": {
+        "counts": {
+          "pass_count": 0,
+          "fail_count": 12,
+          "blocked_count": 0,
+          "not_run_count": 0
+        },
+        "cleanup_proven": true
+      },
+      "BLOCKED": {
+        "counts": {
+          "pass_count": 0,
+          "fail_count": 0,
+          "blocked_count": 12,
+          "not_run_count": 0
+        },
+        "cleanup_proven": true
+      },
+      "NOT_RUN": {
+        "counts": {
+          "pass_count": 0,
+          "fail_count": 0,
+          "blocked_count": 0,
+          "not_run_count": 12
+        },
+        "cleanup_proven": true
+      },
+      "stage_claim": {
+        "counts": {
+          "pass_count": 0,
+          "fail_count": 0,
+          "blocked_count": 12,
+          "not_run_count": 0
+        },
+        "cleanup_proven": true
+      },
+      "missing_kind": {
+        "key": "V0-A01",
+        "status": "NOT_RUN",
+        "required_receipts": [
+          "stage_binding",
+          "image_input",
+          "cleanup"
+        ],
+        "reasons": [
+          "cleanup:RECEIPT_KIND_NOT_ACCEPTED"
+        ],
+        "stage_pass_claim": false,
+        "product_gate0": false
+      },
+      "missing_status": {
+        "key": "V0-A01",
+        "status": "NOT_RUN",
+        "required_receipts": [
+          "stage_binding",
+          "image_input",
+          "cleanup"
+        ],
+        "reasons": [
+          "cleanup:RECEIPT_STATUS_INVALID"
+        ],
+        "stage_pass_claim": false,
+        "product_gate0": false
+      },
+      "missing_run_id": {
+        "key": "V0-A01",
+        "status": "FAIL",
+        "required_receipts": [
+          "stage_binding",
+          "image_input",
+          "cleanup"
+        ],
+        "reasons": [
+          "cleanup:BINDING_MISMATCH"
+        ],
+        "stage_pass_claim": false,
+        "product_gate0": false
+      },
+      "missing_candidate_sha": {
+        "key": "V0-A01",
+        "status": "FAIL",
+        "required_receipts": [
+          "stage_binding",
+          "image_input",
+          "cleanup"
+        ],
+        "reasons": [
+          "cleanup:BINDING_MISMATCH"
+        ],
+        "stage_pass_claim": false,
+        "product_gate0": false
+      },
+      "missing_stage_pass_claim": {
+        "key": "V0-A01",
+        "status": "BLOCKED",
+        "required_receipts": [
+          "stage_binding",
+          "image_input",
+          "cleanup"
+        ],
+        "reasons": [
+          "cleanup:RECEIPT_STAGE_PASS_CLAIM_INVALID"
+        ],
+        "stage_pass_claim": false,
+        "product_gate0": false
+      },
+      "missing_cleanup_proven": {
+        "key": "V0-A01",
+        "status": "BLOCKED",
+        "required_receipts": [
+          "stage_binding",
+          "image_input",
+          "cleanup"
+        ],
+        "reasons": [
+          "cleanup:CLEANUP_UNPROVEN"
+        ],
+        "stage_pass_claim": false,
+        "product_gate0": false
+      },
+      "missing_independent_score": 10,
+      "missing_a06_isolation": 11
+    },
+    "legal_synthetic_all12": 12,
+    "old9": 0,
+    "product_pass": false
+  },
+  "O_read_window": {
+    "defect_reproduced": true,
+    "manifest_verified": true,
+    "sealed_sha256": "962f85a27854336f3286ad54b49321f62525043b5f3508b2ecc887fdd6e7550e",
+    "current_sha256": "688e0feb4f52dfcc5abd3d0cda746e71ca32c700a66a609160103a0bb8f1b746",
+    "guarded_same_process_only": true
+  },
+  "O_next_reverify_refuses": "S3_ORIGINAL_REPLACED:raw",
+  "O_same_bytes_window": {
+    "defect_reproduced": true,
+    "manifest_verified": true,
+    "next_reverify": "S3_ORIGINAL_REPLACED:raw"
+  },
+  "O_fifo": {
+    "blocked_until_external_writer": true,
+    "elapsed_seconds": 0.06061952299205586,
+    "eventual": {
+      "exception": "S3_ORIGINAL_REPLACED:raw"
+    },
+    "thread_settled": true
+  },
+  "O_missing_primitive": "S3_ORIGINAL_SAFE_OPEN_UNSUPPORTED",
+  "O_fd_cleanup": {
+    "before": 4,
+    "after": 4,
+    "missing_artifact_attempts": 12
+  }
+}

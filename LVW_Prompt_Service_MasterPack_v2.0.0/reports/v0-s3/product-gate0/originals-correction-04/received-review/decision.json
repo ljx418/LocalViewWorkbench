@@ -1,0 +1,54 @@
+{
+  "candidate_sha": "56a1c5051812b27e8484781890918af3bb9feb41",
+  "baseline_sha": "e3c507227d534c56d571c6324729644f9dbac1ac",
+  "delivery_commit": "a6b527a8cd2699ede62883b3dea3ffaafb24fdf3",
+  "outcome": "CHANGES_REQUIRED",
+  "counts": {
+    "Fatal": 0,
+    "Major": 2,
+    "Minor": 0
+  },
+  "items": {
+    "H": "CLOSED_OFFLINE",
+    "C": "CLOSED_OFFLINE",
+    "O": "OPEN_O1_READ_WINDOW_O2_FIFO",
+    "S": "CLOSED_OFFLINE",
+    "A": "CLOSED_FACTUAL_ERRATUM"
+  },
+  "findings": [
+    {
+      "id": "O1",
+      "severity": "Major",
+      "file": "tools/v0_s3_coordinator.py",
+      "line": 541,
+      "evidence": "final/owner-checks.json#O_read_window"
+    },
+    {
+      "id": "O2",
+      "severity": "Major",
+      "file": "tools/v0_s3_coordinator.py",
+      "line": 462,
+      "evidence": "final/owner-checks.json#O_fifo"
+    }
+  ],
+  "tests": {
+    "unique_pytest_nodes": 30,
+    "new_functions": 24,
+    "necessary_regression_nodes": 6,
+    "pytest_executions": 60,
+    "passed_executions": 60,
+    "failed_executions": 0,
+    "skipped": 0,
+    "deselected": 0,
+    "collect_only_executions": 0,
+    "guard_selftest_checks": 15,
+    "initial_harness_error_exits": 1,
+    "fixture_starts": 0,
+    "product_passes_claimed": 0
+  },
+  "stage_pass_claim": false,
+  "product_gate0": false,
+  "fixed24_complete_execution": "NOT_RUN",
+  "fixed24_product_status": "NOT_PROVEN",
+  "real13": "NOT_PROVEN"
+}

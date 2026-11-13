@@ -21,7 +21,7 @@
     "passed_cases": 10,
     "human_signoff": "reports/unified-media/human-signoff-live15.json"
   },
-  "current_blocking_gate": "S3_P4_HISTORY_CLEANUP_ORIGINALS_AND_SNAPSHOT",
+  "current_blocking_gate": "S3_P4_ORIGINALS_READ_MUTATION_AND_FIFO",
   "stage_packet": ".agent-governance/stages/R1/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/R1/PAYLOAD_MANIFEST.sha256",
   "product_status": "UNIFIED_MEDIA_EARLY_ACCEPTED_SCOPE_ONLY_FULL_R1_PENDING",
@@ -34,8 +34,8 @@
     "PRODUCTION_RELEASED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "Isolated independent correction03 reviewer",
-  "next_action": "Verify H/C/O/S/A fixes, actual worker protocol compatibility and retained stream obligations; zero fixture starts.",
+  "next_owner": "ClaudeCode narrow originals correction04",
+  "next_action": "Fix O1/O2 once in coordinator and integration tests, preserve independently closed H/C/S/A; zero fixture starts.",
   "required_authorization": null,
   "authorization_request": "reports/authorization-program-v1-complete-03.request.json",
   "authorization_record": "reports/authorization-program-v1-complete-03.approval.json",
@@ -87,7 +87,7 @@
   "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
   "live_terminal_receipt": "reports/unified-media/live-15/receipt.json",
   "independent_review": "reports/unified-media/independent-live-15/review.md",
-  "exact_stop_reason": "Independent review line-ending question resolved as documented non-executed CMD checkout exception; exact four Python source binding unchanged; await reviewer result.",
+  "exact_stop_reason": "Independent H/C/S/A closed; O1/O2 accepted; reviewer released and narrow correction04 prepared.",
   "native_component_authorization": "reports/v0-s2/authorization-native-component-02.json",
   "native_component_terminal_receipt": "reports/v0-s2/native-component-02/receipt.json",
   "local_control_change_decision": "reports/v0-s2/change-decision-video-workbench-01.json",
@@ -1819,7 +1819,7 @@
   },
   "s3_integration": {
     "workpack_id": "S3-P4-OFFLINE",
-    "status": "CORRECTION03_INDEPENDENT_REVIEW",
+    "status": "ORIGINALS_O1_O2_CORRECTION04",
     "contract": "reports/v0-s3/product-gate0/s3-integration-offline-contract-01.md",
     "task": "reports/v0-s3/product-gate0/implementation-integration-01.task.md",
     "acceptance_matrix": "reports/v0-s3/product-gate0/s3-integration-acceptance-01.json",
@@ -1954,6 +1954,7 @@
         "terminal_id": "term_4e59d68e-a79d-4aab-afa4-71d01435b41b",
         "launch_receipt": "reports/v0-s3/product-gate0/integration-correction-review-03/launch.json"
       }
-    }
+    },
+    "correction04_decision": "reports/v0-s3/product-gate0/originals-correction-04/root-decision.json"
   }
 }

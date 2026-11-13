@@ -1,0 +1,27 @@
+独立审查结论：CHANGES_REQUIRED，Fatal 0 / Major 2 / Minor 0。H、C、S、A在本次离线范围关闭；O仍开放，两个有效Major一次汇总如下。产品Gate0保持关闭，stage_pass_claim=false。
+
+本次精确候选56a1c5051812b27e8484781890918af3bb9feb41，基准e3c507227d534c56d571c6324729644f9dbac1ac，交付a6b527a8cd2699ede62883b3dea3ffaafb24fdf3。四个Python源与Git候选blob及received/candidate-delivery.json四个SHA256逐字一致，详见source-binding.json。审查起始HEAD是af338b1c88840f913f8b969cef7a882b9da4ec75，审查时没有checkout整树；只在证明既有两暂存源属于前轮review后物化四候选源，未编辑其实现，未暂存候选源。initial-state.json与initial-index.patch保存原状态；原有未跟踪证据未改动。其他tools唯一字节差异是干净open_lvw_browser.cmd的CRLF checkout，经root msg_93a35a901145批准保留：工作区234 bytes/f6886a9c75774eae5092489ddd4fc7b44cee3dea9ac17e3c2f70625d476deb04，候选224 bytes/0474862a9ef12d318d4f3bcad8b06d182a95c16b66dfbc37aa202579e260aa68，归一后相同、git diff为空。此batch不执行/import，不能声称HEAD或整树字节等于候选。root未合并候选，root缺supervisor源是预期；未创建替代源。
+
+| 纠偏项 | 状态 | 本轮证据和范围 |
+|---|---|---|
+| H | CLOSED_OFFLINE | final/stream-history.json：I01 start=0/deadline=600/completed=10保留；I02 start=500/deadline=1100；601不被旧期限误杀，1100 exact通过，1100.001拒绝I02。新增测试复算phase/child exact/oneover和重复开始/完成/history/重开拒绝。读过quality_worker.run_worker和QualityPhase.run/_await_history；final/worker-sequence.json用真实phase+合成driver生成66帧，逐帧经ProtocolWriter/decode/新ProtocolState接受，16行次序正确。 |
+| C | CLOSED_OFFLINE | final/owner-checks.json：缺cleanup、缺field、不合法kind/status、错绑定、字符串true/false、整数1、False、FAIL都不能全12绿；FAIL优先、NOT_RUN/BLOCKED稳定。合法合成收据12/12通过只证明owner语义。旧9、缺独立QS、未隔离仍拒绝；没有以stage_pass_claim=false掩盖旧假绿。 |
+| O | OPEN | 逐层dirfd/O_NOFOLLOW、fstat和同句柄摘要使静态祖先/最终链接、原件改写/同字节替换/丢失、根替换被拒绝；manifest有原件重核，缺安全原语failclosed，12次异常打开FD数4→4。但O1读取窗口和O2特殊文件阻塞尚未关闭。 |
+| S | CLOSED_OFFLINE | final/stream-history.json、final/stream-lock.json：原sys.monitoring两个交错实际执行；额外暂停在_retain的STORE_ATTR total（offset232）证明snapshot等锁后得到统一5-byte状态。EOF前只能observed_prefix；exact/oneover/消费后SHA复算。阻塞os.read时锁不持有，snapshot约5微秒；源码短锁内无I/O、等待或外部回调。生产锁确实保护统一发布，不以GIL/作者断言代替。M1四个shared/phase/child/zero剩余真实pipe EOF drain、M2两种真实pipe交接均保留；没有fixture进程。 |
+| A | CLOSED_FACTUAL_ERRATUM | raw-recomputation.json从历史node-results重新计数11 PASSED/2 FAILED，仅属于01453ee07b4774a55711c5cf5642c12d0394a35c。nonfinite_number和message_flood均实际观察PHASE_DEADLINE_EXCEEDED，原始失败保留。后续626d37c、e3c5072及本候选无真实13场景成绩。 |
+
+Major O1：manifest重核的fstat在读摘要之前，读完没有再次fstat或验证当前路径对象，时间/身份比较仍使用旧info（tools/v0_s3_coordinator.py:541–559；_seal_one也同样在读前取stat）。独立受控os.read包装先从已验证句柄读取ORIGINAL，再在返回该块之前写入同长度MODIFIED，之后真实读取EOF；manifest仍返回reverification.verified=true和原SHA962f85a27854336f3286ad54b49321f62525043b5f3508b2ecc887fdd6e7550e，当前原件SHA已变为688e0feb4f52dfcc5abd3d0cda746e71ca32c700a66a609160103a0bb8f1b746。同字节原地重写也被本次manifest接受；下一次重核才拒绝，不能追溯撤销本次已发布verified。该修改发生于本次读取中、manifest返回前，属于要求覆盖的预检到读取窗口，并非返回后的任意未来变化。需要把读取前后句柄身份/时间/尺寸及实际消费路径重核纳入同一消费检查，变化应稳定拒绝。复现位于final/owner_checks.py、owner-checks.json，exit0表示缺陷成功复现，绝非产品PASS。
+
+Major O2：_open_inside_root在fstat常规文件检查之前以O_RDONLY|O_NOFOLLOW同步打开最终条目（tools/v0_s3_coordinator.py:462–463）。受控将已封存raw替换为FIFO，manifest线程持续阻塞在open，直到审查者另开FIFO写端才继续并拒绝；文件大小/摘要上限和nofollow均不能限制这段等待。final/owner-checks.json记录60ms有界观察仍阻塞，随后受控释放写端、线程结束、FIFO移除；生产若无写端可以一直阻塞。这违反父原件消费的有界拒绝要求，应使用能安全拒绝非普通文件且不等待写端的打开方式，再在句柄上检查类型；不要把父同步manifest塞入监督期限之外。此次未启动任何进程，也未操作用户原件。
+
+实际测试：新增函数为supervisor 8、integration 16；只选这24个及必要6个worker/history/drain/handoff回归，共30个唯一pytest节点。首次30 PASS/0 FAIL，最终加强SQLite直连审计guard后重跑同30节点，仍30 PASS/0 FAIL；累计实际60次pytest执行，唯一节点30，不是60个新用例。两轮均0 SKIP、0 deselected；按精确节点调用，collect-only执行数0，未执行节点不冒称deselected；未机械重跑186/134/257模块。完整选择见selection.json，实际stdout分别30 passed in 9.17s和30 passed in 9.77s。独立探针另列：owner_checks、stream_history、worker_sequence_checked各初轮/最终执行一次，最终另加stream_lock_probe一次；guard自检初轮7、最终8种拒绝，全都在真实动作前拒绝。第一次worker_sequence探针因审查脚本未把projection顺序转换为ordinal而退出1，未运行phase；原stderr/外层exit完整保留，修正仅审查脚本后独立新目录执行66帧成功，未将此错误归为产品缺陷。最初物化源时root不存在源触发FileNotFoundError、检查CRLF例外触发assert也均在执行候选前，后经root回复澄清，未reset/clean或改未知文件。
+
+原证据复核：先读root-decision、received-review原始probes/owner_probe、observations/owner-observations及I01–I24，46条旧integrity全部匹配；从raw重新核对旧H/C/O/S缺陷，作者received原始observations/guard/stdout/stderr及run receipt仅作为交付检查，未把实现说明或作者PASS作为独审证明。input-integrity.json绑定95个接收文件，raw-recomputation.json记录复算。原NaN/message-count/blocking-partial三个负例Oracle AST与基准逐字语义相同，fixture未变，冻结合同/控制/门槛/MANIFEST/V2未改。I01–I24逐项局部结果及生产owner索引见i01-i24-audit.json/md。
+
+执行边界：每个候选探针入口均由独立guard前置，禁止subprocess/socket/fork/exec/system；最终guard还拒绝sqlite3.connect，保护counter及原ledger文件打开。首次guard的文件打开防护补强为SQLite审计后在全新final目录重新完成相同定向集合，初始日志保留。最终候选运行无guard拒绝，只有guard_selftest有预期拒绝。guard只允许同进程pipe/thread/fakeclock/fakehandle和本目录合成文件，不使用binding runner、fixture子进程、网络、模型/GPU、服务、下载或真实媒体。外层仅启动guard Python解释器以运行这些零fixture候选检查；与fixture启动数分开。所有完整argv/cwd/外层exit/耗时在commands-*.json，stdout/stderr/guard各自落盘；外层自身exit0不覆盖记录的内层失败。
+
+counter仅由外层只读，前后SHA256均8f12beb38c78378e51d3164cf02f54e54d619f55f2286a8d128b81249dc0fb18；active=false、starts_total=15、reserved_wall_seconds=180、spent_wall_seconds=8.446不变。不退款、不清零、不创建新counter。所有probe pipe写端、文件流及线程在退出前关闭/join；FIFO已移除，受控异常FD数不增长；合成常规文件和测试raw作为证据留在本目录，未清理旧未跟踪目录。没有任何原生清理证明从这些合成结果派生。
+
+限制：本候选真实13场景、固定24完整执行、原产品12项、Windows/junction/native/GPU/A06/实际独立QualityPhase质量集合/原ledger全部NOT_PROVEN（完整执行仍NOT_RUN）。root migration和真实服务后代/父崩溃恢复亦未证明。Linux POSIX nofollow和合成driver结果绝不代表Windows或产品StagePASS。集中返工范围仅O1/O2；root保留Gate0关闭并决定后续有限接入，无需逐项开启返工或新预算。
+
+当前唯一控制仍target V1、next delivery V0.1、S3_P4_OFFLINE_INTEGRATION_AND_MACHINE_FIXTURE_BINDING_PENDING；完整V0–V3子阶段分母来自未改execution-control：V0-S0 1/2、V0-S1 5/5、R0 1/2、R1a 5/5、V0-S2 7/8、V0-S3 0/6；V1 R1 0/4、V1-M1 0/3、R2 0/4；V2 R3 0/4、R4 0/4；V3 R5a/R5b/R5c各0/4。实现、机器验收、独审、人签原状态见development-outline.json，当前统一前端已签切片不扩大为完整版本接受。本次仅交付独审报告，不推进任何开发分母。
