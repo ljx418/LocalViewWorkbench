@@ -1,0 +1,63 @@
+[
+  {
+    "label": "counter-readonly-before",
+    "argv": [
+      "/usr/bin/python3",
+      "-I",
+      "-B",
+      "reports/v0-s3/product-gate0/implementation-production-composition-correction-02/outer_counter_read.py",
+      "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json",
+      "reports/v0-s3/product-gate0/implementation-production-composition-correction-02/counter-before.json"
+    ],
+    "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+    "exit_code": 0,
+    "read_only": true,
+    "sha256": "acbdb8b154864b6f079ae783d670f11ec138b6be0617d1fa4f56c28c33223b98",
+    "active": false,
+    "starts_total": 28,
+    "reserved_wall_seconds": 240.0,
+    "spent_wall_seconds": 12.362,
+    "written_by_this_run": false,
+    "refunded_by_this_run": false,
+    "reset_by_this_run": false,
+    "new_counter_created": false,
+    "old_grant_revived": false,
+    "note": "outer layer read only; the guarded batch refuses every read of this file"
+  },
+  {
+    "label": "acked-guarded-batch-attempt-01",
+    "argv": [
+      "/usr/bin/python3",
+      "-I",
+      "-B",
+      "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-production-composition-correction-02/guard.py",
+      "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-production-composition-correction-02/run_root_frozen_scope.py",
+      "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-production-composition-correction-02/directed-scope.guard.json"
+    ],
+    "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+    "started_utc": "2026-11-13T11:54:42Z",
+    "ended_utc": "2026-11-13T11:54:42Z",
+    "exit_code": 1,
+    "wall_seconds": 0,
+    "stdout_log": "directed-scope.stdout.log",
+    "stderr_log": "directed-scope.stderr.log",
+    "guard_receipt": "directed-scope.guard.json",
+    "outcome": "FAILED_BEFORE_ANY_TEST_CALL",
+    "failure": "ModuleNotFoundError: No module named 'pytest' at run_root_frozen_scope.py:130 (import pytest)",
+    "cause": "the -I of the acked argv implies -s (no user site directory) and pytest 8.4.2 exists only in the user site /home/administrator/.local/lib/python3.12/site-packages; the argv of the frozen correction 01 batch used -B without -I",
+    "source_pins_verified_before_the_failure": true,
+    "candidate_imported": false,
+    "tests_collected": 0,
+    "tests_called": 0,
+    "os_children": 0,
+    "socket_actions": 0,
+    "sqlite_connections": 0,
+    "guard_denials": 0,
+    "guard_armed_before_the_candidate_import": true,
+    "counter_touched_by_this_attempt": false,
+    "automatic_repair_or_rerun_performed": false,
+    "handed_to_root": true,
+    "stage_pass_claim": false,
+    "product_gate0": false
+  }
+]
