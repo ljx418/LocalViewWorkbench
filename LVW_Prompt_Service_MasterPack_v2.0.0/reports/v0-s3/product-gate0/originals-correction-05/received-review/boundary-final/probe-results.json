@@ -1,0 +1,1158 @@
+{
+  "results": [
+    {
+      "case": "seal-read-modified",
+      "trigger_fired": true,
+      "expected": "refuse without partial publication",
+      "actual": {
+        "accepted": false,
+        "reason": "S3_ORIGINAL_CHANGED:raw"
+      },
+      "originals_unchanged": true
+    },
+    {
+      "case": "seal-read-same",
+      "trigger_fired": true,
+      "expected": "refuse without partial publication",
+      "actual": {
+        "accepted": false,
+        "reason": "S3_ORIGINAL_CHANGED:raw"
+      },
+      "originals_unchanged": true
+    },
+    {
+      "case": "seal-read-grow",
+      "trigger_fired": true,
+      "expected": "refuse without partial publication",
+      "actual": {
+        "accepted": false,
+        "reason": "S3_ORIGINAL_CHANGED:raw"
+      },
+      "originals_unchanged": true
+    },
+    {
+      "case": "seal-read-truncate",
+      "trigger_fired": true,
+      "expected": "refuse without partial publication",
+      "actual": {
+        "accepted": false,
+        "reason": "S3_ORIGINAL_CHANGED:raw"
+      },
+      "originals_unchanged": true
+    },
+    {
+      "case": "seal-read-replace",
+      "trigger_fired": true,
+      "expected": "refuse without partial publication",
+      "actual": {
+        "accepted": false,
+        "reason": "S3_ORIGINAL_CHANGED:raw"
+      },
+      "originals_unchanged": true
+    },
+    {
+      "case": "seal-read-link",
+      "trigger_fired": true,
+      "expected": "refuse without partial publication",
+      "actual": {
+        "accepted": false,
+        "reason": "S3_ORIGINAL_CHANGED:raw"
+      },
+      "originals_unchanged": true
+    },
+    {
+      "case": "seal-read-ancestor",
+      "trigger_fired": true,
+      "expected": "refuse without partial publication",
+      "actual": {
+        "accepted": false,
+        "reason": "S3_ORIGINAL_REPLACED:raw"
+      },
+      "originals_unchanged": true
+    },
+    {
+      "case": "seal-read-root",
+      "trigger_fired": true,
+      "expected": "refuse without partial publication",
+      "actual": {
+        "accepted": false,
+        "reason": "S3_SELECTED_ROOT_REPLACED"
+      },
+      "originals_unchanged": true
+    },
+    {
+      "case": "consume-read-modified",
+      "trigger_fired": true,
+      "expected": "refuse without partial publication",
+      "actual": {
+        "accepted": false,
+        "reason": "S3_ORIGINAL_CHANGED:raw"
+      },
+      "originals_unchanged": true
+    },
+    {
+      "case": "consume-read-same",
+      "trigger_fired": true,
+      "expected": "refuse without partial publication",
+      "actual": {
+        "accepted": false,
+        "reason": "S3_ORIGINAL_CHANGED:raw"
+      },
+      "originals_unchanged": true
+    },
+    {
+      "case": "consume-read-grow",
+      "trigger_fired": true,
+      "expected": "refuse without partial publication",
+      "actual": {
+        "accepted": false,
+        "reason": "S3_ORIGINAL_CHANGED:raw"
+      },
+      "originals_unchanged": true
+    },
+    {
+      "case": "consume-read-truncate",
+      "trigger_fired": true,
+      "expected": "refuse without partial publication",
+      "actual": {
+        "accepted": false,
+        "reason": "S3_ORIGINAL_CHANGED:raw"
+      },
+      "originals_unchanged": true
+    },
+    {
+      "case": "consume-read-replace",
+      "trigger_fired": true,
+      "expected": "refuse without partial publication",
+      "actual": {
+        "accepted": false,
+        "reason": "S3_ORIGINAL_CHANGED:raw"
+      },
+      "originals_unchanged": true
+    },
+    {
+      "case": "consume-read-link",
+      "trigger_fired": true,
+      "expected": "refuse without partial publication",
+      "actual": {
+        "accepted": false,
+        "reason": "S3_ORIGINAL_CHANGED:raw"
+      },
+      "originals_unchanged": true
+    },
+    {
+      "case": "consume-read-ancestor",
+      "trigger_fired": true,
+      "expected": "refuse without partial publication",
+      "actual": {
+        "accepted": false,
+        "reason": "S3_ORIGINAL_REPLACED:raw"
+      },
+      "originals_unchanged": true
+    },
+    {
+      "case": "consume-read-root",
+      "trigger_fired": true,
+      "expected": "refuse without partial publication",
+      "actual": {
+        "accepted": false,
+        "reason": "S3_SELECTED_ROOT_REPLACED"
+      },
+      "originals_unchanged": true
+    },
+    {
+      "case": "seal-rewalk-modified",
+      "trigger_fired": true,
+      "fd_change_during_rewalk": {
+        "before_ctime_ns": 1794559538453613706,
+        "after_ctime_ns": 1794559538453835612,
+        "before_mtime_ns": 1794559538453613706,
+        "after_mtime_ns": 1794559538453835612,
+        "before_size": 8,
+        "after_size": 8,
+        "same_identity": true
+      },
+      "expected": "refuse change during rewalk before its fstat",
+      "actual": {
+        "accepted": true,
+        "result": {
+          "canonical": [
+            {
+              "reference": "sub/canonical",
+              "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+              "bytes": 2,
+              "identity": [
+                2112,
+                2869364
+              ],
+              "change_time_ns": 1794559538453539678,
+              "modify_time_ns": 1794559538453539678,
+              "size": 2
+            }
+          ],
+          "source_plan": [
+            {
+              "reference": "sub/source",
+              "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+              "bytes": 2,
+              "identity": [
+                2112,
+                2869365
+              ],
+              "change_time_ns": 1794559538453569096,
+              "modify_time_ns": 1794559538453569096,
+              "size": 2
+            }
+          ],
+          "raw": [
+            {
+              "reference": "sub/raw",
+              "sha256": "962f85a27854336f3286ad54b49321f62525043b5f3508b2ecc887fdd6e7550e",
+              "bytes": 8,
+              "identity": [
+                2112,
+                2869366
+              ],
+              "change_time_ns": 1794559538453613706,
+              "modify_time_ns": 1794559538453613706,
+              "size": 8
+            }
+          ]
+        }
+      },
+      "actual_sha256": "688e0feb4f52dfcc5abd3d0cda746e71ca32c700a66a609160103a0bb8f1b746",
+      "returned_raw_sha256": "962f85a27854336f3286ad54b49321f62525043b5f3508b2ecc887fdd6e7550e",
+      "stale_hash_published": true
+    },
+    {
+      "case": "seal-rewalk-same",
+      "trigger_fired": true,
+      "fd_change_during_rewalk": {
+        "before_ctime_ns": 1794559538454138794,
+        "after_ctime_ns": 1794559538454348038,
+        "before_mtime_ns": 1794559538454138794,
+        "after_mtime_ns": 1794559538454348038,
+        "before_size": 8,
+        "after_size": 8,
+        "same_identity": true
+      },
+      "expected": "refuse change during rewalk before its fstat",
+      "actual": {
+        "accepted": true,
+        "result": {
+          "canonical": [
+            {
+              "reference": "sub/canonical",
+              "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+              "bytes": 2,
+              "identity": [
+                2112,
+                2869369
+              ],
+              "change_time_ns": 1794559538454082336,
+              "modify_time_ns": 1794559538454082336,
+              "size": 2
+            }
+          ],
+          "source_plan": [
+            {
+              "reference": "sub/source",
+              "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+              "bytes": 2,
+              "identity": [
+                2112,
+                2869370
+              ],
+              "change_time_ns": 1794559538454111009,
+              "modify_time_ns": 1794559538454111009,
+              "size": 2
+            }
+          ],
+          "raw": [
+            {
+              "reference": "sub/raw",
+              "sha256": "962f85a27854336f3286ad54b49321f62525043b5f3508b2ecc887fdd6e7550e",
+              "bytes": 8,
+              "identity": [
+                2112,
+                2869371
+              ],
+              "change_time_ns": 1794559538454138794,
+              "modify_time_ns": 1794559538454138794,
+              "size": 8
+            }
+          ]
+        }
+      },
+      "actual_sha256": "962f85a27854336f3286ad54b49321f62525043b5f3508b2ecc887fdd6e7550e",
+      "returned_raw_sha256": "962f85a27854336f3286ad54b49321f62525043b5f3508b2ecc887fdd6e7550e",
+      "stale_hash_published": false
+    },
+    {
+      "case": "seal-rewalk-grow",
+      "trigger_fired": true,
+      "fd_change_during_rewalk": {
+        "before_ctime_ns": 1794559538454583790,
+        "after_ctime_ns": 1794559538454787391,
+        "before_mtime_ns": 1794559538454583790,
+        "after_mtime_ns": 1794559538454787391,
+        "before_size": 8,
+        "after_size": 12,
+        "same_identity": true
+      },
+      "expected": "refuse change during rewalk before its fstat",
+      "actual": {
+        "accepted": true,
+        "result": {
+          "canonical": [
+            {
+              "reference": "sub/canonical",
+              "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+              "bytes": 2,
+              "identity": [
+                2112,
+                2869374
+              ],
+              "change_time_ns": 1794559538454527934,
+              "modify_time_ns": 1794559538454527934,
+              "size": 2
+            }
+          ],
+          "source_plan": [
+            {
+              "reference": "sub/source",
+              "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+              "bytes": 2,
+              "identity": [
+                2112,
+                2869375
+              ],
+              "change_time_ns": 1794559538454547228,
+              "modify_time_ns": 1794559538454547228,
+              "size": 2
+            }
+          ],
+          "raw": [
+            {
+              "reference": "sub/raw",
+              "sha256": "962f85a27854336f3286ad54b49321f62525043b5f3508b2ecc887fdd6e7550e",
+              "bytes": 8,
+              "identity": [
+                2112,
+                2869376
+              ],
+              "change_time_ns": 1794559538454583790,
+              "modify_time_ns": 1794559538454583790,
+              "size": 8
+            }
+          ]
+        }
+      },
+      "actual_sha256": "da1140cd37ef0948605edafce571a153f709f66d49bc65d7dd709cdc655c73f5",
+      "returned_raw_sha256": "962f85a27854336f3286ad54b49321f62525043b5f3508b2ecc887fdd6e7550e",
+      "stale_hash_published": true
+    },
+    {
+      "case": "seal-rewalk-truncate",
+      "trigger_fired": true,
+      "fd_change_during_rewalk": {
+        "before_ctime_ns": 1794559538455191038,
+        "after_ctime_ns": 1794559538455449242,
+        "before_mtime_ns": 1794559538455191038,
+        "after_mtime_ns": 1794559538455449242,
+        "before_size": 8,
+        "after_size": 3,
+        "same_identity": true
+      },
+      "expected": "refuse change during rewalk before its fstat",
+      "actual": {
+        "accepted": true,
+        "result": {
+          "canonical": [
+            {
+              "reference": "sub/canonical",
+              "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+              "bytes": 2,
+              "identity": [
+                2112,
+                2869379
+              ],
+              "change_time_ns": 1794559538455138415,
+              "modify_time_ns": 1794559538455138415,
+              "size": 2
+            }
+          ],
+          "source_plan": [
+            {
+              "reference": "sub/source",
+              "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+              "bytes": 2,
+              "identity": [
+                2112,
+                2869380
+              ],
+              "change_time_ns": 1794559538455169394,
+              "modify_time_ns": 1794559538455169394,
+              "size": 2
+            }
+          ],
+          "raw": [
+            {
+              "reference": "sub/raw",
+              "sha256": "962f85a27854336f3286ad54b49321f62525043b5f3508b2ecc887fdd6e7550e",
+              "bytes": 8,
+              "identity": [
+                2112,
+                2869381
+              ],
+              "change_time_ns": 1794559538455191038,
+              "modify_time_ns": 1794559538455191038,
+              "size": 8
+            }
+          ]
+        }
+      },
+      "actual_sha256": "70acd28f254172ff97682e15ce21d75d18ee038c8272e620a14fe4218e5ce419",
+      "returned_raw_sha256": "962f85a27854336f3286ad54b49321f62525043b5f3508b2ecc887fdd6e7550e",
+      "stale_hash_published": true
+    },
+    {
+      "case": "consume-rewalk-modified",
+      "trigger_fired": true,
+      "fd_change_during_rewalk": {
+        "before_ctime_ns": 1794559538455700933,
+        "after_ctime_ns": 1794559538456092769,
+        "before_mtime_ns": 1794559538455700933,
+        "after_mtime_ns": 1794559538456092769,
+        "before_size": 8,
+        "after_size": 8,
+        "same_identity": true
+      },
+      "expected": "refuse change during rewalk before its fstat",
+      "actual": {
+        "accepted": true,
+        "result": {
+          "kind": "lvw.s3-parent-originals/1",
+          "run_id": "independent-04",
+          "candidate_sha": "b27b0d17b71371e37002aabc5f69a030872b9177",
+          "child_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "projection_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "plan_sha256": "f145d21ee1519abfd8a68dab26c87176a28b8df3efc23ef1b1e401351eb88319",
+          "row_count": 16,
+          "root": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-originals-correction-04/boundary-final/synthetic/consume-rewalk-modified",
+          "root_identity": [
+            2112,
+            2869382
+          ],
+          "originals": {
+            "canonical": [
+              {
+                "reference": "sub/canonical",
+                "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+                "bytes": 2,
+                "identity": [
+                  2112,
+                  2869384
+                ],
+                "change_time_ns": 1794559538455653848,
+                "modify_time_ns": 1794559538455653848,
+                "size": 2
+              }
+            ],
+            "source_plan": [
+              {
+                "reference": "sub/source",
+                "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+                "bytes": 2,
+                "identity": [
+                  2112,
+                  2869385
+                ],
+                "change_time_ns": 1794559538455676935,
+                "modify_time_ns": 1794559538455676935,
+                "size": 2
+              }
+            ],
+            "raw": [
+              {
+                "reference": "sub/raw",
+                "sha256": "962f85a27854336f3286ad54b49321f62525043b5f3508b2ecc887fdd6e7550e",
+                "bytes": 8,
+                "identity": [
+                  2112,
+                  2869386
+                ],
+                "change_time_ns": 1794559538455700933,
+                "modify_time_ns": 1794559538455700933,
+                "size": 8
+              }
+            ]
+          },
+          "reverification": {
+            "root": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-originals-correction-04/boundary-final/synthetic/consume-rewalk-modified",
+            "identity": [
+              2112,
+              2869382
+            ],
+            "checked": [
+              {
+                "category": "canonical",
+                "reference": "sub/canonical",
+                "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+                "bytes": 2,
+                "identity": [
+                  2112,
+                  2869384
+                ]
+              },
+              {
+                "category": "source_plan",
+                "reference": "sub/source",
+                "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+                "bytes": 2,
+                "identity": [
+                  2112,
+                  2869385
+                ]
+              },
+              {
+                "category": "raw",
+                "reference": "sub/raw",
+                "sha256": "962f85a27854336f3286ad54b49321f62525043b5f3508b2ecc887fdd6e7550e",
+                "bytes": 8,
+                "identity": [
+                  2112,
+                  2869386
+                ]
+              }
+            ],
+            "verified": true
+          },
+          "original_open_primitive": "no_follow_dirfd_nonblock",
+          "original_read_boundary": "verified_open_to_digest_end_then_path_rewalk",
+          "stage_pass_claim": false,
+          "product_gate0": false,
+          "real_execution_performed": false
+        }
+      },
+      "actual_sha256": "688e0feb4f52dfcc5abd3d0cda746e71ca32c700a66a609160103a0bb8f1b746",
+      "returned_raw_sha256": "962f85a27854336f3286ad54b49321f62525043b5f3508b2ecc887fdd6e7550e",
+      "stale_hash_published": true
+    },
+    {
+      "case": "consume-rewalk-same",
+      "trigger_fired": true,
+      "fd_change_during_rewalk": {
+        "before_ctime_ns": 1794559538456373578,
+        "after_ctime_ns": 1794559538456764985,
+        "before_mtime_ns": 1794559538456373578,
+        "after_mtime_ns": 1794559538456764985,
+        "before_size": 8,
+        "after_size": 8,
+        "same_identity": true
+      },
+      "expected": "refuse change during rewalk before its fstat",
+      "actual": {
+        "accepted": true,
+        "result": {
+          "kind": "lvw.s3-parent-originals/1",
+          "run_id": "independent-04",
+          "candidate_sha": "b27b0d17b71371e37002aabc5f69a030872b9177",
+          "child_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "projection_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "plan_sha256": "f145d21ee1519abfd8a68dab26c87176a28b8df3efc23ef1b1e401351eb88319",
+          "row_count": 16,
+          "root": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-originals-correction-04/boundary-final/synthetic/consume-rewalk-same",
+          "root_identity": [
+            2112,
+            2869387
+          ],
+          "originals": {
+            "canonical": [
+              {
+                "reference": "sub/canonical",
+                "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+                "bytes": 2,
+                "identity": [
+                  2112,
+                  2869389
+                ],
+                "change_time_ns": 1794559538456331926,
+                "modify_time_ns": 1794559538456331926,
+                "size": 2
+              }
+            ],
+            "source_plan": [
+              {
+                "reference": "sub/source",
+                "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+                "bytes": 2,
+                "identity": [
+                  2112,
+                  2869390
+                ],
+                "change_time_ns": 1794559538456355445,
+                "modify_time_ns": 1794559538456355445,
+                "size": 2
+              }
+            ],
+            "raw": [
+              {
+                "reference": "sub/raw",
+                "sha256": "962f85a27854336f3286ad54b49321f62525043b5f3508b2ecc887fdd6e7550e",
+                "bytes": 8,
+                "identity": [
+                  2112,
+                  2869391
+                ],
+                "change_time_ns": 1794559538456373578,
+                "modify_time_ns": 1794559538456373578,
+                "size": 8
+              }
+            ]
+          },
+          "reverification": {
+            "root": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-originals-correction-04/boundary-final/synthetic/consume-rewalk-same",
+            "identity": [
+              2112,
+              2869387
+            ],
+            "checked": [
+              {
+                "category": "canonical",
+                "reference": "sub/canonical",
+                "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+                "bytes": 2,
+                "identity": [
+                  2112,
+                  2869389
+                ]
+              },
+              {
+                "category": "source_plan",
+                "reference": "sub/source",
+                "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+                "bytes": 2,
+                "identity": [
+                  2112,
+                  2869390
+                ]
+              },
+              {
+                "category": "raw",
+                "reference": "sub/raw",
+                "sha256": "962f85a27854336f3286ad54b49321f62525043b5f3508b2ecc887fdd6e7550e",
+                "bytes": 8,
+                "identity": [
+                  2112,
+                  2869391
+                ]
+              }
+            ],
+            "verified": true
+          },
+          "original_open_primitive": "no_follow_dirfd_nonblock",
+          "original_read_boundary": "verified_open_to_digest_end_then_path_rewalk",
+          "stage_pass_claim": false,
+          "product_gate0": false,
+          "real_execution_performed": false
+        }
+      },
+      "actual_sha256": "962f85a27854336f3286ad54b49321f62525043b5f3508b2ecc887fdd6e7550e",
+      "returned_raw_sha256": "962f85a27854336f3286ad54b49321f62525043b5f3508b2ecc887fdd6e7550e",
+      "stale_hash_published": false
+    },
+    {
+      "case": "consume-rewalk-grow",
+      "trigger_fired": true,
+      "fd_change_during_rewalk": {
+        "before_ctime_ns": 1794559538457302766,
+        "after_ctime_ns": 1794559538457653901,
+        "before_mtime_ns": 1794559538457302766,
+        "after_mtime_ns": 1794559538457653901,
+        "before_size": 8,
+        "after_size": 12,
+        "same_identity": true
+      },
+      "expected": "refuse change during rewalk before its fstat",
+      "actual": {
+        "accepted": true,
+        "result": {
+          "kind": "lvw.s3-parent-originals/1",
+          "run_id": "independent-04",
+          "candidate_sha": "b27b0d17b71371e37002aabc5f69a030872b9177",
+          "child_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "projection_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "plan_sha256": "f145d21ee1519abfd8a68dab26c87176a28b8df3efc23ef1b1e401351eb88319",
+          "row_count": 16,
+          "root": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-originals-correction-04/boundary-final/synthetic/consume-rewalk-grow",
+          "root_identity": [
+            2112,
+            2869392
+          ],
+          "originals": {
+            "canonical": [
+              {
+                "reference": "sub/canonical",
+                "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+                "bytes": 2,
+                "identity": [
+                  2112,
+                  2869394
+                ],
+                "change_time_ns": 1794559538457221006,
+                "modify_time_ns": 1794559538457221006,
+                "size": 2
+              }
+            ],
+            "source_plan": [
+              {
+                "reference": "sub/source",
+                "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+                "bytes": 2,
+                "identity": [
+                  2112,
+                  2869395
+                ],
+                "change_time_ns": 1794559538457272795,
+                "modify_time_ns": 1794559538457272795,
+                "size": 2
+              }
+            ],
+            "raw": [
+              {
+                "reference": "sub/raw",
+                "sha256": "962f85a27854336f3286ad54b49321f62525043b5f3508b2ecc887fdd6e7550e",
+                "bytes": 8,
+                "identity": [
+                  2112,
+                  2869396
+                ],
+                "change_time_ns": 1794559538457302766,
+                "modify_time_ns": 1794559538457302766,
+                "size": 8
+              }
+            ]
+          },
+          "reverification": {
+            "root": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-originals-correction-04/boundary-final/synthetic/consume-rewalk-grow",
+            "identity": [
+              2112,
+              2869392
+            ],
+            "checked": [
+              {
+                "category": "canonical",
+                "reference": "sub/canonical",
+                "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+                "bytes": 2,
+                "identity": [
+                  2112,
+                  2869394
+                ]
+              },
+              {
+                "category": "source_plan",
+                "reference": "sub/source",
+                "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+                "bytes": 2,
+                "identity": [
+                  2112,
+                  2869395
+                ]
+              },
+              {
+                "category": "raw",
+                "reference": "sub/raw",
+                "sha256": "962f85a27854336f3286ad54b49321f62525043b5f3508b2ecc887fdd6e7550e",
+                "bytes": 8,
+                "identity": [
+                  2112,
+                  2869396
+                ]
+              }
+            ],
+            "verified": true
+          },
+          "original_open_primitive": "no_follow_dirfd_nonblock",
+          "original_read_boundary": "verified_open_to_digest_end_then_path_rewalk",
+          "stage_pass_claim": false,
+          "product_gate0": false,
+          "real_execution_performed": false
+        }
+      },
+      "actual_sha256": "da1140cd37ef0948605edafce571a153f709f66d49bc65d7dd709cdc655c73f5",
+      "returned_raw_sha256": "962f85a27854336f3286ad54b49321f62525043b5f3508b2ecc887fdd6e7550e",
+      "stale_hash_published": true
+    },
+    {
+      "case": "consume-rewalk-truncate",
+      "trigger_fired": true,
+      "fd_change_during_rewalk": {
+        "before_ctime_ns": 1794559538457927209,
+        "after_ctime_ns": 1794559538458411136,
+        "before_mtime_ns": 1794559538457927209,
+        "after_mtime_ns": 1794559538458411136,
+        "before_size": 8,
+        "after_size": 3,
+        "same_identity": true
+      },
+      "expected": "refuse change during rewalk before its fstat",
+      "actual": {
+        "accepted": true,
+        "result": {
+          "kind": "lvw.s3-parent-originals/1",
+          "run_id": "independent-04",
+          "candidate_sha": "b27b0d17b71371e37002aabc5f69a030872b9177",
+          "child_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "projection_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "plan_sha256": "f145d21ee1519abfd8a68dab26c87176a28b8df3efc23ef1b1e401351eb88319",
+          "row_count": 16,
+          "root": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-originals-correction-04/boundary-final/synthetic/consume-rewalk-truncate",
+          "root_identity": [
+            2112,
+            2869397
+          ],
+          "originals": {
+            "canonical": [
+              {
+                "reference": "sub/canonical",
+                "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+                "bytes": 2,
+                "identity": [
+                  2112,
+                  2869399
+                ],
+                "change_time_ns": 1794559538457885851,
+                "modify_time_ns": 1794559538457885851,
+                "size": 2
+              }
+            ],
+            "source_plan": [
+              {
+                "reference": "sub/source",
+                "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+                "bytes": 2,
+                "identity": [
+                  2112,
+                  2869400
+                ],
+                "change_time_ns": 1794559538457908724,
+                "modify_time_ns": 1794559538457908724,
+                "size": 2
+              }
+            ],
+            "raw": [
+              {
+                "reference": "sub/raw",
+                "sha256": "962f85a27854336f3286ad54b49321f62525043b5f3508b2ecc887fdd6e7550e",
+                "bytes": 8,
+                "identity": [
+                  2112,
+                  2869401
+                ],
+                "change_time_ns": 1794559538457927209,
+                "modify_time_ns": 1794559538457927209,
+                "size": 8
+              }
+            ]
+          },
+          "reverification": {
+            "root": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-originals-correction-04/boundary-final/synthetic/consume-rewalk-truncate",
+            "identity": [
+              2112,
+              2869397
+            ],
+            "checked": [
+              {
+                "category": "canonical",
+                "reference": "sub/canonical",
+                "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+                "bytes": 2,
+                "identity": [
+                  2112,
+                  2869399
+                ]
+              },
+              {
+                "category": "source_plan",
+                "reference": "sub/source",
+                "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+                "bytes": 2,
+                "identity": [
+                  2112,
+                  2869400
+                ]
+              },
+              {
+                "category": "raw",
+                "reference": "sub/raw",
+                "sha256": "962f85a27854336f3286ad54b49321f62525043b5f3508b2ecc887fdd6e7550e",
+                "bytes": 8,
+                "identity": [
+                  2112,
+                  2869401
+                ]
+              }
+            ],
+            "verified": true
+          },
+          "original_open_primitive": "no_follow_dirfd_nonblock",
+          "original_read_boundary": "verified_open_to_digest_end_then_path_rewalk",
+          "stage_pass_claim": false,
+          "product_gate0": false,
+          "real_execution_performed": false
+        }
+      },
+      "actual_sha256": "70acd28f254172ff97682e15ce21d75d18ee038c8272e620a14fe4218e5ce419",
+      "returned_raw_sha256": "962f85a27854336f3286ad54b49321f62525043b5f3508b2ecc887fdd6e7550e",
+      "stale_hash_published": true
+    },
+    {
+      "case": "seal-fifo",
+      "expected": "nonblocking reject without writer",
+      "actual": {
+        "accepted": false,
+        "reason": "ORIGINAL_NOT_A_REGULAR_FILE"
+      },
+      "blocked": false,
+      "recovery_writer_opened": false,
+      "joined": true,
+      "fifo_removed": true,
+      "seconds": 0.0006076470017433167
+    },
+    {
+      "case": "consume-fifo",
+      "expected": "nonblocking reject without writer",
+      "actual": {
+        "accepted": false,
+        "reason": "S3_ORIGINAL_REPLACED:raw"
+      },
+      "blocked": false,
+      "recovery_writer_opened": false,
+      "joined": true,
+      "fifo_removed": true,
+      "seconds": 0.0004694470117101446
+    },
+    {
+      "case": "regular",
+      "actual": {
+        "reference": "sub/raw",
+        "sha256": "962f85a27854336f3286ad54b49321f62525043b5f3508b2ecc887fdd6e7550e",
+        "bytes": 8,
+        "identity": [
+          2112,
+          2869414
+        ],
+        "change_time_ns": 1794559538460870105,
+        "modify_time_ns": 1794559538460870105,
+        "size": 8
+      }
+    },
+    {
+      "case": "_no_follow_open_supportedseal",
+      "actual": {
+        "accepted": false,
+        "reason": "S3_ORIGINAL_SAFE_OPEN_UNSUPPORTED"
+      }
+    },
+    {
+      "case": "_no_follow_open_supportedconsume",
+      "actual": {
+        "accepted": false,
+        "reason": "S3_ORIGINAL_SAFE_OPEN_UNSUPPORTED"
+      }
+    },
+    {
+      "case": "_non_block_open_supportedseal",
+      "actual": {
+        "accepted": false,
+        "reason": "S3_ORIGINAL_SAFE_OPEN_UNSUPPORTED"
+      }
+    },
+    {
+      "case": "_non_block_open_supportedconsume",
+      "actual": {
+        "accepted": false,
+        "reason": "S3_ORIGINAL_SAFE_OPEN_UNSUPPORTED"
+      }
+    },
+    {
+      "case": "cap-seal8",
+      "actual": {
+        "accepted": true,
+        "result": {
+          "canonical": [
+            {
+              "reference": "sub/canonical",
+              "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+              "bytes": 2,
+              "identity": [
+                2112,
+                2869437
+              ],
+              "change_time_ns": 1794559538462957940,
+              "modify_time_ns": 1794559538462957940,
+              "size": 2
+            }
+          ],
+          "source_plan": [
+            {
+              "reference": "sub/source",
+              "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+              "bytes": 2,
+              "identity": [
+                2112,
+                2869438
+              ],
+              "change_time_ns": 1794559538462983347,
+              "modify_time_ns": 1794559538462983347,
+              "size": 2
+            }
+          ],
+          "raw": [
+            {
+              "reference": "sub/raw",
+              "sha256": "aa20840b0e05f36d4588e626f69fbc0dc1356ee7f3a155ea1aa6a8b60eb7088d",
+              "bytes": 8,
+              "identity": [
+                2112,
+                2869439
+              ],
+              "change_time_ns": 1794559538463084338,
+              "modify_time_ns": 1794559538463084338,
+              "size": 8
+            }
+          ]
+        }
+      }
+    },
+    {
+      "case": "cap-seal9",
+      "actual": {
+        "accepted": false,
+        "reason": "ORIGINAL_EXCEEDS_BOUND:raw"
+      }
+    },
+    {
+      "case": "cap-consume8",
+      "actual": {
+        "accepted": true,
+        "result": {
+          "kind": "lvw.s3-parent-originals/1",
+          "run_id": "independent-04",
+          "candidate_sha": "b27b0d17b71371e37002aabc5f69a030872b9177",
+          "child_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "projection_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "plan_sha256": "f145d21ee1519abfd8a68dab26c87176a28b8df3efc23ef1b1e401351eb88319",
+          "row_count": 16,
+          "root": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-originals-correction-04/boundary-final/synthetic/cap-consume8",
+          "root_identity": [
+            2112,
+            2869445
+          ],
+          "originals": {
+            "canonical": [
+              {
+                "reference": "sub/canonical",
+                "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+                "bytes": 2,
+                "identity": [
+                  2112,
+                  2869447
+                ],
+                "change_time_ns": 1794559538463839430,
+                "modify_time_ns": 1794559538463839430,
+                "size": 2
+              }
+            ],
+            "source_plan": [
+              {
+                "reference": "sub/source",
+                "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+                "bytes": 2,
+                "identity": [
+                  2112,
+                  2869448
+                ],
+                "change_time_ns": 1794559538463861732,
+                "modify_time_ns": 1794559538463861732,
+                "size": 2
+              }
+            ],
+            "raw": [
+              {
+                "reference": "sub/raw",
+                "sha256": "aa20840b0e05f36d4588e626f69fbc0dc1356ee7f3a155ea1aa6a8b60eb7088d",
+                "bytes": 8,
+                "identity": [
+                  2112,
+                  2869449
+                ],
+                "change_time_ns": 1794559538463951011,
+                "modify_time_ns": 1794559538463951011,
+                "size": 8
+              }
+            ]
+          },
+          "reverification": {
+            "root": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-originals-correction-04/boundary-final/synthetic/cap-consume8",
+            "identity": [
+              2112,
+              2869445
+            ],
+            "checked": [
+              {
+                "category": "canonical",
+                "reference": "sub/canonical",
+                "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+                "bytes": 2,
+                "identity": [
+                  2112,
+                  2869447
+                ]
+              },
+              {
+                "category": "source_plan",
+                "reference": "sub/source",
+                "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+                "bytes": 2,
+                "identity": [
+                  2112,
+                  2869448
+                ]
+              },
+              {
+                "category": "raw",
+                "reference": "sub/raw",
+                "sha256": "aa20840b0e05f36d4588e626f69fbc0dc1356ee7f3a155ea1aa6a8b60eb7088d",
+                "bytes": 8,
+                "identity": [
+                  2112,
+                  2869449
+                ]
+              }
+            ],
+            "verified": true
+          },
+          "original_open_primitive": "no_follow_dirfd_nonblock",
+          "original_read_boundary": "verified_open_to_digest_end_then_path_rewalk",
+          "stage_pass_claim": false,
+          "product_gate0": false,
+          "real_execution_performed": false
+        }
+      }
+    },
+    {
+      "case": "cap-consume9",
+      "actual": {
+        "accepted": false,
+        "reason": "ORIGINAL_EXCEEDS_BOUND:raw"
+      }
+    }
+  ],
+  "fd_before": 4,
+  "fd_after": 4,
+  "all_threads_joined": true,
+  "remaining_fifo": false
+}

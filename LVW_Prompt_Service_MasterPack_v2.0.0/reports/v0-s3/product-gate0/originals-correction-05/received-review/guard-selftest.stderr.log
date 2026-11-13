@@ -1,0 +1,13 @@
+Traceback (most recent call last):
+  File "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-originals-correction-04/guard.py", line 24, in <module>
+    runpy.run_path(entry,run_name='__main__')
+  File "<frozen runpy>", line 286, in run_path
+  File "<frozen runpy>", line 98, in _run_module_code
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-originals-correction-04/guard_selftest.py", line 7, in <module>
+    try:fn()
+        ^^^^
+  File "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-originals-correction-04/guard_selftest.py", line 4, in <lambda>
+    cases={'subprocess':lambda:subprocess.Popen(['/definitely-no-execute']), 'socket':lambda:socket.socket(),'fork':lambda:os.fork(),'exec':lambda:os.execv('/definitely-no-execute',[]),'system':lambda:os.system('true'),'sqlite':lambda:sqlite3.connect(':memory:'),'counter':lambda:open('/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json'),'ledger':lambda:open('/tmp/original.sqlite'),'ledgerjson':lambda:open('/tmp/global-ledger.json')}
+                                                                                                                                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: execv() arg 2 must not be empty

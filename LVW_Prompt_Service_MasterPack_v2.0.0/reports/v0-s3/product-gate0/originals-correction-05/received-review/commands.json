@@ -1,0 +1,76 @@
+[
+  {
+    "label": "guard-selftest",
+    "argv": [
+      "/usr/bin/python3",
+      "-B",
+      "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-originals-correction-04/guard.py",
+      "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-originals-correction-04/guard_selftest.py",
+      "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-originals-correction-04/guard-selftest.guard.json"
+    ],
+    "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0",
+    "exit": 1,
+    "seconds": 0.11393859999952838
+  },
+  {
+    "label": "independent-probe",
+    "argv": [
+      "/usr/bin/python3",
+      "-B",
+      "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-originals-correction-04/guard.py",
+      "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-originals-correction-04/probe.py",
+      "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-originals-correction-04/independent-probe.guard.json"
+    ],
+    "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0",
+    "exit": 0,
+    "seconds": 0.26424230299016926
+  },
+  {
+    "label": "directed-31",
+    "argv": [
+      "/usr/bin/python3",
+      "-B",
+      "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-originals-correction-04/guard.py",
+      "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-originals-correction-04/pytest_entry.py",
+      "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-originals-correction-04/directed-31.guard.json",
+      "-q",
+      "-p",
+      "no:cacheprovider",
+      "--basetemp=/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-originals-correction-04/pytest-temp",
+      "tools/test_v0_s3_integration.py::test_parent_seals_the_plan_and_the_originals",
+      "tools/test_v0_s3_integration.py::test_parent_refuses_an_ancestor_link_out_of_the_bound_root",
+      "tools/test_v0_s3_integration.py::test_parent_refuses_a_link_on_the_artifact_itself",
+      "tools/test_v0_s3_integration.py::test_the_manifest_refuses_an_original_that_changed_after_the_seal",
+      "tools/test_v0_s3_integration.py::test_the_manifest_refuses_an_original_that_was_replaced",
+      "tools/test_v0_s3_integration.py::test_the_manifest_refuses_an_original_that_vanished",
+      "tools/test_v0_s3_integration.py::test_the_manifest_refuses_a_replaced_root",
+      "tools/test_v0_s3_integration.py::test_the_manifest_refuses_an_ancestor_link_after_the_seal",
+      "tools/test_v0_s3_integration.py::test_parent_refuses_a_foreign_or_changed_original",
+      "tools/test_v0_s3_integration.py::test_parent_refuses_a_replaced_selected_root",
+      "tools/test_v0_s3_integration.py::test_parent_refuses_an_incomplete_plan",
+      "tools/test_v0_s3_integration.py::test_the_seal_refuses_an_original_that_changes_during_the_read[same_length_rewrite]",
+      "tools/test_v0_s3_integration.py::test_the_seal_refuses_an_original_that_changes_during_the_read[same_bytes_rewrite]",
+      "tools/test_v0_s3_integration.py::test_the_seal_refuses_an_original_that_changes_during_the_read[growth]",
+      "tools/test_v0_s3_integration.py::test_the_seal_refuses_an_original_that_changes_during_the_read[truncation]",
+      "tools/test_v0_s3_integration.py::test_the_seal_refuses_an_original_that_changes_during_the_read[object_replacement]",
+      "tools/test_v0_s3_integration.py::test_the_manifest_refuses_an_original_that_changes_during_the_read[same_length_rewrite]",
+      "tools/test_v0_s3_integration.py::test_the_manifest_refuses_an_original_that_changes_during_the_read[same_bytes_rewrite]",
+      "tools/test_v0_s3_integration.py::test_the_manifest_refuses_an_original_that_changes_during_the_read[growth]",
+      "tools/test_v0_s3_integration.py::test_the_manifest_refuses_an_original_that_changes_during_the_read[truncation]",
+      "tools/test_v0_s3_integration.py::test_the_manifest_refuses_an_original_that_changes_during_the_read[object_replacement]",
+      "tools/test_v0_s3_integration.py::test_the_manifest_refuses_an_ancestor_that_is_replaced_during_the_read",
+      "tools/test_v0_s3_integration.py::test_the_manifest_refuses_a_root_that_is_replaced_during_the_read",
+      "tools/test_v0_s3_integration.py::test_the_manifest_refuses_a_path_that_became_a_link_during_the_read",
+      "tools/test_v0_s3_integration.py::test_the_seal_refuses_a_fifo_without_a_writer_and_without_blocking",
+      "tools/test_v0_s3_integration.py::test_the_manifest_refuses_a_fifo_that_replaced_a_sealed_raw",
+      "tools/test_v0_s3_integration.py::test_a_refused_original_leaks_no_descriptor",
+      "tools/test_v0_s3_integration.py::test_a_regular_original_has_its_real_hash_and_length",
+      "tools/test_v0_s3_integration.py::test_the_size_bound_of_an_original_is_exact_and_one_over",
+      "tools/test_v0_s3_integration.py::test_a_platform_without_the_safe_primitives_fails_closed",
+      "tools/test_v0_s3_integration.py::test_a_failed_seal_publishes_no_originals"
+    ],
+    "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0",
+    "exit": 0,
+    "seconds": 0.865390748003847
+  }
+]

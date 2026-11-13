@@ -1,0 +1,165 @@
+{
+  "target_version": "V1",
+  "next_delivery_target": "V0.1",
+  "coordinate": {
+    "stage_id": "R1",
+    "workpack_id": "WP-R1-U3",
+    "gate": "S3_P4_OFFLINE_INTEGRATION_PREPARATION",
+    "state": "RUNNING"
+  },
+  "current_blocking_gate": "S3_P4_ORIGINALS_READ_MUTATION_AND_FIFO",
+  "s3_integration": {
+    "workpack_id": "S3-P4-OFFLINE",
+    "status": "ORIGINALS_CORRECTION04_INDEPENDENT_REVIEW",
+    "contract": "reports/v0-s3/product-gate0/s3-integration-offline-contract-01.md",
+    "task": "reports/v0-s3/product-gate0/implementation-integration-01.task.md",
+    "acceptance_matrix": "reports/v0-s3/product-gate0/s3-integration-acceptance-01.json",
+    "python_binding": "reports/v0-s3/product-gate0/s3-integration-python-01.binding.json",
+    "cpu_fixture_execution_permitted": false,
+    "fixture_limits_after_machine_binding": {
+      "total_starts": 24,
+      "implementation_starts": 16,
+      "review_starts": 8,
+      "max_concurrent": 2,
+      "per_process_seconds": 10,
+      "aggregate_wall_seconds": 180,
+      "cleanup_reserve_seconds": 30
+    },
+    "real_runtime_permitted": false,
+    "stage_pass_claim": false,
+    "dispatch_id": "ctx_acda509961b1",
+    "task_id": "task_e93a3d1ae96d",
+    "terminal_id": "term_561b6c89-8e15-4f3b-b771-bf3b0022418c",
+    "launch_receipt": "reports/v0-s3/product-gate0/implementation-integration-01.launch.json",
+    "retry_env": "reports/v0-s3/product-gate0/implementation-integration-01.retry-env.json",
+    "machine_gate": {
+      "status": "ORIGINAL_POOL_FULLY_RESERVED_NO_RERUN",
+      "review": "reports/v0-s3/product-gate0/s3-integration-cpu-gate-review-06.json",
+      "question_id": "msg_3b503956ea61",
+      "candidate_sha": "01453ee07b4774a55711c5cf5642c12d0394a35c",
+      "fixture_starts_authorized": 13,
+      "max_runs": 1,
+      "human_authorization_required": false,
+      "execution_permitted": false,
+      "binding_path": "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/implementation-final-04.binding.json",
+      "binding_sha256": "cd98fcaf6d4324259cccb5836b43e8d99a09a971badaeadcc20b80d5236a66f9",
+      "counter_path": "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json",
+      "budget_id": "s3-p4-9618f7c7bf12403b8877c90b92ed99a7",
+      "reply_body": "reports/v0-s3/product-gate0/s3-integration-cpu-gate-review-06.reply-body.txt",
+      "reply_message_id": "msg_7358b1a4c383"
+    },
+    "interruption_receipt": "reports/v0-s3/product-gate0/integration-fixture-429-01.json",
+    "resume_receipt": "reports/v0-s3/product-gate0/integration-fixture-resume-01.json",
+    "classifier_block_receipt": "reports/v0-s3/product-gate0/integration-fixture-classifier-block-01.json",
+    "worker_delivery": {
+      "message_id": "msg_50d3c2a39393",
+      "outcome": "failed",
+      "status": "BLOCKED_BY_CLASSIFIER",
+      "receipt": "reports/v0-s3/product-gate0/integration-fixture-blocked-worker-done-01.json"
+    },
+    "explicit_retry_approval": "reports/v0-s3/product-gate0/integration-fixture-explicit-retry-01.approval.json",
+    "delivery_block_receipt": "reports/v0-s3/product-gate0/integration-fixture-explicit-retry-01.delivery-block.json",
+    "workspace_visibility_receipt": "reports/v0-s3/product-gate0/orca-workspace-visibility-recovery-01.json",
+    "agent_cleanup_receipt": "reports/v0-s3/product-gate0/orca-cleanup-02/receipt.json",
+    "continuation": {
+      "dispatch_id": "ctx_7a7b9bdd5d06",
+      "task_id": "task_38cff9f78ee4",
+      "terminal_id": "term_884ac873-6bae-4a62-901d-a726df3bca30",
+      "launch_receipt": "reports/v0-s3/product-gate0/fixture-stream-correction-01/launch.json",
+      "keep_open": false,
+      "temporary_retry_env": "reports/v0-s3/product-gate0/fixture-stream-correction-01/temporary-retry-env.json"
+    },
+    "nodeid_correction_decision": "reports/v0-s3/product-gate0/fixture-nodeid-correction-01/decision.json",
+    "audit_correction_decision": "reports/v0-s3/product-gate0/fixture-audit-correction-01/decision.json",
+    "audit_correction_candidate": "7ed2116373d2b3a88ef55b6c8c7ebc15f03142c0",
+    "audit_correction_review": {
+      "dispatch_id": "ctx_04729532b0e7",
+      "task_id": "task_d8d447cab9a3",
+      "terminal_id": "term_07e936ad-7b65-4df1-b7e6-3691df878514",
+      "launch_receipt": "reports/v0-s3/product-gate0/audit-correction-review-02/launch.json",
+      "keep_open": false,
+      "decision": "reports/v0-s3/product-gate0/audit-correction-review-02/root-decision.json"
+    },
+    "historical_reconciliation": "reports/v0-s3/product-gate0/fixture-final-03/historical-reconciliation.json",
+    "final_fixture_grant": "reports/v0-s3/product-gate0/fixture-final-04/decision.json",
+    "sequential_candidate": "01453ee07b4774a55711c5cf5642c12d0394a35c",
+    "sequential_review": {
+      "dispatch_id": "ctx_fdb4618116af",
+      "task_id": "task_22f30cd5737f",
+      "terminal_id": "term_f4dfa999-aea9-43e2-9210-8ae93c95545f",
+      "launch_receipt": "reports/v0-s3/product-gate0/sequential-correction-review-02/launch.json",
+      "state": "outcome_unknown",
+      "keep_open": false,
+      "decision": "reports/v0-s3/product-gate0/sequential-correction-review-02/root-decision.json"
+    },
+    "final04_result": {
+      "pass": 11,
+      "fail": 2,
+      "collected": 13,
+      "proven_child_handles": 13,
+      "outer_exit": 1,
+      "receipt": "reports/v0-s3/product-gate0/fixture-stream-correction-01/finite-fixture-implementation-04.receipt.json"
+    },
+    "stream_correction_contract": "reports/v0-s3/product-gate0/fixture-stream-correction-01/contract.md",
+    "stream_candidate": "626d37cf59bfc69324c1a9f886a65cd3f8c56964",
+    "stream_review": {
+      "dispatch_id": "ctx_3948b8770ee1",
+      "task_id": "task_008224ef1c55",
+      "terminal_id": "term_ec8b50b9-e338-4f4e-a3b4-f63faedce782",
+      "launch_receipt": "reports/v0-s3/product-gate0/stream-correction-review-01/launch.json",
+      "keep_open": false,
+      "decision": "reports/v0-s3/product-gate0/stream-correction-review-01/root-decision.json"
+    },
+    "stream_correction02": {
+      "dispatch_id": "ctx_3f898dc9b113",
+      "task_id": "task_665f775b2585",
+      "launch_receipt": "reports/v0-s3/product-gate0/stream-correction-02/launch.json",
+      "interruption_receipt": "reports/v0-s3/product-gate0/stream-correction-02/429-01/handoff.json",
+      "state": "READY_FOR_REVIEW",
+      "resumption": "reports/v0-s3/product-gate0/stream-correction-02/resume-01/approval.json",
+      "resumed_dispatch": {
+        "dispatch_id": "ctx_a8ce3a1511dd",
+        "task_id": "task_665f775b2585",
+        "terminal_id": "term_e30f882c-5b92-4e6f-8084-6ccc833b2026",
+        "launch_receipt": "reports/v0-s3/product-gate0/stream-correction-02/resume-01/launch.json"
+      },
+      "candidate_sha": "e3c507227d534c56d571c6324729644f9dbac1ac",
+      "independent_review": {
+        "dispatch_id": "ctx_255fc1e7e002",
+        "task_id": "task_6d4d5e154bdd",
+        "terminal_id": "term_7d006c3a-710d-40fe-ad98-b67b8e03d9bb",
+        "launch_receipt": "reports/v0-s3/product-gate0/stream-correction-review-02/launch.json"
+      }
+    },
+    "correction03_decision": "reports/v0-s3/product-gate0/integration-correction-03/root-decision.json",
+    "correction03": {
+      "dispatch_id": "ctx_2a47543b3323",
+      "task_id": "task_79454df81d7b",
+      "terminal_id": "term_9bfa4e30-d5a3-41f7-868e-8114e81af5eb",
+      "launch_receipt": "reports/v0-s3/product-gate0/integration-correction-03/launch.json",
+      "candidate_sha": "56a1c5051812b27e8484781890918af3bb9feb41",
+      "state": "READY_FOR_REVIEW",
+      "independent_review": {
+        "dispatch_id": "ctx_0c25a579a39d",
+        "task_id": "task_b4d2baa04d07",
+        "terminal_id": "term_4e59d68e-a79d-4aab-afa4-71d01435b41b",
+        "launch_receipt": "reports/v0-s3/product-gate0/integration-correction-review-03/launch.json"
+      }
+    },
+    "correction04_decision": "reports/v0-s3/product-gate0/originals-correction-04/root-decision.json",
+    "correction04": {
+      "dispatch_id": "ctx_055f228a44be",
+      "task_id": "task_64511311644b",
+      "terminal_id": "term_d110c2dc-d441-4fe9-8795-a44ebbb46c14",
+      "launch_receipt": "reports/v0-s3/product-gate0/originals-correction-04/launch.json",
+      "candidate_sha": "b27b0d17b71371e37002aabc5f69a030872b9177",
+      "state": "READY_FOR_REVIEW",
+      "independent_review": {
+        "dispatch_id": "ctx_25f696e72b6b",
+        "task_id": "task_17a7ce5aa83c",
+        "terminal_id": "term_7f465ff1-5c5a-4367-b160-6fb5854fb152",
+        "launch_receipt": "reports/v0-s3/product-gate0/originals-correction-review-04/launch.json"
+      }
+    }
+  }
+}
