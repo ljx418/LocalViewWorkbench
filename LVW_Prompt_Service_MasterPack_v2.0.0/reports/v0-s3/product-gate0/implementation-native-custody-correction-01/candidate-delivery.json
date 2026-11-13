@@ -1,4 +1,7 @@
 {
+  "author_copies_are_not_the_root_execution_artifacts": true,
+  "author_copies_note": "The runner.py and the guard.py of this directory are the copies of the earlier author artifacts that were replaced before the last batch.  They are NOT the artifacts that root executed and they are NOT equivalent to them.  The batch ran with the root frozen executor.",
+  "author_submitted_plan_role": "SELECTION_AND_SOURCE_INPUT_ONLY: the argv, the runner and the guard of the author plan were not executed",
   "base_candidate_result": {
     "calls": 54,
     "exit_code": 1,
@@ -15,17 +18,20 @@
   "branch": "ljx418/lvw-v1-d0-implement",
   "candidate_sha": "9352a34cfa8ea9715437b5ffa5d411369dd5548d",
   "changed_pins": {
+    "reports/v0-s3/product-gate0/implementation-native-custody-correction-01/candidate-delivery.json": "SELF",
+    "reports/v0-s3/product-gate0/implementation-native-custody-correction-01/commands.json": "33d41f8a5dcbd18800366337da2ed2005f79959cb0c87b6d8d288c665299a331",
     "reports/v0-s3/product-gate0/implementation-native-custody-correction-01/guard.py": "12816fba33dd0874664f195847a599e1160099e85f5e8d3a89165b22744dfc80",
     "reports/v0-s3/product-gate0/implementation-native-custody-correction-01/plan.json": "9e47a53f1c310777d1ba9b2d47da3368b210ba74ee17b8ca429c8a8009bf9fee",
-    "reports/v0-s3/product-gate0/implementation-native-custody-correction-01/report.md": "ce1b6793614e2cde55176a41afb014b11dd4bce22862a31450a920d5ed757211",
+    "reports/v0-s3/product-gate0/implementation-native-custody-correction-01/report.md": "848517182df272d0f99d71ccd057258b5d2fee21b7e84a85a5414f86f21f645b",
     "reports/v0-s3/product-gate0/implementation-native-custody-correction-01/runner.py": "c1ffb88686a4515aaddca3f362cd100a63db6653bc2fcf8d9939a14824fe8fd7",
     "tools/test_v0_s3_native_custody.py": "94cff3e052767d90cb8e986623c5a789aeafe6b8e7453c7b127fdbbdfbf8b098",
     "tools/v0_s3_native_custody.py": "7fda324e74100ff6a4f0c0dd98392995b2ec916bd37c384e2fd45ba0cf3c463e"
   },
   "claims": {
     "admission_produced": false,
-    "batch_result": "NONE_YET: the batch is not executed and this delivery claims no pass",
+    "batch_result": "PASS of the thirty two selected nodes under the root frozen executor; no stage pass, no product gate0 and no native claim",
     "grant_authority": "NOT_VERIFIED",
+    "independent_review_closed": false,
     "product_gate0": false,
     "ready_for_review": true,
     "stage_pass_claim": false
@@ -50,16 +56,100 @@
     "original_message_value": "14e8dd284971aeab00999f010679d5c95deb88ee3bff8f4ca0708d958b56f12c",
     "previous_claim": "the reply of the root referenced the mis-transcribed literal of the implementer, so the last character was not corrected"
   },
+  "executed_batch": {
+    "artifacts": {
+      "counter_after": {
+        "bytes": 21257,
+        "path": "reports/v0-s3/product-gate0/implementation-native-custody-correction-01/counter-after.json",
+        "sha256": "7338b51fd39a78203a59a9942984fdd182c9645936d0bc7df0bc5aa114838eb3"
+      },
+      "counter_before": {
+        "bytes": 21257,
+        "path": "reports/v0-s3/product-gate0/implementation-native-custody-correction-01/counter-before.json",
+        "sha256": "7338b51fd39a78203a59a9942984fdd182c9645936d0bc7df0bc5aa114838eb3"
+      },
+      "guard": {
+        "bytes": 138,
+        "path": "reports/v0-s3/product-gate0/implementation-native-custody-correction-01/native-custody-correction-01.guard.json",
+        "sha256": "87e67546614f8167761a4ff7fc3e09267bd52dc814645210b4d31555a17c3968"
+      },
+      "receipt": {
+        "bytes": 14221,
+        "path": "reports/v0-s3/product-gate0/implementation-native-custody-correction-01/native-custody-correction-01.receipt.json",
+        "sha256": "a4d7e2b04898de9181905320fd5ac09961ad7e1986073885aceffa41a92b6160"
+      }
+    },
+    "batches": 1,
+    "batches_max": 1,
+    "commands_record": "reports/v0-s3/product-gate0/implementation-native-custody-correction-01/commands.json",
+    "commands_record_sha256": "33d41f8a5dcbd18800366337da2ed2005f79959cb0c87b6d8d288c665299a331",
+    "counter": {
+      "active": false,
+      "charges_unchanged": true,
+      "new_counter_created": false,
+      "old_grant_revived": false,
+      "path": "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json",
+      "read_mode": "READ_ONLY_OUTSIDE_THE_GUARDED_BATCH",
+      "refunded_by_this_run": false,
+      "reserved_wall_seconds": 240.0,
+      "reset_by_this_run": false,
+      "sha256_after": "acbdb8b154864b6f079ae783d670f11ec138b6be0617d1fa4f56c28c33223b98",
+      "sha256_before": "acbdb8b154864b6f079ae783d670f11ec138b6be0617d1fa4f56c28c33223b98",
+      "spent_wall_seconds": 12.362,
+      "starts_total": 28,
+      "unchanged": true,
+      "written_by_this_run": false
+    },
+    "duration_seconds": 0.14259004592895508,
+    "max_seconds": 300,
+    "real_native_action": false,
+    "result": {
+      "call_count": 32,
+      "cleanup_proven_for_batch": true,
+      "collected_equals_selected_in_order": true,
+      "fail_count": 0,
+      "fd_after_rows": 3,
+      "fd_before_rows": 3,
+      "fd_new_or_reused": [],
+      "fd_unknown_after": [],
+      "fd_unknown_before": [],
+      "functional_pass_count": 30,
+      "guard_precedes_candidate_and_pytest": true,
+      "guard_runtime_denials": [],
+      "guard_selftest_denials": 6,
+      "integrity_only_nodes": [
+        "tools/test_v0_s3_native_custody.py::test_the_old_owners_are_unchanged",
+        "tools/test_v0_s3_native_custody.py::test_the_old_refusal_points_are_still_declared"
+      ],
+      "pass_count": 32,
+      "pytest_exit": 0,
+      "skip_count": 0,
+      "threads_after": [
+        "MainThread"
+      ],
+      "threads_before": [
+        "MainThread"
+      ]
+    },
+    "result_verdict": "PASS of the thirty two selected nodes only",
+    "scope_limit": "the fifty four node batch of the failed candidate was not rerun and its FAIL result stands"
+  },
   "execution": {
-    "candidate_imported": false,
-    "collected": false,
+    "candidate_imported_by_the_guarded_batch": true,
+    "collected": true,
+    "counter_read_only_outside_the_guard": true,
     "database_touched": false,
+    "executed_after_root_ack": true,
+    "executed_with": "the root frozen guard, runner and outer counter reader",
     "ledger_read": false,
     "model_gpu_service_port_media_download": false,
     "native_windows_api_used": false,
-    "process_started": false,
-    "pytest_invoked": false,
-    "real_execution_performed": false,
+    "only_fake_win32_and_synthetic_files": true,
+    "process_started_by_the_package": false,
+    "pytest_calls": 1,
+    "pytest_exit": 0,
+    "pytest_invoked": true,
+    "real_execution_performed": true,
     "socket_opened": false
   },
   "kind": "LVW_S3_N1_NATIVE_CUSTODY_CORRECTION_CANDIDATE_DELIVERY/1",
@@ -134,12 +224,25 @@
     "old_batch_rerun_for_it": false,
     "original_bytes_changed_by_this_delivery": false,
     "receipt_path": "reports/v0-s3/product-gate0/implementation-native-custody-01/native-custody-01.receipt.json",
+    "root_clarification": "The root verified that the original receipt of the last batch is valid JSON and that it ends with a normal newline.  The earlier limitation about a possible literal tail is clarified and closed.  No historical byte was changed and the old fifty four nodes were not rerun for it.",
     "sha256": "5a8e96c027c5500e4c6834b561dc187ee437a85e431eec63145f161728cb32b2"
   },
   "retry_env_untouched": {
     "cleanup_owner": "root",
     "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/.claude/settings.local.json",
     "sha256": "7e6320a52b689bfe6ff1441909c74d04f1a9620f75684d6d4bbff6508010c1b0"
+  },
+  "root_execution_package": {
+    "ack_decision": "ACK_ONCE_ACTUAL_ROOT_FROZEN_RUNNER",
+    "ack_json_sha256": "317f32edddea41e44f5b1e1f2faa7e2d7a79486ba8b093dc3b9295ac7505f205",
+    "ack_message_id": "msg_5f01dad38cef",
+    "directory": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-01/validation-plan-01",
+    "frozen_package_modified_by_this_delivery": false,
+    "guard_sha256": "5c0bd2f5ea7ad96a4f4abe3730ff42dd3322e33c02829b746bd986332f097cdd",
+    "outer_counter_read_sha256": "3b575311b0de885b4f027dc4f135773ae34b9c95629dfddff4645c53187c0da7",
+    "plan_path": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-01/validation-plan-01/plan.json",
+    "plan_sha256": "93284e0c6d398c468969e0e9a92c4a01ec485302bc3b08d394977138e662e689",
+    "runner_sha256": "4d82645de7cd67b3fe3915b9fa19c5df3cfb193930cbc83ad5f7840a05c95ff8"
   },
   "unchanged_pins": {
     "lvw/backend/app/native_runtime.py": "16bf3e6396f9548312f92007eebbda55a448f0bdc6bab4a10afd71179b231a85",

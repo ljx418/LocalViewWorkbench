@@ -6,7 +6,9 @@
 > 被取代的失败候选：`247519de8c1512d86921af8ed2c73f0db3982c88`
 > 被取代批次的原始结果：54 call / **46 PASS / 8 FAIL / 0 SKIP**，exit 1，
 > 功能 45/52、integrity 1/2。**该失败批次原样保留，本报告不声称任何通过。**
-> 本报告状态：**READY_FOR_REVIEW**。本轮**未执行**：0 次导入、0 次 collection、0 次 pytest。
+> 本报告状态：**READY_FOR_REVIEW**。本轮在 root 的执行 ACK（`msg_5f01dad38cef`）
+> 之后，用 **root 冻结执行包**执行了**一次** 32 节点有限批次：**32 通过 / 0 失败 /
+> 0 跳过**（功能 30、integrity 2）。ACK 之前 0 次导入、0 次 collection、0 次 pytest。
 
 ---
 
@@ -17,7 +19,8 @@
 假 façade 抛的是测试私有错误码而不是生产稳定码、父侧 stop 幂等性的帧数期望写错、
 旧 owner 摘要末位抄错）。本轮一次把这 8 条全部修齐，并补上路径新边界与假 façade
 映射的覆盖；**没有**改 broker、**没有**改任何旧 owner、**没有**改门限、
-**没有**删断言、**没有**动旧证据。
+**没有**删断言、**没有**动旧证据；随后在 root 的 ACK 下用 root 自己的执行器跑了
+**一次** 32 节点有限批次，**32 通过 / 0 失败 / 0 跳过**。
 
 ---
 
@@ -38,16 +41,37 @@
 | 文件 | sha256 |
 |---|---|
 | `tools/v0_s3_native_custody.py` | `7fda324e74100ff6a4f0c0dd98392995b2ec916bd37c384e2fd45ba0cf3c463e` |
-| `tools/test_v0_s3_native_custody.py` | `04f81a67d5cacb014cb91d3503cd25148e4f24cf7537aa5fe6e2b14f30607338` |
+| `tools/test_v0_s3_native_custody.py` | `94cff3e052767d90cb8e986623c5a789aeafe6b8e7453c7b127fdbbdfbf8b098` |
 | `tools/v0_s3_native_broker.py`（未改） | `f2c10e6625e06aeb4da70506d5e75903ff28ecba3492017f06b4867d7d394a6f` |
-| `reports/.../implementation-native-custody-correction-01/guard.py`（root 副本） | `12816fba33dd0874664f195847a599e1160099e85f5e8d3a89165b22744dfc80` |
-| `reports/.../implementation-native-custody-correction-01/runner.py`（root 副本） | `c1ffb88686a4515aaddca3f362cd100a63db6653bc2fcf8d9939a14824fe8fd7` |
+| `reports/.../implementation-native-custody-correction-01/guard.py`（**作者件副本**） | `12816fba33dd0874664f195847a599e1160099e85f5e8d3a89165b22744dfc80` |
+| `reports/.../implementation-native-custody-correction-01/runner.py`（**作者件副本**） | `c1ffb88686a4515aaddca3f362cd100a63db6653bc2fcf8d9939a14824fe8fd7` |
 
-本目录下的 `guard.py` 与 `runner.py` **不是本实现者写的**：它们是根在
-`native-custody-correction-01/received/` 里冻结的那两个文件的**逐字节副本**
-（sha256 与根的 pin 完全相同），放进本目录只是为了让本批的 argv、raw logs 与
-receipt 落在本 NEW 报告目录里，根的冻结包本身不被写入。根也可以改用它自己那两份，
-pin 相同则等价。
+### 1.1 勘误：作者副本**不是** root 的执行件（按 root 的裁决更正）
+
+根在执行 ACK（`msg_5f01dad38cef`）里明确纠正了本报告早先的一处说法，现予更正：
+
+* 本目录下的 `runner.py`（`c1ffb886…`）与 `guard.py`（`12816fba…`）是**先前被
+  替换的作者件**的副本，**不是**上一批真正被 root 执行的那套执行件；
+* 因此**不得**把它们称作与 root 执行件"同 hash 等价"，本报告早先那句
+  "pin 相同则等价"**作废**；
+* 本目录 `plan.json` 里那 223 项是 **dist-info 元数据 pins**，也**不是** root 本包的
+  **223 个命名依赖文件 pins**。
+
+本批**实际**执行的是 root 自己的冻结执行包：
+
+| 项 | 值 |
+|---|---|
+| root 执行包目录 | `/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-01/validation-plan-01` |
+| **权威 plan.json** | 同目录 `plan.json`，**sha256 `93284e0c6d398c468969e0e9a92c4a01ec485302bc3b08d394977138e662e689`** |
+| root 的 runner | 同目录 `runner.py`，sha256 `4d82645de7cd67b3fe3915b9fa19c5df3cfb193930cbc83ad5f7840a05c95ff8` |
+| root 的 guard | 同目录 `guard.py`，sha256 `5c0bd2f5ea7ad96a4f4abe3730ff42dd3322e33c02829b746bd986332f097cdd` |
+| root 的外层 counter 读件 | 同目录 `outer_counter_read.py`，sha256 `3b575311b0de885b4f027dc4f135773ae34b9c95629dfddff4645c53187c0da7` |
+| root 的 ACK | `msg_5f01dad38cef`，decision `ACK_ONCE_ACTUAL_ROOT_FROZEN_RUNNER` |
+| root 的 ack.json | 同目录 `ack.json`（32 节点 / 功能 30 / 完整性 2 / 原 8 失败全覆盖） |
+
+**我提交的 `plan.json`（`9e47a53f…`）只作为"选集与源码输入"**，它的 argv、runner、
+guard **一律未被执行**；它与 root 的 plan 在同一目录里并存，**原提交文件全部保留**，
+不为这次勘误再发一次 ask（按 root 的指示）。
 
 ---
 
@@ -268,7 +292,8 @@ def create_job(self):
 * **原始 bytes sha256：`5a8e96c027c5500e4c6834b561dc187ee437a85e431eec63145f161728cb32b2`**，26822 字节
 * 静态读取的事实：`JSONDecoder.raw_decode` 解析到第 **26821** 字符，
   其后**尾部为 1 个换行字节** `b'\n'`；`json.loads` 对整份文件可直接解析。
-  根的 `root-decision.json` 另记 `receipt_trailing_characters: "\n"`。
+* **root 已核实并澄清**（`msg_5f01dad38cef`）：原始上批收据 **`json.loads` 有效，
+  末尾是正常换行**。先前"可能存在 literal 尾字符"的限制**到此澄清**。
 
 **本轮没有改动这份收据的任何原始字节**，也没有为了它复跑旧的 54 节点批次。
 下一轮 root 的 runner 只需把尾换行写对，**不得**因此修改任何历史测试结果。
@@ -277,13 +302,19 @@ def create_job(self):
 
 ## 6. 本次**没有**做的事
 
-* **没有执行**：0 次导入候选、0 次 collection、0 次 pytest、0 次进程、0 次网络、
-  0 次 sqlite、0 次读原 ledger、0 次触碰原 counter、0 次 Windows/GPU/模型/服务/
-  端口/媒体/下载。
+* **ACK 之前没有执行任何东西**：0 次导入候选、0 次 collection、0 次 pytest。
+  **ACK 之后只执行了 1 批**，用的是 root 冻结包里的 3 条命令，没有第二批、
+  没有重试、没有换路由、没有追加测试。
+* **没有**真实进程、0 次 socket、0 次 sqlite、0 次读原 ledger、0 次触碰原 counter
+  （counter 只被 root 的外层读件在 guard 外只读一次，前后各一次）、
+  0 次 Windows API / GPU / 模型 / 服务 / 端口 / 媒体 / 下载；
+  本批里只有 fake Win32 与合成文件。
 * **没有**改 broker 源码、任何旧 owner、合同、质量门限、control、MANIFEST、旧报告、
   旧证据；**没有**删任何断言、**没有**改任何门限或分母。
 * **没有** clean / reset / 批量 add；既有工件与失败批次原样保留。
 * **没有**重跑旧的 54 全套、旧的 20/35 节点集，也没有自行补任何"compat"。
+* **没有**修改 root 的冻结执行包（`validation-plan-01/` 下的 plan/runner/guard/
+  outer_counter_read/ack/reply-body 全部逐字节未动）。
 * **没有**主张任何 native / GPU / 端口 / 父崩溃 / Windows stdin EOF 能力：
   `grant_authority` 仍 `NOT_VERIFIED`，`admission_produced=false`，
   `stage_pass_claim=false`，`product_gate0=false`；
@@ -292,10 +323,17 @@ def create_job(self):
 
 ---
 
-## 7. 请求 root 裁决的一次精确有限验证计划
+## 7. 一次精确有限验证批次（已按 root 的执行 ACK 执行一次）
 
-计划文件：`reports/v0-s3/product-gate0/implementation-native-custody-correction-01/plan.json`
-（结构与根的 `validation-plan-02/plan.json` 同构）。
+### 7.0 权威执行包与选集
+
+**权威计划是 root 的冻结件**：
+`/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-01/validation-plan-01/plan.json`
+（sha256 **`93284e0c6d398c468969e0e9a92c4a01ec485302bc3b08d394977138e662e689`**）。
+root 本包采用**上一批真正被执行的那套执行器**，只换了 NEW 产物路径 / 32 节点 /
+新 source pins；**3 条精确 argv 与 cwd 在 root 的 `plan.commands` 里**。
+我提交的 `plan.json`（`9e47a53f…`）**只作为选集与源码输入**，其 argv / runner /
+guard **未被执行**。
 
 * **选中集合：32 个节点**（67 个里的严格子集），不是 54 全套：
 
@@ -322,21 +360,46 @@ def create_job(self):
   `resume`/`close` 的**成功**分支由 `test_the_success_path_is_suspend_assign_resume`、
   `test_the_child_inherits_only_its_own_streams`、`test_the_job_is_closed_with_kill_on_close`
   覆盖；**没有重复计数**（同一节点不在集合里出现两次）。
-* **沿用根的前置硬 guard**：`guard.py` 逐字节副本（sha256 `12816fba…`），
-  在 pytest 之前、在任何候选导入之前安装；`-I -B`；原 223 个命名依赖 pins 原样沿用；
-  **精确 collection 顺序**比较（逐项、有序，不匹配即在任何 test call 前退出）；
-  **真实 FD 身份**（dev/inode/mode，EBADF 过滤但不丢弃，未知保留）与**线程**清单。
-* **原 counter**：只读、guard 外前后各一次，期望 sha256
-  `acbdb8b154864b6f079ae783d670f11ec138b6be0617d1fa4f56c28c33223b98`
+* **前置硬 guard**：root 本包自己的 `guard.py`（sha256 `5c0bd2f5…`），
+  在 pytest 之前、在任何候选导入之前安装（`guard_precedes_candidate_and_pytest=true`，
+  自检拒 6 项，运行时越界 0 项）；`-I -B`；root 重核了**223 个命名依赖文件 pins**
+  （不是作者 plan 里的 dist-info 元数据 pins）；**精确 collection 顺序**比较
+  （逐项、有序，不匹配即在任何 test call 前退出）；**真实 FD 身份**
+  （dev/inode/mode，EBADF 过滤但不丢弃，未知保留）与**线程**清单。
+* **原 counter**：root 的外层读件在 **guard 外**前后各读一次（不继承 FD、无访问豁免），
+  期望 sha256 `acbdb8b154864b6f079ae783d670f11ec138b6be0617d1fa4f56c28c33223b98`
   （inactive 28/240/12.362），**不写、不退款、不清零、不新建、不复活**。
-* **最多 1 批，≤ 300 s**；`cwd` 为包根；argv 为绝对路径
-  `['/usr/bin/python3.12','-I','-B','<abs runner.py>','--plan','<abs plan.json>']`；
+* **1 批，≤ 300 s**；`cwd` 为包根；3 条 argv 见 root `plan.commands`；
   tool `/usr/bin/python3.12` sha256 `e50d468e8b0adfb05733f5b87b3cff34829c4a8c1aea50c865aa8bdfe4bb150f`；
-  source pins 逐文件 sha256（**20 项**，含本 NEW 目录的 report/guard/runner 与历史
-  证据件）；raw logs 与 receipt 落在本 NEW 目录。
-* **失败原样留存**，不自动补跑、不换路由。
+  raw logs 与 receipt 落在本 NEW 目录。
+* **失败原样留存**，不自动补跑、不换路由、不追加测试。
 
-**在 root ACK 之前，本轮不会导入、collect 或跑 pytest。**
+### 7.1 本批的真实结果（1 批，未重跑）
+
+root 的执行 ACK 之后，本批**执行了一次**，用的是 root 冻结包里的 3 条命令，
+命令、退出码、日志与产物的逐字节登记见本目录 `commands.json`。
+
+| 口径 | 值 |
+|---|---|
+| 权威计划 | root `validation-plan-01/plan.json`，sha256 `93284e0c6d398c468969e0e9a92c4a01ec485302bc3b08d394977138e662e689` |
+| 执行件 | root 的 `guard.py` + `runner.py` + `outer_counter_read.py`（作者副本**未执行**） |
+| 命令 | 3 条，退出码 **0 / 0 / 0**（counter-before / guarded-validation / counter-after） |
+| pytest 退出码 | **0** |
+| 调用 / 通过 / 失败 / skip | 32 / **32** / **0** / **0** |
+| 功能节点通过 | **30 / 30**（32 减去 2 个 integrity 节点） |
+| integrity 节点 | 2 个（`test_the_old_owners_are_unchanged`、`test_the_old_refusal_points_are_still_declared`），**只算完整性事实** |
+| collection 与冻结顺序 | 逐项相等且顺序一致 ✓ |
+| guard | 先于候选与 pytest ✓；自检拒 6 ✓；运行时越界 **0** ✓ |
+| FD | before 3 / after 3；新增或复用 **0**；unknown **0**；`cleanup_proven_for_batch=true` ✓ |
+| 线程 | `['MainThread']` → `['MainThread']`，无残留 ✓ |
+| 原 counter | 前后**逐字节相同**（`acbdb8b1…`，inactive，28 / 240 / 12.362，charges 相同），未写、未退款、未清零、未复活 ✓ |
+| 墙钟 | 受保护批次 0.1426 s（上限 300 s），批次数 1（上限 1） |
+| 真实 native 动作 | **无**（无 Windows API / 进程 / socket / SQLite / 原 ledger / 模型 / GPU / 端口 / 媒体 / 下载） |
+
+**批次结论：PASS（32 节点内的 32 节点通过）。**
+这只覆盖**被选中的 32 个节点**；失败候选那 54 节点批次**没有被重跑**，
+其原始结论仍然是 **FAIL（46 PASS / 8 FAIL）**，原样保留。
+本批**不关闭独审、不签 Stage PASS、不签产品 Gate0**。
 
 ---
 
@@ -361,9 +424,14 @@ def create_job(self):
 
 ## 9. 状态声明
 
-* 本实现者**只报 READY_FOR_REVIEW**，**不签 Stage PASS，不签产品 Gate0**。
-* 上一批的结果仍是 **FAIL（46 PASS / 8 FAIL）**，本轮**尚未执行**，因此本轮
-  **没有任何"通过"的结论**；32 节点批次的结论要等 root ACK 后由 root 的执行器产生。
+* 本实现者**只报 READY_FOR_REVIEW**，**不签 Stage PASS，不签产品 Gate0**；
+  本次执行 ACK **不关闭独审**。
+* 上一批（失败候选 247519d）的结果仍是 **FAIL（46 PASS / 8 FAIL）**，**没有被重跑**，
+  其原始证据逐字节保留。
+* 本轮被 ACK 的 32 节点批次在 root 冻结执行器下 **32/32 通过、0 失败、0 跳过**
+  （功能 30/30，integrity 2/2），批次结论为 PASS —— 但它**只覆盖被选中的 32 个节点**，
+  不构成"全部 54 节点通过"的结论，也不构成 Stage 或 Gate0 的结论。
 * 本报告不改变任何 native 结论：`grant_authority = NOT_VERIFIED`、
   `admission_produced = false`，native 执行、native 清理、GPU 释放、端口释放、
-  sampler、父崩溃恢复、Windows stdin EOF 全部 **NOT_PROVEN**。
+  sampler、父崩溃恢复、Windows stdin EOF 全部 **NOT_PROVEN**；
+  fake Win32 只驱动了它自己那些分支，**没有**证明任何真实 Windows 行为。
