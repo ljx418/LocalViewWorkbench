@@ -1,0 +1,484 @@
+{
+  "id": "00f9ae89-0d7e-484c-bcde-f9cdd9e63dc9",
+  "ok": true,
+  "result": {
+    "terminal": {
+      "handle": "term_3586f565-23eb-4c71-b7b0-714d43b1f1aa",
+      "status": "running",
+      "tail": [
+        "  Thought for 5s, ran 3 shell commands",
+        "● Update(reports/v0-s3/product-gate0/implementation-p3b-correction-08/write_receipt.py)",
+        "  ⎿  Added 6 lines, removed 1 line",
+        "       98      \"\"\"",
+        "       99      text = path.read_text(encoding=\"utf-8\", errors=\"replace\").strip().splitlines(",
+        "           )",
+        "      100      if mode == \"script\":",
+        "      101 -        payload = json.loads(\"\\n\".join(text)) if text else {}",
+        "      101 +        # The stream holds the payload of the script and, after it, the",
+        "      102 +        # receipt that the runner itself prints; only the first JSON value",
+        "      103 +        # is the payload of the observation.",
+        "      104 +        payload = {}",
+        "      105 +        if text:",
+        "      106 +            payload, _ = json.JSONDecoder().raw_decode(\"\\n\".join(text))",
+        "      107          return (\"bounded resource observations: %d observations, %d violations\"",
+        "      108                  % (payload.get(\"count\", 0), len(payload.get(\"violations\") or []))",
+        "           )",
+        "      109      pattern = re.compile(r\"^\\d+ (passed|failed|error)\")",
+        "  Thought for 2s, ran 1 shell command",
+        "● Now the report:",
+        "● Write(reports/v0-s3/product-gate0/implementation-p3b-correction-08/report.md)",
+        "  ⎿  Wrote 411 lines to reports/v0-s3/product-gate0/implementation-p3b-correction-08/report.md",
+        "       1 # S3-P3B aggregate correction 08 — the ownership of every opened descriptor and the",
+        "          admission bound of the custody",
+        "       2",
+        "       3 **READY_FOR_REVIEW only.**  This is an implementation batch.  It is not a Stage",
+        "       4 pass, it is not a product Gate0 pass and it does not close the parent, native,",
+        "       6 independent review of this candidate is the next step and it has to be",
+        "       7 performed by a separate instance.",
+        "       8",
+        "       9 | Item | Value |",
+        "      10 |---|---|",
+        "     … +498 lines",
+        "  Thought for 4s",
+        "● Update(reports/v0-s3/product-gate0/implementation-p3b-correction-08/report.md)",
+        "  ⎿  Added 1 line, removed 1 line",
+        "      275  | child directory whose metadata fails after the open | 8 | 12 | **12** | 8 |",
+        "      276  | leaf whose metadata fails after the open | 8 | 12 | **12** | 8 |",
+        "      277  | the public evaluation fails | 8 | — | — | **8** |",
+        "      278 -| a refused admission | 12 | 12 | **12** | — |",
+        "      278 +| a refused admission | — | 12 | **12** | — |",
+        "      279",
+        "      280  The hook fired exactly once in every observation, the custody was undamaged",
+        "      281  (0 entries, 0 reserved slots) and nothing was repaired by the probe.",
+        "  Thought for 32s, committed 833c847, read 1 file, ran 8 shell commands",
+        "● All work is complete and committed. Sending the final report to the coordinator:",
+        "  Thought for 1s, ran 1 shell command",
+        "● Correction 08 is complete and reported to the coordinator (msg_d10d0864fea3, lifecycle",
+        "  completed).",
+        "  What was delivered",
+        "  Candidate 6c9a0a07c66060e53b00e690ebdd98047167511d · Evidence",
+        "  833c8476f03ef96983cbc84871a8ea24fb42449e",
+        "  Evidence subtree: LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation",
+        "  -p3b-correction-08/",
+        "  NM03-R1 (Major) — _open_child_directory/_open_leaf left a successfully opened fd owned by nobody",
+        "  between os.open and the custody insertion, so an OSError(EIO) at the first os.fstat leaked it",
+        "  past boundary.close(). Every successful open now has exactly one owner until it is closed: the",
+        "  openers own the fd until the metadata is validated, _NamedCustody.take closes it on every refusal",
+        "  and transfers it only on a real insertion, and the level openers transfer it into the boundary",
+        "  before reading any metadata. One helper (_close_owned_descriptor) is the only close site — no",
+        "  double close, no stale fd.",
+        "  NM03-r2 (Minor) — the internal 72-entry bound was checked after the excess entry was opened. A",
+        "  slot is now reserved before the open, so the 73rd name is refused with 0 extra os.open calls and",
+        "  no transient fd rise; a failed open/metadata/insertion gives the slot back.",
+        "  Evidence (four guarded invocations of the immutable correction-05 runner, each once, on the",
+        "  committed candidate)",
+        "  ┌──────────────────────────────────┬───────────────────────────────────────┐",
+        "  │               Run                │                Result                 │",
+        "  ├──────────────────────────────────┼───────────────────────────────────────┤",
+        "  │ Combined suite                   │ 257 passed (245 frozen + 12 new)      │",
+        "  ├──────────────────────────────────┼───────────────────────────────────────┤",
+        "  │ Guard selftest                   │ 4 audit events blocked                │",
+        "  ├──────────────────────────────────┼───────────────────────────────────────┤",
+        "  │ Focused resource counterexamples │ 12 passed                             │",
+        "  ├──────────────────────────────────┼───────────────────────────────────────┤",
+        "  │ Bounded observations             │ 5 observations, 0 violated invariants │",
+        "  └──────────────────────────────────┴───────────────────────────────────────┘",
+        "  Obligation audit: 193 identical / 0 adapted / 0 deleted definitions, 245 frozen node ids with 0",
+        "  lost, 12 added. Measured bound: 84 descriptors at the exact 72, 72 real opens, 0 extra opens on",
+        "  the refusal, 8 after close. A retained debug negative control against the unfixed baseline",
+        "  fd96cbc fails 10 of the 12 new cases (leaked-descriptor assertions), confirming the tests are",
+        "  meaningful; the pre-commit debug suite and that control are kept as diagnostics, not final",
+        "  evidence.",
+        "  Only the two allowed tool files plus the new report subtree changed. READY_FOR_REVIEW only — no",
+        "  Stage pass, no product Gate0 pass; the parent archive/attestation, hard watchdog, native/A06,",
+        "  registration/rollback, ledger debit, real quality and human release remain NOT_PROVEN.",
+        "✻ Churned for 10m 15s · done 9:09 PM",
+        "                                                           new task? /clear to save 208.9k tokens",
+        "───────────────────────────────────────────────────────────────────────────────────────────────────",
+        "❯",
+        "───────────────────────────────────────────────────────────────────────────────────────────────────",
+        "  ⏵⏵ auto mode on (shift+tab to cycle) · ← for agents"
+      ],
+      "truncated": false,
+      "limited": false,
+      "oldestCursor": "0",
+      "nextCursor": "2",
+      "latestCursor": "2",
+      "returnedLineCount": 92,
+      "tailRows": [
+        {
+          "wrapped": false,
+          "trailingSpaces": 1
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 20
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 10
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 7
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 37
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 61
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 65
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 10
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 1
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 1
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 1
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 1
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 1
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 35
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 36
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 2
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 1
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 1
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 1
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 2
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        }
+      ],
+      "source": "screen"
+    }
+  },
+  "_meta": {
+    "runtimeId": "854c82c2-6710-44db-ad53-7a56fce6074c"
+  }
+}

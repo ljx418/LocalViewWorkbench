@@ -45,3 +45,7 @@ Candidate: CREATED -> SELF_CHECKED -> CI_CHECKED -> INDEPENDENT_REVIEWED -> DECI
 ## 每次停止的计划大纲（2026-11-05 用户要求）
 
 每次最终回复列V0–V3全部Stage及子阶段完成数，突出当前Stage；从execution-control.development_outline读取，引用实际证据。沿用当前坐标/本批完成/最后通过门禁/当前阻塞门禁/全局路线位置/剩余工作/下一责任人/所需授权/证据目录/精确停止原因十字段。历史NO_GO不能隐藏，代码完成与Stage通过分开。流程优化提案尚未批准，不自动改变本文件其他门禁。
+
+## 子阶段结束后的资源门禁
+
+Workpack收据及独审回报必须记录Agent终端/dispatch、归档位置和回收状态；完成后受控关闭废弃窗口。下一派生前先执行容量检查，保留当前唯一责任人。回收失败明确BLOCKED，不把任务结算当作物理退出。详情见parallel-execution.md的2026-11-13规则。

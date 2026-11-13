@@ -34,3 +34,5 @@
 24. 2026-11-11用户批准CHANGE-V1-S2-HANDOFF-01并要求继续goal。记录reports/v1-next-stage-readiness/change-v1-s2-handoff-01.approval.json，ADR-14生效：仅S3向V1开发衔接可使用原S2机器/独审与当前统一前端实际人签，严格校验候选和证据。旧S2保持7/8未签；不再把此衔接范围列为待人批，不扩大到其他依赖、历史版本接受或发布。当前准入与准备仍以execution-control和新S3packet为准，产品Gate0、固定质量/资源、有限运行、独审及后续人签均保留。
 
 25. 2026-11-12用户明确提出并授权CHANGE-V2-LIBRARY-01未来V2目标与详细设计落盘：本地视觉素材理解/描述标签、可审核命名归档及恢复撤销，见docs/33–35与ADR-15。候选合同/需求/用例在contracts/candidates/v2-library及plans/candidates/v2-library；原R3/R4义务保留，候选V2/V3分母56/65尚未激活。当前V1坐标、已签范围和429停止规则不变；本次不授权V2业务实施、私有素材扫描或原件写入、模型/GPU运行及新增数值门限批准。不得据旧门禁签新增范围PASS。
+
+26. 2026-11-13用户要求清理废弃Agent并限制派生数量：本项目每工作区最多一个存活Agent、项目最多三个（主控/实现/独审各一）；身份未知和等待/空闲实例均占槽。派生前运行容量检查并核对Orca生命周期，先回收再替换。子阶段结束先归档再及时关闭废弃窗口，默认不keep-open；未知退出不释放槽、不批量清理代码/工件。规则见.agent-governance/parallel-execution.md与tools/verify_agent_capacity.py。

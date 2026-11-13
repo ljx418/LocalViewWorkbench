@@ -1,0 +1,499 @@
+{
+  "id": "778a3084-8758-487e-877e-c94286e17919",
+  "ok": true,
+  "result": {
+    "terminal": {
+      "handle": "term_3968d514-5499-4e2a-9b17-18173ad2bd89",
+      "status": "running",
+      "tail": [
+        "            hod).upper(), path, status))",
+        "      1934                          continue",
+        "      1935                      response.setdefault(\"headers\", {})[name] = copy.deepcopy(hea",
+        "            ders[name])",
+        "      1936 +                    added_headers.setdefault((path, method), {}).setdefault(stat",
+        "           +us, []).append(name)",
+        "      1937",
+        "      1938      # Every canonical operation must survive the merge unchanged, apart from",
+        "      1935 -    # the allowlisted additions.",
+        "      1939 +    # the allowlisted additions that the merge actually applied.",
+        "      1940      for path, operations in sorted(base_paths.items()):",
+        "      1941          for method, operation in sorted(operations.items()):",
+        "      1942              merged_operation = (merged[\"paths\"].get(path) or {}).get(method)",
+        "      1943              if merged_operation is None:",
+        "      1944                  report.add(\"E_OVERLAY_BASE_MUTATED\", \"the merge dropped the cano",
+        "            nical operation %s %s\" % (str(method).upper(), path))",
+        "      1945                  continue",
+        "      1942 -            metadata_keys = sorted((metadata.get(path) or {}).get(method, {}).ke",
+        "           -ys())",
+        "      1943 -            added = {}",
+        "      1944 -            for status, headers in (add_headers.get(path) or {}).get(method, {})",
+        "           -.items():",
+        "      1945 -                added[status] = sorted(headers.keys())",
+        "      1946 +            metadata_keys = added_meta.get((path, method), [])",
+        "      1947 +            added = added_headers.get((path, method), {})",
+        "      1948              stripped = strip_allowed_additions(merged_operation, metadata_keys,",
+        "            added)",
+        "      1949              if stripped != operation:",
+        "      1950                  report.add(\"E_OVERLAY_BASE_MUTATED\", \"the merge changed the cano",
+        "            nical operation %s %s outside the allowlisted additions\" % (str(method).upper(),",
+        "             path))",
+        "● Now update refresh_fences to also refresh the canonical contract hashes:",
+        "● Update(LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_verify_v1_plan.py)",
+        "  ⎿  Error editing file",
+        "  Thought for 2s, searched for 1 pattern",
+        "● Update(LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_verify_v1_plan.py)",
+        "  ⎿  Error editing file",
+        "  Thought for 1m 22s, searched for 1 pattern, read 2 files, listed 2 directories, ran 17 shell",
+        "  commands",
+        "● Now let me write the implementation receipt:",
+        "  Ran 1 shell command",
+        "● Write(LVW_Prompt_Service_MasterPack_v2.0.0/reports/v1-redesign/…/implementation-receipt-1.1.1.md)",
+        "  ⎿  Wrote 93 lines to LVW_Prompt_Service_MasterPack_v2.0.0/reports/v1-redesign/d0-worker/desi",
+        "     gn111/implementation-receipt-1.1.1.md",
+        "       1 # D0-B-IMPL 实现收据 — V1 设计 1.1.1 checker 重新冻结",
+        "       2",
+        "       3 状态 **READY_FOR_REVIEW**。没有 Stage PASS、没有产品 PASS、没有人签、没有自证。",
+        "       4 本收据不是独审结论，也不是 N1–N6 的独立验收。",
+        "       5",
+        "       6 ## 权威来源",
+        "       7",
+        "       8 | 项 | 值 |",
+        "       9 | --- | --- |",
+        "      10 | 权威提交 | `743e028474909be02326facd6f14ca0ac26aa56f`（Codex，1.1.1 封权） |",
+        "     … +117 lines",
+        "  Thought for 27s, ran 7 shell commands",
+        "● Task complete. Summary of what was delivered:",
+        "  Authority loading — Merged the Codex authority 743e028 into the child worktree with a clean merge",
+        "  (14884bc); no conflict, no owner file edited, parent worktree untouched.",
+        "  Checker refreeze (tools/verify_v1_plan.py, tools/test_verify_v1_plan.py only):",
+        "  - Pin re-frozen to the supplied 04d3bfb4… in the same commit as the code change; owner hashes",
+        "    never regenerated. The old 1.1 (56e6f07b…) and 1.0 (9bffdf2d…) pins now fail the packet.",
+        "  - Spec fence is now a closed 24-file inventory; D0 payload inventory 10 files; both reverified",
+        "    with 0 mismatches.",
+        "  - New deterministic guards for all six minor obligations:",
+        "    - N1 — machine-declared strong ETag on the new GETs and via add_response_headers on the",
+        "      existing PUT 200, frozen tag format that rejects weak tags, plus an offline replay of the",
+        "      strict merge rule (only new methods, the two allowlisted x- keys and the allowlisted header",
+        "      may be added; every canonical operation stays byte-identical).",
+        "    - N2 — additive surface frozen per (path, method) at 8 operations / 7 paths, contract ↔ overlay",
+        "      exact match including the new GET on the existing Scene path.",
+        "    - N3 — all 7 reuse paths / 8 methods annotated, only x-v1-profile=local-shot-v1 and",
+        "      x-v2-semantics-unchanged, no collisions, targets must exist.",
+        "    - N4 — integer PTS, positive timebases, no unreachable null anyOf.",
+        "    - N5 — frozen bilingual",
+        "      order/serialization/no-trim/no-dedup/no-translation/raw-preserved/human-domains rules, with",
+        "      the owner example recomputed from its own source.",
+        "    - N6 — exact 11-field scene_hash.column_mapping with tb_num/tb_den/version aliases and 0/1→bool",
+        "      conversion.",
+        "  - E_111_ADJUDICATION keeps the owner corrections recorded as pending independent recheck;",
+        "    E_PRODUCT_COORDINATE pins the product at R1/WAIT_HUMAN.",
+        "  Runs — checker exit 0; pytest 164 passed (the 107 tests of 1.1 preserved by name, one renamed for",
+        "  the intentional 1.1.1 metadata-map change with a stricter equivalent assertion, 57 new including",
+        "  mutation tests on copies of the real owner artefacts); owner probe verify-design111.py on a temp",
+        "  copy of the owner tree → 72 checks / 0 failed and byte-identical to its committed report;",
+        "  verify_pack.py and verify_governance.py both exit 0. Logs with SHA256 under",
+        "  reports/v1-redesign/d0-worker/design111/logs/, receipt as JSON+MD, committed as f795694.",
+        "  No product/GPU/model/media/network/provider activity, no owner file written, no Stage PASS /",
+        "  product PASS / human signature, no self-certification — status is READY_FOR_REVIEW for Codex's",
+        "  combined independent code + N1–N6 review.",
+        "✻ Cogitated for 16m 6s · done Wednesday 6:08 PM",
+        "───────────────────────────────────────────────────────────────────────────────────────────────────",
+        "❯",
+        "───────────────────────────────────────────────────────────────────────────────────────────────────",
+        "  ⏵⏵ bypass permissions on (shift+tab to cycle) · ← for agents"
+      ],
+      "truncated": false,
+      "limited": false,
+      "oldestCursor": "0",
+      "nextCursor": "3",
+      "latestCursor": "3",
+      "returnedLineCount": 95,
+      "tailRows": [
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 60
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 2
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 48
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 16
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 75
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 58
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 71
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 26
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 18
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 23
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 1
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 1
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 1
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 1
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 1
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 1
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 1
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 1
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 1
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 1
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 1
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        }
+      ],
+      "source": "screen"
+    }
+  },
+  "_meta": {
+    "runtimeId": "854c82c2-6710-44db-ad53-7a56fce6074c"
+  }
+}

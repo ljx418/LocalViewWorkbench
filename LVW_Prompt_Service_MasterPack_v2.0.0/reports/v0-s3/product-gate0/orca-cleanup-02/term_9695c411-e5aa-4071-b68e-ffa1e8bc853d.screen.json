@@ -1,0 +1,479 @@
+{
+  "id": "d50d1948-14df-4415-bb08-12caba4f888f",
+  "ok": true,
+  "result": {
+    "terminal": {
+      "handle": "term_9695c411-e5aa-4071-b68e-ffa1e8bc853d",
+      "status": "running",
+      "tail": [
+        "› You are working inside Orca, a multi-agent IDE. You are a dispatched worker. Your coordinator's…",
+        "  check without preventing submission. I’ll report these together, with their prerequisites,",
+        "  alongside the source-seal alignment results.",
+        "• Ran python3 -B - <<'PY' …",
+        "  └   2745",
+        "      2746",
+        "      2747    def _validate_score_document(score):",
+        "    + 78 lines (^t to expand)",
+        "• Ran python3 -B - <<'PY' …",
+        "  └ seal_swap.swap_whole_rows None QS_SOURCE_PLAN_ORDER_INVALID None",
+        "    seal_swap.swap_descriptor False None SOURCE_SEAL_IDENTITY_MISMATCH",
+        "    ?? reports/v0-s3/product-gate0/independent-p3b-correction-04/",
+        "    + 17 lines (^t to expand)",
+        "• Ran rg -n 'artifact_files|artifact_bytes|source_plan|files.*256|total.*128' tools/test_v0_s3_qua…",
+        "  └   \"new_runtime_actions\": 0,",
+        "      \"stage_pass_claim\": false",
+        "    }",
+        "    + 107 lines (^t to expand)",
+        "• Ran cat > reports/v0-s3/product-gate0/independent-p3b-correction-04/write_review.py <<'PY' …",
+        "  └ {\"findings\": {\"Fatal\": 0, \"Major\": 4, \"Minor\": 0}, \"prior_instances\": 145, \"missing\": [], \"new…",
+        "    + 1 line (^t to expand)",
+        "• Ran python3 -B - <<'PY' …",
+        "  └ 2128:    def _publish_receipt(self):",
+        "    2197:    def _finish(self, rows, decision, extra=None, persist=True):",
+        "    2976:            if base in KNOWN_EXECUTION_FAILURE_CODES and evidence_complete:",
+        "    + 10 lines (^t to expand)",
+        "• Explored",
+        "  └ Search projection_sha256|run_id|candidate_sha|authorization_sha256 in focused.stdout.log",
+        "    Read test_v0_s3_quality_phase.py",
+        "    + Show details",
+        "• Ran python3 -B - <<'PY' …",
+        "  └ {\"findings\": {\"Fatal\": 0, \"Major\": 4, \"Minor\": 0}, \"prior_instances\": 145, \"missing\": [], \"new…",
+        "    text files 36 bytes 546110",
+        "    ?? reports/v0-s3/product-gate0/independent-p3b-correction-04/",
+        "    + 1 line (^t to expand)",
+        "• The review is complete: Fatal 0, Major 4, Minor 0, with a component recommendation of",
+        "  CHANGES_REQUIRED. I’m verifying the final hashes and committing only the new review subtree. The",
+        "  reports preserve the historical unknown exits and all remaining Gate0, native-runtime, human-",
+        "  signoff and release obligations.",
+        "• Ran sha256sum tools/v0_s3_quality_phase.py tools/test_v0_s3_quality_phase.py reports/v0-s3/produ…",
+        "  └  create mode 100644 LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independe…",
+        "     create mode 100644 LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independe…",
+        "    8ea70dac74a81ae407fa149ca7f3d8c716c103ae",
+        "    + 80 lines (^t to expand)",
+        "• Ran orca-ide orchestration send --from term_9695c411-e5aa-4071-b68e-ffa1e8bc853d --type worker_d…",
+        "  └ messageId=msg_a10ce59f12a5 lifecycle=completed",
+        "    Next: Recorded. End your turn.",
+        "    + Show details",
+        "• Committed 8ea70dac74a81ae407fa149ca7f3d8c716c103ae. Coordinator handoff confirmed.",
+        "  Review report (LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-p3b-",
+        "  correction-04/review.md): CHANGES_REQUIRED — Fatal 0 / Major 4 / Minor 0. Combined 175 tests and",
+        "  four guard checks passed once; 29 replay and 38 focused observations retained. No Stage or",
+        "  product PASS.",
+        "  Current Stage: R1. Unchanged V0–V3 outline:",
+        "   Stage    Complete/total",
+        "  ━━━━━━━  ━━━━━━━━━━━━━━━━",
+        "   V0-S0               1/2",
+        "  ───────  ────────────────",
+        "   V0-S1               5/5",
+        "  ───────  ────────────────",
+        "   R0                  1/2",
+        "  ───────  ────────────────",
+        "   R1a                 5/5",
+        "  ───────  ────────────────",
+        "   V0-S2               7/8",
+        "  ───────  ────────────────",
+        "   V0-S3               0/6",
+        "  ───────  ────────────────",
+        "   R1                  0/4",
+        "  ───────  ────────────────",
+        "   V1-M1               0/3",
+        "  ───────  ────────────────",
+        "   R2                  0/4",
+        "  ───────  ────────────────",
+        "   R3                  0/4",
+        "  ───────  ────────────────",
+        "   R4                  0/4",
+        "  ───────  ────────────────",
+        "   R5a                 0/4",
+        "  ───────  ────────────────",
+        "   R5b                 0/4",
+        "  ───────  ────────────────",
+        "   R5c                 0/4",
+        "  The report contains the ten-field handoff, full substeps, closure mapping and remaining",
+        "  acceptance obligations.",
+        "  Worked for 12m 9s • 15:47",
+        "⚠ Heads up, you have less than 10% of your weekly limit left. Run /status for a breakdown.",
+        "⚠ Heads up, you have less than 5% of your weekly limit left. Run /status for a breakdown.",
+        "› Ask Codex to do anything",
+        "  GPT-6.1-Sol medium · ~/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review · Ask coordinator",
+        "  ← for agents · ? for shortcuts                                         ⚠ 4 warnings · f2 to view"
+      ],
+      "truncated": true,
+      "limited": false,
+      "oldestCursor": "0",
+      "nextCursor": "2",
+      "latestCursor": "2",
+      "returnedLineCount": 91,
+      "tailRows": [
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 70
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 70
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 69
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 72
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 70
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 81
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 72
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 70
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 81
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 73
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 72
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        }
+      ],
+      "source": "screen"
+    }
+  },
+  "_meta": {
+    "runtimeId": "854c82c2-6710-44db-ad53-7a56fce6074c"
+  }
+}

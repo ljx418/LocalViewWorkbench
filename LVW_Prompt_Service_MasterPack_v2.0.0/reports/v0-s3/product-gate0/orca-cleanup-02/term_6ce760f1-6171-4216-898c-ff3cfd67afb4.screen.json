@@ -1,0 +1,484 @@
+{
+  "id": "56f8a4d9-9605-4988-9bc6-350a7c50dfc1",
+  "ok": true,
+  "result": {
+    "terminal": {
+      "handle": "term_6ce760f1-6171-4216-898c-ff3cfd67afb4",
+      "status": "running",
+      "tail": [
+        "      21          --candidate HEAD \\",
+        "      22 -        --nodeids reports/v0-s3/product-gate0/independent-p3b-correction-05/receip",
+        "         -t.json \\",
+        "      22 +        --nodeids reports/v0-s3/product-gate0/independent-p3b-correction-05/suite.",
+        "         +receipt.json \\",
+        "      23          --out reports/v0-s3/product-gate0/implementation-p3b-correction-06/obligat",
+        "          ion-audit.json",
+        "      24  \"\"\"",
+        "      25",
+        "  Thought for 40s, ran 6 shell commands",
+        "● Now the final evidence runs on the committed candidate — guard, suite, and focused replay, each",
+        "  once:",
+        "  Thought for 16s, ran 6 shell commands",
+        "● Write(reports/v0-s3/product-gate0/implementation-p3b-correction-06/write_receipt.py)",
+        "  ⎿  Wrote 273 lines to",
+        "     reports/v0-s3/product-gate0/implementation-p3b-correction-06/write_receipt.py",
+        "      1 #!/usr/bin/env python3",
+        "      2 \"\"\"Write the correction-06 receipt and the checksum list of this batch.",
+        "      3",
+        "      4 The script reads the raw receipts that the guarded runner wrote, hashes the",
+        "      5 retained evidence files and writes ``receipt.json`` and ``SHA256SUMS``.  It",
+        "      6 imports no product module, it executes no product code and it starts no host",
+        "      7 process.",
+        "      8",
+        "      9 Usage::",
+        "     … +294 lines",
+        "  Thought for 11s, ran 1 shell command",
+        "● Now the implementation report:",
+        "● Write(~/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_Mas…/report.md)",
+        "  ⎿  Wrote 456 lines to ../report.md",
+        "       1 # S3-P3B aggregate correction 06 — typed actual facts and named hierarchy custody",
+        "       2",
+        "       3 **READY_FOR_REVIEW only.**  This is an implementation batch.  It is not a Stage",
+        "       4 pass, it is not a product Gate0 pass and it does not close the parent, native,",
+        "       5 A06, registration, ledger, real-quality or human-release gates.  The independent",
+        "       6 review of this candidate is the next step and it has to be performed by a",
+        "       7 separate instance.",
+        "       8",
+        "       9 | Item | Value |",
+        "      10 |---|---|",
+        "     … +535 lines",
+        "  Thought for 24s, ran 5 shell commands",
+        "● All work is complete and verified. Sending the completion report to the coordinator:",
+        "  Thought for 1s, ran 1 shell command",
+        "● The task is complete and the coordinator has been notified (msg_5914e27dcad8).",
+        "  What I did",
+        "  Merged ROOT_DISPOSITION_COMMIT c05ee01 with --no-edit (fast-forward; unrelated state preserved),",
+        "  then implemented both remaining roots from the correction-05 independent review in the two",
+        "  allowed files.",
+        "  M01 — typed facts, closed key sets",
+        "  - Added a shared _json_fact_equal() comparator: a boolean is never an integer, an integer is",
+        "    never a float, and it recurses into nested objects and list elements. Used by",
+        "    _verify_execution_content (top level + per row), _verify_seal_row_alignment and",
+        "    _row_evidence_complete — generic, no probe-name or per-field special cases.",
+        "  - Closed the top-level, row-level and nested source-evidence / release-evidence / GPU-sample key",
+        "    sets; the permissive overlay can now only constrain, never smuggle a fact.",
+        "  - Seal and canonical ordinals are strict integers (true and 1.0 are refused).",
+        "  - The two publication-bookkeeping fields are now serialized into the published document, so the",
+        "    returned receipt and the published document carry identical fields and the key set closes",
+        "    without an exception.",
+        "  NM03 — named hierarchy custody",
+        "  - Pinned the run root's trusted parent; every level is recorded as (parent_fd, child_name, pinned",
+        "    identity).",
+        "  - The current named entry is verified with a no-follow parent-relative stat against the pinned",
+        "    handle and original identity — before/after reads and before successful completion, including",
+        "    each read child directory and the leaf while their handles are still held.",
+        "  - An identical literal declared run root no longer early-returns past verification; no descriptor",
+        "    is leaked on ordinary, error or constructor-failure paths.",
+        "  - The cooperative/finite limitation is stated honestly; no new filesystem platform or native test",
+        "    was invented.",
+        "  Evidence (all under the immutable correction-05 guarded runner)",
+        "  ┌────────────────┬──────────────────────────────────────────────┐",
+        "  │      Run       │                    Result                    │",
+        "  ├────────────────┼──────────────────────────────────────────────┤",
+        "  │ guard          │ 4/4 audit events blocked, exit 0             │",
+        "  ├────────────────┼──────────────────────────────────────────────┤",
+        "  │ suite          │ 232/232 passed (206 frozen + 26 new), exit 0 │",
+        "  ├────────────────┼──────────────────────────────────────────────┤",
+        "  │ focused replay │ 22 remaining counterexamples, 0 still open   │",
+        "  └────────────────┴──────────────────────────────────────────────┘",
+        "  Static obligation audit: 155/155 original definitions AST-identical, 0 adapted, 0 deleted, no",
+        "  changed helper, all 206 frozen node ids retained. Development diagnostics are retained with their",
+        "  own hashes/exits and reported truthfully.",
+        "  Commits: candidate ba34b15, evidence b66aeba. READY_FOR_REVIEW only — no Stage pass, no product",
+        "  Gate0; parent archive/attestation, hard watchdog, native/A06, registration/rollback, ledger",
+        "  debit, real quality/full-12/human release remain NOTPROVEN.",
+        "✻ Crunched for 25m 50s · done 5:10 PM",
+        "                                                           new task? /clear to save 254.8k tokens",
+        "───────────────────────────────────────────────────────────────────────────────────────────────────",
+        "❯",
+        "───────────────────────────────────────────────────────────────────────────────────────────────────",
+        "  ⏵⏵ auto mode on (shift+tab to cycle) · ← for agents"
+      ],
+      "truncated": false,
+      "limited": false,
+      "oldestCursor": "0",
+      "nextCursor": "2",
+      "latestCursor": "2",
+      "returnedLineCount": 92,
+      "tailRows": [
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 74
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 68
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 2
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 1
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 1
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 1
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 1
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 1
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 1
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 1
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 1
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 1
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 1
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 1
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 2
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        }
+      ],
+      "source": "screen"
+    }
+  },
+  "_meta": {
+    "runtimeId": "854c82c2-6710-44db-ad53-7a56fce6074c"
+  }
+}

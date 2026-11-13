@@ -1,0 +1,469 @@
+{
+  "id": "b787581b-6acd-4e5b-a131-0a651e7a5d76",
+  "ok": true,
+  "result": {
+    "terminal": {
+      "handle": "term_4b9c03d0-bbeb-4886-8e1c-1c1f097a0b7c",
+      "status": "running",
+      "tail": [
+        "      2720      phase._open_owned_directories()",
+        "      2721      try:",
+        "      2722          row = {\"ordinal\": 1, \"asset_id\": \"SYN-I00\", \"media_kind\": \"image\",",
+        "  Thought for 4s, ran 1 shell command",
+        "● Update(tools/test_v0_s3_quality_phase.py)",
+        "  ⎿  Added 5 lines, removed 1 line",
+        "      2680      holder = {}",
+        "      2681",
+        "      2682      def diminish():",
+        "      2683 -        holder[\"phase\"].parent_budget[\"action_capacity\"] = 0",
+        "      2683 +        # The driver protocol check reads the callable once during the",
+        "      2684 +        # construction; only a read inside a row may diminish the capacity.",
+        "      2685 +        phase_ref = holder.get(\"phase\")",
+        "      2686 +        if phase_ref is not None:",
+        "      2687 +            phase_ref.parent_budget[\"action_capacity\"] = 0",
+        "      2688",
+        "      2689      driver = DynamicAccessorDriver(tmp_path, on_submit_bind=diminish)",
+        "      2690      phase, driver, _ = _prepare(tmp_path, clock=clock, parent_budget=proof, driv",
+        "            er=driver)",
+        "  Thought for 19s, ran 4 shell commands",
+        "● Now the replay of the correction03 counterexamples in the new evidence subtree:",
+        "● Write(reports/v0-s3/product-gate0/implementation-p3b-cor…/replay_correction03_counterexamples.py)",
+        "  ⎿  Wrote 281 lines to reports/v0-s3/product-gate0/implementation-p3b-correction-04/replay_co",
+        "     rrection03_counterexamples.py",
+        "       1 \"\"\"The correction-03 counterexamples, replayed once as observations.",
+        "       2",
+        "       3 This is the *relevant* subset of the independent correction-03 focused, the",
+        "       4 supplement and the context probes: exactly the observations that produced the",
+        "       5 four open root causes of the aggregate correction 04.  It is not the full",
+        "       6 correction-03 matrix and it does not repeat the full suite.",
+        "       7",
+        "       8 Fixture adaptation, stated explicitly:",
+        "       9",
+        "      10 * The public scorer now loads the *actually published* canonical receipt from",
+        "     … +282 lines",
+        "  Thought for 11s, ran 1 shell command",
+        "● Let me review the complete diff before committing:",
+        "  Thought for 24s, ran 8 shell commands",
+        "● Now the final acceptance runs against the committed candidate:",
+        "  Thought for 18s, ran 8 shell commands",
+        "● Now let me write the evidence report:",
+        "● Write(reports/v0-s3/product-gate0/implementation-p3b-correction-04/report.md)",
+        "  ⎿  Wrote 248 lines to reports/v0-s3/product-gate0/implementation-p3b-correction-04/report.md",
+        "       1 # P3B aggregate correction 04 — implementation receipt — READY_FOR_REVIEW",
+        "       2",
+        "         e check below).",
+        "       4 Root adjudication merged: `55a6bc005fb4e44c0ad7e5b937f786a1b5c05f14`",
+        "       5 (`ROOT_P3B_CORRECTION04_AGGREGATE_DISPOSITION`,",
+        "       7 0 fatal / 5 major / 1 minor).",
+        "       8 Independent review merged: `0d5c023712651b20f3554ed4f0feb2b56b974bd6` (correction-0",
+        "         3 review,",
+        "         ext",
+        "      10 observations.",
+        "     … +429 lines",
+        "  Thought for 19s, ran 8 shell commands",
+        "● The work is complete and committed. Let me report to the coordinator:",
+        "  Thought for 2s, ran 1 shell command",
+        "● worker_done sent and recorded (msg_6ee040e29039).",
+        "  Summary",
+        "  Task: S3-P3B aggregate correction 04 — implement the four code root causes accepted by the root",
+        "  adjudication.",
+        "  Merge: 55a6bc0 (root disposition + append-only historical erratum) merged --no-edit into the",
+        "  implement worktree — fast-forward, no state lost.",
+        "  Code (candidate 5de0947, committed):",
+        "  - M01 — recompute_scores now loads the actually published canonical receipt from the verified",
+        "    <run root>/temp/s3-quality location through a bounded (8MiB+1), redirect-rejecting loader;",
+        "    missing/corrupt/foreign/staged-only evidence fails closed, and the supplied execution content",
+        "    must reproduce the published document field by field.",
+        "  - M08 — after the bounded 16-source validation and before the first send, an exclusive ordered",
+        "    source-plan artifact seals every original [dev,ino,size,mtime_ns,ctime_ns] identity, bound by",
+        "    path/hash/bytes into the canonical receipt; the shared source/release validators are now",
+        "    mandatory-typed and really run inside QD; the scoring compares each row's evidence against the",
+        "    seal (no live source restat needed).",
+        "  - NM01+NM02 — driver counters, limit and the submit callable are resolved/bound before the final",
+        "    guard; the guard takes one coherent latest clock sample for both the 10800 s deadline and the",
+        "    parent interval.",
+        "  Evidence (committed 0d28fd4, reports/v0-s3/product-gate0/implementation-p3b-correction-04/):",
+        "  175/175 green (145 preserved + 30 new) with exit 0, guard self-test 4/4 blocked, 29 replayed",
+        "  correction-03 counterexamples, 11 retained editing diagnostics including the three that failed.",
+        "  E01/E02 erratum accepted as written; historical twelve exits stay UNKNOWN.",
+        "  Honest limits: no signature exists, so a consistent rewrite of both the canonical receipt and the",
+        "  seal remains self-consistent; parent watchdog, A06, real quality/full-12, Gate0 and",
+        "  human/release signatures remain NOT_PROVEN.",
+        "✻ Sautéed for 26m 36s · done 3:31 PM",
+        "                                                           new task? /clear to save 277.9k tokens",
+        "───────────────────────────────────────────────────────────────────────────────────────────────────",
+        "❯",
+        "───────────────────────────────────────────────────────────────────────────────────────────────────",
+        "  ⏵⏵ auto mode on (shift+tab to cycle) · ← for agents"
+      ],
+      "truncated": false,
+      "limited": false,
+      "oldestCursor": "0",
+      "nextCursor": "2",
+      "latestCursor": "2",
+      "returnedLineCount": 89,
+      "tailRows": [
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 1
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 2
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 20
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 10
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 5
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 41
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 47
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 22
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 2
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 1
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 1
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 1
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 1
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 1
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 1
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 1
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 1
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 1
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 1
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 1
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 1
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 2
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        }
+      ],
+      "source": "screen"
+    }
+  },
+  "_meta": {
+    "runtimeId": "854c82c2-6710-44db-ad53-7a56fce6074c"
+  }
+}

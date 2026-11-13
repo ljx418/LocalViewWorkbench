@@ -1,0 +1,489 @@
+{
+  "id": "be0bc7a1-de30-4306-bbdd-237fba0e888e",
+  "ok": true,
+  "result": {
+    "terminal": {
+      "handle": "term_e2e3aeea-9512-45f0-acc8-c181b7f1043a",
+      "status": "running",
+      "tail": [
+        "● Write(reports/v0-s3/product-gate0/implementation-p3b-correction-05/report.md)",
+        "  ⎿  Wrote 303 lines to reports/v0-s3/product-gate0/implementation-p3b-correction-05/report.md",
+        "       1 # S3-P3B aggregate correction 05 — implementation report",
+        "       2",
+        "       3 **READY_FOR_REVIEW — component only. No Stage PASS, no product PASS, no Gate0.**",
+        "       4",
+        "       5 | Item | Value |",
+        "       7 | Code candidate | `44ad8c7a30ee418af41834de6cc87685f80d42fa` |",
+        "       8 | Root disposition merged | `08e6fbe8f0bcf4443b1832758327de798d78481b` (`--no-edit`",
+        "         , fast-forward) |",
+        "       9 | Code baseline (corrected before) | `5de09478a4af6e3dd91410d4dde90c9020a77bfd` |",
+        "      10 | Evidence baseline (before) | `0d28fd4d607808c1980f66ff86b289cbcc5134e8` |",
+        "     … +384 lines",
+        "  Thought for 6s",
+        "● Write(reports/v0-s3/product-gate0/implementation-p3b-correction-05/write_receipt.py)",
+        "  ⎿  Wrote 313 lines to",
+        "     reports/v0-s3/product-gate0/implementation-p3b-correction-05/write_receipt.py",
+        "       1 #!/usr/bin/env python3",
+        "       2 \"\"\"Compose the machine readable receipt of the correction-05 batch.",
+        "       3",
+        "       4 The receipt is composed from the actual runner receipts, the actual",
+        "       5 obligation audit and the actual counterexample observations of this batch.",
+        "       6 Nothing in it is typed by hand: every count and every hash is read back from",
+        "       7 the evidence that the guarded runs produced.",
+        "       8 \"\"\"",
+        "       9",
+        "      10 import hashlib",
+        "     … +341 lines",
+        "  Ran 1 shell command",
+        "● Update(reports/v0-s3/product-gate0/implementation-p3b-correction-05/write_receipt.py)",
+        "  ⎿  Added 1 line, removed 1 line",
+        "      20  COUNTER = json.loads((BASE / \"counterexamples.receipt.json\").read_text(encoding=\"u",
+        "          tf-8\"))",
+        "      21  AUDIT = json.loads((BASE / \"obligation-audit.json\").read_text(encoding=\"utf-8\"))",
+        "      22  OBSERVATIONS = json.loads((BASE / \"counterexample-observations.json\").read_text(en",
+        "          coding=\"utf-8\"))",
+        "      23 -BASELINE = json.loads((PACK_ROOT.parent / \"..\" / \"reports/v0-s3/product-gate0/\"",
+        "      23 +BASELINE = json.loads((PACK_ROOT / \"reports/v0-s3/product-gate0/\"",
+        "      24                         \"implementation-p3b-correction-04/full-final.receipt.json\")",
+        "          .read_text(",
+        "      25                             encoding=\"utf-8\"))",
+        "      26",
+        "  Thought for 28s, ran 6 shell commands",
+        "● Everything verified. Now sending the completion message to the coordinator:",
+        "  Thought for 3s, ran 1 shell command",
+        "● Task complete — worker_done recorded (msg_887639e8a59f).",
+        "  What I did",
+        "  Merged ROOT_DISPOSITION_COMMIT=08e6fbe (--no-edit, fast-forward) into the implement worktree,",
+        "  then closed the four adjudicated Major findings of the correction-04 review in one frozen offline",
+        "  correction — touching only tools/v0_s3_quality_phase.py, tools/test_v0_s3_quality_phase.py and",
+        "  the new reports/v0-s3/product-gate0/implementation-p3b-correction-05/ subtree.",
+        "  Commits: code candidate 44ad8c7a30ee418af41834de6cc87685f80d42fa, evidence",
+        "  afb12e2a136b4a1bed05f1f766084c2b279e07b0.",
+        "  ┌─────────┬───────────────────────────────────────────────────────────────────────────────────┐",
+        "  │ Finding │                                        Fix                                        │",
+        "  ├─────────┼───────────────────────────────────────────────────────────────────────────────────┤",
+        "  │         │ Closed verdict overlay + exhaustive fact binding over the published document (a   │",
+        "  │ M01     │ row may not even carry an extra fact); known/unknown resolution derived from      │",
+        "  │         │ canonical and supplied state/error; release proof must be the published           │",
+        "  │         │ observation; mistyped bound contexts stay invalid declarations                    │",
+        "  ├─────────┼───────────────────────────────────────────────────────────────────────────────────┤",
+        "  │         │ Every sealed row cross-checked against the canonical execution row                │",
+        "  │ M08     │ (asset/kind/ordinal/reference/bytes/hash/path/full 5-component identity) and the  │",
+        "  │         │ fixed admitted order                                                              │",
+        "  ├─────────┼───────────────────────────────────────────────────────────────────────────────────┤",
+        "  │ NM03    │ New strict _ArtifactBoundary: run-root/temp/phase opened O_DIRECTORY|O_NOFOLLOW,  │",
+        "  │         │ identity re-checked after each read, one boundary for canonical/seal/raw          │",
+        "  ├─────────┼───────────────────────────────────────────────────────────────────────────────────┤",
+        "  │         │ Owner-side reorder: all driver accessors and callbacks resolved before the final  │",
+        "  │ NM04    │ bounded source check against the sealed original identity; one coherent admission │",
+        "  │         │  → reserve → charge → cached submit, nothing unchecked in between                 │",
+        "  └─────────┴───────────────────────────────────────────────────────────────────────────────────┘",
+        "  What I found",
+        "  Once-only runs on the committed candidate: 206/206 suite (175 original obligations all preserved",
+        "  — AST audit: 130/130 definitions identical, 0 adapted, 0 deleted, 25 added), 4/4 guard blocks, 21",
+        "  counterexample observations. The four review counterexamples now behave correctly: the published",
+        "  unknown failure stays unresolved under a supplied known error, every contradictory seal",
+        "  label/swap is refused, redirected temp/run-root/phase/leaf ancestors are refused, and an",
+        "  accessor-changed source gives 0 sends/charges/reserved with 16 terminal refusals (a later change",
+        "  preserves the earlier real attempts).",
+        "  What is left",
+        "  Independent review of 44ad8c7 is next. READY_FOR_REVIEW only — no Stage/product PASS, no Gate0.",
+        "  Parent archive/attestation binding, the parent hard watchdog",
+        "  (UNIMPLEMENTED_PRODUCT_GATE0_BLOCKER), native residue admission/A06,",
+        "  registration-install-rollback, the authentic ledger debit, real quality/full-twelve, human and",
+        "  release signatures all remain NOT_PROVEN; the coherent rewrite of both trusted originals stays",
+        "  the accepted trust boundary.",
+        "✻ Brewed for 35m 45s · done 4:27 PM",
+        "                                                             new task? /clear to save 292k tokens",
+        "───────────────────────────────────────────────────────────────────────────────────────────────────",
+        "❯",
+        "───────────────────────────────────────────────────────────────────────────────────────────────────",
+        "  ⏵⏵ auto mode on (shift+tab to cycle) · ← for agents"
+      ],
+      "truncated": false,
+      "limited": false,
+      "oldestCursor": "0",
+      "nextCursor": "2",
+      "latestCursor": "2",
+      "returnedLineCount": 93,
+      "tailRows": [
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 1
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 1
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 1
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 1
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 1
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 1
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 1
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 1
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 3
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 17
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 2
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 1
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 1
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 2
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        },
+        {
+          "wrapped": false,
+          "trailingSpaces": 0
+        }
+      ],
+      "source": "screen"
+    }
+  },
+  "_meta": {
+    "runtimeId": "854c82c2-6710-44db-ad53-7a56fce6074c"
+  }
+}
