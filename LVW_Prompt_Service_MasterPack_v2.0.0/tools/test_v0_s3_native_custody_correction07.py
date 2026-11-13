@@ -887,18 +887,21 @@ def test_n07_r11_the_cancellation_of_a_worker_is_repeated_and_bounded():
     worker names the cancellation.  Salvage: the owner of the worker
     releases it.
     """
-    entered = []
-    release = threading.Event()
+    entered = threading.Event()
+    may_enter_io = threading.Event()
+    second_entered = threading.Event()
 
     class Api:
         def __init__(self):
+            self.lock = threading.Lock()
             self.cancels = []
 
         def duplicate_current_thread_handle(self):
             return 701
 
         def cancel_synchronous_io(self, handle):
-            self.cancels.append(handle)
+            with self.lock:
+                self.cancels.append(handle)
             return 'NOT_FOUND'
 
         def close_handle(self, handle):
@@ -907,8 +910,14 @@ def test_n07_r11_the_cancellation_of_a_worker_is_repeated_and_bounded():
     api = Api()
 
     def action(request):
-        entered.append(request)
-        release.wait(5.0)
+        # The worker is inside the operation of the round.  The test
+        # decides when the operation may really enter the system call,
+        # so that the cancellation of the round is issued inside the
+        # window that the check of the worker opens.
+        entered.set()
+        if request == b'second':
+            second_entered.set()
+        may_enter_io.wait(5.0)
         return b''
 
     worker = _WindowsPipeWorker(api, 702, kind='read', action=action,
@@ -917,42 +926,47 @@ def test_n07_r11_the_cancellation_of_a_worker_is_repeated_and_bounded():
     try:
         worker.wait_ready(2.0)
         generation = worker.submit(b'first')
-        for _ in range(200):
-            if entered:
-                break
-            time.sleep(0.01)
-        assert entered == [b'first']
+        assert entered.wait(5.0), 'the worker never entered the operation'
         # The second request waits for the worker while the first
         # operation is in flight.
         worker.submit(b'second')
-        # The cancellation is requested while the first operation runs.
+        # The cancellation is issued while the first operation runs and
+        # the operating system reports that the operation was not found.
         state = worker.request_cancel(time.monotonic() + 0.3)
         assert state == 'NOT_FOUND'
         # The request was really repeated: the cancellation was not sent
-        # once and dropped.
-        assert len(api.cancels) >= 2, 'the cancellation was sent once only'
+        # once and dropped, and the retry never waited on the stop event
+        # that it set itself.
+        with api.lock:
+            repeats = len(api.cancels)
+        assert repeats >= 2, 'the cancellation was sent once only'
         # The completion of an older generation is never the completion of
         # this one.
         assert worker.wait_done(generation + 1, 0.05) is False
-        # The first operation ends and the queued request is never
-        # performed: the cancellation and the intent to enter the
-        # operation are one atomic step.
-        release.set()
-        for _ in range(200):
-            if worker.wait_done(generation + 1, 0.02):
-                break
-            time.sleep(0.01)
-        assert entered == [b'first'], 'a request was performed after the cancel'
+        # The operation may now really enter the system call and end.
+        may_enter_io.set()
+        # The request that was in flight really completes.
+        assert worker.wait_done(generation, 5.0), \
+            'the request that was in flight never completed'
+        worker.join_bounded(5.0)
+        assert not worker.is_alive()
+        # The request that was queued was never performed and it was
+        # never completed: the cancellation of the round reached the
+        # worker before the operation could start.
+        assert not second_entered.is_set(), \
+            'the queued request was performed after the cancellation'
+        assert worker.wait_done(generation + 1, 0.05) is False
     finally:
-        release.set()
+        may_enter_io.set()
         worker.stop_accepting()
         worker.join_bounded(5.0)
         assert not worker.is_alive()
 
     # The check of the cancellation and the publication of the intent to
     # enter the operation are **one** critical section of the worker.
-    # The interleaving between them is therefore impossible and not
-    # improbable: the lock of the worker is what forbids it.
+    # This is the auxiliary proof of the group: the behaviour above is
+    # the oracle and the lock is only the reason why the interleaving is
+    # impossible and not improbable.
     source = (PACK_ROOT / 'tools/v0_s3_native_broker.py').read_text(encoding='utf-8')
     tree = ast.parse(source)
     run = None
@@ -1208,7 +1222,9 @@ def test_n07_r15_the_real_chain_is_coordinated_again_by_the_same_owner(tmp_path)
             self.lock = threading.Lock()
             self.frames = []
             self.final = b''
-            self.wake = threading.Event()
+            # The explicit notification of the reader of the channel: the
+            # read waits for it and it is never a sleep that guesses.
+            self.ready = threading.Event()
             self.closed = []
             self.close_failures = 2
             self.next_handle = 700
@@ -1218,7 +1234,7 @@ def test_n07_r15_the_real_chain_is_coordinated_again_by_the_same_owner(tmp_path)
             return self.next_handle
 
         def cancel_synchronous_io(self, handle):
-            self.wake.set()
+            self.ready.set()
             return 'REQUESTED'
 
         def close_handle(self, handle):
@@ -1231,7 +1247,11 @@ def test_n07_r15_the_real_chain_is_coordinated_again_by_the_same_owner(tmp_path)
             with self.lock:
                 if self.frames:
                     return self.frames.pop(0)
-            self.wake.wait(10.0)
+            # The frames of the round were published **before** the
+            # reader of the channel existed.  The reader waits for the
+            # explicit notification of the stop of the round and the wait
+            # is bounded.
+            self.ready.wait(30.0)
             with self.lock:
                 if self.final:
                     frame = self.final
@@ -1240,7 +1260,7 @@ def test_n07_r15_the_real_chain_is_coordinated_again_by_the_same_owner(tmp_path)
             return b''
 
         def write_stream(self, handle, data):
-            self.wake.set()
+            self.ready.set()
             return len(data)
 
     api = Api()
@@ -1255,26 +1275,35 @@ def test_n07_r15_the_real_chain_is_coordinated_again_by_the_same_owner(tmp_path)
         def terminate(self):
             return None
 
-    read_endpoint = _WindowsPipeEndpoint(file_object=_FakeFile('read'), name='channel-read',
-                                          api=api, clock=clock, handle=900)
-    write_endpoint = _WindowsPipeEndpoint(file_object=_FakeFile('write'), name='channel-write',
-                                           api=api, clock=clock, handle=901)
-    channel = StreamChannel(None, None, read_endpoint=read_endpoint,
-                             write_endpoint=write_endpoint, clock=clock)
     channel_closes = []
-    original_close = channel.close
-
-    def counting_close():
-        channel_closes.append(1)
-        return original_close()
-
-    channel.close = counting_close
-    broker = BrokerProcess(Process(), 'C:/python.exe', 'a' * 64, channel)
+    holder = {}
 
     def launcher(plan_document_, run_root, nonce):
+        # The frames of the round are published **before** the channel
+        # and its worker exist: the reader of the channel never waits
+        # for a frame that was not published yet.  The order is the order
+        # of the production launcher: the frames, the endpoints, the
+        # channel and the handle of the broker.
         api.final = _reply_bytes('STOPPED', 'RELEASED', {}, plan, nonce, 3)
         api.frames = [_reply_bytes('READY', 'ARMED', {}, plan, nonce, 1),
                       _reply_bytes('STATUS', 'RUNNING', {}, plan, nonce, 2)]
+        read_endpoint = _WindowsPipeEndpoint(file_object=_FakeFile('read'),
+                                              name='channel-read', api=api,
+                                              clock=clock, handle=900)
+        write_endpoint = _WindowsPipeEndpoint(file_object=_FakeFile('write'),
+                                               name='channel-write', api=api,
+                                               clock=clock, handle=901)
+        channel = StreamChannel(None, None, read_endpoint=read_endpoint,
+                                 write_endpoint=write_endpoint, clock=clock)
+        original_close = channel.close
+
+        def counting_close():
+            channel_closes.append(1)
+            return original_close()
+
+        channel.close = counting_close
+        broker = BrokerProcess(Process(), 'C:/python.exe', 'a' * 64, channel)
+        holder['broker'] = broker
         return broker
 
     session = NativeCustodySession(plan=document, run_root=tmp_path,
@@ -1282,12 +1311,13 @@ def test_n07_r15_the_real_chain_is_coordinated_again_by_the_same_owner(tmp_path)
                                    launcher=launcher, clock=clock, wall=wall)
     try:
         session.start()
-        assert session.broker is broker
+        assert session.broker is holder['broker']
         first = session.stop()
         # The first attempt did not confirm every item of the chain: the
         # original handle of the thread of the worker of the endpoint
         # could not be closed.
-        assert session.broker is broker, 'the broker was released without a proof'
+        assert session.broker is holder['broker'], \
+            'the broker was released without a proof'
         assert first['broker_retained'] is True
         incomplete = [failure for failure in first['failures']
                       if failure.startswith('CUSTODY_BROKER_CLOSE_INCOMPLETE')]
@@ -1454,19 +1484,34 @@ def test_n07_r18_the_first_public_stop_waits_for_the_real_closer(tmp_path):
     the evidence of the round names both facts.  Salvage: the closer
     ends and the round is closed.
     """
-    session, _holder, _clock = make_session(tmp_path, clock=time.monotonic,
-                                            wall=time.time)
+    session, _holder, _clock = make_session(tmp_path,
+                                            plan=_live_plan_document(),
+                                            clock=ManualClock(1000.0))
     session.start()
+    # The round really runs: the lease of the plan is live and the check
+    # of the lease was never relaxed.
+    assert session.state == 'RUNNING'
     entered = threading.Event()
     release = threading.Event()
+    waiting = threading.Event()
     original_finish = session._finish_close
+    original_await = session._await_close
 
     def slow_finish():
         original_finish()
-        entered.set()
-        release.wait(5.0)
+        if threading.current_thread() is session._closer:
+            # The closer published the end of its attempt and it is
+            # still alive: it waits for the owner of the round.
+            entered.set()
+            release.wait(5.0)
+
+    def announced_await():
+        # The public stop entered the wait for the real closer.
+        waiting.set()
+        return original_await()
 
     session._finish_close = slow_finish
+    session._await_close = announced_await
     try:
         assert session._start_bounded_close() is True
         assert entered.wait(5.0), 'the closer never ended its attempt'
@@ -1479,22 +1524,23 @@ def test_n07_r18_the_first_public_stop_waits_for_the_real_closer(tmp_path):
         def stopper():
             outcome['evidence'] = session.stop()
 
-        def release_later():
-            time.sleep(0.5)
-            release.set()
-
-        threading.Thread(target=release_later, daemon=True).start()
         thread = threading.Thread(target=stopper)
         thread.start()
-        thread.join(0.2)
+        # The public stop really waits for the real closer.  The check
+        # waits for the event that announces the wait and it never uses
+        # a sleep to guess it.
+        assert waiting.wait(5.0), 'the public stop never waited for the closer'
         assert thread.is_alive(), \
             'the public stop returned before the real closer ended'
+        # The owner of the round releases the closer.
+        release.set()
         thread.join(10.0)
         assert not thread.is_alive()
         final = outcome.get('evidence')
         assert final is not None
         assert final['closer_alive'] is False
         assert final['closer_exited'] is True
+        assert final['close_state'] == 'FINISHED'
     finally:
         release.set()
         closer = session._closer
