@@ -1,0 +1,370 @@
+...........FFFFFFF.FFFFFFFF..FF                                          [100%]
+=================================== FAILURES ===================================
+_ test_the_seal_refuses_an_original_that_changes_during_the_read[same_length_rewrite] _
+
+tmp_path = PosixPath('/tmp/pytest-of-administrator/pytest-110/test_the_seal_refuses_an_origi0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x77c21d7e86e0>
+name = 'same_length_rewrite'
+factory = <function rewrite_same_length at 0x77c21d2ebe20>
+
+    @pytest.mark.parametrize('name,factory', MUTATIONS, ids=MUTATION_IDS)
+    def test_the_seal_refuses_an_original_that_changes_during_the_read(
+            tmp_path, monkeypatch, name, factory):
+        """O1: the seal refuses an original that changes while it is read."""
+        root, evidence = originals_root(tmp_path)
+        target = os.stat(root / 'temp/raw.bin').st_ino
+        before = os.stat(root / 'temp/raw.bin')
+        wrapper, state = mutating_read(target, factory(root / 'temp/raw.bin'))
+        monkeypatch.setattr(os, 'read', wrapper)
+>       with pytest.raises(S3IntegrationError) as error:
+E       Failed: DID NOT RAISE <class 'tools.v0_s3_coordinator.S3IntegrationError'>
+
+tools/test_v0_s3_integration.py:1211: Failed
+_ test_the_seal_refuses_an_original_that_changes_during_the_read[same_bytes_rewrite] _
+
+tmp_path = PosixPath('/tmp/pytest-of-administrator/pytest-110/test_the_seal_refuses_an_origi1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x77c21d7e8260>
+name = 'same_bytes_rewrite'
+factory = <function rewrite_same_bytes at 0x77c21d2ebec0>
+
+    @pytest.mark.parametrize('name,factory', MUTATIONS, ids=MUTATION_IDS)
+    def test_the_seal_refuses_an_original_that_changes_during_the_read(
+            tmp_path, monkeypatch, name, factory):
+        """O1: the seal refuses an original that changes while it is read."""
+        root, evidence = originals_root(tmp_path)
+        target = os.stat(root / 'temp/raw.bin').st_ino
+        before = os.stat(root / 'temp/raw.bin')
+        wrapper, state = mutating_read(target, factory(root / 'temp/raw.bin'))
+        monkeypatch.setattr(os, 'read', wrapper)
+>       with pytest.raises(S3IntegrationError) as error:
+E       Failed: DID NOT RAISE <class 'tools.v0_s3_coordinator.S3IntegrationError'>
+
+tools/test_v0_s3_integration.py:1211: Failed
+____ test_the_seal_refuses_an_original_that_changes_during_the_read[growth] ____
+
+tmp_path = PosixPath('/tmp/pytest-of-administrator/pytest-110/test_the_seal_refuses_an_origi2')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x77c21d7c5400>
+name = 'growth', factory = <function grow_the_original at 0x77c21d2ebf60>
+
+    @pytest.mark.parametrize('name,factory', MUTATIONS, ids=MUTATION_IDS)
+    def test_the_seal_refuses_an_original_that_changes_during_the_read(
+            tmp_path, monkeypatch, name, factory):
+        """O1: the seal refuses an original that changes while it is read."""
+        root, evidence = originals_root(tmp_path)
+        target = os.stat(root / 'temp/raw.bin').st_ino
+        before = os.stat(root / 'temp/raw.bin')
+        wrapper, state = mutating_read(target, factory(root / 'temp/raw.bin'))
+        monkeypatch.setattr(os, 'read', wrapper)
+>       with pytest.raises(S3IntegrationError) as error:
+E       Failed: DID NOT RAISE <class 'tools.v0_s3_coordinator.S3IntegrationError'>
+
+tools/test_v0_s3_integration.py:1211: Failed
+__ test_the_seal_refuses_an_original_that_changes_during_the_read[truncation] __
+
+tmp_path = PosixPath('/tmp/pytest-of-administrator/pytest-110/test_the_seal_refuses_an_origi3')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x77c21d305730>
+name = 'truncation'
+factory = <function truncate_the_original at 0x77c21d2e4040>
+
+    @pytest.mark.parametrize('name,factory', MUTATIONS, ids=MUTATION_IDS)
+    def test_the_seal_refuses_an_original_that_changes_during_the_read(
+            tmp_path, monkeypatch, name, factory):
+        """O1: the seal refuses an original that changes while it is read."""
+        root, evidence = originals_root(tmp_path)
+        target = os.stat(root / 'temp/raw.bin').st_ino
+        before = os.stat(root / 'temp/raw.bin')
+        wrapper, state = mutating_read(target, factory(root / 'temp/raw.bin'))
+        monkeypatch.setattr(os, 'read', wrapper)
+>       with pytest.raises(S3IntegrationError) as error:
+E       Failed: DID NOT RAISE <class 'tools.v0_s3_coordinator.S3IntegrationError'>
+
+tools/test_v0_s3_integration.py:1211: Failed
+_ test_the_seal_refuses_an_original_that_changes_during_the_read[object_replacement] _
+
+tmp_path = PosixPath('/tmp/pytest-of-administrator/pytest-110/test_the_seal_refuses_an_origi4')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x77c21d305370>
+name = 'object_replacement'
+factory = <function replace_the_object at 0x77c21d2e40e0>
+
+    @pytest.mark.parametrize('name,factory', MUTATIONS, ids=MUTATION_IDS)
+    def test_the_seal_refuses_an_original_that_changes_during_the_read(
+            tmp_path, monkeypatch, name, factory):
+        """O1: the seal refuses an original that changes while it is read."""
+        root, evidence = originals_root(tmp_path)
+        target = os.stat(root / 'temp/raw.bin').st_ino
+        before = os.stat(root / 'temp/raw.bin')
+        wrapper, state = mutating_read(target, factory(root / 'temp/raw.bin'))
+        monkeypatch.setattr(os, 'read', wrapper)
+>       with pytest.raises(S3IntegrationError) as error:
+E       Failed: DID NOT RAISE <class 'tools.v0_s3_coordinator.S3IntegrationError'>
+
+tools/test_v0_s3_integration.py:1211: Failed
+_ test_the_manifest_refuses_an_original_that_changes_during_the_read[same_length_rewrite] _
+
+tmp_path = PosixPath('/tmp/pytest-of-administrator/pytest-110/test_the_manifest_refuses_an_o3')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x77c21d3064e0>
+name = 'same_length_rewrite'
+factory = <function rewrite_same_length at 0x77c21d2ebe20>
+
+    @pytest.mark.parametrize('name,factory', MUTATIONS, ids=MUTATION_IDS)
+    def test_the_manifest_refuses_an_original_that_changes_during_the_read(
+            tmp_path, monkeypatch, name, factory):
+        """O1: the manifest refuses an original that changes while it is read."""
+        root, evidence = originals_root(tmp_path)
+        seal_all(evidence)
+        target = os.stat(root / 'temp/raw.bin').st_ino
+        before = os.stat(root / 'temp/raw.bin')
+        wrapper, state = mutating_read(target, factory(root / 'temp/raw.bin'))
+        monkeypatch.setattr(os, 'read', wrapper)
+>       with pytest.raises(S3IntegrationError) as error:
+E       Failed: DID NOT RAISE <class 'tools.v0_s3_coordinator.S3IntegrationError'>
+
+tools/test_v0_s3_integration.py:1234: Failed
+_ test_the_manifest_refuses_an_original_that_changes_during_the_read[same_bytes_rewrite] _
+
+tmp_path = PosixPath('/tmp/pytest-of-administrator/pytest-110/test_the_manifest_refuses_an_o4')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x77c21d3076e0>
+name = 'same_bytes_rewrite'
+factory = <function rewrite_same_bytes at 0x77c21d2ebec0>
+
+    @pytest.mark.parametrize('name,factory', MUTATIONS, ids=MUTATION_IDS)
+    def test_the_manifest_refuses_an_original_that_changes_during_the_read(
+            tmp_path, monkeypatch, name, factory):
+        """O1: the manifest refuses an original that changes while it is read."""
+        root, evidence = originals_root(tmp_path)
+        seal_all(evidence)
+        target = os.stat(root / 'temp/raw.bin').st_ino
+        before = os.stat(root / 'temp/raw.bin')
+        wrapper, state = mutating_read(target, factory(root / 'temp/raw.bin'))
+        monkeypatch.setattr(os, 'read', wrapper)
+>       with pytest.raises(S3IntegrationError) as error:
+E       Failed: DID NOT RAISE <class 'tools.v0_s3_coordinator.S3IntegrationError'>
+
+tools/test_v0_s3_integration.py:1234: Failed
+_ test_the_manifest_refuses_an_original_that_changes_during_the_read[truncation] _
+
+tmp_path = PosixPath('/tmp/pytest-of-administrator/pytest-110/test_the_manifest_refuses_an_o6')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x77c21d305370>
+name = 'truncation'
+factory = <function truncate_the_original at 0x77c21d2e4040>
+
+    @pytest.mark.parametrize('name,factory', MUTATIONS, ids=MUTATION_IDS)
+    def test_the_manifest_refuses_an_original_that_changes_during_the_read(
+            tmp_path, monkeypatch, name, factory):
+        """O1: the manifest refuses an original that changes while it is read."""
+        root, evidence = originals_root(tmp_path)
+        seal_all(evidence)
+        target = os.stat(root / 'temp/raw.bin').st_ino
+        before = os.stat(root / 'temp/raw.bin')
+        wrapper, state = mutating_read(target, factory(root / 'temp/raw.bin'))
+        monkeypatch.setattr(os, 'read', wrapper)
+>       with pytest.raises(S3IntegrationError) as error:
+E       Failed: DID NOT RAISE <class 'tools.v0_s3_coordinator.S3IntegrationError'>
+
+tools/test_v0_s3_integration.py:1234: Failed
+_ test_the_manifest_refuses_an_original_that_changes_during_the_read[object_replacement] _
+
+tmp_path = PosixPath('/tmp/pytest-of-administrator/pytest-110/test_the_manifest_refuses_an_o7')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x77c21d3061b0>
+name = 'object_replacement'
+factory = <function replace_the_object at 0x77c21d2e40e0>
+
+    @pytest.mark.parametrize('name,factory', MUTATIONS, ids=MUTATION_IDS)
+    def test_the_manifest_refuses_an_original_that_changes_during_the_read(
+            tmp_path, monkeypatch, name, factory):
+        """O1: the manifest refuses an original that changes while it is read."""
+        root, evidence = originals_root(tmp_path)
+        seal_all(evidence)
+        target = os.stat(root / 'temp/raw.bin').st_ino
+        before = os.stat(root / 'temp/raw.bin')
+        wrapper, state = mutating_read(target, factory(root / 'temp/raw.bin'))
+        monkeypatch.setattr(os, 'read', wrapper)
+>       with pytest.raises(S3IntegrationError) as error:
+E       Failed: DID NOT RAISE <class 'tools.v0_s3_coordinator.S3IntegrationError'>
+
+tools/test_v0_s3_integration.py:1234: Failed
+____ test_the_manifest_refuses_an_ancestor_that_is_replaced_during_the_read ____
+
+tmp_path = PosixPath('/tmp/pytest-of-administrator/pytest-110/test_the_manifest_refuses_an_a1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x77c21d306450>
+
+    def test_the_manifest_refuses_an_ancestor_that_is_replaced_during_the_read(
+            tmp_path, monkeypatch):
+        """O1: an ancestor that is replaced during the read is refused."""
+        root, evidence = originals_root(tmp_path)
+        seal_all(evidence)
+        target = os.stat(root / 'temp/raw.bin').st_ino
+    
+        def action():
+            os.rename(root / 'temp', root / 'temp-old')
+            (root / 'temp').mkdir()
+            (root / 'temp/raw.bin').write_bytes(ORIGINAL_BODY)
+    
+        wrapper, state = mutating_read(target, action)
+        monkeypatch.setattr(os, 'read', wrapper)
+>       with pytest.raises(S3IntegrationError) as error:
+E       Failed: DID NOT RAISE <class 'tools.v0_s3_coordinator.S3IntegrationError'>
+
+tools/test_v0_s3_integration.py:1262: Failed
+______ test_the_manifest_refuses_a_root_that_is_replaced_during_the_read _______
+
+tmp_path = PosixPath('/tmp/pytest-of-administrator/pytest-110/test_the_manifest_refuses_a_ro0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x77c21d7e8b00>
+
+    def test_the_manifest_refuses_a_root_that_is_replaced_during_the_read(
+            tmp_path, monkeypatch):
+        """O1: the root that is replaced during the read is refused."""
+        root, evidence = originals_root(tmp_path)
+        seal_all(evidence)
+        target = os.stat(root / 'temp/raw.bin').st_ino
+    
+        def action():
+            os.rename(root, root.parent / (root.name + '-old'))
+            (root / 'temp').mkdir(parents=True)
+            (root / 'temp/raw.bin').write_bytes(ORIGINAL_BODY)
+    
+        wrapper, state = mutating_read(target, action)
+        monkeypatch.setattr(os, 'read', wrapper)
+>       with pytest.raises(S3IntegrationError) as error:
+E       Failed: DID NOT RAISE <class 'tools.v0_s3_coordinator.S3IntegrationError'>
+
+tools/test_v0_s3_integration.py:1282: Failed
+_____ test_the_manifest_refuses_a_path_that_became_a_link_during_the_read ______
+
+tmp_path = PosixPath('/tmp/pytest-of-administrator/pytest-110/test_the_manifest_refuses_a_pa0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x77c21d7c4fe0>
+
+    def test_the_manifest_refuses_a_path_that_became_a_link_during_the_read(
+            tmp_path, monkeypatch):
+        """O1: a path that became a link during the read is refused."""
+        root, evidence = originals_root(tmp_path)
+        seal_all(evidence)
+        target = os.stat(root / 'temp/raw.bin').st_ino
+    
+        def action():
+            moved = root / 'temp/moved.bin'
+            os.rename(root / 'temp/raw.bin', moved)
+            (root / 'temp/raw.bin').symlink_to(moved)
+    
+        wrapper, state = mutating_read(target, action)
+        monkeypatch.setattr(os, 'read', wrapper)
+>       with pytest.raises(S3IntegrationError) as error:
+E       Failed: DID NOT RAISE <class 'tools.v0_s3_coordinator.S3IntegrationError'>
+
+tools/test_v0_s3_integration.py:1302: Failed
+______ test_the_seal_refuses_a_fifo_without_a_writer_and_without_blocking ______
+
+tmp_path = PosixPath('/tmp/pytest-of-administrator/pytest-110/test_the_seal_refuses_a_fifo_w0')
+
+    def test_the_seal_refuses_a_fifo_without_a_writer_and_without_blocking(tmp_path):
+        """O2: the seal refuses a fifo, without a writer and without blocking."""
+        root, evidence = originals_root(tmp_path)
+        fifo = root / 'temp/raw.bin'
+        fifo.unlink()
+        os.mkfifo(fifo)
+        before = open_descriptors()
+        thread, box = run_bounded(lambda: seal_all(evidence), 2.0)
+        try:
+>           assert not thread.is_alive(), 'the seal blocked on the fifo'
+E           AssertionError: the seal blocked on the fifo
+E           assert not True
+E            +  where True = is_alive()
+E            +    where is_alive = <Thread(Thread-1 (worker), started daemon 131675582944960)>.is_alive
+
+tools/test_v0_s3_integration.py:1317: AssertionError
+_________ test_the_manifest_refuses_a_fifo_that_replaced_a_sealed_raw __________
+
+tmp_path = PosixPath('/tmp/pytest-of-administrator/pytest-110/test_the_manifest_refuses_a_fi0')
+
+    def test_the_manifest_refuses_a_fifo_that_replaced_a_sealed_raw(tmp_path):
+        """O2: the manifest refuses a fifo that replaced a sealed raw."""
+        root, evidence = originals_root(tmp_path)
+        seal_all(evidence)
+        fifo = root / 'temp/raw.bin'
+        fifo.unlink()
+        os.mkfifo(fifo)
+        before = open_descriptors()
+        thread, box = run_bounded(evidence.manifest, 2.0)
+        try:
+>           assert not thread.is_alive(), 'the manifest blocked on the fifo'
+E           AssertionError: the manifest blocked on the fifo
+E           assert not True
+E            +  where True = is_alive()
+E            +    where is_alive = <Thread(Thread-2 (worker), started daemon 131675582944960)>.is_alive
+
+tools/test_v0_s3_integration.py:1342: AssertionError
+_________________ test_a_refused_original_leaks_no_descriptor __________________
+
+tmp_path = PosixPath('/tmp/pytest-of-administrator/pytest-110/test_a_refused_original_leaks_0')
+
+    def test_a_refused_original_leaks_no_descriptor(tmp_path):
+        """O1/O2: a refused original closes every descriptor that it opened."""
+        before = open_descriptors()
+        for index in range(12):
+            root, evidence = originals_root(tmp_path, name='run-%02d' % index)
+            seal_all(evidence)
+            fifo = root / 'temp/raw.bin'
+            fifo.unlink()
+            os.mkfifo(fifo)
+            thread, box = run_bounded(evidence.manifest, 2.0)
+            try:
+>               assert not thread.is_alive(), 'the manifest blocked on the fifo'
+E               AssertionError: the manifest blocked on the fifo
+E               assert not True
+E                +  where True = is_alive()
+E                +    where is_alive = <Thread(Thread-3 (worker), started daemon 131675582944960)>.is_alive
+
+tools/test_v0_s3_integration.py:1366: AssertionError
+___________ test_a_platform_without_the_safe_primitives_fails_closed ___________
+
+tmp_path = PosixPath('/tmp/pytest-of-administrator/pytest-110/test_a_platform_without_the_sa0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x77c21d31e4b0>
+
+    def test_a_platform_without_the_safe_primitives_fails_closed(tmp_path, monkeypatch):
+        """O2: a platform without the safe opening primitives fails closed."""
+        root, evidence = originals_root(tmp_path)
+        seal_all(evidence)
+        monkeypatch.setattr(coordinator, '_no_follow_open_supported', lambda: False)
+        with pytest.raises(S3IntegrationError) as error:
+            evidence.manifest()
+        assert error.value.reason == 'S3_ORIGINAL_SAFE_OPEN_UNSUPPORTED'
+>       monkeypatch.setattr(coordinator, '_non_block_open_supported', lambda: False)
+E       AttributeError: <module 'tools.v0_s3_coordinator' from '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_coordinator.py'> has no attribute '_non_block_open_supported'
+
+tools/test_v0_s3_integration.py:1422: AttributeError
+__________________ test_a_failed_seal_publishes_no_originals ___________________
+
+tmp_path = PosixPath('/tmp/pytest-of-administrator/pytest-110/test_a_failed_seal_publishes_n0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x77c21d31ea20>
+
+    def test_a_failed_seal_publishes_no_originals(tmp_path, monkeypatch):
+        """O1: a seal that fails in the middle publishes no originals at all."""
+        root, evidence = originals_root(tmp_path)
+        target = os.stat(root / 'temp/raw.bin').st_ino
+        wrapper, state = mutating_read(target, rewrite_same_bytes(root / 'temp/raw.bin'))
+        monkeypatch.setattr(os, 'read', wrapper)
+>       with pytest.raises(S3IntegrationError):
+E       Failed: DID NOT RAISE <class 'tools.v0_s3_coordinator.S3IntegrationError'>
+
+tools/test_v0_s3_integration.py:1436: Failed
+=========================== short test summary info ============================
+FAILED tools/test_v0_s3_integration.py::test_the_seal_refuses_an_original_that_changes_during_the_read[same_length_rewrite]
+FAILED tools/test_v0_s3_integration.py::test_the_seal_refuses_an_original_that_changes_during_the_read[same_bytes_rewrite]
+FAILED tools/test_v0_s3_integration.py::test_the_seal_refuses_an_original_that_changes_during_the_read[growth]
+FAILED tools/test_v0_s3_integration.py::test_the_seal_refuses_an_original_that_changes_during_the_read[truncation]
+FAILED tools/test_v0_s3_integration.py::test_the_seal_refuses_an_original_that_changes_during_the_read[object_replacement]
+FAILED tools/test_v0_s3_integration.py::test_the_manifest_refuses_an_original_that_changes_during_the_read[same_length_rewrite]
+FAILED tools/test_v0_s3_integration.py::test_the_manifest_refuses_an_original_that_changes_during_the_read[same_bytes_rewrite]
+FAILED tools/test_v0_s3_integration.py::test_the_manifest_refuses_an_original_that_changes_during_the_read[truncation]
+FAILED tools/test_v0_s3_integration.py::test_the_manifest_refuses_an_original_that_changes_during_the_read[object_replacement]
+FAILED tools/test_v0_s3_integration.py::test_the_manifest_refuses_an_ancestor_that_is_replaced_during_the_read
+FAILED tools/test_v0_s3_integration.py::test_the_manifest_refuses_a_root_that_is_replaced_during_the_read
+FAILED tools/test_v0_s3_integration.py::test_the_manifest_refuses_a_path_that_became_a_link_during_the_read
+FAILED tools/test_v0_s3_integration.py::test_the_seal_refuses_a_fifo_without_a_writer_and_without_blocking
+FAILED tools/test_v0_s3_integration.py::test_the_manifest_refuses_a_fifo_that_replaced_a_sealed_raw
+FAILED tools/test_v0_s3_integration.py::test_a_refused_original_leaks_no_descriptor
+FAILED tools/test_v0_s3_integration.py::test_a_platform_without_the_safe_primitives_fails_closed
+FAILED tools/test_v0_s3_integration.py::test_a_failed_seal_publishes_no_originals
+17 failed, 14 passed in 6.75s
+pytest exit=1
+RESTORED

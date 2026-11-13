@@ -1,0 +1,34 @@
+{
+  "kind": "lvw.s3-originals-correction-04-failed-attempts/1",
+  "note": "两次更早的 owner 探针尝试真实失败过。它们不是产品缺陷，是本轮探针与运行器自身的两处错误。两份尝试的原始 stderr 文件当时被同一 step 的下一次运行覆盖了（运行器当时没有归档机制）；本文件如实记录那两次失败的命令、真实退出码与捕获到的错误行，不重建、不伪造任何日志。运行器随后改为「先归档旧日志再写新日志」，见 run_guarded_checks.py 的 run_step。",
+  "attempts": [
+    {
+      "attempt": 1,
+      "step": "owner-probe",
+      "command": "python3 -B reports/v0-s3/product-gate0/implementation-originals-correction-04/run_guarded_checks.py --outdir reports/v0-s3/product-gate0/implementation-originals-correction-04",
+      "runner_exit_code": 1,
+      "entry_exit_code": 1,
+      "failure": "SyntaxError: invalid syntax",
+      "captured_error_line": "from tools import v0_s3_coordinator as coordinator as c",
+      "cause": "owner_probe.py 的 import 行写错了语法（两个 as）。这是本轮探针文件的笔误，与候选源无关。",
+      "fix": "改为 `from tools import v0_s3_coordinator as c`。"
+    },
+    {
+      "attempt": 2,
+      "step": "owner-probe",
+      "command": "python3 -B reports/v0-s3/product-gate0/implementation-originals-correction-04/run_guarded_checks.py --outdir reports/v0-s3/product-gate0/implementation-originals-correction-04",
+      "runner_exit_code": 1,
+      "entry_exit_code": 1,
+      "failure": "AssertionError: the owner did not refuse a controlled change: root_replaced reason=S3_ORIGINAL_UNREADABLE:raw",
+      "captured_error_line": "raise AssertionError('the owner did not refuse a controlled change: '",
+      "cause": "探针的 root_replaced 触发把合成根改名到 <name>-old；第二次运行时该兄弟目录已存在，os.rename 失败，触发没有真正发生，于是探针自己的 Oracle（触发必须真的发生且改动必须可观察）拒绝了这次运行。owner 本身给出的 S3_ORIGINAL_UNREADABLE 仍然是一次拒绝，但触发没有发生，所以这一次运行不算数。",
+      "fix": "evidence() 现在同时清掉 <name>-old 兄弟目录，root_replaced 触发也先清理目标；探针因此可以重复运行。"
+    }
+  ],
+  "not_product_defects": true,
+  "no_log_was_fabricated": true,
+  "raw_logs_of_these_two_attempts": "被同 step 的下一次运行覆盖；此处只保留命令、真实退出码与捕获到的错误行",
+  "stage_pass_claim": false,
+  "product_gate0": false,
+  "real_execution_performed": false
+}
