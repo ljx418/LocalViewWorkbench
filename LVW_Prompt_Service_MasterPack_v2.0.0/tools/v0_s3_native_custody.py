@@ -810,6 +810,12 @@ class NativeCustodySession:
         self._broker_reader_finished = None
         self._broker_close_facts = None
         self._pump = None
+        # The failure that the reader of the channel really saw.  It is
+        # kept with the round, because the reader may be gone when the
+        # owner of the round reads the first reply: a cancellation that
+        # the reader saw is the failure of the round and it continues to
+        # propagate.
+        self._pump_error = None
         self._heartbeat = None
         # The stop event of the heartbeat is created **once**, here, and
         # it is never rebuilt: a rebuilt event would let a heartbeat
@@ -1003,6 +1009,12 @@ class NativeCustodySession:
         while True:
             pump = self._pump
             if pump is None:
+                # The reader of the channel is gone.  A cancellation that
+                # the reader saw is the failure of the round and it
+                # continues to propagate; an ordinary failure of the
+                # reader is already named in the failures of the round.
+                if isinstance(self._pump_error, (KeyboardInterrupt, SystemExit)):
+                    raise self._pump_error
                 raise CustodyError('CUSTODY_CHANNEL_CLOSED')
             reply = pump.take(kinds, deadline)
             if reply['kind'] in kinds:
@@ -1202,11 +1214,20 @@ class NativeCustodySession:
         return True
 
     def _on_pump_error(self, error):
-        """The reader of the channel failed: the round latches its state."""
+        """The reader of the channel failed: the round latches its state.
+
+        The failure that the reader really saw is kept with the round
+        and its own code stays visible: the failure of the reader never
+        replaces the failure that the reader really saw.
+        """
+        self._pump_error = error
         if isinstance(error, (KeyboardInterrupt, SystemExit)):
             code = 'CUSTODY_PUMP_CANCELLED:' + type(error).__name__
         else:
             code = 'CUSTODY_PUMP_FAILED:' + type(error).__name__
+        original = getattr(error, 'code', None)
+        if isinstance(original, str) and original and original not in self._failures:
+            self._failures.append(original)
         self._latch_background_failure(code)
 
     def _stop_background(self, deadline=None):
@@ -1366,16 +1387,14 @@ class NativeCustodySession:
             pump = _ChannelPump(self.broker, decode=self._decode_reply,
                                 clock=self._clock,
                                 on_error=self._on_pump_error)
-            if not self._start_background_thread('pump', pump):
-                # The close of the round began before the pump could
-                # start.  The round never runs and the resources of the
-                # round are closed by that very close.
-                raise CustodyError('CUSTODY_BACKGROUND_START_REFUSED')
-            if not self._start_heartbeat():
-                # The heartbeat of the round was refused: the close of
-                # the round is already running and the round never
-                # becomes a running round.
-                raise CustodyError('CUSTODY_HEARTBEAT_NOT_STARTED')
+            # The start of the background of the round is refused when
+            # the close of the round began already.  The start does not
+            # raise on that refusal: it continues to the exchange of the
+            # start, and the failure that leaves this method is the
+            # failure of the reader of the channel - a cancellation
+            # among them.
+            self._start_background_thread('pump', pump)
+            self._start_heartbeat()
             ready = self._read_reply(('READY', 'REFUSED'))
             if ready['kind'] == 'REFUSED':
                 self.state = 'UNKNOWN_RETAINED'
@@ -1404,7 +1423,9 @@ class NativeCustodySession:
             # even when the exchange of the start failed: the resource of
             # this round is never left open on purpose and the caller
             # never has to stop it later.
-            self._failures.append(self._failure_code(error))
+            code = self._failure_code(error)
+            if code not in self._failures:
+                self._failures.append(code)
             self.state = 'UNKNOWN_RETAINED'
             self._close_broker()
             return self.evidence()
