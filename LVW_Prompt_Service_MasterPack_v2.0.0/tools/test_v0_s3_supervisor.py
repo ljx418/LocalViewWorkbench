@@ -14,10 +14,12 @@ import hashlib
 import importlib.util
 import io
 import json
+import math
 import os
 import shutil
 import subprocess as _subprocess
 import sys
+import threading
 import time
 from pathlib import Path
 
@@ -37,15 +39,25 @@ from tools.v0_s3_quality_worker import (  # noqa: E402
     WorkerContext, WorkerError, run_worker)
 from tools.v0_s3_supervisor import (  # noqa: E402
     CHILD_TIMEOUT_SECONDS, EVENTS, FIXTURE_SCENARIOS, HISTORY_TIMEOUT_SECONDS,
-    MAX_MESSAGE_BYTES, MAX_MESSAGES, MESSAGE_KEYS, PHASE_TIMEOUT_SECONDS,
-    PROTOCOL_SCHEMA, ParentSupervisor, ProtocolState, RecoveryEntry, SealedPlan,
-    SupervisionError, build_fixture_command, build_production_command, decode_message)
+    MAX_MESSAGE_BYTES, MAX_MESSAGES, MAX_STREAM_BYTES, MESSAGE_KEYS,
+    PHASE_TIMEOUT_SECONDS, PROTOCOL_SCHEMA, STDERR_STREAM_LIMIT_EXCEEDED,
+    STDERR_STREAM_READ_FAILED, STDOUT_STREAM_LIMIT_EXCEEDED,
+    STDOUT_STREAM_READ_FAILED, ParentSupervisor, ProtocolState, RecoveryEntry,
+    SealedPlan, SupervisionError, build_fixture_command, build_production_command,
+    decode_message)
 
 PACK_ROOT = Path(__file__).resolve().parents[1]
 REPOSITORY_ROOT = PACK_ROOT.parent
 RUN_ID = 'synthetic-quality-run'
 CANDIDATE_SHA = 'a' * 40
 AUTHORIZATION_SHA = 'b' * 64
+# The short synthetic run identity of the message count negative case.  The
+# wire of that case has to stay inside the frozen byte budget of a stream,
+# so the count - and not the byte budget - is the reason of its refusal.
+# The identity is bound by the parent context and by the child messages in
+# the very same way as every other identity; the candidate and the
+# authorization keep their full length.
+FLOOD_RUN_ID = 'syn1'
 EXECUTOR_RELATIVE = ('reports/v0-s3/product-gate0/implementation-integration-01/'
                      'executor.py')
 
@@ -690,13 +702,13 @@ requires_machine_gate = pytest.mark.skipif(
     reason='the finite fixture process machine gate is not bound by the root')
 
 
-def fixture_context(guard_root, root, rows):
+def fixture_context(guard_root, root, rows, run_id=RUN_ID):
     """The bounded context document of one fixture scenario.
 
     The document lives in the fresh runner owned root.  No arbitrary private
     path is accepted by the executor.
     """
-    document = {'run_id': RUN_ID, 'candidate_sha': CANDIDATE_SHA,
+    document = {'run_id': run_id, 'candidate_sha': CANDIDATE_SHA,
                 'authorization_sha256': AUTHORIZATION_SHA, 'root': str(root),
                 'terminal_reference': 'temp/s3-quality/qd-receipt.json',
                 'plan': rows}
@@ -706,7 +718,7 @@ def fixture_context(guard_root, root, rows):
 
 
 def run_fixture(tmp_path, scenario, *, rows=None, root=None, phase_seconds=1.0,
-                grace_seconds=0.25):
+                grace_seconds=0.25, run_id=RUN_ID):
     """Run one enumerated fixture scenario under the real parent.
 
     The executor of the guarded runner owns the start: it charges the shared
@@ -723,11 +735,11 @@ def run_fixture(tmp_path, scenario, *, rows=None, root=None, phase_seconds=1.0,
     executor = bound_executor()
     if executor is None:
         raise AssertionError('the guarded runner did not publish its executor')
-    context = fixture_context(guard_root, root, rows)
+    context = fixture_context(guard_root, root, rows, run_id=run_id)
     os.environ['LVW_S3_FIXTURE_CONTEXT'] = str(context)
     command = build_fixture_command(scenario,
                                     python=MACHINE_BINDING['python']['path'])
-    supervisor = ParentSupervisor(command=command, run_id=RUN_ID,
+    supervisor = ParentSupervisor(command=command, run_id=run_id,
                                   candidate_sha=CANDIDATE_SHA,
                                   authorization_sha256=AUTHORIZATION_SHA,
                                   plan=plan(), root=root,
@@ -788,7 +800,11 @@ def test_a_blocking_persistence_is_actually_stopped(tmp_path):
 ])
 def test_a_protocol_violation_is_refused(tmp_path, scenario, code):
     """I12/I13: every protocol violation is a stable refusal."""
-    evidence = run_fixture(tmp_path, scenario)
+    # The message count negative case carries its own short synthetic run
+    # identity, so that its wire fits into the frozen byte budget of a
+    # stream.  The identity is bound by the parent and by the child.
+    run_id = FLOOD_RUN_ID if scenario == 'message_flood' else RUN_ID
+    evidence = run_fixture(tmp_path, scenario, run_id=run_id)
     assert evidence['protocol_violation'] == code
     assert evidence['cleanup']['proven_stopped'] is True
     assert evidence['root_retained'] is True
@@ -800,6 +816,451 @@ def test_a_bad_terminal_reference_is_refused(tmp_path):
     evidence = run_fixture(tmp_path, 'bad_terminal_reference')
     assert evidence['canonical_receipt_verified'] is False
     assert evidence['root_retained'] is True
+
+
+# --------------------------------- the zero process correction of the streams
+# The correction of the two refused scenarios of the finite fixture run is
+# checked here without any process at all: the real writer of the fixture and
+# the real scenario functions build the wire, and the real protocol state and
+# the real parent supervisor read it.  No fixture process is started, no
+# socket is opened, no model, no GPU, no service and no ledger is touched.
+FIXTURE_PATH = PACK_ROOT / 'tools/fixtures/v0_s3_supervisor_fixture.py'
+
+
+def load_fixture_module():
+    """Load the fixture entry as a module, without its boundary guard.
+
+    The import of the fixture never registers the audit hook of the child:
+    the hook is installed by the ``__main__`` entry of the fixture only.
+    Importing the fixture in this process therefore never closes the process
+    gate of this process.
+    """
+    spec = importlib.util.spec_from_file_location('lvw_s3_supervisor_fixture_module',
+                                                  FIXTURE_PATH)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+FIXTURE = load_fixture_module()
+
+
+class CapturedStdout:
+    """A stdout replacement that keeps the exact bytes of the fixture."""
+
+    def __init__(self):
+        self.buffer = io.BytesIO()
+
+    def flush(self):
+        return None
+
+    def write(self, text):
+        return self.buffer.write(text.encode('utf-8'))
+
+
+def fixture_values(*, run_id=RUN_ID, root=''):
+    """The context values of one fixture scenario."""
+    return {'run_id': run_id, 'candidate_sha': CANDIDATE_SHA,
+            'authorization_sha256': AUTHORIZATION_SHA, 'root': root,
+            'terminal_reference': 'temp/s3-quality/qd-receipt.json',
+            'plan': []}
+
+
+def run_fixture_scenario(monkeypatch, scenario, values, rows=None):
+    """Run one enumerated scenario of the fixture and keep its wire bytes.
+
+    No process is started.  The writer of the fixture writes into a captured
+    standard output, so the wire of the scenario is the real wire of the
+    scenario.
+    """
+    captured = CapturedStdout()
+    monkeypatch.setattr(sys, 'stdout', captured)
+    writer = FIXTURE.Writer(values)
+    handler = FIXTURE.SCENARIO_FUNCTIONS[scenario]
+    handler(writer, values, rows if rows is not None else values.get('plan') or [])
+    return captured.buffer.getvalue()
+
+
+class UnreadableStream:
+    """A child stream that cannot be read at all."""
+
+    def __init__(self, error=None):
+        self.error = error or OSError('the child stream cannot be read')
+
+    def fileno(self):
+        raise self.error
+
+
+class UnreadableProcess:
+    """A fake child whose streams cannot be read.  No process is started."""
+
+    def __init__(self, *, stdout=None, stderr=None, pid=4343):
+        self.stdout = stdout
+        self.stderr = stderr
+        self.stdin = None
+        self.pid = pid
+        self.returncode = None
+        self.terminated = False
+        self.killed = False
+
+    def poll(self):
+        return self.returncode
+
+    def wait(self, timeout=None):
+        return self.returncode
+
+    def terminate(self):
+        self.terminated = True
+        self.returncode = -15
+
+    def kill(self):
+        self.killed = True
+        self.returncode = -9
+
+
+def test_the_fixture_import_installs_no_process_guard():
+    """The fixture module never closes the process gate of the parent."""
+    assert FIXTURE.BOUNDARY_GUARD_INSTALLED is False
+    # The audit event of a process start must not be refused by the fixture.
+    # The outer guard of a gated batch refuses the event first; a refusal of
+    # the fixture would be the bug that this test protects against.
+    try:
+        sys.audit('subprocess.Popen', sys.executable,
+                  [sys.executable, '-c', 'pass'], str(PACK_ROOT), None)
+    except FIXTURE.FixtureBoundaryViolation:
+        pytest.fail('the fixture installed its process guard in the parent process')
+    except Exception:  # noqa: BLE001 - the outer guard of a gated batch
+        pass
+
+
+def test_the_fixture_guard_refuses_the_blocked_events():
+    """The guard of the child entry refuses the network and the descendants."""
+    with pytest.raises(FIXTURE.FixtureBoundaryViolation):
+        FIXTURE._audit_hook('os.fork', ())
+    with pytest.raises(FIXTURE.FixtureBoundaryViolation):
+        FIXTURE._audit_hook('subprocess.Popen', ('/bin/true',))
+    with pytest.raises(FIXTURE.FixtureBoundaryViolation):
+        FIXTURE._audit_hook('socket.connect', ('127.0.0.1', 80))
+    # an event outside of the boundary is not refused
+    assert FIXTURE._audit_hook('open', ('/dev/null', 'rb')) is None
+
+
+def test_the_product_import_of_the_fixture_needs_the_guard(monkeypatch):
+    """The fixture refuses to import the product without its guard."""
+    module = load_fixture_module()
+    monkeypatch.setattr(module, '__name__', '__main__')
+    monkeypatch.setattr(module, '_PRODUCT', None)
+    with pytest.raises(SystemExit) as error:
+        module.product()
+    assert str(error.value) == 'FIXTURE_GUARD_MISSING'
+
+
+def test_the_child_entry_installs_the_guard_before_the_product():
+    """The ``__main__`` entry of the fixture installs the guard first."""
+    source = FIXTURE_PATH.read_text(encoding='utf-8')
+    marker = "if __name__ == '__main__':"
+    assert marker in source
+    calls = []
+    namespace = {'__name__': '__main__', 'sys': sys,
+                 'install_boundary_guard': lambda: calls.append('guard'),
+                 'main': lambda: calls.append('main')}
+    with pytest.raises(SystemExit):
+        exec(compile(source[source.index(marker):], str(FIXTURE_PATH), 'exec'),
+             namespace)
+    assert calls == ['guard', 'main']
+
+
+def test_the_nonfinite_frame_is_complete_and_is_refused(monkeypatch):
+    """The NaN negative case is a complete frame that the parser refuses."""
+    raw = run_fixture_scenario(monkeypatch, 'nonfinite_number', fixture_values(),
+                               sixteen_rows())
+    # the frame is complete: exactly one terminated JSONL line
+    assert raw.endswith(b'\n')
+    lines = raw.split(b'\n')
+    assert lines[-1] == b''
+    assert len(lines) == 2
+    frame = lines[0]
+    document = json.loads(frame.decode('utf-8'))
+    assert set(document) == set(MESSAGE_KEYS)
+    assert document['event'] == 'STARTED'
+    assert document['run_id'] == RUN_ID
+    assert document['candidate_sha'] == CANDIDATE_SHA
+    assert document['authorization_sha256'] == AUTHORIZATION_SHA
+    assert math.isnan(document['payload']['value'])
+    # the product parser refuses the NaN of that complete frame
+    with pytest.raises(SupervisionError) as error:
+        decode_message(frame)
+    assert error.value.code == 'MESSAGE_NONFINITE_NUMBER'
+
+
+def test_the_parent_refuses_the_nonfinite_frame_on_a_real_pipe(tmp_path, monkeypatch):
+    """The real read path of the parent refuses the complete NaN frame."""
+    raw = run_fixture_scenario(monkeypatch, 'nonfinite_number', fixture_values(),
+                               sixteen_rows())
+    process = FakeProcess()
+    process.emit_raw(raw)
+    process.close_stdout()
+    process.returncode = 0
+    supervisor = make_supervisor(tmp_path, process=process, clock=time.monotonic)
+    evidence = supervisor.run()
+    assert evidence['protocol_violation'] == 'MESSAGE_NONFINITE_NUMBER'
+    assert evidence['message_count'] == 0
+    assert evidence['stdout_overflow'] is False
+    assert evidence['cleanup']['proven_stopped'] is True
+    assert evidence['root_retained'] is True
+
+
+def test_the_message_count_negative_case_fits_the_frozen_byte_caps(monkeypatch):
+    """The flood negative case is exactly one message too many and it fits."""
+    raw = run_fixture_scenario(monkeypatch, 'message_flood',
+                               fixture_values(run_id=FLOOD_RUN_ID), sixteen_rows())
+    frames = [line for line in raw.split(b'\n') if line]
+    # the real numbers of the wire, computed from the real bytes
+    assert len(frames) == MAX_MESSAGES + 1
+    longest = max(len(frame) + 1 for frame in frames)
+    total = len(raw)
+    assert longest <= MAX_MESSAGE_BYTES
+    assert total <= MAX_STREAM_BYTES
+    # every frame is closed and carries the bound identity
+    for index, frame in enumerate(frames):
+        document = json.loads(frame.decode('utf-8'))
+        assert document['run_id'] == FLOOD_RUN_ID
+        assert document['candidate_sha'] == CANDIDATE_SHA
+        assert document['authorization_sha256'] == AUTHORIZATION_SHA
+        assert document['sequence'] == index + 1
+        assert set(document) == set(MESSAGE_KEYS)
+    # the exact limit is legal, the one over is refused by the count
+    state = ProtocolState(run_id=FLOOD_RUN_ID, candidate_sha=CANDIDATE_SHA,
+                           authorization_sha256=AUTHORIZATION_SHA, plan=plan())
+    for frame in frames[:MAX_MESSAGES]:
+        state.accept(decode_message(frame))
+    assert state.count == MAX_MESSAGES
+    with pytest.raises(SupervisionError) as error:
+        state.accept(decode_message(frames[MAX_MESSAGES]))
+    assert error.value.code == 'MESSAGE_COUNT_EXCEEDED'
+    # the byte budget did not come first
+    assert total <= MAX_STREAM_BYTES
+
+
+def test_the_parent_accepts_exactly_the_message_limit(tmp_path, monkeypatch):
+    """Exactly 1024 messages are legal and the verified terminal still holds."""
+    raw = run_fixture_scenario(monkeypatch, 'message_flood',
+                               fixture_values(run_id=FLOOD_RUN_ID), sixteen_rows())
+    frames = [line for line in raw.split(b'\n') if line]
+    root = tmp_path / 'run'
+    (root / 'temp/s3-quality').mkdir(parents=True)
+    payload = json.dumps({'rows': [{'asset_id': 'SYN-01',
+                                    'execution_status': 'PASS'}]}).encode()
+    (root / 'temp/s3-quality/qd-receipt.json').write_bytes(payload)
+    terminal = encoded(message('TERMINAL',
+                                {'canonical_receipt': {
+                                    'reference': 'temp/s3-quality/qd-receipt.json',
+                                    'bytes': len(payload),
+                                    'sha256': hashlib.sha256(payload).hexdigest()},
+                                 'decision': 'FIXTURE_TERMINAL'},
+                                sequence=MAX_MESSAGES,
+                                run_id=FLOOD_RUN_ID)) + b'\n'
+    exact = b'\n'.join(frames[:MAX_MESSAGES - 1]) + b'\n' + terminal
+    process = FakeProcess()
+    supervisor = make_supervisor(tmp_path, process=process, clock=time.monotonic,
+                                 run_id=FLOOD_RUN_ID, root=root)
+    # the reader of the parent has to run before the wire is written: the
+    # wire is larger than the buffer of a pipe
+    supervisor.start()
+    process.emit_raw(exact)
+    process.close_stdout()
+    process.returncode = 0
+    evidence = supervisor.run()
+    assert evidence['message_count'] == MAX_MESSAGES
+    assert evidence['protocol_violation'] is None
+    assert evidence['terminal_received'] is True
+    assert evidence['canonical_receipt_verified'] is True
+    assert evidence['root_retained'] is False
+
+
+def test_the_parent_refuses_the_one_over_message_count(tmp_path, monkeypatch):
+    """The parent refuses the one over message count on a real pipe."""
+    raw = run_fixture_scenario(monkeypatch, 'message_flood',
+                               fixture_values(run_id=FLOOD_RUN_ID), sixteen_rows())
+    process = FakeProcess()
+
+    def deliver():
+        try:
+            os.write(process.out_write, raw)
+        except OSError:  # noqa: BLE001 - the pipe may be closed
+            pass
+        try:
+            os.close(process.out_write)
+        except OSError:  # noqa: BLE001 - the pipe may be closed
+            pass
+
+    thread = threading.Thread(target=deliver, daemon=True)
+    thread.start()
+    supervisor = make_supervisor(tmp_path, process=process, clock=time.monotonic,
+                                 run_id=FLOOD_RUN_ID)
+    evidence = supervisor.run()
+    thread.join(timeout=5.0)
+    assert evidence['protocol_violation'] == 'MESSAGE_COUNT_EXCEEDED'
+    assert evidence['message_count'] == MAX_MESSAGES
+    # the byte budget of the stream did not come first
+    assert evidence['stdout_overflow'] is False
+    assert evidence['stdout_bytes'] <= MAX_STREAM_BYTES
+    assert evidence['cleanup']['proven_stopped'] is True
+    assert evidence['root_retained'] is True
+
+
+def test_the_stdout_stream_at_the_exact_cap_is_not_refused(tmp_path):
+    """The exact byte budget of a stream is not a refusal."""
+    process = FakeProcess()
+    supervisor = make_supervisor(tmp_path, process=process, clock=time.monotonic)
+    supervisor.start()
+    process.emit_raw(b'x' * MAX_STREAM_BYTES)
+    process.close_stdout()
+    process.returncode = 0
+    evidence = supervisor.run()
+    assert evidence['stdout_overflow'] is False
+    assert evidence['stdout_bytes'] == MAX_STREAM_BYTES
+    assert evidence['protocol_violation'] != STDOUT_STREAM_LIMIT_EXCEEDED
+
+
+def test_the_parent_refuses_an_overlong_stdout_stream(tmp_path):
+    """One byte over the budget of the stream is a stable refusal."""
+    process = FakeProcess()
+    supervisor = make_supervisor(tmp_path, process=process, clock=time.monotonic,
+                                 phase_timeout=5.0)
+    supervisor.start()
+    process.emit_raw(b'x' * (MAX_STREAM_BYTES + 1))
+    process.close_stdout()
+    process.returncode = 0
+    evidence = supervisor.run()
+    assert evidence['protocol_violation'] == STDOUT_STREAM_LIMIT_EXCEEDED
+    assert evidence['stdout_overflow'] is True
+    assert evidence['stream_violation'] == STDOUT_STREAM_LIMIT_EXCEEDED
+    # the retained bytes never exceed the frozen budget of the stream
+    assert evidence['stdout_bytes_retained'] <= MAX_STREAM_BYTES
+    assert evidence['cleanup']['proven_stopped'] is True
+    assert evidence['root_retained'] is True
+    assert evidence['archive_allowed'] is False
+
+
+def test_the_stderr_stream_at_the_exact_cap_is_not_refused(tmp_path):
+    """The exact byte budget of the error stream is not a refusal."""
+    process = FakeProcess()
+    supervisor = make_supervisor(tmp_path, process=process, clock=time.monotonic)
+    supervisor.start()
+    os.write(process.err_write, b'y' * MAX_STREAM_BYTES)
+    os.close(process.err_write)
+    process.close_stdout()
+    process.returncode = 0
+    evidence = supervisor.run()
+    assert evidence['stderr_overflow'] is False
+    assert evidence['stderr_bytes'] == MAX_STREAM_BYTES
+    assert evidence['protocol_violation'] != STDERR_STREAM_LIMIT_EXCEEDED
+
+
+def test_the_parent_refuses_an_overlong_stderr_stream(tmp_path):
+    """One byte over the budget of the error stream is a stable refusal."""
+    process = FakeProcess()
+    supervisor = make_supervisor(tmp_path, process=process, clock=time.monotonic,
+                                 phase_timeout=5.0)
+    supervisor.start()
+    os.write(process.err_write, b'y' * (MAX_STREAM_BYTES + 1))
+    os.close(process.err_write)
+    process.close_stdout()
+    process.returncode = 0
+    evidence = supervisor.run()
+    assert evidence['protocol_violation'] == STDERR_STREAM_LIMIT_EXCEEDED
+    assert evidence['stderr_overflow'] is True
+    assert evidence['cleanup']['proven_stopped'] is True
+    assert evidence['root_retained'] is True
+
+
+def test_the_parent_refuses_a_failing_stdout_reader(tmp_path):
+    """A stream that cannot be read is a stable refusal."""
+    process = UnreadableProcess(stdout=UnreadableStream())
+    supervisor = make_supervisor(tmp_path, process=process, clock=time.monotonic,
+                                 phase_timeout=5.0)
+    evidence = supervisor.run()
+    assert evidence['protocol_violation'] == STDOUT_STREAM_READ_FAILED
+    assert evidence['stdout_read_error'] == 'OSError'
+    assert evidence['cleanup']['proven_stopped'] is True
+    assert evidence['root_retained'] is True
+
+
+def test_the_parent_refuses_a_failing_stderr_reader(tmp_path):
+    """An error stream that cannot be read is a stable refusal."""
+    process = UnreadableProcess(stderr=UnreadableStream())
+    supervisor = make_supervisor(tmp_path, process=process, clock=time.monotonic,
+                                 phase_timeout=5.0)
+    evidence = supervisor.run()
+    assert evidence['protocol_violation'] == STDERR_STREAM_READ_FAILED
+    assert evidence['stderr_read_error'] == 'OSError'
+    assert evidence['cleanup']['proven_stopped'] is True
+    assert evidence['root_retained'] is True
+
+
+def test_a_terminal_with_a_stream_overflow_is_not_a_success(tmp_path):
+    """A terminal of the same batch never hides a stream failure."""
+    root = tmp_path / 'run'
+    (root / 'temp/s3-quality').mkdir(parents=True)
+    payload = json.dumps({'rows': [{'asset_id': 'SYN-01',
+                                    'execution_status': 'PASS'}]}).encode()
+    (root / 'temp/s3-quality/qd-receipt.json').write_bytes(payload)
+    terminal = encoded(message('TERMINAL',
+                                {'canonical_receipt': {
+                                    'reference': 'temp/s3-quality/qd-receipt.json',
+                                    'bytes': len(payload),
+                                    'sha256': hashlib.sha256(payload).hexdigest()},
+                                 'decision': 'FIXTURE_TERMINAL'})) + b'\n'
+    process = FakeProcess()
+    supervisor = make_supervisor(tmp_path, process=process, clock=time.monotonic,
+                                 phase_timeout=5.0)
+    supervisor.start()
+    process.emit_raw(terminal)
+    process.emit_raw(b'x' * (MAX_STREAM_BYTES + 1))
+    process.close_stdout()
+    process.returncode = 0
+    evidence = supervisor.run()
+    assert evidence['protocol_violation'] == STDOUT_STREAM_LIMIT_EXCEEDED
+    assert evidence['terminal_received'] is True
+    assert evidence['unknown_outcome'] is True
+    assert evidence['root_retained'] is True
+    assert evidence['reservation_retained'] is True
+    assert evidence['archive_allowed'] is False
+    assert evidence['next_phase_allowed'] is False
+    assert evidence['cleanup']['proven_stopped'] is True
+
+
+def test_the_blocking_partial_frame_stays_incomplete(tmp_path, monkeypatch):
+    """The deliberately incomplete frame of the persistence case is kept."""
+    raw = run_fixture_scenario(monkeypatch, 'blocking_persistence', fixture_values(),
+                               sixteen_rows())
+    assert not raw.endswith(b'\n')
+    assert b'"run_id":"' in raw
+    process = FakeProcess()
+    supervisor = make_supervisor(tmp_path, process=process, clock=time.monotonic,
+                                 phase_timeout=0.3)
+    supervisor.start()
+    process.emit_raw(raw)
+    evidence = supervisor.run()
+    # only the closed frame of the scenario is a message; the partial frame
+    # is never decoded and never completed
+    assert evidence['message_count'] == 1
+    assert evidence['protocol_violation'] == 'PHASE_DEADLINE_EXCEEDED'
+    assert evidence['stdout_overflow'] is False
+    assert evidence['stdout_bytes_retained'] > 0
+    assert evidence['cleanup']['proven_stopped'] is True
+
+
+def test_the_frozen_caps_of_the_protocol_are_unchanged():
+    """The message and the stream caps of the contract are not relaxed."""
+    assert MAX_MESSAGES == 1024
+    assert MAX_MESSAGE_BYTES == 32 * 1024
+    assert MAX_STREAM_BYTES == 256 * 1024
+    assert STDOUT_STREAM_LIMIT_EXCEEDED == 'STDOUT_STREAM_LIMIT_EXCEEDED'
+    assert STDERR_STREAM_LIMIT_EXCEEDED == 'STDERR_STREAM_LIMIT_EXCEEDED'
+    assert STDOUT_STREAM_READ_FAILED == 'STDOUT_STREAM_READ_FAILED'
+    assert STDERR_STREAM_READ_FAILED == 'STDERR_STREAM_READ_FAILED'
 
 
 # ------------------------------------- the finite CPU executor, zero process

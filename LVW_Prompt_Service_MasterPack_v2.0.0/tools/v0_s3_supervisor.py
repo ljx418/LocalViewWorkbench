@@ -48,11 +48,22 @@ MAX_MESSAGES = 1024
 MAX_STREAM_BYTES = 256 * 1024
 MAX_EVIDENCE_BYTES = 8 * 1024 * 1024
 
+# The stable refusal codes of a child stream that is over its byte budget or
+# that cannot be read any more.  The parent revokes its later actions on
+# such a stream; it never waits for the phase deadline to expire.
+STDOUT_STREAM_LIMIT_EXCEEDED = 'STDOUT_STREAM_LIMIT_EXCEEDED'
+STDERR_STREAM_LIMIT_EXCEEDED = 'STDERR_STREAM_LIMIT_EXCEEDED'
+STDOUT_STREAM_READ_FAILED = 'STDOUT_STREAM_READ_FAILED'
+STDERR_STREAM_READ_FAILED = 'STDERR_STREAM_READ_FAILED'
+
 PHASE_TIMEOUT_SECONDS = 10800
 HISTORY_TIMEOUT_SECONDS = 600
 CHILD_TIMEOUT_SECONDS = 21600
 DEFAULT_GRACE_SECONDS = 5.0
 POLL_INTERVAL_SECONDS = 0.05
+# The bounded wait for the readers of the worker that was stopped.  The
+# readers reach the end of their stream as soon as the worker is gone.
+DRAIN_TIMEOUT_SECONDS = 0.5
 
 
 class SupervisionError(RuntimeError):
@@ -258,6 +269,12 @@ class _StreamReader(threading.Thread):
     The thread only reads bytes.  It never calls the worker, never runs an
     observer and never writes.  The parent loop never blocks on the pipe: it
     drains the collected chunks.
+
+    The reader keeps three separate accounts, because they mean different
+    things: ``total`` is every byte that the stream delivered, ``received``
+    holds those bytes for the evidence and ``chunks`` holds the bytes that
+    the parent has not consumed yet.  A consumed buffer is never reported
+    as an empty stream.
     """
 
     def __init__(self, stream, limit):
@@ -265,6 +282,7 @@ class _StreamReader(threading.Thread):
         self.stream = stream
         self.limit = limit
         self.chunks = []
+        self.received = []
         self.total = 0
         self.overflow = False
         self.error = None
@@ -277,20 +295,39 @@ class _StreamReader(threading.Thread):
                 block = os.read(descriptor, 65536)
                 if not block:
                     break
+                before = self.total
                 self.total += len(block)
                 if self.total > self.limit:
+                    # The bytes that are still inside the budget are kept,
+                    # the rest of the block is dropped: the retained bytes
+                    # never exceed the frozen budget of the stream.
+                    allowed = self.limit - before
+                    if allowed > 0:
+                        self._retain(block[:allowed])
                     self.overflow = True
                     break
-                self.chunks.append(block)
+                self._retain(block)
         except Exception as error:  # noqa: BLE001 - the failure stays visible
             self.error = type(error).__name__
         finally:
             self.finished.set()
 
+    def _retain(self, block):
+        self.chunks.append(block)
+        self.received.append(block)
+
     def take(self):
         chunks = self.chunks
         self.chunks = []
         return b''.join(chunks)
+
+    def raw(self):
+        """Every byte that this reader received, consumed or not."""
+        return b''.join(self.received)
+
+    def retained(self):
+        """The bytes that the parent has not consumed yet."""
+        return sum(len(chunk) for chunk in self.chunks)
 
     def text(self):
         return b''.join(self.chunks).decode('utf-8', 'replace')
@@ -401,6 +438,26 @@ class ParentSupervisor:
             return None
 
     # -- the protocol pump -------------------------------------------------
+    def _stream_failure(self):
+        """The stable refusal code of a stream that failed or overflowed.
+
+        A child stream that is over its frozen byte budget or that cannot be
+        read any more is a resource failure of the supervision itself.  The
+        parent notices it in the same poll interval as the protocol and
+        never waits for the phase deadline to expire.
+        """
+        if self.stdout_reader is not None:
+            if self.stdout_reader.overflow:
+                return STDOUT_STREAM_LIMIT_EXCEEDED
+            if self.stdout_reader.error is not None:
+                return STDOUT_STREAM_READ_FAILED
+        if self.stderr_reader is not None:
+            if self.stderr_reader.overflow:
+                return STDERR_STREAM_LIMIT_EXCEEDED
+            if self.stderr_reader.error is not None:
+                return STDERR_STREAM_READ_FAILED
+        return None
+
     def _consume_stdout(self):
         if self.stdout_reader is None:
             return
@@ -451,10 +508,18 @@ class ParentSupervisor:
         if self.process is None:
             self.start()
         while True:
+            # The protocol is consumed first: a frame that was already
+            # received is never lost.  A stream failure is checked right
+            # after the consumption, so a resource failure revokes the later
+            # actions even when a terminal event of the same batch was read.
             try:
                 self._consume_stdout()
             except SupervisionError as error:
                 self.violation = error.code
+                break
+            failure = self._stream_failure()
+            if failure is not None:
+                self.violation = failure
                 break
             if self.state.terminal is not None:
                 break
@@ -476,6 +541,10 @@ class ParentSupervisor:
                 except SupervisionError as error:
                     self.violation = error.code
                     break
+                failure = self._stream_failure()
+                if failure is not None:
+                    self.violation = failure
+                    break
                 if self.state.terminal is None:
                     self.violation = 'WORKER_EXITED_WITHOUT_TERMINAL'
                     break
@@ -483,9 +552,32 @@ class ParentSupervisor:
             time.sleep(self.poll_interval)
         self.cleanup = self._terminate_owned_worker()
         self.exit_code = self.process.poll()
+        self._drain_streams()
         self._verify_terminal_receipt()
         self._derive_row_status()
         return self.evidence()
+
+    # -- the final drain of the streams -------------------------------------
+    def _drain_streams(self):
+        """Drain the streams of the worker that was stopped.
+
+        The bytes that were received are never lost: the frames that arrive
+        after the last poll are still decoded.  A stream failure that
+        arrives with the last bytes of a stream is never hidden by a
+        terminal event of the same batch: the outcome is unknown and the
+        root and the reservation are retained.
+        """
+        for reader in (self.stdout_reader, self.stderr_reader):
+            if reader is not None:
+                reader.finished.wait(timeout=DRAIN_TIMEOUT_SECONDS)
+        try:
+            self._consume_stdout()
+        except SupervisionError as error:
+            if self.violation is None:
+                self.violation = error.code
+        failure = self._stream_failure()
+        if failure is not None and self.violation is None:
+            self.violation = failure
 
     # -- the cooperative cancel and the owned termination ------------------
     def _request_cooperative_cancel(self):
@@ -619,11 +711,22 @@ class ParentSupervisor:
         """The parent's own evidence of this supervision."""
         stdout_raw = b''
         stderr_raw = b''
+        stdout_bytes = 0
+        stderr_bytes = 0
+        stdout_retained = len(self.stdout_buffer)
+        stderr_retained = 0
         if self.stdout_reader is not None:
-            stdout_raw = self.stdout_reader.take() + bytes(self.stdout_buffer)
+            stdout_raw = self.stdout_reader.raw()
+            stdout_bytes = self.stdout_reader.total
+            stdout_retained += self.stdout_reader.retained()
         if self.stderr_reader is not None:
-            stderr_raw = self.stderr_reader.take()
-        unknown = self.violation is not None and self.state.terminal is None
+            stderr_raw = self.stderr_reader.raw()
+            stderr_bytes = self.stderr_reader.total
+            stderr_retained = self.stderr_reader.retained()
+        # A refusal is never a success: a terminal event that was read in the
+        # same batch does not turn a protocol violation or a stream failure
+        # into a proven outcome.
+        unknown = self.violation is not None
         retained = unknown or not self.receipt_verified
         return {
             'kind': 'lvw.s3-supervision-evidence/1',
@@ -638,12 +741,20 @@ class ParentSupervisor:
             'exit_code': self.exit_code,
             'message_count': self.state.count,
             'message_limit': MAX_MESSAGES,
-            'stdout_bytes': len(stdout_raw),
-            'stderr_bytes': len(stderr_raw),
+            'stream_byte_limit': MAX_STREAM_BYTES,
+            'stdout_bytes': stdout_bytes,
+            'stderr_bytes': stderr_bytes,
+            'stdout_bytes_retained': stdout_retained,
+            'stderr_bytes_retained': stderr_retained,
             'stdout_sha256': sha256_bytes(stdout_raw),
             'stderr_sha256': sha256_bytes(stderr_raw),
             'stdout_overflow': bool(self.stdout_reader and self.stdout_reader.overflow),
             'stderr_overflow': bool(self.stderr_reader and self.stderr_reader.overflow),
+            'stdout_read_error': (self.stdout_reader.error if self.stdout_reader
+                                  is not None else None),
+            'stderr_read_error': (self.stderr_reader.error if self.stderr_reader
+                                  is not None else None),
+            'stream_violation': self._stream_failure(),
             'phase_timeout_seconds': self.phase_timeout,
             'history_timeout_seconds': self.history_timeout,
             'child_timeout_seconds': self.child_timeout,

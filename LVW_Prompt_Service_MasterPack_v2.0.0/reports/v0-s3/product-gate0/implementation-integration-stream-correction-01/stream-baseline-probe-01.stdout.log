@@ -1,0 +1,23 @@
+{
+  "baseline": "01453ee07b4774a55711c5cf5642c12d0394a35c",
+  "kind": "lvw.s3-stream-correction-baseline-probe/1",
+  "message_flood": {
+    "frames": 1201,
+    "inside_stream_byte_cap": false,
+    "note": "the baseline wrote more messages than the cap allows; the byte budget of the stream was reached before the count of the messages was reached",
+    "stream_byte_cap": 262144,
+    "total_bytes": 356940
+  },
+  "nonfinite_number": {
+    "bytes": 270,
+    "complete_jsonl_frame": false,
+    "ends_with_newline": false,
+    "note": "the baseline wrote the NaN line without its frame end, so the parent never decoded it and the refusal fell back to the phase deadline"
+  },
+  "supervisor": {
+    "has_stream_failure_detection": false,
+    "max_messages": 1024,
+    "max_stream_bytes": 262144,
+    "stable_codes": []
+  }
+}

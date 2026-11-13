@@ -7,13 +7,17 @@ one member of a closed enumeration, the arguments are a closed set and the
 entry never runs a shell, a native executable or a service.
 
 The entry installs its own zero network and zero descendant process guard
-*before* it imports anything, so neither this file nor any module that it
-imports afterwards can open a socket, resolve a name or start a process.
+*before* it imports the product module, so neither this file nor any module
+that it imports afterwards can open a socket, resolve a name or start a
+process.  The guard is registered by the ``__main__`` entry only: importing
+this file as a module - the parent test process does exactly that - never
+registers an audit hook and never closes the process gate of that process.
 
 Every scenario writes the supervision protocol on its standard output and
 then stops.  The scenarios exist to show how the *parent* reacts; they never
 prove a product behaviour, a native Windows release or a quality result.
 """
+import hashlib
 import json
 import os
 import sys
@@ -45,16 +49,60 @@ BLOCKED_EVENTS = (
     'os.forkpty',
 )
 
+# The witness of the boundary guard of this module.  Only the one function
+# that registers the audit hook sets it, so it can never be true while the
+# hook is not really active.
+BOUNDARY_GUARD_INSTALLED = False
+
+# The product constants, loaded behind the boundary guard.
+_PRODUCT = None
+
+# The outcome of a scenario that has to stay alive until the parent stops it.
+BLOCK_FOREVER = 'BLOCK_FOREVER'
+
 
 def _audit_hook(event, arguments):
     if event in BLOCKED_EVENTS:
         raise FixtureBoundaryViolation('fixture boundary violation: ' + event)
 
 
-# The guard is installed before every import of this entry.
-sys.addaudithook(_audit_hook)
+def install_boundary_guard():
+    """Install the zero network and zero descendant process guard.
 
-from tools.v0_s3_supervisor import MESSAGE_KEYS, PROTOCOL_SCHEMA  # noqa: E402
+    This call is the only place that registers the audit hook of this
+    module.  The ``__main__`` entry performs it *before* the product module
+    is imported, so neither this file nor any module that it imports
+    afterwards can open a socket, resolve a name or start a process.
+    """
+    global BOUNDARY_GUARD_INSTALLED
+    if BOUNDARY_GUARD_INSTALLED:
+        return False
+    sys.addaudithook(_audit_hook)
+    BOUNDARY_GUARD_INSTALLED = True
+    return True
+
+
+def product():
+    """The product constants of the protocol, loaded behind the guard.
+
+    The import is deliberately lazy.  The ``__main__`` entry installs the
+    boundary guard first and the guard refuses to be missing, so the product
+    code is never imported in a process that could open a socket or start a
+    process.  A module import of this file never touches the product code.
+    """
+    global _PRODUCT
+    if _PRODUCT is None:
+        if __name__ == '__main__' and not BOUNDARY_GUARD_INSTALLED:
+            raise SystemExit('FIXTURE_GUARD_MISSING')
+        from tools.v0_s3_supervisor import (MAX_MESSAGE_BYTES, MAX_MESSAGES,
+                                            MAX_STREAM_BYTES, MESSAGE_KEYS,
+                                            PROTOCOL_SCHEMA)
+        _PRODUCT = {'schema': PROTOCOL_SCHEMA, 'message_keys': MESSAGE_KEYS,
+                    'max_messages': MAX_MESSAGES,
+                    'max_message_bytes': MAX_MESSAGE_BYTES,
+                    'max_stream_bytes': MAX_STREAM_BYTES}
+    return _PRODUCT
+
 
 SCENARIOS = (
     'clean_terminal',
@@ -130,14 +178,23 @@ class Writer:
         run_id, candidate, authorization = identity or (
             self.values['run_id'], self.values['candidate_sha'],
             self.values['authorization_sha256'])
-        return {'schema': PROTOCOL_SCHEMA, 'run_id': run_id, 'candidate_sha': candidate,
-                'authorization_sha256': authorization, 'sequence': sequence,
-                'event': event, 'payload': payload}
+        return {'schema': product()['schema'], 'run_id': run_id,
+                'candidate_sha': candidate, 'authorization_sha256': authorization,
+                'sequence': sequence, 'event': event, 'payload': payload}
+
+    @staticmethod
+    def encode(message):
+        """The exact wire bytes of one message, without the frame end.
+
+        The encoding is the compact, sorted form of the protocol.  It is a
+        pure function of the message, so the wire of a scenario can be
+        computed before a single byte is written.
+        """
+        return json.dumps(message, ensure_ascii=False, sort_keys=True,
+                          separators=(',', ':')).encode('utf-8')
 
     def write(self, message):
-        raw = json.dumps(message, ensure_ascii=False, sort_keys=True,
-                         separators=(',', ':')).encode('utf-8')
-        sys.stdout.buffer.write(raw + b'\n')
+        sys.stdout.buffer.write(self.encode(message) + b'\n')
         sys.stdout.buffer.flush()
 
     def write_raw(self, raw):
@@ -166,9 +223,14 @@ def terminal_reference(values):
     path = os.path.join(root, reference)
     with open(path, 'rb') as stream:
         raw = stream.read()
-    import hashlib
     return {'reference': reference, 'bytes': len(raw),
             'sha256': hashlib.sha256(raw).hexdigest()}
+
+
+def block_forever():
+    """Stay alive until the parent stops the held process."""
+    while True:
+        time.sleep(3600)
 
 
 def scenario_clean_terminal(writer, values, rows):
@@ -187,6 +249,7 @@ def scenario_clean_terminal(writer, values, rows):
     writer.write(writer.message('TERMINAL',
                                 {'canonical_receipt': terminal_reference(values),
                                  'decision': 'FIXTURE_TERMINAL'}))
+    return None
 
 
 def scenario_blocking_callback(writer, values, rows):
@@ -196,8 +259,7 @@ def scenario_blocking_callback(writer, values, rows):
     # The scenario blocks exactly like a callback that never returns.  The
     # parent has to stop the process that it holds; it cannot accept a
     # timeout text instead.
-    while True:
-        time.sleep(3600)
+    return BLOCK_FOREVER
 
 
 def scenario_blocking_persistence(writer, values, rows):
@@ -205,10 +267,11 @@ def scenario_blocking_persistence(writer, values, rows):
                                              'plan_rows': len(rows),
                                              'driver': 'fixture'}))
     # A partial line: the message is never terminated, so the protocol is
-    # unresolved and the parent has to stop the held process.
-    writer.write_raw(b'{"schema":"' + PROTOCOL_SCHEMA.encode('utf-8') + b'","run_id":"')
-    while True:
-        time.sleep(3600)
+    # unresolved and the parent has to stop the held process.  The raw byte
+    # semantics of ``write_raw`` are kept exactly: the frame stays
+    # incomplete on purpose.
+    writer.write_raw(b'{"schema":"' + product()['schema'].encode('utf-8') + b'","run_id":"')
+    return BLOCK_FOREVER
 
 
 def scenario_history_replay(writer, values, rows):
@@ -219,8 +282,7 @@ def scenario_history_replay(writer, values, rows):
         payload = {'asset_id': rows[0]['asset_id'], 'ordinal': rows[0]['ordinal']}
         writer.write(writer.message('HISTORY_WAIT_STARTED', dict(payload)))
         writer.write(writer.message('HISTORY_WAIT_STARTED', dict(payload)))
-    while True:
-        time.sleep(3600)
+    return BLOCK_FOREVER
 
 
 def scenario_sequence_reversal(writer, values, rows):
@@ -229,8 +291,7 @@ def scenario_sequence_reversal(writer, values, rows):
                                              'driver': 'fixture'}, sequence=2))
     writer.write(writer.message('PROGRESS', {'rows_finished': 0, 'rows_total': len(rows)},
                                 sequence=1))
-    while True:
-        time.sleep(3600)
+    return BLOCK_FOREVER
 
 
 def scenario_duplicate_sequence(writer, values, rows):
@@ -239,8 +300,7 @@ def scenario_duplicate_sequence(writer, values, rows):
                                              'driver': 'fixture'}, sequence=1))
     writer.write(writer.message('PROGRESS', {'rows_finished': 0, 'rows_total': len(rows)},
                                 sequence=1))
-    while True:
-        time.sleep(3600)
+    return BLOCK_FOREVER
 
 
 def scenario_oversize_message(writer, values, rows):
@@ -249,8 +309,7 @@ def scenario_oversize_message(writer, values, rows):
                                              'driver': 'fixture'}))
     payload = {'rows_total': len(rows), 'filler': 'x' * 40000}
     writer.write(writer.message('PROGRESS', payload))
-    while True:
-        time.sleep(3600)
+    return BLOCK_FOREVER
 
 
 def scenario_foreign_identity(writer, values, rows):
@@ -258,8 +317,7 @@ def scenario_foreign_identity(writer, values, rows):
                                              'plan_rows': len(rows),
                                              'driver': 'fixture'},
                                 identity=('foreign-run', 'c' * 40, 'd' * 64)))
-    while True:
-        time.sleep(3600)
+    return BLOCK_FOREVER
 
 
 def scenario_unexpected_field(writer, values, rows):
@@ -268,37 +326,90 @@ def scenario_unexpected_field(writer, values, rows):
                                           'driver': 'fixture'})
     message['unexpected'] = True
     writer.write(message)
-    while True:
-        time.sleep(3600)
+    return BLOCK_FOREVER
 
 
 def scenario_nonfinite_number(writer, values, rows):
-    writer.write_raw(b'{"schema":"' + PROTOCOL_SCHEMA.encode('utf-8') + b'",'
-                     b'"run_id":"' + values['run_id'].encode('utf-8') + b'",'
-                     b'"candidate_sha":"' + values['candidate_sha'].encode('utf-8') + b'",'
-                     b'"authorization_sha256":"'
-                     + values['authorization_sha256'].encode('utf-8') + b'",'
-                     b'"sequence":1,"event":"STARTED","payload":{"value":NaN}}')
-    while True:
-        time.sleep(3600)
+    """The nonfinite number negative case.
+
+    The frame is *complete*: it carries the whole protocol message and it is
+    terminated by the newline of the JSONL protocol.  The parent really
+    decodes it and the parser refuses the NaN.  The raw byte semantics of
+    ``write_raw`` are not used here and are not changed anywhere else.
+    """
+    writer.write(writer.message('STARTED', {'root': values['root'] or '',
+                                             'plan_rows': len(rows),
+                                             'driver': 'fixture',
+                                             'value': float('nan')}))
+    return BLOCK_FOREVER
 
 
 def scenario_early_exit(writer, values, rows):
     writer.write(writer.message('STARTED', {'root': values['root'] or '',
                                              'plan_rows': len(rows),
                                              'driver': 'fixture'}))
-    return 0
+    return None
+
+
+def flood_messages(values, rows):
+    """The exact messages of the message count negative case.
+
+    The list holds exactly ``MAX_MESSAGES + 1`` complete messages: the
+    ``STARTED`` message and the progress messages that follow it.  Every
+    message is closed, carries the identity of the context document and has
+    an empty payload, so the frozen byte budget of the stream cannot hide
+    the message count.
+    """
+    schema = product()['schema']
+    count = product()['max_messages'] + 1
+    messages = []
+    for sequence in range(1, count + 1):
+        if sequence == 1:
+            event = 'STARTED'
+            payload = {'root': values.get('root') or '', 'plan_rows': len(rows),
+                       'driver': 'fixture'}
+        else:
+            event = 'PROGRESS'
+            payload = {}
+        messages.append({'schema': schema, 'run_id': values['run_id'],
+                         'candidate_sha': values['candidate_sha'],
+                         'authorization_sha256': values['authorization_sha256'],
+                         'sequence': sequence, 'event': event,
+                         'payload': payload})
+    return messages
+
+
+def flood_wire(values, rows):
+    """The exact wire bytes of the message count negative case.
+
+    The wire is computed before a single byte is written: the number of
+    frames, the length of every frame and the total number of bytes are
+    real values, not estimates.
+    """
+    frames = [Writer.encode(message) + b'\n'
+              for message in flood_messages(values, rows)]
+    return frames
 
 
 def scenario_message_flood(writer, values, rows):
-    writer.write(writer.message('STARTED', {'root': values['root'] or '',
-                                             'plan_rows': len(rows),
-                                             'driver': 'fixture'}))
-    for index in range(1200):
-        writer.write(writer.message('PROGRESS', {'rows_finished': index,
-                                                  'rows_total': len(rows)}))
-    while True:
-        time.sleep(3600)
+    """The message count negative case: exactly one message too many.
+
+    The wire is bounded *before* it is written.  If the frames of this
+    negative case did not fit into the frozen byte caps, the byte budget
+    would hide the message count and the scenario would refuse itself
+    instead of proving the wrong reason.
+    """
+    limits = product()
+    frames = flood_wire(values, rows)
+    total = sum(len(frame) for frame in frames)
+    longest = max(len(frame) for frame in frames)
+    if (len(frames) != limits['max_messages'] + 1
+            or longest > limits['max_message_bytes']
+            or total > limits['max_stream_bytes']):
+        raise SystemExit('FIXTURE_WIRE_BUDGET_EXCEEDED')
+    for frame in frames:
+        writer.write_raw(frame)
+    return BLOCK_FOREVER
 
 
 def scenario_bad_terminal_reference(writer, values, rows):
@@ -310,8 +421,7 @@ def scenario_bad_terminal_reference(writer, values, rows):
                                                        'bytes': 10,
                                                        'sha256': '0' * 64},
                                  'decision': 'FIXTURE_TERMINAL'}))
-    while True:
-        time.sleep(3600)
+    return BLOCK_FOREVER
 
 
 SCENARIO_FUNCTIONS = {
@@ -336,9 +446,13 @@ def main(argv=None):
     rows = load_plan(values['plan'])
     writer = Writer(values)
     handler = SCENARIO_FUNCTIONS[values['scenario']]
-    handler(writer, values, rows)
+    outcome = handler(writer, values, rows)
+    if outcome == BLOCK_FOREVER:
+        block_forever()
     return 0
 
 
 if __name__ == '__main__':
+    # The guard is installed before the product module is imported.
+    install_boundary_guard()
     sys.exit(main())

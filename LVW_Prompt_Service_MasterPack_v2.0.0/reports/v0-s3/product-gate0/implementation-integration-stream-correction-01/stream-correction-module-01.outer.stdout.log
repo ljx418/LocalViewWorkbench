@@ -1,0 +1,36 @@
+.................................sssssssssssss...............F.......... [ 53%]
+...............................s...............................          [100%]
+=================================== FAILURES ===================================
+___________ test_a_terminal_with_a_stream_overflow_is_not_a_success ____________
+
+tmp_path = PosixPath('/tmp/pytest-of-administrator/pytest-73/test_a_terminal_with_a_stream_0')
+
+    def test_a_terminal_with_a_stream_overflow_is_not_a_success(tmp_path):
+        """A terminal of the same batch never hides a stream failure."""
+        root = tmp_path / 'run'
+        (root / 'temp/s3-quality').mkdir(parents=True)
+        payload = json.dumps({'rows': [{'asset_id': 'SYN-01',
+                                        'execution_status': 'PASS'}]}).encode()
+        (root / 'temp/s3-quality/qd-receipt.json').write_bytes(payload)
+        terminal = encoded(message('TERMINAL',
+                                    {'canonical_receipt': {
+                                        'reference': 'temp/s3-quality/qd-receipt.json',
+                                        'bytes': len(payload),
+                                        'sha256': hashlib.sha256(payload).hexdigest()},
+                                     'decision': 'FIXTURE_TERMINAL'})) + b'\n'
+        process = FakeProcess()
+        supervisor = make_supervisor(tmp_path, process=process, clock=time.monotonic,
+                                     phase_timeout=5.0)
+        supervisor.start()
+        process.emit_raw(terminal)
+        process.emit_raw(b'x' * (MAX_STREAM_BYTES + 1))
+        process.close_stdout()
+        process.returncode = 0
+        evidence = supervisor.run()
+>       assert evidence['protocol_violation'] == STDOUT_STREAM_LIMIT_EXCEEDED
+E       AssertionError: assert None == 'STDOUT_STREAM_LIMIT_EXCEEDED'
+
+tools/test_v0_s3_supervisor.py:1224: AssertionError
+=========================== short test summary info ============================
+FAILED tools/test_v0_s3_supervisor.py::test_a_terminal_with_a_stream_overflow_is_not_a_success
+1 failed, 120 passed, 14 skipped in 58.07s
