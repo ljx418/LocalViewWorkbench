@@ -1,0 +1,1 @@
+内部工具接口迁移记录：correction01已冻结要求controller/worker的--context-sha256和build_production_command(context_path, *, context_sha256=...)必填；期望值须来自root预封存数据，不能worker自行重算。缺失拒绝是设计行为。登记内部破坏性变更并同步所有仓库调用方；不改变产品HTTP/API/Schema、固定分母或阈值，也不推断外部未登记调用已兼容。真实native入口当前硬拒绝，待可信后端独立冻结。本次允许运行根内temp/s3-production-controller/receipt-<run_id>.json排他终态收据，与预约/summary同一安全I/O边界，失败显式未持久化，不覆盖旧文件。
