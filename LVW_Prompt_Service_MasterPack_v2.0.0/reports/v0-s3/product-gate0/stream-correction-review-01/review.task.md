@@ -1,0 +1,13 @@
+独立Codex审查者，未参与实现，不继承作者结论，不派生Agent。审查LVW候选626d37cf59bfc69324c1a9f886a65cd3f8c56964相对01453ee的流与fixture纠偏。root主包 /mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0。先读root AGENTS/当前control/parallel-execution/冻结offline合同，fixture-stream-correction-01/{decision.json,contract.md,原final04原始receipt/stdout/stderr/outer-returncode}，最后才对照作者总结。
+现有隔离review worktree先落盘状态，干净则checkout --detach候选（对象共享、不fetch），不reset/clean、不动root/实现树。只可NEW reports/v0-s3/product-gate0/independent-stream-correction-01/写报告/诊断/日志并提交；候选/公共合同/32KiB/1024/256KiB阈值/固定24/control/MANIFEST不改。
+严格零fixture/网络/模型GPU/服务/原ledger；不执行带binding runner。原counter /tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json只读，inactive、starts15（implementation15）、reserved180/180、spent8.446、3SETTLED、旧2REFUSED_BEFORE_FORK和新13持久终态；前后hash不变，不退款/清零/新counter/复跑。
+独立复验三个源全部改动 tools/v0_s3_supervisor.py、tools/fixtures/v0_s3_supervisor_fixture.py、tools/test_v0_s3_supervisor.py：
+1 NaN真实生成完整JSONL且由生产decode/父读路径拒绝；write_raw仍原始，blocking_persistence故意partial保持。
+2 flood恰好1025合法帧，每帧闭合7keys/sequence/identity，candidate40/auth64不缩短；短合成run_id父context+child一致，无production身份替换。亲自算完整wire bytes/1024exact/1025over，count错误在bytecap之前可达；不能以timeout换绿。
+3 stdout/stderr exact256KiB与one-over、读错误及时稳定拒绝，父只cleanup原持句柄；检查同批TERMINAL及late overflow/read-error、最后drain **未完成**（reader.finished.wait返回false/挂起）是否仍能假成功。有限等待不是已完成证明，未决I/O应failclosed而非daemon线程即清理。不要新增本轮以外通用平台要求。
+4 take/retain/父buffer并发交接不丢预算内帧，保留/总数/hash语义真实（超限时hash到底是prefix还是all-observed必须诚实），所有实际存储/报告保持有界；检查消费后空缓存不是原流为空。并发问题须可复现受控调度或真实管道证据，不能仅凭无lock就算Major。
+5 fixture作为父collection安全import不安装关闭Popen的第二hook，子__main__仍在产品导入前安装网络/后代guard，prodentry实际接线不以常量存在替代。旧7项审计/顺序结算及所有固定期限在未改source处保持；stream新增drain不可偷偷越child/sessiondeadline或把未证cleanup标PASS。
+root stream-correction-review-01/new-tests-derived.json给出AST新增18函数名（可能参数化成19检查），仅作选择，不是通过证据。用候选无binding生产runner --mode suite --modules 逗号连接18个精确函数nodeids --label independent-stream-focused --outdir 本目录；一次guard4。同目录外层pre-import硬守卫在任何候选import前禁真实进程/网络，必要允许受控os.pipe/线程和synthetic sys.audit，不实际子进程。只执行这一必要选择集及独立必要负例，不机械重跑135/121/117/71/257，deselected/SKIP不得PASS。正常有界流/原协议及deadline需要时用小量针对性补充。
+自主构造真实Writer/ProtocolState/ParentSupervisor读路径负例（不是作者19/35计数复制），用受控fake handles/reader/os.pipe；验证新稳定码 STDOUT_STREAM_LIMIT_EXCEEDED/STDERR_STREAM_LIMIT_EXCEEDED/STDOUT_STREAM_READ_FAILED/STDERR_STREAM_READ_FAILED 的oracle。流/协议同时违反时记录实际优先级，不靠替换原预期过关。未决终局/late error需覆盖。
+完整真实外层命令/returncode/rawstdoutstderr/hash，外层文件名不能覆runner日志。原final04是旧候选11PASS2FAIL，逐字保留，未执行新真实13不能复用成新candidatePASS。作者首轮模块失败发现late-overflow真实race可只读核对，不必重复整套模块；将正常有依据复验与无意义机械重复区分记录。
+一次汇总F/M/m：位置/触发/预期实际/复现与证据，F0M0也须实证与限制；源码hash、原counter前后hash。真实13、全24、WindowsGPU/A06/ledger仍NOTPROVEN，不能签StagePASS。可提交仅新报告，worker_done后root归档回收窗口，默认不keep-open。
