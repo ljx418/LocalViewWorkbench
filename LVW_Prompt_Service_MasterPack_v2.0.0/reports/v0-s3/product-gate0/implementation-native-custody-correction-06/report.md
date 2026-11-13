@@ -244,6 +244,30 @@ The failed candidate `0e83077321186b52c7e3826efbbf92c143737b0f` and the failed
 batch of the root are **not** overwritten and the receipt of the root is not
 touched.
 
+The root acknowledged the plan (`msg_80589155e219`,
+`ACK_ONE_FROZEN_157_NODE_OFFLINE_BATCH`, plan SHA256
+`65e9df9904e297d0f5c76f756b5d6070f2437375f3b6a65eb2f9d0a0b85a2251`) and the one
+frozen batch was executed **once**, in the order of the three frozen commands,
+with their original argv and their original cwd.  **The batch passed**: 157
+collected, 157 passed, 0 failed, 0 skipped, pytest exit 0 and
+`cleanup_proven_for_batch` **true**.  There was no rerun, no wrapper, no
+overwritten candidate and no self repair.
+
+The evidence of the batch, the receipt of the runner (whose file name is
+inherited from the root runner and is
+`native-custody-correction-03.receipt.json`, written **only** into the NEW
+`attempt01` directory of this correction), the guard record, the two read only
+observations of the counter and the per node results are in
+`attempt01/execution-report.md` and in `attempt01/commands.json` of this
+directory.
+
+The six open majors of the isolated review of the predecessor stay open: a
+green batch is **not** a closed major, and the independent review keeps its own
+verdict on the four points that the review notes of the root name - the
+concurrency of the initialisation of the deadline, the recovery of the retained
+resources, the owner of a background start that did not return and the
+difference between the end of the attempt and the exit of the thread.
+
 ## 7. The files of this delivery
 
 * `tools/v0_s3_native_custody.py` — the parent side: the public stop and its

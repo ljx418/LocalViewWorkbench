@@ -1,0 +1,92 @@
+{
+ "kind": "lvw.n1-correction-06-executed-commands/1",
+ "frozen_plan": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-06/validation-plan-01/plan.json",
+ "frozen_plan_sha256": "65e9df9904e297d0f5c76f756b5d6070f2437375f3b6a65eb2f9d0a0b85a2251",
+ "frozen_plan_ack": {
+  "message_id": "msg_80c338b843bb",
+  "decision": "ACK_ONE_FROZEN_157_NODE_OFFLINE_BATCH",
+  "candidate_sha": "4287090b464d16f398b92797d8f5595359fcb442",
+  "plan_sha256": "65e9df9904e297d0f5c76f756b5d6070f2437375f3b6a65eb2f9d0a0b85a2251",
+  "all157_order_unchanged": true,
+  "obligation_groups": 24,
+  "source_file_pins": 19,
+  "dependency_file_pins": 223,
+  "stdlib_pins": 3,
+  "old_owner_literals_verified": 10,
+  "batches_max": 1,
+  "max_seconds": 300,
+  "stage_pass_claim": false,
+  "native_proven": false,
+  "human_authorization_required": false
+ },
+ "candidate_sha": "4287090b464d16f398b92797d8f5595359fcb442",
+ "node_count": 157,
+ "node_order_is_binding": true,
+ "node_order_unchanged_against_the_failed_batch": true,
+ "batches_max": 1,
+ "max_seconds": 300,
+ "batch_wall_seconds": 21.732,
+ "commands": [
+  {
+   "label": "counter-before",
+   "argv": [
+    "/usr/bin/python3.12",
+    "-I",
+    "-B",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-06/validation-plan-01/outer_counter_read.py",
+    "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-correction-06/attempt01/counter-before.json"
+   ],
+   "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+   "exit_code": 0,
+   "wall_seconds": 0.047,
+   "stdout": "counter-before.stdout.log",
+   "stderr": "counter-before.stderr.log",
+   "outer_bound": "the plan max_seconds of 300 was applied with the timeout(1) of the shell; the argv, the cwd and the order of the three commands are the frozen ones and they were executed exactly once"
+  },
+  {
+   "label": "guarded-validation",
+   "argv": [
+    "/usr/bin/python3.12",
+    "-I",
+    "-B",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-06/validation-plan-01/guard.py",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-06/validation-plan-01/runner.py",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-correction-06/attempt01/native-custody-correction-06.guard.json"
+   ],
+   "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+   "exit_code": 0,
+   "wall_seconds": 21.656,
+   "stdout": "native-custody-correction-06.stdout.log",
+   "stderr": "native-custody-correction-06.stderr.log",
+   "outer_bound": "the plan max_seconds of 300 was applied with the timeout(1) of the shell; the argv, the cwd and the order of the three commands are the frozen ones and they were executed exactly once"
+  },
+  {
+   "label": "counter-after",
+   "argv": [
+    "/usr/bin/python3.12",
+    "-I",
+    "-B",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-06/validation-plan-01/outer_counter_read.py",
+    "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-correction-06/attempt01/counter-after.json"
+   ],
+   "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+   "exit_code": 0,
+   "wall_seconds": 0.029,
+   "stdout": "counter-after.stdout.log",
+   "stderr": "counter-after.stderr.log",
+   "outer_bound": "the plan max_seconds of 300 was applied with the timeout(1) of the shell; the argv, the cwd and the order of the three commands are the frozen ones and they were executed exactly once"
+  }
+ ],
+ "receipt_file": "native-custody-correction-03.receipt.json",
+ "receipt_file_note": "The name of the receipt file is inherited from the root runner and it is the receipt of THIS run.  It was written only into this NEW directory of the correction 06; the receipt of the correction 05 lives in another directory and it was not read, not copied and not overwritten.",
+ "guard_file": "native-custody-correction-06.guard.json",
+ "executed_once": true,
+ "rerun": false,
+ "wrapper": false,
+ "self_repair": false,
+ "stage_pass_claim": false,
+ "native_proven": false,
+ "product_gate0": false
+}
