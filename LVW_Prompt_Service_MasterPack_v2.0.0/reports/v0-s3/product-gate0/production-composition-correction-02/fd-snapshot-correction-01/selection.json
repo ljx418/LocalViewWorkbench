@@ -1,0 +1,35 @@
+{
+  "scope": "concentrated_directed_scope_correction_02",
+  "batches": 1,
+  "positive_example": "tools/test_v0_s3_production_composition.py::test_the_formal_entry_runs_the_whole_chain_and_persists_the_summary",
+  "directed_probes": [
+    "tools/test_v0_s3_production_composition.py::test_an_actual_worker_reference_is_read_through_its_anchor",
+    "tools/test_v0_s3_production_composition.py::test_the_parsed_canonical_receipt_is_bound_to_the_bytes_that_were_hashed",
+    "tools/test_v0_s3_production_composition.py::test_the_output_identity_of_the_run_is_bound_before_every_write",
+    "tools/test_v0_s3_production_composition.py::test_a_formal_obligation_is_never_a_pass_of_a_synthetic_run",
+    "tools/test_v0_s3_production_composition.py::test_an_ordinary_storage_failure_keeps_a_structured_unknown",
+    "tools/test_v0_s3_production_composition.py::test_the_formal_entry_runs_the_whole_chain_and_persists_the_summary"
+  ],
+  "composition_file": "tools/test_v0_s3_production_composition.py",
+  "compatibility_nodes": [
+    "tools/test_v0_s3_supervisor.py::test_the_worker_really_invokes_the_quality_phase",
+    "tools/test_v0_s3_supervisor.py::test_the_history_wait_is_announced_before_the_row_finishes",
+    "tools/test_v0_s3_supervisor.py::test_a_context_with_a_wrong_seal_is_refused",
+    "tools/test_v0_s3_supervisor.py::test_a_context_with_an_unknown_key_is_refused",
+    "tools/test_v0_s3_supervisor.py::test_the_production_command_is_the_fixed_worker",
+    "tools/test_v0_s3_supervisor.py::test_the_production_command_carries_the_pre_sealed_context_hash"
+  ],
+  "rationale": "the five open code findings of the independent review are driven one by one through the formal entry, the one formal positive example of the whole chain is inside the same composition file, and the compatibility nodes of the frozen owners are the six nodes that the correction 01 already froze, because the worker context of the frozen owner changed with the declared anchors of the data references; the old 60/71/123/84/13/41/186/257/449/94 denominators are not rerun and are not counted here",
+  "not_rerun": [
+    "the 60 node author suite",
+    "the 71 node review suite",
+    "the 84 node integration suite",
+    "the 13 node fixture suite",
+    "the 41 node supervisor suite",
+    "the 186 and 257 node suites",
+    "the 449 and 94 node compatibility batches",
+    "the original ledger",
+    "any native execution",
+    "any model, GPU, service, download or user media"
+  ]
+}

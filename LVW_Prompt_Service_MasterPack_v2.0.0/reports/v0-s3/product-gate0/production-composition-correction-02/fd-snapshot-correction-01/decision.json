@@ -1,0 +1,31 @@
+{
+  "status": "LIMITED_FD_SNAPSHOT_REPAIR_ALLOWED_TEST_EXECUTION_NOT_YET_ACKED",
+  "question_id": "msg_01bdc0063ebb",
+  "attempt02_actual": {
+    "collected": 19,
+    "invocations": 19,
+    "pass": 18,
+    "fail": 1,
+    "skip": 0,
+    "failed_node": "test_the_formal_entry_runs_the_whole_chain_and_persists_the_summary",
+    "assertion": "fd_cleanup.fd_leaked == []",
+    "actual": [
+      8
+    ]
+  },
+  "root_stdlib_probe": {
+    "scope": "No candidate import; os.open/os.listdir/os.fstat only",
+    "observation": "os.listdir(directory_fd) returned an extra descriptor which fstat reported EBADF after enumeration. Old snapshot retained it. Baseline false4 changes to false6 with two owned anchors.",
+    "limit": "Does not prove the exact identity of candidate FD8; snapshot defect is independently reproduced, actual FD8 needs runtime valid-fd evidence."
+  },
+  "allowed_change": "Controller snapshot validity filtering and targeted positive/negative snapshot tests only; keep source/root ownership, original evidence and failure records.",
+  "forbidden_shortcut": [
+    "gc.collect as proof or cure",
+    "ignore descriptor8 or all high numbers",
+    "delete/skip/weaken fd_cleanup assertion",
+    "close arbitrary descriptors by enumeration",
+    "reorder/reopen pinned directory handles to avoid detection"
+  ],
+  "verification_next": "Prepare exact original19 +2 snapshot tests plan with new source/tool hashes; ask root before any candidate import/collection/test. No automatic attempt03.",
+  "stage_pass_claim": false
+}
