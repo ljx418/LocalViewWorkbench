@@ -241,3 +241,33 @@ root 纠正包 02 只授权**静态最小纠正**，不是执行 ACK。允许改
 
 本轮**未**运行候选导入、collection、pytest 或任何真实 Windows/GPU/服务动作；
 真实 Windows 仍 NOT_PROVEN，仍只报告 READY_FOR_REVIEW，不签 Stage PASS。
+
+## 11. 追加：第二批（纠正包 02）的逐组结果与仍然开放的一项（追加；§1–§10 的正文不改）
+
+第二批（root 冻结包 `validation-plan-02`，plan sha256 `469681a3…7537`，ACK `msg_fcb853286529`，
+候选 `895bfb9`）：**133 calls / 130 通过 / 3 失败 / 0 跳过**，pytest exit 1，
+`cleanup_proven_for_batch = false`，用时 12.21 s。**机器逐 node 复算**：旧 117 组
+**115 通过 / 2 失败**，新增 16 组 **15 通过 / 1 失败**。
+
+* 纠正包 02 的三项纠正**生效**：A（`_remaining` 遮蔽）消除——批末残留 pump 线程 **14 → 0**、
+  通过数 **115 → 130**；C（R04 组合失败点）与 D（R05 重复 stop）两条新用例通过；
+  B（租约场景分离）生效——旧 `test_the_absolute_lease_stops_the_round` 回到 **exit 4**，
+  N03-R07 的启动期到期拒绝独立成立。
+* **仍然开放的 1 项生产缺陷**（三个失败节点同源）：会话的 `_close_broker()` 在**开始关闭
+  之前**置位 `_close_attempted`，第二个调用者看到该标志就**立即返回**、**不等待**正在
+  进行的关闭；心跳/泵失败时由 `_start_bounded_close()` 启动的 **closer 线程**正是这样拿到
+  关闭的，于是 `start()` 的失败路径（取消、parse error、心跳启动失败）在**原 broker 尚未
+  关闭**时就返回，`close_count == 0`。这是相对 `46af977`（关闭为同步动作、同断言 117/117
+  全绿）的**行为回归**，并违反冻结义务 N03-R06 的「cleanup attempted before failure
+  return」。最小接口方案（用 `_close_done` 事件让第二个调用者在同一 cleanup 绝对截止内
+  等待进行中的关闭结束）在 `attempt02/execution-report.md` §3.3 完整给出。
+  按 ACK「不修改候选、不自行修到绿、不自动重跑」，**本轮未实施、未复跑**。
+* 第二批的环境事实：预装载恰 1 次 `ctypes.dlopen(None)` 且窗口在候选/pytest 导入前
+  CLOSED；FD 3→3 身份一致、无新增/复用、无 unknown；原 counter 前后**整份 JSON 逐字节
+  相同**（未写/退款/清零/新建/复活）；无真实 WindowsAPI/Job/GPU/模型/服务/进程/socket/
+  sqlite/媒体/网络/下载/原 ledger 动作。
+* 首批 133/115PASS/18FAIL 与 14 个 pump 残留仍是**历史事实**，未改写。
+
+真实 Windows / Job / GPU / 端口 / 父崩溃 / EOF / I24 / 产品 12 / A06 / 原账本余额 / 质量 /
+人签：**仍未证**。本包只报告 READY_FOR_REVIEW，**不签 Stage PASS**；八项 Major 是否关闭
+仍由隔离独审裁决。

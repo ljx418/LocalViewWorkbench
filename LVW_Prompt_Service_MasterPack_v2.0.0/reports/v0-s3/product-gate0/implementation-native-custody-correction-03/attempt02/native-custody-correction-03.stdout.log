@@ -1,0 +1,23 @@
+........................................................................................FF................................F..........
+=================================== FAILURES ===================================
+_____________ test_the_session_closes_the_broker_on_a_cancellation _____________
+tools/test_v0_s3_native_custody.py:1819: in test_the_session_closes_the_broker_on_a_cancellation
+    assert state['peer'].close_count == 1
+E   assert 0 == 1
+E    +  where 0 = <test_v0_s3_native_custody.FakeBrokerProcess object at 0x74b96c8d2360>.close_count
+_____________ test_the_session_closes_the_broker_on_a_parse_error ______________
+tools/test_v0_s3_native_custody.py:1846: in test_the_session_closes_the_broker_on_a_parse_error
+    assert state['peer'].close_count == 1
+E   assert 0 == 1
+E    +  where 0 = <test_v0_s3_native_custody.FakeBrokerProcess object at 0x74b96c746c90>.close_count
+_________ test_n03_r06_the_start_cleans_up_everything_that_it_acquired _________
+tools/test_v0_s3_native_custody_regressions.py:746: in test_n03_r06_the_start_cleans_up_everything_that_it_acquired
+    assert holder['peer'].closed == 1
+E   assert 0 == 1
+E    +  where 0 = <test_v0_s3_native_custody_regressions.RecordingPeer object at 0x74b96c72c050>.closed
+=========================== short test summary info ============================
+FAILED tools/test_v0_s3_native_custody.py::test_the_session_closes_the_broker_on_a_cancellation
+FAILED tools/test_v0_s3_native_custody.py::test_the_session_closes_the_broker_on_a_parse_error
+FAILED tools/test_v0_s3_native_custody_regressions.py::test_n03_r06_the_start_cleans_up_everything_that_it_acquired
+3 failed, 130 passed in 12.14s
+{"pytest_exit": 1, "call_count": 133, "pass_count": 130, "fail_count": 3, "skip_count": 0, "functional_pass_count": 128, "cleanup_proven_for_batch": false}
