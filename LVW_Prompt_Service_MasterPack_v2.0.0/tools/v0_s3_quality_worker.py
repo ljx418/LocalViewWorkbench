@@ -307,8 +307,17 @@ def run_worker(context, *, driver=None, emit=None, authorize=None, clock=None, s
     return receipt
 
 
-def main(argv=None):
-    """The production entry of the worker."""
+def main(argv=None, *, driver=None, stream=None, error_stream=None):
+    """The production entry of the worker.
+
+    The three keyword only arguments are the internal wiring of the
+    composition: they let an in-process caller replace the *construction* of
+    the native driver and the two output streams.  The command line entry
+    passes none of them, so the production path always builds the native
+    driver from the bound context and always speaks on the standard output
+    of the process.  The seam is a Python argument and never a document or
+    a switch, so it can not become a back door of a real execution.
+    """
     arguments = list(sys.argv[1:] if argv is None else argv)
     context_path = None
     index = 0
@@ -320,18 +329,22 @@ def main(argv=None):
         raise WorkerError('WORKER_ARGUMENT_INVALID')
     if context_path is None:
         raise WorkerError('WORKER_CONTEXT_ARGUMENT_REQUIRED')
+    target = stream if stream is not None else sys.stdout.buffer
+    errors = error_stream if error_stream is not None else sys.stderr
     try:
         context = WorkerContext.load(context_path)
-        run_worker(context, driver=build_native_driver(context),
-                   emit=ProtocolWriter(sys.stdout.buffer, run_id=context.run_id,
+        if driver is None:
+            driver = build_native_driver(context)
+        run_worker(context, driver=driver,
+                   emit=ProtocolWriter(target, run_id=context.run_id,
                                        candidate_sha=context.candidate_sha,
                                        authorization_sha256=context.authorization_sha256
                                        ).emit)
     except WorkerError as error:
-        sys.stderr.write('S3_WORKER_REFUSED ' + error.code + '\n')
+        errors.write('S3_WORKER_REFUSED ' + error.code + '\n')
         return 2
     except QualityContractError as error:
-        sys.stderr.write('S3_WORKER_REFUSED QUALITY ' + str(error)[:120] + '\n')
+        errors.write('S3_WORKER_REFUSED QUALITY ' + str(error)[:120] + '\n')
         return 3
     return 0
 
