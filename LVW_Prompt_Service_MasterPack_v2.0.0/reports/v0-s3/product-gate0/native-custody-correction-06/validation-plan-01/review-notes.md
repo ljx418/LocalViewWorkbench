@@ -1,0 +1,1 @@
+本轮ACK仅允许执行。后继独审须逐项核24组全部触发和Oracle，尤其N05-R16使用50轮barrier同时放行并非强制check/set中间交错，不能凭循环次数宣称确定性证明；N05-R18须最终检查实际STOP/STOPPED public path消费预留，不只调用内部计数helper；strict facts正例不得硬编码虚构真实资源已释放；原资源保留表必须实际可达恢复。两个context在父/子进程内各自拥有应与跨层绑定事实一致。claim_limit中“closes six majors”只视实现者意图，六项仍待独审裁决。
