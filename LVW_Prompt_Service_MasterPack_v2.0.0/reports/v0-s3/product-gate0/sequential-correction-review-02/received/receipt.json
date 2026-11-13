@@ -1,0 +1,135 @@
+{
+  "kind": "INDEPENDENT_SEQUENTIAL_CORRECTION_02_REVIEW",
+  "candidate_sha": "01453ee07b4774a55711c5cf5642c12d0394a35c",
+  "baseline_sha": "4e999043d08005829969bf5020048759557ecee9",
+  "at_utc": "2026-11-13T03:49:43.473113+00:00",
+  "findings": {
+    "M1": "CLOSED",
+    "M2": "CLOSED",
+    "M3": "CLOSED"
+  },
+  "fatal": 0,
+  "major": 0,
+  "minor": 0,
+  "focused": {
+    "count": 25,
+    "deselected": 92,
+    "skipped": 0,
+    "runs": 1,
+    "outer_returncode": 0
+  },
+  "guard": {
+    "refusals": 4,
+    "runs": 1,
+    "outer_returncode": 0
+  },
+  "independent_matrix": {
+    "observations": 58,
+    "failed_obligations": 0,
+    "runs": 1,
+    "outer_returncode": 0
+  },
+  "candidate_sources": [
+    {
+      "path": "reports/v0-s3/product-gate0/implementation-integration-01/executor.py",
+      "sha256": "0565c967724fd1d921c342f6cac5b89541efa1c88596e845e877f64ac5ece818",
+      "matches_candidate_blob": true,
+      "baseline_sha256": "5cf65a5ebc119bfc79c8a9ceb4dd5f28967010ca82642996273a3f63abed03f5",
+      "unchanged_from_baseline": false
+    },
+    {
+      "path": "reports/v0-s3/product-gate0/implementation-integration-01/run_guarded_checks.py",
+      "sha256": "da688b1502dcf625bbbf883c5e7e519d0c4c386a51fafa15539a69e2331d1005",
+      "matches_candidate_blob": true,
+      "baseline_sha256": "da688b1502dcf625bbbf883c5e7e519d0c4c386a51fafa15539a69e2331d1005",
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "tools/test_v0_s3_supervisor.py",
+      "sha256": "e77be87bd0e3c1e6a2a6c4f3ed31dd204fbc6760785460ecf2ee8e42484bf840",
+      "matches_candidate_blob": true,
+      "baseline_sha256": "e58585c03edb512b4b8285b48e917c5b23b0218b5986038cca47a0ac86d6dd3d",
+      "unchanged_from_baseline": false
+    }
+  ],
+  "counter_before_sha256": "39f2838e02c33b3903e4c9b23316242abe9e75e4e3592127238a88fa627bbe15",
+  "counter_after_sha256": "39f2838e02c33b3903e4c9b23316242abe9e75e4e3592127238a88fa627bbe15",
+  "counter_unchanged": true,
+  "process_binding_used": false,
+  "real_fixture_handles": 0,
+  "stage_pass_claim": false,
+  "product_gate0": false,
+  "original4_closed_scope_unchanged": true,
+  "notproven": [
+    "13 real fixtures",
+    "full I01-I24",
+    "Windows services/descendants/GPU/A06",
+    "native QualityPhase",
+    "original ledger",
+    "12 product quality obligations",
+    "human signoff"
+  ],
+  "known_process_deviations": [
+    "Author early raw stdout overwritten or mismatched; disclosed and freshly replaced evidence independently verified",
+    "Author env-only cleanup was not coordinator cleanup; restoration already recorded",
+    "Reviewer build script transiently staged in /tmp then moved under this evidence directory"
+  ],
+  "report_sha256": "9e03ba48920e17f6bc5c335dd5cc966590c71ece27d5d1ca336a43cb956c1604",
+  "outer_receipts": {
+    "focused": {
+      "argv": [
+        "/usr/bin/python3",
+        "-B",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-sequential-correction-02/launch.py",
+        "--mode",
+        "focused",
+        "--label",
+        "independent-sequential02-focused",
+        "--outdir",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-sequential-correction-02",
+        "--modules",
+        "tools/test_v0_s3_supervisor.py",
+        "--select",
+        "slot or reconciliation or sequential or finalizer"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "returncode": 0,
+      "started_wall": 1794541514.014468,
+      "finished_wall": 1794541517.0246823,
+      "stdout_sha256": "3444893e52c95176cbf7e63571c803349a3a59ce59e71e8b1ba2c3f07e7efffb",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "guard": {
+      "argv": [
+        "/usr/bin/python3",
+        "-B",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-sequential-correction-02/launch.py",
+        "--mode",
+        "guard",
+        "--label",
+        "independent-sequential02-guard",
+        "--outdir",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-sequential-correction-02"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "returncode": 0,
+      "started_wall": 1794541517.0247881,
+      "finished_wall": 1794541517.0786846,
+      "stdout_sha256": "86df1f001332ba75e29752e045333b1033cad04141df893b94f78cbf5126683f",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "negative": {
+      "argv": [
+        "/usr/bin/python3",
+        "-B",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-sequential-correction-02/negative_probes.py"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "returncode": 0,
+      "started_wall": 1794541582.412173,
+      "finished_wall": 1794541588.5298624,
+      "stdout_sha256": "0c8a04e241ef799a9a566af39e1c4d07fdacb38c0a30230d24238cede90c0dc3",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  }
+}

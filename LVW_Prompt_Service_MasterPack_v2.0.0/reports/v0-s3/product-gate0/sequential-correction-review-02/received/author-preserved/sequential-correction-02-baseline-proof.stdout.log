@@ -1,0 +1,289 @@
+............FFFFFFFFF.FF.                                                [100%]
+=================================== FAILURES ===================================
+____ test_a_settlement_that_the_counter_refuses_keeps_its_concurrency_slot _____
+
+tmp_path = PosixPath('/tmp/lvw-s3-integration-v8mcdhoi/pytest/test_a_settlement_that_the_cou0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x79d73387d0a0>
+
+    def test_a_settlement_that_the_counter_refuses_keeps_its_concurrency_slot(tmp_path,
+                                                                             monkeypatch):
+        """G3: a refused settlement releases nothing and fails the admission closed.
+    
+        The counter refuses the settlement of a child that has already exited.
+        The slot of that child is kept, the session becomes uncertain and the
+        next admission fails closed: no new charge is taken, even though the
+        counter still has a free slot.  The refusal is explicit and it is not
+        the concurrency limit of a full counter.
+        """
+        counter = fake_root_counter(tmp_path)
+        path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+        executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest)
+        context_inside(tmp_path)
+        child = FakeChildHandle()
+        admit_and_register(executor, child)
+        child.returncode = 0
+        monkeypatch.setattr(executor.counter, 'finish', lambda index, **keywords: False)
+>       with pytest.raises(EXECUTOR_MODULE.CpuGateError) as error:
+E       Failed: DID NOT RAISE <class 'lvw_s3_finite_cpu_executor.CpuGateError'>
+
+tools/test_v0_s3_supervisor.py:2781: Failed
+__ test_a_settlement_gate_error_keeps_the_slot_and_fails_the_admission_closed __
+
+tmp_path = PosixPath('/tmp/lvw-s3-integration-v8mcdhoi/pytest/test_a_settlement_gate_error_k0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x79d73386fd70>
+
+    def test_a_settlement_gate_error_keeps_the_slot_and_fails_the_admission_closed(tmp_path,
+                                                                                  monkeypatch):
+        """G3: a gate error of the settlement is a failure, never a release."""
+        counter = fake_root_counter(tmp_path)
+        path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+        executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest)
+        context_inside(tmp_path)
+        child = FakeChildHandle()
+        admit_and_register(executor, child)
+        child.returncode = 0
+    
+        def refuse(index, **keywords):
+            raise EXECUTOR_MODULE.CpuGateError('CPU_CHARGE_STATE_INVALID')
+    
+        monkeypatch.setattr(executor.counter, 'finish', refuse)
+>       with pytest.raises(EXECUTOR_MODULE.CpuGateError) as error:
+E       Failed: DID NOT RAISE <class 'lvw_s3_finite_cpu_executor.CpuGateError'>
+
+tools/test_v0_s3_supervisor.py:2824: Failed
+___ test_a_settlement_io_error_keeps_the_slot_and_fails_the_admission_closed ___
+
+tmp_path = PosixPath('/tmp/lvw-s3-integration-v8mcdhoi/pytest/test_a_settlement_io_error_kee0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x79d733877200>
+
+    def test_a_settlement_io_error_keeps_the_slot_and_fails_the_admission_closed(tmp_path,
+                                                                                 monkeypatch):
+        """G3: an ordinary I/O failure of the settlement is a failure too."""
+        counter = fake_root_counter(tmp_path)
+        path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+        executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest)
+        context_inside(tmp_path)
+        child = FakeChildHandle()
+        admit_and_register(executor, child)
+        child.returncode = 0
+    
+        def refuse(index, **keywords):
+            raise OSError('the counter could not be written')
+    
+        monkeypatch.setattr(executor.counter, 'finish', refuse)
+        with pytest.raises(EXECUTOR_MODULE.CpuGateError) as error:
+>           admit_one(executor)
+
+tools/test_v0_s3_supervisor.py:2855: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/test_v0_s3_supervisor.py:2632: in admit_one
+    executor.admit((prefix[0], argv, None, None))
+reports/v0-s3/product-gate0/implementation-integration-01/executor.py:668: in admit
+    self.reconcile_exited_children()
+reports/v0-s3/product-gate0/implementation-integration-01/executor.py:957: in reconcile_exited_children
+    persisted = self.counter.finish(index, state=state, exit_code=exit_code,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+index = 0
+keywords = {'birth': None, 'exit_code': 0, 'pid': 4242, 'spent': 0.011, ...}
+
+    def refuse(index, **keywords):
+>       raise OSError('the counter could not be written')
+E       OSError: the counter could not be written
+
+tools/test_v0_s3_supervisor.py:2851: OSError
+_ test_an_unreadable_terminal_state_keeps_the_slot_and_fails_the_admission_closed _
+
+tmp_path = PosixPath('/tmp/lvw-s3-integration-v8mcdhoi/pytest/test_an_unreadable_terminal_st0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x79d733877d10>
+
+    def test_an_unreadable_terminal_state_keeps_the_slot_and_fails_the_admission_closed(
+            tmp_path, monkeypatch):
+        """G3: a terminal state that cannot be read is never a release."""
+        counter = fake_root_counter(tmp_path)
+        path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+        executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest)
+        context_inside(tmp_path)
+        child = FakeChildHandle()
+        admit_and_register(executor, child)
+        child.returncode = 0
+    
+        def refuse(index):
+            raise EXECUTOR_MODULE.CpuGateError('CPU_COUNTER_UNREADABLE')
+    
+        monkeypatch.setattr(executor.counter, 'charge_state', refuse)
+>       with pytest.raises(EXECUTOR_MODULE.CpuGateError) as error:
+E       Failed: DID NOT RAISE <class 'lvw_s3_finite_cpu_executor.CpuGateError'>
+
+tools/test_v0_s3_supervisor.py:2884: Failed
+____________ test_a_foreign_exit_code_keeps_the_slot_of_its_charge _____________
+
+tmp_path = PosixPath('/tmp/lvw-s3-integration-v8mcdhoi/pytest/test_a_foreign_exit_code_keeps0')
+
+    def test_a_foreign_exit_code_keeps_the_slot_of_its_charge(tmp_path):
+        """G3: a persisted exit code of another run is not an idempotent proof."""
+        counter = fake_root_counter(tmp_path)
+        path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+        executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest)
+        context_inside(tmp_path)
+        child = FakeChildHandle()
+        admit_and_register(executor, child)
+        entry = executor.children[-1]
+        child.returncode = 0
+        # The counter holds a terminal state of this index, but the exit code
+        # belongs to another run.
+        executor.counter.finish(0, state='STOPPED', exit_code=77, spent=1.0,
+                                pid=entry['pid'], birth=entry['birth'])
+>       with pytest.raises(EXECUTOR_MODULE.CpuGateError) as error:
+E       Failed: DID NOT RAISE <class 'lvw_s3_finite_cpu_executor.CpuGateError'>
+
+tools/test_v0_s3_supervisor.py:2909: Failed
+______________ test_a_foreign_handle_keeps_the_slot_of_its_charge ______________
+
+tmp_path = PosixPath('/tmp/lvw-s3-integration-v8mcdhoi/pytest/test_a_foreign_handle_keeps_th0')
+
+    def test_a_foreign_handle_keeps_the_slot_of_its_charge(tmp_path):
+        """G3: a persisted handle of another identity is not an idempotent proof."""
+        counter = fake_root_counter(tmp_path)
+        path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+        executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest)
+        context_inside(tmp_path)
+        child = FakeChildHandle()
+        admit_and_register(executor, child)
+        child.returncode = 0
+        executor.counter.finish(0, state='STOPPED', exit_code=child.returncode, spent=1.0,
+                                pid=999999, birth={'linux_start_ticks': 1})
+>       with pytest.raises(EXECUTOR_MODULE.CpuGateError) as error:
+E       Failed: DID NOT RAISE <class 'lvw_s3_finite_cpu_executor.CpuGateError'>
+
+tools/test_v0_s3_supervisor.py:2933: Failed
+___________ test_a_foreign_charge_index_keeps_the_slot_of_its_charge ___________
+
+tmp_path = PosixPath('/tmp/lvw-s3-integration-v8mcdhoi/pytest/test_a_foreign_charge_index_ke0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x79d73386f710>
+
+    def test_a_foreign_charge_index_keeps_the_slot_of_its_charge(tmp_path, monkeypatch):
+        """G3: a persisted record of another index is not an idempotent proof."""
+        counter = fake_root_counter(tmp_path)
+        path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+        executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest)
+        context_inside(tmp_path)
+        child = FakeChildHandle()
+        admit_and_register(executor, child)
+        child.returncode = 0
+    
+        def foreign(index):
+            return {'index': 53, 'role': 'implementation', 'scenario': 'clean_terminal',
+                    'argv': [], 'settled': True, 'state': 'STOPPED', 'exit_code': 77,
+                    'pid': 999999, 'birth': {'foreign': 'session'}}
+    
+        monkeypatch.setattr(executor.counter, 'charge_state', foreign)
+>       with pytest.raises(EXECUTOR_MODULE.CpuGateError) as error:
+E       Failed: DID NOT RAISE <class 'lvw_s3_finite_cpu_executor.CpuGateError'>
+
+tools/test_v0_s3_supervisor.py:2962: Failed
+_________ test_an_unknown_terminal_state_keeps_the_slot_of_its_charge __________
+
+tmp_path = PosixPath('/tmp/lvw-s3-integration-v8mcdhoi/pytest/test_an_unknown_terminal_state0')
+
+    def test_an_unknown_terminal_state_keeps_the_slot_of_its_charge(tmp_path):
+        """G3: an UNKNOWN record is never an idempotent proof."""
+        counter = fake_root_counter(tmp_path)
+        path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+        executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest)
+        context_inside(tmp_path)
+        child = FakeChildHandle()
+        admit_and_register(executor, child)
+        entry = executor.children[-1]
+        child.returncode = 0
+        executor.counter.finish(0, state='UNKNOWN', exit_code=None, spent=None,
+                                pid=entry['pid'], birth=entry['birth'])
+>       with pytest.raises(EXECUTOR_MODULE.CpuGateError) as error:
+E       Failed: DID NOT RAISE <class 'lvw_s3_finite_cpu_executor.CpuGateError'>
+
+tools/test_v0_s3_supervisor.py:2987: Failed
+__________ test_a_local_settlement_marker_keeps_the_slot_and_the_root __________
+
+tmp_path = PosixPath('/tmp/lvw-s3-integration-v8mcdhoi/pytest/test_a_local_settlement_marker0')
+
+    def test_a_local_settlement_marker_keeps_the_slot_and_the_root(tmp_path):
+        """G3: the local marker never replaces the persisted proof.
+    
+        The counter is made to disagree with the local marker after a
+        successful reconciliation.  The shared counter is the authority: the
+        charge stays open, the finalizer keeps the root and the reaper never
+        rewrites the record to fake a cleanup.
+        """
+        counter = fake_root_counter(tmp_path)
+        path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+        executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest)
+        context_inside(tmp_path)
+        child = FakeChildHandle()
+        admit_and_register(executor, child)
+        child.returncode = 0
+        outcome = executor.reconcile_exited_children()
+>       assert outcome['failures'] == []
+               ^^^^^^^^^^^^^^^^^^^
+E       TypeError: list indices must be integers or slices, not str
+
+tools/test_v0_s3_supervisor.py:3016: TypeError
+___ test_the_reconciliation_keeps_the_window_the_source_and_the_single_owner ___
+
+tmp_path = PosixPath('/tmp/lvw-s3-integration-v8mcdhoi/pytest/test_the_reconciliation_keeps_0')
+
+    def test_the_reconciliation_keeps_the_window_the_source_and_the_single_owner(tmp_path):
+        """G2/G3: the reconciliation releases a slot and changes nothing else."""
+        counter = fake_root_counter(tmp_path)
+        path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+        executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest)
+        context_inside(tmp_path)
+        executor.reserve_session()
+        admission_deadline = executor.admission_deadline
+        cleanup_deadline = executor.cleanup_deadline
+        registry = RUNNER_MODULE._guard_registry()
+        owners_before = registry.hook_install_count
+        child = FakeChildHandle()
+        admit_and_register(executor, child)
+        child.returncode = 0
+        released = executor.reconcile_exited_children()
+>       assert released['failures'] == []
+               ^^^^^^^^^^^^^^^^^^^^
+E       TypeError: list indices must be integers or slices, not str
+
+tools/test_v0_s3_supervisor.py:3074: TypeError
+__ test_a_reconciliation_that_crosses_the_admission_window_refuses_the_start ___
+
+tmp_path = PosixPath('/tmp/lvw-s3-integration-v8mcdhoi/pytest/test_a_reconciliation_that_cro0')
+
+    def test_a_reconciliation_that_crosses_the_admission_window_refuses_the_start(tmp_path):
+        """G3: a reconciliation that crosses the window refuses this start.
+    
+        The reconciliation is bounded, but it is not free: its own I/O spends
+        the wall of the session.  When it crosses the fixed admission deadline,
+        the start that follows it is refused before the new charge is taken and
+        the deadline is never rebased.
+        """
+        counter = fake_root_counter(tmp_path)
+        path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+        clock = fake_clock()
+        executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest,
+                                       clock=clock)
+        context_inside(tmp_path)
+        child = FakeChildHandle()
+        admit_and_register(executor, child)
+        child.returncode = 0
+        deadline = executor.admission_deadline
+        # The reconciliation spends the rest of the window.
+        original_finish = executor.counter.finish
+    
+        def slow_finish(index, **keywords):
+            result = original_finish(index, **keywords)
+            clock.now = deadline + 0.001
+            return result
+    
+        executor.counter.finish = slow_finish
+>       with pytest.raises(EXECUTOR_MODULE.CpuGateError) as error:
+E       Failed: DID NOT RAISE <class 'lvw_s3_finite_cpu_executor.CpuGateError'>
+
+tools/test_v0_s3_supervisor.py:3116: Failed
+11 failed, 14 passed, 92 deselected in 3.07s
