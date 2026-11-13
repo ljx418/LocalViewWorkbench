@@ -1,0 +1,499 @@
+{
+  "exit": 4,
+  "receipt": {
+    "admission": {
+      "accepted": false,
+      "budget_authority": "S3BudgetBindingProvider",
+      "budget_binding_scope": "SEALED_BINDING_SHAPE_ONLY_NOT_BALANCE_NOT_AUTHORIZATION_NOT_CUSTODY",
+      "debit_owner": "original_ledger_authority",
+      "kind": "lvw.s3-native-admission-report/1",
+      "native_execution_backend_code": "NATIVE_EXECUTION_BACKEND_NOT_READY",
+      "native_execution_backend_ready": false,
+      "original_ledger_touched_by_this_controller": false,
+      "primary_reason": "NATIVE_ADMISSION_NOT_REQUIRED_FOR_THE_OFFLINE_SEAM",
+      "product_gate0": false,
+      "reasons": [
+        "NATIVE_ADMISSION_NOT_REQUIRED_FOR_THE_OFFLINE_SEAM"
+      ],
+      "stage_pass_claim": false,
+      "verified": [],
+      "verified_scope": "SHAPE_AND_IDENTITY_OF_SEALED_DOCUMENTS_ONLY"
+    },
+    "archive_allowed": false,
+    "authorization_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "candidate_sha": "6885f7a62b223f5e2c7904a9f929e760396fd88b",
+    "cleanup_proven": false,
+    "command": [
+      "python3",
+      "-I",
+      "-B",
+      "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_quality_worker.py",
+      "--context",
+      "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-03/cases/m05-disk-window/run/contexts/worker-context.json",
+      "--context-sha256",
+      "ebdb8f865c4f1781db7fd0ec36f1fbc5b1198f5f643fa390ad40d0142b5560ab"
+    ],
+    "composition_facts": [],
+    "disk_actions": {
+      "receipt_path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-03/cases/m05-disk-window/run/temp/s3-production-controller/receipt-s3-p4-composition-01.json",
+      "receipt_sha256": "527e040f11dd5cb820417b8fa8425361235565700942ef5ae7dcb0eaefb79664",
+      "receipt_written": true,
+      "scope": "THE_FILES_THAT_THIS_RUN_WROTE;AN_OBJECTIVE_FACT_AND_NEITHER_A_ROLLBACK_NOR_A_CLEANUP_CLAIM",
+      "summary_path": null,
+      "summary_sha256": null,
+      "summary_written": false,
+      "the_receipt_file_does_not_attest_its_own_write": "THE_RECEIPT_ON_THE_DISK_CARRIES_THE_FACTS_THAT_WERE_TRUE_WHEN_IT_WAS_WRITTEN;THE_WRITE_OF_THE_RECEIPT_IS_NOT_ATTESTED_BY_THE_RECEIPT_ITSELF",
+      "the_summary_is_not_deleted_and_is_not_rewritten": true
+    },
+    "duration_seconds": 0.667699,
+    "execution_attempts": 1,
+    "execution_mode": "OFFLINE_SYNTHETIC_COMPOSITION",
+    "fd_cleanup": {
+      "controller_anchor_descriptors": [
+        3,
+        4
+      ],
+      "controller_anchor_descriptors_scope": "THE_BOUND_ROOT_AND_THE_OUTPUT_DIRECTORY_OF_THIS_RUN;THEY_ARE_HELD_BY_THE_RUN_AND_CLOSED_WHEN_THE_RUN_RETURNS",
+      "fd_after": {
+        "closed_entries": [
+          6
+        ],
+        "identity": {
+          "0": {
+            "device": 15,
+            "inode": 6371115,
+            "mode": 4480
+          },
+          "1": {
+            "device": 2112,
+            "inode": 2860659,
+            "mode": 33188
+          },
+          "2": {
+            "device": 2112,
+            "inode": 2860691,
+            "mode": 33188
+          },
+          "3": {
+            "device": 2112,
+            "inode": 2904751,
+            "mode": 16877
+          },
+          "4": {
+            "device": 2112,
+            "inode": 2904809,
+            "mode": 16832
+          },
+          "10": {
+            "device": 15,
+            "inode": 6349487,
+            "mode": 4480
+          }
+        },
+        "open": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          10
+        ],
+        "unverified_entries": []
+      },
+      "fd_before": {
+        "closed_entries": [
+          4
+        ],
+        "identity": {
+          "0": {
+            "device": 15,
+            "inode": 6371115,
+            "mode": 4480
+          },
+          "1": {
+            "device": 2112,
+            "inode": 2860659,
+            "mode": 33188
+          },
+          "2": {
+            "device": 2112,
+            "inode": 2860691,
+            "mode": 33188
+          },
+          "10": {
+            "device": 15,
+            "inode": 6349487,
+            "mode": 4480
+          }
+        },
+        "open": [
+          0,
+          1,
+          2,
+          10
+        ],
+        "unverified_entries": []
+      },
+      "fd_leaked": [],
+      "observation_point": "PRE_RELEASE: the snapshot is taken at the end of the run body, before this run releases the descriptors it held; the descriptors of this run are named below and are excluded from the leak set",
+      "readers_closed": {
+        "closed_streams": [
+          "stdout",
+          "stderr"
+        ],
+        "stderr_drain_complete": true,
+        "stderr_read_error": null,
+        "stdout_drain_complete": true,
+        "stdout_read_error": null
+      },
+      "worker_exit_code": 0,
+      "worker_lifecycle": {
+        "cooperative_cancel_observed": false,
+        "cooperative_cancel_requested": false,
+        "late_write_after_return_is_possible": false,
+        "lifecycle_owner": "offline_seam",
+        "worker_thread_alive": false,
+        "worker_thread_finished": true,
+        "worker_thread_killable": false,
+        "worker_thread_retained": false
+      },
+      "worker_thread_finished": true
+    },
+    "fd_cleanup_post_release": {
+      "fd_leaked": [],
+      "observation_point": "POST_RELEASE: the snapshot is taken after this run released the descriptors that it held",
+      "product_gate0": false,
+      "snapshot": {
+        "closed_entries": [
+          4
+        ],
+        "identity": {
+          "0": {
+            "device": 15,
+            "inode": 6371115,
+            "mode": 4480
+          },
+          "1": {
+            "device": 2112,
+            "inode": 2860659,
+            "mode": 33188
+          },
+          "2": {
+            "device": 2112,
+            "inode": 2860691,
+            "mode": 33188
+          },
+          "10": {
+            "device": 15,
+            "inode": 6349487,
+            "mode": 4480
+          }
+        },
+        "open": [
+          0,
+          1,
+          2,
+          10
+        ],
+        "unverified_entries": []
+      },
+      "stage_pass_claim": false,
+      "the_persisted_receipt_carries": "PRE_RELEASE"
+    },
+    "kind": "lvw.s3-production-controller-receipt/1",
+    "native_execution_backend_code": "NATIVE_EXECUTION_BACKEND_NOT_READY",
+    "native_execution_backend_ready": false,
+    "node_id": "05a08bd8950957f2ef9186d647dae9b8",
+    "offline_receipts_are_not_product_receipts": true,
+    "plan": {
+      "plan_sha256": "720c791031ad53987374860d55e48617872d36421debd669e2b0024289e026c1",
+      "projection_sha256": "55580235d38d8d785e9e5eb0c2b3f5191d246d231f6dd3faa7c1f82df27192f6",
+      "rows": 16
+    },
+    "product_gate0": false,
+    "real_execution_performed": false,
+    "receipt_path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-03/cases/m05-disk-window/run/temp/s3-production-controller/receipt-s3-p4-composition-01.json",
+    "receipt_persisted": true,
+    "receipt_persistence_error": null,
+    "receipt_persistence_intent": "WRITTEN_WITH_O_EXCL",
+    "recovery": {
+      "reason": "CUSTODY_EVIDENCE_UNAVAILABLE",
+      "replay_allowed": false,
+      "resend_allowed": false,
+      "stage_pass_claim": false,
+      "status": "BLOCKED"
+    },
+    "refund_allowed": false,
+    "refusals": [
+      "CONTROLLER_ORIGINALS_CHANGED_BEFORE_SEAL"
+    ],
+    "resend_allowed": false,
+    "reservation": "reservation-s3-p4-composition-01.json",
+    "reservation_retained": true,
+    "root": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-03/cases/m05-disk-window/run",
+    "root_retained": true,
+    "run_id": "s3-p4-composition-01",
+    "source_sha256": {
+      "tools/v0_s3_coordinator.py": "14e8dd284971aeab00999f010679d5c95deb88ee3bff8f4ca0708d958b56f12c",
+      "tools/v0_s3_production_controller.py": "4236725aca2402a0d04cecb08ed458d6ac8084fb3b0c788599b52514e8e0f4e7",
+      "tools/v0_s3_quality_phase.py": "90552ea113ccf53a2a1cedff3e3f399642ad932bf0f71bb1f9a57e1adb6e8789",
+      "tools/v0_s3_quality_worker.py": "e3648446f39d6e7a1c31f180248ccb59c36272ddc10c80edbe544f7d3c595592",
+      "tools/v0_s3_supervisor.py": "7d210429e70761cea633e8f2e64d8a1f01709930068a21de5cbc3c5a519ce6d8"
+    },
+    "spawn_attempts": 1,
+    "stage_pass_claim": false,
+    "started_wall": 1794575360.1646047,
+    "state": "UNKNOWN_RETAINED",
+    "summary_persisted": false,
+    "summary_persisted_semantics": "summary_persisted_QUALIFIES_THE_RUN;disk_actions_RECORDS_WHAT_IS_ON_THE_DISK;THE_TWO_FIELDS_HAVE_A_DIFFERENT_MEANING_AND_NEITHER_REPLACES_THE_OTHER",
+    "supervision": {
+      "archive_allowed": true,
+      "authorization_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "birth": null,
+      "candidate_sha": "6885f7a62b223f5e2c7904a9f929e760396fd88b",
+      "canonical_receipt": {
+        "bytes": 55510,
+        "reference": "temp/s3-quality/qd-receipt.json",
+        "sha256": "c4e344ac88296105d9436e14119a253d27442e232ced09e57dc17ce9e04dd141"
+      },
+      "canonical_receipt_verified": true,
+      "child_timeout_seconds": 21600,
+      "cleanup": {
+        "birth": null,
+        "cooperative_cancel": false,
+        "exit_code": 0,
+        "killed": false,
+        "native_cleanup_owner": "original_driver",
+        "native_cleanup_proven": false,
+        "pid": null,
+        "proven_stopped": true,
+        "requested": false,
+        "terminated": false
+      },
+      "command": [
+        "python3",
+        "-I",
+        "-B",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_quality_worker.py",
+        "--context",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-03/cases/m05-disk-window/run/contexts/worker-context.json",
+        "--context-sha256",
+        "ebdb8f865c4f1781db7fd0ec36f1fbc5b1198f5f643fa390ad40d0142b5560ab"
+      ],
+      "cooperative_cancel_requested": false,
+      "drain_timeout_seconds": 0.5,
+      "drain_violation": null,
+      "exit_code": 0,
+      "history_completed_rows": [
+        "SYN-I00",
+        "SYN-I01",
+        "SYN-I02",
+        "SYN-I03",
+        "SYN-I04",
+        "SYN-I05",
+        "SYN-I06",
+        "SYN-I07",
+        "SYN-I08",
+        "SYN-I09",
+        "SYN-V00",
+        "SYN-V01",
+        "SYN-V02",
+        "SYN-V03",
+        "SYN-V04",
+        "SYN-V05"
+      ],
+      "history_deadlines": {
+        "SYN-I00": 124071.220643101,
+        "SYN-I01": 124071.22067336,
+        "SYN-I02": 124071.270897904,
+        "SYN-I03": 124071.321227636,
+        "SYN-I04": 124071.321253484,
+        "SYN-I05": 124071.371405568,
+        "SYN-I06": 124071.421551689,
+        "SYN-I07": 124071.421586662,
+        "SYN-I08": 124071.471849919,
+        "SYN-I09": 124071.522029416,
+        "SYN-V00": 124071.522070505,
+        "SYN-V01": 124071.572228751,
+        "SYN-V02": 124071.622398734,
+        "SYN-V03": 124071.672562469,
+        "SYN-V04": 124071.722724841,
+        "SYN-V05": 124071.772871249
+      },
+      "history_records": {
+        "SYN-I00": {
+          "completed_at": 123471.220653738,
+          "deadline": 124071.220643101,
+          "first_start": 123471.220643101
+        },
+        "SYN-I01": {
+          "completed_at": 123471.270865087,
+          "deadline": 124071.22067336,
+          "first_start": 123471.22067336
+        },
+        "SYN-I02": {
+          "completed_at": 123471.321202086,
+          "deadline": 124071.270897904,
+          "first_start": 123471.270897904
+        },
+        "SYN-I03": {
+          "completed_at": 123471.321236275,
+          "deadline": 124071.321227636,
+          "first_start": 123471.321227636
+        },
+        "SYN-I04": {
+          "completed_at": 123471.371373044,
+          "deadline": 124071.321253484,
+          "first_start": 123471.321253484
+        },
+        "SYN-I05": {
+          "completed_at": 123471.371413956,
+          "deadline": 124071.371405568,
+          "first_start": 123471.371405568
+        },
+        "SYN-I06": {
+          "completed_at": 123471.421565002,
+          "deadline": 124071.421551689,
+          "first_start": 123471.421551689
+        },
+        "SYN-I07": {
+          "completed_at": 123471.471822303,
+          "deadline": 124071.421586662,
+          "first_start": 123471.421586662
+        },
+        "SYN-I08": {
+          "completed_at": 123471.471858747,
+          "deadline": 124071.471849919,
+          "first_start": 123471.471849919
+        },
+        "SYN-I09": {
+          "completed_at": 123471.522046762,
+          "deadline": 124071.522029416,
+          "first_start": 123471.522029416
+        },
+        "SYN-V00": {
+          "completed_at": 123471.572200562,
+          "deadline": 124071.522070505,
+          "first_start": 123471.522070505
+        },
+        "SYN-V01": {
+          "completed_at": 123471.622365608,
+          "deadline": 124071.572228751,
+          "first_start": 123471.572228751
+        },
+        "SYN-V02": {
+          "completed_at": 123471.672535343,
+          "deadline": 124071.622398734,
+          "first_start": 123471.622398734
+        },
+        "SYN-V03": {
+          "completed_at": 123471.722697706,
+          "deadline": 124071.672562469,
+          "first_start": 123471.672562469
+        },
+        "SYN-V04": {
+          "completed_at": 123471.772844997,
+          "deadline": 124071.722724841,
+          "first_start": 123471.722724841
+        },
+        "SYN-V05": {
+          "completed_at": 123471.823101547,
+          "deadline": 124071.772871249,
+          "first_start": 123471.772871249
+        }
+      },
+      "history_timeout_seconds": 600,
+      "incomplete_frame": false,
+      "kind": "lvw.s3-supervision-evidence/1",
+      "message_count": 66,
+      "message_limit": 1024,
+      "native_gpu_release_proven": false,
+      "native_service_cleanup_proven": false,
+      "next_phase_allowed": true,
+      "notes": [],
+      "parent_crash_recovery_proven": false,
+      "phase_deadline_reached": false,
+      "phase_timeout_seconds": 10800,
+      "pid": null,
+      "plan_sha256": "dd8bc5a9f2c4c984a65cbe0d43e65a2c2b74a3c9bbc74856d58f829793d341d2",
+      "product_gate0": false,
+      "protocol_violation": null,
+      "real_execution_performed": false,
+      "refund_allowed": false,
+      "resend_allowed": false,
+      "reservation_retained": false,
+      "root_retained": false,
+      "row_count": 16,
+      "row_status": {
+        "SYN-I00": "PASS",
+        "SYN-I01": "PASS",
+        "SYN-I02": "PASS",
+        "SYN-I03": "PASS",
+        "SYN-I04": "PASS",
+        "SYN-I05": "PASS",
+        "SYN-I06": "PASS",
+        "SYN-I07": "PASS",
+        "SYN-I08": "PASS",
+        "SYN-I09": "PASS",
+        "SYN-V00": "PASS",
+        "SYN-V01": "PASS",
+        "SYN-V02": "PASS",
+        "SYN-V03": "PASS",
+        "SYN-V04": "PASS",
+        "SYN-V05": "PASS"
+      },
+      "run_id": "s3-p4-composition-01",
+      "stage_pass_claim": false,
+      "stderr_bytes": 0,
+      "stderr_bytes_retained": 0,
+      "stderr_drain_complete": true,
+      "stderr_hash_scope": "all_observed",
+      "stderr_hashed_bytes": 0,
+      "stderr_overflow": false,
+      "stderr_read_error": null,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_total_observed": 0,
+      "stdout_bytes": 23280,
+      "stdout_bytes_retained": 0,
+      "stdout_drain_complete": true,
+      "stdout_hash_scope": "all_observed",
+      "stdout_hashed_bytes": 23280,
+      "stdout_overflow": false,
+      "stdout_read_error": null,
+      "stdout_sha256": "5230ebd8d09bf2816967d95fb25b76ae41b1324dff2e45b35e110b20eb23a57c",
+      "stdout_total_observed": 23280,
+      "stream_byte_limit": 262144,
+      "stream_violation": null,
+      "terminal_received": true,
+      "unknown_outcome": false
+    },
+    "transitions": [
+      "PRECHECK",
+      "PLAN_SEALED",
+      "WORKER_SUPERVISED"
+    ],
+    "unknown_reason": "CONTROLLER_ORIGINALS_CHANGED_BEFORE_SEAL"
+  },
+  "stdout": "{\"admission\":{\"accepted\":false,\"budget_authority\":\"S3BudgetBindingProvider\",\"budget_binding_scope\":\"SEALED_BINDING_SHAPE_ONLY_NOT_BALANCE_NOT_AUTHORIZATION_NOT_CUSTODY\",\"debit_owner\":\"original_ledger_authority\",\"kind\":\"lvw.s3-native-admission-report/1\",\"native_execution_backend_code\":\"NATIVE_EXECUTION_BACKEND_NOT_READY\",\"native_execution_backend_ready\":false,\"original_ledger_touched_by_this_controller\":false,\"primary_reason\":\"NATIVE_ADMISSION_NOT_REQUIRED_FOR_THE_OFFLINE_SEAM\",\"product_gate0\":false,\"reasons\":[\"NATIVE_ADMISSION_NOT_REQUIRED_FOR_THE_OFFLINE_SEAM\"],\"stage_pass_claim\":false,\"verified\":[],\"verified_scope\":\"SHAPE_AND_IDENTITY_OF_SEALED_DOCUMENTS_ONLY\"},\"archive_allowed\":false,\"authorization_sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"candidate_sha\":\"6885f7a62b223f5e2c7904a9f929e760396fd88b\",\"cleanup_proven\":false,\"command\":[\"python3\",\"-I\",\"-B\",\"/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_quality_worker.py\",\"--context\",\"/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-03/cases/m05-disk-window/run/contexts/worker-context.json\",\"--context-sha256\",\"ebdb8f865c4f1781db7fd0ec36f1fbc5b1198f5f643fa390ad40d0142b5560ab\"],\"composition_facts\":[],\"disk_actions\":{\"receipt_path\":\"/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-03/cases/m05-disk-window/run/temp/s3-production-controller/receipt-s3-p4-composition-01.json\",\"receipt_sha256\":\"527e040f11dd5cb820417b8fa8425361235565700942ef5ae7dcb0eaefb79664\",\"receipt_written\":true,\"scope\":\"THE_FILES_THAT_THIS_RUN_WROTE;AN_OBJECTIVE_FACT_AND_NEITHER_A_ROLLBACK_NOR_A_CLEANUP_CLAIM\",\"summary_path\":null,\"summary_sha256\":null,\"summary_written\":false,\"the_receipt_file_does_not_attest_its_own_write\":\"THE_RECEIPT_ON_THE_DISK_CARRIES_THE_FACTS_THAT_WERE_TRUE_WHEN_IT_WAS_WRITTEN;THE_WRITE_OF_THE_RECEIPT_IS_NOT_ATTESTED_BY_THE_RECEIPT_ITSELF\",\"the_summary_is_not_deleted_and_is_not_rewritten\":true},\"duration_seconds\":0.667699,\"execution_attempts\":1,\"execution_mode\":\"OFFLINE_SYNTHETIC_COMPOSITION\",\"fd_cleanup\":{\"controller_anchor_descriptors\":[3,4],\"controller_anchor_descriptors_scope\":\"THE_BOUND_ROOT_AND_THE_OUTPUT_DIRECTORY_OF_THIS_RUN;THEY_ARE_HELD_BY_THE_RUN_AND_CLOSED_WHEN_THE_RUN_RETURNS\",\"fd_after\":{\"closed_entries\":[6],\"identity\":{\"0\":{\"device\":15,\"inode\":6371115,\"mode\":4480},\"1\":{\"device\":2112,\"inode\":2860659,\"mode\":33188},\"2\":{\"device\":2112,\"inode\":2860691,\"mode\":33188},\"3\":{\"device\":2112,\"inode\":2904751,\"mode\":16877},\"4\":{\"device\":2112,\"inode\":2904809,\"mode\":16832},\"10\":{\"device\":15,\"inode\":6349487,\"mode\":4480}},\"open\":[0,1,2,3,4,10],\"unverified_entries\":[]},\"fd_before\":{\"closed_entries\":[4],\"identity\":{\"0\":{\"device\":15,\"inode\":6371115,\"mode\":4480},\"1\":{\"device\":2112,\"inode\":2860659,\"mode\":33188},\"2\":{\"device\":2112,\"inode\":2860691,\"mode\":33188},\"10\":{\"device\":15,\"inode\":6349487,\"mode\":4480}},\"open\":[0,1,2,10],\"unverified_entries\":[]},\"fd_leaked\":[],\"observation_point\":\"PRE_RELEASE: the snapshot is taken at the end of the run body, before this run releases the descriptors it held; the descriptors of this run are named below and are excluded from the leak set\",\"readers_closed\":{\"closed_streams\":[\"stdout\",\"stderr\"],\"stderr_drain_complete\":true,\"stderr_read_error\":null,\"stdout_drain_complete\":true,\"stdout_read_error\":null},\"worker_exit_code\":0,\"worker_lifecycle\":{\"cooperative_cancel_observed\":false,\"cooperative_cancel_requested\":false,\"late_write_after_return_is_possible\":false,\"lifecycle_owner\":\"offline_seam\",\"worker_thread_alive\":false,\"worker_thread_finished\":true,\"worker_thread_killable\":false,\"worker_thread_retained\":false},\"worker_thread_finished\":true},\"fd_cleanup_post_release\":{\"fd_leaked\":[],\"observation_point\":\"POST_RELEASE: the snapshot is taken after this run released the descriptors that it held\",\"product_gate0\":false,\"snapshot\":{\"closed_entries\":[4],\"identity\":{\"0\":{\"device\":15,\"inode\":6371115,\"mode\":4480},\"1\":{\"device\":2112,\"inode\":2860659,\"mode\":33188},\"2\":{\"device\":2112,\"inode\":2860691,\"mode\":33188},\"10\":{\"device\":15,\"inode\":6349487,\"mode\":4480}},\"open\":[0,1,2,10],\"unverified_entries\":[]},\"stage_pass_claim\":false,\"the_persisted_receipt_carries\":\"PRE_RELEASE\"},\"kind\":\"lvw.s3-production-controller-receipt/1\",\"native_execution_backend_code\":\"NATIVE_EXECUTION_BACKEND_NOT_READY\",\"native_execution_backend_ready\":false,\"node_id\":\"05a08bd8950957f2ef9186d647dae9b8\",\"offline_receipts_are_not_product_receipts\":true,\"plan\":{\"plan_sha256\":\"720c791031ad53987374860d55e48617872d36421debd669e2b0024289e026c1\",\"projection_sha256\":\"55580235d38d8d785e9e5eb0c2b3f5191d246d231f6dd3faa7c1f82df27192f6\",\"rows\":16},\"product_gate0\":false,\"real_execution_performed\":false,\"receipt_path\":\"/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-03/cases/m05-disk-window/run/temp/s3-production-controller/receipt-s3-p4-composition-01.json\",\"receipt_persisted\":true,\"receipt_persistence_error\":null,\"receipt_persistence_intent\":\"WRITTEN_WITH_O_EXCL\",\"recovery\":{\"reason\":\"CUSTODY_EVIDENCE_UNAVAILABLE\",\"replay_allowed\":false,\"resend_allowed\":false,\"stage_pass_claim\":false,\"status\":\"BLOCKED\"},\"refund_allowed\":false,\"refusals\":[\"CONTROLLER_ORIGINALS_CHANGED_BEFORE_SEAL\"],\"resend_allowed\":false,\"reservation\":\"reservation-s3-p4-composition-01.json\",\"reservation_retained\":true,\"root\":\"/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-03/cases/m05-disk-window/run\",\"root_retained\":true,\"run_id\":\"s3-p4-composition-01\",\"source_sha256\":{\"tools/v0_s3_coordinator.py\":\"14e8dd284971aeab00999f010679d5c95deb88ee3bff8f4ca0708d958b56f12c\",\"tools/v0_s3_production_controller.py\":\"4236725aca2402a0d04cecb08ed458d6ac8084fb3b0c788599b52514e8e0f4e7\",\"tools/v0_s3_quality_phase.py\":\"90552ea113ccf53a2a1cedff3e3f399642ad932bf0f71bb1f9a57e1adb6e8789\",\"tools/v0_s3_quality_worker.py\":\"e3648446f39d6e7a1c31f180248ccb59c36272ddc10c80edbe544f7d3c595592\",\"tools/v0_s3_supervisor.py\":\"7d210429e70761cea633e8f2e64d8a1f01709930068a21de5cbc3c5a519ce6d8\"},\"spawn_attempts\":1,\"stage_pass_claim\":false,\"started_wall\":1794575360.1646047,\"state\":\"UNKNOWN_RETAINED\",\"summary_persisted\":false,\"summary_persisted_semantics\":\"summary_persisted_QUALIFIES_THE_RUN;disk_actions_RECORDS_WHAT_IS_ON_THE_DISK;THE_TWO_FIELDS_HAVE_A_DIFFERENT_MEANING_AND_NEITHER_REPLACES_THE_OTHER\",\"supervision\":{\"archive_allowed\":true,\"authorization_sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"birth\":null,\"candidate_sha\":\"6885f7a62b223f5e2c7904a9f929e760396fd88b\",\"canonical_receipt\":{\"bytes\":55510,\"reference\":\"temp/s3-quality/qd-receipt.json\",\"sha256\":\"c4e344ac88296105d9436e14119a253d27442e232ced09e57dc17ce9e04dd141\"},\"canonical_receipt_verified\":true,\"child_timeout_seconds\":21600,\"cleanup\":{\"birth\":null,\"cooperative_cancel\":false,\"exit_code\":0,\"killed\":false,\"native_cleanup_owner\":\"original_driver\",\"native_cleanup_proven\":false,\"pid\":null,\"proven_stopped\":true,\"requested\":false,\"terminated\":false},\"command\":[\"python3\",\"-I\",\"-B\",\"/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_quality_worker.py\",\"--context\",\"/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-03/cases/m05-disk-window/run/contexts/worker-context.json\",\"--context-sha256\",\"ebdb8f865c4f1781db7fd0ec36f1fbc5b1198f5f643fa390ad40d0142b5560ab\"],\"cooperative_cancel_requested\":false,\"drain_timeout_seconds\":0.5,\"drain_violation\":null,\"exit_code\":0,\"history_completed_rows\":[\"SYN-I00\",\"SYN-I01\",\"SYN-I02\",\"SYN-I03\",\"SYN-I04\",\"SYN-I05\",\"SYN-I06\",\"SYN-I07\",\"SYN-I08\",\"SYN-I09\",\"SYN-V00\",\"SYN-V01\",\"SYN-V02\",\"SYN-V03\",\"SYN-V04\",\"SYN-V05\"],\"history_deadlines\":{\"SYN-I00\":124071.220643101,\"SYN-I01\":124071.22067336,\"SYN-I02\":124071.270897904,\"SYN-I03\":124071.321227636,\"SYN-I04\":124071.321253484,\"SYN-I05\":124071.371405568,\"SYN-I06\":124071.421551689,\"SYN-I07\":124071.421586662,\"SYN-I08\":124071.471849919,\"SYN-I09\":124071.522029416,\"SYN-V00\":124071.522070505,\"SYN-V01\":124071.572228751,\"SYN-V02\":124071.622398734,\"SYN-V03\":124071.672562469,\"SYN-V04\":124071.722724841,\"SYN-V05\":124071.772871249},\"history_records\":{\"SYN-I00\":{\"completed_at\":123471.220653738,\"deadline\":124071.220643101,\"first_start\":123471.220643101},\"SYN-I01\":{\"completed_at\":123471.270865087,\"deadline\":124071.22067336,\"first_start\":123471.22067336},\"SYN-I02\":{\"completed_at\":123471.321202086,\"deadline\":124071.270897904,\"first_start\":123471.270897904},\"SYN-I03\":{\"completed_at\":123471.321236275,\"deadline\":124071.321227636,\"first_start\":123471.321227636},\"SYN-I04\":{\"completed_at\":123471.371373044,\"deadline\":124071.321253484,\"first_start\":123471.321253484},\"SYN-I05\":{\"completed_at\":123471.371413956,\"deadline\":124071.371405568,\"first_start\":123471.371405568},\"SYN-I06\":{\"completed_at\":123471.421565002,\"deadline\":124071.421551689,\"first_start\":123471.421551689},\"SYN-I07\":{\"completed_at\":123471.471822303,\"deadline\":124071.421586662,\"first_start\":123471.421586662},\"SYN-I08\":{\"completed_at\":123471.471858747,\"deadline\":124071.471849919,\"first_start\":123471.471849919},\"SYN-I09\":{\"completed_at\":123471.522046762,\"deadline\":124071.522029416,\"first_start\":123471.522029416},\"SYN-V00\":{\"completed_at\":123471.572200562,\"deadline\":124071.522070505,\"first_start\":123471.522070505},\"SYN-V01\":{\"completed_at\":123471.622365608,\"deadline\":124071.572228751,\"first_start\":123471.572228751},\"SYN-V02\":{\"completed_at\":123471.672535343,\"deadline\":124071.622398734,\"first_start\":123471.622398734},\"SYN-V03\":{\"completed_at\":123471.722697706,\"deadline\":124071.672562469,\"first_start\":123471.672562469},\"SYN-V04\":{\"completed_at\":123471.772844997,\"deadline\":124071.722724841,\"first_start\":123471.722724841},\"SYN-V05\":{\"completed_at\":123471.823101547,\"deadline\":124071.772871249,\"first_start\":123471.772871249}},\"history_timeout_seconds\":600,\"incomplete_frame\":false,\"kind\":\"lvw.s3-supervision-evidence/1\",\"message_count\":66,\"message_limit\":1024,\"native_gpu_release_proven\":false,\"native_service_cleanup_proven\":false,\"next_phase_allowed\":true,\"notes\":[],\"parent_crash_recovery_proven\":false,\"phase_deadline_reached\":false,\"phase_timeout_seconds\":10800,\"pid\":null,\"plan_sha256\":\"dd8bc5a9f2c4c984a65cbe0d43e65a2c2b74a3c9bbc74856d58f829793d341d2\",\"product_gate0\":false,\"protocol_violation\":null,\"real_execution_performed\":false,\"refund_allowed\":false,\"resend_allowed\":false,\"reservation_retained\":false,\"root_retained\":false,\"row_count\":16,\"row_status\":{\"SYN-I00\":\"PASS\",\"SYN-I01\":\"PASS\",\"SYN-I02\":\"PASS\",\"SYN-I03\":\"PASS\",\"SYN-I04\":\"PASS\",\"SYN-I05\":\"PASS\",\"SYN-I06\":\"PASS\",\"SYN-I07\":\"PASS\",\"SYN-I08\":\"PASS\",\"SYN-I09\":\"PASS\",\"SYN-V00\":\"PASS\",\"SYN-V01\":\"PASS\",\"SYN-V02\":\"PASS\",\"SYN-V03\":\"PASS\",\"SYN-V04\":\"PASS\",\"SYN-V05\":\"PASS\"},\"run_id\":\"s3-p4-composition-01\",\"stage_pass_claim\":false,\"stderr_bytes\":0,\"stderr_bytes_retained\":0,\"stderr_drain_complete\":true,\"stderr_hash_scope\":\"all_observed\",\"stderr_hashed_bytes\":0,\"stderr_overflow\":false,\"stderr_read_error\":null,\"stderr_sha256\":\"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\"stderr_total_observed\":0,\"stdout_bytes\":23280,\"stdout_bytes_retained\":0,\"stdout_drain_complete\":true,\"stdout_hash_scope\":\"all_observed\",\"stdout_hashed_bytes\":23280,\"stdout_overflow\":false,\"stdout_read_error\":null,\"stdout_sha256\":\"5230ebd8d09bf2816967d95fb25b76ae41b1324dff2e45b35e110b20eb23a57c\",\"stdout_total_observed\":23280,\"stream_byte_limit\":262144,\"stream_violation\":null,\"terminal_received\":true,\"unknown_outcome\":false},\"transitions\":[\"PRECHECK\",\"PLAN_SEALED\",\"WORKER_SUPERVISED\"],\"unknown_reason\":\"CONTROLLER_ORIGINALS_CHANGED_BEFORE_SEAL\"}\n",
+  "stderr": "",
+  "exception": null,
+  "thread_alive": false,
+  "oracle": {
+    "boundary": "_SealedBytesBoundary",
+    "old_counts": {
+      "BLOCKED": 0,
+      "FAIL": 0,
+      "NOT_RUN": 0,
+      "PASS": 16,
+      "fixed": 16
+    },
+    "actual_counts": {
+      "BLOCKED": 0,
+      "FAIL": 1,
+      "NOT_RUN": 0,
+      "PASS": 15,
+      "fixed": 16
+    },
+    "actual_hash": "aeed6423c6838379d518ff84e2d8941eff70bf44e56a62f159b585200333f088"
+  }
+}

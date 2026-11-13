@@ -1,0 +1,197 @@
+{
+  "exit": 3,
+  "receipt": {
+    "archive_allowed": false,
+    "authorization_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "candidate_sha": "6885f7a62b223f5e2c7904a9f929e760396fd88b",
+    "cleanup_proven": false,
+    "composition_facts": [],
+    "disk_actions": {
+      "receipt_path": null,
+      "receipt_sha256": null,
+      "receipt_written": false,
+      "scope": "THE_FILES_THAT_THIS_RUN_WROTE;AN_OBJECTIVE_FACT_AND_NEITHER_A_ROLLBACK_NOR_A_CLEANUP_CLAIM",
+      "summary_path": null,
+      "summary_sha256": null,
+      "summary_written": false,
+      "the_receipt_file_does_not_attest_its_own_write": "THE_RECEIPT_ON_THE_DISK_CARRIES_THE_FACTS_THAT_WERE_TRUE_WHEN_IT_WAS_WRITTEN;THE_WRITE_OF_THE_RECEIPT_IS_NOT_ATTESTED_BY_THE_RECEIPT_ITSELF",
+      "the_summary_is_not_deleted_and_is_not_rewritten": true
+    },
+    "duration_seconds": 0.000878,
+    "execution_attempts": 1,
+    "execution_mode": "OFFLINE_SYNTHETIC_COMPOSITION",
+    "fd_cleanup": {
+      "controller_anchor_descriptors": [
+        3
+      ],
+      "controller_anchor_descriptors_scope": "THE_BOUND_ROOT_AND_THE_OUTPUT_DIRECTORY_OF_THIS_RUN;THEY_ARE_HELD_BY_THE_RUN_AND_CLOSED_WHEN_THE_RUN_RETURNS",
+      "fd_after": {
+        "closed_entries": [
+          5
+        ],
+        "identity": {
+          "0": {
+            "device": 15,
+            "inode": 6371115,
+            "mode": 4480
+          },
+          "1": {
+            "device": 2112,
+            "inode": 2860659,
+            "mode": 33188
+          },
+          "2": {
+            "device": 2112,
+            "inode": 2860691,
+            "mode": 33188
+          },
+          "3": {
+            "device": 2112,
+            "inode": 2901507,
+            "mode": 16877
+          }
+        },
+        "open": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "unverified_entries": []
+      },
+      "fd_before": {
+        "closed_entries": [
+          4
+        ],
+        "identity": {
+          "0": {
+            "device": 15,
+            "inode": 6371115,
+            "mode": 4480
+          },
+          "1": {
+            "device": 2112,
+            "inode": 2860659,
+            "mode": 33188
+          },
+          "2": {
+            "device": 2112,
+            "inode": 2860691,
+            "mode": 33188
+          }
+        },
+        "open": [
+          0,
+          1,
+          2
+        ],
+        "unverified_entries": []
+      },
+      "fd_leaked": [],
+      "observation_point": "PRE_RELEASE: the snapshot is taken at the end of the run body, before this run releases the descriptors it held; the descriptors of this run are named below and are excluded from the leak set",
+      "readers_closed": {
+        "closed_streams": null,
+        "stderr_drain_complete": null,
+        "stderr_read_error": null,
+        "stdout_drain_complete": null,
+        "stdout_read_error": null
+      },
+      "worker_exit_code": null,
+      "worker_lifecycle": {
+        "cooperative_cancel_observed": false,
+        "cooperative_cancel_requested": false,
+        "late_write_after_return_is_possible": false,
+        "lifecycle_owner": "offline_seam",
+        "worker_thread_alive": false,
+        "worker_thread_finished": false,
+        "worker_thread_killable": false,
+        "worker_thread_retained": false
+      },
+      "worker_thread_finished": false
+    },
+    "fd_cleanup_post_release": {
+      "fd_leaked": [],
+      "observation_point": "POST_RELEASE: the snapshot is taken after this run released the descriptors that it held",
+      "product_gate0": false,
+      "snapshot": {
+        "closed_entries": [
+          4
+        ],
+        "identity": {
+          "0": {
+            "device": 15,
+            "inode": 6371115,
+            "mode": 4480
+          },
+          "1": {
+            "device": 2112,
+            "inode": 2860659,
+            "mode": 33188
+          },
+          "2": {
+            "device": 2112,
+            "inode": 2860691,
+            "mode": 33188
+          }
+        },
+        "open": [
+          0,
+          1,
+          2
+        ],
+        "unverified_entries": []
+      },
+      "stage_pass_claim": false,
+      "the_persisted_receipt_carries": "PRE_RELEASE"
+    },
+    "kind": "lvw.s3-production-controller-receipt/1",
+    "native_execution_backend_code": "NATIVE_EXECUTION_BACKEND_NOT_READY",
+    "native_execution_backend_ready": false,
+    "node_id": "bb6869d98c2edffd9993d5410f6801dd",
+    "offline_receipts_are_not_product_receipts": true,
+    "product_gate0": false,
+    "real_execution_performed": false,
+    "receipt_path": null,
+    "receipt_persisted": false,
+    "receipt_persistence_error": "CONTROLLER_RECEIPT_NOT_APPLICABLE_NO_RESERVATION",
+    "refund_allowed": false,
+    "refusals": [
+      "CONTROLLER_DIRECTORY_IDENTITY_CHANGED:DIRECTORY_IDENTITY_CHANGED"
+    ],
+    "resend_allowed": false,
+    "reservation_retained": true,
+    "root": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-03/cases/m06-create-race/run",
+    "root_retained": true,
+    "run_id": "s3-p4-composition-01",
+    "source_sha256": {
+      "tools/v0_s3_coordinator.py": "14e8dd284971aeab00999f010679d5c95deb88ee3bff8f4ca0708d958b56f12c",
+      "tools/v0_s3_production_controller.py": "4236725aca2402a0d04cecb08ed458d6ac8084fb3b0c788599b52514e8e0f4e7",
+      "tools/v0_s3_quality_phase.py": "90552ea113ccf53a2a1cedff3e3f399642ad932bf0f71bb1f9a57e1adb6e8789",
+      "tools/v0_s3_quality_worker.py": "e3648446f39d6e7a1c31f180248ccb59c36272ddc10c80edbe544f7d3c595592",
+      "tools/v0_s3_supervisor.py": "7d210429e70761cea633e8f2e64d8a1f01709930068a21de5cbc3c5a519ce6d8"
+    },
+    "spawn_attempts": 0,
+    "stage_pass_claim": false,
+    "started_wall": 1794575353.4024637,
+    "state": "REFUSED_BEFORE_START",
+    "summary_persisted": false,
+    "summary_persisted_semantics": "summary_persisted_QUALIFIES_THE_RUN;disk_actions_RECORDS_WHAT_IS_ON_THE_DISK;THE_TWO_FIELDS_HAVE_A_DIFFERENT_MEANING_AND_NEITHER_REPLACES_THE_OTHER",
+    "transitions": [],
+    "unknown_reason": "CONTROLLER_DIRECTORY_IDENTITY_CHANGED:DIRECTORY_IDENTITY_CHANGED"
+  },
+  "stdout": "{\"archive_allowed\":false,\"authorization_sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"candidate_sha\":\"6885f7a62b223f5e2c7904a9f929e760396fd88b\",\"cleanup_proven\":false,\"composition_facts\":[],\"disk_actions\":{\"receipt_path\":null,\"receipt_sha256\":null,\"receipt_written\":false,\"scope\":\"THE_FILES_THAT_THIS_RUN_WROTE;AN_OBJECTIVE_FACT_AND_NEITHER_A_ROLLBACK_NOR_A_CLEANUP_CLAIM\",\"summary_path\":null,\"summary_sha256\":null,\"summary_written\":false,\"the_receipt_file_does_not_attest_its_own_write\":\"THE_RECEIPT_ON_THE_DISK_CARRIES_THE_FACTS_THAT_WERE_TRUE_WHEN_IT_WAS_WRITTEN;THE_WRITE_OF_THE_RECEIPT_IS_NOT_ATTESTED_BY_THE_RECEIPT_ITSELF\",\"the_summary_is_not_deleted_and_is_not_rewritten\":true},\"duration_seconds\":0.000878,\"execution_attempts\":1,\"execution_mode\":\"OFFLINE_SYNTHETIC_COMPOSITION\",\"fd_cleanup\":{\"controller_anchor_descriptors\":[3],\"controller_anchor_descriptors_scope\":\"THE_BOUND_ROOT_AND_THE_OUTPUT_DIRECTORY_OF_THIS_RUN;THEY_ARE_HELD_BY_THE_RUN_AND_CLOSED_WHEN_THE_RUN_RETURNS\",\"fd_after\":{\"closed_entries\":[5],\"identity\":{\"0\":{\"device\":15,\"inode\":6371115,\"mode\":4480},\"1\":{\"device\":2112,\"inode\":2860659,\"mode\":33188},\"2\":{\"device\":2112,\"inode\":2860691,\"mode\":33188},\"3\":{\"device\":2112,\"inode\":2901507,\"mode\":16877}},\"open\":[0,1,2,3],\"unverified_entries\":[]},\"fd_before\":{\"closed_entries\":[4],\"identity\":{\"0\":{\"device\":15,\"inode\":6371115,\"mode\":4480},\"1\":{\"device\":2112,\"inode\":2860659,\"mode\":33188},\"2\":{\"device\":2112,\"inode\":2860691,\"mode\":33188}},\"open\":[0,1,2],\"unverified_entries\":[]},\"fd_leaked\":[],\"observation_point\":\"PRE_RELEASE: the snapshot is taken at the end of the run body, before this run releases the descriptors it held; the descriptors of this run are named below and are excluded from the leak set\",\"readers_closed\":{\"closed_streams\":null,\"stderr_drain_complete\":null,\"stderr_read_error\":null,\"stdout_drain_complete\":null,\"stdout_read_error\":null},\"worker_exit_code\":null,\"worker_lifecycle\":{\"cooperative_cancel_observed\":false,\"cooperative_cancel_requested\":false,\"late_write_after_return_is_possible\":false,\"lifecycle_owner\":\"offline_seam\",\"worker_thread_alive\":false,\"worker_thread_finished\":false,\"worker_thread_killable\":false,\"worker_thread_retained\":false},\"worker_thread_finished\":false},\"fd_cleanup_post_release\":{\"fd_leaked\":[],\"observation_point\":\"POST_RELEASE: the snapshot is taken after this run released the descriptors that it held\",\"product_gate0\":false,\"snapshot\":{\"closed_entries\":[4],\"identity\":{\"0\":{\"device\":15,\"inode\":6371115,\"mode\":4480},\"1\":{\"device\":2112,\"inode\":2860659,\"mode\":33188},\"2\":{\"device\":2112,\"inode\":2860691,\"mode\":33188}},\"open\":[0,1,2],\"unverified_entries\":[]},\"stage_pass_claim\":false,\"the_persisted_receipt_carries\":\"PRE_RELEASE\"},\"kind\":\"lvw.s3-production-controller-receipt/1\",\"native_execution_backend_code\":\"NATIVE_EXECUTION_BACKEND_NOT_READY\",\"native_execution_backend_ready\":false,\"node_id\":\"bb6869d98c2edffd9993d5410f6801dd\",\"offline_receipts_are_not_product_receipts\":true,\"product_gate0\":false,\"real_execution_performed\":false,\"receipt_path\":null,\"receipt_persisted\":false,\"receipt_persistence_error\":\"CONTROLLER_RECEIPT_NOT_APPLICABLE_NO_RESERVATION\",\"refund_allowed\":false,\"refusals\":[\"CONTROLLER_DIRECTORY_IDENTITY_CHANGED:DIRECTORY_IDENTITY_CHANGED\"],\"resend_allowed\":false,\"reservation_retained\":true,\"root\":\"/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-03/cases/m06-create-race/run\",\"root_retained\":true,\"run_id\":\"s3-p4-composition-01\",\"source_sha256\":{\"tools/v0_s3_coordinator.py\":\"14e8dd284971aeab00999f010679d5c95deb88ee3bff8f4ca0708d958b56f12c\",\"tools/v0_s3_production_controller.py\":\"4236725aca2402a0d04cecb08ed458d6ac8084fb3b0c788599b52514e8e0f4e7\",\"tools/v0_s3_quality_phase.py\":\"90552ea113ccf53a2a1cedff3e3f399642ad932bf0f71bb1f9a57e1adb6e8789\",\"tools/v0_s3_quality_worker.py\":\"e3648446f39d6e7a1c31f180248ccb59c36272ddc10c80edbe544f7d3c595592\",\"tools/v0_s3_supervisor.py\":\"7d210429e70761cea633e8f2e64d8a1f01709930068a21de5cbc3c5a519ce6d8\"},\"spawn_attempts\":0,\"stage_pass_claim\":false,\"started_wall\":1794575353.4024637,\"state\":\"REFUSED_BEFORE_START\",\"summary_persisted\":false,\"summary_persisted_semantics\":\"summary_persisted_QUALIFIES_THE_RUN;disk_actions_RECORDS_WHAT_IS_ON_THE_DISK;THE_TWO_FIELDS_HAVE_A_DIFFERENT_MEANING_AND_NEITHER_REPLACES_THE_OTHER\",\"transitions\":[],\"unknown_reason\":\"CONTROLLER_DIRECTORY_IDENTITY_CHANGED:DIRECTORY_IDENTITY_CHANGED\"}\n",
+  "stderr": "",
+  "exception": null,
+  "thread_alive": false,
+  "oracle": {
+    "fd_identity": [
+      2112,
+      2901550
+    ],
+    "path_identity": [
+      2112,
+      2901551
+    ]
+  },
+  "held_files": []
+}

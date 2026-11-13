@@ -1,0 +1,118 @@
+[
+  {
+    "id": "positive",
+    "assertion": "PASS"
+  },
+  {
+    "id": "M04-external-legal",
+    "assertion": "PASS"
+  },
+  {
+    "id": "M04-external-parent-link",
+    "assertion": "PASS"
+  },
+  {
+    "id": "M04-window-parent",
+    "assertion": "PASS"
+  },
+  {
+    "id": "M04-window-nested",
+    "assertion": "PASS"
+  },
+  {
+    "id": "M04-window-runtime",
+    "assertion": "PASS"
+  },
+  {
+    "id": "M04-window-keyboard",
+    "assertion": "PASS"
+  },
+  {
+    "id": "M04-bounded-exact",
+    "assertion": "PASS"
+  },
+  {
+    "id": "M04-bounded-over",
+    "assertion": "PASS"
+  },
+  {
+    "id": "M04-bounded-fifo",
+    "assertion": "PASS"
+  },
+  {
+    "id": "M06-PRECHECK-root",
+    "assertion": "PASS"
+  },
+  {
+    "id": "M06-PRECHECK-temp",
+    "assertion": "PASS"
+  },
+  {
+    "id": "M06-PRECHECK-controller",
+    "assertion": "PASS"
+  },
+  {
+    "id": "M06-PRECHECK-ancestor",
+    "assertion": "PASS"
+  },
+  {
+    "id": "M06-create-race",
+    "assertion": "FAIL",
+    "error": "AssertionError:accepted directory chain observed from different object",
+    "traceback": "Traceback (most recent call last):\n  File \"/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-03/probes.py\", line 218, in main\n    try:fn(m,*args);result={'id':name,'assertion':'PASS'}\n        ^^^^^^^^^^^\n  File \"/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-03/probes.py\", line 107, in m06_create_race\n    m.setattr(c,'ensure_directory_chain',swap);v=run(comp,m);save('M06-create-race',{**v,'oracle':oracle,'held_files':[p.name for p in (comp['root']/'temp/held-output').iterdir()]});assert v['receipt']['state'] in ('REFUSED','UNKNOWN_RETAINED') and not v['receipt']['summary_persisted'] and v['receipt'].get('receipt_path') is None and v['receipt'].get('summary_path') is None,'accepted directory chain observed from different object'\n                                                                                                                                                                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: accepted directory chain observed from different object\n"
+  },
+  {
+    "id": "M08-single",
+    "assertion": "PASS"
+  },
+  {
+    "id": "M08-double",
+    "assertion": "PASS"
+  },
+  {
+    "id": "M08-keyboard",
+    "assertion": "PASS"
+  },
+  {
+    "id": "M08-system",
+    "assertion": "PASS"
+  },
+  {
+    "id": "M08-observer",
+    "assertion": "PASS"
+  },
+  {
+    "id": "M08-finish",
+    "assertion": "FAIL",
+    "error": "AssertionError:",
+    "traceback": "Traceback (most recent call last):\n  File \"/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-03/probes.py\", line 218, in main\n    try:fn(m,*args);result={'id':name,'assertion':'PASS'}\n        ^^^^^^^^^^^\n  File \"/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-03/probes.py\", line 183, in terminal\n    assert not delta and not v['thread_alive']\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n"
+  },
+  {
+    "id": "M08-disk-observer",
+    "assertion": "FAIL",
+    "error": "AssertionError:terminal ordinary failure escaped or stayed success",
+    "traceback": "Traceback (most recent call last):\n  File \"/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-03/probes.py\", line 218, in main\n    try:fn(m,*args);result={'id':name,'assertion':'PASS'}\n        ^^^^^^^^^^^\n  File \"/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-03/probes.py\", line 186, in terminal\n    r=v['receipt'];assert r is not None and v['exit']!=5 and r['state']=='UNKNOWN_RETAINED','terminal ordinary failure escaped or stayed success'\n                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: terminal ordinary failure escaped or stayed success\n"
+  },
+  {
+    "id": "M08-close-observer",
+    "assertion": "FAIL",
+    "error": "AssertionError:terminal ordinary failure escaped or stayed success",
+    "traceback": "Traceback (most recent call last):\n  File \"/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-03/probes.py\", line 218, in main\n    try:fn(m,*args);result={'id':name,'assertion':'PASS'}\n        ^^^^^^^^^^^\n  File \"/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-03/probes.py\", line 186, in terminal\n    r=v['receipt'];assert r is not None and v['exit']!=5 and r['state']=='UNKNOWN_RETAINED','terminal ordinary failure escaped or stayed success'\n                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: terminal ordinary failure escaped or stayed success\n"
+  },
+  {
+    "id": "M05-seal-window",
+    "assertion": "PASS"
+  },
+  {
+    "id": "FD-real",
+    "assertion": "PASS"
+  },
+  {
+    "id": "native",
+    "assertion": "PASS"
+  },
+  {
+    "id": "reservation",
+    "assertion": "PASS"
+  }
+]

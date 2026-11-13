@@ -21,7 +21,7 @@
     "passed_cases": 10,
     "human_signoff": "reports/unified-media/human-signoff-live15.json"
   },
-  "current_blocking_gate": "S3_P4_CORRECTION03_INDEPENDENT_THREE_MAJOR_REVIEW",
+  "current_blocking_gate": "S3_P4_CORRECTION04_M08_TERMINAL_LIFECYCLE",
   "stage_packet": ".agent-governance/stages/R1/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/R1/PAYLOAD_MANIFEST.sha256",
   "product_status": "UNIFIED_MEDIA_EARLY_ACCEPTED_SCOPE_ONLY_FULL_R1_PENDING",
@@ -34,8 +34,8 @@
     "PRODUCTION_RELEASED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "Independent correction03 reviewer",
-  "next_action": "Await one frozen27-case independent review and consolidated findings; do not duplicate dispatch or rerun suites.",
+  "next_owner": "ClaudeCode correction04 implementer",
+  "next_action": "Concentrate remaining M08 lifecycle/diagnostic failures; static preparation then one bounded root-ACKed validation batch.",
   "required_authorization": null,
   "authorization_request": "reports/authorization-program-v1-complete-03.request.json",
   "authorization_record": "reports/authorization-program-v1-complete-03.approval.json",
@@ -87,7 +87,7 @@
   "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
   "live_terminal_receipt": "reports/unified-media/live-15/receipt.json",
   "independent_review": "reports/unified-media/independent-live-15/review.md",
-  "exact_stop_reason": "Independent27-case plan/pins statically verified; ACK sent once under existing authorization, awaiting reviewer report.",
+  "exact_stop_reason": "Independent correction03 F0/M1/m0 accepted, other four findings closed; consolidated M08 correction04 prepared.",
   "native_component_authorization": "reports/v0-s2/authorization-native-component-02.json",
   "native_component_terminal_receipt": "reports/v0-s2/native-component-02/receipt.json",
   "local_control_change_decision": "reports/v0-s2/change-decision-video-workbench-01.json",
@@ -1819,7 +1819,7 @@
   },
   "s3_integration": {
     "workpack_id": "S3-P4-OFFLINE",
-    "status": "PRODUCTION_COMPOSITION_CORRECTION03_INDEPENDENT_REVIEW",
+    "status": "PRODUCTION_COMPOSITION_CORRECTION04_IMPLEMENTATION",
     "contract": "reports/v0-s3/product-gate0/s3-integration-offline-contract-01.md",
     "task": "reports/v0-s3/product-gate0/implementation-integration-01.task.md",
     "acceptance_matrix": "reports/v0-s3/product-gate0/s3-integration-acceptance-01.json",
@@ -2089,7 +2089,7 @@
     "production_composition_correction03": {
       "contract": "reports/v0-s3/product-gate0/production-composition-correction-03/contract.md",
       "baseline": "8f375f887f0121ab5a0395f032dd74d8a6f0cf0b",
-      "state": "READY_FOR_REVIEW",
+      "state": "CHANGES_REQUIRED",
       "dispatch_id": "ctx_acb0aacbf374",
       "task_id": "task_b722840d567b",
       "terminal_id": "term_cce86a57-5263-4f1a-a295-7a0078778590",
@@ -2105,8 +2105,15 @@
         "state": "outcome_unknown",
         "launch_receipt": "reports/v0-s3/product-gate0/production-composition-correction-review-03/launch.json",
         "keep_open": false,
-        "verification_plan": "reports/v0-s3/product-gate0/production-composition-correction-review-03/validation-plan-01/ack.json"
+        "verification_plan": "reports/v0-s3/product-gate0/production-composition-correction-review-03/validation-plan-01/ack.json",
+        "decision": "reports/v0-s3/product-gate0/production-composition-correction-04/root-decision.json"
       }
+    },
+    "production_composition_correction04": {
+      "baseline": "6885f7a62b223f5e2c7904a9f929e760396fd88b",
+      "starting_head": "6ea33bc4ac8a383df8db1be978b077e7ad9d8338",
+      "contract": "reports/v0-s3/product-gate0/production-composition-correction-04/contract.md",
+      "state": "PREPARING_IMPLEMENTATION"
     }
   }
 }

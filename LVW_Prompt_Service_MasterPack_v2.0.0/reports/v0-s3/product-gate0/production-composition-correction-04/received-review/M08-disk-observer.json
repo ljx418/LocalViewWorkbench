@@ -1,0 +1,355 @@
+{
+  "exit": 5,
+  "receipt": null,
+  "stdout": "",
+  "stderr": "S3_CONTROLLER_REFUSED EXCEPTION RuntimeError\n",
+  "exception": null,
+  "thread_alive": false,
+  "fd_delta_before_probe_cleanup": {},
+  "disk": {
+    "reservation-s3-p4-composition-01.json": {
+      "authorization_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "candidate_sha": "6885f7a62b223f5e2c7904a9f929e760396fd88b",
+      "kind": "lvw.s3-controller-reservation/1",
+      "product_gate0": false,
+      "reserved_wall": 1794575358.7909834,
+      "root": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-03/cases/terminal-disk-observer/run",
+      "run_id": "s3-p4-composition-01",
+      "stage_pass_claim": false
+    },
+    "summary-s3-p4-composition-01.json": {
+      "blocked_count": 12,
+      "candidate_sha": "6885f7a62b223f5e2c7904a9f929e760396fd88b",
+      "cleanup_proven": false,
+      "cleanup_receipt_required": true,
+      "composition_facts": [
+        {
+          "authorization_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "candidate_sha": "6885f7a62b223f5e2c7904a9f929e760396fd88b",
+          "detail": "the rows of this run published a raw and a suggestion artefact whose digests agree with the sealed manifest",
+          "kind": "lvw.s3-composition-fact/1",
+          "name": "composition_fact_output_artifacts_present",
+          "not_a_formal_product_obligation": true,
+          "observed": true,
+          "product_gate0": false,
+          "product_pass_claimed": false,
+          "run_id": "s3-p4-composition-01",
+          "scope": "OFFLINE_SYNTHETIC_COMPOSITION",
+          "sources": [
+            {
+              "sha256": "610f6d5bfb865619b87b3e48017a7e579d5c43cd126bdeac8c7c6ff96a939ee8",
+              "source": "canonical_receipt"
+            },
+            {
+              "sha256": "15de30d269aff59d79562b5f7fe105fed0c7cabf8850133eb8f8abb6be360491",
+              "source": "parent_manifest"
+            }
+          ],
+          "stage_pass_claim": false,
+          "status": "OBSERVED"
+        },
+        {
+          "authorization_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "candidate_sha": "6885f7a62b223f5e2c7904a9f929e760396fd88b",
+          "detail": "the artefacts of this run were created exclusively inside the owned phase directory of this run",
+          "kind": "lvw.s3-composition-fact/1",
+          "name": "composition_fact_exclusive_creation_of_this_run",
+          "not_a_formal_product_obligation": true,
+          "observed": true,
+          "product_gate0": false,
+          "product_pass_claimed": false,
+          "run_id": "s3-p4-composition-01",
+          "scope": "OFFLINE_SYNTHETIC_COMPOSITION",
+          "sources": [
+            {
+              "sha256": "610f6d5bfb865619b87b3e48017a7e579d5c43cd126bdeac8c7c6ff96a939ee8",
+              "source": "canonical_receipt"
+            },
+            {
+              "sha256": "15de30d269aff59d79562b5f7fe105fed0c7cabf8850133eb8f8abb6be360491",
+              "source": "parent_manifest"
+            }
+          ],
+          "stage_pass_claim": false,
+          "status": "OBSERVED"
+        },
+        {
+          "authorization_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "candidate_sha": "6885f7a62b223f5e2c7904a9f929e760396fd88b",
+          "detail": "the provider calls of this run were reserved inside the accepted capacity of this run: reserved=34 capacity=34",
+          "kind": "lvw.s3-composition-fact/1",
+          "name": "composition_fact_provider_call_accounting_of_this_run",
+          "not_a_formal_product_obligation": true,
+          "observed": true,
+          "product_gate0": false,
+          "product_pass_claimed": false,
+          "run_id": "s3-p4-composition-01",
+          "scope": "OFFLINE_SYNTHETIC_COMPOSITION",
+          "sources": [
+            {
+              "sha256": "610f6d5bfb865619b87b3e48017a7e579d5c43cd126bdeac8c7c6ff96a939ee8",
+              "source": "canonical_receipt"
+            },
+            {
+              "sha256": "15de30d269aff59d79562b5f7fe105fed0c7cabf8850133eb8f8abb6be360491",
+              "source": "parent_manifest"
+            }
+          ],
+          "stage_pass_claim": false,
+          "status": "OBSERVED"
+        }
+      ],
+      "composition_facts_are_not_product_receipts": true,
+      "execution_mode": "OFFLINE_SYNTHETIC_COMPOSITION",
+      "fail_count": 0,
+      "key_count": 12,
+      "keys": {
+        "V0-A01": {
+          "key": "V0-A01",
+          "product_gate0": false,
+          "reasons": [
+            "a06_isolation:REAL_ISOLATION_UNPROVEN",
+            "cleanup:CLEANUP_UNPROVEN",
+            "independent_score:INDEPENDENT_SCORE_MISSING"
+          ],
+          "required_receipts": [
+            "stage_binding",
+            "image_input",
+            "cleanup"
+          ],
+          "stage_pass_claim": false,
+          "status": "BLOCKED"
+        },
+        "V0-A02": {
+          "key": "V0-A02",
+          "product_gate0": false,
+          "reasons": [
+            "a06_isolation:REAL_ISOLATION_UNPROVEN",
+            "cleanup:CLEANUP_UNPROVEN",
+            "independent_score:INDEPENDENT_SCORE_MISSING"
+          ],
+          "required_receipts": [
+            "stage_binding",
+            "video_input",
+            "cleanup"
+          ],
+          "stage_pass_claim": false,
+          "status": "BLOCKED"
+        },
+        "V0-A03": {
+          "key": "V0-A03",
+          "product_gate0": false,
+          "reasons": [
+            "a06_isolation:REAL_ISOLATION_UNPROVEN",
+            "cleanup:CLEANUP_UNPROVEN",
+            "independent_score:INDEPENDENT_SCORE_MISSING"
+          ],
+          "required_receipts": [
+            "stage_binding",
+            "output_contract",
+            "cleanup"
+          ],
+          "stage_pass_claim": false,
+          "status": "BLOCKED"
+        },
+        "V0-A04": {
+          "key": "V0-A04",
+          "product_gate0": false,
+          "reasons": [
+            "a06_isolation:REAL_ISOLATION_UNPROVEN",
+            "cleanup:CLEANUP_UNPROVEN",
+            "independent_score:INDEPENDENT_SCORE_MISSING"
+          ],
+          "required_receipts": [
+            "stage_binding",
+            "manual_export",
+            "cleanup"
+          ],
+          "stage_pass_claim": false,
+          "status": "BLOCKED"
+        },
+        "V0-A05": {
+          "key": "V0-A05",
+          "product_gate0": false,
+          "reasons": [
+            "a06_isolation:REAL_ISOLATION_UNPROVEN",
+            "cleanup:CLEANUP_UNPROVEN",
+            "independent_score:INDEPENDENT_SCORE_MISSING"
+          ],
+          "required_receipts": [
+            "stage_binding",
+            "no_overwrite",
+            "cleanup"
+          ],
+          "stage_pass_claim": false,
+          "status": "BLOCKED"
+        },
+        "V0-A06": {
+          "key": "V0-A06",
+          "product_gate0": false,
+          "reasons": [
+            "a06_isolation:REAL_ISOLATION_UNPROVEN",
+            "cleanup:CLEANUP_UNPROVEN",
+            "independent_score:INDEPENDENT_SCORE_MISSING"
+          ],
+          "required_receipts": [
+            "stage_binding",
+            "a06_isolation",
+            "install",
+            "rollback",
+            "cleanup"
+          ],
+          "stage_pass_claim": false,
+          "status": "BLOCKED"
+        },
+        "V0-A07": {
+          "key": "V0-A07",
+          "product_gate0": false,
+          "reasons": [
+            "a06_isolation:REAL_ISOLATION_UNPROVEN",
+            "cleanup:CLEANUP_UNPROVEN",
+            "independent_score:INDEPENDENT_SCORE_MISSING"
+          ],
+          "required_receipts": [
+            "stage_binding",
+            "file_safety",
+            "cleanup"
+          ],
+          "stage_pass_claim": false,
+          "status": "BLOCKED"
+        },
+        "V0-A08": {
+          "key": "V0-A08",
+          "product_gate0": false,
+          "reasons": [
+            "a06_isolation:REAL_ISOLATION_UNPROVEN",
+            "cleanup:CLEANUP_UNPROVEN",
+            "independent_score:INDEPENDENT_SCORE_MISSING"
+          ],
+          "required_receipts": [
+            "stage_binding",
+            "no_approval_gate",
+            "cleanup"
+          ],
+          "stage_pass_claim": false,
+          "status": "BLOCKED"
+        },
+        "V0-A09": {
+          "key": "V0-A09",
+          "product_gate0": false,
+          "reasons": [
+            "a06_isolation:REAL_ISOLATION_UNPROVEN",
+            "cleanup:CLEANUP_UNPROVEN",
+            "independent_score:INDEPENDENT_SCORE_MISSING"
+          ],
+          "required_receipts": [
+            "stage_binding",
+            "resource_budget",
+            "cleanup"
+          ],
+          "stage_pass_claim": false,
+          "status": "BLOCKED"
+        },
+        "V0-A10": {
+          "key": "V0-A10",
+          "product_gate0": false,
+          "reasons": [
+            "a06_isolation:REAL_ISOLATION_UNPROVEN",
+            "cleanup:CLEANUP_UNPROVEN",
+            "independent_score:INDEPENDENT_SCORE_MISSING"
+          ],
+          "required_receipts": [
+            "stage_binding",
+            "cancel_release",
+            "cleanup"
+          ],
+          "stage_pass_claim": false,
+          "status": "BLOCKED"
+        },
+        "V0-A11": {
+          "key": "V0-A11",
+          "product_gate0": false,
+          "reasons": [
+            "a06_isolation:REAL_ISOLATION_UNPROVEN",
+            "cleanup:CLEANUP_UNPROVEN",
+            "independent_score:INDEPENDENT_SCORE_MISSING"
+          ],
+          "required_receipts": [
+            "stage_binding",
+            "quality_16_rows",
+            "independent_score",
+            "cleanup"
+          ],
+          "stage_pass_claim": false,
+          "status": "BLOCKED"
+        },
+        "V0-A12": {
+          "key": "V0-A12",
+          "product_gate0": false,
+          "reasons": [
+            "a06_isolation:REAL_ISOLATION_UNPROVEN",
+            "cleanup:CLEANUP_UNPROVEN",
+            "independent_score:INDEPENDENT_SCORE_MISSING"
+          ],
+          "required_receipts": [
+            "stage_binding",
+            "quality_16_rows",
+            "independent_score",
+            "webp_format",
+            "cleanup"
+          ],
+          "stage_pass_claim": false,
+          "status": "BLOCKED"
+        }
+      },
+      "kind": "lvw.s3-production-summary/1",
+      "native_execution_backend_code": "NATIVE_EXECUTION_BACKEND_NOT_READY",
+      "native_execution_backend_ready": false,
+      "not_run_count": 0,
+      "offline_receipts_are_not_product_receipts": true,
+      "old_s2_nine_keys_accepted_as_green": false,
+      "old_s2_submissions_accepted_as_budget": false,
+      "pass_count": 0,
+      "product_gate0": false,
+      "provenance": {
+        "canonical": {
+          "bytes": 55629,
+          "owner": "quality_phase_canonical_receipt",
+          "reference": "temp/s3-quality/qd-receipt.json",
+          "sha256": "610f6d5bfb865619b87b3e48017a7e579d5c43cd126bdeac8c7c6ff96a939ee8"
+        },
+        "controller_context": {
+          "bytes": 1242,
+          "owner": "controller_context",
+          "sha256": "dce6aca19a7bcc72ff9548239941bf6a4069307913d354699b9e686d2868f652"
+        },
+        "manifest": {
+          "owner": "ParentOriginalEvidence",
+          "sha256": "15de30d269aff59d79562b5f7fe105fed0c7cabf8850133eb8f8abb6be360491"
+        },
+        "plan": {
+          "owner": "ParentOriginalEvidence",
+          "sha256": "720c791031ad53987374860d55e48617872d36421debd669e2b0024289e026c1"
+        },
+        "projection": {
+          "owner": "quality_phase_projection",
+          "sha256": "55580235d38d8d785e9e5eb0c2b3f5191d246d231f6dd3faa7c1f82df27192f6"
+        },
+        "source_plan": {
+          "bytes": 8749,
+          "owner": "quality_phase_source_plan",
+          "sha256": "52b1661bd2455285583db10315b2b535a4d848112a56906d026d760069c9465a"
+        },
+        "worker_context": {
+          "owner": "WorkerContext",
+          "sha256": "bd6006abed9a65854c98885076245e772dc980df1aa4b6cd8a2af95a6fb1bb9e"
+        }
+      },
+      "real_execution_performed": false,
+      "run_id": "s3-p4-composition-01",
+      "stage_pass_claim": false,
+      "synthetic_fixtures_count_as_product_pass": false
+    }
+  },
+  "unknown_fd_unchanged": true
+}

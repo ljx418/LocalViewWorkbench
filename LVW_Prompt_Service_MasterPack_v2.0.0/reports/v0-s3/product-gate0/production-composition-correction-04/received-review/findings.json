@@ -1,0 +1,100 @@
+{
+  "candidate": "6885f7a62b223f5e2c7904a9f929e760396fd88b",
+  "delivery": "6ea33bc4ac8a383df8db1be978b077e7ad9d8338",
+  "base": "8f375f887f0121ab5a0395f032dd74d8a6f0cf0b",
+  "outcome": "CHANGES_REQUIRED",
+  "counts": {
+    "Fatal": 0,
+    "Major": 1,
+    "Minor": 0
+  },
+  "closed": [
+    "M04",
+    "M06",
+    "meta01",
+    "m03"
+  ],
+  "open": [
+    "M08"
+  ],
+  "prior_closed_not_reopened": [
+    "M01",
+    "M02",
+    "M03",
+    "M05",
+    "M07",
+    "M09",
+    "m01",
+    "m02",
+    "FD_SNAPSHOT_SPECIFIED_FIX",
+    "P01_CURRENT_ROUND"
+  ],
+  "batch": {
+    "calls": 27,
+    "assertion_pass": 23,
+    "assertion_fail": 4,
+    "effective_defect_reproductions": 3,
+    "probe_oracle_limitations": 1,
+    "batches": 1,
+    "exit": 1,
+    "reruns": 0
+  },
+  "M08": {
+    "severity": "Major",
+    "location": "tools/v0_s3_production_controller.py:2449-2501,2527-2588,2196-2204",
+    "subfindings": [
+      {
+        "id": "M08-disk-observer",
+        "trigger": "_record_disk_actions raises RuntimeError",
+        "expected": "structured UNKNOWN, stdout receipt, bounded own-anchor release, existing summary acknowledged",
+        "actual": "exit5, empty stdout, no terminal receipt; existing reservation and summary remain; anchors released",
+        "evidence": "M08-disk-observer.json"
+      },
+      {
+        "id": "M08-cleanup-observer",
+        "trigger": "second _fd_snapshot call raises RuntimeError inside _finish after seam.close",
+        "expected": "cleanup observation unknown leads structured UNKNOWN and separate cleanup error",
+        "actual": "exit0 SUMMARY_PERSISTED, receipt_persisted=true, cleanup_failures FINISH:RuntimeError, no PRE_RELEASE fd_cleanup; ordinary failure does not change state",
+        "evidence": "M08-close-observer.json"
+      },
+      {
+        "id": "M08-finish-failure",
+        "trigger": "_finish raises RuntimeError before its cleanup body",
+        "expected": "independent lifecycle cleanup, structured UNKNOWN with error, no owned pipe leak",
+        "actual": "exit0 SUMMARY_PERSISTED, cleanup_failures FINISH:RuntimeError, actual pipe FD10 dev15 inode6349487 remains, worker thread ended, root/output anchors closed",
+        "evidence": "M08-finish.json",
+        "scope": "controlled fault at cleanup-method boundary, not a claim of spontaneous normal _finish failure"
+      },
+      {
+        "id": "M08-disk-action-static",
+        "trigger": "os.stat(summary_path) raises OSError after a successful summary write",
+        "expected": "historical summary_written remains true; current observability reported separately as unknown",
+        "actual": "code initializes written=false, catches OSError and reports summary_written=false, conflating observation failure with historical write absence",
+        "evidence": "static tools/v0_s3_production_controller.py:2196-2204",
+        "dynamic_reproduced": false
+      }
+    ]
+  },
+  "probe_limitation": {
+    "id": "M06-create-race",
+    "reason": "assertion accepted literal REFUSED but product correctly returns REFUSED_BEFORE_START; no product acceptance",
+    "actual": "different fd/path inode; refused identity mismatch, zero held/replacement artifacts and null summary_path/receipt_path",
+    "rerun": false
+  },
+  "cleanup": {
+    "main_thread_only": true,
+    "batch_final_real_fd_leak": [
+      {
+        "fd": 10,
+        "device": 15,
+        "inode": 6349487,
+        "mode": 4480
+      }
+    ],
+    "origin": "M08-finish-failure",
+    "unknown_fds_closed": false,
+    "kernel_reclaims_on_process_exit_is_not_product_cleanup_proof": true
+  },
+  "stage_pass_claim": false,
+  "product_gate0": false
+}

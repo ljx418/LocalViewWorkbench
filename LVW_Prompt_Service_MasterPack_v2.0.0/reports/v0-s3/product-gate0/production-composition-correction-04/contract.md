@@ -1,0 +1,22 @@
+# 生产组合纠偏04：M08终态异常统一收口
+
+独审msg_fdff1d8f63c6对代码候选6885f7a62b223f5e2c7904a9f929e760396fd88b、证据交付6ea33bc4ac8a383df8db1be978b077e7ad9d8338裁决F0/M1/m0。M04/M06/meta01/m03关闭，不重开整套；M05/M07/指定FDsnapshot/P01及更早关闭项仍保留。当前impl HEAD应6ea33bc，其代码等于6885f7a。
+
+只允许tools/v0_s3_production_controller.py和tools/test_v0_s3_production_composition.py及NEW reports/v0-s3/product-gate0/implementation-production-composition-correction-04。不改controller_io/worker/supervisor/QualityPhase/coordinator/runtime/authority/executor/fixture及公共合同/control/MANIFEST/旧证据。确有跨owner必要先askroot最小方案，不能自行扩大。
+
+## 单一根因与修复架构
+终态的资源释放与诊断、收据持久化分离，资源的owner在独立finally完成有界关闭，任何诊断步骤不得成为生命周期清理的唯一入口。不要只在每个已失败方法旁再叠一个漏保护的observer；一次梳理run的终态路径：_finish、实际seam/pipe关闭、disk action记录、persist、post-release observer。ordinary Exception统一降为UNKNOWN_RETAINED并保留primary及secondary/cleanup错误，不能日志里写FINISH错误但状态exit0成功。KeyboardInterrupt/SystemExit不吞，但生命周期资源关闭仍执行；不关闭未知FD，不依赖GC、历史FD忽略或进程最终退出代替产品清理。
+
+1. _record_disk_actions自身RuntimeError不能逃到main泛化exit5/空stdout；返回结构化UNKNOWN，已完成summary与reservation事实保留。fallback仅有限直接字段构造，不能依赖同一失败observer重试。原失败与次级失败分开；如果receipt已落盘，则明确磁盘PRE_RELEASE状态和最终返回状态不同，不重写旧收据。
+2. _finish内第二次_fd_snapshot等普通诊断异常应UNKNOWN/清理观测未知，后续观察正常不得追认早先未知。_finish入口失败也要在独立finally通过持有的seam/worker owner关闭本轮pipe等资源并有界核线程，不只root/output anchors。复用现有seam.close等owner的幂等生命周期，不发明按/proc枚举关闭任意FD、不kill未知进程；close失败如实保留不假清理。清理顺序应不依赖易失败字段/哈希/快照观察先成功。避免重复cancel/spawn/重试；已正常结束worker再关闭自有管道不能生成新动作。
+3. 历史写入事实和当前磁盘观察分开。summary_path/hash只在写成功后设置，可用可靠写入结果/单调事实记录summary_written，后续stat失败/路径被移动只表示当前可见性unknown/changed，不撤销历史写入。新增观察如需要必须有有界失败结果，不因stat OSError改成summary_written=false。receipt写入只由实际成功返回决定，不用文件存在自证。保持summary_persisted资格字段与disk_actions动作事实差别，不虚构回滚。
+4. 现有单/双persist异常、KI/SystemExit释放、自有FD不误关、post observer异常、正常16行QualityPhase真实链、M05/M07及native拒绝语义兼容。正式A03/A05/A09仍BLOCKED，合成事实不算产品PASS，空目录残留如实保留。
+
+## 最小验证与停止
+先静态实现/AST，不能导入候选/pytest。提交一次定向计划askroot，精确argv/cwd/选中节点/source-tool-dependency pins/guard/<=300s/日志/FD身份线程。选择三处真实失败、历史写事实stat失败、必要取消与普通正例及直接相关兼容；不重跑作者35/旧独审27/37/21全套或无关compat。root ACK后仅一次，失败保留不自动复跑。正确Oracle承认REFUSED_BEFORE_START，不把探针状态名错判产品；FD真实fstat身份，批末无新FD而非只MainThread。
+
+guard在所有候选/pytest导入前硬拒subprocess/socket/fork/exec/spawn/system/sqlite3.connect/原counter与ledger；仅本进程threads/pipe/NEW合成目录，无模型/GPU/native/服务/浏览器/网络/下载/用户媒体。-I保留，guard后核已封存命名依赖显式append，不site.main/.pth。原counter仅guard外前后各一次只读acbdb8b154864b6f079ae783d670f11ec138b6be0617d1fa4f56c28c33223b98 inactive28/240/12.362，禁止写/退款/清零/新counter/旧grant复活。
+
+独审27例23断言通过4失败，3为上述有效M08，1为创建接缝REFUSED状态名探针限制；M06实际上正确拒绝。原批末真实pipe FD10身份保留，guard进程退出由内核回收不等于产品返回清理，原FD8身份仍UNKNOWN。NEW报告将作者zip声明3504和实际2878成员计数口径核清，列regular/symlink/目录排除数和逐成员清单，不能无证声称丢626或完整一致，原ZIP不改。
+
+首次429立即WAIT_BUDGET停，不retry/切模型Harness/由Codex接手；首次审批拒绝/超时停askroot，不包装绕过/改审批配置。唯一实现者，禁止派生Agent。交付仅READY_FOR_REVIEW，独审和人工签署仍保留。当前I24/产品12/native/Windows/A06/原ledger/质量及人签仍未证，禁止StagePASS或质量门槛变更。
