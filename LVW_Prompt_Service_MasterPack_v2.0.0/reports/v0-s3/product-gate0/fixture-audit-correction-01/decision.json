@@ -1,0 +1,132 @@
+{
+  "kind": "ROOT_MACHINE_FIXTURE_FAILURE_INTAKE_AND_ZERO_PROCESS_CORRECTION",
+  "at_utc": "2026-11-13T01:59:55.349771+00:00",
+  "worker_message": "msg_a30238f9f15c",
+  "candidate_sha": "763f3d561772ec8efa7aafe597b62ac77a3b7969",
+  "actual_result": {
+    "outer_exit": 1,
+    "collected": 13,
+    "passed": 0,
+    "failed": 13,
+    "admitted_attempts_counter": 2,
+    "created_children_reported": 0,
+    "receipt_cleanup_proven": true,
+    "receipt_fixture_process_starts": 2,
+    "note": "Receipt field counts admissions, not proven child creation; do not call it successful process starts."
+  },
+  "findings": [
+    {
+      "id": "DUPLICATE_AUDIT_IMPORT",
+      "path": "run_guarded_checks.py:270; test_v0_s3_supervisor.py:1281",
+      "actual": "Runner main installs audit hook at module import. Tests import a second independent runner state; its inactive gate vetoes finite starts after original gate already charges."
+    },
+    {
+      "id": "UNSETTLED_PRESPAWN_CHARGES",
+      "path": "executor.py spawn/reap; run_guarded_checks.py receipt",
+      "actual": "Two charged PENDING entries persist without handles after audit refusal; reaper sees no children yet reports cleanup. Admission count is mislabeled process starts. Ordinary failure must retain uncertainty or prove refusal phase; cannot release arbitrary Popen errors."
+    }
+  ],
+  "counter_snapshot": {
+    "active": false,
+    "budget_id": "s3-p4-9618f7c7bf12403b8877c90b92ed99a7",
+    "charges": [
+      {
+        "argv": [
+          "/usr/bin/python3.12",
+          "-I",
+          "-S",
+          "-B",
+          "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+          "--scenario",
+          "clean_terminal"
+        ],
+        "birth": null,
+        "exit_code": null,
+        "finished_wall": null,
+        "index": 0,
+        "observed_lifetime_seconds": null,
+        "pid": null,
+        "role": "implementation",
+        "scenario": "clean_terminal",
+        "settled": false,
+        "started_wall": 1794534906.5769243,
+        "state": "PENDING"
+      },
+      {
+        "argv": [
+          "/usr/bin/python3.12",
+          "-I",
+          "-S",
+          "-B",
+          "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+          "--scenario",
+          "blocking_callback"
+        ],
+        "birth": null,
+        "exit_code": null,
+        "finished_wall": null,
+        "index": 1,
+        "observed_lifetime_seconds": null,
+        "pid": null,
+        "role": "implementation",
+        "scenario": "blocking_callback",
+        "settled": false,
+        "started_wall": 1794534906.660391,
+        "state": "PENDING"
+      }
+    ],
+    "kind": "lvw.s3-cpu-budget/1",
+    "reserved_wall_seconds": 120.0,
+    "resume_basis": "Explicit user single direct attempt; registered Claude runtime retry env hot reload verified",
+    "resumed_at_utc": "2026-11-13T01:48:40.614495+00:00",
+    "sessions": [
+      {
+        "admission_deadline_wall": 1794534571.831,
+        "admission_seconds": 30.0,
+        "cleanup_deadline_wall": 1794534601.831,
+        "cleanup_seconds": 60.0,
+        "finished_wall": 1794534542.5383573,
+        "owner_id": "owner-ef21ffb2086f4260a088ce3cd078980d",
+        "remaining_before_seconds": 180.0,
+        "reserved_at_wall": 1794534541.830529,
+        "reserved_wall_seconds": 60.0,
+        "role": "implementation",
+        "session_id": "session-5cc6f255f8b579ae5cb94931d71379eb",
+        "spent_wall_seconds": 0.708,
+        "started_wall": 1794534541.830529,
+        "state": "SETTLED"
+      },
+      {
+        "admission_deadline_wall": 1794534936.052,
+        "admission_seconds": 30.0,
+        "cleanup_deadline_wall": 1794534966.052,
+        "cleanup_seconds": 60.0,
+        "finished_wall": 1794534908.2401826,
+        "owner_id": "owner-90905e03bd224c7cbfa266565c25f3a8",
+        "remaining_before_seconds": 120.0,
+        "reserved_at_wall": 1794534906.051888,
+        "reserved_wall_seconds": 60.0,
+        "role": "implementation",
+        "session_id": "session-a1c075996f29bcac7e48dabd0ef9eed3",
+        "spent_wall_seconds": 2.188,
+        "started_wall": 1794534906.051888,
+        "state": "SETTLED"
+      }
+    ],
+    "spent_wall_seconds": 2.896,
+    "starts_by_role": {
+      "implementation": 2,
+      "independent_review": 0
+    },
+    "starts_total": 2,
+    "suspended_at_utc": "2026-11-13T00:48:52.436257+00:00",
+    "suspension_reason": "DUPLICATE_AUDIT_GUARD_FAILURE_PENDING_CHARGES_UNRESOLVED"
+  },
+  "remaining_unreserved_pool": 60,
+  "remaining_implementation_start_allowance": 14,
+  "remaining_review_start_allowance": 8,
+  "decision": "Correct candidate and targeted zero-process validation only. No fixture/new counter/run authorization. Preserve spent2.896/reserved120/charged2 and both failed sessions; do not refund/reset or consume final review reserve automatically.",
+  "next": "One Claude implements frozen narrow correction then root reviews candidate/budget and pending-charge reconciliation before any process grant.",
+  "stage_pass_claim": false,
+  "product_gate0": false
+}
