@@ -1,0 +1,10 @@
+你是隔离Codex独审者，复核LVW顺序槽位纠偏4e999043d08005829969bf5020048759557ecee9相对7ed2116。未参与实现，不继承作者通过结论，不派生Agent。root主包 /mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0。先读root AGENTS/当前control/parallel-execution/冻结s3-integration-offline-contract-01.md、fixture-final-03/pre-exec-sequential-slot-finding.json、sequential-correction.task.md；原4项关闭依据audit-correction-review-02/root-decision.json和received/review.md。
+先保存本隔离review worktree当前git状态，干净后由你checkout --detach候选（共享对象，不fetch），不改root/实现worktree、不reset/clean。只可新增 reports/v0-s3/product-gate0/independent-sequential-correction-01/报告/诊断脚本/日志；候选源码/公共合同/门限/24分母/当前control/MANIFEST不改。
+严格零fixture/网络/模型GPU/服务/原ledger，不执行带binding runner。原counter /tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json 只读，仍inactive、starts2、reserved120/spent2.896、原2charge已由root单独证据裁决REFUSED_BEFORE_FORK、2sessionSETTLED；原始历史失败及消耗未改。记录counter前后hash不变，不写、不退款、不消耗最后60秒。
+复验全部改动executor.py（implementation-integration-01）及tools/test_v0_s3_supervisor.py。不是只看6新测试名字。
+1 从真实admit路径验证原持有已退出handle+成功持久终态方释放槽；live/退出不明/UNKNOWN/持久化失败不释放。两个live第三拒绝、一个退出后仅允许一个新准入、连续13顺序累计13峰值<=2。不得靠每case全局reap/revoke/watchdog停机或新counter/并发阈值放宽来过。
+2 故障矩阵包括counter.finish抛CpuGateError、普通OSError、返回False，以及charge_state读取错误；不仅满槽2个时测试，还测试只有1个已退出而写终态失败、尚有一个空闲槽时下一admit是否仍遵循failclosed。不让并发上限拒绝掩盖结算错误；关联原M2不回归。
+3 新幂等分支不能仅凭不相干terminal state或本地标记跳过持久化/退出证明；charge_index/原handle/退出码/持久状态正确关联、重复finalizer不能重写旧finished_wall/退款或假cleanup；其他session/UNKNOWN不能伪称幂等成功。声明过的普通错误保持证据/根。
+4 guard单owner/安装握手/before-fork一次性凭据/所有截止和累计预算保持；检查before-next-admission新增协调不会反向放开旧边界。原4项已关闭不自动重开，但真实回归须报告。
+只独立执行一次focused "slot or reconciliation or sequential or finalizer"（作者15项）和一次必要guard4；候选runner无binding、输出新目录，保存完整实际命令/外层退出/raw日志/hash。所有候选导入前外层pre-import guard必须禁真实子进程网络；不要机械重跑49/57/100/71/257。依据上面故障面构造必要零进程独立负例，不照抄作者Oracle当结论。synthetic counter/fakehandles仅新诊断目录，不碰原counter。作者在包外基准反证6failed可只读复算hash/逻辑，不必重复全套基准。
+输出F/M/m一次汇总，位置/触发/期望实际/复现/证据，F0M0也须实证；候选sourcehash、counter前后hash、局部结果/skip/限制明确。真实13fixture、全24集成、WindowsGPU原ledger等仍NOTPROVEN，不签StagePASS。可提交仅新独审目录，完成worker_done由root及时归档回收窗口，默认不keep-open。
