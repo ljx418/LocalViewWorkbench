@@ -493,10 +493,10 @@ def test_n03_r01_a_failed_birth_keeps_the_original_handles_with_the_api():
     """N03-R01 (M03): the API owner keeps the handles and the errors.
 
     The birth query of a created process fails, the wait of the release
-    times out and both closes fail.  The production API owner keeps the
-    original process and thread references, the primary error and the
-    cleanup errors are named, the round is not a release and the owner
-    alone may recover the handles later.
+    times out and the first close of every handle fails.  The production
+    API owner keeps the original process and thread references, the
+    primary error and the cleanup errors are named, the round is not a
+    release and the owner alone may recover the handles later.
 
     The oracle of the recovery was **strengthened** by the correction 07
     of the root: the control handle of a process whose exit was not
@@ -504,6 +504,25 @@ def test_n03_r01_a_failed_birth_keeps_the_original_handles_with_the_api():
     group, its identity and its order are unchanged and no assertion was
     removed: the recovery of the owner now has to prove that the handle
     of the process was really released by a **confirmed** exit.
+
+    The correction 08 of the root moved the **first** failing close of
+    the control handle of the process to the recovery that confirmed
+    the exit.  A control handle is never closed while the exit of its
+    process is not proven, so the first close of that handle can only
+    happen inside such a recovery.  The scenario is **bounded** and it
+    has three named phases and no unbounded retry:
+
+    * the exit is **not** confirmed: the original handle is kept, its
+      close was never even attempted and the handle is still live;
+    * the exit **is** confirmed and the first close of the handle
+      fails: the original handle is kept with its owner and the
+      failure of the close is named;
+    * the next close, inside the **same** original deadline, succeeds:
+      the handle is forgotten and it is not live any more.
+
+    The number of the attempts of the close of every handle is counted
+    and it is asserted in every phase, so that the group can never pass
+    because a retry happened to succeed.
     """
     def fail_birth(kernel32, *args):
         return 0
@@ -513,13 +532,18 @@ def test_n03_r01_a_failed_birth_keeps_the_original_handles_with_the_api():
 
     def fail_close(kernel32, *args):
         handle = getattr(args[0], 'value', args[0])
-        if handle in (kernel32.process_handle, kernel32.thread_handle):
-            # The first close of every handle fails.  A later recovery
-            # of the owner may close it.
-            attempts = kernel32.__dict__.setdefault('close_attempts', {})
-            attempts[handle] = attempts.get(handle, 0) + 1
-            if attempts[handle] == 1:
-                return 0
+        attempts = kernel32.__dict__.setdefault('close_attempts', {})
+        attempts[handle] = attempts.get(handle, 0) + 1
+        if handle == kernel32.thread_handle and attempts[handle] == 1:
+            # The first close of the handle of the **thread** fails.  A
+            # later recovery of the owner may close it.
+            return 0
+        if handle == kernel32.process_handle and attempts[handle] == 1:
+            # The first close of the **control handle** of the process
+            # fails.  The control handle is never closed while the exit
+            # of the process was not confirmed, so this attempt can
+            # only happen inside a recovery that confirmed the exit.
+            return 0
         kernel32.live.pop(handle, None)
         return 1
 
@@ -549,6 +573,13 @@ def test_n03_r01_a_failed_birth_keeps_the_original_handles_with_the_api():
     # The null device of the child was closed: the cleanup of the
     # creation is independent of the failure of the birth query.
     assert kernel32.null_handle not in kernel32.live
+    # PHASE ONE: the exit of the process was not confirmed, so its
+    # **control handle** was never closed: the close of that handle was
+    # not even attempted and the handle is still live.
+    attempts = kernel32.__dict__.setdefault('close_attempts', {})
+    assert attempts.get(kernel32.process_handle, 0) == 0, \
+        'the control handle was closed while the exit was not confirmed'
+    assert kernel32.process_handle in kernel32.live
     # The recovery of the owner is explicit and it is possible later.
     #
     # CORRECTION 07 (M03): the **control handle of the process** is not
@@ -570,14 +601,45 @@ def test_n03_r01_a_failed_birth_keeps_the_original_handles_with_the_api():
     retained = api.retained_handles()
     assert [entry['kind'] for entry in retained] == ['process']
     assert kernel32.process_handle in kernel32.live
-    # A later recovery that confirms the exit closes the handle and
-    # forgets it.
+    # The exit is still not confirmed and the close of the control
+    # handle was still not attempted: the recovery never closes a
+    # control handle under a process that nobody may stop any more.
+    attempts = kernel32.__dict__.setdefault('close_attempts', {})
+    assert attempts.get(kernel32.process_handle, 0) == 0, \
+        'the control handle was closed while the exit was not confirmed'
+    # The ONE deadline of the recovery is published by the first
+    # recovery and it is never renewed by a later one.
+    deadline = api._recovery_deadline
+    assert deadline is not None, 'the recovery published no deadline'
+    # PHASE TWO: the exit of the process is confirmed and the first
+    # close of its control handle fails: the original handle keeps its
+    # owner and the failure of the close is named.
     kernel32.script['WaitForSingleObject'] = lambda kernel32, *args: 0
+    report = api.release_retained()
+    assert [entry['kind'] for entry in report] == ['process']
+    assert report[0]['released'] is False
+    assert any(failure.startswith('CloseHandle')
+               for failure in report[0]['failures']), \
+        'the failure of the close of the control handle was not named'
+    attempts = kernel32.__dict__.setdefault('close_attempts', {})
+    assert attempts.get(kernel32.process_handle, 0) == 1
+    assert kernel32.process_handle in kernel32.live
+    retained = api.retained_handles()
+    assert [entry['kind'] for entry in retained] == ['process']
+    assert getattr(retained[0]['handle'], 'value', retained[0]['handle']) \
+        == kernel32.process_handle
+    # The deadline of the recovery was not renewed by the second one.
+    assert api._recovery_deadline == deadline
+    # PHASE THREE: the next close, inside the **same** original
+    # deadline, succeeds: the handle is forgotten and it is not live.
     report = api.release_retained()
     assert [entry['kind'] for entry in report] == ['process']
     assert report[0]['released'] is True
     assert api.retained_handles() == []
     assert kernel32.process_handle not in kernel32.live
+    attempts = kernel32.__dict__.setdefault('close_attempts', {})
+    assert attempts.get(kernel32.process_handle, 0) == 2
+    assert api._recovery_deadline == deadline
 
 
 def test_n03_r02_a_failed_cleanup_of_the_creation_still_releases_everything():

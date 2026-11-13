@@ -889,7 +889,41 @@ def test_n05_r11_no_role_is_created_or_resumed_after_the_deadline(tmp_path):
     after the deadline is never resumed and the next role is never
     created.  Returned state: the refusal of the startup is named.
     Salvage: the handles of the late role are released by their owner.
+
+    The correction 08 of the root corrected the **oracle** of the
+    second scenario of the group.  The product obligation of the root
+    has always been that **every** creation is refused before the
+    deadline of the round arrived, and the arm of a round is a creation
+    like every other one.  The old group armed the round first and
+    refused only the launch, which contradicts that obligation.  The
+    group now drives three named scenarios and the arm of an expired
+    round is refused **inside** the guard of the refusal, with a stable
+    error code and with **nothing** created at all.
+
+    The check of the budget before the creation of the job was **not**
+    relaxed: the production keeps its bytes and the refusal of the
+    expired arm is the behaviour that the root requires.
     """
+    # SCENARIO ONE: an arm whose deadline is still valid succeeds: the
+    # job of the round is created and the round is armed.
+    clock = ManualClock(1000.0)
+    win32 = RecordingWin32()
+    core = BrokerCore(win32=win32, plan=sealed_plan(), run_root=tmp_path,
+                      clock=clock)
+    core.bind_absolute_deadline(1005.0)
+    try:
+        core.arm()
+        assert 'create_job' in win32.names()
+        assert core.job is not None
+        assert core.state == 'ARMED'
+    finally:
+        for handle in list(win32.live):
+            RecordingWin32.close_handle(win32, handle)
+
+    # SCENARIO TWO: the creation of the role consumes the whole lease
+    # of the round: the launch is refused, the process is never
+    # assigned and it is never resumed and the late resource is only
+    # cleaned up.
     clock = ManualClock(1000.0)
     win32 = RecordingWin32()
     core = BrokerCore(win32=win32, plan=sealed_plan(), run_root=tmp_path,
@@ -915,18 +949,31 @@ def test_n05_r11_no_role_is_created_or_resumed_after_the_deadline(tmp_path):
     assert not win32.live
     assert core.state == 'UNKNOWN_RETAINED'
 
-    # A role that is created after the deadline arrived is never
-    # created at all: the check runs before the action.
+    # SCENARIO THREE: the arm of a round whose deadline already
+    # arrived is refused **before** the job of the round exists.  The
+    # arm is inside the guard of the refusal and the error code is
+    # stable.
     clock = ManualClock(1000.0)
     win32 = RecordingWin32()
-    core = BrokerCore(win32=win32, plan=sealed_plan(), run_root=tmp_path,
+    run_root = tmp_path / 'expired-arm'
+    core = BrokerCore(win32=win32, plan=sealed_plan(), run_root=run_root,
                       clock=clock)
     core.bind_absolute_deadline(999.0)
-    core.arm()
     with pytest.raises(BrokerError) as info:
-        core.launch()
+        core.arm()
     assert info.value.code == 'BROKER_STARTUP_DEADLINE_EXCEEDED'
-    assert 'create_process_suspended' not in win32.names()
+    # **Nothing** was created: the job, the limits of the job, the
+    # pipes, the processes, the assignment and the resume were never
+    # called at all.
+    for name in ('create_job', 'set_job_kill_on_close', 'create_pipe',
+                 'create_process_suspended', 'assign_process_to_job',
+                 'resume_thread'):
+        assert name not in win32.names(), name
+    # The round left no handle behind and it left no output behind.
+    assert win32.live == {}
+    assert not win32.closed
+    assert core.state != 'ARMED'
+    assert not (run_root.exists() and any(run_root.rglob('*')))
 
 
 # -- N05-R12: the one cleanup deadline -----------------------------------

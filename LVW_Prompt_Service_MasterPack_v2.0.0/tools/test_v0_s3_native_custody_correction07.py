@@ -114,6 +114,104 @@ class _CancellingEvent:
         raise KeyboardInterrupt('reader_wait_cancelled')
 
 
+# -- the bounded facts of the real chain of N07-R15 -------------------------
+
+#: The directory in which the facts of the real chain are written.  The
+#: facts of one phase are written **before** the assertions of that
+#: phase: a group that fails has to leave its evidence on the disk and
+#: it may never depend on the representation of a failure of pytest.
+F5_EVIDENCE_DIR = (PACK_ROOT / 'reports' / 'v0-s3' / 'product-gate0'
+                   / 'implementation-native-custody-correction-08'
+                   / 'f5-evidence')
+
+
+def _f5_write(phase, document):
+    """Write the bounded facts of one phase of the real chain.
+
+    The document is a plain JSON document and it is bounded: it never
+    carries an unbounded list and it never carries the whole state of
+    the round.  Every value of it is the value that the production
+    returned: nothing of the real chain is replaced by a hard coded
+    fact.
+    """
+    F5_EVIDENCE_DIR.mkdir(parents=True, exist_ok=True)
+    path = F5_EVIDENCE_DIR / ('f5-%s.json' % phase)
+    path.write_text(json.dumps(document, indent=1, sort_keys=True,
+                               default=repr), encoding='utf-8')
+    return str(path)
+
+
+def _f5_worker_facts(worker):
+    """The bounded facts of one worker of one endpoint.
+
+    The identity of the **original** handle of the thread of the worker
+    is part of the facts: a worker that kept its handle is named by the
+    handle that it really holds.
+    """
+    if worker is None:
+        return None
+    return {
+        'kind': getattr(worker, 'kind', None),
+        'name': getattr(worker, 'name', None),
+        'state': getattr(worker, 'state', None),
+        'thread_handle': getattr(worker, 'thread_handle', None),
+        'thread_handle_released': bool(
+            getattr(worker, 'thread_handle_released', False)),
+        'alive': bool(worker.is_alive()),
+        'joined': bool(getattr(worker, 'joined', False)),
+        'error': getattr(worker, 'error', None),
+    }
+
+
+def _f5_endpoint_facts(endpoint):
+    """The bounded facts of one endpoint of the channel."""
+    if endpoint is None:
+        return None
+    retained = list(getattr(endpoint, '_retained', []) or [])
+    return {
+        'name': getattr(endpoint, '_name', None),
+        'facts': dict(getattr(endpoint, 'facts', {}) or {}),
+        'reader': _f5_worker_facts(getattr(endpoint, '_reader', None)),
+        'writer': _f5_worker_facts(getattr(endpoint, '_writer', None)),
+        'retained': [_f5_worker_facts(worker) for worker in retained],
+    }
+
+
+def _f5_snapshot(phase, session, api, holder, channel_facts, channel_closes,
+                 target):
+    """The bounded facts of one phase of the real chain.
+
+    The snapshot names the evidence of the round, the facts of the close
+    of the broker, the facts of the close of the channel, the facts of
+    the two endpoints of the channel with the identity of the retained
+    original handles of their threads, the state of every worker, the
+    ledger of the closes, the number of the targeted faults and the
+    original deadline of the cleanup.
+    """
+    evidence = session.evidence()
+    broker = holder.get('broker')
+    return {
+        'phase': phase,
+        'session_evidence': evidence,
+        'broker_close_facts': evidence.get('broker_close_facts'),
+        'broker_own_close_facts': getattr(broker, 'close_facts', None),
+        'broker_retained': session.broker is not None,
+        'channel_closes': len(channel_closes),
+        'channel_facts': list(channel_facts),
+        'read_endpoint': _f5_endpoint_facts(holder.get('read_endpoint')),
+        'write_endpoint': _f5_endpoint_facts(holder.get('write_endpoint')),
+        'target_handle': target,
+        'fault_handle': api.fault_handle,
+        'fault_released': api.fault_released,
+        'fault_hits': api.fault_hits,
+        'close_ledger': list(api.close_ledger),
+        'closed_handles': list(api.closed),
+        'thread_handles': list(api.thread_handles),
+        'cleanup_deadline': evidence.get('cleanup_deadline'),
+        'close_generation': evidence.get('close_generation'),
+    }
+
+
 # -- N07-R01: the control handle of an unconfirmed process is kept ---------
 
 def test_n07_r01_the_control_handle_of_an_unconfirmed_process_is_kept():
@@ -230,22 +328,61 @@ def test_n07_r02_the_recovery_keeps_the_handle_until_the_exit_is_confirmed():
 
     # The cancellation of the recovery is uploaded after every safe step
     # and it never hides the primary error of the creation.
-    def cancel_terminate(kernel32, *args):
-        raise KeyboardInterrupt('terminate_cancelled')
+    #
+    # CORRECTION 08 (M03): the second scenario of the group is an
+    # **independent** scenario.  It has its own state, its own closure
+    # and its own kernel, so that the confirmed exit of the first
+    # scenario can never be observed here.  The old group reused the
+    # state of the first scenario: the exit of the process was already
+    # confirmed, the control handle had been closed inside the creation
+    # and the recovery of the façade had nothing left to coordinate.
+    state_two = {'exited': False}
+    cancellation = KeyboardInterrupt('terminate_cancelled')
+    terminations = []
 
-    kernel32 = SyntheticKernel32(script={'GetProcessTimes': fail_birth,
-                                         'TerminateProcess': cancel_terminate,
-                                         'WaitForSingleObject': timeout_wait})
+    def fail_birth_two(kernel32, *args):
+        return 0
+
+    def timeout_wait_two(kernel32, *args):
+        return 0 if state_two['exited'] else 258
+
+    def cancel_terminate_two(kernel32, *args):
+        terminations.append(getattr(args[0], 'value', args[0]))
+        raise cancellation
+
+    kernel32 = SyntheticKernel32(script={'GetProcessTimes': fail_birth_two,
+                                         'TerminateProcess': cancel_terminate_two,
+                                         'WaitForSingleObject': timeout_wait_two})
     api = WindowsApi(table=synthetic_table(kernel32))
     with pytest.raises(BrokerError) as info:
         api.create_process_suspended(executable='C:/tools/python.exe', arguments=['-s'],
                                      working_directory='C:/round', stdout_handle=0x21,
                                      stderr_handle=0x22, environment=None)
     assert info.value.code == 'BROKER_PROCESS_BIRTH_QUERY_FAILED'
+    # The injected cancellation of the termination really happened and
+    # the cancellation that stays next to the primary error is the
+    # **original** object and not a copy of its message.
+    assert terminations, 'the cancellation of the termination never happened'
+    assert info.value.lvw_cancelled is cancellation
     assert isinstance(info.value.lvw_cancelled, KeyboardInterrupt)
-    with pytest.raises(KeyboardInterrupt):
+    # The primary error and the cancellation coexist: the primary error
+    # is still the error that leaves the creation.
+    assert info.value.code == 'BROKER_PROCESS_BIRTH_QUERY_FAILED'
+    # The control handle of the process is still with its owner: the
+    # exit of the process was not confirmed and the recovery of the
+    # façade can reach the original handle again.
+    retained = api.retained_handles()
+    assert [entry['kind'] for entry in retained] == ['process']
+    assert getattr(retained[0]['handle'], 'value', retained[0]['handle']) \
+        == kernel32.process_handle
+    assert kernel32.process_handle in kernel32.live
+    # The recovery of the façade raises the cancellation of the
+    # termination and it keeps the control handle of the process.
+    with pytest.raises(KeyboardInterrupt) as recovered:
         api.release_retained()
+    assert recovered.value is cancellation
     assert api.retained_handles(), 'the control handle was forgotten'
+    assert kernel32.process_handle in kernel32.live
 
 
 # -- N07-R03: a pipe that was handed over has exactly one owner -----------
@@ -531,20 +668,65 @@ def test_n07_r06_the_cancellation_of_a_wait_reaches_the_top(tmp_path):
     waited = [call for call in win32.calls if call[0] == 'wait_process']
     assert len(waited) >= 2, 'the wait of the next process never ran'
 
+    # The second sub path drives the **exit code** of the process: the
+    # cancellation of the exit code reaches the top and it is the
+    # original object that leaves the stop.
+    #
+    # CORRECTION 08 (M06): the contract froze the **propagation** of the
+    # cancellation and the fact that its origin is verifiable.  It did
+    # not freeze the internal stage of the failure: the production
+    # names the stage of the **group** of the processes and the stage of
+    # the origin is not a stage that the production publishes.  The
+    # group therefore names the stage that the production really
+    # publishes and it proves the origin of the cancellation in three
+    # further ways: the number of the injections, the identity of the
+    # original SystemExit and the order of the calls of the façade.
     class CancellingExitWin32(RecordingWin32):
+        """A façade whose exit code raises a cancellation."""
+
+        def __init__(self, **kwargs):
+            super().__init__(**kwargs)
+            self.exit_code_calls = 0
+            self.cancellation = SystemExit('exit_cancelled')
+
         def exit_code(self, process):
             self.calls.append(('exit_code', process))
-            raise SystemExit('exit_cancelled')
+            self.exit_code_calls += 1
+            raise self.cancellation
 
     win32 = CancellingExitWin32()
     core = BrokerCore(win32=win32, plan=sealed_plan(), run_root=tmp_path)
     core.arm()
     core.launch()
-    with pytest.raises(SystemExit):
+    with pytest.raises(SystemExit) as info:
         core.stop('STOP')
+    # The **original** object of the cancellation is the error that
+    # leaves the stop: it is never replaced by a copy of a message.
+    assert info.value is win32.cancellation
+    # The cancellation was really injected by the method of the exit
+    # code: the number of the injections is recorded and it is not zero.
+    assert win32.exit_code_calls >= 1, 'the exit code was never read'
+    # The stage of the group of the processes is the stage that the
+    # production publishes and the type of the error is the type of the
+    # injected cancellation.
     cancellations = [item for item in core.failures if item.get('cancellation')]
     assert cancellations, 'the cancellation of the exit code was not named'
-    assert any(item['stage'] == 'exit_code' for item in cancellations)
+    assert any(item['stage'] == 'wait' for item in cancellations)
+    assert any(item['error_type'] == 'SystemExit' for item in cancellations)
+    # The origin of the cancellation is the exit code and not the wait:
+    # the wait of the process really completed before the exit code was
+    # read.
+    names = [call[0] for call in win32.calls]
+    assert 'wait_process' in names
+    assert names.index('exit_code') > names.index('wait_process')
+    # The processes that follow the cancelled one were still waited
+    # for and their original handles were really released.
+    assert len([call for call in win32.calls
+                if call[0] == 'wait_process']) >= 2, \
+        'the wait of the next process never ran'
+    for entry in win32.created:
+        assert entry['handle'] not in win32.live
+        assert entry['thread'] not in win32.live
 
 
 # -- N07-R07: the recovery of a record synchronises the tables ------------
@@ -1211,6 +1393,23 @@ def test_n07_r15_the_real_chain_is_coordinated_again_by_the_same_owner(tmp_path)
     state: the evidence of the round names the incomplete facts of the
     first attempt.  Salvage: the second public stop of the round is the
     recovery entry.
+
+    CORRECTION 08 (M09): the **fault** of the group is deterministic
+    now.  The old group armed a global counter of two failing closes
+    and the two workers of the two ends of the channel competed for it:
+    the group could not name the original handle that the round was not
+    able to close and the outcome depended on the order in which the
+    two workers happened to be scheduled.  The fault is bound to **one**
+    original handle of the thread of **one named** worker and it is
+    released by an explicit act of the owner of the test, so that no
+    other handle of the round is affected by it.
+
+    The facts of the first attempt, of the second attempt and of the
+    salvage are written on the disk **before** every assertion, so that
+    a group that fails leaves its evidence behind and never depends on
+    the representation of a failure of pytest.  The real chain is
+    never replaced by a hard coded set of facts: every fact of the
+    document is the fact that the production returned.
     """
     document = _live_plan_document()
     plan = validate_launch_plan(document, now=time.time())
@@ -1218,6 +1417,13 @@ def test_n07_r15_the_real_chain_is_coordinated_again_by_the_same_owner(tmp_path)
     wall = time.time
 
     class Api:
+        """The in-process façade of the primitives of the real chain.
+
+        The façade is the only place where the fault of the round is
+        injected.  The fault is bound to **one** original handle and no
+        other handle of the round is affected by it.
+        """
+
         def __init__(self):
             self.lock = threading.Lock()
             self.frames = []
@@ -1226,22 +1432,45 @@ def test_n07_r15_the_real_chain_is_coordinated_again_by_the_same_owner(tmp_path)
             # read waits for it and it is never a sleep that guesses.
             self.ready = threading.Event()
             self.closed = []
-            self.close_failures = 2
+            # The ledger of the closes: every attempt is named with the
+            # handle that it tried to close and with the fact that it
+            # was the targeted fault.
+            self.close_ledger = []
+            self.thread_handles = []
             self.next_handle = 700
+            # The fault of the round: the one handle that it names, the
+            # flag that releases it and the number of the times that it
+            # really fired.
+            self.fault_handle = None
+            self.fault_released = False
+            self.fault_hits = 0
 
         def duplicate_current_thread_handle(self):
-            self.next_handle += 1
-            return self.next_handle
+            with self.lock:
+                self.next_handle += 1
+                self.thread_handles.append(self.next_handle)
+                return self.next_handle
 
         def cancel_synchronous_io(self, handle):
             self.ready.set()
             return 'REQUESTED'
 
         def close_handle(self, handle):
-            if self.close_failures > 0:
-                self.close_failures -= 1
-                raise BrokerError('BROKER_HANDLE_CLOSE_FAILED')
-            self.closed.append(handle)
+            with self.lock:
+                faulted = (self.fault_handle is not None
+                           and handle == self.fault_handle
+                           and not self.fault_released)
+                if faulted:
+                    self.fault_hits += 1
+                self.close_ledger.append({'handle': handle,
+                                          'faulted': faulted})
+                if faulted:
+                    # The close of the one handle that the owner of the
+                    # test named fails.  The stable code of the
+                    # production façade is used and the error is never
+                    # swallowed by the façade.
+                    raise BrokerError('BROKER_HANDLE_CLOSE_FAILED')
+                self.closed.append(handle)
 
         def read_stream(self, handle, size):
             with self.lock:
@@ -1276,6 +1505,7 @@ def test_n07_r15_the_real_chain_is_coordinated_again_by_the_same_owner(tmp_path)
             return None
 
     channel_closes = []
+    channel_facts = []
     holder = {}
 
     def launcher(plan_document_, run_root, nonce):
@@ -1297,25 +1527,61 @@ def test_n07_r15_the_real_chain_is_coordinated_again_by_the_same_owner(tmp_path)
                                  write_endpoint=write_endpoint, clock=clock)
         original_close = channel.close
 
-        def counting_close():
+        def capturing_close():
             channel_closes.append(1)
-            return original_close()
+            facts = original_close()
+            channel_facts.append(facts)
+            return facts
 
-        channel.close = counting_close
+        channel.close = capturing_close
         broker = BrokerProcess(Process(), 'C:/python.exe', 'a' * 64, channel)
         holder['broker'] = broker
+        holder['read_endpoint'] = read_endpoint
+        holder['write_endpoint'] = write_endpoint
+        holder['channel'] = channel
         return broker
 
     session = NativeCustodySession(plan=document, run_root=tmp_path,
                                    parent_child_remaining_seconds=21600,
                                    launcher=launcher, clock=clock, wall=wall)
+    target = None
     try:
         session.start()
         assert session.broker is holder['broker']
+        # The **one** original handle of the thread that the fault of
+        # the round is bound to: the handle of the thread of the reader
+        # of the read end of the channel.  It is the first handle that
+        # the round allocated and the round really used it: the READY
+        # reply of the round was delivered through it.
+        reader = holder['read_endpoint']._reader
+        assert reader is not None, 'the reader of the channel never started'
+        target = reader.thread_handle
+        assert target is not None, 'the reader has no handle of its thread'
+        assert api.thread_handles == [target], \
+            'the fault would not be bound to one definite handle'
+        api.fault_handle = target
+
+        # The first public stop of the round.
         first = session.stop()
-        # The first attempt did not confirm every item of the chain: the
-        # original handle of the thread of the worker of the endpoint
-        # could not be closed.
+        # The facts of the first attempt are written **before** the
+        # assertions of the first attempt.
+        first_document = _f5_snapshot('first', session, api, holder,
+                                      channel_facts, channel_closes, target)
+        _f5_write('first', first_document)
+        deadline = first_document['cleanup_deadline']
+        # The fault of the round really fired and it fired on the one
+        # handle that the owner of the test named.
+        assert api.fault_hits >= 1, 'the targeted fault never fired'
+        assert all(item['handle'] == target for item in api.close_ledger
+                   if item['faulted'])
+        # The unconfirmed item of the first attempt is the original
+        # handle of the thread of the reader and it kept its owner.
+        retained = holder['read_endpoint']._retained
+        assert len(retained) == 1, \
+            'the read endpoint did not retain exactly the targeted worker'
+        assert retained[0].thread_handle == target
+        assert retained[0].thread_handle_released is False
+        # The broker of the round was not released without a proof.
         assert session.broker is holder['broker'], \
             'the broker was released without a proof'
         assert first['broker_retained'] is True
@@ -1323,19 +1589,46 @@ def test_n07_r15_the_real_chain_is_coordinated_again_by_the_same_owner(tmp_path)
                       if failure.startswith('CUSTODY_BROKER_CLOSE_INCOMPLETE')]
         assert incomplete, 'the incomplete facts were not named'
         assert len(channel_closes) == 1
+        # The items that the first attempt confirmed are the items that
+        # were really closed and they were closed exactly once.
+        assert len(api.closed) == len(set(api.closed)), \
+            'a handle was closed twice'
+
+        # The owner of the test releases the fault: only the condition
+        # of the fault is cleared and nothing else of the round changes.
+        api.fault_released = True
+
         # The second public stop coordinates the items that the first
         # attempt did not confirm.
         second = session.stop()
+        second_document = _f5_snapshot('second', session, api, holder,
+                                       channel_facts, channel_closes, target)
+        _f5_write('second', second_document)
         assert len(channel_closes) == 2, \
             'the high level skipped the unfinished item of the low level'
+        # The item that was not confirmed really succeeded.
+        assert target in api.closed, 'the targeted handle was never closed'
+        # The items that were confirmed by the first attempt were never
+        # closed a second time.
+        assert len(api.closed) == len(set(api.closed)), \
+            'a handle was closed twice'
+        assert holder['read_endpoint']._retained == []
+        # The original deadline of the cleanup was never reset.
+        assert second_document['cleanup_deadline'] == deadline
+        # The broker of the round is released by the facts of the close
+        # and not by a name.
         assert session.broker is None
         assert second['broker_retained'] is False
-        assert api.closed, 'the handle of the thread of the worker was never closed'
     finally:
+        # The salvage of the owner of the test is bounded and its facts
+        # are written as well.
         try:
             session.stop()
         except Exception:  # noqa: BLE001 - the evidence keeps the failure
             pass
+        _f5_write('salvage', _f5_snapshot('salvage', session, api, holder,
+                                           channel_facts, channel_closes,
+                                           target))
 
 
 # -- N07-R16: the endpoint recomputes the state of its workers ------------
