@@ -1,0 +1,79 @@
+{
+  "kind": "ROOT_CPU_OPERATIONAL_ENVELOPE_AMENDMENT/1",
+  "revision": 2,
+  "authority": "AUTH-PROGRAM-V1-COMPLETE-03",
+  "request_sha256": "afcde7f29095a68e9175f454b16da32514566cca475ccafdfceefbcdcb45be25",
+  "approval_sha256": "cd919c7fd24c24e2740366ef11998fee1b3302f16700598a3a5f75c6ef1b0821",
+  "supersedes_operational_clause": "s3-integration-offline-contract-01.md section55 and prior finite-only root grants for NEW run only; original contract and expired grants retained verbatim",
+  "conflict_and_resolution": "Original internal180-second reservation pool exhausted; actual8.446 seconds is not a refundable balance. Parent authorizes gate owner to freeze new finite CPU child packets within global limits. Explicitly amend only internal fixture envelope, not product resource/quality thresholds or denominator; no new human authorization inferred.",
+  "candidate_sha": "07277a6f2f6f730dc7b9383bfeaf8c412126fe16",
+  "old_limits": {
+    "budget_id": "s3-p4-9618f7c7bf12403b8877c90b92ed99a7",
+    "cleanup_reserve_seconds": 30,
+    "counter_path": "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json",
+    "max_concurrent": 2,
+    "max_starts_by_role": {
+      "implementation": 16,
+      "independent_review": 8
+    },
+    "max_total_starts": 24,
+    "per_child_kill_seconds": 1,
+    "per_child_stop_attempts": 3,
+    "per_child_termination_margin_seconds": 2,
+    "per_process_seconds": 10,
+    "session_wall_cap_seconds": 60,
+    "shared_pool_seconds": 180
+  },
+  "new_limits": {
+    "budget_id": "s3-p4-9618f7c7bf12403b8877c90b92ed99a7",
+    "cleanup_reserve_seconds": 30,
+    "counter_path": "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json",
+    "max_concurrent": 2,
+    "max_starts_by_role": {
+      "implementation": 28,
+      "independent_review": 8
+    },
+    "max_total_starts": 28,
+    "per_child_kill_seconds": 1,
+    "per_child_stop_attempts": 3,
+    "per_child_termination_margin_seconds": 2,
+    "per_process_seconds": 10,
+    "session_wall_cap_seconds": 60,
+    "shared_pool_seconds": 240
+  },
+  "increment": {
+    "total_admission_ceiling": 4,
+    "implementation_admission_ceiling": 12,
+    "wall_reservation_pool_seconds": 60
+  },
+  "workload": "One exact13 implementation fixture run; no automatic rerun or independent OS replay. Raw independent review afterward.",
+  "cumulative_preserved": {
+    "starts_total": 15,
+    "starts_by_role": {
+      "implementation": 15,
+      "independent_review": 0
+    },
+    "reserved_wall_seconds": 180.0,
+    "spent_wall_seconds": 8.446,
+    "sessions": 3
+  },
+  "per_run_unchanged": {
+    "max_concurrent": 2,
+    "per_process_seconds": 10,
+    "session_wall_cap_seconds": 60,
+    "admission_seconds": 30,
+    "cleanup_seconds": 30,
+    "stdout_stderr_cap_bytes_each": 262144,
+    "message_cap_bytes": 32768,
+    "message_count_cap": 1024,
+    "evidence_text_cap_bytes": 8388608
+  },
+  "global_program_effect": {
+    "model_actions": 0,
+    "effective_full_checkpoints": 0,
+    "production_runtime_seconds": 0,
+    "fixture_wall_accounted_separately": true
+  },
+  "stage_pass_claim": false,
+  "product_gate0": false
+}

@@ -1,0 +1,90 @@
+{
+  "allowed_scenarios": [
+    "clean_terminal",
+    "blocking_callback",
+    "blocking_persistence",
+    "history_replay",
+    "sequence_reversal",
+    "duplicate_sequence",
+    "oversize_message",
+    "foreign_identity",
+    "unexpected_field",
+    "nonfinite_number",
+    "early_exit",
+    "message_flood",
+    "bad_terminal_reference"
+  ],
+  "argv_prefix": [
+    "/usr/bin/python3.12",
+    "-I",
+    "-S",
+    "-B",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+    "--scenario"
+  ],
+  "candidate_sha": "07277a6f2f6f730dc7b9383bfeaf8c412126fe16",
+  "cpu_budget": {
+    "budget_id": "s3-p4-9618f7c7bf12403b8877c90b92ed99a7",
+    "cleanup_reserve_seconds": 30,
+    "counter_path": "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json",
+    "max_concurrent": 2,
+    "max_starts_by_role": {
+      "implementation": 28,
+      "independent_review": 8
+    },
+    "max_total_starts": 28,
+    "per_child_kill_seconds": 1,
+    "per_child_stop_attempts": 3,
+    "per_child_termination_margin_seconds": 2,
+    "per_process_seconds": 10,
+    "session_wall_cap_seconds": 60,
+    "shared_pool_seconds": 240
+  },
+  "execution_permitted": true,
+  "kind": "S3_INTEGRATION_MACHINE_BINDING/1",
+  "python": {
+    "bytes": 8020928,
+    "path": "/usr/bin/python3.12",
+    "sha256": "e50d468e8b0adfb05733f5b87b3cff34829c4a8c1aea50c865aa8bdfe4bb150f"
+  },
+  "root_grant": {
+    "amendment": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/fixture-resume-05/budget-amendment.json",
+    "amendment_sha256": "ab5d9d76588be31130462ff2ca9081706f21b10c3843fdd49ce5b3fc331f9392",
+    "exact_nodeids": [
+      "tools/test_v0_s3_supervisor.py::test_the_fixture_clean_terminal_is_verified_by_the_parent",
+      "tools/test_v0_s3_supervisor.py::test_a_blocking_callback_is_actually_stopped",
+      "tools/test_v0_s3_supervisor.py::test_a_blocking_persistence_is_actually_stopped",
+      "tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[history_replay-MESSAGE_HISTORY_STARTED_REPEATED]",
+      "tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[sequence_reversal-MESSAGE_SEQUENCE_NOT_INCREASING]",
+      "tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[duplicate_sequence-MESSAGE_SEQUENCE_NOT_INCREASING]",
+      "tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[oversize_message-MESSAGE_TOO_LARGE]",
+      "tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[foreign_identity-MESSAGE_RUN_ID_MISMATCH]",
+      "tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[unexpected_field-MESSAGE_KEY_SET_INVALID]",
+      "tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[nonfinite_number-MESSAGE_NONFINITE_NUMBER]",
+      "tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[early_exit-WORKER_EXITED_WITHOUT_TERMINAL]",
+      "tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[message_flood-MESSAGE_COUNT_EXCEEDED]",
+      "tools/test_v0_s3_supervisor.py::test_a_bad_terminal_reference_is_refused"
+    ],
+    "independent_followup": "Read-only raw result review mandatory; independent process run not granted",
+    "label": "finite-fixture-implementation-05",
+    "max_new_starts": 13,
+    "max_runs": 1,
+    "prior_failed_runs_retained": true,
+    "product_gate0": false,
+    "scope": "One exact13 fixture run after independently closed corrections under explicit operational envelope revision2; no product gate acceptance",
+    "stage_pass_claim": false
+  },
+  "source_pins": {
+    "reports/v0-s3/product-gate0/implementation-integration-01/executor.py": "0565c967724fd1d921c342f6cac5b89541efa1c88596e845e877f64ac5ece818",
+    "reports/v0-s3/product-gate0/implementation-integration-01/run_guarded_checks.py": "da688b1502dcf625bbbf883c5e7e519d0c4c386a51fafa15539a69e2331d1005",
+    "tools/fixtures/v0_s3_supervisor_fixture.py": "1432a6503c07ebed43e9ce36100c18f9840e51af5f6c8d81472ab7439a66df4a",
+    "tools/test_v0_s3_integration.py": "bde478e54a048a4824b5c54db2b4c06da2d19845f56554a53817dccfeadd7e40",
+    "tools/test_v0_s3_supervisor.py": "683bf1e2344355c6507c2f7bd3f58c2d781bc6e9f1969f723e2138695ff088c7",
+    "tools/v0_s2_runtime.py": "a97ea20d02ed80ab4f99f133dd8162331ddba34662bfdcca637fcade40b4dbd2",
+    "tools/v0_s2_stage_runtime.py": "cf6ad01d66c0c7885475eedeae5ba66df9bec61bf7281ee511600f6224833e26",
+    "tools/v0_s3_coordinator.py": "14e8dd284971aeab00999f010679d5c95deb88ee3bff8f4ca0708d958b56f12c",
+    "tools/v0_s3_quality_phase.py": "90552ea113ccf53a2a1cedff3e3f399642ad932bf0f71bb1f9a57e1adb6e8789",
+    "tools/v0_s3_quality_worker.py": "1e1490c86ce6dd7f6f0734967b75652ced872b82848e6a1966dd1a147e38b6d3",
+    "tools/v0_s3_supervisor.py": "c669e97f06f2d90061a1a8cedf859db454c5783daf6591418f7ff13bb9d848b3"
+  }
+}
