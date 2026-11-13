@@ -60,6 +60,23 @@ only at the children that this executor owns, it never revokes the
 admissions, never stops the watchdog, never takes a new custody and never
 refunds anything.  A live child, an unproven child and a settlement that
 the counter did not accept keep their slot.
+
+A fourth rule closes it.  The reconciliation is a bounded work, but it is
+not a free one: when it cannot prove the terminal state of a child that has
+already exited, the slot of that child is kept, the session becomes
+uncertain and the **current admission fails closed**.  No new charge is
+taken while a settlement of this session is unproven, and the refusal is
+reported explicitly instead of hiding behind the concurrency limit of a
+full counter.  The window is re-checked after the reconciliation against
+the *original* deadline, which is never rebased.
+
+And a fifth rule makes the repeated settlement strict.  The shared counter
+is the only proof of a terminal state, and the proof has to carry the
+identity of the charge: the same budget and counter, the same charge
+index, the same admission, the same original handle (pid and birth), the
+same exit code and the matching terminal state.  A record of another
+index, another handle, another exit code, an ``UNKNOWN`` state or a local
+marker that the counter does not confirm is never an idempotent success.
 """
 import fcntl
 import hashlib
@@ -98,6 +115,58 @@ BEFORE_FORK_MARKER = 'lvw_before_fork'
 # credential of the current action is consumed; a copied marker, a copied
 # gate error and a replayed old refusal are all UNKNOWN.
 REFUSAL_CREDENTIAL = 'lvw_refusal_credential'
+# The terminal states that may *prove* an idempotent settlement.  ``UNKNOWN``
+# is never one of them: an unresolved exit is not a proven terminal state
+# and it never releases a slot.
+PROVEN_TERMINAL_STATES = ('STOPPED', 'TIMED_OUT')
+
+
+def persisted_terminal_matches(persisted, *, index, role, scenario, argv,
+                               pid, birth, exit_code, state):
+    """Whether the persisted record proves exactly this terminal state.
+
+    This is the one rule of an idempotent settlement and it is shared by
+    the reconciliation and by the final reaper.  The rule is strict on
+    purpose: a persisted record proves the terminal state of this charge
+    only when it carries
+
+    * the same counter and the same budget (the caller reads the record
+      from the bound counter and the counter verifies its own identity),
+    * the same charge index,
+    * the same admission: the same role, the same scenario and the same
+      argv of the charge that this executor took,
+    * the same **original handle**: the same pid and the same birth,
+    * the same exit code, and
+    * the matching terminal state, ``STOPPED`` or ``TIMED_OUT``.
+
+    A record of another index, another handle, another exit code, an
+    ``UNKNOWN`` state, or a state that only shares the *name* of a
+    terminal state is never an idempotent success.  The second value of the
+    result is the machine readable reason of a mismatch.
+    """
+    if not isinstance(persisted, dict):
+        return False, 'NOT_A_CHARGE_RECORD'
+    if persisted.get('index') != index:
+        return False, 'FOREIGN_CHARGE_INDEX'
+    if persisted.get('role') != role:
+        return False, 'ROLE_MISMATCH'
+    if persisted.get('scenario') != scenario:
+        return False, 'ADMISSION_MISMATCH'
+    if list(persisted.get('argv') or []) != list(argv or []):
+        return False, 'ADMISSION_MISMATCH'
+    if persisted.get('settled') is not True:
+        return False, 'NOT_SETTLED'
+    if state not in PROVEN_TERMINAL_STATES:
+        return False, 'STATE_NOT_PROVABLE'
+    if persisted.get('state') != state:
+        return False, 'STATE_MISMATCH'
+    if exit_code is None or persisted.get('exit_code') != exit_code:
+        return False, 'EXIT_CODE_MISMATCH'
+    if persisted.get('pid') != pid:
+        return False, 'PID_MISMATCH'
+    if persisted.get('birth') != birth:
+        return False, 'BIRTH_MISMATCH'
+    return True, None
 
 
 class CpuGateError(RuntimeError):
@@ -391,10 +460,14 @@ class SharedCounter:
         """The read-only record of one charge of this counter.
 
         The record is never created and never changed here: it is the view
-        that tells an idempotent settlement apart from a failed one.
+        that tells an idempotent settlement apart from a failed one.  The
+        identity of the budget is verified here as well: a record of
+        another budget is never read as the record of this counter.
         """
         with self._open() as handle:
             document = self._read(handle)
+            if document.get('budget_id') != self.budget_id:
+                raise CpuGateError('CPU_COUNTER_IDENTITY_MISMATCH')
             for record in document['charges']:
                 if record.get('index') == index:
                     return dict(record)
@@ -665,7 +738,23 @@ class FiniteCpuExecutor:
             # The children that already exited release their slot before
             # this admission: a sequential run is never refused by the
             # ghosts of its own previous children.
-            self.reconcile_exited_children()
+            reconciliation = self.reconcile_exited_children()
+            if reconciliation['failures']:
+                # The reconciliation could not prove the terminal state of
+                # every child that already exited.  The slots of those
+                # charges are kept, the session becomes uncertain and this
+                # admission fails closed: no new charge is taken while a
+                # settlement of this session is unproven.  The failure is
+                # reported explicitly instead of being hidden behind the
+                # concurrency limit of a full counter.
+                detail = ','.join(sorted({str(item.get('settlement_error'))
+                                           for item in reconciliation['failures']}))
+                raise CpuGateError('CPU_RECONCILIATION_UNSETTLED', detail=detail)
+            # The reconciliation is bounded, but it is not free: the window
+            # and the uncertainty are re-checked *after* it, against the
+            # original deadline.  The deadline is never rebased and a
+            # reconciliation that crossed it refuses this admission.
+            self._check_session()
             index = self.counter.charge(role=self.role, scenario=scenario, argv=argv)
         except CpuGateError as error:
             self.refusals.append(error.code)
@@ -889,12 +978,31 @@ class FiniteCpuExecutor:
         return entry
 
     # -- the bounded reconciliation of the children that already exited ----
-    def _charge_state(self, index):
-        """The read-only view of one charge of the shared counter."""
+    def _persisted_terminal_proof(self, index, entry, exit_code, state):
+        """The strict proof that the counter persists this terminal state.
+
+        The proof is read from the bound shared counter and it is matched
+        with the one strict rule of this module.  A counter that cannot be
+        read is never an absent record: it is a failure, and a failure
+        never releases a slot.
+        """
+        with self._lock:
+            record = self._charges.get(index)
+        if record is None:
+            return False, 'NO_LOCAL_ADMISSION'
         try:
-            return self.counter.charge_state(index)
-        except CpuGateError:
-            return None
+            persisted = self.counter.charge_state(index)
+        except CpuGateError as error:
+            return False, error.code
+        except OSError:
+            return False, 'CPU_COUNTER_IO_ERROR'
+        if persisted is None:
+            return False, 'NO_PERSISTED_RECORD'
+        return persisted_terminal_matches(
+            persisted, index=index, role=self.role,
+            scenario=record.get('scenario'), argv=record.get('argv'),
+            pid=entry.get('pid'), birth=entry.get('birth'),
+            exit_code=exit_code, state=state)
 
     def reconcile_exited_children(self):
         """Release the slot of a child whose original handle proves its exit.
@@ -912,18 +1020,24 @@ class FiniteCpuExecutor:
         * it looks only at the children that **this** executor owns,
         * it releases a slot only when the **original handle** proves that
           the child exited and when the shared counter **persists** the
-          terminal state of that charge,
-        * a live child, an unproven child and a settlement that the counter
-          did not accept keep their slot,
+          terminal state of that charge, with the exact identity of that
+          charge (see ``persisted_terminal_matches``),
+        * a live child, an unproven child, a conflicting persisted record
+          and a settlement that the counter did not accept keep their slot,
         * the cumulative starts, the charges and the evidence of the
           original run are never removed, never refunded and never reset,
         * it never revokes the admissions, never stops the watchdog and
           never takes a new custody.
 
+        The result is explicit: the entries that were released and the
+        entries whose settlement could not be proven.  A failure is never
+        hidden and it never releases anything.
+
         The reconciliation is bounded: it inspects the owned children of
         this executor once and it never waits for anything.
         """
         released = []
+        failures = []
         with self._lock:
             children = list(self.children)
         for entry in children:
@@ -953,30 +1067,56 @@ class FiniteCpuExecutor:
             spent = round(self.clock() - entry['started'], 3)
             persisted = False
             settlement_error = None
-            try:
-                persisted = self.counter.finish(index, state=state, exit_code=exit_code,
-                                                spent=spent, pid=entry.get('pid'),
-                                                birth=entry.get('birth')) is True
-            except CpuGateError as failure:
-                settlement_error = failure.code
-            if not persisted and settlement_error is None:
-                # The counter may already hold the terminal state of this
-                # charge.  That is an idempotent settlement, not a failure.
-                existing = self._charge_state(index)
-                if (existing is not None and existing.get('settled') is True
-                        and existing.get('state') in ('STOPPED', 'TIMED_OUT')):
-                    persisted = True
+            reason = None
+            # The persisted proof comes first: the local marker of a former
+            # reconciliation is never a proof by itself, and a record that
+            # conflicts with this charge is never an idempotent success.
+            proof, reason = self._persisted_terminal_proof(index, entry, exit_code, state)
+            if proof:
+                # The counter already persists exactly this terminal state.
+                # The settlement is idempotent: the finished_wall of the
+                # charge is never written a second time.
+                persisted = True
+            elif reason in ('NO_PERSISTED_RECORD', 'NOT_SETTLED'):
+                # The charge is not settled yet: the settlement is attempted.
+                try:
+                    persisted = self.counter.finish(index, state=state, exit_code=exit_code,
+                                                    spent=spent, pid=entry.get('pid'),
+                                                    birth=entry.get('birth')) is True
+                except CpuGateError as failure:
+                    settlement_error = failure.code
+                except OSError:
+                    # An ordinary I/O failure of the counter is a failure of
+                    # the settlement, never an absent proof.
+                    settlement_error = 'CPU_COUNTER_IO_ERROR'
+                if not persisted and settlement_error is None:
+                    # The counter may have accepted the settlement of this
+                    # very charge: only the strict proof decides.
+                    proof, reason = self._persisted_terminal_proof(
+                        index, entry, exit_code, state)
+                    persisted = proof
+                    if not proof:
+                        settlement_error = reason
+            else:
+                # A conflict: the persisted state is not the terminal state
+                # of this charge.  Nothing is released and the conflict is
+                # reported.
+                settlement_error = reason
             if not persisted:
-                # Nothing is released: the charge keeps its slot and the
-                # uncertainty of a settlement that was not accepted stays
-                # visible to the finalizer.
-                if settlement_error is not None:
-                    self.uncertain = True
-                    with self._lock:
-                        record = self._charges.get(index)
-                        if record is not None:
-                            record['settlement_persisted'] = False
-                            record['settlement_error'] = settlement_error
+                # Nothing is released: the charge keeps its slot, the
+                # settlement of this session is uncertain and the finalizer
+                # keeps the owned root.
+                self.uncertain = True
+                with self._lock:
+                    record = self._charges.get(index)
+                    if record is not None:
+                        record['settlement_persisted'] = False
+                        record['settlement_error'] = settlement_error
+                        record['outcome'] = 'UNKNOWN'
+                failures.append({'index': index, 'state': state,
+                                 'exit_code': exit_code,
+                                 'settlement_error': settlement_error,
+                                 'reason': reason})
                 continue
             entry['exit_code'] = exit_code
             entry['state'] = state
@@ -990,7 +1130,7 @@ class FiniteCpuExecutor:
                     record['settlement_error'] = None
             released.append({'index': index, 'state': state, 'exit_code': exit_code,
                              'spent_wall_seconds': spent})
-        return released
+        return {'released': released, 'failures': failures}
 
     def _ensure_watchdog(self):
         if self._watchdog is not None:
@@ -1136,11 +1276,23 @@ class FiniteCpuExecutor:
             persisted = True
             settlement_error = None
             if entry['index'] is not None:
-                if entry.get('settlement_persisted') is True:
+                proof = False
+                reason = None
+                if entry['state'] in PROVEN_TERMINAL_STATES:
+                    proof, reason = self._persisted_terminal_proof(
+                        entry['index'], entry, exit_code, entry['state'])
+                if proof:
                     # The terminal state of this child is already persisted
-                    # by the bounded reconciliation: the finalizer never
-                    # settles it a second time.
+                    # with the exact identity of this charge: the finalizer
+                    # never settles it a second time and never rewrites its
+                    # finished_wall.
                     persisted = True
+                elif entry.get('settlement_persisted') is True:
+                    # The local marker claims a settlement that the shared
+                    # counter does not prove.  The counter is the authority:
+                    # the charge stays open and the cleanup stays uncertain.
+                    persisted = False
+                    settlement_error = reason or 'PERSISTED_STATE_NOT_PROVEN'
                 else:
                     try:
                         persisted = self.counter.finish(
@@ -1149,14 +1301,20 @@ class FiniteCpuExecutor:
                     except CpuGateError as failure:
                         persisted = False
                         settlement_error = failure.code
-                    if not persisted and settlement_error is None:
+                    except OSError:
+                        persisted = False
+                        settlement_error = 'CPU_COUNTER_IO_ERROR'
+                    if (not persisted and settlement_error is None
+                            and entry['state'] in PROVEN_TERMINAL_STATES):
                         # The counter may already hold this terminal state:
-                        # an idempotent settlement is not a failure and it
-                        # does not make the cleanup uncertain.
-                        existing = self._charge_state(entry['index'])
-                        if (existing is not None and existing.get('settled') is True
-                                and existing.get('state') in ('STOPPED', 'TIMED_OUT')):
-                            persisted = True
+                        # only the strict proof decides whether the repeated
+                        # settlement is idempotent.  An ``UNKNOWN`` record or
+                        # a record of another charge is never a success.
+                        proof, reason = self._persisted_terminal_proof(
+                            entry['index'], entry, exit_code, entry['state'])
+                        persisted = proof
+                        if not proof:
+                            settlement_error = reason
                 if not persisted:
                     entry['state'] = 'UNKNOWN'
                     self.uncertain = True

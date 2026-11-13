@@ -2639,6 +2639,26 @@ def admit_and_register(executor, child):
     return executor.children[-1]
 
 
+def finalize_with(executor, tmp_path):
+    """The outer finalizer of the runner, on a synthetic owned root.
+
+    The finalizer is the real one of the accepted runner: it reaps the
+    children, it settles the charges and it removes the owned root only
+    after a proven cleanup.
+    """
+    owned = tmp_path / 'owned'
+    owned.mkdir(exist_ok=True)
+    outcome = RUNNER_MODULE.finalize_session(
+        executor=executor, owned=owned, stdout_handle=GoodHandle(),
+        stderr_handle=GoodHandle(), saved_out=os.dup(1), saved_err=os.dup(2),
+        exit_code=0, source_hasher=lambda: {})
+    return {'exit_code': outcome['exit_code'],
+            'cleanup_proven': outcome['cleanup_proven'],
+            'root_retained': owned.exists(),
+            'failure_reasons': outcome['failure_reasons'],
+            'proofs': outcome['proofs']}
+
+
 def test_two_exited_children_release_their_slot_for_the_next_admission(tmp_path):
     """G3: a child that already exited never refuses the next sequential start.
 
@@ -2742,7 +2762,14 @@ def test_an_unprovable_exit_keeps_its_concurrency_slot(tmp_path):
 
 def test_a_settlement_that_the_counter_refuses_keeps_its_concurrency_slot(tmp_path,
                                                                          monkeypatch):
-    """G3: a settlement that the counter did not accept releases nothing."""
+    """G3: a refused settlement releases nothing and fails the admission closed.
+
+    The counter refuses the settlement of a child that has already exited.
+    The slot of that child is kept, the session becomes uncertain and the
+    next admission fails closed: no new charge is taken, even though the
+    counter still has a free slot.  The refusal is explicit and it is not
+    the concurrency limit of a full counter.
+    """
     counter = fake_root_counter(tmp_path)
     path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
     executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest)
@@ -2751,13 +2778,256 @@ def test_a_settlement_that_the_counter_refuses_keeps_its_concurrency_slot(tmp_pa
     admit_and_register(executor, child)
     child.returncode = 0
     monkeypatch.setattr(executor.counter, 'finish', lambda index, **keywords: False)
-    admit_one(executor)
     with pytest.raises(EXECUTOR_MODULE.CpuGateError) as error:
         admit_one(executor)
-    assert error.value.code == 'CPU_CONCURRENCY_LIMIT'
+    assert error.value.code == 'CPU_RECONCILIATION_UNSETTLED'
     document = json.loads(counter.read_text())
+    # No new charge: a failed settlement never opens a new start.
+    assert document['starts_total'] == 1
+    assert len(document['charges']) == 1
+    # The slot of the refused settlement is kept.
     assert document['charges'][0]['state'] == 'STARTED'
     assert document['charges'][0]['settled'] is False
+    occupied = EXECUTOR_MODULE.SharedCounter._occupied(document)
+    assert occupied == 1
+    # The counter is not full: the refusal is not the concurrency limit.
+    assert occupied < 2
+    # The session is uncertain, so the next admission is refused as well.
+    assert executor.uncertain is True
+    with pytest.raises(EXECUTOR_MODULE.CpuGateError) as second:
+        admit_one(executor)
+    assert second.value.code == 'SESSION_UNCERTAIN_CUSTODY'
+    assert json.loads(counter.read_text())['starts_total'] == 1
+    # The finalizer keeps the owned root and its exit code is not zero.
+    final = finalize_with(executor, tmp_path)
+    assert final['cleanup_proven'] is False
+    assert final['root_retained'] is True
+    assert final['exit_code'] != 0
+    assert 'CHARGE_SETTLEMENT_FAILED' in final['failure_reasons']
+
+
+def test_a_settlement_gate_error_keeps_the_slot_and_fails_the_admission_closed(tmp_path,
+                                                                              monkeypatch):
+    """G3: a gate error of the settlement is a failure, never a release."""
+    counter = fake_root_counter(tmp_path)
+    path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+    executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest)
+    context_inside(tmp_path)
+    child = FakeChildHandle()
+    admit_and_register(executor, child)
+    child.returncode = 0
+
+    def refuse(index, **keywords):
+        raise EXECUTOR_MODULE.CpuGateError('CPU_CHARGE_STATE_INVALID')
+
+    monkeypatch.setattr(executor.counter, 'finish', refuse)
+    with pytest.raises(EXECUTOR_MODULE.CpuGateError) as error:
+        admit_one(executor)
+    assert error.value.code == 'CPU_RECONCILIATION_UNSETTLED'
+    assert 'CPU_CHARGE_STATE_INVALID' in (error.value.detail or '')
+    document = json.loads(counter.read_text())
+    assert document['starts_total'] == 1
+    assert document['charges'][0]['state'] == 'STARTED'
+    assert document['charges'][0]['settled'] is False
+    assert executor.uncertain is True
+    final = finalize_with(executor, tmp_path)
+    assert final['cleanup_proven'] is False
+    assert final['root_retained'] is True
+    assert final['exit_code'] != 0
+
+
+def test_a_settlement_io_error_keeps_the_slot_and_fails_the_admission_closed(tmp_path,
+                                                                             monkeypatch):
+    """G3: an ordinary I/O failure of the settlement is a failure too."""
+    counter = fake_root_counter(tmp_path)
+    path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+    executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest)
+    context_inside(tmp_path)
+    child = FakeChildHandle()
+    admit_and_register(executor, child)
+    child.returncode = 0
+
+    def refuse(index, **keywords):
+        raise OSError('the counter could not be written')
+
+    monkeypatch.setattr(executor.counter, 'finish', refuse)
+    with pytest.raises(EXECUTOR_MODULE.CpuGateError) as error:
+        admit_one(executor)
+    assert error.value.code == 'CPU_RECONCILIATION_UNSETTLED'
+    assert 'CPU_COUNTER_IO_ERROR' in (error.value.detail or '')
+    document = json.loads(counter.read_text())
+    assert document['starts_total'] == 1
+    assert document['charges'][0]['state'] == 'STARTED'
+    assert document['charges'][0]['settled'] is False
+    assert executor.uncertain is True
+    final = finalize_with(executor, tmp_path)
+    assert final['cleanup_proven'] is False
+    assert final['root_retained'] is True
+    assert final['exit_code'] != 0
+
+
+def test_an_unreadable_terminal_state_keeps_the_slot_and_fails_the_admission_closed(
+        tmp_path, monkeypatch):
+    """G3: a terminal state that cannot be read is never a release."""
+    counter = fake_root_counter(tmp_path)
+    path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+    executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest)
+    context_inside(tmp_path)
+    child = FakeChildHandle()
+    admit_and_register(executor, child)
+    child.returncode = 0
+
+    def refuse(index):
+        raise EXECUTOR_MODULE.CpuGateError('CPU_COUNTER_UNREADABLE')
+
+    monkeypatch.setattr(executor.counter, 'charge_state', refuse)
+    with pytest.raises(EXECUTOR_MODULE.CpuGateError) as error:
+        admit_one(executor)
+    assert error.value.code == 'CPU_RECONCILIATION_UNSETTLED'
+    assert 'CPU_COUNTER_UNREADABLE' in (error.value.detail or '')
+    document = json.loads(counter.read_text())
+    assert document['starts_total'] == 1
+    assert document['charges'][0]['state'] == 'STARTED'
+    assert document['charges'][0]['settled'] is False
+    assert executor.uncertain is True
+
+
+def test_a_foreign_exit_code_keeps_the_slot_of_its_charge(tmp_path):
+    """G3: a persisted exit code of another run is not an idempotent proof."""
+    counter = fake_root_counter(tmp_path)
+    path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+    executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest)
+    context_inside(tmp_path)
+    child = FakeChildHandle()
+    admit_and_register(executor, child)
+    entry = executor.children[-1]
+    child.returncode = 0
+    # The counter holds a terminal state of this index, but the exit code
+    # belongs to another run.
+    executor.counter.finish(0, state='STOPPED', exit_code=77, spent=1.0,
+                            pid=entry['pid'], birth=entry['birth'])
+    with pytest.raises(EXECUTOR_MODULE.CpuGateError) as error:
+        admit_one(executor)
+    assert error.value.code == 'CPU_RECONCILIATION_UNSETTLED'
+    assert 'EXIT_CODE_MISMATCH' in (error.value.detail or '')
+    document = json.loads(counter.read_text())
+    assert document['starts_total'] == 1
+    assert executor.uncertain is True
+    final = finalize_with(executor, tmp_path)
+    assert final['cleanup_proven'] is False
+    assert final['root_retained'] is True
+    assert final['exit_code'] != 0
+
+
+def test_a_foreign_handle_keeps_the_slot_of_its_charge(tmp_path):
+    """G3: a persisted handle of another identity is not an idempotent proof."""
+    counter = fake_root_counter(tmp_path)
+    path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+    executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest)
+    context_inside(tmp_path)
+    child = FakeChildHandle()
+    admit_and_register(executor, child)
+    child.returncode = 0
+    executor.counter.finish(0, state='STOPPED', exit_code=child.returncode, spent=1.0,
+                            pid=999999, birth={'linux_start_ticks': 1})
+    with pytest.raises(EXECUTOR_MODULE.CpuGateError) as error:
+        admit_one(executor)
+    assert error.value.code == 'CPU_RECONCILIATION_UNSETTLED'
+    assert 'PID_MISMATCH' in (error.value.detail or '')
+    document = json.loads(counter.read_text())
+    assert document['starts_total'] == 1
+    assert executor.uncertain is True
+    final = finalize_with(executor, tmp_path)
+    assert final['cleanup_proven'] is False
+    assert final['root_retained'] is True
+    assert final['exit_code'] != 0
+
+
+def test_a_foreign_charge_index_keeps_the_slot_of_its_charge(tmp_path, monkeypatch):
+    """G3: a persisted record of another index is not an idempotent proof."""
+    counter = fake_root_counter(tmp_path)
+    path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+    executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest)
+    context_inside(tmp_path)
+    child = FakeChildHandle()
+    admit_and_register(executor, child)
+    child.returncode = 0
+
+    def foreign(index):
+        return {'index': 53, 'role': 'implementation', 'scenario': 'clean_terminal',
+                'argv': [], 'settled': True, 'state': 'STOPPED', 'exit_code': 77,
+                'pid': 999999, 'birth': {'foreign': 'session'}}
+
+    monkeypatch.setattr(executor.counter, 'charge_state', foreign)
+    with pytest.raises(EXECUTOR_MODULE.CpuGateError) as error:
+        admit_one(executor)
+    assert error.value.code == 'CPU_RECONCILIATION_UNSETTLED'
+    assert 'FOREIGN_CHARGE_INDEX' in (error.value.detail or '')
+    document = json.loads(counter.read_text())
+    assert document['starts_total'] == 1
+    assert executor.uncertain is True
+    final = finalize_with(executor, tmp_path)
+    assert final['cleanup_proven'] is False
+    assert final['root_retained'] is True
+    assert final['exit_code'] != 0
+
+
+def test_an_unknown_terminal_state_keeps_the_slot_of_its_charge(tmp_path):
+    """G3: an UNKNOWN record is never an idempotent proof."""
+    counter = fake_root_counter(tmp_path)
+    path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+    executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest)
+    context_inside(tmp_path)
+    child = FakeChildHandle()
+    admit_and_register(executor, child)
+    entry = executor.children[-1]
+    child.returncode = 0
+    executor.counter.finish(0, state='UNKNOWN', exit_code=None, spent=None,
+                            pid=entry['pid'], birth=entry['birth'])
+    with pytest.raises(EXECUTOR_MODULE.CpuGateError) as error:
+        admit_one(executor)
+    assert error.value.code == 'CPU_RECONCILIATION_UNSETTLED'
+    assert 'STATE_MISMATCH' in (error.value.detail or '')
+    document = json.loads(counter.read_text())
+    assert document['starts_total'] == 1
+    assert executor.uncertain is True
+    final = finalize_with(executor, tmp_path)
+    assert final['cleanup_proven'] is False
+    assert final['root_retained'] is True
+    assert final['exit_code'] != 0
+
+
+def test_a_local_settlement_marker_keeps_the_slot_and_the_root(tmp_path):
+    """G3: the local marker never replaces the persisted proof.
+
+    The counter is made to disagree with the local marker after a
+    successful reconciliation.  The shared counter is the authority: the
+    charge stays open, the finalizer keeps the root and the reaper never
+    rewrites the record to fake a cleanup.
+    """
+    counter = fake_root_counter(tmp_path)
+    path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+    executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest)
+    context_inside(tmp_path)
+    child = FakeChildHandle()
+    admit_and_register(executor, child)
+    child.returncode = 0
+    outcome = executor.reconcile_exited_children()
+    assert outcome['failures'] == []
+    assert len(outcome['released']) == 1
+    document = json.loads(counter.read_text())
+    assert document['charges'][0]['settled'] is True
+    # The counter diverges from the local marker of the executor.
+    document['charges'][0].update(state='STARTED', settled=False, finished_wall=None)
+    counter.write_text(json.dumps(document, sort_keys=True))
+    final = finalize_with(executor, tmp_path)
+    assert final['cleanup_proven'] is False
+    assert final['root_retained'] is True
+    assert final['exit_code'] != 0
+    after = json.loads(counter.read_text())
+    # The reaper never repaired the divergence to fake a proven cleanup.
+    assert after['charges'][0]['settled'] is False
+    assert after['charges'][0]['state'] == 'STARTED'
 
 
 def test_the_finalizer_never_settles_a_settled_child_twice(tmp_path):
@@ -2801,8 +3071,9 @@ def test_the_reconciliation_keeps_the_window_the_source_and_the_single_owner(tmp
     admit_and_register(executor, child)
     child.returncode = 0
     released = executor.reconcile_exited_children()
-    assert len(released) == 1
-    assert released[0]['state'] == 'STOPPED'
+    assert released['failures'] == []
+    assert len(released['released']) == 1
+    assert released['released'][0]['state'] == 'STOPPED'
     # The window of the session is never rebased.
     assert executor.admission_deadline == admission_deadline
     assert executor.cleanup_deadline == cleanup_deadline
@@ -2813,3 +3084,73 @@ def test_the_reconciliation_keeps_the_window_the_source_and_the_single_owner(tmp
     # The audit guard of this process still has exactly one owner.
     assert registry.hook_install_count == owners_before
     assert registry.hook_install_count <= 1
+
+
+def test_a_reconciliation_that_crosses_the_admission_window_refuses_the_start(tmp_path):
+    """G3: a reconciliation that crosses the window refuses this start.
+
+    The reconciliation is bounded, but it is not free: its own I/O spends
+    the wall of the session.  When it crosses the fixed admission deadline,
+    the start that follows it is refused before the new charge is taken and
+    the deadline is never rebased.
+    """
+    counter = fake_root_counter(tmp_path)
+    path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+    clock = fake_clock()
+    executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest,
+                                   clock=clock)
+    context_inside(tmp_path)
+    child = FakeChildHandle()
+    admit_and_register(executor, child)
+    child.returncode = 0
+    deadline = executor.admission_deadline
+    # The reconciliation spends the rest of the window.
+    original_finish = executor.counter.finish
+
+    def slow_finish(index, **keywords):
+        result = original_finish(index, **keywords)
+        clock.now = deadline + 0.001
+        return result
+
+    executor.counter.finish = slow_finish
+    with pytest.raises(EXECUTOR_MODULE.CpuGateError) as error:
+        admit_one(executor)
+    assert error.value.code == 'SESSION_ADMISSION_WINDOW_CLOSED'
+    # No new charge: the start that crossed the window never happened.
+    assert json.loads(counter.read_text())['starts_total'] == 1
+    # The deadline of the session is never rebased by the reconciliation.
+    assert executor.admission_deadline == deadline
+    assert executor.cleanup_deadline is not None
+
+
+def test_the_admission_window_boundary_after_a_reconciliation_is_exact(tmp_path):
+    """G3: the boundary of the window is exact, one over included.
+
+    The check of the window is not only the one of the beginning of the
+    admission: it is repeated after the reconciliation, and it refuses the
+    start exactly on the deadline and one second over it.
+    """
+    counter = fake_root_counter(tmp_path)
+    path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+    clock = fake_clock()
+    executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest,
+                                   clock=clock)
+    context_inside(tmp_path)
+    admit_one(executor)
+    deadline = executor.admission_deadline
+    # One second before the deadline the start is admitted.
+    clock.now = deadline - 0.001
+    admit_one(executor)
+    assert json.loads(counter.read_text())['starts_total'] == 2
+    # Exactly on the deadline the start is refused.
+    clock.now = deadline
+    with pytest.raises(EXECUTOR_MODULE.CpuGateError) as error:
+        admit_one(executor)
+    assert error.value.code == 'SESSION_ADMISSION_WINDOW_CLOSED'
+    # One second over the deadline the start is refused as well.
+    clock.now = deadline + 1.0
+    with pytest.raises(EXECUTOR_MODULE.CpuGateError) as error:
+        admit_one(executor)
+    assert error.value.code == 'SESSION_ADMISSION_WINDOW_CLOSED'
+    assert json.loads(counter.read_text())['starts_total'] == 2
+    assert executor.admission_deadline == deadline
