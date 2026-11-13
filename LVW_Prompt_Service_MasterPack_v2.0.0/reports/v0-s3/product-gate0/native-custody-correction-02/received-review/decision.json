@@ -1,0 +1,103 @@
+{
+  "decision": "CHANGES_REQUIRED",
+  "review_task_completed": true,
+  "candidate": "9352a34cfa8ea9715437b5ffa5d411369dd5548d",
+  "evidence_delivery": "8504fd6cab519ce33cea5382f7b3d8405667f479",
+  "baseline": "b95de076f37e64d321629c065e5531eba8a5250a",
+  "fatal": 0,
+  "major": 11,
+  "minor": 1,
+  "findings": [
+    {
+      "id": "M01",
+      "title": "COMFY user directory prefix traversal",
+      "basis": "process-free independent reproduction"
+    },
+    {
+      "id": "M02",
+      "title": "Windows API table class scope NameError",
+      "basis": "static Python semantics"
+    },
+    {
+      "id": "M03",
+      "title": "Process creation ABI and inheritance table incorrect",
+      "basis": "static Win32 ABI and arguments"
+    },
+    {
+      "id": "M04",
+      "title": "Job PID inline array treated as pointer",
+      "basis": "static Win32 layout"
+    },
+    {
+      "id": "M05",
+      "title": "Assign/Resume read handle loss",
+      "basis": "process-free independent reproduction"
+    },
+    {
+      "id": "M06",
+      "title": "Cancellation diagnostic and writer exception skip cleanup",
+      "basis": "process-free independent reproduction"
+    },
+    {
+      "id": "M07",
+      "title": "Parent start refusal/cancellation leaves original broker open",
+      "basis": "process-free independent reproduction"
+    },
+    {
+      "id": "M08",
+      "title": "Synchronous writes and startup escape absolute deadline",
+      "basis": "static control flow"
+    },
+    {
+      "id": "M09",
+      "title": "Reader/close/exit unknown omitted from release",
+      "basis": "static lifecycle"
+    },
+    {
+      "id": "M10",
+      "title": "Sampler private PID argv incompatible with frozen parser",
+      "basis": "static producer/consumer comparison"
+    },
+    {
+      "id": "M11",
+      "title": "Default nonce incompatible and launch errors not normalized",
+      "basis": "static producer/consumer comparison"
+    },
+    {
+      "id": "m01",
+      "title": "Shallow sealed plan mutable aliases",
+      "basis": "process-free reproduction; trusted-caller limitation"
+    }
+  ],
+  "independent_batch": {
+    "selected": 11,
+    "oracle_pass": 2,
+    "oracle_fail": 9,
+    "exit": 1,
+    "rerun": false,
+    "fd_and_threads_clean": true,
+    "runtime_guard_denials": 0,
+    "full_tracebacks_captured": false
+  },
+  "historical_failed_batch": {
+    "calls": 54,
+    "pass": 46,
+    "fail": 8,
+    "rerun": false
+  },
+  "author_correction_batch": {
+    "calls": 32,
+    "pass": 32,
+    "functional": 30,
+    "integrity": 2,
+    "independently_replayed": false,
+    "evidence_statically_verified": true
+  },
+  "counter_observed_sha256": "acbdb8b154864b6f079ae783d670f11ec138b6be0617d1fa4f56c28c33223b98",
+  "counter_unchanged": true,
+  "native_proven": false,
+  "grant_authority": "NOT_VERIFIED",
+  "admission": false,
+  "stage_pass": false,
+  "report": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-native-custody-01/review.md"
+}
