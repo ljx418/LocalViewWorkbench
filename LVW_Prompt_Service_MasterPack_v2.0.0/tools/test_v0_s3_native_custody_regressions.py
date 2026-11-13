@@ -497,6 +497,13 @@ def test_n03_r01_a_failed_birth_keeps_the_original_handles_with_the_api():
     original process and thread references, the primary error and the
     cleanup errors are named, the round is not a release and the owner
     alone may recover the handles later.
+
+    The oracle of the recovery was **strengthened** by the correction 07
+    of the root: the control handle of a process whose exit was not
+    confirmed is kept until a later recovery confirms the exit.  The
+    group, its identity and its order are unchanged and no assertion was
+    removed: the recovery of the owner now has to prove that the handle
+    of the process was really released by a **confirmed** exit.
     """
     def fail_birth(kernel32, *args):
         return 0
@@ -543,10 +550,34 @@ def test_n03_r01_a_failed_birth_keeps_the_original_handles_with_the_api():
     # creation is independent of the failure of the birth query.
     assert kernel32.null_handle not in kernel32.live
     # The recovery of the owner is explicit and it is possible later.
+    #
+    # CORRECTION 07 (M03): the **control handle of the process** is not
+    # released while the exit of the process was not confirmed.  The
+    # process may still be alive - it may even be a suspended process
+    # that never ran - and its control handle is the only handle that
+    # may stop it.  A close that succeeds is never a proof that the
+    # process ended.  The handle of the thread is independent of the
+    # exit of the process and it was closed.
     report = api.release_retained()
     assert len(report) == 2
-    assert all(entry['released'] for entry in report)
+    by_kind = {entry['kind']: entry for entry in report}
+    assert by_kind['thread']['released'] is True
+    assert by_kind['process']['released'] is False
+    assert 'WaitForSingleObject:exit_not_confirmed' \
+        in by_kind['process']['failures']
+    # The control handle of the process is still with its owner and it
+    # is reachable by the recovery of the owner.
+    retained = api.retained_handles()
+    assert [entry['kind'] for entry in retained] == ['process']
+    assert kernel32.process_handle in kernel32.live
+    # A later recovery that confirms the exit closes the handle and
+    # forgets it.
+    kernel32.script['WaitForSingleObject'] = lambda kernel32, *args: 0
+    report = api.release_retained()
+    assert [entry['kind'] for entry in report] == ['process']
+    assert report[0]['released'] is True
     assert api.retained_handles() == []
+    assert kernel32.process_handle not in kernel32.live
 
 
 def test_n03_r02_a_failed_cleanup_of_the_creation_still_releases_everything():

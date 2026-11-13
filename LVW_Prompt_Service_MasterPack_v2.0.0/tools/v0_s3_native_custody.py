@@ -973,6 +973,11 @@ class NativeCustodySession:
         # finished and it waits inside the same absolute deadline.
         self._close_state = 'NOT_STARTED'
         self._close_done = threading.Event()
+        # The generation of the close.  Every attempt of the close owns
+        # **its own** event: the end of an older attempt never proves
+        # that the attempt that is running now ended.  A waiter always
+        # waits for the event of the generation that it found.
+        self._close_generation = 0
         self._close_owner = None
         self._close_waiters = 0
         self._close_waiter_arrived = threading.Event()
@@ -1003,6 +1008,14 @@ class NativeCustodySession:
         # a thread never joins itself.
         self._closer_started = False
         self._closer = None
+        # Every closer thread that this session ever built.  A closer
+        # whose start did not return may still come up: it keeps its
+        # owner in this list and it is never forgotten.
+        self._closer_threads = []
+        # The state of the **start** of the closer.  A closer whose
+        # start did not return may still come up: it is never taken for
+        # a thread that ended.
+        self._closer_start_state = 'NOT_STARTED'
 
     # -- the nonce of the round -------------------------------------------
     @staticmethod
@@ -1435,10 +1448,12 @@ class NativeCustodySession:
             if self._closer_started:
                 return False
             self._closer_started = True
+            self._closer_start_state = 'STARTING'
         try:
             thread = threading.Thread(target=self._closer_main, daemon=True,
                                       name='lvw-native-custody-closer')
             self._closer = thread
+            self._closer_threads.append(thread)
             thread.start()
         except BaseException as error:  # noqa: BLE001 - the failure stays visible
             self._failures.append('CUSTODY_CLOSER_START_FAILED:'
@@ -1456,6 +1471,9 @@ class NativeCustodySession:
             if unpublished:
                 self._close_done.set()
             return False
+        # The start of the closer returned: the thread of the closer
+        # really exists and it may be joined.
+        self._closer_start_state = 'RUNNING'
         return True
 
     def _closer_main(self):
@@ -1773,10 +1791,12 @@ class NativeCustodySession:
             # it coordinates the items that a previous attempt did not
             # confirm, inside the **original** deadline of the cleanup.
             cleanup_deadline = self._cleanup_deadline_for()
-            status = self._close_broker()
-            if status != 'PERFORMED':
-                self._public_stop_recovery(cleanup_deadline)
-            self._await_close()
+            try:
+                status = self._close_broker()
+                if status != 'PERFORMED':
+                    self._public_stop_recovery(cleanup_deadline)
+            finally:
+                self._await_close()
             return self.evidence()
         self._stopped = True
         self._stopping = True
@@ -1813,14 +1833,19 @@ class NativeCustodySession:
             raise
         finally:
             status = self._close_broker()
-        if status != 'PERFORMED':
-            # An **explicit public stop** coordinates the items that a
-            # previous attempt did not confirm.  The internal close of
-            # the round never does that: a close that follows the
-            # attempt of a background thread - the close of a start
-            # that failed, for instance - would close the same peer a
-            # second time.
-            self._public_stop_recovery(cleanup_deadline)
+            if status != 'PERFORMED':
+                # An **explicit public stop** coordinates the items that
+                # a previous attempt did not confirm.  The internal close
+                # of the round never does that: a close that follows the
+                # attempt of a background thread - the close of a start
+                # that failed, for instance - would close the same peer a
+                # second time.
+                self._public_stop_recovery(cleanup_deadline)
+            # The **real** closer of the round is coordinated on every
+            # exit of the public stop: the normal one, the cancelled one
+            # and the ordinary failure.  The end of the attempt of the
+            # close is not the end of the thread that performs it.
+            self._await_close()
         return self.evidence()
 
     def _close_broker(self):
@@ -1938,6 +1963,11 @@ class NativeCustodySession:
         deadline of the cleanup is never renewed: a recovery that
         arrives after it keeps the resources of the round with their
         owner and the round stays unknown.
+
+        The recovery opens a **new generation** of the close and it
+        publishes its own event.  The end of the previous attempt never
+        proves that the attempt that is running now ended: a waiter
+        that arrives during this generation waits for this generation.
         """
         if self.broker is None:
             # Everything that the round owned was released: there is
@@ -1953,6 +1983,8 @@ class NativeCustodySession:
                 return
             self._close_state = 'IN_PROGRESS'
             self._close_owner = threading.current_thread()
+            self._close_generation += 1
+            self._close_done = threading.Event()
         try:
             self._perform_close(deadline)
         finally:
@@ -2039,10 +2071,15 @@ class NativeCustodySession:
         FINISHED means that the attempt ended and it never means that
         the resources of the round are released: only the facts of the
         close prove that.
+
+        The event that is published is the event of the **current**
+        generation of the close: the end of an older attempt never
+        releases a waiter of the attempt that is running now.
         """
         with self._close_lock:
             self._close_state = 'FINISHED'
-        self._close_done.set()
+            event = self._close_done
+        event.set()
 
     def _await_close(self):
         """Wait for the close that is in flight, inside the shared deadline.
@@ -2067,6 +2104,10 @@ class NativeCustodySession:
             waiting = state == 'IN_PROGRESS'
             if waiting:
                 self._close_waiters += 1
+            # The waiter waits for the event of the **generation** that
+            # it found.  The end of an older attempt never releases a
+            # waiter of the attempt that is running now.
+            event = self._close_done
         if waiting:
             self._close_waiter_arrived.set()
         try:
@@ -2081,10 +2122,19 @@ class NativeCustodySession:
                         self._failures.append('CUSTODY_CLOSE_NOT_FINISHED')
                         self._latch_unknown_state()
                         return False
-                    if self._close_done.wait(min(remaining, CLOSE_WAIT_SLICE_SECONDS)):
-                        # The end of the attempt of the close is
-                        # published.  The end of the **thread** that
-                        # performed it is a second fact.
+                    if event.wait(min(remaining, CLOSE_WAIT_SLICE_SECONDS)):
+                        # The end of the attempt of this generation is
+                        # published.  A **new** generation may have
+                        # begun in the meantime: the waiter follows the
+                        # current owner and it is never released by the
+                        # end of an older attempt.  The end of the
+                        # **thread** that performed the attempt is a
+                        # second fact.
+                        with self._close_lock:
+                            if (self._close_state == 'IN_PROGRESS'
+                                    and self._close_owner is not threading.current_thread()):
+                                event = self._close_done
+                                continue
                         break
             return self._await_closer_exit(deadline)
         finally:
@@ -2106,20 +2156,33 @@ class NativeCustodySession:
         The round never joins itself and a closer never waits for a
         waiter: there is no cycle of waits.
 
+        A closer whose **start** did not return is **unknown** and not a
+        thread that ended: the join of such a thread raises and the
+        thread may still come up.  Such a closer keeps its owner and
+        the round stays unknown.
+
         A closer that is still alive when the deadline arrives keeps
         its owner and the round stays unknown.
         """
         with self._close_lock:
-            closer = self._closer
-        if closer is None:
+            closers = list(self._closer_threads)
+        if not closers:
             # The close was performed by the caller itself: there is no
             # thread of its own and there is nothing to join.
             return True
-        if closer is threading.current_thread():
-            # The round never joins itself.  The closer is the thread
-            # that runs this wait: it cannot wait for its own exit and
-            # it ends as soon as this method returns.
-            return True
+        current = threading.current_thread()
+        for closer in closers:
+            if closer is current:
+                # The round never joins itself.  The closer is the
+                # thread that runs this wait: it cannot wait for its
+                # own exit and it ends as soon as this method returns.
+                continue
+            if not self._join_one_closer(closer, deadline):
+                return False
+        return True
+
+    def _join_one_closer(self, closer, deadline):
+        """Wait for the real exit of one closer of the round."""
         while True:
             remaining = max(0.0, deadline - self._clock())
             if remaining <= 0.0:
@@ -2132,10 +2195,12 @@ class NativeCustodySession:
             try:
                 closer.join(min(remaining, CLOSE_WAIT_SLICE_SECONDS))
             except RuntimeError:
-                # A thread that was never started cannot be joined: it
-                # is not a thread of the round and there is nothing to
-                # wait for.
-                return True
+                # The start of this closer did not return: the thread
+                # was never started and it may still come up.  It is
+                # **unknown** and not a thread that ended.
+                self._failures.append('CUSTODY_CLOSER_START_UNKNOWN')
+                self._latch_unknown_state()
+                return False
             if not closer.is_alive():
                 return True
 
@@ -2188,8 +2253,15 @@ class NativeCustodySession:
             # the facts of the close prove that.
             'close_state': self._close_state,
             'close_finished': self._close_done.is_set(),
+            'close_generation': self._close_generation,
             'close_waiters': self._close_waiters,
             'closer_alive': bool(self._closer is not None and self._closer.is_alive()),
+            # The state of the **start** of the closer and the number of
+            # the closer threads that this session ever built.  A closer
+            # whose start did not return may still come up: it keeps its
+            # owner in the list and it is never forgotten.
+            'closer_start_state': self._closer_start_state,
+            'closer_threads': len(self._closer_threads),
             # The end of the **thread** of the closer and the end of its
             # **attempt** are two facts.  The event of the closer is
             # published inside the thread and it is therefore not a
