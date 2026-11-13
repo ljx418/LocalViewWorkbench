@@ -2589,3 +2589,227 @@ def test_the_receipt_saves_the_complete_effective_command():
         assert invocation['outer_argv'] is None
     else:
         assert isinstance(invocation['outer_argv'], list)
+
+
+# ------------------- the sequential reuse of the concurrency slot (G3)
+class FakeChildHandle:
+    """A fake child handle: no process, only the four calls of a handle.
+
+    The handle is the *original* handle of the child from the point of view
+    of the executor.  ``poll`` reports the exit of the child when it is set
+    and it reports ``None`` while the child is alive.  A handle whose exit
+    can never be observed refuses to answer at all.
+    """
+
+    def __init__(self, pid=4242, *, exit_code=None, provable=True):
+        self.pid = pid
+        self.returncode = exit_code
+        self.provable = provable
+        self.terminated = False
+        self.killed = False
+
+    def poll(self):
+        if not self.provable:
+            raise OSError('the exit of this child cannot be observed')
+        return self.returncode
+
+    def wait(self, timeout=None):
+        return self.returncode
+
+    def terminate(self):
+        self.terminated = True
+        self.returncode = -15
+
+    def kill(self):
+        self.killed = True
+        self.returncode = -9
+
+
+def admit_one(executor):
+    """One admitted start of the real executor API."""
+    prefix = executor_prefix()
+    argv = list(prefix) + ['clean_terminal']
+    executor.admit((prefix[0], argv, None, None))
+
+
+def admit_and_register(executor, child):
+    """One admitted start with the custody of a fake child handle."""
+    admit_one(executor)
+    executor.register(child)
+    return executor.children[-1]
+
+
+def test_two_exited_children_release_their_slot_for_the_next_admission(tmp_path):
+    """G3: a child that already exited never refuses the next sequential start.
+
+    The sequential run admits its next start long before the final reap.
+    A child whose original handle proves its exit keeps its charge in the
+    ``STARTED`` state until the final accounting, so it used to hold its
+    concurrency slot against the ghosts of its own previous children.
+    """
+    counter = fake_root_counter(tmp_path)
+    path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+    executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest)
+    context_inside(tmp_path)
+    first = FakeChildHandle()
+    admit_and_register(executor, first)
+    second = FakeChildHandle()
+    admit_and_register(executor, second)
+    # Both original handles report the exit of their child.
+    first.returncode = 0
+    second.returncode = 0
+    admit_one(executor)
+    document = json.loads(counter.read_text())
+    assert document['starts_total'] == 3
+    assert document['charges'][0]['state'] == 'STOPPED'
+    assert document['charges'][0]['settled'] is True
+    assert document['charges'][1]['state'] == 'STOPPED'
+    assert document['charges'][1]['settled'] is True
+    assert document['charges'][2]['state'] == 'PENDING'
+
+
+def test_thirteen_sequential_children_stay_inside_the_concurrency_bound(tmp_path):
+    """G3: thirteen sequential children never exceed the concurrency bound."""
+    counter = fake_root_counter(tmp_path)
+    path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+    executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest)
+    context_inside(tmp_path)
+    peak = 0
+    for _ in range(13):
+        child = FakeChildHandle()
+        admit_and_register(executor, child)
+        # The child of this position is gone before the next admission.
+        child.returncode = 0
+        document = json.loads(counter.read_text())
+        peak = max(peak, EXECUTOR_MODULE.SharedCounter._occupied(document))
+    document = json.loads(counter.read_text())
+    assert document['starts_total'] == 13
+    assert len(document['charges']) == 13
+    assert peak <= 2
+    # Every child but the last one is settled and keeps its own evidence.
+    assert [charge['state'] for charge in document['charges'][:-1]] == ['STOPPED'] * 12
+    assert all(charge['settled'] is True for charge in document['charges'][:-1])
+    assert document['charges'][-1]['state'] == 'STARTED'
+
+
+def test_two_live_children_refuse_the_next_start_and_release_one_slot(tmp_path):
+    """G3: a live child keeps its slot and only one slot is released."""
+    counter = fake_root_counter(tmp_path)
+    path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+    executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest)
+    context_inside(tmp_path)
+    first = FakeChildHandle()
+    admit_and_register(executor, first)
+    second = FakeChildHandle()
+    admit_and_register(executor, second)
+    with pytest.raises(EXECUTOR_MODULE.CpuGateError) as error:
+        admit_one(executor)
+    assert error.value.code == 'CPU_CONCURRENCY_LIMIT'
+    # Exactly one of the two live children is gone.
+    first.returncode = 0
+    admit_one(executor)
+    with pytest.raises(EXECUTOR_MODULE.CpuGateError) as error:
+        admit_one(executor)
+    assert error.value.code == 'CPU_CONCURRENCY_LIMIT'
+    document = json.loads(counter.read_text())
+    assert document['starts_total'] == 3
+    assert document['charges'][0]['state'] == 'STOPPED'
+    assert document['charges'][1]['state'] == 'STARTED'
+    assert document['charges'][1]['settled'] is False
+
+
+def test_an_unprovable_exit_keeps_its_concurrency_slot(tmp_path):
+    """G3: a child whose exit can never be proven keeps its slot."""
+    counter = fake_root_counter(tmp_path)
+    path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+    executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest)
+    context_inside(tmp_path)
+    unprovable = FakeChildHandle(provable=False)
+    admit_and_register(executor, unprovable)
+    exited = FakeChildHandle()
+    admit_and_register(executor, exited)
+    exited.returncode = 0
+    # The exited child released its slot, the unprovable one did not.
+    admit_one(executor)
+    with pytest.raises(EXECUTOR_MODULE.CpuGateError) as error:
+        admit_one(executor)
+    assert error.value.code == 'CPU_CONCURRENCY_LIMIT'
+    document = json.loads(counter.read_text())
+    assert document['charges'][0]['state'] == 'STARTED'
+    assert document['charges'][0]['settled'] is False
+    assert document['charges'][1]['state'] == 'STOPPED'
+
+
+def test_a_settlement_that_the_counter_refuses_keeps_its_concurrency_slot(tmp_path,
+                                                                         monkeypatch):
+    """G3: a settlement that the counter did not accept releases nothing."""
+    counter = fake_root_counter(tmp_path)
+    path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+    executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest)
+    context_inside(tmp_path)
+    child = FakeChildHandle()
+    admit_and_register(executor, child)
+    child.returncode = 0
+    monkeypatch.setattr(executor.counter, 'finish', lambda index, **keywords: False)
+    admit_one(executor)
+    with pytest.raises(EXECUTOR_MODULE.CpuGateError) as error:
+        admit_one(executor)
+    assert error.value.code == 'CPU_CONCURRENCY_LIMIT'
+    document = json.loads(counter.read_text())
+    assert document['charges'][0]['state'] == 'STARTED'
+    assert document['charges'][0]['settled'] is False
+
+
+def test_the_finalizer_never_settles_a_settled_child_twice(tmp_path):
+    """G3: the finalizer is idempotent for a child that is already settled."""
+    counter = fake_root_counter(tmp_path)
+    path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+    executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest)
+    context_inside(tmp_path)
+    first = FakeChildHandle()
+    admit_and_register(executor, first)
+    first.returncode = 0
+    second = FakeChildHandle()
+    admit_and_register(executor, second)
+    second.returncode = 0
+    before = json.loads(counter.read_text())['charges'][0]
+    assert before['settled'] is True
+    executor.reap()
+    after = json.loads(counter.read_text())['charges'][0]
+    # The terminal state of the first child is not written a second time.
+    assert after['finished_wall'] == before['finished_wall']
+    assert after['observed_lifetime_seconds'] == before['observed_lifetime_seconds']
+    assert after['settled'] is True
+    # The cleanup is not faked and the session is not uncertain.
+    assert executor.uncertain is False
+    assert executor.unsettled_charges() == []
+    assert executor.session_evidence()['settlement_failures'] == []
+
+
+def test_the_reconciliation_keeps_the_window_the_source_and_the_single_owner(tmp_path):
+    """G2/G3: the reconciliation releases a slot and changes nothing else."""
+    counter = fake_root_counter(tmp_path)
+    path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+    executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest)
+    context_inside(tmp_path)
+    executor.reserve_session()
+    admission_deadline = executor.admission_deadline
+    cleanup_deadline = executor.cleanup_deadline
+    registry = RUNNER_MODULE._guard_registry()
+    owners_before = registry.hook_install_count
+    child = FakeChildHandle()
+    admit_and_register(executor, child)
+    child.returncode = 0
+    released = executor.reconcile_exited_children()
+    assert len(released) == 1
+    assert released[0]['state'] == 'STOPPED'
+    # The window of the session is never rebased.
+    assert executor.admission_deadline == admission_deadline
+    assert executor.cleanup_deadline == cleanup_deadline
+    # The admissions are never revoked by the reconciliation.
+    assert executor.revoked is False
+    # The identity of the candidate and of every source pin is still proven.
+    assert executor.verify_identity()['candidate_sha'] == executor.candidate_sha
+    # The audit guard of this process still has exactly one owner.
+    assert registry.hook_install_count == owners_before
+    assert registry.hook_install_count <= 1

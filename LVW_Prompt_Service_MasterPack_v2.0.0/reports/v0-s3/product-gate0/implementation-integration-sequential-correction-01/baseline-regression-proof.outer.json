@@ -1,0 +1,39 @@
+{
+  "baseline_executor_sha256": "1cafd73ffef7230ca088b49d408f4ce4b69f5be10e238cb6710fa1e8a78d0787",
+  "baseline_executor_source": "git show 7ed2116:LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-integration-01/executor.py",
+  "command": [
+    "/usr/bin/python3.12",
+    "-B",
+    "reports/v0-s3/product-gate0/implementation-integration-01/run_guarded_checks.py",
+    "--mode",
+    "focused",
+    "--label",
+    "baseline-regression-proof",
+    "--outdir",
+    "reports/v0-s3/product-gate0/implementation-integration-sequential-correction-01",
+    "--modules",
+    "tools/test_v0_s3_supervisor.py",
+    "--select",
+    "slot or reconciliation or sequential or finalizer"
+  ],
+  "failed_tests": [
+    "test_two_exited_children_release_their_slot_for_the_next_admission",
+    "test_thirteen_sequential_children_stay_inside_the_concurrency_bound",
+    "test_two_live_children_refuse_the_next_start_and_release_one_slot",
+    "test_an_unprovable_exit_keeps_its_concurrency_slot",
+    "test_the_finalizer_never_settles_a_settled_child_twice",
+    "test_the_reconciliation_keeps_the_window_the_source_and_the_single_owner"
+  ],
+  "kind": "LVW_S3_SEQUENTIAL_SLOT_BASELINE_REGRESSION_PROOF/1",
+  "outer_returncode": 1,
+  "outer_returncode_semantics": "the true outer exit code of the guarded runner; it is not zero because the six new tests fail on the baseline executor",
+  "pytest_summary": "6 failed, 9 passed, 92 deselected",
+  "real_execution_performed": false,
+  "root_counter_touched": false,
+  "sequential-slot-baseline-regression.receipt.json": "84ddf0dfb8d45b913f468dcca687b0a6b63d48b0281c8af3a4ef5eb4b4ac169e",
+  "sequential-slot-baseline-regression.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "sequential-slot-baseline-regression.stdout.log": "37daaa653f0ecaa7136cc37b2f4762c0a72ea7f5eaf3ac9a95d25c3e51390bd4",
+  "test_file_sha256": "e58585c03edb512b4b8285b48e917c5b23b0218b5986038cca47a0ac86d6dd3d",
+  "what": "the six new zero process tests of tools/test_v0_s3_supervisor.py run against the BASELINE executor of the candidate 7ed2116 in an isolated copy outside the repository; the repository itself was not changed",
+  "working_directory": "/tmp/lvw-baseline-7ed2116/LVW_Prompt_Service_MasterPack_v2.0.0"
+}

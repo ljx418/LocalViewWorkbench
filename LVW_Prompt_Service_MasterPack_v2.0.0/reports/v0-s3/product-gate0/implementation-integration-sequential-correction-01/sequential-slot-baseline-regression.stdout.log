@@ -1,0 +1,228 @@
+........FFFF.FF                                                          [100%]
+=================================== FAILURES ===================================
+______ test_two_exited_children_release_their_slot_for_the_next_admission ______
+
+tmp_path = PosixPath('/tmp/lvw-s3-integration-b1an63d6/pytest/test_two_exited_children_relea0')
+
+    def test_two_exited_children_release_their_slot_for_the_next_admission(tmp_path):
+        """G3: a child that already exited never refuses the next sequential start.
+    
+        The sequential run admits its next start long before the final reap.
+        A child whose original handle proves its exit keeps its charge in the
+        ``STARTED`` state until the final accounting, so it used to hold its
+        concurrency slot against the ghosts of its own previous children.
+        """
+        counter = fake_root_counter(tmp_path)
+        path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+        executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest)
+        context_inside(tmp_path)
+        first = FakeChildHandle()
+        admit_and_register(executor, first)
+        second = FakeChildHandle()
+        admit_and_register(executor, second)
+        # Both original handles report the exit of their child.
+        first.returncode = 0
+        second.returncode = 0
+>       admit_one(executor)
+
+tools/test_v0_s3_supervisor.py:2661: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/test_v0_s3_supervisor.py:2632: in admit_one
+    executor.admit((prefix[0], argv, None, None))
+reports/v0-s3/product-gate0/implementation-integration-01/executor.py:641: in admit
+    index = self.counter.charge(role=self.role, scenario=scenario, argv=argv)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <lvw_s3_finite_cpu_executor.SharedCounter object at 0x7eb9831bc680>
+
+    def charge(self, *, role, scenario, argv):
+        """Charge one start atomically, before the operating system action."""
+        if role not in ROLES:
+            raise CpuGateError('CPU_ROLE_INVALID')
+        with self._open() as handle:
+            document = self._read(handle)
+            if document.get('budget_id') != self.budget_id:
+                raise CpuGateError('CPU_COUNTER_IDENTITY_MISMATCH')
+            limits = self.limits
+            if self._occupied(document) >= limits['max_concurrent']:
+>               raise CpuGateError('CPU_CONCURRENCY_LIMIT')
+E               lvw_s3_finite_cpu_executor.CpuGateError: CPU_CONCURRENCY_LIMIT
+
+reports/v0-s3/product-gate0/implementation-integration-01/executor.py:304: CpuGateError
+_____ test_thirteen_sequential_children_stay_inside_the_concurrency_bound ______
+
+tmp_path = PosixPath('/tmp/lvw-s3-integration-b1an63d6/pytest/test_thirteen_sequential_child0')
+
+    def test_thirteen_sequential_children_stay_inside_the_concurrency_bound(tmp_path):
+        """G3: thirteen sequential children never exceed the concurrency bound."""
+        counter = fake_root_counter(tmp_path)
+        path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+        executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest)
+        context_inside(tmp_path)
+        peak = 0
+        for _ in range(13):
+            child = FakeChildHandle()
+>           admit_and_register(executor, child)
+
+tools/test_v0_s3_supervisor.py:2680: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/test_v0_s3_supervisor.py:2637: in admit_and_register
+    admit_one(executor)
+tools/test_v0_s3_supervisor.py:2632: in admit_one
+    executor.admit((prefix[0], argv, None, None))
+reports/v0-s3/product-gate0/implementation-integration-01/executor.py:641: in admit
+    index = self.counter.charge(role=self.role, scenario=scenario, argv=argv)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <lvw_s3_finite_cpu_executor.SharedCounter object at 0x7eb9831b9b80>
+
+    def charge(self, *, role, scenario, argv):
+        """Charge one start atomically, before the operating system action."""
+        if role not in ROLES:
+            raise CpuGateError('CPU_ROLE_INVALID')
+        with self._open() as handle:
+            document = self._read(handle)
+            if document.get('budget_id') != self.budget_id:
+                raise CpuGateError('CPU_COUNTER_IDENTITY_MISMATCH')
+            limits = self.limits
+            if self._occupied(document) >= limits['max_concurrent']:
+>               raise CpuGateError('CPU_CONCURRENCY_LIMIT')
+E               lvw_s3_finite_cpu_executor.CpuGateError: CPU_CONCURRENCY_LIMIT
+
+reports/v0-s3/product-gate0/implementation-integration-01/executor.py:304: CpuGateError
+______ test_two_live_children_refuse_the_next_start_and_release_one_slot _______
+
+tmp_path = PosixPath('/tmp/lvw-s3-integration-b1an63d6/pytest/test_two_live_children_refuse_0')
+
+    def test_two_live_children_refuse_the_next_start_and_release_one_slot(tmp_path):
+        """G3: a live child keeps its slot and only one slot is released."""
+        counter = fake_root_counter(tmp_path)
+        path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+        executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest)
+        context_inside(tmp_path)
+        first = FakeChildHandle()
+        admit_and_register(executor, first)
+        second = FakeChildHandle()
+        admit_and_register(executor, second)
+        with pytest.raises(EXECUTOR_MODULE.CpuGateError) as error:
+            admit_one(executor)
+        assert error.value.code == 'CPU_CONCURRENCY_LIMIT'
+        # Exactly one of the two live children is gone.
+        first.returncode = 0
+>       admit_one(executor)
+
+tools/test_v0_s3_supervisor.py:2710: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/test_v0_s3_supervisor.py:2632: in admit_one
+    executor.admit((prefix[0], argv, None, None))
+reports/v0-s3/product-gate0/implementation-integration-01/executor.py:641: in admit
+    index = self.counter.charge(role=self.role, scenario=scenario, argv=argv)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <lvw_s3_finite_cpu_executor.SharedCounter object at 0x7eb9831b77a0>
+
+    def charge(self, *, role, scenario, argv):
+        """Charge one start atomically, before the operating system action."""
+        if role not in ROLES:
+            raise CpuGateError('CPU_ROLE_INVALID')
+        with self._open() as handle:
+            document = self._read(handle)
+            if document.get('budget_id') != self.budget_id:
+                raise CpuGateError('CPU_COUNTER_IDENTITY_MISMATCH')
+            limits = self.limits
+            if self._occupied(document) >= limits['max_concurrent']:
+>               raise CpuGateError('CPU_CONCURRENCY_LIMIT')
+E               lvw_s3_finite_cpu_executor.CpuGateError: CPU_CONCURRENCY_LIMIT
+
+reports/v0-s3/product-gate0/implementation-integration-01/executor.py:304: CpuGateError
+______________ test_an_unprovable_exit_keeps_its_concurrency_slot ______________
+
+tmp_path = PosixPath('/tmp/lvw-s3-integration-b1an63d6/pytest/test_an_unprovable_exit_keeps_0')
+
+    def test_an_unprovable_exit_keeps_its_concurrency_slot(tmp_path):
+        """G3: a child whose exit can never be proven keeps its slot."""
+        counter = fake_root_counter(tmp_path)
+        path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+        executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest)
+        context_inside(tmp_path)
+        unprovable = FakeChildHandle(provable=False)
+        admit_and_register(executor, unprovable)
+        exited = FakeChildHandle()
+        admit_and_register(executor, exited)
+        exited.returncode = 0
+        # The exited child released its slot, the unprovable one did not.
+>       admit_one(executor)
+
+tools/test_v0_s3_supervisor.py:2733: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/test_v0_s3_supervisor.py:2632: in admit_one
+    executor.admit((prefix[0], argv, None, None))
+reports/v0-s3/product-gate0/implementation-integration-01/executor.py:641: in admit
+    index = self.counter.charge(role=self.role, scenario=scenario, argv=argv)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <lvw_s3_finite_cpu_executor.SharedCounter object at 0x7eb9831b7110>
+
+    def charge(self, *, role, scenario, argv):
+        """Charge one start atomically, before the operating system action."""
+        if role not in ROLES:
+            raise CpuGateError('CPU_ROLE_INVALID')
+        with self._open() as handle:
+            document = self._read(handle)
+            if document.get('budget_id') != self.budget_id:
+                raise CpuGateError('CPU_COUNTER_IDENTITY_MISMATCH')
+            limits = self.limits
+            if self._occupied(document) >= limits['max_concurrent']:
+>               raise CpuGateError('CPU_CONCURRENCY_LIMIT')
+E               lvw_s3_finite_cpu_executor.CpuGateError: CPU_CONCURRENCY_LIMIT
+
+reports/v0-s3/product-gate0/implementation-integration-01/executor.py:304: CpuGateError
+____________ test_the_finalizer_never_settles_a_settled_child_twice ____________
+
+tmp_path = PosixPath('/tmp/lvw-s3-integration-b1an63d6/pytest/test_the_finalizer_never_settl0')
+
+    def test_the_finalizer_never_settles_a_settled_child_twice(tmp_path):
+        """G3: the finalizer is idempotent for a child that is already settled."""
+        counter = fake_root_counter(tmp_path)
+        path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+        executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest)
+        context_inside(tmp_path)
+        first = FakeChildHandle()
+        admit_and_register(executor, first)
+        first.returncode = 0
+        second = FakeChildHandle()
+        admit_and_register(executor, second)
+        second.returncode = 0
+        before = json.loads(counter.read_text())['charges'][0]
+>       assert before['settled'] is True
+E       assert False is True
+
+tools/test_v0_s3_supervisor.py:2776: AssertionError
+___ test_the_reconciliation_keeps_the_window_the_source_and_the_single_owner ___
+
+tmp_path = PosixPath('/tmp/lvw-s3-integration-b1an63d6/pytest/test_the_reconciliation_keeps_0')
+
+    def test_the_reconciliation_keeps_the_window_the_source_and_the_single_owner(tmp_path):
+        """G2/G3: the reconciliation releases a slot and changes nothing else."""
+        counter = fake_root_counter(tmp_path)
+        path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+        executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest)
+        context_inside(tmp_path)
+        executor.reserve_session()
+        admission_deadline = executor.admission_deadline
+        cleanup_deadline = executor.cleanup_deadline
+        registry = RUNNER_MODULE._guard_registry()
+        owners_before = registry.hook_install_count
+        child = FakeChildHandle()
+        admit_and_register(executor, child)
+        child.returncode = 0
+>       released = executor.reconcile_exited_children()
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'FiniteCpuExecutor' object has no attribute 'reconcile_exited_children'
+
+tools/test_v0_s3_supervisor.py:2803: AttributeError
+6 failed, 9 passed, 92 deselected in 1.16s

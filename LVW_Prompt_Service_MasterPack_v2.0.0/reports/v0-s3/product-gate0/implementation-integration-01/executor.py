@@ -49,6 +49,17 @@ replayed old refusal keep the charge open.  And a settlement that the
 counter did not accept is never a terminal state: the charge stays pending,
 the session stays uncertain, the finalizer keeps the root and its exit code
 is not zero.
+
+A third rule completes them.  A slot is also released when the **original
+handle** of a child proves that the child exited and when the shared counter
+**persists** the terminal state of that charge.  A sequential run admits its
+next start long before the final reap, so a child that has already exited
+would otherwise keep its slot and refuse the next start although it is gone.
+The reconciliation that does this runs **before** an admission, it looks
+only at the children that this executor owns, it never revokes the
+admissions, never stops the watchdog, never takes a new custody and never
+refunds anything.  A live child, an unproven child and a settlement that
+the counter did not accept keep their slot.
 """
 import fcntl
 import hashlib
@@ -376,6 +387,19 @@ class SharedCounter:
             self._write(handle, document)
             return settled
 
+    def charge_state(self, index):
+        """The read-only record of one charge of this counter.
+
+        The record is never created and never changed here: it is the view
+        that tells an idempotent settlement apart from a failed one.
+        """
+        with self._open() as handle:
+            document = self._read(handle)
+            for record in document['charges']:
+                if record.get('index') == index:
+                    return dict(record)
+            return None
+
     def reserve_session(self, session_id, *, owner_id, role, seconds):
         """Reserve this session's slice of the shared wall pool.
 
@@ -638,6 +662,10 @@ class FiniteCpuExecutor:
                     Path(cwd).resolve().relative_to(self.guard_root.resolve())
                 except ValueError as error:
                     raise CpuGateError('SPAWN_CWD_OUTSIDE_GUARD_ROOT') from error
+            # The children that already exited release their slot before
+            # this admission: a sequential run is never refused by the
+            # ghosts of its own previous children.
+            self.reconcile_exited_children()
             index = self.counter.charge(role=self.role, scenario=scenario, argv=argv)
         except CpuGateError as error:
             self.refusals.append(error.code)
@@ -829,7 +857,8 @@ class FiniteCpuExecutor:
         entry = {'index': None, 'process': process, 'pid': pid,
                  'birth': process_birth(pid), 'started': self.clock(),
                  'state': 'STARTED', 'exit_code': None, 'timed_out': False,
-                 'proven': False, 'stop_attempts': 0, 'last_stop_attempt': None}
+                 'proven': False, 'settlement_persisted': False,
+                 'stop_attempts': 0, 'last_stop_attempt': None}
         with self._lock:
             index = None
             if token is not None:
@@ -858,6 +887,110 @@ class FiniteCpuExecutor:
         entry = self._take_custody(process)
         self._ensure_watchdog()
         return entry
+
+    # -- the bounded reconciliation of the children that already exited ----
+    def _charge_state(self, index):
+        """The read-only view of one charge of the shared counter."""
+        try:
+            return self.counter.charge_state(index)
+        except CpuGateError:
+            return None
+
+    def reconcile_exited_children(self):
+        """Release the slot of a child whose original handle proves its exit.
+
+        The final reaper of the executor is the *last* accounting of the
+        children.  A sequential run admits its next start long before that
+        final reap: a child that has already exited keeps its charge in the
+        ``STARTED`` state and keeps its concurrency slot, so the third
+        sequential start would be refused by the shared counter although the
+        first two children are gone.
+
+        This reconciliation runs before an admission and it never replaces
+        the final reap:
+
+        * it looks only at the children that **this** executor owns,
+        * it releases a slot only when the **original handle** proves that
+          the child exited and when the shared counter **persists** the
+          terminal state of that charge,
+        * a live child, an unproven child and a settlement that the counter
+          did not accept keep their slot,
+        * the cumulative starts, the charges and the evidence of the
+          original run are never removed, never refunded and never reset,
+        * it never revokes the admissions, never stops the watchdog and
+          never takes a new custody.
+
+        The reconciliation is bounded: it inspects the owned children of
+        this executor once and it never waits for anything.
+        """
+        released = []
+        with self._lock:
+            children = list(self.children)
+        for entry in children:
+            index = entry.get('index')
+            if index is None:
+                continue
+            if entry.get('state') != 'STARTED':
+                # Only a child that this executor still holds open is a
+                # candidate.  A settled child and an unknown child keep
+                # their slot.
+                continue
+            if entry.get('settlement_persisted') is True:
+                continue
+            process = entry.get('process')
+            if process is None:
+                continue
+            try:
+                exit_code = process.poll()
+            except Exception:  # noqa: BLE001 - the failure stays visible
+                # The exit of this child cannot be observed: the slot is
+                # kept and nothing is claimed about the child.
+                exit_code = None
+            if exit_code is None:
+                # The child is still alive: it keeps its slot.
+                continue
+            state = 'TIMED_OUT' if entry.get('timed_out') else 'STOPPED'
+            spent = round(self.clock() - entry['started'], 3)
+            persisted = False
+            settlement_error = None
+            try:
+                persisted = self.counter.finish(index, state=state, exit_code=exit_code,
+                                                spent=spent, pid=entry.get('pid'),
+                                                birth=entry.get('birth')) is True
+            except CpuGateError as failure:
+                settlement_error = failure.code
+            if not persisted and settlement_error is None:
+                # The counter may already hold the terminal state of this
+                # charge.  That is an idempotent settlement, not a failure.
+                existing = self._charge_state(index)
+                if (existing is not None and existing.get('settled') is True
+                        and existing.get('state') in ('STOPPED', 'TIMED_OUT')):
+                    persisted = True
+            if not persisted:
+                # Nothing is released: the charge keeps its slot and the
+                # uncertainty of a settlement that was not accepted stays
+                # visible to the finalizer.
+                if settlement_error is not None:
+                    self.uncertain = True
+                    with self._lock:
+                        record = self._charges.get(index)
+                        if record is not None:
+                            record['settlement_persisted'] = False
+                            record['settlement_error'] = settlement_error
+                continue
+            entry['exit_code'] = exit_code
+            entry['state'] = state
+            entry['proven'] = True
+            entry['settlement_persisted'] = True
+            with self._lock:
+                record = self._charges.get(index)
+                if record is not None:
+                    record['handle_proven'] = True
+                    record['settlement_persisted'] = True
+                    record['settlement_error'] = None
+            released.append({'index': index, 'state': state, 'exit_code': exit_code,
+                             'spent_wall_seconds': spent})
+        return released
 
     def _ensure_watchdog(self):
         if self._watchdog is not None:
@@ -1003,13 +1136,27 @@ class FiniteCpuExecutor:
             persisted = True
             settlement_error = None
             if entry['index'] is not None:
-                try:
-                    persisted = self.counter.finish(
-                        entry['index'], state=entry['state'], exit_code=exit_code,
-                        spent=spent, pid=entry['pid'], birth=entry['birth']) is True
-                except CpuGateError as failure:
-                    persisted = False
-                    settlement_error = failure.code
+                if entry.get('settlement_persisted') is True:
+                    # The terminal state of this child is already persisted
+                    # by the bounded reconciliation: the finalizer never
+                    # settles it a second time.
+                    persisted = True
+                else:
+                    try:
+                        persisted = self.counter.finish(
+                            entry['index'], state=entry['state'], exit_code=exit_code,
+                            spent=spent, pid=entry['pid'], birth=entry['birth']) is True
+                    except CpuGateError as failure:
+                        persisted = False
+                        settlement_error = failure.code
+                    if not persisted and settlement_error is None:
+                        # The counter may already hold this terminal state:
+                        # an idempotent settlement is not a failure and it
+                        # does not make the cleanup uncertain.
+                        existing = self._charge_state(entry['index'])
+                        if (existing is not None and existing.get('settled') is True
+                                and existing.get('state') in ('STOPPED', 'TIMED_OUT')):
+                            persisted = True
                 if not persisted:
                     entry['state'] = 'UNKNOWN'
                     self.uncertain = True
