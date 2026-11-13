@@ -1,0 +1,56 @@
+{
+  "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review",
+  "commands": [
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-fixture-result-05/audit_raw.py"
+      ],
+      "exit_code": 0,
+      "stdout": "audit-raw.stdout.log",
+      "stderr": "audit-raw.stderr.log",
+      "capture": "Original exec tool output transcribed verbatim; original output reported one schema comparison false, retained."
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-fixture-result-05/audit_supplement.py"
+      ],
+      "exit_code": 1,
+      "stdout": "audit-supplement.stdout.log",
+      "stderr": "audit-supplement.stderr.log",
+      "note": "Incorrect package-root CMD path; AST and prior hash files already completed. Original script unchanged, no rerun."
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-fixture-result-05/write_reports.py"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "",
+      "note": "Only writes NEW coverage/planning reports."
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-fixture-result-05/finalize_review.py"
+      ],
+      "exit_code": 0,
+      "stdout": "finalize.stdout.log",
+      "stderr": "finalize.stderr.log",
+      "note": "Correct tools/CMD path and read-only final integrity; no candidate import."
+    }
+  ],
+  "preliminary_read_error": {
+    "interpreter": "python",
+    "exit_code": 127,
+    "stderr": "/bin/bash: line 1: python: command not found\n",
+    "resolution": "Use available python3 for read-only parsing."
+  },
+  "other_read_only_commands": "git show/rev-parse/status/ls-files/diff-tree/grep, rg file lists, pathlib read/hash and /proc cmdline; no candidate imports or subprocess fixture/service execution."
+}

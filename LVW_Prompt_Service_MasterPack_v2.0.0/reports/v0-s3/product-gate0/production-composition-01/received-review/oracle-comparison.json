@@ -1,0 +1,89 @@
+{
+  "old_candidate": "01453ee07b4774a55711c5cf5642c12d0394a35c",
+  "current_candidate": "07277a6f2f6f730dc7b9383bfeaf8c412126fe16",
+  "oracles": {
+    "test_the_fixture_clean_terminal_is_verified_by_the_parent": {
+      "old_assertions": [
+        "Assert(test=Compare(left=Subscript(value=Name(id='evidence', ctx=Load()), slice=Constant(value='terminal_received'), ctx=Load()), ops=[Is()], comparators=[Constant(value=True)]))",
+        "Assert(test=Compare(left=Subscript(value=Name(id='evidence', ctx=Load()), slice=Constant(value='canonical_receipt_verified'), ctx=Load()), ops=[Is()], comparators=[Constant(value=True)]))",
+        "Assert(test=Compare(left=Subscript(value=Subscript(value=Name(id='evidence', ctx=Load()), slice=Constant(value='row_status'), ctx=Load()), slice=Constant(value='SYN-01'), ctx=Load()), ops=[Eq()], comparators=[Constant(value='PASS')]))",
+        "Assert(test=Compare(left=Subscript(value=Subscript(value=Name(id='evidence', ctx=Load()), slice=Constant(value='cleanup'), ctx=Load()), slice=Constant(value='proven_stopped'), ctx=Load()), ops=[Is()], comparators=[Constant(value=True)]))"
+      ],
+      "current_assertions": [
+        "Assert(test=Compare(left=Subscript(value=Name(id='evidence', ctx=Load()), slice=Constant(value='terminal_received'), ctx=Load()), ops=[Is()], comparators=[Constant(value=True)]))",
+        "Assert(test=Compare(left=Subscript(value=Name(id='evidence', ctx=Load()), slice=Constant(value='canonical_receipt_verified'), ctx=Load()), ops=[Is()], comparators=[Constant(value=True)]))",
+        "Assert(test=Compare(left=Subscript(value=Subscript(value=Name(id='evidence', ctx=Load()), slice=Constant(value='row_status'), ctx=Load()), slice=Constant(value='SYN-01'), ctx=Load()), ops=[Eq()], comparators=[Constant(value='PASS')]))",
+        "Assert(test=Compare(left=Subscript(value=Subscript(value=Name(id='evidence', ctx=Load()), slice=Constant(value='cleanup'), ctx=Load()), slice=Constant(value='proven_stopped'), ctx=Load()), ops=[Is()], comparators=[Constant(value=True)]))"
+      ],
+      "assertions_unchanged": true
+    },
+    "test_a_blocking_callback_is_actually_stopped": {
+      "old_assertions": [
+        "Assert(test=Compare(left=Subscript(value=Name(id='evidence', ctx=Load()), slice=Constant(value='protocol_violation'), ctx=Load()), ops=[Eq()], comparators=[Constant(value='PHASE_DEADLINE_EXCEEDED')]))",
+        "Assert(test=Compare(left=Subscript(value=Subscript(value=Name(id='evidence', ctx=Load()), slice=Constant(value='cleanup'), ctx=Load()), slice=Constant(value='proven_stopped'), ctx=Load()), ops=[Is()], comparators=[Constant(value=True)]))",
+        "Assert(test=Compare(left=Subscript(value=Subscript(value=Name(id='evidence', ctx=Load()), slice=Constant(value='cleanup'), ctx=Load()), slice=Constant(value='exit_code'), ctx=Load()), ops=[IsNot()], comparators=[Constant(value=None)]))",
+        "Assert(test=Compare(left=Subscript(value=Name(id='evidence', ctx=Load()), slice=Constant(value='root_retained'), ctx=Load()), ops=[Is()], comparators=[Constant(value=True)]))",
+        "Assert(test=Compare(left=Subscript(value=Name(id='evidence', ctx=Load()), slice=Constant(value='resend_allowed'), ctx=Load()), ops=[Is()], comparators=[Constant(value=False)]))"
+      ],
+      "current_assertions": [
+        "Assert(test=Compare(left=Subscript(value=Name(id='evidence', ctx=Load()), slice=Constant(value='protocol_violation'), ctx=Load()), ops=[Eq()], comparators=[Constant(value='PHASE_DEADLINE_EXCEEDED')]))",
+        "Assert(test=Compare(left=Subscript(value=Subscript(value=Name(id='evidence', ctx=Load()), slice=Constant(value='cleanup'), ctx=Load()), slice=Constant(value='proven_stopped'), ctx=Load()), ops=[Is()], comparators=[Constant(value=True)]))",
+        "Assert(test=Compare(left=Subscript(value=Subscript(value=Name(id='evidence', ctx=Load()), slice=Constant(value='cleanup'), ctx=Load()), slice=Constant(value='exit_code'), ctx=Load()), ops=[IsNot()], comparators=[Constant(value=None)]))",
+        "Assert(test=Compare(left=Subscript(value=Name(id='evidence', ctx=Load()), slice=Constant(value='root_retained'), ctx=Load()), ops=[Is()], comparators=[Constant(value=True)]))",
+        "Assert(test=Compare(left=Subscript(value=Name(id='evidence', ctx=Load()), slice=Constant(value='resend_allowed'), ctx=Load()), ops=[Is()], comparators=[Constant(value=False)]))"
+      ],
+      "assertions_unchanged": true
+    },
+    "test_a_blocking_persistence_is_actually_stopped": {
+      "old_assertions": [
+        "Assert(test=Compare(left=Subscript(value=Subscript(value=Name(id='evidence', ctx=Load()), slice=Constant(value='cleanup'), ctx=Load()), slice=Constant(value='proven_stopped'), ctx=Load()), ops=[Is()], comparators=[Constant(value=True)]))",
+        "Assert(test=Compare(left=Subscript(value=Name(id='evidence', ctx=Load()), slice=Constant(value='root_retained'), ctx=Load()), ops=[Is()], comparators=[Constant(value=True)]))"
+      ],
+      "current_assertions": [
+        "Assert(test=Compare(left=Subscript(value=Subscript(value=Name(id='evidence', ctx=Load()), slice=Constant(value='cleanup'), ctx=Load()), slice=Constant(value='proven_stopped'), ctx=Load()), ops=[Is()], comparators=[Constant(value=True)]))",
+        "Assert(test=Compare(left=Subscript(value=Name(id='evidence', ctx=Load()), slice=Constant(value='root_retained'), ctx=Load()), ops=[Is()], comparators=[Constant(value=True)]))"
+      ],
+      "assertions_unchanged": true
+    },
+    "test_a_protocol_violation_is_refused": {
+      "old_assertions": [
+        "Assert(test=Compare(left=Subscript(value=Name(id='evidence', ctx=Load()), slice=Constant(value='protocol_violation'), ctx=Load()), ops=[Eq()], comparators=[Name(id='code', ctx=Load())]))",
+        "Assert(test=Compare(left=Subscript(value=Subscript(value=Name(id='evidence', ctx=Load()), slice=Constant(value='cleanup'), ctx=Load()), slice=Constant(value='proven_stopped'), ctx=Load()), ops=[Is()], comparators=[Constant(value=True)]))",
+        "Assert(test=Compare(left=Subscript(value=Name(id='evidence', ctx=Load()), slice=Constant(value='root_retained'), ctx=Load()), ops=[Is()], comparators=[Constant(value=True)]))"
+      ],
+      "current_assertions": [
+        "Assert(test=Compare(left=Subscript(value=Name(id='evidence', ctx=Load()), slice=Constant(value='protocol_violation'), ctx=Load()), ops=[Eq()], comparators=[Name(id='code', ctx=Load())]))",
+        "Assert(test=Compare(left=Subscript(value=Subscript(value=Name(id='evidence', ctx=Load()), slice=Constant(value='cleanup'), ctx=Load()), slice=Constant(value='proven_stopped'), ctx=Load()), ops=[Is()], comparators=[Constant(value=True)]))",
+        "Assert(test=Compare(left=Subscript(value=Name(id='evidence', ctx=Load()), slice=Constant(value='root_retained'), ctx=Load()), ops=[Is()], comparators=[Constant(value=True)]))"
+      ],
+      "assertions_unchanged": true
+    },
+    "test_a_bad_terminal_reference_is_refused": {
+      "old_assertions": [
+        "Assert(test=Compare(left=Subscript(value=Name(id='evidence', ctx=Load()), slice=Constant(value='canonical_receipt_verified'), ctx=Load()), ops=[Is()], comparators=[Constant(value=False)]))",
+        "Assert(test=Compare(left=Subscript(value=Name(id='evidence', ctx=Load()), slice=Constant(value='root_retained'), ctx=Load()), ops=[Is()], comparators=[Constant(value=True)]))"
+      ],
+      "current_assertions": [
+        "Assert(test=Compare(left=Subscript(value=Name(id='evidence', ctx=Load()), slice=Constant(value='canonical_receipt_verified'), ctx=Load()), ops=[Is()], comparators=[Constant(value=False)]))",
+        "Assert(test=Compare(left=Subscript(value=Name(id='evidence', ctx=Load()), slice=Constant(value='root_retained'), ctx=Load()), ops=[Is()], comparators=[Constant(value=True)]))"
+      ],
+      "assertions_unchanged": true
+    }
+  },
+  "all_assertions_unchanged": true,
+  "caps": {
+    "01453ee07b4774a55711c5cf5642c12d0394a35c": {
+      "MAX_MESSAGE_BYTES": "BinOp(left=Constant(value=32), op=Mult(), right=Constant(value=1024))",
+      "MAX_MESSAGES": "Constant(value=1024)",
+      "MAX_STREAM_BYTES": "BinOp(left=Constant(value=256), op=Mult(), right=Constant(value=1024))",
+      "MAX_EVIDENCE_BYTES": "BinOp(left=BinOp(left=Constant(value=8), op=Mult(), right=Constant(value=1024)), op=Mult(), right=Constant(value=1024))"
+    },
+    "07277a6f2f6f730dc7b9383bfeaf8c412126fe16": {
+      "MAX_MESSAGE_BYTES": "BinOp(left=Constant(value=32), op=Mult(), right=Constant(value=1024))",
+      "MAX_MESSAGES": "Constant(value=1024)",
+      "MAX_STREAM_BYTES": "BinOp(left=Constant(value=256), op=Mult(), right=Constant(value=1024))",
+      "MAX_EVIDENCE_BYTES": "BinOp(left=BinOp(left=Constant(value=8), op=Mult(), right=Constant(value=1024)), op=Mult(), right=Constant(value=1024))"
+    }
+  },
+  "caps_unchanged": true
+}
