@@ -9,7 +9,7 @@
     "stage_id": "R1",
     "workpack_id": "WP-R1-U3",
     "gate": "S3_P4_OFFLINE_INTEGRATION_PREPARATION",
-    "state": "RUNNING"
+    "state": "WAIT_AUTH"
   },
   "last_passed_gate": {
     "gate": "UNIFIED_MEDIA_FIXED_UM10_AND_INDEPENDENT_REVIEW",
@@ -21,7 +21,7 @@
     "passed_cases": 10,
     "human_signoff": "reports/unified-media/human-signoff-live15.json"
   },
-  "current_blocking_gate": "S3_P4_FINITE_FIXTURE_RESULTS_AND_INDEPENDENT_REVIEW_PENDING",
+  "current_blocking_gate": "AUTO_MODE_CLASSIFIER_REJECTION_REQUIRES_EXPLICIT_RETRY_CONFIRMATION",
   "stage_packet": ".agent-governance/stages/R1/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/R1/PAYLOAD_MANIFEST.sha256",
   "product_status": "UNIFIED_MEDIA_EARLY_ACCEPTED_SCOPE_ONLY_FULL_R1_PENDING",
@@ -34,8 +34,8 @@
     "PRODUCTION_RELEASED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "Original visible ClaudeCode task ctx_acda509961b1",
-  "next_action": "Resume same unused exact13 finite fixture run; first classifier rejection or429 stops and reports; no additional slots or fallback.",
+  "next_owner": "Human explicit decision on one direct retry after classifier rejection; original Claude task retained",
+  "next_action": "Await explicit confirmation for one direct exact13 attempt under same unused counter; no root takeover/new binding/wrapper workaround.",
   "required_authorization": null,
   "authorization_request": "reports/authorization-program-v1-complete-03.request.json",
   "authorization_record": "reports/authorization-program-v1-complete-03.approval.json",
@@ -87,7 +87,7 @@
   "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
   "live_terminal_receipt": "reports/unified-media/live-15/receipt.json",
   "independent_review": "reports/unified-media/independent-live-15/review.md",
-  "exact_stop_reason": "User explicitly restored Claude task; resume dispatch prepared for same retained process and unchanged candidate, awaiting worker report.",
+  "exact_stop_reason": "Claude auto-mode refused first resumed attempt as Auto-Mode Bypass, explicitly requires user confirmation; starts0, no test results, counter suspended.",
   "native_component_authorization": "reports/v0-s2/authorization-native-component-02.json",
   "native_component_terminal_receipt": "reports/v0-s2/native-component-02/receipt.json",
   "local_control_change_decision": "reports/v0-s2/change-decision-video-workbench-01.json",
@@ -1819,12 +1819,12 @@
   },
   "s3_integration": {
     "workpack_id": "S3-P4-OFFLINE",
-    "status": "CLAUDE_RESUMED_ORIGINAL_UNUSED_FINITE_FIXTURE_GRANT",
+    "status": "WAIT_AUTH_CLASSIFIER_RETRY_CONFIRMATION",
     "contract": "reports/v0-s3/product-gate0/s3-integration-offline-contract-01.md",
     "task": "reports/v0-s3/product-gate0/implementation-integration-01.task.md",
     "acceptance_matrix": "reports/v0-s3/product-gate0/s3-integration-acceptance-01.json",
     "python_binding": "reports/v0-s3/product-gate0/s3-integration-python-01.binding.json",
-    "cpu_fixture_execution_permitted": true,
+    "cpu_fixture_execution_permitted": false,
     "fixture_limits_after_machine_binding": {
       "total_starts": 24,
       "implementation_starts": 16,
@@ -1842,14 +1842,14 @@
     "launch_receipt": "reports/v0-s3/product-gate0/implementation-integration-01.launch.json",
     "retry_env": "reports/v0-s3/product-gate0/implementation-integration-01.retry-env.json",
     "machine_gate": {
-      "status": "RESUMED_SAME_CANDIDATE_COUNTER_AND_SINGLE_RUN",
+      "status": "SUSPENDED_CLASSIFIER_EXPLICIT_USER_CONFIRMATION",
       "review": "reports/v0-s3/product-gate0/s3-integration-cpu-gate-review-06.json",
       "question_id": "msg_3b503956ea61",
       "candidate_sha": "763f3d561772ec8efa7aafe597b62ac77a3b7969",
       "fixture_starts_authorized": 13,
       "max_runs": 1,
       "human_authorization_required": false,
-      "execution_permitted": true,
+      "execution_permitted": false,
       "binding_path": "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/implementation.binding.json",
       "binding_sha256": "3594b3a30d12e1fbfe54d71118d06b996a5e21872679e4af25bc9818d41dfee1",
       "counter_path": "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json",
@@ -1858,6 +1858,7 @@
       "reply_message_id": "msg_7358b1a4c383"
     },
     "interruption_receipt": "reports/v0-s3/product-gate0/integration-fixture-429-01.json",
-    "resume_receipt": "reports/v0-s3/product-gate0/integration-fixture-resume-01.json"
+    "resume_receipt": "reports/v0-s3/product-gate0/integration-fixture-resume-01.json",
+    "classifier_block_receipt": "reports/v0-s3/product-gate0/integration-fixture-classifier-block-01.json"
   }
 }
