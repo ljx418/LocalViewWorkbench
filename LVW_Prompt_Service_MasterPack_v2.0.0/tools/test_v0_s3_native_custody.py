@@ -341,6 +341,11 @@ class FakeBrokerProcess:
         self.raw_frames = list(raw_frames or [])
         self.bound_deadline = None
         self.write_deadlines = []
+        # The reader of this stand-in is an in-process queue.  It never
+        # blocks and it really ends with the stand-in: the fact of the
+        # reader is a fact of the stand-in and it is never added by
+        # default.
+        self.reader_finished = True
         states = {'READY': 'ARMED', 'STATUS': 'RUNNING', 'STOPPED': 'RELEASED',
                   'REFUSED': 'UNKNOWN_RETAINED'}
         for index, kind in enumerate(kinds, start=1):
@@ -369,10 +374,24 @@ class FakeBrokerProcess:
             return None
 
     def close(self):
+        """The facts of the close of this stand-in.
+
+        Every fact is **derived** from the stand-in itself and it is
+        never added by default: the channel of the stand-in is closed,
+        its reader really ended, its two ends are in-memory and it owns
+        no worker thread at all.
+        """
         self.closed = True
         self.close_count += 1
-        return {'channel_closed': True, 'process_exited': True,
-                'process_handle_released': True}
+        return {'channel_closed': True,
+                'process_exited': True,
+                'process_handle_released': True,
+                'channel_reader_finished': self.reader_finished,
+                'read_end_closed': True,
+                'write_end_closed': True,
+                'worker_thread_handle_released': True,
+                'channel_reader_error': None,
+                'channel_retained_workers': 0}
 
 
 class Clock:

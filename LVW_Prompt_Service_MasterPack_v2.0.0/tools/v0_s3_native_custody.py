@@ -159,8 +159,20 @@ NONCE_BYTES = 16
 # exactly ``True``.  A missing fact, a ``None``, a ``False`` and an
 # unknown value are all unknown: the original broker is kept and the
 # round stays unknown.
+#
+# The list is **strict**.  The channel, the process and its original
+# handle are not enough: the reader of the channel has to have really
+# stopped without an error, the two ends of the channel have to be
+# closed and the original handles of the workers of the endpoints have
+# to be released.  A close that proves only three facts does not prove
+# that the resources of the round are released.
 REQUIRED_CLOSE_FACTS = ('channel_closed', 'process_exited',
-                        'process_handle_released')
+                        'process_handle_released', 'channel_reader_finished',
+                        'read_end_closed', 'write_end_closed',
+                        'worker_thread_handle_released')
+# The facts of the close that have to be present and that have to be
+# zero.  A missing fact is a missing fact and not a zero.
+REQUIRED_CLOSE_ZERO_FACTS = ('channel_retained_workers',)
 # The facts of the reader of the channel.  They are facts of the close
 # and not of the round: they are checked when they are present.
 READER_CLOSE_FACTS = ('channel_reader_finished', 'reader_finished')
@@ -186,6 +198,115 @@ class CustodyError(RuntimeError):
         super().__init__(code)
         self.code = code
         self.detail = detail
+
+
+# -- the one context of a round ---------------------------------------------
+
+class _CustodyContext:
+    """The ONE finite startup and cleanup context of one round.
+
+    The context holds the four things that every layer of the round has
+    to share and that may never be copied from one layer into the next
+    one.
+
+    * The **clock** of the round, so that every deadline of the round is
+      expressed in one domain.
+
+    * The **absolute deadline** of the round.  It is fixed once and it
+      may only be shortened.
+
+    * The **one cleanup deadline**.  It is published **once**, by the
+      first caller that enters the cleanup, and every later caller
+      reuses that very value.  The publication is one atomic step under
+      the lock of the context: two callers that entered the cleanup at
+      the same moment always see the same number and the deadline is
+      never generated twice.
+
+    * The three **one way latches** of the round: the cancel, the stop
+      and the unknown.  A latch that was set is never cleared, and a
+      late event may never overwrite the unknown of the round.
+
+    The session, the send of the round, the stop of the background
+    threads and the close of the broker all hold this **one object**.
+    A layer that only copied the number of a deadline would be a layer
+    with a deadline of its own.
+    """
+
+    def __init__(self, *, clock=None, wall=None):
+        self.clock = clock or time.monotonic
+        self.wall = wall or time.time
+        self._lock = threading.RLock()
+        self._absolute_deadline = None
+        self._cleanup_deadline = None
+        # The one way latches of the round.
+        self.cancel = threading.Event()
+        self.stopping = threading.Event()
+        self.unknown = threading.Event()
+
+    # -- the deadlines ----------------------------------------------------
+    def bind_absolute_deadline(self, deadline):
+        """Bind the absolute deadline of the round.  It may only shorten."""
+        if deadline is None:
+            return self._absolute_deadline
+        with self._lock:
+            if self._absolute_deadline is None or deadline < self._absolute_deadline:
+                self._absolute_deadline = deadline
+            return self._absolute_deadline
+
+    @property
+    def absolute_deadline(self):
+        with self._lock:
+            return self._absolute_deadline
+
+    def cleanup_deadline_value(self):
+        """The published cleanup deadline, or ``None`` before the first."""
+        with self._lock:
+            return self._cleanup_deadline
+
+    def publish_cleanup_deadline(self, value):
+        """Publish the ONE cleanup deadline of the round, atomically.
+
+        The first caller publishes the value and every later caller
+        receives the very same value.  A later caller may never extend
+        the deadline of the cleanup and it may never replace it.
+        """
+        with self._lock:
+            if self._cleanup_deadline is None:
+                self._cleanup_deadline = value
+            return self._cleanup_deadline
+
+    def remaining_cleanup(self):
+        """The seconds that are left until the cleanup deadline.
+
+        The value is recomputed on every call: a wait that already
+        consumed part of the budget never receives the whole budget
+        again.
+        """
+        with self._lock:
+            value = self._cleanup_deadline
+        if value is None:
+            return 0.0
+        return max(0.0, value - self.clock())
+
+    # -- the one way latches ----------------------------------------------
+    def request_cancel(self):
+        """Ask for the cancellation of the round.  One way."""
+        self.cancel.set()
+
+    def request_stop(self):
+        """Ask for the stop of the round.  One way."""
+        self.stopping.set()
+
+    def latch_unknown(self):
+        """Latch the unknown state of the round.  One way."""
+        if self.unknown.is_set():
+            return False
+        self.unknown.set()
+        return True
+
+    def is_unknown(self):
+        """Whether the unknown state of the round was latched."""
+        return self.unknown.is_set()
 
 
 # -- the closed plan -------------------------------------------------------
@@ -826,9 +947,25 @@ class NativeCustodySession:
         self._last_heartbeat = None
         self._last_alive_wall = None
         self._write_lock = threading.Lock()
+        # The one owner of the frame budget of the round.  The frames
+        # that the parent sends and the frames that it receives share
+        # this one lock, so that the check and the commit of the budget
+        # are one atomic step in both directions.
+        self._budget_lock = threading.Lock()
+        # The one owner of the state of the round.  The latch of the
+        # unknown state and the application of a state are one atomic
+        # step: a late reply never turns an unknown round into a
+        # running one.
+        self._state_lock = threading.RLock()
+        self._unknown_latched = False
         self._close_lock = threading.Lock()
         self._broker_close_failed = False
         self._cleanup_deadline = None
+        # The ONE context of the round.  Every layer of the session
+        # holds this very object: the send, the stop of the background
+        # threads, the close of the broker and the recovery of the close
+        # share one deadline, one cancel and one unknown.
+        self._context = _CustodyContext(clock=self._clock, wall=self._wall)
         # -- the coordination of the close ----------------------------------
         # One session keeps ONE cleanup owner and ONE absolute cleanup
         # deadline.  The state of the close is explicit: a competitor
@@ -839,6 +976,10 @@ class NativeCustodySession:
         self._close_owner = None
         self._close_waiters = 0
         self._close_waiter_arrived = threading.Event()
+        # The event of the **real** end of the closer.  The end of the
+        # attempt of the close and the end of the thread that performs
+        # it are two different facts.
+        self._closer_exited = threading.Event()
         # -- the latch of the background of the round ------------------------
         # The permission to start a background thread is closed before
         # the close takes its snapshot of the threads, so that a thread
@@ -847,6 +988,12 @@ class NativeCustodySession:
         self._background_cv = threading.Condition(self._background_lock)
         self._background_open = True
         self._background_starting = 0
+        # The state of every background thread of the round.  The state
+        # tells whether the start of the thread returned, whether it
+        # failed and whether the thread really runs: a thread whose
+        # start did not return keeps its owner and it is never taken for
+        # a thread that ended.
+        self._background_threads = {}
         # The flag of the stop of the round.  A stop blocks every later
         # heartbeat: the heartbeat of a round that is stopping must not
         # write into a channel that is being closed.
@@ -891,6 +1038,10 @@ class NativeCustodySession:
                                   wall_now + self.plan.max_runtime_seconds,
                                   wall_now + self._remaining)
         self._deadline_mono = self._clock() + max(0.0, self._deadline_wall - wall_now)
+        # The context of the round carries the same absolute deadline:
+        # every layer of the round reads it there and it is never
+        # copied into a deadline of its own.
+        self._context.bind_absolute_deadline(self._deadline_mono)
         return self._deadline_wall
 
     def remaining_seconds(self):
@@ -936,16 +1087,46 @@ class NativeCustodySession:
         with self._write_lock:
             if self._stopping and not terminal:
                 return False
-            self._check_frame_budget(terminal=terminal)
+            self._reserve_frame(terminal=terminal)
             self._sequence += 1
             raw = encode_command(command, run_id=self.plan.run_id,
                                  candidate_sha=self.plan.candidate_sha,
                                  authorization_sha256=self.plan.authorization_sha256,
                                  nonce=self._nonce, sequence=self._sequence)
-            self._frames_sent += 1
             budget = max(0.0, min(self.remaining_seconds(), WRITE_BUDGET_SECONDS))
+            # The write of the round never outlives the shared cleanup
+            # deadline of the round: a stop that is in flight does not
+            # give the write a budget of its own.
+            cleanup = self._context.cleanup_deadline_value()
+            if cleanup is not None:
+                budget = min(budget, max(0.0, cleanup - self._clock()))
             deadline = self._clock() + budget
             self._write_to_broker(raw, deadline)
+            return True
+
+    def _reserve_frame(self, *, terminal=False, received=False):
+        """One atomic check and commit of the shared frame budget.
+
+        The frames that the parent sends and the frames that it receives
+        share **one** counter and one owner.  The check and the commit
+        are one atomic step under the lock of the budget: two
+        directions that check the budget at the same moment may never
+        take the last frame of the budget together.
+
+        The reservation of the terminal exchange is **consumed** by the
+        terminal frame itself: a frame of the terminal exchange is
+        never refused because of the reservation that was kept for it.
+        A frame that is not terminal never borrows the reservation and
+        it fails closed when the total does not fit.
+        """
+        with self._budget_lock:
+            reserved = 0 if terminal else RESERVED_TERMINAL_FRAMES
+            if self._frames_sent + self._frames_received + reserved + 1 > MAX_FRAMES:
+                raise CustodyError('CUSTODY_FRAME_BUDGET_EXCEEDED')
+            if received:
+                self._frames_received += 1
+            else:
+                self._frames_sent += 1
             return True
 
     def _check_frame_budget(self, *, terminal=False):
@@ -961,9 +1142,11 @@ class NativeCustodySession:
         substitute for the total: a reply is refused before it is
         accepted when the total does not fit.
         """
-        reserved = 0 if terminal else RESERVED_TERMINAL_FRAMES
-        if self._frames_sent + self._frames_received + reserved + 1 > MAX_FRAMES:
-            raise CustodyError('CUSTODY_FRAME_BUDGET_EXCEEDED')
+        with self._budget_lock:
+            reserved = 0 if terminal else RESERVED_TERMINAL_FRAMES
+            if self._frames_sent + self._frames_received + reserved + 1 > MAX_FRAMES:
+                raise CustodyError('CUSTODY_FRAME_BUDGET_EXCEEDED')
+            return True
 
     def _write_to_broker(self, raw, deadline):
         """Write one frame through the deadline aware interface.
@@ -1022,16 +1205,18 @@ class NativeCustodySession:
 
     def _decode_reply(self, raw):
         """Decode one reply of the broker and check the identity of it."""
-        # The budget of the channel is the total of both directions.  A
-        # reply that does not fit into the total is refused before it
-        # is accepted and before it is counted.
-        self._check_frame_budget()
-        self._frames_received += 1
         reply = decode_reply(raw, run_id=self.plan.run_id,
                              candidate_sha=self.plan.candidate_sha,
                              authorization_sha256=self.plan.authorization_sha256,
                              nonce=self._nonce,
                              last_sequence=self._broker_sequence)
+        # The budget of the channel is the total of both directions.  A
+        # reply that does not fit into the total is refused before it
+        # is accepted and before it is counted.  The reply of the
+        # terminal exchange consumes the reservation that was kept for
+        # it: it is never refused because of its own reservation.
+        terminal = reply['kind'] in ('STOPPED', 'REFUSED')
+        self._reserve_frame(terminal=terminal, received=True)
         self._broker_sequence = reply['sequence']
         # Only a reply that was decoded and that carries the identity of
         # the round refreshes the liveness of the round.
@@ -1127,27 +1312,74 @@ class NativeCustodySession:
         The close of the round closes the permission **before** it takes
         its snapshot of the threads, so a thread that is started after
         the close began is either refused or stopped by the very close
-        that refused it.  A thread that could not start at all is not a
-        thread of the round: its reference is dropped and its failure
-        stays visible.
+        that refused it.
+
+        The state of the thread is recorded **while** it is started:
+
+        * ``STARTING``  the start of the thread did not return yet.  The
+          thread keeps its owner and it may only clean up: it is never
+          taken for a thread that ended.
+        * ``RUNNING``   the thread started and it runs.
+        * ``FAILED``    the start of the thread raised.  The record says
+          whether the thread really runs anyway: a thread that runs
+          keeps the reference of the session and the round becomes
+          unknown, and a thread that never started is not a thread of
+          the round.
         """
         with self._background_lock:
             if not self._background_open:
                 self._failures.append('CUSTODY_BACKGROUND_START_REFUSED:' + kind)
                 return False
+            record = {'kind': kind, 'thread': thread, 'state': 'STARTING',
+                      'started': False, 'error': None}
+            self._background_threads[kind] = record
             setattr(self, '_' + kind, thread)
             self._background_starting += 1
-        started = False
         try:
             thread.start()
-            started = True
-        finally:
+        except BaseException as error:  # noqa: BLE001 - the failure stays visible
+            alive = bool(getattr(thread, 'is_alive', lambda: False)())
+            ident = getattr(thread, 'ident', None)
             with self._background_lock:
+                record['error'] = error
+                record['state'] = 'FAILED'
+                record['started'] = bool(alive or ident is not None)
                 self._background_starting -= 1
-                if not started and getattr(self, '_' + kind) is thread:
-                    setattr(self, '_' + kind, None)
                 self._background_cv.notify_all()
+            if record['started']:
+                # The thread really runs: it keeps the reference of the
+                # session and the round becomes unknown.  A thread that
+                # runs is never taken for a thread that never started.
+                self._failures.append('CUSTODY_BACKGROUND_START_FAILED:' + kind)
+                self._latch_unknown_state()
+            else:
+                # The thread never started: its reference is dropped and
+                # its failure stays visible.
+                with self._background_lock:
+                    if getattr(self, '_' + kind) is thread:
+                        setattr(self, '_' + kind, None)
+            raise
+        with self._background_lock:
+            record['state'] = 'RUNNING'
+            record['started'] = True
+            self._background_starting -= 1
+            self._background_cv.notify_all()
         return True
+
+    def _latch_unknown_state(self):
+        """Latch the unknown state of the round.  One way.
+
+        The latch and the application of a state share **one** lock: a
+        reply that arrives late and the failure of a background thread
+        may never both believe that they are the first one.  The first
+        one latches the unknown state and every later one is refused.
+        """
+        with self._state_lock:
+            first = not self._unknown_latched
+            self._unknown_latched = True
+            self._context.latch_unknown()
+            self.state = 'UNKNOWN_RETAINED'
+        return first
 
     def _latch_background_failure(self, code):
         """Latch the unknown state of the round after a background failure.
@@ -1159,7 +1391,7 @@ class NativeCustodySession:
         """
         if code not in self._failures:
             self._failures.append(code)
-        self.state = 'UNKNOWN_RETAINED'
+        self._latch_unknown_state()
         self._start_bounded_close()
 
     def _apply_state(self, state):
@@ -1169,12 +1401,18 @@ class NativeCustodySession:
         round latched its unknown state - never turns an unknown round
         into a running one.  The late reply stays visible in the
         evidence of the round.
+
+        The check and the application are **one** atomic step under the
+        lock of the state of the round: a reply that passed the check
+        and a failure that latches the unknown state may never both
+        believe that they are the first one.
         """
-        if self.state == 'UNKNOWN_RETAINED' and state != 'UNKNOWN_RETAINED':
-            self._failures.append('CUSTODY_LATE_STATE_IGNORED:' + state)
-            return False
-        self.state = state
-        return True
+        with self._state_lock:
+            if self._unknown_latched and state != 'UNKNOWN_RETAINED':
+                self._failures.append('CUSTODY_LATE_STATE_IGNORED:' + state)
+                return False
+            self.state = state
+            return True
 
     def _start_bounded_close(self):
         """Start the bounded close of the round, once, in its own thread.
@@ -1186,24 +1424,31 @@ class NativeCustodySession:
         for that close, so a closer that joins the pump can never wait
         for the pump in turn.
 
-        A closer that could not start must not leave the round in
-        ``IN_PROGRESS`` for ever: the waiters are woken and the round
-        stays unknown.
+        A closer that could not be **built** and a closer that could not
+        be **started** must not leave the round in ``IN_PROGRESS`` for
+        ever: the waiters are woken, the failure is named and the round
+        stays unknown.  The original broker of the round keeps its
+        owner, so that the public stop of the round may coordinate it
+        again.
         """
         with self._close_lock:
             if self._closer_started:
                 return False
             self._closer_started = True
-        thread = threading.Thread(target=self._close_broker, daemon=True,
-                                  name='lvw-native-custody-closer')
-        self._closer = thread
         try:
+            thread = threading.Thread(target=self._closer_main, daemon=True,
+                                      name='lvw-native-custody-closer')
+            self._closer = thread
             thread.start()
         except BaseException as error:  # noqa: BLE001 - the failure stays visible
             self._failures.append('CUSTODY_CLOSER_START_FAILED:'
                                    + type(error).__name__)
-            self.state = 'UNKNOWN_RETAINED'
+            self._latch_unknown_state()
             with self._close_lock:
+                # The latch of the closer is not permanent: a later
+                # attempt may try again and the public stop of the round
+                # is the recovery entry of the resources.
+                self._closer_started = False
                 unpublished = (self._close_state == 'IN_PROGRESS'
                                and self._close_owner is None)
                 if unpublished:
@@ -1212,6 +1457,18 @@ class NativeCustodySession:
                 self._close_done.set()
             return False
         return True
+
+    def _closer_main(self):
+        """The body of the closer of the round.
+
+        The end of the **attempt** of the close and the end of the
+        **thread** that performs it are two different facts: the
+        evidence of the round carries both of them.
+        """
+        try:
+            self._close_broker()
+        finally:
+            self._closer_exited.set()
 
     def _on_pump_error(self, error):
         """The reader of the channel failed: the round latches its state.
@@ -1254,6 +1511,7 @@ class NativeCustodySession:
         # The stop of the round blocks every later heartbeat, also when
         # the close was started by a failure and not by the caller.
         self._stopping = True
+        self._context.request_stop()
         self._heartbeat_stop.set()
         current = threading.current_thread()
         with self._background_cv:
@@ -1266,25 +1524,47 @@ class NativeCustodySession:
                 self._background_cv.wait(remaining)
             heartbeat = self._heartbeat
             pump = self._pump
+            records = dict(self._background_threads)
         if heartbeat is not None:
-            if heartbeat is not current and heartbeat.ident is not None:
-                heartbeat.join(self._cleanup_remaining(deadline))
-            if heartbeat.is_alive():
-                self._failures.append('CUSTODY_HEARTBEAT_NOT_STOPPED')
-                self.state = 'UNKNOWN_RETAINED'
+            record = records.get('heartbeat')
+            if record is not None and record['state'] == 'STARTING':
+                # The start of this thread did not return: the thread
+                # may still come up.  It keeps its owner, it is never
+                # joined and it may only clean up.  A thread whose start
+                # did not return is never taken for a thread that ended.
+                self._failures.append('CUSTODY_BACKGROUND_START_PENDING:heartbeat')
+                self._latch_unknown_state()
             else:
-                self._heartbeat = None
+                if heartbeat is not current and heartbeat.ident is not None:
+                    heartbeat.join(self._cleanup_remaining(deadline))
+                if heartbeat.is_alive():
+                    self._failures.append('CUSTODY_HEARTBEAT_NOT_STOPPED')
+                    self._latch_unknown_state()
+                else:
+                    self._heartbeat = None
         if pump is not None:
             pump.stop()
-            if pump is current:
+            record = records.get('pump')
+            if record is not None and record['state'] == 'STARTING':
+                # The start of the reader did not return: the thread may
+                # still come up.  It keeps its owner and it is never
+                # joined: a thread that was not started is not joinable.
+                self._failures.append('CUSTODY_BACKGROUND_START_PENDING:pump')
+                self._latch_unknown_state()
+            elif pump is current:
                 # The close never joins the thread that runs it: a pump
                 # that is the current thread stays alive and keeps its
                 # reference with its owner.
                 self._failures.append('CUSTODY_PUMP_NOT_STOPPED')
-                self.state = 'UNKNOWN_RETAINED'
+                self._latch_unknown_state()
+            elif pump.ident is None and not pump.is_alive():
+                # The reader never started: it is not a thread of the
+                # round and it is never joined.
+                self._failures.append('CUSTODY_PUMP_NOT_STARTED')
+                self._pump = None
             elif not pump.join_bounded(self._cleanup_remaining(deadline)):
                 self._failures.append('CUSTODY_PUMP_NOT_STOPPED')
-                self.state = 'UNKNOWN_RETAINED'
+                self._latch_unknown_state()
             else:
                 self._pump = None
 
@@ -1311,14 +1591,24 @@ class NativeCustodySession:
         send, the stop of the background threads, the close of the
         broker, the close of the channel and the close of the endpoints
         all use this very value.
+
+        The generation is **one atomic step** under the lock of the
+        context of the round.  Two callers that entered the cleanup at
+        the same moment therefore see the very same value: the
+        deadline is never generated twice and it is never extended by a
+        caller that came later.
         """
-        if self._cleanup_deadline is None:
-            budget = max(0.0, min(STOP_CLEANUP_SECONDS, self.remaining_seconds()))
-            value = self._clock() + budget
-            if self._deadline_mono is not None:
-                value = min(value, self._deadline_mono)
-            self._cleanup_deadline = value
-        return self._cleanup_deadline
+        published = self._context.cleanup_deadline_value()
+        if published is not None:
+            self._cleanup_deadline = published
+            return published
+        budget = max(0.0, min(STOP_CLEANUP_SECONDS, self.remaining_seconds()))
+        value = self._clock() + budget
+        if self._deadline_mono is not None:
+            value = min(value, self._deadline_mono)
+        published = self._context.publish_cleanup_deadline(value)
+        self._cleanup_deadline = published
+        return published
 
     # -- the lifecycle ----------------------------------------------------
     def start(self):
@@ -1360,11 +1650,11 @@ class NativeCustodySession:
                 # The refusal of the launcher is a structured refusal of
                 # the round.  The code of the original error is kept and
                 # the error is not raised as it is.
-                self.state = 'UNKNOWN_RETAINED'
+                self._latch_unknown_state()
                 self._failures.append(self._launch_failure_code(error))
                 return self.evidence()
             if self.broker is None:
-                self.state = 'UNKNOWN_RETAINED'
+                self._latch_unknown_state()
                 self._failures.append('CUSTODY_BROKER_LAUNCH_UNAVAILABLE')
                 return self.evidence()
             self._broker_identity = {
@@ -1381,7 +1671,7 @@ class NativeCustodySession:
                 self._bind_deadline(self._deadline_mono)
             except BaseException as error:  # noqa: BLE001 - the failure stays visible
                 self._failures.append(self._failure_code(error))
-                self.state = 'UNKNOWN_RETAINED'
+                self._latch_unknown_state()
                 self._close_broker()
                 raise
             pump = _ChannelPump(self.broker, decode=self._decode_reply,
@@ -1397,7 +1687,7 @@ class NativeCustodySession:
             self._start_heartbeat()
             ready = self._read_reply(('READY', 'REFUSED'))
             if ready['kind'] == 'REFUSED':
-                self.state = 'UNKNOWN_RETAINED'
+                self._latch_unknown_state()
                 self._failures.append(ready['detail'].get('code', 'BROKER_REFUSED'))
                 self._close_broker()
                 return self.evidence()
@@ -1406,7 +1696,7 @@ class NativeCustodySession:
                 raise CustodyError('CUSTODY_STATE_INVALID')
             status = self._read_reply(('STATUS', 'REFUSED'))
             if status['kind'] == 'REFUSED':
-                self.state = 'UNKNOWN_RETAINED'
+                self._latch_unknown_state()
                 self._failures.append(status['detail'].get('code', 'BROKER_REFUSED'))
                 self._close_broker()
                 return self.evidence()
@@ -1414,7 +1704,7 @@ class NativeCustodySession:
         except (KeyboardInterrupt, SystemExit):
             # A cancellation is cleaned up and it continues to propagate.
             self._failures.append('CUSTODY_SESSION_CANCELLED')
-            self.state = 'UNKNOWN_RETAINED'
+            self._latch_unknown_state()
             self._close_broker()
             raise
         except BaseException as error:  # noqa: BLE001 - the failure stays visible
@@ -1426,7 +1716,7 @@ class NativeCustodySession:
             code = self._failure_code(error)
             if code not in self._failures:
                 self._failures.append(code)
-            self.state = 'UNKNOWN_RETAINED'
+            self._latch_unknown_state()
             self._close_broker()
             return self.evidence()
         return self.evidence()
@@ -1479,11 +1769,15 @@ class NativeCustodySession:
         """
         if self._stopped:
             # A repeated stop sends no second command and it closes no
-            # second time.  It waits for the close that is in flight.
+            # second time.  It waits for the close that is in flight and
+            # it coordinates the items that a previous attempt did not
+            # confirm, inside the **original** deadline of the cleanup.
+            self._close_broker()
             self._await_close()
             return self.evidence()
         self._stopped = True
         self._stopping = True
+        self._context.request_stop()
         cleanup_deadline = self._cleanup_deadline_for()
         try:
             if self.broker is not None and self.state in ('ARMED', 'RUNNING'):
@@ -1498,20 +1792,20 @@ class NativeCustodySession:
                     self._failures.append(reply['detail'].get('code', 'BROKER_REFUSED'))
             elif self.broker is None:
                 self._failures.append('CUSTODY_BROKER_NOT_STARTED')
-                self.state = 'UNKNOWN_RETAINED'
+                self._latch_unknown_state()
         except CustodyError as error:
             self._failures.append(error.code)
-            self.state = 'UNKNOWN_RETAINED'
+            self._latch_unknown_state()
         except Exception as error:  # noqa: BLE001 - the failure stays visible
             # An ordinary failure of the stop is a named failure of the
             # round: the evidence of the round keeps it and the stop
             # does not raise over the evidence.
             self._failures.append(self._failure_code(error))
-            self.state = 'UNKNOWN_RETAINED'
+            self._latch_unknown_state()
         except BaseException as error:  # noqa: BLE001 - the failure stays visible
             # A cancellation is cleaned up and it continues to propagate.
             self._failures.append(self._failure_code(error))
-            self.state = 'UNKNOWN_RETAINED'
+            self._latch_unknown_state()
             raise
         finally:
             self._close_broker()
@@ -1562,13 +1856,45 @@ class NativeCustodySession:
                 self._finish_close()
             return
         if state == 'FINISHED':
-            # The close is over: a repeated close never closes a second
-            # time.
+            # The attempt that was in flight ended.  An attempt that
+            # ended is **not** a release: the items that were not
+            # confirmed may be coordinated again by the same owner,
+            # inside the **original** deadline of the cleanup.
+            self._recover_close(deadline)
             return
         if self._close_owner is threading.current_thread():
             # The owner of the close never waits for itself.
             return
         self._await_close()
+
+    def _recover_close(self, deadline):
+        """Coordinate the items that a previous attempt did not confirm.
+
+        The recovery is the **public** entry of the round: it calls the
+        product entry of the handle of the broker and it never calls a
+        method of a stand-in.  The original deadline of the cleanup is
+        never renewed: a recovery that arrives after it keeps the
+        resources of the round with their owner and the round stays
+        unknown.
+        """
+        if self.broker is None:
+            # Everything that the round owned was released: there is
+            # nothing left to coordinate.
+            return
+        if max(0.0, deadline - self._clock()) <= 0.0:
+            self._failures.append('CUSTODY_CLOSE_RECOVERY_EXPIRED')
+            self._latch_unknown_state()
+            return
+        with self._close_lock:
+            if self._close_state == 'IN_PROGRESS':
+                # Another owner is closing the round right now.
+                return
+            self._close_state = 'IN_PROGRESS'
+            self._close_owner = threading.current_thread()
+        try:
+            self._perform_close(deadline)
+        finally:
+            self._finish_close()
 
     def _perform_close(self, deadline):
         """The close of the original handle of the broker, by its owner.
@@ -1591,7 +1917,7 @@ class NativeCustodySession:
             # the steps of the close are independent of each other.
             self._failures.append('CUSTODY_BACKGROUND_STOP_FAILED:'
                                    + type(error).__name__)
-            self.state = 'UNKNOWN_RETAINED'
+            self._latch_unknown_state()
         try:
             self._bind_deadline(deadline)
         except BaseException as error:  # noqa: BLE001 - the failure stays visible
@@ -1605,7 +1931,7 @@ class NativeCustodySession:
             self._failures.append('CUSTODY_BROKER_CLOSE_FAILED:'
                                    + type(error).__name__)
             self._broker_close_failed = True
-            self.state = 'UNKNOWN_RETAINED'
+            self._latch_unknown_state()
             self._broker_reader_finished = getattr(broker, 'reader_finished', None)
             return
         self._broker_reader_finished = getattr(broker, 'reader_finished', None)
@@ -1614,16 +1940,21 @@ class NativeCustodySession:
             # A close that returned no facts at all is not a proof.
             self._failures.append('CUSTODY_BROKER_CLOSE_INCOMPLETE:facts')
             self._broker_close_failed = True
-            self.state = 'UNKNOWN_RETAINED'
+            self._latch_unknown_state()
             return
         incomplete = []
         for key in REQUIRED_CLOSE_FACTS:
             if key not in facts or facts[key] is not True:
                 incomplete.append(key)
+        for key in REQUIRED_CLOSE_ZERO_FACTS:
+            if key not in facts or facts[key] != 0:
+                incomplete.append(key)
         for key in READER_CLOSE_FACTS:
             if key in facts and facts[key] is not True:
                 incomplete.append(key)
-        if getattr(broker, 'reader_finished', None) is False:
+        if getattr(broker, 'reader_finished', None) is not True:
+            # The reader of the channel has to have really stopped.
+            # A missing fact and an unknown fact are both unknown.
             incomplete.append('reader_finished')
         if facts.get('channel_reader_error'):
             incomplete.append('channel_reader_error')
@@ -1633,7 +1964,7 @@ class NativeCustodySession:
             for key in incomplete:
                 self._failures.append('CUSTODY_BROKER_CLOSE_INCOMPLETE:' + key)
             self._broker_close_failed = True
-            self.state = 'UNKNOWN_RETAINED'
+            self._latch_unknown_state()
             # The original broker is kept: the reference of the
             # resource of the round is never dropped and the round
             # never claims a release that it cannot prove.
@@ -1677,10 +2008,27 @@ class NativeCustodySession:
                     # deadline is never renewed and the original
                     # resources of the round are kept.
                     self._failures.append('CUSTODY_CLOSE_NOT_FINISHED')
-                    self.state = 'UNKNOWN_RETAINED'
+                    self._latch_unknown_state()
                     return False
                 if self._close_done.wait(min(remaining, CLOSE_WAIT_SLICE_SECONDS)):
-                    return True
+                    # The end of the attempt of the close is published.
+                    # The end of the **thread** that performed it is a
+                    # second fact: the waiter waits for it inside the
+                    # same deadline and the evidence names the closer
+                    # that is still alive.
+                    while True:
+                        remaining = max(0.0, deadline - self._clock())
+                        if remaining <= 0.0:
+                            self._failures.append('CUSTODY_CLOSER_NOT_FINISHED')
+                            self._latch_unknown_state()
+                            return False
+                        if self._closer is None:
+                            # The close was performed by the caller
+                            # itself: there is no thread of its own.
+                            return True
+                        if self._closer_exited.wait(min(remaining,
+                                                        CLOSE_WAIT_SLICE_SECONDS)):
+                            return True
         finally:
             with self._close_lock:
                 self._close_waiters -= 1
@@ -1692,7 +2040,7 @@ class NativeCustodySession:
         try:
             self.stop()
         except Exception:  # noqa: BLE001 - the evidence keeps the failure
-            self.state = 'UNKNOWN_RETAINED'
+            self._latch_unknown_state()
         return False
 
     # -- the evidence ------------------------------------------------------
@@ -1736,7 +2084,20 @@ class NativeCustodySession:
             'close_finished': self._close_done.is_set(),
             'close_waiters': self._close_waiters,
             'closer_alive': bool(self._closer is not None and self._closer.is_alive()),
+            'closer_exited': self._closer_exited.is_set(),
             'background_open': self._background_open,
+            # The state of every background thread of the round.  The
+            # state tells whether the start of the thread returned and
+            # whether the thread really runs: a thread whose start did
+            # not return is never taken for a thread that ended.
+            'background_threads': [{'kind': record['kind'],
+                                    'state': record['state'],
+                                    'started': record['started'],
+                                    'alive': bool(record['thread'].is_alive()),
+                                    'error_type': (type(record['error']).__name__
+                                                   if record['error'] is not None
+                                                   else None)}
+                                   for record in self._background_threads.values()],
             'cleanup_deadline': self._cleanup_deadline,
             'broker_deadline_aware': (getattr(self.broker, 'channel_deadline_aware', False)
                                       is True),

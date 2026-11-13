@@ -798,7 +798,11 @@ def test_n03_r06_the_start_cleans_up_everything_that_it_acquired(tmp_path):
     release = threading.Event()
     closes = []
     complete = {'channel_closed': True, 'process_exited': True,
-                'process_handle_released': True}
+                'process_handle_released': True,
+                'channel_reader_finished': True,
+                'read_end_closed': True, 'write_end_closed': True,
+                'worker_thread_handle_released': True,
+                'channel_reader_error': None, 'channel_retained_workers': 0}
 
     def blocking_close():
         closes.append(1)
@@ -1404,16 +1408,43 @@ def test_n03_r13_the_buffer_of_the_channel_is_bounded_and_a_partial_frame_is_nam
 def test_n03_r14_a_close_without_facts_keeps_the_original_broker(tmp_path):
     """N03-R14 (M09): a release needs the facts of the close.
 
-    A close that returns nothing and a close that reports a false fact
-    keep the original broker and its reference: the round is unknown
-    and the reference is never dropped.  An endpoint whose close failed
-    is not marked as closed irreversibly.
+    The oracle of this group was corrected by the root: a release needs
+    the **strict** facts of the close.  A close that returns nothing, a
+    close that reports a false fact and a close that does not report the
+    facts of the reader, of the endpoints and of the workers keep the
+    original broker and its reference: the round is unknown and the
+    reference is never dropped.
+
+    A peer that could not be released may be coordinated **again**
+    inside the original deadline of the cleanup: the attempt that ended
+    is not a release and it never locks the recovery.  An endpoint whose
+    close failed is not marked as closed irreversibly and a close of an
+    endpoint that is closed keeps the fact that it is closed.
     """
-    for facts in (None, {'channel_closed': False, 'process_exited': True,
-                         'process_handle_released': True},
+    complete = {'channel_closed': True, 'process_exited': True,
+                'process_handle_released': True,
+                'channel_reader_finished': True,
+                'read_end_closed': True, 'write_end_closed': True,
+                'worker_thread_handle_released': True,
+                'channel_reader_error': None, 'channel_retained_workers': 0}
+    for facts in (None,
+                  {'channel_closed': False, 'process_exited': True,
+                   'process_handle_released': True},
                   {'channel_closed': True, 'process_exited': False,
                    'process_handle_released': True},
-                  {'channel_closed': True, 'process_exited': True}):
+                  {'channel_closed': True, 'process_exited': True},
+                  # The three facts of the old oracle are not enough any
+                  # more: the reader, the endpoints and the workers are
+                  # missing and a missing fact is an unknown fact.
+                  {'channel_closed': True, 'process_exited': True,
+                   'process_handle_released': True},
+                  # A reader that did not stop is not a release.
+                  dict(complete, channel_reader_finished=False),
+                  # A worker that was retained is not a release.
+                  dict(complete, channel_retained_workers=1),
+                  # The original handle of a worker that was not
+                  # released is not a release.
+                  dict(complete, worker_thread_handle_released=False)):
         session, holder, _clock = make_session(tmp_path, close_facts=facts)
         session.start()
         peer = holder['peer']
@@ -1424,33 +1455,49 @@ def test_n03_r14_a_close_without_facts_keeps_the_original_broker(tmp_path):
         assert session.broker is peer
         assert evidence['broker_retained'] is True
         assert peer.closed == 1
+        # The missing facts are named: a strict interface names what it
+        # refused to accept.
+        assert any(failure.startswith('CUSTODY_BROKER_CLOSE_INCOMPLETE')
+                   for failure in evidence['failures'])
 
     # A close with every fact is a release.
-    session, holder, _clock = make_session(
-        tmp_path,
-        close_facts={'channel_closed': True, 'process_exited': True,
-                     'process_handle_released': True})
+    session, holder, _clock = make_session(tmp_path, close_facts=dict(complete))
     session.start()
     evidence = session.stop()
     assert session.broker is None
     assert evidence['broker_retained'] is False
 
-    # A repeated stop does not close a second time and the original
-    # broker keeps its owner: the resource of the round is never
-    # dropped and the close is never claimed twice.
+    # A peer that could not be released is coordinated **again** inside
+    # the original deadline of the cleanup.  The attempt that ended is
+    # not a release: the recovery goes through the public stop of the
+    # round and it calls the product entry of the peer.
     session, holder, _clock = make_session(
         tmp_path,
-        close_facts={'channel_closed': True, 'process_exited': True,
-                     'process_handle_released': False})
+        close_facts=dict(complete, process_handle_released=False))
     session.start()
     peer = holder['peer']
     first = session.stop()
     assert first['state'] == 'UNKNOWN_RETAINED'
     assert peer.closed == 1
+    # The condition of the round recovered: the second attempt of the
+    # public stop coordinates the peer again.
+    peer.close_facts = dict(complete)
     second = session.stop()
-    # The repeated stop closes nothing a second time.
-    assert peer.closed == 1
-    # The original broker is kept with its owner.
+    assert peer.closed == 2, 'the peer was never coordinated again'
+    # The recovery released the peer and it never renewed the deadline.
+    assert session.broker is None
+    assert second['broker_retained'] is False
+    assert second['close_state'] == 'FINISHED'
+
+    # A peer that still does not confirm its release keeps its owner.
+    session, holder, _clock = make_session(
+        tmp_path,
+        close_facts=dict(complete, process_handle_released=False))
+    session.start()
+    peer = holder['peer']
+    session.stop()
+    second = session.stop()
+    assert peer.closed == 2
     assert session.broker is peer
     assert second['broker_retained'] is True
     assert second['close_state'] == 'FINISHED'
@@ -1478,6 +1525,30 @@ def test_n03_r14_a_close_without_facts_keeps_the_original_broker(tmp_path):
     assert result['error_type'] == 'OSError'
     # The endpoint may try the close again: it was not closed.
     assert endpoint.facts.get('already_closed') is None
+
+    # A close of an endpoint that is really closed is idempotent and it
+    # keeps the fact that the endpoint is closed.
+    class WorkingSyscalls:
+        def __init__(self):
+            self.closed = []
+
+        def fileno(self, file_object):
+            return file_object.fileno()
+
+        def set_blocking(self, descriptor, blocking):
+            pass
+
+        def close(self, file_object):
+            self.closed.append(file_object)
+
+    syscalls = WorkingSyscalls()
+    endpoint = _PosixPipeEndpoint(file_object, name='read', syscalls=syscalls,
+                                  clock=ManualClock())
+    assert endpoint.close()['closed'] is True
+    again = endpoint.close()
+    assert again['closed'] is True, 'a proven close was turned into a missing one'
+    assert again['already_closed'] is True
+    assert len(syscalls.closed) == 1, 'the descriptor was closed twice'
 
 
 def test_n03_r15_the_default_launcher_refuses_with_its_own_code(tmp_path):
@@ -1556,7 +1627,12 @@ def test_n03_r16_the_positive_lifecycle_still_closes_everything(tmp_path):
         tmp_path,
         read_error=RuntimeError('pump_read_failed'),
         close_facts={'channel_closed': True, 'process_exited': True,
-                     'process_handle_released': True})
+                     'process_handle_released': True,
+                     'channel_reader_finished': True,
+                     'read_end_closed': True, 'write_end_closed': True,
+                     'worker_thread_handle_released': True,
+                     'channel_reader_error': None,
+                     'channel_retained_workers': 0})
     evidence = session.start()
     assert evidence['state'] == 'UNKNOWN_RETAINED'
     assert evidence['close_state'] == 'FINISHED'
