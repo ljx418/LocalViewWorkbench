@@ -1,4 +1,4 @@
-# N1 correction 08: the correction of the five failures of the frozen batch of the correction 07, pending the new frozen batch and the new independent review
+# N1 correction 08: the correction of the five failures of the frozen batch of the correction 07, the minimal production classification of the close cancellation, pending the new frozen batch and the new independent review
 
 Stage: R1.  Workpack: WP-R1-U3 / S3-P4-N1.  Gate:
 `S3_P4_N1_CORRECTION_08_CORRECTION_OF_THE_FIVE_FAILURES`.
@@ -8,9 +8,12 @@ Evidence of the failed batch (frozen by the root): `b9347b688299d601c40eccd734b5
 (`175 calls / 170 pass / 5 fail / 0 skip / pytest exit 1 / cleanup proven for the
 batch = true`).
 
-Root package: `reports/v0-s3/product-gate0/native-custody-correction-08`
-(`contract.md`, `decision.json`, `failed-attempt01/execution-report.md`).
-Parent package: `native-custody-correction-07` (the 18 frozen groups of the
+Root packages: `reports/v0-s3/product-gate0/native-custody-correction-08`
+(`contract.md`, `decision.json`, `failed-attempt01/execution-report.md`) and
+`reports/v0-s3/product-gate0/native-custody-correction-08/close-cancellation-decision-01/decision.json`
+(`AUTHORIZE_MINIMAL_LOCAL_CLOSE_CANCELLATION_CLASSIFICATION_STATIC_ONLY`, message
+`msg_228a371bfcb9`).
+Parent packages: `native-custody-correction-07` (the 18 frozen groups of the
 new module) and its two parents `native-custody-correction-05` (24 frozen
 groups) and `native-custody-correction-03` (16 frozen groups), both inherited
 unchanged.
@@ -25,8 +28,8 @@ sampler, they are not a parent crash recovery, they are not a Windows stdin
 EOF, they are not an admission and they are not a product gate 0.
 
 **The six majors of the isolated review stay OPEN.**  This delivery corrects
-five test groups and it diagnoses the fifth failure; it closes nothing by
-itself.
+five test groups and it applies one minimal production classification that
+the root authorised; it closes nothing by itself.
 
 ## 1. What was read
 
@@ -35,7 +38,9 @@ edit: `contract.md`, `decision.json`, `implementation-prompt.md`,
 `capacity.json`, `launch.json`, `predecessor-release.json`,
 `temporary-retry-env.json`, `archive-index.json` and
 `failed-attempt01/execution-report.md` together with the two counter
-snapshots, the guard snapshot and the receipt of the inherited runner.
+snapshots, the guard snapshot and the receipt of the inherited runner.  The
+decision of the root on the close cancellation was read in full before the
+first production edit, together with its whole reply.
 
 The governance layer was read before the sources: `AGENTS.md`,
 `.agent-governance/README.md`, `plans/execution-control.json` and the
@@ -117,9 +122,9 @@ of retries.
 The decision of the root is kept: **the expired arm has no side effect**
 (`v0_s3_native_broker.py:2128`, `check_startup_budget('ARM:JOB')` runs
 before the creation of the job, and `:2158` checks the budget again after
-it).  The **production check was not removed and the production bytes were
-not touched**: the check of the budget before the creation of the job is
-the behaviour that the root requires.
+it).  The **production check was not removed and the production bytes of
+that check were not touched**: the check of the budget before the creation
+of the job is the behaviour that the root requires.
 
 The **oracle of the old group** was corrected.  The old group armed the
 round first and refused only the launch; that contradicts the obligation
@@ -260,12 +265,18 @@ and of the salvage to be persisted as a bounded JSON document, and it
 requires them to be written **before** the assertions, so that a group that
 fails never depends on the representation of a failure of pytest.
 
-The group writes three documents in
+The group writes its documents in
 `reports/v0-s3/product-gate0/implementation-native-custody-correction-08/f5-evidence/`:
 
-* `f5-first.json`, written before the assertions of the first attempt;
-* `f5-second.json`, written before the assertions of the second attempt;
-* `f5-salvage.json`, written by the `finally`, whatever the outcome was.
+| The document | It is written |
+|---|---|
+| `f5-first.json` | before the assertions of the first public stop |
+| `f5-second.json` | before the assertions of the second public stop |
+| `f5-salvage.json` | by the `finally` of the group, whatever the outcome was |
+| `f5-close-cancellation.json` | before the assertions of the first sub scenario |
+| `f5-unrelated-cancellation.json` | before the assertions of the second sub scenario |
+| `f5-read-fault.json` | before the assertions of the third sub scenario |
+| `f5-partial-frame.json` | before the assertions of the fourth sub scenario |
 
 Every document is bounded and every value of it is the value that the
 production returned.  Each document names:
@@ -288,84 +299,130 @@ production returned.  Each document names:
 * the **original deadline** of the cleanup, before and after the second
   attempt.
 
-### 4.3 The static reading of the fifth failure and the candidate production gap
+### 4.3 The four bounded sub scenarios of the reader of the channel
 
-The contract asks for the **static** reading of the chain and for the
-facts to be made deterministically controllable, and it forbids the
-conclusion "it is only a test preparation error".  The static reading of
-the frozen source gives **one candidate** for the incomplete fact of the
-second attempt.  It is a **candidate**: no dynamic observation was made
-and it is **not** proven.
+The decision of the root requires at least three **real production
+behaviours** of the reader of the channel inside the existing group, and
+it forbids the deletion of an original assertion.  The node id of the
+group and the order of the 175 node ids are unchanged and every original
+assertion of the group is kept.  The four sub scenarios are bounded, each
+of them builds its **own** real chain, each of them writes its facts
+**before** its assertions and each of them ends with a bounded salvage of
+the owner of the test:
 
-**The candidate.**  The reader of the channel is a **background thread**
-(`StreamChannel._drain`, `v0_s3_native_broker.py:4084`).  When the round is
-closed while the reader is still inside its read, the endpoint cancels the
-read of its worker and the read leaves with the code
-`BROKER_PIPE_CANCELLED` (`:3779`, the `raise` of `_await`) or with the code
-`BROKER_CHANNEL_CANCELLED` (`:4137`, the `_check_wait`).  The drain thread
-catches it and stores it **permanently** in the channel
-(`:4125`, `self._error = getattr(error, 'code', None) or type(error).__name__`).
-The close of the channel then reports it (`:4207`, `facts['reader_error'] =
-self._error`), the handle of the broker copies it (`:4977`) and the round
-of the parent treats **any** non empty reader error as an incomplete fact
-(`v0_s3_native_custody.py:2053`, `if facts.get('channel_reader_error'):`).
-The fact is **sticky**: the channel never clears `self._error`, so every
-later close of the same channel reports the same reader error and the
-parent can never release the broker.
+| Sub scenario | What it drives | What it proves |
+|---|---|---|
+| one | the reader is still inside its read when the round is closed and the close cancels it | the cancellation that the close really initiated is a **named fact of the close** with its code, its source and its order; it is **not** the error of the reader; the **strict** facts of the close are the ones that prove the release and the broker is really released |
+| two | another owner of the cancel flag of the channel sets it and names no owner | a cancellation with the **same code** whose owner is another one keeps the error of the reader, the close never takes it for its own cancellation and the round stays **unknown** |
+| three | the read fails with an ordinary error | the ordinary failure of the read keeps its error and the round stays **unknown** |
+| four | the stream ends in the middle of a frame | the partial frame keeps its named error and it is never dropped as a normal end; the round stays **unknown** |
 
-**Why this is a plausible cause of the failed batch.**  The failed batch
-proved that the channel was closed **twice** and that the second close was
-still incomplete.  Under this candidate, the second close is incomplete
-for exactly the same reason as the first one: the reader error of the
-channel was set during the first close and it is never cleared.  The
-cancellation of the read during a close is an **expected** fact of a close
-and not an error of the round.
+The fault proof of every sub scenario is written on the disk **before** the
+salvage of the owner of the test, exactly like the three phases of the
+group itself.
 
-**The minimal proposal** (it is **not** applied by this delivery, the
-production bytes are frozen and the current round does not authorise a
-production modification): let the close of the channel distinguish the
-cancellation of the round from an ordinary failure of the reader.  The
-smallest change is in `StreamChannel.close`
-(`v0_s3_native_broker.py:4170`): the reader error that is only the
-cancellation of the close (`BROKER_PIPE_CANCELLED` and
-`BROKER_CHANNEL_CANCELLED`) is **not** an error of the round and it is
-reported as a named fact of the close instead of as the error of the
-reader.  A second and even smaller candidate is in `StreamChannel._drain`
-(`:4124`): the cancellation of the round is not caught as an ordinary
-error of the reader.
+## 5. The minimal production classification of the close cancellation
 
-**What this delivery does with this candidate.**  It does **not** fix it,
-it does **not** weaken the oracle of the group to hide it and it does
-**not** pre-fill any fact.  The group keeps the two-convergence oracle of
-the root, and the three persisted documents name the **exact** incomplete
-fact of the second attempt if the chain still does not converge.  The
-adjudication of this candidate belongs to the root and it is asked together
-with the frozen plan of the next batch.
+`tools/v0_s3_native_broker.py` is the **only** production file that this
+delivery touches, and it is the file that the decision of the root
+authorised (`additional_allowed_production_file`).  The custody
+(`tools/v0_s3_native_custody.py`), the broker core, the launcher, the
+owners of the older rounds, the public contract, the strict required facts
+and the quality thresholds are **frozen and untouched**.
 
-**If the second attempt is still incomplete**, the delivery keeps the
-complete evidence, reports the real production gap and it does **not**
-repair the production to make the group green.
+### 5.1 The defect that the root confirmed statically
 
-## 5. The static self-review
+The decision of the root confirmed the defect statically:
+`StreamChannel.close` sets the cancel flag of the channel, the `except` of
+`StreamChannel._drain` writes the corresponding `BrokerError` **permanently**
+into the error of the reader, and the sticky reader error then prevents the
+release of the round.  The decision of the root states at the same time
+that this defect is a **local** one and that it is **not** proven to be the
+complete root cause of the failure of the last batch: the new facts of the
+first and of the second attempt are the ones that may complete the
+diagnosis.  **This delivery does not claim otherwise.**
+
+### 5.2 What the minimal change is
+
+The change is a **classification**, not a relaxation:
+
+* the cancel flag of the channel is a private `_ChannelCancel` that names
+  the **owner** that set it.  The owner is written under the lock of the
+  flag and it is written **before** the flag is set, so a reader can never
+  see the flag set without its owner.  The **first** owner wins: a flag
+  that another owner already set is never re-labelled by a later one;
+* the close of the channel publishes the **identity** of the close that is
+  running now **before** it initiates the cancellation, and it registers
+  that identity as the owner of the flag in the same atomic step as the
+  setting of the flag;
+* the error of the cancellation carries the owner of the flag **at the
+  origin of the error**: `_WindowsPipeEndpoint._await` and
+  `StreamChannel._check_wait` stamp it on the error they raise.  The
+  source is never a claim of a caller and it is never a boolean that a
+  test double hands over;
+* the reader of the channel classifies an error: a cancellation whose owner
+  is the close of this channel is a **named fact of the close** (its code,
+  its source and its order) and it is **not** the error of the reader.
+  Every other error keeps the original error of the reader;
+* the close of the channel publishes the named fact of its own
+  cancellation next to the error of the reader, and the handle of the
+  broker carries it in its facts so that the evidence of the round names
+  it.
+
+### 5.3 What the change explicitly does **not** do
+
+* it does **not** clear a historical error of the reader and it does
+  **not** replace it: an error that was already there before the close
+  stays and the round stays unknown;
+* it does **not** discard the partial buffer of the channel: the
+  `finally` of the drain is untouched and a frame that never ends is
+  still the named failure `BROKER_CHANNEL_PARTIAL_FRAME`;
+* it does **not** force `reader_error` to `None` and it does **not** force
+  a close to `True`: the named fact of the close replaces the error of the
+  reader **only** when the owner of the cancellation is provably the close
+  of this channel, and every strict success fact is still computed from
+  the real state of the reader, of the endpoints, of the workers and of
+  their handles;
+* it does **not** take a cancellation for a normal one because of the name
+  of its code and it does **not** take any cancellation of the round for a
+  normal one: a cancellation whose owner is unknown or is another owner
+  keeps the error of the reader;
+* it does **not** change the public error codes, it does not add a new
+  platform and it does not change the strict required facts of the
+  custody.
+
+### 5.4 An observation that this delivery does **not** change
+
+The copy of the facts of a previous attempt of `BrokerProcess.close` keeps
+the facts that are `True` and it does **not** keep a reader error that is a
+code.  A second public stop therefore does not carry the reader error of
+the first one into its own facts unless it closes the channel again.  That
+behaviour is **pre-existing**, it is outside the scope that the root
+authorised and this delivery does **not** change it; it is reported here
+so that the root can adjudicate it with the facts of the next batch.
+
+## 6. The static self-review
 
 The static review of this delivery is a source review.  It is **not** a
 measurement and it is **not** a native claim.
 
-* The three changed modules were parsed with the abstract syntax tree of
-  the host.  The parse succeeded for every file.
-* A static name check of the three files (the module level names, the
-  local names, the arguments, the comprehension variables, the exception
-  names and the builtins) reports **no undefined name** in any file.
-* The number of the test functions of the three modules is **16**, **24**
-  and **18**: the identity, the order and the number of the frozen groups
-  are unchanged and the 175 node ids of the frozen plan are unchanged.
+* The three changed modules and the changed production module were parsed
+  with the abstract syntax tree of the host.  The parse succeeded for
+  every file.
+* A static name check of the four files (the module level names, the local
+  names, the arguments, the comprehension variables, the exception names
+  and the builtins) reports **no undefined name** in any file.
+* The number of the test functions of the three test modules is **16**,
+  **24** and **18**: the identity, the order and the number of the frozen
+  groups are unchanged and the 175 node ids of the frozen plan are
+  unchanged.
 * The three changed modules add **no** `time.sleep` and **no** polling
   loop: every wait of the corrected groups is an event wait or a bounded
   join of the production code.
-* The production sources `tools/v0_s3_native_broker.py` and
-  `tools/v0_s3_native_custody.py` keep their bytes: the candidate of this
-  delivery changes **only** the three test modules and the new report
-  directory.
+* The custody module `tools/v0_s3_native_custody.py` keeps its bytes and
+  the change of `tools/v0_s3_native_broker.py` is limited to the
+  `StreamChannel`, to the private identity of the cancellation and to the
+  one new fact of the handle of the broker.
 
 What this delivery does **not** claim and what it did **not** do:
 
@@ -379,14 +436,15 @@ What this delivery does **not** claim and what it did **not** do:
 * no agent was derived and no owner of another round was changed;
 * the native claims of the package stay `NOT_PROVEN`.
 
-## 6. The ten fields
+## 7. The ten fields
 
 * **Current coordinate**: R1 / WP-R1-U3 / RUNNING; the blocking gate of
   the round is `S3_P4_OFFLINE_INTEGRATION_AND_MACHINE_FIXTURE_BINDING_PENDING`
   and the gate of this correction is
   `S3_P4_N1_CORRECTION_08_CORRECTION_OF_THE_FIVE_FAILURES`.
 * **What this batch completes**: the static correction of the five failures
-  of the frozen batch of the correction 07 and the preparation of the
+  of the frozen batch of the correction 07, the minimal production
+  classification of the close cancellation that the root authorised and the
   deterministic diagnosis of the fifth one.  It closes **no** major.
 * **The last passed gate**: `UNIFIED_MEDIA_FIXED_UM10_AND_INDEPENDENT_REVIEW`
   (candidate `621b1bf`), unchanged by this delivery.
@@ -401,20 +459,21 @@ What this delivery does **not** claim and what it did **not** do:
 * **The next owner**: the gate owner of the root and the independent
   review.
 * **The required authorization**: the static implementation of this
-  delivery is the work of the frozen workpack.  The **dynamic** execution
-  is not authorized and it is requested from the root by the finite plan of
-  the delivery.
+  delivery is the work of the frozen workpack and the production change
+  is the one that the decision of the root authorised.  The **dynamic**
+  execution is not authorized and it is requested from the root by the
+  finite plan of the delivery.
 * **The evidence directory**:
   `reports/v0-s3/product-gate0/implementation-native-custody-correction-08/`.
-* **The exact reason of the stop**: the static implementation, the static
-  self-review and the persisted evidence of the fifth failure are
-  complete.  No dynamic execution was performed, no ACK was requested and
-  no rerun, no wrapper, no self repair and no overwrite of a candidate
-  happened.
+* **The exact reason of the stop**: the static implementation, the minimal
+  production classification, the static self-review and the persisted
+  evidence of the fifth failure are complete.  No dynamic execution was
+  performed, no ACK was requested and no rerun, no wrapper, no self repair
+  and no overwrite of a candidate happened.
 * **The claims**: READY_FOR_REVIEW.  Not Stage PASS.  The six majors of the
   independent review stay **OPEN**.
 
-## 7. The frozen plan that is asked of the root
+## 8. The frozen plan that is asked of the root
 
 The delivery asks for exactly **one** finite dynamic batch and it is
 described in the plan request of this directory.  It carries the candidate
@@ -443,21 +502,29 @@ file descriptors and the state of the threads are **expectations** of the
 batch: they are written in the report of the batch and nowhere else,
 because they were not observed.
 
-The ask carries **two** items for the root: the frozen plan of the single
-batch of the 175 node ids in their original order, and the **adjudication
-of the candidate production gap** of the fifth failure with the minimal
-proposal of the section 4.3.  The production bytes are frozen and this
-delivery did not touch them.
+The ask carries the frozen plan of the single batch of the 175 node ids in
+their original order.  It carries **no** new production request: the
+production change of this delivery is the one that the decision of the
+root already authorised, and the candidate of the previous round
+(`ada50e3`), the candidate of the failed batch (`23e2789`) and the
+receipts of the failed batch are all preserved and none of them is
+overwritten.
 
-## 8. The files of this delivery
+## 9. The files of this delivery
 
+* `tools/v0_s3_native_broker.py` (changed) — the minimal production
+  classification of the close cancellation that the root authorised: the
+  private `_CloseSource`, the private `_ChannelCancel`, the source of the
+  cancellation at the origin of the error and the named fact of the close
+  in the facts of the channel and of the handle of the broker.
 * `tools/test_v0_s3_native_custody_regressions.py` (changed) — the group
   **F1** with the three named and bounded phases.
 * `tools/test_v0_s3_native_custody_correction05.py` (changed) — the group
   **F2** with the three named scenarios and the corrected oracle.
 * `tools/test_v0_s3_native_custody_correction07.py` (changed) — the groups
-  **F3**, **F4** and **F5**, the helpers of the persisted facts and the
-  evidence directory of the fifth failure.
+  **F3**, **F4** and **F5**, the helpers of the persisted facts, the
+  evidence directory of the fifth failure and the four bounded sub
+  scenarios of the reader of the channel.
 * `reports/v0-s3/product-gate0/implementation-native-custody-correction-08/report.md`
   (new) — this report.
 * `reports/v0-s3/product-gate0/implementation-native-custody-correction-08/execution-plan.request.json`

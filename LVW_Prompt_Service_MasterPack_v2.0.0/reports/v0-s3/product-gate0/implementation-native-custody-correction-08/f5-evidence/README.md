@@ -10,13 +10,17 @@ written **before** the assertions of the phase: a group that fails has to
 leave its evidence on the disk and it may never depend on the
 representation of a failure of pytest.
 
-The group writes three documents here:
+The group writes its documents here:
 
 | The document | It is written |
 |---|---|
 | `f5-first.json` | before the assertions of the first public stop |
 | `f5-second.json` | before the assertions of the second public stop |
 | `f5-salvage.json` | by the `finally` of the group, whatever the outcome was |
+| `f5-close-cancellation.json` | before the assertions of the first bounded sub scenario (the cancellation that the close really initiated) |
+| `f5-unrelated-cancellation.json` | before the assertions of the second bounded sub scenario (a cancellation of another owner) |
+| `f5-read-fault.json` | before the assertions of the third bounded sub scenario (an ordinary failure of the read) |
+| `f5-partial-frame.json` | before the assertions of the fourth bounded sub scenario (a frame that never ends) |
 
 Every document is bounded and every value of it is the value that the
 production returned.  Each document names the evidence of the round, the

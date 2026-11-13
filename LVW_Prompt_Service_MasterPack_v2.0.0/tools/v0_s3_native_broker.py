@@ -3776,7 +3776,11 @@ class _WindowsPipeEndpoint:
             effective = self._effective_deadline(deadline)
             if cancel is not None and cancel.is_set():
                 self._cancel(worker, effective)
-                raise BrokerError('BROKER_PIPE_CANCELLED', self._name)
+                # The error carries the owner of the flag: the origin
+                # of the cancellation is named at the place where the
+                # error is really raised and never by a caller of it.
+                raise _cancel_source_error(
+                    BrokerError('BROKER_PIPE_CANCELLED', self._name), cancel)
             if effective is not None and self._clock() >= effective:
                 self._cancel(worker, effective)
                 raise BrokerError('BROKER_PIPE_TIMEOUT', self._name)
@@ -3970,6 +3974,93 @@ def _make_endpoint(file_object, name, *, api=None, clock=None, context=None):
     return _PosixPipeEndpoint(file_object, name=name, clock=clock)
 
 
+# -- the private identity of a cancellation of the round --------------------
+
+class _CloseSource:
+    """The private identity of one close of one channel.
+
+    The identity is an **object**: two closes of the same channel never
+    share it and the owner of a cancellation is compared by identity
+    and never by the name of a code.  The sequence is the order of the
+    closes of the channel and it is part of the evidence.
+    """
+
+    def __init__(self, sequence):
+        self.sequence = sequence
+        self.owner = 'CHANNEL_CLOSE'
+
+
+class _ChannelCancel:
+    """The cancel flag of one channel, with the owner that set it.
+
+    The flag names the **owner** that set it: a cancellation that the
+    close of this channel initiated is provable and a cancellation that
+    another owner initiated is not.  The owner is registered in the
+    same atomic step as the setting of the flag and it is registered
+    **before** the flag is set, so that a reader can never see the flag
+    set without its owner.
+
+    The **first** owner wins: a flag that another owner already set is
+    never re-labelled by a later one.  A cancellation that this channel
+    did not initiate is therefore never taken for a cancellation of the
+    close of this channel.
+    """
+
+    def __init__(self):
+        self._event = threading.Event()
+        self._lock = threading.Lock()
+        self._owner = None
+
+    def is_set(self):
+        return self._event.is_set()
+
+    def set(self, owner=None):
+        """Set the flag and name the owner that set it.
+
+        The owner is written under the lock of the flag and it is
+        written **before** the flag is set: the registration of the
+        owner is never later than the cancellation itself.
+        """
+        with self._lock:
+            if not self._event.is_set():
+                if owner is not None:
+                    self._owner = owner
+                self._event.set()
+
+    def owner(self):
+        """The owner that set the flag, or None when it named none."""
+        with self._lock:
+            return self._owner
+
+    def wait(self, timeout=None):
+        return self._event.wait(timeout)
+
+
+def _cancel_source_error(error, cancel):
+    """Stamp the owner of a cancel flag on the error of a cancellation.
+
+    The owner is read from the flag **at the origin of the error**: the
+    error itself carries the identity of the owner that really set the
+    flag and it never carries a claim of a caller.  A flag that names
+    no owner leaves the error untouched: an unknown source is never
+    taken for a known one.
+    """
+    owner = getattr(cancel, 'owner', None)
+    if not callable(owner):
+        return error
+    try:
+        source = owner()
+    except Exception:  # noqa: BLE001 - the failure stays visible
+        return error
+    if source is None:
+        return error
+    try:
+        error.lvw_cancel_source = source
+    except Exception:  # noqa: BLE001 - the failure stays visible
+        pass
+    return error
+
+
 # -- the private control channel -------------------------------------------
 
 class StreamChannel:
@@ -4010,7 +4101,17 @@ class StreamChannel:
         self._buffer = b''
         self._deadline = None
         self._clock = clock or time.monotonic
-        self._cancel = threading.Event()
+        # The cancel flag of the channel names the owner that set it:
+        # only a cancellation that the close of **this** channel
+        # initiated is provable and only a provable one is a normal
+        # fact of the close.
+        self._cancel = _ChannelCancel()
+        # The private state of the close of this channel: the identity
+        # of the close that is running now and the named fact of the
+        # cancellation that this close really initiated.
+        self._close_source = None
+        self._close_sequence = 0
+        self._close_cancellation = None
         self.reader_alive = None
         self.reader_finished = None
         # The ONE context of the round.  The channel and its endpoints
@@ -4122,7 +4223,7 @@ class StreamChannel:
                     return
                 self._buffer = buffer
         except Exception as error:  # noqa: BLE001 - the failure stays visible
-            self._error = getattr(error, 'code', None) or type(error).__name__
+            self._record_reader_error(error)
         finally:
             self._eof = True
             if self._buffer and self._error is None:
@@ -4131,10 +4232,44 @@ class StreamChannel:
                 # it is never dropped silently.
                 self._error = 'BROKER_CHANNEL_PARTIAL_FRAME'
 
+    def _record_reader_error(self, error):
+        """Record the error of the reader of this channel.
+
+        A cancellation that **this** channel initiated with **this**
+        close is not a failure of the reader: it is a named fact of the
+        close.  It is kept with its code, with its source and with its
+        order for the evidence, and it never replaces the error of the
+        reader and it never clears a historical error of the reader.
+
+        Every other error keeps the original error of the reader and the
+        round stays unknown: an ordinary failure of the read, a timeout,
+        an overflow, a partial frame, an error that was already there
+        before the close and a cancellation whose owner is unknown or
+        is not the close of this channel.
+        """
+        source = getattr(error, 'lvw_cancel_source', None)
+        if source is not None and source is self._close_source:
+            # This cancellation was initiated by the close of this
+            # channel: it is a named fact of the close and it is not a
+            # failure of the reader.  The historical error of the reader
+            # is never cleared and it is never replaced by this fact.
+            self._close_cancellation = {
+                'code': getattr(error, 'code', None) or type(error).__name__,
+                'source': getattr(source, 'owner', 'CHANNEL_CLOSE'),
+                'sequence': getattr(source, 'sequence', None),
+                'error_type': type(error).__name__,
+            }
+            return
+        self._error = getattr(error, 'code', None) or type(error).__name__
+
     def _check_wait(self):
         """The cancel flag and the deadline of the wait of the reader."""
         if self._cancel.is_set():
-            raise BrokerError('BROKER_CHANNEL_CANCELLED')
+            # The error carries the owner of the flag: the reader of
+            # the channel and the close of the channel agree on the
+            # origin of the cancellation and the evidence can prove it.
+            raise _cancel_source_error(BrokerError('BROKER_CHANNEL_CANCELLED'),
+                                       self._cancel)
         remaining = self._remaining()
         if remaining is not None and remaining <= 0:
             raise BrokerError('BROKER_CHANNEL_TIMEOUT')
@@ -4184,9 +4319,23 @@ class StreamChannel:
         The close may be **repeated**: a close that did not confirm its
         ends may try them again, and a close of an endpoint that is
         already closed keeps the fact that it is closed.
+
+        The close **initiates** the cancellation of the reader and it
+        names itself as the owner of that cancellation before the flag
+        is set.  A cancellation that this close really initiated is a
+        named fact of the close and it is not a failure of the reader; a
+        cancellation of another owner, a failure of the read that
+        happened before the close and every other error of the reader
+        keep the round unknown.
         """
         facts = {}
-        self._cancel.set()
+        # The identity of this close is published **before** the
+        # cancellation is initiated and the flag registers the owner in
+        # the same atomic step as the setting of the flag.
+        self._close_sequence += 1
+        source = _CloseSource(self._close_sequence)
+        self._close_source = source
+        self._cancel.set(source)
         try:
             write_facts = self._writer.close()
             facts['write_end_closed'] = bool(write_facts.get('closed'))
@@ -4205,6 +4354,13 @@ class StreamChannel:
         self.reader_finished = not self.reader_alive
         facts['reader_finished'] = self.reader_finished
         facts['reader_error'] = self._error
+        # The named fact of the cancellation that this close really
+        # initiated.  It is **not** the error of the reader and it does
+        # not prove that the reader, the thread, the worker or the
+        # handle of the round were released: the strict facts of the
+        # close above are the ones that prove it.
+        facts['close_cancellation'] = (dict(self._close_cancellation)
+                                       if self._close_cancellation else None)
         if self.reader_alive:
             # The reader is still inside the pipe: the read end is not
             # closed under it.  It stays owned by the channel and the
@@ -4859,6 +5015,7 @@ class BrokerProcess:
         facts = {'channel_closed': False,
                  'channel_reader_finished': None,
                  'channel_reader_error': None,
+                 'close_cancellation': None,
                  'channel_retained_workers': 0,
                  'write_end_closed': False,
                  'read_end_closed': False,
@@ -4881,7 +5038,8 @@ class BrokerProcess:
                 continue
             if (confirmed is True
                     or (key == 'exit_code' and confirmed is not None)
-                    or key == 'process_handle_release_method'):
+                    or key == 'process_handle_release_method'
+                    or key == 'close_cancellation'):
                 facts[key] = confirmed
         # The channel and its endpoints use the very same absolute
         # deadline: they never start a wait of their own.

@@ -212,6 +212,195 @@ def _f5_snapshot(phase, session, api, holder, channel_facts, channel_closes,
     }
 
 
+class _F5Api:
+    """The in-process façade of the primitives of the real chain.
+
+    The façade is the only place where a fault of the round is
+    injected.  The fault is bound to **one** original handle and no
+    other handle of the round is affected by it.
+
+    The façade also drives the **reader** of the chain, because the
+    reader of a real channel is a background thread of the production
+    and the three ways in which a real reader of a real channel
+    misbehaves are the three ways in which a round stays unknown: it
+    blocks inside its read until the close cancels it, it fails with an
+    ordinary error and it returns a frame that never ends.
+    """
+
+    def __init__(self, *, block_the_reader=False, read_fault=None,
+                 partial_frame=None):
+        self.lock = threading.Lock()
+        self.frames = []
+        self.final = b''
+        # The explicit notification of the reader of the channel: the
+        # read waits for it and it is never a sleep that guesses.
+        self.ready = threading.Event()
+        # The explicit notification that the reader of the chain is
+        # really inside its read.  The wait of it is bounded.
+        self.reader_blocked = threading.Event()
+        self.release = threading.Event()
+        self.closed = []
+        # The ledger of the closes: every attempt is named with the
+        # handle that it tried to close and with the fact that it was
+        # the targeted fault.
+        self.close_ledger = []
+        self.thread_handles = []
+        self.next_handle = 700
+        # The fault of the round: the one handle that it names, the
+        # flag that releases it and the number of the times that it
+        # really fired.
+        self.fault_handle = None
+        self.fault_released = False
+        self.fault_hits = 0
+        # The behaviour of the reader of the chain.
+        self.block_the_reader = block_the_reader
+        self.read_fault = read_fault
+        self.partial_pending = partial_frame
+
+    def duplicate_current_thread_handle(self):
+        with self.lock:
+            self.next_handle += 1
+            self.thread_handles.append(self.next_handle)
+            return self.next_handle
+
+    def cancel_synchronous_io(self, handle):
+        self.ready.set()
+        with self.lock:
+            first = self.thread_handles[0] if self.thread_handles else None
+        if handle == first:
+            # The cancellation of the read end of the chain reaches the
+            # read that is really in flight.
+            self.release.set()
+        return 'REQUESTED'
+
+    def close_handle(self, handle):
+        with self.lock:
+            faulted = (self.fault_handle is not None
+                       and handle == self.fault_handle
+                       and not self.fault_released)
+            if faulted:
+                self.fault_hits += 1
+            self.close_ledger.append({'handle': handle, 'faulted': faulted})
+            if faulted:
+                # The close of the one handle that the owner of the
+                # test named fails.  The stable code of the production
+                # façade is used and the error is never swallowed by
+                # the façade.
+                raise BrokerError('BROKER_HANDLE_CLOSE_FAILED')
+            self.closed.append(handle)
+
+    def read_stream(self, handle, size):
+        with self.lock:
+            if self.frames:
+                return self.frames.pop(0)
+        # The frames of the round were published **before** the reader
+        # of the channel existed.  The reader waits for the explicit
+        # notification of the stop of the round and the wait is
+        # bounded.
+        self.ready.wait(30.0)
+        with self.lock:
+            if self.final:
+                frame = self.final
+                self.final = b''
+                return frame
+            if self.partial_pending is not None:
+                # A frame that never ends: the buffer of the channel
+                # keeps the remainder of it.
+                block = self.partial_pending
+                self.partial_pending = None
+                return block
+        if self.read_fault is not None:
+            # An ordinary failure of the read: it is not a cancellation
+            # and it is not a close of the round.
+            error = self.read_fault
+            self.read_fault = None
+            raise error
+        if self.block_the_reader:
+            # The reader of the chain is still inside its read when the
+            # round is closed: the read only ends when the cancellation
+            # of the close reaches it.
+            self.reader_blocked.set()
+            self.release.wait(30.0)
+        return b''
+
+    def write_stream(self, handle, data):
+        self.ready.set()
+        return len(data)
+
+
+def _f5_build_chain(api, document, plan, clock, wall, run_root):
+    """Build the **real** chain of one round.
+
+    The chain is the one of the production launcher: the frames of the
+    round are published first, then the endpoints, then the channel and
+    then the handle of the broker.  Nothing of the chain is replaced by
+    a stand-in and the facts of the close are the facts of the
+    production.
+    """
+    holder = {}
+    channel_closes = []
+    channel_facts = []
+
+    class Process:
+        pid = 4242
+        returncode = 0
+
+        def wait(self, timeout=None):
+            return 0
+
+        def terminate(self):
+            return None
+
+    def launcher(plan_document_, run_root_, nonce):
+        api.final = _reply_bytes('STOPPED', 'RELEASED', {}, plan, nonce, 3)
+        api.frames = [_reply_bytes('READY', 'ARMED', {}, plan, nonce, 1),
+                      _reply_bytes('STATUS', 'RUNNING', {}, plan, nonce, 2)]
+        read_endpoint = _WindowsPipeEndpoint(file_object=_FakeFile('read'),
+                                              name='channel-read', api=api,
+                                              clock=clock, handle=900)
+        write_endpoint = _WindowsPipeEndpoint(file_object=_FakeFile('write'),
+                                               name='channel-write', api=api,
+                                               clock=clock, handle=901)
+        channel = StreamChannel(None, None, read_endpoint=read_endpoint,
+                                 write_endpoint=write_endpoint, clock=clock)
+        original_close = channel.close
+
+        def capturing_close():
+            channel_closes.append(1)
+            facts = original_close()
+            channel_facts.append(facts)
+            return facts
+
+        channel.close = capturing_close
+        broker = BrokerProcess(Process(), 'C:/python.exe', 'a' * 64, channel)
+        holder['broker'] = broker
+        holder['read_endpoint'] = read_endpoint
+        holder['write_endpoint'] = write_endpoint
+        holder['channel'] = channel
+        return broker
+
+    session = NativeCustodySession(plan=document, run_root=run_root,
+                                   parent_child_remaining_seconds=21600,
+                                   launcher=launcher, clock=clock, wall=wall)
+    return session, holder, channel_closes, channel_facts
+
+
+def _f5_unrelated_owner(api, holder):
+    """Another owner of the cancel flag of the channel.
+
+    The owner waits for the reader of the chain to be really inside its
+    read and it then sets the cancel flag of the channel **without**
+    naming an owner.  A cancellation that this owner initiated may
+    never be taken for a cancellation of the close of the channel and
+    the error of the reader is kept.
+    """
+    api.reader_blocked.wait(10.0)
+    channel = holder.get('channel')
+    if channel is None:
+        return
+    channel._cancel.set()
+
+
 # -- N07-R01: the control handle of an unconfirmed process is kept ---------
 
 def test_n07_r01_the_control_handle_of_an_unconfirmed_process_is_kept():
@@ -1410,140 +1599,33 @@ def test_n07_r15_the_real_chain_is_coordinated_again_by_the_same_owner(tmp_path)
     the representation of a failure of pytest.  The real chain is
     never replaced by a hard coded set of facts: every fact of the
     document is the fact that the production returned.
+
+    The decision of the root of the correction 08 added four **bounded**
+    sub scenarios of the **production** behaviour of the reader of the
+    channel to this group.  The node id of the group, the order of the
+    175 node ids and every original assertion of the group are
+    unchanged:
+
+    * the cancellation that the close of the channel really initiated is
+      a named fact of the close, it is not the error of the reader and
+      the strict facts of the close are the ones that prove the
+      release;
+    * a cancellation with the **same code** whose owner is another one
+      keeps the error of the reader and the round stays unknown;
+    * an ordinary failure of the read keeps its error and the round
+      stays unknown;
+    * a frame that never ends keeps the error of the partial frame and
+      the round stays unknown.
     """
     document = _live_plan_document()
     plan = validate_launch_plan(document, now=time.time())
     clock = time.monotonic
     wall = time.time
 
-    class Api:
-        """The in-process façade of the primitives of the real chain.
-
-        The façade is the only place where the fault of the round is
-        injected.  The fault is bound to **one** original handle and no
-        other handle of the round is affected by it.
-        """
-
-        def __init__(self):
-            self.lock = threading.Lock()
-            self.frames = []
-            self.final = b''
-            # The explicit notification of the reader of the channel: the
-            # read waits for it and it is never a sleep that guesses.
-            self.ready = threading.Event()
-            self.closed = []
-            # The ledger of the closes: every attempt is named with the
-            # handle that it tried to close and with the fact that it
-            # was the targeted fault.
-            self.close_ledger = []
-            self.thread_handles = []
-            self.next_handle = 700
-            # The fault of the round: the one handle that it names, the
-            # flag that releases it and the number of the times that it
-            # really fired.
-            self.fault_handle = None
-            self.fault_released = False
-            self.fault_hits = 0
-
-        def duplicate_current_thread_handle(self):
-            with self.lock:
-                self.next_handle += 1
-                self.thread_handles.append(self.next_handle)
-                return self.next_handle
-
-        def cancel_synchronous_io(self, handle):
-            self.ready.set()
-            return 'REQUESTED'
-
-        def close_handle(self, handle):
-            with self.lock:
-                faulted = (self.fault_handle is not None
-                           and handle == self.fault_handle
-                           and not self.fault_released)
-                if faulted:
-                    self.fault_hits += 1
-                self.close_ledger.append({'handle': handle,
-                                          'faulted': faulted})
-                if faulted:
-                    # The close of the one handle that the owner of the
-                    # test named fails.  The stable code of the
-                    # production façade is used and the error is never
-                    # swallowed by the façade.
-                    raise BrokerError('BROKER_HANDLE_CLOSE_FAILED')
-                self.closed.append(handle)
-
-        def read_stream(self, handle, size):
-            with self.lock:
-                if self.frames:
-                    return self.frames.pop(0)
-            # The frames of the round were published **before** the
-            # reader of the channel existed.  The reader waits for the
-            # explicit notification of the stop of the round and the wait
-            # is bounded.
-            self.ready.wait(30.0)
-            with self.lock:
-                if self.final:
-                    frame = self.final
-                    self.final = b''
-                    return frame
-            return b''
-
-        def write_stream(self, handle, data):
-            self.ready.set()
-            return len(data)
-
-    api = Api()
-
-    class Process:
-        pid = 4242
-        returncode = 0
-
-        def wait(self, timeout=None):
-            return 0
-
-        def terminate(self):
-            return None
-
-    channel_closes = []
-    channel_facts = []
-    holder = {}
-
-    def launcher(plan_document_, run_root, nonce):
-        # The frames of the round are published **before** the channel
-        # and its worker exist: the reader of the channel never waits
-        # for a frame that was not published yet.  The order is the order
-        # of the production launcher: the frames, the endpoints, the
-        # channel and the handle of the broker.
-        api.final = _reply_bytes('STOPPED', 'RELEASED', {}, plan, nonce, 3)
-        api.frames = [_reply_bytes('READY', 'ARMED', {}, plan, nonce, 1),
-                      _reply_bytes('STATUS', 'RUNNING', {}, plan, nonce, 2)]
-        read_endpoint = _WindowsPipeEndpoint(file_object=_FakeFile('read'),
-                                              name='channel-read', api=api,
-                                              clock=clock, handle=900)
-        write_endpoint = _WindowsPipeEndpoint(file_object=_FakeFile('write'),
-                                               name='channel-write', api=api,
-                                               clock=clock, handle=901)
-        channel = StreamChannel(None, None, read_endpoint=read_endpoint,
-                                 write_endpoint=write_endpoint, clock=clock)
-        original_close = channel.close
-
-        def capturing_close():
-            channel_closes.append(1)
-            facts = original_close()
-            channel_facts.append(facts)
-            return facts
-
-        channel.close = capturing_close
-        broker = BrokerProcess(Process(), 'C:/python.exe', 'a' * 64, channel)
-        holder['broker'] = broker
-        holder['read_endpoint'] = read_endpoint
-        holder['write_endpoint'] = write_endpoint
-        holder['channel'] = channel
-        return broker
-
-    session = NativeCustodySession(plan=document, run_root=tmp_path,
-                                   parent_child_remaining_seconds=21600,
-                                   launcher=launcher, clock=clock, wall=wall)
+    # -- THE GROUP: the targeted fault of the original handle of a thread
+    api = _F5Api()
+    session, holder, channel_closes, channel_facts = _f5_build_chain(
+        api, document, plan, clock, wall, tmp_path)
     target = None
     try:
         session.start()
@@ -1629,6 +1711,149 @@ def test_n07_r15_the_real_chain_is_coordinated_again_by_the_same_owner(tmp_path)
         _f5_write('salvage', _f5_snapshot('salvage', session, api, holder,
                                            channel_facts, channel_closes,
                                            target))
+
+    # -- SUB SCENARIO ONE: the cancellation that the close initiated ------
+    # The reader of the chain is still inside its read when the round is
+    # closed: the close cancels it and the cancellation is a **named
+    # fact of the close**, not a failure of the reader.  The strict
+    # facts of the close are the ones that prove the release.
+    api = _F5Api(block_the_reader=True)
+    session, holder, channel_closes, channel_facts = _f5_build_chain(
+        api, document, plan, clock, wall, tmp_path)
+    try:
+        session.start()
+        first = session.stop()
+        close_document = _f5_snapshot('close-cancellation', session, api,
+                                      holder, channel_facts, channel_closes,
+                                      None)
+        _f5_write('close-cancellation', close_document)
+        facts = close_document['broker_close_facts'] or {}
+        channel_fact = channel_facts[-1] if channel_facts else {}
+        # The cancellation of the reader was initiated by the close of
+        # the channel: it is named with its code, its source and its
+        # order and it is not the error of the reader.
+        cancellation = facts.get('close_cancellation')
+        assert cancellation, 'the cancellation of the close was not named'
+        assert cancellation['code'] == 'BROKER_PIPE_CANCELLED'
+        assert cancellation['source'] == 'CHANNEL_CLOSE'
+        assert cancellation['sequence'] == 1
+        assert channel_fact.get('reader_error') is None, \
+            'the cancellation of the close was taken for an error of the reader'
+        assert facts.get('channel_reader_error') is None
+        # The strict facts of the close are the ones that prove the
+        # release and they are really confirmed.
+        assert facts.get('channel_closed') is True
+        assert facts.get('read_end_closed') is True
+        assert facts.get('write_end_closed') is True
+        assert facts.get('channel_retained_workers') == 0
+        assert facts.get('worker_thread_handle_released') is True
+        assert facts.get('channel_reader_finished') is True
+        # The broker of the round is really released.
+        assert session.broker is None
+        assert first['broker_retained'] is False
+    finally:
+        try:
+            session.stop()
+        except Exception:  # noqa: BLE001 - the evidence keeps the failure
+            pass
+
+    # -- SUB SCENARIO TWO: a cancellation of another owner ----------------
+    # Another owner of the cancel flag of the channel sets it and it
+    # names no owner: the cancellation of the close may never be taken
+    # for it and the error of the reader is kept.
+    api = _F5Api(block_the_reader=True)
+    session, holder, channel_closes, channel_facts = _f5_build_chain(
+        api, document, plan, clock, wall, tmp_path)
+    owner_thread = threading.Thread(
+        target=lambda: _f5_unrelated_owner(api, holder),
+        daemon=True, name='lvw-n07-r15-unrelated-owner')
+    owner_thread.start()
+    try:
+        session.start()
+        first = session.stop()
+        unrelated_document = _f5_snapshot('unrelated-cancellation', session,
+                                          api, holder, channel_facts,
+                                          channel_closes, None)
+        _f5_write('unrelated-cancellation', unrelated_document)
+        facts = unrelated_document['broker_close_facts'] or {}
+        # The error of the reader is kept: the cancellation of another
+        # owner is not a normal fact of the close.
+        assert facts.get('channel_reader_error') == 'BROKER_PIPE_CANCELLED', \
+            'the cancellation of another owner was swallowed'
+        assert facts.get('close_cancellation') is None, \
+            'the cancellation of another owner was taken for the close'
+        # The round stays unknown and the original broker is kept.
+        assert session.broker is not None
+        assert first['broker_retained'] is True
+        incomplete = [failure for failure in first['failures']
+                      if failure.startswith('CUSTODY_BROKER_CLOSE_INCOMPLETE')]
+        assert incomplete, 'the incomplete facts were not named'
+        assert any(failure.endswith('channel_reader_error')
+                   for failure in incomplete)
+    finally:
+        owner_thread.join(15.0)
+        assert not owner_thread.is_alive(), 'the owner of the round was left behind'
+        try:
+            session.stop()
+        except Exception:  # noqa: BLE001 - the evidence keeps the failure
+            pass
+
+    # -- SUB SCENARIO THREE: an ordinary failure of the read -------------
+    # A failure of the read is not a cancellation and it is not a close
+    # of the round: its error is kept and the round stays unknown.
+    api = _F5Api(read_fault=RuntimeError('read_fault'))
+    session, holder, channel_closes, channel_facts = _f5_build_chain(
+        api, document, plan, clock, wall, tmp_path)
+    try:
+        session.start()
+        first = session.stop()
+        fault_document = _f5_snapshot('read-fault', session, api, holder,
+                                       channel_facts, channel_closes, None)
+        _f5_write('read-fault', fault_document)
+        facts = fault_document['broker_close_facts'] or {}
+        assert facts.get('channel_reader_error') == 'RuntimeError', \
+            'the failure of the read was swallowed'
+        assert facts.get('close_cancellation') is None
+        assert session.broker is not None
+        assert first['broker_retained'] is True
+        incomplete = [failure for failure in first['failures']
+                      if failure.startswith('CUSTODY_BROKER_CLOSE_INCOMPLETE')]
+        assert any(failure.endswith('channel_reader_error')
+                   for failure in incomplete)
+    finally:
+        try:
+            session.stop()
+        except Exception:  # noqa: BLE001 - the evidence keeps the failure
+            pass
+
+    # -- SUB SCENARIO FOUR: a frame that never ends -----------------------
+    # The stream ends in the middle of a frame: the partial frame is a
+    # named failure and it is never dropped as a normal end.
+    api = _F5Api(partial_frame=b'{"schema": "lvw.s3-native-custody-channel/1"')
+    session, holder, channel_closes, channel_facts = _f5_build_chain(
+        api, document, plan, clock, wall, tmp_path)
+    try:
+        session.start()
+        first = session.stop()
+        partial_document = _f5_snapshot('partial-frame', session, api,
+                                        holder, channel_facts, channel_closes,
+                                        None)
+        _f5_write('partial-frame', partial_document)
+        facts = partial_document['broker_close_facts'] or {}
+        assert facts.get('channel_reader_error') == 'BROKER_CHANNEL_PARTIAL_FRAME', \
+            'the partial frame was dropped as a normal end'
+        assert facts.get('close_cancellation') is None
+        assert session.broker is not None
+        assert first['broker_retained'] is True
+        incomplete = [failure for failure in first['failures']
+                      if failure.startswith('CUSTODY_BROKER_CLOSE_INCOMPLETE')]
+        assert any(failure.endswith('channel_reader_error')
+                   for failure in incomplete)
+    finally:
+        try:
+            session.stop()
+        except Exception:  # noqa: BLE001 - the evidence keeps the failure
+            pass
 
 
 # -- N07-R16: the endpoint recomputes the state of its workers ------------
