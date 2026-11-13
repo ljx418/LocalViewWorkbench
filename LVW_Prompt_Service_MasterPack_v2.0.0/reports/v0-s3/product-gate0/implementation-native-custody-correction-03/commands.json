@@ -1,0 +1,50 @@
+{
+  "kind": "lvw.n1-correction-03-execution-commands/1",
+  "frozen_plan": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-03/validation-plan-01/plan.json",
+  "frozen_plan_sha256": "74a2876eef546eb194cd3c273c710ed8f7c2c1232e3dbc56640b687279695f0a",
+  "ack_message": "msg_f9a155e19e77",
+  "candidate_sha": "46af977f86e612d05306005b9e08e54b4d10477a",
+  "implementation_delivery_commit": "124e9c3162e38423b6ec1e39ee4e5d4b319a36b5",
+  "batches": 1,
+  "max_seconds": 300,
+  "commands": [
+    {
+      "label": "counter-before",
+      "argv": [
+        "/usr/bin/python3.12",
+        "-I",
+        "-B",
+        "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-03/validation-plan-01/outer_counter_read.py",
+        "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-correction-03/counter-before.json"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0"
+    },
+    {
+      "label": "guarded-validation",
+      "argv": [
+        "/usr/bin/python3.12",
+        "-I",
+        "-B",
+        "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-03/validation-plan-01/guard.py",
+        "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-03/validation-plan-01/runner.py",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-correction-03/native-custody-correction-03.guard.json"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0"
+    },
+    {
+      "label": "counter-after",
+      "argv": [
+        "/usr/bin/python3.12",
+        "-I",
+        "-B",
+        "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-03/validation-plan-01/outer_counter_read.py",
+        "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-correction-03/counter-after.json"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0"
+    }
+  ],
+  "author_runner_guard_executed": false,
+  "note": "The three commands of the root frozen package were executed exactly as they are written there: the same absolute argv and the same working directory.  The runner and the guard of the author were not executed; the runner and the guard of the root were the ones that ran."
+}
