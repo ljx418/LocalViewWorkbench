@@ -156,13 +156,25 @@ other case was weakened.
 
 ## 6. The execution boundary of this delivery
 
-Nothing was executed.  The candidate was written, parsed with `ast` and reviewed
-statically; the dependency, the stdlib and the guard pins were verified by reading
-the bytes of the files.  There was **no** import of the candidate, **no** collection,
-**no** pytest and **no** probe.  No real process, no GPU, no model, no service, no
-media, no database, no socket, no network and no original ledger were touched.  The
-dynamic batch is requested in `execution-plan.request.json` and it waits for the
-acknowledgement of the root.
+The implementation itself was static: the candidate was written, parsed with `ast`
+and reviewed statically; the dependency, the stdlib and the guard pins were
+verified by reading the bytes of the files.  There was **no** import of the
+candidate, **no** collection, **no** pytest and **no** probe before the
+acknowledgement of the root.  No real process, no GPU, no model, no service, no
+media, no database, no socket, no network and no original ledger were touched.
+
+The root acknowledged the plan (`msg_40e621f0f945`,
+`ACK_ONE_FROZEN_157_NODE_OFFLINE_BATCH`) and the one frozen batch was executed
+once, in the order of the three frozen commands, with their original argv and
+their original cwd.  **The batch failed**: 157 collected, 151 passed, 6 failed,
+pytest exit 1 and `cleanup_proven_for_batch` false.  There was no rerun, no
+wrapper, no overwritten candidate and no self repair.
+
+The evidence of the batch and the analysis of every one of the six failures are in
+`attempt01/execution-report.md`.  Three of the six failures are defects of the
+production code of the candidate and three are defects of the new test module.
+The candidate is **not** a release and the six open majors of the review of the
+predecessor are **not** closed by this batch.
 
 ## 7. The files of this delivery
 

@@ -1,0 +1,47 @@
+..........................................................................................................................F............FF...F..F...........F.
+=================================== FAILURES ===================================
+_________ test_n03_r06_the_start_cleans_up_everything_that_it_acquired _________
+tools/test_v0_s3_native_custody_regressions.py:957: in test_n03_r06_the_start_cleans_up_everything_that_it_acquired
+    assert holder['peer'].closed == 1
+E   assert 2 == 1
+E    +  where 2 = <test_v0_s3_native_custody_regressions.RecordingPeer object at 0x73043fbdd5e0>.closed
+_ test_n05_r03_the_ends_of_a_pipe_are_owned_from_the_moment_of_their_creation __
+tools/test_v0_s3_native_custody_correction05.py:338: in test_n05_r03_the_ends_of_a_pipe_are_owned_from_the_moment_of_their_creation
+    assert retained[0]['handle'] in kernel32.live
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: unhashable type
+___ test_n05_r04_a_cancellation_in_the_release_propagates_after_the_cleanup ____
+tools/test_v0_s3_native_custody_correction05.py:394: in test_n05_r04_a_cancellation_in_the_release_propagates_after_the_cleanup
+    assert core.job in win32.live
+E   assert 101 in {}
+E    +  where 101 = <tools.v0_s3_native_broker.BrokerCore object at 0x73043fbdf500>.job
+E    +  and   {} = <test_v0_s3_native_custody_correction05.test_n05_r04_a_cancellation_in_the_release_propagates_after_the_cleanup.<locals>.CancellingWin32 object at 0x73043fbdcc20>.live
+__ test_n05_r08_a_start_that_raised_after_the_thread_started_keeps_the_thread __
+tools/test_v0_s3_native_custody_correction05.py:610: in test_n05_r08_a_start_that_raised_after_the_thread_started_keeps_the_thread
+    evidence = session.evidence()
+               ^^^^^^^^^^^^^^^^^^
+tools/v0_s3_native_custody.py:2074: in evidence
+    if self._pump is not None and self._pump.error is not None
+                                  ^^^^^^^^^^^^^^^^
+E   AttributeError: 'StartedThenFailed' object has no attribute 'error'
+________ test_n05_r11_no_role_is_created_or_resumed_after_the_deadline _________
+tools/test_v0_s3_native_custody_correction05.py:770: in test_n05_r11_no_role_is_created_or_resumed_after_the_deadline
+    assert not win32.live
+E   AssertionError: assert not {106: 'handle', 107: 'handle'}
+E    +  where {106: 'handle', 107: 'handle'} = <tools.test_v0_s3_native_custody_regressions.RecordingWin32 object at 0x73043fbd6750>.live
+_ test_n05_r23_the_end_of_the_attempt_and_the_end_of_the_closer_are_two_facts __
+tools/test_v0_s3_native_custody_correction05.py:1446: in test_n05_r23_the_end_of_the_attempt_and_the_end_of_the_closer_are_two_facts
+    assert thread.is_alive(), 'the waiter returned before the closer ended'
+E   AssertionError: the waiter returned before the closer ended
+E   assert False
+E    +  where False = is_alive()
+E    +    where is_alive = <Thread(Thread-68 (waiter), stopped 126462063167168)>.is_alive
+=========================== short test summary info ============================
+FAILED tools/test_v0_s3_native_custody_regressions.py::test_n03_r06_the_start_cleans_up_everything_that_it_acquired
+FAILED tools/test_v0_s3_native_custody_correction05.py::test_n05_r03_the_ends_of_a_pipe_are_owned_from_the_moment_of_their_creation
+FAILED tools/test_v0_s3_native_custody_correction05.py::test_n05_r04_a_cancellation_in_the_release_propagates_after_the_cleanup
+FAILED tools/test_v0_s3_native_custody_correction05.py::test_n05_r08_a_start_that_raised_after_the_thread_started_keeps_the_thread
+FAILED tools/test_v0_s3_native_custody_correction05.py::test_n05_r11_no_role_is_created_or_resumed_after_the_deadline
+FAILED tools/test_v0_s3_native_custody_correction05.py::test_n05_r23_the_end_of_the_attempt_and_the_end_of_the_closer_are_two_facts
+6 failed, 151 passed in 19.86s
+{"pytest_exit": 1, "call_count": 157, "pass_count": 151, "fail_count": 6, "skip_count": 0, "functional_pass_count": 149, "cleanup_proven_for_batch": false}
