@@ -1818,6 +1818,10 @@ def test_the_session_closes_the_broker_on_a_cancellation(tmp_path):
     assert caught == 'KeyboardInterrupt'
     assert state['peer'].close_count == 1
     assert session.state == 'UNKNOWN_RETAINED'
+    # The close of the round is **finished** when the cancellation left
+    # the start: the caller of the start never returns before the
+    # cleanup of the round could finish.
+    assert session.evidence()['close_state'] == 'FINISHED'
 
 
 def test_the_session_closes_the_broker_on_a_parse_error(tmp_path):
@@ -1845,6 +1849,10 @@ def test_the_session_closes_the_broker_on_a_parse_error(tmp_path):
     assert 'CUSTODY_PUMP_FAILED:CustodyError' in evidence['failures']
     assert state['peer'].close_count == 1
     assert session.state == 'UNKNOWN_RETAINED'
+    # The close of the round is **finished** when the start returned:
+    # the caller never returns before the cleanup of the round could
+    # finish.
+    assert evidence['close_state'] == 'FINISHED'
 
 
 def test_the_session_refuses_a_peer_that_is_not_deadline_aware(tmp_path):

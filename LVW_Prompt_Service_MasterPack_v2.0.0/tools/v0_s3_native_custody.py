@@ -49,6 +49,23 @@ round to the garbage collector:
   pump, and the round keeps a status heartbeat alive on its own, so that
   a long round is not stopped for silence and so that a heartbeat never
   extends the absolute deadline of the round.
+
+The close of the round is coordinated by **one** owner and **one**
+absolute deadline.
+
+* the first caller of the close owns it and every other caller waits
+  for the close that is in flight inside that very deadline, so that a
+  caller never returns a success before the cleanup could finish;
+
+* the end of the attempt of the close is published in a ``finally`` and
+  the state of the close is explicit: ``NOT_STARTED``, ``IN_PROGRESS``
+  or ``FINISHED``.  ``FINISHED`` means that the attempt ended and it
+  never means that the resources of the round are released: only the
+  facts of the close prove that;
+
+* no background thread of the round starts after the close began: the
+  permission to start one is closed before the close takes its snapshot
+  of the threads, and the stop event of the heartbeat is never rebuilt.
 """
 import copy
 import hashlib
@@ -147,6 +164,19 @@ REQUIRED_CLOSE_FACTS = ('channel_closed', 'process_exited',
 # The facts of the reader of the channel.  They are facts of the close
 # and not of the round: they are checked when they are present.
 READER_CLOSE_FACTS = ('channel_reader_finished', 'reader_finished')
+
+# The three states of the close of one round.  NOT_STARTED is the state
+# of a round whose close never began.  IN_PROGRESS is the state of a
+# close that is running right now.  FINISHED is the state of a close
+# whose **attempt** ended: it never means that the resources of the
+# round are released, only the facts of the close prove that.
+CLOSE_STATES = ('NOT_STARTED', 'IN_PROGRESS', 'FINISHED')
+
+# The slice of the wait of a competitor of the close.  The wait is
+# sliced so that the shared deadline of the cleanup is honoured by the
+# clock of the round and not only by the clock of the host: a clock
+# that the round controls can make the deadline arrive at once.
+CLOSE_WAIT_SLICE_SECONDS = 0.05
 
 
 class CustodyError(RuntimeError):
@@ -781,15 +811,36 @@ class NativeCustodySession:
         self._broker_close_facts = None
         self._pump = None
         self._heartbeat = None
+        # The stop event of the heartbeat is created **once**, here, and
+        # it is never rebuilt: a rebuilt event would let a heartbeat
+        # that starts after the stop of the round wait for a stop that
+        # will never come.
         self._heartbeat_stop = threading.Event()
         self._heartbeat_failure = None
         self._last_heartbeat = None
         self._last_alive_wall = None
         self._write_lock = threading.Lock()
-        self._close_attempted = False
         self._close_lock = threading.Lock()
         self._broker_close_failed = False
         self._cleanup_deadline = None
+        # -- the coordination of the close ----------------------------------
+        # One session keeps ONE cleanup owner and ONE absolute cleanup
+        # deadline.  The state of the close is explicit: a competitor
+        # never assumes that a close in progress is a close that is
+        # finished and it waits inside the same absolute deadline.
+        self._close_state = 'NOT_STARTED'
+        self._close_done = threading.Event()
+        self._close_owner = None
+        self._close_waiters = 0
+        self._close_waiter_arrived = threading.Event()
+        # -- the latch of the background of the round ------------------------
+        # The permission to start a background thread is closed before
+        # the close takes its snapshot of the threads, so that a thread
+        # that starts after the close began is refused and never leaks.
+        self._background_lock = threading.Lock()
+        self._background_cv = threading.Condition(self._background_lock)
+        self._background_open = True
+        self._background_starting = 0
         # The flag of the stop of the round.  A stop blocks every later
         # heartbeat: the heartbeat of a round that is stopping must not
         # write into a channel that is being closed.
@@ -950,9 +1001,10 @@ class NativeCustodySession:
         limit = max(0.0, min(limit, self.remaining_seconds()))
         deadline = self._clock() + limit
         while True:
-            if self._pump is None:
+            pump = self._pump
+            if pump is None:
                 raise CustodyError('CUSTODY_CHANNEL_CLOSED')
-            reply = self._pump.take(kinds, deadline)
+            reply = pump.take(kinds, deadline)
             if reply['kind'] in kinds:
                 return reply
 
@@ -1022,10 +1074,20 @@ class NativeCustodySession:
         by the owner of the round.  A failure of the heartbeat is a
         named failure of the round: the round becomes unknown and it is
         never stopped silently in the background.
+
+        The stop event of the heartbeat is created **once**, in the
+        constructor of the session, and it is never rebuilt.  A rebuilt
+        event would let a heartbeat that starts after the stop of the
+        round wait for a stop that will never come.
         """
         if self._heartbeat is not None:
-            return
-        self._heartbeat_stop = threading.Event()
+            # There is exactly one heartbeat per round.
+            return True
+        if self._heartbeat_stop.is_set():
+            # The round is already stopping: a heartbeat that starts
+            # now would be a heartbeat that nobody stops any more.
+            self._failures.append('CUSTODY_HEARTBEAT_NOT_STARTED')
+            return False
 
         def beat():
             while not self._heartbeat_stop.wait(HEARTBEAT_SLICE_SECONDS):
@@ -1037,9 +1099,43 @@ class NativeCustodySession:
                     self._latch_background_failure(self._heartbeat_failure)
                     return
 
-        self._heartbeat = threading.Thread(target=beat, daemon=True,
-                                            name='lvw-native-custody-heartbeat')
-        self._heartbeat.start()
+        thread = threading.Thread(target=beat, daemon=True,
+                                  name='lvw-native-custody-heartbeat')
+        return self._start_background_thread('heartbeat', thread)
+
+    def _start_background_thread(self, kind, thread):
+        """Start one background thread of the round under the latch.
+
+        The registration of the thread, the permission to start it and
+        the count of the threads that are in the middle of their start
+        are **one** atomic step under the lock of the background of the
+        round.  A thread that is registered may be started and a thread
+        that may not be started any more is never registered.
+
+        The close of the round closes the permission **before** it takes
+        its snapshot of the threads, so a thread that is started after
+        the close began is either refused or stopped by the very close
+        that refused it.  A thread that could not start at all is not a
+        thread of the round: its reference is dropped and its failure
+        stays visible.
+        """
+        with self._background_lock:
+            if not self._background_open:
+                self._failures.append('CUSTODY_BACKGROUND_START_REFUSED:' + kind)
+                return False
+            setattr(self, '_' + kind, thread)
+            self._background_starting += 1
+        started = False
+        try:
+            thread.start()
+            started = True
+        finally:
+            with self._background_lock:
+                self._background_starting -= 1
+                if not started and getattr(self, '_' + kind) is thread:
+                    setattr(self, '_' + kind, None)
+                self._background_cv.notify_all()
+        return True
 
     def _latch_background_failure(self, code):
         """Latch the unknown state of the round after a background failure.
@@ -1054,16 +1150,56 @@ class NativeCustodySession:
         self.state = 'UNKNOWN_RETAINED'
         self._start_bounded_close()
 
+    def _apply_state(self, state):
+        """Apply the state of the round, never overwriting an unknown one.
+
+        A reply that arrives late - after the pump failed and after the
+        round latched its unknown state - never turns an unknown round
+        into a running one.  The late reply stays visible in the
+        evidence of the round.
+        """
+        if self.state == 'UNKNOWN_RETAINED' and state != 'UNKNOWN_RETAINED':
+            self._failures.append('CUSTODY_LATE_STATE_IGNORED:' + state)
+            return False
+        self.state = state
+        return True
+
     def _start_bounded_close(self):
-        """Start the bounded close of the round, once, in its own thread."""
+        """Start the bounded close of the round, once, in its own thread.
+
+        The close runs in its own thread because a thread never joins
+        itself: the pump and the heartbeat of the round report their
+        failure to the round and the round closes in a thread of its
+        own.  The callbacks of the pump and of the heartbeat never wait
+        for that close, so a closer that joins the pump can never wait
+        for the pump in turn.
+
+        A closer that could not start must not leave the round in
+        ``IN_PROGRESS`` for ever: the waiters are woken and the round
+        stays unknown.
+        """
         with self._close_lock:
             if self._closer_started:
-                return
+                return False
             self._closer_started = True
         thread = threading.Thread(target=self._close_broker, daemon=True,
                                   name='lvw-native-custody-closer')
         self._closer = thread
-        thread.start()
+        try:
+            thread.start()
+        except BaseException as error:  # noqa: BLE001 - the failure stays visible
+            self._failures.append('CUSTODY_CLOSER_START_FAILED:'
+                                   + type(error).__name__)
+            self.state = 'UNKNOWN_RETAINED'
+            with self._close_lock:
+                unpublished = (self._close_state == 'IN_PROGRESS'
+                               and self._close_owner is None)
+                if unpublished:
+                    self._close_state = 'FINISHED'
+            if unpublished:
+                self._close_done.set()
+            return False
+        return True
 
     def _on_pump_error(self, error):
         """The reader of the channel failed: the round latches its state."""
@@ -1081,21 +1217,51 @@ class NativeCustodySession:
         unknown.  It is never left behind and it is never discarded, and
         its reference is kept so that the owner of the round can try it
         again.  A thread that really stopped is not kept any more.
+
+        The latch of the background is closed **before** the snapshot of
+        the threads is taken.  A thread that is started after this
+        point is refused, and a thread that is in the middle of its own
+        start is finished before the snapshot is taken: the close of
+        the round never leaves behind a thread that it did not know
+        about.
+
+        The close never joins the thread that runs it: a thread that
+        joins itself is refused by the product and not by the caller.
         """
         if deadline is None:
             deadline = self._cleanup_deadline_for()
-        if self._heartbeat is not None:
-            self._heartbeat_stop.set()
-            if self._heartbeat.ident is not None:
-                self._heartbeat.join(self._cleanup_remaining(deadline))
-            if self._heartbeat.is_alive():
+        # The stop of the round blocks every later heartbeat, also when
+        # the close was started by a failure and not by the caller.
+        self._stopping = True
+        self._heartbeat_stop.set()
+        current = threading.current_thread()
+        with self._background_cv:
+            self._background_open = False
+            while self._background_starting > 0:
+                remaining = max(0.0, deadline - self._clock())
+                if remaining <= 0.0:
+                    self._failures.append('CUSTODY_BACKGROUND_START_PENDING')
+                    break
+                self._background_cv.wait(remaining)
+            heartbeat = self._heartbeat
+            pump = self._pump
+        if heartbeat is not None:
+            if heartbeat is not current and heartbeat.ident is not None:
+                heartbeat.join(self._cleanup_remaining(deadline))
+            if heartbeat.is_alive():
                 self._failures.append('CUSTODY_HEARTBEAT_NOT_STOPPED')
                 self.state = 'UNKNOWN_RETAINED'
             else:
                 self._heartbeat = None
-        if self._pump is not None:
-            self._pump.stop()
-            if not self._pump.join_bounded(self._cleanup_remaining(deadline)):
+        if pump is not None:
+            pump.stop()
+            if pump is current:
+                # The close never joins the thread that runs it: a pump
+                # that is the current thread stays alive and keeps its
+                # reference with its owner.
+                self._failures.append('CUSTODY_PUMP_NOT_STOPPED')
+                self.state = 'UNKNOWN_RETAINED'
+            elif not pump.join_bounded(self._cleanup_remaining(deadline)):
                 self._failures.append('CUSTODY_PUMP_NOT_STOPPED')
                 self.state = 'UNKNOWN_RETAINED'
             else:
@@ -1197,18 +1363,26 @@ class NativeCustodySession:
                 self.state = 'UNKNOWN_RETAINED'
                 self._close_broker()
                 raise
-            self._pump = _ChannelPump(self.broker, decode=self._decode_reply,
-                                      clock=self._clock,
-                                      on_error=self._on_pump_error)
-            self._pump.start()
-            self._start_heartbeat()
+            pump = _ChannelPump(self.broker, decode=self._decode_reply,
+                                clock=self._clock,
+                                on_error=self._on_pump_error)
+            if not self._start_background_thread('pump', pump):
+                # The close of the round began before the pump could
+                # start.  The round never runs and the resources of the
+                # round are closed by that very close.
+                raise CustodyError('CUSTODY_BACKGROUND_START_REFUSED')
+            if not self._start_heartbeat():
+                # The heartbeat of the round was refused: the close of
+                # the round is already running and the round never
+                # becomes a running round.
+                raise CustodyError('CUSTODY_HEARTBEAT_NOT_STARTED')
             ready = self._read_reply(('READY', 'REFUSED'))
             if ready['kind'] == 'REFUSED':
                 self.state = 'UNKNOWN_RETAINED'
                 self._failures.append(ready['detail'].get('code', 'BROKER_REFUSED'))
                 self._close_broker()
                 return self.evidence()
-            self.state = ready['state']
+            self._apply_state(ready['state'])
             if ready['state'] != 'ARMED':
                 raise CustodyError('CUSTODY_STATE_INVALID')
             status = self._read_reply(('STATUS', 'REFUSED'))
@@ -1217,7 +1391,7 @@ class NativeCustodySession:
                 self._failures.append(status['detail'].get('code', 'BROKER_REFUSED'))
                 self._close_broker()
                 return self.evidence()
-            self.state = status['state']
+            self._apply_state(status['state'])
         except (KeyboardInterrupt, SystemExit):
             # A cancellation is cleaned up and it continues to propagate.
             self._failures.append('CUSTODY_SESSION_CANCELLED')
@@ -1276,8 +1450,16 @@ class NativeCustodySession:
         and unauthorised grace period of hours.
 
         The stop blocks the heartbeat that would follow it.
+
+        A repeated stop does not send a second command and it does not
+        close a second time.  It waits for the close that is in flight
+        inside the same absolute deadline of the cleanup, so that it
+        never returns a success before the cleanup could finish.
         """
         if self._stopped:
+            # A repeated stop sends no second command and it closes no
+            # second time.  It waits for the close that is in flight.
+            self._await_close()
             return self.evidence()
         self._stopped = True
         self._stopping = True
@@ -1289,7 +1471,7 @@ class NativeCustodySession:
                 reply = self._read_reply(
                     ('STOPPED', 'REFUSED'),
                     timeout=max(0.0, cleanup_deadline - self._clock()))
-                self.state = reply['state']
+                self._apply_state(reply['state'])
                 self._terminal = reply['detail']
                 if reply['kind'] == 'REFUSED':
                     self._failures.append(reply['detail'].get('code', 'BROKER_REFUSED'))
@@ -1317,10 +1499,61 @@ class NativeCustodySession:
     def _close_broker(self):
         """Close the original handle of the broker, exactly once.
 
+        One session keeps ONE cleanup owner and ONE absolute cleanup
+        deadline.  The first caller becomes the owner of the close and
+        it performs it; every other caller is a competitor and it waits
+        for the close that is in flight **inside the same absolute
+        deadline** of the cleanup.  A competitor never assumes that a
+        close in progress is a close that is finished and it never
+        renews the deadline of the cleanup.
+
+        The owner publishes the end of its attempt in a ``finally``: a
+        success, an ordinary exception, a cancellation and a
+        ``SystemExit`` all wake the waiters.  A waiter never holds the
+        lock of the owner while it waits and the owner never waits for
+        itself.
+
         A handle that could not be closed is *kept*: the reference of the
         original handle stays in the evidence of the round and the round
         stays unknown.  A failed close is never swallowed and never
         replaced by a success.
+        """
+        deadline = self._cleanup_deadline_for()
+        with self._close_lock:
+            state = self._close_state
+            if state == 'NOT_STARTED':
+                if self.broker is None:
+                    # Nothing was acquired: there is nothing to close
+                    # and no owner of the close is claimed.
+                    return
+                self._close_state = 'IN_PROGRESS'
+                self._close_owner = threading.current_thread()
+                owner = True
+            else:
+                owner = False
+        if owner:
+            try:
+                self._perform_close(deadline)
+            finally:
+                # The end of the attempt is published on every path: a
+                # success, an ordinary exception, a cancellation and a
+                # SystemExit all wake the waiters.
+                self._finish_close()
+            return
+        if state == 'FINISHED':
+            # The close is over: a repeated close never closes a second
+            # time.
+            return
+        if self._close_owner is threading.current_thread():
+            # The owner of the close never waits for itself.
+            return
+        self._await_close()
+
+    def _perform_close(self, deadline):
+        """The close of the original handle of the broker, by its owner.
+
+        The steps of the close are independent of each other: a failure
+        of one of them never skips the ones that are safe to run.
 
         The release of the reference needs the **facts** of the close:
         the channel, the process and its original handle and the reader
@@ -1329,22 +1562,22 @@ class NativeCustodySession:
         ``False``, an unknown value and an exception are all unknown: the
         original broker is kept and the round stays unknown.
         """
-        with self._close_lock:
-            if self.broker is None or self._close_attempted:
-                return
-            broker = self.broker
-            self._close_attempted = True
-        # The cleanup itself runs outside of the lock: the pump of the
-        # round may report a failure while it is stopped and it may want
-        # the lock of the closer.  A thread that waits for a lock that
-        # another thread holds while it waits for that thread would
-        # deadlock the round.
-        deadline = self._cleanup_deadline_for()
-        self._stop_background(deadline)
+        try:
+            self._stop_background(deadline)
+        except BaseException as error:  # noqa: BLE001 - the failure stays visible
+            # The background threads of the round could not be stopped.
+            # The close of the original handle of the broker still runs:
+            # the steps of the close are independent of each other.
+            self._failures.append('CUSTODY_BACKGROUND_STOP_FAILED:'
+                                   + type(error).__name__)
+            self.state = 'UNKNOWN_RETAINED'
         try:
             self._bind_deadline(deadline)
         except BaseException as error:  # noqa: BLE001 - the failure stays visible
             self._failures.append(self._failure_code(error))
+        broker = self.broker
+        if broker is None:
+            return
         try:
             facts = broker.close()
         except BaseException as error:  # noqa: BLE001 - the failure stays visible
@@ -1385,6 +1618,51 @@ class NativeCustodySession:
             # never claims a release that it cannot prove.
             return
         self.broker = None
+
+    def _finish_close(self):
+        """Publish the end of the attempt of the close of the round.
+
+        FINISHED means that the attempt ended and it never means that
+        the resources of the round are released: only the facts of the
+        close prove that.
+        """
+        with self._close_lock:
+            self._close_state = 'FINISHED'
+        self._close_done.set()
+
+    def _await_close(self):
+        """Wait for the close that is in flight, inside the shared deadline.
+
+        The wait never holds the lock of the owner: the owner may need
+        it while it stops the background threads of the round.  The
+        arrival of a waiter is published, so that the round and its
+        evidence can see that a competitor waits for the close that it
+        owns.
+        """
+        with self._close_lock:
+            if self._close_state != 'IN_PROGRESS':
+                return True
+            if self._close_owner is threading.current_thread():
+                # The owner of the close never waits for itself.
+                return True
+            self._close_waiters += 1
+        self._close_waiter_arrived.set()
+        try:
+            deadline = self._cleanup_deadline_for()
+            while True:
+                remaining = max(0.0, deadline - self._clock())
+                if remaining <= 0.0:
+                    # The shared deadline of the cleanup arrived.  The
+                    # deadline is never renewed and the original
+                    # resources of the round are kept.
+                    self._failures.append('CUSTODY_CLOSE_NOT_FINISHED')
+                    self.state = 'UNKNOWN_RETAINED'
+                    return False
+                if self._close_done.wait(min(remaining, CLOSE_WAIT_SLICE_SECONDS)):
+                    return True
+        finally:
+            with self._close_lock:
+                self._close_waiters -= 1
 
     def __enter__(self):
         return self
@@ -1428,6 +1706,16 @@ class NativeCustodySession:
                            else None),
             'heartbeat_alive': bool(self._heartbeat is not None
                                     and self._heartbeat.is_alive()),
+            'pump_alive': bool(self._pump is not None and self._pump.alive),
+            # The coordination of the close of the round.  ``FINISHED``
+            # means that the attempt of the close ended and it never
+            # means that the resources of the round are released: only
+            # the facts of the close prove that.
+            'close_state': self._close_state,
+            'close_finished': self._close_done.is_set(),
+            'close_waiters': self._close_waiters,
+            'closer_alive': bool(self._closer is not None and self._closer.is_alive()),
+            'background_open': self._background_open,
             'cleanup_deadline': self._cleanup_deadline,
             'broker_deadline_aware': (getattr(self.broker, 'channel_deadline_aware', False)
                                       is True),

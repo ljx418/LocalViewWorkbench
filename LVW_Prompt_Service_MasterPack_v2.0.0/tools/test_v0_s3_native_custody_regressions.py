@@ -390,7 +390,7 @@ class RecordingPeer:
     channel_deadline_aware = True
 
     def __init__(self, plan, nonce, *, kinds=('READY', 'STATUS'), close_facts=None,
-                 write_error=None):
+                 write_error=None, read_error=None):
         self.plan = plan
         self.nonce = nonce
         self.pid = 4242
@@ -401,9 +401,14 @@ class RecordingPeer:
         self.closed = 0
         self.close_facts = close_facts
         self.write_error = write_error
+        self.read_error = read_error
         self.bound_deadline = None
         self.write_deadlines = []
         self.reader_finished = True
+        # The event of the close of the peer.  It is an **explicit**
+        # event and not a poll: a check that waits for it never hides
+        # the state of the product behind a sleep.
+        self.closed_event = threading.Event()
         self._sequence = 0
         for kind in kinds:
             self.emit(kind)
@@ -435,6 +440,8 @@ class RecordingPeer:
             self.emit('STOPPED')
 
     def read(self, timeout):
+        if self.read_error is not None:
+            raise self.read_error
         try:
             return self.inbound.get(timeout=min(timeout, 0.05))
         except queue.Empty:
@@ -442,6 +449,7 @@ class RecordingPeer:
 
     def close(self):
         self.closed += 1
+        self.closed_event.set()
         return self.close_facts
 
 
@@ -459,7 +467,8 @@ class ManualClock:
 
 
 def make_session(tmp_path, *, peer=None, plan=None, clock=None, wall=None,
-                 kinds=('READY', 'STATUS'), close_facts=None, write_error=None):
+                 kinds=('READY', 'STATUS'), close_facts=None, write_error=None,
+                 read_error=None):
     """One parent session with an in-process peer."""
     clock = clock or ManualClock()
     wall = wall or (lambda: 1000.0)
@@ -468,7 +477,7 @@ def make_session(tmp_path, *, peer=None, plan=None, clock=None, wall=None,
     def launcher(plan_document_, run_root, nonce):
         holder['peer'] = peer or RecordingPeer(
             plan_document_, nonce, kinds=kinds, close_facts=close_facts,
-            write_error=write_error)
+            write_error=write_error, read_error=read_error)
         return holder['peer']
 
     document = plan or plan_document()
@@ -776,6 +785,199 @@ def test_n03_r06_the_start_cleans_up_everything_that_it_acquired(tmp_path):
     assert process.terminated is True
     assert process.waited == 1
 
+    # -- a concurrent closer waits for the close that is in flight ---------
+    # The first caller of the close owns it and a second caller never
+    # returns a success before the close could finish.  The wait of the
+    # competitor is bounded by the **same** absolute deadline of the
+    # cleanup and the deadline is never renewed.
+    clock = ManualClock(1000.0)
+    session, holder, clock = make_session(tmp_path, clock=clock)
+    session.start()
+    peer = holder['peer']
+    entered = threading.Event()
+    release = threading.Event()
+    closes = []
+    complete = {'channel_closed': True, 'process_exited': True,
+                'process_handle_released': True}
+
+    def blocking_close():
+        closes.append(1)
+        entered.set()
+        release.wait(10.0)
+        return complete
+
+    peer.close = blocking_close
+    owner = threading.Thread(target=session._close_broker)
+    owner.start()
+    assert entered.wait(5.0), 'the owner of the close did not reach the close'
+    competitor_returned = threading.Event()
+
+    def competitor():
+        session._close_broker()
+        competitor_returned.set()
+
+    waiter = threading.Thread(target=competitor)
+    waiter.start()
+    # The round publishes the arrival of a waiter: the competitor is
+    # inside the wait of the product and it did not return.
+    assert session._close_waiter_arrived.wait(5.0), \
+        'the competitor did not wait for the close that was in flight'
+    assert competitor_returned.is_set() is False, \
+        'the competitor returned before the close could finish'
+    release.set()
+    assert competitor_returned.wait(5.0), 'the competitor never returned'
+    waiter.join(5.0)
+    owner.join(5.0)
+    # The original handle of the broker was closed exactly once: the
+    # competitor never closed a second time.
+    assert len(closes) == 1
+    assert session.broker is None
+    assert session.evidence()['close_state'] == 'FINISHED'
+
+    # -- the shared deadline of the cleanup arrived -------------------------
+    # A competitor that arrives after the shared deadline of the cleanup
+    # is named unknown, it keeps the original owner of the resources of
+    # the round and it never renews the deadline.
+    clock = ManualClock(1000.0)
+    session, holder, clock = make_session(tmp_path, clock=clock)
+    session.start()
+    peer = holder['peer']
+    entered = threading.Event()
+    release = threading.Event()
+    closes = []
+
+    def blocking_close():
+        closes.append(1)
+        entered.set()
+        release.wait(10.0)
+        return complete
+
+    peer.close = blocking_close
+    owner = threading.Thread(target=session._close_broker)
+    owner.start()
+    assert entered.wait(5.0)
+    # The shared deadline of the cleanup arrives.
+    clock.value += 10.0
+    session._close_broker()
+    evidence = session.evidence()
+    assert 'CUSTODY_CLOSE_NOT_FINISHED' in evidence['failures']
+    assert evidence['state'] == 'UNKNOWN_RETAINED'
+    # The original broker is kept with its owner: the resource of the
+    # round is never dropped and the round never claims a release.
+    assert session.broker is peer
+    assert evidence['broker_retained'] is True
+    assert len(closes) == 1
+    # The salvage of the test owner happens after the check of the
+    # product and it never changes the fact of the product.
+    release.set()
+    owner.join(5.0)
+
+    # -- a close that fails still wakes the waiters -------------------------
+    clock = ManualClock(1000.0)
+    session, holder, clock = make_session(tmp_path, clock=clock)
+    session.start()
+    peer = holder['peer']
+    closes = []
+
+    def failing_close():
+        closes.append(1)
+        # The close waits until a competitor of the close is inside the
+        # wait of the product and it fails afterwards.
+        session._close_waiter_arrived.wait(5.0)
+        raise RuntimeError('close_failed')
+
+    peer.close = failing_close
+    owner = threading.Thread(target=session._close_broker)
+    owner.start()
+    competitor_returned = threading.Event()
+
+    def competitor():
+        session._close_broker()
+        competitor_returned.set()
+
+    waiter = threading.Thread(target=competitor)
+    waiter.start()
+    assert session._close_waiter_arrived.wait(5.0)
+    # The owner published the end of its attempt even though the close
+    # failed: the waiter is woken and it never waits for ever.
+    assert competitor_returned.wait(5.0), \
+        'the waiter was not woken by the close that failed'
+    waiter.join(5.0)
+    owner.join(5.0)
+    evidence = session.evidence()
+    assert any(item.startswith('CUSTODY_BROKER_CLOSE_FAILED')
+               for item in evidence['failures'])
+    # A close that failed is not a release: the original broker is kept.
+    assert session.broker is peer
+    assert evidence['broker_retained'] is True
+    assert evidence['close_state'] == 'FINISHED'
+    assert len(closes) == 1
+
+    # -- a pump that fails before the heartbeat is built starts no heartbeat
+    before_threads = {thread.ident for thread in threading.enumerate()
+                      if thread.name == 'lvw-native-custody-heartbeat'}
+    session, holder, _clock = make_session(
+        tmp_path, read_error=RuntimeError('pump_read_failed'))
+    peer_closed = threading.Event()
+    original_launcher = session._launcher
+
+    def launcher(plan_document_, run_root, nonce):
+        handle = original_launcher(plan_document_, run_root, nonce)
+        inner_close = handle.close
+
+        def close_and_signal():
+            peer_closed.set()
+            return inner_close()
+
+        handle.close = close_and_signal
+        return handle
+
+    session._launcher = launcher
+    original_start_heartbeat = session._start_heartbeat
+
+    def late_heartbeat():
+        # The close of the round is over before the heartbeat of the
+        # round is built: the heartbeat must be refused.
+        peer_closed.wait(5.0)
+        return original_start_heartbeat()
+
+    session._start_heartbeat = late_heartbeat
+    evidence = session.start()
+    assert evidence['state'] == 'UNKNOWN_RETAINED'
+    # No heartbeat of the round was started after the close began and no
+    # heartbeat of the round was left behind.
+    assert session._heartbeat is None
+    after_threads = {thread.ident for thread in threading.enumerate()
+                     if thread.name == 'lvw-native-custody-heartbeat'}
+    assert after_threads == before_threads
+    assert holder['peer'].closed == 1
+
+    # -- the close never joins the thread that runs it ----------------------
+    session, holder, _clock = make_session(tmp_path)
+    session.start()
+    outcome = {}
+
+    def run_close():
+        # The thread that runs the close is registered as the heartbeat
+        # of the round: the close of the round must not join it.
+        session._heartbeat_stop.set()
+        session._heartbeat.join(5.0)
+        session._heartbeat = threading.current_thread()
+        try:
+            session._stop_background(session._cleanup_deadline_for())
+            outcome['error'] = None
+        except BaseException as error:  # noqa: BLE001 - the failure stays visible
+            outcome['error'] = type(error).__name__
+
+    worker = threading.Thread(target=run_close)
+    worker.start()
+    worker.join(5.0)
+    assert worker.is_alive() is False, 'the close of the round never ended'
+    assert outcome.get('error') is None, 'the close joined the thread that runs it'
+    # The thread that could not be joined keeps its reference with its
+    # owner and the round stays unknown.
+    assert 'CUSTODY_HEARTBEAT_NOT_STOPPED' in session.evidence()['failures']
+
 
 def test_n03_r07_the_startup_is_bounded_by_the_absolute_deadline(tmp_path):
     """N03-R07 (M08): no role is created after the deadline of the round.
@@ -1051,13 +1253,36 @@ def test_n03_r11_a_failure_of_the_background_latches_the_unknown_state(tmp_path)
     assert session.state == 'UNKNOWN_RETAINED'
     assert any('CUSTODY_HEARTBEAT_FAILED' in failure
                for failure in session.evidence()['failures'])
-    # The bounded close ran and it closed the peer exactly once.
-    for _ in range(50):
-        if holder['peer'].closed:
-            break
-        time.sleep(0.02)
+    # The bounded close ran and it closed the peer exactly once.  The
+    # check waits for the explicit event of the close of the peer: it
+    # never hides the fact of the product behind a sleep.
+    assert holder['peer'].closed_event.wait(5.0), \
+        'the bounded close of the round never closed the peer'
     assert holder['peer'].closed == 1
     session.stop()
+
+    # -- the callback and the closer never wait for each other -------------
+    # The closer of the round joins the pump and the heartbeat of the
+    # round.  Neither of them waits for that closer, so the round
+    # closes without a cycle of waits.
+    clock = ManualClock(1000.0)
+    session, holder, clock = make_session(
+        tmp_path, clock=clock,
+        write_error=BrokerError('BROKER_PIPE_WRITE_FAILED'))
+    session.start()
+    pump_thread = session._pump
+    heartbeat_thread = session._heartbeat
+    session._last_heartbeat = clock.value - 61.0
+    assert session._heartbeat_step() is False
+    assert session.state == 'UNKNOWN_RETAINED'
+    assert holder['peer'].closed_event.wait(5.0)
+    # The closer joined the pump and the heartbeat of the round: the
+    # two callbacks returned and the closer did not wait for them.
+    assert heartbeat_thread is not None
+    assert not heartbeat_thread.is_alive()
+    assert not pump_thread.is_alive()
+    assert session._heartbeat is None
+    assert session._pump is None
 
     # -- the heartbeat is not sent after the deadline ----------------------
     clock = ManualClock(1000.0)
@@ -1210,6 +1435,26 @@ def test_n03_r14_a_close_without_facts_keeps_the_original_broker(tmp_path):
     assert session.broker is None
     assert evidence['broker_retained'] is False
 
+    # A repeated stop does not close a second time and the original
+    # broker keeps its owner: the resource of the round is never
+    # dropped and the close is never claimed twice.
+    session, holder, _clock = make_session(
+        tmp_path,
+        close_facts={'channel_closed': True, 'process_exited': True,
+                     'process_handle_released': False})
+    session.start()
+    peer = holder['peer']
+    first = session.stop()
+    assert first['state'] == 'UNKNOWN_RETAINED'
+    assert peer.closed == 1
+    second = session.stop()
+    # The repeated stop closes nothing a second time.
+    assert peer.closed == 1
+    # The original broker is kept with its owner.
+    assert session.broker is peer
+    assert second['broker_retained'] is True
+    assert second['close_state'] == 'FINISHED'
+
     # An endpoint whose close failed is not closed irreversibly.
     class BrokenSyscalls:
         def __init__(self):
@@ -1298,6 +1543,32 @@ def test_n03_r16_the_positive_lifecycle_still_closes_everything(tmp_path):
         reader.join(5.0)
     core._close_readers()
     assert not win32.live
+
+    # -- the fact of the product and the salvage of the test owner ---------
+    # A pump that fails before the round runs ends the round with a
+    # closed original handle of the broker.  The fact of the product is
+    # the state that the product returned with; the salvage of the test
+    # owner happens afterwards and it never changes that fact.
+    before_threads = {thread.ident for thread in threading.enumerate()
+                      if thread.name in ('lvw-native-custody-heartbeat',
+                                         'lvw-native-custody-channel-pump')}
+    session, holder, _clock = make_session(
+        tmp_path,
+        read_error=RuntimeError('pump_read_failed'),
+        close_facts={'channel_closed': True, 'process_exited': True,
+                     'process_handle_released': True})
+    evidence = session.start()
+    assert evidence['state'] == 'UNKNOWN_RETAINED'
+    assert evidence['close_state'] == 'FINISHED'
+    assert evidence['broker_retained'] is False
+    assert holder['peer'].closed == 1
+    assert session.broker is None
+    # The salvage of the test owner: no thread of the round is left
+    # behind and the fact of the product is the one above.
+    after_threads = {thread.ident for thread in threading.enumerate()
+                     if thread.name in ('lvw-native-custody-heartbeat',
+                                        'lvw-native-custody-channel-pump')}
+    assert after_threads == before_threads
 
     # -- the closed items of the earlier rounds ----------------------------
     # M01: the user directory is one closed segment.
