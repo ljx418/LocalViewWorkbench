@@ -1,0 +1,28 @@
+{
+  "kind": "LVW_N1_CORRECTION_02_FAILED_CANDIDATE_SOURCE_SNAPSHOT/1",
+  "missing": [
+    {
+      "executed_plan_pin": "0041cb0ebe810c0d7fd80594af0e99ef7c6bd39bcfd6a52c5ef789db4e7fba0e",
+      "file": "tools/v0_s3_native_broker.py",
+      "reason": "A reconstruction of the pre-fix bytes was attempted (the current sources with the recorded fixes reversed) and it does not hash to the executed pin.  The bytes are therefore MISSING and they are not delivered."
+    },
+    {
+      "executed_plan_pin": "86d3aa05bedad14f2f31cc0ee21ce216d3674053d17eb3e5f4b549a00e382828",
+      "file": "tools/test_v0_s3_native_custody.py",
+      "reason": "A reconstruction of the pre-fix bytes was attempted (the current sources with the recorded fixes reversed) and it does not hash to the executed pin.  The bytes are therefore MISSING and they are not delivered."
+    }
+  ],
+  "of_attempt": "native-custody-correction-02 attempt01 (root plan 90c3c5e2...)",
+  "recovered": [
+    {
+      "delivered_as": "reports/v0-s3/product-gate0/implementation-native-custody-correction-02/attempt01-failed-candidate-sources/v0_s3_native_custody.py",
+      "digest_matches_the_executed_pin": true,
+      "executed_plan_pin": "68faa274de9eb8fa786e8b32d71a501d2b24513531c3621ee98313814eae8d56",
+      "file": "tools/v0_s3_native_custody.py",
+      "sha256": "68faa274de9eb8fa786e8b32d71a501d2b24513531c3621ee98313814eae8d56"
+    }
+  ],
+  "root_archive_statement": "NOT_DELIVERED; source pins and original execution receipts retained; do not claim full historical source bytes archived",
+  "statement": "The bytes of the three sources that the failed attempt 01 executed were never delivered and never committed.  One of them was recovered byte-exactly and is delivered here with its verified digest; the other two could not be recovered byte-exactly and are declared MISSING.  Nothing is fabricated and no claim of a complete archived failed candidate is made.",
+  "verification_of_the_attempt": "The reconstruction was checked line by line against the 22 traceback anchors of the batch 01 log; the anchors agree and the digests do not, so the digests decide and the bytes stay MISSING."
+}

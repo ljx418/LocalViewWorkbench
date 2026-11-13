@@ -1,0 +1,1143 @@
+{
+  "stdlib_preload": {
+    "events": [
+      {
+        "event": "ctypes.dlopen",
+        "name": null
+      }
+    ],
+    "window_closed_before_candidate": true
+  },
+  "kind": "LVW_N1_ROOT_FROZEN_VALIDATION",
+  "pytest_exit": 1,
+  "duration_seconds": 7.903148412704468,
+  "selected": [
+    "tools/test_v0_s3_native_custody.py::test_a_valid_plan_is_accepted_and_closed",
+    "tools/test_v0_s3_native_custody.py::test_a_bool_runtime_is_refused",
+    "tools/test_v0_s3_native_custody.py::test_a_float_runtime_is_refused",
+    "tools/test_v0_s3_native_custody.py::test_a_nonfinite_lease_is_refused",
+    "tools/test_v0_s3_native_custody.py::test_an_expired_lease_is_refused",
+    "tools/test_v0_s3_native_custody.py::test_a_runtime_above_the_hard_cap_is_refused",
+    "tools/test_v0_s3_native_custody.py::test_an_unknown_role_is_refused",
+    "tools/test_v0_s3_native_custody.py::test_a_missing_required_role_is_refused",
+    "tools/test_v0_s3_native_custody.py::test_a_duplicate_role_is_refused",
+    "tools/test_v0_s3_native_custody.py::test_an_extra_plan_key_is_refused",
+    "tools/test_v0_s3_native_custody.py::test_an_arbitrary_argv_key_is_refused",
+    "tools/test_v0_s3_native_custody.py::test_a_shell_key_in_a_role_is_refused",
+    "tools/test_v0_s3_native_custody.py::test_a_relative_tool_path_is_refused",
+    "tools/test_v0_s3_native_custody.py::test_an_escaping_tool_path_is_refused",
+    "tools/test_v0_s3_native_custody.py::test_a_tool_digest_is_refused",
+    "tools/test_v0_s3_native_custody.py::test_an_escaping_log_reference_is_refused",
+    "tools/test_v0_s3_native_custody.py::test_an_absolute_log_reference_is_refused",
+    "tools/test_v0_s3_native_custody.py::test_a_drive_relative_log_reference_is_refused",
+    "tools/test_v0_s3_native_custody.py::test_an_alternate_data_stream_log_reference_is_refused",
+    "tools/test_v0_s3_native_custody.py::test_a_unc_or_backslash_log_reference_is_refused",
+    "tools/test_v0_s3_native_custody.py::test_a_posix_absolute_log_reference_is_refused",
+    "tools/test_v0_s3_native_custody.py::test_a_legal_relative_log_reference_is_accepted",
+    "tools/test_v0_s3_native_custody.py::test_an_illegal_log_reference_creates_nothing",
+    "tools/test_v0_s3_native_custody.py::test_the_broker_validates_the_plan_before_it_consumes_it",
+    "tools/test_v0_s3_native_custody.py::test_a_role_data_key_is_refused",
+    "tools/test_v0_s3_native_custody.py::test_no_remaining_child_budget_is_refused",
+    "tools/test_v0_s3_native_custody.py::test_a_runtime_above_the_child_budget_is_refused",
+    "tools/test_v0_s3_native_custody.py::test_the_user_directory_is_one_closed_segment",
+    "tools/test_v0_s3_native_custody.py::test_the_legal_user_directory_is_accepted",
+    "tools/test_v0_s3_native_custody.py::test_the_user_directory_refusal_creates_nothing",
+    "tools/test_v0_s3_native_custody.py::test_the_presented_seal_cannot_change_the_command_of_a_role",
+    "tools/test_v0_s3_native_custody.py::test_the_roles_of_the_plan_cannot_be_changed_by_the_caller",
+    "tools/test_v0_s3_native_custody.py::test_the_seal_bytes_and_the_digest_are_one_definition",
+    "tools/test_v0_s3_native_custody.py::test_the_default_nonce_is_the_closed_form",
+    "tools/test_v0_s3_native_custody.py::test_an_illegal_nonce_is_refused_before_anything_exists",
+    "tools/test_v0_s3_native_custody.py::test_the_broker_command_refuses_an_illegal_nonce",
+    "tools/test_v0_s3_native_custody.py::test_the_broker_command_keeps_the_fixed_private_parameter",
+    "tools/test_v0_s3_native_custody.py::test_the_launcher_refuses_before_it_creates_a_directory",
+    "tools/test_v0_s3_native_custody.py::test_a_foreign_nonce_is_refused",
+    "tools/test_v0_s3_native_custody.py::test_a_repeated_sequence_is_refused",
+    "tools/test_v0_s3_native_custody.py::test_an_extra_key_in_a_command_is_refused",
+    "tools/test_v0_s3_native_custody.py::test_a_frame_at_the_limit_is_accepted_and_one_over_is_refused",
+    "tools/test_v0_s3_native_custody.py::test_an_oversize_command_is_refused",
+    "tools/test_v0_s3_native_custody.py::test_a_reply_with_a_foreign_identity_is_refused",
+    "tools/test_v0_s3_native_custody.py::test_the_success_path_is_suspend_assign_resume",
+    "tools/test_v0_s3_native_custody.py::test_the_child_inherits_only_its_own_streams",
+    "tools/test_v0_s3_native_custody.py::test_a_create_failure_creates_nothing",
+    "tools/test_v0_s3_native_custody.py::test_an_assign_failure_stops_only_the_new_suspended_process",
+    "tools/test_v0_s3_native_custody.py::test_a_resume_failure_keeps_the_round_unknown",
+    "tools/test_v0_s3_native_custody.py::test_a_job_creation_failure_creates_nothing",
+    "tools/test_v0_s3_native_custody.py::test_a_job_limit_failure_closes_the_job_handle",
+    "tools/test_v0_s3_native_custody.py::test_a_pipe_failure_creates_nothing",
+    "tools/test_v0_s3_native_custody.py::test_a_failed_termination_stays_visible",
+    "tools/test_v0_s3_native_custody.py::test_a_job_termination_failure_is_not_a_release",
+    "tools/test_v0_s3_native_custody.py::test_an_unknown_failure_point_is_refused",
+    "tools/test_v0_s3_native_custody.py::test_a_foreign_process_is_never_stopped",
+    "tools/test_v0_s3_native_custody.py::test_a_partial_role_failure_stops_the_earlier_roles",
+    "tools/test_v0_s3_native_custody.py::test_an_unknown_job_query_is_not_zero",
+    "tools/test_v0_s3_native_custody.py::test_an_over_limit_job_query_is_not_zero",
+    "tools/test_v0_s3_native_custody.py::test_a_close_failure_keeps_the_round_unknown",
+    "tools/test_v0_s3_native_custody.py::test_a_stop_is_idempotent",
+    "tools/test_v0_s3_native_custody.py::test_the_job_is_closed_with_kill_on_close",
+    "tools/test_v0_s3_native_custody.py::test_the_sampler_is_created_last_with_the_pids_of_the_services",
+    "tools/test_v0_s3_native_custody.py::test_the_sampler_command_matches_the_parser_of_the_sampler",
+    "tools/test_v0_s3_native_custody.py::test_every_created_handle_enters_the_pending_table",
+    "tools/test_v0_s3_native_custody.py::test_an_assign_failure_closes_the_read_ends_of_the_role",
+    "tools/test_v0_s3_native_custody.py::test_a_handle_of_another_owner_is_never_touched",
+    "tools/test_v0_s3_native_custody.py::test_a_cancellation_during_the_launch_releases_the_round",
+    "tools/test_v0_s3_native_custody.py::test_a_diagnostic_failure_does_not_block_the_cleanup",
+    "tools/test_v0_s3_native_custody.py::test_a_write_failure_of_the_first_reply_releases_the_round",
+    "tools/test_v0_s3_native_custody.py::test_a_release_needs_the_readers_to_be_joined",
+    "tools/test_v0_s3_native_custody.py::test_a_read_error_is_not_the_end_of_a_stream",
+    "tools/test_v0_s3_native_custody.py::test_a_repeated_stop_does_not_close_twice",
+    "tools/test_v0_s3_native_custody.py::test_a_stop_command_answers_once",
+    "tools/test_v0_s3_native_custody.py::test_a_status_command_is_answered",
+    "tools/test_v0_s3_native_custody.py::test_a_channel_eof_stops_the_round",
+    "tools/test_v0_s3_native_custody.py::test_the_absolute_lease_stops_the_round",
+    "tools/test_v0_s3_native_custody.py::test_a_foreign_command_stops_the_round",
+    "tools/test_v0_s3_native_custody.py::test_the_frame_count_limit_is_enforced",
+    "tools/test_v0_s3_native_custody.py::test_the_deadline_of_the_round_is_frozen_before_the_job",
+    "tools/test_v0_s3_native_custody.py::test_the_session_refuses_a_plan_without_a_remaining_budget",
+    "tools/test_v0_s3_native_custody.py::test_the_session_holds_the_original_broker_handle",
+    "tools/test_v0_s3_native_custody.py::test_the_session_does_not_extend_the_deadline",
+    "tools/test_v0_s3_native_custody.py::test_a_repeated_stop_is_idempotent",
+    "tools/test_v0_s3_native_custody.py::test_the_evidence_keeps_every_native_claim_not_proven",
+    "tools/test_v0_s3_native_custody.py::test_the_broker_launch_is_refused_off_windows",
+    "tools/test_v0_s3_native_custody.py::test_the_windows_facade_is_not_loaded_off_windows",
+    "tools/test_v0_s3_native_custody.py::test_the_session_closes_the_broker_on_a_refusal",
+    "tools/test_v0_s3_native_custody.py::test_the_session_closes_the_broker_on_a_cancellation",
+    "tools/test_v0_s3_native_custody.py::test_the_session_closes_the_broker_on_a_parse_error",
+    "tools/test_v0_s3_native_custody.py::test_the_session_refuses_a_peer_that_is_not_deadline_aware",
+    "tools/test_v0_s3_native_custody.py::test_the_stop_uses_one_shared_cleanup_budget",
+    "tools/test_v0_s3_native_custody.py::test_the_heartbeat_keeps_a_long_round_alive",
+    "tools/test_v0_s3_native_custody.py::test_the_heartbeat_does_not_extend_the_absolute_deadline",
+    "tools/test_v0_s3_native_custody.py::test_a_heartbeat_failure_is_a_named_failure_of_the_round",
+    "tools/test_v0_s3_native_custody.py::test_the_frame_budget_fails_closed",
+    "tools/test_v0_s3_native_custody.py::test_the_heartbeat_period_and_the_missing_window_are_the_closed_ones",
+    "tools/test_v0_s3_native_custody.py::test_the_windows_types_use_the_windows_widths",
+    "tools/test_v0_s3_native_custody.py::test_every_primitive_of_the_broker_has_a_declared_prototype",
+    "tools/test_v0_s3_native_custody.py::test_the_prototypes_use_the_windows_widths",
+    "tools/test_v0_s3_native_custody.py::test_the_start_up_information_of_the_extended_structure_is_bigger",
+    "tools/test_v0_s3_native_custody.py::test_the_process_id_list_of_a_job_is_an_inline_array",
+    "tools/test_v0_s3_native_custody.py::test_the_child_is_created_with_the_extended_start_up_information",
+    "tools/test_v0_s3_native_custody.py::test_the_last_error_is_named_before_the_cleanup",
+    "tools/test_v0_s3_native_custody.py::test_the_invalid_handle_value_has_the_width_of_a_pointer",
+    "tools/test_v0_s3_native_custody.py::test_the_job_process_ids_are_read_from_the_inline_array",
+    "tools/test_v0_s3_native_custody.py::test_a_truncated_job_process_id_list_is_unknown",
+    "tools/test_v0_s3_native_custody.py::test_a_job_process_id_list_over_the_cap_is_unknown",
+    "tools/test_v0_s3_native_custody.py::test_the_pipe_is_non_blocking_and_never_waits_for_the_lock",
+    "tools/test_v0_s3_native_custody.py::test_the_pipe_read_is_bounded_by_the_deadline",
+    "tools/test_v0_s3_native_custody.py::test_the_pipe_read_observes_the_cancel_flag",
+    "tools/test_v0_s3_native_custody.py::test_the_pipe_reports_the_end_of_the_stream",
+    "tools/test_v0_s3_native_custody.py::test_the_pipe_write_retries_a_partial_write",
+    "tools/test_v0_s3_native_custody.py::test_the_pipe_write_is_bounded_by_the_deadline",
+    "tools/test_v0_s3_native_custody.py::test_the_pipe_closes_only_its_own_descriptor",
+    "tools/test_v0_s3_native_custody.py::test_the_old_owners_are_unchanged",
+    "tools/test_v0_s3_native_custody.py::test_the_old_refusal_points_are_still_declared"
+  ],
+  "collected": [
+    "tools/test_v0_s3_native_custody.py::test_a_valid_plan_is_accepted_and_closed",
+    "tools/test_v0_s3_native_custody.py::test_a_bool_runtime_is_refused",
+    "tools/test_v0_s3_native_custody.py::test_a_float_runtime_is_refused",
+    "tools/test_v0_s3_native_custody.py::test_a_nonfinite_lease_is_refused",
+    "tools/test_v0_s3_native_custody.py::test_an_expired_lease_is_refused",
+    "tools/test_v0_s3_native_custody.py::test_a_runtime_above_the_hard_cap_is_refused",
+    "tools/test_v0_s3_native_custody.py::test_an_unknown_role_is_refused",
+    "tools/test_v0_s3_native_custody.py::test_a_missing_required_role_is_refused",
+    "tools/test_v0_s3_native_custody.py::test_a_duplicate_role_is_refused",
+    "tools/test_v0_s3_native_custody.py::test_an_extra_plan_key_is_refused",
+    "tools/test_v0_s3_native_custody.py::test_an_arbitrary_argv_key_is_refused",
+    "tools/test_v0_s3_native_custody.py::test_a_shell_key_in_a_role_is_refused",
+    "tools/test_v0_s3_native_custody.py::test_a_relative_tool_path_is_refused",
+    "tools/test_v0_s3_native_custody.py::test_an_escaping_tool_path_is_refused",
+    "tools/test_v0_s3_native_custody.py::test_a_tool_digest_is_refused",
+    "tools/test_v0_s3_native_custody.py::test_an_escaping_log_reference_is_refused",
+    "tools/test_v0_s3_native_custody.py::test_an_absolute_log_reference_is_refused",
+    "tools/test_v0_s3_native_custody.py::test_a_drive_relative_log_reference_is_refused",
+    "tools/test_v0_s3_native_custody.py::test_an_alternate_data_stream_log_reference_is_refused",
+    "tools/test_v0_s3_native_custody.py::test_a_unc_or_backslash_log_reference_is_refused",
+    "tools/test_v0_s3_native_custody.py::test_a_posix_absolute_log_reference_is_refused",
+    "tools/test_v0_s3_native_custody.py::test_a_legal_relative_log_reference_is_accepted",
+    "tools/test_v0_s3_native_custody.py::test_an_illegal_log_reference_creates_nothing",
+    "tools/test_v0_s3_native_custody.py::test_the_broker_validates_the_plan_before_it_consumes_it",
+    "tools/test_v0_s3_native_custody.py::test_a_role_data_key_is_refused",
+    "tools/test_v0_s3_native_custody.py::test_no_remaining_child_budget_is_refused",
+    "tools/test_v0_s3_native_custody.py::test_a_runtime_above_the_child_budget_is_refused",
+    "tools/test_v0_s3_native_custody.py::test_the_user_directory_is_one_closed_segment",
+    "tools/test_v0_s3_native_custody.py::test_the_legal_user_directory_is_accepted",
+    "tools/test_v0_s3_native_custody.py::test_the_user_directory_refusal_creates_nothing",
+    "tools/test_v0_s3_native_custody.py::test_the_presented_seal_cannot_change_the_command_of_a_role",
+    "tools/test_v0_s3_native_custody.py::test_the_roles_of_the_plan_cannot_be_changed_by_the_caller",
+    "tools/test_v0_s3_native_custody.py::test_the_seal_bytes_and_the_digest_are_one_definition",
+    "tools/test_v0_s3_native_custody.py::test_the_default_nonce_is_the_closed_form",
+    "tools/test_v0_s3_native_custody.py::test_an_illegal_nonce_is_refused_before_anything_exists",
+    "tools/test_v0_s3_native_custody.py::test_the_broker_command_refuses_an_illegal_nonce",
+    "tools/test_v0_s3_native_custody.py::test_the_broker_command_keeps_the_fixed_private_parameter",
+    "tools/test_v0_s3_native_custody.py::test_the_launcher_refuses_before_it_creates_a_directory",
+    "tools/test_v0_s3_native_custody.py::test_a_foreign_nonce_is_refused",
+    "tools/test_v0_s3_native_custody.py::test_a_repeated_sequence_is_refused",
+    "tools/test_v0_s3_native_custody.py::test_an_extra_key_in_a_command_is_refused",
+    "tools/test_v0_s3_native_custody.py::test_a_frame_at_the_limit_is_accepted_and_one_over_is_refused",
+    "tools/test_v0_s3_native_custody.py::test_an_oversize_command_is_refused",
+    "tools/test_v0_s3_native_custody.py::test_a_reply_with_a_foreign_identity_is_refused",
+    "tools/test_v0_s3_native_custody.py::test_the_success_path_is_suspend_assign_resume",
+    "tools/test_v0_s3_native_custody.py::test_the_child_inherits_only_its_own_streams",
+    "tools/test_v0_s3_native_custody.py::test_a_create_failure_creates_nothing",
+    "tools/test_v0_s3_native_custody.py::test_an_assign_failure_stops_only_the_new_suspended_process",
+    "tools/test_v0_s3_native_custody.py::test_a_resume_failure_keeps_the_round_unknown",
+    "tools/test_v0_s3_native_custody.py::test_a_job_creation_failure_creates_nothing",
+    "tools/test_v0_s3_native_custody.py::test_a_job_limit_failure_closes_the_job_handle",
+    "tools/test_v0_s3_native_custody.py::test_a_pipe_failure_creates_nothing",
+    "tools/test_v0_s3_native_custody.py::test_a_failed_termination_stays_visible",
+    "tools/test_v0_s3_native_custody.py::test_a_job_termination_failure_is_not_a_release",
+    "tools/test_v0_s3_native_custody.py::test_an_unknown_failure_point_is_refused",
+    "tools/test_v0_s3_native_custody.py::test_a_foreign_process_is_never_stopped",
+    "tools/test_v0_s3_native_custody.py::test_a_partial_role_failure_stops_the_earlier_roles",
+    "tools/test_v0_s3_native_custody.py::test_an_unknown_job_query_is_not_zero",
+    "tools/test_v0_s3_native_custody.py::test_an_over_limit_job_query_is_not_zero",
+    "tools/test_v0_s3_native_custody.py::test_a_close_failure_keeps_the_round_unknown",
+    "tools/test_v0_s3_native_custody.py::test_a_stop_is_idempotent",
+    "tools/test_v0_s3_native_custody.py::test_the_job_is_closed_with_kill_on_close",
+    "tools/test_v0_s3_native_custody.py::test_the_sampler_is_created_last_with_the_pids_of_the_services",
+    "tools/test_v0_s3_native_custody.py::test_the_sampler_command_matches_the_parser_of_the_sampler",
+    "tools/test_v0_s3_native_custody.py::test_every_created_handle_enters_the_pending_table",
+    "tools/test_v0_s3_native_custody.py::test_an_assign_failure_closes_the_read_ends_of_the_role",
+    "tools/test_v0_s3_native_custody.py::test_a_handle_of_another_owner_is_never_touched",
+    "tools/test_v0_s3_native_custody.py::test_a_cancellation_during_the_launch_releases_the_round",
+    "tools/test_v0_s3_native_custody.py::test_a_diagnostic_failure_does_not_block_the_cleanup",
+    "tools/test_v0_s3_native_custody.py::test_a_write_failure_of_the_first_reply_releases_the_round",
+    "tools/test_v0_s3_native_custody.py::test_a_release_needs_the_readers_to_be_joined",
+    "tools/test_v0_s3_native_custody.py::test_a_read_error_is_not_the_end_of_a_stream",
+    "tools/test_v0_s3_native_custody.py::test_a_repeated_stop_does_not_close_twice",
+    "tools/test_v0_s3_native_custody.py::test_a_stop_command_answers_once",
+    "tools/test_v0_s3_native_custody.py::test_a_status_command_is_answered",
+    "tools/test_v0_s3_native_custody.py::test_a_channel_eof_stops_the_round",
+    "tools/test_v0_s3_native_custody.py::test_the_absolute_lease_stops_the_round",
+    "tools/test_v0_s3_native_custody.py::test_a_foreign_command_stops_the_round",
+    "tools/test_v0_s3_native_custody.py::test_the_frame_count_limit_is_enforced",
+    "tools/test_v0_s3_native_custody.py::test_the_deadline_of_the_round_is_frozen_before_the_job",
+    "tools/test_v0_s3_native_custody.py::test_the_session_refuses_a_plan_without_a_remaining_budget",
+    "tools/test_v0_s3_native_custody.py::test_the_session_holds_the_original_broker_handle",
+    "tools/test_v0_s3_native_custody.py::test_the_session_does_not_extend_the_deadline",
+    "tools/test_v0_s3_native_custody.py::test_a_repeated_stop_is_idempotent",
+    "tools/test_v0_s3_native_custody.py::test_the_evidence_keeps_every_native_claim_not_proven",
+    "tools/test_v0_s3_native_custody.py::test_the_broker_launch_is_refused_off_windows",
+    "tools/test_v0_s3_native_custody.py::test_the_windows_facade_is_not_loaded_off_windows",
+    "tools/test_v0_s3_native_custody.py::test_the_session_closes_the_broker_on_a_refusal",
+    "tools/test_v0_s3_native_custody.py::test_the_session_closes_the_broker_on_a_cancellation",
+    "tools/test_v0_s3_native_custody.py::test_the_session_closes_the_broker_on_a_parse_error",
+    "tools/test_v0_s3_native_custody.py::test_the_session_refuses_a_peer_that_is_not_deadline_aware",
+    "tools/test_v0_s3_native_custody.py::test_the_stop_uses_one_shared_cleanup_budget",
+    "tools/test_v0_s3_native_custody.py::test_the_heartbeat_keeps_a_long_round_alive",
+    "tools/test_v0_s3_native_custody.py::test_the_heartbeat_does_not_extend_the_absolute_deadline",
+    "tools/test_v0_s3_native_custody.py::test_a_heartbeat_failure_is_a_named_failure_of_the_round",
+    "tools/test_v0_s3_native_custody.py::test_the_frame_budget_fails_closed",
+    "tools/test_v0_s3_native_custody.py::test_the_heartbeat_period_and_the_missing_window_are_the_closed_ones",
+    "tools/test_v0_s3_native_custody.py::test_the_windows_types_use_the_windows_widths",
+    "tools/test_v0_s3_native_custody.py::test_every_primitive_of_the_broker_has_a_declared_prototype",
+    "tools/test_v0_s3_native_custody.py::test_the_prototypes_use_the_windows_widths",
+    "tools/test_v0_s3_native_custody.py::test_the_start_up_information_of_the_extended_structure_is_bigger",
+    "tools/test_v0_s3_native_custody.py::test_the_process_id_list_of_a_job_is_an_inline_array",
+    "tools/test_v0_s3_native_custody.py::test_the_child_is_created_with_the_extended_start_up_information",
+    "tools/test_v0_s3_native_custody.py::test_the_last_error_is_named_before_the_cleanup",
+    "tools/test_v0_s3_native_custody.py::test_the_invalid_handle_value_has_the_width_of_a_pointer",
+    "tools/test_v0_s3_native_custody.py::test_the_job_process_ids_are_read_from_the_inline_array",
+    "tools/test_v0_s3_native_custody.py::test_a_truncated_job_process_id_list_is_unknown",
+    "tools/test_v0_s3_native_custody.py::test_a_job_process_id_list_over_the_cap_is_unknown",
+    "tools/test_v0_s3_native_custody.py::test_the_pipe_is_non_blocking_and_never_waits_for_the_lock",
+    "tools/test_v0_s3_native_custody.py::test_the_pipe_read_is_bounded_by_the_deadline",
+    "tools/test_v0_s3_native_custody.py::test_the_pipe_read_observes_the_cancel_flag",
+    "tools/test_v0_s3_native_custody.py::test_the_pipe_reports_the_end_of_the_stream",
+    "tools/test_v0_s3_native_custody.py::test_the_pipe_write_retries_a_partial_write",
+    "tools/test_v0_s3_native_custody.py::test_the_pipe_write_is_bounded_by_the_deadline",
+    "tools/test_v0_s3_native_custody.py::test_the_pipe_closes_only_its_own_descriptor",
+    "tools/test_v0_s3_native_custody.py::test_the_old_owners_are_unchanged",
+    "tools/test_v0_s3_native_custody.py::test_the_old_refusal_points_are_still_declared"
+  ],
+  "call_count": 117,
+  "pass_count": 97,
+  "fail_count": 20,
+  "skip_count": 0,
+  "reports": [
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_a_valid_plan_is_accepted_and_closed",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 0.00031686300644651055,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_a_bool_runtime_is_refused",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 4.8093002988025546e-05,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_a_float_runtime_is_refused",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 3.522401675581932e-05,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_a_nonfinite_lease_is_refused",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 3.171002026647329e-05,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_an_expired_lease_is_refused",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 3.0727009288966656e-05,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_a_runtime_above_the_hard_cap_is_refused",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 9.058500290848315e-05,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_an_unknown_role_is_refused",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 3.2665993785485625e-05,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_a_missing_required_role_is_refused",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 4.167298902757466e-05,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_a_duplicate_role_is_refused",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 4.548902506940067e-05,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_an_extra_plan_key_is_refused",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 2.604199107736349e-05,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_an_arbitrary_argv_key_is_refused",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 3.053699037991464e-05,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_a_shell_key_in_a_role_is_refused",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 7.881299825385213e-05,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_a_relative_tool_path_is_refused",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 3.444301546551287e-05,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_an_escaping_tool_path_is_refused",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 3.340898547321558e-05,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_a_tool_digest_is_refused",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 3.3423013519495726e-05,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_an_escaping_log_reference_is_refused",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 3.831699723377824e-05,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_an_absolute_log_reference_is_refused",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 3.948700032196939e-05,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_a_drive_relative_log_reference_is_refused",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 3.6787998396903276e-05,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_an_alternate_data_stream_log_reference_is_refused",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 3.591098356992006e-05,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_a_unc_or_backslash_log_reference_is_refused",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 5.158697604201734e-05,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_a_posix_absolute_log_reference_is_refused",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 3.716899664141238e-05,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_a_legal_relative_log_reference_is_accepted",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 0.00015759302186779678,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_an_illegal_log_reference_creates_nothing",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 0.0001978810178115964,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_the_broker_validates_the_plan_before_it_consumes_it",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 0.00020651001250371337,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_a_role_data_key_is_refused",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 4.622898995876312e-05,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_no_remaining_child_budget_is_refused",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 8.260298636741936e-05,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_a_runtime_above_the_child_budget_is_refused",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 7.424099021591246e-05,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_the_user_directory_is_one_closed_segment",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 0.00021699999342672527,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_the_legal_user_directory_is_accepted",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 0.0002282109926454723,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_the_user_directory_refusal_creates_nothing",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 9.702000534161925e-05,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_the_presented_seal_cannot_change_the_command_of_a_role",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 0.00022119597997516394,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_the_roles_of_the_plan_cannot_be_changed_by_the_caller",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 0.00014980501146055758,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_the_seal_bytes_and_the_digest_are_one_definition",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 0.0002688870008569211,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_the_default_nonce_is_the_closed_form",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 5.80220075789839e-05,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_an_illegal_nonce_is_refused_before_anything_exists",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 0.0002203150070272386,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_the_broker_command_refuses_an_illegal_nonce",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 0.0001561270037200302,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_the_broker_command_keeps_the_fixed_private_parameter",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 0.0001841799821704626,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_the_launcher_refuses_before_it_creates_a_directory",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 7.479102350771427e-05,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_a_foreign_nonce_is_refused",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 0.00013391498941928148,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_a_repeated_sequence_is_refused",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 0.000100250996183604,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_an_extra_key_in_a_command_is_refused",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 9.41809848882258e-05,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_a_frame_at_the_limit_is_accepted_and_one_over_is_refused",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 5.458798841573298e-05,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_an_oversize_command_is_refused",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 0.00011187500786036253,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_a_reply_with_a_foreign_identity_is_refused",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 0.00014389402349479496,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_the_success_path_is_suspend_assign_resume",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 0.0010993029864039272,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_the_child_inherits_only_its_own_streams",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 0.0008526359742973,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_a_create_failure_creates_nothing",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 0.0004954159958288074,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_an_assign_failure_stops_only_the_new_suspended_process",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 0.0005121779977343976,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_a_resume_failure_keeps_the_round_unknown",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 0.00042321800719946623,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_a_job_creation_failure_creates_nothing",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 0.00010586000280454755,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_a_job_limit_failure_closes_the_job_handle",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 0.00011040200479328632,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_a_pipe_failure_creates_nothing",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 0.000496141001349315,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_a_failed_termination_stays_visible",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 0.000425145000917837,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_a_job_termination_failure_is_not_a_release",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 0.0009750280005391687,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_an_unknown_failure_point_is_refused",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 3.5137985832989216e-05,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_a_foreign_process_is_never_stopped",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 0.0010317880078218877,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_a_partial_role_failure_stops_the_earlier_roles",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 0.0008566080068703741,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_an_unknown_job_query_is_not_zero",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 0.0009742960100993514,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_an_over_limit_job_query_is_not_zero",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 0.0009217170008923858,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_a_close_failure_keeps_the_round_unknown",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 0.0013350170047488064,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_a_stop_is_idempotent",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 0.0009542370098643005,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_the_job_is_closed_with_kill_on_close",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 0.0009020979923661798,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_the_sampler_is_created_last_with_the_pids_of_the_services",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 0.0001862740027718246,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_the_sampler_command_matches_the_parser_of_the_sampler",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 7.499899948015809e-05,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_every_created_handle_enters_the_pending_table",
+      "when": "call",
+      "outcome": "failed",
+      "duration": 0.0010554559994488955,
+      "longrepr": "tools/test_v0_s3_native_custody.py:1341: in test_every_created_handle_enters_the_pending_table\n    assert core._pending.pending() == []\nE   AssertionError: assert [{'handle': 1...'role': None}] == []\nE     \nE     Left contains one more item: {'handle': 101, 'kind': 'job', 'owner': 'PENDING', 'role': None}\nE     Use -v to get more diff"
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_an_assign_failure_closes_the_read_ends_of_the_role",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 0.00048713397700339556,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_a_handle_of_another_owner_is_never_touched",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 0.0011024749837815762,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_a_cancellation_during_the_launch_releases_the_round",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 0.0004525689873844385,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_a_diagnostic_failure_does_not_block_the_cleanup",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 0.0009266670094802976,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_a_write_failure_of_the_first_reply_releases_the_round",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 0.00029850698774680495,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_a_release_needs_the_readers_to_be_joined",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 4.001555522001581,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_a_read_error_is_not_the_end_of_a_stream",
+      "when": "call",
+      "outcome": "failed",
+      "duration": 0.0012672150041908026,
+      "longrepr": "tools/test_v0_s3_native_custody.py:1494: in test_a_read_error_is_not_the_end_of_a_stream\n    assert any(state['error'] == 'BROKER_STREAM_READ_FAILED'\nE   assert False\nE    +  where False = any(<generator object test_a_read_error_is_not_the_end_of_a_stream.<locals>.<genexpr> at 0x7ce9f97682b0>)"
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_a_repeated_stop_does_not_close_twice",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 0.0011339269985910505,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_a_stop_command_answers_once",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 0.0012852129875682294,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_a_status_command_is_answered",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 0.0015647859836462885,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_a_channel_eof_stops_the_round",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 0.25162457599071786,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_the_absolute_lease_stops_the_round",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 0.25162448300397955,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_a_foreign_command_stops_the_round",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 0.0015261789958458394,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_the_frame_count_limit_is_enforced",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 0.0013881460181437433,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_the_deadline_of_the_round_is_frozen_before_the_job",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 0.2516836079885252,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_the_session_refuses_a_plan_without_a_remaining_budget",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 0.00014427100541070104,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_the_session_holds_the_original_broker_handle",
+      "when": "call",
+      "outcome": "failed",
+      "duration": 0.2505973429942969,
+      "longrepr": "tools/test_v0_s3_native_custody.py:1655: in test_the_session_holds_the_original_broker_handle\n    session.stop()\ntools/v0_s3_native_custody.py:1141: in stop\n    self._close_broker()\ntools/v0_s3_native_custody.py:1156: in _close_broker\n    self._stop_background()\ntools/v0_s3_native_custody.py:995: in _stop_background\n    if not self._pump.join_bounded(THREAD_JOIN_SECONDS):\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntools/v0_s3_native_custody.py:691: in join_bounded\n    self.join(seconds)\n/usr/lib/python3.12/threading.py:1151: in join\n    self._wait_for_tstate_lock(timeout=max(timeout, 0))\n/usr/lib/python3.12/threading.py:1169: in _wait_for_tstate_lock\n    self._stop()\nE   TypeError: 'Event' object is not callable"
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_the_session_does_not_extend_the_deadline",
+      "when": "call",
+      "outcome": "failed",
+      "duration": 0.25062154000625014,
+      "longrepr": "tools/test_v0_s3_native_custody.py:1670: in test_the_session_does_not_extend_the_deadline\n    session.stop()\ntools/v0_s3_native_custody.py:1141: in stop\n    self._close_broker()\ntools/v0_s3_native_custody.py:1156: in _close_broker\n    self._stop_background()\ntools/v0_s3_native_custody.py:995: in _stop_background\n    if not self._pump.join_bounded(THREAD_JOIN_SECONDS):\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntools/v0_s3_native_custody.py:691: in join_bounded\n    self.join(seconds)\n/usr/lib/python3.12/threading.py:1151: in join\n    self._wait_for_tstate_lock(timeout=max(timeout, 0))\n/usr/lib/python3.12/threading.py:1169: in _wait_for_tstate_lock\n    self._stop()\nE   TypeError: 'Event' object is not callable"
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_a_repeated_stop_is_idempotent",
+      "when": "call",
+      "outcome": "failed",
+      "duration": 0.25061951400130056,
+      "longrepr": "tools/test_v0_s3_native_custody.py:1679: in test_a_repeated_stop_is_idempotent\n    first = session.stop()\n            ^^^^^^^^^^^^^^\ntools/v0_s3_native_custody.py:1141: in stop\n    self._close_broker()\ntools/v0_s3_native_custody.py:1156: in _close_broker\n    self._stop_background()\ntools/v0_s3_native_custody.py:995: in _stop_background\n    if not self._pump.join_bounded(THREAD_JOIN_SECONDS):\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntools/v0_s3_native_custody.py:691: in join_bounded\n    self.join(seconds)\n/usr/lib/python3.12/threading.py:1151: in join\n    self._wait_for_tstate_lock(timeout=max(timeout, 0))\n/usr/lib/python3.12/threading.py:1169: in _wait_for_tstate_lock\n    self._stop()\nE   TypeError: 'Event' object is not callable"
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_the_evidence_keeps_every_native_claim_not_proven",
+      "when": "call",
+      "outcome": "failed",
+      "duration": 0.25057099998230115,
+      "longrepr": "tools/test_v0_s3_native_custody.py:1704: in test_the_evidence_keeps_every_native_claim_not_proven\n    evidence = session.stop()\n               ^^^^^^^^^^^^^^\ntools/v0_s3_native_custody.py:1141: in stop\n    self._close_broker()\ntools/v0_s3_native_custody.py:1156: in _close_broker\n    self._stop_background()\ntools/v0_s3_native_custody.py:995: in _stop_background\n    if not self._pump.join_bounded(THREAD_JOIN_SECONDS):\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntools/v0_s3_native_custody.py:691: in join_bounded\n    self.join(seconds)\n/usr/lib/python3.12/threading.py:1151: in join\n    self._wait_for_tstate_lock(timeout=max(timeout, 0))\n/usr/lib/python3.12/threading.py:1169: in _wait_for_tstate_lock\n    self._stop()\nE   TypeError: 'Event' object is not callable"
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_the_broker_launch_is_refused_off_windows",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 3.847299376502633e-05,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_the_windows_facade_is_not_loaded_off_windows",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 2.6577006792649627e-05,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_the_session_closes_the_broker_on_a_refusal",
+      "when": "call",
+      "outcome": "failed",
+      "duration": 0.2505281189805828,
+      "longrepr": "tools/test_v0_s3_native_custody.py:1749: in test_the_session_closes_the_broker_on_a_refusal\n    evidence = session.start()\n               ^^^^^^^^^^^^^^^\ntools/v0_s3_native_custody.py:1059: in start\n    self._close_broker()\ntools/v0_s3_native_custody.py:1156: in _close_broker\n    self._stop_background()\ntools/v0_s3_native_custody.py:995: in _stop_background\n    if not self._pump.join_bounded(THREAD_JOIN_SECONDS):\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntools/v0_s3_native_custody.py:691: in join_bounded\n    self.join(seconds)\n/usr/lib/python3.12/threading.py:1151: in join\n    self._wait_for_tstate_lock(timeout=max(timeout, 0))\n/usr/lib/python3.12/threading.py:1169: in _wait_for_tstate_lock\n    self._stop()\nE   TypeError: 'Event' object is not callable"
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_the_session_closes_the_broker_on_a_cancellation",
+      "when": "call",
+      "outcome": "failed",
+      "duration": 0.0006156350136734545,
+      "longrepr": "tools/test_v0_s3_native_custody.py:1766: in test_the_session_closes_the_broker_on_a_cancellation\n    assert caught == 'KeyboardInterrupt'\nE   AssertionError: assert 'TypeError' == 'KeyboardInterrupt'\nE     \nE     - KeyboardInterrupt\nE     + TypeError"
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_the_session_closes_the_broker_on_a_parse_error",
+      "when": "call",
+      "outcome": "failed",
+      "duration": 0.00013913100701756775,
+      "longrepr": "tools/test_v0_s3_native_custody.py:1792: in test_the_session_closes_the_broker_on_a_parse_error\n    assert state['peer'].close_count == 1\n           ^^^^^^^^^^^^^^^^^^^^^^^^^\nE   AttributeError: 'NoneType' object has no attribute 'close_count'"
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_the_session_refuses_a_peer_that_is_not_deadline_aware",
+      "when": "call",
+      "outcome": "failed",
+      "duration": 0.00018149902462027967,
+      "longrepr": "tools/test_v0_s3_native_custody.py:1811: in test_the_session_refuses_a_peer_that_is_not_deadline_aware\n    session.start()\ntools/v0_s3_native_custody.py:1017: in start\n    self.validate()\ntools/v0_s3_native_custody.py:815: in validate\n    enforce_child_budget(self.plan,\ntools/v0_s3_native_custody.py:465: in enforce_child_budget\n    raise CustodyError('CUSTODY_CHILD_BUDGET_TOO_SMALL')\nE   tools.v0_s3_native_custody.CustodyError: CUSTODY_CHILD_BUDGET_TOO_SMALL"
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_the_stop_uses_one_shared_cleanup_budget",
+      "when": "call",
+      "outcome": "failed",
+      "duration": 0.2505795350007247,
+      "longrepr": "tools/test_v0_s3_native_custody.py:1832: in test_the_stop_uses_one_shared_cleanup_budget\n    session.stop()\ntools/v0_s3_native_custody.py:1141: in stop\n    self._close_broker()\ntools/v0_s3_native_custody.py:1156: in _close_broker\n    self._stop_background()\ntools/v0_s3_native_custody.py:995: in _stop_background\n    if not self._pump.join_bounded(THREAD_JOIN_SECONDS):\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntools/v0_s3_native_custody.py:691: in join_bounded\n    self.join(seconds)\n/usr/lib/python3.12/threading.py:1151: in join\n    self._wait_for_tstate_lock(timeout=max(timeout, 0))\n/usr/lib/python3.12/threading.py:1169: in _wait_for_tstate_lock\n    self._stop()\nE   TypeError: 'Event' object is not callable"
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_the_heartbeat_keeps_a_long_round_alive",
+      "when": "call",
+      "outcome": "failed",
+      "duration": 0.25054763301159255,
+      "longrepr": "tools/test_v0_s3_native_custody.py:1869: in test_the_heartbeat_keeps_a_long_round_alive\n    session.stop()\ntools/v0_s3_native_custody.py:1141: in stop\n    self._close_broker()\ntools/v0_s3_native_custody.py:1156: in _close_broker\n    self._stop_background()\ntools/v0_s3_native_custody.py:995: in _stop_background\n    if not self._pump.join_bounded(THREAD_JOIN_SECONDS):\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntools/v0_s3_native_custody.py:691: in join_bounded\n    self.join(seconds)\n/usr/lib/python3.12/threading.py:1151: in join\n    self._wait_for_tstate_lock(timeout=max(timeout, 0))\n/usr/lib/python3.12/threading.py:1169: in _wait_for_tstate_lock\n    self._stop()\nE   TypeError: 'Event' object is not callable"
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_the_heartbeat_does_not_extend_the_absolute_deadline",
+      "when": "call",
+      "outcome": "failed",
+      "duration": 0.25065909800468944,
+      "longrepr": "tools/test_v0_s3_native_custody.py:1885: in test_the_heartbeat_does_not_extend_the_absolute_deadline\n    session.stop()\ntools/v0_s3_native_custody.py:1141: in stop\n    self._close_broker()\ntools/v0_s3_native_custody.py:1156: in _close_broker\n    self._stop_background()\ntools/v0_s3_native_custody.py:995: in _stop_background\n    if not self._pump.join_bounded(THREAD_JOIN_SECONDS):\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntools/v0_s3_native_custody.py:691: in join_bounded\n    self.join(seconds)\n/usr/lib/python3.12/threading.py:1151: in join\n    self._wait_for_tstate_lock(timeout=max(timeout, 0))\n/usr/lib/python3.12/threading.py:1169: in _wait_for_tstate_lock\n    self._stop()\nE   TypeError: 'Event' object is not callable"
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_a_heartbeat_failure_is_a_named_failure_of_the_round",
+      "when": "call",
+      "outcome": "failed",
+      "duration": 0.0006724760169163346,
+      "longrepr": "tools/test_v0_s3_native_custody.py:1897: in test_a_heartbeat_failure_is_a_named_failure_of_the_round\n    assert any('CUSTODY_HEARTBEAT_FAILED' in failure\nE   assert False\nE    +  where False = any(<generator object test_a_heartbeat_failure_is_a_named_failure_of_the_round.<locals>.<genexpr> at 0x7ce9fb3ea190>)"
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_the_frame_budget_fails_closed",
+      "when": "call",
+      "outcome": "failed",
+      "duration": 0.2505996050022077,
+      "longrepr": "tools/test_v0_s3_native_custody.py:1912: in test_the_frame_budget_fails_closed\n    session.stop()\ntools/v0_s3_native_custody.py:1141: in stop\n    self._close_broker()\ntools/v0_s3_native_custody.py:1156: in _close_broker\n    self._stop_background()\ntools/v0_s3_native_custody.py:995: in _stop_background\n    if not self._pump.join_bounded(THREAD_JOIN_SECONDS):\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntools/v0_s3_native_custody.py:691: in join_bounded\n    self.join(seconds)\n/usr/lib/python3.12/threading.py:1151: in join\n    self._wait_for_tstate_lock(timeout=max(timeout, 0))\n/usr/lib/python3.12/threading.py:1169: in _wait_for_tstate_lock\n    self._stop()\nE   TypeError: 'Event' object is not callable"
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_the_heartbeat_period_and_the_missing_window_are_the_closed_ones",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 3.144098445773125e-05,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_the_windows_types_use_the_windows_widths",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 0.0001602160045877099,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_every_primitive_of_the_broker_has_a_declared_prototype",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 0.00015616699238307774,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_the_prototypes_use_the_windows_widths",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 0.0001265640021301806,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_the_start_up_information_of_the_extended_structure_is_bigger",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 8.959398837760091e-05,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_the_process_id_list_of_a_job_is_an_inline_array",
+      "when": "call",
+      "outcome": "failed",
+      "duration": 0.00021668500266969204,
+      "longrepr": "tools/test_v0_s3_native_custody.py:2148: in test_the_process_id_list_of_a_job_is_an_inline_array\n    assert ctypes.sizeof(structure.ProcessIdList) == ctypes.sizeof(types['ULONG_PTR'])\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE   TypeError: this type has no size"
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_the_child_is_created_with_the_extended_start_up_information",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 0.0002601059968583286,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_the_last_error_is_named_before_the_cleanup",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 0.00014596301480196416,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_the_invalid_handle_value_has_the_width_of_a_pointer",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 0.00010378201841376722,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_the_job_process_ids_are_read_from_the_inline_array",
+      "when": "call",
+      "outcome": "failed",
+      "duration": 0.00013782698079012334,
+      "longrepr": "tools/test_v0_s3_native_custody.py:2207: in test_the_job_process_ids_are_read_from_the_inline_array\n    assert api.job_process_ids(0x99) == [111, 222]\n           ^^^^^^^^^^^^^^^^^^^^^^^^^\ntools/v0_s3_native_broker.py:604: in job_process_ids\n    if not self._api.kernel32.QueryInformationJobObject(\ntools/test_v0_s3_native_custody.py:2040: in QueryInformationJobObject\n    ctypes.memmove(ctypes.byref(buffer, 8 + index * pointer_size),\nE   ctypes.ArgumentError: argument 2: TypeError: wrong type"
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_a_truncated_job_process_id_list_is_unknown",
+      "when": "call",
+      "outcome": "failed",
+      "duration": 0.00019742600852623582,
+      "longrepr": "tools/test_v0_s3_native_custody.py:2225: in test_a_truncated_job_process_id_list_is_unknown\n    api.job_process_ids(0x99)\ntools/v0_s3_native_broker.py:604: in job_process_ids\n    if not self._api.kernel32.QueryInformationJobObject(\ntools/test_v0_s3_native_custody.py:2218: in truncating\n    ctypes.memmove(ctypes.byref(buffer, 0), ctypes.c_uint32(5), 4)\nE   ctypes.ArgumentError: argument 2: TypeError: wrong type"
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_a_job_process_id_list_over_the_cap_is_unknown",
+      "when": "call",
+      "outcome": "failed",
+      "duration": 0.00017522898269817233,
+      "longrepr": "tools/test_v0_s3_native_custody.py:2234: in test_a_job_process_id_list_over_the_cap_is_unknown\n    api.job_process_ids(0x99)\ntools/v0_s3_native_broker.py:604: in job_process_ids\n    if not self._api.kernel32.QueryInformationJobObject(\ntools/test_v0_s3_native_custody.py:2040: in QueryInformationJobObject\n    ctypes.memmove(ctypes.byref(buffer, 8 + index * pointer_size),\nE   ctypes.ArgumentError: argument 2: TypeError: wrong type"
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_the_pipe_is_non_blocking_and_never_waits_for_the_lock",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 0.00016333299572579563,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_the_pipe_read_is_bounded_by_the_deadline",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 5.124800372868776e-05,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_the_pipe_read_observes_the_cancel_flag",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 4.501800867728889e-05,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_the_pipe_reports_the_end_of_the_stream",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 7.110100705176592e-05,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_the_pipe_write_retries_a_partial_write",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 3.3459014957770705e-05,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_the_pipe_write_is_bounded_by_the_deadline",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 3.375601954758167e-05,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_the_pipe_closes_only_its_own_descriptor",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 2.839299850165844e-05,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_the_old_owners_are_unchanged",
+      "when": "call",
+      "outcome": "failed",
+      "duration": 0.00030567802605219185,
+      "longrepr": "tools/test_v0_s3_native_custody.py:2401: in test_the_old_owners_are_unchanged\n    assert hashlib.sha256(path.read_bytes()).hexdigest() == digest, relative\nE   AssertionError: lvw/backend/app/native_runtime.py\nE   assert '16bf3e6396f9...d71179b231a85' == '16bf3e6396f9...d71179b231a85'\nE     \nE     - 16bf3e6396f9548312f92007eebbda55a448f0bdc6cab4a10afd71179b231a85\nE     ?                                           ^\nE     + 16bf3e6396f9548312f92007eebbda55a448f0bdc6bab4a10afd71179b231a85\nE     ?                                           ^"
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody.py::test_the_old_refusal_points_are_still_declared",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 0.00021295298938639462,
+      "longrepr": null
+    }
+  ],
+  "integrity_only_nodes": [
+    "tools/test_v0_s3_native_custody.py::test_the_old_owners_are_unchanged",
+    "tools/test_v0_s3_native_custody.py::test_the_old_refusal_points_are_still_declared"
+  ],
+  "functional_pass_count": 96,
+  "fd_before": {
+    "available": true,
+    "rows": {
+      "0": [
+        9,
+        6677625,
+        49663
+      ],
+      "1": [
+        2112,
+        2913687,
+        33188
+      ],
+      "2": [
+        2112,
+        2913688,
+        33188
+      ]
+    },
+    "filtered": [
+      3
+    ],
+    "unknown": []
+  },
+  "fd_after": {
+    "available": true,
+    "rows": {
+      "0": [
+        9,
+        6677625,
+        49663
+      ],
+      "1": [
+        2112,
+        2913687,
+        33188
+      ],
+      "2": [
+        2112,
+        2913688,
+        33188
+      ]
+    },
+    "filtered": [
+      3
+    ],
+    "unknown": []
+  },
+  "new_or_reused_fds": [],
+  "threads_before": [
+    "MainThread"
+  ],
+  "threads_after": [
+    "MainThread",
+    "lvw-native-custody-channel-pump",
+    "lvw-native-custody-heartbeat"
+  ],
+  "cleanup_proven_for_batch": false,
+  "stage_pass_claim": false,
+  "native_proven": false,
+  "dependency_scope": "Previously frozen named dependency files, not full environment distributions/transitive closure"
+}

@@ -1,0 +1,260 @@
+................................................................F......F.........FFFF..FFFFFFFFF.....F...FFF.......F.
+=================================== FAILURES ===================================
+______________ test_every_created_handle_enters_the_pending_table ______________
+tools/test_v0_s3_native_custody.py:1341: in test_every_created_handle_enters_the_pending_table
+    assert core._pending.pending() == []
+E   AssertionError: assert [{'handle': 1...'role': None}] == []
+E     
+E     Left contains one more item: {'handle': 101, 'kind': 'job', 'owner': 'PENDING', 'role': None}
+E     Use -v to get more diff
+_________________ test_a_read_error_is_not_the_end_of_a_stream _________________
+tools/test_v0_s3_native_custody.py:1494: in test_a_read_error_is_not_the_end_of_a_stream
+    assert any(state['error'] == 'BROKER_STREAM_READ_FAILED'
+E   assert False
+E    +  where False = any(<generator object test_a_read_error_is_not_the_end_of_a_stream.<locals>.<genexpr> at 0x7ce9f97682b0>)
+______________ test_the_session_holds_the_original_broker_handle _______________
+tools/test_v0_s3_native_custody.py:1655: in test_the_session_holds_the_original_broker_handle
+    session.stop()
+tools/v0_s3_native_custody.py:1141: in stop
+    self._close_broker()
+tools/v0_s3_native_custody.py:1156: in _close_broker
+    self._stop_background()
+tools/v0_s3_native_custody.py:995: in _stop_background
+    if not self._pump.join_bounded(THREAD_JOIN_SECONDS):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_s3_native_custody.py:691: in join_bounded
+    self.join(seconds)
+/usr/lib/python3.12/threading.py:1151: in join
+    self._wait_for_tstate_lock(timeout=max(timeout, 0))
+/usr/lib/python3.12/threading.py:1169: in _wait_for_tstate_lock
+    self._stop()
+E   TypeError: 'Event' object is not callable
+________________ test_the_session_does_not_extend_the_deadline _________________
+tools/test_v0_s3_native_custody.py:1670: in test_the_session_does_not_extend_the_deadline
+    session.stop()
+tools/v0_s3_native_custody.py:1141: in stop
+    self._close_broker()
+tools/v0_s3_native_custody.py:1156: in _close_broker
+    self._stop_background()
+tools/v0_s3_native_custody.py:995: in _stop_background
+    if not self._pump.join_bounded(THREAD_JOIN_SECONDS):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_s3_native_custody.py:691: in join_bounded
+    self.join(seconds)
+/usr/lib/python3.12/threading.py:1151: in join
+    self._wait_for_tstate_lock(timeout=max(timeout, 0))
+/usr/lib/python3.12/threading.py:1169: in _wait_for_tstate_lock
+    self._stop()
+E   TypeError: 'Event' object is not callable
+______________________ test_a_repeated_stop_is_idempotent ______________________
+tools/test_v0_s3_native_custody.py:1679: in test_a_repeated_stop_is_idempotent
+    first = session.stop()
+            ^^^^^^^^^^^^^^
+tools/v0_s3_native_custody.py:1141: in stop
+    self._close_broker()
+tools/v0_s3_native_custody.py:1156: in _close_broker
+    self._stop_background()
+tools/v0_s3_native_custody.py:995: in _stop_background
+    if not self._pump.join_bounded(THREAD_JOIN_SECONDS):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_s3_native_custody.py:691: in join_bounded
+    self.join(seconds)
+/usr/lib/python3.12/threading.py:1151: in join
+    self._wait_for_tstate_lock(timeout=max(timeout, 0))
+/usr/lib/python3.12/threading.py:1169: in _wait_for_tstate_lock
+    self._stop()
+E   TypeError: 'Event' object is not callable
+____________ test_the_evidence_keeps_every_native_claim_not_proven _____________
+tools/test_v0_s3_native_custody.py:1704: in test_the_evidence_keeps_every_native_claim_not_proven
+    evidence = session.stop()
+               ^^^^^^^^^^^^^^
+tools/v0_s3_native_custody.py:1141: in stop
+    self._close_broker()
+tools/v0_s3_native_custody.py:1156: in _close_broker
+    self._stop_background()
+tools/v0_s3_native_custody.py:995: in _stop_background
+    if not self._pump.join_bounded(THREAD_JOIN_SECONDS):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_s3_native_custody.py:691: in join_bounded
+    self.join(seconds)
+/usr/lib/python3.12/threading.py:1151: in join
+    self._wait_for_tstate_lock(timeout=max(timeout, 0))
+/usr/lib/python3.12/threading.py:1169: in _wait_for_tstate_lock
+    self._stop()
+E   TypeError: 'Event' object is not callable
+_______________ test_the_session_closes_the_broker_on_a_refusal ________________
+tools/test_v0_s3_native_custody.py:1749: in test_the_session_closes_the_broker_on_a_refusal
+    evidence = session.start()
+               ^^^^^^^^^^^^^^^
+tools/v0_s3_native_custody.py:1059: in start
+    self._close_broker()
+tools/v0_s3_native_custody.py:1156: in _close_broker
+    self._stop_background()
+tools/v0_s3_native_custody.py:995: in _stop_background
+    if not self._pump.join_bounded(THREAD_JOIN_SECONDS):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_s3_native_custody.py:691: in join_bounded
+    self.join(seconds)
+/usr/lib/python3.12/threading.py:1151: in join
+    self._wait_for_tstate_lock(timeout=max(timeout, 0))
+/usr/lib/python3.12/threading.py:1169: in _wait_for_tstate_lock
+    self._stop()
+E   TypeError: 'Event' object is not callable
+_____________ test_the_session_closes_the_broker_on_a_cancellation _____________
+tools/test_v0_s3_native_custody.py:1766: in test_the_session_closes_the_broker_on_a_cancellation
+    assert caught == 'KeyboardInterrupt'
+E   AssertionError: assert 'TypeError' == 'KeyboardInterrupt'
+E     
+E     - KeyboardInterrupt
+E     + TypeError
+_____________ test_the_session_closes_the_broker_on_a_parse_error ______________
+tools/test_v0_s3_native_custody.py:1792: in test_the_session_closes_the_broker_on_a_parse_error
+    assert state['peer'].close_count == 1
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: 'NoneType' object has no attribute 'close_count'
+__________ test_the_session_refuses_a_peer_that_is_not_deadline_aware __________
+tools/test_v0_s3_native_custody.py:1811: in test_the_session_refuses_a_peer_that_is_not_deadline_aware
+    session.start()
+tools/v0_s3_native_custody.py:1017: in start
+    self.validate()
+tools/v0_s3_native_custody.py:815: in validate
+    enforce_child_budget(self.plan,
+tools/v0_s3_native_custody.py:465: in enforce_child_budget
+    raise CustodyError('CUSTODY_CHILD_BUDGET_TOO_SMALL')
+E   tools.v0_s3_native_custody.CustodyError: CUSTODY_CHILD_BUDGET_TOO_SMALL
+_________________ test_the_stop_uses_one_shared_cleanup_budget _________________
+tools/test_v0_s3_native_custody.py:1832: in test_the_stop_uses_one_shared_cleanup_budget
+    session.stop()
+tools/v0_s3_native_custody.py:1141: in stop
+    self._close_broker()
+tools/v0_s3_native_custody.py:1156: in _close_broker
+    self._stop_background()
+tools/v0_s3_native_custody.py:995: in _stop_background
+    if not self._pump.join_bounded(THREAD_JOIN_SECONDS):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_s3_native_custody.py:691: in join_bounded
+    self.join(seconds)
+/usr/lib/python3.12/threading.py:1151: in join
+    self._wait_for_tstate_lock(timeout=max(timeout, 0))
+/usr/lib/python3.12/threading.py:1169: in _wait_for_tstate_lock
+    self._stop()
+E   TypeError: 'Event' object is not callable
+_________________ test_the_heartbeat_keeps_a_long_round_alive __________________
+tools/test_v0_s3_native_custody.py:1869: in test_the_heartbeat_keeps_a_long_round_alive
+    session.stop()
+tools/v0_s3_native_custody.py:1141: in stop
+    self._close_broker()
+tools/v0_s3_native_custody.py:1156: in _close_broker
+    self._stop_background()
+tools/v0_s3_native_custody.py:995: in _stop_background
+    if not self._pump.join_bounded(THREAD_JOIN_SECONDS):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_s3_native_custody.py:691: in join_bounded
+    self.join(seconds)
+/usr/lib/python3.12/threading.py:1151: in join
+    self._wait_for_tstate_lock(timeout=max(timeout, 0))
+/usr/lib/python3.12/threading.py:1169: in _wait_for_tstate_lock
+    self._stop()
+E   TypeError: 'Event' object is not callable
+___________ test_the_heartbeat_does_not_extend_the_absolute_deadline ___________
+tools/test_v0_s3_native_custody.py:1885: in test_the_heartbeat_does_not_extend_the_absolute_deadline
+    session.stop()
+tools/v0_s3_native_custody.py:1141: in stop
+    self._close_broker()
+tools/v0_s3_native_custody.py:1156: in _close_broker
+    self._stop_background()
+tools/v0_s3_native_custody.py:995: in _stop_background
+    if not self._pump.join_bounded(THREAD_JOIN_SECONDS):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_s3_native_custody.py:691: in join_bounded
+    self.join(seconds)
+/usr/lib/python3.12/threading.py:1151: in join
+    self._wait_for_tstate_lock(timeout=max(timeout, 0))
+/usr/lib/python3.12/threading.py:1169: in _wait_for_tstate_lock
+    self._stop()
+E   TypeError: 'Event' object is not callable
+___________ test_a_heartbeat_failure_is_a_named_failure_of_the_round ___________
+tools/test_v0_s3_native_custody.py:1897: in test_a_heartbeat_failure_is_a_named_failure_of_the_round
+    assert any('CUSTODY_HEARTBEAT_FAILED' in failure
+E   assert False
+E    +  where False = any(<generator object test_a_heartbeat_failure_is_a_named_failure_of_the_round.<locals>.<genexpr> at 0x7ce9fb3ea190>)
+______________________ test_the_frame_budget_fails_closed ______________________
+tools/test_v0_s3_native_custody.py:1912: in test_the_frame_budget_fails_closed
+    session.stop()
+tools/v0_s3_native_custody.py:1141: in stop
+    self._close_broker()
+tools/v0_s3_native_custody.py:1156: in _close_broker
+    self._stop_background()
+tools/v0_s3_native_custody.py:995: in _stop_background
+    if not self._pump.join_bounded(THREAD_JOIN_SECONDS):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_s3_native_custody.py:691: in join_bounded
+    self.join(seconds)
+/usr/lib/python3.12/threading.py:1151: in join
+    self._wait_for_tstate_lock(timeout=max(timeout, 0))
+/usr/lib/python3.12/threading.py:1169: in _wait_for_tstate_lock
+    self._stop()
+E   TypeError: 'Event' object is not callable
+_____________ test_the_process_id_list_of_a_job_is_an_inline_array _____________
+tools/test_v0_s3_native_custody.py:2148: in test_the_process_id_list_of_a_job_is_an_inline_array
+    assert ctypes.sizeof(structure.ProcessIdList) == ctypes.sizeof(types['ULONG_PTR'])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: this type has no size
+___________ test_the_job_process_ids_are_read_from_the_inline_array ____________
+tools/test_v0_s3_native_custody.py:2207: in test_the_job_process_ids_are_read_from_the_inline_array
+    assert api.job_process_ids(0x99) == [111, 222]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_s3_native_broker.py:604: in job_process_ids
+    if not self._api.kernel32.QueryInformationJobObject(
+tools/test_v0_s3_native_custody.py:2040: in QueryInformationJobObject
+    ctypes.memmove(ctypes.byref(buffer, 8 + index * pointer_size),
+E   ctypes.ArgumentError: argument 2: TypeError: wrong type
+_______________ test_a_truncated_job_process_id_list_is_unknown ________________
+tools/test_v0_s3_native_custody.py:2225: in test_a_truncated_job_process_id_list_is_unknown
+    api.job_process_ids(0x99)
+tools/v0_s3_native_broker.py:604: in job_process_ids
+    if not self._api.kernel32.QueryInformationJobObject(
+tools/test_v0_s3_native_custody.py:2218: in truncating
+    ctypes.memmove(ctypes.byref(buffer, 0), ctypes.c_uint32(5), 4)
+E   ctypes.ArgumentError: argument 2: TypeError: wrong type
+______________ test_a_job_process_id_list_over_the_cap_is_unknown ______________
+tools/test_v0_s3_native_custody.py:2234: in test_a_job_process_id_list_over_the_cap_is_unknown
+    api.job_process_ids(0x99)
+tools/v0_s3_native_broker.py:604: in job_process_ids
+    if not self._api.kernel32.QueryInformationJobObject(
+tools/test_v0_s3_native_custody.py:2040: in QueryInformationJobObject
+    ctypes.memmove(ctypes.byref(buffer, 8 + index * pointer_size),
+E   ctypes.ArgumentError: argument 2: TypeError: wrong type
+______________________ test_the_old_owners_are_unchanged _______________________
+tools/test_v0_s3_native_custody.py:2401: in test_the_old_owners_are_unchanged
+    assert hashlib.sha256(path.read_bytes()).hexdigest() == digest, relative
+E   AssertionError: lvw/backend/app/native_runtime.py
+E   assert '16bf3e6396f9...d71179b231a85' == '16bf3e6396f9...d71179b231a85'
+E     
+E     - 16bf3e6396f9548312f92007eebbda55a448f0bdc6cab4a10afd71179b231a85
+E     ?                                           ^
+E     + 16bf3e6396f9548312f92007eebbda55a448f0bdc6bab4a10afd71179b231a85
+E     ?                                           ^
+=========================== short test summary info ============================
+FAILED tools/test_v0_s3_native_custody.py::test_every_created_handle_enters_the_pending_table
+FAILED tools/test_v0_s3_native_custody.py::test_a_read_error_is_not_the_end_of_a_stream
+FAILED tools/test_v0_s3_native_custody.py::test_the_session_holds_the_original_broker_handle
+FAILED tools/test_v0_s3_native_custody.py::test_the_session_does_not_extend_the_deadline
+FAILED tools/test_v0_s3_native_custody.py::test_a_repeated_stop_is_idempotent
+FAILED tools/test_v0_s3_native_custody.py::test_the_evidence_keeps_every_native_claim_not_proven
+FAILED tools/test_v0_s3_native_custody.py::test_the_session_closes_the_broker_on_a_refusal
+FAILED tools/test_v0_s3_native_custody.py::test_the_session_closes_the_broker_on_a_cancellation
+FAILED tools/test_v0_s3_native_custody.py::test_the_session_closes_the_broker_on_a_parse_error
+FAILED tools/test_v0_s3_native_custody.py::test_the_session_refuses_a_peer_that_is_not_deadline_aware
+FAILED tools/test_v0_s3_native_custody.py::test_the_stop_uses_one_shared_cleanup_budget
+FAILED tools/test_v0_s3_native_custody.py::test_the_heartbeat_keeps_a_long_round_alive
+FAILED tools/test_v0_s3_native_custody.py::test_the_heartbeat_does_not_extend_the_absolute_deadline
+FAILED tools/test_v0_s3_native_custody.py::test_a_heartbeat_failure_is_a_named_failure_of_the_round
+FAILED tools/test_v0_s3_native_custody.py::test_the_frame_budget_fails_closed
+FAILED tools/test_v0_s3_native_custody.py::test_the_process_id_list_of_a_job_is_an_inline_array
+FAILED tools/test_v0_s3_native_custody.py::test_the_job_process_ids_are_read_from_the_inline_array
+FAILED tools/test_v0_s3_native_custody.py::test_a_truncated_job_process_id_list_is_unknown
+FAILED tools/test_v0_s3_native_custody.py::test_a_job_process_id_list_over_the_cap_is_unknown
+FAILED tools/test_v0_s3_native_custody.py::test_the_old_owners_are_unchanged
+20 failed, 97 passed in 7.84s
+{"pytest_exit": 1, "call_count": 117, "pass_count": 97, "fail_count": 20, "skip_count": 0, "functional_pass_count": 96, "cleanup_proven_for_batch": false}
