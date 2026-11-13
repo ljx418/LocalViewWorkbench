@@ -1,0 +1,9 @@
+本次暂不ACK动态批次。root已静态确认局部生产缺口：StreamChannel.close设置_cancel，_drain except把相应BrokerError永久写_error，后续reader_error粘滞会阻止释放。这是有效缺陷，但是否为上轮F5完整根因仍须新first/second原始facts，不预宣称已定位全部。决定 /mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-08/close-cancellation-decision-01/decision.json，原请求已封存。
+批准在本correction08内追加最小静态生产修改，仅tools/v0_s3_native_broker.py的StreamChannel及必要的私有endpoint取消来源标识；custody与所有旧owner冻结，不改公开合同/strict required facts/质量阈值。
+必须遵循：
+1. 只能把本channel当前这次close主动发起、可证明来自同一原cancel/请求owner的取消作为正常关闭事实；显式close状态/来源token或等效身份绑定先于发起取消原子登记。不能只按BROKER_PIPE_CANCELLED/BROKER_CHANNEL_CANCELLED字符串或error恰在close后出现就吞错，不能把任意round取消都视正常。
+2. 保留关闭取消的原始具名事件/来源/顺序用于证据，它不是读故障但也不证明reader/thread/worker/HANDLE已释放。所有原strict成功事实仍需实际确认，close返回不能直接强设reader_error=None/全部closedTrue。close前已有_error、无关/来源未知取消、读取普通异常、timeout/overflow/partial frame都保留原错误并UNKNOWN；禁止清空历史_error或把partial buffer丢弃为正常结束。
+3. 取消请求不是完成，仍必须真实join和端点/HANDLE恢复。若预期本地close取消可区分，就在错误产生源处给真实来源标识，不能依赖测试替身给“benign”布尔。公开错误码不变，私有来源可增量，不扩展新平台。
+4. 至少在现有N07-R15或同18组内增加三个实际生产行为场景：本地close取消→严格真实资源释放；close前/无关来源的同码取消→reader_error保留且broker UNKNOWN；普通读取故障或partial frame与close竞争→原错误不丢且UNKNOWN。故障证明先保存再test owner finally salvage。175nodeids顺序保持，可在节点内增加有界子场景，不能删原断言。
+5. 保留你已准备的F5定向原HANDLE故障、first/second/salvage跨层原始facts记录。一次公共stop后只解除明确故障条件，第二次真实链收敛；若仍不完整只报告证据，不重跑/添加第三次凑绿。不能把新分类当上轮F5已证根因。
+静态完成后精确提交新候选（含最小broker修改、受影响三测试与NEW报告），更新全部pins和报告说明，再askroot NEW目录冻结175有限计划，当前仍不import/collect/pytest/运行guard/读counter。原ada50与23e2789及旧收据保留，不覆盖。原contract其他限制/FIRST429停WAIT_BUDGET/首次审批拒绝或超时停止/无真实服务模型GPU/单次ACK后执行条款保持。ask后结束turn不同时worker_done。不需新人批；这是已有范围内root实现方案裁决，不修改产品合同。六Major仍OPEN，只READY_FOR_REVIEW。
