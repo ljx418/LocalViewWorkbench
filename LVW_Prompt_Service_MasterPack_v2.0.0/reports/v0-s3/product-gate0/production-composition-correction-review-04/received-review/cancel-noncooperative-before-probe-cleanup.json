@@ -1,0 +1,475 @@
+{
+  "exit": 4,
+  "receipt": {
+    "admission": {
+      "accepted": false,
+      "budget_authority": "S3BudgetBindingProvider",
+      "budget_binding_scope": "SEALED_BINDING_SHAPE_ONLY_NOT_BALANCE_NOT_AUTHORIZATION_NOT_CUSTODY",
+      "debit_owner": "original_ledger_authority",
+      "kind": "lvw.s3-native-admission-report/1",
+      "native_execution_backend_code": "NATIVE_EXECUTION_BACKEND_NOT_READY",
+      "native_execution_backend_ready": false,
+      "original_ledger_touched_by_this_controller": false,
+      "primary_reason": "NATIVE_ADMISSION_NOT_REQUIRED_FOR_THE_OFFLINE_SEAM",
+      "product_gate0": false,
+      "reasons": [
+        "NATIVE_ADMISSION_NOT_REQUIRED_FOR_THE_OFFLINE_SEAM"
+      ],
+      "stage_pass_claim": false,
+      "verified": [],
+      "verified_scope": "SHAPE_AND_IDENTITY_OF_SEALED_DOCUMENTS_ONLY"
+    },
+    "archive_allowed": false,
+    "authorization_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "candidate_sha": "b95de076f37e64d321629c065e5531eba8a5250a",
+    "command": [
+      "python3",
+      "-I",
+      "-B",
+      "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_quality_worker.py",
+      "--context",
+      "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-04/cases/cancel-noncooperative/run/contexts/worker-context.json",
+      "--context-sha256",
+      "ed06b52e8e9ead232c2ef867167a4c858f97a01c1abece242d1e16b8028c1330"
+    ],
+    "composition_facts": [],
+    "disk_actions": {
+      "receipt_path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-04/cases/cancel-noncooperative/run/temp/s3-production-controller/receipt-s3-p4-composition-01.json",
+      "receipt_sha256": "330e60be14ce002ca955dc263fb9e4b744bdab8d6af248c7fadb4007c3576bf0",
+      "receipt_written": true,
+      "scope": "THE_FILES_THAT_THIS_RUN_WROTE;AN_OBJECTIVE_FACT_AND_NEITHER_A_ROLLBACK_NOR_A_CLEANUP_CLAIM",
+      "summary_current_visibility": {
+        "error": null,
+        "state": "NOT_APPLICABLE_NO_SUMMARY_WAS_WRITTEN",
+        "the_historical_write_of_the_summary_is_not_revoked": true
+      },
+      "summary_path": null,
+      "summary_sha256": null,
+      "summary_write_fact": "THE_WRITE_OF_THE_SUMMARY_RETURNED_SUCCESSFULLY;IT_IS_NEVER_REVOKED_BY_A_LATER_OBSERVATION",
+      "summary_written": false,
+      "the_receipt_file_does_not_attest_its_own_write": "THE_RECEIPT_ON_THE_DISK_CARRIES_THE_FACTS_THAT_WERE_TRUE_WHEN_IT_WAS_WRITTEN;THE_WRITE_OF_THE_RECEIPT_IS_NOT_ATTESTED_BY_THE_RECEIPT_ITSELF",
+      "the_summary_is_not_deleted_and_is_not_rewritten": true
+    },
+    "duration_seconds": 7.557645,
+    "execution_attempts": 1,
+    "execution_mode": "OFFLINE_SYNTHETIC_COMPOSITION",
+    "fd_cleanup": {
+      "controller_anchor_descriptors": [
+        3,
+        4
+      ],
+      "controller_anchor_descriptors_scope": "THE_BOUND_ROOT_AND_THE_OUTPUT_DIRECTORY_OF_THIS_RUN;THEY_ARE_HELD_BY_THE_RUN_AND_CLOSED_WHEN_THE_RUN_RETURNS",
+      "error": null,
+      "fd_after": {
+        "closed_entries": [
+          6
+        ],
+        "identity": {
+          "0": {
+            "device": 15,
+            "inode": 6406010,
+            "mode": 4480
+          },
+          "1": {
+            "device": 2112,
+            "inode": 2910148,
+            "mode": 33188
+          },
+          "2": {
+            "device": 2112,
+            "inode": 2910149,
+            "mode": 33188
+          },
+          "3": {
+            "device": 2112,
+            "inode": 2912601,
+            "mode": 16877
+          },
+          "4": {
+            "device": 2112,
+            "inode": 2912630,
+            "mode": 16832
+          },
+          "11": {
+            "device": 2112,
+            "inode": 2912601,
+            "mode": 16877
+          },
+          "12": {
+            "device": 2112,
+            "inode": 2912604,
+            "mode": 16877
+          },
+          "13": {
+            "device": 2112,
+            "inode": 2912632,
+            "mode": 16832
+          }
+        },
+        "open": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          11,
+          12,
+          13
+        ],
+        "unverified_entries": []
+      },
+      "fd_before": {
+        "closed_entries": [
+          4
+        ],
+        "identity": {
+          "0": {
+            "device": 15,
+            "inode": 6406010,
+            "mode": 4480
+          },
+          "1": {
+            "device": 2112,
+            "inode": 2910148,
+            "mode": 33188
+          },
+          "2": {
+            "device": 2112,
+            "inode": 2910149,
+            "mode": 33188
+          }
+        },
+        "open": [
+          0,
+          1,
+          2
+        ],
+        "unverified_entries": []
+      },
+      "fd_leaked": [
+        11,
+        12,
+        13
+      ],
+      "observation_point": "PRE_RELEASE: the snapshot is taken at the end of the run body, before this run releases the descriptors it held; the descriptors of this run are named below and are excluded from the leak set",
+      "readers_closed": {
+        "closed_streams": [],
+        "stderr_drain_complete": false,
+        "stderr_read_error": null,
+        "stdout_drain_complete": false,
+        "stdout_read_error": null
+      },
+      "status": "OBSERVED",
+      "the_observation_of_the_descriptors_of_this_run_failed": false,
+      "worker_exit_code": null,
+      "worker_lifecycle": {
+        "cooperative_cancel_observed": true,
+        "cooperative_cancel_requested": false,
+        "late_write_after_return_is_possible": true,
+        "lifecycle_owner": "offline_seam",
+        "worker_thread_alive": true,
+        "worker_thread_finished": false,
+        "worker_thread_killable": false,
+        "worker_thread_retained": true
+      },
+      "worker_thread_finished": false
+    },
+    "fd_cleanup_post_release": {
+      "fd_leaked": [
+        11,
+        12,
+        13
+      ],
+      "observation_point": "POST_RELEASE: the snapshot is taken after this run released the descriptors that it held",
+      "product_gate0": false,
+      "snapshot": {
+        "closed_entries": [
+          4
+        ],
+        "identity": {
+          "0": {
+            "device": 15,
+            "inode": 6406010,
+            "mode": 4480
+          },
+          "1": {
+            "device": 2112,
+            "inode": 2910148,
+            "mode": 33188
+          },
+          "2": {
+            "device": 2112,
+            "inode": 2910149,
+            "mode": 33188
+          },
+          "11": {
+            "device": 2112,
+            "inode": 2912601,
+            "mode": 16877
+          },
+          "12": {
+            "device": 2112,
+            "inode": 2912604,
+            "mode": 16877
+          },
+          "13": {
+            "device": 2112,
+            "inode": 2912632,
+            "mode": 16832
+          }
+        },
+        "open": [
+          0,
+          1,
+          2,
+          11,
+          12,
+          13
+        ],
+        "unverified_entries": []
+      },
+      "stage_pass_claim": false,
+      "the_persisted_receipt_carries": "PRE_RELEASE"
+    },
+    "kind": "lvw.s3-production-controller-receipt/1",
+    "native_execution_backend_code": "NATIVE_EXECUTION_BACKEND_NOT_READY",
+    "native_execution_backend_ready": false,
+    "node_id": "f40ad7d4fcfaac2b5fd80612cb630721",
+    "offline_receipts_are_not_product_receipts": true,
+    "owned_resource_release": {
+      "join_timeout_seconds": 2.0,
+      "no_new_cancel_was_requested": true,
+      "status": "RELEASED",
+      "the_close_is_idempotent": true,
+      "worker_exit_code": null,
+      "worker_thread_alive": true,
+      "worker_thread_finished": false,
+      "worker_thread_present": true,
+      "worker_thread_retained": true
+    },
+    "plan": {
+      "plan_sha256": "720c791031ad53987374860d55e48617872d36421debd669e2b0024289e026c1",
+      "projection_sha256": "55580235d38d8d785e9e5eb0c2b3f5191d246d231f6dd3faa7c1f82df27192f6",
+      "rows": 16
+    },
+    "product_gate0": false,
+    "real_execution_performed": false,
+    "receipt_path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-04/cases/cancel-noncooperative/run/temp/s3-production-controller/receipt-s3-p4-composition-01.json",
+    "receipt_persisted": true,
+    "receipt_persistence_error": null,
+    "receipt_persistence_intent": "WRITTEN_WITH_O_EXCL",
+    "recovery": {
+      "reason": "CUSTODY_EVIDENCE_UNAVAILABLE",
+      "replay_allowed": false,
+      "resend_allowed": false,
+      "stage_pass_claim": false,
+      "status": "BLOCKED"
+    },
+    "refund_allowed": false,
+    "refusals": [],
+    "resend_allowed": false,
+    "reservation": "reservation-s3-p4-composition-01.json",
+    "reservation_retained": true,
+    "root": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-04/cases/cancel-noncooperative/run",
+    "root_retained": true,
+    "run_id": "s3-p4-composition-01",
+    "source_sha256": {
+      "tools/v0_s3_coordinator.py": "14e8dd284971aeab00999f010679d5c95deb88ee3bff8f4ca0708d958b56f12c",
+      "tools/v0_s3_production_controller.py": "a452275a866b8b496175ecf3cba37d86fd0109be91020c09948f9bf9583a2b38",
+      "tools/v0_s3_quality_phase.py": "90552ea113ccf53a2a1cedff3e3f399642ad932bf0f71bb1f9a57e1adb6e8789",
+      "tools/v0_s3_quality_worker.py": "e3648446f39d6e7a1c31f180248ccb59c36272ddc10c80edbe544f7d3c595592",
+      "tools/v0_s3_supervisor.py": "7d210429e70761cea633e8f2e64d8a1f01709930068a21de5cbc3c5a519ce6d8"
+    },
+    "spawn_attempts": 1,
+    "stage_pass_claim": false,
+    "started_wall": 1794577469.0099328,
+    "state": "UNKNOWN_RETAINED",
+    "summary_persisted": false,
+    "summary_persisted_semantics": "summary_persisted_QUALIFIES_THE_RUN;disk_actions_RECORDS_WHAT_IS_ON_THE_DISK;THE_TWO_FIELDS_HAVE_A_DIFFERENT_MEANING_AND_NEITHER_REPLACES_THE_OTHER",
+    "supervision": {
+      "archive_allowed": false,
+      "authorization_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "birth": null,
+      "candidate_sha": "b95de076f37e64d321629c065e5531eba8a5250a",
+      "canonical_receipt": null,
+      "canonical_receipt_verified": false,
+      "child_timeout_seconds": 21600,
+      "cleanup": {
+        "birth": null,
+        "cooperative_cancel": true,
+        "exit_code": null,
+        "killed": false,
+        "native_cleanup_owner": "original_driver",
+        "native_cleanup_proven": false,
+        "pid": null,
+        "proven_stopped": false,
+        "requested": true,
+        "terminated": true
+      },
+      "command": [
+        "python3",
+        "-I",
+        "-B",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_quality_worker.py",
+        "--context",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-04/cases/cancel-noncooperative/run/contexts/worker-context.json",
+        "--context-sha256",
+        "ed06b52e8e9ead232c2ef867167a4c858f97a01c1abece242d1e16b8028c1330"
+      ],
+      "cooperative_cancel_requested": true,
+      "drain_timeout_seconds": 0.5,
+      "drain_violation": "STDOUT_STREAM_DRAIN_INCOMPLETE",
+      "exit_code": null,
+      "history_completed_rows": [],
+      "history_deadlines": {},
+      "history_records": {},
+      "history_timeout_seconds": 600,
+      "incomplete_frame": false,
+      "kind": "lvw.s3-supervision-evidence/1",
+      "message_count": 2,
+      "message_limit": 1024,
+      "native_gpu_release_proven": false,
+      "native_service_cleanup_proven": false,
+      "next_phase_allowed": false,
+      "notes": [
+        "the drain of the streams was not complete: STDOUT_STREAM_DRAIN_INCOMPLETE,STDERR_STREAM_DRAIN_INCOMPLETE"
+      ],
+      "parent_crash_recovery_proven": false,
+      "phase_deadline_reached": true,
+      "phase_timeout_seconds": 10800,
+      "pid": null,
+      "plan_sha256": "dd8bc5a9f2c4c984a65cbe0d43e65a2c2b74a3c9bbc74856d58f829793d341d2",
+      "product_gate0": false,
+      "protocol_violation": "PHASE_DEADLINE_EXCEEDED",
+      "real_execution_performed": false,
+      "refund_allowed": false,
+      "resend_allowed": false,
+      "reservation_retained": true,
+      "root_retained": true,
+      "row_count": 16,
+      "row_status": {
+        "SYN-I00": "FAIL",
+        "SYN-I01": "BLOCKED",
+        "SYN-I02": "BLOCKED",
+        "SYN-I03": "BLOCKED",
+        "SYN-I04": "BLOCKED",
+        "SYN-I05": "BLOCKED",
+        "SYN-I06": "BLOCKED",
+        "SYN-I07": "BLOCKED",
+        "SYN-I08": "BLOCKED",
+        "SYN-I09": "BLOCKED",
+        "SYN-V00": "BLOCKED",
+        "SYN-V01": "BLOCKED",
+        "SYN-V02": "BLOCKED",
+        "SYN-V03": "BLOCKED",
+        "SYN-V04": "BLOCKED",
+        "SYN-V05": "BLOCKED"
+      },
+      "run_id": "s3-p4-composition-01",
+      "stage_pass_claim": false,
+      "stderr_bytes": 0,
+      "stderr_bytes_retained": 0,
+      "stderr_drain_complete": false,
+      "stderr_hash_scope": "observed_prefix",
+      "stderr_hashed_bytes": 0,
+      "stderr_overflow": false,
+      "stderr_read_error": null,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_total_observed": 0,
+      "stdout_bytes": 835,
+      "stdout_bytes_retained": 0,
+      "stdout_drain_complete": false,
+      "stdout_hash_scope": "observed_prefix",
+      "stdout_hashed_bytes": 835,
+      "stdout_overflow": false,
+      "stdout_read_error": null,
+      "stdout_sha256": "31f85d1af0b61d81239dcb43cabc5c6eba8429cca9f798737fe0f8a6c1ad1a41",
+      "stdout_total_observed": 835,
+      "stream_byte_limit": 262144,
+      "stream_violation": null,
+      "terminal_received": false,
+      "unknown_outcome": true
+    },
+    "transitions": [
+      "PRECHECK",
+      "PLAN_SEALED",
+      "WORKER_SUPERVISED"
+    ],
+    "unknown_reason": "PHASE_DEADLINE_EXCEEDED"
+  },
+  "owned_pipes_at_spawn": [
+    {
+      "name": "stdin",
+      "fd": 9,
+      "identity": [
+        15,
+        6426657,
+        4480
+      ]
+    },
+    {
+      "name": "stdout",
+      "fd": 5,
+      "identity": [
+        15,
+        6426655,
+        4480
+      ]
+    },
+    {
+      "name": "stderr",
+      "fd": 7,
+      "identity": [
+        15,
+        6426656,
+        4480
+      ]
+    }
+  ],
+  "fds": {
+    "0": [
+      15,
+      6406010,
+      4480
+    ],
+    "1": [
+      2112,
+      2910148,
+      33188
+    ],
+    "2": [
+      2112,
+      2910149,
+      33188
+    ],
+    "11": [
+      2112,
+      2912601,
+      16877
+    ],
+    "12": [
+      2112,
+      2912604,
+      16877
+    ],
+    "13": [
+      2112,
+      2912632,
+      16832
+    ]
+  },
+  "threads": [
+    "MainThread",
+    "s3-composition-worker"
+  ],
+  "lifecycle": {
+    "worker_thread_alive": true,
+    "worker_thread_finished": false,
+    "worker_thread_retained": true,
+    "worker_thread_killable": false,
+    "cooperative_cancel_requested": false,
+    "cooperative_cancel_observed": true,
+    "late_write_after_return_is_possible": true,
+    "lifecycle_owner": "offline_seam"
+  }
+}
