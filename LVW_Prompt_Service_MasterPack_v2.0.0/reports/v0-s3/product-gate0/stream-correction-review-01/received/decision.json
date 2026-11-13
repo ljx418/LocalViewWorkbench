@@ -1,0 +1,45 @@
+{
+  "candidate_sha": "626d37cf59bfc69324c1a9f886a65cd3f8c56964",
+  "baseline_sha": "01453ee07b4774a55711c5cf5642c12d0394a35c",
+  "outcome": "CHANGES_REQUIRED",
+  "review_completed": true,
+  "counts": {
+    "Fatal": 0,
+    "Major": 2,
+    "Minor": 1
+  },
+  "findings": [
+    {
+      "id": "M1",
+      "location": "tools/v0_s3_supervisor.py:572",
+      "title": "Unfinished final stream drain permits success and deadline overrun",
+      "evidence": "final-drain-observation.json"
+    },
+    {
+      "id": "M2",
+      "location": "tools/v0_s3_supervisor.py:316",
+      "title": "Controlled retain/take handoff loses an in-budget complete frame",
+      "evidence": "handoff-observation.json"
+    },
+    {
+      "id": "m1",
+      "location": "tools/v0_s3_supervisor.py:748",
+      "title": "Overflow digest is retained prefix, not all-observed stream",
+      "evidence": "independent-observations.json"
+    }
+  ],
+  "focused_checks": {
+    "pass": 18,
+    "skip": 0,
+    "deselected": 0,
+    "guard_blocked": 4
+  },
+  "counter_unchanged": true,
+  "new_real_fixture_starts": 0,
+  "real13": "NOTPROVEN",
+  "full24": "NOTPROVEN",
+  "Windows_GPU_A06_ledger": "NOTPROVEN",
+  "stage_pass_claim": false,
+  "product_gate0": false,
+  "report": "review.md"
+}

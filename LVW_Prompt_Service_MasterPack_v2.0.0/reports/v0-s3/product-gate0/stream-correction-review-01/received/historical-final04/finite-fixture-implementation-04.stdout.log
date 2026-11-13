@@ -1,0 +1,57 @@
+.........F.F.                                                            [100%]
+=================================== FAILURES ===================================
+_ test_a_protocol_violation_is_refused[nonfinite_number-MESSAGE_NONFINITE_NUMBER] _
+
+tmp_path = PosixPath('/tmp/lvw-s3-integration-u0nm59ym/pytest/test_a_protocol_violation_is_r6')
+scenario = 'nonfinite_number', code = 'MESSAGE_NONFINITE_NUMBER'
+
+    @requires_machine_gate
+    @pytest.mark.parametrize('scenario,code', [
+        ('history_replay', 'MESSAGE_HISTORY_STARTED_REPEATED'),
+        ('sequence_reversal', 'MESSAGE_SEQUENCE_NOT_INCREASING'),
+        ('duplicate_sequence', 'MESSAGE_SEQUENCE_NOT_INCREASING'),
+        ('oversize_message', 'MESSAGE_TOO_LARGE'),
+        ('foreign_identity', 'MESSAGE_RUN_ID_MISMATCH'),
+        ('unexpected_field', 'MESSAGE_KEY_SET_INVALID'),
+        ('nonfinite_number', 'MESSAGE_NONFINITE_NUMBER'),
+        ('early_exit', 'WORKER_EXITED_WITHOUT_TERMINAL'),
+        ('message_flood', 'MESSAGE_COUNT_EXCEEDED'),
+    ])
+    def test_a_protocol_violation_is_refused(tmp_path, scenario, code):
+        """I12/I13: every protocol violation is a stable refusal."""
+        evidence = run_fixture(tmp_path, scenario)
+>       assert evidence['protocol_violation'] == code
+E       AssertionError: assert 'PHASE_DEADLINE_EXCEEDED' == 'MESSAGE_NONFINITE_NUMBER'
+E         
+E         - MESSAGE_NONFINITE_NUMBER
+E         + PHASE_DEADLINE_EXCEEDED
+
+tools/test_v0_s3_supervisor.py:792: AssertionError
+__ test_a_protocol_violation_is_refused[message_flood-MESSAGE_COUNT_EXCEEDED] __
+
+tmp_path = PosixPath('/tmp/lvw-s3-integration-u0nm59ym/pytest/test_a_protocol_violation_is_r8')
+scenario = 'message_flood', code = 'MESSAGE_COUNT_EXCEEDED'
+
+    @requires_machine_gate
+    @pytest.mark.parametrize('scenario,code', [
+        ('history_replay', 'MESSAGE_HISTORY_STARTED_REPEATED'),
+        ('sequence_reversal', 'MESSAGE_SEQUENCE_NOT_INCREASING'),
+        ('duplicate_sequence', 'MESSAGE_SEQUENCE_NOT_INCREASING'),
+        ('oversize_message', 'MESSAGE_TOO_LARGE'),
+        ('foreign_identity', 'MESSAGE_RUN_ID_MISMATCH'),
+        ('unexpected_field', 'MESSAGE_KEY_SET_INVALID'),
+        ('nonfinite_number', 'MESSAGE_NONFINITE_NUMBER'),
+        ('early_exit', 'WORKER_EXITED_WITHOUT_TERMINAL'),
+        ('message_flood', 'MESSAGE_COUNT_EXCEEDED'),
+    ])
+    def test_a_protocol_violation_is_refused(tmp_path, scenario, code):
+        """I12/I13: every protocol violation is a stable refusal."""
+        evidence = run_fixture(tmp_path, scenario)
+>       assert evidence['protocol_violation'] == code
+E       AssertionError: assert 'PHASE_DEADLINE_EXCEEDED' == 'MESSAGE_COUNT_EXCEEDED'
+E         
+E         - MESSAGE_COUNT_EXCEEDED
+E         + PHASE_DEADLINE_EXCEEDED
+
+tools/test_v0_s3_supervisor.py:792: AssertionError
+2 failed, 11 passed in 5.43s

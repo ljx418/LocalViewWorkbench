@@ -1,0 +1,35 @@
+{
+  "installed_before_entry": true,
+  "blocked_events": [
+    "subprocess.Popen",
+    "os.system",
+    "os.exec",
+    "os.spawn",
+    "os.posix_spawn",
+    "os.fork",
+    "os.forkpty",
+    "socket.connect",
+    "socket.connect_ex",
+    "socket.bind",
+    "socket.getaddrinfo",
+    "socket.gethostbyname",
+    "socket.gethostbyaddr",
+    "socket.getnameinfo"
+  ],
+  "observed_blocked_events": [
+    "socket.connect",
+    "socket.bind",
+    "subprocess.Popen",
+    "os.system"
+  ],
+  "entry": "reports/v0-s3/product-gate0/implementation-integration-01/run_guarded_checks.py",
+  "entry_args": [
+    "--mode",
+    "guard",
+    "--label",
+    "independent-guard",
+    "--outdir",
+    "reports/v0-s3/product-gate0/independent-stream-correction-01"
+  ],
+  "bindings_allowed": false
+}

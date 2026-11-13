@@ -1,0 +1,622 @@
+{
+  "argv_capture_file": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-integration-01/finite-fixture-implementation-04.outer.argv.txt",
+  "binding_path": "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/implementation-final-04.binding.json",
+  "binding_sha256_actual": "cd98fcaf6d4324259cccb5836b43e8d99a09a971badaeadcc20b80d5236a66f9",
+  "binding_sha256_expected": "cd98fcaf6d4324259cccb5836b43e8d99a09a971badaeadcc20b80d5236a66f9",
+  "binding_sha256_match": true,
+  "budget_limits_respected": {
+    "cleanup_reserve_seconds": 30,
+    "implementation_starts_after": 15,
+    "implementation_starts_before": 2,
+    "max_concurrent": 2,
+    "max_starts_by_role_implementation": 16,
+    "max_total_starts": 24,
+    "per_process_seconds": 10,
+    "pool_remaining_after": 0.0,
+    "pool_reserved_after": 180.0,
+    "session_wall_cap_seconds": 60,
+    "shared_pool_seconds": 180,
+    "total_starts_after": 15,
+    "total_starts_before": 2
+  },
+  "candidate_sha": "01453ee07b4774a55711c5cf5642c12d0394a35c",
+  "collected_count": 13,
+  "collected_nodeids": [
+    "tools/test_v0_s3_supervisor.py::test_the_fixture_clean_terminal_is_verified_by_the_parent",
+    "tools/test_v0_s3_supervisor.py::test_a_blocking_callback_is_actually_stopped",
+    "tools/test_v0_s3_supervisor.py::test_a_blocking_persistence_is_actually_stopped",
+    "tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[history_replay-MESSAGE_HISTORY_STARTED_REPEATED]",
+    "tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[sequence_reversal-MESSAGE_SEQUENCE_NOT_INCREASING]",
+    "tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[duplicate_sequence-MESSAGE_SEQUENCE_NOT_INCREASING]",
+    "tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[oversize_message-MESSAGE_TOO_LARGE]",
+    "tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[foreign_identity-MESSAGE_RUN_ID_MISMATCH]",
+    "tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[unexpected_field-MESSAGE_KEY_SET_INVALID]",
+    "tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[nonfinite_number-MESSAGE_NONFINITE_NUMBER]",
+    "tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[early_exit-WORKER_EXITED_WITHOUT_TERMINAL]",
+    "tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[message_flood-MESSAGE_COUNT_EXCEEDED]",
+    "tools/test_v0_s3_supervisor.py::test_a_bad_terminal_reference_is_refused"
+  ],
+  "counter_cumulative": {
+    "active": true,
+    "charges_total": 15,
+    "counter_path": "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json",
+    "counter_sha256_after": "7b42e3a8952a63e01d2466b55bd8f94d835532b51cee26342f11d1d417b276ff",
+    "no_new_budget_created": true,
+    "prior_charges_preserved": true,
+    "reserved_wall_seconds": 180.0,
+    "session_count": 3,
+    "sessions": [
+      {
+        "admission_seconds": 30.0,
+        "cleanup_seconds": 60.0,
+        "remaining_before_seconds": 180.0,
+        "reserved_wall_seconds": 60.0,
+        "role": "implementation",
+        "session_id": "session-5cc6f255f8b579ae5cb94931d71379eb",
+        "spent_wall_seconds": 0.708,
+        "state": "SETTLED"
+      },
+      {
+        "admission_seconds": 30.0,
+        "cleanup_seconds": 60.0,
+        "remaining_before_seconds": 120.0,
+        "reserved_wall_seconds": 60.0,
+        "role": "implementation",
+        "session_id": "session-a1c075996f29bcac7e48dabd0ef9eed3",
+        "spent_wall_seconds": 2.188,
+        "state": "SETTLED"
+      },
+      {
+        "admission_seconds": 30.0,
+        "cleanup_seconds": 60.0,
+        "remaining_before_seconds": 60.0,
+        "reserved_wall_seconds": 60.0,
+        "role": "implementation",
+        "session_id": "session-6b8a5e40c8d4383821e8ddaecbf6f919",
+        "spent_wall_seconds": 5.55,
+        "state": "SETTLED"
+      }
+    ],
+    "spent_wall_seconds": 8.446,
+    "starts_by_role": {
+      "implementation": 15,
+      "independent_review": 0
+    },
+    "starts_total": 15
+  },
+  "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement",
+  "decision_path": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/fixture-final-04/decision.json",
+  "decision_sha256": "5899a806128791f3dd441181e92ae5bd294a765907f0a478139e6121d5f918d4",
+  "diagnosis_of_the_two_failures": {
+    "message_flood": {
+      "cause": "the scenario writes 1200 PROGRESS lines of 300 bytes each = 360000 bytes, which exceeds MAX_STREAM_BYTES=262144 in tools/v0_s3_supervisor.py; the _StreamReader overflows after ~873 messages, i.e. BEFORE the protocol count limit MAX_MESSAGES=1024 is reached, so MESSAGE_COUNT_EXCEEDED is never produced",
+      "child_lifetime_seconds": 1.078,
+      "classification": "deterministic candidate-side mismatch between the fixture scenario size and the frozen stream byte cap; not timing flakiness, not a budget effect",
+      "observed": "PHASE_DEADLINE_EXCEEDED after the 1.0s scaled phase timeout"
+    },
+    "nonfinite_number": {
+      "cause": "tools/fixtures/v0_s3_supervisor_fixture.py scenario_nonfinite_number uses Writer.write_raw(), which writes the JSON line WITHOUT the trailing b\"\\n\" that Writer.write() appends; the parent supervisor frames protocol lines on b\"\\n\" (tools/v0_s3_supervisor.py _consume_stdout), so the line is never decoded, json.loads(parse_constant=_reject_constant) never runs, and MESSAGE_NONFINITE_NUMBER is never produced",
+      "child_lifetime_seconds": 1.07,
+      "classification": "deterministic candidate-side mismatch between the fixture scenario and the frozen line framing; not timing flakiness, not a budget effect",
+      "observed": "PHASE_DEADLINE_EXCEEDED after the 1.0s scaled phase timeout"
+    }
+  },
+  "executed_argv": [
+    "/usr/bin/python3.12",
+    "-B",
+    "reports/v0-s3/product-gate0/implementation-integration-01/run_guarded_checks.py",
+    "--mode",
+    "suite",
+    "--label",
+    "finite-fixture-implementation-04",
+    "--binding",
+    "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/implementation-final-04.binding.json",
+    "--binding-sha256",
+    "cd98fcaf6d4324259cccb5836b43e8d99a09a971badaeadcc20b80d5236a66f9",
+    "--role",
+    "implementation",
+    "--candidate-sha",
+    "01453ee07b4774a55711c5cf5642c12d0394a35c",
+    "--modules",
+    "tools/test_v0_s3_supervisor.py::test_the_fixture_clean_terminal_is_verified_by_the_parent,tools/test_v0_s3_supervisor.py::test_a_blocking_callback_is_actually_stopped,tools/test_v0_s3_supervisor.py::test_a_blocking_persistence_is_actually_stopped,tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[history_replay-MESSAGE_HISTORY_STARTED_REPEATED],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[sequence_reversal-MESSAGE_SEQUENCE_NOT_INCREASING],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[duplicate_sequence-MESSAGE_SEQUENCE_NOT_INCREASING],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[oversize_message-MESSAGE_TOO_LARGE],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[foreign_identity-MESSAGE_RUN_ID_MISMATCH],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[unexpected_field-MESSAGE_KEY_SET_INVALID],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[nonfinite_number-MESSAGE_NONFINITE_NUMBER],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[early_exit-WORKER_EXITED_WITHOUT_TERMINAL],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[message_flood-MESSAGE_COUNT_EXCEEDED],tools/test_v0_s3_supervisor.py::test_a_bad_terminal_reference_is_refused",
+    "--outdir",
+    "reports/v0-s3/product-gate0/implementation-integration-01"
+  ],
+  "executed_argv_sha256": "8caccebb7b0b6aa894373f16a98e7ff5e0c8702231864f110dafda8edef1748a",
+  "guard": {
+    "audit_hook_installed_before_pytest": true,
+    "handshake_confirmed": true,
+    "hook_install_count": 1,
+    "host_subprocess": "bound_fixture_plan_only",
+    "install_attempts": 1,
+    "network": "blocked",
+    "owner_id": "owner-3e71c4932947b73c0682ad7d0f877e15"
+  },
+  "kind": "LVW_S3_P4_FINAL04_OUTER_EXECUTION/1",
+  "label": "finite-fixture-implementation-04",
+  "node_result_summary": {
+    "failed": 2,
+    "not_executed": 0,
+    "pass_claim": "NOT_A_PASS: 2 of 13 failed; 0 skipped, 0 not executed",
+    "passed": 11,
+    "pytest_summary_line": "2 failed, 11 passed in 5.43s",
+    "skipped": 0,
+    "total": 13
+  },
+  "node_results": [
+    {
+      "birth": {
+        "linux_start_ticks": 9047911
+      },
+      "charge_index": 2,
+      "charge_settled": true,
+      "charge_state": "STOPPED",
+      "exit_code": 0,
+      "expected": null,
+      "nodeid": "tools/test_v0_s3_supervisor.py::test_the_fixture_clean_terminal_is_verified_by_the_parent",
+      "observed": null,
+      "observed_lifetime_seconds": 0.079,
+      "pid": 2686731,
+      "result": "PASSED",
+      "scenario": "clean_terminal",
+      "skipped": false
+    },
+    {
+      "birth": {
+        "linux_start_ticks": 9047920
+      },
+      "charge_index": 3,
+      "charge_settled": true,
+      "charge_state": "STOPPED",
+      "exit_code": -15,
+      "expected": null,
+      "nodeid": "tools/test_v0_s3_supervisor.py::test_a_blocking_callback_is_actually_stopped",
+      "observed": null,
+      "observed_lifetime_seconds": 1.036,
+      "pid": 2686736,
+      "result": "PASSED",
+      "scenario": "blocking_callback",
+      "skipped": false
+    },
+    {
+      "birth": {
+        "linux_start_ticks": 9048025
+      },
+      "charge_index": 4,
+      "charge_settled": true,
+      "charge_state": "STOPPED",
+      "exit_code": -15,
+      "expected": null,
+      "nodeid": "tools/test_v0_s3_supervisor.py::test_a_blocking_persistence_is_actually_stopped",
+      "observed": null,
+      "observed_lifetime_seconds": 1.031,
+      "pid": 2686773,
+      "result": "PASSED",
+      "scenario": "blocking_persistence",
+      "skipped": false
+    },
+    {
+      "birth": {
+        "linux_start_ticks": 9048136
+      },
+      "charge_index": 5,
+      "charge_settled": true,
+      "charge_state": "STOPPED",
+      "exit_code": -15,
+      "expected": null,
+      "nodeid": "tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[history_replay-MESSAGE_HISTORY_STARTED_REPEATED]",
+      "observed": null,
+      "observed_lifetime_seconds": 0.082,
+      "pid": 2686799,
+      "result": "PASSED",
+      "scenario": "history_replay",
+      "skipped": false
+    },
+    {
+      "birth": {
+        "linux_start_ticks": 9048146
+      },
+      "charge_index": 6,
+      "charge_settled": true,
+      "charge_state": "STOPPED",
+      "exit_code": -15,
+      "expected": null,
+      "nodeid": "tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[sequence_reversal-MESSAGE_SEQUENCE_NOT_INCREASING]",
+      "observed": null,
+      "observed_lifetime_seconds": 0.082,
+      "pid": 2686802,
+      "result": "PASSED",
+      "scenario": "sequence_reversal",
+      "skipped": false
+    },
+    {
+      "birth": {
+        "linux_start_ticks": 9048155
+      },
+      "charge_index": 7,
+      "charge_settled": true,
+      "charge_state": "STOPPED",
+      "exit_code": -15,
+      "expected": null,
+      "nodeid": "tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[duplicate_sequence-MESSAGE_SEQUENCE_NOT_INCREASING]",
+      "observed": null,
+      "observed_lifetime_seconds": 0.081,
+      "pid": 2686806,
+      "result": "PASSED",
+      "scenario": "duplicate_sequence",
+      "skipped": false
+    },
+    {
+      "birth": {
+        "linux_start_ticks": 9048164
+      },
+      "charge_index": 8,
+      "charge_settled": true,
+      "charge_state": "STOPPED",
+      "exit_code": -15,
+      "expected": null,
+      "nodeid": "tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[oversize_message-MESSAGE_TOO_LARGE]",
+      "observed": null,
+      "observed_lifetime_seconds": 0.08,
+      "pid": 2686811,
+      "result": "PASSED",
+      "scenario": "oversize_message",
+      "skipped": false
+    },
+    {
+      "birth": {
+        "linux_start_ticks": 9048173
+      },
+      "charge_index": 9,
+      "charge_settled": true,
+      "charge_state": "STOPPED",
+      "exit_code": -15,
+      "expected": null,
+      "nodeid": "tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[foreign_identity-MESSAGE_RUN_ID_MISMATCH]",
+      "observed": null,
+      "observed_lifetime_seconds": 0.081,
+      "pid": 2686887,
+      "result": "PASSED",
+      "scenario": "foreign_identity",
+      "skipped": false
+    },
+    {
+      "birth": {
+        "linux_start_ticks": 9048182
+      },
+      "charge_index": 10,
+      "charge_settled": true,
+      "charge_state": "STOPPED",
+      "exit_code": -15,
+      "expected": null,
+      "nodeid": "tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[unexpected_field-MESSAGE_KEY_SET_INVALID]",
+      "observed": null,
+      "observed_lifetime_seconds": 0.081,
+      "pid": 2686892,
+      "result": "PASSED",
+      "scenario": "unexpected_field",
+      "skipped": false
+    },
+    {
+      "birth": {
+        "linux_start_ticks": 9048192
+      },
+      "charge_index": 11,
+      "charge_settled": true,
+      "charge_state": "STOPPED",
+      "exit_code": -15,
+      "expected": "MESSAGE_NONFINITE_NUMBER",
+      "nodeid": "tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[nonfinite_number-MESSAGE_NONFINITE_NUMBER]",
+      "observed": "PHASE_DEADLINE_EXCEEDED",
+      "observed_lifetime_seconds": 1.07,
+      "pid": 2686895,
+      "result": "FAILED",
+      "scenario": "nonfinite_number",
+      "skipped": false
+    },
+    {
+      "birth": {
+        "linux_start_ticks": 9048300
+      },
+      "charge_index": 12,
+      "charge_settled": true,
+      "charge_state": "STOPPED",
+      "exit_code": 0,
+      "expected": null,
+      "nodeid": "tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[early_exit-WORKER_EXITED_WITHOUT_TERMINAL]",
+      "observed": null,
+      "observed_lifetime_seconds": 0.089,
+      "pid": 2686937,
+      "result": "PASSED",
+      "scenario": "early_exit",
+      "skipped": false
+    },
+    {
+      "birth": {
+        "linux_start_ticks": 9048310
+      },
+      "charge_index": 13,
+      "charge_settled": true,
+      "charge_state": "STOPPED",
+      "exit_code": -15,
+      "expected": "MESSAGE_COUNT_EXCEEDED",
+      "nodeid": "tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[message_flood-MESSAGE_COUNT_EXCEEDED]",
+      "observed": "PHASE_DEADLINE_EXCEEDED",
+      "observed_lifetime_seconds": 1.078,
+      "pid": 2686940,
+      "result": "FAILED",
+      "scenario": "message_flood",
+      "skipped": false
+    },
+    {
+      "birth": {
+        "linux_start_ticks": 9048418
+      },
+      "charge_index": 14,
+      "charge_settled": true,
+      "charge_state": "STOPPED",
+      "exit_code": -15,
+      "expected": null,
+      "nodeid": "tools/test_v0_s3_supervisor.py::test_a_bad_terminal_reference_is_refused",
+      "observed": null,
+      "observed_lifetime_seconds": 0.092,
+      "pid": 2686980,
+      "result": "PASSED",
+      "scenario": "bad_terminal_reference",
+      "skipped": false
+    }
+  ],
+  "note": "one single execution of decision.argv; a real FAIL is not re-run (frozen rule); no acceptance claimed",
+  "outcome": "FAIL_11_PASS_2_FAIL",
+  "outer_end_utc_epoch": 1794542157.607064,
+  "outer_returncode_semantics": "the exit status of the outer /usr/bin/python3.12 process that ran decision.argv; NOT a derived or masked value",
+  "outer_start_utc_epoch": 1794542151.9669113,
+  "outer_stderr_file": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-integration-01/finite-fixture-implementation-04.outer.stderr.log",
+  "outer_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "outer_stdout_file": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-integration-01/finite-fixture-implementation-04.outer.stdout.log",
+  "outer_stdout_sha256": "034dc1522d8089c4a79decab9943348a3f4cc03052eadc5371bf389c3012b67e",
+  "outer_wall_seconds": 5.64,
+  "process_accounting": {
+    "admission_refusals": {
+      "codes": [],
+      "count": 0
+    },
+    "admitted_attempts": 13,
+    "charges_without_handle": [],
+    "child_handles_obtained": 13,
+    "proven_child_handles": 13,
+    "semantics": "admitted_attempts counts audit-hook admissions; proven_child_handles counts original handles whose exit was proven"
+  },
+  "product_gate0": false,
+  "prohibitions_observed": {
+    "code_modified_by_worker": false,
+    "guard_selftest_process_started": false,
+    "head_changed_by_worker": false,
+    "model_gpu_service_network_media_used": false,
+    "original_ledger_touched": false,
+    "pillow_child_started": false,
+    "production_quality_worker_child_started": false,
+    "public_contracts_24_fixed_12_product_changed": false,
+    "rerun_after_failure": false
+  },
+  "recorded_at_utc": "2026-11-13T03:57:34Z",
+  "role": "implementation",
+  "runner_cleanup_proven": true,
+  "runner_duration_seconds": 5.557,
+  "runner_exit_code": 1,
+  "runner_failure_reasons": [],
+  "runner_outcome": "FAIL",
+  "runner_owned_root": "/tmp/lvw-s3-integration-u0nm59ym",
+  "runner_owned_root_exists_after_run": false,
+  "runner_owned_root_removed": true,
+  "runner_receipt_path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-integration-01/finite-fixture-implementation-04.receipt.json",
+  "runner_receipt_sha256": "2498bb88f52153b90eeb978ea09cae1a243b83aa8e1cad98a5ba50b0b81e0975",
+  "runner_source_unchanged_during_run": true,
+  "runner_stderr_file": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-integration-01/finite-fixture-implementation-04.stderr.log",
+  "runner_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "runner_stdout_file": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-integration-01/finite-fixture-implementation-04.stdout.log",
+  "runner_stdout_sha256": "113110d8edd468da37f1d100ba7e48cb1e90ebe72aac505068d49b195fb1041d",
+  "runner_unchanged_during_run": true,
+  "settlement": {
+    "persisted_terminal_state_per_charge": [
+      {
+        "birth": null,
+        "exit_code": null,
+        "index": 0,
+        "observed_lifetime_seconds": null,
+        "pid": null,
+        "scenario": "clean_terminal",
+        "settled": true,
+        "state": "REFUSED_BEFORE_FORK"
+      },
+      {
+        "birth": null,
+        "exit_code": null,
+        "index": 1,
+        "observed_lifetime_seconds": null,
+        "pid": null,
+        "scenario": "blocking_callback",
+        "settled": true,
+        "state": "REFUSED_BEFORE_FORK"
+      },
+      {
+        "birth": {
+          "linux_start_ticks": 9047911
+        },
+        "exit_code": 0,
+        "index": 2,
+        "observed_lifetime_seconds": 0.079,
+        "pid": 2686731,
+        "scenario": "clean_terminal",
+        "settled": true,
+        "state": "STOPPED"
+      },
+      {
+        "birth": {
+          "linux_start_ticks": 9047920
+        },
+        "exit_code": -15,
+        "index": 3,
+        "observed_lifetime_seconds": 1.036,
+        "pid": 2686736,
+        "scenario": "blocking_callback",
+        "settled": true,
+        "state": "STOPPED"
+      },
+      {
+        "birth": {
+          "linux_start_ticks": 9048025
+        },
+        "exit_code": -15,
+        "index": 4,
+        "observed_lifetime_seconds": 1.031,
+        "pid": 2686773,
+        "scenario": "blocking_persistence",
+        "settled": true,
+        "state": "STOPPED"
+      },
+      {
+        "birth": {
+          "linux_start_ticks": 9048136
+        },
+        "exit_code": -15,
+        "index": 5,
+        "observed_lifetime_seconds": 0.082,
+        "pid": 2686799,
+        "scenario": "history_replay",
+        "settled": true,
+        "state": "STOPPED"
+      },
+      {
+        "birth": {
+          "linux_start_ticks": 9048146
+        },
+        "exit_code": -15,
+        "index": 6,
+        "observed_lifetime_seconds": 0.082,
+        "pid": 2686802,
+        "scenario": "sequence_reversal",
+        "settled": true,
+        "state": "STOPPED"
+      },
+      {
+        "birth": {
+          "linux_start_ticks": 9048155
+        },
+        "exit_code": -15,
+        "index": 7,
+        "observed_lifetime_seconds": 0.081,
+        "pid": 2686806,
+        "scenario": "duplicate_sequence",
+        "settled": true,
+        "state": "STOPPED"
+      },
+      {
+        "birth": {
+          "linux_start_ticks": 9048164
+        },
+        "exit_code": -15,
+        "index": 8,
+        "observed_lifetime_seconds": 0.08,
+        "pid": 2686811,
+        "scenario": "oversize_message",
+        "settled": true,
+        "state": "STOPPED"
+      },
+      {
+        "birth": {
+          "linux_start_ticks": 9048173
+        },
+        "exit_code": -15,
+        "index": 9,
+        "observed_lifetime_seconds": 0.081,
+        "pid": 2686887,
+        "scenario": "foreign_identity",
+        "settled": true,
+        "state": "STOPPED"
+      },
+      {
+        "birth": {
+          "linux_start_ticks": 9048182
+        },
+        "exit_code": -15,
+        "index": 10,
+        "observed_lifetime_seconds": 0.081,
+        "pid": 2686892,
+        "scenario": "unexpected_field",
+        "settled": true,
+        "state": "STOPPED"
+      },
+      {
+        "birth": {
+          "linux_start_ticks": 9048192
+        },
+        "exit_code": -15,
+        "index": 11,
+        "observed_lifetime_seconds": 1.07,
+        "pid": 2686895,
+        "scenario": "nonfinite_number",
+        "settled": true,
+        "state": "STOPPED"
+      },
+      {
+        "birth": {
+          "linux_start_ticks": 9048300
+        },
+        "exit_code": 0,
+        "index": 12,
+        "observed_lifetime_seconds": 0.089,
+        "pid": 2686937,
+        "scenario": "early_exit",
+        "settled": true,
+        "state": "STOPPED"
+      },
+      {
+        "birth": {
+          "linux_start_ticks": 9048310
+        },
+        "exit_code": -15,
+        "index": 13,
+        "observed_lifetime_seconds": 1.078,
+        "pid": 2686940,
+        "scenario": "message_flood",
+        "settled": true,
+        "state": "STOPPED"
+      },
+      {
+        "birth": {
+          "linux_start_ticks": 9048418
+        },
+        "exit_code": -15,
+        "index": 14,
+        "observed_lifetime_seconds": 0.092,
+        "pid": 2686980,
+        "scenario": "bad_terminal_reference",
+        "settled": true,
+        "state": "STOPPED"
+      }
+    ],
+    "reservation": {
+      "admission_deadline_wall": 1794542182.01,
+      "admission_seconds": 30.0,
+      "cleanup_deadline_wall": 1794542212.01,
+      "cleanup_seconds": 60.0,
+      "owner_id": "owner-ac0443d9878d4558998043dfab8ca536",
+      "remaining_before_seconds": 60.0,
+      "reserved_at_wall": 1794542152.0098147,
+      "reserved_wall_seconds": 60.0,
+      "role": "implementation",
+      "session_id": "session-6b8a5e40c8d4383821e8ddaecbf6f919",
+      "spent_wall_seconds": null,
+      "started_wall": 1794542152.0098147,
+      "state": "ACTIVE"
+    },
+    "session_id": "session-6b8a5e40c8d4383821e8ddaecbf6f919",
+    "session_spent_wall_seconds": 5.55,
+    "session_state_after": "SETTLED",
+    "settlement_failures": [],
+    "uncertain": false
+  },
+  "stage_pass_claim": false,
+  "true_outer_returncode": 1
+}
