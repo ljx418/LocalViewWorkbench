@@ -164,6 +164,49 @@ stops the batch as `WAIT_BUDGET` without a retry, without another route and with
 it over; a FIRST refusal or a timeout of the approval stops the batch without a wrapper and
 without a bypass.
 
+### The batch that ran under the ACK of the root
+
+The root froze the plan as
+`native-custody-correction-04/validation-plan-01/plan.json` (sha256
+`2aead0638c050840e4e8c3b81011b0403dc8c0b67e24e6d3f2346c13918048cb`) and acknowledged it with
+`ACK_ONE_FROZEN_133_NODE_OFFLINE_BATCH`. The plan is **the same plan** as the request above: the
+same 223 dependency pins, the same three stdlib pins, the same external guard bytes, the same
+counter policy and the same 133 ordered node ids.
+
+The batch ran **once**, in the three commands of the plan, in their order, with their absolute
+argv and cwd unchanged. The result and the raw evidence are in `attempt01/` and the full account
+is in `attempt01/execution-report.md`:
+
+| item | value |
+|---|---|
+| collected / pass / fail / skip | **133 / 133 / 0 / 0** |
+| pytest exit | **0** |
+| `cleanup_proven_for_batch` | **true** |
+| threads before → after | `['MainThread']` → `['MainThread']` (the two heartbeat threads of the failed batch are gone) |
+| FD identity before → after | 3 → 3, dev/inode/mode identical, `new_or_reused_fds=[]`, `unknown=[]` |
+| stdlib preload | exactly one `ctypes.dlopen` with `name=null`, window closed before the candidate, final state CLOSED |
+| guard | eight selftest denials, **zero** runtime denials |
+| counter | byte identical before and after (`acbdb8b1…23b98`), read once before and once after, outside the guarded batch |
+| budget | about 15 s of the 300 s of the plan |
+| real execution | none |
+| the three failed nodes of the failed batch | all **passed** |
+
+**The receipt of the batch is named `native-custody-correction-03.receipt.json`** because the
+root's runner inherited that name; the file is written **only** into the NEW directory
+`attempt01/` and the receipt of the failed batch, which lives in another directory, was not read,
+not copied and not overwritten. The raw stdout and stderr of this batch are kept under the same
+inherited basename and are byte identical to `guarded-validation.stdout.log` and
+`guarded-validation.stderr.log`.
+
+**133 green does not close the independent review.** The five items that the root named in
+`review-notes.md` — the uniqueness and the immutability of the cleanup deadline in the concurrent
+paths, the reachability of the recovery of a retained resource by its same owner, the owner that
+survives a background start that never returns or that raises and a cleanup that expires, the
+difference between the publication of `close_done` and the real exit of the closer thread, the
+atomicity of the UNKNOWN latch against a late `_apply_state` and the completeness of the coverage
+of the startup before / during / after interleavings — stay open and are recomputed by the
+isolated review.
+
 ## 6. Complete V0–V3 outline (unchanged coordinate)
 
 | Delivery | Stage | Completed / declared | Boundary |
@@ -193,27 +236,36 @@ was advanced.** V0-S3 stays 0/6: this is an offline parent-side custody correcti
    `native-custody-correction-04/contract.md`; the current blocking gate is
    `S3_P4_N1_CLOSE_COORDINATION_AND_BACKGROUND_START_RACE`.
 2. **本批完成**: the static correction 04 of the close coordination and of the background start
-   race, the deterministic scenarios inside R06/R11/R14/R16 and the frozen execution plan request.
+   race, the deterministic scenarios inside R06/R11/R14/R16, the frozen execution plan request and
+   the **one** frozen batch that the ACK of the root authorised: 133 collected / 133 passed /
+   0 failed / 0 skipped, pytest exit 0, `cleanup_proven_for_batch=true`, threads
+   `['MainThread']` → `['MainThread']`, FD identity identical, counter byte identical.
 3. **最后通过门禁**: `UNIFIED_MEDIA_FIXED_UM10_AND_INDEPENDENT_REVIEW`, candidate
-   `621b1bf386db71bfe08ca2f533fa8ec396b0504b`; the N1 subtree itself has no passing batch since
-   the failed second batch (130/133) and this batch does not change that.
-4. **当前阻塞门禁**: the frozen plan of this batch waits for the ACK of the root; the eight open
-   Majors of the N1 review, N2, I24, the product 12, Windows, the quality set, the balance and the
-   human signature stay open.
+   `621b1bf386db71bfe08ca2f533fa8ec396b0504b`; the N1 subtree now has a **passing** batch of its
+   own — 133/133 at candidate `d751bced75cdc1d21cee072892860a7c4f8ac542` — and that batch is a
+   machine fact of the subtree, **not** a closed gate: the gate of the N1 custody stays open
+   until the isolated review of the eight Majors.
+4. **当前阻塞门禁**: the isolated review of the eight open Majors of the N1 review, with the five
+   items that the root named in `review-notes.md`; N2, I24, the product 12, Windows, the quality
+   set, the balance and the human signature stay open.
 5. **全局路线位置**: the parent side custody of one native round is an offline foundation of the
    S3 offline closure; the native execution, the GPU release, the port release, the sampler, the
    parent crash recovery and the Windows stdin EOF semantics stay `NOT_PROVEN`.
-6. **剩余工作**: the ACK of the root, the one frozen batch of 133 nodes, the read of the receipt
-   and the independent review of the eight Majors.
-7. **下一责任人**: the root (the ACK and the frozen batch), then the isolated review instance.
-8. **所需授权**: none for the implementation; the batch needs the frozen plan and the ACK of the
-   root; no human authorization is required for this scope.
+6. **剩余工作**: the isolated review that recomputes the five named items, the decision on the
+   eight Majors and the unchanged later gates.
+7. **下一责任人**: the root (the gate decision) and the isolated review instance (the five named
+   items); no further implementation work is pending for this correction.
+8. **所需授权**: none for this scope; the batch ran under the ACK of the root
+   (`ACK_ONE_FROZEN_133_NODE_OFFLINE_BATCH`) and no human authorization was required.
 9. **证据目录**: `reports/v0-s3/product-gate0/implementation-native-custody-correction-04/`
-   (this receipt, `execution-plan.request.json`, `SHA256SUMS`); the output of the batch, when it
-   runs, goes to `attempt01/` of the same directory and nowhere else.
-10. **精确停止原因**: the static implementation and the frozen plan request are delivered and the
-    turn ends here; the batch runs only after the ACK of the root, and the receipt claims
-    `READY_FOR_REVIEW` and **not** Stage PASS.
+   (this receipt, `execution-plan.request.json`, `SHA256SUMS`) and `attempt01/` of the same
+   directory (the receipt of the batch, named `native-custody-correction-03.receipt.json` because
+   the root's runner inherited that name, the raw stdout and stderr, the guard record, the two
+   counter observations, `commands.json` and `execution-report.md`); no other directory was
+   written.
+10. **精确停止原因**: the one authorised batch ran once, its exit code was 0, its raw evidence is
+    sealed in the NEW directory and nothing was rerun, repaired or overwritten; the receipt
+    claims `READY_FOR_REVIEW` and **not** Stage PASS.
 
 ## 8. What this receipt does not claim
 

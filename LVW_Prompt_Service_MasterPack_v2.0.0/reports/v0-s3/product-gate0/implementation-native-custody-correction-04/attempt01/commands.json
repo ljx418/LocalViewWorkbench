@@ -1,0 +1,184 @@
+{
+  "kind": "lvw.n1-correction-04-executed-commands/1",
+  "frozen_plan": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-04/validation-plan-01/plan.json",
+  "frozen_plan_sha256": "2aead0638c050840e4e8c3b81011b0403dc8c0b67e24e6d3f2346c13918048cb",
+  "frozen_plan_ack": {
+    "message_id": "msg_7c0f444a6d76",
+    "decision": "ACK_ONE_FROZEN_133_NODE_OFFLINE_BATCH",
+    "candidate_sha": "d751bced75cdc1d21cee072892860a7c4f8ac542",
+    "plan_sha256": "2aead0638c050840e4e8c3b81011b0403dc8c0b67e24e6d3f2346c13918048cb",
+    "node_order_unchanged": true,
+    "source_file_pins": 18,
+    "dependency_file_pins": 223,
+    "stdlib_pins": 3,
+    "old_owner_literals_verified": 10,
+    "batches_max": 1,
+    "max_seconds": 300,
+    "stage_pass_claim": false,
+    "native_proven": false,
+    "human_authorization_required": false
+  },
+  "candidate_sha": "d751bced75cdc1d21cee072892860a7c4f8ac542",
+  "node_count": 133,
+  "node_order_is_binding": true,
+  "commands": [
+    {
+      "label": "counter-before",
+      "argv": [
+        "/usr/bin/python3.12",
+        "-I",
+        "-B",
+        "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-04/validation-plan-01/outer_counter_read.py",
+        "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-correction-04/attempt01/counter-before.json"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "exit_code": 0,
+      "wall_seconds": 0.5,
+      "stdout": "counter-before.stdout.log",
+      "stderr": "counter-before.stderr.log"
+    },
+    {
+      "label": "guarded-validation",
+      "argv": [
+        "/usr/bin/python3.12",
+        "-I",
+        "-B",
+        "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-04/validation-plan-01/guard.py",
+        "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-04/validation-plan-01/runner.py",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-correction-04/attempt01/native-custody-correction-04.guard.json"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "exit_code": 0,
+      "wall_seconds": 14.0,
+      "stdout": "guarded-validation.stdout.log",
+      "stderr": "guarded-validation.stderr.log"
+    },
+    {
+      "label": "counter-after",
+      "argv": [
+        "/usr/bin/python3.12",
+        "-I",
+        "-B",
+        "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-04/validation-plan-01/outer_counter_read.py",
+        "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-correction-04/attempt01/counter-after.json"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "exit_code": 0,
+      "wall_seconds": 0.5,
+      "stdout": "counter-after.stdout.log",
+      "stderr": "counter-after.stderr.log"
+    }
+  ],
+  "batches_max": 1,
+  "max_seconds": 300,
+  "total_wall_seconds": 15.0,
+  "guard": {
+    "path": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-04/validation-plan-01/guard.py",
+    "sha256": "7c8dc5df073c3c8e7eac0899588aa6b24f2f65084bbc73cd33e7e85a2065d764",
+    "runner_path": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-04/validation-plan-01/runner.py",
+    "runner_sha256": "4eb7f9cb77832b84e15ec907b1f08f07000f22574e1f2b5fd56b10bb5a965fa2",
+    "outer_counter_read_path": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-04/validation-plan-01/outer_counter_read.py",
+    "outer_counter_read_sha256": "3b575311b0de885b4f027dc4f135773ae34b9c95629dfddff4645c53187c0da7",
+    "bytes_identical_to_the_second_batch_of_the_correction_03": true,
+    "record": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-correction-04/attempt01/native-custody-correction-04.guard.json"
+  },
+  "receipt_file_name": "native-custody-correction-03.receipt.json",
+  "receipt_file_name_note": "The runner of the root writes its receipt under the name that it inherited from the second batch of the correction 03.  The name is NOT corrected here and the file is written ONLY into the NEW directory of the correction 04.  The receipt of the failed batch lives in a different directory (implementation-native-custody-correction-03/attempt02) and it was not read, not copied and not overwritten.",
+  "receipt": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-correction-04/attempt01/native-custody-correction-03.receipt.json",
+  "raw_logs_under_the_inherited_basename": {
+    "stdout": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-correction-04/attempt01/native-custody-correction-03.stdout.log",
+    "stderr": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-correction-04/attempt01/native-custody-correction-03.stderr.log",
+    "note": "The raw stdout and stderr of THIS batch under the basename that the inherited runner uses.  They are byte identical to guarded-validation.stdout.log and guarded-validation.stderr.log of the same directory."
+  },
+  "result": {
+    "pytest_exit": 0,
+    "call_count": 133,
+    "pass_count": 133,
+    "fail_count": 0,
+    "skip_count": 0,
+    "functional_pass_count": 131,
+    "cleanup_proven_for_batch": true,
+    "collected_equals_selected_order": true,
+    "threads_before": [
+      "MainThread"
+    ],
+    "threads_after": [
+      "MainThread"
+    ],
+    "new_or_reused_fds": [],
+    "fd_identity_identical": true,
+    "fd_rows_before": 3,
+    "fd_rows_after": 3,
+    "fd_unknown_before": [],
+    "fd_unknown_after": [],
+    "stdlib_preload": {
+      "events": [
+        {
+          "event": "ctypes.dlopen",
+          "name": null
+        }
+      ],
+      "window_closed_before_candidate": true
+    },
+    "duration_seconds": 13.628911256790161,
+    "stage_pass_claim": false,
+    "native_proven": false
+  },
+  "guard_record": {
+    "guard_precedes_candidate_and_pytest": true,
+    "selftest_denials": [
+      "subprocess.Popen",
+      "socket.__new__",
+      "os.fork",
+      "os.exec",
+      "os.system",
+      "sqlite3.connect",
+      "ctypes.dlopen",
+      "ctypes.dlsym"
+    ],
+    "runtime_denials": [],
+    "preload_events": [
+      {
+        "event": "ctypes.dlopen",
+        "name": null
+      }
+    ],
+    "preload_window_final_state": "CLOSED",
+    "wall_seconds": 13.736714601516724
+  },
+  "counter": {
+    "path": "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json",
+    "sha256_before": "acbdb8b154864b6f079ae783d670f11ec138b6be0617d1fa4f56c28c33223b98",
+    "sha256_after": "acbdb8b154864b6f079ae783d670f11ec138b6be0617d1fa4f56c28c33223b98",
+    "byte_identical": true,
+    "observation_before_sha256": "7338b51fd39a78203a59a9942984fdd182c9645936d0bc7df0bc5aa114838eb3",
+    "observation_after_sha256": "7338b51fd39a78203a59a9942984fdd182c9645936d0bc7df0bc5aa114838eb3",
+    "observations_byte_identical": true,
+    "written_by_this_run": false,
+    "refunded_by_this_run": false,
+    "reset_by_this_run": false,
+    "new_counter_created": false,
+    "old_grant_revived": false
+  },
+  "real_execution": {
+    "process_started": false,
+    "socket_opened": false,
+    "database_touched": false,
+    "original_ledger_read": false,
+    "media_read": false,
+    "network_used": false,
+    "download": false,
+    "real_windows_api": false,
+    "job_object": false,
+    "service": false,
+    "gpu": false,
+    "model": false,
+    "note": "The guard of the root refused every one of the eight prohibited events in its self test and no runtime denial was recorded: nothing of the forbidden list was even attempted by the batch."
+  },
+  "failure_policy_applied": "No failure happened.  Nothing was rerun, no other route was taken, the candidate was not modified and no assertion was weakened.",
+  "stage_pass_claim": false,
+  "product_gate0": false,
+  "kind_of_claim": "READY_FOR_REVIEW"
+}
