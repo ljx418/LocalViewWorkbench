@@ -1589,7 +1589,7 @@ class _PendingResources:
         """The handles that this round still owns and has not closed."""
         return [dict(item) for item in self._items]
 
-    def close_all(self, failures):
+    def close_all(self, failures, on_closed=None):
         """Close every handle that is still pending and name the failures.
 
         A handle that could not be closed stays in the table: it is a
@@ -1601,6 +1601,13 @@ class _PendingResources:
         of the group never skips the handles that follow it.  The
         cancellation is raised after every handle was coordinated and it
         is never turned into an ordinary evidence.
+
+        A handle that was closed with a **confirmed** close is reported
+        to the owner of the table through ``on_closed``: the core has to
+        learn that the handle is really closed, so that it never names a
+        closed handle any more.  The report happens before the
+        cancellation is raised: the bookkeeping of the core is never
+        left behind the error that left the cleanup.
         """
         remaining = []
         cancellations = []
@@ -1625,6 +1632,8 @@ class _PendingResources:
                 remaining.append(item)
             else:
                 item['closed'] = True
+                if on_closed is not None:
+                    on_closed(item)
         self._items = remaining
         if cancellations:
             raise cancellations[0]
@@ -1942,6 +1951,45 @@ class BrokerCore:
                 working_directory=command['working_directory'],
                 stdout_handle=stdout_write, stderr_handle=stderr_write,
                 environment=command['environment'])
+        except BrokerError as error:
+            record['failure'] = error.code
+            self.failures.append({'stage': 'create_process', 'role': name,
+                                  'code': error.code})
+            # The façade keeps the original handles of a process that it
+            # could not hand over.  They are named here: the core holds
+            # the façade and the recovery of the façade can reach them.
+            retained = self._api_retained()
+            if retained:
+                self.failures.append({'stage': 'create_process_retained',
+                                      'role': name, 'retained': retained})
+            self._abort_round('CREATE_FAILED')
+            raise
+        # The original handles of the process enter the pending table of
+        # the round in the moment of their creation and the core takes
+        # them right away: it is their owner from now on and it closes
+        # them when it releases the records.
+        #
+        # The registration happens **before** the check of the shared
+        # budget that follows the creation and before every other step
+        # that may raise.  A process that was created after the deadline
+        # arrived is only cleaned up and it is never owned by nobody:
+        # the lease of the round may end, the ownership of the handles
+        # may not.
+        self._pending.add(created.process, 'process', role=name)
+        self._pending.add(created.thread, 'thread', role=name)
+        self._pending.transfer(created.process, 'CORE')
+        self._pending.transfer(created.thread, 'CORE')
+        record['pending_handles'].append({'kind': 'process', 'owner': 'CORE'})
+        record['pending_handles'].append({'kind': 'thread', 'owner': 'CORE'})
+        record['created'] = True
+        record['pid'] = created.pid
+        record['creation_time'] = created.creation_time
+        record['process_handle'] = created.process
+        record['thread_handle'] = created.thread
+        for failure in getattr(created, 'failures', ()):
+            self.failures.append({'stage': 'create_process', 'role': name,
+                                  'code': failure})
+        try:
             # The budget is checked again after the creation: a process
             # that was created after the deadline arrived is only
             # cleaned up, it is never assigned and it is never resumed.
@@ -1964,24 +2012,6 @@ class BrokerCore:
         # the pending table: they are not pending any more.
         self._release_pending(stdout_write)
         self._release_pending(stderr_write)
-        record['created'] = True
-        record['pid'] = created.pid
-        record['creation_time'] = created.creation_time
-        record['process_handle'] = created.process
-        record['thread_handle'] = created.thread
-        # The original handles of the process enter the pending table of
-        # the round in the moment of their creation and the core takes
-        # them right away: it is their owner from now on and it closes
-        # them when it releases the records.
-        self._pending.add(created.process, 'process', role=name)
-        self._pending.add(created.thread, 'thread', role=name)
-        self._pending.transfer(created.process, 'CORE')
-        self._pending.transfer(created.thread, 'CORE')
-        record['pending_handles'].append({'kind': 'process', 'owner': 'CORE'})
-        record['pending_handles'].append({'kind': 'thread', 'owner': 'CORE'})
-        for failure in getattr(created, 'failures', ()):
-            self.failures.append({'stage': 'create_process', 'role': name,
-                                  'code': failure})
         try:
             # The shared budget is checked before the assignment and
             # before the resume: a thread that is resumed after the
@@ -2321,12 +2351,45 @@ class BrokerCore:
         return self.evidence()
 
     def _close_pending(self):
-        """Close the handles that are still pending and name the failures."""
-        retained = self._pending.close_all(self.failures)
+        """Close the handles that are still pending and name the failures.
+
+        The pending pass is the **last** close of the round and it may
+        close a handle that the release of the records or the release of
+        the job could not close.  Every handle that it really closes is
+        reported to the core: the job of the round, the records of the
+        round and the retained resources of the round never name a
+        handle that is closed.
+        """
+        retained = self._pending.close_all(self.failures,
+                                           on_closed=self._note_closed_handle)
         if retained:
             self.failures.append({'stage': 'pending_resources',
                                   'count': len(retained),
                                   'code': 'BROKER_PENDING_RESOURCES_RETAINED'})
+
+    def _note_closed_handle(self, item):
+        """Learn that the pending pass really closed one handle.
+
+        The bookkeeping of the core has to agree with the fact of the
+        close: a handle that is closed may never be named by the job of
+        the round, by the records of the round or by the retained
+        resources of the round.  Only the handle that was really closed
+        is forgotten: a handle that could not be closed keeps its owner
+        and it stays named.
+        """
+        handle = item['handle']
+        kind = item['kind']
+        if self.job is handle:
+            self.job = None
+            self.job_closed = True
+        for record in self.records:
+            if record.get('process_handle') is handle:
+                record['process_handle_closed'] = True
+                record['process_handle'] = None
+            if record.get('thread_handle') is handle:
+                record['thread_handle_closed'] = True
+                record['thread_handle'] = None
+        self._release_resource(kind, handle)
 
     def _terminate_the_job(self):
         """Terminate the job of the round.

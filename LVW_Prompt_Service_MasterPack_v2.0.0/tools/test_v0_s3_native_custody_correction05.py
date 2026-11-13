@@ -335,7 +335,20 @@ def test_n05_r03_the_ends_of_a_pipe_are_owned_from_the_moment_of_their_creation(
     # the end that could not be closed is still with its owner.
     retained = api.retained_handles()
     assert [entry['kind'] for entry in retained] == ['pipe_read']
-    assert retained[0]['handle'] in kernel32.live
+    # The façade keeps the **original** object of the end: the handle of
+    # a pipe is a ``ctypes`` object and that type is not hashable, so
+    # the membership is checked with the number that the kernel knows.
+    # The production is not changed to make the test easier: the handle
+    # stays the object that the façade created.
+    retained_handle = retained[0]['handle']
+    assert getattr(retained_handle, 'value', retained_handle) == kernel32.pipe_read_handle
+    assert getattr(retained_handle, 'value', retained_handle) in kernel32.live
+    # The identity of the original end is never replaced by a copy: the
+    # façade hands out the very object that it holds.
+    assert api.retained_handles()[0]['handle'] is retained_handle
+    # The owner of the end is the façade and its recovery is the entry
+    # that releases it.
+    assert retained[0]['owner'] == 'WINDOWS_API'
     # The recovery of the owner reaches the end that is still open.
     report = api.release_retained()
     assert [item['kind'] for item in report] == ['pipe_read']
@@ -377,8 +390,9 @@ def test_n05_r04_a_cancellation_in_the_release_propagates_after_the_cleanup(tmp_
     core = BrokerCore(win32=win32, plan=sealed_plan(), run_root=tmp_path)
     core.arm()
     core.launch()
+    job = core.job
     # The close of the job handle of the round raises a cancellation.
-    win32.cancelled_handle = core.job
+    win32.cancelled_handle = job
     with pytest.raises(KeyboardInterrupt):
         core.stop('STOP')
     # The finalizers that follow the cancellation still ran.
@@ -389,9 +403,95 @@ def test_n05_r04_a_cancellation_in_the_release_propagates_after_the_cleanup(tmp_
     cancellations = [item for item in core.failures if item.get('cancellation')]
     assert cancellations, 'the cancellation was not named'
     assert any(item['stage'] == 'release_job' for item in cancellations)
-    # The handle that could not be closed keeps its owner.
-    assert core.job is not None
-    assert core.job in win32.live
+    # The pending pass of the cleanup closed the job handle for real.
+    # The bookkeeping of the core agrees with that fact: a handle that
+    # is closed is never named by the job of the round any more.
+    assert job not in win32.live, 'the job handle was not really closed'
+    assert core.job is None, 'the core names a handle that is closed'
+    assert core.job_closed is True
+    assert core._pending.pending() == []
+    assert not [item for item in core._retained_resources
+                if item['handle'] is job], \
+        'the core retains a handle that was really closed'
+
+    # -- a close that fails temporarily is retried by the pending pass -----
+    class TransientWin32(RecordingWin32):
+        """A façade whose first close of every handle fails."""
+
+        def __init__(self, **kwargs):
+            super().__init__(**kwargs)
+            self.failed_handles = set()
+
+        def close_handle(self, handle):
+            self.calls.append(('close_handle', handle))
+            if handle not in self.failed_handles:
+                self.failed_handles.add(handle)
+                raise BrokerError('BROKER_HANDLE_CLOSE_FAILED')
+            super().close_handle(handle)
+
+    win32 = TransientWin32()
+    core = BrokerCore(win32=win32, plan=sealed_plan(), run_root=tmp_path)
+    core.arm()
+    core.launch()
+    job = core.job
+    try:
+        core.stop('STOP')
+        # The pending pass retried the close and it succeeded: the fact
+        # of the close is the fact of the round.
+        assert not win32.live, 'the pending pass did not close the handles'
+        assert core.job is None
+        assert core.job_closed is True
+        assert core._pending.pending() == []
+        # The records of the round agree with the close of their handles.
+        for record in core.records:
+            assert record['process_handle'] is None
+            assert record['thread_handle'] is None
+            assert record['process_handle_closed'] is True
+            assert record['thread_handle_closed'] is True
+        # Nothing that was really closed is retained any more.
+        assert core._retained_resources == []
+        assert not [item for item in core._retained_resources
+                    if item['handle'] is job]
+    finally:
+        # The salvage of the test owner: the handles that the product
+        # could not close are released by the owner of the façade.
+        for handle in list(win32.live):
+            RecordingWin32.close_handle(win32, handle)
+
+    # -- a close that keeps failing keeps its owner ------------------------
+    class PersistentWin32(RecordingWin32):
+        """A façade whose close of every handle fails."""
+
+        def close_handle(self, handle):
+            self.calls.append(('close_handle', handle))
+            raise BrokerError('BROKER_HANDLE_CLOSE_FAILED')
+
+    win32 = PersistentWin32()
+    core = BrokerCore(win32=win32, plan=sealed_plan(), run_root=tmp_path)
+    core.arm()
+    core.launch()
+    job = core.job
+    try:
+        core.stop('STOP')
+        # The handle that could not be closed keeps its owner and it is
+        # named: it is never replaced by a copy of an error message.
+        assert core.job is job
+        assert job in win32.live
+        retained = [item for item in core._retained_resources
+                    if item['handle'] is job]
+        assert retained, 'the handle that could not be closed was not named'
+        assert retained[0]['owner'] == 'CORE_RETAINED'
+        assert retained[0]['code'] == 'BROKER_HANDLE_CLOSE_FAILED'
+        # The handle is still pending and it still has its owner.
+        pending = [item for item in core._pending.pending()
+                   if item['handle'] is job]
+        assert pending, 'the handle that could not be closed lost its owner'
+        assert pending[0]['owner'] == 'CORE'
+    finally:
+        # The salvage of the test owner: the handles that the product
+        # could not close are released by the owner of the façade.
+        for handle in list(win32.live):
+            RecordingWin32.close_handle(win32, handle)
 
 
 # -- N05-R05: one process never skips the others -------------------------
@@ -590,35 +690,80 @@ def test_n05_r08_a_start_that_raised_after_the_thread_started_keeps_the_thread(t
     the deadline of the cleanup.
     """
     class StartedThenFailed(threading.Thread):
-        """A thread that really starts and whose start then raises."""
+        """A reader that really starts and whose start then raises.
+
+        The stand-in implements the **whole** interface of the reader of
+        the channel: the evidence of the round reads ``error`` and
+        ``alive`` and the stop of the round reads ``stop`` and
+        ``join``.  A stand-in that does not implement it would hide the
+        real facts of the product behind an ``AttributeError`` and the
+        production evidence is never weakened to accommodate it.
+        """
 
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
             self.gate = threading.Event()
+            self.error = None
+            self.finished = threading.Event()
+            self.joins = []
+            self.stops = 0
 
         def run(self):
             self.gate.wait(5.0)
+            self.finished.set()
 
         def start(self):
             super().start()
             raise RuntimeError('start_failed_after_start')
 
+        @property
+        def alive(self):
+            return self.is_alive()
+
+        def stop(self):
+            self.stops += 1
+            self.gate.set()
+
+        def join(self, timeout=None):
+            self.joins.append(timeout)
+            return super().join(timeout)
+
+        def join_bounded(self, seconds):
+            self.join(seconds)
+            return not self.is_alive()
+
     session, _holder, clock = make_session(tmp_path, clock=ManualClock(1000.0))
     thread = StartedThenFailed(daemon=True, name='lvw-native-custody-late')
-    with pytest.raises(RuntimeError):
-        session._start_background_thread('pump', thread)
-    evidence = session.evidence()
-    assert 'CUSTODY_BACKGROUND_START_FAILED:pump' in evidence['failures']
-    assert evidence['state'] == 'UNKNOWN_RETAINED'
-    # The live thread keeps the reference of the session: the local
-    # flag of the start never took it for a thread that never started.
-    assert session._pump is thread
-    assert thread.is_alive()
-    # The owner of the thread stops it inside the deadline of the
-    # cleanup.
-    thread.gate.set()
-    session._stop_background(session._cleanup_deadline_for())
-    assert session._pump is None
+    try:
+        with pytest.raises(RuntimeError):
+            session._start_background_thread('pump', thread)
+        evidence = session.evidence()
+        assert 'CUSTODY_BACKGROUND_START_FAILED:pump' in evidence['failures']
+        assert evidence['state'] == 'UNKNOWN_RETAINED'
+        # The live thread keeps the reference of the session: the local
+        # flag of the start never took it for a thread that never started.
+        assert session._pump is thread
+        assert thread.is_alive()
+        # The reader interface of the stand-in reports the truth of the
+        # thread: the evidence reads it and it never claims a fact that
+        # the thread does not have.
+        assert evidence['pump_alive'] is True
+        assert evidence['pump_error'] is None
+        assert evidence['background_threads'][0]['alive'] is True
+        assert evidence['background_threads'][0]['started'] is True
+        # The owner of the thread stops it inside the deadline of the
+        # cleanup.
+        thread.gate.set()
+        session._stop_background(session._cleanup_deadline_for())
+        assert session._pump is None
+        assert thread.stops == 1
+        assert thread.joins, 'the reader was never joined'
+    finally:
+        # The salvage of the test owner: the thread of the stand-in is
+        # released and joined, whatever the checks above did.  The
+        # salvage never changes the fact of the product above.
+        thread.gate.set()
+        thread.join(5.0)
 
 
 # -- N05-R09: a closer that could not be built or started ----------------
@@ -1427,32 +1572,92 @@ def test_n05_r23_the_end_of_the_attempt_and_the_end_of_the_closer_are_two_facts(
         release.wait(5.0)
 
     session._finish_close = slow_finish
-    assert session._start_bounded_close() is True
-    assert entered.wait(5.0), 'the closer never ended its attempt'
-    evidence = session.evidence()
-    assert evidence['close_finished'] is True
-    assert evidence['closer_alive'] is True
-    assert evidence['closer_exited'] is False
-    # The waiter waits for the closer inside the same deadline and it
-    # never forms a cycle of waits.
-    outcome = {}
+    try:
+        assert session._start_bounded_close() is True
+        assert entered.wait(5.0), 'the closer never ended its attempt'
+        evidence = session.evidence()
+        assert evidence['close_finished'] is True
+        assert evidence['closer_alive'] is True
+        assert evidence['closer_exited'] is False
+        # The waiter waits for the closer inside the same deadline and it
+        # never forms a cycle of waits.
+        outcome = {}
 
-    def waiter():
-        outcome['result'] = session._await_close()
+        def waiter():
+            outcome['result'] = session._await_close()
 
-    thread = threading.Thread(target=waiter)
-    thread.start()
-    thread.join(0.2)
-    assert thread.is_alive(), 'the waiter returned before the closer ended'
-    # The deadline of the cleanup arrives while the closer is alive.
-    clock.value += 100.0
-    thread.join(5.0)
-    assert not thread.is_alive()
-    assert outcome.get('result') is False
-    assert 'CUSTODY_CLOSER_NOT_FINISHED' in session.evidence()['failures']
-    assert session.evidence()['state'] == 'UNKNOWN_RETAINED'
-    # The salvage of the test owner: the closer ends.
-    release.set()
+        thread = threading.Thread(target=waiter)
+        thread.start()
+        thread.join(0.2)
+        assert thread.is_alive(), 'the waiter returned before the closer ended'
+        # The deadline of the cleanup arrives while the closer is alive.
+        clock.value += 100.0
+        thread.join(5.0)
+        assert not thread.is_alive()
+        assert outcome.get('result') is False
+        assert 'CUSTODY_CLOSER_NOT_FINISHED' in session.evidence()['failures']
+        assert session.evidence()['state'] == 'UNKNOWN_RETAINED'
+        # The closer is still named by the round: it keeps its owner.
+        assert session.evidence()['closer_alive'] is True
+    finally:
+        # The salvage of the test owner: the closer ends and it is
+        # joined.  The salvage never changes the fact of the product
+        # above.
+        release.set()
+        closer = session._closer
+        if closer is not None:
+            closer.join(5.0)
+
+    # -- the waiter that arrives before the end of the attempt -------------
+    session, holder, clock = make_session(tmp_path, clock=ManualClock(1000.0))
+    session.start()
+    entered = threading.Event()
+    release = threading.Event()
+    original_finish = session._finish_close
+
+    def slow_attempt():
+        # The attempt of the close is still in flight and the closer
+        # stays alive inside it.
+        entered.set()
+        release.wait(5.0)
+        original_finish()
+
+    session._finish_close = slow_attempt
+    try:
+        assert session._start_bounded_close() is True
+        assert entered.wait(5.0), 'the closer never began its attempt'
+        outcome = {}
+
+        def waiter():
+            outcome['result'] = session._await_close()
+
+        thread = threading.Thread(target=waiter)
+        thread.start()
+        thread.join(0.2)
+        assert thread.is_alive(), 'the waiter returned before the attempt ended'
+        # The attempt ends: the waiter still waits for the **real** exit
+        # of the closer and it confirms it.
+        release.set()
+        thread.join(5.0)
+        assert not thread.is_alive()
+        assert outcome.get('result') is True
+        assert not session._closer.is_alive()
+        assert session.evidence()['closer_exited'] is True
+    finally:
+        release.set()
+        closer = session._closer
+        if closer is not None:
+            closer.join(5.0)
+
+    # -- the close of the calling thread has no closer of its own ----------
+    session, holder, clock = make_session(tmp_path, clock=ManualClock(1000.0))
+    session.start()
+    # The close is performed by the calling thread itself: there is no
+    # closer thread and no cleanup in flight, so the confirmation is
+    # immediate.
+    assert session._close_broker() == 'PERFORMED'
+    assert session._closer is None
+    assert session._await_close() is True
 
 
 # -- N05-R24: the closed items and the frozen groups are kept ------------

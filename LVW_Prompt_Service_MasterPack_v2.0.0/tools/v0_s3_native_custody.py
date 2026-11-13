@@ -1772,13 +1772,17 @@ class NativeCustodySession:
             # second time.  It waits for the close that is in flight and
             # it coordinates the items that a previous attempt did not
             # confirm, inside the **original** deadline of the cleanup.
-            self._close_broker()
+            cleanup_deadline = self._cleanup_deadline_for()
+            status = self._close_broker()
+            if status != 'PERFORMED':
+                self._public_stop_recovery(cleanup_deadline)
             self._await_close()
             return self.evidence()
         self._stopped = True
         self._stopping = True
         self._context.request_stop()
         cleanup_deadline = self._cleanup_deadline_for()
+        status = 'PERFORMED'
         try:
             if self.broker is not None and self.state in ('ARMED', 'RUNNING'):
                 self._bind_deadline(cleanup_deadline)
@@ -1808,7 +1812,15 @@ class NativeCustodySession:
             self._latch_unknown_state()
             raise
         finally:
-            self._close_broker()
+            status = self._close_broker()
+        if status != 'PERFORMED':
+            # An **explicit public stop** coordinates the items that a
+            # previous attempt did not confirm.  The internal close of
+            # the round never does that: a close that follows the
+            # attempt of a background thread - the close of a start
+            # that failed, for instance - would close the same peer a
+            # second time.
+            self._public_stop_recovery(cleanup_deadline)
         return self.evidence()
 
     def _close_broker(self):
@@ -1832,6 +1844,19 @@ class NativeCustodySession:
         original handle stays in the evidence of the round and the round
         stays unknown.  A failed close is never swallowed and never
         replaced by a success.
+
+        The internal close of the round never coordinates the items
+        that a previous attempt did not confirm.  The recovery of the
+        unconfirmed items belongs to the **public stop** of the round:
+        a close that follows the attempt of a background thread - the
+        close of a start that failed, for instance - would close the
+        same peer a second time.
+
+        The return value names the role of the caller: ``PERFORMED``
+        when this call was the owner of the close, ``ALREADY_FINISHED``
+        when an attempt ended before, ``WAITED`` when another owner was
+        closing the round and ``OWNER`` when the caller is the owner
+        itself.
         """
         deadline = self._cleanup_deadline_for()
         with self._close_lock:
@@ -1840,7 +1865,7 @@ class NativeCustodySession:
                 if self.broker is None:
                     # Nothing was acquired: there is nothing to close
                     # and no owner of the close is claimed.
-                    return
+                    return 'NOTHING_TO_CLOSE'
                 self._close_state = 'IN_PROGRESS'
                 self._close_owner = threading.current_thread()
                 owner = True
@@ -1854,28 +1879,65 @@ class NativeCustodySession:
                 # success, an ordinary exception, a cancellation and a
                 # SystemExit all wake the waiters.
                 self._finish_close()
-            return
+            return 'PERFORMED'
         if state == 'FINISHED':
             # The attempt that was in flight ended.  An attempt that
-            # ended is **not** a release: the items that were not
-            # confirmed may be coordinated again by the same owner,
-            # inside the **original** deadline of the cleanup.
-            self._recover_close(deadline)
-            return
+            # ended is **not** a release, but the internal close does
+            # not coordinate the unconfirmed items again: the public
+            # stop of the round does that, and only that.
+            return 'ALREADY_FINISHED'
         if self._close_owner is threading.current_thread():
             # The owner of the close never waits for itself.
-            return
+            return 'OWNER'
         self._await_close()
+        return 'WAITED'
+
+    def _public_stop_recovery(self, deadline):
+        """Coordinate the items that a previous attempt did not confirm.
+
+        Only an **explicit public stop** of the round reaches this
+        method.  The internal close of the round never coordinates the
+        unconfirmed items again: a close that follows the attempt of a
+        background thread would close the same peer a second time.
+
+        The recovery is a **take over** of the unconfirmed items by the
+        owner of the public stop and it uses the **original** deadline
+        of the cleanup: the deadline is never renewed.  A recovery that
+        arrives after the deadline keeps the resources of the round with
+        their owner and the round stays unknown.
+
+        A competitor never opens a second close at the same time: a
+        close that is in flight is waited for and the items that it did
+        not confirm may be coordinated by a **later** public stop.  The
+        recovery is therefore never locked out.
+        """
+        if self.broker is None:
+            # Everything that the round owned was released: there is
+            # nothing left to coordinate.
+            return 'NOTHING_TO_RECOVER'
+        with self._close_lock:
+            if self._close_state == 'IN_PROGRESS':
+                # Another owner is closing the round right now: the
+                # competitor waits for that owner and it never opens a
+                # second close at the same time.
+                return 'IN_PROGRESS'
+            if self._close_state != 'FINISHED':
+                # No attempt of the close ever ended: there is nothing
+                # that could be coordinated again.
+                return 'NOT_STARTED'
+        self._recover_close(deadline)
+        return 'RECOVERED'
 
     def _recover_close(self, deadline):
         """Coordinate the items that a previous attempt did not confirm.
 
         The recovery is the **public** entry of the round: it calls the
         product entry of the handle of the broker and it never calls a
-        method of a stand-in.  The original deadline of the cleanup is
-        never renewed: a recovery that arrives after it keeps the
-        resources of the round with their owner and the round stays
-        unknown.
+        method of a stand-in.  Only an explicit public stop reaches it
+        and the internal close of the round never does.  The original
+        deadline of the cleanup is never renewed: a recovery that
+        arrives after it keeps the resources of the round with their
+        owner and the round stays unknown.
         """
         if self.broker is None:
             # Everything that the round owned was released: there is
@@ -1990,48 +2052,92 @@ class NativeCustodySession:
         arrival of a waiter is published, so that the round and its
         evidence can see that a competitor waits for the close that it
         owns.
+
+        The end of the **attempt** of the close and the end of the
+        **thread** that performs it are two different facts.  A waiter
+        that arrives when the attempt already ended still waits for the
+        real exit of the closer: only a close that has no closer thread
+        of its own and no cleanup in flight may be confirmed at once.
         """
         with self._close_lock:
-            if self._close_state != 'IN_PROGRESS':
-                return True
-            if self._close_owner is threading.current_thread():
+            state = self._close_state
+            if state == 'IN_PROGRESS' and self._close_owner is threading.current_thread():
                 # The owner of the close never waits for itself.
                 return True
-            self._close_waiters += 1
-        self._close_waiter_arrived.set()
+            waiting = state == 'IN_PROGRESS'
+            if waiting:
+                self._close_waiters += 1
+        if waiting:
+            self._close_waiter_arrived.set()
         try:
             deadline = self._cleanup_deadline_for()
-            while True:
-                remaining = max(0.0, deadline - self._clock())
-                if remaining <= 0.0:
-                    # The shared deadline of the cleanup arrived.  The
-                    # deadline is never renewed and the original
-                    # resources of the round are kept.
-                    self._failures.append('CUSTODY_CLOSE_NOT_FINISHED')
-                    self._latch_unknown_state()
-                    return False
-                if self._close_done.wait(min(remaining, CLOSE_WAIT_SLICE_SECONDS)):
-                    # The end of the attempt of the close is published.
-                    # The end of the **thread** that performed it is a
-                    # second fact: the waiter waits for it inside the
-                    # same deadline and the evidence names the closer
-                    # that is still alive.
-                    while True:
-                        remaining = max(0.0, deadline - self._clock())
-                        if remaining <= 0.0:
-                            self._failures.append('CUSTODY_CLOSER_NOT_FINISHED')
-                            self._latch_unknown_state()
-                            return False
-                        if self._closer is None:
-                            # The close was performed by the caller
-                            # itself: there is no thread of its own.
-                            return True
-                        if self._closer_exited.wait(min(remaining,
-                                                        CLOSE_WAIT_SLICE_SECONDS)):
-                            return True
+            if waiting:
+                while True:
+                    remaining = max(0.0, deadline - self._clock())
+                    if remaining <= 0.0:
+                        # The shared deadline of the cleanup arrived.
+                        # The deadline is never renewed and the original
+                        # resources of the round are kept.
+                        self._failures.append('CUSTODY_CLOSE_NOT_FINISHED')
+                        self._latch_unknown_state()
+                        return False
+                    if self._close_done.wait(min(remaining, CLOSE_WAIT_SLICE_SECONDS)):
+                        # The end of the attempt of the close is
+                        # published.  The end of the **thread** that
+                        # performed it is a second fact.
+                        break
+            return self._await_closer_exit(deadline)
         finally:
-            with self._close_lock:
-                self._close_waiters -= 1
+            if waiting:
+                with self._close_lock:
+                    self._close_waiters -= 1
+
+    def _await_closer_exit(self, deadline):
+        """Wait for the **real** exit of the closer of the round.
+
+        The end of the attempt of the close is published by the owner
+        of the close and it is published **before** the thread that
+        performs it returns.  The event of the closer is therefore not
+        a proof that the thread ended: the waiter joins the thread and
+        it asks the thread itself whether it is still alive.
+
+        The join uses the **same** absolute deadline of the cleanup and
+        the remaining budget is recomputed before every single join.
+        The round never joins itself and a closer never waits for a
+        waiter: there is no cycle of waits.
+
+        A closer that is still alive when the deadline arrives keeps
+        its owner and the round stays unknown.
+        """
+        with self._close_lock:
+            closer = self._closer
+        if closer is None:
+            # The close was performed by the caller itself: there is no
+            # thread of its own and there is nothing to join.
+            return True
+        if closer is threading.current_thread():
+            # The round never joins itself.  The closer is the thread
+            # that runs this wait: it cannot wait for its own exit and
+            # it ends as soon as this method returns.
+            return True
+        while True:
+            remaining = max(0.0, deadline - self._clock())
+            if remaining <= 0.0:
+                # The original deadline of the cleanup arrived.  The
+                # deadline is never renewed, the closer keeps its owner
+                # and the round stays unknown.
+                self._failures.append('CUSTODY_CLOSER_NOT_FINISHED')
+                self._latch_unknown_state()
+                return False
+            try:
+                closer.join(min(remaining, CLOSE_WAIT_SLICE_SECONDS))
+            except RuntimeError:
+                # A thread that was never started cannot be joined: it
+                # is not a thread of the round and there is nothing to
+                # wait for.
+                return True
+            if not closer.is_alive():
+                return True
 
     def __enter__(self):
         return self
@@ -2084,7 +2190,14 @@ class NativeCustodySession:
             'close_finished': self._close_done.is_set(),
             'close_waiters': self._close_waiters,
             'closer_alive': bool(self._closer is not None and self._closer.is_alive()),
-            'closer_exited': self._closer_exited.is_set(),
+            # The end of the **thread** of the closer and the end of its
+            # **attempt** are two facts.  The event of the closer is
+            # published inside the thread and it is therefore not a
+            # proof that the thread ended: the evidence asks the thread
+            # itself.
+            'closer_exited': bool(self._closer_exited.is_set()
+                                   and self._closer is not None
+                                   and not self._closer.is_alive()),
             'background_open': self._background_open,
             # The state of every background thread of the round.  The
             # state tells whether the start of the thread returned and
