@@ -1,0 +1,135 @@
+{
+  "report": {
+    "kind": "lvw.s3-native-admission-report/1",
+    "run_id": "s3-p4-composition-01",
+    "candidate_sha": "7dc76ffeec685959f5906c612e58f7e1fc081425",
+    "authorization_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "accepted": false,
+    "reasons": [
+      "NATIVE_EXECUTION_BACKEND_NOT_READY"
+    ],
+    "verified": [
+      "budget_binding",
+      "native_custody",
+      "gpu_release",
+      "install",
+      "rollback",
+      "grant",
+      "tool_closure"
+    ],
+    "verified_scope": "SHAPE_AND_IDENTITY_OF_SEALED_DOCUMENTS_ONLY",
+    "budget_authority": "S3BudgetBindingProvider",
+    "budget_binding_scope": "SEALED_BINDING_SHAPE_ONLY_NOT_BALANCE_NOT_AUTHORIZATION_NOT_CUSTODY",
+    "native_execution_backend_ready": false,
+    "native_execution_backend_code": "NATIVE_EXECUTION_BACKEND_NOT_READY",
+    "original_ledger_touched_by_this_controller": false,
+    "debit_owner": "original_ledger_authority",
+    "stage_pass_claim": false,
+    "product_gate0": false,
+    "primary_reason": "NATIVE_EXECUTION_BACKEND_NOT_READY"
+  },
+  "default_main_exit": 3,
+  "receipt": {
+    "admission": {
+      "accepted": false,
+      "authorization_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "budget_authority": "S3BudgetBindingProvider",
+      "budget_binding_scope": "SEALED_BINDING_SHAPE_ONLY_NOT_BALANCE_NOT_AUTHORIZATION_NOT_CUSTODY",
+      "candidate_sha": "7dc76ffeec685959f5906c612e58f7e1fc081425",
+      "debit_owner": "original_ledger_authority",
+      "kind": "lvw.s3-native-admission-report/1",
+      "native_execution_backend_code": "NATIVE_EXECUTION_BACKEND_NOT_READY",
+      "native_execution_backend_ready": false,
+      "original_ledger_touched_by_this_controller": false,
+      "primary_reason": "NATIVE_EXECUTION_BACKEND_NOT_READY",
+      "product_gate0": false,
+      "reasons": [
+        "NATIVE_EXECUTION_BACKEND_NOT_READY"
+      ],
+      "run_id": "s3-p4-composition-01",
+      "stage_pass_claim": false,
+      "verified": [
+        "budget_binding",
+        "native_custody",
+        "gpu_release",
+        "install",
+        "rollback",
+        "grant",
+        "tool_closure"
+      ],
+      "verified_scope": "SHAPE_AND_IDENTITY_OF_SEALED_DOCUMENTS_ONLY"
+    },
+    "archive_allowed": false,
+    "authorization_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "candidate_sha": "7dc76ffeec685959f5906c612e58f7e1fc081425",
+    "cleanup_proven": false,
+    "duration_seconds": 0.00105,
+    "execution_attempts": 1,
+    "execution_mode": "NATIVE",
+    "fd_cleanup": {
+      "fd_after": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        6
+      ],
+      "fd_before": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        6
+      ],
+      "fd_leaked": [],
+      "readers_closed": {
+        "closed_streams": null,
+        "stderr_drain_complete": null,
+        "stderr_read_error": null,
+        "stdout_drain_complete": null,
+        "stdout_read_error": null
+      },
+      "worker_exit_code": null,
+      "worker_lifecycle": null,
+      "worker_thread_finished": null
+    },
+    "kind": "lvw.s3-production-controller-receipt/1",
+    "native_execution_backend_code": "NATIVE_EXECUTION_BACKEND_NOT_READY",
+    "native_execution_backend_ready": false,
+    "node_id": "bd0b7d0860c4c0f286554a3277585265",
+    "offline_receipts_are_not_product_receipts": true,
+    "product_gate0": false,
+    "real_execution_performed": false,
+    "receipt_path": null,
+    "receipt_persisted": false,
+    "receipt_persistence_error": "CONTROLLER_RECEIPT_NOT_APPLICABLE_NO_RESERVATION",
+    "refund_allowed": false,
+    "refusals": [
+      "CONTROLLER_NATIVE_EXECUTION_BACKEND_NOT_READY"
+    ],
+    "resend_allowed": false,
+    "reservation_retained": true,
+    "root": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-01/complete-chain-temp/test_complete_diagnostic_chain0/run",
+    "root_retained": true,
+    "run_id": "s3-p4-composition-01",
+    "source_sha256": {
+      "tools/v0_s3_coordinator.py": "14e8dd284971aeab00999f010679d5c95deb88ee3bff8f4ca0708d958b56f12c",
+      "tools/v0_s3_production_controller.py": "3a00e26c50edad93e5693751658f7fcb5659a5e2e08b8a742b3a69ab5b808acc",
+      "tools/v0_s3_quality_phase.py": "90552ea113ccf53a2a1cedff3e3f399642ad932bf0f71bb1f9a57e1adb6e8789",
+      "tools/v0_s3_quality_worker.py": "1da08f0e2d035418d0b394a0bbfe1d06612ec951dc0f615900905fd4106438b9",
+      "tools/v0_s3_supervisor.py": "7d210429e70761cea633e8f2e64d8a1f01709930068a21de5cbc3c5a519ce6d8"
+    },
+    "spawn_attempts": 0,
+    "stage_pass_claim": false,
+    "started_wall": 1794569146.502926,
+    "state": "REFUSED_BEFORE_START",
+    "summary_persisted": false,
+    "transitions": [],
+    "unknown_reason": "CONTROLLER_NATIVE_EXECUTION_BACKEND_NOT_READY"
+  },
+  "calls": [],
+  "ledger_file_created": false,
+  "synthetic_python_never_executed": true
+}

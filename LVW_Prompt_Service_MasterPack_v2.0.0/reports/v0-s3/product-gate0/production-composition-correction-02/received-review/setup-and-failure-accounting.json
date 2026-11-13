@@ -1,0 +1,17 @@
+{
+  "source_snapshot_command": "python3 read git HEAD/status/diff/index, compare90 prior source hashes to source-materialization.json and git show7c27; write only six git show7dc blobs",
+  "source_snapshot_stdout": "prior sources90 unknown[]; materialized6",
+  "initial_unavailable_command": {
+    "argv0": "python",
+    "exit": 127,
+    "stderr": "/bin/bash: line1: python: command not found",
+    "effect": "no snapshot or source write occurred"
+  },
+  "supplement_initial_runner": {
+    "exit": 1,
+    "effect": "PluginValidationError before collection; no candidate imported by that runner",
+    "stdout": "supplement.stdout.log",
+    "stderr": "supplement.stderr.log"
+  },
+  "outer_readonly_setup_exceptions": "Input inspection includes missing local production* glob reported by rg, not a product test failure; no dependency or source changed."
+}

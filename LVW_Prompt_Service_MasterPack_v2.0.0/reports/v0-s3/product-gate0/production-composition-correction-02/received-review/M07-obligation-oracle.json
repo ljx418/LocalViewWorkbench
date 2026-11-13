@@ -1,0 +1,97 @@
+{
+  "receipts": {
+    "output_contract": {
+      "authorization_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "candidate_sha": "7dc76ffeec685959f5906c612e58f7e1fc081425",
+      "evidence_scope": "OFFLINE_SYNTHETIC_COMPOSITION",
+      "kind": "lvw.s3-aggregate-receipt/1",
+      "name": "output_contract",
+      "obligation": "EVERY_ONE_OF_THE_SIXTEEN_ROWS_PUBLISHED_BOTH_ARTEFACTS",
+      "product_gate0": false,
+      "product_pass_claimed": false,
+      "reason": "EVERY_ROW_PUBLISHED_ITS_RAW_AND_SUGGESTION_ARTEFACTS",
+      "run_id": "s3-p4-composition-01",
+      "sources": [
+        {
+          "sha256": "302714816d54ffb067010f87610ee8ce29706ddd7d1418cf7e56a6243f473bb1",
+          "source": "canonical_receipt"
+        },
+        {
+          "sha256": "518b942757e12bd7fcb729797965dd6183be2eeeb906a4d965b92bd1619ce5fa",
+          "source": "parent_manifest"
+        }
+      ],
+      "stage_pass_claim": false,
+      "status": "PASS"
+    },
+    "resource_budget": {
+      "authorization_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "candidate_sha": "7dc76ffeec685959f5906c612e58f7e1fc081425",
+      "evidence_scope": "OFFLINE_SYNTHETIC_COMPOSITION",
+      "kind": "lvw.s3-aggregate-receipt/1",
+      "name": "resource_budget",
+      "obligation": "EVERY_PROVIDER_CALL_OF_THIS_RUN_WAS_RESERVED_INSIDE_THE_ACCEPTED_BUDGET",
+      "product_gate0": false,
+      "product_pass_claimed": false,
+      "reason": "THE_PROVIDER_CALL_BUDGET_OF_THIS_RUN_WAS_ACCOUNTED_BY_THE_PHASE",
+      "run_id": "s3-p4-composition-01",
+      "sources": [
+        {
+          "sha256": "302714816d54ffb067010f87610ee8ce29706ddd7d1418cf7e56a6243f473bb1",
+          "source": "canonical_receipt"
+        }
+      ],
+      "stage_pass_claim": false,
+      "status": "PASS"
+    },
+    "no_overwrite": {
+      "authorization_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "candidate_sha": "7dc76ffeec685959f5906c612e58f7e1fc081425",
+      "evidence_scope": "OFFLINE_SYNTHETIC_COMPOSITION",
+      "kind": "lvw.s3-aggregate-receipt/1",
+      "name": "no_overwrite",
+      "obligation": "NO_ARTEFACT_OF_THIS_RUN_REPLACED_AN_EXISTING_FILE",
+      "product_gate0": false,
+      "product_pass_claimed": false,
+      "reason": "EVERY_ARTEFACT_OF_THIS_RUN_WAS_CREATED_EXCLUSIVELY_INSIDE_THE_OWNED_PHASE_DIRECTORY",
+      "run_id": "s3-p4-composition-01",
+      "sources": [
+        {
+          "sha256": "302714816d54ffb067010f87610ee8ce29706ddd7d1418cf7e56a6243f473bb1",
+          "source": "canonical_receipt"
+        },
+        {
+          "sha256": "518b942757e12bd7fcb729797965dd6183be2eeeb906a4d965b92bd1619ce5fa",
+          "source": "parent_manifest"
+        }
+      ],
+      "stage_pass_claim": false,
+      "status": "PASS"
+    }
+  },
+  "canonical_has_native_resource_limits": false,
+  "canonical_provider_counts": {
+    "provider_calls_reserved": 34,
+    "provider_calls_observed": 34,
+    "parent_budget_capacity": 34
+  },
+  "canonical_bounds": {
+    "automatic_retries": 0,
+    "callback_max_seconds": 30.0,
+    "image_source_max_bytes": 20971520,
+    "max_artifact_bytes": 8388608,
+    "max_artifact_files": 256,
+    "max_history_polls": 6000,
+    "max_provider_calls": 34,
+    "max_public_submissions": 16,
+    "max_total_artifact_bytes": 134217728,
+    "observation_max_seconds": 30.0,
+    "persistence_max_seconds": 60.0,
+    "phase_timeout_seconds": 10800,
+    "release_max_seconds": 60.0,
+    "sample_history_timeout_seconds": 600,
+    "video_source_max_bytes": 268435456
+  },
+  "real_execution_performed": false,
+  "scope": "Synthetic provider accounting and artifact ownership do not cover the fixed A03/A05/A09 product obligations."
+}

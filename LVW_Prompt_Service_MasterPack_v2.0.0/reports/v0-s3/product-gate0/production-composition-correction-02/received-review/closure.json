@@ -1,0 +1,101 @@
+[
+  {
+    "id": "M01",
+    "status": "CLOSED",
+    "location": "tools/v0_s3_production_controller.py:384",
+    "trigger": "JSON decoded PROVEN; bool1/stringtrue negative",
+    "expected_actual_oracle": "Equal strings accepted as shape; non-bool rejected; authorization remains separate.",
+    "evidence": "M01.json",
+    "terminal_cleanup": "shape check; no spawn; no retained descriptors"
+  },
+  {
+    "id": "M02",
+    "status": "CLOSED",
+    "location": "tools/v0_s3_production_controller.py:1773; tools/v0_s3_quality_worker.py:402",
+    "trigger": "Both formal default entries, untrusted PROVEN chain and all-seven shape-valid diagnostic chain",
+    "expected_actual_oracle": "NATIVE_EXECUTION_BACKEND_NOT_READY; all seven diagnostic fields verified but accepted=false; controller0spawn/worker0driver.",
+    "evidence": "M02-all-seven-diagnostic-proofs.json; M02-default-controller-main.json; M02.json",
+    "terminal_cleanup": "REFUSED_BEFORE_START; no reservation owned; no native, ledger or model execution"
+  },
+  {
+    "id": "M03",
+    "status": "CLOSED",
+    "location": "tools/v0_s3_production_controller.py:1126; tools/v0_s3_quality_worker.py:142; tools/v0_s3_supervisor.py:1141",
+    "trigger": "Missing/wrong controller seal; second-load driver_arguments/source_identity_path/projection_path drift; fixed command compatibility",
+    "expected_actual_oracle": "Required expected hash stays unchanged through every worker load; drift UNKNOWN; provenance controller and worker each equal actual independent bytes.",
+    "evidence": "M03-*.json; positive-oracle.json; tracked-callers.txt; supervisor-unchanged-protocol.json",
+    "terminal_cleanup": "No summary on drift; joined workers/closed FD; fixed supervisor protocol/caps unchanged"
+  },
+  {
+    "id": "M04",
+    "status": "OPEN",
+    "location": "tools/v0_s3_quality_worker.py:88; tools/v0_s3_controller_io.py:177; tools/v0_s3_quality_worker.py:212",
+    "trigger": "Actual worker projection/source/budget/binding/dependency reference parent renamed to owned outside directory and replaced by symlink",
+    "expected_actual_oracle": "Bounded reads, FIFO/device/leaf/root-relative links fail safely; actual referenced paths use leaf-only nofollow and accept redirected ancestors outside root.",
+    "evidence": "M04-actual-worker-*.json; M04-*.json; read-oracle-*.json",
+    "terminal_cleanup": "Actual reference methods return accepted content, no process; all FD close; FIFO removed by test control"
+  },
+  {
+    "id": "M05",
+    "status": "OPEN",
+    "location": "tools/v0_s3_production_controller.py:1287; tools/v0_s3_production_controller.py:1307; tools/v0_s3_production_controller.py:1332",
+    "trigger": "All raw/canonical/sourceplan/root mutations after ORIGINALS_VERIFIED and RECEIPTS_BOUND; additionally mutate canonical immediately after real parse before safe byte seal",
+    "expected_actual_oracle": "Ten post-state cases reject UNKNOWN; parse-to-seal race still consumes old16PASS while sealing/provenance new15PASS1FAIL and persists internal PASS.",
+    "evidence": "M05-*.json; M05-parse-seal-drift.json; parse-boundary.stdout.log",
+    "terminal_cleanup": "Race SUMMARY_PERSISTED/exit0; post-state cases UNKNOWN; all controlled threads/FD clean"
+  },
+  {
+    "id": "M06",
+    "status": "OPEN",
+    "location": "tools/v0_s3_production_controller.py:1172; tools/v0_s3_controller_io.py:197; tools/v0_s3_production_controller.py:1667; tools/v0_s3_production_controller.py:1689",
+    "trigger": "Rename/recreate controller/temp/root directory; replace root parent with symlink; PRECHECK root replacement before reservation",
+    "expected_actual_oracle": "Final-component and inner symlink cases refuse; root/ancestor directory inode not bound across opens. New controller dir gets summary; replaced root/parent gets receipt (and PRECHECK new root reservation).",
+    "evidence": "M06-*.json",
+    "terminal_cleanup": "External synthetic dir received receipt through root-parent symlink; partial/old dirs preserved; no unknown content deleted; FD/threads clean"
+  },
+  {
+    "id": "M07",
+    "status": "OPEN",
+    "location": "tools/v0_s3_production_controller.py:1462; tools/v0_s3_production_controller.py:1470; tools/v0_s3_production_controller.py:1486; tools/v0_s3_coordinator.py:70",
+    "trigger": "First release-unproven/residue/provider-refusal and genuine final-row15PASS1FAIL; positive obligation mapping",
+    "expected_actual_oracle": "Actual failed rows now prevent three false PASS; root/reservation correctly retained. Positive still assigns product aggregate names output_contract/no_overwrite/resource_budget PASS from narrower artifact/call-count obligations instead of full A03/A05/A09.",
+    "evidence": "M07-*.json; positive.json; plans/acceptance_cases.json:55,115,222",
+    "terminal_cleanup": "Top12BLOCKED preserved; internal full obligations unproven; no real draft/format/resource/performance execution"
+  },
+  {
+    "id": "M08",
+    "status": "OPEN",
+    "location": "tools/v0_s3_production_controller.py:1866; tools/v0_s3_production_controller.py:1713; tools/v0_s3_production_controller.py:2026",
+    "trigger": "Ordinary verify/bind errors; deletion after manifest; OSError fsync; KeyboardInterrupt/SystemExit; unexpected RuntimeError during terminal persistence",
+    "expected_actual_oracle": "Ordinary run errors/deletion persist UNKNOWN; OSError explicitly records unpersisted; BaseException rethrows with FD/thread cleanup. Unexpected exception in finally persistence escapes protected block to generic exit5 with no returned UNKNOWN and no explicit persistence status.",
+    "evidence": "M08-*.json; supplement-corrected.stdout.log",
+    "terminal_cleanup": "Unexpected persistence: stdout empty/receipt null, stderr EXCEPTION RuntimeError, receipt_persistence_error null; no FD leak or live thread"
+  },
+  {
+    "id": "M09",
+    "status": "CLOSED",
+    "location": "tools/v0_s3_production_controller.py:1192",
+    "trigger": "Preexisting summary/reservation; two same-run contenders synchronized at precheck",
+    "expected_actual_oracle": "Preexisting bytes preserved and0spawn; two contenders have exactly one send owner; no resend/delete/newrunid. Root identity defects separately M06.",
+    "evidence": "M09-*.json",
+    "terminal_cleanup": "At most one execution for the same unchanged bound directory; both contenders join; reservations retained"
+  },
+  {
+    "id": "m01",
+    "status": "CLOSED",
+    "location": "tools/v0_s3_production_controller.py:653; tools/v0_s3_production_controller.py:987",
+    "trigger": "Cancel after first submit; blocked noncooperative callback with test-owned release Event",
+    "expected_actual_oracle": "Cooperative path stops after one submit and joins. Noncooperative path UNKNOWN/retained/late-write-possible; callback resumes only when test control releases; test cleanup never claimed product cleanup.",
+    "evidence": "m01-*.json",
+    "terminal_cleanup": "Noncooperative thread alive at product return; independent test finally releases Event and joins; all test threads eventually gone"
+  },
+  {
+    "id": "m02",
+    "status": "CLOSED",
+    "location": "tools/v0_s3_quality_worker.py:337",
+    "trigger": "WorkerError on text and binary stderr; default-native binary error stream",
+    "expected_actual_oracle": "Exact INDEPENDENT_ACCURATE_CODE and native refusal survive; no TypeError replacement.",
+    "evidence": "m02-*.json; M02.json",
+    "terminal_cleanup": "Exit2 exact WorkerError; no worker started for direct refusal"
+  }
+]

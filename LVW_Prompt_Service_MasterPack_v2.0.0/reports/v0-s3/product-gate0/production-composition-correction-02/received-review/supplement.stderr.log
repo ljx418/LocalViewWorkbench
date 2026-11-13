@@ -1,0 +1,24 @@
+Traceback (most recent call last):
+  File "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-01/guard.py", line 24, in <module>
+    runpy.run_path(entry,run_name='__main__')
+  File "<frozen runpy>", line 286, in run_path
+  File "<frozen runpy>", line 98, in _run_module_code
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-01/run_supplement.py", line 12, in <module>
+    code=pytest.main(['-q','-s','--tb=short','-p','no:cacheprovider','--basetemp',str(D/'supplement-temp'),*[str(D/'supplement.py')+'::'+n for n in names]],plugins=[p])
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/administrator/.local/lib/python3.12/site-packages/_pytest/config/__init__.py", line 156, in main
+    config = _prepareconfig(args, plugins)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/administrator/.local/lib/python3.12/site-packages/_pytest/config/__init__.py", line 341, in _prepareconfig
+    pluginmanager.register(plugin)
+  File "/home/administrator/.local/lib/python3.12/site-packages/_pytest/config/__init__.py", line 503, in register
+    plugin_name = super().register(plugin, name)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/administrator/.local/lib/python3.12/site-packages/pluggy/_manager.py", line 168, in register
+    self._verify_hook(hook, hookimpl)
+  File "/home/administrator/.local/lib/python3.12/site-packages/pluggy/_manager.py", line 343, in _verify_hook
+    raise PluginValidationError(
+pluggy._manager.PluginValidationError: Plugin '134535275024304' for hook 'pytest_runtest_logreport'
+hookimpl definition: pytest_runtest_logreport(r)
+Argument(s) {'r'} are declared in the hookimpl but can not be found in the hookspec

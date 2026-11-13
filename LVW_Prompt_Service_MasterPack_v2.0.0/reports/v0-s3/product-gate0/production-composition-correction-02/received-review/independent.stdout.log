@@ -1,0 +1,26 @@
+.......F......F.............F......................
+=================================== FAILURES ===================================
+______________________________ test_m04_io[exact] ______________________________
+reports/v0-s3/product-gate0/independent-production-composition-correction-01/probes.py:107: in test_m04_io
+    assert before==after and sum(requests)<=limit+1
+E   AssertionError: assert ({'0', '1', '2', '3', '4', '5'} == {'0', '1', '2', '3', '4', '5'}
+E     
+E     Use -v to get more diff and 18 <= (16 + 1))
+E    +  where 18 = sum([17, 1])
+__________________________ test_m04_io[changed_read] ___________________________
+reports/v0-s3/product-gate0/independent-production-composition-correction-01/probes.py:107: in test_m04_io
+    assert before==after and sum(requests)<=limit+1
+E   AssertionError: assert ({'0', '1', '2', '3', '4', '5'} == {'0', '1', '2', '3', '4', '5'}
+E     
+E     Use -v to get more diff and 18 <= (16 + 1))
+E    +  where 18 = sum([17, 1])
+______________________ test_m06_write_identity[dirobject] ______________________
+reports/v0-s3/product-gate0/independent-production-composition-correction-01/probes.py:153: in test_m06_write_identity
+    else:assert not v['receipt']['summary_persisted']
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   assert not True
+=========================== short test summary info ============================
+FAILED reports/v0-s3/product-gate0/independent-production-composition-correction-01/probes.py::test_m04_io[exact]
+FAILED reports/v0-s3/product-gate0/independent-production-composition-correction-01/probes.py::test_m04_io[changed_read]
+FAILED reports/v0-s3/product-gate0/independent-production-composition-correction-01/probes.py::test_m06_write_identity[dirobject]
+3 failed, 48 passed in 26.55s

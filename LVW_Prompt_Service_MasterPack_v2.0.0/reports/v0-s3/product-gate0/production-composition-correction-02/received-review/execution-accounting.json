@@ -1,0 +1,185 @@
+{
+  "unique_test_nodes": 71,
+  "pytest_call_invocations": 71,
+  "independently_authored_nodes": 68,
+  "selected_old_compat_nodes": 3,
+  "outcomes": {
+    "passed": 68,
+    "failed": 3
+  },
+  "collection_attempt_without_nodes": 1,
+  "guard_selftest_checks": 8,
+  "whole_old_or_author_suites_run": 0,
+  "independent_guarded_python_processes_with_candidate_import": 5,
+  "outer_guard_python_launch_is_not_OSfixture": true,
+  "native_driver_calls": 0,
+  "OSfixture_starts": 0,
+  "network_or_model_calls": 0,
+  "counts_are_not_product_obligations": true,
+  "batches": [
+    {
+      "file": "probe-results.json",
+      "exit": 1,
+      "collected": 51,
+      "results": {
+        "passed": 48,
+        "failed": 3
+      },
+      "fd_before": [
+        "0",
+        "1",
+        "2",
+        "3"
+      ],
+      "fd_after": [
+        "0",
+        "1",
+        "2",
+        "3"
+      ],
+      "threads_after": [
+        [
+          "MainThread",
+          124842969718912,
+          false
+        ]
+      ]
+    },
+    {
+      "file": "supplement-results.json",
+      "exit": 0,
+      "collected": 14,
+      "results": {
+        "passed": 14
+      },
+      "fd_before": [
+        "0",
+        "1",
+        "2",
+        "3"
+      ],
+      "fd_after": [
+        "0",
+        "1",
+        "2",
+        "3"
+      ],
+      "threads_after": [
+        [
+          "MainThread",
+          136140013015168,
+          false
+        ]
+      ]
+    },
+    {
+      "file": "final-results.json",
+      "exit": 0,
+      "collected": 4,
+      "results": {
+        "passed": 4
+      },
+      "fd_before": [
+        "0",
+        "1",
+        "2",
+        "3"
+      ],
+      "fd_after": [
+        "0",
+        "1",
+        "2",
+        "3"
+      ],
+      "threads_after": [
+        [
+          "MainThread",
+          134996299493504,
+          false
+        ]
+      ]
+    },
+    {
+      "file": "complete-chain-results.json",
+      "exit": 0,
+      "collected": 1,
+      "results": {
+        "passed": 1
+      },
+      "fd_before": [
+        "0",
+        "1",
+        "2",
+        "3"
+      ],
+      "fd_after": [
+        "0",
+        "1",
+        "2",
+        "3"
+      ],
+      "threads_after": [
+        [
+          "MainThread",
+          134996030214272,
+          false
+        ]
+      ]
+    },
+    {
+      "file": "parse-boundary-results.json",
+      "exit": 0,
+      "collected": 1,
+      "results": {
+        "passed": 1
+      },
+      "fd_before": [
+        "0",
+        "1",
+        "2",
+        "3"
+      ],
+      "fd_after": [
+        "0",
+        "1",
+        "2",
+        "3"
+      ],
+      "threads_after": [
+        [
+          "MainThread",
+          124848463908992,
+          false
+        ]
+      ]
+    }
+  ],
+  "failures": [
+    {
+      "node": "reports/v0-s3/product-gate0/independent-production-composition-correction-01/probes.py::test_m04_io[exact]",
+      "when": "call",
+      "outcome": "failed",
+      "duration": 0.0005533899966394529,
+      "failure": "reports/v0-s3/product-gate0/independent-production-composition-correction-01/probes.py:107: in test_m04_io\n    assert before==after and sum(requests)<=limit+1\nE   AssertionError: assert ({'0', '1', '2', '3', '4', '5'} == {'0', '1', '2', '3', '4', '5'}\nE     \nE     Use -v to get more diff and 18 <= (16 + 1))\nE    +  where 18 = sum([17, 1])"
+    },
+    {
+      "node": "reports/v0-s3/product-gate0/independent-production-composition-correction-01/probes.py::test_m04_io[changed_read]",
+      "when": "call",
+      "outcome": "failed",
+      "duration": 0.0004699740093201399,
+      "failure": "reports/v0-s3/product-gate0/independent-production-composition-correction-01/probes.py:107: in test_m04_io\n    assert before==after and sum(requests)<=limit+1\nE   AssertionError: assert ({'0', '1', '2', '3', '4', '5'} == {'0', '1', '2', '3', '4', '5'}\nE     \nE     Use -v to get more diff and 18 <= (16 + 1))\nE    +  where 18 = sum([17, 1])"
+    },
+    {
+      "node": "reports/v0-s3/product-gate0/independent-production-composition-correction-01/probes.py::test_m06_write_identity[dirobject]",
+      "when": "call",
+      "outcome": "failed",
+      "duration": 0.6952391110098688,
+      "failure": "reports/v0-s3/product-gate0/independent-production-composition-correction-01/probes.py:153: in test_m06_write_identity\n    else:assert not v['receipt']['summary_persisted']\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE   assert not True"
+    }
+  ],
+  "oracle_notes": [
+    "M04 exact/changed initial sum(request sizes) was an overly strong test assertion; actual returned bytes limit holds (read-oracle-*.json).",
+    "M06 dirobject assertion failure is a valid remaining product defect, confirmed by a separate boundary probe.",
+    "Supplement first runner failed plugin argument validation before collection; preserved verbatim with corrected runner stored separately."
+  ]
+}

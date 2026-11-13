@@ -1,0 +1,2518 @@
+{
+  "canonical": {
+    "artifact_bytes": 125795,
+    "artifact_bytes_including_receipt": 236951,
+    "artifact_files": 137,
+    "artifact_files_including_receipt": 139,
+    "authorization_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "bounds": {
+      "automatic_retries": 0,
+      "callback_max_seconds": 30.0,
+      "image_source_max_bytes": 20971520,
+      "max_artifact_bytes": 8388608,
+      "max_artifact_files": 256,
+      "max_history_polls": 6000,
+      "max_provider_calls": 34,
+      "max_public_submissions": 16,
+      "max_total_artifact_bytes": 134217728,
+      "observation_max_seconds": 30.0,
+      "persistence_max_seconds": 60.0,
+      "phase_timeout_seconds": 10800,
+      "release_max_seconds": 60.0,
+      "sample_history_timeout_seconds": 600,
+      "video_source_max_bytes": 268435456
+    },
+    "candidate_sha": "7dc76ffeec685959f5906c612e58f7e1fc081425",
+    "cleanup_unproven": false,
+    "contract": "reports/v0-s3/product-gate0/p3b-quality-contract.md",
+    "decision": "QUALITY_EXECUTION_COMPLETE_ALL_16_PASS",
+    "durability_limit": "A file fsync and a successful no-overwrite publication do not prove the crash durability of the parent directory entry.",
+    "fixed_denominator": {
+      "images": 10,
+      "total": 16,
+      "videos": 6
+    },
+    "halt_reason": null,
+    "halted": false,
+    "hard_timing_blocker": "UNIMPLEMENTED_PRODUCT_GATE0_BLOCKER",
+    "history_polls": 16,
+    "kind": "S3_P3B_QD_EXECUTION_RECEIPT",
+    "ownership_assurance": {
+      "accepted_limitation": "This is an in-process inode observation of the owned directories.  It detects a renamed, replaced or symlinked ancestor and refuses to write through it.  It does not claim immunity against a hostile kernel or a filesystem that moves inodes underneath the process.",
+      "all_ancestors_pinned": [
+        "run_root",
+        "temp",
+        "phase",
+        "nested artifact directories"
+      ],
+      "descriptor_relative_writes": true,
+      "exclusive_single_write": true,
+      "identity_checked_after_callbacks": true,
+      "identity_checked_before_cleanup_handoff": true,
+      "identity_checked_before_send": true
+    },
+    "parent_budget_baseline_gpu_mib": 100,
+    "parent_budget_capacity": 34,
+    "parent_budget_required_actions": 34,
+    "phase": "S3_P3B_OFFLINE_QUALITY_PHASE",
+    "product_gate0": false,
+    "projection_sha256": "55580235d38d8d785e9e5eb0c2b3f5191d246d231f6dd3faa7c1f82df27192f6",
+    "provider_calls_observed": 34,
+    "provider_calls_observed_known": true,
+    "provider_calls_reserved": 34,
+    "public_submissions": 16,
+    "public_submissions_attempted": 16,
+    "public_submissions_succeeded": 16,
+    "published_as": "qd-receipt.json",
+    "quality_pass_claim": false,
+    "real_execution_performed": false,
+    "receipt_bytes": 55578,
+    "receipt_padding": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "receipt_persisted": true,
+    "receipt_persistence_error": null,
+    "rows": [
+      {
+        "asset_id": "SYN-I00",
+        "automatic_retries": 0,
+        "cleanup_diagnostics": [],
+        "cleanup_unproven": false,
+        "error_code": null,
+        "error_frame_raw_sha256": [],
+        "error_raw_artifact": null,
+        "error_raw_sha256": null,
+        "execution_status": "PASS",
+        "frame_raw_sha256": [],
+        "graph_artifact": "rows/SYN-I00/graph.json",
+        "graph_sha256": "1c7de12314f2fde859b581864282f8afd310f6e1e99152b39075212a04d9b49b",
+        "halt": false,
+        "history_artifact": "rows/SYN-I00/history.json",
+        "history_sha256": "8da71f53afc0fca6431fbf0f3f28b8c258631c536cca03a335aa6cbf10b50272",
+        "image_metadata": {
+          "actual_format": "PNG",
+          "alpha_strategy": "not_applicable",
+          "exif_strategy": "not_required",
+          "exif_transpose": false,
+          "oriented_dimensions": [
+            4,
+            4
+          ],
+          "original_dimensions": [
+            4,
+            4
+          ],
+          "output_dimensions": [
+            4,
+            4
+          ],
+          "output_rgb_sha256": "737c3ad506299a56d7c66eb0816a51501739607729843bb1479245317fb69484",
+          "resize_strategy": "not_required",
+          "source_bytes": 77,
+          "source_sha256": "a7055a00f5add0fc27dfd6e0462322c1a6091c713a135c1f6bf8e88ad10d16b2"
+        },
+        "input_reference": "synthetic-image-00.png",
+        "listener_after": {
+          "11434": {
+            "pid": 54,
+            "start_ticks": 100
+          },
+          "8191": {
+            "pid": 111,
+            "start_ticks": 100
+          }
+        },
+        "listener_before": {
+          "11434": {
+            "pid": 54,
+            "start_ticks": 100
+          },
+          "8191": {
+            "pid": 111,
+            "start_ticks": 100
+          }
+        },
+        "media_kind": "image",
+        "metadata_artifact": "rows/SYN-I00/metadata.txt",
+        "metadata_sha256": "3971fc74c9e69a4fc1ef3c7812f27004379b1e2f1cb807bbec5e40ce652b4ff1",
+        "ordinal": 1,
+        "prompt_id": "00000000000000000000000000000001",
+        "provider_after": {
+          "artifact": "rows/SYN-I00/provider-after.log",
+          "artifact_bytes": 53,
+          "artifact_sha256": "2a7c18df658f3293c9a9b781847007388b3e936f87e179cc6896306e73935ba7",
+          "chat_calls": 1,
+          "label": "after",
+          "source_log_bytes": 53,
+          "source_log_sha256": "2a7c18df658f3293c9a9b781847007388b3e936f87e179cc6896306e73935ba7"
+        },
+        "provider_before": {
+          "artifact": "rows/SYN-I00/provider-before.log",
+          "artifact_bytes": 26,
+          "artifact_sha256": "79c9a419aaaf7453b783bf63e08887f17e1864139614a79c45de097fa2fe7b4e",
+          "chat_calls": 0,
+          "label": "before",
+          "source_log_bytes": 26,
+          "source_log_sha256": "79c9a419aaaf7453b783bf63e08887f17e1864139614a79c45de097fa2fe7b4e"
+        },
+        "provider_calls": 1,
+        "provider_calls_observed_known": true,
+        "provider_calls_reserved": 1,
+        "public_submission_attempted": true,
+        "quality_status": "NOT_RUN",
+        "raw_artifact": "rows/SYN-I00/raw.txt",
+        "raw_bytes": 244,
+        "raw_preserved": true,
+        "raw_sha256": "86571c8187ae37e4f092f7decc7b75d588272f69a7c745d3748770b69114a033",
+        "release_evidence": {
+          "baseline_gpu_mib": 100,
+          "elapsed_seconds": 3,
+          "gpu_samples": [
+            {
+              "gpu_used_mib": 1124,
+              "monotonic_seconds": 0
+            },
+            {
+              "gpu_used_mib": 1124,
+              "monotonic_seconds": 1
+            },
+            {
+              "gpu_used_mib": 1124,
+              "monotonic_seconds": 2
+            }
+          ],
+          "loaded_models": 0,
+          "proven": true
+        },
+        "source_bytes": 77,
+        "source_evidence": {
+          "bytes": 77,
+          "identity": [
+            2112,
+            2870628,
+            77,
+            1794568722551451981,
+            1794568722551451981
+          ],
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-01/probe-temp/test_positive0/run/input/synthetic-image-00.png",
+          "sha256": "a7055a00f5add0fc27dfd6e0462322c1a6091c713a135c1f6bf8e88ad10d16b2"
+        },
+        "source_sha256": "a7055a00f5add0fc27dfd6e0462322c1a6091c713a135c1f6bf8e88ad10d16b2",
+        "stage": null,
+        "storage_unproven": false,
+        "suggestion_artifact": "rows/SYN-I00/suggestion.txt",
+        "suggestion_sha256": "8023e1bad330973ce1723855b80d3cc15ab8f3bbe8fdbe9cfa44f7c223d19604",
+        "video_snapshot_residue": []
+      },
+      {
+        "asset_id": "SYN-I01",
+        "automatic_retries": 0,
+        "cleanup_diagnostics": [],
+        "cleanup_unproven": false,
+        "error_code": null,
+        "error_frame_raw_sha256": [],
+        "error_raw_artifact": null,
+        "error_raw_sha256": null,
+        "execution_status": "PASS",
+        "frame_raw_sha256": [],
+        "graph_artifact": "rows/SYN-I01/graph.json",
+        "graph_sha256": "86c678ddd48e572fea0e9a52b5a5e5b026a9a53ab70973ca9f2ea7fab54484e9",
+        "halt": false,
+        "history_artifact": "rows/SYN-I01/history.json",
+        "history_sha256": "62d6855a6204ce0230bd8522d89e4529c91e05e4a5352bbd29c695fc0fc0f762",
+        "image_metadata": {
+          "actual_format": "PNG",
+          "alpha_strategy": "not_applicable",
+          "exif_strategy": "not_required",
+          "exif_transpose": false,
+          "oriented_dimensions": [
+            4,
+            4
+          ],
+          "original_dimensions": [
+            4,
+            4
+          ],
+          "output_dimensions": [
+            4,
+            4
+          ],
+          "output_rgb_sha256": "75efd68e193cb247f5fbe727c54728aa41705ff82c1b3f8eee0662dd2ead9313",
+          "resize_strategy": "not_required",
+          "source_bytes": 77,
+          "source_sha256": "4b36b3dd00d6ef4685d4820a00818ceefebf515e84e80f97550277a36f481fac"
+        },
+        "input_reference": "synthetic-image-01.png",
+        "listener_after": {
+          "11434": {
+            "pid": 54,
+            "start_ticks": 100
+          },
+          "8191": {
+            "pid": 111,
+            "start_ticks": 100
+          }
+        },
+        "listener_before": {
+          "11434": {
+            "pid": 54,
+            "start_ticks": 100
+          },
+          "8191": {
+            "pid": 111,
+            "start_ticks": 100
+          }
+        },
+        "media_kind": "image",
+        "metadata_artifact": "rows/SYN-I01/metadata.txt",
+        "metadata_sha256": "c7e35de41524a420e1c68908632b3b61019fd9fc96ee678a30a4c26f128f2d65",
+        "ordinal": 2,
+        "prompt_id": "00000000000000000000000000000002",
+        "provider_after": {
+          "artifact": "rows/SYN-I01/provider-after.log",
+          "artifact_bytes": 135,
+          "artifact_sha256": "566360d8e30895d1c0258f79c700f12b975b465aa8d2a6b29c8a6423e4302980",
+          "chat_calls": 2,
+          "label": "after",
+          "source_log_bytes": 135,
+          "source_log_sha256": "566360d8e30895d1c0258f79c700f12b975b465aa8d2a6b29c8a6423e4302980"
+        },
+        "provider_before": {
+          "artifact": "rows/SYN-I01/provider-before.log",
+          "artifact_bytes": 108,
+          "artifact_sha256": "475ade4104f91eda9cdbc9dd17295d8e83e688da6ecda6fc096b71095f59e484",
+          "chat_calls": 1,
+          "label": "before",
+          "source_log_bytes": 108,
+          "source_log_sha256": "475ade4104f91eda9cdbc9dd17295d8e83e688da6ecda6fc096b71095f59e484"
+        },
+        "provider_calls": 1,
+        "provider_calls_observed_known": true,
+        "provider_calls_reserved": 1,
+        "public_submission_attempted": true,
+        "quality_status": "NOT_RUN",
+        "raw_artifact": "rows/SYN-I01/raw.txt",
+        "raw_bytes": 244,
+        "raw_preserved": true,
+        "raw_sha256": "00ac1cf947d0c91bdc3c8bbb66629ed100b89474cacaed08b53a91b3281d6c98",
+        "release_evidence": {
+          "baseline_gpu_mib": 100,
+          "elapsed_seconds": 3,
+          "gpu_samples": [
+            {
+              "gpu_used_mib": 1124,
+              "monotonic_seconds": 0
+            },
+            {
+              "gpu_used_mib": 1124,
+              "monotonic_seconds": 1
+            },
+            {
+              "gpu_used_mib": 1124,
+              "monotonic_seconds": 2
+            }
+          ],
+          "loaded_models": 0,
+          "proven": true
+        },
+        "source_bytes": 77,
+        "source_evidence": {
+          "bytes": 77,
+          "identity": [
+            2112,
+            2870629,
+            77,
+            1794568722551569319,
+            1794568722551569319
+          ],
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-01/probe-temp/test_positive0/run/input/synthetic-image-01.png",
+          "sha256": "4b36b3dd00d6ef4685d4820a00818ceefebf515e84e80f97550277a36f481fac"
+        },
+        "source_sha256": "4b36b3dd00d6ef4685d4820a00818ceefebf515e84e80f97550277a36f481fac",
+        "stage": null,
+        "storage_unproven": false,
+        "suggestion_artifact": "rows/SYN-I01/suggestion.txt",
+        "suggestion_sha256": "c51bda16b594f5dbb62e37aceb6098f42e837a2d5d9cd9901db4d3c11c6b5833",
+        "video_snapshot_residue": []
+      },
+      {
+        "asset_id": "SYN-I02",
+        "automatic_retries": 0,
+        "cleanup_diagnostics": [],
+        "cleanup_unproven": false,
+        "error_code": null,
+        "error_frame_raw_sha256": [],
+        "error_raw_artifact": null,
+        "error_raw_sha256": null,
+        "execution_status": "PASS",
+        "frame_raw_sha256": [],
+        "graph_artifact": "rows/SYN-I02/graph.json",
+        "graph_sha256": "2ade0670936b0cb4f2e9be171bc4ab00ac33e577536cd1091415045ad13c5363",
+        "halt": false,
+        "history_artifact": "rows/SYN-I02/history.json",
+        "history_sha256": "2396e05944034ee217dc657ceec0b5b141483d3985e7b7bf256363babcd61c2c",
+        "image_metadata": {
+          "actual_format": "PNG",
+          "alpha_strategy": "not_applicable",
+          "exif_strategy": "not_required",
+          "exif_transpose": false,
+          "oriented_dimensions": [
+            4,
+            4
+          ],
+          "original_dimensions": [
+            4,
+            4
+          ],
+          "output_dimensions": [
+            4,
+            4
+          ],
+          "output_rgb_sha256": "42f63f144a750ed14e4ae01fc6620ac45c998866997c7b87239704cfd73a4000",
+          "resize_strategy": "not_required",
+          "source_bytes": 77,
+          "source_sha256": "205b0144d35b698973e3778513feb3524019f575760ee1257240667d8840c339"
+        },
+        "input_reference": "synthetic-image-02.png",
+        "listener_after": {
+          "11434": {
+            "pid": 54,
+            "start_ticks": 100
+          },
+          "8191": {
+            "pid": 111,
+            "start_ticks": 100
+          }
+        },
+        "listener_before": {
+          "11434": {
+            "pid": 54,
+            "start_ticks": 100
+          },
+          "8191": {
+            "pid": 111,
+            "start_ticks": 100
+          }
+        },
+        "media_kind": "image",
+        "metadata_artifact": "rows/SYN-I02/metadata.txt",
+        "metadata_sha256": "021c2189a2ff6af2355afd3085a981cbe0058012b7d60f25033d9b10bc245ad4",
+        "ordinal": 3,
+        "prompt_id": "00000000000000000000000000000003",
+        "provider_after": {
+          "artifact": "rows/SYN-I02/provider-after.log",
+          "artifact_bytes": 217,
+          "artifact_sha256": "00f3d84c52149ca99b63ad70534cb55ff56f1db49abc7dfa745eba64cb5270d9",
+          "chat_calls": 3,
+          "label": "after",
+          "source_log_bytes": 217,
+          "source_log_sha256": "00f3d84c52149ca99b63ad70534cb55ff56f1db49abc7dfa745eba64cb5270d9"
+        },
+        "provider_before": {
+          "artifact": "rows/SYN-I02/provider-before.log",
+          "artifact_bytes": 190,
+          "artifact_sha256": "77fb19f5073edabd534fa7f23574addcb3d3a7c2963494645485703826a41fa7",
+          "chat_calls": 2,
+          "label": "before",
+          "source_log_bytes": 190,
+          "source_log_sha256": "77fb19f5073edabd534fa7f23574addcb3d3a7c2963494645485703826a41fa7"
+        },
+        "provider_calls": 1,
+        "provider_calls_observed_known": true,
+        "provider_calls_reserved": 1,
+        "public_submission_attempted": true,
+        "quality_status": "NOT_RUN",
+        "raw_artifact": "rows/SYN-I02/raw.txt",
+        "raw_bytes": 244,
+        "raw_preserved": true,
+        "raw_sha256": "b8651005ca14d0adcf50a316113bb1feb1b84668d74a2526ca686cb66479898c",
+        "release_evidence": {
+          "baseline_gpu_mib": 100,
+          "elapsed_seconds": 3,
+          "gpu_samples": [
+            {
+              "gpu_used_mib": 1124,
+              "monotonic_seconds": 0
+            },
+            {
+              "gpu_used_mib": 1124,
+              "monotonic_seconds": 1
+            },
+            {
+              "gpu_used_mib": 1124,
+              "monotonic_seconds": 2
+            }
+          ],
+          "loaded_models": 0,
+          "proven": true
+        },
+        "source_bytes": 77,
+        "source_evidence": {
+          "bytes": 77,
+          "identity": [
+            2112,
+            2870630,
+            77,
+            1794568722551633938,
+            1794568722551633938
+          ],
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-01/probe-temp/test_positive0/run/input/synthetic-image-02.png",
+          "sha256": "205b0144d35b698973e3778513feb3524019f575760ee1257240667d8840c339"
+        },
+        "source_sha256": "205b0144d35b698973e3778513feb3524019f575760ee1257240667d8840c339",
+        "stage": null,
+        "storage_unproven": false,
+        "suggestion_artifact": "rows/SYN-I02/suggestion.txt",
+        "suggestion_sha256": "207bcc62d0521aba20b5527f6754ab553e95d45bb0b2646ca709a0e33811a6d8",
+        "video_snapshot_residue": []
+      },
+      {
+        "asset_id": "SYN-I03",
+        "automatic_retries": 0,
+        "cleanup_diagnostics": [],
+        "cleanup_unproven": false,
+        "error_code": null,
+        "error_frame_raw_sha256": [],
+        "error_raw_artifact": null,
+        "error_raw_sha256": null,
+        "execution_status": "PASS",
+        "frame_raw_sha256": [],
+        "graph_artifact": "rows/SYN-I03/graph.json",
+        "graph_sha256": "549c5e726eba68bfbc3e624073c0573ad54047c396f1e6e46def748011333d96",
+        "halt": false,
+        "history_artifact": "rows/SYN-I03/history.json",
+        "history_sha256": "3e3644a947d2b5306f0e0316787dc84f4c95260432a539438d3ee0f8f58daebb",
+        "image_metadata": {
+          "actual_format": "PNG",
+          "alpha_strategy": "not_applicable",
+          "exif_strategy": "not_required",
+          "exif_transpose": false,
+          "oriented_dimensions": [
+            4,
+            4
+          ],
+          "original_dimensions": [
+            4,
+            4
+          ],
+          "output_dimensions": [
+            4,
+            4
+          ],
+          "output_rgb_sha256": "d532b399b2e546248a78a14197ef47f3bcb03bece294954d51911fa6c925e199",
+          "resize_strategy": "not_required",
+          "source_bytes": 77,
+          "source_sha256": "7a82a26a7df20b4a74df12e44d28c555ae00dbbe820ad14d1cf7b9b8937f0e0c"
+        },
+        "input_reference": "synthetic-image-03.png",
+        "listener_after": {
+          "11434": {
+            "pid": 54,
+            "start_ticks": 100
+          },
+          "8191": {
+            "pid": 111,
+            "start_ticks": 100
+          }
+        },
+        "listener_before": {
+          "11434": {
+            "pid": 54,
+            "start_ticks": 100
+          },
+          "8191": {
+            "pid": 111,
+            "start_ticks": 100
+          }
+        },
+        "media_kind": "image",
+        "metadata_artifact": "rows/SYN-I03/metadata.txt",
+        "metadata_sha256": "0986fa2fb7350f9167b89c97bd4a90dbf1e5ac055acc1ae3420c670119de1c22",
+        "ordinal": 4,
+        "prompt_id": "00000000000000000000000000000004",
+        "provider_after": {
+          "artifact": "rows/SYN-I03/provider-after.log",
+          "artifact_bytes": 299,
+          "artifact_sha256": "6e07e2058ad66ad0a4fa35bbd0b0a3b044a456f8e0e5d6b7340b89239e07267a",
+          "chat_calls": 4,
+          "label": "after",
+          "source_log_bytes": 299,
+          "source_log_sha256": "6e07e2058ad66ad0a4fa35bbd0b0a3b044a456f8e0e5d6b7340b89239e07267a"
+        },
+        "provider_before": {
+          "artifact": "rows/SYN-I03/provider-before.log",
+          "artifact_bytes": 272,
+          "artifact_sha256": "3348705e0c1ddb87a1ff64fdc4775263299398ef26f7bf7ce7f936bc20b90b41",
+          "chat_calls": 3,
+          "label": "before",
+          "source_log_bytes": 272,
+          "source_log_sha256": "3348705e0c1ddb87a1ff64fdc4775263299398ef26f7bf7ce7f936bc20b90b41"
+        },
+        "provider_calls": 1,
+        "provider_calls_observed_known": true,
+        "provider_calls_reserved": 1,
+        "public_submission_attempted": true,
+        "quality_status": "NOT_RUN",
+        "raw_artifact": "rows/SYN-I03/raw.txt",
+        "raw_bytes": 244,
+        "raw_preserved": true,
+        "raw_sha256": "fe95a3b71e852019ef84001ab1331941f3cb6c7ec95f240e1cc3df0bfac7ab3c",
+        "release_evidence": {
+          "baseline_gpu_mib": 100,
+          "elapsed_seconds": 3,
+          "gpu_samples": [
+            {
+              "gpu_used_mib": 1124,
+              "monotonic_seconds": 0
+            },
+            {
+              "gpu_used_mib": 1124,
+              "monotonic_seconds": 1
+            },
+            {
+              "gpu_used_mib": 1124,
+              "monotonic_seconds": 2
+            }
+          ],
+          "loaded_models": 0,
+          "proven": true
+        },
+        "source_bytes": 77,
+        "source_evidence": {
+          "bytes": 77,
+          "identity": [
+            2112,
+            2870631,
+            77,
+            1794568722551691847,
+            1794568722551691847
+          ],
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-01/probe-temp/test_positive0/run/input/synthetic-image-03.png",
+          "sha256": "7a82a26a7df20b4a74df12e44d28c555ae00dbbe820ad14d1cf7b9b8937f0e0c"
+        },
+        "source_sha256": "7a82a26a7df20b4a74df12e44d28c555ae00dbbe820ad14d1cf7b9b8937f0e0c",
+        "stage": null,
+        "storage_unproven": false,
+        "suggestion_artifact": "rows/SYN-I03/suggestion.txt",
+        "suggestion_sha256": "e2fa45ba90bb518724b7a3044737f06ee785b6b4484772bd60705c8305354b3b",
+        "video_snapshot_residue": []
+      },
+      {
+        "asset_id": "SYN-I04",
+        "automatic_retries": 0,
+        "cleanup_diagnostics": [],
+        "cleanup_unproven": false,
+        "error_code": null,
+        "error_frame_raw_sha256": [],
+        "error_raw_artifact": null,
+        "error_raw_sha256": null,
+        "execution_status": "PASS",
+        "frame_raw_sha256": [],
+        "graph_artifact": "rows/SYN-I04/graph.json",
+        "graph_sha256": "7700fe556241241d6385bbade470410c7b6655034afd36fd226c4536edd04ae9",
+        "halt": false,
+        "history_artifact": "rows/SYN-I04/history.json",
+        "history_sha256": "c156b1d27add94db59c20643bb1a63f09394ffdc2d42f18c2787ef88a6d9d1b8",
+        "image_metadata": {
+          "actual_format": "PNG",
+          "alpha_strategy": "not_applicable",
+          "exif_strategy": "not_required",
+          "exif_transpose": false,
+          "oriented_dimensions": [
+            4,
+            4
+          ],
+          "original_dimensions": [
+            4,
+            4
+          ],
+          "output_dimensions": [
+            4,
+            4
+          ],
+          "output_rgb_sha256": "58517e998d077350ad16747c08e49942768e3ca1fc577728f702f3612e517f11",
+          "resize_strategy": "not_required",
+          "source_bytes": 77,
+          "source_sha256": "e00a4106e2cc3a212f867527a60b2e3e28c0b4f5a6fa7a20112ee4806f6619a7"
+        },
+        "input_reference": "synthetic-image-04.png",
+        "listener_after": {
+          "11434": {
+            "pid": 54,
+            "start_ticks": 100
+          },
+          "8191": {
+            "pid": 111,
+            "start_ticks": 100
+          }
+        },
+        "listener_before": {
+          "11434": {
+            "pid": 54,
+            "start_ticks": 100
+          },
+          "8191": {
+            "pid": 111,
+            "start_ticks": 100
+          }
+        },
+        "media_kind": "image",
+        "metadata_artifact": "rows/SYN-I04/metadata.txt",
+        "metadata_sha256": "da330a47e55b38b39f99133f59aeffb63041f30bc47996661d05a6aaa022fbb9",
+        "ordinal": 5,
+        "prompt_id": "00000000000000000000000000000005",
+        "provider_after": {
+          "artifact": "rows/SYN-I04/provider-after.log",
+          "artifact_bytes": 381,
+          "artifact_sha256": "af61510156c302fb0f8caa938efc185cbddcc0bf0e2ed39c24e0ba03a6e07276",
+          "chat_calls": 5,
+          "label": "after",
+          "source_log_bytes": 381,
+          "source_log_sha256": "af61510156c302fb0f8caa938efc185cbddcc0bf0e2ed39c24e0ba03a6e07276"
+        },
+        "provider_before": {
+          "artifact": "rows/SYN-I04/provider-before.log",
+          "artifact_bytes": 354,
+          "artifact_sha256": "bb017ff5714b1a11add9b5ad12b5b818f6c597d27ba4b79a7baf8fc8e88637d8",
+          "chat_calls": 4,
+          "label": "before",
+          "source_log_bytes": 354,
+          "source_log_sha256": "bb017ff5714b1a11add9b5ad12b5b818f6c597d27ba4b79a7baf8fc8e88637d8"
+        },
+        "provider_calls": 1,
+        "provider_calls_observed_known": true,
+        "provider_calls_reserved": 1,
+        "public_submission_attempted": true,
+        "quality_status": "NOT_RUN",
+        "raw_artifact": "rows/SYN-I04/raw.txt",
+        "raw_bytes": 244,
+        "raw_preserved": true,
+        "raw_sha256": "7651ad38131a2e3a0082e0443f864fcf7162fc2a590d54a4b055ce43ef25efaa",
+        "release_evidence": {
+          "baseline_gpu_mib": 100,
+          "elapsed_seconds": 3,
+          "gpu_samples": [
+            {
+              "gpu_used_mib": 1124,
+              "monotonic_seconds": 0
+            },
+            {
+              "gpu_used_mib": 1124,
+              "monotonic_seconds": 1
+            },
+            {
+              "gpu_used_mib": 1124,
+              "monotonic_seconds": 2
+            }
+          ],
+          "loaded_models": 0,
+          "proven": true
+        },
+        "source_bytes": 77,
+        "source_evidence": {
+          "bytes": 77,
+          "identity": [
+            2112,
+            2870632,
+            77,
+            1794568722551745261,
+            1794568722551745261
+          ],
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-01/probe-temp/test_positive0/run/input/synthetic-image-04.png",
+          "sha256": "e00a4106e2cc3a212f867527a60b2e3e28c0b4f5a6fa7a20112ee4806f6619a7"
+        },
+        "source_sha256": "e00a4106e2cc3a212f867527a60b2e3e28c0b4f5a6fa7a20112ee4806f6619a7",
+        "stage": null,
+        "storage_unproven": false,
+        "suggestion_artifact": "rows/SYN-I04/suggestion.txt",
+        "suggestion_sha256": "14c58163b1e8a007ec203eb8898a5da69d584b28ec4ca0b821ceeeb3f63ced05",
+        "video_snapshot_residue": []
+      },
+      {
+        "asset_id": "SYN-I05",
+        "automatic_retries": 0,
+        "cleanup_diagnostics": [],
+        "cleanup_unproven": false,
+        "error_code": null,
+        "error_frame_raw_sha256": [],
+        "error_raw_artifact": null,
+        "error_raw_sha256": null,
+        "execution_status": "PASS",
+        "frame_raw_sha256": [],
+        "graph_artifact": "rows/SYN-I05/graph.json",
+        "graph_sha256": "7ae8465253fe363191f62bcb05c4696b6831e4953ae57bcb87caffaca4865b6e",
+        "halt": false,
+        "history_artifact": "rows/SYN-I05/history.json",
+        "history_sha256": "e7d263cf2e336a92d35af653f3ea33b1bd7dde80bc30991b7d8784513aecef0f",
+        "image_metadata": {
+          "actual_format": "PNG",
+          "alpha_strategy": "not_applicable",
+          "exif_strategy": "not_required",
+          "exif_transpose": false,
+          "oriented_dimensions": [
+            4,
+            4
+          ],
+          "original_dimensions": [
+            4,
+            4
+          ],
+          "output_dimensions": [
+            4,
+            4
+          ],
+          "output_rgb_sha256": "3f4f1f49a1ebd8823048207b10007afde1ab338e85b35b2018765cd3236e0415",
+          "resize_strategy": "not_required",
+          "source_bytes": 77,
+          "source_sha256": "3c45e4de6ab49be9cb4e9caa6352115a790ea9b0d408f3326c71af12854651c0"
+        },
+        "input_reference": "synthetic-image-05.png",
+        "listener_after": {
+          "11434": {
+            "pid": 54,
+            "start_ticks": 100
+          },
+          "8191": {
+            "pid": 111,
+            "start_ticks": 100
+          }
+        },
+        "listener_before": {
+          "11434": {
+            "pid": 54,
+            "start_ticks": 100
+          },
+          "8191": {
+            "pid": 111,
+            "start_ticks": 100
+          }
+        },
+        "media_kind": "image",
+        "metadata_artifact": "rows/SYN-I05/metadata.txt",
+        "metadata_sha256": "89c0ed8856a902fca6372e0f4e37422147fcc8ae74068bfbf3856c131c03458a",
+        "ordinal": 6,
+        "prompt_id": "00000000000000000000000000000006",
+        "provider_after": {
+          "artifact": "rows/SYN-I05/provider-after.log",
+          "artifact_bytes": 463,
+          "artifact_sha256": "adff7a0bd0cf1a632a67ed4df4120fedaf6c689b1333ee770efb0d8a193b50b5",
+          "chat_calls": 6,
+          "label": "after",
+          "source_log_bytes": 463,
+          "source_log_sha256": "adff7a0bd0cf1a632a67ed4df4120fedaf6c689b1333ee770efb0d8a193b50b5"
+        },
+        "provider_before": {
+          "artifact": "rows/SYN-I05/provider-before.log",
+          "artifact_bytes": 436,
+          "artifact_sha256": "fc253d10965ce54ec0560ec1936cd3ae21a9aed3328890239eeaeab1dae1ca72",
+          "chat_calls": 5,
+          "label": "before",
+          "source_log_bytes": 436,
+          "source_log_sha256": "fc253d10965ce54ec0560ec1936cd3ae21a9aed3328890239eeaeab1dae1ca72"
+        },
+        "provider_calls": 1,
+        "provider_calls_observed_known": true,
+        "provider_calls_reserved": 1,
+        "public_submission_attempted": true,
+        "quality_status": "NOT_RUN",
+        "raw_artifact": "rows/SYN-I05/raw.txt",
+        "raw_bytes": 244,
+        "raw_preserved": true,
+        "raw_sha256": "369caf979f2fd79889c0ea79911db0d20ed96465fdc9bcef64692306de32db65",
+        "release_evidence": {
+          "baseline_gpu_mib": 100,
+          "elapsed_seconds": 3,
+          "gpu_samples": [
+            {
+              "gpu_used_mib": 1124,
+              "monotonic_seconds": 0
+            },
+            {
+              "gpu_used_mib": 1124,
+              "monotonic_seconds": 1
+            },
+            {
+              "gpu_used_mib": 1124,
+              "monotonic_seconds": 2
+            }
+          ],
+          "loaded_models": 0,
+          "proven": true
+        },
+        "source_bytes": 77,
+        "source_evidence": {
+          "bytes": 77,
+          "identity": [
+            2112,
+            2870633,
+            77,
+            1794568722551793104,
+            1794568722551793104
+          ],
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-01/probe-temp/test_positive0/run/input/synthetic-image-05.png",
+          "sha256": "3c45e4de6ab49be9cb4e9caa6352115a790ea9b0d408f3326c71af12854651c0"
+        },
+        "source_sha256": "3c45e4de6ab49be9cb4e9caa6352115a790ea9b0d408f3326c71af12854651c0",
+        "stage": null,
+        "storage_unproven": false,
+        "suggestion_artifact": "rows/SYN-I05/suggestion.txt",
+        "suggestion_sha256": "504721ec0648eb92807f2c75c28055ef8d715f0035dddb64cf2ee9a2901221ec",
+        "video_snapshot_residue": []
+      },
+      {
+        "asset_id": "SYN-I06",
+        "automatic_retries": 0,
+        "cleanup_diagnostics": [],
+        "cleanup_unproven": false,
+        "error_code": null,
+        "error_frame_raw_sha256": [],
+        "error_raw_artifact": null,
+        "error_raw_sha256": null,
+        "execution_status": "PASS",
+        "frame_raw_sha256": [],
+        "graph_artifact": "rows/SYN-I06/graph.json",
+        "graph_sha256": "2b7f203291b596679c5c5da57695f1c3590c89de87de2df0e7020b45f2a5d3e0",
+        "halt": false,
+        "history_artifact": "rows/SYN-I06/history.json",
+        "history_sha256": "165d334d1d2d86ae16db2b480b569ba5fdf2f70ce4d266f392348ed5739b714e",
+        "image_metadata": {
+          "actual_format": "PNG",
+          "alpha_strategy": "not_applicable",
+          "exif_strategy": "not_required",
+          "exif_transpose": false,
+          "oriented_dimensions": [
+            4,
+            4
+          ],
+          "original_dimensions": [
+            4,
+            4
+          ],
+          "output_dimensions": [
+            4,
+            4
+          ],
+          "output_rgb_sha256": "c3ad707fc59dec31b35ff5e8bbc8162c64dcacacf398636ceeb5f5d868ddec1e",
+          "resize_strategy": "not_required",
+          "source_bytes": 77,
+          "source_sha256": "a4f89579d123cf9316bc295a995c3791efb5d3a85813b446ba43e72a1c966337"
+        },
+        "input_reference": "synthetic-image-06.png",
+        "listener_after": {
+          "11434": {
+            "pid": 54,
+            "start_ticks": 100
+          },
+          "8191": {
+            "pid": 111,
+            "start_ticks": 100
+          }
+        },
+        "listener_before": {
+          "11434": {
+            "pid": 54,
+            "start_ticks": 100
+          },
+          "8191": {
+            "pid": 111,
+            "start_ticks": 100
+          }
+        },
+        "media_kind": "image",
+        "metadata_artifact": "rows/SYN-I06/metadata.txt",
+        "metadata_sha256": "ac8d39dc57339aadfc58261d22fed39ef6faed5ed1eeb64325f1f223049afd19",
+        "ordinal": 7,
+        "prompt_id": "00000000000000000000000000000007",
+        "provider_after": {
+          "artifact": "rows/SYN-I06/provider-after.log",
+          "artifact_bytes": 545,
+          "artifact_sha256": "46649f48d91438d573bae78d70729f8ee93609080f0154a82f42b400482201df",
+          "chat_calls": 7,
+          "label": "after",
+          "source_log_bytes": 545,
+          "source_log_sha256": "46649f48d91438d573bae78d70729f8ee93609080f0154a82f42b400482201df"
+        },
+        "provider_before": {
+          "artifact": "rows/SYN-I06/provider-before.log",
+          "artifact_bytes": 518,
+          "artifact_sha256": "70068f4525a5f6de0831418ce6a65a2a3d946b88ac08290436b76ac39ec16844",
+          "chat_calls": 6,
+          "label": "before",
+          "source_log_bytes": 518,
+          "source_log_sha256": "70068f4525a5f6de0831418ce6a65a2a3d946b88ac08290436b76ac39ec16844"
+        },
+        "provider_calls": 1,
+        "provider_calls_observed_known": true,
+        "provider_calls_reserved": 1,
+        "public_submission_attempted": true,
+        "quality_status": "NOT_RUN",
+        "raw_artifact": "rows/SYN-I06/raw.txt",
+        "raw_bytes": 244,
+        "raw_preserved": true,
+        "raw_sha256": "9c3ed0555daa287fcbb0b3e78df83e6fb66fbdb12ad7af40772daf34da788b8d",
+        "release_evidence": {
+          "baseline_gpu_mib": 100,
+          "elapsed_seconds": 3,
+          "gpu_samples": [
+            {
+              "gpu_used_mib": 1124,
+              "monotonic_seconds": 0
+            },
+            {
+              "gpu_used_mib": 1124,
+              "monotonic_seconds": 1
+            },
+            {
+              "gpu_used_mib": 1124,
+              "monotonic_seconds": 2
+            }
+          ],
+          "loaded_models": 0,
+          "proven": true
+        },
+        "source_bytes": 77,
+        "source_evidence": {
+          "bytes": 77,
+          "identity": [
+            2112,
+            2870634,
+            77,
+            1794568722551838260,
+            1794568722551838260
+          ],
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-01/probe-temp/test_positive0/run/input/synthetic-image-06.png",
+          "sha256": "a4f89579d123cf9316bc295a995c3791efb5d3a85813b446ba43e72a1c966337"
+        },
+        "source_sha256": "a4f89579d123cf9316bc295a995c3791efb5d3a85813b446ba43e72a1c966337",
+        "stage": null,
+        "storage_unproven": false,
+        "suggestion_artifact": "rows/SYN-I06/suggestion.txt",
+        "suggestion_sha256": "73017e87c6ee6009b52122429b93902c220215b3beec5a5048aa086acea74c2f",
+        "video_snapshot_residue": []
+      },
+      {
+        "asset_id": "SYN-I07",
+        "automatic_retries": 0,
+        "cleanup_diagnostics": [],
+        "cleanup_unproven": false,
+        "error_code": null,
+        "error_frame_raw_sha256": [],
+        "error_raw_artifact": null,
+        "error_raw_sha256": null,
+        "execution_status": "PASS",
+        "frame_raw_sha256": [],
+        "graph_artifact": "rows/SYN-I07/graph.json",
+        "graph_sha256": "414d60a729abff7d42a5f0980e6f67a6e01f8b8deab35532da45c3d78bffe25b",
+        "halt": false,
+        "history_artifact": "rows/SYN-I07/history.json",
+        "history_sha256": "d2fb5de4dbc898b16079a6b3ed175baf8a325f51c623b772a6bdf325ece80c5f",
+        "image_metadata": {
+          "actual_format": "PNG",
+          "alpha_strategy": "not_applicable",
+          "exif_strategy": "not_required",
+          "exif_transpose": false,
+          "oriented_dimensions": [
+            4,
+            4
+          ],
+          "original_dimensions": [
+            4,
+            4
+          ],
+          "output_dimensions": [
+            4,
+            4
+          ],
+          "output_rgb_sha256": "9c36b87e8a7d083a82989fc9caef37bff91245683ce34e5fed4cec6195956db2",
+          "resize_strategy": "not_required",
+          "source_bytes": 77,
+          "source_sha256": "b10ecdc5e6e831314523d4cc14e005a3b66b31567729c83329ca7259bce69003"
+        },
+        "input_reference": "synthetic-image-07.png",
+        "listener_after": {
+          "11434": {
+            "pid": 54,
+            "start_ticks": 100
+          },
+          "8191": {
+            "pid": 111,
+            "start_ticks": 100
+          }
+        },
+        "listener_before": {
+          "11434": {
+            "pid": 54,
+            "start_ticks": 100
+          },
+          "8191": {
+            "pid": 111,
+            "start_ticks": 100
+          }
+        },
+        "media_kind": "image",
+        "metadata_artifact": "rows/SYN-I07/metadata.txt",
+        "metadata_sha256": "6e593c54d3af4880bff171161680d94d5c61aa0259f75cdae372b4a40b42a63e",
+        "ordinal": 8,
+        "prompt_id": "00000000000000000000000000000008",
+        "provider_after": {
+          "artifact": "rows/SYN-I07/provider-after.log",
+          "artifact_bytes": 627,
+          "artifact_sha256": "a3b67721602b95d24d2f4946f59d73d9bcfc13fb2a53364e8e24c8bfe55580df",
+          "chat_calls": 8,
+          "label": "after",
+          "source_log_bytes": 627,
+          "source_log_sha256": "a3b67721602b95d24d2f4946f59d73d9bcfc13fb2a53364e8e24c8bfe55580df"
+        },
+        "provider_before": {
+          "artifact": "rows/SYN-I07/provider-before.log",
+          "artifact_bytes": 600,
+          "artifact_sha256": "314575f1da64fecf1d4aa4e8626a8ec0b55d8f05fe24afe03cbfb7546332b117",
+          "chat_calls": 7,
+          "label": "before",
+          "source_log_bytes": 600,
+          "source_log_sha256": "314575f1da64fecf1d4aa4e8626a8ec0b55d8f05fe24afe03cbfb7546332b117"
+        },
+        "provider_calls": 1,
+        "provider_calls_observed_known": true,
+        "provider_calls_reserved": 1,
+        "public_submission_attempted": true,
+        "quality_status": "NOT_RUN",
+        "raw_artifact": "rows/SYN-I07/raw.txt",
+        "raw_bytes": 244,
+        "raw_preserved": true,
+        "raw_sha256": "950a428cb150fbe7980dbfcf7df5ff068906265438aae14c3c19627eb0fb5111",
+        "release_evidence": {
+          "baseline_gpu_mib": 100,
+          "elapsed_seconds": 3,
+          "gpu_samples": [
+            {
+              "gpu_used_mib": 1124,
+              "monotonic_seconds": 0
+            },
+            {
+              "gpu_used_mib": 1124,
+              "monotonic_seconds": 1
+            },
+            {
+              "gpu_used_mib": 1124,
+              "monotonic_seconds": 2
+            }
+          ],
+          "loaded_models": 0,
+          "proven": true
+        },
+        "source_bytes": 77,
+        "source_evidence": {
+          "bytes": 77,
+          "identity": [
+            2112,
+            2870635,
+            77,
+            1794568722551880368,
+            1794568722551880368
+          ],
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-01/probe-temp/test_positive0/run/input/synthetic-image-07.png",
+          "sha256": "b10ecdc5e6e831314523d4cc14e005a3b66b31567729c83329ca7259bce69003"
+        },
+        "source_sha256": "b10ecdc5e6e831314523d4cc14e005a3b66b31567729c83329ca7259bce69003",
+        "stage": null,
+        "storage_unproven": false,
+        "suggestion_artifact": "rows/SYN-I07/suggestion.txt",
+        "suggestion_sha256": "152b624b15b61cad0817f9d4f9bdff8a45ef18396096a44601b46e3baee2ccbf",
+        "video_snapshot_residue": []
+      },
+      {
+        "asset_id": "SYN-I08",
+        "automatic_retries": 0,
+        "cleanup_diagnostics": [],
+        "cleanup_unproven": false,
+        "error_code": null,
+        "error_frame_raw_sha256": [],
+        "error_raw_artifact": null,
+        "error_raw_sha256": null,
+        "execution_status": "PASS",
+        "frame_raw_sha256": [],
+        "graph_artifact": "rows/SYN-I08/graph.json",
+        "graph_sha256": "0e3a7cecfac1eab9af3151ae2ddd78abf678e80673922162550ed8a3a57d8744",
+        "halt": false,
+        "history_artifact": "rows/SYN-I08/history.json",
+        "history_sha256": "e03eb4a225ce78b5d0d568fc580b5babd0261ba45cbbb69956f367a98c32d40a",
+        "image_metadata": {
+          "actual_format": "PNG",
+          "alpha_strategy": "not_applicable",
+          "exif_strategy": "not_required",
+          "exif_transpose": false,
+          "oriented_dimensions": [
+            4,
+            4
+          ],
+          "original_dimensions": [
+            4,
+            4
+          ],
+          "output_dimensions": [
+            4,
+            4
+          ],
+          "output_rgb_sha256": "dd4ebb0650e82463a0819266d6c09aeb546f351426d09b24d7eccd25976b2a13",
+          "resize_strategy": "not_required",
+          "source_bytes": 77,
+          "source_sha256": "fc754a5facd1aa8ba7d2883f88fc41e551ec3e0c8eaf99af37c94826cdc39543"
+        },
+        "input_reference": "synthetic-image-08.png",
+        "listener_after": {
+          "11434": {
+            "pid": 54,
+            "start_ticks": 100
+          },
+          "8191": {
+            "pid": 111,
+            "start_ticks": 100
+          }
+        },
+        "listener_before": {
+          "11434": {
+            "pid": 54,
+            "start_ticks": 100
+          },
+          "8191": {
+            "pid": 111,
+            "start_ticks": 100
+          }
+        },
+        "media_kind": "image",
+        "metadata_artifact": "rows/SYN-I08/metadata.txt",
+        "metadata_sha256": "8448e6ccfbcba6b2913f7adc7d14ba6a7240d9bcd89d8a73dd1cb61cfea4c58d",
+        "ordinal": 9,
+        "prompt_id": "00000000000000000000000000000009",
+        "provider_after": {
+          "artifact": "rows/SYN-I08/provider-after.log",
+          "artifact_bytes": 709,
+          "artifact_sha256": "4dd6d251ac6fa5fb60c37c0afb3c140a0c17fb8b5f51f64d96777fa5d047cc03",
+          "chat_calls": 9,
+          "label": "after",
+          "source_log_bytes": 709,
+          "source_log_sha256": "4dd6d251ac6fa5fb60c37c0afb3c140a0c17fb8b5f51f64d96777fa5d047cc03"
+        },
+        "provider_before": {
+          "artifact": "rows/SYN-I08/provider-before.log",
+          "artifact_bytes": 682,
+          "artifact_sha256": "bc76df1d31ddc5cfcce688bcd9c0cc33f158b3fdef44c2228abe26dee6d8d4c6",
+          "chat_calls": 8,
+          "label": "before",
+          "source_log_bytes": 682,
+          "source_log_sha256": "bc76df1d31ddc5cfcce688bcd9c0cc33f158b3fdef44c2228abe26dee6d8d4c6"
+        },
+        "provider_calls": 1,
+        "provider_calls_observed_known": true,
+        "provider_calls_reserved": 1,
+        "public_submission_attempted": true,
+        "quality_status": "NOT_RUN",
+        "raw_artifact": "rows/SYN-I08/raw.txt",
+        "raw_bytes": 244,
+        "raw_preserved": true,
+        "raw_sha256": "9eed4513ddce47812ffa6b4fea69525b454d15b8e0cb35b52e83c14bb117b13f",
+        "release_evidence": {
+          "baseline_gpu_mib": 100,
+          "elapsed_seconds": 3,
+          "gpu_samples": [
+            {
+              "gpu_used_mib": 1124,
+              "monotonic_seconds": 0
+            },
+            {
+              "gpu_used_mib": 1124,
+              "monotonic_seconds": 1
+            },
+            {
+              "gpu_used_mib": 1124,
+              "monotonic_seconds": 2
+            }
+          ],
+          "loaded_models": 0,
+          "proven": true
+        },
+        "source_bytes": 77,
+        "source_evidence": {
+          "bytes": 77,
+          "identity": [
+            2112,
+            2870636,
+            77,
+            1794568722551922321,
+            1794568722551922321
+          ],
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-01/probe-temp/test_positive0/run/input/synthetic-image-08.png",
+          "sha256": "fc754a5facd1aa8ba7d2883f88fc41e551ec3e0c8eaf99af37c94826cdc39543"
+        },
+        "source_sha256": "fc754a5facd1aa8ba7d2883f88fc41e551ec3e0c8eaf99af37c94826cdc39543",
+        "stage": null,
+        "storage_unproven": false,
+        "suggestion_artifact": "rows/SYN-I08/suggestion.txt",
+        "suggestion_sha256": "6ab529616bfcbe1ba202cf15a5e657522a092644e3f34b1c5616a5d967c695ba",
+        "video_snapshot_residue": []
+      },
+      {
+        "asset_id": "SYN-I09",
+        "automatic_retries": 0,
+        "cleanup_diagnostics": [],
+        "cleanup_unproven": false,
+        "error_code": null,
+        "error_frame_raw_sha256": [],
+        "error_raw_artifact": null,
+        "error_raw_sha256": null,
+        "execution_status": "PASS",
+        "frame_raw_sha256": [],
+        "graph_artifact": "rows/SYN-I09/graph.json",
+        "graph_sha256": "5b742af45f12690776746d98c912861eab2c6f14f44ed8a84b9b93bb5a861b58",
+        "halt": false,
+        "history_artifact": "rows/SYN-I09/history.json",
+        "history_sha256": "f5b812521496cb98328c51dd49d66e70964293d13f97553f07993c6fe58b1265",
+        "image_metadata": {
+          "actual_format": "PNG",
+          "alpha_strategy": "not_applicable",
+          "exif_strategy": "not_required",
+          "exif_transpose": false,
+          "oriented_dimensions": [
+            4,
+            4
+          ],
+          "original_dimensions": [
+            4,
+            4
+          ],
+          "output_dimensions": [
+            4,
+            4
+          ],
+          "output_rgb_sha256": "0fb7226aeadc0e8793213355d97161f9d2e4f12c81b04f8c7fd2ae050551367d",
+          "resize_strategy": "not_required",
+          "source_bytes": 77,
+          "source_sha256": "444103c061f5868d04b512bc646bee3b83bf42c92a7b52b204d2b8f0c08aa9a8"
+        },
+        "input_reference": "synthetic-image-09.png",
+        "listener_after": {
+          "11434": {
+            "pid": 54,
+            "start_ticks": 100
+          },
+          "8191": {
+            "pid": 111,
+            "start_ticks": 100
+          }
+        },
+        "listener_before": {
+          "11434": {
+            "pid": 54,
+            "start_ticks": 100
+          },
+          "8191": {
+            "pid": 111,
+            "start_ticks": 100
+          }
+        },
+        "media_kind": "image",
+        "metadata_artifact": "rows/SYN-I09/metadata.txt",
+        "metadata_sha256": "5e1ac6f51ac9e0aec757720f14ba5ac441e9e8b1f7be2d8abdf36c17e88ee346",
+        "ordinal": 10,
+        "prompt_id": "0000000000000000000000000000000a",
+        "provider_after": {
+          "artifact": "rows/SYN-I09/provider-after.log",
+          "artifact_bytes": 791,
+          "artifact_sha256": "1a9ff3663010b3425b905ae7209db15173621e791a34f970f155da82652ca7f1",
+          "chat_calls": 10,
+          "label": "after",
+          "source_log_bytes": 791,
+          "source_log_sha256": "1a9ff3663010b3425b905ae7209db15173621e791a34f970f155da82652ca7f1"
+        },
+        "provider_before": {
+          "artifact": "rows/SYN-I09/provider-before.log",
+          "artifact_bytes": 764,
+          "artifact_sha256": "416decf17422ca32669add171fa0344e7c91dff248e56d9f21c73ab1b87224e5",
+          "chat_calls": 9,
+          "label": "before",
+          "source_log_bytes": 764,
+          "source_log_sha256": "416decf17422ca32669add171fa0344e7c91dff248e56d9f21c73ab1b87224e5"
+        },
+        "provider_calls": 1,
+        "provider_calls_observed_known": true,
+        "provider_calls_reserved": 1,
+        "public_submission_attempted": true,
+        "quality_status": "NOT_RUN",
+        "raw_artifact": "rows/SYN-I09/raw.txt",
+        "raw_bytes": 247,
+        "raw_preserved": true,
+        "raw_sha256": "79dd92c667c574f5828fa31fc6796a9fe70b0d90f8631bf7d564152f8bd12907",
+        "release_evidence": {
+          "baseline_gpu_mib": 100,
+          "elapsed_seconds": 3,
+          "gpu_samples": [
+            {
+              "gpu_used_mib": 1124,
+              "monotonic_seconds": 0
+            },
+            {
+              "gpu_used_mib": 1124,
+              "monotonic_seconds": 1
+            },
+            {
+              "gpu_used_mib": 1124,
+              "monotonic_seconds": 2
+            }
+          ],
+          "loaded_models": 0,
+          "proven": true
+        },
+        "source_bytes": 77,
+        "source_evidence": {
+          "bytes": 77,
+          "identity": [
+            2112,
+            2870637,
+            77,
+            1794568722551968757,
+            1794568722551968757
+          ],
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-01/probe-temp/test_positive0/run/input/synthetic-image-09.png",
+          "sha256": "444103c061f5868d04b512bc646bee3b83bf42c92a7b52b204d2b8f0c08aa9a8"
+        },
+        "source_sha256": "444103c061f5868d04b512bc646bee3b83bf42c92a7b52b204d2b8f0c08aa9a8",
+        "stage": null,
+        "storage_unproven": false,
+        "suggestion_artifact": "rows/SYN-I09/suggestion.txt",
+        "suggestion_sha256": "581cf2cfef11bab80dbd53966e6bbed6cbdc288bed81f8fc78c8c81ace59bbf7",
+        "video_snapshot_residue": []
+      },
+      {
+        "asset_id": "SYN-V00",
+        "automatic_retries": 0,
+        "cleanup_diagnostics": [],
+        "cleanup_unproven": false,
+        "error_code": null,
+        "error_frame_raw_sha256": [],
+        "error_raw_artifact": null,
+        "error_raw_sha256": null,
+        "execution_status": "PASS",
+        "frame_raw_sha256": [
+          "dcb56dcc372f996802a59a94b04f30d9805fc191f8c9c43b5115fc56dc968713",
+          "1c24c6d37f348a49309a20091c123741e3d2960b8691fd141c71a43f36947f2e",
+          "ec802f0ec30154e7eeffa914a7e5ccedf08e32a16f46ad37991edba268d1237c",
+          "ad8ce890c2f7a692e7a094dcbe538ddad7a6ac1e0de541f83e2031939957a71d"
+        ],
+        "graph_artifact": "rows/SYN-V00/graph.json",
+        "graph_sha256": "15e505b67085e7d155442bbaa09523783d0a0a38568762dfda78611802553141",
+        "halt": false,
+        "history_artifact": "rows/SYN-V00/history.json",
+        "history_sha256": "3638b28b35bd4a64cfa1fe2857b18f557c14786232d3ccae44f3a55a5326517d",
+        "input_reference": "synthetic-video-00.mp4",
+        "listener_after": {
+          "11434": {
+            "pid": 54,
+            "start_ticks": 100
+          },
+          "8191": {
+            "pid": 111,
+            "start_ticks": 100
+          }
+        },
+        "listener_before": {
+          "11434": {
+            "pid": 54,
+            "start_ticks": 100
+          },
+          "8191": {
+            "pid": 111,
+            "start_ticks": 100
+          }
+        },
+        "media_kind": "video",
+        "metadata_artifact": "rows/SYN-V00/metadata.txt",
+        "metadata_sha256": "926a90cb08f64051123b31f2d28ad0568d51c068562438d9249fbd2c5fdda7f1",
+        "ordinal": 11,
+        "prompt_id": "0000000000000000000000000000000b",
+        "provider_after": {
+          "artifact": "rows/SYN-V00/provider-after.log",
+          "artifact_bytes": 954,
+          "artifact_sha256": "4acb8c4ab3d984945800eee507c1c2ef018fac45d5df88097d5a95125c83497e",
+          "chat_calls": 14,
+          "label": "after",
+          "source_log_bytes": 954,
+          "source_log_sha256": "4acb8c4ab3d984945800eee507c1c2ef018fac45d5df88097d5a95125c83497e"
+        },
+        "provider_before": {
+          "artifact": "rows/SYN-V00/provider-before.log",
+          "artifact_bytes": 846,
+          "artifact_sha256": "6bea15b357d2e2bd92cac9468f53c53989871a16fc003271ac06511d8e8596ba",
+          "chat_calls": 10,
+          "label": "before",
+          "source_log_bytes": 846,
+          "source_log_sha256": "6bea15b357d2e2bd92cac9468f53c53989871a16fc003271ac06511d8e8596ba"
+        },
+        "provider_calls": 4,
+        "provider_calls_observed_known": true,
+        "provider_calls_reserved": 4,
+        "public_submission_attempted": true,
+        "quality_status": "NOT_RUN",
+        "raw_artifact": "rows/SYN-V00/raw.txt",
+        "raw_bytes": 1397,
+        "raw_preserved": true,
+        "raw_sha256": "ccb6eb1b02ea1fcf1658815259a5f5e80b40aa8bde4773e3dfa89343c71280e5",
+        "release_evidence": {
+          "baseline_gpu_mib": 100,
+          "elapsed_seconds": 3,
+          "gpu_samples": [
+            {
+              "gpu_used_mib": 1124,
+              "monotonic_seconds": 0
+            },
+            {
+              "gpu_used_mib": 1124,
+              "monotonic_seconds": 1
+            },
+            {
+              "gpu_used_mib": 1124,
+              "monotonic_seconds": 2
+            }
+          ],
+          "loaded_models": 0,
+          "proven": true
+        },
+        "source_bytes": 26,
+        "source_evidence": {
+          "bytes": 26,
+          "identity": [
+            2112,
+            2870638,
+            26,
+            1794568722551993303,
+            1794568722551993303
+          ],
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-01/probe-temp/test_positive0/run/input/synthetic-video-00.mp4",
+          "sha256": "0352826b0ae6046dad3bb61871c4d115fe5347cfb0e6fa388fef82680a890fcf"
+        },
+        "source_sha256": "0352826b0ae6046dad3bb61871c4d115fe5347cfb0e6fa388fef82680a890fcf",
+        "stage": null,
+        "storage_unproven": false,
+        "suggestion_artifact": "rows/SYN-V00/suggestion.txt",
+        "suggestion_sha256": "60c2eda3669c87fe36248970b22906f781f73d48ff9742f12b75ab588f52a2c3",
+        "video_snapshot_residue": []
+      },
+      {
+        "asset_id": "SYN-V01",
+        "automatic_retries": 0,
+        "cleanup_diagnostics": [],
+        "cleanup_unproven": false,
+        "error_code": null,
+        "error_frame_raw_sha256": [],
+        "error_raw_artifact": null,
+        "error_raw_sha256": null,
+        "execution_status": "PASS",
+        "frame_raw_sha256": [
+          "cefcf9b46048b0110280a789955791a69a6eb445b5bfa93f87766ed9ff7137c3",
+          "ca28a375ae89b9bb53b0baedc66d98db8ca2f5b1af5abc3141d9949d8d697289",
+          "3bdcc2f4cc0f6250e64f197822dedf416b2e5cdbc7860f30b94280e4f9f2fd30",
+          "994b1a42cc0e946a4be10b6adb07a6d8fb918a0d5a46278d9b207effa2afe7a1"
+        ],
+        "graph_artifact": "rows/SYN-V01/graph.json",
+        "graph_sha256": "e6d09c6e0b2ae087078cbbefe6d01e71f6ab7ac9f9bad8f233e0374838c04052",
+        "halt": false,
+        "history_artifact": "rows/SYN-V01/history.json",
+        "history_sha256": "b60350459adcbd68c828de9e0f96433f2d0101869090da9f437f9f063345df33",
+        "input_reference": "synthetic-video-01.mp4",
+        "listener_after": {
+          "11434": {
+            "pid": 54,
+            "start_ticks": 100
+          },
+          "8191": {
+            "pid": 111,
+            "start_ticks": 100
+          }
+        },
+        "listener_before": {
+          "11434": {
+            "pid": 54,
+            "start_ticks": 100
+          },
+          "8191": {
+            "pid": 111,
+            "start_ticks": 100
+          }
+        },
+        "media_kind": "video",
+        "metadata_artifact": "rows/SYN-V01/metadata.txt",
+        "metadata_sha256": "cbabbbb2874bc1ec3e934c951e0c92c2aa30d13049ed1462b8d61cfbee8b3b9f",
+        "ordinal": 12,
+        "prompt_id": "0000000000000000000000000000000c",
+        "provider_after": {
+          "artifact": "rows/SYN-V01/provider-after.log",
+          "artifact_bytes": 1117,
+          "artifact_sha256": "d76512eec8c77ee087f916fffcaabcf69b56a5aee129c67ef4e4517dd0509bac",
+          "chat_calls": 18,
+          "label": "after",
+          "source_log_bytes": 1117,
+          "source_log_sha256": "d76512eec8c77ee087f916fffcaabcf69b56a5aee129c67ef4e4517dd0509bac"
+        },
+        "provider_before": {
+          "artifact": "rows/SYN-V01/provider-before.log",
+          "artifact_bytes": 1009,
+          "artifact_sha256": "a517ce675b4d63c9c2a09f018d7a4f8e6e447760a117f324c5f789fbbe066146",
+          "chat_calls": 14,
+          "label": "before",
+          "source_log_bytes": 1009,
+          "source_log_sha256": "a517ce675b4d63c9c2a09f018d7a4f8e6e447760a117f324c5f789fbbe066146"
+        },
+        "provider_calls": 4,
+        "provider_calls_observed_known": true,
+        "provider_calls_reserved": 4,
+        "public_submission_attempted": true,
+        "quality_status": "NOT_RUN",
+        "raw_artifact": "rows/SYN-V01/raw.txt",
+        "raw_bytes": 1397,
+        "raw_preserved": true,
+        "raw_sha256": "0031d4fd356384ccf4d3550bf1930c447e64c454119cc10d5fae356e6105c859",
+        "release_evidence": {
+          "baseline_gpu_mib": 100,
+          "elapsed_seconds": 3,
+          "gpu_samples": [
+            {
+              "gpu_used_mib": 1124,
+              "monotonic_seconds": 0
+            },
+            {
+              "gpu_used_mib": 1124,
+              "monotonic_seconds": 1
+            },
+            {
+              "gpu_used_mib": 1124,
+              "monotonic_seconds": 2
+            }
+          ],
+          "loaded_models": 0,
+          "proven": true
+        },
+        "source_bytes": 26,
+        "source_evidence": {
+          "bytes": 26,
+          "identity": [
+            2112,
+            2870639,
+            26,
+            1794568722552014173,
+            1794568722552014173
+          ],
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-01/probe-temp/test_positive0/run/input/synthetic-video-01.mp4",
+          "sha256": "324cdef294f366677426573efb55dd6dd7f63176aa542b64a17a45436b873513"
+        },
+        "source_sha256": "324cdef294f366677426573efb55dd6dd7f63176aa542b64a17a45436b873513",
+        "stage": null,
+        "storage_unproven": false,
+        "suggestion_artifact": "rows/SYN-V01/suggestion.txt",
+        "suggestion_sha256": "6697dd9d7428562ec6c2c3aa9bc6cb474322a4ea3991d882534986086c7b454c",
+        "video_snapshot_residue": []
+      },
+      {
+        "asset_id": "SYN-V02",
+        "automatic_retries": 0,
+        "cleanup_diagnostics": [],
+        "cleanup_unproven": false,
+        "error_code": null,
+        "error_frame_raw_sha256": [],
+        "error_raw_artifact": null,
+        "error_raw_sha256": null,
+        "execution_status": "PASS",
+        "frame_raw_sha256": [
+          "22bb37ac661c9c325cc7238a79f4b3cc43b1cbc9491c058b279736136ed40f79",
+          "46c759ffbf6ef2d4043c62073e90a05fd5b20bf9dd91a4f04d0ccc50b35d5eb4",
+          "a76163e9534ddbd1afe79ab2ba1e64e228b4edeedd008df935ff9701434fd99c",
+          "1195b8ab0e104f11d909ae19e546258f47797af727ee72989a9f095691c51c9b"
+        ],
+        "graph_artifact": "rows/SYN-V02/graph.json",
+        "graph_sha256": "810cf86d8dd6cda3960afd858b2de69adabbbcef61540b119e779ef8f2b2c0b1",
+        "halt": false,
+        "history_artifact": "rows/SYN-V02/history.json",
+        "history_sha256": "484a9ab77dc48cea30a2403f366744d4ed734c185faab8a4b076b6c43f82d34a",
+        "input_reference": "synthetic-video-02.mp4",
+        "listener_after": {
+          "11434": {
+            "pid": 54,
+            "start_ticks": 100
+          },
+          "8191": {
+            "pid": 111,
+            "start_ticks": 100
+          }
+        },
+        "listener_before": {
+          "11434": {
+            "pid": 54,
+            "start_ticks": 100
+          },
+          "8191": {
+            "pid": 111,
+            "start_ticks": 100
+          }
+        },
+        "media_kind": "video",
+        "metadata_artifact": "rows/SYN-V02/metadata.txt",
+        "metadata_sha256": "e3e68d211c3c6359ce71bcf3ced55bd4e07940760e916b8cff52497f8135801a",
+        "ordinal": 13,
+        "prompt_id": "0000000000000000000000000000000d",
+        "provider_after": {
+          "artifact": "rows/SYN-V02/provider-after.log",
+          "artifact_bytes": 1280,
+          "artifact_sha256": "df9f48279a1fbaf8908eb758e96b5e4beba0625a039af072f95e30dcc92a4197",
+          "chat_calls": 22,
+          "label": "after",
+          "source_log_bytes": 1280,
+          "source_log_sha256": "df9f48279a1fbaf8908eb758e96b5e4beba0625a039af072f95e30dcc92a4197"
+        },
+        "provider_before": {
+          "artifact": "rows/SYN-V02/provider-before.log",
+          "artifact_bytes": 1172,
+          "artifact_sha256": "bc75a74eecd7e9970cdf489d3f32eeb0c1b3b231a242ae303d3f22317bda1740",
+          "chat_calls": 18,
+          "label": "before",
+          "source_log_bytes": 1172,
+          "source_log_sha256": "bc75a74eecd7e9970cdf489d3f32eeb0c1b3b231a242ae303d3f22317bda1740"
+        },
+        "provider_calls": 4,
+        "provider_calls_observed_known": true,
+        "provider_calls_reserved": 4,
+        "public_submission_attempted": true,
+        "quality_status": "NOT_RUN",
+        "raw_artifact": "rows/SYN-V02/raw.txt",
+        "raw_bytes": 1397,
+        "raw_preserved": true,
+        "raw_sha256": "13d59cbef431a574dffaecffb4fdb60c3d08ac46c124959c34d64ccd5646cbce",
+        "release_evidence": {
+          "baseline_gpu_mib": 100,
+          "elapsed_seconds": 3,
+          "gpu_samples": [
+            {
+              "gpu_used_mib": 1124,
+              "monotonic_seconds": 0
+            },
+            {
+              "gpu_used_mib": 1124,
+              "monotonic_seconds": 1
+            },
+            {
+              "gpu_used_mib": 1124,
+              "monotonic_seconds": 2
+            }
+          ],
+          "loaded_models": 0,
+          "proven": true
+        },
+        "source_bytes": 26,
+        "source_evidence": {
+          "bytes": 26,
+          "identity": [
+            2112,
+            2870640,
+            26,
+            1794568722552036755,
+            1794568722552036755
+          ],
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-01/probe-temp/test_positive0/run/input/synthetic-video-02.mp4",
+          "sha256": "621efa77e3e9f14e4d615cd5b83001a55377f9e8003ed4daed8058c2d04dc124"
+        },
+        "source_sha256": "621efa77e3e9f14e4d615cd5b83001a55377f9e8003ed4daed8058c2d04dc124",
+        "stage": null,
+        "storage_unproven": false,
+        "suggestion_artifact": "rows/SYN-V02/suggestion.txt",
+        "suggestion_sha256": "5480f3413143ef219a9e6c8ba33ec89ba15deb480732f7bfb8f061fbdbe0b53c",
+        "video_snapshot_residue": []
+      },
+      {
+        "asset_id": "SYN-V03",
+        "automatic_retries": 0,
+        "cleanup_diagnostics": [],
+        "cleanup_unproven": false,
+        "error_code": null,
+        "error_frame_raw_sha256": [],
+        "error_raw_artifact": null,
+        "error_raw_sha256": null,
+        "execution_status": "PASS",
+        "frame_raw_sha256": [
+          "0906750a6cb74e46671280639e7143ec327ac93e3f8b98c06b71c7f1153c0750",
+          "c6eeb6acb7e076de1ca2bc7af1c80e04f3a4cefd6149ce7be42e31c0540c256a",
+          "f9896703138e76ac688fb5762af6a207b74bb76ed173ca3882358d1f670a2ef3",
+          "7ebba04324ccfa585c39f17f6d41d294915cc26e8f877359fda1396cc0c9f9e5"
+        ],
+        "graph_artifact": "rows/SYN-V03/graph.json",
+        "graph_sha256": "19371b88d1aa96cd54b87ab64b4bfd109a5a949545f92fd6628bc8fdc2551d39",
+        "halt": false,
+        "history_artifact": "rows/SYN-V03/history.json",
+        "history_sha256": "4aa7d2325b1f41fef6ede5835aa4dfe8e4ba13cbd2ca31b8fc382d5147c6a680",
+        "input_reference": "synthetic-video-03.mp4",
+        "listener_after": {
+          "11434": {
+            "pid": 54,
+            "start_ticks": 100
+          },
+          "8191": {
+            "pid": 111,
+            "start_ticks": 100
+          }
+        },
+        "listener_before": {
+          "11434": {
+            "pid": 54,
+            "start_ticks": 100
+          },
+          "8191": {
+            "pid": 111,
+            "start_ticks": 100
+          }
+        },
+        "media_kind": "video",
+        "metadata_artifact": "rows/SYN-V03/metadata.txt",
+        "metadata_sha256": "baeb2e93a9a59ffb01b66bfec4b5cf7c01c487e641ca7f2ed34c86e932d69f51",
+        "ordinal": 14,
+        "prompt_id": "0000000000000000000000000000000e",
+        "provider_after": {
+          "artifact": "rows/SYN-V03/provider-after.log",
+          "artifact_bytes": 1443,
+          "artifact_sha256": "ab855a39e49fb3c033b62f5d1b1181577bb9bf669d7eaf2c6aba752eeb3c0992",
+          "chat_calls": 26,
+          "label": "after",
+          "source_log_bytes": 1443,
+          "source_log_sha256": "ab855a39e49fb3c033b62f5d1b1181577bb9bf669d7eaf2c6aba752eeb3c0992"
+        },
+        "provider_before": {
+          "artifact": "rows/SYN-V03/provider-before.log",
+          "artifact_bytes": 1335,
+          "artifact_sha256": "b7786eb3a699926c84783310dfb4d3bf8e18d0df6bd26cb8ec60ee92a6e6deca",
+          "chat_calls": 22,
+          "label": "before",
+          "source_log_bytes": 1335,
+          "source_log_sha256": "b7786eb3a699926c84783310dfb4d3bf8e18d0df6bd26cb8ec60ee92a6e6deca"
+        },
+        "provider_calls": 4,
+        "provider_calls_observed_known": true,
+        "provider_calls_reserved": 4,
+        "public_submission_attempted": true,
+        "quality_status": "NOT_RUN",
+        "raw_artifact": "rows/SYN-V03/raw.txt",
+        "raw_bytes": 1397,
+        "raw_preserved": true,
+        "raw_sha256": "18872b183ab4d7b4e274ccf83e12fd2e25b7c96679b33b2981e562352d663615",
+        "release_evidence": {
+          "baseline_gpu_mib": 100,
+          "elapsed_seconds": 3,
+          "gpu_samples": [
+            {
+              "gpu_used_mib": 1124,
+              "monotonic_seconds": 0
+            },
+            {
+              "gpu_used_mib": 1124,
+              "monotonic_seconds": 1
+            },
+            {
+              "gpu_used_mib": 1124,
+              "monotonic_seconds": 2
+            }
+          ],
+          "loaded_models": 0,
+          "proven": true
+        },
+        "source_bytes": 26,
+        "source_evidence": {
+          "bytes": 26,
+          "identity": [
+            2112,
+            2870641,
+            26,
+            1794568722552058539,
+            1794568722552058539
+          ],
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-01/probe-temp/test_positive0/run/input/synthetic-video-03.mp4",
+          "sha256": "ecacb6e56ac79aa1a8a542d28cb923235c06577a17b920f4a3979ed72c73de78"
+        },
+        "source_sha256": "ecacb6e56ac79aa1a8a542d28cb923235c06577a17b920f4a3979ed72c73de78",
+        "stage": null,
+        "storage_unproven": false,
+        "suggestion_artifact": "rows/SYN-V03/suggestion.txt",
+        "suggestion_sha256": "eda12d994895fc33702b4179f1fb339e6505f8cf188d3e377684eb51d9b903b3",
+        "video_snapshot_residue": []
+      },
+      {
+        "asset_id": "SYN-V04",
+        "automatic_retries": 0,
+        "cleanup_diagnostics": [],
+        "cleanup_unproven": false,
+        "error_code": null,
+        "error_frame_raw_sha256": [],
+        "error_raw_artifact": null,
+        "error_raw_sha256": null,
+        "execution_status": "PASS",
+        "frame_raw_sha256": [
+          "aa889f35f917c82ea0cd46db4c407c42c93c800581efa730254410727957d708",
+          "735321b0683e5be282f177ed3b46d79c46940bc370be050c5ee4cbef285b1426",
+          "82970f0e1113b9e93a1c079bf43da2ea270f8a5fce59ddfa87a6efe601724cda",
+          "01b3ab63ad30eefb7694fb6e242a2e15683980fc387b8bf55ae11293221f8777"
+        ],
+        "graph_artifact": "rows/SYN-V04/graph.json",
+        "graph_sha256": "b2a4df344ab78ad73730eaa520aedbb2b0ca5299dc051cda018b01bd5f5d9dd1",
+        "halt": false,
+        "history_artifact": "rows/SYN-V04/history.json",
+        "history_sha256": "16c40193783de367af66c7066e959fc23e7ba6e4ec29a65ec8105f7530f69033",
+        "input_reference": "synthetic-video-04.mp4",
+        "listener_after": {
+          "11434": {
+            "pid": 54,
+            "start_ticks": 100
+          },
+          "8191": {
+            "pid": 111,
+            "start_ticks": 100
+          }
+        },
+        "listener_before": {
+          "11434": {
+            "pid": 54,
+            "start_ticks": 100
+          },
+          "8191": {
+            "pid": 111,
+            "start_ticks": 100
+          }
+        },
+        "media_kind": "video",
+        "metadata_artifact": "rows/SYN-V04/metadata.txt",
+        "metadata_sha256": "e4cf25d9c807b8467a5db1521e1dd1dc5db6a46d846662eb88d1e7f7077860c6",
+        "ordinal": 15,
+        "prompt_id": "0000000000000000000000000000000f",
+        "provider_after": {
+          "artifact": "rows/SYN-V04/provider-after.log",
+          "artifact_bytes": 1606,
+          "artifact_sha256": "ba456051cb93c36a8399f1e29269219f29a7712ee673afbfc549a8f4a3b16eae",
+          "chat_calls": 30,
+          "label": "after",
+          "source_log_bytes": 1606,
+          "source_log_sha256": "ba456051cb93c36a8399f1e29269219f29a7712ee673afbfc549a8f4a3b16eae"
+        },
+        "provider_before": {
+          "artifact": "rows/SYN-V04/provider-before.log",
+          "artifact_bytes": 1498,
+          "artifact_sha256": "81ea86585c6fc5a8bda71ceeb3c7e77a098d1cfdd445deae52791a7c2e2f5bbb",
+          "chat_calls": 26,
+          "label": "before",
+          "source_log_bytes": 1498,
+          "source_log_sha256": "81ea86585c6fc5a8bda71ceeb3c7e77a098d1cfdd445deae52791a7c2e2f5bbb"
+        },
+        "provider_calls": 4,
+        "provider_calls_observed_known": true,
+        "provider_calls_reserved": 4,
+        "public_submission_attempted": true,
+        "quality_status": "NOT_RUN",
+        "raw_artifact": "rows/SYN-V04/raw.txt",
+        "raw_bytes": 1397,
+        "raw_preserved": true,
+        "raw_sha256": "4a61c6a33923198aee223246767dfd5d7ae5e2e2c68ae0991edbab45b024fa9f",
+        "release_evidence": {
+          "baseline_gpu_mib": 100,
+          "elapsed_seconds": 3,
+          "gpu_samples": [
+            {
+              "gpu_used_mib": 1124,
+              "monotonic_seconds": 0
+            },
+            {
+              "gpu_used_mib": 1124,
+              "monotonic_seconds": 1
+            },
+            {
+              "gpu_used_mib": 1124,
+              "monotonic_seconds": 2
+            }
+          ],
+          "loaded_models": 0,
+          "proven": true
+        },
+        "source_bytes": 26,
+        "source_evidence": {
+          "bytes": 26,
+          "identity": [
+            2112,
+            2870642,
+            26,
+            1794568722552077118,
+            1794568722552077118
+          ],
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-01/probe-temp/test_positive0/run/input/synthetic-video-04.mp4",
+          "sha256": "b556fbf005b4841ee4a9e455136eb1c52f038cb3a890f73ffd2ba250f4c87219"
+        },
+        "source_sha256": "b556fbf005b4841ee4a9e455136eb1c52f038cb3a890f73ffd2ba250f4c87219",
+        "stage": null,
+        "storage_unproven": false,
+        "suggestion_artifact": "rows/SYN-V04/suggestion.txt",
+        "suggestion_sha256": "24da42cca3e5a5d77e3545073fc67270f501d7ed8c6ee3353d3135e79d776b2e",
+        "video_snapshot_residue": []
+      },
+      {
+        "asset_id": "SYN-V05",
+        "automatic_retries": 0,
+        "cleanup_diagnostics": [],
+        "cleanup_unproven": false,
+        "error_code": null,
+        "error_frame_raw_sha256": [],
+        "error_raw_artifact": null,
+        "error_raw_sha256": null,
+        "execution_status": "PASS",
+        "frame_raw_sha256": [
+          "7057a79aab2a666595d863524695cb8d8dade9c0c7c8c5ccc2f3e565e701dcb6",
+          "e160033999ec23281e7215eaaaf7128514d2ff414f4ebe0ad29314a504bc7e80",
+          "efc8dda28f95cd76feb875fd8b7f5e206946663d7537e1ae44c9dd2d9c8e58cf",
+          "173a0b814f82be05b1857978b919a7db2f6739a100d2236c9f656e3dd5d10bb1"
+        ],
+        "graph_artifact": "rows/SYN-V05/graph.json",
+        "graph_sha256": "8cab5404f3eb54ca104058feb4d13712896eff6b39763511fa0734816984095c",
+        "halt": false,
+        "history_artifact": "rows/SYN-V05/history.json",
+        "history_sha256": "804ee7d2e9463998cf8f8e8436199516f82d087085222d8dc71d8f42eaa4d36d",
+        "input_reference": "synthetic-video-05.mp4",
+        "listener_after": {
+          "11434": {
+            "pid": 54,
+            "start_ticks": 100
+          },
+          "8191": {
+            "pid": 111,
+            "start_ticks": 100
+          }
+        },
+        "listener_before": {
+          "11434": {
+            "pid": 54,
+            "start_ticks": 100
+          },
+          "8191": {
+            "pid": 111,
+            "start_ticks": 100
+          }
+        },
+        "media_kind": "video",
+        "metadata_artifact": "rows/SYN-V05/metadata.txt",
+        "metadata_sha256": "e3e218b4c7de27bdcd83f22b1826c0914165f27b3bf0c82eec06500d823df975",
+        "ordinal": 16,
+        "prompt_id": "00000000000000000000000000000010",
+        "provider_after": {
+          "artifact": "rows/SYN-V05/provider-after.log",
+          "artifact_bytes": 1769,
+          "artifact_sha256": "c0e2c3cf1721ca91df6f988270c63596b3f25711dea07e6075d66fed98f77740",
+          "chat_calls": 34,
+          "label": "after",
+          "source_log_bytes": 1769,
+          "source_log_sha256": "c0e2c3cf1721ca91df6f988270c63596b3f25711dea07e6075d66fed98f77740"
+        },
+        "provider_before": {
+          "artifact": "rows/SYN-V05/provider-before.log",
+          "artifact_bytes": 1661,
+          "artifact_sha256": "c7a8f4c95919734f866678e2ee9f6fb3ad4877503ab68d3d7a4f5d947cd51f60",
+          "chat_calls": 30,
+          "label": "before",
+          "source_log_bytes": 1661,
+          "source_log_sha256": "c7a8f4c95919734f866678e2ee9f6fb3ad4877503ab68d3d7a4f5d947cd51f60"
+        },
+        "provider_calls": 4,
+        "provider_calls_observed_known": true,
+        "provider_calls_reserved": 4,
+        "public_submission_attempted": true,
+        "quality_status": "NOT_RUN",
+        "raw_artifact": "rows/SYN-V05/raw.txt",
+        "raw_bytes": 1397,
+        "raw_preserved": true,
+        "raw_sha256": "f39d57400a9c8391b9668ec18629c21cc21850d531b12e4b9e15cee1b4e35ad7",
+        "release_evidence": {
+          "baseline_gpu_mib": 100,
+          "elapsed_seconds": 3,
+          "gpu_samples": [
+            {
+              "gpu_used_mib": 1124,
+              "monotonic_seconds": 0
+            },
+            {
+              "gpu_used_mib": 1124,
+              "monotonic_seconds": 1
+            },
+            {
+              "gpu_used_mib": 1124,
+              "monotonic_seconds": 2
+            }
+          ],
+          "loaded_models": 0,
+          "proven": true
+        },
+        "source_bytes": 26,
+        "source_evidence": {
+          "bytes": 26,
+          "identity": [
+            2112,
+            2870643,
+            26,
+            1794568722552094953,
+            1794568722552094953
+          ],
+          "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-01/probe-temp/test_positive0/run/input/synthetic-video-05.mp4",
+          "sha256": "f16ec4477dd68c1e2ac656dadb9469f7710d4d922a51aa0ebfd81d8c4c11b564"
+        },
+        "source_sha256": "f16ec4477dd68c1e2ac656dadb9469f7710d4d922a51aa0ebfd81d8c4c11b564",
+        "stage": null,
+        "storage_unproven": false,
+        "suggestion_artifact": "rows/SYN-V05/suggestion.txt",
+        "suggestion_sha256": "755e04b4acb33f2abf7a07b0ceae97a070b5930ff4c0d8f17f70ba4c85b06f4c",
+        "video_snapshot_residue": []
+      }
+    ],
+    "run_id": "s3-p4-composition-01",
+    "run_root": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-01/probe-temp/test_positive0/run",
+    "scoring_executed": false,
+    "source_identity_sha256": "25f76d655648edddda8b1011379b7b0b75e713af8b7f7df1e3cd01c6ab425c91",
+    "source_plan": {
+      "bytes": 8701,
+      "path": "qd-source-plan.json",
+      "rows": 16,
+      "schema_version": "lvw.s3-quality-source-plan/1",
+      "sha256": "9eda9a00f9d34db007706e9784abef38ed7984eb52b67066167cd3fee21353c7"
+    },
+    "stage_pass_claim": false,
+    "staged_as": "qd-receipt.staging",
+    "staged_receipt_bytes": 55578,
+    "staged_receipt_retained": true,
+    "staging_entry_retained_on_publication": true,
+    "storage_unproven": false,
+    "terminal_status": "TERMINAL_RECEIPT_PERSISTED",
+    "test_counts": {
+      "BLOCKED": 0,
+      "FAIL": 0,
+      "NOT_RUN": 0,
+      "PASS": 16,
+      "fixed": 16
+    },
+    "timing_assurance": {
+      "cooperative_pre_and_post_checks": true,
+      "hard_end_to_end_supervision": "UNIMPLEMENTED_PRODUCT_GATE0_BLOCKER",
+      "hard_supervision_owner": "parent coordinator thin watchdog",
+      "note": "A synchronous callable cannot be preemptively bounded by a post-return elapsed check.  The phase performs cooperative pre and post checks and records the mandatory parent process supervision as an unimplemented product Gate0 blocker.",
+      "phase_seconds": 10800,
+      "sample_history_seconds": 600,
+      "synchronous_callables_preemptively_bounded": false
+    }
+  },
+  "plan": {
+    "authorization_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "candidate_sha": "7dc76ffeec685959f5906c612e58f7e1fc081425",
+    "projection_sha256": "55580235d38d8d785e9e5eb0c2b3f5191d246d231f6dd3faa7c1f82df27192f6",
+    "rows": [
+      {
+        "asset_id": "SYN-I00",
+        "identity": [
+          2112,
+          2870628,
+          77,
+          1794568722551451981,
+          1794568722551451981
+        ],
+        "input_reference": "synthetic-image-00.png",
+        "media_kind": "image",
+        "ordinal": 1,
+        "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-01/probe-temp/test_positive0/run/input/synthetic-image-00.png",
+        "source_bytes": 77,
+        "source_sha256": "a7055a00f5add0fc27dfd6e0462322c1a6091c713a135c1f6bf8e88ad10d16b2"
+      },
+      {
+        "asset_id": "SYN-I01",
+        "identity": [
+          2112,
+          2870629,
+          77,
+          1794568722551569319,
+          1794568722551569319
+        ],
+        "input_reference": "synthetic-image-01.png",
+        "media_kind": "image",
+        "ordinal": 2,
+        "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-01/probe-temp/test_positive0/run/input/synthetic-image-01.png",
+        "source_bytes": 77,
+        "source_sha256": "4b36b3dd00d6ef4685d4820a00818ceefebf515e84e80f97550277a36f481fac"
+      },
+      {
+        "asset_id": "SYN-I02",
+        "identity": [
+          2112,
+          2870630,
+          77,
+          1794568722551633938,
+          1794568722551633938
+        ],
+        "input_reference": "synthetic-image-02.png",
+        "media_kind": "image",
+        "ordinal": 3,
+        "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-01/probe-temp/test_positive0/run/input/synthetic-image-02.png",
+        "source_bytes": 77,
+        "source_sha256": "205b0144d35b698973e3778513feb3524019f575760ee1257240667d8840c339"
+      },
+      {
+        "asset_id": "SYN-I03",
+        "identity": [
+          2112,
+          2870631,
+          77,
+          1794568722551691847,
+          1794568722551691847
+        ],
+        "input_reference": "synthetic-image-03.png",
+        "media_kind": "image",
+        "ordinal": 4,
+        "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-01/probe-temp/test_positive0/run/input/synthetic-image-03.png",
+        "source_bytes": 77,
+        "source_sha256": "7a82a26a7df20b4a74df12e44d28c555ae00dbbe820ad14d1cf7b9b8937f0e0c"
+      },
+      {
+        "asset_id": "SYN-I04",
+        "identity": [
+          2112,
+          2870632,
+          77,
+          1794568722551745261,
+          1794568722551745261
+        ],
+        "input_reference": "synthetic-image-04.png",
+        "media_kind": "image",
+        "ordinal": 5,
+        "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-01/probe-temp/test_positive0/run/input/synthetic-image-04.png",
+        "source_bytes": 77,
+        "source_sha256": "e00a4106e2cc3a212f867527a60b2e3e28c0b4f5a6fa7a20112ee4806f6619a7"
+      },
+      {
+        "asset_id": "SYN-I05",
+        "identity": [
+          2112,
+          2870633,
+          77,
+          1794568722551793104,
+          1794568722551793104
+        ],
+        "input_reference": "synthetic-image-05.png",
+        "media_kind": "image",
+        "ordinal": 6,
+        "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-01/probe-temp/test_positive0/run/input/synthetic-image-05.png",
+        "source_bytes": 77,
+        "source_sha256": "3c45e4de6ab49be9cb4e9caa6352115a790ea9b0d408f3326c71af12854651c0"
+      },
+      {
+        "asset_id": "SYN-I06",
+        "identity": [
+          2112,
+          2870634,
+          77,
+          1794568722551838260,
+          1794568722551838260
+        ],
+        "input_reference": "synthetic-image-06.png",
+        "media_kind": "image",
+        "ordinal": 7,
+        "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-01/probe-temp/test_positive0/run/input/synthetic-image-06.png",
+        "source_bytes": 77,
+        "source_sha256": "a4f89579d123cf9316bc295a995c3791efb5d3a85813b446ba43e72a1c966337"
+      },
+      {
+        "asset_id": "SYN-I07",
+        "identity": [
+          2112,
+          2870635,
+          77,
+          1794568722551880368,
+          1794568722551880368
+        ],
+        "input_reference": "synthetic-image-07.png",
+        "media_kind": "image",
+        "ordinal": 8,
+        "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-01/probe-temp/test_positive0/run/input/synthetic-image-07.png",
+        "source_bytes": 77,
+        "source_sha256": "b10ecdc5e6e831314523d4cc14e005a3b66b31567729c83329ca7259bce69003"
+      },
+      {
+        "asset_id": "SYN-I08",
+        "identity": [
+          2112,
+          2870636,
+          77,
+          1794568722551922321,
+          1794568722551922321
+        ],
+        "input_reference": "synthetic-image-08.png",
+        "media_kind": "image",
+        "ordinal": 9,
+        "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-01/probe-temp/test_positive0/run/input/synthetic-image-08.png",
+        "source_bytes": 77,
+        "source_sha256": "fc754a5facd1aa8ba7d2883f88fc41e551ec3e0c8eaf99af37c94826cdc39543"
+      },
+      {
+        "asset_id": "SYN-I09",
+        "identity": [
+          2112,
+          2870637,
+          77,
+          1794568722551968757,
+          1794568722551968757
+        ],
+        "input_reference": "synthetic-image-09.png",
+        "media_kind": "image",
+        "ordinal": 10,
+        "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-01/probe-temp/test_positive0/run/input/synthetic-image-09.png",
+        "source_bytes": 77,
+        "source_sha256": "444103c061f5868d04b512bc646bee3b83bf42c92a7b52b204d2b8f0c08aa9a8"
+      },
+      {
+        "asset_id": "SYN-V00",
+        "identity": [
+          2112,
+          2870638,
+          26,
+          1794568722551993303,
+          1794568722551993303
+        ],
+        "input_reference": "synthetic-video-00.mp4",
+        "media_kind": "video",
+        "ordinal": 11,
+        "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-01/probe-temp/test_positive0/run/input/synthetic-video-00.mp4",
+        "source_bytes": 26,
+        "source_sha256": "0352826b0ae6046dad3bb61871c4d115fe5347cfb0e6fa388fef82680a890fcf"
+      },
+      {
+        "asset_id": "SYN-V01",
+        "identity": [
+          2112,
+          2870639,
+          26,
+          1794568722552014173,
+          1794568722552014173
+        ],
+        "input_reference": "synthetic-video-01.mp4",
+        "media_kind": "video",
+        "ordinal": 12,
+        "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-01/probe-temp/test_positive0/run/input/synthetic-video-01.mp4",
+        "source_bytes": 26,
+        "source_sha256": "324cdef294f366677426573efb55dd6dd7f63176aa542b64a17a45436b873513"
+      },
+      {
+        "asset_id": "SYN-V02",
+        "identity": [
+          2112,
+          2870640,
+          26,
+          1794568722552036755,
+          1794568722552036755
+        ],
+        "input_reference": "synthetic-video-02.mp4",
+        "media_kind": "video",
+        "ordinal": 13,
+        "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-01/probe-temp/test_positive0/run/input/synthetic-video-02.mp4",
+        "source_bytes": 26,
+        "source_sha256": "621efa77e3e9f14e4d615cd5b83001a55377f9e8003ed4daed8058c2d04dc124"
+      },
+      {
+        "asset_id": "SYN-V03",
+        "identity": [
+          2112,
+          2870641,
+          26,
+          1794568722552058539,
+          1794568722552058539
+        ],
+        "input_reference": "synthetic-video-03.mp4",
+        "media_kind": "video",
+        "ordinal": 14,
+        "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-01/probe-temp/test_positive0/run/input/synthetic-video-03.mp4",
+        "source_bytes": 26,
+        "source_sha256": "ecacb6e56ac79aa1a8a542d28cb923235c06577a17b920f4a3979ed72c73de78"
+      },
+      {
+        "asset_id": "SYN-V04",
+        "identity": [
+          2112,
+          2870642,
+          26,
+          1794568722552077118,
+          1794568722552077118
+        ],
+        "input_reference": "synthetic-video-04.mp4",
+        "media_kind": "video",
+        "ordinal": 15,
+        "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-01/probe-temp/test_positive0/run/input/synthetic-video-04.mp4",
+        "source_bytes": 26,
+        "source_sha256": "b556fbf005b4841ee4a9e455136eb1c52f038cb3a890f73ffd2ba250f4c87219"
+      },
+      {
+        "asset_id": "SYN-V05",
+        "identity": [
+          2112,
+          2870643,
+          26,
+          1794568722552094953,
+          1794568722552094953
+        ],
+        "input_reference": "synthetic-video-05.mp4",
+        "media_kind": "video",
+        "ordinal": 16,
+        "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-correction-01/probe-temp/test_positive0/run/input/synthetic-video-05.mp4",
+        "source_bytes": 26,
+        "source_sha256": "f16ec4477dd68c1e2ac656dadb9469f7710d4d922a51aa0ebfd81d8c4c11b564"
+      }
+    ],
+    "run_id": "s3-p4-composition-01",
+    "schema_version": "lvw.s3-quality-source-plan/1"
+  },
+  "rows": [
+    {
+      "asset_id": "SYN-I00",
+      "media_kind": "image",
+      "source_sha256": "a7055a00f5add0fc27dfd6e0462322c1a6091c713a135c1f6bf8e88ad10d16b2",
+      "source_bytes": 77,
+      "input_reference": "synthetic-image-00.png"
+    },
+    {
+      "asset_id": "SYN-I01",
+      "media_kind": "image",
+      "source_sha256": "4b36b3dd00d6ef4685d4820a00818ceefebf515e84e80f97550277a36f481fac",
+      "source_bytes": 77,
+      "input_reference": "synthetic-image-01.png"
+    },
+    {
+      "asset_id": "SYN-I02",
+      "media_kind": "image",
+      "source_sha256": "205b0144d35b698973e3778513feb3524019f575760ee1257240667d8840c339",
+      "source_bytes": 77,
+      "input_reference": "synthetic-image-02.png"
+    },
+    {
+      "asset_id": "SYN-I03",
+      "media_kind": "image",
+      "source_sha256": "7a82a26a7df20b4a74df12e44d28c555ae00dbbe820ad14d1cf7b9b8937f0e0c",
+      "source_bytes": 77,
+      "input_reference": "synthetic-image-03.png"
+    },
+    {
+      "asset_id": "SYN-I04",
+      "media_kind": "image",
+      "source_sha256": "e00a4106e2cc3a212f867527a60b2e3e28c0b4f5a6fa7a20112ee4806f6619a7",
+      "source_bytes": 77,
+      "input_reference": "synthetic-image-04.png"
+    },
+    {
+      "asset_id": "SYN-I05",
+      "media_kind": "image",
+      "source_sha256": "3c45e4de6ab49be9cb4e9caa6352115a790ea9b0d408f3326c71af12854651c0",
+      "source_bytes": 77,
+      "input_reference": "synthetic-image-05.png"
+    },
+    {
+      "asset_id": "SYN-I06",
+      "media_kind": "image",
+      "source_sha256": "a4f89579d123cf9316bc295a995c3791efb5d3a85813b446ba43e72a1c966337",
+      "source_bytes": 77,
+      "input_reference": "synthetic-image-06.png"
+    },
+    {
+      "asset_id": "SYN-I07",
+      "media_kind": "image",
+      "source_sha256": "b10ecdc5e6e831314523d4cc14e005a3b66b31567729c83329ca7259bce69003",
+      "source_bytes": 77,
+      "input_reference": "synthetic-image-07.png"
+    },
+    {
+      "asset_id": "SYN-I08",
+      "media_kind": "image",
+      "source_sha256": "fc754a5facd1aa8ba7d2883f88fc41e551ec3e0c8eaf99af37c94826cdc39543",
+      "source_bytes": 77,
+      "input_reference": "synthetic-image-08.png"
+    },
+    {
+      "asset_id": "SYN-I09",
+      "media_kind": "image",
+      "source_sha256": "444103c061f5868d04b512bc646bee3b83bf42c92a7b52b204d2b8f0c08aa9a8",
+      "source_bytes": 77,
+      "input_reference": "synthetic-image-09.png"
+    },
+    {
+      "asset_id": "SYN-V00",
+      "media_kind": "video",
+      "source_sha256": "0352826b0ae6046dad3bb61871c4d115fe5347cfb0e6fa388fef82680a890fcf",
+      "source_bytes": 26,
+      "input_reference": "synthetic-video-00.mp4"
+    },
+    {
+      "asset_id": "SYN-V01",
+      "media_kind": "video",
+      "source_sha256": "324cdef294f366677426573efb55dd6dd7f63176aa542b64a17a45436b873513",
+      "source_bytes": 26,
+      "input_reference": "synthetic-video-01.mp4"
+    },
+    {
+      "asset_id": "SYN-V02",
+      "media_kind": "video",
+      "source_sha256": "621efa77e3e9f14e4d615cd5b83001a55377f9e8003ed4daed8058c2d04dc124",
+      "source_bytes": 26,
+      "input_reference": "synthetic-video-02.mp4"
+    },
+    {
+      "asset_id": "SYN-V03",
+      "media_kind": "video",
+      "source_sha256": "ecacb6e56ac79aa1a8a542d28cb923235c06577a17b920f4a3979ed72c73de78",
+      "source_bytes": 26,
+      "input_reference": "synthetic-video-03.mp4"
+    },
+    {
+      "asset_id": "SYN-V04",
+      "media_kind": "video",
+      "source_sha256": "b556fbf005b4841ee4a9e455136eb1c52f038cb3a890f73ffd2ba250f4c87219",
+      "source_bytes": 26,
+      "input_reference": "synthetic-video-04.mp4"
+    },
+    {
+      "asset_id": "SYN-V05",
+      "media_kind": "video",
+      "source_sha256": "f16ec4477dd68c1e2ac656dadb9469f7710d4d922a51aa0ebfd81d8c4c11b564",
+      "source_bytes": 26,
+      "input_reference": "synthetic-video-05.mp4"
+    }
+  ],
+  "provenance": {
+    "canonical": {
+      "bytes": 55578,
+      "owner": "quality_phase_canonical_receipt",
+      "reference": "temp/s3-quality/qd-receipt.json",
+      "sha256": "ac7bd7d1504164391f0f7c282152ff464d87179430fe430c02fe1e03d4654586"
+    },
+    "controller_context": {
+      "bytes": 1233,
+      "owner": "controller_context",
+      "sha256": "496383b777ae3014c353c8d34017868346da6dc81359a909e63d5c74417ae4ba"
+    },
+    "manifest": {
+      "owner": "ParentOriginalEvidence",
+      "sha256": "b0c08b132fa33e100e899cc20e001dd6a2efdf65f870f86dd049391f20f57b72"
+    },
+    "plan": {
+      "owner": "ParentOriginalEvidence",
+      "sha256": "720c791031ad53987374860d55e48617872d36421debd669e2b0024289e026c1"
+    },
+    "projection": {
+      "owner": "quality_phase_projection",
+      "sha256": "55580235d38d8d785e9e5eb0c2b3f5191d246d231f6dd3faa7c1f82df27192f6"
+    },
+    "source_plan": {
+      "bytes": 8701,
+      "owner": "quality_phase_source_plan",
+      "sha256": "9eda9a00f9d34db007706e9784abef38ed7984eb52b67066167cd3fee21353c7"
+    },
+    "worker_context": {
+      "owner": "WorkerContext",
+      "sha256": "2dddd1355d86cfd4e8ece9113418b9135e357f7a382e641f9b08d43e39a27f8d"
+    }
+  },
+  "product_scope_not_proven": true
+}

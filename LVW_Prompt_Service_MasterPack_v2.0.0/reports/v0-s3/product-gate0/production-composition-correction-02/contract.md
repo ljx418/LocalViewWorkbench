@@ -1,0 +1,18 @@
+# 生产组合纠偏02：5个代码Major、1个流程Major、1个报告Minor
+
+基准7dc76ff；原M01/M02/M03/M09/m01/m02独审关闭，不重新实现。M04/M05/M06/M07/M08与P01/meta01全部采纳，保留原报告/日志。依旧固定I01–I24/产品12，无真实native能力，无模型/GPU/服务/原ledger动作。
+
+## 文件范围与架构修正
+只允许tools/v0_s3_controller_io.py、tools/v0_s3_production_controller.py、tools/v0_s3_quality_worker.py、tools/test_v0_s3_production_composition.py；必要worker引用兼容的tools/test_v0_s3_supervisor.py。supervisor与其固定命令构造、coordinator、QualityPhase/runtime/authority/executor/runner/fixture/public合同/阈值/旧证据/control/MANIFEST/V2不改。NEW报告implementation-production-composition-correction-02。若既有canonical loader缺必要可验证字节接口，先提出最小内部接口方案askroot，不绕过原验证或擅改冻结owner。
+
+M04：实际worker的projection/sourceidentity/parentbudget/binding/dependency manifest引用必须用root锚定的逐层no-follow安全读取，不能仅在未使用的helper证明祖先链接拒绝。run数据引用默认必须在封存runroot内；若依赖tools/Pillow等合法root外引用需要独立已封存read-only目录锚点/白名单，明确来源，不能任意父路径读或把resolve后的路径当原身份。实际五类引用把父目录换symlink均拒，生产正例仍可读，限制实际字节+regular/nonblock/元数据/FD清理保持。可信本地入口context路径与其后数据引用区别，不扩大用户路径权限。
+M05：加载/解析的canonical文档必须与父原件封存及最终summary引用的同一实际bytes/hash绑定。先解析旧16PASS后改新15PASS1FAIL不能旧文档+新manifest全重核通过；用原loader验证，并与同一安全读取bytes解码的类型严格对象/摘要交叉核对，或最小内部接口（需askroot）返回已验证文档及实际bytes。禁止二次unsafe读取弥补；错误UNKNOWN保留、无summary，明确最后观察边界，不追求返回后的永远不变/多文件原子快照。
+M06：根与祖先/output目录身份必须在PRECHECK时由已绑定身份建立并持有，reservation/summary/receipt全生命周期复用同一受控dirfd与identity链。不能每次按绝对路径重新open新对象接受。PRECHECK后换根、换root/temp、换普通controller目录、换根父祖先为symlink均拒绝，不在新root或根外写reservation/summary/receipt。创建和使用目录之间也要身份关联；正常根内O_EXCL写保留，失败partial不删除，不用未知外部目录。安全落盘不可达时stdout仍明确持久化未证，不跟随恶意替代路径写失败收据。
+M07：正式A03(output_contract)、A05(no_overwrite)、A09(resource_budget)完整义务目前没有证据。无竞争16行正例的raw/suggestion存在/排他产物/调用计数仅是composition_facts，使用不同fact kind/命名/范围单列；不能同名缩窄义务后给aggregate正式收据PASS。正式三收据在完整义务缺证时NOT_RUN/BLOCKED，即使正例；失败必要子条件如实FAIL/unknown。清理保留已修正语义，不能用顶层12BLOCKED遮盖内部状态。四输出/格式切换0推理/人工稿异常保护/真实资源与性能未证，保留原目标，不要求本轮跑实际模型来补证。
+M08：终态receipt持久化本身的普通Exception（含RuntimeError，而非只有OSError/自定义错误）也必须兜底，原失败和secondary持久化失败分别保留、返回结构化UNKNOWN/root/预约保留/receipt_persisted=false，不让finally异常逃逸成空stdout/泛化文本。不能无限再次持久化，最后stdout失败信息也有明确范围；KeyboardInterrupt/SystemExit不吞，finally FD/线程清理仍执行。
+P01：前轮四批直接pytest和至少10个业务helper/SQLite动作事实勘误写NEW报告，明确超出本包边界且精确总数UNKNOWN、原counter不变不等于无额外动作。不能把旧counter退款/重置补绿。后续执行严格分两步：代码/测试准备阶段只允许读文本、AST静态检查，不导入候选/pytest/插件、不运行compat；准备精确argv/选中nodeids/guard与源码hash/预算/日志策略，单次askroot审批整批计划。root机器ACK后仅一次已冻结定向，guard必须先于任何候选/插件导入，禁全部subprocess/socket/fork/exec/system/sqlite3.connect/原ledger；原自检只用受控audit事件拒绝，不做真实动作。额外回归需root新ACK，不准以兼容性名义自行追加，主控ACK不是求人类重新授权。
+meta01：新报告纠正frozen源7非8，原报告保留。数量/执行次数/被guard拦截与真实启动分开，不能使用未审计额外日志做零动作证据。
+
+## 最小验收与恢复
+独审所有仍开放五项真实触发逐项驱动controller/worker/最终持久化；已关闭六项只必要兼容点，不重跑60/71/123/84/13/41/186/257/449/94。正例正式链仍实际QualityPhase16/真实pipe/reader/canonical/manifest/fact/正式BLOCKEDsummary；负例同run输出不变、目录身份替换无新写、解析封存不一致拒绝、RuntimeError也结构化返回。原Counter仅外层只读inactive28/240/12.362/hash acbdb8b154864b6f079ae783d670f11ec138b6be0617d1fa4f56c28c33223b98，不改/退款/清零/新counter。
+唯一实现者，首次429立即WAIT_BUDGET停不retry/切路由/自动接手；首次审批拒绝或超时停askroot不包装绕过。旧失败、早已丢失日志限制、工作区完整性保留，不clean/reset/全量gitadd/原始gitworktree增删。真实native/Windows/A06/原ledger/质量/StagePASS仍未证，独审和人签不代替。
