@@ -1,0 +1,113 @@
+{
+  "artifacts": {
+    "counter_after": {
+      "path": "reports/v0-s3/product-gate0/implementation-native-custody-correction-02/attempt02/counter-after.json",
+      "sha256": "7338b51fd39a78203a59a9942984fdd182c9645936d0bc7df0bc5aa114838eb3"
+    },
+    "counter_before": {
+      "path": "reports/v0-s3/product-gate0/implementation-native-custody-correction-02/attempt02/counter-before.json",
+      "sha256": "7338b51fd39a78203a59a9942984fdd182c9645936d0bc7df0bc5aa114838eb3"
+    },
+    "guard": {
+      "path": "reports/v0-s3/product-gate0/implementation-native-custody-correction-02/attempt02/native-custody-correction-02.guard.json",
+      "sha256": "c525d715207d2c19ea52c34bc940f39080909e4afd80f50411c90a340075cfc0"
+    },
+    "receipt": {
+      "path": "reports/v0-s3/product-gate0/implementation-native-custody-correction-02/attempt02/native-custody-correction-02.receipt.json",
+      "sha256": "8ea954280ac705f30750bf778f597ba411052d935c17174451cef94da703c194"
+    }
+  },
+  "attempt": "attempt02",
+  "attempt01_preserved": true,
+  "author_submitted_runner_and_guard": "kept as input only and NOT executed",
+  "batches": 1,
+  "batches_max": 1,
+  "commands": [
+    {
+      "argv": [
+        "/usr/bin/python3.12",
+        "-I",
+        "-B",
+        "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-02/validation-plan-02/outer_counter_read.py",
+        "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-correction-02/attempt02/counter-before.json"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "exit_code": 0,
+      "label": "counter-before",
+      "stderr_file": "reports/v0-s3/product-gate0/implementation-native-custody-correction-02/attempt02/counter-before.stderr.log",
+      "stdout_file": "reports/v0-s3/product-gate0/implementation-native-custody-correction-02/attempt02/counter-before.stdout.log"
+    },
+    {
+      "argv": [
+        "/usr/bin/python3.12",
+        "-I",
+        "-B",
+        "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-02/validation-plan-02/guard.py",
+        "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-02/validation-plan-02/runner.py",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-correction-02/attempt02/native-custody-correction-02.guard.json"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "exit_code": 0,
+      "label": "guarded-validation",
+      "outer_timeout_seconds": 300,
+      "stderr_file": "reports/v0-s3/product-gate0/implementation-native-custody-correction-02/attempt02/native-custody-correction-02.stderr.log",
+      "stdout_file": "reports/v0-s3/product-gate0/implementation-native-custody-correction-02/attempt02/native-custody-correction-02.stdout.log"
+    },
+    {
+      "argv": [
+        "/usr/bin/python3.12",
+        "-I",
+        "-B",
+        "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-02/validation-plan-02/outer_counter_read.py",
+        "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-correction-02/attempt02/counter-after.json"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "exit_code": 0,
+      "label": "counter-after",
+      "stderr_file": "reports/v0-s3/product-gate0/implementation-native-custody-correction-02/attempt02/counter-after.stderr.log",
+      "stdout_file": "reports/v0-s3/product-gate0/implementation-native-custody-correction-02/attempt02/counter-after.stdout.log"
+    }
+  ],
+  "counter_observation": {
+    "active": false,
+    "new_counter_created": false,
+    "refunded": false,
+    "reserved_wall_seconds": 240.0,
+    "reset": false,
+    "sha256": "acbdb8b154864b6f079ae783d670f11ec138b6be0617d1fa4f56c28c33223b98",
+    "spent_wall_seconds": 12.362,
+    "starts_total": 28,
+    "unchanged_before_after": true,
+    "written": false
+  },
+  "executor": "the implementing worker, running the root frozen package",
+  "guard_and_runner": "root controlled (validation-plan-02/guard.py, validation-plan-02/runner.py)",
+  "kind": "LVW_N1_CORRECTION_02_EXECUTED_COMMANDS/2",
+  "max_seconds": 300,
+  "pending_source_edit_applied": {
+    "after_sha256": "55220aeb75d1ff9213901dc6e156892106e0c7e205dcbaa97ce40952d56b3759",
+    "before_sha256": "eb3b336b9d80eafaab77da01f2ef9f5f349b8c240c05ef655422605e2033bcd6",
+    "path": "tools/test_v0_s3_native_custody.py",
+    "scope": "one expected baseline digest literal only; the old owner file itself is unchanged"
+  },
+  "product_gate0": false,
+  "result": {
+    "cleanup_proven_for_batch": true,
+    "collected": 117,
+    "failed": 0,
+    "functional_pass_count": 115,
+    "passed": 117,
+    "pytest_exit": 0,
+    "skipped": 0,
+    "threads_after": [
+      "MainThread"
+    ]
+  },
+  "root_ack": "ACK_ONCE_ROOT_FROZEN_117_NODE_AND_SINGLE_STDLIB_WINDOW (correction batch)",
+  "root_frozen_package": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-02/validation-plan-02",
+  "root_plan_path": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-02/validation-plan-02/plan.json",
+  "root_plan_sha256": "474e2fe1606d96e07a6c4d74448b10f3b1fc16c64e60bfab9c215dd18d3abc12",
+  "stage_pass_claim": false
+}
