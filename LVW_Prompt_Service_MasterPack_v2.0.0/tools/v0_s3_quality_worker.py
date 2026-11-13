@@ -27,7 +27,9 @@ if str(PACK_ROOT) not in sys.path:
     sys.path.insert(0, str(PACK_ROOT))
 
 from tools.v0_s3_controller_io import (  # noqa: E402 - the path is set above
-    ControllerIOError, read_bounded_in_root, read_bounded_regular)
+    ControllerIOError, open_child_directory, open_directory_chain,
+    open_read_only_directory, open_root_directory_chain, read_bounded_at,
+    read_bounded_regular, verify_directory_chain, verify_directory_identity)
 from tools.v0_s3_quality_phase import (  # noqa: E402 - the path is set above
     CANONICAL_RECEIPT_NAME, QualityPhase, QualityContractError)
 from tools.v0_s3_supervisor import PROTOCOL_SCHEMA  # noqa: E402 - the path is set above
@@ -46,7 +48,14 @@ CONTEXT_KEYS = frozenset({
     'source_identity_sha256', 'parent_budget_path', 'parent_budget_sha256',
     'binding_path', 'binding_sha256', 'driver', 'driver_arguments',
     'dependency_manifest_path', 'dependency_manifest_sha256',
-    'canonical_receipt_reference'})
+    'canonical_receipt_reference', 'reference_anchors'})
+# The kinds of a declared anchor of a reference.  The run root is the
+# anchor of the artefacts of the run; a read-only directory is the anchor
+# of a legitimate dependency that lives outside of the sealed run root.
+# Every anchor is named by the sealed context document, so the source of
+# every reference is explicit and closed.
+ANCHOR_KINDS = ('RUN_ROOT', 'READ_ONLY_DIRECTORY')
+ANCHOR_KEYS = frozenset({'name', 'kind', 'path'})
 DRIVERS = ('native', 'fixture')
 DRIVER_ARGUMENT_KEYS = frozenset({'powershell', 'comfy_main', 'comfy_python',
                                    'ollama_exe', 'ffmpeg_exe', 'nvidia_exe'})
@@ -67,6 +76,17 @@ class WorkerError(RuntimeError):
         self.detail = detail
 
 
+def _anchor_error(error):
+    """The stable code of one refused anchored read.
+
+    The detail of the refusal is kept, so a missing file and a refused
+    link stay distinguishable without a second reading of the file.
+    """
+    if error.detail:
+        return 'WORKER_ANCHOR_' + error.code + ':' + str(error.detail)
+    return 'WORKER_ANCHOR_' + error.code
+
+
 def canonical_json(value):
     return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(',', ':'),
                       allow_nan=False)
@@ -77,13 +97,14 @@ def sha256_bytes(raw):
 
 
 def _read_sealed(path, expected_sha256, limit=8 * 1024 * 1024):
-    """Read one bounded file and check its seal again.
+    """Read one bounded file of a *trusted local entry* and check its seal.
 
-    The bytes are taken from the handle that was opened and verified, and
-    the bound is applied to the bytes that are really requested from the
-    kernel: an oversized file is refused without being read into the
-    memory of the process, and a link or a special file is never read as
-    a file.
+    This is the entry point of the context document itself.  The path is
+    an explicit entry of the trusted caller and it is read with the leaf
+    bound of the safe reader; the seal that the caller gave is verified
+    against the bytes, so a replaced document is refused here.  Every
+    *data reference* of the context is read differently: it is read
+    through a declared anchor, see :meth:`WorkerContext._read_anchored`.
     """
     target = Path(path)
     if not target.is_absolute():
@@ -136,9 +157,154 @@ class WorkerContext:
         self.authorization_sha256 = document['authorization_sha256']
         self.root = Path(document['root'])
         self.canonical_receipt_reference = reference
+        # The declared anchors of the data references.  Every reference of
+        # this context is read through one of them, so the source of every
+        # reference is explicit and a reference that leaves its anchor is
+        # refused instead of being read on an arbitrary parent path.
+        self.anchors = self._declared_anchors(document['reference_anchors'])
+        run_root_anchor = [anchor for anchor in self.anchors
+                           if anchor['kind'] == 'RUN_ROOT'][0]
+        if run_root_anchor['base'] != os.path.normpath(document['root']):
+            # The run root anchor and the root of the context are the same
+            # directory: the artefacts of the run are never read through a
+            # different anchor than the root of the run.
+            raise WorkerError('WORKER_CONTEXT_RUN_ROOT_ANCHOR_MISMATCH')
         # The digest and the length of the very bytes of this context.
         self.document_sha256 = None
         self.document_bytes = None
+
+    @staticmethod
+    def _declared_anchors(declared):
+        """The closed set of the declared anchors of this context.
+
+        The run root is always one of the anchors and it is the root of
+        the context.  Every other anchor is a read-only directory that the
+        sealed context names explicitly; the worker never adopts a path
+        that the context did not declare.
+        """
+        if not isinstance(declared, list) or not declared:
+            raise WorkerError('WORKER_CONTEXT_ANCHORS_INVALID')
+        anchors = []
+        names = set()
+        run_root = None
+        for entry in declared:
+            if not isinstance(entry, dict) or set(entry) != ANCHOR_KEYS:
+                raise WorkerError('WORKER_CONTEXT_ANCHORS_INVALID')
+            name = entry['name']
+            kind = entry['kind']
+            path = entry['path']
+            if not isinstance(name, str) or not name or name in names:
+                raise WorkerError('WORKER_CONTEXT_ANCHORS_INVALID')
+            if kind not in ANCHOR_KINDS:
+                raise WorkerError('WORKER_CONTEXT_ANCHORS_INVALID')
+            if not isinstance(path, str) or not path or not os.path.isabs(path):
+                raise WorkerError('WORKER_CONTEXT_ANCHORS_INVALID')
+            names.add(name)
+            anchor = {'name': name, 'kind': kind, 'path': path,
+                      'base': os.path.normpath(path)}
+            if kind == 'RUN_ROOT':
+                if run_root is not None:
+                    raise WorkerError('WORKER_CONTEXT_ANCHORS_INVALID')
+                run_root = anchor
+            anchors.append(anchor)
+        if run_root is None:
+            raise WorkerError('WORKER_CONTEXT_RUN_ROOT_ANCHOR_INVALID')
+        return anchors
+
+    def _anchor_of(self, path):
+        """The declared anchor that contains one reference and its name.
+
+        The comparison is lexical and never resolves a link: the identity
+        of a reference is its literal location inside a declared anchor,
+        not the object that a resolved path happens to name.
+        """
+        literal = os.path.normpath(str(path))
+        if not os.path.isabs(literal):
+            raise WorkerError('WORKER_REFERENCE_NOT_ABSOLUTE')
+        selected = None
+        for anchor in self.anchors:
+            base = anchor['base']
+            if literal == base:
+                raise WorkerError('WORKER_REFERENCE_IS_AN_ANCHOR')
+            prefix = base + os.sep
+            if not literal.startswith(prefix):
+                continue
+            # The most specific anchor wins: a reference is read through
+            # the anchor that contains it most closely.
+            if selected is None or len(base) > len(selected['base']):
+                selected = anchor
+        if selected is None:
+            raise WorkerError('WORKER_REFERENCE_OUTSIDE_DECLARED_ANCHORS')
+        prefix = selected['base'] + os.sep
+        parts = [part for part in literal[len(prefix):].split(os.sep)
+                 if part not in ('', '.')]
+        if not parts:
+            raise WorkerError('WORKER_REFERENCE_INVALID')
+        return selected, parts
+
+    def _anchor_by_path(self, path):
+        """The declared anchor whose path is exactly the given path."""
+        literal = os.path.normpath(str(path))
+        for anchor in self.anchors:
+            if anchor['base'] == literal:
+                return anchor
+        raise WorkerError('WORKER_REFERENCE_OUTSIDE_DECLARED_ANCHORS')
+
+    def _read_through_anchor(self, anchor, parts, limit=8 * 1024 * 1024):
+        """Read one reference through its declared anchor.
+
+        The run root is walked level by level from the file system root,
+        so a link in the chain is refused and never walked.  A read-only
+        anchor is opened without following a link and its identity is
+        verified again after the read, so a replaced anchor is refused.
+        The bytes are always read through the descriptor of the verified
+        directory, never through a path that was resolved away.
+        """
+        if anchor['kind'] == 'RUN_ROOT':
+            try:
+                descriptor, chain = open_root_directory_chain(anchor['path'])
+            except ControllerIOError as error:
+                raise WorkerError(_anchor_error(error)) from error
+            try:
+                directory = open_directory_chain(descriptor, parts[:-1])
+                try:
+                    raw = read_bounded_at(directory, parts[-1], limit)
+                finally:
+                    os.close(directory)
+                verify_directory_chain(chain)
+                return raw
+            except ControllerIOError as error:
+                raise WorkerError(_anchor_error(error)) from error
+            finally:
+                os.close(descriptor)
+        try:
+            descriptor, identity = open_read_only_directory(anchor['path'])
+        except ControllerIOError as error:
+            raise WorkerError(_anchor_error(error)) from error
+        opened = []
+        try:
+            directory = descriptor
+            for part in parts[:-1]:
+                child = open_child_directory(directory, part)
+                opened.append(child)
+                directory = child
+            raw = read_bounded_at(directory, parts[-1], limit)
+            verify_directory_identity(anchor['path'], identity)
+            return raw
+        except ControllerIOError as error:
+            raise WorkerError(_anchor_error(error)) from error
+        finally:
+            for child in reversed(opened):
+                os.close(child)
+            os.close(descriptor)
+
+    def _read_anchored(self, path, expected_sha256, limit=8 * 1024 * 1024):
+        """Read one data reference through its anchor and check its seal."""
+        anchor, parts = self._anchor_of(path)
+        raw = self._read_through_anchor(anchor, parts, limit)
+        if sha256_bytes(raw) != expected_sha256:
+            raise WorkerError('WORKER_FILE_SEAL_MISMATCH')
+        return raw
 
     @classmethod
     def load(cls, path, *, expected_sha256=None):
@@ -158,12 +324,12 @@ class WorkerContext:
         return context
 
     def projection(self):
-        return _read_sealed(self.document['projection_path'],
-                            self.document['projection_sha256'])
+        return self._read_anchored(self.document['projection_path'],
+                                   self.document['projection_sha256'])
 
     def source_identity(self):
-        raw = _read_sealed(self.document['source_identity_path'],
-                            self.document['source_identity_sha256'])
+        raw = self._read_anchored(self.document['source_identity_path'],
+                                  self.document['source_identity_sha256'])
         try:
             value = json.loads(raw.decode('utf-8'))
         except (UnicodeDecodeError, ValueError) as error:
@@ -173,8 +339,8 @@ class WorkerContext:
         return value
 
     def parent_budget(self):
-        raw = _read_sealed(self.document['parent_budget_path'],
-                            self.document['parent_budget_sha256'])
+        raw = self._read_anchored(self.document['parent_budget_path'],
+                                  self.document['parent_budget_sha256'])
         try:
             value = json.loads(raw.decode('utf-8'))
         except (UnicodeDecodeError, ValueError) as error:
@@ -189,9 +355,15 @@ class WorkerContext:
         The worker never downloads a dependency and it never trusts an
         environment variable: the manifest names the exact directory and the
         exact files, and every file is hashed again before it is used.
+
+        The directory that the manifest names is the anchor of its files.
+        It has to be an anchor that the sealed context declared, so a
+        dependency is never read through an arbitrary parent path and the
+        resolved path of a link is never adopted as the identity of a
+        dependency.
         """
-        raw = _read_sealed(self.document['dependency_manifest_path'],
-                           self.document['dependency_manifest_sha256'])
+        raw = self._read_anchored(self.document['dependency_manifest_path'],
+                                  self.document['dependency_manifest_sha256'])
         try:
             value = json.loads(raw.decode('utf-8'))
         except (UnicodeDecodeError, ValueError) as error:
@@ -209,17 +381,25 @@ class WorkerContext:
                 or not os.path.isabs(directory)
                 or not isinstance(files, list) or not files):
             raise WorkerError('WORKER_DEPENDENCY_MANIFEST_INVALID')
+        anchor = self._anchor_by_path(directory)
         for entry in files:
             if (not isinstance(entry, dict) or not isinstance(entry.get('path'), str)
                     or not re.fullmatch('[0-9a-f]{64}', str(entry.get('sha256')))):
                 raise WorkerError('WORKER_DEPENDENCY_MANIFEST_INVALID')
-            target = Path(entry['path'])
             try:
-                actual = sha256_bytes(read_bounded_regular(target))
-            except ControllerIOError as error:
-                if error.code == 'FILE_UNREADABLE' and error.detail == 'ENOENT':
+                file_anchor, parts = self._anchor_of(entry['path'])
+            except WorkerError as error:
+                raise WorkerError('WORKER_DEPENDENCY_FILE_OUTSIDE_THE_DECLARED_ANCHOR') from error
+            if file_anchor['name'] != anchor['name']:
+                # The file of the manifest has to live in the directory that
+                # the manifest itself declares.
+                raise WorkerError('WORKER_DEPENDENCY_FILE_OUTSIDE_THE_DECLARED_ANCHOR')
+            try:
+                actual = sha256_bytes(self._read_through_anchor(anchor, parts))
+            except WorkerError as error:
+                if error.code.endswith(':ENOENT'):
                     raise WorkerError('WORKER_DEPENDENCY_FILE_MISSING') from error
-                raise WorkerError('WORKER_DEPENDENCY_FILE_' + error.code) from error
+                raise error
             if actual != entry['sha256']:
                 raise WorkerError('WORKER_DEPENDENCY_FILE_DRIFT')
         return value
@@ -227,7 +407,8 @@ class WorkerContext:
     def binding(self):
         """The sealed native binding that the phase requires."""
 
-        raw = _read_sealed(self.document['binding_path'], self.document['binding_sha256'])
+        raw = self._read_anchored(self.document['binding_path'],
+                                  self.document['binding_sha256'])
         try:
             value = json.loads(raw.decode('utf-8'))
         except (UnicodeDecodeError, ValueError) as error:
@@ -316,10 +497,13 @@ def run_worker(context, *, driver=None, emit=None, authorize=None, clock=None, s
     receipt = phase.run()
     reference = context.canonical_receipt_reference
     try:
-        # The canonical receipt is read through the bound root, without
-        # following a link and with a real bound.
-        raw = read_bounded_in_root(context.root, reference)
+        # The canonical receipt is read through the bound root anchor,
+        # without following a link and with a real bound.
+        anchor, parts = context._anchor_of(context.root.joinpath(reference))
+        raw = context._read_through_anchor(anchor, parts)
     except ControllerIOError as error:
+        raise WorkerError('WORKER_CANONICAL_RECEIPT_' + error.code) from error
+    except WorkerError as error:
         raise WorkerError('WORKER_CANONICAL_RECEIPT_' + error.code) from error
     emit('TERMINAL', {'canonical_receipt': {'reference': reference,
                                             'bytes': len(raw),

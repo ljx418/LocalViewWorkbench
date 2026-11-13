@@ -771,7 +771,8 @@ def build_worker_context(tmp_path, root, *, clock):
     binding_path = tmp_path / 'binding.json'
     binding_path.write_text(json.dumps(binding))
     manifest_path = tmp_path / 'dependency-manifest.json'
-    manifest_path.write_text(json.dumps(dependency_manifest()))
+    manifest = dependency_manifest()
+    manifest_path.write_text(json.dumps(manifest))
     document = {
         'schema': 'lvw.s3-quality-worker-context/1', 'run_id': RUN_ID,
         'candidate_sha': CANDIDATE_SHA, 'authorization_sha256': AUTHORIZATION_SHA,
@@ -790,6 +791,15 @@ def build_worker_context(tmp_path, root, *, clock):
                              ('powershell', 'comfy_main', 'comfy_python', 'ollama_exe',
                               'ffmpeg_exe', 'nvidia_exe')},
         'canonical_receipt_reference': 'temp/s3-quality/qd-receipt.json',
+        # The declared anchors of the data references: the run root, the
+        # directory of the sealed documents of this run and the read-only
+        # directory of the named dependency.
+        'reference_anchors': [
+            {'name': 'run-root', 'kind': 'RUN_ROOT', 'path': str(root)},
+            {'name': 'contexts', 'kind': 'READ_ONLY_DIRECTORY', 'path': str(tmp_path)},
+            {'name': 'dependencies', 'kind': 'READ_ONLY_DIRECTORY',
+             'path': manifest['path']},
+        ],
     }
     context_path = tmp_path / 'context.json'
     context_path.write_text(json.dumps(document))

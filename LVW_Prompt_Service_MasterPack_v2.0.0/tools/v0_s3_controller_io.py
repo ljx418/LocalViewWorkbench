@@ -63,6 +63,9 @@ ANCESTOR_NOT_A_DIRECTORY = 'ANCESTOR_NOT_A_DIRECTORY'
 OUTPUT_ALREADY_EXISTS = 'OUTPUT_ALREADY_EXISTS'
 OUTPUT_UNWRITABLE = 'OUTPUT_UNWRITABLE'
 SAFE_OPEN_UNSUPPORTED = 'SAFE_OPEN_UNSUPPORTED'
+ROOT_REDIRECTED = 'ROOT_REDIRECTED'
+ANCHOR_REDIRECTED = 'ANCHOR_REDIRECTED'
+DIRECTORY_IDENTITY_CHANGED = 'DIRECTORY_IDENTITY_CHANGED'
 
 
 class ControllerIOError(RuntimeError):
@@ -216,6 +219,161 @@ def open_root_directory(path):
     return descriptor
 
 
+def open_root_directory_chain(path):
+    """Open the bound root from the file system root, level by level.
+
+    Every level is opened from the descriptor of its own parent with
+    ``O_NOFOLLOW``, so an ancestor of the root that is a link is refused
+    here and is never walked.  The chain of the observed identities is
+    returned together with the descriptor, so a later replacement of the
+    root or of one of its ancestors is detected by
+    :func:`verify_directory_chain` and never adopted.
+
+    The descriptor of the root is owned by the caller.
+    """
+    if not safe_open_supported():
+        raise ControllerIOError(SAFE_OPEN_UNSUPPORTED)
+    literal = os.path.normpath(str(path))
+    if not os.path.isabs(literal):
+        raise ControllerIOError(ROOT_UNAVAILABLE, 'NOT_ABSOLUTE')
+    parts = [part for part in literal.split(os.sep) if part not in ('', '.')]
+    directory = os.open(os.sep, directory_open_flags())
+    chain = []
+    try:
+        info = os.fstat(directory)
+        chain.append({'path': os.sep,
+                      'device': int(info.st_dev),
+                      'inode': int(info.st_ino)})
+        walked = os.sep
+        for part in parts:
+            try:
+                child = os.open(part, directory_open_flags(), dir_fd=directory)
+            except OSError as error:
+                if error.errno == errno.ELOOP:
+                    raise ControllerIOError(ROOT_REDIRECTED, part) from error
+                raise ControllerIOError(ROOT_UNAVAILABLE, errno_name(error)) from error
+            try:
+                info = os.fstat(child)
+                if not stat.S_ISDIR(info.st_mode):
+                    raise ControllerIOError(ROOT_NOT_A_DIRECTORY)
+            except BaseException:
+                os.close(child)
+                raise
+            os.close(directory)
+            directory = child
+            walked = os.path.join(walked, part)
+            chain.append({'path': walked,
+                          'device': int(info.st_dev),
+                          'inode': int(info.st_ino)})
+        return directory, tuple(chain)
+    except BaseException:
+        os.close(directory)
+        raise
+
+
+def verify_directory_chain(chain):
+    """Verify that every level of a chain still names the same object.
+
+    The verification is a no-follow ``lstat`` of every level of the chain.
+    A level that was replaced by a link, by another directory or by another
+    file is refused: the descriptor that was opened earlier is never
+    adopted as the new object and the replaced level is never written to.
+    """
+    for entry in chain:
+        try:
+            info = os.lstat(entry['path'])
+        except OSError as error:
+            raise ControllerIOError(DIRECTORY_IDENTITY_CHANGED,
+                                    errno_name(error)) from error
+        if not stat.S_ISDIR(info.st_mode):
+            raise ControllerIOError(DIRECTORY_IDENTITY_CHANGED, 'NOT_A_DIRECTORY')
+        if int(info.st_dev) != entry['device'] or int(info.st_ino) != entry['inode']:
+            raise ControllerIOError(DIRECTORY_IDENTITY_CHANGED, 'IDENTITY')
+    return True
+
+
+def verify_directory_identity(path, identity):
+    """Verify that one directory still names the object that was observed.
+
+    The verification is a no-follow ``lstat``: a directory that was
+    replaced by a link or by another object is refused.
+    """
+    try:
+        info = os.lstat(str(path))
+    except OSError as error:
+        raise ControllerIOError(DIRECTORY_IDENTITY_CHANGED,
+                                errno_name(error)) from error
+    if not stat.S_ISDIR(info.st_mode):
+        raise ControllerIOError(DIRECTORY_IDENTITY_CHANGED, 'NOT_A_DIRECTORY')
+    if (int(info.st_dev), int(info.st_ino)) != (int(identity[0]), int(identity[1])):
+        raise ControllerIOError(DIRECTORY_IDENTITY_CHANGED, 'IDENTITY')
+    return True
+
+
+def open_read_only_directory(path):
+    """Open one declared read-only anchor directory.
+
+    The anchor itself is never a link and the observed identity is
+    returned with the descriptor, so a later replacement of the anchor is
+    detected by :func:`verify_directory_identity`.  The descriptor is
+    owned by the caller.
+    """
+    if not safe_open_supported():
+        raise ControllerIOError(SAFE_OPEN_UNSUPPORTED)
+    try:
+        descriptor = os.open(str(path), directory_open_flags())
+    except OSError as error:
+        if error.errno == errno.ELOOP:
+            raise ControllerIOError(ANCHOR_REDIRECTED, errno_name(error)) from error
+        raise ControllerIOError(DIRECTORY_UNUSABLE, errno_name(error)) from error
+    try:
+        info = os.fstat(descriptor)
+        if not stat.S_ISDIR(info.st_mode):
+            raise ControllerIOError(DIRECTORY_UNUSABLE, 'NOT_A_DIRECTORY')
+    except BaseException:
+        os.close(descriptor)
+        raise
+    return descriptor, (int(info.st_dev), int(info.st_ino))
+
+
+def open_child_directory(parent_descriptor, name):
+    """Open one directory level relative to the descriptor of its parent.
+
+    The level is opened without following a link, so a level that became a
+    link is refused instead of being walked.  The descriptor is owned by
+    the caller.
+    """
+    try:
+        child = os.open(name, directory_open_flags(), dir_fd=parent_descriptor)
+    except OSError as error:
+        raise ControllerIOError(DIRECTORY_UNUSABLE, errno_name(error)) from error
+    try:
+        info = os.fstat(child)
+        if not stat.S_ISDIR(info.st_mode):
+            raise ControllerIOError(ANCESTOR_NOT_A_DIRECTORY)
+    except BaseException:
+        os.close(child)
+        raise
+    return child
+
+
+def read_bounded_at(directory_descriptor, name, limit=MAX_BOUNDED_BYTES):
+    """Read one leaf of a verified directory, relative to its descriptor.
+
+    The leaf is opened without following a link and without blocking, the
+    type of the opened object is decided by its ``fstat`` and the bytes are
+    read through that very handle with a real bound.
+    """
+    try:
+        descriptor = os.open(name, final_open_flags(), dir_fd=directory_descriptor)
+    except OSError as error:
+        raise ControllerIOError(FILE_UNREADABLE, errno_name(error)) from error
+    try:
+        return _read_bounded_handle(descriptor, limit)
+    finally:
+        os.close(descriptor)
+
+
 def open_directory_chain(root_descriptor, parts):
     """Walk the components of a directory chain from the bound root.
 
@@ -309,6 +467,30 @@ def read_bounded_in_root(root, relative, limit=MAX_BOUNDED_BYTES):
         directory = open_directory_chain(root_descriptor, parts[:-1])
     finally:
         os.close(root_descriptor)
+    try:
+        try:
+            descriptor = os.open(parts[-1], final_open_flags(), dir_fd=directory)
+        except OSError as error:
+            raise ControllerIOError(FILE_UNREADABLE, errno_name(error)) from error
+    finally:
+        os.close(directory)
+    try:
+        return _read_bounded_handle(descriptor, limit)
+    finally:
+        os.close(descriptor)
+
+
+def read_bounded_in_root_at(root_descriptor, relative, limit=MAX_BOUNDED_BYTES):
+    """Read one root relative reference through the bound root descriptor.
+
+    The reference is walked from the descriptor of the bound root, so
+    every ancestor of it is opened without following a link and the bytes
+    are read through the handle of the leaf that was verified.  The root
+    is the object that the caller bound: it is never opened again by its
+    path here.
+    """
+    parts = reference_parts(relative)
+    directory = open_directory_chain(root_descriptor, parts[:-1])
     try:
         try:
             descriptor = os.open(parts[-1], final_open_flags(), dir_fd=directory)

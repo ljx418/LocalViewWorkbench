@@ -47,6 +47,7 @@ Nothing in this module proves a product gate.  Every document that it writes
 carries ``stage_pass_claim = False`` and ``product_gate0 = False``, and the
 synthetic facts of the offline seam are never counted as a product pass.
 """
+import errno
 import hashlib
 import json
 import os
@@ -61,8 +62,9 @@ if str(PACK_ROOT) not in sys.path:
     sys.path.insert(0, str(PACK_ROOT))
 
 from tools.v0_s3_controller_io import (  # noqa: E402 - the path is set above
-    ControllerIOError, ensure_directory_chain, exists_at, open_root_directory,
-    read_bounded_in_root, read_bounded_regular, write_exclusive_at,
+    ControllerIOError, ensure_directory_chain, errno_name, exists_at,
+    open_root_directory_chain, read_bounded_in_root_at, read_bounded_regular,
+    verify_directory_chain, verify_directory_identity, write_exclusive_at,
     write_exclusive_path)
 from tools.v0_s3_coordinator import (  # noqa: E402 - the path is set above
     AGGREGATE_RECEIPT_KIND, ParentOriginalEvidence, S3BudgetBindingProvider,
@@ -163,6 +165,44 @@ UNPROVEN_RECEIPTS = {
     'manual_export': 'NO_SEPARATE_MANUAL_EXPORT_RECEIPT',
 }
 
+# The formal obligations of the three product keys that a run of this
+# controller can not prove.  The obligation of a key is the *complete*
+# obligation of the product, not the subset that one synthetic run happens
+# to observe.  A receipt of one of these names is therefore never a pass
+# of the run: the run can only show that a necessary sub-condition of the
+# obligation failed, or that the obligation has no evidence at all.
+FORMAL_OBLIGATIONS = {
+    'output_contract': {
+        'product_key': 'V0-A03',
+        'obligation': ('THE_FORMAL_OUTPUT_CONTRACT_REQUIRES_THE_FOUR_VIEWS_OF_EVERY_ROW,'
+                       'THE_JSON_AND_TXT_EXPORTS_AND_A_FORMAT_SWITCH_WITHOUT_EXTRA_INFERENCE'),
+        'missing': ('THE_FOUR_VIEWS_THE_JSON_AND_TXT_EXPORTS_AND_THE_FORMAT_SWITCH_'
+                    'WITHOUT_EXTRA_INFERENCE_ARE_NOT_PROVEN'),
+    },
+    'no_overwrite': {
+        'product_key': 'V0-A05',
+        'obligation': ('THE_FORMAL_NO_OVERWRITE_REQUIRES_THE_PROTECTION_OF_AN_EXISTING_'
+                       'HUMAN_DRAFT_UNDER_INVALID_JSON_TIMEOUT_OOM_AND_NO_ANSWER_AND_'
+                       'THE_CONTINUED_EXPORT'),
+        'missing': ('THE_PROTECTION_OF_AN_EXISTING_HUMAN_DRAFT_AND_THE_CONTINUED_'
+                    'EXPORT_ARE_NOT_PROVEN'),
+    },
+    'resource_budget': {
+        'product_key': 'V0-A09',
+        'obligation': ('THE_FORMAL_RESOURCE_BUDGET_REQUIRES_THE_TARGET_MACHINE_RESOURCE_'
+                       'AND_PERFORMANCE_MATRIX'),
+        'missing': ('THE_TARGET_GPU_RAM_THERMAL_COLD_WARM_P95_AND_ZERO_OOM_MATRIX_'
+                    'IS_NOT_PROVEN'),
+    },
+}
+
+# The facts that a synthetic run really observed.  They are *not* the
+# formal obligations above: they have their own kind, their own names and
+# their own scope, and they are listed separately, so a fact of a run can
+# never fill a formal receipt of the same name.
+COMPOSITION_FACT_KIND = 'lvw.s3-composition-fact/1'
+COMPOSITION_FACT_SCOPE = 'OFFLINE_SYNTHETIC_COMPOSITION'
+
 
 class ControllerError(RuntimeError):
     """A refused controller step with a stable, machine readable code."""
@@ -197,32 +237,134 @@ def _read_bounded(path, limit=8 * 1024 * 1024):
         raise ControllerError('CONTROLLER_' + error.code) from error
 
 
-def _read_bounded_in_root(root, relative, limit=8 * 1024 * 1024):
-    """Read one root relative reference through the bound root."""
-    try:
-        return read_bounded_in_root(root, relative, limit)
-    except ControllerIOError as error:
-        raise ControllerError('CONTROLLER_' + error.code) from error
-
-
 def _fd_snapshot():
-    """The open descriptors of this process.
+    """The descriptors that are really open in this process.
 
-    The descriptor of the listing itself is excluded, so the difference of
-    two snapshots names exactly the descriptors that a step leaked.
+    The enumeration of ``/proc/self/fd`` is not a proof: ``os.listdir`` of
+    a descriptor copies that descriptor for the duration of the listing
+    and closes the copy again, so the listing names a descriptor that is
+    closed already.  Every name is therefore verified with ``fstat``
+    before it is recorded.
+
+    * a name whose descriptor is closed (``EBADF``) is dropped and
+      reported as a closed entry - it was never an open descriptor;
+    * a name that can not be verified for another reason is **kept** and
+      reported, so an unknown or a refused descriptor never becomes a
+      false empty;
+    * the enumeration resource of this snapshot belongs to the snapshot
+      itself and is never recorded.
+
+    The snapshot also carries the stable identity and the type of every
+    recorded descriptor, so a later comparison names the very object and
+    not only a number.
     """
     try:
         descriptor = os.open('/proc/self/fd', os.O_RDONLY)
     except OSError:  # pragma: no cover - a platform without procfs
         return None
     try:
-        names = os.listdir(descriptor)
-    except OSError:  # pragma: no cover - defensive
-        return None
+        try:
+            names = os.listdir(descriptor)
+        except OSError:  # pragma: no cover - defensive
+            return None
     finally:
         os.close(descriptor)
-    return sorted(int(name) for name in names
-                  if name.isdigit() and int(name) != descriptor)
+    opened = []
+    closed = []
+    unverified = []
+    identity = {}
+    for name in names:
+        if not name.isdigit():
+            continue
+        number = int(name)
+        if number == descriptor:
+            # the enumeration resource of this snapshot belongs to the
+            # snapshot itself and is closed with it
+            continue
+        try:
+            info = os.fstat(number)
+        except OSError as error:
+            if error.errno == errno.EBADF:
+                # the listing named a descriptor that is closed already
+                closed.append(number)
+                continue
+            # An unknown or a refused descriptor is never an empty: it is
+            # kept and reported, so the comparison stays conservative.
+            unverified.append({'fd': number, 'error': errno_name(error)})
+            opened.append(number)
+            continue
+        opened.append(number)
+        identity[number] = {'device': int(info.st_dev),
+                            'inode': int(info.st_ino),
+                            'mode': int(info.st_mode)}
+    return {'open': sorted(opened),
+            'closed_entries': sorted(closed),
+            'unverified_entries': unverified,
+            'identity': identity}
+
+
+class _SealedBytesBoundary:
+    """The byte serving boundary of the two published documents.
+
+    The owner of the canonical receipt and of the source plan verifies its
+    documents through a boundary that it owns.  This adapter serves the
+    *very bytes* that the controller read through the bound root, so the
+    owner validates the same bytes that the controller hashes and that the
+    parent seals.  The adapter never touches the file system for these two
+    documents: a document that was parsed from other bytes can not reach
+    the controller, because the controller cross-checks the decoded bytes
+    against the returned document with a strict comparison of the type and
+    of the value.
+
+    The run root of the adapter is the root of this run, so the owner of
+    the documents still verifies the binding of the run root.
+    """
+
+    def __init__(self, run_root_path, run_root_identity):
+        self.run_root_path = Path(run_root_path)
+        self.run_root_identity = (int(run_root_identity[0]), int(run_root_identity[1]))
+        self._entries = {}
+
+    def add(self, relative, raw):
+        """Bind one artifact relative name to the bytes that were read."""
+        self._entries[str(relative)] = bytes(raw)
+
+    def read(self, relative, max_bytes):
+        raw = self._entries.get(str(relative))
+        if raw is None:
+            raise QualityContractError('QS_BOUND_DOCUMENT_NOT_BOUND:' + str(relative))
+        if len(raw) > max_bytes:
+            raise QualityContractError('QS_BOUND_DOCUMENT_TOO_LARGE:' + str(relative))
+        return raw
+
+    def verify(self):
+        """The hierarchy of this boundary is verified by the controller."""
+        return None
+
+    def close(self):
+        """This boundary owns no descriptor."""
+        return None
+
+
+def _decode_bound_bytes(raw, label):
+    """The strict decoding of the bytes that the controller consumed."""
+    try:
+        document = json.loads(raw.decode('utf-8'))
+    except (UnicodeDecodeError, ValueError) as error:
+        raise ControllerError('CONTROLLER_' + label + '_NOT_JSON') from error
+    if not isinstance(document, dict):
+        raise ControllerError('CONTROLLER_' + label + '_NOT_OBJECT')
+    return document
+
+
+def _same_document(left, right):
+    """Whether two documents are the same type and the same value.
+
+    The comparison is a comparison of the canonical form of both
+    documents, so a boolean is never the number one and the number one is
+    never the boolean true.
+    """
+    return canonical_json(left) == canonical_json(right)
 
 
 # --------------------------------------------------------------------------
@@ -1052,6 +1194,7 @@ class ProductionController:
         self.canonical = None
         self.source_plan = None
         self.receipts = {}
+        self.composition_facts = []
         self.summary = None
         self.spawn_attempts = 0
         self.refusals = []
@@ -1069,6 +1212,17 @@ class ProductionController:
         self.canonical_digest = None
         self.source_plan_bytes = None
         self.source_plan_digest = None
+        # The bound identity of the root and of the output directory.  The
+        # descriptors are opened once, at the precheck, and they are held
+        # for the whole run: every write of the run happens through the
+        # descriptor of the directory that was verified, and the identity
+        # of the root, of its ancestors and of the output directory is
+        # verified again before every write.
+        self._root_descriptor = None
+        self._root_chain = None
+        self._root_identity = None
+        self._controller_descriptor = None
+        self._controller_chain = None
 
     # -- the state machine -------------------------------------------------
     def _enter(self, state):
@@ -1123,12 +1277,145 @@ class ProductionController:
             raise ControllerError('CONTROLLER_PARENT_BUDGET_IDENTITY_MISMATCH')
         self.rows = rows
         self.projection_sha256 = worker.document['projection_sha256']
+        # The bound identity of the root is established here, before any
+        # artefact of the run is written.  The root is opened level by
+        # level from the file system root, so an ancestor of the root that
+        # is a link is refused here, and the observed identity of every
+        # level is held for the whole run.
+        self._bind_root_identity()
         # The fixed production command carries the *pre-sealed* hash of the
         # worker context down to the worker.  The worker never recomputes
         # the expectation itself: it verifies every load against the hash
         # that this command carries.
         self.command = build_production_command(worker_reference['path'],
                                                 context_sha256=worker_reference['sha256'])
+
+    # -- the bound identity of the root and of the output directory ---------
+    def _bind_root_identity(self):
+        """Open the bound root and hold the identity of its whole chain.
+
+        The root is opened from the file system root, level by level, and
+        every level is opened without following a link.  The observed
+        identity of every level is held, so a root or an ancestor that was
+        replaced after this moment is refused before any write of the run.
+        """
+        try:
+            descriptor, chain = open_root_directory_chain(self.context.root)
+        except ControllerIOError as error:
+            raise ControllerError('CONTROLLER_' + error.code) from error
+        self._root_descriptor = descriptor
+        self._root_chain = chain
+        self._root_identity = (chain[-1]['device'], chain[-1]['inode'])
+
+    def _verify_root_identity(self):
+        """Verify that the root still names the object that was observed."""
+        if self._root_chain is None:
+            raise ControllerError('CONTROLLER_ROOT_NOT_BOUND')
+        try:
+            verify_directory_chain(self._root_chain)
+        except ControllerIOError as error:
+            raise ControllerError('CONTROLLER_ROOT_IDENTITY_CHANGED:' + error.code) from error
+        return True
+
+    def _controller_directory_descriptor(self):
+        """The descriptor of the output directory of this controller.
+
+        The directory is created once, relative to the descriptor of the
+        bound root, and the descriptor is held for the whole run: every
+        artefact of the controller is written through the descriptor of the
+        directory that was verified, never through a path that was opened
+        again.  The identity of every level of the chain is recorded, so a
+        directory that was replaced after its creation is refused.
+        """
+        if self._controller_descriptor is None:
+            if self._root_descriptor is None:
+                raise ControllerError('CONTROLLER_ROOT_NOT_BOUND')
+            try:
+                descriptor = ensure_directory_chain(self._root_descriptor,
+                                                    CONTROLLER_DIRECTORY_PARTS)
+            except ControllerIOError as error:
+                raise ControllerError('CONTROLLER_' + error.code) from error
+            self._controller_descriptor = descriptor
+            self._controller_chain = self._observe_controller_chain()
+        return self._controller_descriptor
+
+    def _observe_controller_chain(self):
+        """The observed identity of every level of the output directory."""
+        chain = []
+        walked = Path(self.context.root)
+        for part in CONTROLLER_DIRECTORY_PARTS:
+            walked = walked / part
+            try:
+                info = os.lstat(str(walked))
+            except OSError as error:
+                raise ControllerError('CONTROLLER_DIRECTORY_UNUSABLE:'
+                                      + errno_name(error)) from error
+            chain.append({'path': str(walked),
+                          'identity': (int(info.st_dev), int(info.st_ino))})
+        return chain
+
+    def _verify_controller_identity(self):
+        """Verify the root, its ancestors and the output directory.
+
+        Every write of the run is bound to the identity that was observed
+        at the precheck: a root that was replaced, a ``temp`` directory
+        that was replaced, an output directory that was replaced and a
+        symlinked ancestor of the root are all refused, and nothing is
+        written into a new root or outside of the bound root.
+        """
+        self._verify_root_identity()
+        if self._controller_chain is None:
+            return True
+        for entry in self._controller_chain:
+            try:
+                verify_directory_identity(entry['path'], entry['identity'])
+            except ControllerIOError as error:
+                raise ControllerError('CONTROLLER_DIRECTORY_IDENTITY_CHANGED:'
+                                      + error.code) from error
+        return True
+
+    def _release_anchors(self):
+        """Close the descriptors that this run held.
+
+        The descriptors of the bound root and of the output directory are
+        the only descriptors that this controller keeps open between two
+        steps.  They are closed at the end of the run, and the receipt
+        names them, so the difference of the two descriptor snapshots
+        stays exact.
+        """
+        for attribute in ('_controller_descriptor', '_root_descriptor'):
+            descriptor = getattr(self, attribute, None)
+            if descriptor is None:
+                continue
+            setattr(self, attribute, None)
+            try:
+                os.close(descriptor)
+            except OSError:  # pragma: no cover - the close may race
+                pass
+
+    def _record_post_release_cleanup(self, receipt, fd_before):
+        """The descriptor accounting after this run released its own descriptors.
+
+        This is a *second* observation point.  The receipt that was
+        persisted carries the snapshot of the end of the run body
+        (``PRE_RELEASE``); this one carries the snapshot after the run
+        released the descriptors it held (``POST_RELEASE``).  The
+        persisted receipt is never rewritten, and the copy on the disk is
+        never claimed to carry this snapshot.
+        """
+        snapshot = _fd_snapshot()
+        leaked = None
+        if fd_before is not None and snapshot is not None:
+            leaked = sorted(set(snapshot['open']) - set(fd_before['open']))
+        receipt['fd_cleanup_post_release'] = {
+            'observation_point': 'POST_RELEASE: the snapshot is taken after this run '
+                                 'released the descriptors that it held',
+            'snapshot': snapshot,
+            'fd_leaked': leaked,
+            'the_persisted_receipt_carries': 'PRE_RELEASE',
+            'stage_pass_claim': False,
+            'product_gate0': False,
+        }
 
     # -- the native admission ----------------------------------------------
     def _admission_report(self):
@@ -1169,26 +1456,6 @@ class ProductionController:
                 'product_gate0': False}
 
     # -- the execution right of this run -----------------------------------
-    def _controller_directory(self):
-        """The directory of this controller inside the bound run root.
-
-        The root is opened without following a link and every component of
-        the chain is opened or created relative to the descriptor of its
-        own parent, so a link in the chain is never followed and the
-        directory is always inside the bound root.  The returned
-        descriptor is owned by the caller.
-        """
-        try:
-            root_descriptor = open_root_directory(self.context.root)
-        except ControllerIOError as error:
-            raise ControllerError('CONTROLLER_' + error.code) from error
-        try:
-            return ensure_directory_chain(root_descriptor, CONTROLLER_DIRECTORY_PARTS)
-        except ControllerIOError as error:
-            raise ControllerError('CONTROLLER_' + error.code) from error
-        finally:
-            os.close(root_descriptor)
-
     def _acquire_reservation(self):
         """Take the exclusive execution right of this run.
 
@@ -1202,33 +1469,38 @@ class ProductionController:
         The reservation is never deleted here.  A failed or unknown run
         keeps its reservation, so the history of the run stays visible and
         a retry can not silently replace it.
+
+        The reservation is written through the descriptor of the output
+        directory that was created inside the bound root, and the identity
+        of the root and of the output directory is verified before the
+        write: a root that was replaced after the precheck is refused and
+        the reservation is never written into the new root.
         """
-        directory = self._controller_directory()
+        self._verify_root_identity()
+        directory = self._controller_directory_descriptor()
+        self._verify_controller_identity()
+        summary_name = 'summary-' + self.context.run_id + '.json'
+        if exists_at(directory, summary_name):
+            raise ControllerError('CONTROLLER_SUMMARY_ALREADY_EXISTS')
+        name = 'reservation-' + self.context.run_id + '.json'
+        document = canonical_json({
+            'kind': RESERVATION_KIND,
+            'run_id': self.context.run_id,
+            'candidate_sha': self.context.candidate_sha,
+            'authorization_sha256': self.context.authorization_sha256,
+            'root': str(self.context.root),
+            'reserved_wall': time.time(),
+            'stage_pass_claim': False,
+            'product_gate0': False,
+        }).encode('utf-8')
         try:
-            summary_name = 'summary-' + self.context.run_id + '.json'
-            if exists_at(directory, summary_name):
-                raise ControllerError('CONTROLLER_SUMMARY_ALREADY_EXISTS')
-            name = 'reservation-' + self.context.run_id + '.json'
-            document = canonical_json({
-                'kind': RESERVATION_KIND,
-                'run_id': self.context.run_id,
-                'candidate_sha': self.context.candidate_sha,
-                'authorization_sha256': self.context.authorization_sha256,
-                'root': str(self.context.root),
-                'reserved_wall': time.time(),
-                'stage_pass_claim': False,
-                'product_gate0': False,
-            }).encode('utf-8')
-            try:
-                write_exclusive_at(directory, name, document)
-            except ControllerIOError as error:
-                if error.code == 'OUTPUT_ALREADY_EXISTS':
-                    raise ControllerError('CONTROLLER_RESERVATION_ALREADY_EXISTS') from error
-                raise ControllerError('CONTROLLER_RESERVATION_UNWRITABLE:' + error.code) from error
-            self.reservation = name
-            self.reservation_acquired = True
-        finally:
-            os.close(directory)
+            write_exclusive_at(directory, name, document)
+        except ControllerIOError as error:
+            if error.code == 'OUTPUT_ALREADY_EXISTS':
+                raise ControllerError('CONTROLLER_RESERVATION_ALREADY_EXISTS') from error
+            raise ControllerError('CONTROLLER_RESERVATION_UNWRITABLE:' + error.code) from error
+        self.reservation = name
+        self.reservation_acquired = True
         return self.reservation
 
     # -- the plan -----------------------------------------------------------
@@ -1240,8 +1512,11 @@ class ProductionController:
             root=self.context.root,
             projection_sha256=self.projection_sha256)
         self.plan_sha256 = evidence.seal_plan(self.rows)
-        identity = os.stat(self.context.root)
-        evidence.seal_root([identity.st_dev, identity.st_ino])
+        # The root that is sealed is the root that was bound at the
+        # precheck, not the object that the path of the root happens to
+        # name now.  A root that was replaced after the precheck is
+        # therefore detected by the consumption boundary of the parent.
+        evidence.seal_root([self._root_identity[0], self._root_identity[1]])
         self.original_evidence = evidence
         self.plan = SealedPlan([{'ordinal': row['ordinal'], 'asset_id': row['asset_id'],
                                   'media_kind': row['media_kind']} for row in self.rows])
@@ -1277,17 +1552,43 @@ class ProductionController:
         return self.evidence
 
     # -- the originals ------------------------------------------------------
+    def _read_bound_reference(self, relative):
+        """Read one root relative reference through the bound root.
+
+        The reference is read through the descriptor of the root that was
+        bound at the precheck, so the bytes come from the very object that
+        this run bound and never from a root that was opened again.
+        """
+        try:
+            return read_bounded_in_root_at(self._root_descriptor, relative)
+        except ControllerIOError as error:
+            raise ControllerError('CONTROLLER_' + error.code) from error
+
     def _verify_originals(self):
         evidence = self.evidence
         if evidence.get('unknown_outcome') or not evidence.get('canonical_receipt_verified'):
             raise ControllerError('CONTROLLER_OUTCOME_UNKNOWN:' + str(evidence.get('protocol_violation')))
         reference = evidence['canonical_receipt']['reference']
         artifact_root = self.context.root / 'temp' / 's3-quality'
+        # The bytes of the canonical receipt are read *once*, through the
+        # bound root, and the frozen owner validates exactly these bytes.
+        # The document that is adapted, scored and published is therefore
+        # the document of the bytes that this controller hashes and that
+        # the parent seals: an old parse of an old document can never be
+        # published with the seal of a new document.
+        canonical_bytes = self._read_bound_reference(reference)
+        boundary = _SealedBytesBoundary(self.context.root, self._root_identity)
+        boundary.add(CANONICAL_RECEIPT_NAME, canonical_bytes)
         try:
-            canonical = load_published_execution_receipt(artifact_root)
-            source_plan = load_source_plan(artifact_root, canonical)
+            canonical = load_published_execution_receipt(artifact_root, boundary=boundary)
         except QualityContractError as error:
             raise ControllerError('CONTROLLER_PUBLISHED_RECEIPT_REFUSED:' + str(error)) from error
+        decoded = _decode_bound_bytes(canonical_bytes, 'CANONICAL')
+        if not _same_document(canonical, decoded):
+            # The owner returned a document that is not the document of the
+            # bytes that this controller consumed: the run is refused and
+            # nothing is published.
+            raise ControllerError('CONTROLLER_CANONICAL_PARSE_NOT_BOUND_TO_BYTES')
         if canonical.get('run_id') != self.context.run_id \
                 or canonical.get('candidate_sha') != self.context.candidate_sha \
                 or canonical.get('authorization_sha256') != self.context.authorization_sha256:
@@ -1295,16 +1596,24 @@ class ProductionController:
         if canonical.get('projection_sha256') != self.projection_sha256:
             raise ControllerError('CONTROLLER_CANONICAL_PROJECTION_MISMATCH')
         self.canonical = canonical
-        self.source_plan = source_plan
         raw = self._raw_references(canonical)
-        source_plan_reference = 'temp/s3-quality/' + str(canonical['source_plan']['path'])
-        # The bytes that the controller consumes are read through the bound
-        # root, without following a link and with a real bound.  The digest
-        # of these bytes is compared with the seal of the owner below, so a
-        # canonical receipt that changed between the parse and the seal is
-        # refused instead of being consumed with a stale seal.
-        canonical_bytes = _read_bounded_in_root(self.context.root, reference)
-        source_plan_bytes = _read_bounded_in_root(self.context.root, source_plan_reference)
+        source_plan_name = str((canonical.get('source_plan') or {}).get('path') or '')
+        if (not source_plan_name or os.path.isabs(source_plan_name)
+                or '..' in Path(source_plan_name).parts):
+            raise ControllerError('CONTROLLER_SOURCE_PLAN_REFERENCE_INVALID')
+        source_plan_reference = 'temp/s3-quality/' + source_plan_name
+        # The bytes of the source plan are read once as well and the frozen
+        # owner validates exactly these bytes.
+        source_plan_bytes = self._read_bound_reference(source_plan_reference)
+        boundary.add(source_plan_name, source_plan_bytes)
+        try:
+            source_plan = load_source_plan(artifact_root, canonical, boundary=boundary)
+        except QualityContractError as error:
+            raise ControllerError('CONTROLLER_PUBLISHED_RECEIPT_REFUSED:' + str(error)) from error
+        decoded_plan = _decode_bound_bytes(source_plan_bytes, 'SOURCE_PLAN')
+        if not _same_document(source_plan, decoded_plan.get('rows')):
+            raise ControllerError('CONTROLLER_SOURCE_PLAN_PARSE_NOT_BOUND_TO_BYTES')
+        self.source_plan = source_plan
         self.canonical_bytes = canonical_bytes
         self.canonical_digest = sha256_bytes(canonical_bytes)
         self.source_plan_bytes = source_plan_bytes
@@ -1459,23 +1768,21 @@ class ProductionController:
             [{'source': 'source_plan', 'sha256': provenance['source_plan']['sha256']},
              {'source': 'canonical_receipt', 'sha256': provenance['canonical']['sha256']}],
             'EVERY_VIDEO_ROW_OF_THIS_RUN_EXECUTED_AND_PUBLISHED')
-        receipts['output_contract'] = make(
-            'output_contract',
-            'PASS' if all_passed and len(outputs) == total and total == 16
-            and covered_by_manifest and digests_agree else 'FAIL',
-            'EVERY_ROW_PUBLISHED_ITS_RAW_AND_SUGGESTION_ARTEFACTS',
+        receipts['output_contract'] = self._formal_receipt(
+            make, 'output_contract',
+            all_passed and len(outputs) == total and total == 16
+            and covered_by_manifest and digests_agree,
+            'THE_SIXTEEN_ROWS_DID_NOT_PUBLISH_BOTH_ARTEFACTS_WITH_THEIR_SEALED_DIGESTS',
             [{'source': 'canonical_receipt', 'sha256': provenance['canonical']['sha256']},
-             {'source': 'parent_manifest', 'sha256': provenance['manifest']['sha256']}],
-            'EVERY_ONE_OF_THE_SIXTEEN_ROWS_PUBLISHED_BOTH_ARTEFACTS')
-        receipts['no_overwrite'] = make(
-            'no_overwrite',
-            'PASS' if all_passed and exclusive_single_write and descriptor_relative_writes
+             {'source': 'parent_manifest', 'sha256': provenance['manifest']['sha256']}])
+        receipts['no_overwrite'] = self._formal_receipt(
+            make, 'no_overwrite',
+            all_passed and exclusive_single_write and descriptor_relative_writes
             and unique_artefacts and inside_phase and covered_by_manifest
-            and digests_agree else 'FAIL',
-            'EVERY_ARTEFACT_OF_THIS_RUN_WAS_CREATED_EXCLUSIVELY_INSIDE_THE_OWNED_PHASE_DIRECTORY',
+            and digests_agree,
+            'THE_ARTEFACTS_OF_THIS_RUN_WERE_NOT_CREATED_EXCLUSIVELY_INSIDE_THE_OWNED_PHASE_DIRECTORY',
             [{'source': 'canonical_receipt', 'sha256': provenance['canonical']['sha256']},
-             {'source': 'parent_manifest', 'sha256': provenance['manifest']['sha256']}],
-            'NO_ARTEFACT_OF_THIS_RUN_REPLACED_AN_EXISTING_FILE')
+             {'source': 'parent_manifest', 'sha256': provenance['manifest']['sha256']}])
         receipts['file_safety'] = make(
             'file_safety',
             'PASS' if self.manifest and self.consumption_reverified
@@ -1483,11 +1790,10 @@ class ProductionController:
             'THE_PARENT_REVERIFIED_EVERY_ORIGINAL_THROUGH_THE_NO_FOLLOW_PROCEDURE',
             [{'source': 'parent_manifest', 'sha256': provenance['manifest']['sha256']}],
             'EVERY_ORIGINAL_WAS_REVERIFIED_AT_THE_CONSUMPTION_BOUNDARY')
-        receipts['resource_budget'] = make(
-            'resource_budget', 'PASS' if all_passed and budget_accounted else 'FAIL',
-            'THE_PROVIDER_CALL_BUDGET_OF_THIS_RUN_WAS_ACCOUNTED_BY_THE_PHASE',
-            [{'source': 'canonical_receipt', 'sha256': provenance['canonical']['sha256']}],
-            'EVERY_PROVIDER_CALL_OF_THIS_RUN_WAS_RESERVED_INSIDE_THE_ACCEPTED_BUDGET')
+        receipts['resource_budget'] = self._formal_receipt(
+            make, 'resource_budget', all_passed and budget_accounted,
+            'THE_PROVIDER_CALL_BUDGET_OF_THIS_RUN_WAS_NOT_FULLY_ACCOUNTED_BY_THE_PHASE',
+            [{'source': 'canonical_receipt', 'sha256': provenance['canonical']['sha256']}])
         receipts['quality_16_rows'] = make(
             'quality_16_rows',
             'PASS' if phase_pass == 16 and counts.get('fixed') == 16 and total == 16 else 'FAIL',
@@ -1516,8 +1822,91 @@ class ProductionController:
             receipts['cleanup']['sources'] = [{'source': 'canonical_receipt',
                                                'sha256': provenance['canonical']['sha256'],
                                                'residue_rows': residue_open}]
+        self.composition_facts = self._composition_facts(
+            outputs=outputs, total=total, covered_by_manifest=covered_by_manifest,
+            digests_agree=digests_agree, exclusive_single_write=exclusive_single_write,
+            descriptor_relative_writes=descriptor_relative_writes,
+            unique_artefacts=unique_artefacts, inside_phase=inside_phase,
+            reserved=reserved, capacity=capacity, budget_accounted=budget_accounted,
+            provenance=provenance)
         self.receipts = receipts
         return receipts
+
+    @staticmethod
+    def _formal_receipt(make, name, subset_holds, failed_subcondition, sources):
+        """One formal product obligation of this run.
+
+        The obligation of a product key is the *complete* obligation of the
+        product, not the subset that one synthetic run happens to observe.
+        A receipt of such a name is therefore never a pass of this run:
+
+        * a necessary sub-condition that demonstrably failed is a failure,
+          and the failure names the sub-condition;
+        * a run without such a failure leaves the complete obligation
+          unproven, so the receipt is blocked and names what is missing.
+
+        The facts that this run really observed are listed separately, see
+        :meth:`_composition_facts`; they never fill this receipt.
+        """
+        formal = FORMAL_OBLIGATIONS[name]
+        if not subset_holds:
+            return make(name, 'FAIL',
+                        'FORMAL_OBLIGATION_NOT_MET:' + failed_subcondition,
+                        sources, formal['obligation'])
+        return make(name, 'BLOCKED',
+                    'FORMAL_OBLIGATION_NOT_PROVEN:' + formal['missing'],
+                    sources, formal['obligation'])
+
+    def _composition_facts(self, *, outputs, total, covered_by_manifest,
+                           digests_agree, exclusive_single_write,
+                           descriptor_relative_writes, unique_artefacts,
+                           inside_phase, reserved, capacity,
+                           budget_accounted, provenance):
+        """The facts that this synthetic run really observed.
+
+        These facts are *not* the formal obligations of the product keys.
+        They have their own kind, their own names and their own scope and
+        they are listed separately from the receipts, so a fact of a run
+        can never fill a formal receipt of the same name and a narrowed
+        obligation can never be published under an approved name.
+        """
+        sources = [{'source': 'canonical_receipt', 'sha256': provenance['canonical']['sha256']},
+                   {'source': 'parent_manifest', 'sha256': provenance['manifest']['sha256']}]
+
+        def fact(name, observed, detail):
+            return {'kind': COMPOSITION_FACT_KIND,
+                    'name': name,
+                    'status': 'OBSERVED' if observed else 'NOT_OBSERVED',
+                    'observed': bool(observed),
+                    'detail': detail,
+                    'run_id': self.context.run_id,
+                    'candidate_sha': self.context.candidate_sha,
+                    'authorization_sha256': self.context.authorization_sha256,
+                    'sources': list(sources),
+                    'scope': COMPOSITION_FACT_SCOPE,
+                    'not_a_formal_product_obligation': True,
+                    'product_pass_claimed': False,
+                    'stage_pass_claim': False,
+                    'product_gate0': False}
+
+        artefacts_present = len(outputs) == total and total == 16
+        exclusive_creation = (exclusive_single_write and descriptor_relative_writes
+                               and unique_artefacts and inside_phase)
+        return [
+            fact('composition_fact_output_artifacts_present',
+                 artefacts_present and covered_by_manifest and digests_agree,
+                 'the rows of this run published a raw and a suggestion artefact '
+                 'whose digests agree with the sealed manifest'),
+            fact('composition_fact_exclusive_creation_of_this_run',
+                 exclusive_creation,
+                 'the artefacts of this run were created exclusively inside the '
+                 'owned phase directory of this run'),
+            fact('composition_fact_provider_call_accounting_of_this_run',
+                 budget_accounted,
+                 'the provider calls of this run were reserved inside the '
+                 'accepted capacity of this run: reserved=' + str(reserved)
+                 + ' capacity=' + str(capacity)),
+        ]
 
     @staticmethod
     def _artefact_references(rows):
@@ -1652,6 +2041,11 @@ class ProductionController:
         summary = aggregate_twelve_keys(receipts=receipts, binding=binding)
         summary['kind'] = SUMMARY_KIND
         summary['provenance'] = self._provenance()
+        # The facts of this run are listed separately from the receipts of
+        # the twelve keys: they are observations of a synthetic run and
+        # they never fill a formal obligation of a product key.
+        summary['composition_facts'] = list(self.composition_facts)
+        summary['composition_facts_are_not_product_receipts'] = True
         summary['execution_mode'] = 'OFFLINE_SYNTHETIC_COMPOSITION' if self.seam is not None \
             else 'NATIVE'
         summary['offline_receipts_are_not_product_receipts'] = True
@@ -1667,23 +2061,29 @@ class ProductionController:
     def _persist_summary(self):
         """Write the summary exactly once, inside the bound root.
 
-        The directory is walked from the bound root without following a
-        link and the leaf is created with ``O_EXCL``, so a summary is
-        never written outside the root and an existing summary is never
-        replaced.
+        The write happens through the descriptor of the output directory
+        that was created inside the bound root, and the identity of the
+        root, of its ancestors and of the output directory is verified
+        before the write.  The leaf is created with ``O_EXCL``, so a
+        summary is never written outside the root and an existing summary
+        is never replaced.
         """
-        directory = self._controller_directory()
+        directory = self._controller_directory_descriptor()
+        self._verify_controller_identity()
+        name = 'summary-' + self.context.run_id + '.json'
+        summary_bytes = canonical_json(self.summary).encode('utf-8')
         try:
-            name = 'summary-' + self.context.run_id + '.json'
-            summary_bytes = canonical_json(self.summary).encode('utf-8')
-            try:
-                write_exclusive_at(directory, name, summary_bytes)
-            except ControllerIOError as error:
-                raise ControllerError('CONTROLLER_SUMMARY_' + error.code) from error
-            self.summary_path = self.context.root.joinpath(*CONTROLLER_DIRECTORY_PARTS) / name
-            self.summary_sha256 = sha256_bytes(summary_bytes)
-        finally:
-            os.close(directory)
+            write_exclusive_at(directory, name, summary_bytes)
+        except ControllerIOError as error:
+            raise ControllerError('CONTROLLER_SUMMARY_' + error.code) from error
+        except Exception as error:  # noqa: BLE001 - the failure stays visible
+            # A storage failure that is not an operating system error is an
+            # ordinary exception of the run: it is named, it is never
+            # swallowed and it never escapes the run as a generic text.
+            raise ControllerError('CONTROLLER_SUMMARY_PERSISTENCE_FAILED:'
+                                  + type(error).__name__) from error
+        self.summary_path = self.context.root.joinpath(*CONTROLLER_DIRECTORY_PARTS) / name
+        self.summary_sha256 = sha256_bytes(summary_bytes)
         return self.summary_path
 
     def _persist_receipt(self, receipt):
@@ -1693,15 +2093,21 @@ class ProductionController:
         refused run that never sent a worker leaves no artefact in the
         root.  A receipt that can not be written is reported as *not
         persisted*: the failure is never hidden behind a success.
+
+        Every ordinary failure of this write - an operating system error,
+        a refused identity and a storage error that is not an operating
+        system error - is caught here and is reported as a not persisted
+        receipt.  The failure of the write never escapes the run, so the
+        caller always receives the structured state of the run.
         """
         if not self.reservation_acquired:
             self.receipt_persisted = False
             self.receipt_persistence_error = 'CONTROLLER_RECEIPT_NOT_APPLICABLE_NO_RESERVATION'
             return False
         receipt['receipt_persistence_intent'] = 'WRITTEN_WITH_O_EXCL'
-        directory = None
         try:
-            directory = self._controller_directory()
+            directory = self._controller_directory_descriptor()
+            self._verify_controller_identity()
             name = 'receipt-' + self.context.run_id + '.json'
             raw = canonical_json(receipt).encode('utf-8')
             write_exclusive_at(directory, name, raw)
@@ -1718,9 +2124,14 @@ class ProductionController:
             self.receipt_persisted = False
             self.receipt_persistence_error = error.code
             return False
-        finally:
-            if directory is not None:
-                os.close(directory)
+        except Exception as error:  # noqa: BLE001 - the failure stays visible
+            # The persistence of the terminal receipt failed with an
+            # ordinary exception.  The failure is named, the receipt stays
+            # *not persisted* and the run keeps its unknown state.
+            self.receipt_persisted = False
+            self.receipt_persistence_error = ('CONTROLLER_RECEIPT_PERSISTENCE_FAILED:'
+                                              + type(error).__name__)
+            return False
 
     @staticmethod
     def _write_exclusive(path, raw):
@@ -1864,11 +2275,31 @@ class ProductionController:
                 if self.state is not None and self.state != STATE_PRECHECK:
                     receipt['recovery'] = self._recovery_entry()
             finally:
-                self._finish(receipt, fd_before)
-                self._persist_receipt(receipt)
+                # The bounded end of the run.  Neither the cleanup nor the
+                # persistence of the terminal receipt may escape the run as
+                # an exception: a run that failed stays a structured run
+                # with a named reason, a retained root, a retained
+                # reservation and an explicit *not persisted* receipt.
+                try:
+                    self._finish(receipt, fd_before)
+                except Exception as error:  # noqa: BLE001 - the cleanup stays bounded
+                    receipt.setdefault('cleanup_failures', []).append(
+                        'FINISH:' + type(error).__name__)
+                try:
+                    self._persist_receipt(receipt)
+                except Exception as error:  # noqa: BLE001 - the persistence stays bounded
+                    self.receipt_persisted = False
+                    self.receipt_persistence_error = ('CONTROLLER_RECEIPT_PERSISTENCE_FAILED:'
+                                                      + type(error).__name__)
                 receipt['receipt_persisted'] = self.receipt_persisted
                 receipt['receipt_persistence_error'] = self.receipt_persistence_error
                 receipt['receipt_path'] = str(self.receipt_path) if self.receipt_path else None
+                receipt['composition_facts'] = list(self.composition_facts)
+                self._release_anchors()
+                # The second observation point of the descriptor accounting:
+                # it is taken after this run released its own descriptors
+                # and it is *not* written into the persisted receipt.
+                self._record_post_release_cleanup(receipt, fd_before)
         except (KeyboardInterrupt, SystemExit):
             # A cancellation is never swallowed and never turned into a
             # success.  The bounded cleanup already happened in the inner
@@ -1907,6 +2338,11 @@ class ProductionController:
         cleanup are recorded here.  A worker thread that did not end is
         *retained* and reported as retained: the run never claims that
         nothing can write after it returned.
+
+        The two descriptors that this controller holds between two steps -
+        the bound root and the output directory - are named in the receipt
+        and are closed when the run returns.  They are excluded from the
+        leak computation and they are never silently forgotten.
         """
         if self.seam is not None:
             # The seam closes its own descriptors before the descriptor
@@ -1922,11 +2358,24 @@ class ProductionController:
         receipt['node_id'] = self._node_id(receipt)
         receipt['execution_attempts'] = 1
         fd_after = _fd_snapshot()
+        anchors = sorted(descriptor for descriptor in
+                         (self._root_descriptor, self._controller_descriptor)
+                         if descriptor is not None)
+        leaked = None
+        if fd_before is not None and fd_after is not None:
+            leaked = sorted(set(fd_after['open']) - set(fd_before['open']) - set(anchors))
         receipt['fd_cleanup'] = {'fd_before': fd_before,
                                   'fd_after': fd_after,
-                                  'fd_leaked': (sorted(set(fd_after) - set(fd_before))
-                                                if fd_before is not None and fd_after is not None
-                                                else None),
+                                  'fd_leaked': leaked,
+                                  'observation_point': (
+                                      'PRE_RELEASE: the snapshot is taken at the end of the '
+                                      'run body, before this run releases the descriptors it '
+                                      'held; the descriptors of this run are named below and '
+                                      'are excluded from the leak set'),
+                                  'controller_anchor_descriptors': anchors,
+                                  'controller_anchor_descriptors_scope': (
+                                      'THE_BOUND_ROOT_AND_THE_OUTPUT_DIRECTORY_OF_THIS_RUN;'
+                                      'THEY_ARE_HELD_BY_THE_RUN_AND_CLOSED_WHEN_THE_RUN_RETURNS'),
                                   'worker_thread_finished': bool(
                                       self.seam.worker_thread_finished) if self.seam else None,
                                   'worker_exit_code': (self.seam.worker_exit_code
@@ -2033,7 +2482,18 @@ def main(argv=None):
         except ControllerError as error:
             sys.stderr.write('S3_CONTROLLER_REFUSED ' + error.code + '\n')
             return EXIT_REFUSED
-    sys.stdout.write(canonical_json(receipt) + '\n')
+    try:
+        sys.stdout.write(canonical_json(receipt) + '\n')
+        sys.stdout.flush()
+    except Exception as error:  # noqa: BLE001 - the failure stays visible
+        # The receipt of the run is persisted inside the bound root, so the
+        # state of the run stays available.  The failure of the standard
+        # output is named, it names the state of the run as well and it
+        # never hides the run behind an empty output.
+        sys.stderr.write('S3_CONTROLLER_REFUSED STDOUT_WRITE_FAILED:'
+                         + type(error).__name__
+                         + ' STATE:' + str(receipt.get('state')) + '\n')
+        return EXIT_INTERNAL
     if receipt['state'] == STATE_SUMMARY_PERSISTED:
         return EXIT_PERSISTED
     if receipt['state'] == STATE_UNKNOWN:

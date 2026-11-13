@@ -225,6 +225,16 @@ def _build_composition(tmp_path, *, name='run', driver_failure=None,
         'dependency_manifest_path': str(manifest_path),
         'dependency_manifest_sha256': _digest(manifest_raw),
         'canonical_receipt_reference': 'temp/s3-quality/qd-receipt.json',
+        # The declared anchors of the data references.  The documents of
+        # the run live inside the sealed run root and the named workflows
+        # are the only dependency outside of it; both anchors are named by
+        # this sealed document, so no reference is read through an
+        # arbitrary parent path.
+        'reference_anchors': [
+            {'name': 'run-root', 'kind': 'RUN_ROOT', 'path': str(root)},
+            {'name': 'dependencies', 'kind': 'READ_ONLY_DIRECTORY',
+             'path': str(workflow_dir)},
+        ],
     }
     if mutate_worker is not None:
         worker_context = mutate_worker(worker_context)
@@ -1369,7 +1379,7 @@ def test_the_summary_is_never_written_outside_the_bound_root(tmp_path, monkeypat
     code, receipt, seam, errors = _formal_main(composition, monkeypatch, transition=fault)
     assert receipt['state'] == controller.STATE_UNKNOWN
     assert receipt['summary_persisted'] is False
-    assert 'CONTROLLER_DIRECTORY_UNUSABLE' in receipt['unknown_reason']
+    assert 'CONTROLLER_DIRECTORY_IDENTITY_CHANGED' in receipt['unknown_reason']
     assert list(outside.glob('*.json')) == []
     assert not (_controller_directory_of(composition) / ('summary-' + RUN_ID + '.json')).exists()
 
@@ -1611,3 +1621,295 @@ def test_the_refusal_of_the_worker_keeps_its_code_on_a_text_and_on_a_binary_stre
                        stream=io.BytesIO(), error_stream=binary)
     assert code == 2
     assert binary.getvalue() == b'S3_WORKER_REFUSED NATIVE_EXECUTION_BACKEND_NOT_READY\n'
+
+
+# --------------------------------------------------------------------------
+# F: the directed correction scope of the production composition correction 02
+#
+# The scope is one directed probe for every finding that the independent
+# review of the correction 01 left open - M04, M05, M06, M07 and M08 - and
+# the one formal positive example of the whole chain that the correction 01
+# already owns.  Nothing of the old denominators is rerun here: the scope is
+# the findings themselves.
+#
+# Every probe drives the *formal* command line entry of the controller.  The
+# offline seam is injected at the Python construction site only, so the
+# argument set of the entry stays closed and the entry never learns about
+# the seam.
+# --------------------------------------------------------------------------
+
+# ---- M04: the references of the worker are read through their anchor ------
+@pytest.mark.parametrize('reference', ['projection', 'source_identity',
+                                       'parent_budget', 'binding',
+                                       'dependency_manifest'])
+def test_an_actual_worker_reference_is_read_through_its_anchor(tmp_path, reference):
+    """M04: the five references of the worker are anchored to the run root.
+
+    The parent directory of the reference is moved away and replaced by a
+    link to a directory outside of the run root.  The reference is read
+    through its declared anchor, level by level, so the replaced parent is
+    refused and the bytes outside of the root are never read.  A matching
+    digest does not repair a replaced object: the anchor is what refuses.
+    """
+    from tools import v0_s3_quality_worker as worker
+    composition = _build_composition(tmp_path)
+    context = worker.WorkerContext.load(str(composition['worker_context_path']),
+                                         expected_sha256=composition['worker_context_sha256'])
+    root = composition['root']
+    outside = tmp_path / 'outside'
+    outside.mkdir()
+    parent = root / ('temp' if reference == 'projection' else 'contexts')
+    moved = parent.with_name(parent.name + '-moved')
+    os.rename(parent, moved)
+    os.symlink(str(outside), str(parent), target_is_directory=True)
+    for entry in moved.iterdir():
+        if entry.is_file():
+            (outside / entry.name).write_bytes(entry.read_bytes())
+    accessor = {'projection': context.projection,
+                'source_identity': context.source_identity,
+                'parent_budget': context.parent_budget,
+                'binding': context.binding,
+                'dependency_manifest': context.dependency_manifest}[reference]
+    with pytest.raises(worker.WorkerError) as error:
+        accessor()
+    assert 'WORKER_ANCHOR' in error.value.code
+    # the bytes outside of the run root were there and were never consumed
+    named = {'projection': 'projection.json',
+             'source_identity': 'source-identity.json',
+             'parent_budget': 'parent-budget.json',
+             'binding': 'binding.json',
+             'dependency_manifest': 'dependency-manifest.json'}[reference]
+    assert (outside / named).is_file()
+
+
+# ---- M05: the parsed canonical receipt is bound to the sealed bytes -------
+def test_the_parsed_canonical_receipt_is_bound_to_the_bytes_that_were_hashed(
+        tmp_path, monkeypatch):
+    """M05: an old parse can never be published with a new seal.
+
+    The loader of the canonical receipt is wrapped so that it returns a
+    document of another content than the bytes that the controller read.
+    The controller cross-checks the returned document against the bytes
+    that it read and hashed, so the drifted document is refused, no
+    summary is written and the root and the reservation stay retained.
+    """
+    composition = _build_composition(tmp_path)
+    original = controller.load_published_execution_receipt
+
+    def drifting_loader(artifact_root, **kwargs):
+        document = dict(original(artifact_root, **kwargs))
+        document['drifted_after_the_read'] = True
+        return document
+
+    monkeypatch.setattr(controller, 'load_published_execution_receipt', drifting_loader)
+    code, receipt, seam, errors = _formal_main(composition, monkeypatch)
+    assert receipt['state'] == controller.STATE_UNKNOWN
+    assert receipt['summary_persisted'] is False
+    assert receipt['unknown_reason'] == 'CONTROLLER_CANONICAL_PARSE_NOT_BOUND_TO_BYTES'
+    assert receipt['root_retained'] is True
+    assert receipt['reservation_retained'] is True
+    assert not (_controller_directory_of(composition) / ('summary-' + RUN_ID + '.json')).exists()
+
+
+# ---- M06: the identity of the root and of the output directory ------------
+@pytest.mark.parametrize('target', ['root', 'root-temp', 'controller-directory',
+                                    'root-parent-link'])
+def test_the_output_identity_of_the_run_is_bound_before_every_write(
+        tmp_path, monkeypatch, target):
+    """M06: the root, its ancestors and the output directory keep their identity.
+
+    The run replaces one of them after the reservation was taken.  Every
+    write of the run is refused: nothing is written into a new root, and
+    nothing is written outside of the bound root.
+    """
+    composition = _build_composition(tmp_path)
+    root = composition['root']
+    outside = tmp_path / 'outside'
+    outside.mkdir()
+
+    def fault(state, instance):
+        if state != controller.STATE_RECEIPTS_BOUND:
+            return
+        if target == 'root':
+            moved = root.with_name(root.name + '-moved')
+            os.rename(root, moved)
+            root.mkdir()
+        elif target == 'root-temp':
+            temp = root / 'temp'
+            os.rename(temp, temp.with_name('temp-moved'))
+            temp.mkdir()
+        elif target == 'controller-directory':
+            directory = _controller_directory_of(composition)
+            os.rename(directory, directory.with_name(directory.name + '-moved'))
+            directory.mkdir()
+        else:
+            parent = root.parent
+            moved = parent.with_name(parent.name + '-moved')
+            os.rename(parent, moved)
+            copy = outside / parent.name
+            shutil.copytree(moved, copy)
+            os.symlink(str(copy), str(parent), target_is_directory=True)
+
+    code, receipt, seam, errors = _formal_main(composition, monkeypatch, transition=fault)
+    assert receipt['state'] != controller.STATE_SUMMARY_PERSISTED
+    assert receipt['summary_persisted'] is False
+    # the identity of the bound directories is refused, so the terminal
+    # receipt is not written either
+    assert receipt['receipt_persisted'] is False
+    assert receipt['receipt_persistence_error']
+    # nothing was written into a new root and nothing outside of the root
+    assert list(outside.rglob('summary-*.json')) == []
+    assert list(outside.rglob('receipt-*.json')) == []
+    if target == 'root':
+        assert not (root / 'temp' / 's3-production-controller').exists()
+    if target == 'root-temp':
+        assert not (root / 'temp' / 's3-production-controller').exists()
+    if target == 'controller-directory':
+        assert list((root / 'temp' / 's3-production-controller').glob('*.json')) == []
+
+
+# ---- M07: a formal obligation is never filled by a synthetic fact ---------
+def test_a_formal_obligation_is_never_a_pass_of_a_synthetic_run(tmp_path, monkeypatch):
+    """M07: the formal obligations have no evidence and stay unproven.
+
+    The three product obligations that this run can not prove are blocked
+    and they name what is missing.  The facts that this run really
+    observed are listed separately, with their own kind and their own
+    names, and they never fill a formal receipt.
+    """
+    composition = _build_composition(tmp_path)
+    code, receipt, seam, errors = _formal_main(composition, monkeypatch)
+    assert receipt['state'] == controller.STATE_SUMMARY_PERSISTED
+    for name in ('output_contract', 'no_overwrite', 'resource_budget'):
+        document = receipt['receipts'][name]
+        assert document['status'] == 'BLOCKED', name
+        assert document['reason'].startswith('FORMAL_OBLIGATION_NOT_PROVEN:'), name
+        assert document['product_pass_claimed'] is False
+        assert document['stage_pass_claim'] is False
+    facts = receipt['composition_facts']
+    assert facts
+    for fact in facts:
+        assert fact['kind'] == controller.COMPOSITION_FACT_KIND
+        assert fact['not_a_formal_product_obligation'] is True
+        assert fact['product_pass_claimed'] is False
+        assert fact['name'] not in receipt['receipts']
+    summary = receipt['summary']
+    assert summary['composition_facts_are_not_product_receipts'] is True
+    assert summary['pass_count'] == 0
+    for key in ('V0-A03', 'V0-A05', 'V0-A09'):
+        assert summary['keys'][key]['status'] != 'PASS', key
+
+
+# ---- M08: an ordinary exception of the terminal persistence ---------------
+def test_an_ordinary_storage_failure_keeps_a_structured_unknown(tmp_path, monkeypatch):
+    """M08: an ordinary exception of the persistence stays inside the run.
+
+    The write of the summary and the write of the terminal receipt both
+    fail with an ordinary ``RuntimeError``.  The run returns a structured
+    unknown with a named reason, a retained root, a retained reservation
+    and an explicit *not persisted* receipt.  The failure of the write
+    never escapes as an empty output and never escapes as a generic text.
+    """
+    composition = _build_composition(tmp_path)
+    original = controller.write_exclusive_at
+
+    def broken(directory_descriptor, name, raw):
+        if name.startswith('reservation-'):
+            return original(directory_descriptor, name, raw)
+        raise RuntimeError('controlled-storage-failure')
+
+    monkeypatch.setattr(controller, 'write_exclusive_at', broken)
+    code, receipt, seam, errors = _formal_main(composition, monkeypatch)
+    assert code == controller.EXIT_UNKNOWN
+    assert receipt['state'] == controller.STATE_UNKNOWN
+    assert receipt['summary_persisted'] is False
+    assert receipt['receipt_persisted'] is False
+    assert receipt['receipt_persistence_error'] == \
+        'CONTROLLER_RECEIPT_PERSISTENCE_FAILED:RuntimeError'
+    # the first failure and the second failure stay two different facts
+    assert receipt['unknown_reason'] == 'CONTROLLER_SUMMARY_PERSISTENCE_FAILED:RuntimeError'
+    assert receipt['refusals'] == ['CONTROLLER_SUMMARY_PERSISTENCE_FAILED:RuntimeError']
+    assert receipt['root_retained'] is True
+    assert receipt['reservation_retained'] is True
+    assert receipt['refund_allowed'] is False
+    assert receipt['resend_allowed'] is False
+    assert not (_controller_directory_of(composition) / ('summary-' + RUN_ID + '.json')).exists()
+
+
+# ---- the descriptor snapshot of the controller -----------------------------
+def _listed_descriptor_numbers():
+    """The names that the enumeration of the descriptors produces.
+
+    The enumeration of ``/proc/self/fd`` is not a proof: ``os.listdir`` of
+    a descriptor copies that descriptor for the duration of the listing and
+    closes the copy again, so the listing names a descriptor that is
+    closed already.  This helper returns the raw names and the names that
+    are really open, so a test can show the difference.
+    """
+    descriptor = os.open('/proc/self/fd', os.O_RDONLY)
+    try:
+        names = os.listdir(descriptor)
+    finally:
+        os.close(descriptor)
+    listed = sorted(int(name) for name in names if name.isdigit())
+    verified = []
+    for number in listed:
+        try:
+            os.fstat(number)
+        except OSError:
+            continue
+        verified.append(number)
+    return listed, sorted(verified)
+
+
+def test_the_fd_snapshot_ignores_closed_enumeration_entries(tmp_path):
+    """The descriptor snapshot never invents an open descriptor.
+
+    The enumeration of the descriptors names a temporary descriptor that
+    the enumeration itself copied and closed again.  The snapshot verifies
+    every name with ``fstat`` and records only the descriptors that are
+    really open, so a closed name is reported as closed and never as an
+    open descriptor.
+    """
+    from tools import v0_s3_production_controller as controller
+    snapshot = controller._fd_snapshot()
+    assert snapshot is not None
+    # every recorded descriptor is really open
+    for number in snapshot['open']:
+        assert os.fstat(number).st_ino == snapshot['identity'][number]['inode']
+    # a name that the enumeration reported as closed is never an open one
+    assert set(snapshot['closed_entries']).isdisjoint(snapshot['open'])
+    # an unknown or a refused descriptor is never dropped as an empty
+    for entry in snapshot['unverified_entries']:
+        assert entry['fd'] in snapshot['open']
+    # the enumeration of the descriptors names a temporary descriptor that
+    # the enumeration itself copied and closed again
+    listed, verified = _listed_descriptor_numbers()
+    closed = sorted(set(listed) - set(verified))
+    assert closed, 'the enumeration of the descriptors must name its own temporary'
+    for number in closed:
+        with pytest.raises(OSError):
+            os.fstat(number)
+
+
+def test_the_fd_snapshot_detects_a_real_open_descriptor_until_closed(tmp_path):
+    """A descriptor that the process really holds is detected.
+
+    The snapshot names a descriptor that is really open, together with its
+    stable identity, and the descriptor disappears from the snapshot only
+    after it was closed.
+    """
+    from tools import v0_s3_production_controller as controller
+    target = tmp_path / 'held.bin'
+    target.write_bytes(b'held')
+    descriptor = os.open(str(target), os.O_RDONLY)
+    try:
+        snapshot = controller._fd_snapshot()
+        assert descriptor in snapshot['open']
+        assert snapshot['identity'][descriptor]['inode'] == os.fstat(descriptor).st_ino
+        assert snapshot['identity'][descriptor]['device'] == os.fstat(descriptor).st_dev
+    finally:
+        os.close(descriptor)
+    after = controller._fd_snapshot()
+    assert descriptor not in after['open']
+    assert descriptor not in after['closed_entries']

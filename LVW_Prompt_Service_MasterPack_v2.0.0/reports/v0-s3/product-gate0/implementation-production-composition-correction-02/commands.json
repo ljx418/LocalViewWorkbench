@@ -1,0 +1,371 @@
+[
+  {
+    "label": "counter-readonly-before",
+    "argv": [
+      "/usr/bin/python3",
+      "-I",
+      "-B",
+      "reports/v0-s3/product-gate0/implementation-production-composition-correction-02/outer_counter_read.py",
+      "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json",
+      "reports/v0-s3/product-gate0/implementation-production-composition-correction-02/counter-before.json"
+    ],
+    "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+    "exit_code": 0,
+    "read_only": true,
+    "sha256": "acbdb8b154864b6f079ae783d670f11ec138b6be0617d1fa4f56c28c33223b98",
+    "active": false,
+    "starts_total": 28,
+    "reserved_wall_seconds": 240.0,
+    "spent_wall_seconds": 12.362,
+    "written_by_this_run": false,
+    "refunded_by_this_run": false,
+    "reset_by_this_run": false,
+    "new_counter_created": false,
+    "old_grant_revived": false,
+    "note": "outer layer read only; the guarded batch refuses every read of this file"
+  },
+  {
+    "label": "acked-guarded-batch-attempt-01",
+    "argv": [
+      "/usr/bin/python3",
+      "-I",
+      "-B",
+      "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-production-composition-correction-02/guard.py",
+      "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-production-composition-correction-02/run_root_frozen_scope.py",
+      "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-production-composition-correction-02/directed-scope.guard.json"
+    ],
+    "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+    "started_utc": "2026-11-13T11:54:42Z",
+    "ended_utc": "2026-11-13T11:54:42Z",
+    "exit_code": 1,
+    "wall_seconds": 0,
+    "stdout_log": "directed-scope.stdout.log",
+    "stderr_log": "directed-scope.stderr.log",
+    "guard_receipt": "directed-scope.guard.json",
+    "outcome": "FAILED_BEFORE_ANY_TEST_CALL",
+    "failure": "ModuleNotFoundError: No module named 'pytest' at run_root_frozen_scope.py:130 (import pytest)",
+    "cause": "the -I of the acked argv implies -s (no user site directory) and pytest 8.4.2 exists only in the user site /home/administrator/.local/lib/python3.12/site-packages; the argv of the frozen correction 01 batch used -B without -I",
+    "source_pins_verified_before_the_failure": true,
+    "candidate_imported": false,
+    "tests_collected": 0,
+    "tests_called": 0,
+    "os_children": 0,
+    "socket_actions": 0,
+    "sqlite_connections": 0,
+    "guard_denials": 0,
+    "guard_armed_before_the_candidate_import": true,
+    "counter_touched_by_this_attempt": false,
+    "automatic_repair_or_rerun_performed": false,
+    "handed_to_root": true,
+    "stage_pass_claim": false,
+    "product_gate0": false
+  },
+  {
+    "label": "acked-guarded-batch-attempt-02",
+    "argv": [
+      "/usr/bin/python3",
+      "-I",
+      "-B",
+      "reports/v0-s3/product-gate0/implementation-production-composition-correction-02/guard.py",
+      "reports/v0-s3/product-gate0/implementation-production-composition-correction-02/run_root_frozen_scope_attempt02.py",
+      "reports/v0-s3/product-gate0/implementation-production-composition-correction-02/directed-scope-attempt02.guard.json"
+    ],
+    "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+    "started_utc": "2026-11-13T11:57:40Z",
+    "ended_utc": "2026-11-13T11:57:55Z",
+    "wall_seconds": 14.892,
+    "exit_code": 1,
+    "stdout_log": "directed-scope-attempt02.stdout.log",
+    "stderr_log": "directed-scope-attempt02.stderr.log",
+    "guard_receipt": "directed-scope-attempt02.guard.json",
+    "outcome": "EXECUTED_19_NODES_18_PASSED_1_FAILED",
+    "cases_collected": 19,
+    "invocations": 19,
+    "passed_cases": 18,
+    "failed_cases": 1,
+    "skipped_cases": 0,
+    "failure": "tools/test_v0_s3_production_composition.py::test_the_formal_entry_runs_the_whole_chain_and_persists_the_summary -- assert receipt[fd_cleanup][fd_leaked] == [] -- E assert [8] == []",
+    "failure_owner": "the per-run descriptor accounting that this correction introduced (the two held anchor descriptors are excluded by name from the leak set)",
+    "process_level_fd_accounting": {
+      "fd_before": [
+        0,
+        1,
+        2,
+        4
+      ],
+      "fd_after": [
+        0,
+        1,
+        2,
+        4
+      ],
+      "fd_leaked": [],
+      "threads_after": [
+        "MainThread"
+      ],
+      "only_the_main_thread_remains": true
+    },
+    "process_level_proof": "no descriptor remained open at the end of the batch and no thread survived; the reported descriptor 8 is open at the moment of the receipt snapshot and closed afterwards",
+    "guard_denials": 0,
+    "os_children": 0,
+    "socket_actions": 0,
+    "sqlite_connections": 0,
+    "model_gpu_native_service_actions": 0,
+    "counter_touched_by_this_attempt": false,
+    "automatic_repair_or_rerun_performed": false,
+    "handed_to_root": true,
+    "stage_pass_claim": false,
+    "product_gate0": false
+  },
+  {
+    "label": "counter-readonly-after",
+    "argv": [
+      "/usr/bin/python3",
+      "-I",
+      "-B",
+      "reports/v0-s3/product-gate0/implementation-production-composition-correction-02/outer_counter_read.py",
+      "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json",
+      "reports/v0-s3/product-gate0/implementation-production-composition-correction-02/counter-after.json"
+    ],
+    "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+    "exit_code": 0,
+    "read_only": true,
+    "sha256": "acbdb8b154864b6f079ae783d670f11ec138b6be0617d1fa4f56c28c33223b98",
+    "active": false,
+    "starts_total": 28,
+    "reserved_wall_seconds": 240.0,
+    "spent_wall_seconds": 12.362,
+    "matches_the_contract": true,
+    "matches_the_before_read": true,
+    "written_by_this_run": false,
+    "refunded_by_this_run": false,
+    "reset_by_this_run": false,
+    "new_counter_created": false,
+    "old_grant_revived": false,
+    "external_counter_reads": 2,
+    "stage_pass_claim": false,
+    "product_gate0": false
+  },
+  {
+    "label": "counter-readonly-before-attempt03",
+    "argv": [
+      "/usr/bin/python3",
+      "-I",
+      "-B",
+      "reports/v0-s3/product-gate0/implementation-production-composition-correction-02/outer_counter_read.py",
+      "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json",
+      "reports/v0-s3/product-gate0/implementation-production-composition-correction-02/counter-before-attempt03.json"
+    ],
+    "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+    "exit_code": 0,
+    "read_only": true,
+    "sha256": "acbdb8b154864b6f079ae783d670f11ec138b6be0617d1fa4f56c28c33223b98",
+    "active": false,
+    "starts_total": 28,
+    "reserved_wall_seconds": 240.0,
+    "spent_wall_seconds": 12.362,
+    "written_by_this_run": false,
+    "refunded_by_this_run": false,
+    "reset_by_this_run": false,
+    "new_counter_created": false,
+    "old_grant_revived": false
+  },
+  {
+    "label": "acked-guarded-batch-attempt-03",
+    "argv": [
+      "/usr/bin/python3",
+      "-I",
+      "-B",
+      "reports/v0-s3/product-gate0/implementation-production-composition-correction-02/guard.py",
+      "reports/v0-s3/product-gate0/implementation-production-composition-correction-02/run_root_frozen_scope_attempt03.py",
+      "reports/v0-s3/product-gate0/implementation-production-composition-correction-02/directed-scope-attempt03.guard.json"
+    ],
+    "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+    "started_utc": "2026-11-13T12:09:57Z",
+    "ended_utc": "2026-11-13T12:10:05Z",
+    "wall_seconds": 8.759,
+    "exit_code": 0,
+    "stdout_log": "directed-scope-attempt03.stdout.log",
+    "stderr_log": "directed-scope-attempt03.stderr.log",
+    "guard_receipt": "directed-scope-attempt03.guard.json",
+    "machine_evidence": [
+      "directed-scope-attempt03.json",
+      "selection-attempt03.json",
+      "fd-thread-cleanup-attempt03.json"
+    ],
+    "outcome": "EXECUTED_21_NODES_21_PASSED_0_FAILED_0_SKIPPED",
+    "cases_collected": 21,
+    "invocations": 21,
+    "passed_cases": 21,
+    "failed_cases": 0,
+    "skipped_cases": 0,
+    "pytest_invocations": 1,
+    "results": [
+      [
+        "test_an_actual_worker_reference_is_read_through_its_anchor[projection]",
+        "passed",
+        0.01
+      ],
+      [
+        "test_an_actual_worker_reference_is_read_through_its_anchor[source_identity]",
+        "passed",
+        0.0
+      ],
+      [
+        "test_an_actual_worker_reference_is_read_through_its_anchor[parent_budget]",
+        "passed",
+        0.0
+      ],
+      [
+        "test_an_actual_worker_reference_is_read_through_its_anchor[binding]",
+        "passed",
+        0.0
+      ],
+      [
+        "test_an_actual_worker_reference_is_read_through_its_anchor[dependency_manifest]",
+        "passed",
+        0.0
+      ],
+      [
+        "test_the_parsed_canonical_receipt_is_bound_to_the_bytes_that_were_hashed",
+        "passed",
+        1.57
+      ],
+      [
+        "test_the_output_identity_of_the_run_is_bound_before_every_write[root]",
+        "passed",
+        0.68
+      ],
+      [
+        "test_the_output_identity_of_the_run_is_bound_before_every_write[root-temp]",
+        "passed",
+        0.68
+      ],
+      [
+        "test_the_output_identity_of_the_run_is_bound_before_every_write[controller-directory]",
+        "passed",
+        0.84
+      ],
+      [
+        "test_the_output_identity_of_the_run_is_bound_before_every_write[root-parent-link]",
+        "passed",
+        0.69
+      ],
+      [
+        "test_a_formal_obligation_is_never_a_pass_of_a_synthetic_run",
+        "passed",
+        0.7
+      ],
+      [
+        "test_an_ordinary_storage_failure_keeps_a_structured_unknown",
+        "passed",
+        0.69
+      ],
+      [
+        "test_the_formal_entry_runs_the_whole_chain_and_persists_the_summary",
+        "passed",
+        0.7
+      ],
+      [
+        "test_the_fd_snapshot_ignores_closed_enumeration_entries",
+        "passed",
+        0.0
+      ],
+      [
+        "test_the_fd_snapshot_detects_a_real_open_descriptor_until_closed",
+        "passed",
+        0.0
+      ],
+      [
+        "test_the_worker_really_invokes_the_quality_phase",
+        "passed",
+        0.62
+      ],
+      [
+        "test_the_history_wait_is_announced_before_the_row_finishes",
+        "passed",
+        0.62
+      ],
+      [
+        "test_a_context_with_a_wrong_seal_is_refused",
+        "passed",
+        0.0
+      ],
+      [
+        "test_a_context_with_an_unknown_key_is_refused",
+        "passed",
+        0.0
+      ],
+      [
+        "test_the_production_command_is_the_fixed_worker",
+        "passed",
+        0.0
+      ],
+      [
+        "test_the_production_command_carries_the_pre_sealed_context_hash",
+        "passed",
+        0.0
+      ]
+    ],
+    "process_level_fd_accounting": {
+      "fd_before": [
+        0,
+        1,
+        2,
+        4
+      ],
+      "fd_after": [
+        0,
+        1,
+        2,
+        4
+      ],
+      "fd_leaked": [],
+      "threads_after": [
+        "MainThread"
+      ],
+      "only_the_main_thread_remains": true
+    },
+    "guard_denials": 0,
+    "os_children": 0,
+    "socket_actions": 0,
+    "sqlite_connections": 0,
+    "model_gpu_native_service_actions": 0,
+    "downloads": 0,
+    "user_media": 0,
+    "counter_touched_by_this_attempt": false,
+    "prior_attempts_preserved": [
+      "attempt-01 logs/guard",
+      "attempt-02 logs/guard/evidence",
+      "pytest-temp-attempt02 (the raw artefacts of attempt-02)"
+    ],
+    "stage_pass_claim": false,
+    "product_gate0": false
+  },
+  {
+    "label": "counter-readonly-after-attempt03",
+    "argv": [
+      "/usr/bin/python3",
+      "-I",
+      "-B",
+      "reports/v0-s3/product-gate0/implementation-production-composition-correction-02/outer_counter_read.py",
+      "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json",
+      "reports/v0-s3/product-gate0/implementation-production-composition-correction-02/counter-after-attempt03.json"
+    ],
+    "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+    "exit_code": 0,
+    "read_only": true,
+    "sha256": "acbdb8b154864b6f079ae783d670f11ec138b6be0617d1fa4f56c28c33223b98",
+    "active": false,
+    "starts_total": 28,
+    "reserved_wall_seconds": 240.0,
+    "spent_wall_seconds": 12.362,
+    "matches_the_before_read": true,
+    "matches_the_contract": true,
+    "written_by_this_run": false,
+    "refunded_by_this_run": false,
+    "reset_by_this_run": false,
+    "new_counter_created": false,
+    "old_grant_revived": false
+  }
+]
