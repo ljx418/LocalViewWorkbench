@@ -1,7 +1,7 @@
 """The bounded, safe input and output helpers of the S3 production controller.
 
 This module is a *private* helper of the controller and of the quality
-worker.  It is not a general file platform: it offers exactly the four
+worker.  It is not a general file platform: it offers exactly the five
 operations that the production composition needs and nothing else.
 
 1. A bounded read of one *explicit entry* file.  The file is opened with
@@ -25,6 +25,14 @@ operations that the production composition needs and nothing else.
    ``O_CREAT | O_EXCL``, so an existing file is never replaced, and the
    write is relative to the descriptor of the directory that was
    verified.
+5. The binding of a *chain* of directories.  A chain is opened from the
+   file system root or from the descriptor of a bound root, level by
+   level and always with ``O_NOFOLLOW``, and the identity of every level
+   is taken from the ``fstat`` of the descriptor that was opened for that
+   very level.  The record is therefore bound to the object that was
+   really opened and never to the object that a path happens to name at a
+   later moment: a level whose path was replaced is refused instead of
+   being adopted.
 
 Every refusal of this module has a stable, machine readable code.  A
 platform without the safe primitives fails closed: the caller refuses the
@@ -310,30 +318,38 @@ def verify_directory_identity(path, identity):
     return True
 
 
-def open_read_only_directory(path):
-    """Open one declared read-only anchor directory.
+def open_read_only_directory_chain(path):
+    """Open one declared read-only anchor directory through a trusted chain.
 
-    The anchor itself is never a link and the observed identity is
-    returned with the descriptor, so a later replacement of the anchor is
-    detected by :func:`verify_directory_identity`.  The descriptor is
-    owned by the caller.
+    The anchor is not only protected at its own leaf: the chain of its
+    ancestors is opened from the file system root, level by level and
+    always with ``O_NOFOLLOW``, and the observed identity of every level
+    is returned with the descriptor.  An ancestor of the anchor that was
+    replaced by a link is therefore refused *here*, and not only a link
+    on the anchor itself.
+
+    The returned chain is verified again by :func:`verify_directory_chain`
+    after a read, so an anchor whose ancestor was replaced during the
+    read is refused as well.  The path is never resolved: the literal
+    location of the anchor is the identity of the anchor.
+
+    The descriptor is owned by the caller.
     """
     if not safe_open_supported():
         raise ControllerIOError(SAFE_OPEN_UNSUPPORTED)
     try:
-        descriptor = os.open(str(path), directory_open_flags())
-    except OSError as error:
-        if error.errno == errno.ELOOP:
-            raise ControllerIOError(ANCHOR_REDIRECTED, errno_name(error)) from error
-        raise ControllerIOError(DIRECTORY_UNUSABLE, errno_name(error)) from error
-    try:
-        info = os.fstat(descriptor)
-        if not stat.S_ISDIR(info.st_mode):
-            raise ControllerIOError(DIRECTORY_UNUSABLE, 'NOT_A_DIRECTORY')
-    except BaseException:
-        os.close(descriptor)
-        raise
-    return descriptor, (int(info.st_dev), int(info.st_ino))
+        descriptor, chain = open_root_directory_chain(path)
+    except ControllerIOError as error:
+        if error.code == SAFE_OPEN_UNSUPPORTED:
+            raise
+        if error.code == ROOT_REDIRECTED:
+            raise ControllerIOError(ANCHOR_REDIRECTED, error.detail) from error
+        if error.code == ROOT_NOT_A_DIRECTORY:
+            raise ControllerIOError(DIRECTORY_UNUSABLE, 'NOT_A_DIRECTORY') from error
+        if error.code == ROOT_UNAVAILABLE:
+            raise ControllerIOError(DIRECTORY_UNUSABLE, error.detail) from error
+        raise ControllerIOError(DIRECTORY_UNUSABLE, error.code) from error
+    return descriptor, chain
 
 
 def open_child_directory(parent_descriptor, name):
@@ -407,13 +423,65 @@ def open_directory_chain(root_descriptor, parts):
         raise
 
 
-def ensure_directory_chain(root_descriptor, parts):
+def open_directory_chain_identified(root_descriptor, parts, base_path):
+    """Walk a directory chain and record the identity of every level.
+
+    Every component is opened from the descriptor of its own parent with
+    ``O_NOFOLLOW``, so a component that is a link is refused instead of
+    being walked.  The identity of every level is taken from the
+    ``fstat`` of the descriptor that was opened for that very level: the
+    record is bound to the object that was really opened and never to the
+    object that the path happens to name afterwards.
+
+    The returned chain is verified again by :func:`verify_directory_chain`,
+    so a level whose path was replaced after this call is refused.  The
+    returned descriptor is owned by the caller; every descriptor that the
+    caller receives is closed by the caller.
+    """
+    directory = os.dup(root_descriptor)
+    chain = []
+    walked = str(base_path)
+    try:
+        for part in parts:
+            try:
+                child = os.open(part, directory_open_flags(), dir_fd=directory)
+            except OSError as error:
+                raise ControllerIOError(DIRECTORY_UNUSABLE,
+                                        errno_name(error)) from error
+            try:
+                info = os.fstat(child)
+                if not stat.S_ISDIR(info.st_mode):
+                    raise ControllerIOError(ANCESTOR_NOT_A_DIRECTORY)
+            except BaseException:
+                os.close(child)
+                raise
+            walked = os.path.join(walked, part)
+            chain.append({'path': walked,
+                          'device': int(info.st_dev),
+                          'inode': int(info.st_ino)})
+            os.close(directory)
+            directory = child
+        return directory, tuple(chain)
+    except BaseException:
+        os.close(directory)
+        raise
+
+
+def ensure_directory_chain(root_descriptor, parts, identities=None):
     """Walk the components of a directory chain and create the missing ones.
 
     The creation is relative to the descriptor of the own parent, so a
     link in the chain is never followed and the created directories are
     always inside the bound root.  The returned descriptor is owned by
     the caller.
+
+    When ``identities`` is given, the identity of every level is recorded
+    there, taken from the ``fstat`` of the descriptor that was opened for
+    that level.  The record is therefore bound to the object that was
+    really opened; the object that the path names at a later moment is
+    never adopted as the same object.  Each record carries the name of
+    the component, so the caller can compose the declared path of the
+    level and cross-match it against the identity of the descriptor.
     """
     directory = os.dup(root_descriptor)
     try:
@@ -445,6 +513,10 @@ def ensure_directory_chain(root_descriptor, parts):
             if not stat.S_ISDIR(info.st_mode):
                 os.close(child)
                 raise ControllerIOError(ANCESTOR_NOT_A_DIRECTORY)
+            if identities is not None:
+                identities.append({'part': part,
+                                   'device': int(info.st_dev),
+                                   'inode': int(info.st_ino)})
             os.close(directory)
             directory = child
         return directory

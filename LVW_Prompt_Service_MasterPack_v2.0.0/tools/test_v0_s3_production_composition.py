@@ -349,7 +349,16 @@ def test_the_native_path_is_refused_before_any_spawn(tmp_path):
     assert receipt['product_gate0'] is False
     # no business artefact of the run was written
     assert not (composition['root'] / 'temp' / 's3-quality').exists()
-    assert not (composition['root'] / 'temp' / 's3-production-controller').exists()
+    # The output chain of the controller is bound at the precheck, before
+    # the public PRECHECK transition, so the empty output directory of the
+    # run exists.  It carries no artefact of the run: the reservation, the
+    # summary and the receipt were never written.
+    output = composition['root'] / 'temp' / 's3-production-controller'
+    assert output.is_dir()
+    assert list(output.iterdir()) == []
+    assert list(composition['root'].rglob('summary-*.json')) == []
+    assert list(composition['root'].rglob('receipt-*.json')) == []
+    assert list(composition['root'].rglob('reservation-*.json')) == []
 
 
 def test_the_command_line_entry_of_a_valid_context_refuses_the_native_run(tmp_path, capsys):
@@ -1913,3 +1922,380 @@ def test_the_fd_snapshot_detects_a_real_open_descriptor_until_closed(tmp_path):
     after = controller._fd_snapshot()
     assert descriptor not in after['open']
     assert descriptor not in after['closed_entries']
+
+
+# --------------------------------------------------------------------------
+# production composition correction 03: M04, M06 and M08
+# --------------------------------------------------------------------------
+def _external_dependency_composition(tmp_path, *, name='external'):
+    """A composition whose only external dependency is a synthetic one.
+
+    The dependency that lives outside of the run root is named by the
+    sealed worker context and by the sealed dependency manifest, so the
+    worker really reads it through the declared read-only anchor.  The
+    anchor sits below a parent directory of its own, so the chain of that
+    parent is the thing that the negative example replaces.
+    """
+    composition = _build_composition(tmp_path, name=name)
+    root = composition['root']
+    base = tmp_path / (name + '-dependency')
+    parent = base / 'dependency-parent'
+    anchor = parent / 'deps'
+    anchor.mkdir(parents=True)
+    named = anchor / 'named.txt'
+    named.write_bytes(b'sealed named external dependency')
+    manifest = {
+        'schema': DEPENDENCY_MANIFEST_SCHEMA,
+        'scope': DEPENDENCY_MANIFEST_SCOPE,
+        'path': str(anchor),
+        'files': [{'path': str(named), 'sha256': _digest_of(named)}],
+    }
+    manifest_path = root / 'contexts' / 'dependency-manifest.json'
+    _write_json(manifest_path, manifest)
+    worker_document = json.loads(Path(composition['worker_context_path']).read_text('utf-8'))
+    worker_document['dependency_manifest_path'] = str(manifest_path)
+    worker_document['dependency_manifest_sha256'] = _digest_of(manifest_path)
+    for entry in worker_document['reference_anchors']:
+        if entry['kind'] == 'READ_ONLY_DIRECTORY':
+            entry['path'] = str(anchor)
+    worker_path = composition['composition'].write('worker-context', worker_document)
+    controller_document = json.loads(
+        Path(composition['controller_context_path']).read_text('utf-8'))
+    controller_document['worker_context'] = {'path': str(worker_path),
+                                             'sha256': _digest_of(worker_path)}
+    controller_path = composition['composition'].write('controller-context',
+                                                       controller_document)
+    composition['worker_context_path'] = worker_path
+    composition['worker_context_sha256'] = _digest_of(worker_path)
+    composition['controller_context_path'] = controller_path
+    composition['external_parent'] = parent
+    composition['external_anchor'] = anchor
+    composition['external_named'] = named
+    return composition
+
+
+@pytest.mark.parametrize('mode', ['legal', 'parent-link'])
+def test_an_external_dependency_anchor_is_bound_to_its_whole_chain(tmp_path, mode):
+    """M04: the external read-only anchor has a trusted chain of ancestors.
+
+    The declared external dependency is read through the read-only anchor
+    of the sealed context, and that anchor is walked from the file system
+    root, level by level and always without following a link.  The legal
+    dependency is read; a parent of the anchor that was replaced by a
+    link is refused, even when the leaf, the bytes and the digest are
+    exactly the same - the chain refuses, not the content.
+    """
+    from tools import v0_s3_quality_worker as worker
+    composition = _external_dependency_composition(tmp_path, name='m04-' + mode)
+    context = worker.WorkerContext.load(str(composition['worker_context_path']),
+                                         expected_sha256=composition['worker_context_sha256'])
+    if mode == 'legal':
+        manifest = context.dependency_manifest()
+        assert manifest['path'] == str(composition['external_anchor'])
+        assert manifest['files'][0]['sha256'] == _digest_of(composition['external_named'])
+        return
+    parent = composition['external_parent']
+    moved = parent.with_name('retained')
+    os.rename(parent, moved)
+    os.symlink(str(moved), str(parent), target_is_directory=True)
+    # the leaf and its digest are unchanged: only the chain of the
+    # ancestors of the anchor is broken
+    assert _digest_of(composition['external_named']) == _digest_of(moved / 'deps' / 'named.txt')
+    with pytest.raises(worker.WorkerError) as error:
+        context.dependency_manifest()
+    assert 'WORKER_ANCHOR' in error.value.code
+    # the refusal came from the chain of the anchor and not from the
+    # content: the bytes were never consumed through the link
+    assert 'SEAL_MISMATCH' not in error.value.code
+    assert 'DRIFT' not in error.value.code
+    assert composition['external_named'].read_bytes() == b'sealed named external dependency'
+
+
+def test_the_output_chain_is_bound_before_the_public_precheck_transition(
+        tmp_path, monkeypatch):
+    """M06: the output directory is bound before the PRECHECK transition.
+
+    The controller holds the descriptor of its output directory when the
+    public PRECHECK transition is announced, so the directory of that
+    moment is already the object that the whole run writes to, and the
+    identity of every level of the chain is already recorded.
+    """
+    composition = _build_composition(tmp_path)
+    observed = {}
+
+    def fault(state, instance):
+        if state != controller.STATE_PRECHECK:
+            return
+        observed['descriptor'] = instance._controller_descriptor
+        observed['chain'] = list(instance._controller_chain or [])
+
+    code, receipt, seam, errors = _formal_main(composition, monkeypatch, transition=fault)
+    assert code == controller.EXIT_PERSISTED
+    assert receipt['state'] == controller.STATE_SUMMARY_PERSISTED
+    assert observed['descriptor'] is not None
+    assert len(observed['chain']) == len(controller.CONTROLLER_DIRECTORY_PARTS)
+
+
+@pytest.mark.parametrize('target', ['root', 'temp', 'controller', 'ancestor'])
+def test_a_replaced_output_after_the_precheck_is_refused(tmp_path, monkeypatch, target):
+    """M06: the window between the precheck and the first write is closed.
+
+    The run replaces the root, the ``temp`` directory, the output
+    directory or an ancestor of the root right after the PRECHECK
+    transition.  The identity of every level was taken from the
+    descriptor that was opened for it, so the substitution is detected:
+    neither the reservation nor the summary nor the receipt is written
+    into the substitute, and no path of the substitute is published.
+    """
+    # The run root sits one level below its own parent, so the parent of
+    # the root is a level of the chain that this probe can replace
+    # without moving the temporary directory of the test itself.
+    composition = _build_composition(tmp_path / 'level', name='run')
+    root = composition['root']
+    observed = {}
+
+    def fault(state, instance):
+        if state != controller.STATE_PRECHECK:
+            return
+        target_path = {'root': root,
+                       'temp': root / 'temp',
+                       'controller': root / 'temp' / 's3-production-controller',
+                       'ancestor': root.parent}[target]
+        moved = target_path.with_name(target_path.name + '-retained')
+        os.rename(target_path, moved)
+        if target == 'ancestor':
+            os.symlink(str(moved), str(target_path), target_is_directory=True)
+        else:
+            target_path.mkdir()
+        observed['path'] = str(target_path)
+
+    code, receipt, seam, errors = _formal_main(composition, monkeypatch, transition=fault)
+    assert receipt['state'] != controller.STATE_SUMMARY_PERSISTED
+    assert receipt['summary_persisted'] is False
+    assert receipt['receipt_persisted'] is False
+    assert receipt['receipt_persistence_error']
+    # nothing was written into the substitute
+    assert list(Path(observed['path']).glob('*.json')) == []
+    # and no path of the substitute is published
+    assert not receipt.get('summary_path')
+    assert not receipt.get('receipt_path')
+
+
+def test_the_created_output_directory_is_bound_to_the_descriptor_that_was_opened(
+        tmp_path, monkeypatch):
+    """M06: the created descriptor and the declared path are one object.
+
+    The creation of the output directory is followed by a substitution of
+    the path: the directory that was created is renamed away and an
+    ordinary directory takes its place.  The identity of the level was
+    taken from the ``fstat`` of the descriptor that was opened for it, so
+    the substitution is detected at the cross-match, nothing is written
+    into the substitute, nothing is written into the held directory and
+    the run stays a refusal that published no path.
+    """
+    composition = _build_composition(tmp_path)
+    original = controller.ensure_directory_chain
+    observed = {}
+
+    def substituting(root_descriptor, parts, identities=None):
+        descriptor = original(root_descriptor, parts, identities=identities)
+        path = composition['root'] / 'temp' / 's3-production-controller'
+        held = path.with_name('held-output')
+        os.rename(path, held)
+        path.mkdir()
+        observed['descriptor_identity'] = [os.fstat(descriptor).st_dev,
+                                           os.fstat(descriptor).st_ino]
+        observed['path_identity'] = [path.stat().st_dev, path.stat().st_ino]
+        observed['held'] = str(held)
+        return descriptor
+
+    monkeypatch.setattr(controller, 'ensure_directory_chain', substituting)
+    code, receipt, seam, errors = _formal_main(composition, monkeypatch)
+    assert observed['descriptor_identity'] != observed['path_identity']
+    assert receipt['state'] != controller.STATE_SUMMARY_PERSISTED
+    assert receipt['summary_persisted'] is False
+    assert receipt['receipt_persisted'] is False
+    # nothing was written into the substitute and nothing into the held directory
+    assert list((composition['root'] / 'temp' / 's3-production-controller').glob('*.json')) == []
+    assert list(Path(observed['held']).glob('*.json')) == []
+
+
+def test_a_failed_terminal_receipt_is_a_structured_unknown(tmp_path, monkeypatch):
+    """M08: a terminal receipt that can not be written is an unknown.
+
+    The run itself succeeds and the summary is really written, but the
+    terminal receipt fails with an ordinary exception.  The run does not
+    stay a success: the state is ``UNKNOWN_RETAINED``, the receipt is
+    reported as *not persisted*, the failure is named, the summary that
+    was really written stays a written summary and the root and the
+    reservation are retained.
+    """
+    composition = _build_composition(tmp_path)
+
+    def broken(self, receipt):
+        raise RuntimeError('controlled-terminal-persistence-failure')
+
+    monkeypatch.setattr(controller.ProductionController, '_persist_receipt', broken)
+    code, receipt, seam, errors = _formal_main(composition, monkeypatch)
+    assert code == controller.EXIT_UNKNOWN
+    assert receipt['state'] == controller.STATE_UNKNOWN
+    assert receipt['receipt_persisted'] is False
+    assert receipt['receipt_persistence_error'] == \
+        'CONTROLLER_RECEIPT_PERSISTENCE_FAILED:RuntimeError'
+    assert receipt['unknown_reason'] == 'CONTROLLER_RECEIPT_PERSISTENCE_FAILED:RuntimeError'
+    # the summary that was really written is a written summary
+    assert receipt['summary_persisted'] is True
+    assert receipt['disk_actions']['summary_written'] is True
+    assert receipt['disk_actions']['summary_path']
+    assert (_controller_directory_of(composition) / ('summary-' + RUN_ID + '.json')).is_file()
+    # the qualification field and the disk facts are two different things
+    assert 'summary_persisted' in receipt['summary_persisted_semantics']
+    assert receipt['root_retained'] is True
+    assert receipt['reservation_retained'] is True
+    assert receipt['refund_allowed'] is False
+    assert receipt['resend_allowed'] is False
+    assert receipt['archive_allowed'] is False
+
+
+def test_a_primary_failure_and_a_terminal_persistence_failure_stay_separate(
+        tmp_path, monkeypatch):
+    """M08: the primary failure and the secondary failure stay two facts.
+
+    The binding of the receipts fails and the terminal persistence fails
+    as well.  The primary reason stays the reason of the run, the
+    secondary failure is recorded beside it and never replaces it.
+    """
+    composition = _build_composition(tmp_path)
+
+    def broken_bind(self):
+        raise ValueError('controlled-primary-failure')
+
+    def broken_persist(self, receipt):
+        raise RuntimeError('controlled-terminal-persistence-failure')
+
+    monkeypatch.setattr(controller.ProductionController, '_bind_receipts', broken_bind)
+    monkeypatch.setattr(controller.ProductionController, '_persist_receipt', broken_persist)
+    code, receipt, seam, errors = _formal_main(composition, monkeypatch)
+    assert code == controller.EXIT_UNKNOWN
+    assert receipt['state'] == controller.STATE_UNKNOWN
+    assert receipt['unknown_reason'] == 'CONTROLLER_UNEXPECTED_EXCEPTION:ValueError'
+    assert receipt['refusals'] == ['CONTROLLER_UNEXPECTED_EXCEPTION:ValueError']
+    assert receipt['receipt_persistence_error'] == \
+        'CONTROLLER_RECEIPT_PERSISTENCE_FAILED:RuntimeError'
+    assert receipt['secondary_failure'] == 'CONTROLLER_RECEIPT_PERSISTENCE_FAILED:RuntimeError'
+    assert receipt['receipt_persisted'] is False
+    assert receipt['summary_persisted'] is False
+
+
+@pytest.mark.parametrize('cancellation', [pytest.param(KeyboardInterrupt,
+                                                        id='keyboard-interrupt'),
+                                           pytest.param(SystemExit, id='system-exit')])
+def test_a_cancellation_of_the_terminal_persistence_releases_the_anchors(
+        tmp_path, monkeypatch, cancellation):
+    """M08: a cancellation releases the anchors and keeps propagating.
+
+    The terminal persistence is cancelled with a ``KeyboardInterrupt`` or
+    with a ``SystemExit``.  The cancellation is never swallowed and never
+    turned into a success, and the descriptors that this run holds are
+    released anyway: the release is an independent ``finally``.
+    """
+    composition = _build_composition(tmp_path)
+    before = _really_open_descriptors()
+
+    def cancelling(self, receipt):
+        raise cancellation('controlled-cancellation')
+
+    monkeypatch.setattr(controller.ProductionController, '_persist_receipt', cancelling)
+    with pytest.raises(cancellation):
+        _formal_main(composition, monkeypatch)
+    after = _really_open_descriptors()
+    assert set(after) - set(before) == set()
+
+
+def _really_open_descriptors():
+    """The descriptors that this process really holds.
+
+    The enumeration of ``/proc/self/fd`` names a descriptor that the
+    enumeration itself copied and closed again, so every name is
+    verified with ``fstat`` before it is counted.
+    """
+    numbers = []
+    for name in os.listdir('/proc/self/fd'):
+        if not name.isdigit():
+            continue
+        number = int(name)
+        try:
+            os.fstat(number)
+        except OSError:
+            continue
+        numbers.append(number)
+    return sorted(numbers)
+
+
+def test_the_release_of_the_anchors_touches_only_its_own_descriptors(tmp_path):
+    """M08: a repeated release closes only the descriptors of this run.
+
+    The release of the anchors closes the descriptors that this run owns
+    and nothing else.  A descriptor that this run never owned stays open,
+    and a second release of the anchors closes nothing a second time.
+    """
+    composition = _build_composition(tmp_path)
+    context = _controller_context(composition['controller_context_path'])
+    instance = controller.ProductionController(context)
+    foreign = os.open(str(composition['root']), os.O_RDONLY)
+    try:
+        instance._bind_root_identity()
+        instance._bind_output_identity()
+        own = [instance._root_descriptor, instance._controller_descriptor]
+        assert all(number is not None for number in own)
+        instance._release_anchors()
+        instance._release_anchors()
+        assert instance._root_descriptor is None
+        assert instance._controller_descriptor is None
+        for number in own:
+            with pytest.raises(OSError):
+                os.fstat(number)
+        # the foreign descriptor was never owned by this run
+        assert os.fstat(foreign).st_ino == os.stat(str(composition['root'])).st_ino
+    finally:
+        os.close(foreign)
+
+
+def test_a_failure_of_the_terminal_observation_is_a_structured_unknown(
+        tmp_path, monkeypatch):
+    """M08: the observation after the release never becomes a generic exit.
+
+    The observation of the descriptors after the release is a diagnostic
+    of the returned receipt.  When it fails with an ordinary exception,
+    the run returns a structured unknown with the named observation
+    failure: the standard output is not empty, the exit is not the
+    generic internal exit and the cleanup is not claimed to have
+    succeeded.  The receipt on the disk is not rewritten and it keeps the
+    state of the run body.
+    """
+    composition = _build_composition(tmp_path)
+
+    def broken(self, receipt, fd_before):
+        raise RuntimeError('controlled-observation-failure')
+
+    monkeypatch.setattr(controller.ProductionController,
+                        '_record_post_release_cleanup', broken)
+    code, receipt, seam, errors = _formal_main(composition, monkeypatch)
+    assert code == controller.EXIT_UNKNOWN
+    assert receipt is not None
+    assert receipt['state'] == controller.STATE_UNKNOWN
+    assert receipt['unknown_reason'] == \
+        'CONTROLLER_POST_RELEASE_OBSERVATION_FAILED:RuntimeError'
+    assert receipt['fd_cleanup_post_release']['status'] == 'FAILED'
+    assert receipt['fd_cleanup_post_release']['fd_leaked'] is None
+    assert receipt['cleanup_proven'] is False
+    assert receipt['root_retained'] is True
+    assert receipt['reservation_retained'] is True
+    assert receipt['refund_allowed'] is False
+    # the receipt on the disk is not rewritten and carries the PRE_RELEASE state
+    persisted = json.loads((_controller_directory_of(composition)
+                            / ('receipt-' + RUN_ID + '.json')).read_text('utf-8'))
+    assert persisted['state'] == controller.STATE_SUMMARY_PERSISTED
+    assert 'fd_cleanup_post_release' not in persisted
+    assert receipt['persisted_receipt_state'] == controller.STATE_SUMMARY_PERSISTED
+

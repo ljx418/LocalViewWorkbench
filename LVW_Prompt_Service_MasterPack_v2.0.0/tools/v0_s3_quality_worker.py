@@ -27,9 +27,9 @@ if str(PACK_ROOT) not in sys.path:
     sys.path.insert(0, str(PACK_ROOT))
 
 from tools.v0_s3_controller_io import (  # noqa: E402 - the path is set above
-    ControllerIOError, open_child_directory, open_directory_chain,
-    open_read_only_directory, open_root_directory_chain, read_bounded_at,
-    read_bounded_regular, verify_directory_chain, verify_directory_identity)
+    ControllerIOError, open_directory_chain, open_directory_chain_identified,
+    open_read_only_directory_chain, open_root_directory_chain, read_bounded_at,
+    read_bounded_regular, verify_directory_chain)
 from tools.v0_s3_quality_phase import (  # noqa: E402 - the path is set above
     CANONICAL_RECEIPT_NAME, QualityPhase, QualityContractError)
 from tools.v0_s3_supervisor import PROTOCOL_SCHEMA  # noqa: E402 - the path is set above
@@ -255,10 +255,17 @@ class WorkerContext:
 
         The run root is walked level by level from the file system root,
         so a link in the chain is refused and never walked.  A read-only
-        anchor is opened without following a link and its identity is
-        verified again after the read, so a replaced anchor is refused.
+        anchor is walked the very same way: the chain of its ancestors is
+        opened from the file system root, level by level and always
+        without following a link, so a parent of the anchor that was
+        replaced by a link is refused and not only a link on the anchor
+        itself.  The identity of every level of that chain is verified
+        again after the read, so an anchor that was replaced *during* the
+        read is refused as well.
+
         The bytes are always read through the descriptor of the verified
-        directory, never through a path that was resolved away.
+        directory, never through a path that was resolved away, and the
+        read itself stays bounded, regular and non blocking.
         """
         if anchor['kind'] == 'RUN_ROOT':
             try:
@@ -278,24 +285,24 @@ class WorkerContext:
             finally:
                 os.close(descriptor)
         try:
-            descriptor, identity = open_read_only_directory(anchor['path'])
+            descriptor, chain = open_read_only_directory_chain(anchor['path'])
         except ControllerIOError as error:
             raise WorkerError(_anchor_error(error)) from error
-        opened = []
         try:
-            directory = descriptor
-            for part in parts[:-1]:
-                child = open_child_directory(directory, part)
-                opened.append(child)
-                directory = child
-            raw = read_bounded_at(directory, parts[-1], limit)
-            verify_directory_identity(anchor['path'], identity)
+            directory, levels = open_directory_chain_identified(
+                descriptor, parts[:-1], anchor['base'])
+            try:
+                raw = read_bounded_at(directory, parts[-1], limit)
+            finally:
+                os.close(directory)
+            # The ancestors of the leaf and the leaf itself are verified
+            # again: a parent that was replaced by a link is refused even
+            # when the bytes and the digest of the leaf are the same.
+            verify_directory_chain(tuple(chain) + tuple(levels))
             return raw
         except ControllerIOError as error:
             raise WorkerError(_anchor_error(error)) from error
         finally:
-            for child in reversed(opened):
-                os.close(child)
             os.close(descriptor)
 
     def _read_anchored(self, path, expected_sha256, limit=8 * 1024 * 1024):

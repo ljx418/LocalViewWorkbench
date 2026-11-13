@@ -52,6 +52,7 @@ import hashlib
 import json
 import os
 import re
+import stat
 import sys
 import threading
 import time
@@ -64,8 +65,7 @@ if str(PACK_ROOT) not in sys.path:
 from tools.v0_s3_controller_io import (  # noqa: E402 - the path is set above
     ControllerIOError, ensure_directory_chain, errno_name, exists_at,
     open_root_directory_chain, read_bounded_in_root_at, read_bounded_regular,
-    verify_directory_chain, verify_directory_identity, write_exclusive_at,
-    write_exclusive_path)
+    verify_directory_chain, write_exclusive_at, write_exclusive_path)
 from tools.v0_s3_coordinator import (  # noqa: E402 - the path is set above
     AGGREGATE_RECEIPT_KIND, ParentOriginalEvidence, S3BudgetBindingProvider,
     S3IntegrationError, aggregate_twelve_keys)
@@ -1204,8 +1204,14 @@ class ProductionController:
         self.summary_path = None
         self.summary_sha256 = None
         self.receipt_path = None
+        self.receipt_sha256 = None
         self.receipt_persisted = False
         self.receipt_persistence_error = None
+        # The state that the receipt on the disk carries.  The receipt that
+        # was persisted is never rewritten, so the state of the returned
+        # receipt and the state of the persisted receipt can differ and
+        # the difference is named instead of being hidden.
+        self._persisted_state = None
         self.consumption_reverified = False
         self.consumption_reverification = None
         self.canonical_bytes = None
@@ -1283,6 +1289,14 @@ class ProductionController:
         # is a link is refused here, and the observed identity of every
         # level is held for the whole run.
         self._bind_root_identity()
+        # The output chain is bound here as well, before the public
+        # PRECHECK transition: the directory of this controller is
+        # created relative to the bound root and its descriptor is held
+        # for the whole lifecycle of the run.  The reservation, the
+        # summary and the receipt are written through this one
+        # descriptor, so a directory that was replaced after this moment
+        # is never written to.
+        self._bind_output_identity()
         # The fixed production command carries the *pre-sealed* hash of the
         # worker context down to the worker.  The worker never recomputes
         # the expectation itself: it verifies every load against the hash
@@ -1317,42 +1331,63 @@ class ProductionController:
             raise ControllerError('CONTROLLER_ROOT_IDENTITY_CHANGED:' + error.code) from error
         return True
 
+    def _bind_output_identity(self):
+        """Create and bind the output directory of this controller.
+
+        The output directory is created relative to the descriptor of the
+        bound root, and the identity of every level of the chain is taken
+        from the ``fstat`` of the descriptor that was opened for that very
+        level.  The record is therefore bound to the object that was
+        really opened; the object that the path happens to name at a
+        later moment is never adopted as the same object.
+
+        Every level is cross-matched against its declared path right
+        here: a level whose path already names another object is refused
+        before any artefact of the run is written, and the descriptor is
+        closed again.
+        """
+        if self._root_descriptor is None:
+            raise ControllerError('CONTROLLER_ROOT_NOT_BOUND')
+        identities = []
+        try:
+            descriptor = ensure_directory_chain(self._root_descriptor,
+                                                CONTROLLER_DIRECTORY_PARTS,
+                                                identities=identities)
+        except ControllerIOError as error:
+            raise ControllerError('CONTROLLER_' + error.code) from error
+        if len(identities) != len(CONTROLLER_DIRECTORY_PARTS):
+            os.close(descriptor)
+            raise ControllerError('CONTROLLER_DIRECTORY_IDENTITY_CHANGED:INCOMPLETE_CHAIN')
+        chain = []
+        walked = Path(self.context.root)
+        for part, identity in zip(CONTROLLER_DIRECTORY_PARTS, identities):
+            walked = walked / part
+            chain.append({'path': str(walked),
+                          'device': identity['device'],
+                          'inode': identity['inode']})
+        try:
+            verify_directory_chain(chain)
+        except ControllerIOError as error:
+            os.close(descriptor)
+            raise ControllerError('CONTROLLER_DIRECTORY_IDENTITY_CHANGED:'
+                                  + error.code) from error
+        self._controller_descriptor = descriptor
+        self._controller_chain = chain
+
     def _controller_directory_descriptor(self):
         """The descriptor of the output directory of this controller.
 
-        The directory is created once, relative to the descriptor of the
-        bound root, and the descriptor is held for the whole run: every
-        artefact of the controller is written through the descriptor of the
-        directory that was verified, never through a path that was opened
-        again.  The identity of every level of the chain is recorded, so a
-        directory that was replaced after its creation is refused.
+        The output directory is bound at the precheck, before the public
+        PRECHECK transition, and its descriptor is held for the whole
+        lifecycle of the run: the reservation, the summary and the
+        receipt are written through this one descriptor and never through
+        a path that was opened again.  A directory that was replaced after
+        the precheck is refused before every write and is never written
+        to.
         """
         if self._controller_descriptor is None:
-            if self._root_descriptor is None:
-                raise ControllerError('CONTROLLER_ROOT_NOT_BOUND')
-            try:
-                descriptor = ensure_directory_chain(self._root_descriptor,
-                                                    CONTROLLER_DIRECTORY_PARTS)
-            except ControllerIOError as error:
-                raise ControllerError('CONTROLLER_' + error.code) from error
-            self._controller_descriptor = descriptor
-            self._controller_chain = self._observe_controller_chain()
+            raise ControllerError('CONTROLLER_OUTPUT_CHAIN_NOT_BOUND')
         return self._controller_descriptor
-
-    def _observe_controller_chain(self):
-        """The observed identity of every level of the output directory."""
-        chain = []
-        walked = Path(self.context.root)
-        for part in CONTROLLER_DIRECTORY_PARTS:
-            walked = walked / part
-            try:
-                info = os.lstat(str(walked))
-            except OSError as error:
-                raise ControllerError('CONTROLLER_DIRECTORY_UNUSABLE:'
-                                      + errno_name(error)) from error
-            chain.append({'path': str(walked),
-                          'identity': (int(info.st_dev), int(info.st_ino))})
-        return chain
 
     def _verify_controller_identity(self):
         """Verify the root, its ancestors and the output directory.
@@ -1362,16 +1397,23 @@ class ProductionController:
         that was replaced, an output directory that was replaced and a
         symlinked ancestor of the root are all refused, and nothing is
         written into a new root or outside of the bound root.
+
+        The check is a no-follow ``lstat`` of the declared path of every
+        level against the identity that the descriptor of that level
+        carried when it was opened.  The check and the write that follows
+        are two separate operations and they are not atomic: the
+        guarantee of this controller ends at the observation boundary of
+        this check and it never claims that a path can not be changed by
+        somebody else.
         """
         self._verify_root_identity()
         if self._controller_chain is None:
             return True
-        for entry in self._controller_chain:
-            try:
-                verify_directory_identity(entry['path'], entry['identity'])
-            except ControllerIOError as error:
-                raise ControllerError('CONTROLLER_DIRECTORY_IDENTITY_CHANGED:'
-                                      + error.code) from error
+        try:
+            verify_directory_chain(self._controller_chain)
+        except ControllerIOError as error:
+            raise ControllerError('CONTROLLER_DIRECTORY_IDENTITY_CHANGED:'
+                                  + error.code) from error
         return True
 
     def _release_anchors(self):
@@ -2115,6 +2157,9 @@ class ProductionController:
             self.receipt_sha256 = sha256_bytes(raw)
             self.receipt_persisted = True
             self.receipt_persistence_error = None
+            # The state that the receipt on the disk carries.  The receipt
+            # is never rewritten, so this is the only statement about it.
+            self._persisted_state = receipt.get('state')
             return True
         except ControllerIOError as error:
             self.receipt_persisted = False
@@ -2132,6 +2177,120 @@ class ProductionController:
             self.receipt_persistence_error = ('CONTROLLER_RECEIPT_PERSISTENCE_FAILED:'
                                               + type(error).__name__)
             return False
+
+    def _record_disk_actions(self, receipt):
+        """The objective facts about what this run wrote on the disk.
+
+        These facts are recorded *before* the terminal receipt is
+        written, so the receipt on the disk carries them as well.  They
+        are objective facts and not a rollback: a summary that was
+        written is not deleted, not rewritten and never claimed to be
+        absent, and a summary that was not written is never claimed to be
+        there.
+
+        The qualification field ``summary_persisted`` and these disk
+        facts have a different meaning and neither of them replaces the
+        other: the first qualifies the run, the second states what is
+        physically on the disk.
+        """
+        written = False
+        if self.summary_path is not None:
+            try:
+                info = os.stat(str(self.summary_path), follow_symlinks=False)
+                written = stat.S_ISREG(info.st_mode)
+            except OSError:
+                written = False
+        receipt['disk_actions'] = {
+            'scope': ('THE_FILES_THAT_THIS_RUN_WROTE;AN_OBJECTIVE_FACT_AND_NEITHER_A_ROLLBACK_'
+                      'NOR_A_CLEANUP_CLAIM'),
+            'summary_written': written,
+            'summary_path': str(self.summary_path) if self.summary_path else None,
+            'summary_sha256': self.summary_sha256,
+            'the_summary_is_not_deleted_and_is_not_rewritten': True,
+            'the_receipt_file_does_not_attest_its_own_write': (
+                'THE_RECEIPT_ON_THE_DISK_CARRIES_THE_FACTS_THAT_WERE_TRUE_WHEN_IT_WAS_'
+                'WRITTEN;THE_WRITE_OF_THE_RECEIPT_IS_NOT_ATTESTED_BY_THE_RECEIPT_ITSELF'),
+        }
+        receipt['summary_persisted_semantics'] = (
+            'summary_persisted_QUALIFIES_THE_RUN;disk_actions_RECORDS_WHAT_IS_ON_THE_DISK;'
+            'THE_TWO_FIELDS_HAVE_A_DIFFERENT_MEANING_AND_NEITHER_REPLACES_THE_OTHER')
+
+    def _record_terminal_persistence(self, receipt):
+        """The terminal persistence facts of this run.
+
+        When the terminal receipt can not be written, the run does not
+        stay a success: the state becomes ``UNKNOWN_RETAINED``, the
+        receipt is reported as *not persisted*, the failure is named and
+        the root and the reservation are retained.  A run that already
+        has a primary reason keeps it - the secondary failure is recorded
+        beside it and never replaces it.
+
+        The persistence of the receipt is attempted exactly once.  There
+        is no second attempt and no retry loop.
+        """
+        actions = receipt.setdefault('disk_actions', {})
+        actions['receipt_written'] = bool(self.receipt_persisted)
+        actions['receipt_path'] = str(self.receipt_path) if self.receipt_path else None
+        actions['receipt_sha256'] = self.receipt_sha256
+        if self.receipt_persisted:
+            return
+        if not self.reservation_acquired:
+            # The receipt was never applicable: the run took no execution
+            # right, so there is no receipt to persist and no storage
+            # failure to report as a terminal failure of the run.
+            return
+        secondary = self.receipt_persistence_error or 'CONTROLLER_RECEIPT_PERSISTENCE_FAILED'
+        receipt.setdefault('secondary_failures', []).append(secondary)
+        if receipt.get('unknown_reason'):
+            # the primary reason stays the primary reason of the run
+            receipt['secondary_failure'] = secondary
+            return
+        receipt['unknown_reason'] = secondary
+        receipt['state'] = STATE_UNKNOWN
+        receipt['cleanup_proven'] = False
+        receipt['root_retained'] = True
+        receipt['reservation_retained'] = True
+        receipt['refund_allowed'] = False
+        receipt['resend_allowed'] = False
+        receipt['archive_allowed'] = False
+
+    def _record_observation_failure(self, receipt, error):
+        """The failure of the terminal observation of this run.
+
+        The observation that follows the release of the descriptors is a
+        diagnostic of the *returned* receipt: it is never part of the
+        receipt that was persisted on the disk, and the persisted receipt
+        is never rewritten.  A failure of this observation is therefore
+        reported as an unknown outcome with a named reason.  The run never
+        claims that the cleanup succeeded and it never turns the unknown
+        into an empty result.
+        """
+        code = 'CONTROLLER_POST_RELEASE_OBSERVATION_FAILED:' + type(error).__name__
+        receipt['fd_cleanup_post_release'] = {
+            'observation_point': 'POST_RELEASE: the snapshot is taken after this run '
+                                 'released the descriptors that it held',
+            'status': 'FAILED',
+            'error': code,
+            'snapshot': None,
+            'fd_leaked': None,
+            'the_persisted_receipt_carries': 'PRE_RELEASE',
+            'the_persisted_receipt_is_not_rewritten': True,
+            'stage_pass_claim': False,
+            'product_gate0': False,
+        }
+        receipt.setdefault('cleanup_failures', []).append(code)
+        receipt['cleanup_proven'] = False
+        receipt['persisted_receipt_state'] = self._persisted_state
+        if receipt.get('unknown_reason'):
+            receipt['secondary_failure'] = code
+            return
+        receipt['unknown_reason'] = code
+        receipt['state'] = STATE_UNKNOWN
+        receipt['root_retained'] = True
+        receipt['reservation_retained'] = True
+        receipt['refund_allowed'] = False
+        receipt['resend_allowed'] = False
+        receipt['archive_allowed'] = False
 
     @staticmethod
     def _write_exclusive(path, raw):
@@ -2280,26 +2439,60 @@ class ProductionController:
                 # an exception: a run that failed stays a structured run
                 # with a named reason, a retained root, a retained
                 # reservation and an explicit *not persisted* receipt.
+                #
+                # The release of the descriptors that this run owns is an
+                # *independent* finally.  A cancellation of a terminal step
+                # - a ``KeyboardInterrupt`` or a ``SystemExit`` of the
+                # persistence - still releases the anchors that this run
+                # holds, and the cancellation itself keeps propagating: it
+                # is never swallowed and never turned into a success.
                 try:
-                    self._finish(receipt, fd_before)
-                except Exception as error:  # noqa: BLE001 - the cleanup stays bounded
-                    receipt.setdefault('cleanup_failures', []).append(
-                        'FINISH:' + type(error).__name__)
+                    try:
+                        self._finish(receipt, fd_before)
+                    except Exception as error:  # noqa: BLE001 - the cleanup stays bounded
+                        receipt.setdefault('cleanup_failures', []).append(
+                            'FINISH:' + type(error).__name__)
+                    # The objective facts about the disk are recorded
+                    # before the terminal receipt is written, so the
+                    # receipt on the disk carries them as well.
+                    self._record_disk_actions(receipt)
+                    try:
+                        self._persist_receipt(receipt)
+                    except (KeyboardInterrupt, SystemExit):
+                        # A cancellation of the persistence keeps
+                        # propagating; the anchors are released below.
+                        raise
+                    except Exception as error:  # noqa: BLE001 - the persistence stays bounded
+                        self.receipt_persisted = False
+                        self.receipt_persistence_error = ('CONTROLLER_RECEIPT_PERSISTENCE_FAILED:'
+                                                          + type(error).__name__)
+                    receipt['receipt_persisted'] = self.receipt_persisted
+                    receipt['receipt_persistence_error'] = self.receipt_persistence_error
+                    receipt['receipt_path'] = str(self.receipt_path) if self.receipt_path else None
+                    receipt['composition_facts'] = list(self.composition_facts)
+                    # A terminal receipt that could not be written is a
+                    # structured unknown of the run, even when the run
+                    # itself had no other failure.
+                    self._record_terminal_persistence(receipt)
+                finally:
+                    # Only the descriptors that this run owns are closed
+                    # here, and a repeated call closes nothing twice.
+                    self._release_anchors()
                 try:
-                    self._persist_receipt(receipt)
-                except Exception as error:  # noqa: BLE001 - the persistence stays bounded
-                    self.receipt_persisted = False
-                    self.receipt_persistence_error = ('CONTROLLER_RECEIPT_PERSISTENCE_FAILED:'
-                                                      + type(error).__name__)
-                receipt['receipt_persisted'] = self.receipt_persisted
-                receipt['receipt_persistence_error'] = self.receipt_persistence_error
-                receipt['receipt_path'] = str(self.receipt_path) if self.receipt_path else None
-                receipt['composition_facts'] = list(self.composition_facts)
-                self._release_anchors()
-                # The second observation point of the descriptor accounting:
-                # it is taken after this run released its own descriptors
-                # and it is *not* written into the persisted receipt.
-                self._record_post_release_cleanup(receipt, fd_before)
+                    # The second observation point of the descriptor
+                    # accounting: it is taken after this run released its
+                    # own descriptors and it is *not* written into the
+                    # persisted receipt.
+                    self._record_post_release_cleanup(receipt, fd_before)
+                except (KeyboardInterrupt, SystemExit):
+                    # A cancellation of the observation keeps propagating.
+                    raise
+                except Exception as error:  # noqa: BLE001 - the observation stays bounded
+                    # The observation is a diagnostic of the returned
+                    # receipt.  Its failure never becomes an empty output
+                    # and never a generic exit: the run reports an unknown
+                    # with the named observation failure.
+                    self._record_observation_failure(receipt, error)
         except (KeyboardInterrupt, SystemExit):
             # A cancellation is never swallowed and never turned into a
             # success.  The bounded cleanup already happened in the inner
