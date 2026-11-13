@@ -1,0 +1,18 @@
+# The read only proof that this round did not touch the shared counter
+# command: python3 -c "read the binding, then read the counter"
+# binding: /tmp/lvw-s3-p4-cpu-control-xn4cjn_s/implementation-nodeid-corrected-02.binding.json
+# read at: 2026-11-13T02:15:51Z
+#
+counter_path = /tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json
+active = False
+starts_total = 2 starts_by_role = {'implementation': 2, 'independent_review': 0}
+reserved_wall_seconds = 120.0 spent_wall_seconds = 2.896
+charges = [(0, 'PENDING', False, None), (1, 'PENDING', False, None)]
+sessions = [('session-5cc6f255f8b579ae5cb94931d71379eb', 'SETTLED', 0.708), ('session-a1c075996f29bcac7e48dabd0ef9eed3', 'SETTLED', 2.188)]
+suspension_reason = DUPLICATE_AUDIT_GUARD_FAILURE_PENDING_CHARGES_UNRESOLVED
+#
+# the values above are the values that the root recorded in
+# reports/v0-s3/product-gate0/fixture-audit-correction-01/decision.json:
+# reserved 120 / spent 2.896 / charged 2 / active false / two PENDING charges.
+# They are unchanged: this round never opened the counter for writing and
+# never ran a runner that carried a machine binding.

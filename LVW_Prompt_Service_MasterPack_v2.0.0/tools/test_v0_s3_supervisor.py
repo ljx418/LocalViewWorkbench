@@ -1918,3 +1918,266 @@ def test_a_failed_settlement_keeps_the_anchor_and_the_evidence(tmp_path):
     # the diagnostic anchor survives the failed settlement
     assert anchor.exists()
     assert 'lvw.s3-settlement-anchor/1' in anchor.read_text()
+
+
+# ------------------------- the audit correction of the fifth review
+# The root cause of the failed finite fixture run of the audit correction:
+# the runner installed its audit hook at the import of the module, so the
+# module alias that this file loads installed a *second* hook with a second,
+# closed gate.  The second hook vetoed every start that the first hook had
+# already admitted and charged: the charges stayed PENDING without a handle,
+# the concurrency slots stayed occupied and every later start was refused.
+# The correction installs the one guard of the process in the production
+# bootstrap, and it settles every charge whose start never produced a handle.
+RUNNER_RELATIVE = ('reports/v0-s3/product-gate0/implementation-integration-01/'
+                    'run_guarded_checks.py')
+
+
+def load_runner_alias(name):
+    """Load the guarded runner of this report subtree under another name."""
+    path = PACK_ROOT / RUNNER_RELATIVE
+    spec = importlib.util.spec_from_file_location(name, path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+class ProbeReached(Exception):
+    """The sentinel of the zero process probe of the audit event."""
+
+
+def test_the_module_alias_shares_the_one_guard_and_never_installs_a_second_hook():
+    """AUDIT-CORRECTION: an import of the runner installs no second guard."""
+    registry = RUNNER_MODULE.guard_registry()
+    owner = RUNNER_MODULE.install_offline_guard()
+    assert registry.hook_installed is True
+    assert registry.hook_install_count == 1
+    before = registry.hook_install_count
+    alias = load_runner_alias('lvw_s3_guarded_runner_alias')
+    # the alias import did not install a second hook of its own
+    assert registry.hook_install_count == before
+    # the alias shares the one gate, the one registry and the one owner
+    assert alias.PROCESS_GATE is RUNNER_MODULE.PROCESS_GATE
+    assert alias.guard_registry() is registry
+    assert alias.OfflineBoundaryViolation is RUNNER_MODULE.OfflineBoundaryViolation
+    # the installation stays idempotent for the alias as well
+    assert alias.install_offline_guard() == owner
+    assert registry.hook_install_count == before
+    assert registry.owner_id == owner
+
+
+def test_the_production_entry_owns_the_guard_and_the_alias_shares_its_owner():
+    """AUDIT-CORRECTION: the production entry owns the one guard."""
+    registry = RUNNER_MODULE.guard_registry()
+    main_module = sys.modules.get('__main__')
+    runner_path = (PACK_ROOT / RUNNER_RELATIVE).resolve()
+    entry_path = getattr(main_module, '__file__', None)
+    if not entry_path or Path(entry_path).resolve() != runner_path:
+        pytest.skip('this process is not the production entry of the runner')
+    # the production bootstrap installed the one guard of this process
+    assert registry.hook_installed is True
+    assert registry.hook_install_count == 1
+    assert registry.installed_by == 'run_guarded_checks.py'
+    # the production entry and the module alias share the one owner
+    assert main_module.PROCESS_GATE is RUNNER_MODULE.PROCESS_GATE
+    assert main_module.guard_registry() is registry
+    assert main_module.install_offline_guard() == registry.owner_id
+    assert registry.hook_install_count == 1
+
+
+def test_the_single_guard_admits_a_start_once_and_is_never_vetoed_twice(monkeypatch):
+    """AUDIT-CORRECTION: one guard, one gate, one admission.
+
+    The probe raises the audit event of a process start by hand.  It never
+    reaches an operating system action, so no child is ever created, and the
+    guard of this process is observed exactly as it is in the real chain.
+    """
+    registry = RUNNER_MODULE.guard_registry()
+    RUNNER_MODULE.install_offline_guard()
+    gate = RUNNER_MODULE.PROCESS_GATE
+    admitted = []
+
+    class RecordingExecutor:
+        def admit(self, arguments):
+            admitted.append(arguments)
+            return True
+
+    def fake_popen(command, **kwargs):
+        # the real start raises this audit event before the fork; the probe
+        # raises it by hand and never reaches an operating system action
+        sys.audit('subprocess.Popen', kwargs.get('executable') or command[0],
+                  list(command), kwargs.get('cwd'), kwargs.get('env'))
+        raise ProbeReached()
+
+    original_executor = gate.get('executor')
+    original_starts = gate.get('starts')
+    gate['executor'] = RecordingExecutor()
+    gate['starts'] = 0
+    monkeypatch.setattr(_subprocess, 'Popen', fake_popen)
+    try:
+        with pytest.raises(ProbeReached):
+            _subprocess.Popen(['/bin/true'])
+    finally:
+        gate['executor'] = original_executor
+        gate['starts'] = original_starts
+    # the one guard admitted the start exactly once and never vetoed it
+    assert len(admitted) == 1
+    assert admitted[0][0] == '/bin/true'
+
+
+def test_the_offline_boundary_still_blocks_a_process_and_a_socket():
+    """AUDIT-CORRECTION: the zero process boundary is still a real guard."""
+    import socket
+    RUNNER_MODULE.install_offline_guard()
+    # the process boundary: the audit event of a start is refused before the
+    # fork, so no child is created
+    with pytest.raises(RUNNER_MODULE.OfflineBoundaryViolation):
+        sys.audit('subprocess.Popen', '/bin/true', ['/bin/true'], None, None)
+    # the network boundary: the name resolution is refused before any query
+    with pytest.raises(RUNNER_MODULE.OfflineBoundaryViolation):
+        socket.gethostbyname('localhost')
+
+
+def test_a_refused_start_that_never_forked_is_settled_and_frees_its_slot(tmp_path,
+                                                                         monkeypatch):
+    """AUDIT-CORRECTION: a proven before fork refusal is never a pending charge."""
+    counter = fake_root_counter(tmp_path)
+    path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+    executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest)
+    context_inside(tmp_path)
+    command = executor_prefix() + ['clean_terminal']
+
+    class RefusingSubprocess:
+        PIPE = _subprocess.PIPE
+
+        @staticmethod
+        def Popen(argv, **kwargs):
+            # the guard admitted the start and charged it
+            executor.admit((sys.executable, list(argv), str(tmp_path), None))
+            # and a refusal inside the audit event stopped the action before
+            # the fork: the child was never created
+            raise RUNNER_MODULE.OfflineBoundaryViolation(
+                'finite cpu gate refused: DUPLICATE_GUARD',
+                before_fork=True, code='DUPLICATE_GUARD',
+                gate_error=EXECUTOR_MODULE.CpuGateError('DUPLICATE_GUARD'))
+
+    monkeypatch.setattr(EXECUTOR_MODULE, 'subprocess', RefusingSubprocess)
+    with pytest.raises(RUNNER_MODULE.OfflineBoundaryViolation):
+        executor.spawn(command)
+    document = json.loads(counter.read_text())
+    # the charge has a terminal state and is never removed nor refunded
+    assert len(document['charges']) == 1
+    assert document['charges'][0]['state'] == 'REFUSED_BEFORE_FORK'
+    assert document['charges'][0]['settled'] is True
+    assert document['charges'][0]['pid'] is None
+    assert document['starts_total'] == 1
+    # the concurrency slot of a proven refusal is released
+    assert executor.counter._occupied(document) == 0
+    assert executor.uncertain is False
+    assert executor.unsettled_charges() == []
+    # a new legitimate admission is not blocked by a wrong pending charge
+    executor.admit((sys.executable, command, str(tmp_path), None))
+    document = json.loads(counter.read_text())
+    assert document['starts_total'] == 2
+    assert len(document['charges']) == 2
+
+
+def test_an_unknown_start_keeps_its_charge_its_slot_and_the_root(tmp_path, monkeypatch):
+    """AUDIT-CORRECTION: an ordinary failure of the start keeps the custody."""
+    counter = fake_root_counter(tmp_path)
+    path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+    executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest)
+    context_inside(tmp_path)
+    command = executor_prefix() + ['clean_terminal']
+
+    class FailingSubprocess:
+        PIPE = _subprocess.PIPE
+
+        @staticmethod
+        def Popen(argv, **kwargs):
+            # the guard admitted the start and charged it
+            executor.admit((sys.executable, list(argv), str(tmp_path), None))
+            # and the operating system action failed after the admission: the
+            # child may exist, the custody is unknown
+            raise OSError('the operating system action failed after the admission')
+
+    monkeypatch.setattr(EXECUTOR_MODULE, 'subprocess', FailingSubprocess)
+    with pytest.raises(OSError):
+        executor.spawn(command)
+    document = json.loads(counter.read_text())
+    # the charge is settled as unknown and keeps its slot
+    assert document['charges'][0]['state'] == 'UNKNOWN'
+    assert document['charges'][0]['settled'] is True
+    assert document['starts_total'] == 1
+    assert executor.counter._occupied(document) == 1
+    assert executor.uncertain is True
+    unsettled = executor.unsettled_charges()
+    assert len(unsettled) == 1
+    assert unsettled[0]['outcome'] == 'UNKNOWN'
+    # the session refuses a new admission while the custody is unknown
+    with pytest.raises(EXECUTOR_MODULE.CpuGateError) as error:
+        executor.admit((sys.executable, command, str(tmp_path), None))
+    assert error.value.code == 'SESSION_UNCERTAIN_CUSTODY'
+
+
+def test_the_finalizer_never_claims_a_proven_cleanup_with_an_open_charge(tmp_path):
+    """AUDIT-CORRECTION: an open charge is never a proven cleanup."""
+    counter = fake_root_counter(tmp_path)
+    path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+    executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest)
+    context_inside(tmp_path)
+    # an admitted start that never produced a handle
+    executor.admit((sys.executable, executor_prefix() + ['clean_terminal'], None, None))
+    owned = tmp_path / 'owned'
+    owned.mkdir()
+    outcome = RUNNER_MODULE.finalize_session(
+        executor=executor, owned=owned, stdout_handle=GoodHandle(),
+        stderr_handle=GoodHandle(), saved_out=os.dup(1), saved_err=os.dup(2),
+        exit_code=0, source_hasher=lambda: {}, remover=lambda path: shutil.rmtree(path))
+    assert outcome['cleanup_proven'] is False
+    assert outcome['exit_code'] != 0
+    assert any(reason.startswith('UNSETTLED_CHARGE')
+               for reason in outcome['failure_reasons'])
+    # the root is retained and the charge stays visible in the counter
+    assert owned.exists()
+    document = json.loads(counter.read_text())
+    assert document['charges'][0]['state'] == 'UNKNOWN'
+    assert document['starts_total'] == 1
+    assert executor.counter._occupied(document) == 1
+
+
+def test_the_machine_accounting_separates_the_admissions_from_the_created_handles(
+        tmp_path, monkeypatch):
+    """AUDIT-CORRECTION: the receipt never counts an admission as a child."""
+    counter = fake_root_counter(tmp_path)
+    path, digest, _ = fake_root_binding(tmp_path, counter_path=counter)
+    executor = build_test_executor(tmp_path, counter_path=counter, binding_digest=digest)
+    context_inside(tmp_path)
+    command = executor_prefix() + ['clean_terminal']
+
+    class RefusingSubprocess:
+        PIPE = _subprocess.PIPE
+
+        @staticmethod
+        def Popen(argv, **kwargs):
+            executor.admit((sys.executable, list(argv), str(tmp_path), None))
+            raise RUNNER_MODULE.OfflineBoundaryViolation(
+                'finite cpu gate refused: DUPLICATE_GUARD',
+                before_fork=True, code='DUPLICATE_GUARD',
+                gate_error=EXECUTOR_MODULE.CpuGateError('DUPLICATE_GUARD'))
+
+    monkeypatch.setattr(EXECUTOR_MODULE, 'subprocess', RefusingSubprocess)
+    with pytest.raises(RUNNER_MODULE.OfflineBoundaryViolation):
+        executor.spawn(command)
+    evidence = executor.session_evidence()
+    accounting = RUNNER_MODULE.process_accounting(RUNNER_MODULE.guard_registry(),
+                                                   evidence)
+    # one admission, no child: the two numbers are never the same number
+    assert accounting['admitted_attempts'] == 1
+    assert accounting['child_handles_obtained'] == 0
+    assert accounting['proven_child_handles'] == 0
+    # the legacy field keeps its value and states its own meaning
+    assert accounting['fixture_process_starts'] == 1
+    assert 'NOT a number of created' in accounting['fixture_process_starts_semantics']
+    # the refused charge is visible with its own terminal state
+    assert accounting['charges_without_handle'][0]['outcome'] == 'REFUSED_BEFORE_FORK'

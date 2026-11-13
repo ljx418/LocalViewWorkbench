@@ -7,6 +7,15 @@ pytest startup, nor a plugin, nor a product import can open a socket, bind
 a socket, resolve a name or start a host process.  Plugin autoload, the
 cache provider and bytecode writing are disabled as well.
 
+The guard has **one owner per process**.  It is installed by the production
+bootstrap of this module, in the ``__main__`` guard, before pytest and
+before any candidate import.  A plain import of this module - the module
+alias that the tests use in order to call ``finalize_session`` and the other
+helpers - never installs a hook and never owns a second gate: the alias
+shares the registry, the gate and the owner of the production entry.  Two
+guards in one process would be two gates, and the second one would veto
+every admitted start of the first one.
+
 This runner lives in the new report subtree of this batch.  The original
 P3B runner and the original P3B guard are unchanged.
 
@@ -46,10 +55,6 @@ import traceback
 from pathlib import Path
 
 
-class OfflineBoundaryViolation(RuntimeError):
-    """Raised when the offline boundary would be crossed."""
-
-
 BLOCKED_EVENTS = (
     "socket.connect",
     "socket.connect_ex",
@@ -66,6 +71,73 @@ BLOCKED_EVENTS = (
     "os.fork",
     "os.forkpty",
 )
+
+GUARD_REGISTRY_MODULE = 'lvw_s3_offline_guard_registry'
+# The contract of the executor: an exception that carries this attribute was
+# raised by the guard inside the audit event of a process start.  That audit
+# event is raised before the operating system action, so such a refusal is a
+# proven position before the fork.
+BEFORE_FORK_MARKER = 'lvw_before_fork'
+
+
+def _violation_class():
+    """Build the one violation class of this process.
+
+    The class belongs to the process wide guard registry, so the production
+    entry and every module alias of this file share the very same class: an
+    alias can never raise a class that the production entry does not catch.
+    """
+
+    class OfflineBoundaryViolation(RuntimeError):
+        """Raised when the offline boundary would be crossed."""
+
+        def __init__(self, message, *, before_fork=False, code=None, gate_error=None):
+            super().__init__(message)
+            setattr(self, BEFORE_FORK_MARKER, bool(before_fork))
+            self.before_fork = bool(before_fork)
+            self.code = code
+            self.gate_error = gate_error
+
+    return OfflineBoundaryViolation
+
+
+class _GuardRegistry:
+    """The single, process wide owner of the offline guard.
+
+    The registry holds the one gate of this process.  The production entry
+    and every module alias of this file share it, so a second import never
+    installs a second hook and never closes the gate of the production entry.
+    """
+
+    def __init__(self):
+        self.owner_id = None
+        self.hook_installed = False
+        self.hook_install_count = 0
+        self.install_attempts = 0
+        self.installed_by = None
+        self.installed_at = None
+        self.violation_class = _violation_class()
+        self.process_gate = {"executor": None, "starts": 0, "limit": 0, "allowed": []}
+        self.refusals = []
+
+
+def _guard_registry():
+    """The registry of this process.  It is created once and then shared."""
+    registry = sys.modules.get(GUARD_REGISTRY_MODULE)
+    if registry is None:
+        registry = _GuardRegistry()
+        sys.modules[GUARD_REGISTRY_MODULE] = registry
+    return registry
+
+
+def guard_registry():
+    """The public accessor of the one guard registry of this process."""
+    return _guard_registry()
+
+
+GUARD_REGISTRY = _guard_registry()
+OfflineBoundaryViolation = GUARD_REGISTRY.violation_class
+PROCESS_GATE = GUARD_REGISTRY.process_gate
 
 PACK_ROOT = Path(__file__).resolve().parents[4]
 REPOSITORY_ROOT = PACK_ROOT.parent
@@ -95,8 +167,8 @@ EXECUTOR_RELATIVE = ("reports/v0-s3/product-gate0/implementation-integration-01/
 
 # The machine gate is closed until the root supplies a sealed binding.  The
 # independent executor owns the shared budget, the source identity and the
-# wall clock; the audit hook only asks it for an admission.
-PROCESS_GATE = {"executor": None, "starts": 0, "limit": 0, "allowed": []}
+# wall clock; the audit hook only asks it for an admission.  The gate itself
+# belongs to the process wide guard registry, never to a module instance.
 
 
 def finalize_session(*, executor, owned, stdout_handle, stderr_handle, saved_out,
@@ -165,6 +237,20 @@ def finalize_session(*, executor, owned, stdout_handle, stderr_handle, saved_out
                 except Exception as error:  # noqa: BLE001 - the failure stays visible
                     cleanup_proven = False
                     record('REAP_FAILED', error)
+                # A charge that was admitted but never settled is not a proven
+                # cleanup.  The run may not claim that everything was cleaned
+                # up while a charge of this session is still open.
+                unsettled = getattr(executor, 'unsettled_charges', None)
+                if callable(unsettled):
+                    try:
+                        open_charges = unsettled()
+                    except Exception as error:  # noqa: BLE001 - stays visible
+                        cleanup_proven = False
+                        record('CHARGE_LEDGER_FAILED', error)
+                    else:
+                        if open_charges:
+                            cleanup_proven = False
+                            record('UNSETTLED_CHARGE')
             after = None
             try:
                 after = source_hasher()
@@ -254,20 +340,55 @@ def _load_executor_module():
 
 
 def _audit_hook(event, arguments):
-    if event == "subprocess.Popen" and PROCESS_GATE["executor"] is not None:
+    """The one audit hook of this process.
+
+    The hook reads the gate of the process wide registry, never a module
+    local gate, so the production entry and a module alias of this file can
+    never veto each other.
+    """
+    registry = _guard_registry()
+    gate = registry.process_gate
+    violation = registry.violation_class
+    if event == "subprocess.Popen" and gate["executor"] is not None:
         try:
-            PROCESS_GATE["executor"].admit(arguments)
+            gate["executor"].admit(arguments)
         except Exception as error:  # noqa: BLE001 - the refusal is the guard
             code = getattr(error, 'code', type(error).__name__)
-            raise OfflineBoundaryViolation("finite cpu gate refused: " + str(code))
-        PROCESS_GATE["starts"] += 1
+            registry.refusals.append(code)
+            # The audit event of a process start is raised before the
+            # operating system action.  A refusal that is raised here is
+            # therefore a proven position before the fork, and the executor
+            # may settle the charge of this start as "not created".
+            raise violation("finite cpu gate refused: " + str(code),
+                            before_fork=True, code=code, gate_error=error)
+        gate["starts"] += 1
         return
     if event in BLOCKED_EVENTS:
-        raise OfflineBoundaryViolation(
+        raise violation(
             "offline boundary violation: " + event + " " + repr(arguments))
 
 
-sys.addaudithook(_audit_hook)
+def install_offline_guard():
+    """Install the global offline guard of this process, exactly once.
+
+    The production bootstrap of this module calls it before pytest and before
+    any candidate import.  The call is idempotent: a second import of this
+    module - the module alias that the tests use - never installs a second
+    hook and never owns a second gate.  The returned value is the owner of
+    the one guard of this process; every call returns the same owner.
+    """
+    registry = _guard_registry()
+    registry.install_attempts += 1
+    if registry.hook_installed:
+        return registry.owner_id
+    registry.owner_id = 'owner-' + hashlib.sha256(
+        str(Path(__file__).resolve()).encode('utf-8')).hexdigest()[:32]
+    registry.hook_installed = True
+    registry.hook_install_count += 1
+    registry.installed_by = Path(__file__).resolve().name
+    registry.installed_at = time.time()
+    sys.addaudithook(_audit_hook)
+    return registry.owner_id
 
 os.environ["PYTEST_DISABLE_PLUGIN_AUTOLOAD"] = "1"
 os.environ["PYTHONDONTWRITEBYTECODE"] = "1"
@@ -365,7 +486,54 @@ def load_machine_binding(path, expected_sha256):
     return document
 
 
+def process_accounting(registry, session_evidence):
+    """The process accounting of the run.
+
+    Two numbers are different and are reported as two numbers: an *admitted
+    attempt* is an admission that the audit hook granted, and a *proven child
+    handle* is a child whose original handle the executor obtained and whose
+    exit it proved.  A run in which every admission was refused never has a
+    child, and it never presents its refusals as a proven cleanup.
+
+    The legacy field ``fixture_process_starts`` keeps its value and its
+    meaning: it counts the admitted attempts of the audit hook.  The
+    semantics are stated next to it, so that the field is never read as a
+    number of successful process starts.
+    """
+    gate = registry.process_gate
+    evidence = session_evidence if isinstance(session_evidence, dict) else {}
+    admitted = evidence.get('admitted_attempts')
+    if not isinstance(admitted, int):
+        admitted = int(gate.get('starts', 0))
+    proven = evidence.get('proven_child_handles')
+    if not isinstance(proven, int):
+        proven = 0
+    obtained = evidence.get('child_handles_obtained')
+    if not isinstance(obtained, int):
+        obtained = proven
+    without_handle = evidence.get('charges_without_handle')
+    if not isinstance(without_handle, list):
+        without_handle = []
+    return {
+        "fixture_process_starts": admitted,
+        "fixture_process_starts_semantics": (
+            "the number of admitted audit hook attempts; it is NOT a number of "
+            "created or successful process starts"),
+        "admitted_attempts": admitted,
+        "proven_child_handles": proven,
+        "child_handles_obtained": obtained,
+        "charges_without_handle": without_handle,
+        "admission_refusals": {"count": len(registry.refusals),
+                               "codes": list(registry.refusals)},
+    }
+
+
 def main(argv=None):
+    # The guard of this process is installed before pytest and before any
+    # candidate import, whatever the entry point is.  The installation is
+    # idempotent: the production bootstrap of this module has already
+    # installed it, and this call returns the owner of that one guard.
+    install_offline_guard()
     parser = argparse.ArgumentParser()
     parser.add_argument("--mode", required=True, choices=["suite", "focused", "guard"])
     parser.add_argument("--label", required=True)
@@ -500,7 +668,7 @@ def main(argv=None):
         "machine_binding_sha256": arguments.binding_sha256,
         "machine_binding_present": binding is not None,
         "session_role": arguments.role,
-        "fixture_process_starts": PROCESS_GATE["starts"],
+        **process_accounting(GUARD_REGISTRY, session_evidence),
         "fixture_process_limit": PROCESS_GATE["limit"],
         "executor_session": session_evidence,
         "guard_root": str(owned),
@@ -517,6 +685,11 @@ def main(argv=None):
         "guard": {
             "audit_hook_installed_before_pytest": True,
             "audit_hook_installed_before_product_import": True,
+            "owner_id": GUARD_REGISTRY.owner_id,
+            "hook_install_count": GUARD_REGISTRY.hook_install_count,
+            "install_attempts": GUARD_REGISTRY.install_attempts,
+            "installed_by": GUARD_REGISTRY.installed_by,
+            "single_owner_gate": True,
             "blocked_events": list(BLOCKED_EVENTS),
             "pytest_disable_plugin_autoload": os.environ.get("PYTEST_DISABLE_PLUGIN_AUTOLOAD"),
             "cacheprovider": "disabled",
@@ -549,4 +722,9 @@ def main(argv=None):
 
 
 if __name__ == "__main__":
+    # The production bootstrap of this runner.  The global offline guard is
+    # installed here, before pytest and before any candidate import.  The
+    # installation is idempotent and it has exactly one owner per process:
+    # a module alias of this file never installs a second hook.
+    install_offline_guard()
     sys.exit(main())
