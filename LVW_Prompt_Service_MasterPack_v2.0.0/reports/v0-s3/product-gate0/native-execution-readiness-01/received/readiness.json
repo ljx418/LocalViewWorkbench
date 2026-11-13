@@ -1,0 +1,366 @@
+{
+ "kind": "lvw.s3-native-execution-readiness/1",
+ "workpack_id": "S3-P4-NATIVE-READINESS-01",
+ "title": "S3 real native backend admission readiness - bounded read-only source and evidence register",
+ "prepared_by": {
+  "role": "IMPLEMENTATION_WORKER_CLAUDE_CODE",
+  "may_claim_stage_pass": false,
+  "may_claim_product_gate0": false,
+  "derived_agents": 0,
+  "note": "This register is a fact hand-over for root. It is not an execution authorisation and it does not activate any runtime."
+ },
+ "frozen": false,
+ "executed": false,
+ "stage_pass_claim": false,
+ "product_gate0": false,
+ "real_execution_performed": false,
+ "sources_modified": false,
+ "contract_modified": false,
+ "control_modified": false,
+ "manifest_modified": false,
+ "candidate_imported": false,
+ "pytest_run": false,
+ "service_started": false,
+ "model_run": false,
+ "gpu_probed": false,
+ "native_started": false,
+ "browser_started": false,
+ "media_read": false,
+ "original_ledger_read": false,
+ "port_or_process_probed": false,
+ "tests_replayed": false,
+ "scope_source": {
+  "path": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-execution-readiness-01/contract.md",
+  "sha256": "fe18e17162baeba18e8794478fe851dedb9c7abc4ca0305e918682755a049834",
+  "role": "THE_ONLY_SCOPE"
+ },
+ "decision_source": {
+  "path": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/production-composition-correction-review-04/root-decision.json",
+  "sha256": "e8abd8c4505a03ff36eca0bfe3765d60891578b260e44da8942d557ea44de000",
+  "role": "LATEST_ACCEPTED_OFFLINE_COMPOSITION_DECISION",
+  "decision": "OFFLINE_COMPOSITION_CORRECTIONS_ACCEPTED_WITHIN_REVIEWED_SCOPE",
+  "scope_note": "The decision names 'trusted native execution backend' as UNPROVEN and says the next step is static source/ownership/contract preparation only."
+ },
+ "candidate": {
+  "code_sha": "b95de076f37e64d321629c065e5531eba8a5250a",
+  "delivery_sha": "13e77492361648dc90a414f7fd37f0bb8b8c3634",
+  "impl_head": "13e77492361648dc90a414f7fd37f0bb8b8c3634",
+  "impl_head_matches_expected": true,
+  "worktree": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement",
+  "sources_identical_to_candidate": true,
+  "sources_identical_check": "git diff b95de076f37e64d321629c065e5531eba8a5250a -- tools/ lvw/ LVW_V0_RuntimePatch/ is empty"
+ },
+ "coordinates": {
+  "stage_id": "R1",
+  "workpack_id": "WP-R1-U3",
+  "gate": "S3_P4_OFFLINE_INTEGRATION_PREPARATION",
+  "product_coordinate": "V1/R1/WP-R1-U3/S3-P4",
+  "v2_activated": false,
+  "stage_pass_claimed": false,
+  "source": "plans/execution-control.json"
+ },
+ "authorization": {
+  "parent_authorization_id": "AUTH-PROGRAM-V1-COMPLETE-03",
+  "parent_approval_path": "reports/authorization-program-v1-complete-03.approval.json",
+  "parent_approval_sha256": "cd919c7fd24c24e2740366ef11998fee1b3302f16700598a3a5f75c6ef1b0821",
+  "status": "ACTIVE",
+  "scope_used_by_this_task": "READ_ONLY_SOURCE_AND_EVIDENCE_ONLY",
+  "new_human_approval_requested": false,
+  "repeat_human_approval_of_existing_scope_requested": false,
+  "global_budget_shape": "1024 model actions / 24 effective full acceptances / 172800 production seconds, historical consumption counted and never reset",
+  "current_design_budget": {
+   "source": "reports/v0-s3/product-gate0/remaining-integration-budget-02.json",
+   "sha256": "ed932b3901e1258126991dcab0134c03a4563490c25304efcb11e3d5606b6d90",
+   "known_combined_model_min": 134,
+   "known_combined_model_cap_before_unresolved_costs": 143,
+   "per_child_model_limit": 128,
+   "effective_full_slots_if_both_reach_first_debit": 2,
+   "budget_reserved": false,
+   "budget_reset": false,
+   "cross_candidate_or_historical_success_reuse_allowed": false
+  }
+ },
+ "governance_read": [
+  "AGENTS.md",
+  ".agent-governance/README.md",
+  "plans/execution-control.json",
+  "docs/24_EXECUTION_MASTER_PLAN.md",
+  ".agent-governance/stages/V0-S3/",
+  ".agent-governance/stages/R1/",
+  "reports/v0-s3/product-gate0/s3-integration-offline-contract-01.md"
+ ],
+ "frozen_denominators": {
+  "offline_integration_obligations": 24,
+  "offline_matrix_path": "reports/v0-s3/product-gate0/s3-integration-acceptance-01.json",
+  "offline_matrix_sha256": "aafa0f9944e276d1d8d4d31e4280835bbf6a6f5d06997916245c3561fec9e77b",
+  "offline_matrix_status_observed": "ALL_24_ITEMS_NOT_RUN",
+  "offline_matrix_modified_by_this_task": false,
+  "product_keys": 12,
+  "product_keys_list": [
+   "V0-A01",
+   "V0-A02",
+   "V0-A03",
+   "V0-A04",
+   "V0-A05",
+   "V0-A06",
+   "V0-A07",
+   "V0-A08",
+   "V0-A09",
+   "V0-A10",
+   "V0-A11",
+   "V0-A12"
+  ],
+  "product_gate": "V0.2 and V0 require all of V0-A01..V0-A12 (plans/release_gates.json)",
+  "quality_denominator": {
+   "path": "reports/v0-s3/product-gate0/quality-execution-inputs.frozen.json",
+   "sha256": "47e9f14efa66bc4df851bf1a738763b48c1728eed84b76c56a7848d1b01f00c3",
+   "images": 10,
+   "videos": 6,
+   "total": 16,
+   "webp_in_set": 0,
+   "webp_covered_by": "F-WEBP-01 planned, status NOT_MATERIALIZED_OR_HASH_FROZEN"
+  }
+ },
+ "refusal_points": [
+  {
+   "id": "REF-01",
+   "location": "tools/v0_s3_production_controller.py:2631",
+   "code": "CONTROLLER_NATIVE_EXECUTION_BACKEND_NOT_READY",
+   "effect": "The native run of the production controller refuses before any spawn and before any native driver is constructed. It is raised when self.seam is None, that is on every path that is not the in-process offline seam.",
+   "wired": true
+  },
+  {
+   "id": "REF-02",
+   "location": "tools/v0_s3_quality_worker.py:596",
+   "code": "NATIVE_EXECUTION_BACKEND_NOT_READY",
+   "effect": "The command line entry of the quality worker refuses before any driver is constructed. The driver keyword argument is never supplied on the command line path, so no native driver can be built from the command line.",
+   "wired": true
+  },
+  {
+   "id": "REF-03",
+   "location": "tools/v0_s3_production_controller.py:693-705",
+   "code": "NATIVE_EXECUTION_BACKEND_NOT_READY as primary_reason",
+   "effect": "verify_native_admission is a diagnostic only. Even a complete reference chain with status PROVEN documents leaves accepted=False and the primary reason NATIVE_EXECUTION_BACKEND_NOT_READY. The report says so itself at lines 578-587.",
+   "wired": true
+  },
+  {
+   "id": "REF-04",
+   "location": "tools/v0_s3_supervisor.py:1113-1115",
+   "code": "native_service_cleanup_proven=False, native_gpu_release_proven=False, parent_crash_recovery_proven=False",
+   "effect": "The parent supervisor states in its own evidence that it does not prove the native service cleanup, the native GPU release or the parent crash recovery.",
+   "wired": true
+  }
+ ],
+ "chain": [
+  {
+   "stage": "controller_native_refusal",
+   "owner": "tools/v0_s3_production_controller.py ProductionController.run",
+   "location": "tools/v0_s3_production_controller.py:2625-2631",
+   "classification": "WIRED_IN_CANDIDATE",
+   "note": "The refusal exists and is the same stable code on the worker side. What is missing is the accepted backend behind it, not the refusal."
+  },
+  {
+   "stage": "controller_context_and_admission_verification",
+   "owner": "tools/v0_s3_production_controller.py ControllerContext / verify_native_admission",
+   "location": "tools/v0_s3_production_controller.py:417-487 / 567-705",
+   "classification": "WIRED_IN_CANDIDATE",
+   "note": "The context schema, the sealed reference chain and the budget authority call are implemented and are the right shape for a future admission. The chain can only ever produce a diagnostic."
+  },
+  {
+   "stage": "worker_entry_refusal",
+   "owner": "tools/v0_s3_quality_worker.py main",
+   "location": "tools/v0_s3_quality_worker.py:548-612",
+   "classification": "WIRED_IN_CANDIDATE",
+   "note": "The worker refuses with the stable code before any driver is constructed; the command line can never construct a native driver."
+  },
+  {
+   "stage": "build_native_driver",
+   "owner": "tools/v0_s3_quality_worker.py build_native_driver",
+   "location": "tools/v0_s3_quality_worker.py:615-643",
+   "classification": "REUSABLE_NOT_WIRED",
+   "note": "The function exists and builds tools.v0_s2_runtime.NativeRuntime from the sealed driver_arguments of the worker context. It has NO production caller: the only reference in the repository is a test that denies it (tools/test_v0_s3_production_composition.py:1219). It also cannot satisfy the phase driver protocol as written, see DRIVER-PROTOCOL-01 below."
+  },
+  {
+   "stage": "worker_context",
+   "owner": "tools/v0_s3_quality_worker.py WorkerContext",
+   "location": "tools/v0_s3_quality_worker.py:121-435",
+   "classification": "WIRED_IN_CANDIDATE",
+   "note": "The closed context, the declared anchors, the sealed references and the five key binding are implemented and are used by the controller precheck at tools/v0_s3_production_controller.py:1318-1352."
+  },
+  {
+   "stage": "quality_phase",
+   "owner": "tools/v0_s3_quality_phase.py QualityPhase",
+   "location": "tools/v0_s3_quality_phase.py:896-1027",
+   "classification": "WIRED_IN_CANDIDATE",
+   "note": "The phase is the accepted sixteen row owner and is really invoked by the worker at tools/v0_s3_quality_worker.py:496-504. The phase owns no process, no budget and no ledger (docstring lines 897-902)."
+  },
+  {
+   "stage": "driver_protocol_of_the_phase",
+   "owner": "tools/v0_s3_quality_phase.py QualityPhase.__init__",
+   "location": "tools/v0_s3_quality_phase.py:988-995",
+   "classification": "MISSING_OWNER_OR_CONTRACT",
+   "note": "DRIVER-PROTOCOL-01: the phase requires callable driver.resource_observer. NativeRuntime.__init__ sets self.resource_observer=None (tools/v0_s2_runtime.py:47) and only start_sampler replaces it with the bound method (tools/v0_s2_runtime.py:193). The driver that build_native_driver returns therefore fails the phase check with QUALITY_DRIVER_PROTOCOL_INCOMPLETE:resource_observer unless a real Windows GPU sampler has already been started. Every other method of the protocol exists: submit (tools/v0_s2_driver.py:389), chat_log_snapshot (tools/v0_s2_runtime.py:281), owned_listener_birth (tools/v0_s2_runtime.py:124), release_preload (tools/v0_s2_runtime.py:246), video_snapshot_residue (tools/v0_s2_runtime.py:368), _json_request (tools/v0_s2_driver.py:347)."
+  },
+  {
+   "stage": "native_binding_document_shape",
+   "owner": "tools/v0_s2_runtime.py NativeRuntime.write_native_binding / write_warm_binding",
+   "location": "tools/v0_s2_runtime.py:131-164",
+   "classification": "MISSING_OWNER_OR_CONTRACT",
+   "note": "BINDING-SHAPE-01: the native profile that the real owner writes carries candidate_sha, authorization_sha256, model_digest, program_authorization_id, scope, max_runs or max_requests, ollama_pid, ollama_start_ticks, issued_at, expires_at. WorkerContext.binding() accepts exactly five keys (tools/v0_s3_quality_worker.py:62-63): candidate_sha, authorization_sha256, ollama_pid, ollama_start_ticks, baseline_gpu_mib, and refuses any other key set with WORKER_BINDING_KEY_SET_INVALID. baseline_gpu_mib exists only in the warm profile. No producer exists that writes the S3 five key binding document out of a real native profile."
+  },
+  {
+   "stage": "s3_installed_runtime_factory",
+   "owner": "tools/v0_s3_coordinator.py S3InstalledRuntimeFactory",
+   "location": "tools/v0_s3_coordinator.py:309-344",
+   "classification": "REUSABLE_NOT_WIRED",
+   "note": "The factory inherits the accepted InstalledPackageRuntimeFactory (tools/v0_s3_stage_runtime.py:75) unchanged, adds exactly one profile parameter s3_budget_binding and binds the controlled video snapshot accessor on its own verified owned_run_root. It has NO production caller: the only references in the repository are tools/test_v0_s3_integration.py. Nothing in the S3 controller, worker or supervisor constructs it, so the deployment, the first exclusive profile write, the install and the rollback never run on the S3 path."
+  },
+  {
+   "stage": "native_runtime_lifecycle",
+   "owner": "tools/v0_s2_runtime.py NativeRuntime",
+   "location": "tools/v0_s2_runtime.py:43-410",
+   "classification": "REUSABLE_NOT_WIRED",
+   "note": "preflight (line 59) refuses a target port that is already owned and a target process that is already present; native_clock (112) binds the Windows monotonic clock; write_warm_binding and write_native_binding (131, 152) are the exclusive profile writes; start_ollama (167) starts the Windows Ollama wrapper through a real Popen and keeps the handle; start_sampler (183) starts the GPU sampler and binds the resource observer; owned_listener_birth (124) proves the listener by PID and birth."
+  },
+  {
+   "stage": "windows_wrapper_and_service_registration",
+   "owner": "reports/v0-s1/wp-s1-03-phase-a/live_probe.py ollama_wrapper_text / comfy_wrapper_text (loaded as base by tools/v0_s2_driver.py:19-22) and tools/v0_s2_runtime.py:167-181",
+   "location": "reports/v0-s1/wp-s1-03-phase-a/live_probe.py:149-160; tools/v0_s2_runtime.py:167-181",
+   "classification": "REUSABLE_NOT_WIRED",
+   "note": "The wrapper writes its own $PID into a pid file, pins OLLAMA_HOST=127.0.0.1:11434, OLLAMA_NO_CLOUD and NO_PROXY, and runs the executable in the foreground. The parent starts it with a real Popen and keeps the handle in self._wrapper_handles. The service registration is a wrapper process, not a Windows service; the ComfyUI wrapper is the same pattern on port 8191 with --whitelist-custom-nodes lvw_v0_bridge."
+  },
+  {
+   "stage": "windows_side_handle_owner_pattern",
+   "owner": "lvw/backend/app/native_runtime.py prepare/proof, driven by lvw/backend/app/runtime.py OllamaRuntime",
+   "location": "lvw/backend/app/native_runtime.py:9-31; lvw/backend/app/runtime.py:97-100, 135-160",
+   "classification": "REUSABLE_NOT_WIRED",
+   "note": "The V1 product already contains a Windows side handle owner for its own Ollama: the PowerShell side holds the native handle ($p.Handle) and the pid plus the birth ticks ($p.StartTime.ToUniversalTime().Ticks) and writes them into an owner document; the WSL side only writes a stop nonce and then reads the proof back (prepare/proof). runtime.py raises RESOURCE_RELEASE_PENDING when the terminal proof is missing. It is the closest existing primitive for the parent side custody of N1, but it is NOT the S3 chain: it covers one Ollama on 11434, it has no Comfy 8191 owner, no GPU sampler and no Windows descendant snapshot, and it is bound to the async FastAPI runtime, not to the S3 controller."
+  },
+  {
+   "stage": "original_popen_and_birth",
+   "owner": "tools/v0_s2_driver.py S2SystemDriver",
+   "location": "tools/v0_s2_driver.py:118-145 (ownership), 147-174 (_kill_bound), 176-234 (_snapshot_descendants), 591-605 of tools/v0_s3_supervisor.py (parent birth)",
+   "classification": "REUSABLE_NOT_WIRED",
+   "note": "The Windows side proves the listener PID, the wrapper PID and both birth ticks through CIM and Get-Process SafeHandle, refuses a reused PID, and kills only a process whose StartTime still matches the sealed ticks. The parent supervisor takes its own birth from /proc of the handle that it created (tools/v0_s3_supervisor.py:591-605) and never from a value that the worker reported."
+  },
+  {
+   "stage": "sampling_and_gpu_release",
+   "owner": "tools/v0_s2_runtime.py SamplerWorker and tools/v0_s2_native_sampler.py",
+   "location": "tools/v0_s2_runtime.py:183-195, 414+; tools/v0_s2_native_sampler.py:19-173",
+   "classification": "REUSABLE_NOT_WIRED",
+   "note": "The sampler observes the GPU and the RAM of the owned Windows processes and the driver aborts the phase when the resource policy is violated (tools/v0_s2_runtime.py:76-101). The GPU release itself is a consequence of the owned process being stopped by S2SystemDriver.cleanup; there is no separate gpu_released receipt producer in the repository."
+  },
+  {
+   "stage": "native_service_and_gpu_cleanup",
+   "owner": "tools/v0_s2_driver.py S2SystemDriver.cleanup",
+   "location": "tools/v0_s2_driver.py:260-311",
+   "classification": "MISSING_OWNER_OR_CONTRACT",
+   "note": "CUSTODY-01: the cleanup that releases the Windows descendants and the GPU lives INSIDE the worker process, on the driver object. The parent holds only the Linux handle of the worker. When the worker blocks or exits, the parent has no Windows descendant authority at all: tools/v0_s3_supervisor.py:912-944 terminates only the process handle that the parent started and states native_cleanup_proven=False with native_cleanup_owner='original_driver'. tools/v0_s3_supervisor.py:1189-1227 RecoveryEntry stays BLOCKED without custody evidence and never replays or resends. The current owner can not prove the Windows release after the death of the worker that held it."
+  },
+  {
+   "stage": "parent_independent_cleanup",
+   "owner": "tools/v0_s3_production_controller.py ProductionController._release_owned_resources and tools/v0_s3_supervisor.py _terminate_owned_worker",
+   "location": "tools/v0_s3_production_controller.py:2511-2561; tools/v0_s3_supervisor.py:912-950",
+   "classification": "WIRED_IN_CANDIDATE",
+   "note": "The controller releases its own pipe and joins its own thread in a bound, and the supervisor terminates only its own handle. Both correctly refuse to claim that a Windows service or a GPU was released, and both keep the root and the reservation when the outcome is unknown."
+  },
+  {
+   "stage": "original_ledger_budget",
+   "owner": "tools/v0_s3_budget_authority.py debit and tools/local_program_authority.py model_action",
+   "location": "tools/v0_s3_budget_authority.py:24-101; tools/local_program_authority.py:17, 198-230",
+   "classification": "REUSABLE_NOT_WIRED",
+   "note": "The debit shim verifies the authority implementation hash (677998fa2ab5b51017b5437fecd07d6ca31c26473a7ac0acede4637f6470f787, equal to tools/local_program_authority.py), the child seal, the tool roles, the execution binding and the original ledger row, and it refuses a synthetic fixture transport in production. The production ledger identity is the file named by reports/unified-media/live-15/authorization.json budget_ledger; the default ledger path is ROOT.parent.parent/.lvw-runtime/lvw-prompt-service/program02.sqlite. The controller never calls debit: it only verifies the sealed budget binding shape through S3BudgetBindingProvider."
+  },
+  {
+   "stage": "admission_document_producer",
+   "owner": "none",
+   "location": "tools/v0_s3_production_controller.py:492-497 (ADMISSION_REFERENCE_KEYS), 567-705 (verifier)",
+   "classification": "MISSING_OWNER_OR_CONTRACT",
+   "note": "ADMISSION-OWNER-01: the verifier needs seven sealed documents: budget_binding, native_custody, gpu_release, install, rollback, grant, tool_closure. The custody document has to carry status=PROVEN with descendant_handles_closed=True and native_services_stopped=True, the gpu_release document gpu_released=True, install installed=True, rollback rollback_verified=True and grant grant_active=True. No production code produces any of them: the only writer of a document of kind lvw.s3-native-admission/1 is tools/test_v0_s3_production_composition.py. The verifier refuses to accept anything, so a self written PROVEN document would change nothing without an accepted producer behind it."
+  },
+  {
+   "stage": "quality_score_owner",
+   "owner": "tools/v0_s3_quality_phase.py recompute_scores and the independent score context of the controller",
+   "location": "tools/v0_s3_quality_phase.py (recompute_scores imported at tools/v0_s3_production_controller.py:74); tools/v0_s3_production_controller.py:1778+ (_bind_receipts)",
+   "classification": "WIRED_IN_CANDIDATE",
+   "note": "The controller really calls the accepted quality owner and binds an independent score document; a score of another raw artefact never becomes a receipt (tools/test_v0_s3_production_composition.py:790, 833). The independent score itself is not produced on this platform, so the receipt stays unproven."
+  },
+  {
+   "stage": "a06_isolation",
+   "owner": "tools/v0_incremental_package.py (build, diagnose, install, rollback) with the S3 deployment factory",
+   "location": "tools/v0_incremental_package.py:848-862, 2511-3134; tools/v0_s3_stage_runtime.py:75+",
+   "classification": "MISSING_OWNER_OR_CONTRACT",
+   "note": "A06-01: the real A06 isolation, the registry driven pre install and post rollback baselines and the real rollback acceptance have no S3 producer and no receipt. tools/v0_s3_production_controller.py:162-172 names the unproven receipts explicitly and the twelve key aggregator keeps V0-A06 BLOCKED (tools/v0_s3_coordinator.py:73, 938-940)."
+  },
+  {
+   "stage": "webp_format",
+   "owner": "F-WEBP-01 planned child of the S3 composition",
+   "location": "reports/v0-s3/product-gate0/remaining-integration-budget-02.json",
+   "classification": "MISSING_OWNER_OR_CONTRACT",
+   "note": "WEBP-01: the frozen quality set contains no WebP asset, so V0-A12 needs a separate bounded format obligation. Its status is NOT_MATERIALIZED_OR_HASH_FROZEN: the tool, the configuration, the source and the output hashes must be frozen before any inference."
+  },
+  {
+   "stage": "install_rollback_receipts",
+   "owner": "tools/v0_s3_stage_runtime.py InstalledPackageRuntimeFactory and tools/v0_incremental_package.py command_rollback",
+   "location": "tools/v0_s3_stage_runtime.py:75-345; tools/v0_incremental_package.py:2511, 2762-3134",
+   "classification": "MISSING_OWNER_OR_CONTRACT",
+   "note": "INSTALL-01: the module docstring of tools/v0_s3_stage_runtime.py states that it does not implement rollback acceptance and that no service or package CLI is launched. The installed receipt and the rollback receipt therefore have no producer on the S3 path."
+  },
+  {
+   "stage": "archive",
+   "owner": "tools/v0_s2_stage_archive.py OwnedArchive with tools/v0_s3_stage_runtime.py _DeploymentArchive",
+   "location": "tools/v0_s2_stage_archive.py:21+; tools/v0_s3_stage_runtime.py:49-73",
+   "classification": "REUSABLE_NOT_WIRED",
+   "note": "The archive owner exists and the S3 deployment wrapper retains a failed protected install instead of deleting it by an uncertain pathname. No S3 composition step reaches it: the controller keeps archive_allowed=False while the cleanup is unproven (tools/v0_s3_production_controller.py:2657, 2697)."
+  }
+ ],
+ "classification_counts": {
+  "chain_stages": 23,
+  "WIRED_IN_CANDIDATE": 7,
+  "REUSABLE_NOT_WIRED": 9,
+  "MISSING_OWNER_OR_CONTRACT": 7
+ },
+ "product_twelve_keys": {
+  "current_state": "NONE_PROVEN",
+  "expected_state_without_a_real_run": "V0-A11 and V0-A12 stay BLOCKED (no independent score), V0-A06 stays BLOCKED (no real A06), every other key stays NOT_RUN because the native run never happened",
+  "source_of_truth": "tools/v0_s3_coordinator.py:914-961 and reports/v0-s3/product-gate0/s3-integration-acceptance-01.json"
+ },
+ "unproven": [
+  "trusted native execution backend",
+  "the real sixteen row native quality run of the frozen set",
+  "Windows descendant custody after the death of the worker",
+  "GPU release proof",
+  "A06 real isolation, install and rollback",
+  "the original ledger debit of a real run",
+  "the independent quality score",
+  "the WebP format obligation",
+  "the parent crash recovery",
+  "the human experience signature of this slice"
+ ],
+ "offline_evidence_that_exists": {
+  "correction04_directed_scope": {
+   "path": "reports/v0-s3/product-gate0/implementation-production-composition-correction-04/directed-scope.json",
+   "sha256": "abe359e887e9afcb58687d3c895a2da00c47d4ee400de932893c2902ad49a35e",
+   "cases_collected": 20,
+   "invocations": 20,
+   "passed_cases": 20,
+   "failed_cases": 0,
+   "exit": 0,
+   "duration_seconds": 21.762,
+   "scope_note": "The scope is the offline production composition only. It proves the terminal collection of one run and the lifecycle of the owned resources of the offline seam. It proves nothing about a native process, a Windows descendant or a GPU.",
+   "accepted_by": "root-decision.json OFFLINE_COMPOSITION_CORRECTIONS_ACCEPTED_WITHIN_REVIEWED_SCOPE, F0/M0/m0"
+  }
+ },
+ "not_done_in_this_task": [
+  "no business source change",
+  "no product contract, acceptance denominator, control or manifest change",
+  "no candidate import, no pytest, no fixture process",
+  "no service, model, GPU, native, browser or media run",
+  "no original ledger read and no real ledger debit",
+  "no port or process probe",
+  "no replay of any closed negative case",
+  "no frozen new stage packet, no workpack start, no Stage PASS"
+ ],
+ "next_action_owner": "root",
+ "next_action": "Root reviews this register and freezes the next native backend implementation contract. Nothing in this register is executable before that freeze."
+}
