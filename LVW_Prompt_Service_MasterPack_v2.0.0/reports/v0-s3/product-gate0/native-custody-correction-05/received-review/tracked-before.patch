@@ -1,0 +1,2892 @@
+diff --git a/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_integration.py b/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_integration.py
+index b67ed4c..98735cb 100644
+--- a/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_integration.py
++++ b/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_integration.py
+@@ -18,6 +18,7 @@ import os
+ import shutil
+ import stat
+ import sys
++import threading
+ import time
+ from pathlib import Path
+ 
+@@ -26,6 +27,7 @@ import pytest
+ from tools import v0_s2_stage_runtime as s2_stage
+ from tools.v0_s2_runtime import NativeRuntime
+ from tools.v0_s2_stage_runtime import StageRuntimeFactory
++from tools import v0_s3_coordinator as coordinator
+ from tools.v0_s3_coordinator import (
+     AGGREGATE_RECEIPT_KIND, ParentOriginalEvidence, S3BudgetBindingProvider,
+     S3InstalledRuntimeFactory, S3IntegrationError, TWELVE_KEYS, aggregate_twelve_keys)
+@@ -38,6 +40,7 @@ PACK_ROOT = Path(__file__).resolve().parents[1]
+ CANDIDATE_SHA = 'a' * 40
+ CHILD_SHA = 'b' * 64
+ RUN_ID = 's3-integration-offline'
++PROC_FD = Path('/proc/self/fd')
+ 
+ 
+ # ---------------------------------------------------------------- helpers
+@@ -639,6 +642,154 @@ def test_parent_seals_the_plan_and_the_originals(tmp_path):
+     manifest = evidence.manifest()
+     assert manifest['row_count'] == 16
+     assert manifest['stage_pass_claim'] is False
++    # the manifest is the consumption boundary: it re-checks the root and
++    # every original before it hands the document out
++    assert manifest['reverification']['verified'] is True
++    assert len(manifest['reverification']['checked']) == 3
++
++
++def test_parent_refuses_an_ancestor_link_out_of_the_bound_root(tmp_path):
++    """O: an ancestor that points out of the bound root is refused."""
++    root = tmp_path / 'run'
++    root.mkdir()
++    outside = tmp_path / 'outside'
++    outside.mkdir()
++    (outside / 'canonical.json').write_bytes(b'{"rows": []}')
++    (outside / 'source.json').write_bytes(b'{"plan": []}')
++    (outside / 'raw.bin').write_bytes(b'EXTERNAL')
++    (root / 'redirect').symlink_to(outside, target_is_directory=True)
++    evidence = ParentOriginalEvidence(run_id=RUN_ID, candidate_sha=CANDIDATE_SHA,
++                                       child_sha256=CHILD_SHA, root=root,
++                                       projection_sha256='a' * 64)
++    evidence.seal_plan(sixteen_rows())
++    identity = os.stat(root)
++    evidence.seal_root([identity.st_dev, identity.st_ino])
++    with pytest.raises(S3IntegrationError) as error:
++        evidence.seal_originals(canonical='redirect/canonical.json',
++                                source_plan='redirect/source.json',
++                                raw=['redirect/raw.bin'])
++    assert error.value.reason == 'S3_ORIGINAL_REDIRECT_FORBIDDEN:canonical'
++    # nothing of the escape was sealed
++    assert evidence.originals == {}
++
++
++def test_parent_refuses_a_link_on_the_artifact_itself(tmp_path):
++    """O: a link on the artifact itself is refused."""
++    root = tmp_path / 'run'
++    root.mkdir()
++    outside = tmp_path / 'outside'
++    outside.mkdir()
++    (outside / 'canonical.json').write_bytes(b'{"rows": []}')
++    (root / 'canonical.json').symlink_to(outside / 'canonical.json')
++    evidence = ParentOriginalEvidence(run_id=RUN_ID, candidate_sha=CANDIDATE_SHA,
++                                       child_sha256=CHILD_SHA, root=root,
++                                       projection_sha256='a' * 64)
++    evidence.seal_plan(sixteen_rows())
++    identity = os.stat(root)
++    evidence.seal_root([identity.st_dev, identity.st_ino])
++    with pytest.raises(S3IntegrationError) as error:
++        evidence.seal_originals(canonical='canonical.json',
++                                source_plan='canonical.json')
++    assert error.value.reason == 'S3_ORIGINAL_REDIRECT_FORBIDDEN:canonical'
++
++
++def test_the_manifest_refuses_an_original_that_changed_after_the_seal(tmp_path):
++    """O: the re-check refuses an original that was rewritten."""
++    root = tmp_path / 'run'
++    (root / 'temp').mkdir(parents=True)
++    (root / 'temp' / 'raw.bin').write_bytes(b'raw')
++    evidence = ParentOriginalEvidence(run_id=RUN_ID, candidate_sha=CANDIDATE_SHA,
++                                       child_sha256=CHILD_SHA, root=root,
++                                       projection_sha256='a' * 64)
++    evidence.seal_plan(sixteen_rows())
++    identity = os.stat(root)
++    evidence.seal_root([identity.st_dev, identity.st_ino])
++    evidence.seal_originals(canonical='temp/raw.bin', source_plan='temp/raw.bin')
++    (root / 'temp' / 'raw.bin').write_bytes(b'REWRITTEN')
++    with pytest.raises(S3IntegrationError) as error:
++        evidence.manifest()
++    assert error.value.reason.startswith('S3_ORIGINAL_')
++
++
++def test_the_manifest_refuses_an_original_that_was_replaced(tmp_path):
++    """O: the re-check refuses an original that was replaced by another file."""
++    root = tmp_path / 'run'
++    (root / 'temp').mkdir(parents=True)
++    (root / 'temp' / 'raw.bin').write_bytes(b'raw')
++    evidence = ParentOriginalEvidence(run_id=RUN_ID, candidate_sha=CANDIDATE_SHA,
++                                       child_sha256=CHILD_SHA, root=root,
++                                       projection_sha256='a' * 64)
++    evidence.seal_plan(sixteen_rows())
++    identity = os.stat(root)
++    evidence.seal_root([identity.st_dev, identity.st_ino])
++    evidence.seal_originals(canonical='temp/raw.bin', source_plan='temp/raw.bin')
++    # the same bytes in another object: the identity of the original changed
++    (root / 'temp' / 'raw.bin').unlink()
++    (root / 'temp' / 'raw.bin').write_bytes(b'raw')
++    with pytest.raises(S3IntegrationError) as error:
++        evidence.manifest()
++    assert error.value.reason == 'S3_ORIGINAL_REPLACED:canonical'
++
++
++def test_the_manifest_refuses_an_original_that_vanished(tmp_path):
++    """O: the re-check refuses an original that is gone."""
++    root = tmp_path / 'run'
++    (root / 'temp').mkdir(parents=True)
++    (root / 'temp' / 'raw.bin').write_bytes(b'raw')
++    evidence = ParentOriginalEvidence(run_id=RUN_ID, candidate_sha=CANDIDATE_SHA,
++                                       child_sha256=CHILD_SHA, root=root,
++                                       projection_sha256='a' * 64)
++    evidence.seal_plan(sixteen_rows())
++    identity = os.stat(root)
++    evidence.seal_root([identity.st_dev, identity.st_ino])
++    evidence.seal_originals(canonical='temp/raw.bin', source_plan='temp/raw.bin')
++    (root / 'temp' / 'raw.bin').unlink()
++    with pytest.raises(S3IntegrationError) as error:
++        evidence.manifest()
++    assert error.value.reason == 'S3_ORIGINAL_UNREADABLE:canonical'
++
++
++def test_the_manifest_refuses_a_replaced_root(tmp_path):
++    """O: the re-check refuses a root that was replaced after the seal."""
++    root = tmp_path / 'run'
++    (root / 'temp').mkdir(parents=True)
++    (root / 'temp' / 'raw.bin').write_bytes(b'raw')
++    evidence = ParentOriginalEvidence(run_id=RUN_ID, candidate_sha=CANDIDATE_SHA,
++                                       child_sha256=CHILD_SHA, root=root,
++                                       projection_sha256='a' * 64)
++    evidence.seal_plan(sixteen_rows())
++    identity = os.stat(root)
++    evidence.seal_root([identity.st_dev, identity.st_ino])
++    evidence.seal_originals(canonical='temp/raw.bin', source_plan='temp/raw.bin')
++    replacement = tmp_path / 'replacement'
++    replacement.mkdir()
++    shutil.rmtree(root)
++    os.rename(replacement, root)
++    with pytest.raises(S3IntegrationError) as error:
++        evidence.manifest()
++    assert error.value.reason == 'S3_SELECTED_ROOT_REPLACED'
++
++
++def test_the_manifest_refuses_an_ancestor_link_after_the_seal(tmp_path):
++    """O: the re-check refuses an original that was redirected after the seal."""
++    root = tmp_path / 'run'
++    (root / 'temp').mkdir(parents=True)
++    (root / 'temp' / 'raw.bin').write_bytes(b'raw')
++    evidence = ParentOriginalEvidence(run_id=RUN_ID, candidate_sha=CANDIDATE_SHA,
++                                       child_sha256=CHILD_SHA, root=root,
++                                       projection_sha256='a' * 64)
++    evidence.seal_plan(sixteen_rows())
++    identity = os.stat(root)
++    evidence.seal_root([identity.st_dev, identity.st_ino])
++    evidence.seal_originals(canonical='temp/raw.bin', source_plan='temp/raw.bin')
++    outside = tmp_path / 'outside'
++    outside.mkdir()
++    (outside / 'raw.bin').write_bytes(b'raw')
++    shutil.rmtree(root / 'temp')
++    (root / 'temp').symlink_to(outside, target_is_directory=True)
++    with pytest.raises(S3IntegrationError) as error:
++        evidence.manifest()
++    assert error.value.reason == 'S3_ORIGINAL_REDIRECT_FORBIDDEN:canonical'
+ 
+ 
+ def test_parent_refuses_an_incomplete_plan(tmp_path):
+@@ -703,6 +854,12 @@ def receipt(name, *, status='PASS', run_id=RUN_ID, candidate_sha=CANDIDATE_SHA,
+ 
+ 
+ def complete_receipts():
++    """Every required receipt of the twelve keys, including the cleanup.
++
++    The cleanup receipt is the legal one of this round: the same kind, the
++    same status, the same stage claim flag, the same run and candidate
++    binding and the strict boolean proof of the cleanup.
++    """
+     receipts = {'stage_binding': receipt('stage_binding')}
+     for name in ('image_input', 'video_input', 'output_contract', 'manual_export',
+                  'no_overwrite', 'file_safety', 'no_approval_gate', 'resource_budget',
+@@ -713,6 +870,7 @@ def complete_receipts():
+     receipts['rollback'] = receipt('rollback')
+     receipts['independent_score'] = receipt('independent_score', independent=True)
+     receipts['webp_format'] = receipt('webp_format')
++    receipts['cleanup'] = receipt('cleanup', cleanup_proven=True)
+     return receipts
+ 
+ 
+@@ -728,6 +886,124 @@ def test_twelve_keys_are_exactly_twelve_and_complete():
+     assert summary['product_gate0'] is False
+ 
+ 
++def test_the_cleanup_is_a_required_receipt_of_every_key():
++    """C: every key of the summary names the cleanup receipt."""
++    for key, entry in aggregate_twelve_keys(
++            receipts=complete_receipts(),
++            binding={'run_id': RUN_ID, 'candidate_sha': CANDIDATE_SHA})['keys'].items():
++        assert 'cleanup' in entry['required_receipts'], key
++
++
++def test_a_missing_cleanup_keeps_every_key_not_run():
++    """C: without the cleanup receipt no key is green."""
++    receipts = complete_receipts()
++    del receipts['cleanup']
++    summary = aggregate_twelve_keys(receipts=receipts,
++                                    binding={'run_id': RUN_ID,
++                                             'candidate_sha': CANDIDATE_SHA})
++    assert summary['pass_count'] == 0
++    assert summary['not_run_count'] == 12
++    assert summary['cleanup_proven'] is False
++    for entry in summary['keys'].values():
++        assert entry['status'] == 'NOT_RUN'
++        assert 'cleanup:RECEIPT_MISSING' in entry['reasons']
++
++
++def test_a_cleanup_without_a_proof_blocks_every_key():
++    """C: a cleanup receipt that does not prove the cleanup blocks every key."""
++    receipts = complete_receipts()
++    receipts['cleanup'] = receipt('cleanup', cleanup_proven=False)
++    summary = aggregate_twelve_keys(receipts=receipts,
++                                    binding={'run_id': RUN_ID,
++                                             'candidate_sha': CANDIDATE_SHA})
++    assert summary['pass_count'] == 0
++    assert summary['blocked_count'] == 12
++    assert summary['cleanup_proven'] is False
++    for entry in summary['keys'].values():
++        assert entry['status'] == 'BLOCKED'
++        assert 'cleanup:CLEANUP_UNPROVEN' in entry['reasons']
++
++
++def test_a_cleanup_that_only_claims_the_proof_as_a_string_blocks_every_key():
++    """C: the string ``true`` is not the proof of a cleanup."""
++    receipts = complete_receipts()
++    receipts['cleanup'] = receipt('cleanup', cleanup_proven='true')
++    summary = aggregate_twelve_keys(receipts=receipts,
++                                    binding={'run_id': RUN_ID,
++                                             'candidate_sha': CANDIDATE_SHA})
++    assert summary['pass_count'] == 0
++    assert summary['cleanup_proven'] is False
++    for entry in summary['keys'].values():
++        assert entry['status'] == 'BLOCKED'
++        assert 'cleanup:CLEANUP_UNPROVEN' in entry['reasons']
++
++
++def test_a_cleanup_without_the_proof_field_blocks_every_key():
++    """C: a cleanup receipt that does not state the proof blocks every key."""
++    receipts = complete_receipts()
++    receipts['cleanup'] = receipt('cleanup')
++    summary = aggregate_twelve_keys(receipts=receipts,
++                                    binding={'run_id': RUN_ID,
++                                             'candidate_sha': CANDIDATE_SHA})
++    assert summary['pass_count'] == 0
++    assert summary['blocked_count'] == 12
++
++
++def test_a_failed_cleanup_fails_every_key():
++    """C: a failed cleanup keeps the failure of the run."""
++    receipts = complete_receipts()
++    receipts['cleanup'] = receipt('cleanup', status='FAIL', cleanup_proven=False)
++    summary = aggregate_twelve_keys(receipts=receipts,
++                                    binding={'run_id': RUN_ID,
++                                             'candidate_sha': CANDIDATE_SHA})
++    assert summary['pass_count'] == 0
++    assert summary['fail_count'] == 12
++    for entry in summary['keys'].values():
++        assert entry['status'] == 'FAIL'
++
++
++def test_a_cleanup_of_another_candidate_fails_every_key():
++    """C: a cleanup receipt of another candidate never fills the key."""
++    receipts = complete_receipts()
++    receipts['cleanup'] = receipt('cleanup', candidate_sha='c' * 40, cleanup_proven=True)
++    summary = aggregate_twelve_keys(receipts=receipts,
++                                    binding={'run_id': RUN_ID,
++                                             'candidate_sha': CANDIDATE_SHA})
++    assert summary['pass_count'] == 0
++    assert summary['fail_count'] == 12
++    for entry in summary['keys'].values():
++        assert entry['status'] == 'FAIL'
++        assert 'cleanup:BINDING_MISMATCH' in entry['reasons']
++
++
++def test_a_cleanup_of_a_foreign_kind_never_fills_a_green_key():
++    """C: a document of another kind is not the cleanup receipt."""
++    receipts = complete_receipts()
++    receipts['cleanup'] = {'kind': 'S2_PHASE_RECEIPT', 'status': 'PASS',
++                           'run_id': RUN_ID, 'candidate_sha': CANDIDATE_SHA,
++                           'stage_pass_claim': False, 'cleanup_proven': True}
++    summary = aggregate_twelve_keys(receipts=receipts,
++                                    binding={'run_id': RUN_ID,
++                                             'candidate_sha': CANDIDATE_SHA})
++    assert summary['pass_count'] == 0
++    for entry in summary['keys'].values():
++        assert entry['status'] == 'NOT_RUN'
++        assert 'cleanup:RECEIPT_KIND_NOT_ACCEPTED' in entry['reasons']
++
++
++def test_a_cleanup_that_claims_a_stage_pass_is_refused():
++    """C: a cleanup receipt that claims a stage pass is not accepted."""
++    receipts = complete_receipts()
++    receipts['cleanup'] = receipt('cleanup', stage_pass_claim=True, cleanup_proven=True)
++    summary = aggregate_twelve_keys(receipts=receipts,
++                                    binding={'run_id': RUN_ID,
++                                             'candidate_sha': CANDIDATE_SHA})
++    assert summary['pass_count'] == 0
++    for entry in summary['keys'].values():
++        assert entry['status'] == 'BLOCKED'
++        assert 'cleanup:RECEIPT_STAGE_PASS_CLAIM_INVALID' in entry['reasons']
++
++
+ def test_old_s2_nine_keys_cannot_fill_a_green_key():
+     """I19: an old S2 phase receipt is never an accepted aggregate receipt."""
+     receipts = complete_receipts()
+@@ -793,3 +1069,532 @@ def test_a_receipt_of_another_candidate_fails_the_key():
+                                     binding={'run_id': RUN_ID,
+                                              'candidate_sha': CANDIDATE_SHA})
+     assert summary['keys']['V0-A02']['status'] == 'FAIL'
++
++
++# --------------------------------------- O: the safe reading of the originals
++#
++# The directed obligations of the originals correction.  Every root of these
++# tests is a synthetic root inside the private temporary directory of the
++# test: no original of the product is read, no root of the product is
++# touched, no process is started and no service is called.  The owner under
++# test is the production owner itself, ``ParentOriginalEvidence``; only the
++# operating system bound primitive of the read is replaced, and only to make
++# a change happen *inside* the read window of that owner.
++ORIGINAL_BODY = b'ORIGINAL'
++
++
++def originals_root(tmp_path, name='run', body=ORIGINAL_BODY):
++    """A synthetic bound root with three original artifacts."""
++    root = tmp_path / name
++    (root / 'temp').mkdir(parents=True)
++    (root / 'temp/canonical.json').write_bytes(b'{"rows": []}')
++    (root / 'temp/source.json').write_bytes(b'{"plan": []}')
++    (root / 'temp/raw.bin').write_bytes(body)
++    evidence = ParentOriginalEvidence(run_id=RUN_ID, candidate_sha=CANDIDATE_SHA,
++                                       child_sha256=CHILD_SHA, root=root,
++                                       projection_sha256='a' * 64)
++    evidence.seal_plan(sixteen_rows())
++    identity = os.stat(root)
++    evidence.seal_root([identity.st_dev, identity.st_ino])
++    return root, evidence
++
++
++def seal_all(evidence):
++    """Seal the three artifacts of the synthetic root."""
++    return evidence.seal_originals(canonical='temp/canonical.json',
++                                    source_plan='temp/source.json',
++                                    raw=['temp/raw.bin'])
++
++
++def mutating_read(target_inode, action, *, delay=0.02):
++    """A controlled ``os.read`` that changes the artifact exactly once.
++
++    The change happens after the first block of the target handle was read
++    and before that block is handed to the owner, so it is inside the read
++    window of the production reader.  The delay makes the change visible in
++    the times of the object: a change of the very same bytes can not be
++    seen in the digest, only in the times of the object.
++    """
++    real_read = os.read
++    state = {'fired': False}
++
++    def wrapper(descriptor, size):
++        block = real_read(descriptor, size)
++        if block and not state['fired']:
++            try:
++                same = os.fstat(descriptor).st_ino == target_inode
++            except OSError:
++                same = False
++            if same:
++                state['fired'] = True
++                time.sleep(delay)
++                action()
++        return block
++
++    return wrapper, state
++
++
++def rewrite_same_length(path):
++    """A change of the same length."""
++    return lambda: Path(path).write_bytes(b'MODIFIED')
++
++
++def rewrite_same_bytes(path):
++    """A change of the very same bytes."""
++    return lambda: Path(path).write_bytes(ORIGINAL_BODY)
++
++
++def grow_the_original(path):
++    """A change that grows the original."""
++    return lambda: Path(path).write_bytes(ORIGINAL_BODY + b'GROWN')
++
++
++def truncate_the_original(path):
++    """A change that truncates the original."""
++    return lambda: Path(path).write_bytes(b'ORI')
++
++
++def replace_the_object(path):
++    """A change that replaces the original by another object."""
++    def action():
++        target = Path(path)
++        target.unlink()
++        target.write_bytes(ORIGINAL_BODY)
++    return action
++
++
++MUTATIONS = (
++    ('same_length_rewrite', rewrite_same_length),
++    ('same_bytes_rewrite', rewrite_same_bytes),
++    ('growth', grow_the_original),
++    ('truncation', truncate_the_original),
++    ('object_replacement', replace_the_object),
++)
++MUTATION_IDS = [item[0] for item in MUTATIONS]
++
++
++def open_descriptors():
++    """The number of the descriptors of this process."""
++    return len(os.listdir(PROC_FD))
++
++
++def run_bounded(function, timeout=2.0):
++    """Run one function in a controlled worker thread.
++
++    The thread is a daemon and the caller always recovers it: a function
++    that did not finish in time is released and joined, so a failing test
++    never leaves a hanging thread behind.
++    """
++    box = {}
++
++    def worker():
++        try:
++            box['result'] = function()
++        except BaseException as error:  # noqa: BLE001 - the caller inspects it
++            box['exception'] = error
++
++    thread = threading.Thread(target=worker, daemon=True)
++    thread.start()
++    thread.join(timeout)
++    return thread, box
++
++
++@pytest.mark.parametrize('name,factory', MUTATIONS, ids=MUTATION_IDS)
++def test_the_seal_refuses_an_original_that_changes_during_the_read(
++        tmp_path, monkeypatch, name, factory):
++    """O1: the seal refuses an original that changes while it is read."""
++    root, evidence = originals_root(tmp_path)
++    target = os.stat(root / 'temp/raw.bin').st_ino
++    before = os.stat(root / 'temp/raw.bin')
++    wrapper, state = mutating_read(target, factory(root / 'temp/raw.bin'))
++    monkeypatch.setattr(os, 'read', wrapper)
++    with pytest.raises(S3IntegrationError) as error:
++        seal_all(evidence)
++    assert state['fired'], name
++    assert error.value.reason.startswith(('S3_ORIGINAL_', 'ORIGINAL_')), \
++        (name, error.value.reason)
++    # the change was observable in the state of the object
++    after = os.stat(root / 'temp/raw.bin')
++    assert (after.st_mtime_ns != before.st_mtime_ns
++            or after.st_ino != before.st_ino), name
++    # a refused seal publishes nothing at all
++    assert evidence.originals == {}, name
++
++
++@pytest.mark.parametrize('name,factory', MUTATIONS, ids=MUTATION_IDS)
++def test_the_manifest_refuses_an_original_that_changes_during_the_read(
++        tmp_path, monkeypatch, name, factory):
++    """O1: the manifest refuses an original that changes while it is read."""
++    root, evidence = originals_root(tmp_path)
++    seal_all(evidence)
++    target = os.stat(root / 'temp/raw.bin').st_ino
++    before = os.stat(root / 'temp/raw.bin')
++    wrapper, state = mutating_read(target, factory(root / 'temp/raw.bin'))
++    monkeypatch.setattr(os, 'read', wrapper)
++    with pytest.raises(S3IntegrationError) as error:
++        evidence.manifest()
++    assert state['fired'], name
++    assert error.value.reason.startswith('S3_ORIGINAL_'), (name, error.value.reason)
++    after = os.stat(root / 'temp/raw.bin')
++    assert (after.st_mtime_ns != before.st_mtime_ns
++            or after.st_ino != before.st_ino), name
++    # the stale seal is never published as verified, not even by the next
++    # re-check of the very same original
++    with pytest.raises(S3IntegrationError) as error:
++        evidence.manifest()
++    assert error.value.reason.startswith('S3_ORIGINAL_'), (name, error.value.reason)
++
++
++def test_the_manifest_refuses_an_ancestor_that_is_replaced_during_the_read(
++        tmp_path, monkeypatch):
++    """O1: an ancestor that is replaced during the read is refused."""
++    root, evidence = originals_root(tmp_path)
++    seal_all(evidence)
++    target = os.stat(root / 'temp/raw.bin').st_ino
++
++    def action():
++        os.rename(root / 'temp', root / 'temp-old')
++        (root / 'temp').mkdir()
++        (root / 'temp/raw.bin').write_bytes(ORIGINAL_BODY)
++
++    wrapper, state = mutating_read(target, action)
++    monkeypatch.setattr(os, 'read', wrapper)
++    with pytest.raises(S3IntegrationError) as error:
++        evidence.manifest()
++    assert state['fired']
++    assert error.value.reason == 'S3_ORIGINAL_REPLACED:raw'
++
++
++def test_the_manifest_refuses_a_root_that_is_replaced_during_the_read(
++        tmp_path, monkeypatch):
++    """O1: the root that is replaced during the read is refused."""
++    root, evidence = originals_root(tmp_path)
++    seal_all(evidence)
++    target = os.stat(root / 'temp/raw.bin').st_ino
++
++    def action():
++        os.rename(root, root.parent / (root.name + '-old'))
++        (root / 'temp').mkdir(parents=True)
++        (root / 'temp/raw.bin').write_bytes(ORIGINAL_BODY)
++
++    wrapper, state = mutating_read(target, action)
++    monkeypatch.setattr(os, 'read', wrapper)
++    with pytest.raises(S3IntegrationError) as error:
++        evidence.manifest()
++    assert state['fired']
++    assert error.value.reason == 'S3_SELECTED_ROOT_REPLACED'
++
++
++def test_the_manifest_refuses_a_path_that_became_a_link_during_the_read(
++        tmp_path, monkeypatch):
++    """O1: a path that became a link during the read is refused."""
++    root, evidence = originals_root(tmp_path)
++    seal_all(evidence)
++    target = os.stat(root / 'temp/raw.bin').st_ino
++
++    def action():
++        moved = root / 'temp/moved.bin'
++        os.rename(root / 'temp/raw.bin', moved)
++        (root / 'temp/raw.bin').symlink_to(moved)
++
++    wrapper, state = mutating_read(target, action)
++    monkeypatch.setattr(os, 'read', wrapper)
++    with pytest.raises(S3IntegrationError) as error:
++        evidence.manifest()
++    assert state['fired']
++    assert error.value.reason.startswith('S3_ORIGINAL_'), error.value.reason
++
++
++def test_the_seal_refuses_a_fifo_without_a_writer_and_without_blocking(tmp_path):
++    """O2: the seal refuses a fifo, without a writer and without blocking."""
++    root, evidence = originals_root(tmp_path)
++    fifo = root / 'temp/raw.bin'
++    fifo.unlink()
++    os.mkfifo(fifo)
++    before = open_descriptors()
++    thread, box = run_bounded(lambda: seal_all(evidence), 2.0)
++    try:
++        assert not thread.is_alive(), 'the seal blocked on the fifo'
++    finally:
++        if thread.is_alive():
++            # the controlled recovery of a failing test: the blocked worker
++            # is released and joined, so no hanging thread is left behind
++            release = os.open(fifo, os.O_WRONLY | os.O_NONBLOCK)
++            os.close(release)
++            thread.join(2.0)
++    assert not thread.is_alive()
++    assert isinstance(box.get('exception'), S3IntegrationError), box
++    assert box['exception'].reason == 'ORIGINAL_NOT_A_REGULAR_FILE'
++    assert evidence.originals == {}
++    assert open_descriptors() == before
++
++
++def test_the_manifest_refuses_a_fifo_that_replaced_a_sealed_raw(tmp_path):
++    """O2: the manifest refuses a fifo that replaced a sealed raw."""
++    root, evidence = originals_root(tmp_path)
++    seal_all(evidence)
++    fifo = root / 'temp/raw.bin'
++    fifo.unlink()
++    os.mkfifo(fifo)
++    before = open_descriptors()
++    thread, box = run_bounded(evidence.manifest, 2.0)
++    try:
++        assert not thread.is_alive(), 'the manifest blocked on the fifo'
++    finally:
++        if thread.is_alive():
++            # the controlled recovery of a failing test
++            release = os.open(fifo, os.O_WRONLY | os.O_NONBLOCK)
++            os.close(release)
++            thread.join(2.0)
++    assert not thread.is_alive()
++    assert isinstance(box.get('exception'), S3IntegrationError), box
++    assert box['exception'].reason.startswith('S3_ORIGINAL_'), box['exception'].reason
++    assert open_descriptors() == before
++
++
++def test_a_refused_original_leaks_no_descriptor(tmp_path):
++    """O1/O2: a refused original closes every descriptor that it opened."""
++    before = open_descriptors()
++    for index in range(12):
++        root, evidence = originals_root(tmp_path, name='run-%02d' % index)
++        seal_all(evidence)
++        fifo = root / 'temp/raw.bin'
++        fifo.unlink()
++        os.mkfifo(fifo)
++        thread, box = run_bounded(evidence.manifest, 2.0)
++        try:
++            assert not thread.is_alive(), 'the manifest blocked on the fifo'
++        finally:
++            if thread.is_alive():
++                release = os.open(fifo, os.O_WRONLY | os.O_NONBLOCK)
++                os.close(release)
++                thread.join(2.0)
++        assert isinstance(box.get('exception'), S3IntegrationError), box
++        fifo.unlink()
++        fifo.write_bytes(ORIGINAL_BODY)
++        with pytest.raises(S3IntegrationError):
++            evidence.manifest()
++    assert open_descriptors() == before
++
++
++def test_a_regular_original_has_its_real_hash_and_length(tmp_path):
++    """O1: a regular original of the bound root has its real hash and length."""
++    root, evidence = originals_root(tmp_path, body=b'REAL-BYTES')
++    sealed = seal_all(evidence)
++    assert sealed['raw'][0]['sha256'] == hashlib.sha256(b'REAL-BYTES').hexdigest()
++    assert sealed['raw'][0]['bytes'] == len(b'REAL-BYTES')
++    assert sealed['canonical'][0]['sha256'] == hashlib.sha256(b'{"rows": []}').hexdigest()
++    manifest = evidence.manifest()
++    assert manifest['reverification']['verified'] is True
++    assert manifest['reverification']['checked'][2]['sha256'] == \
++        hashlib.sha256(b'REAL-BYTES').hexdigest()
++    assert manifest['reverification']['checked'][2]['bytes'] == len(b'REAL-BYTES')
++
++
++def test_the_size_bound_of_an_original_is_exact_and_one_over(tmp_path):
++    """O1: the size bound of an original is exact and one over."""
++    root = tmp_path / 'run'
++    root.mkdir()
++    body = b'x' * coordinator.MAX_SEALED_ORIGINAL_BYTES
++    (root / 'raw.bin').write_bytes(body)
++    evidence = ParentOriginalEvidence(run_id=RUN_ID, candidate_sha=CANDIDATE_SHA,
++                                       child_sha256=CHILD_SHA, root=root,
++                                       projection_sha256='a' * 64)
++    evidence.seal_plan(sixteen_rows())
++    identity = os.stat(root)
++    evidence.seal_root([identity.st_dev, identity.st_ino])
++    sealed = evidence.seal_originals(canonical='raw.bin', source_plan='raw.bin')
++    assert sealed['canonical'][0]['bytes'] == coordinator.MAX_SEALED_ORIGINAL_BYTES
++    (root / 'raw.bin').write_bytes(body + b'x')
++    with pytest.raises(S3IntegrationError) as error:
++        evidence.manifest()
++    assert error.value.reason.startswith('ORIGINAL_EXCEEDS_BOUND'), error.value.reason
++
++
++def test_a_platform_without_the_safe_primitives_fails_closed(tmp_path, monkeypatch):
++    """O2: a platform without the safe opening primitives fails closed."""
++    root, evidence = originals_root(tmp_path)
++    seal_all(evidence)
++    monkeypatch.setattr(coordinator, '_no_follow_open_supported', lambda: False)
++    with pytest.raises(S3IntegrationError) as error:
++        evidence.manifest()
++    assert error.value.reason == 'S3_ORIGINAL_SAFE_OPEN_UNSUPPORTED'
++    monkeypatch.setattr(coordinator, '_non_block_open_supported', lambda: False)
++    with pytest.raises(S3IntegrationError) as error:
++        evidence.manifest()
++    assert error.value.reason == 'S3_ORIGINAL_SAFE_OPEN_UNSUPPORTED'
++    monkeypatch.undo()
++    assert evidence.manifest()['reverification']['verified'] is True
++
++
++def test_a_failed_seal_publishes_no_originals(tmp_path, monkeypatch):
++    """O1: a seal that fails in the middle publishes no originals at all."""
++    root, evidence = originals_root(tmp_path)
++    target = os.stat(root / 'temp/raw.bin').st_ino
++    wrapper, state = mutating_read(target, rewrite_same_bytes(root / 'temp/raw.bin'))
++    monkeypatch.setattr(os, 'read', wrapper)
++    with pytest.raises(S3IntegrationError):
++        seal_all(evidence)
++    assert state['fired']
++    assert evidence.originals == {}
++    with pytest.raises(S3IntegrationError) as error:
++        evidence.manifest()
++    assert error.value.reason == 'S3_ORIGINALS_NOT_SEALED'
++
++
++# ---------------------------------------------------------------------------
++# O1: the window of the re-walk.  The artifact is changed between the
++# verified digest and the second walk of the reference, so the digest of
++# the first handle is stale while the ``fstat`` of the handle of the
++# re-walk already sees the change.
++# ---------------------------------------------------------------------------
++
++
++def mutating_reopen(name, action):
++    """A controlled ``os.open`` that changes the artifact at the re-walk.
++
++    The change happens after the kernel opened the artifact and before the
++    descriptor is handed to the caller, so it is inside the re-walk window
++    of the production reader: the ``fstat`` of the returned handle sees
++    the change and the digest of the first handle can not see it any more.
++
++    Only the final component of the reference is counted, and only its
++    second opening is the re-walk: the first opening is the verified walk
++    that the digest was taken from.  The count is the evidence that the
++    procedure does not open the artifact a third time.
++    """
++    real_open = os.open
++    state = {'opens': 0, 'fired': False}
++
++    def wrapper(path, flags, *args, **kwargs):
++        descriptor = real_open(path, flags, *args, **kwargs)
++        if str(path) == name:
++            state['opens'] += 1
++            if state['opens'] == 2:
++                state['fired'] = True
++                action()
++        return descriptor
++
++    return wrapper, state
++
++
++def install_reopen(monkeypatch, wrapper):
++    """Install the controlled opening as the opening of this process.
++
++    The membership of ``os.supports_dir_fd`` is kept: the platform check of
++    the candidate looks at the *identity* of ``os.open``, so the controlled
++    opening has to be a member of that set as well.  The capability itself
++    is not widened - the real opening of the kernel is the one that is
++    called, only the moment of the change is controlled.
++    """
++    support = os.supports_dir_fd
++    monkeypatch.setattr(os, 'open', wrapper)
++    monkeypatch.setattr(os, 'supports_dir_fd', set(support) | {wrapper})
++
++
++def rewrite_the_original_same_length(path):
++    """A rewrite of the same length inside the re-walk."""
++    return lambda: Path(path).write_bytes(b'MODIFIED')
++
++
++def rewrite_the_original_same_bytes(path):
++    """A rewrite of the very same bytes inside the re-walk."""
++    return lambda: Path(path).write_bytes(ORIGINAL_BODY)
++
++
++def grow_the_original_in_the_rewalk(path):
++    """A growth inside the re-walk."""
++    return lambda: Path(path).write_bytes(ORIGINAL_BODY + b'GROWN')
++
++
++def truncate_the_original_in_the_rewalk(path):
++    """A truncation inside the re-walk."""
++    return lambda: Path(path).write_bytes(b'ORI')
++
++
++REWALK_MUTATIONS = (
++    ('same_length_rewrite', rewrite_the_original_same_length),
++    ('same_bytes_rewrite', rewrite_the_original_same_bytes),
++    ('growth', grow_the_original_in_the_rewalk),
++    ('truncation', truncate_the_original_in_the_rewalk),
++)
++REWALK_MUTATION_IDS = [item[0] for item in REWALK_MUTATIONS]
++
++
++@pytest.mark.parametrize('name,factory', REWALK_MUTATIONS, ids=REWALK_MUTATION_IDS)
++def test_the_seal_refuses_an_original_that_changes_during_the_rewalk(
++        tmp_path, monkeypatch, name, factory):
++    """O1: the seal refuses an original that changes inside the re-walk."""
++    root, evidence = originals_root(tmp_path)
++    target = root / 'temp/raw.bin'
++    before = os.stat(target)
++    wrapper, state = mutating_reopen('raw.bin', factory(target))
++    install_reopen(monkeypatch, wrapper)
++    with pytest.raises(S3IntegrationError) as error:
++        seal_all(evidence)
++    assert state['fired'], name
++    assert error.value.reason.startswith('S3_ORIGINAL_'), (name, error.value.reason)
++    # the change was observable in the state of the very same object
++    after = os.stat(target)
++    assert (after.st_dev, after.st_ino) == (before.st_dev, before.st_ino), name
++    assert (after.st_mtime_ns != before.st_mtime_ns
++            or after.st_ctime_ns != before.st_ctime_ns
++            or after.st_size != before.st_size), name
++    # a refused seal publishes nothing at all
++    assert evidence.originals == {}, name
++    # the re-walk is the last observation: the artifact was opened twice
++    # and not a third time
++    assert state['opens'] == 2, name
++
++
++@pytest.mark.parametrize('name,factory', REWALK_MUTATIONS, ids=REWALK_MUTATION_IDS)
++def test_the_manifest_refuses_an_original_that_changes_during_the_rewalk(
++        tmp_path, monkeypatch, name, factory):
++    """O1: the manifest refuses an original that changes inside the re-walk."""
++    root, evidence = originals_root(tmp_path)
++    seal_all(evidence)
++    target = root / 'temp/raw.bin'
++    before = os.stat(target)
++    wrapper, state = mutating_reopen('raw.bin', factory(target))
++    install_reopen(monkeypatch, wrapper)
++    with pytest.raises(S3IntegrationError) as error:
++        evidence.manifest()
++    assert state['fired'], name
++    assert error.value.reason.startswith('S3_ORIGINAL_'), (name, error.value.reason)
++    # the change was observable in the state of the very same object
++    after = os.stat(target)
++    assert (after.st_dev, after.st_ino) == (before.st_dev, before.st_ino), name
++    assert (after.st_mtime_ns != before.st_mtime_ns
++            or after.st_ctime_ns != before.st_ctime_ns
++            or after.st_size != before.st_size), name
++    # the stale seal is never published as verified and it is not changed
++    assert evidence.originals['raw'][0]['sha256'] == \
++        hashlib.sha256(ORIGINAL_BODY).hexdigest(), name
++    assert evidence.originals['raw'][0]['size'] == len(ORIGINAL_BODY), name
++    # the re-walk is the last observation: the artifact was opened twice
++    # and not a third time
++    assert state['opens'] == 2, name
++
++
++@pytest.mark.parametrize('phase', ['seal', 'manifest'])
++def test_an_original_that_does_not_change_during_the_rewalk_is_accepted(
++        tmp_path, monkeypatch, phase):
++    """O1: an original that does not change in the re-walk is not refused."""
++    root, evidence = originals_root(tmp_path)
++    if phase == 'manifest':
++        seal_all(evidence)
++    wrapper, state = mutating_reopen('raw.bin', lambda: None)
++    install_reopen(monkeypatch, wrapper)
++    if phase == 'seal':
++        sealed = seal_all(evidence)
++        assert sealed['raw'][0]['sha256'] == hashlib.sha256(ORIGINAL_BODY).hexdigest()
++        assert sealed['raw'][0]['bytes'] == len(ORIGINAL_BODY)
++    else:
++        manifest = evidence.manifest()
++        assert manifest['reverification']['verified'] is True
++        assert manifest['reverification']['checked'][2]['sha256'] == \
++            hashlib.sha256(ORIGINAL_BODY).hexdigest()
++    # the unchanged artifact was opened twice by the procedure: the
++    # verified walk and the re-walk, and never a third time
++    assert state['opens'] == 2, phase
++
+diff --git a/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_supervisor.py b/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_supervisor.py
+index e8cfb85..4324006 100644
+--- a/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_supervisor.py
++++ b/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_supervisor.py
+@@ -63,6 +63,16 @@ EXECUTOR_RELATIVE = ('reports/v0-s3/product-gate0/implementation-integration-01/
+                      'executor.py')
+ 
+ 
++def _context_digest(context_path):
++    """The sealed digest of a worker context document.
++
++    The worker never computes the expectation of the seal of its own
++    context: every load of a context is verified against a hash that the
++    caller sealed before the run.
++    """
++    return hashlib.sha256(Path(context_path).read_bytes()).hexdigest()
++
++
+ def load_executor_module():
+     """Load the independent finite CPU executor of the new report subtree."""
+     path = PACK_ROOT / EXECUTOR_RELATIVE
+@@ -402,6 +412,183 @@ def test_an_expired_history_deadline_is_detected(tmp_path):
+     assert supervisor._deadline_state() == 'PHASE_DEADLINE_EXCEEDED'
+ 
+ 
++# ------------------------------------------------- H: the history lifetime
++def row_event(event, asset_id, ordinal, sequence):
++    """One row event of the protocol, with its own sequence."""
++    return message(event, {'asset_id': asset_id, 'ordinal': ordinal}, sequence=sequence)
++
++
++def consume_until(supervisor, sequence, *, timeout=5.0):
++    """Consume the protocol until the state has the given sequence."""
++    end = time.monotonic() + timeout
++    while supervisor.state.last_sequence < sequence and time.monotonic() < end:
++        supervisor._consume_stdout()
++        time.sleep(0.001)
++    assert supervisor.state.last_sequence == sequence
++
++
++def test_a_finished_row_does_not_constrain_the_later_rows(tmp_path):
++    """H: a history deadline only constrains the wait of its own row.
++
++    The first row started its history wait at zero and finished at ten, so
++    its deadline of six hundred is in the past when the second row starts
++    its own wait at five hundred.  The finished row does not interrupt the
++    second row.
++    """
++    clock = SteppingClock(step=0.0)
++    process = FakeProcess()
++    supervisor = make_supervisor(tmp_path, process=process, clock=clock,
++                                  phase_timeout=100000, history_timeout=600,
++                                  child_timeout=100000)
++    supervisor.start()
++    clock.now = 0.0
++    process.emit(row_event('ROW_STARTED', 'SYN-01', 1, 1))
++    process.emit(row_event('HISTORY_WAIT_STARTED', 'SYN-01', 1, 2))
++    consume_until(supervisor, 2)
++    assert supervisor.history_deadlines['SYN-01'] == 600
++    clock.now = 10.0
++    process.emit(row_event('ROW_FINISHED', 'SYN-01', 1, 3))
++    consume_until(supervisor, 3)
++    assert supervisor.history_completed == {'SYN-01'}
++    clock.now = 500.0
++    process.emit(row_event('ROW_STARTED', 'SYN-02', 2, 4))
++    process.emit(row_event('HISTORY_WAIT_STARTED', 'SYN-02', 2, 5))
++    consume_until(supervisor, 5)
++    assert supervisor.history_deadlines['SYN-02'] == 1100
++    # the deadline of the finished row is in the past and does not stop the
++    # run of the second row
++    for moment in (600.0, 601.0, 1099.0, 1100.0):
++        clock.now = moment
++        assert supervisor._deadline_state() is None
++
++
++def test_the_history_deadline_of_the_active_row_is_exact_and_one_over(tmp_path):
++    """H: the deadline of the active row is exact and one over is a refusal."""
++    clock = SteppingClock(step=0.0)
++    process = FakeProcess()
++    supervisor = make_supervisor(tmp_path, process=process, clock=clock,
++                                  phase_timeout=100000, history_timeout=600,
++                                  child_timeout=100000)
++    supervisor.start()
++    supervisor._fix_history_deadline('SYN-01')
++    clock.now = 600.0
++    assert supervisor._deadline_state() is None
++    clock.now = 600.001
++    assert supervisor._deadline_state() == 'HISTORY_DEADLINE_EXCEEDED:SYN-01'
++
++
++def test_the_phase_and_the_child_deadline_stay_exact_and_one_over(tmp_path):
++    """H: the phase and the child deadline are exact and one over refuses."""
++    clock = SteppingClock(step=0.0)
++    supervisor = make_supervisor(tmp_path, process=FakeProcess(), clock=clock,
++                                 phase_timeout=1000, history_timeout=600,
++                                 child_timeout=2000)
++    supervisor.start()
++    clock.now = 1000.0
++    assert supervisor._deadline_state() is None
++    clock.now = 1000.001
++    assert supervisor._deadline_state() == 'PHASE_DEADLINE_EXCEEDED'
++    clock = SteppingClock(step=0.0)
++    supervisor = make_supervisor(tmp_path, process=FakeProcess(), clock=clock,
++                                 phase_timeout=1000, history_timeout=600,
++                                 child_timeout=100)
++    supervisor.start()
++    clock.now = 100.0
++    assert supervisor._deadline_state() is None
++    clock.now = 100.001
++    assert supervisor._deadline_state() == 'PHASE_DEADLINE_EXCEEDED'
++
++
++def test_the_history_audit_is_kept_and_a_row_is_not_reopened(tmp_path):
++    """H: the audit of a finished row stays and the row is not reopened."""
++    clock = SteppingClock(step=0.0)
++    process = FakeProcess()
++    supervisor = make_supervisor(tmp_path, process=process, clock=clock,
++                                  phase_timeout=100000, history_timeout=600,
++                                  child_timeout=100000)
++    supervisor.start()
++    supervisor._fix_history_deadline('SYN-01')
++    clock.now = 10.0
++    supervisor._close_history_deadline('SYN-01')
++    # the first start, the fixed deadline and the completion stay in the audit
++    assert supervisor.history_deadlines['SYN-01'] == 600
++    record = supervisor.history_records['SYN-01']
++    assert record['first_start'] == 0.0
++    assert record['deadline'] == 600
++    assert record['completed_at'] == 10.0
++    # the audit is not deleted to make a repeated start acceptable
++    state = supervisor.state
++    payload = {'asset_id': 'SYN-01', 'ordinal': 1}
++    state.accept(decode_message(encoded(message('ROW_STARTED', payload, sequence=1))))
++    state.accept(decode_message(encoded(message('HISTORY_WAIT_STARTED', payload,
++                                                 sequence=2))))
++    with pytest.raises(SupervisionError) as error:
++        state.accept(decode_message(encoded(message('ROW_STARTED', payload, sequence=3))))
++    assert error.value.code == 'MESSAGE_ROW_STARTED_REPEATED'
++    with pytest.raises(SupervisionError) as error:
++        state.accept(decode_message(encoded(message('HISTORY_WAIT_STARTED', payload,
++                                                     sequence=4))))
++    assert error.value.code == 'MESSAGE_HISTORY_STARTED_REPEATED'
++    state.accept(decode_message(encoded(message('ROW_FINISHED', payload, sequence=5))))
++    with pytest.raises(SupervisionError) as error:
++        state.accept(decode_message(encoded(message('ROW_STARTED', payload, sequence=6))))
++    assert error.value.code == 'MESSAGE_ROW_REOPENED'
++    with pytest.raises(SupervisionError) as error:
++        state.accept(decode_message(encoded(message('ROW_FINISHED', payload, sequence=7))))
++    assert error.value.code == 'MESSAGE_ROW_FINISHED_REPEATED'
++    with pytest.raises(SupervisionError) as error:
++        state.accept(decode_message(encoded(message('HISTORY_WAIT_STARTED', payload,
++                                                     sequence=8))))
++    assert error.value.code == 'MESSAGE_ROW_REOPENED'
++    # the audit of the row is still there
++    assert supervisor.history_records['SYN-01']['deadline'] == 600
++
++
++def test_a_finished_row_does_not_stop_the_run(tmp_path):
++    """H: the run of the later rows is not interrupted by a finished row."""
++    root = tmp_path / 'run'
++    root.mkdir()
++    payload = b'{"rows": []}'
++    (root / 'canonical.json').write_bytes(payload)
++    clock = SteppingClock(step=0.0)
++    process = FakeProcess()
++    supervisor = make_supervisor(tmp_path, process=process, clock=clock, root=root,
++                                  phase_timeout=100000, history_timeout=600,
++                                  child_timeout=100000)
++    supervisor.start()
++    written = 0
++    clock.now = 0.0
++    for value in (row_event('ROW_STARTED', 'SYN-01', 1, 1),
++                  row_event('HISTORY_WAIT_STARTED', 'SYN-01', 1, 2)):
++        process.emit(value)
++        written += len(encoded(value)) + 1
++    consume_until(supervisor, 2)
++    clock.now = 10.0
++    process.emit(row_event('ROW_FINISHED', 'SYN-01', 1, 3))
++    written += len(encoded(row_event('ROW_FINISHED', 'SYN-01', 1, 3))) + 1
++    consume_until(supervisor, 3)
++    clock.now = 500.0
++    for value in (row_event('ROW_STARTED', 'SYN-02', 2, 4),
++                  row_event('HISTORY_WAIT_STARTED', 'SYN-02', 2, 5)):
++        process.emit(value)
++        written += len(encoded(value)) + 1
++    consume_until(supervisor, 5)
++    terminal = canonical_terminal(root, sequence=6)
++    os.write(process.out_write, terminal)
++    assert wait_for_the_reader(supervisor.stdout_reader, written + len(terminal))
++    process.close_streams()
++    process.returncode = 0
++    clock.now = 601.0
++    evidence = supervisor.run()
++    # the deadline of the finished row did not interrupt the run
++    assert evidence['protocol_violation'] is None
++    assert evidence['unknown_outcome'] is False
++    assert evidence['canonical_receipt_verified'] is True
++    assert evidence['history_completed_rows'] == ['SYN-01']
++    assert evidence['history_deadlines'] == {'SYN-01': 600, 'SYN-02': 1100}
++    assert evidence['history_records']['SYN-01']['completed_at'] == 10.0
++
++
+ # ---------------------------------------------------------- the parent hold
+ def test_the_parent_terminates_only_the_handle_it_holds(tmp_path):
+     """I08/I24: the parent stops the worker that it started itself."""
+@@ -584,7 +771,8 @@ def build_worker_context(tmp_path, root, *, clock):
+     binding_path = tmp_path / 'binding.json'
+     binding_path.write_text(json.dumps(binding))
+     manifest_path = tmp_path / 'dependency-manifest.json'
+-    manifest_path.write_text(json.dumps(dependency_manifest()))
++    manifest = dependency_manifest()
++    manifest_path.write_text(json.dumps(manifest))
+     document = {
+         'schema': 'lvw.s3-quality-worker-context/1', 'run_id': RUN_ID,
+         'candidate_sha': CANDIDATE_SHA, 'authorization_sha256': AUTHORIZATION_SHA,
+@@ -603,6 +791,15 @@ def build_worker_context(tmp_path, root, *, clock):
+                              ('powershell', 'comfy_main', 'comfy_python', 'ollama_exe',
+                               'ffmpeg_exe', 'nvidia_exe')},
+         'canonical_receipt_reference': 'temp/s3-quality/qd-receipt.json',
++        # The declared anchors of the data references: the run root, the
++        # directory of the sealed documents of this run and the read-only
++        # directory of the named dependency.
++        'reference_anchors': [
++            {'name': 'run-root', 'kind': 'RUN_ROOT', 'path': str(root)},
++            {'name': 'contexts', 'kind': 'READ_ONLY_DIRECTORY', 'path': str(tmp_path)},
++            {'name': 'dependencies', 'kind': 'READ_ONLY_DIRECTORY',
++             'path': manifest['path']},
++        ],
+     }
+     context_path = tmp_path / 'context.json'
+     context_path.write_text(json.dumps(document))
+@@ -614,7 +811,7 @@ def test_the_worker_really_invokes_the_quality_phase(tmp_path):
+     root = tmp_path / 'run'
+     clock = _p3b.FakeClock(step=0.0)
+     context_path, rows = build_worker_context(tmp_path, root, clock=clock)
+-    context = WorkerContext.load(context_path)
++    context = WorkerContext.load(context_path, expected_sha256=_context_digest(context_path))
+     events = []
+ 
+     def emit(event, payload):
+@@ -643,7 +840,7 @@ def test_the_history_wait_is_announced_before_the_row_finishes(tmp_path):
+     root = tmp_path / 'run'
+     clock = _p3b.FakeClock(step=0.0)
+     context_path, rows = build_worker_context(tmp_path, root, clock=clock)
+-    context = WorkerContext.load(context_path)
++    context = WorkerContext.load(context_path, expected_sha256=_context_digest(context_path))
+     events = []
+     driver = _p3b.SyntheticDriver(root, None)
+     run_worker(context, driver=driver, emit=lambda event, payload: events.append(event),
+@@ -673,19 +870,38 @@ def test_a_context_with_an_unknown_key_is_refused(tmp_path):
+     document['unexpected'] = True
+     context_path.write_text(json.dumps(document))
+     with pytest.raises(WorkerError) as error:
+-        WorkerContext.load(context_path)
++        WorkerContext.load(context_path, expected_sha256=_context_digest(context_path))
+     assert error.value.code == 'WORKER_CONTEXT_KEY_SET_INVALID'
+ 
+ 
+ # -------------------------------------------------- the frozen command plans
+ def test_the_production_command_is_the_fixed_worker():
+     """I23: the production entry starts exactly the fixed quality worker."""
+-    command = build_production_command('/tmp/context.json')
++    command = build_production_command('/tmp/context.json', context_sha256='a' * 64)
+     assert command[1:4] == ['-I', '-B', str(PACK_ROOT / 'tools/v0_s3_quality_worker.py')]
+-    assert command[-2:] == ['--context', '/tmp/context.json']
++    assert command[4:6] == ['--context', '/tmp/context.json']
+     assert 'fixture' not in ' '.join(command)
+ 
+ 
++def test_the_production_command_carries_the_pre_sealed_context_hash():
++    """M03: the fixed command hands the sealed hash down to the worker.
++
++    The worker never recomputes the expectation of the seal of its own
++    context: the command carries the hash that the caller sealed, and the
++    worker verifies every load against it.  The hash is the only internal
++    argument that the command adds.
++    """
++    command = build_production_command('/tmp/context.json', context_sha256='b' * 64)
++    assert command[-2:] == ['--context-sha256', 'b' * 64]
++    assert command.count('--context-sha256') == 1
++    with pytest.raises(SupervisionError) as error:
++        build_production_command('/tmp/context.json')
++    assert error.value.code == 'WORKER_CONTEXT_HASH_REQUIRED'
++    with pytest.raises(SupervisionError) as error:
++        build_production_command('/tmp/context.json', context_sha256='not-a-digest')
++    assert error.value.code == 'WORKER_CONTEXT_HASH_INVALID'
++
++
+ def test_the_fixture_command_is_one_enumerated_scenario():
+     """I23: the fixture command is one member of a closed enumeration."""
+     for scenario in FIXTURE_SCENARIOS:
+@@ -1738,6 +1954,171 @@ def test_the_controlled_handoff_keeps_the_frame(tmp_path):
+         stream.close()
+ 
+ 
++# --------------------------------------- S: the published state of a reader
++def assert_consistent_snapshot(snapshot, raw):
++    """A snapshot is one moment: its accounts belong to each other."""
++    assert snapshot['hashed_bytes'] == snapshot['kept_bytes']
++    assert snapshot['total_observed'] >= snapshot['kept_bytes']
++    assert snapshot['sha256'] == hashlib.sha256(
++        raw[:snapshot['hashed_bytes']]).hexdigest()
++    if snapshot['overflow']:
++        assert snapshot['hash_scope'] == 'prefix_within_budget'
++    elif snapshot['complete']:
++        assert snapshot['hash_scope'] == 'all_observed'
++    else:
++        assert snapshot['hash_scope'] == 'observed_prefix'
++
++
++def test_an_unfinished_stream_is_only_an_observed_prefix(tmp_path):
++    """S: a stream that did not end is never reported as the whole stream."""
++    reader_fd, writer_fd = os.pipe()
++    stream = os.fdopen(reader_fd, 'rb', buffering=0)
++    reader = _StreamReader(stream, MAX_STREAM_BYTES)
++    worker = threading.Thread(target=reader.run, daemon=True)
++    worker.start()
++    try:
++        empty = reader.snapshot()
++        assert empty['total_observed'] == 0
++        assert empty['hashed_bytes'] == 0
++        assert empty['complete'] is False
++        # an empty stream that did not end is not the whole stream
++        assert empty['hash_scope'] == 'observed_prefix'
++        os.write(writer_fd, b'later')
++        assert wait_for_the_reader(reader, 5)
++        partial = reader.snapshot()
++        assert partial['total_observed'] == 5
++        assert partial['hashed_bytes'] == 5
++        assert partial['complete'] is False
++        # the hashed bytes and the observed bytes are equal and it is still
++        # only the observed prefix
++        assert partial['hash_scope'] == 'observed_prefix'
++        assert_consistent_snapshot(partial, reader.raw())
++        os.close(writer_fd)
++        worker.join(5)
++        final = reader.snapshot()
++        assert final['complete'] is True
++        assert final['hash_scope'] == 'all_observed'
++        assert_consistent_snapshot(final, reader.raw())
++    finally:
++        stream.close()
++
++
++def test_the_snapshot_never_mixes_two_moments(tmp_path):
++    """S: a snapshot is not the state of one step and of another step.
++
++    The interleaving is the one of the independent review: the snapshot is
++    paused after it read the published state, the reader publishes the
++    bytes and the end of the stream in the meantime and the snapshot
++    returns afterwards.  The snapshot that is returned is one moment and it
++    never claims that a stream ended while its digest is empty.
++    """
++    import dis
++    reader_fd, writer_fd = os.pipe()
++    stream = os.fdopen(reader_fd, 'rb', buffering=0)
++    reader = _StreamReader(stream, MAX_STREAM_BYTES)
++    code = _StreamReader.snapshot.__code__
++    target = next(instruction.offset for instruction in dis.get_instructions(code)
++                  if instruction.opname == 'STORE_SUBSCR')
++    paused = threading.Event()
++    release = threading.Event()
++
++    def instruction(code_object, offset):
++        if offset == target:
++            paused.set()
++            release.wait(5)
++
++    sys.monitoring.use_tool_id(5, 'lvw-s3-snapshot')
++    sys.monitoring.register_callback(5, sys.monitoring.events.INSTRUCTION, instruction)
++    sys.monitoring.set_local_events(5, code, sys.monitoring.events.INSTRUCTION)
++    try:
++        worker = threading.Thread(target=reader.run, daemon=True)
++        worker.start()
++        box = {}
++        snapshotter = threading.Thread(target=lambda: box.update(reader.snapshot()))
++        snapshotter.start()
++        assert paused.wait(5) is True
++        # the reader publishes the bytes and the end of the stream while the
++        # snapshot is paused
++        os.write(writer_fd, b'hello')
++        os.close(writer_fd)
++        worker.join(5)
++        assert reader.finished.is_set()
++        release.set()
++        snapshotter.join(5)
++        # the returned snapshot is one moment and it is not the mixed state
++        # of the old publication
++        assert_consistent_snapshot(box, reader.raw())
++        assert not (box['complete'] and box['hashed_bytes'] != box['total_observed'])
++        assert not (box['hashed_bytes'] == 5 and box['total_observed'] == 0)
++        # the state after the publication is complete and consistent
++        final = reader.snapshot()
++        assert final['complete'] is True
++        assert final['total_observed'] == 5
++        assert final['hashed_bytes'] == 5
++        assert final['hash_scope'] == 'all_observed'
++        assert final['sha256'] == hashlib.sha256(b'hello').hexdigest()
++        assert_consistent_snapshot(final, reader.raw())
++    finally:
++        sys.monitoring.set_local_events(5, code, 0)
++        sys.monitoring.free_tool_id(5)
++        release.set()
++        stream.close()
++
++
++def test_the_reader_publishes_the_bytes_and_the_total_together(tmp_path):
++    """S: the observed bytes and the kept bytes are one publication.
++
++    The reader is paused after it read the bytes of the stream and before
++    it publishes them.  A snapshot of that moment is the older, complete
++    state of the reader and never a state in which the bytes are hashed but
++    the total of the stream is still the old one.
++    """
++    import dis
++    reader_fd, writer_fd = os.pipe()
++    stream = os.fdopen(reader_fd, 'rb', buffering=0)
++    reader = _StreamReader(stream, MAX_STREAM_BYTES)
++    code = _StreamReader.run.__code__
++    targets = [instruction.offset for instruction in dis.get_instructions(code)
++               if instruction.opname == 'LOAD_ATTR' and instruction.argval == '_retain']
++    assert targets, 'the reader has no publication point'
++    target = targets[-1]
++    paused = threading.Event()
++    release = threading.Event()
++
++    def instruction(code_object, offset):
++        if offset == target:
++            paused.set()
++            release.wait(5)
++
++    sys.monitoring.use_tool_id(5, 'lvw-s3-publication')
++    sys.monitoring.register_callback(5, sys.monitoring.events.INSTRUCTION, instruction)
++    sys.monitoring.set_local_events(5, code, sys.monitoring.events.INSTRUCTION)
++    try:
++        worker = threading.Thread(target=reader.run, daemon=True)
++        worker.start()
++        os.write(writer_fd, b'world')
++        assert paused.wait(5) is True
++        snapshot = reader.snapshot()
++        release.set()
++        os.close(writer_fd)
++        worker.join(5)
++        # the mixed state of the old publication is gone
++        assert not (snapshot['hashed_bytes'] == 5 and snapshot['total_observed'] == 0)
++        assert snapshot['hashed_bytes'] == snapshot['total_observed']
++        assert_consistent_snapshot(snapshot, reader.raw())
++        final = reader.snapshot()
++        assert final['total_observed'] == 5
++        assert final['hashed_bytes'] == 5
++        assert final['complete'] is True
++        assert final['hash_scope'] == 'all_observed'
++        assert final['sha256'] == hashlib.sha256(b'world').hexdigest()
++    finally:
++        sys.monitoring.set_local_events(5, code, 0)
++        sys.monitoring.free_tool_id(5)
++        release.set()
++        stream.close()
++
++
+ # ------------------------------------- the finite CPU executor, zero process
+ def fake_root_binding(tmp_path, *, counter_path, budget_id='budget-under-test',
+                       limits=None, pins=None, candidate_sha=None, python=None):
+diff --git a/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_coordinator.py b/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_coordinator.py
+index 04975d0..889273c 100644
+--- a/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_coordinator.py
++++ b/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_coordinator.py
+@@ -19,7 +19,23 @@ receipts and registers them.
+ Nothing in this module proves a product gate.  Every document it produces
+ carries ``stage_pass_claim = False`` and ``product_gate0 = False``.  A
+ synthetic fixture never counts as a product pass.
++
++The originals of a bound root are read by one safe reading procedure that
++the seal and the consumption of the manifest share.  Its boundary is
++explicit and it is deliberately not a bigger claim than it is:
++
++* the check covers the window between the verified opening of an artifact
++  and the end of the digest of that very handle, plus the re-walk of the
++  reference from the bound root that follows the digest;
++* the re-walk ends with one last real observation of the artifact - the
++  type, the identity, the size, the change time, the modify time and the
++  consumed length of the object that the re-walk really opened.  That
++  observation is the boundary of the check;
++* it does not claim that an artifact can not change after that last
++  observation, and it is not an atomic snapshot of a batch of artifacts -
++  every artifact is checked on its own and the batch is not frozen.
+ """
++import errno
+ import hashlib
+ import json
+ import os
+@@ -42,25 +58,38 @@ TWELVE_KEYS = tuple('V0-A%02d' % index for index in range(1, 13))
+ # its own product obligation needs.  The old S2 nine key phase facts and the
+ # old 45+20 submissions are phase facts of the S2 stage; they are never
+ # accepted here as an S3 receipt, so they cannot fill a green key.
++#
++# The cleanup of the run is a global obligation: every key of this summary
++# describes a stage of a run that has to end clean.  The cleanup receipt is
++# therefore required by every key, and a key without a proven cleanup can
++# never be green.  The fixed set of the twelve keys and the product
++# denominator are not changed by this.
+ TWELVE_REQUIREMENTS = {
+-    'V0-A01': ('stage_binding', 'image_input'),
+-    'V0-A02': ('stage_binding', 'video_input'),
+-    'V0-A03': ('stage_binding', 'output_contract'),
+-    'V0-A04': ('stage_binding', 'manual_export'),
+-    'V0-A05': ('stage_binding', 'no_overwrite'),
+-    'V0-A06': ('stage_binding', 'a06_isolation', 'install', 'rollback'),
+-    'V0-A07': ('stage_binding', 'file_safety'),
+-    'V0-A08': ('stage_binding', 'no_approval_gate'),
+-    'V0-A09': ('stage_binding', 'resource_budget'),
+-    'V0-A10': ('stage_binding', 'cancel_release'),
+-    'V0-A11': ('stage_binding', 'quality_16_rows', 'independent_score'),
+-    'V0-A12': ('stage_binding', 'quality_16_rows', 'independent_score', 'webp_format'),
++    'V0-A01': ('stage_binding', 'image_input', 'cleanup'),
++    'V0-A02': ('stage_binding', 'video_input', 'cleanup'),
++    'V0-A03': ('stage_binding', 'output_contract', 'cleanup'),
++    'V0-A04': ('stage_binding', 'manual_export', 'cleanup'),
++    'V0-A05': ('stage_binding', 'no_overwrite', 'cleanup'),
++    'V0-A06': ('stage_binding', 'a06_isolation', 'install', 'rollback', 'cleanup'),
++    'V0-A07': ('stage_binding', 'file_safety', 'cleanup'),
++    'V0-A08': ('stage_binding', 'no_approval_gate', 'cleanup'),
++    'V0-A09': ('stage_binding', 'resource_budget', 'cleanup'),
++    'V0-A10': ('stage_binding', 'cancel_release', 'cleanup'),
++    'V0-A11': ('stage_binding', 'quality_16_rows', 'independent_score', 'cleanup'),
++    'V0-A12': ('stage_binding', 'quality_16_rows', 'independent_score', 'webp_format',
++               'cleanup'),
+ }
+ 
+ # The receipts whose own truth is not a single phase result: the A06 real
+ # isolation, the independent quality score and the cleanup proof.
+ BLOCKING_RECEIPTS = ('a06_isolation', 'independent_score')
+ 
++# The receipt that carries the proof that the run ended clean.  It is a
++# normal aggregate receipt: it has the kind, the status, the stage claim
++# flag and the run/candidate binding of every other receipt, and it has to
++# state the cleanup proof with the strict boolean ``True``.
++CLEANUP_RECEIPT = 'cleanup'
++
+ 
+ class S3IntegrationError(RuntimeError):
+     """A refused S3 integration step.
+@@ -84,27 +113,78 @@ def sha256_bytes(raw):
+     return hashlib.sha256(raw).hexdigest()
+ 
+ 
+-def _digest_file(path, limit=MAX_SEALED_ORIGINAL_BYTES):
+-    """Bounded, symlink free digest of one regular file."""
+-    path = Path(path)
+-    info = path.lstat()
+-    if stat.S_ISLNK(info.st_mode):
+-        raise S3IntegrationError('ORIGINAL_NOT_A_REGULAR_FILE')
+-    if not stat.S_ISREG(info.st_mode):
+-        raise S3IntegrationError('ORIGINAL_NOT_A_REGULAR_FILE')
+-    if info.st_size > limit:
+-        raise S3IntegrationError('ORIGINAL_EXCEEDS_BOUND')
++def _no_follow_open_supported():
++    """Whether this platform has the safe opening primitives.
++
++    The originals of a bound root are only ever opened through the
++    directory descriptor of their own parent with ``O_NOFOLLOW``.  A
++    platform that does not have these primitives is not silently treated
++    as if it had them: the caller fails closed and the run stays
++    ``NOT_PROVEN``.
++    """
++    if not hasattr(os, 'O_NOFOLLOW') or not hasattr(os, 'O_DIRECTORY'):
++        return False
++    return os.open in getattr(os, 'supports_dir_fd', ())
++
++
++def _non_block_open_supported():
++    """Whether this platform has the non blocking opening primitive.
++
++    The final component of a reference is opened with ``O_NONBLOCK`` so
++    that a special file - a fifo, a device, a socket - can never block
++    the parent on the open itself.  A platform without that flag is not
++    silently treated as if it had it: the caller fails closed.
++    """
++    return hasattr(os, 'O_NONBLOCK') and isinstance(os.O_NONBLOCK, int)
++
++
++def _safe_open_supported():
++    """Whether this platform has every primitive the safe read needs.
++
++    The check is a real capability check and not a promise: the flags
++    themselves are handed to the kernel by the opening of the bound root,
++    and a kernel that refuses them turns into a refusal of the run.
++    """
++    return _no_follow_open_supported() and _non_block_open_supported()
++
++
++def _directory_open_flags():
++    """The flags of one safe opening of a directory component."""
++    return os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW | os.O_NONBLOCK
++
++
++def _final_open_flags():
++    """The flags of one safe opening of the final component.
++
++    The final component is not opened with ``O_DIRECTORY``: it may be a
++    regular file, and the type of whatever it is has to be decided by the
++    ``fstat`` of the opened handle.  ``O_NONBLOCK`` keeps a special file
++    from blocking this opening.
++    """
++    return os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK
++
++
++def _digest_handle(descriptor, limit=MAX_SEALED_ORIGINAL_BYTES):
++    """The digest and the length of the bytes of one verified handle.
++
++    The bytes are read from the handle that was opened and verified, so
++    the digest and the identity belong to the same object.  There is no
++    second, unchecked open of the same path.
++
++    The caller verifies the handle again after this read and re-walks the
++    path of the reference from the bound root: a digest alone does not
++    prove that the file on the path is still the object that was read.
++    """
+     digest = hashlib.sha256()
+     length = 0
+-    with path.open('rb') as stream:
+-        while True:
+-            block = stream.read(1024 * 1024)
+-            if not block:
+-                break
+-            length += len(block)
+-            if length > limit:
+-                raise S3IntegrationError('ORIGINAL_EXCEEDS_BOUND')
+-            digest.update(block)
++    while True:
++        block = os.read(descriptor, 1024 * 1024)
++        if not block:
++            break
++        length += len(block)
++        if length > limit:
++            raise S3IntegrationError('ORIGINAL_EXCEEDS_BOUND')
++        digest.update(block)
+     return digest.hexdigest(), length
+ 
+ 
+@@ -275,6 +355,19 @@ class ParentOriginalEvidence:
+ 
+     The worker can never replace this list by changing an in-memory return
+     value: every entry is read from the parent's own root.
++
++    The originals are opened through the bound root without following a
++    link: every component of a reference is opened from the descriptor of
++    its own parent with ``O_NOFOLLOW``, so an ancestor that points out of
++    the root is refused and not only a link on the artifact itself.  The
++    final component is opened with ``O_NONBLOCK`` as well, so a special
++    file can never block the parent on the open itself, and the type of
++    the object is decided by the ``fstat`` of the opened handle.  The
++    digest is computed from the handle that was verified, the handle is
++    verified again after the read and the reference is walked again from
++    the bound root, so an original that changes during the read is refused
++    and the stale seal is never published.  A platform that does not have
++    these primitives fails closed and stays ``NOT_PROVEN``.
+     """
+ 
+     def __init__(self, *, run_id, candidate_sha, child_sha256, root, projection_sha256):
+@@ -335,21 +428,303 @@ class ParentOriginalEvidence:
+         self.root_identity = [int(root_identity[0]), int(root_identity[1])]
+         return self.root_identity
+ 
+-    def _resolve_inside_root(self, relative, category='original'):
+-        """Resolve one artifact of the selected root, without following a link."""
++    def _bound_root_fd(self):
++        """Open the bound root and verify its object identity.
++
++        The root is opened without following a link and the identity of the
++        opened object is compared with the sealed one.  A root that was
++        replaced, that became a link or that vanished is refused here,
++        before any original is touched.
++
++        The opening uses the flags of the safe read, so the platform check
++        is a real one: the kernel has to accept the flags of the safe
++        opening.  A kernel that refuses them fails the run closed.
++        """
++        if self.root_identity is None:
++            raise S3IntegrationError('S3_SELECTED_ROOT_NOT_SEALED')
++        if not _safe_open_supported():
++            # The platform can not open an artifact of the root without
++            # following a link and without blocking on a special file.
++            # The run stays NOT_PROVEN instead of claiming that the
++            # originals are inside the root.
++            raise S3IntegrationError('S3_ORIGINAL_SAFE_OPEN_UNSUPPORTED')
++        try:
++            descriptor = os.open(self.root, _directory_open_flags())
++        except OSError as error:
++            if error.errno in (errno.ELOOP, errno.ENOTDIR):
++                raise S3IntegrationError('S3_SELECTED_ROOT_REPLACED') from error
++            if error.errno in (errno.EINVAL, errno.ENOSYS, errno.EOPNOTSUPP):
++                # The kernel refused the safe flags: the platform does not
++                # have the primitive and the run fails closed.
++                raise S3IntegrationError('S3_ORIGINAL_SAFE_OPEN_UNSUPPORTED') from error
++            raise S3IntegrationError('S3_SELECTED_ROOT_UNAVAILABLE') from error
++        try:
++            info = os.fstat(descriptor)
++            if not stat.S_ISDIR(info.st_mode):
++                raise S3IntegrationError('S3_SELECTED_ROOT_REPLACED')
++            if [info.st_dev, info.st_ino] != list(self.root_identity):
++                raise S3IntegrationError('S3_SELECTED_ROOT_REPLACED')
++        except BaseException:
++            os.close(descriptor)
++            raise
++        return descriptor
++
++    @staticmethod
++    def _reference_parts(relative):
++        """The components of one root relative reference."""
+         if not isinstance(relative, str) or not relative:
+             raise S3IntegrationError('S3_ORIGINAL_REFERENCE_INVALID')
+         pure = Path(relative)
+         if pure.is_absolute() or '..' in pure.parts:
+             raise S3IntegrationError('S3_ORIGINAL_REFERENCE_INVALID')
+-        path = self.root / pure
++        parts = [part for part in pure.parts if part != '.']
++        if not parts:
++            raise S3IntegrationError('S3_ORIGINAL_REFERENCE_INVALID')
++        return parts
++
++    @staticmethod
++    def _open_error(error, category):
++        """The stable refusal of one refused opening."""
++        if error.errno == errno.ELOOP:
++            return S3IntegrationError('S3_ORIGINAL_REDIRECT_FORBIDDEN:' + category)
++        if error.errno == errno.ENOTDIR:
++            return S3IntegrationError('S3_ORIGINAL_ANCESTOR_NOT_A_DIRECTORY:' + category)
++        return S3IntegrationError('S3_ORIGINAL_UNREADABLE:' + category)
++
++    @staticmethod
++    def _is_link(directory, name):
++        """Whether one component of a reference is a link.
++
++        The classification never decides whether an artifact is safe: the
++        safe opening with ``O_NOFOLLOW`` already refused the artifact.  It
++        only names the reason of that refusal.
++        """
+         try:
+-            info = path.lstat()
+-        except OSError as error:
+-            raise S3IntegrationError('S3_ORIGINAL_UNREADABLE:' + category) from error
+-        if stat.S_ISLNK(info.st_mode):
+-            raise S3IntegrationError('S3_ORIGINAL_REDIRECT_FORBIDDEN:' + category)
+-        return path
++            info = os.stat(name, dir_fd=directory, follow_symlinks=False)
++        except (OSError, ValueError, NotImplementedError):
++            return False
++        return stat.S_ISLNK(info.st_mode)
++
++    def _open_inside_root(self, relative, category='original'):
++        """Open one artifact of the bound root without following a link.
++
++        Every component of the reference is opened one by one from the
++        descriptor of its own parent directory with ``O_NOFOLLOW``.  An
++        ancestor that is a link is therefore refused: the artifact is never
++        reached through a link, and the bytes that are digested are the
++        bytes of the handle that was verified.  There is no pre-check of
++        the path and no second, unchecked open of the same path.
++
++        The final component is opened with ``O_NONBLOCK`` as well, so a
++        special file can never block this opening.  The type of the object
++        is decided by the ``fstat`` of the opened handle and never by a
++        pre-check of the path.
++
++        The return value is the descriptor of the artifact and the chain
++        of the object identities of the root and of every ancestor
++        directory of the artifact, in the order they were opened.  The
++        chain is the evidence of the path that was walked; the re-check of
++        the path after the read walks it again and compares the chains.
++        """
++        parts = self._reference_parts(relative)
++        directory = self._bound_root_fd()
++        chain = []
++        try:
++            root_info = os.fstat(directory)
++            chain.append((int(root_info.st_dev), int(root_info.st_ino)))
++            for part in parts[:-1]:
++                try:
++                    child = os.open(part, _directory_open_flags(), dir_fd=directory)
++                except OSError as error:
++                    if self._is_link(directory, part):
++                        raise S3IntegrationError(
++                            'S3_ORIGINAL_REDIRECT_FORBIDDEN:' + category) from error
++                    raise self._open_error(error, category) from error
++                try:
++                    info = os.fstat(child)
++                    if not stat.S_ISDIR(info.st_mode):
++                        raise S3IntegrationError(
++                            'S3_ORIGINAL_ANCESTOR_NOT_A_DIRECTORY:' + category)
++                except BaseException:
++                    os.close(child)
++                    raise
++                os.close(directory)
++                directory = child
++                chain.append((int(info.st_dev), int(info.st_ino)))
++            try:
++                descriptor = os.open(parts[-1], _final_open_flags(), dir_fd=directory)
++            except OSError as error:
++                if self._is_link(directory, parts[-1]):
++                    raise S3IntegrationError(
++                        'S3_ORIGINAL_REDIRECT_FORBIDDEN:' + category) from error
++                raise self._open_error(error, category) from error
++        finally:
++            os.close(directory)
++        return descriptor, chain
++
++    @staticmethod
++    def _not_a_regular_reason(phase, category):
++        """The refusal of an artifact that is not a regular file.
++
++        A seal refuses the artifact itself; a re-check refuses it as a
++        replaced original, because the sealed original was a regular file
++        and this one is not.
++        """
++        if phase == 'seal':
++            return 'ORIGINAL_NOT_A_REGULAR_FILE'
++        return 'S3_ORIGINAL_REPLACED:' + category
++
++    def _refuse_a_changed_window(self, before, after, length, category, phase):
++        """Refuse an artifact that changed while it was read.
++
++        The handle is verified before the read and verified again after it.
++        The identity, the type, the size, the change time and the modify
++        time of the object have to be the same before and after, and the
++        number of bytes that were consumed has to be the size of the
++        object.  A rewrite of the same length, a rewrite of the same
++        bytes, a growth, a truncation and a replaced object are all
++        refused here.
++        """
++        if not stat.S_ISREG(after.st_mode):
++            raise S3IntegrationError(self._not_a_regular_reason(phase, category))
++        if (int(after.st_dev), int(after.st_ino)) != (int(before.st_dev), int(before.st_ino)):
++            raise S3IntegrationError('S3_ORIGINAL_REPLACED:' + category)
++        if int(after.st_size) != int(before.st_size):
++            raise S3IntegrationError('S3_ORIGINAL_CHANGED:' + category)
++        if (int(after.st_ctime_ns) != int(before.st_ctime_ns)
++                or int(after.st_mtime_ns) != int(before.st_mtime_ns)):
++            raise S3IntegrationError('S3_ORIGINAL_CHANGED:' + category)
++        if int(length) != int(before.st_size):
++            raise S3IntegrationError('S3_ORIGINAL_CHANGED:' + category)
++
++    def _refuse_a_changed_path(self, relative, chain, before, length, category):
++        """Refuse an artifact whose path does not lead to it any more.
++
++        The reference is walked a second time from the bound root after the
++        digest.  The root, every ancestor and the artifact itself have to
++        be the very objects of the first walk, compared by the identity of
++        the *handles* that were opened: the verified handle of the
++        artifact and the handle of the second walk.  The comparison never
++        falls back to a ``lstat`` of the path and a plain open of it.
++
++        The object of the second walk is compared by its *content state* as
++        well, not only by its identity.  The type, the identity, the size,
++        the change time, the modify time and the number of bytes that were
++        consumed have to be the ones of the state that the verified digest
++        was taken from.  A rewrite of the same length, a rewrite of the
++        same bytes, a growth and a truncation inside the re-walk window
++        are therefore refused here instead of being published with the
++        stale digest of the first walk.
++
++        The comparison uses the ``fstat`` of the handle that the second
++        walk really opened - the observation that is already made by this
++        procedure.  The artifact is not opened a third time, the walk is
++        not repeated and the check is not a retry: the last real
++        observation of the artifact is the boundary of the check, and a
++        change after that observation is outside of it.
++        """
++        descriptor, second = self._open_inside_root(relative, category)
++        try:
++            try:
++                info = os.fstat(descriptor)
++            except OSError as error:
++                raise S3IntegrationError('S3_ORIGINAL_UNREADABLE:' + category) from error
++        finally:
++            os.close(descriptor)
++        if second != chain:
++            # The root or one of the ancestors is not the object that was
++            # walked: the path of the artifact is a different path now.
++            raise S3IntegrationError('S3_ORIGINAL_REPLACED:' + category)
++        if not stat.S_ISREG(info.st_mode):
++            raise S3IntegrationError('S3_ORIGINAL_REPLACED:' + category)
++        if (int(info.st_dev), int(info.st_ino)) != (int(before.st_dev), int(before.st_ino)):
++            raise S3IntegrationError('S3_ORIGINAL_REPLACED:' + category)
++        if int(info.st_size) != int(before.st_size):
++            # The object of the re-walk is the very same object, but its
++            # content is not the content that was digested any more.
++            raise S3IntegrationError('S3_ORIGINAL_CHANGED:' + category)
++        if (int(info.st_ctime_ns) != int(before.st_ctime_ns)
++                or int(info.st_mtime_ns) != int(before.st_mtime_ns)):
++            # The same bytes with the same size are still a change of the
++            # original: the times of the object are what tells them apart.
++            raise S3IntegrationError('S3_ORIGINAL_CHANGED:' + category)
++        if int(length) != int(info.st_size):
++            # The consumed length and the size of the re-walked object have
++            # to be the same length as well.
++            raise S3IntegrationError('S3_ORIGINAL_CHANGED:' + category)
++
++    def _read_original_safely(self, relative, category, *, phase, expected=None):
++        """Read one original through one verified handle, with one check.
++
++        This is the one procedure that seals an original and that re-checks
++        a sealed one.  The handle is verified before the read, the digest is
++        taken from that very handle, the handle is verified again after the
++        read and the reference is walked again from the bound root.  A
++        change of the artifact during the read window, a change of the path
++        of the artifact during the read window and a change of the root or
++        of an ancestor during the read window are all refused, so a stale
++        seal is never published as a verified original.
++
++        The re-walk compares the *content state* of the object that it
++        really opened - the type, the identity, the size, the change time,
++        the modify time and the consumed length - with the state that the
++        verified digest was taken from.  A change of the artifact inside
++        the re-walk window is therefore refused as well, and it is refused
++        with the observation of that very window and not with an extra
++        opening of the artifact.
++
++        ``expected`` is the sealed entry of a re-check.  The identity of the
++        object is compared with the sealed one first: an object that is not
++        the sealed one is a replaced original, whatever happened to it
++        since the seal.
++
++        The boundary of the check is the window between the verified
++        opening and the end of the digest of that handle, plus the re-walk
++        that follows it and its last real observation of the artifact.  It
++        is not a claim about a later change and it is not an atomic
++        snapshot of a batch.
++        """
++        try:
++            descriptor, chain = self._open_inside_root(relative, category)
++        except ValueError as error:
++            raise S3IntegrationError('S3_ORIGINAL_REFERENCE_INVALID') from error
++        try:
++            try:
++                before = os.fstat(descriptor)
++            except OSError as error:
++                raise S3IntegrationError('S3_ORIGINAL_UNREADABLE:' + category) from error
++            if not stat.S_ISREG(before.st_mode):
++                raise S3IntegrationError(self._not_a_regular_reason(phase, category))
++            if before.st_size > MAX_SEALED_ORIGINAL_BYTES:
++                raise S3IntegrationError('ORIGINAL_EXCEEDS_BOUND:' + category)
++            try:
++                digest, length = _digest_handle(descriptor, MAX_SEALED_ORIGINAL_BYTES)
++                after = os.fstat(descriptor)
++            except OSError as error:
++                raise S3IntegrationError('S3_ORIGINAL_UNREADABLE:' + category) from error
++        finally:
++            os.close(descriptor)
++        observed = {'sha256': digest, 'bytes': int(length),
++                    'identity': [int(before.st_dev), int(before.st_ino)],
++                    'change_time_ns': int(before.st_ctime_ns),
++                    'modify_time_ns': int(before.st_mtime_ns),
++                    'size': int(before.st_size)}
++        if expected is not None:
++            self._compare_identity_with_the_seal(expected, observed, category)
++        self._refuse_a_changed_window(before, after, length, category, phase)
++        self._refuse_a_changed_path(relative, chain, before, length, category)
++        if expected is not None:
++            self._compare_content_with_the_seal(expected, observed, category)
++        return observed
++
++    def _seal_one(self, reference, category):
++        """Read one original through its verified handle and seal it."""
++        observed = self._read_original_safely(reference, category, phase='seal')
++        return {'reference': reference, 'sha256': observed['sha256'],
++                'bytes': observed['bytes'], 'identity': observed['identity'],
++                'change_time_ns': observed['change_time_ns'],
++                'modify_time_ns': observed['modify_time_ns'],
++                'size': observed['size']}
+ 
+     def seal_originals(self, *, canonical, source_plan, raw=()):
+         """Read the real originals of the selected root and seal their bytes.
+@@ -357,8 +732,16 @@ class ParentOriginalEvidence:
+         ``canonical`` and ``source_plan`` are root relative references of the
+         canonical receipt and of the sealed source plan.  ``raw`` is the
+         sequence of the root relative raw artifact references.  A missing,
+-        foreign or changed original is refused; it is never recorded as an
+-        empty result.
++        foreign, redirected or changed original is refused; it is never
++        recorded as an empty result.
++
++        Every artifact is opened through the bound root without following a
++        link, so an ancestor that points out of the root is refused as well
++        and not only a link on the artifact itself.
++
++        The seal is published as a whole or not at all: a refusal in the
++        middle of the sequence leaves ``self.originals`` untouched, so a
++        partial seal is never published.
+         """
+         if self.root_identity is None or self.rows is None:
+             raise S3IntegrationError('S3_ORIGINALS_NOT_SEALABLE')
+@@ -367,41 +750,101 @@ class ParentOriginalEvidence:
+                                  ('raw', list(raw))):
+             sealed = []
+             for reference in references:
+-                path = self._resolve_inside_root(reference, name)
+-                try:
+-                    digest, length = _digest_file(path)
+-                except OSError as error:
+-                    raise S3IntegrationError('S3_ORIGINAL_UNREADABLE:' + name) from error
+-                sealed.append({'reference': reference, 'sha256': digest, 'bytes': length})
++                sealed.append(self._seal_one(reference, name))
+             entries[name] = sealed
+         self.originals = entries
+         return entries
+ 
++    @staticmethod
++    def _compare_identity_with_the_seal(entry, observed, category):
++        """Refuse an original whose object is not the sealed one.
++
++        The identity of the object is the device and the inode number of
++        the handle that was opened.  A file that was replaced by another
++        file with the very same bytes is a different object and is refused
++        here.
++        """
++        if list(observed['identity']) != list(entry.get('identity', [])):
++            raise S3IntegrationError('S3_ORIGINAL_REPLACED:' + category)
++
++    @staticmethod
++    def _compare_content_with_the_seal(entry, observed, category):
++        """Refuse an original whose state is not the sealed one.
++
++        The change time, the modify time, the size, the length and the
++        digest have to be the sealed ones.  The change time of the object
++        is part of its identity: a file that was replaced by another file
++        with the very same bytes can reuse the number of the object on
++        some file systems, and the change time still tells the two apart.
++        A different change time or a different modify time is therefore a
++        replaced original; a different size, length or digest is a changed
++        original.
++        """
++        if (int(observed['change_time_ns']) != int(entry.get('change_time_ns', -1))
++                or int(observed['modify_time_ns']) != int(entry.get('modify_time_ns', -1))):
++            raise S3IntegrationError('S3_ORIGINAL_REPLACED:' + category)
++        if int(observed['size']) != int(entry.get('size', entry.get('bytes', -1))) \
++                or int(observed['bytes']) != int(entry['bytes']) \
++                or observed['sha256'] != entry['sha256']:
++            raise S3IntegrationError('S3_ORIGINAL_CHANGED:' + category)
++
++    def verify_originals(self):
++        """Re-read every sealed original through its verified handle.
++
++        The re-check is independent of the seal: it opens the artifact
++        again, compares the object identity, the length and the digest with
++        the sealed values and refuses every difference.  The identity of the
++        root is not the identity of the originals: a replaced, rewritten,
++        vanished or redirected original is refused even when the root is
++        still the sealed one.
++
++        The re-check uses the same safe reading procedure as the seal, so
++        an original that changes *while* it is read is refused as well and
++        the stale seal is never published as a verified manifest.
++        """
++        if not self.originals:
++            raise S3IntegrationError('S3_ORIGINALS_NOT_SEALED')
++        self.verify_selected_root()
++        checked = []
++        for category, entries in self.originals.items():
++            for entry in entries:
++                observed = self._read_original_safely(entry['reference'], category,
++                                                      phase='verify', expected=entry)
++                checked.append({'category': category, 'reference': entry['reference'],
++                                'sha256': observed['sha256'], 'bytes': observed['bytes'],
++                                'identity': observed['identity']})
++        return {'root': str(self.root), 'identity': list(self.root_identity),
++                'checked': checked, 'verified': True}
++
+     def verify_selected_root(self, root=None):
+         """Re-check that the selected root is still the sealed root.
+ 
+-        A root that was archived and migrated is *not* accepted silently: the
+-        caller has to keep the migration blocked until it is proven.
++        The root is opened without following a link and the identity of the
++        opened object is compared with the sealed one.  A root that was
++        archived and migrated is *not* accepted silently: the caller has to
++        keep the migration blocked until it is proven.
+         """
+         target = self.root if root is None else Path(root)
+         if str(target) != str(self.root):
+             raise S3IntegrationError('S3_SELECTED_ROOT_MISMATCH')
+         if self.root_identity is None:
+             raise S3IntegrationError('S3_SELECTED_ROOT_NOT_SEALED')
+-        try:
+-            info = target.lstat()
+-        except OSError as error:
+-            raise S3IntegrationError('S3_SELECTED_ROOT_UNAVAILABLE') from error
+-        if stat.S_ISLNK(info.st_mode) or not stat.S_ISDIR(info.st_mode):
+-            raise S3IntegrationError('S3_SELECTED_ROOT_REPLACED')
+-        if [info.st_dev, info.st_ino] != list(self.root_identity):
+-            raise S3IntegrationError('S3_SELECTED_ROOT_REPLACED')
++        descriptor = self._bound_root_fd()
++        os.close(descriptor)
+         return {'root': str(target), 'identity': list(self.root_identity)}
+ 
+     def manifest(self):
+-        """The parent's own manifest of the sealed originals."""
++        """The parent's own manifest of the sealed originals.
++
++        The manifest is the consumption boundary of the originals: it calls
++        the re-check of the root and of every original before it hands the
++        document out.  A manifest that would be built from a root whose
++        originals changed, vanished or were redirected is refused instead of
++        being written from the stale seal.
++        """
+         if self.rows is None or self.root_identity is None:
+             raise S3IntegrationError('S3_ORIGINALS_NOT_SEALED')
++        reverification = self.verify_originals()
+         return {
+             'kind': 'lvw.s3-parent-originals/1',
+             'run_id': self.run_id,
+@@ -413,6 +856,10 @@ class ParentOriginalEvidence:
+             'root': str(self.root),
+             'root_identity': list(self.root_identity),
+             'originals': self.originals,
++            'reverification': reverification,
++            'original_open_primitive': 'no_follow_dirfd_nonblock',
++            'original_read_boundary': ('verified_open_to_digest_end_then_path_rewalk'
++                                       '_with_final_content_state_observation'),
+             'stage_pass_claim': False,
+             'product_gate0': False,
+             'real_execution_performed': False,
+@@ -421,6 +868,8 @@ class ParentOriginalEvidence:
+ 
+ def _receipt_status(receipt):
+     """The status of one aggregate receipt, with its refusals."""
++    if receipt is None:
++        return 'NOT_RUN', 'RECEIPT_MISSING'
+     if not isinstance(receipt, dict):
+         return 'NOT_RUN', 'RECEIPT_NOT_A_DOCUMENT'
+     if receipt.get('kind') != AGGREGATE_RECEIPT_KIND:
+@@ -445,6 +894,12 @@ def aggregate_twelve_keys(*, receipts, binding):
+       isolation or cleanup proof is missing is ``BLOCKED``;
+     * only a complete, matching, passing receipt set is ``PASS``.
+ 
++    The cleanup of the run is a global obligation: every key needs the
++    cleanup receipt, and the cleanup receipt has to state the cleanup proof
++    with the strict boolean ``True``.  A missing cleanup, a cleanup of a
++    foreign kind, a cleanup of another candidate and a cleanup that only
++    claims the proof as a string can never fill a green key.
++
+     The old S2 nine key phase facts and the old 45+20 submissions are facts
+     of their own stage.  They are not aggregate receipts, so they can never
+     fill a green key here.
+@@ -486,10 +941,16 @@ def aggregate_twelve_keys(*, receipts, binding):
+             if name == 'independent_score' and receipt.get('independent') is not True:
+                 status = 'BLOCKED' if status != 'FAIL' else status
+                 reasons.append(name + ':INDEPENDENT_SCORE_MISSING')
+-        if receipts.get('cleanup') is not None and isinstance(receipts.get('cleanup'), dict) \
+-                and receipts['cleanup'].get('cleanup_proven') is not True:
++        # The cleanup proof of the run.  The receipt itself was already
++        # accepted or refused as a required receipt above, so only a legal
++        # receipt can reach this point; its own proof has to be the strict
++        # boolean ``True``.  A claim that is not the boolean - the string
++        # ``true``, the number one or a missing field - is not a proof.
++        cleanup = receipts.get(CLEANUP_RECEIPT)
++        if isinstance(cleanup, dict) and cleanup.get('kind') == AGGREGATE_RECEIPT_KIND \
++                and cleanup.get('cleanup_proven') is not True:
+             status = 'BLOCKED' if status != 'FAIL' else status
+-            reasons.append('cleanup:CLEANUP_UNPROVEN')
++            reasons.append(CLEANUP_RECEIPT + ':CLEANUP_UNPROVEN')
+         keys[key] = {
+             'key': key,
+             'status': status,
+@@ -499,6 +960,10 @@ def aggregate_twelve_keys(*, receipts, binding):
+             'product_gate0': False,
+         }
+     statuses = [entry['status'] for entry in keys.values()]
++    cleanup = receipts.get(CLEANUP_RECEIPT)
++    cleanup_proven = (isinstance(cleanup, dict)
++                      and cleanup.get('kind') == AGGREGATE_RECEIPT_KIND
++                      and cleanup.get('cleanup_proven') is True)
+     return {
+         'kind': 'lvw.s3-twelve-key-summary/1',
+         'run_id': binding['run_id'],
+@@ -509,6 +974,8 @@ def aggregate_twelve_keys(*, receipts, binding):
+         'fail_count': statuses.count('FAIL'),
+         'blocked_count': statuses.count('BLOCKED'),
+         'not_run_count': statuses.count('NOT_RUN'),
++        'cleanup_receipt_required': True,
++        'cleanup_proven': bool(cleanup_proven),
+         'old_s2_nine_keys_accepted_as_green': False,
+         'old_s2_submissions_accepted_as_budget': False,
+         'synthetic_fixtures_count_as_product_pass': False,
+diff --git a/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_quality_worker.py b/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_quality_worker.py
+index 6485e65..bee2e35 100644
+--- a/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_quality_worker.py
++++ b/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_quality_worker.py
+@@ -26,18 +26,36 @@ PACK_ROOT = Path(__file__).resolve().parents[1]
+ if str(PACK_ROOT) not in sys.path:
+     sys.path.insert(0, str(PACK_ROOT))
+ 
++from tools.v0_s3_controller_io import (  # noqa: E402 - the path is set above
++    ControllerIOError, open_directory_chain, open_directory_chain_identified,
++    open_read_only_directory_chain, open_root_directory_chain, read_bounded_at,
++    read_bounded_regular, verify_directory_chain)
+ from tools.v0_s3_quality_phase import (  # noqa: E402 - the path is set above
+     CANONICAL_RECEIPT_NAME, QualityPhase, QualityContractError)
+ from tools.v0_s3_supervisor import PROTOCOL_SCHEMA  # noqa: E402 - the path is set above
+ 
+ CONTEXT_SCHEMA = 'lvw.s3-quality-worker-context/1'
++
++# The stable code of the one missing capability of this platform.  There
++# is no accepted native execution backend today, so the *default* entry of
++# the worker refuses before any native driver is constructed.  The typed
++# offline driver of the composition is a Python object and is never
++# reachable from the command line.
++NATIVE_EXECUTION_BACKEND_NOT_READY = 'NATIVE_EXECUTION_BACKEND_NOT_READY'
+ CONTEXT_KEYS = frozenset({
+     'schema', 'run_id', 'candidate_sha', 'authorization_sha256', 'root',
+     'projection_path', 'projection_sha256', 'source_identity_path',
+     'source_identity_sha256', 'parent_budget_path', 'parent_budget_sha256',
+     'binding_path', 'binding_sha256', 'driver', 'driver_arguments',
+     'dependency_manifest_path', 'dependency_manifest_sha256',
+-    'canonical_receipt_reference'})
++    'canonical_receipt_reference', 'reference_anchors'})
++# The kinds of a declared anchor of a reference.  The run root is the
++# anchor of the artefacts of the run; a read-only directory is the anchor
++# of a legitimate dependency that lives outside of the sealed run root.
++# Every anchor is named by the sealed context document, so the source of
++# every reference is explicit and closed.
++ANCHOR_KINDS = ('RUN_ROOT', 'READ_ONLY_DIRECTORY')
++ANCHOR_KEYS = frozenset({'name', 'kind', 'path'})
+ DRIVERS = ('native', 'fixture')
+ DRIVER_ARGUMENT_KEYS = frozenset({'powershell', 'comfy_main', 'comfy_python',
+                                    'ollama_exe', 'ffmpeg_exe', 'nvidia_exe'})
+@@ -58,6 +76,17 @@ class WorkerError(RuntimeError):
+         self.detail = detail
+ 
+ 
++def _anchor_error(error):
++    """The stable code of one refused anchored read.
++
++    The detail of the refusal is kept, so a missing file and a refused
++    link stay distinguishable without a second reading of the file.
++    """
++    if error.detail:
++        return 'WORKER_ANCHOR_' + error.code + ':' + str(error.detail)
++    return 'WORKER_ANCHOR_' + error.code
++
++
+ def canonical_json(value):
+     return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(',', ':'),
+                       allow_nan=False)
+@@ -68,16 +97,22 @@ def sha256_bytes(raw):
+ 
+ 
+ def _read_sealed(path, expected_sha256, limit=8 * 1024 * 1024):
+-    """Read one bounded file and check its seal again."""
++    """Read one bounded file of a *trusted local entry* and check its seal.
++
++    This is the entry point of the context document itself.  The path is
++    an explicit entry of the trusted caller and it is read with the leaf
++    bound of the safe reader; the seal that the caller gave is verified
++    against the bytes, so a replaced document is refused here.  Every
++    *data reference* of the context is read differently: it is read
++    through a declared anchor, see :meth:`WorkerContext._read_anchored`.
++    """
+     target = Path(path)
+     if not target.is_absolute():
+         target = PACK_ROOT / target
+     try:
+-        raw = target.read_bytes()
+-    except OSError as error:
+-        raise WorkerError('WORKER_FILE_UNREADABLE') from error
+-    if len(raw) > limit:
+-        raise WorkerError('WORKER_FILE_TOO_LARGE')
++        raw = read_bounded_regular(target, limit)
++    except ControllerIOError as error:
++        raise WorkerError('WORKER_FILE_' + error.code) from error
+     if sha256_bytes(raw) != expected_sha256:
+         raise WorkerError('WORKER_FILE_SEAL_MISMATCH')
+     return raw
+@@ -122,23 +157,186 @@ class WorkerContext:
+         self.authorization_sha256 = document['authorization_sha256']
+         self.root = Path(document['root'])
+         self.canonical_receipt_reference = reference
++        # The declared anchors of the data references.  Every reference of
++        # this context is read through one of them, so the source of every
++        # reference is explicit and a reference that leaves its anchor is
++        # refused instead of being read on an arbitrary parent path.
++        self.anchors = self._declared_anchors(document['reference_anchors'])
++        run_root_anchor = [anchor for anchor in self.anchors
++                           if anchor['kind'] == 'RUN_ROOT'][0]
++        if run_root_anchor['base'] != os.path.normpath(document['root']):
++            # The run root anchor and the root of the context are the same
++            # directory: the artefacts of the run are never read through a
++            # different anchor than the root of the run.
++            raise WorkerError('WORKER_CONTEXT_RUN_ROOT_ANCHOR_MISMATCH')
++        # The digest and the length of the very bytes of this context.
++        self.document_sha256 = None
++        self.document_bytes = None
++
++    @staticmethod
++    def _declared_anchors(declared):
++        """The closed set of the declared anchors of this context.
++
++        The run root is always one of the anchors and it is the root of
++        the context.  Every other anchor is a read-only directory that the
++        sealed context names explicitly; the worker never adopts a path
++        that the context did not declare.
++        """
++        if not isinstance(declared, list) or not declared:
++            raise WorkerError('WORKER_CONTEXT_ANCHORS_INVALID')
++        anchors = []
++        names = set()
++        run_root = None
++        for entry in declared:
++            if not isinstance(entry, dict) or set(entry) != ANCHOR_KEYS:
++                raise WorkerError('WORKER_CONTEXT_ANCHORS_INVALID')
++            name = entry['name']
++            kind = entry['kind']
++            path = entry['path']
++            if not isinstance(name, str) or not name or name in names:
++                raise WorkerError('WORKER_CONTEXT_ANCHORS_INVALID')
++            if kind not in ANCHOR_KINDS:
++                raise WorkerError('WORKER_CONTEXT_ANCHORS_INVALID')
++            if not isinstance(path, str) or not path or not os.path.isabs(path):
++                raise WorkerError('WORKER_CONTEXT_ANCHORS_INVALID')
++            names.add(name)
++            anchor = {'name': name, 'kind': kind, 'path': path,
++                      'base': os.path.normpath(path)}
++            if kind == 'RUN_ROOT':
++                if run_root is not None:
++                    raise WorkerError('WORKER_CONTEXT_ANCHORS_INVALID')
++                run_root = anchor
++            anchors.append(anchor)
++        if run_root is None:
++            raise WorkerError('WORKER_CONTEXT_RUN_ROOT_ANCHOR_INVALID')
++        return anchors
++
++    def _anchor_of(self, path):
++        """The declared anchor that contains one reference and its name.
++
++        The comparison is lexical and never resolves a link: the identity
++        of a reference is its literal location inside a declared anchor,
++        not the object that a resolved path happens to name.
++        """
++        literal = os.path.normpath(str(path))
++        if not os.path.isabs(literal):
++            raise WorkerError('WORKER_REFERENCE_NOT_ABSOLUTE')
++        selected = None
++        for anchor in self.anchors:
++            base = anchor['base']
++            if literal == base:
++                raise WorkerError('WORKER_REFERENCE_IS_AN_ANCHOR')
++            prefix = base + os.sep
++            if not literal.startswith(prefix):
++                continue
++            # The most specific anchor wins: a reference is read through
++            # the anchor that contains it most closely.
++            if selected is None or len(base) > len(selected['base']):
++                selected = anchor
++        if selected is None:
++            raise WorkerError('WORKER_REFERENCE_OUTSIDE_DECLARED_ANCHORS')
++        prefix = selected['base'] + os.sep
++        parts = [part for part in literal[len(prefix):].split(os.sep)
++                 if part not in ('', '.')]
++        if not parts:
++            raise WorkerError('WORKER_REFERENCE_INVALID')
++        return selected, parts
++
++    def _anchor_by_path(self, path):
++        """The declared anchor whose path is exactly the given path."""
++        literal = os.path.normpath(str(path))
++        for anchor in self.anchors:
++            if anchor['base'] == literal:
++                return anchor
++        raise WorkerError('WORKER_REFERENCE_OUTSIDE_DECLARED_ANCHORS')
++
++    def _read_through_anchor(self, anchor, parts, limit=8 * 1024 * 1024):
++        """Read one reference through its declared anchor.
++
++        The run root is walked level by level from the file system root,
++        so a link in the chain is refused and never walked.  A read-only
++        anchor is walked the very same way: the chain of its ancestors is
++        opened from the file system root, level by level and always
++        without following a link, so a parent of the anchor that was
++        replaced by a link is refused and not only a link on the anchor
++        itself.  The identity of every level of that chain is verified
++        again after the read, so an anchor that was replaced *during* the
++        read is refused as well.
++
++        The bytes are always read through the descriptor of the verified
++        directory, never through a path that was resolved away, and the
++        read itself stays bounded, regular and non blocking.
++        """
++        if anchor['kind'] == 'RUN_ROOT':
++            try:
++                descriptor, chain = open_root_directory_chain(anchor['path'])
++            except ControllerIOError as error:
++                raise WorkerError(_anchor_error(error)) from error
++            try:
++                directory = open_directory_chain(descriptor, parts[:-1])
++                try:
++                    raw = read_bounded_at(directory, parts[-1], limit)
++                finally:
++                    os.close(directory)
++                verify_directory_chain(chain)
++                return raw
++            except ControllerIOError as error:
++                raise WorkerError(_anchor_error(error)) from error
++            finally:
++                os.close(descriptor)
++        try:
++            descriptor, chain = open_read_only_directory_chain(anchor['path'])
++        except ControllerIOError as error:
++            raise WorkerError(_anchor_error(error)) from error
++        try:
++            directory, levels = open_directory_chain_identified(
++                descriptor, parts[:-1], anchor['base'])
++            try:
++                raw = read_bounded_at(directory, parts[-1], limit)
++            finally:
++                os.close(directory)
++            # The ancestors of the leaf and the leaf itself are verified
++            # again: a parent that was replaced by a link is refused even
++            # when the bytes and the digest of the leaf are the same.
++            verify_directory_chain(tuple(chain) + tuple(levels))
++            return raw
++        except ControllerIOError as error:
++            raise WorkerError(_anchor_error(error)) from error
++        finally:
++            os.close(descriptor)
++
++    def _read_anchored(self, path, expected_sha256, limit=8 * 1024 * 1024):
++        """Read one data reference through its anchor and check its seal."""
++        anchor, parts = self._anchor_of(path)
++        raw = self._read_through_anchor(anchor, parts, limit)
++        if sha256_bytes(raw) != expected_sha256:
++            raise WorkerError('WORKER_FILE_SEAL_MISMATCH')
++        return raw
+ 
+     @classmethod
+     def load(cls, path, *, expected_sha256=None):
+-        raw = _read_sealed(path, expected_sha256) if expected_sha256 else Path(path).read_bytes()
++        if not expected_sha256:
++            # The worker never computes the expectation itself: the hash of
++            # the context is always given to it by the caller that sealed
++            # it.
++            raise WorkerError('WORKER_CONTEXT_HASH_REQUIRED')
++        raw = _read_sealed(path, expected_sha256)
+         try:
+             document = json.loads(raw.decode('utf-8'))
+         except (UnicodeDecodeError, ValueError) as error:
+             raise WorkerError('WORKER_CONTEXT_NOT_JSON') from error
+-        return cls(document)
++        context = cls(document)
++        context.document_sha256 = sha256_bytes(raw)
++        context.document_bytes = len(raw)
++        return context
+ 
+     def projection(self):
+-        return _read_sealed(self.document['projection_path'],
+-                            self.document['projection_sha256'])
++        return self._read_anchored(self.document['projection_path'],
++                                   self.document['projection_sha256'])
+ 
+     def source_identity(self):
+-        raw = _read_sealed(self.document['source_identity_path'],
+-                            self.document['source_identity_sha256'])
++        raw = self._read_anchored(self.document['source_identity_path'],
++                                  self.document['source_identity_sha256'])
+         try:
+             value = json.loads(raw.decode('utf-8'))
+         except (UnicodeDecodeError, ValueError) as error:
+@@ -148,8 +346,8 @@ class WorkerContext:
+         return value
+ 
+     def parent_budget(self):
+-        raw = _read_sealed(self.document['parent_budget_path'],
+-                            self.document['parent_budget_sha256'])
++        raw = self._read_anchored(self.document['parent_budget_path'],
++                                  self.document['parent_budget_sha256'])
+         try:
+             value = json.loads(raw.decode('utf-8'))
+         except (UnicodeDecodeError, ValueError) as error:
+@@ -164,9 +362,15 @@ class WorkerContext:
+         The worker never downloads a dependency and it never trusts an
+         environment variable: the manifest names the exact directory and the
+         exact files, and every file is hashed again before it is used.
++
++        The directory that the manifest names is the anchor of its files.
++        It has to be an anchor that the sealed context declared, so a
++        dependency is never read through an arbitrary parent path and the
++        resolved path of a link is never adopted as the identity of a
++        dependency.
+         """
+-        raw = _read_sealed(self.document['dependency_manifest_path'],
+-                           self.document['dependency_manifest_sha256'])
++        raw = self._read_anchored(self.document['dependency_manifest_path'],
++                                  self.document['dependency_manifest_sha256'])
+         try:
+             value = json.loads(raw.decode('utf-8'))
+         except (UnicodeDecodeError, ValueError) as error:
+@@ -184,17 +388,25 @@ class WorkerContext:
+                 or not os.path.isabs(directory)
+                 or not isinstance(files, list) or not files):
+             raise WorkerError('WORKER_DEPENDENCY_MANIFEST_INVALID')
++        anchor = self._anchor_by_path(directory)
+         for entry in files:
+             if (not isinstance(entry, dict) or not isinstance(entry.get('path'), str)
+                     or not re.fullmatch('[0-9a-f]{64}', str(entry.get('sha256')))):
+                 raise WorkerError('WORKER_DEPENDENCY_MANIFEST_INVALID')
+-            target = Path(entry['path'])
+-            if not target.is_file():
+-                raise WorkerError('WORKER_DEPENDENCY_FILE_MISSING')
+             try:
+-                actual = sha256_bytes(target.read_bytes())
+-            except OSError as error:
+-                raise WorkerError('WORKER_DEPENDENCY_FILE_UNREADABLE') from error
++                file_anchor, parts = self._anchor_of(entry['path'])
++            except WorkerError as error:
++                raise WorkerError('WORKER_DEPENDENCY_FILE_OUTSIDE_THE_DECLARED_ANCHOR') from error
++            if file_anchor['name'] != anchor['name']:
++                # The file of the manifest has to live in the directory that
++                # the manifest itself declares.
++                raise WorkerError('WORKER_DEPENDENCY_FILE_OUTSIDE_THE_DECLARED_ANCHOR')
++            try:
++                actual = sha256_bytes(self._read_through_anchor(anchor, parts))
++            except WorkerError as error:
++                if error.code.endswith(':ENOENT'):
++                    raise WorkerError('WORKER_DEPENDENCY_FILE_MISSING') from error
++                raise error
+             if actual != entry['sha256']:
+                 raise WorkerError('WORKER_DEPENDENCY_FILE_DRIFT')
+         return value
+@@ -202,7 +414,8 @@ class WorkerContext:
+     def binding(self):
+         """The sealed native binding that the phase requires."""
+ 
+-        raw = _read_sealed(self.document['binding_path'], self.document['binding_sha256'])
++        raw = self._read_anchored(self.document['binding_path'],
++                                  self.document['binding_sha256'])
+         try:
+             value = json.loads(raw.decode('utf-8'))
+         except (UnicodeDecodeError, ValueError) as error:
+@@ -290,11 +503,15 @@ def run_worker(context, *, driver=None, emit=None, authorize=None, clock=None, s
+                           clock=clock, sleep=sleep, progress_sink=sink)
+     receipt = phase.run()
+     reference = context.canonical_receipt_reference
+-    path = context.root / reference
+     try:
+-        raw = path.read_bytes()
+-    except OSError as error:
+-        raise WorkerError('WORKER_CANONICAL_RECEIPT_UNREADABLE') from error
++        # The canonical receipt is read through the bound root anchor,
++        # without following a link and with a real bound.
++        anchor, parts = context._anchor_of(context.root.joinpath(reference))
++        raw = context._read_through_anchor(anchor, parts)
++    except ControllerIOError as error:
++        raise WorkerError('WORKER_CANONICAL_RECEIPT_' + error.code) from error
++    except WorkerError as error:
++        raise WorkerError('WORKER_CANONICAL_RECEIPT_' + error.code) from error
+     emit('TERMINAL', {'canonical_receipt': {'reference': reference,
+                                             'bytes': len(raw),
+                                             'sha256': sha256_bytes(raw)},
+@@ -307,31 +524,90 @@ def run_worker(context, *, driver=None, emit=None, authorize=None, clock=None, s
+     return receipt
+ 
+ 
+-def main(argv=None):
+-    """The production entry of the worker."""
++def _write_refusal(stream, text):
++    """Write one refusal to a text stream or to a binary stream.
++
++    The exact code of the refusal is preserved in both cases.  A binary
++    stream receives the UTF-8 bytes of the very same text, so a
++    ``TypeError`` of the stream can never replace the code of the
++    refusal with an exception of its own.
++    """
++    try:
++        stream.write(text)
++        return
++    except TypeError:
++        pass
++    except (OSError, ValueError):
++        return
++    try:
++        stream.write(text.encode('utf-8'))
++    except (OSError, ValueError):
++        pass
++
++
++def main(argv=None, *, driver=None, stream=None, error_stream=None):
++    """The production entry of the worker.
++
++    The three keyword only arguments are the internal wiring of the
++    composition: they let an in-process caller replace the *construction* of
++    the native driver and the two output streams.  The command line entry
++    passes none of them, so the command line path can never construct a
++    native driver at all.
++
++    The command line entry of this worker refuses the native execution
++    with the stable code ``NATIVE_EXECUTION_BACKEND_NOT_READY``: there is
++    no accepted native execution backend on this platform, so the refusal
++    happens before any driver is constructed and before any model is
++    touched.  The typed offline driver of the composition is a Python
++    object that is never reachable from the command line and never
++    serialised into a context document.
++
++    The context of the worker is always loaded against the hash that the
++    caller sealed.  The worker never computes the expectation itself, so
++    a context that was replaced after the sealing is refused on every
++    load.
++    """
+     arguments = list(sys.argv[1:] if argv is None else argv)
+     context_path = None
++    context_sha256 = None
++    target = stream if stream is not None else sys.stdout.buffer
++    errors = error_stream if error_stream is not None else sys.stderr
+     index = 0
+-    while index < len(arguments):
+-        if arguments[index] == '--context' and index + 1 < len(arguments):
+-            context_path = arguments[index + 1]
+-            index += 2
+-            continue
+-        raise WorkerError('WORKER_ARGUMENT_INVALID')
+-    if context_path is None:
+-        raise WorkerError('WORKER_CONTEXT_ARGUMENT_REQUIRED')
+     try:
+-        context = WorkerContext.load(context_path)
+-        run_worker(context, driver=build_native_driver(context),
+-                   emit=ProtocolWriter(sys.stdout.buffer, run_id=context.run_id,
++        while index < len(arguments):
++            if arguments[index] == '--context' and index + 1 < len(arguments):
++                context_path = arguments[index + 1]
++                index += 2
++                continue
++            if arguments[index] == '--context-sha256' and index + 1 < len(arguments):
++                context_sha256 = arguments[index + 1]
++                index += 2
++                continue
++            raise WorkerError('WORKER_ARGUMENT_INVALID')
++        if context_path is None:
++            raise WorkerError('WORKER_CONTEXT_ARGUMENT_REQUIRED')
++        if context_sha256 is None:
++            raise WorkerError('WORKER_CONTEXT_HASH_ARGUMENT_REQUIRED')
++        if not re.fullmatch(r'[0-9a-f]{64}', context_sha256):
++            raise WorkerError('WORKER_CONTEXT_HASH_INVALID')
++        if driver is None:
++            # The default entry of the worker refuses the native
++            # execution before any driver is constructed.
++            raise WorkerError(NATIVE_EXECUTION_BACKEND_NOT_READY)
++        context = WorkerContext.load(context_path, expected_sha256=context_sha256)
++        run_worker(context, driver=driver,
++                   emit=ProtocolWriter(target, run_id=context.run_id,
+                                        candidate_sha=context.candidate_sha,
+                                        authorization_sha256=context.authorization_sha256
+                                        ).emit)
+     except WorkerError as error:
+-        sys.stderr.write('S3_WORKER_REFUSED ' + error.code + '\n')
++        _write_refusal(errors, 'S3_WORKER_REFUSED ' + error.code + '\n')
+         return 2
+     except QualityContractError as error:
+-        sys.stderr.write('S3_WORKER_REFUSED QUALITY ' + str(error)[:120] + '\n')
++        _write_refusal(errors, 'S3_WORKER_REFUSED QUALITY ' + str(error)[:120] + '\n')
++        return 3
++    except Exception as error:  # noqa: BLE001 - the failure stays visible
++        _write_refusal(errors, 'S3_WORKER_REFUSED EXCEPTION ' + type(error).__name__ + '\n')
+         return 3
+     return 0
+ 
+@@ -342,6 +618,13 @@ def build_native_driver(context):
+     The native driver is the accepted ``NativeRuntime``.  It is only built
+     from the bound context; nothing is imported dynamically and no service is
+     started by this function.
++
++    This function is the *future* interface of the native execution and it
++    is not reachable from the command line of this worker: the default
++    entry refuses the native execution with
++    ``NATIVE_EXECUTION_BACKEND_NOT_READY`` before any driver is
++    constructed.  A caller that reaches this function has already proved
++    the admission of the native execution somewhere else.
+     """
+     from tools.v0_s2_runtime import NativeRuntime
+     values = context.document['driver_arguments']
+diff --git a/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_supervisor.py b/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_supervisor.py
+index f216950..43c73a8 100644
+--- a/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_supervisor.py
++++ b/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_supervisor.py
+@@ -202,6 +202,8 @@ class ProtocolState:
+         self.terminal = None
+         self.history_started = {}
+         self.row_events = {}
++        self.rows_started = {}
++        self.rows_finished = {}
+         self.terminal_payload = None
+ 
+     def accept(self, message):
+@@ -232,8 +234,21 @@ class ProtocolState:
+             row = self.plan.row(asset_id)
+             if payload.get('ordinal') != row['ordinal']:
+                 raise SupervisionError('MESSAGE_ROW_ORDINAL_MISMATCH')
+-            if event == 'HISTORY_WAIT_STARTED' and asset_id in self.history_started:
+-                raise SupervisionError('MESSAGE_HISTORY_STARTED_REPEATED')
++            # A row is started once and finished once.  The audit of the row
++            # is never deleted to make a repeated start acceptable: the
++            # repeated start and the re-opened row are refused.
++            if event == 'ROW_STARTED':
++                if asset_id in self.rows_finished:
++                    raise SupervisionError('MESSAGE_ROW_REOPENED')
++                if asset_id in self.rows_started:
++                    raise SupervisionError('MESSAGE_ROW_STARTED_REPEATED')
++            elif event == 'HISTORY_WAIT_STARTED':
++                if asset_id in self.rows_finished:
++                    raise SupervisionError('MESSAGE_ROW_REOPENED')
++                if asset_id in self.history_started:
++                    raise SupervisionError('MESSAGE_HISTORY_STARTED_REPEATED')
++            elif asset_id in self.rows_finished:
++                raise SupervisionError('MESSAGE_ROW_FINISHED_REPEATED')
+         elif event == 'PROGRESS':
+             # A progress message carries no result and no deadline.  It may
+             # not name a row that is not in the sealed plan.
+@@ -267,8 +282,12 @@ class ProtocolState:
+             self.started = True
+         elif event in ROW_EVENTS:
+             asset_id = payload['asset_id']
+-            if event == 'HISTORY_WAIT_STARTED':
++            if event == 'ROW_STARTED':
++                self.rows_started[asset_id] = True
++            elif event == 'HISTORY_WAIT_STARTED':
+                 self.history_started[asset_id] = True
++            elif event == 'ROW_FINISHED':
++                self.rows_finished[asset_id] = True
+             self.row_events.setdefault(asset_id, []).append(event)
+         elif event == 'TERMINAL':
+             self.terminal = message
+@@ -276,6 +295,19 @@ class ProtocolState:
+         return message
+ 
+ 
++def _stream_state(*, total, kept, digest, scope, overflow, error, complete):
++    """One published state of a stream reader.
++
++    The state is built once and never changed afterwards.  Every account of
++    a reader - the observed bytes, the kept bytes, the digest, the scope of
++    that digest, the overflow flag, the read error and the completion flag -
++    belongs to the same moment, because they are published together.
++    """
++    return {'total_observed': int(total), 'kept_bytes': int(kept),
++            'hashed_bytes': int(kept), 'hash_scope': scope, 'sha256': digest,
++            'overflow': bool(overflow), 'error': error, 'complete': bool(complete)}
++
++
+ class _StreamReader(threading.Thread):
+     """A bounded background reader of one child stream.
+ 
+@@ -295,6 +327,17 @@ class _StreamReader(threading.Thread):
+     pending bytes can not be orphaned: it stays pending for the next call.
+     The critical path of the reader holds no lock, it never waits and it
+     never calls anything but the list itself.
++
++    The accounts of this reader are *published*.  The observed bytes, the
++    kept bytes, the digest of the kept bytes, the scope of that digest and
++    the completion flag are one publication under one lock, and the parent
++    reads exactly one published state.  A snapshot therefore never mixes
++    two moments: it is not the state of one step and the state of another
++    step at the same time.  The atomicity of the publication comes from the
++    lock of the reader and not from the byte code interpreter, and the
++    critical section never reads a stream, never waits for anything and
++    never calls anything but the list, the digest and the state itself, so
++    the deadline of the parent is never blocked by the reader.
+     """
+ 
+     def __init__(self, stream, limit):
+@@ -307,6 +350,14 @@ class _StreamReader(threading.Thread):
+         self.overflow = False
+         self.error = None
+         self.finished = threading.Event()
++        self._publish_lock = threading.Lock()
++        self._digest = hashlib.sha256()
++        self._kept = 0
++        self._complete = False
++        self._published = _stream_state(total=0, kept=0,
++                                        digest=self._digest.hexdigest(),
++                                        scope='observed_prefix', overflow=False,
++                                        error=None, complete=False)
+ 
+     def run(self):
+         try:
+@@ -326,26 +377,70 @@ class _StreamReader(threading.Thread):
+                     # dropped bytes are observed but never kept, so the
+                     # digest of this reader covers the prefix only.
+                     allowed = self.limit - before
+-                    if allowed > 0:
+-                        self._retain(block[:allowed])
+-                    self.total = before + len(block)
+-                    self.overflow = True
++                    kept = block[:allowed] if allowed > 0 else b''
++                    self._retain(kept, before + len(block), overflow=True)
+                     break
+-                self._retain(block)
+-                self.total = before + len(block)
++                self._retain(block, before + len(block))
++            self._publish_end()
+         except Exception as error:  # noqa: BLE001 - the failure stays visible
+-            self.error = type(error).__name__
++            self._publish_error(type(error).__name__)
+         finally:
+             self.finished.set()
+ 
+-    def _retain(self, block):
+-        """Keep one block for the parent.
++    def _retain(self, block, total=None, *, overflow=False):
++        """Keep one block for the parent and publish the new state.
+ 
+         The block is appended to the one list of this reader.  The parent
+         never replaces that list, so a block that is appended while the
+         parent takes the pending bytes is never lost.
++
++        The append, the digest, the observed total and the publication are
++        one step under one lock, so the kept bytes, the digest, the total
++        and the scope of the digest always belong to the same moment.
+         """
+-        self._blocks.append(block)
++        self._publish_lock.acquire()
++        try:
++            self._blocks.append(block)
++            self._digest.update(block)
++            self._kept += len(block)
++            if total is not None:
++                self.total = total
++            if overflow:
++                self.overflow = True
++            self._publish_locked()
++        finally:
++            self._publish_lock.release()
++
++    def _publish_locked(self):
++        """Build and publish the state of this reader.  The lock is held."""
++        if self.overflow:
++            scope = 'prefix_within_budget'
++        elif self._complete:
++            scope = 'all_observed'
++        else:
++            scope = 'observed_prefix'
++        self._published = _stream_state(total=self.total, kept=self._kept,
++                                        digest=self._digest.hexdigest(), scope=scope,
++                                        overflow=self.overflow, error=self.error,
++                                        complete=self._complete)
++
++    def _publish_end(self):
++        """Publish the proven end of this stream."""
++        self._publish_lock.acquire()
++        try:
++            self._complete = True
++            self._publish_locked()
++        finally:
++            self._publish_lock.release()
++
++    def _publish_error(self, name):
++        """Publish a stream that could not be read any more."""
++        self._publish_lock.acquire()
++        try:
++            self.error = name
++            self._publish_locked()
++        finally:
++            self._publish_lock.release()
+ 
+     def take(self):
+         """The bytes that the parent has not consumed yet.
+@@ -372,37 +467,26 @@ class _StreamReader(threading.Thread):
+     def snapshot(self):
+         """One consistent view of the accounts of this reader.
+ 
+-        The observed bytes, the kept bytes, the digest of the kept bytes and
+-        the scope of that digest are read together, so the evidence of the
+-        parent never mixes two moments and never calls a prefix the whole
+-        stream.
++        The observed bytes, the kept bytes, the digest of the kept bytes,
++        the scope of that digest and the completion flag are read from one
++        published state, so the evidence of the parent never mixes two
++        moments and never calls a prefix the whole stream.
+ 
+         ``hash_scope`` names what the digest really covers:
+-        ``all_observed`` is every byte that the stream delivered,
++        ``all_observed`` is every byte of a stream whose end was proven,
+         ``prefix_within_budget`` is the prefix that is still inside the
+-        frozen budget after an overflow and ``in_flight_prefix`` is a view
+-        that was taken while a block was still on its way.
++        frozen budget after an overflow and ``observed_prefix`` is the
++        prefix that was observed while the end of the stream was still not
++        proven.  A stream that did not reach its end is never reported as a
++        whole stream, not even when it is empty and not even when the
++        hashed bytes and the observed bytes are equal.
+         """
+-        end = len(self._blocks)
+-        kept = b''.join(self._blocks[:end])
+-        total = self.total
+-        if self.overflow:
+-            scope = 'prefix_within_budget'
+-        elif len(kept) == total:
+-            scope = 'all_observed'
+-        else:
+-            scope = 'in_flight_prefix'
+-        return {
+-            'total_observed': total,
+-            'kept_bytes': len(kept),
+-            'hashed_bytes': len(kept),
+-            'hash_scope': scope,
+-            'sha256': sha256_bytes(kept),
+-            'retained_bytes': sum(len(block) for block in self._blocks[self._cursor:end]),
+-            'overflow': bool(self.overflow),
+-            'error': self.error,
+-            'complete': self.finished.is_set(),
+-        }
++        with self._publish_lock:
++            state = dict(self._published)
++            end = len(self._blocks)
++            retained = sum(len(block) for block in self._blocks[self._cursor:end])
++        state['retained_bytes'] = retained
++        return state
+ 
+ 
+ class ParentSupervisor:
+@@ -452,6 +536,8 @@ class ParentSupervisor:
+         self.child_deadline = None
+         self.effective_phase_deadline = None
+         self.history_deadlines = {}
++        self.history_records = {}
++        self.history_completed = set()
+         self.stdout_reader = None
+         self.stderr_reader = None
+         self.stdout_buffer = bytearray()
+@@ -559,6 +645,8 @@ class ParentSupervisor:
+             self.messages.append(message)
+             if message['event'] == 'HISTORY_WAIT_STARTED':
+                 self._fix_history_deadline(message['payload']['asset_id'])
++            if message['event'] == 'ROW_FINISHED':
++                self._close_history_deadline(message['payload']['asset_id'])
+             if message['event'] == 'TERMINAL':
+                 self.terminal_receipt = message['payload']['canonical_receipt']
+ 
+@@ -566,20 +654,43 @@ class ParentSupervisor:
+         """Fix the history deadline of one row at its first history wait.
+ 
+         The deadline is never moved again.  A repeated history start for the
+-        same row is a protocol violation and is refused by the state.
++        same row is a protocol violation and is refused by the state.  The
++        first start of the row and its fixed deadline stay in the audit.
+         """
+         if asset_id in self.history_deadlines:
+             return
+         started = self.clock()
+-        self.history_deadlines[asset_id] = min(started + self.history_timeout,
+-                                               self.effective_phase_deadline,
+-                                               self.child_deadline)
++        deadline = min(started + self.history_timeout, self.effective_phase_deadline,
++                       self.child_deadline)
++        self.history_deadlines[asset_id] = deadline
++        self.history_records[asset_id] = {'first_start': started, 'deadline': deadline,
++                                          'completed_at': None}
++
++    def _close_history_deadline(self, asset_id):
++        """Close the history wait of a row that finished.
++
++        A history deadline constrains the wait of the row that owns it and
++        nothing else.  Once that row is finished the deadline does not
++        constrain the later rows any more.  Nothing is deleted: the first
++        start, the fixed deadline and the moment of the completion stay in
++        the audit, and a row that is started again is refused by the state.
++        """
++        record = self.history_records.get(asset_id)
++        if record is None:
++            return
++        if record.get('completed_at') is None:
++            record['completed_at'] = self.clock()
++        self.history_completed.add(asset_id)
+ 
+     def _deadline_state(self):
+         now = self.clock()
+         if now > self.effective_phase_deadline:
+             return 'PHASE_DEADLINE_EXCEEDED'
+         for asset_id, deadline in self.history_deadlines.items():
++            if asset_id in self.history_completed:
++                # The row that owns this deadline is finished: it does not
++                # constrain the later rows.
++                continue
+             if now > deadline:
+                 return 'HISTORY_DEADLINE_EXCEEDED:' + asset_id
+         return None
+@@ -982,6 +1093,10 @@ class ParentSupervisor:
+             'history_timeout_seconds': self.history_timeout,
+             'child_timeout_seconds': self.child_timeout,
+             'phase_deadline_reached': self.deadline_exceeded,
++            'history_deadlines': dict(self.history_deadlines),
++            'history_records': {asset: dict(record)
++                                for asset, record in self.history_records.items()},
++            'history_completed_rows': sorted(self.history_completed),
+             'protocol_violation': self.violation,
+             'terminal_received': self.state.terminal is not None,
+             'canonical_receipt': self.terminal_receipt,
+@@ -1023,21 +1138,34 @@ FIXTURE_SCENARIOS = (
+ )
+ 
+ 
+-def build_production_command(context_path, *, python=None):
++def build_production_command(context_path, *, python=None, context_sha256=None):
+     """The frozen production command of the quality worker.
+ 
+     The production entry starts exactly the fixed quality worker with one
+     context document.  A fixture script, a dynamic import or an arbitrary
+     argument vector is never a production command.
++
++    The command carries the *pre-sealed* hash of the worker context down to
++    the worker.  The worker never computes the expectation itself: it
++    verifies every load of the context against the hash that this command
++    carries, so a context that was replaced after the sealing is refused
++    instead of being loaded with a recomputed expectation.  The hash is the
++    only internal argument that the command adds; it names no command, no
++    module and no callback.
+     """
+     script = PACK_ROOT / WORKER_SCRIPT
+     if not script.is_file():
+         raise SupervisionError('WORKER_SCRIPT_MISSING')
++    if context_sha256 is None:
++        raise SupervisionError('WORKER_CONTEXT_HASH_REQUIRED')
++    if not re.fullmatch(r'[0-9a-f]{64}', str(context_sha256)):
++        raise SupervisionError('WORKER_CONTEXT_HASH_INVALID')
+     executable = python or 'python3'
+     context = Path(context_path)
+     if not context.is_absolute():
+         context = PACK_ROOT / context
+-    return [executable, '-I', '-B', str(script), '--context', str(context)]
++    return [executable, '-I', '-B', str(script), '--context', str(context),
++            '--context-sha256', str(context_sha256)]
+ 
+ 
+ def build_fixture_command(scenario, *, python=None, arguments=()):

@@ -1,0 +1,151 @@
+{
+  "schema": "lvw.n1-correction05-obligations/1",
+  "candidate_baseline": "d751bced75cdc1d21cee072892860a7c4f8ac542",
+  "status": "ROOT_FROZEN_LOCAL_REGRESSION_NOT_RELEASE_DENOMINATOR",
+  "items": [
+    {
+      "id": "N05-R01",
+      "major": "M03",
+      "trigger": "CreateFileW取得NUL后CloseHandle失败",
+      "oracle": "NUL从取得瞬间有持久原owner；失败保留原HANDLE且同owner可恢复，其他安全清理照常执行"
+    },
+    {
+      "id": "N05-R02",
+      "major": "M03",
+      "trigger": "DeleteProcThreadAttributeList/TerminateProcess/Wait分别抛KI或SystemExit",
+      "oracle": "各安全finalizer独立执行；primary与secondary保留；清理后取消继续传播，不覆盖原主错误"
+    },
+    {
+      "id": "N05-R03",
+      "major": "M05",
+      "trigger": "CreatePipe成功/SetHandleInformation失败/read或write关闭失败",
+      "oracle": "两端从创建瞬间登记，失败端保留可恢复；成功端关闭一次，Core未收到pair也不失主"
+    },
+    {
+      "id": "N05-R04",
+      "major": "M06",
+      "trigger": "Core release_records或pending CloseHandle抛KI/SystemExit",
+      "oracle": "按资源独立清理后传播取消，不把BaseException转普通evidence；主次错可核"
+    },
+    {
+      "id": "N05-R05",
+      "major": "M06",
+      "trigger": "首个process wait/exit_code普通异常，后续process仍可清理",
+      "oracle": "后续原process独立等待/释放；共享截止逐次重算，不因一个record中断整组"
+    },
+    {
+      "id": "N05-R06",
+      "major": "M06",
+      "trigger": "首reader Thread.start未开始即抛错，后reader仍alive",
+      "oracle": "未启动reader不非法join；逐reader协调；pending不得在实际活reader下关read端，原owner仍可达"
+    },
+    {
+      "id": "N05-R07",
+      "major": "M07",
+      "trigger": "pump/heartbeat Thread.start未返回，cleanup过期，再晚到启动",
+      "oracle": "原启动owner始终持有实际线程；晚到只能收口，无遗失引用/新业务IO/重置期限，超期UNKNOWN"
+    },
+    {
+      "id": "N05-R08",
+      "major": "M07",
+      "trigger": "Thread.start已实际启动线程后再抛错",
+      "oracle": "根据实际状态保留/清理线程，不用started局部False丢活线程；原peer保持owner"
+    },
+    {
+      "id": "N05-R09",
+      "major": "M07",
+      "trigger": "closer构造或start抛错",
+      "oracle": "回调失败有具名事实/等待者可结束；原broker和未完清理仍可恢复，无永远闩死的closer_started"
+    },
+    {
+      "id": "N05-R10",
+      "major": "M07",
+      "trigger": "Popen成功后channel/endpoint/BrokerProcess构造失败且terminate/wait/pipe.close失败",
+      "oracle": "launcher持久登记original Popen/HANDLE/pipe/endpoint并有有限恢复入口，Session未接管时亦不失主；不用PID冒认"
+    },
+    {
+      "id": "N05-R11",
+      "major": "M08",
+      "trigger": "启动前已过期，或role create/assign跨期返回",
+      "oracle": "action前后及每个create/assign/Resume/reader启动前核共享取消/截止；超期后无Resume和后续role创建，仅清理晚到原资源"
+    },
+    {
+      "id": "N05-R12",
+      "major": "M08",
+      "trigger": "Session/Core两个首次清理入口并发读None",
+      "oracle": "唯一原子发布的deadline相同且不可延长，所有调用沿用首次值；不靠GIL或先写后锁"
+    },
+    {
+      "id": "N05-R13",
+      "major": "M08",
+      "trigger": "多个reader/process/API等待逐步消耗剩余预算",
+      "oracle": "每次wait/join前重算同deadline，wait后join不重复旧预算；无固定额外settle/Wait_MILLISECONDS宽限"
+    },
+    {
+      "id": "N05-R14",
+      "major": "M08",
+      "trigger": "Windows endpoint read先携None进_await，然后bind收紧期限",
+      "oracle": "已进行await/cancel动态读取共享收紧deadline；NOT_FOUND且未完成也在截止返回UNKNOWN，原worker/HANDLE保留"
+    },
+    {
+      "id": "N05-R15",
+      "major": "M08",
+      "trigger": "worker提交/IN_IO/取消竞态、旧代done、worker handle关闭失败",
+      "oracle": "按代协调，取消停止新提交并驱动退出；done不等于thread stopped，CloseHandle失败有原owner恢复；partialwrite每段核截止/取消"
+    },
+    {
+      "id": "N05-R16",
+      "major": "M08",
+      "trigger": "晚到_apply_state通过检查后，回调闩锁UNKNOWN",
+      "oracle": "同一原子状态owner/单向latch，晚到READY/STATUS不可覆盖UNKNOWN，STOP后无STATUS"
+    },
+    {
+      "id": "N05-R17",
+      "major": "M08",
+      "trigger": "send与receive在总frame边界并发check/commit",
+      "oracle": "共同计数owner，原子check/reserve/commit，双向合计1024 exact/one-over，不能两边各占最后一格"
+    },
+    {
+      "id": "N05-R18",
+      "major": "M08",
+      "trigger": "接近1024上限执行STOP/STOPPED",
+      "oracle": "终态真正消费原预留，不再加8拒合法终态；broker接收同样正确；非终态不能借预留，超限failclosed"
+    },
+    {
+      "id": "N05-R19",
+      "major": "M09",
+      "trigger": "首次close暂时失败，原deadline内条件恢复，再走Session公开stop/恢复入口",
+      "oracle": "同owner重新协调未确认项，已成功关闭项不双关，非直接调用fake peer.close绕过产品入口；原期限不重置"
+    },
+    {
+      "id": "N05-R20",
+      "major": "M09",
+      "trigger": "Windows endpoint先close失败后worker退出/文件可关闭；Posix成功端重复close",
+      "oracle": "closed仅在事实确认后提交，失败可恢复，成功幂等事实仍True，保留列表真实收敛"
+    },
+    {
+      "id": "N05-R21",
+      "major": "M09",
+      "trigger": "channel保留活worker，BrokerProcess.close走stdin/stdout关闭",
+      "oracle": "唯一endpoint owner关闭file，BrokerProcess不绕过端点关闭同一活IO原file；未确认UNKNOWN且保留引用"
+    },
+    {
+      "id": "N05-R22",
+      "major": "M09",
+      "trigger": "只有三项factsTrue但reader/端点/worker事实缺失或未知",
+      "oracle": "严格父接口拒缺失/None；需实际reader停止无错误、端点closed、原workerHANDLE释放等必需事实才释放broker；FINISHED/close_done不当全资源释放"
+    },
+    {
+      "id": "N05-R23",
+      "major": "M09",
+      "trigger": "close_done已发布但closer仍alive/后台启动未结束",
+      "oracle": "真实线程与原owner事实分开；同deadline内有限协调，无自join/循环依赖；所有线程纳入返回时证据和批末清理"
+    },
+    {
+      "id": "N05-R24",
+      "major": "compatibility",
+      "trigger": "原133节点+16组义务+已关闭M01/M02/M04/M10/M11/m01与正向生命周期",
+      "oracle": "旧case清单保留，已关闭路径不回归；故障返回事实先记录，测试owner salvage后置且有界，不迁移历史正例"
+    }
+  ]
+}

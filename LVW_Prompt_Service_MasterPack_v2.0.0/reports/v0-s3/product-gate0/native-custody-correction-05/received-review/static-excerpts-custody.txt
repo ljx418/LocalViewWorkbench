@@ -1,0 +1,412 @@
+1118:     def _start_background_thread(self, kind, thread):
+1119:         """Start one background thread of the round under the latch.
+1120: 
+1121:         The registration of the thread, the permission to start it and
+1122:         the count of the threads that are in the middle of their start
+1123:         are **one** atomic step under the lock of the background of the
+1124:         round.  A thread that is registered may be started and a thread
+1125:         that may not be started any more is never registered.
+1126: 
+1127:         The close of the round closes the permission **before** it takes
+1128:         its snapshot of the threads, so a thread that is started after
+1129:         the close began is either refused or stopped by the very close
+1130:         that refused it.  A thread that could not start at all is not a
+1131:         thread of the round: its reference is dropped and its failure
+1132:         stays visible.
+1133:         """
+1134:         with self._background_lock:
+1135:             if not self._background_open:
+1136:                 self._failures.append('CUSTODY_BACKGROUND_START_REFUSED:' + kind)
+1137:                 return False
+1138:             setattr(self, '_' + kind, thread)
+1139:             self._background_starting += 1
+1140:         started = False
+1141:         try:
+1142:             thread.start()
+1143:             started = True
+1144:         finally:
+1145:             with self._background_lock:
+1146:                 self._background_starting -= 1
+1147:                 if not started and getattr(self, '_' + kind) is thread:
+1148:                     setattr(self, '_' + kind, None)
+1149:                 self._background_cv.notify_all()
+1150:         return True
+1151: 
+
+1152:     def _latch_background_failure(self, code):
+1153:         """Latch the unknown state of the round after a background failure.
+1154: 
+1155:         A failure of the heartbeat or of the pump is not a string that
+1156:         is appended to a list and nothing else.  The round becomes
+1157:         unknown and a **bounded** close is started.  The close runs in
+1158:         its own thread: a thread never joins itself.
+1159:         """
+1160:         if code not in self._failures:
+1161:             self._failures.append(code)
+1162:         self.state = 'UNKNOWN_RETAINED'
+1163:         self._start_bounded_close()
+1164: 
+1165:     def _apply_state(self, state):
+1166:         """Apply the state of the round, never overwriting an unknown one.
+1167: 
+1168:         A reply that arrives late - after the pump failed and after the
+1169:         round latched its unknown state - never turns an unknown round
+1170:         into a running one.  The late reply stays visible in the
+1171:         evidence of the round.
+1172:         """
+1173:         if self.state == 'UNKNOWN_RETAINED' and state != 'UNKNOWN_RETAINED':
+1174:             self._failures.append('CUSTODY_LATE_STATE_IGNORED:' + state)
+1175:             return False
+1176:         self.state = state
+1177:         return True
+1178: 
+
+1179:     def _start_bounded_close(self):
+1180:         """Start the bounded close of the round, once, in its own thread.
+1181: 
+1182:         The close runs in its own thread because a thread never joins
+1183:         itself: the pump and the heartbeat of the round report their
+1184:         failure to the round and the round closes in a thread of its
+1185:         own.  The callbacks of the pump and of the heartbeat never wait
+1186:         for that close, so a closer that joins the pump can never wait
+1187:         for the pump in turn.
+1188: 
+1189:         A closer that could not start must not leave the round in
+1190:         ``IN_PROGRESS`` for ever: the waiters are woken and the round
+1191:         stays unknown.
+1192:         """
+1193:         with self._close_lock:
+1194:             if self._closer_started:
+1195:                 return False
+1196:             self._closer_started = True
+1197:         thread = threading.Thread(target=self._close_broker, daemon=True,
+1198:                                   name='lvw-native-custody-closer')
+1199:         self._closer = thread
+1200:         try:
+1201:             thread.start()
+1202:         except BaseException as error:  # noqa: BLE001 - the failure stays visible
+1203:             self._failures.append('CUSTODY_CLOSER_START_FAILED:'
+1204:                                    + type(error).__name__)
+1205:             self.state = 'UNKNOWN_RETAINED'
+1206:             with self._close_lock:
+1207:                 unpublished = (self._close_state == 'IN_PROGRESS'
+1208:                                and self._close_owner is None)
+1209:                 if unpublished:
+1210:                     self._close_state = 'FINISHED'
+1211:             if unpublished:
+1212:                 self._close_done.set()
+1213:             return False
+1214:         return True
+1215: 
+
+1233:     def _stop_background(self, deadline=None):
+1234:         """Stop the background threads of the round and join them.
+1235: 
+1236:         A thread that does not stop within the shared cleanup deadline
+1237:         is a fact of the round: it is named and the round becomes
+1238:         unknown.  It is never left behind and it is never discarded, and
+1239:         its reference is kept so that the owner of the round can try it
+1240:         again.  A thread that really stopped is not kept any more.
+1241: 
+1242:         The latch of the background is closed **before** the snapshot of
+1243:         the threads is taken.  A thread that is started after this
+1244:         point is refused, and a thread that is in the middle of its own
+1245:         start is finished before the snapshot is taken: the close of
+1246:         the round never leaves behind a thread that it did not know
+1247:         about.
+1248: 
+1249:         The close never joins the thread that runs it: a thread that
+1250:         joins itself is refused by the product and not by the caller.
+1251:         """
+1252:         if deadline is None:
+1253:             deadline = self._cleanup_deadline_for()
+1254:         # The stop of the round blocks every later heartbeat, also when
+1255:         # the close was started by a failure and not by the caller.
+1256:         self._stopping = True
+1257:         self._heartbeat_stop.set()
+1258:         current = threading.current_thread()
+1259:         with self._background_cv:
+1260:             self._background_open = False
+1261:             while self._background_starting > 0:
+1262:                 remaining = max(0.0, deadline - self._clock())
+1263:                 if remaining <= 0.0:
+1264:                     self._failures.append('CUSTODY_BACKGROUND_START_PENDING')
+1265:                     break
+1266:                 self._background_cv.wait(remaining)
+1267:             heartbeat = self._heartbeat
+1268:             pump = self._pump
+1269:         if heartbeat is not None:
+1270:             if heartbeat is not current and heartbeat.ident is not None:
+1271:                 heartbeat.join(self._cleanup_remaining(deadline))
+1272:             if heartbeat.is_alive():
+1273:                 self._failures.append('CUSTODY_HEARTBEAT_NOT_STOPPED')
+1274:                 self.state = 'UNKNOWN_RETAINED'
+1275:             else:
+1276:                 self._heartbeat = None
+1277:         if pump is not None:
+1278:             pump.stop()
+1279:             if pump is current:
+1280:                 # The close never joins the thread that runs it: a pump
+1281:                 # that is the current thread stays alive and keeps its
+1282:                 # reference with its owner.
+1283:                 self._failures.append('CUSTODY_PUMP_NOT_STOPPED')
+1284:                 self.state = 'UNKNOWN_RETAINED'
+1285:             elif not pump.join_bounded(self._cleanup_remaining(deadline)):
+1286:                 self._failures.append('CUSTODY_PUMP_NOT_STOPPED')
+1287:                 self.state = 'UNKNOWN_RETAINED'
+1288:             else:
+1289:                 self._pump = None
+1290: 
+
+1304:     def _cleanup_deadline_for(self):
+1305:         """The ONE absolute deadline of the cleanup of the round.
+1306: 
+1307:         The deadline is generated at the first stop or at the first
+1308:         failure of the cleanup.  It is the earlier of the absolute
+1309:         deadline of the round and the fixed cleanup budget of the round
+1310:         and it is the same value in every layer of the cleanup: the
+1311:         send, the stop of the background threads, the close of the
+1312:         broker, the close of the channel and the close of the endpoints
+1313:         all use this very value.
+1314:         """
+1315:         if self._cleanup_deadline is None:
+1316:             budget = max(0.0, min(STOP_CLEANUP_SECONDS, self.remaining_seconds()))
+1317:             value = self._clock() + budget
+1318:             if self._deadline_mono is not None:
+1319:                 value = min(value, self._deadline_mono)
+1320:             self._cleanup_deadline = value
+1321:         return self._cleanup_deadline
+
+1456:     def stop(self):
+1457:         """Stop the round and close the original handle of the broker.
+1458: 
+1459:         The stop is idempotent: a repeated stop does not send a second
+1460:         command, does not create anything and does not change the evidence
+1461:         of the round.  The closure of the broker happens in a ``finally``,
+1462:         so it also happens when the exchange of the stop failed.
+1463: 
+1464:         The stop and the cleanup share **one** absolute deadline: the
+1465:         earlier of the absolute deadline of the round and the fixed
+1466:         cleanup budget of the round.  That one value is used by the send
+1467:         of the stop, by the stop of the background threads, by the close
+1468:         of the broker, by the close of the channel and by the close of
+1469:         the endpoints of the channel.  No layer of the cleanup adds a
+1470:         budget of its own and a round that is stopped does not get a new
+1471:         and unauthorised grace period of hours.
+1472: 
+1473:         The stop blocks the heartbeat that would follow it.
+1474: 
+1475:         A repeated stop does not send a second command and it does not
+1476:         close a second time.  It waits for the close that is in flight
+1477:         inside the same absolute deadline of the cleanup, so that it
+1478:         never returns a success before the cleanup could finish.
+1479:         """
+1480:         if self._stopped:
+1481:             # A repeated stop sends no second command and it closes no
+1482:             # second time.  It waits for the close that is in flight.
+1483:             self._await_close()
+1484:             return self.evidence()
+1485:         self._stopped = True
+1486:         self._stopping = True
+1487:         cleanup_deadline = self._cleanup_deadline_for()
+1488:         try:
+1489:             if self.broker is not None and self.state in ('ARMED', 'RUNNING'):
+1490:                 self._bind_deadline(cleanup_deadline)
+1491:                 self._send('STOP', terminal=True)
+1492:                 reply = self._read_reply(
+1493:                     ('STOPPED', 'REFUSED'),
+1494:                     timeout=max(0.0, cleanup_deadline - self._clock()))
+1495:                 self._apply_state(reply['state'])
+1496:                 self._terminal = reply['detail']
+1497:                 if reply['kind'] == 'REFUSED':
+1498:                     self._failures.append(reply['detail'].get('code', 'BROKER_REFUSED'))
+1499:             elif self.broker is None:
+1500:                 self._failures.append('CUSTODY_BROKER_NOT_STARTED')
+1501:                 self.state = 'UNKNOWN_RETAINED'
+1502:         except CustodyError as error:
+1503:             self._failures.append(error.code)
+1504:             self.state = 'UNKNOWN_RETAINED'
+1505:         except Exception as error:  # noqa: BLE001 - the failure stays visible
+1506:             # An ordinary failure of the stop is a named failure of the
+1507:             # round: the evidence of the round keeps it and the stop
+1508:             # does not raise over the evidence.
+1509:             self._failures.append(self._failure_code(error))
+1510:             self.state = 'UNKNOWN_RETAINED'
+1511:         except BaseException as error:  # noqa: BLE001 - the failure stays visible
+1512:             # A cancellation is cleaned up and it continues to propagate.
+1513:             self._failures.append(self._failure_code(error))
+1514:             self.state = 'UNKNOWN_RETAINED'
+1515:             raise
+1516:         finally:
+1517:             self._close_broker()
+1518:         return self.evidence()
+1519: 
+1520:     def _close_broker(self):
+1521:         """Close the original handle of the broker, exactly once.
+1522: 
+1523:         One session keeps ONE cleanup owner and ONE absolute cleanup
+1524:         deadline.  The first caller becomes the owner of the close and
+1525:         it performs it; every other caller is a competitor and it waits
+1526:         for the close that is in flight **inside the same absolute
+1527:         deadline** of the cleanup.  A competitor never assumes that a
+1528:         close in progress is a close that is finished and it never
+1529:         renews the deadline of the cleanup.
+1530: 
+1531:         The owner publishes the end of its attempt in a ``finally``: a
+1532:         success, an ordinary exception, a cancellation and a
+1533:         ``SystemExit`` all wake the waiters.  A waiter never holds the
+1534:         lock of the owner while it waits and the owner never waits for
+1535:         itself.
+1536: 
+1537:         A handle that could not be closed is *kept*: the reference of the
+1538:         original handle stays in the evidence of the round and the round
+1539:         stays unknown.  A failed close is never swallowed and never
+1540:         replaced by a success.
+1541:         """
+1542:         deadline = self._cleanup_deadline_for()
+1543:         with self._close_lock:
+1544:             state = self._close_state
+1545:             if state == 'NOT_STARTED':
+1546:                 if self.broker is None:
+1547:                     # Nothing was acquired: there is nothing to close
+1548:                     # and no owner of the close is claimed.
+1549:                     return
+1550:                 self._close_state = 'IN_PROGRESS'
+1551:                 self._close_owner = threading.current_thread()
+1552:                 owner = True
+1553:             else:
+1554:                 owner = False
+1555:         if owner:
+1556:             try:
+1557:                 self._perform_close(deadline)
+1558:             finally:
+1559:                 # The end of the attempt is published on every path: a
+1560:                 # success, an ordinary exception, a cancellation and a
+1561:                 # SystemExit all wake the waiters.
+1562:                 self._finish_close()
+1563:             return
+1564:         if state == 'FINISHED':
+1565:             # The close is over: a repeated close never closes a second
+1566:             # time.
+1567:             return
+1568:         if self._close_owner is threading.current_thread():
+1569:             # The owner of the close never waits for itself.
+1570:             return
+1571:         self._await_close()
+1572: 
+
+1573:     def _perform_close(self, deadline):
+1574:         """The close of the original handle of the broker, by its owner.
+1575: 
+1576:         The steps of the close are independent of each other: a failure
+1577:         of one of them never skips the ones that are safe to run.
+1578: 
+1579:         The release of the reference needs the **facts** of the close:
+1580:         the channel, the process and its original handle and the reader
+1581:         of the channel have to be closed and the reader has to have
+1582:         stopped without an error.  A missing fact, a ``None``, a
+1583:         ``False``, an unknown value and an exception are all unknown: the
+1584:         original broker is kept and the round stays unknown.
+1585:         """
+1586:         try:
+1587:             self._stop_background(deadline)
+1588:         except BaseException as error:  # noqa: BLE001 - the failure stays visible
+1589:             # The background threads of the round could not be stopped.
+1590:             # The close of the original handle of the broker still runs:
+1591:             # the steps of the close are independent of each other.
+1592:             self._failures.append('CUSTODY_BACKGROUND_STOP_FAILED:'
+1593:                                    + type(error).__name__)
+1594:             self.state = 'UNKNOWN_RETAINED'
+1595:         try:
+1596:             self._bind_deadline(deadline)
+1597:         except BaseException as error:  # noqa: BLE001 - the failure stays visible
+1598:             self._failures.append(self._failure_code(error))
+1599:         broker = self.broker
+1600:         if broker is None:
+1601:             return
+1602:         try:
+1603:             facts = broker.close()
+1604:         except BaseException as error:  # noqa: BLE001 - the failure stays visible
+1605:             self._failures.append('CUSTODY_BROKER_CLOSE_FAILED:'
+1606:                                    + type(error).__name__)
+1607:             self._broker_close_failed = True
+1608:             self.state = 'UNKNOWN_RETAINED'
+1609:             self._broker_reader_finished = getattr(broker, 'reader_finished', None)
+1610:             return
+1611:         self._broker_reader_finished = getattr(broker, 'reader_finished', None)
+1612:         self._broker_close_facts = facts if isinstance(facts, dict) else None
+1613:         if not isinstance(facts, dict):
+1614:             # A close that returned no facts at all is not a proof.
+1615:             self._failures.append('CUSTODY_BROKER_CLOSE_INCOMPLETE:facts')
+1616:             self._broker_close_failed = True
+1617:             self.state = 'UNKNOWN_RETAINED'
+1618:             return
+1619:         incomplete = []
+1620:         for key in REQUIRED_CLOSE_FACTS:
+1621:             if key not in facts or facts[key] is not True:
+1622:                 incomplete.append(key)
+1623:         for key in READER_CLOSE_FACTS:
+1624:             if key in facts and facts[key] is not True:
+1625:                 incomplete.append(key)
+1626:         if getattr(broker, 'reader_finished', None) is False:
+1627:             incomplete.append('reader_finished')
+1628:         if facts.get('channel_reader_error'):
+1629:             incomplete.append('channel_reader_error')
+1630:         if facts.get('channel_retained_workers'):
+1631:             incomplete.append('channel_retained_workers')
+1632:         if incomplete:
+1633:             for key in incomplete:
+1634:                 self._failures.append('CUSTODY_BROKER_CLOSE_INCOMPLETE:' + key)
+1635:             self._broker_close_failed = True
+1636:             self.state = 'UNKNOWN_RETAINED'
+1637:             # The original broker is kept: the reference of the
+1638:             # resource of the round is never dropped and the round
+1639:             # never claims a release that it cannot prove.
+1640:             return
+1641:         self.broker = None
+1642: 
+1643:     def _finish_close(self):
+1644:         """Publish the end of the attempt of the close of the round.
+1645: 
+1646:         FINISHED means that the attempt ended and it never means that
+1647:         the resources of the round are released: only the facts of the
+1648:         close prove that.
+1649:         """
+1650:         with self._close_lock:
+1651:             self._close_state = 'FINISHED'
+1652:         self._close_done.set()
+1653: 
+1654:     def _await_close(self):
+1655:         """Wait for the close that is in flight, inside the shared deadline.
+1656: 
+1657:         The wait never holds the lock of the owner: the owner may need
+1658:         it while it stops the background threads of the round.  The
+1659:         arrival of a waiter is published, so that the round and its
+1660:         evidence can see that a competitor waits for the close that it
+1661:         owns.
+1662:         """
+1663:         with self._close_lock:
+1664:             if self._close_state != 'IN_PROGRESS':
+1665:                 return True
+1666:             if self._close_owner is threading.current_thread():
+1667:                 # The owner of the close never waits for itself.
+1668:                 return True
+1669:             self._close_waiters += 1
+1670:         self._close_waiter_arrived.set()
+1671:         try:
+1672:             deadline = self._cleanup_deadline_for()
+1673:             while True:
+1674:                 remaining = max(0.0, deadline - self._clock())
+1675:                 if remaining <= 0.0:
+1676:                     # The shared deadline of the cleanup arrived.  The
+1677:                     # deadline is never renewed and the original
+1678:                     # resources of the round are kept.
+1679:                     self._failures.append('CUSTODY_CLOSE_NOT_FINISHED')
+1680:                     self.state = 'UNKNOWN_RETAINED'
+1681:                     return False
+1682:                 if self._close_done.wait(min(remaining, CLOSE_WAIT_SLICE_SECONDS)):
+1683:                     return True
+1684:         finally:
+1685:             with self._close_lock:
+1686:                 self._close_waiters -= 1
+1687: 
