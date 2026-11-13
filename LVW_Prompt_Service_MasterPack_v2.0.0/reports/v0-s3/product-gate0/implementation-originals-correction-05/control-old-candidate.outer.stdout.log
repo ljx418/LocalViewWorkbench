@@ -1,0 +1,176 @@
+FFFFFFFF..                                                               [100%]
+=================================== FAILURES ===================================
+_ test_the_seal_refuses_an_original_that_changes_during_the_rewalk[same_length_rewrite] _
+
+tmp_path = PosixPath('/tmp/pytest-of-administrator/pytest-122/test_the_seal_refuses_an_origi0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7d8535995dc0>
+name = 'same_length_rewrite'
+factory = <function rewrite_the_original_same_length at 0x7d8535b840e0>
+
+    @pytest.mark.parametrize('name,factory', REWALK_MUTATIONS, ids=REWALK_MUTATION_IDS)
+    def test_the_seal_refuses_an_original_that_changes_during_the_rewalk(
+            tmp_path, monkeypatch, name, factory):
+        """O1: the seal refuses an original that changes inside the re-walk."""
+        root, evidence = originals_root(tmp_path)
+        target = root / 'temp/raw.bin'
+        before = os.stat(target)
+        wrapper, state = mutating_reopen('raw.bin', factory(target))
+        install_reopen(monkeypatch, wrapper)
+>       with pytest.raises(S3IntegrationError) as error:
+E       Failed: DID NOT RAISE <class 'tools.v0_s3_coordinator.S3IntegrationError'>
+
+tools/test_v0_s3_integration.py:1533: Failed
+_ test_the_seal_refuses_an_original_that_changes_during_the_rewalk[same_bytes_rewrite] _
+
+tmp_path = PosixPath('/tmp/pytest-of-administrator/pytest-122/test_the_seal_refuses_an_origi1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7d8535d81b80>
+name = 'same_bytes_rewrite'
+factory = <function rewrite_the_original_same_bytes at 0x7d8535b84180>
+
+    @pytest.mark.parametrize('name,factory', REWALK_MUTATIONS, ids=REWALK_MUTATION_IDS)
+    def test_the_seal_refuses_an_original_that_changes_during_the_rewalk(
+            tmp_path, monkeypatch, name, factory):
+        """O1: the seal refuses an original that changes inside the re-walk."""
+        root, evidence = originals_root(tmp_path)
+        target = root / 'temp/raw.bin'
+        before = os.stat(target)
+        wrapper, state = mutating_reopen('raw.bin', factory(target))
+        install_reopen(monkeypatch, wrapper)
+>       with pytest.raises(S3IntegrationError) as error:
+E       Failed: DID NOT RAISE <class 'tools.v0_s3_coordinator.S3IntegrationError'>
+
+tools/test_v0_s3_integration.py:1533: Failed
+___ test_the_seal_refuses_an_original_that_changes_during_the_rewalk[growth] ___
+
+tmp_path = PosixPath('/tmp/pytest-of-administrator/pytest-122/test_the_seal_refuses_an_origi2')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7d8535d97fb0>
+name = 'growth'
+factory = <function grow_the_original_in_the_rewalk at 0x7d8535b84220>
+
+    @pytest.mark.parametrize('name,factory', REWALK_MUTATIONS, ids=REWALK_MUTATION_IDS)
+    def test_the_seal_refuses_an_original_that_changes_during_the_rewalk(
+            tmp_path, monkeypatch, name, factory):
+        """O1: the seal refuses an original that changes inside the re-walk."""
+        root, evidence = originals_root(tmp_path)
+        target = root / 'temp/raw.bin'
+        before = os.stat(target)
+        wrapper, state = mutating_reopen('raw.bin', factory(target))
+        install_reopen(monkeypatch, wrapper)
+>       with pytest.raises(S3IntegrationError) as error:
+E       Failed: DID NOT RAISE <class 'tools.v0_s3_coordinator.S3IntegrationError'>
+
+tools/test_v0_s3_integration.py:1533: Failed
+_ test_the_seal_refuses_an_original_that_changes_during_the_rewalk[truncation] _
+
+tmp_path = PosixPath('/tmp/pytest-of-administrator/pytest-122/test_the_seal_refuses_an_origi3')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7d8535dc6300>
+name = 'truncation'
+factory = <function truncate_the_original_in_the_rewalk at 0x7d8535b842c0>
+
+    @pytest.mark.parametrize('name,factory', REWALK_MUTATIONS, ids=REWALK_MUTATION_IDS)
+    def test_the_seal_refuses_an_original_that_changes_during_the_rewalk(
+            tmp_path, monkeypatch, name, factory):
+        """O1: the seal refuses an original that changes inside the re-walk."""
+        root, evidence = originals_root(tmp_path)
+        target = root / 'temp/raw.bin'
+        before = os.stat(target)
+        wrapper, state = mutating_reopen('raw.bin', factory(target))
+        install_reopen(monkeypatch, wrapper)
+>       with pytest.raises(S3IntegrationError) as error:
+E       Failed: DID NOT RAISE <class 'tools.v0_s3_coordinator.S3IntegrationError'>
+
+tools/test_v0_s3_integration.py:1533: Failed
+_ test_the_manifest_refuses_an_original_that_changes_during_the_rewalk[same_length_rewrite] _
+
+tmp_path = PosixPath('/tmp/pytest-of-administrator/pytest-122/test_the_manifest_refuses_an_o0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7d8535dc7080>
+name = 'same_length_rewrite'
+factory = <function rewrite_the_original_same_length at 0x7d8535b840e0>
+
+    @pytest.mark.parametrize('name,factory', REWALK_MUTATIONS, ids=REWALK_MUTATION_IDS)
+    def test_the_manifest_refuses_an_original_that_changes_during_the_rewalk(
+            tmp_path, monkeypatch, name, factory):
+        """O1: the manifest refuses an original that changes inside the re-walk."""
+        root, evidence = originals_root(tmp_path)
+        seal_all(evidence)
+        target = root / 'temp/raw.bin'
+        before = os.stat(target)
+        wrapper, state = mutating_reopen('raw.bin', factory(target))
+        install_reopen(monkeypatch, wrapper)
+>       with pytest.raises(S3IntegrationError) as error:
+E       Failed: DID NOT RAISE <class 'tools.v0_s3_coordinator.S3IntegrationError'>
+
+tools/test_v0_s3_integration.py:1560: Failed
+_ test_the_manifest_refuses_an_original_that_changes_during_the_rewalk[same_bytes_rewrite] _
+
+tmp_path = PosixPath('/tmp/pytest-of-administrator/pytest-122/test_the_manifest_refuses_an_o1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7d8535dc7ef0>
+name = 'same_bytes_rewrite'
+factory = <function rewrite_the_original_same_bytes at 0x7d8535b84180>
+
+    @pytest.mark.parametrize('name,factory', REWALK_MUTATIONS, ids=REWALK_MUTATION_IDS)
+    def test_the_manifest_refuses_an_original_that_changes_during_the_rewalk(
+            tmp_path, monkeypatch, name, factory):
+        """O1: the manifest refuses an original that changes inside the re-walk."""
+        root, evidence = originals_root(tmp_path)
+        seal_all(evidence)
+        target = root / 'temp/raw.bin'
+        before = os.stat(target)
+        wrapper, state = mutating_reopen('raw.bin', factory(target))
+        install_reopen(monkeypatch, wrapper)
+>       with pytest.raises(S3IntegrationError) as error:
+E       Failed: DID NOT RAISE <class 'tools.v0_s3_coordinator.S3IntegrationError'>
+
+tools/test_v0_s3_integration.py:1560: Failed
+_ test_the_manifest_refuses_an_original_that_changes_during_the_rewalk[growth] _
+
+tmp_path = PosixPath('/tmp/pytest-of-administrator/pytest-122/test_the_manifest_refuses_an_o2')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7d8535dd6360>
+name = 'growth'
+factory = <function grow_the_original_in_the_rewalk at 0x7d8535b84220>
+
+    @pytest.mark.parametrize('name,factory', REWALK_MUTATIONS, ids=REWALK_MUTATION_IDS)
+    def test_the_manifest_refuses_an_original_that_changes_during_the_rewalk(
+            tmp_path, monkeypatch, name, factory):
+        """O1: the manifest refuses an original that changes inside the re-walk."""
+        root, evidence = originals_root(tmp_path)
+        seal_all(evidence)
+        target = root / 'temp/raw.bin'
+        before = os.stat(target)
+        wrapper, state = mutating_reopen('raw.bin', factory(target))
+        install_reopen(monkeypatch, wrapper)
+>       with pytest.raises(S3IntegrationError) as error:
+E       Failed: DID NOT RAISE <class 'tools.v0_s3_coordinator.S3IntegrationError'>
+
+tools/test_v0_s3_integration.py:1560: Failed
+_ test_the_manifest_refuses_an_original_that_changes_during_the_rewalk[truncation] _
+
+tmp_path = PosixPath('/tmp/pytest-of-administrator/pytest-122/test_the_manifest_refuses_an_o3')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7d8535dc66c0>
+name = 'truncation'
+factory = <function truncate_the_original_in_the_rewalk at 0x7d8535b842c0>
+
+    @pytest.mark.parametrize('name,factory', REWALK_MUTATIONS, ids=REWALK_MUTATION_IDS)
+    def test_the_manifest_refuses_an_original_that_changes_during_the_rewalk(
+            tmp_path, monkeypatch, name, factory):
+        """O1: the manifest refuses an original that changes inside the re-walk."""
+        root, evidence = originals_root(tmp_path)
+        seal_all(evidence)
+        target = root / 'temp/raw.bin'
+        before = os.stat(target)
+        wrapper, state = mutating_reopen('raw.bin', factory(target))
+        install_reopen(monkeypatch, wrapper)
+>       with pytest.raises(S3IntegrationError) as error:
+E       Failed: DID NOT RAISE <class 'tools.v0_s3_coordinator.S3IntegrationError'>
+
+tools/test_v0_s3_integration.py:1560: Failed
+=========================== short test summary info ============================
+FAILED tools/test_v0_s3_integration.py::test_the_seal_refuses_an_original_that_changes_during_the_rewalk[same_length_rewrite]
+FAILED tools/test_v0_s3_integration.py::test_the_seal_refuses_an_original_that_changes_during_the_rewalk[same_bytes_rewrite]
+FAILED tools/test_v0_s3_integration.py::test_the_seal_refuses_an_original_that_changes_during_the_rewalk[growth]
+FAILED tools/test_v0_s3_integration.py::test_the_seal_refuses_an_original_that_changes_during_the_rewalk[truncation]
+FAILED tools/test_v0_s3_integration.py::test_the_manifest_refuses_an_original_that_changes_during_the_rewalk[same_length_rewrite]
+FAILED tools/test_v0_s3_integration.py::test_the_manifest_refuses_an_original_that_changes_during_the_rewalk[same_bytes_rewrite]
+FAILED tools/test_v0_s3_integration.py::test_the_manifest_refuses_an_original_that_changes_during_the_rewalk[growth]
+FAILED tools/test_v0_s3_integration.py::test_the_manifest_refuses_an_original_that_changes_during_the_rewalk[truncation]
+8 failed, 2 passed in 0.35s

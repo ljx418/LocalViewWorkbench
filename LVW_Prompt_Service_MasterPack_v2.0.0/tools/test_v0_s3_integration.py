@@ -1440,3 +1440,161 @@ def test_a_failed_seal_publishes_no_originals(tmp_path, monkeypatch):
     with pytest.raises(S3IntegrationError) as error:
         evidence.manifest()
     assert error.value.reason == 'S3_ORIGINALS_NOT_SEALED'
+
+
+# ---------------------------------------------------------------------------
+# O1: the window of the re-walk.  The artifact is changed between the
+# verified digest and the second walk of the reference, so the digest of
+# the first handle is stale while the ``fstat`` of the handle of the
+# re-walk already sees the change.
+# ---------------------------------------------------------------------------
+
+
+def mutating_reopen(name, action):
+    """A controlled ``os.open`` that changes the artifact at the re-walk.
+
+    The change happens after the kernel opened the artifact and before the
+    descriptor is handed to the caller, so it is inside the re-walk window
+    of the production reader: the ``fstat`` of the returned handle sees
+    the change and the digest of the first handle can not see it any more.
+
+    Only the final component of the reference is counted, and only its
+    second opening is the re-walk: the first opening is the verified walk
+    that the digest was taken from.  The count is the evidence that the
+    procedure does not open the artifact a third time.
+    """
+    real_open = os.open
+    state = {'opens': 0, 'fired': False}
+
+    def wrapper(path, flags, *args, **kwargs):
+        descriptor = real_open(path, flags, *args, **kwargs)
+        if str(path) == name:
+            state['opens'] += 1
+            if state['opens'] == 2:
+                state['fired'] = True
+                action()
+        return descriptor
+
+    return wrapper, state
+
+
+def install_reopen(monkeypatch, wrapper):
+    """Install the controlled opening as the opening of this process.
+
+    The membership of ``os.supports_dir_fd`` is kept: the platform check of
+    the candidate looks at the *identity* of ``os.open``, so the controlled
+    opening has to be a member of that set as well.  The capability itself
+    is not widened - the real opening of the kernel is the one that is
+    called, only the moment of the change is controlled.
+    """
+    support = os.supports_dir_fd
+    monkeypatch.setattr(os, 'open', wrapper)
+    monkeypatch.setattr(os, 'supports_dir_fd', set(support) | {wrapper})
+
+
+def rewrite_the_original_same_length(path):
+    """A rewrite of the same length inside the re-walk."""
+    return lambda: Path(path).write_bytes(b'MODIFIED')
+
+
+def rewrite_the_original_same_bytes(path):
+    """A rewrite of the very same bytes inside the re-walk."""
+    return lambda: Path(path).write_bytes(ORIGINAL_BODY)
+
+
+def grow_the_original_in_the_rewalk(path):
+    """A growth inside the re-walk."""
+    return lambda: Path(path).write_bytes(ORIGINAL_BODY + b'GROWN')
+
+
+def truncate_the_original_in_the_rewalk(path):
+    """A truncation inside the re-walk."""
+    return lambda: Path(path).write_bytes(b'ORI')
+
+
+REWALK_MUTATIONS = (
+    ('same_length_rewrite', rewrite_the_original_same_length),
+    ('same_bytes_rewrite', rewrite_the_original_same_bytes),
+    ('growth', grow_the_original_in_the_rewalk),
+    ('truncation', truncate_the_original_in_the_rewalk),
+)
+REWALK_MUTATION_IDS = [item[0] for item in REWALK_MUTATIONS]
+
+
+@pytest.mark.parametrize('name,factory', REWALK_MUTATIONS, ids=REWALK_MUTATION_IDS)
+def test_the_seal_refuses_an_original_that_changes_during_the_rewalk(
+        tmp_path, monkeypatch, name, factory):
+    """O1: the seal refuses an original that changes inside the re-walk."""
+    root, evidence = originals_root(tmp_path)
+    target = root / 'temp/raw.bin'
+    before = os.stat(target)
+    wrapper, state = mutating_reopen('raw.bin', factory(target))
+    install_reopen(monkeypatch, wrapper)
+    with pytest.raises(S3IntegrationError) as error:
+        seal_all(evidence)
+    assert state['fired'], name
+    assert error.value.reason.startswith('S3_ORIGINAL_'), (name, error.value.reason)
+    # the change was observable in the state of the very same object
+    after = os.stat(target)
+    assert (after.st_dev, after.st_ino) == (before.st_dev, before.st_ino), name
+    assert (after.st_mtime_ns != before.st_mtime_ns
+            or after.st_ctime_ns != before.st_ctime_ns
+            or after.st_size != before.st_size), name
+    # a refused seal publishes nothing at all
+    assert evidence.originals == {}, name
+    # the re-walk is the last observation: the artifact was opened twice
+    # and not a third time
+    assert state['opens'] == 2, name
+
+
+@pytest.mark.parametrize('name,factory', REWALK_MUTATIONS, ids=REWALK_MUTATION_IDS)
+def test_the_manifest_refuses_an_original_that_changes_during_the_rewalk(
+        tmp_path, monkeypatch, name, factory):
+    """O1: the manifest refuses an original that changes inside the re-walk."""
+    root, evidence = originals_root(tmp_path)
+    seal_all(evidence)
+    target = root / 'temp/raw.bin'
+    before = os.stat(target)
+    wrapper, state = mutating_reopen('raw.bin', factory(target))
+    install_reopen(monkeypatch, wrapper)
+    with pytest.raises(S3IntegrationError) as error:
+        evidence.manifest()
+    assert state['fired'], name
+    assert error.value.reason.startswith('S3_ORIGINAL_'), (name, error.value.reason)
+    # the change was observable in the state of the very same object
+    after = os.stat(target)
+    assert (after.st_dev, after.st_ino) == (before.st_dev, before.st_ino), name
+    assert (after.st_mtime_ns != before.st_mtime_ns
+            or after.st_ctime_ns != before.st_ctime_ns
+            or after.st_size != before.st_size), name
+    # the stale seal is never published as verified and it is not changed
+    assert evidence.originals['raw'][0]['sha256'] == \
+        hashlib.sha256(ORIGINAL_BODY).hexdigest(), name
+    assert evidence.originals['raw'][0]['size'] == len(ORIGINAL_BODY), name
+    # the re-walk is the last observation: the artifact was opened twice
+    # and not a third time
+    assert state['opens'] == 2, name
+
+
+@pytest.mark.parametrize('phase', ['seal', 'manifest'])
+def test_an_original_that_does_not_change_during_the_rewalk_is_accepted(
+        tmp_path, monkeypatch, phase):
+    """O1: an original that does not change in the re-walk is not refused."""
+    root, evidence = originals_root(tmp_path)
+    if phase == 'manifest':
+        seal_all(evidence)
+    wrapper, state = mutating_reopen('raw.bin', lambda: None)
+    install_reopen(monkeypatch, wrapper)
+    if phase == 'seal':
+        sealed = seal_all(evidence)
+        assert sealed['raw'][0]['sha256'] == hashlib.sha256(ORIGINAL_BODY).hexdigest()
+        assert sealed['raw'][0]['bytes'] == len(ORIGINAL_BODY)
+    else:
+        manifest = evidence.manifest()
+        assert manifest['reverification']['verified'] is True
+        assert manifest['reverification']['checked'][2]['sha256'] == \
+            hashlib.sha256(ORIGINAL_BODY).hexdigest()
+    # the unchanged artifact was opened twice by the procedure: the
+    # verified walk and the re-walk, and never a third time
+    assert state['opens'] == 2, phase
+

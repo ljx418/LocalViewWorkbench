@@ -27,9 +27,13 @@ explicit and it is deliberately not a bigger claim than it is:
 * the check covers the window between the verified opening of an artifact
   and the end of the digest of that very handle, plus the re-walk of the
   reference from the bound root that follows the digest;
-* it does not claim that an artifact can not change after that re-walk,
-  and it is not an atomic snapshot of a batch of artifacts - every
-  artifact is checked on its own and the batch is not frozen.
+* the re-walk ends with one last real observation of the artifact - the
+  type, the identity, the size, the change time, the modify time and the
+  consumed length of the object that the re-walk really opened.  That
+  observation is the boundary of the check;
+* it does not claim that an artifact can not change after that last
+  observation, and it is not an atomic snapshot of a batch of artifacts -
+  every artifact is checked on its own and the batch is not frozen.
 """
 import errno
 import hashlib
@@ -593,7 +597,7 @@ class ParentOriginalEvidence:
         if int(length) != int(before.st_size):
             raise S3IntegrationError('S3_ORIGINAL_CHANGED:' + category)
 
-    def _refuse_a_changed_path(self, relative, chain, before, category):
+    def _refuse_a_changed_path(self, relative, chain, before, length, category):
         """Refuse an artifact whose path does not lead to it any more.
 
         The reference is walked a second time from the bound root after the
@@ -602,6 +606,22 @@ class ParentOriginalEvidence:
         the *handles* that were opened: the verified handle of the
         artifact and the handle of the second walk.  The comparison never
         falls back to a ``lstat`` of the path and a plain open of it.
+
+        The object of the second walk is compared by its *content state* as
+        well, not only by its identity.  The type, the identity, the size,
+        the change time, the modify time and the number of bytes that were
+        consumed have to be the ones of the state that the verified digest
+        was taken from.  A rewrite of the same length, a rewrite of the
+        same bytes, a growth and a truncation inside the re-walk window
+        are therefore refused here instead of being published with the
+        stale digest of the first walk.
+
+        The comparison uses the ``fstat`` of the handle that the second
+        walk really opened - the observation that is already made by this
+        procedure.  The artifact is not opened a third time, the walk is
+        not repeated and the check is not a retry: the last real
+        observation of the artifact is the boundary of the check, and a
+        change after that observation is outside of it.
         """
         descriptor, second = self._open_inside_root(relative, category)
         try:
@@ -619,6 +639,19 @@ class ParentOriginalEvidence:
             raise S3IntegrationError('S3_ORIGINAL_REPLACED:' + category)
         if (int(info.st_dev), int(info.st_ino)) != (int(before.st_dev), int(before.st_ino)):
             raise S3IntegrationError('S3_ORIGINAL_REPLACED:' + category)
+        if int(info.st_size) != int(before.st_size):
+            # The object of the re-walk is the very same object, but its
+            # content is not the content that was digested any more.
+            raise S3IntegrationError('S3_ORIGINAL_CHANGED:' + category)
+        if (int(info.st_ctime_ns) != int(before.st_ctime_ns)
+                or int(info.st_mtime_ns) != int(before.st_mtime_ns)):
+            # The same bytes with the same size are still a change of the
+            # original: the times of the object are what tells them apart.
+            raise S3IntegrationError('S3_ORIGINAL_CHANGED:' + category)
+        if int(length) != int(info.st_size):
+            # The consumed length and the size of the re-walked object have
+            # to be the same length as well.
+            raise S3IntegrationError('S3_ORIGINAL_CHANGED:' + category)
 
     def _read_original_safely(self, relative, category, *, phase, expected=None):
         """Read one original through one verified handle, with one check.
@@ -632,6 +665,14 @@ class ParentOriginalEvidence:
         of an ancestor during the read window are all refused, so a stale
         seal is never published as a verified original.
 
+        The re-walk compares the *content state* of the object that it
+        really opened - the type, the identity, the size, the change time,
+        the modify time and the consumed length - with the state that the
+        verified digest was taken from.  A change of the artifact inside
+        the re-walk window is therefore refused as well, and it is refused
+        with the observation of that very window and not with an extra
+        opening of the artifact.
+
         ``expected`` is the sealed entry of a re-check.  The identity of the
         object is compared with the sealed one first: an object that is not
         the sealed one is a replaced original, whatever happened to it
@@ -639,8 +680,9 @@ class ParentOriginalEvidence:
 
         The boundary of the check is the window between the verified
         opening and the end of the digest of that handle, plus the re-walk
-        that follows it.  It is not a claim about a later change and it is
-        not an atomic snapshot of a batch.
+        that follows it and its last real observation of the artifact.  It
+        is not a claim about a later change and it is not an atomic
+        snapshot of a batch.
         """
         try:
             descriptor, chain = self._open_inside_root(relative, category)
@@ -670,7 +712,7 @@ class ParentOriginalEvidence:
         if expected is not None:
             self._compare_identity_with_the_seal(expected, observed, category)
         self._refuse_a_changed_window(before, after, length, category, phase)
-        self._refuse_a_changed_path(relative, chain, before, category)
+        self._refuse_a_changed_path(relative, chain, before, length, category)
         if expected is not None:
             self._compare_content_with_the_seal(expected, observed, category)
         return observed
@@ -816,7 +858,8 @@ class ParentOriginalEvidence:
             'originals': self.originals,
             'reverification': reverification,
             'original_open_primitive': 'no_follow_dirfd_nonblock',
-            'original_read_boundary': ('verified_open_to_digest_end_then_path_rewalk'),
+            'original_read_boundary': ('verified_open_to_digest_end_then_path_rewalk'
+                                       '_with_final_content_state_observation'),
             'stage_pass_claim': False,
             'product_gate0': False,
             'real_execution_performed': False,
