@@ -35,7 +35,7 @@
     "TARGET_HARDWARE_TESTED"
   ],
   "next_owner": "ClaudeCode N1 correction03 implementer",
-  "next_action": "Execute once sealed46af977 candidate under root133-node guarded regression (117+16 root oracles); no native activation or automatic correction retry.",
+  "next_action": "Statically fix remaining-helper collision, double-failure test and repeated-stop oracle, replace step-clock lease scenario without weakening production checks; seal new candidate then request ACK.",
   "required_authorization": null,
   "authorization_request": "reports/authorization-program-v1-complete-03.request.json",
   "authorization_record": "reports/authorization-program-v1-complete-03.approval.json",
@@ -87,7 +87,7 @@
   "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
   "live_terminal_receipt": "reports/unified-media/live-15/receipt.json",
   "independent_review": "reports/unified-media/independent-live-15/review.md",
-  "exact_stop_reason": "Sealed four-source candidate and133nodes/pins verified; root external one-batch ACK sent, await actual results.",
+  "exact_stop_reason": "N1 correction03 first133-node batch115PASS18FAIL with14pumps retained; evidence preserved, minimal static correction granted, no test retry ACK.",
   "native_component_authorization": "reports/v0-s2/authorization-native-component-02.json",
   "native_component_terminal_receipt": "reports/v0-s2/native-component-02/receipt.json",
   "local_control_change_decision": "reports/v0-s2/change-decision-video-workbench-01.json",
@@ -2240,7 +2240,18 @@
       "launch_receipt": "reports/v0-s3/product-gate0/native-custody-correction-03/launch.json",
       "candidate_sha": "46af977f86e612d05306005b9e08e54b4d10477a",
       "implementation_delivery_commit": "124e9c3162e38423b6ec1e39ee4e5d4b319a36b5",
-      "verification_plan": "reports/v0-s3/product-gate0/native-custody-correction-03/validation-plan-01/ack.json"
+      "verification_plan": "reports/v0-s3/product-gate0/native-custody-correction-03/validation-plan-01/ack.json",
+      "verification_attempt01": {
+        "candidate_sha": "46af977f86e612d05306005b9e08e54b4d10477a",
+        "calls": 133,
+        "pass": 115,
+        "fail": 18,
+        "skip": 0,
+        "cleanup_proven": false,
+        "retained_channel_pumps": 14,
+        "record": "reports/v0-s3/product-gate0/native-custody-correction-03/correction-plan-02/attempt01/native-custody-correction-03.receipt.json"
+      },
+      "static_correction02": "reports/v0-s3/product-gate0/native-custody-correction-03/correction-plan-02/decision.json"
     }
   }
 }

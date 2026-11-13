@@ -1,0 +1,224 @@
+............................................................................F....FFFF..FFFFFFF.F........................FFF....F..F..
+=================================== FAILURES ===================================
+___________________ test_the_absolute_lease_stops_the_round ____________________
+tools/test_v0_s3_native_custody.py:1588: in test_the_absolute_lease_stops_the_round
+    assert loop.run() == 4
+E   assert 3 == 4
+E    +  where 3 = run()
+E    +    where run = <tools.v0_s3_native_broker.BrokerLoop object at 0x7303c10ef4a0>.run
+______________ test_the_session_holds_the_original_broker_handle _______________
+tools/test_v0_s3_native_custody.py:1672: in test_the_session_holds_the_original_broker_handle
+    session.stop()
+tools/v0_s3_native_custody.py:1307: in stop
+    self._close_broker()
+tools/v0_s3_native_custody.py:1336: in _close_broker
+    self._stop_background(deadline)
+tools/v0_s3_native_custody.py:1090: in _stop_background
+    self._heartbeat.join(self._remaining(deadline))
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: 'int' object is not callable
+________________ test_the_session_does_not_extend_the_deadline _________________
+tools/test_v0_s3_native_custody.py:1687: in test_the_session_does_not_extend_the_deadline
+    session.stop()
+tools/v0_s3_native_custody.py:1307: in stop
+    self._close_broker()
+tools/v0_s3_native_custody.py:1336: in _close_broker
+    self._stop_background(deadline)
+tools/v0_s3_native_custody.py:1090: in _stop_background
+    self._heartbeat.join(self._remaining(deadline))
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: 'int' object is not callable
+______________________ test_a_repeated_stop_is_idempotent ______________________
+tools/test_v0_s3_native_custody.py:1696: in test_a_repeated_stop_is_idempotent
+    first = session.stop()
+            ^^^^^^^^^^^^^^
+tools/v0_s3_native_custody.py:1307: in stop
+    self._close_broker()
+tools/v0_s3_native_custody.py:1336: in _close_broker
+    self._stop_background(deadline)
+tools/v0_s3_native_custody.py:1090: in _stop_background
+    self._heartbeat.join(self._remaining(deadline))
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: 'int' object is not callable
+____________ test_the_evidence_keeps_every_native_claim_not_proven _____________
+tools/test_v0_s3_native_custody.py:1721: in test_the_evidence_keeps_every_native_claim_not_proven
+    evidence = session.stop()
+               ^^^^^^^^^^^^^^
+tools/v0_s3_native_custody.py:1307: in stop
+    self._close_broker()
+tools/v0_s3_native_custody.py:1336: in _close_broker
+    self._stop_background(deadline)
+tools/v0_s3_native_custody.py:1090: in _stop_background
+    self._heartbeat.join(self._remaining(deadline))
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: 'int' object is not callable
+_______________ test_the_session_closes_the_broker_on_a_refusal ________________
+tools/test_v0_s3_native_custody.py:1768: in test_the_session_closes_the_broker_on_a_refusal
+    assert state['peer'].close_count == 1
+E   assert 0 == 1
+E    +  where 0 = <test_v0_s3_native_custody.FakeBrokerProcess object at 0x7303c1152e10>.close_count
+_____________ test_the_session_closes_the_broker_on_a_cancellation _____________
+tools/test_v0_s3_native_custody.py:1784: in test_the_session_closes_the_broker_on_a_cancellation
+    assert state['peer'].close_count == 1
+E   assert 0 == 1
+E    +  where 0 = <test_v0_s3_native_custody.FakeBrokerProcess object at 0x7303c1151490>.close_count
+_____________ test_the_session_closes_the_broker_on_a_parse_error ______________
+tools/test_v0_s3_native_custody.py:1811: in test_the_session_closes_the_broker_on_a_parse_error
+    assert state['peer'].close_count == 1
+E   assert 0 == 1
+E    +  where 0 = <test_v0_s3_native_custody.FakeBrokerProcess object at 0x7303c1151e80>.close_count
+__________ test_the_session_refuses_a_peer_that_is_not_deadline_aware __________
+tools/test_v0_s3_native_custody.py:1838: in test_the_session_refuses_a_peer_that_is_not_deadline_aware
+    assert caught is None
+E   AssertionError: assert 'TypeError' is None
+_________________ test_the_stop_uses_one_shared_cleanup_budget _________________
+tools/test_v0_s3_native_custody.py:1851: in test_the_stop_uses_one_shared_cleanup_budget
+    session.stop()
+tools/v0_s3_native_custody.py:1307: in stop
+    self._close_broker()
+tools/v0_s3_native_custody.py:1336: in _close_broker
+    self._stop_background(deadline)
+tools/v0_s3_native_custody.py:1090: in _stop_background
+    self._heartbeat.join(self._remaining(deadline))
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: 'int' object is not callable
+_________________ test_the_heartbeat_keeps_a_long_round_alive __________________
+tools/test_v0_s3_native_custody.py:1891: in test_the_heartbeat_keeps_a_long_round_alive
+    session.stop()
+tools/v0_s3_native_custody.py:1307: in stop
+    self._close_broker()
+tools/v0_s3_native_custody.py:1336: in _close_broker
+    self._stop_background(deadline)
+tools/v0_s3_native_custody.py:1090: in _stop_background
+    self._heartbeat.join(self._remaining(deadline))
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: 'int' object is not callable
+___________ test_the_heartbeat_does_not_extend_the_absolute_deadline ___________
+tools/test_v0_s3_native_custody.py:1907: in test_the_heartbeat_does_not_extend_the_absolute_deadline
+    session.stop()
+tools/v0_s3_native_custody.py:1307: in stop
+    self._close_broker()
+tools/v0_s3_native_custody.py:1336: in _close_broker
+    self._stop_background(deadline)
+tools/v0_s3_native_custody.py:1090: in _stop_background
+    self._heartbeat.join(self._remaining(deadline))
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: 'int' object is not callable
+______________________ test_the_frame_budget_fails_closed ______________________
+tools/test_v0_s3_native_custody.py:1935: in test_the_frame_budget_fails_closed
+    session.stop()
+tools/v0_s3_native_custody.py:1307: in stop
+    self._close_broker()
+tools/v0_s3_native_custody.py:1336: in _close_broker
+    self._stop_background(deadline)
+tools/v0_s3_native_custody.py:1090: in _stop_background
+    self._heartbeat.join(self._remaining(deadline))
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: 'int' object is not callable
+____ test_n03_r04_a_job_that_could_not_be_closed_keeps_its_original_handle _____
+tools/test_v0_s3_native_custody_regressions.py:611: in test_n03_r04_a_job_that_could_not_be_closed_keeps_its_original_handle
+    with pytest.raises(BrokerError):
+E   Failed: DID NOT RAISE <class 'tools.v0_s3_native_broker.BrokerError'>
+______ test_n03_r05_the_stop_runs_every_cleanup_after_an_ordinary_failure ______
+tools/test_v0_s3_native_custody_regressions.py:654: in test_n03_r05_the_stop_runs_every_cleanup_after_an_ordinary_failure
+    with pytest.raises(RuntimeError):
+E   Failed: DID NOT RAISE <class 'RuntimeError'>
+_________ test_n03_r06_the_start_cleans_up_everything_that_it_acquired _________
+tools/test_v0_s3_native_custody_regressions.py:683: in <lambda>
+    session._start_heartbeat = lambda: (_ for _ in ()).throw(
+tools/test_v0_s3_native_custody_regressions.py:683: in <genexpr>
+    session._start_heartbeat = lambda: (_ for _ in ()).throw(
+E   RuntimeError: thread_start_failed
+
+During handling of the above exception, another exception occurred:
+tools/test_v0_s3_native_custody_regressions.py:685: in test_n03_r06_the_start_cleans_up_everything_that_it_acquired
+    evidence = session.start()
+               ^^^^^^^^^^^^^^^
+tools/v0_s3_native_custody.py:1228: in start
+    self._close_broker()
+tools/v0_s3_native_custody.py:1336: in _close_broker
+    self._stop_background(deadline)
+tools/v0_s3_native_custody.py:1098: in _stop_background
+    if not self._pump.join_bounded(self._remaining(deadline)):
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: 'int' object is not callable
+______ test_n03_r11_a_failure_of_the_background_latches_the_unknown_state ______
+tools/test_v0_s3_native_custody_regressions.py:1019: in test_n03_r11_a_failure_of_the_background_latches_the_unknown_state
+    assert holder['peer'].closed == 1
+E   assert 0 == 1
+E    +  where 0 = <test_v0_s3_native_custody_regressions.RecordingPeer object at 0x7303c106f200>.closed
+_________ test_n03_r14_a_close_without_facts_keeps_the_original_broker _________
+tools/test_v0_s3_native_custody_regressions.py:1155: in test_n03_r14_a_close_without_facts_keeps_the_original_broker
+    evidence = session.stop()
+               ^^^^^^^^^^^^^^
+tools/v0_s3_native_custody.py:1307: in stop
+    self._close_broker()
+tools/v0_s3_native_custody.py:1336: in _close_broker
+    self._stop_background(deadline)
+tools/v0_s3_native_custody.py:1090: in _stop_background
+    self._heartbeat.join(self._remaining(deadline))
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: 'int' object is not callable
+=============================== warnings summary ===============================
+tools/test_v0_s3_native_custody.py::test_the_session_closes_the_broker_on_a_parse_error
+  /home/administrator/.local/lib/python3.12/site-packages/_pytest/threadexception.py:58: PytestUnhandledThreadExceptionWarning: Exception in thread lvw-native-custody-closer
+  
+  Traceback (most recent call last):
+    File "/usr/lib/python3.12/threading.py", line 1073, in _bootstrap_inner
+      self.run()
+    File "/usr/lib/python3.12/threading.py", line 1010, in run
+      self._target(*self._args, **self._kwargs)
+    File "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_native_custody.py", line 1336, in _close_broker
+      self._stop_background(deadline)
+    File "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_native_custody.py", line 1098, in _stop_background
+      if not self._pump.join_bounded(self._remaining(deadline)):
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^
+  TypeError: 'int' object is not callable
+  
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+    warnings.warn(pytest.PytestUnhandledThreadExceptionWarning(msg))
+
+tools/test_v0_s3_native_custody.py::test_a_heartbeat_failure_is_a_named_failure_of_the_round
+tools/test_v0_s3_native_custody_regressions.py::test_n03_r11_a_failure_of_the_background_latches_the_unknown_state
+tools/test_v0_s3_native_custody_regressions.py::test_n03_r12_the_frame_budget_is_the_total_of_both_directions
+  /home/administrator/.local/lib/python3.12/site-packages/_pytest/threadexception.py:58: PytestUnhandledThreadExceptionWarning: Exception in thread lvw-native-custody-closer
+  
+  Traceback (most recent call last):
+    File "/usr/lib/python3.12/threading.py", line 1073, in _bootstrap_inner
+      self.run()
+    File "/usr/lib/python3.12/threading.py", line 1010, in run
+      self._target(*self._args, **self._kwargs)
+    File "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_native_custody.py", line 1336, in _close_broker
+      self._stop_background(deadline)
+    File "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_native_custody.py", line 1090, in _stop_background
+      self._heartbeat.join(self._remaining(deadline))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  TypeError: 'int' object is not callable
+  
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+    warnings.warn(pytest.PytestUnhandledThreadExceptionWarning(msg))
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tools/test_v0_s3_native_custody.py::test_the_absolute_lease_stops_the_round
+FAILED tools/test_v0_s3_native_custody.py::test_the_session_holds_the_original_broker_handle
+FAILED tools/test_v0_s3_native_custody.py::test_the_session_does_not_extend_the_deadline
+FAILED tools/test_v0_s3_native_custody.py::test_a_repeated_stop_is_idempotent
+FAILED tools/test_v0_s3_native_custody.py::test_the_evidence_keeps_every_native_claim_not_proven
+FAILED tools/test_v0_s3_native_custody.py::test_the_session_closes_the_broker_on_a_refusal
+FAILED tools/test_v0_s3_native_custody.py::test_the_session_closes_the_broker_on_a_cancellation
+FAILED tools/test_v0_s3_native_custody.py::test_the_session_closes_the_broker_on_a_parse_error
+FAILED tools/test_v0_s3_native_custody.py::test_the_session_refuses_a_peer_that_is_not_deadline_aware
+FAILED tools/test_v0_s3_native_custody.py::test_the_stop_uses_one_shared_cleanup_budget
+FAILED tools/test_v0_s3_native_custody.py::test_the_heartbeat_keeps_a_long_round_alive
+FAILED tools/test_v0_s3_native_custody.py::test_the_heartbeat_does_not_extend_the_absolute_deadline
+FAILED tools/test_v0_s3_native_custody.py::test_the_frame_budget_fails_closed
+FAILED tools/test_v0_s3_native_custody_regressions.py::test_n03_r04_a_job_that_could_not_be_closed_keeps_its_original_handle
+FAILED tools/test_v0_s3_native_custody_regressions.py::test_n03_r05_the_stop_runs_every_cleanup_after_an_ordinary_failure
+FAILED tools/test_v0_s3_native_custody_regressions.py::test_n03_r06_the_start_cleans_up_everything_that_it_acquired
+FAILED tools/test_v0_s3_native_custody_regressions.py::test_n03_r11_a_failure_of_the_background_latches_the_unknown_state
+FAILED tools/test_v0_s3_native_custody_regressions.py::test_n03_r14_a_close_without_facts_keeps_the_original_broker
+18 failed, 115 passed, 4 warnings in 10.83s
+{"pytest_exit": 1, "call_count": 133, "pass_count": 115, "fail_count": 18, "skip_count": 0, "functional_pass_count": 113, "cleanup_proven_for_batch": false}

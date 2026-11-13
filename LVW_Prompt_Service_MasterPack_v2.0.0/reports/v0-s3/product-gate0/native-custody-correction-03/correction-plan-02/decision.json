@@ -1,0 +1,42 @@
+{
+  "message_id": "msg_1f5a9dd23491",
+  "decision": "AUTHORIZE_STATIC_MINIMAL_CORRECTION_ONLY_NOT_EXECUTION",
+  "failed_candidate_sha": "46af977f86e612d05306005b9e08e54b4d10477a",
+  "first_batch": {
+    "calls": 133,
+    "pass": 115,
+    "fail": 18,
+    "skip": 0,
+    "cleanup": false,
+    "threads_after": [
+      "MainThread",
+      "lvw-native-custody-channel-pump",
+      "lvw-native-custody-channel-pump",
+      "lvw-native-custody-channel-pump",
+      "lvw-native-custody-channel-pump",
+      "lvw-native-custody-channel-pump",
+      "lvw-native-custody-channel-pump",
+      "lvw-native-custody-channel-pump",
+      "lvw-native-custody-channel-pump",
+      "lvw-native-custody-channel-pump",
+      "lvw-native-custody-channel-pump",
+      "lvw-native-custody-channel-pump",
+      "lvw-native-custody-channel-pump",
+      "lvw-native-custody-channel-pump"
+    ]
+  },
+  "regression_failed_nodes": [
+    "tools/test_v0_s3_native_custody_regressions.py::test_n03_r04_a_job_that_could_not_be_closed_keeps_its_original_handle",
+    "tools/test_v0_s3_native_custody_regressions.py::test_n03_r05_the_stop_runs_every_cleanup_after_an_ordinary_failure",
+    "tools/test_v0_s3_native_custody_regressions.py::test_n03_r06_the_start_cleans_up_everything_that_it_acquired",
+    "tools/test_v0_s3_native_custody_regressions.py::test_n03_r11_a_failure_of_the_background_latches_the_unknown_state",
+    "tools/test_v0_s3_native_custody_regressions.py::test_n03_r14_a_close_without_facts_keeps_the_original_broker"
+  ],
+  "A": "Production callable/instance-attribute collision; rename deadline helper only",
+  "B": "Do not weaken production deadline checks; use explicit event-driven fake clock scenarios",
+  "C": "Correct test double to fire job_limit and close failures together",
+  "D": "Preserve UNKNOWN and primary failure without re-closing a released job",
+  "test_execution_authorized": false,
+  "human_authorization_required": false,
+  "stage_pass_claim": false
+}
