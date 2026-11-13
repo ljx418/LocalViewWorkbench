@@ -1,0 +1,37 @@
+......................FF........F...F
+=================================== FAILURES ===================================
+_____ test_real_failed_rows_not_hidden_by_outer_blocked[release-unproven] ______
+reports/v0-s3/product-gate0/independent-production-composition-01/probe_test.py:60: in test_real_failed_rows_not_hidden_by_outer_blocked
+    if failure in ['release-unproven','residue']:assert statuses['output_contract']=='PASS'
+                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: assert 'FAIL' == 'PASS'
+E     
+E     - PASS
+E     + FAIL
+__________ test_real_failed_rows_not_hidden_by_outer_blocked[residue] __________
+reports/v0-s3/product-gate0/independent-production-composition-01/probe_test.py:60: in test_real_failed_rows_not_hidden_by_outer_blocked
+    if failure in ['release-unproven','residue']:assert statuses['output_contract']=='PASS'
+                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: assert 'FAIL' == 'PASS'
+E     
+E     - PASS
+E     + FAIL
+___________ test_worker_second_load_does_not_enforce_preflight_seal ____________
+reports/v0-s3/product-gate0/independent-production-composition-01/probe_test.py:131: in test_worker_second_load_does_not_enforce_preflight_seal
+    assert original!=comp['worker_context_path'].read_bytes() and r['state']=='SUMMARY_PERSISTED'
+E   assert (b'{"authorization_sha256":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","binding_path":"/home/adm...xts/source-identity.json","source_identity_sha256":"2022871778d1c0647a2d532980fe6b2c33ade2a8139807062ab581771c23b542"}' != b'{"authorization_sha256":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","binding_path":"/home/adm...xts/source-identity.json","source_identity_sha256":"2022871778d1c0647a2d532980fe6b2c33ade2a8139807062ab581771c23b542"}' and 'UNKNOWN_RETAINED' == 'SUMMARY_PERSISTED'
+E    +  where b'{"authorization_sha256":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","binding_path":"/home/adm...xts/source-identity.json","source_identity_sha256":"2022871778d1c0647a2d532980fe6b2c33ade2a8139807062ab581771c23b542"}' = read_bytes()
+E    +    where read_bytes = PosixPath('/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0....e0/independent-production-composition-01/pytest-temp/test_worker_second_load_does_n0/run/contexts/worker-context.json').read_bytes
+E     
+E     - SUMMARY_PERSISTED
+E     + UNKNOWN_RETAINED)
+__________ test_blocked_thread_is_retained_and_can_write_after_return __________
+reports/v0-s3/product-gate0/independent-production-composition-01/probe_test.py:194: in test_blocked_thread_is_retained_and_can_write_after_return
+    assert daemon and before!=after and not seam._worker._thread.is_alive()
+E   AssertionError: assert (True and {'temp/s3-quality/qd-source-plan.json': '1ae223948db8721007d05d8332c83105b2d3105d1e3230185f4bdba306e449a3', 'temp/s3-quality/rows/SYN-I00/provider-before.log': '79c9a419aaaf7453b783bf63e08887f17e1864139614a79c45de097fa2fe7b4e'} != {'temp/s3-quality/qd-source-plan.json': '1ae223948db8721007d05d8332c83105b2d3105d1e3230185f4bdba306e449a3', 'temp/s3-quality/rows/SYN-I00/provider-before.log': '79c9a419aaaf7453b783bf63e08887f17e1864139614a79c45de097fa2fe7b4e'})
+=========================== short test summary info ============================
+FAILED reports/v0-s3/product-gate0/independent-production-composition-01/probe_test.py::test_real_failed_rows_not_hidden_by_outer_blocked[release-unproven]
+FAILED reports/v0-s3/product-gate0/independent-production-composition-01/probe_test.py::test_real_failed_rows_not_hidden_by_outer_blocked[residue]
+FAILED reports/v0-s3/product-gate0/independent-production-composition-01/probe_test.py::test_worker_second_load_does_not_enforce_preflight_seal
+FAILED reports/v0-s3/product-gate0/independent-production-composition-01/probe_test.py::test_blocked_thread_is_retained_and_can_write_after_return
+4 failed, 33 passed in 49.32s

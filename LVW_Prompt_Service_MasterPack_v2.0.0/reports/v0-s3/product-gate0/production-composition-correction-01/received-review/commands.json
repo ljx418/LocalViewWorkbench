@@ -1,0 +1,80 @@
+[
+  {
+    "label": "guard-selftest",
+    "argv": [
+      "python3",
+      "-B",
+      "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-01/guard.py",
+      "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-01/guard_selftest.py",
+      "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-01/guard-selftest.guard.json"
+    ],
+    "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0",
+    "started": 1794564434.8662763,
+    "finished": 1794564434.8967957,
+    "exit": 0
+  },
+  {
+    "label": "concentrated",
+    "argv": [
+      "python3",
+      "-B",
+      "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-01/guard.py",
+      "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-01/concentrated.py",
+      "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-01/concentrated.guard.json"
+    ],
+    "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0",
+    "started": 1794564434.897013,
+    "finished": 1794564485.7924232,
+    "exit": 1
+  },
+  {
+    "label": "corrected-only-failed-and-finalrow",
+    "argv": [
+      "python3",
+      "-B",
+      "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-01/guard.py",
+      "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-01/corrected_probes.py",
+      "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-01/corrected.guard.json"
+    ],
+    "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0",
+    "started": 1794564557.8208432,
+    "finished": 1794564597.3720002,
+    "exit": 0
+  },
+  {
+    "label": "narrow-unresolved-QS-owner",
+    "argv": [
+      "python3",
+      "-B",
+      "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-01/guard.py",
+      "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-01/score_owner_checks.py",
+      "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-01/score-owner.guard.json"
+    ],
+    "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0",
+    "started": 1794564730.4435833,
+    "finished": 1794564736.389559,
+    "exit": 0
+  },
+  {
+    "label": "audit-final-initial",
+    "argv": [
+      "python3",
+      "LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-01/audit_final.py"
+    ],
+    "exit": 1,
+    "stderr": "audit-final.initial.stderr.log",
+    "source_snapshot": "audit_final.initial.txt",
+    "reason": "independent audit assumed nonexistent sourceplan run_root field; no candidate executed"
+  },
+  {
+    "label": "audit-final-corrected",
+    "argv": [
+      "python3",
+      "LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-production-composition-01/audit_final.py"
+    ],
+    "exit": 0,
+    "stderr": "audit-final.stderr.log",
+    "stdout": "audit-final.stdout.log",
+    "reason": "check canonical.run_root and each sourceplan absolute path instead; no candidate executed"
+  }
+]

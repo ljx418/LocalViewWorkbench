@@ -1,0 +1,43 @@
+{
+  "report": {
+    "kind": "lvw.s3-native-admission-report/1",
+    "run_id": "s3-p4-composition-01",
+    "candidate_sha": "7c27a11111ede5bb2eb449211f5450270d884ee3",
+    "authorization_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "accepted": false,
+    "reasons": [
+      "native_custody:PROOF_MISSING:status",
+      "gpu_release:PROOF_MISSING:status",
+      "install:PROOF_MISSING:status",
+      "rollback:PROOF_MISSING:status",
+      "grant:PROOF_MISSING:status"
+    ],
+    "verified": [
+      "budget_binding",
+      "tool_closure"
+    ],
+    "budget_authority": "S3BudgetBindingProvider",
+    "original_ledger_touched_by_this_controller": false,
+    "debit_owner": "original_ledger_authority",
+    "stage_pass_claim": false,
+    "product_gate0": false,
+    "primary_reason": "native_custody:PROOF_MISSING:status"
+  },
+  "normal_json_ok": false,
+  "normal_json_reasons": [
+    "grant:PROOF_MISSING:status"
+  ],
+  "identical_python_literal_ok": true,
+  "budget_spy_only": true,
+  "no_native_spawn": true,
+  "no_ledger_read": true,
+  "direct_invalid_grant": {
+    "run_id": "s3-p4-composition-01",
+    "candidate_sha": "7c27a11111ede5bb2eb449211f5450270d884ee3",
+    "status": "PROVEN",
+    "grant_active": true,
+    "expires_at": 0,
+    "budget": 0,
+    "authorization_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+  }
+}

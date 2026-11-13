@@ -1,0 +1,49 @@
+"""Outer, read-only audit of sources/counter and synthetic evidence; no candidate imports."""
+from pathlib import Path
+import subprocess,json,hashlib,stat
+P=Path('LVW_Prompt_Service_MasterPack_v2.0.0');D=P/'reports/v0-s3/product-gate0/independent-production-composition-01';C='7c27a11111ede5bb2eb449211f5450270d884ee3'
+git=lambda *a:subprocess.check_output(['git',*a]);sha=lambda b:hashlib.sha256(b).hexdigest()
+def save(n,o):(D/n).write_text(json.dumps(o,indent=2,ensure_ascii=False))
+# Identity and complete positive source chain after execution, independent of candidate readers.
+r=json.loads((D/'positive-full-chain.json').read_text())['receipt'];root=Path(r['root']);canraw=(root/'temp/s3-quality/qd-receipt.json').read_bytes();can=json.loads(canraw);planraw=(root/'temp/s3-quality/qd-source-plan.json').read_bytes();plan=json.loads(planraw);o=json.loads((D/'positive-chain-oracle.json').read_text());projected=o['expected_projection_rows'];rows=[]
+for ordinal,(expected,actual,sealed) in enumerate(zip(projected,can['rows'],plan['rows']),1):
+ check={k:expected[k]==actual[k]==sealed[k] for k in ['asset_id','media_kind','source_sha256','source_bytes','input_reference']}
+ check['ordinal']=actual['ordinal']==sealed['ordinal']==ordinal
+ check['actual_source_hash']=sha((root/'input'/expected['input_reference']).read_bytes())==expected['source_sha256']
+ assert all(check.values()),check;rows.append(check)
+identities={k:r[k]==can[k]==plan[k] for k in ['run_id','candidate_sha','authorization_sha256']};assert all(identities.values())
+assert r['candidate_sha']==C and can['run_root']==str(root)
+assert all(Path(row['path'])==root/'input'/row['input_reference'] for row in plan['rows'])
+assert sha(canraw)==r['supervision']['canonical_receipt']['sha256']==r['summary']['provenance']['canonical']['sha256']
+assert sha(planraw)==r['summary']['provenance']['source_plan']['sha256']
+assert can['projection_sha256']==plan['projection_sha256']==r['plan']['projection_sha256']
+sealed_rows=[dict(row,ordinal=i) for i,row in enumerate(projected,1)]
+assert sha(json.dumps(sealed_rows,ensure_ascii=False,sort_keys=True,separators=(',',':')).encode())==r['plan']['plan_sha256']==r['manifest']['plan_sha256']
+entries=[entry for values in r['manifest']['originals'].values() for entry in values];assert len(entries)==82
+for entry in entries:
+ f=root/entry['reference'];assert sha(f.read_bytes())==entry['sha256'] and f.stat().st_size==entry['bytes']
+assert sha(Path(r['summary_path']).read_bytes())==r['summary_sha256']
+save('positive-chain-verification.json',{'identities':identities,'run_root':str(root),'candidate':C,'sixteen_rows':rows,'manifest_entries_verified':len(entries),'canonical_sourceplan_projection_summary_hashes_match':True,'parent_plan_digest_recomputed':True,'controller_context_provenance_wrong':r['summary']['provenance']['controller_context']['sha256']!=sha((root/'contexts/controller-context.json').read_bytes()),'stage_pass_claim':False,'product_gate0':False})
+for old in ['independent-fixture-result-05','independent-originals-correction-05']:
+ p=D.parent/old/'integrity.json';obj=json.loads(p.read_text());entries=obj if isinstance(obj,list) else [dict(v,path=k) for k,v in obj['entries'].items()];bad=[]
+ for entry in entries:
+  f=p.parent/entry['path']
+  if not f.is_file() or sha(f.read_bytes())!=entry['sha256']:bad.append(entry['path'])
+ assert not bad,bad;save(old+'-prior-integrity.json',{'entries':len(entries),'mismatches':bad,'not_rerun':True})
+initial=json.loads((D/'initial-state.json').read_text());idx=Path(git('rev-parse','--git-path','index').decode().strip());assert idx.read_bytes()==(D/'initial-index.bin').read_bytes();assert git('rev-parse','HEAD').decode().strip()==initial['HEAD']
+for name,entry in json.loads((D/'source-preflight.json').read_text())['bindings'].items():
+ f=Path(name)
+ if f.name!='v0_s3_quality_worker.py':assert sha(f.read_bytes())==entry['work']
+for name in ['v0_s3_production_controller.py','test_v0_s3_production_composition.py','v0_s3_quality_worker.py']:
+ f=P/'tools'/name;assert f.read_bytes()==git('show',C+':'+str(f))
+new3=[str(P/'tools'/n) for n in ['v0_s3_production_controller.py','test_v0_s3_production_composition.py','v0_s3_quality_worker.py']]
+now=git('status','--porcelain=v2','--untracked-files=all').decode()
+def filtered(s):return '\n'.join(line for line in s.splitlines() if str(D)+'/' not in line and not any(n in line for n in new3))
+assert filtered(now)==filtered(initial['status'])
+counter=Path('/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json').read_bytes();assert counter==(D/'counter-before.json').read_bytes() and sha(counter)=='acbdb8b154864b6f079ae783d670f11ec138b6be0617d1fa4f56c28c33223b98';(D/'counter-after.json').write_bytes(counter)
+# Existing root controls and received evidence remain their initial bytes.
+inputs=json.loads((D/'input-integrity.json').read_text());assert all(sha(Path(f).read_bytes())==entry['sha256'] for f,entry in inputs.items())
+for label in ['concentrated','corrected','score-owner']:assert json.loads((D/(label+'.guard.json')).read_text())['denials']==[]
+assert len(json.loads((D/'guard-selftest.guard.json').read_text())['denials'])==8
+save('final-state.json',{'HEAD':initial['HEAD'],'head_unchanged':True,'index_bytes_unchanged':True,'index_sha256':sha(idx.read_bytes()),'status_except_authorized_three_and_NEW_report_unchanged':True,'status':now,'candidate_sources_exact':{name:sha((P/'tools'/name).read_bytes()) for name in ['v0_s3_production_controller.py','test_v0_s3_production_composition.py','v0_s3_quality_worker.py']},'other_101_tools_preserved_except_authorized_worker':True,'root_inputs_unchanged':len(inputs),'counter_sha256':sha(counter),'counter_inactive':not json.loads(counter)['active'],'no_remaining_fifo':not any(stat.S_ISFIFO(f.lstat().st_mode) for f in D.rglob('*')),'source_staged':False,'committed':False,'stage_pass_claim':False,'product_gate0':False})
+print(json.dumps({'positive_rows':16,'originals':82,'index_head_source_counter_input_checks':'ok'}))

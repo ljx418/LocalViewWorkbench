@@ -1,0 +1,390 @@
+{
+  "candidate": "7c27a11111ede5bb2eb449211f5450270d884ee3",
+  "fixed_I_denominator": 24,
+  "product_denominator": 12,
+  "C_is_mapping_not_new_denominator": true,
+  "C_map": {
+    "C01": [
+      "I03",
+      "I04",
+      "I23"
+    ],
+    "C02": [
+      "I07"
+    ],
+    "C03": [
+      "I10",
+      "I11",
+      "I21"
+    ],
+    "C04": [
+      "I13",
+      "I14"
+    ],
+    "C05": [
+      "I16"
+    ],
+    "C06": [
+      "I19",
+      "I20"
+    ],
+    "C07": [
+      "I24"
+    ],
+    "C08": [
+      "I22"
+    ],
+    "C09": [
+      "I01",
+      "I02",
+      "I05",
+      "I06"
+    ],
+    "C10": [
+      "I17",
+      "I18"
+    ],
+    "C11": [
+      "I15"
+    ],
+    "C12": [
+      "I01",
+      "I02",
+      "I03",
+      "I04",
+      "I05",
+      "I06",
+      "I07",
+      "I08",
+      "I09",
+      "I10",
+      "I11",
+      "I12",
+      "I13",
+      "I14",
+      "I15",
+      "I16",
+      "I17",
+      "I18",
+      "I19",
+      "I20",
+      "I21",
+      "I22",
+      "I23",
+      "I24"
+    ]
+  },
+  "I_coverage": [
+    {
+      "id": "I01",
+      "owner_path": "runtime/profile owner；S3InstalledRuntimeFactory → StageRuntimeFactory._write_profile_binding → NativeRuntime.write_native_binding",
+      "C_mapping": [
+        "C09",
+        "C12"
+      ],
+      "independent_observation": "unchanged owner/profile source only",
+      "remaining_gap": "No new real default profile/ledger; M02",
+      "complete_obligation": "NOT_PROVEN",
+      "new_candidate_fixed13_pass_claimed": false,
+      "product_pass": false
+    },
+    {
+      "id": "I02",
+      "owner_path": "runtime/profile owner；同hook → NativeRuntime.write_warm_binding",
+      "C_mapping": [
+        "C09",
+        "C12"
+      ],
+      "independent_observation": "unchanged warm owner source only",
+      "remaining_gap": "No real warm/native lifecycle",
+      "complete_obligation": "NOT_PROVEN",
+      "new_candidate_fixed13_pass_claimed": false,
+      "product_pass": false
+    },
+    {
+      "id": "I03",
+      "owner_path": "binding owner；S3BudgetBindingProvider._load/_check_identity",
+      "C_mapping": [
+        "C01",
+        "C12"
+      ],
+      "independent_observation": "candidate/auth context rejection and formal main binding",
+      "remaining_gap": "M01/M02/M03 trusted admission/seal break",
+      "complete_obligation": "NOT_PROVEN",
+      "new_candidate_fixed13_pass_claimed": false,
+      "product_pass": false
+    },
+    {
+      "id": "I04",
+      "owner_path": "binding/ledger owner；S3BudgetBindingProvider._check_identity → accepted loader",
+      "C_mapping": [
+        "C01",
+        "C12"
+      ],
+      "independent_observation": "authority owner source unchanged; controller verifier inspected using budget spy only",
+      "remaining_gap": "No original ledger read/debit; M01/M02",
+      "complete_obligation": "NOT_PROVEN",
+      "new_candidate_fixed13_pass_claimed": false,
+      "product_pass": false
+    },
+    {
+      "id": "I05",
+      "owner_path": "S2 runtime owner；StageRuntimeFactory默认空profile hook",
+      "C_mapping": [
+        "C09",
+        "C12"
+      ],
+      "independent_observation": "old default hook source unchanged",
+      "remaining_gap": "No real S2 default production regression run",
+      "complete_obligation": "NOT_PROVEN",
+      "new_candidate_fixed13_pass_claimed": false,
+      "product_pass": false
+    },
+    {
+      "id": "I06",
+      "owner_path": "installer owner；S3InstalledRuntimeFactory继承InstalledPackageRuntimeFactory",
+      "C_mapping": [
+        "C09",
+        "C12"
+      ],
+      "independent_observation": "existing install factory source unchanged",
+      "remaining_gap": "No install/rollback execution",
+      "complete_obligation": "NOT_PROVEN",
+      "new_candidate_fixed13_pass_claimed": false,
+      "product_pass": false
+    },
+    {
+      "id": "I07",
+      "owner_path": "quality worker + supervisor owner；quality_worker.run_worker → QualityPhase.run → ProtocolWriter → ParentSupervisor",
+      "C_mapping": [
+        "C02",
+        "C12"
+      ],
+      "independent_observation": "exact candidate main/worker/16 rows/66 messages/pipe/canonical verified",
+      "remaining_gap": "Synthetic thread only; M03/M07; not native dependency closure",
+      "complete_obligation": "NOT_PROVEN",
+      "new_candidate_fixed13_pass_claimed": false,
+      "product_pass": false
+    },
+    {
+      "id": "I08",
+      "owner_path": "supervisor owner；ParentSupervisor.run → _terminate_owned_worker → executor原handle",
+      "C_mapping": [
+        "C12"
+      ],
+      "independent_observation": "blocking callback synthetic driver, real parent deadline and UNKNOWN retained",
+      "remaining_gap": "daemon worker persists at return; m01; no native descendants",
+      "complete_obligation": "NOT_PROVEN",
+      "new_candidate_fixed13_pass_claimed": false,
+      "product_pass": false
+    },
+    {
+      "id": "I09",
+      "owner_path": "supervisor + persistence owner；ParentSupervisor读partial JSONL → deadline → 原handle stop",
+      "C_mapping": [
+        "C12"
+      ],
+      "independent_observation": "fsync write failure UNKNOWN with partial summary; bounded real parent readers used",
+      "remaining_gap": "M04/M08; no real backend/ledger blocking I/O, no fresh OS partial fixture",
+      "complete_obligation": "NOT_PROVEN",
+      "new_candidate_fixed13_pass_claimed": false,
+      "product_pass": false
+    },
+    {
+      "id": "I10",
+      "owner_path": "supervisor owner；ProtocolState/history首次截止；ParentSupervisor._fix/_close_history_deadline",
+      "C_mapping": [
+        "C03",
+        "C12"
+      ],
+      "independent_observation": "history order and duplicate start exact rejection with first deadline fixed",
+      "remaining_gap": "Real long history/native callback combinations unproved",
+      "complete_obligation": "NOT_PROVEN",
+      "new_candidate_fixed13_pass_claimed": false,
+      "product_pass": false
+    },
+    {
+      "id": "I11",
+      "owner_path": "supervisor owner；ParentSupervisor.start与earliest phase/child/shared drain",
+      "C_mapping": [
+        "C03",
+        "C12"
+      ],
+      "independent_observation": "frozen10800/600/21600 and controlled parent clock expiry",
+      "remaining_gap": "No wall-duration platform run; m01",
+      "complete_obligation": "NOT_PROVEN",
+      "new_candidate_fixed13_pass_claimed": false,
+      "product_pass": false
+    },
+    {
+      "id": "I12",
+      "owner_path": "protocol/supervisor owner；fixture wire → ParentSupervisor._consume_stdout → decode_message → ProtocolState.accept",
+      "C_mapping": [
+        "C12"
+      ],
+      "independent_observation": "real66 frames and duplicate-history/bad-reference/worker-missing-terminal negatives",
+      "remaining_gap": "Not all protocol variants freshly rerun; exact072 prior13 preserved only",
+      "complete_obligation": "NOT_PROVEN",
+      "new_candidate_fixed13_pass_claimed": false,
+      "product_pass": false
+    },
+    {
+      "id": "I13",
+      "owner_path": "supervisor/recovery owner；ParentSupervisor.poll/drain/worker exit",
+      "C_mapping": [
+        "C04",
+        "C12"
+      ],
+      "independent_observation": "worker refusal/missing terminal accurate UNKNOWN; unexpected read error reproduced",
+      "remaining_gap": "M08 missing receipt/finally cleanup; native parent loss unproved",
+      "complete_obligation": "NOT_PROVEN",
+      "new_candidate_fixed13_pass_claimed": false,
+      "product_pass": false
+    },
+    {
+      "id": "I14",
+      "owner_path": "cleanup owner；ParentSupervisor.evidence根预约/归档/退款/重发/下一phase",
+      "C_mapping": [
+        "C04",
+        "C12"
+      ],
+      "independent_observation": "write failure and incomplete worker retain reservations with no retry",
+      "remaining_gap": "M07 cleanup fact retention mismatch; m01",
+      "complete_obligation": "NOT_PROVEN",
+      "new_candidate_fixed13_pass_claimed": false,
+      "product_pass": false
+    },
+    {
+      "id": "I15",
+      "owner_path": "recovery owner；RecoveryEntry.recover",
+      "C_mapping": [
+        "C11",
+        "C12"
+      ],
+      "independent_observation": "RecoveryEntry through controller; no custody from synthetic PID, no resend",
+      "remaining_gap": "No native parent crash/recovery",
+      "complete_obligation": "NOT_PROVEN",
+      "new_candidate_fixed13_pass_claimed": false,
+      "product_pass": false
+    },
+    {
+      "id": "I16",
+      "owner_path": "parent originals + coordinator owner；ParentOriginalEvidence.seal* → verify_selected_root → manifest",
+      "C_mapping": [
+        "C05",
+        "C12"
+      ],
+      "independent_observation": "real manifest82 entries independently checked, root-before-manifest rejection",
+      "remaining_gap": "M05 post-manifest unsafe consumption; M06 outside write",
+      "complete_obligation": "NOT_PROVEN",
+      "new_candidate_fixed13_pass_claimed": false,
+      "product_pass": false
+    },
+    {
+      "id": "I17",
+      "owner_path": "runtime residue owner；NativeRuntime.bind_video_snapshot_root/video_snapshot_residue",
+      "C_mapping": [
+        "C10",
+        "C12"
+      ],
+      "independent_observation": "real phase residue observation retains unknown and no arbitrary deletion",
+      "remaining_gap": "M07 cleanup/reservation adapter mismatch",
+      "complete_obligation": "NOT_PROVEN",
+      "new_candidate_fixed13_pass_claimed": false,
+      "product_pass": false
+    },
+    {
+      "id": "I18",
+      "owner_path": "runtime residue owner；同residue accessor 512/256/nofollow边界",
+      "C_mapping": [
+        "C10",
+        "C12"
+      ],
+      "independent_observation": "same accepted residue accessor source; no new arbitrary path operation",
+      "remaining_gap": "No Windows reparse or fresh512/256 exhaustive boundary tests",
+      "complete_obligation": "NOT_PROVEN",
+      "new_candidate_fixed13_pass_claimed": false,
+      "product_pass": false
+    },
+    {
+      "id": "I19",
+      "owner_path": "coordinator/aggregation owner；aggregate_twelve_keys",
+      "C_mapping": [
+        "C06",
+        "C12"
+      ],
+      "independent_observation": "formal main actual adapter and twelve-key aggregate; absent obligations nonPASS",
+      "remaining_gap": "M07 false internal PASS; outerBLOCKED not exoneration",
+      "complete_obligation": "NOT_PROVEN",
+      "new_candidate_fixed13_pass_claimed": false,
+      "product_pass": false
+    },
+    {
+      "id": "I20",
+      "owner_path": "quality independent scorer + A06 owner；aggregate_twelve_keys independent_score/a06_isolation要求",
+      "C_mapping": [
+        "C06",
+        "C12"
+      ],
+      "independent_observation": "real QS recompute owner valid/mismatch raw tests; absent QS/A06 nonPASS",
+      "remaining_gap": "No real quality judgments/independent scorer/A06",
+      "complete_obligation": "NOT_PROVEN",
+      "new_candidate_fixed13_pass_claimed": false,
+      "product_pass": false
+    },
+    {
+      "id": "I21",
+      "owner_path": "quality/profile owner；QualityPhase可选progress sink、S2 profile私有hook",
+      "C_mapping": [
+        "C03",
+        "C12"
+      ],
+      "independent_observation": "five worker/context/history/fixed-command compatibility nodes and true phase progress",
+      "remaining_gap": "No full old541/257 suite; binary stream m02",
+      "complete_obligation": "NOT_PROVEN",
+      "new_candidate_fixed13_pass_claimed": false,
+      "product_pass": false
+    },
+    {
+      "id": "I22",
+      "owner_path": "offline harness owner；runner pre-import guard / fixture __main__ boundary",
+      "C_mapping": [
+        "C08",
+        "C12"
+      ],
+      "independent_observation": "independent audit guard before candidate import,8 selftest denials, candidate denials0",
+      "remaining_gap": "Only offline isolation; not A06/native cleanup",
+      "complete_obligation": "NOT_PROVEN",
+      "new_candidate_fixed13_pass_claimed": false,
+      "product_pass": false
+    },
+    {
+      "id": "I23",
+      "owner_path": "finite executor owner；sealed binding/executor source+tool+plan+counter准入",
+      "C_mapping": [
+        "C01",
+        "C12"
+      ],
+      "independent_observation": "preflight wrong candidate/hash/auth/root/projection refuses0spawn; counter outerread only",
+      "remaining_gap": "M01–M04; original expired grant not reopened",
+      "complete_obligation": "NOT_PROVEN",
+      "new_candidate_fixed13_pass_claimed": false,
+      "product_pass": false
+    },
+    {
+      "id": "I24",
+      "owner_path": "executor + cleanup owner；原Popen handle birth/poll/wait → persistent counter.finish → finalizer",
+      "C_mapping": [
+        "C07",
+        "C12"
+      ],
+      "independent_observation": "same candidate/root/sourceplan/raw/manifest/summary positive chain verified",
+      "remaining_gap": "M03/M05; native originalhandle countersettlement remains072-only evidence",
+      "complete_obligation": "NOT_PROVEN",
+      "new_candidate_fixed13_pass_claimed": false,
+      "product_pass": false
+    }
+  ],
+  "stage_pass_claim": false,
+  "product_gate0": false
+}

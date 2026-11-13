@@ -1,0 +1,80 @@
+{
+  "candidate": "7c27a11111ede5bb2eb449211f5450270d884ee3",
+  "baseline": "c6bce90eeac384d534ebb7601193693840b5b70d",
+  "outcome": "CHANGES_REQUIRED",
+  "counts": {
+    "Fatal": 0,
+    "Major": 9,
+    "Minor": 2
+  },
+  "findings": [
+    {
+      "id": "M01",
+      "severity": "Major",
+      "location": "production_controller:327–330、405–416",
+      "trigger_expected_actual_evidence": "`_bound_receipt` 对 status 字符串使用 `is not`。正常JSON解码的 `\"PROVEN\"` 与期望值相等而非同一对象，native_custody/gpu/install/rollback/grant均报 PROOF_MISSING:status。预期正确类型和值比较，且准入仍由权威证明；实际正常数据不可达。`native-json-proof-comparison.json`：预算仅受控spy，不读ledger、不spawn；同字面量Python对象反而可过。不能将此bug当作可靠failclosed。"
+    },
+    {
+      "id": "M02",
+      "severity": "Major",
+      "location": "production_controller:334–448；quality_worker:335–342、352–373",
+      "trigger_expected_actual_evidence": "native收据仍只检查run/candidate、调用者JSON的PROVEN/布尔和自算hash；grant不核authorization/scope/额度/deadline/权威签发者；tool_closure甚至不核同run身份。S3BudgetBindingProvider.sealed只证绑定配置形状/身份，不证原ledger授权余额，也未绑定这些native/grant证明的权威。worker默认入口直接构造native driver，没有controller admission能力交接。预期当前能力明确NOT_PROVEN/0spawn，未来由已接受有限owner校验；实际只是当前字符串bug阻住这些不可信引用。原始JSON目前**未成功放开native**；没有尝试修补is或真实启动。`native-json-proof-comparison.json`、`worker-main-default-and-stream.json`及静态代码：factory spy只证worker可达driver构造，不声称真实模型已运行。"
+    },
+    {
+      "id": "M03",
+      "severity": "Major",
+      "location": "production_controller:273–284、613–617、812–835、1125；quality_worker:335",
+      "trigger_expected_actual_evidence": "controller CLI hash可缺省，生产命令不携worker seal，worker.main再次load不验hash。受控driver_factory在已seal的首次load后改driver_arguments路径，第二次main照用已变文档并完成16行/summary，stage_binding仍PASS且引用旧hash。controller_context provenance也错误填worker_context hash，正例即不等于实际controller context hash。预期context/hash从入口到worker/summary不丢失；实际绑定断链。`worker-second-load-context-drift.json`、`canonical-after-manifest-tamper.json`、positive-chain-oracle。"
+    },
+    {
+      "id": "M04",
+      "severity": "Major",
+      "location": "production_controller:141–149、293–319、435–436",
+      "trigger_expected_actual_evidence": "新 `_read_bounded` 先Path.read_bytes读完整文件，随后才验8MiB；无regular/no-follow/nonblock/受控根读取。8MiB+1完整进入内存后才拒绝。预期有限读取、拒绝FIFO/设备/redirect，不以新不安全read替代owner；实际尺寸限制不能限制实际读取或阻塞。`context-read-bound.json`确认读取长度8388609；FIFO无限阻塞与任意referenced路径为代码推论，未创建阻塞OSfixture或读取未知原件。"
+    },
+    {
+      "id": "M05",
+      "severity": "Major",
+      "location": "production_controller:914–943、1117–1139、1239–1248",
+      "trigger_expected_actual_evidence": "manifest虽实际调用，却在消费/summary前不再用owner核验；`_provenance`另用Path.read_bytes绕过安全owner。ORIGINALS_VERIFIED后改raw，summary仍persist且file_safety PASS；改canonical后summary provenance hash与manifest canonical hash矛盾；将根改为指向本任务原根的symlink也被接受。预期变化/错根保持UNKNOWN且不消费旧seal；实际消费旧manifest。`manifest-after-verify-{tamper,oracle}.json`、`canonical-after-manifest-tamper.json`、`root-after-manifest-symlink.json`。不是ParentOriginalEvidence自身回归。"
+    },
+    {
+      "id": "M06",
+      "severity": "Major",
+      "location": "production_controller:1158–1187",
+      "trigger_expected_actual_evidence": "O_EXCL只保护叶文件，mkdir/open跟随祖先。RECEIPTS_BOUND后将summary目录链接到本报告内另一合成目录，summary实际写到root外，仍SUMMARY_PERSISTED。预期绑定root身份、相对安全目录句柄与全路径no-follow排他落盘；实际根外写入。`summary-outside-{symlink,oracle}.json`，只操作自己合成文件。"
+    },
+    {
+      "id": "M07",
+      "severity": "Major",
+      "location": "production_controller:986–1024、1254–1255",
+      "trigger_expected_actual_evidence": "resource_budget仅看provider_calls_reserved非None，no_overwrite无条件PASS，output_contract只看两字段存在。真实第16行释放失败：15PASS/1FAIL，内部output_contract/resource_budget/no_overwrite仍PASS，顶层12BLOCKED遮住了错误事实；首行释放/残留失败也保留resource_budget/no_overwrite PASS。清理未证时controller还把root_retained/reservation_retained写false，来自parent线程退出而非原cleanup义务。预期按实际全义务非PASS且保留未证预约；实际文件存在/计数存在冒充全义务。`last-row-release-{output-pass,oracle}.json`、`false-pass-*.json`。未声称no_overwrite已实际覆盖人工稿；缺其全义务证据已足以不能PASS。"
+    },
+    {
+      "id": "M08",
+      "severity": "Major",
+      "location": "production_controller:1191–1270、1398–1402",
+      "trigger_expected_actual_evidence": "manifest后删除本任务canonical使_provenance抛FileNotFoundError；run只捕ControllerError且无finally_finish，main返回exit5文本，缺UNKNOWN保留收据，泄漏1个stdin fd。预期异常仍持久保留UNKNOWN/预约并有界finally清理；实际只有顶层异常字符串。`unhandled-read-error.json`（fd9），独审随后显式close回收并记录，不冒充owner清理。"
+    },
+    {
+      "id": "M09",
+      "severity": "Major",
+      "location": "production_controller:1212–1224、1158–1168",
+      "trigger_expected_actual_evidence": "summary已存在的同run在precheck不拒绝，真实phase16行又执行一次，直到最终落盘才UNKNOWN/不覆盖。预期预封存阶段识别已存在终态/预约，不重复发送；实际seam.spawns=1、quality16 PASS、已有summary保持。`summary-preexisting-spawn.json`。这里只合成运行，不称已消耗原ledger。"
+    },
+    {
+      "id": "m01",
+      "severity": "Minor",
+      "location": "production_controller:578–579、586–597、730–738、1296–1326",
+      "trigger_expected_actual_evidence": "线程daemon=True、terminate/kill为空。阻塞driver在35秒返回时仍活，UNKNOWN/预约保留及worker_thread_finished=false是诚实的；但daemon不是退出证明，不能将此seam当native可清理能力。独审释放Event后synthetic provider_calls从0变1才退出；无phase文件晚到写入（pipe关闭触发BrokenPipe）。`blocked-thread-late-write.json`。应由可协作取消边界控制，无法kill时明确隔离保留，不用daemon解决生命周期。"
+    },
+    {
+      "id": "m02",
+      "severity": "Minor",
+      "location": "quality_worker:333、343–348；production_controller:617",
+      "trigger_expected_actual_evidence": "seam传二进制stderr文件，而worker.main错误处理写str。受控native factory WorkerError在binary stream下变TypeError，被外层误记EXCEPTION TypeError，原拒绝码丢失；默认真实CLI仍用text stderr，不是默认行为回退。预期兼容内部stream类型并保留准确拒绝码。`worker-main-default-and-stream.json`。"
+    }
+  ],
+  "stage_pass_claim": false,
+  "product_gate0": false
+}

@@ -1,0 +1,50 @@
+{
+  "exit": 0,
+  "nodes": [
+    "reports/v0-s3/product-gate0/independent-production-composition-01/probe_test.py::test_real_failed_rows_not_hidden_by_outer_blocked[release-unproven]",
+    "reports/v0-s3/product-gate0/independent-production-composition-01/probe_test.py::test_real_failed_rows_not_hidden_by_outer_blocked[residue]",
+    "reports/v0-s3/product-gate0/independent-production-composition-01/probe_test.py::test_real_failed_rows_not_hidden_by_outer_blocked[provider-refusal]",
+    "reports/v0-s3/product-gate0/independent-production-composition-01/probe_test.py::test_worker_second_load_does_not_enforce_preflight_seal",
+    "reports/v0-s3/product-gate0/independent-production-composition-01/probe_test.py::test_blocked_thread_is_retained_and_can_write_after_return",
+    "reports/v0-s3/product-gate0/independent-production-composition-01/probe_test.py::test_last_row_release_failure_still_claims_output_contract_pass"
+  ],
+  "results": [
+    {
+      "nodeid": "reports/v0-s3/product-gate0/independent-production-composition-01/probe_test.py::test_real_failed_rows_not_hidden_by_outer_blocked[release-unproven]",
+      "outcome": "passed",
+      "when": "call",
+      "error": null
+    },
+    {
+      "nodeid": "reports/v0-s3/product-gate0/independent-production-composition-01/probe_test.py::test_real_failed_rows_not_hidden_by_outer_blocked[residue]",
+      "outcome": "passed",
+      "when": "call",
+      "error": null
+    },
+    {
+      "nodeid": "reports/v0-s3/product-gate0/independent-production-composition-01/probe_test.py::test_real_failed_rows_not_hidden_by_outer_blocked[provider-refusal]",
+      "outcome": "passed",
+      "when": "call",
+      "error": null
+    },
+    {
+      "nodeid": "reports/v0-s3/product-gate0/independent-production-composition-01/probe_test.py::test_worker_second_load_does_not_enforce_preflight_seal",
+      "outcome": "passed",
+      "when": "call",
+      "error": null
+    },
+    {
+      "nodeid": "reports/v0-s3/product-gate0/independent-production-composition-01/probe_test.py::test_blocked_thread_is_retained_and_can_write_after_return",
+      "outcome": "passed",
+      "when": "call",
+      "error": null
+    },
+    {
+      "nodeid": "reports/v0-s3/product-gate0/independent-production-composition-01/probe_test.py::test_last_row_release_failure_still_claims_output_contract_pass",
+      "outcome": "passed",
+      "when": "call",
+      "error": null
+    }
+  ],
+  "reason": "Correct three independent oracle assumptions observed in first batch (first-row failure blocks later outputs; budget-zero cannot publish; closed stream stops phase file writes) and add final-row output false-PASS probe; preserve all original failed logs."
+}
