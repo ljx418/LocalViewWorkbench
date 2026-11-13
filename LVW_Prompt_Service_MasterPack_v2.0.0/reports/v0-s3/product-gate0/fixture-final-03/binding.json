@@ -1,0 +1,90 @@
+{
+  "allowed_scenarios": [
+    "clean_terminal",
+    "blocking_callback",
+    "blocking_persistence",
+    "history_replay",
+    "sequence_reversal",
+    "duplicate_sequence",
+    "oversize_message",
+    "foreign_identity",
+    "unexpected_field",
+    "nonfinite_number",
+    "early_exit",
+    "message_flood",
+    "bad_terminal_reference"
+  ],
+  "argv_prefix": [
+    "/usr/bin/python3.12",
+    "-I",
+    "-S",
+    "-B",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+    "--scenario"
+  ],
+  "candidate_sha": "7ed2116373d2b3a88ef55b6c8c7ebc15f03142c0",
+  "cpu_budget": {
+    "budget_id": "s3-p4-9618f7c7bf12403b8877c90b92ed99a7",
+    "cleanup_reserve_seconds": 30,
+    "counter_path": "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json",
+    "max_concurrent": 2,
+    "max_starts_by_role": {
+      "implementation": 16,
+      "independent_review": 8
+    },
+    "max_total_starts": 24,
+    "per_child_kill_seconds": 1,
+    "per_child_stop_attempts": 3,
+    "per_child_termination_margin_seconds": 2,
+    "per_process_seconds": 10,
+    "session_wall_cap_seconds": 60,
+    "shared_pool_seconds": 180
+  },
+  "execution_permitted": true,
+  "kind": "S3_INTEGRATION_MACHINE_BINDING/1",
+  "python": {
+    "bytes": 8020928,
+    "path": "/usr/bin/python3.12",
+    "sha256": "e50d468e8b0adfb05733f5b87b3cff34829c4a8c1aea50c865aa8bdfe4bb150f"
+  },
+  "source_pins": {
+    "reports/v0-s3/product-gate0/implementation-integration-01/executor.py": "1cafd73ffef7230ca088b49d408f4ce4b69f5be10e238cb6710fa1e8a78d0787",
+    "reports/v0-s3/product-gate0/implementation-integration-01/run_guarded_checks.py": "da688b1502dcf625bbbf883c5e7e519d0c4c386a51fafa15539a69e2331d1005",
+    "tools/fixtures/v0_s3_supervisor_fixture.py": "f8c8b29d6b280d24d9c1ea9ceccc6db9c4b7df883c700bced472802aa42a9bd3",
+    "tools/test_v0_s3_integration.py": "c1a0bb4b45e0380929d986678f425044d5ede4d2ee0b5a7c429ea26ec0e5432c",
+    "tools/test_v0_s3_supervisor.py": "52aa2dbe2332a3f740c0fdc9d8131132aa2c765eccff4208c82ceb2e439c4815",
+    "tools/v0_s2_runtime.py": "a97ea20d02ed80ab4f99f133dd8162331ddba34662bfdcca637fcade40b4dbd2",
+    "tools/v0_s2_stage_runtime.py": "cf6ad01d66c0c7885475eedeae5ba66df9bec61bf7281ee511600f6224833e26",
+    "tools/v0_s3_coordinator.py": "55dd875c44de3128e4fc64a3ec1729687adb01c94007b8230e71d1717cd7eaf5",
+    "tools/v0_s3_quality_phase.py": "90552ea113ccf53a2a1cedff3e3f399642ad932bf0f71bb1f9a57e1adb6e8789",
+    "tools/v0_s3_quality_worker.py": "1e1490c86ce6dd7f6f0734967b75652ced872b82848e6a1966dd1a147e38b6d3",
+    "tools/v0_s3_supervisor.py": "6fdb1ad3386991d8fc7fd67b25956dfd430e6e8997a5da195e93140378ffba86"
+  },
+  "root_grant": {
+    "scope": "One final corrected-candidate exact13 fixture run within original shared pool; no new process wall allocation",
+    "label": "finite-fixture-implementation-03",
+    "exact_nodeids": [
+      "tools/test_v0_s3_supervisor.py::test_the_fixture_clean_terminal_is_verified_by_the_parent",
+      "tools/test_v0_s3_supervisor.py::test_a_blocking_callback_is_actually_stopped",
+      "tools/test_v0_s3_supervisor.py::test_a_blocking_persistence_is_actually_stopped",
+      "tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[history_replay-MESSAGE_HISTORY_STARTED_REPEATED]",
+      "tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[sequence_reversal-MESSAGE_SEQUENCE_NOT_INCREASING]",
+      "tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[duplicate_sequence-MESSAGE_SEQUENCE_NOT_INCREASING]",
+      "tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[oversize_message-MESSAGE_TOO_LARGE]",
+      "tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[foreign_identity-MESSAGE_RUN_ID_MISMATCH]",
+      "tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[unexpected_field-MESSAGE_KEY_SET_INVALID]",
+      "tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[nonfinite_number-MESSAGE_NONFINITE_NUMBER]",
+      "tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[early_exit-WORKER_EXITED_WITHOUT_TERMINAL]",
+      "tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[message_flood-MESSAGE_COUNT_EXCEEDED]",
+      "tools/test_v0_s3_supervisor.py::test_a_bad_terminal_reference_is_refused"
+    ],
+    "max_runs": 1,
+    "prior_failed_runs_retained": true,
+    "historical_reconciliation": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/fixture-final-03/historical-reconciliation.json",
+    "independent_correction_review": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/audit-correction-review-02/root-decision.json",
+    "remaining_unreserved_seconds_before_run": 60,
+    "independent_followup": "Read-only raw-result recomputation remains mandatory; if new process execution is necessary it is not granted by this final run. No waiver of frozen acceptance.",
+    "stage_pass_claim": false,
+    "product_gate0": false
+  }
+}
