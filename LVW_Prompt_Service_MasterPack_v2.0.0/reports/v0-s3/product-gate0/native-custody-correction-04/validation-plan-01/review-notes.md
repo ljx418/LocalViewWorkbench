@@ -1,0 +1,2 @@
+# 后续独审待复算，不因本次ACK认定关闭
+本次仅允许测试执行。重点复算：cleanup deadline初始化在并发路径是否唯一且不被延长；FINISHED但保留资源的同owner恢复可达性；后台Thread.start未返回/返回抛错与清理超期后是否仍保留实际owner；close_done发布与closer线程真正退出的区别；状态UNKNOWN闩锁是否与晚到_apply_state原子一致；各startup before/during/after交错的用例覆盖是否完整。不以133全绿替代这些独审事实。
