@@ -1,0 +1,1032 @@
+FFFFFFFFFFFFF                                                            [100%]
+=================================== FAILURES ===================================
+__________ test_the_fixture_clean_terminal_is_verified_by_the_parent ___________
+
+tmp_path = PosixPath('/tmp/lvw-s3-integration-tyh547ez/pytest/test_the_fixture_clean_termina0')
+
+    @requires_machine_gate
+    def test_the_fixture_clean_terminal_is_verified_by_the_parent(tmp_path):
+        """I07/I24: the real fixture process ends with a verified terminal."""
+        root = tmp_path / 'run'
+        (root / 'temp/s3-quality').mkdir(parents=True)
+        payload = json.dumps({'rows': [{'asset_id': 'SYN-01', 'execution_status': 'PASS'}]}).encode()
+        (root / 'temp/s3-quality/qd-receipt.json').write_bytes(payload)
+>       evidence = run_fixture(tmp_path, 'clean_terminal', root=root)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/test_v0_s3_supervisor.py:750: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/test_v0_s3_supervisor.py:738: in run_fixture
+    return supervisor.run()
+           ^^^^^^^^^^^^^^^^
+tools/v0_s3_supervisor.py:452: in run
+    self.start()
+tools/v0_s3_supervisor.py:370: in start
+    self.process = self.spawner(self.command)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+reports/v0-s3/product-gate0/implementation-integration-01/executor.py:568: in spawn
+    process = subprocess.Popen(command, stdin=subprocess.PIPE,
+/usr/lib/python3.12/subprocess.py:1026: in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+/usr/lib/python3.12/subprocess.py:1823: in _execute_child
+    sys.audit("subprocess.Popen", executable, args, cwd, env)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+event = 'subprocess.Popen'
+arguments = ('/usr/bin/python3.12', ['/usr/bin/python3.12', '-I', '-S', '-B', '/home/administrator/orca/workspaces/LocalViewWorkbe...rPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py', '--scenario', ...], '/tmp/lvw-s3-integration-tyh547ez', None)
+
+    def _audit_hook(event, arguments):
+        if event == "subprocess.Popen" and PROCESS_GATE["executor"] is not None:
+            try:
+                PROCESS_GATE["executor"].admit(arguments)
+            except Exception as error:  # noqa: BLE001 - the refusal is the guard
+                code = getattr(error, 'code', type(error).__name__)
+                raise OfflineBoundaryViolation("finite cpu gate refused: " + str(code))
+            PROCESS_GATE["starts"] += 1
+            return
+        if event in BLOCKED_EVENTS:
+>           raise OfflineBoundaryViolation(
+                "offline boundary violation: " + event + " " + repr(arguments))
+E           lvw_s3_guarded_runner.OfflineBoundaryViolation: offline boundary violation: subprocess.Popen ('/usr/bin/python3.12', ['/usr/bin/python3.12', '-I', '-S', '-B', '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py', '--scenario', 'clean_terminal'], '/tmp/lvw-s3-integration-tyh547ez', None)
+
+reports/v0-s3/product-gate0/implementation-integration-01/run_guarded_checks.py:266: OfflineBoundaryViolation
+_________________ test_a_blocking_callback_is_actually_stopped _________________
+
+tmp_path = PosixPath('/tmp/lvw-s3-integration-tyh547ez/pytest/test_a_blocking_callback_is_ac0')
+
+    @requires_machine_gate
+    def test_a_blocking_callback_is_actually_stopped(tmp_path):
+        """I08: a blocked callback is stopped by the parent, not by a timeout text."""
+>       evidence = run_fixture(tmp_path, 'blocking_callback')
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/test_v0_s3_supervisor.py:760: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/test_v0_s3_supervisor.py:738: in run_fixture
+    return supervisor.run()
+           ^^^^^^^^^^^^^^^^
+tools/v0_s3_supervisor.py:452: in run
+    self.start()
+tools/v0_s3_supervisor.py:370: in start
+    self.process = self.spawner(self.command)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+reports/v0-s3/product-gate0/implementation-integration-01/executor.py:568: in spawn
+    process = subprocess.Popen(command, stdin=subprocess.PIPE,
+/usr/lib/python3.12/subprocess.py:1026: in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+/usr/lib/python3.12/subprocess.py:1823: in _execute_child
+    sys.audit("subprocess.Popen", executable, args, cwd, env)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+event = 'subprocess.Popen'
+arguments = ('/usr/bin/python3.12', ['/usr/bin/python3.12', '-I', '-S', '-B', '/home/administrator/orca/workspaces/LocalViewWorkbe...rPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py', '--scenario', ...], '/tmp/lvw-s3-integration-tyh547ez', None)
+
+    def _audit_hook(event, arguments):
+        if event == "subprocess.Popen" and PROCESS_GATE["executor"] is not None:
+            try:
+                PROCESS_GATE["executor"].admit(arguments)
+            except Exception as error:  # noqa: BLE001 - the refusal is the guard
+                code = getattr(error, 'code', type(error).__name__)
+                raise OfflineBoundaryViolation("finite cpu gate refused: " + str(code))
+            PROCESS_GATE["starts"] += 1
+            return
+        if event in BLOCKED_EVENTS:
+>           raise OfflineBoundaryViolation(
+                "offline boundary violation: " + event + " " + repr(arguments))
+E           lvw_s3_guarded_runner.OfflineBoundaryViolation: offline boundary violation: subprocess.Popen ('/usr/bin/python3.12', ['/usr/bin/python3.12', '-I', '-S', '-B', '/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py', '--scenario', 'blocking_callback'], '/tmp/lvw-s3-integration-tyh547ez', None)
+
+reports/v0-s3/product-gate0/implementation-integration-01/run_guarded_checks.py:266: OfflineBoundaryViolation
+_______________ test_a_blocking_persistence_is_actually_stopped ________________
+
+event = 'subprocess.Popen'
+arguments = ('/usr/bin/python3.12', ['/usr/bin/python3.12', '-I', '-S', '-B', '/home/administrator/orca/workspaces/LocalViewWorkbe...rPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py', '--scenario', ...], '/tmp/lvw-s3-integration-tyh547ez', None)
+
+    def _audit_hook(event, arguments):
+        if event == "subprocess.Popen" and PROCESS_GATE["executor"] is not None:
+            try:
+>               PROCESS_GATE["executor"].admit(arguments)
+
+reports/v0-s3/product-gate0/implementation-integration-01/run_guarded_checks.py:259: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+reports/v0-s3/product-gate0/implementation-integration-01/executor.py:552: in admit
+    index = self.counter.charge(role=self.role, scenario=scenario, argv=argv)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <lvw_s3_finite_cpu_executor.SharedCounter object at 0x738d694462a0>
+
+    def charge(self, *, role, scenario, argv):
+        """Charge one start atomically, before the operating system action."""
+        if role not in ROLES:
+            raise CpuGateError('CPU_ROLE_INVALID')
+        with self._open() as handle:
+            document = self._read(handle)
+            if document.get('budget_id') != self.budget_id:
+                raise CpuGateError('CPU_COUNTER_IDENTITY_MISMATCH')
+            limits = self.limits
+            if self._occupied(document) >= limits['max_concurrent']:
+>               raise CpuGateError('CPU_CONCURRENCY_LIMIT')
+E               lvw_s3_finite_cpu_executor.CpuGateError: CPU_CONCURRENCY_LIMIT
+
+reports/v0-s3/product-gate0/implementation-integration-01/executor.py:230: CpuGateError
+
+During handling of the above exception, another exception occurred:
+
+tmp_path = PosixPath('/tmp/lvw-s3-integration-tyh547ez/pytest/test_a_blocking_persistence_is0')
+
+    @requires_machine_gate
+    def test_a_blocking_persistence_is_actually_stopped(tmp_path):
+        """I09: a blocked persistence is stopped by the parent."""
+>       evidence = run_fixture(tmp_path, 'blocking_persistence')
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/test_v0_s3_supervisor.py:771: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/test_v0_s3_supervisor.py:738: in run_fixture
+    return supervisor.run()
+           ^^^^^^^^^^^^^^^^
+tools/v0_s3_supervisor.py:452: in run
+    self.start()
+tools/v0_s3_supervisor.py:370: in start
+    self.process = self.spawner(self.command)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+reports/v0-s3/product-gate0/implementation-integration-01/executor.py:568: in spawn
+    process = subprocess.Popen(command, stdin=subprocess.PIPE,
+/usr/lib/python3.12/subprocess.py:1026: in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+/usr/lib/python3.12/subprocess.py:1823: in _execute_child
+    sys.audit("subprocess.Popen", executable, args, cwd, env)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+event = 'subprocess.Popen'
+arguments = ('/usr/bin/python3.12', ['/usr/bin/python3.12', '-I', '-S', '-B', '/home/administrator/orca/workspaces/LocalViewWorkbe...rPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py', '--scenario', ...], '/tmp/lvw-s3-integration-tyh547ez', None)
+
+    def _audit_hook(event, arguments):
+        if event == "subprocess.Popen" and PROCESS_GATE["executor"] is not None:
+            try:
+                PROCESS_GATE["executor"].admit(arguments)
+            except Exception as error:  # noqa: BLE001 - the refusal is the guard
+                code = getattr(error, 'code', type(error).__name__)
+>               raise OfflineBoundaryViolation("finite cpu gate refused: " + str(code))
+E               OfflineBoundaryViolation: finite cpu gate refused: CPU_CONCURRENCY_LIMIT
+
+reports/v0-s3/product-gate0/implementation-integration-01/run_guarded_checks.py:262: OfflineBoundaryViolation
+_ test_a_protocol_violation_is_refused[history_replay-MESSAGE_HISTORY_STARTED_REPEATED] _
+
+event = 'subprocess.Popen'
+arguments = ('/usr/bin/python3.12', ['/usr/bin/python3.12', '-I', '-S', '-B', '/home/administrator/orca/workspaces/LocalViewWorkbe...rPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py', '--scenario', ...], '/tmp/lvw-s3-integration-tyh547ez', None)
+
+    def _audit_hook(event, arguments):
+        if event == "subprocess.Popen" and PROCESS_GATE["executor"] is not None:
+            try:
+>               PROCESS_GATE["executor"].admit(arguments)
+
+reports/v0-s3/product-gate0/implementation-integration-01/run_guarded_checks.py:259: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+reports/v0-s3/product-gate0/implementation-integration-01/executor.py:552: in admit
+    index = self.counter.charge(role=self.role, scenario=scenario, argv=argv)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <lvw_s3_finite_cpu_executor.SharedCounter object at 0x738d694462a0>
+
+    def charge(self, *, role, scenario, argv):
+        """Charge one start atomically, before the operating system action."""
+        if role not in ROLES:
+            raise CpuGateError('CPU_ROLE_INVALID')
+        with self._open() as handle:
+            document = self._read(handle)
+            if document.get('budget_id') != self.budget_id:
+                raise CpuGateError('CPU_COUNTER_IDENTITY_MISMATCH')
+            limits = self.limits
+            if self._occupied(document) >= limits['max_concurrent']:
+>               raise CpuGateError('CPU_CONCURRENCY_LIMIT')
+E               lvw_s3_finite_cpu_executor.CpuGateError: CPU_CONCURRENCY_LIMIT
+
+reports/v0-s3/product-gate0/implementation-integration-01/executor.py:230: CpuGateError
+
+During handling of the above exception, another exception occurred:
+
+tmp_path = PosixPath('/tmp/lvw-s3-integration-tyh547ez/pytest/test_a_protocol_violation_is_r0')
+scenario = 'history_replay', code = 'MESSAGE_HISTORY_STARTED_REPEATED'
+
+    @requires_machine_gate
+    @pytest.mark.parametrize('scenario,code', [
+        ('history_replay', 'MESSAGE_HISTORY_STARTED_REPEATED'),
+        ('sequence_reversal', 'MESSAGE_SEQUENCE_NOT_INCREASING'),
+        ('duplicate_sequence', 'MESSAGE_SEQUENCE_NOT_INCREASING'),
+        ('oversize_message', 'MESSAGE_TOO_LARGE'),
+        ('foreign_identity', 'MESSAGE_RUN_ID_MISMATCH'),
+        ('unexpected_field', 'MESSAGE_KEY_SET_INVALID'),
+        ('nonfinite_number', 'MESSAGE_NONFINITE_NUMBER'),
+        ('early_exit', 'WORKER_EXITED_WITHOUT_TERMINAL'),
+        ('message_flood', 'MESSAGE_COUNT_EXCEEDED'),
+    ])
+    def test_a_protocol_violation_is_refused(tmp_path, scenario, code):
+        """I12/I13: every protocol violation is a stable refusal."""
+>       evidence = run_fixture(tmp_path, scenario)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/test_v0_s3_supervisor.py:790: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/test_v0_s3_supervisor.py:738: in run_fixture
+    return supervisor.run()
+           ^^^^^^^^^^^^^^^^
+tools/v0_s3_supervisor.py:452: in run
+    self.start()
+tools/v0_s3_supervisor.py:370: in start
+    self.process = self.spawner(self.command)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+reports/v0-s3/product-gate0/implementation-integration-01/executor.py:568: in spawn
+    process = subprocess.Popen(command, stdin=subprocess.PIPE,
+/usr/lib/python3.12/subprocess.py:1026: in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+/usr/lib/python3.12/subprocess.py:1823: in _execute_child
+    sys.audit("subprocess.Popen", executable, args, cwd, env)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+event = 'subprocess.Popen'
+arguments = ('/usr/bin/python3.12', ['/usr/bin/python3.12', '-I', '-S', '-B', '/home/administrator/orca/workspaces/LocalViewWorkbe...rPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py', '--scenario', ...], '/tmp/lvw-s3-integration-tyh547ez', None)
+
+    def _audit_hook(event, arguments):
+        if event == "subprocess.Popen" and PROCESS_GATE["executor"] is not None:
+            try:
+                PROCESS_GATE["executor"].admit(arguments)
+            except Exception as error:  # noqa: BLE001 - the refusal is the guard
+                code = getattr(error, 'code', type(error).__name__)
+>               raise OfflineBoundaryViolation("finite cpu gate refused: " + str(code))
+E               OfflineBoundaryViolation: finite cpu gate refused: CPU_CONCURRENCY_LIMIT
+
+reports/v0-s3/product-gate0/implementation-integration-01/run_guarded_checks.py:262: OfflineBoundaryViolation
+_ test_a_protocol_violation_is_refused[sequence_reversal-MESSAGE_SEQUENCE_NOT_INCREASING] _
+
+event = 'subprocess.Popen'
+arguments = ('/usr/bin/python3.12', ['/usr/bin/python3.12', '-I', '-S', '-B', '/home/administrator/orca/workspaces/LocalViewWorkbe...rPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py', '--scenario', ...], '/tmp/lvw-s3-integration-tyh547ez', None)
+
+    def _audit_hook(event, arguments):
+        if event == "subprocess.Popen" and PROCESS_GATE["executor"] is not None:
+            try:
+>               PROCESS_GATE["executor"].admit(arguments)
+
+reports/v0-s3/product-gate0/implementation-integration-01/run_guarded_checks.py:259: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+reports/v0-s3/product-gate0/implementation-integration-01/executor.py:552: in admit
+    index = self.counter.charge(role=self.role, scenario=scenario, argv=argv)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <lvw_s3_finite_cpu_executor.SharedCounter object at 0x738d694462a0>
+
+    def charge(self, *, role, scenario, argv):
+        """Charge one start atomically, before the operating system action."""
+        if role not in ROLES:
+            raise CpuGateError('CPU_ROLE_INVALID')
+        with self._open() as handle:
+            document = self._read(handle)
+            if document.get('budget_id') != self.budget_id:
+                raise CpuGateError('CPU_COUNTER_IDENTITY_MISMATCH')
+            limits = self.limits
+            if self._occupied(document) >= limits['max_concurrent']:
+>               raise CpuGateError('CPU_CONCURRENCY_LIMIT')
+E               lvw_s3_finite_cpu_executor.CpuGateError: CPU_CONCURRENCY_LIMIT
+
+reports/v0-s3/product-gate0/implementation-integration-01/executor.py:230: CpuGateError
+
+During handling of the above exception, another exception occurred:
+
+tmp_path = PosixPath('/tmp/lvw-s3-integration-tyh547ez/pytest/test_a_protocol_violation_is_r1')
+scenario = 'sequence_reversal', code = 'MESSAGE_SEQUENCE_NOT_INCREASING'
+
+    @requires_machine_gate
+    @pytest.mark.parametrize('scenario,code', [
+        ('history_replay', 'MESSAGE_HISTORY_STARTED_REPEATED'),
+        ('sequence_reversal', 'MESSAGE_SEQUENCE_NOT_INCREASING'),
+        ('duplicate_sequence', 'MESSAGE_SEQUENCE_NOT_INCREASING'),
+        ('oversize_message', 'MESSAGE_TOO_LARGE'),
+        ('foreign_identity', 'MESSAGE_RUN_ID_MISMATCH'),
+        ('unexpected_field', 'MESSAGE_KEY_SET_INVALID'),
+        ('nonfinite_number', 'MESSAGE_NONFINITE_NUMBER'),
+        ('early_exit', 'WORKER_EXITED_WITHOUT_TERMINAL'),
+        ('message_flood', 'MESSAGE_COUNT_EXCEEDED'),
+    ])
+    def test_a_protocol_violation_is_refused(tmp_path, scenario, code):
+        """I12/I13: every protocol violation is a stable refusal."""
+>       evidence = run_fixture(tmp_path, scenario)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/test_v0_s3_supervisor.py:790: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/test_v0_s3_supervisor.py:738: in run_fixture
+    return supervisor.run()
+           ^^^^^^^^^^^^^^^^
+tools/v0_s3_supervisor.py:452: in run
+    self.start()
+tools/v0_s3_supervisor.py:370: in start
+    self.process = self.spawner(self.command)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+reports/v0-s3/product-gate0/implementation-integration-01/executor.py:568: in spawn
+    process = subprocess.Popen(command, stdin=subprocess.PIPE,
+/usr/lib/python3.12/subprocess.py:1026: in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+/usr/lib/python3.12/subprocess.py:1823: in _execute_child
+    sys.audit("subprocess.Popen", executable, args, cwd, env)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+event = 'subprocess.Popen'
+arguments = ('/usr/bin/python3.12', ['/usr/bin/python3.12', '-I', '-S', '-B', '/home/administrator/orca/workspaces/LocalViewWorkbe...rPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py', '--scenario', ...], '/tmp/lvw-s3-integration-tyh547ez', None)
+
+    def _audit_hook(event, arguments):
+        if event == "subprocess.Popen" and PROCESS_GATE["executor"] is not None:
+            try:
+                PROCESS_GATE["executor"].admit(arguments)
+            except Exception as error:  # noqa: BLE001 - the refusal is the guard
+                code = getattr(error, 'code', type(error).__name__)
+>               raise OfflineBoundaryViolation("finite cpu gate refused: " + str(code))
+E               OfflineBoundaryViolation: finite cpu gate refused: CPU_CONCURRENCY_LIMIT
+
+reports/v0-s3/product-gate0/implementation-integration-01/run_guarded_checks.py:262: OfflineBoundaryViolation
+_ test_a_protocol_violation_is_refused[duplicate_sequence-MESSAGE_SEQUENCE_NOT_INCREASING] _
+
+event = 'subprocess.Popen'
+arguments = ('/usr/bin/python3.12', ['/usr/bin/python3.12', '-I', '-S', '-B', '/home/administrator/orca/workspaces/LocalViewWorkbe...rPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py', '--scenario', ...], '/tmp/lvw-s3-integration-tyh547ez', None)
+
+    def _audit_hook(event, arguments):
+        if event == "subprocess.Popen" and PROCESS_GATE["executor"] is not None:
+            try:
+>               PROCESS_GATE["executor"].admit(arguments)
+
+reports/v0-s3/product-gate0/implementation-integration-01/run_guarded_checks.py:259: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+reports/v0-s3/product-gate0/implementation-integration-01/executor.py:552: in admit
+    index = self.counter.charge(role=self.role, scenario=scenario, argv=argv)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <lvw_s3_finite_cpu_executor.SharedCounter object at 0x738d694462a0>
+
+    def charge(self, *, role, scenario, argv):
+        """Charge one start atomically, before the operating system action."""
+        if role not in ROLES:
+            raise CpuGateError('CPU_ROLE_INVALID')
+        with self._open() as handle:
+            document = self._read(handle)
+            if document.get('budget_id') != self.budget_id:
+                raise CpuGateError('CPU_COUNTER_IDENTITY_MISMATCH')
+            limits = self.limits
+            if self._occupied(document) >= limits['max_concurrent']:
+>               raise CpuGateError('CPU_CONCURRENCY_LIMIT')
+E               lvw_s3_finite_cpu_executor.CpuGateError: CPU_CONCURRENCY_LIMIT
+
+reports/v0-s3/product-gate0/implementation-integration-01/executor.py:230: CpuGateError
+
+During handling of the above exception, another exception occurred:
+
+tmp_path = PosixPath('/tmp/lvw-s3-integration-tyh547ez/pytest/test_a_protocol_violation_is_r2')
+scenario = 'duplicate_sequence', code = 'MESSAGE_SEQUENCE_NOT_INCREASING'
+
+    @requires_machine_gate
+    @pytest.mark.parametrize('scenario,code', [
+        ('history_replay', 'MESSAGE_HISTORY_STARTED_REPEATED'),
+        ('sequence_reversal', 'MESSAGE_SEQUENCE_NOT_INCREASING'),
+        ('duplicate_sequence', 'MESSAGE_SEQUENCE_NOT_INCREASING'),
+        ('oversize_message', 'MESSAGE_TOO_LARGE'),
+        ('foreign_identity', 'MESSAGE_RUN_ID_MISMATCH'),
+        ('unexpected_field', 'MESSAGE_KEY_SET_INVALID'),
+        ('nonfinite_number', 'MESSAGE_NONFINITE_NUMBER'),
+        ('early_exit', 'WORKER_EXITED_WITHOUT_TERMINAL'),
+        ('message_flood', 'MESSAGE_COUNT_EXCEEDED'),
+    ])
+    def test_a_protocol_violation_is_refused(tmp_path, scenario, code):
+        """I12/I13: every protocol violation is a stable refusal."""
+>       evidence = run_fixture(tmp_path, scenario)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/test_v0_s3_supervisor.py:790: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/test_v0_s3_supervisor.py:738: in run_fixture
+    return supervisor.run()
+           ^^^^^^^^^^^^^^^^
+tools/v0_s3_supervisor.py:452: in run
+    self.start()
+tools/v0_s3_supervisor.py:370: in start
+    self.process = self.spawner(self.command)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+reports/v0-s3/product-gate0/implementation-integration-01/executor.py:568: in spawn
+    process = subprocess.Popen(command, stdin=subprocess.PIPE,
+/usr/lib/python3.12/subprocess.py:1026: in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+/usr/lib/python3.12/subprocess.py:1823: in _execute_child
+    sys.audit("subprocess.Popen", executable, args, cwd, env)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+event = 'subprocess.Popen'
+arguments = ('/usr/bin/python3.12', ['/usr/bin/python3.12', '-I', '-S', '-B', '/home/administrator/orca/workspaces/LocalViewWorkbe...rPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py', '--scenario', ...], '/tmp/lvw-s3-integration-tyh547ez', None)
+
+    def _audit_hook(event, arguments):
+        if event == "subprocess.Popen" and PROCESS_GATE["executor"] is not None:
+            try:
+                PROCESS_GATE["executor"].admit(arguments)
+            except Exception as error:  # noqa: BLE001 - the refusal is the guard
+                code = getattr(error, 'code', type(error).__name__)
+>               raise OfflineBoundaryViolation("finite cpu gate refused: " + str(code))
+E               OfflineBoundaryViolation: finite cpu gate refused: CPU_CONCURRENCY_LIMIT
+
+reports/v0-s3/product-gate0/implementation-integration-01/run_guarded_checks.py:262: OfflineBoundaryViolation
+___ test_a_protocol_violation_is_refused[oversize_message-MESSAGE_TOO_LARGE] ___
+
+event = 'subprocess.Popen'
+arguments = ('/usr/bin/python3.12', ['/usr/bin/python3.12', '-I', '-S', '-B', '/home/administrator/orca/workspaces/LocalViewWorkbe...rPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py', '--scenario', ...], '/tmp/lvw-s3-integration-tyh547ez', None)
+
+    def _audit_hook(event, arguments):
+        if event == "subprocess.Popen" and PROCESS_GATE["executor"] is not None:
+            try:
+>               PROCESS_GATE["executor"].admit(arguments)
+
+reports/v0-s3/product-gate0/implementation-integration-01/run_guarded_checks.py:259: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+reports/v0-s3/product-gate0/implementation-integration-01/executor.py:552: in admit
+    index = self.counter.charge(role=self.role, scenario=scenario, argv=argv)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <lvw_s3_finite_cpu_executor.SharedCounter object at 0x738d694462a0>
+
+    def charge(self, *, role, scenario, argv):
+        """Charge one start atomically, before the operating system action."""
+        if role not in ROLES:
+            raise CpuGateError('CPU_ROLE_INVALID')
+        with self._open() as handle:
+            document = self._read(handle)
+            if document.get('budget_id') != self.budget_id:
+                raise CpuGateError('CPU_COUNTER_IDENTITY_MISMATCH')
+            limits = self.limits
+            if self._occupied(document) >= limits['max_concurrent']:
+>               raise CpuGateError('CPU_CONCURRENCY_LIMIT')
+E               lvw_s3_finite_cpu_executor.CpuGateError: CPU_CONCURRENCY_LIMIT
+
+reports/v0-s3/product-gate0/implementation-integration-01/executor.py:230: CpuGateError
+
+During handling of the above exception, another exception occurred:
+
+tmp_path = PosixPath('/tmp/lvw-s3-integration-tyh547ez/pytest/test_a_protocol_violation_is_r3')
+scenario = 'oversize_message', code = 'MESSAGE_TOO_LARGE'
+
+    @requires_machine_gate
+    @pytest.mark.parametrize('scenario,code', [
+        ('history_replay', 'MESSAGE_HISTORY_STARTED_REPEATED'),
+        ('sequence_reversal', 'MESSAGE_SEQUENCE_NOT_INCREASING'),
+        ('duplicate_sequence', 'MESSAGE_SEQUENCE_NOT_INCREASING'),
+        ('oversize_message', 'MESSAGE_TOO_LARGE'),
+        ('foreign_identity', 'MESSAGE_RUN_ID_MISMATCH'),
+        ('unexpected_field', 'MESSAGE_KEY_SET_INVALID'),
+        ('nonfinite_number', 'MESSAGE_NONFINITE_NUMBER'),
+        ('early_exit', 'WORKER_EXITED_WITHOUT_TERMINAL'),
+        ('message_flood', 'MESSAGE_COUNT_EXCEEDED'),
+    ])
+    def test_a_protocol_violation_is_refused(tmp_path, scenario, code):
+        """I12/I13: every protocol violation is a stable refusal."""
+>       evidence = run_fixture(tmp_path, scenario)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/test_v0_s3_supervisor.py:790: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/test_v0_s3_supervisor.py:738: in run_fixture
+    return supervisor.run()
+           ^^^^^^^^^^^^^^^^
+tools/v0_s3_supervisor.py:452: in run
+    self.start()
+tools/v0_s3_supervisor.py:370: in start
+    self.process = self.spawner(self.command)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+reports/v0-s3/product-gate0/implementation-integration-01/executor.py:568: in spawn
+    process = subprocess.Popen(command, stdin=subprocess.PIPE,
+/usr/lib/python3.12/subprocess.py:1026: in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+/usr/lib/python3.12/subprocess.py:1823: in _execute_child
+    sys.audit("subprocess.Popen", executable, args, cwd, env)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+event = 'subprocess.Popen'
+arguments = ('/usr/bin/python3.12', ['/usr/bin/python3.12', '-I', '-S', '-B', '/home/administrator/orca/workspaces/LocalViewWorkbe...rPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py', '--scenario', ...], '/tmp/lvw-s3-integration-tyh547ez', None)
+
+    def _audit_hook(event, arguments):
+        if event == "subprocess.Popen" and PROCESS_GATE["executor"] is not None:
+            try:
+                PROCESS_GATE["executor"].admit(arguments)
+            except Exception as error:  # noqa: BLE001 - the refusal is the guard
+                code = getattr(error, 'code', type(error).__name__)
+>               raise OfflineBoundaryViolation("finite cpu gate refused: " + str(code))
+E               OfflineBoundaryViolation: finite cpu gate refused: CPU_CONCURRENCY_LIMIT
+
+reports/v0-s3/product-gate0/implementation-integration-01/run_guarded_checks.py:262: OfflineBoundaryViolation
+_ test_a_protocol_violation_is_refused[foreign_identity-MESSAGE_RUN_ID_MISMATCH] _
+
+event = 'subprocess.Popen'
+arguments = ('/usr/bin/python3.12', ['/usr/bin/python3.12', '-I', '-S', '-B', '/home/administrator/orca/workspaces/LocalViewWorkbe...rPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py', '--scenario', ...], '/tmp/lvw-s3-integration-tyh547ez', None)
+
+    def _audit_hook(event, arguments):
+        if event == "subprocess.Popen" and PROCESS_GATE["executor"] is not None:
+            try:
+>               PROCESS_GATE["executor"].admit(arguments)
+
+reports/v0-s3/product-gate0/implementation-integration-01/run_guarded_checks.py:259: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+reports/v0-s3/product-gate0/implementation-integration-01/executor.py:552: in admit
+    index = self.counter.charge(role=self.role, scenario=scenario, argv=argv)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <lvw_s3_finite_cpu_executor.SharedCounter object at 0x738d694462a0>
+
+    def charge(self, *, role, scenario, argv):
+        """Charge one start atomically, before the operating system action."""
+        if role not in ROLES:
+            raise CpuGateError('CPU_ROLE_INVALID')
+        with self._open() as handle:
+            document = self._read(handle)
+            if document.get('budget_id') != self.budget_id:
+                raise CpuGateError('CPU_COUNTER_IDENTITY_MISMATCH')
+            limits = self.limits
+            if self._occupied(document) >= limits['max_concurrent']:
+>               raise CpuGateError('CPU_CONCURRENCY_LIMIT')
+E               lvw_s3_finite_cpu_executor.CpuGateError: CPU_CONCURRENCY_LIMIT
+
+reports/v0-s3/product-gate0/implementation-integration-01/executor.py:230: CpuGateError
+
+During handling of the above exception, another exception occurred:
+
+tmp_path = PosixPath('/tmp/lvw-s3-integration-tyh547ez/pytest/test_a_protocol_violation_is_r4')
+scenario = 'foreign_identity', code = 'MESSAGE_RUN_ID_MISMATCH'
+
+    @requires_machine_gate
+    @pytest.mark.parametrize('scenario,code', [
+        ('history_replay', 'MESSAGE_HISTORY_STARTED_REPEATED'),
+        ('sequence_reversal', 'MESSAGE_SEQUENCE_NOT_INCREASING'),
+        ('duplicate_sequence', 'MESSAGE_SEQUENCE_NOT_INCREASING'),
+        ('oversize_message', 'MESSAGE_TOO_LARGE'),
+        ('foreign_identity', 'MESSAGE_RUN_ID_MISMATCH'),
+        ('unexpected_field', 'MESSAGE_KEY_SET_INVALID'),
+        ('nonfinite_number', 'MESSAGE_NONFINITE_NUMBER'),
+        ('early_exit', 'WORKER_EXITED_WITHOUT_TERMINAL'),
+        ('message_flood', 'MESSAGE_COUNT_EXCEEDED'),
+    ])
+    def test_a_protocol_violation_is_refused(tmp_path, scenario, code):
+        """I12/I13: every protocol violation is a stable refusal."""
+>       evidence = run_fixture(tmp_path, scenario)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/test_v0_s3_supervisor.py:790: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/test_v0_s3_supervisor.py:738: in run_fixture
+    return supervisor.run()
+           ^^^^^^^^^^^^^^^^
+tools/v0_s3_supervisor.py:452: in run
+    self.start()
+tools/v0_s3_supervisor.py:370: in start
+    self.process = self.spawner(self.command)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+reports/v0-s3/product-gate0/implementation-integration-01/executor.py:568: in spawn
+    process = subprocess.Popen(command, stdin=subprocess.PIPE,
+/usr/lib/python3.12/subprocess.py:1026: in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+/usr/lib/python3.12/subprocess.py:1823: in _execute_child
+    sys.audit("subprocess.Popen", executable, args, cwd, env)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+event = 'subprocess.Popen'
+arguments = ('/usr/bin/python3.12', ['/usr/bin/python3.12', '-I', '-S', '-B', '/home/administrator/orca/workspaces/LocalViewWorkbe...rPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py', '--scenario', ...], '/tmp/lvw-s3-integration-tyh547ez', None)
+
+    def _audit_hook(event, arguments):
+        if event == "subprocess.Popen" and PROCESS_GATE["executor"] is not None:
+            try:
+                PROCESS_GATE["executor"].admit(arguments)
+            except Exception as error:  # noqa: BLE001 - the refusal is the guard
+                code = getattr(error, 'code', type(error).__name__)
+>               raise OfflineBoundaryViolation("finite cpu gate refused: " + str(code))
+E               OfflineBoundaryViolation: finite cpu gate refused: CPU_CONCURRENCY_LIMIT
+
+reports/v0-s3/product-gate0/implementation-integration-01/run_guarded_checks.py:262: OfflineBoundaryViolation
+_ test_a_protocol_violation_is_refused[unexpected_field-MESSAGE_KEY_SET_INVALID] _
+
+event = 'subprocess.Popen'
+arguments = ('/usr/bin/python3.12', ['/usr/bin/python3.12', '-I', '-S', '-B', '/home/administrator/orca/workspaces/LocalViewWorkbe...rPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py', '--scenario', ...], '/tmp/lvw-s3-integration-tyh547ez', None)
+
+    def _audit_hook(event, arguments):
+        if event == "subprocess.Popen" and PROCESS_GATE["executor"] is not None:
+            try:
+>               PROCESS_GATE["executor"].admit(arguments)
+
+reports/v0-s3/product-gate0/implementation-integration-01/run_guarded_checks.py:259: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+reports/v0-s3/product-gate0/implementation-integration-01/executor.py:552: in admit
+    index = self.counter.charge(role=self.role, scenario=scenario, argv=argv)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <lvw_s3_finite_cpu_executor.SharedCounter object at 0x738d694462a0>
+
+    def charge(self, *, role, scenario, argv):
+        """Charge one start atomically, before the operating system action."""
+        if role not in ROLES:
+            raise CpuGateError('CPU_ROLE_INVALID')
+        with self._open() as handle:
+            document = self._read(handle)
+            if document.get('budget_id') != self.budget_id:
+                raise CpuGateError('CPU_COUNTER_IDENTITY_MISMATCH')
+            limits = self.limits
+            if self._occupied(document) >= limits['max_concurrent']:
+>               raise CpuGateError('CPU_CONCURRENCY_LIMIT')
+E               lvw_s3_finite_cpu_executor.CpuGateError: CPU_CONCURRENCY_LIMIT
+
+reports/v0-s3/product-gate0/implementation-integration-01/executor.py:230: CpuGateError
+
+During handling of the above exception, another exception occurred:
+
+tmp_path = PosixPath('/tmp/lvw-s3-integration-tyh547ez/pytest/test_a_protocol_violation_is_r5')
+scenario = 'unexpected_field', code = 'MESSAGE_KEY_SET_INVALID'
+
+    @requires_machine_gate
+    @pytest.mark.parametrize('scenario,code', [
+        ('history_replay', 'MESSAGE_HISTORY_STARTED_REPEATED'),
+        ('sequence_reversal', 'MESSAGE_SEQUENCE_NOT_INCREASING'),
+        ('duplicate_sequence', 'MESSAGE_SEQUENCE_NOT_INCREASING'),
+        ('oversize_message', 'MESSAGE_TOO_LARGE'),
+        ('foreign_identity', 'MESSAGE_RUN_ID_MISMATCH'),
+        ('unexpected_field', 'MESSAGE_KEY_SET_INVALID'),
+        ('nonfinite_number', 'MESSAGE_NONFINITE_NUMBER'),
+        ('early_exit', 'WORKER_EXITED_WITHOUT_TERMINAL'),
+        ('message_flood', 'MESSAGE_COUNT_EXCEEDED'),
+    ])
+    def test_a_protocol_violation_is_refused(tmp_path, scenario, code):
+        """I12/I13: every protocol violation is a stable refusal."""
+>       evidence = run_fixture(tmp_path, scenario)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/test_v0_s3_supervisor.py:790: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/test_v0_s3_supervisor.py:738: in run_fixture
+    return supervisor.run()
+           ^^^^^^^^^^^^^^^^
+tools/v0_s3_supervisor.py:452: in run
+    self.start()
+tools/v0_s3_supervisor.py:370: in start
+    self.process = self.spawner(self.command)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+reports/v0-s3/product-gate0/implementation-integration-01/executor.py:568: in spawn
+    process = subprocess.Popen(command, stdin=subprocess.PIPE,
+/usr/lib/python3.12/subprocess.py:1026: in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+/usr/lib/python3.12/subprocess.py:1823: in _execute_child
+    sys.audit("subprocess.Popen", executable, args, cwd, env)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+event = 'subprocess.Popen'
+arguments = ('/usr/bin/python3.12', ['/usr/bin/python3.12', '-I', '-S', '-B', '/home/administrator/orca/workspaces/LocalViewWorkbe...rPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py', '--scenario', ...], '/tmp/lvw-s3-integration-tyh547ez', None)
+
+    def _audit_hook(event, arguments):
+        if event == "subprocess.Popen" and PROCESS_GATE["executor"] is not None:
+            try:
+                PROCESS_GATE["executor"].admit(arguments)
+            except Exception as error:  # noqa: BLE001 - the refusal is the guard
+                code = getattr(error, 'code', type(error).__name__)
+>               raise OfflineBoundaryViolation("finite cpu gate refused: " + str(code))
+E               OfflineBoundaryViolation: finite cpu gate refused: CPU_CONCURRENCY_LIMIT
+
+reports/v0-s3/product-gate0/implementation-integration-01/run_guarded_checks.py:262: OfflineBoundaryViolation
+_ test_a_protocol_violation_is_refused[nonfinite_number-MESSAGE_NONFINITE_NUMBER] _
+
+event = 'subprocess.Popen'
+arguments = ('/usr/bin/python3.12', ['/usr/bin/python3.12', '-I', '-S', '-B', '/home/administrator/orca/workspaces/LocalViewWorkbe...rPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py', '--scenario', ...], '/tmp/lvw-s3-integration-tyh547ez', None)
+
+    def _audit_hook(event, arguments):
+        if event == "subprocess.Popen" and PROCESS_GATE["executor"] is not None:
+            try:
+>               PROCESS_GATE["executor"].admit(arguments)
+
+reports/v0-s3/product-gate0/implementation-integration-01/run_guarded_checks.py:259: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+reports/v0-s3/product-gate0/implementation-integration-01/executor.py:552: in admit
+    index = self.counter.charge(role=self.role, scenario=scenario, argv=argv)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <lvw_s3_finite_cpu_executor.SharedCounter object at 0x738d694462a0>
+
+    def charge(self, *, role, scenario, argv):
+        """Charge one start atomically, before the operating system action."""
+        if role not in ROLES:
+            raise CpuGateError('CPU_ROLE_INVALID')
+        with self._open() as handle:
+            document = self._read(handle)
+            if document.get('budget_id') != self.budget_id:
+                raise CpuGateError('CPU_COUNTER_IDENTITY_MISMATCH')
+            limits = self.limits
+            if self._occupied(document) >= limits['max_concurrent']:
+>               raise CpuGateError('CPU_CONCURRENCY_LIMIT')
+E               lvw_s3_finite_cpu_executor.CpuGateError: CPU_CONCURRENCY_LIMIT
+
+reports/v0-s3/product-gate0/implementation-integration-01/executor.py:230: CpuGateError
+
+During handling of the above exception, another exception occurred:
+
+tmp_path = PosixPath('/tmp/lvw-s3-integration-tyh547ez/pytest/test_a_protocol_violation_is_r6')
+scenario = 'nonfinite_number', code = 'MESSAGE_NONFINITE_NUMBER'
+
+    @requires_machine_gate
+    @pytest.mark.parametrize('scenario,code', [
+        ('history_replay', 'MESSAGE_HISTORY_STARTED_REPEATED'),
+        ('sequence_reversal', 'MESSAGE_SEQUENCE_NOT_INCREASING'),
+        ('duplicate_sequence', 'MESSAGE_SEQUENCE_NOT_INCREASING'),
+        ('oversize_message', 'MESSAGE_TOO_LARGE'),
+        ('foreign_identity', 'MESSAGE_RUN_ID_MISMATCH'),
+        ('unexpected_field', 'MESSAGE_KEY_SET_INVALID'),
+        ('nonfinite_number', 'MESSAGE_NONFINITE_NUMBER'),
+        ('early_exit', 'WORKER_EXITED_WITHOUT_TERMINAL'),
+        ('message_flood', 'MESSAGE_COUNT_EXCEEDED'),
+    ])
+    def test_a_protocol_violation_is_refused(tmp_path, scenario, code):
+        """I12/I13: every protocol violation is a stable refusal."""
+>       evidence = run_fixture(tmp_path, scenario)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/test_v0_s3_supervisor.py:790: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/test_v0_s3_supervisor.py:738: in run_fixture
+    return supervisor.run()
+           ^^^^^^^^^^^^^^^^
+tools/v0_s3_supervisor.py:452: in run
+    self.start()
+tools/v0_s3_supervisor.py:370: in start
+    self.process = self.spawner(self.command)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+reports/v0-s3/product-gate0/implementation-integration-01/executor.py:568: in spawn
+    process = subprocess.Popen(command, stdin=subprocess.PIPE,
+/usr/lib/python3.12/subprocess.py:1026: in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+/usr/lib/python3.12/subprocess.py:1823: in _execute_child
+    sys.audit("subprocess.Popen", executable, args, cwd, env)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+event = 'subprocess.Popen'
+arguments = ('/usr/bin/python3.12', ['/usr/bin/python3.12', '-I', '-S', '-B', '/home/administrator/orca/workspaces/LocalViewWorkbe...rPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py', '--scenario', ...], '/tmp/lvw-s3-integration-tyh547ez', None)
+
+    def _audit_hook(event, arguments):
+        if event == "subprocess.Popen" and PROCESS_GATE["executor"] is not None:
+            try:
+                PROCESS_GATE["executor"].admit(arguments)
+            except Exception as error:  # noqa: BLE001 - the refusal is the guard
+                code = getattr(error, 'code', type(error).__name__)
+>               raise OfflineBoundaryViolation("finite cpu gate refused: " + str(code))
+E               OfflineBoundaryViolation: finite cpu gate refused: CPU_CONCURRENCY_LIMIT
+
+reports/v0-s3/product-gate0/implementation-integration-01/run_guarded_checks.py:262: OfflineBoundaryViolation
+_ test_a_protocol_violation_is_refused[early_exit-WORKER_EXITED_WITHOUT_TERMINAL] _
+
+event = 'subprocess.Popen'
+arguments = ('/usr/bin/python3.12', ['/usr/bin/python3.12', '-I', '-S', '-B', '/home/administrator/orca/workspaces/LocalViewWorkbe...rPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py', '--scenario', ...], '/tmp/lvw-s3-integration-tyh547ez', None)
+
+    def _audit_hook(event, arguments):
+        if event == "subprocess.Popen" and PROCESS_GATE["executor"] is not None:
+            try:
+>               PROCESS_GATE["executor"].admit(arguments)
+
+reports/v0-s3/product-gate0/implementation-integration-01/run_guarded_checks.py:259: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+reports/v0-s3/product-gate0/implementation-integration-01/executor.py:552: in admit
+    index = self.counter.charge(role=self.role, scenario=scenario, argv=argv)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <lvw_s3_finite_cpu_executor.SharedCounter object at 0x738d694462a0>
+
+    def charge(self, *, role, scenario, argv):
+        """Charge one start atomically, before the operating system action."""
+        if role not in ROLES:
+            raise CpuGateError('CPU_ROLE_INVALID')
+        with self._open() as handle:
+            document = self._read(handle)
+            if document.get('budget_id') != self.budget_id:
+                raise CpuGateError('CPU_COUNTER_IDENTITY_MISMATCH')
+            limits = self.limits
+            if self._occupied(document) >= limits['max_concurrent']:
+>               raise CpuGateError('CPU_CONCURRENCY_LIMIT')
+E               lvw_s3_finite_cpu_executor.CpuGateError: CPU_CONCURRENCY_LIMIT
+
+reports/v0-s3/product-gate0/implementation-integration-01/executor.py:230: CpuGateError
+
+During handling of the above exception, another exception occurred:
+
+tmp_path = PosixPath('/tmp/lvw-s3-integration-tyh547ez/pytest/test_a_protocol_violation_is_r7')
+scenario = 'early_exit', code = 'WORKER_EXITED_WITHOUT_TERMINAL'
+
+    @requires_machine_gate
+    @pytest.mark.parametrize('scenario,code', [
+        ('history_replay', 'MESSAGE_HISTORY_STARTED_REPEATED'),
+        ('sequence_reversal', 'MESSAGE_SEQUENCE_NOT_INCREASING'),
+        ('duplicate_sequence', 'MESSAGE_SEQUENCE_NOT_INCREASING'),
+        ('oversize_message', 'MESSAGE_TOO_LARGE'),
+        ('foreign_identity', 'MESSAGE_RUN_ID_MISMATCH'),
+        ('unexpected_field', 'MESSAGE_KEY_SET_INVALID'),
+        ('nonfinite_number', 'MESSAGE_NONFINITE_NUMBER'),
+        ('early_exit', 'WORKER_EXITED_WITHOUT_TERMINAL'),
+        ('message_flood', 'MESSAGE_COUNT_EXCEEDED'),
+    ])
+    def test_a_protocol_violation_is_refused(tmp_path, scenario, code):
+        """I12/I13: every protocol violation is a stable refusal."""
+>       evidence = run_fixture(tmp_path, scenario)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/test_v0_s3_supervisor.py:790: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/test_v0_s3_supervisor.py:738: in run_fixture
+    return supervisor.run()
+           ^^^^^^^^^^^^^^^^
+tools/v0_s3_supervisor.py:452: in run
+    self.start()
+tools/v0_s3_supervisor.py:370: in start
+    self.process = self.spawner(self.command)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+reports/v0-s3/product-gate0/implementation-integration-01/executor.py:568: in spawn
+    process = subprocess.Popen(command, stdin=subprocess.PIPE,
+/usr/lib/python3.12/subprocess.py:1026: in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+/usr/lib/python3.12/subprocess.py:1823: in _execute_child
+    sys.audit("subprocess.Popen", executable, args, cwd, env)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+event = 'subprocess.Popen'
+arguments = ('/usr/bin/python3.12', ['/usr/bin/python3.12', '-I', '-S', '-B', '/home/administrator/orca/workspaces/LocalViewWorkbe...rPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py', '--scenario', ...], '/tmp/lvw-s3-integration-tyh547ez', None)
+
+    def _audit_hook(event, arguments):
+        if event == "subprocess.Popen" and PROCESS_GATE["executor"] is not None:
+            try:
+                PROCESS_GATE["executor"].admit(arguments)
+            except Exception as error:  # noqa: BLE001 - the refusal is the guard
+                code = getattr(error, 'code', type(error).__name__)
+>               raise OfflineBoundaryViolation("finite cpu gate refused: " + str(code))
+E               OfflineBoundaryViolation: finite cpu gate refused: CPU_CONCURRENCY_LIMIT
+
+reports/v0-s3/product-gate0/implementation-integration-01/run_guarded_checks.py:262: OfflineBoundaryViolation
+__ test_a_protocol_violation_is_refused[message_flood-MESSAGE_COUNT_EXCEEDED] __
+
+event = 'subprocess.Popen'
+arguments = ('/usr/bin/python3.12', ['/usr/bin/python3.12', '-I', '-S', '-B', '/home/administrator/orca/workspaces/LocalViewWorkbe...rPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py', '--scenario', ...], '/tmp/lvw-s3-integration-tyh547ez', None)
+
+    def _audit_hook(event, arguments):
+        if event == "subprocess.Popen" and PROCESS_GATE["executor"] is not None:
+            try:
+>               PROCESS_GATE["executor"].admit(arguments)
+
+reports/v0-s3/product-gate0/implementation-integration-01/run_guarded_checks.py:259: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+reports/v0-s3/product-gate0/implementation-integration-01/executor.py:552: in admit
+    index = self.counter.charge(role=self.role, scenario=scenario, argv=argv)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <lvw_s3_finite_cpu_executor.SharedCounter object at 0x738d694462a0>
+
+    def charge(self, *, role, scenario, argv):
+        """Charge one start atomically, before the operating system action."""
+        if role not in ROLES:
+            raise CpuGateError('CPU_ROLE_INVALID')
+        with self._open() as handle:
+            document = self._read(handle)
+            if document.get('budget_id') != self.budget_id:
+                raise CpuGateError('CPU_COUNTER_IDENTITY_MISMATCH')
+            limits = self.limits
+            if self._occupied(document) >= limits['max_concurrent']:
+>               raise CpuGateError('CPU_CONCURRENCY_LIMIT')
+E               lvw_s3_finite_cpu_executor.CpuGateError: CPU_CONCURRENCY_LIMIT
+
+reports/v0-s3/product-gate0/implementation-integration-01/executor.py:230: CpuGateError
+
+During handling of the above exception, another exception occurred:
+
+tmp_path = PosixPath('/tmp/lvw-s3-integration-tyh547ez/pytest/test_a_protocol_violation_is_r8')
+scenario = 'message_flood', code = 'MESSAGE_COUNT_EXCEEDED'
+
+    @requires_machine_gate
+    @pytest.mark.parametrize('scenario,code', [
+        ('history_replay', 'MESSAGE_HISTORY_STARTED_REPEATED'),
+        ('sequence_reversal', 'MESSAGE_SEQUENCE_NOT_INCREASING'),
+        ('duplicate_sequence', 'MESSAGE_SEQUENCE_NOT_INCREASING'),
+        ('oversize_message', 'MESSAGE_TOO_LARGE'),
+        ('foreign_identity', 'MESSAGE_RUN_ID_MISMATCH'),
+        ('unexpected_field', 'MESSAGE_KEY_SET_INVALID'),
+        ('nonfinite_number', 'MESSAGE_NONFINITE_NUMBER'),
+        ('early_exit', 'WORKER_EXITED_WITHOUT_TERMINAL'),
+        ('message_flood', 'MESSAGE_COUNT_EXCEEDED'),
+    ])
+    def test_a_protocol_violation_is_refused(tmp_path, scenario, code):
+        """I12/I13: every protocol violation is a stable refusal."""
+>       evidence = run_fixture(tmp_path, scenario)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/test_v0_s3_supervisor.py:790: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/test_v0_s3_supervisor.py:738: in run_fixture
+    return supervisor.run()
+           ^^^^^^^^^^^^^^^^
+tools/v0_s3_supervisor.py:452: in run
+    self.start()
+tools/v0_s3_supervisor.py:370: in start
+    self.process = self.spawner(self.command)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+reports/v0-s3/product-gate0/implementation-integration-01/executor.py:568: in spawn
+    process = subprocess.Popen(command, stdin=subprocess.PIPE,
+/usr/lib/python3.12/subprocess.py:1026: in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+/usr/lib/python3.12/subprocess.py:1823: in _execute_child
+    sys.audit("subprocess.Popen", executable, args, cwd, env)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+event = 'subprocess.Popen'
+arguments = ('/usr/bin/python3.12', ['/usr/bin/python3.12', '-I', '-S', '-B', '/home/administrator/orca/workspaces/LocalViewWorkbe...rPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py', '--scenario', ...], '/tmp/lvw-s3-integration-tyh547ez', None)
+
+    def _audit_hook(event, arguments):
+        if event == "subprocess.Popen" and PROCESS_GATE["executor"] is not None:
+            try:
+                PROCESS_GATE["executor"].admit(arguments)
+            except Exception as error:  # noqa: BLE001 - the refusal is the guard
+                code = getattr(error, 'code', type(error).__name__)
+>               raise OfflineBoundaryViolation("finite cpu gate refused: " + str(code))
+E               OfflineBoundaryViolation: finite cpu gate refused: CPU_CONCURRENCY_LIMIT
+
+reports/v0-s3/product-gate0/implementation-integration-01/run_guarded_checks.py:262: OfflineBoundaryViolation
+___________________ test_a_bad_terminal_reference_is_refused ___________________
+
+event = 'subprocess.Popen'
+arguments = ('/usr/bin/python3.12', ['/usr/bin/python3.12', '-I', '-S', '-B', '/home/administrator/orca/workspaces/LocalViewWorkbe...rPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py', '--scenario', ...], '/tmp/lvw-s3-integration-tyh547ez', None)
+
+    def _audit_hook(event, arguments):
+        if event == "subprocess.Popen" and PROCESS_GATE["executor"] is not None:
+            try:
+>               PROCESS_GATE["executor"].admit(arguments)
+
+reports/v0-s3/product-gate0/implementation-integration-01/run_guarded_checks.py:259: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+reports/v0-s3/product-gate0/implementation-integration-01/executor.py:552: in admit
+    index = self.counter.charge(role=self.role, scenario=scenario, argv=argv)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <lvw_s3_finite_cpu_executor.SharedCounter object at 0x738d694462a0>
+
+    def charge(self, *, role, scenario, argv):
+        """Charge one start atomically, before the operating system action."""
+        if role not in ROLES:
+            raise CpuGateError('CPU_ROLE_INVALID')
+        with self._open() as handle:
+            document = self._read(handle)
+            if document.get('budget_id') != self.budget_id:
+                raise CpuGateError('CPU_COUNTER_IDENTITY_MISMATCH')
+            limits = self.limits
+            if self._occupied(document) >= limits['max_concurrent']:
+>               raise CpuGateError('CPU_CONCURRENCY_LIMIT')
+E               lvw_s3_finite_cpu_executor.CpuGateError: CPU_CONCURRENCY_LIMIT
+
+reports/v0-s3/product-gate0/implementation-integration-01/executor.py:230: CpuGateError
+
+During handling of the above exception, another exception occurred:
+
+tmp_path = PosixPath('/tmp/lvw-s3-integration-tyh547ez/pytest/test_a_bad_terminal_reference_0')
+
+    @requires_machine_gate
+    def test_a_bad_terminal_reference_is_refused(tmp_path):
+        """I24: a terminal reference outside the bound root is refused."""
+>       evidence = run_fixture(tmp_path, 'bad_terminal_reference')
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tools/test_v0_s3_supervisor.py:799: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/test_v0_s3_supervisor.py:738: in run_fixture
+    return supervisor.run()
+           ^^^^^^^^^^^^^^^^
+tools/v0_s3_supervisor.py:452: in run
+    self.start()
+tools/v0_s3_supervisor.py:370: in start
+    self.process = self.spawner(self.command)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+reports/v0-s3/product-gate0/implementation-integration-01/executor.py:568: in spawn
+    process = subprocess.Popen(command, stdin=subprocess.PIPE,
+/usr/lib/python3.12/subprocess.py:1026: in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+/usr/lib/python3.12/subprocess.py:1823: in _execute_child
+    sys.audit("subprocess.Popen", executable, args, cwd, env)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+event = 'subprocess.Popen'
+arguments = ('/usr/bin/python3.12', ['/usr/bin/python3.12', '-I', '-S', '-B', '/home/administrator/orca/workspaces/LocalViewWorkbe...rPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py', '--scenario', ...], '/tmp/lvw-s3-integration-tyh547ez', None)
+
+    def _audit_hook(event, arguments):
+        if event == "subprocess.Popen" and PROCESS_GATE["executor"] is not None:
+            try:
+                PROCESS_GATE["executor"].admit(arguments)
+            except Exception as error:  # noqa: BLE001 - the refusal is the guard
+                code = getattr(error, 'code', type(error).__name__)
+>               raise OfflineBoundaryViolation("finite cpu gate refused: " + str(code))
+E               OfflineBoundaryViolation: finite cpu gate refused: CPU_CONCURRENCY_LIMIT
+
+reports/v0-s3/product-gate0/implementation-integration-01/run_guarded_checks.py:262: OfflineBoundaryViolation
+13 failed in 2.07s
