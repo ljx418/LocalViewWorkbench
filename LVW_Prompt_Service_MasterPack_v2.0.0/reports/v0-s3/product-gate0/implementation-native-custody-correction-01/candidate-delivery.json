@@ -1,0 +1,166 @@
+{
+  "base_candidate_result": {
+    "calls": 54,
+    "exit_code": 1,
+    "fail": 8,
+    "functional_pass": 45,
+    "integrity_pass": 1,
+    "pass": 46,
+    "preserved_byte_for_byte": true,
+    "rerun_by_this_delivery": false,
+    "skip": 0,
+    "source": "reports/v0-s3/product-gate0/implementation-native-custody-01/native-custody-01.receipt.json"
+  },
+  "base_candidate_sha": "247519de8c1512d86921af8ed2c73f0db3982c88",
+  "branch": "ljx418/lvw-v1-d0-implement",
+  "candidate_sha": "35d42fd22941e0263fd55ad871aea3567592fe07",
+  "changed_pins": {
+    "reports/v0-s3/product-gate0/implementation-native-custody-correction-01/guard.py": "12816fba33dd0874664f195847a599e1160099e85f5e8d3a89165b22744dfc80",
+    "reports/v0-s3/product-gate0/implementation-native-custody-correction-01/plan.json": "7c9d2d1b536861dfeb608d22332e35744be161aff2c03fd31eb982065d819258",
+    "reports/v0-s3/product-gate0/implementation-native-custody-correction-01/report.md": "4ef0a45c9da67495a2a697621deaec2758648f6582f992893682e65de0c0e1fc",
+    "reports/v0-s3/product-gate0/implementation-native-custody-correction-01/runner.py": "c1ffb88686a4515aaddca3f362cd100a63db6653bc2fcf8d9939a14824fe8fd7",
+    "tools/test_v0_s3_native_custody.py": "04f81a67d5cacb014cb91d3503cd25148e4f24cf7537aa5fe6e2b14f30607338",
+    "tools/v0_s3_native_custody.py": "7fda324e74100ff6a4f0c0dd98392995b2ec916bd37c384e2fd45ba0cf3c463e"
+  },
+  "claims": {
+    "admission_produced": false,
+    "batch_result": "NONE_YET: the batch is not executed and this delivery claims no pass",
+    "grant_authority": "NOT_VERIFIED",
+    "product_gate0": false,
+    "ready_for_review": true,
+    "stage_pass_claim": false
+  },
+  "counter_untouched": {
+    "expected_sha256": "acbdb8b154864b6f079ae783d670f11ec138b6be0617d1fa4f56c28c33223b98",
+    "new_counter_created_by_this_delivery": false,
+    "observation": "the counter of the historical batches is observed by the outer runner of the batch, once before and once after, and it is not read by this delivery",
+    "path": "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json",
+    "read_by_this_delivery": false,
+    "refunded_by_this_delivery": false,
+    "reset_by_this_delivery": false,
+    "revived_by_this_delivery": false,
+    "written_by_this_delivery": false
+  },
+  "erratum": {
+    "corrected_claim": "the reply of the root already carried the correct last character c; the literal of the test module was not corrected and the root did not notice it, which is a limitation of the static check and not a deliberate injection",
+    "history_rewritten": false,
+    "kind": "ATTRIBUTION_CORRECTION",
+    "old_report_preserved": true,
+    "original_message": "reports/v0-s3/product-gate0/native-custody-implementation-01/validation-plan-01/reply-body.txt",
+    "original_message_value": "14e8dd284971aeab00999f010679d5c95deb88ee3bff8f4ca0708d958b56f12c",
+    "previous_claim": "the reply of the root referenced the mis-transcribed literal of the implementer, so the last character was not corrected"
+  },
+  "execution": {
+    "candidate_imported": false,
+    "collected": false,
+    "database_touched": false,
+    "ledger_read": false,
+    "model_gpu_service_port_media_download": false,
+    "native_windows_api_used": false,
+    "process_started": false,
+    "pytest_invoked": false,
+    "real_execution_performed": false,
+    "socket_opened": false
+  },
+  "kind": "LVW_S3_N1_NATIVE_CUSTODY_CORRECTION_CANDIDATE_DELIVERY/1",
+  "not_proven": [
+    "native_execution",
+    "native_cleanup",
+    "gpu_released",
+    "port_released",
+    "sampler",
+    "parent_crash_recovery",
+    "windows_stdin_eof"
+  ],
+  "proposed_batch": {
+    "awaiting_root_ack": true,
+    "batches": 1,
+    "collection_order_is_binding": true,
+    "dependency_count": 223,
+    "dependency_path": "/home/administrator/.local/lib/python3.12/site-packages",
+    "executed_by_this_delivery": false,
+    "guard": "the byte identical copy of the frozen root guard",
+    "integrity_only_nodes": [
+      "tools/test_v0_s3_native_custody.py::test_the_old_owners_are_unchanged",
+      "tools/test_v0_s3_native_custody.py::test_the_old_refusal_points_are_still_declared"
+    ],
+    "max_seconds": 300,
+    "node_count": 31,
+    "nodeids": [
+      "tools/test_v0_s3_native_custody.py::test_a_valid_plan_is_accepted_and_closed",
+      "tools/test_v0_s3_native_custody.py::test_an_escaping_log_reference_is_refused",
+      "tools/test_v0_s3_native_custody.py::test_an_absolute_log_reference_is_refused",
+      "tools/test_v0_s3_native_custody.py::test_a_drive_relative_log_reference_is_refused",
+      "tools/test_v0_s3_native_custody.py::test_an_alternate_data_stream_log_reference_is_refused",
+      "tools/test_v0_s3_native_custody.py::test_a_unc_or_backslash_log_reference_is_refused",
+      "tools/test_v0_s3_native_custody.py::test_a_posix_absolute_log_reference_is_refused",
+      "tools/test_v0_s3_native_custody.py::test_a_legal_relative_log_reference_is_accepted",
+      "tools/test_v0_s3_native_custody.py::test_an_illegal_log_reference_creates_nothing",
+      "tools/test_v0_s3_native_custody.py::test_the_broker_validates_the_plan_before_it_consumes_it",
+      "tools/test_v0_s3_native_custody.py::test_the_success_path_is_suspend_assign_resume",
+      "tools/test_v0_s3_native_custody.py::test_the_child_inherits_only_its_own_streams",
+      "tools/test_v0_s3_native_custody.py::test_a_create_failure_creates_nothing",
+      "tools/test_v0_s3_native_custody.py::test_an_assign_failure_stops_only_the_new_suspended_process",
+      "tools/test_v0_s3_native_custody.py::test_a_resume_failure_keeps_the_round_unknown",
+      "tools/test_v0_s3_native_custody.py::test_a_job_creation_failure_creates_nothing",
+      "tools/test_v0_s3_native_custody.py::test_a_job_limit_failure_closes_the_job_handle",
+      "tools/test_v0_s3_native_custody.py::test_a_pipe_failure_creates_nothing",
+      "tools/test_v0_s3_native_custody.py::test_a_failed_termination_stays_visible",
+      "tools/test_v0_s3_native_custody.py::test_an_unknown_failure_point_is_refused",
+      "tools/test_v0_s3_native_custody.py::test_a_foreign_process_is_never_stopped",
+      "tools/test_v0_s3_native_custody.py::test_a_partial_role_failure_stops_the_earlier_roles",
+      "tools/test_v0_s3_native_custody.py::test_an_unknown_job_query_is_not_zero",
+      "tools/test_v0_s3_native_custody.py::test_an_over_limit_job_query_is_not_zero",
+      "tools/test_v0_s3_native_custody.py::test_a_close_failure_keeps_the_round_unknown",
+      "tools/test_v0_s3_native_custody.py::test_a_stop_is_idempotent",
+      "tools/test_v0_s3_native_custody.py::test_the_job_is_closed_with_kill_on_close",
+      "tools/test_v0_s3_native_custody.py::test_a_repeated_stop_is_idempotent",
+      "tools/test_v0_s3_native_custody.py::test_the_evidence_keeps_every_native_claim_not_proven",
+      "tools/test_v0_s3_native_custody.py::test_the_old_owners_are_unchanged",
+      "tools/test_v0_s3_native_custody.py::test_the_old_refusal_points_are_still_declared"
+    ],
+    "plan_path": "reports/v0-s3/product-gate0/implementation-native-custody-correction-01/plan.json",
+    "plan_sha256": "7c9d2d1b536861dfeb608d22332e35744be161aff2c03fd31eb982065d819258"
+  },
+  "python": {
+    "path": "/usr/bin/python3.12",
+    "sha256": "e50d468e8b0adfb05733f5b87b3cff34829c4a8c1aea50c865aa8bdfe4bb150f"
+  },
+  "receipt_tail_note": {
+    "bytes": 26822,
+    "kind": "ROOT_RECEIPT_FORMAT_NOT_PRODUCT_FAILURE",
+    "next_root_runner": "write the tail newline correctly and change no historical test result",
+    "old_batch_rerun_for_it": false,
+    "original_bytes_changed_by_this_delivery": false,
+    "receipt_path": "reports/v0-s3/product-gate0/implementation-native-custody-01/native-custody-01.receipt.json",
+    "sha256": "5a8e96c027c5500e4c6834b561dc187ee437a85e431eec63145f161728cb32b2"
+  },
+  "retry_env_untouched": {
+    "cleanup_owner": "root",
+    "path": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/.claude/settings.local.json",
+    "sha256": "7e6320a52b689bfe6ff1441909c74d04f1a9620f75684d6d4bbff6508010c1b0"
+  },
+  "unchanged_pins": {
+    "lvw/backend/app/native_runtime.py": "16bf3e6396f9548312f92007eebbda55a448f0bdc6bab4a10afd71179b231a85",
+    "reports/v0-s3/product-gate0/implementation-native-custody-01/correction-note-01.md": "4d5f06446bbd3637694cc603b075bd3d3936810acffbb3c11a363f04a66baaeb",
+    "reports/v0-s3/product-gate0/implementation-native-custody-01/guard.py": "12816fba33dd0874664f195847a599e1160099e85f5e8d3a89165b22744dfc80",
+    "reports/v0-s3/product-gate0/implementation-native-custody-01/native-custody-01.receipt.json": "5a8e96c027c5500e4c6834b561dc187ee437a85e431eec63145f161728cb32b2",
+    "reports/v0-s3/product-gate0/implementation-native-custody-01/runner.py": "c1ffb88686a4515aaddca3f362cd100a63db6653bc2fcf8d9939a14824fe8fd7",
+    "tools/local_program_authority.py": "677998fa2ab5b51017b5437fecd07d6ca31c26473a7ac0acede4637f6470f787",
+    "tools/v0_s2_driver.py": "72883e2fa0c252aef7655708f40ada88a755978d71f632043c8203b53b42afed",
+    "tools/v0_s2_runtime.py": "a97ea20d02ed80ab4f99f133dd8162331ddba34662bfdcca637fcade40b4dbd2",
+    "tools/v0_s3_budget_authority.py": "80908669be48bbb8db5b9fd5271719a9c927918a52eb6565d152b471423ad1b7",
+    "tools/v0_s3_coordinator.py": "14e8dd284971aeab00999f010679d5c95deb88ee3bff8f4ca0708d958b56f12c",
+    "tools/v0_s3_native_broker.py": "f2c10e6625e06aeb4da70506d5e75903ff28ecba3492017f06b4867d7d394a6f",
+    "tools/v0_s3_production_controller.py": "a452275a866b8b496175ecf3cba37d86fd0109be91020c09948f9bf9583a2b38",
+    "tools/v0_s3_quality_phase.py": "90552ea113ccf53a2a1cedff3e3f399642ad932bf0f71bb1f9a57e1adb6e8789",
+    "tools/v0_s3_quality_worker.py": "e3648446f39d6e7a1c31f180248ccb59c36272ddc10c80edbe544f7d3c595592",
+    "tools/v0_s3_supervisor.py": "7d210429e70761cea633e8f2e64d8a1f01709930068a21de5cbc3c5a519ce6d8"
+  },
+  "worker": {
+    "owner": "Claude Code",
+    "single_owner": true,
+    "sub_agents_spawned": 0
+  },
+  "workpack": "S3-P4-N1"
+}
