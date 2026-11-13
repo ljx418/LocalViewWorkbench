@@ -1,0 +1,1464 @@
+[
+  {
+    "name": "finish_gate_capacity1",
+    "expected": "refuse before new charge",
+    "actual": "ADMITTED",
+    "starts_before": 1,
+    "starts_after": 2,
+    "unsafe_new_admission": true,
+    "uncertain_after_attempt": true,
+    "ledger_after_attempt": [
+      {
+        "index": 0,
+        "scenario": "clean_terminal",
+        "argv": [
+          "/usr/bin/python3",
+          "-I",
+          "-S",
+          "-B",
+          "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+          "--scenario",
+          "clean_terminal"
+        ],
+        "admitted_wall": 1794540107.7027726,
+        "handle_obtained": true,
+        "handle_proven": null,
+        "outcome": "HANDLE",
+        "refusal_code": null,
+        "created": null,
+        "settlement_persisted": false,
+        "settlement_error": "INJECTED_FINISH"
+      },
+      {
+        "index": 1,
+        "scenario": "clean_terminal",
+        "argv": [
+          "/usr/bin/python3",
+          "-I",
+          "-S",
+          "-B",
+          "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+          "--scenario",
+          "clean_terminal"
+        ],
+        "admitted_wall": 1794540107.7358546,
+        "handle_obtained": false,
+        "handle_proven": null,
+        "outcome": "ADMITTED",
+        "refusal_code": null,
+        "created": null,
+        "settlement_persisted": null,
+        "settlement_error": null
+      }
+    ],
+    "final": {
+      "exit_code": 4,
+      "cleanup_proven": false,
+      "root_retained": true,
+      "failure_reasons": [
+        "CHARGE_SETTLEMENT_FAILED",
+        "CHILD_EXIT_UNPROVEN",
+        "OWNED_ROOT_RETAINED",
+        "UNSETTLED_CHARGE"
+      ],
+      "proofs": [
+        {
+          "index": 0,
+          "state": "UNKNOWN",
+          "exit_code": 0,
+          "spent_wall_seconds": 0.034,
+          "timed_out": false,
+          "pid": 710000,
+          "birth": null,
+          "proven": true,
+          "persisted": false,
+          "settlement_error": "INJECTED_FINISH",
+          "handle_obtained": true
+        },
+        {
+          "index": 1,
+          "state": "UNKNOWN",
+          "exit_code": null,
+          "spent_wall_seconds": null,
+          "timed_out": false,
+          "pid": null,
+          "birth": null,
+          "proven": false,
+          "persisted": false,
+          "settlement_error": "INJECTED_FINISH",
+          "handle_obtained": false,
+          "reason": "ADMITTED_WITHOUT_HANDLE"
+        }
+      ]
+    }
+  },
+  {
+    "name": "finish_oserror_capacity1",
+    "expected": "refuse before new charge",
+    "actual": "OSError:INJECTED_FINISH_IO",
+    "starts_before": 1,
+    "starts_after": 1,
+    "unsafe_new_admission": false,
+    "uncertain_after_attempt": false,
+    "ledger_after_attempt": [
+      {
+        "index": 0,
+        "scenario": "clean_terminal",
+        "argv": [
+          "/usr/bin/python3",
+          "-I",
+          "-S",
+          "-B",
+          "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+          "--scenario",
+          "clean_terminal"
+        ],
+        "admitted_wall": 1794540107.7949061,
+        "handle_obtained": true,
+        "handle_proven": null,
+        "outcome": "HANDLE",
+        "refusal_code": null,
+        "created": null,
+        "settlement_persisted": null,
+        "settlement_error": null
+      }
+    ],
+    "final": {
+      "exit_code": 4,
+      "cleanup_proven": false,
+      "root_retained": true,
+      "failure_reasons": [
+        "OWNED_ROOT_RETAINED",
+        "REAP_FAILED:OSError",
+        "UNSETTLED_CHARGE"
+      ],
+      "proofs": []
+    }
+  },
+  {
+    "name": "finish_false_capacity1",
+    "expected": "refuse before new charge",
+    "actual": "ADMITTED",
+    "starts_before": 1,
+    "starts_after": 2,
+    "unsafe_new_admission": true,
+    "uncertain_after_attempt": false,
+    "ledger_after_attempt": [
+      {
+        "index": 0,
+        "scenario": "clean_terminal",
+        "argv": [
+          "/usr/bin/python3",
+          "-I",
+          "-S",
+          "-B",
+          "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+          "--scenario",
+          "clean_terminal"
+        ],
+        "admitted_wall": 1794540107.8742795,
+        "handle_obtained": true,
+        "handle_proven": null,
+        "outcome": "HANDLE",
+        "refusal_code": null,
+        "created": null,
+        "settlement_persisted": null,
+        "settlement_error": null
+      },
+      {
+        "index": 1,
+        "scenario": "clean_terminal",
+        "argv": [
+          "/usr/bin/python3",
+          "-I",
+          "-S",
+          "-B",
+          "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+          "--scenario",
+          "clean_terminal"
+        ],
+        "admitted_wall": 1794540107.9050553,
+        "handle_obtained": false,
+        "handle_proven": null,
+        "outcome": "ADMITTED",
+        "refusal_code": null,
+        "created": null,
+        "settlement_persisted": null,
+        "settlement_error": null
+      }
+    ],
+    "final": {
+      "exit_code": 4,
+      "cleanup_proven": false,
+      "root_retained": true,
+      "failure_reasons": [
+        "CHARGE_SETTLEMENT_FAILED",
+        "CHILD_EXIT_UNPROVEN",
+        "OWNED_ROOT_RETAINED",
+        "UNSETTLED_CHARGE"
+      ],
+      "proofs": [
+        {
+          "index": 0,
+          "state": "UNKNOWN",
+          "exit_code": 0,
+          "spent_wall_seconds": 0.031,
+          "timed_out": false,
+          "pid": 710000,
+          "birth": null,
+          "proven": true,
+          "persisted": false,
+          "settlement_error": null,
+          "handle_obtained": true
+        },
+        {
+          "index": 1,
+          "state": "UNKNOWN",
+          "exit_code": null,
+          "spent_wall_seconds": null,
+          "timed_out": false,
+          "pid": null,
+          "birth": null,
+          "proven": false,
+          "persisted": false,
+          "settlement_error": null,
+          "handle_obtained": false,
+          "reason": "ADMITTED_WITHOUT_HANDLE"
+        }
+      ]
+    }
+  },
+  {
+    "name": "finish_read_gate_capacity1",
+    "expected": "refuse before new charge",
+    "actual": "ADMITTED",
+    "starts_before": 1,
+    "starts_after": 2,
+    "unsafe_new_admission": true,
+    "uncertain_after_attempt": false,
+    "ledger_after_attempt": [
+      {
+        "index": 0,
+        "scenario": "clean_terminal",
+        "argv": [
+          "/usr/bin/python3",
+          "-I",
+          "-S",
+          "-B",
+          "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+          "--scenario",
+          "clean_terminal"
+        ],
+        "admitted_wall": 1794540107.9589453,
+        "handle_obtained": true,
+        "handle_proven": null,
+        "outcome": "HANDLE",
+        "refusal_code": null,
+        "created": null,
+        "settlement_persisted": null,
+        "settlement_error": null
+      },
+      {
+        "index": 1,
+        "scenario": "clean_terminal",
+        "argv": [
+          "/usr/bin/python3",
+          "-I",
+          "-S",
+          "-B",
+          "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+          "--scenario",
+          "clean_terminal"
+        ],
+        "admitted_wall": 1794540107.988458,
+        "handle_obtained": false,
+        "handle_proven": null,
+        "outcome": "ADMITTED",
+        "refusal_code": null,
+        "created": null,
+        "settlement_persisted": null,
+        "settlement_error": null
+      }
+    ],
+    "final": {
+      "exit_code": 4,
+      "cleanup_proven": false,
+      "root_retained": true,
+      "failure_reasons": [
+        "CHARGE_SETTLEMENT_FAILED",
+        "CHILD_EXIT_UNPROVEN",
+        "OWNED_ROOT_RETAINED",
+        "UNSETTLED_CHARGE"
+      ],
+      "proofs": [
+        {
+          "index": 0,
+          "state": "UNKNOWN",
+          "exit_code": 0,
+          "spent_wall_seconds": 0.03,
+          "timed_out": false,
+          "pid": 710000,
+          "birth": null,
+          "proven": true,
+          "persisted": false,
+          "settlement_error": null,
+          "handle_obtained": true
+        },
+        {
+          "index": 1,
+          "state": "UNKNOWN",
+          "exit_code": null,
+          "spent_wall_seconds": null,
+          "timed_out": false,
+          "pid": null,
+          "birth": null,
+          "proven": false,
+          "persisted": false,
+          "settlement_error": null,
+          "handle_obtained": false,
+          "reason": "ADMITTED_WITHOUT_HANDLE"
+        }
+      ]
+    }
+  },
+  {
+    "name": "finish_read_oserror_capacity1",
+    "expected": "refuse before new charge",
+    "actual": "OSError:INJECTED_READ_IO",
+    "starts_before": 1,
+    "starts_after": 1,
+    "unsafe_new_admission": false,
+    "uncertain_after_attempt": false,
+    "ledger_after_attempt": [
+      {
+        "index": 0,
+        "scenario": "clean_terminal",
+        "argv": [
+          "/usr/bin/python3",
+          "-I",
+          "-S",
+          "-B",
+          "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+          "--scenario",
+          "clean_terminal"
+        ],
+        "admitted_wall": 1794540108.044063,
+        "handle_obtained": true,
+        "handle_proven": null,
+        "outcome": "HANDLE",
+        "refusal_code": null,
+        "created": null,
+        "settlement_persisted": null,
+        "settlement_error": null
+      }
+    ],
+    "final": {
+      "exit_code": 4,
+      "cleanup_proven": false,
+      "root_retained": true,
+      "failure_reasons": [
+        "OWNED_ROOT_RETAINED",
+        "REAP_FAILED:OSError",
+        "UNSETTLED_CHARGE"
+      ],
+      "proofs": []
+    }
+  },
+  {
+    "name": "finish_gate_capacity2",
+    "expected": "refuse before new charge",
+    "actual": "CpuGateError:CPU_CONCURRENCY_LIMIT",
+    "starts_before": 2,
+    "starts_after": 2,
+    "unsafe_new_admission": false,
+    "uncertain_after_attempt": true,
+    "ledger_after_attempt": [
+      {
+        "index": 0,
+        "scenario": "clean_terminal",
+        "argv": [
+          "/usr/bin/python3",
+          "-I",
+          "-S",
+          "-B",
+          "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+          "--scenario",
+          "clean_terminal"
+        ],
+        "admitted_wall": 1794540108.124887,
+        "handle_obtained": true,
+        "handle_proven": null,
+        "outcome": "HANDLE",
+        "refusal_code": null,
+        "created": null,
+        "settlement_persisted": false,
+        "settlement_error": "INJECTED_FINISH"
+      },
+      {
+        "index": 1,
+        "scenario": "clean_terminal",
+        "argv": [
+          "/usr/bin/python3",
+          "-I",
+          "-S",
+          "-B",
+          "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+          "--scenario",
+          "clean_terminal"
+        ],
+        "admitted_wall": 1794540108.1564937,
+        "handle_obtained": true,
+        "handle_proven": null,
+        "outcome": "HANDLE",
+        "refusal_code": null,
+        "created": null,
+        "settlement_persisted": false,
+        "settlement_error": "INJECTED_FINISH"
+      }
+    ],
+    "final": {
+      "exit_code": 4,
+      "cleanup_proven": false,
+      "root_retained": true,
+      "failure_reasons": [
+        "CHARGE_SETTLEMENT_FAILED",
+        "OWNED_ROOT_RETAINED",
+        "UNSETTLED_CHARGE"
+      ],
+      "proofs": [
+        {
+          "index": 0,
+          "state": "UNKNOWN",
+          "exit_code": 0,
+          "spent_wall_seconds": 0.056,
+          "timed_out": false,
+          "pid": 710000,
+          "birth": null,
+          "proven": true,
+          "persisted": false,
+          "settlement_error": "INJECTED_FINISH",
+          "handle_obtained": true
+        },
+        {
+          "index": 1,
+          "state": "UNKNOWN",
+          "exit_code": 0,
+          "spent_wall_seconds": 0.024,
+          "timed_out": false,
+          "pid": 710001,
+          "birth": null,
+          "proven": true,
+          "persisted": false,
+          "settlement_error": "INJECTED_FINISH",
+          "handle_obtained": true
+        }
+      ]
+    }
+  },
+  {
+    "name": "finish_oserror_capacity2",
+    "expected": "refuse before new charge",
+    "actual": "OSError:INJECTED_FINISH_IO",
+    "starts_before": 2,
+    "starts_after": 2,
+    "unsafe_new_admission": false,
+    "uncertain_after_attempt": false,
+    "ledger_after_attempt": [
+      {
+        "index": 0,
+        "scenario": "clean_terminal",
+        "argv": [
+          "/usr/bin/python3",
+          "-I",
+          "-S",
+          "-B",
+          "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+          "--scenario",
+          "clean_terminal"
+        ],
+        "admitted_wall": 1794540108.2342467,
+        "handle_obtained": true,
+        "handle_proven": null,
+        "outcome": "HANDLE",
+        "refusal_code": null,
+        "created": null,
+        "settlement_persisted": null,
+        "settlement_error": null
+      },
+      {
+        "index": 1,
+        "scenario": "clean_terminal",
+        "argv": [
+          "/usr/bin/python3",
+          "-I",
+          "-S",
+          "-B",
+          "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+          "--scenario",
+          "clean_terminal"
+        ],
+        "admitted_wall": 1794540108.2628663,
+        "handle_obtained": true,
+        "handle_proven": null,
+        "outcome": "HANDLE",
+        "refusal_code": null,
+        "created": null,
+        "settlement_persisted": null,
+        "settlement_error": null
+      }
+    ],
+    "final": {
+      "exit_code": 4,
+      "cleanup_proven": false,
+      "root_retained": true,
+      "failure_reasons": [
+        "OWNED_ROOT_RETAINED",
+        "REAP_FAILED:OSError",
+        "UNSETTLED_CHARGE"
+      ],
+      "proofs": []
+    }
+  },
+  {
+    "name": "finish_false_capacity2",
+    "expected": "refuse before new charge",
+    "actual": "CpuGateError:CPU_CONCURRENCY_LIMIT",
+    "starts_before": 2,
+    "starts_after": 2,
+    "unsafe_new_admission": false,
+    "uncertain_after_attempt": false,
+    "ledger_after_attempt": [
+      {
+        "index": 0,
+        "scenario": "clean_terminal",
+        "argv": [
+          "/usr/bin/python3",
+          "-I",
+          "-S",
+          "-B",
+          "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+          "--scenario",
+          "clean_terminal"
+        ],
+        "admitted_wall": 1794540108.3366544,
+        "handle_obtained": true,
+        "handle_proven": null,
+        "outcome": "HANDLE",
+        "refusal_code": null,
+        "created": null,
+        "settlement_persisted": null,
+        "settlement_error": null
+      },
+      {
+        "index": 1,
+        "scenario": "clean_terminal",
+        "argv": [
+          "/usr/bin/python3",
+          "-I",
+          "-S",
+          "-B",
+          "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+          "--scenario",
+          "clean_terminal"
+        ],
+        "admitted_wall": 1794540108.3635929,
+        "handle_obtained": true,
+        "handle_proven": null,
+        "outcome": "HANDLE",
+        "refusal_code": null,
+        "created": null,
+        "settlement_persisted": null,
+        "settlement_error": null
+      }
+    ],
+    "final": {
+      "exit_code": 4,
+      "cleanup_proven": false,
+      "root_retained": true,
+      "failure_reasons": [
+        "CHARGE_SETTLEMENT_FAILED",
+        "OWNED_ROOT_RETAINED",
+        "UNSETTLED_CHARGE"
+      ],
+      "proofs": [
+        {
+          "index": 0,
+          "state": "UNKNOWN",
+          "exit_code": 0,
+          "spent_wall_seconds": 0.048,
+          "timed_out": false,
+          "pid": 710000,
+          "birth": null,
+          "proven": true,
+          "persisted": false,
+          "settlement_error": null,
+          "handle_obtained": true
+        },
+        {
+          "index": 1,
+          "state": "UNKNOWN",
+          "exit_code": 0,
+          "spent_wall_seconds": 0.021,
+          "timed_out": false,
+          "pid": 710001,
+          "birth": null,
+          "proven": true,
+          "persisted": false,
+          "settlement_error": null,
+          "handle_obtained": true
+        }
+      ]
+    }
+  },
+  {
+    "name": "finish_read_gate_capacity2",
+    "expected": "refuse before new charge",
+    "actual": "CpuGateError:CPU_CONCURRENCY_LIMIT",
+    "starts_before": 2,
+    "starts_after": 2,
+    "unsafe_new_admission": false,
+    "uncertain_after_attempt": false,
+    "ledger_after_attempt": [
+      {
+        "index": 0,
+        "scenario": "clean_terminal",
+        "argv": [
+          "/usr/bin/python3",
+          "-I",
+          "-S",
+          "-B",
+          "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+          "--scenario",
+          "clean_terminal"
+        ],
+        "admitted_wall": 1794540108.4353266,
+        "handle_obtained": true,
+        "handle_proven": null,
+        "outcome": "HANDLE",
+        "refusal_code": null,
+        "created": null,
+        "settlement_persisted": null,
+        "settlement_error": null
+      },
+      {
+        "index": 1,
+        "scenario": "clean_terminal",
+        "argv": [
+          "/usr/bin/python3",
+          "-I",
+          "-S",
+          "-B",
+          "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+          "--scenario",
+          "clean_terminal"
+        ],
+        "admitted_wall": 1794540108.4620357,
+        "handle_obtained": true,
+        "handle_proven": null,
+        "outcome": "HANDLE",
+        "refusal_code": null,
+        "created": null,
+        "settlement_persisted": null,
+        "settlement_error": null
+      }
+    ],
+    "final": {
+      "exit_code": 4,
+      "cleanup_proven": false,
+      "root_retained": true,
+      "failure_reasons": [
+        "CHARGE_SETTLEMENT_FAILED",
+        "OWNED_ROOT_RETAINED",
+        "UNSETTLED_CHARGE"
+      ],
+      "proofs": [
+        {
+          "index": 0,
+          "state": "UNKNOWN",
+          "exit_code": 0,
+          "spent_wall_seconds": 0.047,
+          "timed_out": false,
+          "pid": 710000,
+          "birth": null,
+          "proven": true,
+          "persisted": false,
+          "settlement_error": null,
+          "handle_obtained": true
+        },
+        {
+          "index": 1,
+          "state": "UNKNOWN",
+          "exit_code": 0,
+          "spent_wall_seconds": 0.02,
+          "timed_out": false,
+          "pid": 710001,
+          "birth": null,
+          "proven": true,
+          "persisted": false,
+          "settlement_error": null,
+          "handle_obtained": true
+        }
+      ]
+    }
+  },
+  {
+    "name": "finish_read_oserror_capacity2",
+    "expected": "refuse before new charge",
+    "actual": "OSError:INJECTED_READ_IO",
+    "starts_before": 2,
+    "starts_after": 2,
+    "unsafe_new_admission": false,
+    "uncertain_after_attempt": false,
+    "ledger_after_attempt": [
+      {
+        "index": 0,
+        "scenario": "clean_terminal",
+        "argv": [
+          "/usr/bin/python3",
+          "-I",
+          "-S",
+          "-B",
+          "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+          "--scenario",
+          "clean_terminal"
+        ],
+        "admitted_wall": 1794540108.5331955,
+        "handle_obtained": true,
+        "handle_proven": null,
+        "outcome": "HANDLE",
+        "refusal_code": null,
+        "created": null,
+        "settlement_persisted": null,
+        "settlement_error": null
+      },
+      {
+        "index": 1,
+        "scenario": "clean_terminal",
+        "argv": [
+          "/usr/bin/python3",
+          "-I",
+          "-S",
+          "-B",
+          "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+          "--scenario",
+          "clean_terminal"
+        ],
+        "admitted_wall": 1794540108.561114,
+        "handle_obtained": true,
+        "handle_proven": null,
+        "outcome": "HANDLE",
+        "refusal_code": null,
+        "created": null,
+        "settlement_persisted": null,
+        "settlement_error": null
+      }
+    ],
+    "final": {
+      "exit_code": 4,
+      "cleanup_proven": false,
+      "root_retained": true,
+      "failure_reasons": [
+        "OWNED_ROOT_RETAINED",
+        "REAP_FAILED:OSError",
+        "UNSETTLED_CHARGE"
+      ],
+      "proofs": []
+    }
+  },
+  {
+    "name": "live_exit",
+    "third_live": "CpuGateError:CPU_CONCURRENCY_LIMIT",
+    "after_one_exit": "ADMITTED",
+    "one_more": "CpuGateError:CPU_CONCURRENCY_LIMIT",
+    "counter": {
+      "active": true,
+      "budget_id": "budget-under-test",
+      "charges": [
+        {
+          "argv": [
+            "/usr/bin/python3",
+            "-I",
+            "-S",
+            "-B",
+            "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+            "--scenario",
+            "clean_terminal"
+          ],
+          "birth": null,
+          "exit_code": 0,
+          "finished_wall": 1794540108.7025046,
+          "index": 0,
+          "observed_lifetime_seconds": 0.066,
+          "pid": 720001,
+          "role": "implementation",
+          "scenario": "clean_terminal",
+          "settled": true,
+          "started_wall": 1794540108.6309114,
+          "state": "STOPPED"
+        },
+        {
+          "argv": [
+            "/usr/bin/python3",
+            "-I",
+            "-S",
+            "-B",
+            "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+            "--scenario",
+            "clean_terminal"
+          ],
+          "birth": null,
+          "exit_code": null,
+          "finished_wall": null,
+          "index": 1,
+          "observed_lifetime_seconds": null,
+          "pid": 720002,
+          "role": "implementation",
+          "scenario": "clean_terminal",
+          "settled": false,
+          "started_wall": 1794540108.660711,
+          "state": "STARTED"
+        },
+        {
+          "argv": [
+            "/usr/bin/python3",
+            "-I",
+            "-S",
+            "-B",
+            "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+            "--scenario",
+            "clean_terminal"
+          ],
+          "birth": null,
+          "exit_code": null,
+          "finished_wall": null,
+          "index": 2,
+          "observed_lifetime_seconds": null,
+          "pid": null,
+          "role": "implementation",
+          "scenario": "clean_terminal",
+          "settled": false,
+          "started_wall": 1794540108.707512,
+          "state": "PENDING"
+        }
+      ],
+      "kind": "lvw.s3-cpu-budget/1",
+      "reserved_wall_seconds": 60.0,
+      "sessions": [
+        {
+          "admission_deadline_wall": 1794540138.626,
+          "admission_seconds": 30.0,
+          "cleanup_deadline_wall": 1794540168.626,
+          "cleanup_seconds": 60.0,
+          "owner_id": "owner-0fd4279cbb3a42dea6e9455e57a6a70e",
+          "remaining_before_seconds": 180.0,
+          "reserved_at_wall": 1794540108.6258183,
+          "reserved_wall_seconds": 60.0,
+          "role": "implementation",
+          "session_id": "session-6285d1f404204f3d959ece9e08b866b9",
+          "spent_wall_seconds": null,
+          "started_wall": 1794540108.6258183,
+          "state": "ACTIVE"
+        }
+      ],
+      "spent_wall_seconds": 0.0,
+      "starts_by_role": {
+        "implementation": 3,
+        "independent_review": 0
+      },
+      "starts_total": 3
+    }
+  },
+  {
+    "name": "unknown_original",
+    "next": "ADMITTED",
+    "one_more": "CpuGateError:CPU_CONCURRENCY_LIMIT",
+    "first_occupied": true
+  },
+  {
+    "name": "sequential13",
+    "starts": 13,
+    "peak": 1,
+    "final": {
+      "exit_code": 0,
+      "cleanup_proven": true,
+      "root_retained": false,
+      "failure_reasons": [],
+      "proofs": [
+        {
+          "index": 0,
+          "state": "STOPPED",
+          "exit_code": 0,
+          "spent_wall_seconds": 1.157,
+          "timed_out": false,
+          "pid": 730000,
+          "birth": null,
+          "proven": true,
+          "persisted": true,
+          "settlement_error": null,
+          "handle_obtained": true
+        },
+        {
+          "index": 1,
+          "state": "STOPPED",
+          "exit_code": 0,
+          "spent_wall_seconds": 1.124,
+          "timed_out": false,
+          "pid": 730001,
+          "birth": null,
+          "proven": true,
+          "persisted": true,
+          "settlement_error": null,
+          "handle_obtained": true
+        },
+        {
+          "index": 2,
+          "state": "STOPPED",
+          "exit_code": 0,
+          "spent_wall_seconds": 1.089,
+          "timed_out": false,
+          "pid": 730002,
+          "birth": null,
+          "proven": true,
+          "persisted": true,
+          "settlement_error": null,
+          "handle_obtained": true
+        },
+        {
+          "index": 3,
+          "state": "STOPPED",
+          "exit_code": 0,
+          "spent_wall_seconds": 1.058,
+          "timed_out": false,
+          "pid": 730003,
+          "birth": null,
+          "proven": true,
+          "persisted": true,
+          "settlement_error": null,
+          "handle_obtained": true
+        },
+        {
+          "index": 4,
+          "state": "STOPPED",
+          "exit_code": 0,
+          "spent_wall_seconds": 1.024,
+          "timed_out": false,
+          "pid": 730004,
+          "birth": null,
+          "proven": true,
+          "persisted": true,
+          "settlement_error": null,
+          "handle_obtained": true
+        },
+        {
+          "index": 5,
+          "state": "STOPPED",
+          "exit_code": 0,
+          "spent_wall_seconds": 0.988,
+          "timed_out": false,
+          "pid": 730005,
+          "birth": null,
+          "proven": true,
+          "persisted": true,
+          "settlement_error": null,
+          "handle_obtained": true
+        },
+        {
+          "index": 6,
+          "state": "STOPPED",
+          "exit_code": 0,
+          "spent_wall_seconds": 0.328,
+          "timed_out": false,
+          "pid": 730006,
+          "birth": null,
+          "proven": true,
+          "persisted": true,
+          "settlement_error": null,
+          "handle_obtained": true
+        },
+        {
+          "index": 7,
+          "state": "STOPPED",
+          "exit_code": 0,
+          "spent_wall_seconds": 0.172,
+          "timed_out": false,
+          "pid": 730007,
+          "birth": null,
+          "proven": true,
+          "persisted": true,
+          "settlement_error": null,
+          "handle_obtained": true
+        },
+        {
+          "index": 8,
+          "state": "STOPPED",
+          "exit_code": 0,
+          "spent_wall_seconds": 0.14,
+          "timed_out": false,
+          "pid": 730008,
+          "birth": null,
+          "proven": true,
+          "persisted": true,
+          "settlement_error": null,
+          "handle_obtained": true
+        },
+        {
+          "index": 9,
+          "state": "STOPPED",
+          "exit_code": 0,
+          "spent_wall_seconds": 0.108,
+          "timed_out": false,
+          "pid": 730009,
+          "birth": null,
+          "proven": true,
+          "persisted": true,
+          "settlement_error": null,
+          "handle_obtained": true
+        },
+        {
+          "index": 10,
+          "state": "STOPPED",
+          "exit_code": 0,
+          "spent_wall_seconds": 0.075,
+          "timed_out": false,
+          "pid": 730010,
+          "birth": null,
+          "proven": true,
+          "persisted": true,
+          "settlement_error": null,
+          "handle_obtained": true
+        },
+        {
+          "index": 11,
+          "state": "STOPPED",
+          "exit_code": 0,
+          "spent_wall_seconds": 0.038,
+          "timed_out": false,
+          "pid": 730011,
+          "birth": null,
+          "proven": true,
+          "persisted": true,
+          "settlement_error": null,
+          "handle_obtained": true
+        },
+        {
+          "index": 12,
+          "state": "STOPPED",
+          "exit_code": 0,
+          "spent_wall_seconds": 0.006,
+          "timed_out": false,
+          "pid": 730012,
+          "birth": null,
+          "proven": true,
+          "persisted": true,
+          "settlement_error": null,
+          "handle_obtained": true
+        }
+      ]
+    },
+    "first_finished_wall_unchanged": true,
+    "reserved": 60.0
+  },
+  {
+    "name": "idempotency_wrong_exit",
+    "expected": "conflicting or UNKNOWN terminal must not count as successful persistence",
+    "admit": "ADMITTED",
+    "child": {
+      "index": 0,
+      "pid": 740001,
+      "birth": null,
+      "started": 88436.808654149,
+      "state": "STOPPED",
+      "exit_code": 0,
+      "timed_out": false,
+      "proven": true,
+      "settlement_persisted": true,
+      "stop_attempts": 0,
+      "last_stop_attempt": null
+    },
+    "persisted_charge": {
+      "argv": [
+        "/usr/bin/python3",
+        "-I",
+        "-S",
+        "-B",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+        "--scenario",
+        "clean_terminal"
+      ],
+      "birth": null,
+      "exit_code": 77,
+      "finished_wall": 1794540110.0844393,
+      "index": 0,
+      "observed_lifetime_seconds": 1,
+      "pid": 740001,
+      "role": "implementation",
+      "scenario": "clean_terminal",
+      "settled": true,
+      "started_wall": 1794540110.074574,
+      "state": "STOPPED"
+    },
+    "final": {
+      "exit_code": 4,
+      "cleanup_proven": false,
+      "root_retained": true,
+      "failure_reasons": [
+        "CHILD_EXIT_UNPROVEN",
+        "OWNED_ROOT_RETAINED",
+        "UNSETTLED_CHARGE"
+      ],
+      "proofs": [
+        {
+          "index": 0,
+          "state": "STOPPED",
+          "exit_code": 0,
+          "spent_wall_seconds": 0.041,
+          "timed_out": false,
+          "pid": 740001,
+          "birth": null,
+          "proven": true,
+          "persisted": true,
+          "settlement_error": null,
+          "handle_obtained": true
+        },
+        {
+          "index": 1,
+          "state": "UNKNOWN",
+          "exit_code": null,
+          "spent_wall_seconds": null,
+          "timed_out": false,
+          "pid": null,
+          "birth": null,
+          "proven": false,
+          "persisted": true,
+          "settlement_error": null,
+          "handle_obtained": false,
+          "reason": "ADMITTED_WITHOUT_HANDLE"
+        }
+      ]
+    },
+    "new_starts": 1
+  },
+  {
+    "name": "idempotency_wrong_pid_birth",
+    "expected": "conflicting or UNKNOWN terminal must not count as successful persistence",
+    "admit": "ADMITTED",
+    "child": {
+      "index": 0,
+      "pid": 740001,
+      "birth": null,
+      "started": 88436.907813268,
+      "state": "STOPPED",
+      "exit_code": 0,
+      "timed_out": false,
+      "proven": true,
+      "settlement_persisted": true,
+      "stop_attempts": 0,
+      "last_stop_attempt": null
+    },
+    "persisted_charge": {
+      "argv": [
+        "/usr/bin/python3",
+        "-I",
+        "-S",
+        "-B",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+        "--scenario",
+        "clean_terminal"
+      ],
+      "birth": {
+        "foreign": "session"
+      },
+      "exit_code": 0,
+      "finished_wall": 1794540110.1841516,
+      "index": 0,
+      "observed_lifetime_seconds": 1,
+      "pid": 999999,
+      "role": "implementation",
+      "scenario": "clean_terminal",
+      "settled": true,
+      "started_wall": 1794540110.17352,
+      "state": "STOPPED"
+    },
+    "final": {
+      "exit_code": 4,
+      "cleanup_proven": false,
+      "root_retained": true,
+      "failure_reasons": [
+        "CHILD_EXIT_UNPROVEN",
+        "OWNED_ROOT_RETAINED",
+        "UNSETTLED_CHARGE"
+      ],
+      "proofs": [
+        {
+          "index": 0,
+          "state": "STOPPED",
+          "exit_code": 0,
+          "spent_wall_seconds": 0.042,
+          "timed_out": false,
+          "pid": 740001,
+          "birth": null,
+          "proven": true,
+          "persisted": true,
+          "settlement_error": null,
+          "handle_obtained": true
+        },
+        {
+          "index": 1,
+          "state": "UNKNOWN",
+          "exit_code": null,
+          "spent_wall_seconds": null,
+          "timed_out": false,
+          "pid": null,
+          "birth": null,
+          "proven": false,
+          "persisted": true,
+          "settlement_error": null,
+          "handle_obtained": false,
+          "reason": "ADMITTED_WITHOUT_HANDLE"
+        }
+      ]
+    },
+    "new_starts": 1
+  },
+  {
+    "name": "idempotency_foreign_index",
+    "expected": "conflicting or UNKNOWN terminal must not count as successful persistence",
+    "admit": "ADMITTED",
+    "child": {
+      "index": 0,
+      "pid": 740001,
+      "birth": null,
+      "started": 88437.009998945,
+      "state": "STOPPED",
+      "exit_code": 0,
+      "timed_out": false,
+      "proven": true,
+      "settlement_persisted": true,
+      "stop_attempts": 0,
+      "last_stop_attempt": null
+    },
+    "persisted_charge": {
+      "argv": [
+        "/usr/bin/python3",
+        "-I",
+        "-S",
+        "-B",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+        "--scenario",
+        "clean_terminal"
+      ],
+      "birth": null,
+      "exit_code": null,
+      "finished_wall": null,
+      "index": 0,
+      "observed_lifetime_seconds": null,
+      "pid": 740001,
+      "role": "implementation",
+      "scenario": "clean_terminal",
+      "settled": false,
+      "started_wall": 1794540110.275784,
+      "state": "STARTED"
+    },
+    "final": {
+      "exit_code": 4,
+      "cleanup_proven": false,
+      "root_retained": true,
+      "failure_reasons": [
+        "CHARGE_SETTLEMENT_FAILED",
+        "CHILD_EXIT_UNPROVEN",
+        "OWNED_ROOT_RETAINED",
+        "UNSETTLED_CHARGE"
+      ],
+      "proofs": [
+        {
+          "index": 0,
+          "state": "STOPPED",
+          "exit_code": 0,
+          "spent_wall_seconds": 0.029,
+          "timed_out": false,
+          "pid": 740001,
+          "birth": null,
+          "proven": true,
+          "persisted": true,
+          "settlement_error": null,
+          "handle_obtained": true
+        },
+        {
+          "index": 1,
+          "state": "UNKNOWN",
+          "exit_code": null,
+          "spent_wall_seconds": null,
+          "timed_out": false,
+          "pid": null,
+          "birth": null,
+          "proven": false,
+          "persisted": false,
+          "settlement_error": null,
+          "handle_obtained": false,
+          "reason": "ADMITTED_WITHOUT_HANDLE"
+        }
+      ]
+    },
+    "new_starts": 1
+  },
+  {
+    "name": "idempotency_unknown_terminal",
+    "expected": "conflicting or UNKNOWN terminal must not count as successful persistence",
+    "admit": "ADMITTED",
+    "child": {
+      "index": 0,
+      "pid": 740001,
+      "birth": null,
+      "started": 88437.093550703,
+      "state": "UNKNOWN",
+      "exit_code": 0,
+      "timed_out": false,
+      "proven": true,
+      "settlement_persisted": false,
+      "stop_attempts": 0,
+      "last_stop_attempt": null
+    },
+    "persisted_charge": {
+      "argv": [
+        "/usr/bin/python3",
+        "-I",
+        "-S",
+        "-B",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+        "--scenario",
+        "clean_terminal"
+      ],
+      "birth": null,
+      "exit_code": 0,
+      "finished_wall": 1794540110.3696518,
+      "index": 0,
+      "observed_lifetime_seconds": 1,
+      "pid": 740001,
+      "role": "implementation",
+      "scenario": "clean_terminal",
+      "settled": true,
+      "started_wall": 1794540110.358818,
+      "state": "UNKNOWN"
+    },
+    "final": {
+      "exit_code": 4,
+      "cleanup_proven": false,
+      "root_retained": true,
+      "failure_reasons": [
+        "CHARGE_SETTLEMENT_FAILED",
+        "CHILD_EXIT_UNPROVEN",
+        "OWNED_ROOT_RETAINED",
+        "UNSETTLED_CHARGE"
+      ],
+      "proofs": [
+        {
+          "index": 0,
+          "state": "UNKNOWN",
+          "exit_code": 0,
+          "spent_wall_seconds": 0.039,
+          "timed_out": false,
+          "pid": 740001,
+          "birth": null,
+          "proven": true,
+          "persisted": false,
+          "settlement_error": null,
+          "handle_obtained": true
+        },
+        {
+          "index": 1,
+          "state": "UNKNOWN",
+          "exit_code": null,
+          "spent_wall_seconds": null,
+          "timed_out": false,
+          "pid": null,
+          "birth": null,
+          "proven": false,
+          "persisted": true,
+          "settlement_error": null,
+          "handle_obtained": false,
+          "reason": "ADMITTED_WITHOUT_HANDLE"
+        }
+      ]
+    },
+    "new_starts": 1
+  },
+  {
+    "name": "local_marker_disk_divergence",
+    "assumption": "synthetic persisted record diverges after local success",
+    "counter": {
+      "active": true,
+      "budget_id": "budget-under-test",
+      "charges": [
+        {
+          "argv": [
+            "/usr/bin/python3",
+            "-I",
+            "-S",
+            "-B",
+            "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-review/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+            "--scenario",
+            "clean_terminal"
+          ],
+          "birth": null,
+          "exit_code": 0,
+          "finished_wall": null,
+          "index": 0,
+          "observed_lifetime_seconds": 0.005,
+          "pid": 750001,
+          "role": "implementation",
+          "scenario": "clean_terminal",
+          "settled": false,
+          "started_wall": 1794540110.4599013,
+          "state": "STARTED"
+        }
+      ],
+      "kind": "lvw.s3-cpu-budget/1",
+      "reserved_wall_seconds": 60.0,
+      "sessions": [
+        {
+          "admission_deadline_wall": 1794540140.455,
+          "admission_seconds": 30.0,
+          "cleanup_deadline_wall": 1794540170.455,
+          "cleanup_seconds": 60.0,
+          "finished_wall": 1794540110.4748023,
+          "owner_id": "owner-d2f68f714b2541c9bf499312167bfc3f",
+          "remaining_before_seconds": 180.0,
+          "reserved_at_wall": 1794540110.455161,
+          "reserved_wall_seconds": 60.0,
+          "role": "implementation",
+          "session_id": "session-c2e05b989c7d4ac89b835fa5dae395d3",
+          "spent_wall_seconds": 0.038,
+          "started_wall": 1794540110.455161,
+          "state": "SETTLED"
+        }
+      ],
+      "spent_wall_seconds": 0.038,
+      "starts_by_role": {
+        "implementation": 1,
+        "independent_review": 0
+      },
+      "starts_total": 1
+    },
+    "final": {
+      "exit_code": 0,
+      "cleanup_proven": true,
+      "root_retained": false,
+      "failure_reasons": [],
+      "proofs": [
+        {
+          "index": 0,
+          "state": "STOPPED",
+          "exit_code": 0,
+          "spent_wall_seconds": 0.01,
+          "timed_out": false,
+          "pid": 750001,
+          "birth": null,
+          "proven": true,
+          "persisted": true,
+          "settlement_error": null,
+          "handle_obtained": true
+        }
+      ]
+    }
+  }
+]
