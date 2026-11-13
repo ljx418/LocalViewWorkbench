@@ -1,0 +1,1 @@
+首次写入脚本命令误将工作目录下路径重复加 pack 前缀，shell exit=2，两个 here-doc 目标均不存在；后续启动不存在 hardguard 也 exit=2，未导入候选。原始 selected.stdout/selected.stderr 留存；终端原文为两个 No such file or directory。已在正确相对路径新建文件，使用新的 selected-02 输出名执行；没有覆盖初次失败。
