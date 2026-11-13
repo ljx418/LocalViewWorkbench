@@ -1,0 +1,36 @@
+{
+  "kind": "ORCA_DELIVERY_FAILURE_AFTER_VALID_USER_APPROVAL",
+  "at_utc": "2026-11-13T01:07:03.742042+00:00",
+  "user_approval_valid": true,
+  "additional_test_authorization_required": false,
+  "send_receipt": "integration-fixture-explicit-retry-01.send.txt",
+  "failed_followup_dispatch": "ctx_a62f97ea8271",
+  "followup_task": "task_6246272b3d71",
+  "send_error": "Conversation open somewhere Orca cannot reach; nothing sent.",
+  "specific_recovery_attempt": "Supported worker-start --task same followup --retry-of failed dispatch --terminal original retained terminal --worktree original exact workspace",
+  "recovery_error": "agent_unconfigured: terminal is not running a recognized agent",
+  "mutation_request_id": "0aee226a-b6c8-4ab7-8bde-89818ae667da",
+  "terminal_screen": "Original retained terminal running, Claude idle prompt observed; original PID/birth verified. No restart, close, new agent or direct terminal prompt attempted.",
+  "counter": {
+    "kind": "lvw.s3-cpu-budget/1",
+    "budget_id": "s3-p4-9618f7c7bf12403b8877c90b92ed99a7",
+    "starts_total": 0,
+    "starts_by_role": {
+      "implementation": 0,
+      "independent_review": 0
+    },
+    "spent_wall_seconds": 0.0,
+    "reserved_wall_seconds": 0.0,
+    "active": false,
+    "charges": [],
+    "sessions": [],
+    "suspended_at_utc": "2026-11-13T00:48:52.436257+00:00",
+    "resumed_at_utc": "2026-11-13T01:05:39.101502+00:00",
+    "resume_basis": "Explicit user confirmation of one direct exact13 attempt after classifier rejection",
+    "suspension_reason": "ORCA_ORIGINAL_AGENT_DELIVERY_BLOCKED"
+  },
+  "status": "BLOCKED_ORCA_AGENT_DELIVERY",
+  "next": "Restore recognition/reachability of original Claude session via Orca-supported lifecycle, then revalidate and resume already approved one attempt. Do not request duplicate user test authorization or bypass approval classifier.",
+  "stage_pass_claim": false,
+  "product_gate0": false
+}
