@@ -1,0 +1,51 @@
+{
+  "kind": "lvw.s3-production-composition-correction-archive-count-reconciliation/1",
+  "correction": "production-composition-correction-04",
+  "question": "the author declared 3504 entries in the index of the synthetic archive and the archive really has 2878 members; which counting convention is the difference, and was a regular file lost?",
+  "author_index": {
+    "file": "implementation-production-composition-correction-03/synthetic-run-artifacts.index.json",
+    "declared_entries": 3504,
+    "declared_sha256_of_the_archive": "b73e653ca04570cdaad8ff77c0b0a12fe59a3e585899f22155f67a84717bbf44",
+    "the_index_carries_no_per_member_listing": true
+  },
+  "archive": {
+    "file": "implementation-production-composition-correction-03/synthetic-run-artifacts.zip",
+    "sha256": "b73e653ca04570cdaad8ff77c0b0a12fe59a3e585899f22155f67a84717bbf44",
+    "the_hash_matches_the_declared_hash": true,
+    "actual_members": 2878,
+    "member_names_are_unique": true,
+    "directory_entries_inside_the_archive": 0,
+    "the_archive_is_not_modified_by_this_correction": true,
+    "read_only_no_extract": true,
+    "no_member_was_executed": true,
+    "no_symlink_was_followed": true
+  },
+  "retained_synthetic_tree": {
+    "root": "implementation-production-composition-correction-03/pytest-temp",
+    "regular_files": 2878,
+    "directories_below_the_root": 596,
+    "symlinks": 29,
+    "other_special_files": [
+      {
+        "path": "test_the_reads_are_bounded_reg0/fifo",
+        "kind": "FIFO"
+      }
+    ],
+    "total_entries_below_the_root": 3504
+  },
+  "reconciliation": {
+    "the_difference_is": 626,
+    "the_difference_is_exactly_the_non_regular_entries": 626,
+    "the_counting_convention_of_the_declared_number": "EVERY filesystem entry below the synthetic run root: regular files, directories, symlinks and the one fifo",
+    "the_counting_convention_of_the_archive": "the regular files only: the archive carries no directory entry and no symlink and the fifo was never opened",
+    "members_of_the_archive_that_are_not_on_the_disk": [],
+    "regular_files_of_the_disk_that_are_not_in_the_archive": [],
+    "no_regular_file_was_lost": true,
+    "no_claim_of_a_loss_of_626_files": true,
+    "no_claim_that_the_two_numbers_are_the_same_thing": true,
+    "the_626_difference_is_the_count_of_the_directories_the_symlinks_and_the_fifo": true
+  },
+  "the_per_member_listing": "implementation-production-composition-correction-04/synthetic-run-artifacts.members.json",
+  "stage_pass_claim": false,
+  "product_gate0": false
+}

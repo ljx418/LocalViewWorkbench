@@ -148,6 +148,12 @@ EXIT_REFUSED = 3
 EXIT_UNKNOWN = 4
 EXIT_INTERNAL = 5
 
+# The bound of the join of the worker thread in the independent release of
+# the resources of a run.  The join is bounded: a thread that does not end
+# inside the bound stays retained and is reported as retained.  The join
+# never kills a thread and it never requests a new cancel.
+RESOURCE_RELEASE_JOIN_TIMEOUT = 2.0
+
 # The receipts of the fixed twelve key summary that this controller can bind
 # to a fact of *this* run, and the receipts whose truth belongs to the
 # native or the product side and that therefore stay unproven here.
@@ -1150,6 +1156,60 @@ class OfflineCompositionSeam:
         if worker is not None:
             worker.close_pipes()
 
+    def release_resources(self, timeout=RESOURCE_RELEASE_JOIN_TIMEOUT):
+        """Close the descriptors of the seam and join the worker thread.
+
+        This is the *lifecycle* of the seam and it is idempotent: a second
+        call closes nothing twice and it requests no new action.
+
+        The close is the close of the owner: the pipes of this run are
+        closed here and nowhere else.  The join is bounded and it never
+        requests a new cancel - a worker that already ended normally is
+        joined without any new action, and a thread that does not end
+        inside the bound stays retained and is reported as retained.
+
+        A close that fails does not hide the join and it is never a
+        pretended cleanup: the failure is carried in the returned facts.
+
+        The returned facts are the facts of the lifecycle, never a promise
+        that a thread is gone.
+        """
+        close_error = None
+        try:
+            self.close()
+        except Exception as error:  # noqa: BLE001 - the close stays bounded
+            close_error = error
+        worker = getattr(self, '_worker', None)
+        if worker is None:
+            facts = {'worker_thread_present': False,
+                     'worker_thread_alive': False,
+                     'worker_thread_finished': bool(self.worker_thread_finished),
+                     'worker_thread_retained': bool(self.worker_thread_retained),
+                     'join_timeout_seconds': timeout,
+                     'the_close_is_idempotent': True,
+                     'no_new_cancel_was_requested': True}
+        else:
+            if worker._thread.is_alive():
+                worker._thread.join(timeout)
+            alive = worker._thread.is_alive()
+            finished = worker._finished.is_set()
+            self.worker_thread_finished = finished
+            self.worker_thread_retained = alive
+            facts = {'worker_thread_present': True,
+                     'worker_thread_alive': alive,
+                     'worker_thread_finished': finished,
+                     'worker_thread_retained': alive,
+                     'worker_exit_code': worker._exit_code,
+                     'join_timeout_seconds': timeout,
+                     'the_close_is_idempotent': True,
+                     'no_new_cancel_was_requested': True}
+        if close_error is not None:
+            facts['close_failed'] = True
+            facts['close_error'] = type(close_error).__name__
+            facts['close_error_detail'] = str(close_error)[:200]
+            facts['the_close_of_the_owner_failed'] = True
+        return facts
+
     def lifecycle(self):
         """The honest lifecycle facts of the worker thread."""
         worker = getattr(self, '_worker', None)
@@ -1203,6 +1263,14 @@ class ProductionController:
         self.reservation_acquired = False
         self.summary_path = None
         self.summary_sha256 = None
+        # The monotonic fact of the write of the summary.  It is set only
+        # when the write of the summary really returned successfully, and
+        # it is never cleared: a later observation of the disk can not
+        # revoke a write that already happened.
+        self._summary_write_completed = False
+        # The independent release of the resources of this run happens
+        # exactly once, before every diagnostic of the terminal state.
+        self._owned_resources_released = False
         self.receipt_path = None
         self.receipt_sha256 = None
         self.receipt_persisted = False
@@ -2126,6 +2194,11 @@ class ProductionController:
                                   + type(error).__name__) from error
         self.summary_path = self.context.root.joinpath(*CONTROLLER_DIRECTORY_PARTS) / name
         self.summary_sha256 = sha256_bytes(summary_bytes)
+        # The monotonic fact of the write.  It is set here, after the write
+        # really returned, and it is never cleared: a later observation of
+        # the disk that fails or that sees a moved file does not revoke a
+        # write that already happened.
+        self._summary_write_completed = True
         return self.summary_path
 
     def _persist_receipt(self, receipt):
@@ -2188,24 +2261,28 @@ class ProductionController:
         absent, and a summary that was not written is never claimed to be
         there.
 
+        The *historical fact* of the write and the *current visibility* of
+        the file are two different facts and they never replace each
+        other.  The historical fact is the result of the write itself and
+        it is never revoked.  The current visibility is an observation of
+        the disk at this moment: an observation that fails is reported as
+        an unknown visibility and it never becomes a summary that was not
+        written.
+
         The qualification field ``summary_persisted`` and these disk
         facts have a different meaning and neither of them replaces the
         other: the first qualifies the run, the second states what is
         physically on the disk.
         """
-        written = False
-        if self.summary_path is not None:
-            try:
-                info = os.stat(str(self.summary_path), follow_symlinks=False)
-                written = stat.S_ISREG(info.st_mode)
-            except OSError:
-                written = False
         receipt['disk_actions'] = {
             'scope': ('THE_FILES_THAT_THIS_RUN_WROTE;AN_OBJECTIVE_FACT_AND_NEITHER_A_ROLLBACK_'
                       'NOR_A_CLEANUP_CLAIM'),
-            'summary_written': written,
+            'summary_written': bool(self._summary_write_completed),
+            'summary_write_fact': ('THE_WRITE_OF_THE_SUMMARY_RETURNED_SUCCESSFULLY;IT_IS_NEVER_'
+                                   'REVOKED_BY_A_LATER_OBSERVATION'),
             'summary_path': str(self.summary_path) if self.summary_path else None,
             'summary_sha256': self.summary_sha256,
+            'summary_current_visibility': self._observe_summary_visibility(),
             'the_summary_is_not_deleted_and_is_not_rewritten': True,
             'the_receipt_file_does_not_attest_its_own_write': (
                 'THE_RECEIPT_ON_THE_DISK_CARRIES_THE_FACTS_THAT_WERE_TRUE_WHEN_IT_WAS_'
@@ -2214,6 +2291,84 @@ class ProductionController:
         receipt['summary_persisted_semantics'] = (
             'summary_persisted_QUALIFIES_THE_RUN;disk_actions_RECORDS_WHAT_IS_ON_THE_DISK;'
             'THE_TWO_FIELDS_HAVE_A_DIFFERENT_MEANING_AND_NEITHER_REPLACES_THE_OTHER')
+
+    def _observe_summary_visibility(self):
+        """The *current* visibility of the summary of this run.
+
+        The observation is bounded and it is a separate fact: a failure of
+        the observation is reported as an unknown visibility with its
+        named cause, and it never changes the historical fact of the
+        write.
+        """
+        if self.summary_path is None:
+            return {'state': 'NOT_APPLICABLE_NO_SUMMARY_WAS_WRITTEN',
+                    'error': None,
+                    'the_historical_write_of_the_summary_is_not_revoked': True}
+        try:
+            info = os.stat(str(self.summary_path), follow_symlinks=False)
+        except OSError as error:
+            return {'state': 'UNKNOWN',
+                    'error': errno_name(error),
+                    'the_historical_write_of_the_summary_is_not_revoked': True,
+                    'the_observation_failed': True}
+        return {'state': ('VISIBLE_REGULAR' if stat.S_ISREG(info.st_mode)
+                          else 'VISIBLE_NOT_REGULAR'),
+                'error': None,
+                'device': int(info.st_dev),
+                'inode': int(info.st_ino),
+                'mode': int(info.st_mode),
+                'the_historical_write_of_the_summary_is_not_revoked': True,
+                'the_observation_failed': False}
+
+    def _fallback_disk_actions(self):
+        """The limited, direct construction of the disk facts of this run.
+
+        The fallback is used when the observation of the disk failed.  It
+        never calls the failed observer a second time and it never looks
+        at the disk: it carries only the facts that the run itself
+        produced, so a failed observation can not lose a write that
+        really happened.
+        """
+        return {
+            'scope': ('THE_FILES_THAT_THIS_RUN_WROTE;AN_OBJECTIVE_FACT_AND_NEITHER_A_ROLLBACK_'
+                      'NOR_A_CLEANUP_CLAIM'),
+            'summary_written': bool(self._summary_write_completed),
+            'summary_write_fact': ('THE_WRITE_OF_THE_SUMMARY_RETURNED_SUCCESSFULLY;IT_IS_NEVER_'
+                                   'REVOKED_BY_A_LATER_OBSERVATION'),
+            'summary_path': str(self.summary_path) if self.summary_path else None,
+            'summary_sha256': self.summary_sha256,
+            'summary_current_visibility': {
+                'state': 'NOT_OBSERVED_THE_OBSERVATION_OF_THIS_RUN_FAILED',
+                'error': 'CONTROLLER_DISK_ACTION_RECORD_FAILED',
+                'the_historical_write_of_the_summary_is_not_revoked': True,
+                'the_observation_failed': True,
+            },
+            'the_summary_is_not_deleted_and_is_not_rewritten': True,
+            'the_receipt_file_does_not_attest_its_own_write': (
+                'THE_RECEIPT_ON_THE_DISK_CARRIES_THE_FACTS_THAT_WERE_TRUE_WHEN_IT_WAS_'
+                'WRITTEN;THE_WRITE_OF_THE_RECEIPT_IS_NOT_ATTESTED_BY_THE_RECEIPT_ITSELF'),
+            'the_disk_observation_of_this_run_failed': True,
+        }
+
+    def _record_disk_action_failure(self, receipt, error):
+        """The failure of the terminal observation of the disk.
+
+        The observation of the disk is a diagnostic of the run: its
+        failure is a named failure of the run and it never escapes the run
+        as a generic error and never empties the standard output.  The
+        facts that this run really produced are kept - the summary that
+        was really written stays a written summary - and the fallback is
+        built from the facts of the run itself.
+        """
+        code = 'CONTROLLER_DISK_ACTION_RECORD_FAILED:' + type(error).__name__
+        receipt['disk_actions'] = self._fallback_disk_actions()
+        receipt['summary_persisted_semantics'] = (
+            'summary_persisted_QUALIFIES_THE_RUN;disk_actions_RECORDS_WHAT_IS_ON_THE_DISK;'
+            'THE_TWO_FIELDS_HAVE_A_DIFFERENT_MEANING_AND_NEITHER_REPLACES_THE_OTHER')
+        receipt.setdefault('cleanup_failures', []).append(code)
+        receipt.setdefault('terminal_failures', []).append(
+            {'code': code, 'detail': 'DISK_OBSERVATION'})
+        self._mark_terminal_unknown(receipt, code)
 
     def _record_terminal_persistence(self, receipt):
         """The terminal persistence facts of this run.
@@ -2241,11 +2396,24 @@ class ProductionController:
             return
         secondary = self.receipt_persistence_error or 'CONTROLLER_RECEIPT_PERSISTENCE_FAILED'
         receipt.setdefault('secondary_failures', []).append(secondary)
+        self._mark_terminal_unknown(receipt, secondary, append_secondary=False)
+
+    def _mark_terminal_unknown(self, receipt, code, *, append_secondary=True):
+        """Degrade the terminal state of this run to a named unknown.
+
+        The run that already has a primary reason keeps it: the new
+        failure is recorded beside it as a secondary failure and it never
+        replaces it.  The summary that was really written stays a written
+        summary - the qualification of the run is not changed by a
+        failure of the terminal state.
+        """
         if receipt.get('unknown_reason'):
-            # the primary reason stays the primary reason of the run
-            receipt['secondary_failure'] = secondary
-            return
-        receipt['unknown_reason'] = secondary
+            if append_secondary:
+                receipt.setdefault('secondary_failures', []).append(code)
+            receipt.setdefault('secondary_failure', code)
+            receipt['state'] = STATE_UNKNOWN
+            return code
+        receipt['unknown_reason'] = code
         receipt['state'] = STATE_UNKNOWN
         receipt['cleanup_proven'] = False
         receipt['root_retained'] = True
@@ -2253,6 +2421,7 @@ class ProductionController:
         receipt['refund_allowed'] = False
         receipt['resend_allowed'] = False
         receipt['archive_allowed'] = False
+        return code
 
     def _record_observation_failure(self, receipt, error):
         """The failure of the terminal observation of this run.
@@ -2281,16 +2450,129 @@ class ProductionController:
         receipt.setdefault('cleanup_failures', []).append(code)
         receipt['cleanup_proven'] = False
         receipt['persisted_receipt_state'] = self._persisted_state
-        if receipt.get('unknown_reason'):
-            receipt['secondary_failure'] = code
+        self._mark_terminal_unknown(receipt, code)
+
+    def _record_finish_failure(self, receipt, error, *, stage='FINISH'):
+        """The failure of the terminal diagnostics of this run.
+
+        The diagnostics of the end of the run are not the cleanup of the
+        run: the resources of this run were already released by the
+        independent release.  A failure of a diagnostic is therefore a
+        named failure of the run, it degrades the run to an unknown and it
+        never leaves the receipt without a statement about the
+        observation of the descriptors.
+        """
+        code = 'FINISH:' + type(error).__name__
+        receipt.setdefault('cleanup_failures', []).append(code)
+        receipt.setdefault('finish_failures', []).append({'stage': stage, 'code': code})
+        if not isinstance(receipt.get('fd_cleanup'), dict):
+            receipt['fd_cleanup'] = self._unknown_fd_cleanup(receipt.get('fd_before'), code)
+        self._mark_terminal_unknown(receipt, code)
+
+    @staticmethod
+    def _unknown_fd_cleanup(fd_before, code):
+        """The descriptor accounting of a run whose observation failed.
+
+        The observation of the descriptors is unknown: the leak set is
+        unknown and it is never reported as an empty set.
+        """
+        return {
+            'observation_point': ('PRE_RELEASE: the snapshot is taken at the end of the '
+                                  'run body, before this run releases the descriptors it '
+                                  'held; the descriptors of this run are named below and '
+                                  'are excluded from the leak set'),
+            'status': 'UNKNOWN',
+            'error': code,
+            'fd_before': fd_before,
+            'fd_after': None,
+            'fd_leaked': None,
+            'the_observation_of_the_descriptors_of_this_run_failed': True,
+            'controller_anchor_descriptors': [],
+            'controller_anchor_descriptors_scope': (
+                'THE_BOUND_ROOT_AND_THE_OUTPUT_DIRECTORY_OF_THIS_RUN;'
+                'THEY_ARE_HELD_BY_THE_RUN_AND_CLOSED_WHEN_THE_RUN_RETURNS'),
+            'worker_thread_finished': None,
+            'worker_exit_code': None,
+            'readers_closed': None,
+            'worker_lifecycle': None,
+        }
+
+    def _record_run_facts(self, receipt):
+        """The facts of the run that do not depend on an observation.
+
+        These facts are recorded before the observations of the end of the
+        run, so a diagnostic that fails can not lose them.
+        """
+        receipt['transitions'] = list(self.transitions)
+        receipt['spawn_attempts'] = self.spawn_attempts
+        receipt['duration_seconds'] = round(time.time() - receipt['started_wall'], 6)
+        receipt['execution_attempts'] = 1
+
+    def _release_owned_resources(self, receipt):
+        """The independent, bounded release of the resources of this run.
+
+        The release of the resources is *not* a diagnostic of the run and
+        it does not depend on any observation of the run.  The owner of
+        the lifecycle - the seam - closes the pipes of this run and joins
+        the worker thread inside a bound; a thread that does not end
+        inside the bound stays retained and is reported as retained.
+
+        No descriptor that this run does not own is closed, no process is
+        killed, no descriptor is enumerated and closed by number and no
+        cancel is requested a second time.
+        """
+        if self._owned_resources_released:
             return
-        receipt['unknown_reason'] = code
-        receipt['state'] = STATE_UNKNOWN
-        receipt['root_retained'] = True
-        receipt['reservation_retained'] = True
-        receipt['refund_allowed'] = False
-        receipt['resend_allowed'] = False
-        receipt['archive_allowed'] = False
+        self._owned_resources_released = True
+        seam = self.seam
+        if seam is None:
+            receipt['owned_resource_release'] = {
+                'status': 'NOT_APPLICABLE_NO_SEAM',
+                'the_native_path_starts_no_worker': True,
+            }
+            return
+        try:
+            facts = seam.release_resources(timeout=RESOURCE_RELEASE_JOIN_TIMEOUT)
+        except Exception as error:  # noqa: BLE001 - the release stays bounded
+            receipt['owned_resource_release'] = {
+                'status': 'FAILED',
+                'error': 'CONTROLLER_OWNED_RESOURCE_RELEASE_FAILED:' + type(error).__name__,
+                'the_resources_of_this_run_are_not_claimed_to_be_closed': True,
+            }
+            raise
+        receipt['owned_resource_release'] = dict(facts, status='RELEASED')
+        if facts.get('close_failed'):
+            # The close of the owner failed.  The failure is kept as it is
+            # and the cleanup of this run is never claimed to have
+            # succeeded.
+            code = 'CONTROLLER_OWNED_RESOURCE_CLOSE_FAILED:' + str(facts.get('close_error'))
+            receipt['owned_resource_release']['status'] = 'FAILED'
+            receipt.setdefault('cleanup_failures', []).append(code)
+            receipt.setdefault('terminal_failures', []).append(
+                {'code': code, 'detail': 'OWNED_RESOURCE_CLOSE'})
+            self._mark_terminal_unknown(receipt, code)
+
+    def _record_resource_release_failure(self, receipt, error):
+        """The failure of the independent release of the resources."""
+        code = 'CONTROLLER_OWNED_RESOURCE_RELEASE_FAILED:' + type(error).__name__
+        receipt.setdefault('cleanup_failures', []).append(code)
+        receipt.setdefault('terminal_failures', []).append(
+            {'code': code, 'detail': 'OWNED_RESOURCE_RELEASE'})
+        self._mark_terminal_unknown(receipt, code)
+
+    def _record_persisted_state_difference(self, receipt):
+        """The difference between the state on the disk and the state that
+        is returned.
+
+        The receipt on the disk is never rewritten.  When the state that
+        is returned differs from the state that the persisted receipt
+        carries, the difference is named instead of being hidden.
+        """
+        persisted = self._persisted_state
+        if persisted is None or persisted == receipt.get('state'):
+            return
+        receipt['persisted_receipt_state'] = persisted
+        receipt['the_persisted_receipt_is_not_rewritten'] = True
 
     @staticmethod
     def _write_exclusive(path, raw):
@@ -2440,6 +2722,14 @@ class ProductionController:
                 # with a named reason, a retained root, a retained
                 # reservation and an explicit *not persisted* receipt.
                 #
+                # The release of the resources of this run is *separate*
+                # from every diagnostic of this run.  The owner of the
+                # lifecycle - the seam - closes the pipes of this run and
+                # joins the worker thread inside a bound, and that happens
+                # before any observation of the run and independently of
+                # it.  A failing diagnostic is therefore never the only
+                # entry point of the cleanup.
+                #
                 # The release of the descriptors that this run owns is an
                 # *independent* finally.  A cancellation of a terminal step
                 # - a ``KeyboardInterrupt`` or a ``SystemExit`` of the
@@ -2448,14 +2738,24 @@ class ProductionController:
                 # is never swallowed and never turned into a success.
                 try:
                     try:
+                        self._release_owned_resources(receipt)
+                    except Exception as error:  # noqa: BLE001 - the release stays bounded
+                        self._record_resource_release_failure(receipt, error)
+                    try:
+                        self._record_run_facts(receipt)
                         self._finish(receipt, fd_before)
                     except Exception as error:  # noqa: BLE001 - the cleanup stays bounded
-                        receipt.setdefault('cleanup_failures', []).append(
-                            'FINISH:' + type(error).__name__)
+                        self._record_finish_failure(receipt, error)
                     # The objective facts about the disk are recorded
                     # before the terminal receipt is written, so the
-                    # receipt on the disk carries them as well.
-                    self._record_disk_actions(receipt)
+                    # receipt on the disk carries them as well.  A failure
+                    # of this observation is a named failure of the run:
+                    # it never empties the standard output and it never
+                    # becomes a generic exit.
+                    try:
+                        self._record_disk_actions(receipt)
+                    except Exception as error:  # noqa: BLE001 - the record stays bounded
+                        self._record_disk_action_failure(receipt, error)
                     try:
                         self._persist_receipt(receipt)
                     except (KeyboardInterrupt, SystemExit):
@@ -2474,6 +2774,10 @@ class ProductionController:
                     # structured unknown of the run, even when the run
                     # itself had no other failure.
                     self._record_terminal_persistence(receipt)
+                    # The receipt on the disk is never rewritten: a
+                    # difference between the state that it carries and the
+                    # state that is returned is named.
+                    self._record_persisted_state_difference(receipt)
                 finally:
                     # Only the descriptors that this run owns are closed
                     # here, and a repeated call closes nothing twice.
@@ -2527,55 +2831,75 @@ class ProductionController:
     def _finish(self, receipt, fd_before):
         """The bounded end of the run.
 
-        The descriptors of this run are closed here and the facts of the
-        cleanup are recorded here.  A worker thread that did not end is
-        *retained* and reported as retained: the run never claims that
-        nothing can write after it returned.
+        The descriptors of this run were already closed by the
+        independent release of the resources; this method only *observes*
+        the end of the run.  An observation that fails is a named failure
+        of the run and it never becomes the only entry point of the
+        cleanup.
+
+        A worker thread that did not end is *retained* and reported as
+        retained: the run never claims that nothing can write after it
+        returned.
 
         The two descriptors that this controller holds between two steps -
         the bound root and the output directory - are named in the receipt
         and are closed when the run returns.  They are excluded from the
         leak computation and they are never silently forgotten.
         """
-        if self.seam is not None:
-            # The seam closes its own descriptors before the descriptor
-            # snapshot of the receipt is taken.
-            try:
-                self.seam.close()
-            except Exception:  # noqa: BLE001 - the cleanup stays bounded
-                pass
-        receipt['transitions'] = list(self.transitions)
-        receipt['spawn_attempts'] = self.spawn_attempts
-        receipt['duration_seconds'] = round(time.time() - receipt['started_wall'], 6)
-        receipt['source_sha256'] = self._source_digests()
-        receipt['node_id'] = self._node_id(receipt)
-        receipt['execution_attempts'] = 1
-        fd_after = _fd_snapshot()
+        observation_error = None
+        try:
+            fd_after = _fd_snapshot()
+        except Exception as error:  # noqa: BLE001 - the observation stays bounded
+            # The observation of the descriptors is unknown.  It is
+            # reported as unknown and never as an empty leak set.
+            observation_error = error
+            fd_after = None
+        try:
+            receipt['source_sha256'] = self._source_digests()
+            receipt['node_id'] = self._node_id(receipt)
+        except Exception as error:  # noqa: BLE001 - the diagnostics stay bounded
+            self._record_finish_failure(receipt, error, stage='FINISH_DIAGNOSTIC')
         anchors = sorted(descriptor for descriptor in
                          (self._root_descriptor, self._controller_descriptor)
                          if descriptor is not None)
         leaked = None
         if fd_before is not None and fd_after is not None:
             leaked = sorted(set(fd_after['open']) - set(fd_before['open']) - set(anchors))
-        receipt['fd_cleanup'] = {'fd_before': fd_before,
-                                  'fd_after': fd_after,
-                                  'fd_leaked': leaked,
-                                  'observation_point': (
-                                      'PRE_RELEASE: the snapshot is taken at the end of the '
-                                      'run body, before this run releases the descriptors it '
-                                      'held; the descriptors of this run are named below and '
-                                      'are excluded from the leak set'),
-                                  'controller_anchor_descriptors': anchors,
-                                  'controller_anchor_descriptors_scope': (
-                                      'THE_BOUND_ROOT_AND_THE_OUTPUT_DIRECTORY_OF_THIS_RUN;'
-                                      'THEY_ARE_HELD_BY_THE_RUN_AND_CLOSED_WHEN_THE_RUN_RETURNS'),
-                                  'worker_thread_finished': bool(
-                                      self.seam.worker_thread_finished) if self.seam else None,
-                                  'worker_exit_code': (self.seam.worker_exit_code
-                                                       if self.seam else None),
-                                  'readers_closed': self._readers_closed(),
-                                  'worker_lifecycle': (self.seam.lifecycle()
-                                                       if self.seam else None)}
+        try:
+            receipt['fd_cleanup'] = {'fd_before': fd_before,
+                                      'fd_after': fd_after,
+                                      'fd_leaked': leaked,
+                                      'status': ('OBSERVED' if observation_error is None
+                                                 else 'UNKNOWN'),
+                                      'error': (None if observation_error is None
+                                                else 'FINISH:' + type(observation_error).__name__),
+                                      'the_observation_of_the_descriptors_of_this_run_failed':
+                                          observation_error is not None,
+                                      'observation_point': (
+                                          'PRE_RELEASE: the snapshot is taken at the end of the '
+                                          'run body, before this run releases the descriptors it '
+                                          'held; the descriptors of this run are named below and '
+                                          'are excluded from the leak set'),
+                                      'controller_anchor_descriptors': anchors,
+                                      'controller_anchor_descriptors_scope': (
+                                          'THE_BOUND_ROOT_AND_THE_OUTPUT_DIRECTORY_OF_THIS_RUN;'
+                                          'THEY_ARE_HELD_BY_THE_RUN_AND_CLOSED_WHEN_THE_RUN_RETURNS'),
+                                      'worker_thread_finished': bool(
+                                          self.seam.worker_thread_finished) if self.seam else None,
+                                      'worker_exit_code': (self.seam.worker_exit_code
+                                                           if self.seam else None),
+                                      'readers_closed': self._readers_closed(),
+                                      'worker_lifecycle': (self.seam.lifecycle()
+                                                           if self.seam else None)}
+        except Exception as error:  # noqa: BLE001 - the accounting stays bounded
+            receipt['fd_cleanup'] = self._unknown_fd_cleanup(
+                fd_before, 'FINISH:' + type(error).__name__)
+            self._record_finish_failure(receipt, error, stage='FINISH_FD_ACCOUNTING')
+        if observation_error is not None:
+            # A later observation that succeeds does not confirm an
+            # earlier unknown: the run stays the unknown that it is.
+            self._record_finish_failure(receipt, observation_error,
+                                        stage='FINISH_OBSERVATION')
         receipt['stage_pass_claim'] = False
         receipt['product_gate0'] = False
         receipt['real_execution_performed'] = False

@@ -19,6 +19,7 @@ Every receipt of this suite is labelled as an offline synthetic fact.  None
 of them is a product pass, a stage pass or a gate.
 """
 import contextlib
+import errno
 import hashlib
 import io
 import json
@@ -26,6 +27,7 @@ import os
 import shutil
 import socket
 import sqlite3
+import stat
 import subprocess
 import sys
 import threading
@@ -2299,3 +2301,303 @@ def test_a_failure_of_the_terminal_observation_is_a_structured_unknown(
     assert 'fd_cleanup_post_release' not in persisted
     assert receipt['persisted_receipt_state'] == controller.STATE_SUMMARY_PERSISTED
 
+
+
+# ---- M08: the terminal exception of the run is collected in one place ----
+def test_a_failure_of_the_disk_observation_is_a_structured_unknown(
+        tmp_path, monkeypatch):
+    """M08: the observation of the disk never becomes a generic exit.
+
+    The observation of the disk fails with an ordinary exception.  The
+    failure never escapes the run as a generic internal exit and it never
+    empties the standard output: the run returns a structured unknown with
+    the named failure.
+
+    The facts that the run really produced are kept: the summary that was
+    really written stays a written summary, the reservation of the run
+    stays on the disk and the terminal receipt is written with the
+    fallback of the disk facts.  The fallback is built from the facts of
+    the run itself and it never calls the failed observer a second time.
+    """
+    composition = _build_composition(tmp_path)
+    before = _really_open_descriptors()
+
+    def broken(self, receipt):
+        raise RuntimeError('controlled-disk-observation-failure')
+
+    monkeypatch.setattr(controller.ProductionController, '_record_disk_actions', broken)
+    code, receipt, seam, errors = _formal_main(composition, monkeypatch)
+
+    # the failure never became the generic internal exit and never an
+    # empty standard output
+    assert code == controller.EXIT_UNKNOWN
+    assert code != controller.EXIT_INTERNAL
+    assert receipt is not None
+    assert receipt['state'] == controller.STATE_UNKNOWN
+    assert receipt['unknown_reason'] == \
+        'CONTROLLER_DISK_ACTION_RECORD_FAILED:RuntimeError'
+    assert 'CONTROLLER_DISK_ACTION_RECORD_FAILED:RuntimeError' in \
+        receipt['cleanup_failures']
+    assert receipt['cleanup_proven'] is False
+    assert receipt['root_retained'] is True
+    assert receipt['reservation_retained'] is True
+    assert receipt['refund_allowed'] is False
+    assert receipt['resend_allowed'] is False
+    assert receipt['archive_allowed'] is False
+
+    # the summary that was really written stays a written summary
+    assert receipt['summary_persisted'] is True
+    assert receipt['disk_actions']['summary_written'] is True
+    assert receipt['disk_actions']['summary_path']
+    assert receipt['disk_actions']['summary_current_visibility']['state'] == \
+        'NOT_OBSERVED_THE_OBSERVATION_OF_THIS_RUN_FAILED'
+    directory = _controller_directory_of(composition)
+    assert (directory / ('summary-' + RUN_ID + '.json')).is_file()
+    # the reservation of the run is retained
+    assert (directory / ('reservation-' + RUN_ID + '.json')).is_file()
+
+    # the terminal receipt is written and it carries the fallback and the
+    # state of the run
+    assert receipt['receipt_persisted'] is True
+    persisted = json.loads((directory / ('receipt-' + RUN_ID + '.json')).read_text('utf-8'))
+    assert persisted['state'] == controller.STATE_UNKNOWN
+    assert persisted['disk_actions']['summary_written'] is True
+    assert persisted['disk_actions']['the_disk_observation_of_this_run_failed'] is True
+
+    # the descriptors of this run are released
+    after = _really_open_descriptors()
+    assert set(after) - set(before) == set()
+
+
+def test_the_observation_of_the_descriptors_at_the_end_of_the_run_is_unknown(
+        tmp_path, monkeypatch):
+    """M08: a failed observation of the descriptors is an unknown.
+
+    The observation of the descriptors at the end of the run body fails
+    with an ordinary exception.  The run does not stay a success: the
+    state is ``UNKNOWN_RETAINED``, the failure is named and the receipt
+    carries the observation as *unknown* - the leak set is unknown and it
+    is never reported as an empty set.
+
+    The observation after the release of the descriptors succeeds, and it
+    does not confirm the earlier unknown: the run stays the unknown that
+    it is.
+    """
+    composition = _build_composition(tmp_path)
+    original = controller._fd_snapshot
+    calls = []
+
+    def snapshot():
+        calls.append(1)
+        if len(calls) == 2:
+            raise RuntimeError('controlled-cleanup-observation-failure')
+        return original()
+
+    monkeypatch.setattr(controller, '_fd_snapshot', snapshot)
+    code, receipt, seam, errors = _formal_main(composition, monkeypatch)
+
+    assert code == controller.EXIT_UNKNOWN
+    assert receipt is not None
+    assert receipt['state'] == controller.STATE_UNKNOWN
+    assert receipt['unknown_reason'] == 'FINISH:RuntimeError'
+    assert 'FINISH:RuntimeError' in receipt['cleanup_failures']
+    assert receipt['cleanup_proven'] is False
+    assert receipt['root_retained'] is True
+    assert receipt['reservation_retained'] is True
+
+    # the observation of the descriptors is present and it is unknown
+    cleanup = receipt['fd_cleanup']
+    assert cleanup['status'] == 'UNKNOWN'
+    assert cleanup['error'] == 'FINISH:RuntimeError'
+    assert cleanup['fd_leaked'] is None
+    assert cleanup['fd_after'] is None
+    assert cleanup['the_observation_of_the_descriptors_of_this_run_failed'] is True
+
+    # the later observation succeeded and it did not confirm the unknown
+    assert receipt['fd_cleanup_post_release']['snapshot'] is not None
+    assert receipt['fd_cleanup_post_release']['fd_leaked'] == []
+    assert receipt['state'] == controller.STATE_UNKNOWN
+    assert receipt['summary_persisted'] is True
+
+
+def test_a_failure_of_the_finish_releases_the_owned_pipe_and_the_thread(
+        tmp_path, monkeypatch):
+    """M08: the cleanup of the resources does not depend on a diagnostic.
+
+    The whole end of the run fails with an ordinary exception.  The run
+    does not stay a success and it does not become a generic exit, and the
+    resources of this run are released anyway: the owner of the
+    lifecycle closes the pipes of this run and joins the worker thread,
+    independently of the failed diagnostic.
+
+    The pipe is verified by its real identity: the descriptor that the
+    seam owned is stat'ed before the failure and the identity of the
+    descriptor after the run is compared with it.  No descriptor that this
+    run does not own is closed and no process is killed.
+    """
+    composition = _build_composition(tmp_path)
+    before = _really_open_descriptors()
+    observed = {}
+    original_spawn = controller.OfflineCompositionSeam.spawn
+
+    def spawn(self, command):
+        """Record the identity of the pipes of this run when they exist."""
+        worker = original_spawn(self, command)
+        pipes = []
+        for name in ('stdin', 'stdout', 'stderr'):
+            stream = getattr(worker, name, None)
+            descriptor = getattr(stream, '_descriptor', None)
+            if descriptor is None or descriptor < 0:
+                continue
+            info = os.fstat(descriptor)
+            pipes.append({'name': name, 'fd': descriptor,
+                          'device': int(info.st_dev), 'inode': int(info.st_ino),
+                          'mode': int(info.st_mode)})
+        observed['pipes'] = pipes
+        return worker
+
+    def broken(self, receipt, fd_before):
+        """Fail at the entry of the end of the run."""
+        open_at_failure = []
+        for pipe in observed.get('pipes') or []:
+            try:
+                info = os.fstat(pipe['fd'])
+            except OSError:
+                continue
+            if (int(info.st_dev), int(info.st_ino)) == (pipe['device'], pipe['inode']):
+                open_at_failure.append(pipe)
+        observed['open_at_failure'] = open_at_failure
+        raise RuntimeError('controlled-finish-failure')
+
+    monkeypatch.setattr(controller.OfflineCompositionSeam, 'spawn', spawn)
+    monkeypatch.setattr(controller.ProductionController, '_finish', broken)
+    code, receipt, seam, errors = _formal_main(composition, monkeypatch)
+
+    assert code == controller.EXIT_UNKNOWN
+    assert code != controller.EXIT_INTERNAL
+    assert receipt is not None
+    assert receipt['state'] == controller.STATE_UNKNOWN
+    assert receipt['unknown_reason'] == 'FINISH:RuntimeError'
+    assert 'FINISH:RuntimeError' in receipt['cleanup_failures']
+    assert receipt['cleanup_proven'] is False
+    assert receipt['root_retained'] is True
+    assert receipt['reservation_retained'] is True
+
+    # the observation of the descriptors is present and it is unknown
+    assert receipt['fd_cleanup']['status'] == 'UNKNOWN'
+    assert receipt['fd_cleanup']['fd_leaked'] is None
+
+    # the pipes of this run were really there and they are really closed
+    pipes = observed.get('pipes') or []
+    assert pipes, 'the run owned no pipe and the probe proved nothing'
+    for pipe in pipes:
+        assert stat.S_ISFIFO(pipe['mode']), 'the owned descriptor is not a pipe'
+        try:
+            info = os.fstat(pipe['fd'])
+        except OSError:
+            continue
+        assert (int(info.st_dev), int(info.st_ino)) != (pipe['device'], pipe['inode']), \
+            'the pipe of this run is still open'
+
+    # the worker thread ended and it was joined
+    lifecycle = seam.lifecycle()
+    assert lifecycle['worker_thread_alive'] is False
+    assert lifecycle['worker_thread_retained'] is False
+    assert lifecycle['late_write_after_return_is_possible'] is False
+
+    # no descriptor of this process was left behind
+    after = _really_open_descriptors()
+    assert set(after) - set(before) == set()
+
+
+def test_the_fact_of_the_write_of_the_summary_is_not_revoked_by_a_failed_observation(
+        tmp_path, monkeypatch):
+    """M08: the write of the summary and its visibility are two facts.
+
+    The observation of the disk fails with an ordinary error.  The
+    historical fact of the write is not revoked by it: the summary that
+    was really written stays a written summary, the path and the digest of
+    the summary stay the path and the digest of that write, and the
+    current visibility of the file is reported as *unknown* with its named
+    cause.
+
+    The failed observation never turns the write into a summary that was
+    not written and it never invents a rollback.
+    """
+    composition = _build_composition(tmp_path)
+    summary_path = _controller_directory_of(composition) / ('summary-' + RUN_ID + '.json')
+    original_stat = os.stat
+
+    def failing_stat(path, *args, **kwargs):
+        if str(path) == str(summary_path):
+            raise OSError(errno.ENOENT, 'controlled-visibility-failure', str(path))
+        return original_stat(path, *args, **kwargs)
+
+    monkeypatch.setattr(controller.os, 'stat', failing_stat)
+    code, receipt, seam, errors = _formal_main(composition, monkeypatch)
+
+    assert code == controller.EXIT_PERSISTED
+    assert receipt['state'] == controller.STATE_SUMMARY_PERSISTED
+    assert receipt['summary_persisted'] is True
+
+    # the historical fact of the write is kept
+    actions = receipt['disk_actions']
+    assert actions['summary_written'] is True
+    assert actions['summary_path'] == str(summary_path)
+    assert actions['summary_sha256'] == receipt['summary_sha256']
+
+    # the current visibility is a separate, bounded fact
+    visibility = actions['summary_current_visibility']
+    assert visibility['state'] == 'UNKNOWN'
+    assert visibility['error'] == 'ENOENT'
+    assert visibility['the_observation_failed'] is True
+    assert visibility['the_historical_write_of_the_summary_is_not_revoked'] is True
+
+    # the summary is really on the disk
+    assert summary_path.read_bytes()
+    assert receipt['receipt_persisted'] is True
+
+
+def test_a_failure_of_the_close_of_the_owner_is_kept_and_never_a_fake_cleanup(
+        tmp_path, monkeypatch):
+    """M08: a close that failed is kept and it is never a fake cleanup.
+
+    The close of the owner of the lifecycle fails with an ordinary
+    error.  The failure is named, the run does not stay a success and the
+    receipt never claims that the cleanup of this run succeeded.  The join
+    of the worker thread happens anyway, and the thread that already
+    ended is reported as ended.
+
+    The pipes that the failed close left open are closed by this test
+    itself: the test owns them, the product never closed them and the
+    batch must not inherit a descriptor of a controlled failure.
+    """
+    composition = _build_composition(tmp_path)
+    original_close = controller.OfflineCompositionSeam.close
+
+    def broken(self):
+        raise OSError('controlled-close-failure')
+
+    monkeypatch.setattr(controller.OfflineCompositionSeam, 'close', broken)
+    try:
+        code, receipt, seam, errors = _formal_main(composition, monkeypatch)
+    finally:
+        original_close(seam)
+
+    assert code == controller.EXIT_UNKNOWN
+    assert receipt is not None
+    assert receipt['state'] == controller.STATE_UNKNOWN
+    assert 'CONTROLLER_OWNED_RESOURCE_CLOSE_FAILED:OSError' in \
+        receipt['cleanup_failures']
+    assert receipt['cleanup_proven'] is False
+    assert receipt['root_retained'] is True
+    assert receipt['reservation_retained'] is True
+
+    release = receipt['owned_resource_release']
+    assert release['status'] == 'FAILED'
+    assert release['close_failed'] is True
+    assert release['the_close_of_the_owner_failed'] is True
+    # the join happened anyway and the thread that ended is reported
+    assert release['worker_thread_finished'] is True
+    assert release['worker_thread_alive'] is False
+    assert release['no_new_cancel_was_requested'] is True
