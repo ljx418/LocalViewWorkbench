@@ -18,6 +18,7 @@ import os
 import shutil
 import stat
 import sys
+import threading
 import time
 from pathlib import Path
 
@@ -26,6 +27,7 @@ import pytest
 from tools import v0_s2_stage_runtime as s2_stage
 from tools.v0_s2_runtime import NativeRuntime
 from tools.v0_s2_stage_runtime import StageRuntimeFactory
+from tools import v0_s3_coordinator as coordinator
 from tools.v0_s3_coordinator import (
     AGGREGATE_RECEIPT_KIND, ParentOriginalEvidence, S3BudgetBindingProvider,
     S3InstalledRuntimeFactory, S3IntegrationError, TWELVE_KEYS, aggregate_twelve_keys)
@@ -38,6 +40,7 @@ PACK_ROOT = Path(__file__).resolve().parents[1]
 CANDIDATE_SHA = 'a' * 40
 CHILD_SHA = 'b' * 64
 RUN_ID = 's3-integration-offline'
+PROC_FD = Path('/proc/self/fd')
 
 
 # ---------------------------------------------------------------- helpers
@@ -1066,3 +1069,374 @@ def test_a_receipt_of_another_candidate_fails_the_key():
                                     binding={'run_id': RUN_ID,
                                              'candidate_sha': CANDIDATE_SHA})
     assert summary['keys']['V0-A02']['status'] == 'FAIL'
+
+
+# --------------------------------------- O: the safe reading of the originals
+#
+# The directed obligations of the originals correction.  Every root of these
+# tests is a synthetic root inside the private temporary directory of the
+# test: no original of the product is read, no root of the product is
+# touched, no process is started and no service is called.  The owner under
+# test is the production owner itself, ``ParentOriginalEvidence``; only the
+# operating system bound primitive of the read is replaced, and only to make
+# a change happen *inside* the read window of that owner.
+ORIGINAL_BODY = b'ORIGINAL'
+
+
+def originals_root(tmp_path, name='run', body=ORIGINAL_BODY):
+    """A synthetic bound root with three original artifacts."""
+    root = tmp_path / name
+    (root / 'temp').mkdir(parents=True)
+    (root / 'temp/canonical.json').write_bytes(b'{"rows": []}')
+    (root / 'temp/source.json').write_bytes(b'{"plan": []}')
+    (root / 'temp/raw.bin').write_bytes(body)
+    evidence = ParentOriginalEvidence(run_id=RUN_ID, candidate_sha=CANDIDATE_SHA,
+                                       child_sha256=CHILD_SHA, root=root,
+                                       projection_sha256='a' * 64)
+    evidence.seal_plan(sixteen_rows())
+    identity = os.stat(root)
+    evidence.seal_root([identity.st_dev, identity.st_ino])
+    return root, evidence
+
+
+def seal_all(evidence):
+    """Seal the three artifacts of the synthetic root."""
+    return evidence.seal_originals(canonical='temp/canonical.json',
+                                    source_plan='temp/source.json',
+                                    raw=['temp/raw.bin'])
+
+
+def mutating_read(target_inode, action, *, delay=0.02):
+    """A controlled ``os.read`` that changes the artifact exactly once.
+
+    The change happens after the first block of the target handle was read
+    and before that block is handed to the owner, so it is inside the read
+    window of the production reader.  The delay makes the change visible in
+    the times of the object: a change of the very same bytes can not be
+    seen in the digest, only in the times of the object.
+    """
+    real_read = os.read
+    state = {'fired': False}
+
+    def wrapper(descriptor, size):
+        block = real_read(descriptor, size)
+        if block and not state['fired']:
+            try:
+                same = os.fstat(descriptor).st_ino == target_inode
+            except OSError:
+                same = False
+            if same:
+                state['fired'] = True
+                time.sleep(delay)
+                action()
+        return block
+
+    return wrapper, state
+
+
+def rewrite_same_length(path):
+    """A change of the same length."""
+    return lambda: Path(path).write_bytes(b'MODIFIED')
+
+
+def rewrite_same_bytes(path):
+    """A change of the very same bytes."""
+    return lambda: Path(path).write_bytes(ORIGINAL_BODY)
+
+
+def grow_the_original(path):
+    """A change that grows the original."""
+    return lambda: Path(path).write_bytes(ORIGINAL_BODY + b'GROWN')
+
+
+def truncate_the_original(path):
+    """A change that truncates the original."""
+    return lambda: Path(path).write_bytes(b'ORI')
+
+
+def replace_the_object(path):
+    """A change that replaces the original by another object."""
+    def action():
+        target = Path(path)
+        target.unlink()
+        target.write_bytes(ORIGINAL_BODY)
+    return action
+
+
+MUTATIONS = (
+    ('same_length_rewrite', rewrite_same_length),
+    ('same_bytes_rewrite', rewrite_same_bytes),
+    ('growth', grow_the_original),
+    ('truncation', truncate_the_original),
+    ('object_replacement', replace_the_object),
+)
+MUTATION_IDS = [item[0] for item in MUTATIONS]
+
+
+def open_descriptors():
+    """The number of the descriptors of this process."""
+    return len(os.listdir(PROC_FD))
+
+
+def run_bounded(function, timeout=2.0):
+    """Run one function in a controlled worker thread.
+
+    The thread is a daemon and the caller always recovers it: a function
+    that did not finish in time is released and joined, so a failing test
+    never leaves a hanging thread behind.
+    """
+    box = {}
+
+    def worker():
+        try:
+            box['result'] = function()
+        except BaseException as error:  # noqa: BLE001 - the caller inspects it
+            box['exception'] = error
+
+    thread = threading.Thread(target=worker, daemon=True)
+    thread.start()
+    thread.join(timeout)
+    return thread, box
+
+
+@pytest.mark.parametrize('name,factory', MUTATIONS, ids=MUTATION_IDS)
+def test_the_seal_refuses_an_original_that_changes_during_the_read(
+        tmp_path, monkeypatch, name, factory):
+    """O1: the seal refuses an original that changes while it is read."""
+    root, evidence = originals_root(tmp_path)
+    target = os.stat(root / 'temp/raw.bin').st_ino
+    before = os.stat(root / 'temp/raw.bin')
+    wrapper, state = mutating_read(target, factory(root / 'temp/raw.bin'))
+    monkeypatch.setattr(os, 'read', wrapper)
+    with pytest.raises(S3IntegrationError) as error:
+        seal_all(evidence)
+    assert state['fired'], name
+    assert error.value.reason.startswith(('S3_ORIGINAL_', 'ORIGINAL_')), \
+        (name, error.value.reason)
+    # the change was observable in the state of the object
+    after = os.stat(root / 'temp/raw.bin')
+    assert (after.st_mtime_ns != before.st_mtime_ns
+            or after.st_ino != before.st_ino), name
+    # a refused seal publishes nothing at all
+    assert evidence.originals == {}, name
+
+
+@pytest.mark.parametrize('name,factory', MUTATIONS, ids=MUTATION_IDS)
+def test_the_manifest_refuses_an_original_that_changes_during_the_read(
+        tmp_path, monkeypatch, name, factory):
+    """O1: the manifest refuses an original that changes while it is read."""
+    root, evidence = originals_root(tmp_path)
+    seal_all(evidence)
+    target = os.stat(root / 'temp/raw.bin').st_ino
+    before = os.stat(root / 'temp/raw.bin')
+    wrapper, state = mutating_read(target, factory(root / 'temp/raw.bin'))
+    monkeypatch.setattr(os, 'read', wrapper)
+    with pytest.raises(S3IntegrationError) as error:
+        evidence.manifest()
+    assert state['fired'], name
+    assert error.value.reason.startswith('S3_ORIGINAL_'), (name, error.value.reason)
+    after = os.stat(root / 'temp/raw.bin')
+    assert (after.st_mtime_ns != before.st_mtime_ns
+            or after.st_ino != before.st_ino), name
+    # the stale seal is never published as verified, not even by the next
+    # re-check of the very same original
+    with pytest.raises(S3IntegrationError) as error:
+        evidence.manifest()
+    assert error.value.reason.startswith('S3_ORIGINAL_'), (name, error.value.reason)
+
+
+def test_the_manifest_refuses_an_ancestor_that_is_replaced_during_the_read(
+        tmp_path, monkeypatch):
+    """O1: an ancestor that is replaced during the read is refused."""
+    root, evidence = originals_root(tmp_path)
+    seal_all(evidence)
+    target = os.stat(root / 'temp/raw.bin').st_ino
+
+    def action():
+        os.rename(root / 'temp', root / 'temp-old')
+        (root / 'temp').mkdir()
+        (root / 'temp/raw.bin').write_bytes(ORIGINAL_BODY)
+
+    wrapper, state = mutating_read(target, action)
+    monkeypatch.setattr(os, 'read', wrapper)
+    with pytest.raises(S3IntegrationError) as error:
+        evidence.manifest()
+    assert state['fired']
+    assert error.value.reason == 'S3_ORIGINAL_REPLACED:raw'
+
+
+def test_the_manifest_refuses_a_root_that_is_replaced_during_the_read(
+        tmp_path, monkeypatch):
+    """O1: the root that is replaced during the read is refused."""
+    root, evidence = originals_root(tmp_path)
+    seal_all(evidence)
+    target = os.stat(root / 'temp/raw.bin').st_ino
+
+    def action():
+        os.rename(root, root.parent / (root.name + '-old'))
+        (root / 'temp').mkdir(parents=True)
+        (root / 'temp/raw.bin').write_bytes(ORIGINAL_BODY)
+
+    wrapper, state = mutating_read(target, action)
+    monkeypatch.setattr(os, 'read', wrapper)
+    with pytest.raises(S3IntegrationError) as error:
+        evidence.manifest()
+    assert state['fired']
+    assert error.value.reason == 'S3_SELECTED_ROOT_REPLACED'
+
+
+def test_the_manifest_refuses_a_path_that_became_a_link_during_the_read(
+        tmp_path, monkeypatch):
+    """O1: a path that became a link during the read is refused."""
+    root, evidence = originals_root(tmp_path)
+    seal_all(evidence)
+    target = os.stat(root / 'temp/raw.bin').st_ino
+
+    def action():
+        moved = root / 'temp/moved.bin'
+        os.rename(root / 'temp/raw.bin', moved)
+        (root / 'temp/raw.bin').symlink_to(moved)
+
+    wrapper, state = mutating_read(target, action)
+    monkeypatch.setattr(os, 'read', wrapper)
+    with pytest.raises(S3IntegrationError) as error:
+        evidence.manifest()
+    assert state['fired']
+    assert error.value.reason.startswith('S3_ORIGINAL_'), error.value.reason
+
+
+def test_the_seal_refuses_a_fifo_without_a_writer_and_without_blocking(tmp_path):
+    """O2: the seal refuses a fifo, without a writer and without blocking."""
+    root, evidence = originals_root(tmp_path)
+    fifo = root / 'temp/raw.bin'
+    fifo.unlink()
+    os.mkfifo(fifo)
+    before = open_descriptors()
+    thread, box = run_bounded(lambda: seal_all(evidence), 2.0)
+    try:
+        assert not thread.is_alive(), 'the seal blocked on the fifo'
+    finally:
+        if thread.is_alive():
+            # the controlled recovery of a failing test: the blocked worker
+            # is released and joined, so no hanging thread is left behind
+            release = os.open(fifo, os.O_WRONLY | os.O_NONBLOCK)
+            os.close(release)
+            thread.join(2.0)
+    assert not thread.is_alive()
+    assert isinstance(box.get('exception'), S3IntegrationError), box
+    assert box['exception'].reason == 'ORIGINAL_NOT_A_REGULAR_FILE'
+    assert evidence.originals == {}
+    assert open_descriptors() == before
+
+
+def test_the_manifest_refuses_a_fifo_that_replaced_a_sealed_raw(tmp_path):
+    """O2: the manifest refuses a fifo that replaced a sealed raw."""
+    root, evidence = originals_root(tmp_path)
+    seal_all(evidence)
+    fifo = root / 'temp/raw.bin'
+    fifo.unlink()
+    os.mkfifo(fifo)
+    before = open_descriptors()
+    thread, box = run_bounded(evidence.manifest, 2.0)
+    try:
+        assert not thread.is_alive(), 'the manifest blocked on the fifo'
+    finally:
+        if thread.is_alive():
+            # the controlled recovery of a failing test
+            release = os.open(fifo, os.O_WRONLY | os.O_NONBLOCK)
+            os.close(release)
+            thread.join(2.0)
+    assert not thread.is_alive()
+    assert isinstance(box.get('exception'), S3IntegrationError), box
+    assert box['exception'].reason.startswith('S3_ORIGINAL_'), box['exception'].reason
+    assert open_descriptors() == before
+
+
+def test_a_refused_original_leaks_no_descriptor(tmp_path):
+    """O1/O2: a refused original closes every descriptor that it opened."""
+    before = open_descriptors()
+    for index in range(12):
+        root, evidence = originals_root(tmp_path, name='run-%02d' % index)
+        seal_all(evidence)
+        fifo = root / 'temp/raw.bin'
+        fifo.unlink()
+        os.mkfifo(fifo)
+        thread, box = run_bounded(evidence.manifest, 2.0)
+        try:
+            assert not thread.is_alive(), 'the manifest blocked on the fifo'
+        finally:
+            if thread.is_alive():
+                release = os.open(fifo, os.O_WRONLY | os.O_NONBLOCK)
+                os.close(release)
+                thread.join(2.0)
+        assert isinstance(box.get('exception'), S3IntegrationError), box
+        fifo.unlink()
+        fifo.write_bytes(ORIGINAL_BODY)
+        with pytest.raises(S3IntegrationError):
+            evidence.manifest()
+    assert open_descriptors() == before
+
+
+def test_a_regular_original_has_its_real_hash_and_length(tmp_path):
+    """O1: a regular original of the bound root has its real hash and length."""
+    root, evidence = originals_root(tmp_path, body=b'REAL-BYTES')
+    sealed = seal_all(evidence)
+    assert sealed['raw'][0]['sha256'] == hashlib.sha256(b'REAL-BYTES').hexdigest()
+    assert sealed['raw'][0]['bytes'] == len(b'REAL-BYTES')
+    assert sealed['canonical'][0]['sha256'] == hashlib.sha256(b'{"rows": []}').hexdigest()
+    manifest = evidence.manifest()
+    assert manifest['reverification']['verified'] is True
+    assert manifest['reverification']['checked'][2]['sha256'] == \
+        hashlib.sha256(b'REAL-BYTES').hexdigest()
+    assert manifest['reverification']['checked'][2]['bytes'] == len(b'REAL-BYTES')
+
+
+def test_the_size_bound_of_an_original_is_exact_and_one_over(tmp_path):
+    """O1: the size bound of an original is exact and one over."""
+    root = tmp_path / 'run'
+    root.mkdir()
+    body = b'x' * coordinator.MAX_SEALED_ORIGINAL_BYTES
+    (root / 'raw.bin').write_bytes(body)
+    evidence = ParentOriginalEvidence(run_id=RUN_ID, candidate_sha=CANDIDATE_SHA,
+                                       child_sha256=CHILD_SHA, root=root,
+                                       projection_sha256='a' * 64)
+    evidence.seal_plan(sixteen_rows())
+    identity = os.stat(root)
+    evidence.seal_root([identity.st_dev, identity.st_ino])
+    sealed = evidence.seal_originals(canonical='raw.bin', source_plan='raw.bin')
+    assert sealed['canonical'][0]['bytes'] == coordinator.MAX_SEALED_ORIGINAL_BYTES
+    (root / 'raw.bin').write_bytes(body + b'x')
+    with pytest.raises(S3IntegrationError) as error:
+        evidence.manifest()
+    assert error.value.reason.startswith('ORIGINAL_EXCEEDS_BOUND'), error.value.reason
+
+
+def test_a_platform_without_the_safe_primitives_fails_closed(tmp_path, monkeypatch):
+    """O2: a platform without the safe opening primitives fails closed."""
+    root, evidence = originals_root(tmp_path)
+    seal_all(evidence)
+    monkeypatch.setattr(coordinator, '_no_follow_open_supported', lambda: False)
+    with pytest.raises(S3IntegrationError) as error:
+        evidence.manifest()
+    assert error.value.reason == 'S3_ORIGINAL_SAFE_OPEN_UNSUPPORTED'
+    monkeypatch.setattr(coordinator, '_non_block_open_supported', lambda: False)
+    with pytest.raises(S3IntegrationError) as error:
+        evidence.manifest()
+    assert error.value.reason == 'S3_ORIGINAL_SAFE_OPEN_UNSUPPORTED'
+    monkeypatch.undo()
+    assert evidence.manifest()['reverification']['verified'] is True
+
+
+def test_a_failed_seal_publishes_no_originals(tmp_path, monkeypatch):
+    """O1: a seal that fails in the middle publishes no originals at all."""
+    root, evidence = originals_root(tmp_path)
+    target = os.stat(root / 'temp/raw.bin').st_ino
+    wrapper, state = mutating_read(target, rewrite_same_bytes(root / 'temp/raw.bin'))
+    monkeypatch.setattr(os, 'read', wrapper)
+    with pytest.raises(S3IntegrationError):
+        seal_all(evidence)
+    assert state['fired']
+    assert evidence.originals == {}
+    with pytest.raises(S3IntegrationError) as error:
+        evidence.manifest()
+    assert error.value.reason == 'S3_ORIGINALS_NOT_SEALED'

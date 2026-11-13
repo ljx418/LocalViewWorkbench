@@ -19,6 +19,17 @@ receipts and registers them.
 Nothing in this module proves a product gate.  Every document it produces
 carries ``stage_pass_claim = False`` and ``product_gate0 = False``.  A
 synthetic fixture never counts as a product pass.
+
+The originals of a bound root are read by one safe reading procedure that
+the seal and the consumption of the manifest share.  Its boundary is
+explicit and it is deliberately not a bigger claim than it is:
+
+* the check covers the window between the verified opening of an artifact
+  and the end of the digest of that very handle, plus the re-walk of the
+  reference from the bound root that follows the digest;
+* it does not claim that an artifact can not change after that re-walk,
+  and it is not an atomic snapshot of a batch of artifacts - every
+  artifact is checked on its own and the batch is not frozen.
 """
 import errno
 import hashlib
@@ -112,12 +123,53 @@ def _no_follow_open_supported():
     return os.open in getattr(os, 'supports_dir_fd', ())
 
 
+def _non_block_open_supported():
+    """Whether this platform has the non blocking opening primitive.
+
+    The final component of a reference is opened with ``O_NONBLOCK`` so
+    that a special file - a fifo, a device, a socket - can never block
+    the parent on the open itself.  A platform without that flag is not
+    silently treated as if it had it: the caller fails closed.
+    """
+    return hasattr(os, 'O_NONBLOCK') and isinstance(os.O_NONBLOCK, int)
+
+
+def _safe_open_supported():
+    """Whether this platform has every primitive the safe read needs.
+
+    The check is a real capability check and not a promise: the flags
+    themselves are handed to the kernel by the opening of the bound root,
+    and a kernel that refuses them turns into a refusal of the run.
+    """
+    return _no_follow_open_supported() and _non_block_open_supported()
+
+
+def _directory_open_flags():
+    """The flags of one safe opening of a directory component."""
+    return os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW | os.O_NONBLOCK
+
+
+def _final_open_flags():
+    """The flags of one safe opening of the final component.
+
+    The final component is not opened with ``O_DIRECTORY``: it may be a
+    regular file, and the type of whatever it is has to be decided by the
+    ``fstat`` of the opened handle.  ``O_NONBLOCK`` keeps a special file
+    from blocking this opening.
+    """
+    return os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK
+
+
 def _digest_handle(descriptor, limit=MAX_SEALED_ORIGINAL_BYTES):
     """The digest and the length of the bytes of one verified handle.
 
     The bytes are read from the handle that was opened and verified, so
     the digest and the identity belong to the same object.  There is no
     second, unchecked open of the same path.
+
+    The caller verifies the handle again after this read and re-walks the
+    path of the reference from the bound root: a digest alone does not
+    prove that the file on the path is still the object that was read.
     """
     digest = hashlib.sha256()
     length = 0
@@ -304,8 +356,14 @@ class ParentOriginalEvidence:
     link: every component of a reference is opened from the descriptor of
     its own parent with ``O_NOFOLLOW``, so an ancestor that points out of
     the root is refused and not only a link on the artifact itself.  The
-    digest is computed from the handle that was verified.  A platform that
-    does not have these primitives fails closed and stays ``NOT_PROVEN``.
+    final component is opened with ``O_NONBLOCK`` as well, so a special
+    file can never block the parent on the open itself, and the type of
+    the object is decided by the ``fstat`` of the opened handle.  The
+    digest is computed from the handle that was verified, the handle is
+    verified again after the read and the reference is walked again from
+    the bound root, so an original that changes during the read is refused
+    and the stale seal is never published.  A platform that does not have
+    these primitives fails closed and stays ``NOT_PROVEN``.
     """
 
     def __init__(self, *, run_id, candidate_sha, child_sha256, root, projection_sha256):
@@ -373,19 +431,28 @@ class ParentOriginalEvidence:
         opened object is compared with the sealed one.  A root that was
         replaced, that became a link or that vanished is refused here,
         before any original is touched.
+
+        The opening uses the flags of the safe read, so the platform check
+        is a real one: the kernel has to accept the flags of the safe
+        opening.  A kernel that refuses them fails the run closed.
         """
         if self.root_identity is None:
             raise S3IntegrationError('S3_SELECTED_ROOT_NOT_SEALED')
-        if not _no_follow_open_supported():
+        if not _safe_open_supported():
             # The platform can not open an artifact of the root without
-            # following a link.  The run stays NOT_PROVEN instead of
-            # claiming that the originals are inside the root.
+            # following a link and without blocking on a special file.
+            # The run stays NOT_PROVEN instead of claiming that the
+            # originals are inside the root.
             raise S3IntegrationError('S3_ORIGINAL_SAFE_OPEN_UNSUPPORTED')
         try:
-            descriptor = os.open(self.root, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+            descriptor = os.open(self.root, _directory_open_flags())
         except OSError as error:
             if error.errno in (errno.ELOOP, errno.ENOTDIR):
                 raise S3IntegrationError('S3_SELECTED_ROOT_REPLACED') from error
+            if error.errno in (errno.EINVAL, errno.ENOSYS, errno.EOPNOTSUPP):
+                # The kernel refused the safe flags: the platform does not
+                # have the primitive and the run fails closed.
+                raise S3IntegrationError('S3_ORIGINAL_SAFE_OPEN_UNSUPPORTED') from error
             raise S3IntegrationError('S3_SELECTED_ROOT_UNAVAILABLE') from error
         try:
             info = os.fstat(descriptor)
@@ -443,24 +510,45 @@ class ParentOriginalEvidence:
         reached through a link, and the bytes that are digested are the
         bytes of the handle that was verified.  There is no pre-check of
         the path and no second, unchecked open of the same path.
+
+        The final component is opened with ``O_NONBLOCK`` as well, so a
+        special file can never block this opening.  The type of the object
+        is decided by the ``fstat`` of the opened handle and never by a
+        pre-check of the path.
+
+        The return value is the descriptor of the artifact and the chain
+        of the object identities of the root and of every ancestor
+        directory of the artifact, in the order they were opened.  The
+        chain is the evidence of the path that was walked; the re-check of
+        the path after the read walks it again and compares the chains.
         """
         parts = self._reference_parts(relative)
         directory = self._bound_root_fd()
+        chain = []
         try:
+            root_info = os.fstat(directory)
+            chain.append((int(root_info.st_dev), int(root_info.st_ino)))
             for part in parts[:-1]:
                 try:
-                    child = os.open(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW,
-                                    dir_fd=directory)
+                    child = os.open(part, _directory_open_flags(), dir_fd=directory)
                 except OSError as error:
                     if self._is_link(directory, part):
                         raise S3IntegrationError(
                             'S3_ORIGINAL_REDIRECT_FORBIDDEN:' + category) from error
                     raise self._open_error(error, category) from error
+                try:
+                    info = os.fstat(child)
+                    if not stat.S_ISDIR(info.st_mode):
+                        raise S3IntegrationError(
+                            'S3_ORIGINAL_ANCESTOR_NOT_A_DIRECTORY:' + category)
+                except BaseException:
+                    os.close(child)
+                    raise
                 os.close(directory)
                 directory = child
+                chain.append((int(info.st_dev), int(info.st_ino)))
             try:
-                descriptor = os.open(parts[-1], os.O_RDONLY | os.O_NOFOLLOW,
-                                     dir_fd=directory)
+                descriptor = os.open(parts[-1], _final_open_flags(), dir_fd=directory)
             except OSError as error:
                 if self._is_link(directory, parts[-1]):
                     raise S3IntegrationError(
@@ -468,29 +556,133 @@ class ParentOriginalEvidence:
                 raise self._open_error(error, category) from error
         finally:
             os.close(directory)
-        return descriptor
+        return descriptor, chain
 
-    def _seal_one(self, reference, category):
-        """Read one original through its verified handle and seal it."""
+    @staticmethod
+    def _not_a_regular_reason(phase, category):
+        """The refusal of an artifact that is not a regular file.
+
+        A seal refuses the artifact itself; a re-check refuses it as a
+        replaced original, because the sealed original was a regular file
+        and this one is not.
+        """
+        if phase == 'seal':
+            return 'ORIGINAL_NOT_A_REGULAR_FILE'
+        return 'S3_ORIGINAL_REPLACED:' + category
+
+    def _refuse_a_changed_window(self, before, after, length, category, phase):
+        """Refuse an artifact that changed while it was read.
+
+        The handle is verified before the read and verified again after it.
+        The identity, the type, the size, the change time and the modify
+        time of the object have to be the same before and after, and the
+        number of bytes that were consumed has to be the size of the
+        object.  A rewrite of the same length, a rewrite of the same
+        bytes, a growth, a truncation and a replaced object are all
+        refused here.
+        """
+        if not stat.S_ISREG(after.st_mode):
+            raise S3IntegrationError(self._not_a_regular_reason(phase, category))
+        if (int(after.st_dev), int(after.st_ino)) != (int(before.st_dev), int(before.st_ino)):
+            raise S3IntegrationError('S3_ORIGINAL_REPLACED:' + category)
+        if int(after.st_size) != int(before.st_size):
+            raise S3IntegrationError('S3_ORIGINAL_CHANGED:' + category)
+        if (int(after.st_ctime_ns) != int(before.st_ctime_ns)
+                or int(after.st_mtime_ns) != int(before.st_mtime_ns)):
+            raise S3IntegrationError('S3_ORIGINAL_CHANGED:' + category)
+        if int(length) != int(before.st_size):
+            raise S3IntegrationError('S3_ORIGINAL_CHANGED:' + category)
+
+    def _refuse_a_changed_path(self, relative, chain, before, category):
+        """Refuse an artifact whose path does not lead to it any more.
+
+        The reference is walked a second time from the bound root after the
+        digest.  The root, every ancestor and the artifact itself have to
+        be the very objects of the first walk, compared by the identity of
+        the *handles* that were opened: the verified handle of the
+        artifact and the handle of the second walk.  The comparison never
+        falls back to a ``lstat`` of the path and a plain open of it.
+        """
+        descriptor, second = self._open_inside_root(relative, category)
         try:
-            descriptor = self._open_inside_root(reference, category)
+            try:
+                info = os.fstat(descriptor)
+            except OSError as error:
+                raise S3IntegrationError('S3_ORIGINAL_UNREADABLE:' + category) from error
+        finally:
+            os.close(descriptor)
+        if second != chain:
+            # The root or one of the ancestors is not the object that was
+            # walked: the path of the artifact is a different path now.
+            raise S3IntegrationError('S3_ORIGINAL_REPLACED:' + category)
+        if not stat.S_ISREG(info.st_mode):
+            raise S3IntegrationError('S3_ORIGINAL_REPLACED:' + category)
+        if (int(info.st_dev), int(info.st_ino)) != (int(before.st_dev), int(before.st_ino)):
+            raise S3IntegrationError('S3_ORIGINAL_REPLACED:' + category)
+
+    def _read_original_safely(self, relative, category, *, phase, expected=None):
+        """Read one original through one verified handle, with one check.
+
+        This is the one procedure that seals an original and that re-checks
+        a sealed one.  The handle is verified before the read, the digest is
+        taken from that very handle, the handle is verified again after the
+        read and the reference is walked again from the bound root.  A
+        change of the artifact during the read window, a change of the path
+        of the artifact during the read window and a change of the root or
+        of an ancestor during the read window are all refused, so a stale
+        seal is never published as a verified original.
+
+        ``expected`` is the sealed entry of a re-check.  The identity of the
+        object is compared with the sealed one first: an object that is not
+        the sealed one is a replaced original, whatever happened to it
+        since the seal.
+
+        The boundary of the check is the window between the verified
+        opening and the end of the digest of that handle, plus the re-walk
+        that follows it.  It is not a claim about a later change and it is
+        not an atomic snapshot of a batch.
+        """
+        try:
+            descriptor, chain = self._open_inside_root(relative, category)
         except ValueError as error:
             raise S3IntegrationError('S3_ORIGINAL_REFERENCE_INVALID') from error
         try:
-            info = os.fstat(descriptor)
-            if not stat.S_ISREG(info.st_mode):
-                raise S3IntegrationError('ORIGINAL_NOT_A_REGULAR_FILE')
-            if info.st_size > MAX_SEALED_ORIGINAL_BYTES:
-                raise S3IntegrationError('ORIGINAL_EXCEEDS_BOUND')
-            digest, length = _digest_handle(descriptor, MAX_SEALED_ORIGINAL_BYTES)
-        except OSError as error:
-            raise S3IntegrationError('S3_ORIGINAL_UNREADABLE:' + category) from error
+            try:
+                before = os.fstat(descriptor)
+            except OSError as error:
+                raise S3IntegrationError('S3_ORIGINAL_UNREADABLE:' + category) from error
+            if not stat.S_ISREG(before.st_mode):
+                raise S3IntegrationError(self._not_a_regular_reason(phase, category))
+            if before.st_size > MAX_SEALED_ORIGINAL_BYTES:
+                raise S3IntegrationError('ORIGINAL_EXCEEDS_BOUND:' + category)
+            try:
+                digest, length = _digest_handle(descriptor, MAX_SEALED_ORIGINAL_BYTES)
+                after = os.fstat(descriptor)
+            except OSError as error:
+                raise S3IntegrationError('S3_ORIGINAL_UNREADABLE:' + category) from error
         finally:
             os.close(descriptor)
-        return {'reference': reference, 'sha256': digest, 'bytes': length,
-                'identity': [int(info.st_dev), int(info.st_ino)],
-                'change_time_ns': int(info.st_ctime_ns),
-                'modify_time_ns': int(info.st_mtime_ns)}
+        observed = {'sha256': digest, 'bytes': int(length),
+                    'identity': [int(before.st_dev), int(before.st_ino)],
+                    'change_time_ns': int(before.st_ctime_ns),
+                    'modify_time_ns': int(before.st_mtime_ns),
+                    'size': int(before.st_size)}
+        if expected is not None:
+            self._compare_identity_with_the_seal(expected, observed, category)
+        self._refuse_a_changed_window(before, after, length, category, phase)
+        self._refuse_a_changed_path(relative, chain, before, category)
+        if expected is not None:
+            self._compare_content_with_the_seal(expected, observed, category)
+        return observed
+
+    def _seal_one(self, reference, category):
+        """Read one original through its verified handle and seal it."""
+        observed = self._read_original_safely(reference, category, phase='seal')
+        return {'reference': reference, 'sha256': observed['sha256'],
+                'bytes': observed['bytes'], 'identity': observed['identity'],
+                'change_time_ns': observed['change_time_ns'],
+                'modify_time_ns': observed['modify_time_ns'],
+                'size': observed['size']}
 
     def seal_originals(self, *, canonical, source_plan, raw=()):
         """Read the real originals of the selected root and seal their bytes.
@@ -504,6 +696,10 @@ class ParentOriginalEvidence:
         Every artifact is opened through the bound root without following a
         link, so an ancestor that points out of the root is refused as well
         and not only a link on the artifact itself.
+
+        The seal is published as a whole or not at all: a refusal in the
+        middle of the sequence leaves ``self.originals`` untouched, so a
+        partial seal is never published.
         """
         if self.root_identity is None or self.rows is None:
             raise S3IntegrationError('S3_ORIGINALS_NOT_SEALABLE')
@@ -517,6 +713,39 @@ class ParentOriginalEvidence:
         self.originals = entries
         return entries
 
+    @staticmethod
+    def _compare_identity_with_the_seal(entry, observed, category):
+        """Refuse an original whose object is not the sealed one.
+
+        The identity of the object is the device and the inode number of
+        the handle that was opened.  A file that was replaced by another
+        file with the very same bytes is a different object and is refused
+        here.
+        """
+        if list(observed['identity']) != list(entry.get('identity', [])):
+            raise S3IntegrationError('S3_ORIGINAL_REPLACED:' + category)
+
+    @staticmethod
+    def _compare_content_with_the_seal(entry, observed, category):
+        """Refuse an original whose state is not the sealed one.
+
+        The change time, the modify time, the size, the length and the
+        digest have to be the sealed ones.  The change time of the object
+        is part of its identity: a file that was replaced by another file
+        with the very same bytes can reuse the number of the object on
+        some file systems, and the change time still tells the two apart.
+        A different change time or a different modify time is therefore a
+        replaced original; a different size, length or digest is a changed
+        original.
+        """
+        if (int(observed['change_time_ns']) != int(entry.get('change_time_ns', -1))
+                or int(observed['modify_time_ns']) != int(entry.get('modify_time_ns', -1))):
+            raise S3IntegrationError('S3_ORIGINAL_REPLACED:' + category)
+        if int(observed['size']) != int(entry.get('size', entry.get('bytes', -1))) \
+                or int(observed['bytes']) != int(entry['bytes']) \
+                or observed['sha256'] != entry['sha256']:
+            raise S3IntegrationError('S3_ORIGINAL_CHANGED:' + category)
+
     def verify_originals(self):
         """Re-read every sealed original through its verified handle.
 
@@ -526,6 +755,10 @@ class ParentOriginalEvidence:
         root is not the identity of the originals: a replaced, rewritten,
         vanished or redirected original is refused even when the root is
         still the sealed one.
+
+        The re-check uses the same safe reading procedure as the seal, so
+        an original that changes *while* it is read is refused as well and
+        the stale seal is never published as a verified manifest.
         """
         if not self.originals:
             raise S3IntegrationError('S3_ORIGINALS_NOT_SEALED')
@@ -533,34 +766,11 @@ class ParentOriginalEvidence:
         checked = []
         for category, entries in self.originals.items():
             for entry in entries:
-                try:
-                    descriptor = self._open_inside_root(entry['reference'], category)
-                except ValueError as error:
-                    raise S3IntegrationError('S3_ORIGINAL_REFERENCE_INVALID') from error
-                try:
-                    info = os.fstat(descriptor)
-                    if not stat.S_ISREG(info.st_mode):
-                        raise S3IntegrationError('S3_ORIGINAL_REPLACED:' + category)
-                    digest, length = _digest_handle(descriptor, MAX_SEALED_ORIGINAL_BYTES)
-                except OSError as error:
-                    raise S3IntegrationError('S3_ORIGINAL_UNREADABLE:' + category) from error
-                finally:
-                    os.close(descriptor)
-                identity = [int(info.st_dev), int(info.st_ino)]
-                if identity != list(entry.get('identity', [])):
-                    raise S3IntegrationError('S3_ORIGINAL_REPLACED:' + category)
-                # The change time of the object is part of its identity: a
-                # file that was replaced by another file with the very same
-                # bytes can reuse the number of the object on some file
-                # systems, and the change time still tells the two apart.
-                if int(info.st_ctime_ns) != int(entry.get('change_time_ns', -1)) \
-                        or int(info.st_mtime_ns) != int(entry.get('modify_time_ns', -1)):
-                    raise S3IntegrationError('S3_ORIGINAL_REPLACED:' + category)
-                if length != entry['bytes'] or digest != entry['sha256']:
-                    raise S3IntegrationError('S3_ORIGINAL_CHANGED:' + category)
+                observed = self._read_original_safely(entry['reference'], category,
+                                                      phase='verify', expected=entry)
                 checked.append({'category': category, 'reference': entry['reference'],
-                                'sha256': digest, 'bytes': length,
-                                'identity': identity})
+                                'sha256': observed['sha256'], 'bytes': observed['bytes'],
+                                'identity': observed['identity']})
         return {'root': str(self.root), 'identity': list(self.root_identity),
                 'checked': checked, 'verified': True}
 
@@ -605,7 +815,8 @@ class ParentOriginalEvidence:
             'root_identity': list(self.root_identity),
             'originals': self.originals,
             'reverification': reverification,
-            'original_open_primitive': 'no_follow_dirfd',
+            'original_open_primitive': 'no_follow_dirfd_nonblock',
+            'original_read_boundary': ('verified_open_to_digest_end_then_path_rewalk'),
             'stage_pass_claim': False,
             'product_gate0': False,
             'real_execution_performed': False,

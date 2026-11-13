@@ -1,0 +1,153 @@
+{
+  "O1_consume_window": [
+    {
+      "change_observable_in_the_object": true,
+      "published_originals": 1,
+      "refusal": "S3_ORIGINAL_CHANGED:raw",
+      "trigger": "same_length_rewrite",
+      "trigger_fired": true
+    },
+    {
+      "change_observable_in_the_object": true,
+      "published_originals": 1,
+      "refusal": "S3_ORIGINAL_CHANGED:raw",
+      "trigger": "same_bytes_rewrite",
+      "trigger_fired": true
+    },
+    {
+      "change_observable_in_the_object": true,
+      "published_originals": 1,
+      "refusal": "S3_ORIGINAL_CHANGED:raw",
+      "trigger": "growth",
+      "trigger_fired": true
+    },
+    {
+      "change_observable_in_the_object": true,
+      "published_originals": 1,
+      "refusal": "S3_ORIGINAL_CHANGED:raw",
+      "trigger": "truncation",
+      "trigger_fired": true
+    },
+    {
+      "change_observable_in_the_object": true,
+      "published_originals": 1,
+      "refusal": "S3_ORIGINAL_CHANGED:raw",
+      "trigger": "object_replacement",
+      "trigger_fired": true
+    },
+    {
+      "change_observable_in_the_object": true,
+      "published_originals": 1,
+      "refusal": "S3_ORIGINAL_CHANGED:raw",
+      "trigger": "path_became_a_link",
+      "trigger_fired": true
+    },
+    {
+      "change_observable_in_the_object": true,
+      "published_originals": 1,
+      "refusal": "S3_ORIGINAL_REPLACED:raw",
+      "trigger": "ancestor_replaced",
+      "trigger_fired": true
+    },
+    {
+      "change_observable_in_the_object": true,
+      "published_originals": 1,
+      "refusal": "S3_SELECTED_ROOT_REPLACED",
+      "trigger": "root_replaced",
+      "trigger_fired": true
+    }
+  ],
+  "O1_seal_window": [
+    {
+      "change_observable_in_the_object": true,
+      "published_originals": 0,
+      "refusal": "S3_ORIGINAL_CHANGED:raw",
+      "trigger": "same_length_rewrite",
+      "trigger_fired": true
+    },
+    {
+      "change_observable_in_the_object": true,
+      "published_originals": 0,
+      "refusal": "S3_ORIGINAL_CHANGED:raw",
+      "trigger": "same_bytes_rewrite",
+      "trigger_fired": true
+    },
+    {
+      "change_observable_in_the_object": true,
+      "published_originals": 0,
+      "refusal": "S3_ORIGINAL_CHANGED:raw",
+      "trigger": "growth",
+      "trigger_fired": true
+    },
+    {
+      "change_observable_in_the_object": true,
+      "published_originals": 0,
+      "refusal": "S3_ORIGINAL_CHANGED:raw",
+      "trigger": "truncation",
+      "trigger_fired": true
+    },
+    {
+      "change_observable_in_the_object": true,
+      "published_originals": 0,
+      "refusal": "S3_ORIGINAL_CHANGED:raw",
+      "trigger": "object_replacement",
+      "trigger_fired": true
+    },
+    {
+      "change_observable_in_the_object": true,
+      "published_originals": 0,
+      "refusal": "S3_ORIGINAL_CHANGED:raw",
+      "trigger": "path_became_a_link",
+      "trigger_fired": true
+    },
+    {
+      "change_observable_in_the_object": true,
+      "published_originals": 0,
+      "refusal": "S3_ORIGINAL_REPLACED:raw",
+      "trigger": "ancestor_replaced",
+      "trigger_fired": true
+    },
+    {
+      "change_observable_in_the_object": true,
+      "published_originals": 0,
+      "refusal": "S3_SELECTED_ROOT_REPLACED",
+      "trigger": "root_replaced",
+      "trigger_fired": true
+    }
+  ],
+  "O2_fifo_after_the_seal": {
+    "blocked_on_the_fifo": false,
+    "elapsed_seconds": 0.0,
+    "refusal": "S3_ORIGINAL_REPLACED:raw",
+    "thread_settled": true,
+    "write_end_opened_by_the_oracle": false
+  },
+  "O2_fifo_at_the_seal": {
+    "blocked_on_the_fifo": false,
+    "elapsed_seconds": 0.0,
+    "refusal": "ORIGINAL_NOT_A_REGULAR_FILE",
+    "thread_settled": true,
+    "write_end_opened_by_the_oracle": false
+  },
+  "descriptors": {
+    "after": 4,
+    "before": 4,
+    "leaked": 0
+  },
+  "fail_closed": {
+    "without_no_follow": "S3_ORIGINAL_SAFE_OPEN_UNSUPPORTED",
+    "without_non_block": "S3_ORIGINAL_SAFE_OPEN_UNSUPPORTED"
+  },
+  "legal_case": {
+    "bytes": 8,
+    "checked": 3,
+    "expected_sha256": "962f85a27854336f3286ad54b49321f62525043b5f3508b2ecc887fdd6e7550e",
+    "original_open_primitive": "no_follow_dirfd_nonblock",
+    "sha256": "962f85a27854336f3286ad54b49321f62525043b5f3508b2ecc887fdd6e7550e",
+    "verified": true
+  },
+  "product_gate0": false,
+  "real_execution_performed": false,
+  "stage_pass_claim": false,
+  "synthetic_only": true
+}
