@@ -1,0 +1,489 @@
+{
+  "failed_finish": {
+    "caught_credential": false,
+    "caught_type": "OfflineBoundaryViolation",
+    "cleanup_proven": false,
+    "counter_settled": false,
+    "counter_state": "PENDING",
+    "failure_reasons": [
+      "OWNED_ROOT_RETAINED",
+      "UNSETTLED_CHARGE"
+    ],
+    "finalizer_exit": 4,
+    "ledger": [
+      {
+        "admitted_wall": 1794537808.195912,
+        "argv": [
+          "/usr/bin/python3",
+          "-I",
+          "-S",
+          "-B",
+          "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+          "--scenario",
+          "clean_terminal"
+        ],
+        "created": null,
+        "handle_obtained": false,
+        "handle_proven": null,
+        "index": 0,
+        "outcome": "UNKNOWN",
+        "refusal_code": "CPU_COUNTER_UNREADABLE",
+        "scenario": "clean_terminal",
+        "settlement_error": "CPU_COUNTER_UNREADABLE",
+        "settlement_persisted": false
+      }
+    ],
+    "occupied": 1,
+    "open_charges": [
+      {
+        "handle_obtained": false,
+        "handle_proven": null,
+        "index": 0,
+        "outcome": "UNKNOWN",
+        "refusal_code": "CPU_COUNTER_UNREADABLE",
+        "scenario": "clean_terminal",
+        "settlement_error": "CPU_COUNTER_UNREADABLE",
+        "settlement_persisted": false
+      }
+    ],
+    "owned_exists": true,
+    "proofs": [
+      {
+        "birth": null,
+        "exit_code": null,
+        "handle_obtained": false,
+        "index": 0,
+        "persisted": false,
+        "pid": null,
+        "proven": false,
+        "reason": "ADMITTED_WITHOUT_HANDLE",
+        "settlement_error": "CPU_COUNTER_UNREADABLE",
+        "spent_wall_seconds": null,
+        "state": "UNKNOWN",
+        "timed_out": false
+      }
+    ],
+    "uncertain": true
+  },
+  "m1_command_positive": {
+    "command": [
+      "/usr/bin/python3",
+      "-B",
+      "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-integration-01/run_guarded_checks.py",
+      "--mode",
+      "focused",
+      "--label",
+      "probe",
+      "--outdir",
+      "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-integration-audit-correction-02",
+      "--select",
+      "refusal",
+      "--modules",
+      "tools/test_v0_s3_supervisor.py",
+      "--binding",
+      "/sealed/binding.json",
+      "--binding-sha256",
+      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "--role",
+      "implementation",
+      "--candidate-sha",
+      "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    ],
+    "has_binding": true,
+    "has_binding_sha": true,
+    "has_candidate": true,
+    "has_modules": true,
+    "has_role": true,
+    "has_select": true
+  },
+  "m1_invocation_negative": {
+    "invocation": {
+      "kind": "programmatic",
+      "outer_argv": [
+        "python3",
+        "-B",
+        "reports/v0-s3/product-gate0/implementation-integration-audit-correction-02/negative_probes_correction02.py"
+      ],
+      "outer_matches_effective": false,
+      "reason": "the runner was not the entry of this process"
+    },
+    "kind": "programmatic"
+  },
+  "m1_real_guard_positive": {
+    "caught_credential": true,
+    "caught_type": "OfflineBoundaryViolation",
+    "cleanup_proven": true,
+    "counter_settled": true,
+    "counter_state": "REFUSED_BEFORE_FORK",
+    "failure_reasons": [],
+    "finalizer_exit": 0,
+    "ledger": [
+      {
+        "admitted_wall": 1794537808.252775,
+        "argv": [
+          "/usr/bin/python3",
+          "-I",
+          "-S",
+          "-B",
+          "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+          "--scenario",
+          "clean_terminal"
+        ],
+        "created": false,
+        "handle_obtained": false,
+        "handle_proven": null,
+        "index": 0,
+        "outcome": "REFUSED_BEFORE_FORK",
+        "refusal_code": "OFFLINE_BOUNDARY:os.posix_spawn",
+        "scenario": "clean_terminal",
+        "settlement_error": null,
+        "settlement_persisted": true
+      }
+    ],
+    "occupied": 0,
+    "open_charges": [],
+    "owned_exists": false,
+    "proofs": [],
+    "uncertain": false
+  },
+  "m1_replay_negative": {
+    "first_state": {
+      "charges": 1,
+      "ledger": [
+        {
+          "admitted_wall": 1794537808.3148615,
+          "argv": [
+            "/usr/bin/python3",
+            "-I",
+            "-S",
+            "-B",
+            "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+            "--scenario",
+            "clean_terminal"
+          ],
+          "created": false,
+          "handle_obtained": false,
+          "handle_proven": null,
+          "index": 0,
+          "outcome": "REFUSED_BEFORE_FORK",
+          "refusal_code": "OFFLINE_BOUNDARY:os.posix_spawn",
+          "scenario": "clean_terminal",
+          "settlement_error": null,
+          "settlement_persisted": true
+        }
+      ],
+      "occupied": 0,
+      "open_charges": [],
+      "settled": [
+        true
+      ],
+      "states": [
+        "REFUSED_BEFORE_FORK"
+      ],
+      "uncertain": false
+    },
+    "replayed_credential_present": true,
+    "second_state": {
+      "charges": 2,
+      "ledger": [
+        {
+          "admitted_wall": 1794537808.3148615,
+          "argv": [
+            "/usr/bin/python3",
+            "-I",
+            "-S",
+            "-B",
+            "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+            "--scenario",
+            "clean_terminal"
+          ],
+          "created": false,
+          "handle_obtained": false,
+          "handle_proven": null,
+          "index": 0,
+          "outcome": "REFUSED_BEFORE_FORK",
+          "refusal_code": "OFFLINE_BOUNDARY:os.posix_spawn",
+          "scenario": "clean_terminal",
+          "settlement_error": null,
+          "settlement_persisted": true
+        },
+        {
+          "admitted_wall": 1794537808.3440835,
+          "argv": [
+            "/usr/bin/python3",
+            "-I",
+            "-S",
+            "-B",
+            "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+            "--scenario",
+            "clean_terminal"
+          ],
+          "created": null,
+          "handle_obtained": false,
+          "handle_proven": null,
+          "index": 1,
+          "outcome": "UNKNOWN",
+          "refusal_code": "OFFLINE_BOUNDARY:os.posix_spawn",
+          "scenario": "clean_terminal",
+          "settlement_error": null,
+          "settlement_persisted": true
+        }
+      ],
+      "occupied": 1,
+      "open_charges": [
+        {
+          "handle_obtained": false,
+          "handle_proven": null,
+          "index": 1,
+          "outcome": "UNKNOWN",
+          "refusal_code": "OFFLINE_BOUNDARY:os.posix_spawn",
+          "scenario": "clean_terminal",
+          "settlement_error": null,
+          "settlement_persisted": true
+        }
+      ],
+      "settled": [
+        true,
+        true
+      ],
+      "states": [
+        "REFUSED_BEFORE_FORK",
+        "UNKNOWN"
+      ],
+      "uncertain": true
+    }
+  },
+  "m2_persisted_positive": {
+    "caught_credential": false,
+    "caught_type": "OfflineBoundaryViolation",
+    "cleanup_proven": false,
+    "counter_settled": true,
+    "counter_state": "UNKNOWN",
+    "failure_reasons": [
+      "OWNED_ROOT_RETAINED",
+      "UNSETTLED_CHARGE"
+    ],
+    "finalizer_exit": 4,
+    "ledger": [
+      {
+        "admitted_wall": 1794537808.4002407,
+        "argv": [
+          "/usr/bin/python3",
+          "-I",
+          "-S",
+          "-B",
+          "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+          "--scenario",
+          "clean_terminal"
+        ],
+        "created": null,
+        "handle_obtained": false,
+        "handle_proven": null,
+        "index": 0,
+        "outcome": "UNKNOWN",
+        "refusal_code": "REFUSAL",
+        "scenario": "clean_terminal",
+        "settlement_error": null,
+        "settlement_persisted": true
+      }
+    ],
+    "occupied": 1,
+    "open_charges": [
+      {
+        "handle_obtained": false,
+        "handle_proven": null,
+        "index": 0,
+        "outcome": "UNKNOWN",
+        "refusal_code": "REFUSAL",
+        "scenario": "clean_terminal",
+        "settlement_error": null,
+        "settlement_persisted": true
+      }
+    ],
+    "owned_exists": true,
+    "proofs": [],
+    "uncertain": true
+  },
+  "m3_handshake_positive": {
+    "handshake_after_foreign": 2,
+    "handshake_after_own": 3,
+    "handshake_before": 2,
+    "hook_install_count": 1,
+    "hook_installed": true,
+    "install_error": null,
+    "owner_returned": true
+  },
+  "m3_registration_failure_negative": {
+    "api_calls": [
+      "_audit_hook"
+    ],
+    "install_error": "GUARD_HANDSHAKE_FAILED",
+    "refused": true,
+    "refused_code": "GUARD_REGISTRATION_FAILED",
+    "reported_count": 0,
+    "reported_installed": false,
+    "second_call_refused": true
+  },
+  "m3_silent_rejection_negative": {
+    "handshake_seen_by_the_new_registration": 0,
+    "install_error": "GUARD_HANDSHAKE_FAILED",
+    "refused": true,
+    "refused_code": "GUARD_HANDSHAKE_FAILED",
+    "reported_count": 0,
+    "reported_installed": false
+  },
+  "marker_only": {
+    "caught_credential": false,
+    "caught_type": "RuntimeError",
+    "cleanup_proven": false,
+    "counter_settled": true,
+    "counter_state": "UNKNOWN",
+    "failure_reasons": [
+      "OWNED_ROOT_RETAINED",
+      "UNSETTLED_CHARGE"
+    ],
+    "finalizer_exit": 4,
+    "ledger": [
+      {
+        "admitted_wall": 1794537808.018367,
+        "argv": [
+          "/usr/bin/python3",
+          "-I",
+          "-S",
+          "-B",
+          "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+          "--scenario",
+          "clean_terminal"
+        ],
+        "created": null,
+        "handle_obtained": false,
+        "handle_proven": null,
+        "index": 0,
+        "outcome": "UNKNOWN",
+        "refusal_code": "RuntimeError",
+        "scenario": "clean_terminal",
+        "settlement_error": null,
+        "settlement_persisted": true
+      }
+    ],
+    "occupied": 1,
+    "open_charges": [
+      {
+        "handle_obtained": false,
+        "handle_proven": null,
+        "index": 0,
+        "outcome": "UNKNOWN",
+        "refusal_code": "RuntimeError",
+        "scenario": "clean_terminal",
+        "settlement_error": null,
+        "settlement_persisted": true
+      }
+    ],
+    "owned_exists": true,
+    "proofs": [],
+    "uncertain": true
+  },
+  "stale_guard_error": {
+    "caught_credential": false,
+    "caught_type": "OfflineBoundaryViolation",
+    "cleanup_proven": false,
+    "counter_settled": true,
+    "counter_state": "UNKNOWN",
+    "failure_reasons": [
+      "OWNED_ROOT_RETAINED",
+      "UNSETTLED_CHARGE"
+    ],
+    "finalizer_exit": 4,
+    "ledger": [
+      {
+        "admitted_wall": 1794537808.1391547,
+        "argv": [
+          "/usr/bin/python3",
+          "-I",
+          "-S",
+          "-B",
+          "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+          "--scenario",
+          "clean_terminal"
+        ],
+        "created": null,
+        "handle_obtained": false,
+        "handle_proven": null,
+        "index": 0,
+        "outcome": "UNKNOWN",
+        "refusal_code": "OLD_REFUSAL",
+        "scenario": "clean_terminal",
+        "settlement_error": null,
+        "settlement_persisted": true
+      }
+    ],
+    "occupied": 1,
+    "open_charges": [
+      {
+        "handle_obtained": false,
+        "handle_proven": null,
+        "index": 0,
+        "outcome": "UNKNOWN",
+        "refusal_code": "OLD_REFUSAL",
+        "scenario": "clean_terminal",
+        "settlement_error": null,
+        "settlement_persisted": true
+      }
+    ],
+    "owned_exists": true,
+    "proofs": [],
+    "uncertain": true
+  },
+  "wrong_outer_class": {
+    "caught_credential": false,
+    "caught_type": "RuntimeError",
+    "cleanup_proven": false,
+    "counter_settled": true,
+    "counter_state": "UNKNOWN",
+    "failure_reasons": [
+      "OWNED_ROOT_RETAINED",
+      "UNSETTLED_CHARGE"
+    ],
+    "finalizer_exit": 4,
+    "ledger": [
+      {
+        "admitted_wall": 1794537808.080436,
+        "argv": [
+          "/usr/bin/python3",
+          "-I",
+          "-S",
+          "-B",
+          "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/fixtures/v0_s3_supervisor_fixture.py",
+          "--scenario",
+          "clean_terminal"
+        ],
+        "created": null,
+        "handle_obtained": false,
+        "handle_proven": null,
+        "index": 0,
+        "outcome": "UNKNOWN",
+        "refusal_code": "COPIED_GATE_ERROR",
+        "scenario": "clean_terminal",
+        "settlement_error": null,
+        "settlement_persisted": true
+      }
+    ],
+    "occupied": 1,
+    "open_charges": [
+      {
+        "handle_obtained": false,
+        "handle_proven": null,
+        "index": 0,
+        "outcome": "UNKNOWN",
+        "refusal_code": "COPIED_GATE_ERROR",
+        "scenario": "clean_terminal",
+        "settlement_error": null,
+        "settlement_persisted": true
+      }
+    ],
+    "owned_exists": true,
+    "proofs": [],
+    "uncertain": true
+  }
+}
+CONVERTED_ORACLES_OK

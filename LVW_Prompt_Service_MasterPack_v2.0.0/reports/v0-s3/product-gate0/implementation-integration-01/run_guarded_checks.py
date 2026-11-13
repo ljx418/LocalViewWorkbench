@@ -8,13 +8,20 @@ a socket, resolve a name or start a host process.  Plugin autoload, the
 cache provider and bytecode writing are disabled as well.
 
 The guard has **one owner per process**.  It is installed by the production
-bootstrap of this module, in the ``__main__`` guard, before pytest and
-before any candidate import.  A plain import of this module - the module
-alias that the tests use in order to call ``finalize_session`` and the other
-helpers - never installs a hook and never owns a second gate: the alias
-shares the registry, the gate and the owner of the production entry.  Two
-guards in one process would be two gates, and the second one would veto
-every admitted start of the first one.
+bootstrap of this module, before pytest and before any candidate import.
+A plain import of this module - the module alias that the tests use in order
+to call ``finalize_session`` and the other helpers - never installs a hook
+and never owns a second gate: the alias shares the registry, the gate and the
+owner of the production entry.  Two guards in one process would be two gates,
+and the second one would veto every admitted start of the first one.
+
+The installation is only *promised* after a handshake proved that the hook
+of this process is really active: ``sys.addaudithook`` can raise, and
+CPython can also suppress a new hook silently when an existing policy hook
+raises on the ``sys.addaudithook`` event.  The handshake is side effect free
+and it is bound to the owner of the guard.  A guard that cannot prove its own
+activity fails closed: the run never imports pytest, never imports a
+candidate module and keeps its failure as evidence.
 
 This runner lives in the new report subtree of this batch.  The original
 P3B runner and the original P3B guard are unchanged.
@@ -72,12 +79,31 @@ BLOCKED_EVENTS = (
     "os.forkpty",
 )
 
+# The events that create a process.  The audit event of a process creation
+# is raised *before* the operating system action, so a refusal of one of
+# them is a proven position before the fork: the child was never created.
+PROCESS_CREATION_EVENTS = (
+    "subprocess.Popen",
+    "os.posix_spawn",
+    "os.fork",
+    "os.forkpty",
+)
+
 GUARD_REGISTRY_MODULE = 'lvw_s3_offline_guard_registry'
 # The contract of the executor: an exception that carries this attribute was
 # raised by the guard inside the audit event of a process start.  That audit
 # event is raised before the operating system action, so such a refusal is a
 # proven position before the fork.
 BEFORE_FORK_MARKER = 'lvw_before_fork'
+# The contract of a *proven* refusal: the guard minted a one time credential
+# inside the audit event of one process start and bound it to the executor,
+# to the charge, to the thread and to the action of that start.  The
+# attribute name is shared with the executor; it is the only contract
+# between the two modules.
+REFUSAL_CREDENTIAL = 'lvw_refusal_credential'
+# The handshake of the guard.  It is side effect free and it is bound to the
+# owner of the guard: only the hook of this process answers it.
+GUARD_HANDSHAKE_EVENT = 'lvw.s3.offline.guard.handshake'
 
 
 def _violation_class():
@@ -91,14 +117,33 @@ def _violation_class():
     class OfflineBoundaryViolation(RuntimeError):
         """Raised when the offline boundary would be crossed."""
 
-        def __init__(self, message, *, before_fork=False, code=None, gate_error=None):
+        def __init__(self, message, *, before_fork=False, code=None, gate_error=None,
+                     refusal_credential=None):
             super().__init__(message)
             setattr(self, BEFORE_FORK_MARKER, bool(before_fork))
             self.before_fork = bool(before_fork)
             self.code = code
             self.gate_error = gate_error
+            # The one time credential of a refusal that this guard produced
+            # inside the audit event of a process start.  It is the only
+            # evidence that releases a concurrency slot.
+            setattr(self, REFUSAL_CREDENTIAL, refusal_credential)
 
     return OfflineBoundaryViolation
+
+
+class GuardInstallationError(RuntimeError):
+    """The offline guard of this process is not proven active.
+
+    The installation fails closed: the run never imports pytest, never
+    imports a candidate module and never executes a test.  The failure is
+    written as evidence and the exit code is not zero.
+    """
+
+    def __init__(self, code, detail=None):
+        super().__init__(code)
+        self.code = code
+        self.detail = detail
 
 
 class _GuardRegistry:
@@ -112,13 +157,28 @@ class _GuardRegistry:
     def __init__(self):
         self.owner_id = None
         self.hook_installed = False
+        # The registration of the hook happened.  It is remembered even when
+        # the handshake failed, so a later call never installs a second hook.
+        self.hook_registered = False
         self.hook_install_count = 0
         self.install_attempts = 0
         self.installed_by = None
         self.installed_at = None
+        self.install_error = None
+        # The handshake proves that this hook is really active.
+        self.handshake_count = 0
+        self.handshake_seen_at = None
+        # The token of this registration.  It binds the handshake to the one
+        # registration that owns it, so a hook of an earlier registration of
+        # another registry can never answer it.
+        self.handshake_token = None
         self.violation_class = _violation_class()
         self.process_gate = {"executor": None, "starts": 0, "limit": 0, "allowed": []}
         self.refusals = []
+        # The arguments of the last start that this guard admitted.  It is
+        # the identity of the admission: a hook that runs after this one can
+        # tell that the admission happened in the very event that it sees.
+        self.last_admitted_arguments = None
 
 
 def _guard_registry():
@@ -234,6 +294,13 @@ def finalize_session(*, executor, owned, stdout_handle, stderr_handle, saved_out
                     if any(not proof.get('proven') for proof in proofs):
                         cleanup_proven = False
                         record('CHILD_EXIT_UNPROVEN')
+                    # The settlement of a charge is part of the cleanup: a
+                    # charge that the counter did not accept is still open,
+                    # so the proof of the exit may not present the run as a
+                    # proven cleanup.
+                    if any(proof.get('persisted') is False for proof in proofs):
+                        cleanup_proven = False
+                        record('CHARGE_SETTLEMENT_FAILED')
                 except Exception as error:  # noqa: BLE001 - the failure stays visible
                     cleanup_proven = False
                     record('REAP_FAILED', error)
@@ -330,6 +397,96 @@ def session_identity(role, label, candidate_sha):
     return 'session-' + hashlib.sha256(raw).hexdigest()[:32]
 
 
+def build_effective_command(arguments, outdir):
+    """The complete effective command of this run.
+
+    Every argument that changes the execution is in the command: the modules,
+    the selection, the machine binding and its digest, the role and the
+    candidate claim.  An argument that was not supplied is not invented, so
+    the command reproduces exactly the run that produced the receipt.
+    """
+    command = [sys.executable, "-B", str(Path(__file__).resolve()),
+               "--mode", arguments.mode, "--label", arguments.label,
+               "--outdir", str(outdir)]
+    if arguments.select:
+        command += ["--select", arguments.select]
+    if arguments.modules:
+        command += ["--modules", arguments.modules]
+    if arguments.binding:
+        command += ["--binding", arguments.binding]
+    if arguments.binding_sha256:
+        command += ["--binding-sha256", arguments.binding_sha256]
+    if arguments.role:
+        command += ["--role", arguments.role]
+    if arguments.candidate_sha:
+        command += ["--candidate-sha", arguments.candidate_sha]
+    return command
+
+
+def _argument_pairs(items):
+    """The option and value pairs of an argument list."""
+    pairs = {}
+    index = 0
+    while index < len(items):
+        key = items[index]
+        if not key.startswith('--'):
+            index += 1
+            continue
+        if index + 1 < len(items) and not items[index + 1].startswith('--'):
+            pairs[key] = items[index + 1]
+            index += 2
+        else:
+            pairs[key] = True
+            index += 1
+    return pairs
+
+
+def _normalized_pairs(items):
+    """The argument pairs with an absolute output directory."""
+    pairs = dict(_argument_pairs(items))
+    outdir = pairs.get('--outdir')
+    if isinstance(outdir, str):
+        path = Path(outdir)
+        if not path.is_absolute():
+            path = PACK_ROOT / path
+        pairs['--outdir'] = str(path)
+    return pairs
+
+
+def invocation_evidence(command):
+    """What is known about the outer invocation of this process.
+
+    ``sys.orig_argv`` is the argv of the process that started this one.  A
+    programmatic call of ``main`` has no outer argv of the runner: the fact
+    is reported as such and never guessed.
+    """
+    original = list(getattr(sys, 'orig_argv', None) or [])
+    runner = str(Path(__file__).resolve())
+    if not original:
+        return {'kind': 'UNKNOWN',
+                'reason': 'sys.orig_argv is unavailable',
+                'outer_argv': None, 'outer_matches_effective': None}
+    index = None
+    for position, value in enumerate(original):
+        try:
+            if Path(value).resolve() == Path(runner):
+                index = position
+                break
+        except OSError:
+            continue
+    if index is None:
+        return {'kind': 'programmatic',
+                'reason': 'the runner was not the entry of this process',
+                'outer_argv': original, 'outer_matches_effective': False}
+    outer = original[index + 1:]
+    return {'kind': 'process',
+            'outer_argv': original,
+            'outer_arguments': outer,
+            'effective_arguments': command[3:],
+            'outer_matches_effective': (_normalized_pairs(outer)
+                                         == _normalized_pairs(command[3:]))}
+
+
 def _load_executor_module():
     """Load the independent executor of this report subtree."""
     path = PACK_ROOT / EXECUTOR_RELATIVE
@@ -339,16 +496,31 @@ def _load_executor_module():
     return module
 
 
-def _audit_hook(event, arguments):
+def _audit_hook(event, arguments, registry=None, token=None):
     """The one audit hook of this process.
 
     The hook reads the gate of the process wide registry, never a module
     local gate, so the production entry and a module alias of this file can
     never veto each other.
+
+    The hook is registered bound to the registry and to the handshake token
+    of its own registration.  A hook of an earlier registration of another
+    registry therefore never answers the handshake of this one, and the
+    handshake of a foreign owner is never counted.
     """
-    registry = _guard_registry()
+    if registry is None:
+        registry = _guard_registry()
     gate = registry.process_gate
     violation = registry.violation_class
+    if event == GUARD_HANDSHAKE_EVENT:
+        # The handshake proves that *this* hook is active.  It is bound to
+        # the owner of the guard and to the token of this registration.
+        if (registry.owner_id and arguments and len(arguments) > 1
+                and arguments[0] == registry.owner_id
+                and arguments[1] == registry.handshake_token):
+            registry.handshake_count += 1
+            registry.handshake_seen_at = time.time()
+        return
     if event == "subprocess.Popen" and gate["executor"] is not None:
         try:
             gate["executor"].admit(arguments)
@@ -362,10 +534,68 @@ def _audit_hook(event, arguments):
             raise violation("finite cpu gate refused: " + str(code),
                             before_fork=True, code=code, gate_error=error)
         gate["starts"] += 1
+        registry.last_admitted_arguments = arguments
         return
     if event in BLOCKED_EVENTS:
+        code = 'OFFLINE_BOUNDARY:' + event
+        credential = None
+        if event in PROCESS_CREATION_EVENTS:
+            # The refusal happens inside the audit event of a process
+            # creation.  The executor admitted this start in this very
+            # action, so the guard mints the one time credential that binds
+            # the refusal to that executor, to that charge, to that thread
+            # and to that action.  Only that credential releases a slot.
+            executor = gate.get('executor')
+            mint = getattr(executor, 'mint_refusal_credential', None)
+            if callable(mint):
+                credential = mint(code)
         raise violation(
-            "offline boundary violation: " + event + " " + repr(arguments))
+            "offline boundary violation: " + event + " " + repr(arguments),
+            before_fork=event in PROCESS_CREATION_EVENTS,
+            code=code, gate_error=None, refusal_credential=credential)
+
+
+def _bind_audit_hook(registry, token):
+    """The hook of one registration, bound to its registry and its token."""
+    def hook(event, arguments):
+        return _audit_hook(event, arguments, registry, token)
+    hook.__name__ = '_audit_hook'
+    hook.__qualname__ = '_audit_hook'
+    return hook
+
+
+def guard_handshake(registry=None):
+    """Raise the handshake of the guard of this process.
+
+    The handshake is side effect free and it carries the owner of the guard
+    and the token of its registration.
+    """
+    registry = registry or _guard_registry()
+    if registry.owner_id is None or registry.handshake_token is None:
+        return False
+    sys.audit(GUARD_HANDSHAKE_EVENT, registry.owner_id, registry.handshake_token)
+    return True
+
+
+def confirm_guard_active(registry=None):
+    """Prove that the audit hook of this process is really active.
+
+    The handshake is side effect free: it raises one audit event that only
+    the hook of this registration answers, and it carries the owner of the
+    guard and the token of the registration, so the answer of another owner
+    or of another registration is never counted.  A hook that was never
+    registered, and a registration that CPython silently suppressed, does
+    not answer it.
+    """
+    registry = registry or _guard_registry()
+    if registry.owner_id is None:
+        return False
+    before = registry.handshake_count
+    try:
+        guard_handshake(registry)
+    except Exception:  # noqa: BLE001 - a failed handshake proves nothing
+        return False
+    return registry.handshake_count > before
 
 
 def install_offline_guard():
@@ -376,18 +606,55 @@ def install_offline_guard():
     module - the module alias that the tests use - never installs a second
     hook and never owns a second gate.  The returned value is the owner of
     the one guard of this process; every call returns the same owner.
+
+    The installation is only *promised* after a handshake proved that the
+    hook of this process is really active.  A registration that raised and
+    a registration that CPython silently suppressed both fail closed, and a
+    later call never succeeds on the word of an unconfirmed flag.
     """
     registry = _guard_registry()
     registry.install_attempts += 1
-    if registry.hook_installed:
+    if registry.hook_registered:
+        # The registration already happened: a second call would install a
+        # second hook and a second gate.  The activity is proved again.
+        if not confirm_guard_active(registry):
+            registry.hook_installed = False
+            registry.install_error = 'GUARD_HANDSHAKE_FAILED'
+            raise GuardInstallationError(
+                'GUARD_HANDSHAKE_FAILED',
+                'the audit hook of this process did not answer the handshake')
+        registry.hook_installed = True
+        if registry.hook_install_count == 0:
+            registry.hook_install_count = 1
         return registry.owner_id
     registry.owner_id = 'owner-' + hashlib.sha256(
         str(Path(__file__).resolve()).encode('utf-8')).hexdigest()[:32]
-    registry.hook_installed = True
-    registry.hook_install_count += 1
+    registry.handshake_token = hashlib.sha256(
+        ('%s|%s|%s' % (registry.owner_id, os.getpid(), time.time())).encode('utf-8')
+    ).hexdigest()[:32]
     registry.installed_by = Path(__file__).resolve().name
     registry.installed_at = time.time()
-    sys.addaudithook(_audit_hook)
+    # The registration is remembered before the API is called: a failed
+    # registration never leads to a second call, because a second hook
+    # would be a second gate.
+    registry.hook_registered = True
+    try:
+        sys.addaudithook(_bind_audit_hook(registry, registry.handshake_token))
+    except Exception as error:  # noqa: BLE001 - the refusal is the guard
+        registry.owner_id = None
+        registry.hook_installed = False
+        registry.install_error = 'GUARD_REGISTRATION_FAILED:' + type(error).__name__
+        raise GuardInstallationError('GUARD_REGISTRATION_FAILED', str(error)) from error
+    # The registration may have been suppressed silently by an existing
+    # policy hook.  Only the handshake can tell the difference.
+    if not confirm_guard_active(registry):
+        registry.hook_installed = False
+        registry.install_error = 'GUARD_HANDSHAKE_FAILED'
+        raise GuardInstallationError(
+            'GUARD_HANDSHAKE_FAILED',
+            'the audit hook of this process did not answer the handshake')
+    registry.hook_installed = True
+    registry.hook_install_count += 1
     return registry.owner_id
 
 os.environ["PYTEST_DISABLE_PLUGIN_AUTOLOAD"] = "1"
@@ -528,12 +795,41 @@ def process_accounting(registry, session_evidence):
     }
 
 
+def guard_install_failure(outdir, arguments, error):
+    """Fail closed: the guard of this process is not proven active.
+
+    The run never imports pytest, never imports a candidate module and never
+    executes a test.  The failure is written as evidence next to the other
+    artefacts of the run and the exit code is not zero.
+    """
+    registry = _guard_registry()
+    receipt = {
+        "kind": "S3_P4_OFFLINE_INTEGRATION_GUARDED_CHECK_RECEIPT",
+        "label": arguments.label,
+        "mode": arguments.mode,
+        "outcome": "FAIL",
+        "exit_code": 5,
+        "guard_installed": False,
+        "guard_install_error": str(error),
+        "guard_install_error_code": getattr(error, 'code', 'GUARD_INSTALL_FAILED'),
+        "guard_install_attempts": registry.install_attempts,
+        "guard_handshake_count": registry.handshake_count,
+        "pytest_imported": False,
+        "candidate_imported": False,
+        "real_execution_performed": False,
+        "stage_pass_claim": False,
+        "product_gate0": False,
+    }
+    path = outdir / (arguments.label + ".receipt.json")
+    path.write_text(json.dumps(receipt, ensure_ascii=False, sort_keys=True, indent=2) + "\n",
+                    encoding="utf-8")
+    sys.stderr.write("the offline guard of this process is not proven active: "
+                     + str(error) + "\n")
+    sys.stderr.flush()
+    return 5
+
+
 def main(argv=None):
-    # The guard of this process is installed before pytest and before any
-    # candidate import, whatever the entry point is.  The installation is
-    # idempotent: the production bootstrap of this module has already
-    # installed it, and this call returns the owner of that one guard.
-    install_offline_guard()
     parser = argparse.ArgumentParser()
     parser.add_argument("--mode", required=True, choices=["suite", "focused", "guard"])
     parser.add_argument("--label", required=True)
@@ -552,16 +848,26 @@ def main(argv=None):
                         help="recorded as a claim only, never as an attestation")
     arguments = parser.parse_args(argv)
 
+    outdir = Path(arguments.outdir)
+    if not outdir.is_absolute():
+        outdir = PACK_ROOT / outdir
+    outdir.mkdir(parents=True, exist_ok=True)
+
+    # The guard of this process is installed before pytest and before any
+    # candidate import, whatever the entry point is.  The installation is
+    # idempotent and it is only promised after the handshake proved that
+    # the hook of this process is really active.  A refusal fails closed.
+    try:
+        install_offline_guard()
+    except GuardInstallationError as error:
+        return guard_install_failure(outdir, arguments, error)
+
     binding = load_machine_binding(arguments.binding, arguments.binding_sha256)
     if arguments.modules:
         test_modules = [item for item in arguments.modules.split(',') if item]
     else:
         test_modules = list(TEST_MODULES)
 
-    outdir = Path(arguments.outdir)
-    if not outdir.is_absolute():
-        outdir = PACK_ROOT / outdir
-    outdir.mkdir(parents=True, exist_ok=True)
     stdout_path = outdir / (arguments.label + ".stdout.log")
     stderr_path = outdir / (arguments.label + ".stderr.log")
 
@@ -653,15 +959,33 @@ def main(argv=None):
         failure_reasons = outcome['failure_reasons']
         after = outcome['after_source_sha256']
         session_evidence = outcome['session_evidence']
+    effective_command = build_effective_command(arguments, outdir)
     receipt = {
         "kind": "S3_P4_OFFLINE_INTEGRATION_GUARDED_CHECK_RECEIPT",
         "label": arguments.label,
         "mode": arguments.mode,
         "select": arguments.select,
         "argv": list(sys.argv),
-        "command": [sys.executable, "-B", str(Path(__file__).resolve()),
-                    "--mode", arguments.mode, "--label", arguments.label,
-                    "--outdir", str(outdir)],
+        "orig_argv": list(getattr(sys, 'orig_argv', None) or []),
+        # The complete effective command of this run: it reproduces the run
+        # exactly, including the modules, the selection, the machine binding
+        # and its digest, the role and the candidate claim.
+        "command": effective_command,
+        "command_semantics": ("the complete effective command of this run; it "
+                              "reproduces the run exactly and it is not a base "
+                              "command"),
+        "effective_arguments": {
+            "mode": arguments.mode,
+            "label": arguments.label,
+            "outdir": str(outdir),
+            "select": arguments.select,
+            "modules": arguments.modules,
+            "binding": arguments.binding,
+            "binding_sha256": arguments.binding_sha256,
+            "role": arguments.role,
+            "candidate_sha": arguments.candidate_sha,
+        },
+        "invocation": invocation_evidence(effective_command),
         "candidate_sha_claim": arguments.candidate_sha,
         "candidate_sha_claim_is_attestation": False,
         "machine_binding": arguments.binding,
@@ -683,14 +1007,19 @@ def main(argv=None):
         "collected_count": len(collected),
         "guard_results": guard_results,
         "guard": {
-            "audit_hook_installed_before_pytest": True,
-            "audit_hook_installed_before_product_import": True,
+            "audit_hook_installed_before_pytest": bool(GUARD_REGISTRY.hook_installed),
+            "audit_hook_installed_before_product_import": bool(GUARD_REGISTRY.hook_installed),
             "owner_id": GUARD_REGISTRY.owner_id,
             "hook_install_count": GUARD_REGISTRY.hook_install_count,
             "install_attempts": GUARD_REGISTRY.install_attempts,
             "installed_by": GUARD_REGISTRY.installed_by,
+            "install_error": GUARD_REGISTRY.install_error,
+            "handshake_event": GUARD_HANDSHAKE_EVENT,
+            "handshake_confirmed": bool(GUARD_REGISTRY.handshake_count > 0),
+            "handshake_count": GUARD_REGISTRY.handshake_count,
             "single_owner_gate": True,
             "blocked_events": list(BLOCKED_EVENTS),
+            "process_creation_events": list(PROCESS_CREATION_EVENTS),
             "pytest_disable_plugin_autoload": os.environ.get("PYTEST_DISABLE_PLUGIN_AUTOLOAD"),
             "cacheprovider": "disabled",
             "bytecode_written": False,
@@ -723,8 +1052,7 @@ def main(argv=None):
 
 if __name__ == "__main__":
     # The production bootstrap of this runner.  The global offline guard is
-    # installed here, before pytest and before any candidate import.  The
-    # installation is idempotent and it has exactly one owner per process:
-    # a module alias of this file never installs a second hook.
-    install_offline_guard()
+    # installed by ``main`` before pytest and before any candidate import.
+    # The installation is idempotent and it has exactly one owner per
+    # process: a module alias of this file never installs a second hook.
     sys.exit(main())

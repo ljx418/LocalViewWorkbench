@@ -39,6 +39,16 @@ G5  The custody of a child is taken **immediately** after the operating
 
 The executor never downloads, never opens a socket, never starts a service
 and never touches the original product ledger.
+
+Two rules of the accounting are absolute.  A concurrency slot is released
+only by a refusal that the guard itself proved inside the audit event of
+*this* start: the guard mints a one time credential that is bound to this
+executor, to this charge, to this thread and to this action, and only that
+credential is consumed.  A copied marker, a copied gate error and a
+replayed old refusal keep the charge open.  And a settlement that the
+counter did not accept is never a terminal state: the charge stays pending,
+the session stays uncertain, the finalizer keeps the root and its exit code
+is not zero.
 """
 import fcntl
 import hashlib
@@ -67,8 +77,16 @@ OCCUPIED_STATES = ('PENDING', 'STARTED', 'UNKNOWN')
 REFUSED_BEFORE_FORK = 'REFUSED_BEFORE_FORK'
 TERMINAL_STATES = ('STOPPED', 'TIMED_OUT', 'UNKNOWN', REFUSED_BEFORE_FORK)
 # The contract of the guard: an exception that carries this attribute was
-# raised by the guard inside the audit event of a process start.
+# raised by the guard inside the audit event of a process start.  The marker
+# alone proves nothing: an exception that only *claims* the marker is never
+# trusted with the release of a concurrency slot.
 BEFORE_FORK_MARKER = 'lvw_before_fork'
+# The contract of a *proven* refusal.  The guard mints a credential inside
+# the audit event of one process start and binds it to the executor, to the
+# charge, to the thread and to the action of that start.  Only the live
+# credential of the current action is consumed; a copied marker, a copied
+# gate error and a replayed old refusal are all UNKNOWN.
+REFUSAL_CREDENTIAL = 'lvw_refusal_credential'
 
 
 class CpuGateError(RuntimeError):
@@ -80,6 +98,34 @@ class CpuGateError(RuntimeError):
         self.detail = detail
 
 
+class RefusalCredential:
+    """The one time evidence of a refusal that the guard itself produced.
+
+    The credential is minted by the guard inside the audit event of a
+    process start, in the thread of that start.  It is bound to the
+    executor that took the charge, to the index of that charge, to the
+    thread of the action and to the nonce of the action.  The first
+    settlement that consumes it marks it as consumed, so a replayed
+    exception never releases a second slot.
+    """
+
+    __slots__ = ('executor_id', 'charge_index', 'thread_id', 'action_nonce', 'code',
+                 'consumed')
+
+    def __init__(self, *, executor_id, charge_index, thread_id, action_nonce, code):
+        self.executor_id = executor_id
+        self.charge_index = charge_index
+        self.thread_id = thread_id
+        self.action_nonce = action_nonce
+        self.code = code
+        self.consumed = False
+
+    def describe(self):
+        return {'executor_id': self.executor_id, 'charge_index': self.charge_index,
+                'thread_id': self.thread_id, 'action_nonce': self.action_nonce,
+                'code': self.code, 'consumed': self.consumed}
+
+
 def sha256_file(path):
     digest = hashlib.sha256()
     with open(path, 'rb') as stream:
@@ -88,17 +134,23 @@ def sha256_file(path):
     return digest.hexdigest()
 
 
-def is_proven_before_fork_refusal(error):
-    """Whether an error is a trusted refusal that happened before the fork.
+def refusal_credential_of(error):
+    """The credential that the guard attached to an error, if there is one.
 
-    The refusal must carry the executor's own gate error: an exception that
-    merely claims to be a refusal is not trusted.  The audit event of a
-    process start is raised before the operating system action, so a refusal
-    that the guard raised inside that event is a proven before fork position.
+    Only the *shape* of the credential is checked here.  Whether the
+    credential belongs to the current executor, to the current charge, to
+    the current thread and to the current action is decided by the
+    executor that owns the charge.
     """
-    if getattr(error, BEFORE_FORK_MARKER, False) is not True:
-        return False
-    return isinstance(getattr(error, 'gate_error', None), CpuGateError)
+    credential = getattr(error, REFUSAL_CREDENTIAL, None)
+    if credential is None:
+        return None
+    if getattr(credential, 'consumed', True) is not False:
+        return None
+    for field in ('executor_id', 'charge_index', 'thread_id', 'action_nonce', 'code'):
+        if not hasattr(credential, field):
+            return None
+    return credential
 
 
 def process_birth(pid):
@@ -419,6 +471,9 @@ class FiniteCpuExecutor:
         self.clock = clock or time.monotonic
         self.session_id = session_id or ('session-' + uuid.uuid4().hex)
         self.owner_id = 'owner-' + uuid.uuid4().hex
+        # The identity of this executor.  A refusal credential is bound to
+        # it, so a credential of another executor is never consumed here.
+        self.executor_id = 'executor-' + uuid.uuid4().hex
         self.session_started = self.clock()
         self.limits = counter.limits
         self.children = []
@@ -441,7 +496,10 @@ class FiniteCpuExecutor:
         # The admission of the current thread.  The audit event of a process
         # start is raised in the thread that called the start, so the token
         # binds the charge to the operating system action of that thread.
+        # The *action* is the scope of one start: it carries a nonce that no
+        # other action of this executor can present.
         self._local = threading.local()
+        self._local.action = None
 
     # -- the shared wall of this session ----------------------------------
     def reserve_session(self):
@@ -591,12 +649,65 @@ class FiniteCpuExecutor:
                 'admitted_wall': time.time(), 'handle_obtained': False,
                 'handle_proven': None, 'outcome': 'ADMITTED',
                 'refusal_code': None, 'created': None,
+                'settlement_persisted': None, 'settlement_error': None,
             }
         # The token binds this charge to the operating system action of this
         # thread.  The guard of the runner asks for the admission from inside
-        # the audit event of the start, in the very same thread.
-        self._local.admission = {'index': index, 'scenario': scenario}
+        # the audit event of the start, in the very same thread.  The nonce of
+        # the current action is part of the token: a refusal of another
+        # action can never present it.
+        action = getattr(self._local, 'action', None)
+        self._local.admission = {'index': index, 'scenario': scenario,
+                                 'nonce': action.get('nonce') if action else None}
         return True
+
+    # -- the refusal credential of the guard --------------------------------
+    def mint_refusal_credential(self, code):
+        """Mint the one time credential of a refusal of this action.
+
+        The guard calls this inside the audit event of a process start, in
+        the thread of that start.  A credential exists only when this
+        executor admitted a start in this very action: a refusal without a
+        live admission has no charge to settle and mints nothing.
+        """
+        token = getattr(self._local, 'admission', None)
+        action = getattr(self._local, 'action', None)
+        if token is None or action is None:
+            return None
+        nonce = token.get('nonce')
+        if nonce is None or nonce != action.get('nonce'):
+            return None
+        return RefusalCredential(executor_id=self.executor_id,
+                                 charge_index=token['index'],
+                                 thread_id=threading.get_ident(),
+                                 action_nonce=nonce, code=code)
+
+    def _verify_refusal_credential(self, error, token):
+        """Whether the error carries the live credential of this action.
+
+        The credential must belong to this executor, to this charge, to this
+        thread and to this action, and it must not have been consumed
+        already.  A copied marker, a copied gate error and a replayed old
+        refusal are all rejected here and stay UNKNOWN.
+        """
+        credential = refusal_credential_of(error)
+        if credential is None:
+            return None
+        action = getattr(self._local, 'action', None)
+        if action is None or token is None:
+            return None
+        if credential.executor_id != self.executor_id:
+            return None
+        if credential.thread_id != threading.get_ident():
+            return None
+        if credential.action_nonce != action.get('nonce'):
+            return None
+        if credential.charge_index != token.get('index'):
+            return None
+        if token.get('nonce') != action.get('nonce'):
+            return None
+        credential.consumed = True
+        return credential
 
     # -- G5: the custody of the started children --------------------------
     def spawn(self, command):
@@ -612,6 +723,10 @@ class FiniteCpuExecutor:
         proved before the fork, or as an unknown custody that keeps its
         slot, its reservation and the owned root.
         """
+        # The scope of this action.  The nonce of the action is what a
+        # refusal credential of this action has to present.
+        action = {'nonce': uuid.uuid4().hex}
+        self._local.action = action
         self._local.admission = None
         try:
             process = subprocess.Popen(command, stdin=subprocess.PIPE,
@@ -622,6 +737,7 @@ class FiniteCpuExecutor:
             raise
         token = getattr(self._local, 'admission', None)
         self._local.admission = None
+        self._local.action = None
         entry = self._take_custody(process, token)
         try:
             self._ensure_watchdog()
@@ -638,49 +754,74 @@ class FiniteCpuExecutor:
         never removed and never refunded.  Two terminal states are possible:
 
         ``REFUSED_BEFORE_FORK``
-            The guard refused inside the audit event of the start.  That
-            event is raised before the fork, so the child was not created.
-            The concurrency slot of the charge is released and the root may
-            be removed.
+            The guard refused inside the audit event of the start and
+            proved it with the one time credential of this very action.
+            That event is raised before the fork, so the child was not
+            created.  The concurrency slot of the charge is released and
+            the root may be removed.
 
         ``UNKNOWN``
             Every other failure of the operating system action may have had
             side effects.  The charge keeps its slot, the session becomes
             uncertain and the owned root is kept.
+
+        A settlement that the counter did not accept changes neither of
+        them: the charge stays in the pending set, it is not written as a
+        terminal state and the session stays uncertain.  The reaper settles
+        it again and the finalizer keeps the root.
         """
         token = getattr(self._local, 'admission', None)
         self._local.admission = None
         if token is None:
             # No admission was charged for this action: nothing is settled.
+            self._local.action = None
             return None
         index = token['index']
-        with self._lock:
-            if index in self._pending:
-                self._pending.remove(index)
-        if is_proven_before_fork_refusal(error):
+        credential = self._verify_refusal_credential(error, token)
+        self._local.action = None
+        if credential is not None:
             state = REFUSED_BEFORE_FORK
             created = False
-            code = getattr(getattr(error, 'gate_error', None), 'code', None)
+            code = credential.code
             spent = 0.0
         else:
             state = 'UNKNOWN'
             created = None
-            code = getattr(error, 'code', type(error).__name__)
+            code = getattr(getattr(error, 'gate_error', None), 'code', None)
+            if code is None:
+                code = getattr(error, 'code', type(error).__name__)
             spent = None
             # The custody of a possible child is unknown: the session may
             # not admit another start and the root may not be removed.
             self.uncertain = True
+        persisted = False
+        settlement_error = None
         try:
-            self.counter.finish(index, state=state, exit_code=None, spent=spent,
-                                pid=None, birth=None)
-        except CpuGateError:
+            persisted = self.counter.finish(index, state=state, exit_code=None,
+                                            spent=spent, pid=None,
+                                            birth=None) is True
+        except CpuGateError as failure:
+            settlement_error = failure.code
+        if not persisted:
+            # The terminal state was not persisted.  The charge is not
+            # removed from the pending set, it is not written as a settled
+            # terminal state and the session stays uncertain.
             self.uncertain = True
+            state = 'UNKNOWN'
+            created = None
+            code = settlement_error or code
+        else:
+            with self._lock:
+                if index in self._pending:
+                    self._pending.remove(index)
         with self._lock:
             record = self._charges.get(index)
             if record is not None:
                 record['outcome'] = state
                 record['created'] = created
                 record['refusal_code'] = code
+                record['settlement_persisted'] = persisted
+                record['settlement_error'] = settlement_error
         return state
 
     def _take_custody(self, process, token=None):
@@ -855,25 +996,38 @@ class FiniteCpuExecutor:
             else:
                 entry['state'] = 'STOPPED'
             entry['proven'] = proven
-            proofs.append({'index': entry['index'], 'state': entry['state'],
-                           'exit_code': exit_code, 'spent_wall_seconds': spent,
-                           'timed_out': entry['timed_out'], 'pid': entry['pid'],
-                           'birth': entry['birth'], 'proven': proven,
-                           'handle_obtained': True})
+            # The settlement of the charge is the last accounting step of
+            # this child.  A settlement that the counter did not accept
+            # leaves the charge open: the proof of the exit may never be
+            # presented as a proven cleanup.
+            persisted = True
+            settlement_error = None
             if entry['index'] is not None:
                 try:
-                    self.counter.finish(entry['index'], state=entry['state'],
-                                        exit_code=exit_code, spent=spent,
-                                        pid=entry['pid'], birth=entry['birth'])
-                except CpuGateError:
+                    persisted = self.counter.finish(
+                        entry['index'], state=entry['state'], exit_code=exit_code,
+                        spent=spent, pid=entry['pid'], birth=entry['birth']) is True
+                except CpuGateError as failure:
+                    persisted = False
+                    settlement_error = failure.code
+                if not persisted:
                     entry['state'] = 'UNKNOWN'
                     self.uncertain = True
                 with self._lock:
                     record = self._charges.get(entry['index'])
                     if record is not None:
                         record['handle_proven'] = proven
-                        if not proven:
+                        record['settlement_persisted'] = persisted
+                        record['settlement_error'] = settlement_error
+                        if not proven or not persisted:
                             record['outcome'] = 'UNKNOWN'
+            proofs.append({'index': entry['index'], 'state': entry['state'],
+                           'exit_code': exit_code, 'spent_wall_seconds': spent,
+                           'timed_out': entry['timed_out'], 'pid': entry['pid'],
+                           'birth': entry['birth'], 'proven': proven,
+                           'persisted': persisted,
+                           'settlement_error': settlement_error,
+                           'handle_obtained': True})
         # Every admission that never produced a handle is settled here.  The
         # charge was taken before the operating system action, so it is never
         # removed and never refunded: an unknown custody keeps its slot and
@@ -882,19 +1036,26 @@ class FiniteCpuExecutor:
             leftover = list(self._pending)
             self._pending.clear()
         for index in leftover:
+            persisted = False
+            settlement_error = None
             try:
-                self.counter.finish(index, state='UNKNOWN', exit_code=None, spent=None)
-            except CpuGateError:
-                pass
+                persisted = self.counter.finish(index, state='UNKNOWN', exit_code=None,
+                                               spent=None) is True
+            except CpuGateError as failure:
+                settlement_error = failure.code
             self.uncertain = True
             with self._lock:
                 record = self._charges.get(index)
                 if record is not None:
                     record['outcome'] = 'UNKNOWN'
                     record['created'] = None
+                    record['settlement_persisted'] = persisted
+                    record['settlement_error'] = settlement_error
             proofs.append({'index': index, 'state': 'UNKNOWN', 'exit_code': None,
                            'spent_wall_seconds': None, 'timed_out': False,
                            'pid': None, 'birth': None, 'proven': False,
+                           'persisted': persisted,
+                           'settlement_error': settlement_error,
                            'handle_obtained': False,
                            'reason': 'ADMITTED_WITHOUT_HANDLE'})
         if all(proof['proven'] for proof in proofs):
@@ -917,10 +1078,11 @@ class FiniteCpuExecutor:
     def unsettled_charges(self):
         """The charges of this executor that no proof has settled.
 
-        A charge that was admitted but never produced a handle, and a charge
-        whose exit was never proven, are unsettled: they keep their
-        concurrency slot and they keep the owned root.  The finalizer may
-        not report a proven cleanup while such a charge exists.
+        A charge that was admitted but never produced a handle, a charge
+        whose exit was never proven and a charge whose settlement was not
+        persisted are unsettled: they keep their concurrency slot and they
+        keep the owned root.  The finalizer may not report a proven cleanup
+        while such a charge exists.
         """
         unsettled = []
         with self._lock:
@@ -928,13 +1090,16 @@ class FiniteCpuExecutor:
         for record in records:
             open_charge = (record['outcome'] in ('ADMITTED', 'UNKNOWN')
                            or (record['handle_obtained']
-                               and record['handle_proven'] is not True))
+                               and record['handle_proven'] is not True)
+                           or record.get('settlement_persisted') is False)
             if open_charge:
                 unsettled.append({'index': record['index'],
                                   'scenario': record['scenario'],
                                   'outcome': record['outcome'],
                                   'handle_obtained': record['handle_obtained'],
                                   'handle_proven': record['handle_proven'],
+                                  'settlement_persisted': record.get('settlement_persisted'),
+                                  'settlement_error': record.get('settlement_error'),
                                   'refusal_code': record['refusal_code']})
         return unsettled
 
@@ -961,8 +1126,14 @@ class FiniteCpuExecutor:
         without_handle = [{'index': record['index'],
                            'scenario': record['scenario'],
                            'outcome': record['outcome'],
-                           'refusal_code': record['refusal_code']}
+                           'refusal_code': record['refusal_code'],
+                           'settlement_persisted': record.get('settlement_persisted')}
                           for record in ledger if not record['handle_obtained']]
+        settlement_failures = [{'index': record['index'],
+                                'outcome': record['outcome'],
+                                'settlement_error': record.get('settlement_error')}
+                               for record in ledger
+                               if record.get('settlement_persisted') is False]
         return {
             'kind': 'lvw.s3-finite-cpu-session/1',
             'role': self.role,
@@ -986,6 +1157,7 @@ class FiniteCpuExecutor:
             'child_handles_obtained': obtained,
             'proven_child_handles': proven,
             'charges_without_handle': without_handle,
+            'settlement_failures': settlement_failures,
             'charge_ledger': ledger,
             'children': [{'index': entry['index'], 'state': entry['state'],
                           'exit_code': entry['exit_code'],

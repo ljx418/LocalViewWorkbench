@@ -1,0 +1,20 @@
+# The read only proof that this round did not touch the shared counter
+# command: sha256sum /tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json && python3 -c "read the counter"
+# read at: 2026-11-13T02:42:38Z
+#
+counter_path = /tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json
+sha256 = 8cc8ed9ac56f92db817bfc79dacfb69145adf8ade6f7c4605551ca7dd4f5dc37
+active = False
+starts_total = 2 starts_by_role = {'implementation': 2, 'independent_review': 0}
+reserved_wall_seconds = 120.0 spent_wall_seconds = 2.896
+charges = [(0, 'PENDING', False, None), (1, 'PENDING', False, None)]
+sessions = [('session-5cc6f255f8b579ae5cb94931d71379eb', 'SETTLED', 0.708), ('session-a1c075996f29bcac7e48dabd0ef9eed3', 'SETTLED', 2.188)]
+#
+# The sha256 above is the sha256 that the independent review recorded
+# before and after its own round (8cc8ed9ac56f92db817bfc79dacfb69145adf8ade6f7c4605551ca7dd4f5dc37):
+# the bytes are identical.  active=false, two PENDING charges,
+# reserved 120, spent 2.896 and starts_total 2 are unchanged.  This
+# round never opened the counter for writing, never ran a runner that
+# carried a machine binding and never created a fixture child.  The
+# two historical PENDING charges are NOT refunded, NOT cleared and NOT
+# consumed; the reconciliation of them stays with the root.

@@ -1,0 +1,75 @@
+# The conversion of the oracles of the independent review
+#
+# The independent review of the candidate 74ff021934afef661f8c7e8c1c4f11b26f7c3360
+# shipped a script whose oracles asserted the presence of the defects: the
+# script exited 0 when the defect reproduced.  That is a reproduction, not
+# an acceptance.  This round keeps every original trigger condition and
+# inverts every oracle: the defect must now be rejected and it must never
+# be green.
+#
+# source of the starting point:
+#   reports/v0-s3/product-gate0/audit-correction-review-01/received/negative_probes.py
+#   (sha256 recorded by the review in evidence-hashes.json)
+# the converted script of this round:
+#   reports/v0-s3/product-gate0/implementation-integration-audit-correction-02/
+#     negative_probes_correction02.py
+#
+# ---------------------------------------------------------------------------
+# case                       OLD ORACLE (the defect)  NEW ORACLE (the fix)
+# ---------------------------------------------------------------------------
+# marker_only                UNKNOWN                   UNKNOWN      (unchanged control)
+# wrong_outer_class          REFUSED_BEFORE_FORK       UNKNOWN, occupied 1,
+#                                                     cleanup_proven false,
+#                                                     finalizer non zero,
+#                                                     owned root kept
+# stale_guard_error          REFUSED_BEFORE_FORK       UNKNOWN, occupied 1,
+#                                                     cleanup_proven false,
+#                                                     owned root kept
+# failed_finish              PENDING and              PENDING and
+#                            cleanup_proven TRUE       cleanup_proven FALSE,
+#                                                     finalizer non zero,
+#                                                     owned root kept, at least
+#                                                     one open charge
+# installation_failure       api_calls == [hook]       api_calls == [hook] and
+#                                                     the install REFUSES,
+#                                                     reported_installed false,
+#                                                     reported_count 0, a second
+#                                                     call refuses again
+# real_api_silent_rejection  reported_installed true,  reported_installed false,
+#                            probe_seen []             reported_count 0, the
+#                                                     install REFUSES, the new
+#                                                     registration answered no
+#                                                     handshake
+# ---------------------------------------------------------------------------
+# The four directed production path cases that this round adds:
+#
+# m1_real_guard_positive     the real guard of the runner refuses the process
+#                            creation inside the audit event of this very start:
+#                            REFUSED_BEFORE_FORK, occupied 0, the credential of
+#                            this action is carried by the refusal, cleanup
+#                            proven
+# m1_replay_negative         the refusal of an earlier action replayed in a
+#                            later action: the states are
+#                            [REFUSED_BEFORE_FORK, UNKNOWN] and the slot of the
+#                            second charge is kept
+# m2_persisted_positive      a settlement that the counter accepted: the charge
+#                            has a real terminal state and the ledger says
+#                            settlement_persisted true
+# m3_handshake_positive      the handshake of the owner is counted, the
+#                            handshake of a foreign owner is not
+# m3_registration_failure_*  the two installation failures fail closed
+# m1_command_positive        the effective command carries the modules, the
+#                            selection, the binding, the digest of the binding,
+#                            the role and the candidate claim
+# m1_invocation_negative     the outer invocation of a programmatic call is
+#                            reported as programmatic or UNKNOWN and never
+#                            invented
+# ---------------------------------------------------------------------------
+# The exit code of the converted script is 0 only when every converted oracle
+# holds.  The old script and the converted script are not comparable by their
+# exit code alone: the old script exited 0 when the defects reproduced, the
+# converted script exits 0 when the defects are rejected.
+#
+# The script installs its own boundary before any candidate import, it writes
+# only temporary synthetic counters and it never opens the real shared
+# counter for writing.
