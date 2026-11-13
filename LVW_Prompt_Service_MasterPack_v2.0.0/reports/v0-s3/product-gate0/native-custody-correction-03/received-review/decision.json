@@ -1,0 +1,81 @@
+{
+  "candidate_sha": "37d938b983e53fee829ef1579373a97403f41d0c",
+  "baseline": "9352a34cfa8ea9715437b5ffa5d411369dd5548d",
+  "decision": "CHANGES_REQUIRED",
+  "fatal": 0,
+  "major": 8,
+  "minor": 1,
+  "closed": [
+    "M01",
+    "M02",
+    "M10",
+    "m01"
+  ],
+  "open": [
+    "M03",
+    "M04",
+    "M05",
+    "M06",
+    "M07",
+    "M08",
+    "M09",
+    "M11"
+  ],
+  "minor_nonblocking": [
+    {
+      "id": "m02",
+      "location": "tools/v0_s3_native_broker.py:_start_reader and _PendingResources docstrings",
+      "issue": "Disclosed stale transfer wording; actual reader references retained and recovery independently observed"
+    }
+  ],
+  "batch": {
+    "cases": 41,
+    "oracle_pass": 21,
+    "oracle_fail": 20,
+    "exit_codes": [
+      0,
+      1,
+      0
+    ],
+    "seconds": 16.39154218501062,
+    "cleanup_proven_for_batch": true,
+    "product_cleanup_distinct": true
+  },
+  "plan_sha256": "0011cb5313cc3b13519e1a1317e9d51e8ae9ac5fd1b9daa65ae169727fa7e6f8",
+  "ack": "msg_fad19996e808",
+  "probe_limitations": [
+    "M11_nonce_mapping rejected at expired synthetic lease before default launcher; target mapping only statically reviewed",
+    "M08 heartbeat budget subprobe verified 1025 receive count refusal; shared-total boundary remains static only",
+    "M04 WindowsApi returns18 but Core rejects above17; no end-to-end descendant-cap bypass claimed",
+    "FD and full thread inventory at batch boundaries; per-case resource snapshots differ by owner path",
+    "No actual Windows API, WinDLL, msvcrt, OS process, Job execution"
+  ],
+  "historical": {
+    "first117": {
+      "passed": 97,
+      "failed": 20,
+      "cleanup": false,
+      "threads_retained": [
+        "pump",
+        "heartbeat"
+      ]
+    },
+    "corrected117": {
+      "passed": 117,
+      "failed": 0,
+      "cleanup": true
+    },
+    "source_recovery": {
+      "custody": "EXACT_OLD_HASH_VERIFIED",
+      "broker": "MISSING",
+      "test": "MISSING"
+    },
+    "old_positive_results_not_migrated": true
+  },
+  "native_proven": false,
+  "stage_pass_claim": false,
+  "product_gate0": false,
+  "grant_authority": "NOT_VERIFIED",
+  "admission_produced": false,
+  "report": "review.md"
+}

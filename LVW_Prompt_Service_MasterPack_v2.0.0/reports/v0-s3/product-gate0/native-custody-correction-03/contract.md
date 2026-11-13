@@ -1,0 +1,29 @@
+# N1纠偏03：8个开放Major集中闭合，冻结可执行Oracle
+
+起始候选/HEAD37d938b983e53fee829ef1579373a97403f41d0c；独审msg_4d5efa380640 F0/M8/m1，原41probe21PASS20FAIL且批次清理通过。采纳M03/M04/M05/M06/M07/M08/M09/M11全部有效发现；M01/M02/M10/m01已关闭不重新设计。m02为非阻断旧docstring，本次源码本就要改，可同步纠正无需为一句文字单独复跑。旧117/117只证明作者断言，不作为本包闭合证据。
+
+唯一ClaudeCode owner。只允许三现有N1源tools/v0_s3_native_custody.py、tools/v0_s3_native_broker.py、tools/test_v0_s3_native_custody.py，以及可新增tools/test_v0_s3_native_custody_regressions.py（承接本包冻结Oracle），NEW报告implementation-native-custody-correction-03。旧controller/worker/supervisor/runtime/driver/authority/协议/公共schema/质量门限/control/MANIFEST/旧证据全部不改，native拒绝点保留。禁止派生Agent/清理旧工作区/批量gitadd。
+
+## A：原始owner、partial和查询（M03-M07/M09）
+WindowsApi.create_process_suspended成功CreateProcess的瞬间即把原process/thread纳入WindowsApi的持有表；异常不能仅在局部列表或exception detail留下整数。Core始终持有该API对象，未成功移交者由API保留原句柄和恢复入口。_release_created必须核Wait返回，确认退出与确认CloseHandle分别记录；birth原始错误与secondary cleanup错误并存。DeleteProcThreadAttributeList、NUL.close、birth query及后续释放互为独立清理，不允许前一清理异常跳过后面全部；取消也清理后传播，首错误不被后错误覆盖。
+Job query仅当8<=returned_length<=allocated、needed<=returned_length且两个count一致且<=cap17时接受；异常/零返回长度/反向不一致/超限/截断都UNKNOWN。合法空Job也需要完整header，不把0长度当[]；调用者不用再猜测API结果是否完整。
+原资源表语义只有OWNED/PENDING→TRANSFERRED_TO_NAMED_OWNER→CLOSED_CONFIRMED；只有关闭成功才能忘记句柄。Job close失败不take不job=None；可以在另一明确retained owner表中保留，但不能仅复制错误字符串。实际reader活着的原引用/handle及恢复已独审通过保持，修文档不改该保证。
+Core.stop清理步骤是彼此独立的bounded finalizer：terminateJob、原process等待与关闭、reader停止、job查询与关闭、诊断，各自失败仍尝试其他可安全执行项；记录原错误和次级错，UNKNOWN/未完成不能置_released=True阻止未来同owner清理恢复。重复stop不重发模型/创建服务，也不双关成功关闭句柄；对未确认资源只在原共享cleanup deadline内协调，不无限重试。
+Session.start全生命周期try/finally从取得broker前开始，取得后identity读取/pump构造/start及心跳初始化都在保护范围；线程启动失败也要有界收原peer，普通错返回结构化终态，KI/SystemExit清理后传播。launcher在Popen成功后但channel构造/登记失败时自己负责原Popen/pipe终态，不能让Session根本没拿到对象而资源无人拥有。
+
+## B：一个真正的截止和序列owner（M08）
+不能再用“冻结了deadline数值”替代执行时约束。arm之前冻结两类时钟deadline；在每个启动操作前/返回后/任何后续create或Resume前核是否已耗尽，超期只能清理、不继续启动。可能阻塞的bootstrap/IO不能在唯一监督线程内无界执行；只允许一个有限in-flight启动owner通道，已获得的句柄即时登记，取消后晚到结果只能清理，不能late resume。无法结束的实际原调用保留线程/句柄owner与UNKNOWN，不声称清理完成，不用daemon丢弃；无真实Windows执行或父崩溃证明。
+共享cleanup绝对截止在第一次STOP/失败清理入口生成deadline=min(original_monotonic_deadline,now+5s)，作为同一个值贯穿Session._send/_stop_background/_close_broker→BrokerProcess.close→StreamChannel/endpoint/Windows worker/Core每process/reader等待。每次调用重算max(0,deadline-clock())，没有stale budget、每层额外5s或两个wait各5s。超期不得继续新等待，只保留UNKNOWN和原owner。
+父序列、双向总frame计数、heartbeat与STOP由一个IO生命周期owner管理：优先将heartbeat/pump调度合并为一个有界IO循环，或保持现有线程但必须在同一锁内完成encode→选sequence→reserve budget→send→commit，不能锁外提前构造同seq；STOP先阻断后续heartbeat，不死锁/自join。接收端也核sent+received+reserved<=1024；broker STOP分支同样核总预算，不能跳过，预留终态帧。60s heartbeat/120s缺失窗不变，heartbeat不得绝对lease到期后发包、不得延长lease；heartbeat或pump错误必须主动闩锁UNKNOWN并发起非自join的有界收口，不能只追加字符串继续RUNNING。
+StreamChannel无换行buffer每次append就核最大32KiB及one-over，EOF非空partial frame是具名错误，不能默默丢弃；队列满每轮核cancel/deadline，所有read都拿到实际有效deadline（后续bind不能改变已经传None的局部参数，需要共享收紧期限或按短切片重新读取）。
+Windows write必须循环partial WriteFile直到完整frame或具名失败，上层检查完整写数，不能写1字节当成功。每endpoint固定reader/writer工作线程生命周期状态明确IDLE/QUEUED/IN_IO/CANCELLING/DONE/STOPPED，不能复用永不clear的inside Event；submit禁止无界queue.put，thread.handle创建失败或worker已死即拒。取消首先停止接收新任务，NOT_FOUND竞争需有界复核直到done/stopped或共享截止，不能只发一次取消就丢弃；done不是thread已退出。每个duplicate_current_thread_handle有明确唯一关闭owner，stop+join成功后关闭；join失败原thread HANDLE/file/worker都保留，不能在活worker下关_file，不靠GC。生产API取消请求不等于完成，真实运行能力仍NOT_PROVEN。
+
+## C：终态事实与普通错误（M09/M11）
+Session的broker.close只有明确dict内channel_closed/process_exited/process_handle_released及所需reader事实全部为True才释放引用/沿用RELEASED；None、缺字段、false、unknown或exception皆UNKNOWN，保留同一个原broker。_stop_background失败保留_heartbeat/_pump引用及error，不设None掩盖alive。Posix endpoint只有close成功才不可逆_closed，失败保留原FD owner可协调；Windows retained_workers/error向channel→broker→Session完整传递，reader结束但error未处理不当成功。
+默认32hex已修保持。默认launcher普通BrokerError必须保留原error.code（包括unsupported平台）并返回结构化REFUSED/UNKNOWN，不原样raise泛型BrokerError；仅KI/SystemExit清理后传播。验证默认路径时注入有效fake wall/租约，原独审M11探针提前expired为probe限制，别重现这个错误。
+
+## 回归机制与证据（本包要求）
+regression-obligations.json由root冻结，16组关键触发/Oracle来自此次独审有效失败，禁止实现者修改。新增或现有测试逐组映射，直接驱动实际生产方法（WindowsApi注入纯原语表、真实Python worker/session/loop），不能用只返回正确故事的fake绕开失败路径。刻意关闭失败允许UNKNOWN+保留原引用，不要求资源假消失；丢引用/假RELEASED则失败。每个case先记录产品返回时资源/线程再由明确测试owner salvage，不能据测试终态清洁宣布产品返回清洁。
+本包三个N1源都实质变化，允许一次完整当前N1子树+新增冻结回归的同批检查；具体nodeids/有序collection分母在准备完成时冻结，不能运行后删case/降低断言。旧54失败/32通过/117失败97/20与两个线程/117纠正全绿/独审41的21/20分别保存，不迁移旧成功行给新候选。
+为避免再次丢失失败源码，本包在任何动态验证前必须先对四个允许源码和执行报告脚本做一次精确路径本地Git候选提交并自核hash，再提交运行计划给root。不能把未提交的三源跑失败后覆盖，不能批量add旧工作区文件；报告后继提交可以只新增收据。若Git暂存冲突/权限未知，先问root，不reset/clean。此为本包候选绑定要求，不改变全项目流程或请求新人批。
+先静态实现/AST，禁止import候选/pytest。完成后askroot一次精确有限执行计划（候选SHA、source/tool/原223命名依赖文件pins、纯stdlib三pins及单次dlopen(None)窗口、外部guard、绝对argv/cwd、<=300s、真实FD身份/线程/raw logs）。root ACK后仅一次；失败保留不自动修复覆盖原候选，需新候选与明确纠正计划。只有本进程facade/合成文件/owned ctypes buffers，硬拒真实WindowsAPI/Job/服务/模型/GPU/OS业务进程/socket/sqlite/原ledger/媒体/网络/下载/一般dlopen和全部dlsym。counter仅外层前后一次只读acbdb8b154864b6f079ae783d670f11ec138b6be0617d1fa4f56c28c33223b98 inactive28/240/12.362，不写退款清零新建/复活。FIRST429停WAIT_BUDGET不retry/切路由/由Codex接手；FIRST审批拒绝/超时停不包装绕过。独审、人签、I24/产品12/native/Windows/A06/余额/质量未证边界保留，只READY_FOR_REVIEW不StagePASS。

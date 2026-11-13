@@ -1,0 +1,104 @@
+{
+  "kind": "ROOT_FROZEN_N1_CORRECTION03_REGRESSION_OBLIGATIONS",
+  "scope": "Internal component obligations; not a replacement release denominator",
+  "candidate_baseline": "37d938b983e53fee829ef1579373a97403f41d0c",
+  "items": [
+    {
+      "id": "N03-R01",
+      "finding": "M03",
+      "trigger": "After process creation birth query fails; termination wait TIMEOUT and both CloseHandle fail",
+      "oracle": "Original API owner retains process/thread references and primary plus cleanup errors; no fake RELEASED; later owner-only recovery possible"
+    },
+    {
+      "id": "N03-R02",
+      "finding": "M03",
+      "trigger": "Attribute-list cleanup raises ordinary exception after successful CreateProcess",
+      "oracle": "Independent NUL/process/thread cleanups still attempted; primary retained and all unresolved original handles belong to persistent owner"
+    },
+    {
+      "id": "N03-R03",
+      "finding": "M04",
+      "trigger": "Job query returned0 bytes with counts0/0 or1/1, reverse count mismatch0/1, reported>allocated, truncated, cap+1",
+      "oracle": "Every malformed/incomplete result UNKNOWN, never empty/success; positive exact buffer and zero-job header>=8 accepted"
+    },
+    {
+      "id": "N03-R04",
+      "finding": "M05",
+      "trigger": "Job limits fail then job CloseHandle fails",
+      "oracle": "core.job and/or explicit API owner retain original job101; pending/retained evidence names it; no unconditional take/None"
+    },
+    {
+      "id": "N03-R05",
+      "finding": "M06",
+      "trigger": "TerminateJob ordinary exception during stop, diagnostics fail too",
+      "oracle": "All independent later cleanups attempted, original exception primary preserved, pending resources retained, UNKNOWN and no false completed/released latch"
+    },
+    {
+      "id": "N03-R06",
+      "finding": "M07",
+      "trigger": "After launch peer identity access/pump start/heartbeat start fails or is cancelled; production channel construction fails after Popen",
+      "oracle": "All acquired original broker/pipe/thread references owned and cleanup attempted before failure return; cancellation propagates; failed cleanup retains owner"
+    },
+    {
+      "id": "N03-R07",
+      "finding": "M08",
+      "trigger": "Arm call consumes absolute lease then returns; startup call blocks then completes after cancellation",
+      "oracle": "No role creation/resume/STATUS success after expiry; independent owner returns bounded UNKNOWN with retained in-flight operation, late completion can only cleanup"
+    },
+    {
+      "id": "N03-R08",
+      "finding": "M08",
+      "trigger": "Channel close consumes4s of shared5s then two process waits time out",
+      "oracle": "All nested operations use same absolute deadline, total fake clock never beyond5s; no fresh timeout/join at each layer"
+    },
+    {
+      "id": "N03-R09",
+      "finding": "M08/M09",
+      "trigger": "Windows partial WriteFile returns1 of6; owned I/O thread returns done but still waits; thread HANDLE acquired",
+      "oracle": "Full6 bytes or explicit failure; stopped/joined worker and closed original duplicated HANDLE or retained UNKNOWN; no close of file beneath live worker"
+    },
+    {
+      "id": "N03-R10",
+      "finding": "M08",
+      "trigger": "Cancellation before IO entry returns NOT_FOUND, worker enters later; worker copy-thread-handle fails; queue already full",
+      "oracle": "No unbounded put/join, cancellation state prevents new IO; bounded repeat cancellation or named UNKNOWN with exact retained original references"
+    },
+    {
+      "id": "N03-R11",
+      "finding": "M08",
+      "trigger": "Heartbeat write fails, pump fails, absolute deadline elapses, STOP races heartbeat",
+      "oracle": "Latch UNKNOWN and bounded close without self-join; no later STATUS beyond lease; encode+sequence+reserve+send one atomic owner"
+    },
+    {
+      "id": "N03-R12",
+      "finding": "M08",
+      "trigger": "Bidirectional sent+received+reserved exact1024 and one-over on BOTH receive and send, including STOP",
+      "oracle": "Exact allowed within reserved final budget; one-over fails before allocation/send/accept; no independent directional cap substitution"
+    },
+    {
+      "id": "N03-R13",
+      "finding": "M08",
+      "trigger": "Two large chunks without newline, then EOF; queue is full with cancel/lease expiry",
+      "oracle": "Buffer<=32KiB(+one detection byte), oversize refused immediately, incomplete EOF named failure, wait loop observes cancellation/deadline"
+    },
+    {
+      "id": "N03-R14",
+      "finding": "M09",
+      "trigger": "Close returns None or explicit false, reader.error/alive or retained Windows worker present; close retry after failure",
+      "oracle": "No RELEASED on missing evidence; same broker/thread/endpoint handle reference retained until confirmed; failed endpoint not marked closed irreversibly"
+    },
+    {
+      "id": "N03-R15",
+      "finding": "M11",
+      "trigger": "Valid fake wall/lease reaches default launcher and gets BROKER_PLATFORM_UNSUPPORTED",
+      "oracle": "Return stable named structured refusal/UNKNOWN including original code; only cancellation propagates, no side effects before invalid input refusal"
+    },
+    {
+      "id": "N03-R16",
+      "finding": "all",
+      "trigger": "Positive complete owned lifecycle, actual retained reader gate then recovery, previous fixed directory/seal/API/sampler cases",
+      "oracle": "No regression of closed items; prove product-return state separately from test salvage; current native claims remain NOT_PROVEN"
+    }
+  ],
+  "mutable_by_implementer": false
+}
