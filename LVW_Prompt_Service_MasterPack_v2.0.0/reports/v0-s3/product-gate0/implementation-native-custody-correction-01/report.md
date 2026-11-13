@@ -332,7 +332,8 @@ def create_job(self):
 * **最多 1 批，≤ 300 s**；`cwd` 为包根；argv 为绝对路径
   `['/usr/bin/python3.12','-I','-B','<abs runner.py>','--plan','<abs plan.json>']`；
   tool `/usr/bin/python3.12` sha256 `e50d468e8b0adfb05733f5b87b3cff34829c4a8c1aea50c865aa8bdfe4bb150f`；
-  source pins 逐文件 sha256（18+2 项）；raw logs 与 receipt 落在本 NEW 目录。
+  source pins 逐文件 sha256（**20 项**，含本 NEW 目录的 report/guard/runner 与历史
+  证据件）；raw logs 与 receipt 落在本 NEW 目录。
 * **失败原样留存**，不自动补跑、不换路由。
 
 **在 root ACK 之前，本轮不会导入、collect 或跑 pytest。**
